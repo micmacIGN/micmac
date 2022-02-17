@@ -75,12 +75,15 @@ class cAppliEpiBasic
           bool        mExe;     // Do we execute or only print command
           int         mZoom0;   // Zoom first step
           int         mInc;     // Inc Px
-		  double      mRegul;
-		  int         mSzW;
+          int         mPxMoy;     // Inc Px
+          double      mRegul;
+          int         mSzW;
           float       mNbPix0;
           float       mCsteInc;
           float       mRatioInc;
           int         mNbProc;
+          std::string mFileExp; // Name of second image
+          std::string mPyr;
 };
 
 void cAppliEpiBasic::InitZoom0(const std::string & aNameIm)
@@ -100,7 +103,8 @@ void cAppliEpiBasic::InitZoom0(const std::string & aNameIm)
        mZoom0 = ElMax(mZoom0,1<<aZoom);  // Max of 2 images
    }
    
-   mInc = mCsteInc + mRatioInc * aSz1;
+   if (! EAMIsInit(&mInc))
+      mInc = mCsteInc + mRatioInc * aSz1;
 }
 
 
@@ -109,12 +113,15 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
      mDirTmpMEC    ("MEC-BasicEpip/"),
      mExe          (true),
      mZoom0        (1),
-	 mRegul		   (0.1),
-	 mSzW          (2),
+     mPxMoy        (0),
+     mRegul        (0.1),
+     mSzW          (2),
      mNbPix0       (400),
      mCsteInc      (200),
      mRatioInc     (0.1),
-     mNbProc       (aModeTestDeep ? 1 :  NbProcSys() )
+     mNbProc       (aModeTestDeep ? 1 :  NbProcSys() ),
+     mFileExp      ("PxBasic.tif"),
+     mPyr          ("Pyr/")
 {
     MMD_InitArgcArgv(argc,argv,2);
 
@@ -124,19 +131,27 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
         LArgMain()  << EAMC(mDir,"Directory of data")
                     << EAMC(mIm1,"Name Im1", eSAM_IsExistFile)
                     << EAMC(mIm2,"Name Im2", eSAM_IsExistFile),
+
         LArgMain()  << EAM(mExe,"Exe",true,"Execute Commands, else only print them (Def=true)", eSAM_IsBool)
                     << EAM(mDirTmpMEC,"DirMEC",true,"Name of output dir (Def=MEC-BasicEpip)")
-					<< EAM(mZoom0,"Zoom0",true,"Initial zoom")
-					<< EAM(mRegul,"Regul",true,"Regularisation coefficient")
-					<< EAM(mSzW,"SzW",true,"Matching window size")
+                    << EAM(mZoom0,"Zoom0",true,"Initial zoom")
+                    << EAM(mRegul,"Regul",true,"Regularisation coefficient")
+                    << EAM(mSzW,"SzW",true,"Matching window size")
                     << EAM(mInc,"Inc",true,"Uncertaincy on pixel")
+                    << EAM(mPxMoy,"PxMoy",true,"Average paralax")
                     << EAM(mNbProc,"NbP",true,"Number of process to allocate")
+                    << EAM(mFileExp,"FileExp",true,"File 4 Exporting last result")
      );
 
 
 
      InitZoom0(mIm1);
      InitZoom0(mIm2);
+
+     if (mModeTestDeep)
+     {
+          mPyr = mDirTmpMEC;  // Because it will be purged, muts be diff for each
+     }
 
      // mDirTmpMEC = mDir + mDirTmpMEC;
 
@@ -150,8 +165,10 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
 						  + " +Regul="    +  ToString(mRegul)
 						  + " +SzW="       +  ToString(mSzW)
                           + " +Inc="      +  ToString(mInc)
+                          + " +Px1Moy="   +  ToString(mPxMoy)
                           + " +DirMEC="   +  mDirTmpMEC
                           + " +NbProc="   +  ToString(mNbProc)
+                          + " +Pyr="   +     mPyr
                        ;
 
 
@@ -166,15 +183,15 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
       if (mModeTestDeep)
       {
           std::string aName =ImMatchFromLastN(mDir+mDirTmpMEC);
-          ELISE_fp::MvFile(mDir+mDirTmpMEC+aName,mDir+"PxBasic.tif");
+          ELISE_fp::MvFile(mDir+mDirTmpMEC+aName,mDir+mFileExp);
 
           std::string aNameMasq =ImMasqFromLastN(mDir+mDirTmpMEC);
-          ELISE_fp::MvFile(mDir+mDirTmpMEC+aNameMasq,mDir+"PxBasic_Masq.tif");
+          ELISE_fp::MvFile(mDir+mDirTmpMEC+aNameMasq,mDir+StdPrefix(mFileExp)+"_Masq.tif");
 
           ELISE_fp::PurgeDirRecursif(mDir+mDirTmpMEC);
-          ELISE_fp::PurgeDirRecursif(mDir+"Pyram");
+          //ELISE_fp::PurgeDirRecursif(mDir+"Pyram");
           ELISE_fp::PurgeDir(mDir+mDirTmpMEC,true);
-          ELISE_fp::PurgeDir(mDir+"Pyram",true);
+          //ELISE_fp::PurgeDir(mDir+"Pyram",true);
       }
 }
 

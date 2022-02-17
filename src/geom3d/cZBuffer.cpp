@@ -158,15 +158,6 @@ bool ERupnik_MM();
 
 static Pt2di ORIG_BoxBug(735,484);
 
-/*
-Im2D_REAL4 cZBuffer::BasculerAndInterpoleInverse
-           (
-               Pt2di & aOffset_Out_00,
-               Pt2di aP0In,
-               Pt2di aP1In,
-               float aDef
-           )
-*/
 
 Im2D_REAL4 cZBuffer::Basculer
            (
@@ -579,15 +570,9 @@ void cZBuffer::AddImAttr(Im2DGen * anIm)
 
 
 
+// WU =>  The 3 point are point of a MNS here, but is we be used as any triangle
 void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 {
-/*
-bool Bug = MPD_MM()  && ((ORIG_BoxBug+A)==Pt2di(819,900));
-if (Bug)
-{
-   std::cout << "FfffffffffffffffFFFfffffffffffffffff \n";
-}
-*/
 
    if (
            (! mTImOkTer.get(A-mP0In))
@@ -596,6 +581,8 @@ if (Bug)
       )
       return;
   
+    // WU=> Here the proj disc  method go from ground to image
+    // at this step for each point x,y must be pixel coordinates, and z the depth
      Pt3dr A3  =  ProjDisc(A);
      Pt3dr B3  =  ProjDisc(B);
      Pt3dr C3  =  ProjDisc(C);
@@ -607,13 +594,13 @@ if (Bug)
 
      Pt2dr AB = B2-A2;
      Pt2dr AC = C2-A2;
-     REAL aDet = AB^AC;
+     REAL aDet = AB^AC;  //WU :  computue determinant to see if triangle is well oriented
 
 
 	 //Calcul de l'etirement du triangle
      int aCoefEtire= -1;
      double aCoefEtirReel=-1;
-     if (mDynEtire>0)
+     if (mDynEtire>0)   // WU this part is not important, it compute some streching caracteristic : goto ENDSKIP
      {
         Pt2dr u = TriBas ? (B2-A2) : (C2-B2);
         Pt2dr v = TriBas ? (C2-B2) : (C2-A2);
@@ -679,23 +666,26 @@ getchar();
         aCoefEtire = ElMax(1,ElMin(253,round_ni(mDynEtire/aCoefEtirReel)));
         if (aDet<0)
             aCoefEtire = 0;
-     }
+     }  // WU : ENDSKIP
 
 // if (Bug) std::cout << "aCoefEtireaCoefEtire " << aCoefEtirReel << " " <<  aCoefEtire << "\n";
                 // BasculerUnTriangle(P00,P10,P11);
                 // BasculerUnTriangle(P00,P11,P01);
      // if (aDet<0) return;
-     if (aDet==0) return;
+
+     if (aDet==0) return;  // WU=> is triangle bad oriented, not visible
 
      REAL zA = A3.z;
      REAL zB = B3.z;
      REAL zC = C3.z;
 
+     //WU : P0,P1 => coordinate of integer rectangle containing A3,B3 and C3 (bounding box)
      Pt2di aP0 = round_down(Inf(A2,Inf(B2,C2)));
      aP0 = Sup(aP0,Pt2di(0,0));
      Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
      aP1 = Inf(aP1,mSzRes-Pt2di(1,1));
 
+     // WU : This is used when we want to project images of attribute (like correl coeff) in more of the Z buff
      std::vector<double>  mAttrA;
      std::vector<double>  mAttrB;
      std::vector<double>  mAttrC;
@@ -706,24 +696,30 @@ getchar();
          mAttrC.push_back(mImAttrIn[aKA]->GetR(C));
      }
 
+     // WU : parse the bounding bow
      for (INT x=aP0.x ; x<= aP1.x ; x++)
      {
          for (INT y=aP0.y ; y<= aP1.y ; y++)
 	 {
 		 Pt2dr AP = Pt2dr(x,y)-A2;
 
-         // Coordonnees barycentriques de P(x,y)
+         //WU :  compute barrrycentrique coordinate of a pixel in triangle A2,B2,C2
+   
 		 REAL aPdsB = (AP^AC) / aDet;
 		 REAL aPdsC = (AB^AP) / aDet;
 		 REAL aPdsA = 1 - aPdsB - aPdsC;
 
+                  // WU : point belongs triangle iff the 3 coordinate are >=0 (Eps=>tiny number)
 		 if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
 		 {
+                    // WU : interpolated value of Z
                     REAL4 aZ = (float) (zA *aPdsA  + zB* aPdsB + zC *aPdsC);
 
+                    //  WU : if value is over previous one, it becomes the visible part 
                     if (aZ>mDataRes[y][x])
                     {
                          mDataRes[y][x] = aZ;
+                         //  WU : other things are for additionnal attribute ....
                          mImTriInv.set(x,y,aDet<0);
                          if (aCoefEtire>=0)
                          {
@@ -882,11 +878,22 @@ Im2D_REAL4 cZBuffer::BasculerAndInterpoleInverse
                Pt2di & aOffset_Out_00,
                Pt2di aP0In,
                Pt2di aP1In,
-               float aDef
+               float aDef,
+	       bool * OkRes
            )
 
 {
-    Im2D_REAL4 aRes = Basculer(aOffset_Out_00,aP0In,aP1In,aDef);
+    bool OkBasc;
+    Im2D_REAL4 aRes = Basculer(aOffset_Out_00,aP0In,aP1In,aDef,&OkBasc);
+
+    if (OkRes) 
+       *OkRes = OkBasc;
+
+    if (! OkBasc)
+    {
+        ELISE_ASSERT(OkRes,"Cannot do cZBuffer::BasculerAndInterpoleInverse");
+	return aRes;
+    }
 
 int aNBC = 0;
     Pt2di aP;

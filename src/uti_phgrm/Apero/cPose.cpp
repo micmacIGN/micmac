@@ -1551,7 +1551,10 @@ void cPoseCam::PCSetCurRot(const ElRotation3D & aRot)
 
 void  cPoseCam::SetBascRig(const cSolBasculeRig & aSBR)
 {
-    PCSetCurRot(aSBR.TransformOriC2M(CurRot()));
+ 
+    //  Correc MPD 20/05/21 : put PCSetCurRot  after aP =  aSBR(aP);
+    // else the bascule on the point is done twice and altisol is bad ...
+    // PCSetCurRot(aSBR.TransformOriC2M(CurRot()));
 
     Pt3dr aP;
     if (mSomPM)
@@ -1565,13 +1568,17 @@ void  cPoseCam::SetBascRig(const cSolBasculeRig & aSBR)
         if (mProfondeur == PROF_UNDEF())
         {
             std::cout << "Warn : NoProfInBasc For camera =" << mName << "\n";
+            PCSetCurRot(aSBR.TransformOriC2M(CurRot()));
+            return;
             // ELISE_ASSERT( false,"No Profondeur in cPoseCam::SetBascRig");
-            return ;
         }
-
-        aP =  aCS->ImEtProf2Terrain(aCS->Sz()/2.0,mProfondeur);
-        aP =  aSBR(aP);
+        else
+        {
+            aP =  aCS->ImEtProf2Terrain(aCS->Sz()/2.0,mProfondeur);
+            aP =  aSBR(aP);
+        }
     }
+    PCSetCurRot(aSBR.TransformOriC2M(CurRot()));
 
 
 
@@ -2755,6 +2762,60 @@ Pt3dr cPoseCam::CurCentre() const
 Pt3dr cPoseCam::CurCentreOfPt(const Pt2dr & ) const
 {
    return CurCentre();
+}
+
+void cPoseCam::AddObsPlaneOneCentre(const cXml_ObsPlaneOnPose & aXmlOPOO ,const double & aWeight)
+{
+    cRotationFormelle & aRF = RF();
+    const  cIncIntervale & aII = aRF. IncInterv();
+
+    std::vector<int>  aVIndexe;
+    for (int aK=3; aK<6 ; aK++)
+         aVIndexe.push_back(aII.I0Alloc()+aK);
+
+    for (const auto & a1ObsPl : aXmlOPOO.Obs1Plane() )
+    {
+        Pt3dr aVU = vunit(a1ObsPl.Vect());
+        std::vector<double> aVCoeff =  aVU.ToTab();
+
+        double aRes = mAppli.SetEq().AddEqLineaire(aWeight/ElSquare(a1ObsPl.Sigma()),aVIndexe,aVCoeff,a1ObsPl.Cste());
+        std::cout << "RRReesss ddObsPlaneOneCentre " << aRes << "\n";
+        // getchar();
+    }
+/*
+    cRotationFormelle & aRF = RF();
+    const  cIncIntervale & aII = aRF. IncInterv();
+
+    std::cout << "NAME= " << mName << "\n";
+    std::cout << "   ALLOC " <<  aII.I0Alloc() << " " <<  aII.I1Alloc() << "\n";
+    for (int I= aII.I0Alloc() ; I<aII.I1Alloc() ; I++)
+        std::cout << " VARRR= " <<       mAppli.SetEq().Alloc().GetVar(I) << "\n";
+
+getchar();
+*/
+    // std::cout << "   SOLVE " <<  aII.I0Solve() << " " <<  aII.I1Solve() << "\n";
+    
+/*
+    aII.I0Alloc();
+    class cRotationFormelle : public cElemEqFormelle,
+   const  cIncIntervale & IncInterv()
+
+    INT I0Alloc()  const ;
+    INT I1Alloc()  const ;
+
+
+  INT I0Solve()  const ;
+       INT I1Solve()  const ;
+
+
+Equation en delta par rapport a la valeur courante
+
+cSetEqFormelles
+ double AddEqLineaire (
+                          double aPds, const std::vector<int>  &    indexe,
+                          const std::vector<double>  & aCoeff,double aB);
+*/
+
 }
 
 

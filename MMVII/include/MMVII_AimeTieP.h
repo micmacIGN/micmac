@@ -13,7 +13,7 @@ class cSetAimePCAR;
      be inspected in MMV1 (as MMV2 will not have tools equivalent to X11-MMV1 before a long)
      Certainly Aime TieP will be much more complex than this proto class
 */
-template <class Type> struct cProtoAimeTieP : public cMemCheck
+template <class Type> class cProtoAimeTieP : public cMemCheck
 {
     public :
         typedef cGP_OneImage<Type> tGPI;
@@ -21,7 +21,11 @@ template <class Type> struct cProtoAimeTieP : public cMemCheck
         bool  FillAPC(const cFilterPCar&,cAimePCar &,bool ForTest);
         bool  TestFillAPC(const cFilterPCar&); // Just to know if the point is OK for filling it
         // cProtoAimeTieP(const cPt2dr & aP,int aNumOct,int aNumIm,float aScaleInO,float aScaleAbs);
+
+        // With Integer P, used in Aime
         cProtoAimeTieP(cGP_OneImage<Type> *,const cPt2di & aPImInit,bool ChgMaj);
+        // With Real P, used in dense match, we directly have the "refined" point
+        cProtoAimeTieP(cGP_OneImage<Type> *,const cPt2dr & aPImInit);
 
         // void SetPt(const cPt2dr & );
         // const cPt2dr & Pt() const;
@@ -36,6 +40,7 @@ template <class Type> struct cProtoAimeTieP : public cMemCheck
         tGPI *               mGPI;
         bool                 mChgMaj;  ///< Image changed to major, tuning
         cPt2di               mPImInit;      ///<  in image octave coordinate (comes from extrema detection)
+        cPt2dr               mPRImRefined;      ///<  Real point 
         cPt2dr               mPFileInit;    ///< idem, but global file coordinate
         cPt2dr               mPFileRefined; ///< after refinement
         int                  mId;           ///< For debug essentially
@@ -80,8 +85,11 @@ template <class Type> class cInterf_ExportAimeTiep : public cMemCheck
 class cAimeDescriptor : public cMemCheck
 {
      public :
+         //  aDILPr.SetV(cPt2di(aKTeta,IndRhoLP),aV);
+
+         cAimeDescriptor DupLPIm() const;  // Duplicate only LP IM
          cAimeDescriptor();  ///< Need a default descriptor (serialization ...)
-         cIm2D<tU_INT1>   ILP();   ///< Accesor to log pol image
+         cIm2D<tU_INT1>   ILP() const;   ///< Accesor to log pol image
 
          const std::vector<double> & DirPrinc() const; ///< const accesor to main directions
          std::vector<double> & DirPrinc() ;            ///< non const accessor
@@ -106,10 +114,18 @@ class cAimePCar : public cMemCheck
 {
      public :
         cAimeDescriptor & Desc();
+        const cAimeDescriptor & Desc() const;
         cPt2dr&         Pt();
+        const cPt2dr&   Pt() const;
+        cPt2dr&         PtIm();
+        const cPt2dr&   PtIm() const;
+
+        cAimePCar       DupLPIm() const; // Duplicate only LP IM
+        double          L1Dist(const cAimePCar&) const;
      private :
         cAimeDescriptor mDesc;  ///< Descriptor
         cPt2dr          mPt;    ///<  Localization
+        cPt2dr          mPtIm;    ///<  Localization in image (offseted), not realy usefull as Tie-P, but required in dense match
 };
 
 /**  Class to store  aSet of AimePcar = vector<PC> + some common caracteritic on type

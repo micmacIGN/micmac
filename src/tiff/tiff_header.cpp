@@ -58,8 +58,9 @@ int DefValueBigTif = 0;
 
 bool IsNamePxm(const std::string & post)
 {
-    return    (post == "PBM") || (post == "PGM") || (post == "PPM")
-           || (post == "pbm") || (post == "pgm") || (post == "ppm");
+    return    (post == "PBM") || (post == "PGM") || (post == "PPM") || (post == "PFM")
+           || (post == "pbm") || (post == "pgm") || (post == "ppm") || (post == "pfm")
+    ;
 }
 
 bool IsNameSunRaster(const std::string & post)
@@ -1895,9 +1896,8 @@ Tiff_Im  Tiff_Im::BasicConvStd(const ElSTDNS string & Name)
        if ((post=="RS") || (post=="rs") )
            return Elise_Tiled_File_Im_2D::sun_raster(Name.c_str()).to_tiff();
 
-       if (     (post=="pbm") || (post=="PBM")
-                ||  (post=="pgm") || (post=="PGM")
-                ||  (post=="ppm") || (post=="PPM")
+       if (   IsNamePxm(post)
+             /*  (post=="pbm") || (post=="PBM") ||  (post=="pgm") || (post=="PGM") ||  (post=="ppm") || (post=="PPM") */
               )
               return Elise_File_Im::pnm(Name.c_str()).to_tiff();
 

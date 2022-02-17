@@ -17,6 +17,9 @@ class cMMVII_Appli;
 class cColStrAObl;
 class cColStrAOpt;
 typedef std::pair<std::string,std::string> t2S;
+class cAppliBenchAnswer; // With this class, an Appli indicate how it deal with Bench
+
+
 
 
 
@@ -338,13 +341,20 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static bool   ExistAppli();         ///< Return if the appli exist, no error
         static cMMVII_Appli & CurrentAppli();   ///< Return the unique appli, error if not
         virtual int Exe() = 0;              ///< Do the "real" job
+        virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
-        bool    IsInit(void *);             ///< indicate for each variable if it was initiazed by argc/argv
+        bool    IsInit(const void *);             ///< indicate for each variable if it was initiazed by argc/argv
+        template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
+        {
+            if (! IsInit(&aVar))
+               aVar = aValue;
+        }
         static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
 
         void InitParam();  ///< Parse the parameter list
+        void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
         const std::string & DirProject()   const;   ///<  Accessor to directoy of project
         const std::string & TopDirMMVII()   const;   ///<  main directory of MMVII , upon include,src ..
@@ -369,7 +379,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         int   LevelCall() const;     ///< Accessor to mLevelCall
 
+        virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
+        virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
     protected :
+
         /// Constructor, essenntially memorize command line and specifs
         cMMVII_Appli(const std::vector<std::string> & aVArgcv, const cSpecMMVII_Appli &,tVSPO=EmptyVSPO);
         /// Second step of construction, parse the command line and initialize values
@@ -387,6 +400,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
         std::string  Command() const; ///< Glob command by aggregation of ArgcArgv
+
+        bool RunMultiSet(int aKParam,int aKSet);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed
+        int  ResultMultiSet() const; /// Iff RunMultiSet was execute
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
@@ -410,6 +426,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                                  ); ///< MMVII reccall the same command itself
 
         void                                      GenerateHelp(); ///< In Help mode print the help
+        void PrintAdditionnalComments(tPtrArg2007 anArg); ///< Print the optional comm in mode glob help
+
         void                                      InitProject();  ///< Create Dir (an other ressources) that may be used by all processe
         void                                      LogCommandIn(const std::string&,bool Main);  ///< Log command begin
         void                                      LogCommandOut(const std::string&,bool Main); ///< Log command end
@@ -427,6 +445,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::vector<std::string>                  mArgv;      ///< copy of local copy ArgArgv to be safe
         int                                       mArgc;          ///< memo argc
         const cSpecMMVII_Appli &                  mSpecs;         ///< The basic specs
+        bool                                      mForExe; ///< To distinguish not fully initialized in X::~X()
 
         std::string                               mDirBinMMVII;   ///< where is the binary
         std::string                               mTopDirMMVII;   ///< directory  mother of src/ bin/ ...
@@ -447,7 +466,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mPatHelp;       ///< Possible filter on name of optionnal param shown
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
-        cExtSet<void *>                           mSetInit;       ///< Adresses of all initialized variables
+        cExtSet<const void *>                     mSetInit;       ///< Adresses of all initialized variables
         bool                                      mInitParamDone; ///< To Check Post Init was not forgotten
         cColStrAObl                               mColStrAObl;    ///< To use << for passing multiple string
         cColStrAOpt                               mColStrAOpt;    ///< To use << for passing multiple pair
@@ -456,6 +475,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cCollecSpecArg2007                        mArgFac;        ///< Optional args
         static const int                          NbMaxMainSets=3; ///< seems sufficient, Do not hesitate to increase if one command requires more
         std::vector<tNameSet>                     mVMainSets;  ///< For a many commands probably
+        int                                       mResulMultiS;///< Save Result of Mutlti Set Recall in //
+        bool                                      mRMSWasUsed; ///< Indicate if MultiCall was used
+
         std::string                               mIntervFilterMS[NbMaxMainSets];  ///< Filterings interval
 
         // Variable for setting num of mm version for output
@@ -501,5 +523,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mTiePPrefIn;   ///< Prefix for inout  Tie Points ...
 };
 
+
+bool    IsInit(const void *);  ///< Call IsInit on the appli def
 };
 #endif  //  _cMMVII_Appli_H_

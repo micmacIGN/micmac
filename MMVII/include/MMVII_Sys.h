@@ -1,6 +1,10 @@
 #ifndef  _MMVII_Sys_H_
 #define  _MMVII_Sys_H_
 
+#ifdef __linux__
+#include <unistd.h>
+#endif
+
 namespace MMVII
 {
 
@@ -26,7 +30,6 @@ enum class eSYS
 };
 
 #ifdef __linux__
-#include <unistd.h>
 const eSYS TheSYS = eSYS::GnuLinux;
 #define THE_MACRO_MMVII_SYS MMVII_SYS_L
 #endif
@@ -52,6 +55,9 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::stri
 
 /// A fake function, to stop momentarilly warnings about unused variable ...
 template <class Type> void FakeUseIt(const Type &) {}
+/** A function returning always false, use when we dont want to execute something want to compile it
+ even with too "clever" compiler who would skip if (0) */
+bool NeverHappens();
 
 };
 

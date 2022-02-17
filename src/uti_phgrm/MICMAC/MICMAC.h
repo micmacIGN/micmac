@@ -3054,6 +3054,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
         void DoOneCorrelSym(int anX,int anY,int aNbScale);
         void DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel *,int aNbIm,bool VireExtr,double aPdsPix);
         void DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbIm);
+        void DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMVII &aCPC);
+
 
 		void DoGPU_Correl_Basik (const Box2di & aBoxInterne); 
 

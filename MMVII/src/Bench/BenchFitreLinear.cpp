@@ -145,12 +145,14 @@ template <class Type> void TestVarFilterExp(cPt2di aSz,double aStdDev,int aNbIte
 
 
 
-void BenchFilterLinear()
+void BenchFilterLinear(cParamExeBench & aParam)
 {
+   if (! aParam.NewBench("ImageFilterLinear")) return;
    TestFilterExp<tREAL4>(cPt2di(-2,-3),cPt2di(20,30),1.0);
    TestFilterExp<tREAL8>(cPt2di(3,2),cPt2di(20,30),1.0);
    TestFilterExp<tREAL16>(cPt2di(-4,-5),cPt2di(20,30),1.0);
    TestFilterExp<int>(cPt2di(0,0),cPt2di(20,30),1000000);
+   aParam.EndBench();
 }
 
 

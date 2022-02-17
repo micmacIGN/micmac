@@ -1,10 +1,18 @@
 #include "include/SymbDer/SymbolicDerivatives.h"
-#include "ceres/jet.h"
 
+double TimeElapsFromT0()
+{
+    static auto BeginOfTime = std::chrono::steady_clock::now();
+    auto now = std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<std::chrono::microseconds>(now - BeginOfTime).count() / 1e6;
+}
 
 namespace  SD = NS_SymbolicDerivative;
-using ceres::Jet;
 
+
+#if (MMVII_WITH_CERES)
+#include "ceres/jet.h"
+using ceres::Jet;
 
 // ========= Define on Jets some function that make them work like formula and nums
 // and also may optimize the computation so that comparison is fair
@@ -37,18 +45,12 @@ template <class T,const int N> Jet<T, N>  CreateCste(const T & aV,const Jet<T, N
     return Jet<T, N>(aV);
 }
 
-
+#else
+#endif
 
 //=========================================
 
 //=========================================
-
-double TimeElapsFromT0()
-{
-    static auto BeginOfTime = std::chrono::steady_clock::now();
-    auto now = std::chrono::steady_clock::now();
-    return std::chrono::duration_cast<std::chrono::microseconds>(now - BeginOfTime).count() / 1e6;
-}
 
 
 /** \file TestDynCompDerivatives.cpp
@@ -132,7 +134,7 @@ static tVRatkoswkyData TheVRatkoswkyData
 /**  Use  RatkoswkyResidual on Formulas to computes its derivatives
 */
 
-void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aInitialGuess)
+void TestRatkoswky(bool Show,const tVRatkoswkyData & aVData,const std::vector<double> & aInitialGuess)
 {
     size_t aNbUk = 4;
     size_t aNbObs = 2;
@@ -196,7 +198,8 @@ void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aI
             assert(std::abs(aDerFLine-aDerNum)<1e-4);
          }
     }
-     std::cout << "OK  TestRatkoswky \n";
+    if (Show)
+        std::cout << "OK  TestRatkoswky \n";
 }
 
 
@@ -230,7 +233,7 @@ std::vector<Type> FitCube
     return {(a+b *x)*(x*b+a)*(a+b *x) - y};
 }
 
-void InspectCube()
+void LocInspectCube()
 {
     std::cout <<  "===================== TestFoncCube  ===================\n";
 
@@ -269,7 +272,6 @@ void InspectCube()
     std::cout << "====== Stack === \n";
     aCFD.ShowStackFunc();
 
-    getchar();
 }
 
 /* {III}  ========================  Test perf on colinearit equation ==========================
@@ -762,7 +764,7 @@ template <class TypeDist>  class cEqCoLinearity
 template <class FORMULA>  class cTestEqCoL
 {
     public :
-       cTestEqCoL(int aSzBuf,bool Show);
+       cTestEqCoL(int aSzBuf,int aLevel,bool ShowGlob,bool ShowDetail);
 
     private :
        static const int  TheNbUk = FORMULA::TheNbUk;
@@ -799,7 +801,7 @@ template <class FORMULA>  class cTestEqCoL
 
 
 template <class FORMULA>
-cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
+cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,int aLevel,bool ShowGlob,bool ShowAllDetail) :
      // mCFD (aSzBuf,TheNbUk,TheNbObs), //  would have the same effect, but future generated code will be less readable
      mCFD  (FORMULA::NameModel(),aSzBuf,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs()),
      mVUk  (TheNbUk,0.0),
@@ -814,7 +816,8 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
 
 //   auto aVFormula = FraserFuncCamColinearEq(mCFD.VUk(),mCFD.VObs());
    auto aVFormula = FORMULA::Residual (mCFD.VUk(),mCFD.VObs());
-   if (Show)
+   
+   if (ShowGlob)
    {
        mCFD.SetCurFormulas({aVFormula[0]});
        int aNbRx = mCFD.VReached().size() ;
@@ -824,10 +827,12 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
        std::cout << "NbReached x:" << aNbRx << "  xy:" << aNbRxy << "\n";
         
        mCFD.SetCurFormulas({aVFormula[0]});
-       mCFD.ShowStackFunc();
+       if (ShowAllDetail)
+           mCFD.ShowStackFunc();
    }
    mCFD.SetCurFormulasWithDerivative(aVFormula);
-   if (Show)
+   //  In tentative to reduce the size, print the statistiq on all operators
+   if (ShowGlob)
    {
       const std::vector<tFormula>& aVR =mCFD.VReached();
       int aNbTot=0;
@@ -836,30 +841,33 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
       {
           aNbTot++;
           std::string anOp =  aF->NameOperator() ;
-          std::cout << "Opp= " << anOp << "\n";
+          // std::cout << "Opp= " << anOp << "\n";
           if ((anOp=="+") || (anOp=="*"))
           {
              aNbPl++;
           }
       }
       std::cout 
-                 << " Tot=" << aNbTot
-                 << " Pl=" << aNbPl
+                 << " NbTotOper=" << aNbTot
+                 << " +or*=" << aNbPl
                  << "\n";
    }
 
    double aT1 = TimeElapsFromT0();
     
-   std::cout << "Test "  +  FORMULA::NameModel()
-             << ", SzBuf=" << aSzBuf 
-             << ", NbEq=" << mCFD.VReached().size() 
-             << ", TimeInit=" << (aT1-aT0) << "\n";
+   if (ShowGlob)
+       std::cout << "Test "  +  FORMULA::NameModel()
+                 << ", SzBuf=" << aSzBuf 
+                 << ", NbEq=" << mCFD.VReached().size() 
+                 << ", TimeInit=" << (aT1-aT0) << "\n";
 
    
    // mCFD.ShowStackFunc();
 
-   int aNbTestTotal =  1e5; ///< Approximative number of Test
-   int aNbTestWithBuf = aNbTestTotal/aSzBuf;  ///< Number of time we will fill the buffer
+   int aNbTestTotal =  std::min(1e5,1e3*pow(aLevel,1.5)) ; ///< Approximative number of Test
+  
+
+   int aNbTestWithBuf = std::ceil(aNbTestTotal/double(aSzBuf));  ///< Number of time we will fill the buffer
    aNbTestTotal = aNbTestWithBuf * aSzBuf; ///< Number of test with one equation
 
    // Here we initiate with "peferct" projection, to check something
@@ -867,8 +875,9 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
    const std::vector<double> & aVObs =  VObs(0.101,0.2); 
    
    // Make the computation with jets
-   typedef Jet<double,TheNbUk> tJets;
    double TimeJets = TimeElapsFromT0();
+#if (MMVII_WITH_CERES)
+   typedef Jet<double,TheNbUk> tJets;
    std::vector<tJets> aJetRes;
    {
         std::vector<tJets>  aVJetUk;
@@ -882,19 +891,6 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
         TimeJets = TimeElapsFromT0() - TimeJets;
    }
 
-   // Make the computation with formal deriv buffered
-   double TimeBuf = TimeElapsFromT0();
-   {
-       for (int aK=0 ; aK<aNbTestWithBuf ; aK++)
-       {
-           // Fill the buffers with data
-           for (int aKInBuf=0 ; aKInBuf<aSzBuf ; aKInBuf++)
-               mCFD.PushNewEvals(aVUk,aVObs);
-           // Evaluate the derivate once buffer is full
-           mCFD.EvalAndClear();
-       }
-       TimeBuf = TimeElapsFromT0() - TimeBuf;
-   }
 
    for (int aKVal=0 ; aKVal<int(aJetRes.size()) ; aKVal++)
    {
@@ -918,23 +914,40 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
       //  std::cout << "  dJ:" << aDVJ <<  " dE:" << aDVE <<  " dF:" << aDVF << "\n";
       }
    }
+#endif
+   
+   // Make the computation with formal deriv buffered
+   double TimeBuf = TimeElapsFromT0();
+   {
+       for (int aK=0 ; aK<aNbTestWithBuf ; aK++)
+       {
+           // Fill the buffers with data
+           for (int aKInBuf=0 ; aKInBuf<aSzBuf ; aKInBuf++)
+               mCFD.PushNewEvals(aVUk,aVObs);
+           // Evaluate the derivate once buffer is full
+           mCFD.EvalAndClear();
+       }
+       TimeBuf = TimeElapsFromT0() - TimeBuf;
+   }
 
-   std::cout 
-         << " TimeJets= " << TimeJets 
-         // << " TimeEps= " << TimeEps 
-         << " TimeBuf= " << TimeBuf
-         << "\n\n";
+   if (ShowGlob)
+       std::cout 
+             << " TimeJets= " << TimeJets 
+             // << " TimeEps= " << TimeEps 
+             << " TimeBuf= " << TimeBuf
+             << "\n\n";
 }
 
 
-void TestFraserCamColinearEq()
+void TestFraserCamColinearEq(bool Show,int aLevel)
 {
    {
       SD::cCoordinatorF<double>  aCoord("test",100,4,2);
       SD::cFormula<double>     aFPi = aCoord.CsteOfVal(3.14);
       SD::cFormula<double>     aFE = aCoord.CsteOfVal(exp(1));
       SD::cFormula<double>     aFCste = aFE+aFPi;
-      std::cout  << " CSTE=[" << aFCste->InfixPPrint() <<"]\n";
+      if (Show)
+         std::cout  << " CSTE=[" << aFCste->InfixPPrint() <<"]\n";
 
       SD::cFormula<double>     aX =  aCoord.VUk()[0];
       SD::cFormula<double>     aY =  aCoord.VUk()[1];
@@ -942,46 +955,47 @@ void TestFraserCamColinearEq()
       SD::cFormula<double>     aT =  aCoord.VUk()[3];
       SD::cFormula<double>     aMX = - aX;
       SD::cFormula<double>     aMMX = - aMX;
-      std::cout  << " -X, --X=[" << aMX->InfixPPrint() << " " << aMMX->InfixPPrint() <<"]\n";
+      if (Show) 
+          std::cout  << " -X, --X=[" << aMX->InfixPPrint() << " " << aMMX->InfixPPrint() <<"]\n";
 
       SD::cFormula<double>     aPipX =  aFPi - aMX;
-      std::cout  << " piPx= [" << aPipX->InfixPPrint() << "," << aPipX->Name()  <<"]\n";
+      if (Show) 
+         std::cout  << " piPx= [" << aPipX->InfixPPrint() << "," << aPipX->Name()  <<"]\n";
 
 
       SD::cFormula<double>     XpX =  aX + aX;
-      std::cout  << " XpX= [" << XpX->InfixPPrint()  <<"]\n";
+      if (Show) 
+         std::cout  << " XpX= [" << XpX->InfixPPrint()  <<"]\n";
 
 
       SD::cFormula<double>     XpPiX =  aZ+ aX + aY + aX * aFPi + aT;
 
-      std::cout  << " XpPiX= [" << XpPiX->InfixPPrint()  <<"]\n";
-      aCoord.ShowStackFunc();
+      if (Show) 
+      {
+         std::cout  << " XpPiX= [" << XpPiX->InfixPPrint()  <<"]\n";
+         aCoord.ShowStackFunc();
+         std::cout  << " -------------------------\n";
+      }
    }
-   getchar();
 
 
    for (auto SzBuf : {1000,1})
    {
-       cTestEqCoL<cEqCoLinearity<cTplFraserDist>> (SzBuf,false);
-       cTestEqCoL<cEqCoLinearity<cTplPolDist<7>>> (SzBuf,false);
-       cTestEqCoL<cEqCoLinearity<cTplPolDist<2>>> (SzBuf,false);
+       cTestEqCoL<cEqCoLinearity<cTplFraserDist>> (SzBuf,aLevel,Show,false);
+       cTestEqCoL<cEqCoLinearity<cTplPolDist<7>>> (SzBuf,aLevel,Show,false);
+       cTestEqCoL<cEqCoLinearity<cTplPolDist<2>>> (SzBuf,aLevel,Show,false);
 
-       std::cout << "======================\n";
+       if (Show)
+          std::cout << "======================\n";
    }
 
 
-   getchar();
 }
 
 
 /* -------------------------------------------------- */
 
-namespace  MMVII
-{
-    void BenchCmpOpVect();
-};
-
-void   Bench_powI()
+void   Bench_powI(bool Show,int aLevel)
 {
     // Test that function powI gives the same results than pow
     // Test alsp for jets, the value and the derivatives
@@ -992,6 +1006,8 @@ void   Bench_powI()
         double aP2= SD::powI(aV,aK);
         SD::AssertAlmostEqual(aP1,aP2,1e-8);
 
+        //TestDerNumJetBasic();
+#if (MMVII_WITH_CERES)
         Jet<double,1> aJ0= powI(Jet<double,1> (aV,0),aK);
         SD::AssertAlmostEqual(aP1,aJ0.a,1e-8);
 
@@ -1000,10 +1016,12 @@ void   Bench_powI()
         double aP1Plus  = pow(aV+aEps,double(aK));
         double aNumDer = (aP1Plus-aP1Minus) / (2.0*aEps);
         SD::AssertAlmostEqual(aNumDer,aJ0.v[0],1e-8);
+#endif
+
     } 
 
     // Bench on time performance
-    int aNb=1e8;
+    int aNb= std::min(1e9,1e4*pow(1+aLevel,3));
 
          // Using std::pow
     double aT0 = TimeElapsFromT0();
@@ -1023,26 +1041,39 @@ void   Bench_powI()
 
     double aT3 = TimeElapsFromT0();
 
-    std::cout << "PowR " << aT1-aT0 
+    if (Show)
+    {
+        std::cout << "PowR " << aT1-aT0 
               << " PowI " << aT2-aT1 
               << " P7 " << aT3-aT2  
-              << " SOM=" << aS << "\n";
+              << " SOM=" << aS << "\n\n";
+    }
 }
 
-void   BenchFormalDer()
+namespace MMVII
 {
-
-    Bench_powI();
-    // MMVII::BenchCmpOpVect();
-    TestFraserCamColinearEq();
-   // Run TestRatkoswky with static obsevation an inital guess 
-    TestRatkoswky(TheVRatkoswkyData,{100,10,1,1});
-    InspectCube() ;
-    // cTestOperationVector<float,90>::DoIt();
-    // cTestOperationVector<float,128>::DoIt();
-    // cTestOperationVector<double,128>::DoIt();
-    getchar();
+void InspectCube()
+{
+     LocInspectCube();
 }
+
+void   BenchFormalDer(int aLevel, bool Show)
+{
+   {
+      // Run TestRatkoswky with static obsevation an inital guess 
+       // Make a basic test with Raykoswky function, check if value
+       // and derivative are the same with numerics and symbolic
+       TestRatkoswky(Show,TheVRatkoswkyData,{100,10,1,1});
+
+       // Check correctnes of PowI, wich is a bit trick
+       Bench_powI(Show,aLevel);
+
+       // Check correctness and efficiency on a  "real" example with a colinearity equation
+       // check is made between Jet and formal derive
+       TestFraserCamColinearEq(Show,aLevel);
+   }
+}
+};
 
 
 /*

@@ -274,9 +274,13 @@ std::vector<double>    StdParamTestCam(double AmplNoise)
 
 }
 
-void BenchJetsCam()
+void BenchJetsCam(cParamExeBench & aParam)
 {
-   for (int aK=0 ; aK<10 ; aK++)
+   if (! aParam.NewBench("CamJetDerivative")) return;
+
+   int aNb = 1+aParam.Level();
+
+   for (int aK=0 ; aK<aNb ; aK++)
    {
       std::vector<double>  aVParam =  StdParamTestCam(1.0);
       std::vector<double> aValJet,aValV1,aVarValJet;
@@ -312,7 +316,7 @@ void BenchJetsCam()
                 // StdOut() << " Der=" << aDif << " " << aDerV1[aKXY][aKD]  << "\n";
            }
       }
-      int aNbTest=10000;
+      int aNbTest=1000 * (1+std::min(20,aParam.Level()));
       double aT0 = cMMVII_Appli::CurrentAppli().SecFromT0();
       aCamJet.Compute(aNbTest);
       double aT1 = cMMVII_Appli::CurrentAppli().SecFromT0();
@@ -326,8 +330,15 @@ void BenchJetsCam()
          aT3 = cMMVII_Appli::CurrentAppli().SecFromT0();
       }
 
-      StdOut() << "TimeJets=" << (aT1-aT0) << " TimeV1=" << (aT2-aT1) << " TVar=" << (aT3-aT2) << "\n";
+      if (aParam.Show())
+      {
+         StdOut() << "TimeJets=" << (aT1-aT0) 
+                  << " TimeV1=" << (aT2-aT1) 
+                  << " TVar=" << (aT3-aT2) 
+                  << "\n";
+      }
    }
+   aParam.EndBench();
 }
 
 

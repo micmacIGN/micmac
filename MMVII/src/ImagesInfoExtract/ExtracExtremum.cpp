@@ -5,7 +5,7 @@
 namespace MMVII
 {
 
-boost::optional<double>  InterpoleExtr(double V1,double V2,double V3)
+std::optional<double>  InterpoleExtr(double V1,double V2,double V3)
 {
     //   AX2 + BX + C 
     // -1:   A - B + C  = V1
@@ -18,17 +18,17 @@ boost::optional<double>  InterpoleExtr(double V1,double V2,double V3)
     // ArgMin = -B/2A  = - ((V3-V1)/2 ) /  (2*  (V1+V3)/2 - V2) = (V1-V3)/2 / (V1+V3-2V2)
 
     double aDiv = (V1+V3-2*V2);
-    if (aDiv==0.0) return boost::optional<double>();
+    if (aDiv==0.0) return std::optional<double>();
 
-    return boost::optional<double> ((V1-V3) /(2*aDiv));
+    return std::optional<double> ((V1-V3) /(2*aDiv));
 }
 
 double  StableInterpoleExtr(double V1,double V2,double V3)
 {
-    boost::optional<double>  aVOpt =  InterpoleExtr(V1,V2,V3);
+    std::optional<double>  aVOpt =  InterpoleExtr(V1,V2,V3);
     if (aVOpt)
     {
-       double aV = aVOpt.get();
+       double aV = *aVOpt;
        if ((aV>=-1) && (aV<=1))
           return aV;
        return 0.0;
@@ -157,7 +157,7 @@ template <class Type,class FDist>  std::vector<Type>  SparseOrder(const std::vec
 
 // std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1) // > R0 et <= R1
 
-std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1) // > R0 et <= R1
+std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym) // > R0 et <= R1
 {
     std::vector<cPt2di> aRes;
 
@@ -167,11 +167,25 @@ std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1) //
     for (const auto & aP : cRect2::BoxWindow(round_up(aR1)))
     {
         double aR2 = SqN2(aP);
-        if ((aR2>aR02) && (aR2<=aR12))
-           aRes.push_back(aP);
-    }
-    std::sort(aRes.begin(),aRes.end(),CmpN2<int,2>);
+        bool Ok = ((aR2>aR02) && (aR2<=aR12));
 
+	if (ASym)
+	{
+           Ok =  Ok &&(  (aP.y() >0) || ((aP.y()==0)&&(aP.x()>=0))   );
+	}
+        if (Ok)
+	{
+           aRes.push_back(aP);
+	}
+    }
+    return aRes;
+}
+
+
+std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1) // > R0 et <= R1
+{
+    std::vector<cPt2di> aRes = VectOfRadius(aR0,aR1,false);
+    std::sort(aRes.begin(),aRes.end(),CmpN2<int,2>);
     return aRes;
 }
 
@@ -476,6 +490,7 @@ cIm2D<tINT2> ImageBenchExtrem(const cPt2di aSz,int aNbVal,int aSzMaj)
     // regularize it with majority-filter
     SelfLabMaj(aRes,cRect2::BoxWindow(aSzMaj));
 
+
     return aRes;
 }
 
@@ -516,10 +531,9 @@ void TestEqual_RE(cResultExtremum & aR1,cResultExtremum & aR2)
 /**  Test extremum with different parameters simulation
 */
 
-void OneBenchExtrem(int aNbLab,int aSzMaj,double aRay)
+void OneBenchExtrem(const cPt2di & aSz,int aNbLab,int aSzMaj,double aRay)
 {
     // Create images
-    cPt2di aSz(150,200);
 
     cIm2D<tINT2> aI1 = ImageBenchExtrem(aSz,aNbLab,aSzMaj);  // Center image
     cDataIm2D<tINT2> & aDI1(aI1.DIm());
@@ -634,8 +648,9 @@ void OneBenchExtrem(int aNbLab,int aSzMaj,double aRay)
                StdOut() << "Difff " << aP << "\n";
        }
     }
-    // Before all, be reasonnably sure it's the same set
+    // Before all, be reasonnably sure it's the same set by couting pts inside
     MMVII_INTERNAL_ASSERT_bench(aNbIn==aCEI.NbIn() ,"Set in Bench Extre ");
+
 
     TestEqual_RE(aTestE1,aExtr1);
     TestEqual_RE(aTestE3,aExtr3);
@@ -657,7 +672,7 @@ void OneBenchAffineExtre()
     double aVC = aSign *(RandUnif_0_1() * 0.1); 
 
    
-    cDenseMatrix<double>  aMatReg = cDenseMatrix<double>::RandomSquareRegMatrix(2,true,1.0,0.1);
+    cDenseMatrix<double>  aMatReg = cDenseMatrix<double>::RandomSquareRegMatrix(cPt2di(2,2),true,1.0,0.1);
     aVA = aMatReg(0,0);
     aVB = aMatReg(0,1);
     aVC = aMatReg(1,1);
@@ -718,15 +733,19 @@ void BenchAffineExtre()
 }
 
 
-void BenchExtre()
+void BenchExtre(cParamExeBench & aParam)
 {
+     if (! aParam.NewBench("ImagesExtrem")) return;
      for (int aNbLab=2 ; aNbLab<5 ; aNbLab+=2)
      {
          for (int aSzW=2 ; aSzW<5 ; aSzW+=2)
          {
-             OneBenchExtrem(aNbLab,aSzW,3.1);
-             OneBenchExtrem(aNbLab,aSzW,3.0);
-             OneBenchExtrem(aNbLab,aSzW,2.9);
+// cPt2di aSz(150,200);
+             double aMul = std::min(4.0,1+aParam.Level()*0.3);
+             cPt2di aSz(40*aMul,50*aMul);
+             OneBenchExtrem(aSz,aNbLab,aSzW,3.1);
+             OneBenchExtrem(aSz,aNbLab,aSzW,3.0);
+             OneBenchExtrem(aSz,aNbLab,aSzW,2.9);
          }
      }
      BenchAffineExtre();
@@ -743,12 +762,13 @@ void BenchExtre()
              double aVal = aCX2*Square(aK-aRoot) + aCste;
              aVV.push_back(aVal);
          }
-         boost::optional<double> aExtrem =  InterpoleExtr(aVV.at(0),aVV.at(1),aVV.at(2));
-         double aDif=  aRoot - aExtrem.get() ;
+         std::optional<double> aExtrem =  InterpoleExtr(aVV.at(0),aVV.at(1),aVV.at(2));
+         double aDif=  aRoot - *aExtrem ;
          MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5, "Interpol Extr d1");
      }
-     // boost::optional<double>  InterpoleExtr(double V1,double V2,double V3)
-     StdOut() << "Bench Extremmum\n";
+     // std::optional<double>  InterpoleExtr(double V1,double V2,double V3)
+     // StdOut() << "Bench Extremmum\n";
+     aParam.EndBench();
 }
 
 

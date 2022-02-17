@@ -231,6 +231,14 @@
            <Symb>  ROPSigmaR=-11.0  </Symb>
            <Symb>  ROPOrient="XXX_RopOrient"   </Symb>
            <Symb>  ROPPattern="XXX_RopPattern"   </Symb>
+
+            <!--   Observation plane -->
+           <Symb>  WithObsPlane=false      </Symb>
+           <Symb>  FileObsPlane=XXXX      </Symb>
+           <Symb>  WeightObsPlane=1.0      </Symb>
+
+           <Symb>  WithExtenZ=false      </Symb>
+           <Symb>  ExtenZ=0.0      </Symb>
        </DicoLoc>
 
 
@@ -324,6 +332,15 @@
                        <Id>  TheIdLA4 </Id>
                        <#WHEN VTEST=${WithIncLA}> <Inc> ${IncLaX}  ${IncLaY}  ${IncLaZ} </Inc> </#WHEN>
                    </GpsOffset>
+             </#WHEN>
+
+             <#WHEN VTEST=${WithObsPlane}>
+                  <DataObsPlane>
+                        <Id> IdObsPlane </Id>
+                        <NameFile> ${FileObsPlane} </NameFile>
+                        <Weight  > ${WeightObsPlane} </Weight>
+                        <Data>  </Data>
+                   </DataObsPlane>
              </#WHEN>
 
 
@@ -506,6 +523,9 @@
              <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
              <SauvAutom>  ${SauvAutom} </SauvAutom>
              <SauvAutomBasic>  ${DoSauvAutom} </SauvAutomBasic>
+             <#WHEN VTEST=${WithExtenZ}>
+                   <ExtensionIntervZ> ${ExtenZ} </ExtensionIntervZ>
+             </#WHEN>
         </SectionChantier>
 
         <SectionSolveur>
@@ -883,6 +903,12 @@
 		              <TxtRapDetaille>
 		                    <NameFile> ${RapTxt}</NameFile>
 		              </TxtRapDetaille>
+                          </#WHEN>
+
+                          <#WHEN VTEST=${WithObsPlane}>
+                              <ObsCenterInPlane>
+                                     <Id> IdObsPlane </Id>
+                              </ObsCenterInPlane>
                           </#WHEN>
 
                           <#WHEN  VTEST=${WithGCP}>

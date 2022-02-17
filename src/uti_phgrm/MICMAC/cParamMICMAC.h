@@ -2492,6 +2492,43 @@ void  BinaryUnDumpFromFile(cMultiCorrelPonctuel &,ELISE_fp &);
 
 std::string  Mangling( cMultiCorrelPonctuel *);
 
+class cScoreLearnedMMVII
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cScoreLearnedMMVII & anObj,cElXMLTree * aTree);
+
+
+        std::string & FileModeleCost();
+        const std::string & FileModeleCost()const ;
+
+        cTplValGesInit< double > & CostDyn();
+        const cTplValGesInit< double > & CostDyn()const ;
+
+        cTplValGesInit< double > & CostExp();
+        const cTplValGesInit< double > & CostExp()const ;
+
+        cTplValGesInit< std::string > & Cmp_FileMC();
+        const cTplValGesInit< std::string > & Cmp_FileMC()const ;
+
+        cTplValGesInit< int > & Cmp_NbDisc();
+        const cTplValGesInit< int > & Cmp_NbDisc()const ;
+    private:
+        std::string mFileModeleCost;
+        cTplValGesInit< double > mCostDyn;
+        cTplValGesInit< double > mCostExp;
+        cTplValGesInit< std::string > mCmp_FileMC;
+        cTplValGesInit< int > mCmp_NbDisc;
+};
+cElXMLTree * ToXMLTree(const cScoreLearnedMMVII &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cScoreLearnedMMVII &);
+
+void  BinaryUnDumpFromFile(cScoreLearnedMMVII &,ELISE_fp &);
+
+std::string  Mangling( cScoreLearnedMMVII *);
+
 class cCorrel_Ponctuel2ImGeomI
 {
     public:
@@ -2890,6 +2927,9 @@ class cTypeCAH
         cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
         const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
 
+        cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII();
+        const cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII()const ;
+
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI();
         const cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI()const ;
 
@@ -2913,6 +2953,7 @@ class cTypeCAH
         cTplValGesInit< cGPU_Correl > mGPU_Correl;
         cTplValGesInit< cGPU_CorrelBasik > mGPU_CorrelBasik;
         cTplValGesInit< cMultiCorrelPonctuel > mMultiCorrelPonctuel;
+        cTplValGesInit< cScoreLearnedMMVII > mScoreLearnedMMVII;
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > mCorrel_Ponctuel2ImGeomI;
         cTplValGesInit< cCorrel_PonctuelleCroisee > mCorrel_PonctuelleCroisee;
         cTplValGesInit< cCorrel_MultiFen > mCorrel_MultiFen;
@@ -2977,6 +3018,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
         const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
+
+        cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII();
+        const cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII()const ;
 
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI();
         const cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI()const ;
@@ -4484,6 +4528,9 @@ class cEtapeMEC
         cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
         const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
 
+        cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII();
+        const cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII()const ;
+
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI();
         const cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI()const ;
 
@@ -5211,6 +5258,9 @@ class cSection_MEC
         friend void xml_init(cSection_MEC & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< double > & ExtensionIntervZ();
+        const cTplValGesInit< double > & ExtensionIntervZ()const ;
+
         cTplValGesInit< bool > & PasIsInPixel();
         const cTplValGesInit< bool > & PasIsInPixel()const ;
 
@@ -5310,6 +5360,7 @@ class cSection_MEC
         cTplValGesInit< bool > & Correl16Bits();
         const cTplValGesInit< bool > & Correl16Bits()const ;
     private:
+        cTplValGesInit< double > mExtensionIntervZ;
         cTplValGesInit< bool > mPasIsInPixel;
         cTplValGesInit< Box2dr > mProportionClipMEC;
         cTplValGesInit< bool > mClipMecIsProp;
@@ -7020,6 +7071,9 @@ class cParamMICMAC
 
         cSection_PriseDeVue & Section_PriseDeVue();
         const cSection_PriseDeVue & Section_PriseDeVue()const ;
+
+        cTplValGesInit< double > & ExtensionIntervZ();
+        const cTplValGesInit< double > & ExtensionIntervZ()const ;
 
         cTplValGesInit< bool > & PasIsInPixel();
         const cTplValGesInit< bool > & PasIsInPixel()const ;

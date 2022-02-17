@@ -11,7 +11,6 @@ namespace MMVII
 
 extern cSpecMMVII_Appli  TheSpecBench;
 extern cSpecMMVII_Appli  TheSpecTestCpp11;
-extern cSpecMMVII_Appli  TheSpec_TestBoostSerial;
 extern cSpecMMVII_Appli  TheSpecMPDTest;
 extern cSpecMMVII_Appli  TheSpecEditSet;
 extern cSpecMMVII_Appli  TheSpecEditRel;
@@ -26,6 +25,18 @@ extern cSpecMMVII_Appli  TheSpecCalcDiscIm;
 extern cSpecMMVII_Appli  TheSpecCalcDescPCar;
 extern cSpecMMVII_Appli  TheSpecMatchTieP;
 extern cSpecMMVII_Appli  TheSpecEpipGenDenseMatch;
+extern cSpecMMVII_Appli  TheSpecGenSymbDer;
+extern cSpecMMVII_Appli  TheSpecKapture;
+extern cSpecMMVII_Appli  TheSpecFormatTDEDM_WT;  // Wu Teng
+extern cSpecMMVII_Appli  TheSpecFormatTDEDM_MDLB; // Middleburry
+extern cSpecMMVII_Appli  TheSpecTestHypStep; // Middleburry
+extern cSpecMMVII_Appli  TheSpecExtractLearnVecDM; 
+extern cSpecMMVII_Appli  TheSpecCalcHistoCarac; 
+extern cSpecMMVII_Appli  TheSpecCalcHistoNDim; 
+extern cSpecMMVII_Appli  TheSpecFillCubeCost; 
+extern cSpecMMVII_Appli  TheSpecDMEvalRef; 
+extern cSpecMMVII_Appli  TheSpecGenCodedTarget; 
+extern cSpecMMVII_Appli  TheSpecExtractCodedTarget; 
 
 };
 

@@ -5,7 +5,9 @@
 #include <vector>
 #include <string>
 
-#include "ceres/ceres.h"
+// On ne peut pas aujd supprimmer ceres, mais apparement la dependance 
+//  est liee a des fonctionnalite annexe getopt etc ...  =>JO?
+#include "ceres/ceres.h"  
 
 
 /* {III}  ========================  Test perf on colinearit equation ==========================
@@ -82,12 +84,15 @@ Now we make a macro description of the main classes :
 template <const int NbParamD> class cCountDist
 {
     public :
-        static const int TheNbDist        =  NbParamD;
-        static const int TheNbCommonUk    = 12 ;
-        static const int TheNbUk          = TheNbCommonUk + TheNbDist;
-        static const int TheNbObs         = 11;
+        static const int TheNbDist          =  NbParamD;
 
-        static const std::vector<std::string> & VNamesObs()
+        static const int TheNbUkDist        = 2 ;
+        static const int TheNbUkCoLinear    = 12 ;
+
+        static const int TheNbObsDist       = 3 ;
+        static const int TheNbObsColinear   = 11;
+
+        static const std::vector<std::string> & VNamesObsCoLinear()
         {
             static std::vector<std::string> TheVObs
             {
@@ -96,16 +101,19 @@ template <const int NbParamD> class cCountDist
             };
             return TheVObs;
         };
-        static const std::vector<std::string> & VUnkGlob ()
+
+
+        static const std::vector<std::string> & VUnknown (bool Colinear)
         {
-            static std::vector<std::string> TheVUk
+            static std::vector<std::string> TheVUkDIst{"ppX","ppY","ppZ"}; // Intrinsic : pp+F
+            static std::vector<std::string> TheVUkCol
             {
               "XGround","YGround","ZGround",        // Unknown 3D Point
               "XCam","YCam","ZCam", "Wx","Wy","Wz", // External Parameters
               "ppX","ppY","ppZ"                     // Internal : principal point + focal
             };
-            return TheVUk;
-         }
+            return Colinear ? TheVUkCol : TheVUkDIst;
+        }
 
 };
 
@@ -129,60 +137,82 @@ template <const int NbParamD> class cCountDist
 
 */
 
-class cTplFraserDist : public cCountDist<7>
+template <const int NbDRad> class cTplFraserDist : public cCountDist<4+NbDRad>
 {
   public :
-    /// Usable for message, also for name generation in formulas
-    static std::string  NameModel() {return "Fraser";}
+    typedef cCountDist<4+NbDRad>  tCountDist;
+    static const int TheNbDist  =  tCountDist::TheNbDist;
 
-    static const std::vector<std::string>&  VNamesUnknowns()
+
+    /// Usable for message, also for name generation in formulas
+    static std::string  NameModel() {return "Fraser_"+std::to_string(NbDRad);}
+
+    static const std::vector<std::string>  NamesParamsOfDist(bool Colinear)
     {
-      static std::vector<std::string>  TheV;
+      std::vector<std::string>  TheV;
       // Add name of distorsion to others unkonw
       if (TheV.empty())
       {
-        TheV = VUnkGlob();
+        TheV = tCountDist::VUnknown(Colinear);
         // k2,k4,k6  Distorsion radiale; p1 p2 Decentric ; b1 b2 Affine
-        for (auto aS :{"k2","k4","k6", "p1","p2","b1","b2"})
-           TheV.push_back(aS);
+        for (auto aS :{"p1","p2","b1","b2"}) 
+            TheV.push_back(aS);
+        for (int aD=1 ; aD<=NbDRad ; aD++)  // Add now k2,k4 ...
+            TheV.push_back("k"+std::to_string(2*aD));
       }
 
       return  TheV;
     }
 
-    template<typename tUk, typename tObs>
-    static std::vector<tUk> Dist (
-                                 const tUk & xPi,const tUk & yPi,
-                                 const std::vector<tUk> & aVUk, const std::vector<tObs> &
-                             )
+    template<typename tUk> static std::vector<tUk> 
+          PProjToImNorm 
+          (
+             const tUk & xPi,const tUk & yPi, // "Proj" point in camera coordinate
+             const std::vector<tUk> & aVParam, // Vector of params, can be unknown or obs
+             const unsigned int   NumFirstDistParam
+          )
     {
+         unsigned int Ind = NumFirstDistParam;
          // In this model we confond Principal point and distorsion center,
-         const auto & xCD = aVUk[ 9];
-         const auto & yCD = aVUk[10];
+         // const auto & xCD = aVParam.at(Ind++);
+         // const auto & yCD = aVParam.at(Ind++);
 
-         //  Radial  distortions coefficients
-         const auto & k2D = aVUk[12];
-         const auto & k4D = aVUk[13];
-         const auto & k6D = aVUk[14];
+          // Ind++;  // For xCD
+          // Ind++;  // For yCD
+          // Ind++;  // For focal
 
          //   Decentric distorstion
-         const auto & p1 = aVUk[15];
-         const auto & p2 = aVUk[16];
+         const auto & p1 = aVParam.at(Ind++);
+         const auto & p2 = aVParam.at(Ind++);
 
          //   Affine distorsion
-         const auto & b1 = aVUk[17];
-         const auto & b2 = aVUk[18];
+         const auto & b1 = aVParam.at(Ind++);
+         const auto & b2 = aVParam.at(Ind++);
 
-    // Coordinate relative to distorsion center
-         auto xC =  xPi-xCD;
-         auto yC =  yPi-yCD;
+
+    // Coordinate relative to distorsion center BUT as PP an focal opers after,
+    // 0,0 is the pp point, and also the dist center
+         // auto xC =  xPi-xCD;
+         // auto yC =  yPi-yCD;
+         auto xC =  xPi ; 
+         auto yC =  yPi ;
          auto x2C = square(xC);  // Use the indermediar value to (probably) optimize Jet
          auto y2C = square(yC);
          auto xyC = xC * yC;
          auto Rho2C = x2C + y2C;
 
    // Compute the distorsion
-         auto rDist = k2D*Rho2C + k4D * square(Rho2C) + k6D*cube(Rho2C);
+
+         //  Radial  distortions coefficients
+         auto powR = Rho2C;
+         auto rDist = aVParam.at(Ind++)*powR;  
+         for (int aD=1 ; aD< NbDRad ; aD++)
+         {
+             powR = powR * Rho2C;
+             rDist  = rDist +  aVParam.at(Ind++)*powR;
+         }
+         assert(Ind==aVParam.size()); // be sure we have consumed exacly the parameters
+
          auto affDist = b1 * xC + b2 * yC;
          auto decX = p1*(3.0*x2C + y2C) +  p2*(2.0*xyC);
          auto decY = p2*(3.0*y2C + x2C) +  p1*(2.0*xyC);
@@ -264,18 +294,19 @@ template <const int Deg> class cTplPolDist :
 {
     public :
        typedef cCountDist<(Deg+1)*(Deg+2) -6>  tCountDist;
+       static const int TheNbDist  =  tCountDist::TheNbDist;
 
        /// Usable for message, also for name generation in formulas
        static std::string  NameModel() {return "XYPol_Deg"+std::to_string(Deg);}
 
        // Vectors of names of unknowns
-       static const std::vector<std::string>&  VNamesUnknowns()
+       static const std::vector<std::string>  NamesParamsOfDist(bool Colinear)
        {
-         static std::vector<std::string>  TheV;
+         std::vector<std::string>  TheV;
          if (TheV.empty()) // First call
          {
             // Get the common unknowns
-            TheV = tCountDist::VUnkGlob();
+            TheV = tCountDist::VUnknown(Colinear);
 
             // Get the degrees of monomes
             std::vector<int>  aXDx,aXDy,aYDx,aYDy;
@@ -308,11 +339,13 @@ template <const int Deg> class cTplPolDist :
 
        // Vectors of names of unknowns
 
-       template<typename tUk, typename tObs>
-       static std::vector<tUk> Dist (
-                                 const tUk & xPi,const tUk & yPi,
-                                 const std::vector<tUk> & aVUk, const std::vector<tObs> &
-                             )
+       template<typename tUk> static std::vector<tUk> 
+                PProjToImNorm 
+                (
+                     const tUk & xPi,const tUk & yPi,
+                     const std::vector<tUk> & aVParam, 
+                     unsigned int   NumFirstDistParam
+                )
        {
            static std::vector<int>  aXDx,aXDy,aYDx,aYDy;
             if (aXDx.empty()) // first call compute degree of monomes
@@ -350,14 +383,15 @@ template <const int Deg> class cTplPolDist :
             auto xDist =  xPi;
             auto yDist =  yPi;
 
-            int anInd =  tCountDist::TheNbCommonUk;  // Unkown on dist are stored after common
+            unsigned int anInd =  NumFirstDistParam;
             // Be carefull to be coherent with VNamesUnknowns
             for (size_t aK=0; aK<aXDx.size() ; aK++)
-                xDist = xDist+aVMonX.at(aXDx.at(aK))*aVMonY.at(aXDy.at(aK))*aVUk.at(anInd++);
+                xDist = xDist+aVMonX.at(aXDx.at(aK))*aVMonY.at(aXDy.at(aK))*aVParam.at(anInd++);
 
             for (size_t aK=0; aK<aYDx.size() ; aK++)
-                yDist = yDist+aVMonX.at(aYDx.at(aK))*aVMonY.at(aYDy.at(aK))*aVUk.at(anInd++);
+                yDist = yDist+aVMonX.at(aYDx.at(aK))*aVMonY.at(aYDy.at(aK))*aVParam.at(anInd++);
 
+            assert(anInd==aVParam.size()); // be sure we have consumed exacly the parameters
             return {xDist,yDist};
        }
 
@@ -401,17 +435,30 @@ template <const int Deg> class cTplPolDist :
         }
 };
 
-
-
-
-template <class TypeDist>  class cEqCoLinearity
+template <class TypeDist>  class cEqDist
 {
   public :
+    typedef typename TypeDist::tCountDist  tCountDist;
+
     static constexpr int NbUk()  { return TheNbUk;}
     static constexpr int NbObs() { return TheNbObs;}
-    static const std::vector<std::string>& VNamesUnknowns() { return TypeDist::VNamesUnknowns();}
-    static const std::vector<std::string>& VNamesObs() { return TypeDist::VNamesObs();}
-    static std::string FormulaName() { return "EqColLinearity" + TypeDist::NameModel();}
+    static const std::vector<std::string>& VNamesUnknowns() 
+    {
+         static std::vector<std::string>  TheV {"xPi","yPi"};
+         return TheV;
+    }
+    static const std::vector<std::string> VNamesObs() 
+    { 
+       return TypeDist::NamesParamsOfDist(false);
+    }
+      static std::vector<std::string>  TheV;
+
+    static const int TheNbUk = 2;
+    static const int TheNbObs = TypeDist::TheNbDist + tCountDist::TheNbObsDist;
+     
+    static std::string FormulaName() { return "EqDist" + TypeDist::NameModel();}
+
+    //  tUk and tObs differs, because with Jets  obs are double
 
        /*  Capital letter for 3D variable/formulas and small for 2D */
     template <typename tUk, typename tObs>
@@ -424,27 +471,78 @@ template <class TypeDist>  class cEqCoLinearity
         assert (aVUk.size() ==TheNbUk) ;  // SD::UserSError("Bad size for unknown");
         assert (aVObs.size()==TheNbObs) ;// SD::UserSError("Bad size for observations");
 
+
+        int aNumInd = 0;
         // 0 - Ground Coordinates of projected point
-        const auto & XGround = aVUk[0];
-        const auto & YGround = aVUk[1];
-        const auto & ZGround = aVUk[2];
+        const auto & xPi = aVUk.at(aNumInd++);
+        const auto & yPi = aVUk.at(aNumInd++);
+        assert(aNumInd==TheNbUk); // be sure we have consumed exacly the parameters
+
+        // Now compute the distorsion
+        auto   aVDist = TypeDist::PProjToImNorm(xPi,yPi,aVObs,tCountDist::TheNbObsDist);
+        const auto & xDist =  aVDist.at(0);
+        const auto & yDist =  aVDist.at(1);
+
+        const auto & xPP = aVObs.at(0);
+        const auto & yPP = aVObs.at(1);
+        const auto & zPP = aVObs.at(2);
+
+        auto xIm =  xPP  + zPP  * xDist;
+        auto yIm =  yPP  + zPP  * yDist;
+
+        return {xIm,yIm};
+     }
+};
+
+
+
+template <class TypeDist>  class cEqCoLinearity
+{
+  public :
+    typedef typename TypeDist::tCountDist  tCountDist;
+
+    static constexpr int NbUk()  { return TheNbUk;}
+    static constexpr int NbObs() { return TheNbObs;}
+    static const std::vector<std::string> VNamesUnknowns() { return TypeDist::NamesParamsOfDist(true);}
+    static const std::vector<std::string>& VNamesObs() { return tCountDist::VNamesObsCoLinear();}
+    static std::string FormulaName() { return "EqColLinearity" + TypeDist::NameModel();}
+
+    //  tUk and tObs differs, because with Jets  obs are double
+
+       /*  Capital letter for 3D variable/formulas and small for 2D */
+    template <typename tUk, typename tObs>
+    static     std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  )
+    {
+        assert (aVUk.size() ==TheNbUk) ;  // SD::UserSError("Bad size for unknown");
+        assert (aVObs.size()==TheNbObs) ;// SD::UserSError("Bad size for observations");
+
+        int aNumInd = 0;
+        // 0 - Ground Coordinates of projected point
+        const auto & XGround = aVUk.at(aNumInd++);
+        const auto & YGround = aVUk.at(aNumInd++);
+        const auto & ZGround = aVUk.at(aNumInd++);
 
         // 1 - Pose / External parameter
             // 1.1  Coordinate of camera center
-        const auto & C_XCam = aVUk[3];
-        const auto & C_YCam = aVUk[4];
-        const auto & C_ZCam = aVUk[5];
+        const auto & C_XCam = aVUk.at(aNumInd++);
+        const auto & C_YCam = aVUk.at(aNumInd++);
+        const auto & C_ZCam = aVUk.at(aNumInd++);
 
             // 1.2  Coordinate of Omega vector coding the unknown "tiny" rotation
-        const auto & Wx = aVUk[6];
-        const auto & Wy = aVUk[7];
-        const auto & Wz = aVUk[8];
+        const auto & Wx = aVUk.at(aNumInd++);  // 6
+        const auto & Wy = aVUk.at(aNumInd++);  // 7
+        const auto & Wz = aVUk.at(aNumInd++);  // 8
 
         // 2 - Intrinsic parameters
              // 2.1 Principal point  and Focal
-        const auto & xPP = aVUk[ 9];
-        const auto & yPP = aVUk[10];
-        const auto & zPP = aVUk[11]; // also named as focal
+        const auto & xPP = aVUk.at(aNumInd++); // 9
+        const auto & yPP = aVUk.at(aNumInd++); // 10
+        const auto & zPP = aVUk.at(aNumInd++); // 11 also named focal
+         assert(aNumInd==tCountDist::TheNbUkCoLinear); // be sure we have consumed exacly the parameters
 
        // Vector P->Cam
         auto  XPC = XGround-C_XCam;
@@ -475,7 +573,7 @@ template <class TypeDist>  class cEqCoLinearity
         auto yPi =  YCam/ZCam;
 
         // Now compute the distorsion
-        auto   aVDist = TypeDist::Dist(xPi,yPi,aVUk,aVObs);
+        auto   aVDist = TypeDist::PProjToImNorm(xPi,yPi,aVUk,tCountDist::TheNbUkCoLinear);
         const auto & xDist =  aVDist[0];
         const auto & yDist =  aVDist[1];
 
@@ -492,9 +590,8 @@ template <class TypeDist>  class cEqCoLinearity
         return {x_Residual,y_Residual};
     }
     private:
-    static const int  TheNbUk  = TypeDist::TheNbUk;
-    static const int  TheNbObs = TypeDist::TheNbObs;
-
+    static const int  TheNbUk  = TypeDist::TheNbDist + tCountDist::TheNbUkCoLinear;
+    static const int  TheNbObs = tCountDist::TheNbObsColinear;
 };
 
 

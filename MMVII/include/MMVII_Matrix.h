@@ -3,6 +3,8 @@
 namespace MMVII
 {
 
+  // Gittttttttttttt
+
 
 /** \file MMVII_Matrix.h
     \brief Classes for matrix manipulation, 
@@ -68,6 +70,8 @@ template <class Type> class  cDenseVect
 
         cDenseVect(int aSz, eModeInitImage=eModeInitImage::eMIA_NoInit);
         cDenseVect(tIM anIm);
+        static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
+        cDenseVect<Type>  Dup() const;
 
         const Type & operator() (int aK) const {return DIm().GetV(aK);}
         Type & operator() (int aK) {return DIm().GetV(aK);}
@@ -75,6 +79,11 @@ template <class Type> class  cDenseVect
 
         double L1Dist(const cDenseVect<Type> & aV) const;
         double L2Dist(const cDenseVect<Type> & aV) const;
+
+        double L1Norm() const;   ///< Norm som abs
+        double L2Norm() const;   ///< Norm square
+        double LInfNorm() const; ///< Nomr max
+
 
         Type * RawData();
         const Type * RawData() const;
@@ -85,6 +94,8 @@ template <class Type> class  cDenseVect
 
         tIM & Im(){return mIm;}
         const tIM & Im() const {return mIm;}
+
+        Type ProdElem() const; ///< Mul of all element, usefull for det computation
 
         // operator -= 
         double DotProduct(const cDenseVect &) const;
@@ -219,6 +230,8 @@ template <class Type> class cMatrix  : public cRect2
      private :
 };
 
+
+
 template <class Type> cDenseVect<Type> operator * (const cDenseVect<Type> &,const cMatrix<Type>&);
 template <class Type> cDenseVect<Type> operator * (const cMatrix<Type>&,const cDenseVect<Type> &);
 
@@ -263,8 +276,10 @@ template <class Type> class cUnOptDenseMatrix : public cMatrix<Type>
 
 template <class Type> class cResulSymEigenValue;
 template <class Type> class cConst_EigenMatWrap;
+template <class Type> class cStrStat2;
 template <class Type> class cNC_EigenMatWrap;
 template <class Type> class cResulQR_Decomp;
+template <class Type> class cResulSVDDecomp;
 
 /**  Dense Matrix, probably one single class. 
      Targeted to be instantiated with 4-8-16 byte floating point
@@ -281,6 +296,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         typedef cDenseVect<Type> tDV;
         typedef cDataIm2D<Type> tDIm;
         typedef cIm2D<Type> tIm;
+        typedef cResulSVDDecomp<Type> tRSVD;
 
         typedef  cMatrix<Type>           tMat;
         typedef  cUnOptDenseMatrix<Type> tUO_DM;
@@ -300,7 +316,18 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
             usefull for bench as when the random matrix is close to singular, it may instability that fail
             the numerical test.
         */
-        static tDM RandomSquareRegMatrix(int aSz,bool IsSym,double aAmplAcc,double aCondMinAccept);
+        static tDM RandomSquareRegMatrix(const cPt2di&aSz,bool IsSym,double aAmplAcc,double aCondMinAccept);
+        static tRSVD RandomSquareRegSVD(const cPt2di&aSz,bool IsSym,double aAmplAcc,double aCondMinAccept);
+
+        /* Generate a matrix rank deficient, where aSzK is the size of the kernel */
+        static tRSVD RandomSquareRankDefSVD(const cPt2di & aSz,int aSzK);
+        static tDM RandomSquareRankDefMatrix(const cPt2di & aSz,int aSzK);
+
+        /** Compute the kernel of the matrix, due to numeric rounding, we dont have exactly M*K=0,
+            so VP indicate how close we are from that, made using SVD */
+        tDV Kernel(Type * aVP=nullptr) const;
+        /// More general version of Kernel, apply to any eigen value
+        tDV EigenVect(const Type & aVal,Type * aVP=nullptr) const;
 
         // To contourn borring new template scope ....
         const tDIm & DIm() const {return tUO_DM::DIm();}
@@ -327,12 +354,14 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         tDM  Solve(const tDM &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDV  Solve(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
+        tDV  SolveLine(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
 
 
         //  ====  Orthognal matrix
 
         double Unitarity() const; ///< test the fact that M is unatiry, basic : distance of Id to tM M
         cResulSymEigenValue<Type> SymEigenValue() const;
+        tRSVD  SVD() const;
 
         cResulQR_Decomp<Type>  QR_Decomposition() const;
 
@@ -355,6 +384,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tDM  Transpose() const;  ///< Put transposate in M2
          
         double Diagonalicity() const; ///< how much close to a diagonal matrix, square only , 
+        Type   Det() const;  ///< compute the determinant, not sur optimise
 
         //  =====   Overridng of cMatrix classe  ==== 
         void  MulColInPlace(tDV &,const tDV &) const override;
@@ -369,14 +399,18 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         // ====  Sparse vector 
         void  Weighted_Add_tAA(Type aWeight,const tSpV & aColLine,bool OnlySup=true) override;
+
+        // === method implemente with DIm
+        Type L2Dist(const cDenseMatrix<Type> & aV) const;
 };
+
 
 template <class Type> class cResulSymEigenValue
 {
     public :
         friend class cDenseMatrix<Type>;
+        friend class cStrStat2<Type>;
 
-        cResulSymEigenValue(int aNb);
         cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix
 
         const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values
@@ -385,22 +419,47 @@ template <class Type> class cResulSymEigenValue
         Type  Cond(Type Def=Type(-1)) const ; ///< Conditioning, def value is when all 0, if all0 and Def<0 : Error
 
     private :
+        cResulSymEigenValue(int aNb);
         cDenseVect<Type>    mEigenValues;  ///< Eigen values
         cDenseMatrix<Type>  mEigenVectors; ///< Eigen vector
 };
+
+
+template <class Type> class cResulSVDDecomp
+{
+    public :
+        friend class cDenseMatrix<Type>;
+
+        cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix
+
+        const cDenseVect<Type>   &  SingularValues() const ; ///< Eigen values
+        const cDenseMatrix<Type> &  MatU()const ; ///< Eigen vector
+        const cDenseMatrix<Type> &  MatV()const ; ///< Eigen vector
+        // void  SetKthEigenValue(int aK,const Type & aVal) ;  ///< Eigen values
+        // Type  Cond(Type Def=Type(-1)) const ; ///< Conditioning, def value is when all 0, if all0 and Def<0 : Error
+
+    private :
+        cResulSVDDecomp(int aNb);
+        cDenseVect<Type>    mSingularValues;  ///< Eigen values
+        cDenseMatrix<Type>  mMatU; ///< Eigen vector
+        cDenseMatrix<Type>  mMatV; ///< Eigen vector
+
+};
+
+
 
 template <class Type> class cResulQR_Decomp
 {
     public :
         friend class cDenseMatrix<Type>;
 
-        cResulQR_Decomp(int aSzX,int aSzY);
         cDenseMatrix<Type>  OriMatr() const;
 
         const cDenseMatrix<Type> &  Q_Matrix() const; ///< Unitary
         const cDenseMatrix<Type> &  R_Matrix() const; ///< Triang
 
     private :
+        cResulQR_Decomp(int aSzX,int aSzY);
         cDenseMatrix<Type>  mQ_Matrix; ///< Unitary Matrix
         cDenseMatrix<Type>  mR_Matrix; ///< Triangular superior
 
@@ -461,7 +520,9 @@ template <class Type> class cMatIner2Var
 {
     public :
        cMatIner2Var ();
+       cMatIner2Var(const cMatIner2Var<Type> &) = default;
        void Add(const double & aPds,const Type & aV1,const Type & aV2);
+       void Add(const Type & aV1,const Type & aV2);
        const Type & S0()  const {return mS0;}
        const Type & S1()  const {return mS1;}
        const Type & S11() const {return mS11;}
@@ -469,6 +530,12 @@ template <class Type> class cMatIner2Var
        const Type & S12() const {return mS12;}
        const Type & S22() const {return mS22;}
        void Normalize();
+       void Add(const cMatIner2Var&);
+       void Add(const cMatIner2Var&,const Type & aMul) ;
+       Type Correl(const Type &aEpsilon=1e-10) const;
+       Type CorrelNotC(const Type &aEpsilon=1e-10) const; // Non centered correl
+       Type StdDev1() const;
+       Type StdDev2() const;
     private :
         Type  mS0;   ///< Som of    W
         Type  mS1;   ///< Som of    W * V1
@@ -477,6 +544,19 @@ template <class Type> class cMatIner2Var
         Type  mS12;  ///< Som of    W * V1 * V2
         Type  mS22;  ///< Som of    W * V2 * V2
 };
+
+/** Class for averaging with weight */
+template <class Type> class cWeightAv
+{
+     public :
+        cWeightAv();
+        void Add(const Type & aWeight,const Type & aVal);
+        Type Average() const;
+    private :
+        Type  mSW;   ///< Som of    W
+        Type  mSVW;   ///< Som of    VW
+};
+
 
 /// A function rather specific to bench, assimilate image to a distribution on var X,Y and compute it 0,1,2 moments
 template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);
@@ -526,13 +606,99 @@ template <class Type>  class cComputeStdDev
          const Type & SomWV()  const {return mSomWV; }
          const Type & SomWV2() const {return mSomWV2;}
          Type  NormalizedVal(const Type &) const;
-         cComputeStdDev<Type>  Normalize() const;
+         cComputeStdDev<Type>  Normalize(const Type & Epsilon = 0.0) const;
      private :
-         void  SelfNormalize();
+         void  SelfNormalize(const Type & Epsilon = 0.0);
          Type mSomW; 
          Type mSomWV; 
          Type mSomWV2; 
          Type mStdDev; 
+};
+
+/* ============================================== */
+/*                                                */
+/*         Point/Matrix                           */
+/*                                                */
+/* ============================================== */
+
+// Operation with points,  as points have fixed size contrarily to matrix, the syntax is not
+// as fluent as I would like
+
+#define CHECK_SZMAT_COL(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz().y()==aPT.TheDim,"Bad size in Col Pt")
+#define CHECK_SZMAT_LINE(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz().x()==aPT.TheDim,"Bad size in Line Pt")
+#define CHECK_SZMAT_SQ(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny((aMAT.Sz().x()==aPT.TheDim) &&(aMAT.sz().y()==aPt.TheDim),"Bad size Sq Pt")
+
+#define CHECK_SZPT_VECT(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz()==aPT.TheDim,"Bad size in Vec/Pt")
+
+
+template <class Type,int Dim> void GetCol(cPtxd<Type,Dim> &,const cDenseMatrix<Type> &,int aCol);
+// template <class Type,int Dim> cPtxd<Type,Dim> GetCol(const cDenseMatrix<Type> &,int aCol);
+template <class Type,int Dim> void SetCol(cDenseMatrix<Type> &,int aCol,const cPtxd<Type,Dim> &);
+
+template <class Type,int Dim> void GetLine(cPtxd<Type,Dim> &,int aLine,const cDenseMatrix<Type> &);
+// template <class Type,int Dim> cPtxd<Type,Dim> GetLine(int aLine,const cDenseMatrix<Type> &);
+template <class Type,int Dim> void SetLine(int aLine,cDenseMatrix<Type> &,const cPtxd<Type,Dim> &);
+
+// Mutiplication by a square Matrix only, do we know size
+template <class Type,const int Dim>  cPtxd<Type,Dim> operator * (const cPtxd<Type,Dim> &,const cDenseMatrix<Type> &);
+template <class Type,const int Dim>  cPtxd<Type,Dim> operator * (const cDenseMatrix<Type> &,const cPtxd<Type,Dim> &);
+
+
+
+template<class Type,const int DimOut,const int DimIn>void MulCol(cPtxd<Type,DimOut>&,const cDenseMatrix<Type>&,const cPtxd<Type,DimIn>&);
+template<class Type,const int DimOut,const int DimIn>void MulLine(cPtxd<Type,DimOut>&,const cPtxd<Type,DimIn>&aLine,const cDenseMatrix<Type>&);
+
+template<class Type,const int Dim> cPtxd<Type,Dim> SolveCol(const cDenseMatrix<Type>&,const cPtxd<Type,Dim>&);
+template<class Type,const int Dim> cPtxd<Type,Dim> SolveLine(const cPtxd<Type,Dim>&,const cDenseMatrix<Type>&);
+
+
+/** Class for image of any dimension, relatively slow probably */
+
+template <class Type> class cDataGenDimTypedIm : public cMemCheck
+{
+    public :
+        typedef Type  tVal;
+        typedef tNumTrait<Type> tTraits;
+        typedef typename tTraits::tBase  tBase;
+        typedef cDenseVect<int>          tIndex;
+        typedef cDenseVect<tREAL4>       tRIndex;
+
+        const Type &  GetV(const tIndex&) const;
+        void SetV(const tIndex&,const tBase & aVal) ;
+        void AddV(const tIndex&,const tBase & aVal) ;
+
+
+        tREAL4   GetNLinearVal(const tRIndex&) const; // Get value by N-Linear interpolation
+        void     AddNLinearVal(const tRIndex&,const double & aVal) ; // Get value by N-Linear interpolation
+
+        tREAL4   RecGetNLinearVal(const tRIndex& aRIndex,tIndex& aIIndex,int aDim) const; // slow but easy version
+        void RecAddNLinearVal(const tRIndex& aRIndex,const double &,tIndex& aIIndex,int aDim) ; // slow but easy version
+
+        cDataGenDimTypedIm(const tIndex& aSz);
+        cDataGenDimTypedIm();
+        ~cDataGenDimTypedIm();
+        cDataGenDimTypedIm(const cDataGenDimTypedIm<Type> &) = delete;
+        void Resize(const tIndex &);
+
+        Type *   RawDataLin() const; 
+        int      NbElem() const; 
+        int Adress(const tIndex&) const;
+        const tIndex & Sz() const;
+        void AddData(const cAuxAr2007 &);
+        cIm2D<Type>  ToIm2D() const;  // If 2 d, return a standard image , sharing same date. If not=>ERROR ...
+    protected  :
+        void PrivateAssertOk(const tIndex&) const;
+# if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+        void AssertOk(const tIndex& anIndex) const {PrivateAssertOk(anIndex);}
+#else
+        void AssertOk(const tIndex&) { } const
+#endif
+
+        int      mDim;
+        int      mNbElem;
+        tIndex   mSz;
+        tIndex   mMulSz;
+        Type *   mRawDataLin; ///< raw data containing pixel values
 };
 
 

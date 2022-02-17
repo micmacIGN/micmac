@@ -30,6 +30,8 @@ class cInterfaceTestCam
 {
     public :
 
+       virtual ~cInterfaceTestCam() {}
+
        /// initialize parameteres from "raw" vector
        virtual void  InitFromParams(const std::vector<double> &) = 0;
        /// compute values and derivatives  and fill in  VVals and VDer
@@ -298,6 +300,9 @@ inline cVarEpsNum COS(const cVarEpsNum& g)
 
 template<int N> struct cEpsNum {
 
+
+
+
   // ====================== Data ===========
 
   double mNum;  ///< The number
@@ -412,6 +417,16 @@ template<int N> cVarEpsNum   cEpsNum<N>::ToVEN() const
 template<int N> cEpsNum<N> COS(const cEpsNum<N>& f) {
   return cEpsNum<N>(cos(f.mNum),-sin(f.mNum)*f.mEps);
 }
+
+// VERY VERY BORDER LINE, but we need this partial template specialization
+// because cPtx<Eps> requires the tBig/tBase 
+template <int Nb> class tElemNumTrait<cEpsNum<Nb> >  
+{
+    public :
+         typedef cEpsNum<Nb> tBase;
+         typedef cEpsNum<Nb> tBig ;
+};
+
 
 /* ************************************** */
 /*                                        */

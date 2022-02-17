@@ -1,17 +1,20 @@
 #ifndef _SymbolicDerivatives_H_
 #define _SymbolicDerivatives_H_
-using namespace std;
+
+// If true, this directive require CERES installed, then it allows a comparison with CERES/Jet (for a potential publication) ..
+#define MMVII_WITH_CERES false
+
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
 
-#define WITH_MMVII false
-#define WITH_EIGEN false
+// #define SYMBDER_WITH_MMVII true
+#define SYMBDER_WITH_EIGEN false
 
 
-#if WITH_EIGEN
+#if SYMBDER_WITH_EIGEN
 #include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
 #define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 #else
@@ -87,14 +90,22 @@ using namespace std;
 
 #include "SymbDer_Common.h"
 
-#if (WITH_MMVII)
+/*
+#if (SYMBDER_WITH_MMVII)
 #include "include/MMVII_all.h"
 #include "include/MMVII_Derivatives.h"
-using namespace MMVII;
+#define SYMBDER_cMemCheck  MMVII::cMemCheck
 #else             //========================================================== WITH_MMVI
-class cMemCheck
+class SYMBDER_cMemCheck
 {
 };
+#endif
+*/
+
+
+
+#if (SYMBDER_WITH_MMVII)
+#else
 #include <memory>
 #include <map>
 #include <iostream> 
@@ -206,6 +217,8 @@ template <class TypeElem> class cFormula ;
 
 /** Class for managing the "context", i.e. coordinating all the  formula 
     and their derivative corresponding to a single use .
+ 
+    A coordinator is also a calculator, as it make computation on formulas
 */
 template <class TypeElem> class cCoordinatorF;  
 
@@ -291,7 +304,7 @@ template <class Type> Type powI(const Type & aV,const int & aExp)
 
     // -------- Declaration of Coordinator class  ----------------
 
-template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,public cMemCheck
+template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // , public SYMBDER_cMemCheck
 {
     public :
  
@@ -300,9 +313,9 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
 
       // ---------------------------  Constructors / Destructor -------------------
         /// Constructor with explicit Id for Unknown/Observation. Used if we want to analyze the generated code
-        inline cCoordinatorF(const string &aName, int SzBuf, const std::vector<std::string> & aVecUK, const std::vector<std::string> & aVecObs);
+        inline cCoordinatorF(const std::string &aName, int SzBuf, const std::vector<std::string> & aVecUK, const std::vector<std::string> & aVecObs);
         /// Constructor with basic Id (used if we dont generate code, or dont want to analyse it by human)
-        inline cCoordinatorF(const string &aName, int SzBuf,int aNbUnknown,int aNbObservation);
+        inline cCoordinatorF(const std::string &aName, int SzBuf,int aNbUnknown,int aNbObservation);
         /// Destructeur will free allocated formulas
         virtual ~cCoordinatorF();
         /// Copies are not allowed on this kind of object.
@@ -323,39 +336,45 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
 
          // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp. Return filename w/o ext, or "" if error */
-         std::string GenerateCode(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenerateCode(const std::string &aFilePrefix="CodeGen_") const
          { return GenCodeShortExpr(aFilePrefix);
          }
-         std::string GenerateCodeTemplate(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenerateCodeTemplate(const std::string &aFilePrefix="CodeGen_") const
          { return GenCodeShortExprTemplate(aFilePrefix);
          }
-         std::string GenerateCodeForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenerateCodeForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
          { return GenCodeShortExprForType(aTypeName,aFilePrefix);
          }
-         std::string GenCodeShortExpr(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeShortExpr(const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, "", true);
          }
-         std::string GenCodeLonExpr(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeLonExpr(const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, "", false);
          }
-         std::string GenCodeShortExprTemplate(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeShortExprTemplate(const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, "template<>", true);
          }
-         std::string GenCodeLonExprTemplate(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeLonExprTemplate(const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, "template<>", false);
          }
-         std::string GenCodeShortExprForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeShortExprForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, aTypeName, true);
          }
-         std::string GenCodeLonExprForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeLonExprForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, aTypeName, false);
          }
+
+         // =========== Parametrisation of the generated code =========
+
+         /// The default value is not always adequate "SymbDer/SymbDer_Common.h"
+         void SetHeaderIncludeSymbDer(const std::string &aH) {mHeaderIncludeSymbDer= aH;}
+         void SetDirGenCode(const std::string &aDir) {mDirGenCode= aDir;}
 
     private :  // END-USER
          /*   =================================================================================
@@ -412,7 +431,7 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
         /// Used to generate automatically Id for Unknown/Observatio, when we dont need to control them explicitely
         static std::vector<std::string>   MakeAutomId(const std::string & aPrefix,int aNb);
 
-        std::string GenCodeCommon(const string &aPrefix, string aTypeName, bool isShortExpr) const;
+        std::pair<std::string,std::string> GenCodeCommon(const std::string &aPrefix, std::string aTypeName, bool isShortExpr) const;
 
         std::string TypeElemName() const;
 
@@ -428,6 +447,8 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
         std::vector<tFormula>          mVCurF;       ///< Current evaluted formulas
         std::vector<tFormula>          mVReachedF;   ///< Formula "reachable" i.e. necessary to comput mVCurF
 
+        std::string  mHeaderIncludeSymbDer;  ///< Compilation environment may want to change it
+        std::string  mDirGenCode;   ///< Want to put generated code in a fixed folde ?
 };
 
 /* ************************************************** 
@@ -482,7 +503,7 @@ template <class TypeElem> class cPowF ;     ///< Class for division of 2 functio
             //      cFormula  / cImplemF 
             // ----------------------------------------------------------------
 
-template <class TypeElem> class cImplemF  : public cMemCheck
+template <class TypeElem> class cImplemF  : public SYMBDER_cMemCheck
 {
     public :
       // See eigen documentation,  this macro is mandatory for alignment reason
@@ -857,12 +878,13 @@ cCoordinatorF<TypeElem>::cCoordinatorF
         const std::vector<std::string> & aVNameUK,
         const std::vector<std::string> & aVNameObs
 ) :
-    cCalculator<TypeElem>(aName,aSzBuf,aVNameUK.size(),aVNameObs.size()),
+    cCalculator<TypeElem>(aName,aSzBuf,aVNameUK,aVNameObs),
     mNbCste     (0),
     mCste0      (CsteOfVal(0.0)),
     mCste1      (CsteOfVal(1.0)),
-    mCste2      (CsteOfVal(2.0))
-    
+    mCste2      (CsteOfVal(2.0)),
+    mHeaderIncludeSymbDer ("SymbDer/SymbDer_Common.h"),
+    mDirGenCode           ("")
 {
     // Generate all the function corresponding to unknown
     for (size_t aNumUK=0 ; aNumUK<this->mNbUK ; aNumUK++)
@@ -882,7 +904,7 @@ cCoordinatorF<TypeElem>::cCoordinatorF
 }
 
 template <class TypeElem> 
-cCoordinatorF<TypeElem>::cCoordinatorF(const string &aName, int aSzBuf, int aNbUK, int aNbObs) :
+cCoordinatorF<TypeElem>::cCoordinatorF(const std::string &aName, int aSzBuf, int aNbUK, int aNbObs) :
          cCoordinatorF<TypeElem>(aName,aSzBuf,MakeAutomId("X",aNbUK),MakeAutomId("V",aNbObs))
 {
 }
@@ -1072,8 +1094,22 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
     std::cout << "\n";
 }
 
+// return 
+inline std::string VStr2CPP(const std::vector<std::string> & aVS)
+{
+   std::string aRes = "{";
+   for (size_t aK=0 ; aK<aVS.size() ; aK++)
+   {
+       if (aK!=0) 
+          aRes = aRes + "," ;
+       aRes =  aRes + "\""+ aVS[aK] + "\"" ;
+   }
+   return aRes+ "}";
+}
+
+
 template <class TypeElem>
-std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, std::string aTypeName, bool isShortExpr) const
+std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, std::string aTypeName, bool isShortExpr) const
 {
     std::string aName = this->Name();
 
@@ -1093,18 +1129,17 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
 
     if (! isShortExpr)
         aClassName = aClassName + "LongExpr";
-    std::string aParentClass = "cCalculator<" + aTypeName + ">";
+    std::string aParentClass = "cCompiledCalculator<" + aTypeName + ">";
 
     std::string aFileName  = aPrefix + aClassName;
-    std::ofstream aOs(aFileName + ".h");
+    std::ofstream aOs(mDirGenCode + aFileName + ".h");
     if (!aOs)
-        return "";
-
+        return std::make_pair(std::string(),std::string());
 
     aOs << "#ifdef _OPENMP\n"
            "#include <omp.h>\n"
            "#endif\n"
-           "#include \"SymbDer/SymbDer_Common.h\"\n"
+           "#include \"" << mHeaderIncludeSymbDer << "\"\n"
            "\n"
            "namespace NS_SymbolicDerivative {\n\n";
     if (isTemplated) {
@@ -1114,45 +1149,36 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
            "{\n"
            "public:\n"
            "    typedef " << aParentClass << " Super;\n"
-           "    " << aClassName  << "(size_t aSzBuf) : \n"
-           "      Super(\"" << aName << "\", aSzBuf,"
-                  << this->mNbUK << ","
-                  << this->mNbObs << ","
-                  << this->mWithDer << ","
-                  << this->mSzInterval << "),\n"
-           "      mVUk(aSzBuf),mVObs(aSzBuf)\n"
+           "    " << aClassName  << "(size_t aSzBuf) : \n";
+    aOs 
+        << "      Super(\n" 
+        << "          \"" << aName << "\",\n"
+        << "          " << " aSzBuf,//SzBuf\n"
+        << "          " << this->mNbElem << ",//NbElement\n"
+        << "          " <<  mVCurF.size() << ",//SzOfLine\n"
+        << "          " << VStr2CPP(this->NamesUk()) << ",// Name Unknowns\n"
+        << "          " << VStr2CPP(this->NamesObs()) << ",// Name Observations\n"
+        << "          " << this->mWithDer << ",//With derivative ?\n"
+        << "          " << this->mSzInterval << "//Size of interv\n"
+        << "      )\n";
+     aOs<<
            "    {\n"
-           "      this->mNbElem = " << this->mNbElem << ";\n"
-           "      for (auto& line : this->mBufLineRes)\n"
-           "        line.resize(" << mVCurF.size() << ");\n"
-           "      for (auto& aUk : this->mVUk)\n"
-           "        aUk.resize(this->NbUk());\n"
-           "      for (auto& aObs : this->mVObs)\n"
-           "        aObs.resize(this->NbObs());\n"
            "    }\n"
            "    static std::string FormulaName() { return \"" << aName << "\";}\n"
            "protected:\n"
-           "    virtual void SetNewUks(const " << aVectorName << " & aVUks) override\n"
-           "    {\n"
-           "      for (size_t i=0; i<this->NbUk(); i++)\n"
-           "        this->mVUk[this->mNbInBuf][i] = aVUks[i];\n"
-           "    }\n"
-           "    virtual void SetNewObs(const " << aVectorName << " & aVObs) override\n"
-           "    {\n"
-           "      for (size_t i=0; i<this->NbObs(); i++)\n"
-           "        this->mVObs[this->mNbInBuf][i] = aVObs[i];\n"
-           "    }\n"
            "    virtual void DoEval() override;\n"
-           "    std::vector<" << aVectorName << "> mVUk;\n"
-           "    std::vector<" << aVectorName << "> mVObs;\n"
+           "private:\n"
+           "    static Super* Alloc(int aSzBuf) {return new " << aClassName << "(aSzBuf); }\n"
+           "    friend void cName2CalcRegisterAll(void);\n"
+           "    static void Register() {cName2Calc<TypeElem>::Register(FormulaName()," << aClassName << "::Alloc);}\n"
            "};\n"
            "\n";
 
     if (! isTemplated) {
         aOs << "} // namespace NS_SymbolicDerivative\n";
-        aOs = std::ofstream(aFileName + ".cpp");
+        aOs = std::ofstream(mDirGenCode+aFileName + ".cpp");
         if (!aOs)
-            return "";
+            return std::make_pair(std::string(),std::string());
         aOs << "#include \"" + aFileName + ".h\"\n"
                "\n"
                "namespace NS_SymbolicDerivative {\n"
@@ -1192,10 +1218,11 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
     }
 
     aOs << "  }\n"
-           "}\n\n"
-           "} // namespace NS_SymbolicDerivative\n";
+           "}\n\n";
 
-    return aFileName;
+    aOs << "} // namespace NS_SymbolicDerivative\n";
+
+    return std::make_pair(aClassName, aFileName);
 }
 
 

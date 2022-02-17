@@ -248,6 +248,7 @@ class cAppliMalt
           int         mNbDirPrgD;
           bool        mPrgDReInject;
           bool        mSpatial;
+	  double      mExtenZ;
 };
 
 
@@ -417,7 +418,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     std::string aDEMInitXML;
     std::string aDEMInitIMG;
 
-
+    std::string mTemplate="";
     ElInitArgMain
     (
         argc,argv,
@@ -493,8 +494,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
                     << EAM(OrthoImSupMNT,"OISM",true,"When true footprint of ortho-image=footprint of DSM")
                     << EAM(mSpatial,"Spatial",true,"Compute the DTM with spatial optimized parameters")
+                    << EAM(mTemplate,"Template",true,"Use a given template for Malt", eSAM_NoInit)
                     << EAM(aDEMInitIMG,"DEMInitIMG",true,"img of the DEM used to initialise the depth research", eSAM_NoInit)
                     << EAM(aDEMInitXML,"DEMInitXML",true,"xml of the DEM used to initialise the depth research", eSAM_NoInit)
+                    << EAM(mExtenZ,"ExtIntZ",true,"Extension of Z Interval for elimination")
+
      );
 
     if (!MMVisualMode)
@@ -816,7 +820,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       {
           aFileMM="MM-Malt-Spatial.xml";
           mSzW = 2;
-          mZRegul = 0.12;
+//          mZRegul = 0.12;
 //          mAffineLast = true;
           mZPas = 1.0;
           mCostTrans = 4.0;
@@ -860,9 +864,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       std::string aNameGeom = (mImMaster=="") ?
                   "eGeomMNTEuclid" :
                   (mIsSpherik? "eGeomMNTFaisceauPrChSpherik" : ( ModeFaisZ ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
-
+     std::string xml_file = Basic_XML_MM_File(aFileMM);
+     if (mTemplate!="")
+     {
+         xml_file = Specif_XML_MM_File(mTemplate);
+         std::cout<<"xml_file : "<<xml_file<<std::endl;
+     }
       mCom =              MM3dBinFile_quotes("MICMAC")
-              +  ToStrBlkCorr( Basic_XML_MM_File(aFileMM) )
+              +  ToStrBlkCorr( xml_file )
               + anArgCommuns
               +  std::string(" +DirTA=") + mDirTA
 
@@ -913,6 +922,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       {
           mCom =  mCom + " +ButDoOrtho=false";
       }
+
+      if (EAMIsInit(&mExtenZ))
+      {
+          mCom =    mCom
+                 +   std::string(" +WithExtenZ=true")
+                 +   std::string(" +ExtenZ=") + ToString(mExtenZ);
+      }
+
 
       if (EAMIsInit(&mMasqIm))
       {

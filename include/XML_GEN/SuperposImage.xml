@@ -55,6 +55,7 @@
         <eTIGB_MMXmlCamGen> </eTIGB_MMXmlCamGen>
         <eTIGB_MMOriGrille> </eTIGB_MMOriGrille>
         <eTIGB_MMEuclid>    </eTIGB_MMEuclid>
+        <eTIGB_MMDimap3>    </eTIGB_MMDimap3>
         <eTIGB_MMDimap2>    </eTIGB_MMDimap2>
         <eTIGB_MMDimap1>    </eTIGB_MMDimap1>
         <eTIGB_MMDGlobe>    </eTIGB_MMDGlobe>
@@ -2020,6 +2021,23 @@
 	<AllLines Nb="*" RefType="Xml_One3DLine"> </AllLines>   <!-- List of 3D lines -->
 </Xml_Set3DLine>
 <!-- ------------------------------------------------------------------------------- -->
+
+
+<!--  ******************** BEGIN HistoricalTiep ******************************* -->
+<SetOfPatches Nb="1" Class="true" ToReference="true">
+   <Mes1Im Nb="*" Class="true">
+      <NameIm Nb="1" Type="std::string"> </NameIm>
+      <PrecPointeByIm Nb="?" Type="double"> </PrecPointeByIm>
+      <OnePatch1I Nb="*">
+         <PrecH Nb="?" Type="double"> </PrecH>
+         <NamePatch Nb="1" Type="std::string"> </NamePatch>
+         <PatchH   Nb="1" RefType="XmlHomogr"> </PatchH>
+      </OnePatch1I>
+   </Mes1Im>
+</SetOfPatches>
+
+<!--  ******************** END   HistoricalTiep ******************************* -->
+
 
 <Verbatim File=".h.cpp">
 // };

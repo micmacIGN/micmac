@@ -1,9 +1,16 @@
 #include "include/MMVII_all.h"
 #include <algorithm>
 
-
 namespace MMVII
 {
+
+/// Initialize memory for random
+void OpenRandom();
+/// Free memory allocated for random generation, declared here, only main global appli
+/// must use it
+void CloseRandom();
+
+
 
 
 cSpecMMVII_Appli::cSpecMMVII_Appli
@@ -46,15 +53,30 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
    // Add this one to check  destruction with unique_ptr
    const cMemState  aMemoState= cMemManager::CurState() ;
    int aRes=-1;
+
+   /* Note on Random : as random allocation is global, it had some side effect in memory checking
+      because its not treated as local scope variable. To ger rid of this annoying problem,
+      I force random creation and deletion at global scope */
    {
         // Use allocator
         tMMVII_UnikPApli anAppli = Alloc()(aVArgs,*this);
+        //  Force random creation, just after allocation, because it may need 
+        if (aCptCallIntern==1)
+        {
+           OpenRandom();
+        }
+
         // Execute
         anAppli->InitParam();
         if (anAppli->ModeHelp())
            aRes = EXIT_SUCCESS;
         else
            aRes = anAppli->Exe();
+        // A top level free random creation, before appli is killed
+        if (aCptCallIntern==1)
+        {
+            CloseRandom();
+        }
     }
     cMemManager::CheckRestoration(aMemoState);
     MMVII_INTERNAL_ASSERT_always(cMemCheck::NbObjLive()==aNbObjLive,"Mem check obj not killed");
@@ -120,12 +142,10 @@ bool CmpCmd(cSpecMMVII_Appli * aCM1,cSpecMMVII_Appli * aCM2)
 
 std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
 {
-   
    if (TheVecAll.size() == 0)
    {    
         TheVecAll.push_back(&TheSpecBench);
         TheVecAll.push_back(&TheSpecTestCpp11);
-        TheVecAll.push_back(&TheSpec_TestBoostSerial);
         TheVecAll.push_back(&TheSpecMPDTest);
         TheVecAll.push_back(&TheSpecEditSet);
         TheVecAll.push_back(&TheSpecEditRel);
@@ -140,6 +160,18 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecCalcDescPCar);
         TheVecAll.push_back(&TheSpecMatchTieP);
         TheVecAll.push_back(&TheSpecEpipGenDenseMatch);
+        TheVecAll.push_back(&TheSpecGenSymbDer);
+        TheVecAll.push_back(&TheSpecKapture);
+        TheVecAll.push_back(&TheSpecFormatTDEDM_WT);
+        TheVecAll.push_back(&TheSpecFormatTDEDM_MDLB);
+        TheVecAll.push_back(&TheSpecExtractLearnVecDM);
+        TheVecAll.push_back(&TheSpecCalcHistoCarac);
+        TheVecAll.push_back(&TheSpecCalcHistoNDim);
+        TheVecAll.push_back(&TheSpecTestHypStep);
+        TheVecAll.push_back(&TheSpecFillCubeCost);
+        TheVecAll.push_back(&TheSpecDMEvalRef);
+        TheVecAll.push_back(&TheSpecGenCodedTarget);
+        TheVecAll.push_back(&TheSpecExtractCodedTarget);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

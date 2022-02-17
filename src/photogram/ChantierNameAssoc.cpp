@@ -582,7 +582,14 @@ int CalcNbProcSys()
     return sysinfo.dwNumberOfProcessors;
 #else
     // return GetValStrSys<int>("cat /proc/cpuinfo | grep processor  | wc -l");
-    return sysconf (_SC_NPROCESSORS_CONF);
+    //// MODIFIED
+    //set number of process according to env variable MICMAC_MAX_THREADS if defined.
+    if (const char* env_p = std::getenv("MICMAC_MAX_THREADS")) {
+        return atoi(env_p);
+    } else {
+        return sysconf (_SC_NPROCESSORS_CONF);
+    }
+    //// END MODIFED
 #endif
 }
 
@@ -660,6 +667,11 @@ std::string Basic_XML_MM_File(const std::string & aFile)
 {
    return   MMDir() + std::string("include" +std::string(ELISE_STR_DIR) + "XML_MicMac" + std::string(ELISE_STR_DIR) + aFile);
 }
+std::string Specif_XML_MM_File(const std::string & aFile)
+{
+    return   aFile;
+}
+
 std::string XML_MM_File(const std::string & aFile)
 {
 

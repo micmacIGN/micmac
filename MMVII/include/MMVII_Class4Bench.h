@@ -32,7 +32,7 @@ void AddData(const cAuxAr2007 & anAux, cTestSerial0 &    aTS0);
   in cTestSerial0 it can be used in AddData
 */
 
-class cTestSerial1
+class cTestSerial1 : public cMemCheck
 {
      public :
         cTestSerial1() ;
@@ -43,9 +43,8 @@ class cTestSerial1
         cPt2dr                  mP3;
         std::list<int>          mLI;
         std::vector<double>      mVD;
-        boost::optional<cPt2dr> mO1;
-        boost::optional<cPt2dr> mO2;
-
+        std::optional<cPt2dr>   mO1;
+        std::optional<cPt2dr>   mO2;
 };
 void AddData(const cAuxAr2007 & anAux, cTestSerial1 &    aTS1) ;
 

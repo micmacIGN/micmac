@@ -11,7 +11,37 @@
 
 namespace MMVII
 {
-
+/*  TRY to manipulate pointer to member function to know if a method has been overloaded
+   
+template <typename Type> class cClassTestVirtPtrA
+{
+    public :
+       virtual std::string  TheMethod() {return "A";}
+       bool  Override() 
+       {
+              // void * aP1 =  &this->TheMethod ;
+              // void * aP2 =  &MMVII::cClassTestVirtPtrA<Type>::TheMethod;
+              // return (aP1==aP2);
+              return  &this->TheMethod == &MMVII::cClassTestVirtPtrA<Type>::TheMethod;
+       }
+};
+template <typename Type> class cClassTestVirtPtrB :public cClassTestVirtPtrA<Type>
+{
+    public :
+};
+template <typename Type> class cClassTestVirtPtrC :public cClassTestVirtPtrA<Type>
+{
+    public :
+       std::string  TheMethod() override {return "C";}
+};
+void TestcClassTestVirtPtrA()
+{
+       cClassTestVirtPtrA<double> A;
+       cClassTestVirtPtrB<double> B;
+       cClassTestVirtPtrC<double> C;
+       std::cout << A.Override()  << " " <<  A.Override()  << " " << A.Override()  << "\n";
+}
+*/
 
 
 class cTestMMV2Obj : public cMemCheck
@@ -364,8 +394,6 @@ int cAppli_MMVII_TestCpp11::Exe()
 
    //  revoir les function object, pas trop compris ....
    // voir unique_ptr  (+ ou - comme auto_ptr ?) pour les ptr temporaires a un bloc d'execution
-
-   
 
    TestSharedPointer();
    return EXIT_SUCCESS;

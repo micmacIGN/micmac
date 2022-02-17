@@ -1,0 +1,5 @@
+*.a
+kpttest*
+release/
+debug/
+kpt_api.*

@@ -2,6 +2,8 @@
 
 namespace MMVII
 {
+bool NeverHappens() {return false;}
+
 
 int GlobSysCall(const std::string & aCom, bool SVP) 
 {

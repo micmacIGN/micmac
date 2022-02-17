@@ -92,6 +92,48 @@ class OperatorDiv : public OperBinMixte
 OperatorDiv OperatorDiv::The_only_one;
 const OperBinMixte & OpDiv =  OperatorDiv::The_only_one;
 
+/****************************************************************/
+/*                                                              */
+/*     OperatorMinus2                                           */
+/*                                                              */
+/****************************************************************/
+
+template <class T0,class T1,class T2> inline void F1OrF2IfBadNum_t0_eg_t1_op_t2
+         (T0 * t0, const T1 * t1,const T2 * t2,INT nb)
+{
+
+    for (int i=0; i<nb ; i++)
+        t0[i] = IsBadNum(t1[i]) ? t2[i] : t1[i];
+}
+
+class OperatorF1OrF2IfBadNum : public OperBinMixte
+{
+    public :
+          static OperatorF1OrF2IfBadNum The_only_one;
+
+ 
+      //--------------
+      //   t0 = t1 + t2 
+      //--------------
+
+          void t0_eg_t1_op_t2(REAL * t0,const REAL * t1,const REAL *t2,INT nb) const
+          { F1OrF2IfBadNum_t0_eg_t1_op_t2(t0,t1,t2,nb); }
+
+          void t0_eg_t1_op_t2(REAL * t0,const REAL * t1,const INT  *t2,INT nb) const
+          { F1OrF2IfBadNum_t0_eg_t1_op_t2(t0,t1,t2,nb); }
+
+          void t0_eg_t1_op_t2(REAL * t0,const INT  * t1,const REAL *t2,INT nb) const
+          { F1OrF2IfBadNum_t0_eg_t1_op_t2(t0,t1,t2,nb); }
+
+          
+          void t0_eg_t1_op_t2(INT  * t0,const INT  * t1,const INT  *t2,INT nb) const
+          { F1OrF2IfBadNum_t0_eg_t1_op_t2(t0,t1,t2,nb); }
+
+};
+
+OperatorF1OrF2IfBadNum OperatorF1OrF2IfBadNum::The_only_one;
+const OperBinMixte & OpF1OrF2IfBadNum =  OperatorF1OrF2IfBadNum::The_only_one;
+
 
 /****************************************************************/
 /*                                                              */

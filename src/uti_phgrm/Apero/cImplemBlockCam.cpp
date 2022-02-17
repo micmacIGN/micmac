@@ -1542,6 +1542,18 @@ void  cAppliApero::AddObservationsRelGPS(const std::list<cObsRelGPS> & aLO)
 }
 
 
+void cAppliApero::AddObservationsPlane(const cDataObsPlane & aDObs)
+{
+    for (const auto & anObs : aDObs.Data().Obs1Im())
+    {
+        const  cXml_ObsPlaneOnPose & aObs1Im =  anObs.second;
+        cPoseCam * aPC = PoseFromName(aObs1Im.NameIm());
+
+        aPC->AddObsPlaneOneCentre(aObs1Im,aDObs.Weight().Val());
+        // std::cout << aObs1Im.NameIm()  << " " <<  aPC->Name() << "\n";
+    }
+}
+
 
 
 

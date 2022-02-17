@@ -49,6 +49,7 @@ int Dequant_main(int argc,char ** argv)
      bool TraitSpecCuv = true;
      double aDyn=1.0;
      double aOffs=0.0;
+     int aVNoVal;
 
      ElInitArgMain
      (
@@ -62,6 +63,7 @@ int Dequant_main(int argc,char ** argv)
                       << EAM(TraitSpecCuv,"TraitSpecCuv",true)
                       << EAM(aDyn,"Dyn",true)
                       << EAM(aOffs,"Offs",true)
+                      << EAM(aVNoVal,"NoValue",true)
     );
 
     if (!MMVisualMode)
@@ -114,7 +116,14 @@ int Dequant_main(int argc,char ** argv)
 
 
              aDeq.SetTraitSpecialCuv(TraitSpecCuv);
-             aDeq.DoDequantif(aSzIn, trans(aFileIn.in(),aP0In),1);
+             Fonc_Num FoncOut(0);
+             if (EAMIsInit(&aVNoVal))
+             {
+                FoncOut = (trans(aFileIn.in(),aP0In)==aVNoVal);
+             }
+
+
+             aDeq.DoDequantifWithMasq(aSzIn, trans(aFileIn.in(),aP0In),FoncOut,1);
 
 
              Fonc_Num aFoncRes = aOffs + aDyn *aDeq.ImDeqReelle();

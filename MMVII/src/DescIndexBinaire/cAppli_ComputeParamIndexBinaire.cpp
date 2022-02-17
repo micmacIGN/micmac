@@ -121,7 +121,7 @@ int cAppli_ComputeParamIndexBinaire::Exe()
    // Transform inout pattern into a vector  of enum radial  invariant
    mVecTyIR = SubOfPat<eTyInvRad>(mPatInvRad,false);
   // Extract list of folder of  Pts carac corresponding to input pattern
-   mLDirPC = GetSubDirFromDir(mDirGlob,BoostAllocRegex(mPatPCar));
+   mLDirPC = GetSubDirFromDir(mDirGlob,AllocRegex(mPatPCar));
 
 
    // If only one p carac process it
@@ -153,7 +153,7 @@ int cAppli_ComputeParamIndexBinaire::Exe()
 void  cAppli_ComputeParamIndexBinaire::ProcessOneDir(const std::string & aDir)
 {
     StdOut() << "================== " << mPatPCar << " ===========\n";
-    mDirCurPC = mDirGlob + aDir + DirSeparator(); // Compute full name of folder for data
+    mDirCurPC = mDirGlob + aDir + StringDirSeparator(); // Compute full name of folder for data
 
     cDataOneInvRad * aLast = nullptr;
     // For all type of invariant create a structure from the folder

@@ -37,6 +37,160 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "../../MMVII/ExternalInclude/Eigen/Dense"
+
+class cAppliColmap
+{
+
+	public:
+		cAppliColmap(int argc, char** argv);
+		void ToColmap();
+
+	private:
+		void ReadImToId(const std::string);
+
+		std::string mPat;
+		std::string mOri;
+		std::string mOutFile;
+		int         mCamId;
+		Pt3dr       mOffset;
+
+		std::map<std::string,int> mImToId;
+
+		cInterfChantierNameManipulateur * mICNM;
+
+};
+
+cAppliColmap::cAppliColmap(int argc, char** argv) :
+	mOutFile("images.txt"),
+	mOffset(0,0,0)
+{
+	std::string aDir;
+	std::string aFileList;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain() << EAMC(aDir,"Working dir. If inside put ./")
+				   << EAMC(mPat,"Pattern of images that interests you")
+				   << EAMC(aFileList,"List of all images (bundler style)")
+		           << EAMC(mOri,"Orientation directory")
+		           << EAMC(mCamId,"Camera id in Colmap db"),
+        LArgMain() << EAM(mOutFile,"Out",true,"Output filename, Def=images.txt" )
+		           << EAM(mOffset,"Offset",true,"X,Y,Z offset" )
+    );
+
+	#if (ELISE_windows)
+        replace( aDir.begin(), aDir.end(), '\\', '/' );
+    #endif
+
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+	StdCorrecNameOrient(mOri,aDir);
+
+	ReadImToId(aFileList);
+}
+
+/* Read all images from the list 
+ * the order in the list corresponds to the id in Colmap database 
+ * the list was exported with colmap_import_features_batch  */
+void cAppliColmap::ReadImToId(const std::string aListFile)
+{
+    ELISE_fp aFIn(aListFile.c_str(),ELISE_fp::READ);
+    char * aLine;
+
+
+	int aId=1;
+    while ((aLine = aFIn.std_fgets()))
+    {
+
+        char aName[50];
+
+        int aNb=sscanf(aLine,"%s", aName);
+
+        ELISE_ASSERT((aNb==1),"Could not 1 value");
+
+
+		mImToId[aName] = aId;
+		//std::cout << string(aName).size() << "\n";		
+		aId++;
+    }
+    aFIn.close();
+    delete aLine;
+
+}
+
+void cAppliColmap::ToColmap()
+{
+	// save to Colmap images.txt format
+	std::ofstream pFileIm(mOutFile, std::ios::trunc);
+    pFileIm.precision(15);
+	
+	std::list<std::string>  aPatList = mICNM->StdGetListOfFile(mPat);
+
+	std::string aKeyOri = mICNM->StdKeyOrient(mOri);
+	std::cout << aKeyOri << "\n";
+
+    for (auto aIm : aPatList)
+    {
+
+		std::string aNF = mICNM->NameOriStenope(aKeyOri,aIm);
+
+    	if (ELISE_fp::exist_file(aNF))
+        {
+
+            /* MicMac */
+            Pt3dr aC = StdGetObjFromFile<Pt3dr>
+                    (
+                        aNF,
+                        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                        "Centre",
+                        "Pt3dr"
+                    );
+			aC = aC - mOffset;
+
+            cOrientationConique * aCO = OptionalGetObjFromFile_WithLC<cOrientationConique>
+                                 (
+                                       0,0,
+                                       aNF,
+                                       StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                       "OrientationConique",
+                                       "OrientationConique"
+                                 );
+			cRotationVect       aRV  = aCO->Externe().ParamRotation();
+            ElMatrix<double>    aRot = ElMatrix<double>::Rotation(aRV.CodageMatr().Val().L1(),
+                                                                  aRV.CodageMatr().Val().L2(),
+                                                                  aRV.CodageMatr().Val().L3());
+
+			/* Colmap */
+			Eigen::Matrix3d aMatTmp = Eigen::MatrixXd::Zero(3,3);
+			for (int aK1=0; aK1<3; aK1++)
+			{
+				for (int aK2=0; aK2<3; aK2++)
+					aMatTmp(aK1,aK2) = aRot(aK2,aK1);
+			}
+
+			Eigen::Quaterniond quat(aMatTmp);
+			Eigen::Vector4d Qvec = Eigen::Vector4d(quat.w(), quat.x(), quat.y(), quat.z());
+			
+			Eigen::Vector3d Tvec = Eigen::Vector3d(aC.x, aC.y, aC.z);
+			Tvec = - (aMatTmp * Tvec);
+
+			std::cout << aIm << " " << aIm.size() << "\n";
+
+			if (DicBoolFind(mImToId,aIm))
+			{
+				pFileIm << mImToId[aIm] << " " << Qvec(0) << " " << Qvec(1) << " " << Qvec(2) << " " << Qvec(3) << " " << Tvec(0) << " " << Tvec(1) << " " << Tvec(2) << " " << mCamId << " " << aIm << "\n";
+              pFileIm << "\n";
+			}
+			else
+				std::cout << aIm << "Not found in  the list file" << "\n";
+
+		}
+	}
+	pFileIm.close();	
+}
+
 class cAppliBundler
 {
 	public:
@@ -64,11 +218,13 @@ class cAppliBundler
 		 bool ConvHomMM2Bund;
 
 		 std::map<int,Pt2di>      mCamSz;
+		 Pt2di                    mUniqueSz;//to serve FromBundler		 
 
 		 template <typename T>
          void FileReadOK(FILE *fptr, const char *format, T *value);
 
 		 bool ReadCoords();
+		 void IntCamSz();//to replace ReadCoords in FromBundler
          bool ReadCoordsOneCam(FILE *fptr);
 		 void ConvertDR2MM(std::vector<double>& aDR,double& aFoc);
 		 void ConvertHom2MM();
@@ -86,7 +242,8 @@ cAppliBundler::cAppliBundler(int argc, char** argv) :
 	mSH(""),
 	mHomExp("dat"),
 	mNameConvHom("-BundlerFormat"),
-	ConvHomMM2Bund(false)
+	ConvHomMM2Bund(false),
+	mUniqueSz(0,0)
 {
 
 	std::string aDir;
@@ -99,7 +256,8 @@ cAppliBundler::cAppliBundler(int argc, char** argv) :
         LArgMain() << EAMC(aDir,"Working dir. If inside put ./"),
         LArgMain() << EAM(mNameFile,"b",true,"bundler.txt, (if FromBundler or ToBundler)" )
                    << EAM(mCCListAllFile,"l",true,"list.txt, (if FromBundler or ToBundler)")
-                   << EAM(mCoordsFile,"c",true,"coords.txt, (if FromBundler)")
+                   << EAM(mCoordsFile,"c",true,"coords.txt ")
+                   << EAM(mUniqueSz,"UniSz",true,"Unique PP, (if FromBundler)")
                    << EAM(mOri,"Ori",true,"Orientation directory withoout Ori-, (if FromBundler or ToBundler)")
                    << EAM(mSH,"SH",true,"Homol Postfix")
                    << EAM(aExpTxt,"ExpTxt",true,"Homol in ASCI?")
@@ -199,6 +357,14 @@ void cAppliBundler::ReadList()
         delete aLine;
     }
 
+}
+
+void cAppliBundler::IntCamSz()
+{
+	int Nb = int(mNameList.size()); 
+	for (int aK=0; aK<Nb; aK++)	
+		mCamSz[aK] = mUniqueSz;
+	
 }
 
 //I'm only interested in camera size
@@ -426,8 +592,8 @@ void cAppliBundler::SaveOC(ElMatrix<double>& aRotZ, ElMatrix<double>& aR, Pt3dr&
 	    aCIO.CalibDistortion()[0].ModNoDist().SetVal(aNoDist);
 	    aCIO.CalibDistortion()[0].ModRad().SetNoInit();*/
 	
-        //aCIO.CalibDistortion()[0].ModRad().Val().CDist() = aCIO.PP();
-		if (0)
+        aCIO.CalibDistortion()[0].ModRad().Val().CDist() = aCIO.PP();
+		if (1)
 		{
 			ConvertDR2MM(aDr1Dr2,aFoc);
 			aCIO.CalibDistortion()[0].ModRad().Val().CoeffDist() = aDr1Dr2;
@@ -455,7 +621,7 @@ void cAppliBundler::SaveOC(ElMatrix<double>& aRotZ, ElMatrix<double>& aR, Pt3dr&
 
 
 		/* There are images in Bundler solution that are NAN but exist in SfmInit */
-		if (! (isnan(aTr.x) || isnan(aTr.y) || isnan(aTr.z)))
+        if (! (std::isnan(aTr.x) || std::isnan(aTr.y) || std::isnan(aTr.z)))
 		{
 			aExtern.Centre() = aTr;//aTrMM;
 			aExtern.IncCentre() = Pt3dr(1,1,1);
@@ -542,7 +708,8 @@ void cAppliBundler::FromBundler()
 
 
     //read camera sizes (pas top)
-    ReadCoords();
+    //ReadCoords();
+	IntCamSz(); //replacing ReadCoors
 
     if (ReadPoses())
         std::cout << "[Bundler2MM] Poses done!" << "\n";
@@ -672,6 +839,13 @@ int CPP_MM2Bundler_main(int argc, char** argv)
     return EXIT_SUCCESS;
 }
 
+int CPP_MM2Colmap_main(int argc, char** argv)
+{
+    cAppliColmap anApp(argc,argv);
+	anApp.ToColmap();
+    
+	return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

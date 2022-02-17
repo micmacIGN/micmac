@@ -1031,14 +1031,11 @@ int System(const std::string & aComOri,bool aSVP,bool AddOptGlob,bool UseTheNbIt
      return aRes;
 }
 
-#if (ELISE_windows)
-    //on visual implementation in lib is always weak
-    #define WEAK_IMPL
+#ifndef __GNUC__
+void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
 #else
-    #define WEAK_IMPL __attribute__((weak))
+void __attribute__((weak)) ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
 #endif
-
-void WEAK_IMPL ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
 {
    cFileDebug::TheOne.Close(aCode);
 

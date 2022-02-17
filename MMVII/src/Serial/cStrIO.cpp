@@ -5,8 +5,14 @@ namespace MMVII
 
 /**
     This file contains the implemenation of conversion between strings and 
-   atomic object
+   atomic and some non atomic object
 */
+
+/* ==================================== */
+/*                                      */
+/*         std::vector<T>               */
+/*                                      */
+/* ==================================== */
 
 static char BufStrIO[1000];
 
@@ -67,10 +73,23 @@ MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::string)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(int)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
 
+/* ==================================== */
+/*                                      */
+/*         cPtxd                        */
+/*                                      */
+/* ==================================== */
+
                           //   - - cPtxd  - -
 
 
 #define MACRO_INSTANTITATE_STRIO_CPTXD(TYPE,DIM)\
+template <>  std::string cStrIO<cTplBox<TYPE,DIM> >::ToStr(const cTplBox<TYPE,DIM>  & aV)\
+{\
+  std::vector<TYPE> aVec;\
+  for (int aD=0; aD<DIM; aD++) aVec.push_back(aV.P0()[aD]);\
+  for (int aD=0; aD<DIM; aD++) aVec.push_back(aV.P1()[aD]);\
+  return Vect2Str(aVec);\
+}\
 template <>  std::string cStrIO<cPtxd<TYPE,DIM> >::ToStr(const cPtxd<TYPE,DIM>  & aV)\
 {\
   return Vect2Str(std::vector<TYPE>(aV.PtRawData(),aV.PtRawData()+cPtxd<TYPE,DIM>::TheDim));\
@@ -85,7 +104,20 @@ template <>  cPtxd<TYPE,DIM> cStrIO<cPtxd<TYPE,DIM> >::FromStr(const std::string
         aRes[aK] = aV[aK];\
     return aRes;\
 }\
+template <>  cTplBox<TYPE,DIM> cStrIO<cTplBox<TYPE,DIM> >::FromStr(const std::string & aStr)\
+{\
+    std::vector<TYPE> aV = cStrIO<std::vector<TYPE>>::FromStr(aStr);\
+    if (aV.size()!=2*DIM)\
+       MMVII_UsersErrror(eTyUEr::eBadDimForBox,"Expect="+ MMVII::ToStr(2*DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
+    cPtxd<TYPE,DIM> aP0,aP1;\
+    for (int aK=0 ; aK<DIM ; aK++){\
+        aP0[aK] = aV[aK];\
+        aP1[aK] = aV[aK+DIM];\
+    }\
+    return cTplBox<TYPE,DIM>(aP0,aP1);\
+}\
 template <>  const std::string cStrIO<cPtxd<TYPE,DIM> >::msNameType = "cPtxd<" #TYPE ","  #DIM ">";\
+template <>  const std::string cStrIO<cTplBox<TYPE,DIM> >::msNameType = "cTplBox<" #TYPE ","  #DIM ">";\
 
 MACRO_INSTANTITATE_STRIO_CPTXD(int,2)
 MACRO_INSTANTITATE_STRIO_CPTXD(double,2)
@@ -93,22 +125,6 @@ MACRO_INSTANTITATE_STRIO_CPTXD(int,3)
 MACRO_INSTANTITATE_STRIO_CPTXD(double,3)
 
 
-
-/*
-template <>  std::string cStrIO<cPtxd<double,2> >::ToStr(const cPtxd<double,2>  & aV)
-{
-  return Vect2Str(std::vector<double>(aV.PtRawData(),aV.PtRawData()+cPtxd<double,2>::TheDim));
-}
-template <>  cPtxd<double,2> cStrIO<cPtxd<double,2> >::FromStr(const std::string & aStr)
-{
-    std::vector<double> aV = cStrIO<std::vector<double>>::FromStr(aStr);
-    cPtxd<double,2> aRes;
-    for (int aK=0 ; aK<2 ; aK++)
-        aRes[aK] = aV[aK];
-    return aRes;
-}
-template <>  const std::string cStrIO<cPtxd<double,2> >::msNameType = "cPt2dr";
-*/
 
 
 
@@ -130,8 +146,9 @@ void OneBenchStrIO(std::string aStr,const  std::vector<std::string> & aV)
    }
 }
 
-void BenchStrIO()
+void BenchStrIO(cParamExeBench & aParam)
 {
+   if (! aParam.NewBench("StrIO")) return;
    OneBenchStrIO("[1,2,3]",{"1","2","3"});
    OneBenchStrIO("[1]",{"1"});
    OneBenchStrIO("[]",{});
@@ -146,7 +163,32 @@ void BenchStrIO()
    //    OneBenchStrIO("[",{});
    //    OneBenchStrIO("[1,2",{});
    // getchar();
+   aParam.EndBench();
 }
+
+/* ==================================== */
+/*                                      */
+/*          Enumerated type             */
+/*    eOpAff,                           */
+/*                                      */
+/* ==================================== */
+
+#define MACRO_INSTANTITATE_STRIO_ENUM(ETYPE,ENAME)\
+template <>  std::string cStrIO<ETYPE>::ToStr(const ETYPE & anEnum) { return  E2Str(anEnum); }\
+template <>  ETYPE cStrIO<ETYPE>::FromStr(const std::string & aStr) { return Str2E<ETYPE>(aStr); }\
+template <>  const std::string cStrIO<ETYPE>::msNameType = ENAME;
+
+MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
+MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
+MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")
+MACRO_INSTANTITATE_STRIO_ENUM(eModeCaracMatch,"ModeCaracMatch")
+
+/* ==================================== */
+/*                                      */
+/*         Atomic native type           */
+/*  bool, int, double, std::string      */
+/*                                      */
+/* ==================================== */
 
    // ================  bool ==============================================
 
@@ -179,7 +221,9 @@ template <>  int cStrIO<int>::FromStr(const std::string & aStr)
     if (aStr.empty())
        return 0;
     int anI;
-    sscanf(aStr.c_str(),"%d",&anI);
+    int aNb= sscanf(aStr.c_str(),"%d",&anI);
+
+    MMVII_INTERNAL_ASSERT_User((aNb!=0),eTyUEr::eBadInt,"String is not a valid int")
     return anI;
 }
 template <>  const std::string cStrIO<int>::msNameType = "int";

@@ -140,6 +140,8 @@ public :
         auto x_Residual = xIm -  aVObs[ 9];
         auto y_Residual = yIm -  aVObs[10];
 
+//  x_Residual = AtanXsY_sXF(x_Residual,y_Residual);
+
         return {x_Residual,y_Residual};
     }
 };

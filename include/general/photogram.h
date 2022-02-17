@@ -1259,6 +1259,11 @@ class EpipolaireCoordinate : public ElDistortion22_Gen
         //     P ->  aChSacle * Pol(P/aChSacle)
              virtual EpipolaireCoordinate *
              MapingChScale(REAL aChSacle) const = 0;
+	     // Def => fatal error
+	     virtual void  XFitHom(const ElPackHomologue &,bool aL2,EpipolaireCoordinate *);
+	     virtual bool  HasXFitHom() const;
+	     virtual std::vector<double>  ParamFitHom() const;
+
 
              // Fait heriter les parametre globaux aP0, aDirX, aTrFin
                void HeriteChScale(EpipolaireCoordinate &,REAL aChSacle);
@@ -1357,12 +1362,17 @@ class PolynomialEpipolaireCoordinate : public EpipolaireCoordinate
               Polynome2dReal  PolToYEpip();
               Polynome2dReal  PolToYInit();
 
-              virtual  const PolynomialEpipolaireCoordinate * CastToPol() const;
+              virtual  const PolynomialEpipolaireCoordinate * CastToPol() const override;
           void write(class  ELISE_fp & aFile) const;
               static PolynomialEpipolaireCoordinate read(ELISE_fp & aFile);
         //     P ->  aChSacle * Pol(P/aChSacle)
-              EpipolaireCoordinate * MapingChScale(REAL aChSacle) const;
+              EpipolaireCoordinate * MapingChScale(REAL aChSacle) const override;
               PolynomialEpipolaireCoordinate * PolMapingChScale(REAL aChSacle) const;
+
+	      // Create new Pol, fixing mC0.., so to mimimize the global paralax
+	      void  XFitHom(const ElPackHomologue &,bool aL2,EpipolaireCoordinate *) override;
+	      bool  HasXFitHom() const override;
+	      std::vector<double>  ParamFitHom() const override;
 
       private :
 
@@ -1372,8 +1382,17 @@ class PolynomialEpipolaireCoordinate : public EpipolaireCoordinate
           Polynome2dReal  mPolToYEpip;
           Polynome2dReal  mPolToYInit;
 
-          Pt2dr ToCoordEpipol(Pt2dr aPInit) const;
-          Pt2dr ToCoordInit(Pt2dr aPEpi) const;
+          Pt2dr ToCoordEpipol(Pt2dr aPInit) const override;
+          Pt2dr ToCoordInit(Pt2dr aPEpi) const override;
+
+	  //  X' = (mNum0 + mNumx X + mNumy Y) / (1 + mDenx X + mDeny Y)
+	  //  X  = 
+	  double mNum0;
+	  double mNumx;
+	  double mNumy;
+	  double mDenx;
+	  double mDeny;
+	  bool   mCorCalc;
 };
 
 
@@ -3634,6 +3653,9 @@ std::vector<ElRotation3D> OrientTomasiKanade
                              double              aPrecCible,
                              std::vector<ElRotation3D> * aVRotInit
                           );
+
+// Fix a global variable,  dirty !!!!
+void SetExtensionIntervZInApero(const double);
 
 #endif // !  _ELISE_GENERAL_PHOTOGRAM_H
 

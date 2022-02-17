@@ -1,5 +1,4 @@
 #include "include/MMVII_all.h"
-#include <boost/math/special_functions/fpclassify.hpp>
 
 namespace MMVII
 {
@@ -39,14 +38,14 @@ template <class Type> void cComputeStdDev<Type>::Add(const Type & aW,const Type 
 }
 
 
-template <class Type> void cComputeStdDev<Type>::SelfNormalize()
+template <class Type> void cComputeStdDev<Type>::SelfNormalize(const Type&  Epsilon)
 {
     MMVII_ASSERT_INVERTIBLE_VALUE(mSomW);
      
     mSomWV  /= mSomW;
     mSomWV2  /= mSomW;
     mSomWV2 -= Square(mSomWV);
-    mStdDev = std::sqrt(std::max(Type(0.0),mSomWV2));
+    mStdDev = std::sqrt(std::max(Epsilon,mSomWV2));
 }
 
 template <class Type> Type cComputeStdDev<Type>::NormalizedVal(const Type & aVal)  const
@@ -55,10 +54,10 @@ template <class Type> Type cComputeStdDev<Type>::NormalizedVal(const Type & aVal
     return (aVal-mSomWV) / mStdDev;
 }
 
-template <class Type> cComputeStdDev<Type>  cComputeStdDev<Type>::Normalize() const
+template <class Type> cComputeStdDev<Type>  cComputeStdDev<Type>::Normalize(const Type&  Epsilon) const
 {
      cComputeStdDev<Type> aRes = *this;
-     aRes.SelfNormalize();
+     aRes.SelfNormalize(Epsilon);
      return aRes;
 }
 
@@ -86,6 +85,39 @@ template <class Type> void cMatIner2Var<Type>::Add(const double & aPds,const Typ
     mS22 += aPds * aV2 * aV2 ;
 }
 
+template <class Type> void cMatIner2Var<Type>::Add(const Type & aV1,const Type & aV2)
+{
+    mS0  += 1.0;
+    mS1  += aV1;
+    mS11 += aV1 * aV1 ;
+    mS2  += aV2;
+    mS12 += aV1 * aV2 ;
+    mS22 += aV2 * aV2 ;
+}
+
+template <class Type> 
+       void  cMatIner2Var<Type>::Add(const cMatIner2Var& aM2)
+{
+    mS0  +=  aM2.mS0;
+    mS1  +=  aM2.mS1;
+    mS11 +=  aM2.mS11;
+    mS2  +=  aM2.mS2;
+    mS12 +=  aM2.mS12;
+    mS22 +=  aM2.mS22;
+}
+
+template <class Type> 
+       void  cMatIner2Var<Type>::Add(const cMatIner2Var& aM2,const Type & aPds) 
+{
+    mS0  += aPds * aM2.mS0;
+    mS1  += aPds * aM2.mS1;
+    mS11 += aPds * aM2.mS11;
+    mS2  += aPds * aM2.mS2;
+    mS12 += aPds * aM2.mS12;
+    mS22 += aPds * aM2.mS22;
+}
+
+
 template <class Type> void cMatIner2Var<Type>::Normalize()
 {
      MMVII_ASSERT_INVERTIBLE_VALUE(mS0);
@@ -100,6 +132,46 @@ template <class Type> void cMatIner2Var<Type>::Normalize()
      mS22 -= mS2 * mS2;
 }
 
+template <class Type> Type cMatIner2Var<Type>::CorrelNotC(const Type & aEps) const
+{
+    Type  aS11 = mS11/mS0;
+    Type  aS12 = mS12/mS0;
+    Type  aS22 = mS22/mS0;
+
+    Type  aSqDenominator = std::max(aEps,aS11*aS22);
+    MMVII_ASSERT_STRICT_POS_VALUE(aSqDenominator);
+
+    return aS12  / std::sqrt(aSqDenominator);
+}
+
+template <class Type> Type cMatIner2Var<Type>::Correl(const Type & aEps) const
+{
+   cMatIner2Var<Type> aDup(*this);
+   aDup.Normalize();
+
+   Type aSqDenominator = std::max(aEps,aDup.mS11*aDup.mS22);
+   MMVII_ASSERT_STRICT_POS_VALUE(aSqDenominator);
+
+   return aDup.mS12  / std::sqrt(aSqDenominator);
+}
+
+template <class Type> inline Type StdDev(const Type & aS0,const Type & aS1,const Type & aS11)
+{
+   MMVII_ASSERT_INVERTIBLE_VALUE(aS0);
+
+   Type aEc2 = aS11/aS0 - Square(aS1/aS0);
+   return std::sqrt(std::max(Type(0.0),aEc2));
+}
+
+template <class Type> Type cMatIner2Var<Type>::StdDev1() const
+{
+   return StdDev(mS0,mS1,mS11);
+}
+template <class Type> Type cMatIner2Var<Type>::StdDev2() const
+{
+   return StdDev(mS0,mS2,mS22);
+}
+
 template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm)
 {
     cMatIner2Var<double> aRes;
@@ -111,15 +183,32 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
     return aRes;
 }
 
-#define INSTANTIATE_MAT_INER(TYPE)\
-template class cMatIner2Var<TYPE>;\
-template  class cComputeStdDev<TYPE>;\
-template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);
+/* *********************************************** */
+/*                                                 */
+/*          cWeightAv<Type>                        */
+/*                                                 */
+/* *********************************************** */
+
+template <class Type> cWeightAv<Type>::cWeightAv() :
+   mSW(0),
+   mSVW(0)
+{
+}
+
+template <class Type> void cWeightAv<Type>::Add(const Type & aWeight,const Type & aVal)
+{
+   mSW += aWeight;
+   mSVW += aVal * aWeight;
+}
+
+template <class Type> Type cWeightAv<Type>::Average() const
+{
+    MMVII_ASSERT_INVERTIBLE_VALUE(mSW);
+    return mSVW / mSW;
+}
 
 
-INSTANTIATE_MAT_INER(tREAL4)
-INSTANTIATE_MAT_INER(tREAL8)
-INSTANTIATE_MAT_INER(tREAL16)
+
 
 /* *********************************************** */
 /*                                                 */
@@ -285,8 +374,10 @@ template <class Type> void TestVarFilterExp(cPt2di aSz,double aStdDev,int aNbIte
    MMVII_INTERNAL_ASSERT_bench(std::abs(aMat.S22()-Square(aStdDev))<aEps,"Std dev");
 }
 
-void BenchStat()
+void BenchStat(cParamExeBench & aParam)
 {
+   if (! aParam.NewBench("ImageStatFilter")) return;
+
    TestVarFilterExp<double>(cPt2di(-2,2),cPt2di(400,375),2.0,0.6,0.67,1);
    TestVarFilterExp<double>(cPt2di(-2,2),cPt2di(400,375),2.0,0.6,0.67,3);
 
@@ -309,9 +400,26 @@ void BenchStat()
 
    TestVarFilterExp<double>(cPt2di(300,300),2.0,2,1e-6);
    TestVarFilterExp<float>(cPt2di(300,300),5.0,3,1e-3);
+
+   aParam.EndBench();
 }
 
+/* *********************************************** */
+/*                                                 */
+/*                INSTANTIATION                    */
+/*                                                 */
+/* *********************************************** */
 
+#define INSTANTIATE_MAT_INER(TYPE)\
+template class cMatIner2Var<TYPE>;\
+template  class cComputeStdDev<TYPE>;\
+template class cWeightAv<TYPE>;\
+template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);
+
+
+INSTANTIATE_MAT_INER(tREAL4)
+INSTANTIATE_MAT_INER(tREAL8)
+INSTANTIATE_MAT_INER(tREAL16)
 
 };
 

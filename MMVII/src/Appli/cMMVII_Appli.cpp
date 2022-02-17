@@ -3,6 +3,21 @@
 
 namespace MMVII
 {
+
+cAppliBenchAnswer cMMVII_Appli::BenchAnswer() const
+{
+   return cAppliBenchAnswer(false,0.0);
+}
+
+
+int  cMMVII_Appli::ExecuteBench(cParamExeBench &)
+{
+    MMVII_INTERNAL_ERROR("No Bench for"+ mSpecs.Name());
+    return EXIT_FAILURE;
+}
+
+
+
 #define MSD_DEGUG()  StdOut() << "MSD_DEGUGMSD_DEGUG " << __LINE__ << " of " << __FILE__ << "\n";
 
 /*  ============================================== */
@@ -120,26 +135,34 @@ template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 //        cMMVII_Appli::cMMVII_Appli ( int argc, char ** argv, const cSpecMMVII_Appli & aSpec) 
 //        void cMMVII_Appli::InitParam() => main initialisation must be done after Cstrctor as call virtual methods
 
+#define DEBUGKILLAPP()\
+std::cout << "HERE " << __LINE__ << "\n";
 
 cMMVII_Appli::~cMMVII_Appli()
 {
-   if (! mModeHelp)
+   if (mForExe)
    {
-      RenameFiles(NameFileLog(false),NameFileLog(true));
-      LogCommandOut(NameFileLog(true),false);
+      if (! mModeHelp)
+      {
+         RenameFiles(NameFileLog(false),NameFileLog(true));
+         LogCommandOut(NameFileLog(true),false);
+      }
+
+      if (mGlobalMainAppli)
+      {
+         LogCommandOut(mFileLogTop,true);
+      }
    }
 
-   if (mGlobalMainAppli)
-   {
-      LogCommandOut(mFileLogTop,true);
-   }
-  
    msInDstructor = (TheStackAppli.size()<=1);  // avoid problem with StdOut 
-   if (msInDstructor) FreeRandom();   // Free memory only top called do it
-   AssertInitParam();
-   // ======= delete mSetInit;
-   mArgObl.clear();
-   mArgFac.clear();
+   // if (msInDstructor) FreeRandom();   // Free memory only top called do it
+   if(mForExe)
+   {
+      AssertInitParam();
+      // ======= delete mSetInit;
+      mArgObl.clear();
+      mArgFac.clear();
+   }
 
 
    MMVII_INTERNAL_ASSERT_strong(ExistAppli(),"check in Appli Destructor");
@@ -178,6 +201,7 @@ cMMVII_Appli::cMMVII_Appli
    mArgv          (aVArgcv),
    mArgc          (mArgv.size()),
    mSpecs         (aSpec),
+   mForExe        (true),
    mDirBinMMVII   (DirBin2007),
    mTopDirMMVII   (UpDir(mDirBinMMVII,1)),
    mFullBin       (mDirBinMMVII + Bin2007),
@@ -193,9 +217,11 @@ cMMVII_Appli::cMMVII_Appli
    mDoInternalHelp(false),
    mShowAll       (false),
    mLevelCall     (0),
-   mSetInit       (cExtSet<void *>(eTySC::US)),
+   mSetInit       (cExtSet<const void *>(eTySC::US)),
    mInitParamDone (false),
    mVMainSets     (NbMaxMainSets,tNameSet(eTySC::NonInit)),
+   mResulMultiS   (EXIT_FAILURE),
+   mRMSWasUsed    (false),
    mNumOutPut     (0),
    mOutPutV1      (false),
    mOutPutV2      (false),
@@ -225,8 +251,14 @@ const std::vector<eSharedPO>    cMMVII_Appli::EmptyVSPO;  ///< Deafaut Vector  s
 
 cMultipleOfs & StdStdOut()
 {
+// Dont know why, destruction of static object at end fails on Mac
+#if (THE_MACRO_MMVII_SYS == MMVII_SYS_A)
+   static cMultipleOfs * aPtrMOfs = new cMultipleOfs(std::cout);
+   return *aPtrMOfs;
+#else
    static cMultipleOfs aMOfs(std::cout);
    return aMOfs;
+#endif
 }
 
 cMultipleOfs& StdOut()
@@ -272,6 +304,10 @@ bool   cMMVII_Appli::HasSharedSPO(eSharedPO aV) const
 
 
 
+void cMMVII_Appli::SetNot4Exe()
+{
+   mForExe = false;
+}
 
 void cMMVII_Appli::InitParam()
 {
@@ -292,8 +328,8 @@ void cMMVII_Appli::InitParam()
                    // becauser  InitParam, it may change the correct value 
 
   // Add common optional parameters
-  cSpecOneArg2007::tVSem aInternal{eTA2007::Internal,eTA2007::Global}; // just to make shorter lines
-  cSpecOneArg2007::tVSem aGlob{eTA2007::Global}; // just to make shorter lines
+  cSpecOneArg2007::tAllSemPL aInternal{eTA2007::Internal,eTA2007::Global}; // just to make shorter lines
+  cSpecOneArg2007::tAllSemPL aGlob{eTA2007::Global}; // just to make shorter lines
 
 
   /*  Decoding AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
@@ -689,7 +725,7 @@ std::string cMMVII_Appli::NameFileLog(bool Finished) const
                mDirProjGMA
              + TmpMMVIIDirGlob
              + TmpMMVIIProcSubDir 
-             + mPrefixGMA + DirSeparator()
+             + mPrefixGMA + StringDirSeparator()
              + mPrefixNameAppli 
              + std::string(Finished ? "_Ok" : "_InProcess")
              + std::string(".txt")
@@ -819,7 +855,8 @@ void cMMVII_Appli::LogCommandIn(const std::string & aName,bool MainLogFile)
 void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
 {
    cMMVII_Ofs  aOfs(aName,true);
-   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur() << "\n\n";
+   // Add id, if several process were throw in // there is a mix and we no longer know which was closed
+   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  << "(Id=" << mPrefixNameAppli << ")\n\n";
    aOfs.Ofs().close();
 }
 
@@ -827,6 +864,17 @@ void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
 
 
     // ========== Help ============
+
+void cMMVII_Appli::PrintAdditionnalComments(tPtrArg2007 anArg)
+{
+   if (mDoGlobHelp)
+   {
+      for (const auto  & aCom : anArg->AddComs())
+      {
+          HelpOut() << "    - " << aCom << "\n";
+      }
+   }
+}
 
 void cMMVII_Appli::GenerateHelp()
 {
@@ -847,9 +895,10 @@ void cMMVII_Appli::GenerateHelp()
    for (const auto & Arg : mArgObl.Vec())
    {
        HelpOut() << "  * " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com()  << "\n";
+       PrintAdditionnalComments(Arg);
    }
 
-   tNameSelector  aSelName =  BoostAllocRegex(mPatHelp);
+   tNameSelector  aSelName =  AllocRegex(mPatHelp);
 
    HelpOut() << "\n";
    HelpOut() << " == Optional named args : ==\n";
@@ -857,44 +906,49 @@ void cMMVII_Appli::GenerateHelp()
    bool InternalMet = false;
    bool GlobalMet   = false;
    bool TuningMet   = false;
-   for (const auto & Arg : mArgFac.Vec())
+   for (int aKTime=0 ; aKTime<2; aKTime++)
    {
-       const std::string & aNameA = Arg->Name();
-       if (aSelName.Match(aNameA))
-       {
-          bool IsIinternal = Arg->HasType(eTA2007::Internal);
-          bool IsTuning = Arg->HasType(eTA2007::Tuning);
-          if ((! (IsIinternal || IsTuning)) || mDoInternalHelp)
+      for (const auto & Arg : mArgFac.Vec())
+      {
+          const std::string & aNameA = Arg->Name();
+          if (aSelName.Match(aNameA))
           {
-             bool IsGlobHelp = Arg->HasType(eTA2007::Global);
-             if ((!IsGlobHelp) || mDoGlobHelp)
+             bool IsIinternal = Arg->HasType(eTA2007::Internal);
+             bool IsTuning = Arg->HasType(eTA2007::Tuning);
+             if ((! (IsIinternal || IsTuning)) || mDoInternalHelp)
              {
-                if (IsTuning && (!TuningMet)) 
+                bool IsGlobHelp = Arg->HasType(eTA2007::Global);
+                // First time do std args, second time to others (tune,glob,inter ...)
+                bool DoIt = (aKTime==0) ^  (IsIinternal || IsTuning || IsGlobHelp);
+                if (DoIt && ((!IsGlobHelp) || mDoGlobHelp))
                 {
-                   HelpOut() << "       ####### TUNING #######\n" ; 
-                   TuningMet = true;
-                }
-                else if (IsIinternal && (!InternalMet)) 
-                {
-                   HelpOut() << "       ####### INTERNAL #######\n" ; 
-                   InternalMet = true;
-                }
-                else if (IsGlobHelp && (!GlobalMet)) 
-                {
-                   HelpOut() << "       ####### GLOBAL   #######\n" ; 
-                   GlobalMet = true;
-                }
+                   if (IsTuning && (!TuningMet)) 
+                   {
+                      HelpOut() << "       ####### TUNING #######\n" ; 
+                      TuningMet = true;
+                   }
+                   else if (IsIinternal && (!InternalMet)) 
+                   {
+                      HelpOut() << "       ####### INTERNAL #######\n" ; 
+                      InternalMet = true;
+                   }
+                   else if (IsGlobHelp && (!GlobalMet)) 
+                   {
+                      HelpOut() << "       ####### GLOBAL   #######\n" ; 
+                      GlobalMet = true;
+                   }
 
-                HelpOut() << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
-                bool HasDefVal = Arg->HasType(eTA2007::HDV);
-                if (HasDefVal)
-                {
-                   HelpOut() << " ,[Default="  << Arg->NameValue() << "]"; 
-                }
+                   HelpOut()  << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
+                   bool HasDefVal = Arg->HasType(eTA2007::HDV);
+                   if (HasDefVal)
+                   {
+                      HelpOut() << " ,[Default="  << Arg->NameValue() << "]"; 
+                   }
 
-                HelpOut()  << "\n";
+                   HelpOut()  << "\n";
 
-                // Check tuning comes at end =  when tuning is reached, we have non standard param
+                   // Check tuning comes at end =  when tuning is reached, we have non standard param
+/*
                 if (TuningMet)
                 {
                    MMVII_INTERNAL_ASSERT_always
@@ -903,11 +957,29 @@ void cMMVII_Appli::GenerateHelp()
                        "Tuning parameter must comes at end"
                    );
                 }
+*/
+                }
              }
           }
-       }
+          PrintAdditionnalComments(Arg);
+      }
    }
    HelpOut() << "\n";
+
+   // Eventually, print samples of "good" uses , only with Help
+   if (mDoGlobHelp)
+   {
+       std::vector<std::string> aVS = Samples ();
+       if (! aVS.empty())
+       {
+          HelpOut() << " ############## ----  EXAMPLES --------- ##########\n" ; 
+          for (const auto & aStr : aVS)
+          {
+              HelpOut() << " - " <<  aStr  << "\n";
+          }
+       }
+       HelpOut() << "\n";
+   }
 }
 
 bool cMMVII_Appli::ModeHelp() const
@@ -1013,7 +1085,7 @@ void cMMVII_Appli::AssertInitParam() const
 {
   MMVII_INTERNAL_ASSERT_always(mInitParamDone,"Init Param was forgotten");
 }
-bool  cMMVII_Appli::IsInit(void * aPtr)
+bool  cMMVII_Appli::IsInit(const void * aPtr)
 {
     return  mSetInit.In(aPtr);
 }
@@ -1032,7 +1104,7 @@ const std::string & cMMVII_Appli::DirProject()       const {return mDirProject;}
 
 std::string  cMMVII_Appli::DirTmpOfCmd(eModeCreateDir aMode) const
 {
-   std::string aRes = DirProject() + TmpMMVIIDirPrefix + mSpecs.Name() + DirSeparator();
+   std::string aRes = DirProject() + TmpMMVIIDirPrefix + mSpecs.Name() + StringDirSeparator();
    ActionDir(aRes,aMode);
    return aRes;
 }
@@ -1330,6 +1402,30 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
     return aRes;
 }
 
+bool cMMVII_Appli::RunMultiSet(int aKParam,int aKSet)
+{
+    const std::vector<std::string> &  aVSetIm = VectMainSet(aKSet);
+
+    if (aVSetIm.size() != 1)  // Multiple image, run in parall 
+    {
+         ExeMultiAutoRecallMMVII(ToStr(aKParam),aVSetIm); // Recall with substitute recall itself
+         mResulMultiS = (aVSetIm.empty()) ? EXIT_FAILURE : EXIT_SUCCESS;
+         mRMSWasUsed = true;
+         return true;
+    }
+
+    mRMSWasUsed = false;
+    return false;
+}
+
+int cMMVII_Appli::ResultMultiSet() const
+{
+   MMVII_INTERNAL_ASSERT_strong(mRMSWasUsed,"MultiSet not executed, ResultMultiSet required");
+
+   return mResulMultiS;
+}
+
+
 void   cMMVII_Appli::ExeMultiAutoRecallMMVII
        ( 
            const std::string & aNameOpt  , 
@@ -1361,6 +1457,16 @@ std::string  cMMVII_Appli::Command() const
         aRes += mArgv[aK];
     }
     return aRes;
+}
+
+std::vector<std::string>  cMMVII_Appli::Samples() const
+{
+   return std::vector<std::string>();
+}
+
+bool IsInit(const void * anAdr)
+{
+    return cMMVII_Appli::CurrentAppli().IsInit(anAdr);
 }
 
 

@@ -4,6 +4,14 @@
 namespace MMVII
 {
 
+cPt2di DifInSz(const std::string & aN1,const std::string & aN2)
+{
+    cDataFileIm2D aD1 = cDataFileIm2D::Create(aN1,false);
+    cDataFileIm2D aD2 = cDataFileIm2D::Create(aN2,false);
+
+    return aD1.Sz() - aD2.Sz();
+}
+
 
 /* ========================== */
 /*          cDataIm2D         */
@@ -83,6 +91,23 @@ template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName) c
     Write(aDFI,P0());
 }
 
+template <class Type>  void cDataIm2D<Type>::ClipToFile(const std::string & aName,const cRect2& aBox) const
+{
+    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),aBox.Sz(),1);
+    Write(aDFI,-aBox.P0(),1.0,aBox);
+}
+
+
+
+
+
+
+template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,const tIm &aIG,const tIm &aIB) const
+{
+    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),3);
+    Write(aDFI,aIG,aIB,P0());
+}
+
 
 /* ========================== */
 /*          cIm2D         */
@@ -99,11 +124,28 @@ template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aSz,Type * aRawDataLin,
 {
 }
 
+
+template <class Type>  cIm2D<Type>::cIm2D(const cBox2di & aBox,const cDataFileIm2D & aDataF) :
+   cIm2D<Type> (aBox.Sz())
+{
+    Read(aDataF,aBox.P0());
+}
+
+
 template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName)
 {
    cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
    cIm2D<Type> aRes(aFileIm.Sz());
    aRes.Read(aFileIm,cPt2di(0,0));
+
+   return aRes;
+}
+
+template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName,const cBox2di & aBox)
+{
+   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
+   cIm2D<Type> aRes(aBox.Sz());
+   aRes.Read(aFileIm,aBox.P0());
 
    return aRes;
 }

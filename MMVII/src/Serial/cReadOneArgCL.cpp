@@ -4,28 +4,51 @@ namespace MMVII
 {
 
 /* ========================== */
-/*          cSemA2007         */
+/*          cEnumAttr         */
 /* ========================== */
 
-cSemA2007::cSemA2007(eTA2007 aType,const std::string & anAux) :
-   mType      (aType),
-   mAuxA2007  (anAux)
+template <class TypeEnum> cEnumAttr<TypeEnum>::cEnumAttr(TypeEnum aType,const std::string & anAux) :
+   mType (aType),
+   mAux  (anAux)
+{
+}
+template <class TypeEnum> cEnumAttr<TypeEnum>::cEnumAttr(TypeEnum aType) :
+   cEnumAttr<TypeEnum>(aType,"")
+{
+}
+template <class TypeEnum> TypeEnum            cEnumAttr<TypeEnum>::Type() const {return mType;}
+template <class TypeEnum> const std::string & cEnumAttr<TypeEnum>::Aux()  const {return mAux;}
+
+
+/* ========================== */
+/*    cES_PropertyList        */
+/* ========================== */
+
+template <class TypeEnum> cES_PropertyList<TypeEnum>::cES_PropertyList(const tAllPairs & aAllPairs) :
+   mAllPairs (aAllPairs)
 {
 }
 
-cSemA2007::cSemA2007(eTA2007 aType) :
-   cSemA2007(aType,"")
+template <class TypeEnum> const typename  cES_PropertyList<TypeEnum>::tAllPairs & cES_PropertyList<TypeEnum>::AllPairs() const
 {
+   return mAllPairs;
 }
 
-eTA2007  cSemA2007::Type()            const {return mType;}
-const std::string &  cSemA2007::AuxA2007() const {return mAuxA2007;}
 
-std::string  cSemA2007::Name4Help() const
+template class cEnumAttr<eTA2007>;
+template class cES_PropertyList<eTA2007>;
+
+
+/* ========================== */
+/*             ::             */
+/* ========================== */
+
+
+std::string  Name4Help(const tSemA2007 & aSem)
 {
-   if (int(mType) < int(eTA2007::Shared))
+   if (int(aSem.Type()) < int(eTA2007::AddCom))
    {
-      return E2Str(mType) + mAuxA2007;
+      return E2Str(aSem.Type()) + aSem.Aux();
    }
 
    return "";
@@ -37,12 +60,12 @@ std::string  cSemA2007::Name4Help() const
 /*          cSpecOneArg2007   */
 /* ========================== */
 
-const std::vector<cSemA2007>   cSpecOneArg2007::TheEmptySem;
+const std::vector<tSemA2007>   cSpecOneArg2007::TheEmptySem;
 
-cSpecOneArg2007::cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tVSem & aVSem) :
-   mName (aName),
-   mCom  (aCom),
-   mVSem (aVSem)
+cSpecOneArg2007::cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tAllSemPL & aVPL) :
+   mName  (aName),
+   mCom   (aCom),
+   mSemPL (aVPL)
 {
     ReInit();
 }
@@ -56,13 +79,14 @@ void cSpecOneArg2007::ReInit()
    mNbMatch = 0;
 }
 
+
 std::string  cSpecOneArg2007::Name4Help() const
 {
    std::string aRes;
    int aNb=0;
-   for (const auto & aSem : mVSem)
+   for (const auto & aSem : SemPL())
    {
-      std::string aStr = aSem.Name4Help();
+      std::string aStr = MMVII::Name4Help(aSem);
       if (aStr!="")
       {
          if (aNb==0)
@@ -78,6 +102,17 @@ std::string  cSpecOneArg2007::Name4Help() const
    return aRes;
 }
 
+std::list<std::string>  cSpecOneArg2007::AddComs() const
+{
+   std::list<std::string> aRes;
+   for (const auto & aSem : SemPL())
+   {
+      if (aSem.Type()== eTA2007::AddCom)
+         aRes.push_back(aSem.Aux());
+   }
+   return aRes;
+}
+
 
 void cSpecOneArg2007::IncrNbMatch()
 {
@@ -89,19 +124,19 @@ int  cSpecOneArg2007::NbMatch () const
    return mNbMatch;
 }
 
-const cSpecOneArg2007::tVSem & cSpecOneArg2007::VSem() const
+const cSpecOneArg2007::tAllSemPL & cSpecOneArg2007::SemPL() const
 {
-   return mVSem;
+   return mSemPL.AllPairs();
 }
 
 bool cSpecOneArg2007::HasType(const eTA2007 & aType,std::string * aValue) const
 {
-    for (const auto & aSem : mVSem)
+    for (const auto & aSem : SemPL())
     {
        if (aSem.Type() == aType)
        {
           if (aValue) 
-             *aValue =  aSem.AuxA2007();
+             *aValue =  aSem.Aux();
           return true;
        }
    }
@@ -204,7 +239,7 @@ template <class Type> class cInstReadOneArgCL2007 : public cSpecOneArg2007
         {
             mVal = cStrIO<Type>::FromStr(aStr);
         }
-        cInstReadOneArgCL2007 (Type & aVal,const std::string & aName,const std::string & aCom,const tVSem & aVSem) :
+        cInstReadOneArgCL2007 (Type & aVal,const std::string & aName,const std::string & aCom,const tAllSemPL & aVSem) :
               cSpecOneArg2007(aName,aCom,aVSem),
               mVal         (aVal)
         {
@@ -221,7 +256,7 @@ template <class Type> class cInstReadOneArgCL2007 : public cSpecOneArg2007
 };
 
 
-template <class Type> tPtrArg2007 Arg2007(Type & aVal, const std::string & aCom,const cSpecOneArg2007::tVSem & aVSem )
+template <class Type> tPtrArg2007 Arg2007(Type & aVal, const std::string & aCom,const cSpecOneArg2007::tAllSemPL & aVSem )
 {
    return tPtrArg2007(new cInstReadOneArgCL2007<Type>(aVal,"",aCom,aVSem));
 }
@@ -229,14 +264,14 @@ template <class Type> tPtrArg2007 Arg2007(Type & aVal, const std::string & aCom,
 
 
 
-template <class Type> tPtrArg2007 AOpt2007(Type & aVal,const std::string & aName, const std::string &aCom,const cSpecOneArg2007::tVSem & aVSem)
+template <class Type> tPtrArg2007 AOpt2007(Type & aVal,const std::string & aName, const std::string &aCom,const cSpecOneArg2007::tAllSemPL & aVSem)
 {
    return  tPtrArg2007(new cInstReadOneArgCL2007<Type>(aVal,aName,aCom,aVSem));
 }
 
 #define MACRO_INSTANTIATE_ARG2007(Type)\
-template tPtrArg2007 Arg2007<Type>(Type &, const std::string & aCom,const cSpecOneArg2007::tVSem & aVSem);\
-template tPtrArg2007 AOpt2007<Type>(Type &,const std::string & aName, const std::string & aCom,const cSpecOneArg2007::tVSem & aVSem);
+template tPtrArg2007 Arg2007<Type>(Type &, const std::string & aCom,const cSpecOneArg2007::tAllSemPL & aVSem);\
+template tPtrArg2007 AOpt2007<Type>(Type &,const std::string & aName, const std::string & aCom,const cSpecOneArg2007::tAllSemPL & aVSem);
 
 MACRO_INSTANTIATE_ARG2007(int)
 MACRO_INSTANTIATE_ARG2007(double)
@@ -249,6 +284,15 @@ MACRO_INSTANTIATE_ARG2007(cPt2di)
 MACRO_INSTANTIATE_ARG2007(cPt2dr)
 MACRO_INSTANTIATE_ARG2007(cPt3di)
 MACRO_INSTANTIATE_ARG2007(cPt3dr)
+MACRO_INSTANTIATE_ARG2007(eOpAff)
+MACRO_INSTANTIATE_ARG2007(eModeEpipMatch)
+MACRO_INSTANTIATE_ARG2007(eModePaddingEpip)
+MACRO_INSTANTIATE_ARG2007(eModeCaracMatch)
+
+MACRO_INSTANTIATE_ARG2007(cBox2di)
+MACRO_INSTANTIATE_ARG2007(cBox2dr)
+MACRO_INSTANTIATE_ARG2007(cBox3di)
+MACRO_INSTANTIATE_ARG2007(cBox3dr)
 
 /*
 template <> tPtrArg2007 AOpt2007<int>(int &,const std::string & aName, const std::string & aCom);

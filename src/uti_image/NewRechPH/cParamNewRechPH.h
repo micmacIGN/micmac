@@ -141,6 +141,50 @@ std::string  Mangling( cPtSc *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_TestDMP
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_TestDMP & anObj,cElXMLTree * aTree);
+
+
+        Im2D_INT2 & PxMin();
+        const Im2D_INT2 & PxMin()const ;
+
+        Im2D_INT2 & PxMax();
+        const Im2D_INT2 & PxMax()const ;
+
+        Im2D_INT4 & ImCpt();
+        const Im2D_INT4 & ImCpt()const ;
+
+        Im2D_U_INT2 & DataIm();
+        const Im2D_U_INT2 & DataIm()const ;
+
+        double & StepPx();
+        const double & StepPx()const ;
+
+        double & DynPx();
+        const double & DynPx()const ;
+    private:
+        Im2D_INT2 mPxMin;
+        Im2D_INT2 mPxMax;
+        Im2D_INT4 mImCpt;
+        Im2D_U_INT2 mDataIm;
+        double mStepPx;
+        double mDynPx;
+};
+cElXMLTree * ToXMLTree(const cXml_TestDMP &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_TestDMP &);
+
+void  BinaryUnDumpFromFile(cXml_TestDMP &,ELISE_fp &);
+
+std::string  Mangling( cXml_TestDMP *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cOneInvRad
 {
     public:

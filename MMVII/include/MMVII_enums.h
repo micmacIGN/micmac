@@ -25,9 +25,11 @@ enum class eTA2007
             // ---------- Printed --------------
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File of Dir Proj
-                FileImage,       ///< File containing an image
-                MPatFile,        ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
+                FileImage,     ///< File containing an image
+                MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
+            // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
+                AddCom,        ///< Not an attribute, used to embed additionnal comment in Help mode
             // ---------- Not Printed -----------
             // !!!!! Shared must be first UNPRINTED  !!! because of test in Name4Help()
                 Shared,        ///< Parameter  Shared by many (several) command
@@ -42,15 +44,17 @@ enum class eTA2007
 /// Appli Features
 enum class eApF
            {
-               Project, ///< Project Managenent
-               Test,    ///< Test
-               ImProc,  ///< Image processing
-               Ori,     ///< Orientation
-               Match,   ///< Dense Matching
-               TieP,    ///< Tie-Point processing
+               ManMMVII,   ///< Managenent of MMVII
+               Project,    ///< Project Managenent (user's)
+               Test,       ///< Test
+               ImProc,     ///< Image processing
+               Ori,        ///< Orientation
+               Match,      ///< Dense Matching
+               TieP,       ///< Tie-Point processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
-               Perso,   ///< Personnal
-               eNbVals  ///< Tag for number of value
+               CodedTarget,  ///< Coded target (generate, match )
+               Perso,      ///< Personnal
+               eNbVals     ///< Tag for number of value
            };
 
 /// Appli Data Type
@@ -62,7 +66,8 @@ enum class eApDT
               Image,   ///< Image
               Ply,    ///< Ply file
               None,     ///< Nothing 
-              Console,  ///< Console 
+              ToDef,     ///< still unclassed
+              Console,  ///< Console , (i.e printed message have values)
               Xml,      ///< Xml-files
               FileSys,      ///< Input is the file system (list of file)
               Media,      ///< Input is the file system (list of file)
@@ -119,6 +124,7 @@ enum class eTyUEr
               eWriteFile,
               eReadFile,
               eBadBool,
+              eBadInt,
               eBadEnum,
               eMulOptParam,
               eBadOptParam,
@@ -130,6 +136,7 @@ enum class eTyUEr
               e2PatInModeLineEditRel,
               eParseError,
               eBadDimForPt,
+              eBadDimForBox,
               eBadSize4Vect,
               eMultiplePostifx,
               eUnClassedError,
@@ -158,6 +165,7 @@ enum class eTyNums
               eTN_REAL4,
               eTN_REAL8,
               eTN_REAL16,
+              eTN_UnKnown,  // Used because for MMV1 Bits Type, we need to handle file, but dont have Bits Images
               eNbVals
            };
 
@@ -165,7 +173,8 @@ enum class eModeInitImage
            {
                eMIA_Rand,        ///< Rand  in [0..1]
                eMIA_RandCenter,        ///< Rand  in [-1 1]
-               eMIA_Null,
+               eMIA_Null,  ///<  0 everywere
+               eMIA_V1,   ///<   1 everywhere
                eMIA_MatrixId,    ///<  Only for square  Matrix  : Identite, 
                eMIA_NoInit
            };
@@ -236,6 +245,129 @@ enum class eModeOutPCar
 };
 
 
+/** Mode "Matcher" callable in DenseMatchEpipGen */
+
+enum class eModeEpipMatch
+{
+   eMEM_MMV1,  // Mode MicMac V1
+   eMEM_PSMNet,// Mode PSMNet
+   eMEM_NoMatch,  // Do no match, used for debuging
+   eNbVals
+};
+
+
+/** Mode "Padding" callable in DenseMatchEpipGen */
+
+enum class eModePaddingEpip
+{
+   eMPE_NoPad,  // No padding, natural size MicMac V1
+   eMPE_PxPos,  // Padding force positive paralax
+   eMPE_PxNeg,  // Padding force negative paralax
+   eMPE_SzEq,  //  Centerd padding, size equal
+   eNbVals
+};
+
+/** Mode  caracteristic for matching */
+
+enum class eModeCaracMatch
+{
+   //#################  MULTI SCALE CRITERIA ##################
+
+     // ----------  Census Quantitatif ------------
+   eMS_CQ1,    ///< Census Quantitatif 1 pixel (~ 3x3)
+   eMS_CQ2,    ///< Census Quantitatif 2 pixel (~ 5x5)
+   eMS_CQ3,    ///< Census Quantitatif 3 pixel (~ 7x7)
+   eMS_CQ4,    ///< Census Quantitatif 4 pixel (~ 9x9)
+   eMS_CQA,    ///< Census Quantitatif all window
+   eMS_CQW,    ///< Census Quantitatif all window, weihted
+     // ----------  "Basic" Census, not conived it is usefull, but it's popular ------------
+   eMS_Cen1,    ///< Census  1 pixel (~ 3x3)
+   eMS_Cen2,    ///< Census  2 pixel (~ 5x5)
+   eMS_Cen3,    ///< Census  3 pixel (~ 7x7)
+   eMS_Cen4,    ///< Census  4 pixel (~ 9x9)
+   eMS_CenA,    ///< Census  All
+   eMS_CenW,    ///< Census  weighted
+     // ----------  Normalized Cross Correlation ------------
+   eMS_Cor1,    ///< Correl 1 pixel (~ 3x3)
+   eMS_Cor2,    ///< Correl 2 pixel (~ 5x5)
+   eMS_Cor3,    ///< Correl 3 pixel (~ 7x7)
+   eMS_Cor4,    ///< Correl 4 pixel (~ 9x9)
+   eMS_CorA,    ///< Correl  all window
+   eMS_CorW,    ///< Correl  all window, weihted
+     // ---------- "Corner", select only best average, correl probably   ------------
+   eMS_CornW180,   ///< Corner, 180 of average
+   eMS_CornW90,    ///< Corner, 90  of average
+     // ----------  Best/Worst score on a given neighboor  ------------
+     // For best we use correl as, being quite strict, if it is good, then is has signification even with optimi best
+     // For worst we use CQ as being "laxist" (good with any homogeneous), if has signifcation even with pessimistic worst
+   eMS_WorstCorrel2,   ///< Worst weighted correl on all window <= 2 (5x5) 
+   eMS_WorstCorrel3,   ///< Worst weighted correl on all window <= 3 (7x7)
+   eMS_BestCorrel2,   ///< Best weighted correl on all window <= 2 (5x5) 
+   eMS_BestCorrel3,   ///< Best weighted correl on all window <= 3 (7x7)
+   eMS_BestCorrel4,   ///< Best weighted correl on all window <= 4 (9x9)
+   eMS_BestCorrel5,   ///< Best weighted correl on all window <= 5 (11x11)
+          // ----
+   eMS_BestCQ2,    ///< Best Census quantitative on all windows <= 2 (5x5)
+   eMS_BestCQ3,    ///< Best Census quantitative on all windows <= 3 (7x7)
+   eMS_WorstCQ2,    ///< Worst Census quantitative on all windows <= 2 (5x5)
+   eMS_WorstCQ3,    ///< Worst Census quantitative on all windows <= 3 (7x7)
+   eMS_WorstCQ4,    ///< Worst Census quantitative on all windows <= 4 (9x9)
+   eMS_WorstCQ5,    ///< Worst Census quantitative on all windows <= 5 (11x11)
+
+     // ----------  Using gray level  ------------
+   eMS_MinStdDev1,  ///< Min a both std dev
+   eMS_MinStdDev2,  ///< Min a both std dev
+   eMS_MinStdDev3,  ///< Min a both std dev
+   eMS_MinStdDev4,  ///< Min a both std dev
+   eMS_MinStdDevW,  ///< Min a both std dev
+
+   //#################  CRITERIA ON NORMALIZED IMAGES ##################
+
+   eNI_DifGray,    ///< Different of gray Gray Level ,
+   eNI_MinGray,    ///<  Min of 2 Gray Level , may indicate fiability (low contrast=> means pb ?)
+
+   eNI_Diff1,    ///< Som Diff 1 pixel (~ 3x3)
+   eNI_Diff2,    ///< Som Diff 2 pixel (~ 3x3)
+   eNI_Diff3,    ///< Som Diff 3 pixel (~ 3x3)
+   eNI_Diff5,    ///< Som Diff 4 pixel (~ 3x3)
+   eNI_Diff7,    ///< Som Diff 4 pixel (~ 3x3)
+
+   //#################  CRITERIA ON STD IMAGES ##################
+
+     // ----------  Normalized Cross Correlation ------------
+   eSTD_Cor1,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_Cor2,    ///< Correl 2 pixel (~ 5x5)
+   eSTD_Cor3,    ///< Correl 3 pixel (~ 7x7)
+   eSTD_Cor4,    ///< Correl 4 pixel (~ 9x9)
+
+     // ---------- Non centered  Normalized Cross Correlation ------------
+   eSTD_NCCor1,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_NCCor2,    ///< Correl 2 pixel (~ 5x5)
+   eSTD_NCCor3,    ///< Correl 3 pixel (~ 7x7)
+   eSTD_NCCor4,    ///< Correl 4 pixel (~ 9x9)
+
+     // ----------  Normalized Cross Correlation ------------
+   eSTD_Diff1,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_Diff2,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_Diff3,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_Diff5,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_Diff7,    ///< Correl 1 pixel (~ 3x3)
+
+     // ----------  Census quant ------------
+   eSTD_CQ2,    ///< Census Quantitatif 2 pixel (~ 3x3)
+   eSTD_CQ4,    ///< Census Quantitatif 4 pixel (~ 3x3)
+   eSTD_CQ6,    ///< Census Quantitatif 6 pixel (~ 3x3)
+   eSTD_CQ8,    ///< Census Quantitatif 8 pixel (~ 3x3)
+     // ----------  Census "normal" ------------
+   eSTD_Cen2,    ///< Census 2 pixel (~ 3x3)
+   eSTD_Cen4,    ///< Census 4 pixel (~ 3x3)
+   eSTD_Cen6,    ///< Census 6 pixel (~ 3x3)
+   eSTD_Cen8,    ///< Census 8 pixel (~ 3x3)
+
+   eNbVals
+};
+
+
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
 const std::string & E2Str(const eTA2007 &);         
@@ -243,11 +375,26 @@ const std::string & E2Str(const eTyUEr &);
 const std::string & E2Str(const eTyNums &);         
 const std::string & E2Str(const eTyInvRad &);         
 const std::string & E2Str(const eTyPyrTieP &);         
+const std::string & E2Str(const eModeEpipMatch &);         
+const std::string & E2Str(const eModePaddingEpip &);         
+const std::string & E2Str(const eModeCaracMatch &);         
 
 template <class Type> const Type & Str2E(const std::string &); 
 template <class Type> std::string   StrAllVall();
 template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);
 
+template <class TypeEnum> class cEnumAttr;
+typedef cEnumAttr<eTA2007> tSemA2007;
+template <class Type> tSemA2007  AC_ListVal();  ///< Additional comm giving list of possible values, tagged with eTA2007::AddCom as they are printed only with Help mode
+
+/* To use fully automatic in specif, need to add :
+Serial/cReadOneArgCL.cpp:MACRO_INSTANTIATE_ARG2007 =>  For Additional commentary
+Serial/cStrIO.cpp:MACRO_INSTANTITATE_STRIO_ENUM => For creating ToStr/FromStr like other type
+
+Serial/uti_e2string.cpp: ..::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
+Serial/uti_e2string.cpp:TPL_ENUM_2_STRING
+=>  for creating the 2 dictionnaries enum <=> strings
+*/
 
 
 };

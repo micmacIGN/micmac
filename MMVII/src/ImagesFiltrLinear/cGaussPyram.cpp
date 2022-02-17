@@ -1,6 +1,7 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_Tpl_Images.h"
 #include "include/V1VII.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
 
 
 
@@ -303,13 +304,58 @@ template <class Type> const  std::vector<std::shared_ptr<cGP_OneImage<Type>>> & 
 /*                                                      */
 /* ==================================================== */
 
-cFilterPCar::cFilterPCar() :
-   mAutoC    ({0.9}),
-   mPSF      ({35,3.0,0.2}),
-   mEQsf     ({2,1,1}),
-   mLPCirc   ({2.5,-1.0,2.0}),
-   mLPSample ({16,8,32.0,0})
+typedef std::vector<double> tVD;
+
+
+cFilterPCar::cFilterPCar(bool is4TieP) :
+   mIsForTieP (is4TieP),
+   mAutoC     ({0.9}),
+   mPSF       ({35,3.0,0.2}),
+   mEQsf      ({2,1,1}),
+   mLPCirc    (is4TieP ? tVD({2.5,-1.0,2.0}) :  tVD({2.0,0.0,1.0})),
+   mLPSample  (is4TieP ? tVD{16,8,32.0,1,0}  :  tVD({6,6,32.0,1,1})),
+   mLPQuantif ({10.0,0.5})
 {
+}
+
+bool cFilterPCar::IsForTieP() const
+{
+   return mIsForTieP;
+}
+
+cFilterPCar::~cFilterPCar() 
+{
+   Check();
+}
+
+void cFilterPCar::SetLPSample(const std::vector<double> & aVS)
+{
+   mLPSample = aVS;
+}
+
+void cFilterPCar::SetLPCirc(const std::vector<double> & aVC)
+{
+   mLPCirc = aVC;
+}
+
+void cFilterPCar::Check()
+{
+    if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_strong)
+    {
+         MMVII_INTERNAL_ASSERT_strong(AutoC().size()   ==3,"Bad size for cFilterPCar::AutoC");
+         MMVII_INTERNAL_ASSERT_strong(PSF().size()     ==3,"Bad size for cFilterPCar::PSF");
+         MMVII_INTERNAL_ASSERT_strong(EQsf().size()    ==3,"Bad size for cFilterPCar::EQsf");
+         MMVII_INTERNAL_ASSERT_strong(LPCirc().size()  ==3,"Bad size for cFilterPCar::LPCirc");
+         MMVII_INTERNAL_ASSERT_strong(LPSample().size()==5,"Bad size for cFilterPCar::LPSample");
+         MMVII_INTERNAL_ASSERT_strong(LPQuantif().size()==2,"Bad size for cFilterPCar::LPQuantif");
+
+         LPC_DeltaI0();
+         LPC_DeltaIm();
+         LPS_NbTeta();
+         LPS_NbRho();
+         LPS_CensusMode();
+         LPS_Interlaced();
+    }
 }
 
 void cFilterPCar::FinishAC(double aVal)
@@ -317,31 +363,44 @@ void cFilterPCar::FinishAC(double aVal)
     for (int aK=1 ; aK< 3 ; aK++)
     {
         if (int(mAutoC.size()) == aK)
-           mAutoC.push_back(mAutoC.back()-0.05);
+           mAutoC.push_back(mAutoC.back()-aVal);
     }
+// StdOut() << "HhhhhhhHHhhhhhhh " << mAutoC.size() << " :: " << mAutoC << "\n";
 }
 
+std::vector<double> &  cFilterPCar::AutoC() {return mAutoC;}
 const double & cFilterPCar::AC_Threshold() const {return mAutoC.at(0);}
 const double & cFilterPCar::AC_CutReal()   const  {return mAutoC.at(1);}
 const double & cFilterPCar::AC_CutInt()    const {return mAutoC.at(2);}
 
+std::vector<double> &  cFilterPCar::PSF() {return mPSF;}
 const double & cFilterPCar::DistSF()       const {return mPSF.at(0);}
 const double & cFilterPCar::MulDistSF()    const {return mPSF.at(1);}
 const double & cFilterPCar::PropNoSF()     const {return mPSF.at(2);}
 
+std::vector<double> &  cFilterPCar::EQsf() {return mEQsf;}
 const double & cFilterPCar::PowAC()        const {return mEQsf.at(0);}
 const double & cFilterPCar::PowVar()       const {return mEQsf.at(1);}
 const double & cFilterPCar::PowScale()     const {return mEQsf.at(2);}
 
 
+std::vector<double> &  cFilterPCar::LPCirc() {return mLPCirc;}
 const double &  cFilterPCar::LPC_Rho0() const     {return mLPCirc.at(0);}
 int             cFilterPCar::LPC_DeltaI0() const  {return EmbeddedIntVal(mLPCirc.at(1));}
 int             cFilterPCar::LPC_DeltaIm() const  {return EmbeddedIntVal(mLPCirc.at(2));}
 
+std::vector<double> &  cFilterPCar::LPSample() {return mLPSample;}
 int  cFilterPCar::LPS_NbTeta()           const {return EmbeddedIntVal(mLPSample.at(0));}
 int  cFilterPCar::LPS_NbRho()            const {return EmbeddedIntVal(mLPSample.at(1));}
 const double &  cFilterPCar::LPS_Mult()  const {return mLPSample.at(2);}
 bool  cFilterPCar::LPS_CensusMode()      const {return EmbeddedBoolVal(mLPSample.at(3));}
+bool  cFilterPCar::LPS_Interlaced()      const {return EmbeddedBoolVal(mLPSample.at(4));}
+
+std::vector<double> &  cFilterPCar::LPQuantif()        {return mLPQuantif;}
+const double &         cFilterPCar::LPQ_Steep0() const {return mLPQuantif.at(0);}
+const double &         cFilterPCar::LPQ_Exp()    const {return mLPQuantif.at(1);}
+
+
 
 /*
    std::vector<double>  mLPSample;  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
@@ -351,6 +410,68 @@ bool  cFilterPCar::LPS_CensusMode()      const {return EmbeddedBoolVal(mLPSample
          bool              LPS_CensusMode() const;   ///< Do Normalization in census mode
 */
 
+void cFilterPCar::InitDirTeta() const
+{
+   int aNbTeta = LPS_NbTeta();
+   if (int(mVDirTeta0.size()) == aNbTeta)
+      return;
+    mVDirTeta0.clear();
+    mVDirTeta1.clear();
+ 
+   for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++)
+   {
+       mVDirTeta0.push_back(FromPolar(1.0,(M_PI*(2*aKTeta))/aNbTeta));
+   }
+   if (LPS_Interlaced())
+   {
+       for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++)
+       {
+           mVDirTeta1.push_back(FromPolar(1.0,(M_PI*(1+2*aKTeta))/aNbTeta));
+       }
+   }
+   else
+       mVDirTeta1 = mVDirTeta0;
+}
+
+const std::vector<cPt2dr> & cFilterPCar::VDirTeta0() const
+{
+   InitDirTeta();
+
+   return mVDirTeta0;
+}
+
+const std::vector<cPt2dr> & cFilterPCar::VDirTeta1() const
+{
+   InitDirTeta();
+
+   return mVDirTeta1;
+}
+
+void cFilterPCar::AddData(const cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("Is4TieP",anAux)     , mIsForTieP);
+    MMVII::AddData(cAuxAr2007("AutoC",anAux)       , mAutoC);
+    MMVII::AddData(cAuxAr2007("SpaceFilter",anAux) , mPSF);
+    MMVII::AddData(cAuxAr2007("ExpQuality",anAux)  , mEQsf);
+    MMVII::AddData(cAuxAr2007("Circles",anAux)     , mLPCirc);
+    MMVII::AddData(cAuxAr2007("Sampling",anAux)    , mLPSample);
+    MMVII::AddData(cAuxAr2007("Quantif",anAux)     , mLPQuantif);
+    // Don't save mVDirTetaX  as they are computed from others
+}
+
+/*
+         std::vector<double>  mPSF; ///< Param Spatial Filtering  [Dist,MulRAy,PropNoFS]
+         std::vector<double>  mEQsf; ///< Exposant for quality of point before spatial filter [AutoC,Var,Scale]
+         std::vector<double>  mLPCirc;  ///< Circles of Log Pol param [Rho0,DeltaSI0,DeltaI]
+         std::vector<double>  mLPSample;  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
+         std::vector<double>  mLPQuantif; 
+*/
+
+void AddData(const cAuxAr2007 & anAux, cFilterPCar &    aFPC)
+{
+    aFPC.AddData(anAux);
+}
+
 
 
 /* ==================================================== */
@@ -359,17 +480,18 @@ bool  cFilterPCar::LPS_CensusMode()      const {return EmbeddedBoolVal(mLPSample
 /*                                                      */
 /* ==================================================== */
 
-cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,cMMVII_Appli * aPtrAppli) :
+cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,const cMMVII_Appli * aPtrAppli,bool is4TieP) :
    mSzIm0        (aSzIm0),
    mNbOct        (aNbOct),
    mNbLevByOct   (aNbLevByOct),
    mNbOverlap    (aOverlap),
    mAppli        (aPtrAppli),
+   mFPC          (is4TieP),
    mConvolIm0    (0.0),
    mNbIter1      (4),
    mNbIterMin    (2),
    mConvolC0     (1.0),
-   mScaleDirOrig (4.0),
+   mScaleDirOrig (10.0),
    mEstimSigmInitIm0  (DefStdDevImWellSample)
 {
 }

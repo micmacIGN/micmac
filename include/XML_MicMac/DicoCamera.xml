@@ -218,7 +218,13 @@ See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_an
         <SzCaptMm>   15.7 23.6 </SzCaptMm>
         <ShortName> NKCA  </ShortName>
    </CameraEntry>
-   
+	
+   <CameraEntry>
+        <Name>  COOLPIX W300 </Name>
+        <SzCaptMm>  4.55 6.17</SzCaptMm>
+        <ShortName> COOLPIX W300  </ShortName>
+   </CameraEntry>
+	
 <!-- Ricoh -->
 
    <CameraEntry>
@@ -338,22 +344,27 @@ See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_an
 		<ShortName> OlMu790  </ShortName>
 	</CameraEntry>
 	
-<!-- Panasonic -->
+<!-- Panasonic m43-->
 	
+	<CameraEntry>
+		<Name>  DMC-G1 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-G1  </ShortName>
+	</CameraEntry>
 	<CameraEntry>
 		<Name>  DMC-G2 </Name>
 		<SzCaptMm> 13 17.3 </SzCaptMm>
-		<ShortName> Panasonic DMC-G6  </ShortName>
+		<ShortName> Panasonic DMC-G2  </ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name>  DMC-G3 </Name>
 		<SzCaptMm> 13 17.3 </SzCaptMm>
-		<ShortName> Panasonic DMC-G6  </ShortName>
+		<ShortName> Panasonic DMC-G3  </ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name>  DMC-G5 </Name>
 		<SzCaptMm> 13 17.3 </SzCaptMm>
-		<ShortName> Panasonic DMC-G6  </ShortName>
+		<ShortName> Panasonic DMC-G5  </ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name>  DMC-G6 </Name>
@@ -406,6 +417,16 @@ See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_an
 		<ShortName> Panasonic DMC-G9000  </ShortName>
 	</CameraEntry>
 	<CameraEntry>
+		<Name>  DMC-GM1 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GM1  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DMC-GM5 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GM5  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
 		<Name>  DMC-GX7 </Name>
 		<SzCaptMm> 13 17.3 </SzCaptMm>
 		<ShortName> Panasonic DMC-GX7  </ShortName>
@@ -434,6 +455,11 @@ See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_an
 		<Name>  DMC-GX9 </Name>
 		<SzCaptMm> 13 17.3 </SzCaptMm>
 		<ShortName> Panasonic DMC-GX9  </ShortName>
+	</CameraEntry>
+   	<CameraEntry>
+		<Name>  DMC-GF9 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GF9  </ShortName>
 	</CameraEntry>
 	<CameraEntry>
 		<Name>  DMC-GX90 </Name>
@@ -471,6 +497,27 @@ See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_an
 		<ShortName> Panasonic DMC-GH6  </ShortName>
 	</CameraEntry>
 
+	<CameraEntry>
+		<Name>  DMC-GH4 </Name>
+		<SzCaptMm> 13 17.3 </SzCaptMm>
+		<ShortName> Panasonic DMC-GH4  </ShortName>
+	</CameraEntry>
+<!-- Panasonic Full Frame -->	
+	<CameraEntry>
+		<Name>  DC-S1 </Name>
+		<SzCaptMm> 24 36 </SzCaptMm>
+		<ShortName> Panasonic DC-S1  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DC-S1R </Name>
+		<SzCaptMm> 24 36 </SzCaptMm>
+		<ShortName> Panasonic DC-S1R  </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  DC-S1H </Name>
+		<SzCaptMm> 24 36 </SzCaptMm>
+		<ShortName> Panasonic DC-S1H  </ShortName>
+	</CameraEntry>
 <!-- GoPro -->
 
 	<CameraEntry>

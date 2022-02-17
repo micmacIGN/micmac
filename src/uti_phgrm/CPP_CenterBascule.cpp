@@ -245,6 +245,15 @@ cCmpOriOneSom::cCmpOriOneSom(const std::string& aName,CamStenope* aCam1,CamSteno
 {
    ELISE_ASSERT(euclid( mCam1->VraiOpticalCenter() - mC1)<1e-5,"Verif conventions");
   // Pt3dr AxeRot(const ElMatrix<REAL> & aMat);
+   if (false && MPD_MM())
+   {
+	 ElMatrix<double> aM1 = mRC1ToM.Mat();
+	 ElMatrix<double> aM2 = mRC2ToM.Mat();
+	 std::cout << "NNN=" <<  aName <<  " DM=" << aM1.L2(aM2) << "\n";
+
+	 ShowMatr("M1",aM1);
+	 ShowMatr("M2",aM2);
+   }	
 }
 
 class cAppli_CmpOriCam : public cAppliWithSetImage

@@ -203,6 +203,7 @@ int Vino_Main(int argc, char ** argv);
 int XifDate2Txt_main(int argc, char ** argv);
 int XifGps2Xml_main(int argc, char ** argv);
 int XifGps2Txt_main(int argc, char ** argv);
+int CPP_GCP2D3D2Xml_main(int argc, char ** argv);
 int RedTieP_main(int argc, char **argv);
 int OriRedTie_main(int argc, char **argv);
 int HomFusionPDVUnik_main(int argc, char **argv);
@@ -379,7 +380,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("cod", cod_main, " Do some stuff"));
 		aRes.push_back(cMMCom("vic", vicod_main, " Do some stuff"));
 		aRes.push_back(cMMCom("genmail", genmail_main, " Do some stuff"));
-		aRes.push_back(cMMCom("CreateEpip", CreateEpip_main, " Create epipolar images"));
+		aRes.push_back(cMMCom("CreateEpip", CreateEpip_main, " Create epipolar images",cArgLogCom(2)));
 		aRes.push_back(cMMCom("CoherEpip", CoherEpi_main, " Test coherence between conjugate epipolar depth-map"));
 		aRes.push_back(cMMCom("Dequant", Dequant_main, " Tool for dequantifying an image"));
 		aRes.push_back(cMMCom("Devlop", Devlop_main, " Do some stuff"));
@@ -401,6 +402,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 		aRes.push_back(cMMCom("AnalyseTrajStereopolis", AnalyseTrajStereopolis_main,"Analyse trajectory of Stereopolis-like acquisition", cArgLogCom(2)));
 
+		aRes.push_back(cMMCom("GCP2d3dConvert", CPP_GCP2D3D2Xml_main, "Convert GCP 2d and 3d in Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("GCPConvert", GCP_Txt2Xml_main, "Convert GCP from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriConvert", Ori_Txt2Xml_main, "Convert Orientation from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriExport", OriExport_main, "Export orientation from XML to XML or TXT with specified convention", cArgLogCom(3)));
@@ -443,7 +445,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("MMCalcSzWCor", CalcSzWCor_main, " Compute Image of Size of correlation windows (Atomic tool, for adaptive window in geom image)", cArgLogCom(2)));
 		aRes.push_back(cMMCom("MpDcraw", MpDcraw_main, " Interface to dcraw"));
 
-		aRes.push_back(cMMCom("MMTestOrient", MMTestOrient_main, " Tool for testing quality of orientation"));
+		aRes.push_back(cMMCom("MMTestOrient", MMTestOrient_main, " Tool for testing quality of orientation",cArgLogCom(2)));
 		aRes.push_back(cMMCom("MMHomCorOri", MMHomCorOri_main, " Tool to compute homologues for correcting orientation in epip matching"));
 		aRes.push_back(cMMCom("MMInitialModel", MMInitialModel_main, " Initial Model for MicMac ")); //  ,cArgLogCom(2)));
 		aRes.push_back(cMMCom("MMTestAllAuto", MMAllAuto_main, " Full automatic version for 1 view point, test mode ", cArgLogCom(2)));
@@ -613,6 +615,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("PIMs2Ply", MPI2Ply_main, "Generate Ply from Per Image Matchings"));
 		aRes.push_back(cMMCom("PIMs2Mnt", MPI2Mnt_main, "Generate Mnt from Per Image Matchings"));
 		aRes.push_back(cMMCom("SAT4GEO", Sat3D_main, "Satellite 3D pipeline",cArgLogCom(2)));
+		aRes.push_back(cMMCom("TiePHistoP", TiePHistoP_main, "Inter-date features extraction => historical images pipeline",cArgLogCom(2)));
 
 
 		aRes.push_back(cMMCom("AllDev", DoAllDev_main, "Force development of all tif/xif file"));
@@ -713,8 +716,11 @@ extern int CPP_Bundler2MM_main(int argc, char ** argv);
 extern int CPP_MM2Bundler_main(int argc, char ** argv);
 extern int CPP_Strecha2MM(int argc, char ** argv);
 extern int CPP_MM2OpenMVG_main(int argc, char ** argv);
+extern int CPP_MM2Colmap_main(int argc, char ** argv);
+extern int CPP_ExportSimilPerMotion_main(int argc, char ** argv);
 extern int ImPts2Dir_main(int argc, char ** argv);
 extern int FictiveObstest_main(int argc, char ** argv);
+extern int TestFastTreeDist(int argc, char ** argv);
 extern int TestPush(int argc, char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
 extern int Homol2GCP_main(int argc, char ** argv);
@@ -841,6 +847,8 @@ int OptAeroProc_main(int argc, char ** argv);
 int TestARCam_main(int argc, char ** argv);
 int CPP_TestPhysMod_Main(int argc, char ** argv);
 int MvImgsByFile_main(int argc, char** argv);
+int CPP_ReechDepl(int argc, char ** argv);
+int CPP_BatchReechDepl(int argc, char ** argv);
 int OneReechHom_main(int argc, char ** argv);
 int OneReechFromAscii_main(int argc, char ** argv);
 int AllReechFromAscii_main(int argc, char ** argv);
@@ -921,6 +929,35 @@ int UnionFiltragePHom_Main(int argc, char ** argv);
 int TestYZ_main(int argc, char ** argv);
 
 extern int TestLulin_main(int argc, char ** argv);
+extern int SuperGlue_main(int argc, char ** argv);
+extern int MergeTiePt_main(int argc, char ** argv);
+extern int GetPatchPair_main(int argc, char ** argv);
+extern int RANSAC_main(int argc, char ** argv);
+extern int CrossCorrelation_main(int argc, char ** argv);
+extern int GuidedSIFTMatch_main(int argc, char ** argv);
+extern int GetOverlappedImages_main(int argc, char ** argv);
+extern int DSM_Equalization_main(int argc, char ** argv);
+extern int CreateGCPs_main(int argc, char ** argv);
+extern int WallisFilter_main(int argc, char ** argv);
+extern int TiePtEvaluation_main(int argc, char ** argv);
+extern int MakeOneTrainingData_main(int argc, char ** argv);
+extern int MakeTrainingData_main(int argc, char ** argv);
+extern int VisuTiePtIn3D_main(int argc, char ** argv);
+extern int TiePtAddWeight_main(int argc, char ** argv);
+extern int EnhancedSpG_main(int argc, char ** argv);
+extern int SIFT2Step_main(int argc, char ** argv);
+extern int SIFT2StepFile_main(int argc, char ** argv);
+//extern int D2NetMatch_main(int argc, char ** argv);
+extern int Calc2DSimi_main(int argc, char ** argv);
+extern int GlobalR3D_main(int argc, char ** argv);
+extern int ExtractSIFT_main(int argc, char ** argv);
+extern int InlierRatio_main(int argc, char ** argv);
+extern int EvalOri_main(int argc, char ** argv);
+extern int CoReg_GlobalR3D_main(int argc, char ** argv);
+extern int PileImgs_main(int argc, char ** argv);
+extern int GetOrthoHom_main(int argc, char ** argv);
+extern int TransmitHelmert_main(int argc, char ** argv);
+
 
 extern int ReechHomol_main(int argc, char ** argv);
 extern int DeformAnalyse_main(int argc, char ** argv);
@@ -981,7 +1018,37 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	{
 
         aRes.push_back(cMMCom("TestLulin", TestLulin_main, "Explaination: TestLulin "));
-		
+        aRes.push_back(cMMCom("SuperGlue", SuperGlue_main, "Use SuperGlue to extract tie points"));
+        aRes.push_back(cMMCom("MergeTiePt", MergeTiePt_main, "Merge tie points of sub images into integrated one"));
+        aRes.push_back(cMMCom("GetPatchPair", GetPatchPair_main, "Divide an image pair to a number of patch pairs in order to apply learned feature matching"));
+
+        aRes.push_back(cMMCom("RANSAC", RANSAC_main, "Tie point filter based on 2D or 3D RANSAC "));
+        aRes.push_back(cMMCom("CrossCorrelation", CrossCorrelation_main, "Tie point filter based on Cross Correlation "));
+        aRes.push_back(cMMCom("GuidedSIFTMatch", GuidedSIFTMatch_main, "Nearest neighbour SIFT matching, with search space narrowed down by co-registered orientation "));
+        aRes.push_back(cMMCom("GetOverlappedImages", GetOverlappedImages_main, "Get Overlapped Image Pairs "));
+        aRes.push_back(cMMCom("DSM_Equalization", DSM_Equalization_main, "DSM Equalization and output gray image "));
+        aRes.push_back(cMMCom("CreateGCPs", CreateGCPs_main, "Create GCPs based on tie points on DSMs of 2 epochs "));
+        aRes.push_back(cMMCom("Wallis", WallisFilter_main, "Apply Wallis Filter on one image"));
+        aRes.push_back(cMMCom("TiePtEvaluation", TiePtEvaluation_main, "Evaluate the accuracy of tie points with ground truth DSM"));
+        aRes.push_back(cMMCom("MakeOneTrainingData", MakeOneTrainingData_main, "Make training data of one patch pair for SuperGlue 512D"));
+        aRes.push_back(cMMCom("MakeTrainingData", MakeTrainingData_main, "Make training data for SuperGlue 512D"));
+        aRes.push_back(cMMCom("VisuTiePtIn3D", VisuTiePtIn3D_main, "Visulize tie points in image pairs together in 3D"));
+        aRes.push_back(cMMCom("TiePtAddWeight", TiePtAddWeight_main, "Add weight for tie points"));
+        aRes.push_back(cMMCom("EnhancedSpG", EnhancedSpG_main, "Use tiling scheme and rotation hypothesis to improve the matching performance of SuperGlue"));
+        aRes.push_back(cMMCom("SIFT2Step", SIFT2Step_main, "Match an image pair by firstly applying SIFT on downsampled images without ratio test to estimate a similarity transformation, then applying SIFT on original images under guidance of the transformation"));
+        aRes.push_back(cMMCom("SIFT2StepFile", SIFT2StepFile_main, "Input a xml file that contains all the image pairs to be matched, and match match with SIFT2Step method"));
+        //aRes.push_back(cMMCom("D2NetMatch", D2NetMatch_main, "Input D2Net feature files \"img.d2-net\" and match them with mutual neareat neighbor"));
+        aRes.push_back(cMMCom("Calc2DSimi", Calc2DSimi_main, "Input tie point file to calculate a 2D similarity transformation between them and out the parameter file"));
+        aRes.push_back(cMMCom("GlobalR3D", GlobalR3D_main, "Filter tie points by running RANSAC in 3D to build a 3D Helmet transformation model that is globally consistent over the whole block"));
+        aRes.push_back(cMMCom("ExtractSIFT", ExtractSIFT_main, "Extract SIFT"));
+        aRes.push_back(cMMCom("InlierRatio", InlierRatio_main, "Calculate inlier ratio of tie points on DSMs or orthophotos"));
+        aRes.push_back(cMMCom("EvalOri", EvalOri_main, "Input GCPs to evaluate orientations"));
+        aRes.push_back(cMMCom("CoReg_GlobalR3D", CoReg_GlobalR3D_main, "Roughly co-register 2 epochs by matching individual RGB image pairs followed by GlobalR3D"));
+        aRes.push_back(cMMCom("PileImgs", PileImgs_main, "Pile images on an average plane in a pseudo orthophoto style"));
+        aRes.push_back(cMMCom("GetOrthoHom", GetOrthoHom_main, "project tie points on image pairs onto orthophotos"));
+        aRes.push_back(cMMCom("TransmitHelmert", TransmitHelmert_main, "Input 2 sets of 3D Helmert transformation parameters (A->C and B->C), output transimtted 3D Helmert transformation parameters (A->B)"));
+
+
 		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		
 		aRes.push_back(cMMCom("ExcludeSats",CPP_YannExcludeSats, "Excludes GNSS satellites from raw observations based on sky masks "));
 		aRes.push_back(cMMCom("SkyMask",CPP_YannSkyMask, "Sky mask estimation with neural network "));
@@ -1029,7 +1096,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("TestSI", Matthieu_main, "Test SelectionInfos"));
 		aRes.push_back(cMMCom("TestJB", TestJB_main, "random stuff"));
 
-		aRes.push_back(cMMCom("TestER2", TestER_hom_main, "ER test hom"));
+		aRes.push_back(cMMCom("TestER2", TestFastTreeDist, "ER test fast tree dist"));
 		aRes.push_back(cMMCom("Tif2Pfm", PFM2Tiff_main, "Tif to pfm or the other way around"));
 		aRes.push_back(cMMCom("BAL2MM", BAL2OriMicMac_main, "Convert a BAL problem to MicMac"));
 		aRes.push_back(cMMCom("SfmI2MM", CPP_NewOriReadFromSfmInit, "Convert the SfmInit problem to MicMac"));
@@ -1038,6 +1105,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("MM2Bundler", CPP_MM2Bundler_main, "Convert the MicMac  solution to Bundler"));
 		aRes.push_back(cMMCom("Str2MM", CPP_Strecha2MM, "Convert the Strecha solution to MicMac"));
 		aRes.push_back(cMMCom("MM2OMVG", CPP_MM2OpenMVG_main, "Convert Homol (PMul) to OpenMVG features / matches"));
+		aRes.push_back(cMMCom("MM2Colmap", CPP_MM2Colmap_main, "Convert MicMac poses to Colmap"));
+		aRes.push_back(cMMCom("GlobSimPerM", CPP_ExportSimilPerMotion_main, "Export global similitude per pair/triplet motion"));
 		aRes.push_back(cMMCom("Im2Dir", ImPts2Dir_main, "Extract directions from images"));
 		aRes.push_back(cMMCom("FictObs", FictiveObstest_main, "someee stuff"));
 		aRes.push_back(cMMCom("CamTOFExp", TestCamTOF_main, "Export TOF camera pcd file to MicMac formats (e.g. tif, xml, ply)"));
@@ -1209,6 +1278,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestPhysMod",CPP_TestPhysMod_Main,"Unitary test for new bundle gen"));
 
         aRes.push_back(cMMCom("TestParseDir",TestElParseDir_main," Test Parse Dir"));
+        aRes.push_back(cMMCom("ReechDepl",CPP_BatchReechDepl," Resample a batch of images using Px1 and Px2 displacement maps"));
+        aRes.push_back(cMMCom("OneReechDepl",CPP_ReechDepl," Resample one image using Px1 and Px2 displacement maps"));
         aRes.push_back(cMMCom("OneReechFromAscii",OneReechFromAscii_main," Resample image using homography and 4 pts"));
         aRes.push_back(cMMCom("AllReechFromAscii",AllReechFromAscii_main," Resample an image pattern using homography and 4 pts"));
         aRes.push_back(cMMCom("OneReechHom",OneReechHom_main," Resample image using homography"));

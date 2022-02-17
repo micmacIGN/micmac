@@ -53,6 +53,23 @@ template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeI
 {
 }
 
+template <class Type> cDenseVect<Type> cDenseVect<Type>::Dup() const
+{
+    return cDenseVect<Type>(mIm.Dup());
+}
+
+template <class Type> cDenseVect<Type>   cDenseVect<Type>::Cste(int aSz,const Type & aVal)
+{
+    cDenseVect<Type> aRes(aSz);
+
+    Type * aRD = aRes.RawData();
+    for (int aK=0 ; aK<aSz ; aK++)
+        aRD[aK] = aVal;
+
+    return aRes;
+}
+
+
 /*
 template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeInit) :
    mIm  (aSz,nullptr,aModeInit)
@@ -68,6 +85,27 @@ template <class Type> double cDenseVect<Type>::L2Dist(const cDenseVect<Type> & a
 {
    return mIm.DIm().L2Dist(aV.mIm.DIm());
 }
+
+template <class Type> double cDenseVect<Type>::L1Norm() const
+{
+   return mIm.DIm().L1Norm();
+}
+template <class Type> double cDenseVect<Type>::L2Norm() const
+{
+   return mIm.DIm().L2Norm();
+}
+template <class Type> double cDenseVect<Type>::LInfNorm() const
+{
+   return mIm.DIm().LInfNorm();
+}
+
+
+// double L1Norm() const;   ///< Norm som abs double L2Norm() const;   ///< Norm square double LInfNorm() const; ///< Nomr max
+
+
+
+
+
 template <class Type> double cDenseVect<Type>::DotProduct(const cDenseVect<Type> & aV) const
 {
    return MMVII::DotProduct(DIm(),aV.DIm());
@@ -98,6 +136,16 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cDense
    }
    OS << "]";
    return OS;
+}
+
+
+template <class Type> Type  cDenseVect<Type>::ProdElem() const
+{
+   Type aRes = (*this)(0);
+   for (int aK=1 ; aK<Sz() ; aK++)
+        aRes *= (*this)(aK);
+
+   return aRes;
 }
 
 
@@ -456,18 +504,22 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cMatri
 }
 
 
+
 /* ===================================================== */
 /* ===================================================== */
 /* ===================================================== */
 
-#define INSTANTIATE_BASE_MATRICES(Type)\
-template  class  cSparseVect<Type>;\
+#define INSTANTIATE_DENSE_VECT(Type)\
 template  class  cDenseVect<Type>;\
+template  std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV);\
+
+#define INSTANTIATE_BASE_MATRICES(Type)\
+INSTANTIATE_DENSE_VECT(Type)\
+template  class  cSparseVect<Type>;\
 template  class  cMatrix<Type>;\
 template  cDenseVect<Type> operator * (const cDenseVect<Type> & aLine,const cMatrix<Type> & aMat);\
 template  cDenseVect<Type> operator * (const cMatrix<Type> & aMat ,const cDenseVect<Type> & aCol);\
 template  std::ostream & operator << (std::ostream & OS,const cMatrix<Type> &aMat);\
-template  std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV);\
 
 
 
@@ -475,6 +527,11 @@ template  std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &
 INSTANTIATE_BASE_MATRICES(tREAL4)
 INSTANTIATE_BASE_MATRICES(tREAL8)
 INSTANTIATE_BASE_MATRICES(tREAL16)
+
+// INSTANTIATE_DENSE_VECT(tU_INT1)
+INSTANTIATE_DENSE_VECT(tINT4)
+
+
 
 };
 

@@ -15,6 +15,7 @@
 namespace MMVII
 {
 
+
 /* ==================================================== */
 /*                                                      */
 /*          cAppli_EditSet                              */
@@ -29,6 +30,7 @@ namespace MMVII
       - substract a new set (-=)
       - intersect a new set (*=)
       - overwrite with a new set (=)
+      - empty (=0)
 
     Most command take as input a set of file, single case can be pattern,
   but more complex require Xml file that can be edited.
@@ -41,108 +43,29 @@ class cAppli_EditSet : public cMMVII_Appli
         int Exe() override;                                             ///< execute action
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override; ///< return spec of  mandatory args
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override; ///< return spec of optional args
+        cAppliBenchAnswer BenchAnswer() const override ; ///< Has it a bench, default : no
+        int  ExecuteBench(cParamExeBench &) override ;
+     protected :
+        bool AcceptEmptySet(int aK) const override;
      private :
          std::string mNameXmlIn;  ///< Save Input file, generally in-out
          std::string mNameXmlOut; ///< Output file, when != Input
          std::string mPat;    ///< Pattern (or File) to modify
-         std::string mOp;     ///< Name of operator
+         eOpAff      mOp;     ///<  operator
          int         mShow;   ///< Level of message
 };
 
-cCollecSpecArg2007 & cAppli_EditSet::ArgObl(cCollecSpecArg2007 & anArgObl)
+cAppliBenchAnswer cAppli_EditSet::BenchAnswer() const
 {
-   return 
-      anArgObl 
-         << Arg2007(mNameXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
-         << Arg2007(mOp,"Operator in ("+StrAllVall<eOpAff>()+")" )
-         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatFile,"0"}})
-      ;
+   return cAppliBenchAnswer(true,1e-5);
 }
 
-cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+bool cAppli_EditSet::AcceptEmptySet(int) const
 {
-   return 
-      anArgOpt
-         << AOpt2007(mShow,"Show","Show detail of set before/after , (def) 0->none, (1) modif, (2) all",{{eTA2007::HDV}})
-         << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{})
-      ;
+    return (mOp==eOpAff::eReset); //accept empty set only if operator is =0
 }
 
-cAppli_EditSet::cAppli_EditSet(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (aVArgs,aSpec),
-  mShow        (0)
-{
-}
-
-int cAppli_EditSet::Exe()
-{
-   InitOutFromIn(mNameXmlOut,mNameXmlIn);
-
-   tNameSet aInput = SetNameFromString(mNameXmlIn,false);
-   const tNameSet & aNew =  MainSet0();
-
-   tNameSet aRes = aInput.Dupl();
-
-   aRes.OpAff(Str2E<eOpAff>(mOp),aNew);
-
-   if (mShow)
-   {
-       tNameSet   aTot(aInput+aNew);
-
-       std::vector<const std::string *> aV;
-       aTot.PutInVect(aV,true);
-       // 0 First time show unnmodifier, 1 show added, 2 show supressed
-       for (int aK=0 ; aK<3 ; aK++)
-       {
-          for (const auto  & aPtrS : aV)
-          {
-             bool aInInit = aInput.In(*aPtrS);
-             bool aInRes  = aRes.In(*aPtrS);
-             bool ShowThis = (mShow>=2)  || (! aInInit) || (! aInRes);
-             if (ShowThis)
-             {
-                int aKPrint = (aInInit ? 0 : 2) + (aInRes ? 0 : 1);
-                if (aKPrint== aK)
-                {
-                   StdOut() <<  " " << (aInInit ? "+" : "-");
-                   StdOut() <<   (aInRes ? "+" : "-") << " ";
-                   StdOut() <<  *aPtrS << "\n";
-                }
-             }
-          }
-       }
-   }
-
-   // Back to cSetName
-   if (FileOfPath(mNameXmlOut,false) != MMVII_NONE)
-      SaveInFile(aRes,mNameXmlOut);
-
-   return EXIT_SUCCESS;
-}
-
-tMMVII_UnikPApli Alloc_EditSet(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_EditSet(aVArgs,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpecEditSet
-(
-     "EditSet",
-      Alloc_EditSet,
-      "This command is used to edit set of file",
-      {eApF::Project},
-      {eApDT::Console,eApDT::Xml},
-      {eApDT::Xml},
-      __FILE__
-);
-
-/* ==================================================================== */
-/*                                                                      */
-/*                     BENCH EDIT SET                                   */
-/*                                                                      */
-/* ==================================================================== */
-
-void OneBenchEditSet
+static void OneBenchEditSet
     (
         int aNumTest,                // Change test condition
         const std::string & anOp,    // Operator
@@ -155,6 +78,8 @@ void OneBenchEditSet
         const std::string & ExpSet   // Expect set
     )
 {
+    // StdOut() << "OneBenchEditSet " << anOp << "\n";
+
     cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
     std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
     std::string aDirT = anAp.TmpDirTestMMVII()  ;
@@ -235,11 +160,10 @@ void OneBenchEditSet
    }
 }
 
-
-void BenchEditSet()
-{                  
-    for (int aK=0 ; aK<2 ; aK++)
-    {
+int   cAppli_EditSet::ExecuteBench(cParamExeBench & aParam) 
+{
+   for (int aK=0 ; aK<2 ; aK++)
+   {
        std::string C09="0123456789";
      // Basic test, we create the file
        OneBenchEditSet(aK,"+=",false,".*txt"       ,0,2,10,"",C09); // 
@@ -259,8 +183,96 @@ void BenchEditSet()
 
        OneBenchEditSet(aK,"=",true ,"F.*.txt",0,1,4,"[F1.txt,F3.txt]]F6.txt,F8.txt[","1237"); // 
        OneBenchEditSet(aK,"=0",true ,"F.*.txt",0,1,0,"",""); // 
-    }
+   }
+   return EXIT_SUCCESS;
 }
+
+cCollecSpecArg2007 & cAppli_EditSet::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+   return 
+      anArgObl 
+         << Arg2007(mNameXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
+         << Arg2007(mOp,"Operator ",{AC_ListVal<eOpAff>()})
+         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatFile,"0"}})
+      ;
+}
+
+cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return 
+      anArgOpt
+         << AOpt2007(mShow,"Show","Show detail of set before/after, 0->none, (1) modif, (2) all",{{eTA2007::HDV}})
+         << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{})
+      ;
+}
+
+cAppli_EditSet::cAppli_EditSet(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (aVArgs,aSpec),
+  mShow        (0)
+{
+}
+
+int cAppli_EditSet::Exe()
+{
+   InitOutFromIn(mNameXmlOut,mNameXmlIn);
+
+   tNameSet aInput = SetNameFromString(mNameXmlIn,false);
+   const tNameSet & aNew =  MainSet0();
+
+   tNameSet aRes = aInput.Dupl();
+
+   aRes.OpAff(mOp,aNew);
+
+   if (mShow)
+   {
+       tNameSet   aTot(aInput+aNew);
+
+       std::vector<const std::string *> aV;
+       aTot.PutInVect(aV,true);
+       // 0 First time show unnmodifier, 1 show added, 2 show supressed
+       for (int aK=0 ; aK<3 ; aK++)
+       {
+          for (const auto  & aPtrS : aV)
+          {
+             bool aInInit = aInput.In(*aPtrS);
+             bool aInRes  = aRes.In(*aPtrS);
+             bool ShowThis = (mShow>=2)  || (! aInInit) || (! aInRes);
+             if (ShowThis)
+             {
+                int aKPrint = (aInInit ? 0 : 2) + (aInRes ? 0 : 1);
+                if (aKPrint== aK)
+                {
+                   StdOut() <<  " " << (aInInit ? "+" : "-");
+                   StdOut() <<   (aInRes ? "+" : "-") << " ";
+                   StdOut() <<  *aPtrS << "\n";
+                }
+             }
+          }
+       }
+   }
+
+   // Back to cSetName
+   if (FileOfPath(mNameXmlOut,false) != MMVII_NONE)
+      SaveInFile(aRes,mNameXmlOut);
+
+   return EXIT_SUCCESS;
+}
+
+tMMVII_UnikPApli Alloc_EditSet(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_EditSet(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpecEditSet
+(
+     "EditSet",
+      Alloc_EditSet,
+      "This command is used to edit set of file",
+      {eApF::Project},
+      {eApDT::Console,eApDT::Xml},
+      {eApDT::Xml},
+      __FILE__
+);
 
 
 /* ==================================================== */
@@ -277,6 +289,7 @@ void BenchEditSet()
       - substract a new set (-=)
       - intersect a new set (*=)
       - overwrite with a new set (=)
+      - empty (=0)
 */
 class cAppli_EditRel : public cMMVII_Appli
 {
@@ -285,6 +298,8 @@ class cAppli_EditRel : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+        cAppliBenchAnswer BenchAnswer() const override ; ///< It has a bench
+        int  ExecuteBench(cParamExeBench &) override ;
      private :
          void AddMode(const std::string & aMode);
          bool        ValideCple(const std::string & aN1,const std::string &aN2) const;
@@ -296,7 +311,7 @@ class cAppli_EditRel : public cMMVII_Appli
          std::string mPat2;   ///< is pattern 2 different from pattern 1
          bool        m2Set;   ///< Is there 2 different set, true if mPat2 is init
          bool        mAllPair;
-         std::string mOp;
+         eOpAff      mOp;     ///<  operator
          // int         mShow;
          int         mLine;
          bool        mCirc;
@@ -329,7 +344,7 @@ cCollecSpecArg2007 & cAppli_EditRel::ArgObl(cCollecSpecArg2007 & anArgObl)
    return 
       anArgObl 
          << Arg2007(mNameXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
-         << Arg2007(mOp,"Operator in ("+StrAllVall<eOpAff>()+")" )
+         << Arg2007(mOp,"Operator ",{AC_ListVal<eOpAff>()})
          << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatFile,"0"}})
       ;
 }
@@ -347,7 +362,7 @@ cCollecSpecArg2007 & cAppli_EditRel::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
       ;
 /*
-         // << AOpt2007(mShow,"Show","Show detail of set before/after , (def) 0->none, (1) modif, (2) all",{})
+         // << AOpt2007(mShow,"Show","Show detail of set before/after, 0->none, (1) modif, (2) all",{})
          << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{});
 */
 }
@@ -445,7 +460,7 @@ int cAppli_EditRel::Exe()
    }
 
    tNameRel aRelInOut =  RelNameFromFile (mNameXmlIn);
-   aRelInOut.OpAff(Str2E<eOpAff>(mOp),mNewRel);
+   aRelInOut.OpAff(mOp,mNewRel);
 
    if (FileOfPath(mNameXmlOut,false) != MMVII_NONE)
       SaveInFile(aRelInOut,mNameXmlOut);
@@ -454,30 +469,11 @@ int cAppli_EditRel::Exe()
 }
 
 
-tMMVII_UnikPApli Alloc_EditRel(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+
+cAppliBenchAnswer cAppli_EditRel::BenchAnswer() const
 {
-   return tMMVII_UnikPApli(new cAppli_EditRel(aVArgs,aSpec));
+   return cAppliBenchAnswer(true,1e-5);
 }
-
-cSpecMMVII_Appli  TheSpecEditRel
-(
-     "EditRel",
-      Alloc_EditRel,
-      "This command is used to edit set of pairs of files",
-      {eApF::Project},
-      {eApDT::Console,eApDT::Xml},
-      {eApDT::Xml},
-      __FILE__
-);
-
-
-/********************************************************************/
-/*                                                                  */
-/*             BENCH EDIT REL                                       */
-/*                                                                  */
-/********************************************************************/
-
-/** Elementary test for edit rel */ 
 
 void OneBenchEditRel
     (
@@ -512,7 +508,7 @@ void OneBenchEditRel
     }
 }
 
-void BenchEditRel ()
+int cAppli_EditRel::ExecuteBench(cParamExeBench &) 
 {
    cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
    std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
@@ -533,9 +529,24 @@ void BenchEditRel ()
    OneBenchEditRel("RelTest_0-5.xml","=","F[0-5].txt",15,anAp.StrOpt() << t2S("AllP","true"));
    OneBenchEditRel("RelTest.xml","=","RelTest_0-5.xml",15,anAp.StrOpt() );
 
-   // getchar();
+   return EXIT_SUCCESS;
 }
 
+tMMVII_UnikPApli Alloc_EditRel(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_EditRel(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpecEditRel
+(
+     "EditRel",
+      Alloc_EditRel,
+      "This command is used to edit set of pairs of files",
+      {eApF::Project},
+      {eApDT::Console,eApDT::Xml},
+      {eApDT::Xml},
+      __FILE__
+);
 
 };
 

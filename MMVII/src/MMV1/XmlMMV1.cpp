@@ -133,7 +133,7 @@ template <class Type> class cImplem_ExportAimeTiep : public cInterf_ExportAimeTi
 
          void AddAimeTieP(cProtoAimeTieP<Type>  aPATP ) override;
          void Export(const std::string &,bool SaveV1) override;
-         void FiltrageSpatialPts();
+         void FiltrageSpatialPts() override;
 
           std::string NameExport(const std::string & aName,eModeOutPCar aMode);
      private :
@@ -435,6 +435,7 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
                 aPLast = aPNext;
             }
           
+            aPATP.mPRImRefined     = aPLast;
             aPATP.mPFileRefined =   aPATP.mGPI->Im2File(aPLast);
             aPATP.mStable = ! IsInstable;
          }

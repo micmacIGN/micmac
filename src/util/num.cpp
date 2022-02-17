@@ -993,6 +993,12 @@ double DerAt2Rx(double x)
 }
 
 
+double IsInf(double aV) {return std_isinf(aV);}
+double IsNan(double aV)    {return std_isnan(aV);}
+double IsBadNum(double aV) {return std_isinf(aV) || std_isnan(aV);}
+
+
+
 /*
     Soit Z dans l'intervalle ouvert I1 [aZ1Min,aZ1Max[,
     on recherche dans l'intervalle ouvert I0 [aZ0Min,aZ0Max[,

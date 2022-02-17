@@ -1,10 +1,23 @@
 #include "include/V1VII.h"
 
 
-extern std::string MM3DFixeByMMVII;
+extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff
 
 namespace MMVII
 {
+
+
+std::string V1NameMasqOfIm(const std::string & aName)
+{
+   return LastPrefix(aName) + "_Masq.tif";
+}
+
+
+const std::string & MMV1Bin()  // Use this old trick to avoid order dependancy
+{
+   static std::string aRes (DirBin2007 + "../../bin/mm3d");
+   return aRes;
+}
 
 void Init_mm3d_In_MMVII()
 {
@@ -14,9 +27,9 @@ void Init_mm3d_In_MMVII()
    First = false;
 
    // Compute mm3d location from relative position to MMVII
-   std::string CA0 =  DirBin2007 + "../../bin/mm3d";
-   char * A0= const_cast<char *>(CA0.c_str());
-   MM3DFixeByMMVII= CA0;
+   // static std::string CA0 =  DirBin2007 + "../../bin/mm3d";
+   char * A0= const_cast<char *>(MMV1Bin().c_str());
+   MM3DFixeByMMVII = MMV1Bin();
    MMD_InitArgcArgv(1,&A0);
 }
 
@@ -36,6 +49,18 @@ cDataFileIm2D cDataFileIm2D::Empty()
 {
    return cDataFileIm2D( MMVII_NONE, eTyNums::eNbVals, cPt2di(1,1), -1);
 }
+
+bool cDataFileIm2D::IsEmpty() const
+{
+    return mNbChannel<=0;
+}
+
+
+void cDataFileIm2D::AssertNotEmpty() const
+{
+    MMVII_INTERNAL_ASSERT_strong((!IsEmpty()),"cDataFileIm2D was not initialized");
+}
+
 
 
 cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
@@ -63,6 +88,18 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
    {
       MMVII_INTERNAL_ASSERT_strong(false,"Incoherent channel number");
    }
+                     
+   bool IsModified;
+   Tiff_Im::CreateIfNeeded
+   (
+      IsModified,
+      aName,
+      ToMMV1(aSz),
+      ToMMV1(aType),
+      Tiff_Im::No_Compr,
+      aPIT
+   );
+/*
    Tiff_Im
    (
       aName.c_str(),
@@ -71,6 +108,7 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
       Tiff_Im::No_Compr,
       aPIT
    );
+*/
    return Create(aName,false);
 }
 
@@ -120,15 +158,25 @@ template <class Type> class cMMV1_Conv
 template <class Type> void cMMV1_Conv<Type>::ReadWrite
                            (
                                bool ReadMode,
-                               const tImMMVII &aImV2,
+                               const std::vector<const tImMMVII *> & aVecImV2,
                                const cDataFileIm2D & aDF,
                                const cPt2di & aP0File,
                                double aDyn,
                                const cRect2& aR2Init
                            )
 {
+   Init_mm3d_In_MMVII();
    // C'est une image en originie (0,0) necessairement en MMV1
-   tImMMV1 aImV1 = ImToMMV1(aImV2);
+   const tImMMVII & aImV2 = *(aVecImV2.at(0));
+   Fonc_Num aFoncImV1 = ImToMMV1(aImV2).in();
+   Output   aOutImV1  = ImToMMV1(aImV2).out();
+   for (int aKIm=1 ; aKIm<int(aVecImV2.size()) ; aKIm++)
+   {
+       MMVII_INTERNAL_ASSERT_strong(aImV2.Sz()==aVecImV2.at(aKIm)->Sz(),"Diff Sz in ReadWrite");
+       MMVII_INTERNAL_ASSERT_strong(aImV2.P0()==aVecImV2.at(aKIm)->P0(),"Diff P0 in ReadWrite");
+       aFoncImV1 = Virgule(aFoncImV1,ImToMMV1(*aVecImV2.at(aKIm)).in());
+       aOutImV1  = Virgule( aOutImV1,ImToMMV1(*aVecImV2.at(aKIm)).out());
+   }
    cRect2 aRectFullIm (cPt2di(0,0),aImV2.Sz());
 
    // Rectangle image / a un origine (0,0)
@@ -158,7 +206,7 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
       (
            rectangle(aP0Im,aP1Im),
            trans(El_CTypeTraits<Type>::TronqueF(aTF.in()*aDyn),aTrans),
-           aImV1.out()
+           aOutImV1
       );
    }
    else
@@ -166,14 +214,50 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
       ELISE_COPY
       (
            rectangle(aP0Im+aTrans,aP1Im+aTrans),
-           trans(Tronque(aTF.type_el(),aImV1.in()*aDyn),-aTrans),
+           trans(Tronque(aTF.type_el(),aFoncImV1*aDyn),-aTrans),
            aTF.out()
       );
    }
 }
 
+template <class Type> void cMMV1_Conv<Type>::ReadWrite
+                           (
+                               bool ReadMode,
+                               const tImMMVII &aImV2,
+                               const cDataFileIm2D & aDF,
+                               const cPt2di & aP0File,
+                               double aDyn,
+                               const cRect2& aR2Init
+                           )
+{
+     std::vector<const tImMMVII *> aVIms({&aImV2});
+     ReadWrite(ReadMode,aVIms,aDF,aP0File,aDyn,aR2Init);
+}
+template <class Type> void cMMV1_Conv<Type>::ReadWrite
+                           (
+                               bool ReadMode,
+                               const tImMMVII &aImV2R,
+                               const tImMMVII &aImV2G,
+                               const tImMMVII &aImV2B,
+                               const cDataFileIm2D & aDF,
+                               const cPt2di & aP0File,
+                               double aDyn,
+                               const cRect2& aR2Init
+                           )
+{
+
+     std::vector<const tImMMVII *> aVIms({&aImV2R,&aImV2G,&aImV2B});
+     ReadWrite(ReadMode,aVIms,aDF,aP0File,aDyn,aR2Init);
+}
+
+
 template <> void cMMV1_Conv<tREAL16>::ReadWrite
                  (bool,const tImMMVII &,const cDataFileIm2D &,const cPt2di &,double,const cRect2& )
+{
+   MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
+}
+template <> void cMMV1_Conv<tREAL16>::ReadWrite
+                 (bool,const tImMMVII &,const tImMMVII &,const tImMMVII &,const cDataFileIm2D &,const cPt2di &,double,const cRect2& )
 {
    MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
 }
@@ -188,6 +272,14 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
      cMMV1_Conv<Type>::ReadWrite(false,*this,aFile,aP0,aDyn,aR2);
 }
 
+template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const tIm &aImG,const tIm &aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
+{
+     //cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
+     cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
+}
+/*
+*/
+
 
 //  It's difficult to read unsigned int4 with micmac V1, wait for final implementation
 template <>  void  cDataIm2D<tU_INT4>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
@@ -195,6 +287,10 @@ template <>  void  cDataIm2D<tU_INT4>::Read(const cDataFileIm2D & aFile,const cP
    MMVII_INTERNAL_ASSERT_strong(false,"No read for unsigned int4 now");
 }
 template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
+{
+   MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
+}
+template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const tIm&,const tIm&,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
    MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
 }
@@ -247,8 +343,49 @@ eTyNums ToMMVII( GenIm::type_el aV1 )
 
         default: ;
     }
+    return eTyNums::eTN_UnKnown ;
+/*
     MMVII_INTERNAL_ASSERT_bench(false,"eTyNums ToMMVII( GenIm::type_el aV1 )");
     return eTyNums::eTN_INT1 ;
+*/
+}
+
+double DifAbsInVal(const std::string & aN1,const std::string & aN2,double aDef)
+{
+   Tiff_Im aF1(aN1.c_str());
+   Tiff_Im aF2(aN2.c_str());
+   double aSom;
+
+   if (aF1.sz()!=aF2.sz())
+   {
+       MMVII_INTERNAL_ASSERT_always(aDef!=0.0,"Diff sz and bad def in DifAbsInVal");
+       return aDef;
+   }
+
+   ELISE_COPY(aF1.all_pts(),Abs(aF1.in()-aF2.in()),sigma(aSom));
+
+   return aSom;
+}
+
+template <const int aNbBit>  cIm2D<tU_INT1>  BitsV1ToV2(const Im2D_Bits<aNbBit> & aImV1)
+{
+    cIm2D<tU_INT1> aImV2(ToMMVII(aImV1.sz()));
+    cDataIm2D<tU_INT1>& aDImV2 = aImV2.DIm();
+
+    for (const auto & aPixV2 : aDImV2)
+    {
+         aDImV2.SetV(aPixV2,aImV1.GetI(ToMMV1(aPixV2)));
+    }
+
+
+    return aImV2;
+}
+
+
+cIm2D<tU_INT1> ImageOfString(const std::string & aStr ,int aSpace)
+{
+    Im2D_Bits<1> aImV1 =  cElBitmFont::BasicFont_10x8().BasicImageString(aStr,aSpace);
+    return BitsV1ToV2(aImV1);
 }
 
 

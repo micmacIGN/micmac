@@ -13,35 +13,24 @@
 namespace MMVII
 {
 
-/// Pointer serialisation
-template <class Type> void AddData(const cAuxAr2007 & anAux,Type * aL)
+
+template <class Type> void TplAddRawData(const cAuxAr2007 & anAux,Type * anAdr,int aNbElem,const std::string & aTag="Data")
 {
-     AddData(anAux,*aL);
-}
-/// Const Pointer serialisation
-template <class Type> void AddData(const cAuxAr2007 & anAux,const Type * aL)
-{
-     AddData(anAux,const_cast<Type&>(*aL));
+    cRawData4Serial aRDS = cRawData4Serial::Tpl(anAdr,aNbElem);
+    AddData(cAuxAr2007(aTag,anAux),aRDS);
 }
 
-
-/// cExtSet  serialisation
-template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet)
+template <class Type> void EnumAddData(const cAuxAr2007 & anAux,Type & anEnum,const std::string & aTag)
 {
-    cAuxAr2007 aTagSet(XMLTagSet<Type>(),anAux);
-    if (anAux.Input())  // If we are reading the "file"
-    {
-        std::vector<Type> aV; // read data in a vect
-        AddData(aTagSet,aV);
-        for (const auto el: aV)  // put the vect in the set
-            aSet.Add(el);
-    }
-    else
-    {
-        std::vector<const Type *> aV;  // put the set in a vect
-        aSet.PutInVect(aV,true);
-        AddData(aTagSet,aV);  // "write" the vect
-    }
+   if (anAux.Tagged())
+   {
+       std::string aName = E2Str(anEnum);
+       AddData(cAuxAr2007(aTag,anAux),aName);
+       if (anAux.Input())
+          anEnum = Str2E<Type>(aName);
+   }
+   else
+      TplAddRawData(anAux,&anEnum,1,aTag);
 }
 
 
@@ -54,7 +43,7 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet
 
 */
 
-template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL)
+template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<Type> & aL)
 {
     // put the tag as <Opt::Tag0>,
     //  Not mandatory, but optionality being an important feature I thought usefull to see it in XML file
@@ -80,12 +69,12 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
         }
         // If no just put it initilized
         else
-           aL = boost::none;
+           aL = std::nullopt;
         return;
     }
 
     // Now in writing mode
-    int aNb =  aL.is_initialized() ? 1 : 0;
+    int aNb =  aL.has_value() ? 1 : 0;
     // Tagged format (xml) is a special case
     if (anAux.Tagged())
     {
@@ -100,6 +89,53 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
        if (aNb)
           AddData(anAux,*aL);
     }
+}
+
+/// Pointer serialisation, make the assumption that pointer are valide (i.e null or dynamically allocated)
+template <class Type> void OnePtrAddData(const cAuxAr2007 & anAux,Type * & aL)
+{
+     bool doArchPtrNull = (aL==nullptr);
+     if (anAux.Tagged())
+     {
+        // This case probably tricky to support correctly, 4 now generate a error, will see later if 
+        // support is required
+        MMVII_INTERNAL_ASSERT_strong(doArchPtrNull,"AddData Null Ptr in Xml-file not supported for now");
+     }
+     else
+     {
+         AddData(anAux,doArchPtrNull);
+     }
+     // If pointer 0, no write/no read
+     if (doArchPtrNull)
+     {
+         if (anAux.Input())  // seems logical to reput the null ptr
+         {
+             delete aL;
+             aL = nullptr;
+         }
+         return;
+     }
+     // In read mode, if the Non nul where archived and aL is currently null need to allocate room for value
+     if (anAux.Input() && (aL==nullptr))
+     {
+         aL = new Type;
+     }
+/*
+*/
+     AddData(anAux,*aL);
+}
+
+// need general inteface for things like std::vector<Type *>
+template <class Type> void AddData(const cAuxAr2007 & anAux,Type * & aL)
+{
+    OnePtrAddData(anAux,aL);
+}
+
+/// Const Pointer serialisation
+template <class Type> void AddData(const cAuxAr2007 & anAux,const Type * & aL)
+{
+     AddData(anAux,const_cast<Type*&>(aL));
+     // AddData(anAux,const_cast<Type&>(*aL));
 }
 
 /// Serialization for stl container
@@ -129,17 +165,64 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & 
 /// std::vector interface  AddData -> StdContAddData
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) { StdContAddData(anAux,aL); }
 
-template <class Type> void AddData(const cAuxAr2007 & anAux,cDataIm2D<Type> & aIm)
+
+template <class Type,const int Dim> void AddData(const cAuxAr2007 & anAux,cDataTypedIm<Type,Dim> & aIm)
 {
-    cPt2di aSz = aIm.Sz();
+    cPtxd<int,Dim> aSz = aIm.Sz();
     AddData(cAuxAr2007("Sz",anAux),aSz);
     if (anAux.Input())
     { 
-      aIm.Resize(aSz);
+      aIm.Resize(cPtxd<int,Dim>::PCste(0),aSz);
     }
 
-    cRawData4Serial aRDS(aIm.RawDataLin(),aIm.NbElem()*sizeof(Type));
+    TplAddRawData(anAux,aIm.RawDataLin(),aIm.NbElem());
+/*
+    cRawData4Serial aRDS = cRawData4Serial::Tpl(aIm.RawDataLin(),aIm.NbElem());
     AddData(cAuxAr2007("Data",anAux),aRDS);
+*/
+}
+
+template <class Type> void AddData(const cAuxAr2007 & anAux, cDenseVect<Type>& aVect)
+{
+    AddData(anAux,aVect.DIm());
+}
+
+// template <class Type,const int Dim> void AddData(const cAuxAr2007 & anAux,cDataTypedIm<Type,Dim> & aIm)
+
+
+template <class TypeH,class TypeCumul> void AddData(const cAuxAr2007 & anAux,cHistoCumul<TypeH,TypeCumul> & aHC)
+{
+    aHC.AddData(anAux);
+}
+
+template <class Type> void AddData(const cAuxAr2007 & anAux, cDataGenDimTypedIm<Type> & aImND)
+{
+    aImND.AddData(anAux);
+}
+
+
+/// cExtSet  serialisation
+template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet)
+{
+    cAuxAr2007 aTagSet(XMLTagSet<Type>(),anAux);
+    if (anAux.Input())  // If we are reading the "file"
+    {
+        std::vector<Type> aV; // read data in a vect
+        AddData(aTagSet,aV);
+        for (const auto el: aV)  // put the vect in the set
+            aSet.Add(el);
+    }
+    else
+    {
+        // A bit un-opt, because we create copy, but it would be dangerous (and lead to real error ...)
+        // to write as pointer and read as object
+        std::vector<const Type *> aVPtr;  // put the set in a vect
+        aSet.PutInVect(aVPtr,true);
+        std::vector<Type> aVObj;  // make a copy as object
+        for (auto aPtr : aVPtr)
+            aVObj.push_back(*aPtr);
+        AddData(aTagSet,aVObj);  // "write" the vect
+    }
 }
 
 

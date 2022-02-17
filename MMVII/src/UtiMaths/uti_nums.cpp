@@ -1,8 +1,108 @@
 #include "include/MMVII_all.h"
-#include <boost/math/special_functions/fpclassify.hpp>
 
 namespace MMVII
 {
+
+/* ****************  cDecomposPAdikVar *************  */
+
+cDecomposPAdikVar::cDecomposPAdikVar(const tVI & aVB) :
+    mVBases  (aVB),
+    mNbBase  (aVB.size()),
+    mMulBase (1)
+{
+    for (const auto & aBase : mVBases)
+        mMulBase *= aBase;
+}
+
+const int&  cDecomposPAdikVar::MulBase() const {return mMulBase;}
+
+
+const cDecomposPAdikVar::tVI &  cDecomposPAdikVar::Decompos(int aValue) const
+{
+   mRes.clear();
+
+   int aK=0;
+   while (aValue!=0)
+   {
+      const int  & aBase  = BaseOfK(aK); 
+      mRes.push_back(aValue%aBase);
+      aValue = aValue / aBase;
+      aK++;
+   }
+
+   return mRes;
+}
+
+const cDecomposPAdikVar::tVI & cDecomposPAdikVar::DecomposSizeBase(int aNum) const
+{
+    // MMVII_INTERNAL_ASSERT_tiny((aNum>=0)&&(aNum<mMulBase),"EmbeddedIntVal");
+
+    Decompos(aNum);
+    while (mRes.size() < mVBases.size())
+        mRes.push_back(0);
+
+   return mRes;
+}
+
+int   cDecomposPAdikVar::FromDecompos(const tVI & aVI) const
+{
+    if (aVI.empty())
+       return 0;
+    int aRes = aVI.back();
+
+    for (int aK=aVI.size()-2 ; aK>=0 ; aK--)
+    {
+        aRes = aRes * BaseOfK(aK) + aVI.at(aK);
+    }
+
+    return aRes;
+}
+
+void cDecomposPAdikVar::Bench(int aValue) const
+{
+    for (bool SizeBase : {true,false})
+    {
+        std::vector<int> aDec =  SizeBase ? DecomposSizeBase(aValue) : Decompos(aValue);
+        int aVCheck = FromDecompos(aDec);
+
+    // StdOut() << aValue  << " " << aDec << " " << aVCheck << "\n";
+        MMVII_INTERNAL_ASSERT_bench (aValue==aVCheck,"cDecomposPAdikVar Bad decomp/recomp");
+
+        for (int aK=0 ; aK<int(aDec.size()) ; aK++)
+        {
+            int aVal = aDec.at(aK);
+            MMVII_INTERNAL_ASSERT_bench ((aVal>=0)&&(aVal<BaseOfK(aK)),"cDecomposPAdikVar decomp out of range ");
+        }
+    }
+}
+
+void cDecomposPAdikVar::Bench(const std::vector<int> & aVB)
+{
+    cDecomposPAdikVar aDP(aVB);
+
+    aDP.Bench(3);
+    aDP.Bench(5);
+    aDP.Bench(7);
+    for (int aK=0 ; aK<100 ; aK++)
+    {
+        aDP.Bench(aK);
+        aDP.Bench(aK*1000);
+        aDP.Bench(RandUnif_N(1000));
+        aDP.Bench(RandUnif_N(1000000));
+    }
+}
+
+void cDecomposPAdikVar::Bench()
+{
+   Bench({2,3});
+   Bench({2,2});
+   Bench(std::vector<int>({2}));  // Overload pb if no std:vec ...
+   Bench({2,7,3});
+   Bench({2,7,1,3});
+}
+
+
+   /* -------------------------------------------- */
 
 int BinomialCoeff(int aK,int aN)
 {
@@ -36,6 +136,19 @@ double  RelativeDifference(const double & aV1,const double & aV2,bool * aResOk)
     return std::abs(aV1-aV2) / aSom;
 }
 
+template <class Type> Type diff_circ(const Type & a,const Type & b,const Type & aPer)
+{
+   Type aRes = mod_real(std::abs(a-b),aPer);
+   return std::min(aRes,aPer-aRes);
+};
+
+#define INSTANTIATE_TYPE_REAL(TYPE)\
+template  TYPE diff_circ(const TYPE & a,const TYPE & b,const TYPE & aPer);
+
+
+INSTANTIATE_TYPE_REAL(tREAL4);
+INSTANTIATE_TYPE_REAL(tREAL8);
+
 
 tINT4 HCF(tINT4 a,tINT4 b)
 {
@@ -52,7 +165,6 @@ tINT4 HCF(tINT4 a,tINT4 b)
    return b;
 }
 
-template <class Type> const tNumTrait<Type>   tNumTrait<Type>::TheOnlyOne;
 // const tNumTrait<tINT1>   tNumTrait<tINT1>::TheOnlyOne;
 /*
 template <> const tNumTrait<tINT2>   tNumTrait<tINT2>::TheOnlyOne;
@@ -85,6 +197,7 @@ static const cVirtualTypeNum & SwitchFromEnum(eTyNums aTy)
       case eTyNums::eTN_REAL4 :  return tNumTrait<tREAL4>::TheOnlyOne;
       case eTyNums::eTN_REAL8 :  return tNumTrait<tREAL8>::TheOnlyOne;
       case eTyNums::eTN_REAL16 : return tNumTrait<tREAL16>::TheOnlyOne;
+      // case eTyNums::eTN_UnKnown : return tNumTrait<eTN_UnKnown>::TheOnlyOne;
 
       default : ;
    }
@@ -97,7 +210,8 @@ const cVirtualTypeNum & cVirtualTypeNum::FromEnum(eTyNums aTy)
     static std::vector<const cVirtualTypeNum *> aV;
     if (aV.empty())
     {
-        for (int aK=0 ; aK<int(eTyNums::eNbVals) ; aK++)
+        // for (int aK=0 ; aK<int(eTyNums::eNbVals) ; aK++)
+        for (int aK=0 ; aK<int(eTyNums::eTN_UnKnown) ; aK++)
         {
             aV.push_back(&SwitchFromEnum(eTyNums(aK)));
         }
@@ -110,13 +224,15 @@ const cVirtualTypeNum & cVirtualTypeNum::FromEnum(eTyNums aTy)
 template <class Type> void TplBenchTraits()
 {
     //typename tNumTrait<Type>::tBase aVal=0;
-    StdOut()  << E2Str(tNumTrait<Type>::TyNum() )
+    StdOut()  << "    "
+              << E2Str(tNumTrait<Type>::TyNum() )
               << " Max=" << tNumTrait<Type>::MaxValue() 
               << " Min=" <<  tNumTrait<Type>::MinValue() 
               << " IsInt=" <<  tNumTrait<Type>::IsInt() 
               << "\n";
 
 }
+
 
 void BenchTraits()
 {
@@ -126,7 +242,7 @@ void BenchTraits()
    TplBenchTraits<tINT2>();
    TplBenchTraits<tINT4>();
    TplBenchTraits<tREAL4>();
-   for (int aK=0 ; aK<int(eTyNums::eNbVals) ; aK++)
+   for (int aK=0 ; aK<int(eTyNums::eTN_UnKnown) ; aK++)
    {
        const cVirtualTypeNum & aVTN =  cVirtualTypeNum::FromEnum(eTyNums(aK));
        MMVII_INTERNAL_ASSERT_bench (int(aVTN.V_TyNum())==aK,"Bench cVirtualTypeNum::FromEnum");
@@ -169,6 +285,7 @@ void BenchMod(int A,int B,int aModb)
 
 double NormalisedRatio(double aI1,double aI2)
 {
+    MMVII_INTERNAL_ASSERT_tiny((aI1>=0)&&(aI2>=0),"NormalisedRatio on negative values");
     // X = I1/I2
     if (aI1 < aI2)   // X < 1
         return aI1/aI2 -1;   // X -1
@@ -179,6 +296,10 @@ double NormalisedRatio(double aI1,double aI2)
     }
 
     return 1-aI2/aI1;  // 1 -1/X
+}
+double NormalisedRatioPos(double aI1,double aI2)
+{
+    return NormalisedRatio(std::max(aI1,0.0),std::max(aI2,0.0));
 }
 
 
@@ -216,9 +337,55 @@ void BenchMinMax()
    }
 }
 
-void Bench_Nums()
+
+
+template <class Type> void BenchFuncAnalytique(int aNb,double aEps,double EpsDer)
 {
-     BenchMinMax();
+   for (int aK=0 ; aK< aNb ; aK++)
+   {
+       Type aEps = 1e-2;
+       // Generate smal teta in [-2E,2E] , avoid too small teta for explicite atan/x
+       Type Teta =  2 * aEps * RandUnif_C_NotNull(1e-3);
+       // generate also big teta
+       if ((aK%4)==0)
+          Teta =  3.0 * RandUnif_C_NotNull(1e-3);
+       Type aRho = std::max(EpsDer*10,10*RandUnif_0_1());
+
+       Type aX = aRho * std::sin(Teta);
+       Type aY = aRho * std::cos(Teta);
+
+       Type aTeta2Sx = AtanXsY_sX(aX,aY,aEps);
+       Type aTeta1Sx = Teta / aX;
+
+       MMVII_INTERNAL_ASSERT_bench(std::abs(aTeta2Sx-aTeta1Sx)<aEps,"Bench binom");
+
+       Type aDDif = aRho * 3e-3;
+       Type aDerDifX = (AtanXsY_sX(aX+aDDif,aY,aEps)-AtanXsY_sX(aX-aDDif,aY,aEps)) / (2*aDDif);
+       Type aDerX = DerXAtanXsY_sX(aX,aY,aEps);
+
+       MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aDerDifX,aDerX) <EpsDer,"Der AtanXsY_SX");
+
+       Type aDerDifY = (AtanXsY_sX(aX,aY+aDDif,aEps)-AtanXsY_sX(aX,aY-aDDif,aEps)) / (2*aDDif);
+       Type aDerY = DerYAtanXsY_sX(aX,aY);
+       MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aDerDifY,aDerY) <EpsDer,"Der AtanXsY_SX");
+   }
+   // getchar();
+}
+
+void Bench_Nums(cParamExeBench & aParam)
+{
+   if (! aParam.NewBench("BasicNum")) return;
+
+   cDecomposPAdikVar::Bench();
+
+   {
+      int aNb=10000;
+      BenchFuncAnalytique<tREAL4> (aNb,1e-3,100);
+      BenchFuncAnalytique<tREAL8> (aNb,1e-5,1e-2);
+      BenchFuncAnalytique<tREAL16>(aNb,1e-7,1e-2);
+   }
+
+   BenchMinMax();
 
    //for (
    MMVII_INTERNAL_ASSERT_bench (BinomialCoeff(2,10)==45,"Bench binom");
@@ -230,9 +397,10 @@ void Bench_Nums()
       }
       MMVII_INTERNAL_ASSERT_bench (aS==(1<<10),"Bench binom");
    }
-   BenchTraits(); 
+   // This function dont make test, but prints value on numerical types
+   if (aParam.Show())
+      BenchTraits(); 
 
-   StdOut() << "Bench_NumsBench_NumsBench_NumsBench_Nums\n";
    MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL4)==4,"Bench size tREAL4");
    MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL8)==8,"Bench size tREAL8");
 
@@ -306,6 +474,8 @@ void Bench_Nums()
         MMVII_INTERNAL_ASSERT_bench( std::abs(aR12-aRM12)<1e-5,"Bench NormRat");
         MMVII_INTERNAL_ASSERT_bench( aR1G2>aR12,"Bench NormRat");
    }
+
+   aParam.EndBench();
 }
 
 template <class Type> Type  NonConstMediane(std::vector<Type> & aV)
@@ -322,6 +492,16 @@ template <class Type> Type  ConstMediane(const std::vector<Type> & aV)
 
 template  double NonConstMediane(std::vector<double> &);
 template  double ConstMediane(const std::vector<double> &);
+
+
+bool SignalAtFrequence(tREAL8 anIndex,tREAL8 aFreq,tREAL8  aCenterPhase)
+{
+   tREAL8 aCoord0 = 0.5 + (anIndex-aCenterPhase + 0.5) * aFreq;
+   tREAL8 aCoord1 = 0.5 + (anIndex-aCenterPhase - 0.5) * aFreq;
+
+   return lround_ni(aCoord0) != lround_ni(aCoord1);
+}
+
 
 };
 

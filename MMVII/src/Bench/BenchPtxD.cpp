@@ -3,8 +3,51 @@
 namespace MMVII
 {
 
+
+template <const int Dim> void BenchTabGrow(const int aDMax)
+{
+     const std::vector<std::vector<cPtxd<int,Dim>>> &  aRes = TabGrowNeigh<Dim>(aDMax);
+
+     MMVII_INTERNAL_ASSERT_bench((int(aRes.size())>aDMax),"SZ BenchTabGrow");
+
+     for (int aD=0 ; aD<= aDMax ; aD++)
+     {
+          //  Test good number of points
+          int aNbTh =  (aD>0)  ? round_ni(pow(1+2*aD,Dim)-pow(-1+2*aD,Dim))  : 1;
+          MMVII_INTERNAL_ASSERT_bench((aNbTh==int(aRes.at(aD).size())),"Dist in BenchTabGrow");
+ 
+          for (const auto & aP :  aRes.at(aD))
+          {
+              // Test good inf-norm
+              MMVII_INTERNAL_ASSERT_bench((aD==NormInf(aP)),"Dist in BenchTabGrow");
+
+              // Test all diff
+              int aNbEq = 0;
+              for (const auto & aP2 :  aRes.at(aD))
+                  if (aP==aP2)
+                     aNbEq++;
+              MMVII_INTERNAL_ASSERT_bench(aNbEq==1,"Diff in BenchTabGrow");
+          }
+     }
+}
+
 void  Bench_cPt2dr()
 {
+   for (const int aDist : {0,1,2,3,6,2,0} )
+   {
+       BenchTabGrow<1>(aDist);
+       BenchTabGrow<2>(aDist);
+       BenchTabGrow<3>(aDist);
+   }
+   {
+      const std::vector<cPt3di> & aV31 = AllocNeighbourhood<3>(1);
+      MMVII_INTERNAL_ASSERT_bench((&AllocNeighbourhood<3>(2)==&AllocNeighbourhood<3>(2)),"Alloc Neighbour");
+      MMVII_INTERNAL_ASSERT_bench((&AllocNeighbourhood<3>(1)==&aV31),"Alloc Neighbour");
+      MMVII_INTERNAL_ASSERT_bench((&AllocNeighbourhood<3>(2)!=&aV31),"Alloc Neighbour");
+      MMVII_INTERNAL_ASSERT_bench((aV31.size()==6),"Alloc Neighbour");
+      MMVII_INTERNAL_ASSERT_bench((AllocNeighbourhood<3>(2).size()==18),"Alloc Neighbour");
+      MMVII_INTERNAL_ASSERT_bench((AllocNeighbourhood<3>(3).size()==26),"Alloc Neighbour");
+   }
    // Bench Polar function is correct on some test values
    MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(1,1)-FromPolar(sqrt(2.0),M_PI/4.0))<1e-5,"cPt2r Bench");
    MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(-2,0)-FromPolar(2,-M_PI))<1e-5,"cPt2r Bench");
@@ -42,8 +85,33 @@ void  Bench_cPt2dr()
    }
 }
 
-void  Bench_0000_Ptxd()
+template <class TypePt> void  TestDist(TypePt aPt,double aN1,double aN2,double aNInf)
 {
+   MMVII_INTERNAL_ASSERT_bench(std::abs(Norm1(aPt)-aN1)<1e-10,"Norm2");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(NormK(aPt,1.0)-aN1)<1e-10,"Norm2");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(Norm2(aPt)-aN2)<1e-10,"Norm2");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(NormK(aPt,2.0)-aN2)<1e-10,"Norm2");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(NormInf(aPt)-aNInf)<1e-10,"Norm2");
+
+   // As it only an approx a inf, low threshold
+   // std::cout << "DIFF= " <<  NormK(aPt,100.0)-aNInf << "\n";
+   MMVII_INTERNAL_ASSERT_bench(std::abs(NormK(aPt,100.0)-aNInf)<1e-5,"Norm2");
+
+
+   MMVII_INTERNAL_ASSERT_bench(std::abs(Square(Norm2(aPt))- Scal(aPt,aPt))<1e-5,"Norm2");
+
+}
+
+void  Bench_0000_Ptxd(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("Ptxd")) return;
+    
+    {
+        TestDist(cPt1dr (-8),8,8,8);
+        TestDist(cPt2dr (-3,4),7,5,4);
+        TestDist(cPt3dr (-3,0,4),7,5,4);
+        TestDist(cPtxd<float,4> (1,1,1,2),5,sqrt(7),2);
+    }
     
     Bench_cPt2dr();
     cPt1dr aA1(1);
@@ -91,7 +159,7 @@ void  Bench_0000_Ptxd()
 
 
 
-    StdOut() << "done Bench_0000_Ptxd \n";
+    aParam.EndBench();
 }
 
 };

@@ -438,6 +438,127 @@ void xml_init(cPtSc & anObj,cElXMLTree * aTree)
 std::string  Mangling( cPtSc *) {return "4BF07568F29A60FDFD3F";};
 
 
+Im2D_INT2 & cXml_TestDMP::PxMin()
+{
+   return mPxMin;
+}
+
+const Im2D_INT2 & cXml_TestDMP::PxMin()const 
+{
+   return mPxMin;
+}
+
+
+Im2D_INT2 & cXml_TestDMP::PxMax()
+{
+   return mPxMax;
+}
+
+const Im2D_INT2 & cXml_TestDMP::PxMax()const 
+{
+   return mPxMax;
+}
+
+
+Im2D_INT4 & cXml_TestDMP::ImCpt()
+{
+   return mImCpt;
+}
+
+const Im2D_INT4 & cXml_TestDMP::ImCpt()const 
+{
+   return mImCpt;
+}
+
+
+Im2D_U_INT2 & cXml_TestDMP::DataIm()
+{
+   return mDataIm;
+}
+
+const Im2D_U_INT2 & cXml_TestDMP::DataIm()const 
+{
+   return mDataIm;
+}
+
+
+double & cXml_TestDMP::StepPx()
+{
+   return mStepPx;
+}
+
+const double & cXml_TestDMP::StepPx()const 
+{
+   return mStepPx;
+}
+
+
+double & cXml_TestDMP::DynPx()
+{
+   return mDynPx;
+}
+
+const double & cXml_TestDMP::DynPx()const 
+{
+   return mDynPx;
+}
+
+void  BinaryUnDumpFromFile(cXml_TestDMP & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.PxMin(),aFp);
+    BinaryUnDumpFromFile(anObj.PxMax(),aFp);
+    BinaryUnDumpFromFile(anObj.ImCpt(),aFp);
+    BinaryUnDumpFromFile(anObj.DataIm(),aFp);
+    BinaryUnDumpFromFile(anObj.StepPx(),aFp);
+    BinaryUnDumpFromFile(anObj.DynPx(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_TestDMP & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.PxMin());
+    BinaryDumpInFile(aFp,anObj.PxMax());
+    BinaryDumpInFile(aFp,anObj.ImCpt());
+    BinaryDumpInFile(aFp,anObj.DataIm());
+    BinaryDumpInFile(aFp,anObj.StepPx());
+    BinaryDumpInFile(aFp,anObj.DynPx());
+}
+
+cElXMLTree * ToXMLTree(const cXml_TestDMP & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_TestDMP",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("PxMin"),anObj.PxMin())->ReTagThis("PxMin"));
+   aRes->AddFils(::ToXMLTree(std::string("PxMax"),anObj.PxMax())->ReTagThis("PxMax"));
+   aRes->AddFils(::ToXMLTree(std::string("ImCpt"),anObj.ImCpt())->ReTagThis("ImCpt"));
+   aRes->AddFils(::ToXMLTree(std::string("DataIm"),anObj.DataIm())->ReTagThis("DataIm"));
+   aRes->AddFils(::ToXMLTree(std::string("StepPx"),anObj.StepPx())->ReTagThis("StepPx"));
+   aRes->AddFils(::ToXMLTree(std::string("DynPx"),anObj.DynPx())->ReTagThis("DynPx"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_TestDMP & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.PxMin(),aTree->Get("PxMin",1)); //tototo 
+
+   xml_init(anObj.PxMax(),aTree->Get("PxMax",1)); //tototo 
+
+   xml_init(anObj.ImCpt(),aTree->Get("ImCpt",1)); //tototo 
+
+   xml_init(anObj.DataIm(),aTree->Get("DataIm",1)); //tototo 
+
+   xml_init(anObj.StepPx(),aTree->Get("StepPx",1)); //tototo 
+
+   xml_init(anObj.DynPx(),aTree->Get("DynPx",1)); //tototo 
+}
+
+std::string  Mangling( cXml_TestDMP *) {return "88E38D9DFC2D7CCCFB3F";};
+
+
 Im2D_INT1 & cOneInvRad::ImRad()
 {
    return mImRad;
