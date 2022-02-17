@@ -1,45 +1,33 @@
 MMDir=..
-CXX=g++
-INCLUDEDIRS = -I. -I${MMDir}/include/
-DOCDIR = doc/
-CXXFlags= -std=c++11 -fPIC -Wall -Werror -O2 -march=native ${INCLUDEDIRS} -DFORSWIG
-CXX_WRAP_FLAGS = ${CXXFlags} `pkg-config --cflags python3` ${INCLUDEDIRS}
-
-SO = _mm3d.so
-
-ifeq ($(USEQT), ON)
-    QTLINK= -lGL -lGLU  -lQt5Core -lQt5Gui -lQt5Widgets -lQt5Concurrent -lQt5OpenGL -lQt5Xml
-endif
-
-I_SRCS = $(wildcard *.i)
+MODULE_NAME = mm3d
+I_SRCS = $(MODULE_NAME).i
 PY_FILES = $(I_SRCS:.i=.py)
-WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cxx)
+WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cpp)
 WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
-.PHONY: clean doc swig
+.PHONY: clean doc apipy
 
-.SECONDARY: $(WRAP_CXX_FILES)
+all: apipy doc
 
-swig: $(OBJ_FILES) $(WRAP_O_FILES)
-	python3 setup.py install --user USEQT=$(USEQT)
-	python3 -c "import mm3d"
+apipy: clean tmp/typemaps.i tmp/h_to_include.i tmp/rename_nonref.i tmp/return_nonref.i tmp/ignore_nonconst_overloading.i
+	python3 setup.py build USEQT=$(USEQT)
+	python3 setup.py bdist_wheel USEQT=$(USEQT)
+	pip3 install --user dist/*.whl
+	touch ~/.local/mmv2/include/XML_GEN/MMVII #~/.local/mmv2/include/XML_GEN/ is DirBin2007
+	#python3 setup.py install --user USEQT=$(USEQT)
+	@if python3 -c "import mm3d" ; then echo "APIPY OK" ; else echo "APIPY error! Use c++filt to demangle missing symbols." ; fi
 
-all: swig doc
+tmp/typemaps.i: gen_typemaps.py
+	python3 gen_typemaps.py
 
-doc:
-	cd $(DOCDIR) && doxygen
+tmp/return_nonref.i tmp/ignore_nonconst_overloading.i tmp/h_to_include.i tmp/rename_nonref.i: gen_fix_classes.py
+	python3 gen_fix_classes.py
+
+doc: apipy
+	pydoc3 -w mm3d
 
 clean:
-	rm -f $(WRAP_CXX_FILES) $(WRAP_O_FILES) $(PY_FILES) $(SO) *.so *.o
-	rm -Rf $(DOCDIR)/html build/
+	rm -Rf $(PY_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) tmp
+	rm -Rf $(DOCDIR)/html build/ dist/ $(MODULE_NAME).egg-info/ __pycache__/
 	python3 setup.py clean
-
-%.o: %.cpp
-	$(CXX) -c $(CXXFlags) $< -o $@
-
-%_wrap.o: %_wrap.cxx
-	$(CXX) -c  $(CXX_WRAP_FLAGS) $< -o $@
-
-%_wrap.cxx: %.i
-	swig -python -py3 -DFORSWIG -c++ ${INCLUDEDIRS} $<
-
+	pip3 uninstall -y $(MODULE_NAME)

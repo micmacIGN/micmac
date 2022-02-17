@@ -9,7 +9,7 @@
 **/
 
 class CamStenope;
-//-------------------- Nouvelles methodes ---------------------
+//-------------------- New functions for python ---------------------
 
 //!internal usage
 void mm3d_init();

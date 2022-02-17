@@ -1,5 +1,5 @@
-pymm3d: MicMac Python API
-=========================
+pymm3d: MicMacv2 Python API
+===========================
 
 Introduction
 ------------
@@ -9,42 +9,23 @@ This is an API to a small part of MicMac for Python 3.
 Usage
 -----
 
-Copy _mm3d.so and mm3d.py in your working directory, then with python3:
-
 ```python
     import mm3d
     
-    #read orientation xml
-    try:
-        c=mm3d.CamOrientFromFile("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml")
-        p=mm3d.Pt2dr(1000,1000)
-        prof=1
-        print(c.ImEtProf2Terrain(c.NormM2C(p),prof))
-    except RuntimeError as e:
-        print(e)
-
-    #get set of files from regex
-    li = mm3d.getFileSet(".",".*.py")
-    
-    #read homol pack
-    pack = mm3d.ElPackHomologue.FromFile("Zhenjue/Homol/PastisDSC_3115.JPG/DSC_3116.JPG.dat")
-    print(pack.size())
-    list_homol=pack.getList()
-    for h in list_homol[0:10]:
-       print(h.P1(),h.P2())
-
-    #create homol pack
-    aPackOut=mm3d.ElPackHomologue()
-    aCple=mm3d.ElCplePtsHomologues(mm3d.Pt2dr(10,10),mm3d.Pt2dr(20,20));
-    aPackOut.Cple_Add(aCple);
-    aPackOut.StdPutInFile("homol.dat");
 ```
 
-More usage examples can be found in swig_mmv1/examples_py
+More usage examples can be found in swig_mmv1/examples_py/.
+
 
 Documentation
 -------------
-See [files doc](files.html)
+See mm3d.html
+
+
+Examples
+--------
+
+[Example](examples_py/ex1.py)
 
 
 Compilation
@@ -55,42 +36,37 @@ Dependencies:
  - SWIG
  - pkg-config
  - Python 3 headers
- - for documentation: doxygen, GraphViz
+ - PIP for Python 3
+ - Wheel for Python 3
+ - libclang for Python 3
+ - pdoc3
 
 On debian:
-    apt install swig python3-dev doxygen graphviz pkg-config
+    apt install swig python3-dev pkg-config python3-pip python3-numpy python3-wheel
+    pip3 install libclang
 
 To compile, select "WITH_APIPYTHON" in cmake interface, then:
     make apipy
 
-Elise has to be compiled with "WITH_APIPYTHON" option to be able to compile the API.
-If elise is to be updated, you have to run "make elise" first.
 
-mm3d for python is automatically available to the user from any directory.
-The files to distribute are in swig_mmv1/build/lib.linux-x86_64-3.x/ (the .so file must be renamed _mm3d.so)
+Distribution
+------------
+Distribute file dist/mm3d-*.whl.
+User can install it with
+    pip3 install mm3d-*.whl
 
-To create documentation:
-
-    cd swig_mmv1
-    make -f Makefile_swig_linux doc
-
-The documentation is in swig_mmv1/doc/html/index.html
-
+Update pip if needed:
+    python3 -m pip install --upgrade pip
 
 Developement
 ------------
 
-To add MM classes to python, add then to mm3d.i file (both #include and %include).
+To add MM3D classes to python, add then to gen_fix_classes.py file (in "all_headers" list).
+To be able to use templates classes, use %template in mm3d.i
 If you want to be able to use python lists for objects of these classes, use %template.
 
-To check if everything is correct:
-
-    make -f Makefile_swig_linux clean && make -f Makefile_swig_linux swig check
-
-This way you can see every undefined references that you have to fix (by adding other files or hiding it with #ifndef SWIG).
-
 PIP package tutorial: https://packaging.python.org/tutorials/packaging-projects/
-
+https://realpython.com/python-wheels/
 
 TODO
 ----
@@ -108,27 +84,11 @@ TODO
  * create a header file for each subject
  * do not quit python on fatal errors? (add exceptions in micmac?)
  * see https://pybind11.readthedocs.io/en/stable/intro.html
- * include libs in _mm3d.so : ImportError: /lib/x86_64-linux-gnu/libm.so.6: versionGLIBC_2.27' not found
-
  * createIdealCamXML: from quaternion, and add check points
-
-Crash on import
----------------
- Python may crash if some references are not definied in _mm3d.so.
- This may happen when importing a class for which some methods are defined but not implemented nor used in MicMac.
- Swig will use them and _mm3d.so linking will not test it.
- 
- Use
-```
-    make -f Makefile_swig_linux check
-```
- To link a dummy executable to check if all methods are implemented in MicMac.
 
 
 Changes in MicMac to check:
 ---------------------------
-Parts removed are in #ifndef SWIG for now.
- * remove TheFileMMDIR (not used ?)
- * remove BanniereGlobale (not used ?)
+ * Default constructors and destructors (with "for swig" comment)
  * xml2cpp enum definition synthax
  * eToString, ToXMLTree, BinaryDumpInFile overloads are shadowed, but new functions with _classname are created for python users. Why is there no problem with BinaryUnDumpFromFile and Mangling ??

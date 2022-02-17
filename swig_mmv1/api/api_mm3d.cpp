@@ -7,7 +7,7 @@ void mm3d_init()
 {
 	TheExitOnBrkp =true;
 	setArgvMMDir(std::string(getenv("HOME"))+"/.local/mm3d/");
-	std::cout<<"MMUserEnv VersionNameCam: "<<MMUserEnv().VersionNameCam().Val()<<std::endl;
+	//std::cout<<"MMUserEnv VersionNameCam: "<<MMUserEnv().VersionNameCam().Val()<<std::endl;
 	std::cout<<"mm3d initialized."<<std::endl;
 }
 

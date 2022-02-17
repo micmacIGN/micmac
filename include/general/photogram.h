@@ -146,9 +146,7 @@ class Appar23
         int   mNum;  // Rajoutes pour gerer les cibles
 
         Appar23 (Pt2dr PIM,Pt3dr PTER,int aNum=-1) ;
-        #ifdef FORSWIG
-        Appar23(){}
-        #endif
+        Appar23(){}  // for swig
     private  :
 
 };
@@ -216,10 +214,8 @@ class cNupletPtsHomologues
         REAL & Pds() ;
 
     cNupletPtsHomologues(int aNb,double aPds=1.0);
-    #ifdef FORSWIG
-    cNupletPtsHomologues(){}
-    ~cNupletPtsHomologues(){}
-    #endif
+    cNupletPtsHomologues(){}  // for swig
+    ~cNupletPtsHomologues(){} // for swig
     int NbPts() const;
 
     const Pt2dr & PK(int aK) const ;
@@ -250,9 +246,7 @@ class ElCplePtsHomologues : public cNupletPtsHomologues
      public :
 
         ElCplePtsHomologues (Pt2dr aP1,Pt2dr aP2,REAL aPds=1.0);
-        #ifdef FORSWIG
-        ElCplePtsHomologues(){}
-        #endif
+        ElCplePtsHomologues(){} // for swig
 
         const Pt2dr & P1() const ;
         Pt2dr & P1() ;
@@ -345,9 +339,7 @@ class cPackNupletsHom
          typedef tCont::iterator                  tIter;
          typedef tCont::const_iterator            tCstIter;
      cPackNupletsHom(int aDim);
-        #ifdef FORSWIG
-        tCont &getList(){return mCont;}
-        #endif
+        tCont &getList(){return mCont;} // for swig
      void write(class  ELISE_fp & aFile) const;
          static cPackNupletsHom read(ELISE_fp & aFile);
          typedef tCont::iterator         iterator;
@@ -398,7 +390,6 @@ class ElPackHomologue : public cPackNupletsHom
      bool  mSolveInL1;
 
      public :
-         //Box2dr BoxP1() const;//unimplemented, crashes python
          ElPackHomologue();
          void SelfSwap(); // Intervertit les  2
          void ApplyHomographies
@@ -480,8 +471,6 @@ class ElPackHomologue : public cPackNupletsHom
                        INT &                NbP1,
                        INT &                NbP2
                   ) const;
-
-             //tPairPt  PMed() const;//unimplemented, crashes python
 
              // Si tous les points sont coplanaires, ou presque,
              //  la mise en place par l'algo standard est degenere,
@@ -825,9 +814,7 @@ class cElComposHomographie
          }
          Fonc_Num operator() (Pt2d<Fonc_Num> ) const;
 
-         #ifdef FORSWIG
-         cElComposHomographie(){}
-         #endif
+         cElComposHomographie(){} // for swig
 
          cElComposHomographie(REAL aX,REAL aY,REAL a1);
          cElComposHomographie(const cXmlAffinR2ToR &);
@@ -890,9 +877,7 @@ class cElHomographie  : public cElMap2D
           // Size = 3 , affinite
           // Size = 4 ou +, homographie reelle, ajuste par moindre L2  ou  L1
 
-          #ifdef FORSWIG
-          cElHomographie(){}
-          #endif
+          cElHomographie(){} // for swig
 
           cElHomographie(const ElPackHomologue &,bool aL2);
           cElHomographie(const cXmlHomogr &);
@@ -1195,9 +1180,7 @@ class ElDistortionPolynomiale : public ElDistortion22_Gen
                const Polynome2dReal & aDistY,
                REAL                   anEpsilonInv = 1e-7
            );
-           #ifdef FORSWIG
-           ElDistortionPolynomiale():mDistX(1,1e-7),mDistY(1,1e-7),mEpsilon(1e-7){}
-           #endif
+           ElDistortionPolynomiale():mDistX(1,1e-7),mDistY(1,1e-7),mEpsilon(1e-7){} // for swig
            virtual Pt2dr Direct(Pt2dr) const ;  // **
 
             const Polynome2dReal & DistX() const ;
@@ -3112,7 +3095,7 @@ class cDbleGrid : public ElDistortion22_Gen
              bool  doDir = true,
              bool  doInv = true
          );
-     const std::string & Name() const;
+         const std::string & Name() const {return mName;}
 
      static cDbleGrid * read(const  std::string &);
      static cDbleGrid * read(ELISE_fp & aFile);

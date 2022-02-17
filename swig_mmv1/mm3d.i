@@ -22,6 +22,11 @@ typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap
 %}
 
 //----------------------------------------------------------------------
+%include "numpy.i"
+%init %{
+import_array();
+%}
+
 #define ElSTDNS  std::
 #define ElTmplSpecNull template <>
 %include <std_string.i>
@@ -61,7 +66,28 @@ typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap
 }
 
 //----------------------------------------------------------------------
+//add typemaps
+%include tmp/typemaps.i
+%include tmp/rename_nonref.i
+
+//----------------------------------------------------------------------
+//add .value(), new_... etc. to manipulate pointers
+%pointer_class(unsigned char, ucharp);
+%pointer_class(char, charp);
+%pointer_class(unsigned short, ushortp);
+%pointer_class(short, shortp);
+%pointer_class(unsigned int, uintp);
+%pointer_class(int, intp);
+%pointer_class(unsigned long, ulongp);
+%pointer_class(long, longp);
+%pointer_class(bool, boolp);
+%pointer_class(float, floatp);
+%pointer_class(double, doublep);
+
+//----------------------------------------------------------------------
 //things to ignore in next includes to be able to compile
+
+%ignore cAppliBatch;
 
 //need several default constructors
 %ignore Im2DGen::neigh_test_and_set;
@@ -81,6 +107,11 @@ typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap
 %ignore jacobi_diag;
 
 //unimplemented
+%ignore needPatternProtection;
+%ignore test;
+%ignore EliseVerifAndParseArgcArgv;
+%ignore BanniereGlobale;
+
 %ignore tCho2double;
 %ignore cComposElMap2D::NewFrom0;
 %ignore cComposElMap2D::NewFrom1;
@@ -142,17 +173,7 @@ namespace std {
 //----------------------------------------------------------------------
 //classes to export
 %include "api/api_mm3d.h"
-%include "api/SuperposImage_extract.h"
-%include "api/ParamChantierPhotogram_extract.h"
-%include "../src/uti_phgrm/NewOri/NewOri.h"
-%include "api/NewO_PyWrapper.h"
-%include "../src/TpMMPD/TpPPMD.h"
-%include "general/util.h"
-%include "general/geom_vecteur.h"
-%include "general/photogram.h" //45s
-%include "../src/uti_phgrm/TiepTri/MultTieP.h"
-
-//%include "XML_GEN/xml_gen2_mmByp.h"
+%include tmp/h_to_include.i
 
 //----------------------------------------------------------------------
 
@@ -192,22 +213,6 @@ mm3d_init();
   }
 };
 
-/*
-%extend std::vector<double> {
-  char *__repr__() {
-    static char tmp[1024];
-    std::ostringstream oss;
-    oss<<"[";
-    for (unsigned int i=0;i<$self->size();i++)
-    {
-      oss<<$self->at(i);
-      if (i<$self->size()-1)
-        oss<<", ";
-    }
-    oss<<"]";
-    strncpy(tmp,oss.str().c_str(),1023);
-    return tmp;
-  }
-};
-*/
+%include tmp/return_nonref.i
+
 

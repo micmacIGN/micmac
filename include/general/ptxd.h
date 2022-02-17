@@ -1552,9 +1552,7 @@ class cTransfo3D
 {
      public :
           virtual std::vector<Pt3dr> Src2Cibl(const std::vector<Pt3dr> &) const = 0;
-          #ifdef FORSWIG
-          virtual ~cTransfo3D() {}
-          #endif
+          virtual ~cTransfo3D() {} // for swig
           static cTransfo3D * Alloc(const std::string & aName,const std::string & aDir) ;
 
 };

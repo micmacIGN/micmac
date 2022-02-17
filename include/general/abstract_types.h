@@ -1031,10 +1031,8 @@ class Output : public  PRC0
      friend class CatCoord_Out_Not_Comp;
      public :
         ~Output();
+        Output(){} // for swig
         Output(class Output_Not_Comp *);
-        #ifdef FORSWIG
-        Output(){}
-        #endif
         Output(class Liste_Pts_Gen);
         class Output_Computed * compute (const class Arg_Output_Comp &);
         static Output onul(INT dim = 1);

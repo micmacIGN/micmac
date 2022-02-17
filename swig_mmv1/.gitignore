@@ -2,3 +2,9 @@ api/*.o
 cpl.xml
 mm3d.py
 mm3d_wrap.*
+tmp/*
+__pycache__/
+.eggs/
+dist/
+mm3d.egg-info/
+mm3d.html

@@ -76,10 +76,8 @@ int mm_getpid();
 
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
 
-#ifndef SWIG
 void test();
 // constantly redefined to perform some test;
-#endif
 
 extern double Delay_Brkp;
 void SleepProcess(double);
@@ -624,9 +622,7 @@ std::string ToCommande(int argc,char ** argv);
 std::string QUOTE(const std::string & aStr);
 void GlobStdAdapt2Crochet(std::string & aStr);
 
-#ifndef SWIG
 bool needPatternProtection( const string &aStr );
-#endif
 string PATTERN_QUOTE( const string &aStr );
 
 bool SplitIn2ArroundCar
@@ -1241,9 +1237,7 @@ int TopSystem(const std::string & aComOri);
 
 int System(const std::string & aCom,bool aSVP=DEF_SVP_System,bool AddOptGlob=DEF_AdaptGlob_System,bool UseTheNbIterProcess=false);
 
-#ifndef SWIG
 void  EliseVerifAndParseArgcArgv(int argc,char ** argv);
-#endif
 
 class cAppliBatch
 {
@@ -1415,9 +1409,7 @@ class cElHour
       double aNbSec
       );
 
-      #ifdef FORSWIG
-      cElHour(){}
-      #endif
+      cElHour(){} // for swig
 
       double InSec() const; // Sec depuis minuits
       int    H() const;
@@ -1462,9 +1454,7 @@ class cElDate
          const cElHour &
        );
 
-        #ifdef FORSWIG
-        cElDate(){}
-        #endif
+        cElDate(){} // for swig
 
         const cElHour &  H() const;
     int Y() const;
@@ -1652,9 +1642,7 @@ void GetSubset(std::vector<std::vector<int> > & aRes,int aNb,int aMax);
 
 bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result );
 
-#ifndef SWIG
 void BanniereGlobale();
-#endif
 
 // protect spaces with backslashes (for use with 'make')
 string protect_spaces( const string &i_str );
