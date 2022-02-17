@@ -96,6 +96,7 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         iterator  mEnd;   ///< Ending iterator
 };
 
+
 template <> inline  bool cPixBox<1>::InsideBL(const cPtxd<double,1> & aP) const
 {
     return (aP.x() >= tBox::mP0.x()) &&  ((aP.x()+1) <  tBox::mP1.x());
@@ -115,9 +116,7 @@ template <> inline  bool cPixBox<3>::InsideBL(const cPtxd<double,3> & aP) const
     ;
 }
 
-#ifndef FORSWIG
-extern template const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration
-#endif
+template<> const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration of specialization
 
 typedef  cPixBox<1> cRect1;
 typedef  cPixBox<2> cRect2;
