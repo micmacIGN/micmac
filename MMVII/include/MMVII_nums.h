@@ -374,6 +374,8 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
          static const std::string & NameType() {return E2Str(TheOnlyOne.V_TyNum());}
 };
 
+// Definition of tNumTrait<Type>::TheOnlyOne; needed in BenchMatrix.cpp
+template <class Type> const tNumTrait<Type>   tNumTrait<Type>::TheOnlyOne;
 
 // This traits type allow to comppute a temporary variable having the max
 // precision between 2 floating types
