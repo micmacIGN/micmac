@@ -118,8 +118,7 @@ public:
     virtual ~cCalculator() {}
 
     const std::string& Name() const { return mName;}
-    // void SetName(const std::string& aName) const { mName = aName;}
-    void SetName(const std::string& aName) const { cCalculator<T>::mName = aName;}
+    void SetName(const std::string& aName) const { this->mName = aName;}
 
     bool BufIsFull() const {return mNbInBuf == mSzBuf;} ///< Can we push more value ?
     size_t SzBuf() const  {return mSzBuf;}  ///< Total Number of value we can push
