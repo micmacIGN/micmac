@@ -1,5 +1,6 @@
 #include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
+#include "include/MMVII_Tpl_Images.h"
 
 
 // Test git branch
@@ -7,38 +8,62 @@
 namespace MMVII
 {
 
-template<class Type> class cSymMeasure
-{
-    public :
-        cSymMeasure();
-	void Add(Type  aV1,Type  aV2);
-	Type  Sym(const Type & Espilon=1e-1) const;
-    private :
-        Type                   mDif;
-	cComputeStdDev<Type >  mDev;
-};
 
-template<class Type> cSymMeasure<Type>::cSymMeasure() :
-    mDif  (0),
-    mDev()
+template<class TypeEl> cIm2D<TypeEl> ImStarity(const  cImGrad<TypeEl> & aImGrad,double aR0,double aR1,double Epsilon)
 {
+    std::vector<cPt2di>  aVectVois = VectOfRadius(aR0,aR1,false);
+    // aVectVois = GetPts_Circle(cPt2dr(0,0),aR0,true);  
+    std::vector<cPt2dr>  aVecDir;
+    for (const auto & aPV : aVectVois)
+    {
+           aVecDir.push_back(VUnit(ToR(aPV)));
+    }
+
+    int aD = round_up(aR1);
+    cPt2di aPW(aD,aD);
+
+    const cDataIm2D<TypeEl> & aIGx = aImGrad.mGx.DIm();
+    const cDataIm2D<TypeEl> & aIGy = aImGrad.mGy.DIm();
+
+    cPt2di aSz = aIGx.Sz();
+    cIm2D<TypeEl> aImOut(aSz,nullptr,eModeInitImage::eMIA_V1);
+    cDataIm2D<TypeEl> & aDImOut = aImOut.DIm();
+
+    for (const auto & aP0 : cRect2(aPW,aSz-aPW))
+    {
+          double aSomScal = 0;
+          double aSomG2= 0;
+          for (int aKV=0; aKV<int(aVectVois.size()) ; aKV++)
+	  {
+		  cPt2di aPV = aP0 + aVectVois[aKV];
+		  cPt2dr aGrad(aIGx.GetV(aPV),aIGy.GetV(aPV));
+
+		  aSomScal += Square(Scal(aGrad,aVecDir[aKV]));
+		  aSomG2 += SqN2(aGrad);
+
+		  // StdOut () << " GR=" << aGrad << " S=" << Square(Scal(aGrad,aVecDir[aKV])) << " G2=" << Norm2(aGrad) << "\n";
+	  }
+	  double aValue = (aSomScal+ Epsilon) / (aSomG2+Epsilon);
+	  aDImOut.SetV(aP0,aValue);
+    }
+
+    return aImOut;
 }
 
-template<class Type> void cSymMeasure<Type>::Add(Type aV1,Type aV2)
-{
-   mDif += Square(aV1-aV2);
-   mDev.Add(1.0,aV1);
-   mDev.Add(1.0,aV2);
-}
-
-template<class TypeEl> cIm2D<TypeEl> ImSym(const  cDataIm2D<TypeEl> & aDImIn,double aR0,double aR1)
+/** This filter caracetrize how an image is symetric arround  each pixel; cpmpute som diff arround
+ * oposite pixel, normamlized by standard deviation (so contrast invriant)
+*/
+template<class TypeEl> cIm2D<TypeEl> ImSymetricity(const  cDataIm2D<TypeEl> & aDImIn,double aR0,double aR1,double Epsilon)
 {
     std::vector<cPt2di>  aVectVois = VectOfRadius(aR0,aR1,true);
+
+    // aVectVois = GetPts_Circle(cPt2dr(0,0),aR0,true);  StdOut() << "SYMMMM\n";
+
     int aD = round_up(aR1);
     cPt2di aPW(aD,aD);
 
     cPt2di aSz = aDImIn.Sz();
-    cIm2D<TypeEl> aImOut(aSz,nullptr,eModeInitImage::eMIA_Null);
+    cIm2D<TypeEl> aImOut(aSz,nullptr,eModeInitImage::eMIA_V1);
     cDataIm2D<TypeEl> & aDImOut = aImOut.DIm();
 
     for (const auto & aP : cRect2(aPW,aSz-aPW))
@@ -50,7 +75,7 @@ template<class TypeEl> cIm2D<TypeEl> ImSym(const  cDataIm2D<TypeEl> & aDImIn,dou
 		  TypeEl aV2 = aDImIn.GetV(aP-aV);
 		  aSM.Add(aV1,aV2);
 	  }
-	  aDImOut.SetV(aP,aSM.Sym());
+	  aDImOut.SetV(aP,aSM.Sym(Epsilon));
     }
 
     return aImOut;
@@ -150,7 +175,6 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
 	void TestFilters();
 
-	std::string mNameIm;
 	std::string mNameTarget;
 
 	cParamCodedTarget  mPCT;
@@ -202,16 +226,34 @@ void  cAppliExtractCodeTarget::TestFilters()
 {
      tDataIm &  aDIm = APBI_LoadTestBox();
 
-     StdOut() << "SZ "  <<  aDIm.Sz() << "\n";
+     StdOut() << "SZ "  <<  aDIm.Sz() << " Im=" << mNameIm << "\n";
+
+     cImGrad<tREAL4>  aImG = Deriche(aDIm,1.0);
 
      for (const auto & aDist :  mTestDistSym)
      {
-          cIm2D<tREAL4>  aImS = ImSym(aDIm,0.0,aDist);
+          StdOut() << "DDDD " << aDist << "\n";
+          cIm2D<tREAL4>  aImSym = ImSymetricity(aDIm,aDist/1.5,aDist,1.0);
+	  std::string aName = "TestSym_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
+	  aImSym.DIm().ToFile(aName);
+	  StdOut() << "Done Sym\n";
+
+          cIm2D<tREAL4>  aImStar = ImStarity(aImG,aDist/1.5,aDist,1.0);
+	  aName = "TestStar_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
+	  aImStar.DIm().ToFile(aName);
+	  StdOut() << "Done Star\n";
+
+          cIm2D<tREAL4>  aImMixte =   aImSym + aImStar * 2.0;
+	  aName = "TestMixte_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
+	  aImMixte.DIm().ToFile(aName);
      }
+
 }
 
 int  cAppliExtractCodeTarget::Exe()
 {
+   StdOut()  << " IIIIm=" << mNameIm << "\n";
+
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
       return ResultMultiSet();
 
