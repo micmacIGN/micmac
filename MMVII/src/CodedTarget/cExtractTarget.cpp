@@ -8,6 +8,67 @@
 namespace MMVII
 {
 
+template<class TypeEl> cIm2D<TypeEl> ImBinarity(const  cDataIm2D<TypeEl> & aDIm,double aR0,double aR1,double Epsilon)
+{
+    std::vector<cPt2di>  aVectVois = VectOfRadius(aR0,aR1,false);
+    // aVectVois = GetPts_Circle(cPt2dr(0,0),aR0,true);  
+
+    int aD = round_up(aR1);
+    cPt2di aPW(aD,aD);
+
+
+    cPt2di aSz = aDIm.Sz();
+    cIm2D<TypeEl> aImOut(aSz,nullptr,eModeInitImage::eMIA_V1);
+    cDataIm2D<TypeEl> & aDImOut = aImOut.DIm();
+
+    double aPRop = 0.15;
+    for (const auto & aP0 : cRect2(aPW,aSz-aPW))
+    {
+	  std::vector<float> aVVal;
+          for (int aKV=0; aKV<int(aVectVois.size()) ; aKV++)
+	  {
+               cPt2di aPV = aP0 + aVectVois[aKV];
+               aVVal.push_back(aDIm.GetV(aPV));
+	  }
+	  std::sort(aVVal.begin(),aVVal.end());
+	  int aNb = aVVal.size();
+
+	  int aIndBlack = round_ni(aPRop * aNb);
+	  int aIndWhite =  aNb-1- aIndBlack;
+	  float aVBlack = aVVal[aIndBlack];
+	  float aVWhite = aVVal[aIndWhite];
+	  float aVThreshold = (aVBlack+aVWhite)/2.0;
+
+	  int aNbBlack = 0;
+	  double aSumDifBlack = 0;
+	  double aSumDifWhite = 0;
+	  for (const auto & aV : aVVal)
+	  {
+              bool IsBLack = (aV <aVThreshold ) ;
+              float aVRef = (IsBLack ) ?  aVBlack : aVWhite;
+              float aDif = std::abs(aVRef-aV);
+              if (IsBLack)
+              {
+                 aNbBlack++;
+                 aSumDifBlack += aDif;
+              }
+              else
+              {
+                 aSumDifWhite += aDif;
+              }
+	  }
+	  double aValue=1.0;
+	  int aNbWhite = aNb -aNbBlack;
+	  if ((aNbBlack!=0) && (aNbWhite!= 0)  && (aVBlack!=aVWhite))
+	  {
+              double aDifMoy  =  aSumDifBlack/ aNbBlack + aSumDifWhite/aNbWhite;
+              aValue = aDifMoy  / (aVWhite - aVBlack);
+          }
+	  aDImOut.SetV(aP0,aValue);
+    }
+
+    return aImOut;
+}
 
 template<class TypeEl> cIm2D<TypeEl> ImStarity(const  cImGrad<TypeEl> & aImGrad,double aR0,double aR1,double Epsilon)
 {
@@ -233,6 +294,12 @@ void  cAppliExtractCodeTarget::TestFilters()
      for (const auto & aDist :  mTestDistSym)
      {
           StdOut() << "DDDD " << aDist << "\n";
+
+          cIm2D<tREAL4>  aImBin = ImBinarity(aDIm,aDist/1.5,aDist,1.0);
+	  std::string aName = "TestBin_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
+	  aImBin.DIm().ToFile(aName);
+	  StdOut() << "Done Bin\n";
+	  /*
           cIm2D<tREAL4>  aImSym = ImSymetricity(aDIm,aDist/1.5,aDist,1.0);
 	  std::string aName = "TestSym_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
 	  aImSym.DIm().ToFile(aName);
@@ -246,6 +313,7 @@ void  cAppliExtractCodeTarget::TestFilters()
           cIm2D<tREAL4>  aImMixte =   aImSym + aImStar * 2.0;
 	  aName = "TestMixte_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
 	  aImMixte.DIm().ToFile(aName);
+	  */
      }
 
 }
