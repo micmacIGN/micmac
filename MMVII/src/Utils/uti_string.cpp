@@ -13,17 +13,14 @@
 */
 
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 
 #include <boost/algorithm/string.hpp>
 
 
-using namespace std::experimental::filesystem;
+using namespace std::filesystem;
 
-namespace std {
-using namespace experimental;
-}
 
 namespace MMVII
 {

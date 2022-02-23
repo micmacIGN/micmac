@@ -190,8 +190,6 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     ReadXml(aImg1, aImg2, aPatchDir+"/"+aSubPatchXml, vPatchesL, vPatchesR, vHomoL, vHomoR);
     int nPatchLNum = int(vPatchesL.size());
     int nPatchRNum = int(vPatchesR.size());
-    printf("Left patch number: %d\n", nPatchLNum);
-    printf("Right patch number: %d\n", nPatchRNum);
 
     if (ELISE_fp::exist_file(aDir+"/"+aImg1) == false || ELISE_fp::exist_file(aDir+"/"+aImg2) == false)
     {
@@ -224,7 +222,11 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     CoreaPatchSz.x = aPatchSz.x - aBufferSz.x*2;
     CoreaPatchSz.y = aPatchSz.y - aBufferSz.y*2;
 
-    printf("PatchSz: [%.2lf, %.2lf]; BufferSz: [%.2lf, %.2lf]; CoreaPatchSz: [%.2lf, %.2lf]\n", aPatchSz.x, aPatchSz.y, aBufferSz.x, aBufferSz.y, CoreaPatchSz.x, CoreaPatchSz.y);
+    /*
+    printf("Left patch number: %d\n", nPatchLNum);
+    printf("Right patch number: %d\n", nPatchRNum);
+    printf("PatchSz: [%.2lf, %.2lf]; BufferSz: [%.2lf, %.2lf]; CorePatchSz: [%.2lf, %.2lf]\n", aPatchSz.x, aPatchSz.y, aBufferSz.x, aBufferSz.y, CoreaPatchSz.x, CoreaPatchSz.y);
+    */
 
     Pt2dr PatchNum;
     PatchNum.x = ceil(ImgSzL.x*1.0/CoreaPatchSz.x);

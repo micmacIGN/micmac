@@ -146,6 +146,10 @@ template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGr
 /// Implemented
 std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
 
+/// ASym  means that there is only one out of 2 between -P and P
+std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym) ;
+
+
 
 
 

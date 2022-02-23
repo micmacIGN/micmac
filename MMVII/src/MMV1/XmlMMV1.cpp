@@ -133,7 +133,7 @@ template <class Type> class cImplem_ExportAimeTiep : public cInterf_ExportAimeTi
 
          void AddAimeTieP(cProtoAimeTieP<Type>  aPATP ) override;
          void Export(const std::string &,bool SaveV1) override;
-         void FiltrageSpatialPts();
+         void FiltrageSpatialPts() override;
 
           std::string NameExport(const std::string & aName,eModeOutPCar aMode);
      private :

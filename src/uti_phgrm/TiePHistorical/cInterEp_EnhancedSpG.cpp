@@ -75,7 +75,7 @@ termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
 
-void EnhacedSpG(std::string aImg1, std::string aImg2, Pt2dr aPatchSz, Pt2dr aBufferSz, int nRotate, cCommonAppliTiepHistorical aCAS3D, bool aExe, double aCheckNb)
+void EnhacedSpG(std::string aImg1, std::string aImg2, Pt2dr aPatchLSz, Pt2dr aBufferLSz, Pt2dr aPatchRSz, Pt2dr aBufferRSz, int nRotate, cCommonAppliTiepHistorical aCAS3D, bool aExe, double aCheckNb)
 {
     std::string aOutDir = "./Tmp_Patches-CoReg";
 
@@ -84,10 +84,12 @@ void EnhacedSpG(std::string aImg1, std::string aImg2, Pt2dr aPatchSz, Pt2dr aBuf
     /**************************************/
     std::string aCom = "";
     //if (!EAMIsInit(&aCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
-    aCom += " PatchSz=[" + ToString(aPatchSz.x) + "," + ToString(aPatchSz.y) + "]";
-    aCom += " BufferSz=[" + ToString(aBufferSz.x) + "," + ToString(aBufferSz.y) + "]";
+    aCom += " PatchLSz=[" + ToString(aPatchLSz.x) + "," + ToString(aPatchLSz.y) + "]";
+    aCom += " BufferLSz=[" + ToString(aBufferLSz.x) + "," + ToString(aBufferLSz.y) + "]";
+    aCom += " PatchRSz=[" + ToString(aPatchRSz.x) + "," + ToString(aPatchRSz.y) + "]";
+    aCom += " BufferRSz=[" + ToString(aBufferRSz.x) + "," + ToString(aBufferRSz.y) + "]";
     std::string aFullCom = StdCom("TestLib GetPatchPair BruteForce", aImg1 + BLANK + aImg2 + BLANK + aCom + BLANK + "Rotate=" + ToString(nRotate) + BLANK + aCAS3D.ComParamGetPatchPair(), aExe);
-    cout<<aFullCom<<endl;
+    //cout<<aFullCom<<endl;
 // + ToString(nRotate)
 //    std::string aImg1 = aCAS3D.GetFolderName(mDSMDirL) + "." + StdPostfix(aDSMImgNameL);
 //    std::string aImg2 = aCAS3D.GetFolderName(mDSMDirR) + "." + StdPostfix(aDSMImgNameR);
@@ -119,7 +121,7 @@ void EnhacedSpG(std::string aImg1, std::string aImg2, Pt2dr aPatchSz, Pt2dr aBuf
         //if (!EAMIsInit(&aCAS3D.mOutput_dir))   aCom +=  " SpGOutDir=" + aOutDir+"/";
         aCom +=  " CheckNb=\" " + ToString(aCheckNb) + "\"";
         aFullCom = StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + aCAS3D.ComParamSuperGlue(), aExe);
-        cout<<aFullCom<<endl;
+        //cout<<aFullCom<<endl;
 
 
         /**************************************/
@@ -129,10 +131,10 @@ void EnhacedSpG(std::string aImg1, std::string aImg2, Pt2dr aPatchSz, Pt2dr aBuf
         aCom = "";
         if (!EAMIsInit(&aCAS3D.mHomoXml))   aCom +=  " HomoXml=" + aHomoXml;
         if (!EAMIsInit(&aCAS3D.mMergeTiePtInSH))   aCom +=  " MergeInSH=" + aCAS3D.mSpGlueOutSH;
-        aCom +=  " PatchSz=[" + ToString(aPatchSz.x) + "," + ToString(aPatchSz.y) + "]";
-        aCom +=  " BufferSz=[" + ToString(aBufferSz.x) + "," + ToString(aBufferSz.y) + "]";
+        aCom +=  " PatchSz=[" + ToString(aPatchLSz.x) + "," + ToString(aPatchLSz.y) + "]";
+        aCom +=  " BufferSz=[" + ToString(aBufferLSz.x) + "," + ToString(aBufferLSz.y) + "]";
         aFullCom = StdCom("TestLib MergeTiePt", aOutDir+"/" + BLANK + aCom + BLANK + aCAS3D.ComParamMergeTiePt(), aExe);
-        cout<<aFullCom<<endl;
+        //cout<<aFullCom<<endl;
 
 
         /**************************************/
@@ -142,7 +144,7 @@ void EnhacedSpG(std::string aImg1, std::string aImg2, Pt2dr aPatchSz, Pt2dr aBuf
         if (!EAMIsInit(&aCAS3D.mR2DInSH))   aCom +=  " 2DRANInSH=-" + StdPrefix(aHomoXml);
         std::string aRANSACOutSH = "-" + StdPrefix(aHomoXml) + "-2DRANSAC";
         aFullCom = StdCom("TestLib RANSAC R2D", aImg1 + BLANK + aImg2 + BLANK + "Dir=" + aOutDir+"/" + BLANK + aCom + BLANK + aCAS3D.ComParamRANSAC2D(), aExe);
-        cout<<aFullCom<<endl;
+        //cout<<aFullCom<<endl;
         int nInlier = GetTiePtNum(aOutDir, aImg1, aImg2, aRANSACOutSH);
         cout<<i<<",,"<<aRANSACOutSH<<","<<nInlier<<endl;
 
@@ -168,8 +170,13 @@ int EnhancedSpG_main(int argc,char ** argv)
 
    double aCheckNb=-1;
    int aRotate=-1;
-   Pt2dr aPatchSz = Pt2dr(640, 480);
-   Pt2dr aBufferSz = Pt2dr(0, 0);
+//   Pt2dr aPatchSz = Pt2dr(640, 480);
+//   Pt2dr aBufferSz = Pt2dr(0, 0);
+   Pt2dr aPatchLSz(640, 480);
+   Pt2dr aBufferLSz(0,0);
+   Pt2dr aPatchRSz(640, 480);
+   Pt2dr aBufferRSz(0,0);
+
    bool aExe=true;
 
    /*
@@ -194,9 +201,15 @@ int EnhancedSpG_main(int argc,char ** argv)
                << aCAS3D.Arg2DRANSAC()
                << EAM(aCheckNb,"CheckNb",true,"Radius of the search space for SuperGlue (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=-1 (means don't check search space)")
                << EAM(aRotate,"Rotate",true,"The angle of clockwise rotation from the master image to the secondary image (only 4 options available: 0, 90, 180, 270, as SuperGlue is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
-               << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640,480]")
-               << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[0,0]")
-    );
+//               << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640,480]")
+//               << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[0,0]")
+
+               << EAM(aPatchLSz, "PatchLSz", true, "Patch size of the tiling scheme for master image, which means the master image to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+               << EAM(aBufferLSz, "BufferLSz", true, "Buffer zone size around the patch of the tiling scheme for master image, Def=[0,0]")
+               << EAM(aPatchRSz, "PatchRSz", true, "Patch size of the tiling scheme for secondary image, which means the secondary image to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+               << EAM(aBufferRSz, "BufferRSz", true, "Buffer zone size around the patch of the tiling scheme for secondary image, Def=[0,0]")
+
+               );
 
    std::vector<std::string> aVIm1;
    std::vector<std::string> aVIm2;
@@ -209,7 +222,7 @@ int EnhancedSpG_main(int argc,char ** argv)
        for(int j=0; j<int(aVIm2.size()); j++)
        {
            aImg2 = aVIm2[j];
-           EnhacedSpG(aImg1, aImg2, aPatchSz, aBufferSz, aRotate, aCAS3D, aExe, aCheckNb);
+           EnhacedSpG(aImg1, aImg2, aPatchLSz, aBufferLSz, aPatchRSz, aBufferRSz, aRotate, aCAS3D, aExe, aCheckNb);
        }
    }
 

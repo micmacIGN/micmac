@@ -6,6 +6,28 @@ namespace MMVII
 {
 
 
+template<class TypeEl> cIm2D<TypeEl> ImSym(const  cDataIm2D<TypeEl> & aDImIn,double aR0,double aR1)
+{
+    std::vector<cPt2di>  aVectVois = VectOfRadius(aR0,aR1,true);
+    int aD = round_up(aR1);
+    cPt2di aPW(aD,aD);
+
+    cPt2di aSz = aDImIn.Sz();
+    cIm2D<TypeEl> aImOut(aSz);
+
+    for (const auto & aP : cRect2(aPW,aSz-aPW))
+    {
+          for (const auto & aV  : aVectVois)
+	  {
+		  TypeEl aV1 = aDImIn.GetV(aP+aV);
+		  TypeEl aV2 = aDImIn.GetV(aP-aV);
+		  FakeUseIt(aV1-aV2);
+	  }
+    }
+
+    return aImOut;
+}
+
 
 template<class TypeEl> class  cAppliParseBoxIm
 {
@@ -145,6 +167,9 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
    ;
 }
 
+
+
+
 void  cAppliExtractCodeTarget::TestFilters()
 {
      tDataIm &  aDIm = APBI_LoadTestBox();
@@ -160,6 +185,7 @@ int  cAppliExtractCodeTarget::Exe()
    mPCT.InitFromFile(mNameTarget);
    APBI_PostInit();
 
+   StdOut() << "TEST " << APBI_TestMode() << "\n";
 
    if (APBI_TestMode())
    {

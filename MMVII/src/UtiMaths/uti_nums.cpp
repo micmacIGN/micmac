@@ -165,7 +165,6 @@ tINT4 HCF(tINT4 a,tINT4 b)
    return b;
 }
 
-template <class Type> const tNumTrait<Type>   tNumTrait<Type>::TheOnlyOne;
 // const tNumTrait<tINT1>   tNumTrait<tINT1>::TheOnlyOne;
 /*
 template <> const tNumTrait<tINT2>   tNumTrait<tINT2>::TheOnlyOne;

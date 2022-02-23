@@ -190,7 +190,7 @@ void DSM_Equalization(std::string aImName, std::string aDSMDir, std::string aDSM
     if(aOutImg.length()==0)
         aOutImg = StdPrefix(aImName) + "_gray.tif";
     else
-        aOutImg = aOutDir + aOutImg;
+        aOutImg = aOutDir + "/" + aOutImg;
     //cout<<aOutImg<<endl;
 
     //cout<<dScale<<",,,"<<dTranslation<<endl;
