@@ -360,12 +360,21 @@ template <const INT nbb>  GenIm::type_el  DataGenImBits<nbb>::type() const
 * "bitm/imd2_bits.cpp".
 *   A declaration is needed to avoid that other TUs implicitly instantiate
 * this template as well.
+*   Reported by clang++ 11.0
 *
 * NB: "An explicit specialization of a static data member of a template is a
 * definition if the declaration includes an initializer; otherwise, it is a
 * declaration."
 */
 
+/* Sadly, Visual C++ < 16.5 (MSC_VER<1925) erroneously interpretes these
+ * declarations as definitions
+ * Ref: https://github.com/MicrosoftDocs/cpp-docs/blob/main/docs/overview/cpp-conformance-improvements-2019.md
+ * "Conformance improvements in Visual Studio 2019 version 16.5"
+ * "  Explicit specialization declaration without an initializer isn't a definition"
+*/
+
+#if ! defined(_MSC_VER) || _MSC_VER >= 1925
 template <> GenIm::type_el DataGenImBits<1>::type_el_bitm;
 template <> GenIm::type_el DataGenImBits<2>::type_el_bitm;
 template <> GenIm::type_el DataGenImBits<4>::type_el_bitm;
@@ -394,6 +403,7 @@ template <> Tabul_Bits<4,true>::tLineOutputTab * Tabul_Bits<4,true>::out_tab;
 template <> Tabul_Bits<4,false> Tabul_Bits<4,false>::The_Only_One;
 template <> Tabul_Bits<4,false>::tLineInputTab  * Tabul_Bits<4,false>::input_tab;
 template <> Tabul_Bits<4,false>::tLineOutputTab * Tabul_Bits<4,false>::out_tab;
+#endif // ! defined(_MSC_VER) || _MSC_VER >= 1925
 
 #endif // _ELISE_BITM_BITS_H
 
