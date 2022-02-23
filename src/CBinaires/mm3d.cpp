@@ -287,6 +287,7 @@ int Line2Line_main(int argc,char ** argv);
 int CoronaRessample_main(int argc,char ** argv);
 int DivFilters_main(int argc,char ** argv);
 int AnalysePxFrac_Main(int argc,char ** argv);
+int CPP_YannViewIntersect(int argc,char ** argv);
 int CPP_YannEstimHomog(int argc,char ** argv);
 int CPP_YannApplyHomog(int argc,char ** argv);
 int CPP_YannInvHomolHomog(int argc,char ** argv);
@@ -307,6 +308,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 	static std::vector<cMMCom> aRes;
 	if (aRes.empty())
 	{
+		aRes.push_back(cMMCom("InterView",CPP_YannViewIntersect, "Field of view intersections for tie points computation "));
 		aRes.push_back(cMMCom("EstimHomog",CPP_YannEstimHomog, "Homographie estimation from GCPs and image measurements "));
 		aRes.push_back(cMMCom("ApplyHomog",CPP_YannApplyHomog, "Homographie application on images "));
 		aRes.push_back(cMMCom("InvHomolHomog",CPP_YannInvHomolHomog, "Homographie application on images "));

@@ -103,9 +103,446 @@ class cAppli_YannInvHomolHomog{
 	   cElemAppliSetFile mEASF;                    // Pour gerer un ensemble d'images
 	   cElemAppliSetFile mEASF2;                   // Pour gerer un ensemble d'images
 	   cInterfChantierNameManipulateur * mICNM;    // Name manipulateur
-	   cInterfChantierNameManipulateur * mICNM2;    // Name manipulateur
-
+	   cInterfChantierNameManipulateur * mICNM2;   // Name manipulateur
 };
+
+// --------------------------------------------------------------------------------------
+class cAppli_YannViewIntersect{
+	
+    public :
+       cAppli_YannViewIntersect(int argc, char ** argv);
+
+	   std::string ImPattern;                      // Images à traiter
+	   std::string mDirOri;                        // Dossier d'orientations
+       std::string mDepth;                         // Profondeur maximale d'intersection
+       std::string mCpleFile;                      // Fichier output
+       std::string mDir;                           // Directory of data
+	   std::string mCalib;						   // Calibration interne xml
+	   std::string aNameIn;					       // Nom d'image temporaire
+	   std::string mRes;                           // Pas de discrétisation des cones
+	   std::string mDist;                          // Distance maximale entre caméras
+	   std::string mBuffer;                        // Buffer (pos ou neg) sur le champ
+	   std::string mAngle;                         // Angle de visée maximal
+	   std::string mDebug;                         // Pour générer des ply des cones
+	   cElemAppliSetFile mEASF;                    // Pour gerer un ensemble d'images
+	   cInterfChantierNameManipulateur * mICNM;    // Name manipulateur
+};
+
+
+
+// ======================================================================================
+// Méthodes de calcul d'intersections entre champs de vision
+// ======================================================================================
+
+
+// --------------------------------------------------------------------------------------
+// Fonction de calcul de rayon
+// --------------------------------------------------------------------------------------
+Pt3dr rayon(CamStenope * aCam, Pt2dr pt, double factor){
+	Pt3dr p0 = aCam->Capteur2RayTer(pt).P0();
+	Pt3dr p1 = aCam->Capteur2RayTer(pt).P1();
+	double x = p0.x + factor*(p1.x-p0.x);
+	double y = p0.y + factor*(p1.y-p0.y);
+	double z = p0.z + factor*(p1.z-p0.z);
+	return Pt3dr(x, y, z);
+}
+
+// --------------------------------------------------------------------------------------
+// Fonction de calcul du "cone de visée"
+// --------------------------------------------------------------------------------------
+// Inputs  :
+//   - cam : un pointeur vers une caméra
+//   - N   : un nombre de points dans la discrétisation
+//   - fz  : facteur de profondeur
+//   - buf ; buffer (pos. ou neg.) en pixels
+// Outputs : 
+//	 - un vecteur de points Pt3dr (N+4+1 points avec le sommet de prise de vue)
+// --------------------------------------------------------------------------------------
+std::vector<Pt3dr> discretizedFieldOfView(CamStenope * aCam, unsigned N, int fz, double buf){
+	
+	std::vector<Pt3dr> FIELD;
+	
+	int nx = aCam->Sz().x + 2*buf;
+	int ny = aCam->Sz().y + 2*buf;
+	
+	FIELD.push_back(aCam->PseudoOpticalCenter());
+	
+	FIELD.push_back(rayon(aCam, Pt2dr(0.0-buf, 0.0-buf), fz));
+
+	for (unsigned n=1; n<N+1; n++){
+		double xn = nx*(0.0+n)/(N+1)-buf;
+		double yn = 0.0-buf;
+		FIELD.push_back(rayon(aCam, Pt2dr(xn, yn),fz));
+	}	
+		
+	FIELD.push_back(rayon(aCam, Pt2dr(nx-buf, 0.0-buf), fz));	
+		
+	for (unsigned n=1; n<N+1; n++){
+		double xn = nx-buf;
+		double yn = ny*(0.0+n)/(N+1)-buf;
+		FIELD.push_back(rayon(aCam, Pt2dr(xn, yn), fz));
+	}	
+		
+	FIELD.push_back(rayon(aCam, Pt2dr(nx-buf, ny-buf), fz));	
+		
+	for (unsigned n=1; n<N+1; n++){
+		double xn = nx*(N+1-n)/(N+1)-buf;
+		double yn = ny-buf;
+		FIELD.push_back(rayon(aCam, Pt2dr(xn, yn), fz));
+	}	
+	
+	FIELD.push_back(rayon(aCam, Pt2dr(0.0-buf, ny-buf), fz));
+		
+	for (unsigned n=1; n<N+1; n++){	
+		double xn = 0.0-buf;
+		double yn = ny*(N+1-n)/(N+1)-buf;
+		FIELD.push_back(rayon(aCam, Pt2dr(xn, yn), fz));
+	}	
+	
+	return FIELD;
+
+} 
+
+// --------------------------------------------------------------------------------------
+// Fonction de transformation d'un "cone de visée" en nuage de points ply
+// --------------------------------------------------------------------------------------
+// Inputs  :
+//   - cone : une liste de points définissant le cone de visée
+//   - path : le chemin d'un fichier de sortie
+// Outputs : 
+//	 - Impression dans un fichier
+// --------------------------------------------------------------------------------------
+void fieldOfView2Ply(std::vector<Pt3dr>& cone, std::string path){
+	
+	unsigned resA = 500;
+	unsigned resB = 4*resA/cone.size();
+		
+	ofstream myfile;
+	myfile.open(path);
+
+	myfile << "ply\n";
+	myfile << "format ascii 1.0\n";
+	myfile << "comment VCGLIB generated\n";
+	myfile << "element vertex " << resB*(cone.size()-1) + resA*(cone.size()-1) << "\n";
+	myfile << "property float x\n";
+	myfile << "property float y\n";
+	myfile << "property float z\n";
+	myfile << "property uchar red\n";
+	myfile << "property uchar green\n";
+	myfile << "property uchar blue\n";
+	myfile << "property uchar alpha\n";
+	myfile << "element face 0\n";
+	myfile << "property list uchar int vertex_indices\n";
+	myfile << "end_header\n";
+		
+	for (unsigned i=1; i<cone.size()-1; i++){
+		for (unsigned k=0; k<resB; k++){
+			double t = ((float)k)/((float)resB);
+			double x = cone.at(i).x*t + cone.at(i+1).x*(1-t);
+			double y = cone.at(i).y*t + cone.at(i+1).y*(1-t);
+			double z = cone.at(i).z*t + cone.at(i+1).z*(1-t); 
+			myfile << x << " " << y << " " << z << " 0 0 255 255\n";	
+		}
+	}
+	
+	for (unsigned k=0; k<resB; k++){
+		double t = ((float)k)/((float)resB);
+		double x = cone.at(cone.size()-1).x*t + cone.at(1).x*(1-t);
+		double y = cone.at(cone.size()-1).y*t + cone.at(1).y*(1-t);
+		double z = cone.at(cone.size()-1).z*t + cone.at(1).z*(1-t); 
+		myfile << x << " " << y << " " << z << " 0 0 255 255\n";	
+	}
+	
+	for (unsigned j=1; j<cone.size(); j++){
+		for (unsigned k=0; k<resA; k++){
+			double t = ((float)k)/((float)resA);
+			double x = cone.at(0).x*t + cone.at(j).x*(1-t);
+			double y = cone.at(0).y*t + cone.at(j).y*(1-t);
+			double z = cone.at(0).z*t + cone.at(j).z*(1-t);
+			myfile << x << " " << y << " " << z << " " << "250 164 1 255\n";
+		}
+	}
+	
+	myfile.close();	
+	
+}
+
+
+// --------------------------------------------------------------------------------------
+// Fonction de calcul du vecteur unitaire de visée de la caméra
+// --------------------------------------------------------------------------------------
+Pt3dr sightDirectionVector(CamStenope * aCam){
+	ElSeg3D s = aCam->Capteur2RayTer(Pt2dr(aCam->Sz().x/2.0, aCam->Sz().y/2.0));
+	double dx = s.P1().x-s.P0().x;
+	double dy = s.P1().y-s.P0().y;
+	double dz = s.P1().z-s.P0().z;
+	double norm = sqrt(dx*dx + dy*dy + dz*dz);
+	return Pt3dr(dx/norm, dy/norm, dz/norm);
+}
+
+// --------------------------------------------------------------------------------------
+// Fonction d'intersection d'un triangle et d'un segment
+// --------------------------------------------------------------------------------------
+bool segmentInTriangle(Pt3dr pt1, Pt3dr pt2, Pt3dr pt3, Pt3dr ps1, Pt3dr ps2){
+	
+	double x1  = pt1.x; double y1  = pt1.y; double z1  = pt1.z;
+	double x2  = pt2.x; double y2  = pt2.y; double z2  = pt2.z;
+	double x3  = pt3.x; double y3  = pt3.y; double z3  = pt3.z;
+	double p0x = ps1.x; double p0y = ps1.y; double p0z = ps1.z;
+	double p1x = ps2.x; double p1y = ps2.y; double p1z = ps2.z;
+	
+	double vx = p1x-p0x; double vy = p1y-p0y; double vz = p1z-p0z;
+
+	double det = x1*y2*z3 + x2*y3*z1 + x3*y1*z2 - x3*y2*z1 - y3*z2*x1 - z3*x2*y1;
+
+	double a = (-(y2*z3-y3*z2) + (y1*z3-y3*z1) - (y1*z2-y2*z1))/det;
+	double b = (+(x2*z3-x3*z2) - (x1*z3-x3*z1) + (x1*z2-x2*z1))/det;
+	double c = (-(x2*y3-x3*y2) + (x1*y3-x3*y1) - (x1*y2-x2*y1))/det;
+
+	// Teste qu'on a bien un point du segment de chaque côté du plan du triangle
+	double each_side = (a*p0x + b*p0y + c*p0z + 1)*(a*p1x + b*p1y + c*p1z + 1);
+	if (each_side > 0){
+		return false;
+	}
+
+	// Test parallelisme plan / droite
+	double parallel = a*vx + b*vy + c*vz;
+	double inclusion = a*p0x + b*p0y + c*p0z + 1;
+	if (parallel == 0){
+			return (inclusion < 1e-10);
+	}
+	
+	// Sinon recherche unique intersection
+	double t = -inclusion/parallel;
+
+	// Intersection
+	double xi = p0x + vx*t;
+	double yi = p0y + vy*t;
+	double zi = p0z + vz*t;
+
+	// Test appartenance triangle par les produits vectoriels
+	double pv1x = (y1-yi)*(z2-zi)-(z1-zi)*(y2-yi); double pv2x = (y2-yi)*(z3-zi)-(z2-zi)*(y3-yi); double pv3x = (y3-yi)*(z1-zi)-(z3-zi)*(y1-yi);
+	double pv1y = (z1-zi)*(x2-xi)-(x1-xi)*(z2-zi); double pv2y = (z2-zi)*(x3-xi)-(x2-xi)*(z3-zi); double pv3y = (z3-zi)*(x1-xi)-(x3-xi)*(z1-zi);
+	double pv1z = (x1-xi)*(y2-yi)-(y1-yi)*(x2-xi); double pv2z = (x2-xi)*(y3-yi)-(y2-yi)*(x3-xi); double pv3z = (x3-xi)*(y1-yi)-(y3-yi)*(x1-xi);
+
+	double dot1 = pv1x*pv2x + pv1y*pv2y + pv1z*pv2z;
+	double dot2 = pv2x*pv3x + pv2y*pv3y + pv2z*pv3z;
+	
+	return ((dot1 >= 0) && (dot2 >= 0));
+	
+}
+
+// --------------------------------------------------------------------------------------
+// Fonction de test d'intersection des surfaces deux cones
+// --------------------------------------------------------------------------------------
+bool sightIntersect(std::vector<Pt3dr>& cone1, std::vector<Pt3dr>& cone2){
+	unsigned N1 = cone1.size();
+	unsigned N2 = cone2.size();
+	Pt3dr ps1 = cone1.at(0);
+	Pt3dr pt1 = cone2.at(0);
+	for (unsigned i1=1; i1<N1; i1++){
+		Pt3dr ps2 = cone1.at(i1);
+		for (unsigned i2=1; i2<N2-1; i2++){
+			 Pt3dr pt2 = cone2.at(i2);
+			 Pt3dr pt3 = cone2.at(i2+1);
+			 if (segmentInTriangle(pt1, pt2, pt3, ps1, ps2)){
+				return true;
+			}
+		}
+	} 
+	return false;
+}
+
+
+// --------------------------------------------------------------------------------------
+// Fonction principale de calcul des paires de champs de vision
+// --------------------------------------------------------------------------------------
+// Inputs :
+//   - string: liste des images à prendre en compte
+//   - string: dossier d'orientation des images
+//   - string: profondeur maximal de calcul (optionnelle, défaut -1 = Inf)
+//   - string: nom du fichier de sortie (optionnel, défaut cple.xml)
+// --------------------------------------------------------------------------------------
+// Outputs :
+//   - Un fichier xml contenant les paires de champs de vision
+// --------------------------------------------------------------------------------------
+cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
+	
+	ElInitArgMain(argc,argv,
+        LArgMain()  <<  EAMC(ImPattern,"Images pattern")  
+				    <<  EAMC(mDirOri,"Orientation directory"),
+	   LArgMain()	<<  EAM(mDepth,"Depth", "NONE", "Maximal Depth (default -1 = Inf)")
+					<<  EAM(mDist,"Dist", "None", "Max. distance (ground units) between camera optical centers")
+					<<  EAM(mAngle,"Angle", "None", "Max. angle difference(degrees) between camera sights")
+					<<  EAM(mRes,"Pts", "10", "Number of discretized points on fields of view (default 10)")
+					<<  EAM(mBuffer,"Buffer", "None", "Signed buffer around camera field of view (default 0.0 PX)")
+					<<  EAM(mDebug,"Ply", "0", "Set Ply=1 to generate ply files of fields of view")
+          			<<  EAM(mCpleFile,"Out", "None", "Name of output file (default CpleFrom[OriName].xml)"));
+	
+	
+	
+	// ---------------------------------------------------------------
+	// Lecture des images
+	// ---------------------------------------------------------------
+	if (EAMIsInit(&ImPattern)){
+		mEASF.Init(ImPattern);
+        mICNM = mEASF.mICNM;
+        mDir = mEASF.mDir;
+	}
+	
+	size_t N = mEASF.SetIm()->size();
+	
+	std::string message = "ERROR: can't find pairs with only 1 image";
+	ELISE_ASSERT(N > 1, message.c_str());
+
+	// ---------------------------------------------------------------
+	// Gestion des paramètres d'input
+	// ---------------------------------------------------------------
+	int pts = 10;
+	if (EAMIsInit(&mRes)){
+		pts = std::stoi(mRes);
+	}	
+	
+	bool debug = false;
+	if (EAMIsInit(&mDebug)){
+		debug = (std::stoi(mDebug) == 1);
+	}	
+	
+	double max_dist = 1e300;
+	if (EAMIsInit(&mDist)){
+		max_dist = std::stod(mDist);
+	}	
+	
+	double max_angle = 180;
+	if (EAMIsInit(&mAngle)){
+		max_angle = std::stod(mAngle);
+	}	
+	
+	double max_depth = 1e300;
+	if (EAMIsInit(&mDepth)){
+		max_depth = std::stod(mDepth);
+	}	
+	
+	double buffer = 0.0;
+	if (EAMIsInit(&mBuffer)){
+		buffer = std::stod(mBuffer);
+	}
+	
+	std::string name_cple = +"CpleFrom"+mDirOri+".xml";
+	if (EAMIsInit(&mCpleFile)){
+		name_cple = mCpleFile;
+	}	
+	
+	std::cout << "-----------------------------------------------------------------------" << std::endl;
+	std::cout << "                       FIELD OF VIEW COMPUTATION                       " << std::endl;
+	std::cout << "-----------------------------------------------------------------------" << std::endl;
+	std::cout << "NUMBER OF IMAGES                       " << N                            << std::endl;
+	std::cout << "NUMBER OF PAIRS                        " << N*(N-1)/2.0                  << std::endl;
+	std::cout << "SIGHT CONE RESOLUTION                  " << pts                          << std::endl;
+	std::cout << "BUFFER AROUND IMAGE                    " << buffer    << " PX"           << std::endl;
+	std::cout << "MAX. ALLOWED ANGLE                     " << max_angle << " DEGREES"      << std::endl;
+	std::cout << "MAX. ALLOWED DEPTH                     " << max_depth << " GROUND UNITS" << std::endl;
+	std::cout << "MAX. ALLOWED DISTANCE                  " << max_dist  << " GROUND UNITS" << std::endl;
+	std::cout << "-----------------------------------------------------------------------" << std::endl;
+
+	// ---------------------------------------------------------------
+	// Calcul des paires
+	// ---------------------------------------------------------------
+	
+	ofstream myfile;
+	myfile.open(name_cple);
+	
+	myfile << "<?xml version=\"1.0\" ?>\n";
+	myfile << "<SauvegardeNamedRel>\n";
+	
+	unsigned nb_pair_found = 0;
+	unsigned nb_pair_found_for_im = 0;
+	
+	double min_dot_product = cos(max_angle*3.14159/180.0);
+	
+	int factor = 200;   //   Attention : à régler !
+
+	// ---------------------------------------------------------------
+	// Loop on image 1
+	// ---------------------------------------------------------------
+	for (unsigned i=0; i<N; i++){
+		
+		aNameIn = mEASF.SetIm()[0][i];
+		std::cout << "[" << i << "/" << N << "]  " <<  aNameIn << "      ";
+		
+		cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+		StdCorrecNameOrient(mDirOri, anICNM->Dir());
+		CamStenope * aCam = CamOrientGenFromFile("Ori-"+mDirOri+"/Orientation-"+aNameIn+".xml", anICNM);
+		
+		Pt3dr p1 = aCam->PseudoOpticalCenter();
+		Pt3dr v1 = sightDirectionVector(aCam);
+		
+		std::vector<Pt3dr> F1 = discretizedFieldOfView(aCam, pts, factor, buffer);
+		
+		if (debug){
+			fieldOfView2Ply(F1, "AperiCone_"+aNameIn+".ply");
+		}
+		
+		// ---------------------------------------------------------------
+		// Loop on image 2
+		// ---------------------------------------------------------------
+		nb_pair_found_for_im = 0;
+		for (unsigned j=i; j<N; j++){
+			if (i == j) continue;
+			
+			std::string anOtherNameIn = mEASF.SetIm()[0][j];
+			CamStenope * anOtherCam = CamOrientGenFromFile("Ori-"+mDirOri+"/Orientation-"+anOtherNameIn+".xml", anICNM);
+			
+			// ---------------------------------------------------------------
+			// Distance test
+			// ---------------------------------------------------------------
+			Pt3dr p2 = anOtherCam->PseudoOpticalCenter();
+			if (sqrt(pow(p1.x-p2.x,2) + pow(p1.y-p2.y,2) + pow(p1.z-p2.z,2)) > max_dist){
+					continue;
+			}
+			
+			// ---------------------------------------------------------------
+			// Orientation test
+			// ---------------------------------------------------------------
+			Pt3dr v2 = sightDirectionVector(anOtherCam);
+			if (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z < min_dot_product){
+					continue;
+			}
+			
+			// ---------------------------------------------------------------
+			// Inclusion test
+			// ---------------------------------------------------------------
+			// TO DO !
+		
+			
+			// ---------------------------------------------------------------
+			// Sight intersection test
+			// ---------------------------------------------------------------
+			std::vector<Pt3dr> F2 = discretizedFieldOfView(anOtherCam, pts, factor, buffer);
+			if (!sightIntersect(F1, F2)){
+				continue;
+			}
+			
+			myfile << "<Cple>" << aNameIn << " " << anOtherNameIn << "</Cple>\n"; nb_pair_found_for_im ++;
+			
+		}	
+		
+		nb_pair_found += nb_pair_found_for_im;
+		double frac = ((int)(1000*nb_pair_found/(N*(N-1)/2.0)))/10.0;
+		std::cout << nb_pair_found_for_im << " homolog pair(s)    [" << frac << " %]"  << std::endl;
+		
+	}
+	
+	myfile << "</SauvegardeNamedRel>\n";
+	myfile.close();	
+	
+	double frac = ((int)(1000*nb_pair_found/(N*(N-1)/2.0)))/10.0;
+	std::cout << "-----------------------------------------------------------------------"               << std::endl;
+	std::cout << "NUMBER OF PAIRS FOUND       " << nb_pair_found << "                [" << frac << " %]" << std::endl;
+	std::cout << "Output file [" << name_cple << "] generated"                                             << std::endl;
+	std::cout << "-----------------------------------------------------------------------"               << std::endl;
+
+}
 
 
 // --------------------------------------------------------------------------------------
@@ -1140,6 +1577,12 @@ int CPP_YannInvHomolHomog(int argc,char ** argv){
    cAppli_YannInvHomolHomog(argc,argv);
    return EXIT_SUCCESS;
 }
+  
+// (4) Calcul de champ de vision
+int CPP_YannViewIntersect(int argc,char ** argv){
+   cAppli_YannViewIntersect(argc,argv);
+   return EXIT_SUCCESS;
+}  
   
 /*Footer-MicMac-eLiSe-25/06/2007
 
