@@ -124,6 +124,7 @@ class cAppli_YannViewIntersect{
 	   std::string mBuffer;                        // Buffer (pos ou neg) sur le champ
 	   std::string mAngle;                         // Angle de visée maximal
 	   std::string mDebug;                         // Pour générer des ply des cones
+	   std::string mConeSzDebug;                   // Taille des cones dans les ply
 	   cElemAppliSetFile mEASF;                    // Pour gerer un ensemble d'images
 	   cInterfChantierNameManipulateur * mICNM;    // Name manipulateur
 };
@@ -377,6 +378,7 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 					<<  EAM(mRes,"Pts", "10", "Number of discretized points on fields of view (default 10)")
 					<<  EAM(mBuffer,"Buffer", "None", "Signed buffer around camera field of view (default 0.0 PX)")
 					<<  EAM(mDebug,"Ply", "0", "Set Ply=1 to generate ply files of fields of view")
+					<<  EAM(mConeSzDebug,"SizePly", "1", "Scale for fields of view export in ply (default 1.0)")
           			<<  EAM(mCpleFile,"Out", "None", "Name of output file (default CpleFrom[OriName].xml)"));
 	
 	
@@ -428,6 +430,11 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 		buffer = std::stod(mBuffer);
 	}
 	
+	double ply_size_cone = 1.0;
+	if (EAMIsInit(&mConeSzDebug)){
+		ply_size_cone = std::stod(mConeSzDebug);
+	}
+	
 	std::string name_cple = +"CpleFrom"+mDirOri+".xml";
 	if (EAMIsInit(&mCpleFile)){
 		name_cple = mCpleFile;
@@ -460,7 +467,7 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 	
 	double min_dot_product = cos(max_angle*3.14159/180.0);
 	
-	int factor = 200;   //   Attention : à régler !
+	int factor = 1e9;   //   Attention : à régler !
 
 	// ---------------------------------------------------------------
 	// Loop on image 1
@@ -478,10 +485,6 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 		Pt3dr v1 = sightDirectionVector(aCam);
 		
 		std::vector<Pt3dr> F1 = discretizedFieldOfView(aCam, pts, factor, buffer);
-		
-		if (debug){
-			fieldOfView2Ply(F1, "AperiCone_"+aNameIn+".ply");
-		}
 		
 		// ---------------------------------------------------------------
 		// Loop on image 2
@@ -512,14 +515,13 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 			// ---------------------------------------------------------------
 			// Inclusion test
 			// ---------------------------------------------------------------
-			// TO DO !
-		
+			bool mutual = (aCam->PIsVisibleInImage(p2) || anOtherCam->PIsVisibleInImage(p1));
 			
 			// ---------------------------------------------------------------
 			// Sight intersection test
 			// ---------------------------------------------------------------
-			std::vector<Pt3dr> F2 = discretizedFieldOfView(anOtherCam, pts, factor, buffer);
-			if (!sightIntersect(F1, F2)){
+			std::vector<Pt3dr> F2 = discretizedFieldOfView(anOtherCam, pts, 1, buffer);
+			if (!(sightIntersect(F1, F2) || mutual)){
 				continue;
 			}
 			
@@ -529,7 +531,13 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 		
 		nb_pair_found += nb_pair_found_for_im;
 		double frac = ((int)(1000*nb_pair_found/(N*(N-1)/2.0)))/10.0;
-		std::cout << nb_pair_found_for_im << " homolog pair(s)    [" << frac << " %]"  << std::endl;
+		std::cout << nb_pair_found_for_im << " new pair(s)    [" << frac << " %]"  << std::endl;
+		
+				
+		if (debug){
+			std::vector<Pt3dr> F = discretizedFieldOfView(aCam, pts, ply_size_cone, buffer);
+			fieldOfView2Ply(F, "AperiCone_"+aNameIn+".ply");
+		}
 		
 	}
 	
