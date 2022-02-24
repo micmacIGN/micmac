@@ -125,6 +125,7 @@ class cAppli_YannViewIntersect{
 	   std::string mAngle;                         // Angle de visée maximal
 	   std::string mDebug;                         // Pour générer des ply des cones
 	   std::string mConeSzDebug;                   // Taille des cones dans les ply
+	   std::string mXmlSize;                       // Nombre maximal paires dans xml
 	   cElemAppliSetFile mEASF;                    // Pour gerer un ensemble d'images
 	   cInterfChantierNameManipulateur * mICNM;    // Name manipulateur
 };
@@ -398,6 +399,7 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 					<<  EAM(mBuffer,"Buffer", "None", "Signed buffer around camera field of view (default 0.0 PX)")
 					<<  EAM(mDebug,"Ply", "0", "Set Ply=1 to generate ply files of fields of view")
 					<<  EAM(mConeSzDebug,"SzPly", "1", "Scale for fields of view export in ply (default 1.0)")
+					<<  EAM(mXmlSize,"XmlMax", "100000", "Max. number of pairs in an xml file (default 100 000)")
           			<<  EAM(mCpleFile,"Out", "None", "Name of output file (default CpleFrom[OriName].xml)"));
 	
 	// ---------------------------------------------------------------
@@ -452,7 +454,12 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 		ply_size_cone = std::stod(mConeSzDebug);
 	}
 	
-	std::string name_cple = +"CpleFrom"+mDirOri+".xml";
+	unsigned max_xml = 100000;
+	if (EAMIsInit(&mXmlSize)){
+		max_xml = std::stoi(mXmlSize);
+	}
+	
+	std::string name_cple = +"CpleFrom"+mDirOri;
 	if (EAMIsInit(&mCpleFile)){
 		name_cple = mCpleFile;
 	}	
@@ -474,11 +481,13 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 	// ---------------------------------------------------------------
 	
 	ofstream myfile;
-	myfile.open(name_cple);
 	
+	unsigned nb_pairs_in_xml = 0;
+	myfile.open(name_cple+"_0.xml");
 	myfile << "<?xml version=\"1.0\" ?>\n";
 	myfile << "<SauvegardeNamedRel>\n";
 	
+	unsigned nb_file = 0;
 	unsigned nb_pair_found = 0;
 	unsigned nb_pair_found_for_im = 0;
 	
@@ -486,6 +495,7 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 	
 	int factor = 1e9;   //   Attention : à régler !
 	
+
 	// ---------------------------------------------------------------
 	// Précalcul des cones de visée
 	// ---------------------------------------------------------------
@@ -500,7 +510,6 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 			if ((i % 100 == 0) && (i>0)) std::cout << "Precalcul cones... [" << i << "/" << N << "]" << std::endl;
 	}
 	std::cout << "Precalcul cones... [" << N << "/" << N << "]" << std::endl;
-
 
 	// ---------------------------------------------------------------
 	// Loop on image 1
@@ -557,6 +566,18 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 			}
 			
 			myfile << "<Cple>" << aNameIn << " " << anOtherNameIn << "</Cple>\n"; nb_pair_found_for_im ++;
+			nb_pairs_in_xml ++;
+			
+			if (nb_pairs_in_xml >= max_xml){
+				myfile << "</SauvegardeNamedRel>\n";
+				myfile.close();	
+				nb_file ++;
+				myfile.open(name_cple+"_"+std::to_string(nb_file)+".xml");
+				myfile << "<?xml version=\"1.0\" ?>\n";
+				myfile << "<SauvegardeNamedRel>\n";
+				nb_pairs_in_xml = 0;
+			}
+			
 			
 		}	
 		
@@ -578,7 +599,10 @@ cAppli_YannViewIntersect::cAppli_YannViewIntersect(int argc, char ** argv){
 	double frac = ((int)(1000*nb_pair_found/(N*(N-1)/2.0)))/10.0;
 	std::cout << "-----------------------------------------------------------------------"               << std::endl;
 	std::cout << "NUMBER OF PAIRS FOUND       " << nb_pair_found << "                [" << frac << " %]" << std::endl;
-	std::cout << "Output file [" << name_cple << "] generated"                                             << std::endl;
+	std::cout << "Output file(s) :"                                                                         << std::endl;
+	for (unsigned k=0; k<=nb_file; k++){
+			std::cout << "  - " << name_cple+"_"+std::to_string(k)+".xml"                                << std::endl;
+	}
 	std::cout << "-----------------------------------------------------------------------"               << std::endl;
 
 }
