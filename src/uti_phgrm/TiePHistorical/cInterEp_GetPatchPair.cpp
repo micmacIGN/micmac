@@ -78,17 +78,6 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
-std::string GetFileName(std::string strIn)
-{
-    std::string strOut = strIn;
-
-    std::size_t found = strIn.find("/");
-    if (found!=std::string::npos)
-        strOut = strIn.substr(found+1, strIn.length());
-
-    return strOut;
-}
-
 std::string GetFolderName(std::string strIn)
 {
     std::string strOut = "";
@@ -98,56 +87,6 @@ std::string GetFolderName(std::string strIn)
         strOut = strIn.substr(0, found);
 
     return strOut;
-}
-
-void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, std::vector<std::string> vPatchesL, std::vector<std::string> vPatchesR, std::vector<cElHomographie> vHomoL, std::vector<cElHomographie> vHomoR, bool bPrint)
-{
-    //cout<<aSubPatchXml<<endl;
-    cSetOfPatches aDAFout;
-
-    cMes1Im aIms1;
-    cMes1Im aIms2;
-
-    aIms1.NameIm() = GetFileName(aImg1);
-    aIms2.NameIm() = GetFileName(aImg2);
-
-    //cout<<aIms1.NameIm()<<endl;
-
-    int nPatchNumL = vPatchesL.size();
-    int nPatchNumR = vPatchesR.size();
-    for(int i=0; i < nPatchNumL; i++)
-    {
-        //cout<<i<<"/"<<nPatchNum<<endl;
-        cOnePatch1I patch1;
-        patch1.NamePatch() = vPatchesL[i];
-        patch1.PatchH() = vHomoL[i].ToXml();
-        aIms1.OnePatch1I().push_back(patch1);
-
-        if(bPrint)
-        {
-            printf("%d, %s: \n", i, vPatchesL[i].c_str());
-            vHomoL[i].Show();
-        }
-    }
-
-    for(int i=0; i < nPatchNumR; i++)
-    {
-        cOnePatch1I patch2;
-        patch2.NamePatch() = vPatchesR[i];
-        patch2.PatchH() = vHomoR[i].ToXml();
-        aIms2.OnePatch1I().push_back(patch2);
-
-        if(bPrint)
-        {
-            printf("%d, %s: \n", i, vPatchesR[i].c_str());
-            vHomoR[i].Show();
-        }
-    }
-
-    aDAFout.Mes1Im().push_back(aIms1);
-    aDAFout.Mes1Im().push_back(aIms2);
-
-    MakeFileXML(aDAFout, aSubPatchXml);
 }
 
 //simply clip images to get master patches (m patches), and resample images to get secondary patches (m patches). The number of pairs to be matched will be m.

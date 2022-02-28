@@ -441,6 +441,8 @@ void GetUniqImgList(std::vector<std::string> aInput, std::vector<std::string>& a
 void ReadTfw(std::string tfwFile, std::vector<double>& aTmp);
 void SaveTfw(std::string tfwFile, Pt2dr aOrthoResolPlani, Pt2dr aOrthoOriPlani);
 std::string RemoveOri(std::string aOri);
+void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, std::vector<std::string> vPatchesL, std::vector<std::string> vPatchesR, std::vector<cElHomographie> vHomoL, std::vector<cElHomographie> vHomoR, bool bPrint);
+std::string GetFileName(std::string strIn);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/

@@ -323,6 +323,8 @@ int SuperGlue_main(int argc,char ** argv)
 
    bool bRotHyp = false;
 
+   bool bSkipSpG = false;
+
    ElInitArgMain
     (
         argc,argv,
@@ -334,7 +336,9 @@ int SuperGlue_main(int argc,char ** argv)
                     << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(aCheckNb,"CheckNb",true,"Radius of the search space for SuperGlue (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=-1 (means don't check search space)")
                << EAM(bRotHyp, "RotHyp", true, "Apply rotation hypothesis (if true, the secondary image will be rotated by 90 degreee 4 times and the matching with the largest correspondences will be kept), Def=false")
-    );
+
+               << EAM(bSkipSpG, "SkipSpG", true, "Skip executing SuperGlue for testing custom network(for developpers only), Def=false")
+               );
 
    std::vector<std::string> CmmdRmFilesVec;
 
@@ -426,7 +430,8 @@ int SuperGlue_main(int argc,char ** argv)
            cmmd += aParaOpt + " " + strOpt;
 
            printf("%s\n", cmmd.c_str());
-           System(cmmd);
+           if(bSkipSpG == false)
+               System(cmmd);
        }
 
        Npz2Homol(aCAS3D.mResize, aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs, aCAS3D.mKeepNpzFile, aCheckNb, aCAS3D.mPrint, bRotHyp, aCAS3D.mViz);

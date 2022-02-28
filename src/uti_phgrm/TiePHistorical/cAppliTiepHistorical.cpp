@@ -993,8 +993,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
         }
         */
         if(mExe && (!mSkipTentativeMatch))
-            cEl_GPAO::DoComInParal(aComList);
-            //cEl_GPAO::DoComInSerie(aComList);
+            //cEl_GPAO::DoComInParal(aComList);
+            cEl_GPAO::DoComInSerie(aComList);
     }
     else
     {
@@ -2248,10 +2248,14 @@ cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1
 {
     double aEpslon = 0.0000001;
     cSolBasculeRig aSBR = cSolBasculeRig::Id();
-    cSolBasculeRig aSBRBest = cSolBasculeRig::Id();
+    //cSolBasculeRig aSBRBest = cSolBasculeRig::Id();
     int i, j;
     int nMaxInlier = 0;
     std::vector<ElCplePtsHomologues> inlierCur;
+    std::vector<Pt3dr> aInlierCur3DL;
+    std::vector<Pt3dr> aInlierCur3DR;
+    std::vector<Pt3dr> aInlierFinal3DL;
+    std::vector<Pt3dr> aInlierFinal3DR;
     int nPtNum = aV1.size();
 
     for(j=0; j<aNbTir; j++)
@@ -2299,13 +2303,13 @@ cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1
         {
             aRBR.AddExemple(aV1[res[i]],aV2[res[i]],0,"");
             inlierCur.push_back(ElCplePtsHomologues(a2dV1[res[i]], a2dV2[res[i]]));
+            aInlierCur3DL.push_back(aV1[res[i]]);
+            aInlierCur3DR.push_back(aV2[res[i]]);
             /*
             printf("%dth, seed: %d; [%.2lf, %.2lf, %.2lf]; [%.2lf, %.2lf, %.2lf]\n", i,res[i], aV1[res[i]].x, aV1[res[i]].y, aV1[res[i]].z, aV2[res[i]].x, aV2[res[i]].y, aV2[res[i]].z);
             printf("[%.2lf, %.2lf]; [%.2lf, %.2lf]\n", a2dV1[res[i]].x, a2dV1[res[i]].y, a2dV2[res[i]].x, a2dV2[res[i]].y);
             */
         }
-
-
 
         aRBR.CloseWithTrGlob();
         aRBR.ExploreAllRansac();
@@ -2326,21 +2330,44 @@ cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1
             if(dist < threshold)
             {
                 inlierCur.push_back(ElCplePtsHomologues(a2dV1[i], a2dV2[i]));
+                aInlierCur3DL.push_back(aV1[i]);
+                aInlierCur3DR.push_back(aV2[i]);
                 nInlier++;
             }
         }
         if(nInlier > nMaxInlier)
         {
             nMaxInlier = nInlier;
-            aSBRBest = aSBR;
+            //aSBRBest = aSBR;
             inlierFinal = inlierCur;
+            aInlierFinal3DL = aInlierCur3DL;
+            aInlierFinal3DR = aInlierCur3DR;
             printf("Iter: %d/%d, seed: %d, %d, %d;  ", j, aNbTir, res[0], res[1], res[2]);
-            printf("nPtNum: %d, nMaxInlier: %d\n", nPtNum, nMaxInlier);
+            printf("nPtNum: %d, nMaxInlier: %d; ", nPtNum, nMaxInlier);
+
+            Pt3dr aTr = aSBR.Tr();
+            double aLambda = aSBR.Lambda();
+            printf("aLambda: %.2lf, aTr: [%.2lf, %.2lf, %.2lf]; \n", aLambda, aTr.x, aTr.y, aTr.z);
+            //ElMatrix<double> aRot = aSBR.Rot();
         }
 
         inlierCur.clear();
+        aInlierCur3DL.clear();
+        aInlierCur3DR.clear();
     }
-    return aSBRBest;
+    printf("nMaxInlier: %d\n", int(aInlierFinal3DL.size()));
+    //printf("nMaxInlier: %d\n", int(inlierFinal.size()));
+
+    cRansacBasculementRigide aRBR(false);
+    for(int i=0; i<int(aInlierFinal3DL.size()); i++)
+    {
+        aRBR.AddExemple(aInlierFinal3DL[i], aInlierFinal3DR[i],0,"");
+    }
+    aRBR.CloseWithTrGlob();
+    aRBR.ExploreAllRansac();
+    aSBR = aRBR.BestSol();
+
+    return aSBR;
 }
 
 void Save3DXml(std::vector<Pt3dr> vPt3D, std::string aOutXml)
@@ -2705,4 +2732,65 @@ int TransmitHelmert_main(int argc,char ** argv)
     */
 
    return EXIT_SUCCESS;
+}
+
+void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, std::vector<std::string> vPatchesL, std::vector<std::string> vPatchesR, std::vector<cElHomographie> vHomoL, std::vector<cElHomographie> vHomoR, bool bPrint)
+{
+    //cout<<aSubPatchXml<<endl;
+    cSetOfPatches aDAFout;
+
+    cMes1Im aIms1;
+    cMes1Im aIms2;
+
+    aIms1.NameIm() = GetFileName(aImg1);
+    aIms2.NameIm() = GetFileName(aImg2);
+
+    //cout<<aIms1.NameIm()<<endl;
+
+    int nPatchNumL = vPatchesL.size();
+    int nPatchNumR = vPatchesR.size();
+    for(int i=0; i < nPatchNumL; i++)
+    {
+        //cout<<i<<"/"<<nPatchNum<<endl;
+        cOnePatch1I patch1;
+        patch1.NamePatch() = vPatchesL[i];
+        patch1.PatchH() = vHomoL[i].ToXml();
+        aIms1.OnePatch1I().push_back(patch1);
+
+        if(bPrint)
+        {
+            printf("%d, %s: \n", i, vPatchesL[i].c_str());
+            vHomoL[i].Show();
+        }
+    }
+
+    for(int i=0; i < nPatchNumR; i++)
+    {
+        cOnePatch1I patch2;
+        patch2.NamePatch() = vPatchesR[i];
+        patch2.PatchH() = vHomoR[i].ToXml();
+        aIms2.OnePatch1I().push_back(patch2);
+
+        if(bPrint)
+        {
+            printf("%d, %s: \n", i, vPatchesR[i].c_str());
+            vHomoR[i].Show();
+        }
+    }
+
+    aDAFout.Mes1Im().push_back(aIms1);
+    aDAFout.Mes1Im().push_back(aIms2);
+
+    MakeFileXML(aDAFout, aSubPatchXml);
+}
+
+std::string GetFileName(std::string strIn)
+{
+    std::string strOut = strIn;
+
+    std::size_t found = strIn.find("/");
+    if (found!=std::string::npos)
+        strOut = strIn.substr(found+1, strIn.length());
+
+    return strOut;
 }

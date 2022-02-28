@@ -74,7 +74,7 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
-bool Get3DCoorFromOrthoDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std::string aDSMDir, std::string aDSMFile, std::string aOrthoDir, std::string aOrthoFile)
+Pt2dr Get3DCoorFromOrthoDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std::string aDSMDir, std::string aDSMFile, std::string aOrthoDir, std::string aOrthoFile)
 {
     aDSMDir += "/";
     cout<<aDSMDir + aDSMFile<<endl;
@@ -133,10 +133,10 @@ bool Get3DCoorFromOrthoDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D,
         vPt3D.push_back(Pt3dr(dX, dY, dZ));
     }
     printf("%d tie points processed\n", int(vPt2D.size()));
-    return true;
+    return Pt2dr(aOrthoResolPlani.x, aOrthoResolPlani.y);
 }
 
-void Get3DCoorFromDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std::string aDSMDir, std::string aDSMFile)
+Pt2dr Get3DCoorFromDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std::string aDSMDir, std::string aDSMFile)
 {
     aDSMDir += "/";
     cout<<aDSMDir + aDSMFile<<endl;
@@ -183,6 +183,7 @@ void Get3DCoorFromDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std:
         vPt3D.push_back(Pt3dr(dX, dY, dZ));
     }
     printf("%d tie points processed\n", int(vPt2D.size()));
+    return Pt2dr(aResolPlani.x, aResolPlani.y);
 }
 
 void Save3DTxt(std::vector<Pt3dr> vPt3D, std::string aOutTxt)
@@ -228,6 +229,7 @@ void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string 
        nOriPtNum++;
     }
     cout<<"Correspondences number: "<<nOriPtNum<<endl;
+
 
     if(bUseOrtho == true)
     {
@@ -349,6 +351,10 @@ void InlierRatio(std::string aDSMGrayImgDir, std::string aTransFile, std::string
     if (aOrthoDirL.length()>0 && aOrthoDirR.length()>0 && ELISE_fp::exist_file(aOrthoDirL+"/"+aOrthoFileL) == true && ELISE_fp::exist_file(aOrthoDirR+"/"+aOrthoFileR) == true)
         bUseOrtho = true;
 
+    std::string aCom = "mm3d SEL" + BLANK + aDSMGrayImgDir + BLANK + aDSMGrayImg1 + BLANK + aDSMGrayImg2 + BLANK + "KH=NT SzW=[600,600] SH="+aCreateGCPsInSH;
+    std::string aComInv = "mm3d SEL" + BLANK + aDSMGrayImgDir + BLANK + aDSMGrayImg2 + BLANK + aDSMGrayImg1 + BLANK + "KH=NT SzW=[600,600] SH="+aCreateGCPsInSH;
+    printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
+
     std::string aDir_inSH = aDSMGrayImgDir + "/Homol" + aCreateGCPsInSH+"/";
     std::string aNameIn = aDir_inSH +"Pastis" + aDSMGrayImg1 + "/"+aDSMGrayImg2+".txt";
         if (ELISE_fp::exist_file(aNameIn) == false)
@@ -374,15 +380,16 @@ void InlierRatio(std::string aDSMGrayImgDir, std::string aTransFile, std::string
     }
     cout<<"Correspondences number: "<<nOriPtNum<<endl;
 
+    Pt2dr aResol(0,0);
     if(bUseOrtho == true)
     {
         Get3DCoorFromOrthoDSM(vPt2DL, vPt3DL, aDSMDirL, aDSMFileL, aOrthoDirL, aOrthoFileL);
-        Get3DCoorFromOrthoDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR, aOrthoDirR, aOrthoFileR);
+        aResol = Get3DCoorFromOrthoDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR, aOrthoDirR, aOrthoFileR);
     }
     else
     {
         Get3DCoorFromDSM(vPt2DL, vPt3DL, aDSMDirL, aDSMFileL);
-        Get3DCoorFromDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR);
+        aResol = Get3DCoorFromDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR);
     }
 
     if (ELISE_fp::exist_file(aTransFile) == false){
@@ -394,6 +401,9 @@ void InlierRatio(std::string aDSMGrayImgDir, std::string aTransFile, std::string
     cSolBasculeRig aSBR = Xml2EL(*aXBR);
     int nPtNum = vPt3DL.size();
     int nInlier = 0;
+
+    double dAve=0;
+    FILE * fpOutput = fopen((aDSMGrayImgDir+"/Eval"+aCreateGCPsInSH+".txt").c_str(), "w");
     for(int i=0; i<nPtNum; i++)
     {
         Pt3dr aP1 = vPt3DL[i];
@@ -401,10 +411,24 @@ void InlierRatio(std::string aDSMGrayImgDir, std::string aTransFile, std::string
 
         Pt3dr aP2Pred = aSBR(aP1);
         double dist = pow(pow(aP2Pred.x-aP2.x,2) + pow(aP2Pred.y-aP2.y,2) + pow(aP2Pred.z-aP2.z,2), 0.5);
+        dAve += dist;
+
+        fprintf(fpOutput, "%d %lf", i, dist);
         if(dist < threshold)
             nInlier++;
+        else
+            fprintf(fpOutput, "  *Outlier*");
+        fprintf(fpOutput, "\n");
     }
+    dAve = dAve*1.0/nPtNum;
+    fprintf(fpOutput, "------------------------------------------------\n");
+    fprintf(fpOutput, "Total tie point: %d;  Outlier: %d;  Inlier: %d\n", nPtNum, nPtNum-nInlier, nInlier);
+    fprintf(fpOutput, "Total Ave: %lf (%.2lf pix)\n", dAve, dAve/aResol.x);
+    fclose(fpOutput);
     printf("--->>>Total Pt: %d; Total inlier: %d; Inlier Ratio: %.2lf%%\n", nPtNum, nInlier, nInlier*100.0/nPtNum);
+    printf("Total Ave: %lf (%.2lf pix)\n", dAve, dAve/aResol.x);
+    cout<<"Tie points difference saved in:"<<endl;
+    cout<<"gedit "<<aDSMGrayImgDir+"/Eval"+aCreateGCPsInSH+".txt"<<endl;
 }
 
 int InlierRatio_main(int argc,char ** argv)

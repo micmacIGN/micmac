@@ -518,6 +518,7 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
         }
         int nStartX = int(dMinX + ((dMaxX - dMinX) - nNumX*aPatchSz.x)/2);
         int nStartY = int(dMinY + ((dMaxY - dMinY) - nNumY*aPatchSz.y)/2);
+        printf("zone in master image which is overlapping with secondary image: dMaxX, dMinX, dMaxY, dMinY: %lf, %lf, %lf, %lf\n", dMaxX, dMinX, dMaxY, dMinY);
         printf("%d, %d, %d, %d\n%lf  %lf\n", nNumX, nNumY, nStartX, nStartY, aPatchSz.x, aPatchSz.y);
         for(int i=0; i<nNumX; i++)
         {
@@ -552,6 +553,8 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
 
     printf("************************************************\n%s, %s\n", aImg1.c_str(), aImg2.c_str());
     //std::vector<std::string> aMvTxtCmmd;
+    std::vector<std::string> vPatchesL, vPatchesR;
+    std::vector<cElHomographie> vHomoL, vHomoR;
     for(int m=0; m<int(centerX.size()); m++)
     {
         for(int n=0; n<int(centerY.size()); n++)
@@ -604,19 +607,48 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
                 continue;
             }
 
-            std::string aSubImgL = StdPrefix(aImg1) + "_" + StdPrefix(aImg2) + "_" + std::to_string(m) + "_" + std::to_string(n) + "_L." + StdPostfix(aImg1);
-            std::string aSubImgR = StdPrefix(aImg1) + "_" + StdPrefix(aImg2) + "_" + std::to_string(m) + "_" + std::to_string(n) + "_R." + StdPostfix(aImg1);
 
             if(CheckInDSMBorder(aPatchCornerR, aPatchSz, a3DR, aDSMInfoR, bPrint) == false || CheckInDSMBorder(aPatchCornerL, aPatchSz, a3DL, aDSMInfoL, bPrint) == false){
                 printf("DSM patch out of border or mask, hence skipped.\n");
-                continue;
+                //continue;
             }
+
+            std::string aSubImgL = StdPrefix(aImg1) + "_" + StdPrefix(aImg2) + "_" + std::to_string(m) + "_" + std::to_string(n) + "_L." + StdPostfix(aImg1);
+            std::string aSubImgR = StdPrefix(aImg1) + "_" + StdPrefix(aImg2) + "_" + std::to_string(m) + "_" + std::to_string(n) + "_R." + StdPostfix(aImg1);
 
             //crop master RGB patch
             CropPatch(aPtOriL, aPatchSz, aImg1, aOutDirImg, aSubImgL, aOutDirRGBTxt, bKeepRGBPatch, dScaleL);
 
             //Crop roughly aligned patches in secondary image
             cElHomographie aHomo = GetSecondaryPatch(aPatchCornerR, aPatchSz, aImg2, aSubImgR, bPrint, aOutDirImg, aOutDirRGBTxt, bKeepRGBPatch, dScaleR);
+
+
+            cElComposHomographie aFstHX(1, 0, aPatchCornerL[0].x);
+            cElComposHomographie aFstHY(0, 1, aPatchCornerL[0].y);
+            cElComposHomographie aFstHZ(0, 0,        1);
+            cElHomographie  aFstH =  cElHomographie(aFstHX,aFstHY,aFstHZ);
+/*
+            cElComposHomographie aUnitHX(1, 0, 0);
+            cElComposHomographie aUnitHY(0, 1, 0);
+            cElComposHomographie aUnitHZ(0, 0, 1);
+            cElHomographie  aSndH =  cElHomographie(aUnitHX,aUnitHY,aUnitHZ);
+
+            Pt2dr aPCornerPatch[4];
+            GetCorners(Pt2dr(0,0), aPatchSz, aPCornerPatch);
+            ElPackHomologue aPack;
+                for(int k=0; k<4; k++)
+                {
+                    aPack.Cple_Add(ElCplePtsHomologues(aPCornerPatch[k], aPCornerR[k]));
+                }
+
+                double anEcart,aQuality;
+                bool Ok;
+                aSndH = cElHomographie::RobustInit(anEcart,&aQuality,aPack,Ok,50,80.0,2000);
+                */
+                vPatchesL.push_back(aSubImgL);
+                vHomoL.push_back(aFstH);
+                vPatchesR.push_back(aSubImgR);
+                vHomoR.push_back(aHomo.Inverse());
 
             //Crop master DSM patch
             GetDSMPatch(aSubImgL, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aDSMInfoL, bPrint, aOutDirDSM, aOutDirDSMTxt, bKeepDSMPatch);
@@ -659,6 +691,7 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
 */
         }
     }
+    WriteXml(aImg1, aImg2, aSceneDir+"SubPatch.xml", vPatchesL, vPatchesR, vHomoL, vHomoR, bPrint);
 /*
     for(int i=0; i<int(aMvTxtCmmd.size()); i++){
         cout<<aMvTxtCmmd[i]<<endl;

@@ -292,6 +292,10 @@ void GlobalR3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipula
 
          printf("iteration number: %d; thresh: %lf\n", aNbTir, threshold);
          aSBR = RANSAC3DCore(aNbTir, threshold, aV1, aV2, a2dV1, a2dV2, inlierFinal);
+         Pt3dr aTr = aSBR.Tr();
+         double aLambda = aSBR.Lambda();
+         printf("Final aLambda: %.2lf, aTr: [%.2lf, %.2lf, %.2lf]\n", aLambda, aTr.x, aTr.y, aTr.z);
+
          aMsg = "Use 3D RANSAC to automatically estimate 3D Helmet transformation using tie points in Homol" + inSH;
      }
 
@@ -510,7 +514,7 @@ int GlobalR3D_main(int argc,char ** argv)
        GetImgListVec(aImgList1, aVIm1Tmp);
        GetImgListVec(aImgList2, aVIm2Tmp);
        for(int i=0; i<int(aVIm1Tmp.size()); i++){
-           for(int j=0; j<int(aVIm1Tmp.size()); j++){
+           for(int j=0; j<int(aVIm2Tmp.size()); j++){
                aVIm1.push_back(aVIm1Tmp[i]);
                aVIm2.push_back(aVIm2Tmp[j]);
            }
@@ -546,7 +550,7 @@ int GetOrthoHom_main(int argc,char ** argv)
    std::string aDSMFileR = "MMLastNuage.xml";
 
    std::string aInSH = "";
-   std::string aImgPair;
+   std::string aImgPair = "";
 
    std::string aOrthoDirL;
    std::string aOrthoDirR;
@@ -604,7 +608,7 @@ int GetOrthoHom_main(int argc,char ** argv)
        GetImgListVec(aImgList1, aVIm1Tmp);
        GetImgListVec(aImgList2, aVIm2Tmp);
        for(int i=0; i<int(aVIm1Tmp.size()); i++){
-           for(int j=0; j<int(aVIm1Tmp.size()); j++){
+           for(int j=0; j<int(aVIm2Tmp.size()); j++){
                aVIm1.push_back(aVIm1Tmp[i]);
                aVIm2.push_back(aVIm2Tmp[j]);
            }
