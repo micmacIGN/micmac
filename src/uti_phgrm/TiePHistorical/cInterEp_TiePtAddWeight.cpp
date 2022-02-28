@@ -146,7 +146,7 @@ void TiePtAddWeight(std::string aDir, std::string aInSH, std::string aOutSH, int
         nTiePtNumTotal += nTiePtNum;
         nFileNum++;
     }
-    printf("nTiePtNumTotal: %d;  nFileNum: %d\n", nTiePtNumTotal, nFileNum);
+    printf("nTiePtNumTotal: %d; nTiePtNumHalf: %d;  nFileNum: %d\nResult saved in %s\n", nTiePtNumTotal, int(nTiePtNumTotal/2), nFileNum, aDir_outSH.c_str());
 }
 
 int TiePtAddWeight_main(int argc,char ** argv)

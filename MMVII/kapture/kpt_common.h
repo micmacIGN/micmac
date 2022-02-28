@@ -9,7 +9,7 @@
 #include <vector>
 #include <set>
 #include <iostream>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <stdexcept>
 
 // #define KAPTURE_USE_EIGEN
@@ -19,9 +19,6 @@
 #endif
 
 
-namespace std {
-namespace filesystem = std::experimental::filesystem;
-}
 
 
 // FIXME CM: Faire les write

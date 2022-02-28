@@ -13,7 +13,7 @@ class cAppli_StatDisc : public cMMVII_Appli
        typedef tREAL8        tElIm;
        typedef cIm2D<tElIm> tIm;
 
-       cAppli(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
+       cAppli_StatDisc(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
          int Exe() override;
 	 /*
          cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;

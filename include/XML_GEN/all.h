@@ -1602,8 +1602,7 @@ bool IsMacType(eTypeMMByP aType);
 
 void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName);
 
-
-
+double UneUniteEnRadian(eUniteAngulaire aUnit);
 
 
 

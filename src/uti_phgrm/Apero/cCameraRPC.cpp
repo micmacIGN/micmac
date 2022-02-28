@@ -1128,6 +1128,8 @@ void cRPC::Initialize(const std::string &aName,
                       const cSystemeCoord *aChSys
                       )
 {
+    /* Set rPC type */
+    SetType(aType);
 
     std::string aNameRPC=aName;
     if(AutoDetermineRPCFile(aName))
@@ -1144,7 +1146,7 @@ void cRPC::Initialize(const std::string &aName,
     if(aChSys)
         mChSys = *aChSys;
 
-    if(aType==eTIGB_MMDimap2)
+    if( (aType==eTIGB_MMDimap2) || (aType==eTIGB_MMDimap3))
     {
         ReadDimap(aNameRPC);
 	    //Show();       
@@ -2200,7 +2202,7 @@ if(0)
             aPDifMoy.y += aPDif.y;
         }
 
-		if (false &&   ERupnik_MM())
+		if (ERupnik_MM())
 		{
         	std::cout << "xxRPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
                                        <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << "]\n";
@@ -3704,61 +3706,75 @@ void cRPC::ReadDimap(const std::string &aFile)
 
     std::list<cElXMLTree*>::iterator aIt;
 
-    std::string aSNumStr;
-    std::string aSDenStr;
-    std::string aLNumStr;
-    std::string aLDenStr;
+    std::string aSNumStr_i2g, aSNumStr_g2i;
+    std::string aSDenStr_i2g, aSDenStr_g2i;
+    std::string aLNumStr_i2g, aLNumStr_g2i;
+    std::string aLDenStr_i2g, aLDenStr_g2i;
 
+
+    std::string im_to_ground;
+    std::string ground_to_im;
+    if (mType==eTIGB_MMDimap2)
     {
-        std::list<cElXMLTree*> aNoeuds = aTree.GetAll(std::string("Direct_Model"));
+ 	im_to_ground="Direct_Model";
+        ground_to_im="Inverse_Model";
 
+	aSNumStr_i2g = "SAMP_NUM_COEFF_";
+        aSDenStr_i2g = "SAMP_DEN_COEFF_";
+        aLNumStr_i2g = "LINE_NUM_COEFF_";
+        aLDenStr_i2g = "LINE_DEN_COEFF_";
+
+	aSNumStr_g2i = "SAMP_NUM_COEFF_";
+        aSDenStr_g2i = "SAMP_DEN_COEFF_";
+        aLNumStr_g2i = "LINE_NUM_COEFF_";
+        aLDenStr_g2i = "LINE_DEN_COEFF_";
+	
+    }
+    else if (mType==eTIGB_MMDimap3)
+    {
+	im_to_ground="ImagetoGround_Values";
+        ground_to_im="GroundtoImage_Values";
+
+	aSNumStr_g2i = "SAMP_NUM_COEFF_";
+        aSDenStr_g2i = "SAMP_DEN_COEFF_";
+        aLNumStr_g2i = "LINE_NUM_COEFF_";
+        aLDenStr_g2i = "LINE_DEN_COEFF_";
+
+	aSNumStr_i2g = "LON_NUM_COEFF_";
+        aSDenStr_i2g = "LON_DEN_COEFF_";
+        aLNumStr_i2g = "LAT_NUM_COEFF_";
+        aLDenStr_i2g = "LAT_DEN_COEFF_";
+    }
+    
+    {
+        std::list<cElXMLTree*> aNoeuds = aTree.GetAll(im_to_ground);
 
         for (aK=1; aK<21; aK++)
         {
-            aSNumStr = "SAMP_NUM_COEFF_";
-            aSDenStr = "SAMP_DEN_COEFF_";
-            aLNumStr = "LINE_NUM_COEFF_";
-            aLDenStr = "LINE_DEN_COEFF_";
-
-            aSNumStr = aSNumStr + ToString(aK);
-            aSDenStr = aSDenStr + ToString(aK);
-            aLNumStr = aLNumStr+ ToString(aK);
-            aLDenStr = aLDenStr+ ToString(aK);
 
             for(aIt=aNoeuds.begin(); aIt!=aNoeuds.end(); aIt++)
             {
-
-                mDirSNum[aK-1] = std::atof((*aIt)->GetUnique(aSNumStr.c_str())->GetUniqueVal().c_str());
-                mDirSDen[aK-1] = std::atof((*aIt)->GetUnique(aSDenStr.c_str())->GetUniqueVal().c_str());
-                mDirLNum[aK-1] = std::atof((*aIt)->GetUnique(aLNumStr.c_str())->GetUniqueVal().c_str());
-                mDirLDen[aK-1] = std::atof((*aIt)->GetUnique(aLDenStr.c_str())->GetUniqueVal().c_str());
+                mDirSNum[aK-1] = std::atof((*aIt)->GetUnique((aSNumStr_i2g+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mDirSDen[aK-1] = std::atof((*aIt)->GetUnique((aSDenStr_i2g+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mDirLNum[aK-1] = std::atof((*aIt)->GetUnique((aLNumStr_i2g+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mDirLDen[aK-1] = std::atof((*aIt)->GetUnique((aLDenStr_i2g+ToString(aK)).c_str())->GetUniqueVal().c_str());
             }
         }
     }
 
     {
-        std::list<cElXMLTree*> aNoeudsInv = aTree.GetAll(std::string("Inverse_Model"));
+        std::list<cElXMLTree*> aNoeudsInv = aTree.GetAll(ground_to_im);
 
         for (aK=1; aK<21; aK++)
         {
             
-            aSNumStr = "SAMP_NUM_COEFF_";
-            aSDenStr = "SAMP_DEN_COEFF_";
-            aLNumStr = "LINE_NUM_COEFF_";
-            aLDenStr = "LINE_DEN_COEFF_";
-
-            aSNumStr = aSNumStr + ToString(aK);
-            aSDenStr = aSDenStr + ToString(aK);
-            aLNumStr = aLNumStr+ ToString(aK);
-            aLDenStr = aLDenStr+ ToString(aK);
 
             for(aIt=aNoeudsInv.begin(); aIt!=aNoeudsInv.end(); aIt++)
             {
-
-                mInvSNum[aK-1] = std::atof((*aIt)->GetUnique(aSNumStr.c_str())->GetUniqueVal().c_str());
-                mInvSDen[aK-1] = std::atof((*aIt)->GetUnique(aSDenStr.c_str())->GetUniqueVal().c_str());
-                mInvLNum[aK-1] = std::atof((*aIt)->GetUnique(aLNumStr.c_str())->GetUniqueVal().c_str());
-                mInvLDen[aK-1] = std::atof((*aIt)->GetUnique(aLDenStr.c_str())->GetUniqueVal().c_str());
+                mInvSNum[aK-1] = std::atof((*aIt)->GetUnique((aSNumStr_g2i+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mInvSDen[aK-1] = std::atof((*aIt)->GetUnique((aSDenStr_g2i+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mInvLNum[aK-1] = std::atof((*aIt)->GetUnique((aLNumStr_g2i+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mInvLDen[aK-1] = std::atof((*aIt)->GetUnique((aLDenStr_g2i+ToString(aK)).c_str())->GetUniqueVal().c_str());
             }
         }
         

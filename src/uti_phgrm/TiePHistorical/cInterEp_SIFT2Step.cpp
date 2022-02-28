@@ -104,7 +104,7 @@ ElSimilitude EstimateHomography(std::string aDir, std::string aImg1, std::string
 
     if(IsHomolFileExist(aDir, aImg1, aImg2, CurSH+"-2DRANSAC", bCheckFile) == false)
     {
-        std::string aParaOpt = "";
+        std::string aParaOpt = " Dir="+aDir;
         if(bCheckSclRot == true)
         {
             aParaOpt += " CheckSclRot=" + ToString(bCheckSclRot);
@@ -187,9 +187,9 @@ ElSimilitude ReverseSimi(ElSimilitude aSimCur)
 */
 void SIFT2Step(std::string aDir, std::string aImg1, std::string aImg2, std::string outSH, double dScale, bool bCheckFile, double dScaleL, double dScaleR, double aR2DTh1st, double aR2dIter1st, ElSimilitude aSimCur, double dSearchSpace, bool bPrint,  bool aCheckScale, bool aCheckAngle, double aThreshScale, double aThreshAngle, bool bSkip1stSIFT, bool bSkip2ndSIFT, bool bCheckSclRot, double aThreshScaleR2D, double aThreshAngleR2D)
 {
-    Tiff_Im aRGBIm1(aImg1.c_str());
+    Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
     Pt2di ImgSzL = aRGBIm1.sz();
-    Tiff_Im aRGBIm2(aImg2.c_str());
+    Tiff_Im aRGBIm2((aDir+"/"+aImg2).c_str());
     Pt2di ImgSzR = aRGBIm2.sz();
 
     std::string aImg1Key = ExtractSIFT(aImg1, aDir, dScaleL);
@@ -248,10 +248,6 @@ void SIFT2Step(std::string aDir, std::string aImg1, std::string aImg2, std::stri
         SaveSIFTHomolFile(aDir, aImg1, aImg2, outSH, match, aVSiftOriL, aVSiftOriR, bPrint);
 
         cout<<"Extracted tie point number: "<<match.size()<<endl;
-
-        std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-        std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-        printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
     }
 }
 
@@ -365,7 +361,16 @@ int SIFT2Step_main(int argc,char ** argv)
                << EAM(bSkip2ndSIFT, "Skip2ndSIFT", true, "Skip the second step of SIFT matching, Def=false")
          );
 
+   std::string aDir = aCAS3D.mDir;
        //aThreshAngleR2D = aThreshAngleR2D*3.14/180;
+
+   string::size_type position;
+   position = aDir.find_last_of("/");
+   cout<<position<<endl;
+   if (position != aDir.length()-1){
+       aDir = aDir+"/";
+   }
+
 
        bool bR3D = true;
        if(aOri1.length()==0 && aOri2.length()==0 && aDSMDirL.length()==0 && aDSMDirR.length()==0)
@@ -373,9 +378,9 @@ int SIFT2Step_main(int argc,char ** argv)
            bR3D = false;
        }
 
-       if (ELISE_fp::exist_file(aImg1) == false || ELISE_fp::exist_file(aImg2) == false)
+       if (ELISE_fp::exist_file(aDir+aImg1) == false || ELISE_fp::exist_file(aDir+aImg2) == false)
        {
-           cout<<aImg1<<" or "<<aImg2<<" didn't exist, hence skipped (SIFT2Step_main)"<<endl;
+           cout<<aDir+aImg1<<" or "<<aDir+aImg2<<" didn't exist, hence skipped (SIFT2Step_main)"<<endl;
            return EXIT_SUCCESS;
        }
 
@@ -386,21 +391,20 @@ int SIFT2Step_main(int argc,char ** argv)
        if(aSimiFile.length() == 0)
            aSimCur = ElSimilitude();
        else
-           aSimCur = ReadSimi(aCAS3D.mDir, aSimiFile, bSimi);//aSimiVec[i];
+           aSimCur = ReadSimi(aDir, aSimiFile, bSimi);//aSimiVec[i];
 
        if(bSimi == true)
            bSkip1stSIFT = true;
 
-       SIFT2Step(aCAS3D.mDir, aImg1, aImg2, aOutSH, dScale, bCheckFile, dScaleL, dScaleR, aR2DTh1st, aR2dIter1st, aSimCur, dSearchSpace, aCAS3D.mPrint, aCheckScale, aCheckAngle, aThreshScale, aThreshAngle, bSkip1stSIFT, bSkip2ndSIFT, bCheckSclRot, aThreshScaleR2D, aThreshAngleR2D);
+       SIFT2Step(aDir, aImg1, aImg2, aOutSH, dScale, bCheckFile, dScaleL, dScaleR, aR2DTh1st, aR2dIter1st, aSimCur, dSearchSpace, aCAS3D.mPrint, aCheckScale, aCheckAngle, aThreshScale, aThreshAngle, bSkip1stSIFT, bSkip2ndSIFT, bCheckSclRot, aThreshScaleR2D, aThreshAngleR2D);
 
        if(bSkip2ndSIFT == false)
        {
-           std::string aDir = aCAS3D.mDir;
            if(bR3D == false)
            {
                if(IsHomolFileExist(aDir, aImg1, aImg2, aOutSH+"-2DRANSAC", bCheckFile) == false)
                {
-                   std::string aOptPara=""; //aCAS3D.ComParamRANSAC2D();
+                   std::string aOptPara= " Dir="+aDir; //aCAS3D.ComParamRANSAC2D();
                    if (EAMIsInit(&aR2dIter2nd))          aOptPara +=  " 2DIter=" + ToString(aR2dIter2nd);
                    if (EAMIsInit(&aR2DTh2nd))          aOptPara +=  " 2DRANTh=" + ToString(aR2DTh2nd);
                    std::string CurSH = aOutSH;
@@ -413,7 +417,7 @@ int SIFT2Step_main(int argc,char ** argv)
            else {
                if(IsHomolFileExist(aDir, aImg1, aImg2, aOutSH+"-3DRANSAC", bCheckFile) == false)
                {
-                   std::string aOptPara = ""; //=aCAS3D.ComParamRANSAC3D();
+                   std::string aOptPara = " Dir="+aDir; //=aCAS3D.ComParamRANSAC3D();
                    if (EAMIsInit(&aR3DIteration))   aOptPara +=  " 3DIter=" + ToString(aR3DIteration);
                    if (EAMIsInit(&aR3DThreshold))   aOptPara +=  " 3DRANTh=" + ToString(aR3DThreshold);
                    if (EAMIsInit(&aMinPt))          aOptPara +=  " MinPt=" + ToString(aMinPt);
@@ -523,7 +527,7 @@ int SIFT2StepFile_main(int argc,char ** argv)
    std::vector<std::string> aOverlappedImgR;
    int nPairNum = GetXmlImgPair(aImgPair, aOverlappedImgL, aOverlappedImgR);
 
-   std::string aOptPara="";
+   std::string aOptPara=" Dir="+aCAS3D.mDir;
    if (EAMIsInit(&dScale))            aOptPara += " Scale=" + ToString(dScale);
    if (EAMIsInit(&aOutSH))            aOptPara += " OutSH=" + aOutSH;
    if (EAMIsInit(&bCheckFile))        aOptPara += " CheckFile=" + ToString(bCheckFile);

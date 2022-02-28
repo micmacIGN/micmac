@@ -19,7 +19,13 @@ More usage examples can be found in apipy/examples_py
 
 Documentation
 -------------
-See doc/
+See mmv2.html
+
+
+Examples
+--------
+
+[Example](ex/ex1.py)
 
 
 Compilation
@@ -31,19 +37,20 @@ Dependencies:
  - pkg-config
  - Python 3 headers
  - PIP for Python 3
- - Wheel for Python3
- - for documentation: doxygen, GraphViz
-
-Compile MMv1 and MMv2.
+ - Wheel for Python 3
+ - libclang for Python 3
+ - for documentation: doxygen and GraphViz, or pdoc3
 
 On debian:
     apt install swig python3-dev pkg-config python3-pip python3-numpy python3-wheel
-    apt install doxygen graphviz
+    pip3 install libclang
 
-Compilation:
+First, compile MMv1 and MMv2.
+
+Apipy compilation:
     make -f Makefile_apipy_linux
 
-If MMv1 was compiled with Qt:
+Or if MMv1 was compiled with Qt:
     make -f Makefile_apipy_linux USEQT=ON
 
 
@@ -59,8 +66,8 @@ Update pip if needed:
 Developement
 ------------
 
-To add MMv2 classes to python, add then to mmv2.i file (in "classes to export" part).
-Tu be able to use templates classes, use %template.
+To add MMv2 classes to python, add then to gen_fix_classes.py file (in "all_headers" list).
+To be able to use templates classes, use %template in mmv2.i
 If you want to be able to use python lists for objects of these classes, use %template.
 
 PIP package tutorial: https://packaging.python.org/tutorials/packaging-projects/

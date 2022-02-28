@@ -97,6 +97,7 @@ class cApply_CreateEpip_main
 
       cInterfChantierNameManipulateur * mICNM;
       void  IntervZAddIm(cBasicGeomCap3D *);
+      Box2dr  CalcBoxIm(cBasicGeomCap3D *);
 
 
 
@@ -143,6 +144,14 @@ class cApply_CreateEpip_main
       std::string        mNameOut;
       std::vector<double> mParamEICE;
 
+      Box2dr              mBoxTerrain;  // A box in terrain to limit computation, done for micmac manager
+      std::vector<Pt3dr>  mPtsLimTerr;  // Corner  in 3d
+      /*
+      Box2dr              mBoxIm1;      // Full image 1 or image of Boxterain in any
+      Box2dr              mBoxIm2;      // Full image 2 or image of Boxterain in any
+      */
+
+
       double SignedComputeEpipolarability(const Pt3dr & aP1) const;
       double AbsComputeEpipolarability(const Pt3dr & aP1) const;
       Pt3dr Tang(bool IsI1,const Pt3dr & aP1,double & aDist) const;
@@ -162,7 +171,42 @@ class cApply_CreateEpip_main
 
 
       std::vector<double>  mParamTestOh;
+
+
 };
+
+
+Box2dr    cApply_CreateEpip_main::CalcBoxIm(cBasicGeomCap3D * aG)
+{
+    Pt2dr aSz =  Pt2dr(aG->SzBasicCapt3D());
+
+    Box2dr aBoxFull(Pt2dr(-1,-1),aSz+Pt2dr(1,1));
+
+    if (EAMIsInit(&mBoxTerrain))
+    {
+         Pt2dr aPMin(1e20,1e20);
+         Pt2dr aPMax(-1e20,-1e20);
+	 for (const auto & aPTer : mPtsLimTerr)
+	 {
+              Pt2dr aPIm = aG->Ter2Capteur(aPTer);
+              aPMin = Inf(aPMin,aPIm);
+              aPMax = Sup(aPMax,aPIm);
+	 }
+
+	 aPMin = Sup(aPMin,aBoxFull.P0());
+	 aPMax = Inf(aPMax,aBoxFull.P1());
+
+         ELISE_ASSERT((aPMin.x<aPMax.x),"Proj of Box terrain dont intersect box image");
+         ELISE_ASSERT((aPMin.y<aPMax.y),"Proj of Box terrain dont intersect box image");
+	 
+	 return Box2dr(aPMin,aPMax);
+    }
+
+    return aBoxFull;
+}
+
+
+
 
 static  const  double aDZ = 1; // "Small" value to compute derivative
 Pt3dr  cApply_CreateEpip_main::Tang(bool IsI1,const Pt3dr & aPTer,double & aDist) const
@@ -263,6 +307,9 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
        )
 {
 std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
+    Box2dr  aBoxIm1 =    CalcBoxIm(aG1);
+    Box2dr  aBoxIm2 =    CalcBoxIm(aG2);
+
     bool DoCompEp = ForCheck;
     cElStatErreur aStatEp(10);
    
@@ -310,7 +357,9 @@ std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
             double aPdsY = ForCheck ? NRrandom3() : (aKY/double(aNbY));
             aPdsY = ElMax(aEps,ElMin(1-aEps,aPdsY));
             // Point in image 1 on regular gris
-            Pt2dr aPIm1 = aSz.mcbyc(Pt2dr(aPdsX,aPdsY));
+
+            // Pt2dr aPIm1 = aSz.mcbyc(Pt2dr(aPdsX,aPdsY));
+            Pt2dr aPIm1 = aBoxIm1.FromCoordLoc(Pt2dr(aPdsX,aPdsY));
             if (aG1->CaptHasData(aPIm1))
             {
                 Pt3dr aPT1;
@@ -358,11 +407,11 @@ std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
                           aPT2 = aC1 + (aPT1-aC1) * (1+mIProf*aPds);
                      }
 
-                     if (aG1->PIsVisibleInImage(aPT2) && aG2->PIsVisibleInImage(aPT2))
+                     if (aG1->PIsVisibleInImage(aPT2) && aG2->PIsVisibleInImage(aPT2) )
                      {
                         // Add projection
                         Pt2dr aPIm2 = aG2->Ter2Capteur(aPT2);
-                        if (aG2->CaptHasData(aPIm2))
+                        if (aG2->CaptHasData(aPIm2) &&  aBoxIm2.inside(aPIm2))
                         {
                             if (DoCompEp && (aKZ==0))
                             {
@@ -1431,6 +1480,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mXFitL2,"XCorrecL2",false,"L1/L2 Correction for X-Pax")
 		    << EAM(mNameOut,"Out",false,"To spcecify names of results")
 		    << EAM(mGenereImageDirEpip,"ImDir",false,"Generate image of direction of epipolar")
+		    << EAM(mBoxTerrain,"BoxTer",false,"Box ter to limit size of created epip")
 		    /*
 		    */
     );
@@ -1513,6 +1563,22 @@ if (!MMVisualMode)
                     // << EAM(mVecIterDeg,"VecIterDeg",true,"Vector of degree in case of iterative approach")
                     // << EAM(mPropIterDeg,"PropIterDeg",true,"Prop to compute sigma in cas of iterative degre")
          std::cout << "Deegreee: " << mDegre << " WithOri:" << mWithOri << "\n";
+
+
+	 if (EAMIsInit(&mBoxTerrain))
+	 {
+              ELISE_ASSERT(mIntervZIsDef,"Interval Z required for box terrain");
+              ELISE_ASSERT(mGenI1&&mGenI2,"Modeles required for box terrain");
+	      Pt2dr  aTabC[4];
+              mBoxTerrain.Corners(aTabC);
+	      for (int aK=0 ; aK<4; aK++)
+	      {
+                  mPtsLimTerr.push_back(Pt3dr(aTabC[aK],mZMin));
+                  mPtsLimTerr.push_back(Pt3dr(aTabC[aK],mZMax));
+	      }
+	 }
+
+
          DoEpipGen(DoIm);
          return;
      }
@@ -1569,7 +1635,6 @@ if (!MMVisualMode)
 }
 else return ;
 }
-
 
 int CreateEpip_main(int argc,char ** argv)
 {
@@ -2067,7 +2132,344 @@ int OneReechFromAscii_main(int argc,char** argv)
 	return EXIT_SUCCESS;
 }
 
+class cAppliReechDepl    : public ElDistortion22_Gen
+{
+    public :
+        cAppliReechDepl(int argc,char ** argv);
+        void DoReech();
+    private :
+        Pt2dr Direct(Pt2dr) const;
+        bool OwnInverse(Pt2dr &) const ;
 
+        bool IsInside(Pt2dr& ) const;
+
+        cElemAppliSetFile mEASF;
+
+
+        std::string mFullNameI1;
+        /* Direct displacement */
+        std::string mFullNameI1Px1;
+        std::string mFullNameI1Px2;
+        /* Inverse displacement */
+        std::string mFullNameI2Px1;
+        std::string mFullNameI2Px2;
+
+        std::string mNameI1;
+        std::string mNameI1Px1;
+        std::string mNameI1Px2;
+        std::string mNameI2Px1;
+        std::string mNameI2Px2;
+
+
+        std::string mNameI2Redr;
+        std::string mPostMasq;
+
+
+        /* Direct map */
+        TIm2D<REAL4,REAL8> * mPx1TIm_1To2;
+        TIm2D<REAL4,REAL8> * mPx2TIm_1To2;
+        /* Inverse map */
+        TIm2D<REAL4,REAL8> * mPx1TIm_2To1;
+        TIm2D<REAL4,REAL8> * mPx2TIm_2To1;
+
+        Pt2di           mSzIn;
+        double          mScaleReech;
+        int             mKernel;
+};
+
+bool cAppliReechDepl::IsInside(Pt2dr& aP) const
+{
+    //-2 to allow bilinear trafo at real positions
+    if ((aP.x<(mSzIn.x-2)) && (aP.y<(mSzIn.y-2))) 
+        return true;
+    else return false;
+}
+    
+Pt2dr cAppliReechDepl::Direct(Pt2dr aP) const
+{
+    if (IsInside(aP))
+        return aP + Pt2dr(mPx1TIm_2To1->getr(aP),mPx2TIm_2To1->getr(aP));
+    else
+        return aP;
+}
+
+bool cAppliReechDepl::OwnInverse(Pt2dr & aP) const 
+{
+    if (IsInside(aP))
+    {
+        aP = Pt2dr(mPx1TIm_1To2->getr(aP),mPx2TIm_1To2->getr(aP)); 
+
+    }
+
+    return true;
+    
+}
+
+cAppliReechDepl::cAppliReechDepl(int argc,char ** argv) : 
+    mPostMasq ("Masq"),
+    mKernel(5)
+{
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(mFullNameI1,"Name of image", eSAM_IsExistFile)
+                      << EAMC(mFullNameI1Px1,"Name of inverse displacemnt image in X (Px1)", eSAM_IsExistFile)
+                      << EAMC(mFullNameI1Px2,"Name of inverse displacemnt image in Y (Px2)", eSAM_IsExistFile)
+                      << EAMC(mFullNameI2Px1,"Name of direct displacemnt image in X (Px1)", eSAM_IsExistFile)
+                      << EAMC(mFullNameI2Px2,"Name of direct displacemnt image in Y (Px2)", eSAM_IsExistFile)
+                      << EAMC(mNameI2Redr,"Name of resulting image", eSAM_IsExistFile),
+          LArgMain()  << EAM (mPostMasq,"PostMasq",true,"Name of Masq , Def = \"Masq\"")
+                      << EAM (mScaleReech,"ScaleReech",true,"Scale Resampling, used for interpolator when downsizing")
+					  << EAM (mKernel,"Kern",true,"Kernel size, Def=5")
+    );
+
+
+    mNameI1 = NameWithoutDir(mFullNameI1);
+    mNameI1Px1 = NameWithoutDir(mFullNameI1Px1);
+    mNameI1Px2 = NameWithoutDir(mFullNameI1Px2);
+    mNameI2Px1 = NameWithoutDir(mFullNameI2Px1);
+    mNameI2Px2 = NameWithoutDir(mFullNameI2Px2);
+   
+    mEASF.Init(mFullNameI1);
+
+
+    cMetaDataPhoto aMTD1 = cMetaDataPhoto::CreateExiv2(mFullNameI1);
+    mSzIn = Pt2di(aMTD1.TifSzIm());
+
+
+    /* Read displacements */
+    Tiff_Im     aPx1Tif_1To2( mNameI1Px1.c_str());
+    mPx1TIm_1To2 = new TIm2D<REAL4,REAL8>(mSzIn);
+    ELISE_COPY
+    (         
+               //rectangle(Pt2di(mKernelHalf,mKernelHalf),aSzIn),
+               mPx1TIm_1To2->all_pts(),
+               trans(aPx1Tif_1To2.in(),Pt2di(0,0)),
+               mPx1TIm_1To2->out()
+    );
+    Tiff_Im     aPx2Tif_1To2( mNameI1Px2.c_str());
+    mPx2TIm_1To2 = new TIm2D<REAL4,REAL8>(mSzIn);
+    ELISE_COPY
+    (
+               //rectangle(Pt2di(mKernelHalf,mKernelHalf),aSzIn),
+               mPx2TIm_1To2->all_pts(),
+               trans(aPx2Tif_1To2.in(),Pt2di(0,0)),
+               mPx2TIm_1To2->out()
+    );
+    Tiff_Im     aPx1Tif_2To1( mNameI2Px1.c_str());
+    mPx1TIm_2To1 = new  TIm2D<REAL4,REAL8> (mSzIn);
+    ELISE_COPY
+    (
+               //rectangle(Pt2di(mKernelHalf,mKernelHalf),aSzIn),
+               mPx1TIm_2To1->all_pts(),
+               trans(aPx1Tif_2To1.in(),Pt2di(0,0)),
+               mPx1TIm_2To1->out()
+    );
+    Tiff_Im     aPx2Tif_2To1( mNameI2Px2.c_str());
+    mPx2TIm_2To1 = new  TIm2D<REAL4,REAL8> (mSzIn);
+    ELISE_COPY
+    (
+               //rectangle(Pt2di(mKernelHalf,mKernelHalf),aSzIn),
+               mPx2TIm_2To1->all_pts(),
+               trans(aPx2Tif_2To1.in(),Pt2di(0,0)),
+               mPx2TIm_2To1->out()
+    );
+
+
+
+    ReechFichier
+    (
+          false,
+          mFullNameI1,
+          Box2dr(Pt2dr(0,0),
+                 Pt2dr(mSzIn.x,mSzIn.y)),
+          this,
+          Box2dr(Pt2dr(0,0),
+                 Pt2dr(mSzIn.x,mSzIn.y)),
+          1.0,
+          mNameI2Redr,
+          mPostMasq,
+          mKernel,
+          1000
+     );
+
+     delete mPx1TIm_1To2;
+     delete mPx2TIm_1To2; 
+     delete mPx1TIm_2To1;
+     delete mPx2TIm_2To1;
+}
+
+int CPP_ReechDepl(int argc,char ** argv)
+{
+
+    cAppliReechDepl aApRechDepl(argc,argv);
+    return EXIT_SUCCESS;
+}
+
+std::string BatchReechDeplMakeCmd(const std::string aNameI1,
+                                  const std::string aNameI1Px1,
+                                  const std::string aNameI1Px2,
+                                  const std::string aNameI2Px1,
+                                  const std::string aNameI2Px2,
+                                  const std::string aNameI2Redr,
+                                  const std::string aPostMasq,
+                                  const int aScaleReech,
+                                  const int aKernel
+                                  )
+{
+
+    return  MMBinFile(MM3DStr) + "TestLib OneReechDepl " + aNameI1 + BLANK
+                                                          + aNameI1Px1 + BLANK
+                                                          + aNameI1Px2 + BLANK
+                                                          + aNameI2Px1 + BLANK
+                                                          + aNameI2Px2 + BLANK
+                                                          + aNameI2Redr + BLANK 
+                                                          + "PostMasq=" + aPostMasq + BLANK 
+                                                          + "Kern=" + ToString(aKernel) + BLANK 
+                                                          + "ScaleReech=" + ToString(aScaleReech)  ;
+}
+
+int CPP_BatchReechDepl(int argc,char ** argv)
+{
+    cElemAppliSetFile aEASF;
+    std::string aPatNameI1;
+    std::string aPatNameI1Px1, aPatNameI1Px2, aPatNameI2Px1, aPatNameI2Px2;
+    std::string aPatNameI2Redr;
+    std::string aPostMasq="Masq";
+    int         aScaleReech=1, aKernel=5;
+    bool        aExe=true;
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPatNameI1,"Name of image", eSAM_IsExistFile)
+                      << EAMC(aPatNameI1Px1,"Name of inverse displacemnt image in X (Px1)", eSAM_IsExistFile)
+                      << EAMC(aPatNameI1Px2,"Name of inverse displacemnt image in Y (Px2)", eSAM_IsExistFile)
+                      << EAMC(aPatNameI2Px1,"Name of direct displacemnt image in X (Px1)", eSAM_IsExistFile)
+                      << EAMC(aPatNameI2Px2,"Name of direct displacemnt image in Y (Px2)", eSAM_IsExistFile)
+                      << EAMC(aPatNameI2Redr,"Name of resulting image", eSAM_IsExistFile),
+          LArgMain()  << EAM (aPostMasq,"PostMasq",true,"Name of Masq , Def = \"Masq\"")
+                      << EAM (aScaleReech,"ScaleReech",true,"Scale Resampling, used for interpolator when downsizing")
+					  << EAM (aKernel,"Kern",true,"Kernel size, Def=5")
+                      << EAM (aExe,"Exe",true,"Execute the commend, Def=true")
+    );
+
+    aEASF.Init(aPatNameI1);
+
+    std::list<std::string> aLCom;
+
+    if (aEASF.SetIm()->size()>1)
+    {
+        std::cout << "N patches, N displacement mappings.\n";
+
+        cElRegex  anAutom(aPatNameI1.c_str(),10);
+
+        for (size_t aKIm=0  ; aKIm< aEASF.SetIm()->size() ; aKIm++)
+        {
+        
+            std::string aNameIm = (*aEASF.SetIm())[aKIm];
+            std::string aNameI1Px1  =  MatchAndReplace(anAutom,aNameIm,aPatNameI1Px1);
+            std::string aNameI1Px2  =  MatchAndReplace(anAutom,aNameIm,aPatNameI1Px2);
+            std::string aNameI2Px1  =  MatchAndReplace(anAutom,aNameIm,aPatNameI2Px1);
+            std::string aNameI2Px2  =  MatchAndReplace(anAutom,aNameIm,aPatNameI2Px2);
+            std::string aNameI2Redr =  MatchAndReplace(anAutom,aNameIm,aPatNameI2Redr);
+
+
+            std::string aCom =  BatchReechDeplMakeCmd (aNameIm,
+                                                       aNameI1Px1,
+                                                       aNameI1Px2,
+                                                       aNameI2Px1,
+                                                       aNameI2Px2,
+                                                       aNameI2Redr,
+                                                       aPostMasq,
+                                                       aScaleReech,
+                                                       aKernel) ;
+            aLCom.push_back(aCom);
+        }
+
+        if (aExe)
+            cEl_GPAO::DoComInParal(aLCom);
+        else 
+        {
+            for (auto cmd : aLCom)
+                std::cout << cmd << "\n";
+        }
+    }
+    else
+    {
+        aEASF.Init(aPatNameI1Px1);
+        
+        if (aEASF.SetIm()->size()>1)
+        {
+            std::cout << "1 patch, N displacement mapppings.\n";
+            
+            cElRegex  anAutom(aPatNameI1Px1.c_str(),10);
+            std::string aNameIm = aPatNameI1;
+
+            for (size_t aKIm=0  ; aKIm< aEASF.SetIm()->size() ; aKIm++)
+            {
+
+
+                std::string aNameI1Px1  = (*aEASF.SetIm())[aKIm];
+                std::string aNameI1Px2  =  MatchAndReplace(anAutom,aNameI1Px1,aPatNameI1Px2);
+                std::string aNameI2Px1  =  MatchAndReplace(anAutom,aNameI1Px1,aPatNameI2Px1);
+                std::string aNameI2Px2  =  MatchAndReplace(anAutom,aNameI1Px1,aPatNameI2Px2);
+                std::string aNameI2Redr =  MatchAndReplace(anAutom,aNameI1Px1,aPatNameI2Redr);
+             
+                std::string aCom =  BatchReechDeplMakeCmd (aNameIm,
+                                                           aNameI1Px1,
+                                                           aNameI1Px2,
+                                                           aNameI2Px1,
+                                                           aNameI2Px2,
+                                                           aNameI2Redr,
+                                                           aPostMasq,
+                                                           aScaleReech,
+                                                           aKernel);
+                
+                aLCom.push_back(aCom);
+
+            }
+
+            if (aExe)
+                cEl_GPAO::DoComInParal(aLCom);
+            else 
+            {
+                for (auto cmd : aLCom)
+                    std::cout << cmd << "\n";
+            }
+        }
+        else 
+        {
+            std::cout << "1 patch, 1 displacement mapping.\n";
+            
+            std::string aCom =  BatchReechDeplMakeCmd (aPatNameI1,
+                                                       aPatNameI1Px1,
+                                                       aPatNameI1Px2,
+                                                       aPatNameI2Px1,
+                                                       aPatNameI2Px2,
+                                                       aPatNameI2Redr,
+                                                       aPostMasq,
+                                                       aScaleReech,
+                                                       aKernel);
+
+
+            if (aExe)
+                System(aCom,true,true);
+            else
+                std::cout << "CMD: " << aCom << "\n";
+
+            return 1.0;
+        }
+
+    }
+
+
+
+
+    return EXIT_SUCCESS;
+
+}
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant \C3  la mise en

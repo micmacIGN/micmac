@@ -74,7 +74,7 @@ class cCommonAppliTiepHistorical
 
         //std::string mDir;
         std::string mPat;
-        std::string mOri;
+        //std::string mOri;
 
         /* Parameters for rough co-registration */
         std::string                       mOriIn1;
@@ -175,7 +175,7 @@ class cCommonAppliTiepHistorical
 
         cInterfChantierNameManipulateur * mICNM;
 
-        void CorrectXmlFileName(std::string aCreateGCPsInSH);
+        void CorrectXmlFileName(std::string aCreateGCPsInSH, std::string aOri1, std::string aOri2);
 
         std::string GetFolderName(std::string strIn);
 
@@ -221,6 +221,9 @@ class cTransform3DHelmert
 
         cTransform3DHelmert(std::string aFileName);
 
+        cSolBasculeRig GetSBR();
+        cSolBasculeRig GetSBRInv();
+
         Pt3dr Transform3Dcoor(Pt3dr aPt);
         double GetScale();
         bool GetApplyTrans();
@@ -230,6 +233,9 @@ private:
         cXml_ParamBascRigide  *  mTransf;
         double mScl;
         Pt3dr mTr;
+
+        cSolBasculeRig mSBR;
+        cSolBasculeRig mSBRInv;
         //cTypeCodageMatr mRot;
 
 };
@@ -355,6 +361,7 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
 
         //std::string mCoRegOri;
         std::string mCoRegOri1;
+        std::string mPara3DH;
 
         ElTimer     mChrono;
 
@@ -366,8 +373,10 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         bool mSkipRANSAC3D;
         bool mSkipCrossCorr;
 
-        Pt2dr mCoRegPatchSz;
-        Pt2dr mCoRegBufferSz;
+        Pt2dr mCoRegPatchLSz;
+        Pt2dr mCoRegBufferLSz;
+        Pt2dr mCoRegPatchRSz;
+        Pt2dr mCoRegBufferRSz;
 
         Pt2dr mPrecisePatchSz;
         Pt2dr mPreciseBufferSz;
@@ -416,7 +425,7 @@ int MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVS
 void MutualNearestNeighbor(bool bMutualNN, std::vector<int> matchIDL, std::vector<int> matchIDR, std::vector<Pt2di> & match);
 void SetAngleToValidRange(double& dAngle, double d2PI);
 void SaveSIFTHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<Pt2di> match, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bPrint=0, double dScaleL=1, double dScaleR=1, bool bSaveSclRot=false);
-void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack);
+void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack, bool bPrintSEL=true);
 bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, bool bCheckFile);
 void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale);
 int Get3DTiePt(ElPackHomologue aPackFull, cGet3Dcoor a3DCoorL, cGet3Dcoor a3DCoorR, cDSMInfo aDSMInfoL, cDSMInfo aDSMInfoR, cTransform3DHelmert aTrans3DHL, std::vector<Pt3dr>& aV1, std::vector<Pt3dr>& aV2, std::vector<Pt2dr>& a2dV1, std::vector<Pt2dr>& a2dV2, bool bPrint, bool bInverse=0);
@@ -429,6 +438,9 @@ void RotateImgBy90DegNTimes(std::string aDir, std::string aImg1, std::string aNa
 std::string GetImgList(std::vector<std::string> aVIm);
 std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
 void GetUniqImgList(std::vector<std::string> aInput, std::vector<std::string>& aOutput);
+void ReadTfw(std::string tfwFile, std::vector<double>& aTmp);
+void SaveTfw(std::string tfwFile, Pt2dr aOrthoResolPlani, Pt2dr aOrthoOriPlani);
+std::string RemoveOri(std::string aOri);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/

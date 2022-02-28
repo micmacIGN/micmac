@@ -248,8 +248,8 @@ int MergeTiePt_main(int argc,char ** argv)
                     //<< aCAS3D.ArgBasic()
                << EAM(aOutDir, "OutDir", true, "Output directory of the merged tie points, Def=Work directory")
                     << aCAS3D.ArgMergeTiePt()
-                   << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme (since we use the patches resulted from \"GetPatchPair\", this parameter should be set the same as the PatchSz in command GetPatchPair), Def=[640, 480]")
-               << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme (since we use the patches resulted from \"GetPatchPair\", this parameter should be set the same as the BufferSz in command GetPatchPair), Def=[0,0]")
+                   << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme for master image (since we use the patches resulted from \"GetPatchPair\", this parameter should be set the same as the PatchLSz in command GetPatchPair), Def=[640, 480]")
+               << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme for master image (since we use the patches resulted from \"GetPatchPair\", this parameter should be set the same as the BufferLSz in command GetPatchPair), Def=[0,0]")
                << EAM(aPrint, "Print", false, "Print supplementary information, Def=false")
     );
 

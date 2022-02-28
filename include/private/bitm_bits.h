@@ -354,8 +354,56 @@ template <const INT nbb>  GenIm::type_el  DataGenImBits<nbb>::type() const
     return type_el_bitm;
 }
 
+/*
+* Ch.M: Add explicit instantiation declaration
+*   Explicit instantiation definition are already in the Tranlation Unit
+* "bitm/imd2_bits.cpp".
+*   A declaration is needed to avoid that other TUs implicitly instantiate
+* this template as well.
+*   Reported by clang++ 11.0
+*
+* NB: "An explicit specialization of a static data member of a template is a
+* definition if the declaration includes an initializer; otherwise, it is a
+* declaration."
+*/
 
+/* Sadly, Visual C++ < 16.5 (MSC_VER<1925) erroneously interpretes these
+ * declarations as definitions
+ * Ref: https://github.com/MicrosoftDocs/cpp-docs/blob/main/docs/overview/cpp-conformance-improvements-2019.md
+ * "Conformance improvements in Visual Studio 2019 version 16.5"
+ * "  Explicit specialization declaration without an initializer isn't a definition"
+*/
 
+#if ! defined(_MSC_VER) || _MSC_VER >= 1925
+template <> GenIm::type_el DataGenImBits<1>::type_el_bitm;
+template <> GenIm::type_el DataGenImBits<2>::type_el_bitm;
+template <> GenIm::type_el DataGenImBits<4>::type_el_bitm;
+
+// See "macro Declare_TBB" in im2d_bits.cpp
+template <> Tabul_Bits<1,true> Tabul_Bits<1,true>::The_Only_One;
+template <> Tabul_Bits<1,true>::tLineInputTab  * Tabul_Bits<1,true>::input_tab;
+template <> Tabul_Bits<1,true>::tLineOutputTab * Tabul_Bits<1,true>::out_tab;
+
+template <> Tabul_Bits<1,false> Tabul_Bits<1,false>::The_Only_One;
+template <> Tabul_Bits<1,false>::tLineInputTab  * Tabul_Bits<1,false>::input_tab;
+template <> Tabul_Bits<1,false>::tLineOutputTab * Tabul_Bits<1,false>::out_tab;
+
+template <> Tabul_Bits<2,true> Tabul_Bits<2,true>::The_Only_One;
+template <> Tabul_Bits<2,true>::tLineInputTab  * Tabul_Bits<2,true>::input_tab;
+template <> Tabul_Bits<2,true>::tLineOutputTab * Tabul_Bits<2,true>::out_tab;
+
+template <> Tabul_Bits<2,false> Tabul_Bits<2,false>::The_Only_One;
+template <> Tabul_Bits<2,false>::tLineInputTab  * Tabul_Bits<2,false>::input_tab;
+template <> Tabul_Bits<2,false>::tLineOutputTab * Tabul_Bits<2,false>::out_tab;
+
+template <> Tabul_Bits<4,true> Tabul_Bits<4,true>::The_Only_One;
+template <> Tabul_Bits<4,true>::tLineInputTab  * Tabul_Bits<4,true>::input_tab;
+template <> Tabul_Bits<4,true>::tLineOutputTab * Tabul_Bits<4,true>::out_tab;
+
+template <> Tabul_Bits<4,false> Tabul_Bits<4,false>::The_Only_One;
+template <> Tabul_Bits<4,false>::tLineInputTab  * Tabul_Bits<4,false>::input_tab;
+template <> Tabul_Bits<4,false>::tLineOutputTab * Tabul_Bits<4,false>::out_tab;
+#endif // ! defined(_MSC_VER) || _MSC_VER >= 1925
 
 #endif // _ELISE_BITM_BITS_H
 

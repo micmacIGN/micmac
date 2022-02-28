@@ -8,6 +8,7 @@ namespace MMVII
     \brief Classes for storing images in RAM, possibly N dimention
 */
 
+template <class Type>  class cIm2D;
 
 /**  Class allow to iterate the pixel of an image (in fact a rectangular object) using the
 same syntax than stl iterator => for (auto aP : anIma) ....
@@ -95,6 +96,7 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         iterator  mEnd;   ///< Ending iterator
 };
 
+
 template <> inline  bool cPixBox<1>::InsideBL(const cPtxd<double,1> & aP) const
 {
     return (aP.x() >= tBox::mP0.x()) &&  ((aP.x()+1) <  tBox::mP1.x());
@@ -114,9 +116,7 @@ template <> inline  bool cPixBox<3>::InsideBL(const cPtxd<double,3> & aP) const
     ;
 }
 
-#ifndef FORSWIG
-extern template const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration
-#endif
+template<> const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration of specialization
 
 typedef  cPixBox<1> cRect1;
 typedef  cPixBox<2> cRect2;
@@ -417,6 +417,8 @@ class cDataFileIm2D : public cRect2
         const int  & NbChannel ()  const ;  ///< std accessor
         const eTyNums &   Type ()  const ;  ///< std accessor
         const std::string &  Name() const;  ///< std accessor
+	bool IsEmpty() const;
+	void AssertNotEmpty() const;
         /// Create a descriptor on existing file
         static cDataFileIm2D Create(const std::string & aName,bool ForceGray);
         /// Create the file before returning the descriptor
@@ -583,7 +585,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         Type & Value(const cPt2di & aP)   {return mRawData2D[aP.y()][aP.x()];} ///< Data Access
         const Type & Value(const cPt2di & aP) const   {return mRawData2D[aP.y()][aP.x()];} /// Const Data Access
 
-        double  ValueBL(const cPt2dr & aP)  const ///< Bilinear interpolation
+        /** Bilinear interpolation */
+        double  ValueBL(const cPt2dr & aP)  const
         {
             int aX0 = round_down(aP.x());  ///<  "Left" limit of  pixel
             int aY0 = round_down(aP.y());  ///<  "Up" limit of pixel
@@ -599,7 +602,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
                   +     aWeightY1 * (aWeightX0*aL1[0]  + aWeigthX1*aL1[1])  ;
         } 
 
-        void  AddValueBL(const cPt2dr & aP,const double & aVal)  ///< Bilinear interpolation
+        /** Bilinear interpolation */
+        void  AddValueBL(const cPt2dr & aP,const double & aVal)
         {
             int aX0 = round_down(aP.x());  ///<  "Left" limit of  pixel
             int aY0 = round_down(aP.y());  ///<  "Up" limit of pixel
@@ -679,6 +683,9 @@ template <class Type>  class cIm2D
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image , allow automatic deallocation
        tDIM *                mPIm;   ///< raw pointer on mSPtr, a bit faster to store it ?
 };
+
+/// Generate an image of the string, using basic font, implemanted with a call to mmv1
+cIm2D<tU_INT1> ImageOfString(const std::string & ,int aSpace);
 
 
 ///  Class for 1D image in Ram of a given type
@@ -778,7 +785,8 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         Type & Value(const int & aX)   {return mRawData1D[aX];} ///< Data Access
         const Type & Value(const int & aX) const   {return mRawData1D[aX];} /// Cont Data Access
 
-        double  ValueBL(const double & aX)  const ///< Bilinear interpolation
+        /** Bilinear interpolation */
+        double  ValueBL(const double & aX)  const
         {
             int aX0 = round_down(aX);  ///<  "Left" limit of  pixel
             double aWeigthX1 = aX - aX0;

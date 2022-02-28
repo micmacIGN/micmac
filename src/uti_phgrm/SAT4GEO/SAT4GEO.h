@@ -16,7 +16,7 @@
     In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
-[2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
+[2] M. P
     d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
@@ -47,7 +47,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 #include "../Apero/cCameraRPC.h"
-
 
 class cSomSat; //in conjunction with cGraphHomSat to calculate the pairs
 class cGraphHomSat; // class that calculates the pairs
@@ -109,6 +108,9 @@ class cCommonAppliSat3D
         Pt2di               mNbCalcDir;
         std::vector<double> mExpCurve;
         std::vector<double> mOhP;
+	bool                mXCorrecHom;
+	bool                mXCorrecOri;
+	bool                mXCorrecL2;
 
         /* Convert orientation => à verifier */
         // images and Appuis generés par CreateEpip, mOutRPC, Degre, ChSys
@@ -118,7 +120,10 @@ class cCommonAppliSat3D
 
         /* Match param */
         int     mZoom0;
-        //int     mZoomF;
+        int     mZoomF;
+	double      mResolTerrain;
+        Box2dr      mBoxTerrain;
+
         //bool    mCMS;
         bool    mDoPly;
 		bool    mEZA;
@@ -131,6 +136,12 @@ class cCommonAppliSat3D
         int     mSzW;
         //Pt2di   mSzW0;
         //bool    mCensusQ;
+	bool   	      mMMVII;
+	std::string   mMMVII_mode;
+	std::string   mMMVII_ModePad;
+	std::string   mMMVII_ImName;
+	Pt2di         mMMVII_SzTile;
+    int           mMMVII_NbProc;
 
         /* Bascule param */
         // Malt UrbanMNE to create destination frame
@@ -284,6 +295,7 @@ class cAppliFusion
         std::string mFilePairs;
         std::string mOri;
 
+
 };
 
 
@@ -348,4 +360,3 @@ Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
-

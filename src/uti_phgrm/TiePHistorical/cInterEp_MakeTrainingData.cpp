@@ -222,7 +222,7 @@ void GetGTTiePts(Pt2dr aPtOriL, Pt2dr PatchSzL, Pt2dr PatchSzR, Pt2di ImgSzR, cT
 
     //save to MicMac format
     if(bSaveHomol)
-    {
+    {      
         std::string aCom = "mm3d SEL" + BLANK + aOutDirImg + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
         printf("*************************\n%s\n", aCom.c_str());
 
@@ -241,24 +241,6 @@ void GetGTTiePts(Pt2dr aPtOriL, Pt2dr PatchSzL, Pt2dr PatchSzR, Pt2di ImgSzR, cT
             fprintf(fpTiePt1, "%lf %lf %lf %lf\n", tiept.P1().x, tiept.P1().y, tiept.P2().x, tiept.P2().y);
         }
         fclose(fpTiePt1);
-
-        /*
-        std::string aComInv = "mm3d SEL" + BLANK + aOutDirImg + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
-        printf("%s\n", aComInv.c_str());
-
-        aNewDir = aSHDir + "Pastis" + aImg2;
-        if (ELISE_fp::exist_file(aNewDir) == false)
-            ELISE_fp::MkDir(aNewDir);
-        std::string aNameFile2 = aNewDir + "/"+aImg1+".txt";
-
-        FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
-        for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
-        {
-            ElCplePtsHomologues tiept = itCpl->ToCple();
-            fprintf(fpTiePt2, "%lf %lf %lf %lf\n", tiept.P2().x, tiept.P2().y, tiept.P1().x, tiept.P1().y);
-        }
-        fclose(fpTiePt2);
-        */
     }
 }
 

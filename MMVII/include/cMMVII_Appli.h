@@ -344,7 +344,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
-        bool    IsInit(void *);             ///< indicate for each variable if it was initiazed by argc/argv
+        bool    IsInit(const void *);             ///< indicate for each variable if it was initiazed by argc/argv
         template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
         {
             if (! IsInit(&aVar))
@@ -466,7 +466,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mPatHelp;       ///< Possible filter on name of optionnal param shown
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
-        cExtSet<void *>                           mSetInit;       ///< Adresses of all initialized variables
+        cExtSet<const void *>                     mSetInit;       ///< Adresses of all initialized variables
         bool                                      mInitParamDone; ///< To Check Post Init was not forgotten
         cColStrAObl                               mColStrAObl;    ///< To use << for passing multiple string
         cColStrAOpt                               mColStrAOpt;    ///< To use << for passing multiple pair
@@ -523,5 +523,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mTiePPrefIn;   ///< Prefix for inout  Tie Points ...
 };
 
+
+bool    IsInit(const void *);  ///< Call IsInit on the appli def
 };
 #endif  //  _cMMVII_Appli_H_

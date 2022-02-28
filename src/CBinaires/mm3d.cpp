@@ -293,6 +293,7 @@ int Line2Line_main(int argc,char ** argv);
 int CoronaRessample_main(int argc,char ** argv);
 int DivFilters_main(int argc,char ** argv);
 int AnalysePxFrac_Main(int argc,char ** argv);
+int CPP_YannViewIntersect(int argc,char ** argv);
 int CPP_YannEstimHomog(int argc,char ** argv);
 int CPP_YannApplyHomog(int argc,char ** argv);
 int CPP_YannInvHomolHomog(int argc,char ** argv);
@@ -313,6 +314,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 	static std::vector<cMMCom> aRes;
 	if (aRes.empty())
 	{
+		aRes.push_back(cMMCom("InterView",CPP_YannViewIntersect, "Field of view intersections for tie points computation "));
 		aRes.push_back(cMMCom("EstimHomog",CPP_YannEstimHomog, "Homographie estimation from GCPs and image measurements "));
 		aRes.push_back(cMMCom("ApplyHomog",CPP_YannApplyHomog, "Homographie application on images "));
 		aRes.push_back(cMMCom("InvHomolHomog",CPP_YannInvHomolHomog, "Homographie application on images "));
@@ -758,10 +760,10 @@ extern int GlobToLocal_main(int argc, char ** argv);
 extern int ExtractZ_main(int argc, char ** argv);
 extern int XYZ_Global_main(int argc, char ** argv);
 extern int HomToXML_main(int argc, char ** argv);
-extern int CilliaAss_main(int argc, char ** argv);
-extern int CilliaImgt_main(int argc, char ** argv);
+//extern int CilliaAss_main(int argc, char ** argv);
+//extern int CilliaImgt_main(int argc, char ** argv);
 extern int ImgCol_main(int argc, char ** argv);
-extern int CilliaMap_main(int argc, char ** argv);
+//extern int CilliaMap_main(int argc, char ** argv);
 extern int SimilComp_main(int argc, char ** argv);
 extern int AffineComp_main(int argc, char ** argv);
            
@@ -875,6 +877,8 @@ int OptAeroProc_main(int argc, char ** argv);
 int TestARCam_main(int argc, char ** argv);
 int CPP_TestPhysMod_Main(int argc, char ** argv);
 int MvImgsByFile_main(int argc, char** argv);
+int CPP_ReechDepl(int argc, char ** argv);
+int CPP_BatchReechDepl(int argc, char ** argv);
 int OneReechHom_main(int argc, char ** argv);
 int OneReechFromAscii_main(int argc, char ** argv);
 int AllReechFromAscii_main(int argc, char ** argv);
@@ -980,6 +984,9 @@ extern int ExtractSIFT_main(int argc, char ** argv);
 extern int InlierRatio_main(int argc, char ** argv);
 extern int EvalOri_main(int argc, char ** argv);
 extern int CoReg_GlobalR3D_main(int argc, char ** argv);
+extern int PileImgs_main(int argc, char ** argv);
+extern int GetOrthoHom_main(int argc, char ** argv);
+extern int TransmitHelmert_main(int argc, char ** argv);
 
 
 extern int ReechHomol_main(int argc, char ** argv);
@@ -1067,6 +1074,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("InlierRatio", InlierRatio_main, "Calculate inlier ratio of tie points on DSMs or orthophotos"));
         aRes.push_back(cMMCom("EvalOri", EvalOri_main, "Input GCPs to evaluate orientations"));
         aRes.push_back(cMMCom("CoReg_GlobalR3D", CoReg_GlobalR3D_main, "Roughly co-register 2 epochs by matching individual RGB image pairs followed by GlobalR3D"));
+        aRes.push_back(cMMCom("PileImgs", PileImgs_main, "Pile images on an average plane in a pseudo orthophoto style"));
+        aRes.push_back(cMMCom("GetOrthoHom", GetOrthoHom_main, "project tie points on image pairs onto orthophotos"));
+        aRes.push_back(cMMCom("TransmitHelmert", TransmitHelmert_main, "Input 2 sets of 3D Helmert transformation parameters (A->C and B->C), output transimtted 3D Helmert transformation parameters (A->B)"));
 
 
 		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		
@@ -1137,17 +1147,17 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("TestH", Test_Homogr_main, "TestHomogr"));
 
 		//       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
-		aRes.push_back(cMMCom("Homol2GCP", Homol2GCP_main, "cillia"));
-		aRes.push_back(cMMCom("GlobToLocal", GlobToLocal_main, "cillia"));
-		aRes.push_back(cMMCom("ExtractZ", ExtractZ_main, "cillia"));
-		aRes.push_back(cMMCom("XYZ_Global", XYZ_Global_main, "cillia"));
-		aRes.push_back(cMMCom("HomToXML", HomToXML_main, "cillia"));
-		aRes.push_back(cMMCom("TestCilliaAss", CilliaAss_main, "cillia"));
-		aRes.push_back(cMMCom("TestCilliaImgt", CilliaImgt_main, "cillia"));
-		aRes.push_back(cMMCom("ImgCol", ImgCol_main, "cilliac"));
-		aRes.push_back(cMMCom("TestCilliaMap", CilliaMap_main, "cilliac"));
-		aRes.push_back(cMMCom("SimilComp", SimilComp_main, "cilliac"));
-		aRes.push_back(cMMCom("AffineComp", AffineComp_main, "cilliac"));
+		//aRes.push_back(cMMCom("Homol2GCP", Homol2GCP_main, "cillia"));
+		//aRes.push_back(cMMCom("GlobToLocal", GlobToLocal_main, "cillia"));
+		//aRes.push_back(cMMCom("ExtractZ", ExtractZ_main, "cillia"));
+		//aRes.push_back(cMMCom("XYZ_Global", XYZ_Global_main, "cillia"));
+		//aRes.push_back(cMMCom("HomToXML", HomToXML_main, "cillia"));
+		//aRes.push_back(cMMCom("TestCilliaAss", CilliaAss_main, "cillia"));
+		//aRes.push_back(cMMCom("TestCilliaImgt", CilliaImgt_main, "cillia"));
+		//aRes.push_back(cMMCom("ImgCol", ImgCol_main, "cilliac"));
+		//aRes.push_back(cMMCom("TestCilliaMap", CilliaMap_main, "cilliac"));
+		//aRes.push_back(cMMCom("SimilComp", SimilComp_main, "cilliac"));
+		//aRes.push_back(cMMCom("AffineComp", AffineComp_main, "cilliac"));
 
 		aRes.push_back(cMMCom("PI", ProjetInfo_main, "Projet Info"));
 		// aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
@@ -1299,6 +1309,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestPhysMod",CPP_TestPhysMod_Main,"Unitary test for new bundle gen"));
 
         aRes.push_back(cMMCom("TestParseDir",TestElParseDir_main," Test Parse Dir"));
+        aRes.push_back(cMMCom("ReechDepl",CPP_BatchReechDepl," Resample a batch of images using Px1 and Px2 displacement maps"));
+        aRes.push_back(cMMCom("OneReechDepl",CPP_ReechDepl," Resample one image using Px1 and Px2 displacement maps"));
         aRes.push_back(cMMCom("OneReechFromAscii",OneReechFromAscii_main," Resample image using homography and 4 pts"));
         aRes.push_back(cMMCom("AllReechFromAscii",AllReechFromAscii_main," Resample an image pattern using homography and 4 pts"));
         aRes.push_back(cMMCom("OneReechHom",OneReechHom_main," Resample image using homography"));

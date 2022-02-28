@@ -51,6 +51,7 @@ class cFaceOrC;
 class  cReadOri : public cReadObject
 {
     public :
+
         cReadOri(char aComCar,const std::string & aFormat) :
                cReadObject(aComCar,aFormat,"S"),
                mPt(-1,-1,-1),
@@ -65,7 +66,13 @@ class  cReadOri : public cReadObject
               AddDouble("Iy",&mInc3.y,false);
               AddDouble("Iz",&mInc3.z,false);
               AddDouble("T",&mTime,false);
+
+              AddPt3dr("abc",&mLinesRot[0],false);
+              AddPt3dr("def",&mLinesRot[1],false);
+              AddPt3dr("ghi",&mLinesRot[2],false);
         }
+
+
 
         std::string mName;
         Pt3dr       mPt;
@@ -73,6 +80,7 @@ class  cReadOri : public cReadObject
         Pt3dr       mInc3;
         double      mInc;
         double      mTime;
+        Pt3dr       mLinesRot[3]; // In case file contain explicit matrix rotation
 };
 
 
@@ -182,6 +190,7 @@ class cAppli_Ori_Txt2Xml_main
           cAppli_Ori_Txt2Xml_main (int argc,char ** argv);
          void operator()(tSomVois*,tSomVois*,bool);  // Delaunay Call back
      private :
+	 bool MatrRotIsDef(const cReadOri&) const;
 
          std::list<tSomVois *> ListVoisForInit(tSomVois * aSom);
          void GenerateOrientInit();
@@ -271,6 +280,7 @@ class cAppli_Ori_Txt2Xml_main
          bool                 mCalcV;
          double               mDelay;
          bool                 mHasWPK;
+         bool                 mHasMatrRot;
          bool                 mMTDOnce;
          bool                 mTetaFromCap;
          double               mOffsetTeta;
@@ -300,8 +310,23 @@ class cAppli_Ori_Txt2Xml_main
          bool                mComputeCple;
          bool                mAcceptNonExitsingImage;
          std::string         mFileNonExist;
+	 double              mMultAng;
+	 std::string         mUniteAng;
+
+
 };
 
+bool cAppli_Ori_Txt2Xml_main::MatrRotIsDef(const cReadOri& aRO) const
+{
+    bool aL0IsDef = aRO.IsDef(aRO.mLinesRot[0]);
+    for (int aK=1 ; aK<3 ;aK++)
+    {
+       ELISE_ASSERT( aL0IsDef==aRO.IsDef(aRO.mLinesRot[aK]),"Rotation inconsistency");
+    }
+
+
+    return aL0IsDef;
+}
 void cAppli_Ori_Txt2Xml_main::operator()(tSomVois* aS1,tSomVois* aS2,bool)  // Delaunay Call back
 {
     AddArc(aS1,aS2,P8COL::blue,mFlagDelaunay);
@@ -705,7 +730,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     mOffsetXYZ        (0,0,0),
     mGenOrFromC      (),
     mComputeOrFromC  (false),
-    mAcceptNonExitsingImage  (false)
+    mAcceptNonExitsingImage  (false),
+    mMultAng                 (1.0)
 {
 
     bool Help;
@@ -768,7 +794,18 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mAcceptNonExitsingImage,"OkNoIm",true,"Do not create error if image does not exist (def = false)")
                       << EAM(mFileNonExist,"FNI",true,"File to Create when non exist")
                       << EAM(mSzV,"SzW",true,"Size for visualisation")
+                      << EAM(mUniteAng,"UniteAng",true,"in [Degre,Radian,Grade], Def=Degre")
     );
+
+
+    if (EAMIsInit(&mUniteAng))
+    {
+	std::string aFulUA = "eUniteAngle"+mUniteAng;
+	eUniteAngulaire   aUnite = Str2eUniteAngulaire(aFulUA);
+
+	mMultAng = UneUniteEnRadian(aUnite) /  UneUniteEnRadian(eUniteAngleDegre);
+
+    }
 
     // It seems normal to non existing when it is automatically corrected  (else why ?)
     mAcceptNonExitsingImage = mAcceptNonExitsingImage || EAMIsInit(&mFileNonExist);
@@ -985,6 +1022,7 @@ void cAppli_Ori_Txt2Xml_main::VoisInitDelaunayCroist()
     // std::cout << "Viiissuu "<< mBoxC.sz() << " " << mScaleV << "\n"; getchar();
 }
 
+
 void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK,Pt3dr anInc,double aTime)
 {
     const cElDate & aDate =   aCam.mMTD->Date(true);
@@ -1081,8 +1119,14 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
            }
            {
               if (mNbCam==0)
+	      {
                  mHasWPK = aReadApp.IsDef(aReadApp.mWPK);
+                 mHasMatrRot = MatrRotIsDef(aReadApp);
+	      }
               ELISE_ASSERT(mHasWPK==aReadApp.IsDef(aReadApp.mWPK),"Incoherence in HasWPK");
+              ELISE_ASSERT(mHasMatrRot==MatrRotIsDef(aReadApp),"Incoherence in HasWPK");
+	      if (mHasWPK)
+                aReadApp.mWPK = aReadApp.mWPK * mMultAng;
            }
            cTxtCam  & aNewCam = *(new cTxtCam);
            mVCam.push_back(&aNewCam);
@@ -1136,6 +1180,16 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
            double aTime = aReadApp.IsDef(aReadApp.mTime) ? aReadApp.mTime : - 1;
    
            InitCamera(aNewCam,aC,mHasWPK  ? aReadApp.mWPK :Pt3dr(0,0,0),Pt3dr(aIx,aIy,aIz),aTime);
+	   if (mHasMatrRot)
+	   {
+               aNewCam.mOC->ConvOri().KnownConv().SetVal(mConvOri);
+	       cTypeCodageMatr aCM;
+	       aCM.L1() = aReadApp.mLinesRot[0];
+	       aCM.L2() = aReadApp.mLinesRot[1];
+	       aCM.L3() = aReadApp.mLinesRot[2];
+               aNewCam.mOC->Externe().ParamRotation().CodageMatr().SetVal(aCM);
+               aNewCam.mOC->Externe().ParamRotation().CodageAngulaire().SetNoInit();
+	   }
            aNewCam.mPrio = aNewCam.mTime ;// + aNewCam.mNum * 1e-7;
 
 

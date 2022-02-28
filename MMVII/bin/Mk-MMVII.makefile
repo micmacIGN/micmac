@@ -117,6 +117,11 @@ SrcDenseMatch=$(wildcard ${MMV2DirDenseMatch}*.cpp)
 ObjDenseMatch=$(SrcDenseMatch:.cpp=.o) 
 #
 #
+MMV2DirCodedTarget=${MMV2DirSrc}CodedTarget/
+SrcCodedTarget=$(wildcard ${MMV2DirCodedTarget}*.cpp)
+ObjCodedTarget=$(SrcCodedTarget:.cpp=.o) 
+#
+#
 MMV2DirLearnMatch=${MMV2DirSrc}LearningMatching/
 SrcLearnMatch=$(wildcard ${MMV2DirLearnMatch}*.cpp)
 ObjLearnMatch=$(SrcLearnMatch:.cpp=.o) 
@@ -153,7 +158,7 @@ ObjKapture=$(SrcKapture:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjMappings} ${ObjKapture} ${ObjLearnMatch}
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjMappings} ${ObjKapture} ${ObjLearnMatch} ${ObjCodedTarget}
 #
 #=========  Header ========
 #
@@ -230,6 +235,8 @@ ${MMV2DirGeneratedCodes}%.o :  ${MMV2DirGeneratedCodes}%.cpp   ${HEADER}
 ${MMV2DirGeoms}%.o :  ${MMV2DirGeoms}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirKapture}%.o :  ${MMV2DirKapture}%.cpp   ${MMKaptureHeader}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirCodedTarget}%.o :  ${MMV2DirCodedTarget}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 #
 #       ===== TEST ========================================

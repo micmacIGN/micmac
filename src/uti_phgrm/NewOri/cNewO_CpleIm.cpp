@@ -505,7 +505,6 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
              aInf2 = Inf(aInf2,aP2);
              aSup2 = Sup(aSup2,aP2);
 
-             // std::cout << "HHhhhh  " << FocMoy()  <<  " "  << aP1 << aP2 << "\n"; getchar();
 
              aVP1.push_back(Pt2df(aP1.x,aP1.y));
              aVP2.push_back(Pt2df(aP2.x,aP2.y));
@@ -841,10 +840,6 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
           ElTimer aChrono;
           anErr = aBundle->ResiduEq(mBestSol,anErr);
           
-if (MPD_MM())
-{
-    std::cout << " ##########=======================######### " << aBundle->VIB2I_NameType() << "\n";
-}
 
           for (int aK=0 ; aK< (DoOri3D ? (mQuick ? 6 : 10) : 2) ; aK++)
           {
@@ -853,11 +848,6 @@ if (MPD_MM())
                  ElRotation3D aSol = aBundle->OneIterEq(mBestSol,anErr);
                  mBestSol = aSol;
           }
-if (MPD_MM())
-{
-    std::cout << "GGGGGG " << aBundle->VIB2I_NameType() << "\n";
-    getchar();
-}
           // finalisation sauvegarde resultats
           aTimeAdj = aChrono.uval();
    }
@@ -1051,7 +1041,6 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
    // std::cout << "IIii11KK111  " << mIm1->CS() << "\n";
    // std::cout << "IIii11KK111  " << mIm1->CS()->Focale() << mIm1->CS()->PP() << "\n";
-  // getchar();
 
    mVI.push_back(mIm1);
    mVI.push_back(mIm2);
