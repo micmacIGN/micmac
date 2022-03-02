@@ -67,24 +67,27 @@ extern bool ERupnik_MM();
         //return anIm.data();
     }
 
-template <class Type,class TBase> void  SaveIm(const std::string & aName,Im2D<Type,TBase> anIm,const Box2di & aBox)
+template <class Type> void  SaveIm(const std::string & aName,Type ** aDataIn,const Box2di & aBoxIn)
 {
-   Tiff_Im aRes
-           (
-                 aName.c_str(),
-                 aBox.sz(),
-                 anIm.TypeEl(),
-                 Tiff_Im::No_Compr,
-                 Tiff_Im::BlackIsZero
-            );
+   Pt2di aP0 = aBoxIn._p0;
+   Pt2di aSz = aBoxIn.sz();
 
-   ELISE_COPY
-   (
-       aRes.all_pts(),
-       trans(anIm.in(),aBox._p0),
-       aRes.out()
-   );   
+   // Create a temporary image
+   Im2D<Type,typename El_CTypeTraits<Type>::tBase >  anImOut(aSz.x,aSz.y);
+   Type ** aDataOut = anImOut.data();
 
+
+   for (int aY=0 ; aY<aSz.y ; aY++)
+   {
+       memcpy
+       (
+	    aDataOut[aY],
+	    aDataIn[aY+aP0.y]+aP0.x,
+	    aSz.x * sizeof(Type)
+       );
+   }
+
+   Tiff_Im::CreateFromIm(anImOut,aName);
 }
 
 
@@ -1804,26 +1807,59 @@ void cAppliMICMAC::DoGPU_Correl
              for (int aZ0=mZMinGlob ; aZ0<mZMaxGlob ; aZ0+=mDeltaZ)
              {
                   int aZ1= ElMin(mZMaxGlob,aZ0+mDeltaZ);
+		  Box2di  aBoxEmpty(Pt2di(0,0),Pt2di(0,0));
+		  std::vector<Box2di>  aVecBoxDil;
+		  std::vector<Box2di>  aVecBoxUti;
                   for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
                   {
-                        std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-mZMaxGlob) ;
+                        std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-mZMinGlob) ;
                         bool OkZ = InitZ(aZ,aModeInitZ);
 			if (OkZ)
                         {
-                            //SaveIm(aPrefixZ+"Masq.tif",
-//template <class Type,class TBase> void  SaveIm(const std::string & aName,Im2D<Type,TBase> anIm,const Box2di & aBox)
+                            Box2di  aBoxDil(Pt2di(mX0UtiDilTer,mY0UtiDilTer),Pt2di(mX1UtiDilTer,mY1UtiDilTer));
+                            Box2di  aBoxUti(Pt2di(mX0UtiTer,mY0UtiTer),Pt2di(mX1UtiTer,mY1UtiTer));
+
+			    aVecBoxDil.push_back(aBoxDil);
+			    aVecBoxUti.push_back(aBoxUti);
+
+                            SaveIm(aPrefixZ,(float **)nullptr,aBox);
 			    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
                             {
+                                 cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
+                                 std::string aPrefixZIm = aPrefixZ + "_I" + ToString(aKIm);
+				 SaveIm(aPrefixZIm+"_O.tif",aGLI_0.DataOrtho(),aBox);
+				 SaveIm(aPrefixZIm+"_M.tif",aGLI_0.DataOKOrtho(),aBox);
                             }
+			    // aVecBox.push_back(
                         }
 			else
 			{
+			    aVecBoxDil.push_back(aBoxEmpty);
+			    aVecBoxUti.push_back(aBoxEmpty);
                             std::string aNameNone  = aPrefixZ + "_NoData";
 			    ELISE_fp aFile(aNameNone.c_str(),ELISE_fp::WRITE);
 			    aFile.close();
-std::cout << aNameNone ;
 			}
 		  }
+
+		  std::string   aCom =  "MMVII  DM4MatchOrtho "
+			                +  aPrefixGlob  
+					+  " " + ToString(aZ0-mZMinGlob)
+					+  " " + ToString(aZ1-mZMinGlob)
+					+  " " + ToString(int(mVLI.size())) ;
+		  System(aCom);
+                  for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
+                  {
+                      int aKBox = (aZ-aZ0);
+		      const Box2di & aBoxU = aVecBoxUti.at(aKBox);
+		      bool  CorDone = (aBoxU.sz() != Pt2di(0,0));
+		      if (CorDone)
+		      {
+                          std::string aNameSim =    aPrefixGlob + "_Z" + ToString(aZ-mZMinGlob) + "_Sim.tif"  ;
+
+			  Im2D_REAL4  aImSym = Im2D_REAL4::FromFileStd(aNameSim);
+		      }
+                  }
              }
 	}
 }
