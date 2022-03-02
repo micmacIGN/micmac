@@ -1,33 +1,12 @@
 #include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
+#include "include/MMVII_Tpl_Images.h"
 
+
+// Test git branch
 
 namespace MMVII
 {
-
-
-template<class TypeEl> cIm2D<TypeEl> ImSym(const  cDataIm2D<TypeEl> & aDImIn,double aR0,double aR1)
-{
-    std::vector<cPt2di>  aVectVois = VectOfRadius(aR0,aR1,true);
-    int aD = round_up(aR1);
-    cPt2di aPW(aD,aD);
-
-    cPt2di aSz = aDImIn.Sz();
-    cIm2D<TypeEl> aImOut(aSz);
-
-    for (const auto & aP : cRect2(aPW,aSz-aPW))
-    {
-          for (const auto & aV  : aVectVois)
-	  {
-		  TypeEl aV1 = aDImIn.GetV(aP+aV);
-		  TypeEl aV2 = aDImIn.GetV(aP-aV);
-		  FakeUseIt(aV1-aV2);
-	  }
-    }
-
-    return aImOut;
-}
-
 
 template<class TypeEl> class  cAppliParseBoxIm
 {
@@ -122,7 +101,6 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
 	void TestFilters();
 
-	std::string mNameIm;
 	std::string mNameTarget;
 
 	cParamCodedTarget  mPCT;
@@ -174,11 +152,41 @@ void  cAppliExtractCodeTarget::TestFilters()
 {
      tDataIm &  aDIm = APBI_LoadTestBox();
 
-     StdOut() << "SZ "  <<  aDIm.Sz() << "\n";
+     StdOut() << "SZ "  <<  aDIm.Sz() << " Im=" << mNameIm << "\n";
+
+     cImGrad<tREAL4>  aImG = Deriche(aDIm,1.0);
+
+     for (const auto & aDist :  mTestDistSym)
+     {
+          StdOut() << "DDDD " << aDist << "\n";
+
+          cIm2D<tREAL4>  aImBin = ImBinarity(aDIm,aDist/1.5,aDist,1.0);
+	  std::string aName = "TestBin_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
+	  aImBin.DIm().ToFile(aName);
+	  StdOut() << "Done Bin\n";
+	  /*
+          cIm2D<tREAL4>  aImSym = ImSymetricity(aDIm,aDist/1.5,aDist,1.0);
+	  std::string aName = "TestSym_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
+	  aImSym.DIm().ToFile(aName);
+	  StdOut() << "Done Sym\n";
+
+          cIm2D<tREAL4>  aImStar = ImStarity(aImG,aDist/1.5,aDist,1.0);
+	  aName = "TestStar_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
+	  aImStar.DIm().ToFile(aName);
+	  StdOut() << "Done Star\n";
+
+          cIm2D<tREAL4>  aImMixte =   aImSym + aImStar * 2.0;
+	  aName = "TestMixte_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
+	  aImMixte.DIm().ToFile(aName);
+	  */
+     }
+
 }
 
 int  cAppliExtractCodeTarget::Exe()
 {
+   StdOut()  << " IIIIm=" << mNameIm << "\n";
+
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
       return ResultMultiSet();
 

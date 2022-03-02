@@ -67,6 +67,28 @@ extern bool ERupnik_MM();
         //return anIm.data();
     }
 
+template <class Type,class TBase> void  SaveIm(const std::string & aName,Im2D<Type,TBase> anIm,const Box2di & aBox)
+{
+   Tiff_Im aRes
+           (
+                 aName.c_str(),
+                 aBox.sz(),
+                 anIm.TypeEl(),
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::BlackIsZero
+            );
+
+   ELISE_COPY
+   (
+       aRes.all_pts(),
+       trans(anIm.in(),aBox._p0),
+       aRes.out()
+   );   
+
+}
+
+
+
 /********************************************************************/
 /*                                                                  */
 /*                   cStatOneImage                                  */
@@ -1085,22 +1107,25 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
 
     mImOkTerCur.raz();
 
+    // XY01-UtiTer => Box of image at Z level , init at empty box
     mX0UtiTer = mX1Ter + 1;
     mY0UtiTer = mY1Ter + 1;
     mX1UtiTer = mX0Ter;
     mY1UtiTer = mY0Ter;
 
+    // Compute Box &  Masq Terrain
     for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
     {
         for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
         {
+             // In ortho if in terrain and Z in intervall
              mDOkTer[anY][anX] =
                                    (mZIntCur >= mTabZMin[anY][anX])
                                    && (mZIntCur <  mTabZMax[anY][anX])
                                    && IsInTer(anX,anY)
                                    ;
 
-
+	     //  If Ok update the box
               if ( mDOkTer[anY][anX])
               {
                      ElSetMin(mX0UtiTer,anX);
@@ -1115,19 +1140,24 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
     mX1UtiTer ++;
     mY1UtiTer ++;
 
+    // If box was not updated, then it is empty
     if (mX0UtiTer >= mX1UtiTer)
             return false;
 
     int aKFirstIm = 0;
     U_INT1 ** aDOkIm0TerDil = mDOkTerDil;
+    // Case mGIm1IsInPax : Im1 doesnt depend of pax (bundle geom of epip like geometry)
+    // generate some optimisation
     if (mGIm1IsInPax)
     {
+	    // If we have already been here, we dont neet to reload first image
             if (mFirstZIsInit)
             {
                aKFirstIm = 1;
             }
             else
             {
+            // First time we must reload the whole first  images 
                 mX0UtiTer = mX0Ter;
                 mX1UtiTer = mX1Ter;
                 mY0UtiTer = mY0Ter;
@@ -1136,16 +1166,20 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
             }
     }
 
+    //   
+    // XY01-UtiDilTer => dilatation of  XY01-UtiTer by  mCurSzVMax
     mX0UtiDilTer = mX0UtiTer - mCurSzVMax.x;
     mY0UtiDilTer = mY0UtiTer - mCurSzVMax.y;
     mX1UtiDilTer = mX1UtiTer + mCurSzVMax.x;
     mY1UtiDilTer = mY1UtiTer + mCurSzVMax.y;
 
+    //  XY01-UtiLocIm =>  Box  of image1 in referentiel of I1
     mX0UtiLocIm = mX0UtiTer - mDilX0Ter;
     mX1UtiLocIm = mX1UtiTer - mDilX0Ter;
     mY0UtiLocIm = mY0UtiTer - mDilY0Ter;
     mY1UtiLocIm = mY1UtiTer - mDilY0Ter;
 
+    // XY01-UtiDilLocIm => dilatation of XY01-UtiDilTer
     mX0UtiDilLocIm = mX0UtiDilTer - mDilX0Ter;
     mX1UtiDilLocIm = mX1UtiDilTer - mDilX0Ter;
     mY0UtiDilLocIm = mY0UtiDilTer - mDilY0Ter;
@@ -1708,57 +1742,90 @@ void cAppliMICMAC::DoGPU_Correl
             }
         }
 
-        for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
-        {
-            bool OkZ = InitZ(aZ,aModeInitZ);
-            if (OkZ)
-            {
-                for (int anX = mX0UtiTer ; anX <  mX1UtiTer ; anX++)
-                {
-                    for (int anY = mY0UtiTer ; anY < mY1UtiTer ; anY++)
-                    {
+	if (true)
+	{
+	     // Standard case do the computation in the current process
+             for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
+             {
+                 bool OkZ = InitZ(aZ,aModeInitZ);
+                 if (OkZ)
+                 {
+                     for (int anX = mX0UtiTer ; anX <  mX1UtiTer ; anX++)
+                     {
+                         for (int anY = mY0UtiTer ; anY < mY1UtiTer ; anY++)
+                         {
 
-                        int aNbScaleIm =  NbScaleOfPt(anX,anY);
+                             int aNbScaleIm =  NbScaleOfPt(anX,anY);
 
-                        if (mCurEtUseWAdapt)
+                             if (mCurEtUseWAdapt)
+                             {
+                                  ElSetMin(aNbScaleIm,1+mTImSzWCor.get(Pt2di(anX,anY)));
+                             }
+                             if (mDOkTer[anY][anX])
+                             {
+
+                                 switch (aModeAgr)
+                                 {
+                                     case eAggregSymetrique :
+                                         DoOneCorrelSym(anX,anY,aNbScaleIm);
+                                     break;
+
+                                     case eAggregIm1Maitre :
+                                          DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false,aPdsPix);
+                                     break;
+
+                                     case  eAggregMaxIm1Maitre :
+                                         DoOneCorrelMaxMinIm1Maitre(anX,anY,true,aNbScaleIm);
+                                     break;
+
+                                     case  eAggregMinIm1Maitre :
+                                         DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
+                                     break;
+
+                                     case eAggregMoyMedIm1Maitre :
+                                          DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true,aPdsPix);
+                                     break;
+
+                                 default :
+                                     break;
+                                 }
+                             }
+                         }
+                     }
+                 }
+             }
+	}
+	// Case where we generate the ortho photos and call processes
+	else
+	{
+		// Moh
+             int mDeltaZ = 10;
+             std::string aPrefixGlob = "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
+             for (int aZ0=mZMinGlob ; aZ0<mZMaxGlob ; aZ0+=mDeltaZ)
+             {
+                  int aZ1= ElMin(mZMaxGlob,aZ0+mDeltaZ);
+                  for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
+                  {
+                        std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-mZMaxGlob) ;
+                        bool OkZ = InitZ(aZ,aModeInitZ);
+			if (OkZ)
                         {
-                             ElSetMin(aNbScaleIm,1+mTImSzWCor.get(Pt2di(anX,anY)));
-                        }
-/*
-*/
-                        if (mDOkTer[anY][anX])
-                        {
-
-                            switch (aModeAgr)
+                            //SaveIm(aPrefixZ+"Masq.tif",
+//template <class Type,class TBase> void  SaveIm(const std::string & aName,Im2D<Type,TBase> anIm,const Box2di & aBox)
+			    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
                             {
-                                case eAggregSymetrique :
-                                    DoOneCorrelSym(anX,anY,aNbScaleIm);
-                                break;
-
-                                case eAggregIm1Maitre :
-                                     DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false,aPdsPix);
-                                break;
-
-                                case  eAggregMaxIm1Maitre :
-                                    DoOneCorrelMaxMinIm1Maitre(anX,anY,true,aNbScaleIm);
-                                break;
-
-                                case  eAggregMinIm1Maitre :
-                                    DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
-                                break;
-
-                                case eAggregMoyMedIm1Maitre :
-                                     DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true,aPdsPix);
-                                break;
-
-                            default :
-                                break;
                             }
                         }
-                    }
-                }
-            }
-        }
+			else
+			{
+                            std::string aNameNone  = aPrefixZ + "_NoData";
+			    ELISE_fp aFile(aNameNone.c_str(),ELISE_fp::WRITE);
+			    aFile.close();
+std::cout << aNameNone ;
+			}
+		  }
+             }
+	}
 }
 
 #ifdef  CUDA_ENABLED
