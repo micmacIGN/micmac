@@ -67,6 +67,28 @@ extern bool ERupnik_MM();
         //return anIm.data();
     }
 
+template <class Type,class TBase> void  SaveIm(const std::string & aName,Im2D<Type,TBase> anIm,const Box2di & aBox)
+{
+   Tiff_Im aRes
+           (
+                 aName.c_str(),
+                 aBox.sz(),
+                 anIm.TypeEl(),
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::BlackIsZero
+            );
+
+   ELISE_COPY
+   (
+       aRes.all_pts(),
+       trans(anIm.in(),aBox._p0),
+       aRes.out()
+   );   
+
+}
+
+
+
 /********************************************************************/
 /*                                                                  */
 /*                   cStatOneImage                                  */
@@ -1776,6 +1798,7 @@ void cAppliMICMAC::DoGPU_Correl
 	// Case where we generate the ortho photos and call processes
 	else
 	{
+		// Moh
              int mDeltaZ = 10;
              std::string aPrefixGlob = "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
              for (int aZ0=mZMinGlob ; aZ0<mZMaxGlob ; aZ0+=mDeltaZ)
@@ -1787,11 +1810,17 @@ void cAppliMICMAC::DoGPU_Correl
                         bool OkZ = InitZ(aZ,aModeInitZ);
 			if (OkZ)
                         {
-                            // ;; std::string aName 
+                            //SaveIm(aPrefixZ+"Masq.tif",
+//template <class Type,class TBase> void  SaveIm(const std::string & aName,Im2D<Type,TBase> anIm,const Box2di & aBox)
+			    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
+                            {
+                            }
                         }
 			else
 			{
                             std::string aNameNone  = aPrefixZ + "_NoData";
+			    ELISE_fp aFile(aNameNone.c_str(),ELISE_fp::WRITE);
+			    aFile.close();
 std::cout << aNameNone ;
 			}
 		  }

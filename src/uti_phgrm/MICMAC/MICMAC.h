@@ -2734,6 +2734,7 @@ class   cGPU_LoadedImGeom
        tImGpu  ImSomO2();
        tImGpu  ImSom12();
 
+
        bool InitValNorms(int anX,int anY,int aNbScaleIm);
        double ValNorm(int anX,int anY) const 
        {
@@ -2787,8 +2788,6 @@ class   cGPU_LoadedImGeom
 
         void InitMCP_AttachePix(const cMCP_AttachePixel * aAP);
 
-       Im2D_U_INT1  ImOK_Ortho() const;
-       tImGpu       ImOrtho() const;
 
    private :
        
