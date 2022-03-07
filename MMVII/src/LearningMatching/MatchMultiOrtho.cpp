@@ -14,9 +14,11 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
         typedef tU_INT1               tElemMasq;
         typedef tREAL4                tElemOrtho;
         typedef tREAL4                tElemSimil;
+
         typedef cIm2D<tElemMasq>      tImMasq;
         typedef cIm2D<tElemOrtho>     tImOrtho;
         typedef cIm2D<tElemSimil>     tImSimil;
+	
         typedef cDataIm2D<tElemMasq>  tDImMasq;
         typedef cDataIm2D<tElemOrtho> tDImOrtho;
         typedef cDataIm2D<tElemSimil> tDImSimil;
@@ -25,12 +27,13 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
         cAppliMatchMultipleOrtho(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
      private :
+	/// Name of files imported
 	std::string NameIm(int aKIm,const std::string & aPost) const
 	{
              return mPrefixZ + "_I" +ToStr(aKIm) + "_" + aPost  + ".tif";
 	}
-	std::string NameOrtho(int aKIm) const {return NameIm(aKIm,"O");}
-	std::string NameMasq(int aKIm) const {return NameIm(aKIm,"M");}
+	std::string NameOrtho(int aKIm) const {return NameIm(aKIm,"O");}  ///< Name individual ortho
+	std::string NameMasq(int aKIm) const {return NameIm(aKIm,"M");}   ///< Name individual masq
 
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
