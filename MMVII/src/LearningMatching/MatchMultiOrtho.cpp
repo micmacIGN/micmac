@@ -41,7 +41,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 
 	//  One option, to replace by whatever you want
 	void ComputeSimilByCorrelMaster();
-	void CorrelMaster(const cPt2di &,int aKIm,bool & AllOk,float &aWeight,float & aCorrel);
+	void CorrelMaster(const cPt2di &,int aKIm,bool & Ok,float & aCorrel);
 
 	// -------------- Mandatory args -------------------
 	std::string   mPrefixGlob;   // Prefix to all names
@@ -95,40 +95,57 @@ cCollecSpecArg2007 & cAppliMatchMultipleOrtho::ArgOpt(cCollecSpecArg2007 & anArg
 
 void cAppliMatchMultipleOrtho::CorrelMaster
      (
-         const cPt2di &,
+         const cPt2di & aCenter,
 	 int aKIm,
-	 bool & AllOk,
-	 float &aWeight,
+	 bool & Ok,
 	 float & aCorrel
      )
 {
-    AllOk = true;
-    aWeight = 0;
-
-    const tDImMasq & aDIM1 =   mVMasq.at(0   ).DIm();
-    const tDImMasq & aDIM2 =   mVMasq.at(aKIm).DIm();
-
-    for (const auto & aP : aDIM1)
+    if (! mVMasq.at(aKIm).DIm().GetV(aCenter) )
     {
-         bool Ok = aDIM1.DefGetV(aP,0) && aDIM2.DefGetV(aP,0) ;
-	 if (Ok)
-	 {
-	 }
-	 else
-	 {
-	 }
+        Ok = false;
+	return;
     }
-	// tDImOrtho;
+    Ok = true;
+
+    const tDImOrtho & aDIO0 =  mVOrtho.at(0   ).DIm();
+    const tDImOrtho & aDIOK =  mVOrtho.at(aKIm).DIm();
+
+    cMatIner2Var<tElemOrtho> aMatI;
+    for (const auto & aP : cRect2::BoxWindow(aCenter,mSzW))
+    {
+         aMatI.Add(aDIO0.GetV(aP),aDIOK.GetV(aP));
+    }
+    aCorrel =  aMatI.Correl(1e-5);
 }
 
 void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
 {
+   // Just too lazy for making another tutorial ...
    MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
 
+   const tDImMasq & aDIM0  =  mVMasq.at(0   ).DIm();
    tDImSimil & aDImSim = mImSimil.DIm();
    for (const auto & aP : aDImSim)
    {
-        FakeUseIt(aP);
+        float aSumCor  = 0.0; // 
+        float aNbOk = 0.0; // 
+	if (aDIM0.GetV(aP))
+	{
+            for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+	    {
+                bool Ok;
+	        float aCorrel;
+                CorrelMaster(aP,aKIm,Ok,aCorrel);
+	        if (Ok)
+	        {
+                   aSumCor += aCorrel;
+	           aNbOk   += 1;
+	        }
+	    }
+	}
+	float aAvgCorr =  (aSumCor / std::max(1e-5f,aNbOk)) ;
+	aDImSim.SetV(aP,1-aAvgCorr);
    }
 }
 
@@ -160,6 +177,8 @@ int  cAppliMatchMultipleOrtho::Exe()
 	    mImSimil = tImSimil(mSzIms);
 	    mImSimil.DIm().InitCste(2.0);
 
+            ComputeSimilByCorrelMaster();
+	    mImSimil.DIm().ToFile(mPrefixZ+ "_Sim.tif");
 	    mVOrtho.clear();
 	    mVMasq.clear();
         }

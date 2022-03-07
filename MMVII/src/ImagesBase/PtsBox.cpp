@@ -385,6 +385,10 @@ template <const int Dim>   cPixBox<Dim>::cPixBox(const cPixBox<Dim> & aR) :
 {
 }
 
+template <const int Dim> cPixBox<Dim>  cPixBox<Dim>::BoxWindow(const tPt & aC,const tPt & aSz)
+{
+    return cPixBox<Dim>(aC-aSz,aC+aSz+tPt::PCste(1));
+}
 
 template <const int Dim> cPixBox<Dim>  cPixBox<Dim>::BoxWindow(const tPt & aC,int aSz)
 {

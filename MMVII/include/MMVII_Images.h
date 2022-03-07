@@ -69,6 +69,7 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         cPixBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty = false);
         static cPixBox<Dim>  BoxWindow(int aSz); ///<  Box of window around pix !! symetric   [-Sz,+aSz] 
         static cPixBox<Dim>  BoxWindow(const tPt &aC,int aSz); ///<  with center 
+        static cPixBox<Dim>  BoxWindow(const tPt &aC,const tPt& aSz); ///<  with center  & Sz
         /// It may be convenient as conversion, as tool may retun TplBox, and others may need to iterate on it
         cPixBox(const cTplBox<int,Dim> &);
         // Position of point relative to PixBox

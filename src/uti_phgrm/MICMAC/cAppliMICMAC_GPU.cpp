@@ -1745,9 +1745,7 @@ void cAppliMICMAC::DoGPU_Correl
             }
         }
 
-	if (true)
 	{
-	     // Standard case do the computation in the current process
              for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
              {
                  bool OkZ = InitZ(aZ,aModeInitZ);
@@ -1797,94 +1795,6 @@ void cAppliMICMAC::DoGPU_Correl
                      }
                  }
              }
-	}
-	// Case where we generate the ortho photos and call processes
-	else
-	{
-		// Moh
-             int mDeltaZ = 10;
-             std::string aPrefixGlob = "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
-             for (int aZ0=mZMinGlob ; aZ0<mZMaxGlob ; aZ0+=mDeltaZ)
-             {
-                  int aZ1= ElMin(mZMaxGlob,aZ0+mDeltaZ);
-		  Box2di  aBoxEmpty(Pt2di(0,0),Pt2di(0,0));
-		  std::vector<Box2di>  aVecBoxDil;
-		  std::vector<Box2di>  aVecBoxUti;
-                  for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
-                  {
-                        std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) ;
-                        bool OkZ = InitZ(aZ,aModeInitZ);
-			if (OkZ)
-                        {
-                            Box2di  aBoxDil(Pt2di(mX0UtiDilTer,mY0UtiDilTer),Pt2di(mX1UtiDilTer,mY1UtiDilTer));
-                            Box2di  aBoxUti(Pt2di(mX0UtiTer,mY0UtiTer),Pt2di(mX1UtiTer,mY1UtiTer));
-
-			    aVecBoxDil.push_back(aBoxDil);
-			    aVecBoxUti.push_back(aBoxUti);
-
-			    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
-                            {
-                                 cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
-                                 std::string aPrefixZIm = aPrefixZ + "_I" + ToString(aKIm);
-				 SaveIm(aPrefixZIm+"_O.tif",aGLI_0.DataOrtho(),aBoxDil);
-				 SaveIm(aPrefixZIm+"_M.tif",aGLI_0.DataOKOrtho(),aBoxDil);
-                            }
-			    // aVecBox.push_back(
-                        }
-			else
-			{
-			    aVecBoxDil.push_back(aBoxEmpty);
-			    aVecBoxUti.push_back(aBoxEmpty);
-                            std::string aNameNone  = aPrefixZ + "_NoData";
-			    ELISE_fp aFile(aNameNone.c_str(),ELISE_fp::WRITE);
-			    aFile.close();
-			}
-		  }
-
-		  std::string   aCom =  "MMVII  DM4MatchMultipleOrtho "
-			                +  aPrefixGlob  
-					+  " " + ToString(aZ1-aZ0)          // Number of Ortho
-					+  " " + ToString(int(mVLI.size()))  // Number of Images
-					+  " " + ToString(  mCurSzVMax)     // Size of Window
-					+  " " + ToString( mGIm1IsInPax)     // Are we in mode Im1 Master
-		                 ;
- {
-	 std::cout << "RUN COMORTHO : " <<"\n";
-	 std::cout << aCom <<"\n";
-	 getchar();
- }
-		  System(aCom);
-                  for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
-                  {
-                      int aKBox = (aZ-aZ0);
-		      const Box2di & aBoxU = aVecBoxUti.at(aKBox);
-		      const Box2di & aBoxDil = aVecBoxDil.at(aKBox);
-		      bool  CorDone = (aBoxU.sz() != Pt2di(0,0));
-		      if (CorDone)
-		      {
-                          std::string aNameSim =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) + "_Sim.tif"  ;
-
-			  Im2D_REAL4  aImSim = Im2D_REAL4::FromFileStd(aNameSim);
-			  Pt2di aPUti;
-                          for (aPUti.x = aBoxU._p0.x ; aPUti.x <  aBoxU._p1.x ; aPUti.x++)
-                          {
-                               for (aPUti.y=aBoxU._p0.y ; aPUti.y<aBoxU._p1.y ; aPUti.y++)
-                               {
-                                     Pt2di aPDil = aPUti - aBoxDil._p0;
-				     double aSim =  aImSim.GetR(aPDil);
-                                     mSurfOpt->SetCout(aPUti,&aZ,aSim);
-			       }
-			  }
-		      }
-                  }
-             }
-	     std::string aComPurge = SYS_RM + std::string(" ") + aPrefixGlob + "*";
- {
-	 std::cout << "RUN COMPURGE : " <<"\n";
-	 std::cout << aComPurge <<"\n";
-	 getchar();
- }
-	     System(aComPurge);
 	}
 }
 
@@ -2227,6 +2137,95 @@ void cAppliMICMAC::DoCorrelAdHoc
                 // ELISE_ASSERT ( false, "Not epipolar geometry for census ");
              }
         }
+	// Case where we generate the ortho photos and call processes
+	if (false)
+	//	MutiCorrelOrthoExt
+	{
+		// Moh
+             int mDeltaZ = 10;
+             std::string aPrefixGlob = "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
+             for (int aZ0=mZMinGlob ; aZ0<mZMaxGlob ; aZ0+=mDeltaZ)
+             {
+                  int aZ1= ElMin(mZMaxGlob,aZ0+mDeltaZ);
+		  Box2di  aBoxEmpty(Pt2di(0,0),Pt2di(0,0));
+		  std::vector<Box2di>  aVecBoxDil;
+		  std::vector<Box2di>  aVecBoxUti;
+                  for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
+                  {
+                        std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) ;
+                        bool OkZ = InitZ(aZ,eModeNoMom);
+			if (OkZ)
+                        {
+                            Box2di  aBoxDil(Pt2di(mX0UtiDilTer,mY0UtiDilTer),Pt2di(mX1UtiDilTer,mY1UtiDilTer));
+                            Box2di  aBoxUti(Pt2di(mX0UtiTer,mY0UtiTer),Pt2di(mX1UtiTer,mY1UtiTer));
+
+			    aVecBoxDil.push_back(aBoxDil);
+			    aVecBoxUti.push_back(aBoxUti);
+
+			    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
+                            {
+                                 cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
+                                 std::string aPrefixZIm = aPrefixZ + "_I" + ToString(aKIm);
+				 SaveIm(aPrefixZIm+"_O.tif",aGLI_0.DataOrtho(),aBoxDil);
+				 SaveIm(aPrefixZIm+"_M.tif",aGLI_0.DataOKOrtho(),aBoxDil);
+                            }
+			    // aVecBox.push_back(
+                        }
+			else
+			{
+			    aVecBoxDil.push_back(aBoxEmpty);
+			    aVecBoxUti.push_back(aBoxEmpty);
+                            std::string aNameNone  = aPrefixZ + "_NoData";
+			    ELISE_fp aFile(aNameNone.c_str(),ELISE_fp::WRITE);
+			    aFile.close();
+			}
+		  }
+
+		  std::string   aCom =  "MMVII  DM4MatchMultipleOrtho "
+			                +  aPrefixGlob  
+					+  " " + ToString(aZ1-aZ0)          // Number of Ortho
+					+  " " + ToString(int(mVLI.size()))  // Number of Images
+					+  " " + ToString(  mCurSzVMax)     // Size of Window
+					+  " " + ToString( mGIm1IsInPax)     // Are we in mode Im1 Master
+		                 ;
+ {
+	 std::cout << "RUN COMORTHO : " <<"\n";
+	 std::cout << aCom <<"\n";
+	 getchar();
+ }
+		  System(aCom);
+                  for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
+                  {
+                      int aKBox = (aZ-aZ0);
+		      const Box2di & aBoxU = aVecBoxUti.at(aKBox);
+		      const Box2di & aBoxDil = aVecBoxDil.at(aKBox);
+		      bool  CorDone = (aBoxU.sz() != Pt2di(0,0));
+		      if (CorDone)
+		      {
+                          std::string aNameSim =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) + "_Sim.tif"  ;
+
+			  Im2D_REAL4  aImSim = Im2D_REAL4::FromFileStd(aNameSim);
+			  Pt2di aPUti;
+                          for (aPUti.x = aBoxU._p0.x ; aPUti.x <  aBoxU._p1.x ; aPUti.x++)
+                          {
+                               for (aPUti.y=aBoxU._p0.y ; aPUti.y<aBoxU._p1.y ; aPUti.y++)
+                               {
+                                     Pt2di aPDil = aPUti - aBoxDil._p0;
+				     double aSim =  aImSim.GetR(aPDil);
+                                     mSurfOpt->SetCout(aPUti,&aZ,aSim);
+			       }
+			  }
+		      }
+                  }
+             }
+	     std::string aComPurge = SYS_RM + std::string(" ") + aPrefixGlob + "*";
+ {
+	 std::cout << "RUN COMPURGE : " <<"\n";
+	 std::cout << aComPurge <<"\n";
+	 getchar();
+ }
+	     System(aComPurge);
+	}
 
         // On peut avoir a la fois MCP et mCC (par ex)
         if (aTC.MultiCorrelPonctuel().IsInit())
