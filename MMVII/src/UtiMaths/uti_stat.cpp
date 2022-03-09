@@ -153,6 +153,7 @@ template <class Type> Type cMatIner2Var<Type>::CorrelNotC(const Type & aEps) con
 template <class Type> Type cMatIner2Var<Type>::Correl(const Type & aEps) const
 {
    cMatIner2Var<Type> aDup(*this);
+   aDup.mS0 = std::max(aEps,aDup.mS0 );
    aDup.Normalize();
 
    Type aSqDenominator = std::max(aEps,aDup.mS11*aDup.mS22);
