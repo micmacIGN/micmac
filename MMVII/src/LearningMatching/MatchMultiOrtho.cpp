@@ -38,7 +38,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 
 	//  One option, to replace by whatever you want
 	void ComputeSimilByCorrelMaster();
-	void CorrelMaster(const cPt2di &,int aKIm,bool & Ok,float & aCorrel);
+	void CorrelMaster(const cPt2di &,int aKIm,bool & AllOk,float &aWeight,float & aCorrel);
 
 	// -------------- Mandatory args -------------------
 	std::string   mPrefixGlob;   // Prefix to all names
@@ -94,54 +94,68 @@ void cAppliMatchMultipleOrtho::CorrelMaster
      (
          const cPt2di & aCenter,
 	 int aKIm,
-	 bool & Ok,
+	 bool & AllOk,
+	 float &aWeight,
 	 float & aCorrel
      )
 {
-    if (! mVMasq.at(aKIm).DIm().GetV(aCenter) )
-    {
-        Ok = false;
-	return;
-    }
-    Ok = true;
+    AllOk = true;
+    aWeight = 0;
 
-    const tDImOrtho & aDIO0 =  mVOrtho.at(0   ).DIm();
-    const tDImOrtho & aDIOK =  mVOrtho.at(aKIm).DIm();
+    const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+    const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
+    const tDImOrtho & aDIO1 =  mVOrtho.at(0   ).DIm();
+    const tDImOrtho & aDIO2 =  mVOrtho.at(aKIm).DIm();
 
     cMatIner2Var<tElemOrtho> aMatI;
     for (const auto & aP : cRect2::BoxWindow(aCenter,mSzW))
     {
-         aMatI.Add(aDIO0.GetV(aP),aDIOK.GetV(aP));
+         bool Ok = aDIM1.DefGetV(aP,0) && aDIM2.DefGetV(aP,0) ;
+	 if (Ok)
+	 {
+             aWeight++;
+	     aMatI.Add(aDIO1.GetV(aP),aDIO2.GetV(aP));
+	 }
+	 else
+	 {
+             AllOk=false;
+	 }
     }
     aCorrel =  aMatI.Correl(1e-5);
 }
 
 void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
 {
-   // Just too lazy for making another tutorial ...
    MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
 
-   const tDImMasq & aDIM0  =  mVMasq.at(0   ).DIm();
    tDImSimil & aDImSim = mImSimil.DIm();
    for (const auto & aP : aDImSim)
    {
-        float aSumCor  = 0.0; // 
-        float aNbOk = 0.0; // 
-	if (aDIM0.GetV(aP))
+        // method : average of image all ok if any, else weighted average of partial corr
+        float aSumCorAllOk = 0.0; // Sum of correl of image where point are all ok
+        float aSumWeightAllOk = 0.0; // 
+        float aSumCorPart  = 0.0; // 
+        float aSumWeightPart = 0.0; // 
+        for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
 	{
-            for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+            bool AllOk;
+	    float aWeight,aCorrel;
+            CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
+	    if (AllOk)
 	    {
-                bool Ok;
-	        float aCorrel;
-                CorrelMaster(aP,aKIm,Ok,aCorrel);
-	        if (Ok)
-	        {
-                   aSumCor += aCorrel;
-	           aNbOk   += 1;
-	        }
+               aSumCorAllOk     += aCorrel;
+	       aSumWeightAllOk  += 1;
+	    }
+	    else
+	    {
+               aSumCorPart     += aCorrel * aWeight;
+	       aSumWeightPart  +=   aWeight;
 	    }
 	}
-	float aAvgCorr =  (aSumCor / std::max(1e-5f,aNbOk)) ;
+	float aAvgCorr =  (aSumWeightAllOk !=0)            ? 
+                          (aSumCorAllOk / aSumWeightAllOk) :
+                          (aSumCorPart / std::max(1e-5f,aSumWeightPart)) ;
+
 	aDImSim.SetV(aP,1-aAvgCorr);
    }
 }

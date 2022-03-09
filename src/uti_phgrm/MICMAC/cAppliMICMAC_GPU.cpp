@@ -1707,7 +1707,7 @@ void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int 
 
 void cAppliMICMAC::DoGPU_Correl
         (
-            const Box2di & aBox,
+            const Box2di & ,// aBox,
             const cMultiCorrelPonctuel * aMCP,
             double aPdsPix
         )
@@ -2138,12 +2138,16 @@ void cAppliMICMAC::DoCorrelAdHoc
              }
         }
 	// Case where we generate the ortho photos and call processes
-	if (false)
+	else if (aTC.MutiCorrelOrthoExt().IsInit())
 	//	MutiCorrelOrthoExt
 	{
+static int aCpt=0; aCpt++;
+// std::cout << "MMO ,Cpt=" << aCpt << " L="<< __LINE__ << " D=" << FullDirMEC()  << "\n";
+bool BugC= (aCpt==-2811111);
+
 		// Moh
-             int mDeltaZ = 10;
-             std::string aPrefixGlob = "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
+             int mDeltaZ = 1;
+             std::string aPrefixGlob = FullDirMEC() + "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
              for (int aZ0=mZMinGlob ; aZ0<mZMaxGlob ; aZ0+=mDeltaZ)
              {
                   int aZ1= ElMin(mZMaxGlob,aZ0+mDeltaZ);
@@ -2152,6 +2156,11 @@ void cAppliMICMAC::DoCorrelAdHoc
 		  std::vector<Box2di>  aVecBoxUti;
                   for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
                   {
+if (BugC)
+{
+	std::cout << "MMO ,Cpt=" << aCpt << " Z=" << aZ << " L="<< __LINE__ << "\n";
+	getchar();
+}
                         std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) ;
                         bool OkZ = InitZ(aZ,eModeNoMom);
 			if (OkZ)
@@ -2180,6 +2189,11 @@ void cAppliMICMAC::DoCorrelAdHoc
 			    aFile.close();
 			}
 		  }
+if (BugC)
+{
+	std::cout << "================BefMMBIIMMO ,Cpt=" << aCpt  << " L="<< __LINE__ << "\n";
+	getchar();
+}
 
 		  std::string   aCom =  "MMVII  DM4MatchMultipleOrtho "
 			                +  aPrefixGlob  
@@ -2188,11 +2202,6 @@ void cAppliMICMAC::DoCorrelAdHoc
 					+  " " + ToString(  mCurSzVMax)     // Size of Window
 					+  " " + ToString( mGIm1IsInPax)     // Are we in mode Im1 Master
 		                 ;
- {
-	 std::cout << "RUN COMORTHO : " <<"\n";
-	 std::cout << aCom <<"\n";
-	 getchar();
- }
 		  System(aCom);
                   for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
                   {
@@ -2205,26 +2214,30 @@ void cAppliMICMAC::DoCorrelAdHoc
                           std::string aNameSim =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) + "_Sim.tif"  ;
 
 			  Im2D_REAL4  aImSim = Im2D_REAL4::FromFileStd(aNameSim);
+			  TIm2D<REAL4,REAL8> aTImSim(aImSim);
 			  Pt2di aPUti;
+
                           for (aPUti.x = aBoxU._p0.x ; aPUti.x <  aBoxU._p1.x ; aPUti.x++)
                           {
                                for (aPUti.y=aBoxU._p0.y ; aPUti.y<aBoxU._p1.y ; aPUti.y++)
                                {
                                      Pt2di aPDil = aPUti - aBoxDil._p0;
-				     double aSim =  aImSim.GetR(aPDil);
-                                     mSurfOpt->SetCout(aPUti,&aZ,aSim);
+				     // double aSim =  aImSim.GetR(aPDil);
+				     double aSim =  aTImSim.get(aPDil);
+                                     if (mDOkTer[aPUti.y][aPUti.x])
+                                         mSurfOpt->SetCout(aPUti,&aZ,aSim);
 			       }
 			  }
 		      }
                   }
+	          std::string aComPurge = SYS_RM + std::string(" ") + aPrefixGlob + "*";
+if (BugC)
+{
+	std::cout << "CPURGE ["<< aComPurge << "]\n";
+	getchar();
+}
+	          System(aComPurge);
              }
-	     std::string aComPurge = SYS_RM + std::string(" ") + aPrefixGlob + "*";
- {
-	 std::cout << "RUN COMPURGE : " <<"\n";
-	 std::cout << aComPurge <<"\n";
-	 getchar();
- }
-	     System(aComPurge);
 	}
 
         // On peut avoir a la fois MCP et mCC (par ex)
