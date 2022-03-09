@@ -6,7 +6,6 @@ git fetch origin
 git branch mpd
 git checkout mpd 
 
-e7bd73815998b18d6b19406eeebd764829cbee11
 
  git config --global credential.helper 'store --file ~/.git-credential' 
 
