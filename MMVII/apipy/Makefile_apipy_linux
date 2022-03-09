@@ -15,7 +15,6 @@ apipy: clean tmp/typemaps.i tmp/h_to_include.i tmp/rename_nonref.i tmp/return_no
 	python3 setup.py build
 	python3 setup.py bdist_wheel
 	pip3 install --user dist/*.whl
-	touch ~/.local/mmv2/include/XML_GEN/MMVII #~/.local/mmv2/include/XML_GEN/ is DirBin2007
 	#python3 setup.py install --user
 	@if python3 -c "import mmv2" ; then echo "APIPY OK" ; else echo "APIPY error! Use c++filt to demangle missing symbols." ; fi
 

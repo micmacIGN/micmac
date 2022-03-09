@@ -34,7 +34,8 @@ setup (name = 'mmv2',
        long_description = "MicMac v2 Python API",
        ext_modules = [mmv2_module],
        py_modules = ["mmv2"],
-       data_files = [("mmv2/include/XML_MicMac", xml_micmac_files),
+       data_files = [("mmv2/MMVII/bin", ['../bin/MMVII']),
+                     ("mmv2/include/XML_MicMac", xml_micmac_files),
                      ("mmv2/include/XML_GEN", xml_gen_files)],
        platforms  = ['x86_64']
        )

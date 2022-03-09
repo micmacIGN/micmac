@@ -5,7 +5,7 @@
 #include "MMVII_all.h"
 #include <stdexcept>
 
-const std::string MMVII::DirBin2007 = std::string(getenv("HOME"))+"/.local/mmv2/include/XML_GEN/";
+const std::string MMVII::DirBin2007 = std::string(getenv("HOME"))+"/.local/mmv2/MMVII/bin/";
 extern bool TheExitOnBrkp;
 
 static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
