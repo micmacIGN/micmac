@@ -2326,14 +2326,18 @@ class cMutiCorrelOrthoExt
         friend void xml_init(cMutiCorrelOrthoExt & anObj,cElXMLTree * aTree);
 
 
-        std::string & Mode();
-        const std::string & Mode()const ;
+        cTplValGesInit< std::string > & Cmd();
+        const cTplValGesInit< std::string > & Cmd()const ;
 
         cTplValGesInit< std::string > & Options();
         const cTplValGesInit< std::string > & Options()const ;
+
+        cTplValGesInit< int > & DeltaZ();
+        const cTplValGesInit< int > & DeltaZ()const ;
     private:
-        std::string mMode;
+        cTplValGesInit< std::string > mCmd;
         cTplValGesInit< std::string > mOptions;
+        cTplValGesInit< int > mDeltaZ;
 };
 cElXMLTree * ToXMLTree(const cMutiCorrelOrthoExt &);
 

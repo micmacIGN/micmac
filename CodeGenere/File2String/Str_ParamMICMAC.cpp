@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamMICMAC[2184] = {
+const char * theNameVar_ParamMICMAC[2185] = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -991,8 +991,9 @@ const char * theNameVar_ParamMICMAC[2184] = {
 "                        </GPU_Correl>\n",
 "\n",
 "                        <MutiCorrelOrthoExt Nb=\"?\" AccessorFils=\"false\">    \n",
-"                                <Mode Nb=\"1\" Type=\"std::string\"> </Mode>\n",
+"                                <Cmd Nb=\"?\" Type=\"std::string\" Def=\"MMVII  DM4MatchMultipleOrtho \"> </Cmd>\n",
 "                                <Options Nb=\"?\" Type=\"std::string\"> </Options>\n",
+"                                <DeltaZ Nb=\"?\" Type=\"int\" Def=\"50\"> </DeltaZ>\n",
 "                        </MutiCorrelOrthoExt>\n",
 "\n",
 "                        <!-- Afin de conserver le max de simplicite -->\n",

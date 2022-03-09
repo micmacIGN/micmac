@@ -92,11 +92,11 @@ cCollecSpecArg2007 & cAppliMatchMultipleOrtho::ArgOpt(cCollecSpecArg2007 & anArg
 
 void cAppliMatchMultipleOrtho::CorrelMaster
      (
-         const cPt2di & aCenter,
-	 int aKIm,
-	 bool & AllOk,
-	 float &aWeight,
-	 float & aCorrel
+         const cPt2di & aCenter,   // Central Pixel
+	 int aKIm,                  // Num of Image
+	 bool & AllOk,              // Is all Window in masq ?
+	 float &aWeight,            //  Weight of inside pixel
+	 float & aCorrel            // Correl
      )
 {
     AllOk = true;
@@ -108,9 +108,9 @@ void cAppliMatchMultipleOrtho::CorrelMaster
     const tDImOrtho & aDIO2 =  mVOrtho.at(aKIm).DIm();
 
     cMatIner2Var<tElemOrtho> aMatI;
-    for (const auto & aP : cRect2::BoxWindow(aCenter,mSzW))
+    for (const auto & aP : cRect2::BoxWindow(aCenter,mSzW))  // Parse the window`
     {
-         bool Ok = aDIM1.DefGetV(aP,0) && aDIM2.DefGetV(aP,0) ;
+         bool Ok = aDIM1.DefGetV(aP,0) && aDIM2.DefGetV(aP,0) ;  // Are both pixel valide
 	 if (Ok)
 	 {
              aWeight++;
@@ -129,13 +129,15 @@ void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
    MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
 
    tDImSimil & aDImSim = mImSimil.DIm();
+   // Parse all pixels
    for (const auto & aP : aDImSim)
    {
         // method : average of image all ok if any, else weighted average of partial corr
         float aSumCorAllOk = 0.0; // Sum of correl of image where point are all ok
-        float aSumWeightAllOk = 0.0; // 
-        float aSumCorPart  = 0.0; // 
-        float aSumWeightPart = 0.0; // 
+        float aSumWeightAllOk = 0.0; //   Nb of All Ok
+        float aSumCorPart  = 0.0; //  Sum of weighted partial correl
+        float aSumWeightPart = 0.0; //  Sum of weight
+	// Parse secondary images 
         for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
 	{
             bool AllOk;
@@ -163,11 +165,12 @@ void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
 
 int  cAppliMatchMultipleOrtho::Exe()
 {
+   // Parse all Z
    for (int aZ=0 ; aZ<mNbZ ; aZ++)
    {
         mPrefixZ =  mPrefixGlob + "_Z" + ToStr(aZ);
 
-        bool NoFile = ExistFile(mPrefixZ+ "_NoData");
+        bool NoFile = ExistFile(mPrefixZ+ "_NoData");  // If no data in masq thie file exist
         bool WithFile = ExistFile(NameOrtho(0));
 	// A little check
         MMVII_INTERNAL_ASSERT_strong(NoFile!=WithFile,"DM4MatchMultipleOrtho, incoherence file");
@@ -175,21 +178,24 @@ int  cAppliMatchMultipleOrtho::Exe()
 
 	if (WithFile)
         {
+	    // Read  orthos and masq in  vectors of images
 	    for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 	    {
                  mVOrtho.push_back(tImOrtho::FromFile(NameOrtho(aKIm)));
-		 mSzIms = mVOrtho[0].DIm().Sz();
+		 mSzIms = mVOrtho[0].DIm().Sz();  // Compute the size at level
 
                  mVMasq.push_back(tImMasq::FromFile(NameMasq(aKIm)));
 
+		 // check all images have the same at a given level
                  MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
                  MMVII_INTERNAL_ASSERT_strong(mVMasq [aKIm].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
 	    }
+	    // Create similarity image with good size
 	    mImSimil = tImSimil(mSzIms);
-	    mImSimil.DIm().InitCste(2.0);
+	    mImSimil.DIm().InitCste(2.0);   //  2 => correl of -1
 
             ComputeSimilByCorrelMaster();
-	    mImSimil.DIm().ToFile(mPrefixZ+ "_Sim.tif");
+	    mImSimil.DIm().ToFile(mPrefixZ+ "_Sim.tif"); // Save similarities
 	    mVOrtho.clear();
 	    mVMasq.clear();
         }

@@ -989,8 +989,9 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         </GPU_Correl>
 
                         <MutiCorrelOrthoExt Nb="?" AccessorFils="false">    
-                                <Mode Nb="1" Type="std::string"> </Mode>
+                                <Cmd Nb="?" Type="std::string" Def="MMVII  DM4MatchMultipleOrtho "> </Cmd>
                                 <Options Nb="?" Type="std::string"> </Options>
+                                <DeltaZ Nb="?" Type="int" Def="50"> </DeltaZ>
                         </MutiCorrelOrthoExt>
 
                         <!-- Afin de conserver le max de simplicite -->

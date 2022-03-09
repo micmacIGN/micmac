@@ -87,7 +87,10 @@ template <class Type> void  SaveIm(const std::string & aName,Type ** aDataIn,con
        );
    }
 
-   Tiff_Im::CreateFromIm(anImOut,aName);
+   L_Arg_Opt_Tiff aLArg;
+   aLArg = aLArg + Arg_Tiff(Tiff_Im::ANoStrip());
+
+   Tiff_Im::CreateFromIm(anImOut,aName,aLArg);
 }
 
 
@@ -2141,12 +2144,8 @@ void cAppliMICMAC::DoCorrelAdHoc
 	else if (aTC.MutiCorrelOrthoExt().IsInit())
 	//	MutiCorrelOrthoExt
 	{
-static int aCpt=0; aCpt++;
-// std::cout << "MMO ,Cpt=" << aCpt << " L="<< __LINE__ << " D=" << FullDirMEC()  << "\n";
-bool BugC= (aCpt==-2811111);
-
-		// Moh
-             int mDeltaZ = 1;
+             const cMutiCorrelOrthoExt aMCOE = aTC.MutiCorrelOrthoExt().Val();
+             int mDeltaZ = aMCOE.DeltaZ().Val();
              std::string aPrefixGlob = FullDirMEC() + "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
              for (int aZ0=mZMinGlob ; aZ0<mZMaxGlob ; aZ0+=mDeltaZ)
              {
@@ -2156,21 +2155,19 @@ bool BugC= (aCpt==-2811111);
 		  std::vector<Box2di>  aVecBoxUti;
                   for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
                   {
-if (BugC)
-{
-	std::cout << "MMO ,Cpt=" << aCpt << " Z=" << aZ << " L="<< __LINE__ << "\n";
-	getchar();
-}
                         std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) ;
-                        bool OkZ = InitZ(aZ,eModeNoMom);
+                        bool OkZ = InitZ(aZ,eModeNoMom);  // Generate orthos and mask at given Z
 			if (OkZ)
                         {
                             Box2di  aBoxDil(Pt2di(mX0UtiDilTer,mY0UtiDilTer),Pt2di(mX1UtiDilTer,mY1UtiDilTer));
                             Box2di  aBoxUti(Pt2di(mX0UtiTer,mY0UtiTer),Pt2di(mX1UtiTer,mY1UtiTer));
 
+			    // Memorize vector of boxes
 			    aVecBoxDil.push_back(aBoxDil);
 			    aVecBoxUti.push_back(aBoxUti);
 
+                            SaveIm(aPrefixZ+"_OkT.tif",mDOkTer,aBoxUti);
+			    //  Save ortho and Masks  for all images
 			    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
                             {
                                  cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
@@ -2182,6 +2179,7 @@ if (BugC)
                         }
 			else
 			{
+                            // Generate information for no data
 			    aVecBoxDil.push_back(aBoxEmpty);
 			    aVecBoxUti.push_back(aBoxEmpty);
                             std::string aNameNone  = aPrefixZ + "_NoData";
@@ -2189,20 +2187,19 @@ if (BugC)
 			    aFile.close();
 			}
 		  }
-if (BugC)
-{
-	std::cout << "================BefMMBIIMMO ,Cpt=" << aCpt  << " L="<< __LINE__ << "\n";
-	getchar();
-}
 
-		  std::string   aCom =  "MMVII  DM4MatchMultipleOrtho "
+		  //  Call external command
+		  std::string   aCom =  aMCOE.Cmd().Val() // "MMVII  DM4MatchMultipleOrtho "
 			                +  aPrefixGlob  
 					+  " " + ToString(aZ1-aZ0)          // Number of Ortho
 					+  " " + ToString(int(mVLI.size()))  // Number of Images
 					+  " " + ToString(  mCurSzVMax)     // Size of Window
 					+  " " + ToString( mGIm1IsInPax)     // Are we in mode Im1 Master
 		                 ;
+		  if (aMCOE.Options().IsInit())
+                     aCom = aCom + " " + QUOTE(aMCOE.Options().Val());
 		  System(aCom);
+		  // Fill cube with computed similarities
                   for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
                   {
                       int aKBox = (aZ-aZ0);
@@ -2211,31 +2208,40 @@ if (BugC)
 		      bool  CorDone = (aBoxU.sz() != Pt2di(0,0));
 		      if (CorDone)
 		      {
+			      // Read similarity
                           std::string aNameSim =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) + "_Sim.tif"  ;
-
 			  Im2D_REAL4  aImSim = Im2D_REAL4::FromFileStd(aNameSim);
 			  TIm2D<REAL4,REAL8> aTImSim(aImSim);
-			  Pt2di aPUti;
 
+			      // Read masq terrain
+                          std::string aNameOkT =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) + "_OkT.tif"  ;
+			  Im2D_U_INT1  aImOkT = Im2D_U_INT1::FromFileStd(aNameOkT);
+			  TIm2D<U_INT1,INT4> aTImOkT(aImOkT);
+
+
+			  // Parse image to fill cost for optimizer
+			  Pt2di aPUti;
                           for (aPUti.x = aBoxU._p0.x ; aPUti.x <  aBoxU._p1.x ; aPUti.x++)
                           {
                                for (aPUti.y=aBoxU._p0.y ; aPUti.y<aBoxU._p1.y ; aPUti.y++)
                                {
-                                     Pt2di aPDil = aPUti - aBoxDil._p0;
-				     // double aSim =  aImSim.GetR(aPDil);
-				     double aSim =  aTImSim.get(aPDil);
-                                     if (mDOkTer[aPUti.y][aPUti.x])
+                                     bool Ok1 = aTImOkT.get(aPUti-aBoxU._p0);
+				     /*
+                                     bool Ok2 = mDOkTer[aPUti.y][aPUti.x];
+                                     ELISE_ASSERT(Ok1==Ok2,"aImOkT.get coh");
+				     */
+                                     if (Ok1)
+				     {
+                                         Pt2di aPDil = aPUti - aBoxDil._p0;
+				         double aSim =  aTImSim.get(aPDil);
                                          mSurfOpt->SetCout(aPUti,&aZ,aSim);
+				     }
 			       }
 			  }
 		      }
                   }
+		  // Purge temporary files
 	          std::string aComPurge = SYS_RM + std::string(" ") + aPrefixGlob + "*";
-if (BugC)
-{
-	std::cout << "CPURGE ["<< aComPurge << "]\n";
-	getchar();
-}
 	          System(aComPurge);
              }
 	}
