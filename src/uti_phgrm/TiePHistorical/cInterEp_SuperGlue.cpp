@@ -105,7 +105,7 @@ bool CheckFile(std::string input_dir, std::string SH, std::string input_pairs)
     return true;
 }
 
-void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string input_pairs, bool keepNpzFile, double aCheckNb, bool bPrint, bool bRotHyp, bool bViz)
+void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string input_pairs, bool keepNpzFile, double aCheckNb, bool bPrint, int aRotate, bool bViz)
 {
     std::string aVizDir = input_dir + "/VizSpG/";
     if(bViz == true && ELISE_fp::exist_file(aVizDir) == false)
@@ -126,28 +126,33 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
 
         std::vector<cElHomographie> aHomoVec;
         std::vector<std::string> aRotVec;
-        aHomoVec.push_back(cElHomographie(cElComposHomographie(1,0,0),cElComposHomographie(0,1,0),cElComposHomographie(0,0,1)));
-        aRotVec.push_back("");
-        if(bRotHyp){
-            cElComposHomographie aRotateHX(0, 1, 0);
-            cElComposHomographie aRotateHY(-1, 0, ImgSzR.y);
-            cElComposHomographie aRotateHZ(0, 0, 1);
-            cElHomographie  aRotateH =  cElHomographie(aRotateHX,aRotateHY,aRotateHZ);
-            aHomoVec.push_back(aRotateH);
-            aRotVec.push_back("_R90");
 
+        cElComposHomographie aRotateHX = cElComposHomographie(1,0,0);
+        cElComposHomographie aRotateHY = cElComposHomographie(0,1,0);
+        cElComposHomographie aRotateHZ = cElComposHomographie(0,0,1);
+        if(aRotate == 0 || aRotate == -1){
+            aHomoVec.push_back(cElHomographie(aRotateHX,aRotateHY,aRotateHZ));
+            aRotVec.push_back("");
+        }
+        if(aRotate == 90 || aRotate == -1){
+            aRotateHX = cElComposHomographie(0, 1, 0);
+            aRotateHY = cElComposHomographie(-1, 0, ImgSzR.y);
+            aRotateHZ = cElComposHomographie(0, 0, 1);
+            aHomoVec.push_back(cElHomographie(aRotateHX,aRotateHY,aRotateHZ));
+            aRotVec.push_back("_R90");
+        }
+        if(aRotate == 180 || aRotate == -1){
             aRotateHX = cElComposHomographie(-1, 0, ImgSzR.x);
             aRotateHY = cElComposHomographie(0, -1, ImgSzR.y);
             aRotateHZ = cElComposHomographie(0, 0, 1);
-            aRotateH =  cElHomographie(aRotateHX,aRotateHY,aRotateHZ);
-            aHomoVec.push_back(aRotateH);
+            aHomoVec.push_back(cElHomographie(aRotateHX,aRotateHY,aRotateHZ));
             aRotVec.push_back("_R180");
-
+        }
+        if(aRotate == 270 || aRotate == -1){
             aRotateHX = cElComposHomographie(0, -1, ImgSzR.x);
             aRotateHY = cElComposHomographie(1, 0, 0);
             aRotateHZ = cElComposHomographie(0, 0, 1);
-            aRotateH =  cElHomographie(aRotateHX,aRotateHY,aRotateHZ);
-            aHomoVec.push_back(aRotateH);
+            aHomoVec.push_back(cElHomographie(aRotateHX,aRotateHY,aRotateHZ));
             aRotVec.push_back("_R270");
         }
 
@@ -253,7 +258,8 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
                 aBestMatch = aImg1+" "+StdPrefix(aImg2)+aRot+"."+StdPostfix(aImg2);
             }
 
-            cout<<"Tie-point number in "<<aFullFileName<<": "<<nValidMatchNum<<endl;
+            //printf("%dth hypo, %d pt, %s\n", k, aFullFileName.c_str());
+            cout<<k<<"th hypo, tie-point number in "<<aFullFileName<<": "<<nValidMatchNum<<endl;
             //SaveHomolTxtFile(input_dir, aImg1, aImg2, SH+aRot, aTiePtVec);
 
             if(keepNpzFile == false)
@@ -262,7 +268,7 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
                 System(cmmd);
             }
         }
-        if(bRotHyp)
+        if(aRotate == -1)
             cout<<"Best match in 4 rotation hypothesis: "<<aBestMatch<<endl;
         //break;
 
@@ -320,8 +326,9 @@ int SuperGlue_main(int argc,char ** argv)
    double aCheckNb = -1;
 
    std::string aOutput_dir = "";
+   int aRotate=-1;
 
-   bool bRotHyp = false;
+//   bool bRotHyp = false;
 
    bool bSkipSpG = false;
 
@@ -335,7 +342,8 @@ int SuperGlue_main(int argc,char ** argv)
                << EAM(aOutput_dir, "OutDir", true, "The output directory of the match results of SuperGlue, Def=InDir")
                     << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(aCheckNb,"CheckNb",true,"Radius of the search space for SuperGlue (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=-1 (means don't check search space)")
-               << EAM(bRotHyp, "RotHyp", true, "Apply rotation hypothesis (if true, the secondary image will be rotated by 90 degreee 4 times and the matching with the largest correspondences will be kept), Def=false")
+//               << EAM(bRotHyp, "RotHyp", true, "Apply rotation hypothesis (if true, the secondary image will be rotated by 90 degreee 4 times and the matching with the largest correspondences will be kept), Def=false")
+               << EAM(aRotate,"Rotate",true,"The angle of clockwise rotation from the master image to the secondary image (only 4 options available: 0, 90, 180, 270, as SuperGlue is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
 
                << EAM(bSkipSpG, "SkipSpG", true, "Skip executing SuperGlue for testing custom network(for developpers only), Def=false")
                );
@@ -343,18 +351,36 @@ int SuperGlue_main(int argc,char ** argv)
    std::vector<std::string> CmmdRmFilesVec;
 
    std::vector<std::string> input_pairsVec;
-   input_pairsVec.push_back(input_pairs);
+   std::vector<int> aRotateTimes;
+   //input_pairsVec.push_back(input_pairs);
 
-   if(bRotHyp == true)
+   //if(bRotHyp == true)
+   //if (aRotate != 0)
    {
        std::string input_dir = aCAS3D.mInput_dir;
-       std::string aRotate[4] = {"_R90", "_R180", "_R270"};
+       //std::string aVecRotate[4] = {"_R90", "_R180", "_R270"};
+       std::vector<std::string> aVecRotate;
+       if(aRotate == 0 || aRotate == -1)
+           input_pairsVec.push_back(input_pairs);
 
-       for(int i=0; i<3; i++)
+       if(aRotate == 90 || aRotate == -1){
+           aVecRotate.push_back("_R90");
+           aRotateTimes.push_back(1);
+       }
+       if(aRotate == 180 || aRotate == -1){
+           aVecRotate.push_back("_R180");
+           aRotateTimes.push_back(2);
+       }
+       if(aRotate == 270 || aRotate == -1){
+           aVecRotate.push_back("_R270");
+           aRotateTimes.push_back(3);
+       }
+
+       for(int i=0; i<int(aVecRotate.size()); i++)
        {
            ifstream in(input_dir+input_pairs);
            std::string s;
-           std::string input_pairsNew = StdPrefix(input_pairs)+aRotate[i]+".txt";
+           std::string input_pairsNew = StdPrefix(input_pairs)+aVecRotate[i]+".txt";
 
            FILE * fpOutput = fopen((input_dir+input_pairsNew).c_str(), "w");
            while(getline(in,s))
@@ -363,9 +389,9 @@ int SuperGlue_main(int argc,char ** argv)
                std::stringstream is(s);
                is>>aImg1>>aImg2;
 
-               std::string aImg2_Rotate = StdPrefix(aImg2)+aRotate[i]+"."+StdPostfix(aImg2);
+               std::string aImg2_Rotate = StdPrefix(aImg2)+aVecRotate[i]+"."+StdPostfix(aImg2);
                if (ELISE_fp::exist_file(input_dir+"/"+aImg2_Rotate) == false)
-                   RotateImgBy90DegNTimes(input_dir, aImg2, aImg2_Rotate, i+1);
+                   RotateImgBy90DegNTimes(input_dir, aImg2, aImg2_Rotate, aRotateTimes[i]);
                CmmdRmFilesVec.push_back(aImg2_Rotate);
 
                fprintf(fpOutput, "%s %s\n", aImg1.c_str(), aImg2_Rotate.c_str());
@@ -434,7 +460,7 @@ int SuperGlue_main(int argc,char ** argv)
                System(cmmd);
        }
 
-       Npz2Homol(aCAS3D.mResize, aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs, aCAS3D.mKeepNpzFile, aCheckNb, aCAS3D.mPrint, bRotHyp, aCAS3D.mViz);
+       Npz2Homol(aCAS3D.mResize, aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs, aCAS3D.mKeepNpzFile, aCheckNb, aCAS3D.mPrint, aRotate, aCAS3D.mViz);
 
        for(int k=0; k<int(CmmdRmFilesVec.size()); k++){
            std::string CmmdRmFiles = CmmdRmFilesVec[k];
