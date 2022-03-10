@@ -351,6 +351,7 @@ class cWT_AppliFormatTDEDM : public cAppliLearningMatch
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+        std::vector<std::string>  Samples() const  override;
 
      private :
        // =========== Data ========
@@ -385,6 +386,17 @@ cCollecSpecArg2007 & cWT_AppliFormatTDEDM::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
    ;
+}
+
+std::vector<std::string>  cWT_AppliFormatTDEDM::Samples() const
+{
+   return std::vector<std::string>
+          (
+            {
+	        " MMVII  DM0FormatTD_WT \".*0002.png\" UmbraStereo"
+	    }
+
+          );
 }
 
 
