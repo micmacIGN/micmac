@@ -48,6 +48,16 @@ class cFctrRR
 };
 /// Random permutation , Higer Bias => Higer average rank
 std::vector<int> RandPerm(int aN,cFctrRR & aBias =cFctrRR::TheOne);
+/// Randomly order a vector , used in bench to multiply some test of possible order dependance
+template<class Type>  std::vector<Type>  RandomOrder(const std::vector<Type> & aV)
+{
+    std::vector<int> aPermut = RandPerm(aV.size());
+    std::vector<Type> aRes;
+    for (const auto & aI : aPermut)
+        aRes.push_back(aV.at(aI));
+    return aRes;
+}
+
 /// Random subset K among  N  !! Higher bias => lower proba of selection
 std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias =cFctrRR::TheOne);
 ///  Random modification of K Value in a set of N elem

@@ -3,52 +3,8 @@
 namespace MMVII
 {
 
-class  cTriangle
-{
-     public :
-       cTriangle(const cPt2dr & aP0,const cPt2dr & aP1,const cPt2dr & aP2);
 
-     private :
-       cPt2dr mP0;
-       cPt2dr mP1;
-       cPt2dr mP2;
-
-};
-
-class  cTriangleCompiled : public cTriangle
-{
-       public :
-           cTriangleCompiled(const cTriangle & aTri);
-           cTriangleCompiled(const cPt2dr & aP0,const cPt2dr & aP1,const cPt2dr & aP2);
-};
-
-
-
-
-cTriangle::cTriangle(const cPt2dr & aP0,const cPt2dr & aP1,const cPt2dr & aP2) :
-     mP0 (aP0),
-     mP1 (aP1),
-     mP2 (aP2)
-{
-}
-
-
-cTriangleCompiled::cTriangleCompiled(const cTriangle & aTri) :
-    cTriangle(aTri)
-{
-}
-
-
-
-// #include <algorithm>
-// #include <cmath>
-#include <exception>
-// #include <iostream>
-// #include <limits>
-// #include <memory>
-// #include <utility>
-// #include <vector>
-
+// Tanks to :  https://github.com/delfrrr/delaunator-cpp
 namespace delaunator {
 
 //@see https://stackoverflow.com/questions/33333363/built-in-mod-vs-custom-mod-function-improve-the-performance-of-modulus-op/33333636#33333636
@@ -626,39 +582,99 @@ void Delaunator::link(const std::size_t a, const std::size_t b) {
 
 using namespace delaunator;
 
-void BenchDelaunay(int aNb)
+
+void BenchDelaunayVPts(const std::vector<cPt2dr> & aVP)
 {
-   StdOut() << "InDel " << aNb << "\n";
+   int aNbPts = aVP.size();
    std::vector<double> aVC;
-   std::vector<cPt2dr> aVP;
-   for (int aK=0 ; aK<aNb ; aK++)
+   for (int aK=0 ; aK<aNbPts ; aK++)
    {
-        cPt2dr aP = cPt2dr::PRandC() * sqrt(aNb);
-	aVP.push_back(aP);
+        cPt2dr aP = aVP[aK];
 	aVC.push_back(aP.x());
 	aVC.push_back(aP.y());
    } 
 
    Delaunator aDel(aVC);
    MMVII_INTERNAL_ASSERT_bench((aDel.triangles.size() %3)==0,"Bad comprehension of delaunay triangles");
-   StdOut() << "  T " << aDel.triangles.size() << "\n";
-   /*
-   std::vector<std::size_t> triangles;
-    std::vector<std::size_t> halfedges;
-    std::vector<std::size_t> hull_prev;
-    std::vector<std::size_t> hull_next;
-    std::vector<std::size_t> hull_tri;
-    */
-   StdOut() << "OutDel " << aNb << "\n";
+   // StdOut() << "  T " << aDel.triangles.size() << "\n";
+
+   // int aNbTri = aDel.triangles.size()/3;
+
+   // Check the property , for each triangle the inscribed circle does not contain other points
+   
+   if (aNbPts<=1000)
+   {
+       // StdOut() << "Inscribe Circle " << aNbPts << "\n";
+       std::vector<std::size_t> aVTri = aDel.triangles;
+       for (int aKt=0 ; aKt<int(aVTri.size()) ; aKt+=3)
+       {
+           cTriangle2D aTri(aVP[aVTri[aKt]],aVP[aVTri[aKt+1]],aVP[aVTri[aKt+2]]);
+           cPt2dr aC = aTri.CenterInscribedCircle() ;
+	   double aMinRay = 1e20;
+           for (int aKp=0 ; aKp<aNbPts; aKp++)
+	   {
+                aMinRay = std::min(aMinRay,Norm2(aC-aVP[aKp]));
+	   }
+           double aRay = Norm2(aC-aTri.Pt(0));
+	   double aDif = std::abs( aRay -aMinRay);
+           MMVII_INTERNAL_ASSERT_bench(aDif<1e-5,"Inscribed circle property in delaunay");
+       }
+   }
+
+
+   //StdOut() << "OutDel " << aNbPts << "\n";
+}
+
+void BenchDelaunayRand(int aNbPts)
+{
+   std::vector<cPt2dr> aVP;
+   for (int aK=0 ; aK<aNbPts ; aK++)
+   {
+        cPt2dr aP = cPt2dr::PRandC() * sqrt(aNbPts);
+	aVP.push_back(aP);
+   } 
+   BenchDelaunayVPts(aVP);
+}
+
+/*
+template<class Type>  std::vector<Type>  RandomOrder(const std::vector<Type> & aV)
+{
+    std::vector<int> aPermut = RandPerm(aV.size());
+    std::vector<Type> aRes;
+    for (const auto & aI : aPermut)
+        aRes.push_back(aV.at(aI));
+    return aRes;
+}
+*/
+
+void BenchDelaunayGrid(const cPt2di & aSz)
+{
+   std::vector<cPt2dr> aVP;
+   for (const auto & aPix : cRect2(cPt2di(0,0),aSz))
+   {
+       aVP.push_back(ToR(aPix));
+   }
+   BenchDelaunayVPts(aVP);
+   for (int aK=0 ; aK<10 ; aK++)
+       BenchDelaunayVPts(RandomOrder(aVP));
 }
 
 void BenchDelaunay(cParamExeBench & aParam)
 {
-    for(int aK=3 ; aK<=100 ; aK++)
-      BenchDelaunay(round_ni(pow(aK,2)));
+    if (! aParam.NewBench("Delaunay")) return;
 
-    for(int aK=1 ; aK<=6 ; aK++)
-        BenchDelaunay(round_ni(pow(10.0,aK)));
+    BenchDelaunayGrid(cPt2di(10,10));
+    BenchDelaunayGrid(cPt2di(20,10));
+    BenchDelaunayGrid(cPt2di(10,20));
+
+    for(int aK=3 ; aK<=100 ; aK++)
+        BenchDelaunayRand(round_ni(pow(aK,2)));
+
+    for(int aK=1 ; aK<=5 ; aK++)
+        BenchDelaunayRand(round_ni(pow(10.0,aK)));
+
+    aParam.EndBench();
+
 }
 
 };
