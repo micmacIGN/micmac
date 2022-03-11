@@ -525,5 +525,16 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 
 bool    IsInit(const void *);  ///< Call IsInit on the appli def
+
+// To build application outside of the main MMVII executable
+
+// To build a completly separate application
+// Must be called in main() before any use of MMVII items
+void InitStandAloneAppli();
+
+// To build a MMVII like application (arguments parsing)
+// a cSpecMMVII_Appli must be defined ...
+int InitStandAloneAppli(const cSpecMMVII_Appli & aSpec, int argc, char*argv[]);
+
 };
 #endif  //  _cMMVII_Appli_H_
