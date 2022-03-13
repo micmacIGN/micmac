@@ -370,6 +370,7 @@ std::string cCommonAppliTiepHistorical::ComParamGetPatchPair()
 
 std::string cCommonAppliTiepHistorical::ComParamSuperGlue()
 {
+    cout<<"mViz "<<mViz<<endl;
     std::string aCom ="";
     if (EAMIsInit(&mInput_dir))   aCom +=  " InDir=" + mDir + "/" + mInput_dir;
     //if (EAMIsInit(&mOutput_dir))   aCom +=  " SpGOutDir=" + mDir + "/" + mOutput_dir;
@@ -1170,7 +1171,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mImg4MatchList2,"IL2",true,"RGB images in epoch2 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list), Def=ImgList2")
                << EAM(mCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(mUseDepth,"UseDep",true,"GetPatchPair for depth maps as well (this option is only used for developper), Def=false")
-               << EAM(mRotateDSM,"Rotate",true,"The angle of clockwise rotation from the master DSM/orthophoto to the secondary DSM/orthophoto for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
+               << EAM(mRotateDSM,"Rotate",true,"The angle of clockwise rotation from the master DSM/orthophoto to the secondary DSM/orthophoto for rough co-registration (only 5 options available: 0, 90, 180, 270 and -1. -1 means all the 4 rotations (0, 90, 180, 270) will be executed, and the one with the most inlier will be kept.), Def=-1")
                << EAM(mSkipCoReg, "SkipCoReg", true, "Skip the step of rough co-registration, when the input orientations of epoch1 and epoch 2 are already co-registrated, Def=false")
                << EAM(mSkipPrecise, "SkipPrecise", true, "Skip the step of the whole precise matching pipeline, Def=false")
                << EAM(mSkipGetOverlappedImages, "SkipGetOverlappedImages", true, "Skip the step of \"mGetOverlappedImages\" in precise matching (this option is used when the results of \"GetOverlappedImages\" already exist), Def=false")
@@ -1358,7 +1359,8 @@ mTImMask (aDSMSz)
 
             mDSMName = aImDSM.Image();
             std::string aDSMFullName = aDSMDir + mDSMName;
-            Tiff_Im aImDSMTif(aDSMFullName.c_str());
+            //Tiff_Im aImDSMTif(aDSMFullName.c_str());
+            Tiff_Im aImDSMTif = Tiff_Im::StdConvGen((aDSMFullName).c_str(), -1, true ,true);
             ELISE_COPY
             (
             mTImDSM.all_pts(),
@@ -1368,7 +1370,8 @@ mTImMask (aDSMSz)
 
             mMaskName = aImDSM.Masq();
             std::string aMaskFullName = aDSMDir + mMaskName;
-            Tiff_Im aImMaskTif(aMaskFullName.c_str());
+            //Tiff_Im aImMaskTif(aMaskFullName.c_str());
+            Tiff_Im aImMaskTif = Tiff_Im::StdConvGen((aMaskFullName).c_str(), -1, true ,true);
             ELISE_COPY
             (
             mTImMask.all_pts(),
@@ -1537,7 +1540,8 @@ TIm2D<float,double> cGet3Dcoor::SetDSMInfo(std::string aDSMFile, std::string aDS
 
         cImage_Profondeur aImDSM = aNuageIn.Image_Profondeur().Val();
         std::string aImName = aDSMDir + aImDSM.Image();
-        Tiff_Im aImDSMTif(aImName.c_str());
+        //Tiff_Im aImDSMTif(aImName.c_str());
+        Tiff_Im aImDSMTif = Tiff_Im::StdConvGen(aImName.c_str(), -1, true ,true);
 
         Pt2di aSzOut = mDSMSz;
         TIm2D<float,double> aTImDSM(aSzOut);
@@ -1846,7 +1850,7 @@ std::string GetScaledImgName(std::string aImgName, Pt2di ImgSz, double dScale)
 
     //printf("%d, %.2lf, %d\n", nSz1, dScaleNm, nScaleNm);
 
-    std::string aImgScaledName = "Resol" + ToString(nScaleNm) + "_Teta0_" + aImgName;
+    std::string aImgScaledName = "Resol" + ToString(nScaleNm) + "_Teta0_" + StdPrefix(aImgName)+".tif";
 
     return aImgScaledName;
 }
@@ -1860,7 +1864,8 @@ std::string ExtractSIFT(std::string aImgName, std::string aDir, double dScale)
         return "";
     }
 
-    Tiff_Im aRGBIm1(aImgNameWithDir.c_str());
+    //Tiff_Im aRGBIm1(aImgNameWithDir.c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen(aImgNameWithDir.c_str(), -1, true ,true);
     Pt2di ImgSz = aRGBIm1.sz();
     int nSz1 = int(max(ImgSz.x, ImgSz.y)*1.0/dScale);
 
@@ -2438,7 +2443,8 @@ bool GetImgBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3
         return false;
     }
 
-    Tiff_Im aRGBIm1((aRGBImgDir+"/"+aImg1).c_str());
+    //Tiff_Im aRGBIm1((aRGBImgDir+"/"+aImg1).c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aRGBImgDir+"/"+aImg1).c_str(), -1, true ,true);
     Pt2di aImgSz = aRGBIm1.sz();
 
     Pt2dr aPCorner[4];
@@ -2487,7 +2493,8 @@ void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut)
         aImg1 = aGrayImgName;
     }
 
-    Tiff_Im aDSMIm1((aDir+"/"+aImg1).c_str());
+    //Tiff_Im aDSMIm1((aDir+"/"+aImg1).c_str());
+    Tiff_Im aDSMIm1 = Tiff_Im::StdConvGen((aDir+"/"+aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aDSMIm1.sz();
 
     aNameOut = aDir+"/"+aNameOut;

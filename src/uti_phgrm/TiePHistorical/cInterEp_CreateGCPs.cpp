@@ -90,7 +90,9 @@ Pt2dr Get3DCoorFromOrthoDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D
 
     cImage_Profondeur aImProfPx = aNuageIn.Image_Profondeur().Val();
     std::string aImName = aDSMDir + aImProfPx.Image();
-    Tiff_Im aImProfPxTif(aImName.c_str());
+    //Tiff_Im aImProfPxTif(aImName.c_str());
+    Tiff_Im aImProfPxTif = Tiff_Im::StdConvGen((aImName).c_str(), -1, true ,true);
+
 
     Pt2di aSzOut = aDSMSz;
     TIm2D<float,double> aTImProfPx(aSzOut);
@@ -152,7 +154,8 @@ Pt2dr Get3DCoorFromDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std
 
     cImage_Profondeur aImProfPx = aNuageIn.Image_Profondeur().Val();
     std::string aImName = aDSMDir + aImProfPx.Image();
-    Tiff_Im aImProfPxTif(aImName.c_str());
+    //Tiff_Im aImProfPxTif(aImName.c_str());
+    Tiff_Im aImProfPxTif = Tiff_Im::StdConvGen((aImName).c_str(), -1, true ,true);
 
     Pt2di aSzOut = aDSMSz;
     TIm2D<float,double> aTImProfPx(aSzOut);

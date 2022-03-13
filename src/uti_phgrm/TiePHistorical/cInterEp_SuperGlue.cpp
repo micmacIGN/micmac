@@ -119,10 +119,14 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
         std::stringstream is(s);
         is>>aImg1>>aImg2;
 
-        Tiff_Im aRGBIm1((input_dir+aImg1).c_str());
+        //Tiff_Im aRGBIm1((input_dir+aImg1).c_str());
+        Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((input_dir+aImg1).c_str(), -1, true ,true);
         Pt2di ImgSzL = aRGBIm1.sz();
-        Tiff_Im aRGBIm2((input_dir+aImg2).c_str());
+        cout<<"ImgSzL: "<<ImgSzL.x<<", "<<ImgSzL.y<<"; ";
+        //Tiff_Im aRGBIm2((input_dir+aImg2).c_str());
+        Tiff_Im aRGBIm2 = Tiff_Im::StdConvGen((input_dir+aImg2).c_str(), -1, true ,true);
         Pt2di ImgSzR = aRGBIm2.sz();
+        cout<<"ImgSzR: "<<ImgSzR.x<<", "<<ImgSzR.y<<endl;
 
         std::vector<cElHomographie> aHomoVec;
         std::vector<std::string> aRotVec;
@@ -173,9 +177,11 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
                 System(aCom);
             }
 
-            Tiff_Im aRGBIm2Rot((input_dir+StdPrefix(aImg2)+aRot+"."+StdPostfix(aImg2)).c_str());
+            //Tiff_Im aRGBIm2Rot((input_dir+StdPrefix(aImg2)+aRot+"."+StdPostfix(aImg2)).c_str());
+            Tiff_Im aRGBIm2Rot = Tiff_Im::StdConvGen((input_dir+StdPrefix(aImg2)+aRot+"."+StdPostfix(aImg2)).c_str(), -1, true ,true);
             //cout<<input_dir+StdPrefix(aImg2)+aRot+"."+StdPostfix(aImg2)<<endl;
             ImgSzR = aRGBIm2Rot.sz();
+            cout<<"ImgSzR(Rot): "<<ImgSzR.x<<", "<<ImgSzR.y<<endl;
 
             if (ELISE_fp::exist_file(aFullFileName) == false)
             {
@@ -326,7 +332,7 @@ int SuperGlue_main(int argc,char ** argv)
    double aCheckNb = -1;
 
    std::string aOutput_dir = "";
-   int aRotate=-1;
+   int aRotate=0;
 
 //   bool bRotHyp = false;
 
@@ -343,7 +349,7 @@ int SuperGlue_main(int argc,char ** argv)
                     << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(aCheckNb,"CheckNb",true,"Radius of the search space for SuperGlue (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=-1 (means don't check search space)")
 //               << EAM(bRotHyp, "RotHyp", true, "Apply rotation hypothesis (if true, the secondary image will be rotated by 90 degreee 4 times and the matching with the largest correspondences will be kept), Def=false")
-               << EAM(aRotate,"Rotate",true,"The angle of clockwise rotation from the master image to the secondary image (only 4 options available: 0, 90, 180, 270, as SuperGlue is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
+               << EAM(aRotate,"Rotate",true,"The angle of clockwise rotation from the master image to the secondary image (only 5 options available: 0, 90, 180, 270 and -1. -1 means all the 4 rotations (0, 90, 180, 270) will be executed, and the one with the most inlier will be kept.), Def=0")
 
                << EAM(bSkipSpG, "SkipSpG", true, "Skip executing SuperGlue for testing custom network(for developpers only), Def=false")
                );

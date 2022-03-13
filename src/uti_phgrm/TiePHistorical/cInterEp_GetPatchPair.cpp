@@ -106,9 +106,11 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
         return;
     }
 
-    Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+    //Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
-    Tiff_Im aRGBIm2((aDir+aImg2).c_str());
+    //Tiff_Im aRGBIm2((aDir+aImg2).c_str());
+    Tiff_Im aRGBIm2 = Tiff_Im::StdConvGen((aDir+aImg2).c_str(), -1, true ,true);
     Pt2di ImgSzR = aRGBIm2.sz();
 
     GenIm::type_el aTypeIm1 = aRGBIm1.type_el();
@@ -477,10 +479,12 @@ void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRota
     cout<<strCpImg<<endl;
     System(strCpImg);
 
-    Tiff_Im aDSMIm1((aDir+aImg1).c_str());
+    //Tiff_Im aDSMIm1((aDir+aImg1).c_str());
+    Tiff_Im aDSMIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aDSMIm1.sz();
 
-    Tiff_Im aDSMIm2((aDir+aImg2).c_str());
+    //Tiff_Im aDSMIm2((aDir+aImg2).c_str());
+    Tiff_Im aDSMIm2 = Tiff_Im::StdConvGen((aDir+aImg2).c_str(), -1, true ,true);
     Pt2di ImgSzR = aDSMIm2.sz();
 
     GenIm::type_el aTypeIm1 = aDSMIm1.type_el();
@@ -633,7 +637,8 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
     else
         aOutImg2 += "." + StdPostfix(aImg2);
 
-    Tiff_Im aDSMIm1((aCAS3D.mDir+aImg1).c_str());
+    //Tiff_Im aDSMIm1((aCAS3D.mDir+aImg1).c_str());
+    Tiff_Im aDSMIm1 = Tiff_Im::StdConvGen((aCAS3D.mDir+aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aDSMIm1.sz();
 
     std::string aImg1_Rotate;

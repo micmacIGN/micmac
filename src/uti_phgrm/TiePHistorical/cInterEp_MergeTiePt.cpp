@@ -98,9 +98,11 @@ void MergeTiePt(std::string input_dir, std::string output_dir, std::string inSH,
         return;
     }
 
-    Tiff_Im aRGBIm1(aImg1WithDir.c_str());
+    //Tiff_Im aRGBIm1(aImg1WithDir.c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aImg1WithDir).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
-    Tiff_Im aRGBIm2(aImg2WithDir.c_str());
+    //Tiff_Im aRGBIm2(aImg2WithDir.c_str());
+    Tiff_Im aRGBIm2 = Tiff_Im::StdConvGen((aImg2WithDir).c_str(), -1, true ,true);
     Pt2di ImgSzR = aRGBIm2.sz();
 
     //cout<<vPatchesL.size()<<", "<<vPatchesR.size()<<", "<<vHomoL.size()<<", "<<vHomoR.size()<<"\n";

@@ -187,9 +187,11 @@ ElSimilitude ReverseSimi(ElSimilitude aSimCur)
 */
 void SIFT2Step(std::string aDir, std::string aImg1, std::string aImg2, std::string outSH, double dScale, bool bCheckFile, double dScaleL, double dScaleR, double aR2DTh1st, double aR2dIter1st, ElSimilitude aSimCur, double dSearchSpace, bool bPrint,  bool aCheckScale, bool aCheckAngle, double aThreshScale, double aThreshAngle, bool bSkip1stSIFT, bool bSkip2ndSIFT, bool bCheckSclRot, double aThreshScaleR2D, double aThreshAngleR2D)
 {
-    Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
+    //Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+"/"+aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
-    Tiff_Im aRGBIm2((aDir+"/"+aImg2).c_str());
+    //Tiff_Im aRGBIm2((aDir+"/"+aImg2).c_str());
+    Tiff_Im aRGBIm2 = Tiff_Im::StdConvGen((aDir+"/"+aImg2).c_str(), -1, true ,true);
     Pt2di ImgSzR = aRGBIm2.sz();
 
     std::string aImg1Key = ExtractSIFT(aImg1, aDir, dScaleL);

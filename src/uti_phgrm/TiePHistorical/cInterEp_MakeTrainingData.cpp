@@ -409,11 +409,13 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
         return;
     }
 
-    Tiff_Im aRGBIm1(aImg1.c_str());
+    //Tiff_Im aRGBIm1(aImg1.c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
     ImgSzL.x /= dScaleL;
     ImgSzL.y /= dScaleL;
-    Tiff_Im aRGBIm2(aImg2.c_str());
+    //Tiff_Im aRGBIm2(aImg2.c_str());
+    Tiff_Im aRGBIm2 = Tiff_Im::StdConvGen((aImg2).c_str(), -1, true ,true);
     Pt2di ImgSzR = aRGBIm2.sz();
     ImgSzR.x /= dScaleR;
     ImgSzR.y /= dScaleR;
