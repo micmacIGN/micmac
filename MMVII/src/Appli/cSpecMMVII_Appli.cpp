@@ -49,6 +49,9 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
    }
    static int aCptCallIntern=0;
    aCptCallIntern++;
+   if (TheCmdArgs.size() == 0)
+       TheCmdArgs = aVArgs;
+
    int aNbObjLive = cMemCheck::NbObjLive();
    // Add this one to check  destruction with unique_ptr
    const cMemState  aMemoState= cMemManager::CurState() ;
@@ -203,6 +206,17 @@ cSpecMMVII_Appli*  cSpecMMVII_Appli::SpecOfName(const std::string & aNameCom,boo
    return 0;
 }
 
+std::vector<std::string> cSpecMMVII_Appli::TheCmdArgs;
+
+void cSpecMMVII_Appli::ShowCmdArgs(void)
+{
+    if (TheCmdArgs.size() == 0)
+        return;
+    std::cout << "========= ARGS OF COMMAND ==========\n";
+    for (const auto& aArg: TheCmdArgs)
+        std::cout << aArg << " ";
+    std::cout << "\n";
+}
 
 };
 
