@@ -696,9 +696,23 @@ template<class TypeEl> class  cAppliParseBoxIm
         typedef cDataIm2D<TypeEl>  tDataIm;
 
     protected :
+	template <class Type2>   cIm2D<Type2> APBI_ReadIm(const std::string & aName)
+	{
+              cIm2D<Type2> aRes(mCurBoxIn.Sz());
+	      aRes.Read(cDataFileIm2D::Create(aName),mCurBoxIn.P0());
+	      return aRes;
+        }
+	template <class Type2>   void  APBI_WriteIm(const std::string & aName,cIm2D<Type2> anIm)
+	{
+		anIm.Write(cDataFileIm2D::Create(aName),Pt,1,Box);,1,Box);
+	}
+       // void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
+       // void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
 
-        cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray) ;
+        cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray,const cPt2di & aSzTiles,const cPt2di & aSzOverlap) ;
         ~cAppliParseBoxIm();
+
+	void  APBI_ParseAllFile(); ///< Execute Action On Box on all file
 
         cCollecSpecArg2007 & APBI_ArgObl(cCollecSpecArg2007 & anArgObl) ; ///< For sharing mandatory args
         cCollecSpecArg2007 & APBI_ArgOpt(cCollecSpecArg2007 & anArgOpt); ///< For sharing optionnal args
@@ -706,10 +720,15 @@ template<class TypeEl> class  cAppliParseBoxIm
         tDataIm & APBI_LoadI(const cBox2di & aBox); ///< Load file for the Box, return loaded image
         bool APBI_TestMode() const; ///< Ar we in test mode
         tDataIm & APBI_LoadTestBox() ;  ///< Load test Box
-        tDataIm & DIm();  ///< Accessor to loaded image
+        tDataIm &  APBI_DIm();  ///< Accessor to loaded image
 
-        std::string   mNameIm;  ///< Name of image to parse
-        cBox2di       mBoxTest; ///< Box for quick testing, in case we dont parse all image
+        std::string   mNameIm;     ///< Name of image to parse
+        cBox2di       mBoxTest;    ///< Box for quick testing, in case we dont parse all image
+
+	cPt2di        mCurPixIndex;
+        cBox2di       mCurBoxIn;   
+        cBox2di       mCurBoxOut; 
+
 
     private :
         cAppliParseBoxIm(const cAppliParseBoxIm &) = delete;
@@ -717,6 +736,8 @@ template<class TypeEl> class  cAppliParseBoxIm
         cDataFileIm2D  mDFI2d;   ///< Data for file image to parse
         bool           mIsGray;  ///< Is it a gray file
         cMMVII_Appli & mAppli;   ///< Ineriting appli ("daughter")
+	cPt2di         mSzTiles;    ///< Size of tiles to parse global file
+	cPt2di         mSzOverlap;  ///< Size of overlap between each tile
         tIm            mIm;      ///< Loaded image
 };
 

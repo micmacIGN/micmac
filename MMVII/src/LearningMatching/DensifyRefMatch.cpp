@@ -10,7 +10,8 @@ namespace MMVII
 
 
 
-class cAppliDensifyRefMatch : public cAppliLearningMatch
+class cAppliDensifyRefMatch : public cAppliLearningMatch,
+	                      public cAppliParseBoxIm<tREAL4>
 {
      public :
         typedef cIm2D<tU_INT1>             tImMasq;
@@ -26,15 +27,14 @@ class cAppliDensifyRefMatch : public cAppliLearningMatch
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 	// std::vector<std::string>  Samples() const  override;
 
-    
-        std::string  mIm1;
 
            // --- Optionnal ----
 
 };
 
 cAppliDensifyRefMatch::cAppliDensifyRefMatch(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cAppliLearningMatch  (aVArgs,aSpec)
+   cAppliLearningMatch        (aVArgs,aSpec),
+   cAppliParseBoxIm<tREAL4>   (*this,true,cPt2di(2000,2000),cPt2di(50,50))
 {
 }
 
@@ -42,8 +42,9 @@ cAppliDensifyRefMatch::cAppliDensifyRefMatch(const std::vector<std::string> & aV
 cCollecSpecArg2007 & cAppliDensifyRefMatch::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
  return
-      anArgObl
-          <<   Arg2007(mIm1,"Name of input(s) file(s), Im1",{{eTA2007::MPatFile,"0"}})
+      APBI_ArgObl(anArgObl)
+
+          // <<   Arg2007(mIm1,"Name of input(s) file(s), Im1",{{eTA2007::MPatFile,"0"}})
    ;
 }
 
@@ -93,7 +94,7 @@ tMMVII_UnikPApli Alloc_DensifyRefMatch(const std::vector<std::string> &  aVArgs,
    return tMMVII_UnikPApli(new cAppliDensifyRefMatch(aVArgs,aSpec));
 }
 
-cSpecMMVII_Appli  TheSpecExtractLearnVecDM
+cSpecMMVII_Appli  TheSpecDensifyRefMatch
 (
      "DM01DensifyRefMatch",
       Alloc_DensifyRefMatch,

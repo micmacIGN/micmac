@@ -217,20 +217,44 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const
     return aTr;
 }
 
-/*  *********************************************************** */
-/*                                                              */
-/*             cAppliParseBoxIm<TypeEl>                         */
-/*                                                              */
-/*  *********************************************************** */
+/* *********************************************************** */
+/*                                                             */
+/*            cAppliParseBoxIm<TypeEl>                         */
+/*                                                             */
+/* *********************************************************** */
 
-template<class TypeEl>  cAppliParseBoxIm<TypeEl>::cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray) :
-    mBoxTest  (cBox2di::Empty()),
-    mDFI2d    (cDataFileIm2D::Empty()),
+template<class TypeEl>  cAppliParseBoxIm<TypeEl>::cAppliParseBoxIm
+                        (
+			      cMMVII_Appli & anAppli,
+                              bool IsGray,
+			      const cPt2di & aSzTiles,
+			      const cPt2di & aSzOverlap
+                        ) :
+    mBoxTest  (cBox2di::Empty()),      // Fake Init, no def constructor
+    mCurBoxIn (cBox2di::Empty()),      // Fake Init, no def constructor
+    mCurBoxOut(cBox2di::Empty()),      // Fake Init, no def constructor
+    mDFI2d    (cDataFileIm2D::Empty()),   // Fake Init, no def constructor
     mIsGray   (IsGray),
     mAppli    (anAppli),
+    mSzTiles  (aSzTiles),
+    mSzOverlap(aSzOverlap),
     mIm       (cPt2di(1,1))
 {
 }
+
+template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ParseAllFile()
+{
+     cParseBoxInOut<2> aPBIO =  cParseBoxInOut<2>::CreateFromSize(mDFI2d,mSzTiles);
+
+     for (const auto & mCurPixIndex : aPBIO.BoxIndex())
+     {
+         mCurBoxIn   = aPBIO.BoxIn(mCurPixIndex,mSzOverlap);
+         mCurBoxOut  = aPBIO.BoxOut(mCurPixIndex) ;
+         APBI_LoadI(mCurBoxIn);
+	 mAppli.ExeOnParsedBox();
+     }
+}
+
 template<class TypeEl>  cAppliParseBoxIm<TypeEl>::~cAppliParseBoxIm()
 {
 }
@@ -245,7 +269,9 @@ template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOb
 template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
-              << AOpt2007(mBoxTest, "TestBox","Box for testing before runing all",{eTA2007::Tuning})
+              << AOpt2007(mBoxTest,  "TestBox","Box for testing before runing all",{eTA2007::Tuning})
+              << AOpt2007(mSzTiles,  "SzTiles","Size of tiles to parse big file",{eTA2007::HDV})
+              << AOpt2007(mSzOverlap,"SzOverL","Size of overlap between tiles",{eTA2007::HDV})
     ;
 }
 template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_PostInit()
@@ -264,12 +290,12 @@ template<class TypeEl>  bool cAppliParseBoxIm<TypeEl>::APBI_TestMode() const
 template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::APBI_LoadI(const cBox2di & aBox)
 {
    mDFI2d.AssertNotEmpty();
-   DIm().Resize(aBox.Sz());
-   DIm().Read(mDFI2d,aBox.P0());
+   APBI_DIm().Resize(aBox.Sz());
+   APBI_DIm().Read(mDFI2d,aBox.P0());
 
-   return DIm();
+   return APBI_DIm();
 }
-template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::DIm()
+template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::APBI_DIm()
 {
    return mIm.DIm();
 }
