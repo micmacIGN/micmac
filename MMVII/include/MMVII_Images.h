@@ -685,6 +685,44 @@ template <class Type>  class cIm2D
        tDIM *                mPIm;   ///< raw pointer on mSPtr, a bit faster to store it ?
 };
 
+
+/**  Mother Class for application that parse an image in small blocs
+
+*/
+template<class TypeEl> class  cAppliParseBoxIm
+{
+    public :
+        typedef cIm2D<TypeEl>      tIm;
+        typedef cDataIm2D<TypeEl>  tDataIm;
+
+    protected :
+
+        cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray) ;
+        ~cAppliParseBoxIm();
+
+        cCollecSpecArg2007 & APBI_ArgObl(cCollecSpecArg2007 & anArgObl) ; ///< For sharing mandatory args
+        cCollecSpecArg2007 & APBI_ArgOpt(cCollecSpecArg2007 & anArgOpt); ///< For sharing optionnal args
+        void APBI_PostInit(); ///< Must be called in the Exe of inheriting appli for initializing it, Init cannot be done in Cstrctor
+        tDataIm & APBI_LoadI(const cBox2di & aBox); ///< Load file for the Box, return loaded image
+        bool APBI_TestMode() const; ///< Ar we in test mode
+        tDataIm & APBI_LoadTestBox() ;  ///< Load test Box
+        tDataIm & DIm();  ///< Accessor to loaded image
+
+        std::string   mNameIm;  ///< Name of image to parse
+        cBox2di       mBoxTest; ///< Box for quick testing, in case we dont parse all image
+
+    private :
+        cAppliParseBoxIm(const cAppliParseBoxIm &) = delete;
+
+        cDataFileIm2D  mDFI2d;   ///< Data for file image to parse
+        bool           mIsGray;  ///< Is it a gray file
+        cMMVII_Appli & mAppli;   ///< Ineriting appli ("daughter")
+        tIm            mIm;      ///< Loaded image
+};
+
+
+
+
 /// Generate an image of the string, using basic font, implemanted with a call to mmv1
 cIm2D<tU_INT1> ImageOfString(const std::string & ,int aSpace);
 

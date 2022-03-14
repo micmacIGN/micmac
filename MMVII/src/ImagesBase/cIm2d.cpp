@@ -217,8 +217,70 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const
     return aTr;
 }
 
+/*  *********************************************************** */
+/*                                                              */
+/*             cAppliParseBoxIm<TypeEl>                         */
+/*                                                              */
+/*  *********************************************************** */
 
+template<class TypeEl>  cAppliParseBoxIm<TypeEl>::cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray) :
+    mBoxTest  (cBox2di::Empty()),
+    mDFI2d    (cDataFileIm2D::Empty()),
+    mIsGray   (IsGray),
+    mAppli    (anAppli),
+    mIm       (cPt2di(1,1))
+{
+}
+template<class TypeEl>  cAppliParseBoxIm<TypeEl>::~cAppliParseBoxIm()
+{
+}
+template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+   return
+        anArgObl
+           <<   Arg2007(mNameIm,"Name of input file",{{eTA2007::MPatFile,"0"}})
+   ;
+}
 
+template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+    return anArgOpt
+              << AOpt2007(mBoxTest, "TestBox","Box for testing before runing all",{eTA2007::Tuning})
+    ;
+}
+template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_PostInit()
+{
+    mDFI2d = cDataFileIm2D::Create(mNameIm,mIsGray);
+}
+template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::APBI_LoadTestBox()
+{
+    return APBI_LoadI(mBoxTest);
+}
+
+template<class TypeEl>  bool cAppliParseBoxIm<TypeEl>::APBI_TestMode() const
+{
+  return IsInit(&mBoxTest);
+}
+template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::APBI_LoadI(const cBox2di & aBox)
+{
+   mDFI2d.AssertNotEmpty();
+   DIm().Resize(aBox.Sz());
+   DIm().Read(mDFI2d,aBox.P0());
+
+   return DIm();
+}
+template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::DIm()
+{
+   return mIm.DIm();
+}
+
+/*  *********************************************************** */
+/*             INSTANTIATION                                    */
+/*             INSTANTIATION                                    */
+/*             INSTANTIATION                                    */
+/*  *********************************************************** */
+
+template  class cAppliParseBoxIm<tREAL4>;
 
 
 #define INSTANTIATE_IM2D(Type)\

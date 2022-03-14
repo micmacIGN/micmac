@@ -3,9 +3,17 @@
 namespace MMVII
 {
 
-
 // Tanks to :  https://github.com/delfrrr/delaunator-cpp
 namespace delaunator {
+
+template <class Type>  class SafeVector : public std::vector<Type>
+{
+	public :
+		Type & operator [] (size_t aK) {return this->at(aK);}
+		const Type & operator [] (size_t aK) const {return this->at(aK);}
+	private :
+		//std::vector<Type> & V() {return *this;}
+};
 
 //@see https://stackoverflow.com/questions/33333363/built-in-mod-vs-custom-mod-function-improve-the-performance-of-modulus-op/33333636#33333636
 inline size_t fast_mod(const size_t i, const size_t c) {
@@ -13,7 +21,7 @@ inline size_t fast_mod(const size_t i, const size_t c) {
 }
 
 // Kahan and Babuska summation, Neumaier variant; accumulates less FP error
-inline double sum(const std::vector<double>& x) {
+inline double sum(const SafeVector<double>& x) {
     double sum = x[0];
     double err = 0.0;
 
@@ -96,7 +104,7 @@ inline std::pair<double, double> circumcenter(
 
 struct compare {
 
-    std::vector<double> const& coords;
+    SafeVector<double> const& coords;
     double cx;
     double cy;
 
@@ -169,24 +177,24 @@ struct DelaunatorPoint {
 class Delaunator {
 
 public:
-    std::vector<double> const& coords;
-    std::vector<std::size_t> triangles;
-    std::vector<std::size_t> halfedges;
-    std::vector<std::size_t> hull_prev;
-    std::vector<std::size_t> hull_next;
-    std::vector<std::size_t> hull_tri;
+    SafeVector<double> const& coords;
+    SafeVector<std::size_t> triangles;
+    SafeVector<std::size_t> halfedges;
+    SafeVector<std::size_t> hull_prev;
+    SafeVector<std::size_t> hull_next;
+    SafeVector<std::size_t> hull_tri;
     std::size_t hull_start;
 
-    Delaunator(std::vector<double> const& in_coords);
+    Delaunator(SafeVector<double> const& in_coords);
 
     double get_hull_area();
 
 private:
-    std::vector<std::size_t> m_hash;
+    SafeVector<std::size_t> m_hash;
     double m_center_x;
     double m_center_y;
     std::size_t m_hash_size;
-    std::vector<std::size_t> m_edge_stack;
+    SafeVector<std::size_t> m_edge_stack;
 
     std::size_t legalize(std::size_t a);
     std::size_t hash_key(double x, double y) const;
@@ -200,7 +208,7 @@ private:
     void link(std::size_t a, std::size_t b);
 };
 
-Delaunator::Delaunator(std::vector<double> const& in_coords)
+Delaunator::Delaunator(SafeVector<double> const& in_coords)
     : coords(in_coords),
       triangles(),
       halfedges(),
@@ -219,7 +227,7 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
     double max_y = std::numeric_limits<double>::min();
     double min_x = std::numeric_limits<double>::max();
     double min_y = std::numeric_limits<double>::max();
-    std::vector<std::size_t> ids;
+    SafeVector<std::size_t> ids;
     ids.reserve(n);
 
     for (std::size_t i = 0; i < n; i++) {
@@ -424,7 +432,7 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
 }
 
 double Delaunator::get_hull_area() {
-    std::vector<double> hull_area;
+    SafeVector<double> hull_area;
     size_t e = hull_start;
     do {
         hull_area.push_back((coords[2 * e] - coords[2 * hull_prev[e]]) * (coords[2 * e + 1] + coords[2 * hull_prev[e] + 1]));
@@ -582,41 +590,78 @@ void Delaunator::link(const std::size_t a, const std::size_t b) {
 
 using namespace delaunator;
 
+/* *********************************************************** */
+/*                                                             */
+/*                cTriangulation2D                             */
+/*                                                             */
+/* *********************************************************** */
+
+cTriangulation2D::cTriangulation2D(const std::vector<cPt2dr>& aVPts) :
+    mVPts  (aVPts)
+{
+   SafeVector<double> aVC;
+   for (const auto & aPt : mVPts)
+   {
+	aVC.push_back(aPt.x());
+	aVC.push_back(aPt.y());
+   } 
+   Delaunator aDel(aVC);
+   MMVII_INTERNAL_ASSERT_bench((aDel.triangles.size() %3)==0,"Bad comprehension of delaunay triangles");
+   SafeVector<std::size_t> & aVTri1 = aDel.triangles;
+   // Parse all triangle
+   for (int aKt=0 ; aKt<int(aVTri1.size()) ; aKt+=3)
+   {
+      mVTris.push_back(cPt3di(aVTri1[aKt],aVTri1[aKt+1],aVTri1[aKt+2]));
+   }
+}
+
+int  cTriangulation2D::NbTri() const {return mVTris.size();}
+const cPt3di &  cTriangulation2D::IndKthTri(int aK) const
+{
+   return mVTris.at(aK);
+}
+
+cTriangle2D    cTriangulation2D::KthTri(int aK) const
+{
+    const cPt3di &  aIndT = IndKthTri(aK);
+    return cTriangle2D(mVPts.at(aIndT.x()),mVPts.at(aIndT.y()),mVPts.at(aIndT.z()));
+}
 
 void BenchDelaunayVPts(const std::vector<cPt2dr> & aVP)
 {
+	/*
    int aNbPts = aVP.size();
-   std::vector<double> aVC;
+   SafeVector<double> aVC;
    for (int aK=0 ; aK<aNbPts ; aK++)
    {
-        cPt2dr aP = aVP[aK];
+        cPt2dr aP = aVP.at(aK);
 	aVC.push_back(aP.x());
 	aVC.push_back(aP.y());
    } 
 
    Delaunator aDel(aVC);
    MMVII_INTERNAL_ASSERT_bench((aDel.triangles.size() %3)==0,"Bad comprehension of delaunay triangles");
-   // StdOut() << "  T " << aDel.triangles.size() << "\n";
+   */
 
-   // int aNbTri = aDel.triangles.size()/3;
-
-   // Check the property , for each triangle the inscribed circle does not contain other points
+   cTriangulation2D aDelTri(aVP);
    
-   if (aNbPts<=1000)
+   if (aVP.size()<=1000)
    {
-       // StdOut() << "Inscribe Circle " << aNbPts << "\n";
-       std::vector<std::size_t> aVTri = aDel.triangles;
-       for (int aKt=0 ; aKt<int(aVTri.size()) ; aKt+=3)
+       // Parse all triangle
+       for (int aKt=0 ; aKt<aDelTri.NbTri() ; aKt++)
        {
-           cTriangle2D aTri(aVP[aVTri[aKt]],aVP[aVTri[aKt+1]],aVP[aVTri[aKt+2]]);
+           cTriangle2D aTri  =  aDelTri.KthTri(aKt);
+	   // Compute center circle circum
            cPt2dr aC = aTri.CenterInscribedCircle() ;
-	   double aMinRay = 1e20;
-           for (int aKp=0 ; aKp<aNbPts; aKp++)
+	   // Compute min dist to this circle
+	   double aMinDist = 1e20;
+           for (const auto & aPt : aVP)
 	   {
-                aMinRay = std::min(aMinRay,Norm2(aC-aVP[aKp]));
+                aMinDist = std::min(aMinDist,Norm2(aC-aPt));
 	   }
-           double aRay = Norm2(aC-aTri.Pt(0));
-	   double aDif = std::abs( aRay -aMinRay);
+	   // This  min dist must be (almost) equal to circum-radius
+           double aRadiusCircum = Norm2(aC-aTri.Pt(0));
+	   double aDif = std::abs( aRadiusCircum -aMinDist);
            MMVII_INTERNAL_ASSERT_bench(aDif<1e-5,"Inscribed circle property in delaunay");
        }
    }
@@ -636,15 +681,16 @@ void BenchDelaunayRand(int aNbPts)
    BenchDelaunayVPts(aVP);
 }
 
-/*
-template<class Type>  std::vector<Type>  RandomOrder(const std::vector<Type> & aV)
+template<class Type>  std::vector<Type>  XRandomOrder(const std::vector<Type> & aV)
 {
     std::vector<int> aPermut = RandPerm(aV.size());
+    // StdOut()<< RandPerm(8) << "\n";
     std::vector<Type> aRes;
     for (const auto & aI : aPermut)
         aRes.push_back(aV.at(aI));
     return aRes;
 }
+/*
 */
 
 void BenchDelaunayGrid(const cPt2di & aSz)
@@ -655,8 +701,16 @@ void BenchDelaunayGrid(const cPt2di & aSz)
        aVP.push_back(ToR(aPix));
    }
    BenchDelaunayVPts(aVP);
+   for (int aK=0 ; aK<1 ; aK++) //  !!!! => when 2 generate a bug
+   {
+       std::vector<cPt2dr> aV2 = XRandomOrder(aVP);
+       BenchDelaunayVPts(aV2);
+       BenchDelaunayVPts(aVP);
+   }
+   /*
    for (int aK=0 ; aK<10 ; aK++)
        BenchDelaunayVPts(RandomOrder(aVP));
+       */
 }
 
 void BenchDelaunay(cParamExeBench & aParam)
@@ -666,6 +720,11 @@ void BenchDelaunay(cParamExeBench & aParam)
     BenchDelaunayGrid(cPt2di(10,10));
     BenchDelaunayGrid(cPt2di(20,10));
     BenchDelaunayGrid(cPt2di(10,20));
+    for (int aK=0 ; aK<30 ;aK++)
+    {
+         cPt2di aSz(2+RandUnif_N(10),2+RandUnif_N(10));
+         BenchDelaunayGrid(aSz);
+    }
 
     for(int aK=3 ; aK<=100 ; aK++)
         BenchDelaunayRand(round_ni(pow(aK,2)));

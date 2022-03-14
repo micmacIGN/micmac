@@ -8,83 +8,13 @@
 namespace MMVII
 {
 
-template<class TypeEl> class  cAppliParseBoxIm
-{
-    public :
-    protected :
-        typedef cIm2D<TypeEl>      tIm;
-        typedef cDataIm2D<TypeEl>  tDataIm;
-
-	cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray) :
-            mBoxTest  (cBox2di::Empty()),
-	    mDFI2d    (cDataFileIm2D::Empty()),
-	    mIsGray   (IsGray),
-            mAppli    (anAppli),
-	    mIm       (cPt2di(1,1))
-	{
-	}
-
-	~cAppliParseBoxIm()
-	{
-	}
-
-        cCollecSpecArg2007 & APBI_ArgObl(cCollecSpecArg2007 & anArgObl) 
-        {
-           return
-               anArgObl
-                   <<   Arg2007(mNameIm,"Name of input file",{{eTA2007::MPatFile,"0"}})
-           ;
-        }
-        cCollecSpecArg2007 & APBI_ArgOpt(cCollecSpecArg2007 & anArgOpt)
-        {
-                 return anArgOpt
-                         << AOpt2007(mBoxTest, "TestBox","Box for testing before runing all",{eTA2007::Tuning})
-                  ;
-	}
-
-	void APBI_PostInit()
-	{
-            mDFI2d = cDataFileIm2D::Create(mNameIm,mIsGray);
-	}
-
-	tDataIm & APBI_LoadI(const cBox2di & aBox)
-	{
-            mDFI2d.AssertNotEmpty();
-            DIm().Resize(aBox.Sz());
-	    DIm().Read(mDFI2d,aBox.P0());
-
-	    return DIm();
-	}
-
-	bool APBI_TestMode() const
-	{
-              return IsInit(&mBoxTest);
-	}
-
-	tDataIm & APBI_LoadTestBox() {return APBI_LoadI(mBoxTest);}
-
-
-	std::string   mNameIm;  // Name of image to parse
-	cBox2di       mBoxTest; // Box for quick testing, in case we dont parse all image
-
-    private :
-	cAppliParseBoxIm(const cAppliParseBoxIm &) = delete;
-	tDataIm & DIm() {return mIm.DIm();}
-
-	cDataFileIm2D  mDFI2d;
-	bool           mIsGray;
-        cMMVII_Appli & mAppli;
-	tIm            mIm;
-};
-
-
 namespace  cNS_CodedTarget
 {
 
 
 /*  *********************************************************** */
 /*                                                              */
-/*             cAppliExtractCodeTarget                             */
+/*             cAppliExtractCodeTarget                          */
 /*                                                              */
 /*  *********************************************************** */
 

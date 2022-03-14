@@ -126,15 +126,22 @@ void BenchTri2D(double aSz)
     cTriangle2DCompiled  aTri = cTriangle2DCompiled::RandomRegularTri(aSz);
     cPt2dr aPB=cPt2dr::PCste(2*aSz);
     cBox2dr aBox(-aPB,aPB);
+// StdOut() << "BbbBB: " << aBox << "\n";
 
+    // FakeUseIt(aTri);
+    FakeUseIt(aBox);
     for (int aK=0 ; aK<1000 ; aK++)
     {
-        cPt2dr aP1 = aBox.GeneratePointInside();
+        // cPt2dr aP1 = aBox.GeneratePointInside();
+        cPt2dr aP1 (RandUnif_C()*2*aSz,RandUnif_C()*2*aSz);
+        FakeUseIt(aP1);
         cPt3dr aCoBa = aTri.CoordBarry(aP1);
         cPt2dr aP2 = aTri.FromCoordBarry(aCoBa);
 
 	double aDist = Norm2(aP1-aP2)/ aSz;
 	MMVII_INTERNAL_ASSERT_bench (aDist<1e-5,"Barry incorrect in Tri2d");
+    /*
+    */
     }
     
 

@@ -153,6 +153,17 @@ class  cTriangle2DCompiled : public cTriangle2D
            cPt2dr mL2;
 };
 
+class cTriangulation2D
+{
+     public :
+          cTriangulation2D(const std::vector<cPt2dr>&);
+          int  NbTri() const;
+          const cPt3di &  IndKthTri(int aK) const;
+          cTriangle2D  KthTri(int aK) const;
+     private :
+          std::vector<cPt2dr>  mVPts;
+          std::vector<cPt3di>  mVTris;
+};
 
 
 // geometric   Flux of pixel
