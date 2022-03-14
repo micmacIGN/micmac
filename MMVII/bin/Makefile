@@ -18,9 +18,8 @@ MMV2_INCLUDES=-I ${MMV2_DIR} -I ${MMV2_DIR}/ExternalInclude
 MMV2_LIBNAME=P2007
 MMV2_LIB=${MMV2_BINDIR}/lib${MMV2_LIBNAME}.a
 MMV1_LIBS=${MMV1_LIBDIR}/libelise.a ${MMV1_LIBDIR}/libANN.a
-QT_LIBS=-lXext -lGLU -lGL -lQt5Core -lQt5Gui -lQt5Xml -lQt5OpenGL -lQt5Concurrent -lQt5Widgets
 ## MacOS : may be -lstdc++fs should be replaced by -lc++experimental
-EXT_LIBS=-lpthread -lX11 ${QT_LIBS} -lstdc++fs
+EXT_LIBS=-lpthread -lX11 -lstdc++fs
 
 
 # =========== Compiler & Flags
