@@ -1564,6 +1564,7 @@ int GenMain(int argc, char ** argv, const std::vector<cMMCom> & aVComs)
 		}
 
 		MMVisualMode = true;
+		MMRunVisualMode = MMRunVisualModeQt;
 		argv[1]++;
 	}
     

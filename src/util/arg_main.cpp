@@ -202,6 +202,27 @@ std::list<std::string>  TheEmptyListEnum;
 
 bool MMVisualMode = false;
 
+// See comments in arg_main.h
+int (*MMRunVisualMode)
+     (
+         int argc,char ** argv,
+         std::vector<cMMSpecArg> & aVAM,
+         std::vector<cMMSpecArg> & aVAO,
+         std::string aFirstArg
+     )
+     = MMRunVisualModeNoQt;
+
+int MMRunVisualModeNoQt
+     (
+         int argc,char ** argv,
+         std::vector<cMMSpecArg> & aVAM,
+         std::vector<cMMSpecArg> & aVAO,
+         std::string aFirstArg
+     )
+{
+    return EXIT_SUCCESS;
+}
+
 std::string MakeStrFromArgcARgvWithSubst(int  argc,char** argv,int aKSubst,std::string aSubst, bool aProtect,bool StrongProtect)
 {
 	if (aProtect) aSubst = PATTERN_QUOTE(aSubst);
@@ -688,7 +709,7 @@ std::vector<char *>  	ElInitArgMain
 
     std::vector<char *> aRes;
 
-    if (MMVisualMode)
+    if (MMVisualMode && MMRunVisualMode)
     {
         if(argc > 1)
         {
