@@ -231,8 +231,7 @@ template<class TypeEl>  cAppliParseBoxIm<TypeEl>::cAppliParseBoxIm
 			      const cPt2di & aSzOverlap
                         ) :
     mBoxTest  (cBox2di::Empty()),      // Fake Init, no def constructor
-    mCurBoxIn (cBox2di::Empty()),      // Fake Init, no def constructor
-    mCurBoxOut(cBox2di::Empty()),      // Fake Init, no def constructor
+    mParseBox (nullptr),               // No inside parsing
     mDFI2d    (cDataFileIm2D::Empty()),   // Fake Init, no def constructor
     mIsGray   (IsGray),
     mAppli    (anAppli),
@@ -242,18 +241,66 @@ template<class TypeEl>  cAppliParseBoxIm<TypeEl>::cAppliParseBoxIm
 {
 }
 
-template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ParseAllFile()
+template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
 {
-     cParseBoxInOut<2> aPBIO =  cParseBoxInOut<2>::CreateFromSize(mDFI2d,mSzTiles);
-
-     for (const auto & mCurPixIndex : aPBIO.BoxIndex())
+     mDFI2d = cDataFileIm2D::Create(mNameIm,mIsGray);
+     if (APBI_TestMode())
      {
-         mCurBoxIn   = aPBIO.BoxIn(mCurPixIndex,mSzOverlap);
-         mCurBoxOut  = aPBIO.BoxOut(mCurPixIndex) ;
-         APBI_LoadI(mCurBoxIn);
+         LoadI(CurBoxIn());
+	 mAppli.ExeOnParsedBox();
+         return;
+     }
+     AssertNotInParsing();
+     cParseBoxInOut<2> aPBIO =  cParseBoxInOut<2>::CreateFromSize(mDFI2d,mSzTiles);
+     mParseBox = & aPBIO;
+
+     for (const auto & aPixI : aPBIO.BoxIndex())
+     {
+         mCurPixIndex = aPixI;
+         LoadI(CurBoxIn());
 	 mAppli.ExeOnParsedBox();
      }
+     mParseBox = nullptr ;   // No longer inside parsing
 }
+
+template<class TypeEl> const std::string & cAppliParseBoxIm<TypeEl>::APBI_NameIm() const
+{
+  return mNameIm;
+}
+
+template<class TypeEl> bool  cAppliParseBoxIm<TypeEl>::InsideParsing() const
+{
+   return mParseBox != nullptr;
+}
+template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::AssertInParsing() const
+{
+   MMVII_INTERNAL_ASSERT_strong(InsideParsing(),"cAppliParseBoxIm expected parsing state");
+}
+template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::AssertNotInParsing() const
+{
+   MMVII_INTERNAL_ASSERT_strong(!InsideParsing(),"cAppliParseBoxIm expected not parsing state");
+}
+
+template<class TypeEl> cBox2di  cAppliParseBoxIm<TypeEl>::CurBoxIn() const
+{
+    MMVII_INTERNAL_ASSERT_strong(InsideParsing() ^ APBI_TestMode(),"cAppliParseBoxIm, must have InsideParsing() ^ TestMode");
+    if (InsideParsing())
+        return mParseBox->BoxIn(mCurPixIndex,mSzOverlap);
+    else
+        return mBoxTest;
+}
+template<class TypeEl> cBox2di  cAppliParseBoxIm<TypeEl>::CurBoxOut() const
+{
+    AssertInParsing();
+    return mParseBox->BoxOut(mCurPixIndex);
+}
+template<class TypeEl> cBox2di  cAppliParseBoxIm<TypeEl>::CurBoxOutLoc() const
+{
+    AssertInParsing();
+    return mParseBox->BoxOutLoc(mCurPixIndex,mSzOverlap);
+}
+
+
 
 template<class TypeEl>  cAppliParseBoxIm<TypeEl>::~cAppliParseBoxIm()
 {
@@ -274,20 +321,12 @@ template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOp
               << AOpt2007(mSzOverlap,"SzOverL","Size of overlap between tiles",{eTA2007::HDV})
     ;
 }
-template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_PostInit()
-{
-    mDFI2d = cDataFileIm2D::Create(mNameIm,mIsGray);
-}
-template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::APBI_LoadTestBox()
-{
-    return APBI_LoadI(mBoxTest);
-}
 
 template<class TypeEl>  bool cAppliParseBoxIm<TypeEl>::APBI_TestMode() const
 {
   return IsInit(&mBoxTest);
 }
-template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::APBI_LoadI(const cBox2di & aBox)
+template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::LoadI(const cBox2di & aBox)
 {
    mDFI2d.AssertNotEmpty();
    APBI_DIm().Resize(aBox.Sz());

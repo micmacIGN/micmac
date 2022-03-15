@@ -523,6 +523,15 @@ template <const int Dim>  cPixBox<Dim> cParseBoxInOut<Dim>::BoxIn(const tPt & an
    return mBoxGlob.Inter(BoxOut(anIndex).Dilate(aDil));
 }
 
+
+template <const int Dim>  cPixBox<Dim> cParseBoxInOut<Dim>::BoxOutLoc(const tPt & anIndex,const tPt& aDil) const
+{
+   tBox aBoxIn  =  BoxIn(anIndex,aDil);
+   tBox aBoxOut =  BoxOut(anIndex);
+   return tBox(aBoxOut.P0() -  aBoxIn.P0(), aBoxOut.P1() -  aBoxIn.P0());
+}
+
+
 template <const int Dim>  cPixBox<Dim> cParseBoxInOut<Dim>::BoxIn(const tPt & anIndex,int aDil) const
 {
    return mBoxGlob.Inter(BoxOut(anIndex).Dilate(tPt::PCste(aDil)));

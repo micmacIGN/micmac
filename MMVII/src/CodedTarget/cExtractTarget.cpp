@@ -29,6 +29,8 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
+	int ExeOnParsedBox() override;
+
 	void TestFilters();
 
 	std::string mNameTarget;
@@ -80,9 +82,9 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
 
 void  cAppliExtractCodeTarget::TestFilters()
 {
-     tDataIm &  aDIm = APBI_LoadTestBox();
+     tDataIm &  aDIm = APBI_DIm();
 
-     StdOut() << "SZ "  <<  aDIm.Sz() << " Im=" << mNameIm << "\n";
+     StdOut() << "SZ "  <<  aDIm.Sz() << " Im=" << APBI_NameIm() << "\n";
 
      cImGrad<tREAL4>  aImG = Deriche(aDIm,1.0);
 
@@ -91,7 +93,7 @@ void  cAppliExtractCodeTarget::TestFilters()
           StdOut() << "DDDD " << aDist << "\n";
 
           cIm2D<tREAL4>  aImBin = ImBinarity(aDIm,aDist/1.5,aDist,1.0);
-	  std::string aName = "TestBin_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
+	  std::string aName = "TestBin_" + ToStr(aDist) + "_" + Prefix(APBI_NameIm()) + ".tif";
 	  aImBin.DIm().ToFile(aName);
 	  StdOut() << "Done Bin\n";
 	  /*
@@ -113,18 +115,8 @@ void  cAppliExtractCodeTarget::TestFilters()
 
 }
 
-int  cAppliExtractCodeTarget::Exe()
+int cAppliExtractCodeTarget::ExeOnParsedBox()
 {
-   StdOut()  << " IIIIm=" << mNameIm << "\n";
-
-   if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
-      return ResultMultiSet();
-
-   mPCT.InitFromFile(mNameTarget);
-   APBI_PostInit();
-
-   StdOut() << "TEST " << APBI_TestMode() << "\n";
-
    if (APBI_TestMode())
    {
        TestFilters();
@@ -132,6 +124,20 @@ int  cAppliExtractCodeTarget::Exe()
    else
    {
    }
+
+   return EXIT_SUCCESS;
+}
+
+int  cAppliExtractCodeTarget::Exe()
+{
+   StdOut()  << " IIIIm=" << APBI_NameIm() << "\n";
+
+   if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
+      return ResultMultiSet();
+
+   mPCT.InitFromFile(mNameTarget);
+   APBI_ExecAll();  // run the parse file
+
 
    return EXIT_SUCCESS;
 }
