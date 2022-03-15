@@ -287,6 +287,7 @@ int Line2Line_main(int argc,char ** argv);
 int CoronaRessample_main(int argc,char ** argv);
 int DivFilters_main(int argc,char ** argv);
 int AnalysePxFrac_Main(int argc,char ** argv);
+int CPP_YannViewIntersect(int argc,char ** argv);
 int CPP_YannEstimHomog(int argc,char ** argv);
 int CPP_YannApplyHomog(int argc,char ** argv);
 int CPP_YannInvHomolHomog(int argc,char ** argv);
@@ -307,6 +308,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 	static std::vector<cMMCom> aRes;
 	if (aRes.empty())
 	{
+		aRes.push_back(cMMCom("InterView",CPP_YannViewIntersect, "Field of view intersections for tie points computation "));
 		aRes.push_back(cMMCom("EstimHomog",CPP_YannEstimHomog, "Homographie estimation from GCPs and image measurements "));
 		aRes.push_back(cMMCom("ApplyHomog",CPP_YannApplyHomog, "Homographie application on images "));
 		aRes.push_back(cMMCom("InvHomolHomog",CPP_YannInvHomolHomog, "Homographie application on images "));
@@ -731,10 +733,10 @@ extern int GlobToLocal_main(int argc, char ** argv);
 extern int ExtractZ_main(int argc, char ** argv);
 extern int XYZ_Global_main(int argc, char ** argv);
 extern int HomToXML_main(int argc, char ** argv);
-extern int CilliaAss_main(int argc, char ** argv);
-extern int CilliaImgt_main(int argc, char ** argv);
+//extern int CilliaAss_main(int argc, char ** argv);
+//extern int CilliaImgt_main(int argc, char ** argv);
 extern int ImgCol_main(int argc, char ** argv);
-extern int CilliaMap_main(int argc, char ** argv);
+//extern int CilliaMap_main(int argc, char ** argv);
 extern int SimilComp_main(int argc, char ** argv);
 extern int AffineComp_main(int argc, char ** argv);
            
@@ -1118,17 +1120,17 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("TestH", Test_Homogr_main, "TestHomogr"));
 
 		//       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
-		aRes.push_back(cMMCom("Homol2GCP", Homol2GCP_main, "cillia"));
-		aRes.push_back(cMMCom("GlobToLocal", GlobToLocal_main, "cillia"));
-		aRes.push_back(cMMCom("ExtractZ", ExtractZ_main, "cillia"));
-		aRes.push_back(cMMCom("XYZ_Global", XYZ_Global_main, "cillia"));
-		aRes.push_back(cMMCom("HomToXML", HomToXML_main, "cillia"));
-		aRes.push_back(cMMCom("TestCilliaAss", CilliaAss_main, "cillia"));
-		aRes.push_back(cMMCom("TestCilliaImgt", CilliaImgt_main, "cillia"));
-		aRes.push_back(cMMCom("ImgCol", ImgCol_main, "cilliac"));
-		aRes.push_back(cMMCom("TestCilliaMap", CilliaMap_main, "cilliac"));
-		aRes.push_back(cMMCom("SimilComp", SimilComp_main, "cilliac"));
-		aRes.push_back(cMMCom("AffineComp", AffineComp_main, "cilliac"));
+		//aRes.push_back(cMMCom("Homol2GCP", Homol2GCP_main, "cillia"));
+		//aRes.push_back(cMMCom("GlobToLocal", GlobToLocal_main, "cillia"));
+		//aRes.push_back(cMMCom("ExtractZ", ExtractZ_main, "cillia"));
+		//aRes.push_back(cMMCom("XYZ_Global", XYZ_Global_main, "cillia"));
+		//aRes.push_back(cMMCom("HomToXML", HomToXML_main, "cillia"));
+		//aRes.push_back(cMMCom("TestCilliaAss", CilliaAss_main, "cillia"));
+		//aRes.push_back(cMMCom("TestCilliaImgt", CilliaImgt_main, "cillia"));
+		//aRes.push_back(cMMCom("ImgCol", ImgCol_main, "cilliac"));
+		//aRes.push_back(cMMCom("TestCilliaMap", CilliaMap_main, "cilliac"));
+		//aRes.push_back(cMMCom("SimilComp", SimilComp_main, "cilliac"));
+		//aRes.push_back(cMMCom("AffineComp", AffineComp_main, "cilliac"));
 
 		aRes.push_back(cMMCom("PI", ProjetInfo_main, "Projet Info"));
 		// aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));

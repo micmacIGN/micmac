@@ -1341,11 +1341,11 @@ class PolynomialEpipolaireCoordinate : public EpipolaireCoordinate
               Polynome2dReal  PolToYEpip();
               Polynome2dReal  PolToYInit();
 
-              virtual  const PolynomialEpipolaireCoordinate * CastToPol() const;
+              virtual  const PolynomialEpipolaireCoordinate * CastToPol() const override;
           void write(class  ELISE_fp & aFile) const;
               static PolynomialEpipolaireCoordinate read(ELISE_fp & aFile);
         //     P ->  aChSacle * Pol(P/aChSacle)
-              EpipolaireCoordinate * MapingChScale(REAL aChSacle) const;
+              EpipolaireCoordinate * MapingChScale(REAL aChSacle) const override;
               PolynomialEpipolaireCoordinate * PolMapingChScale(REAL aChSacle) const;
 
 	      // Create new Pol, fixing mC0.., so to mimimize the global paralax
@@ -1361,8 +1361,8 @@ class PolynomialEpipolaireCoordinate : public EpipolaireCoordinate
           Polynome2dReal  mPolToYEpip;
           Polynome2dReal  mPolToYInit;
 
-          Pt2dr ToCoordEpipol(Pt2dr aPInit) const;
-          Pt2dr ToCoordInit(Pt2dr aPEpi) const;
+          Pt2dr ToCoordEpipol(Pt2dr aPInit) const override;
+          Pt2dr ToCoordInit(Pt2dr aPEpi) const override;
 
 	  //  X' = (mNum0 + mNumx X + mNumy Y) / (1 + mDenx X + mDeny Y)
 	  //  X  = 

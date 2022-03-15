@@ -67,6 +67,41 @@ template <>  std::string cStrIO<cPt2di>::ToStr(const cPt2di & anI);
 template <>  cPt2di cStrIO<cPt2di>::FromStr(const std::string & aStr);
 */
 
+/*
+* Ch.M: Add explicit specialization declarations
+*   Explicit specialization definitions are already in the Tranlation Unit
+* "Serial/cStrIO.cpp" (via several MACROs)
+*   A declaration is needed to avoid that other TUs implicitly instantiate
+* this template as well.
+*
+* NB: "An explicit specialization of a static data member of a template is a
+* definition if the declaration includes an initializer; otherwise, it is a
+* declaration."
+*/
+
+template <>  const std::string cStrIO<bool>::msNameType;
+template <>  const std::string cStrIO<int>::msNameType;
+template <>  const std::string cStrIO<double>::msNameType;
+template <>  const std::string cStrIO<std::string>::msNameType;
+
+template <>  const std::string cStrIO<std::vector<std::string>>::msNameType;
+template <>  const std::string cStrIO<std::vector<int>>::msNameType;
+template <>  const std::string cStrIO<std::vector<double>>::msNameType;
+
+template <>  const std::string cStrIO<cPtxd<int,2>>::msNameType;
+template <>  const std::string cStrIO<cPtxd<double,2>>::msNameType;
+template <>  const std::string cStrIO<cPtxd<int,3>>::msNameType;
+template <>  const std::string cStrIO<cPtxd<double,3>>::msNameType;
+
+template <>  const std::string cStrIO<cTplBox<int,2>>::msNameType;
+template <>  const std::string cStrIO<cTplBox<double,2>>::msNameType;
+template <>  const std::string cStrIO<cTplBox<int,3>>::msNameType;
+template <>  const std::string cStrIO<cTplBox<double,3>>::msNameType;
+
+template <>  const std::string cStrIO<eOpAff>::msNameType;
+template <>  const std::string cStrIO<eModeEpipMatch>::msNameType;
+template <>  const std::string cStrIO<eModePaddingEpip>::msNameType;
+template <>  const std::string cStrIO<eModeCaracMatch>::msNameType;
 
 /** These functions offer an"easy" interface to cStrIO, however I think
 *    cStrIO is still usefull when type inference becomes too compliicated

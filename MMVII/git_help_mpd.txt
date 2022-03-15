@@ -1,0 +1,46 @@
+ git config core.editor vim
+
+git fetch origin
+
+
+git branch mpd
+git checkout mpd 
+
+
+ git config --global credential.helper 'store --file ~/.git-credential' 
+
+
+git config --global credential.useHttpPath true
+
+====================================================
+toujours commit avant checkout
+At home :
+
+git fetch origin
+
+git checkout -t -b mpd origin/mpd
+
+====================================================
+Pour pousser les modif sur master
+
+(1) On mets a jour le master local
+
+git fetch 
+git checkout master   // toujours sur la branche cible ( a modifier)
+git pull
+
+(2)
+git merge mpd
+git push  // si merge ok ...
+
+
+Ensuite pour recuperer sur mpd
+======================
+
+git checkout master   // toujours sur la branche cible ( a modifier)
+git pull
+git checkout mpd
+git merge master
+
+
+

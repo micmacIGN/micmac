@@ -48,7 +48,7 @@ template <class Type> cDataGenDimTypedIm<Type>::cDataGenDimTypedIm(const tIndex&
 
 template <class Type> cDataGenDimTypedIm<Type>::~cDataGenDimTypedIm()
 {
-   delete mRawDataLin;
+   delete[] mRawDataLin;
 }
 
 template <class Type> void cDataGenDimTypedIm<Type>::AddData(const cAuxAr2007 & anAux)

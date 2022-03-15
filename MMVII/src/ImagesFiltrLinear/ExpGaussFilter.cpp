@@ -175,35 +175,47 @@ void  ExpFilterOfStdDev(cDataIm2D<Type> & aImOut,const cDataIm2D<Type> & aImIn,i
 }
 
 /* ========================== */
+/*       cImGrad              */
+/* ========================== */
+
+
+template <class Type> cImGrad<Type>::cImGrad(const cIm2D<Type> & aGx,const cIm2D<Type> &  aGy) :
+    mGx (aGx),
+    mGy (aGy)
+{
+}
+template <class Type> cImGrad<Type>::   cImGrad(const cPt2di & aSz) :
+     cImGrad<Type>(cIm2D<Type>(aSz),cIm2D<Type>(aSz))
+{
+}
+
+template <class Type> cImGrad<Type>::cImGrad(const cIm2D<Type> & aImIn) : 
+   cImGrad<Type>(aImIn.DIm().Sz()) 
+{
+}
+
+
+/* ========================== */
 /*     cDataGenUnTypedIm      */
 /* ========================== */
 
 
 #define MACRO_INSTANTIATE_ExpoFilter(Type)\
+template  class cImGrad<Type>;\
 template  class cLinearFilter<Type>;\
 template void ExponentialFilter(bool,cDataIm2D<Type> &,int,const cRect2 &,double,double);\
 template void  ExponentialFilter(cDataIm2D<Type> & aIm,int   aNbIter,double aFact);\
 template void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,int   aNbIter,double aStdDev);\
 template void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,const cDataIm2D<Type> & aImIn,int   aNbIter,double aStdDev);\
-/*
-template  class cMatIner2Var<Type>;\
-template cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);\
-*/
-
-
 
 MACRO_INSTANTIATE_ExpoFilter(tREAL4);
 MACRO_INSTANTIATE_ExpoFilter(tREAL8);
 MACRO_INSTANTIATE_ExpoFilter(tREAL16);
 MACRO_INSTANTIATE_ExpoFilter(tINT4);
 MACRO_INSTANTIATE_ExpoFilter(tINT2);
+MACRO_INSTANTIATE_ExpoFilter(tINT1);
 
 /*
-template class cDataTypedIm<tREAL4,1>;
-template class cDataTypedIm<tREAL4,2>;
-template class cDataTypedIm<tREAL4,3>;
-
-#define MACRO_INSTANTIATE_cDataTypedIm(aType)\
 template class cDataTypedIm<aType,1>;\
 template class cDataTypedIm<aType,2>;\
 template class cDataTypedIm<aType,3>;

@@ -283,7 +283,7 @@ template <class TypeElem> class cMulF : public cBinaryF<TypeElem>
             { }
                 // ============== BEHAVIOUR FOR REDUCTION =============
 
-            bool  IsMult() const {return true;}
+            bool  IsMult() const override {return true;}
 
             /// Required by constant reduction in  cGenOperatorBinaire
             static TypeElem Operation(const TypeElem & aV1,const TypeElem & aV2) {return aV1*aV2;}
