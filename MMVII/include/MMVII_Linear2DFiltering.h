@@ -347,6 +347,23 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         double   mSigmIm0; ///<   Sigma of first image after possible convolution
 };
 
+
+template <class Type>  class cImGrad
+{
+     public :
+        cIm2D<Type> mGx;
+        cIm2D<Type> mGy;
+   /// memorize 
+        cImGrad(const cIm2D<Type> & aGx,const cIm2D<Type> &  aGy) ;
+   /// Use size to allocate
+        cImGrad(const cPt2di & aSz);
+   /// Use image to fix size size
+        cImGrad(const cIm2D<Type> & aImIn) ;
+};
+
+template<class Type> cImGrad<Type> Deriche(const cDataIm2D<Type> &aImIn,double aAlpha);
+
+
 };
 
 

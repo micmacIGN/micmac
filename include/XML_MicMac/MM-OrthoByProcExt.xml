@@ -1,0 +1,139 @@
+<!--
+   The simplest MicMac exemple
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Muscale.xml  WorkDir=/home/marc/TMP/Visages/MPD/
+
+
+-->
+
+<ParamMICMAC>
+
+<DicoLoc>
+
+   <Symb>   Im1=_MG_0007            </Symb>
+   <Symb>   ImPat=_MG_00(07|08|13)  </Symb>
+
+
+   <Symb> Post=JPG     </Symb>
+   <Symb>  Ori=All     </Symb>
+</DicoLoc>
+
+
+<Section_Terrain>  
+      <IntervAltimetrie>
+             <ZIncCalc>   0.3  </ZIncCalc>
+      </IntervAltimetrie>
+      <IntervSpecialZInv >
+             <MulZMin >  0.7  </MulZMin>
+             <MulZMax >  1.5  </MulZMax>
+      </IntervSpecialZInv>
+     <Planimetrie>
+         <MasqueTerrain>
+             <MT_Image> ${Im1}_Masq.tif </MT_Image>
+             <MT_Xml>   ${Im1}_Masq.xml </MT_Xml>
+         </MasqueTerrain>
+     </Planimetrie>
+
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <Im1>     ${Im1}.${Post} </Im1>
+          <ImPat> ${ImPat}.${Post} </ImPat>
+     </Images>
+
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori}  </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <ChantierFullImage1>  true </ChantierFullImage1>
+
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+	 <!--
+             <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
+	 -->
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
+
+	     <ZDilatAlti>  3    </ZDilatAlti>
+             <ZDilatPlani> 4    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   7               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   3.0    </Px1PenteMax>
+            </ModulationProgDyn>
+
+            <CorrelAdHoc>
+		 <SzBlocAH> 500 </SzBlocAH>
+                 <TypeCAH>
+                      <MutiCorrelOrthoExt>
+                      </MutiCorrelOrthoExt>
+                 </TypeCAH>
+            </CorrelAdHoc>
+
+
+        </EtapeMEC>
+	     
+        <EtapeMEC> 
+                 <DeZoom >        32        </DeZoom> 
+        </EtapeMEC>
+
+        <EtapeMEC> 
+                 <DeZoom >        16        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        8        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        4        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        2        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        1        </DeZoom> 
+        </EtapeMEC>
+
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D  </GeomMNT> 
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC>  MEC-Ortho/  </TmpMEC>
+     <TmpResult>  MEC-Ortho/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+<!--
+     <ByProcess>  0 </ByProcess>
+-->
+     <ByProcess>  ${MMNbProc} </ByProcess>
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+

@@ -94,6 +94,10 @@ class cSpecMMVII_Appli
 
        // bool HasDataTypeIn(const eApDT & aType) const;
        // bool HasDataTypeOut(const eApDT & aType) const;
+
+       // Display command line args
+       static void ShowCmdArgs(void);
+
     private :
        static std::vector<cSpecMMVII_Appli*> TheVecAll;
        static std::vector<cSpecMMVII_Appli*> & InternVecAll(); ///< vectors of all specifs
@@ -106,6 +110,8 @@ class cSpecMMVII_Appli
        tVaDT                 mVOutputs;   ///<  Vector Output Data Type
        std::string           mNameFile;   ///< C++ file where it is defined, may be usefull for devlopers ?
 
+   // Args in the first call of an AllocExecuteDestruct(args) are stored in TheCmdArgs
+       static std::vector<std::string> TheCmdArgs;
 };
 
 /// Class to store Mandatory args for recursive call
@@ -525,5 +531,16 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 
 bool    IsInit(const void *);  ///< Call IsInit on the appli def
+
+// To build application outside of the main MMVII executable
+
+// To build a completly separate application
+// Must be called in main() before any use of MMVII items
+void InitStandAloneAppli(const char* aAppName, const char *aComment="");
+
+// To build a MMVII like application (arguments parsing)
+// a cSpecMMVII_Appli must be defined ...
+int InitStandAloneAppli(const cSpecMMVII_Appli & aSpec, int argc, char*argv[]);
+
 };
 #endif  //  _cMMVII_Appli_H_

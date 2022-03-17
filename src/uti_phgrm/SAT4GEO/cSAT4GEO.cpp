@@ -197,6 +197,7 @@ std::string cCommonAppliSat3D::ComParamEpip()
     aCom +=  " XCorrecOri=" + ToString(mXCorrecOri);
     if (EAMIsInit(&mXCorrecHom)) aCom +=  " XCorrecHom=" + ToString(mXCorrecHom);
     if (EAMIsInit(&mXCorrecL2)) aCom +=  " XCorrecL2=" + ToString(mXCorrecL2);
+    if (EAMIsInit(&mBoxTerrain)) aCom +=  " BoxTerrain=" + ToString(mBoxTerrain);
     return aCom;
 }
 
@@ -237,7 +238,7 @@ std::string cCommonAppliSat3D::ComParamMatch()
         if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
 /*	if (EAMIsInit(&mResolTerrain))
           aCom = aCom + BLANK + "ResolTerrain=" + ToString(mResolTerrain);*/
-        if (EAMIsInit(&mBoxTerrain))
+        /*if (EAMIsInit(&mBoxTerrain)) not needed since accounted for in the epip generation
         {
           aCom  =  aCom + BLANK 
 		  +  std::string("BoxTerrain=")   
@@ -246,7 +247,7 @@ std::string cCommonAppliSat3D::ComParamMatch()
                   +  std::string(",") + ToString(mBoxTerrain._p1.x)
                   +  std::string(",") + ToString(mBoxTerrain._p1.y) 
 		  + std::string("]");
-        }
+        }*/
 
         //if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
         //if (EAMIsInit(&mCMS))     aCom +=  " CMS=" + ToString(mCMS);
@@ -276,7 +277,7 @@ std::string cCommonAppliSat3D::ComParamFuse()
 
 	if (EAMIsInit(&mResolTerrain))
           aCom = aCom + BLANK + "ResolTerrain=" + ToString(mResolTerrain);
-        if (EAMIsInit(&mBoxTerrain))
+        /*if (EAMIsInit(&mBoxTerrain)) not needed since accounted for in the epip generation
         {
           aCom  =  aCom + BLANK 
 		  +  std::string("BoxTerrain=")   
@@ -285,7 +286,7 @@ std::string cCommonAppliSat3D::ComParamFuse()
                   +  std::string(",") + ToString(mBoxTerrain._p1.x)
                   +  std::string(",") + ToString(mBoxTerrain._p1.y) 
                   + std::string("]");
-        }
+        }*/
 
 
 	return aCom;
@@ -617,9 +618,9 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 		{
 
                         //Update terrain box to image geometry
-			if(EAMIsInit(&mCAS3D.mBoxTerrain))
+			/*if(EAMIsInit(&mCAS3D.mBoxTerrain)) not needed since accounted for in the epip generation
 			{
-			    /* Read cameras */
+			    / Read cameras 
                             cBasicGeomCap3D * aCamI1 = mCAS3D.mICNM->StdCamGenerikOfNames(mCAS3D.mOutRPC,aNI1);
                             
 			    //Sz
@@ -659,7 +660,7 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 
 	    	            delete aCamI1;
 
-			}
+			}*/
 
 			aComTmp = MMBinFile(MM3DStr) + "MMAI4Geo " + mCAS3D.mDir + BLANK
                               + aNI1 + BLANK + aNI2 + BLANK
@@ -815,7 +816,7 @@ void cAppliFusion::DoAll()
 	if (EAMIsInit(&mCAS3D.mResolTerrain))
           aCom = aCom + BLANK + "ResolTerrain=" + ToString(mCAS3D.mResolTerrain);
 
-	if (EAMIsInit(&mCAS3D.mBoxTerrain))
+	/*if (EAMIsInit(&mCAS3D.mBoxTerrain)) not needed since accounted for in the epip generation
         {
           aCom  =  aCom + BLANK
 		  +  std::string("BoxTerrain=")  
@@ -824,7 +825,7 @@ void cAppliFusion::DoAll()
                   +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p1.x)
                   +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p1.y)
                   + std::string("]");
-        }
+        }*/
 
 
 

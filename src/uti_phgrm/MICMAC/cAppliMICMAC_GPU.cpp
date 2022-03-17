@@ -67,6 +67,34 @@ extern bool ERupnik_MM();
         //return anIm.data();
     }
 
+template <class Type> void  SaveIm(const std::string & aName,Type ** aDataIn,const Box2di & aBoxIn)
+{
+   Pt2di aP0 = aBoxIn._p0;
+   Pt2di aSz = aBoxIn.sz();
+
+   // Create a temporary image
+   Im2D<Type,typename El_CTypeTraits<Type>::tBase >  anImOut(aSz.x,aSz.y);
+   Type ** aDataOut = anImOut.data();
+
+
+   for (int aY=0 ; aY<aSz.y ; aY++)
+   {
+       memcpy
+       (
+	    aDataOut[aY],
+	    aDataIn[aY+aP0.y]+aP0.x,
+	    aSz.x * sizeof(Type)
+       );
+   }
+
+   L_Arg_Opt_Tiff aLArg;
+   aLArg = aLArg + Arg_Tiff(Tiff_Im::ANoStrip());
+
+   Tiff_Im::CreateFromIm(anImOut,aName,aLArg);
+}
+
+
+
 /********************************************************************/
 /*                                                                  */
 /*                   cStatOneImage                                  */
@@ -1085,22 +1113,25 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
 
     mImOkTerCur.raz();
 
+    // XY01-UtiTer => Box of image at Z level , init at empty box
     mX0UtiTer = mX1Ter + 1;
     mY0UtiTer = mY1Ter + 1;
     mX1UtiTer = mX0Ter;
     mY1UtiTer = mY0Ter;
 
+    // Compute Box &  Masq Terrain
     for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
     {
         for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
         {
+             // In ortho if in terrain and Z in intervall
              mDOkTer[anY][anX] =
                                    (mZIntCur >= mTabZMin[anY][anX])
                                    && (mZIntCur <  mTabZMax[anY][anX])
                                    && IsInTer(anX,anY)
                                    ;
 
-
+	     //  If Ok update the box
               if ( mDOkTer[anY][anX])
               {
                      ElSetMin(mX0UtiTer,anX);
@@ -1115,19 +1146,24 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
     mX1UtiTer ++;
     mY1UtiTer ++;
 
+    // If box was not updated, then it is empty
     if (mX0UtiTer >= mX1UtiTer)
             return false;
 
     int aKFirstIm = 0;
     U_INT1 ** aDOkIm0TerDil = mDOkTerDil;
+    // Case mGIm1IsInPax : Im1 doesnt depend of pax (bundle geom of epip like geometry)
+    // generate some optimisation
     if (mGIm1IsInPax)
     {
+	    // If we have already been here, we dont neet to reload first image
             if (mFirstZIsInit)
             {
                aKFirstIm = 1;
             }
             else
             {
+            // First time we must reload the whole first  images 
                 mX0UtiTer = mX0Ter;
                 mX1UtiTer = mX1Ter;
                 mY0UtiTer = mY0Ter;
@@ -1136,16 +1172,20 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
             }
     }
 
+    //   
+    // XY01-UtiDilTer => dilatation of  XY01-UtiTer by  mCurSzVMax
     mX0UtiDilTer = mX0UtiTer - mCurSzVMax.x;
     mY0UtiDilTer = mY0UtiTer - mCurSzVMax.y;
     mX1UtiDilTer = mX1UtiTer + mCurSzVMax.x;
     mY1UtiDilTer = mY1UtiTer + mCurSzVMax.y;
 
+    //  XY01-UtiLocIm =>  Box  of image1 in referentiel of I1
     mX0UtiLocIm = mX0UtiTer - mDilX0Ter;
     mX1UtiLocIm = mX1UtiTer - mDilX0Ter;
     mY0UtiLocIm = mY0UtiTer - mDilY0Ter;
     mY1UtiLocIm = mY1UtiTer - mDilY0Ter;
 
+    // XY01-UtiDilLocIm => dilatation of XY01-UtiDilTer
     mX0UtiDilLocIm = mX0UtiDilTer - mDilX0Ter;
     mX1UtiDilLocIm = mX1UtiDilTer - mDilX0Ter;
     mY0UtiDilLocIm = mY0UtiDilTer - mDilY0Ter;
@@ -1670,7 +1710,7 @@ void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int 
 
 void cAppliMICMAC::DoGPU_Correl
         (
-            const Box2di & aBox,
+            const Box2di & ,// aBox,
             const cMultiCorrelPonctuel * aMCP,
             double aPdsPix
         )
@@ -1708,57 +1748,57 @@ void cAppliMICMAC::DoGPU_Correl
             }
         }
 
-        for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
-        {
-            bool OkZ = InitZ(aZ,aModeInitZ);
-            if (OkZ)
-            {
-                for (int anX = mX0UtiTer ; anX <  mX1UtiTer ; anX++)
-                {
-                    for (int anY = mY0UtiTer ; anY < mY1UtiTer ; anY++)
-                    {
+	{
+             for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
+             {
+                 bool OkZ = InitZ(aZ,aModeInitZ);
+                 if (OkZ)
+                 {
+                     for (int anX = mX0UtiTer ; anX <  mX1UtiTer ; anX++)
+                     {
+                         for (int anY = mY0UtiTer ; anY < mY1UtiTer ; anY++)
+                         {
 
-                        int aNbScaleIm =  NbScaleOfPt(anX,anY);
+                             int aNbScaleIm =  NbScaleOfPt(anX,anY);
 
-                        if (mCurEtUseWAdapt)
-                        {
-                             ElSetMin(aNbScaleIm,1+mTImSzWCor.get(Pt2di(anX,anY)));
-                        }
-/*
-*/
-                        if (mDOkTer[anY][anX])
-                        {
+                             if (mCurEtUseWAdapt)
+                             {
+                                  ElSetMin(aNbScaleIm,1+mTImSzWCor.get(Pt2di(anX,anY)));
+                             }
+                             if (mDOkTer[anY][anX])
+                             {
 
-                            switch (aModeAgr)
-                            {
-                                case eAggregSymetrique :
-                                    DoOneCorrelSym(anX,anY,aNbScaleIm);
-                                break;
+                                 switch (aModeAgr)
+                                 {
+                                     case eAggregSymetrique :
+                                         DoOneCorrelSym(anX,anY,aNbScaleIm);
+                                     break;
 
-                                case eAggregIm1Maitre :
-                                     DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false,aPdsPix);
-                                break;
+                                     case eAggregIm1Maitre :
+                                          DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false,aPdsPix);
+                                     break;
 
-                                case  eAggregMaxIm1Maitre :
-                                    DoOneCorrelMaxMinIm1Maitre(anX,anY,true,aNbScaleIm);
-                                break;
+                                     case  eAggregMaxIm1Maitre :
+                                         DoOneCorrelMaxMinIm1Maitre(anX,anY,true,aNbScaleIm);
+                                     break;
 
-                                case  eAggregMinIm1Maitre :
-                                    DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
-                                break;
+                                     case  eAggregMinIm1Maitre :
+                                         DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
+                                     break;
 
-                                case eAggregMoyMedIm1Maitre :
-                                     DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true,aPdsPix);
-                                break;
+                                     case eAggregMoyMedIm1Maitre :
+                                          DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true,aPdsPix);
+                                     break;
 
-                            default :
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+                                 default :
+                                     break;
+                                 }
+                             }
+                         }
+                     }
+                 }
+             }
+	}
 }
 
 #ifdef  CUDA_ENABLED
@@ -2100,6 +2140,111 @@ void cAppliMICMAC::DoCorrelAdHoc
                 // ELISE_ASSERT ( false, "Not epipolar geometry for census ");
              }
         }
+	// Case where we generate the ortho photos and call processes
+	else if (aTC.MutiCorrelOrthoExt().IsInit())
+	//	MutiCorrelOrthoExt
+	{
+             const cMutiCorrelOrthoExt aMCOE = aTC.MutiCorrelOrthoExt().Val();
+             int mDeltaZ = aMCOE.DeltaZ().Val();
+             std::string aPrefixGlob = FullDirMEC() + "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
+             for (int aZ0=mZMinGlob ; aZ0<mZMaxGlob ; aZ0+=mDeltaZ)
+             {
+                  int aZ1= ElMin(mZMaxGlob,aZ0+mDeltaZ);
+		  Box2di  aBoxEmpty(Pt2di(0,0),Pt2di(0,0));
+		  std::vector<Box2di>  aVecBoxDil;
+		  std::vector<Box2di>  aVecBoxUti;
+                  for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
+                  {
+                        std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) ;
+                        bool OkZ = InitZ(aZ,eModeNoMom);  // Generate orthos and mask at given Z
+			if (OkZ)
+                        {
+                            Box2di  aBoxDil(Pt2di(mX0UtiDilTer,mY0UtiDilTer),Pt2di(mX1UtiDilTer,mY1UtiDilTer));
+                            Box2di  aBoxUti(Pt2di(mX0UtiTer,mY0UtiTer),Pt2di(mX1UtiTer,mY1UtiTer));
+
+			    // Memorize vector of boxes
+			    aVecBoxDil.push_back(aBoxDil);
+			    aVecBoxUti.push_back(aBoxUti);
+
+                            SaveIm(aPrefixZ+"_OkT.tif",mDOkTer,aBoxUti);
+			    //  Save ortho and Masks  for all images
+			    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
+                            {
+                                 cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
+                                 std::string aPrefixZIm = aPrefixZ + "_I" + ToString(aKIm);
+				 SaveIm(aPrefixZIm+"_O.tif",aGLI_0.DataOrtho(),aBoxDil);
+				 SaveIm(aPrefixZIm+"_M.tif",aGLI_0.DataOKOrtho(),aBoxDil);
+                            }
+			    // aVecBox.push_back(
+                        }
+			else
+			{
+                            // Generate information for no data
+			    aVecBoxDil.push_back(aBoxEmpty);
+			    aVecBoxUti.push_back(aBoxEmpty);
+                            std::string aNameNone  = aPrefixZ + "_NoData";
+			    ELISE_fp aFile(aNameNone.c_str(),ELISE_fp::WRITE);
+			    aFile.close();
+			}
+		  }
+
+		  //  Call external command
+		  std::string   aCom =  aMCOE.Cmd().Val() // "MMVII  DM4MatchMultipleOrtho "
+			                +  aPrefixGlob  
+					+  " " + ToString(aZ1-aZ0)          // Number of Ortho
+					+  " " + ToString(int(mVLI.size()))  // Number of Images
+					+  " " + ToString(  mCurSzVMax)     // Size of Window
+					+  " " + ToString( mGIm1IsInPax)     // Are we in mode Im1 Master
+		                 ;
+		  if (aMCOE.Options().IsInit())
+                     aCom = aCom + " " + QUOTE(aMCOE.Options().Val());
+		  System(aCom);
+		  // Fill cube with computed similarities
+                  for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
+                  {
+                      int aKBox = (aZ-aZ0);
+		      const Box2di & aBoxU = aVecBoxUti.at(aKBox);
+		      const Box2di & aBoxDil = aVecBoxDil.at(aKBox);
+		      bool  CorDone = (aBoxU.sz() != Pt2di(0,0));
+		      if (CorDone)
+		      {
+			      // Read similarity
+                          std::string aNameSim =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) + "_Sim.tif"  ;
+			  Im2D_REAL4  aImSim = Im2D_REAL4::FromFileStd(aNameSim);
+			  TIm2D<REAL4,REAL8> aTImSim(aImSim);
+
+			      // Read masq terrain
+                          std::string aNameOkT =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) + "_OkT.tif"  ;
+			  Im2D_U_INT1  aImOkT = Im2D_U_INT1::FromFileStd(aNameOkT);
+			  TIm2D<U_INT1,INT4> aTImOkT(aImOkT);
+
+
+			  // Parse image to fill cost for optimizer
+			  Pt2di aPUti;
+                          for (aPUti.x = aBoxU._p0.x ; aPUti.x <  aBoxU._p1.x ; aPUti.x++)
+                          {
+                               for (aPUti.y=aBoxU._p0.y ; aPUti.y<aBoxU._p1.y ; aPUti.y++)
+                               {
+                                     bool Ok1 = aTImOkT.get(aPUti-aBoxU._p0);
+				     /*
+                                     bool Ok2 = mDOkTer[aPUti.y][aPUti.x];
+                                     ELISE_ASSERT(Ok1==Ok2,"aImOkT.get coh");
+				     */
+                                     if (Ok1)
+				     {
+                                         Pt2di aPDil = aPUti - aBoxDil._p0;
+				         double aSim =  aTImSim.get(aPDil);
+                                         mSurfOpt->SetCout(aPUti,&aZ,aSim);
+				     }
+			       }
+			  }
+		      }
+                  }
+		  // Purge temporary files
+	          std::string aComPurge = SYS_RM + std::string(" ") + aPrefixGlob + "*";
+	          System(aComPurge);
+             }
+	}
 
         // On peut avoir a la fois MCP et mCC (par ex)
         if (aTC.MultiCorrelPonctuel().IsInit())

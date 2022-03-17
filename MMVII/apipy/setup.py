@@ -6,25 +6,13 @@ from distutils.core import setup, Extension
 import sys
 import glob
 
-libs=[]
-if "USEQT=ON" in sys.argv:
-  print("With USEQT")
-  libs=['GL', 'GLU', 'Qt5Core', 'Qt5Gui', 'Qt5Widgets', 'Qt5Concurrent', 'Qt5OpenGL', 'Qt5Xml']
-else:
-  print("Without USEQT")
-
-#clear arguments for setup()
-for arg in sys.argv[:]:
-    if arg.startswith("USEQT"):
-        sys.argv.remove(arg)
-
 all_cpp_api_files =  glob.glob('api/*.cpp')
 
 mmv2_module = Extension('_mmv2',
            define_macros = [('FORSWIG','')],
            sources = ['mmv2.i'] + all_cpp_api_files,
            swig_opts=['-python', '-py3',  '-DFORSWIG', '-Wall', '-c++', '-I.', '-I../include/', '-doxygen'],
-           libraries = ['X11', 'Xext', 'm', 'dl', 'pthread', 'stdc++fs', 'gomp']+libs,
+           libraries = ['X11', 'Xext', 'm', 'dl', 'pthread', 'stdc++fs', 'gomp'],
            library_dirs = [],
            include_dirs = ['/usr/local/include', '.', '..', '../include/', '../ExternalInclude/'],
            language = 'c++',
@@ -46,7 +34,8 @@ setup (name = 'mmv2',
        long_description = "MicMac v2 Python API",
        ext_modules = [mmv2_module],
        py_modules = ["mmv2"],
-       data_files = [("mmv2/include/XML_MicMac", xml_micmac_files),
+       data_files = [("mmv2/MMVII/bin", ['../bin/MMVII']),
+                     ("mmv2/include/XML_MicMac", xml_micmac_files),
                      ("mmv2/include/XML_GEN", xml_gen_files)],
        platforms  = ['x86_64']
        )

@@ -1480,7 +1480,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mXFitL2,"XCorrecL2",false,"L1/L2 Correction for X-Pax")
 		    << EAM(mNameOut,"Out",false,"To spcecify names of results")
 		    << EAM(mGenereImageDirEpip,"ImDir",false,"Generate image of direction of epipolar")
-		    << EAM(mBoxTerrain,"BoxTer",false,"Box ter to limit size of created epip")
+		    << EAM(mBoxTerrain,"BoxTerrain",false,"Box ter to limit size of created epip")
 		    /*
 		    */
     );

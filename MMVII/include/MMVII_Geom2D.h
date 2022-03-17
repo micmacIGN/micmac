@@ -106,6 +106,15 @@ template <class Type>  class cSim2D
 };
 
 
+// geometric   Flux of pixel
+
+typedef std::vector<cPt2di> tResFlux;
+
+void      GetPts_Circle(tResFlux & aRes,const cPt2dr & aC,double aRay,bool with8Neigh);
+tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh);
+
+
+
 };
 
 #endif  //  _MMVII_GEOM2D_H_

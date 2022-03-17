@@ -3,6 +3,8 @@
 
 #include "Settings.h"
 #include "mmglu.h"
+/* SELECTION_MODE is defined in cMasq3D_enums.h */
+#include "../../geom3d/cMasq3D_enums.h"
 
 #define QMaskedImage cMaskedImage<QImage>
 
@@ -37,15 +39,6 @@ enum LINE_STYLE
     LINE_STIPPLE
 };
 
-enum SELECTION_MODE { SUB_INSIDE,
-                      ADD_INSIDE,
-                      SUB_OUTSIDE,
-                      ADD_OUTSIDE,
-                      INVERT,
-                      ALL,
-                      NONE,
-                      SIZE_OF_SELECTION_MODE
-                    };
 
 // TODO GERER les etats avec des flags
 enum object_state {

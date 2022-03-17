@@ -9,6 +9,7 @@
     exactly what I want, it's much faster to implement them with MMV1. 
 */
 
+// Test git
 
 namespace MMVII
 {
@@ -41,7 +42,27 @@ template<class Type> double  MoyAbs(cIm2D<Type> aImIn)
 }
 
 
+template<class Type> cImGrad<Type> Deriche(const cDataIm2D<Type> & aImIn,double aAlpha)
+{
+    auto  aV1In  = cMMV1_Conv<Type>::ImToMMV1(aImIn);
+
+    cImGrad<Type> aResGrad(aImIn.Sz());
+    auto  aV1Gx  = cMMV1_Conv<Type>::ImToMMV1(aResGrad.mGx.DIm());
+    auto  aV1Gy  = cMMV1_Conv<Type>::ImToMMV1(aResGrad.mGy.DIm());
+
+    ELISE_COPY
+    (
+          aV1In.all_pts(),
+          deriche(aV1In.in_proj(),aAlpha,10),
+	  Virgule(aV1Gx.out(),aV1Gy.out())
+    );
+
+    return aResGrad;
+}
+
+
 #define INSTANTIATE_TRAIT_AIME(TYPE)\
+template cImGrad<TYPE> Deriche(const cDataIm2D<TYPE> &aImIn,double aAlpha);\
 template double  MoyAbs(cIm2D<TYPE> aImIn);\
 template cIm2D<TYPE> CourbTgt(cIm2D<TYPE> aImIn);\
 template void SelfCourbTgt(cIm2D<TYPE> aImIn);
