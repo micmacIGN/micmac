@@ -16,7 +16,7 @@ from clang.cindex import TypeKind as tk
 all_headers = [
   "api/SuperposImage_extract.h", "api/ParamChantierPhotogram_extract.h",
   "../src/uti_phgrm/NewOri/NewOri.h", "api/NewO_PyWrapper.h",
-  "../src/TpMMPD/TpPPMD.h", #"general/util.h",
+  "../src/TpMMPD/TpPPMD.h", "general/util.h",
   "general/geom_vecteur.h", "general/photogram.h",
   "../src/uti_phgrm/TiepTri/MultTieP.h"
 ]
@@ -129,17 +129,21 @@ for h in all_headers:
 
 f_include.close()
 
+verbose = False
+
 for v in all_classes_cursor:
   c = CppClass(v)
   if c.empty:
     continue
-  print(c)
+  if verbose:
+    print(c)
   
   #search for duplicate methods const/non-const
   for i in range(len(c.methods)):
     for j in range(i+1,len(c.methods)):
       if c.methods[i].name == c.methods[j].name:
-        print("Duplicate: ",c.methods[i], "/", c.methods[j])
+        if verbose:
+          print("Duplicate: ",c.methods[i], "/", c.methods[j])
         f_ignore.write(f"%ignore {c.name}::{c.methods[j].name}();\n")
         if not c.methods[i].is_const:
           c.methods[i].is_shadowed = True
@@ -152,11 +156,13 @@ for v in all_classes_cursor:
       for a in c.attributes:
         if a.name == "m"+m.name and (a.type + " &" == m.res_type or "const " + a.type + " &" == m.res_type)  :
           str_const = "const" if m.is_const else ""
-          print("Getter ref:", a, "/", m)
+          if verbose:
+            print("Getter ref:", a, "/", m)
           f_rename.write(f'%ignore {c.name}::{m.name}() {str_const};\n')
           f_rename.write(f'%rename("{m.name}") {c.name}::{m.name}_py() {str_const};\n')
           f_nonref.write(f'%extend {c.name} {{ {a.type} {m.name}_py() {str_const} {{ return $self->{m.name}(); }} }}\n\n')
-  print()
+  if verbose:
+    print()
 
 f_ignore.close()
 f_rename.close()

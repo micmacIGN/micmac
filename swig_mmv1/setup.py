@@ -33,8 +33,8 @@ mm3d_module = Extension('_mm3d',
        )
 
 #https://docs.python.org/3.8/distutils/setupscript.html#installing-additional-files
-xml_micmac_files = glob.glob('../../include/XML_MicMac/*.xml')
-xml_gen_files = glob.glob('../../include/XML_GEN/*.xml')
+xml_micmac_files = glob.glob('../include/XML_MicMac/*.xml')
+xml_gen_files = glob.glob('../include/XML_GEN/*.xml')
 
 setup (name = 'mm3d',
        version = '0.0.1',
