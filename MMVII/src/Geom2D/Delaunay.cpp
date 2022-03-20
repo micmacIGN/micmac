@@ -629,19 +629,6 @@ cTriangle2D    cTriangulation2D::KthTri(int aK) const
 
 void BenchDelaunayVPts(const std::vector<cPt2dr> & aVP)
 {
-	/*
-   int aNbPts = aVP.size();
-   SafeVector<double> aVC;
-   for (int aK=0 ; aK<aNbPts ; aK++)
-   {
-        cPt2dr aP = aVP.at(aK);
-	aVC.push_back(aP.x());
-	aVC.push_back(aP.y());
-   } 
-
-   Delaunator aDel(aVC);
-   MMVII_INTERNAL_ASSERT_bench((aDel.triangles.size() %3)==0,"Bad comprehension of delaunay triangles");
-   */
 
    cTriangulation2D aDelTri(aVP);
    

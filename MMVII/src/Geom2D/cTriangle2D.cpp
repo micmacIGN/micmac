@@ -30,6 +30,23 @@ cPt2dr  cTriangle2D::FromCoordBarry(const cPt3dr & aP) const
      return (aP.x()*mPts[0]+aP.y()*mPts[1]+aP.z()*mPts[2]) / aSP;
 }
 
+cBox2dr cTriangle2D::BoxEngl() const
+{
+     cTplBoxOfPts<tREAL8,2> aTBox;
+     for (int aK=0 ; aK<3 ; aK++)
+         aTBox.Add(mPts[aK]);
+     return aTBox.CurBox();
+}
+
+cBox2di  cTriangle2D::BoxPixEngl() const
+{
+    cBox2dr aBoxE = BoxEngl();
+    return cBox2di (Pt_round_down(aBoxE.P0()),Pt_round_up(aBoxE.P1()));
+}
+
+       // cRect2  BoxPixEngl() const;  // May be a bit bigger
+
+
 double cTriangle2D::Regularity() const
 {
     cPt2dr aV01 = mPts[1]-mPts[0];
@@ -120,6 +137,47 @@ bool   cTriangle2DCompiled::Insides(const cPt2dr & aPt,double aTol) const
 {
     return Insideness(aPt) < aTol;
 }
+
+void cTriangle2DCompiled::PixelsInside(std::vector<cPt2di> & aRes,double aTol) const
+{
+   aRes.clear();
+   cBox2di  aBPE = BoxPixEngl() ;
+
+   cPt2di aPix;
+
+   cPt3dr  aC0Y = CoordBarry(ToR(aBPE.P0()));
+   cPt3dr  aDxC = CoordBarry(ToR(aBPE.P0()+cPt2di(1,0))) -aC0Y;
+   cPt3dr  aDyC = CoordBarry(ToR(aBPE.P0()+cPt2di(0,1))) -aC0Y;
+
+   for (aPix.y()=aBPE.P0().y() ; aPix.y()<=aBPE.P1().y() ; aPix.y()++)
+   {
+        cPt3dr  aCXY = aC0Y;
+        for (aPix.x()=aBPE.P0().x() ; aPix.x()<=aBPE.P1().x() ; aPix.x()++)
+	{
+            if ((aCXY.x()>=aTol)&&(aCXY.y()>=aTol)&&(aCXY.z()>=aTol))
+	    {
+		    aRes.push_back(aPix);
+	    }
+	     aCXY += aDxC;
+	}
+	aC0Y += aDyC;
+   }
+}
+
+double  cTriangle2DCompiled::ValueInterpol(const cPt2dr& aP,const cPt3dr & aValues) const
+{
+   return Scal(CoordBarry(aP),aValues);
+}
+
+cPt2dr  cTriangle2DCompiled::GradientVI(const cPt3dr & aValues) const
+{
+     double aV0 = ValueInterpol(mPts[0],aValues);
+     double aV0x = ValueInterpol(mPts[0]+cPt2dr(1,0),aValues);
+     double aV0y = ValueInterpol(mPts[0]+cPt2dr(0,1),aValues);
+
+     return cPt2dr(aV0x-aV0,aV0y-aV0);
+}
+
 
 void BenchTri2D(double aSz)
 {

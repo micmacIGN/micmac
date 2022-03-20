@@ -181,6 +181,25 @@ template <class Type> inline cPtxd<Type,3> operator + (const cPtxd<Type,3> & aP1
 template <class Type> inline cPtxd<Type,4> operator + (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
 { return cPtxd<Type,4>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z(),aP1.t()+aP2.t()); }
 
+
+template <class Type> inline void operator += (cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{ 
+    aP1.x() += aP2.x(); 
+}
+template <class Type> inline void operator += (cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{ 
+    aP1.x() += aP2.x(); 
+    aP1.y() += aP2.y(); 
+}
+template <class Type> inline void operator += (cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{ 
+    aP1.x() += aP2.x(); 
+    aP1.y() += aP2.y(); 
+    aP1.z() += aP2.z(); 
+}
+
+
+
 ///  binary operator - on points
 template <class Type> inline cPtxd<Type,1> operator - (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 { return cPtxd<Type,1>(aP1.x() - aP2.x()); }
