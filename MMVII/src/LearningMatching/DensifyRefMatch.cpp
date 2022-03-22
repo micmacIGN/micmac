@@ -33,6 +33,8 @@ class cAppliDensifyRefMatch : public cAppliLearningMatch,
            // --- Mandatory ----
            // --- Optionnal ----
 	 double              mThreshGrad;
+	 double              mNoisePx;
+	 int                 mMasq2Tri;
 
            // --- Internal ----
 
@@ -50,6 +52,8 @@ cAppliDensifyRefMatch::cAppliDensifyRefMatch(const std::vector<std::string> & aV
    cAppliLearningMatch        (aVArgs,aSpec),
    cAppliParseBoxIm<tREAL4>   (*this,true,cPt2di(2000,2000),cPt2di(50,50)),
    mThreshGrad                (0.3),
+   mNoisePx                   (1.0),
+   mMasq2Tri                  (0),
    mIPx                       (cPt2di(1,1)),
    mDIPx                      (nullptr),
    mIMasqIn                   (cPt2di(1,1)),
@@ -77,6 +81,8 @@ cCollecSpecArg2007 & cAppliDensifyRefMatch::ArgOpt(cCollecSpecArg2007 & anArgOpt
 	   (
 	       anArgOpt
                    << AOpt2007(mThreshGrad, "ThG","Threshold for gradient given occlusion",{eTA2007::HDV})
+                   << AOpt2007(mNoisePx, "NoisePx","Value of noise in paralax",{eTA2007::HDV})
+                   << AOpt2007(mMasq2Tri, "Masq2Tri","Value to set in masq for triangle with 2 vertices low",{eTA2007::HDV,eTA2007::Tuning})
 	   )
     // double aNoisePx =  1.0;
     // double aThreshGrad =  0.4;
@@ -103,7 +109,6 @@ std::vector<std::string>  cAppliDensifyRefMatch::Samples() const
 
 void cAppliDensifyRefMatch::MakeOneTri(const  cTriangle2DCompiled & aTri)
 {
-    double aNoisePx =  1.0;
     bool   isHGrowPx=false;
     static std::vector<cPt2di> aVPixTri;
     cPt3dr aPPx;
@@ -133,7 +138,7 @@ void cAppliDensifyRefMatch::MakeOneTri(const  cTriangle2DCompiled & aTri)
     double anEc = aPxMax - aPxMin;
     if (anEc!=0)
     {
-        aMul = std::max(0.0,anEc-aNoisePx)/anEc;
+        aMul = std::max(0.0,anEc-mNoisePx)/anEc;
     }
 
     aTri.PixelsInside(aVPixTri);
@@ -145,10 +150,15 @@ void cAppliDensifyRefMatch::MakeOneTri(const  cTriangle2DCompiled & aTri)
 
     int aKHigh = isHGrowPx ? aKMin : aKMax;
     double  aValOcl = aPPx[aKHigh];
+    bool isTri2Low =  isOcclusion && (std::abs(aPxMed-aValOcl)<anEc/2.0);
 
-    if (isOcclusion && std::abs(aPxMed-aValOcl)<anEc/2.0)  // Case where two vertices of the triangle are low
+    double aValTri;
+    cPt2dr aVecTri;
+    if (isTri2Low)  // Case where two vertices of the triangle are low
     {
-        aValMasq = 64;
+        aValMasq = mMasq2Tri;
+	cSegment aSeg(aTri.Pt(aKHigh),aTri.Pt(aKMed));
+	aSeg.CompileFoncLinear(aValTri,aVecTri,aPPx[aKHigh],aPPx[aKMed]);
     }
 
     //StdOut() <<  "LLLLL \n";
@@ -156,7 +166,10 @@ void cAppliDensifyRefMatch::MakeOneTri(const  cTriangle2DCompiled & aTri)
     {
         if (isOcclusion)
 	{
-            mDImInterp->SetV(aPix,aValOcl);
+            if (isTri2Low)
+               mDImInterp->SetV(aPix,aValTri+Scal(aVecTri,ToR(aPix)));
+            else
+               mDImInterp->SetV(aPix,aValOcl);
 	}
 	else
 	{

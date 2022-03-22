@@ -4,6 +4,7 @@
 namespace MMVII
 {
 
+
 /** \file MMVII_Geom2D.h
     \brief contain classes for geometric manipulation, specific to 2D space :
            2D line, 2D plane, rotation, ...

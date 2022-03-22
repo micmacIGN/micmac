@@ -5,6 +5,36 @@
 namespace MMVII
 {
 
+/* ========================== */
+/*        cSegment            */
+/* ========================== */
+
+template <const int Dim> cSegment<Dim>::cSegment(const tPt& aP1,const tPt& aP2) :
+   mP1  (aP1),
+   mP2  (aP2)
+{
+    MMVII_INTERNAL_ASSERT_tiny(mP1!=mP2,"CastDim : different dim");
+}
+
+template <const int Dim> void cSegment<Dim>::CompileFoncLinear
+                              (double & aVal,tPt & aVec,const double &aV1,const double & aV2) const
+{
+	// return aV1 + (aV2-aV1) * Scal(mTgt,aP-this->mP1) / mN2;
+    tPt aV12 =  (mP2-mP1) ;
+    aVec  =   aV12 * double((aV2-aV1) /SqN2(aV12)) ;
+    aVal = aV1  - Scal(aVec,mP1);
+}
+
+/* ========================== */
+/*    cSegmentCompiled        */
+/* ========================== */
+
+template <const int Dim> cSegmentCompiled<Dim>::cSegmentCompiled(const tPt& aP1,const tPt& aP2) :
+    cSegment<Dim>(aP1,aP2),
+    mN2     (Norm2(aP2-aP1)),
+    mTgt    ((aP2-aP1)/mN2)
+{
+}
 
 
 /* ========================== */
@@ -360,13 +390,6 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<
     //  To test Error_Handler mecanism
 
 static std::string MesNegSz="Negative size in rect object";
-/*
-static std::string  TestErHandler;
-void TestBenchRectObjError(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
-{
-   TestErHandler = aMes;
-}
-*/
 
 /* ========================== */
 /*          cPixBox           */
@@ -842,6 +865,14 @@ template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
+
+#define INSTANTIATE_SEGM(DIM)\
+template class cSegment<DIM>;\
+template class cSegmentCompiled<DIM>;
+
+INSTANTIATE_SEGM(1)
+INSTANTIATE_SEGM(2)
+INSTANTIATE_SEGM(3)
 
 template void CornersTrigo(typename cTplBox<tREAL8,2>::tCorner & aRes,const  cTplBox<tREAL8,2>&);
 template void CornersTrigo(typename cTplBox<tINT4,2>::tCorner & aRes,const  cTplBox<tINT4,2>&);

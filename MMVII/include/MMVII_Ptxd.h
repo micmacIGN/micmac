@@ -319,6 +319,8 @@ template <class Type> inline bool operator == (const cPtxd<Type,2> & aP1,const c
 {return  (aP1.x()==aP2.x()) && (aP1.y()==aP2.y());}
 template <class Type> inline bool operator == (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()==aP2.x()) && (aP1.y()==aP2.y()) && (aP1.z()==aP2.z());}
+template <class Type> inline bool operator == (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{return  (aP1.x()==aP2.x()) && (aP1.y()==aP2.y()) && (aP1.z()==aP2.z())&&(aP1.t()==aP2.t());}
 
 ///  operator != on points
 template <class Type> inline bool operator != (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
@@ -327,6 +329,8 @@ template <class Type> inline bool operator != (const cPtxd<Type,2> & aP1,const c
 {return  (aP1.x()!=aP2.x()) || (aP1.y()!=aP2.y());}
 template <class Type> inline bool operator != (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()!=aP2.x()) || (aP1.y()!=aP2.y()) ||  (aP1.z()!=aP2.z());}
+template <class Type> inline bool operator != (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{return  (aP1.x()!=aP2.x()) || (aP1.y()!=aP2.y()) ||  (aP1.z()!=aP2.z()) || (aP1.t()!=aP2.t());}
 
 ///  SupEq  :  P1.k() >= P2.k() for all coordinates
 template <class Type> inline bool SupEq  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
@@ -635,7 +639,27 @@ template <class Type,const int Dim>  class cTplBoxOfPts
         tPt  mP1;
 };
 
+template <const int Dim> class cSegment
+{
+    public :
+       typedef cPtxd<double,Dim> tPt;
+       cSegment(const tPt& aP1,const tPt& aP2);
+       /// Estimate fonc linear, with gradient paral to tangent,  given value in P1 and P2, will be F(Q) =  R.first + R.second Q
+       void CompileFoncLinear(double& aVal,tPt & aVec,const double &aV1,const double & aV2) const;
+    protected :
+       tPt  mP1;
+       tPt  mP2;
+};
 
+template <const int Dim> class cSegmentCompiled : public cSegment<Dim>
+{
+    public :
+       typedef cPtxd<double,Dim> tPt;
+       cSegmentCompiled(const tPt& aP1,const tPt& aP2);
+    public :
+       double  mN2;
+       tPt     mTgt;
+};
 
 
 };
