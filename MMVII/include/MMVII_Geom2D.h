@@ -113,6 +113,7 @@ template <class Type>  class cSim2D
           tPt mSc;
 };
 
+
 //   Triangles
 class  cTriangle2D
 {
@@ -159,6 +160,9 @@ class  cTriangle2DCompiled : public cTriangle2D
            cPt2dr mL1;
            cPt2dr mL2;
 };
+
+// std::pair<cTriangle2D,cPt3dr> Mqk=////
+
 
 class cTriangulation2D
 {

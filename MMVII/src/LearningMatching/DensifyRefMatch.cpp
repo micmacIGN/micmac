@@ -32,6 +32,8 @@ class cAppliDensifyRefMatch : public cAppliLearningMatch,
 
            // --- Mandatory ----
            // --- Optionnal ----
+	 double              mThreshGrad;
+
            // --- Internal ----
 
          cIm2D<tREAL4>       mIPx  ;
@@ -40,17 +42,22 @@ class cAppliDensifyRefMatch : public cAppliLearningMatch,
          cDataIm2D<tU_INT1>* mDIMasqIn;
          cIm2D<tREAL4>       mImInterp ;
          cDataIm2D<tREAL4>*  mDImInterp;
+         cIm2D<tU_INT1>      mIMasqOut;
+         cDataIm2D<tU_INT1>* mDIMasqOut;
 };
 
 cAppliDensifyRefMatch::cAppliDensifyRefMatch(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cAppliLearningMatch        (aVArgs,aSpec),
    cAppliParseBoxIm<tREAL4>   (*this,true,cPt2di(2000,2000),cPt2di(50,50)),
+   mThreshGrad                (0.3),
    mIPx                       (cPt2di(1,1)),
    mDIPx                      (nullptr),
    mIMasqIn                   (cPt2di(1,1)),
    mDIMasqIn                  (nullptr),
    mImInterp                  (cPt2di(1,1)),
-   mDImInterp                 (nullptr)
+   mDImInterp                 (nullptr),
+   mIMasqOut                  (cPt2di(1,1)),
+   mDIMasqOut                 (nullptr)
 {
 }
 
@@ -69,8 +76,10 @@ cCollecSpecArg2007 & cAppliDensifyRefMatch::ArgOpt(cCollecSpecArg2007 & anArgOpt
    return APBI_ArgOpt
 	   (
 	       anArgOpt
-           //   << AOpt2007(toto, "toto","ooooo",{eTA2007::HDV})
+                   << AOpt2007(mThreshGrad, "ThG","Threshold for gradient given occlusion",{eTA2007::HDV})
 	   )
+    // double aNoisePx =  1.0;
+    // double aThreshGrad =  0.4;
           // << AOpt2007(mSzTile, "TileSz","Size of tile for spliting computation",{eTA2007::HDV})
           // << AOpt2007(mSaveImFilter,"SIF","Save Image Filter",{eTA2007::HDV,eTA2007::Tuning})
           // << AOpt2007(mCutsParam,"CutParam","Interval Pax + Line of cuts[PxMin,PxMax,Y0,Y1,....]",{{eTA2007::ISizeV,"[3,10000]"}})
@@ -95,34 +104,65 @@ std::vector<std::string>  cAppliDensifyRefMatch::Samples() const
 void cAppliDensifyRefMatch::MakeOneTri(const  cTriangle2DCompiled & aTri)
 {
     double aNoisePx =  1.0;
+    bool   isHGrowPx=false;
     static std::vector<cPt2di> aVPixTri;
     cPt3dr aPPx;
-    double aPxMin =  1e5;
-    double aPxMax = -1e5;
-    double aSomPx = 0;
+
     for (int aKp=0 ; aKp<3 ; aKp++)
     {
 	aPPx[aKp] = mDIPx->GetV(ToI(aTri.Pt(aKp)));
-	UpdateMinMax(aPxMin,aPxMax,aPPx[aKp]);
-	aSomPx += aPPx[aKp];
     }
+    //  Tricky for WMM, but if used aWMM() => generate warning
+    cWhitchMinMax<int,double>  aWMM(0,aPPx[0]);
+    for (int aKp=1 ; aKp<3 ; aKp++)
+    {
+        aWMM.Add(aKp,aPPx[aKp]);
+    }
+
+    // Comput Min,Max,Med
+    int aKMin = aWMM.Min().IndexExtre();
+    int aKMax = aWMM.Max().IndexExtre();
+    int aKMed = 3-aKMin-aKMax;
+
+    double aPxMax = aPPx[aKMax];
+    double aPxMin = aPPx[aKMin];
+    double aPxMed = aPPx[aKMed];
+    
+    // Compute attenuation to take into account noise
     double aMul = 1;
-    double anEc = aPxMax-aPxMin;
+    double anEc = aPxMax - aPxMin;
     if (anEc!=0)
     {
         aMul = std::max(0.0,anEc-aNoisePx)/anEc;
     }
 
-
     aTri.PixelsInside(aVPixTri);
 
     cPt2dr aG  = aTri.GradientVI(aPPx)*aMul;
     double aNG = Norm2(aG);
+    bool isOcclusion = (aNG>mThreshGrad);
+    int aValMasq = isOcclusion ? 0 : 255;
 
+    int aKHigh = isHGrowPx ? aKMin : aKMax;
+    double  aValOcl = aPPx[aKHigh];
+
+    if (isOcclusion && std::abs(aPxMed-aValOcl)<anEc/2.0)  // Case where two vertices of the triangle are low
+    {
+        aValMasq = 64;
+    }
+
+    //StdOut() <<  "LLLLL \n";
     for (const auto & aPix : aVPixTri)
     {
-        // mDImInterp->SetV(aPix,aTri.ValueInterpol(ToR(aPix),aPPx));
-        mDImInterp->SetV(aPix,aNG);
+        if (isOcclusion)
+	{
+            mDImInterp->SetV(aPix,aValOcl);
+	}
+	else
+	{
+            mDImInterp->SetV(aPix,aTri.ValueInterpol(ToR(aPix),aPPx));
+	}
+        mDIMasqOut->SetV(aPix,aValMasq);
     }
 }
 
@@ -135,7 +175,8 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
 
     mImInterp = cIm2D<tREAL4>(mDIPx->Sz(),nullptr,eModeInitImage::eMIA_Null);
     mDImInterp = &(mImInterp.DIm());
-
+    mIMasqOut  = cIm2D<tU_INT1>(mDIPx->Sz(),nullptr,eModeInitImage::eMIA_Null);
+    mDIMasqOut = &mIMasqOut.DIm();
     // cDataIm2D<tREAL4>          tDataImPx;
     StdOut() << "SZIM= " << APBI_DIm().Sz()  << mIPx.DIm().Sz() << "\n";
 
@@ -154,7 +195,8 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
          MakeOneTri(cTriangle2DCompiled(aTriangul.KthTri(aKTri)));
     }
 
-     mDImInterp->ToFile("DDDDDDDDDDDD.tif");
+     mDImInterp->ToFile("DensityPx.tif");
+     mDIMasqOut->ToFile("DensityMasq.tif");
 
     return EXIT_SUCCESS;
 }
