@@ -110,9 +110,9 @@ std::vector<std::string>  cAppliDensifyRefMatch::Samples() const
 void cAppliDensifyRefMatch::MakeOneTri(const  cTriangle2DCompiled & aTri)
 {
     bool   isHGrowPx=false;
-    static std::vector<cPt2di> aVPixTri;
-    cPt3dr aPPx;
 
+    // Compute 3 value in a point
+    cPt3dr aPPx;
     for (int aKp=0 ; aKp<3 ; aKp++)
     {
 	aPPx[aKp] = mDIPx->GetV(ToI(aTri.Pt(aKp)));
@@ -124,16 +124,16 @@ void cAppliDensifyRefMatch::MakeOneTri(const  cTriangle2DCompiled & aTri)
         aWMM.Add(aKp,aPPx[aKp]);
     }
 
-    // Comput Min,Max,Med
+    // Compute Min,Max,Med
     int aKMin = aWMM.Min().IndexExtre();
     int aKMax = aWMM.Max().IndexExtre();
-    int aKMed = 3-aKMin-aKMax;
+    int aKMed = 3-aKMin-aKMax;   // KMed is remaining index : 0,1,2 => sum equal 3
 
     double aPxMax = aPPx[aKMax];
     double aPxMin = aPPx[aKMin];
     double aPxMed = aPPx[aKMed];
     
-    // Compute attenuation to take into account noise
+    // Compute attenuation to take into account noise in gradident estimate , 
     double aMul = 1;
     double anEc = aPxMax - aPxMin;
     if (anEc!=0)
@@ -141,15 +141,14 @@ void cAppliDensifyRefMatch::MakeOneTri(const  cTriangle2DCompiled & aTri)
         aMul = std::max(0.0,anEc-mNoisePx)/anEc;
     }
 
-    aTri.PixelsInside(aVPixTri);
-
+    // Compute occlusion on gradient threshold
     cPt2dr aG  = aTri.GradientVI(aPPx)*aMul;
     double aNG = Norm2(aG);
     bool isOcclusion = (aNG>mThreshGrad);
     int aValMasq = isOcclusion ? 0 : 255;
 
-    int aKHigh = isHGrowPx ? aKMin : aKMax;
-    double  aValOcl = aPPx[aKHigh];
+    int aKLow = isHGrowPx ? aKMin : aKMax;
+    double  aValOcl = aPPx[aKLow];
     bool isTri2Low =  isOcclusion && (std::abs(aPxMed-aValOcl)<anEc/2.0);
 
     double aValTri;
@@ -157,21 +156,24 @@ void cAppliDensifyRefMatch::MakeOneTri(const  cTriangle2DCompiled & aTri)
     if (isTri2Low)  // Case where two vertices of the triangle are low
     {
         aValMasq = mMasq2Tri;
-	cSegment aSeg(aTri.Pt(aKHigh),aTri.Pt(aKMed));
-	aSeg.CompileFoncLinear(aValTri,aVecTri,aPPx[aKHigh],aPPx[aKMed]);
+	cSegment aSeg(aTri.Pt(aKLow),aTri.Pt(aKMed));
+	aSeg.CompileFoncLinear(aValTri,aVecTri,aPPx[aKLow],aPPx[aKMed]);
     }
 
-    //StdOut() <<  "LLLLL \n";
+    //  Now compute all the pixel and set the value
+
+    static std::vector<cPt2di> aVPixTri;
+    aTri.PixelsInside(aVPixTri);
     for (const auto & aPix : aVPixTri)
     {
         if (isOcclusion)
 	{
-            if (isTri2Low)
+            if (isTri2Low)  // 2 point low, interpol along segment
                mDImInterp->SetV(aPix,aValTri+Scal(aVecTri,ToR(aPix)));
             else
-               mDImInterp->SetV(aPix,aValOcl);
+               mDImInterp->SetV(aPix,aValOcl);  // One point low, used lowest value
 	}
-	else
+	else   // Not occluded, use linear interpol
 	{
             mDImInterp->SetV(aPix,aTri.ValueInterpol(ToR(aPix),aPPx));
 	}
@@ -203,6 +205,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
     StdOut() << "NbTri= " <<  aTriangul.NbTri() << "\n";
 
 
+    // Initiate image of interpolated value
     for (int aKTri=0 ; aKTri<aTriangul.NbTri() ; aKTri++)
     {
          MakeOneTri(cTriangle2DCompiled(aTriangul.KthTri(aKTri)));
