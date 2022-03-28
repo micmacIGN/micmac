@@ -528,6 +528,8 @@ template <class Type,const int Dim>  class cTplBox
         cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
         cTplBox(const tPt & aSz,bool AllowEmpty=false); // Create a box with origin in 0,0,..
         static cTplBox Empty();
+        static cTplBox FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty=false);
+        static cTplBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
         
 
 
@@ -630,10 +632,13 @@ template <class Type,const int Dim>  class cTplBoxOfPts
         typedef cPtxd<Type,Dim>                  tPt;
 
         cTplBoxOfPts();
+        static cTplBoxOfPts FromVect(const tPt * aBegin,const tPt * aEnd);
+        static cTplBoxOfPts FromVect(const std::vector<tPt> & aVecPt);
+
         int NbPts() const;  ///< Use to check acces that are forbidden when empty
         const tPt & P0() const;
         const tPt & P1() const;
-        cTplBox<Type,Dim> CurBox() const;
+        cTplBox<Type,Dim> CurBox(bool AllowEmpty=false) const;
 
         void Add(const tPt &);
     private :
@@ -692,7 +697,8 @@ typedef cTriangle<3>  cTriangle3D;
 template <const int Dim> class cTriangulation
 {
      public :
-          typedef cPtxd<double,Dim>  tPt;
+          typedef tREAL8             tCoord;
+          typedef cPtxd<tCoord,Dim>  tPt;
           typedef cTriangle<Dim>     tTri;
           typedef cPt3di             tFace;
 
@@ -700,13 +706,18 @@ template <const int Dim> class cTriangulation
           const tFace &  KthFace(int aK) const;
           tTri  KthTri(int aK) const;
 	  bool  ValidFace(const tFace &) const;
+
+	  /// Create a sub tri of vertices belonging to the set, require 1,2 or 3 vertice in each tri
+	  cTriangulation<Dim> Filter(const cDataBoundedSet<tREAL8,Dim> &,int aNbVertixThres=3) const;
+	  /// Box of Pts, error when empty, FactMargin make it slightly bigger
+	  cTplBox<tCoord,Dim>  BoxEngl(double aFactMargin = 1e-2) const;
      protected :
-          cTriangulation(const std::vector<tPt>&);
+          cTriangulation(const std::vector<tPt>& = std::vector<tPt>());
           void AddFace(const tFace &);
           void ResetTopo();
 
-          std::vector<tPt>     mVPts;
-          std::vector<cPt3di>  mVFaces;
+          std::vector<tPt>    mVPts;
+          std::vector<tFace>  mVFaces;
 };
 
 

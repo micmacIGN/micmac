@@ -631,6 +631,18 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Empty(
    return  cTplBox<Type,Dim>(tPt::PCste(0),true);
 }
 
+template <class Type,const int Dim> 
+   cTplBox<Type,Dim>  cTplBox<Type,Dim>::FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty)
+{
+    return cTplBoxOfPts<Type,Dim>::FromVect(aBegin,aEnd).CurBox(AllowEmpty);
+}
+
+template <class Type,const int Dim> 
+   cTplBox<Type,Dim>  cTplBox<Type,Dim>::FromVect(const std::vector<tPt>& aVect,bool AllowEmpty)
+{
+    return cTplBoxOfPts<Type,Dim>::FromVect(aVect).CurBox(AllowEmpty);
+}
+
 template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Inter(const tBox & aBox)const
 {
   return tBox(PtSupEq(mP0,aBox.mP0),PtInfEq(mP1,aBox.mP1),true);
@@ -815,6 +827,22 @@ template <class Type,const int Dim>   cTplBoxOfPts<Type,Dim>::cTplBoxOfPts() :
 {
 }
 
+template <class Type,const int Dim> 
+   cTplBoxOfPts<Type,Dim>  cTplBoxOfPts<Type,Dim>::FromVect(const tPt * aBegin,const tPt * aEnd)
+{
+   cTplBoxOfPts<Type,Dim> aRes;
+   for (const auto * aPtrP=aBegin; aPtrP<aEnd ; aPtrP++)
+       aRes.Add(*aPtrP);
+   return  aRes;
+}
+template <class Type,const int Dim> 
+   cTplBoxOfPts<Type,Dim>  cTplBoxOfPts<Type,Dim>::FromVect(const std::vector<tPt>& aVect)
+{
+   return FromVect(aVect.data(),aVect.data()+aVect.size());
+}
+
+
+
 template <class Type,const int Dim>  int  cTplBoxOfPts<Type,Dim>::NbPts() const {return mNbPts;}
 
 template <class Type,const int Dim>  const cPtxd<Type,Dim> &  cTplBoxOfPts<Type,Dim>::P0() const
@@ -829,9 +857,9 @@ template <class Type,const int Dim>  const cPtxd<Type,Dim> &  cTplBoxOfPts<Type,
    return  mP1;
 }
 
-template <class Type,const int Dim>  cTplBox<Type,Dim>  cTplBoxOfPts<Type,Dim>::CurBox() const
+template <class Type,const int Dim>  cTplBox<Type,Dim>  cTplBoxOfPts<Type,Dim>::CurBox(bool AllowEmpty) const
 {
-    return  cTplBox<Type,Dim>(mP0,mP1);
+    return  cTplBox<Type,Dim>(mP0,mP1,AllowEmpty);
 }
 
 template <class Type,const int Dim>  void  cTplBoxOfPts<Type,Dim>::Add(const tPt & aP)

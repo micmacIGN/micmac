@@ -5,7 +5,7 @@ namespace MMVII
 
 /* ********************************************** */
 /*                                                */
-/*           cTriangle2D                          */
+/*           cTriangle                            */
 /*                                                */
 /* ********************************************** */
 
@@ -125,6 +125,67 @@ template <const int Dim> cTriangle<Dim>    cTriangulation<Dim>::KthTri(int aK) c
 {
     const cPt3di &  aIndT = KthFace(aK);
     return cTriangle<Dim>(mVPts.at(aIndT.x()),mVPts.at(aIndT.y()),mVPts.at(aIndT.z()));
+}
+
+template <const int Dim> cTplBox<tREAL8,Dim>    cTriangulation<Dim>::BoxEngl(double aFactMargin) const
+{
+    cTplBox<tREAL8,Dim> aBox =  cTplBox<tREAL8,Dim>::FromVect(mVPts);
+
+    if (aFactMargin!=0)
+       aBox = aBox.ScaleCentered(1+aFactMargin) ;
+    return aBox;
+}
+
+template <const int Dim> 
+    cTriangulation<Dim> cTriangulation<Dim>::Filter
+                        (const cDataBoundedSet<tREAL8,Dim> & aSet,int aNbVertixThres) const
+{
+    cTriangulation<Dim> aRes;
+
+    // -1- compute points in the set
+    std::vector<bool>  aVPtsInSet; // are points inside the set 
+    std::vector<bool>  aVPtsInTri;  // do point belongs to one  of the selected triangle
+    for (const auto & aPts : mVPts)
+    {
+        aVPtsInSet.push_back(aSet.Inside(aPts));
+	aVPtsInTri.push_back(false);
+    }
+
+    // -2- compute faces selected and points belonging at least to one of it
+    for (const auto & aFace : mVFaces)
+    {
+        int aNbIn = aVPtsInSet.at(aFace.x()) + aVPtsInSet.at(aFace.y()) + aVPtsInSet.at(aFace.z());
+	if (aNbIn>=aNbVertixThres)
+	{
+             aRes.mVFaces.push_back(aFace);
+             for (int aK=0 ; aK<3 ; aK++)  // if we maintain face, maintain all vertices
+                aVPtsInTri.at(aFace[aK]) = true;
+	}
+    }
+    
+    // -3- subset of selcted points and new numerotation
+    std::vector<int>  aVNewNums;
+    for (int aKP=0 ; aKP<int(mVPts.size()) ; aKP++)
+    {
+        if (aVPtsInTri.at(aKP))
+	{
+            aVNewNums.push_back(aRes.mVPts.size());
+	    aRes.mVPts.push_back(mVPts.at(aKP));
+	}
+	else
+	{
+            aVNewNums.push_back(-1e9);
+	}
+    }
+
+    // -4- update the numeration of selected faces
+    for (auto & aFace : aRes.mVFaces)
+    {
+         for (int aK=0 ; aK<3 ; aK++)  // if we maintain face, maintain all vertices
+             aFace[aK] = aVNewNums.at(aFace[aK]);
+    }
+
+    return aRes;
 }
 
 /* ========================== */
