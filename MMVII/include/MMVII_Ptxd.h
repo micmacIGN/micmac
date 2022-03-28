@@ -414,6 +414,9 @@ template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1
    return NormInf(RDivCByC(aP1,aP2));
 }
 
+template <const int Dim>  double AbsSurfParalogram(const cPtxd<double,Dim>&,const cPtxd<double,Dim>&);
+
+
 
 // cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return (aP1*conj(aP)}
 
@@ -660,6 +663,52 @@ template <const int Dim> class cSegmentCompiled : public cSegment<Dim>
        double  mN2;
        tPt     mTgt;
 };
+
+/// Class for storing  basic triangle in 2 or 3 D
+template <const int Dim> class  cTriangle
+{
+     public :
+       typedef cPtxd<double,Dim> tPt;
+
+       cTriangle(const tPt & aP0,const tPt & aP1,const tPt & aP2);
+       /// aWeight  encode in a point the 3 weights
+       tPt  FromCoordBarry(const cPt3dr & aWeight) const;
+
+       /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
+       double Regularity() const;
+       /// Point equidistant to 3 point,  To finish for dim 3
+       tPt CenterInscribedCircle() const;
+       const tPt & Pt(int aK) const;   /// Accessor
+       cTplBox<double,Dim>  BoxEngl() const;
+       cTplBox<int,Dim>     BoxPixEngl() const;  // May be a bit bigger
+
+     protected :
+       tPt  mPts[3];
+};
+
+typedef cTriangle<2>  cTriangle2D;
+typedef cTriangle<3>  cTriangle3D;
+
+template <const int Dim> class cTriangulation
+{
+     public :
+          typedef cPtxd<double,Dim>  tPt;
+          typedef cTriangle<Dim>     tTri;
+          typedef cPt3di             tFace;
+
+          int  NbTri() const;
+          const tFace &  KthFace(int aK) const;
+          tTri  KthTri(int aK) const;
+	  bool  ValidFace(const tFace &) const;
+     protected :
+          cTriangulation(const std::vector<tPt>&);
+          void AddFace(const tFace &);
+          void ResetTopo();
+
+          std::vector<tPt>     mVPts;
+          std::vector<cPt3di>  mVFaces;
+};
+
 
 
 };

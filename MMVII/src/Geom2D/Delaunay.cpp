@@ -2,8 +2,40 @@
 
 namespace MMVII
 {
+/*
+ MIT License
 
-// Tanks to :  https://github.com/delfrrr/delaunator-cpp
+Copyright (c) 2018 Volodymyr Bilonenko
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+	 
+
+
+/* *********************************************************** */
+/*                                                             */
+/*                delaunator                                   */
+/*                                                             */
+/*     Tanks to :  https://github.com/delfrrr/delaunator-cpp   */
+/*                                                             */
+/* *********************************************************** */
+
 namespace delaunator {
 
 template <class Type>  class SafeVector : public std::vector<Type>
@@ -597,7 +629,11 @@ using namespace delaunator;
 /* *********************************************************** */
 
 cTriangulation2D::cTriangulation2D(const std::vector<cPt2dr>& aVPts) :
-    mVPts  (aVPts)
+	cTriangulation<2>(aVPts)
+{
+}
+
+void cTriangulation2D::MakeDelaunay()
 {
    SafeVector<double> aVC;
    for (const auto & aPt : mVPts)
@@ -608,29 +644,27 @@ cTriangulation2D::cTriangulation2D(const std::vector<cPt2dr>& aVPts) :
    Delaunator aDel(aVC);
    MMVII_INTERNAL_ASSERT_bench((aDel.triangles.size() %3)==0,"Bad comprehension of delaunay triangles");
    SafeVector<std::size_t> & aVTri1 = aDel.triangles;
+
+   ResetTopo();
    // Parse all triangle
    for (int aKt=0 ; aKt<int(aVTri1.size()) ; aKt+=3)
    {
-      mVTris.push_back(cPt3di(aVTri1[aKt],aVTri1[aKt+1],aVTri1[aKt+2]));
+      AddFace(cPt3di(aVTri1[aKt],aVTri1[aKt+1],aVTri1[aKt+2]));
    }
 }
 
-int  cTriangulation2D::NbTri() const {return mVTris.size();}
-const cPt3di &  cTriangulation2D::IndKthTri(int aK) const
-{
-   return mVTris.at(aK);
-}
 
-cTriangle2D    cTriangulation2D::KthTri(int aK) const
-{
-    const cPt3di &  aIndT = IndKthTri(aK);
-    return cTriangle2D(mVPts.at(aIndT.x()),mVPts.at(aIndT.y()),mVPts.at(aIndT.z()));
-}
+/* *********************************************************** */
+/*                                                             */
+/*                BENCH                                        */
+/*                                                             */
+/* *********************************************************** */
 
 void BenchDelaunayVPts(const std::vector<cPt2dr> & aVP)
 {
 
    cTriangulation2D aDelTri(aVP);
+   aDelTri.MakeDelaunay();
    
    if (aVP.size()<=1000)
    {
@@ -652,9 +686,6 @@ void BenchDelaunayVPts(const std::vector<cPt2dr> & aVP)
            MMVII_INTERNAL_ASSERT_bench(aDif<1e-5,"Inscribed circle property in delaunay");
        }
    }
-
-
-   //StdOut() << "OutDel " << aNbPts << "\n";
 }
 
 void BenchDelaunayRand(int aNbPts)
@@ -668,6 +699,7 @@ void BenchDelaunayRand(int aNbPts)
    BenchDelaunayVPts(aVP);
 }
 
+/*
 template<class Type>  std::vector<Type>  XRandomOrder(const std::vector<Type> & aV)
 {
     std::vector<int> aPermut = RandPerm(aV.size());
@@ -677,7 +709,6 @@ template<class Type>  std::vector<Type>  XRandomOrder(const std::vector<Type> & 
         aRes.push_back(aV.at(aI));
     return aRes;
 }
-/*
 */
 
 void BenchDelaunayGrid(const cPt2di & aSz)
@@ -690,7 +721,7 @@ void BenchDelaunayGrid(const cPt2di & aSz)
    BenchDelaunayVPts(aVP);
    for (int aK=0 ; aK<1 ; aK++) //  !!!! => when 2 generate a bug
    {
-       std::vector<cPt2dr> aV2 = XRandomOrder(aVP);
+       std::vector<cPt2dr> aV2 = RandomOrder(aVP);
        BenchDelaunayVPts(aV2);
        BenchDelaunayVPts(aVP);
    }

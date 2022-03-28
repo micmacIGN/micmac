@@ -139,6 +139,7 @@ enum class eTyUEr
               eBadDimForBox,
               eBadSize4Vect,
               eMultiplePostifx,
+              eBadPostfix,
               eUnClassedError,
               eNbVals
            };

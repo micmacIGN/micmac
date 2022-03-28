@@ -202,6 +202,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
             aVPts.push_back(ToR(aPix));
     }
     cTriangulation2D aTriangul(aVPts);
+    aTriangul.MakeDelaunay();
     StdOut() << "NbTri= " <<  aTriangul.NbTri() << "\n";
 
 

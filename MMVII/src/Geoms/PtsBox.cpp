@@ -125,6 +125,17 @@ template <const int Dim>  void cBorderPixBox<Dim>::IncrPt(tPt & aP)
 /*          cPtxd             */
 /* ========================== */
 
+template <> double  AbsSurfParalogram(const cPt2dr & aP1,const cPt2dr & aP2)
+{
+    return std::abs(aP1 ^ aP2) ;
+}
+template <>  double AbsSurfParalogram(const cPt3dr & aP1,const cPt3dr & aP2)
+{
+    return Norm2(aP1 ^ aP2);
+}
+
+
+
 int NbPixVign(const int & aVign){return 1+2*aVign;}
 
 template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign)

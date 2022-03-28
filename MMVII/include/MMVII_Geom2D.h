@@ -115,23 +115,6 @@ template <class Type>  class cSim2D
 };
 
 
-//   Triangles
-class  cTriangle2D
-{
-     public :
-       cTriangle2D(const cPt2dr & aP0,const cPt2dr & aP1,const cPt2dr & aP2);
-       cPt2dr  FromCoordBarry(const cPt3dr & aP) const;
-
-       double Regularity() const;
-       cPt2dr CenterInscribedCircle() const;
-       const cPt2dr & Pt(int aK) const;
-       cBox2dr BoxEngl() const;
-       cBox2di BoxPixEngl() const;  // May be a bit bigger
-
-
-     protected :
-       cPt2dr mPts[3];
-};
 
 class  cTriangle2DCompiled : public cTriangle2D
 {
@@ -165,16 +148,12 @@ class  cTriangle2DCompiled : public cTriangle2D
 // std::pair<cTriangle2D,cPt3dr> Mqk=////
 
 
-class cTriangulation2D
+class cTriangulation2D : public cTriangulation<2>
 {
-     public :
-          cTriangulation2D(const std::vector<cPt2dr>&);
-          int  NbTri() const;
-          const cPt3di &  IndKthTri(int aK) const;
-          cTriangle2D  KthTri(int aK) const;
-     private :
-          std::vector<cPt2dr>  mVPts;
-          std::vector<cPt3di>  mVTris;
+	public :
+           cTriangulation2D(const std::vector<tPt>&);
+	   void  MakeDelaunay();
+	public :
 };
 
 
