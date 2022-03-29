@@ -145,6 +145,8 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::DirProject,"DP"},
                 {eTA2007::FileDirProj,"FDP"},
                 {eTA2007::FileImage,"Im"},
+                {eTA2007::FileCloud,"Cloud"},
+                {eTA2007::File3DRegion,"3DReg"},
                 {eTA2007::MPatFile,"MPF"},
                 {eTA2007::AddCom,"AddCom"},
                 {eTA2007::Internal,"##Intern"},

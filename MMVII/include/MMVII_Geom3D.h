@@ -81,7 +81,21 @@ template <class Type> class cRotation3D
        cDenseMatrix<Type>  mMat;
 };
 
+class cTriangulation3D : public cTriangulation<3>
+{
+        public :
+            typedef cTriangulation<3>::tPt  tPt;
+           /// Constructor from file, include ply format, maybe later others (internals?)  if required
+           cTriangulation3D(const std::string &);
+           void WriteFile(const std::string &,bool isBinary) const;
 
+	   static void Bench();
+
+        private :
+           /// Read/Write in ply format using
+           void PlyInit(const std::string &);
+           void PlyWrite(const std::string &,bool isBinary) const;
+};
 
 
 };

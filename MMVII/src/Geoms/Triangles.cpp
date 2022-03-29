@@ -136,11 +136,73 @@ template <const int Dim> cTplBox<tREAL8,Dim>    cTriangulation<Dim>::BoxEngl(dou
     return aBox;
 }
 
+template <const int Dim> double HeuristikDistTri (const cTriangle<Dim> & aT1,const cTriangle<Dim> & aT2)
+{
+    double aDMin = 1e20;
+
+    // Must be equal up to an offset (same orientation) Test all possible offset
+    for (int aOffset=0 ; aOffset<3 ; aOffset++)
+    {
+         double aSomD=0 ;
+	 for (int aK1=0 ; aK1<3 ;aK1++)
+             aSomD += Norm1(   aT1.Pt(aK1)-aT2.Pt((aK1+aOffset)%3)   );
+	 UpdateMin(aDMin,aSomD);
+    }
+    return aDMin;
+}
+
+
+
+template <const int Dim> bool cTriangulation<Dim>::HeuristikAlmostInclude (const cTriangulation<Dim> &aT2,double aTolP,double aTolF)  const
+{
+     for (const auto & aP1 : mVPts)
+     {
+          double aDMin =aTolP+1000;
+          for (int aK2=0 ; (aK2<int(aT2.mVPts.size())) && (aDMin>aTolP) ; aK2++)
+	  {
+              UpdateMin(aDMin,Norm2(aP1-aT2.mVPts[aK2]));
+	  }
+	  if (aDMin>aTolP) 
+             return false;
+     }
+
+     if (aTolF>0)
+     {
+        for (int aK1=0 ; aK1<int(mVFaces.size()) ; aK1+=10)
+        {
+             double aDMin =aTolF+1000;
+             for (int aK2=0 ; (aK2<int(aT2.mVFaces.size())) && (aDMin>aTolF) ; aK2++)
+	     {
+                 UpdateMin(aDMin,HeuristikDistTri(KthTri(aK1),aT2.KthTri(aK2)));
+	     }
+	     if (aDMin>aTolF) 
+	     {
+                return false;
+	     }
+        }
+     }
+
+     return true;
+}
+
+template <const int Dim> bool cTriangulation<Dim>::HeuristikAlmostEqual (const cTriangulation<Dim> &aT2,double aTolP,double aTolF)  const
+{
+    if  (mVPts.size() != aT2.mVPts.size()) 
+        return false;
+
+    if  (mVFaces.size() != aT2.mVFaces.size()) 
+        return false;
+
+    return HeuristikAlmostInclude (aT2,aTolP,aTolF) && aT2.HeuristikAlmostInclude(*this,aTolP,aTolF);
+}
+
 template <const int Dim> 
-    cTriangulation<Dim> cTriangulation<Dim>::Filter
-                        (const cDataBoundedSet<tREAL8,Dim> & aSet,int aNbVertixThres) const
+    void cTriangulation<Dim>::Filter
+                        (const cDataBoundedSet<tREAL8,Dim> & aSet,int aNbVertixThres) 
 {
     cTriangulation<Dim> aRes;
+    std::vector<tFace> aVFaces;
+    std::vector<tPt>   aVPts;
 
     // -1- compute points in the set
     std::vector<bool>  aVPtsInSet; // are points inside the set 
@@ -157,7 +219,7 @@ template <const int Dim>
         int aNbIn = aVPtsInSet.at(aFace.x()) + aVPtsInSet.at(aFace.y()) + aVPtsInSet.at(aFace.z());
 	if (aNbIn>=aNbVertixThres)
 	{
-             aRes.mVFaces.push_back(aFace);
+             aVFaces.push_back(aFace);
              for (int aK=0 ; aK<3 ; aK++)  // if we maintain face, maintain all vertices
                 aVPtsInTri.at(aFace[aK]) = true;
 	}
@@ -169,8 +231,8 @@ template <const int Dim>
     {
         if (aVPtsInTri.at(aKP))
 	{
-            aVNewNums.push_back(aRes.mVPts.size());
-	    aRes.mVPts.push_back(mVPts.at(aKP));
+            aVNewNums.push_back(aVPts.size());
+	    aVPts.push_back(mVPts.at(aKP));
 	}
 	else
 	{
@@ -179,13 +241,15 @@ template <const int Dim>
     }
 
     // -4- update the numeration of selected faces
-    for (auto & aFace : aRes.mVFaces)
+    for (auto & aFace : aVFaces)
     {
          for (int aK=0 ; aK<3 ; aK++)  // if we maintain face, maintain all vertices
              aFace[aK] = aVNewNums.at(aFace[aK]);
     }
 
-    return aRes;
+    mVFaces = aVFaces;
+    mVPts = aVPts;
+
 }
 
 /* ========================== */

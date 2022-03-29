@@ -708,10 +708,16 @@ template <const int Dim> class cTriangulation
 	  bool  ValidFace(const tFace &) const;
 
 	  /// Create a sub tri of vertices belonging to the set, require 1,2 or 3 vertice in each tri
-	  cTriangulation<Dim> Filter(const cDataBoundedSet<tREAL8,Dim> &,int aNbVertixThres=3) const;
+	  void Filter(const cDataBoundedSet<tREAL8,Dim> &,int aNbVertixThres=3) ;
 	  /// Box of Pts, error when empty, FactMargin make it slightly bigger
 	  cTplBox<tCoord,Dim>  BoxEngl(double aFactMargin = 1e-2) const;
+
+	  /// Equality is difficiult, because of permutation,just make heuristik test
+	  bool  HeuristikAlmostEqual (const cTriangulation<Dim> &,double TolPt,double TolFace)  const;
      protected :
+	  /// More a
+	  bool  HeuristikAlmostInclude (const cTriangulation<Dim> &,double TolPt,double TolFace)  const;
+
           cTriangulation(const std::vector<tPt>& = std::vector<tPt>());
           void AddFace(const tFace &);
           void ResetTopo();

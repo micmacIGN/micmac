@@ -309,7 +309,7 @@ template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOb
 {
    return
         anArgObl
-           <<   Arg2007(mNameIm,"Name of input file",{{eTA2007::MPatFile,"0"}})
+           <<   Arg2007(mNameIm,"Name of input file",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
    ;
 }
 
