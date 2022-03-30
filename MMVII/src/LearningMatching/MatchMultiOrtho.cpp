@@ -1,5 +1,10 @@
 #include "include/MMVII_all.h"
 
+
+// include model architecture 
+#include "cCnnModelPredictor.h"
+
+
 namespace MMVII
 {
 
@@ -23,7 +28,8 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 
 
         cAppliMatchMultipleOrtho(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-
+    const std::string  & NameArch() const {return mArchitecture;} // ACCESSOR
+    const std::string  & NameDirModel() const {return mModelBinDir;} // ACCESSOR
      private :
 	std::string NameIm(int aKIm,const std::string & aPost) const
 	{
@@ -38,8 +44,11 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 
 	//  One option, to replace by whatever you want
 	void ComputeSimilByCorrelMaster();
+    void ComputeSimilByLearnedCorrelMaster(std::vector<torch::Tensor> * AllEmbeddings);
+    void ComputeSimilByLearnedCorrelMasterEnhanced(std::vector<torch::Tensor> * AllOrthosEmbeddings);
 	void CorrelMaster(const cPt2di &,int aKIm,bool & AllOk,float &aWeight,float & aCorrel);
-
+    void MakeNormalizedIms();
+    void InitializePredictor ();
 	// -------------- Mandatory args -------------------
 	std::string   mPrefixGlob;   // Prefix to all names
 	int           mNbZ;      // Number of independant ortho (=number of Z)
@@ -54,9 +63,35 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 	cPt2di                     mSzIms;     // common  size of all ortho
 	std::vector<tImOrtho>      mVOrtho;    // vector of loaded ortho at a given Z
 	std::vector<tImMasq>       mVMasq;     // vector of loaded masq  at a given Z
+	
+	// ADDED LEARNING ENV
+    aCnnModelPredictor *  mCNNPredictor=nullptr;
+    bool                  mWithIntCorr=true;  // initialized in the begining 
+    bool                  mWithExtCorr=false;  // initialized in the begining 
+    std::string           mArchitecture;
+    std::string           mModelBinDir;
+    cPt2di                mCNNWin;
+    
+    // Networks architectures 
+    ConvNet_Fast mNetFastStd= ConvNet_Fast(3,4);  // Conv Kernel= 3x3 , Convlayers=4
+    ConvNet_FastBn  mNetFastMVCNN=ConvNet_FastBn(3,7);// Conv Kernel= 3x3 , Convlayers=7
+    ConvNet_FastBnRegister mNetFastMVCNNReg=ConvNet_FastBnRegister(3,5,1,64,torch::kCPU);
+    Fast_ProjectionHead mNetFastPrjHead=Fast_ProjectionHead(3,5,1,1,112,112,64,torch::kCPU);
+    FastandHead mNetFastMVCNNMLP=FastandHead(3,5,4,1,184,184,9,64,torch::kCPU);
+    SimilarityNet mNetFastMVCNNDirectSIM=SimilarityNet(3,5,4,1,184,184,64,torch::kCPU);
+    //FastandHead mNetFastMVCNNMLP; // Fast MVCNN + MLP for Multiview Features Aggregation
+    // LATER SLOW NET 
+    ConvNet_Slow mNetSlowStd=ConvNet_Slow(3,4,4); // Conv Kernel= 3x3 , Convlayers=4, Fully Connected Layers =4
+    
 };
 
-
+// ARCHITECTURES OF CNN TRAINED 
+static const std::string TheFastArch = "MVCNNFast";
+static const std::string TheFastArchReg = "MVCNNFastReg";
+static const std::string TheFastandPrjHead = "MVCNNFastProjHead";
+static const std::string TheFastStandard = "MCNNStd";
+static const std::string TheFastArchWithMLP= "MVCNNFastMLP";
+static const std::string TheFastArchDirectSim="MVCNNFastDirectSIM";
 /* *************************************************** */
 /*                                                     */
 /*              cAppliMatchMultipleOrtho               */
@@ -65,8 +100,11 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 
 cAppliMatchMultipleOrtho::cAppliMatchMultipleOrtho(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
-   mImSimil      (cPt2di(1,1))
+   mImSimil      (cPt2di(1,1)),
+   mCNNWin          (0,0)
+   
 {
+
 }
 
 
@@ -86,9 +124,182 @@ cCollecSpecArg2007 & cAppliMatchMultipleOrtho::ArgOpt(cCollecSpecArg2007 & anArg
 {
    return anArgOpt
           // << AOpt2007(mStepZ, "StepZ","Step for paralax",{eTA2007::HDV})
+          << AOpt2007(mModelBinDir,"CNNParams" ,"Model Directory : Contient des fichiers binaires *.bin")
+          << AOpt2007(mArchitecture,"CNNArch" ,"Model architecture : "+TheFastArch+" || "+TheFastStandard+" || "+TheFastArchWithMLP)
    ;
 }
 
+
+void cAppliMatchMultipleOrtho::InitializePredictor ()
+{
+    StdOut()<<"MODEL ARCHITECTURE:: "<<mArchitecture<<"\n";
+    bool IsArchWellDefined=false;
+    IsArchWellDefined = (mArchitecture==TheFastArch) ||  (mArchitecture==TheFastArchReg) ||  (mArchitecture==TheFastStandard) || (mArchitecture==TheFastArchWithMLP) || (mArchitecture==TheFastArchDirectSim) || (mArchitecture==TheFastandPrjHead) ;
+    MMVII_INTERNAL_ASSERT_strong(IsArchWellDefined,"The network architecture should be specified : "+TheFastArch+" || "+TheFastStandard 
+        +" || "+TheFastArchWithMLP+" || "+TheFastArchDirectSim+ " !");      
+    MMVII_INTERNAL_ASSERT_strong(this->mModelBinDir!=""," Model params dir must be specified ! ");
+    
+    mWithExtCorr = (mArchitecture!="");
+    
+    if (mWithExtCorr)
+    {
+        // ARCHITECTURE and Location of Model Binaries 
+        if(mArchitecture==TheFastArch)
+        {
+            mCNNPredictor = new aCnnModelPredictor(TheFastArch,mModelBinDir);
+            // CREATE AN INSTANCE OF THE NETWORK 
+            torch::Device device(torch::kCPU);
+            mNetFastMVCNN->createModel(184,7,1,3,device); // becareful to change these values with respect to network architecture
+				
+				
+            // Populate layers by learned weights and biases 
+            mCNNPredictor->PopulateModelFromBinaryWithBN(mNetFastMVCNN);
+            
+            mCNNWin=mCNNPredictor->GetWindowSizeBN(mNetFastMVCNN);
+				
+            //Add padding to maintain the same size as output 
+            auto Fast=mNetFastMVCNN->getFastSequential(); 
+            
+            // ACTIVATE PADDING (NOW DEACTIVATED)
+            
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                {   //torch::nn::Conv2dImpl *mod=Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>();
+                        //std::cout<<"condition verified on name of convolution "<<std::endl;
+                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                }
+            }
+        }
+        if(mArchitecture==TheFastArchReg)
+        {
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchReg,mModelBinDir);
+            mCNNPredictor->PopulateModelFromBinaryWithBNReg(mNetFastMVCNNReg);
+            
+            mCNNWin=mCNNPredictor->GetWindowSizeBNReg(mNetFastMVCNNReg);
+				
+            //Add padding to maintain the same size as output 
+            auto Fast=mNetFastMVCNNReg->mFast; 
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                {  
+                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                }
+            }
+        }
+        if(mArchitecture==TheFastandPrjHead)
+        {
+            mCNNPredictor = new aCnnModelPredictor(TheFastandPrjHead,mModelBinDir);
+            mCNNPredictor->PopulateModelPrjHead(mNetFastPrjHead);
+            
+            mCNNWin=mCNNPredictor->GetWindowSizePrjHead(mNetFastPrjHead);
+				
+            //Add padding to maintain the same size as output 
+            auto Fast=mNetFastPrjHead->mFast; 
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                {  
+                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                }
+            }
+        }
+        if(mArchitecture==TheFastArchWithMLP)
+        {
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchWithMLP,mModelBinDir);
+            // CREATE AN INSTANCE OF THE NETWORK 
+            //auto cuda_available = torch::cuda::is_available();
+            //torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+            //mNetFastMVCNNMLP=FastandHead(3,7,4,1,184,184,3,64,device); // not to change for the moment 
+            //mNetFastMVCNNMLP->to(devicecuda);
+            // Populate layers by learned weights and biases 
+            mCNNPredictor->PopulateModelFastandHead(mNetFastMVCNNMLP);
+            StdOut()<<"MODEL LOADED-------> "<<"\n";
+            //mNetFastMVCNNMLP->to(torch::kCPU);
+            mCNNWin=mCNNPredictor->GetWindowSizeFastandHead(mNetFastMVCNNMLP);
+				
+            //Add padding to maintain the same size as output 
+            auto Fast=mNetFastMVCNNMLP->mFast; 
+            
+            // ACTIVATE PADDING (NOW DEACTIVATED)
+            
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                {   //torch::nn::Conv2dImpl *mod=Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>();
+                        //std::cout<<"condition verified on name of convolution "<<std::endl;
+                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                }
+            }
+        }
+        if(mArchitecture==TheFastArchDirectSim)
+        {
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchDirectSim,mModelBinDir);
+            StdOut()<<"LOADING NETWORKKKK   ------> "<<"\n";
+            mCNNPredictor->PopulateModelSimNet(mNetFastMVCNNDirectSIM);
+            StdOut()<<"MODEL LOADED-SIMILARITY NETWORK    ------> "<<"\n";
+            //mNetFastMVCNNMLP->to(torch::kCPU);
+            mCNNWin=mCNNPredictor->GetWindowSizeSimNet(mNetFastMVCNNDirectSIM);
+				
+            //Add padding to maintain the same size as output 
+            auto Fast=mNetFastMVCNNDirectSIM->mFast; 
+            
+            // ACTIVATE PADDING (NOW DEACTIVATED)
+            
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                {   //torch::nn::Conv2dImpl *mod=Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>();
+                        //std::cout<<"condition verified on name of convolution "<<std::endl;
+                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                }
+            }
+        }
+        else if (mArchitecture==TheFastStandard)
+        {
+           mCNNPredictor = new aCnnModelPredictor(TheFastStandard,mModelBinDir); 
+           
+           // CREATE A CNN MODULE AND LOAD PARAMS 
+            mNetFastStd->createModel(64,4,1,3);
+            
+            // Populate layers by learned weights and biases 
+            mCNNPredictor->PopulateModelFromBinary(mNetFastStd);
+            mCNNWin=mCNNPredictor->GetWindowSize(mNetFastStd);
+            //Add padding to maintain the same size as input
+            auto Fast=mNetFastStd->getFastSequential(); 
+            
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                    
+                    {   //torch::nn::Conv2dImpl *mod=Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>();
+                        //std::cout<<"condition verified on name of convolution "<<std::endl;
+                        Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                    }
+	         }   // DO NOT APPLY PADDING TO GET A VECTOR EMBDEDDING OF THE PATCH 
+	         // PADDING IS USED WHENEVER THE WHOLE TILE IS CONCERNED 
+        }
+    }   
+}
 
 void cAppliMatchMultipleOrtho::CorrelMaster
      (
@@ -124,6 +335,10 @@ void cAppliMatchMultipleOrtho::CorrelMaster
     aCorrel =  aMatI.Correl(1e-5);
 }
 
+
+
+
+
 void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
 {
    MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
@@ -140,9 +355,9 @@ void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
 	// Parse secondary images 
         for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
 	{
-            bool AllOk;
+        bool AllOk;
 	    float aWeight,aCorrel;
-            CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
+        CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
 	    if (AllOk)
 	    {
                aSumCorAllOk     += aCorrel;
@@ -163,9 +378,179 @@ void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
 }
 
 
+
+void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMaster(std::vector<torch::Tensor> * AllOrthosEmbeddings)
+{
+   MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
+
+   tDImSimil & aDImSim = mImSimil.DIm();
+   // Parse all pixels
+	const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+    auto MasterEmbedding=AllOrthosEmbeddings->at(0);
+    int FeatSize=MasterEmbedding.size(0);
+    //std::cout<<" feature vector size : "<<FeatSize<<std::endl;
+   for (const auto & aP : aDImSim)
+   {
+        // method : average of image all ok if any, else weighted average of partial corr
+        float aSumCorAllOk = 0.0; // Sum of correl of image where point are all ok
+        float aSumWeightAllOk = 0.0; //   Nb of All Ok
+        float aSumCorPart  = 0.0; //  Sum of weighted partial correl
+        float aSumWeightPart = 0.0; //  Sum of weight
+	// Parse secondary images 
+	using namespace torch::indexing;
+    auto aVecRef=MasterEmbedding.slice(0,0,FeatSize,1).slice(1,aP.y(),aP.y()+1,1).slice(2,aP.x(),aP.x()+1,1);
+    //std::cout<<" reference vector "<<aVecRef<<std::endl;
+    //int smpl=1;
+        for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+	{
+        bool AllOk;
+	    float aWeight,aCorrel;
+        //CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
+        // Compute cosine simialrity with respect to master ortho embeddings 
+        
+        /**************************************************************************************/
+        AllOk = true;
+        aWeight = 0;
+        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
+        for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
+        {
+            bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valide
+            if (Ok)
+            {
+                aWeight++;
+            }
+            else
+            {
+                AllOk=false;
+            }
+        }
+        // Compute correl separately 
+        //using namespace torch::indexing;
+        auto aVecOther=AllOrthosEmbeddings->at(aKIm).slice(0,0,FeatSize,1).slice(1,aP.y(),aP.y()+1,1).slice(2,aP.x(),aP.x()+1,1);
+        auto aSim=torch::mm(aVecRef.view({1,FeatSize}),aVecOther.view({FeatSize,1}));
+        //std::cout<<" slave vector "<<aVecOther<<std::endl;
+        aCorrel=(float)aSim.item<float>();
+        //std::cout<<"correl val "<<aCorrel<<std::endl;
+        /*if (smpl){
+            std::cout<<"correl val "<<aCorrel<<std::endl;
+            smpl--;
+        }*/
+        //std::cout<<" CORREL "<<aCorrel<<std::endl;
+        /**************************************************************************************/  
+	    if (AllOk)
+	    {
+           aSumCorAllOk     += aCorrel;
+	       aSumWeightAllOk  += 1;
+	    }
+	    else
+	    {
+           aSumCorPart     += aCorrel * aWeight;
+	       aSumWeightPart  +=   aWeight;
+	    }
+	}
+	float aAvgCorr =  (aSumWeightAllOk !=0)            ? 
+                          (aSumCorAllOk / aSumWeightAllOk) :
+                          (aSumCorPart / std::max(1e-5f,aSumWeightPart)) ;
+
+	aDImSim.SetV(aP,1-aAvgCorr);
+   }
+}
+
+
+void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::vector<torch::Tensor> * AllOrthosEmbeddings)
+{
+   MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
+
+   tDImSimil & aDImSim = mImSimil.DIm();
+   // Parse all pixels
+	const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+    //compute similarity matrices at the beginning 
+    std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;;
+    for (int k=1; k<mNbIm; k++)
+    {
+        // compute element wise cross product along feature size dimension 
+        auto aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(0),AllOrthosEmbeddings->at(k),0).squeeze();
+        AllSimilarities->push_back(aCrossProd);
+    }
+    // Free all ortho OneOrthoEmbeding 
+    delete AllOrthosEmbeddings; 
+    //std::cout<<" feature vector size : "<<FeatSize<<std::endl;
+   for (const auto & aP : aDImSim)
+   {
+        // method : average of image all ok if any, else weighted average of partial corr
+        float aSumCorAllOk = 0.0; // Sum of correl of image where point are all ok
+        float aSumWeightAllOk = 0.0; //   Nb of All Ok
+        float aSumCorPart  = 0.0; //  Sum of weighted partial correl
+        float aSumWeightPart = 0.0; //  Sum of weight
+	 // Parse secondary images 
+	 using namespace torch::indexing;;
+        for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+	{
+        bool AllOk;
+	    float aWeight,aCorrel;
+        //CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
+        // Compute cosine simialrity with respect to master ortho embeddings 
+        
+        /**************************************************************************************/
+        AllOk = true;
+        aWeight = 0;
+        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
+        for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
+        {
+            bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valide
+            if (Ok)
+            {
+                aWeight++;
+            }
+            else
+            {
+                AllOk=false;
+            }
+        }
+        // Compute correl separately 
+        //using namespace torch::indexing;
+        auto aSim=AllSimilarities->at(aKIm-1).slice(0,aP.y(),aP.y()+1,1).slice(1,aP.x(),aP.x()+1,1);
+        //std::cout<<" slave vector "<<aVecOther<<std::endl;
+        aCorrel=(float)aSim.item<float>();
+        /**************************************************************************************/  
+	    if (AllOk)
+	    {
+           aSumCorAllOk     += aCorrel;
+	       aSumWeightAllOk  += 1;
+	    }
+	    else
+	    {
+           aSumCorPart     += aCorrel * aWeight;
+	       aSumWeightPart  +=   aWeight;
+	    }
+	}
+	float aAvgCorr =  (aSumWeightAllOk !=0)            ? 
+                          (aSumCorAllOk / aSumWeightAllOk) :
+                          (aSumCorPart / std::max(1e-5f,aSumWeightPart)) ;
+
+	aDImSim.SetV(aP,1-aAvgCorr);
+   }
+}
+
+void cAppliMatchMultipleOrtho::MakeNormalizedIms()  // Possible errors here 
+{
+    // NORMALIZING IMAGES BEFORE INFERENCE 
+    for( auto& Im: mVOrtho)
+    {
+        Im=NormalizedAvgDev(Im,1e-4);
+    }
+}
+
+
+
 int  cAppliMatchMultipleOrtho::Exe()
 {
    // Parse all Z
+   // If using a model (CNN) Initialize the predictor 
+   if (mArchitecture!="")
+   {
+        InitializePredictor();
+   }
    for (int aZ=0 ; aZ<mNbZ ; aZ++)
    {
         mPrefixZ =  mPrefixGlob + "_Z" + ToStr(aZ);
@@ -174,8 +559,6 @@ int  cAppliMatchMultipleOrtho::Exe()
         bool WithFile = ExistFile(NameOrtho(0));
 	// A little check
         MMVII_INTERNAL_ASSERT_strong(NoFile!=WithFile,"DM4MatchMultipleOrtho, incoherence file");
-
-
 	if (WithFile)
         {
 	    // Read  orthos and masq in  vectors of images
@@ -190,11 +573,81 @@ int  cAppliMatchMultipleOrtho::Exe()
                  MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
                  MMVII_INTERNAL_ASSERT_strong(mVMasq [aKIm].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
 	    }
+
+	    
+	    // NORMALIZE IF LEARNING BASED CORRELATION 
+        if (mWithExtCorr)
+        {
+           // MakeNormalizedIms();
+        
+        }
+    
 	    // Create similarity image with good size
 	    mImSimil = tImSimil(mSzIms);
 	    mImSimil.DIm().InitCste(2.0);   //  2 => correl of -1
+    
 
-            ComputeSimilByCorrelMaster();
+        if(mWithExtCorr)
+        {
+            // Inference based correlation 
+            std::vector<torch::Tensor> * OrthosEmbeddings= new std::vector<torch::Tensor>;
+            // Create Embeddings 
+            // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
+            for (unsigned int i=0;i<mVOrtho.size();i++)
+            {
+                cPt2di aSzOrtho=mVOrtho.at(i).DIm().Sz();
+                // Initialize Feature Size ;
+                /*int FeatSize=0;
+                if (mArchitecture==TheFastStandard) FeatSize=64 ;
+                if (mArchitecture==TheFastArchReg) FeatSize=64 ;  // change here to account for a new model 
+                if (mArchitecture==TheFastandPrjHead) FeatSize=112 ; 
+                if (mArchitecture==TheFastArch)   FeatSize=184;
+                if (mArchitecture==TheFastArchWithMLP)   FeatSize=184;
+                if (mArchitecture==TheFastArchDirectSim)   FeatSize=184;*/
+                //  Initialize Embeddings and store them for correlation calculus 
+                //auto OneOrthoEmbeding=torch::empty({1,FeatSize,aSzOrtho.y(),aSzOrtho.x()},torch::TensorOptions().dtype(torch::kFloat32));
+                
+                torch::Tensor OneOrthoEmbeding;
+                if (mArchitecture==TheFastStandard)
+                    {
+                       OneOrthoEmbeding=mCNNPredictor->PredictTile(mNetFastStd,mVOrtho.at(i),aSzOrtho);
+                    }
+                else if (mArchitecture==TheFastArch)
+                    {
+                       OneOrthoEmbeding=mCNNPredictor->PredictWithBNTile(mNetFastMVCNN,mVOrtho.at(i),aSzOrtho);
+                    }
+                else if (mArchitecture==TheFastArchReg)
+                    {
+                        OneOrthoEmbeding=mCNNPredictor->PredictWithBNTileReg(mNetFastMVCNNReg,mVOrtho.at(i),aSzOrtho);
+                    }
+                else if (mArchitecture==TheFastandPrjHead)
+                    {
+                       // std::cout<<"ORTOHS SIZES :  ====> "<<aSzOrtho<<std::endl;
+                        OneOrthoEmbeding=mCNNPredictor->PredictPrjHead(mNetFastPrjHead,mVOrtho.at(i),aSzOrtho);
+                    }
+                else if (mArchitecture==TheFastArchWithMLP)
+                    {
+                        OneOrthoEmbeding=mCNNPredictor->PredictFastWithHead(mNetFastMVCNNMLP,mVOrtho.at(i),aSzOrtho);
+                    }
+                else if (mArchitecture==TheFastArchDirectSim)
+                    {
+                        OneOrthoEmbeding=mCNNPredictor->PredictSimNetConv(mNetFastMVCNNDirectSIM,mVOrtho.at(i),aSzOrtho);
+                    }
+                 StdOut()  <<" EMBEDDING FOR ORTHO : "<<i<<OneOrthoEmbeding.sizes()<<"\n";
+                
+                // store in relevant vector 
+                OrthosEmbeddings->push_back(OneOrthoEmbeding);
+            }
+            
+            // GIVEN THE ORTHOS EMBEDDINGS, Compute Correlation for each pixel in the similarity image => index work to get vectors from from tensors 
+            ComputeSimilByLearnedCorrelMasterEnhanced(OrthosEmbeddings);
+            
+        }
+        else
+        {
+            ComputeSimilByCorrelMaster();    
+        }
+        
 	    mImSimil.DIm().ToFile(mPrefixZ+ "_Sim.tif"); // Save similarities
 	    mVOrtho.clear();
 	    mVMasq.clear();

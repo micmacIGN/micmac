@@ -9,7 +9,19 @@
 #include <vector>
 #include <set>
 #include <iostream>
-#include <filesystem>
+//#include <filesystem>
+#include <experimental/filesystem>
+
+
+#include <boost/algorithm/string.hpp>
+
+
+using namespace std::experimental::filesystem;
+
+namespace std {
+using namespace experimental;
+}
+
 #include <stdexcept>
 
 // #define KAPTURE_USE_EIGEN
@@ -28,7 +40,7 @@
 
 namespace Kapture {
 
-typedef std::filesystem::path Path;
+typedef std::experimental::filesystem::path Path;
 typedef std::vector<Path> PathList;
 typedef std::vector<std::string> StringList;
 typedef uint32_t timestamp_t;

@@ -99,7 +99,10 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
        aZMax = round_up  (aZMax*aStepZ);
    }
 
-   int aSzW = 3;
+   int aSzW = 0;
+   if (aModele=="MMV1") aSzW=3;
+   //if (aModele=="MVCNNCorrel") aSzW=15;
+
 
    Tiff_Im aF2(aN2.c_str());
    int aX0In2 = ElMax(mBoxIn.P0().x-aSzW+aZMin,  0);
@@ -167,6 +170,72 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
            }
        }
    }
+   else if (aModele=="MVCNNCorrel")  // SPECIAL CASE OF MVCNN 
+   {
+    
+        /*************************************************************/
+        ELISE_ASSERT
+        (
+                (aCPC.FileModeleParams().IsInit()),
+                "MVCNN INFERENCE REQUIRES MODEL PARAMETERS"
+        );
+        ELISE_ASSERT
+        (
+                (aCPC.FileModeleArch().IsInit()),
+                "MVCNN INFERENCE REQUIRES MODEL ARCHITECTURE"
+        );
+       
+       std::string aModeleParams = aCPC.FileModeleParams().Val();
+       std::string aModeleArch = aCPC.FileModeleArch().Val();
+       // add condition 
+       int aPId = mm_getpid();
+       std::string aPost = "MMV1Pid" + ToString(aPId);
+
+       std::string aNameZMin = StdName("ZMin",aPost,"tif");
+       std::string aNameZMax = StdName("ZMax",aPost,"tif");
+       std::string aNameCube = StdName("MatchingCube",aPost,"data");
+
+
+       Tiff_Im::CreateFromIm(aImZMin,aNameZMin);
+       Tiff_Im::CreateFromIm(aImZMax,aNameZMax);
+
+       std::string aCom =   "MMVII DM4FillCubeCost " + aN1 + " " + aN2 
+                          + " " +  aModele
+                          + " " +  ToString(mBoxIn.P0())
+                          + " " +  ToString(aBoxIn1)
+                          + " " +  ToString(aBoxIn2)
+                                     + " " +  aPost
+                          + " " +  "CNNParams="+aModeleParams
+                          + " " +  "CNNArch="+aModeleArch;
+
+       if (aCPC.Cmp_FileMC().IsInit())
+       {
+           aCom = aCom + " ModCmp=" +  aCPC.Cmp_FileMC().Val();
+       }
+       System(aCom);
+       ELISE_fp aFileCube(aNameCube.c_str());
+       Pt2di aPLoc;
+       for (aPLoc.y=0 ; aPLoc.y<aSz.y ; aPLoc.y++)
+        {
+            for (aPLoc.x=0 ; aPLoc.x<aSz.x ; aPLoc.x++)
+            {
+                // Pt2di aPAbs = aPLoc +mBoxIn.P0();
+                // Pt2di aPLoc1 = aPAbs -Pt2di(aX0In1,aY0In1);
+                for (int aZ= aTImZMin.Val(aPLoc.x,aPLoc.y) ; aZ<aTImZMax.Val(aPLoc.x,aPLoc.y) ; aZ++)
+                {
+                    U_INT2 aCostI= aFileCube.read_U_INT2();
+                    double aCost = aCostI/1e4;
+                    mSurfOpt->SetCout(aPLoc,&aZ,aCost);
+                }
+            }
+        }
+      /***************************************************************/
+       aFileCube.close();
+       ELISE_fp::RmFile(aNameZMin);
+       ELISE_fp::RmFile(aNameZMax);
+       ELISE_fp::RmFile(aNameCube);
+   }
+
    // 
    else 
    {

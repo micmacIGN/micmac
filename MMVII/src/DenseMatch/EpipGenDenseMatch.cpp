@@ -668,6 +668,22 @@ std::string cAppli::ComMatch(cParam1Match & aParam)
           ;
        	  break;
        }
+       /*******************************************************************/
+       case eModeEpipMatch::eMEM_MVCNN :
+       {
+          std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
+          std::string aCom = "bash " + aDenseMDir + "run.sh " 
+                                            //+ BLANK + "--loadmodel"  + BLANK + mTrainedModel
+                             + BLANK + "--leftimg"  + BLANK + DirTmpOfCmd() + aParam.mClipNameIm1
+                             + BLANK + "--rightimg" + BLANK + DirTmpOfCmd() + aParam.mClipNameIm2
+                             + BLANK + "--result"     + BLANK + DirTmpOfCmd() + aParam.mClipNamePx;
+                                 
+          
+                 return aCom;
+          break;
+       }
+       /*******************************************************************/
+
        case eModeEpipMatch::eMEM_PSMNet :
        {
 		  std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
@@ -833,6 +849,10 @@ int cAppli::Exe()
        {
             case eModeEpipMatch::eMEM_MMV1    :    mModePad = eModePaddingEpip::eMPE_NoPad; break;
             case eModeEpipMatch::eMEM_PSMNet  :    mModePad = eModePaddingEpip::eMPE_PxNeg; break;
+            /*******************************************************************************************/
+            case eModeEpipMatch::eMEM_MVCNN  :     mModePad = eModePaddingEpip::eMPE_PxNeg; break;
+            /*******************************************************************************************/
+ 
             case eModeEpipMatch::eMEM_NoMatch :    mModePad = eModePaddingEpip::eMPE_NoPad; break;
             case eModeEpipMatch::eNbVals      :                                             break;
        }

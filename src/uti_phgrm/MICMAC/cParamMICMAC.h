@@ -2328,16 +2328,27 @@ class cMutiCorrelOrthoExt
 
         cTplValGesInit< std::string > & Cmd();
         const cTplValGesInit< std::string > & Cmd()const ;
-
+        // ADD CNN MODEL PARAMS 
+       // PARAMS 
+        cTplValGesInit< std::string >  & OrthFileModeleParams();
+        const cTplValGesInit< std::string > & OrthFileModeleParams() const;
+        // ARCHITECTURE 
+        cTplValGesInit< std::string > &  OrthFileModeleArch();
+        const cTplValGesInit< std::string >  & OrthFileModeleArch() const;
+ 
         cTplValGesInit< std::string > & Options();
         const cTplValGesInit< std::string > & Options()const ;
 
         cTplValGesInit< int > & DeltaZ();
         const cTplValGesInit< int > & DeltaZ()const ;
+        
     private:
         cTplValGesInit< std::string > mCmd;
+        cTplValGesInit< std::string > mOrthFileModeleParams;
+        cTplValGesInit< std::string > mOrthFileModeleArch;
         cTplValGesInit< std::string > mOptions;
         cTplValGesInit< int > mDeltaZ;
+        
 };
 cElXMLTree * ToXMLTree(const cMutiCorrelOrthoExt &);
 
@@ -2446,6 +2457,15 @@ class cScoreLearnedMMVII
 
         std::string & FileModeleCost();
         const std::string & FileModeleCost()const ;
+        
+        // ADD CNN MODEL PARAMS 
+       // PARAMS 
+        cTplValGesInit< std::string >  & FileModeleParams();
+        const cTplValGesInit< std::string > & FileModeleParams() const;
+        // ARCHITECTURE 
+        cTplValGesInit< std::string > &  FileModeleArch();
+        const cTplValGesInit< std::string >  & FileModeleArch() const;
+ 
 
         cTplValGesInit< double > & CostDyn();
         const cTplValGesInit< double > & CostDyn()const ;
@@ -2460,6 +2480,11 @@ class cScoreLearnedMMVII
         const cTplValGesInit< int > & Cmp_NbDisc()const ;
     private:
         std::string mFileModeleCost;
+        
+        // CNN PARAMS AND ARCHITECTURE
+        cTplValGesInit< std::string > mFileModeleParams;
+        cTplValGesInit< std::string > mFileModeleArch;
+        
         cTplValGesInit< double > mCostDyn;
         cTplValGesInit< double > mCostExp;
         cTplValGesInit< std::string > mCmp_FileMC;

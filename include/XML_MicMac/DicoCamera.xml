@@ -26,6 +26,11 @@ See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_an
         <ShortName> LadyBug </ShortName>
    </CameraEntry>
 
+   <CameraEntry>
+        <Name> UltraCam Osprey Mark 3 Premium f120 </Name>
+        <SzCaptMm> 140.088 90.168 </SzCaptMm>
+        <ShortName> Vexcel </ShortName>
+   </CameraEntry>
 
    <CameraEntry>
         <Name> OV8865 </Name>

@@ -7820,6 +7820,26 @@ const cTplValGesInit< std::string > & cMutiCorrelOrthoExt::Cmd()const
    return mCmd;
 }
 
+cTplValGesInit< std::string > & cMutiCorrelOrthoExt::OrthFileModeleParams()
+{
+   return mOrthFileModeleParams;
+}
+
+cTplValGesInit< std::string > & cMutiCorrelOrthoExt::OrthFileModeleArch()
+{
+   return mOrthFileModeleArch;
+}
+
+const cTplValGesInit< std::string > & cMutiCorrelOrthoExt::OrthFileModeleParams()const 
+{
+   return mOrthFileModeleParams;
+}
+
+const cTplValGesInit< std::string > & cMutiCorrelOrthoExt::OrthFileModeleArch()const 
+{
+   return mOrthFileModeleArch;
+}
+
 
 cTplValGesInit< std::string > & cMutiCorrelOrthoExt::Options()
 {
@@ -7852,6 +7872,28 @@ void  BinaryUnDumpFromFile(cMutiCorrelOrthoExt & anObj,ELISE_fp & aFp)
         }
         else  anObj.Cmd().SetNoInit();
   } ;
+  
+     // ADDED PARAMS AND ARCHITECTURE IN CASE OF MVCNNCorrel
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OrthFileModeleParams().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OrthFileModeleParams().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OrthFileModeleParams().SetNoInit();
+  } ;
+  
+  /***********************************************************************************/
+  
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OrthFileModeleArch().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OrthFileModeleArch().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OrthFileModeleArch().SetNoInit();
+  } ;
+
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -7874,6 +7916,14 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cMutiCorrelOrthoExt & anObj)
 {
     BinaryDumpInFile(aFp,anObj.Cmd().IsInit());
     if (anObj.Cmd().IsInit()) BinaryDumpInFile(aFp,anObj.Cmd().Val());
+    /*****************************************************************************/
+    // ADDED PARAMS AND ARCHITECTURE IN CASE OF MVCNN
+    BinaryDumpInFile(aFp,anObj.OrthFileModeleParams().IsInit());
+    if (anObj.OrthFileModeleParams().IsInit()) BinaryDumpInFile(aFp,anObj.OrthFileModeleParams().Val());
+    BinaryDumpInFile(aFp,anObj.OrthFileModeleArch().IsInit());
+    if (anObj.OrthFileModeleArch().IsInit()) BinaryDumpInFile(aFp,anObj.OrthFileModeleArch().Val());
+    /*****************************************************************************/
+
     BinaryDumpInFile(aFp,anObj.Options().IsInit());
     if (anObj.Options().IsInit()) BinaryDumpInFile(aFp,anObj.Options().Val());
     BinaryDumpInFile(aFp,anObj.DeltaZ().IsInit());
@@ -7886,6 +7936,13 @@ cElXMLTree * ToXMLTree(const cMutiCorrelOrthoExt & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MutiCorrelOrthoExt",eXMLBranche);
    if (anObj.Cmd().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Cmd"),anObj.Cmd().Val())->ReTagThis("Cmd"));
+    /*****************************************************************************/
+    // ADDED PARAMS AND ARCHITECTURE IN CASE OF MVCNN
+   if (anObj.OrthFileModeleParams().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OrthFileModeleParams"),anObj.OrthFileModeleParams().Val())->ReTagThis("OrthFileModeleParams"));
+   if (anObj.OrthFileModeleArch().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OrthFileModeleArch"),anObj.OrthFileModeleArch().Val())->ReTagThis("OrthFileModeleArch"));
+   /*****************************************************************************/
    if (anObj.Options().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Options"),anObj.Options().Val())->ReTagThis("Options"));
    if (anObj.DeltaZ().IsInit())
@@ -7901,7 +7958,10 @@ void xml_init(cMutiCorrelOrthoExt & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Cmd(),aTree->Get("Cmd",1),std::string("MMVII  DM4MatchMultipleOrtho ")); //tototo 
-
+   /************************************************************************************************/
+   xml_init(anObj.OrthFileModeleParams(),aTree->Get("OrthFileModeleParams",1)); //tototo
+   xml_init(anObj.OrthFileModeleArch(),aTree->Get("OrthFileModeleArch",1)); //tototo
+   /***********************************************************************************************/
    xml_init(anObj.Options(),aTree->Get("Options",1)); //tototo 
 
    xml_init(anObj.DeltaZ(),aTree->Get("DeltaZ",1),int(50)); //tototo 
@@ -8176,10 +8236,32 @@ std::string & cScoreLearnedMMVII::FileModeleCost()
    return mFileModeleCost;
 }
 
+cTplValGesInit< std::string > & cScoreLearnedMMVII::FileModeleParams()
+{
+   return mFileModeleParams;
+}
+
+cTplValGesInit< std::string > & cScoreLearnedMMVII::FileModeleArch()
+{
+   return mFileModeleArch;
+}
+
+
 const std::string & cScoreLearnedMMVII::FileModeleCost()const 
 {
    return mFileModeleCost;
 }
+
+const cTplValGesInit< std::string > & cScoreLearnedMMVII::FileModeleParams()const 
+{
+   return mFileModeleParams;
+}
+
+const cTplValGesInit< std::string > & cScoreLearnedMMVII::FileModeleArch()const 
+{
+   return mFileModeleArch;
+}
+
 
 
 cTplValGesInit< double > & cScoreLearnedMMVII::CostDyn()
@@ -8228,6 +8310,25 @@ const cTplValGesInit< int > & cScoreLearnedMMVII::Cmp_NbDisc()const
 void  BinaryUnDumpFromFile(cScoreLearnedMMVII & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.FileModeleCost(),aFp);
+  
+     // ADDED PARAMS AND ARCHITECTURE IN CASE OF MVCNNCorrel
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.FileModeleParams().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FileModeleParams().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FileModeleParams().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.FileModeleArch().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FileModeleArch().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FileModeleArch().SetNoInit();
+  } ;
+
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -8265,6 +8366,14 @@ void  BinaryUnDumpFromFile(cScoreLearnedMMVII & anObj,ELISE_fp & aFp)
 void  BinaryDumpInFile(ELISE_fp & aFp,const cScoreLearnedMMVII & anObj)
 {
     BinaryDumpInFile(aFp,anObj.FileModeleCost());
+    /*****************************************************************************/
+    // ADDED PARAMS AND ARCHITECTURE IN CASE OF MVCNN
+    BinaryDumpInFile(aFp,anObj.FileModeleParams().IsInit());
+    if (anObj.FileModeleParams().IsInit()) BinaryDumpInFile(aFp,anObj.FileModeleParams().Val());
+    BinaryDumpInFile(aFp,anObj.FileModeleArch().IsInit());
+    if (anObj.FileModeleArch().IsInit()) BinaryDumpInFile(aFp,anObj.FileModeleArch().Val());
+    /*****************************************************************************/
+
     BinaryDumpInFile(aFp,anObj.CostDyn().IsInit());
     if (anObj.CostDyn().IsInit()) BinaryDumpInFile(aFp,anObj.CostDyn().Val());
     BinaryDumpInFile(aFp,anObj.CostExp().IsInit());
@@ -8280,6 +8389,14 @@ cElXMLTree * ToXMLTree(const cScoreLearnedMMVII & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ScoreLearnedMMVII",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("FileModeleCost"),anObj.FileModeleCost())->ReTagThis("FileModeleCost"));
+    /*****************************************************************************/
+    // ADDED PARAMS AND ARCHITECTURE IN CASE OF MVCNN
+   if (anObj.FileModeleParams().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FileModeleParams"),anObj.FileModeleParams().Val())->ReTagThis("FileModeleParams"));
+   if (anObj.FileModeleArch().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FileModeleArch"),anObj.FileModeleArch().Val())->ReTagThis("FileModeleArch"));
+   /*****************************************************************************/
+
    if (anObj.CostDyn().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("CostDyn"),anObj.CostDyn().Val())->ReTagThis("CostDyn"));
    if (anObj.CostExp().IsInit())
@@ -8299,6 +8416,8 @@ void xml_init(cScoreLearnedMMVII & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.FileModeleCost(),aTree->Get("FileModeleCost",1)); //tototo 
+   xml_init(anObj.FileModeleParams(),aTree->Get("FileModeleParams",1)); //tototo
+   xml_init(anObj.FileModeleArch(),aTree->Get("FileModeleArch",1)); //tototo
 
    xml_init(anObj.CostDyn(),aTree->Get("CostDyn",1),double(0.3333)); //tototo 
 

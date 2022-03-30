@@ -4,6 +4,11 @@
 #include "include/MMVII_Tpl_Images.h"
 #include "include/MMVII_TplLayers3D.h"
 
+// included model cnn 
+#include "cCnnModelPredictor.h"
+
+
+
 /*
    C = (1-(1-L) ^2)
 
@@ -16,36 +21,80 @@ namespace  cNS_FillCubeCost
 {
 
 class cAppliFillCubeCost;
-
 struct cOneModele
 {
     public :
+        typedef cIm2D<tREAL4>  tImRad; 
         cOneModele
         (
             const std::string & aNameModele,
             cAppliFillCubeCost  & aAppliLearn
+            //aCnnModelPredictor  & aPredicor
         );
+        /*cOneModele
+        (
+            const std::string & aNameModele,
+            cAppliFillCubeCost  & aAppliLearn,
+            const std::string & aModelBinDir,
+            const std::string & aModelArch
+            //aCnnModelPredictor  & aPredicor
+        );*/
 
-	double ComputeCost(bool &Ok,const cPt2di & aPC1,const cPt2di & aPC2,int aDZ) const;
+	    double ComputeCost(bool &Ok,const cPt2di & aPC1,const cPt2di & aPC2,int aDZ) const;
         void CalcCorrelExterneTerm(const cBox2di & aBoxInitIm1,int aPxMin,int aPxMax);
         void CalcCorrelExterneRecurs(const cBox2di & aBoxIm1);
         void CalcCorrelExterne();
+        
+        
+       // ADDED METHODS FOR MVCNN
+        void CalcCorrelMvCNN();
 
-	cAppliFillCubeCost  * mAppli;
-	std::string           mNameModele;
+	    cAppliFillCubeCost  * mAppli;
+	    std::string           mNameModele;
         bool                  mWithIntCorr;
         bool                  mWithExtCorr;
-	bool                  mWithStatModele;
+        // ADDED MVCNN
+        bool                  mWIthMVCNNCorr;
+	    bool                  mWithStatModele;
         cHistoCarNDim         mModele;
         cPyr1ImLearnMatch *   mPyrL1;
         cPyr1ImLearnMatch *   mPyrL2;
         int                   mSzW;
         cPt2di                mPSzW;
+        
+        // instantiate a pointer to null CNN PREDICTOR
+        aCnnModelPredictor * mCNNPredictor=nullptr;
+        std::string mArchitecture ="";
+        std::string mModelBinDir="";
+        cPt2di               mCNNWin;
+        
+        // Networks architectures 
+        ConvNet_Fast mNetFastStd= ConvNet_Fast(3,4);  // Conv Kernel= 3x3 , Convlayers=4
+        ConvNet_FastBn  mNetFastMVCNN=ConvNet_FastBn(3,5);// Conv Kernel= 3x3 , Convlayers=7
+        ConvNet_FastBnRegister mNetFastMVCNNReg=ConvNet_FastBnRegister(3,5,1,64,torch::kCPU);
+        Fast_ProjectionHead mNetFastPrjHead=Fast_ProjectionHead(3,5,1,1,112,112,64,torch::kCPU);
+        FastandHead mNetFastMVCNNMLP=FastandHead(3,5,4,1,184,184,9,64,torch::kCPU);
+        SimilarityNet mNetFastMVCNNDirectSIM=SimilarityNet(3,5,4,1,184,184,64,torch::kCPU);
+        //FastandHead mNetFastMVCNNMLP; // Fast MVCNN + MLP for Multiview Features Aggregation
+        // LATER SLOW NET 
+        ConvNet_Slow mNetSlowStd=ConvNet_Slow(3,4,4); // Conv Kernel= 3x3 , Convlayers=4, Fully Connected Layers =4
+        
+        
 };
-
 
 static const std::string TheNameCorrel  = "MMVIICorrel";
 static const std::string TheNameExtCorr = "ExternCorrel";
+static const std::string TheNameCNNCorr = "MVCNNCorrel";
+
+// ARCHITECTURES OF CNN TRAINED 
+
+static const std::string TheFastArch = "MVCNNFast";
+static const std::string TheFastandPrjHead = "MVCNNFastProjHead";
+static const std::string TheFastArchReg = "MVCNNFastReg";
+static const std::string TheFastStandard = "MCNNStd";
+static const std::string TheFastArchWithMLP= "MVCNNFastMLP";
+static const std::string TheFastArchDirectSim="MVCNNFastDirectSIM";
+//.....................................................
 
 
 class cAppliFillCubeCost : public cAppliLearningMatch
@@ -56,7 +105,7 @@ class cAppliFillCubeCost : public cAppliLearningMatch
         typedef cDataIm2D<tElemZ>          tDataImZ;
         typedef cIm2D<tREAL4>              tImRad;
         typedef cDataIm2D<tREAL4>          tDataImRad;
-	typedef cLayer3D<float,tElemZ>     tLayerCor;
+	    typedef cLayer3D<float,tElemZ>     tLayerCor;
         typedef cIm2D<tREAL4>              tImPx;
         typedef cDataIm2D<tU_INT1>         tDataImMasq;
         typedef cDataIm2D<tREAL4>          tDataImPx;
@@ -68,12 +117,29 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 
         cAppliFillCubeCost(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 	double ComputCorrel(const cPt2di & aPI1,const cPt2dr & aPI2,int mSzW) const;
-
+    // ADDED CORREL USING CNN 
+    double ComputCorrelMVCNN(const cPt2di & aPI1,const cPt2dr & aPI2,int mSzW) const;
+    
+    /*************************************************************************/
+    //void Predict(Tiff_Im & ImLeft, Tiff_Im & ImRight, ConvNet_Fast & Net);
+    torch::Tensor ReadBinaryFile(std::string aFileName, torch::Tensor aHost);
+    void PopulateModelFromBinary(ConvNet_Fast Net,std::vector<std::string> Names,std::string aDirModel);
+    int GetWindowSize(ConvNet_Fast & Network);
+    /*************************************************************************/
 	const tDataImRad & DI1() {return *mDI1;}
 	const tDataImRad & DI2() {return *mDI2;}
+	
+	/************************** MAY BE  REMOVE THIS LATER ********************/
+	// accessor to NORMALIZED IMAGES 
+    const tImRad & IMNorm1() {return mImNorm1;}
+    const tImRad & IMNorm2() {return mImNorm2;}
+	const tDataImRad & NDI1() {return *mDINorm1;}
+	const tDataImRad & NDI2() {return *mDINorm2;}
+    /*************************************************************************/
+    
         cPyr1ImLearnMatch * PyrL1 () {return PyrL(mPyrL1,mBoxGlob1,mNameI1);}
         cPyr1ImLearnMatch * PyrL2 () {return PyrL(mPyrL2,mBoxGlob2,mNameI2);}
-	tREAL8     StepZ() const {return mStepZ;}
+	    tREAL8     StepZ() const {return mStepZ;}
         bool Ok1(int aX) const {return Ok(aX,mVOk1);}
         bool Ok2(int aX) const {return Ok(aX,mVOk2);}
         const cAimePCar & PC1(int aX) const {return mVPC1.at(aX);}
@@ -82,6 +148,9 @@ class cAppliFillCubeCost : public cAppliLearningMatch
         const cBox2di  & BoxGlob2() const {return mBoxGlob2;}  ///< Accessor
         const std::string   & NameI1() const {return mNameI1;}  ///< Accessor
         const std::string   & NameI2() const {return mNameI2;}  ///< Accessor
+        
+        const std::string  & NameArch() const {return mModelArchitecture;} // ACCESSOR
+        const std::string  & NameDirModel() const {return mModelBinaries;} // ACCESSOR
 
 	cBox2di BoxFile1() const {return cDataFileIm2D::Create(mNameI1,false);}
 	cBox2di BoxFile2() const {return cDataFileIm2D::Create(mNameI2,false);}
@@ -135,12 +204,16 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 	double        mFactLearn; // Factor to adapt learned cost
 	std::string   mNameCmpModele;
 	int           mSzW;
+    
+    // ADDED CNN PARAMS 
+    std::string mModelBinaries;
+    std::string mModelArchitecture;
 	// -------------- Internal variables -------------------
 	
 	std::string StdName(const std::string & aPre,const std::string & aPost);
 
         int         mNbCmpCL;
-	cIm2D<tREAL8>  mImCmp;
+	    cIm2D<tREAL8>  mImCmp;
         std::string mNameZMin;
         std::string mNameZMax;
         std::string mNameCube;
@@ -183,16 +256,24 @@ cOneModele::cOneModele
 (
     const std::string & aNameModele,
     cAppliFillCubeCost  & aAppliLearn
+    //aCnnModelPredictor & aPredicor
 ) :
    mAppli          (&aAppliLearn),
+   //**************************
+   //mPredictor      (&aPredicor)
+   //**************************,
    mNameModele     (aNameModele),
    mWithIntCorr    (mNameModele==TheNameCorrel),
    mWithExtCorr    (mNameModele==TheNameExtCorr),
-   mWithStatModele (! (mWithIntCorr || mWithExtCorr)),
+   /***********************************************************************/
+   mWIthMVCNNCorr (mNameModele==TheNameCNNCorr),
+   /***********************************************************************/
+   mWithStatModele (! (mWithIntCorr || mWithExtCorr || mWIthMVCNNCorr)),
    mPyrL1          (nullptr),
    mPyrL2          (nullptr),
    mSzW            (mAppli->SzW()),
-   mPSzW           (mSzW,mSzW)
+   mPSzW           (mSzW,mSzW),
+   mCNNWin          (0,0)
 {
     if (mWithStatModele)
     {
@@ -203,6 +284,174 @@ cOneModele::cOneModele
     else if (mWithExtCorr)
     {
          CalcCorrelExterne();
+    }
+    // ADDED MVCNN here 
+    else if (mWIthMVCNNCorr)
+    {
+        // ARCHITECTURE and Location of Model Binaries 
+        
+        mArchitecture=mAppli->NameArch();
+        mModelBinDir =mAppli->NameDirModel();
+        
+        MMVII_INTERNAL_ASSERT_strong(mArchitecture!="","The network architecture should be specified : "+TheFastArch+" || "+TheFastStandard 
+            +" || "+TheFastArchWithMLP+" || "+TheFastArchDirectSim+ " !");      
+        MMVII_INTERNAL_ASSERT_strong(mModelBinDir!=""," Model params dir must be specified ! ");
+        //CalcCorrelMvCNN();
+        if(mArchitecture==TheFastArch)
+        {
+            mCNNPredictor = new aCnnModelPredictor(TheFastArch,mModelBinDir);
+            // CREATE AN INSTANCE OF THE NETWORK 
+            torch::Device device(torch::kCPU);
+            mNetFastMVCNN->createModel(184,7,1,3,device); // becareful to change these values with respect to network architecture
+				
+				
+            // Populate layers by learned weights and biases 
+            mCNNPredictor->PopulateModelFromBinaryWithBN(mNetFastMVCNN);
+            
+            mCNNWin=mCNNPredictor->GetWindowSizeBN(mNetFastMVCNN);
+				
+            //Add padding to maintain the same size as output 
+            auto Fast=mNetFastMVCNN->getFastSequential(); 
+            
+            // ACTIVATE PADDING (NOW DEACTIVATED)
+            
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                {   //torch::nn::Conv2dImpl *mod=Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>();
+                        //std::cout<<"condition verified on name of convolution "<<std::endl;
+                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                }
+            }
+        }
+        if(mArchitecture==TheFastArchReg)
+        {
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchReg,mModelBinDir);
+            mCNNPredictor->PopulateModelFromBinaryWithBNReg(mNetFastMVCNNReg);
+            
+            mCNNWin=mCNNPredictor->GetWindowSizeBNReg(mNetFastMVCNNReg);
+				
+            //Add padding to maintain the same size as output 
+            auto Fast=mNetFastMVCNNReg->mFast; 
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                {  
+                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                }
+            }
+        }
+        if(mArchitecture==TheFastandPrjHead)
+        {
+            mCNNPredictor = new aCnnModelPredictor(TheFastandPrjHead,mModelBinDir);
+            mCNNPredictor->PopulateModelPrjHead(mNetFastPrjHead);
+            
+            mCNNWin=mCNNPredictor->GetWindowSizePrjHead(mNetFastPrjHead);
+				
+            //Add padding to maintain the same size as output 
+            auto Fast=mNetFastPrjHead->mFast; 
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                {  
+                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                }
+            }
+        }
+        
+        if(mArchitecture==TheFastArchWithMLP)
+        {
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchWithMLP,mModelBinDir);
+            // CREATE AN INSTANCE OF THE NETWORK 
+            //auto cuda_available = torch::cuda::is_available();
+            //torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+            //mNetFastMVCNNMLP=FastandHead(3,7,4,1,184,184,3,64,device); // not to change for the moment 
+            //mNetFastMVCNNMLP->to(devicecuda);
+            // Populate layers by learned weights and biases 
+            mCNNPredictor->PopulateModelFastandHead(mNetFastMVCNNMLP);
+            StdOut()<<"MODEL LOADED-------> "<<"\n";
+            //mNetFastMVCNNMLP->to(torch::kCPU);
+            mCNNWin=mCNNPredictor->GetWindowSizeFastandHead(mNetFastMVCNNMLP);
+				
+            //Add padding to maintain the same size as output 
+            auto Fast=mNetFastMVCNNMLP->mFast; 
+            
+            // ACTIVATE PADDING (NOW DEACTIVATED)
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                {   //torch::nn::Conv2dImpl *mod=Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>();
+                        //std::cout<<"condition verified on name of convolution "<<std::endl;
+                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                }
+            }
+        }
+        if(mArchitecture==TheFastArchDirectSim)
+        {
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchDirectSim,mModelBinDir);
+            StdOut()<<"LOADING NETWORKKKK   ------> "<<"\n";
+            mCNNPredictor->PopulateModelSimNet(mNetFastMVCNNDirectSIM);
+            StdOut()<<"MODEL LOADED-SIMILARITY NETWORK    ------> "<<"\n";
+            //mNetFastMVCNNMLP->to(torch::kCPU);
+            mCNNWin=mCNNPredictor->GetWindowSizeSimNet(mNetFastMVCNNDirectSIM);
+				
+            //Add padding to maintain the same size as output 
+            auto Fast=mNetFastMVCNNDirectSIM->mFast; 
+            
+            // ACTIVATE PADDING (NOW DEACTIVATED)
+            
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                {   //torch::nn::Conv2dImpl *mod=Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>();
+                        //std::cout<<"condition verified on name of convolution "<<std::endl;
+                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                }
+            }
+        }
+        else if (mArchitecture==TheFastStandard)
+        {
+           mCNNPredictor = new aCnnModelPredictor(TheFastStandard,mModelBinDir); 
+           
+           // CREATE A CNN MODULE AND LOAD PARAMS 
+            mNetFastStd->createModel(64,4,1,3);
+            
+            
+            // Populate layers by learned weights and biases 
+            mCNNPredictor->PopulateModelFromBinary(mNetFastStd);
+            mCNNWin=mCNNPredictor->GetWindowSize(mNetFastStd);
+            //Add padding to maintain the same size as input
+            auto Fast=mNetFastStd->getFastSequential(); 
+            
+            size_t Sz=Fast->size();
+            size_t cc=0;
+            for (cc=0;cc<Sz;cc++)
+            {
+                std::string LayerName=Fast->named_children()[cc].key();
+                if (LayerName.rfind(std::string("conv"),0)==0)
+                    
+                    {   //torch::nn::Conv2dImpl *mod=Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>();
+                        //std::cout<<"condition verified on name of convolution "<<std::endl;
+                        Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                    }
+	         }   // DO NOT APPLY PADDING TO GET A VECTOR EMBDEDDING OF THE PATCH 
+	         // PADDING IS USED WHENEVER THE WHOLE TILE IS CONCERNED 
+        }
     }
 }
 
@@ -278,6 +527,12 @@ void cOneModele::CalcCorrelExterne()
    CalcCorrelExterneRecurs(mAppli->BoxGlob1());
 }
 
+void cOneModele::CalcCorrelMvCNN()
+{
+   mAppli->MakeNormalizedIm();
+}
+
+
 double cOneModele::ComputeCost(bool & Ok,const cPt2di & aPC1,const cPt2di & aPC20,int aDZ) const
 {
     Ok = false;
@@ -309,7 +564,66 @@ double cOneModele::ComputeCost(bool & Ok,const cPt2di & aPC1,const cPt2di & aPC2
     }
     else if (mWithExtCorr)
     {
+        //COMPUTE CORREL USING STATISTICAL LEARNING 
+        
     }
+    /*else if (mWIthMVCNNCorr)
+    {
+        // COMPUTE CORREL WITH MVCNN CORREL 
+        cPt2dr aPC2Z(aPC20.x()+aDZ*mAppli->StepZ(),aPC20.y());
+        double aCorrel = 0.0;  
+        // BATCH MODE PASSING THE WHOLE TILES TO THE NETWORKS TO GET EMBEDDING VECTORS THAN DOING SIMPLE COSINE_SIMILARITY ON INDIVIDUAL VECTORS
+        
+
+        
+        if (WindInside4BL(mAppli->DI1(),aPC1,mCNNWin) && WindInside4BL(mAppli->DI2(),aPC2Z,mCNNWin))  // check for Limits of inclusion  !!!!
+        {
+            
+            //aCorrel = mAppli->ComputCorrelMVCNN(aPC1,aPC2Z,mSzW);
+            // CALL MODEL PREDICTOR and NOT mAppli -> .....
+            // LEFT PATCH SIZE 
+            //
+            //
+            //PREVIOUSLY USED TO CREATE A PATCH AND DIRECTLUY PASS IT FORWARD 
+            //
+            //
+            //cPt2di p1Uleft(aPC1.x()-round_ni(mCNNWin.x()/2),aPC1.y()-round_ni(mCNNWin.y()/2));
+            cPt2di p1lRight(aPC1.x()+round_ni(mCNNWin.x()/2),aPC1.y()+round_ni(mCNNWin.y()/2));
+            
+            // RIGHT PATCH SIZE 
+            cPt2di p2Uleft(aPC2Z.x()-round_ni(mCNNWin.x()/2),aPC2Z.y()-round_ni(mCNNWin.y()/2));
+            cPt2di p2lRight(aPC2Z.x()+round_ni(mCNNWin.x()/2),aPC2Z.y()+round_ni(mCNNWin.y()/2));
+            
+            cBox2di aBoxL(p1Uleft,p1lRight); 
+            cBox2di aBoxR(p2Uleft,p2lRight); 
+                
+            //Patch Left
+            tImRad PatchL(aBoxL.P0(),aBoxL.P1(),*(mAppli->NDI1().ExtractRawData2D()), eModeInitImage::eMIA_V1);
+            tImRad PatchR(aBoxR.P0(),aBoxR.P1(),*(mAppli->NDI2().ExtractRawData2D()), eModeInitImage::eMIA_V1);
+            
+            
+           if (mArchitecture==TheFastStandard)
+             {
+               aCorrel=mCNNPredictor->Predict(mNetFastStd,PatchL,PatchR,mCNNWin);
+             }
+           else if (mArchitecture==TheFastArch)
+             {
+               aCorrel=mCNNPredictor->PredictWithBN(mNetFastMVCNN,PatchL,PatchR,mCNNWin);
+             }
+           else
+           {
+             // NOTHING FOR NOW  
+               aCorrel=0.0;
+           }
+           
+            
+            //aCorrel=mCNNPredictor->Predict
+            
+	    Ok = true;
+	}
+	aCost=(1-aCorrel)/2.0;
+        
+    }*/
     return aCost;
 }
 
@@ -376,7 +690,7 @@ cCollecSpecArg2007 & cAppliFillCubeCost::ArgObl(cCollecSpecArg2007 & anArgObl)
       anArgObl
           <<   Arg2007(mNameI1,"Name of first image")
           <<   Arg2007(mNameI2,"Name of second image")
-          <<   Arg2007(mNameModele,"Name for modele : .*dmp|MMVIICorrel")
+          <<   Arg2007(mNameModele,"Name for modele : .*dmp|MMVIICorrel|MVCNNCorrel")
           <<   Arg2007(mP0Z,"Origin in first image")
           <<   Arg2007(mBoxGlob1,"Box to read 4 Im1")
           <<   Arg2007(mBoxGlob2,"Box to read 4 Im2")
@@ -390,6 +704,8 @@ cCollecSpecArg2007 & cAppliFillCubeCost::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           // << AOpt2007(mStepZ, "StepZ","Step for paralax",{eTA2007::HDV})
           << AOpt2007(mNameCmpModele, "ModCmp","Modele for Comparison")
           << AOpt2007(mSzW, "SzW","Size for windows to match",{eTA2007::HDV})
+          << AOpt2007(mModelBinaries,"CNNParams" ,"Model Directory : Contient des fichiers binaires *.bin")
+          << AOpt2007(mModelArchitecture,"CNNArch" ,"Modek architecture : "+TheFastArch+" || "+TheFastStandard+" || "+TheFastArchWithMLP)
    ;
 }
 
@@ -417,6 +733,15 @@ double cAppliFillCubeCost::ComputCorrel(const cPt2di & aPCI1,const cPt2dr & aPCI
    return aMat.Correl();
 }
 
+
+double cAppliFillCubeCost::ComputCorrelMVCNN(const cPt2di & aPCI1,const cPt2dr & aPCI2,int aSzW) const
+{
+   // LEFT PATCH SIZE 
+   double Corr=0.0;
+   return Corr;
+}
+
+
 void cAppliFillCubeCost::PushCost(double aCost)
 {
    tU_INT2 aICost = round_ni(1e4*(std::max(0.0,std::min(1.0,aCost))));
@@ -427,6 +752,7 @@ void cAppliFillCubeCost::MakeLinePC(int aYLoc,bool Im1)
 {
    if (mPyrL1==nullptr)
       return;
+
    MMVII_INTERNAL_ASSERT_strong(mStepZ==1.0,"For now do not handle StepZ!=1 with model");
 
    std::vector<bool>     & aVOK  = Im1 ? mVOk1      : mVOk2;
@@ -474,39 +800,214 @@ int  cAppliFillCubeCost::Exe()
        aVMods.push_back(new cOneModele(mNameCmpModele,*this));
 
 
-
-   cPt2di aSz = aDZMin.Sz();
-   cPt2di aPix;
-
-   int aCpt=0;
-
-   for (aPix.y()=0 ; aPix.y()<aSz.y() ; aPix.y()++)
+   
+   /*
+    * 
+    * CONDITION IF LEARNED MVCNN THEN WORK WITH NORMALIZED IMAGES 
+    * 
+    * 
+    */
+   /*if (aVMods.at(0)->mWIthMVCNNCorr)
    {
-       StdOut() << "Line " << aPix.y() << " on " << aSz.y()  << "\n";
-       MakeLinePC(aPix.y(),true );
-       MakeLinePC(aPix.y(),false);
-       for (aPix.x()=0 ; aPix.x()<aSz.x() ; aPix.x()++)
-       {
-            cPt2di aPAbs = aPix + mP0Z;
-            cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
-            cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
-            for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
+       aVMods.at(0)->CalcCorrelMvCNN();
+   }*/
+   
+   
+   /*
+    * 
+    * 
+    * CONDITION VERIFIER IMAGES NORMALIZED BEFORE FORWARD TO THE NETWORK
+    * 
+    * 
+    */
+   // WORK BY MODEL IF USING LEARNING THAT DO BATCH COST CALCUL ELSE 
+    if (aVMods.at(0)->mWIthMVCNNCorr)
+    {
+        aVMods.at(0)->CalcCorrelMvCNN();
+        // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
+        cPt2di aSzL = this->NDI1().Sz();      
+        cPt2di aSzR = this->NDI2().Sz();
+        int FeatSize=0;
+        if (aVMods.at(0)->mArchitecture==TheFastStandard) FeatSize=64 ;
+        if (aVMods.at(0)->mArchitecture==TheFastandPrjHead) FeatSize=64 ;
+        if (aVMods.at(0)->mArchitecture==TheFastArchReg) FeatSize=64 ;
+        if (aVMods.at(0)->mArchitecture==TheFastArch)   FeatSize=184;
+        if (aVMods.at(0)->mArchitecture==TheFastArchWithMLP)   FeatSize=184;
+        if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)   FeatSize=184;
+        torch::Tensor LREmbeddingsL=torch::empty({1,FeatSize,aSzL.y(),aSzL.x()},torch::TensorOptions().dtype(torch::kFloat32));
+        torch::Tensor LREmbeddingsR=torch::empty({1,FeatSize,aSzR.y(),aSzR.x()},torch::TensorOptions().dtype(torch::kFloat32));
+        if (aVMods.at(0)->mArchitecture==TheFastStandard)
+             {
+               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictTile(aVMods.at(0)->mNetFastStd,this->IMNorm1(),aSzL);
+               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictTile(aVMods.at(0)->mNetFastStd,this->IMNorm2(),aSzR);
+             }
+        else if (aVMods.at(0)->mArchitecture==TheFastArch)
+             {
+               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictWithBNTile(aVMods.at(0)->mNetFastMVCNN,this->IMNorm1(),aSzL);
+               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictWithBNTile(aVMods.at(0)->mNetFastMVCNN,this->IMNorm2(),aSzR);
+             }
+        else if (aVMods.at(0)->mArchitecture==TheFastArchReg)
+             {
+               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictWithBNTileReg(aVMods.at(0)->mNetFastMVCNNReg,this->IMNorm1(),aSzL);
+               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictWithBNTileReg(aVMods.at(0)->mNetFastMVCNNReg,this->IMNorm2(),aSzR);
+             }
+        else if (aVMods.at(0)->mArchitecture==TheFastandPrjHead)
+             {
+               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictPrjHead(aVMods.at(0)->mNetFastPrjHead,this->IMNorm1(),aSzL);
+               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictPrjHead(aVMods.at(0)->mNetFastPrjHead,this->IMNorm2(),aSzR);
+             }
+        else if (aVMods.at(0)->mArchitecture==TheFastArchWithMLP)
+             {
+               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictFastWithHead(aVMods.at(0)->mNetFastMVCNNMLP,this->IMNorm1(),aSzL);
+               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictFastWithHead(aVMods.at(0)->mNetFastMVCNNMLP,this->IMNorm2(),aSzR);
+             }
+        else if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)
+             {
+               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictSimNetConv(aVMods.at(0)->mNetFastMVCNNDirectSIM,this->IMNorm1(),aSzL);
+               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictSimNetConv(aVMods.at(0)->mNetFastMVCNNDirectSIM,this->IMNorm2(),aSzR);
+             }
+        
+        StdOut()  <<" EMBEDDING TENSOR SIZE LEFT  "<<LREmbeddingsL.sizes()<<"\n";
+        StdOut()  <<" EMBEDDING TENSOR SIZE RIGHT  "<<LREmbeddingsR.sizes()<<"\n";
+        // DIMS OF LREmbeddings == {2,FEAT_VECTOR_SIZE=184 OU 64, TILE_HEIGHT,TILE_WIDTH }
+        // Perform COSINE METRIC TO GET CORRELATION VALUES BETWEEN EMBDEDDINGS
+        
+        cPt2di aPix;
+        using namespace torch::indexing;
+        /*LREmbeddingsL=LREmbeddingsL.index({0});
+        LREmbeddingsR=LREmbeddingsR.index({0});*/
+        if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)
+        {
+            for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
             {
-               double aTabCost[2];
-               bool   aTabOk[2];
-	       for (int aK=0 ; aK<int(aVMods.size()) ; aK++)
-                    aTabCost[aK] = aVMods[aK]->ComputeCost(aTabOk[aK],aPC1,aPC20,aDz);
-               aCpt++;
-               PushCost(aTabCost[0]);
-
-	       if (mCmpCorLearn && aTabOk[0] && aTabOk[1])
-	       {
-                  double aC0 = ToCmpCost(aTabCost[0]);
-                  double aC1 = ToCmpCost(aTabCost[1]);
-                  mImCmp.DIm().AddVBL(cPt2dr(aC1,aC0),1.0);
-	       }
+                for (aPix.x()=0 ; aPix.x()<aSzL.x() ; aPix.x()++)
+                {
+                        cPt2di aPAbs = aPix + mP0Z;
+                        cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
+                        cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
+                        //auto aVecL=LREmbeddingsL.slice(2,aPC1.y(),aPC1.y()+1).slice(3,aPC1.x(),aPC1.x()+1);
+                        using namespace torch::indexing;
+                        auto aVecL=LREmbeddingsL.index({0,Slice(0,FeatSize,1),aPC1.y(),aPC1.x()}).unsqueeze(0); // of size {1,FeatSize,1,1}
+                        //StdOut()<<"   left size "<<aVecL.sizes()<<"\n";
+                        //StdOut() <<"pax limits "<<"MIN "<<aDZMin.GetV(aPix)<<" MAX "<<aDZMax.GetV(aPix)<<"\n";
+                        for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
+                        {
+                            double aTabCost[2]={1.0,1.0};
+                            bool   aTabOk[2]={false,false};
+                            // Get location of the pixel for which to compute correl given the limits of lower and upper layers (NAPPES)
+                            cPt2di aPC2Z(round_ni(aPC20.x()+aDz*this->StepZ()),aPC20.y());  // INTEG FOR NOW   
+                            //StdOut() <<" COORDINATE AT RIGHT IM "<<aPC2Z.x()<<"\n";
+                            for (int aK=0 ; aK<int(aVMods.size()) ; aK++)
+                                    {
+                                        bool IsInside=WindInside4BL(this->DI1(),aPC1,aVMods[aK]->mCNNWin) && WindInside4BL(this->DI2(),aPC2Z,aVMods[aK]->mCNNWin);
+                                        if(IsInside)
+                                        {
+                                            //auto aVecR=LREmbeddingsR.slice(2,aPC2Z.y(),aPC2Z.y()+1).slice(3,aPC2Z.x(),aPC2Z.x()+1);
+                                            using namespace torch::indexing;
+                                            //StdOut() <<" shape element embedding "<<LREmbeddingsR.sizes()<<"\n";
+                                            auto aVecR=LREmbeddingsR.index({0,Slice(0,FeatSize,1),aPC2Z.y(),aPC2Z.x()}).unsqueeze(0);
+                                            //StdOut() <<" shape element "<<aVecR.sizes()<<"\n";
+                                            auto aSim=aVMods.at(0)->mCNNPredictor->PredictSimNetMLP(aVMods.at(0)->mNetFastMVCNNDirectSIM,aVecL,aVecR);
+                                            aTabCost[aK] =(1-(double)aSim.item<float>())/2.0 ;
+                                            aTabOk[aK]=true;
+                                        }
+                                    }
+                            PushCost(aTabCost[0]);
+                            if (mCmpCorLearn && aTabOk[0] && aTabOk[1])
+                            {
+                                    double aC0 = ToCmpCost(aTabCost[0]);
+                                    double aC1 = ToCmpCost(aTabCost[1]);
+                                    mImCmp.DIm().AddVBL(cPt2dr(aC1,aC0),1.0);
+                            }
+                        }
+                }
             }
-       }
+        }
+        else
+        {
+            for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
+            {
+                for (aPix.x()=0 ; aPix.x()<aSzL.x() ; aPix.x()++)
+                {
+                        cPt2di aPAbs = aPix + mP0Z;
+                        cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
+                        cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
+                        //auto aVecL=LREmbeddingsL.slice(2,aPC1.y(),aPC1.y()+1).slice(3,aPC1.x(),aPC1.x()+1);
+                        using namespace torch::indexing;
+                        auto aVecL=LREmbeddingsL.index({Slice(0,FeatSize,1),aPC1.y(),aPC1.x()});
+                        //StdOut() <<"pax limits "<<"MIN "<<aDZMin.GetV(aPix)<<" MAX "<<aDZMax.GetV(aPix)<<"\n";
+                        for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
+                        {
+                            double aTabCost[2]={1.0,1.0};
+                            bool   aTabOk[2]={false,false};
+                            // Get location of the pixel for which to compute correl given the limits of lower and upper layers (NAPPES)
+                            cPt2di aPC2Z(round_ni(aPC20.x()+aDz*this->StepZ()),aPC20.y());  // INTEG FOR NOW   
+                            //StdOut() <<" COORDINATE AT RIGHT IM "<<aPC2Z.x()<<"\n";
+                            for (int aK=0 ; aK<int(aVMods.size()) ; aK++)
+                                    {
+                                        bool IsInside=WindInside4BL(this->DI1(),aPC1,aVMods[aK]->mCNNWin) && WindInside4BL(this->DI2(),aPC2Z,aVMods[aK]->mCNNWin);
+                                        if(IsInside)
+                                        {
+                                            //auto aVecR=LREmbeddingsR.slice(2,aPC2Z.y(),aPC2Z.y()+1).slice(3,aPC2Z.x(),aPC2Z.x()+1);
+                                            using namespace torch::indexing;
+                                            //StdOut() <<" shape element embedding "<<LREmbeddingsR.sizes()<<"\n";
+                                            auto aVecR=LREmbeddingsR.index({Slice(0,FeatSize,1),aPC2Z.y(),aPC2Z.x()});
+                                            //StdOut() <<" shape element "<<aVecR.sizes()<<"\n";
+                                            auto aSim=torch::mm(aVecL.view({1,FeatSize}),aVecR.view({FeatSize,1}));
+                                            //auto aSim=F::cosine_similarity(aVecL, aVecR, F::CosineSimilarityFuncOptions().dim(1)).squeeze();
+                                            //StdOut() <<aSim<<"\n";
+                                            aTabCost[aK] =(1-(double)aSim.item<float>())/2.0 ;
+                                            aTabOk[aK]=true;
+                                        }
+                                    }
+                            PushCost(aTabCost[0]);
+                            if (mCmpCorLearn && aTabOk[0] && aTabOk[1])
+                            {
+                                    double aC0 = ToCmpCost(aTabCost[0]);
+                                    double aC1 = ToCmpCost(aTabCost[1]);
+                                    mImCmp.DIm().AddVBL(cPt2dr(aC1,aC0),1.0);
+                            }
+                        }
+                }
+            } 
+        }
+        
+    }
+    else     
+    {
+            cPt2di aSz = aDZMin.Sz();
+            cPt2di aPix;
+
+            int aCpt=0;
+
+            for (aPix.y()=0 ; aPix.y()<aSz.y() ; aPix.y()++)
+            {
+                StdOut() << "Line " << aPix.y() << " on " << aSz.y()  << "\n";
+                //MakeLinePC(aPix.y(),true );
+                //MakeLinePC(aPix.y(),false);
+                for (aPix.x()=0 ; aPix.x()<aSz.x() ; aPix.x()++)
+                {
+                        cPt2di aPAbs = aPix + mP0Z;
+                        cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
+                        cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
+                        for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
+                        {
+                        double aTabCost[2];
+                        bool   aTabOk[2];
+                    for (int aK=0 ; aK<int(aVMods.size()) ; aK++)
+                                aTabCost[aK] = aVMods[aK]->ComputeCost(aTabOk[aK],aPC1,aPC20,aDz);
+                        aCpt++;
+                        PushCost(aTabCost[0]);
+
+                    if (mCmpCorLearn && aTabOk[0] && aTabOk[1])
+                    {
+                            double aC0 = ToCmpCost(aTabCost[0]);
+                            double aC1 = ToCmpCost(aTabCost[1]);
+                            mImCmp.DIm().AddVBL(cPt2dr(aC1,aC0),1.0);
+                    }
+                        }
+                }
+            }
    }
 
 

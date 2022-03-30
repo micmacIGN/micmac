@@ -2190,7 +2190,7 @@ void cAppliMICMAC::DoCorrelAdHoc
 
 		  //  Call external command
 		  std::string   aCom =  aMCOE.Cmd().Val() // "MMVII  DM4MatchMultipleOrtho "
-			                +  aPrefixGlob  
+			        +  " " +  aPrefixGlob  
 					+  " " + ToString(aZ1-aZ0)          // Number of Ortho
 					+  " " + ToString(int(mVLI.size()))  // Number of Images
 					+  " " + ToString(  mCurSzVMax)     // Size of Window
@@ -2198,7 +2198,16 @@ void cAppliMICMAC::DoCorrelAdHoc
 		                 ;
 		  if (aMCOE.Options().IsInit())
                      aCom = aCom + " " + QUOTE(aMCOE.Options().Val());
+          //ADDED STATEMENT ON MODEL ARCHITECTURE AND MODELS PARAMETERES FOR INFERENCE 
+		  if (aMCOE.OrthFileModeleArch().IsInit())
+                     aCom = aCom + " " +  "CNNArch=" + QUOTE(aMCOE.OrthFileModeleArch().Val());
+		  if (aMCOE.OrthFileModeleParams().IsInit())
+                     aCom = aCom + " " +  "CNNParams=" + QUOTE(aMCOE.OrthFileModeleParams().Val());
+          
+          std::cout<<"COMMAND "<<aCom<<std::endl;
+          
 		  System(aCom);
+
 		  // Fill cube with computed similarities
                   for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
                   {
