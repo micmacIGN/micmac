@@ -546,15 +546,15 @@ template <class Type> class cMatIner2Var
 };
 
 /** Class for averaging with weight */
-template <class Type> class cWeightAv
+template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
 {
      public :
         cWeightAv();
-        void Add(const Type & aWeight,const Type & aVal);
-        Type Average() const;
+        void Add(const TypeWeight & aWeight,const TypeVal & aVal);
+        TypeVal Average() const;
     private :
-        Type  mSW;   ///< Som of    W
-        Type  mSVW;   ///< Som of    VW
+        TypeWeight  mSW;   ///< Som of    W
+        TypeVal     mSVW;   ///< Som of    VW
 };
 
 

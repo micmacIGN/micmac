@@ -196,25 +196,31 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
 /*                                                 */
 /* *********************************************** */
 
-template <class Type> cWeightAv<Type>::cWeightAv() :
+// template<class Type> inline Type NullVal() {return (Type)(0);}
+template<> cPt2dr NullVal<cPt2dr>() {return cPt2dr::PCste(0);}
+template<> cPt3dr NullVal<cPt3dr>() {return cPt3dr::PCste(0);}
+
+
+template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeightAv() :
    mSW(0),
-   mSVW(0)
+   mSVW(NullVal<TypeVal>())
 {
 }
 
-template <class Type> void cWeightAv<Type>::Add(const Type & aWeight,const Type & aVal)
+template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Add(const TypeWeight & aWeight,const TypeVal & aVal)
 {
    mSW += aWeight;
    mSVW += aVal * aWeight;
 }
 
-template <class Type> Type cWeightAv<Type>::Average() const
+template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>::Average() const
 {
     MMVII_ASSERT_INVERTIBLE_VALUE(mSW);
     return mSVW / mSW;
 }
 
-
+template class cWeightAv<double,cPt2dr>;
+template class cWeightAv<double,cPt3dr>;
 
 
 /* *********************************************** */
@@ -450,11 +456,12 @@ void BenchStat(cParamExeBench & aParam)
 /*                                                 */
 /* *********************************************** */
 
+
 #define INSTANTIATE_MAT_INER(TYPE)\
 template class cSymMeasure<TYPE>;\
 template class cMatIner2Var<TYPE>;\
 template  class cComputeStdDev<TYPE>;\
-template class cWeightAv<TYPE>;\
+template class cWeightAv<TYPE,TYPE>;\
 template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);
 
 

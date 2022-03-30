@@ -719,7 +719,10 @@ void BenchDelaunayGrid(const cPt2di & aSz)
        aVP.push_back(ToR(aPix));
    }
    BenchDelaunayVPts(aVP);
-   for (int aK=0 ; aK<1 ; aK++) //  !!!! => when 2 generate a bug
+
+   int aNbLoop=1;
+   MMVII_INTERNAL_ASSERT_Unresolved(false,"Delaunay-memory-issue"); //  !!!! => when aNbLoop!=1  generate a bug
+   for (int aK=0 ; aK<aNbLoop ; aK++)
    {
        std::vector<cPt2dr> aV2 = RandomOrder(aVP);
        BenchDelaunayVPts(aV2);

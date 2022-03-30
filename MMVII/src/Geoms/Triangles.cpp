@@ -261,8 +261,33 @@ template <const int Dim>
 
     mVFaces = aVFaces;
     mVPts = aVPts;
-
 }
+
+template <const int Dim> typename cTriangulation<Dim>::tPt  cTriangulation<Dim>::PAvg() const
+{
+    cWeightAv<double,tPt> aWA;
+
+    for (int aKF=0 ; aKF<int(mVFaces.size()) ; aKF++)
+    {
+       tTri  aTri = KthTri(aKF);
+       aWA.Add(aTri.Area(),aTri.Barry());
+    }
+    return aWA.Average();
+}
+
+template <const int Dim> const typename cTriangulation<Dim>::tFace&  cTriangulation<Dim>::CenterFace() const
+{
+    cWhitchMin<int,double> aWMin(-1,1e50);
+    tPt aPAvg = PAvg();
+
+    for (int aKF=0 ; aKF<int(mVFaces.size()) ; aKF++)
+    {
+       tTri  aTri = KthTri(aKF);
+       aWMin.Add(aKF,Norm2(aPAvg-aTri.Barry()));
+    }
+    return mVFaces[aWMin.IndexExtre()];
+}
+
 
 /* ========================== */
 /*       INSTANTIATION        */

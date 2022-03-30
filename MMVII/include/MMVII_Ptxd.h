@@ -123,6 +123,17 @@ typedef cPtxd<tREAL16,2> cPt2dLR ;
 typedef cPtxd<double,2>  cPt2dr ;
 typedef cPtxd<int,2>     cPt2di ;
 typedef cPtxd<float,2>   cPt2df ;
+    ///  3 dimension specialization
+typedef cPtxd<tREAL16,3> cPt3dLR ;
+typedef cPtxd<double,3>  cPt3dr ;
+typedef cPtxd<int,3>     cPt3di ;
+typedef cPtxd<float,3>   cPt3df ;
+
+template<class Type> inline Type NullVal() {return (Type)(0);}
+template<> cPt2dr NullVal<cPt2dr>();// {return cPt2dr::PCste(0);}
+template<> cPt3dr NullVal<cPt3dr>();// {return cPt3dr::PCste(0);}
+
+
 
 /*
 template <typename Type> cPtxd<Type,2>  ToPolar(const cPtxd<Type,2> &);   // X,Y => rho,teta  error if X,Y==0
@@ -420,12 +431,6 @@ template <const int Dim>  double AbsSurfParalogram(const cPtxd<double,Dim>&,cons
 
 // cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return (aP1*conj(aP)}
 
-    ///  3 dimension specialization
-typedef cPtxd<tREAL16,3> cPt3dLR ;
-typedef cPtxd<double,3>  cPt3dr ;
-typedef cPtxd<int,3>     cPt3di ;
-typedef cPtxd<float,3>   cPt3df ;
-
 // Most frequent conversion
 inline cPt2di ToI(const cPt2dr & aP) {return cPt2di(round_ni(aP.x()),round_ni(aP.y()));}
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
@@ -707,6 +712,11 @@ template <const int Dim> class cTriangulation
           typedef cPt3di             tFace;
           typedef std::vector<tPt>   tVPt;
           typedef std::vector<tFace> tVFace;
+
+	  tPt PAvg() const; ///< return an average point 
+	  /**  return a Face more or less at the center,  4 now ompute face closest to Avg , not perfect
+	   * but work with simple suface, if necessary will evolve as a real geodetic center */
+	  const tFace & CenterFace() const;
 
           int  NbTri() const;
           const tFace &  KthFace(int aK) const;
