@@ -31,6 +31,11 @@ template <const int Dim> cPtxd<double,Dim> cTriangle<Dim>::FromCoordBarry(const 
      return (aP.x()*mPts[0]+aP.y()*mPts[1]+aP.z()*mPts[2]) / aSP;
 }
 
+template <const int Dim> cPtxd<double,Dim> cTriangle<Dim>::Barry() const
+{
+	return (mPts[0]+mPts[1]+mPts[2]) / 3.0;
+}
+
 template <const int Dim> cTplBox<double,Dim> cTriangle<Dim>::BoxEngl() const
 {
      cTplBoxOfPts<tREAL8,Dim> aTBox;
@@ -53,6 +58,11 @@ template <const int Dim> double cTriangle<Dim>::Regularity() const
     double aSomSqN2 = SqN2(aV01) + SqN2(aV02) + SqN2(aV12);
     if (aSomSqN2==0) return 0;
     return AbsSurfParalogram(aV01,aV02) / aSomSqN2;
+}
+
+template <const int Dim> double cTriangle<Dim>::Area() const
+{
+    return AbsSurfParalogram(mPts[1]-mPts[0],mPts[2]-mPts[0]) / 2.0;
 }
 
 
@@ -83,9 +93,11 @@ template <const int Dim>  cPtxd<double,Dim> cTriangle<Dim>::CenterInscribedCircl
 /*                                                             */
 /* *********************************************************** */
 
-template <const int Dim> cTriangulation<Dim>::cTriangulation(const std::vector<tPt>& aVPts)  :
+template <const int Dim> cTriangulation<Dim>::cTriangulation(const tVPt& aVPts,const tVFace& aVFace)  :
     mVPts  (aVPts)
 {
+    for (const auto & aFace : aVFace)
+        AddFace(aFace);
 }
 template <const int Dim> void cTriangulation<Dim>::ResetTopo()
 {

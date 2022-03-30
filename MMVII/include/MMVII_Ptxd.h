@@ -678,9 +678,13 @@ template <const int Dim> class  cTriangle
        cTriangle(const tPt & aP0,const tPt & aP1,const tPt & aP2);
        /// aWeight  encode in a point the 3 weights
        tPt  FromCoordBarry(const cPt3dr & aWeight) const;
+       /// Barrycenter with equal weights
+       tPt  Barry() const;
 
        /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
        double Regularity() const;
+       /// Area of the triangle
+       double Area() const;
        /// Point equidistant to 3 point,  To finish for dim 3
        tPt CenterInscribedCircle() const;
        const tPt & Pt(int aK) const;   /// Accessor
@@ -701,6 +705,8 @@ template <const int Dim> class cTriangulation
           typedef cPtxd<tCoord,Dim>  tPt;
           typedef cTriangle<Dim>     tTri;
           typedef cPt3di             tFace;
+          typedef std::vector<tPt>   tVPt;
+          typedef std::vector<tFace> tVFace;
 
           int  NbTri() const;
           const tFace &  KthFace(int aK) const;
@@ -718,7 +724,7 @@ template <const int Dim> class cTriangulation
 	  /// More a
 	  bool  HeuristikAlmostInclude (const cTriangulation<Dim> &,double TolPt,double TolFace)  const;
 
-          cTriangulation(const std::vector<tPt>& = std::vector<tPt>());
+          cTriangulation(const tVPt& =tVPt(),const tVFace & =tVFace());
           void AddFace(const tFace &);
           void ResetTopo();
 
