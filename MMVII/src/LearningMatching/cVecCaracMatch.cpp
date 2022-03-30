@@ -266,7 +266,7 @@ if (BUG) StdOut() << "LIINNNEEE " << __LINE__ << "\n";
     }
 
           // Extract minima sub pixellar
-    int aITetaMin = aWMin.Index();
+    int aITetaMin = aWMin.IndexExtre();
     double aDTetaMin =  StableInterpoleExtr
                         (
                             mConvDSomCQ.CircGetV(aITetaMin-1),

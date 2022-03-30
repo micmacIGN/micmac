@@ -425,6 +425,9 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchSerialization(aParam,mDirTestMMVII+"Tmp/",mDirTestMMVII+"Input/");
         //====  MORE CONSISTENT BENCH
 
+        BenchPly(aParam);
+        BenchTri2D(aParam);
+        BenchDelaunay(aParam);
         // Test Fast Tree Dist
         BenchFastTreeDist(aParam);
 

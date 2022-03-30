@@ -106,7 +106,7 @@ template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareReg
        {
           aIMM.Add(aK,std::abs(aVDiag(aK)));
        }
-       double aCond = aIMM.Min().Val() / aIMM.Max().Val() ;
+       double aCond = aIMM.Min().ValExtre() / aIMM.Max().ValExtre() ;
        // if conditionning is too low
        if (aCond <aCondMinAccept)
        {
@@ -117,7 +117,7 @@ template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareReg
             //  Max =  Max (1+ C/(1-C))
             //  Min =  Max * C/(1-C)           
             //  and cond is equal to C !
-            Type AbsToAdd = (1.01 * aIMM.Max().Val() * aCondMinAccept) / (1-aCondMinAccept);
+            Type AbsToAdd = (1.01 * aIMM.Max().ValExtre() * aCondMinAccept) / (1-aCondMinAccept);
             for (int aK=0 ; aK<aNb  ; aK++)
             {
                aVDiag(aK) += AbsToAdd * SignSupEq0(aVDiag(aK)); // 1 or -1
@@ -174,9 +174,9 @@ template<class Type> cDenseVect<Type> cDenseMatrix<Type>::Kernel(Type * aVp) con
         aWMin.Add(aK,std::abs(aVDiag(aK)));
 
     if (aVp) 
-       *aVp = aVDiag(aWMin.Index());
+       *aVp = aVDiag(aWMin.IndexExtre());
     
-    return aSVDD.MatV().ReadCol(aWMin.Index());
+    return aSVDD.MatV().ReadCol(aWMin.IndexExtre());
 }
 
 template<class Type> cDenseVect<Type> cDenseMatrix<Type>::EigenVect(const Type & aVal,Type * aVp) const

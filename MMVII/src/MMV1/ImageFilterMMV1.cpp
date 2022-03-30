@@ -139,6 +139,17 @@ template void SelfLabMaj(cIm2D<tINT2> aImIn,const cBox2di &  aBox);
 
 //==============================
 
+void MakeImageDist(cIm2D<tU_INT1> aImIn,const std::string & aNameChamfer)
+{
+     const Chamfer & aChamf = Chamfer::ChamferFromName(aNameChamfer);
+     aChamf.im_dist(cMMV1_Conv<tU_INT1>::ImToMMV1(aImIn.DIm())) ;
+}
+
+
+
+
+//==============================
+
 void ExportHomMMV1(const std::string & aIm1,const std::string & aIm2,const std::string & SH,const std::vector<cPt2dr> & aVP)
 {
     ElPackHomologue aPackH;

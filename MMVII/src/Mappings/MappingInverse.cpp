@@ -177,7 +177,7 @@ template <class Type,const int Dim>
        {
           // We restrict the the interval arround minimal value KMin, the new interval will
           // be in KMin-1, KMin+1, but truncated when KMin is a bound
-          int aKMin = aWM.Index();
+          int aKMin = aWM.IndexExtre();
           int aK0 = std::max(0,aKMin-1);
           int aK1 = std::min(aKMin+1,int(aVVal.size()) -1);
           aSInv.mInvDic0 = aVInv.at(aK0);

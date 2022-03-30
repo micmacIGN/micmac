@@ -347,6 +347,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static bool   ExistAppli();         ///< Return if the appli exist, no error
         static cMMVII_Appli & CurrentAppli();   ///< Return the unique appli, error if not
         virtual int Exe() = 0;              ///< Do the "real" job
+        virtual int ExeOnParsedBox(); ///< Action to exec for each box, When the appli parse a big file , def error
+
+
         virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes

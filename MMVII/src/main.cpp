@@ -1,5 +1,14 @@
 #include "../include/MMVII_all.h"
 
+
+/*
+
+Delaunay/delaunator : Copyright (c) 2018 Volodymyr Bilonenko  (MIT Licence)
+Ply/happly  Copyright (c) 2018 Nick Sharp
+eigen ...
+
+*/
+
 namespace MMVII {
   const std::string DirBin2007=MMVII_INSTALL_PATH;
 };

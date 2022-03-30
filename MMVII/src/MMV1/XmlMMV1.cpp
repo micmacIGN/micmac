@@ -13,6 +13,46 @@
 namespace MMVII
 {
 
+/* *********************************** */
+/*                                     */	
+/*       cMasq_MMV1asBoundeSet         */
+/*                                     */	
+/* *********************************** */
+
+
+class cMasq_MMV1asBoundeSet : public cDataBoundedSet<tREAL8,3> 
+{
+    public :
+	cMasq_MMV1asBoundeSet(const cBox3dr &,const std::string & aNameFile);
+	 bool Inside(const tPt &) const override;
+	 ~cMasq_MMV1asBoundeSet();
+     private :
+	 cMasqBin3D * mV1Masq3D;
+
+};
+
+cMasq_MMV1asBoundeSet::cMasq_MMV1asBoundeSet(const cBox3dr & aBox,const std::string & aNameFile) :
+    cDataBoundedSet<tREAL8,3>(aBox),
+    mV1Masq3D    (cMasqBin3D::FromSaisieMasq3d(aNameFile))
+{
+}
+
+cMasq_MMV1asBoundeSet::~cMasq_MMV1asBoundeSet()
+{
+    delete mV1Masq3D;
+}
+
+bool cMasq_MMV1asBoundeSet::Inside(const tPt & aPt) const
+{
+	return mV1Masq3D->IsInMasq(ToMMV1(aPt));
+}
+
+cDataBoundedSet<tREAL8,3> *  MMV1_Masq(const cBox3dr &aBox,const std::string & aNameFile)
+{
+    return new cMasq_MMV1asBoundeSet(aBox,aNameFile);
+}
+
+
 
 //=============  tNameRel ====================
 

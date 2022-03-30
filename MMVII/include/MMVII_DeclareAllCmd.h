@@ -38,6 +38,8 @@ extern cSpecMMVII_Appli  TheSpecMatchMultipleOrtho;
 extern cSpecMMVII_Appli  TheSpecDMEvalRef; 
 extern cSpecMMVII_Appli  TheSpecGenCodedTarget; 
 extern cSpecMMVII_Appli  TheSpecExtractCodedTarget; 
+extern cSpecMMVII_Appli  TheSpecDensifyRefMatch; 
+extern cSpecMMVII_Appli  TheSpecCloudClip; 
 
 };
 

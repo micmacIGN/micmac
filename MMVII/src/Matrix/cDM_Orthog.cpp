@@ -100,12 +100,12 @@ template <class Type> Type  cResulSymEigenValue<Type>::Cond(Type aDef) const
    {
           aIMM.Add(aK,std::abs(mEigenValues(aK)));
    }
-   if (aIMM.Max().Val() == Type(0.0))
+   if (aIMM.Max().ValExtre() == Type(0.0))
    {
        MMVII_INTERNAL_ASSERT_strong(aDef>=0,"Conditionning of null eigen value without default");
        return aDef;
    }
-   return  aIMM.Min().Val() / aIMM.Max().Val() ;
+   return  aIMM.Min().ValExtre() / aIMM.Max().ValExtre() ;
 }
 
 
