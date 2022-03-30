@@ -108,7 +108,8 @@ bool GetPxVal(std::string aDir, std::string aImg, int aWindowSize, Pt2dr aPt, st
 
     int i, j;
 
-    Tiff_Im aRGBPatch1((aDir+"/"+aImg).c_str());
+    //Tiff_Im aRGBPatch1((aDir+"/"+aImg).c_str());
+    Tiff_Im aRGBPatch1 = Tiff_Im::StdConvGen((aDir+"/"+aImg).c_str(), -1, true ,true);
     Pt2di ImgSz = aRGBPatch1.sz();
     TIm2D<U_INT1,INT> aTImProfPx(ImgSz);
     ELISE_COPY
@@ -215,7 +216,8 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     }
 
 
-    Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
+    //Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+"/"+aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
 
     Pt2dr CoreaPatchSz;

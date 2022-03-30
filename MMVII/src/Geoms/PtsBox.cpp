@@ -5,6 +5,36 @@
 namespace MMVII
 {
 
+/* ========================== */
+/*        cSegment            */
+/* ========================== */
+
+template <const int Dim> cSegment<Dim>::cSegment(const tPt& aP1,const tPt& aP2) :
+   mP1  (aP1),
+   mP2  (aP2)
+{
+    MMVII_INTERNAL_ASSERT_tiny(mP1!=mP2,"CastDim : different dim");
+}
+
+template <const int Dim> void cSegment<Dim>::CompileFoncLinear
+                              (double & aVal,tPt & aVec,const double &aV1,const double & aV2) const
+{
+	// return aV1 + (aV2-aV1) * Scal(mTgt,aP-this->mP1) / mN2;
+    tPt aV12 =  (mP2-mP1) ;
+    aVec  =   aV12 * double((aV2-aV1) /SqN2(aV12)) ;
+    aVal = aV1  - Scal(aVec,mP1);
+}
+
+/* ========================== */
+/*    cSegmentCompiled        */
+/* ========================== */
+
+template <const int Dim> cSegmentCompiled<Dim>::cSegmentCompiled(const tPt& aP1,const tPt& aP2) :
+    cSegment<Dim>(aP1,aP2),
+    mN2     (Norm2(aP2-aP1)),
+    mTgt    ((aP2-aP1)/mN2)
+{
+}
 
 
 /* ========================== */
@@ -94,6 +124,17 @@ template <const int Dim>  void cBorderPixBox<Dim>::IncrPt(tPt & aP)
 /* ========================== */
 /*          cPtxd             */
 /* ========================== */
+
+template <> double  AbsSurfParalogram(const cPt2dr & aP1,const cPt2dr & aP2)
+{
+    return std::abs(aP1 ^ aP2) ;
+}
+template <>  double AbsSurfParalogram(const cPt3dr & aP1,const cPt3dr & aP2)
+{
+    return Norm2(aP1 ^ aP2);
+}
+
+
 
 int NbPixVign(const int & aVign){return 1+2*aVign;}
 
@@ -360,13 +401,6 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<
     //  To test Error_Handler mecanism
 
 static std::string MesNegSz="Negative size in rect object";
-/*
-static std::string  TestErHandler;
-void TestBenchRectObjError(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
-{
-   TestErHandler = aMes;
-}
-*/
 
 /* ========================== */
 /*          cPixBox           */
@@ -523,6 +557,15 @@ template <const int Dim>  cPixBox<Dim> cParseBoxInOut<Dim>::BoxIn(const tPt & an
    return mBoxGlob.Inter(BoxOut(anIndex).Dilate(aDil));
 }
 
+
+template <const int Dim>  cPixBox<Dim> cParseBoxInOut<Dim>::BoxOutLoc(const tPt & anIndex,const tPt& aDil) const
+{
+   tBox aBoxIn  =  BoxIn(anIndex,aDil);
+   tBox aBoxOut =  BoxOut(anIndex);
+   return tBox(aBoxOut.P0() -  aBoxIn.P0(), aBoxOut.P1() -  aBoxIn.P0());
+}
+
+
 template <const int Dim>  cPixBox<Dim> cParseBoxInOut<Dim>::BoxIn(const tPt & anIndex,int aDil) const
 {
    return mBoxGlob.Inter(BoxOut(anIndex).Dilate(tPt::PCste(aDil)));
@@ -586,6 +629,18 @@ template <class Type,const int Dim> bool  cTplBox<Type,Dim>::IsEmpty() const
 template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Empty()
 {
    return  cTplBox<Type,Dim>(tPt::PCste(0),true);
+}
+
+template <class Type,const int Dim> 
+   cTplBox<Type,Dim>  cTplBox<Type,Dim>::FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty)
+{
+    return cTplBoxOfPts<Type,Dim>::FromVect(aBegin,aEnd).CurBox(AllowEmpty);
+}
+
+template <class Type,const int Dim> 
+   cTplBox<Type,Dim>  cTplBox<Type,Dim>::FromVect(const std::vector<tPt>& aVect,bool AllowEmpty)
+{
+    return cTplBoxOfPts<Type,Dim>::FromVect(aVect).CurBox(AllowEmpty);
 }
 
 template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Inter(const tBox & aBox)const
@@ -772,6 +827,22 @@ template <class Type,const int Dim>   cTplBoxOfPts<Type,Dim>::cTplBoxOfPts() :
 {
 }
 
+template <class Type,const int Dim> 
+   cTplBoxOfPts<Type,Dim>  cTplBoxOfPts<Type,Dim>::FromVect(const tPt * aBegin,const tPt * aEnd)
+{
+   cTplBoxOfPts<Type,Dim> aRes;
+   for (const auto * aPtrP=aBegin; aPtrP<aEnd ; aPtrP++)
+       aRes.Add(*aPtrP);
+   return  aRes;
+}
+template <class Type,const int Dim> 
+   cTplBoxOfPts<Type,Dim>  cTplBoxOfPts<Type,Dim>::FromVect(const std::vector<tPt>& aVect)
+{
+   return FromVect(aVect.data(),aVect.data()+aVect.size());
+}
+
+
+
 template <class Type,const int Dim>  int  cTplBoxOfPts<Type,Dim>::NbPts() const {return mNbPts;}
 
 template <class Type,const int Dim>  const cPtxd<Type,Dim> &  cTplBoxOfPts<Type,Dim>::P0() const
@@ -786,9 +857,9 @@ template <class Type,const int Dim>  const cPtxd<Type,Dim> &  cTplBoxOfPts<Type,
    return  mP1;
 }
 
-template <class Type,const int Dim>  cTplBox<Type,Dim>  cTplBoxOfPts<Type,Dim>::CurBox() const
+template <class Type,const int Dim>  cTplBox<Type,Dim>  cTplBoxOfPts<Type,Dim>::CurBox(bool AllowEmpty) const
 {
-    return  cTplBox<Type,Dim>(mP0,mP1);
+    return  cTplBox<Type,Dim>(mP0,mP1,AllowEmpty);
 }
 
 template <class Type,const int Dim>  void  cTplBoxOfPts<Type,Dim>::Add(const tPt & aP)
@@ -833,6 +904,14 @@ template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
+
+#define INSTANTIATE_SEGM(DIM)\
+template class cSegment<DIM>;\
+template class cSegmentCompiled<DIM>;
+
+INSTANTIATE_SEGM(1)
+INSTANTIATE_SEGM(2)
+INSTANTIATE_SEGM(3)
 
 template void CornersTrigo(typename cTplBox<tREAL8,2>::tCorner & aRes,const  cTplBox<tREAL8,2>&);
 template void CornersTrigo(typename cTplBox<tINT4,2>::tCorner & aRes,const  cTplBox<tINT4,2>&);

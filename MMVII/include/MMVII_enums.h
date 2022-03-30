@@ -26,6 +26,8 @@ enum class eTA2007
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File of Dir Proj
                 FileImage,     ///< File containing an image
+                FileCloud,     ///< File containing a cloud file (ply ?)
+                File3DRegion,  ///< File containing a 3D region
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
             // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
@@ -52,6 +54,7 @@ enum class eApF
                Match,      ///< Dense Matching
                TieP,       ///< Tie-Point processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
+               Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
@@ -139,6 +142,7 @@ enum class eTyUEr
               eBadDimForBox,
               eBadSize4Vect,
               eMultiplePostifx,
+              eBadPostfix,
               eUnClassedError,
               eNbVals
            };

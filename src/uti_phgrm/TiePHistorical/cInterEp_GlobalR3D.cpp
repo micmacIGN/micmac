@@ -790,7 +790,8 @@ Pt2di PileImgs(std::string aDir, std::vector<std::string> aVIm1, std::string aOr
     for(int i=0; i<int(aVIm1.size()); i++)
     {
         std::string aImg1 = aVIm1[i];
-        Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+        //Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+        Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
         Pt2di ImgSzL = aRGBIm1.sz();
 
         std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
@@ -849,7 +850,8 @@ Pt2di PileImgs(std::string aDir, std::vector<std::string> aVIm1, std::string aOr
     for(int i=0; i<int(aVIm1.size()); i++)
     {
         std::string aImg1 = aVIm1[i];
-        Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+        //Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+        Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
         Pt2di ImgSzL = aRGBIm1.sz();
 
         std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
@@ -955,7 +957,8 @@ int PileImgs_main(int argc,char ** argv)
     System(strCpImg);
     */
 
-    Tiff_Im aRGBIm1((aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile).c_str());
+    //Tiff_Im aRGBIm1((aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile).c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile).c_str(), -1, true ,true);
     Pt2di aImgSz = aRGBIm1.sz();
     printf("Original orthophoto size: %d, %d\n", aImgSz.x, aImgSz.y);
 

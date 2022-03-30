@@ -220,7 +220,7 @@ template <const int Dim>  class cParseBoxInOut
         tBox  BoxOut(const tPt & anIndex) const; ///< return OutBox from an index created by BoxIndex
         tBox  BoxIn(const tPt & anIndex,const tPt& anOverlap) const;  ///< Idem but add an overlap
         tBox  BoxIn(const tPt & anIndex,const int anOverlap) const;   ///< Add a constant overlap in all direction
-
+        tBox  BoxOutLoc(const tPt & anIndex,const tPt& anOverlap) const; ///< return Box out relatively to box in
 
      private :
         cParseBoxInOut(const tBox & aBoxGlob,const tBox & aBoxIndexe); ///< Create from given indexe box
@@ -684,6 +684,73 @@ template <class Type>  class cIm2D
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image , allow automatic deallocation
        tDIM *                mPIm;   ///< raw pointer on mSPtr, a bit faster to store it ?
 };
+
+
+/**  Mother Class for application that parse an image in small blocs
+
+*/
+template<class TypeEl> class  cAppliParseBoxIm
+{
+    public :
+        typedef cIm2D<TypeEl>      tIm;
+        typedef cDataIm2D<TypeEl>  tDataIm;
+
+    protected :
+	template <class Type2>   cIm2D<Type2> TmpIm() const {return cIm2D<Type2>(CurBoxIn().Sz());}
+	template <class Type2>   cIm2D<Type2> APBI_ReadIm(const std::string & aName)
+	{
+              cIm2D<Type2> aRes = TmpIm<Type2>();
+	      aRes.Read(cDataFileIm2D::Create(aName,mIsGray),CurBoxIn().P0());
+	      return aRes;
+        }
+	/*
+	template <class Type2>   void  APBI_WriteIm(const std::string & aName,cIm2D<Type2> anIm)
+	{
+		anIm.Write(cDataFileIm2D::Create(aName),Pt,1,Box);,1,Box);
+	}
+	*/
+       // void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
+       // void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
+
+        cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray,const cPt2di & aSzTiles,const cPt2di & aSzOverlap) ;
+        ~cAppliParseBoxIm();
+
+	void  APBI_ExecAll(); ///< Execute Action on all Box of file  OR  only on Test Box if exist
+
+        cCollecSpecArg2007 & APBI_ArgObl(cCollecSpecArg2007 & anArgObl) ; ///< For sharing mandatory args
+        cCollecSpecArg2007 & APBI_ArgOpt(cCollecSpecArg2007 & anArgOpt); ///< For sharing optionnal args
+
+
+        tDataIm &  APBI_DIm();  ///< Accessor to loaded image
+        bool      APBI_TestMode() const; ///< Ar we in test mode
+        const std::string & APBI_NameIm() const;     ///< Name of image to parse
+
+
+
+    private :
+        cAppliParseBoxIm(const cAppliParseBoxIm &) = delete;
+	bool InsideParsing() const;
+	void AssertInParsing() const;
+	void AssertNotInParsing() const;
+        tDataIm & LoadI(const cBox2di & aBox); ///< Load file for the Box, return loaded image
+        cBox2di       CurBoxIn()  const;   
+        cBox2di       CurBoxOut() const; 
+        cBox2di       CurBoxOutLoc() const; 
+
+        cBox2di       mBoxTest;    ///< Box for quick testing, in case we dont parse all image
+        std::string   mNameIm;     ///< Name of image to parse
+        cParseBoxInOut<2> *mParseBox;  ///<Current structure used to parse the  box
+	cPt2di         mCurPixIndex; ///< Index of parsing box
+        cDataFileIm2D  mDFI2d;   ///< Data for file image to parse
+        bool           mIsGray;  ///< Is it a gray file
+        cMMVII_Appli & mAppli;   ///< Ineriting appli ("daughter")
+	cPt2di         mSzTiles;    ///< Size of tiles to parse global file
+	cPt2di         mSzOverlap;  ///< Size of overlap between each tile
+        tIm            mIm;      ///< Loaded image
+};
+
+
+
 
 /// Generate an image of the string, using basic font, implemanted with a call to mmv1
 cIm2D<tU_INT1> ImageOfString(const std::string & ,int aSpace);

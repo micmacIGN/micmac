@@ -110,6 +110,10 @@ void BenchInvertMapping(cParamExeBench & aParam);
 void BenchSymDerMap(cParamExeBench & aParam);
 void BenchLeastSqMap(cParamExeBench & aParam);
 
+void BenchDelaunay(cParamExeBench & aParam);
+void BenchTri2D(cParamExeBench & aParam);
+void BenchPly(cParamExeBench & aParam);
+
 
 
 

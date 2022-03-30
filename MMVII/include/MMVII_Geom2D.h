@@ -4,6 +4,7 @@
 namespace MMVII
 {
 
+
 /** \file MMVII_Geom2D.h
     \brief contain classes for geometric manipulation, specific to 2D space :
            2D line, 2D plane, rotation, ...
@@ -21,7 +22,15 @@ inline cPt2dr inv   (const cPt2dr &aP1)
    AssertNonNul(aP1); 
    return conj(aP1) / SqN2(aP1);
 }
+inline cPt2dr Rot90  (const cPt2dr &aP) {return cPt2dr(-aP.y(),aP.x());}
+
 inline cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return aP1 * inv(aP2);}
+
+
+template <class T>   T operator ^ (const cPtxd<T,2> & aP1,const cPtxd<T,2> & aP2)
+{
+    return aP1.x()*aP2.y()-aP1.y()*aP2.x();
+}
 
 
 inline cPt2dr ToPolar(const cPt2dr & aP1)  ///<  From x,y to To rho,teta
@@ -103,6 +112,48 @@ template <class Type>  class cSim2D
       private :
           tPt mTr;
           tPt mSc;
+};
+
+
+
+class  cTriangle2DCompiled : public cTriangle2D
+{
+       public :
+           cTriangle2DCompiled(const cTriangle2D & aTri);
+           cTriangle2DCompiled(const cPt2dr & aP0,const cPt2dr & aP1,const cPt2dr & aP2);
+
+           bool  Regular() const;  ///<  Non degenerate i.e  delta !=0
+           cPt3dr  CoordBarry(const     cPt2dr & aP) const; ///< Barrycentric coordinates
+           double ValueInterpol(const     cPt2dr & aP,const cPt3dr & aValues) const;  ///< Interpolated value
+           cPt2dr GradientVI(const cPt3dr& aValues) const;  ///< Gradient of Interpolated value
+
+           static cTriangle2DCompiled RandomRegularTri(double aSz,double aEps=1e-3);
+
+           double Insideness(const cPt2dr &) const; // <0 out, > inside, 0 : frontier
+           bool   Insides(const cPt2dr &,double aTol=0.0) const; // Tol<0 give more points
+           void PixelsInside(std::vector<cPt2di> & aRes,double aTol=-1e-5) const;
+
+       private :
+           void  AssertRegular() const;  //  Non degenerate i.e  delta !=0
+           /*  
+              For barycentrique coord, we have :
+              L1 = (CX1  CY1)   (X1-X0   X2-X0)  =  (1  0)
+              L2 = (CX2  CY20   (Y1-Y0   Y2-Y0)     (0  1)
+           */
+           double mDelta;
+           cPt2dr mL1;
+           cPt2dr mL2;
+};
+
+// std::pair<cTriangle2D,cPt3dr> Mqk=////
+
+
+class cTriangulation2D : public cTriangulation<2>
+{
+	public :
+           cTriangulation2D(const std::vector<tPt>&);
+	   void  MakeDelaunay();
+	public :
 };
 
 
