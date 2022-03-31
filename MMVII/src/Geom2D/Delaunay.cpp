@@ -669,7 +669,7 @@ void BenchDelaunayVPts(const std::vector<cPt2dr> & aVP)
    if (aVP.size()<=1000)
    {
        // Parse all triangle
-       for (int aKt=0 ; aKt<aDelTri.NbTri() ; aKt++)
+       for (int aKt=0 ; aKt<aDelTri.NbFace() ; aKt++)
        {
            cTriangle2D aTri  =  aDelTri.KthTri(aKt);
 	   // Compute center circle circum

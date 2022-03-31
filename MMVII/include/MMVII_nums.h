@@ -4,6 +4,12 @@
 namespace MMVII
 {
 
+// some time needs a null val for any type with + (neutral for +)
+template<class Type> inline Type NullVal() {return (Type)(0);}
+template<> cPtxd<double,2>   NullVal<cPtxd<double,2>  >();// {return cPt2dr::PCste(0);}
+template<> cPtxd<double,3>   NullVal<cPtxd<double,3>  >();// {return cPt3dr::PCste(0);}
+
+
 template <class Type> bool ValidFloatValue(const Type & aV)
 {
    // return ! (   ((boost::math::isnan)(aV)) ||   ((boost::math::isinf)(aV)));
@@ -542,7 +548,9 @@ template <class TypeIndex,class TypeVal,const bool IsMin> class cWhitchExtrem
          {
          }
          cWhitchExtrem() :
-             mIsInit   (false)
+             mIsInit   (false),
+             mIndexExtre (NullVal<TypeIndex>()),  // required else compiler complains for possible use of un-initialised
+             mValExtre   (0)
 	 {
 	 }
 	 bool IsInit() const {return mIsInit;}

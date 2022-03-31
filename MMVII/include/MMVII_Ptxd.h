@@ -129,10 +129,11 @@ typedef cPtxd<double,3>  cPt3dr ;
 typedef cPtxd<int,3>     cPt3di ;
 typedef cPtxd<float,3>   cPt3df ;
 
+/*
 template<class Type> inline Type NullVal() {return (Type)(0);}
 template<> cPt2dr NullVal<cPt2dr>();// {return cPt2dr::PCste(0);}
 template<> cPt3dr NullVal<cPt3dr>();// {return cPt3dr::PCste(0);}
-
+*/
 
 
 /*
@@ -714,14 +715,18 @@ template <const int Dim> class cTriangulation
           typedef std::vector<tFace> tVFace;
 
 	  tPt PAvg() const; ///< return an average point 
+	  int   IndexClosestFace(const tPt& aPClose) const; ///< Face closest to a given point
 	  /**  return a Face more or less at the center,  4 now ompute face closest to Avg , not perfect
 	   * but work with simple suface, if necessary will evolve as a real geodetic center */
-	  const tFace & CenterFace() const;
+	  int   IndexCenterFace() const;
 
-          int  NbTri() const;
+
+          int  NbFace() const;
           const tFace &  KthFace(int aK) const;
           tTri  KthTri(int aK) const;
 	  bool  ValidFace(const tFace &) const;
+          int  NbPts() const;
+	  const tPt  & KthPts() const;
 
 	  /// Create a sub tri of vertices belonging to the set, require 1,2 or 3 vertice in each tri
 	  void Filter(const cDataBoundedSet<tREAL8,Dim> &,int aNbVertixThres=3) ;

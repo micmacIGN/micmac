@@ -203,11 +203,11 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
     }
     cTriangulation2D aTriangul(aVPts);
     aTriangul.MakeDelaunay();
-    StdOut() << "NbTri= " <<  aTriangul.NbTri() << "\n";
+    StdOut() << "NbFace= " <<  aTriangul.NbFace() << "\n";
 
 
     // Initiate image of interpolated value
-    for (int aKTri=0 ; aKTri<aTriangul.NbTri() ; aKTri++)
+    for (int aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
     {
          MakeOneTri(cTriangle2DCompiled(aTriangul.KthTri(aKTri)));
     }

@@ -123,10 +123,8 @@ template <const int Dim> void cTriangulation<Dim>::AddFace(const tFace & aFace)
     mVFaces.push_back(aFace);
 }
 
-template <const int Dim> int cTriangulation<Dim>::NbTri() const
-{
-   return mVFaces.size();
-}
+template <const int Dim> int cTriangulation<Dim>::NbFace() const { return mVFaces.size(); }
+template <const int Dim> int cTriangulation<Dim>::NbPts() const { return mVPts.size(); }
 
 template <const int Dim> const cPt3di & cTriangulation<Dim>::KthFace(int aK) const
 {
@@ -275,19 +273,23 @@ template <const int Dim> typename cTriangulation<Dim>::tPt  cTriangulation<Dim>:
     return aWA.Average();
 }
 
-template <const int Dim> const typename cTriangulation<Dim>::tFace&  cTriangulation<Dim>::CenterFace() const
+template <const int Dim> int  cTriangulation<Dim>::IndexClosestFace(const tPt& aPClose) const
 {
-    cWhitchMin<int,double> aWMin(-1,1e50);
-    tPt aPAvg = PAvg();
+    cWhitchMin<int,double> aWMin;
+    // tPt aPAvg = PAvg();
 
     for (int aKF=0 ; aKF<int(mVFaces.size()) ; aKF++)
     {
-       tTri  aTri = KthTri(aKF);
-       aWMin.Add(aKF,Norm2(aPAvg-aTri.Barry()));
+       // tTri  aTri = KthTri(aKF);
+       aWMin.Add(aKF,Norm2(aPClose- KthTri(aKF).Barry()));
     }
-    return mVFaces[aWMin.IndexExtre()];
+    return aWMin.IndexExtre();
 }
 
+template <const int Dim> int cTriangulation<Dim>::IndexCenterFace() const
+{
+	return IndexClosestFace(PAvg());
+}
 
 /* ========================== */
 /*       INSTANTIATION        */

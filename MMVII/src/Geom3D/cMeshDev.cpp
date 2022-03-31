@@ -4,9 +4,6 @@
 namespace MMVII
 {
 
-class cTopoTri3D : public cTriangulation3D
-{
-};
 
 /* ******************************************************* */
 /*                                                         */
@@ -21,21 +18,37 @@ class cTopoTri3D : public cTriangulation3D
 class cDevTriangu3d
 {
       public :
+          typedef typename cTriangulation<3>::tFace tFace;
           cDevTriangu3d(const  cTriangulation3D &);
       private :
 	  cDevTriangu3d(const cDevTriangu3d &) = delete;
+	  void AddFace(int aKFace);
 
+	  int               mNumStep;
 	  const cTriangulation3D & mTri;
-	  std::vector<bool>  mSIsSel; ///< indicate if a submit is selected
-	  std::vector<bool>  mTIsSel; ///< indicate if a 
+	  std::vector<int>  mSomStepSel;  ///< indicate if a submit is selected
+	  //std::vector<int>   mVSomSel;   ///< vector of selected soms
+	  // size_t                mLastNbSel;  
+	  std::vector<int>  mFaceStepSel;  ///< indicate if a 
+	  // std::vector<int>   mVFaceSel;   ///< vector of selected faces
 };
 
-cDevTriangu3d::cDevTriangu3d(const cTriangulation3D & aTri) :
-     mTri  (aTri)
+void cDevTriangu3d::AddFace(int aFace)
 {
 }
-	/*
-*/
+
+cDevTriangu3d::cDevTriangu3d(const cTriangulation3D & aTri) :
+     mNumStep      (0),
+     mTri          (aTri),
+     mSomStepSel   (mTri.NbPts(),-1),
+     mFaceStepSel  (mTri.NbFace(),-1)
+{
+    AddFace(mTri.IndexCenterFace());
+    // const tFace & aFace0 = mTri.CenterFace();
+
+    // FakeUseIt(aFace0);
+    // tPt PAvg() const
+}
 /* ******************************************************* */
 /*                                                         */
 /*                    cAppliMeshDev                        */
