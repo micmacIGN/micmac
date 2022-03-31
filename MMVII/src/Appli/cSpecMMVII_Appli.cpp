@@ -178,6 +178,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecExtractCodedTarget);
         TheVecAll.push_back(&TheSpecDensifyRefMatch);
         TheVecAll.push_back(&TheSpecCloudClip);
+        TheVecAll.push_back(&TheSpecMeshDev);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

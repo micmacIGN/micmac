@@ -18,36 +18,95 @@ namespace MMVII
 class cDevTriangu3d
 {
       public :
+          static constexpr int NO_STEP = -1;
           typedef typename cTriangulation<3>::tFace tFace;
           cDevTriangu3d(const  cTriangulation3D &);
       private :
 	  cDevTriangu3d(const cDevTriangu3d &) = delete;
-	  void AddFace(int aKFace);
+	  void AddOneFace(int aKFace); // Mark the face and its sums as reached when not
+	  int  NbUnreached(int aKFace) const; // Number of the 3 vertices not reached
 
-	  int               mNumStep;
+	  int MakeNewFace();
+
+	  int               mNumCurStep;
+          int               mNbFaceReached;
 	  const cTriangulation3D & mTri;
-	  std::vector<int>  mSomStepSel;  ///< indicate if a submit is selected
-	  //std::vector<int>   mVSomSel;   ///< vector of selected soms
+	  std::vector<int>  mStepReach_S;  ///< indicate if a submit is selected and at which step
 	  // size_t                mLastNbSel;  
-	  std::vector<int>  mFaceStepSel;  ///< indicate if a 
-	  // std::vector<int>   mVFaceSel;   ///< vector of selected faces
+	  std::vector<int>  mStepReach_F;  ///< indicate if a face and at which step
 };
 
-void cDevTriangu3d::AddFace(int aFace)
+void cDevTriangu3d::AddOneFace(int aKFace)
 {
+     if (mStepReach_F.at(aKFace) != NO_STEP) return; // if face already reached nothing to do
+
+     mNbFaceReached++;
+     mStepReach_F.at(aKFace) = mNumCurStep; // mark it reached at current step
+
+     // Mark all som of face that are not marked
+     const tFace & aFace = mTri.KthFace(aKFace);
+     for (int aNumV=0 ; aNumV<3 ; aNumV++)
+     {
+         int aKS= aFace[aNumV];
+         if (mStepReach_S.at(aKS) == NO_STEP)
+            mStepReach_S.at(aKS) = mNumCurStep;
+     }
+}
+
+int  cDevTriangu3d::NbUnreached(int aKFace) const
+{
+     const tFace & aFace = mTri.KthFace(aKFace);
+
+     int aRes=0;
+     for (int aNumV=0 ; aNumV<3 ; aNumV++)
+     {
+         int aKS= aFace[aNumV];
+         if (mStepReach_S.at(aKS) == NO_STEP)
+            aRes++;
+     }
+     return aRes;
+}
+
+int cDevTriangu3d::MakeNewFace()
+{
+     // A Face is adjacent to reached iff it contains exactly 2 reached 
+     std::vector<int> aVFNeigh;  // put first in vect to avoir recursive add
+     for (int aKF=0 ; aKF<mTri.NbFace() ; aKF++)
+     {
+         if (NbUnreached(aKF)==1)
+            aVFNeigh.push_back(aKF);
+     }
+     // Now mark the faces 
+     for (const auto & aKF : aVFNeigh)
+         AddOneFace(aKF);
+
+     // Mark face that containt 3 reaches vertices (may have been created
+     // by previous step)
+     for (int aKF=0 ; aKF<mTri.NbFace() ; aKF++)
+     {
+         if (NbUnreached(aKF)==0)
+            AddOneFace(aKF);
+     }
+
+     return aVFNeigh.size();
 }
 
 cDevTriangu3d::cDevTriangu3d(const cTriangulation3D & aTri) :
-     mNumStep      (0),
-     mTri          (aTri),
-     mSomStepSel   (mTri.NbPts(),-1),
-     mFaceStepSel  (mTri.NbFace(),-1)
+     mNumCurStep  (0),
+     mNbFaceReached (0),
+     mTri         (aTri),
+     mStepReach_S (mTri.NbPts() ,NO_STEP),
+     mStepReach_F (mTri.NbFace(),NO_STEP)
 {
-    AddFace(mTri.IndexCenterFace());
-    // const tFace & aFace0 = mTri.CenterFace();
+    AddOneFace(mTri.IndexCenterFace());
 
-    // FakeUseIt(aFace0);
-    // tPt PAvg() const
+    while (int aNbF=MakeNewFace())
+    {
+        StdOut() << "NnFF " << aNbF << "\n";
+    }
+
+
+    StdOut() << " FRR " << mNbFaceReached << " " << mTri.NbFace() << "\n";
 }
 /* ******************************************************* */
 /*                                                         */
@@ -106,7 +165,9 @@ int  cAppliMeshDev::Exe()
    InitOutFromIn(mNameCloudOut,"Clip_"+mNameCloudIn);
 
    cTriangulation3D  aTri(mNameCloudIn);
-   aTri.WriteFile(DirProject()+mNameCloudOut,mBinOut);
+   // aTri.WriteFile(DirProject()+mNameCloudOut,mBinOut);
+
+   cDevTriangu3d aDev(aTri);
 
    return EXIT_SUCCESS;
 }

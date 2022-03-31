@@ -276,11 +276,9 @@ template <const int Dim> typename cTriangulation<Dim>::tPt  cTriangulation<Dim>:
 template <const int Dim> int  cTriangulation<Dim>::IndexClosestFace(const tPt& aPClose) const
 {
     cWhitchMin<int,double> aWMin;
-    // tPt aPAvg = PAvg();
 
     for (int aKF=0 ; aKF<int(mVFaces.size()) ; aKF++)
     {
-       // tTri  aTri = KthTri(aKF);
        aWMin.Add(aKF,Norm2(aPClose- KthTri(aKF).Barry()));
     }
     return aWMin.IndexExtre();
