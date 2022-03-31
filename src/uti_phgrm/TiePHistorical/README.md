@@ -5,7 +5,7 @@ The algorithm uses a python implementation of the [SuperGlue](https://github.com
 For more details about our algorithm, please refer to:
 * L. Zhang, E. Rupnik, M. Pierrot-Deseilligny, [Feature matching for multi-epoch historical aerial images](https://www.sciencedirect.com/science/article/pii/S0924271621002707), ISPRS journal of photogrammetry and remote sensing, 182 (2021), pp. 176-189 ([PDF](https://arxiv.org/abs/2112.04255))
 * Project website: [Feature matching for multi-epoch historical aerial images](https://www.umr-lastig.fr/ewelina-rupnik/historicalfeatures.html)
-* Introduction video: [Feature matching for multi-epoch historical aerial images](https://youtu.be/YnF-F0UJaSM)
+* Introduction video: [Feature matching for multi-epoch historical aerial images](https://www.youtube.com/channel/UCg7_VpmlZImh8bCDBrdXgAw)
 * Slides: [Feature matching for multi-epoch historical aerial images](https://drive.google.com/uc?id=16sJZiY3sTZSRZKBzpy2IHVloCLj6pEwP)
 * Blog: [Feature matching for multi-epoch historical aerial images](https://rfpt-sfpt.github.io/blog/feature%20matching/historical%20images/multi-epoch/pose%20estimation/self-calibration/2021/11/17/Lulin-ZHANG-LaSTIG.html)
 * [Tutorial using historical aerial images](https://colab.research.google.com/drive/1poEXIeKbPcJT_2hyQOBhzcj1EEhO8OgD)
