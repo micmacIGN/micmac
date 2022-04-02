@@ -12,7 +12,14 @@ const std::string & MMV1Bin();
 
 
 template <class Type> Pt2d<Type>  ToMMV1(const cPtxd<Type,2> &  aP) {return  Pt2d<Type>(aP.x(),aP.y());}
+template <class Type> Pt3d<Type>  ToMMV1(const cPtxd<Type,3> &  aP) {return  Pt3d<Type>(aP.x(),aP.y(),aP.z());}
+
 template <class Type> cPtxd<Type,2> ToMMVII(const Pt2d<Type> &  aP) {return cPtxd<Type,2>(aP.x,aP.y);}
+template <class Type> cPtxd<Type,3> ToMMVII(const Pt3d<Type> &  aP) {return cPtxd<Type,3>(aP.x,aP.y,aP.z);}
+
+
+
+
 
 template <class Type> Box2d<Type>  ToMMV1(const cTplBox<Type,2> &  aBox) {return  Box2d<Type>(ToMMV1(aBox.P0()),ToMMV1(aBox.P1()));}
 

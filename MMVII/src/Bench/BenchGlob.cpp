@@ -419,10 +419,15 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 
         Bench_Random(aParam);  // Bench random generator, check they are acceptably unbiased
 
+	Bench_SetI(aParam); // Bench manip on set of integers
+
            // Check read/write of object usign serialization
         BenchSerialization(aParam,mDirTestMMVII+"Tmp/",mDirTestMMVII+"Input/");
         //====  MORE CONSISTENT BENCH
 
+        BenchPly(aParam);
+        BenchTri2D(aParam);
+        BenchDelaunay(aParam);
         // Test Fast Tree Dist
         BenchFastTreeDist(aParam);
 

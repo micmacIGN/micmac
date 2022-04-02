@@ -101,20 +101,22 @@ void CalcDiff(std::vector<Pt3dr> Pt3dL, std::vector<Pt3dr> Pt3dR, std::vector<bo
     dNormAve = dNormAve*1.0/nTotalPt;
     fprintf(fpOutput, "------------------------------------------------\n");
     fprintf(fpOutput, "Total tie point: %d;  Outlier: %d;  Inlier: %d\n", nTotalPt, nOutlier, nTotalPt-nOutlier);
-    fprintf(fpOutput, "NormAve: %lf\n", dNormAve);
+    fprintf(fpOutput, "Total NormAve: %lf\n", dNormAve);
     fprintf(fpOutput, "NormMin: %d %lf %lf %lf %lf\n", nIDNormMin, Pt3dDiffMin.x, Pt3dDiffMin.y, Pt3dDiffMin.z, dNormMin);
     fprintf(fpOutput, "NormMax: %d %lf %lf %lf %lf", nIDNormMax, Pt3dDiffMax.x, Pt3dDiffMax.y, Pt3dDiffMax.z, dNormMax);
     fclose(fpOutput);
+    printf("Total NormAve: %lf\n", dNormAve);
 }
 
 //void VisuTiePtIn3D(std::string input_dir, std::string output_dir, std::string inSH, std::string outSH, std::string aSubPatchXml, bool bPrint)
-void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList2, std::string aInSH, std::string aOri1, std::string aOri2, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, std::string aNameSave, cInterfChantierNameManipulateur * aICNM, bool bPrint, double aThres, bool bSaveDif, double dThres)
+void VisuTiePtIn3D(std::string aDir, std::vector<string> vImgList1, std::vector<string> vImgList2, std::string aInSH, std::string aOri1, std::string aOri2, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, std::string aNameSave, cInterfChantierNameManipulateur * aICNM, bool bPrint, double aThres, bool bSaveDif, double dThres)
 {
+    /*
     std::vector<string> vImgList1;
     std::vector<string> vImgList2;    
     GetImgListVec(aImgList1, vImgList1);
     GetImgListVec(aImgList2, vImgList2);
-    /*
+
     std::string s;
     ifstream in1(aDir+"/"+aImgList1);
     cout<<"Images in "<<aDir+"/"+aImgList1<<":"<<endl;
@@ -144,9 +146,10 @@ void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList
     for(unsigned int i=0; i<vImgList1.size(); i++)
     {
         std::string aImg1 = vImgList1[i];
-        for(unsigned int j=0; j<vImgList2.size(); j++)
+        if(1) //for(unsigned int j=0; j<vImgList2.size(); j++)
         {
-            std::string aImg2 = vImgList2[j];
+            //std::string aImg2 = vImgList2[j];
+            std::string aImg2 = vImgList2[i];
 
             std::string aNameIn = aDir_inSH + "Pastis" + aImg1 + "/" + aImg2 + ".txt";
             bool bReverse = false;
@@ -182,16 +185,19 @@ void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList
 
     std::string aNameSaveL = StdPrefix(aNameSave) + "_L." + StdPostfix(aNameSave);
     Write3DCoor(aNameSaveL, Pt3dL);
-    cout<<"Tie points in master images saved in "<<aNameSaveL<<endl;
+    cout<<"Tie points in master images saved in:"<<endl;
+    cout<<"gedit "<<aNameSaveL<<endl;
 
     std::string aNameSaveR = StdPrefix(aNameSave) + "_R." + StdPostfix(aNameSave);
     Write3DCoor(aNameSaveR, Pt3dR);
-    cout<<"Tie points in secondary images saved in "<<aNameSaveR<<endl;
+    cout<<"Tie points in secondary images saved in:"<<endl;
+    cout<<"gedit "<<aNameSaveR<<endl;
 
     if(bSaveDif){
         std::string aNameSaveDif = StdPrefix(aNameSave) + "_Diff." + StdPostfix(aNameSave);
         CalcDiff(Pt3dL, Pt3dR, vecPreciseL, vecPreciseR, aNameSaveDif, dThres);
-        cout<<"Tie points difference saved in "<<aNameSaveDif<<endl;
+        cout<<"Tie points difference saved in:"<<endl;
+        cout<<"gedit "<<aNameSaveDif<<endl;
     }
 }
 
@@ -222,6 +228,8 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
    std::string aPara3DHL = "";
    std::string aPara3DHR = "";
 
+   std::string aImgPair = "";
+
    bool bSaveDif = true;
    double dThres = 10;
    ElInitArgMain
@@ -245,6 +253,7 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
                << EAM(aPara3DHR, "Para3DHR", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation for points in secondary images, Def=none")
                << EAM(bSaveDif, "SaveDif", false, "Save the difference of the 3D points in master and secondary images, Def=true")
                << EAM(dThres,"Th",true,"Threshold to define outlier (correspondence projected to DSM with coordinate difference larger than this value would be labelled as outlier), Def=10")
+               << EAM(aImgPair,"Pair",true,"XML-File of image pair (if this parameter is defined, the input image pairs will be defnied by this instead of ImgList1 and ImgList2 will be ), Def=none")
      );
 
    if(aNameSave.length() == 0)
@@ -256,8 +265,29 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
    cTransform3DHelmert aTrans3DHL(aPara3DHL);
    cTransform3DHelmert aTrans3DHR(aPara3DHR);
 
+   std::vector<string> vImgList1;
+   std::vector<string> vImgList2;
+   if (ELISE_fp::exist_file(aCAS3D.mDir+"/"+aImgPair) == true)
+   {
+       GetXmlImgPair(aCAS3D.mDir+"/"+aImgPair, vImgList1, vImgList2);
+   }
+   else
+   {
+       std::vector<std::string> aVIm1Tmp;
+       std::vector<std::string> aVIm2Tmp;
+       GetImgListVec(aImgList1, aVIm1Tmp);
+       GetImgListVec(aImgList2, aVIm2Tmp);
+       for(int i=0; i<int(aVIm1Tmp.size()); i++){
+           for(int j=0; j<int(aVIm2Tmp.size()); j++){
+               vImgList1.push_back(aVIm1Tmp[i]);
+               vImgList2.push_back(aVIm2Tmp[j]);
+           }
+       }
+   }
+
+   cout<<vImgList1.size()<<" image pairs to be processed."<<endl;
    //cout<<aDir<<",,,"<<aCAS3D.mHomoXml<<endl;
-   VisuTiePtIn3D(aCAS3D.mDir, aImgList1, aImgList2, aInSH, aOri1, aOri2, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aTrans3DHL, aTrans3DHR, aNameSave, aCAS3D.mICNM, aCAS3D.mPrint, aThres, bSaveDif, dThres);
+   VisuTiePtIn3D(aCAS3D.mDir, vImgList1, vImgList2, aInSH, aOri1, aOri2, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aTrans3DHL, aTrans3DHR, aNameSave, aCAS3D.mICNM, aCAS3D.mPrint, aThres, bSaveDif, dThres);
 
    return EXIT_SUCCESS;
 }

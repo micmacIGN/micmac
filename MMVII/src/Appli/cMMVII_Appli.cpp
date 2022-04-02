@@ -217,7 +217,7 @@ cMMVII_Appli::cMMVII_Appli
    mDoInternalHelp(false),
    mShowAll       (false),
    mLevelCall     (0),
-   mSetInit       (cExtSet<void *>(eTySC::US)),
+   mSetInit       (cExtSet<const void *>(eTySC::US)),
    mInitParamDone (false),
    mVMainSets     (NbMaxMainSets,tNameSet(eTySC::NonInit)),
    mResulMultiS   (EXIT_FAILURE),
@@ -251,8 +251,14 @@ const std::vector<eSharedPO>    cMMVII_Appli::EmptyVSPO;  ///< Deafaut Vector  s
 
 cMultipleOfs & StdStdOut()
 {
+// Dont know why, destruction of static object at end fails on Mac
+#if (THE_MACRO_MMVII_SYS == MMVII_SYS_A)
+   static cMultipleOfs * aPtrMOfs = new cMultipleOfs(std::cout);
+   return *aPtrMOfs;
+#else
    static cMultipleOfs aMOfs(std::cout);
    return aMOfs;
+#endif
 }
 
 cMultipleOfs& StdOut()
@@ -1079,7 +1085,7 @@ void cMMVII_Appli::AssertInitParam() const
 {
   MMVII_INTERNAL_ASSERT_always(mInitParamDone,"Init Param was forgotten");
 }
-bool  cMMVII_Appli::IsInit(void * aPtr)
+bool  cMMVII_Appli::IsInit(const void * aPtr)
 {
     return  mSetInit.In(aPtr);
 }
@@ -1458,6 +1464,16 @@ std::vector<std::string>  cMMVII_Appli::Samples() const
    return std::vector<std::string>();
 }
 
+bool IsInit(const void * anAdr)
+{
+    return cMMVII_Appli::CurrentAppli().IsInit(anAdr);
+}
+
+int  cMMVII_Appli::ExeOnParsedBox()
+{
+    MMVII_INTERNAL_ERROR("Call to undefined method ExeOnParsedBox()");
+    return EXIT_FAILURE;
+}
 
 };
 

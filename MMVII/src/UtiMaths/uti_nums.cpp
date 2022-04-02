@@ -3,6 +3,107 @@
 namespace MMVII
 {
 
+/* ****************  cDecomposPAdikVar *************  */
+
+cDecomposPAdikVar::cDecomposPAdikVar(const tVI & aVB) :
+    mVBases  (aVB),
+    mNbBase  (aVB.size()),
+    mMulBase (1)
+{
+    for (const auto & aBase : mVBases)
+        mMulBase *= aBase;
+}
+
+const int&  cDecomposPAdikVar::MulBase() const {return mMulBase;}
+
+
+const cDecomposPAdikVar::tVI &  cDecomposPAdikVar::Decompos(int aValue) const
+{
+   mRes.clear();
+
+   int aK=0;
+   while (aValue!=0)
+   {
+      const int  & aBase  = BaseOfK(aK); 
+      mRes.push_back(aValue%aBase);
+      aValue = aValue / aBase;
+      aK++;
+   }
+
+   return mRes;
+}
+
+const cDecomposPAdikVar::tVI & cDecomposPAdikVar::DecomposSizeBase(int aNum) const
+{
+    // MMVII_INTERNAL_ASSERT_tiny((aNum>=0)&&(aNum<mMulBase),"EmbeddedIntVal");
+
+    Decompos(aNum);
+    while (mRes.size() < mVBases.size())
+        mRes.push_back(0);
+
+   return mRes;
+}
+
+int   cDecomposPAdikVar::FromDecompos(const tVI & aVI) const
+{
+    if (aVI.empty())
+       return 0;
+    int aRes = aVI.back();
+
+    for (int aK=aVI.size()-2 ; aK>=0 ; aK--)
+    {
+        aRes = aRes * BaseOfK(aK) + aVI.at(aK);
+    }
+
+    return aRes;
+}
+
+void cDecomposPAdikVar::Bench(int aValue) const
+{
+    for (bool SizeBase : {true,false})
+    {
+        std::vector<int> aDec =  SizeBase ? DecomposSizeBase(aValue) : Decompos(aValue);
+        int aVCheck = FromDecompos(aDec);
+
+    // StdOut() << aValue  << " " << aDec << " " << aVCheck << "\n";
+        MMVII_INTERNAL_ASSERT_bench (aValue==aVCheck,"cDecomposPAdikVar Bad decomp/recomp");
+
+        for (int aK=0 ; aK<int(aDec.size()) ; aK++)
+        {
+            int aVal = aDec.at(aK);
+            MMVII_INTERNAL_ASSERT_bench ((aVal>=0)&&(aVal<BaseOfK(aK)),"cDecomposPAdikVar decomp out of range ");
+        }
+    }
+}
+
+void cDecomposPAdikVar::Bench(const std::vector<int> & aVB)
+{
+    cDecomposPAdikVar aDP(aVB);
+
+    aDP.Bench(3);
+    aDP.Bench(5);
+    aDP.Bench(7);
+    for (int aK=0 ; aK<100 ; aK++)
+    {
+        aDP.Bench(aK);
+        aDP.Bench(aK*1000);
+        aDP.Bench(RandUnif_N(1000));
+        aDP.Bench(RandUnif_N(1000000));
+    }
+}
+
+void cDecomposPAdikVar::Bench()
+{
+   Bench({2,3});
+   Bench({2,2});
+   Bench(std::vector<int>({2}));  // Overload pb if no std:vec ...
+   Bench({2,7,3});
+   Bench({2,7,1,3});
+}
+
+
+   /* -------------------------------------------- */
+
 int BinomialCoeff(int aK,int aN)
 {
   if ((aK<0) || (aK>aN)) 
@@ -64,7 +165,6 @@ tINT4 HCF(tINT4 a,tINT4 b)
    return b;
 }
 
-template <class Type> const tNumTrait<Type>   tNumTrait<Type>::TheOnlyOne;
 // const tNumTrait<tINT1>   tNumTrait<tINT1>::TheOnlyOne;
 /*
 template <> const tNumTrait<tINT2>   tNumTrait<tINT2>::TheOnlyOne;
@@ -216,14 +316,14 @@ template <class Type> void  TplBenchMinMax(int aNb)
        aVVals.push_back(aVal);
        aWMM.Add(aK+1,aVal);
     }
-    int aKMin = aWMM.Min().Index();
-    int aKMax = aWMM.Max().Index();
-    MMVII_INTERNAL_ASSERT_bench (aVVals.at(aKMin)==aWMM.Min().Val(),"Bench MinMax");
-    MMVII_INTERNAL_ASSERT_bench (aVVals.at(aKMax)==aWMM.Max().Val(),"Bench MinMax");
+    int aKMin = aWMM.Min().IndexExtre();
+    int aKMax = aWMM.Max().IndexExtre();
+    MMVII_INTERNAL_ASSERT_bench (aVVals.at(aKMin)==aWMM.Min().ValExtre(),"Bench MinMax");
+    MMVII_INTERNAL_ASSERT_bench (aVVals.at(aKMax)==aWMM.Max().ValExtre(),"Bench MinMax");
     for (const auto & aV : aVVals)
     {
-        MMVII_INTERNAL_ASSERT_bench (aV>=aWMM.Min().Val(),"Bench MinMax");
-        MMVII_INTERNAL_ASSERT_bench (aV<=aWMM.Max().Val(),"Bench MinMax");
+        MMVII_INTERNAL_ASSERT_bench (aV>=aWMM.Min().ValExtre(),"Bench MinMax");
+        MMVII_INTERNAL_ASSERT_bench (aV<=aWMM.Max().ValExtre(),"Bench MinMax");
     }
    
 }
@@ -275,6 +375,8 @@ template <class Type> void BenchFuncAnalytique(int aNb,double aEps,double EpsDer
 void Bench_Nums(cParamExeBench & aParam)
 {
    if (! aParam.NewBench("BasicNum")) return;
+
+   cDecomposPAdikVar::Bench();
 
    {
       int aNb=10000;

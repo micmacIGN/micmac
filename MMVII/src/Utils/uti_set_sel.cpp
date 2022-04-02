@@ -923,6 +923,7 @@ template  cExtSet<Type>   operator -  (const cExtSet<Type> & aRes,const cExtSet<
 
 INSTANTIATE_SET(int)
 INSTANTIATE_SET(void *)
+INSTANTIATE_SET(const void *)
 INSTANTIATE_SET(std::string)
 INSTANTIATE_SET(tNamePair)
 

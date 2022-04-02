@@ -61,6 +61,12 @@ template <class Type> cComputeStdDev<Type>  cComputeStdDev<Type>::Normalize(cons
      return aRes;
 }
 
+template <class Type> Type  cComputeStdDev<Type>::StdDev(const Type&  Epsilon) const
+{
+     cComputeStdDev<Type> aRes = Normalize(Epsilon);
+     return aRes.mStdDev;
+}
+
 
 /* ============================================= */
 /*      cMatIner2Var<Type>                       */
@@ -147,6 +153,7 @@ template <class Type> Type cMatIner2Var<Type>::CorrelNotC(const Type & aEps) con
 template <class Type> Type cMatIner2Var<Type>::Correl(const Type & aEps) const
 {
    cMatIner2Var<Type> aDup(*this);
+   aDup.mS0 = std::max(aEps,aDup.mS0 );
    aDup.Normalize();
 
    Type aSqDenominator = std::max(aEps,aDup.mS11*aDup.mS22);
@@ -329,6 +336,38 @@ getchar();
 
 /* *********************************************** */
 /*                                                 */
+/*            cSymMeasure                          */
+/*                                                 */
+/* *********************************************** */
+
+template<class Type> cSymMeasure<Type>::cSymMeasure() :
+    mDif  (0),
+    mDev()
+{
+}
+
+template<class Type> void cSymMeasure<Type>::Add(Type aV1,Type aV2)
+{
+   mDif += Square(aV1-aV2);
+   mDev.Add(1.0,aV1);
+   mDev.Add(1.0,aV2);
+}
+
+template<class Type> Type  cSymMeasure<Type>::Sym(const Type & anEspilon) const
+{
+    Type aAvgD = mDif / mDev.SomW();
+
+    aAvgD = std::sqrt(aAvgD);
+
+    Type aDiv  = std::max(anEspilon,mDev.StdDev(1e-5));
+
+    return (std::max(anEspilon,aAvgD) ) / aDiv ;
+}
+
+
+
+/* *********************************************** */
+/*                                                 */
 /*            Test Exp Filtre                      */
 /*                                                 */
 /* *********************************************** */
@@ -404,6 +443,7 @@ void BenchStat(cParamExeBench & aParam)
    aParam.EndBench();
 }
 
+
 /* *********************************************** */
 /*                                                 */
 /*                INSTANTIATION                    */
@@ -411,6 +451,7 @@ void BenchStat(cParamExeBench & aParam)
 /* *********************************************** */
 
 #define INSTANTIATE_MAT_INER(TYPE)\
+template class cSymMeasure<TYPE>;\
 template class cMatIner2Var<TYPE>;\
 template  class cComputeStdDev<TYPE>;\
 template class cWeightAv<TYPE>;\

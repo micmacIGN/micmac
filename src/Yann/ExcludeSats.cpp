@@ -948,7 +948,8 @@ cAppli_YannSkyMask::cAppli_YannSkyMask(int argc, char ** argv){
 	
 	// Python requirements
 	std::vector<std::string> REQ = {"tensorflow", "Keras", "albumentations", "segmentation-models"};
-	std::vector<std::string> VER = {"1.13.2", "2.3.0", "0.4.6", "1.0.1"};
+	std::vector<std::string> VER = {"2.2", "2.3.0", "0.4.6", "1.0.1"};
+	//std::vector<std::string> VER = {"1.13.2", "2.3.0", "0.4.6", "1.0.1"};
 	
 	
 	

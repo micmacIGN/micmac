@@ -5,7 +5,7 @@
 #include "MMVII_all.h"
 #include <stdexcept>
 
-const std::string MMVII::DirBin2007 = std::string(getenv("HOME"))+"/.local/mmv2/include/XML_GEN/";
+const std::string MMVII::DirBin2007 = std::string(getenv("HOME"))+"/.local/mmv2/MMVII/bin/";
 extern bool TheExitOnBrkp;
 
 static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
@@ -19,12 +19,15 @@ static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,con
     throw std::runtime_error(aType + " " + aMes);
 }
 
+
 void mmv2_init()
 {
 	TheExitOnBrkp =true;
 	MMVII::MMVII_SetErrorHandler(ErrHanlderPy);
-	
+	MMVII::InitStandAloneAppli("apipy");
+
 	std::cout<<"mmv2 initialized."<<std::endl;
+	//delete appli; //the fake apply must exist during module usage
 }
 
 //shadow classic ElExit to use throw(runtime_error) instead of exit(code)

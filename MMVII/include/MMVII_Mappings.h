@@ -156,6 +156,7 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
        cTplBox<Type,Dim> mBox;
 };
 
+cDataBoundedSet<tREAL8,3> *  MMV1_Masq(const cBox3dr &,const std::string & aNameFile);
 
 template <class Type,const int Dim> class cSphereBoundedSet : public cDataBoundedSet<Type,Dim>
 {
@@ -548,7 +549,6 @@ template <class cMapElem> class cIMElemLinear :  public
          static constexpr int     Dim=tIMap::Dim;
          typedef cDataMapping<tTypeElem,Dim,Dim>  tDataMap;
          typedef cDenseMatrix<tTypeElem> tMat;
-         using typename tDataMap::tDataMap;
          using typename tDataMap::tVecIn;
          using typename tDataMap::tCsteResVecJac;
          using typename tDataMap::tResVecJac;

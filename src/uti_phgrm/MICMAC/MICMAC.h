@@ -2734,6 +2734,7 @@ class   cGPU_LoadedImGeom
        tImGpu  ImSomO2();
        tImGpu  ImSom12();
 
+
        bool InitValNorms(int anX,int anY,int aNbScaleIm);
        double ValNorm(int anX,int anY) const 
        {

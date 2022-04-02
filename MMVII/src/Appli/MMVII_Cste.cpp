@@ -38,6 +38,7 @@ const std::string MMVII_LogFile = "MMVII-LogFile.txt";
 // Name of common parameters
       // -- Current
 const std::string CurOP_Out = "Out";  ///< Many command have an Output file 
+const std::string CurOP_OutBin = "Bin";  ///< Bin format
       // -- External
 const std::string GOP_DirProj  = "DirProj";
 const std::string GOP_NumVO    = "NumVOut";

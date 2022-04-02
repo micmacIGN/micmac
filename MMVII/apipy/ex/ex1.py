@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import mmv2
 
 def checkMem():
@@ -74,3 +77,35 @@ def to8Bit():
   imOut = mmv2.cIm2Du1( im.DIm().Sz() )
   imOut.DIm().setRawData(mat2)
   imOut.DIm().ToFile("ex/to8bits.tif")
+
+def testAime(dmp_path):
+  aSetPC=mmv2.cSetAimePCAR()
+  aSetPC.InitFromFile(dmp_path)
+  print(aSetPC.IsMax())
+  print(aSetPC.Ampl2N()) #pb with non-const ref output
+  print("Found",len(aSetPC.VPC()),"points")
+  if (len(aSetPC.VPC())>0):
+    print(aSetPC.VPC()[0].Desc().ILP().DIm().toArray())
+  return aSetPC
+
+def plotAime(*img_paths):
+  import matplotlib.pyplot as plt
+  import matplotlib.image as mpimg
+  import os
+  plt.figure()
+  p_types = ["STD-V2AimePCar-Corner-Max.dmp","STD-V2AimePCar-Corner-Min.dmp",
+             "STD-V2AimePCar-LaplG-Max.dmp","STD-V2AimePCar-LaplG-Min.dmp",
+             "STD-V2AimePCar-OriNorm-Max.dmp","STD-V2AimePCar-OriNorm-Min.dmp"]
+  for i,img_path in enumerate(img_paths):
+    img = mpimg.imread(img_path)
+    tmp = os.path.split(img_path)
+    plt.subplot(1,len(img_paths),i+1)
+    plt.imshow(img)
+    for pt in p_types:
+      dmp_path = os.path.join(tmp[0], "Tmp-2007-Dir-PCar",tmp[1],pt)
+      aSetPC=mmv2.cSetAimePCAR()
+      aSetPC.InitFromFile(dmp_path)
+      x1 = [p.Pt().x() for p in aSetPC.VPC()]
+      y1 = [p.Pt().y() for p in aSetPC.VPC()]
+      plt.scatter(x1, y1, 3)
+  plt.show()

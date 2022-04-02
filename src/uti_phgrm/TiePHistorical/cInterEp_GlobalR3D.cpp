@@ -292,6 +292,10 @@ void GlobalR3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipula
 
          printf("iteration number: %d; thresh: %lf\n", aNbTir, threshold);
          aSBR = RANSAC3DCore(aNbTir, threshold, aV1, aV2, a2dV1, a2dV2, inlierFinal);
+         Pt3dr aTr = aSBR.Tr();
+         double aLambda = aSBR.Lambda();
+         printf("Final aLambda: %.2lf, aTr: [%.2lf, %.2lf, %.2lf]\n", aLambda, aTr.x, aTr.y, aTr.z);
+
          aMsg = "Use 3D RANSAC to automatically estimate 3D Helmet transformation using tie points in Homol" + inSH;
      }
 
@@ -510,7 +514,7 @@ int GlobalR3D_main(int argc,char ** argv)
        GetImgListVec(aImgList1, aVIm1Tmp);
        GetImgListVec(aImgList2, aVIm2Tmp);
        for(int i=0; i<int(aVIm1Tmp.size()); i++){
-           for(int j=0; j<int(aVIm1Tmp.size()); j++){
+           for(int j=0; j<int(aVIm2Tmp.size()); j++){
                aVIm1.push_back(aVIm1Tmp[i]);
                aVIm2.push_back(aVIm2Tmp[j]);
            }
@@ -546,7 +550,7 @@ int GetOrthoHom_main(int argc,char ** argv)
    std::string aDSMFileR = "MMLastNuage.xml";
 
    std::string aInSH = "";
-   std::string aImgPair;
+   std::string aImgPair = "";
 
    std::string aOrthoDirL;
    std::string aOrthoDirR;
@@ -604,7 +608,7 @@ int GetOrthoHom_main(int argc,char ** argv)
        GetImgListVec(aImgList1, aVIm1Tmp);
        GetImgListVec(aImgList2, aVIm2Tmp);
        for(int i=0; i<int(aVIm1Tmp.size()); i++){
-           for(int j=0; j<int(aVIm1Tmp.size()); j++){
+           for(int j=0; j<int(aVIm2Tmp.size()); j++){
                aVIm1.push_back(aVIm1Tmp[i]);
                aVIm2.push_back(aVIm2Tmp[j]);
            }
@@ -786,7 +790,8 @@ Pt2di PileImgs(std::string aDir, std::vector<std::string> aVIm1, std::string aOr
     for(int i=0; i<int(aVIm1.size()); i++)
     {
         std::string aImg1 = aVIm1[i];
-        Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+        //Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+        Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
         Pt2di ImgSzL = aRGBIm1.sz();
 
         std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
@@ -829,7 +834,7 @@ Pt2di PileImgs(std::string aDir, std::vector<std::string> aVIm1, std::string aOr
     SaveTfw(aTfwFile, aOrthoResolPlani, aOrthoOriPlani);
     printf("aOrthoResolPlani: [%.2lf, %.2lf], aOrthoOriPlani: [%.2lf, %.2lf]\n", aOrthoResolPlani.x, aOrthoResolPlani.y, aOrthoOriPlani.x, aOrthoOriPlani.y);
 
-    if(1){
+    if(0){
         aTfwFile = "/mnt/e4833a33-2e75-4f51-907f-10b923e3000d/PhDFullTest/Pezenas/PileImg/Tmp_PseudoOrtho/Ortho-MEC-Malt_2015-.tfw";
         ReadTfw(aTfwFile, aTmp);
         aOrthoResolPlani = Pt2dr(aTmp[0], aTmp[3]);
@@ -845,7 +850,8 @@ Pt2di PileImgs(std::string aDir, std::vector<std::string> aVIm1, std::string aOr
     for(int i=0; i<int(aVIm1.size()); i++)
     {
         std::string aImg1 = aVIm1[i];
-        Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+        //Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+        Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
         Pt2di ImgSzL = aRGBIm1.sz();
 
         std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
@@ -951,7 +957,8 @@ int PileImgs_main(int argc,char ** argv)
     System(strCpImg);
     */
 
-    Tiff_Im aRGBIm1((aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile).c_str());
+    //Tiff_Im aRGBIm1((aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile).c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile).c_str(), -1, true ,true);
     Pt2di aImgSz = aRGBIm1.sz();
     printf("Original orthophoto size: %d, %d\n", aImgSz.x, aImgSz.y);
 

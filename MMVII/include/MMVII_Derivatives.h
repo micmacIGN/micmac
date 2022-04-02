@@ -30,6 +30,8 @@ class cInterfaceTestCam
 {
     public :
 
+       virtual ~cInterfaceTestCam() {}
+
        /// initialize parameteres from "raw" vector
        virtual void  InitFromParams(const std::vector<double> &) = 0;
        /// compute values and derivatives  and fill in  VVals and VDer

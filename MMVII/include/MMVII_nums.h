@@ -33,7 +33,7 @@ template <class Type> bool ValidStrictPosFloatValue(const Type & aV)
 double RandUnif_0_1(); ///<  Uniform distribution in 0-1
 std::vector<double> VRandUnif_0_1(int aNb); ///<  Uniform distribution in 0-1
 double RandUnif_C();   ///<  Uniform distribution in  -1 1
-bool   HeadOrTail();   ///< 1/2 , french "Pile ou Face"
+bool   HeadOrTail();   ///< 1/2 , french 'Pile ou Face'
 double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[ 
 double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, but abs > aEps
 double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
@@ -44,9 +44,20 @@ class cFctrRR
    public :
       virtual  double F (double) const;  ///< Default return 1.0
       static cFctrRR  TheOne;  ///< the object return always 1
+      virtual ~cFctrRR() = default;
 };
 /// Random permutation , Higer Bias => Higer average rank
 std::vector<int> RandPerm(int aN,cFctrRR & aBias =cFctrRR::TheOne);
+/// Randomly order a vector , used in bench to multiply some test of possible order dependance
+template<class Type>  std::vector<Type>  RandomOrder(const std::vector<Type> & aV)
+{
+    std::vector<int> aPermut = RandPerm(aV.size());
+    std::vector<Type> aRes;
+    for (const auto & aI : aPermut)
+        aRes.push_back(aV.at(aI));
+    return aRes;
+}
+
 /// Random subset K among  N  !! Higher bias => lower proba of selection
 std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias =cFctrRR::TheOne);
 ///  Random modification of K Value in a set of N elem
@@ -75,9 +86,11 @@ typedef long int     tINT8;
 typedef unsigned char  tU_INT1;
 typedef unsigned short tU_INT2;
 typedef unsigned int   tU_INT4;
+typedef unsigned long int tU_INT8;
 
 
 typedef int    tStdInt;  ///< "natural" int
+typedef unsigned int    tStdUInt;  ///< "natural" int
 typedef double tStdDouble;  ///< "natural" int
 
 /* ================= rounding  ======================= */
@@ -207,6 +220,7 @@ template <class Type> class tElemNumTrait
 template <> class tElemNumTrait<tU_INT1> : public tBaseNumTrait<tStdInt>
 {
     public :
+        static tU_INT1 MaxVal() {return 0xFF;}
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT1;}
         typedef tREAL4   tFloatAssoc;
@@ -214,6 +228,7 @@ template <> class tElemNumTrait<tU_INT1> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tU_INT2> : public tBaseNumTrait<tStdInt>
 {
     public :
+        static tU_INT2 MaxVal() {return 0xFFFF;}
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT2;}
         typedef tREAL4   tFloatAssoc;
@@ -221,6 +236,7 @@ template <> class tElemNumTrait<tU_INT2> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tU_INT4> : public tBaseNumTrait<tINT8>
 {
     public :
+        static tU_INT4 MaxVal() {return 0xFFFFFFFF;}
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT4;}
         typedef tREAL8   tFloatAssoc;
@@ -295,6 +311,7 @@ template <> class tElemNumTrait<tREAL16> : public tBaseNumTrait<tREAL16>
 class cVirtualTypeNum
 {
     public :
+       virtual ~cVirtualTypeNum() = default;
        virtual bool V_IsInt()  const = 0;
        virtual bool V_Signed() const = 0;
        virtual int  V_Size()   const = 0;
@@ -367,6 +384,8 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
          static const std::string & NameType() {return E2Str(TheOnlyOne.V_TyNum());}
 };
 
+// Definition of tNumTrait<Type>::TheOnlyOne; needed in BenchMatrix.cpp
+template <class Type> const tNumTrait<Type>   tNumTrait<Type>::TheOnlyOne;
 
 // This traits type allow to comppute a temporary variable having the max
 // precision between 2 floating types
@@ -423,6 +442,35 @@ double NormalisedRatioPos(double aI1,double aI2);
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
 int BinomialCoeff(int aK,int aN);
+/* ****************  cDecomposPAdikVar *************  */
+
+//  P-adik decomposition
+//  given a b c ...
+//     x y z   ->   x + a * y +  a * b *z
+//     M  -> M%a (M/a)%b ...
+//
+class cDecomposPAdikVar
+{
+     public :
+       typedef std::vector<int> tVI;
+       cDecomposPAdikVar(const tVI &);  // Constructot from set of bases
+
+       const tVI &  Decompos(int) const; // P-Adik decomposition return internal buffer
+       const tVI &  DecomposSizeBase(int) const; // Make a decomposition using same size (push 0 is need), requires < mMumBase
+       int          FromDecompos(const tVI &) const; // P-Adik recomposition
+       static void Bench();  // Make the test on correctness of implantation
+       const int&  MulBase() const;
+     private:
+       static void Bench(const std::vector<int> & aVB);
+       void Bench(int aValue) const;
+       const int & BaseOfK(int aK) const {return mVBases.at(aK%mNbBase);}
+
+       tVI          mVBases;
+       int          mNbBase;
+       int          mMulBase;
+       mutable tVI  mRes;
+};
+
 double  RelativeDifference(const double & aV1,const double & aV2,bool * Ok=nullptr);
 
 template <class Type> int SignSupEq0(const Type & aV) {return (aV>=0) ? 1 : -1;}
@@ -484,50 +532,68 @@ tREAL8 CubAppGaussVal(const tREAL8&);
 /*       Witch Min and Max            */
 /* ********************************** */
 
-template <class TypeIndex,class TypeVal> class cWhitchMin
+template <class TypeIndex,class TypeVal,const bool IsMin> class cWhitchExtrem
 {
      public :
-         cWhitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
-             mIndexMin (anIndex),
-             mVMin     (aVal)
+         cWhitchExtrem(const TypeIndex & anIndex,const TypeVal & aVal) :
+             mIsInit     (true),
+             mIndexExtre (anIndex),
+             mValExtre   (aVal)
          {
          }
-         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
+         cWhitchExtrem() :
+             mIsInit   (false)
+	 {
+	 }
+	 bool IsInit() const {return mIsInit;}
+
+         void Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
          {
-              if (aVal<mVMin)
+              if ( (IsMin?(aNewVal<mValExtre):(aNewVal>=mValExtre)) || (!mIsInit))
               {     
-                    mVMin = aVal;
-                    mIndexMin = anIndex;
+                    mValExtre   = aNewVal;
+                    mIndexExtre = anIndex;
               }
+              mIsInit = true;
          }
-         const TypeIndex & Index() const {return mIndexMin;}
-         const TypeVal   & Val  () const {return mVMin;}
+         const TypeIndex & IndexExtre() const {AssertIsInit();return mIndexExtre;}
+         const TypeVal   & ValExtre  () const {AssertIsInit();return mValExtre;}
      private :
-         TypeIndex mIndexMin;
-         TypeVal   mVMin;
+	 void  AssertIsInit() const 
+	 {
+              MMVII_INTERNAL_ASSERT_tiny(mIsInit,"Exrem not init");
+	 }
+         bool      mIsInit;
+         TypeIndex mIndexExtre;
+         TypeVal   mValExtre;
 };
-template <class TypeIndex,class TypeVal> class cWhitchMax
+
+template <class TypeIndex,class TypeVal> class cWhitchMin : public cWhitchExtrem<TypeIndex,TypeVal,true>
 {
      public :
-         cWhitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
-             mIndexMax (anIndex),
-             mVMax     (aVal)
+         typedef  cWhitchExtrem<TypeIndex,TypeVal,true> tExrem;
+
+         cWhitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
+            tExrem (anIndex,aVal) 
          {
          }
-         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
-         {
-              if (aVal>mVMax)
-              {
-                    mVMax = aVal;
-                    mIndexMax = anIndex;
-              }
-         }
-         const TypeIndex & Index() const {return mIndexMax;}
-         const TypeVal   & Val  () const {return mVMax;}
+         cWhitchMin() : tExrem () {}
      private :
-         TypeIndex mIndexMax;
-         TypeVal   mVMax;
 };
+template <class TypeIndex,class TypeVal> class cWhitchMax : public cWhitchExtrem<TypeIndex,TypeVal,false>
+{
+     public :
+         typedef  cWhitchExtrem<TypeIndex,TypeVal,false> tExrem;
+
+         cWhitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+            tExrem (anIndex,aVal) 
+         {
+         }
+         cWhitchMax() : tExrem () {}
+     private :
+};
+
+
 template <class TypeIndex,class TypeVal> class cWhitchMinMax
 {
      public  :
@@ -536,6 +602,8 @@ template <class TypeIndex,class TypeVal> class cWhitchMinMax
              mMax(anIndex,aVal)
          {
          }
+         cWhitchMinMax() { }
+
          void Add(const TypeIndex & anIndex,const TypeVal & aVal)
          {
              mMin.Add(anIndex,aVal);
@@ -558,6 +626,49 @@ template <class TypeVal> void UpdateMinMax(TypeVal & aVarMin,TypeVal & aVarMax,c
     if (aValue<aVarMin) aVarMin = aValue;
     if (aValue>aVarMax) aVarMax = aValue;
 }
+
+/// Class to store min and max values
+template <class TypeVal> class cBoundVals
+{
+	public :
+            cBoundVals() :
+                   mVMin ( std::numeric_limits<TypeVal>::max()),
+		   mVMax (-std::numeric_limits<TypeVal>::max())
+	    {
+            }
+            void Add(const TypeVal & aVal)
+            {
+                 UpdateMinMax(mVMin,mVMax,aVal);
+            }
+
+	    const TypeVal  &  VMin () const {return mVMin;}
+	    const TypeVal  &  VMax () const {return mVMax;}
+	private :
+            TypeVal  mVMin;
+            TypeVal  mVMax;
+};
+/// Class to store min and max values AND average
+template <class TypeVal> class cAvgAndBoundVals  : public cBoundVals<TypeVal>
+{
+	public :
+		cAvgAndBoundVals() :
+			cBoundVals<TypeVal>(),
+			mSomVal  (0),
+			mNbVals  (0)
+	        {
+	        }
+                void Add(const TypeVal & aVal)
+		{
+			cBoundVals<TypeVal>::Add(aVal);
+			mSomVal += aVal;
+			mNbVals++;
+		}
+		TypeVal  Avg() const { SafeDiv(mSomVal,mNbVals); }
+	private :
+           TypeVal  mSomVal;
+           TypeVal  mNbVals;
+};
+
 // This rather "strange" function returns a value true at frequence  as close as possible
 // to aFreq, and with the warantee that it is true for last index
 

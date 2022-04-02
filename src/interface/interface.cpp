@@ -486,6 +486,11 @@ bool Interface::checkMicmac() {
               size_t size=sizeof(cpu_count) ;
               if (sysctlbyname("hw.ncpu",&cpu_count,&size,NULL,0)) cpu_count = 2;
         #endif
+	//// ADDED
+	//set number of process according to env variable MICMAC_MAX_THREADS if defined.
+    if(const char* env_p = std::getenv("MICMAC_MAX_THREADS"))
+        cpu_count = env_p;
+    //// END ADDED		
 	maxcpu = (settings->value("cpu").toString().isEmpty())? cpu_count : settings->value("cpu").toInt();
 	settings->setValue("cpu", maxcpu);
 

@@ -130,7 +130,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mSubPatchXml = "SubPatch.xml";
     mR2DThreshold = 10;
     mR3DThreshold = -1;
-    mCrossCorrThreshold = 0.5;
+    mCrossCorrThreshold = 0.6;
     mWindowSize = 32;
     mViz = false;
 //    mDSMFileL = "MMLastNuage.xml";
@@ -269,7 +269,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             << EAM(mCrossCorrelationOutSH,"CCOutSH",true,"Output Homologue extenion for NB/NT mode of cross correlation, Def='CCInSH'-CrossCorrelation")
                //<< EAM(mSubPatchXml, "SubPatchXml", true, "The xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
             << EAM(mWindowSize, "SzW",true, "Window size of cross correlation, Def=32")
-            << EAM(mCrossCorrThreshold, "CCTh",true, "Corss correlation threshold, Def=0.5");
+            << EAM(mCrossCorrThreshold, "CCTh",true, "Corss correlation threshold, Def=0.6");
 
         //StdCorrecNameOrient(mOutRPC,mDir,true);
 
@@ -370,6 +370,7 @@ std::string cCommonAppliTiepHistorical::ComParamGetPatchPair()
 
 std::string cCommonAppliTiepHistorical::ComParamSuperGlue()
 {
+    cout<<"mViz "<<mViz<<endl;
     std::string aCom ="";
     if (EAMIsInit(&mInput_dir))   aCom +=  " InDir=" + mDir + "/" + mInput_dir;
     //if (EAMIsInit(&mOutput_dir))   aCom +=  " SpGOutDir=" + mDir + "/" + mOutput_dir;
@@ -993,8 +994,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
         }
         */
         if(mExe && (!mSkipTentativeMatch))
-            cEl_GPAO::DoComInParal(aComList);
-            //cEl_GPAO::DoComInSerie(aComList);
+            //cEl_GPAO::DoComInParal(aComList);
+            cEl_GPAO::DoComInSerie(aComList);
     }
     else
     {
@@ -1170,7 +1171,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mImg4MatchList2,"IL2",true,"RGB images in epoch2 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list), Def=ImgList2")
                << EAM(mCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(mUseDepth,"UseDep",true,"GetPatchPair for depth maps as well (this option is only used for developper), Def=false")
-               << EAM(mRotateDSM,"Rotate",true,"The angle of clockwise rotation from the master DSM/orthophoto to the secondary DSM/orthophoto for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
+               << EAM(mRotateDSM,"Rotate",true,"The angle of clockwise rotation from the master DSM/orthophoto to the secondary DSM/orthophoto for rough co-registration (only 5 options available: 0, 90, 180, 270 and -1. -1 means all the 4 rotations (0, 90, 180, 270) will be executed, and the one with the most inlier will be kept.), Def=-1")
                << EAM(mSkipCoReg, "SkipCoReg", true, "Skip the step of rough co-registration, when the input orientations of epoch1 and epoch 2 are already co-registrated, Def=false")
                << EAM(mSkipPrecise, "SkipPrecise", true, "Skip the step of the whole precise matching pipeline, Def=false")
                << EAM(mSkipGetOverlappedImages, "SkipGetOverlappedImages", true, "Skip the step of \"mGetOverlappedImages\" in precise matching (this option is used when the results of \"GetOverlappedImages\" already exist), Def=false")
@@ -1358,7 +1359,8 @@ mTImMask (aDSMSz)
 
             mDSMName = aImDSM.Image();
             std::string aDSMFullName = aDSMDir + mDSMName;
-            Tiff_Im aImDSMTif(aDSMFullName.c_str());
+            //Tiff_Im aImDSMTif(aDSMFullName.c_str());
+            Tiff_Im aImDSMTif = Tiff_Im::StdConvGen((aDSMFullName).c_str(), -1, true ,true);
             ELISE_COPY
             (
             mTImDSM.all_pts(),
@@ -1368,7 +1370,8 @@ mTImMask (aDSMSz)
 
             mMaskName = aImDSM.Masq();
             std::string aMaskFullName = aDSMDir + mMaskName;
-            Tiff_Im aImMaskTif(aMaskFullName.c_str());
+            //Tiff_Im aImMaskTif(aMaskFullName.c_str());
+            Tiff_Im aImMaskTif = Tiff_Im::StdConvGen((aMaskFullName).c_str(), -1, true ,true);
             ELISE_COPY
             (
             mTImMask.all_pts(),
@@ -1537,7 +1540,8 @@ TIm2D<float,double> cGet3Dcoor::SetDSMInfo(std::string aDSMFile, std::string aDS
 
         cImage_Profondeur aImDSM = aNuageIn.Image_Profondeur().Val();
         std::string aImName = aDSMDir + aImDSM.Image();
-        Tiff_Im aImDSMTif(aImName.c_str());
+        //Tiff_Im aImDSMTif(aImName.c_str());
+        Tiff_Im aImDSMTif = Tiff_Im::StdConvGen(aImName.c_str(), -1, true ,true);
 
         Pt2di aSzOut = mDSMSz;
         TIm2D<float,double> aTImDSM(aSzOut);
@@ -1846,7 +1850,7 @@ std::string GetScaledImgName(std::string aImgName, Pt2di ImgSz, double dScale)
 
     //printf("%d, %.2lf, %d\n", nSz1, dScaleNm, nScaleNm);
 
-    std::string aImgScaledName = "Resol" + ToString(nScaleNm) + "_Teta0_" + aImgName;
+    std::string aImgScaledName = "Resol" + ToString(nScaleNm) + "_Teta0_" + StdPrefix(aImgName)+".tif";
 
     return aImgScaledName;
 }
@@ -1860,7 +1864,8 @@ std::string ExtractSIFT(std::string aImgName, std::string aDir, double dScale)
         return "";
     }
 
-    Tiff_Im aRGBIm1(aImgNameWithDir.c_str());
+    //Tiff_Im aRGBIm1(aImgNameWithDir.c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen(aImgNameWithDir.c_str(), -1, true ,true);
     Pt2di ImgSz = aRGBIm1.sz();
     int nSz1 = int(max(ImgSz.x, ImgSz.y)*1.0/dScale);
 
@@ -2248,10 +2253,14 @@ cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1
 {
     double aEpslon = 0.0000001;
     cSolBasculeRig aSBR = cSolBasculeRig::Id();
-    cSolBasculeRig aSBRBest = cSolBasculeRig::Id();
+    //cSolBasculeRig aSBRBest = cSolBasculeRig::Id();
     int i, j;
     int nMaxInlier = 0;
     std::vector<ElCplePtsHomologues> inlierCur;
+    std::vector<Pt3dr> aInlierCur3DL;
+    std::vector<Pt3dr> aInlierCur3DR;
+    std::vector<Pt3dr> aInlierFinal3DL;
+    std::vector<Pt3dr> aInlierFinal3DR;
     int nPtNum = aV1.size();
 
     for(j=0; j<aNbTir; j++)
@@ -2299,13 +2308,13 @@ cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1
         {
             aRBR.AddExemple(aV1[res[i]],aV2[res[i]],0,"");
             inlierCur.push_back(ElCplePtsHomologues(a2dV1[res[i]], a2dV2[res[i]]));
+            aInlierCur3DL.push_back(aV1[res[i]]);
+            aInlierCur3DR.push_back(aV2[res[i]]);
             /*
             printf("%dth, seed: %d; [%.2lf, %.2lf, %.2lf]; [%.2lf, %.2lf, %.2lf]\n", i,res[i], aV1[res[i]].x, aV1[res[i]].y, aV1[res[i]].z, aV2[res[i]].x, aV2[res[i]].y, aV2[res[i]].z);
             printf("[%.2lf, %.2lf]; [%.2lf, %.2lf]\n", a2dV1[res[i]].x, a2dV1[res[i]].y, a2dV2[res[i]].x, a2dV2[res[i]].y);
             */
         }
-
-
 
         aRBR.CloseWithTrGlob();
         aRBR.ExploreAllRansac();
@@ -2326,21 +2335,44 @@ cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1
             if(dist < threshold)
             {
                 inlierCur.push_back(ElCplePtsHomologues(a2dV1[i], a2dV2[i]));
+                aInlierCur3DL.push_back(aV1[i]);
+                aInlierCur3DR.push_back(aV2[i]);
                 nInlier++;
             }
         }
         if(nInlier > nMaxInlier)
         {
             nMaxInlier = nInlier;
-            aSBRBest = aSBR;
+            //aSBRBest = aSBR;
             inlierFinal = inlierCur;
+            aInlierFinal3DL = aInlierCur3DL;
+            aInlierFinal3DR = aInlierCur3DR;
             printf("Iter: %d/%d, seed: %d, %d, %d;  ", j, aNbTir, res[0], res[1], res[2]);
-            printf("nPtNum: %d, nMaxInlier: %d\n", nPtNum, nMaxInlier);
+            printf("nPtNum: %d, nMaxInlier: %d; ", nPtNum, nMaxInlier);
+
+            Pt3dr aTr = aSBR.Tr();
+            double aLambda = aSBR.Lambda();
+            printf("aLambda: %.2lf, aTr: [%.2lf, %.2lf, %.2lf]; \n", aLambda, aTr.x, aTr.y, aTr.z);
+            //ElMatrix<double> aRot = aSBR.Rot();
         }
 
         inlierCur.clear();
+        aInlierCur3DL.clear();
+        aInlierCur3DR.clear();
     }
-    return aSBRBest;
+    printf("nMaxInlier: %d\n", int(aInlierFinal3DL.size()));
+    //printf("nMaxInlier: %d\n", int(inlierFinal.size()));
+
+    cRansacBasculementRigide aRBR(false);
+    for(int i=0; i<int(aInlierFinal3DL.size()); i++)
+    {
+        aRBR.AddExemple(aInlierFinal3DL[i], aInlierFinal3DR[i],0,"");
+    }
+    aRBR.CloseWithTrGlob();
+    aRBR.ExploreAllRansac();
+    aSBR = aRBR.BestSol();
+
+    return aSBR;
 }
 
 void Save3DXml(std::vector<Pt3dr> vPt3D, std::string aOutXml)
@@ -2411,7 +2443,8 @@ bool GetImgBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3
         return false;
     }
 
-    Tiff_Im aRGBIm1((aRGBImgDir+"/"+aImg1).c_str());
+    //Tiff_Im aRGBIm1((aRGBImgDir+"/"+aImg1).c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aRGBImgDir+"/"+aImg1).c_str(), -1, true ,true);
     Pt2di aImgSz = aRGBIm1.sz();
 
     Pt2dr aPCorner[4];
@@ -2442,7 +2475,7 @@ bool GetImgBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3
 
 void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut)
 {
-    cout<<aDir<<endl;
+    //cout<<aDir<<endl;
     cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aDir+"/"+aImg1));
     //cout<<aImg1<<endl;
 
@@ -2460,7 +2493,8 @@ void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut)
         aImg1 = aGrayImgName;
     }
 
-    Tiff_Im aDSMIm1((aDir+"/"+aImg1).c_str());
+    //Tiff_Im aDSMIm1((aDir+"/"+aImg1).c_str());
+    Tiff_Im aDSMIm1 = Tiff_Im::StdConvGen((aDir+"/"+aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aDSMIm1.sz();
 
     aNameOut = aDir+"/"+aNameOut;
@@ -2705,4 +2739,65 @@ int TransmitHelmert_main(int argc,char ** argv)
     */
 
    return EXIT_SUCCESS;
+}
+
+void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, std::vector<std::string> vPatchesL, std::vector<std::string> vPatchesR, std::vector<cElHomographie> vHomoL, std::vector<cElHomographie> vHomoR, bool bPrint)
+{
+    //cout<<aSubPatchXml<<endl;
+    cSetOfPatches aDAFout;
+
+    cMes1Im aIms1;
+    cMes1Im aIms2;
+
+    aIms1.NameIm() = GetFileName(aImg1);
+    aIms2.NameIm() = GetFileName(aImg2);
+
+    //cout<<aIms1.NameIm()<<endl;
+
+    int nPatchNumL = vPatchesL.size();
+    int nPatchNumR = vPatchesR.size();
+    for(int i=0; i < nPatchNumL; i++)
+    {
+        //cout<<i<<"/"<<nPatchNum<<endl;
+        cOnePatch1I patch1;
+        patch1.NamePatch() = vPatchesL[i];
+        patch1.PatchH() = vHomoL[i].ToXml();
+        aIms1.OnePatch1I().push_back(patch1);
+
+        if(bPrint)
+        {
+            printf("%d, %s: \n", i, vPatchesL[i].c_str());
+            vHomoL[i].Show();
+        }
+    }
+
+    for(int i=0; i < nPatchNumR; i++)
+    {
+        cOnePatch1I patch2;
+        patch2.NamePatch() = vPatchesR[i];
+        patch2.PatchH() = vHomoR[i].ToXml();
+        aIms2.OnePatch1I().push_back(patch2);
+
+        if(bPrint)
+        {
+            printf("%d, %s: \n", i, vPatchesR[i].c_str());
+            vHomoR[i].Show();
+        }
+    }
+
+    aDAFout.Mes1Im().push_back(aIms1);
+    aDAFout.Mes1Im().push_back(aIms2);
+
+    MakeFileXML(aDAFout, aSubPatchXml);
+}
+
+std::string GetFileName(std::string strIn)
+{
+    std::string strOut = strIn;
+
+    std::size_t found = strIn.find("/");
+    if (found!=std::string::npos)
+        strOut = strIn.substr(found+1, strIn.length());
+
+    return strOut;
 }

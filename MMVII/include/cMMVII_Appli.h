@@ -94,6 +94,10 @@ class cSpecMMVII_Appli
 
        // bool HasDataTypeIn(const eApDT & aType) const;
        // bool HasDataTypeOut(const eApDT & aType) const;
+
+       // Display command line args
+       static void ShowCmdArgs(void);
+
     private :
        static std::vector<cSpecMMVII_Appli*> TheVecAll;
        static std::vector<cSpecMMVII_Appli*> & InternVecAll(); ///< vectors of all specifs
@@ -106,6 +110,8 @@ class cSpecMMVII_Appli
        tVaDT                 mVOutputs;   ///<  Vector Output Data Type
        std::string           mNameFile;   ///< C++ file where it is defined, may be usefull for devlopers ?
 
+   // Args in the first call of an AllocExecuteDestruct(args) are stored in TheCmdArgs
+       static std::vector<std::string> TheCmdArgs;
 };
 
 /// Class to store Mandatory args for recursive call
@@ -341,10 +347,13 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static bool   ExistAppli();         ///< Return if the appli exist, no error
         static cMMVII_Appli & CurrentAppli();   ///< Return the unique appli, error if not
         virtual int Exe() = 0;              ///< Do the "real" job
+        virtual int ExeOnParsedBox(); ///< Action to exec for each box, When the appli parse a big file , def error
+
+
         virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
-        bool    IsInit(void *);             ///< indicate for each variable if it was initiazed by argc/argv
+        bool    IsInit(const void *);             ///< indicate for each variable if it was initiazed by argc/argv
         template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
         {
             if (! IsInit(&aVar))
@@ -466,7 +475,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mPatHelp;       ///< Possible filter on name of optionnal param shown
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
-        cExtSet<void *>                           mSetInit;       ///< Adresses of all initialized variables
+        cExtSet<const void *>                     mSetInit;       ///< Adresses of all initialized variables
         bool                                      mInitParamDone; ///< To Check Post Init was not forgotten
         cColStrAObl                               mColStrAObl;    ///< To use << for passing multiple string
         cColStrAOpt                               mColStrAOpt;    ///< To use << for passing multiple pair
@@ -522,6 +531,19 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mTiePPrefOut;  ///< Prefix for output Tie Points ...
         std::string                               mTiePPrefIn;   ///< Prefix for inout  Tie Points ...
 };
+
+
+bool    IsInit(const void *);  ///< Call IsInit on the appli def
+
+// To build application outside of the main MMVII executable
+
+// To build a completly separate application
+// Must be called in main() before any use of MMVII items
+void InitStandAloneAppli(const char* aAppName, const char *aComment="");
+
+// To build a MMVII like application (arguments parsing)
+// a cSpecMMVII_Appli must be defined ...
+int InitStandAloneAppli(const cSpecMMVII_Appli & aSpec, int argc, char*argv[]);
 
 };
 #endif  //  _cMMVII_Appli_H_

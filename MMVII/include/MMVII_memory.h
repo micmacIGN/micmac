@@ -150,7 +150,7 @@ class  cMemCheck
               }
          }
          cMemCheck(const cMemCheck &)  : cMemCheck () {}
-         ~cMemCheck() 
+         ~cMemCheck()
          {
             if (mActiveNbObj)
             {

@@ -2318,6 +2318,35 @@ void  BinaryUnDumpFromFile(cGPU_Correl &,ELISE_fp &);
 
 std::string  Mangling( cGPU_Correl *);
 
+class cMutiCorrelOrthoExt
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cMutiCorrelOrthoExt & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< std::string > & Cmd();
+        const cTplValGesInit< std::string > & Cmd()const ;
+
+        cTplValGesInit< std::string > & Options();
+        const cTplValGesInit< std::string > & Options()const ;
+
+        cTplValGesInit< int > & DeltaZ();
+        const cTplValGesInit< int > & DeltaZ()const ;
+    private:
+        cTplValGesInit< std::string > mCmd;
+        cTplValGesInit< std::string > mOptions;
+        cTplValGesInit< int > mDeltaZ;
+};
+cElXMLTree * ToXMLTree(const cMutiCorrelOrthoExt &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMutiCorrelOrthoExt &);
+
+void  BinaryUnDumpFromFile(cMutiCorrelOrthoExt &,ELISE_fp &);
+
+std::string  Mangling( cMutiCorrelOrthoExt *);
+
 class cGPU_CorrelBasik
 {
     public:
@@ -2836,6 +2865,9 @@ class cTypeCAH
         cTplValGesInit< cGPU_Correl > & GPU_Correl();
         const cTplValGesInit< cGPU_Correl > & GPU_Correl()const ;
 
+        cTplValGesInit< cMutiCorrelOrthoExt > & MutiCorrelOrthoExt();
+        const cTplValGesInit< cMutiCorrelOrthoExt > & MutiCorrelOrthoExt()const ;
+
         cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik();
         const cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik()const ;
 
@@ -2866,6 +2898,7 @@ class cTypeCAH
         cTplValGesInit< cCensusCost > mCensusCost;
         cTplValGesInit< cCorrel2DLeastSquare > mCorrel2DLeastSquare;
         cTplValGesInit< cGPU_Correl > mGPU_Correl;
+        cTplValGesInit< cMutiCorrelOrthoExt > mMutiCorrelOrthoExt;
         cTplValGesInit< cGPU_CorrelBasik > mGPU_CorrelBasik;
         cTplValGesInit< cMultiCorrelPonctuel > mMultiCorrelPonctuel;
         cTplValGesInit< cScoreLearnedMMVII > mScoreLearnedMMVII;
@@ -2927,6 +2960,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< cGPU_Correl > & GPU_Correl();
         const cTplValGesInit< cGPU_Correl > & GPU_Correl()const ;
+
+        cTplValGesInit< cMutiCorrelOrthoExt > & MutiCorrelOrthoExt();
+        const cTplValGesInit< cMutiCorrelOrthoExt > & MutiCorrelOrthoExt()const ;
 
         cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik();
         const cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik()const ;
@@ -4436,6 +4472,9 @@ class cEtapeMEC
 
         cTplValGesInit< cGPU_Correl > & GPU_Correl();
         const cTplValGesInit< cGPU_Correl > & GPU_Correl()const ;
+
+        cTplValGesInit< cMutiCorrelOrthoExt > & MutiCorrelOrthoExt();
+        const cTplValGesInit< cMutiCorrelOrthoExt > & MutiCorrelOrthoExt()const ;
 
         cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik();
         const cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik()const ;

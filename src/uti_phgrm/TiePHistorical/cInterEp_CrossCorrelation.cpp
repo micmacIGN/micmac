@@ -108,7 +108,8 @@ bool GetPxVal(std::string aDir, std::string aImg, int aWindowSize, Pt2dr aPt, st
 
     int i, j;
 
-    Tiff_Im aRGBPatch1((aDir+"/"+aImg).c_str());
+    //Tiff_Im aRGBPatch1((aDir+"/"+aImg).c_str());
+    Tiff_Im aRGBPatch1 = Tiff_Im::StdConvGen((aDir+"/"+aImg).c_str(), -1, true ,true);
     Pt2di ImgSz = aRGBPatch1.sz();
     TIm2D<U_INT1,INT> aTImProfPx(ImgSz);
     ELISE_COPY
@@ -190,8 +191,6 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     ReadXml(aImg1, aImg2, aPatchDir+"/"+aSubPatchXml, vPatchesL, vPatchesR, vHomoL, vHomoR);
     int nPatchLNum = int(vPatchesL.size());
     int nPatchRNum = int(vPatchesR.size());
-    printf("Left patch number: %d\n", nPatchLNum);
-    printf("Right patch number: %d\n", nPatchRNum);
 
     if (ELISE_fp::exist_file(aDir+"/"+aImg1) == false || ELISE_fp::exist_file(aDir+"/"+aImg2) == false)
     {
@@ -217,14 +216,19 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     }
 
 
-    Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
+    //Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+"/"+aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
 
     Pt2dr CoreaPatchSz;
     CoreaPatchSz.x = aPatchSz.x - aBufferSz.x*2;
     CoreaPatchSz.y = aPatchSz.y - aBufferSz.y*2;
 
-    printf("PatchSz: [%.2lf, %.2lf]; BufferSz: [%.2lf, %.2lf]; CoreaPatchSz: [%.2lf, %.2lf]\n", aPatchSz.x, aPatchSz.y, aBufferSz.x, aBufferSz.y, CoreaPatchSz.x, CoreaPatchSz.y);
+    /*
+    printf("Left patch number: %d\n", nPatchLNum);
+    printf("Right patch number: %d\n", nPatchRNum);
+    printf("PatchSz: [%.2lf, %.2lf]; BufferSz: [%.2lf, %.2lf]; CorePatchSz: [%.2lf, %.2lf]\n", aPatchSz.x, aPatchSz.y, aBufferSz.x, aBufferSz.y, CoreaPatchSz.x, CoreaPatchSz.y);
+    */
 
     Pt2dr PatchNum;
     PatchNum.x = ceil(ImgSzL.x*1.0/CoreaPatchSz.x);

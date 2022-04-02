@@ -25,6 +25,7 @@ set(Util_Src_Files
         ${UTIL_DIR}/dates.cpp
         ${UTIL_DIR}/error.cpp
         ${UTIL_DIR}/externalToolHandler.cpp
+        ${UTIL_DIR}/checkDependencies.cpp
         ${UTIL_DIR}/fifo.cpp
         ${UTIL_DIR}/files.cpp
         ${UTIL_DIR}/num.cpp
@@ -50,6 +51,7 @@ set(Util_Src_Files
         ${UTIL_DIR}/MessageHandler.cpp
         ${UTIL_DIR}/GIT_defines.cpp
         ${UTIL_DIR}/PlyFile.cpp
+        ${UTIL_DIR}/initqtlibpath.cpp
 )
 
 source_group(Util FILES ${Util_Src_Files})
