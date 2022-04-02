@@ -5,34 +5,60 @@ namespace MMVII
 
 /* ************************************************* */
 /*                                                   */
-/*               cIsometrie3D<Type>                  */
+/*               cIsometry3D<Type>                   */
 /*                                                   */
 /* ************************************************* */
 
-template <class Type> cIsometrie3D<Type>::cIsometrie3D(const tPt& aTr,const cRotation3D<Type> & aRot) :
+template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotation3D<Type> & aRot) :
     mTr  (aTr),
     mRot (aRot)
 {
 }
 
-template <class Type> cIsometrie3D<Type>  cIsometrie3D<Type>::MapInverse() const
+//  tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt);}
+
+template <class Type> cIsometry3D<Type>  cIsometry3D<Type>::MapInverse() const
 {
-    return cIsometrie3D<Type>(-mRot.Inverse(mTr),mRot.MapInverse());
+    return cIsometry3D<Type>(-mRot.Inverse(mTr),mRot.MapInverse());
+}
+
+template <class Type> cIsometry3D<Type> cIsometry3D<Type>::operator * (const tTypeMap & aS2) const
+{
+	// mTr + R (mTr2 +R2*aP)
+	return tTypeMap(mTr+ mRot.Value(aS2.mTr),mRot*aS2.mRot);
 }
 
 //        tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt);}
 
 template <class Type> 
-         cIsometrie3D<Type> cIsometrie3D<Type>::FromRotAndInOut
+         cIsometry3D<Type> cIsometry3D<Type>::FromRotAndInOut
 	                    (const cRotation3D<Type> & aRot,const tPt& aPtIn,const tPt& aPtOut )
 {
-	return cIsometrie3D<Type>(aPtOut-aRot.Value(aPtIn),aRot);
+	return cIsometry3D<Type>(aPtOut-aRot.Value(aPtIn),aRot);
+}
+
+
+template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,const tTri  & aTriOut)
+{
+    return cIsometry3D<Type>
+	   (
+	           aTriOut.Pt(aKOut),
+                   cRotation3D<Type>::CompleteRON(aTriOut.KVect(aKOut),aTriOut.KVect((aKOut+1)%3))
+	   );
 }
 
 
 /*
+template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriInAndOut
+                        (int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut)
+{
+}
+*/
+
+
+/*
 template <class Type> 
-         cIsometrie3D<Type>  cIsometrie3D<Type>::FromTriInAndOut
+         cIsometry3D<Type>  cIsometry3D<Type>::FromTriInAndOut
                              (const cTriangle3D  & aTriIn,const cTriangle3D  & aTriOut)
 {
      cRotation3D<Type> aRIn = cRotation3D<Type>::CompleteRON(
@@ -56,6 +82,12 @@ template <class Type> cRotation3D<Type>::cRotation3D(const cDenseMatrix<Type> & 
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::MapInverse() const 
 {
     return cRotation3D(mMat.Transpose(),false);
+}
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::operator * (const tTypeMap & aS2) const
+{
+	// mTr + R (mTr2 +R2*aP)
+	return tTypeMap(mMat*aS2.mMat,false);
 }
 
 template <class Type> cPtxd<Type,3> cRotation3D<Type>::AxeI() const  {return tPt::Col(mMat,0);}
@@ -134,15 +166,6 @@ template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTet
 */
 
 
-/*
-
-void F()
-{
-  cRotation3D<double>  aR = cRotation3D<double>::RandomRot();
-}
-template   cRotation3D<double> cRotation3D<double>::RandomRot();
-*/
-
 /* ========================== */
 /*          ::                */
 /* ========================== */
@@ -151,7 +174,7 @@ template   cRotation3D<double> cRotation3D<double>::RandomRot();
 /*
 */
 #define MACRO_INSTATIATE_PTXD(TYPE)\
-template class  cIsometrie3D<TYPE>;\
+template class  cIsometry3D<TYPE>;\
 template class  cRotation3D<TYPE>;
 
 /*

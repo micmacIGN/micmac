@@ -71,6 +71,7 @@ template <class Type> class cRotation3D
        tPt   Inverse(const tPt & aPt) const {return aPt  * mMat ;}  // Work as M tM = Id
        // tTypeMapInv  MapInverse() const {return cRotation3D(mMat.Transpose(),false);}
        tTypeMapInv  MapInverse() const;
+       tTypeMap  operator* (const tTypeMap &) const;
 
        tPt   AxeI() const ;
        tPt   AxeJ() const ;
@@ -96,23 +97,28 @@ template <class Type> class cRotation3D
 
 */
 
-template <class Type> class cIsometrie3D
+template <class Type> class cIsometry3D
 {
     public :
        static constexpr int       TheDim=3;
        typedef cPtxd<Type,3>      tPt;
        typedef cTriangle<Type,3>  tTri;
        typedef Type               tTypeElem;
-       typedef cIsometrie3D<Type> tTypeMap;
-       typedef cIsometrie3D<Type> tTypeMapInv;
+       typedef cIsometry3D<Type> tTypeMap;
+       typedef cIsometry3D<Type> tTypeMapInv;
        static const int NbDOF()   {return 6;}
 
 
-       cIsometrie3D(const tPt& aTr,const cRotation3D<Type> &);
-       tTypeMapInv  MapInverse() const; // {return cIsometrie3D(-mRot.Inverse(mTr),mRot.MapInverse());}
+       cIsometry3D(const tPt& aTr,const cRotation3D<Type> &);
+       tTypeMapInv  MapInverse() const; // {return cIsometry3D(-mRot.Inverse(mTr),mRot.MapInverse());}
+       tTypeMap  operator* (const tTypeMap &) const;
 
-       static cIsometrie3D<Type> FromRotAndInOut(const cRotation3D<Type> &,const tPt& aPtIn,const tPt& aPtOut );
-       static cIsometrie3D<Type> FromTriInAndOut(const tTri  & aTriIn,const tTri  & aTriOut);
+       /// Return Isometrie with given Rot such I(PTin) = I(PTout)
+       static cIsometry3D<Type> FromRotAndInOut(const cRotation3D<Type> &,const tPt& aPtIn,const tPt& aPtOut );
+       /// Return Isome such thqt I(InJ) = OutK ;  In(InJJp1) // OutKKp1 ; In(Norm0) = NormOut
+       static cIsometry3D<Type> FromTriInAndOut(int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut);
+       /// Idem put use canonique tri = 0,I,J as input
+       static cIsometry3D<Type> FromTriOut(int aKOut,const tTri  & aTriOut);
 
        const cRotation3D<Type> & Rot() const {return mRot;}  ///< Accessor
        const tPt Tr() const {return mTr;}  ///< Accessor
