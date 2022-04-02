@@ -113,6 +113,13 @@ template <class Type,const int Dim> class cPtxd
        Type mCoords[Dim];
 };
 
+template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >
+{
+    public :
+        static  cPtxd<T,Dim>V0(){return  cPtxd<T,Dim>::PCste(0);}
+};
+
+
     ///  1 dimension specializatio,
 typedef cPtxd<double,1>  cPt1dr ;
 typedef cPtxd<int,1>     cPt1di ;
@@ -128,12 +135,6 @@ typedef cPtxd<tREAL16,3> cPt3dLR ;
 typedef cPtxd<double,3>  cPt3dr ;
 typedef cPtxd<int,3>     cPt3di ;
 typedef cPtxd<float,3>   cPt3df ;
-
-/*
-template<class Type> inline Type NullVal() {return (Type)(0);}
-template<> cPt2dr NullVal<cPt2dr>();// {return cPt2dr::PCste(0);}
-template<> cPt3dr NullVal<cPt3dr>();// {return cPt3dr::PCste(0);}
-*/
 
 
 /*
@@ -426,7 +427,7 @@ template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1
    return NormInf(RDivCByC(aP1,aP2));
 }
 
-template <const int Dim>  double AbsSurfParalogram(const cPtxd<double,Dim>&,const cPtxd<double,Dim>&);
+template <class Type,const int Dim>  Type AbsSurfParalogram(const cPtxd<Type,Dim>&,const cPtxd<Type,Dim>&);
 
 
 
@@ -434,10 +435,23 @@ template <const int Dim>  double AbsSurfParalogram(const cPtxd<double,Dim>&,cons
 
 // Most frequent conversion
 inline cPt2di ToI(const cPt2dr & aP) {return cPt2di(round_ni(aP.x()),round_ni(aP.y()));}
+inline cPt3di ToI(const cPt3dr & aP) {return cPt3di(round_ni(aP.x()),round_ni(aP.y()),round_ni(aP.z()));}
+
+template <class T> inline cPtxd<tREAL8,1> ToR(const cPtxd<T,1> & aP) {return cPtxd<tREAL8,1>(aP.x());}
+template <class T> inline cPtxd<tREAL8,2> ToR(const cPtxd<T,2> & aP) {return cPtxd<tREAL8,2>(aP.x(),aP.y());}
+template <class T> inline cPtxd<tREAL8,3> ToR(const cPtxd<T,3> & aP) {return cPtxd<tREAL8,3>(aP.x(),aP.y(),aP.z());}
+template <class T> inline cPtxd<tREAL8,4> ToR(const cPtxd<T,4> & aP) {return cPtxd<tREAL8,4>(aP.x(),aP.y(),aP.z(),aP.t());}
+/*
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}
-inline cPt3di ToI(const cPt3dr & aP) {return cPt3di(round_ni(aP.x()),round_ni(aP.y()),round_ni(aP.z()));}
+inline cPt2dr ToR(const cPt2dr & aP) {return cPt2dr(aP.x(),aP.y());}
+inline cPt2dr ToR(const cPt2dLR & aP) {return cPt2dr(aP.x(),aP.y());}
+
 inline cPt3dr ToR(const cPt3di & aP) {return cPt3dr(aP.x(),aP.y(),aP.z());}
+inline cPt3dr ToR(const cPt3df & aP) {return cPt3dr(aP.x(),aP.y(),aP.z());}
+inline cPt3dr ToR(const cPt3dr & aP) {return cPt3dr(aP.x(),aP.y(),aP.z());}
+inline cPt3dr ToR(const cPt3dLR & aP) {return cPt3dr(aP.x(),aP.y(),aP.z());}
+*/
 
 
 template <class Type,int Dim,int aKth> bool  CmpCoord(const cPtxd<Type,Dim> & aP1,const cPtxd<Type,Dim> & aP2)
@@ -474,9 +488,9 @@ cPtxd<int,Dim>  ICByC1P
         aRes[aK] = aFctr(aP1[aK]);
     return aRes;
 }
-template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_down(const cPtxd<Type,Dim>  aP);
-template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_up(const cPtxd<Type,Dim>  aP);
-template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type,Dim>  aP);
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_down(const cPtxd<Type,Dim>&  aP);
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_up(const cPtxd<Type,Dim>&  aP);
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type,Dim>&  aP);
 // template <class Type,const int Dim>  cPtxd<Type,Dim> PCste(const Type & aVal);
 
 
@@ -536,6 +550,9 @@ template <class Type,const int Dim>  class cTplBox
         static cTplBox Empty();
         static cTplBox FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty=false);
         static cTplBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
+
+	cTplBox<tREAL8,Dim> ToR() const;
+	cTplBox<tINT4,Dim>  ToI() const;
         
 
 
@@ -616,8 +633,8 @@ typedef cTplBox<int,2>  cBox2di;
 typedef cTplBox<double,2>  cBox2dr; 
 typedef cTplBox<int,3>  cBox3di; 
 typedef cTplBox<double,3>  cBox3dr; 
-cBox2dr ToR(const cBox2di &);  ///< Basic conversion
-cBox2di ToI(const cBox2dr &);  ///< Convert in englobing mode
+//cBox2dr ToR(const cBox2di &);  ///< Basic conversion
+//cBox2di ToI(const cBox2dr &);  ///< Convert in englobing mode
 cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord
 
 
@@ -676,43 +693,45 @@ template <const int Dim> class cSegmentCompiled : public cSegment<Dim>
 };
 
 /// Class for storing  basic triangle in 2 or 3 D
-template <const int Dim> class  cTriangle
+template <class Type,const int Dim> class  cTriangle
 {
      public :
-       typedef cPtxd<double,Dim> tPt;
+       typedef cPtxd<Type,Dim> tPt;
 
        cTriangle(const tPt & aP0,const tPt & aP1,const tPt & aP2);
        /// aWeight  encode in a point the 3 weights
-       tPt  FromCoordBarry(const cPt3dr & aWeight) const;
+       tPt  FromCoordBarry(const cPtxd<Type,3> & aWeight) const;
        /// Barrycenter with equal weights
        tPt  Barry() const;
 
        /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
-       double Regularity() const;
+       Type Regularity() const;
        /// Area of the triangle
-       double Area() const;
+       Type Area() const;
        /// Point equidistant to 3 point,  To finish for dim 3
        tPt CenterInscribedCircle() const;
-       const tPt & Pt(int aK) const;   /// Accessor
-       cTplBox<double,Dim>  BoxEngl() const;
+       const tPt & Pt(int aK) const;   ///< Accessor
+       tPt KVect(int aK) const;   ///<   Pk->Pk+1
+       cTplBox<Type,Dim>  BoxEngl() const;
        cTplBox<int,Dim>     BoxPixEngl() const;  // May be a bit bigger
 
      protected :
        tPt  mPts[3];
 };
 
-typedef cTriangle<2>  cTriangle2D;
-typedef cTriangle<3>  cTriangle3D;
+//typedef cTriangle<tREAL8,2>  cTriangle2D;
+// typedef cTriangle<tREAL8,3>  cTriangle3D;
+template<class Type> cPtxd<Type,3> NormalUnit(const cTriangle<Type,3> &);  // V01 ^ V02 
 
-template <const int Dim> class cTriangulation
+template <class Type,const int Dim> class cTriangulation
 {
      public :
-          typedef tREAL8             tCoord;
-          typedef cPtxd<tCoord,Dim>  tPt;
-          typedef cTriangle<Dim>     tTri;
-          typedef cPt3di             tFace;
-          typedef std::vector<tPt>   tVPt;
-          typedef std::vector<tFace> tVFace;
+          typedef Type                  tCoord;
+          typedef cPtxd<tCoord,Dim>     tPt;
+          typedef cTriangle<tCoord,Dim> tTri;
+          typedef cPt3di                tFace;
+          typedef std::vector<tPt>      tVPt;
+          typedef std::vector<tFace>    tVFace;
 
 	  tPt PAvg() const; ///< return an average point 
 	  int   IndexClosestFace(const tPt& aPClose) const; ///< Face closest to a given point
@@ -731,13 +750,13 @@ template <const int Dim> class cTriangulation
 	  /// Create a sub tri of vertices belonging to the set, require 1,2 or 3 vertice in each tri
 	  void Filter(const cDataBoundedSet<tREAL8,Dim> &,int aNbVertixThres=3) ;
 	  /// Box of Pts, error when empty, FactMargin make it slightly bigger
-	  cTplBox<tCoord,Dim>  BoxEngl(double aFactMargin = 1e-2) const;
+	  cTplBox<tCoord,Dim>  BoxEngl(Type aFactMargin = 1e-2) const;
 
 	  /// Equality is difficiult, because of permutation,just make heuristik test
-	  bool  HeuristikAlmostEqual (const cTriangulation<Dim> &,double TolPt,double TolFace)  const;
+	  bool  HeuristikAlmostEqual (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;
      protected :
 	  /// More a
-	  bool  HeuristikAlmostInclude (const cTriangulation<Dim> &,double TolPt,double TolFace)  const;
+	  bool  HeuristikAlmostInclude (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;
 
           cTriangulation(const tVPt& =tVPt(),const tVFace & =tVFace());
           void AddFace(const tFace &);

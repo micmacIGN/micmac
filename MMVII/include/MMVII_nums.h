@@ -5,9 +5,19 @@ namespace MMVII
 {
 
 // some time needs a null val for any type with + (neutral for +)
+
+template <class T> class cNV
+{
+    public :
+        static T V0(){return T(0);}
+};
+template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >;
+
+/*
 template<class Type> inline Type NullVal() {return (Type)(0);}
 template<> cPtxd<double,2>   NullVal<cPtxd<double,2>  >();// {return cPt2dr::PCste(0);}
 template<> cPtxd<double,3>   NullVal<cPtxd<double,3>  >();// {return cPt3dr::PCste(0);}
+*/
 
 
 template <class Type> bool ValidFloatValue(const Type & aV)
@@ -211,6 +221,18 @@ template <> class tBaseNumTrait<tREAL16>
         typedef tREAL16  tBase;
         typedef tREAL16  tBig;
 };
+/// Not sure usable by itself but required in some systematic template instantiatio
+template <> class tBaseNumTrait<tREAL4>
+{
+    public :
+        // By default rounding has no meaning
+        static tREAL4 RoundDownToType(const double & aV) {return aV;}
+        static tREAL4 RoundNearestToType(const double & aV) {return aV;}
+        static bool IsInt() {return false;}
+        typedef tREAL4      tBase;
+        typedef tStdDouble  tBig;
+};
+
 
     // ========================================================================
     //  tElemNumTrait : declare what must be specialized for each type
@@ -549,7 +571,8 @@ template <class TypeIndex,class TypeVal,const bool IsMin> class cWhitchExtrem
          }
          cWhitchExtrem() :
              mIsInit   (false),
-             mIndexExtre (NullVal<TypeIndex>()),  // required else compiler complains for possible use of un-initialised
+             mIndexExtre (cNV<TypeIndex>::V0()),  // required else compiler complains for possible use of un-initialised
+             // mIndexExtre (NullVal<TypeIndex>()),  // required else compiler complains for possible use of un-initialised
              mValExtre   (0)
 	 {
 	 }

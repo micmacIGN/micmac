@@ -56,7 +56,7 @@ int  cAppliCloudClip::Exe()
 {
    InitOutFromIn(mNameCloudOut,"Clip_"+mNameCloudIn);
 
-   cTriangulation3D  aTri(mNameCloudIn);
+   cTriangulation3D<tREAL8>  aTri(mNameCloudIn);
    cDataBoundedSet<tREAL8,3> * aMasq=  MMV1_Masq(aTri.BoxEngl(),DirProject()+mNameMasq);
    aTri.Filter(*aMasq);
    aTri.WriteFile(DirProject()+mNameCloudOut,mBinOut);

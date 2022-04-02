@@ -8,6 +8,8 @@
 namespace MMVII
 {
 
+typedef tREAL8  tCoordDensify;
+typedef cTriangle2DCompiled<tCoordDensify>  tTriangle2DCompiled;
 
 
 class cAppliDensifyRefMatch : public cAppliLearningMatch,
@@ -26,7 +28,7 @@ class cAppliDensifyRefMatch : public cAppliLearningMatch,
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 	int ExeOnParsedBox() override;
-	void MakeOneTri(const  cTriangle2DCompiled &);
+	void MakeOneTri(const  tTriangle2DCompiled &);
 	// std::vector<std::string>  Samples() const  override;
 
 
@@ -107,7 +109,7 @@ std::vector<std::string>  cAppliDensifyRefMatch::Samples() const
 }
 */
 
-void cAppliDensifyRefMatch::MakeOneTri(const  cTriangle2DCompiled & aTri)
+void cAppliDensifyRefMatch::MakeOneTri(const  tTriangle2DCompiled & aTri)
 {
     bool   isHGrowPx=false;
 
@@ -201,7 +203,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
          if (mDIMasqIn->GetV(aPix))
             aVPts.push_back(ToR(aPix));
     }
-    cTriangulation2D aTriangul(aVPts);
+    cTriangulation2D<tCoordDensify> aTriangul(aVPts);
     aTriangul.MakeDelaunay();
     StdOut() << "NbFace= " <<  aTriangul.NbFace() << "\n";
 

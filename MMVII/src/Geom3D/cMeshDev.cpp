@@ -4,6 +4,8 @@
 namespace MMVII
 {
 
+typedef tREAL8  tCoordDevTri;
+typedef  cTriangulation3D<tCoordDevTri> tTriangulation3D;
 
 /* ******************************************************* */
 /*                                                         */
@@ -18,9 +20,12 @@ namespace MMVII
 class cDevTriangu3d
 {
       public :
+          typedef typename cTriangulation<tCoordDevTri,3>::tFace tFace;
+
           static constexpr int NO_STEP = -1;
-          typedef typename cTriangulation<3>::tFace tFace;
-          cDevTriangu3d(const  cTriangulation3D &);
+
+          cDevTriangu3d(const  tTriangulation3D &);
+
       private :
 	  cDevTriangu3d(const cDevTriangu3d &) = delete;
 	  void AddOneFace(int aKFace); // Mark the face and its sums as reached when not
@@ -30,7 +35,7 @@ class cDevTriangu3d
 
 	  int               mNumCurStep;
           int               mNbFaceReached;
-	  const cTriangulation3D & mTri;
+	  const tTriangulation3D & mTri;
 	  std::vector<int>  mStepReach_S;  ///< indicate if a submit is selected and at which step
 	  // size_t                mLastNbSel;  
 	  std::vector<int>  mStepReach_F;  ///< indicate if a face and at which step
@@ -91,7 +96,7 @@ int cDevTriangu3d::MakeNewFace()
      return aVFNeigh.size();
 }
 
-cDevTriangu3d::cDevTriangu3d(const cTriangulation3D & aTri) :
+cDevTriangu3d::cDevTriangu3d(const tTriangulation3D & aTri) :
      mNumCurStep  (0),
      mNbFaceReached (0),
      mTri         (aTri),
@@ -164,7 +169,7 @@ int  cAppliMeshDev::Exe()
 {
    InitOutFromIn(mNameCloudOut,"Clip_"+mNameCloudIn);
 
-   cTriangulation3D  aTri(mNameCloudIn);
+   tTriangulation3D  aTri(mNameCloudIn);
    // aTri.WriteFile(DirProject()+mNameCloudOut,mBinOut);
 
    cDevTriangu3d aDev(aTri);
@@ -196,6 +201,8 @@ cSpecMMVII_Appli  TheSpecMeshDev
       __FILE__
 );
 
+#if (0)
+#endif
 
 
 };

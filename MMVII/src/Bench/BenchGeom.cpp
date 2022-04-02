@@ -33,7 +33,7 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
        // Test rotation and Axe
        {
          MMVII_INTERNAL_ASSERT_bench(aRAxe.Mat().Unitarity()<1e-5,"Complete RON 1 Vect"); // Its a rot
-         cPtxd<Type,3> aImAxe = aRAxe.Direct(aP0);
+         cPtxd<Type,3> aImAxe = aRAxe.Value(aP0);
          MMVII_INTERNAL_ASSERT_bench(Norm2(aP0-aImAxe)<1e-5,"Complete RON 1 Vect"); // P0 is its axe
        }
 
@@ -42,7 +42,7 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
            cPtxd<Type,3> aJ = aRP01.AxeJ();  // we complete the Axe with any ortog repair
            cPtxd<Type,3> aK = aRP01.AxeK();
 
-           cPtxd<Type,3> aJA = aRAxe.Direct(aJ);
+           cPtxd<Type,3> aJA = aRAxe.Value(aJ);
            Type aDif = std::abs(Cos(aJ,aJA)-cos(aTeta)) +  std::abs(Cos(aK,aJA)-sin(aTeta));
            MMVII_INTERNAL_ASSERT_bench(aDif<1e-5,"Rotation from Axe"); // P0 is its axe
        }
