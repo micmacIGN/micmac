@@ -123,6 +123,84 @@ void BenchRotation3D(cParamExeBench & aParam)
     TplBenchRotation3D<tREAL16>(aParam);
 }
 
+template<class Type> void TplBenchIsometrie(cParamExeBench & aParam)
+{
+    Type aEps = tElemNumTrait<Type>::Accuracy();
+    for (int aKCpt=0 ; aKCpt<100 ; aKCpt++)
+    {
+        int aK1 =RandUnif_N(3);
+        int aK2 =RandUnif_N(3);
+	cTriangle<Type,3>  aT1 = cTriangle<Type,3>::RandomTri(10.0);
+	cTriangle<Type,3>  aT2 = cTriangle<Type,3>::RandomTri(10.0);
+
+        cIsometry3D<Type>  aIsom = cIsometry3D<Type>::FromTriInAndOut(aK1,aT1,aK2,aT2);
+        cSimilitud3D<Type> aSim = cSimilitud3D<Type>::FromTriInAndOut(aK1,aT1,aK2,aT2);
+
+	// Check image of point
+	MMVII_INTERNAL_ASSERT_bench(Norm2(aIsom.Value(aT1.Pt(aK1)) -aT2.Pt(aK2)) <aEps,"FromTriInAndOut p1 !!");
+	MMVII_INTERNAL_ASSERT_bench(Norm2(aSim.Value(aT1.Pt(aK1)) -aT2.Pt(aK2)) <aEps,"FromTriInAndOut p1 !!");
+
+	// Check image of vect1
+	{
+	     cPtxd<Type,3> aV1 = aIsom.Rot().Value(aT1.KVect(aK1));
+	     cPtxd<Type,3> aV2 = aT2.KVect(aK2);
+	     MMVII_INTERNAL_ASSERT_bench( std::abs(Cos(aV1,aV2)-1)  <aEps,"FromTriInAndOut v2");
+
+	      aV1 = aSim.Value(aT1.Pt((aK1+1)%3)) - aSim.Value(aT1.Pt(aK1));
+	     MMVII_INTERNAL_ASSERT_bench( Norm2(aV1  -aV2)  <aEps,"FromTriInAndOut v2");
+	}
+	// Check Normals
+	{
+	    cPtxd<Type,3> aN1 = aIsom.Rot().Value(NormalUnit(aT1));
+	    cPtxd<Type,3> aN2 = NormalUnit(aT2);
+	
+	    MMVII_INTERNAL_ASSERT_bench( Norm2(aN1 - aN2)  <aEps,"FromTriInAndOut Normals");
+
+	    aN1 = aSim.Rot().Value(NormalUnit(aT1));
+	    MMVII_INTERNAL_ASSERT_bench( Norm2(aN1 - aN2)  <aEps,"FromTriInAndOut Normals");
+	}
+
+
+
+	cPtxd<Type,3> aP1 = cPtxd<Type,3>::PRandC() * Type(20.0);
+	cPtxd<Type,3> aQ1 = cPtxd<Type,3>::PRandC() * Type(20.0);
+	Type aD1 = Norm2(aP1 - aQ1) ;
+	cPtxd<Type,3> aP2 = aIsom.Value(aP1);
+	cPtxd<Type,3> aQ2 = aIsom.Value(aQ1);
+	Type aD2 = Norm2(aP2 - aQ2) ;
+
+	// Is it isometric
+	MMVII_INTERNAL_ASSERT_bench(std::abs(aD1 - aD2) <aEps,"cIsometry3D is not isometric !!");
+
+	// Check Value/Inverse
+	cPtxd<Type,3> aP3 = aIsom.Inverse(aP2);
+	MMVII_INTERNAL_ASSERT_bench(Norm2(aP1 - aP3)<aEps,"cIsometry3D Value/Inverse");
+	aP3 = aSim.Inverse(aSim.Value(aP1));
+	MMVII_INTERNAL_ASSERT_bench(Norm2(aP1 - aP3)<aEps,"cIsometry3D Value/Inverse");
+
+
+	// Check  I o I-1 = Id
+	cIsometry3D<Type> aIsoI = aIsom.MapInverse();
+	aP3 = aIsoI.Value(aP2);
+	MMVII_INTERNAL_ASSERT_bench(Norm2(aP1 - aP3)<aEps,"cIsometry3D MapInverse");
+
+	cSimilitud3D<Type> aSimI = aSim.MapInverse();
+	aP3 = aSimI.Value(aSim.Value(aP1));
+	MMVII_INTERNAL_ASSERT_bench(Norm2(aP1 - aP3)<aEps,"Sim MapInverse");
+    }
+    // StdOut() << "=======================\n";
+}
+
+
+
+
+void BenchIsometrie(cParamExeBench & aParam)
+{
+    TplBenchIsometrie<tREAL4 >(aParam);
+    TplBenchIsometrie<tREAL8 >(aParam);
+    TplBenchIsometrie<tREAL16>(aParam);
+}
+
 /* ========================== */
 /*          BenchGlobImage    */
 /* ========================== */
@@ -132,6 +210,7 @@ void BenchGeom(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Geom")) return;
 
+    BenchIsometrie(aParam);
     BenchRotation3D(aParam);
 
     aParam.EndBench();

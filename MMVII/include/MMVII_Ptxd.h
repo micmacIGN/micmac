@@ -699,6 +699,8 @@ template <class Type,const int Dim> class  cTriangle
        typedef cPtxd<Type,Dim> tPt;
 
        cTriangle(const tPt & aP0,const tPt & aP1,const tPt & aP2);
+
+       static cTriangle<Type,Dim>  RandomTri(const Type & aSz,const Type & aRegulMin = Type(1e-2));
        /// aWeight  encode in a point the 3 weights
        tPt  FromCoordBarry(const cPtxd<Type,3> & aWeight) const;
        /// Barrycenter with equal weights

@@ -6,6 +6,8 @@ namespace MMVII
 
 typedef tREAL8  tCoordDevTri;
 typedef  cTriangulation3D<tCoordDevTri> tTriangulation3D;
+typedef  cTriangle<tCoordDevTri,3> tTri3D;
+typedef  cIsometry3D<tCoordDevTri> tIsom;
 
 /* ******************************************************* */
 /*                                                         */
@@ -37,8 +39,11 @@ class cDevTriangu3d
           int               mNbFaceReached;
 	  const tTriangulation3D & mTri;
 	  std::vector<int>  mStepReach_S;  ///< indicate if a submit is selected and at which step
+	  std::vector<cPt2dr>  mVPtsDev; ///< Vector of devloped 2D points
 	  // size_t                mLastNbSel;  
 	  std::vector<int>  mStepReach_F;  ///< indicate if a face and at which step
+          int               mIndexFC; ///< Index of centerface
+	  cPt3di            mFaceC;
 };
 
 void cDevTriangu3d::AddOneFace(int aKFace)
@@ -101,9 +106,26 @@ cDevTriangu3d::cDevTriangu3d(const tTriangulation3D & aTri) :
      mNbFaceReached (0),
      mTri         (aTri),
      mStepReach_S (mTri.NbPts() ,NO_STEP),
+     mVPtsDev     (mTri.NbPts()),
      mStepReach_F (mTri.NbFace(),NO_STEP)
 {
-    AddOneFace(mTri.IndexCenterFace());
+    // 
+    mIndexFC = mTri.IndexCenterFace();
+    mFaceC   = mTri.KthFace(mIndexFC);
+    AddOneFace(mIndexFC);
+    {
+       tTri3D  aTriC = mTri.KthTri(mIndexFC);
+       tIsom  anIsom =  tIsom::FromTriOut(0,aTriC).MapInverse();
+
+       for (int aK=0 ; aK<3 ;aK++)
+       {
+	    StdOut() << " Pt= " << mFaceC[aK] << " " << mTri.NbPts() << "\n";
+	    StdOut() << " Pt= " << anIsom.Value(aTriC.Pt(aK)) << "\n";
+       }
+       getchar();
+    }
+
+
 
     while (int aNbF=MakeNewFace())
     {

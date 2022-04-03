@@ -5,6 +5,73 @@ namespace MMVII
 
 /* ************************************************* */
 /*                                                   */
+/*               cSimilitud3D<Type>                  */
+/*                                                   */
+/* ************************************************* */
+
+template <class Type> cSimilitud3D<Type>::cSimilitud3D(const Type& aScale,const tPt& aTr,const cRotation3D<Type> & aRot) :
+    mScale (aScale),
+    mTr    (aTr),
+    mRot   (aRot)
+{
+}
+// tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt)*mScale;}
+// mRot.Inverse((aPt-mTr)/mScale)
+
+template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::operator * (const tTypeMap & aS2) const
+{
+	// mTr + Sc*R (mTr2 +Sc2*R2*aP)
+	return tTypeMap(mScale*aS2.mScale  ,  mTr+ mRot.Value(aS2.mTr)*mScale ,    mRot*aS2.mRot);
+}
+
+template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::MapInverse() const
+{
+    return tTypeMap
+	   (
+	          Type(1.0) / mScale,
+		 -mRot.Inverse(mTr)/mScale,
+		  mRot.MapInverse()
+	   );
+}
+
+template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::FromScaleRotAndInOut
+                      (const Type& aScale,const cRotation3D<Type> & aRot,const tPt& aPtIn,const tPt& aPtOut )
+{
+    return tTypeMap
+	   (
+	          aScale,
+		  aPtOut - aRot.Value(aPtIn)*aScale,
+		  aRot
+	   );
+}
+
+
+template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::FromTriOut(int aKOut,const tTri  & aTriOut)
+{
+    tPt aV0 = aTriOut.KVect(aKOut);
+    tPt aV1 = aTriOut.KVect((aKOut+1)%3);
+
+    return tTypeMap
+	   (
+		   Norm2(aV0),
+	           aTriOut.Pt(aKOut),
+                   cRotation3D<Type>::CompleteRON(aV0,aV1)
+	   );
+}
+
+template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::FromTriInAndOut
+                        (int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut)
+{
+     tTypeMap aRefToOut = FromTriOut(aKOut,aTriOut);
+     tTypeMap aInToRef  = FromTriOut(aKIn,aTriIn).MapInverse();
+
+     return aRefToOut * aInToRef;
+}
+
+
+
+/* ************************************************* */
+/*                                                   */
 /*               cIsometry3D<Type>                   */
 /*                                                   */
 /* ************************************************* */
@@ -40,7 +107,7 @@ template <class Type>
 
 template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,const tTri  & aTriOut)
 {
-    return cIsometry3D<Type>
+    return tTypeMap
 	   (
 	           aTriOut.Pt(aKOut),
                    cRotation3D<Type>::CompleteRON(aTriOut.KVect(aKOut),aTriOut.KVect((aKOut+1)%3))
@@ -48,22 +115,14 @@ template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,
 }
 
 
-/*
 template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriInAndOut
                         (int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut)
 {
-}
-*/
+     tTypeMap aRefToOut = FromTriOut(aKOut,aTriOut);
+     tTypeMap aInToRef  = FromTriOut(aKIn,aTriIn).MapInverse();
 
-
-/*
-template <class Type> 
-         cIsometry3D<Type>  cIsometry3D<Type>::FromTriInAndOut
-                             (const cTriangle3D  & aTriIn,const cTriangle3D  & aTriOut)
-{
-     cRotation3D<Type> aRIn = cRotation3D<Type>::CompleteRON(
+     return aRefToOut * aInToRef;
 }
-*/
 
 
 
@@ -174,6 +233,7 @@ template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTet
 /*
 */
 #define MACRO_INSTATIATE_PTXD(TYPE)\
+template class  cSimilitud3D<TYPE>;\
 template class  cIsometry3D<TYPE>;\
 template class  cRotation3D<TYPE>;
 

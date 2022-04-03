@@ -101,6 +101,15 @@ template<class Type> cPtxd<Type,3> NormalUnit(const cTriangle<Type,3> & aTri)
 	return VUnit(aTri.KVect(0) ^ aTri.KVect(1));
 }
 
+template <class Type,const int Dim>  
+         cTriangle<Type,Dim>  cTriangle<Type,Dim>::RandomTri(const Type & aSz,const Type & aRegulMin )
+{
+	cTriangle<Type,Dim> aRes(tPt::PRandC()*aSz,tPt::PRandC()*aSz,tPt::PRandC()*aSz);
+
+	if (aRes.Regularity() > aRegulMin) return aRes;
+
+	return RandomTri(aSz,aRegulMin);
+}
 
 /* *********************************************************** */
 /*                                                             */
@@ -306,6 +315,8 @@ template <class Type,const int Dim> int cTriangulation<Type,Dim>::IndexCenterFac
 {
 	return IndexClosestFace(PAvg());
 }
+
+
 #if (0)
 #endif
 

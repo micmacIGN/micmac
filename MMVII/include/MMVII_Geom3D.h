@@ -131,6 +131,45 @@ template <class Type> class cIsometry3D
        cRotation3D<Type>  mRot;
 };
 
+template <class Type> class cSimilitud3D
+{
+    public :
+       static constexpr int       TheDim=3;
+       typedef cPtxd<Type,3>      tPt;
+       typedef cTriangle<Type,3>  tTri;
+       typedef Type               tTypeElem;
+       typedef cSimilitud3D<Type> tTypeMap;
+       typedef cSimilitud3D<Type> tTypeMapInv;
+       static const int NbDOF()   {return 7;}
+
+
+       cSimilitud3D(const Type & aScale,const tPt& aTr,const cRotation3D<Type> &);
+       tTypeMapInv  MapInverse() const; // {return cIsometry3D(-mRot.Inverse(mTr),mRot.MapInverse());}
+       tTypeMap  operator* (const tTypeMap &) const;
+
+       /// Return Similitud with given Rot such I(PTin) = I(PTout)
+       static tTypeMap FromScaleRotAndInOut(const Type&,const cRotation3D<Type> &,const tPt& aPtIn,const tPt& aPtOut );
+       /// Return Similitud such thqt I(InJ) = OutK ;  In(InJJp1) // OutKKp1 ; In(Norm0) = NormOut
+       static tTypeMap FromTriInAndOut(int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut);
+       /// Idem put use canonique tri = 0,I,J as input
+       static tTypeMap FromTriOut(int aKOut,const tTri  & aTriOut);
+
+       const cRotation3D<Type> & Rot() const {return mRot;}  ///< Accessor
+       const tPt & Tr() const {return mTr;}  ///< Accessor
+       const Type & Scale() const {return mScale;}  ///< Accessor
+
+       tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt)*mScale;}
+       tPt   Inverse(const tPt & aPt) const {return mRot.Inverse((aPt-mTr)/mScale) ;}  // Work as M tM = Id
+
+    private :
+       tTypeElem          mScale;
+       tPt                mTr;
+       cRotation3D<Type>  mRot;
+};
+
+
+
+
 
 template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 {
