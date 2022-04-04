@@ -137,6 +137,101 @@ string eToString(const eTequilaCrit & aVal)
    return "";
 }
 
+
+const float defValZBuf = 1e9;
+
+class cZBufManager
+{
+public:
+    cZBufManager (cMesh *aMesh, const vector<CamStenope *>& aListCam, int aZBuffSSEch, bool aUseCache)
+        : mMesh(aMesh), mListCam(aListCam), mZBuffSSEch(aZBuffSSEch),mUseCache(aUseCache),mZBufCache(mListCam.size()),
+          mLastFullZBufIdx(-1),mLastFullZBuf(nullptr)
+    {}
+
+    ~cZBufManager()
+    {
+        for (auto& zBuf : mZBufCache)
+            delete zBuf;
+    }
+
+    cZBuf *getZBuf(int aIdx)
+    {
+        if (! mUseCache || mZBufCache[aIdx] == nullptr)
+        {
+            CamStenope *Cam = mListCam[aIdx];
+            mZBufCache[aIdx] = new cZBuf(Cam->Sz(), defValZBuf, mZBuffSSEch);
+            mZBufCache[aIdx]->BasculerUnMaillage(*mMesh, *Cam);
+        }
+        return mZBufCache[aIdx];
+    }
+
+    void freeZBuf(int aIdx, cZBuf* &aZBuf)
+    {
+        ELISE_ASSERT(mZBufCache[aIdx] == aZBuf,"Bad usage of cBufZManager");
+        aZBuf = nullptr;
+        freeZBuf(aIdx);
+    }
+
+    Im2D_REAL4 *getZBufFullImg(int aIdx)
+    {
+        static cInterpolBilineaire<REAL4> pInterp;
+
+        mLastFullZBufIdx = aIdx;
+        if (mZBuffSSEch <= 1)
+            return getZBuf(aIdx)->get();
+
+        ELISE_ASSERT(mLastFullZBuf == nullptr,"Bad usage of cBufZManager");
+        Pt2di sz = mListCam[aIdx]->Sz();
+        Im2D_REAL4 * pZBuf = getZBuf(aIdx)->get();
+        mLastFullZBuf = new Im2D_REAL4(sz.x,sz.y,defValZBuf);
+        float **pImData = mLastFullZBuf->data();
+
+        for (int cK=0; cK < sz.x; cK++)
+            for(int dK=0; dK < sz.y; dK++)
+                pImData[dK][cK] = pZBuf->Get(Pt2dr(cK, dK) / mZBuffSSEch, pInterp, defValZBuf);
+        freeZBuf(aIdx);
+        return mLastFullZBuf;
+    }
+
+    void freeFullZBuf(int aIdx, Im2D_REAL4* &aZBuf)
+    {
+        if (aZBuf == nullptr)
+            return;
+        ELISE_ASSERT(aIdx == mLastFullZBufIdx,"Bad usage of cBufZManager");
+        if (mZBuffSSEch <= 1)
+        {
+            ELISE_ASSERT(aZBuf == mZBufCache[aIdx]->get(),"Bad usage of cBufZManager");
+            freeZBuf(aIdx);
+            return;
+        }
+        ELISE_ASSERT(aZBuf == mLastFullZBuf,"Bad usage of cBufZManager");
+        delete mLastFullZBuf;
+        mLastFullZBuf = nullptr;
+        mLastFullZBufIdx = -1;
+    }
+
+
+private:
+    cMesh *mMesh;
+    vector <CamStenope*> mListCam;
+    int mZBuffSSEch;
+    bool mUseCache;
+    vector <cZBuf*> mZBufCache;
+
+    int mLastFullZBufIdx;
+    Im2D_REAL4 *mLastFullZBuf;
+
+    void freeZBuf(int aIdx)
+    {
+        if (mUseCache)
+            return;
+        delete mZBufCache[aIdx];
+        mZBufCache[aIdx] = nullptr;
+    }
+
+};
+
+
 int Tequila_main(int argc,char ** argv)
 {
     string aDir, aPat, aFullName, aOri, aPly, aOut, aNameOut;
@@ -149,11 +244,11 @@ int Tequila_main(int argc,char ** argv)
     string aCrit = "Angle";
     bool aFilter = false;
     bool aDoGraphCut = false;
+    bool aZBufUseCache = false;
     double aLambda = 0.01;
     int aNbIter = 2;
 
     bool debug = false;
-    float defValZBuf = 1e9;
 
     ElInitArgMain
             (
@@ -168,8 +263,9 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aNbIter,"Iter", true,"Optimization iteration number (def=2)")
                             << EAM(aFilter,"Filter",true,"Remove border faces (def=false)")
                             << EAM(aNameOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
-                            << EAM(aTextMaxSize,"Sz",true,"Texture max size (def=4096)")
+                            << EAM(aTextMaxSize,"Sz",true,"Texture max size (def=8192)")
                             << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
+                            << EAM(aZBufUseCache,"ZBufCache",true,"ZBuffer cache (if True: a little faster, more memory) (def=false)")
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
                             << EAM(aAngleMax, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=90)")
                             << EAM(aMode,"Mode", true, "Mode (def = Pack)", eSAM_None, ListOfVal(eLastTM))
@@ -251,7 +347,7 @@ int Tequila_main(int argc,char ** argv)
     cout<<"*************************Computing Z-Buffer**************************"<< endl;
     cout<< endl;
 
-    vector <cZBuf> aZBuffers;
+    cZBufManager aZBufManager(&myMesh, ListCam, aZBuffSSEch, aZBufUseCache);
 
     list<string>::const_iterator itS=aLS.begin();
     const int nCam = (int)ListCam.size();
@@ -260,23 +356,20 @@ int Tequila_main(int argc,char ** argv)
         CamStenope* Cam = ListCam[aK];
         cout << "Z-buffer " << aK+1 << "/" << ListCam.size() << endl;
 
-        cZBuf aZBuffer(Cam->Sz(), defValZBuf, aZBuffSSEch);
-
-        aZBuffer.BasculerUnMaillage(myMesh, *Cam);
-
-        aZBuffers.push_back(aZBuffer);
+        cZBuf *aZBuffer = aZBufManager.getZBuf(aK);
 
         set <int> vTri;
-        aZBuffer.getVisibleTrianglesIndexes(vTri);
+        aZBuffer->getVisibleTrianglesIndexes(vTri);
 
         if (debug)
         {
-            aZBuffer.write(StdPrefix(*itS) + "_zbuf.tif");
+            aZBuffer->write(StdPrefix(*itS) + "_zbuf.tif");
 
-            aZBuffer.writeImLabel(StdPrefix(*itS) + "_label.tif");
+            aZBuffer->writeImLabel(StdPrefix(*itS) + "_label.tif");
 
             myMesh.Export(StdPrefix(*itS) + "export.ply", vTri);
         }
+        aZBufManager.freeZBuf(aK,aZBuffer);
 
         set <int>::const_iterator it = vTri.begin();
         for (;it!=vTri.end();++it)
@@ -416,8 +509,6 @@ int Tequila_main(int argc,char ** argv)
     vector <Tiff_Im> aVT;     //Vecteur contenant les images
     int aNbCh = 0;
 
-    vector <Im2D_REAL4> final_ZBufIm;
-    cInterpolateurIm2D<REAL4> * pInterp = new cInterpolBilineaire<REAL4>;
     set <int>::const_iterator it = index.begin();
     for (; it != index.end();it++)
     {
@@ -427,23 +518,6 @@ int Tequila_main(int argc,char ** argv)
             if (*it == bK)
             {
                 aVT.push_back(Tiff_Im::StdConvGen(aDir+*itS,-1,false,true));
-
-                if (aZBuffSSEch > 1)
-                {
-                    Pt2di sz = aVT.back().sz();
-                    Im2D_REAL4 * pIm = new Im2D_REAL4(sz.x,sz.y,defValZBuf);
-                    Im2D_REAL4 * pZBuf = aZBuffers[*it].get();
-                    float **pImData = pIm->data();
-
-                    for (int cK=0; cK < sz.x; cK++)
-                        for(int dK=0; dK < sz.y; dK++)
-                            pImData[dK][cK] = pZBuf->Get(Pt2dr(cK, dK) / aZBuffSSEch, *pInterp, defValZBuf);
-
-                    final_ZBufIm.push_back(*pIm);
-                }
-                else
-                    final_ZBufIm.push_back(*(aZBuffers[*it].get()));
-
                 aSzMax.SetSup(aVT.back().sz());
                 aNbCh = ElMax(aNbCh,aVT.back().nb_chan());
                 break;
@@ -487,7 +561,9 @@ int Tequila_main(int argc,char ** argv)
                     QPBO<float>* q = new QPBO<float>(nTriangles, nEdges); // max number of nodes & edges
 
                     set <int> vTri;
-                    aZBuffers[aCam].getVisibleTrianglesIndexes(vTri);
+                    cZBuf *aZBuffer = aZBufManager.getZBuf(aCam);
+                    aZBuffer->getVisibleTrianglesIndexes(vTri);
+                    aZBufManager.freeZBuf(aCam,aZBuffer);
 
                     //if (aCam==7 && (vTri.find(14591) != vTri.end()) ) cout << "the triangle is visible" << endl;
 
@@ -715,87 +791,101 @@ int Tequila_main(int argc,char ** argv)
                     aPhI
                 );
 
-        for (int aK=0; aK< nRegions; aK++)
-        {
-            cTextureBox2d *region = &(regions[aK]);
-            Pt2di p0 = region->P0();
 
-            int x, y, w, h;
-            bool rotated = tp->getTextureLocation(aK, x, y, w, h);
-
-            //cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
-
-            int x_scaled = round_ni(x * Scale);
-            int y_scaled = round_ni(y * Scale);
-
-            //cout << "image position scaled = " << x_scaled << " " << y_scaled << endl;
-
-            int w_scaled = round_ni(w * Scale);
-            int h_scaled = round_ni(h * Scale);
-
-            //cout << "image dimension scaled = " << w_scaled << " " << h_scaled << endl;
-
-            int p0x_scaled = round_ni(p0.x * Scale);
-            int p0y_scaled = round_ni(p0.y * Scale);
-
-            Pt2di p0_scaled(p0x_scaled, p0y_scaled);
-
-            Pt2di xy_scaled(x_scaled, y_scaled);
-            Pt2di wh_scaled(w_scaled, h_scaled);
-
-            int imgIdx = region->imgIdx;
-
-
-            Fonc_Num aF0 = aVT[imgIdx].in_proj()  * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
-
-            if (rotated)
+        // Add a loop level to proccess all regions of a same image at once.
+        // This allows us to use only one Z-buffer at a time
+        for (int aImIdx=0 ; aImIdx< (int)aVT.size() ; aImIdx++) {
+            // Delay creation of a new ZBufImg par aImIdx in loop: only if needed
+            Im2D_REAL4 *final_ZBufIm = nullptr;
+            cout << "Image " << aImIdx+1 << "/" << aVT.size() << "\n";
+            for (int aK=0; aK< nRegions; aK++)
             {
-                vector<Im2DGen *> aVOutInit = TiffOut.VecOfIm(Pt2di(h_scaled, w_scaled));
+                cTextureBox2d *region = &(regions[aK]);
+                Pt2di p0 = region->P0();
+                int imgIdx = region->imgIdx;
+                if (imgIdx != aImIdx)
+                    continue;
 
-                Fonc_Num Fonc = StdFoncChScale(aF0,Pt2dr(p0),Pt2dr(1.f/Scale,1.f/Scale));
-                Fonc = Max(0,Min(255,Fonc));
-                //TODO: Si ce n'est pas une image sur 8 Bits, il est plus propre de lire les bornes avant de faire le max min
-                //Fonc_Num Tronque(GenIm::type_el,Fonc_Num);
+                if (final_ZBufIm == nullptr)            // Create once for this imgIdx
+                    final_ZBufIm = aZBufManager.getZBufFullImg(imgIdx);
 
-                ELISE_COPY
-                (
-                     aVOutInit[0]->all_pts(),
-                     Fonc,
-                     StdOut(aVOutInit)
-                );
-                //erreur : segfault avec Sz=4096 Scale=0.24
+                int x, y, w, h;
+                bool rotated = tp->getTextureLocation(aK, x, y, w, h);
 
-                vector<Im2DGen *>   aVOutRotate;
-                for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
-                     aVOutRotate.push_back(aVOutInit[aK]->ImRotate(3));
+                //cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
 
-                ELISE_COPY
-                (
-                    rectangle(xy_scaled, xy_scaled + wh_scaled),
-                    trans(StdInput(aVOutRotate), -xy_scaled),
-                    TiffOut.out()
-                );
+                int x_scaled = round_ni(x * Scale);
+                int y_scaled = round_ni(y * Scale);
 
-                region->setTransfo(xy_scaled, rotated);
+                //cout << "image position scaled = " << x_scaled << " " << y_scaled << endl;
+
+                int w_scaled = round_ni(w * Scale);
+                int h_scaled = round_ni(h * Scale);
+
+                //cout << "image dimension scaled = " << w_scaled << " " << h_scaled << endl;
+
+                int p0x_scaled = round_ni(p0.x * Scale);
+                int p0y_scaled = round_ni(p0.y * Scale);
+
+                Pt2di p0_scaled(p0x_scaled, p0y_scaled);
+
+                Pt2di xy_scaled(x_scaled, y_scaled);
+                Pt2di wh_scaled(w_scaled, h_scaled);
+
+
+                Fonc_Num aF0 = aVT[imgIdx].in_proj()  * (final_ZBufIm->in_proj()!=defValZBuf);
+
+                if (rotated)
+                {
+                    vector<Im2DGen *> aVOutInit = TiffOut.VecOfIm(Pt2di(h_scaled, w_scaled));
+
+                    Fonc_Num Fonc = StdFoncChScale(aF0,Pt2dr(p0),Pt2dr(1.f/Scale,1.f/Scale));
+                    Fonc = Max(0,Min(255,Fonc));
+                    //TODO: Si ce n'est pas une image sur 8 Bits, il est plus propre de lire les bornes avant de faire le max min
+                    //Fonc_Num Tronque(GenIm::type_el,Fonc_Num);
+
+                    ELISE_COPY
+                            (
+                                aVOutInit[0]->all_pts(),
+                            Fonc,
+                            StdOut(aVOutInit)
+                            );
+                    //erreur : segfault avec Sz=4096 Scale=0.24
+
+                    vector<Im2DGen *>   aVOutRotate;
+                    for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
+                        aVOutRotate.push_back(aVOutInit[aK]->ImRotate(3));
+
+                    ELISE_COPY
+                            (
+                                rectangle(xy_scaled, xy_scaled + wh_scaled),
+                                trans(StdInput(aVOutRotate), -xy_scaled),
+                                TiffOut.out()
+                                );
+
+                    region->setTransfo(xy_scaled, rotated);
+                }
+                else
+                {
+                    Pt2di tr = p0_scaled - xy_scaled;
+
+                    region->setTransfo(-tr, rotated);
+
+                    Fonc_Num aF = aF0;
+                    while (aF.dimf_out() < aNbCh)
+                        aF = Virgule(aF0,aF);
+                    aF = StdFoncChScale(aF,Pt2dr(), Pt2dr(1.f/Scale,1.f/Scale));
+
+                    ELISE_COPY
+                            (
+                                rectangle(xy_scaled, xy_scaled + wh_scaled),
+                                trans(aF, tr),
+                                TiffOut.out()
+                                );
+                }
             }
-            else
-            {
-                Pt2di tr = p0_scaled - xy_scaled;
-
-                region->setTransfo(-tr, rotated);
-
-                Fonc_Num aF = aF0;
-                while (aF.dimf_out() < aNbCh)
-                    aF = Virgule(aF0,aF);
-                aF = StdFoncChScale(aF,Pt2dr(), Pt2dr(1.f/Scale,1.f/Scale));
-
-                ELISE_COPY
-                (
-                    rectangle(xy_scaled, xy_scaled + wh_scaled),
-                    trans(aF, tr),
-                    TiffOut.out()
-                );
-            }
+            if (final_ZBufIm)
+                aZBufManager.freeFullZBuf(aImIdx,final_ZBufIm);
         }
 
         releaseTexturePacker(tp);
@@ -978,7 +1068,9 @@ int Tequila_main(int argc,char ** argv)
                         ((ptK.y+1)*aSz.y) / aNbLine
                         );
 
-            Fonc_Num aF0 = aVT[aK].in_proj() * (final_ZBufIm[aK].in_proj()!=defValZBuf);
+            Im2D_REAL4 *final_ZBufIm = aZBufManager.getZBufFullImg(aK);
+
+            Fonc_Num aF0 = aVT[aK].in_proj() * (final_ZBufIm->in_proj()!=defValZBuf);
             Fonc_Num aF = aF0;
             while (aF.dimf_out() < aNbCh)
                 aF = Virgule(aF0,aF);
@@ -994,6 +1086,8 @@ int Tequila_main(int argc,char ** argv)
             Pt2dr Coord = ptK.mcbyc(aVT[aK].sz())*Scale;
 
             TabCoor.push_back(Coord);
+            if (final_ZBufIm)
+                aZBufManager.freeFullZBuf(aK,final_ZBufIm);
 
             /*   cout<<"Ligne : "<<ptK.y+1 << " Colonne : "<<ptK.x+1<<endl;
             cout<<"Position : "<< Coord.x <<" " << Coord.y <<endl;
