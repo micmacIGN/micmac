@@ -117,6 +117,86 @@ template <class Type,const int Dim>
 /*                                                             */
 /* *********************************************************** */
 
+class cEdgeTriangu
+{
+     public :
+        static constexpr int NO_INIT=-1;
+	cEdgeTriangu();
+	cEdgeTriangu(int aS1,int aS2,int aF1);
+        /// return 1 or 2, -1 if none and none allowed
+	int GetNumSom(int aS,bool AllowNone)  const
+	{
+            if (mI1==aS) return 1;
+            if (mI2==aS) return 2;
+	    MMVII_INTERNAL_ASSERT_tiny(AllowNone,"cEdgeTriangu::GetNumSom");
+	    return NO_INIT;
+	}
+	int SetOtherFace(int aF)  const
+	{
+	    MMVII_INTERNAL_ASSERT_tiny((mF1==NO_INIT)!=(mF2==NO_INIT),"SetOtherFace incohe");
+             if ()
+	     {
+	     }
+	}
+     private :
+        int mI1;
+        int mI2;
+        int mF1;
+        int mF2;
+};
+
+cEdgeTriangu::cEdgeTriangu() :
+     mI1  (NO_INIT),
+     mI2  (NO_INIT),
+     mF1  (NO_INIT),
+     mF2  (NO_INIT)
+{
+}
+
+class cGraphTriangu
+{
+     public :
+         typedef std::list<cEdgeTriangu *> tListAdj;
+
+	 cGraphTriangu(int aNbSom,int aNbFace);
+	 void  AddEdge(int aFace,int aS1,int aS2);
+     private :
+	 cEdgeTriangu * GetEdge(int aS1,int aS2);
+
+	 std::vector<tListAdj>     mSomNeigh;
+	 std::vector<tListAdj>     mFaceNeigh;
+	 std::vector<cEdgeTriangu> mReserve;
+};
+
+cEdgeTriangu *  cGraphTriangu::GetEdge(int aS1,int aS2)
+{
+     for (const auto & aPtrE : mSomNeigh.at(aS1))
+     {
+	if (aPtrE->GetNumSom(aS1,true)!= mFaceNeigh)
+	   return aPtrE;
+     }
+     return nullptr;
+}
+
+void  cGraphTriangu::AddEdge(int aFace,int aS1,int aS2)
+{
+    cEdgeTriangu * anE12 = GetEdge(aS1,aS2);
+    if ( anE12==nullptr)
+    {
+         MMVII_INTERNAL_ASSERT_tiny(GetEdge(aS2,aS1)==nullptr,"Sym Check in cGraphTriangu::AddEdge");
+         mReserve.push_back(cEdgeTriangu(aS1,aS2,aFace));
+	 anE12 = &mReserve.back();
+         mSomNeigh.at(aS1).push_back(anE12);
+         mSomNeigh.at(aS2).push_back(anE12);
+         mFaceNeigh.at(aFace).push_back(anE12);
+    }
+    else
+    {
+         MMVII_INTERNAL_ASSERT_tiny(GetEdge(aS2,aS1)==aS12,"Sym Check in cGraphTriangu::AddEdge");
+    }
+}
+
+
 template <class Type,const int Dim> cTriangulation<Type,Dim>::cTriangulation(const tVPt& aVPts,const tVFace& aVFace)  :
     mVPts  (aVPts)
 {
