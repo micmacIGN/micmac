@@ -214,8 +214,8 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
          MakeOneTri(cTriangle2DCompiled(aTriangul.KthTri(aKTri)));
     }
 
-     mDImInterp->ToFile("DensityPx.tif");
-     mDIMasqOut->ToFile("DensityMasq.tif");
+    mDImInterp->ToFile("DensifyPx_"+LastPrefix(APBI_NameIm()) + ".tif");
+    mDIMasqOut->ToFile("DensifyMasq_"+LastPrefix(APBI_NameIm()) + ".tif");
 
     return EXIT_SUCCESS;
 }
