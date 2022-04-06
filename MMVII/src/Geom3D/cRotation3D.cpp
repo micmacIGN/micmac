@@ -3,6 +3,9 @@
 namespace MMVII
 {
 
+
+//template <class TypeElem,class TypeMap> cIsometry3D<Type><Type> FromTriOut(const TypeMap & )
+
 /* ************************************************* */
 /*                                                   */
 /*               cSimilitud3D<Type>                  */
@@ -51,12 +54,14 @@ template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::FromTriOut(int aKOu
     tPt aV0 = aTriOut.KVect(aKOut);
     tPt aV1 = aTriOut.KVect((aKOut+1)%3);
 
-    return tTypeMap
+    tTypeMap aRes
 	   (
 		   Norm2(aV0),
 	           aTriOut.Pt(aKOut),
                    cRotation3D<Type>::CompleteRON(aV0,aV1)
 	   );
+
+    return aRes;
 }
 
 template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::FromTriInAndOut
@@ -107,11 +112,15 @@ template <class Type>
 
 template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,const tTri  & aTriOut)
 {
-    return tTypeMap
-	   (
+    tTypeMap aRes
+	     (
 	           aTriOut.Pt(aKOut),
                    cRotation3D<Type>::CompleteRON(aTriOut.KVect(aKOut),aTriOut.KVect((aKOut+1)%3))
-	   );
+	     );
+
+
+
+    return aRes;
 }
 
 
