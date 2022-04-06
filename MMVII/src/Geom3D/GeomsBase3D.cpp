@@ -59,6 +59,7 @@ template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP)
 /*          ::                */
 /* ========================== */
 
+template cPtxd<int,3>  operator ^ (const cPtxd<int,3> & aP1,const cPtxd<int,3> & aP2);
 
 #define MACRO_INSTATIATE_PTXD(TYPE)\
 template cPtxd<TYPE,3>  operator ^ (const cPtxd<TYPE,3> & aP1,const cPtxd<TYPE,3> & aP2);\

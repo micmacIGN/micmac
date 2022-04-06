@@ -174,10 +174,15 @@ template <class Type> class cSimilitud3D
 template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 {
         public :
-           typedef cPtxd<Type,3>  tPt;
+           typedef cPtxd<Type,3>      tPt;
+           typedef cPt3di             tFace;
+           typedef std::vector<tPt>   tVPt;
+           typedef std::vector<tFace> tVFace;
+
            typedef cTriangulation3D<Type>  tTriangulation3D;
            /// Constructor from file, include ply format, maybe later others (internals?)  if required
            cTriangulation3D(const std::string &);
+           cTriangulation3D(const tVPt&,const tVFace &);
            void WriteFile(const std::string &,bool isBinary) const;
 
 	   static void Bench();

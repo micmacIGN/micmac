@@ -72,9 +72,37 @@ template <class Type,const int Dim> Type cTriangle<Type,Dim>::Area() const
     return AbsSurfParalogram(mPts[1]-mPts[0],mPts[2]-mPts[0]) / 2.0;
 }
 
+/** Artefact to have a partial specialization */
+template <class Type,const int Dim>  cPtxd<Type,Dim> GlobCenterInscribedCircle(const cPtxd<Type,Dim> * aPts)
+{
+   cLeasSqtAA<Type>  aSys(Dim);
+
+   for (int aKp=0 ; aKp<3 ; aKp++)
+   {
+       const cPtxd<Type,Dim> & aP0 = aPts[aKp];
+       const cPtxd<Type,Dim> & aP1 = aPts[(aKp+1)%3];
+       cPtxd<Type,Dim> aMil = (aP0+aP1)/Type(2.0);
+       cPtxd<Type,Dim> aV01 = aP1-aP0;
+
+       aSys.AddObservation(Type(1.0),aV01.ToVect(),Scal(aMil,aV01));
+   }
+
+   // For Dim=3 we have computed inter of 3 plane mediator that co-intersect in a line
+   // we need to add also a equation inside the plane
+   MMVII_INTERNAL_ASSERT_tiny(Dim==2,"CenterInscribedCircle to Finish for DIm!=2");
+
+   return cPtxd<Type,Dim>::FromVect(aSys.Solve());
+}
+template <const int Dim>  cPtxd<int,Dim> GlobCenterInscribedCircle(const cPtxd<int,Dim> *)
+{
+   MMVII_INTERNAL_ERROR("No CenterInscribedCircle for integer type");
+   return  cPtxd<int,Dim>::PCste(2);
+}
 
 template <class Type,const int Dim>  cPtxd<Type,Dim> cTriangle<Type,Dim>::CenterInscribedCircle() const
 {
+    return GlobCenterInscribedCircle(mPts);
+	/*
    cLeasSqtAA<Type>  aSys(Dim);
 
    for (int aKp=0 ; aKp<3 ; aKp++)
@@ -92,7 +120,15 @@ template <class Type,const int Dim>  cPtxd<Type,Dim> cTriangle<Type,Dim>::Center
    MMVII_INTERNAL_ASSERT_tiny(Dim==2,"CenterInscribedCircle to Finish for DIm!=2");
 
    return tPt::FromVect(aSys.Solve());
+   */
 }
+
+/*
+template <const int Dim>  cPtxd<int,Dim> cTriangle<int,Dim>::CenterInscribedCircle() const
+{
+      return  cPtxd<int,Dim>();
+}
+*/
 
 
 template<class Type> cPtxd<Type,3> NormalUnit(const cTriangle<Type,3> & aTri)
@@ -423,6 +459,7 @@ template <class Type,const int Dim> int cTriangulation<Type,Dim>::IndexCenterFac
 /*       INSTANTIATION        */
 /* ========================== */
 
+template class cTriangle<int,2>;
 #define  INSTANTIATE_TRI_DIM(TYPE,DIM)\
 template class cTriangulation<TYPE,DIM>;\
 template class cTriangle<TYPE,DIM>;

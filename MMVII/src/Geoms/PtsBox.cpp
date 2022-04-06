@@ -919,6 +919,7 @@ template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& aP2);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);
 
+INSTANTIATE_ABS_SURF(tINT4)
 INSTANTIATE_ABS_SURF(tREAL4)
 INSTANTIATE_ABS_SURF(tREAL8)
 INSTANTIATE_ABS_SURF(tREAL16)
@@ -982,6 +983,7 @@ template cPtxd<int,DIM> Pt_round_ni(const cPtxd<TYPE,DIM>&  aP);\
 MACRO_INSTATIATE_POINT(DIM)\
 template const std::vector<std::vector<cPtxd<int,DIM>>> & TabGrowNeigh(int);\
 template const std::vector<cPtxd<int,DIM>> & AllocNeighbourhood(int);\
+MACRO_INSTATIATE_ROUNDPT(tINT4,DIM)\
 MACRO_INSTATIATE_ROUNDPT(tREAL4,DIM)\
 MACRO_INSTATIATE_ROUNDPT(tREAL8,DIM)\
 MACRO_INSTATIATE_ROUNDPT(tREAL16,DIM)\

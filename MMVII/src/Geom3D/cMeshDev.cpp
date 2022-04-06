@@ -8,6 +8,182 @@ typedef tREAL8  tCoordDevTri;
 typedef  cTriangulation3D<tCoordDevTri> tTriangulation3D;
 typedef  cTriangle<tCoordDevTri,3> tTri3D;
 typedef  cIsometry3D<tCoordDevTri> tIsom;
+typedef  cPtxd<tCoordDevTri,3>     tPtTri3d;
+
+
+typedef cTriangle<int,2> tTriPix;
+
+/// return 2 elementay triangle both oriented, DiagCrois : diag contain 00->11 , else 01->10
+template <class Type> const std::vector<cTriangle<Type,2> > &  SplitPixIn2(bool DiagCrois)
+{
+  cPtxd<Type,2> aP00(0,0); 
+  cPtxd<Type,2> aP10(1,0); 
+  cPtxd<Type,2> aP11(1,1); 
+  cPtxd<Type,2> aP01(0,1); 
+
+
+  if (DiagCrois)
+  {
+      static std::vector<cTriangle<Type,2> > aRes;
+      if (aRes.empty())
+      {
+          aRes.push_back(cTriangle<Type,2>(aP00,aP10,aP11));
+          aRes.push_back(cTriangle<Type,2>(aP00,aP11,aP01));
+      }
+      return aRes;
+  }
+
+  static std::vector<cTriangle<Type,2> > aRes;
+  if (aRes.empty())
+  {
+     aRes.push_back(cTriangle<Type,2>(aP00,aP10,aP01));
+     aRes.push_back(cTriangle<Type,2>(aP10,aP11,aP01));
+  }
+  return aRes;
+}
+
+
+/* ******************************************************* */
+/*                                                         */
+/*                    cDevTriangu3d                        */
+/*                                                         */
+/* ******************************************************* */
+
+class cGenerateSurfDevOri
+{
+     public :
+         cGenerateSurfDevOri(const cPt2di & aNb = cPt2di(50,20));
+
+	 // tTriangulation3D cTriangulation(const tVPt& =tVPt(),const tVFace & =tVFace());
+	 //
+	 std::vector<tPtTri3d> VPts() const;
+	 std::vector<cPt3di>   VFaces() const;
+
+
+     private :
+	 int  NumOfPix(const cPt2di & aKpt) const; ///< Basic numerotation of points using video sens
+	 tPtTri3d  Pt3OfPix(const cPt2di & aKpt) const; ///< Basic numerotation of points using video sens
+	 cPt2di   mNb;
+
+};
+
+int  cGenerateSurfDevOri::NumOfPix(const cPt2di & aKpt)  const
+{
+     return aKpt.x() + aKpt.y() *  (mNb.x());
+}
+
+
+tPtTri3d  cGenerateSurfDevOri::Pt3OfPix(const cPt2di & aKpt) const
+{
+     double aNbTour =  1.5;
+     double aRatiobByTour = 1.5;
+
+     double aAmpleTeta =  aNbTour * 2 * M_PI;
+
+     double aTeta =  aAmpleTeta * ((double(aKpt.x())  / (mNb.x()-1) -0.5));
+     cPt2dr  aPPlan = FromPolar(pow(aRatiobByTour,aTeta/(2*M_PI)),aTeta);
+     double  aZCyl = (aKpt.y() * aNbTour) / (mNb.x()-1);
+
+     tPtTri3d  aPCyl(aPPlan.x(),aPPlan.y(),aZCyl);
+
+
+     return tPtTri3d(aPCyl.y(),aPCyl.z(),aPCyl.x());
+
+}
+
+std::vector<tPtTri3d> cGenerateSurfDevOri::VPts() const
+{
+    std::vector<tPtTri3d> aRes(mNb.x()*mNb.y());
+
+    for (const auto & aPix : cRect2(cPt2di(0,0),mNb))
+    {
+         aRes.at(NumOfPix(aPix)) = Pt3OfPix(aPix);
+    }
+
+    return aRes;
+}
+
+std::vector<cPt3di> cGenerateSurfDevOri::VFaces() const
+{
+    std::vector<cPt3di> aRes;
+    // parse rectangle into each pixel
+    for (const auto & aPix00 : cRect2(cPt2di(0,0),mNb-cPt2di(1,1)))
+    {
+         // split the pixel in two tri
+          // const std::vector<cTriangle<int,2> > &   aVTri = SplitPixIn2<int>(HeadOrTail());
+	  for (const auto & aTri : SplitPixIn2<int>(HeadOrTail()))
+	  {
+              cPt3di aFace;
+              for (int aK=0 ; aK<3 ; aK++)
+              {
+                   cPt2di aPix = aPix00 + aTri.Pt(aK);
+		   aFace[aK] = NumOfPix(aPix);
+              }
+	      aRes.push_back(aFace);
+	  }
+    }
+    return aRes;
+}
+
+cGenerateSurfDevOri::cGenerateSurfDevOri(const cPt2di & aNb) :
+     mNb (aNb)
+{
+     SplitPixIn2<int> (true);
+}
+
+class cAppliGenMeshDev : public cMMVII_Appli
+{
+     public :
+
+        cAppliGenMeshDev(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+           // --- Mandatory ----
+	      std::string mNameCloudOut;
+           // --- Optionnal ----
+	      bool        mBinOut;
+           // --- Internal ----
+
+};
+
+cAppliGenMeshDev::cAppliGenMeshDev(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+   cMMVII_Appli     (aVArgs,aSpec)
+{
+}
+
+
+cCollecSpecArg2007 & cAppliGenMeshDev::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+ return anArgObl
+	  <<   Arg2007(mNameCloudOut,"Name of output cloud/mesh", {eTA2007::FileDirProj})
+   ;
+}
+
+cCollecSpecArg2007 & cAppliGenMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+           // << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file")
+           // << AOpt2007(mBinOut,CurOP_OutBin,"Generate out in binary format",{eTA2007::HDV})
+   ;
+}
+
+
+int  cAppliGenMeshDev::Exe()
+{
+   cGenerateSurfDevOri aGenSD;
+
+   tTriangulation3D  aTri(aGenSD.VPts(),aGenSD.VFaces());
+   aTri.WriteFile(mNameCloudOut,mBinOut);
+
+   return EXIT_SUCCESS;
+}
+
+
+
 
 /* ******************************************************* */
 /*                                                         */
@@ -211,7 +387,6 @@ tMMVII_UnikPApli Alloc_MeshDev(const std::vector<std::string> &  aVArgs,const cS
 {
    return tMMVII_UnikPApli(new cAppliMeshDev(aVArgs,aSpec));
 }
-
 cSpecMMVII_Appli  TheSpecMeshDev
 (
      "MeshDev",
@@ -223,8 +398,20 @@ cSpecMMVII_Appli  TheSpecMeshDev
       __FILE__
 );
 
-#if (0)
-#endif
+tMMVII_UnikPApli Alloc_GenMeshDev(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppliGenMeshDev(aVArgs,aSpec));
+}
+cSpecMMVII_Appli  TheSpecGenMeshDev
+(
+     "MeshDevGen",
+      Alloc_GenMeshDev,
+      "Generate artificial(synthetic) devlopable surface",
+      {eApF::Cloud},
+      {eApDT::Console},
+      {eApDT::Ply},
+      __FILE__
+);
 
 
 };

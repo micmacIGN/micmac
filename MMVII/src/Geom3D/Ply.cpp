@@ -2131,6 +2131,11 @@ void BenchPly(cParamExeBench & aParam)
 }
 
 
+template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const tVPt& aVP,const tVFace & aVF) :
+	cTriangulation<Type,3>(aVP,aVF)
+{
+}
+
 template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const std::string & aName):
 	cTriangulation<Type,3>(std::vector<tPt>())
 {
