@@ -3,6 +3,8 @@
 namespace MMVII
 {
 
+// template <class Type> cSimilitud3D(cSegment
+
 
 //template <class TypeElem,class TypeMap> cIsometry3D<Type><Type> FromTriOut(const TypeMap & )
 

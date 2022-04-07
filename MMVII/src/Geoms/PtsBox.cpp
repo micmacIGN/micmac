@@ -9,19 +9,19 @@ namespace MMVII
 /*        cSegment            */
 /* ========================== */
 
-template <const int Dim> cSegment<Dim>::cSegment(const tPt& aP1,const tPt& aP2) :
+template <class Type,const int Dim> cSegment<Type,Dim>::cSegment(const tPt& aP1,const tPt& aP2) :
    mP1  (aP1),
    mP2  (aP2)
 {
     MMVII_INTERNAL_ASSERT_tiny(mP1!=mP2,"Identic point in segment");
 }
 
-template <const int Dim> void cSegment<Dim>::CompileFoncLinear
-                              (double & aVal,tPt & aVec,const double &aV1,const double & aV2) const
+template <class Type,const int Dim> void cSegment<Type,Dim>::CompileFoncLinear
+                              (Type & aVal,tPt & aVec,const Type &aV1,const Type & aV2) const
 {
 	// return aV1 + (aV2-aV1) * Scal(mTgt,aP-this->mP1) / mN2;
     tPt aV12 =  (mP2-mP1) ;
-    aVec  =   aV12 * double((aV2-aV1) /SqN2(aV12)) ;
+    aVec  =   aV12 * Type((aV2-aV1) /SqN2(aV12)) ;
     aVal = aV1  - Scal(aVec,mP1);
 }
 
@@ -29,13 +29,22 @@ template <const int Dim> void cSegment<Dim>::CompileFoncLinear
 /*    cSegmentCompiled        */
 /* ========================== */
 
-template <const int Dim> cSegmentCompiled<Dim>::cSegmentCompiled(const tPt& aP1,const tPt& aP2) :
-    cSegment<Dim>(aP1,aP2),
+template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled(const tPt& aP1,const tPt& aP2) :
+    cSegment<Type,Dim>(aP1,aP2),
     mN2     (Norm2(aP2-aP1)),
     mTgt    ((aP2-aP1)/mN2)
 {
 }
 
+/* ========================== */
+/*    cSegment2DCompiled      */
+/* ========================== */
+
+template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const tPt& aP1,const tPt& aP2) :
+    cSegment<Type,2> (aP1,aP2),
+    mNorm            (Rot90(this->mTgt))
+{
+}
 
 /* ========================== */
 /*          ::                */
@@ -138,6 +147,16 @@ template <class Type,const int Dim>  Type AbsSurfParalogram(const cPtxd<Type,Dim
 {
     return SpecAbsSurfParalogram(aP1,aP2);
 }
+
+template <class T>   cPtxd<T,3> TP3z0  (const cPtxd<T,2> & aPt)
+{
+    return cPtxd<T,3>(aPt.x(),aPt.y(),0);
+}
+template <class T>   cPtxd<T,2> Proj  (const cPtxd<T,3> & aPt)
+{
+    return cPtxd<T,2>(aPt.x(),aPt.y());
+}
+
 
 
 
@@ -915,7 +934,17 @@ template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2
 /*       INSTANTIATION        */
 /* ========================== */
 
+#define INSTANTIATE_GEOM_REAL(TYPE)\
+class cSegment2DCompiled<TYPE>;
+
+INSTANTIATE_GEOM_REAL(tREAL4)
+INSTANTIATE_GEOM_REAL(tREAL8)
+INSTANTIATE_GEOM_REAL(tREAL16)
+
+
 #define INSTANTIATE_ABS_SURF(TYPE)\
+template  cPtxd<TYPE,3> TP3z0  (const cPtxd<TYPE,2> & aPt);\
+template  cPtxd<TYPE,2> Proj  (const cPtxd<TYPE,3> & aPt);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& aP2);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);
 
@@ -924,9 +953,14 @@ INSTANTIATE_ABS_SURF(tREAL4)
 INSTANTIATE_ABS_SURF(tREAL8)
 INSTANTIATE_ABS_SURF(tREAL16)
 
+#define INSTANTIATE_SEGM_TYPE(TYPE,DIM)\
+template class cSegment<TYPE,DIM>;\
+template class cSegmentCompiled<TYPE,DIM>;
+
 #define INSTANTIATE_SEGM(DIM)\
-template class cSegment<DIM>;\
-template class cSegmentCompiled<DIM>;
+INSTANTIATE_SEGM_TYPE(tREAL4,DIM)\
+INSTANTIATE_SEGM_TYPE(tREAL8,DIM)\
+INSTANTIATE_SEGM_TYPE(tREAL16,DIM)
 
 INSTANTIATE_SEGM(1)
 INSTANTIATE_SEGM(2)

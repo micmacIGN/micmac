@@ -137,12 +137,6 @@ typedef cPtxd<int,3>     cPt3di ;
 typedef cPtxd<float,3>   cPt3df ;
 
 
-/*
-template <typename Type> cPtxd<Type,2>  ToPolar(const cPtxd<Type,2> &);   // X,Y => rho,teta  error if X,Y==0
-template <typename Type> cPtxd<Type,2>  ToPolar(const cPtxd<Type,2> &,double aTetaDef);   // X,Y => rho,teta with def value on teta  when rho==0
-template <typename Type> cPtxd<Type,2>  FromPolar(const cPtxd<Type,2> &);
-*/
-
 
 // Create the neighboord, ie pixel not nul, with coord in [-1,0,1]  having a  number of value  !=0  <= to aNbVois
 // If dim =2 aNbVois->1 create the 4 neigh, NbVois-> 2 create the 8 neigh
@@ -670,27 +664,40 @@ template <class Type,const int Dim>  class cTplBoxOfPts
         tPt  mP1;
 };
 
-template <const int Dim> class cSegment
+template <class Type,const int Dim> class cSegment
 {
     public :
-       typedef cPtxd<double,Dim> tPt;
+       typedef cPtxd<Type,Dim> tPt;
        cSegment(const tPt& aP1,const tPt& aP2);
        /// Estimate fonc linear, with gradient paral to tangent,  given value in P1 and P2, will be F(Q) =  R.first + R.second Q
-       void CompileFoncLinear(double& aVal,tPt & aVec,const double &aV1,const double & aV2) const;
+       void CompileFoncLinear(Type & aVal,tPt & aVec,const Type  &aV1,const Type  & aV2) const;
     protected :
        tPt  mP1;
        tPt  mP2;
 };
 
-template <const int Dim> class cSegmentCompiled : public cSegment<Dim>
+template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Type,Dim>
 {
     public :
-       typedef cPtxd<double,Dim> tPt;
+       typedef cPtxd<Type,Dim> tPt;
        cSegmentCompiled(const tPt& aP1,const tPt& aP2);
-    public :
-       double  mN2;
+    private :
+       Type    mN2;
        tPt     mTgt;
 };
+
+template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
+{
+    public :
+       typedef cPtxd<Type,2>   tPt;
+       cSegment2DCompiled(const tPt& aP1,const tPt& aP2);
+       tPt  ToCoordLoc(const tPt&) const;
+       tPt  FromCoordLoc(const tPt&) const;
+    private :
+       tPt     mNorm;
+};
+/*
+*/
 
 /// Class for storing  basic triangle in 2 or 3 D
 template <class Type,const int Dim> class  cTriangle

@@ -189,6 +189,23 @@ template<class Type> void TplBenchIsometrie(cParamExeBench & aParam)
 	MMVII_INTERNAL_ASSERT_bench(Norm2(aP1 - aP3)<aEps,"Sim MapInverse");
     }
     // StdOut() << "=======================\n";
+    for (int aKCpt=0 ; aKCpt<10000 ; aKCpt++)
+    {
+         cPtxd<Type,2> aSc = cPtxd<Type,2>::PRandUnitDiff(cPtxd<Type,2>(0,0),1e-1) * Type(3.0);
+         cPtxd<Type,2> aTr = cPtxd<Type,2>::PRandC() * Type(10.0);
+
+	 cSim2D<Type>       aS2 (aTr,aSc);
+	 cSimilitud3D<Type> aS3 = aS2.Ext3D();
+
+	 cPtxd<Type,3> aP3 = cPtxd<Type,3>::PRandC() * Type(10.0);
+	 cPtxd<Type,2> aP2 = Proj(aP3);
+
+	 cPtxd<Type,3> aQ3 = aS3.Value(aP3);
+	 cPtxd<Type,2> aQ2 = aS2.Value(aP2);
+
+	 cPtxd<Type,3> aQ23(aQ2.x(),aQ2.y(),aP3.z());
+	 StdOut()  <<  "qqq " << aQ3  << aQ23 << aS3.Tr() << "\n";
+    }
 }
 
 

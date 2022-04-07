@@ -306,6 +306,10 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         typedef cNC_EigenMatWrap<Type> tNC_EW;
 
 
+	tDM  ExtendSquareMat     (int aNewSz,eModeInitImage); ///< Create a square matrix include smaller, mode of extension specified
+	tDM  ExtendSquareMatId   (int aNewSz);   ///<  Extension with identity
+	tDM  ExtendSquareMatNull (int aNewSz);   ///<  Extension with 0
+
         const cPt2di & Sz() const {return cRect2::Sz();}
         cDenseMatrix(int aX,int aY,eModeInitImage=eModeInitImage::eMIA_NoInit);
         cDenseMatrix(int aX,eModeInitImage=eModeInitImage::eMIA_NoInit);  ///< Square
