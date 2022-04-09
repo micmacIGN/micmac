@@ -72,6 +72,13 @@ template <class Type,const int Dim> Type cTriangle<Type,Dim>::Area() const
     return AbsSurfParalogram(mPts[1]-mPts[0],mPts[2]-mPts[0]) / 2.0;
 }
 
+
+template <class Type,const int Dim> cTriangle<Type,Dim> cTriangle<Type,Dim>::TriSwapPt(int aK0) const
+{
+   return cTriangle<Type,Dim>(mPts[(aK0+1)%3],mPts[(aK0)%3],mPts[(aK0+2)%3]);
+}
+
+
 /** Artefact to have a partial specialization */
 template <class Type,const int Dim>  cPtxd<Type,Dim> GlobCenterInscribedCircle(const cPtxd<Type,Dim> * aPts)
 {

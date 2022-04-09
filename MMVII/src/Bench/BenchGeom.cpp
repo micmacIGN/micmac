@@ -144,10 +144,10 @@ template<class Type> void TplBenchIsometrie(cParamExeBench & aParam)
 	{
 	     cPtxd<Type,3> aV1 = aIsom.Rot().Value(aT1.KVect(aK1));
 	     cPtxd<Type,3> aV2 = aT2.KVect(aK2);
-	     MMVII_INTERNAL_ASSERT_bench( std::abs(Cos(aV1,aV2)-1)  <aEps,"FromTriInAndOut v2");
+	     MMVII_INTERNAL_ASSERT_bench( std::abs(Cos(aV1,aV2)-1)  <aEps,"Isom:FromTriInAndOut v2");
 
 	      aV1 = aSim.Value(aT1.Pt((aK1+1)%3)) - aSim.Value(aT1.Pt(aK1));
-	     MMVII_INTERNAL_ASSERT_bench( Norm2(aV1  -aV2)  <aEps,"FromTriInAndOut v2");
+	     MMVII_INTERNAL_ASSERT_bench( Norm2(aV1  -aV2)  <aEps,"Sim:FromTriInAndOut v2");
 	}
 	// Check Normals
 	{
@@ -203,8 +203,25 @@ template<class Type> void TplBenchIsometrie(cParamExeBench & aParam)
 	 cPtxd<Type,3> aQ3 = aS3.Value(aP3);
 	 cPtxd<Type,2> aQ2 = aS2.Value(aP2);
 
-	 cPtxd<Type,3> aQ23(aQ2.x(),aQ2.y(),aP3.z());
-	 StdOut()  <<  "qqq " << aQ3  << aQ23 << aS3.Tr() << "\n";
+	 // cPtxd<Type,3> aQ23(aQ2.x(),aQ2.y(),aP3.z());
+	 // StdOut()  <<  " " << Proj(aQ3)  -aQ2 << "\n";
+	 MMVII_INTERNAL_ASSERT_bench(Norm2( Proj(aQ3)  -aQ2)<aEps,"Sim MapInverse");
+
+    }
+    for (int aKCpt=0 ; aKCpt<10000 ; aKCpt++)
+    {
+	 cTriangle<Type,3> aTri = cTriangle<Type,3>::RandomTri(100.0,1e-2);
+
+         cPtxd<Type,2> aP1 = cPtxd<Type,2>::PRandC() * Type(10.0);
+         cPtxd<Type,2> aP2 = aP1+ cPtxd<Type,2>::PRandUnitDiff(cPtxd<Type,2>(0,0),1e-1) * Type(3.0);
+
+	 int aK = round_down(RandUnif_N(2.999));
+         cSimilitud3D<Type> aSim =  cSimilitud3D<Type>::FromTriInAndSeg(aP1,aP2,aK,aTri);
+	 StdOut()  << "qqq "  << TP3z0(aP1)  - aSim.Value(aTri.Pt(aK)) << "\n";
+	 StdOut()  << "rrr "  << TP3z0(aP2)  - aSim.Value(aTri.Pt((aK+1))) << "\n";
+	 // StdOut()  << "qqq "  << aP1  <<  aSim.Value(aTri.Pt(aK)) <<  aSim.Value(aTri.Pt((aK+1)%3))<< "\n";
+	 FakeUseIt(aSim);
+
     }
 }
 

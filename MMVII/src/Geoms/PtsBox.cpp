@@ -40,11 +40,13 @@ template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled
 /*    cSegment2DCompiled      */
 /* ========================== */
 
+/*
 template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const tPt& aP1,const tPt& aP2) :
     cSegment<Type,2> (aP1,aP2),
     mNorm            (Rot90(this->mTgt))
 {
 }
+*/
 
 /* ========================== */
 /*          ::                */

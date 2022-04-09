@@ -102,6 +102,7 @@ template <class Type> class cIsometry3D
     public :
        static constexpr int       TheDim=3;
        typedef cPtxd<Type,3>      tPt;
+       typedef cPtxd<Type,2>      tPt2;
        typedef cTriangle<Type,3>  tTri;
        typedef Type               tTypeElem;
        typedef cIsometry3D<Type> tTypeMap;
@@ -120,11 +121,15 @@ template <class Type> class cIsometry3D
        /// Idem put use canonique tri = 0,I,J as input
        static cIsometry3D<Type> FromTriOut(int aKOut,const tTri  & aTriOut);
 
+
+
        const cRotation3D<Type> & Rot() const {return mRot;}  ///< Accessor
        const tPt Tr() const {return mTr;}  ///< Accessor
 
        tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt);}
        tPt   Inverse(const tPt & aPt) const {return mRot.Inverse(aPt-mTr) ;}  // Work as M tM = Id
+
+       cSimilitud3D<Type>  ToSimil() const; ///< make a similitude with scale 1
 
     private :
        tPt                mTr;
@@ -136,6 +141,7 @@ template <class Type> class cSimilitud3D
     public :
        static constexpr int       TheDim=3;
        typedef cPtxd<Type,3>      tPt;
+       typedef cPtxd<Type,2>      tPt2;
        typedef cTriangle<Type,3>  tTri;
        typedef Type               tTypeElem;
        typedef cSimilitud3D<Type> tTypeMap;
@@ -153,6 +159,9 @@ template <class Type> class cSimilitud3D
        static tTypeMap FromTriInAndOut(int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut);
        /// Idem put use canonique tri = 0,I,J as input
        static tTypeMap FromTriOut(int aKOut,const tTri  & aTriOut);
+       /*  Create a cIsom that aline seg KKp1 of tri on P1->P2  and the normal oriented on axe Z
+       */
+       static cSimilitud3D<Type> FromTriInAndSeg(const tPt2&aP1,const tPt2&aP2,int aKIn,const tTri  & aTriIn);
 
        const cRotation3D<Type> & Rot() const {return mRot;}  ///< Accessor
        const tPt & Tr() const {return mTr;}  ///< Accessor

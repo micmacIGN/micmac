@@ -3,12 +3,37 @@
 namespace MMVII
 {
 
+/* ========================== */
+/*    cSegment2DCompiled      */
+/* ========================== */
+
+template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const tPt& aP1,const tPt& aP2) :
+    cSegment<Type,2> (aP1,aP2),
+    mNorm            (Rot90(this->mTgt))
+{
+}
+
+template <class Type> cPtxd<Type,2> cSegment2DCompiled<Type>::ToCoordLoc(const tPt& aPt) const
+{
+    tPt   aV1P = aPt - this->mP1;
+    return tPt(Scal(this->mTgt,aV1P),Scal(mNorm,aV1P));
+}
+
+template <class Type> cPtxd<Type,2> cSegment2DCompiled<Type>::FromCoordLoc(const tPt& aPt) const
+{
+    return  this->mP1 + this->mTgt*aPt.x()  + mNorm*aPt.y();
+}
+
+
+/* ========================== */
+/*          cSim2D            */
+/* ========================== */
 
 template <class Type>  cSim2D<Type> cSim2D<Type>::FromExample(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  
 {
     tPt aScale = (aP1Out-aP0Out)  /  (aP1In-aP0In);
 
-    return cSim2D<Type>(aP0Out-aScale*aP1In,aScale);
+    return cSim2D<Type>(aP0Out-aScale*aP0In,aScale);
 }
 
 template <class Type>  cSimilitud3D<Type> cSim2D<Type>::Ext3D() const
@@ -26,6 +51,9 @@ template <class Type>  cSimilitud3D<Type> cSim2D<Type>::Ext3D() const
 
 }
 
+/* ========================== */
+/*             ::             */
+/* ========================== */
 
 template <class Type> cDenseMatrix<Type> MatOfMul (const cPtxd<Type,2> & aP)
 {
@@ -37,29 +65,23 @@ template <class Type> cDenseMatrix<Type> MatOfMul (const cPtxd<Type,2> & aP)
     return aRes;
 }
 
+/* ========================== */
+/*       INSTANTIATION        */
+/* ========================== */
+
+#define INSTANTIATE_GEOM_REAL(TYPE)\
+class cSegment2DCompiled<TYPE>;
+
+INSTANTIATE_GEOM_REAL(tREAL4)
+INSTANTIATE_GEOM_REAL(tREAL8)
+INSTANTIATE_GEOM_REAL(tREAL16)
 
 
-/* ========================== */
-/*          ::                */
-/* ========================== */
 
 #define MACRO_INSTATIATE_GEOM2D(TYPE)\
 template  cSim2D<TYPE> cSim2D<TYPE>::FromExample(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;\
 template  cSimilitud3D<TYPE> cSim2D<TYPE>::Ext3D() const;\
 template  cDenseMatrix<TYPE> MatOfMul (const cPtxd<TYPE,2> & aP);
-
-/*
-
-template  cSim2D<tREAL8> cSim2D<tREAL8>::FromExample(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;
-#define MACRO_INSTATIATE_GEOM2D(TYPE)\
-template cPtxd<TYPE,3>  operator ^ (const cPtxd<TYPE,3> & aP1,const cPtxd<TYPE,3> & aP2);\
-template cDenseMatrix<TYPE> MatFromCols(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&);\
-template cDenseMatrix<TYPE> MatFromLines(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&);\
-template cPtxd<TYPE,3>  PFromNumAxe(int aNum);\
-template cPtxd<TYPE,3>  VOrthog(const cPtxd<TYPE,3> & aP);
-
-MACRO_INSTATIATE_GEOM2D(tREAL4)
-*/
 
 
 MACRO_INSTATIATE_GEOM2D(tREAL4)

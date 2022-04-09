@@ -66,6 +66,20 @@ template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::FromTriOut(int aKOu
     return aRes;
 }
 
+template <class Type> cSimilitud3D<Type> 
+    cSimilitud3D<Type>::FromTriInAndSeg(const tPt2&aP1,const tPt2&aP2,int aKIn,const tTri  & aTriIn)
+{
+    // mapping that send Seg(K,K+1)  on (0,0)->(0,1)
+    cSimilitud3D<Type> anIs = FromTriOut(aKIn,aTriIn).MapInverse();
+
+    //return anIs;
+    cSim2D<Type> aS2D =  cSim2D<Type>::FromExample(cPtxd<Type,2>(0,0),cPtxd<Type,2>(1,0),aP1,aP2);
+
+    return aS2D.Ext3D()* anIs;
+    /*
+    */
+}
+
 template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::FromTriInAndOut
                         (int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut)
 {
@@ -124,6 +138,9 @@ template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,
 
     return aRes;
 }
+
+
+
 
 
 template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriInAndOut

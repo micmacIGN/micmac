@@ -62,6 +62,18 @@ template <class Type> inline cPtxd<Type,2> PSymXY (const cPtxd<Type,2> & aP)
 ///  matrix of  linear function  q -> q * aP
 template <class Type> cDenseMatrix<Type> MatOfMul (const cPtxd<Type,2> & aP);
 
+template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
+{
+    public :
+       typedef cPtxd<Type,2>   tPt;
+       cSegment2DCompiled(const tPt& aP1,const tPt& aP2);
+       tPt  ToCoordLoc(const tPt&) const;
+       tPt  FromCoordLoc(const tPt&) const;
+    private :
+       tPt     mNorm;
+};
+
+
 /** This class represent 2D Homotetie , it can aussi be used for an non
    distorted camera with :
        * mTr -> principal point

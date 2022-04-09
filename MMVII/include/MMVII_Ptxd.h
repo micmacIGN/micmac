@@ -686,6 +686,7 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
        tPt     mTgt;
 };
 
+/*
 template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
 {
     public :
@@ -696,18 +697,20 @@ template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
     private :
        tPt     mNorm;
 };
-/*
 */
 
 /// Class for storing  basic triangle in 2 or 3 D
 template <class Type,const int Dim> class  cTriangle
 {
      public :
-       typedef cPtxd<Type,Dim> tPt;
+       typedef cPtxd<Type,Dim>     tPt;
+       typedef cTriangle<Type,Dim> tTri;
 
        cTriangle(const tPt & aP0,const tPt & aP1,const tPt & aP2);
 
-       static cTriangle<Type,Dim>  RandomTri(const Type & aSz,const Type & aRegulMin = Type(1e-2));
+       tTri  TriSwapPt(int aK0) const; ///< "same" but with different orientation by swap K0/1+K0
+
+       static tTri  RandomTri(const Type & aSz,const Type & aRegulMin = Type(1e-2));
        /// aWeight  encode in a point the 3 weights
        tPt  FromCoordBarry(const cPtxd<Type,3> & aWeight) const;
        /// Barrycenter with equal weights
