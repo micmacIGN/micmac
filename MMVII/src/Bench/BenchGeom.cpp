@@ -189,39 +189,50 @@ template<class Type> void TplBenchIsometrie(cParamExeBench & aParam)
 	MMVII_INTERNAL_ASSERT_bench(Norm2(aP1 - aP3)<aEps,"Sim MapInverse");
     }
     // StdOut() << "=======================\n";
+    // =========== Test  ext3d of 2D similitude ===========
     for (int aKCpt=0 ; aKCpt<10000 ; aKCpt++)
     {
+
+	 // Parameter of rand 2D sim
          cPtxd<Type,2> aSc = cPtxd<Type,2>::PRandUnitDiff(cPtxd<Type,2>(0,0),1e-1) * Type(3.0);
          cPtxd<Type,2> aTr = cPtxd<Type,2>::PRandC() * Type(10.0);
 
+	 //   2 DSIm and its 3D Ext
 	 cSim2D<Type>       aS2 (aTr,aSc);
 	 cSimilitud3D<Type> aS3 = aS2.Ext3D();
 
+	 //  Random 3D point and its 2D projection
 	 cPtxd<Type,3> aP3 = cPtxd<Type,3>::PRandC() * Type(10.0);
 	 cPtxd<Type,2> aP2 = Proj(aP3);
 
+	 //  Check  S3D(P3) ~ S2D(P2)
 	 cPtxd<Type,3> aQ3 = aS3.Value(aP3);
 	 cPtxd<Type,2> aQ2 = aS2.Value(aP2);
-
-	 // cPtxd<Type,3> aQ23(aQ2.x(),aQ2.y(),aP3.z());
-	 // StdOut()  <<  " " << Proj(aQ3)  -aQ2 << "\n";
 	 MMVII_INTERNAL_ASSERT_bench(Norm2( Proj(aQ3)  -aQ2)<aEps,"Sim MapInverse");
 
     }
+    // =========== Test  ext3d of 2D similitude ===========
     for (int aKCpt=0 ; aKCpt<10000 ; aKCpt++)
     {
+	    //  generatere randomly :  triangle , point inside,  2D segment
 	 cTriangle<Type,3> aTri = cTriangle<Type,3>::RandomTri(100.0,1e-2);
-
+	 int aK = round_down(RandUnif_N(3));
          cPtxd<Type,2> aP1 = cPtxd<Type,2>::PRandC() * Type(10.0);
          cPtxd<Type,2> aP2 = aP1+ cPtxd<Type,2>::PRandUnitDiff(cPtxd<Type,2>(0,0),1e-1) * Type(3.0);
 
-	 int aK = round_down(RandUnif_N(2.999));
+	   // compute sim matching tri to  seg
          cSimilitud3D<Type> aSim =  cSimilitud3D<Type>::FromTriInAndSeg(aP1,aP2,aK,aTri);
-	 StdOut()  << "qqq "  << TP3z0(aP1)  - aSim.Value(aTri.Pt(aK)) << "\n";
-	 StdOut()  << "rrr "  << TP3z0(aP2)  - aSim.Value(aTri.Pt((aK+1))) << "\n";
-	 // StdOut()  << "qqq "  << aP1  <<  aSim.Value(aTri.Pt(aK)) <<  aSim.Value(aTri.Pt((aK+1)%3))<< "\n";
-	 FakeUseIt(aSim);
 
+	   // Test Sim(T(K)) -> P1  ;    Sim(T(K+1)) -> P2  ;  Sim(T(K+1))  is on plane ;  normal orientations OK
+	 MMVII_INTERNAL_ASSERT_bench( Norm2(TP3z0(aP1)  - aSim.Value(aTri.Pt(aK)))<aEps,"Simil Tri3D  P1");
+	 MMVII_INTERNAL_ASSERT_bench( Norm2(TP3z0(aP2)  - aSim.Value(aTri.Pt((aK+1)%3)))<aEps,"Simil Tri3D  P1");
+	 MMVII_INTERNAL_ASSERT_bench( std::abs(aSim.Value(aTri.Pt((aK+1)%2)).z()) <aEps,"Simil Tri3D  P1");
+
+	 cPtxd<Type,3> aN = NormalUnit(aTri);
+	 cPtxd<Type,3> aImN = aSim.Value(aN) - aSim.Value(cPtxd<Type,3>(0,0,0)) ;  // Image of normal as vector
+	 cPtxd<Type,3> aVecK(0,0,1); // we dont have aImN==aVK because scaling, BUT colinear and same orient, test cosinus then
+
+	 MMVII_INTERNAL_ASSERT_bench( std::abs(Cos(aImN,aVecK) -1) <aEps,"Simil Tri3D  P1");
     }
 }
 

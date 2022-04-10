@@ -63,7 +63,9 @@ class cGenerateSurfDevOri
      private :
 	 int  NumOfPix(const cPt2di & aKpt) const; ///< Basic numerotation of points using video sens
 	 tPtTri3d  Pt3OfPix(const cPt2di & aKpt) const; ///< Basic numerotation of points using video sens
-	 cPt2di   mNb;
+
+	 cPt2di    mNb;
+	 bool      mPlaneCart; ///< if true generate a plane cartesian mesh
 
 };
 
@@ -75,6 +77,10 @@ int  cGenerateSurfDevOri::NumOfPix(const cPt2di & aKpt)  const
 
 tPtTri3d  cGenerateSurfDevOri::Pt3OfPix(const cPt2di & aKpt) const
 {
+     if (mPlaneCart)
+     {
+        return tPtTri3d(aKpt.x(),aKpt.y(),0.0);
+     }
      double aNbTour =  1.5;
      double aRatiobByTour = 1.5;
 
@@ -126,9 +132,9 @@ std::vector<cPt3di> cGenerateSurfDevOri::VFaces() const
 }
 
 cGenerateSurfDevOri::cGenerateSurfDevOri(const cPt2di & aNb) :
-     mNb (aNb)
+     mNb         (aNb),
+     mPlaneCart  (false)
 {
-     SplitPixIn2<int> (true);
 }
 
 class cAppliGenMeshDev : public cMMVII_Appli

@@ -14,6 +14,8 @@ template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,
 // Return one vector orthog,  choice is not univoque , quikcly select on stable
 template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP);
 
+template<class Type> cPtxd<Type,3> NormalUnit(const cTriangle<Type,3> &);  // V01 ^ V02
+
 // ===============================================================================
 //  Quaternion part  : I use them essentially for interface with other library,
 //  BTW, I implement a bit of elementary quat-algebra that allow to check the

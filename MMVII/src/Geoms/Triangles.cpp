@@ -156,33 +156,12 @@ template <class Type,const int Dim>
 
 /* *********************************************************** */
 /*                                                             */
-/*                cGraphTriangu                                */
+/*                 cEdgeDual                                   */
 /*                                                             */
 /* *********************************************************** */
 
-class cEdgeTriangu
-{
-     public :
-        static constexpr int NO_INIT=-1;
-	cEdgeTriangu();
-	cEdgeTriangu(int aS1,int aS2,int aF1);
-        /// return 1 or 2, -1 if none and none allowed
-	int GetNumSom(int aS,bool AllowNone)  const
-	{
-            if (mI1==aS) return 1;
-            if (mI2==aS) return 2;
-	    MMVII_INTERNAL_ASSERT_tiny(AllowNone,"cEdgeTriangu::GetNumSom");
-	    return NO_INIT;
-	}
-	void SetFace2(int aF) ;
-     private :
-        int mI1;
-        int mI2;
-        int mF1;
-        int mF2;
-};
 
-cEdgeTriangu::cEdgeTriangu() :
+cEdgeDual::cEdgeDual() :
      mI1  (NO_INIT),
      mI2  (NO_INIT),
      mF1  (NO_INIT),
@@ -190,7 +169,7 @@ cEdgeTriangu::cEdgeTriangu() :
 {
 }
 
-cEdgeTriangu::cEdgeTriangu(int aS1,int aS2,int aF1) :
+cEdgeDual::cEdgeDual(int aS1,int aS2,int aF1) :
      mI1  (aS1),
      mI2  (aS2),
      mF1  (aF1),
@@ -198,46 +177,52 @@ cEdgeTriangu::cEdgeTriangu(int aS1,int aS2,int aF1) :
 {
 }
 
-void cEdgeTriangu::SetFace2(int aF2) 
+void cEdgeDual::SetFace2(int aF2) 
 {
      MMVII_INTERNAL_ASSERT_tiny((mF1!=NO_INIT)&&(mF2==NO_INIT),"SetOtherFace incohe");
      mF2 = aF2;
 }
 
-class cGraphTriangu
-{
-     public :
-         typedef std::list<cEdgeTriangu *> tListAdj;
 
-	 cGraphTriangu(int aNbSom,int aNbFace);
-	 void  AddEdge(int aFace,int aS1,int aS2);
-     private :
-	 cEdgeTriangu * GetEdge(int aS1,int aS2); ///< return egde s1->s2 if it exist, else return null
-
-	 std::vector<tListAdj>     mSomNeigh;
-	 std::vector<tListAdj>     mFaceNeigh;
-	 std::vector<cEdgeTriangu> mReserve;
-};
-
-cEdgeTriangu *  cGraphTriangu::GetEdge(int aS1,int aS2)
+cEdgeDual *  cGraphDual::GetEdge(int aS1,int aS2)
 {
      for (const auto & aPtrE : mSomNeigh.at(aS1))
      {
         // it exist iff s2 is one of both submit (the other being s1)
-	if (aPtrE->GetNumSom(aS2,true)!= cEdgeTriangu::NO_INIT)
+	if (aPtrE->GetOtherSom(aS2,true)== aS1)
 	   return aPtrE;
      }
      return nullptr;
 }
 
-void  cGraphTriangu::AddEdge(int aFace,int aS1,int aS2)
+/* *********************************************************** */
+/*                                                             */
+/*                cGraphDual                                   */
+/*                                                             */
+/* *********************************************************** */
+
+cGraphDual::cGraphDual()
+{
+}
+
+void cGraphDual::Init(int aNbSom, const std::vector<tFace>& aVFace)
+{
+    mSomNeigh = std::vector<tListAdj>  (aNbSom);
+    mFaceNeigh = std::vector<tListAdj> (aVFace.size());
+    mReserve.clear();
+
+    for (int aKF=0 ; aKF<int(aVFace.size()) ; aKF++)
+        AddTri(aKF,aVFace[aKF]);
+}
+
+void  cGraphDual::AddEdge(int aFace,int aS1,int aS2)
 {
     // s1->s2 and  s2->s1 are the same physicall edge, one exists iff the other exists
-    cEdgeTriangu * anE12 = GetEdge(aS1,aS2);
+    cEdgeDual * anE12 = GetEdge(aS1,aS2);
     if ( anE12==nullptr)
     {
-         MMVII_INTERNAL_ASSERT_tiny(GetEdge(aS2,aS1)==nullptr,"Sym Check in cGraphTriangu::AddEdge");
-         mReserve.push_back(cEdgeTriangu(aS1,aS2,aFace));
+         MMVII_INTERNAL_ASSERT_tiny(GetEdge(aS2,aS1)==nullptr,"Sym Check in cGraphDual::AddEdge");
+         mReserve.push_back(cEdgeDual(aS1,aS2,aFace));
 	 anE12 = &mReserve.back();
          mSomNeigh.at(aS1).push_back(anE12);
          mSomNeigh.at(aS2).push_back(anE12);
@@ -245,11 +230,17 @@ void  cGraphTriangu::AddEdge(int aFace,int aS1,int aS2)
     }
     else
     {
-         MMVII_INTERNAL_ASSERT_tiny(GetEdge(aS2,aS1)==anE12,"Sym Check in cGraphTriangu::AddEdge");
+         MMVII_INTERNAL_ASSERT_tiny(GetEdge(aS2,aS1)==anE12,"Sym Check in cGraphDual::AddEdge");
 	 anE12->SetFace2(aFace);
+         mFaceNeigh.at(aFace).push_back(anE12);
     }
 }
 
+void  cGraphDual::AddTri(int aNumFace,const cPt3di & aTri)
+{
+      for (int aK=0 ; aK<3 ; aK++)
+          AddEdge(aNumFace,aTri[aK],aTri[(aK+1)%3]);
+}
 
 /* *********************************************************** */
 /*                                                             */
@@ -282,6 +273,13 @@ template <class Type,const int Dim> bool cTriangulation<Type,Dim>::ValidFace(con
    return true;
 
 }
+
+
+template <class Type,const int Dim> void cTriangulation<Type,Dim>::MakeTopo()
+{
+   mDualGr.Init(mVPts.size(),mVFaces);
+}
+
 
 template <class Type,const int Dim> void cTriangulation<Type,Dim>::AddFace(const tFace & aFace)
 {

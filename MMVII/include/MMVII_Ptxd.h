@@ -686,18 +686,7 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
        tPt     mTgt;
 };
 
-/*
-template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
-{
-    public :
-       typedef cPtxd<Type,2>   tPt;
-       cSegment2DCompiled(const tPt& aP1,const tPt& aP2);
-       tPt  ToCoordLoc(const tPt&) const;
-       tPt  FromCoordLoc(const tPt&) const;
-    private :
-       tPt     mNorm;
-};
-*/
+#if (0)
 
 /// Class for storing  basic triangle in 2 or 3 D
 template <class Type,const int Dim> class  cTriangle
@@ -731,9 +720,6 @@ template <class Type,const int Dim> class  cTriangle
        tPt  mPts[3];
 };
 
-//typedef cTriangle<tREAL8,2>  cTriangle2D;
-// typedef cTriangle<tREAL8,3>  cTriangle3D;
-template<class Type> cPtxd<Type,3> NormalUnit(const cTriangle<Type,3> &);  // V01 ^ V02 
 
 template <class Type,const int Dim> class cTriangulation
 {
@@ -777,6 +763,7 @@ template <class Type,const int Dim> class cTriangulation
           std::vector<tPt>    mVPts;
           std::vector<tFace>  mVFaces;
 };
+#endif
 
 
 
