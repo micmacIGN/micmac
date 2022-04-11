@@ -4,70 +4,85 @@
 namespace MMVII
 {
 
+   /* ======  header of header  ====== */
 typedef tREAL8  tCoordDevTri;
 typedef  cTriangulation3D<tCoordDevTri> tTriangulation3D;
 typedef  cTriangle<tCoordDevTri,3> tTri3D;
 typedef  cIsometry3D<tCoordDevTri> tIsom;
 typedef  cPtxd<tCoordDevTri,3>     tPtTri3d;
-
-
 typedef cTriangle<int,2> tTriPix;
 
-/// return 2 elementay triangle both oriented, DiagCrois : diag contain 00->11 , else 01->10
-template <class Type> const std::vector<cTriangle<Type,2> > &  SplitPixIn2(bool DiagCrois)
-{
-  cPtxd<Type,2> aP00(0,0); 
-  cPtxd<Type,2> aP10(1,0); 
-  cPtxd<Type,2> aP11(1,1); 
-  cPtxd<Type,2> aP01(0,1); 
+class cGenerateSurfDevOri;
+class cDevTriangu3d;
 
-
-  if (DiagCrois)
-  {
-      static std::vector<cTriangle<Type,2> > aRes;
-      if (aRes.empty())
-      {
-          aRes.push_back(cTriangle<Type,2>(aP00,aP10,aP11));
-          aRes.push_back(cTriangle<Type,2>(aP00,aP11,aP01));
-      }
-      return aRes;
-  }
-
-  static std::vector<cTriangle<Type,2> > aRes;
-  if (aRes.empty())
-  {
-     aRes.push_back(cTriangle<Type,2>(aP00,aP10,aP01));
-     aRes.push_back(cTriangle<Type,2>(aP10,aP11,aP01));
-  }
-  return aRes;
-}
-
-
-/* ******************************************************* */
-/*                                                         */
-/*                    cDevTriangu3d                        */
-/*                                                         */
-/* ******************************************************* */
+   /* ======================= */
+   /* ======  header   ====== */
+   /* ======================= */
 
 class cGenerateSurfDevOri
 {
      public :
-         cGenerateSurfDevOri(const cPt2di & aNb = cPt2di(50,20));
+         cGenerateSurfDevOri(const cPt2di & aNb = cPt2di(15,5));
 
 	 // tTriangulation3D cTriangulation(const tVPt& =tVPt(),const tVFace & =tVFace());
 	 //
 	 std::vector<tPtTri3d> VPts() const;
 	 std::vector<cPt3di>   VFaces() const;
 
+	 tPtTri3d PCenter() const;
 
      private :
 	 int  NumOfPix(const cPt2di & aKpt) const; ///< Basic numerotation of points using video sens
-	 tPtTri3d  Pt3OfPix(const cPt2di & aKpt) const; ///< Basic numerotation of points using video sens
+	 tPtTri3d  Pt3OfPix(const cPt2dr & aKpt) const; ///< Basic numerotation of points using video sens
 
 	 cPt2di    mNb;
 	 bool      mPlaneCart; ///< if true generate a plane cartesian mesh
 
 };
+
+/** Class that effectively compute the "optimal" devlopment of a surface
+ * Separate from cAppliMeshDev to be eventually reusable
+ */
+
+class cDevTriangu3d
+{
+      public :
+          typedef typename cTriangulation<tCoordDevTri,3>::tFace tFace;
+
+          static constexpr int NO_STEP = -1;
+
+          cDevTriangu3d(const  tTriangulation3D &);
+          void DoDevlpt ();
+	  void SetFaceC(int aNumF);
+
+      private :
+	  cDevTriangu3d(const cDevTriangu3d &) = delete;
+
+	  void AddOneFace(int aKFace); // Mark the face and its sums as reached when not
+	  std::vector<int>  Unreached(int aKFace) const; // subset of the 3 vertices not reached
+
+	  // tPtTri3d
+
+	  int MakeNewFace();
+
+	  int               mNumCurStep;
+          int               mNbFaceReached;
+	  const tTriangulation3D & mTri;
+	  std::vector<int>  mStepReach_S;  ///< indicate if a submit is selected and at which step
+	  std::vector<cPt2dr>  mVPtsDev; ///< Vector of devloped 2D points
+	  // size_t                mLastNbSel;  
+	  std::vector<int>  mStepReach_F;  ///< indicate if a face and at which step
+          int               mIndexFC; ///< Index of centerface
+	  cPt3di            mFaceC;
+};
+
+
+
+/* ******************************************************* */
+/*                                                         */
+/*               cGenerateSurfDevOri                       */
+/*                                                         */
+/* ******************************************************* */
 
 int  cGenerateSurfDevOri::NumOfPix(const cPt2di & aKpt)  const
 {
@@ -75,7 +90,7 @@ int  cGenerateSurfDevOri::NumOfPix(const cPt2di & aKpt)  const
 }
 
 
-tPtTri3d  cGenerateSurfDevOri::Pt3OfPix(const cPt2di & aKpt) const
+tPtTri3d  cGenerateSurfDevOri::Pt3OfPix(const cPt2dr & aKpt) const
 {
      if (mPlaneCart)
      {
@@ -88,7 +103,7 @@ tPtTri3d  cGenerateSurfDevOri::Pt3OfPix(const cPt2di & aKpt) const
 
      double aTeta =  aAmpleTeta * ((double(aKpt.x())  / (mNb.x()-1) -0.5));
      cPt2dr  aPPlan = FromPolar(pow(aRatiobByTour,aTeta/(2*M_PI)),aTeta);
-     double  aZCyl = (aKpt.y() * aNbTour) / (mNb.x()-1);
+     double  aZCyl = (aKpt.y() * aAmpleTeta) / (mNb.x()-1);
 
      tPtTri3d  aPCyl(aPPlan.x(),aPPlan.y(),aZCyl);
 
@@ -103,7 +118,7 @@ std::vector<tPtTri3d> cGenerateSurfDevOri::VPts() const
 
     for (const auto & aPix : cRect2(cPt2di(0,0),mNb))
     {
-         aRes.at(NumOfPix(aPix)) = Pt3OfPix(aPix);
+         aRes.at(NumOfPix(aPix)) = Pt3OfPix(ToR(aPix));
     }
 
     return aRes;
@@ -131,11 +146,22 @@ std::vector<cPt3di> cGenerateSurfDevOri::VFaces() const
     return aRes;
 }
 
+tPtTri3d  cGenerateSurfDevOri::PCenter() const
+{
+     return Pt3OfPix(ToR(mNb)/2.0);
+}
+
 cGenerateSurfDevOri::cGenerateSurfDevOri(const cPt2di & aNb) :
      mNb         (aNb),
      mPlaneCart  (false)
 {
 }
+
+/* ******************************************************* */
+/*                                                         */
+/*                 cAppliGenMeshDev                        */
+/*                                                         */
+/* ******************************************************* */
 
 class cAppliGenMeshDev : public cMMVII_Appli
 {
@@ -180,10 +206,16 @@ cCollecSpecArg2007 & cAppliGenMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int  cAppliGenMeshDev::Exe()
 {
+   // generate synthetic mesh
    cGenerateSurfDevOri aGenSD;
-
    tTriangulation3D  aTri(aGenSD.VPts(),aGenSD.VFaces());
    aTri.WriteFile(mNameCloudOut,mBinOut);
+   aTri.MakeTopo();
+
+   //  devlop it
+   cDevTriangu3d aDev(aTri);
+   aDev.SetFaceC(aTri.IndexClosestFace(aGenSD.PCenter()));
+   aDev.DoDevlpt();
 
    return EXIT_SUCCESS;
 }
@@ -196,37 +228,6 @@ int  cAppliGenMeshDev::Exe()
 /*                    cDevTriangu3d                        */
 /*                                                         */
 /* ******************************************************* */
-
-/** Class that effectively compute the "optimal" devlopment of a surface
- * Separate from cAppliMeshDev to be eventually reusable
- */
-
-class cDevTriangu3d
-{
-      public :
-          typedef typename cTriangulation<tCoordDevTri,3>::tFace tFace;
-
-          static constexpr int NO_STEP = -1;
-
-          cDevTriangu3d(const  tTriangulation3D &);
-
-      private :
-	  cDevTriangu3d(const cDevTriangu3d &) = delete;
-	  void AddOneFace(int aKFace); // Mark the face and its sums as reached when not
-	  int  NbUnreached(int aKFace) const; // Number of the 3 vertices not reached
-
-	  int MakeNewFace();
-
-	  int               mNumCurStep;
-          int               mNbFaceReached;
-	  const tTriangulation3D & mTri;
-	  std::vector<int>  mStepReach_S;  ///< indicate if a submit is selected and at which step
-	  std::vector<cPt2dr>  mVPtsDev; ///< Vector of devloped 2D points
-	  // size_t                mLastNbSel;  
-	  std::vector<int>  mStepReach_F;  ///< indicate if a face and at which step
-          int               mIndexFC; ///< Index of centerface
-	  cPt3di            mFaceC;
-};
 
 void cDevTriangu3d::AddOneFace(int aKFace)
 {
@@ -245,28 +246,34 @@ void cDevTriangu3d::AddOneFace(int aKFace)
      }
 }
 
-int  cDevTriangu3d::NbUnreached(int aKFace) const
+std::vector<int>  cDevTriangu3d::Unreached(int aKFace) const
 {
      const tFace & aFace = mTri.KthFace(aKFace);
 
-     int aRes=0;
+     std::vector<int>  aRes;
      for (int aNumV=0 ; aNumV<3 ; aNumV++)
      {
          int aKS= aFace[aNumV];
          if (mStepReach_S.at(aKS) == NO_STEP)
-            aRes++;
+	 {
+            aRes.push_back(aNumV);
+	 }
      }
      return aRes;
 }
 
 int cDevTriangu3d::MakeNewFace()
 {
+     mNumCurStep++;
      // A Face is adjacent to reached iff it contains exactly 2 reached 
      std::vector<int> aVFNeigh;  // put first in vect to avoir recursive add
      for (int aKF=0 ; aKF<mTri.NbFace() ; aKF++)
      {
-         if (NbUnreached(aKF)==1)
+         std::vector<int> aVU=Unreached(aKF);
+         if (aVU.size()==1)
+	 {
             aVFNeigh.push_back(aKF);
+	 }
      }
      // Now mark the faces 
      for (const auto & aKF : aVFNeigh)
@@ -276,7 +283,7 @@ int cDevTriangu3d::MakeNewFace()
      // by previous step)
      for (int aKF=0 ; aKF<mTri.NbFace() ; aKF++)
      {
-         if (NbUnreached(aKF)==0)
+         if (Unreached(aKF).size()==0)
             AddOneFace(aKF);
      }
 
@@ -289,29 +296,45 @@ cDevTriangu3d::cDevTriangu3d(const tTriangulation3D & aTri) :
      mTri         (aTri),
      mStepReach_S (mTri.NbPts() ,NO_STEP),
      mVPtsDev     (mTri.NbPts()),
-     mStepReach_F (mTri.NbFace(),NO_STEP)
+     mStepReach_F (mTri.NbFace(),NO_STEP),
+     mIndexFC     (-1)
 {
-    // 
-    mIndexFC = mTri.IndexCenterFace();
+}
+
+void cDevTriangu3d::SetFaceC(int aNumF)
+{
+    mIndexFC = aNumF;
     mFaceC   = mTri.KthFace(mIndexFC);
-    AddOneFace(mIndexFC);
+}
+
+void  cDevTriangu3d::DoDevlpt ()
+{
+    // =======  1   DEVELOP FIRST FACE ===========
+    
+    //  1.1 get it : if initial face was not set, init it with IndexCenter (good for Z=F(x,y))
+    if (mIndexFC==-1)
+        SetFaceC(mTri.IndexCenterFace());
+
+    // 1.2  Make face and soms marked
+    AddOneFace(mIndexFC); 
+
+    // 1.3 computes its geometry
     {
-       tTri3D  aTriC = mTri.KthTri(mIndexFC);
-       tIsom  anIsom =  tIsom::FromTriOut(0,aTriC).MapInverse();
+       tTri3D  aTriC = mTri.KthTri(mIndexFC);  // 3D triangle
+       tIsom  anIsom =  tIsom::FromTriOut(0,aTriC).MapInverse();  // Isometry plane TriC-> plane Z=0
 
        for (int aK=0 ; aK<3 ;aK++)
        {
-	    StdOut() << " Pt= " << mFaceC[aK] << " " << mTri.NbPts() << "\n";
-	    StdOut() << " Pt= " << anIsom.Value(aTriC.Pt(aK)) << "\n";
+            mVPtsDev.at(mFaceC[aK]) =  Proj(anIsom.Value(aTriC.Pt(aK)));
+	    // StdOut() << " Pt= " << mFaceC[aK] << " " << mTri.NbPts() << "\n";
+	    // StdOut() << " Pt= " << anIsom.Value(aTriC.Pt(aK)) << "\n";
        }
-       getchar();
+       // getchar();
     }
-
-
 
     while (int aNbF=MakeNewFace())
     {
-        StdOut() << "NnFF " << aNbF << "\n";
+        StdOut() << "NnFF " << aNbF << " Step="  << mNumCurStep<< "\n";
     }
 
 
@@ -377,6 +400,7 @@ int  cAppliMeshDev::Exe()
    // aTri.WriteFile(DirProject()+mNameCloudOut,mBinOut);
 
    cDevTriangu3d aDev(aTri);
+   aDev.DoDevlpt();
 
    return EXIT_SUCCESS;
 }

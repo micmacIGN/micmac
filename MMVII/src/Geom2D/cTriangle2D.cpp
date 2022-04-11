@@ -3,6 +3,36 @@
 namespace MMVII
 {
 
+template <class Type> const std::vector<cTriangle<Type,2> > &  SplitPixIn2(bool DiagCrois)
+{
+  cPtxd<Type,2> aP00(0,0);
+  cPtxd<Type,2> aP10(1,0);
+  cPtxd<Type,2> aP11(1,1);
+  cPtxd<Type,2> aP01(0,1);
+
+
+  if (DiagCrois)
+  {
+      static std::vector<cTriangle<Type,2> > aRes;
+      if (aRes.empty())
+      {
+          aRes.push_back(cTriangle<Type,2>(aP00,aP10,aP11));
+          aRes.push_back(cTriangle<Type,2>(aP00,aP11,aP01));
+      }
+      return aRes;
+  }
+
+  static std::vector<cTriangle<Type,2> > aRes;
+  if (aRes.empty())
+  {
+     aRes.push_back(cTriangle<Type,2>(aP00,aP10,aP01));
+     aRes.push_back(cTriangle<Type,2>(aP10,aP11,aP01));
+  }
+  return aRes;
+}
+
+template  const std::vector<cTriangle<int,2> > &  SplitPixIn2<int>(bool DiagCrois);
+
 
 /* ********************************************** */
 /*                                                */

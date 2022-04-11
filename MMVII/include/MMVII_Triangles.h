@@ -78,6 +78,11 @@ template <class Type,const int Dim> class  cTriangle
 };
 
 
+/// return 2 elementay triangle both oriented, DiagCrois : diag contain 00->11 , else 01->10
+template <class Type> const std::vector<cTriangle<Type,2> > &  SplitPixIn2(bool DiagCrois);
+
+
+
 template <class Type,const int Dim> class cTriangulation
 {
      public :
