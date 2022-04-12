@@ -316,14 +316,14 @@ template <class Type> void  TplBenchMinMax(int aNb)
        aVVals.push_back(aVal);
        aWMM.Add(aK+1,aVal);
     }
-    int aKMin = aWMM.Min().Index();
-    int aKMax = aWMM.Max().Index();
-    MMVII_INTERNAL_ASSERT_bench (aVVals.at(aKMin)==aWMM.Min().Val(),"Bench MinMax");
-    MMVII_INTERNAL_ASSERT_bench (aVVals.at(aKMax)==aWMM.Max().Val(),"Bench MinMax");
+    int aKMin = aWMM.Min().IndexExtre();
+    int aKMax = aWMM.Max().IndexExtre();
+    MMVII_INTERNAL_ASSERT_bench (aVVals.at(aKMin)==aWMM.Min().ValExtre(),"Bench MinMax");
+    MMVII_INTERNAL_ASSERT_bench (aVVals.at(aKMax)==aWMM.Max().ValExtre(),"Bench MinMax");
     for (const auto & aV : aVVals)
     {
-        MMVII_INTERNAL_ASSERT_bench (aV>=aWMM.Min().Val(),"Bench MinMax");
-        MMVII_INTERNAL_ASSERT_bench (aV<=aWMM.Max().Val(),"Bench MinMax");
+        MMVII_INTERNAL_ASSERT_bench (aV>=aWMM.Min().ValExtre(),"Bench MinMax");
+        MMVII_INTERNAL_ASSERT_bench (aV<=aWMM.Max().ValExtre(),"Bench MinMax");
     }
    
 }

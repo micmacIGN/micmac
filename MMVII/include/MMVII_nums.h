@@ -48,6 +48,16 @@ class cFctrRR
 };
 /// Random permutation , Higer Bias => Higer average rank
 std::vector<int> RandPerm(int aN,cFctrRR & aBias =cFctrRR::TheOne);
+/// Randomly order a vector , used in bench to multiply some test of possible order dependance
+template<class Type>  std::vector<Type>  RandomOrder(const std::vector<Type> & aV)
+{
+    std::vector<int> aPermut = RandPerm(aV.size());
+    std::vector<Type> aRes;
+    for (const auto & aI : aPermut)
+        aRes.push_back(aV.at(aI));
+    return aRes;
+}
+
 /// Random subset K among  N  !! Higher bias => lower proba of selection
 std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias =cFctrRR::TheOne);
 ///  Random modification of K Value in a set of N elem
@@ -522,50 +532,68 @@ tREAL8 CubAppGaussVal(const tREAL8&);
 /*       Witch Min and Max            */
 /* ********************************** */
 
-template <class TypeIndex,class TypeVal> class cWhitchMin
+template <class TypeIndex,class TypeVal,const bool IsMin> class cWhitchExtrem
 {
      public :
-         cWhitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
-             mIndexMin (anIndex),
-             mVMin     (aVal)
+         cWhitchExtrem(const TypeIndex & anIndex,const TypeVal & aVal) :
+             mIsInit     (true),
+             mIndexExtre (anIndex),
+             mValExtre   (aVal)
          {
          }
-         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
+         cWhitchExtrem() :
+             mIsInit   (false)
+	 {
+	 }
+	 bool IsInit() const {return mIsInit;}
+
+         void Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
          {
-              if (aVal<mVMin)
+              if ( (IsMin?(aNewVal<mValExtre):(aNewVal>=mValExtre)) || (!mIsInit))
               {     
-                    mVMin = aVal;
-                    mIndexMin = anIndex;
+                    mValExtre   = aNewVal;
+                    mIndexExtre = anIndex;
               }
+              mIsInit = true;
          }
-         const TypeIndex & Index() const {return mIndexMin;}
-         const TypeVal   & Val  () const {return mVMin;}
+         const TypeIndex & IndexExtre() const {AssertIsInit();return mIndexExtre;}
+         const TypeVal   & ValExtre  () const {AssertIsInit();return mValExtre;}
      private :
-         TypeIndex mIndexMin;
-         TypeVal   mVMin;
+	 void  AssertIsInit() const 
+	 {
+              MMVII_INTERNAL_ASSERT_tiny(mIsInit,"Exrem not init");
+	 }
+         bool      mIsInit;
+         TypeIndex mIndexExtre;
+         TypeVal   mValExtre;
 };
-template <class TypeIndex,class TypeVal> class cWhitchMax
+
+template <class TypeIndex,class TypeVal> class cWhitchMin : public cWhitchExtrem<TypeIndex,TypeVal,true>
 {
      public :
-         cWhitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
-             mIndexMax (anIndex),
-             mVMax     (aVal)
+         typedef  cWhitchExtrem<TypeIndex,TypeVal,true> tExrem;
+
+         cWhitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
+            tExrem (anIndex,aVal) 
          {
          }
-         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
-         {
-              if (aVal>mVMax)
-              {
-                    mVMax = aVal;
-                    mIndexMax = anIndex;
-              }
-         }
-         const TypeIndex & Index() const {return mIndexMax;}
-         const TypeVal   & Val  () const {return mVMax;}
+         cWhitchMin() : tExrem () {}
      private :
-         TypeIndex mIndexMax;
-         TypeVal   mVMax;
 };
+template <class TypeIndex,class TypeVal> class cWhitchMax : public cWhitchExtrem<TypeIndex,TypeVal,false>
+{
+     public :
+         typedef  cWhitchExtrem<TypeIndex,TypeVal,false> tExrem;
+
+         cWhitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+            tExrem (anIndex,aVal) 
+         {
+         }
+         cWhitchMax() : tExrem () {}
+     private :
+};
+
+
 template <class TypeIndex,class TypeVal> class cWhitchMinMax
 {
      public  :
@@ -574,6 +602,8 @@ template <class TypeIndex,class TypeVal> class cWhitchMinMax
              mMax(anIndex,aVal)
          {
          }
+         cWhitchMinMax() { }
+
          void Add(const TypeIndex & anIndex,const TypeVal & aVal)
          {
              mMin.Add(anIndex,aVal);
@@ -596,6 +626,49 @@ template <class TypeVal> void UpdateMinMax(TypeVal & aVarMin,TypeVal & aVarMax,c
     if (aValue<aVarMin) aVarMin = aValue;
     if (aValue>aVarMax) aVarMax = aValue;
 }
+
+/// Class to store min and max values
+template <class TypeVal> class cBoundVals
+{
+	public :
+            cBoundVals() :
+                   mVMin ( std::numeric_limits<TypeVal>::max()),
+		   mVMax (-std::numeric_limits<TypeVal>::max())
+	    {
+            }
+            void Add(const TypeVal & aVal)
+            {
+                 UpdateMinMax(mVMin,mVMax,aVal);
+            }
+
+	    const TypeVal  &  VMin () const {return mVMin;}
+	    const TypeVal  &  VMax () const {return mVMax;}
+	private :
+            TypeVal  mVMin;
+            TypeVal  mVMax;
+};
+/// Class to store min and max values AND average
+template <class TypeVal> class cAvgAndBoundVals  : public cBoundVals<TypeVal>
+{
+	public :
+		cAvgAndBoundVals() :
+			cBoundVals<TypeVal>(),
+			mSomVal  (0),
+			mNbVals  (0)
+	        {
+	        }
+                void Add(const TypeVal & aVal)
+		{
+			cBoundVals<TypeVal>::Add(aVal);
+			mSomVal += aVal;
+			mNbVals++;
+		}
+		TypeVal  Avg() const { SafeDiv(mSomVal,mNbVals); }
+	private :
+           TypeVal  mSomVal;
+           TypeVal  mNbVals;
+};
+
 // This rather "strange" function returns a value true at frequence  as close as possible
 // to aFreq, and with the warantee that it is true for last index
 

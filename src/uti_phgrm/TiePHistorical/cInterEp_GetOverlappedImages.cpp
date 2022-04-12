@@ -86,9 +86,11 @@ bool IsOverlapped(std::string aImg1, std::string aImg2, std::string aOri1, std::
     }
 
 
-    Tiff_Im aRGBIm1(aImg1.c_str());
+    //Tiff_Im aRGBIm1(aImg1.c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
-    Tiff_Im aRGBIm2(aImg2.c_str());
+    //Tiff_Im aRGBIm2(aImg2.c_str());
+    Tiff_Im aRGBIm2 = Tiff_Im::StdConvGen((aImg2).c_str(), -1, true ,true);
     Pt2di ImgSzR = aRGBIm2.sz();
 
     //cout<<"Left img size: "<<ImgSzL.x<<", "<<ImgSzL.y<<endl;

@@ -93,6 +93,24 @@ template <class TypeObj,class TypeLayer>  class cLayer3D ;
 template <class Type> class  cDenseVect;
 
 
+// MMVII_Mappings.h
+template <class Type,const int Dim> class cDataBoundedSet ;
+template <class Type,const int DimIn,const int DimOut> class cMapping;
+template <class Type,const int DimIn,const int DimOut> class cDataMapping;
+template <class Type,const int Dim> class cDataInvertibleMapping ;// :  public cDataMapping<Type,Dim,Dim>
+template <class Type,const int Dim> class cDataIterInvertMapping ;// :  public cDataInvertibleMapping<Type,Dim>
+template <class Type,const int Dim> class cDataIIMFromMap ; // : public cDataIterInvertMapping<Type,Dim>
+
+template <class Type,const int Dim> class cMappingIdentity ; // :  public cDataMapping<Type,Dim,Dim>
+template <class Type,const int DimIn,const int DimOut> class cDataMapCalcSymbDer ;// : public cDataMapping<Type,DimIn,DimOut>
+template <class cMapElem> class cInvertMappingFromElem ;
+    // :  public cDataInvertibleMapping<typename cMapElem::TheType,cMapElem::TheDim>
+template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMaps;
+template <class Type,const int DimIn,const int DimOut> class cLeastSqCompMapCalcSymb;
+
+template <class Type,const int Dim> class cBijAffMapElem;
+
+
 
 
 

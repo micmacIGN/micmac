@@ -103,13 +103,15 @@ void DSM_Equalization(std::string aImName, std::string aDSMDir, std::string aDSM
         aMasqName = aDSMDir + aImDSM.Masq();
     }
     else{
-        Tiff_Im aIm(aImName.c_str());
+        //Tiff_Im aIm(aImName.c_str());
+        Tiff_Im aIm = Tiff_Im::StdConvGen((aImName).c_str(), -1, true ,true);
         aDSMSz = aIm.sz();
     }
 
     TIm2D<float,double> aTImMasq(aDSMSz);
     if (ELISE_fp::exist_file(aMasqName) == true){
-        Tiff_Im aImMasqTif(aMasqName.c_str());
+        //Tiff_Im aImMasqTif(aMasqName.c_str());
+        Tiff_Im aImMasqTif = Tiff_Im::StdConvGen((aMasqName).c_str(), -1, true ,true);
         ELISE_COPY
         (
         aTImMasq.all_pts(),
@@ -119,7 +121,8 @@ void DSM_Equalization(std::string aImName, std::string aDSMDir, std::string aDSM
         bMasq = true;
     }
 
-    Tiff_Im aImDSMTif(aImName.c_str());
+    //Tiff_Im aImDSMTif(aImName.c_str());
+    Tiff_Im aImDSMTif = Tiff_Im::StdConvGen((aImName).c_str(), -1, true ,true);
     TIm2D<float,double> aTImDSM(aDSMSz);
     ELISE_COPY
     (

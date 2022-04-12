@@ -149,6 +149,16 @@ SrcGeoms=$(wildcard ${MMV2DirGeoms}*.cpp)
 ObjGeoms=$(SrcGeoms:.cpp=.o) 
 #
 #
+MMV2DirGeom2D=${MMV2DirSrc}Geom2D/
+SrcGeom2D=$(wildcard ${MMV2DirGeom2D}*.cpp)
+ObjGeom2D=$(SrcGeom2D:.cpp=.o) 
+#
+#
+MMV2DirGeom3D=${MMV2DirSrc}Geom3D/
+SrcGeom3D=$(wildcard ${MMV2DirGeom3D}*.cpp)
+ObjGeom3D=$(SrcGeom3D:.cpp=.o) 
+#
+#
 MMV2DirKapture=${MMV2Dir}kapture/
 #SrcKapture=$(fiter-out ${MMV2DirKapture}kpt_test.cpp $(wildcard ${MMV2DirKapture}*.cpp))
 SrcKapture=$(filter-out ${MMV2DirKapture}kpt_test.cpp, $(wildcard ${MMV2DirKapture}*.cpp))
@@ -158,7 +168,7 @@ ObjKapture=$(SrcKapture:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjMappings} ${ObjKapture} ${ObjLearnMatch} ${ObjCodedTarget}
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjGeom2D} ${ObjGeom3D}  ${ObjMappings} ${ObjKapture} ${ObjLearnMatch} ${ObjCodedTarget}
 #
 #=========  Header ========
 #
@@ -233,6 +243,10 @@ ${MMV2DirSymbDerGen}%.o :  ${MMV2DirSymbDerGen}%.cpp   ${HEADER}
 ${MMV2DirGeneratedCodes}%.o :  ${MMV2DirGeneratedCodes}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirGeoms}%.o :  ${MMV2DirGeoms}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirGeom2D}%.o :  ${MMV2DirGeom2D}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirGeom3D}%.o :  ${MMV2DirGeom3D}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirKapture}%.o :  ${MMV2DirKapture}%.cpp   ${MMKaptureHeader}
 	${CXX} -c  $< ${CFlags} -o $@

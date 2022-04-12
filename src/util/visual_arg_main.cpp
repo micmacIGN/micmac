@@ -135,7 +135,7 @@ void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 }
 #endif
 
-int MMRunVisualMode
+int MMRunVisualModeQt
 (
         int argc,char ** argv,
         std::vector<cMMSpecArg> & aVAM,  // Vector Arg Mandatory

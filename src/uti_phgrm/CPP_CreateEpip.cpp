@@ -643,6 +643,8 @@ cTmpReechEpip::cTmpReechEpip
             Pt2dr aI2 = aEpiCheck->Inverse(aQ2);
 	    aDI1 += euclid(aP1-aI1);
 	    aDI2 += euclid(aP2-aI2);
+
+
 	}
 	int aNb = aPackCheck->size();
         std::cout << "COH  x:" <<aDXD/aNb  << " y:" << aDYD/aNb << "\n";
@@ -662,6 +664,7 @@ cTmpReechEpip::cTmpReechEpip
           if ((aPIm.x>mBoxImIn._p0.x) && (aPIm.y>mBoxImIn._p0.y) && (aPIm.x<mBoxImIn._p1.x) && (aPIm.y<mBoxImIn._p1.y))
           {
                Pt2dr aPEpi2 = anEpi->Direct(aPIm);
+
                if (euclid(aPEpi-aPEpi2) < aEpsCheckInv)
                {
                     Ok= true;
@@ -1480,7 +1483,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mXFitL2,"XCorrecL2",false,"L1/L2 Correction for X-Pax")
 		    << EAM(mNameOut,"Out",false,"To spcecify names of results")
 		    << EAM(mGenereImageDirEpip,"ImDir",false,"Generate image of direction of epipolar")
-		    << EAM(mBoxTerrain,"BoxTer",false,"Box ter to limit size of created epip")
+		    << EAM(mBoxTerrain,"BoxTerrain",false,"Box ter to limit size of created epip")
 		    /*
 		    */
     );
@@ -2221,7 +2224,7 @@ cAppliReechDepl::cAppliReechDepl(int argc,char ** argv) :
                       << EAMC(mNameI2Redr,"Name of resulting image", eSAM_IsExistFile),
           LArgMain()  << EAM (mPostMasq,"PostMasq",true,"Name of Masq , Def = \"Masq\"")
                       << EAM (mScaleReech,"ScaleReech",true,"Scale Resampling, used for interpolator when downsizing")
-					  << EAM (mKernel,"Kern",true,"Kernel size, Def=5")
+		      << EAM (mKernel,"Kern",true,"Kernel size, Def=5")
     );
 
 
@@ -2266,7 +2269,7 @@ cAppliReechDepl::cAppliReechDepl(int argc,char ** argv) :
                trans(aPx1Tif_2To1.in(),Pt2di(0,0)),
                mPx1TIm_2To1->out()
     );
-    Tiff_Im     aPx2Tif_2To1( mNameI2Px2.c_str());
+    Tiff_Im     aPx2Tif_2To1(       mNameI2Px2.c_str());
     mPx2TIm_2To1 = new  TIm2D<REAL4,REAL8> (mSzIn);
     ELISE_COPY
     (

@@ -181,6 +181,25 @@ template <class Type> inline cPtxd<Type,3> operator + (const cPtxd<Type,3> & aP1
 template <class Type> inline cPtxd<Type,4> operator + (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
 { return cPtxd<Type,4>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z(),aP1.t()+aP2.t()); }
 
+
+template <class Type> inline void operator += (cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{ 
+    aP1.x() += aP2.x(); 
+}
+template <class Type> inline void operator += (cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{ 
+    aP1.x() += aP2.x(); 
+    aP1.y() += aP2.y(); 
+}
+template <class Type> inline void operator += (cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{ 
+    aP1.x() += aP2.x(); 
+    aP1.y() += aP2.y(); 
+    aP1.z() += aP2.z(); 
+}
+
+
+
 ///  binary operator - on points
 template <class Type> inline cPtxd<Type,1> operator - (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 { return cPtxd<Type,1>(aP1.x() - aP2.x()); }
@@ -300,6 +319,8 @@ template <class Type> inline bool operator == (const cPtxd<Type,2> & aP1,const c
 {return  (aP1.x()==aP2.x()) && (aP1.y()==aP2.y());}
 template <class Type> inline bool operator == (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()==aP2.x()) && (aP1.y()==aP2.y()) && (aP1.z()==aP2.z());}
+template <class Type> inline bool operator == (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{return  (aP1.x()==aP2.x()) && (aP1.y()==aP2.y()) && (aP1.z()==aP2.z())&&(aP1.t()==aP2.t());}
 
 ///  operator != on points
 template <class Type> inline bool operator != (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
@@ -308,6 +329,8 @@ template <class Type> inline bool operator != (const cPtxd<Type,2> & aP1,const c
 {return  (aP1.x()!=aP2.x()) || (aP1.y()!=aP2.y());}
 template <class Type> inline bool operator != (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()!=aP2.x()) || (aP1.y()!=aP2.y()) ||  (aP1.z()!=aP2.z());}
+template <class Type> inline bool operator != (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{return  (aP1.x()!=aP2.x()) || (aP1.y()!=aP2.y()) ||  (aP1.z()!=aP2.z()) || (aP1.t()!=aP2.t());}
 
 ///  SupEq  :  P1.k() >= P2.k() for all coordinates
 template <class Type> inline bool SupEq  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
@@ -390,6 +413,9 @@ template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1
 {
    return NormInf(RDivCByC(aP1,aP2));
 }
+
+template <const int Dim>  double AbsSurfParalogram(const cPtxd<double,Dim>&,const cPtxd<double,Dim>&);
+
 
 
 // cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return (aP1*conj(aP)}
@@ -502,6 +528,8 @@ template <class Type,const int Dim>  class cTplBox
         cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
         cTplBox(const tPt & aSz,bool AllowEmpty=false); // Create a box with origin in 0,0,..
         static cTplBox Empty();
+        static cTplBox FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty=false);
+        static cTplBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
         
 
 
@@ -604,10 +632,13 @@ template <class Type,const int Dim>  class cTplBoxOfPts
         typedef cPtxd<Type,Dim>                  tPt;
 
         cTplBoxOfPts();
+        static cTplBoxOfPts FromVect(const tPt * aBegin,const tPt * aEnd);
+        static cTplBoxOfPts FromVect(const std::vector<tPt> & aVecPt);
+
         int NbPts() const;  ///< Use to check acces that are forbidden when empty
         const tPt & P0() const;
         const tPt & P1() const;
-        cTplBox<Type,Dim> CurBox() const;
+        cTplBox<Type,Dim> CurBox(bool AllowEmpty=false) const;
 
         void Add(const tPt &);
     private :
@@ -616,6 +647,84 @@ template <class Type,const int Dim>  class cTplBoxOfPts
         tPt  mP1;
 };
 
+template <const int Dim> class cSegment
+{
+    public :
+       typedef cPtxd<double,Dim> tPt;
+       cSegment(const tPt& aP1,const tPt& aP2);
+       /// Estimate fonc linear, with gradient paral to tangent,  given value in P1 and P2, will be F(Q) =  R.first + R.second Q
+       void CompileFoncLinear(double& aVal,tPt & aVec,const double &aV1,const double & aV2) const;
+    protected :
+       tPt  mP1;
+       tPt  mP2;
+};
+
+template <const int Dim> class cSegmentCompiled : public cSegment<Dim>
+{
+    public :
+       typedef cPtxd<double,Dim> tPt;
+       cSegmentCompiled(const tPt& aP1,const tPt& aP2);
+    public :
+       double  mN2;
+       tPt     mTgt;
+};
+
+/// Class for storing  basic triangle in 2 or 3 D
+template <const int Dim> class  cTriangle
+{
+     public :
+       typedef cPtxd<double,Dim> tPt;
+
+       cTriangle(const tPt & aP0,const tPt & aP1,const tPt & aP2);
+       /// aWeight  encode in a point the 3 weights
+       tPt  FromCoordBarry(const cPt3dr & aWeight) const;
+
+       /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
+       double Regularity() const;
+       /// Point equidistant to 3 point,  To finish for dim 3
+       tPt CenterInscribedCircle() const;
+       const tPt & Pt(int aK) const;   /// Accessor
+       cTplBox<double,Dim>  BoxEngl() const;
+       cTplBox<int,Dim>     BoxPixEngl() const;  // May be a bit bigger
+
+     protected :
+       tPt  mPts[3];
+};
+
+typedef cTriangle<2>  cTriangle2D;
+typedef cTriangle<3>  cTriangle3D;
+
+template <const int Dim> class cTriangulation
+{
+     public :
+          typedef tREAL8             tCoord;
+          typedef cPtxd<tCoord,Dim>  tPt;
+          typedef cTriangle<Dim>     tTri;
+          typedef cPt3di             tFace;
+
+          int  NbTri() const;
+          const tFace &  KthFace(int aK) const;
+          tTri  KthTri(int aK) const;
+	  bool  ValidFace(const tFace &) const;
+
+	  /// Create a sub tri of vertices belonging to the set, require 1,2 or 3 vertice in each tri
+	  void Filter(const cDataBoundedSet<tREAL8,Dim> &,int aNbVertixThres=3) ;
+	  /// Box of Pts, error when empty, FactMargin make it slightly bigger
+	  cTplBox<tCoord,Dim>  BoxEngl(double aFactMargin = 1e-2) const;
+
+	  /// Equality is difficiult, because of permutation,just make heuristik test
+	  bool  HeuristikAlmostEqual (const cTriangulation<Dim> &,double TolPt,double TolFace)  const;
+     protected :
+	  /// More a
+	  bool  HeuristikAlmostInclude (const cTriangulation<Dim> &,double TolPt,double TolFace)  const;
+
+          cTriangulation(const std::vector<tPt>& = std::vector<tPt>());
+          void AddFace(const tFace &);
+          void ResetTopo();
+
+          std::vector<tPt>    mVPts;
+          std::vector<tFace>  mVFaces;
+};
 
 
 

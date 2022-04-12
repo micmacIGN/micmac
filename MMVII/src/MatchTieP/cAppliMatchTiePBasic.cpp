@@ -87,7 +87,7 @@ void cCdtBasic::MatchInit(cSetCdtBasic& aSet,int NbSel)
     for (auto & aCd2 : aSet.VCdt())   
     {
         cWhitchMin<int,double> aWM=  mPC->Desc().DistanceFromBestPeek(aCd2.mPC->Desc(),aSet.SetPC());
-        aVH.push_back(cHypMatchCdtBasic(aWM.Val(),*this,aCd2,aWM.Index()));
+        aVH.push_back(cHypMatchCdtBasic(aWM.ValExtre(),*this,aCd2,aWM.IndexExtre()));
     }
     std::sort(aVH.begin(),aVH.end());
     StdOut() << "BEST COST  " << aVH[0].Cost() << " " << aVH.back().Cost() << " Cpt " << aCpt << "\n";

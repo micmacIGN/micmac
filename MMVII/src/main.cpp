@@ -1,16 +1,16 @@
 #include "../include/MMVII_all.h"
 
+
+/*
+
+Delaunay/delaunator : Copyright (c) 2018 Volodymyr Bilonenko  (MIT Licence)
+Ply/happly  Copyright (c) 2018 Nick Sharp
+eigen ...
+
+*/
+
 namespace MMVII {
-static int SaveArgC;
-static char ** SaveArgV;
   const std::string DirBin2007=MMVII_INSTALL_PATH;
-void ShowArgsMain()
-{
-   std::cout << "========= ARGS OF COMMAND ==========\n";
-   for (int aK=0 ; aK<SaveArgC ; aK++)
-       std::cout << SaveArgV[aK] << " ";
-   std::cout << "\n";
-}
 };
 
 using namespace MMVII;
@@ -19,9 +19,6 @@ using namespace MMVII;
 
 int main(int argc, char ** argv)
 {
-   SaveArgC = argc;
-   SaveArgV = argv;
-
    std::setlocale(LC_ALL, "C");
    // std::setlocale(LC_ALL, "en_US.UTF-8");
 

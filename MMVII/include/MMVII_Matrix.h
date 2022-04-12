@@ -607,6 +607,7 @@ template <class Type>  class cComputeStdDev
          const Type & SomWV2() const {return mSomWV2;}
          Type  NormalizedVal(const Type &) const;
          cComputeStdDev<Type>  Normalize(const Type & Epsilon = 0.0) const;
+	 Type  StdDev(const Type & Epsilon = 0.0) const;
      private :
          void  SelfNormalize(const Type & Epsilon = 0.0);
          Type mSomW; 
@@ -614,6 +615,18 @@ template <class Type>  class cComputeStdDev
          Type mSomWV2; 
          Type mStdDev; 
 };
+
+template<class Type> class cSymMeasure
+{
+    public :
+        cSymMeasure();
+        void Add(Type  aV1,Type  aV2);
+        Type  Sym(const Type & Espilon=1) const;
+    private :
+        Type                   mDif;
+        cComputeStdDev<Type >  mDev;
+};
+
 
 /* ============================================== */
 /*                                                */

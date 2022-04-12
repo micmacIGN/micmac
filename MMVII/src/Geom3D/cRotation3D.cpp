@@ -1,6 +1,5 @@
 #include "include/MMVII_all.h"
 
-// Test git
 namespace MMVII
 {
 

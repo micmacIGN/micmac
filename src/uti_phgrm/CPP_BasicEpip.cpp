@@ -74,6 +74,9 @@ class cAppliEpiBasic
           std::string mIm2;     // Name of second image
           bool        mExe;     // Do we execute or only print command
           int         mZoom0;   // Zoom first step
+          int         mZoomF;   // Zoom final 
+	  double      mResolTerrain; 
+	  Box2dr      mBoxTerrain;
           int         mInc;     // Inc Px
           int         mPxMoy;     // Inc Px
           double      mRegul;
@@ -113,6 +116,7 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
      mDirTmpMEC    ("MEC-BasicEpip/"),
      mExe          (true),
      mZoom0        (1),
+     mZoomF        (1),
      mPxMoy        (0),
      mRegul        (0.1),
      mSzW          (2),
@@ -135,6 +139,9 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
         LArgMain()  << EAM(mExe,"Exe",true,"Execute Commands, else only print them (Def=true)", eSAM_IsBool)
                     << EAM(mDirTmpMEC,"DirMEC",true,"Name of output dir (Def=MEC-BasicEpip)")
                     << EAM(mZoom0,"Zoom0",true,"Initial zoom")
+                    << EAM(mZoomF,"ZoomF",true,"Final zoom")
+                    << EAM(mResolTerrain,"ResolTerrain",true,"Ground Resol")
+		    << EAM(mBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
                     << EAM(mRegul,"Regul",true,"Regularisation coefficient")
                     << EAM(mSzW,"SzW",true,"Matching window size")
                     << EAM(mInc,"Inc",true,"Uncertaincy on pixel")
@@ -162,6 +169,7 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
                           + " +Im1="      +  mIm1
                           + " +Im2="      +  mIm2
                           + " +ZoomInit=" +  ToString(mZoom0)
+                          + " +ZoomFinal=" +  ToString(mZoomF)
 						  + " +Regul="    +  ToString(mRegul)
 						  + " +SzW="       +  ToString(mSzW)
                           + " +Inc="      +  ToString(mInc)
@@ -171,6 +179,17 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
                           + " +Pyr="   +     mPyr
                        ;
 
+      if (EAMIsInit(&mResolTerrain))
+          aCom = aCom + BLANK + "+UseResolTerrain=true" + BLANK + "+ResolTerrain=" + ToString(mResolTerrain);
+
+      if (EAMIsInit(&mBoxTerrain))
+      {
+          aCom  =    aCom + " +UseBoxTerrain=true "
+                  +  std::string(" +X0Terrain=") + ToString(mBoxTerrain._p0.x)
+                  +  std::string(" +Y0Terrain=") + ToString(mBoxTerrain._p0.y)
+                  +  std::string(" +X1Terrain=") + ToString(mBoxTerrain._p1.x)
+                  +  std::string(" +Y1Terrain=") + ToString(mBoxTerrain._p1.y) ;
+      }
 
       if (mExe)
           System(aCom);

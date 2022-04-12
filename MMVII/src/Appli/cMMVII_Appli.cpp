@@ -1469,6 +1469,11 @@ bool IsInit(const void * anAdr)
     return cMMVII_Appli::CurrentAppli().IsInit(anAdr);
 }
 
+int  cMMVII_Appli::ExeOnParsedBox()
+{
+    MMVII_INTERNAL_ERROR("Call to undefined method ExeOnParsedBox()");
+    return EXIT_FAILURE;
+}
 
 };
 

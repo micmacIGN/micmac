@@ -50,10 +50,6 @@ First, compile MMv1 and MMv2.
 Apipy compilation:
     make -f Makefile_apipy_linux
 
-Or if MMv1 was compiled with Qt:
-    make -f Makefile_apipy_linux USEQT=ON
-
-
 Distribution
 ------------
 Distribute file dist/mmv2-*.whl.
