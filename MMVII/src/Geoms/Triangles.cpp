@@ -290,10 +290,27 @@ template <class Type,const int Dim> void cTriangulation<Type,Dim>::AddFace(const
 template <class Type,const int Dim> int cTriangulation<Type,Dim>::NbFace() const { return mVFaces.size(); }
 template <class Type,const int Dim> int cTriangulation<Type,Dim>::NbPts() const { return mVPts.size(); }
 
+
+
+
+template <class Type,const int Dim> const  std::vector<cPt3di> & cTriangulation<Type,Dim>::VFaces() const
+{
+   return mVFaces;
+}
 template <class Type,const int Dim> const cPt3di & cTriangulation<Type,Dim>::KthFace(int aK) const
 {
    return mVFaces.at(aK);
 }
+
+template <class Type,const int Dim> const cPtxd<Type,Dim> & cTriangulation<Type,Dim>::KthPts(int aK) const
+{
+   return mVPts.at(aK);
+}
+template <class Type,const int Dim> const std::vector<cPtxd<Type,Dim> > & cTriangulation<Type,Dim>::VPts() const
+{
+   return mVPts;
+}
+  // const std::vector<tPt> &   VPts() const;  ///< Standard Accessor
 
 template <class Type,const int Dim> cTriangle<Type,Dim>    cTriangulation<Type,Dim>::KthTri(int aK) const
 {

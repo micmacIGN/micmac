@@ -35,6 +35,8 @@ class cGraphDual
          void Init(int aNbSom,const std::vector<tFace>&);
          void  AddEdge(int aFace,int aS1,int aS2);
          void  AddTri(int aFace,const cPt3di &);
+
+	 std::list<int>  SuccOfSom(int aS1) const;
      private :
          cEdgeDual * GetEdge(int aS1,int aS2); ///< return egde s1->s2 if it exist, else return null
 
@@ -99,13 +101,18 @@ template <class Type,const int Dim> class cTriangulation
 	   * but work with simple suface, if necessary will evolve as a real geodetic center */
 	  int   IndexCenterFace() const;
 
+	  //  ============ Accessor ========================
+	  //
+          const std::vector<tPt> &   VPts() const;  ///< Standard Accessor
+          const std::vector<tFace> & VFaces() const;  ///< Standard Accessor
 
-          int  NbFace() const;
-          const tFace &  KthFace(int aK) const;
-          tTri  KthTri(int aK) const;
-	  bool  ValidFace(const tFace &) const;
-          int  NbPts() const;
-	  const tPt  & KthPts() const;
+          int  NbFace() const;  ///< Number of faces
+          int  NbPts() const;   ///< Number of points
+          const tFace &  KthFace(int aK) const;  ///<  Faces number K
+	  const tPt  & KthPts(int aK) const;  ///< Points number K
+
+          tTri  KthTri(int aK) const;  ///< Triangle corresponding to the face
+	  bool  ValidFace(const tFace &) const;  ///< is it a valide face (i.e. : all index in [0,NbPts[)
 
 	  /// Create a sub tri of vertices belonging to the set, require 1,2 or 3 vertice in each tri
 	  void Filter(const cDataBoundedSet<tREAL8,Dim> &,int aNbVertixThres=3) ;
@@ -115,7 +122,9 @@ template <class Type,const int Dim> class cTriangulation
 	  /// Equality is difficiult, because of permutation,just make heuristik test
 	  bool  HeuristikAlmostEqual (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;
 
+	  ///  Generate topology of dual graphe => implemanted but 4 now, nor used nor tested ...
 	  void MakeTopo();
+          const cGraphDual & DualGr() const;
      protected :
 	  /// More a
 	  bool  HeuristikAlmostInclude (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;
