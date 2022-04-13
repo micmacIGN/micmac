@@ -9,11 +9,11 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
-template <class tUk,class tObs>
+template <class Type>
 std::vector<Type> Dist2DConservation
                   (
-                      const std::vector<tUk> & aVUk,
-                      const std::vector<tObs> & aVObs
+                      const std::vector<Type> & aVUk,
+                      const std::vector<Type> & aVObs
                   )
 {
     const Type & x1 = aVUk[0];
@@ -29,7 +29,6 @@ std::vector<Type> Dist2DConservation
 
 void GenerateCodeGeom2D(const  std::string &aDirGenCode,bool WithDerive)
 {
-	/*
    int aSzBuf=1;
 
    NS_SymbolicDerivative::cCoordinatorF<double> aCEq(std::string("Dist2DCon_") +(WithDerive ? "d" :"f"),aSzBuf,{"x1","y1","x2","y2"},{"d"});
@@ -45,7 +44,6 @@ void GenerateCodeGeom2D(const  std::string &aDirGenCode,bool WithDerive)
       aCEq.SetCurFormulas(aXY);
    auto [aClassName,aFileName] = aCEq.GenerateCode("CodeGen_");
    cGenNameAlloc::Add(aClassName,aFileName);
-   */
 }
 
 
