@@ -2,12 +2,8 @@
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_CamStenope.h"
+#include "Formulas_Geom2D.h"
 
-namespace MMVII
-{
-
-extern void GenerateCodeGeom2D(const  std::string &aDirGenCode,bool WithDerive);
-};
 
 /*
 La compil:
@@ -182,18 +178,16 @@ template <typename tFormula> void cAppliGenCode::GenCodesFormula(const tFormula 
 void cAppliGenCode::GenerateOneDist(const cPt3di & aDeg) 
 {
    cMMVIIUnivDist           aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
-   cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
-   cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);
+   cEqDist<cMMVIIUnivDist>  anEqDist(aDist);  // Distorsion function 2D->2D
+   cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);  // Projection 3D->2D
 
 
-   GenCodesFormula(anEqDist,false);
-   GenCodesFormula(anEqDist,true);
-   GenCodesFormula(anEqIntr,false);
-   GenCodesFormula(anEqIntr,true);
-   // GenCodesFormula<cMMVIIUnivDist>(aDist,true,false);
+   GenCodesFormula(anEqDist,false);  //  Dist without derivative
+   GenCodesFormula(anEqDist,true);   //  Dist with derivative
+   GenCodesFormula(anEqIntr,false);  //  Proj without derivative
+   GenCodesFormula(anEqIntr,true);   //  Proj with derivative
 
-   // GenCodesFormula<cMMVIIUnivDist>(aDist,true,false);
-
+   // Generate the base of all functions
    cMMVIIUnivDist           aDistBase(aDeg.x(),aDeg.y(),aDeg.z(),true);
    cEqDist<cMMVIIUnivDist>  anEqBase(aDistBase);
    GenCodesFormula(anEqBase,false);
@@ -211,8 +205,12 @@ int cAppliGenCode::Exe()
        GenerateOneDist(cPt3di(5,1,1));
    }
 
-   GenerateCodeGeom2D(mDirGenCode,true);
-   GenerateCodeGeom2D(mDirGenCode,false);
+   for (const auto WithDer : {true,false})
+   {
+       // cDist2DConservation aD2C;
+       GenCodesFormula(cDist2DConservation(),WithDer);
+       GenCodesFormula(cRatioDist2DConservation(),WithDer);
+   }
 /*
    cMMVIIUnivDist           aDist(3,1,1,false);
    cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
