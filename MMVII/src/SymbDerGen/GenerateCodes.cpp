@@ -274,6 +274,18 @@ cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf)
     return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,false,true),aSzBuf);
 }
 
+cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf)
+{ 
+    return cName2Calc<double>::CalcFromName(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf)
+{ 
+    return cName2Calc<double>::CalcFromName(NameFormula(cRatioDist2DConservation(),WithDerive),aSzBuf);
+}
+
+
+
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
 {
    cMMVIIUnivDist  aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);

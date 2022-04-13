@@ -34,11 +34,11 @@ class cDist2DConservation
           const auto & x2 = aVUk[2];
           const auto & y2 = aVUk[3];
 
-          const auto & d  = aVObs[0];  
+          const auto & ObsDist  = aVObs[0];  
 	  const auto aCst1 = CreateCste(1.0,x1);
 
 
-          return { sqrt(square(x1-x2) + square(y1-y2))/d - aCst1 } ;
+          return { sqrt(square(x1-x2) + square(y1-y2))/ObsDist - aCst1 } ;
      }
 };
 

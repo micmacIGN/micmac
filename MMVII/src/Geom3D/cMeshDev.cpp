@@ -1,8 +1,69 @@
 #include "include/MMVII_all.h"
 
+#include "include/SymbDer/SymbolicDerivatives.h"
+#include "include/SymbDer/SymbDer_GenNameAlloc.h"
+
+
+using namespace NS_SymbolicDerivative;
+using namespace MMVII;
 
 namespace MMVII
 {
+
+template <class Type> class cResolSysNonLinear
+{
+      public :
+          typedef NS_SymbolicDerivative::cCalculator<Type>  tCalc;
+	  typedef cSysSurResolu<Type>                       tSysSR;
+	  typedef cDenseVect<Type>                          tDVect;
+	  typedef cSparseVect<Type>                         tSVect;
+	  typedef std::vector<Type>                         tStdVect;
+	  typedef std::vector<int>                          tVectInd;
+	  typedef cResolSysNonLinear<Type>                  tRSNL;
+
+	  cResolSysNonLinear(const tDVect & aInitSol);
+	  ~cResolSysNonLinear();
+
+	  void SetCurSubset(const tVectInd &);
+      private :
+	  cResolSysNonLinear(const tRSNL & ) = delete;
+
+	  int        mNbVar;
+          tDVect     mCurGlobSol;
+          tSysSR*    mSys;
+	  tVectInd   mCurVecInd;
+	  tStdVect   mCurPts;
+	  tSVect     mSVect;
+};
+
+
+template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(const tDVect & aInitSol) :
+    mNbVar      (aInitSol.Sz()),
+    mCurGlobSol (aInitSol.Dup()),
+    mSys        (new cLeasSqtAA<Type>(mNbVar))
+{
+}
+
+template <class Type> cResolSysNonLinear<Type>::~cResolSysNonLinear()
+{
+    delete mSys;
+}
+
+template <class Type> void cResolSysNonLinear<Type>::SetCurSubset(const tVectInd & aVI)
+{
+   mCurVecInd = aVI;
+   mCurPts.clear();
+   for (const auto & anInd : mCurVecInd)
+   {
+       mCurPts.push_back(mCurGlobSol(anInd));
+   }
+}
+
+
+template class  cResolSysNonLinear<double>;
+
+
+
 
    /* ======  header of header  ====== */
 typedef tREAL8  tCoordDevTri;
@@ -223,8 +284,18 @@ cCollecSpecArg2007 & cAppliGenMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 }
 
 
+
 int  cAppliGenMeshDev::Exe()
 {
+   {
+      auto aPtr = EqConsDist(true,100);
+      auto aPtr2 = EqConsRatioDist(true,100);
+      StdOut() << "DIFPTR "  << ((void*) aPtr2) <<  ((void *) aPtr) << "\n";
+      delete aPtr;
+      delete aPtr2;
+   }
+
+
    // generate synthetic mesh
    cGenerateSurfDevOri aGenSD (cPt2di(15,5),mFactNonDev);
    tTriangulation3D  aTri(aGenSD.VPts(),aGenSD.VFaces());

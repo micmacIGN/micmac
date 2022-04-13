@@ -54,6 +54,7 @@ template <class Type> class  cSparseVect  : public cMemCheck
         /// SzInit fill with arbitray value, only to reserve space
         cSparseVect(int aSzReserve=-1,int aSzInit=-1) ;  
         bool IsInside(int aNb) const;
+	void Reset();
     private :
          std::shared_ptr<tCont>         mIV;
 };

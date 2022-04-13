@@ -39,6 +39,11 @@ template <class Type>  bool cSparseVect<Type>::IsInside(int aNb) const
     return true;
 }
 
+template <class Type> void cSparseVect<Type>::Reset()
+{
+    mIV->clear();
+}
+
 /* ========================== */
 /*          cDenseVect        */
 /* ========================== */
