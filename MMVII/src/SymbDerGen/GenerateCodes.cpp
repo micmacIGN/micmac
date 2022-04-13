@@ -3,6 +3,12 @@
 #include "include/SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_CamStenope.h"
 
+namespace MMVII
+{
+
+extern void GenerateCodeGeom2D(const  std::string &aDirGenCode,bool WithDerive);
+};
+
 /*
 La compil:
 
@@ -90,21 +96,21 @@ void BenchProjToDirBundle(cParamExeBench & aParam)
 
 
 
-class cAppli ;  // class for main application
+class cAppliGenCode ;  // class for main application
 
 /*  ============================================== */
 /*                                                 */
-/*             cAppli                              */
+/*             cAppliGenCode                       */
 /*                                                 */
 /*  ============================================== */
 
-class cAppli : public cMMVII_Appli
+class cAppliGenCode : public cMMVII_Appli
 {
      public :
 
        // =========== Declaration ========
                  // --- Method to be a MMVII application
-        cAppli(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
+        cAppliGenCode(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
@@ -121,13 +127,7 @@ class cAppli : public cMMVII_Appli
 };
 
 
-/*  ============================================== */
-/*                                                 */
-/*              cAppli                             */
-/*                                                 */
-/*  ============================================== */
-
-cAppli::cAppli
+cAppliGenCode::cAppliGenCode
 (
     const std::vector<std::string> &  aVArgs,
     const cSpecMMVII_Appli &          aSpec
@@ -137,7 +137,7 @@ cAppli::cAppli
 }
 
 
-cCollecSpecArg2007 & cAppli::ArgObl(cCollecSpecArg2007 & anArgObl)
+cCollecSpecArg2007 & cAppliGenCode::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
    
    return 
@@ -150,14 +150,14 @@ cCollecSpecArg2007 & cAppli::ArgObl(cCollecSpecArg2007 & anArgObl)
 */
 }
 
-cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+cCollecSpecArg2007 & cAppliGenCode::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return
       anArgOpt;
 }
 
 
-template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aFormula,bool WithDerive)
+template <typename tFormula> void cAppliGenCode::GenCodesFormula(const tFormula & aFormula,bool WithDerive)
 {
    int aSzBuf=1;
    // std::string aNF = anEq.FormulaName() +   std::string(WithDerive ?"VDer":"Val");
@@ -179,7 +179,7 @@ template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aForm
    cGenNameAlloc::Add(aClassName,aFileName);
 };
 
-void cAppli::GenerateOneDist(const cPt3di & aDeg) 
+void cAppliGenCode::GenerateOneDist(const cPt3di & aDeg) 
 {
    cMMVIIUnivDist           aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
    cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
@@ -200,7 +200,7 @@ void cAppli::GenerateOneDist(const cPt3di & aDeg)
 }
 
 
-int cAppli::Exe()
+int cAppliGenCode::Exe()
 {
    cGenNameAlloc::Reset();
    mDirGenCode = TopDirMMVII() + "src/GeneratedCodes/";
@@ -210,6 +210,9 @@ int cAppli::Exe()
        GenerateOneDist(cPt3di(2,0,0));
        GenerateOneDist(cPt3di(5,1,1));
    }
+
+   GenerateCodeGeom2D(mDirGenCode,true);
+   GenerateCodeGeom2D(mDirGenCode,false);
 /*
    cMMVIIUnivDist           aDist(3,1,1,false);
    cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
@@ -233,13 +236,13 @@ int cAppli::Exe()
    return EXIT_SUCCESS;
 }
 
-cAppliBenchAnswer cAppli::BenchAnswer() const 
+cAppliBenchAnswer cAppliGenCode::BenchAnswer() const 
 {
    return cAppliBenchAnswer(true,1.0);
 }
 
 
-int  cAppli::ExecuteBench(cParamExeBench & aParam) 
+int  cAppliGenCode::ExecuteBench(cParamExeBench & aParam) 
 {
    BenchProjToDirBundle(aParam);
    return EXIT_SUCCESS;
@@ -254,7 +257,7 @@ tMMVII_UnikPApli Alloc_GenCode(const std::vector<std::string> &  aVArgs,const cS
 {
 
 
-   return tMMVII_UnikPApli(new cAppli(aVArgs,aSpec));
+   return tMMVII_UnikPApli(new cAppliGenCode(aVArgs,aSpec));
 }
 
 } // NS_GenerateCode
