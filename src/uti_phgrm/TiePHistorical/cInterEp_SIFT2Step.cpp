@@ -123,7 +123,7 @@ ElSimilitude EstimateHomography(std::string aDir, std::string aImg1, std::string
 
     std::string aNameFile1 = aDir + "/Homol" + CurSH + "-dat/Pastis" + aImg1 + "/"+aImg2+".dat";
     */
-    std::string aNameFile1 = aDir + "/Homol" + CurSH + "/Pastis" + aImg1 + "/"+aImg2+".txt";
+    std::string aNameFile1 = aDir + "/Homol" + CurSH+"-2DRANSAC" + "/Pastis" + aImg1 + "/"+aImg2+".txt";
     if (ELISE_fp::exist_file(aNameFile1) == true)
     {
         ElPackHomologue aPack =  ElPackHomologue::FromFile(aNameFile1);
@@ -222,6 +222,7 @@ void SIFT2Step(std::string aDir, std::string aImg1, std::string aImg2, std::stri
     if(bSkip1stSIFT == false)
         aSimCur = EstimateHomography(aDir, aImg1, aImg2, outSH, dScale, bCheckFile, dScaleL, dScaleR, aR2DTh1st, aR2dIter1st, aVSiftOriL, aVSiftOriR, bPrint, bCheckSclRot, aThreshScaleR2D, aThreshAngleR2D);
 
+    printf("Simi for guidance: Translation: [%.2lf,%.2lf]; Scl: %.2lf, Rot: %.2lf\n", aSimCur.tr().x, aSimCur.tr().y, aSimCur.sc().x, aSimCur.sc().y);
     if(bSkip2ndSIFT == false && IsHomolFileExist(aDir, aImg1, aImg2, outSH, bCheckFile) == false)
     {
         printf("Key point number of master image for 2th step: %d.\nKey point number of secondary image for 2th step: %d.\n", int(aVSiftOriL.size()), int(aVSiftOriR.size()));
