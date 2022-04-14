@@ -10,6 +10,18 @@ using namespace MMVII;
 namespace MMVII
 {
 
+///  class for comouting weight of residuals
+template <class Type> class cResidualWeighter
+{
+      public :
+	  typedef std::vector<Type>  tStdVect;
+
+	  /// Compute the weight, size out must equal 1 (uniform) of equals
+	  virtual tStdVect  ComputeWeith(const tStdVect &) const {return {1.0};}
+      private :
+};
+
+
 template <class Type> class cResolSysNonLinear
 {
       public :
@@ -20,6 +32,7 @@ template <class Type> class cResolSysNonLinear
 	  typedef std::vector<Type>                         tStdVect;
 	  typedef std::vector<int>                          tVectInd;
 	  typedef cResolSysNonLinear<Type>                  tRSNL;
+          typedef cResidualWeighter<Type>                   tResW;
 
 	  cResolSysNonLinear(const tDVect & aInitSol);
 	  ~cResolSysNonLinear();
@@ -27,7 +40,7 @@ template <class Type> class cResolSysNonLinear
 	  void SetCurSubset(const tVectInd &);
 
       private :
-	  const tStdVect  & CalcVal(tCalc *,const tStdVect & aVObs,bool WithDer);
+	  tStdVect   CalcVal(tCalc *,const tStdVect & aVObs,const tResW *);
 	  cResolSysNonLinear(const tRSNL & ) = delete;
 
 	  int        mNbVar;
@@ -36,7 +49,6 @@ template <class Type> class cResolSysNonLinear
 	  tVectInd   mCurVecInd;
 	  tSVect     mSVect;
 	  tStdVect   mCurPts;
-	  tStdVect   mCurVals;
 };
 
 
@@ -62,23 +74,39 @@ template <class Type> void cResolSysNonLinear<Type>::SetCurSubset(const tVectInd
    }
 }
 
-template <class Type> const std::vector<Type> &  cResolSysNonLinear<Type>::CalcVal(tCalc * aCalcVal,const tStdVect & aVObs,bool WithDer)
+template <class Type> 
+    std::vector<Type>   cResolSysNonLinear<Type>::CalcVal
+                        (
+                             tCalc * aCalcVal,
+                             const tStdVect & aVObs,
+                             const tResW * aRWeighter
+                        )
 {
-      mCurVals.clear();
       MMVII_INTERNAL_ASSERT_strong(aCalcVal->NbInBuf()==0,"Buff not empty");
-      MMVII_INTERNAL_ASSERT_strong(aCalcVal->NbUk()==mCurVecInd.size(),"Bad size in cResolSysNonLinear::CalcVal");
+      MMVII_INTERNAL_ASSERT_strong(aCalcVal->NbUk()==mCurPts.size(),"Bad size in cResolSysNonLinear::CalcVal");
 
       aCalcVal->PushNewEvals(mCurPts,aVObs);
       aCalcVal->EvalAndClear();
 
-      if (WithDer)
+      tStdVect   aRes;
+      for (size_t aK=0; aK<aCalcVal->NbElem()  ; aK++)
+          aRes.push_back(aCalcVal->ValComp(0,aK));
+
+      if (aRWeighter)
       {
+          tStdVect   aVW = aRWeighter->ComputeWeith(aRes);
+          MMVII_INTERNAL_ASSERT_strong((aVW.size()==1)||(aVW.size()==aRes.size()) ,"Bad size for weight");
+          for (size_t aK=0; aK<aCalcVal->NbElem()  ; aK++)
+	  {
+                int aKW = std::min(aK,aVW.size()-1);
+		Type aW = aVW.at(aKW);
+		if (aW)
+		{
+		}
+	  }
       }
 
-      for (size_t aK=0; aK<aCalcVal->NbElem()  ; aK++)
-          mCurVals.push_back(aCalcVal->ValComp(0,aK));
-
-      return mCurVals;
+      return aRes;
 }
 
 
@@ -103,6 +131,7 @@ template <class Type> const std::vector<Type> &  cResolSysNonLinear<Type>::CalcV
 
 
 
+template class  cResidualWeighter<double>;
 template class  cResolSysNonLinear<double>;
 
 
