@@ -27,7 +27,7 @@ template <class Type> class cResolSysNonLinear
 	  void SetCurSubset(const tVectInd &);
 
       private :
-	  const tStdVect  & CalcVal(tCalc *,const tStdVect & aVObs,bool WithDer);
+	  tStdVect   CalcVal(tCalc *,const tStdVect & aVObs,bool WithDer);
 	  cResolSysNonLinear(const tRSNL & ) = delete;
 
 	  int        mNbVar;
@@ -36,7 +36,6 @@ template <class Type> class cResolSysNonLinear
 	  tVectInd   mCurVecInd;
 	  tSVect     mSVect;
 	  tStdVect   mCurPts;
-	  tStdVect   mCurVals;
 };
 
 
@@ -62,23 +61,24 @@ template <class Type> void cResolSysNonLinear<Type>::SetCurSubset(const tVectInd
    }
 }
 
-template <class Type> const std::vector<Type> &  cResolSysNonLinear<Type>::CalcVal(tCalc * aCalcVal,const tStdVect & aVObs,bool WithDer)
+template <class Type> std::vector<Type>   cResolSysNonLinear<Type>::CalcVal(tCalc * aCalcVal,const tStdVect & aVObs,bool WithDer)
 {
-      mCurVals.clear();
       MMVII_INTERNAL_ASSERT_strong(aCalcVal->NbInBuf()==0,"Buff not empty");
       MMVII_INTERNAL_ASSERT_strong(aCalcVal->NbUk()==mCurVecInd.size(),"Bad size in cResolSysNonLinear::CalcVal");
 
       aCalcVal->PushNewEvals(mCurPts,aVObs);
       aCalcVal->EvalAndClear();
 
+      tStdVect   aVVals;
+      for (size_t aK=0; aK<aCalcVal->NbElem()  ; aK++)
+          aVVals.push_back(aCalcVal->ValComp(0,aK));
+
       if (WithDer)
       {
       }
 
-      for (size_t aK=0; aK<aCalcVal->NbElem()  ; aK++)
-          mCurVals.push_back(aCalcVal->ValComp(0,aK));
 
-      return mCurVals;
+      return aVVals;
 }
 
 
