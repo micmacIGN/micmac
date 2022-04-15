@@ -10,17 +10,35 @@ using namespace MMVII;
 namespace MMVII
 {
 
-///  class for comouting weight of residuals
+/**  class for computing weight of residuals
+     size out must equal size in or be equals 1 (means all value equal)
+ */
 template <class Type> class cResidualWeighter
 {
       public :
 	  typedef std::vector<Type>  tStdVect;
 
-	  /// Compute the weight, size out must equal 1 (uniform) of equals
-	  virtual tStdVect  ComputeWeith(const tStdVect &) const {return {1.0};}
+	  /// Defaut return Weight, independant of input
+	  virtual tStdVect  ComputeWeith(const tStdVect &) const {return mWeight;}
+	  /// Constructor with constant
+	  cResidualWeighter(const Type & aW=1.0) :  mWeight ({aW}) {}
       private :
+	  std::vector<Type>  mWeight;
 };
 
+template <class Type> cInputOutputRSNL
+{
+     public :
+	  typedef std::vector<Type>  tStdVect;
+	  typedef std::vector<int>   tVectInd;
+
+	  tVectInd   mVInd;    ///<  index of unknown in the system
+	  tStdVect   mTmpUK;   ///< possible value of temporary unknown,that would be eliminated by schur complement
+	  tStdVect   mObs;     ///< Observation (i.e constants)
+
+	  tStdVect                mVals;  ///< values of fctr
+	  std::vector<tStdVect>   mDers;  ///
+};
 
 template <class Type> class cResolSysNonLinear
 {
@@ -33,6 +51,7 @@ template <class Type> class cResolSysNonLinear
 	  typedef std::vector<int>                          tVectInd;
 	  typedef cResolSysNonLinear<Type>                  tRSNL;
           typedef cResidualWeighter<Type>                   tResW;
+          typedef cInputOutputRSNL<Type>                    tIO_TSNL;
 
 	  cResolSysNonLinear(const tDVect & aInitSol);
 	  ~cResolSysNonLinear();
@@ -40,7 +59,9 @@ template <class Type> class cResolSysNonLinear
 	  void SetCurSubset(const tVectInd &);
 
       private :
-	  tStdVect   CalcVal(tCalc *,const tStdVect & aVObs,const tResW *);
+	  /** Internal function of calculating derivatives, dont modify the system as is
+	      to avoid in case  of schur complement */
+	  void   CalcVal(std::vector<tIO_TSNL>,bool WithDer);
 	  cResolSysNonLinear(const tRSNL & ) = delete;
 
 	  int        mNbVar;
@@ -111,11 +132,6 @@ template <class Type>
 
 
 /*
-       tU_INT4 aK1 = std::min(tU_INT4(aVecIn.size()),aK0+aSzBuf);
-       for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++)
-       {
-           for (int aD=0 ; aD<DimIn ; aD++)
-               aVUk[aD] = aVecIn[aK][aD];
            mCalcVal->PushNewEvals(aVUk,mVObs);
        }
        mCalcVal->EvalAndClear();
