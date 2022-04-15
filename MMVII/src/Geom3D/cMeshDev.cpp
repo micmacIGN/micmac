@@ -26,7 +26,7 @@ template <class Type> class cResidualWeighter
 	  std::vector<Type>  mWeight;
 };
 
-template <class Type> cInputOutputRSNL
+template <class Type> class cInputOutputRSNL
 {
      public :
 	  typedef std::vector<Type>  tStdVect;
@@ -37,7 +37,7 @@ template <class Type> cInputOutputRSNL
 	  tStdVect   mObs;     ///< Observation (i.e constants)
 
 	  tStdVect                mVals;  ///< values of fctr
-	  std::vector<tStdVect>   mDers;  ///
+	  std::vector<tStdVect>   mDers;  ///< derivate of fctr
 };
 
 template <class Type> class cResolSysNonLinear
@@ -56,20 +56,17 @@ template <class Type> class cResolSysNonLinear
 	  cResolSysNonLinear(const tDVect & aInitSol);
 	  ~cResolSysNonLinear();
 
-	  void SetCurSubset(const tVectInd &);
 
-      private :
+	  void   AddObs(const std::vector<tIO_TSNL>&,bool WithDer);
 	  /** Internal function of calculating derivatives, dont modify the system as is
 	      to avoid in case  of schur complement */
-	  void   CalcVal(std::vector<tIO_TSNL>,bool WithDer);
+	  void   CalcVal(tCalc *,std::vector<tIO_TSNL>&,bool WithDer);
+      private :
 	  cResolSysNonLinear(const tRSNL & ) = delete;
 
 	  int        mNbVar;
           tDVect     mCurGlobSol;
           tSysSR*    mSys;
-	  tVectInd   mCurVecInd;
-	  tSVect     mSVect;
-	  tStdVect   mCurPts;
 };
 
 
@@ -85,18 +82,56 @@ template <class Type> cResolSysNonLinear<Type>::~cResolSysNonLinear()
     delete mSys;
 }
 
-template <class Type> void cResolSysNonLinear<Type>::SetCurSubset(const tVectInd & aVI)
-{
-   mCurVecInd = aVI;
-   mCurPts.clear();
-   for (const auto & anInd : mCurVecInd)
-   {
-       mCurPts.push_back(mCurGlobSol(anInd));
-   }
-}
 
+template <class Type> void   cResolSysNonLinear<Type>::CalcVal
+                             (
+			          tCalc * aCalcVal,
+				  std::vector<tIO_TSNL>& aVIO,
+				  bool WithDer
+                              )
+{
+      MMVII_INTERNAL_ASSERT_strong(aCalcVal->NbInBuf()==0,"Buff not empty");
+
+      // Put input data
+      for (const auto & aIO : aVIO)
+      {
+          tStdVect aVCoord;
+	  // transferate global coordinates
+	  for (const auto & anInd : aIO.mVInd)
+              aVCoord.push_back(mCurGlobSol(anInd));
+	  // transferate potential temporary coordinates
+	  for (const  auto & aVal : aIO.mTmpUK)
+              aVCoord.push_back(aVal);
+	  //  Add equation in buffer
+          aCalcVal->PushNewEvals(aVCoord,aIO.mObs);
+      }
+      // Make the computation
+      aCalcVal->EvalAndClear();
+
+      size_t aNbEl = aCalcVal->NbElem();
+      size_t aNbUk = aCalcVal->NbUk();
+      for (int aNumPush=0 ; aNumPush<int(aVIO.size()) ; aNumPush++)
+      {
+           auto & aIO = aVIO[aNumPush];
+	   aIO.mVals = tStdVect(aNbEl);
+	   if (WithDer)
+	       aIO.mDers = std::vector(aNbEl,tStdVect( aNbUk));  // initialize vector to good size
+           for (size_t aKEl=0; aKEl<aNbEl  ; aKEl++)
+	   {
+               aIO.mVals[aKEl] = aCalcVal->ValComp(aNumPush,aKEl);
+	       if (WithDer)
+	       {
+	            for (size_t aKUk =0 ; aKUk<aNbUk ; aKUk++)
+		    {
+                        aIO.mDers[aKEl][aKUk] = aCalcVal->DerComp(aNumPush,aKEl,aKUk);
+		    }
+               }
+	   }
+      }
+}
+/*
 template <class Type> 
-    std::vector<Type>   cResolSysNonLinear<Type>::CalcVal
+    void   cResolSysNonLinear<Type>::CalcVal
                         (
                              tCalc * aCalcVal,
                              const tStdVect & aVObs,
@@ -129,6 +164,7 @@ template <class Type>
 
       return aRes;
 }
+*/
 
 
 /*
