@@ -71,6 +71,7 @@ template <class Type> class  cDenseVect
 
         cDenseVect(int aSz, eModeInitImage=eModeInitImage::eMIA_NoInit);
         cDenseVect(tIM anIm);
+        cDenseVect(const std::vector<Type> & aVect);
         static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
         cDenseVect<Type>  Dup() const;
 

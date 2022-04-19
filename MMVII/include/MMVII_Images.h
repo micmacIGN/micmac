@@ -880,6 +880,7 @@ template <class Type>  class cIm1D
        typedef cDataIm1D<Type>  tDIM;
        cIm1D(const int & aP0,const int & aP1,Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit);
        cIm1D(const int & aSz, Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); 
+       cIm1D(const std::vector<Type> &); 
 
        // tDIM & Im() {return *(mSPtr.get());}
        tDIM & DIm() {return *(mPIm);}

@@ -138,6 +138,14 @@ template <class Type>  cIm1D<Type>::cIm1D(const int & aSz,Type * aRawDataLin,eMo
 {
 }
 
+template <class Type>  cIm1D<Type>::cIm1D(const std::vector<Type> & aV) :
+   cIm1D<Type> (int(aV.size()))
+{
+     for (size_t aK=0;aK<aV.size(); aK++)
+         this->DIm().SetV(aK,aV[aK]);
+}
+
+
 template <class Type>  cIm1D<Type>  cIm1D<Type>::Dup() const
 {
    cIm1D<Type> aRes(DIm().P0().x(),DIm().P1().x());

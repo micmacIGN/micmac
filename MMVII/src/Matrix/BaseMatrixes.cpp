@@ -53,6 +53,11 @@ template <class Type> cDenseVect<Type>::cDenseVect(tIM anIm) :
 {
 }
 
+template <class Type> cDenseVect<Type>::cDenseVect(const std::vector<Type> & aVect) :
+   cDenseVect<Type> (tIM(aVect))
+{
+}
+
 template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeInit) :
    cDenseVect<Type> (tIM  (aSz,nullptr,aModeInit))
 {
