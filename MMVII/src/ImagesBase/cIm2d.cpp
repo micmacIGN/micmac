@@ -113,6 +113,15 @@ template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,co
 /*          cIm2D         */
 /* ========================== */
 
+/*
+const cPt2di & ShowPt(const cPt2di &aSz,const std::string & aMsg)
+{
+	StdOut() <<  "SZ:" << aSz << aMsg << "\n";
+	return aSz;
+}
+*/
+
+
 template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) :
    mSPtr(new cDataIm2D<Type>(aP0,aP1,aRawDataLin,aModeInit)),
    mPIm (mSPtr.get())

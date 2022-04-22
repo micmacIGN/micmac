@@ -116,8 +116,11 @@ bool cMemManager::IsActiveMemoryCount()
 
 void * cMemManager::Calloc(size_t nmemb, size_t size)
 {
-     size_t aNbOct = (int) (nmemb * size);
-     size_t aNb8 = (int) ((nmemb * size + 7)/8); // Assume 8 is ok as universal allignment constant
+     // !!! MPD !!! :  I dont know where the int conversion comes from, but surely it creates bugs with big allocation
+     // size_t aNbOct = (int) (nmemb * size);
+     size_t aNbOct =  (nmemb * size);
+     // size_t aNb8 = (int) ((nmemb * size + 7)/8); // Assume 8 is ok as universal allignment constant
+     size_t aNb8 =  ((nmemb * size + 7)/8); // Assume 8 is ok as universal allignment constant
      size_t aNb4 = aNb8 *2;
 
      void * v =  calloc(aNb8+3,8);

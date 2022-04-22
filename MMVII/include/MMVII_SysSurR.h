@@ -14,10 +14,16 @@ namespace MMVII
         * least square not using covariance ...
 */
 
-template <class Type> class cSysSurResolu
+template <class Type> class cSysSurResolu  : public cMemCheck
 {
     public :
+       ///  Basic Cstr
        cSysSurResolu(int aNbVar);
+       ///  static allocator
+       static cSysSurResolu<Type> * AllocSSR(eModeSSR,int aNbVar);
+
+
+
        /// Virtual methods => virtaul ~X()
        virtual ~cSysSurResolu();
        /// Add  aPds (  aCoeff .X = aRHS) 
@@ -28,6 +34,8 @@ template <class Type> class cSysSurResolu
        virtual void Reset() = 0;
        /// Compute a solution
        virtual cDenseVect<Type>  Solve() = 0;
+       ///  May contain a specialization for sparse system, default use generik
+       virtual cDenseVect<Type>  SparseSolve() ;
 
        /** Return for a given "solution" the weighted residual of a given observation
            Typically can be square, abs ....
@@ -48,7 +56,7 @@ template <class Type> class cSysSurResolu
        int NbVar() const;
 
 
-    private :
+    protected :
        int mNbVar;
 };
 
@@ -60,6 +68,11 @@ template <class Type> class  cLeasSq  :  public cSysSurResolu<Type>
     public :
        cLeasSq(int aNbVar);
        Type Residual(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const override;
+       /// Adpated to"very sparse" system like in finite element, probably also ok for photogrammetry
+       static cLeasSq<Type>*  AllocSparseLstSq(int aNbVar,double aPerEmptyBuf=4.0);
+       
+       /// Basic dense systems
+       static cLeasSq<Type>*  AllocDenseLstSq(int aNbVar);
 };
 
 /**  Implemant least by suming tA A ,  simple and efficient, by the way known to have
@@ -75,6 +88,8 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        void Reset() override;
        /// Compute a solution
        cDenseVect<Type>  Solve() override;
+       /// Use  sparse cholesky 
+       cDenseVect<Type>  SparseSolve() override ;
        // Accessor, at least for debug (else why ?)
        const cDenseMatrix<Type> & tAA   () const;
        const cDenseVect<Type>   & tARhs () const;

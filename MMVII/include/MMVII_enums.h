@@ -259,6 +259,13 @@ enum class eModeEpipMatch
    eNbVals
 };
 
+/**  Mode os system "sur resolus"  */
+enum class eModeSSR
+{
+      eSSR_LsqDense,   ///< Least square with dense implementation
+      eSSR_LsqSparse   ///< Least square with sparse implementation
+};
+
 
 /** Mode "Padding" callable in DenseMatchEpipGen */
 

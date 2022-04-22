@@ -4,6 +4,12 @@
 namespace MMVII
 {
 
+/**  This class is just a copy of Eigen indexe, this allow to use eigen sparse
+      matrix w/o having to include eigen headers
+*/
+
+
+
 
 /*
    General note on this file :
@@ -17,16 +23,11 @@ namespace MMVII
 /*          cSParseVect        */
 /* ========================== */
 
-template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve,int aSzInit) :
+template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve) :
    mIV (new tCont)
 {
   if (aSzReserve>0) 
      IV().reserve(aSzReserve);
-  if (aSzInit>0)
-  {
-      for (int aK=0 ; aK<aSzInit ; aK++)
-          AddIV(aK,1.0);      // arbitrary values
-  }
 }
 
 template <class Type>  bool cSparseVect<Type>::IsInside(int aNb) const

@@ -54,7 +54,7 @@ template <class Type> class cResolSysNonLinear
           typedef cResidualWeighter<Type>                   tResW;
           typedef cInputOutputRSNL<Type>                    tIO_TSNL;
 
-	  cResolSysNonLinear(const tDVect & aInitSol);
+	  cResolSysNonLinear(eModeSSR,const tDVect & aInitSol);
 	  ~cResolSysNonLinear();
 	  
 	  /// Accessor
@@ -95,10 +95,11 @@ template <class Type> class cResolSysNonLinear
 /*                                                              */
 /* ************************************************************ */
 
-template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(const tDVect & aInitSol) :
+template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(eModeSSR aMode,const tDVect & aInitSol) :
     mNbVar      (aInitSol.Sz()),
     mCurGlobSol (aInitSol.Dup()),
-    mSys        (new cLeasSqtAA<Type>(mNbVar))
+    // mSys        (new cLeasSqtAA<Type>(mNbVar))
+    mSys        (cSysSurResolu<Type>::AllocSSR(aMode,mNbVar))
 {
 }
 
@@ -121,7 +122,8 @@ template <class Type> const Type & cResolSysNonLinear<Type>::CurSol(int aNumV) c
 
 template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset() 
 {
-    mCurGlobSol += mSys->Solve();
+    // mCurGlobSol += mSys->Solve();
+    mCurGlobSol += mSys->SparseSolve();
     mSys->Reset();
 
     return mCurGlobSol;
@@ -353,7 +355,7 @@ template <class Type>  class  cBenchNetwork
           typedef cResolSysNonLinear<Type>  tSys;
           typedef NS_SymbolicDerivative::cCalculator<Type>  tCalc;
 
-          cBenchNetwork(int aN,bool WithSchurr);
+          cBenchNetwork(eModeSSR aMode,int aN,bool WithSchurr);
           ~cBenchNetwork();
 
           int   N() const;
@@ -361,7 +363,7 @@ template <class Type>  class  cBenchNetwork
           int&  Num() ;
 
 
-	  void OneItereCompensation();
+	  Type OneItereCompensation();
 
 	  const Type & CurSol(int aK) const;
 
@@ -381,7 +383,7 @@ template <class Type>  class  cBenchNetwork
 /*                                          */
 /* ======================================== */
 
-template <class Type> cBenchNetwork<Type>::cBenchNetwork(int aN,bool WithSchurr) :
+template <class Type> cBenchNetwork<Type>::cBenchNetwork(eModeSSR aMode,int aN,bool WithSchurr) :
     mN         (aN),
     mWithSchur (WithSchurr),
     mNum       (0)
@@ -399,7 +401,7 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork(int aN,bool WithSchurr)
 	 }
      }
      // Initiate system for solving
-     mSys = new tSys(cDenseVect<Type>(aVCoord0));
+     mSys = new tSys(aMode,cDenseVect<Type>(aVCoord0));
 
      // Initiate Links between Pts of Networks,
       for (size_t aK1=0 ;aK1<mVPts.size() ; aK1++)
@@ -426,7 +428,7 @@ template <class Type> int   cBenchNetwork<Type>::N() const {return mN;}
 template <class Type> bool  cBenchNetwork<Type>::WithSchur()  const {return mWithSchur;}
 template <class Type> int&  cBenchNetwork<Type>::Num() {return mNum;}
 
-template <class Type> void cBenchNetwork<Type>::OneItereCompensation()
+template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
 {
      Type aWeightFix=100.0;
 
@@ -469,10 +471,8 @@ template <class Type> void cBenchNetwork<Type>::OneItereCompensation()
 	  }
      }
 
-     StdOut() << " Ssssollvveeee \n";
      mSys->SolveUpdateReset();
-
-     StdOut() << " EC=" << aSomEc / aNbEc << "\n";
+     return aSomEc / aNbEc ;
 }
 template <class Type> const Type & cBenchNetwork<Type>::CurSol(int aK) const
 {
@@ -538,13 +538,17 @@ template <class Type> bool cPNetwork<Type>::Linked(const cPNetwork<Type> & aP2) 
 template class cPNetwork<tREAL8>;
 template class cBenchNetwork<tREAL8>;
 
-void  OneBenchSSRNL(int aNb)
+void  OneBenchSSRNL(eModeSSR aMode,int aNb)
 {
-     cBenchNetwork<tREAL8> aBN(aNb,false);
-     for (int aK=0 ; aK < 2 * aNb ; aK++)
+     cBenchNetwork<tREAL8> aBN(aMode,aNb,false);
+     double anEc =100;
+     for (int aK=0 ; aK < 8 ; aK++)
      {
-         aBN.OneItereCompensation();
+         anEc = aBN.OneItereCompensation();
+	 //StdOut() << "EEEE=" << anEc << "\n";
      }
+     StdOut() << "EEEE=" << anEc << "\n";
+     MMVII_INTERNAL_ASSERT_bench(anEc<1e-5,"Error in Network-SSRNL Bench");
 }
 
 
@@ -558,7 +562,8 @@ void BenchSSRNL(cParamExeBench & aParam)
 
 
      // OneBenchSSRNL(4);
-     OneBenchSSRNL(20);
+     OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,10);
+     OneBenchSSRNL(eModeSSR::eSSR_LsqSparse,10);
 
      aParam.EndBench();
 }

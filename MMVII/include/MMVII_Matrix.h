@@ -43,19 +43,29 @@ template <class Type> class  cSparseVect  : public cMemCheck
         typedef typename tCont::const_iterator   const_iterator;
         typedef typename tCont::iterator         iterator;
 
-        const_iterator  end()   const {return  mIV.get()->end();}
-        const_iterator  begin() const {return  mIV.get()->begin();}
+        const_iterator  end()   const { return  mIV.get()->end();}
+        const_iterator  begin() const { return  mIV.get()->begin();}
         int  size() const {return mIV.get()->size();}
-        const tCont & IV() const {return *(mIV.get());}
-        tCont & IV() {return *(mIV.get());}
+        const tCont & IV() const { return *(mIV.get());}
+        tCont & IV() { return *(mIV.get());}
 
-        void AddIV(const int & anInd,const Type & aV) {IV().push_back(tCplIV(anInd,aV));}
+        void AddIV(const int & anInd,const Type & aV) 
+	{
+             IV().push_back(tCplIV(anInd,aV));
+	}
 
         /// SzInit fill with arbitray value, only to reserve space
-        cSparseVect(int aSzReserve=-1,int aSzInit=-1) ;  
+        // cSparseVect(int aSzReserve=-1,int aSzInit=-1) ;  
+        cSparseVect(int aSzReserve=-1) ;  
+	/// Check the vector can be used in a matrix,vect [0,Nb[, used in the assertions
         bool IsInside(int aNb) const;
 	void Reset();
     private :
+	/*
+         inline void MakeSort(){if (!mIsSorted) Sort();}
+         void Sort();
+	 bool                           mIsSorted;
+	 */
          std::shared_ptr<tCont>         mIV;
 };
 
@@ -719,6 +729,41 @@ template <class Type> class cDataGenDimTypedIm : public cMemCheck
         tIndex   mMulSz;
         Type *   mRawDataLin; ///< raw data containing pixel values
 };
+
+/**  This class is just a copy of Eigen indexe, this allow to use eigen sparse
+      matrix w/o having to include eigen headers
+*/
+
+template <class Type> struct cEigenTriplet
+{
+     public :
+        typedef long int StorageIndex;
+        typedef Type   Scalar;
+
+        const StorageIndex &  col () const {return mCol;}
+        const StorageIndex &  row () const {return mRow;}
+        const Scalar &  value () const     {return mValue;}
+
+        cEigenTriplet(const StorageIndex & aRow,const StorageIndex & aCol,const Scalar & aValue) :
+                mRow   (aRow),
+                mCol   (aCol),
+                mValue (aValue)
+        {
+        }
+     private :
+
+        StorageIndex  mRow;
+        StorageIndex  mCol;
+        Scalar        mValue;
+};
+
+template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
+                                      (
+                                           const std::vector<cEigenTriplet<Type> > & aV3,
+                                           const cDenseVect<Type> & aVec
+                                      );
+
+
 
 
 
