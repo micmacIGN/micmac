@@ -33,6 +33,10 @@ template <class Type> bool ValidStrictPosFloatValue(const Type & aV)
 {
     return ValidFloatValue(aV) && (aV > 0.0);
 }
+template <class Type> bool ValidPosFloatValue(const Type & aV)
+{
+    return ValidFloatValue(aV) && (aV >= 0.0);
+}
 
 
 /** \file MMVII_nums.h
@@ -511,6 +515,11 @@ template <class Type> Type Cube(const Type & aV) {return aV*aV*aV;}
 template <class Type,class TCast> TCast TSquare(const Type & aV) {return aV* TCast(aV);}
 template <class Type> tREAL8  R8Square(const Type & aV) {return TSquare<Type,tREAL8>(aV);} ///< To avoid oveflow with int type
 
+template <class Type> Type Sqrt(const Type & aV) 
+{
+    MMVII_ASSERT_POS_VALUE(aV);
+    return std::sqrt(aV);
+}
 
 template <class Type> void OrderMinMax(Type & aV1,Type & aV2)
 {

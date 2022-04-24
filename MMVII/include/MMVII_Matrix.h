@@ -54,6 +54,9 @@ template <class Type> class  cSparseVect  : public cMemCheck
              IV().push_back(tCplIV(anInd,aV));
 	}
 
+	/// Random sparse vector
+        static cSparseVect<Type>  RanGenerate(int aNbVar,double aProba);
+
         /// SzInit fill with arbitray value, only to reserve space
         // cSparseVect(int aSzReserve=-1,int aSzInit=-1) ;  
         cSparseVect(int aSzReserve=-1) ;  
@@ -757,10 +760,21 @@ template <class Type> struct cEigenTriplet
         Scalar        mValue;
 };
 
+// Return X sol of  "V3 X = aVec" usign Sparse Cholesky decomposition
+
 template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
                                       (
                                            const std::vector<cEigenTriplet<Type> > & aV3,
                                            const cDenseVect<Type> & aVec
+                                      );
+
+// Return least sqaure X sol of  "V3 X = aVec" usign Conjugate Gradient
+
+template<class Type> cDenseVect<Type> EigenSolveLsqGC
+                                      (
+                                           const std::vector<cEigenTriplet<Type> > & aV3,
+                                           const std::vector<Type> & aVec,
+                                           int   aNbVar
                                       );
 
 

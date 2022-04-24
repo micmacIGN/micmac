@@ -45,6 +45,22 @@ template <class Type> void cSparseVect<Type>::Reset()
     mIV->clear();
 }
 
+
+template <class Type> cSparseVect<Type>  cSparseVect<Type>::RanGenerate(int aNbVar,double aProba)
+{
+    cSparseVect<Type>  aRes;
+
+    for (int aK=0 ; aK<aNbVar ; aK++)
+    {
+        if(RandUnif_0_1() < aProba)
+	{
+            aRes.AddIV(aK,RandUnif_C());
+	}
+    }
+
+    return aRes;
+}
+
 /* ========================== */
 /*          cDenseVect        */
 /* ========================== */
