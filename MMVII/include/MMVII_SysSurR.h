@@ -82,7 +82,7 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
              - treat temporary as unknowns and increase the size of their unknowns
 	     - refuse to process =>default is error ...
 	*/
-       virtual void AddObsWithTmpK(const cSetIORSNL_SameTmp<Type>&);
+       virtual void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&);
 
        /// "Purge" all accumulated equations
        virtual void Reset() = 0;

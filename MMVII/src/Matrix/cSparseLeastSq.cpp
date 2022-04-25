@@ -219,11 +219,11 @@ template<class Type>  class cSparseLeasSqGC : public cSparseLeasSq<Type>
 
 
 	 /// Here the temporay are in fact processed like standards equation, they decoded an memorized
-	 void AddObsWithTmpK(const cSetIORSNL_SameTmp<Type>&) override;
+	 void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&) override;
 
 
       private :
-	 int                 mNbVarTmp;
+	 int                 mNbTmpVar;
 	 std::vector<tTri>   mVTri;
 	 std::vector<Type>   mVRhs;
 
@@ -232,7 +232,7 @@ template<class Type>  class cSparseLeasSqGC : public cSparseLeasSq<Type>
 template<class Type>  
    cSparseLeasSqGC<Type>::cSparseLeasSqGC(int aNbVar) :
 	cSparseLeasSq<Type> (aNbVar),
-	mNbVarTmp           (0)
+	mNbTmpVar           (0)
 {
 }
 
@@ -257,19 +257,21 @@ template<class Type>  void cSparseLeasSqGC<Type>::Reset()
 {
     mVTri.clear();
     mVRhs.clear();
-    mNbVarTmp = 0;
+    mNbTmpVar = 0;
 }
 
 template<class Type>  cDenseVect<Type>  cSparseLeasSqGC<Type>::Solve()
 {
-	return EigenSolveLsqGC(mVTri,mVRhs,this->mNbVar);
+     cDenseVect<Type> aRes = EigenSolveLsqGC(mVTri,mVRhs,this->mNbVar+mNbTmpVar);
+     // supress the temporary variables
+     return aRes.SubVect(0,this->mNbVar);
 }
 
-template<class Type>  void  cSparseLeasSqGC<Type>::AddObsWithTmpK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
+template<class Type>  void  cSparseLeasSqGC<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
     aSetSetEq.AssertOk();
 
-     size_t aNbTmp = aSetSetEq.AllEq()[0].mTmpUK.size();
+    size_t aNbTmp = aSetSetEq.AllEq().at(0).mTmpUK.size();
     // For example parse all the camera seening a point
     for (const auto & aSetEq : aSetSetEq.AllEq())
     {
@@ -283,19 +285,20 @@ template<class Type>  void  cSparseLeasSqGC<Type>::AddObsWithTmpK(const cSetIORS
                  // For example parse the intrinsic & extrinsic parameters
 		 for (size_t aKUk=0 ; aKUk<aNbUk ; aKUk++)
 		 {
-                     tTri aTri(mVRhs.size(),aSetEq.mVInd[aKUk],aVDer[aKUk]*aSW);
+                     tTri aTri(mVRhs.size(),aSetEq.mVInd.at(aKUk),aVDer.at(aKUk)*aSW);
                      mVTri.push_back(aTri);
 		 }
                  // For example parse the 3 unknown x,y,z of "temporary" point
 		 for (size_t aKTmp=0 ; aKTmp<aNbTmp ; aKTmp++)
 		 {
-                     tTri aTri(mVRhs.size(),aKTmp+mNbVarTmp,aVDer[aNbUk+aKTmp]*aSW);
+                     tTri aTri(mVRhs.size(),this->mNbVar+mNbTmpVar+aKTmp,aVDer.at(aNbUk+aKTmp)*aSW);
                      mVTri.push_back(aTri);
 		 }
-                 mVRhs.push_back(aSetEq.mVals.at(aKEq)*aSW);
+		 // Note the minus sign because we have a taylor expansion we need to annulate
+                 mVRhs.push_back(-aSetEq.mVals.at(aKEq)*aSW);
 	 }
     }
-    mNbVarTmp += aNbTmp;
+    mNbTmpVar += aNbTmp;
 }
 
 

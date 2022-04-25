@@ -55,6 +55,7 @@ template <class Type> class cResolSysNonLinear
 	  ///  Add 1 equation in structure aSetIO , relatively basic 4 now because don't use parallelism
 	  void  AddEq2Subst (cSetIORSNL_SameTmp<Type> & aSetIO,tCalc *,const tVectInd &,const tStdVect& aVTmp,
 			     const tStdVect& aVObs,const tResidualW & = tResidualW());
+	  void  AddObsWithTmpUK (const cSetIORSNL_SameTmp<Type> & aSetIO);
       private :
 	  cResolSysNonLinear(const tRSNL & ) = delete;
 
@@ -274,7 +275,7 @@ template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<
                  {
                      aSV.AddIV(aIO.mVInd[aKUk],aVDer[aKUk]);
 	         }
-		 //  F(X0+dx) = F(X0) + Gx.dx   =>   Gx.dx = -F(X0)
+		 // Note the minus sign :  F(X0+dx) = F(X0) + Gx.dx   =>   Gx.dx = -F(X0)
 	         mSys->AddObservation(aW,aSV,-aIO.mVals[aKVal]);
 	      }
 	  }
@@ -295,6 +296,10 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEq2Subst
     aSetIO.AddOneEq(aVIO.at(0));
 }
 			     
+template <class Type> void cResolSysNonLinear<Type>::AddObsWithTmpUK (const cSetIORSNL_SameTmp<Type> & aSetIO)
+{
+    mSys->AddObsWithTmpUK(aSetIO);
+}
 
 template <class Type> void   cResolSysNonLinear<Type>::CalcVal
                              (
@@ -328,77 +333,26 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
       // Parse all equation computed
       for (int aNumPush=0 ; aNumPush<int(aVIO.size()) ; aNumPush++)
       {
-           auto & aIO = aVIO[aNumPush];
+           auto & aIO = aVIO.at(aNumPush);
 	   aIO.mVals = tStdVect(aNbEl);
 	   if (WithDer)
 	       aIO.mDers = std::vector(aNbEl,tStdVect( aNbUk));  // initialize vector to good size
 	   // parse different values of each equation
            for (size_t aKEl=0; aKEl<aNbEl  ; aKEl++)
 	   {
-               aIO.mVals[aKEl] = aCalcVal->ValComp(aNumPush,aKEl);
+               aIO.mVals.at(aKEl) = aCalcVal->ValComp(aNumPush,aKEl);
 	       if (WithDer)
 	       {
 	            // parse  all unknowns
 	            for (size_t aKUk =0 ; aKUk<aNbUk ; aKUk++)
 		    {
-                        aIO.mDers[aKEl][aKUk] = aCalcVal->DerComp(aNumPush,aKEl,aKUk);
+                        aIO.mDers.at(aKEl).at(aKUk) = aCalcVal->DerComp(aNumPush,aKEl,aKUk);
 		    }
                }
 	   }
            aIO.mWeights = aWeighter.WeightOfResidual(aIO.mVals);
       }
 }
-/*
-template <class Type> 
-    void   cResolSysNonLinear<Type>::CalcVal
-                        (
-                             tCalc * aCalcVal,
-                             const tStdVect & aVObs,
-                             const tResW * aRWeighter
-                        )
-{
-      MMVII_INTERNAL_ASSERT_strong(aCalcVal->NbInBuf()==0,"Buff not empty");
-      MMVII_INTERNAL_ASSERT_strong(aCalcVal->NbUk()==mCurPts.size(),"Bad size in cResolSysNonLinear::CalcVal");
-
-      aCalcVal->PushNewEvals(mCurPts,aVObs);
-      aCalcVal->EvalAndClear();
-
-      tStdVect   aRes;
-      for (size_t aK=0; aK<aCalcVal->NbElem()  ; aK++)
-          aRes.push_back(aCalcVal->ValComp(0,aK));
-
-      if (aRWeighter)
-      {
-          tStdVect   aVW = aRWeighter->ComputeWeith(aRes);
-          MMVII_INTERNAL_ASSERT_strong((aVW.size()==1)||(aVW.size()==aRes.size()) ,"Bad size for weight");
-          for (size_t aK=0; aK<aCalcVal->NbElem()  ; aK++)
-	  {
-                int aKW = std::min(aK,aVW.size()-1);
-		Type aW = aVW.at(aKW);
-		if (aW)
-		{
-		}
-	  }
-      }
-
-      return aRes;
-}
-*/
-
-
-/*
-           mCalcVal->PushNewEvals(aVUk,mVObs);
-       }
-       mCalcVal->EvalAndClear();
-       for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++)
-       {
-           tPtOut aPRes;
-           for (int aD=0 ; aD<DimOut ; aD++)
-           {
-               aPRes[aD] = mCalcVal->ValComp(aK-aK0,aD);
-           }
-           aRes.push_back(aPRes);
-	   */
 
 /* ************************************************************ */
 /*                                                              */
@@ -475,6 +429,7 @@ template <class Type>  class  cBenchNetwork
 	  Type OneItereCompensation();
 
 	  const Type & CurSol(int aK) const;
+	  const tPNet & PNet(int aK) const {return mVPts.at(aK);}
 
 	private :
 	  int   mN;                    ///< Size of network is  [-N,N]x[-N,N]
@@ -524,7 +479,7 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork(eModeSSR aMode,int aN,b
 		else if (mVPts[aK2].mTmpUk)
                     mVPts[aK2].mLinked.push_back(aK1);
 		else 
-                    mVPts[aK1].mLinked.push_back(aK2);  // None Tmp, does not matters
+                    mVPts[aK1].mLinked.push_back(aK2);  // None Tmp, does not matters which way it is stored
                  mListCple.push_back(cPt2di(aK1,aK2));
 	     }
 	 }
@@ -571,19 +526,17 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
          if (aPN1.mTmpUk)
 	 {
             cSetIORSNL_SameTmp<Type> aSetIO;
+	    cPtxd<Type,2> aP1= aPN1.PCur();
             for (const auto & aI2 : aPN1.mLinked)
             {
                 const tPNet & aPN2 = mVPts.at(aI2);
 	        std::vector<int> aVInd{aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns
-                std::vector<Type> aVTmp{0,0};  // compute observations
+                std::vector<Type> aVTmp{aP1.x(),aP1.y()};  // compute observations
                 std::vector<Type> aVObs{Norm2(aPN1.PTh()-aPN2.PTh())};  // compute observations
+		mSys->AddEq2Subst(aSetIO,mCalcD,aVInd,aVTmp,aVObs);
 	    }
-	    /*
-	  void  AddEq2Subst (cSetIORSNL_SameTmp<Type> & aSetIO,tCalc *,const tVectInd &,const tStdVect& aVTmp,
-			     const tStdVect& aVObs,const tResidualW & = tResidualW());
-			     */
-		 StdOut() << "TMPPHHHHHHHHH \n";
-		 getchar();
+	    //  StdOut()  << "Id: " << aPN1.mPosTh << " NL:" << aPN1.mLinked.size() << "\n";
+	    mSys->AddObsWithTmpUK(aSetIO);
 	 }
 	 else
 	 {
@@ -639,7 +592,36 @@ template <class Type> cPNetwork<Type>::cPNetwork(const cPt2di & aPTh,cBenchNetwo
 }
 template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PCur() const
 {
+	// For standard unknown, read the cur solution of the system
+    if (!mTmpUk)
 	return cPtxd<Type,2>(mNetW->CurSol(mNumX),mNetW->CurSol(mNumY));
+
+    /*  For temporary unknown we must compute the "best guess" as we do by bundle intersection.
+     
+        If it was the real triangulation problem, we would compute the best circle intersection
+	with all the linked points, but it's a bit complicated and we just want to check software
+	not resolve the "real" problem.
+
+	An alternative would be to use the theoreticall value, but it's too much cheating and btw
+	may be a bad idea for linearization if too far from current solution.
+
+	As an easy solution we take the midle of PCur(x-1,y) and PCur(x+1,y).
+       */
+
+    int aNbPts = 0;
+    cPtxd<Type,2> aSomP(0,0);
+    for (const auto & aI2 : mLinked)
+    {
+           const  cPNetwork<Type> & aPN2 = mNetW->PNet(aI2);
+	   if (mPosTh.y() == aPN2.mPosTh.y())
+	   {
+               aSomP +=  aPN2.PCur();
+               aNbPts++;
+           }
+    }
+    MMVII_INTERNAL_ASSERT_bench((aNbPts==2),"Bad hypothesis for network");
+
+    return aSomP / (Type) aNbPts;
 }
 
 template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PTh() const
@@ -682,9 +664,7 @@ void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr)
      for (int aK=0 ; aK < 8 ; aK++)
      {
          anEc = aBN.OneItereCompensation();
-	 // StdOut() << "EEEE=" << anEc << "\n";
      }
-     // StdOut() << "============== EEEE=" << anEc << "\n\n";
      MMVII_INTERNAL_ASSERT_bench(anEc<1e-5,"Error in Network-SSRNL Bench");
 }
 
@@ -697,7 +677,8 @@ void BenchSSRNL(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("SSRNL")) return;
 
-     // OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,10,true);
+
+     OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,10,true);
 
      OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,10,false);
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,10,false);

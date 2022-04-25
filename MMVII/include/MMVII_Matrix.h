@@ -87,6 +87,8 @@ template <class Type> class  cDenseVect
         cDenseVect(const std::vector<Type> & aVect);
         static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
         cDenseVect<Type>  Dup() const;
+	/// Create a sub vector in interval [K0,K1[, its a duplication
+        cDenseVect  SubVect(int aK0,int aK1) const;
 
         const Type & operator() (int aK) const {return DIm().GetV(aK);}
         Type & operator() (int aK) {return DIm().GetV(aK);}

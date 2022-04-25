@@ -5,6 +5,41 @@
 namespace MMVII
 {
 
+template<class Type> class cBufSchurComplem
+{
+     public :
+          cBufSchurComplem();
+          void AddInd(size_t aK);
+     private :
+          std::vector<bool>    mOccupied;
+          std::vector<size_t>  mVIndOcc;
+
+	  cDenseMatrix<Type>   mMM;
+
+};
+
+template<class Type> 
+    cBufSchurComplem<Type>::cBufSchurComplem() :
+	mMM (1,1)
+{
+    mMM.DIm().Resize(cPt2di(2,2));
+}
+
+template<class Type> void cBufSchurComplem<Type>::AddInd(size_t aK)
+{
+      while (mOccupied.size() <= aK)
+            mOccupied.push_back(false);
+
+      if (!mOccupied[aK])
+      {
+         mOccupied[aK] = true;
+	 mVIndOcc.push_back(aK);
+      }
+}
+
+
+class cBufSchurComplem<tREAL8>;
+
 /* *********************************** */
 /*                                     */
 /*            cLeasSqtAA               */
@@ -167,7 +202,7 @@ template<class Type> cLinearOverCstrSys<Type> * cLinearOverCstrSys<Type>::AllocS
      return nullptr;
 }
 
-template<class Type> void cLinearOverCstrSys<Type>::AddObsWithTmpK(const cSetIORSNL_SameTmp<Type>&)
+template<class Type> void cLinearOverCstrSys<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&)
 {
 	MMVII_INTERNAL_ERROR("Used AddObsWithTmpK unsupported");
 }

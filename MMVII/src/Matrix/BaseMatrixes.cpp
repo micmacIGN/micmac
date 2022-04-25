@@ -96,6 +96,24 @@ template <class Type> cDenseVect<Type>   cDenseVect<Type>::Cste(int aSz,const Ty
     return aRes;
 }
 
+template <class Type> cDenseVect<Type>   cDenseVect<Type>::SubVect(int aK0,int aK1) const
+{
+      MMVII_INTERNAL_ASSERT_tiny
+      (
+         (aK0>=0) && (aK0<aK1) && (aK1<=Sz()),
+	 "Bad size in SubVect"
+      );
+      cDenseVect<Type> aRes(aK1-aK0);
+
+      for (int aK=aK0 ; aK<aK1 ; aK++)
+          aRes(aK-aK0) = (*this)(aK);
+
+      return aRes;
+}
+
+
+
+
 
 /*
 template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeInit) :
