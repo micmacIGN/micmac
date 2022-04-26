@@ -5,40 +5,88 @@
 namespace MMVII
 {
 
-template<class Type> class cBufSchurComplem
+template <class Type> class  cBufSchurrSubst
 {
      public :
-          cBufSchurComplem();
-          void AddInd(size_t aK);
+          typedef cSetIORSNL_SameTmp<Type>  tSetEq;
+
+          cBufSchurrSubst(size_t aNbVar);
+	  void CompileSubst(const tSetEq &);
      private :
-          std::vector<bool>    mOccupied;
-          std::vector<size_t>  mVIndOcc;
 
-	  cDenseMatrix<Type>   mMM;
-
+	  size_t            mNbVar;
+	  std::vector<int>  mNumComp;
+	  cSetIntDyn        mSetInd;
+	  cLeasSqtAA<Type>  mSysRed;
+	  cSparseVect<Type> mSV;
+	  size_t            mNbTmp;
+	  size_t            mNbUk;
+	  size_t            mNbUkTot;
 };
 
-template<class Type> 
-    cBufSchurComplem<Type>::cBufSchurComplem() :
-	mMM (1,1)
+template <class Type> 
+    cBufSchurrSubst<Type>::cBufSchurrSubst(size_t aNbVar) :
+         mNbVar    (aNbVar),
+         mNumComp  (aNbVar,-1),
+         mSetInd   (aNbVar),
+	 mSysRed   (1)
 {
-    mMM.DIm().Resize(cPt2di(2,2));
 }
 
-template<class Type> void cBufSchurComplem<Type>::AddInd(size_t aK)
+template <class Type> 
+    void cBufSchurrSubst<Type>::CompileSubst(const tSetEq & aSetSetEq)
 {
-      while (mOccupied.size() <= aK)
-            mOccupied.push_back(false);
+     mSetInd.Clear();
+     aSetSetEq.AssertOk();
 
-      if (!mOccupied[aK])
-      {
-         mOccupied[aK] = true;
-	 mVIndOcc.push_back(aK);
-      }
+     mNbTmp = aSetSetEq.NbTmpUk();
+     for (const auto & anEq : aSetSetEq.AllEq())
+     {
+         for (const auto & anInd : anEq.mVInd)
+             mSetInd.AddInd(anInd);
+     }
+
+     for (size_t aK=0; aK<mSetInd.mVIndOcc.size() ;aK++)
+     {
+          mNumComp.at(mSetInd.mVIndOcc[aK]) = aK;
+     }
+
+     mNbUk = mSetInd.mVIndOcc.size();
+     mNbUkTot = mNbUk + mNbTmp;
+
+     if (mSysRed.NbVar() != int(mNbUkTot))
+     {
+         mSysRed = cLeasSqtAA<Type>(mNbUkTot);
+     }
+     else
+     {
+         mSysRed.Reset();
+     }
+
+     for (const auto & aSetEq : aSetSetEq.AllEq())
+     {
+         for (size_t aKEq=0 ; aKEq<aSetEq.mVals.size() ; aKEq++)
+	 {
+              mSV.Reset();
+	      const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
+
+              for (size_t aKV=0 ; aKV<aSetEq.mVInd.size() ; aKV++)
+	      {
+                  mSV.AddIV(mNumComp.at(aSetEq.mVInd[aKV]),aVDer.at(aKV));
+	      }
+
+              for (size_t  aKV=aSetEq.mVInd.size() ; aKV<aVDer.size() ; aKV++)
+	      {
+                  mSV.AddIV(mNbUk+(aKV-aSetEq.mVInd.size()),aVDer.at(aKV));
+	      }
+	      mSysRed.AddObservation(aSetEq.WeightOfKthResisual(aKEq),mSV,-aSetEq.mVals.at(aKEq));
+	 }
+     }
 }
 
 
-class cBufSchurComplem<tREAL8>;
+template class cBufSchurrSubst<tREAL8>;
+
 
 /* *********************************** */
 /*                                     */

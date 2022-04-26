@@ -5,6 +5,62 @@
 namespace MMVII
 {
 
+template <class Type> class  cSMLineTransf
+{
+	public :
+	    typedef cCplIV<Type>             tCplIV;
+	    typedef std::vector<tCplIV>      tLine;
+
+	    cSMLineTransf(size_t aNb);
+	    void InputSparseLine(const tLine & aLine);
+            void SaveInSparseLine_And_Clear(tLine & aLine);
+            void AddToCurLine(size_t anInd,const Type & aVal);
+	private :
+	    std::vector<Type>    mCumulLine;
+            cSetIntDyn           mSet;
+};
+
+template <class Type> cSMLineTransf<Type>::cSMLineTransf(size_t aNb) :
+     mCumulLine (aNb,0.0),
+     mSet  (aNb)
+{
+}
+
+template <class Type> void cSMLineTransf<Type>::InputSparseLine(const tLine & aLine)
+{
+    for (const auto & anEl : aLine)
+    {
+        const int & anInd = anEl.mInd;
+        mSet.mOccupied.at(anInd) = true;
+        mCumulLine.at(anInd) = anEl.mVal;
+        mSet.mVIndOcc.push_back(anInd);
+    }
+}
+
+template <class Type> void cSMLineTransf<Type>::SaveInSparseLine_And_Clear(tLine & aLine)
+{
+       aLine.clear();
+       // save the  buff in the matrix 
+       for (const auto & anInd : mSet.mVIndOcc)
+       {
+           aLine.push_back(tCplIV(anInd,mCumulLine[anInd]));
+           mSet.mOccupied.at(anInd) = false;
+           mCumulLine.at(anInd) = 0.0;
+       }
+       mSet.mVIndOcc.clear();
+}
+
+template <class Type> void cSMLineTransf<Type>::AddToCurLine(size_t anInd,const Type & aVal)
+{
+    if (!mSet.mOccupied.at(anInd) )
+    {
+        mSet.mOccupied.at(anInd) = true;
+        mSet.mVIndOcc.push_back(anInd);
+    }
+    mCumulLine.at(anInd) +=  aVal;
+}
+
+template  class  cSMLineTransf<tREAL16>;
 
 /* *********************************** */
 /*                                     */
@@ -39,20 +95,56 @@ template<class Type>
 /*                                     */
 /* *********************************** */
 
+
+template<class Type>  class cSparseWeigtedVect
+{
+     public :
+        cSparseWeigtedVect(const Type & aWeight,const std::vector<cCplIV<Type> > & aVect) :
+		mWeight (aWeight),
+		mVect   (aVect)
+	{
+	}
+
+	Type                         mWeight;
+	std::vector<cCplIV<Type> >   mVect;
+};
+
+template<class Type>  class cValAndSWVPtr
+{
+     public :
+        cValAndSWVPtr(const Type & aVal,cSparseWeigtedVect<Type> *  aPtrV) :
+		mVal  (aVal),
+		mPtrV (aPtrV)
+	{
+	}
+
+	const Type & Weight() const {return mPtrV->mWeight;}
+	const std::vector<cCplIV<Type> > &   Vect() const {return mPtrV->mVect;}
+
+	Type                         mVal;
+	cSparseWeigtedVect<Type> *   mPtrV;
+};
+
 /**   Class for sparse least square usign normal equation
  
       A sparse normal matrix is computed.  This construction requires some kind of uncompression,
       as it is time consuming, this is not done at each equation. The equations are memorized
       in a buffer, and periodically the buffer is emptied in the normal matrix.
+
+      The normal matric is full vector of sparse vector :
+
+           mtAA[y] =   (x1,C1) (x2,C2) ....   where 
  */
 
 template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 {
       public :
+         typedef cSparseWeigtedVect<Type> tWeigtedVect;
+         typedef cValAndSWVPtr<Type>      tVal_WV;
+
 	 typedef cCplIV<Type>             tCplIV;
-	 typedef std::vector<tCplIV>      tLine;
-	 typedef std::pair<Type,tLine>    tSWVect;  // sparse weighted vector
-         typedef std::pair<Type,tSWVect*> tSCyWVect; //  tSWVect + coeff Y used for merge
+	 typedef std::vector<tCplIV>      tLine;  
+
 
          cSparseLeasSqtAA(int  aNbVar,double  aPerEmpty=4 );
 
@@ -64,14 +156,14 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 
 
 	 /// Put bufferd line in matrixs, used at end or during filling to liberate memorry
-	 void EmptyBuff() ;
+	 void PutBufererEqInNormalMatrix() ;
       private :
 
-	 std::list<tSWVect>   mBufInput;
-	 double               mPerEmpty;
-	 std::vector<tLine>   mtAA;    /// Som(W tA A)
-         cDenseVect<Type>     mtARhs;  /// Som(W tA Rhs)
-	 double               mNbInBuff;
+	 std::list<tWeigtedVect>   mBufInput;
+	 double                    mPerEmpty;
+	 std::vector<tLine>        mtAA;    /// Som(W tA A)
+         cDenseVect<Type>          mtARhs;  /// Som(W tA Rhs)
+	 double                    mNbInBuff;
 
 };
 
@@ -99,7 +191,7 @@ template<class Type> void cSparseLeasSqtAA<Type>::Reset()
 template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::Solve()
 {
    std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
-   EmptyBuff();
+   PutBufererEqInNormalMatrix();
    for (int aKy=0 ; aKy<int(mtAA.size()) ;aKy++)
    {
        for (const auto & aPair : mtAA.at(aKy))
@@ -120,72 +212,56 @@ template<class Type> void  cSparseLeasSqtAA<Type>::AddObservation
                            )
 {
     mtARhs.WeightedAddIn(aWeight*aRHS,aCoeff);
-    mBufInput.push_back(tSWVect(aWeight,aCoeff.IV()));
+    mBufInput.push_back(tWeigtedVect(aWeight,aCoeff.IV()));
     mNbInBuff+= double(aCoeff.size());
 
     if (mNbInBuff >= (this->mNbVar*mPerEmpty))
-       EmptyBuff();
+       PutBufererEqInNormalMatrix();
 }
 
-template<class Type> void  cSparseLeasSqtAA<Type>::EmptyBuff() 
+template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix() 
 {
 
-   // For each line, all equation it belongs to  [Cy tSWVect*=[W [ [i1 c1]  [i2 c2] ...]]]
-   std::vector<std::list<tSCyWVect > >  aVListSW(this->NbVar());
+   // For each line y,  aVListSW[y]  will store all equation t belongs to it  
+   std::vector<std::list<tVal_WV > >  aVListSW(this->NbVar());
 
    for (auto &  aSW : mBufInput)
    {
-       for (const auto & aPair : aSW.second)
+       for (const auto & aPair : aSW.mVect)
        {
-	    aVListSW.at(aPair.mInd).push_back(tSCyWVect(aPair.mVal,&aSW));
+	    aVListSW.at(aPair.mInd).push_back(tVal_WV(aPair.mVal,&aSW));
        }
    }
 
-   std::vector<bool>   aVOccupied(this->NbVar(),false);
-   std::vector<Type>   aVSom(this->NbVar(),0.0);
-   std::vector<int>    aUsedInd;
-
+   cSMLineTransf<Type>  aLineTransf(this->NbVar());
    for(int aKy=0 ; aKy<this->NbVar() ; aKy++)
    {
-       tLine & aLine=  mtAA.at(aKy);    /// Som(W tA A)
-       // Put the existing line in the buff struct
-       for (const auto & anEl : aLine)
+       const auto & aListEQ = aVListSW.at(aKy);
+       if (!aListEQ.empty())
        {
-           const int & anInd = anEl.mInd;
-           aVOccupied.at(anInd) = true;
-           aVSom.at(anInd) = anEl.mVal;
-	   aUsedInd.push_back(anInd);
-       }
-       aLine.clear();
+           tLine & aLine=  mtAA.at(aKy);    /// Som(W tA A)
 
-       //  transfer the equation  in the matrix
-       for (const auto & aPtrVect : aVListSW.at(aKy))
-       {
+           // Put the existing line in the buff struct
+           aLineTransf.InputSparseLine(aLine);
+      
+           //  transfer all the equations  in the matrix
+           for (const auto & aPtrVect : aListEQ)
+           {
 	       //  Weight * coeffiient of Y
-            Type aMul = aPtrVect.first *aPtrVect.second->first;
-	    for (const auto & aPair : aPtrVect.second->second)
-	    {
-                  const int & anInd = aPair.mInd;
-		  if (anInd>=aKy)  // Only compute triangluar superior part
-		  {
-                      if (!aVOccupied.at(anInd) )
+                Type aMul = aPtrVect.mVal * aPtrVect.Weight();
+	        for (const auto & aPair : aPtrVect.Vect())
+	        {
+                      const int & anInd = aPair.mInd;
+		      if (anInd>=aKy)  // Only compute triangluar superior part
 		      {
-                          aVOccupied.at(anInd) = true;
-		          aUsedInd.push_back(anInd);
+                          aLineTransf.AddToCurLine(anInd,aMul *  aPair.mVal);
 		      }
-                      aVSom.at(anInd) +=  aMul *  aPair.mVal;
-		  }
-	    }
-       }
+	        }
+           }
 
-       // save the  buff in the matrix 
-       for (const auto & anInd : aUsedInd)
-       {
-           aLine.push_back(tCplIV(anInd,aVSom[anInd]));
-           aVOccupied.at(anInd) = false;
-           aVSom.at(anInd) = 0.0;
+           // save the  buff in the matrix 
+           aLineTransf.SaveInSparseLine_And_Clear(aLine);
        }
-       aUsedInd.clear();
    }
 
    mNbInBuff =0;

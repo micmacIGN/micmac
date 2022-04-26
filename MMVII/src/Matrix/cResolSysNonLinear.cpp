@@ -134,7 +134,8 @@ template <class Type> bool cInputOutputRSNL<Type>::IsOk() const
 /* ************************************************************ */
 
 template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp() :
-	mOk (false)
+	mOk (false),
+	mNbEq (0)
 {
 }
 
@@ -151,8 +152,9 @@ template <class Type> void cSetIORSNL_SameTmp<Type>::AddOneEq(const tIO_OneEq & 
     MMVII_INTERNAL_ASSERT_tiny(anIO.IsOk(),"Bad size for cInputOutputRSNL");
 
     mVEq.push_back(anIO);
+    mNbEq += anIO.mVals.size();
     // A priori there is no use to less or equal equation, this doesnt give any constraint
-    if (mVEq.size() > anIO.mTmpUK.size())
+    if (mNbEq > anIO.mTmpUK.size())
     {
         mOk = true; 
     }
@@ -171,6 +173,10 @@ template <class Type> void cSetIORSNL_SameTmp<Type>::AssertOk() const
       MMVII_INTERNAL_ASSERT_tiny(mOk,"Not enough eq to use tmp unknowns");
 }
 
+template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const
+{
+    return mVEq.at(0).mTmpUK.size();
+}
 
 /* ************************************************************ */
 /*                                                              */

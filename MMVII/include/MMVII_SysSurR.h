@@ -17,11 +17,16 @@ template <class Type> class cInputOutputRSNL
           typedef std::vector<Type>  tStdVect;
           typedef std::vector<int>   tVectInd;
 
+	  /// Create Input data w/o temporay
 	  cInputOutputRSNL(const tVectInd&,const tStdVect & aVObs);
+	  /// Create Input data with temporary temporay
 	  cInputOutputRSNL(const tVectInd&,const tStdVect &aVTmp,const tStdVect & aVObs);
 
+	  /// Give the weight, handle case where mWeights is empty (1.0) or size 1 (considered constant)
 	  Type WeightOfKthResisual(int aK) const;
+	  /// Check all the size are coherent
 	  bool IsOk() const;
+	  ///  Real unknowns + Temporary
 	  size_t NbUkTot() const;
 
           tVectInd   mVInd;    ///<  index of unknown in the system
@@ -34,22 +39,34 @@ template <class Type> class cInputOutputRSNL
 
 };
 
+/**  class for grouping all the observation relative to a temporary variable,
+     this is necessary because all must be processed simultaneously in schurr elimination
+
+     Basically this only a set of "cInputOutputRSNL"
+ */
 template <class Type> class cSetIORSNL_SameTmp
 {
 	public :
             typedef cInputOutputRSNL<Type>  tIO_OneEq;
 	    typedef std::vector<tIO_OneEq>  tIO_AllEq;
 
+	    /// Constructor :  Create an empty set
 	    cSetIORSNL_SameTmp();
 
+	    /// Add and equation,  check the coherence
 	    void AddOneEq(const tIO_OneEq &);
+	    ///  Accesor to all equations
 	    const tIO_AllEq & AllEq() const;
 	    /// To be Ok must have at least 1 eq, and number of eq must be >= to unkwnonw
 	    void  AssertOk() const;
 
+	    ///  Number of temporary unkown
+	    size_t  NbTmpUk() const;
+
 	private :
 	    tIO_AllEq        mVEq;
 	    bool             mOk;
+	    size_t           mNbEq;
 };
 
 
