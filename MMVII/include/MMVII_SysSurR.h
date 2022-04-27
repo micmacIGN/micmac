@@ -163,11 +163,17 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        void Reset() override;
        /// Compute a solution
        cDenseVect<Type>  Solve() override;
-       /// Use  sparse cholesky 
+       /// Use  sparse cholesky , usefull for "sparse dense" system ...
        cDenseVect<Type>  SparseSolve() override ;
-       // Accessor, at least for debug (else why ?)
-       const cDenseMatrix<Type> & tAA   () const;
-       const cDenseVect<Type>   & tARhs () const;
+
+
+       //  ================  Accessor used in Schurr elim ========  :
+       
+       const cDenseMatrix<Type> & tAA   () const;   ///< Accessor 
+       const cDenseVect<Type>   & tARhs () const;   ///< Accessor 
+       cDenseMatrix<Type> & tAA   () ;         ///< Accessor 
+       cDenseVect<Type>   & tARhs () ;         ///< Accessor 
+
     private :
        cDenseMatrix<Type>  mtAA;    /// Som(W tA A)
        cDenseVect<Type>    mtARhs;  /// Som(W tA Rhs)

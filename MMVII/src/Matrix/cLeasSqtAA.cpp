@@ -5,6 +5,14 @@
 namespace MMVII
 {
 
+/*
+     We use notation of MMV1 doc   L= Lamda
+
+     (L      B   .. )     (X)   (A )
+     (tB     M11 .. )  *  (Y) = (C1)   =>     (M11- tB L-1 B    ...)  (Y) = C1 - tB L-1 A
+       ...                (Z)    ..           (                 ...)  (Z)
+*/
+
 template <class Type> class  cBufSchurrSubst
 {
      public :
@@ -22,6 +30,12 @@ template <class Type> class  cBufSchurrSubst
 	  size_t            mNbTmp;
 	  size_t            mNbUk;
 	  size_t            mNbUkTot;
+
+          cDenseMatrix<Type> mL;
+          cDenseMatrix<Type> mtB;
+          cDenseMatrix<Type> mB;
+          cDenseMatrix<Type> mM11;
+
 };
 
 template <class Type> 
@@ -29,7 +43,11 @@ template <class Type>
          mNbVar    (aNbVar),
          mNumComp  (aNbVar,-1),
          mSetInd   (aNbVar),
-	 mSysRed   (1)
+	 mSysRed   (1),
+	 mL        (1,1),
+	 mtB       (1,1),
+	 mB        (1,1),
+         mM11      (1,1)
 {
 }
 
@@ -65,23 +83,39 @@ template <class Type>
 
      for (const auto & aSetEq : aSetSetEq.AllEq())
      {
+         const std::vector<int> & aVI =   aSetEq.mVInd;
+	 size_t aNbI = aVI.size();
          for (size_t aKEq=0 ; aKEq<aSetEq.mVals.size() ; aKEq++)
 	 {
               mSV.Reset();
 	      const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
 
-              for (size_t aKV=0 ; aKV<aSetEq.mVInd.size() ; aKV++)
+              for (size_t aKV=0 ; aKV< aNbI ; aKV++)
 	      {
-                  mSV.AddIV(mNumComp.at(aSetEq.mVInd[aKV]),aVDer.at(aKV));
+                  mSV.AddIV(mNbTmp+mNumComp.at(aVI[aKV]),aVDer.at(aKV));
 	      }
 
-              for (size_t  aKV=aSetEq.mVInd.size() ; aKV<aVDer.size() ; aKV++)
+              for (size_t  aKV=aNbI ; aKV<aVDer.size() ; aKV++)
 	      {
-                  mSV.AddIV(mNbUk+(aKV-aSetEq.mVInd.size()),aVDer.at(aKV));
+                  mSV.AddIV((aKV-aNbI),aVDer.at(aKV));
 	      }
 	      mSysRed.AddObservation(aSetEq.WeightOfKthResisual(aKEq),mSV,-aSetEq.mVals.at(aKEq));
 	 }
-     }
+      }
+
+      cDenseMatrix<Type> & atAA  =  mSysRed.tAA();
+      atAA.SelfSymetrizeBottom();
+      cPt2di aSzTmp(mNbTmp,mNbTmp);
+
+      mL.ResizeAndCropIn(cPt2di(0,0),aSzTmp,atAA);
+      mM11.ResizeAndCropIn(aSzTmp,cPt2di(mNbUkTot,mNbUkTot),atAA);
+      mtB.ResizeAndCropIn(cPt2di(0,mNbTmp),cPt2di(mNbTmp,mNbUkTot),atAA);
+      /*
+      mM11.ResizeAndCropIn(cPt2di(0,0),cPt2di(mNbUk,mNbUk),atAA);
+      */
+      //const cDenseVect<Type>   & tARhs () const;
+
+       // mL.Resize( mtB       (1,1),
 }
 
 
@@ -140,6 +174,8 @@ template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::Solve()
 
 template<class Type> const cDenseMatrix<Type> & cLeasSqtAA<Type>::tAA () const {return mtAA;}
 template<class Type> const cDenseVect<Type>   & cLeasSqtAA<Type>::tARhs () const {return mtARhs;}
+template<class Type> cDenseMatrix<Type> & cLeasSqtAA<Type>::tAA ()   {return mtAA;}
+template<class Type> cDenseVect<Type>   & cLeasSqtAA<Type>::tARhs () {return mtARhs;}
 
 template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::SparseSolve()
 {

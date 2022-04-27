@@ -264,6 +264,8 @@ template <class Type> class cUnOptDenseMatrix : public cMatrix<Type>
         typedef cIm2D<Type> tIm;
         typedef cDataIm2D<Type> tDIm;
         const cPt2di & Sz() const {return cRect2::Sz();}
+        void Resize(const cPt2di &);
+        void ResizeAndCropIn(const cPt2di & aP0,const cPt2di & aP1,const cUnOptDenseMatrix<Type> &);
 
         cUnOptDenseMatrix(int aX,int aY,eModeInitImage=eModeInitImage::eMIA_NoInit);
         cUnOptDenseMatrix(tIm);
@@ -370,6 +372,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void MatMulInPlace(const tDM & aM1,const tDM & aM2);
 
        
+        // tDM  SymInverse() const;  ///< Inverse of symetric matrix
         tDM  Inverse() const;  ///< Basic inverse
         tDM  Inverse(double Eps,int aNbIter) const;  ///< N'amene rien, eigen fonctionne deja tres bien en general 
 

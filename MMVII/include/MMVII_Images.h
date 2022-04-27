@@ -468,6 +468,9 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         typedef typename tBI::tBase  tBase;
         typedef cDataIm2D<Type>      tIm;
 
+	void CropIn(const cPt2di & aP0,const tIm &);
+
+
         //========= fundamental access to values ============
 
         void  AddVBL(const cPt2dr & aP,const double & aVal)  
@@ -840,6 +843,7 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         inline tBase  SomInterv(int aX0,int aX1) const;
         inline tREAL8  AvgInterv(int aX0,int aX1) const;
 
+	void CropIn(const int & aP0,const cDataIm1D<Type> &);
     protected :
     private :
         void PostInit();

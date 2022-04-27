@@ -91,6 +91,9 @@ template <class Type>  cDataIm1D<Type>::cDataIm1D
 
 template <class Type>  void cDataIm1D<Type>::Resize ( const cPt1di & aP0, const cPt1di & aP1, eModeInitImage aModeInit)  
 {
+   if ((aP0==this->P0()) && (aP1==this->P1()) && (aModeInit==eModeInitImage::eMIA_NoInit))
+       return;
+
    cDataTypedIm<Type,1>::Resize(aP0,aP1,aModeInit);
    PostInit();
 }

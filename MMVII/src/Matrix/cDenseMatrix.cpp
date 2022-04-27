@@ -489,6 +489,18 @@ template <class Type> cUnOptDenseMatrix<Type> operator * (const cUnOptDenseMatri
    return aRes;
 }
 
+template <class Type> void cUnOptDenseMatrix<Type>::ResizeAndCropIn
+                           (
+                                const cPt2di & aP0,
+                                const cPt2di & aP1,
+                                const cUnOptDenseMatrix<Type> & aM2
+                           )
+{
+     tDIm & aDIm =   mIm.DIm();
+     aDIm.Resize(aP1-aP0);
+
+     aDIm.CropIn(aP0,aM2.DIm());
+}
 
 /* ===================================================== */
 /* =====              INSTANTIATION                ===== */

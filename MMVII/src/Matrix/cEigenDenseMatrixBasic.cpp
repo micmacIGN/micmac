@@ -48,6 +48,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse() const
    return aRes;
 }
 
+
 template <class Type> Type cDenseMatrix<Type>::Det() const
 {
     this->CheckSquare(*this);
