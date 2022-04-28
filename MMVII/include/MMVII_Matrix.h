@@ -87,6 +87,8 @@ template <class Type> class  cDenseVect
         cDenseVect(const std::vector<Type> & aVect);
         static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
         cDenseVect<Type>  Dup() const;
+	/// 
+        void ResizeAndCropIn(const int & aX0,const int & aX1,const cDenseVect<Type> &);
 	/// Create a sub vector in interval [K0,K1[, its a duplication
         cDenseVect  SubVect(int aK0,int aK1) const;
 
@@ -373,6 +375,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
        
         // tDM  SymInverse() const;  ///< Inverse of symetric matrix
+	void InverseInPlace(const tDM & aM);  ///< Put M-1 in this
         tDM  Inverse() const;  ///< Basic inverse
         tDM  Inverse(double Eps,int aNbIter) const;  ///< N'amene rien, eigen fonctionne deja tres bien en general 
 
@@ -426,6 +429,8 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         // === method implemente with DIm
         Type L2Dist(const cDenseMatrix<Type> & aV) const;
+	//  void operator -= (const cDenseMatrix<Type> &) ;  => see  "include/MMVII_Tpl_Images.h"
+
 };
 
 

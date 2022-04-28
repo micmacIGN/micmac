@@ -89,6 +89,15 @@ template <class Type>  cDataIm1D<Type>::cDataIm1D
     PostInit();
 }
 
+template <class Type>  void cDataIm1D<Type>::CropIn(const int & aX0,const cDataIm1D<Type> & aI2)
+{
+    aI2.AssertInside(aX0);
+    aI2.AssertInside(aX0+Sz());
+
+    MemCopy(mRawData1D,aI2.mRawData1D+aX0,Sz());
+
+}
+
 template <class Type>  void cDataIm1D<Type>::Resize ( const cPt1di & aP0, const cPt1di & aP1, eModeInitImage aModeInit)  
 {
    if ((aP0==this->P0()) && (aP1==this->P1()) && (aModeInit==eModeInitImage::eMIA_NoInit))

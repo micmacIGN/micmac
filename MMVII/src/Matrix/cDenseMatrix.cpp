@@ -502,6 +502,11 @@ template <class Type> void cUnOptDenseMatrix<Type>::ResizeAndCropIn
      aDIm.CropIn(aP0,aM2.DIm());
 }
 
+template <class Type> void cUnOptDenseMatrix<Type>::Resize(const cPt2di & aSz)
+{
+     DIm().Resize(aSz);
+}
+
 /* ===================================================== */
 /* =====              INSTANTIATION                ===== */
 /* ===================================================== */

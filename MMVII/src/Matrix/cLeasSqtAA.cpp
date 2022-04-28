@@ -32,46 +32,58 @@ template <class Type> class  cBufSchurrSubst
 	  size_t            mNbUkTot;
 
           cDenseMatrix<Type> mL;
+          cDenseMatrix<Type> mLInv;
           cDenseMatrix<Type> mtB;
+          cDenseMatrix<Type> mtB_LInv;
           cDenseMatrix<Type> mB;
+          cDenseMatrix<Type> mtB_LInv_B;
           cDenseMatrix<Type> mM11;
 
+          cDenseVect<Type>   mA;
+          cDenseVect<Type>   mC1;
 };
 
 template <class Type> 
     cBufSchurrSubst<Type>::cBufSchurrSubst(size_t aNbVar) :
-         mNbVar    (aNbVar),
-         mNumComp  (aNbVar,-1),
-         mSetInd   (aNbVar),
-	 mSysRed   (1),
-	 mL        (1,1),
-	 mtB       (1,1),
-	 mB        (1,1),
-         mM11      (1,1)
+         mNbVar     (aNbVar),
+         mNumComp   (aNbVar,-1),
+         mSetInd    (aNbVar),
+	 mSysRed    (1),
+	 mL         (1,1),
+	 mLInv      (1,1),
+	 mtB        (1,1),
+	 mtB_LInv   (1,1),
+	 mB         (1,1),
+	 mtB_LInv_B (1,1),
+         mM11       (1,1),
+	 mA         (1),
+	 mC1        (1)
 {
 }
 
 template <class Type> 
     void cBufSchurrSubst<Type>::CompileSubst(const tSetEq & aSetSetEq)
 {
-     mSetInd.Clear();
      aSetSetEq.AssertOk();
 
+     //  Compute all the index used in aSetSetEq
+     mSetInd.Clear();
      mNbTmp = aSetSetEq.NbTmpUk();
      for (const auto & anEq : aSetSetEq.AllEq())
      {
          for (const auto & anInd : anEq.mVInd)
              mSetInd.AddInd(anInd);
      }
+     mNbUk = mSetInd.mVIndOcc.size();
+     mNbUkTot = mNbUk + mNbTmp;
 
+     // Compute invert index  [0 NbVar[ ->  [0,NbUk[
      for (size_t aK=0; aK<mSetInd.mVIndOcc.size() ;aK++)
      {
           mNumComp.at(mSetInd.mVIndOcc[aK]) = aK;
      }
 
-     mNbUk = mSetInd.mVIndOcc.size();
-     mNbUkTot = mNbUk + mNbTmp;
-
+     // Adjust size, initialize of mSysRed
      if (mSysRed.NbVar() != int(mNbUkTot))
      {
          mSysRed = cLeasSqtAA<Type>(mNbUkTot);
@@ -81,6 +93,7 @@ template <class Type>
          mSysRed.Reset();
      }
 
+     //  Compute the reduced  least square system
      for (const auto & aSetEq : aSetSetEq.AllEq())
      {
          const std::vector<int> & aVI =   aSetEq.mVInd;
@@ -90,32 +103,48 @@ template <class Type>
               mSV.Reset();
 	      const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
 
+	      // fill sparse vector with  "real" unknown
               for (size_t aKV=0 ; aKV< aNbI ; aKV++)
 	      {
                   mSV.AddIV(mNbTmp+mNumComp.at(aVI[aKV]),aVDer.at(aKV));
 	      }
 
+	      // fill sparse vector with  temporary unknown
               for (size_t  aKV=aNbI ; aKV<aVDer.size() ; aKV++)
 	      {
                   mSV.AddIV((aKV-aNbI),aVDer.at(aKV));
 	      }
+	      // fill reduced normal equation
 	      mSysRed.AddObservation(aSetEq.WeightOfKthResisual(aKEq),mSV,-aSetEq.mVals.at(aKEq));
 	 }
       }
 
-      cDenseMatrix<Type> & atAA  =  mSysRed.tAA();
+     //  extract normal matrix, vector, symetrise
+      cDenseMatrix<Type> & atAA    =  mSysRed.tAA();
+      cDenseVect<Type> & atARhs  =  mSysRed.tARhs();
       atAA.SelfSymetrizeBottom();
       cPt2di aSzTmp(mNbTmp,mNbTmp);
 
+      //  Extract 4 bloc matrices and 2 bloc vectors
       mL.ResizeAndCropIn(cPt2di(0,0),aSzTmp,atAA);
       mM11.ResizeAndCropIn(aSzTmp,cPt2di(mNbUkTot,mNbUkTot),atAA);
       mtB.ResizeAndCropIn(cPt2di(0,mNbTmp),cPt2di(mNbTmp,mNbUkTot),atAA);
-      /*
-      mM11.ResizeAndCropIn(cPt2di(0,0),cPt2di(mNbUk,mNbUk),atAA);
-      */
-      //const cDenseVect<Type>   & tARhs () const;
+      mB.ResizeAndCropIn(cPt2di(mNbTmp,0),cPt2di(mNbUkTot,mNbTmp),atAA);
+      mA.ResizeAndCropIn(0,mNbTmp,atARhs);
+      mC1.ResizeAndCropIn(mNbTmp,mNbUkTot,atARhs);
 
-       // mL.Resize( mtB       (1,1),
+
+      mLInv.Resize(aSzTmp);
+      mLInv.InverseInPlace(mL);  //  ============  TO OPTIM MATR SYM
+
+      mtB_LInv.Resize(cPt2di(mNbTmp,mNbUk));
+      mtB_LInv.MatMulInPlace(mtB,mLInv);
+
+      mtB_LInv_B.Resize(cPt2di(mNbTmp,mNbUk));
+      mtB_LInv_B.MatMulInPlace(mtB_LInv,mB); //  ============  TO OPTIM MATR SYM
+
+      mM11 -= mtB_LInv_B;
+
 }
 
 

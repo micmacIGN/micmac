@@ -85,6 +85,14 @@ template <class Type> cDenseVect<Type> cDenseVect<Type>::Dup() const
     return cDenseVect<Type>(mIm.Dup());
 }
 
+template <class Type>  void cDenseVect<Type>::ResizeAndCropIn(const int & aX0,const int & aX1,const cDenseVect<Type> & aV2)
+{
+    tDIM & aDIm = mIm.DIm();
+
+    aDIm.Resize(aX1-aX0);
+    aDIm.CropIn(aX0,aV2.DIm());
+}
+
 template <class Type> cDenseVect<Type>   cDenseVect<Type>::Cste(int aSz,const Type & aVal)
 {
     cDenseVect<Type> aRes(aSz);
@@ -464,7 +472,6 @@ template <class Type> cDenseVect<Type>  cMatrix<Type>::ReadLine(int aX) const
 template <class Type> void cMatrix<Type>::MatMulInPlace(const tMat & aM1,const tMat & aM2)
 {
    CheckSizeMulInPlace(aM1,aM2);
-   cDenseVect<tREAL16> aLine(this->Sz().x());
 
    for (int aY= 0 ; aY< this->Sz().y() ; aY++)
    {
