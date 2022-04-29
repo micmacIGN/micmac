@@ -1,6 +1,8 @@
 #include "include/MMVII_all.h"
 #include "include/V1VII.h"
 
+static bool  DEBUG_EDM = false;
+
 // using namespace MMVII;
 /*
 using namespace MMVII;
@@ -34,12 +36,18 @@ void  SetBoxes12FromPx
 	 int &              aPxMax,
 	 int &              aOffsetPx,
 	 eModePaddingEpip   aModePad,
-         const cBox2di *    aBoxFile2
+         const cBox2di *    aBoxFile2,
+	 bool               DoDebug
       )
 {
    cBox2di aBoxInit1(aBoxIn1);
    // We compute the Box2 homologous of Box1, taking into account dilatation due to px-intervall
    aBoxIn2 = DilateFromIntervPx(aBoxIn1,aPxMin,aPxMax);
+if (DoDebug)
+{
+	StdOut()  << "Pxmmiman " << aPxMin << " " << aPxMax << "\n";
+	StdOut()  << "JJJJ " << aBoxIn1 << " " << aBoxIn2 << "\n";
+}
    if (aBoxFile2)
       aBoxIn2 = aBoxIn2.Inter(*aBoxFile2);
    
@@ -62,12 +70,17 @@ void  SetBoxes12FromPx
     //  We want to be sure that whatever happened before BoxIn1 contain the initial value BoxUtIn1
     //  (may creat bug if not) and also dont change the size now that it fit the possible requirements of deeps methods
     //  Case rare bu posible with px computed from previous steps
+if (DoDebug)
+{
+	StdOut()  << "KKKKKK " << aBoxIn1 << " " << aBoxIn2 << "\n";
+}
 
    if (aModePad!=eModePaddingEpip::eMPE_NoPad)
    {
+      // Par ex : INIT [10 90]  IN1 [20,80] U=Init,   dX0=-10  dX1=10
       cBox2di aBoxU1 = aBoxIn1.Sup(aBoxInit1);
-      int aDX0 = aBoxU1.P0().x() - aBoxInit1.P0().x();
-      int aDX1 = aBoxU1.P1().x() - aBoxInit1.P1().x();
+      int aDX0 = aBoxU1.P0().x() - aBoxIn1.P0().x();
+      int aDX1 = aBoxU1.P1().x() - aBoxIn1.P1().x();
 
       aBoxIn1 = DilateFromIntervPx(aBoxIn1,aDX0,aDX1);
       aBoxIn2 = DilateFromIntervPx(aBoxIn2,aDX0,aDX1);
@@ -77,6 +90,12 @@ void  SetBoxes12FromPx
    //  Offset = Delta12, if px computed in box == 0, then "real" one will be Delta12
    aPxMin += aOffsetPx;
    aPxMax += aOffsetPx;
+
+if (DoDebug)
+{
+	StdOut()  << "LLLLL " << aBoxIn1 << " " << aBoxIn2 << "\n";
+	StdOut()  << "ZZZZZZZ\n"; getchar();
+}
 }
 
 
@@ -133,6 +152,7 @@ class cOneLevel
        cDataFileIm2D  DFI()   const {return cDataFileIm2D::Create(mNameIm,false);}
        cBox2di        BoxIm() const {return cBox2di(DFI().Sz());}
        std::string NameImOrMasq(bool ModeIm) const {return ModeIm ?mNameIm : mNameMasq;}
+       int         Level() const {return mLevel;}
    private :
        // =========== Data ========
 
@@ -257,26 +277,30 @@ struct cParam1Match
              mClipNamePx  ( FileOfPath(aILev1.NameClipPx(anIndex),false)),
              mPxMin       (0),
              mPxMax       (0),
-             mCanDoMatch  (true)
+             mCanDoMatch  (true),
+	     mLevel       (aILev1.Level())
          {
              static int aCpt = 0; 
              mId = aCpt++;
          };
 
-         cBox2di           mBoxIn1; ///< Box input for image 1
-         cBox2di           mBoxUtiIn1; ///< May differ from BoxIn1, in case BoxIn1 was elarged to equal sz of Box2
-         cBox2di           mBoxIn2; ///< Box input for image 2
-         cBox2di           mBoxOut;  ///< Box out to save computatio,
-         cPt2di            mIndex;   ///< Index of the tile
-         std::string       mClipNameIm1;  ///< Name cliped Im1 of the tile
-         std::string       mClipNameIm2;  ///< Name cliped Im2 of the tile
-         std::string       mClipDirTmp;   ///< Name Dir Tmp for cliped match of the tile
-         std::string       mClipNamePx;   ///< Name resulting paralx of cliped match
-         int               mPxMin;   ///< Min computed paralax
-         int               mPxMax;   ///< Max compted paralax
-         int               mOffsetPx; ///< Offset between cliped px and global px, due Box1 != Box2
-         bool              mCanDoMatch;  ///< Is there enough point to do the match
-         int               mId; ///< Identifier, added for debuging
+               cBox2di           mBoxIn1; ///< Box input for image 1
+               cBox2di           mBoxUtiIn1; ///< May differ from BoxIn1, in case BoxIn1 was elarged to equal sz of Box2
+               cBox2di           mBoxIn2; ///< Box input for image 2
+         const cBox2di           mBoxOut;  ///< Box out to save computatio,
+         const cPt2di            mIndex;   ///< Index of the tile
+         const std::string       mClipNameIm1;  ///< Name cliped Im1 of the tile
+         const std::string       mClipNameIm2;  ///< Name cliped Im2 of the tile
+         const std::string       mClipDirTmp;   ///< Name Dir Tmp for cliped match of the tile
+         const std::string       mClipNamePx;   ///< Name resulting paralx of cliped match
+               int               mPxMin;   ///< Min computed paralax
+               int               mPxMax;   ///< Max compted paralax
+               int               mOffsetPx; ///< Offset between cliped px and global px, due Box1 != Box2
+               bool              mCanDoMatch;  ///< Is there enough point to do the match
+               int               mId; ///< Identifier, added for debuging
+	       int               mLevel;
+
+         bool ToDebug() const {return false && DEBUG_EDM && (mLevel==3) && (mIndex==cPt2di(0,0));}
 };
 
 
@@ -410,6 +434,7 @@ void cOneLevel::EstimateIntervPx
      ) const
 {
 
+   //  Compute intervals of paralax
    if (mDownLev==nullptr)
    {
       // Make a rough estimation using a constant steep hypothesis
@@ -473,11 +498,13 @@ void cOneLevel::EstimateIntervPx
    }
 
    aParam.mBoxUtiIn1 = aParam.mBoxIn1;
+   // Now commpute boxes
    SetBoxes12FromPx
    (
       aParam.mBoxIn1,aParam.mBoxIn2,
       aParam.mPxMin,aParam.mPxMax,aParam.mOffsetPx,
-      mAppli.mModePad,&aBoxFile2
+      // mAppli.mModePad,&aBoxFile2,aParam.ToDebug()
+      mAppli.mModePad,nullptr,aParam.ToDebug()
    );
    /*
 
