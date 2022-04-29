@@ -455,7 +455,7 @@ void cOneLevel::EstimateIntervPx
 
 
       // Box of Im1, of reduced size, include in reduce file
-      cBox2di aBoxRed = ToI(ToR(aParam.mBoxIn1)* (1.0/aRatio)).Inter(aRedFilePx);
+      cBox2di aBoxRed = (aParam.mBoxIn1.ToR()* (1.0/aRatio)).ToI().Inter(aRedFilePx);
  
       if (aBoxRed.IsEmpty()) return;
 

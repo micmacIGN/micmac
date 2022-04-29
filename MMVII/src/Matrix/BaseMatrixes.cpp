@@ -4,6 +4,12 @@
 namespace MMVII
 {
 
+/**  This class is just a copy of Eigen indexe, this allow to use eigen sparse
+      matrix w/o having to include eigen headers
+*/
+
+
+
 
 /*
    General note on this file :
@@ -17,16 +23,11 @@ namespace MMVII
 /*          cSParseVect        */
 /* ========================== */
 
-template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve,int aSzInit) :
+template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve) :
    mIV (new tCont)
 {
   if (aSzReserve>0) 
      IV().reserve(aSzReserve);
-  if (aSzInit>0)
-  {
-      for (int aK=0 ; aK<aSzInit ; aK++)
-          AddIV(aK,1.0);      // arbitrary values
-  }
 }
 
 template <class Type>  bool cSparseVect<Type>::IsInside(int aNb) const
@@ -39,12 +40,38 @@ template <class Type>  bool cSparseVect<Type>::IsInside(int aNb) const
     return true;
 }
 
+template <class Type> void cSparseVect<Type>::Reset()
+{
+    mIV->clear();
+}
+
+
+template <class Type> cSparseVect<Type>  cSparseVect<Type>::RanGenerate(int aNbVar,double aProba)
+{
+    cSparseVect<Type>  aRes;
+
+    for (int aK=0 ; aK<aNbVar ; aK++)
+    {
+        if(RandUnif_0_1() < aProba)
+	{
+            aRes.AddIV(aK,RandUnif_C());
+	}
+    }
+
+    return aRes;
+}
+
 /* ========================== */
 /*          cDenseVect        */
 /* ========================== */
 
 template <class Type> cDenseVect<Type>::cDenseVect(tIM anIm) :
    mIm  (anIm) 
+{
+}
+
+template <class Type> cDenseVect<Type>::cDenseVect(const std::vector<Type> & aVect) :
+   cDenseVect<Type> (tIM(aVect))
 {
 }
 
@@ -58,6 +85,19 @@ template <class Type> cDenseVect<Type> cDenseVect<Type>::Dup() const
     return cDenseVect<Type>(mIm.Dup());
 }
 
+template <class Type>  void cDenseVect<Type>::ResizeAndCropIn(const int & aX0,const int & aX1,const cDenseVect<Type> & aV2)
+{
+    tDIM & aDIm = mIm.DIm();
+
+    aDIm.Resize(aX1-aX0);
+    aDIm.CropIn(aX0,aV2.DIm());
+}
+
+template <class Type>  void cDenseVect<Type>::Resize(const int & aSz)
+{
+     mIm.DIm().Resize(aSz);
+}
+
 template <class Type> cDenseVect<Type>   cDenseVect<Type>::Cste(int aSz,const Type & aVal)
 {
     cDenseVect<Type> aRes(aSz);
@@ -68,6 +108,24 @@ template <class Type> cDenseVect<Type>   cDenseVect<Type>::Cste(int aSz,const Ty
 
     return aRes;
 }
+
+template <class Type> cDenseVect<Type>   cDenseVect<Type>::SubVect(int aK0,int aK1) const
+{
+      MMVII_INTERNAL_ASSERT_tiny
+      (
+         (aK0>=0) && (aK0<aK1) && (aK1<=Sz()),
+	 "Bad size in SubVect"
+      );
+      cDenseVect<Type> aRes(aK1-aK0);
+
+      for (int aK=aK0 ; aK<aK1 ; aK++)
+          aRes(aK-aK0) = (*this)(aK);
+
+      return aRes;
+}
+
+
+
 
 
 /*
@@ -419,7 +477,6 @@ template <class Type> cDenseVect<Type>  cMatrix<Type>::ReadLine(int aX) const
 template <class Type> void cMatrix<Type>::MatMulInPlace(const tMat & aM1,const tMat & aM2)
 {
    CheckSizeMulInPlace(aM1,aM2);
-   cDenseVect<tREAL16> aLine(this->Sz().x());
 
    for (int aY= 0 ; aY< this->Sz().y() ; aY++)
    {

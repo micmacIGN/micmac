@@ -304,10 +304,9 @@ template <class Type>
         aNbElem /=  aCoord;
     }
     // Favorize 2D vect because we can check with 2D Image
-    cPt2di aSz2;
+    cPt2di aSz2= cPt2di(10+RandUnif_N(50),10+RandUnif_N(50));
     if (RandUnif_0_1() < 0.3)
     {
-       aSz2 = cPt2di(10+RandUnif_N(50),10+RandUnif_N(50));
        aVCoord = std::vector<int>({aSz2.x(),aSz2.y()});
     }
     mDim = aVCoord.size();
