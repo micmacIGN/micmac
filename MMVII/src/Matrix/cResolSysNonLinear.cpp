@@ -670,7 +670,10 @@ void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr)
      for (int aK=0 ; aK < 8 ; aK++)
      {
          anEc = aBN.OneItereCompensation();
+         //   StdOut() << "ECc== " << anEc << "\n";
      }
+     //   StdOut() << "Fin-ECc== " << anEc << "\n";
+     //   getchar();
      MMVII_INTERNAL_ASSERT_bench(anEc<1e-5,"Error in Network-SSRNL Bench");
 }
 
@@ -684,8 +687,9 @@ void BenchSSRNL(cParamExeBench & aParam)
      if (! aParam.NewBench("SSRNL")) return;
 
 
-     OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,10,true);
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,10,true);
+
+     OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,10,true);
 
      OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,10,false);
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,10,false);
