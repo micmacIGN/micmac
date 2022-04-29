@@ -497,13 +497,15 @@ template <class Type> void cUnOptDenseMatrix<Type>::ResizeAndCropIn
                            )
 {
      tDIm & aDIm =   mIm.DIm();
-     aDIm.Resize(aP1-aP0);
+     //aDIm.ResizeI(aP1-aP0);
+     Resize(aP1-aP0);
 
      aDIm.CropIn(aP0,aM2.DIm());
 }
 
 template <class Type> void cUnOptDenseMatrix<Type>::Resize(const cPt2di & aSz)
 {
+     static_cast<cRect2 &>(*this) = cRect2(aSz);
      DIm().Resize(aSz);
 }
 

@@ -89,6 +89,7 @@ template <class Type> class  cDenseVect
         cDenseVect<Type>  Dup() const;
 	/// 
         void ResizeAndCropIn(const int & aX0,const int & aX1,const cDenseVect<Type> &);
+        void Resize(const int & aSz);
 	/// Create a sub vector in interval [K0,K1[, its a duplication
         cDenseVect  SubVect(int aK0,int aK1) const;
 

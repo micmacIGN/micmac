@@ -40,7 +40,7 @@ template <class Type> void cDataIm2D<Type>::CropIn
                       )
 {
     aI2.AssertInside(aP0);
-    aI2.AssertInside(aP0+Sz());
+    aI2.AssertInside(aP0+Sz()-cPt2di(1,1));
 
     int aX0  = aP0.x();
     int aY0  = aP0.y();

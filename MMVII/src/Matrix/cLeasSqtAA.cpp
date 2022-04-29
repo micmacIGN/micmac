@@ -3,9 +3,9 @@
 
 // test git cred again again ... vi 
 
-
 namespace MMVII
 {
+
 
 /*
      We use notation of MMV1 doc   L= Lamda
@@ -22,6 +22,11 @@ template <class Type> class  cBufSchurrSubst
 
           cBufSchurrSubst(size_t aNbVar);
 	  void CompileSubst(const tSetEq &);
+
+	  /// return normal matrix after schurr substitution ie : M11- tB L-1 B  
+          const cDenseMatrix<Type> & tAASubst() const;
+	  ///  return normal vector after schurr subst  ie : C1 - tB L-1 A
+          const cDenseVect<Type> & tARhsSubst() const;
      private :
 
 	  size_t            mNbVar;
@@ -43,6 +48,7 @@ template <class Type> class  cBufSchurrSubst
 
           cDenseVect<Type>   mA;
           cDenseVect<Type>   mC1;
+          cDenseVect<Type>   mtB_LInv_A;
 };
 
 template <class Type> 
@@ -59,8 +65,19 @@ template <class Type>
 	 mtB_LInv_B (1,1),
          mM11       (1,1),
 	 mA         (1),
-	 mC1        (1)
+	 mC1        (1),
+         mtB_LInv_A (1)
 {
+}
+
+template <class Type> const cDenseMatrix<Type> & cBufSchurrSubst<Type>::tAASubst() const
+{
+     return mM11;
+}
+
+template <class Type> const cDenseVect<Type> & cBufSchurrSubst<Type>::tARhsSubst() const
+{
+     return mC1;
 }
 
 template <class Type> 
@@ -78,6 +95,8 @@ template <class Type>
      }
      mNbUk = mSetInd.mVIndOcc.size();
      mNbUkTot = mNbUk + mNbTmp;
+
+StdOut() << " NbTmp:" <<  mNbTmp << " Uk:"<< mNbUk << " Tot:" << mNbUkTot << "\n";
 
      // Compute invert index  [0 NbVar[ ->  [0,NbUk[
      for (size_t aK=0; aK<mSetInd.mVIndOcc.size() ;aK++)
@@ -136,16 +155,29 @@ template <class Type>
       mC1.ResizeAndCropIn(mNbTmp,mNbUkTot,atARhs);
 
 
+      // compute L-1 in  mLInv
       mLInv.Resize(aSzTmp);
       mLInv.InverseInPlace(mL);  //  ============  TO OPTIM MATR SYM
 
+      // compute tB*L-1 in  mtB_mLInv
       mtB_LInv.Resize(cPt2di(mNbTmp,mNbUk));
+StdOut() << "tBSZ: " << mtB_LInv.Sz() <<  cPt2di(mNbTmp,mNbUk) << "\n";
       mtB_LInv.MatMulInPlace(mtB,mLInv);
 
-      mtB_LInv_B.Resize(cPt2di(mNbTmp,mNbUk));
+      // compute tB*L-1*B  in  mtB_mLInv_B
+      mtB_LInv_B.Resize(cPt2di(mNbTmp,mNbUk)) ;
       mtB_LInv_B.MatMulInPlace(mtB_LInv,mB); //  ============  TO OPTIM MATR SYM
 
+StdOut() << "SCHURRR " << __LINE__ << "\n";
+StdOut() << mtB_LInv.Sz() << " " <<  mtB_LInv_A.Sz() << " " << mA.Sz() << "\n";
+      // compute tB*L-1*A in  mtB_mLInv_A
+      mtB_LInv_A.Resize(mNbUk);
+      mtB_LInv.MulColInPlace(mtB_LInv_A,mA);
+
+StdOut() << "SCHURRR " << __LINE__ << "\n";
+      //   substract vec and matr to have formula of doc
       mM11 -= mtB_LInv_B;
+      mC1 -= mtB_LInv_A;
 
 }
 
@@ -196,6 +228,14 @@ template<class Type> void  cLeasSqtAA<Type>::Reset()
    mtARhs.DIm().InitNull();
 }
 
+template<class Type> void  cLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
+{
+    static cBufSchurrSubst<Type> *  mBSCS = new cBufSchurrSubst<Type>(this->NbVar());
+    StdOut() << "hhhhhhhhhhhhhhhh\n"; 
+    mBSCS->CompileSubst(aSetSetEq);
+    
+    StdOut() << "GGGGgggggggggggg\n"; getchar();
+} 
 
 template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::Solve()
 {

@@ -93,6 +93,11 @@ template <class Type>  void cDenseVect<Type>::ResizeAndCropIn(const int & aX0,co
     aDIm.CropIn(aX0,aV2.DIm());
 }
 
+template <class Type>  void cDenseVect<Type>::Resize(const int & aSz)
+{
+     mIm.DIm().Resize(aSz);
+}
+
 template <class Type> cDenseVect<Type>   cDenseVect<Type>::Cste(int aSz,const Type & aVal)
 {
     cDenseVect<Type> aRes(aSz);

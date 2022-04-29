@@ -92,7 +92,7 @@ template <class Type>  cDataIm1D<Type>::cDataIm1D
 template <class Type>  void cDataIm1D<Type>::CropIn(const int & aX0,const cDataIm1D<Type> & aI2)
 {
     aI2.AssertInside(aX0);
-    aI2.AssertInside(aX0+Sz());
+    aI2.AssertInside(aX0+Sz()-1);
 
     MemCopy(mRawData1D,aI2.mRawData1D+aX0,Sz());
 

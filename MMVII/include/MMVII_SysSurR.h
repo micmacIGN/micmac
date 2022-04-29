@@ -166,6 +166,7 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        /// Use  sparse cholesky , usefull for "sparse dense" system ...
        cDenseVect<Type>  SparseSolve() override ;
 
+       void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&) override;
 
        //  ================  Accessor used in Schurr elim ========  :
        

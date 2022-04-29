@@ -103,6 +103,7 @@ template<class T2,class T3>   cIm1D<T2> operator - (const cIm1D<T2> & aI2,const 
    return DiffImage((T2 *)nullptr,aI2,aI3);
 }
 
+
 template<class T2>   cDenseMatrix<T2> operator - (const cDenseMatrix<T2> & aI2,const cDenseMatrix<T2> & aI3)  
 {
     return cDenseMatrix<T2>(aI2.Im()-aI3.Im());
@@ -113,6 +114,11 @@ template<class T2>   cDenseVect<T2> operator - (const cDenseVect<T2> & aI2,const
 }
 
 template<class T2>   cDenseMatrix<T2> operator -= (cDenseMatrix<T2> & aI2,const cDenseMatrix<T2> & aI3) 
+{
+	DiffIn(aI2.DIm(),aI3.DIm());
+	return aI2;
+}
+template<class T2>   cDenseVect<T2> operator -= (cDenseVect<T2> & aI2,const cDenseVect<T2> & aI3) 
 {
 	DiffIn(aI2.DIm(),aI3.DIm());
 	return aI2;
