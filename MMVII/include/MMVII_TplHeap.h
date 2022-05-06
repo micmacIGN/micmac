@@ -315,13 +315,13 @@ template <class Type,class Compare> class cKBestValue
       }
 
     private :
-      /// Implementation would fail with no valure
+      /// Implementation would fail with no value
       void Check() const
       {
            MMVII_INTERNAL_ASSERT_tiny((mNbMax>=1),"Bad NbMax in Heap");
       }
-      tHeap                mHeap ;
-      int                  mNbMax;
+      tHeap                mHeap ;   ///< Heap contaning the partially ordered value
+      int                  mNbMax;   ///< Number of K best values we want, at most, to memorize
 };
 
 
