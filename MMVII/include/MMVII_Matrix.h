@@ -107,6 +107,7 @@ template <class Type> class  cDenseVect
 
         Type * RawData();
         const Type * RawData() const;
+        std::vector<Type> ToStdVect() const;  ///< duplication
 
         // No need to duplicate all services offered by Image Classe
         tDIM & DIm(){return mIm.DIm();}

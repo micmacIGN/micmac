@@ -159,6 +159,15 @@ template <class T>   cPtxd<T,2> Proj  (const cPtxd<T,3> & aPt)
     return cPtxd<T,2>(aPt.x(),aPt.y());
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVector(const std::vector<Type>& aV)
+{
+   cPtxd<Type,Dim> aRes;
+   MMVII_INTERNAL_ASSERT_tiny(aV.size()==Dim,"Bad size in Vec/Pt");
+   for (int aK=0 ; aK<Dim ; aK++)
+        aRes.mCoords[aK]  = aV.at(aK);
+
+   return aRes;
+}
 
 
 
@@ -988,6 +997,7 @@ MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,3);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,4);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\

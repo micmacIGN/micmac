@@ -124,8 +124,10 @@ template <class Type> cDenseVect<Type>   cDenseVect<Type>::SubVect(int aK0,int a
       return aRes;
 }
 
-
-
+template <class Type> std::vector<Type>   cDenseVect<Type>::ToStdVect() const
+{
+    return std::vector<Type>(RawData(),RawData()+Sz());
+}
 
 
 /*
