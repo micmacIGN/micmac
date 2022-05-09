@@ -612,7 +612,9 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
                                                      + BLANK + aNI1 + BLANK + aNI2 
                                                      + BLANK + "Out=" + (*aDir_it++) + mCAS3D.mMMVII_ImName
                                                      + ((EAMIsInit(&mCAS3D.mMMVII_SzTile)) ? (BLANK + "SzTile=" + ToString(mCAS3D.mMMVII_SzTile)) : "") 
-                                                     + ((EAMIsInit(&mCAS3D.mMMVII_NbProc)) ? (BLANK + "NbProc=" + ToString(mCAS3D.mMMVII_NbProc)) : ""); 
+                                                     + ((EAMIsInit(&mCAS3D.mMMVII_NbProc)) ? (BLANK + "NbProc=" + ToString(mCAS3D.mMMVII_NbProc)) : "")
+						     + BLANK + "MMInit=MMV1"; 
+
 		}
 		else
 		{
