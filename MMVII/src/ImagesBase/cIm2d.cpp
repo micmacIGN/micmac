@@ -33,9 +33,30 @@ template <class Type> void  cDataIm2D<Type>::PostInit()
         mRawData2D[aY] = tBI::mRawDataLin + (aY-Y0()) * SzX() - X0();
 }
 
+template <class Type> void cDataIm2D<Type>::CropIn
+                      (
+		            const cPt2di & aP0,
+			    const cDataIm2D<Type> & aI2
+                      )
+{
+    aI2.AssertInside(aP0);
+    aI2.AssertInside(aP0+Sz()-cPt2di(1,1));
+
+    int aX0  = aP0.x();
+    int aY0  = aP0.y();
+    int aSzX = Sz().x();
+
+    for (int aY=0 ; aY<Sz().y() ; aY++)
+	    MemCopy(mRawData2D[aY],aI2.mRawData2D[aY+aY0]+aX0,aSzX);
+
+}
+
+
 
 template <class T> void  cDataIm2D<T>::Resize(const cPt2di& aP0,const cPt2di & aP1,eModeInitImage aMode) 
 {
+    if ((aP0==P0()) && (aP1==P1()) && (aMode==eModeInitImage::eMIA_NoInit))
+         return;
     int aPrevY0 = Y0();
     cDataTypedIm<T,2>::Resize(aP0,aP1,aMode);
     cMemManager::Resize(mRawData2D,aPrevY0,mSzYMax,Y0(),Sz().y());
@@ -112,6 +133,15 @@ template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,co
 /* ========================== */
 /*          cIm2D         */
 /* ========================== */
+
+/*
+const cPt2di & ShowPt(const cPt2di &aSz,const std::string & aMsg)
+{
+	StdOut() <<  "SZ:" << aSz << aMsg << "\n";
+	return aSz;
+}
+*/
+
 
 template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) :
    mSPtr(new cDataIm2D<Type>(aP0,aP1,aRawDataLin,aModeInit)),

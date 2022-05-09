@@ -3,15 +3,6 @@
 namespace MMVII
 {
 
-template<class T> cPtxd<T,3>  PFromNumAxe(int aNum);
-template<class T> cDenseMatrix<T> MatFromCols(const cPtxd<T,3>&aP0,const cPtxd<T,3>&aP1,const cPtxd<T,3>&aP2);
-template<class T> cDenseMatrix<T> MatFromLines(const cPtxd<T,3>&aP0,const cPtxd<T,3>&aP1,const cPtxd<T,3>&aP2);
-template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,3> & aP2);
-// Return one vector orthog, as the choice is not univoque just avoid degenerency
-template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP);  
-/*
-*/
-
 template<class T> cPtxd<T,3>  PFromNumAxe(int aNum)
 {
    static const cDenseMatrix<T> anId3x3(3,3,eModeInitImage::eMIA_MatrixId);
@@ -68,6 +59,7 @@ template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP)
 /*          ::                */
 /* ========================== */
 
+template cPtxd<int,3>  operator ^ (const cPtxd<int,3> & aP1,const cPtxd<int,3> & aP2);
 
 #define MACRO_INSTATIATE_PTXD(TYPE)\
 template cPtxd<TYPE,3>  operator ^ (const cPtxd<TYPE,3> & aP1,const cPtxd<TYPE,3> & aP2);\

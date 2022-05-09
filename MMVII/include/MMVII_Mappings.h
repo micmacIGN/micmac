@@ -499,7 +499,7 @@ template <class Type,int Dim> class  cDataNxNMapCalcSymbDer  : public cDataNxNMa
   an after reuse these code in global mappings, this is possible if the "small" mapping
   complies with the following "contract" :
 
-      define the type :    typedef Type  TheType;
+      //  => NONNN : define the type :    typedef Type  TheType;
       degines its dimension :    static constexpr int TheDim=2;
       defines its degree of freedom :    static const int NbDOF() {return 4;}
       defiens direct mapping :    inline tPt  Value(const tPt & aP) 

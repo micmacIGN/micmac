@@ -9,19 +9,19 @@ namespace MMVII
 /*        cSegment            */
 /* ========================== */
 
-template <const int Dim> cSegment<Dim>::cSegment(const tPt& aP1,const tPt& aP2) :
+template <class Type,const int Dim> cSegment<Type,Dim>::cSegment(const tPt& aP1,const tPt& aP2) :
    mP1  (aP1),
    mP2  (aP2)
 {
-    MMVII_INTERNAL_ASSERT_tiny(mP1!=mP2,"CastDim : different dim");
+    MMVII_INTERNAL_ASSERT_tiny(mP1!=mP2,"Identic point in segment");
 }
 
-template <const int Dim> void cSegment<Dim>::CompileFoncLinear
-                              (double & aVal,tPt & aVec,const double &aV1,const double & aV2) const
+template <class Type,const int Dim> void cSegment<Type,Dim>::CompileFoncLinear
+                              (Type & aVal,tPt & aVec,const Type &aV1,const Type & aV2) const
 {
 	// return aV1 + (aV2-aV1) * Scal(mTgt,aP-this->mP1) / mN2;
     tPt aV12 =  (mP2-mP1) ;
-    aVec  =   aV12 * double((aV2-aV1) /SqN2(aV12)) ;
+    aVec  =   aV12 * Type((aV2-aV1) /SqN2(aV12)) ;
     aVal = aV1  - Scal(aVec,mP1);
 }
 
@@ -29,13 +29,24 @@ template <const int Dim> void cSegment<Dim>::CompileFoncLinear
 /*    cSegmentCompiled        */
 /* ========================== */
 
-template <const int Dim> cSegmentCompiled<Dim>::cSegmentCompiled(const tPt& aP1,const tPt& aP2) :
-    cSegment<Dim>(aP1,aP2),
+template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled(const tPt& aP1,const tPt& aP2) :
+    cSegment<Type,Dim>(aP1,aP2),
     mN2     (Norm2(aP2-aP1)),
     mTgt    ((aP2-aP1)/mN2)
 {
 }
 
+/* ========================== */
+/*    cSegment2DCompiled      */
+/* ========================== */
+
+/*
+template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const tPt& aP1,const tPt& aP2) :
+    cSegment<Type,2> (aP1,aP2),
+    mNorm            (Rot90(this->mTgt))
+{
+}
+*/
 
 /* ========================== */
 /*          ::                */
@@ -125,14 +136,29 @@ template <const int Dim>  void cBorderPixBox<Dim>::IncrPt(tPt & aP)
 /*          cPtxd             */
 /* ========================== */
 
-template <> double  AbsSurfParalogram(const cPt2dr & aP1,const cPt2dr & aP2)
+template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2)
 {
     return std::abs(aP1 ^ aP2) ;
 }
-template <>  double AbsSurfParalogram(const cPt3dr & aP1,const cPt3dr & aP2)
+template <class Type>  double SpecAbsSurfParalogram(const  cPtxd<Type,3> & aP1,const  cPtxd<Type,3> & aP2)
 {
     return Norm2(aP1 ^ aP2);
 }
+
+template <class Type,const int Dim>  Type AbsSurfParalogram(const cPtxd<Type,Dim>& aP1,const cPtxd<Type,Dim>& aP2)
+{
+    return SpecAbsSurfParalogram(aP1,aP2);
+}
+
+template <class T>   cPtxd<T,3> TP3z0  (const cPtxd<T,2> & aPt)
+{
+    return cPtxd<T,3>(aPt.x(),aPt.y(),0);
+}
+template <class T>   cPtxd<T,2> Proj  (const cPtxd<T,3> & aPt)
+{
+    return cPtxd<T,2>(aPt.x(),aPt.y());
+}
+
 
 
 
@@ -289,6 +315,10 @@ template <class T,const int Dim>
 template <class T,const int Dim>  T Cos(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
    return T(Scal(aP1,aP2)) / (Norm2(aP1)*Norm2(aP2));
+}
+template <class T,const int Dim>  T AbsAngle(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
+{
+   return acos(Cos(aP1,aP2));
 }
 
 
@@ -786,15 +816,20 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Genera
     return cTplBox<Type,Dim>(aP0,aP1);
 }
 
-cBox2dr ToR(const cBox2di & aBox)
+/// Tricky but ToR in cTplBox<tREAL8,Dim> cannot be understood as I want
+template <class Type,const int Dim>  cPtxd<tREAL8,Dim> GlobToR(const cPtxd<Type,Dim> &aV){return ToR(aV);}
+
+
+template <class Type,const int Dim>  cTplBox<tREAL8,Dim> cTplBox<Type,Dim>::ToR() const
 {
-   return cBox2dr(ToR(aBox.P0()),ToR(aBox.P1()));
+   return cTplBox<tREAL8,Dim>(GlobToR(mP0),GlobToR(mP1));
 }
 
-cBox2di ToI(const cBox2dr & aBox)
+template <class Type,const int Dim>  cTplBox<tINT4,Dim> cTplBox<Type,Dim>::ToI() const
 {
-    return cBox2di(Pt_round_down(aBox.P0()),Pt_round_up(aBox.P1()));
+   return cTplBox<tINT4,Dim>(Pt_round_down(mP0),Pt_round_up(mP1));
 }
+
 
 cBox2dr operator * (const cBox2dr & aBox,double aScale)
 {
@@ -877,15 +912,15 @@ template <class Type,const int Dim>  void  cTplBoxOfPts<Type,Dim>::Add(const tPt
    mNbPts++;
 }
 
-template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_down(const cPtxd<Type,Dim>  aP)
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_down(const cPtxd<Type,Dim> & aP)
 {
    return ICByC1P(aP,round_down);
 }
-template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_up(const cPtxd<Type,Dim>  aP)
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_up(const cPtxd<Type,Dim>&  aP)
 {
    return ICByC1P(aP,round_up);
 }
-template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type,Dim>  aP)
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type,Dim>&  aP)
 {
    return ICByC1P(aP,round_ni);
 }
@@ -905,9 +940,33 @@ template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2
 /*       INSTANTIATION        */
 /* ========================== */
 
+#define INSTANTIATE_GEOM_REAL(TYPE)\
+class cSegment2DCompiled<TYPE>;
+
+INSTANTIATE_GEOM_REAL(tREAL4)
+INSTANTIATE_GEOM_REAL(tREAL8)
+INSTANTIATE_GEOM_REAL(tREAL16)
+
+
+#define INSTANTIATE_ABS_SURF(TYPE)\
+template  cPtxd<TYPE,3> TP3z0  (const cPtxd<TYPE,2> & aPt);\
+template  cPtxd<TYPE,2> Proj  (const cPtxd<TYPE,3> & aPt);\
+template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& aP2);\
+template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);
+
+INSTANTIATE_ABS_SURF(tINT4)
+INSTANTIATE_ABS_SURF(tREAL4)
+INSTANTIATE_ABS_SURF(tREAL8)
+INSTANTIATE_ABS_SURF(tREAL16)
+
+#define INSTANTIATE_SEGM_TYPE(TYPE,DIM)\
+template class cSegment<TYPE,DIM>;\
+template class cSegmentCompiled<TYPE,DIM>;
+
 #define INSTANTIATE_SEGM(DIM)\
-template class cSegment<DIM>;\
-template class cSegmentCompiled<DIM>;
+INSTANTIATE_SEGM_TYPE(tREAL4,DIM)\
+INSTANTIATE_SEGM_TYPE(tREAL8,DIM)\
+INSTANTIATE_SEGM_TYPE(tREAL16,DIM)
 
 INSTANTIATE_SEGM(1)
 INSTANTIATE_SEGM(2)
@@ -942,6 +1001,7 @@ template  TYPE NormInf(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE MinAbsCoord(const cPtxd<TYPE,DIM> & aPt);\
 template  typename  tNumTrait<TYPE>::tBig Scal(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE Cos(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+template  TYPE AbsAngle(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtInt(const cPtxd<int,DIM> & aPInt);
 
@@ -953,20 +1013,32 @@ MACRO_INSTATIATE_PTXD(tREAL4,DIM)\
 MACRO_INSTATIATE_PTXD(tREAL8,DIM)\
 MACRO_INSTATIATE_PTXD(tREAL16,DIM)
 
+
+#define MACRO_INSTATIATE_ROUNDPT(TYPE,DIM)\
+template cPtxd<int,DIM> Pt_round_down(const cPtxd<TYPE,DIM>&  aP);\
+template cPtxd<int,DIM> Pt_round_up(const cPtxd<TYPE,DIM>&  aP);\
+template cPtxd<int,DIM> Pt_round_ni(const cPtxd<TYPE,DIM>&  aP);\
+
+
 #define MACRO_INSTATIATE_PRECT_DIM(DIM)\
 MACRO_INSTATIATE_POINT(DIM)\
 template const std::vector<std::vector<cPtxd<int,DIM>>> & TabGrowNeigh(int);\
 template const std::vector<cPtxd<int,DIM>> & AllocNeighbourhood(int);\
-template cPtxd<int,DIM> Pt_round_down(const cPtxd<double,DIM>  aP);\
-template cPtxd<int,DIM> Pt_round_up(const cPtxd<double,DIM>  aP);\
-template cPtxd<int,DIM> Pt_round_ni(const cPtxd<double,DIM>  aP);\
+MACRO_INSTATIATE_ROUNDPT(tINT4,DIM)\
+MACRO_INSTATIATE_ROUNDPT(tREAL4,DIM)\
+MACRO_INSTATIATE_ROUNDPT(tREAL8,DIM)\
+MACRO_INSTATIATE_ROUNDPT(tREAL16,DIM)\
 template class cBorderPixBoxIterator<DIM>;\
 template class cBorderPixBox<DIM>;\
 template class cTplBox<tINT4,DIM>;\
 template class cTplBoxOfPts<tINT4,DIM>;\
 template  class cParseBoxInOut<DIM>;\
+template class cTplBox<tREAL4,DIM>;\
 template class cTplBox<tREAL8,DIM>;\
+template class cTplBox<tREAL16,DIM>;\
+template class cTplBoxOfPts<tREAL4,DIM>;\
 template class cTplBoxOfPts<tREAL8,DIM>;\
+template class cTplBoxOfPts<tREAL16,DIM>;\
 template class cPixBox<DIM>;\
 template  int NbPixVign(const cPtxd<int,DIM> & aVign);\
 template class cDataGenUnTypedIm<DIM>;\

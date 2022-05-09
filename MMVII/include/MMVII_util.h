@@ -276,6 +276,21 @@ class cMMVII_Duration
         tREAL8 mFrac;   // in second
 };
 
+/** Class for storing set of int , can be use econmically for sparse
+    big set, if recycledwith Clear() */
+ 
+class cSetIntDyn
+{
+     public :
+          cSetIntDyn(size_t aNb);  ///< Create empty set
+          void AddInd(size_t aK);  ///< Add an element, adpat sizeof vector
+          void Clear();
+
+          std::vector<bool>    mOccupied;  ///< direct acces to the belonging
+          std::vector<size_t>  mVIndOcc;   ///< list  of element
+};
+
+
 
 };
 

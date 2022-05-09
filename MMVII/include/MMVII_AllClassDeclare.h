@@ -110,7 +110,11 @@ template <class Type,const int DimIn,const int DimOut> class cLeastSqCompMapCalc
 
 template <class Type,const int Dim> class cBijAffMapElem;
 
-
+// MMVII_Geom3D.h
+template <class Type> class cRotation3D;
+template <class Type> class cIsometrie3D;
+template <class Type> class cSimilitud3D;
+template <class Type> class cTriangulation3D;
 
 
 

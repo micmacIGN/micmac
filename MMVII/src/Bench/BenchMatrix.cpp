@@ -488,7 +488,7 @@ void BenchStatCov()
 
 template <class Type> static Type Residual
                                   (
-                                     const cSysSurResolu<Type>& aSys,
+                                     const cLinearOverCstrSys<Type>& aSys,
                                      const cDenseVect<Type> & aSol,
                                      const std::vector<Type>               aLWeight,
                                      const std::vector<cDenseVect<Type> >  aLVec,
@@ -503,10 +503,10 @@ template <class Type> static Type Residual
     return aRes;
 }
 
-template <class Type> void BenchSysSur(cSysSurResolu<Type>& aSys,bool Exact)
+template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact)
 {
    int  aNbVar = aSys.NbVar();
-   // cSysSurResolu<Type>& aSys = aSysLsq;
+   // cLinearOverCstrSys<Type>& aSys = aSysLsq;
 
    for (int aNbIter=0 ; aNbIter<2; aNbIter++)
    {
@@ -581,28 +581,31 @@ template <class Type> void BenchSysSur(cSysSurResolu<Type>& aSys,bool Exact)
 
 template <class Type> void BenchObsFixVar
                            (
-                              cSysSurResolu<Type>& aSys1, // 1 by 1
-                              cSysSurResolu<Type>& aSys2, // By Sparse
-                              cSysSurResolu<Type>& aSys3  // By dense
+                              cLinearOverCstrSys<Type>& aSys1, // 1 by 1
+                              cLinearOverCstrSys<Type>& aSys2, // By Sparse
+                              cLinearOverCstrSys<Type>& aSys3  // By dense
                            )
 {
+/*  Will Parse all the var, and compute a vector using different mode
+ *  of fxing var, test they give the same result*/
+
    int  aNbVar = aSys1.NbVar();
-   cSparseVect<Type> aSV2A(aNbVar);
-   cSparseVect<Type> aSV2B(aNbVar);
-   cDenseVect<Type>  aDV3(aNbVar);
+   cSparseVect<Type> aSV2A(aNbVar);  // Fix odd variable
+   cSparseVect<Type> aSV2B(aNbVar);  // Fix even variable
+   cDenseVect<Type>  aDV3(aNbVar);    // create the variable hand-craftly
    for (int aK=0 ; aK<aNbVar; aK++)
    {
       Type aVal = RandUnif_0_1();
-      aSys1.AddObsFixVar(1.0,aK,aVal);
+      aSys1.AddObsFixVar(1.0,aK,aVal); // fix all var 1 by 1
       if (aK%2)
          aSV2A.AddIV(aK,aVal);
       else
          aSV2B.AddIV(aK,aVal);
       aDV3(aK) = aVal;
    }
-   aSys2.AddObsFixVar(1.0,aSV2A);
-   aSys2.AddObsFixVar(1.0,aSV2B);
-   aSys3.AddObsFixVar(1.0,aDV3);
+   aSys2.AddObsFixVar(1.0,aSV2A);  // fix odd var in S2
+   aSys2.AddObsFixVar(1.0,aSV2B);  // fix even var in S2
+   aSys3.AddObsFixVar(1.0,aDV3);  // fix all var in S3
 
    cDenseVect<Type>  aV1 = aSys1.Solve();
    // cDenseVect<Type>  aV2 = aSys2.Solve().DIm();
@@ -631,9 +634,47 @@ template <class Type,class TypeSys> void OneTplBenchLsq(int aNbVar)
 
 }
 
-
 template <class Type,class TypeSys> void TplBenchLsq()
 {
+     //  Check  all Least Square give the same solution
+     for (int aK=0 ; aK<20 ; aK++)
+     {
+         int aNbVar = 1+ RandUnif_N(10);
+         int aNbEq =  aNbVar + 3 ;
+
+
+	 std::vector<cLeasSq<Type>*> aVSys = {
+	                                            cLeasSq<Type>::AllocDenseLstSq(aNbVar),
+		                                    cLeasSq<Type>::AllocSparseGCLstSq(aNbVar),
+	                                            cLeasSq<Type>::AllocSparseNormalLstSq(aNbVar)
+	                                     };
+	 for (int aNbTest=0 ; aNbTest<3 ; aNbTest++)
+	 {
+
+	      for (int aK=0 ; aK<= 2*aNbEq ; aK++)
+	      {
+                  cSparseVect<Type> aVCoeff = cSparseVect<Type>::RanGenerate(aNbVar,double(aK)/aNbEq);
+                  Type  aCste =  RandUnif_C();
+                  Type  aW    =   0.5 + RandUnif_0_1();
+	          for (auto & aSys : aVSys)
+		      aSys->AddObservation(aW,aVCoeff,aCste);
+	      }
+
+	      std::vector<cDenseVect<Type> > aVSol;
+	      for (auto & aSys : aVSys)
+	      {
+                  aVSol.push_back(aSys->Solve());
+	          Type aDist = aVSol[0].L2Dist(aVSol.back());
+                  MMVII_INTERNAL_ASSERT_bench(aDist<1e-5,"Cmp Least Square");
+
+		  aSys->Reset();
+	      }
+	 }
+
+	 DeleteAllAndClear(aVSys);
+     }
+
+
      OneTplBenchLsq<Type,TypeSys>(1);
      OneTplBenchLsq<Type,TypeSys>(2);
      OneTplBenchLsq<Type,TypeSys>(4);

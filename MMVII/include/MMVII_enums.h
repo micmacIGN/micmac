@@ -259,6 +259,14 @@ enum class eModeEpipMatch
    eNbVals
 };
 
+/**  Mode os system "sur resolus"  */
+enum class eModeSSR
+{
+      eSSR_LsqDense,        ///< Least square, normal equation, with dense implementation
+      eSSR_LsqNormSparse,   ///< Least square, normal equation, with sparse implementation
+      eSSR_LsqSparseGC      ///< Least square, NO normal equation (Conjugate Gradient) , with sparse implementation
+};
+
 
 /** Mode "Padding" callable in DenseMatchEpipGen */
 
