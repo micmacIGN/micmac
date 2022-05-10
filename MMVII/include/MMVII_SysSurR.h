@@ -3,6 +3,15 @@
 namespace MMVII
 {
 
+template <class Type> class cInputOutputRSNL;
+template <class Type> class cSetIORSNL_SameTmp;
+template <class Type> class cLinearOverCstrSys  ;
+template <class Type> class  cLeasSq ;
+template <class Type> class  cLeasSqtAA ;
+template <class Type> class  cBufSchurrSubst; 
+
+
+
 /** \file MMVII_SysSurR.h
     \brief Classes for linear redundant system
 */
@@ -158,6 +167,7 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
 {
     public :
        cLeasSqtAA(int aNbVar);
+       virtual ~cLeasSqtAA();
        void AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
        void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
        void Reset() override;
@@ -178,7 +188,61 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
     private :
        cDenseMatrix<Type>  mtAA;    /// Som(W tA A)
        cDenseVect<Type>    mtARhs;  /// Som(W tA Rhs)
+       cBufSchurrSubst<Type> * mBSC;
       
+};
+
+
+/**  Class for compute elimination of temporay equation using schurr complement.
+
+     For vector and matrix, We use notation of MMV1 documentation   L= Lamda
+
+     (L      B   .. )     (X)   (A )
+     (tB     M11 .. )  *  (Y) = (C1)   =>     (M11- tB L-1 B    ...)  (Y) = C1 - tB L-1 A
+       ...                (Z)    ..           (                 ...)  (Z)
+*/
+
+
+template <class Type> class  cBufSchurrSubst
+{
+     public :
+          typedef cSetIORSNL_SameTmp<Type>  tSetEq;
+
+          /// constructor , just alloc the vector to compute subset of unknosn
+          cBufSchurrSubst(size_t aNbVar);
+          /// Make the computation from the set of equations
+          void CompileSubst(const tSetEq &);
+
+          //  ==== 3 accessors to the result
+
+          /// return normal matrix after schurr substitution ie : M11- tB L-1 B  
+          const cDenseMatrix<Type> & tAASubst() const;
+          ///  return normal vector after schurr subst  ie : C1 - tB L-1 A
+          const cDenseVect<Type> & tARhsSubst() const;
+          ///  return list of indexes  used to put compress mat/vect in "big" matrixes/vect
+          const std::vector<size_t> & VIndexUsed() const;
+     private :
+
+          size_t            mNbVar;
+          std::vector<size_t>  mNumComp;
+          cSetIntDyn        mSetInd;
+          cLeasSqtAA<Type>  mSysRed;
+          cSparseVect<Type> mSV;
+          size_t            mNbTmp;
+          size_t            mNbUk;
+          size_t            mNbUkTot;
+
+          cDenseMatrix<Type> mL;
+          cDenseMatrix<Type> mLInv;
+          cDenseMatrix<Type> mtB;
+          cDenseMatrix<Type> mtB_LInv;
+          cDenseMatrix<Type> mB;
+          cDenseMatrix<Type> mtB_LInv_B;
+          cDenseMatrix<Type> mM11;
+
+          cDenseVect<Type>   mA;
+          cDenseVect<Type>   mC1;
+          cDenseVect<Type>   mtB_LInv_A;
 };
 
 

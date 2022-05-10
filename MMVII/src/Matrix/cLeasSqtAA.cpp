@@ -6,55 +6,16 @@
 namespace MMVII
 {
 
-
-/*
-     We use notation of MMV1 doc   L= Lamda
-
-     (L      B   .. )     (X)   (A )
-     (tB     M11 .. )  *  (Y) = (C1)   =>     (M11- tB L-1 B    ...)  (Y) = C1 - tB L-1 A
-       ...                (Z)    ..           (                 ...)  (Z)
-*/
-
-template <class Type> class  cBufSchurrSubst
-{
-     public :
-          typedef cSetIORSNL_SameTmp<Type>  tSetEq;
-
-          cBufSchurrSubst(size_t aNbVar);
-	  void CompileSubst(const tSetEq &);
-
-	  /// return normal matrix after schurr substitution ie : M11- tB L-1 B  
-          const cDenseMatrix<Type> & tAASubst() const;
-	  ///  return normal vector after schurr subst  ie : C1 - tB L-1 A
-          const cDenseVect<Type> & tARhsSubst() const;
-     private :
-
-	  size_t            mNbVar;
-	  std::vector<int>  mNumComp;
-	  cSetIntDyn        mSetInd;
-	  cLeasSqtAA<Type>  mSysRed;
-	  cSparseVect<Type> mSV;
-	  size_t            mNbTmp;
-	  size_t            mNbUk;
-	  size_t            mNbUkTot;
-
-          cDenseMatrix<Type> mL;
-          cDenseMatrix<Type> mLInv;
-          cDenseMatrix<Type> mtB;
-          cDenseMatrix<Type> mtB_LInv;
-          cDenseMatrix<Type> mB;
-          cDenseMatrix<Type> mtB_LInv_B;
-          cDenseMatrix<Type> mM11;
-
-          cDenseVect<Type>   mA;
-          cDenseVect<Type>   mC1;
-          cDenseVect<Type>   mtB_LInv_A;
-};
+/* *********************************** */
+/*                                     */
+/*            cBufSchurrSubst          */
+/*                                     */
+/* *********************************** */
 
 template <class Type> 
     cBufSchurrSubst<Type>::cBufSchurrSubst(size_t aNbVar) :
          mNbVar     (aNbVar),
-         mNumComp   (aNbVar,-1),
+         mNumComp   (aNbVar,100000000),
          mSetInd    (aNbVar),
 	 mSysRed    (1),
 	 mL         (1,1),
@@ -69,6 +30,12 @@ template <class Type>
          mtB_LInv_A (1)
 {
 }
+
+template <class Type> const  std::vector<size_t> & cBufSchurrSubst<Type>::VIndexUsed() const
+{
+   return mSetInd.mVIndOcc;
+}
+
 
 template <class Type> const cDenseMatrix<Type> & cBufSchurrSubst<Type>::tAASubst() const
 {
@@ -96,7 +63,6 @@ template <class Type>
      mNbUk = mSetInd.mVIndOcc.size();
      mNbUkTot = mNbUk + mNbTmp;
 
-StdOut() << " NbTmp:" <<  mNbTmp << " Uk:"<< mNbUk << " Tot:" << mNbUkTot << "\n";
 
      // Compute invert index  [0 NbVar[ ->  [0,NbUk[
      for (size_t aK=0; aK<mSetInd.mVIndOcc.size() ;aK++)
@@ -161,20 +127,16 @@ StdOut() << " NbTmp:" <<  mNbTmp << " Uk:"<< mNbUk << " Tot:" << mNbUkTot << "\n
 
       // compute tB*L-1 in  mtB_mLInv
       mtB_LInv.Resize(cPt2di(mNbTmp,mNbUk));
-StdOut() << "tBSZ: " << mtB_LInv.Sz() <<  cPt2di(mNbTmp,mNbUk) << "\n";
       mtB_LInv.MatMulInPlace(mtB,mLInv);
 
       // compute tB*L-1*B  in  mtB_mLInv_B
-      mtB_LInv_B.Resize(cPt2di(mNbTmp,mNbUk)) ;
+      mtB_LInv_B.Resize(cPt2di(mNbUk,mNbUk)) ;
       mtB_LInv_B.MatMulInPlace(mtB_LInv,mB); //  ============  TO OPTIM MATR SYM
 
-StdOut() << "SCHURRR " << __LINE__ << "\n";
-StdOut() << mtB_LInv.Sz() << " " <<  mtB_LInv_A.Sz() << " " << mA.Sz() << "\n";
       // compute tB*L-1*A in  mtB_mLInv_A
       mtB_LInv_A.Resize(mNbUk);
       mtB_LInv.MulColInPlace(mtB_LInv_A,mA);
 
-StdOut() << "SCHURRR " << __LINE__ << "\n";
       //   substract vec and matr to have formula of doc
       mM11 -= mtB_LInv_B;
       mC1 -= mtB_LInv_A;
@@ -182,7 +144,6 @@ StdOut() << "SCHURRR " << __LINE__ << "\n";
 }
 
 
-template class cBufSchurrSubst<tREAL8>;
 
 
 /* *********************************** */
@@ -194,9 +155,16 @@ template class cBufSchurrSubst<tREAL8>;
 template<class Type>  cLeasSqtAA<Type>::cLeasSqtAA(int aNbVar):
    cLeasSq<Type>   (aNbVar),
    mtAA            (aNbVar,aNbVar,eModeInitImage::eMIA_Null),
-   mtARhs          (aNbVar,eModeInitImage::eMIA_Null)
+   mtARhs          (aNbVar,eModeInitImage::eMIA_Null),
+   mBSC            (nullptr)
 {
 }
+
+template<class Type>  cLeasSqtAA<Type>::~cLeasSqtAA()
+{
+    delete mBSC;
+}
+
 
 template<class Type> void  cLeasSqtAA<Type>::AddObservation
                            (
@@ -230,11 +198,24 @@ template<class Type> void  cLeasSqtAA<Type>::Reset()
 
 template<class Type> void  cLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
-    static cBufSchurrSubst<Type> *  mBSCS = new cBufSchurrSubst<Type>(this->NbVar());
-    StdOut() << "hhhhhhhhhhhhhhhh\n"; 
-    mBSCS->CompileSubst(aSetSetEq);
-    
-    StdOut() << "GGGGgggggggggggg\n"; getchar();
+    if (mBSC==nullptr)
+         mBSC = new cBufSchurrSubst<Type>(this->NbVar());
+    mBSC->CompileSubst(aSetSetEq);
+
+    const std::vector<size_t> &  aVI = mBSC->VIndexUsed();
+    const cDenseMatrix<Type> & atAAS =  mBSC->tAASubst() ;
+    const cDenseVect<Type> &   atARhsS = mBSC->tARhsSubst() ;
+
+    for (size_t aI =0 ; aI<aVI.size() ; aI++)
+    {
+         size_t aX = aVI[aI];
+         for (size_t aJ =0 ; aJ<aVI.size() ; aJ++)
+         {
+             size_t aY = aVI[aJ];
+             mtAA.AddElem(aX,aY,atAAS.GetElem(aI,aJ)); 
+         }
+         mtARhs(aX) += atARhsS(aI);
+    }
 } 
 
 template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::Solve()
@@ -369,6 +350,7 @@ template<class Type> void cLinearOverCstrSys<Type>::AddObsWithTmpUK(const cSetIO
 /* ===================================================== */
 
 #define INSTANTIATE_LEASTSQ_TAA(Type)\
+template class cBufSchurrSubst<Type>;\
 template  class  cLeasSqtAA<Type>;\
 template  class  cLeasSq<Type>;\
 template  class  cLinearOverCstrSys<Type>;

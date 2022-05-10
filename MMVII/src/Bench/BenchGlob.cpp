@@ -416,6 +416,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchSet(aParam,mDirTestMMVII);  // Set (in extension)
         BenchSelector(aParam,mDirTestMMVII);  // Set (in comprehension)
 
+        Bench_Heap(aParam); // Basic numericall services
 
         Bench_Random(aParam);  // Bench random generator, check they are acceptably unbiased
 

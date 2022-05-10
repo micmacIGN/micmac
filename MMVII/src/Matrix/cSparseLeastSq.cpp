@@ -5,24 +5,40 @@
 namespace MMVII
 {
 
+/* *********************************** */
+/*                                     */
+/*            cSMLineTransf            */
+/*                                     */
+/* *********************************** */
+
+
+/** Class used for uncompressing  the line  sparse matrix of  cSparseLeasSqtAA
+    when they are modified
+ 
+  */
 template <class Type> class  cSMLineTransf
 {
 	public :
 	    typedef cCplIV<Type>             tCplIV;
 	    typedef std::vector<tCplIV>      tLine;
 
+	    /// constructor, reserve plave in mSet and mCumulIne
 	    cSMLineTransf(size_t aNb);
+
+	    /// Input a compressed line in the uncompressed
 	    void InputSparseLine(const tLine & aLine);
-            void SaveInSparseLine_And_Clear(tLine & aLine);
+	    /// Modify the current line
             void AddToCurLine(size_t anInd,const Type & aVal);
+	    /// Save the un-compressed line in compressed one
+            void SaveInSparseLine_And_Clear(tLine & aLine);
 	private :
-	    std::vector<Type>    mCumulLine;
-            cSetIntDyn           mSet;
+	    std::vector<Type>    mCumulLine;  ///< uncompressed line, easily modifiable
+            cSetIntDyn           mSetNot0;        ///< set of non null indexed
 };
 
 template <class Type> cSMLineTransf<Type>::cSMLineTransf(size_t aNb) :
      mCumulLine (aNb,0.0),
-     mSet  (aNb)
+     mSetNot0  (aNb)
 {
 }
 
@@ -31,9 +47,9 @@ template <class Type> void cSMLineTransf<Type>::InputSparseLine(const tLine & aL
     for (const auto & anEl : aLine)
     {
         const int & anInd = anEl.mInd;
-        mSet.mOccupied.at(anInd) = true;
+        mSetNot0.mOccupied.at(anInd) = true;
         mCumulLine.at(anInd) = anEl.mVal;
-        mSet.mVIndOcc.push_back(anInd);
+        mSetNot0.mVIndOcc.push_back(anInd);
     }
 }
 
@@ -41,21 +57,21 @@ template <class Type> void cSMLineTransf<Type>::SaveInSparseLine_And_Clear(tLine
 {
        aLine.clear();
        // save the  buff in the matrix 
-       for (const auto & anInd : mSet.mVIndOcc)
+       for (const auto & anInd : mSetNot0.mVIndOcc)
        {
            aLine.push_back(tCplIV(anInd,mCumulLine[anInd]));
-           mSet.mOccupied.at(anInd) = false;
+           mSetNot0.mOccupied.at(anInd) = false;
            mCumulLine.at(anInd) = 0.0;
        }
-       mSet.mVIndOcc.clear();
+       mSetNot0.mVIndOcc.clear();
 }
 
 template <class Type> void cSMLineTransf<Type>::AddToCurLine(size_t anInd,const Type & aVal)
 {
-    if (!mSet.mOccupied.at(anInd) )
+    if (!mSetNot0.mOccupied.at(anInd) )
     {
-        mSet.mOccupied.at(anInd) = true;
-        mSet.mVIndOcc.push_back(anInd);
+        mSetNot0.mOccupied.at(anInd) = true;
+        mSetNot0.mVIndOcc.push_back(anInd);
     }
     mCumulLine.at(anInd) +=  aVal;
 }
@@ -95,6 +111,7 @@ template<class Type>
 /*                                     */
 /* *********************************** */
 
+/** Auxilary class for memorazing a weighted sparse vector in Buffer Input of cSparseLeasSqtAA */
 
 template<class Type>  class cSparseWeigtedVect
 {
@@ -109,6 +126,9 @@ template<class Type>  class cSparseWeigtedVect
 	std::vector<cCplIV<Type> >   mVect;
 };
 
+/** Auxilary class for  efficient indexation of Buffer input while uncompressing Buffer Input
+    contain  a value and a weighted vector
+  */
 template<class Type>  class cValAndSWVPtr
 {
      public :
@@ -131,7 +151,7 @@ template<class Type>  class cValAndSWVPtr
       as it is time consuming, this is not done at each equation. The equations are memorized
       in a buffer, and periodically the buffer is emptied in the normal matrix.
 
-      The normal matric is full vector of sparse vector :
+      The normal matric is standard vector of sparse vector :
 
            mtAA[y] =   (x1,C1) (x2,C2) ....   where 
  */
@@ -155,6 +175,7 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
           cDenseVect<Type>  Solve() override;
 
 
+         void  AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq)  override;
 	 /// Put bufferd line in matrixs, used at end or during filling to liberate memorry
 	 void PutBufererEqInNormalMatrix() ;
       private :
@@ -211,10 +232,13 @@ template<class Type> void  cSparseLeasSqtAA<Type>::AddObservation
 			       const Type &  aRHS
                            )
 {
+    // modify the vector RHS
     mtARhs.WeightedAddIn(aWeight*aRHS,aCoeff);
+    // memorize the equation in the list mBufInput
     mBufInput.push_back(tWeigtedVect(aWeight,aCoeff.IV()));
     mNbInBuff+= double(aCoeff.size());
 
+    // if too many equation memorized, save them in normal matrix
     if (mNbInBuff >= (this->mNbVar*mPerEmpty))
        PutBufererEqInNormalMatrix();
 }
@@ -266,6 +290,11 @@ template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix()
 
    mNbInBuff =0;
    mBufInput.clear();
+}
+
+template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
+{
+	MMVII_INTERNAL_ERROR("SparseLeasSqtAA<Type>::AddObsWithTmpUK");
 }
 
 /* *********************************** */

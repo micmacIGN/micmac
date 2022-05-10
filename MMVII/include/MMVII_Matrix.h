@@ -107,6 +107,7 @@ template <class Type> class  cDenseVect
 
         Type * RawData();
         const Type * RawData() const;
+        std::vector<Type> ToStdVect() const;  ///< duplication
 
         // No need to duplicate all services offered by Image Classe
         tDIM & DIm(){return mIm.DIm();}
@@ -282,6 +283,7 @@ template <class Type> class cUnOptDenseMatrix : public cMatrix<Type>
 
         /// Non virtual for inline without specifying scope cUnOptDenseMatrix::
         void  SetElem(int  aX,int  aY,const Type & aV) { DIm().SetV(cPt2di(aX,aY),aV);}
+        void  AddElem(int  aX,int  aY,const Type & aV) { DIm().AddVal(cPt2di(aX,aY),aV);}
 
         Type V_GetElem(int aX,int  aY) const override ;
         void  V_SetElem(int  aX,int  aY,const Type &) override;
@@ -365,6 +367,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         // Type & GetElem(int aX,int  aY)     { return tUO_DM::GetElem(cPt2di(aX,aY));}
         // Type & GetElem(const cPt2di & aP)  { return tUO_DM::GetElem(aP);}
         void  SetElem(int  aX,int  aY,const Type & aV) {  tUO_DM::SetElem(aX,aY,aV);}
+        void  AddElem(int  aX,int  aY,const Type & aV) {  tUO_DM::AddElem(aX,aY,aV);}
 
         void Show() const;
 

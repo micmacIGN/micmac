@@ -80,6 +80,7 @@ void BenchStrIO(cParamExeBench & aParam); ///< Test str/obj conv, specially for 
 void Bench_Nums(cParamExeBench & aParam); ///< Bench on rounding, modulo ... basic numeric service
 void BenchSet(cParamExeBench & aParam,const std::string & aDir); ///< Bench on cExtSet (set "en extension")
 void BenchSelector(cParamExeBench & aParam,const std::string & aDir); ///< Bench on selecto, (set "en comprehension")
+void Bench_Heap(cParamExeBench & aParam); ///< Bench on rounding, modulo ... basic numeric service
 
 // Check conversion time/string; not sure essential, but it exist => no harm ...
 void Bench_Duration(cParamExeBench & aParam);
