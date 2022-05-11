@@ -195,25 +195,45 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
 /*          cWeightAv<Type>                        */
 /*                                                 */
 /* *********************************************** */
+/*
+template <class T> class cNV
+{
+    public :
+	static T V0(){return T(0);}
+};
+template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >
+{
+    public :
+	static  cPtxd<T,Dim>V0(){return  cPtxd<T,Dim>::PCste(0);}
+};
 
-template <class Type> cWeightAv<Type>::cWeightAv() :
+template<> cPt2dr NullVal<cPt2dr>() {return cPt2dr::PCste(0);}
+template<> cPt3dr NullVal<cPt3dr>() {return cPt3dr::PCste(0);}
+template<> cPt2df NullVal<cPt2df>() {return cPt2df::PCste(0);}
+template<> cPt3df NullVal<cPt3df>() {return cPt3df::PCste(0);}
+template<> cPt2dLR NullVal<cPt2dLR>() {return cPt2dLR::PCste(0);}
+template<> cPt3dLR NullVal<cPt3dLR>() {return cPt3dLR::PCste(0);}
+*/
+
+
+template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeightAv() :
    mSW(0),
-   mSVW(0)
+   // mSVW(NullVal<TypeVal>())
+   mSVW(cNV<TypeVal>::V0())
 {
 }
 
-template <class Type> void cWeightAv<Type>::Add(const Type & aWeight,const Type & aVal)
+template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Add(const TypeWeight & aWeight,const TypeVal & aVal)
 {
    mSW += aWeight;
    mSVW += aVal * aWeight;
 }
 
-template <class Type> Type cWeightAv<Type>::Average() const
+template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>::Average() const
 {
     MMVII_ASSERT_INVERTIBLE_VALUE(mSW);
     return mSVW / mSW;
 }
-
 
 
 
@@ -450,17 +470,29 @@ void BenchStat(cParamExeBench & aParam)
 /*                                                 */
 /* *********************************************** */
 
+// template class cWeightAv<TYPE,TYPE >;
+
 #define INSTANTIATE_MAT_INER(TYPE)\
+template class cWeightAv<TYPE,cPtxd<TYPE,2> >;\
+template class cWeightAv<TYPE,cPtxd<TYPE,3> >;\
 template class cSymMeasure<TYPE>;\
 template class cMatIner2Var<TYPE>;\
 template  class cComputeStdDev<TYPE>;\
-template class cWeightAv<TYPE>;\
+template class cWeightAv<TYPE,TYPE>;\
 template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);
 
 
 INSTANTIATE_MAT_INER(tREAL4)
 INSTANTIATE_MAT_INER(tREAL8)
 INSTANTIATE_MAT_INER(tREAL16)
+
+/*
+#define INSTANTIATE_WA(TYPE,DIM)\
+template class cWeightAv<tREAL8,cPtxd<TYPE,DIM> >;
+
+INSTANTIATE_WA(tREAL4,2)
+*/
+
 
 };
 

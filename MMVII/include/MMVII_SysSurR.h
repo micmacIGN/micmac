@@ -3,9 +3,81 @@
 namespace MMVII
 {
 
+template <class Type> class cInputOutputRSNL;
+template <class Type> class cSetIORSNL_SameTmp;
+template <class Type> class cLinearOverCstrSys  ;
+template <class Type> class  cLeasSq ;
+template <class Type> class  cLeasSqtAA ;
+template <class Type> class  cBufSchurrSubst; 
+
+
+
 /** \file MMVII_SysSurR.h
     \brief Classes for linear redundant system
 */
+
+
+/**  class for communinication  input and ouptut of equations in 
+   cResolSysNonLinear
+ */
+template <class Type> class cInputOutputRSNL
+{
+     public :
+          typedef std::vector<Type>  tStdVect;
+          typedef std::vector<int>   tVectInd;
+
+	  /// Create Input data w/o temporay
+	  cInputOutputRSNL(const tVectInd&,const tStdVect & aVObs);
+	  /// Create Input data with temporary temporay
+	  cInputOutputRSNL(const tVectInd&,const tStdVect &aVTmp,const tStdVect & aVObs);
+
+	  /// Give the weight, handle case where mWeights is empty (1.0) or size 1 (considered constant)
+	  Type WeightOfKthResisual(int aK) const;
+	  /// Check all the size are coherent
+	  bool IsOk() const;
+	  ///  Real unknowns + Temporary
+	  size_t NbUkTot() const;
+
+          tVectInd   mVInd;    ///<  index of unknown in the system
+          tStdVect   mTmpUK;   ///< possible value of temporary unknown,that would be eliminated by schur complement
+          tStdVect   mObs;     ///< Observation (i.e constants)
+
+          tStdVect                mWeights;  ///< Weights of eq, size can equal mVals or be 1 (cste) or 0 (all 1.0) 
+          tStdVect                mVals;     ///< values of fctr, i.e. residuals
+          std::vector<tStdVect>   mDers;     ///< derivate of fctr
+
+};
+
+/**  class for grouping all the observation relative to a temporary variable,
+     this is necessary because all must be processed simultaneously in schurr elimination
+
+     Basically this only a set of "cInputOutputRSNL"
+ */
+template <class Type> class cSetIORSNL_SameTmp
+{
+	public :
+            typedef cInputOutputRSNL<Type>  tIO_OneEq;
+	    typedef std::vector<tIO_OneEq>  tIO_AllEq;
+
+	    /// Constructor :  Create an empty set
+	    cSetIORSNL_SameTmp();
+
+	    /// Add and equation,  check the coherence
+	    void AddOneEq(const tIO_OneEq &);
+	    ///  Accesor to all equations
+	    const tIO_AllEq & AllEq() const;
+	    /// To be Ok must have at least 1 eq, and number of eq must be >= to unkwnonw
+	    void  AssertOk() const;
+
+	    ///  Number of temporary unkown
+	    size_t  NbTmpUk() const;
+
+	private :
+	    tIO_AllEq        mVEq;
+	    bool             mOk;
+	    size_t           mNbEq;
+};
+
 
 /** Virtual base classe for solving an over resolved system of linear equation;
     Typical derived classes can be :
@@ -14,20 +86,36 @@ namespace MMVII
         * least square not using covariance ...
 */
 
-template <class Type> class cSysSurResolu
+template <class Type> class cLinearOverCstrSys  : public cMemCheck
 {
     public :
-       cSysSurResolu(int aNbVar);
+       ///  Basic Cstr
+       cLinearOverCstrSys(int aNbVar);
+       ///  static allocator
+       static cLinearOverCstrSys<Type> * AllocSSR(eModeSSR,int aNbVar);
+
+
+
        /// Virtual methods => virtaul ~X()
-       virtual ~cSysSurResolu();
+       virtual ~cLinearOverCstrSys();
        /// Add  aPds (  aCoeff .X = aRHS) 
        virtual void AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) = 0;
        /// Add  aPds (  aCoeff .X = aRHS) , version sparse
        virtual void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) = 0;
+
+       /**  This the method for adding observation with temporaray unknown, the class can have various answer
+	     -  eliminate the temporay via schur complement
+             - treat temporary as unknowns and increase the size of their unknowns
+	     - refuse to process =>default is error ...
+	*/
+       virtual void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&);
+
        /// "Purge" all accumulated equations
        virtual void Reset() = 0;
        /// Compute a solution
        virtual cDenseVect<Type>  Solve() = 0;
+       ///  May contain a specialization for sparse system, default use generik
+       virtual cDenseVect<Type>  SparseSolve() ;
 
        /** Return for a given "solution" the weighted residual of a given observation
            Typically can be square, abs ....
@@ -48,18 +136,27 @@ template <class Type> class cSysSurResolu
        int NbVar() const;
 
 
-    private :
+    protected :
        int mNbVar;
 };
 
 /** Not sure the many thing common to least square system, at least there is the
     residual (sum of square ...)
 */
-template <class Type> class  cLeasSq  :  public cSysSurResolu<Type>
+template <class Type> class  cLeasSq  :  public cLinearOverCstrSys<Type>
 {
     public :
        cLeasSq(int aNbVar);
        Type Residual(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const override;
+       
+       /// Dont use normal equation 
+       static cLeasSq<Type>*  AllocSparseGCLstSq(int aNbVar);
+       
+       /// Adpated to"very sparse" system like in finite element, probably also ok for photogrammetry
+       static cLeasSq<Type>*  AllocSparseNormalLstSq(int aNbVar,double aPerEmptyBuf=4.0);
+       
+       /// Basic dense systems  => cLeasSqtAA
+       static cLeasSq<Type>*  AllocDenseLstSq(int aNbVar);
 };
 
 /**  Implemant least by suming tA A ,  simple and efficient, by the way known to have
@@ -70,19 +167,87 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
 {
     public :
        cLeasSqtAA(int aNbVar);
+       virtual ~cLeasSqtAA();
        void AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
        void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
        void Reset() override;
        /// Compute a solution
        cDenseVect<Type>  Solve() override;
-       // Accessor, at least for debug (else why ?)
-       const cDenseMatrix<Type> & tAA   () const;
-       const cDenseVect<Type>   & tARhs () const;
+       /// Use  sparse cholesky , usefull for "sparse dense" system ...
+       cDenseVect<Type>  SparseSolve() override ;
+
+       void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&) override;
+
+       //  ================  Accessor used in Schurr elim ========  :
+       
+       const cDenseMatrix<Type> & tAA   () const;   ///< Accessor 
+       const cDenseVect<Type>   & tARhs () const;   ///< Accessor 
+       cDenseMatrix<Type> & tAA   () ;         ///< Accessor 
+       cDenseVect<Type>   & tARhs () ;         ///< Accessor 
+
     private :
        cDenseMatrix<Type>  mtAA;    /// Som(W tA A)
        cDenseVect<Type>    mtARhs;  /// Som(W tA Rhs)
+       cBufSchurrSubst<Type> * mBSC;
       
 };
+
+
+/**  Class for compute elimination of temporay equation using schurr complement.
+
+     For vector and matrix, We use notation of MMV1 documentation   L= Lamda
+
+     (L      B   .. )     (X)   (A )
+     (tB     M11 .. )  *  (Y) = (C1)   =>     (M11- tB L-1 B    ...)  (Y) = C1 - tB L-1 A
+       ...                (Z)    ..           (                 ...)  (Z)
+*/
+
+
+template <class Type> class  cBufSchurrSubst
+{
+     public :
+          typedef cSetIORSNL_SameTmp<Type>  tSetEq;
+
+          /// constructor , just alloc the vector to compute subset of unknosn
+          cBufSchurrSubst(size_t aNbVar);
+          /// Make the computation from the set of equations
+          void CompileSubst(const tSetEq &);
+
+          //  ==== 3 accessors to the result
+
+          /// return normal matrix after schurr substitution ie : M11- tB L-1 B  
+          const cDenseMatrix<Type> & tAASubst() const;
+          ///  return normal vector after schurr subst  ie : C1 - tB L-1 A
+          const cDenseVect<Type> & tARhsSubst() const;
+          ///  return list of indexes  used to put compress mat/vect in "big" matrixes/vect
+          const std::vector<size_t> & VIndexUsed() const;
+     private :
+
+          size_t            mNbVar;
+          std::vector<size_t>  mNumComp;
+          cSetIntDyn        mSetInd;
+          cLeasSqtAA<Type>  mSysRed;
+          cSparseVect<Type> mSV;
+          size_t            mNbTmp;
+          size_t            mNbUk;
+          size_t            mNbUkTot;
+
+          cDenseMatrix<Type> mL;
+          cDenseMatrix<Type> mLInv;
+          cDenseMatrix<Type> mtB;
+          cDenseMatrix<Type> mtB_LInv;
+          cDenseMatrix<Type> mB;
+          cDenseMatrix<Type> mtB_LInv_B;
+          cDenseMatrix<Type> mM11;
+
+          cDenseVect<Type>   mA;
+          cDenseVect<Type>   mC1;
+          cDenseVect<Type>   mtB_LInv_A;
+};
+
+
+
+
 
 };
 

@@ -104,6 +104,8 @@ MMVII_INTERNAL_ASSERT_tiny(ValidInvertibleFloatValue(VALUE),"Non invertible valu
 #define  MMVII_ASSERT_STRICT_POS_VALUE(VALUE)\
 MMVII_INTERNAL_ASSERT_tiny(ValidStrictPosFloatValue(VALUE),"Non strict positive value")
 
+#define  MMVII_ASSERT_POS_VALUE(VALUE)\
+MMVII_INTERNAL_ASSERT_tiny(ValidPosFloatValue(VALUE),"Non positive value")
 
 template<class T> void IgnoreUnused( const T& ) { }; /// To avoid some warning on TEMPORARILY unused variable 
 void DoNothingWithIt(void *);  /// Used to avoid compiler optimization, make believe it can be used

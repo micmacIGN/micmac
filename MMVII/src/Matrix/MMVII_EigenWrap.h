@@ -124,6 +124,11 @@ template <class Type> class cConst_EigenColVectWrap
           mVecC (aVecC.RawData(),aVecC.Sz())
        {
        }
+       cConst_EigenColVectWrap (const std::vector<Type> & aVecC) :
+          mVecC (aVecC.data(),aVecC.size())
+       {
+       }
+
        tEigenWrap & EW() {return mVecC;}
    private :
        tEigenWrap mVecC;

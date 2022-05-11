@@ -33,6 +33,8 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromVect(co
    return aRes;
 }
 
+/*
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>& aV);\
 template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVector(const std::vector<Type>& aV) 
 {
    cPtxd<Type,Dim> aRes;
@@ -42,6 +44,7 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVect
 
    return aRes;
 }
+*/
 
 template <class Type,const int Dim> cDenseVect<Type> cPtxd<Type,Dim>::ToVect() const
 {
@@ -176,7 +179,6 @@ template cPtxd<TYPE,DIM> SolveLine(const cPtxd<TYPE,DIM>&,const cDenseMatrix<TYP
 template  cDenseVect<TYPE> cPtxd<TYPE,DIM>::ToVect() const;\
 template  std::vector<TYPE> cPtxd<TYPE,DIM>::ToStdVector() const;\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromVect(const cDenseVect<TYPE>& aV);\
-template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>& aV);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Col(const cDenseMatrix<TYPE> &,int);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Line(int,const cDenseMatrix<TYPE> &);\
 INSTANT_MUL_MATVECT(TYPE,DIM,1);\

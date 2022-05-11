@@ -83,6 +83,12 @@ cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::v
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);
 
+/// Calc for conservation of dist, Uk={x1,y1,x2,y2} Obs={D12} , let pk=(xk,yk)  Residual :  D(p1,p2)/d12 -1
+NS_SymbolicDerivative::cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf);
+/// Ratio of dist, Uk={x1,y1,x2,y2,x3,y3} Obs={D12,D13,D23} ,  3 Residuals as D(p1,p2)/D12 - D(p1,p3)/D13
+NS_SymbolicDerivative::cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf);
+
+
 
 };
 

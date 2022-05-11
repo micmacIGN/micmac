@@ -33,6 +33,7 @@ template<class T1,class T2,class T3>  // return I2 + I3
    cIm2D<T1> AddImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3);
 template<class T2,class T3>   cIm2D<T2> operator + (const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)  ; // return I2 + I3
 template<class T2>   cDenseMatrix<T2> operator + (const cDenseMatrix<T2> & aI2,const cDenseMatrix<T2> & aI3) ; // return I2 + I3
+template<class T2>   cDenseVect<T2> operator + (const cDenseVect<T2> & aI2,const cDenseVect<T2> & aI3) ; // return I2-I3
 
     // -------------------------- Mul Cste -------------------------
 template<class T1,class T2,class T3,int Dim>     // I1 = I2 * V3 
@@ -83,6 +84,16 @@ template<class T1,class T2,class T3>
      return aI1;
 }
 
+template<class T1,class T2,int Dim>  
+   void DiffIn(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2)
+{
+    aI1.AssertSameArea(aI2); 
+
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) -= aI2.GetRDL(aK) ;
+}
+
+
 template<class T2,class T3>   cIm2D<T2> operator - (const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)  
 {
    return DiffImage((T2 *)nullptr,aI2,aI3);
@@ -91,6 +102,7 @@ template<class T2,class T3>   cIm1D<T2> operator - (const cIm1D<T2> & aI2,const 
 {
    return DiffImage((T2 *)nullptr,aI2,aI3);
 }
+
 
 template<class T2>   cDenseMatrix<T2> operator - (const cDenseMatrix<T2> & aI2,const cDenseMatrix<T2> & aI3)  
 {
@@ -101,6 +113,16 @@ template<class T2>   cDenseVect<T2> operator - (const cDenseVect<T2> & aI2,const
     return cDenseVect<T2>(aI2.Im()-aI3.Im());
 }
 
+template<class T2>   cDenseMatrix<T2> operator -= (cDenseMatrix<T2> & aI2,const cDenseMatrix<T2> & aI3) 
+{
+	DiffIn(aI2.DIm(),aI3.DIm());
+	return aI2;
+}
+template<class T2>   cDenseVect<T2> operator -= (cDenseVect<T2> & aI2,const cDenseVect<T2> & aI3) 
+{
+	DiffIn(aI2.DIm(),aI3.DIm());
+	return aI2;
+}
 
        //===========   Addition ===========
 
@@ -139,6 +161,16 @@ template<class T2,class T3>   cIm2D<T2> operator + (const cIm2D<T2> & aI2,const 
 template<class T2>   cDenseMatrix<T2> operator + (const cDenseMatrix<T2> & aI2,const cDenseMatrix<T2> & aI3)  
 {
     return cDenseMatrix<T2>(aI2.Im()+aI3.Im());
+}
+template<class T2>   cDenseVect<T2> operator + (const cDenseVect<T2> & aI2,const cDenseVect<T2> & aI3)  
+{
+    return cDenseVect<T2>(aI2.Im()+aI3.Im());
+}
+
+template<class T2>   cDenseVect<T2> & operator += (cDenseVect<T2> & aI2,const cDenseVect<T2> & aI3)  
+{
+      AddIn(aI2.DIm(),aI3.DIm());
+      return aI2;
 }
 
        //===========   MulCste ===========

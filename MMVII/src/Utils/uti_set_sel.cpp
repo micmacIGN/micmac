@@ -13,6 +13,40 @@
 
 */
 
+/* ======================================================= */
+/*                                                         */
+/*             cSetIntDyn:                                 */
+/*                                                         */
+/* ======================================================= */
+namespace MMVII
+{
+
+cSetIntDyn::cSetIntDyn(size_t aNb) :
+      mOccupied(aNb,false)
+{
+}
+
+void cSetIntDyn::Clear()
+{
+   for (const auto & aInd : mVIndOcc)
+       mOccupied.at(aInd) = false;
+   mVIndOcc.clear();
+}
+
+
+void cSetIntDyn::AddInd(size_t aK)
+{
+      while (mOccupied.size() <= aK)
+            mOccupied.push_back(false);
+
+      if (!mOccupied[aK])
+      {
+         mOccupied[aK] = true;
+         mVIndOcc.push_back(aK);
+      }
+}
+};
+
 
 /* ======================================== */
 /*                                          */
@@ -1135,6 +1169,8 @@ void BenchSet(cParamExeBench & aParam,const std::string & aDir)
     }
     aParam.EndBench();
 }
+
+
 
 };
 

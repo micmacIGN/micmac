@@ -5,7 +5,6 @@
 namespace MMVII
 {
 
-
 /* ========================== */
 /*     cDataGenDimTypedIm     */
 /* ========================== */
@@ -304,14 +303,23 @@ template <class Type>
         aNbElem /=  aCoord;
     }
     // Favorize 2D vect because we can check with 2D Image
-    cPt2di aSz2;
+    cPt2di aSz2= cPt2di(10+RandUnif_N(50),10+RandUnif_N(50));
     if (RandUnif_0_1() < 0.3)
     {
-       aSz2 = cPt2di(10+RandUnif_N(50),10+RandUnif_N(50));
        aVCoord = std::vector<int>({aSz2.x(),aSz2.y()});
     }
     mDim = aVCoord.size();
+    // it may happen that Dim was 2 before forcing, so must assure cohereence
+    if (mDim==2)
+    {
+        // min value for interpol bilin
+        for (auto & aV : aVCoord)
+            aV = std::max(3,aV);
+        // coherence
+        aSz2=cPt2di::FromStdVector(aVCoord);
+    }
     mSz =  tIndex(mDim);
+
 
     for (int aDim=0 ; aDim <mDim ; aDim++)
     {
@@ -320,14 +328,18 @@ template <class Type>
 
     mIm.Resize(mSz);
 
+   // Mode 0 set 0
     tIndex anIndex(mDim);
     ExploreRec(anIndex,0,0);
     AssertAllValEq(0);
 
+   // Mode 1 check is 0 and set 1
     ExploreRec(anIndex,0,1);
     AssertAllValEq(1);
 
+   // Mode 2 set Func
     ExploreRec(anIndex,0,2);
+   // Mode 3 check is  Func
     ExploreRec(anIndex,0,3);
 
     if (mDim==2)
@@ -348,7 +360,11 @@ template <class Type>
              double aV1 = aDIm2.GetVBL(ToR(aP2R));
              double aV2 = mIm.GetNLinearVal(aP2R.ToVect());
              bool Ok0 = true;
-             MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aV1,aV2,&Ok0)<1e-3,"Interpol Im N DIM");
+             if ((RelativeDifference(aV1,aV2,&Ok0)>=1e-3)  && (std::abs(aV1-aV2)>1e-5))
+             {
+                   StdOut() << "ddddd " << aV1 << " " << aV2 << Ok0 << " " << RelativeDifference(aV1,aV2,&Ok0) << "\n";
+                   MMVII_INTERNAL_ASSERT_bench(false,"Interpol Im N DIM");
+             }
 
              double aVal = RandUnif_0_1();
              aDIm2.AddVBL(ToR(aP2R),aVal);

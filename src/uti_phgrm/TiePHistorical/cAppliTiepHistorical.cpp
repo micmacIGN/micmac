@@ -1929,11 +1929,11 @@ bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, st
         return false;
 }
 
-void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack, bool bPrintSEL)
+std::string SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack, bool bPrintSEL)
 {
     if(aPack.size() <= 0){
         //printf("No tie points.\n");
-        return;
+        return "";
     }
     std::string aSHDir;
     std::string aNewDir;
@@ -1984,6 +1984,8 @@ void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, st
 
     fclose(fpTiePt1);
     fclose(fpTiePt2);
+
+    return aNameFile1;
 }
 
 void SaveSIFTHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<Pt2di> match, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bPrint, double dScaleL, double dScaleR, bool bSaveSclRot)

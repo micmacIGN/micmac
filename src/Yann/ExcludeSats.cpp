@@ -48,6 +48,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define APPROX_HEIGHT_SAT_TARGETS            1000
 
+
+
+// --------------------------------------------------------------------------------------
+// Classes permettant de convertir un fichier rtklib en format Micmac
+// --------------------------------------------------------------------------------------
+class cAppli_YannConvertRTKlib2Micmac{
+
+	public :
+	
+		cAppli_YannConvertRTKlib2Micmac(int argc, char ** argv);
+		std::string mposFile;					    // Fichier cinématique RTKlib
+		std::string moutFile;						// Fichier de sortie (xml)
+};
+
 // --------------------------------------------------------------------------------------
 // Classes permettant de compléter les images avec le champ de datation absolue
 // --------------------------------------------------------------------------------------
@@ -195,6 +209,92 @@ std::string execCmdOutput(const char* cmd) {
 	#endif
 
 }
+
+
+// --------------------------------------------------------------------------------------
+// Fonction d'ajout des timestamps dans les images (champ exif Date/Time Original)
+// --------------------------------------------------------------------------------------
+// Inputs :
+//   - Fichier cinématique RTKlib
+//   - Fichier de sortie (xml)
+// --------------------------------------------------------------------------------------
+cAppli_YannConvertRTKlib2Micmac::cAppli_YannConvertRTKlib2Micmac(int argc, char ** argv){
+
+		ElInitArgMain(argc,argv,
+        LArgMain()  <<  EAMC(mposFile,"RTKlib output pos file"),
+        LArgMain()  <<  EAM(moutFile,"Out", "NONE", "Output file"));
+        
+        // ---------------------------------------------------------------
+		// Lecture du fichier GPS
+		// ---------------------------------------------------------------
+		std::ifstream infile(mposFile);
+		std::string line = "";
+		
+		std::string output_file = "out.xml";
+		if (EAMIsInit(&moutFile)){
+			output_file = moutFile;
+		}else{
+			output_file = mposFile.substr(0,mposFile.length()-4) + std::string("") + "-out.xml";
+		}
+		
+		
+		ofstream output;
+		output.open(output_file);
+
+		int compteur = 1;
+		output << std::setprecision(16);
+
+		output << "<?xml version=\"1.0\" ?>" << std::endl;
+		output << "<DicoGpsFlottant>" << std::endl; 
+		while (std::getline(infile, line)){
+			
+			if (line.rfind("%", 0) == 0) continue;
+			
+			output << "     <OneGpsDGF>"  << std::endl;
+			
+			std::string date = line.substr(0,10); 
+			std::string timestamp = line.substr(10,13); 
+			
+			std::string YY = date.substr(0,4);
+			std::string MM = date.substr(5,2);
+			std::string DD = date.substr(8,2);
+			
+			std::string hh = timestamp.substr(1,2);
+			std::string mm = timestamp.substr(4,2);
+			std::string ss = timestamp.substr(7,6);
+			
+			double time = (std::stod(YY)-1970)*365 +  std::stod(MM)*31 + std::stod(DD);
+			time = time + std::stod(hh)/24 + std::stod(mm)/(24*60) + std::stod(ss)/(24*60*60);
+			
+			std::string xstring   = line.substr(23,15); std::string sdx = line.substr(76,9);
+			std::string ystring   = line.substr(38,15); std::string sdy = line.substr(88,9);
+			std::string zstring   = line.substr(53,15); std::string sdz = line.substr(97,7);
+			
+			std::cout << xstring << "" << ystring << " " << zstring << std::endl;
+
+			output << "          <Pt>" << xstring << "" << ystring << " " << zstring << "</Pt>" << std::endl;
+			output << "          <NamePt>" << compteur << "</NamePt>" << std::endl;      
+			output << "          <TagPt>" << line.substr(71,1) << "</TagPt>" << std::endl; 
+			output << "          <TimePt>" << time << "</TimePt>" << std::endl; 
+			output << "          <Incertitude>" << sdx << " " <<  sdy << " " << sdz << "</Incertitude>" << std::endl;
+			output << "     </OneGpsDGF>"  << std::endl;
+			
+			compteur ++;
+			
+		}
+		
+		output << "</DicoGpsFlottant>" << std::endl; 
+		output << std::setprecision(6);
+		
+		infile.close();
+		output.close();
+
+		std::cout << "----------------------------------------" << std::endl;
+		std::cout << "output file: " << output_file << std::endl;
+		std::cout << "----------------------------------------" << std::endl;
+
+}
+
 
 
 // --------------------------------------------------------------------------------------
@@ -1326,6 +1426,13 @@ cAppli_YannScript::cAppli_YannScript(int argc, char ** argv){
 //  A chaque commande MicMac correspond une fonction ayant la signature du main
 //  Le lien se fait dans src/CBinaires/mm3d.cpp
 // ----------------------------------------------------------------------------
+
+// (0) Conversion fichiers RTKlib
+int CPP_ConvertRTKlib2Micmac(int argc,char ** argv){
+   cAppli_YannConvertRTKlib2Micmac(argc,argv);
+   return EXIT_SUCCESS;
+}
+
 
 // (1) Complétion des timestamps
 int CPP_YannSetTimestamps(int argc,char ** argv){

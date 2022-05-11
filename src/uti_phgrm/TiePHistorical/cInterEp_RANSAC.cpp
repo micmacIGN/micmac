@@ -411,6 +411,161 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
     return;
 }
 
+
+void RANSACHomography(std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double thresh, bool bCheckSclRot, double threshScale, double threshAngle, int nMinPt)
+{
+    printf("iteration number: %d; thresh: %lf\n", aNbTir, thresh);
+
+    std::string aDir_inSH = input_dir + "/Homol" + inSH+"/";
+    std::string aNameIn = aDir_inSH +"Pastis" + aImg1 + "/"+aImg2+".txt";
+
+    bool bInverse = false;
+    if (ELISE_fp::exist_file(aNameIn) == false)
+    {
+        aNameIn = aDir_inSH +"Pastis" + aImg2 + "/"+aImg1+".txt";
+        if (ELISE_fp::exist_file(aNameIn) == false)
+        {
+            cout<<aNameIn<<" didn't exist hence skipped (RANSAC2D)."<<endl;
+            return;
+        }
+        bInverse = true;
+    }
+    ElPackHomologue aPackFull =  ElPackHomologue::FromFile(aNameIn);
+
+    /******************************Read tie points**********/
+    std::vector<Pt2dr> aV1;
+    std::vector<Pt2dr> aV2;
+    for (ElPackHomologue::iterator itCpl=aPackFull.begin();itCpl!=aPackFull.end(); itCpl++)
+    {
+       ElCplePtsHomologues cple = itCpl->ToCple();
+
+       if(bInverse == false)
+       {
+           aV1.push_back(cple.P1());
+           aV2.push_back(cple.P2());
+       }
+       else
+       {
+           aV2.push_back(cple.P1());
+           aV1.push_back(cple.P2());
+       }
+    }
+
+    int i, j;
+    int nPtNum = aV1.size();
+    //int nMinPt = 5;
+
+    cout<<"Input tie point number: "<<nPtNum;
+    printf(";  iteration number: %d; thresh: %lf\n", aNbTir, thresh);
+
+    if(nPtNum<nMinPt)
+    {
+        printf("Input tie point number (%d) is less than %d, hence skipped.\n", nPtNum, nMinPt);
+        return;
+    }
+
+    int nMaxInlier = 0;
+    srand((int)time(0));
+
+    std::vector<ElCplePtsHomologues> inlierCur;
+    std::vector<ElCplePtsHomologues> inlierFinal;
+/*
+    ElSimilitude aSim;
+
+    bool bConsis;
+    double dScale = 1;
+    double dAngle = 0;
+    double aSclL, aRotL, aSclR, aRotR;
+*/
+    double aEpslon = 0.0001;
+    //std::string aFinalMsg = "";
+    for(j=0; j<aNbTir; j++)
+    {
+        ElPackHomologue aPackSeed;
+        std::vector<int> res;
+
+        Pt2dr aDiff1, aDiff2;
+        do
+        {
+            res.clear();
+            GetRandomNum(0, nPtNum, 4, res);
+            aDiff1 = aV1[res[0]] - aV1[res[1]];
+            aDiff2 = aV2[res[0]] - aV2[res[1]];
+        }
+        //in case duplicated points
+        while((fabs(aDiff1.x) < aEpslon && fabs(aDiff1.y) < aEpslon) || (fabs(aDiff2.x) < aEpslon && fabs(aDiff2.y) < aEpslon));
+        //while{(aV1[res[0]].x - aV1[res[1]].x)};
+        //printf("%dth seed: %d, %d\n", j, res[0], res[1]);
+
+        //Pt2dr tr, sc;
+
+        for(i=0; i<4; i++)
+        {
+            aPackSeed.Cple_Add(ElCplePtsHomologues(aV1[res[i]],aV2[res[i]]));
+        }
+        double anEcart,aQuality;
+        bool Ok;
+        cElHomographie aH1To2 = cElHomographie::RobustInit(anEcart,&aQuality,aPackSeed,Ok,50,80.0,2000);
+
+        int nInlier =0;
+        for(i=0; i<nPtNum; i++)
+        {
+            Pt2dr aP1 = aV1[i];
+            Pt2dr aP2 = aV2[i];
+
+            Pt2dr aP2Pred = aH1To2(aP1);
+            double dist = pow(pow(aP2Pred.x-aP2.x,2) + pow(aP2Pred.y-aP2.y,2), 0.5);
+            //printf("%d %lf\n", i, dist);
+            if(dist < thresh)
+            {
+               // printf("%dth: %d, %.2lf  %.2lf  %.2lf  %.2lf\n", i, bConsis, aSclL, aRotL, aSclR, aRotR);
+                inlierCur.push_back(ElCplePtsHomologues(aP1, aP2));
+                nInlier++;
+            }
+        }
+        if(nInlier > nMaxInlier)
+        {
+            nMaxInlier = nInlier;
+            //aSim = aSimCur;
+            inlierFinal = inlierCur;
+
+            //char aCh[1024];
+            printf("---Iter: %d/%d; seed: [%d,%d,%d,%d]; nInlier/nPtNum: %d/%d\n", j, aNbTir, res[0], res[1], res[2], res[3], nMaxInlier, nPtNum);
+            aH1To2.Show();
+            //aFinalMsg = aCh;
+            //cout<<aFinalMsg<<endl;
+            //printf("Iter: %d/%d; nMaxInlier/nPtNum: %d/%d; ", j, aNbTir, nMaxInlier, nPtNum);
+            //printf("translation: %lf  %lf  %lf  %lf, seed: [%d,%d]\n", tr.x, tr.y, sc.x, sc.y, res[0], res[1]);
+        }
+        /*
+        else{
+            printf("Iter: %d/%d, seed: %d, %d, %d;  ", j, aNbTir, res[0], res[1], res[2]);
+            printf(" nMaxInlier: %d, nOriPtNum: %d\n", nMaxInlier, nOriPtNum);
+        }
+        */
+        inlierCur.clear();
+    }
+    /******************************end random perform**********/
+
+    std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    cout<<"---------------------------------"<<endl;
+    printf("%s\n%s\n--->>>Total Pt: %d; Total inlier: %d; Inlier Ratio (2DRANSAC): %.2lf%%\n", aCom.c_str(), aComInv.c_str(), nPtNum, nMaxInlier, nMaxInlier*100.0/nPtNum);
+    //cout<<"Final: "<<aFinalMsg<<endl;
+
+    /****************Save points****************/
+    std::string aSaveTxt = SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal, false);
+
+    ElPackHomologue aPackFinal =  ElPackHomologue::FromFile(aSaveTxt);
+    double anEcart,aQuality;
+    bool Ok;
+    cElHomographie aHomo = cElHomographie::RobustInit(anEcart,&aQuality,aPackFinal,Ok,50,80.0,2000);
+    cout<<"Final homography"<<endl;
+    aHomo.Show();
+
+    return;
+}
+
 int R2D(int argc,char ** argv, const std::string &aArg="")
 {
     cCommonAppliTiepHistorical aCAS3D;
@@ -424,7 +579,9 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
     double aThreshScale = 0.2;
     double aThreshAngle = 30;
 
-    int aMinPt = 3;
+    int aMinPt = 5;
+
+    int aTransType = 1;
 
     ElInitArgMain
      (
@@ -438,8 +595,8 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
                      << EAM(bCheckSclRot, "CheckSclRot", true, "Check the scale and rotation consistency (please make sure you saved the scale and rotation in \"Homol'2DRANInSH'_SclRot\" if you set this parameter to true), Def=false")
                      << EAM(aThreshScale, "ScaleTh",true, "The threshold for checking scale ratio, Def=0.2; (0.2 means the ratio of master and secondary SIFT scale between [(1-0.2)*Ref, (1+0.2)*Ref] is considered valide. Ref is automatically calculated by reprojection.)")
                      << EAM(aThreshAngle, "AngleTh",true, "The threshold for checking angle difference, Def=30; (30 means the difference of master and secondary SIFT angle between [Ref - 30 degree, Ref + 30 degree] is considered valide. Ref is automatically calculated by reprojection.)")
-                     << EAM(aMinPt,"MinPt",true,"Minimun number of input correspondences required, Def=3")
-
+                     << EAM(aMinPt,"MinPt",true,"Minimun number of input correspondences required, Def=5")
+                     << EAM(aTransType,"TransType",true,"Type of transformation model (1 means 2D similarity, 2 means homography), Def=1")
      );
 
     aThreshAngle = aThreshAngle*3.14/180;
@@ -447,7 +604,10 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
     if(aCAS3D.mR2DOutSH.length() == 0)
         aCAS3D.mR2DOutSH = aCAS3D.mR2DInSH + "-2DRANSAC";
 
-    RANSAC2D(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR2DInSH, aCAS3D.mR2DOutSH, aCAS3D.mR2DIteration, aCAS3D.mR2DThreshold, bCheckSclRot, aThreshScale, aThreshAngle, aMinPt);
+    if(aTransType == 2)
+        RANSACHomography(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR2DInSH, aCAS3D.mR2DOutSH, aCAS3D.mR2DIteration, aCAS3D.mR2DThreshold, bCheckSclRot, aThreshScale, aThreshAngle, aMinPt);
+    else
+        RANSAC2D(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR2DInSH, aCAS3D.mR2DOutSH, aCAS3D.mR2DIteration, aCAS3D.mR2DThreshold, bCheckSclRot, aThreshScale, aThreshAngle, aMinPt);
 
     return 0;
 }
