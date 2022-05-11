@@ -48,7 +48,7 @@ template <class Type> class  cTplAppliCalcDescPCar
         tREAL4               mTargAmpl;///< Amplitude after dynamic adaptation
         cRect2               mBoxIn;   ///< Current Input Box
         cPt2di               mSzIn;    ///< Current size of inputs
-        cRect2               mBoxOut;  ///< Current Output Box, inside wich we muste save data
+        cRect2               mBoxOut;  ///< Current Output Box, inside wich we must save data
         int                  mNbTiles;  ///< Number of tiles, usefull to know if we need to merge at end
 
         // To adapt dynamic  StoredVal = (RealVal-mVC) / mDyn
@@ -348,8 +348,6 @@ int cAppliCalcDescPCar::Exe()
    
    return EXIT_SUCCESS;
 }
-
-
 
 /* =============================================== */
 /*                                                 */

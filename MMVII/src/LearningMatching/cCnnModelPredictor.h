@@ -17,6 +17,7 @@
 #include "cConvnet_Fast.h"
 #include "cConvnet_Slow.h"
 #include "cConvNet_Fast_BN.h"
+#include "cMSNet.h"
 
 namespace F = torch::nn::functional;
 
@@ -47,12 +48,23 @@ class aCnnModelPredictor
        
        torch::Tensor PredictPrjHead(Fast_ProjectionHead Net,tTImV2 aTilL,cPt2di aPSz);
        
+       torch::Tensor PredictMSNet(MSNet Net,tTImV2 aTilL,cPt2di aPSz);
+       
+       torch::Tensor PredictMSNet1(MSNet Net,torch::Tensor X);
+       torch::Tensor PredictMSNet2(MSNet Net,torch::Tensor X);
+       torch::Tensor PredictMSNet3(MSNet Net,torch::Tensor X);
+       torch::Tensor PredictMSNet4(MSNet Net,torch::Tensor X);
+       
+       torch::Tensor PredictMSNetCommon(MSNet Net,tTImV2 aTilL,cPt2di aPSz);
+       
        torch::Tensor ReadBinaryFile(std::string aFilename, torch::Tensor aHost);
        void PopulateModelFromBinary(ConvNet_Fast Net);
        void PopulateModelFromBinaryWithBN(ConvNet_FastBn Net);
        void PopulateModelFromBinaryWithBNReg(ConvNet_FastBnRegister Net); // DONE
        
        void  PopulateModelPrjHead(Fast_ProjectionHead Net);
+       
+       void  PopulateModelMSNet(MSNet Net);
        
        void PopulateModelFastandHead(FastandHead Network);
        void PopulateModelSimNet(SimilarityNet Network);

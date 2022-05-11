@@ -4,10 +4,30 @@
 // include model architecture 
 #include "cCnnModelPredictor.h"
 
+/*
+namespace {
+	void display_weights(torch::nn::Module & module)
+	{
+		torch::NoGradGuard no_grad;
+        
+        
+        std::cout<<"MODULE NAME "<<module.name()<<std::endl;
+        std::cout<<"MODULE PARAMETERS SIZE "<<module.parameters().size()<<std::endl;
 
+        if (auto conv = module.as<torch::nn::Conv2d>()) {
+            std::cout<<"WGHT MATRIX MIN "<<conv->weight.min()<<std::endl;
+            std::cout<<"WGHT MATRIX MAX "<<conv->weight.max()<<std::endl;
+            //std::cout<<"BIAS VETCOR "<<conv->bias.sizes()<<std::endl;
+			}
+        if (auto linear = module.as<torch::nn::Linear>()) {
+            std::cout<<"WGHT MATRIX "<<linear->weight<<std::endl;
+            std::cout<<"BIAS VETCOR "<<linear->bias.sizes()<<std::endl;
+			}
+	}
+}
+*/
 namespace MMVII
 {
-
 namespace  cNS_MatchMultipleOrtho
 {
 
@@ -46,6 +66,11 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 	void ComputeSimilByCorrelMaster();
     void ComputeSimilByLearnedCorrelMaster(std::vector<torch::Tensor> * AllEmbeddings);
     void ComputeSimilByLearnedCorrelMasterEnhanced(std::vector<torch::Tensor> * AllOrthosEmbeddings);
+    void ComputeSimilByLearnedCorrelMasterMaxMoy(std::vector<torch::Tensor> * AllOrthosEmbeddings);
+    void ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(std::vector<torch::Tensor> * AllOrthosEmbeddings);
+    void ComputeSimilByLearnedCorrelMasterDempsterShafer(std::vector<torch::Tensor> * AllOrthosEmbeddings);
+    tREAL4 ComputeConflictBetween2SEts(tREAL4 aCorrel1, tREAL4 aCorrel2, tREAL4 aPonder1,tREAL4 aPonder2);
+    tREAL4 ComputeJointMassBetween2Sets(tREAL4 aCorrel1, tREAL4 aCorrel2, tREAL4 aPonder1,tREAL4 aPonder2);
 	void CorrelMaster(const cPt2di &,int aKIm,bool & AllOk,float &aWeight,float & aCorrel);
     void MakeNormalizedIms();
     void InitializePredictor ();
@@ -69,14 +94,16 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     bool                  mWithIntCorr=true;  // initialized in the begining 
     bool                  mWithExtCorr=false;  // initialized in the begining 
     std::string           mArchitecture;
+    std::string           mResol;
     std::string           mModelBinDir;
     cPt2di                mCNNWin;
     
     // Networks architectures 
     ConvNet_Fast mNetFastStd= ConvNet_Fast(3,4);  // Conv Kernel= 3x3 , Convlayers=4
     ConvNet_FastBn  mNetFastMVCNN=ConvNet_FastBn(3,7);// Conv Kernel= 3x3 , Convlayers=7
-    ConvNet_FastBnRegister mNetFastMVCNNReg=ConvNet_FastBnRegister(3,5,1,64,torch::kCPU);
+    ConvNet_FastBnRegister mNetFastMVCNNReg=ConvNet_FastBnRegister(3,5,1,112,torch::kCPU);// changed from 64 to 112
     Fast_ProjectionHead mNetFastPrjHead=Fast_ProjectionHead(3,5,1,1,112,112,64,torch::kCPU);
+    MSNet mMSNet=MSNet(32);
     FastandHead mNetFastMVCNNMLP=FastandHead(3,5,4,1,184,184,9,64,torch::kCPU);
     SimilarityNet mNetFastMVCNNDirectSIM=SimilarityNet(3,5,4,1,184,184,64,torch::kCPU);
     //FastandHead mNetFastMVCNNMLP; // Fast MVCNN + MLP for Multiview Features Aggregation
@@ -92,6 +119,7 @@ static const std::string TheFastandPrjHead = "MVCNNFastProjHead";
 static const std::string TheFastStandard = "MCNNStd";
 static const std::string TheFastArchWithMLP= "MVCNNFastMLP";
 static const std::string TheFastArchDirectSim="MVCNNFastDirectSIM";
+static const std::string TheMSNet="MSNet";
 /* *************************************************** */
 /*                                                     */
 /*              cAppliMatchMultipleOrtho               */
@@ -126,6 +154,7 @@ cCollecSpecArg2007 & cAppliMatchMultipleOrtho::ArgOpt(cCollecSpecArg2007 & anArg
           // << AOpt2007(mStepZ, "StepZ","Step for paralax",{eTA2007::HDV})
           << AOpt2007(mModelBinDir,"CNNParams" ,"Model Directory : Contient des fichiers binaires *.bin")
           << AOpt2007(mArchitecture,"CNNArch" ,"Model architecture : "+TheFastArch+" || "+TheFastStandard+" || "+TheFastArchWithMLP)
+          << AOpt2007(mResol,"RESOL" ,"RESOL OPTION FOR THE MULTISCALE TRAINING: ")
    ;
 }
 
@@ -134,7 +163,7 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
 {
     StdOut()<<"MODEL ARCHITECTURE:: "<<mArchitecture<<"\n";
     bool IsArchWellDefined=false;
-    IsArchWellDefined = (mArchitecture==TheFastArch) ||  (mArchitecture==TheFastArchReg) ||  (mArchitecture==TheFastStandard) || (mArchitecture==TheFastArchWithMLP) || (mArchitecture==TheFastArchDirectSim) || (mArchitecture==TheFastandPrjHead) ;
+    IsArchWellDefined = (mArchitecture==TheFastArch) ||  (mArchitecture==TheFastArchReg) ||  (mArchitecture==TheFastStandard) || (mArchitecture==TheFastArchWithMLP) || (mArchitecture==TheFastArchDirectSim) || (mArchitecture==TheFastandPrjHead)|| (mArchitecture==TheMSNet) ;
     MMVII_INTERNAL_ASSERT_strong(IsArchWellDefined,"The network architecture should be specified : "+TheFastArch+" || "+TheFastStandard 
         +" || "+TheFastArchWithMLP+" || "+TheFastArchDirectSim+ " !");      
     MMVII_INTERNAL_ASSERT_strong(this->mModelBinDir!=""," Model params dir must be specified ! ");
@@ -179,8 +208,8 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
             mCNNPredictor = new aCnnModelPredictor(TheFastArchReg,mModelBinDir);
             mCNNPredictor->PopulateModelFromBinaryWithBNReg(mNetFastMVCNNReg);
             
-            mCNNWin=mCNNPredictor->GetWindowSizeBNReg(mNetFastMVCNNReg);
-				
+            //mCNNWin=mCNNPredictor->GetWindowSizeBNReg(mNetFastMVCNNReg);  just changed to test
+			mCNNWin=cPt2di(7,7);	
             //Add padding to maintain the same size as output 
             auto Fast=mNetFastMVCNNReg->mFast; 
             size_t Sz=Fast->size();
@@ -213,6 +242,25 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
                     Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
                 }
             }
+        }
+        if(mArchitecture==TheMSNet)
+        {
+            
+            
+            mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir);
+            mCNNPredictor->PopulateModelMSNet(mMSNet);
+            
+            mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
+				
+            //Add padding to maintain the same size as output 
+            auto common=mMSNet->common; 
+//             common->apply(display_weights);
+            //size_t Sz=common->size();
+            /*StdOut()<<"Aggregatior network size "<<Sz<<"\n";
+            StdOut()<<" Layer Name "<<common->named_children()[0].key()<<"\n";*/
+            common->children()[0]->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+            common->children()[3]->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+            common->children()[6]->as<torch::nn::Conv2dImpl>()->options.padding()=1;
         }
         if(mArchitecture==TheFastArchWithMLP)
         {
@@ -530,6 +578,328 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::ve
 
 	aDImSim.SetV(aP,1-aAvgCorr);
    }
+
+   // delete All Similarities 
+   delete AllSimilarities;
+}
+
+
+void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterMaxMoy(std::vector<torch::Tensor> * AllOrthosEmbeddings)
+{
+   MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
+
+   tDImSimil & aDImSim = mImSimil.DIm();
+   // Parse all pixels
+	const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+    //compute similarity matrices at the beginning 
+    std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;;
+    for (int k=1; k<mNbIm; k++)
+    {
+        // compute element wise cross product along feature size dimension 
+        auto aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(0),AllOrthosEmbeddings->at(k),0).squeeze();
+        //StdOut()<<"Cross Product values "<<aCrossProd<<"\n";
+        AllSimilarities->push_back(aCrossProd);
+    }
+    // Free all ortho OneOrthoEmbeding 
+    delete AllOrthosEmbeddings; 
+    //std::cout<<" feature vector size : "<<FeatSize<<std::endl;
+   for (const auto & aP : aDImSim)
+   {
+	 // Parse secondary images 
+    tREAL4 aTab[mNbIm-1];
+    tREAL4 aPonder[mNbIm-1];
+	 using namespace torch::indexing;
+        for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+	{
+        bool AllOk;
+	    float aWeight,aCorrel;
+        //CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
+        // Compute cosine simialrity with respect to master ortho embeddings 
+        
+        /**************************************************************************************/
+        AllOk = true;
+        aWeight = 0;
+        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
+        for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
+        {
+            bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valide
+            if (Ok)
+            {
+                aWeight++;
+            }
+            else
+            {
+                AllOk=false;
+            }
+        }
+        // Compute correl separately 
+        //using namespace torch::indexing;
+        auto aSim=AllSimilarities->at(aKIm-1).slice(0,aP.y(),aP.y()+1,1).slice(1,aP.x(),aP.x()+1,1);
+        //std::cout<<" slave vector "<<aVecOther<<std::endl;
+        aCorrel=(float)aSim.item<float>();
+        /**************************************************************************************/  
+	    if (AllOk)
+	    {
+            aTab[aKIm-1]    = aCorrel;
+            aPonder[aKIm-1] = 1.0;
+	    }
+	    else
+	    {
+           aTab[aKIm-1]    = aCorrel ; 
+           aPonder[aKIm-1] = aWeight/(mCNNWin.x()*mCNNWin.y());
+	    }
+	}
+	// Moyennes deux à deux des corrélations
+    tREAL4 AggCorr=-2.0;
+    for (int j=0;j<mNbIm-2;j++)
+    {
+        for (int i=j+1;i<mNbIm-1;i++)
+        {
+            tREAL4 aCorr=(aTab[i]*aPonder[i]+ aTab[j]*aPonder[j])/std::max(1e-5f,aPonder[i]+aPonder[j]); 
+            if (AggCorr<aCorr)
+            {
+                AggCorr=aCorr;
+            }
+        }
+    }
+    if(AggCorr==-2.0) AggCorr=0.5;   // no max is found 
+    aDImSim.SetV(aP,1-AggCorr);
+   }
+
+   // delete All Similarities 
+   delete AllSimilarities;
+}
+
+void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(std::vector<torch::Tensor> * AllOrthosEmbeddings)
+{
+    
+    // Here we jointly fuse Similarity measures from Multi-Scale information 
+    // Size of embeddings vector = 4 (scales)*features
+    
+    // Ortho 1
+    // 0 --> Resol 1
+    // 1 --> Resol / 2
+    // 2 --> Resol / 4
+    // 3 --> Resol / 8
+    
+    // Ortho 2
+    // 4 --> Resol 1
+    // 5 --> Resol / 2 
+    // 6 --> Resol / 4
+    // 7 --> Resol / 8
+    
+    //.....
+    
+    
+   MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
+
+   tDImSimil & aDImSim = mImSimil.DIm();
+   // Parse all pixels
+	const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+    //compute similarity matrices at the beginning 
+    std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;;
+    for (int scales=0;scales<4;scales++)
+    {
+        for (int k=1; k<mNbIm; k++)
+        {
+            // compute element wise cross product along feature size dimension 
+            auto aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(scales),AllOrthosEmbeddings->at(4*k+scales),0).squeeze();
+            AllSimilarities->push_back(aCrossProd);
+        }
+    }
+    
+    // Free all ortho OneOrthoEmbeding 
+    delete AllOrthosEmbeddings; 
+    //std::cout<<" feature vector size : "<<FeatSize<<std::endl;
+   for (const auto & aP : aDImSim)
+   {
+	 // Parse secondary images 
+    tREAL4 aTab[(mNbIm-1)*4];
+    tREAL4 aPonder[(mNbIm-1)*4];
+    
+	 using namespace torch::indexing;
+     for (int aKIm=1 ; aKIm<=(mNbIm-1)*4 ; aKIm++)
+	{
+        bool AllOk;
+	    float aWeight,aCorrel;
+        //CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
+        // Compute cosine simialrity with respect to master ortho embeddings 
+        
+        /**************************************************************************************/
+        AllOk = true;
+        aWeight = 0;
+        const tDImMasq & aDIM2  =  mVMasq.at(aKIm%(mNbIm-1) ? aKIm%(mNbIm-1) : (mNbIm-1)).DIm();
+        for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
+        {
+            bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valid
+            if (Ok)
+            {
+                aWeight++;
+            }
+            else
+            {
+                AllOk=false;
+            }
+        }
+        // Compute correl separately 
+        //using namespace torch::indexing;
+        auto aSim=AllSimilarities->at(aKIm-1).slice(0,aP.y(),aP.y()+1,1).slice(1,aP.x(),aP.x()+1,1);
+        //std::cout<<" slave vector "<<aVecOther<<std::endl;
+        aCorrel=(float)aSim.item<float>();
+        /**************************************************************************************/  
+	    if (AllOk)
+	    {
+            aTab[aKIm-1]    = aCorrel;
+            aPonder[aKIm-1] = 1.0;
+	    }
+	    else
+	    {
+           aTab[aKIm-1]    = aCorrel ; 
+           aPonder[aKIm-1] = aWeight/(mCNNWin.x()*mCNNWin.y());
+	    }
+	}
+	// Moyennes deux à deux des corrélations
+    tREAL4 AggCorr=-2.0;
+    tREAL4 AggCorrMaxAllScales=-2.0;
+    
+    for (int scales=0;scales<4;scales++)
+    {
+        AggCorr=-2.0;
+        for (int j=0;j<mNbIm-2;j++)
+        {
+            for (int i=j+1;i<mNbIm-1;i++)
+            {
+                tREAL4 aCorr=(aTab[i+(mNbIm-1)*scales]*aPonder[i+(mNbIm-1)*scales]+ aTab[j+(mNbIm-1)*scales]*aPonder[j+(mNbIm-1)*scales])/std::max(1e-5f,aPonder[i+(mNbIm-1)*scales]+aPonder[j+(mNbIm-1)*scales]); 
+                if (AggCorr<aCorr)
+                {
+                    AggCorr=aCorr;
+                }
+            }
+        }
+        if (AggCorrMaxAllScales<AggCorr)
+        {
+            AggCorrMaxAllScales=AggCorr;
+        }
+    }
+    if(AggCorrMaxAllScales==-2.0) AggCorrMaxAllScales=0.5;   // no max is found 
+    aDImSim.SetV(aP,1-AggCorrMaxAllScales);
+   }
+
+   // delete All Similarities 
+   delete AllSimilarities;
+}
+
+
+void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDempsterShafer(std::vector<torch::Tensor> * AllOrthosEmbeddings)
+{
+   MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
+
+   tDImSimil & aDImSim = mImSimil.DIm();
+   // Parse all pixels
+	const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+    //compute similarity matrices at the beginning 
+    std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;;
+    for (int k=1; k<mNbIm; k++)
+    {
+        // compute element wise cross product along feature size dimension 
+        auto aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(0),AllOrthosEmbeddings->at(k),0).squeeze();
+        AllSimilarities->push_back(aCrossProd);
+    }
+    // Free all ortho OneOrthoEmbeding 
+    delete AllOrthosEmbeddings; 
+    //std::cout<<" feature vector size : "<<FeatSize<<std::endl;
+   for (const auto & aP : aDImSim)
+   {
+	 // Parse secondary images 
+    tREAL4 aTab[mNbIm-1];
+    tREAL4 aPonder[mNbIm-1];
+	 using namespace torch::indexing;
+        for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+	{
+        bool AllOk;
+	    float aWeight,aCorrel;
+        //CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
+        // Compute cosine simialrity with respect to master ortho embeddings 
+        
+        /**************************************************************************************/
+        AllOk = true;
+        aWeight = 0;
+        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
+        for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
+        {
+            bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valide
+            if (Ok)
+            {
+                aWeight++;
+            }
+            else
+            {
+                AllOk=false;
+            }
+        }
+        // Compute correl separately 
+        auto aSim=AllSimilarities->at(aKIm-1).slice(0,aP.y(),aP.y()+1,1).slice(1,aP.x(),aP.x()+1,1);
+        //std::cout<<" slave vector "<<aVecOther<<std::endl;
+        aCorrel=(float)aSim.item<float>();
+        /**************************************************************************************/  
+	    if (AllOk)
+	    {
+            aTab[aKIm-1]    = aCorrel;
+            aPonder[aKIm-1] = 1.0;
+	    }
+	    else
+	    {
+           aTab[aKIm-1]    = aCorrel ; 
+           aPonder[aKIm-1] = aWeight/(mCNNWin.x()*mCNNWin.y());
+	    }
+	}
+	// COmbinaison des corrélations par la méthode de D-S
+	tREAL4 AggCorr;
+    if (mNbIm==2) 
+    {
+        AggCorr=aTab[0];
+    }
+    else
+    {
+        AggCorr=ComputeJointMassBetween2Sets(aTab[0],aTab[1],aPonder[0],aPonder[1]);
+        //std::cout<<" Value of correl "<<AggCorr<<std::endl;
+        if (mNbIm>3)
+        {
+            for (int j=0;j<mNbIm-2;j++)
+            {
+                for (int i=(j==0) ? j+2:j+1;i<mNbIm-1;i++)
+                {
+                    AggCorr=ComputeJointMassBetween2Sets(AggCorr,aTab[i],1.0,aPonder[i]);
+                }
+            }
+        }
+    }
+    //std::cout<<" Value of correl ))  "<<AggCorr<<std::endl;
+    aDImSim.SetV(aP,1-AggCorr);
+   }
+
+   // delete All Similarities 
+   delete AllSimilarities;
+}
+
+tREAL4 cAppliMatchMultipleOrtho::ComputeConflictBetween2SEts(tREAL4 aCorrel1, tREAL4 aCorrel2, tREAL4 aPonder1,tREAL4 aPonder2)
+{
+    return aPonder1*aCorrel1*(1-aPonder2*aCorrel2)+ (1-aPonder1*aCorrel1)+aPonder2*aCorrel2;
+}
+    
+tREAL4 cAppliMatchMultipleOrtho::ComputeJointMassBetween2Sets(tREAL4 aCorrel1, tREAL4 aCorrel2, tREAL4 aPonder1,tREAL4 aPonder2)
+{
+    tREAL4 k=ComputeConflictBetween2SEts(aCorrel1,aCorrel2,aPonder1,aPonder2);
+    //std::cout<<"Conflict between both values "<<k<<std::endl;
+    if (k==1.0)  // conflict between 2 Correlations measures  ==> returm mean of correl
+    {
+        // for now return average but if there is a conflict between correl, it should be considered as an indicator !!!
+        return (aCorrel1*aPonder1+aCorrel2*aPonder2)/std::max(1e-5f,aPonder1+aPonder2);
+    }
+    else
+    {
+        return aCorrel1*aPonder1*aPonder2*aCorrel2/(1-k);
+    }
 }
 
 void cAppliMatchMultipleOrtho::MakeNormalizedIms()  // Possible errors here 
@@ -625,6 +995,38 @@ int  cAppliMatchMultipleOrtho::Exe()
                        // std::cout<<"ORTOHS SIZES :  ====> "<<aSzOrtho<<std::endl;
                         OneOrthoEmbeding=mCNNPredictor->PredictPrjHead(mNetFastPrjHead,mVOrtho.at(i),aSzOrtho);
                     }
+                else if (mArchitecture==TheMSNet)
+                    {
+                      //  OneOrthoEmbeding=mCNNPredictor->PredictMSNetCommon(mMSNet,mVOrtho.at(i),aSzOrtho);
+                       // OneOrthoEmbeding=mCNNPredictor->PredictMSNet(mMSNet,mVOrtho.at(i),aSzOrtho);
+                        
+                        int Resol=1;
+                        if (mResol!="")
+                        {
+                            Resol=std::atoi(mResol.c_str());
+                        }
+                        auto CommonEmbedding=mCNNPredictor->PredictMSNetCommon(mMSNet,mVOrtho.at(i),aSzOrtho);
+                        
+                        switch (Resol)
+                        {
+                            case 1:
+                                OneOrthoEmbeding=mCNNPredictor->PredictMSNet1(mMSNet,CommonEmbedding);
+                                break;
+                            case 2:
+                                OneOrthoEmbeding=mCNNPredictor->PredictMSNet2(mMSNet,CommonEmbedding);
+                                break;
+                            case 4:
+                                OneOrthoEmbeding=mCNNPredictor->PredictMSNet3(mMSNet,CommonEmbedding);
+                                break;
+                            case 8:
+                                OneOrthoEmbeding=mCNNPredictor->PredictMSNet4(mMSNet,CommonEmbedding);
+                                break;
+                            default:
+                                // Full Resolution Inference 
+                                OneOrthoEmbeding=mCNNPredictor->PredictMSNet1(mMSNet,CommonEmbedding);
+                                break;
+                        }
+                    }
                 else if (mArchitecture==TheFastArchWithMLP)
                     {
                         OneOrthoEmbeding=mCNNPredictor->PredictFastWithHead(mNetFastMVCNNMLP,mVOrtho.at(i),aSzOrtho);
@@ -638,9 +1040,18 @@ int  cAppliMatchMultipleOrtho::Exe()
                 // store in relevant vector 
                 OrthosEmbeddings->push_back(OneOrthoEmbeding);
             }
+            //StdOut()  <<" Size OF EMBEDDINGS MS : " <<OrthosEmbeddings->size()<<"\n";
             
             // GIVEN THE ORTHOS EMBEDDINGS, Compute Correlation for each pixel in the similarity image => index work to get vectors from from tensors 
-            ComputeSimilByLearnedCorrelMasterEnhanced(OrthosEmbeddings);
+            if (mArchitecture==TheMSNet)
+            {
+                //ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(OrthosEmbeddings); // Size 4*numberofOrthos
+                ComputeSimilByLearnedCorrelMasterMaxMoy(OrthosEmbeddings);
+            }
+            else
+            {
+               ComputeSimilByLearnedCorrelMasterMaxMoy(OrthosEmbeddings); 
+            }
             
         }
         else

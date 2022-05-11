@@ -2203,7 +2203,8 @@ void cAppliMICMAC::DoCorrelAdHoc
                      aCom = aCom + " " +  "CNNArch=" + QUOTE(aMCOE.OrthFileModeleArch().Val());
 		  if (aMCOE.OrthFileModeleParams().IsInit())
                      aCom = aCom + " " +  "CNNParams=" + QUOTE(aMCOE.OrthFileModeleParams().Val());
-          
+		  if (aMCOE.OrthoResol().IsInit())
+                     aCom = aCom + " " +  "RESOL=" + QUOTE(aMCOE.OrthoResol().Val());          
           std::cout<<"COMMAND "<<aCom<<std::endl;
           
 		  System(aCom);

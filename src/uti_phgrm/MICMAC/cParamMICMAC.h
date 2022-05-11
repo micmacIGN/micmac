@@ -2336,6 +2336,9 @@ class cMutiCorrelOrthoExt
         cTplValGesInit< std::string > &  OrthFileModeleArch();
         const cTplValGesInit< std::string >  & OrthFileModeleArch() const;
  
+        cTplValGesInit< std::string > &  OrthoResol();
+        const cTplValGesInit< std::string >  & OrthoResol() const;
+        
         cTplValGesInit< std::string > & Options();
         const cTplValGesInit< std::string > & Options()const ;
 
@@ -2346,6 +2349,7 @@ class cMutiCorrelOrthoExt
         cTplValGesInit< std::string > mCmd;
         cTplValGesInit< std::string > mOrthFileModeleParams;
         cTplValGesInit< std::string > mOrthFileModeleArch;
+        cTplValGesInit< std::string > mOrthoResol;
         cTplValGesInit< std::string > mOptions;
         cTplValGesInit< int > mDeltaZ;
         

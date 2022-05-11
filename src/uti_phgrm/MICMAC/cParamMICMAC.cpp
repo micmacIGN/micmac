@@ -7830,6 +7830,10 @@ cTplValGesInit< std::string > & cMutiCorrelOrthoExt::OrthFileModeleArch()
    return mOrthFileModeleArch;
 }
 
+cTplValGesInit< std::string > & cMutiCorrelOrthoExt::OrthoResol()
+{
+   return mOrthoResol;
+}
 const cTplValGesInit< std::string > & cMutiCorrelOrthoExt::OrthFileModeleParams()const 
 {
    return mOrthFileModeleParams;
@@ -7840,7 +7844,10 @@ const cTplValGesInit< std::string > & cMutiCorrelOrthoExt::OrthFileModeleArch()c
    return mOrthFileModeleArch;
 }
 
-
+const cTplValGesInit< std::string > & cMutiCorrelOrthoExt::OrthoResol() const
+{
+   return mOrthoResol;
+}
 cTplValGesInit< std::string > & cMutiCorrelOrthoExt::Options()
 {
    return mOptions;
@@ -7897,6 +7904,15 @@ void  BinaryUnDumpFromFile(cMutiCorrelOrthoExt & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.OrthoResol().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OrthoResol().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OrthoResol().SetNoInit();
+  } ;
+  
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.Options().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.Options().ValForcedForUnUmp(),aFp);
         }
@@ -7922,6 +7938,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cMutiCorrelOrthoExt & anObj)
     if (anObj.OrthFileModeleParams().IsInit()) BinaryDumpInFile(aFp,anObj.OrthFileModeleParams().Val());
     BinaryDumpInFile(aFp,anObj.OrthFileModeleArch().IsInit());
     if (anObj.OrthFileModeleArch().IsInit()) BinaryDumpInFile(aFp,anObj.OrthFileModeleArch().Val());
+    BinaryDumpInFile(aFp,anObj.OrthoResol().IsInit());
+    if (anObj.OrthoResol().IsInit()) BinaryDumpInFile(aFp,anObj.OrthoResol().Val());
     /*****************************************************************************/
 
     BinaryDumpInFile(aFp,anObj.Options().IsInit());
@@ -7942,6 +7960,8 @@ cElXMLTree * ToXMLTree(const cMutiCorrelOrthoExt & anObj)
       aRes->AddFils(::ToXMLTree(std::string("OrthFileModeleParams"),anObj.OrthFileModeleParams().Val())->ReTagThis("OrthFileModeleParams"));
    if (anObj.OrthFileModeleArch().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("OrthFileModeleArch"),anObj.OrthFileModeleArch().Val())->ReTagThis("OrthFileModeleArch"));
+   if (anObj.OrthoResol().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OrthoResol"),anObj.OrthoResol().Val())->ReTagThis("OrthoResol"));
    /*****************************************************************************/
    if (anObj.Options().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Options"),anObj.Options().Val())->ReTagThis("Options"));
@@ -7961,6 +7981,7 @@ void xml_init(cMutiCorrelOrthoExt & anObj,cElXMLTree * aTree)
    /************************************************************************************************/
    xml_init(anObj.OrthFileModeleParams(),aTree->Get("OrthFileModeleParams",1)); //tototo
    xml_init(anObj.OrthFileModeleArch(),aTree->Get("OrthFileModeleArch",1)); //tototo
+   xml_init(anObj.OrthoResol(),aTree->Get("OrthoResol",1)); //tototo
    /***********************************************************************************************/
    xml_init(anObj.Options(),aTree->Get("Options",1)); //tototo 
 

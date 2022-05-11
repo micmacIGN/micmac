@@ -992,6 +992,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                                 <Cmd Nb="?" Type="std::string" Def="MMVII  DM4MatchMultipleOrtho "> </Cmd>
                                 <OrthFileModeleParams Nb="?" Type="std::string">         </OrthFileModeleParams>
                                 <OrthFileModeleArch Nb="?" Type="std::string">           </OrthFileModeleArch>
+                                <OrthoResol Nb="?" Type="std::string">           </OrthoResol>
                                 <Options Nb="?" Type="std::string"> </Options>
                                 <DeltaZ Nb="?" Type="int" Def="50"> </DeltaZ>
                         </MutiCorrelOrthoExt>

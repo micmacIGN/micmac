@@ -7,8 +7,6 @@
 // included model cnn 
 #include "cCnnModelPredictor.h"
 
-
-
 /*
    C = (1-(1-L) ^2)
 
@@ -853,8 +851,8 @@ int  cAppliFillCubeCost::Exe()
              }
         else if (aVMods.at(0)->mArchitecture==TheFastandPrjHead)
              {
-               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictPrjHead(aVMods.at(0)->mNetFastPrjHead,this->IMNorm1(),aSzL);
-               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictPrjHead(aVMods.at(0)->mNetFastPrjHead,this->IMNorm2(),aSzR);
+               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictPrjHead(aVMods.at(0)->mNetFastPrjHead,this->mIm1,aSzL);
+               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictPrjHead(aVMods.at(0)->mNetFastPrjHead,this->mIm2,aSzR);
              }
         else if (aVMods.at(0)->mArchitecture==TheFastArchWithMLP)
              {

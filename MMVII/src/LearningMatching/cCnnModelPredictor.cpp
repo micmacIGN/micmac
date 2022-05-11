@@ -4,7 +4,6 @@
     eLiSe  : ELements of an Image Software Environnement
 
     www.micmac.ign.fr
-
    
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
@@ -317,6 +316,15 @@ void aCnnModelPredictor::PopulateModelFromBinaryWithBNReg(ConvNet_FastBnRegister
 
 /***********************************************************************/
 void aCnnModelPredictor::PopulateModelPrjHead(Fast_ProjectionHead Network)
+{
+    //StdOut()<<"TO LOAD MODEL "<<"\n";
+    std::string aModel=mDirModel+mSetModelBinaries.at(0); // just one pickled model 
+    torch::load(Network,aModel);
+    //StdOut()<<"TORCH LOAD  "<<"\n";
+}
+
+/***********************************************************************/
+void aCnnModelPredictor::PopulateModelMSNet(MSNet Network)
 {
     //StdOut()<<"TO LOAD MODEL "<<"\n";
     std::string aModel=mDirModel+mSetModelBinaries.at(0); // just one pickled model 
@@ -697,7 +705,76 @@ torch::Tensor aCnnModelPredictor::PredictPrjHead(Fast_ProjectionHead mNet, tTImV
 	mNet->eval();
     tREAL4 ** mPatchLData=aPatchL.DIm().ExtractRawData2D();
 	torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
-    auto output=mNet->forwardInfer(aPL).squeeze();
+    auto output=mNet->forwardConv(aPL).squeeze();
+    return output;
+}
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictMSNet(MSNet mNet, tTImV2 aPatchL, cPt2di aPSz)
+{
+	torch::Device device(torch::kCPU);
+	torch::NoGradGuard no_grad;
+	mNet->eval();
+    tREAL4 ** mPatchLData=aPatchL.DIm().ExtractRawData2D();
+	torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+    // 4 scale tensor is needed for now test by passing the same tensor at each stage of the network 
+    torch::Tensor a4ScaleTens=aPL.repeat_interleave(4,1);
+   //std::cout<<" a4ScaleTens size "<<a4ScaleTens.sizes()<<std::endl;
+    assert
+    (
+      (a4ScaleTens.size(1)==4)  
+    );
+    //std::cout<<" Before Forward  "<<std::endl;
+    auto output=mNet->forward(a4ScaleTens).squeeze();
+    return output;
+}
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictMSNet1(MSNet mNet,torch::Tensor X)
+{
+	torch::NoGradGuard no_grad;
+	mNet->eval();
+    auto output=mNet->forwardRes1(X).squeeze();
+    return output;
+}
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictMSNet2(MSNet mNet,torch::Tensor X)
+{
+	torch::NoGradGuard no_grad;
+	mNet->eval();
+    auto output=mNet->forwardRes2(X).squeeze();
+    return output;
+}
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictMSNet3(MSNet mNet,torch::Tensor X)
+{
+	torch::NoGradGuard no_grad;
+	mNet->eval();
+    auto output=mNet->forwardRes3(X).squeeze();
+    return output;
+}
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictMSNet4(MSNet mNet,torch::Tensor X)
+{
+	torch::NoGradGuard no_grad;
+	mNet->eval();
+    auto output=mNet->forwardRes4(X).squeeze();
+    return output;
+}
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictMSNetCommon(MSNet mNet, tTImV2 aPatchL, cPt2di aPSz)
+{
+	torch::Device device(torch::kCPU);
+	torch::NoGradGuard no_grad;
+	mNet->eval();
+    tREAL4 ** mPatchLData=aPatchL.DIm().ExtractRawData2D();
+	torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+    // 4 scale tensor is needed for now test by passing the same tensor at each stage of the network 
+    /*torch::Tensor a4ScaleTens=aPL.repeat_interleave(4,1);
+    std::cout<<" a4ScaleTens size "<<a4ScaleTens.sizes()<<std::endl;
+    assert
+    (
+      (a4ScaleTens.size(1)==4)  
+    );*/
+    auto output=mNet->forwardConvCommon(aPL);
     return output;
 }
 /**********************************************************************************************************************/
