@@ -25,12 +25,12 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
         cAppliMatchMultipleOrtho(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
      private :
-	std::string NameIm(int aKIm,const std::string & aPost) const
+	std::string NameIm(int aKIm,int aKScale,const std::string & aPost) const
 	{
-             return mPrefixZ + "_I" +ToStr(aKIm) + "_" + aPost  + ".tif";
+             return mPrefixZ + "_I" +ToStr(aKIm) + "_S" + ToStr(aKScale) + "_"+ aPost  + ".tif";
 	}
-	std::string NameOrtho(int aKIm) const {return NameIm(aKIm,"O");}
-	std::string NameMasq(int aKIm) const {return NameIm(aKIm,"M");}
+	std::string NameOrtho(int aKIm,int aKScale) const {return NameIm(aKIm,aKScale,"O");}
+	std::string NameMasq(int aKIm,int aKScale) const {return NameIm(aKIm,aKScale,"M");}
 
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
@@ -44,6 +44,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 	std::string   mPrefixGlob;   // Prefix to all names
 	int           mNbZ;      // Number of independant ortho (=number of Z)
 	int           mNbIm;     // Number of images
+	int           mNbScale;  // Number of scale in image
 	cPt2di        mSzW;      // Sizeof of windows
 	bool          mIm1Mast;  //  Is first image the master image ?
 
@@ -77,6 +78,7 @@ cCollecSpecArg2007 & cAppliMatchMultipleOrtho::ArgObl(cCollecSpecArg2007 & anArg
           <<   Arg2007(mPrefixGlob,"Prefix of all names")
           <<   Arg2007(mNbZ,"Number of Z/Layers")
           <<   Arg2007(mNbIm,"Number of images in one layer")
+          <<   Arg2007(mNbScale,"Number of scaled in on images")
           <<   Arg2007(mSzW,"Size of window")
           <<   Arg2007(mIm1Mast,"Is first image a master image ?")
    ;
@@ -171,20 +173,21 @@ int  cAppliMatchMultipleOrtho::Exe()
         mPrefixZ =  mPrefixGlob + "_Z" + ToStr(aZ);
 
         bool NoFile = ExistFile(mPrefixZ+ "_NoData");  // If no data in masq thie file exist
-        bool WithFile = ExistFile(NameOrtho(0));
+        bool WithFile = ExistFile(NameOrtho(0,0));
 	// A little check
         MMVII_INTERNAL_ASSERT_strong(NoFile!=WithFile,"DM4MatchMultipleOrtho, incoherence file");
 
 
 	if (WithFile)
         {
+            int aKScale = 0;
 	    // Read  orthos and masq in  vectors of images
 	    for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 	    {
-                 mVOrtho.push_back(tImOrtho::FromFile(NameOrtho(aKIm)));
+                 mVOrtho.push_back(tImOrtho::FromFile(NameOrtho(aKIm,aKScale)));
 		 mSzIms = mVOrtho[0].DIm().Sz();  // Compute the size at level
 
-                 mVMasq.push_back(tImMasq::FromFile(NameMasq(aKIm)));
+                 mVMasq.push_back(tImMasq::FromFile(NameMasq(aKIm,aKScale)));
 
 		 // check all images have the same at a given level
                  MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
