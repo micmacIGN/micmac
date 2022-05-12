@@ -2199,7 +2199,7 @@ void cAppliMICMAC::DoCorrelAdHoc
 					+  " " + ToString(aZ1-aZ0)          // Number of Ortho
 					+  " " + ToString(int(mVLI.size()))  // Number of Images
 					+  " " + ToString(mNbScale)  // Number of Scale
-					+  " " + ToString(  mCurSzVMax)     // Size of Window
+					+  " " + ToString(  mCurSzV0)     // Size of Window
 					+  " " + ToString( mGIm1IsInPax)     // Are we in mode Im1 Master
 		                 ;
 		  if (aMCOE.Options().IsInit())
