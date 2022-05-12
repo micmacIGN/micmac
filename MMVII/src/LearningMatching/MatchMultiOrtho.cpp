@@ -107,7 +107,7 @@ void cAppliMatchMultipleOrtho::CorrelMaster
     aWeight = 0;
 
     cMatIner2Var<tElemOrtho> aMatI;
-    for (int aKScale = 0 ; aKScale < 1 ; aKScale++)
+    for (int aKScale = 0 ; aKScale < mNbScale ; aKScale++)
     {
          const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(aKScale).DIm();
          const tDImMasq & aDIM2  =  mVMasq.at(aKIm).at(aKScale).DIm();
@@ -130,7 +130,7 @@ void cAppliMatchMultipleOrtho::CorrelMaster
 	      }
          }
     }
-    aCorrel =  aMatI.Correl(1e-5);
+    aCorrel =  aMatI.Correl(1e-15);
 }
 
 void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
