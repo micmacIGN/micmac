@@ -118,11 +118,10 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Muscale.xml  WorkDir=/home
                       </MutiCorrelOrthoExt>
                  </TypeCAH>
 
-		 <!--
                  <CorrelMultiScale>
                       <OneParamCMS>
                            <SzW > 2 2 </SzW>
-                           <Sigma> 1.0 </Sigma>
+                           <Sigma> 0.0 </Sigma>
 			   <Pds >  1.0 </Pds>  
                       </OneParamCMS>
                       <OneParamCMS>
@@ -136,6 +135,7 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Muscale.xml  WorkDir=/home
 			   <Pds >  1.0 </Pds>  
                       </OneParamCMS>
                 </CorrelMultiScale>
+		 <!--
 		 -->
 
             </CorrelAdHoc>
