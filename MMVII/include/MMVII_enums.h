@@ -257,7 +257,7 @@ enum class eModeEpipMatch
    eMEM_PSMNet,// Mode PSMNet
    eMEM_NoMatch,  // Do no match, used for debuging
    /********************************************************/
-    eMEM_MVCNN,
+    //eMEM_MVCNN,
     /********************************************************/
 
    eNbVals

@@ -232,7 +232,7 @@ template<> cE2Str<eModeEpipMatch>::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
                 {eModeEpipMatch::eMEM_MMV1,"MMV1"},
                 {eModeEpipMatch::eMEM_PSMNet,"PSMNet"},
                 /***********************************************/
-                {eModeEpipMatch::eMEM_MVCNN,"MVCNN"},
+                //{eModeEpipMatch::eMEM_MVCNN,"MVCNN"},
                 /***********************************************/
 
                 {eModeEpipMatch::eMEM_NoMatch,"NoMatch"}
