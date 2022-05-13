@@ -114,7 +114,7 @@ void cAppliMatchMultipleOrtho::CorrelMaster
          const tDImOrtho & aDIO1 =  mVOrtho.at(0   ).at(aKScale).DIm();
          const tDImOrtho & aDIO2 =  mVOrtho.at(aKIm).at(aKScale).DIm();
 
-	 double aPds = 1/(1+aKScale);
+	 double aPds = 1/(1+aKScale); // weight, more less arbitrary
          for (const auto & aLocNeigh : cRect2::BoxWindow(cPt2di(0,0),mSzW))  // Parse the window`
          {
               cPt2di  aNeigh = aCenter + aLocNeigh * (1<<aKScale);
