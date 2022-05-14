@@ -45,18 +45,20 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
         typedef cDataIm2D<tElemMasq>  tDImMasq;
         typedef cDataIm2D<tElemOrtho> tDImOrtho;
         typedef cDataIm2D<tElemSimil> tDImSimil;
+        typedef std::vector<tImOrtho>  tVecOrtho;
+        typedef std::vector<tImMasq>   tVecMasq;
 
 
         cAppliMatchMultipleOrtho(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
     const std::string  & NameArch() const {return mArchitecture;} // ACCESSOR
     const std::string  & NameDirModel() const {return mModelBinDir;} // ACCESSOR
      private :
-	std::string NameIm(int aKIm,const std::string & aPost) const
+	std::string NameIm(int aKIm,int aKScale,const std::string & aPost) const
 	{
-             return mPrefixZ + "_I" +ToStr(aKIm) + "_" + aPost  + ".tif";
+             return mPrefixZ + "_I" +ToStr(aKIm) + "_S" + ToStr(aKScale) + "_"+ aPost  + ".tif";
 	}
-	std::string NameOrtho(int aKIm) const {return NameIm(aKIm,"O");}
-	std::string NameMasq(int aKIm) const {return NameIm(aKIm,"M");}
+	std::string NameOrtho(int aKIm,int aKScale) const {return NameIm(aKIm,aKScale,"O");}
+	std::string NameMasq(int aKIm,int aKScale) const {return NameIm(aKIm,aKScale,"M");}
 
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
@@ -78,6 +80,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 	std::string   mPrefixGlob;   // Prefix to all names
 	int           mNbZ;      // Number of independant ortho (=number of Z)
 	int           mNbIm;     // Number of images
+	int           mNbScale;  // Number of scale in image
 	cPt2di        mSzW;      // Sizeof of windows
 	bool          mIm1Mast;  //  Is first image the master image ?
 
@@ -86,8 +89,6 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 	tImSimil                   mImSimil;   // computed image of similarity
 	std::string                mPrefixZ;   // Prefix for a gizen Z
 	cPt2di                     mSzIms;     // common  size of all ortho
-	std::vector<tImOrtho>      mVOrtho;    // vector of loaded ortho at a given Z
-	std::vector<tImMasq>       mVMasq;     // vector of loaded masq  at a given Z
 	
 	// ADDED LEARNING ENV
     aCnnModelPredictor *  mCNNPredictor=nullptr;
@@ -109,7 +110,9 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     //FastandHead mNetFastMVCNNMLP; // Fast MVCNN + MLP for Multiview Features Aggregation
     // LATER SLOW NET 
     ConvNet_Slow mNetSlowStd=ConvNet_Slow(3,4,4); // Conv Kernel= 3x3 , Convlayers=4, Fully Connected Layers =4
-    
+
+	std::vector<tVecOrtho>      mVOrtho;    // vector of loaded ortho at a given Z
+	std::vector<tVecMasq>       mVMasq;     // vector of loaded masq  at a given Z
 };
 
 // ARCHITECTURES OF CNN TRAINED 
@@ -143,6 +146,7 @@ cCollecSpecArg2007 & cAppliMatchMultipleOrtho::ArgObl(cCollecSpecArg2007 & anArg
           <<   Arg2007(mPrefixGlob,"Prefix of all names")
           <<   Arg2007(mNbZ,"Number of Z/Layers")
           <<   Arg2007(mNbIm,"Number of images in one layer")
+          <<   Arg2007(mNbScale,"Number of scaled in on images")
           <<   Arg2007(mSzW,"Size of window")
           <<   Arg2007(mIm1Mast,"Is first image a master image ?")
    ;
@@ -361,26 +365,31 @@ void cAppliMatchMultipleOrtho::CorrelMaster
     AllOk = true;
     aWeight = 0;
 
-    const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
-    const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
-    const tDImOrtho & aDIO1 =  mVOrtho.at(0   ).DIm();
-    const tDImOrtho & aDIO2 =  mVOrtho.at(aKIm).DIm();
-
     cMatIner2Var<tElemOrtho> aMatI;
-    for (const auto & aP : cRect2::BoxWindow(aCenter,mSzW))  // Parse the window`
+    for (int aKScale = 0 ; aKScale < mNbScale ; aKScale++)
     {
-         bool Ok = aDIM1.DefGetV(aP,0) && aDIM2.DefGetV(aP,0) ;  // Are both pixel valide
-	 if (Ok)
-	 {
-             aWeight++;
-	     aMatI.Add(aDIO1.GetV(aP),aDIO2.GetV(aP));
-	 }
-	 else
-	 {
-             AllOk=false;
-	 }
+         const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(aKScale).DIm();
+         const tDImMasq & aDIM2  =  mVMasq.at(aKIm).at(aKScale).DIm();
+         const tDImOrtho & aDIO1 =  mVOrtho.at(0   ).at(aKScale).DIm();
+         const tDImOrtho & aDIO2 =  mVOrtho.at(aKIm).at(aKScale).DIm();
+
+	 double aPds = 1/(1+aKScale); // weight, more less arbitrary
+         for (const auto & aLocNeigh : cRect2::BoxWindow(cPt2di(0,0),mSzW))  // Parse the window`
+         {
+              cPt2di  aNeigh = aCenter + aLocNeigh * (1<<aKScale);
+              bool Ok = aDIM1.DefGetV(aNeigh,0) && aDIM2.DefGetV(aNeigh,0) ;  // Are both pixel valide
+	      if (Ok)
+	      {
+                  aWeight++;
+	          aMatI.Add(aPds,aDIO1.GetV(aNeigh),aDIO2.GetV(aNeigh));
+	      }
+	      else
+	      {
+                  AllOk=false;
+	      }
+         }
     }
-    aCorrel =  aMatI.Correl(1e-5);
+    aCorrel =  aMatI.Correl(1e-15);
 }
 
 
@@ -433,7 +442,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMaster(std::vector<tor
 
    tDImSimil & aDImSim = mImSimil.DIm();
    // Parse all pixels
-	const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+	const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(0   ).DIm();
     auto MasterEmbedding=AllOrthosEmbeddings->at(0);
     int FeatSize=MasterEmbedding.size(0);
     //std::cout<<" feature vector size : "<<FeatSize<<std::endl;
@@ -459,7 +468,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMaster(std::vector<tor
         /**************************************************************************************/
         AllOk = true;
         aWeight = 0;
-        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
+        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).at(  0).DIm();
         for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
         {
             bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valide
@@ -511,7 +520,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::ve
 
    tDImSimil & aDImSim = mImSimil.DIm();
    // Parse all pixels
-	const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+	const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(0   ).DIm();
     //compute similarity matrices at the beginning 
     std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;;
     for (int k=1; k<mNbIm; k++)
@@ -542,7 +551,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::ve
         /**************************************************************************************/
         AllOk = true;
         aWeight = 0;
-        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
+        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).at(0   ).DIm();
         for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
         {
             bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valide
@@ -590,7 +599,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterMaxMoy(std::vect
 
    tDImSimil & aDImSim = mImSimil.DIm();
    // Parse all pixels
-	const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+	const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(0   ).DIm();
     //compute similarity matrices at the beginning 
     std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;;
     for (int k=1; k<mNbIm; k++)
@@ -619,7 +628,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterMaxMoy(std::vect
         /**************************************************************************************/
         AllOk = true;
         aWeight = 0;
-        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
+        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).at(0   ).DIm();
         for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
         {
             bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valide
@@ -695,7 +704,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(s
 
    tDImSimil & aDImSim = mImSimil.DIm();
    // Parse all pixels
-	const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+	const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(0   ).DIm();
     //compute similarity matrices at the beginning 
     std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;;
     for (int scales=0;scales<4;scales++)
@@ -728,7 +737,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(s
         /**************************************************************************************/
         AllOk = true;
         aWeight = 0;
-        const tDImMasq & aDIM2  =  mVMasq.at(aKIm%(mNbIm-1) ? aKIm%(mNbIm-1) : (mNbIm-1)).DIm();
+        const tDImMasq & aDIM2  =  mVMasq.at(aKIm%(mNbIm-1) ? aKIm%(mNbIm-1) : (mNbIm-1)).at(0 ).DIm();
         for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
         {
             bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valid
@@ -796,7 +805,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDempsterShafer(s
 
    tDImSimil & aDImSim = mImSimil.DIm();
    // Parse all pixels
-	const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
+	const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(0   ).DIm();
     //compute similarity matrices at the beginning 
     std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;;
     for (int k=1; k<mNbIm; k++)
@@ -824,7 +833,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDempsterShafer(s
         /**************************************************************************************/
         AllOk = true;
         aWeight = 0;
-        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
+        const tDImMasq & aDIM2  =  mVMasq.at(aKIm).at(0   ).DIm();
         for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
         {
             bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valide
@@ -905,9 +914,12 @@ tREAL4 cAppliMatchMultipleOrtho::ComputeJointMassBetween2Sets(tREAL4 aCorrel1, t
 void cAppliMatchMultipleOrtho::MakeNormalizedIms()  // Possible errors here 
 {
     // NORMALIZING IMAGES BEFORE INFERENCE 
-    for( auto& Im: mVOrtho)
+    for( auto& MsOrth: mVOrtho)
     {
-        Im=NormalizedAvgDev(Im,1e-4);
+        for (auto& Im:MsOrth)
+        {
+            Im=NormalizedAvgDev(Im,1e-4);
+        }
     }
 }
 
@@ -915,6 +927,7 @@ void cAppliMatchMultipleOrtho::MakeNormalizedIms()  // Possible errors here
 
 int  cAppliMatchMultipleOrtho::Exe()
 {
+
    // Parse all Z
    // If using a model (CNN) Initialize the predictor 
    if (mArchitecture!="")
@@ -926,22 +939,34 @@ int  cAppliMatchMultipleOrtho::Exe()
         mPrefixZ =  mPrefixGlob + "_Z" + ToStr(aZ);
 
         bool NoFile = ExistFile(mPrefixZ+ "_NoData");  // If no data in masq thie file exist
-        bool WithFile = ExistFile(NameOrtho(0));
+        bool WithFile = ExistFile(NameOrtho(0,0));
 	// A little check
         MMVII_INTERNAL_ASSERT_strong(NoFile!=WithFile,"DM4MatchMultipleOrtho, incoherence file");
+        if ((aZ==0)  && (true))
+        {
+             cDataFileIm2D aDF = cDataFileIm2D::Create(NameOrtho(0,0),false);
+             StdOut() << " * NbI=" << mNbIm << " NbS=" <<  mNbScale << " NbZ=" <<  mNbZ << " Sz=" << aDF.Sz() << " SzW=" << mSzW << "\n";
+        }
 	if (WithFile)
         {
 	    // Read  orthos and masq in  vectors of images
+	    mSzIms = cPt2di(-1234,6789);
 	    for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 	    {
-                 mVOrtho.push_back(tImOrtho::FromFile(NameOrtho(aKIm)));
-		 mSzIms = mVOrtho[0].DIm().Sz();  // Compute the size at level
+                 mVOrtho.push_back(tVecOrtho());
+                 mVMasq.push_back(tVecMasq());
+                 for (int aKScale=0 ; aKScale<mNbScale ; aKScale++)
+                    {
+                        mVOrtho.at(aKIm).push_back(tImOrtho::FromFile(NameOrtho(aKIm,aKScale)));
+                        if ((aKIm==0) && (aKScale==0))
+                            mSzIms = mVOrtho[0][0].DIm().Sz();  // Compute the size at level
 
-                 mVMasq.push_back(tImMasq::FromFile(NameMasq(aKIm)));
+                        mVMasq.at(aKIm).push_back(tImMasq::FromFile(NameMasq(aKIm,aKScale)));
 
-		 // check all images have the same at a given level
-                 MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
-                 MMVII_INTERNAL_ASSERT_strong(mVMasq [aKIm].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
+                        // check all images have the same at a given level
+                        MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
+                        MMVII_INTERNAL_ASSERT_strong(mVMasq [aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
+                    }
 	    }
 
 	    
@@ -965,7 +990,7 @@ int  cAppliMatchMultipleOrtho::Exe()
             // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
             for (unsigned int i=0;i<mVOrtho.size();i++)
             {
-                cPt2di aSzOrtho=mVOrtho.at(i).DIm().Sz();
+                cPt2di aSzOrtho=mVOrtho.at(i).at(0).DIm().Sz();
                 // Initialize Feature Size ;
                 /*int FeatSize=0;
                 if (mArchitecture==TheFastStandard) FeatSize=64 ;
@@ -980,33 +1005,31 @@ int  cAppliMatchMultipleOrtho::Exe()
                 torch::Tensor OneOrthoEmbeding;
                 if (mArchitecture==TheFastStandard)
                     {
-                       OneOrthoEmbeding=mCNNPredictor->PredictTile(mNetFastStd,mVOrtho.at(i),aSzOrtho);
+                       OneOrthoEmbeding=mCNNPredictor->PredictTile(mNetFastStd,mVOrtho.at(i).at(0),aSzOrtho);
                     }
                 else if (mArchitecture==TheFastArch)
                     {
-                       OneOrthoEmbeding=mCNNPredictor->PredictWithBNTile(mNetFastMVCNN,mVOrtho.at(i),aSzOrtho);
+                       OneOrthoEmbeding=mCNNPredictor->PredictWithBNTile(mNetFastMVCNN,mVOrtho.at(i).at(0),aSzOrtho);
                     }
                 else if (mArchitecture==TheFastArchReg)
                     {
-                        OneOrthoEmbeding=mCNNPredictor->PredictWithBNTileReg(mNetFastMVCNNReg,mVOrtho.at(i),aSzOrtho);
+                        OneOrthoEmbeding=mCNNPredictor->PredictWithBNTileReg(mNetFastMVCNNReg,mVOrtho.at(i).at(0),aSzOrtho);
                     }
                 else if (mArchitecture==TheFastandPrjHead)
                     {
                        // std::cout<<"ORTOHS SIZES :  ====> "<<aSzOrtho<<std::endl;
-                        OneOrthoEmbeding=mCNNPredictor->PredictPrjHead(mNetFastPrjHead,mVOrtho.at(i),aSzOrtho);
+                        OneOrthoEmbeding=mCNNPredictor->PredictPrjHead(mNetFastPrjHead,mVOrtho.at(i).at(0),aSzOrtho);
                     }
                 else if (mArchitecture==TheMSNet)
                     {
                       //  OneOrthoEmbeding=mCNNPredictor->PredictMSNetCommon(mMSNet,mVOrtho.at(i),aSzOrtho);
                        // OneOrthoEmbeding=mCNNPredictor->PredictMSNet(mMSNet,mVOrtho.at(i),aSzOrtho);
                         
-                        int Resol=1;
+                        /*int Resol=1;
                         if (mResol!="")
                         {
                             Resol=std::atoi(mResol.c_str());
-                        }
-                        auto CommonEmbedding=mCNNPredictor->PredictMSNetCommon(mMSNet,mVOrtho.at(i),aSzOrtho);
-                        
+                        auto CommonEmbedding=mCNNPredictor->PredictMSNet(mMSNet,mVOrtho.at(i),aSzOrtho);
                         switch (Resol)
                         {
                             case 1:
@@ -1025,17 +1048,18 @@ int  cAppliMatchMultipleOrtho::Exe()
                                 // Full Resolution Inference 
                                 OneOrthoEmbeding=mCNNPredictor->PredictMSNet1(mMSNet,CommonEmbedding);
                                 break;
-                        }
+                        }*/
+                        OneOrthoEmbeding=mCNNPredictor->PredictMSNet(mMSNet,mVOrtho.at(i),aSzOrtho);
                     }
                 else if (mArchitecture==TheFastArchWithMLP)
                     {
-                        OneOrthoEmbeding=mCNNPredictor->PredictFastWithHead(mNetFastMVCNNMLP,mVOrtho.at(i),aSzOrtho);
+                        OneOrthoEmbeding=mCNNPredictor->PredictFastWithHead(mNetFastMVCNNMLP,mVOrtho.at(i).at(0),aSzOrtho);
                     }
                 else if (mArchitecture==TheFastArchDirectSim)
                     {
-                        OneOrthoEmbeding=mCNNPredictor->PredictSimNetConv(mNetFastMVCNNDirectSIM,mVOrtho.at(i),aSzOrtho);
+                        OneOrthoEmbeding=mCNNPredictor->PredictSimNetConv(mNetFastMVCNNDirectSIM,mVOrtho.at(i).at(0),aSzOrtho);
                     }
-                 StdOut()  <<" EMBEDDING FOR ORTHO : "<<i<<OneOrthoEmbeding.sizes()<<"\n";
+                 StdOut()  <<" EMBEDDING FOR VECTOR OR FULL RESOLUTION ORTHO : "<<i<<OneOrthoEmbeding.sizes()<<"\n";
                 
                 // store in relevant vector 
                 OrthosEmbeddings->push_back(OneOrthoEmbeding);

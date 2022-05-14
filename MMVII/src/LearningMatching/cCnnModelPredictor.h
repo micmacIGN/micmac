@@ -48,7 +48,7 @@ class aCnnModelPredictor
        
        torch::Tensor PredictPrjHead(Fast_ProjectionHead Net,tTImV2 aTilL,cPt2di aPSz);
        
-       torch::Tensor PredictMSNet(MSNet Net,tTImV2 aTilL,cPt2di aPSz);
+       torch::Tensor PredictMSNet(MSNet Net,std::vector<tTImV2> aTilL,cPt2di aPSz);
        
        torch::Tensor PredictMSNet1(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNet2(MSNet Net,torch::Tensor X);

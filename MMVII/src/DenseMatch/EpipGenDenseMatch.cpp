@@ -17,6 +17,7 @@ using MMVII::round_up;
 namespace MMVII
 {
 
+
 cBox2di DilateFromIntervPx(const cBox2di & aBox,int aDPx0,int aDPx1)
 {
    cPt2di aP0 = aBox.P0();
@@ -241,6 +242,8 @@ class cAppli : public cMMVII_Appli
 	int    mMaxAmplPxCur;  ///< Maximal amplitude of Px 
 
         std::vector<tPtrIm>     mIms;  ///< Contain the 2 images
+        bool           mDoFileCommands;  ///<  Do we store all commands
+	std::string    mNameFileComs;   ///< File wher we store all commands
 };
 
 struct cParam1Match
@@ -920,21 +923,17 @@ void  cAppli::MatchOneLevel(int aLevel)
 int cAppli::Exe()
 {
    SetIfNotInit(mModeMatchInit,mModeMatchFinal);
-    //SetIfNotInit(mRandPaded , mModeMatch!= eModeEpipMatch::eMEM_MMV1);
    if (! IsInit(&mModePad))
    {
        switch (mModeMatchCur)
        {
             case eModeEpipMatch::eMEM_MMV1    :    mModePad = eModePaddingEpip::eMPE_NoPad; break;
             case eModeEpipMatch::eMEM_PSMNet  :    mModePad = eModePaddingEpip::eMPE_PxNeg; break;
-            /*******************************************************************************************/
-            //case eModeEpipMatch::eMEM_MVCNN  :     mModePad = eModePaddingEpip::eMPE_PxNeg; break;
-            /*******************************************************************************************/
- 
             case eModeEpipMatch::eMEM_NoMatch :    mModePad = eModePaddingEpip::eMPE_NoPad; break;
             case eModeEpipMatch::eNbVals      :                                             break;
        }
    }
+   SetIfNotInit(mDoFileCommands,!mDoPurge);
 
    // Now the appli is completely initialized, it can be used to create object
    mIms.push_back(tPtrIm (new cOneIm (*this,mNameIm1,true )));

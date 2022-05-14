@@ -1,0 +1,15 @@
+========================================================================
+  Id : MMVII_Tim1133_60307_1729_Num0_Pid61853_DenseMatchEpipGen
+  begining at : Mon Feb  7 15:45:07 2022
+
+  ../../../../bin/MMVII DenseMatchEpipGen PSMNet ImL.tif ImR.tif
+
+<<=============== Execute 4 in paral in file MkFile_MMVII_Tim1133_60307_1729_Num0_Pid61853_DenseMatchEpipGen
+   Com=mm3d ClipIm ./ImL.tif [0,0] [839,1226] Out=./Tmp-2007-DirDenseMatchEpipGen/ClipIm_0_0_ImL.tif
+   Com=mm3d ClipIm ./ImL_Masq.tif [0,0] [839,1226] Out=./Tmp-2007-DirDenseMatchEpipGen/ClipIm_0_0_ImL_Masq.tif
+   Com=mm3d ClipIm ./ImR.tif [0,0] [839,1226] Out=./Tmp-2007-DirDenseMatchEpipGen/ClipIm_0_0_ImR.tif
+   Com=mm3d ClipIm ./ImR_Masq.tif [0,0] [839,1226] Out=./Tmp-2007-DirDenseMatchEpipGen/ClipIm_0_0_ImR_Masq.tif
+>>======== Done correctly paral in ===== 
+<<=============== Execute 1 in paral in file MkFile_MMVII_Tim1133_60307_1729_Num0_Pid61853_DenseMatchEpipGen
+   Com=bash /home/mohamedali/opt/micmac/MMVII/src/DenseMatch/run.sh  --leftimg ./Tmp-2007-DirDenseMatchEpipGen/ClipIm_0_0_ImL.tif --rightimg ./Tmp-2007-DirDenseMatchEpipGen/ClipIm_0_0_ImR.tif --result ./Tmp-2007-DirDenseMatchEpipGen/ClipPx_0_0_ImL.tif
+>>======== Done correctly paral in ===== 
