@@ -74,12 +74,11 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Muscale.xml  WorkDir=/home
 
 	      <!-- <ProportionClipMEC >  0.45 0.45 0.55 0.55 </ProportionClipMEC> -->
       <ChantierFullImage1>  true </ChantierFullImage1>
-	    <TypePyramImage >
-               <Resol >  2             </Resol>
-               <DivIm  >  16   </DivIm>
-               <TypeEl >  eFloat32Bits  </TypeEl>
-
-            </TypePyramImage>
+      <TypePyramImage >
+            <Resol >  2             </Resol>
+            <DivIm  >  16   </DivIm>
+            <TypeEl >  eFloat32Bits  </TypeEl>
+      </TypePyramImage>
 
 
       <EtapeMEC>

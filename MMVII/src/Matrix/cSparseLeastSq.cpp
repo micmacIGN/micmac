@@ -23,7 +23,7 @@ template <class Type> class  cSMLineTransf
 	    typedef std::vector<tCplIV>      tLine;
 
 	    /// constructor, reserve plave in mSet and mCumulIne
-	    cSMLineTransf(size_t aNb);
+	    cSMLineTransf(size_t aNb,bool WithSet);
 
 	    /// Input a compressed line in the uncompressed
 	    void InputSparseLine(const tLine & aLine);
@@ -36,9 +36,9 @@ template <class Type> class  cSMLineTransf
             cSetIntDyn           mSetNot0;        ///< set of non null indexed
 };
 
-template <class Type> cSMLineTransf<Type>::cSMLineTransf(size_t aNb) :
+template <class Type> cSMLineTransf<Type>::cSMLineTransf(size_t aNb,bool WithSet) :
      mCumulLine (aNb,0.0),
-     mSetNot0  (aNb)
+     mSetNot0  (WithSet ? aNb : 0)
 {
 }
 
@@ -68,15 +68,11 @@ template <class Type> void cSMLineTransf<Type>::SaveInSparseLine_And_Clear(tLine
 
 template <class Type> void cSMLineTransf<Type>::AddToCurLine(size_t anInd,const Type & aVal)
 {
-    if (!mSetNot0.mOccupied.at(anInd) )
-    {
-        mSetNot0.mOccupied.at(anInd) = true;
-        mSetNot0.mVIndOcc.push_back(anInd);
-    }
+    mSetNot0.AddIndFixe(anInd);
     mCumulLine.at(anInd) +=  aVal;
 }
 
-template  class  cSMLineTransf<tREAL16>;
+// template  class  cSMLineTransf<tREAL16>;
 
 /* *********************************** */
 /*                                     */
@@ -145,6 +141,23 @@ template<class Type>  class cValAndSWVPtr
 	cSparseWeigtedVect<Type> *   mPtrV;
 };
 
+template <class Type> class  cLineSparseLeasSqtAA
+{
+      public :
+	 typedef cCplIV<Type>             tCplIV;
+	 typedef std::vector<tCplIV>      tSparseLine;  
+         typedef cSMLineTransf<Type>      tDenseLine;
+
+      private :
+
+          tSparseLine     mSparseLine;
+          tDenseLine *    mDenseLine;
+};
+
+template class cLineSparseLeasSqtAA<tREAL4>;
+
+// cSMLineTransf
+
 /**   Class for sparse least square usign normal equation
  
       A sparse normal matrix is computed.  This construction requires some kind of uncompression,
@@ -155,6 +168,7 @@ template<class Type>  class cValAndSWVPtr
 
            mtAA[y] =   (x1,C1) (x2,C2) ....   where 
  */
+
 
 template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 {
@@ -246,6 +260,7 @@ template<class Type> void  cSparseLeasSqtAA<Type>::AddObservation
 template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix() 
 {
 
+   // make an indexation of all buffered equations
    // For each line y,  aVListSW[y]  will store all equation t belongs to it  
    std::vector<std::list<tVal_WV > >  aVListSW(this->NbVar());
 
@@ -257,7 +272,8 @@ template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix()
        }
    }
 
-   cSMLineTransf<Type>  aLineTransf(this->NbVar());
+   // Parse all the indexe to transferate values 
+   cSMLineTransf<Type>  aLineTransf(this->NbVar(),true);
    for(int aKy=0 ; aKy<this->NbVar() ; aKy++)
    {
        const auto & aListEQ = aVListSW.at(aKy);

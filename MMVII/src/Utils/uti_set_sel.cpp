@@ -39,11 +39,7 @@ void cSetIntDyn::AddInd(size_t aK)
       while (mOccupied.size() <= aK)
             mOccupied.push_back(false);
 
-      if (!mOccupied[aK])
-      {
-         mOccupied[aK] = true;
-         mVIndOcc.push_back(aK);
-      }
+      AddIndFixe(aK);
 }
 };
 

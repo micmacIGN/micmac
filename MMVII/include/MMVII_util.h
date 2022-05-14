@@ -285,6 +285,14 @@ class cSetIntDyn
           cSetIntDyn(size_t aNb);  ///< Create empty set
           void AddInd(size_t aK);  ///< Add an element, adpat sizeof vector
           void Clear();
+          void AddIndFixe(size_t aK)  ///< Add an element, assume sizeof vector of
+          {
+               if (!mOccupied[aK])
+               {
+                   mOccupied[aK] = true;
+                   mVIndOcc.push_back(aK);
+               }
+          }
 
           std::vector<bool>    mOccupied;  ///< direct acces to the belonging
           std::vector<size_t>  mVIndOcc;   ///< list  of element
