@@ -141,18 +141,43 @@ template<class Type>  class cValAndSWVPtr
 	cSparseWeigtedVect<Type> *   mPtrV;
 };
 
+/** Enum to store the state of a line */
+enum class eLineSLSqtAA
+{
+      eLS_AlwaysDense,   ///< line that will be always dense (as probably internal parameters)
+      eLS_TempoDense,    ///< line temporary dense
+      eLS_TempoSparse    ///< line temporary sparse
+};
+
+
 template <class Type> class  cLineSparseLeasSqtAA
 {
       public :
 	 typedef cCplIV<Type>             tCplIV;
 	 typedef std::vector<tCplIV>      tSparseLine;  
-         typedef cSMLineTransf<Type>      tDenseLine;
+	 typedef std::vector<Type>        tDenseLine;
+	 typedef cSMLineTransf<Type>      tTempoDenseLine;
+
+
+          cLineSparseLeasSqtAA(int  aNb,bool isAlwaysDense);
 
       private :
 
-          tSparseLine     mSparseLine;
-          tDenseLine *    mDenseLine;
+          eLineSLSqtAA           mState;
+          tSparseLine            mSparseLine;
+          tDenseLine             mDenseLine;
+	  tTempoDenseLine *      mTempoDenseLine;
 };
+
+template <class Type> cLineSparseLeasSqtAA<Type>::cLineSparseLeasSqtAA(int  aNb,bool isAlwaysDense) :
+	mState      (isAlwaysDense ? eLineSLSqtAA::eLS_AlwaysDense   : eLineSLSqtAA::eLS_TempoSparse),
+	mSparseLine (),
+	mDenseLine  (isAlwaysDense ? aNb : 0),
+	mTempoDenseLine (nullptr)
+
+{
+}
+
 
 template class cLineSparseLeasSqtAA<tREAL4>;
 
@@ -166,7 +191,7 @@ template class cLineSparseLeasSqtAA<tREAL4>;
 
       The normal matric is standard vector of sparse vector :
 
-           mtAA[y] =   (x1,C1) (x2,C2) ....   where 
+           mOldtAA[y] =   (x1,C1) (x2,C2) ....   where 
  */
 
 
@@ -177,7 +202,7 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
          typedef cValAndSWVPtr<Type>      tVal_WV;
 
 	 typedef cCplIV<Type>             tCplIV;
-	 typedef std::vector<tCplIV>      tLine;  
+	 typedef std::vector<tCplIV>      tOldLine;  
 
 
          cSparseLeasSqtAA(int  aNbVar,double  aPerEmpty=4 );
@@ -196,7 +221,7 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 
 	 std::list<tWeigtedVect>   mBufInput;
 	 double                    mPerEmpty;
-	 std::vector<tLine>        mtAA;    /// Som(W tA A)
+	 std::vector<tOldLine>        mOldtAA;    /// Som(W tA A)
          cDenseVect<Type>          mtARhs;  /// Som(W tA Rhs)
 	 double                    mNbInBuff;
 
@@ -208,7 +233,7 @@ template<class Type>
     cSparseLeasSqtAA<Type>::cSparseLeasSqtAA(int aNbVar,double aPerEmpty) :
           cSparseLeasSq<Type> (aNbVar),
 	  mPerEmpty           (aPerEmpty),
-	  mtAA                (this->mNbVar),
+	  mOldtAA                (this->mNbVar),
           mtARhs              (this->mNbVar,eModeInitImage::eMIA_Null),
 	  mNbInBuff           (0)
 {
@@ -217,7 +242,7 @@ template<class Type>
 template<class Type> void cSparseLeasSqtAA<Type>::Reset()
 {
     mBufInput.clear();
-    for (auto & aLine : mtAA)
+    for (auto & aLine : mOldtAA)
         aLine.clear();
     mtARhs.DIm().InitNull();
     mNbInBuff = 0;
@@ -227,9 +252,9 @@ template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::Solve()
 {
    std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
    PutBufererEqInNormalMatrix();
-   for (int aKy=0 ; aKy<int(mtAA.size()) ;aKy++)
+   for (int aKy=0 ; aKy<int(mOldtAA.size()) ;aKy++)
    {
-       for (const auto & aPair : mtAA.at(aKy))
+       for (const auto & aPair : mOldtAA.at(aKy))
        {
 	       aVCoeff.push_back(cEigenTriplet<Type>(aPair.mInd,aKy,aPair.mVal));
        }
@@ -279,7 +304,7 @@ template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix()
        const auto & aListEQ = aVListSW.at(aKy);
        if (!aListEQ.empty())
        {
-           tLine & aLine=  mtAA.at(aKy);    /// Som(W tA A)
+           tOldLine & aLine=  mOldtAA.at(aKy);    /// Som(W tA A)
 
            // Put the existing line in the buff struct
            aLineTransf.InputSparseLine(aLine);
