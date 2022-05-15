@@ -2211,7 +2211,7 @@ void cAppliMICMAC::DoCorrelAdHoc
                      aCom = aCom + " " +  "CNNParams=" + QUOTE(aMCOE.OrthFileModeleParams().Val());
 		  if (aMCOE.OrthoResol().IsInit())
                      aCom = aCom + " " +  "RESOL=" + QUOTE(aMCOE.OrthoResol().Val());          
-          std::cout<<"COMMAND "<<aCom<<std::endl;
+          std::cout<<"COMMAND 2 TEST "<<aCom<<std::endl;
 		  System(aCom);
 
 		  // Fill cube with computed similarities

@@ -729,7 +729,7 @@ torch::Tensor aCnnModelPredictor::PredictMSNet(MSNet mNet, std::vector<tTImV2> a
     (
       (a4ScaleTens.size(1)==4)  
     );*/
-    auto output=mNet->forward(aPAllScales);
+    auto output=mNet->forward(aPAllScales).squeeze();
     return output;
 }
 /**********************************************************************************************************************/
