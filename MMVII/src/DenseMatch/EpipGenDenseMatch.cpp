@@ -17,6 +17,7 @@ using MMVII::round_up;
 namespace MMVII
 {
 
+
 cBox2di DilateFromIntervPx(const cBox2di & aBox,int aDPx0,int aDPx1)
 {
    cPt2di aP0 = aBox.P0();
@@ -241,6 +242,8 @@ class cAppli : public cMMVII_Appli
 	int    mMaxAmplPxCur;  ///< Maximal amplitude of Px 
 
         std::vector<tPtrIm>     mIms;  ///< Contain the 2 images
+        bool           mDoFileCommands;  ///<  Do we store all commands
+	std::string    mNameFileComs;   ///< File wher we store all commands
 };
 
 struct cParam1Match
@@ -904,6 +907,7 @@ void  cAppli::MatchOneLevel(int aLevel)
 int cAppli::Exe()
 {
    SetIfNotInit(mModeMatchInit,mModeMatchFinal);
+   SetIfNotInit(mDoFileCommands,!mDoPurge);
 		   
 
    // Now the appli is completely initialized, it can be used to create object

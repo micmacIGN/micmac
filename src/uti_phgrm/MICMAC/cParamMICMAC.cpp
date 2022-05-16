@@ -1103,6 +1103,17 @@ const cTplValGesInit< int > & cSpecFitrageImage::NbIteration()const
 }
 
 
+cTplValGesInit< int > & cSpecFitrageImage::NbItereIntern()
+{
+   return mNbItereIntern;
+}
+
+const cTplValGesInit< int > & cSpecFitrageImage::NbItereIntern()const 
+{
+   return mNbItereIntern;
+}
+
+
 cTplValGesInit< double > & cSpecFitrageImage::AmplitudeSignal()
 {
    return mAmplitudeSignal;
@@ -1163,6 +1174,14 @@ void  BinaryUnDumpFromFile(cSpecFitrageImage & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.NbItereIntern().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbItereIntern().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NbItereIntern().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.AmplitudeSignal().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.AmplitudeSignal().ValForcedForUnUmp(),aFp);
         }
@@ -1190,6 +1209,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSpecFitrageImage & anObj)
     if (anObj.PatternSelFiltre().IsInit()) BinaryDumpInFile(aFp,anObj.PatternSelFiltre().Val());
     BinaryDumpInFile(aFp,anObj.NbIteration().IsInit());
     if (anObj.NbIteration().IsInit()) BinaryDumpInFile(aFp,anObj.NbIteration().Val());
+    BinaryDumpInFile(aFp,anObj.NbItereIntern().IsInit());
+    if (anObj.NbItereIntern().IsInit()) BinaryDumpInFile(aFp,anObj.NbItereIntern().Val());
     BinaryDumpInFile(aFp,anObj.AmplitudeSignal().IsInit());
     if (anObj.AmplitudeSignal().IsInit()) BinaryDumpInFile(aFp,anObj.AmplitudeSignal().Val());
     BinaryDumpInFile(aFp,anObj.UseIt().IsInit());
@@ -1210,6 +1231,8 @@ cElXMLTree * ToXMLTree(const cSpecFitrageImage & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PatternSelFiltre"),anObj.PatternSelFiltre().Val())->ReTagThis("PatternSelFiltre"));
    if (anObj.NbIteration().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbIteration"),anObj.NbIteration().Val())->ReTagThis("NbIteration"));
+   if (anObj.NbItereIntern().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbItereIntern"),anObj.NbItereIntern().Val())->ReTagThis("NbItereIntern"));
    if (anObj.AmplitudeSignal().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("AmplitudeSignal"),anObj.AmplitudeSignal().Val())->ReTagThis("AmplitudeSignal"));
    if (anObj.UseIt().IsInit())
@@ -1236,12 +1259,14 @@ void xml_init(cSpecFitrageImage & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NbIteration(),aTree->Get("NbIteration",1),int(1)); //tototo 
 
+   xml_init(anObj.NbItereIntern(),aTree->Get("NbItereIntern",1),int(1)); //tototo 
+
    xml_init(anObj.AmplitudeSignal(),aTree->Get("AmplitudeSignal",1),double(255)); //tototo 
 
    xml_init(anObj.UseIt(),aTree->Get("UseIt",1),bool(true)); //tototo 
 }
 
-std::string  Mangling( cSpecFitrageImage *) {return "7E1459E372E55CBBFF3F";};
+std::string  Mangling( cSpecFitrageImage *) {return "305A77304BD912DDFE3F";};
 
 
 double & cXML_RatioCorrImage::Ratio()
@@ -6779,7 +6804,7 @@ void xml_init(cSection_PriseDeVue & anObj,cElXMLTree * aTree)
    xml_init(anObj.ClassEquivalenceImage(),aTree->Get("ClassEquivalenceImage",1)); //tototo 
 }
 
-std::string  Mangling( cSection_PriseDeVue *) {return "A38D2F064DE260DCFE3F";};
+std::string  Mangling( cSection_PriseDeVue *) {return "02C3FBEF3BE2D087FF3F";};
 
 
 int & cEchantillonagePtsInterets::FreqEchantPtsI()
@@ -11391,7 +11416,7 @@ void xml_init(cPostFiltragePx & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneFitragePx(),aTree->GetAll("OneFitragePx",false,1));
 }
 
-std::string  Mangling( cPostFiltragePx *) {return "74BFFFAEECB7BD87FE3F";};
+std::string  Mangling( cPostFiltragePx *) {return "7206265CB6FE31F7FD3F";};
 
 
 double & cPostFiltrageDiscont::SzFiltre()
@@ -19679,7 +19704,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "26844F5696338285FF3F";};
+std::string  Mangling( cEtapeMEC *) {return "CA2807F9C86831B4FE3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -20869,7 +20894,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "3E229C8EAA890DF6FD3F";};
+std::string  Mangling( cSection_MEC *) {return "2C67CF6DB6CB9184FCBF";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -29910,6 +29935,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "C0C2B351462CFAE0FB3F";};
+std::string  Mangling( cParamMICMAC *) {return "90B2E932151BA0A1FE3F";};
 
 // Quelque chose

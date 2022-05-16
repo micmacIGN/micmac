@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 // Pour des tests
 #include "cOrientationRTO.h"
 
+
+
 double aSeuilComSupInf = 0.99;
 double aSeuilGlobSupInf = 0.5;
 
@@ -371,6 +373,7 @@ cTplLoadedImage<TypeEl>::cTplLoadedImage
        erod_d8(mMasqIm.in(0),mInterpol->SzKernel()),
        mMasqIm.out()
    );
+
 
 }
 
@@ -1568,6 +1571,7 @@ void cTplLoadedImage<TypeEl>::CalcRapCorrelIm1Maitre
 /*             cMSLoadedIm               */
 /*                                       */
 /*****************************************/
+
 
 cMSLoadedIm::cMSLoadedIm(const cOneParamCMS& aParam ,Im2D_REAL4 * anI,bool First) :
    mImCMS (aParam),

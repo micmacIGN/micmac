@@ -20,17 +20,19 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
         typedef cDataIm2D<tElemMasq>  tDImMasq;
         typedef cDataIm2D<tElemOrtho> tDImOrtho;
         typedef cDataIm2D<tElemSimil> tDImSimil;
+	typedef std::vector<tImOrtho>  tVecOrtho;
+	typedef std::vector<tImMasq>   tVecMasq;
 
 
         cAppliMatchMultipleOrtho(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
      private :
-	std::string NameIm(int aKIm,const std::string & aPost) const
+	std::string NameIm(int aKIm,int aKScale,const std::string & aPost) const
 	{
-             return mPrefixZ + "_I" +ToStr(aKIm) + "_" + aPost  + ".tif";
+             return mPrefixZ + "_I" +ToStr(aKIm) + "_S" + ToStr(aKScale) + "_"+ aPost  + ".tif";
 	}
-	std::string NameOrtho(int aKIm) const {return NameIm(aKIm,"O");}
-	std::string NameMasq(int aKIm) const {return NameIm(aKIm,"M");}
+	std::string NameOrtho(int aKIm,int aKScale) const {return NameIm(aKIm,aKScale,"O");}
+	std::string NameMasq(int aKIm,int aKScale) const {return NameIm(aKIm,aKScale,"M");}
 
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
@@ -44,6 +46,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 	std::string   mPrefixGlob;   // Prefix to all names
 	int           mNbZ;      // Number of independant ortho (=number of Z)
 	int           mNbIm;     // Number of images
+	int           mNbScale;  // Number of scale in image
 	cPt2di        mSzW;      // Sizeof of windows
 	bool          mIm1Mast;  //  Is first image the master image ?
 
@@ -52,8 +55,8 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 	tImSimil                   mImSimil;   // computed image of similarity
 	std::string                mPrefixZ;   // Prefix for a gizen Z
 	cPt2di                     mSzIms;     // common  size of all ortho
-	std::vector<tImOrtho>      mVOrtho;    // vector of loaded ortho at a given Z
-	std::vector<tImMasq>       mVMasq;     // vector of loaded masq  at a given Z
+	std::vector<tVecOrtho>      mVOrtho;    // vector of loaded ortho at a given Z
+	std::vector<tVecMasq>       mVMasq;     // vector of loaded masq  at a given Z
 };
 
 
@@ -77,6 +80,7 @@ cCollecSpecArg2007 & cAppliMatchMultipleOrtho::ArgObl(cCollecSpecArg2007 & anArg
           <<   Arg2007(mPrefixGlob,"Prefix of all names")
           <<   Arg2007(mNbZ,"Number of Z/Layers")
           <<   Arg2007(mNbIm,"Number of images in one layer")
+          <<   Arg2007(mNbScale,"Number of scaled in on images")
           <<   Arg2007(mSzW,"Size of window")
           <<   Arg2007(mIm1Mast,"Is first image a master image ?")
    ;
@@ -102,26 +106,31 @@ void cAppliMatchMultipleOrtho::CorrelMaster
     AllOk = true;
     aWeight = 0;
 
-    const tDImMasq & aDIM1  =  mVMasq.at(0   ).DIm();
-    const tDImMasq & aDIM2  =  mVMasq.at(aKIm).DIm();
-    const tDImOrtho & aDIO1 =  mVOrtho.at(0   ).DIm();
-    const tDImOrtho & aDIO2 =  mVOrtho.at(aKIm).DIm();
-
     cMatIner2Var<tElemOrtho> aMatI;
-    for (const auto & aP : cRect2::BoxWindow(aCenter,mSzW))  // Parse the window`
+    for (int aKScale = 0 ; aKScale < mNbScale ; aKScale++)
     {
-         bool Ok = aDIM1.DefGetV(aP,0) && aDIM2.DefGetV(aP,0) ;  // Are both pixel valide
-	 if (Ok)
-	 {
-             aWeight++;
-	     aMatI.Add(aDIO1.GetV(aP),aDIO2.GetV(aP));
-	 }
-	 else
-	 {
-             AllOk=false;
-	 }
+         const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(aKScale).DIm();
+         const tDImMasq & aDIM2  =  mVMasq.at(aKIm).at(aKScale).DIm();
+         const tDImOrtho & aDIO1 =  mVOrtho.at(0   ).at(aKScale).DIm();
+         const tDImOrtho & aDIO2 =  mVOrtho.at(aKIm).at(aKScale).DIm();
+
+	 double aPds = 1/(1+aKScale); // weight, more less arbitrary
+         for (const auto & aLocNeigh : cRect2::BoxWindow(cPt2di(0,0),mSzW))  // Parse the window`
+         {
+              cPt2di  aNeigh = aCenter + aLocNeigh * (1<<aKScale);
+              bool Ok = aDIM1.DefGetV(aNeigh,0) && aDIM2.DefGetV(aNeigh,0) ;  // Are both pixel valide
+	      if (Ok)
+	      {
+                  aWeight++;
+	          aMatI.Add(aPds,aDIO1.GetV(aNeigh),aDIO2.GetV(aNeigh));
+	      }
+	      else
+	      {
+                  AllOk=false;
+	      }
+         }
     }
-    aCorrel =  aMatI.Correl(1e-5);
+    aCorrel =  aMatI.Correl(1e-15);
 }
 
 void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
@@ -165,30 +174,43 @@ void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
 
 int  cAppliMatchMultipleOrtho::Exe()
 {
+
    // Parse all Z
    for (int aZ=0 ; aZ<mNbZ ; aZ++)
    {
         mPrefixZ =  mPrefixGlob + "_Z" + ToStr(aZ);
 
         bool NoFile = ExistFile(mPrefixZ+ "_NoData");  // If no data in masq thie file exist
-        bool WithFile = ExistFile(NameOrtho(0));
+        bool WithFile = ExistFile(NameOrtho(0,0));
 	// A little check
         MMVII_INTERNAL_ASSERT_strong(NoFile!=WithFile,"DM4MatchMultipleOrtho, incoherence file");
+        if ((aZ==0)  && (true))
+        {
+             cDataFileIm2D aDF = cDataFileIm2D::Create(NameOrtho(0,0),false);
+             StdOut() << " * NbI=" << mNbIm << " NbS=" <<  mNbScale << " NbZ=" <<  mNbZ << " Sz=" << aDF.Sz() << " SzW=" << mSzW << "\n";
+        }
 
 
 	if (WithFile)
         {
 	    // Read  orthos and masq in  vectors of images
+	    mSzIms = cPt2di(-1234,6789);
 	    for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 	    {
-                 mVOrtho.push_back(tImOrtho::FromFile(NameOrtho(aKIm)));
-		 mSzIms = mVOrtho[0].DIm().Sz();  // Compute the size at level
+                 mVOrtho.push_back(tVecOrtho());
+                 mVMasq.push_back(tVecMasq());
+                 for (int aKScale=0 ; aKScale<mNbScale ; aKScale++)
+		 {
+                     mVOrtho.at(aKIm).push_back(tImOrtho::FromFile(NameOrtho(aKIm,aKScale)));
+		     if ((aKIm==0) && (aKScale==0))
+		         mSzIms = mVOrtho[0][0].DIm().Sz();  // Compute the size at level
 
-                 mVMasq.push_back(tImMasq::FromFile(NameMasq(aKIm)));
+                     mVMasq.at(aKIm).push_back(tImMasq::FromFile(NameMasq(aKIm,aKScale)));
 
-		 // check all images have the same at a given level
-                 MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
-                 MMVII_INTERNAL_ASSERT_strong(mVMasq [aKIm].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
+		     // check all images have the same at a given level
+                     MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
+                     MMVII_INTERNAL_ASSERT_strong(mVMasq [aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
+		 }
 	    }
 	    // Create similarity image with good size
 	    mImSimil = tImSimil(mSzIms);

@@ -2167,13 +2167,18 @@ void cAppliMICMAC::DoCorrelAdHoc
 			    aVecBoxUti.push_back(aBoxUti);
 
                             SaveIm(aPrefixZ+"_OkT.tif",mDOkTer,aBoxUti);
+                            //std::vector<std::vector<cGPU_LoadedImGeom *> > mVScaIm
 			    //  Save ortho and Masks  for all images
 			    for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
                             {
-                                 cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
-                                 std::string aPrefixZIm = aPrefixZ + "_I" + ToString(aKIm);
-				 SaveIm(aPrefixZIm+"_O.tif",aGLI_0.DataOrtho(),aBoxDil);
-				 SaveIm(aPrefixZIm+"_M.tif",aGLI_0.DataOKOrtho(),aBoxDil);
+                                 for (int aKScale=0; aKScale<mNbScale ; aKScale++)
+                                 {
+                                     // cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
+                                     cGPU_LoadedImGeom & aGLI_K =  *(mVScaIm[aKScale][aKIm]);
+                                     std::string aPrefixZIm = aPrefixZ + "_I" + ToString(aKIm) + "_S"+ ToString(aKScale);
+				     SaveIm(aPrefixZIm+"_O.tif",aGLI_K.DataOrtho(),aBoxDil);
+				     SaveIm(aPrefixZIm+"_M.tif",aGLI_K.DataOKOrtho(),aBoxDil);
+                                 }
                             }
 			    // aVecBox.push_back(
                         }
@@ -2190,14 +2195,16 @@ void cAppliMICMAC::DoCorrelAdHoc
 
 		  //  Call external command
 		  std::string   aCom =  aMCOE.Cmd().Val() // "MMVII  DM4MatchMultipleOrtho "
-			                +  aPrefixGlob  
+			                +  " " + aPrefixGlob  
 					+  " " + ToString(aZ1-aZ0)          // Number of Ortho
 					+  " " + ToString(int(mVLI.size()))  // Number of Images
-					+  " " + ToString(  mCurSzVMax)     // Size of Window
+					+  " " + ToString(mNbScale)  // Number of Scale
+					+  " " + ToString(  mCurSzV0)     // Size of Window
 					+  " " + ToString( mGIm1IsInPax)     // Are we in mode Im1 Master
 		                 ;
 		  if (aMCOE.Options().IsInit())
                      aCom = aCom + " " + QUOTE(aMCOE.Options().Val());
+                  //   std::cout << aCom << "\n";
 		  System(aCom);
 		  // Fill cube with computed similarities
                   for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
