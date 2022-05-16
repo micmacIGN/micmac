@@ -1,5 +1,5 @@
 #include "include/MMVII_all.h"
-#define GPP11 true // G++11
+#define GPP11 (__GNUC__>=11) // G++11
 
 /** \file TestEigen.cpp
     \brief File to test eigen library
