@@ -2,7 +2,7 @@ Dependences :
 -------------
 
 libboost-all-dev
-libceres-dev
+#  libceres-dev => no longer needed 4 now
 
 
 To compile :
