@@ -1,5 +1,5 @@
 #include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "include/MMVII_TplHeap.h"
 
 
 namespace MMVII
@@ -31,14 +31,19 @@ template <class Type> class  cSMLineTransf
             void AddToCurLine(size_t anInd,const Type & aVal);
 	    /// Save the un-compressed line in compressed one
             void SaveInSparseLine_And_Clear(tLine & aLine);
+            int NbElemNN() {return mSetNot0.NbElem();}
 	private :
-	    std::vector<Type>    mCumulLine;  ///< uncompressed line, easily modifiable
-            cSetIntDyn           mSetNot0;        ///< set of non null indexed
+	    std::vector<Type>    mCumulLine;   ///< uncompressed line, easily modifiable
+            cSetIntDyn           mSetNot0;     ///< set of non null indexed
+            // int                  mHeapIndex;   ///< used to make an indexed heap if required
+            int                  mLineBelong;  ///<  line where it is affected
 };
 
+
 template <class Type> cSMLineTransf<Type>::cSMLineTransf(size_t aNb,bool WithSet) :
-     mCumulLine (aNb,0.0),
-     mSetNot0  (WithSet ? aNb : 0)
+     mCumulLine   (aNb,0.0),
+     mSetNot0     (WithSet ? aNb : 0),
+     mLineBelong  (-1)
 {
 }
 
@@ -71,6 +76,17 @@ template <class Type> void cSMLineTransf<Type>::AddToCurLine(size_t anInd,const 
     mSetNot0.AddIndFixe(anInd);
     mCumulLine.at(anInd) +=  aVal;
 }
+
+template <class Type> class cCmpSLMPtr
+{
+    public : 
+        typedef cSMLineTransf<Type> * tPtrLine;
+        bool operator ()(const tPtrLine & aL1,const tPtrLine & aL2)  const 
+        {
+             return aL1->NbElemNN()   < aL2->NbElemNN();
+        }
+
+};
 
 // template  class  cSMLineTransf<tREAL16>;
 
@@ -163,18 +179,17 @@ template <class Type> class  cLineSparseLeasSqtAA
 
       private :
 
-          eLineSLSqtAA           mState;
-          tSparseLine            mSparseLine;
-          tDenseLine             mDenseLine;
-	  tTempoDenseLine *      mTempoDenseLine;
+          eLineSLSqtAA           mState;          ///< state of use, dense for ever or temporary dense/sparse
+          tDenseLine             mDenseLine;      ///< "classical" vector of val, case  permanent dense line
+          tSparseLine            mSparseLine;     ///< vector of sparse representation [i,val], case tempo sparse
+	  tTempoDenseLine *      mTempoDenseLine; ///<  pointer of shared dense rep (vec+indices), case tempo dense
 };
 
 template <class Type> cLineSparseLeasSqtAA<Type>::cLineSparseLeasSqtAA(int  aNb,bool isAlwaysDense) :
-	mState      (isAlwaysDense ? eLineSLSqtAA::eLS_AlwaysDense   : eLineSLSqtAA::eLS_TempoSparse),
-	mSparseLine (),
-	mDenseLine  (isAlwaysDense ? aNb : 0),
-	mTempoDenseLine (nullptr)
-
+	mState            (isAlwaysDense ? eLineSLSqtAA::eLS_AlwaysDense   : eLineSLSqtAA::eLS_TempoSparse),
+	mDenseLine        ((isAlwaysDense ? aNb : 0),Type(0.0)),
+	mSparseLine       (),
+	mTempoDenseLine   (nullptr)
 {
 }
 
@@ -198,14 +213,17 @@ template class cLineSparseLeasSqtAA<tREAL4>;
 template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 {
       public :
-         typedef cSparseWeigtedVect<Type> tWeigtedVect;
-         typedef cValAndSWVPtr<Type>      tVal_WV;
+         typedef cSparseWeigtedVect<Type>    tWeigtedVect;
+         typedef cValAndSWVPtr<Type>         tVal_WV;
+	 typedef cCplIV<Type>                tCplIV;
+	 typedef std::vector<tCplIV>         tOldLine;  
+	 typedef cLineSparseLeasSqtAA<Type>  tLine;
 
-	 typedef cCplIV<Type>             tCplIV;
-	 typedef std::vector<tCplIV>      tOldLine;  
 
 
-         cSparseLeasSqtAA(int  aNbVar,double  aPerEmpty=4 );
+//  cKBestValue
+
+         cSparseLeasSqtAA(int  aNbVar,const std::vector<size_t> & aVIndDense,double  aPerEmpty=4 );
 
        /// Here memorize the obs
          void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
@@ -221,7 +239,8 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 
 	 std::list<tWeigtedVect>   mBufInput;
 	 double                    mPerEmpty;
-	 std::vector<tOldLine>        mOldtAA;    /// Som(W tA A)
+	 std::vector<tOldLine>     mOldtAA;    /// Som(W tA A)
+	 std::vector<tLine>        mtAA;    /// Som(W tA A)
          cDenseVect<Type>          mtARhs;  /// Som(W tA Rhs)
 	 double                    mNbInBuff;
 
@@ -230,13 +249,25 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 
 
 template<class Type> 
-    cSparseLeasSqtAA<Type>::cSparseLeasSqtAA(int aNbVar,double aPerEmpty) :
+    cSparseLeasSqtAA<Type>::cSparseLeasSqtAA
+    (
+                int aNbVar,
+                const std::vector<size_t> & aVIndDense,
+                double aPerEmpty
+     ) :
           cSparseLeasSq<Type> (aNbVar),
 	  mPerEmpty           (aPerEmpty),
-	  mOldtAA                (this->mNbVar),
+	  mOldtAA             (this->mNbVar),
           mtARhs              (this->mNbVar,eModeInitImage::eMIA_Null),
 	  mNbInBuff           (0)
 {
+    mtAA.reserve(this->mNbVar);
+    cSetIntDyn aSetDense(this->mNbVar,aVIndDense);
+
+    for (size_t aK=0 ; aK<size_t(this->mNbVar) ; aK++)
+    {
+        mtAA.push_back(tLine(this->mNbVar,aSetDense.mOccupied.at(aK)));
+    }
 }
 
 template<class Type> void cSparseLeasSqtAA<Type>::Reset()
@@ -282,6 +313,22 @@ template<class Type> void  cSparseLeasSqtAA<Type>::AddObservation
        PutBufererEqInNormalMatrix();
 }
 
+template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix() 
+{
+   // make an indexation of all buffered equations
+   // For each line y,  aVListSW[y]  will store all equation t belongs to it  
+   std::vector<std::list<tVal_WV > >  aVListSW(this->NbVar());
+
+   for (auto &  aSW : mBufInput)
+   {
+       for (const auto & aPair : aSW.mVect)
+       {
+	    aVListSW.at(aPair.mInd).push_back(tVal_WV(aPair.mVal,&aSW));
+       }
+   }
+}
+
+/*
 template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix() 
 {
 
@@ -332,6 +379,8 @@ template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix()
    mNbInBuff =0;
    mBufInput.clear();
 }
+*/
+
 
 template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
@@ -461,7 +510,8 @@ template<class Type> cLeasSq<Type> * cLeasSq<Type>::AllocSparseGCLstSq(int aNbVa
 
 template<class Type> cLeasSq<Type> * cLeasSq<Type>::AllocSparseNormalLstSq(int aNbVar,double aPerEmptyBuf)
 {
-	return new cSparseLeasSqtAA<Type>(aNbVar,aPerEmptyBuf);
+std::vector<size_t> aVInd;
+	return new cSparseLeasSqtAA<Type>(aNbVar,aVInd,aPerEmptyBuf);
 }
 
 

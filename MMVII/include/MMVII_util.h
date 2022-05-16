@@ -283,6 +283,7 @@ class cSetIntDyn
 {
      public :
           cSetIntDyn(size_t aNb);  ///< Create empty set
+          cSetIntDyn(size_t aNb,const std::vector<size_t> & AddInit);  ///< Add initial values
           void AddInd(size_t aK);  ///< Add an element, adpat sizeof vector
           void Clear();
           void AddIndFixe(size_t aK)  ///< Add an element, assume sizeof vector of
@@ -293,6 +294,7 @@ class cSetIntDyn
                    mVIndOcc.push_back(aK);
                }
           }
+          size_t NbElem() const {return mVIndOcc.size();}
 
           std::vector<bool>    mOccupied;  ///< direct acces to the belonging
           std::vector<size_t>  mVIndOcc;   ///< list  of element

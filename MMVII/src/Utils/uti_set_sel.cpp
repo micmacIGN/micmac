@@ -26,6 +26,14 @@ cSetIntDyn::cSetIntDyn(size_t aNb) :
 {
 }
 
+cSetIntDyn::cSetIntDyn(size_t aNb,const std::vector<size_t> & aVInd) :
+     cSetIntDyn (aNb)
+{
+    for (const auto & anInd : aVInd)
+        AddInd(anInd);
+}
+
+
 void cSetIntDyn::Clear()
 {
    for (const auto & aInd : mVIndOcc)
