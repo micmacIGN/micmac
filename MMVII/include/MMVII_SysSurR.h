@@ -140,6 +140,29 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
        int mNbVar;
 };
 
+/** Class for fine parametrisation  allocation of normal sparse system */
+
+class cParamSparseNormalLstSq
+{
+      public :
+          cParamSparseNormalLstSq();
+          cParamSparseNormalLstSq(double aPerEmptyBuf,size_t aNbMaxRangeDense,size_t aNbBufDense);
+
+	  /// Def=4,  equation are buffered "as is" and at some frequency put in normal matrix
+	  double mPerEmptyBuf;
+	  /** Def={} , even with sparse system, it can happen that a small subset of variable are better handled as dense one, 
+	    typically it could be the intrinsic parameters in bundle */
+	  std::vector<size_t> mVecIndDense;
+
+	  /** Def=0 ; it is recommandend that mIndDense correpond to low index, in the case where they are in fact range [0,N]
+	       mIndMaxRangeDense allow an easier parametrization 
+	   */
+	  size_t mIndMaxRangeDense;
+
+	  /** Def=13 the systeme can maintain a certain number of non dense variable in temporary  dense mode, def is purely arbitrary ...*/
+	  size_t mNbBufDense;
+};
+
 /** Not sure the many thing common to least square system, at least there is the
     residual (sum of square ...)
 */
@@ -153,7 +176,7 @@ template <class Type> class  cLeasSq  :  public cLinearOverCstrSys<Type>
        static cLeasSq<Type>*  AllocSparseGCLstSq(int aNbVar);
        
        /// Adpated to"very sparse" system like in finite element, probably also ok for photogrammetry
-       static cLeasSq<Type>*  AllocSparseNormalLstSq(int aNbVar,double aPerEmptyBuf=4.0);
+       static cLeasSq<Type>*  AllocSparseNormalLstSq(int aNbVar,const cParamSparseNormalLstSq & aParam);
        
        /// Basic dense systems  => cLeasSqtAA
        static cLeasSq<Type>*  AllocDenseLstSq(int aNbVar);

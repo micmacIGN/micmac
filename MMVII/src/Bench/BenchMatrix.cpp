@@ -642,11 +642,16 @@ template <class Type,class TypeSys> void TplBenchLsq()
          int aNbVar = 1+ RandUnif_N(10);
          int aNbEq =  aNbVar + 3 ;
 
-
+	 cParamSparseNormalLstSq aParam
+		                 (
+				       8.0*RandUnif_0_1(), 
+                                       round_ni(aNbVar*pow(RandUnif_0_1(), 4.0)),      // Max range Dense fix
+                                       round_ni(0.5*aNbVar*pow(RandUnif_0_1(), 2.0))   // tempo
+                                 );
 	 std::vector<cLeasSq<Type>*> aVSys = {
 	                                            cLeasSq<Type>::AllocDenseLstSq(aNbVar),
 		                                    cLeasSq<Type>::AllocSparseGCLstSq(aNbVar),
-	                                            cLeasSq<Type>::AllocSparseNormalLstSq(aNbVar)
+	                                            cLeasSq<Type>::AllocSparseNormalLstSq(aNbVar,aParam)
 	                                     };
 	 for (int aNbTest=0 ; aNbTest<3 ; aNbTest++)
 	 {

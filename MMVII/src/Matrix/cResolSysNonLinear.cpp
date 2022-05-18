@@ -32,6 +32,7 @@ template <class Type> class cResolSysNonLinear
           typedef cInputOutputRSNL<Type>                    tIO_TSNL;
 	  typedef cResidualWeighter<Type>                   tResidualW;
 
+	  cResolSysNonLinear(tSysSR *,const tDVect & aInitSol);
 	  cResolSysNonLinear(eModeSSR,const tDVect & aInitSol);
 	  ~cResolSysNonLinear();
 	  
@@ -200,11 +201,15 @@ template <class Type>  std::vector<Type>  cResidualWeighter<Type>::WeightOfResid
 /*                                                              */
 /* ************************************************************ */
 
-template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(eModeSSR aMode,const tDVect & aInitSol) :
+template <class Type> cResolSysNonLinear<Type>:: cResolSysNonLinear(tSysSR * aSys,const tDVect & aInitSol) :
     mNbVar      (aInitSol.Sz()),
     mCurGlobSol (aInitSol.Dup()),
-    // mSys        (new cLeasSqtAA<Type>(mNbVar))
-    mSys        (cLinearOverCstrSys<Type>::AllocSSR(aMode,mNbVar))
+    mSys        (aSys)
+{
+}
+
+template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(eModeSSR aMode,const tDVect & aInitSol) :
+    cResolSysNonLinear<Type>  (cLinearOverCstrSys<Type>::AllocSSR(aMode,aInitSol.Sz()),aInitSol)
 {
 }
 
@@ -471,7 +476,14 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork(eModeSSR aMode,int aN,b
 	 }
      }
      // Initiate system for solving
-     mSys = new tSys(aMode,cDenseVect<Type>(aVCoord0));
+     if (aMode==eModeSSR::eSSR_LsqNormSparse)
+     {
+         cParamSparseNormalLstSq aParam(3.0,4,9);
+	 cLeasSq<Type>*  aSys =  cLeasSq<Type>::AllocSparseNormalLstSq(aVCoord0.size(),aParam);
+         mSys = new tSys(aSys,cDenseVect<Type>(aVCoord0));
+     }
+     else
+         mSys = new tSys(aMode,cDenseVect<Type>(aVCoord0));
 
      // Initiate Links between Pts of Networks,
      for (size_t aK1=0 ;aK1<mVPts.size() ; aK1++)

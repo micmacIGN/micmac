@@ -307,7 +307,7 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 	 typedef cIndexedHeap<tLine *,tCmpLine,tHeapInd>   tHeap;
 	 typedef cSMLineTransf<Type>           tTempoDenseLine;
 
-         cSparseLeasSqtAA(int  aNbVar,const std::vector<size_t> & aVIndDense,double  aPerEmpty=4 );
+         cSparseLeasSqtAA(int  aNbVar,const cParamSparseNormalLstSq & aParam);
          ~cSparseLeasSqtAA();
 
        /// Here memorize the obs
@@ -493,6 +493,28 @@ template <class Type>
 
 /* ******************************************** */
 /*                                              */
+/*               cParamSparseNormalLstSq        */
+/*                                              */
+/* ******************************************** */
+
+cParamSparseNormalLstSq::cParamSparseNormalLstSq
+(
+      double aPerEmptyBuf,
+      size_t aNbMaxRangeDense,
+      size_t aNbBufDense
+)  :
+	mPerEmptyBuf      (aPerEmptyBuf),
+	mIndMaxRangeDense (aNbMaxRangeDense),
+	mNbBufDense       (std::max(size_t(1),aNbBufDense))  // need at least one buf dense ...
+{
+}
+cParamSparseNormalLstSq::cParamSparseNormalLstSq () :
+      cParamSparseNormalLstSq (4.0,0,13)
+{
+}
+
+/* ******************************************** */
+/*                                              */
 /*               cSparseLeasSqtAA               */
 /*                                              */
 /* ******************************************** */
@@ -501,28 +523,23 @@ template<class Type>
     cSparseLeasSqtAA<Type>::cSparseLeasSqtAA
     (
                 int aNbVar,
-                const std::vector<size_t> & aVIndDense,
-                double aPerEmpty
+                const cParamSparseNormalLstSq & aParam
      ) :
           cSparseLeasSq<Type> (aNbVar),
-	  mPerEmpty           (aPerEmpty),
+	  mPerEmpty           (aParam.mPerEmptyBuf),
           mtARhs              (this->mNbVar,eModeInitImage::eMIA_Null),
 	  mNbInBuff           (0),
-	  mNbDLTempo          (13),
+	  mNbDLTempo          (aParam.mNbBufDense),
 	  mCmpLine            (),
 	  mHeapDL             (mCmpLine)
 {
     mtAA.reserve(this->mNbVar);
-    cSetIntDyn aSetDense(this->mNbVar,aVIndDense);
+    cSetIntDyn aSetDense(this->mNbVar,aParam.mVecIndDense);
 
-    // StdOut() << "BEGIN INIT MAT \n";
     for (size_t aY=0 ; aY<size_t(this->mNbVar) ; aY++)
     {
-    // StdOut() << "LLLLL " << aY << " \n";
-        mtAA.push_back(new tLine(aY,this->mNbVar,aSetDense.mOccupied.at(aY)));
+        mtAA.push_back(new tLine(aY,this->mNbVar,(aY<aParam.mIndMaxRangeDense) || aSetDense.mOccupied.at(aY)));
     }
-    // StdOut() << "END INIT MAT \n"; getchar();
-
 }
 
 template<class Type> cSparseLeasSqtAA<Type>::~cSparseLeasSqtAA()
@@ -747,10 +764,9 @@ template<class Type> cLeasSq<Type> * cLeasSq<Type>::AllocSparseGCLstSq(int aNbVa
 	return new cSparseLeasSqGC<Type>(aNbVar);
 }
 
-template<class Type> cLeasSq<Type> * cLeasSq<Type>::AllocSparseNormalLstSq(int aNbVar,double aPerEmptyBuf)
+template<class Type> cLeasSq<Type> * cLeasSq<Type>::AllocSparseNormalLstSq(int aNbVar,const cParamSparseNormalLstSq & aParam)
 {
-std::vector<size_t> aVInd{1,2,3,5,7,11};
-	return new cSparseLeasSqtAA<Type>(aNbVar,aVInd,aPerEmptyBuf);
+	return new cSparseLeasSqtAA<Type>(aNbVar,aParam);
 }
 
 
