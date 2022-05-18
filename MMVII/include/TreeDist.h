@@ -753,6 +753,7 @@ void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
            {
                int aD= mFTD.Dist(aS1,aS2);  // Fast distance
                int aD2= mAdjG.RawDist(aS1,aS2);  // Easy algorihtm to check
+	       std::cout << "D=" << aD << ", D2=" << aD2 << "\n"; //to avoid non-used var error
                assert(aD==aD2);
            }
        }
