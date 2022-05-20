@@ -447,7 +447,6 @@ template <class Type>  class  cBenchNetwork
 	  bool  mWithSchur;            ///< Do we test Schurr complement
 	  int   mNum;                  ///< Current num of unknown
 	  std::vector<tPNet>  mVPts;   ///< Vector of point of unknowns coordinate
-	  std::list<cPt2di>   mListCple;  ///< List of pair of point that "interact"
 	  tSys *              mSys;    ///< Sys for solving non linear equations 
 	  tCalc *             mCalcD;  ///< Equation that compute distance & derivate/points corrd
 };
@@ -469,15 +468,15 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
     mWithSchur (WithSchurr),
     mNum       (0)
 {
-     // Initiate Pts of Networks,
-     std::vector<Type> aVCoord0;
 
+     // generate in VPix a regular grid, put them in random order for testing more config in matrix
      std::vector<cPt2di> aVPix;
      for (const auto& aPix: cRect2::BoxWindow(mN))
          aVPix.push_back(aPix);
-
      aVPix = RandomOrder(aVPix);
 
+     std::vector<Type> aVCoord0; // initial coordinates for creating unknowns
+     // Initiate Pts of Networks in mVPts,
      for (const auto& aPix: aVPix)
      {
          tPNet aP(aPix,*this);
@@ -488,34 +487,42 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
              aVCoord0.push_back(aP.mPosInit.y());
 	 }
      }
-     // Initiate system for solving
+     
+     // Initiate system "mSys" for solving
      if ((aMode==eModeSSR::eSSR_LsqNormSparse)  && (aParam!=nullptr))
      {
-         //cParamSparseNormalLstSq aParam(3.0,4,9);
-	 cLeasSq<Type>*  aSys =  cLeasSq<Type>::AllocSparseNormalLstSq(aVCoord0.size(),*aParam);
-         mSys = new tSys(aSys,cDenseVect<Type>(aVCoord0));
+         // case Normal sparse, create first the least square
+	 cLeasSq<Type>*  aLeasSQ =  cLeasSq<Type>::AllocSparseNormalLstSq(aVCoord0.size(),*aParam);
+         mSys = new tSys(aLeasSQ,cDenseVect<Type>(aVCoord0));
      }
      else
+     {
+         // other, just give the mode
          mSys = new tSys(aMode,cDenseVect<Type>(aVCoord0));
+     }
 
-     // Initiate Links between Pts of Networks,
+     // compute links between Pts of Networks,
      for (size_t aK1=0 ;aK1<mVPts.size() ; aK1++)
      {
          for (size_t aK2=aK1+1 ;aK2<mVPts.size() ; aK2++)
 	 {
              if (mVPts[aK1].Linked(mVPts[aK2]))
 	     {
-                if (mVPts[aK1].mTmpUk)
+                // create the links, be careful that for Tmp unknown all the links start from Tmp
+		// this will make easier the regrouping of equation concerning the same tmp
+		// the logic take into account that K1 and K2 cannot be both Tmp
+		
+                if (mVPts[aK1].mTmpUk)  // K1 is Tmp and not K2, save K1->K2
                     mVPts[aK1].mLinked.push_back(aK2);
-		else if (mVPts[aK2].mTmpUk)
+		else if (mVPts[aK2].mTmpUk) // K2 is Tmp and not K1, save K2->K2
                     mVPts[aK2].mLinked.push_back(aK1);
-		else 
-                    mVPts[aK1].mLinked.push_back(aK2);  // None Tmp, does not matters which way it is stored
-                 mListCple.push_back(cPt2di(aK1,aK2));
+		else // None Tmp, does not matters which way it is stored
+                    mVPts[aK1].mLinked.push_back(aK2);  
 	     }
 	 }
      }
 
+     // create the "functor" that will compute values and derivates
      mCalcD =  EqConsDist(true,1);
 }
 
@@ -531,22 +538,23 @@ template <class Type> int&  cBenchNetwork<Type>::Num() {return mNum;}
 
 template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
 {
-     Type aWeightFix=100.0;
+     Type aWeightFix=100.0; // arbitray weight for fixing the 3 variable X0,Y0,X1 (the "jauge")
 
      Type  aSomEc = 0;
      Type  aNbEc = 0;
      //  Compute dist to sol + add constraint for fixed var
      for (const auto & aPN : mVPts)
      {
+        // Add distance between theoreticall value and curent
         if (! aPN.mTmpUk)
         {
             aNbEc++;
             aSomEc += Norm2(aPN.PCur() -aPN.PTh());
         }
-	// Fix X and Y for given points
-	if (aPN.mFrozenX)
+	// Fix X and Y for the two given points
+	if (aPN.mFrozenX)   // If X is frozenn add equation fixing X to its theoreticall value
            mSys->AddEqFixVar(aPN.mNumX,aPN.PTh().x(),aWeightFix);
-	if (aPN.mFrozen)
+	if (aPN.mFrozen) // If Y is frozenn add equation fixing Y to its theoreticall value
            mSys->AddEqFixVar(aPN.mNumY,aPN.PTh().y(),aWeightFix);
      }
      
@@ -554,16 +562,19 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
 
      for (const auto & aPN1 : mVPts)
      {
+         // If PN1 is a temporary unknown we will use schurr complement
          if (aPN1.mTmpUk)
 	 {
-            cSetIORSNL_SameTmp<Type> aSetIO;
-	    cPtxd<Type,2> aP1= aPN1.PCur();
+            cSetIORSNL_SameTmp<Type> aSetIO; // structure to grouping all equation relative to PN1
+	    cPtxd<Type,2> aP1= aPN1.PCur(); // current value, required for linearization
+            std::vector<Type> aVTmp{aP1.x(),aP1.y()};  // vectors of temporary
+	    // Parse all obsevation on PN1
             for (const auto & aI2 : aPN1.mLinked)
             {
                 const tPNet & aPN2 = mVPts.at(aI2);
-	        std::vector<int> aVInd{aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns
-                std::vector<Type> aVTmp{aP1.x(),aP1.y()};  // compute observations
-                std::vector<Type> aVObs{Norm2(aPN1.PTh()-aPN2.PTh())};  // compute observations
+	        std::vector<int> aVInd{aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns for this equation
+                std::vector<Type> aVObs{Norm2(aPN1.PTh()-aPN2.PTh())}; // compute observations=target distance
+                // Add eq in aSetIO, using CalcD intantiated with VInd,aVTmp,aVObs
 		mSys->AddEq2Subst(aSetIO,mCalcD,aVInd,aVTmp,aVObs);
 	    }
 	    //  StdOut()  << "Id: " << aPN1.mPosTh << " NL:" << aPN1.mLinked.size() << "\n";
@@ -571,12 +582,13 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
 	 }
 	 else
 	 {
+               // Simpler case no temporary unknown, just add equation 1 by 1
                for (const auto & aI2 : aPN1.mLinked)
                {
                     const tPNet & aPN2 = mVPts.at(aI2);
 	            std::vector<int> aVInd{aPN1.mNumX,aPN1.mNumY,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns
-                    std::vector<Type> aVObs{Norm2(aPN1.PTh()-aPN2.PTh())};  // compute observations
-
+                    std::vector<Type> aVObs{Norm2(aPN1.PTh()-aPN2.PTh())};  // compute observations=target distance
+                    // Add eq  using CalcD intantiated with VInd and aVObs
 	            mSys->CalcAndAddObs(mCalcD,aVInd,aVObs);
 	       }
 	 }
@@ -688,16 +700,19 @@ template class cBenchNetwork<tREAL8>;
 /*                                          */
 /* ======================================== */
 
+/** Make on test with different parameter, check that after 10 iteration we are sufficiently close
+    to "real" network
+*/
 void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
 {
      cBenchNetwork<tREAL8> aBN(aMode,aNb,WithSchurr,aParam);
      double anEc =100;
-     for (int aK=0 ; aK < 8 ; aK++)
+     for (int aK=0 ; aK < 10 ; aK++)
      {
          anEc = aBN.OneItereCompensation();
          // StdOut() << "ECc== " << anEc << "\n";
      }
-     // StdOut() << "Fin-ECc== " << anEc << "\n";
+     //StdOut() << "Fin-ECc== " << anEc << "\n";
      // getchar();
      MMVII_INTERNAL_ASSERT_bench(anEc<1e-5,"Error in Network-SSRNL Bench");
 }
@@ -712,30 +727,35 @@ void BenchSSRNL(cParamExeBench & aParam)
      if (! aParam.NewBench("SSRNL")) return;
 
 
+     // Basic test, test the 3 mode of matrix , with and w/o schurr subst
      for (const auto &  aNb : {3,4,5,10})
      {
         cParamSparseNormalLstSq aParamSq(3.0,4,9);
+	// w/o schurr
         OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq);
-        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
-
-        OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
-        OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
         OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,false);
         OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,false);
+
+	// with schurr
+        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
+        OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
+        OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
      }
 
 
+     // test  normal sparse matrix with many parameters
      for (int aK=0 ; aK<20 ; aK++)
      {
         int aNb = 3+ RandUnif_N(3);
 	int aNbVar = 2 * Square(2*aNb+1);
         cParamSparseNormalLstSq aParamSq(3.0,RandUnif_N(3),RandUnif_N(10));
 
+	// add random subset of dense variable
 	for (const auto & aI:  RandSet(aNbVar/10,aNbVar))
            aParamSq.mVecIndDense.push_back(size_t(aI));
 
-        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq);
-        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
+        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq); // w/o schurr
+        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq); // with schurr
      }
 
 
