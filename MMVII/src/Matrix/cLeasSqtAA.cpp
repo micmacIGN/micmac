@@ -60,6 +60,8 @@ template <class Type>
          for (const auto & anInd : anEq.mVInd)
              mSetInd.AddInd(anInd);
      }
+     mSetInd.SortInd();
+
      mNbUk = mSetInd.mVIndOcc.size();
      mNbUkTot = mNbUk + mNbTmp;
 

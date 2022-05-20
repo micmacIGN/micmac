@@ -115,6 +115,12 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
            if (IsEmpty()) return nullptr;
            return & mElements[0];
         }
+             /// return ptr to lowest elem if not empty, 0 else
+        Type * Lowest() 
+        {
+           if (IsEmpty()) return nullptr;
+           return & mElements[0];
+        }
 
              /// number of element
         int Sz() const {return  mElements.size();}

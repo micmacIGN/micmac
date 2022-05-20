@@ -189,7 +189,6 @@ template<class Type>  class cValAndSWVPtr : public cMemCheck
 /** Enum to store the state of a line */
 enum class eLineSLSqtAA
 {
-      eLS_UnInit,        ///< State when object was allocated but not init, 
       eLS_AlwaysDense,   ///< line that will be always dense (as probably internal parameters)
       eLS_TempoDense,    ///< line temporary dense
       eLS_TempoSparse    ///< line temporary sparse
@@ -221,6 +220,7 @@ template <class Type> class  cLineSparseLeasSqtAA : public cMemCheck
 	 Type *                           tDenseLine;
 	 typedef cSMLineTransf<Type>      tTempoDenseLine;
          typedef cValAndSWVPtr<Type>      tVal_WV;
+	 typedef cSparseLeasSqtAA<Type>   tMat;
 
 
          cLineSparseLeasSqtAA();
@@ -228,7 +228,7 @@ template <class Type> class  cLineSparseLeasSqtAA : public cMemCheck
          ~cLineSparseLeasSqtAA();
          int NbElemNN() {return mTempoDenseLine->NbElemNN();}
 
-	 void AddEquations(cSparseLeasSqtAA<Type> & aMat,const std::list<tVal_WV > &);
+	 void AddEquations(tMat & aMat,const std::list<tVal_WV > &);
 
 	 /// save the dense reprensation in sparse mode en return the dense rep that can used by others
 	 tTempoDenseLine *  MakeTempoSparse();
@@ -236,7 +236,12 @@ template <class Type> class  cLineSparseLeasSqtAA : public cMemCheck
 	 /// transfert to a dense representation
 	 void  MakeTempoDense(tTempoDenseLine *);
 
+         void AddLineMatr(size_t aYRed,const cDenseMatrix<Type> & atAAS,const std::vector<size_t> & );
+
          int & HeapIndex() {return mHeapIndex;}   ///< accessor
+         eLineSLSqtAA State() const {return  mState;}   ///< accessor
+	 bool CanRecycle() const {return mCanRecycle;}  ///< accessor
+	 void SetCanRecycle(bool aCR) {mCanRecycle = aCR;}  ///< Modifier
 	 /// Make equivalent to  a line with  only 0
 	 void Clear(int aNbY);
 
@@ -248,6 +253,7 @@ template <class Type> class  cLineSparseLeasSqtAA : public cMemCheck
 	  // Type & DLine(int anX) {return mDenseLine.at(anX-mY);}
 
 	  size_t             mY;
+	  bool               mCanRecycle;       ///< if in cur pack of buf, it must not be recycled
 	  int                mHeapIndex;      ///< place for heap indexation
           eLineSLSqtAA       mState;          ///< state of use, dense for ever or temporary dense/sparse
           Type *             mDenseLine;      ///< "classical" vector of val, case  permanent dense line
@@ -267,7 +273,10 @@ template <class Type> class cCmpSLMPtr
         typedef cLineSparseLeasSqtAA<Type> * tPtrLine;
         bool operator ()(const tPtrLine & aL1,const tPtrLine & aL2)  const 
         {
-             return aL1->NbElemNN()   < aL2->NbElemNN();
+             if  (aL1->CanRecycle() ==  aL2->CanRecycle())
+                return aL1->NbElemNN()   < aL2->NbElemNN();
+             // else one is true, one is false ; if L1 can be recyled is has lower priority ...
+	     return aL1->CanRecycle() ;
         }
 
 };
@@ -337,6 +346,7 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 	 int                       mNbDLTempo; 
 	 tCmpLine                  mCmpLine;
 	 tHeap                     mHeapDL;
+	 cBufSchurrSubst<Type>     mBufSchurr;
 };
 
 /* ******************************************** */
@@ -345,15 +355,10 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 /*                                              */
 /* ******************************************** */
 
-/*
-template <class Type> cLineSparseLeasSqtAA<Type>::cLineSparseLeasSqtAA() :
-      mState            (eLineSLSqtAA::eLS_UnInit)
-{
-}
-*/
 
 template <class Type> cLineSparseLeasSqtAA<Type>::cLineSparseLeasSqtAA(size_t aY,size_t  aNb,bool isAlwaysDense) :
 	mY                (aY),
+	mCanRecycle       (true),
 	mHeapIndex        (HEAP_NO_INDEX),
 	mState            (isAlwaysDense ? eLineSLSqtAA::eLS_AlwaysDense   : eLineSLSqtAA::eLS_TempoSparse),
 	mDenseLine        (isAlwaysDense ? (cMemManager::Alloc<Type>(aY,aNb))   : nullptr),
@@ -369,16 +374,11 @@ template <class Type> cLineSparseLeasSqtAA<Type>::cLineSparseLeasSqtAA(size_t aY
 }
 template <class Type> cLineSparseLeasSqtAA<Type>::~cLineSparseLeasSqtAA()
 {
-    if (mState != eLineSLSqtAA::eLS_UnInit )
+    delete mTempoDenseLine;
+    if (mState == eLineSLSqtAA::eLS_AlwaysDense )
     {
-        delete mTempoDenseLine;
-        if (mState == eLineSLSqtAA::eLS_AlwaysDense )
-	{
-           cMemManager::Free(mDenseLine+mY);
-	}
+        cMemManager::Free(mDenseLine+mY);
     }
-/*
-       */
 }
 
 template <class Type>  cSMLineTransf<Type> * cLineSparseLeasSqtAA<Type>::MakeTempoSparse()
@@ -444,11 +444,40 @@ template <class Type> void cLineSparseLeasSqtAA<Type>::Clear(int aNbVar)
            mTempoDenseLine->Clear();
      }
 }
+template <class Type> 
+   void cLineSparseLeasSqtAA<Type>::AddLineMatr(size_t aYRed,const cDenseMatrix<Type> & atAAS,const std::vector<size_t> & aVInd)
+{
+     if (mState==eLineSLSqtAA::eLS_AlwaysDense)
+     {
+         for (size_t aXRed = 0 ; aXRed<aVInd.size() ; aXRed++)
+         {
+             size_t anX = aVInd.at(aXRed);
+             if (anX>=mY)  // Only compute triangluar superior part
+             {
+                 DLine(anX) += atAAS.GetElem(aXRed,aYRed);
+             }
+         }
+     }
+     else if (mState==eLineSLSqtAA::eLS_TempoDense)
+     {
+         for (size_t aXRed = 0 ; aXRed<aVInd.size() ; aXRed++)
+         {
+             size_t anX = aVInd.at(aXRed);
+             if (anX>=mY)  // Only compute triangluar superior part
+             {
+                mTempoDenseLine->AddToCurLine(anX,atAAS.GetElem(aXRed,aYRed));
+             }
+         }
+     }
+     else
+     {
+     }
+}
 
 template <class Type> 
    void cLineSparseLeasSqtAA<Type>::AddEquations
         (
-	     cSparseLeasSqtAA<Type> & aMat,
+	     tMat & aMat,
              const std::list<tVal_WV > & aLEq
         )
 {
@@ -487,6 +516,7 @@ template <class Type>
                   }
 	     }
          }
+	 // The number of equation !=0 may have change, so need uddate in heap
 	 aMat.HeapUpdate(*this);
      }
 }
@@ -531,7 +561,8 @@ template<class Type>
 	  mNbInBuff           (0),
 	  mNbDLTempo          (aParam.mNbBufDense),
 	  mCmpLine            (),
-	  mHeapDL             (mCmpLine)
+	  mHeapDL             (mCmpLine),
+	  mBufSchurr          (aNbVar)
 {
     mtAA.reserve(this->mNbVar);
     cSetIntDyn aSetDense(this->mNbVar,aParam.mVecIndDense);
@@ -550,17 +581,22 @@ template<class Type> cSparseLeasSqtAA<Type>::~cSparseLeasSqtAA()
 
 template<class Type> void  cSparseLeasSqtAA<Type>::SetTempoDenseLine(tLine & aL2Dense)
 {
-    tTempoDenseLine *  aTDL = nullptr;
-    if (mHeapDL.Sz() >= mNbDLTempo)
-    {
-        tLine * aL2Sparse = mHeapDL.PopVal(nullptr);  // extract the dense line with minimal el!=0
-	aTDL = aL2Sparse->MakeTempoSparse();   // save its value in sparse representation
-    }
-    else
-       aTDL = new tTempoDenseLine(this->mNbVar); // else allocate new dense vect
+   tTempoDenseLine *  aTDL = nullptr;
+   tLine ** aLow = mHeapDL.Lowest();
+   // We reuse the current dense line if heap is not empty and lowest value is not in current use and heap has reach limit
+   if ((aLow!=nullptr) && (*aLow)->CanRecycle() &&  (mHeapDL.Sz() >= mNbDLTempo))
+   {
+         // !!  two following line dont commute, as aLow points to Heap[0], if pop, this alterate Low ...
+	 aTDL = (*aLow)->MakeTempoSparse();   // save its value in sparse representation and return the dense freeed
+         mHeapDL.Pop();
+   }
+   else
+   {
+         aTDL = new tTempoDenseLine(this->mNbVar); // else allocate new dense vect
+   }
 
-    aL2Dense.MakeTempoDense(aTDL); // Put sparse rep in dense
-    mHeapDL.Push(&aL2Dense);  // Put it in the heap for possible recycling
+   aL2Dense.MakeTempoDense(aTDL); // Put sparse rep in dense
+   mHeapDL.Push(&aL2Dense);  // Put it in the heap for possible recycling
 }
 
 template<class Type> void  cSparseLeasSqtAA<Type>::HeapUpdate(tLine & aDenseL)
@@ -640,8 +676,80 @@ template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix()
 
 template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
-	MMVII_INTERNAL_ERROR("SparseLeasSqtAA<Type>::AddObsWithTmpUK");
+// StdOut() << "cSparseLeasSqtAA<Type>::AddObsWithTmpUK \n";
+
+    //  1 - Compute the reduce schurr matrix
+    mBufSchurr.CompileSubst(aSetSetEq);
+    const std::vector<size_t> & aVInd = mBufSchurr.VIndexUsed();
+
+
+        // 1.2 is mNbDLTempo was over dimensionned, make it grow,  no harm ...
+    mNbDLTempo = std::max(mNbDLTempo,(int)mBufSchurr.VIndexUsed().size());
+
+    // 2 - Uncompress the line used in this substitution, try to mininize work, often they would be already uncompress from 
+    // previous jobs
+
+        // 2-1 SetCanRecycle to  all non always dense, so they have higher priority (so update heap), memorize sparse line
+    std::vector<tLine *> aVSparseL;
+    for (const auto & anInd : aVInd)
+    {
+        tLine * aLine = mtAA.at(anInd);
+	if (aLine->State() != eLineSLSqtAA::eLS_AlwaysDense)  // Nothing to dow for always dense lines
+	{
+	    aLine->SetCanRecycle(false);   // The line used cannot be recycled as longs as this step was not processed
+	    if (aLine->State() == eLineSLSqtAA::eLS_TempoDense)
+	    {
+                 mHeapDL.UpDate(aLine);
+	    }
+	    else
+            {
+                 aVSparseL.push_back(aLine);
+            }
+	}
+    }
+
+        // 2-2 Put the sparse line in dense representation
+    for (const auto & aPtrSL :aVSparseL)
+    {
+        SetTempoDenseLine(*aPtrSL);
+    }
+
+    // 3 - Update the heap, 
+    //     const std::vector<size_t> &  aVI = mBSC->VIndexUsed();
+
+    const cDenseVect<Type> &   atARhsS = mBufSchurr.tARhsSubst() ;
+    const cDenseMatrix<Type> & atAAS =   mBufSchurr.tAASubst() ;
+
+    for (size_t aIndRed=0 ;  aIndRed<aVInd.size() ; aIndRed++)
+    {
+        size_t anInd = aVInd.at(aIndRed);
+        mtARhs(anInd) += atARhsS(aIndRed);
+        tLine * aLine = mtAA.at(anInd);
+	aLine->AddLineMatr(aIndRed,atAAS,aVInd);
+	FakeUseIt(aLine);
+    }
+
+
+    // 4 - Update the heap, 
+    for (const auto & anInd : mBufSchurr.VIndexUsed())
+    {
+        tLine * aLine = mtAA.at(anInd);
+	if (aLine->State() != eLineSLSqtAA::eLS_AlwaysDense)  // Nothing to dow for always dense lines
+	{
+	    aLine->SetCanRecycle(true);   // The line can be recycled
+            mHeapDL.UpDate(aLine);        // take into account in heap-priority
+	}
+    }
+	// MMVII_INTERNAL_ERROR("SparseLeasSqtAA<Type>::AddObsWithTmpUK");
 }
+/*
+enum class eLineSLSqtAA
+{
+      eLS_AlwaysDense,   ///< line that will be always dense (as probably internal parameters)
+      eLS_TempoDense,    ///< line temporary dense
+      eLS_TempoSparse    ///< line temporary sparse
+};
+*/
 
 /* *********************************** */
 /*                                     */

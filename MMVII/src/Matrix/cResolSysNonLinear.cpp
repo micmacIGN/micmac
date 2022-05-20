@@ -700,6 +700,7 @@ void BenchSSRNL(cParamExeBench & aParam)
 
 
      OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,10,false);
+     OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,10,true);
 
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,10,true);
      OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,10,true);

@@ -295,6 +295,8 @@ class cSetIntDyn
                }
           }
           size_t NbElem() const {return mVIndOcc.size();}
+	  /// Generally order is of no importance, but if it has, can sort it in increasing order
+	  void SortInd();
 
           std::vector<bool>    mOccupied;  ///< direct acces to the belonging
           std::vector<size_t>  mVIndOcc;   ///< list  of element
