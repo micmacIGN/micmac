@@ -269,6 +269,82 @@ template <class Type> class  cBufSchurrSubst
 };
 
 
+/**  Class for weighting residuals : compute the vector of weight from a 
+     vector of residual; default return {1.0,1.0,...}
+ */
+template <class Type> class cResidualWeighter
+{
+       public :
+            typedef std::vector<Type>     tStdVect;
+
+            cResidualWeighter();
+            virtual tStdVect WeightOfResidual(const tStdVect &) const;
+       private :
+
+};
+
+/**  Class for solving non linear system of equations
+ */
+template <class Type> class cResolSysNonLinear
+{
+      public :
+          typedef NS_SymbolicDerivative::cCalculator<Type>  tCalc;
+          typedef cLinearOverCstrSys<Type>                  tSysSR;
+          typedef cDenseVect<Type>                          tDVect;
+          typedef cSparseVect<Type>                         tSVect;
+          typedef std::vector<Type>                         tStdVect;
+          typedef std::vector<int>                          tVectInd;
+          typedef cResolSysNonLinear<Type>                  tRSNL;
+          typedef cInputOutputRSNL<Type>                    tIO_TSNL;
+          typedef cResidualWeighter<Type>                   tResidualW;
+
+	  /// basic constructor, using a mode of matrix + a solution  init
+          cResolSysNonLinear(eModeSSR,const tDVect & aInitSol);
+	  ///  constructor  using linear system, allow finer control
+          cResolSysNonLinear(tSysSR *,const tDVect & aInitSol);
+	  /// destructor 
+          ~cResolSysNonLinear();
+
+          /// Accessor
+          const tDVect  &    CurGlobSol() const;
+          /// Value of a given num var
+          const Type  &    CurSol(int aNumV) const;
+
+          /// Solve solution,  update the current solution, Reset the least square system
+          const tDVect  &    SolveUpdateReset() ;
+
+          /// Add 1 equation fixing variable
+          void   AddEqFixVar(const int & aNumV,const Type & aVal,const Type& aWeight);
+          /// Add equation to fix variable to current value
+          void   AddEqFixCurVar(const int & aNumV,const Type& aWeight);
+
+          /// Basic Add 1 equation , no bufferistion, no schur complement
+          void   CalcAndAddObs(tCalc *,const tVectInd &,const tStdVect& aVObs,const tResidualW & = tResidualW());
+
+          /**  Add 1 equation in structure aSetIO ,  who will accumulate all equation of a given temporary set of unknowns
+	       relatively basic 4 now because don't use parallelism of tCalc
+	  */
+          void  AddEq2Subst (cSetIORSNL_SameTmp<Type> & aSetIO,tCalc *,const tVectInd &,const tStdVect& aVTmp,
+                             const tStdVect& aVObs,const tResidualW & = tResidualW());
+	  /** Once "aSetIO" has been filled by multiple calls to  "AddEq2Subst",  do it using for exemple schurr complement
+	   */
+          void  AddObsWithTmpUK (const cSetIORSNL_SameTmp<Type> & aSetIO);
+     private :
+          cResolSysNonLinear(const tRSNL & ) = delete;
+
+          /// Add observations as computed by CalcVal
+          void   AddObs(const std::vector<tIO_TSNL>&);
+
+          /** Bases function of calculating derivatives, dont modify the system as is
+              to avoid in case  of schur complement */
+          void   CalcVal(tCalc *,std::vector<tIO_TSNL>&,bool WithDer,const tResidualW & );
+
+          int        mNbVar;       ///< Number of variable, facility
+          tDVect     mCurGlobSol;  ///< Curent solution
+          tSysSR*    mSys;         ///< Sys to solve equations, equation are concerning the differences with current solution
+};
+
+
 
 
 
