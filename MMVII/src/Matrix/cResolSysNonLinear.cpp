@@ -429,7 +429,7 @@ template <class Type>  class  cBenchNetwork
           typedef cResolSysNonLinear<Type>  tSys;
           typedef NS_SymbolicDerivative::cCalculator<Type>  tCalc;
 
-          cBenchNetwork(eModeSSR aMode,int aN,bool WithSchurr);
+          cBenchNetwork(eModeSSR aMode,int aN,bool WithSchurr,cParamSparseNormalLstSq * = nullptr);
           ~cBenchNetwork();
 
           int   N() const;
@@ -458,14 +458,27 @@ template <class Type>  class  cBenchNetwork
 /*                                          */
 /* ======================================== */
 
-template <class Type> cBenchNetwork<Type>::cBenchNetwork(eModeSSR aMode,int aN,bool WithSchurr) :
+template <class Type> cBenchNetwork<Type>::cBenchNetwork
+                      (
+		            eModeSSR aMode,
+                            int aN,
+			    bool WithSchurr,
+			    cParamSparseNormalLstSq * aParam
+		      ) :
     mN         (aN),
     mWithSchur (WithSchurr),
     mNum       (0)
 {
      // Initiate Pts of Networks,
      std::vector<Type> aVCoord0;
+
+     std::vector<cPt2di> aVPix;
      for (const auto& aPix: cRect2::BoxWindow(mN))
+         aVPix.push_back(aPix);
+
+     aVPix = RandomOrder(aVPix);
+
+     for (const auto& aPix: aVPix)
      {
          tPNet aP(aPix,*this);
          mVPts.push_back(aP);
@@ -476,10 +489,10 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork(eModeSSR aMode,int aN,b
 	 }
      }
      // Initiate system for solving
-     if (aMode==eModeSSR::eSSR_LsqNormSparse)
+     if ((aMode==eModeSSR::eSSR_LsqNormSparse)  && (aParam!=nullptr))
      {
-         cParamSparseNormalLstSq aParam(3.0,4,9);
-	 cLeasSq<Type>*  aSys =  cLeasSq<Type>::AllocSparseNormalLstSq(aVCoord0.size(),aParam);
+         //cParamSparseNormalLstSq aParam(3.0,4,9);
+	 cLeasSq<Type>*  aSys =  cLeasSq<Type>::AllocSparseNormalLstSq(aVCoord0.size(),*aParam);
          mSys = new tSys(aSys,cDenseVect<Type>(aVCoord0));
      }
      else
@@ -675,9 +688,9 @@ template class cBenchNetwork<tREAL8>;
 /*                                          */
 /* ======================================== */
 
-void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr)
+void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
 {
-     cBenchNetwork<tREAL8> aBN(aMode,aNb,WithSchurr);
+     cBenchNetwork<tREAL8> aBN(aMode,aNb,WithSchurr,aParam);
      double anEc =100;
      for (int aK=0 ; aK < 8 ; aK++)
      {
@@ -699,13 +712,31 @@ void BenchSSRNL(cParamExeBench & aParam)
      if (! aParam.NewBench("SSRNL")) return;
 
 
-     OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,10,false);
-     OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,10,true);
+     for (const auto &  aNb : {3,4,5,10})
+     {
+        cParamSparseNormalLstSq aParamSq(3.0,4,9);
+        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq);
+        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
 
-     OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,10,true);
-     OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,10,true);
-     OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,10,false);
-     OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,10,false);
+        OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
+        OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
+        OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,false);
+        OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,false);
+     }
+
+
+     for (int aK=0 ; aK<20 ; aK++)
+     {
+        int aNb = 3+ RandUnif_N(3);
+	int aNbVar = 2 * Square(2*aNb+1);
+        cParamSparseNormalLstSq aParamSq(3.0,RandUnif_N(3),RandUnif_N(10));
+
+	for (const auto & aI:  RandSet(aNbVar/10,aNbVar))
+           aParamSq.mVecIndDense.push_back(size_t(aI));
+
+        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq);
+        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
+     }
 
 
      aParam.EndBench();
