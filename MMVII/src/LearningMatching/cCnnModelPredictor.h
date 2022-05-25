@@ -49,6 +49,9 @@ class aCnnModelPredictor
        torch::Tensor PredictPrjHead(Fast_ProjectionHead Net,tTImV2 aTilL,cPt2di aPSz);
        
        torch::Tensor PredictMSNet(MSNet Net,std::vector<tTImV2> aTilL,cPt2di aPSz);
+       torch::Tensor PredictMSNetTile(MSNet_Attention mNet, tTImV2 aPatchLV, cPt2di aPSz);
+       torch::Tensor PredictMSNetAtt(MSNet_Attention Net,std::vector<tTImV2> aTilL,cPt2di aPSz);
+       torch::Tensor PredictMSNetHead(MSNetHead mNet, std::vector<tTImV2> aPatchLV, cPt2di aPSz);
        
        torch::Tensor PredictMSNet1(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNet2(MSNet Net,torch::Tensor X);
@@ -64,7 +67,11 @@ class aCnnModelPredictor
        
        void  PopulateModelPrjHead(Fast_ProjectionHead Net);
        
-       void  PopulateModelMSNet(MSNet Net);
+       void PopulateModelMSNet(MSNet Net);
+       void PopulateModelMSNetAtt(MSNet_Attention Net);
+       void PopulateModelMSNetHead(MSNetHead Net);
+       
+       
        
        void PopulateModelFastandHead(FastandHead Network);
        void PopulateModelSimNet(SimilarityNet Network);
