@@ -40,12 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <torch/torch.h>
 #include <torch/script.h>
 #include <ATen/ATen.h>
-/*#include <iostream>
-#include <stdio.h>
-#include <math.h>
-#include <string>
-#include <fstream>
-#include <vector>*/
 #include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -108,6 +102,7 @@ aCnnModelPredictor::aCnnModelPredictor(std::string anArchitecture, std::string a
 	mSetModelBinaries = *(aICNMModel->Get(aModelPat));
     mDirModel=aDirModel;
 }
+
 /***************************************************************************/
 torch::Tensor aCnnModelPredictor::ReadBinaryFile(std::string filename, torch::Tensor Host)
 {
@@ -153,6 +148,10 @@ void aCnnModelPredictor::PopulateModelFromBinary(ConvNet_Fast Network)
 	}
 }
 
+/*void PopulateModelFromFolder(MSNet Model, std::string FolderLocation)
+{
+     Load named tensors from folder location
+}*/
 /***********************************************************************/
 void aCnnModelPredictor::PopulateModelFromBinaryWithBN(ConvNet_FastBn Network)
 {
@@ -322,7 +321,6 @@ void aCnnModelPredictor::PopulateModelPrjHead(Fast_ProjectionHead Network)
     torch::load(Network,aModel);
     //StdOut()<<"TORCH LOAD  "<<"\n";
 }
-
 /***********************************************************************/
 void aCnnModelPredictor::PopulateModelMSNet(MSNet Network)
 {
@@ -331,7 +329,24 @@ void aCnnModelPredictor::PopulateModelMSNet(MSNet Network)
     torch::load(Network,aModel);
     //StdOut()<<"TORCH LOAD  "<<"\n";
 }
-
+/***********************************************************************/
+void aCnnModelPredictor::PopulateModelMSNetAtt(MSNet_Attention Network)
+{
+    //StdOut()<<"TO LOAD MODEL "<<"\n";
+    std::string aModel=mDirModel+mSetModelBinaries.at(0); // just one pickled model 
+    torch::load(Network,aModel);
+    //StdOut()<<"TORCH LOAD  "<<"\n";
+}
+/***********************************************************************/
+void aCnnModelPredictor::PopulateModelMSNetHead(/*MSNetHead Network*/ torch::jit::script::Module & Network)
+{
+    //StdOut()<<"TO LOAD MODEL "<<"\n";
+    
+    std::string aModel=mDirModel+mSetModelBinaries.at(0); // just one pickled model 
+    Network=torch::jit::load(aModel);
+    //torch::load(Network,aModel);
+    StdOut()<<"TORCH LOAD  "<<"\n";
+}
 /***********************************************************************/
 void aCnnModelPredictor::PopulateModelSimNet(SimilarityNet Network)
 {
@@ -435,6 +450,7 @@ void aCnnModelPredictor::PopulateSlowModelFromBinary(ConvNet_Slow Network)
 		}
 	}
 }
+
 /***********************************************************************/
 
 cPt2di aCnnModelPredictor::GetWindowSize(ConvNet_Fast Network)
@@ -730,6 +746,94 @@ torch::Tensor aCnnModelPredictor::PredictMSNet(MSNet mNet, std::vector<tTImV2> a
       (a4ScaleTens.size(1)==4)  
     );*/
     auto output=mNet->forward(aPAllScales).squeeze();
+    return output;
+    
+}
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictMSNetTile(/*MSNet_Attention*/torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz)
+{
+	torch::Device device(torch::kCPU);
+	torch::NoGradGuard no_grad;
+	mNet.eval();
+    tREAL4 ** mPatchLData=aPatchLV.DIm().ExtractRawData2D();
+    torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+    // 4 scale tensor is needed for now test by passing the same tensor at each stage of the network 
+    /*torch::Tensor a4ScaleTens=aPL.repeat_interleave(4,1);
+    std::cout<<" a4ScaleTens size "<<a4ScaleTens.sizes()<<std::endl;
+    assert
+    (
+      (a4ScaleTens.size(1)==4)  
+    );*/
+    torch::jit::IValue inp(aPL);
+    std::vector<torch::jit::IValue> allinp={inp};
+    //std::cout<<"IVALUE CREATED "<<std::endl; 
+    auto out=mNet.forward(allinp);
+    auto output=out.toTensor().squeeze();
+    return output;
+    //auto output=mNet->forward(a4ScaleTens).squeeze();
+    //return output;
+}
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictMSNetAtt(MSNet_Attention mNet, std::vector<tTImV2> aPatchLV, cPt2di aPSz)
+{
+	torch::Device device(torch::kCPU);
+	torch::NoGradGuard no_grad;
+	mNet->eval();
+    torch::Tensor aPAllScales=torch::empty({4,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+    //std::cout<<"SIZE OF MSCALE TILES "<<aPatchLV.size()<<std::endl;
+    for (int cc=0;cc<(int) aPatchLV.size();cc++)
+    {
+        //StdOut()<<"Size of tile Mul Scale is "<<aPatchLV.at(cc).DIm().Sz()<<"\n";
+        tREAL4 ** mPatchLData=aPatchLV.at(cc).DIm().ExtractRawData2D();
+        torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+        aPAllScales.index_put_({cc},aPL);
+    }
+    
+    aPAllScales=aPAllScales.unsqueeze(0);
+    // 4 scale tensor is needed for now test by passing the same tensor at each stage of the network 
+    /*torch::Tensor a4ScaleTens=aPL.repeat_interleave(4,1);
+    std::cout<<" a4ScaleTens size "<<a4ScaleTens.sizes()<<std::endl;
+    assert
+    (
+      (a4ScaleTens.size(1)==4)  
+    );*/
+
+    auto output=mNet->forward(aPAllScales).squeeze();
+    return output;
+}
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictMSNetHead(/*MSNetHead*/ torch::jit::script::Module mNet, std::vector<tTImV2> aPatchLV, cPt2di aPSz)
+{
+	torch::Device device(torch::kCPU);
+	torch::NoGradGuard no_grad;
+    //mNet.to(device);
+	mNet.eval();
+    torch::Tensor aPAllScales=torch::empty({(int) aPatchLV.size(),aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));;
+    
+    for (int cc=0;cc<(int) aPatchLV.size();cc++)
+    {
+        tREAL4 ** mPatchLData=aPatchLV.at(cc).DIm().ExtractRawData2D();
+        torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+        aPAllScales.index_put_({cc},aPL);
+    }
+    // 4 scale tensor is needed for now test by passing the same tensor at each stage of the network 
+    /*torch::Tensor a4ScaleTens=aPL.repeat_interleave(4,1);
+    std::cout<<" a4ScaleTens size "<<a4ScaleTens.sizes()<<std::endl;
+    assert
+    (
+      (a4ScaleTens.size(1)==4)  
+    );*/
+    aPAllScales=aPAllScales.unsqueeze(0);
+    StdOut()<<"Patches "<<aPAllScales.sizes()<<"\n";
+    /*for (auto module :mNet->named_parameters())
+    {
+        StdOut()<<"Param "<<module.name<<"\n";
+    }*/
+    torch::jit::IValue inp(aPAllScales);
+    std::vector<torch::jit::IValue> allinp={inp};
+    //std::cout<<"IVALUE CREATED "<<std::endl; 
+    auto out=mNet.forward(allinp);
+    auto output=out.toTensor().squeeze();
     return output;
 }
 /**********************************************************************************************************************/

@@ -4,12 +4,12 @@
 #include "include/MMVII_Tpl_Images.h"
 #include "include/MMVII_TplLayers3D.h"
 
+
 // included model cnn 
 #include "cCnnModelPredictor.h"
 
 /*
    C = (1-(1-L) ^2)
-
 */
 
 namespace MMVII
@@ -76,10 +76,10 @@ struct cOneModele
         //FastandHead mNetFastMVCNNMLP; // Fast MVCNN + MLP for Multiview Features Aggregation
         // LATER SLOW NET 
         ConvNet_Slow mNetSlowStd=ConvNet_Slow(3,4,4); // Conv Kernel= 3x3 , Convlayers=4, Fully Connected Layers =4
-        
+        //MSNet_Attention mMSNet=MSNet_Attention(32);
+        torch::jit::script::Module mMSNet;
         
 };
-
 static const std::string TheNameCorrel  = "MMVIICorrel";
 static const std::string TheNameExtCorr = "ExternCorrel";
 static const std::string TheNameCNNCorr = "MVCNNCorrel";
@@ -92,8 +92,8 @@ static const std::string TheFastArchReg = "MVCNNFastReg";
 static const std::string TheFastStandard = "MCNNStd";
 static const std::string TheFastArchWithMLP= "MVCNNFastMLP";
 static const std::string TheFastArchDirectSim="MVCNNFastDirectSIM";
+static const std::string TheMSNet="MSNet";
 //.....................................................
-
 
 class cAppliFillCubeCost : public cAppliLearningMatch
 {
@@ -449,6 +449,22 @@ cOneModele::cOneModele
                     }
 	         }   // DO NOT APPLY PADDING TO GET A VECTOR EMBDEDDING OF THE PATCH 
 	         // PADDING IS USED WHENEVER THE WHOLE TILE IS CONCERNED 
+        }
+        else if(mArchitecture==TheMSNet)
+        { 
+            mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir);
+            mCNNPredictor->PopulateModelMSNetHead(mMSNet);
+    
+            mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
+            //Add padding to maintain the same size as output 
+            /*auto common=mMSNet->common; 
+            for (auto& module : common->children())
+             {
+                if(auto* conv2d = module->as<torch::nn::Conv2d>())
+                    {
+                        conv2d->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                    }
+             } */
         }
     }
 }
@@ -832,6 +848,7 @@ int  cAppliFillCubeCost::Exe()
         if (aVMods.at(0)->mArchitecture==TheFastArch)   FeatSize=184;
         if (aVMods.at(0)->mArchitecture==TheFastArchWithMLP)   FeatSize=184;
         if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)   FeatSize=184;
+        if (aVMods.at(0)->mArchitecture==TheMSNet) FeatSize=32 ;
         torch::Tensor LREmbeddingsL=torch::empty({1,FeatSize,aSzL.y(),aSzL.x()},torch::TensorOptions().dtype(torch::kFloat32));
         torch::Tensor LREmbeddingsR=torch::empty({1,FeatSize,aSzR.y(),aSzR.x()},torch::TensorOptions().dtype(torch::kFloat32));
         if (aVMods.at(0)->mArchitecture==TheFastStandard)
@@ -864,6 +881,11 @@ int  cAppliFillCubeCost::Exe()
                LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictSimNetConv(aVMods.at(0)->mNetFastMVCNNDirectSIM,this->IMNorm1(),aSzL);
                LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictSimNetConv(aVMods.at(0)->mNetFastMVCNNDirectSIM,this->IMNorm2(),aSzR);
              }
+        else if (aVMods.at(0)->mArchitecture==TheMSNet)
+             {
+               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictMSNetTile(aVMods.at(0)->mMSNet,this->mIm1,aSzL);
+               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictMSNetTile(aVMods.at(0)->mMSNet,this->mIm2,aSzR);
+            }
         
         StdOut()  <<" EMBEDDING TENSOR SIZE LEFT  "<<LREmbeddingsL.sizes()<<"\n";
         StdOut()  <<" EMBEDDING TENSOR SIZE RIGHT  "<<LREmbeddingsR.sizes()<<"\n";
@@ -940,19 +962,17 @@ int  cAppliFillCubeCost::Exe()
                             bool   aTabOk[2]={false,false};
                             // Get location of the pixel for which to compute correl given the limits of lower and upper layers (NAPPES)
                             cPt2di aPC2Z(round_ni(aPC20.x()+aDz*this->StepZ()),aPC20.y());  // INTEG FOR NOW   
-                            //StdOut() <<" COORDINATE AT RIGHT IM "<<aPC2Z.x()<<"\n";
                             for (int aK=0 ; aK<int(aVMods.size()) ; aK++)
                                     {
                                         bool IsInside=WindInside4BL(this->DI1(),aPC1,aVMods[aK]->mCNNWin) && WindInside4BL(this->DI2(),aPC2Z,aVMods[aK]->mCNNWin);
                                         if(IsInside)
-                                        {
-                                            //auto aVecR=LREmbeddingsR.slice(2,aPC2Z.y(),aPC2Z.y()+1).slice(3,aPC2Z.x(),aPC2Z.x()+1);
+                                        {   
                                             using namespace torch::indexing;
-                                            //StdOut() <<" shape element embedding "<<LREmbeddingsR.sizes()<<"\n";
+                                            //auto aPCI1=LREmbeddingsL.index({Slice(0,FeatSize,1),Slice(aPC1.y()-1,aPC1.y()+2,1),Slice(aPC1.x()-1,aPC1.x()+2,1)});
+                                            //auto aPCI2=LREmbeddingsR.index({Slice(0,FeatSize,1),Slice(aPC2Z.y()-1,aPC2Z.y()+2,1),Slice(aPC2Z.x()-1,aPC2Z.x()+2,1)});
+                                            //auto aSim=F::cosine_similarity(aPCI1, aPCI2, F::CosineSimilarityFuncOptions().dim(0)).mean().squeeze();
                                             auto aVecR=LREmbeddingsR.index({Slice(0,FeatSize,1),aPC2Z.y(),aPC2Z.x()});
-                                            //StdOut() <<" shape element "<<aVecR.sizes()<<"\n";
-                                            auto aSim=torch::mm(aVecL.view({1,FeatSize}),aVecR.view({FeatSize,1}));
-                                            //auto aSim=F::cosine_similarity(aVecL, aVecR, F::CosineSimilarityFuncOptions().dim(1)).squeeze();
+                                            auto aSim=F::cosine_similarity(aVecL, aVecR, F::CosineSimilarityFuncOptions().dim(0)).squeeze();
                                             //StdOut() <<aSim<<"\n";
                                             aTabCost[aK] =(1-(double)aSim.item<float>())/2.0 ;
                                             aTabOk[aK]=true;

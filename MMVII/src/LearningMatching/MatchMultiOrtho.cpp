@@ -104,7 +104,8 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     ConvNet_FastBn  mNetFastMVCNN=ConvNet_FastBn(3,7);// Conv Kernel= 3x3 , Convlayers=7
     ConvNet_FastBnRegister mNetFastMVCNNReg=ConvNet_FastBnRegister(3,5,1,112,torch::kCPU);// changed from 64 to 112
     Fast_ProjectionHead mNetFastPrjHead=Fast_ProjectionHead(3,5,1,1,112,112,64,torch::kCPU);
-    MSNet mMSNet=MSNet(32);
+    //MSNet_Attention mMSNet=MSNet_Attention(32);
+    MSNetHead mMSNet=MSNetHead(32);
     FastandHead mNetFastMVCNNMLP=FastandHead(3,5,4,1,184,184,9,64,torch::kCPU);
     SimilarityNet mNetFastMVCNNDirectSIM=SimilarityNet(3,5,4,1,184,184,64,torch::kCPU);
     //FastandHead mNetFastMVCNNMLP; // Fast MVCNN + MLP for Multiview Features Aggregation
@@ -122,7 +123,8 @@ static const std::string TheFastandPrjHead = "MVCNNFastProjHead";
 static const std::string TheFastStandard = "MCNNStd";
 static const std::string TheFastArchWithMLP= "MVCNNFastMLP";
 static const std::string TheFastArchDirectSim="MVCNNFastDirectSIM";
-static const std::string TheMSNet="MSNet";
+//static const std::string TheMSNet="MSNetHead";
+static const std::string TheMSNet="MSNet_Attention";
 /* *************************************************** */
 /*                                                     */
 /*              cAppliMatchMultipleOrtho               */
@@ -248,23 +250,24 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
             }
         }
         if(mArchitecture==TheMSNet)
-        {
-            
-            
+        { 
             mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir);
-            mCNNPredictor->PopulateModelMSNet(mMSNet);
-            
+            mCNNPredictor->PopulateModelMSNetHead(mMSNet);
+    
             mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
-				
             //Add padding to maintain the same size as output 
-            auto common=mMSNet->common; 
-//             common->apply(display_weights);
-            //size_t Sz=common->size();
-            /*StdOut()<<"Aggregatior network size "<<Sz<<"\n";
-            StdOut()<<" Layer Name "<<common->named_children()[0].key()<<"\n";*/
-            common->children()[0]->as<torch::nn::Conv2dImpl>()->options.padding()=1;
-            common->children()[3]->as<torch::nn::Conv2dImpl>()->options.padding()=1;
-            common->children()[6]->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+            
+            
+            /*
+                auto common=mMSNet->common; 
+                for (auto& module : common->children())
+                {
+                    if(auto* conv2d = module->as<torch::nn::Conv2d>())
+                        {
+                            conv2d->as<torch::nn::Conv2dImpl>()->options.padding()=1;
+                        }
+                }
+             */
         }
         if(mArchitecture==TheFastArchWithMLP)
         {
@@ -395,7 +398,6 @@ void cAppliMatchMultipleOrtho::CorrelMaster
 
 
 
-
 void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
 {
    MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
@@ -433,7 +435,6 @@ void cAppliMatchMultipleOrtho::ComputeSimilByCorrelMaster()
 	aDImSim.SetV(aP,1-aAvgCorr);
    }
 }
-
 
 
 void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMaster(std::vector<torch::Tensor> * AllOrthosEmbeddings)
@@ -513,7 +514,6 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMaster(std::vector<tor
    }
 }
 
-
 void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::vector<torch::Tensor> * AllOrthosEmbeddings)
 {
    MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
@@ -528,7 +528,9 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::ve
         // compute element wise cross product along feature size dimension 
         auto aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(0),AllOrthosEmbeddings->at(k),0).squeeze();
         AllSimilarities->push_back(aCrossProd);
+        // Here display similarity images of tiles 
     }
+    
     // Free all ortho OneOrthoEmbeding 
     delete AllOrthosEmbeddings; 
     //std::cout<<" feature vector size : "<<FeatSize<<std::endl;
@@ -604,13 +606,15 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterMaxMoy(std::vect
     std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;;
     for (int k=1; k<mNbIm; k++)
     {
+        
         // compute element wise cross product along feature size dimension 
         auto aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(0),AllOrthosEmbeddings->at(k),0).squeeze();
-        //StdOut()<<"Cross Product values "<<aCrossProd<<"\n";
+        StdOut()<<"Cross Product values "<<aCrossProd.min()<<"   "<<aCrossProd.max()<<"\n";
         AllSimilarities->push_back(aCrossProd);
     }
     // Free all ortho OneOrthoEmbeding 
     delete AllOrthosEmbeddings; 
+
     //std::cout<<" feature vector size : "<<FeatSize<<std::endl;
    for (const auto & aP : aDImSim)
    {
@@ -1049,7 +1053,8 @@ int  cAppliMatchMultipleOrtho::Exe()
                                 OneOrthoEmbeding=mCNNPredictor->PredictMSNet1(mMSNet,CommonEmbedding);
                                 break;
                         }*/
-                        OneOrthoEmbeding=mCNNPredictor->PredictMSNet(mMSNet,mVOrtho.at(i),aSzOrtho);
+                    
+                        OneOrthoEmbeding=mCNNPredictor->PredictMSNetHead(mMSNet,mVOrtho.at(i),aSzOrtho);
                     }
                 else if (mArchitecture==TheFastArchWithMLP)
                     {
@@ -1059,8 +1064,9 @@ int  cAppliMatchMultipleOrtho::Exe()
                     {
                         OneOrthoEmbeding=mCNNPredictor->PredictSimNetConv(mNetFastMVCNNDirectSIM,mVOrtho.at(i).at(0),aSzOrtho);
                     }
-                 StdOut()  <<" EMBEDDING FOR VECTOR OR FULL RESOLUTION ORTHO : "<<i<<OneOrthoEmbeding.sizes()<<"\n";
                 
+                 StdOut()  <<" EMBEDDING FOR VECTOR OR FULL RESOLUTION ORTHO : "<<i<<OneOrthoEmbeding.sizes()<<"\n";
+            
                 // store in relevant vector 
                 OrthosEmbeddings->push_back(OneOrthoEmbeding);
             }
@@ -1070,7 +1076,7 @@ int  cAppliMatchMultipleOrtho::Exe()
             if (mArchitecture==TheMSNet)
             {
                 //ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(OrthosEmbeddings); // Size 4*numberofOrthos
-                ComputeSimilByLearnedCorrelMasterMaxMoy(OrthosEmbeddings);
+                ComputeSimilByLearnedCorrelMasterEnhanced(OrthosEmbeddings);
             }
             else
             {
