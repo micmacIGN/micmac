@@ -45,6 +45,7 @@ template <class Type>  cDataIm3D<Type>::cDataIm3D(const cPt3di & aSz,Type * aRaw
     cDataTypedIm<Type,3> (cPt3di(0,0,0),aSz,aRawDataLin,aModeInit),
     mRawData3D           (cMemManager::AllocMat<tPVal>(Sz().y(),Sz().z()))
 {
+
     Type *  aRDL =  tBI::mRawDataLin ;   // Pointer to raw data, will be increased in loop
     for (int aZ=0 ; aZ<Sz().z() ;aZ++)
     {

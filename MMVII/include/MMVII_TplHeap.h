@@ -8,7 +8,8 @@ template <class Type,class Compare> class cKBestValue;  // efficient memorizatio
 template <class Type> class DefaultParamHeap; // usable as 3rd template param of cIndexedHeap when only non idexed heap is needed
 
 
-#define HEAP_NO_INDEX -1
+// #define HEAP_NO_INDEX -1
+static constexpr int HEAP_NO_INDEX = -1;
 
 /**  Class to use for non indexable heap */
 template <class Type> class DefaultParamHeap

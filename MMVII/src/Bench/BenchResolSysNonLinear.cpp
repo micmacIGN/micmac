@@ -44,32 +44,38 @@ template <class Type>  class  cPNetwork
       public :
             typedef cBenchNetwork<Type> tNetW;
 
-	    cPNetwork(const cPt2di & aPTh,tNetW &);
+             /// Create a point with its number, grid position and the network itself
+	    cPNetwork(int aNumPt,const cPt2di & aPTh,tNetW &);
 
-	    cPtxd<Type,2>  PCur() const;  ///< Acessor
+            /**  Cur point ,  for "standard" point just access to the unknown NumX,NumY
+                 for "schurs" points, as they are not stored, make an estimation with neighbourhood
+            */
+	    cPtxd<Type,2>  PCur() const;  
 	    cPtxd<Type,2>  PTh() const;  ///< Acessor
 
 	    /// Are the two point linked  (will their distances be an observation compensed)
 	    bool Linked(const cPNetwork<Type> & aP2) const;
 
-            cPt2di         mPosTh;  // Theoreticall position; used to compute distances and check accuracy recovered
-	    const tNetW *  mNetW;    //  link to the network itself
-            cPtxd<Type,2>  mPosInit; // initial position : pertubation of theoretical one
-	    bool           mFrozen;  // is this point frozen
-	    bool           mFrozenX; // is abscisse of this point frozen
-	    bool           mTmpUk;   // is it a temporay point (point not computed, for testing schur complement)
-	    int            mNumX;    // Num of x unknown
-	    int            mNumY;    // Num of y unknown
+            int            mNumPt;  ///< Num in vector
+            cPt2di         mPosTh;  ///< Theoreticall position; used to compute distances and check accuracy recovered
+	    const tNetW *  mNetW;    ///<  link to the network itself
+            cPtxd<Type,2>  mPosInit; ///< initial position : pertubation of theoretical one
+	    bool           mFrozen;  ///< is this point frozen
+	    bool           mFrozenX; ///< is abscisse of this point frozen
+	    bool           mTmpUk;   ///< is it a temporay point (point not computed, for testing schur complement)
+	    int            mNumX;    ///< Num of x unknown
+	    int            mNumY;    ///< Num of y unknown
 
-	    std::list<int> mLinked;   // if Tmp/UK the links start from tmp, if Uk/Uk does not matters
+	    std::list<int> mLinked;   ///< list of linked points, if Tmp/UK the links start from tmp, if Uk/Uk order does not matters
 };
 
 template <class Type>  class  cBenchNetwork
 {
 	public :
           typedef cPNetwork<Type>           tPNet;
+          typedef tPNet *                   tPNetPtr;
           typedef cResolSysNonLinear<Type>  tSys;
-          typedef NS_SymbolicDerivative::cCalculator<Type>  tCalc;
+          typedef NS_SymbolicDerivative::cCalculator<tREAL8>  tCalc;
 
           cBenchNetwork(eModeSSR aMode,int aN,bool WithSchurr,cParamSparseNormalLstSq * = nullptr);
           ~cBenchNetwork();
@@ -81,16 +87,33 @@ template <class Type>  class  cBenchNetwork
 
 	  Type OneItereCompensation();
 
+          /// Access to CurSol of mSys
 	  const Type & CurSol(int aK) const;
+
+          /// Acces to a point from its number
 	  const tPNet & PNet(int aK) const {return mVPts.at(aK);}
 
+          /// Acces to a point from pixel value
+	  tPNet & PNetOfGrid(const cPt2di  & aP) {return *(PNetPtrOfGrid(aP));}
+          /// Is a Pixel in the grid [-N,N]^2
+          bool IsInGrid(const cPt2di  & aP)  const
+          {
+               return (std::abs(aP.x())<=mN) && (std::abs(aP.y())<=mN) ;
+          }
 	private :
+          /// Acces to reference of a adress if point from pixel value
+	  tPNetPtr & PNetPtrOfGrid(const cPt2di  & aP) {return mMatrP[aP.y()+mN][aP.x()+mN];}
 	  int   mN;                    ///< Size of network is  [-N,N]x[-N,N]
+          int   mSzM;                  ///<  1+2*aN  = Sz of Matrix of point
 	  bool  mWithSchur;            ///< Do we test Schurr complement
 	  int   mNum;                  ///< Current num of unknown
 	  std::vector<tPNet>  mVPts;   ///< Vector of point of unknowns coordinate
+          tPNet ***           mMatrP;  ///< Indexed matrice of points, give basic spatial indexing
 	  tSys *              mSys;    ///< Sys for solving non linear equations 
 	  tCalc *             mCalcD;  ///< Equation that compute distance & derivate/points corrd
+          cRect2              mBoxPix; ///< Box of pixel containing the points
+
+
 };
 
 /* ======================================== */
@@ -107,13 +130,16 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
 			    cParamSparseNormalLstSq * aParam
 		      ) :
     mN         (aN),
+    mSzM       (1+2*aN),
     mWithSchur (WithSchurr),
-    mNum       (0)
+    mNum       (0),
+    mMatrP     (cMemManager::AllocMat<tPNetPtr>(mSzM,mSzM)),
+    mBoxPix    (cRect2::BoxWindow(mN))
 {
 
      // generate in VPix a regular grid, put them in random order for testing more config in matrix
      std::vector<cPt2di> aVPix;
-     for (const auto& aPix: cRect2::BoxWindow(mN))
+     for (const auto& aPix: mBoxPix)
          aVPix.push_back(aPix);
      aVPix = RandomOrder(aVPix);
 
@@ -121,55 +147,65 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
      // Initiate Pts of Networks in mVPts,
      for (const auto& aPix: aVPix)
      {
-         tPNet aP(aPix,*this);
-         mVPts.push_back(aP);
-	 if (! aP.mTmpUk)
+         tPNet aPNet(mVPts.size(),aPix,*this);
+         mVPts.push_back(aPNet);
+
+	 if (! aPNet.mTmpUk)
 	 {
-             aVCoord0.push_back(aP.mPosInit.x());
-             aVCoord0.push_back(aP.mPosInit.y());
+             aVCoord0.push_back(aPNet.mPosInit.x());
+             aVCoord0.push_back(aPNet.mPosInit.y());
 	 }
      }
+     for (auto & aPNet : mVPts)
+         PNetPtrOfGrid(aPNet.mPosTh) = & aPNet;
+         
      
      // Initiate system "mSys" for solving
      if ((aMode==eModeSSR::eSSR_LsqNormSparse)  && (aParam!=nullptr))
      {
-         // case Normal sparse, create first the least square
+         // LEASTSQ:CONSTRUCTOR , case Normal sparse, create first the least square
 	 cLeasSq<Type>*  aLeasSQ =  cLeasSq<Type>::AllocSparseNormalLstSq(aVCoord0.size(),*aParam);
          mSys = new tSys(aLeasSQ,cDenseVect<Type>(aVCoord0));
      }
      else
      {
-         // other, just give the mode
+         // BASIC:CONSTRUCTOR other, just give the mode
          mSys = new tSys(aMode,cDenseVect<Type>(aVCoord0));
      }
 
      // compute links between Pts of Networks,
-     for (size_t aK1=0 ;aK1<mVPts.size() ; aK1++)
+     for (const auto& aPix: mBoxPix)
      {
-         for (size_t aK2=aK1+1 ;aK2<mVPts.size() ; aK2++)
-	 {
-             if (mVPts[aK1].Linked(mVPts[aK2]))
-	     {
-                // create the links, be careful that for Tmp unknown all the links start from Tmp
-		// this will make easier the regrouping of equation concerning the same tmp
-		// the logic of this lines of code take use the fact that K1 and K2 cannot be both Tmp
+	  tPNet &  aPN1 = PNetOfGrid(aPix);
+          for (const auto& aNeigh: cRect2::BoxWindow(aPix,1))
+          {
+              if (IsInGrid(aNeigh))
+              {
+	          tPNet &  aPN2 = PNetOfGrid(aNeigh);
+                  // Test on num to do it only one way
+                  if ((aPN1.mNumPt>aPN2.mNumPt) && aPN1.Linked(aPN2))
+	          {
+                       // create the links, be careful that for Tmp unknown all the links start from Tmp
+		       // this will make easier the regrouping of equation concerning the same tmp
+		       // the logic of this lines of code take use the fact that K1 and K2 cannot be both Tmp
 		
-                if (mVPts[aK1].mTmpUk)  // K1 is Tmp and not K2, save K1->K2
-                    mVPts[aK1].mLinked.push_back(aK2);
-		else if (mVPts[aK2].mTmpUk) // K2 is Tmp and not K1, save K2->K2
-                    mVPts[aK2].mLinked.push_back(aK1);
-		else // None Tmp, does not matters which way it is stored
-                    mVPts[aK1].mLinked.push_back(aK2);  
-	     }
-	 }
+                       if (aPN1.mTmpUk)  // K1 is Tmp and not K2, save K1->K2
+                          aPN1.mLinked.push_back(aPN2.mNumPt);
+		       else if (aPN2.mTmpUk) // K2 is Tmp and not K1, save K2->K2
+                          aPN2.mLinked.push_back(aPN1.mNumPt);
+		       else // None Tmp, does not matters which way it is stored
+                          aPN1.mLinked.push_back(aPN2.mNumPt);  
+	          }
+             }
+          }
      }
-
      // create the "functor" that will compute values and derivates
      mCalcD =  EqConsDist(true,1);
 }
 
 template <class Type> cBenchNetwork<Type>::~cBenchNetwork()
 {
+    cMemManager::FreeMat<tPNetPtr>(mMatrP,mSzM);
     delete mSys;
     delete mCalcD;
 }
@@ -193,6 +229,7 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
             aNbEc++;
             aSomEc += Norm2(aPN.PCur() -aPN.PTh());
         }
+        // EQ:FIXVAR
 	// Fix X and Y for the two given points
 	if (aPN.mFrozenX)   // If X is frozenn add equation fixing X to its theoreticall value
            mSys->AddEqFixVar(aPN.mNumX,aPN.PTh().x(),aWeightFix);
@@ -207,6 +244,7 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
          // If PN1 is a temporary unknown we will use schurr complement
          if (aPN1.mTmpUk)
 	 {
+            // SCHURR:CALC
             cSetIORSNL_SameTmp<Type> aSetIO; // structure to grouping all equation relative to PN1
 	    cPtxd<Type,2> aP1= aPN1.PCur(); // current value, required for linearization
             std::vector<Type> aVTmp{aP1.x(),aP1.y()};  // vectors of temporary
@@ -214,22 +252,23 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
             for (const auto & aI2 : aPN1.mLinked)
             {
                 const tPNet & aPN2 = mVPts.at(aI2);
-	        std::vector<int> aVInd{aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns for this equation
-                std::vector<Type> aVObs{Norm2(aPN1.PTh()-aPN2.PTh())}; // compute observations=target distance
+	        //std::vector<int> aVIndMixt{aPN2.mNumX,aPN2.mNumY,-1,-1};  // Compute index of unknowns for this equation
+	        std::vector<int> aVIndMixt{-1,-1,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns for this equation
+                std::vector<Type> aVObs{Type(Norm2(aPN1.PTh()-aPN2.PTh()))}; // compute observations=target distance
                 // Add eq in aSetIO, using CalcD intantiated with VInd,aVTmp,aVObs
-		mSys->AddEq2Subst(aSetIO,mCalcD,aVInd,aVTmp,aVObs);
+		mSys->AddEq2Subst(aSetIO,mCalcD,aVIndMixt,aVTmp,aVObs);
 	    }
 	    //  StdOut()  << "Id: " << aPN1.mPosTh << " NL:" << aPN1.mLinked.size() << "\n";
 	    mSys->AddObsWithTmpUK(aSetIO);
 	 }
 	 else
 	 {
-               // Simpler case no temporary unknown, just add equation 1 by 1
+               // BASIC:CALC Simpler case no temporary unknown, just add equation 1 by 1
                for (const auto & aI2 : aPN1.mLinked)
                {
                     const tPNet & aPN2 = mVPts.at(aI2);
 	            std::vector<int> aVInd{aPN1.mNumX,aPN1.mNumY,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns
-                    std::vector<Type> aVObs{Norm2(aPN1.PTh()-aPN2.PTh())};  // compute observations=target distance
+                    std::vector<Type> aVObs{Type(Norm2(aPN1.PTh()-aPN2.PTh()))};  // compute observations=target distance
                     // Add eq  using CalcD intantiated with VInd and aVObs
 	            mSys->CalcAndAddObs(mCalcD,aVInd,aVObs);
 	       }
@@ -250,7 +289,8 @@ template <class Type> const Type & cBenchNetwork<Type>::CurSol(int aK) const
 /*                                          */
 /* ======================================== */
 
-template <class Type> cPNetwork<Type>::cPNetwork(const cPt2di & aPTh,cBenchNetwork<Type> & aNet) :
+template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & aPTh,cBenchNetwork<Type> & aNet) :
+     mNumPt    (aNumPt),
      mPosTh    (aPTh),
      mNetW     (&aNet),
      mFrozen   (mPosTh==cPt2di(0,0)),  // fix origin
@@ -320,21 +360,13 @@ template <class Type> bool cPNetwork<Type>::Linked(const cPNetwork<Type> & aP2) 
    if (mPosTh== aP2.mPosTh) 
       return false;
 
-   //  Normal case, no temp unknown, link point regarding the 8-connexion
-   if ((!mTmpUk) && (!aP2.mTmpUk))
-      return NormInf(mPosTh-aP2.mPosTh) <=1;
-
    //  If two temporay point, they are not observable
    if (mTmpUk && aP2.mTmpUk)
       return false;
-   
-   // when conecting temporary to rest of network : reinforce the connexion
-   return    (std::abs(mPosTh.x()-aP2.mPosTh.x()) <=1)
-          && (std::abs(mPosTh.y()-aP2.mPosTh.y()) <=2) ;
+
+    return NormInf(mPosTh-aP2.mPosTh) <=1;
 }
 
-template class cPNetwork<tREAL8>;
-template class cBenchNetwork<tREAL8>;
 
 /* ======================================== */
 /*                                          */
@@ -345,20 +377,33 @@ template class cBenchNetwork<tREAL8>;
 /** Make on test with different parameter, check that after 10 iteration we are sufficiently close
     to "real" network
 */
-void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
+template<class Type> void  TplOneBenchSSRNL
+                           (
+                               eModeSSR aMode,
+                               int aNb,
+                               bool WithSchurr,
+                               cParamSparseNormalLstSq * aParam=nullptr
+                           )
 {
-     cBenchNetwork<tREAL8> aBN(aMode,aNb,WithSchurr,aParam);
+     Type aPrec = tElemNumTrait<Type>::Accuracy() ;
+     cBenchNetwork<Type> aBN(aMode,aNb,WithSchurr,aParam);
      double anEc =100;
      for (int aK=0 ; aK < 10 ; aK++)
      {
          anEc = aBN.OneItereCompensation();
-         // StdOut() << "ECc== " << anEc << "\n";
+         // StdOut() << "ECc== " << anEc /aPrec<< "\n";
      }
-     //StdOut() << "Fin-ECc== " << anEc << "\n";
+     // StdOut() << "Fin-ECc== " << anEc  / aPrec << " Nb=" << aNb << "\n";
      // getchar();
-     MMVII_INTERNAL_ASSERT_bench(anEc<1e-5,"Error in Network-SSRNL Bench");
+     MMVII_INTERNAL_ASSERT_bench(anEc<aPrec,"Error in Network-SSRNL Bench");
 }
 
+void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
+{
+    TplOneBenchSSRNL<tREAL4>(aMode,aNb,WithSchurr,aParam);
+    TplOneBenchSSRNL<tREAL8>(aMode,aNb,WithSchurr,aParam);
+    TplOneBenchSSRNL<tREAL16>(aMode,aNb,WithSchurr,aParam);
+}
 
 };
 
@@ -370,7 +415,7 @@ void BenchSSRNL(cParamExeBench & aParam)
 
 
      // Basic test, test the 3 mode of matrix , with and w/o schurr subst
-     for (const auto &  aNb : {3,4,5,10})
+     for (const auto &  aNb : {3,4,5})
      {
         cParamSparseNormalLstSq aParamSq(3.0,4,9);
 	// w/o schurr
@@ -379,9 +424,9 @@ void BenchSSRNL(cParamExeBench & aParam)
         OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,false);
 
 	// with schurr
-        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
-        OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
-        OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
+         OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
+         OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
+         OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
      }
 
 
@@ -396,8 +441,8 @@ void BenchSSRNL(cParamExeBench & aParam)
 	for (const auto & aI:  RandSet(aNbVar/10,aNbVar))
            aParamSq.mVecIndDense.push_back(size_t(aI));
 
-        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq); // w/o schurr
-        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq); // with schurr
+        TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq); // w/o schurr
+        TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq); // with schurr
      }
 
 

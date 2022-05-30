@@ -830,21 +830,30 @@ template<class Type>  void  cSparseLeasSqGC<Type>::AddObsWithTmpUK(const cSetIOR
 {
     aSetSetEq.AssertOk();
 
-    size_t aNbTmp = aSetSetEq.AllEq().at(0).mTmpUK.size();
     // For example parse all the camera seening a point
     for (const auto & aSetEq : aSetSetEq.AllEq())
     {
-         size_t aNbUk = aSetEq.mVInd.size();
+         //size_t aNbUk = aSetEq.mVIndUk.size();
          // For example parse the two equation on i,j residual
          for (size_t aKEq=0 ; aKEq<aSetEq.mVals.size() ; aKEq++)
 	 {
 		 const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
 		 Type aSW = Sqrt(aSetEq.WeightOfKthResisual(aKEq));
 
+                 size_t  aIndTmp =  this->mNbVar+mNbTmpVar;
+		 for (size_t aKGlob=0 ; aKGlob<aSetEq.mVIndGlob.size() ; aKGlob++)
+                 {
+                     int aInd = aSetEq.mVIndGlob[aKGlob];
+                     if (aInd<0)
+                        aInd = aIndTmp++;
+                     tTri aTri(mVRhs.size(),aInd,aVDer.at(aKGlob)*aSW);
+                     mVTri.push_back(aTri);
+                 }
                  // For example parse the intrinsic & extrinsic parameters
+/*
 		 for (size_t aKUk=0 ; aKUk<aNbUk ; aKUk++)
 		 {
-                     tTri aTri(mVRhs.size(),aSetEq.mVInd.at(aKUk),aVDer.at(aKUk)*aSW);
+                     tTri aTri(mVRhs.size(),aSetEq.mVIndUk.at(aKUk),aVDer.at(aKUk)*aSW);
                      mVTri.push_back(aTri);
 		 }
                  // For example parse the 3 unknown x,y,z of "temporary" point
@@ -853,10 +862,12 @@ template<class Type>  void  cSparseLeasSqGC<Type>::AddObsWithTmpUK(const cSetIOR
                      tTri aTri(mVRhs.size(),this->mNbVar+mNbTmpVar+aKTmp,aVDer.at(aNbUk+aKTmp)*aSW);
                      mVTri.push_back(aTri);
 		 }
+*/
 		 // Note the minus sign because we have a taylor expansion we need to annulate
                  mVRhs.push_back(-aSetEq.mVals.at(aKEq)*aSW);
 	 }
     }
+    size_t aNbTmp = aSetSetEq.AllEq().at(0).mVTmpUK.size();
     mNbTmpVar += aNbTmp;
 }
 

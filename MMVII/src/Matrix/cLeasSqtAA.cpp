@@ -57,7 +57,7 @@ template <class Type>
      mNbTmp = aSetSetEq.NbTmpUk();
      for (const auto & anEq : aSetSetEq.AllEq())
      {
-         for (const auto & anInd : anEq.mVInd)
+         for (const auto & anInd : anEq.mVIndUk)
              mSetInd.AddInd(anInd);
      }
      mSetInd.SortInd();
@@ -85,13 +85,26 @@ template <class Type>
      //  Compute the reduced  least square system
      for (const auto & aSetEq : aSetSetEq.AllEq())
      {
-         const std::vector<int> & aVI =   aSetEq.mVInd;
-	 size_t aNbI = aVI.size();
+         // const std::vector<int> & aVI =   aSetEq.mVIndUk;
+	 // size_t aNbI = aVI.size();
          for (size_t aKEq=0 ; aKEq<aSetEq.mVals.size() ; aKEq++)
 	 {
               mSV.Reset();
 	      const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
 
+              int aIndTmp = 0;
+              for (size_t aKGlob=0 ; aKGlob<aSetEq.mVIndGlob.size() ; aKGlob++)
+              {
+                   const Type  & aDer = aVDer.at(aKGlob);
+                   int aInd = aSetEq.mVIndGlob[aKGlob];
+                   if (aInd<0)
+                       mSV.AddIV(aIndTmp++,aDer);
+                   else
+                       mSV.AddIV(mNbTmp+mNumComp.at(aInd),aDer);
+                     
+              }
+
+/*
 	      // fill sparse vector with  "real" unknown
               for (size_t aKV=0 ; aKV< aNbI ; aKV++)
 	      {
@@ -103,6 +116,7 @@ template <class Type>
 	      {
                   mSV.AddIV((aKV-aNbI),aVDer.at(aKV));
 	      }
+*/
 	      // fill reduced normal equation
 	      mSysRed.AddObservation(aSetEq.WeightOfKthResisual(aKEq),mSV,-aSetEq.mVals.at(aKEq));
 	 }

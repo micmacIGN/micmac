@@ -3,6 +3,7 @@
 
 #include "include/MMVII_all.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
+#include <typeinfo>       // operator typeid
 
 using namespace NS_SymbolicDerivative;
 
@@ -22,12 +23,12 @@ class cDist2DConservation
 
     std::string FormulaName() const { return "Dist2DCons";}
 
-    template <typename tUk, typename tObs>
-             std::vector<tUk> formula
+    template <typename tUk> 
+             static std::vector<tUk> formula
                   (
                       const std::vector<tUk> & aVUk,
-                      const std::vector<tObs> & aVObs
-                  ) const
+                      const std::vector<tUk> & aVObs
+                  ) // const
     {
           const auto & x1 = aVUk[0];
           const auto & y1 = aVUk[1];
@@ -35,7 +36,7 @@ class cDist2DConservation
           const auto & y2 = aVUk[3];
 
           const auto & ObsDist  = aVObs[0];  
-	  const auto aCst1 = CreateCste(1.0,x1);
+	  const auto aCst1 = CreateCste(1.0,x1);  // create a symbolic formula for constant 1
 
 
           return { sqrt(square(x1-x2) + square(y1-y2))/ObsDist - aCst1 } ;
@@ -54,11 +55,11 @@ class cRatioDist2DConservation
 
     std::string FormulaName() const { return "RatioDist2DCons";}
 
-    template <typename tUk, typename tObs>
+    template <typename tUk> 
              std::vector<tUk> formula
                   (
                       const std::vector<tUk> & aVUk,
-                      const std::vector<tObs> & aVObs
+                      const std::vector<tUk> & aVObs
                   ) const
     {
           const auto & x1 = aVUk[0];
