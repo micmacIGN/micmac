@@ -81,7 +81,8 @@ a certain number of coordinates.
 \subsection{2d-Triangularion in this example}
 
 As we want the example to be as simple as possible, and also we want to use it for checking
-the correctness, the data will be different from a real one :
+the correctness, the data will be different from a real one , the figure~\ref{fig:NetFull} illustrates 
+this network:
 
 \begin{itemize}
     \item the "real" value of points will be positionned on a regular grid, typically we
@@ -107,6 +108,14 @@ constraint to the minimization :
 
 The two first constraint freeze the solution in translation, while the last one freeze the rotation.
 
+
+\begin{figure}
+\centering
+\includegraphics[width=12cm]{Methods/T90-NetFull.JPG}\caption{Network, case w/o schurr}\label{fig:NetFull}
+\end{figure}
+
+
+
 %---------------------------------------------
 
 \subsection{Use of schurr complement}
@@ -126,7 +135,7 @@ doing schurr elimination can reduce the system from $3000000$ unkwnon to $6000$.
 
 In our toy example, the schurr complement will be purely artificiall. When the
 {\tt WithSchurr}  option is activated, the network is modified in the following
-way :
+way , the figure~\ref{fig:NetSchurr} illustrates 
 
 \begin{itemize}
     \item all the points on the line $x=1$ are considered as temporay variable,
@@ -136,6 +145,11 @@ way :
     \item there will be no conexion between points of line $x=1$ (for example $(1,2)$
           and $(1,3)$ that were connected in previous case are non longer
 \end{itemize}
+
+\begin{figure}
+\centering
+\includegraphics[width=12cm]{Methods/T90-NetSchurr.JPG}\caption{Network, case with schurr}\label{fig:NetSchurr}
+\end{figure}
 
 %---------------------------------------------
 
