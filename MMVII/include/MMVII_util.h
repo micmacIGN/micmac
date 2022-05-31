@@ -276,6 +276,33 @@ class cMMVII_Duration
         tREAL8 mFrac;   // in second
 };
 
+/** Class for storing set of int , can be use econmically for sparse
+    big set, if recycledwith Clear() */
+ 
+class cSetIntDyn
+{
+     public :
+          cSetIntDyn(size_t aNb);  ///< Create empty set
+          cSetIntDyn(size_t aNb,const std::vector<size_t> & AddInit);  ///< Add initial values
+          void AddInd(size_t aK);  ///< Add an element, adpat sizeof vector
+          void Clear();
+          void AddIndFixe(size_t aK)  ///< Add an element, assume sizeof vector of
+          {
+               if (!mOccupied[aK])
+               {
+                   mOccupied[aK] = true;
+                   mVIndOcc.push_back(aK);
+               }
+          }
+          size_t NbElem() const {return mVIndOcc.size();}
+	  /// Generally order is of no importance, but if it has, can sort it in increasing order
+	  void SortInd();
+
+          std::vector<bool>    mOccupied;  ///< direct acces to the belonging
+          std::vector<size_t>  mVIndOcc;   ///< list  of element
+};
+
+
 
 };
 

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamMICMAC[2185] = {
+const char * theNameVar_ParamMICMAC[2186] = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -295,6 +295,7 @@ const char * theNameVar_ParamMICMAC[2185] = {
 "      <PxApply      Nb=\"?\"  Type=\"ePxApply\" Def=\"eApplyPx12\">       </PxApply>\n",
 "      <PatternSelFiltre Nb=\"?\" Type=\"cElRegex_Ptr\">    </PatternSelFiltre>\n",
 "      <NbIteration Nb=\"?\" Type=\"int\" Def=\"1\"> </NbIteration>\n",
+"      <NbItereIntern Nb=\"?\" Type=\"int\" Def=\"1\"> </NbItereIntern>\n",
 "      <AmplitudeSignal Nb=\"?\" Type=\"double\" Def=\"255\"> </AmplitudeSignal>\n",
 "      <UseIt Nb=\"?\" Type=\"bool\" Def=\"true\"> </UseIt>\n",
 "  </SpecFitrageImage>\n",

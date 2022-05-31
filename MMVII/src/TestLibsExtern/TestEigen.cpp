@@ -1,4 +1,6 @@
 #include "include/MMVII_all.h"
+#define GPP11 (__GNUC__>=11) // G++11
+
 /** \file TestEigen.cpp
     \brief File to test eigen library
 
@@ -140,6 +142,7 @@ void cAppli_MMVII_TestEigen::BenchCho()
 
 void cAppli_MMVII_TestEigen::TCho()
 {
+#if (GPP1)
     int aSzBrd = 3;
 
     Matrix<double,Dynamic,Dynamic>  m(mNbCho,mNbCho);
@@ -194,6 +197,7 @@ void cAppli_MMVII_TestEigen::TCho()
     VectorXd aSolCho = aDLT.solve(aB);
 
     StdOut() << "Check Sol " << (aSolCho - aSol).norm() << "\n";
+#endif
 }
     
 

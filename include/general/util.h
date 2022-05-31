@@ -141,7 +141,7 @@ class FBool
 template <class Type> class Pt2d;
 
 
-// Pour contourner le warning  [-Werror=unused-but-set-variable] de Gcc 4.6
+// Pour contourner le warning  [-Werror=unused-but-set-variable] de Gcc 4.6  FakeUseIt
 template <class Type> void GccUse(const Type & ) {}
 
 

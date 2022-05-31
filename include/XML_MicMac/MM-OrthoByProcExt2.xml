@@ -1,0 +1,194 @@
+<!--
+   The simplest MicMac exemple
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Muscale.xml  WorkDir=/home/marc/TMP/Visages/MPD/
+
+
+-->
+
+<ParamMICMAC>
+
+    <DicoLoc>
+        <Symb>   Im1=ESS301_fx00004_00211    </Symb>
+        <Symb>   ImPat=(ESS301_fx00004_00210|ESS301_fx00004_00212|ESS301_fx00005_00194|ESS301_fx00005_00195) </Symb>
+        <!-- <Symb>   ImPat=20_14299_Lvl02-Color </Symb>-->
+        <Symb> Post=tif     </Symb>
+        <Symb>  Ori=Compense-Figee3  </Symb>
+        <Symb>  MMNbProc=8    </Symb>
+    </DicoLoc>
+
+
+
+  <Section_Terrain>  
+
+      <IntervAltimetrie>
+             <ZIncCalc>0.0</ZIncCalc>
+      </IntervAltimetrie>
+      <IntervSpecialZInv >
+             <MulZMin >  0.9  </MulZMin>
+             <MulZMax >  1.1  </MulZMax>
+      </IntervSpecialZInv>
+
+     <Planimetrie>
+	    <ListePointsInclus>
+                    <Pt > 4000 4500   </Pt>
+                    <Pt > 6000  6500  </Pt>
+                    <Im >  ESS301_fx00004_00211.tif  </Im>
+             </ListePointsInclus>
+	     <!--
+         <MasqueTerrain>
+             <MT_Image> ${Im1}_Masq.tif </MT_Image>
+             <MT_Xml>   ${Im1}_Masq.xml </MT_Xml>
+         </MasqueTerrain>
+	     -->
+     </Planimetrie>
+
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <Im1>     ${Im1}.${Post} </Im1>
+          <ImPat> ${ImPat}.${Post} </ImPat>
+     </Images>
+
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori}  </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+
+     <!--  Apply Wallis filtering -->
+     <FiltreImageIn> 
+            <TypeFiltrage >  eFiltrageEqLoc  </TypeFiltrage>
+            <SzFiltrage   >       200.0      </SzFiltrage>
+            <NbItereIntern>  4 </NbItereIntern>
+	    <AmplitudeSignal> 1  </AmplitudeSignal>
+     </FiltreImageIn>
+
+
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+	      <!-- <ProportionClipMEC >  0.45 0.45 0.55 0.55 </ProportionClipMEC> -->
+      <ChantierFullImage1>  true </ChantierFullImage1>
+      <TypePyramImage >
+            <Resol >  2             </Resol>
+            <DivIm  >  16   </DivIm>
+            <TypeEl >  eFloat32Bits  </TypeEl>
+      </TypePyramImage>
+
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      2             </SzW>
+	 <!--
+             <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
+	 -->
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
+
+	     <ZDilatAlti>  3    </ZDilatAlti>
+             <ZDilatPlani> 4    </ZDilatPlani>
+	     <ZRegul>  0.02   </ZRegul>
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   7               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   3.0    </Px1PenteMax>
+            </ModulationProgDyn>
+
+            <CorrelAdHoc>
+		 <SzBlocAH> 300 </SzBlocAH>
+                 <TypeCAH>
+                      <MutiCorrelOrthoExt>
+                        <Cmd>MMVII DM4MatchMultipleOrtho </Cmd>
+                      <!--  <OrthFileModeleParams>./Model_Fast_Head/.*.pt</OrthFileModeleParams>
+                          <OrthFileModeleArch>MVCNNFastProjHead</OrthFileModeleArch> -->
+                        <DeltaZ> 50 </DeltaZ>
+                      </MutiCorrelOrthoExt>
+                 </TypeCAH>
+
+                 <CorrelMultiScale>
+                      <OneParamCMS>
+                           <SzW > 2 2 </SzW>
+                           <Sigma> 0.0 </Sigma>
+			   <Pds >  1.0 </Pds>  
+                      </OneParamCMS>
+                      <OneParamCMS>
+                           <SzW > 4 4 </SzW>
+                           <Sigma> 2.0 </Sigma>
+			   <Pds >  1.0 </Pds>  
+                      </OneParamCMS>
+                      <OneParamCMS>
+                           <SzW > 8 8 </SzW>
+                           <Sigma> 4.0 </Sigma>
+			   <Pds >  1.0 </Pds>  
+                      </OneParamCMS>
+                </CorrelMultiScale>
+		 <!--
+		 -->
+
+            </CorrelAdHoc>
+		   
+
+
+
+        </EtapeMEC>
+	     
+        <EtapeMEC> 
+                 <DeZoom >        32        </DeZoom> 
+        </EtapeMEC>
+
+        <EtapeMEC> 
+                 <DeZoom >        16        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        8        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        4        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        2        </DeZoom> 
+        </EtapeMEC>
+
+        <EtapeMEC> 
+                 <DeZoom >        1        </DeZoom> 
+        </EtapeMEC>
+
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D  </GeomMNT> 
+</Section_Results>
+
+<Section_WorkSpace >
+     <DefTileFile>  30000 </DefTileFile>
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC>  MEC-Ortho_MICMAC_5/  </TmpMEC>
+     <TmpResult>  MEC-Ortho_MICMAC_5/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess>  0 </ByProcess>
+
+     <!--
+       <ByProcess>  ${MMNbProc} </ByProcess>
+     -->
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+

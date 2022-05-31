@@ -385,7 +385,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 		ElFclose(aFP);
 		}
 			
-		if ( glist!=NULL ) delete glist;
+		if ( glist!=NULL ) free(glist); // G++11 delete glist;
 		if ( plist!=NULL ) delete plist;
 			
 			

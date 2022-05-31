@@ -784,11 +784,11 @@ template <typename TypeDist>  class cEqDist
      
     std::string FormulaName() const { return "EqDist_" + mDist.NameModel();}
 
-    template <typename tUk, typename tObs>
+    template <typename tUk> 
              std::vector<tUk> formula
                   (
                       const std::vector<tUk> & aVUk,
-                      const std::vector<tObs> & aVObs
+                      const std::vector<tUk> & aVObs
                   ) const
     {
         return  mDist.PProjToImNorm(aVUk.at(0),aVUk.at(1),aVObs,0);
@@ -818,11 +818,11 @@ template <typename TypeDist>  class cEqIntr
     std::string FormulaName() const { return "EqIntr_" + mDist.NameModel();}
 
        /*  Capital letter for 3D variable/formulas and small for 2D */
-    template <typename tUk, typename tObs>
+    template <typename tUk> 
              std::vector<tUk> formula
                   (
                       const std::vector<tUk> & aVUk,
-                      const std::vector<tObs> & aVObs
+                      const std::vector<tUk> & aVObs
                   ) const
     {
 

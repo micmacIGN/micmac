@@ -35,18 +35,25 @@ template <class Type> void cDenseMatrix<Type>::MatMulInPlace(const tDM & aM1,con
     aMapThis.EW()  = aMap1.EW() * aMap2.EW();
 }
 
-template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse() const
+template <class Type>  void  cDenseMatrix<Type>::InverseInPlace(const tDM & aM)
 {
    tMat::CheckSquare(*this);
-   cDenseMatrix<Type> aRes(Sz().x(),Sz().y());
+   DIm().AssertSameArea(aM.DIm());
 
-   cConst_EigenMatWrap<Type> aMapThis(*this);
-   cNC_EigenMatWrap<Type> aMapRes(aRes);
+   cConst_EigenMatWrap<Type> aMapThis(aM);
+   cNC_EigenMatWrap<Type> aMapRes(*this);
 
    aMapRes.EW() = aMapThis.EW().inverse();
+}
+
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse() const
+{
+   cDenseMatrix<Type> aRes(Sz().x(),Sz().y());
+   aRes.InverseInPlace(*this);
 
    return aRes;
 }
+
 
 template <class Type> Type cDenseMatrix<Type>::Det() const
 {

@@ -4,6 +4,9 @@
 namespace MMVII
 {
 
+/**  A basic application for clipping 3d data ,  almost all the job is done in
+ * libraries so it essentially interface to command line */
+
 class cAppliCloudClip : public cMMVII_Appli
 {
      public :
@@ -45,12 +48,6 @@ cCollecSpecArg2007 & cAppliCloudClip::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
            << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file")
            << AOpt2007(mBinOut,CurOP_OutBin,"Generate out in binary format",{eTA2007::HDV})
-    // double aNoisePx =  1.0;
-    // double aThreshGrad =  0.4;
-          // << AOpt2007(mSzTile, "TileSz","Size of tile for spliting computation",{eTA2007::HDV})
-          // << AOpt2007(mSaveImFilter,"SIF","Save Image Filter",{eTA2007::HDV,eTA2007::Tuning})
-          // << AOpt2007(mCutsParam,"CutParam","Interval Pax + Line of cuts[PxMin,PxMax,Y0,Y1,....]",{{eTA2007::ISizeV,"[3,10000]"}})
-          // << AOpt2007(mSaveImFilter,"SIF","Save Image Filter",{eTA2007::HDV})
    ;
 }
 
@@ -59,7 +56,7 @@ int  cAppliCloudClip::Exe()
 {
    InitOutFromIn(mNameCloudOut,"Clip_"+mNameCloudIn);
 
-   cTriangulation3D  aTri(mNameCloudIn);
+   cTriangulation3D<tREAL8>  aTri(mNameCloudIn);
    cDataBoundedSet<tREAL8,3> * aMasq=  MMV1_Masq(aTri.BoxEngl(),DirProject()+mNameMasq);
    aTri.Filter(*aMasq);
    aTri.WriteFile(DirProject()+mNameCloudOut,mBinOut);

@@ -293,6 +293,7 @@
       <PxApply      Nb="?"  Type="ePxApply" Def="eApplyPx12">       </PxApply>
       <PatternSelFiltre Nb="?" Type="cElRegex_Ptr">    </PatternSelFiltre>
       <NbIteration Nb="?" Type="int" Def="1"> </NbIteration>
+      <NbItereIntern Nb="?" Type="int" Def="1"> </NbItereIntern>
       <AmplitudeSignal Nb="?" Type="double" Def="255"> </AmplitudeSignal>
       <UseIt Nb="?" Type="bool" Def="true"> </UseIt>
   </SpecFitrageImage>

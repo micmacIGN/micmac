@@ -628,15 +628,15 @@ using namespace delaunator;
 /*                                                             */
 /* *********************************************************** */
 
-cTriangulation2D::cTriangulation2D(const std::vector<cPt2dr>& aVPts) :
-	cTriangulation<2>(aVPts)
+template<class Type> cTriangulation2D<Type>::cTriangulation2D(const std::vector<tPt>& aVPts) :
+	cTriangulation<Type,2>(aVPts)
 {
 }
 
-void cTriangulation2D::MakeDelaunay()
+template<class Type>  void cTriangulation2D<Type>::MakeDelaunay()
 {
    SafeVector<double> aVC;
-   for (const auto & aPt : mVPts)
+   for (const auto & aPt : this->mVPts)
    {
 	aVC.push_back(aPt.x());
 	aVC.push_back(aPt.y());
@@ -645,11 +645,11 @@ void cTriangulation2D::MakeDelaunay()
    MMVII_INTERNAL_ASSERT_bench((aDel.triangles.size() %3)==0,"Bad comprehension of delaunay triangles");
    SafeVector<std::size_t> & aVTri1 = aDel.triangles;
 
-   ResetTopo();
+   this->ResetTopo();
    // Parse all triangle
    for (int aKt=0 ; aKt<int(aVTri1.size()) ; aKt+=3)
    {
-      AddFace(cPt3di(aVTri1[aKt],aVTri1[aKt+1],aVTri1[aKt+2]));
+      this->AddFace(cPt3di(aVTri1[aKt],aVTri1[aKt+1],aVTri1[aKt+2]));
    }
 }
 
@@ -663,15 +663,15 @@ void cTriangulation2D::MakeDelaunay()
 void BenchDelaunayVPts(const std::vector<cPt2dr> & aVP)
 {
 
-   cTriangulation2D aDelTri(aVP);
+   cTriangulation2D<tREAL8> aDelTri(aVP);
    aDelTri.MakeDelaunay();
    
    if (aVP.size()<=1000)
    {
        // Parse all triangle
-       for (int aKt=0 ; aKt<aDelTri.NbTri() ; aKt++)
+       for (int aKt=0 ; aKt<aDelTri.NbFace() ; aKt++)
        {
-           cTriangle2D aTri  =  aDelTri.KthTri(aKt);
+           cTriangle<tREAL8,2> aTri  =  aDelTri.KthTri(aKt);
 	   // Compute center circle circum
            cPt2dr aC = aTri.CenterInscribedCircle() ;
 	   // Compute min dist to this circle
@@ -719,7 +719,10 @@ void BenchDelaunayGrid(const cPt2di & aSz)
        aVP.push_back(ToR(aPix));
    }
    BenchDelaunayVPts(aVP);
-   for (int aK=0 ; aK<1 ; aK++) //  !!!! => when 2 generate a bug
+
+   int aNbLoop=1;
+   MMVII_INTERNAL_ASSERT_Unresolved(false,"Delaunay-memory-issue"); //  !!!! => when aNbLoop!=1  generate a bug
+   for (int aK=0 ; aK<aNbLoop ; aK++)
    {
        std::vector<cPt2dr> aV2 = RandomOrder(aVP);
        BenchDelaunayVPts(aV2);
@@ -753,5 +756,13 @@ void BenchDelaunay(cParamExeBench & aParam)
     aParam.EndBench();
 
 }
+
+/* *********************************************************** */
+/*                INSTANTIATION                                */
+/* *********************************************************** */
+
+template class cTriangulation2D<tREAL4>;
+template class cTriangulation2D<tREAL8>;
+template class cTriangulation2D<tREAL16>;
 
 };

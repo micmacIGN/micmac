@@ -50,10 +50,10 @@ void  Bench_cPt2dr()
    }
    // Bench Polar function is correct on some test values
    MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(1,1)-FromPolar(sqrt(2.0),M_PI/4.0))<1e-5,"cPt2r Bench");
-   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(-2,0)-FromPolar(2,-M_PI))<1e-5,"cPt2r Bench");
-   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,2)-FromPolar(2,M_PI/2.0))<1e-5,"cPt2r Bench");
-   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,-2)-FromPolar(2,3*M_PI/2.0))<1e-5,"cPt2r Bench");
-   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,-2)-FromPolar(2,7*M_PI/2.0))<1e-5,"cPt2r Bench");
+   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(-2,0)-FromPolar(2.0,-M_PI))<1e-5,"cPt2r Bench");
+   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,2)-FromPolar(2.0,M_PI/2.0))<1e-5,"cPt2r Bench");
+   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,-2)-FromPolar(2.0,3*M_PI/2.0))<1e-5,"cPt2r Bench");
+   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,-2)-FromPolar(2.0,7*M_PI/2.0))<1e-5,"cPt2r Bench");
    for (int aK=0 ; aK< 100; aK++)
    {
 

@@ -2024,30 +2024,15 @@ private:
 /*                                                            */
 /* ********************************************************** */
 
-/*
-class cTriangulation3D : public cTriangulation<3>
-{
-        public :
-            typedef cTriangulation<3>::tPt  tPt;
-           /// Constructor from file, include ply format, maybe later others (internals?)  if required
-           cTriangulation3D(const std::string &);
-           void WriteFile(const std::string &,bool isBinary) const;
-
-        private :
-	   /// Read/Write in ply format using 
-           void PlyInit(const std::string &);
-           void PlyWrite(const std::string &,bool isBinary) const;
-};
-*/
 
 using  namespace happly;
 
-void cTriangulation3D::PlyWrite (const std::string & aNameFile,bool isBinary) const
+template <class Type> void cTriangulation3D<Type>::PlyWrite (const std::string & aNameFile,bool isBinary) const
 {
    PLYData aPlyOut;
    //  convert Pts to array
    std::vector<std::array<double, 3>> aPlyPts;
-   for (const auto & aPts : mVPts)
+   for (const auto & aPts : this->mVPts)
    {
        std::array<double,3> anArray;
        for (int aK=0 ; aK<3 ; aK++)
@@ -2058,7 +2043,7 @@ void cTriangulation3D::PlyWrite (const std::string & aNameFile,bool isBinary) co
 
    //  convert faces to vect
    std::vector<std::vector<size_t>> aPlyFaces;
-   for (const auto & aFace : mVFaces)
+   for (const auto & aFace : this->mVFaces)
    {
        std::vector<size_t> aVect;
        // aVect.push_back(3);
@@ -2073,7 +2058,7 @@ void cTriangulation3D::PlyWrite (const std::string & aNameFile,bool isBinary) co
    aPlyOut.write(aNameFile,  (isBinary?happly::DataFormat::Binary:happly::DataFormat::ASCII));
 }
 
-void cTriangulation3D::PlyInit(const std::string & aNameFile)
+template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & aNameFile)
 {
   PLYData  aPlyF(aNameFile,false);
 
@@ -2082,8 +2067,8 @@ void cTriangulation3D::PlyInit(const std::string & aNameFile)
       std::vector<std::array<double, 3>> aVecPts = aPlyF.getVertexPositions() ;
       for (const auto & aPos : aVecPts)
       {
-	  cPt3dr aP(aPos.at(0),aPos.at(1),aPos.at(2));
-	  mVPts.push_back(aP);
+	  tPt aP(aPos.at(0),aPos.at(1),aPos.at(2));
+	  this->mVPts.push_back(aP);
       }
   }
 
@@ -2093,12 +2078,12 @@ void cTriangulation3D::PlyInit(const std::string & aNameFile)
       for (const auto & aFace : aVFace)
       {
 	  MMVII_INTERNAL_ASSERT_tiny(aFace.size()==3,"Bad face");
-	  AddFace(cPt3di(aFace[0],aFace[1],aFace[2]));
+	  this->AddFace(cPt3di(aFace[0],aFace[1],aFace[2]));
       }
   }
 }
 
-void cTriangulation3D::Bench()
+template <class Type> void cTriangulation3D<Type>::Bench()
 {
 /*
 	 There is a problem with testing on ply based on triangulation equality
@@ -2107,8 +2092,8 @@ void cTriangulation3D::Bench()
 */
     std::string aDirI = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ply/" ;
 
-    cTriangulation3D  aTriTxt3D(aDirI+"MeshTxt.ply");
-    cTriangulation3D  aTriBin3D(aDirI+"MeshBin.ply");
+    tTriangulation3D  aTriTxt3D(aDirI+"MeshTxt.ply");
+    tTriangulation3D  aTriBin3D(aDirI+"MeshBin.ply");
 
     MMVII_INTERNAL_ASSERT_Unresolved(aTriTxt3D.HeuristikAlmostEqual(aTriBin3D,1e-5,1e-5),"cTriangulation3D::Bench");
     //  With -1 on Tol Face : OK
@@ -2121,13 +2106,13 @@ void cTriangulation3D::Bench()
     aTriBin3D.WriteFile(aDirTmp+"MeshBin.ply",true);
     aTriTxt3D.WriteFile(aDirTmp+"MeshTxt.ply",false);
 
-    cTriangulation3D  aNewTriTxt3D(aDirTmp+"MeshTxt.ply");
-    cTriangulation3D  aNewTriBin3D(aDirTmp+"MeshBin.ply");
+    tTriangulation3D  aNewTriTxt3D(aDirTmp+"MeshTxt.ply");
+    tTriangulation3D  aNewTriBin3D(aDirTmp+"MeshBin.ply");
     //  With -1 on Tol Face : OK
     MMVII_INTERNAL_ASSERT_bench(aTriBin3D.HeuristikAlmostEqual(aNewTriBin3D,1e-5,1e-5),"cTriangulation3D::Bench");
     MMVII_INTERNAL_ASSERT_bench(aTriTxt3D.HeuristikAlmostEqual(aNewTriTxt3D,1e-5,1e-5),"cTriangulation3D::Bench");
 
-    cDataBoundedSet<tREAL8,3> * aMasq=  MMV1_Masq(aNewTriBin3D.BoxEngl(),aDirI+"AperiCloud_Basc_selectionInfo.xml");
+    cDataBoundedSet<tREAL8,3> * aMasq=  MMV1_Masq(aNewTriBin3D.BoxEngl().ToR(),aDirI+"AperiCloud_Basc_selectionInfo.xml");
     aNewTriBin3D.Filter(*aMasq);
     aNewTriBin3D.WriteFile(aDirTmp+"MeshFilteredBin.ply",true);
 
@@ -2139,14 +2124,20 @@ void BenchPly(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Ply")) return;
 
-    cTriangulation3D::Bench();
+    cTriangulation3D<tREAL8>::Bench();
+    cTriangulation3D<tREAL16>::Bench();
 
     aParam.EndBench();
 }
 
 
-cTriangulation3D::cTriangulation3D(const std::string & aName):
-	cTriangulation<3>(std::vector<tPt>())
+template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const tVPt& aVP,const tVFace & aVF) :
+	cTriangulation<Type,3>(aVP,aVF)
+{
+}
+
+template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const std::string & aName):
+	cTriangulation<Type,3>(std::vector<tPt>())
 {
     if (UCaseEqual(LastPostfix(aName),"ply"))
     {
@@ -2158,7 +2149,7 @@ cTriangulation3D::cTriangulation3D(const std::string & aName):
     }
 }
 
-void cTriangulation3D::WriteFile(const std::string & aName,bool isBinary) const
+template <class Type> void cTriangulation3D<Type>::WriteFile(const std::string & aName,bool isBinary) const
 {
     if (UCaseEqual(LastPostfix(aName),"ply"))
     {
@@ -2169,6 +2160,14 @@ void cTriangulation3D::WriteFile(const std::string & aName,bool isBinary) const
        MMVII_UsersErrror(eTyUEr::eBadPostfix,"Unknown postfix in cTriangulation3D");
     }
 }
+
+/* ========================== */
+/*     INSTANTIATION          */
+/* ========================== */
+
+template class cTriangulation3D<tREAL4>;
+template class cTriangulation3D<tREAL8>;
+template class cTriangulation3D<tREAL16>;
 
 
 

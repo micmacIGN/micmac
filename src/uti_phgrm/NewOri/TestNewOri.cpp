@@ -46,6 +46,14 @@ extern cSolBasculeRig  BascFromVRot
                      std::vector<Pt3dr> &              aVP1,
                      std::vector<Pt3dr> &              aVP2
                 );
+extern ElMatrix<double>   Std_RAff_C2M
+                   (
+                       const cRotationVect             & aRVect,
+                       const cConvExplicite            & aConv,
+                       bool & TrueRot
+                   );
+
+
 /*
 int TestNewOriImage_main(int argc,char ** argv)
 {
@@ -2443,6 +2451,7 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
 	//open the file to write to global poses
     std::fstream aFG;
     aFG.open(aOutGlob.c_str(), std::istream::out);
+    aFG << std::fixed << setprecision(8);
 
 	for (auto aImName : (*aSetName))
 	{
@@ -2451,7 +2460,14 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
 
         if (ELISE_fp::exist_file(aImOriName))
         {
-
+	    cOrientationConique aOC = StdGetObjFromFile<cOrientationConique>
+                                               (
+                                                   aImOriName,
+                                                   StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                                   "OrientationConique",
+                                                   "OrientationConique"
+                                               );
+            cOrientationExterneRigide anOER = aOC.Externe();
             Pt3dr aC = StdGetObjFromFile<Pt3dr>
                     (
                         aImOriName,
@@ -2467,10 +2483,12 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
                         "RotationVect"
                     );
 
-			aGlobalP[aImName] = new ElRotation3D (aC,ImportMat(aRV.CodageMatr().Val()),true);			
+            bool               aTrueR = true;
+	    ElRotation3D aCRot = Std_RAff_C2M(anOER,anOER.KnownConv().Val());
+	    aGlobalP[aImName] = new ElRotation3D (aCRot.tr(),aCRot.Mat(),aTrueR);			
 
-			ElRotation3D *aGlob = aGlobalP[aImName];
-			aFG << aImName << " " << aGlob->Mat()(0,0) << " " << aGlob->Mat()(1,0) << " " << aGlob->Mat()(2,0) << " " 
+	    ElRotation3D *aGlob = aGlobalP[aImName];
+	    aFG << aImName << " " << aGlob->Mat()(0,0) << " " << aGlob->Mat()(1,0) << " " << aGlob->Mat()(2,0) << " " 
 			    				  << aGlob->Mat()(0,1) << " " << aGlob->Mat()(1,1) << " " << aGlob->Mat()(2,1) << " "
   			    				  << aGlob->Mat()(0,2) << " " << aGlob->Mat()(1,2) << " " << aGlob->Mat()(2,2) << " "
 								  << aC.x << " " << aC.y << " " << aC.z << "\n";
@@ -2485,6 +2503,7 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
 	//open the file to write to similitudes
     std::fstream aFile;
     aFile.open(aOutSim.c_str(), std::istream::out);
+    aFile << std::fixed << setprecision(8) ;
 
 	//iterate over motions, compute the similitude and save
 	std::cout << "Read pairs\n";

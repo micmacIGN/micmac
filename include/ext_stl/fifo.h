@@ -58,13 +58,13 @@ template <class Type> class ElFilo
 
         void incr_capa()
         {
-           Type * NewTab = new Type [2*_capa];
-           for (INT kk=0; kk<_nb ; kk++)
+           Type * NewTab = new Type [2*_capa+1]; //G++11
+           for (int kk=0; kk<_nb ; kk++)
                 NewTab[kk] = _tab[kk];
 
             del_tab();
            _tab = NewTab;
-           _capa *= 2;
+           _capa = 2*_capa+1; // G++11
         }
 
 

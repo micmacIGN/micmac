@@ -1,10 +1,6 @@
 #include "include/MMVII_all.h"
 
 
-//#include "MMVII_EigenWrap.h"
-
-
-// using namespace Eigen;
 
 namespace MMVII
 {
@@ -36,6 +32,33 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Dup() const
     return  cDenseMatrix<Type>(Im().Dup());
 }
 
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ExtendSquareMat(int aNewSz,eModeInitImage aMode)
+{
+    this->CheckSquare(*this);
+    MMVII_INTERNAL_ASSERT_medium(aNewSz>=Sz().x(),"ExtendSquareMat cannot reduce size");
+
+    tDM aRes(aNewSz,aMode);
+
+    for (const auto & aPix : DIm())
+    {
+          aRes.DIm().SetV(aPix,DIm().GetV(aPix));
+    }
+    return aRes;
+}
+
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ExtendSquareMatId(int aNewSz)
+{
+     return  ExtendSquareMat(aNewSz,eModeInitImage::eMIA_MatrixId);
+}
+
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ExtendSquareMatNull(int aNewSz)
+{
+     return  ExtendSquareMat(aNewSz,eModeInitImage::eMIA_Null);
+}
+
+// eMIA_Null,
+
+
 template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVect<Type> & aV)
 {
     cDenseMatrix<Type> aRes(aV.Sz(),eModeInitImage::eMIA_Null);
@@ -49,6 +72,8 @@ template <class Type> Type  cDenseMatrix<Type>::L2Dist(const cDenseMatrix<Type> 
 {
    return DIm().L2Dist(aV.DIm());
 }
+
+
 
 
 template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareRegSVD
@@ -464,6 +489,25 @@ template <class Type> cUnOptDenseMatrix<Type> operator * (const cUnOptDenseMatri
    return aRes;
 }
 
+template <class Type> void cUnOptDenseMatrix<Type>::ResizeAndCropIn
+                           (
+                                const cPt2di & aP0,
+                                const cPt2di & aP1,
+                                const cUnOptDenseMatrix<Type> & aM2
+                           )
+{
+     tDIm & aDIm =   mIm.DIm();
+     //aDIm.ResizeI(aP1-aP0);
+     Resize(aP1-aP0);
+
+     aDIm.CropIn(aP0,aM2.DIm());
+}
+
+template <class Type> void cUnOptDenseMatrix<Type>::Resize(const cPt2di & aSz)
+{
+     static_cast<cRect2 &>(*this) = cRect2(aSz);
+     DIm().Resize(aSz);
+}
 
 /* ===================================================== */
 /* =====              INSTANTIATION                ===== */
