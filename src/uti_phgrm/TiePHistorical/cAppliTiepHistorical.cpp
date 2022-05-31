@@ -370,7 +370,7 @@ std::string cCommonAppliTiepHistorical::ComParamGetPatchPair()
 
 std::string cCommonAppliTiepHistorical::ComParamSuperGlue()
 {
-    cout<<"mViz "<<mViz<<endl;
+    //cout<<"mViz "<<mViz<<endl;
     std::string aCom ="";
     if (EAMIsInit(&mInput_dir))   aCom +=  " InDir=" + mDir + "/" + mInput_dir;
     //if (EAMIsInit(&mOutput_dir))   aCom +=  " SpGOutDir=" + mDir + "/" + mOutput_dir;
@@ -612,8 +612,10 @@ void cAppliTiepHistoricalPipeline::DoAll()
 
     if(mSkipCoReg == false)
     {
-        printf("**************************************1- rough co-registration************************************\n");
-        /********************1- rough co-registration******************/
+        printf("*****************************************************************************************************\n");
+        printf("************************************** (1) Rough co-registration ************************************\n");
+        printf("*****************************************************************************************************\n");
+        /******************** (1) rough co-registration******************/
 
         aOutDir = aBaseOutDir + "-CoReg";
 
@@ -622,6 +624,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         std::string aDSMImgGrayNameL = StdPrefix(aDSMImgNameL)+"_gray."+StdPostfix(aDSMImgNameL);
         std::string aDSMImgGrayNameR = StdPrefix(aDSMImgNameR)+"_gray."+StdPostfix(aDSMImgNameR);
 
+        cout<<"############################# (1.1) Preprocess DSM #############################"<<endl;
         /**************************************/
         /* 1.1 - DSM_Equalization and wallis filter */
         /**************************************/
@@ -648,12 +651,14 @@ void cAppliTiepHistoricalPipeline::DoAll()
         std::string aDSMImgGrayNameRenamedL = mCAS3D.GetFolderName(aDSMImgWallisDirL) + "." + StdPostfix(aDSMImgNameL);
         std::string aDSMImgGrayNameRenamedR = mCAS3D.GetFolderName(aDSMImgWallisDirR) + "." + StdPostfix(aDSMImgNameR);
 
+        cout<<"################################ (1.2) Match DSM ###############################"<<endl;
         std::string aFinalOutSH;
         if(mFeature == "SuperGlue")
         {
             /**************************************/
             /* 1.2 - GetPatchPair for rough co-registration */
             /**************************************/
+            cout<<"-------Get patch pairs (One-to-many tiling)-------"<<endl;
             aCom = "";
             //if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
             if (EAMIsInit(&mCoRegPatchLSz))      aCom += " PatchLSz=[" + ToString(mCoRegPatchLSz.x) + "," + ToString(mCoRegPatchLSz.y) + "]";
@@ -668,6 +673,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             //Rotate the master DSM 4 times and apply superGlue
             for(int i=0; i<4; i++)
             {
+                cout<<"-------"<<i+1<<"th rotation hypothesis-------"<<endl;
                 if(mRotateDSM != -1)
                 {
                     std::string aRotateDSMStr = "_R" + ToString(mRotateDSM);
@@ -710,7 +716,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
                 std::string aRANSACOutSH = "-" + StdPrefix(aHomoXml) + "-2DRANSAC";
                 StdCom("TestLib RANSAC R2D", aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + BLANK + "Dir=" + aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamRANSAC2D(), mExe);
                 int nInlier = GetTiePtNum(aOutDir, aDSMImgGrayNameRenamedL, aDSMImgGrayNameRenamedR, aRANSACOutSH);
-                cout<<i<<",,"<<aRANSACOutSH<<","<<nInlier<<endl;
+
+                cout<<"Tie points: Homol"<<aRANSACOutSH<<"; Inlier number: "<<nInlier<<endl;
 
                 if(nInlier > nMaxinlier)
                 {
@@ -765,6 +772,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         /**************************************/
         /* 1.6 - CreateGCPs for rough co-registration */
         /**************************************/
+        cout<<"###################### (1.3) Create virtual GCPs from DSMs ######################"<<endl;
         aCom = "";
         if (!EAMIsInit(&mCAS3D.mCreateGCPsInSH))   aCom +=  " CreateGCPsInSH=" + aFinalOutSH;
         if (EAMIsInit(&mOrthoDirL))               aCom +=  " OrthoDirL=" + mOrthoDirL;
@@ -778,6 +786,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         /**************************************/
         /* 1.7 - GCPBascule for rough co-registration */
         /**************************************/
+        cout<<"######################## (1.4) 3D Helmert transformation ########################"<<endl;
         aCom = "";
         std::string aImgListL = GetImgList(mCAS3D.mDir, mImgList1, mExe);
         StdCom("GCPBascule", aImgListL + BLANK + mOri1 + BLANK + mCoRegOri1 /*mCoRegOri.substr(4,mCoRegOri.length())*/ + BLANK + mCAS3D.mOut3DXml2 + BLANK + mCAS3D.mOut2DXml1, mExe);
@@ -792,16 +801,19 @@ void cAppliTiepHistoricalPipeline::DoAll()
 
     if(mSkipPrecise == false)
     {
-        printf("**************************************2- precise matching************************************\n");
+        printf("************************************************************************************************\n");
+        printf("************************************** (2) Precise matching ************************************\n");
+        printf("************************************************************************************************\n");
     /********************2- precise matching******************/
     aOutDir = aBaseOutDir + "-Precise";
 
     /**************************************/
     /* 2.1 - GetOverlappedImages */
     /**************************************/
+    cout<<"######################## (2.1) Get overlapped image pairs ########################"<<endl;
     if(mSkipGetOverlappedImages == false){
         //StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml", mExe);
-        StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH="+mPara3DH, mExe);
+        StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH="+mPara3DH, 1);
     }
 
     cout<<mCAS3D.mOutPairXml<<endl;
@@ -821,7 +833,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
     /**************************************/
     /* 2.2 - GetPatchPair for precise matching */
     /**************************************/
-    cout<<"-------GetPatchPair-------"<<endl;
+    //cout<<"-------GetPatchPair-------"<<endl;
+    cout<<"#################### (2.2) Get patch pairs (One-to-one tiling) ####################"<<endl;
     //if(mSkipGetPatchPair == false)
     {
     for(int i=0; i<nPairNum; i++)
@@ -829,7 +842,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         std::string aImg1 = aOverlappedImgL[i];
         std::string aImg2 = aOverlappedImgR[i];
 /*
-        cout<<"---------------------"<<i<<"th pair------------------"<<endl;
+        cout<<"####################-------"<<i<<"th pair####################----"<<endl;
         cout<<aImg1<<" "<<aImg2<<endl;
 */
         std::string aPrefix = StdPrefix(aImg1) + "_" + StdPrefix(aImg2) + "_" ;
@@ -871,6 +884,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
     std::string aCrossCorrOutSH;
 
     //if(mSkipTentativeMatch == false)
+    cout<<"######################### (2.3) Get tentative tie-points #########################"<<endl;
     {
     /**************************************/
     /* 2.3: option 1 - SuperGlue for precise matching */
@@ -1010,7 +1024,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
     /**************************************/
     //if(mSkipRANSAC3D == false)
     {
-        cout<<"-------RANSAC R3D-------"<<endl;
+        cout<<"#################### (2.4) Get enhanced tie-points (3D RANSAC) ####################"<<endl;
+        //cout<<"-------RANSAC R3D-------"<<endl;
     aComList.clear();
     for(int i=0; i<nPairNum; i++)
     {
@@ -1056,7 +1071,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
         /**************************************/
         /* 2.5 - CrossCorrelation for precise matching */
         /**************************************/
-        cout<<"-------CrossCorrelation-------"<<endl;
+        cout<<"################### (2.5) Get final tie-points (cross correlation) ##################"<<endl;
+        //cout<<"-------CrossCorrelation-------"<<endl;
     aComList.clear();
     for(int i=0; i<nPairNum; i++)
     {

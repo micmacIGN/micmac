@@ -145,6 +145,10 @@ void TiePtAddWeight(std::string aDir, std::string aInSH, std::string aOutSH, int
         printf("%d tie points in %s\n", nTiePtNum, aFile.c_str());
         nTiePtNumTotal += nTiePtNum;
         nFileNum++;
+
+        std::string aImg1 = aFile.substr(pos2+7,pos1-pos2-7);
+        std::string aImg2 = aFile.substr(pos1+1,aFile.length()-pos1-5);
+        printf("mm3d SEL ./ %s %s KH=NT SH=%s SzW=[600,600]\n", aImg1.c_str(), aImg2.c_str(), aInSH.c_str());
     }
     printf("nTiePtNumTotal: %d; nTiePtNumHalf: %d;  nFileNum: %d\nResult saved in %s\n", nTiePtNumTotal, int(nTiePtNumTotal/2), nFileNum, aDir_outSH.c_str());
 }
