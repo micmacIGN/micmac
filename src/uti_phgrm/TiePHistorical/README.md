@@ -47,27 +47,6 @@ The command ```TiePHistoP``` will launch the whole pipeline by automatically cal
   <br> 
 </center>
 
-**(1) For rough co-registration**
-
-- `TestLib DSM_Equalization`
-- `TestLib Wallis`
-- `TestLib GetPatchPair BruteForce`
-- `TestLib SuperGlue`
-- `TestLib MergeTiePt`
-- `TestLib RANSAC R2D`
-- `TestLib CreateGCPs`
-- `TestLib GCPBascule`
-
-**(2) For precise matching**
-
-- `TestLib GetOverlappedImages`
-- `TestLib GetPatchPair Guided`
-- `TestLib SuperGlue`
-- `TestLib MergeTiePt`
-- `TestLib GuidedSIFTMatch`
-- `TestLib RANSAC R3D`
-- `TestLib CrossCorrelation`
-
 You can set "Exe=0" to print all the subcommands instead of executing it.
 
 ## License
