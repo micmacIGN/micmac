@@ -40,14 +40,13 @@ The pipeline is accessible via
 
 ```mm3d TiePHistoP -help```
 
-The command ```TiePHistoP``` includes 2 main parts: (1) rough co-registration and (2) precise matching. It will launch the whole pipeline by automatically calling several subcommands as follows (the coloured rectangles represent the subcommands):
+The command ```TiePHistoP``` includes 2 main parts: (1) rough co-registration and (2) precise matching. It will launch the whole pipeline by automatically calling several subcommands as follows (the coloured rectangles represent the subcommands). You can set the parameter "Exe=0" to print all the subcommands instead of executing it.
 
 <center>
   <img src="Images/CommandMap.png" height=450pix/>
   <br> 
 </center>
 
-You can set "Exe=0" to print all the subcommands instead of executing it.
 
 ## License
 
