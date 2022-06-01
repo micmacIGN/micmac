@@ -10,6 +10,8 @@ For more details about our algorithm, please refer to:
 * [Slides](https://drive.google.com/uc?id=16sJZiY3sTZSRZKBzpy2IHVloCLj6pEwP)
 * [Blog](https://rfpt-sfpt.github.io/blog/feature%20matching/historical%20images/multi-epoch/pose%20estimation/self-calibration/2021/11/17/Lulin-ZHANG-LaSTIG.html)
 
+Our workflow is illustrated as follows:
+
 <p align="center">  <img src="Images/Workflow.png" width="550"> </p>
 <p align="center"> (a) Full workflow </p>
 
