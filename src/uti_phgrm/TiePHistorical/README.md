@@ -40,7 +40,7 @@ The pipeline is accessible via
 
 ```mm3d TiePHistoP -help```
 
-The command ```TiePHistoP``` will launch the whole pipeline by automatically calling several subcommands as follows:
+The command ```TiePHistoP``` includes 2 main parts: (1) rough co-registration and (2) precise matching. It will launch the whole pipeline by automatically calling several subcommands as follows (the coloured rectangles represent the subcommands):
 
 <center>
   <img src="Images/CommandMap.png" height=450pix/>
