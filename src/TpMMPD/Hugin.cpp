@@ -570,7 +570,7 @@ void cGHCFH_Appli::WriteCpInHFile(std::string aFile, cInterfChantierNameManipula
     std::map<std::string,cPic*> allPics;
     std::vector<cPicSize*> allPicSizes;
     std::cout<<"Found "<<aVImgs.size()<<" pictures."<<endl;
-    computeAllHomol(mDir,mPat,aVImgs,allHomols,aCK,allPics,false,0);
+    computeAllHomol(mDir,mPat,aVImgs,Pt2di(0,0),allHomols,aCK,allPics,false,0);
     
     std::vector<std::string> aVHLines;
     

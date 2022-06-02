@@ -60,6 +60,13 @@ cPicSize::cPicSize(Pt2di aSz) :
     //std::cout<<"Size constr: "<<this<<"   "<<aSz<<" => "<<mNbWin<<std::endl;
 }
 
+void cPicSize::print()
+{
+    std::cout<<"  * "<<getPicSz()
+         <<" => "<<getNbWin()
+         <<" windows of "<<getWinSz()<<" pixels"<<endl;
+}
+
 int cPointOnPic::mPointOnPicCounter=0;
 
 int cHomol::mHomolCounter=0;
@@ -273,14 +280,15 @@ bool cHomol::checkMerge(cHomol* aHomol)
 
 long cPic::mNbIm=0;
 
-cPic::cPic(std::string aDir, std::string aName) :
+cPic::cPic(std::string aDir, std::string aName, Pt2di fixedSz) :
     mName(aName),mPicSize(0),mId(mNbIm++)//,mNbWinUsed(0)
 {
     Tiff_Im aPic( Tiff_Im::StdConvGen(aDir+"/"+aName,1,false)); //to read file in Tmp-MM-Dir if needed
-    Pt2di aPicSize=aPic.sz();
+    Pt2di aPicSz=aPic.sz();
+    if (fixedSz.x&fixedSz.y) aPicSz = fixedSz;
     bool found=false;
     for (unsigned int i=0;i<mAllSizes.size();i++)
-      if (mAllSizes[i].getPicSz()==aPicSize)
+      if (mAllSizes[i].getPicSz()==aPicSz)
       {
         found=true;
         mPicSize=&(mAllSizes[i]);
@@ -288,11 +296,21 @@ cPic::cPic(std::string aDir, std::string aName) :
       }
     if (!found)
     {
-      mAllSizes.push_back(cPicSize(aPicSize));
+      cPicSize aPicSize = cPicSize(aPicSz);
+      bool sizeOk = aPicSize.getNbWin().x&&aPicSize.getNbWin().y&&aPicSize.getWinSz().x&&aPicSize.getWinSz().y;
+      if (!sizeOk)
+      {
+          std::cout<<"Bad size for image "<<aName<<":\n";
+          aPicSize.print();
+      }
+      ELISE_ASSERT(sizeOk,"ERROR: bad image size!");
+
+      mAllSizes.push_back(aPicSize);
       mPicSize=&(mAllSizes.back());
     }
     //cout<<"Pic windows: "<<mPicSize->getNbWin().x<<" "<<mPicSize->getNbWin().y<<endl;
-    mWinUsed.resize(mPicSize->getNbWin().x*mPicSize->getNbWin().y,false);
+    if (mPicSize)
+        mWinUsed.resize(mPicSize->getNbWin().x*mPicSize->getNbWin().y,false);
 }
 
 cPic::cPic(cPic * aPic) :
@@ -421,8 +439,7 @@ void cPic::selectHomols()
         if (x>=getPicSize()->getNbWin().x) x=getPicSize()->getNbWin().x-1;
         if (y>=getPicSize()->getNbWin().y) y=getPicSize()->getNbWin().y-1;
         //cout<<"old "<<x<<" "<<y<<" "<<aPoP->getHomol()->getPointOnPics().size()<<endl;
-
-        if (winBestMulti[y][x]<aPoP->getHomol()->getPointOnPicsSize()) //plante ici
+        if (winBestMulti[y][x]<aPoP->getHomol()->getPointOnPicsSize())
         {
             winBestMulti[y][x]=aPoP->getHomol()->getPointOnPicsSize();
             winBestPoP[y][x]=aPoP;
@@ -488,7 +505,6 @@ void cPic::fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameMani
         aPackOut1.StdPutInFile(aNameOut1);
         aPackOut2.StdPutInFile(aNameOut2);
     }
-    
 }
 
 std::vector<int> cPic::getStats(bool before)
@@ -516,7 +532,6 @@ bool compareNumberOfHomolPics (cPic* aPic1,cPic* aPic2)
 {
     return (aPic1->getAllPointsOnPicSize()<aPic2->getAllPointsOnPicSize());
 }
-
 
 //----------------------------------------------------------------------------
 
@@ -557,6 +572,7 @@ std::string CompiledKey2::getFile(std::string param1,std::string param2)
 void computeAllHomol(std::string aDirImages,
                      std::string aPatIm,
                      const std::vector<std::string> &aSetIm,
+                     Pt2di fixSz,
                      std::list<cHomol> &allHomolsIn,
                      CompiledKey2 &aCKin,
                      std::map<std::string,cPic*> &allPics,
@@ -565,17 +581,15 @@ void computeAllHomol(std::string aDirImages,
 {
     cPicSize::mTargetNumWindows=aNumWindows;
     for (unsigned int i=0;i<aSetIm.size();i++)
-        allPics.insert(std::make_pair<std::string,cPic*>(aSetIm[i]+aCKin.getSuffix(),new cPic(aDirImages,aSetIm[i])));
+        allPics.insert(std::make_pair<std::string,cPic*>(aSetIm[i]+aCKin.getSuffix(),new cPic(aDirImages,aSetIm[i],fixSz)));
 
     ELISE_ASSERT(aSetIm.size()>0,"ERROR: No image found!");
 
+    ELISE_ASSERT(cPic::getAllSizes()->size()>0,"ERROR: No suitable size found!");
+
     std::cout<<"All sizes: \n";
     for (unsigned int i=0;i<cPic::getAllSizes()->size();i++)
-    {
-        std::cout<<"  * "<<cPic::getAllSizes()->at(i).getPicSz()
-                 <<" => "<<cPic::getAllSizes()->at(i).getNbWin()
-                 <<" windows of "<<cPic::getAllSizes()->at(i).getWinSz()<<" pixels"<<endl;
-    }
+        cPic::getAllSizes()->at(i).print();
 
     //read all homol points --------------------------------------------
     std::cout<<"Read packs of homol points:"<<endl;
@@ -765,6 +779,7 @@ int schnaps_main(int argc,char ** argv)
     bool doShowStats=false;
     bool ExeWrite=true;
     bool DoNotFilter=false;
+    Pt2di fixSz=Pt2di(0,0);
     double aMinPercentCoverage=30;//if %coverage<aMinPercentCoverage, add to poubelle!
     bool aMove=false;//if true, move poubelle images to a folder named "Poubelle/"
     int aMinimalMultiplicity=1;
@@ -795,6 +810,7 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(veryStrict,"VeryStrict",true,"Be very strict with homols (remove any suspect), def=false")
                    << EAM(doShowStats,"ShowStats",true,"Show Homol points stats before and after filtering, def=false")
                    << EAM(DoNotFilter,"DoNotFilter",true,"Write homol after recomposition, without filterning, def=false")
+                   << EAM(fixSz,"FixSz",true,"Use a fixed size for image, do not read size in files")
                    << EAM(aPoubelleName,"PoubelleName",true,string("Where to write suspicious pictures names, def=\"")+aPoubelleName+"\"")
                    << EAM(aMinPercentCoverage,"minPercentCoverage",true,"Minimum % of coverage to avoid adding to poubelle, def=30")
                    << EAM(aMove,"MoveBadImgs",true,"Move bad images to a trash folder called Poubelle, Def=false")
@@ -811,7 +827,6 @@ int schnaps_main(int argc,char ** argv)
 		aNameTrashFolder = "Poubelle";
 	}
 
-
     std::cout<<"Number of searching windows: "<<aNumWindows<<std::endl;
 
     // Initialize name manipulator & files
@@ -826,7 +841,6 @@ int schnaps_main(int argc,char ** argv)
 
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
     const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
-
 
     // Init Keys for homol files
     std::list<cHomol> allHomolsIn;
@@ -848,21 +862,12 @@ int schnaps_main(int argc,char ** argv)
     //std::vector<cPic*> allPics;
     std::map<std::string,cPic*> allPics;
 
-    std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
+    std::cout<<"Found "<<aSetIm.size()<<" images."<<endl;
 
-    computeAllHomol(aDirImages,aPatIm,aSetIm,allHomolsIn,aCKin,allPics,veryStrict,aNumWindows);
+    computeAllHomol(aDirImages,aPatIm,aSetIm,fixSz,allHomolsIn,aCKin,allPics,veryStrict,aNumWindows);
 
     if (aNetworkExport)
         networkExport(allPics,aFactPH);
-    
-    /*cout<<"Cleaning Homol list..."<<std::endl;
-    for (std::list<cHomol*>::iterator itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();)
-    {
-        if ((*itHomol)->isBad())
-            allHomolsIn.erase(itHomol);
-        else
-            itHomol++;
-    }*/
 
     if (aMinimalMultiplicity>1)
     {
@@ -935,16 +940,6 @@ int schnaps_main(int argc,char ** argv)
     }
 
     std::cout<<"Found "<<allHomolsIn.size()<<" Homol points (incl. "<<aNumBadHomol<<" bad ones): "<<100*aNumBadHomol/allHomolsIn.size()<<"% bad!\n";
-
-    /*cout<<"Cleaning Homol list..."<<std::endl;
-    for (std::list<cHomol*>::iterator itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();)
-    {
-        if ((*itHomol)->isBad())
-            allHomolsIn.erase(itHomol);
-        else
-            itHomol++;
-    }*/
-
 
     #ifdef ReductHomolImage_DEBUG
     std::cout<<"Found "<<allHomolsIn.size()<<" Homol points :\n";
