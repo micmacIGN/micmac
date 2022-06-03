@@ -476,10 +476,21 @@ void cPic::selectAllHomols()
 }
 
 
-void cPic::fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameManipulateur * aICNM,std::string & aKHOut)
+void cPic::fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameManipulateur * aICNM,std::string & aKHOut, bool append)
 {
+    std::string aNameOut1 = aDirImages + aICNM->Assoc1To2(aKHOut,getName(),aPic2->getName(),true);
+    std::string aNameOut2 = aDirImages + aICNM->Assoc1To2(aKHOut,aPic2->getName(),getName(),true);
+
+    const float alreadyInTolerancyPx = 1.0;
     ElPackHomologue aPackOut1;
     ElPackHomologue aPackOut2;
+    if (append)
+    {
+        if (ELISE_fp::exist_file(aNameOut1))
+            aPackOut1 = ElPackHomologue::FromFile(aNameOut1);
+        if (ELISE_fp::exist_file(aNameOut2))
+            aPackOut2 = ElPackHomologue::FromFile(aNameOut2);
+    }
     std::map<double,cPointOnPic*>::iterator itPointsOnPic;
     for (itPointsOnPic=mAllSelectedPointsOnPic.begin();
          itPointsOnPic!=mAllSelectedPointsOnPic.end();
@@ -490,16 +501,34 @@ void cPic::fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameMani
         if (!aPointOnPic2) continue;
         Pt2dr aP1=aPointOnPic1->getPt();
         Pt2dr aP2=aPointOnPic2->getPt();
-        ElCplePtsHomologues aCple1(aP1,aP2);
-        aPackOut1.Cple_Add(aCple1);
-        ElCplePtsHomologues aCple2(aP2,aP1);
-        aPackOut2.Cple_Add(aCple2);
+        if (append)
+        {
+            const ElCplePtsHomologues *nearestP1 = aPackOut1.Cple_Nearest(aP1);
+            bool tooClose1 = nearestP1&&(fabs(nearestP1->P1().x-aP1.x)<alreadyInTolerancyPx)&&
+                    (fabs(nearestP1->P1().y-aP1.y)<alreadyInTolerancyPx);
+            if (!tooClose1)
+            {
+                ElCplePtsHomologues aCple1(aP1,aP2);
+                aPackOut1.Cple_Add(aCple1);
+            }
+            const ElCplePtsHomologues *nearestP2 = aPackOut2.Cple_Nearest(aP2);
+            bool tooClose2 = nearestP2&&(fabs(nearestP2->P1().x-aP2.x)<alreadyInTolerancyPx)&&
+                    (fabs(nearestP2->P1().y-aP2.y)<alreadyInTolerancyPx);
+            if (!tooClose2)
+            {
+                ElCplePtsHomologues aCple2(aP2,aP1);
+                aPackOut2.Cple_Add(aCple2);
+            }
+        } else  {
+            ElCplePtsHomologues aCple1(aP1,aP2);
+            aPackOut1.Cple_Add(aCple1);
+            ElCplePtsHomologues aCple2(aP2,aP1);
+            aPackOut2.Cple_Add(aCple2);
+        }
     }
     
     if (aPackOut1.size()>3)
     {
-        std::string aNameOut1 = aDirImages + aICNM->Assoc1To2(aKHOut,getName(),aPic2->getName(),true);
-        std::string aNameOut2 = aDirImages + aICNM->Assoc1To2(aKHOut,aPic2->getName(),getName(),true);
         //std::cout<<aNameOut1<<": "<<aPackOut1.size()<<" pairs."<<endl;
         //std::cout<<aNameOut2<<": "<<aPackOut2.size()<<" pairs."<<endl;
         aPackOut1.StdPutInFile(aNameOut1);
@@ -773,6 +802,7 @@ int schnaps_main(int argc,char ** argv)
     std::string aInHomolDirName="";//input Homol dir suffix
     std::string aOutHomolDirName="_mini";//output Homol dir suffix
     std::string aPoubelleName="Schnaps_poubelle.txt";
+    bool appendToHomolOut=false;
     int aNumWindows=1000;//minimal homol points in each image
     bool ExpTxt=false;//Homol are in dat or txt
     bool veryStrict=false;
@@ -806,6 +836,7 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(aNumWindows, "NbWin", true, "Minimal homol points in each image (default: 1000)")
                    << EAM(ExeWrite,"ExeWrite",true,"Do write output homol dir, def=true",eSAM_InternalUse)
                    << EAM(aOutHomolDirName, "HomolOut", true, "Output Homol directory suffix (default: _mini)")
+                   << EAM(appendToHomolOut, "AppendHomolOut", true, "Append to existing HomolOut for multi-step computaton (default: false)")
                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                    << EAM(veryStrict,"VeryStrict",true,"Be very strict with homols (remove any suspect), def=false")
                    << EAM(doShowStats,"ShowStats",true,"Show Homol points stats before and after filtering, def=false")
@@ -1051,7 +1082,7 @@ int schnaps_main(int argc,char ** argv)
                 //std::string aNameOut2 = aDirImages + aCKout.get(pic2->getName(),pic1->getName());
                 //std::cout<<"For "<<aNameOut1<<" and "<<aNameOut2<<": "<<endl;
 
-                pic1->fillPackHomol(pic2,aDirImages,aICNM,aKHOut);
+                pic1->fillPackHomol(pic2,aDirImages,aICNM,aKHOut,appendToHomolOut);
             }
         }
         aFileBadImageNames.close();

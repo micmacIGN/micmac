@@ -178,7 +178,7 @@ class cPic
     std::map<cPic*, long> * getNbRawLinks(){return &nbRawLinks;}
     void selectHomols();
     void selectAllHomols();
-    void fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameManipulateur * aICNM,std::string & aKHOut);
+    void fillPackHomol(cPic* aPic2, string & aDirImages, cInterfChantierNameManipulateur * aICNM, std::string & aKHOut, bool append);
     std::vector<int> getStats(bool before=true);//computes repartition in homol-2, homol-3, homol-4 etc... export it as vector indexed by multiplicity
     long getId(){return mId;}
     static std::vector<cPicSize>* getAllSizes(){return &mAllSizes;}
