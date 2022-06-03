@@ -795,6 +795,38 @@ void networkExport(std::map<std::string,cPic*> &allPics, int aFactPH)
     aNetworkfile.close();
 }
 
+void drawCoverHist(std::map<std::string,cPic*> &allPics, int aNumWindows)
+{
+    std::vector<float> covBins={0,0,0,0,0,0,0,0,0,0};//0%-10%, 10%-20%...
+    std::map<std::string,cPic*>::iterator itPic1;
+    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+    {
+        cPic* pic1=(*itPic1).second;
+        int bin = pic1->getPercentWinUsed(aNumWindows)/10;
+        if (bin<0) bin=0;
+        if (bin>((int)covBins.size())-1) bin=covBins.size()-1;
+        ++covBins.at(bin);
+    }
+    const double histW = 80.0;
+    int maxBin = 1;
+    for (unsigned i=0; i<covBins.size(); i++)
+        if (covBins[i]>maxBin) maxBin = covBins[i];
+    std::cout<<"\nImage coverage histogram:\n";
+    std::ios state(nullptr);
+    state.copyfmt(std::cout);
+    for (unsigned i=0; i<covBins.size(); i++)
+    {
+        int binW = histW*covBins[i]/maxBin + 1;
+        std::cout<<"  * "<<setw(3)<<10*i<<"% - "<<setw(3)<<10*(i+1)<<"% ";
+        std::cout<<"|";
+        for (int j=1; j<binW; j++)
+            std::cout<<"=";
+        for (int j=binW; j<=histW; j++)
+            std::cout<<" ";
+        std::cout<<"  "<<setw(1)<<covBins[i]<<" images\n";
+    }
+    std::cout.copyfmt(state);
+}
 
 int schnaps_main(int argc,char ** argv)
 {
@@ -1111,16 +1143,16 @@ int schnaps_main(int argc,char ** argv)
 
     if (ExeWrite)
     {
-        std::cout<<nbBadImages<<" images rejected."<<std::endl;
+        std::cout<<nbBadImages<<"/"<<allPics.size()<<" images rejected."<<std::endl;
         std::cout<<"\nYou can look at \""<<aPoubelleName<<"\" for a list of suspicious images.\n";
     }
+
+    drawCoverHist(allPics, aNumWindows);
   
     //cleaning
     for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
         delete itPic1->second;
     allPics.clear();
-   
-    std::cout<<"Quit"<<std::endl;
 
     return EXIT_SUCCESS;
 }
