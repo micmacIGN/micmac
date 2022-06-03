@@ -265,7 +265,7 @@ bool cHomol::appearsOnCouple1way(cPic * aPicA,cPic * aPicB)
 
 
 
-//checks if the same picture is not in both Homol
+//checks if the same image is not in both Homol
 bool cHomol::checkMerge(cHomol* aHomol)
 {
     for (unsigned int i=0;i<mPointOnPics.size();i++)
@@ -454,7 +454,7 @@ void cPic::selectHomols()
             cPointOnPic *aBestSelectedPointOnPic=winBestPoP[y][x];
             if (aBestSelectedPointOnPic)
             {
-                //add this homol to every picture it is in!
+                //add this homol to every image it is in!
                 cHomol * aHomol=aBestSelectedPointOnPic->getHomol();
                 
                 for (unsigned int i=0;i<aHomol->getPointOnPicsSize();i++)
@@ -600,8 +600,8 @@ void computeAllHomol(std::string aDirImages,
     //for (unsigned int i=0;i<allPics.size();i++)
     {
         cPic *pic1=(*itPic1).second;//allPics[i];
-        std::cout<<" Picture "<<pic1->getName()<<": ";
-        //get all pictures having pac with pic1
+        std::cout<<" Image "<<pic1->getName()<<": ";
+        //get all images having pac with pic1
 
         if (!ELISE_fp::IsDirectory(aCKin.getDir(pic1->getName(),aPatIm)))
         {
@@ -773,7 +773,7 @@ int schnaps_main(int argc,char ** argv)
     std::string aInHomolDirName="";//input Homol dir suffix
     std::string aOutHomolDirName="_mini";//output Homol dir suffix
     std::string aPoubelleName="Schnaps_poubelle.txt";
-    int aNumWindows=1000;//minimal homol points in each picture
+    int aNumWindows=1000;//minimal homol points in each image
     bool ExpTxt=false;//Homol are in dat or txt
     bool veryStrict=false;
     bool doShowStats=false;
@@ -802,19 +802,19 @@ int schnaps_main(int argc,char ** argv)
        //mandatory arguments
        LArgMain()  << EAMC(aFullPattern, "Pattern of images",  eSAM_IsPatFile),
        //optional arguments
-       LArgMain()  << EAM(aInHomolDirName, "HomolIn", true, "Input Homol directory suffix (without \"Homol\")")
-                   << EAM(aNumWindows, "NbWin", true, "Minimal homol points in each picture (default: 1000)")
-                   << EAM(ExeWrite,"ExeWrite",true,"Execute write output homol dir, def=true",eSAM_InternalUse)
+       LArgMain()  << EAM(aInHomolDirName, "HomolIn", true, "Input Homol directory suffix")
+                   << EAM(aNumWindows, "NbWin", true, "Minimal homol points in each image (default: 1000)")
+                   << EAM(ExeWrite,"ExeWrite",true,"Do write output homol dir, def=true",eSAM_InternalUse)
                    << EAM(aOutHomolDirName, "HomolOut", true, "Output Homol directory suffix (default: _mini)")
                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                    << EAM(veryStrict,"VeryStrict",true,"Be very strict with homols (remove any suspect), def=false")
                    << EAM(doShowStats,"ShowStats",true,"Show Homol points stats before and after filtering, def=false")
-                   << EAM(DoNotFilter,"DoNotFilter",true,"Write homol after recomposition, without filterning, def=false")
+                   << EAM(DoNotFilter,"DoNotFilter",true,"Write homol after recomposition, without filtering, def=false")
                    << EAM(fixSz,"FixSz",true,"Use a fixed size for image, do not read size in files")
-                   << EAM(aPoubelleName,"PoubelleName",true,string("Where to write suspicious pictures names, def=\"")+aPoubelleName+"\"")
+                   << EAM(aPoubelleName,"PoubelleName",true,string("Output filename with the list of suspicious images, def=\"")+aPoubelleName+"\"")
                    << EAM(aMinPercentCoverage,"minPercentCoverage",true,"Minimum % of coverage to avoid adding to poubelle, def=30")
                    << EAM(aMove,"MoveBadImgs",true,"Move bad images to a trash folder called Poubelle, Def=false")
-                   << EAM(aNameTrashFolder,"OutTrash",true,"Output name of trash folder if moving bad images, Def=Poubelle")
+                   << EAM(aNameTrashFolder,"OutTrash",true,"Output name of trash folder if MoveBadImgs, Def=Poubelle")
                    << EAM(aMinimalMultiplicity,"MiniMulti",true,"Minimal Multiplicity of selected points, Def=1")
                    << EAM(aNetworkExport,"NetworkExport",true,"Export Network (in js), Def=false")
                    << EAM(aFactPH,"DivPH",true,"in exported network, denominator to decrease the number of tie point which is used for displaying strength of a relation between 2 images, def 10.")
@@ -858,7 +858,7 @@ int schnaps_main(int argc,char ** argv)
     CompiledKey2 aCKin(aICNM,aKHIn);
     CompiledKey2 aCKout(aICNM,aKHOut);
 
-    //create pictures list, and pictures size list ---------------------
+    //create images list, and images size list ---------------------
     //std::vector<cPic*> allPics;
     std::map<std::string,cPic*> allPics;
 
@@ -909,7 +909,7 @@ int schnaps_main(int argc,char ** argv)
                         #ifdef ReductHomolImage_VeryStrict_DEBUG
                         cout<<"   "<<aNameIn<<": ";
                         #endif
-                        //check that homol has been seen in this couple of pictures
+                        //check that homol has been seen in this couple of images
                         if (!aHomol.appearsOnCouple1way(aPic1,aPic2))
                         {
                             #ifdef ReductHomolImage_VeryStrict_DEBUG
@@ -1012,13 +1012,13 @@ int schnaps_main(int argc,char ** argv)
         }
     }
 
-    int nbBadPictures=0;
+    int nbBadImages=0;
     if (ExeWrite)
     {
         std::cout<<"Write new Packs:\n";
-        std::ofstream aFileBadPictureNames;
-        aFileBadPictureNames.open(aPoubelleName.c_str());
-        if (!aFileBadPictureNames.is_open())
+        std::ofstream aFileBadImageNames;
+        aFileBadImageNames.open(aPoubelleName.c_str());
+        if (!aFileBadImageNames.is_open())
         {
             std::cout<<"Impossible to create \""<<aPoubelleName<<"\" file!\n";
             return -1;
@@ -1026,11 +1026,11 @@ int schnaps_main(int argc,char ** argv)
         for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
         {
             cPic* pic1=(*itPic1).second;
-            std::cout<<" - "<<pic1->getName()<<": "<<pic1->getPercentWinUsed(aNumWindows)<<"% of the picture covered ("<<pic1->getAllSelectedPointsOnPicSize()<<" points)";
+            std::cout<<" - "<<pic1->getName()<<": "<<pic1->getPercentWinUsed(aNumWindows)<<"% of the image covered ("<<pic1->getAllSelectedPointsOnPicSize()<<" points)";
             if (pic1->getPercentWinUsed(aNumWindows)<aMinPercentCoverage)
             {
-                nbBadPictures++;
-                aFileBadPictureNames<<pic1->getName()<<"\n";
+                nbBadImages++;
+                aFileBadImageNames<<pic1->getName()<<"\n";
                 cout<<" rejected!";
                 if(aMove)
                 {
@@ -1054,7 +1054,7 @@ int schnaps_main(int argc,char ** argv)
                 pic1->fillPackHomol(pic2,aDirImages,aICNM,aKHOut);
             }
         }
-        aFileBadPictureNames.close();
+        aFileBadImageNames.close();
     }
 
     if (doShowStats)
@@ -1080,8 +1080,8 @@ int schnaps_main(int argc,char ** argv)
 
     if (ExeWrite)
     {
-        std::cout<<nbBadPictures<<" pictures rejected."<<std::endl;
-        std::cout<<"\nYou can look at \""<<aPoubelleName<<"\" for a list of suspicious pictures.\n";
+        std::cout<<nbBadImages<<" images rejected."<<std::endl;
+        std::cout<<"\nYou can look at \""<<aPoubelleName<<"\" for a list of suspicious images.\n";
     }
   
     //cleaning
