@@ -181,3 +181,52 @@ int TiePtAddWeight_main(int argc,char ** argv)
 
    return EXIT_SUCCESS;
 }
+
+
+int TiePtPrep_main(int argc,char ** argv)
+{
+   std::string aImgList;
+
+   std::string aInterSH = "";
+   std::string aIntraSH = "";
+   std::string aOutSH = "";
+
+   int nWeight = 1;
+
+   bool aExe = false;
+
+   ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aImgList,"multi-epoch images(Dir+Pattern, or txt file of image list)"),
+        LArgMain()
+               << EAM(aInterSH,"InterSH",true,"Input inter-epoch homologue extenion for NB/NT mode, Def=none")
+               << EAM(nWeight,"W", true, "Weight to be added")
+               << EAM(aIntraSH,"IntraSH",true,"Input intra-epoch homologue extenion for NB/NT mode, Def=none")
+               << EAM(aOutSH,"OutSH",true,"Output Homologue extenion for NB/NT mode, Def=_Merged")
+               << EAM(aExe,"Exe",true,"Execute, Def=false")
+               );
+
+   std::string aComm;
+
+   std::string aWei = ToString(nWeight);
+
+   aComm = MMBinFile(MM3DStr) + "TestLib TiePtAddWeight " + aWei + " InSH="+aInterSH;
+   cout<<aComm<<endl;
+   if(aExe == true)
+       System(aComm);
+
+   aComm = MMBinFile(MM3DStr) + "HomolFilterMasq \"" + aImgList + "\" PostIn="+aInterSH+"-W"+aWei + " PostOut="+aInterSH+"-W"+aWei+"-dat ANM=1 ExpTxt=1 ExpTxtOut=0";
+   cout<<aComm<<endl;
+   if(aExe == true)
+       System(aComm);
+
+   aComm = MMBinFile(MM3DStr) + "MergeHomol \"Homol" + aIntraSH + "|Homol"+aInterSH+"-W"+aWei+"-dat\" Homol" + aOutSH;
+   cout<<aComm<<endl;
+   if(aExe == true)
+       System(aComm);
+
+   return EXIT_SUCCESS;
+}
+
+
