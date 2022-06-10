@@ -718,7 +718,7 @@ template<class TypeEl> class  cAppliParseBoxIm
                APBI_WriteIm(aName,anIm,tElemNumTrait<Type2>::TyNum());
         }
 
-        cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray,const cPt2di & aSzTiles,const cPt2di & aSzOverlap) ;
+        cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray,const cPt2di & aSzTiles,const cPt2di & aSzOverlap,bool ParalTiles) ;
         ~cAppliParseBoxIm();
 
 	void  APBI_ExecAll(); ///< Execute Action on all Box of file  OR  only on Test Box if exist
@@ -749,17 +749,25 @@ template<class TypeEl> class  cAppliParseBoxIm
 	void AssertNotInParsing() const;
         tDataIm & LoadI(const cBox2di & aBox); ///< Load file for the Box, return loaded image
 
-        cBox2di       mBoxTest;    ///< Box for quick testing, in case we dont parse all image
+        bool InsideParalRecall() const ; /// Indicate if we are in a recall of a parallal excecution
+        bool TopCallParallTile() const ; /// Indicate if we are at the "top level" of a call in parallel
+
+          // mandatory params
         std::string   mNameIm;     ///< Name of image to parse
+          // Optional params
+        cBox2di        mBoxTest;    ///< Box for quick testing, in case we dont parse all image
+	cPt2di         mSzTiles;    ///< Size of tiles to parse global file
+	cPt2di         mSzOverlap;  ///< Size of overlap between each tile
+        bool           mParalTiles;   ///< Loaded image
+        cPt2di         mIndBoxRecal;  ///< Index for box when recalling in paral
+
+        cMMVII_Appli & mAppli;   ///< Ineriting appli ("daughter")
+        bool           mIsGray;  ///< Is it a gray file
         cParseBoxInOut<2> *mParseBox;  ///<Current structure used to parse the  box
 	cPt2di         mCurPixIndex; ///< Index of parsing box
         cDataFileIm2D  mDFI2d;   ///< Data for file image to parse
-        bool           mIsGray;  ///< Is it a gray file
-        cMMVII_Appli & mAppli;   ///< Ineriting appli ("daughter")
-	cPt2di         mSzTiles;    ///< Size of tiles to parse global file
-	cPt2di         mSzOverlap;  ///< Size of overlap between each tile
         tIm            mIm;      ///< Loaded image
-        int            mIndBoxRecal;  ///< Index for box when recalling in paral
+
 };
 
 ///  Create a masq image if file exist, else create a masq with 1

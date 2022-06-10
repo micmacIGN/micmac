@@ -253,22 +253,36 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const
 /*                                                             */
 /* *********************************************************** */
 
+static std::string NameIndBoxRecal="INTERNAL_IndexBoxRecall";
+
 template<class TypeEl>  cAppliParseBoxIm<TypeEl>::cAppliParseBoxIm
                         (
 			      cMMVII_Appli & anAppli,
                               bool IsGray,
 			      const cPt2di & aSzTiles,
-			      const cPt2di & aSzOverlap
+			      const cPt2di & aSzOverlap,
+                              bool  doTilesInParal
                         ) :
-    mBoxTest  (cBox2di::Empty()),      // Fake Init, no def constructor
-    mParseBox (nullptr),               // No inside parsing
-    mDFI2d    (cDataFileIm2D::Empty()),   // Fake Init, no def constructor
-    mIsGray   (IsGray),
-    mAppli    (anAppli),
-    mSzTiles  (aSzTiles),
-    mSzOverlap(aSzOverlap),
-    mIm       (cPt2di(1,1))
+    mBoxTest    (cBox2di::Empty()),      // Fake Init, no def constructor
+    mSzTiles    (aSzTiles),
+    mSzOverlap  (aSzOverlap),
+    mParalTiles (doTilesInParal),
+    mAppli      (anAppli),
+    mIsGray     (IsGray),
+    mParseBox   (nullptr),               // No inside parsing
+    mDFI2d      (cDataFileIm2D::Empty()),   // Fake Init, no def constructor
+    mIm         (cPt2di(1,1))
 {
+}
+
+template<class TypeEl> bool  cAppliParseBoxIm<TypeEl>::InsideParalRecall() const
+{
+   return IsInit(&mIndBoxRecal);
+}
+
+template<class TypeEl> bool  cAppliParseBoxIm<TypeEl>::TopCallParallTile() const
+{
+   return  mParalTiles && (!InsideParalRecall());
 }
 
 template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
@@ -276,21 +290,37 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
      mDFI2d = cDataFileIm2D::Create(mNameIm,mIsGray);
      if (APBI_TestMode())
      {
-         LoadI(CurBoxIn());
-	 mAppli.ExeOnParsedBox();
-         return;
+        LoadI(CurBoxIn());
+	mAppli.ExeOnParsedBox();
+        return;
      }
      AssertNotInParsing();
      cParseBoxInOut<2> aPBIO =  cParseBoxInOut<2>::CreateFromSize(mDFI2d,mSzTiles);
      mParseBox = & aPBIO;
 
+     std::list<std::string>  aLComParal;
      for (const auto & aPixI : aPBIO.BoxIndex())
      {
-         mCurPixIndex = aPixI;
-         LoadI(CurBoxIn());
-	 mAppli.ExeOnParsedBox();
+         // if a the top level of paralelization, construct the string 
+         // For first box, run it classically so that files are created only once
+         if (TopCallParallTile() && (aPixI!=cPt2di(0,0)))
+         {
+            std::string aCom = mAppli.CommandOfMain() + " " +NameIndBoxRecal + "=" + ToStr(aPixI);
+             aLComParal.push_back(aCom);
+         }
+         else
+         {
+            // If not in paral do all box, else do only the box indicate by recall
+            if ((!mParalTiles) || (aPixI==mIndBoxRecal))
+            {
+                mCurPixIndex = aPixI;
+                LoadI(CurBoxIn());
+	        mAppli.ExeOnParsedBox();
+            }
+         }
      }
      mParseBox = nullptr ;   // No longer inside parsing
+     mAppli.ExeComParal(aLComParal);
 }
 
 template<class TypeEl> const std::string & cAppliParseBoxIm<TypeEl>::APBI_NameIm() const
@@ -363,13 +393,15 @@ template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOb
    ;
 }
 
+
 template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
               << AOpt2007(mBoxTest,  "TestBox","Box for testing before runing all",{eTA2007::Tuning})
               << AOpt2007(mSzTiles,  "SzTiles","Size of tiles to parse big file",{eTA2007::HDV})
               << AOpt2007(mSzOverlap,"SzOverL","Size of overlap between tiles",{eTA2007::HDV})
-              << AOpt2007(mIndBoxRecal,"IndexBoxRecall","Index of box when call in parall",{eTA2007::Internal})
+              << AOpt2007(mParalTiles,"ParalT","Parallelize  between tiles",{eTA2007::HDV})
+              << AOpt2007(mIndBoxRecal,NameIndBoxRecal,"Index of box when call in parall",{eTA2007::Internal})
     ;
 }
 

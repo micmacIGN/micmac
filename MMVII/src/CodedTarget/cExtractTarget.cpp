@@ -48,7 +48,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
 cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
-   cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(5000,5000),cPt2di(300,300)), // static_cast<cMMVII_Appli & >(*this))
+   cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(5000,5000),cPt2di(300,300),false), // static_cast<cMMVII_Appli & >(*this))
    mTestDistSym   ({4,8,12})
 {
 }
