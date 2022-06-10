@@ -1,5 +1,6 @@
 #include "include/MMVII_all.h"
 #include "include/V1VII.h"
+#include "include/MMVII_Tpl_Images.h"
 
 static bool  DEBUG_EDM = false;
 
@@ -17,17 +18,6 @@ using MMVII::round_up;
 namespace MMVII
 {
 
-
-cBox2di DilateFromIntervPx(const cBox2di & aBox,int aDPx0,int aDPx1)
-{
-   cPt2di aP0 = aBox.P0();
-   cPt2di aP1 = aBox.P1();
-   return  cBox2di
-           (
-                cPt2di(aP0.x()+aDPx0,aP0.y()),
-                cPt2di(aP1.x()+aDPx1,aP1.y())
-           );
-}
 
 void  SetBoxes12FromPx
       (
@@ -455,27 +445,14 @@ void cOneLevel::EstimateIntervPx
       cIm2D<tREAL4>  aImPx(aBoxRed,aRedFilePx);
       cIm2D<tU_INT1> aImMasq(aBoxRed,aRedFileMasq);
 
-      aImPx =  aImPx.Decimate(aNbDecim);
-      aImMasq =  aImMasq.Decimate(aNbDecim);
-
-      std::vector<double> aVPx;
-      for (const auto & aP : aImPx.DIm())
-      {
-          if (aImMasq.DIm().GetV(aP) != 0)
-          {
-             aVPx.push_back(aImPx.DIm().GetV(aP));
-          }
-      }
-      if (aVPx.size() > 0)
-      {
-         aParam.mPxMin = round_ni(aRatio * KthVal(aVPx,  aPropEst));
-         aParam.mPxMax = round_ni(aRatio * KthVal(aVPx,1-aPropEst));
-      }
-      else
-      {
-         aParam.mCanDoMatch = false;
+      aParam.mCanDoMatch =  BornesFonc
+                            (
+                               aParam.mPxMin,aParam.mPxMax,
+                               aImPx,&aImMasq,
+                               aNbDecim,aPropEst,aRatio
+                            );
+      if (! aParam.mCanDoMatch)
          return;
-      }
    }
 
    // Even with "flat" terrain add a minimal inc
@@ -959,7 +936,7 @@ int  cAppli::ExecuteBench(cParamExeBench & aParam)
 
    ExtSysCall(aCom,false);
 
-   double aDif = DifAbsInVal(aDirData+"PxRL.tif",aDirData+"RefPx.tif");
+   double aDif = DifAbsInVal(aDirData+"PxRL.tif",aDirData+"RefPx_RL.tif");
 
 
    MMVII_INTERNAL_ASSERT_bench(aDif==0,"DenseMatchEpipGen : result != ref");

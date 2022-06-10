@@ -330,6 +330,26 @@ template<class TypeEl> cBox2di  cAppliParseBoxIm<TypeEl>::CurBoxOutLoc() const
     return mParseBox->BoxOutLoc(mCurPixIndex,mSzOverlap);
 }
 
+template<class TypeEl> const cDataFileIm2D & cAppliParseBoxIm<TypeEl>::DFI2d() const
+{
+   return mDFI2d;
+}
+
+template<class TypeEl> cPt2di  cAppliParseBoxIm<TypeEl>::CurSzIn() const
+{
+    return CurBoxIn().Sz();
+}
+
+template<class TypeEl> cBox2di  cAppliParseBoxIm<TypeEl>::CurBoxInLoc() const
+{
+    AssertInParsing();
+    return cBox2di(cPt2di(0,0),CurSzIn());
+}
+
+template<class TypeEl> cPt2di  cAppliParseBoxIm<TypeEl>::CurP0() const
+{
+    return CurBoxIn().P0();
+}
 
 
 template<class TypeEl>  cAppliParseBoxIm<TypeEl>::~cAppliParseBoxIm()
@@ -339,7 +359,7 @@ template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOb
 {
    return
         anArgObl
-           <<   Arg2007(mNameIm,"Name of input file",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
+           <<   Arg2007(mNameIm,"Name of image (first one)",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
    ;
 }
 
@@ -349,6 +369,7 @@ template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOp
               << AOpt2007(mBoxTest,  "TestBox","Box for testing before runing all",{eTA2007::Tuning})
               << AOpt2007(mSzTiles,  "SzTiles","Size of tiles to parse big file",{eTA2007::HDV})
               << AOpt2007(mSzOverlap,"SzOverL","Size of overlap between tiles",{eTA2007::HDV})
+              << AOpt2007(mIndBoxRecal,"IndexBoxRecall","Index of box when call in parall",{eTA2007::Internal})
     ;
 }
 
@@ -368,6 +389,33 @@ template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseB
 {
    return mIm.DIm();
 }
+template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tIm&  cAppliParseBoxIm<TypeEl>::APBI_Im()
+{
+   return mIm;
+}
+template<class TypeEl> const typename  cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::APBI_DIm() const
+{
+   return mIm.DIm();
+}
+template<class TypeEl> const typename  cAppliParseBoxIm<TypeEl>::tIm&  cAppliParseBoxIm<TypeEl>::APBI_Im() const
+{
+   return mIm;
+}
+
+
+cIm2D<tU_INT1>  ReadMasqWithDef(const cBox2di& aBox,const std::string & aName)
+{
+   if (IsInit(&aName))
+   {
+      return cIm2D<tU_INT1>::FromFile(aName,aBox);
+   }
+   else
+   {
+      return cIm2D<tU_INT1> (aBox.Sz(),nullptr,eModeInitImage::eMIA_V1);
+   }
+}
+
+
 
 /*  *********************************************************** */
 /*             INSTANTIATION                                    */

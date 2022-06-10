@@ -4,16 +4,25 @@ The algorithm uses a python implementation of the [SuperGlue](https://github.com
 
 For more details about our algorithm, please refer to:
 * L. Zhang, E. Rupnik, M. Pierrot-Deseilligny, [Feature matching for multi-epoch historical aerial images](https://www.sciencedirect.com/science/article/pii/S0924271621002707), ISPRS journal of photogrammetry and remote sensing, 182 (2021), pp. 176-189 ([PDF](https://arxiv.org/abs/2112.04255))
-* Project website: [Feature matching for multi-epoch historical aerial images](https://www.umr-lastig.fr/ewelina-rupnik/historicalfeatures.html)
-* Introduction video: [Feature matching for multi-epoch historical aerial images](https://www.youtube.com/channel/UCg7_VpmlZImh8bCDBrdXgAw)
-* Slides: [Feature matching for multi-epoch historical aerial images](https://drive.google.com/uc?id=16sJZiY3sTZSRZKBzpy2IHVloCLj6pEwP)
-* Blog: [Feature matching for multi-epoch historical aerial images](https://rfpt-sfpt.github.io/blog/feature%20matching/historical%20images/multi-epoch/pose%20estimation/self-calibration/2021/11/17/Lulin-ZHANG-LaSTIG.html)
-* [Tutorial using historical aerial images](https://colab.research.google.com/drive/1poEXIeKbPcJT_2hyQOBhzcj1EEhO8OgD)
-* [Tutorial using aerial and satellite images](https://colab.research.google.com/drive/14okQ8bBhEZmy6EGRIQvazTqrN39oc_K5)
+* Tutorials: [Github](https://github.com/micmacIGN/Documentation/tree/master/Tutorials/MicMacTiePHistoP); [Google Colab](https://colab.research.google.com/drive/14okQ8bBhEZmy6EGRIQvazTqrN39oc_K5)
+* [Project website](https://www.umr-lastig.fr/ewelina-rupnik/historicalfeatures.html)
+* [Introduction video](https://www.youtube.com/channel/UCg7_VpmlZImh8bCDBrdXgAw)
+* [Slides](https://drive.google.com/uc?id=16sJZiY3sTZSRZKBzpy2IHVloCLj6pEwP)
+* [Blog](https://rfpt-sfpt.github.io/blog/feature%20matching/historical%20images/multi-epoch/pose%20estimation/self-calibration/2021/11/17/Lulin-ZHANG-LaSTIG.html)
 
-<p align="center">
-  <img src="TiePHistoP_pipeline.png" width="900">
-</p>
+Our workflow is illustrated as follows:
+
+<p align="center">  <img src="Images/Workflow.png" width="550"> </p>
+<p align="center"> (a) Full workflow </p>
+
+<p align="center">  <img src="Images/RoughCoReg.png" width="800"> </p>
+<p align="center"> (b) Workflow of rough co-registration </p>
+
+<p align="center">  <img src="Images/RotateHypo.png" width="800"> </p>
+<p align="center"> (c) Details of 4 rotation hypotheses </p>
+
+<p align="center">  <img src="Images/Precise.png" width="500"> </p>
+<p align="center"> (d) Workflow of precise matching </p>
 
 ## Set-up 
 
@@ -31,7 +40,13 @@ The pipeline is accessible via
 
 ```mm3d TiePHistoP -help```
 
-The command ```TiePHistoP``` will launch the whole pipeline by automatically calling several subcommands. You can set "Exe=0" to print all the subcommands instead of executing it.
+The command ```TiePHistoP``` includes 2 main parts: (1) rough co-registration and (2) precise matching. It will launch the whole pipeline by automatically calling several subcommands as follows (the coloured rectangles represent the subcommands). You can set the parameter "Exe=0" to print all the subcommands instead of executing it.
+
+<center>
+  <img src="Images/CommandMap.png" height=450pix/>
+  <br> 
+</center>
+
 
 ## License
 
