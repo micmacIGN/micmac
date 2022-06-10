@@ -58,6 +58,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 	flow = 0;
 }
 
+/*
 template <typename captype, typename tcaptype, typename flowtype> 
 	void Graph<captype,tcaptype,flowtype>::reallocate_nodes(int num)
 {
@@ -86,7 +87,9 @@ template <typename captype, typename tcaptype, typename flowtype>
 		}
 	}
 }
+*/
 
+/*
 template <typename captype, typename tcaptype, typename flowtype> 
 	void Graph<captype,tcaptype,flowtype>::reallocate_arcs()
 {
@@ -117,5 +120,6 @@ template <typename captype, typename tcaptype, typename flowtype>
 		}
 	}
 }
+*/
 
 #include "instances.inc"

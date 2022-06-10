@@ -106,7 +106,7 @@ cElRegex::cElRegex(const std::string & aNameExprIn,int aNbMatchMax,int aCFlag,bo
 
    if (! IsOk())
       return;
-   regmatch_t aMatch;
+   regmatch_t aMatch{};
    mVMatch.reserve(aNbMatchMax);
    for (int aK=0; aK<aNbMatchMax ; aK++)
        mVMatch.push_back(aMatch);

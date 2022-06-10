@@ -197,6 +197,9 @@ template <class Type> class ElFifo
 
         void incr_capa()
         {
+            if (_capa == 0)
+                _capa = 1;
+
            Type * NewTab = new Type [2*_capa];
            for (INT kk=0; kk<_nb ; kk++)
                 NewTab[kk] = _tab[(kk+_begin)%_capa];
