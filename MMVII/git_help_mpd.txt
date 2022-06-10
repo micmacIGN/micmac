@@ -24,6 +24,8 @@ git checkout -t -b mpd origin/mpd
 ====================================================
 Pour pousser les modif sur master
 
+git commit -a ...
+
 (1) On mets a jour le master local
 
 git fetch 
