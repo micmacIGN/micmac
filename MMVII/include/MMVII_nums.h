@@ -4,6 +4,10 @@
 namespace MMVII
 {
 
+// Call V1 Fast kth value extraction
+double KthVal(std::vector<double> &, double aProportion);
+
+
 // some time needs a null val for any type with + (neutral for +)
 
 template <class T> class cNV

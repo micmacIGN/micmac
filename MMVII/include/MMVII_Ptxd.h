@@ -633,8 +633,15 @@ typedef cTplBox<double,3>  cBox3dr;
 cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord
 
 
+// Is window inside the box 
+template <class Type> bool WindInside(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
+template <class Type> bool WindInside(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  int & aSzW);
 // Is window inside the box taking into account bilinear interpol ?
 template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
+
+
+cBox2di DilateFromIntervPx(const cBox2di & aBox,int aDPx0,int aDPx1);
+
 
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cTplBox<Type,Dim> &aBox)
 { return  OS << "{" << aBox.P0() <<   " :: " << aBox.P1()<< "}"; }

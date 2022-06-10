@@ -357,6 +357,55 @@ template<class T>  cIm2D<T> NormalizedAvgDev(const cIm2D<T> & aIm,tREAL8 aEpsilo
     return aRes;
 }
 
+
+template <class TFonc,class TMasq>
+         bool BornesFonc
+              (
+                   int & aPxMin,
+                   int & aPxMax,
+                   cIm2D<TFonc> aIFonc,
+                   cIm2D<TMasq> * aPtrIM,
+                   int aNbDecim,
+                   double aProp,
+                   double aRatio
+              )
+{
+      aIFonc =  aIFonc.Decimate(aNbDecim);
+      cIm2D<TMasq> *  aPtrIMR = nullptr;
+
+      cIm2D<TMasq>    aIMR(cPt2di(1,1));
+      if (aPtrIM)
+      {
+           aIMR = aPtrIM->Decimate(aNbDecim);
+           aPtrIM = & aIMR;
+      }
+
+      std::vector<double> aVPx;
+      for (const auto & aP : aIFonc.DIm())
+      {
+          if ((aPtrIMR ==nullptr) || (aPtrIMR->DIm().GetV(aP) != 0))
+          {
+             aVPx.push_back(aIFonc.DIm().GetV(aP));
+          }
+      }
+      if (aVPx.size() > 0)
+      {
+         aPxMin = round_ni(aRatio * KthVal(aVPx,  aProp));
+         aPxMax = round_ni(aRatio * KthVal(aVPx,1-aProp));
+         return true;
+      }
+      else
+      {
+         aPxMin = 0;
+         aPxMax = 0;
+         return false;
+      }
+}
+
+
+
+
+
 };
 
 #endif  //  _MMVII_Tpl_Images_H_
