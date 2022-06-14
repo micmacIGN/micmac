@@ -69,6 +69,8 @@ template <class Type> cAffineExtremum<Type>::cAffineExtremum(const cDataIm2D<Typ
 {
 }
 
+template <class Type> const cDataIm2D<Type>  & cAffineExtremum<Type>::Im() const {return mIm;}
+
 template <class Type> cPt2dr cAffineExtremum<Type>::OneIter(const cPt2dr & aP0)
 {    
    mSysPol.Reset();
@@ -292,6 +294,12 @@ void cResultExtremum::Clear()
     mPtsMax.clear();
 }
 
+cResultExtremum::cResultExtremum(bool DoMin,bool DoMax) :
+   mDoMin (DoMin),
+   mDoMax (DoMax)
+{
+}
+
 /*   ================================= */
 /*         cComputeExtrem1Im           */
 /*   ================================= */
@@ -301,6 +309,16 @@ template <class Type> void cComputeExtrem1Im<Type>::TestIsExtre1()
      mVCur = mDIM.GetV(mPCur);
      // Compare with left neighboor ,  after we know if it has to be a min or a max
      bool IsMin = IsImCSupCurP(cPt2di(-1,0));
+     if (IsMin)
+     {
+        if (!mRes.mDoMin)
+           return;
+     }
+     else
+     {
+        if (!mRes.mDoMax)
+           return;
+     }
 
      //   Now we know that if any comparison with a neighboor is not coherent with
      // the first one, it cannot be an extremum

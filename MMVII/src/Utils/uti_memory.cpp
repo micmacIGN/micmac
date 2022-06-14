@@ -209,6 +209,10 @@ void   cMemManager::Free(void * aPtr)
 {
    free(aPtr);
 }
+void cMemManager::SetActiveMemoryCount(bool aVal)
+{
+    // TheActiveMemoryCount = aVal;
+}
 #endif // (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_medium)
 
 

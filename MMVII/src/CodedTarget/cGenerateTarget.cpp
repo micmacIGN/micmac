@@ -1,6 +1,11 @@
 #include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 
+/*
+    1313  966
+    1188  936  6
+*/
+
 
 namespace MMVII
 {
@@ -149,7 +154,7 @@ void cParamCodedTarget::Finish()
       StdOut()  << " aK=" << aK << " N=" << aNb  <<  " C(k,n)=" <<  aVNbSub.back() << "\n";
   }
   mDecP = cDecomposPAdikVar(aVNbSub);
-  StdOut()  << " NbTarget="   << NbCodeAvalaible() << "\n";
+  StdOut()  << " NbModelTarget="   << NbCodeAvalaible() << "\n";
 
 }
 

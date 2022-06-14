@@ -737,7 +737,7 @@ template <class Type> class cDataGenDimTypedIm : public cMemCheck
 # if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
         void AssertOk(const tIndex& anIndex) const {PrivateAssertOk(anIndex);}
 #else
-        void AssertOk(const tIndex&) { } const
+        void AssertOk(const tIndex&)  const {}
 #endif
 
         int      mDim;

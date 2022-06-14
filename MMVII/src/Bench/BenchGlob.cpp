@@ -319,12 +319,20 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (const std::vector<std::string> & aVArgs,
   mNumBugRecall   (-1),
   mDoBUSD         (false)
 {
-  MMVII_INTERNAL_ASSERT_always
-  (
-        The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny,
-        "MMVII Bench requires highest level of debug"
-  );
-  // The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_weak;
+  if (The_MMVII_DebugLevel < The_MMVII_DebugLevel_InternalError_tiny)
+  {
+      StdOut() << "WARNN  MMVII Bench requires highest level of debug \n" ; getchar();
+  }
+  else
+  {
+/*
+      MMVII_INTERNAL_ASSERT_always
+      (
+            The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny,
+            "MMVII Bench requires highest level of debug"
+      );
+*/
+  }
 }
 
 

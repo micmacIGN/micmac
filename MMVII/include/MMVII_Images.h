@@ -523,6 +523,12 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
             tPB::AssertInside(aP);
             Value(aP) = tNumTrait<Type>::Trunc(aV);
         }
+          /// "Safe" set, test P and V
+        void SetVTruncIfInside(const cPt2di & aP,const tBase & aV)
+        { 
+            if (tPB::Inside(aP))
+               SetVTrunc(aP,aV);
+        }
 
         /// Increment Value, check acces and overflow
         const Type & AddVal(const cPt2di & aP,const Type & aValAdd )  
@@ -742,7 +748,7 @@ template<class TypeEl> class  cAppliParseBoxIm
         cBox2di       CurBoxOutLoc() const; 
         const cDataFileIm2D &  DFI2d() const;   ///< accessor
 
-    private :
+    // private :
         cAppliParseBoxIm(const cAppliParseBoxIm &) = delete;
 	bool InsideParsing() const;
 	void AssertInParsing() const;

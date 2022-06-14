@@ -6,8 +6,26 @@
 
 namespace MMVII
 {
+template<class TypeEl>
+   double IndBinarity(const  cDataIm2D<TypeEl> & aDIm,const cPt2di & aP0,const std::vector<cPt2di> & aVectVois);
+
 template<class TypeEl> cIm2D<TypeEl> ImBinarity(const  cDataIm2D<TypeEl> & aDIm,double aR0,double aR1,double Epsilon);
+
+std::vector<cPt2dr> VecDir(const  std::vector<cPt2di>&  aVectVois);
+template<class TypeEl> double Starity
+                              (
+                                  const  cImGrad<TypeEl> & aImGrad,
+                                  const cPt2dr & aP0,
+                                  const  std::vector<cPt2di>&  aVectVois ,
+                                  const  std::vector<cPt2dr>&  aVecDir,
+                                  double Epsilon
+                              );
+
+
 template<class TypeEl> cIm2D<TypeEl> ImStarity(const  cImGrad<TypeEl> & aImGrad,double aR0,double aR1,double Epsilon);
+
+
+
 template<class TypeEl> cIm2D<TypeEl> ImSymetricity(const  cDataIm2D<TypeEl> & aDImIn,double aR0,double aR1,double Epsilon);
 
 
