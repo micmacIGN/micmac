@@ -654,6 +654,9 @@ template <class Type>  class cIm2D
     public :
        typedef cDataIm2D<Type>  tDIM;
 
+       /// Create a smart pointer on an existing allocated image 
+       //  cIm2D(tDIM&); =>  DONT WORK, have to understand why !!!
+
        /// Alow to allocate image with origin not in (0,0)
        cIm2D(const cPt2di & aP0,const cPt2di & aP1, Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); 
        /// Image with origin on (0,0)

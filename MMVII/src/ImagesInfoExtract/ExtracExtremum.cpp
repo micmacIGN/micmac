@@ -159,7 +159,7 @@ template <class Type,class FDist>  std::vector<Type>  SparseOrder(const std::vec
 
 // std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1) // > R0 et <= R1
 
-std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym) // > R0 et <= R1
+std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSym) // > R0 et <= R1
 {
     std::vector<cPt2di> aRes;
 
@@ -171,7 +171,7 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym
         double aR2 = SqN2(aP);
         bool Ok = ((aR2>aR02) && (aR2<=aR12));
 
-	if (ASym)
+	if (IsSym)
 	{
            Ok =  Ok &&(  (aP.y() >0) || ((aP.y()==0)&&(aP.x()>=0))   );
 	}
@@ -184,9 +184,9 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym
 }
 
 
-std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1) // > R0 et <= R1
+std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1,bool IsSym) // > R0 et <= R1
 {
-    std::vector<cPt2di> aRes = VectOfRadius(aR0,aR1,false);
+    std::vector<cPt2di> aRes = VectOfRadius(aR0,aR1,IsSym);
     std::sort(aRes.begin(),aRes.end(),CmpN2<int,2>);
     return aRes;
 }

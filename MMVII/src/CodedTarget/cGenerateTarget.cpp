@@ -104,6 +104,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mThBrdWhiteInt (0.7),
    mThBrdBlack    (0.7),
    mThBrdWhiteExt (0.1),
+   mThTxt         (1.0),
    mScaleTopo     (0.5),
    mNbPixelBin    (1800),
    mDecP          ({1,1})  // "Fake" init 4 now
@@ -128,15 +129,17 @@ int&    cParamCodedTarget::NbCircle() {return mNbCircle;}
 
 void cParamCodedTarget::Finish()
 {
-  mSzBin = cPt2di(mNbPixelBin,mNbPixelBin);
   mThRing = mThStars / mNbCircle;
-
   mRhoEndTargetC     = mThTargetC;
   mRhoEndStar        = mRhoEndTargetC     +  mThStars;
   mRhoEndBlackCircle = mRhoEndStar        +  mThBlCircExt;
   mRhoEnBrdWhiteInt  = mRhoEndBlackCircle +  mThBrdWhiteInt;
   mRhoEndBrdBlack    = mRhoEnBrdWhiteInt  +  mThBrdBlack;
   mRhoEndBrdWhiteExt = mRhoEndBrdBlack    +  mThBrdWhiteExt;
+  mRhoEndTxt    =  mRhoEndBrdWhiteExt + mThTxt ;
+
+  int aWidthBin =  mNbPixelBin * (mRhoEndTxt/mRhoEndBrdWhiteExt);
+  mSzBin = cPt2di(aWidthBin,aWidthBin);
 
   mMidle = ToR(mSzBin) / 2.0;
   mScale = mNbPixelBin / (2.0 * mRhoEndBrdWhiteExt);
@@ -178,11 +181,14 @@ int cParamCodedTarget::NbCodeAvalaible() const
 
 tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 {
+     cRect2 aRectHT = cRect2::BoxWindow(ToI(mMidle),mNbPixelBin/2);
+
      tImTarget aImT(mSzBin);
      tDataImT  & aDImT = aImT.DIm();
 
      int aDW = (mRhoEndBrdWhiteExt-mRhoEndBrdBlack) * mScale;
      int aDB = (mRhoEndBrdWhiteExt-mRhoEnBrdWhiteInt ) * mScale;
+
 
      //  Parse all pixels of image
      for (const auto & aPix : aDImT)
@@ -229,7 +235,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
          else
          {
               // Outside => border and fid marks (done after)
-	      int aDInter = aDImT.Interiority(aPix);
+	      int aDInter = aRectHT.Interiority(aPix);
 	      IsW = (aDInter<aDW) || (aDInter>=aDB);
          }
 
@@ -239,17 +245,19 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 
      // Print the string of number
      {
-         std::string aStr = ToStr(aSetCodesOfT.Num(),2);
-         cIm2D<tU_INT1> aImStr = ImageOfString(aStr,1);
-         cDataIm2D<tU_INT1> & aDImStr = aImStr.DIm();
-	 cPt2di aNbPixStr = aDImStr.Sz();
-	 double mHString = 0.7;
-	 double  aScaleStr =  (mHString/aNbPixStr.y()) * mScale;
+          std::string aStrCode = ToStr(aSetCodesOfT.Num(),2);
+          cIm2D<tU_INT1> aImStr = ImageOfString(aStrCode,-1);
+          cDataIm2D<tU_INT1> & aDImStr = aImStr.DIm();
+          cPt2di aNbPixStr = aDImStr.Sz();
+          // Ratio between pix of bin image and pix of string
+          double  aScaleStr =  (mThTxt/aNbPixStr.x()) * mScale; 
+
          // StdOut() << "STR=[" << aStr <<  "] ScSt " << aScaleStr << "\n";
 
 	 cPt2dr aSzStr = ToR(aNbPixStr) * aScaleStr;
 	 // cPt2di aP0 = ToI(aMidStr-aSzStr/2.0);
-	 cPt2di aP0(aDB,aDB);
+	 // cPt2di aP0(aDB,aDB);
+	 cPt2di aP0 = Pt_round_up(cPt2dr(mThBrdWhiteExt,mThBrdWhiteExt)*mScale);
 	 cPt2di aP1 = aP0 + ToI(aSzStr);
 
 	 cRect2 aBox(aP0,aP1);
