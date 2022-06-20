@@ -6,7 +6,7 @@ For more details about our algorithm, please refer to:
 * L. Zhang, E. Rupnik, M. Pierrot-Deseilligny, [Feature matching for multi-epoch historical aerial images](https://www.sciencedirect.com/science/article/pii/S0924271621002707), ISPRS journal of photogrammetry and remote sensing, 182 (2021), pp. 176-189 ([PDF](https://arxiv.org/abs/2112.04255))
 * Tutorials: [Github](https://github.com/micmacIGN/Documentation/tree/master/Tutorials/MicMacTiePHistoP); [Google Colab](https://colab.research.google.com/drive/14okQ8bBhEZmy6EGRIQvazTqrN39oc_K5)
 * [Project website](https://www.umr-lastig.fr/ewelina-rupnik/historicalfeatures.html)
-* [Introduction video](https://www.youtube.com/channel/UCg7_VpmlZImh8bCDBrdXgAw)
+* [Youtube videos](https://www.youtube.com/channel/UCg7_VpmlZImh8bCDBrdXgAw)
 * [Slides](https://drive.google.com/uc?id=16sJZiY3sTZSRZKBzpy2IHVloCLj6pEwP)
 * [Blog](https://rfpt-sfpt.github.io/blog/feature%20matching/historical%20images/multi-epoch/pose%20estimation/self-calibration/2021/11/17/Lulin-ZHANG-LaSTIG.html)
 
