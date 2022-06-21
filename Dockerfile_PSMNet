@@ -52,5 +52,5 @@ RUN cd micmac/MMVII/bin && \
     /bin/bash install.sh
 
 #MicMac add environmental variable to executables
-ENV PATH=${foo}micmac/bin/:${foo}micmac/MMVII/bin/:${PATH}
-RUN echo ${foo}micmac/bin/:${foo}micmac/MMVII/bin/:${PATH}
+ENV PATH=${foo}micmac/bin:${foo}micmac/MMVII/bin:${PATH}
+RUN echo ${foo}micmac/bin:${foo}micmac/MMVII/bin:${PATH}
