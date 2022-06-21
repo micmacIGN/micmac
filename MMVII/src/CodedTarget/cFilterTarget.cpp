@@ -91,7 +91,7 @@ template <class Type> cIm2D<Type> cFilterDCT<Type>::ComputeIm()
     cIm2D<Type> aImRes(mSz,nullptr,eModeInitImage::eMIA_V1);
     cDataIm2D<Type> & aDRes = aImRes.DIm();
 
-    int aD = round_up(mR1);
+    int aD = round_up(mR1)+1;
 
     for (const auto & aPix : cRect2(mDIm.Dilate(-aD)))
     {
@@ -389,9 +389,9 @@ class  cSymetricityCalc
 
 template<class TypeEl> cIm2D<TypeEl> ImSymetricity(cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon)
 {
+StdOut() << "JJJJJ " << __LINE__ << "\n";
     cDataIm2D<TypeEl> & aDImIn = aImIn.DIm();
     const TypeEl* aData = aDImIn.RawDataLin();
-    cSymFilterCT<TypeEl> aSymF(aImIn,aR0,aR1,Epsilon);
 
     std::vector<int>  aVNeighLine;
     for (const auto &  aPix :VectOfRadius(aR0,aR1,true))
@@ -417,6 +417,7 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(cIm2D<TypeEl>  aImIn,double a
 
           double aVal = aSM.Sym(Epsilon);
 	  aDImOut.SetV(aPix,aVal);
+	  /*
           {
               double aVal2 = aSymF.ComputeVal(ToR(aPix));
               if (std::abs(aVal-aVal2) > 1e-8)
@@ -425,7 +426,25 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(cIm2D<TypeEl>  aImIn,double a
                   getchar();
               }
           }
+	  */
     }
+
+    {
+       cSymFilterCT<TypeEl> aSymF(aImIn,aR0,aR1,Epsilon);
+       cIm2D<TypeEl>  anI2 = aSymF.ComputeIm();
+       cDataIm2D<TypeEl>& aDI2 = anI2.DIm();
+       for (const auto & aPix : cRect2(aPW,aSz-aPW))
+       {
+           TypeEl aV1 = aDImOut.GetV(aPix);
+           TypeEl aV2 = aDI2.GetV(aPix);
+           if (std::abs(aV1-aV2) > 1e-8)
+           {
+               StdOut() << "Diiiff = " <<aV1 -  aV2  << "\n";
+               getchar();
+           }
+       }
+    }
+
 
     return aImOut;
 }

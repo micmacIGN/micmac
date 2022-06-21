@@ -356,7 +356,8 @@ void  cAppliExtractCodeTarget::DoExtract()
      //   ====   Radian filters ====
      {
          cImGrad<tREAL4>  aImG = Deriche(aDIm,1.0);
-         std::vector<cPt2di>  aVectVois =  VectOfRadius(3.5,5.5,false);
+         // std::vector<cPt2di>  aVectVois =  VectOfRadius(3.5,5.5,false);
+         std::vector<cPt2di>  aVectVois =  VectOfRadius(2,4,false);
          std::vector<cPt2dr>  aVDir = VecDir(aVectVois);
 
 
