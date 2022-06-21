@@ -1092,6 +1092,9 @@ cAppli_YannSkyMask::cAppli_YannSkyMask(int argc, char ** argv){
 		// Down-grading h5py to earlier version
 		System("pip install 'h5py==2.10.0' --force-reinstall");
 		
+		// Down-grading protobuf version
+		System("pip install 'protobuf~=3.19.0'");
+		
 		return;
 		
 	}
@@ -1188,25 +1191,28 @@ cAppli_YannScript::cAppli_YannScript(int argc, char ** argv){
         LArgMain()  <<  EAM(mOut,"Ref", "file.o", "Rinex base station observation file"));
 	
 	
-	ObservationData rover = RinexReader::readObsFile(ImPattern);
-    ObservationData base = RinexReader::readObsFile(mOut);
+	ObservationData rov = RinexReader::readObsFile(ImPattern);
+    ObservationData bas = RinexReader::readObsFile(mOut);
     NavigationData nav  = RinexReader::readNavFile(aPostIn);
 
-    rover.removeSatellite("G24");
-    base.removeSatellite("G24");
-    base.removeSatellite("G10");
-    base.removeSatellite("G19");
+	ObservationSlot slot = rov.getObservationSlots().at(0);
+	GPSTime time = slot.getTimestamp();
+	
+	std::vector<std::string> SATS = slot.getSatellites();
+	
+	std::string sat1 = "G16";
 
-    NavigationDataSet eph = NavigationDataSet();
-    eph.addGpsEphemeris(nav);
 
-    Solution solution = Algorithms::triple_difference_kalman(rover, base, eph, base.getApproxAntennaPosition());
-
-    std::cout << "------------------------------------------------------------------------------" << std::endl;
-    std::cout << rover.getApproxAntennaPosition() << std::endl;
-    std::cout << solution.getPosition() - rover.getApproxAntennaPosition() << std::endl;
-    std::cout << "------------------------------------------------------------------------------" << std::endl;
-
+	std::cout << std::endl;
+	std::cout << "-----------------------------" << std::endl;
+	
+	for (unsigned i=0; i<SATS.size(); i++){
+		std::string sat2 = SATS.at(i);
+		double N = Algorithms::solve_ambiguity_ref(rov, bas, nav, time, sat1, sat2);
+		std::cout << "DD " << sat1 << "-" << sat2 << "     " << N << std::endl;	
+	}
+	
+	std::cout << "-----------------------------" << std::endl;
 
 	/*
 	std::string prn;
