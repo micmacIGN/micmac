@@ -523,6 +523,12 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
             tPB::AssertInside(aP);
             Value(aP) = tNumTrait<Type>::Trunc(aV);
         }
+          /// "Safe" set, test P and V
+        void SetVTruncIfInside(const cPt2di & aP,const tBase & aV)
+        { 
+            if (tPB::Inside(aP))
+               SetVTrunc(aP,aV);
+        }
 
         /// Increment Value, check acces and overflow
         const Type & AddVal(const cPt2di & aP,const Type & aValAdd )  
@@ -648,6 +654,9 @@ template <class Type>  class cIm2D
     public :
        typedef cDataIm2D<Type>  tDIM;
 
+       /// Create a smart pointer on an existing allocated image 
+       //  cIm2D(tDIM&); =>  DONT WORK, have to understand why !!!
+
        /// Alow to allocate image with origin not in (0,0)
        cIm2D(const cPt2di & aP0,const cPt2di & aP1, Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); 
        /// Image with origin on (0,0)
@@ -742,7 +751,7 @@ template<class TypeEl> class  cAppliParseBoxIm
         cBox2di       CurBoxOutLoc() const; 
         const cDataFileIm2D &  DFI2d() const;   ///< accessor
 
-    private :
+    // private :
         cAppliParseBoxIm(const cAppliParseBoxIm &) = delete;
 	bool InsideParsing() const;
 	void AssertInParsing() const;

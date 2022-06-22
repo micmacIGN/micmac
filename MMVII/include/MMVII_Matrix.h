@@ -634,7 +634,19 @@ template <class Type>  class cComputeStdDev
 {
      public :
          cComputeStdDev();
-         void  Add(const Type & aW,const Type & aV);
+         void  Add(const Type & aW,const Type & aV)
+         {
+             mSomW   += aW;
+             mSomWV  += aW *aV;
+             mSomWV2 += aW * Square(aV);
+         }
+         void  Add(const Type & aV)
+         {
+             mSomW   ++;
+             mSomWV  += aV;
+             mSomWV2 += Square(aV);
+         }
+
          const Type & SomW()   const {return mSomW;  }
          const Type & SomWV()  const {return mSomWV; }
          const Type & SomWV2() const {return mSomWV2;}
@@ -653,8 +665,20 @@ template<class Type> class cSymMeasure
 {
     public :
         cSymMeasure();
-        void Add(Type  aV1,Type  aV2);
+        void Add(const Type  & aV1,const Type  & aV2)
+        {
+            mDif += Square(aV1-aV2);
+            mDev.Add(aV1);
+            mDev.Add(aV2);
+        }
+        void Add(const Type  & aW,const Type  & aV1,const Type  & aV2)
+        {
+            mDif += aW * Square(aV1-aV2);
+            mDev.Add(aW,aV1);
+            mDev.Add(aW,aV2);
+        }
         Type  Sym(const Type & Espilon=1) const;
+        const cComputeStdDev<Type > & Dev() const ;
     private :
         Type                   mDif;
         cComputeStdDev<Type >  mDev;
@@ -737,7 +761,7 @@ template <class Type> class cDataGenDimTypedIm : public cMemCheck
 # if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
         void AssertOk(const tIndex& anIndex) const {PrivateAssertOk(anIndex);}
 #else
-        void AssertOk(const tIndex&) { } const
+        void AssertOk(const tIndex&)  const {}
 #endif
 
         int      mDim;

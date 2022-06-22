@@ -1,9 +1,18 @@
 #include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 
+/*
+    1313  966
+    1188  936  6
+*/
+
 
 namespace MMVII
 {
+
+static constexpr double ExtRatioW1   = 1.3;
+static constexpr double ExtRatioCode = 1.8;
+static constexpr double ExtRatioBrd =  1.8;
 
 namespace  cNS_CodedTarget
 {
@@ -91,14 +100,16 @@ void cParamCodedTarget::InitFromFile(const std::string & aNameFile)
 
 
 cParamCodedTarget::cParamCodedTarget() :
+   mCodeExt       (true),
    mNbRedond      (2),
    mNbCircle      (1),
    mThTargetC     (0.0), // (0.8),
    mThStars       (4),
    mThBlCircExt   (0.0), // (0.5),
-   mThBrdWhiteInt (0.7),
-   mThBrdBlack    (0.7),
-   mThBrdWhiteExt (0.1),
+   mThBrdWhiteInt (1.0),
+   mThBrdBlack    (mCodeExt ? 0 : 0.7),
+   mThBrdWhiteExt (mCodeExt ? 0 : 0.1),
+   mThTxt         (1.5),
    mScaleTopo     (0.5),
    mNbPixelBin    (1800),
    mDecP          ({1,1})  // "Fake" init 4 now
@@ -123,18 +134,24 @@ int&    cParamCodedTarget::NbCircle() {return mNbCircle;}
 
 void cParamCodedTarget::Finish()
 {
-  mSzBin = cPt2di(mNbPixelBin,mNbPixelBin);
   mThRing = mThStars / mNbCircle;
-
   mRhoEndTargetC     = mThTargetC;
   mRhoEndStar        = mRhoEndTargetC     +  mThStars;
   mRhoEndBlackCircle = mRhoEndStar        +  mThBlCircExt;
   mRhoEnBrdWhiteInt  = mRhoEndBlackCircle +  mThBrdWhiteInt;
   mRhoEndBrdBlack    = mRhoEnBrdWhiteInt  +  mThBrdBlack;
   mRhoEndBrdWhiteExt = mRhoEndBrdBlack    +  mThBrdWhiteExt;
+  mRhoEndTxt    =  mRhoEndBrdWhiteExt + mThTxt ;
+
+  int aWidthBin =   mNbPixelBin * (mNbPixelBin ? 1 : (mRhoEndTxt/mRhoEndBrdWhiteExt));
+  mSzBin = cPt2di(aWidthBin,aWidthBin);
 
   mMidle = ToR(mSzBin) / 2.0;
   mScale = mNbPixelBin / (2.0 * mRhoEndBrdWhiteExt);
+  if (mCodeExt)
+  {
+      mScale = mNbPixelBin / (2.0 * ExtRatioBrd * mRhoEndStar);
+  }
 
   std::vector<int> aVNbSub;
   for (int aKCirc = 0 ; aKCirc< mNbCircle ; aKCirc++)
@@ -149,7 +166,7 @@ void cParamCodedTarget::Finish()
       StdOut()  << " aK=" << aK << " N=" << aNb  <<  " C(k,n)=" <<  aVNbSub.back() << "\n";
   }
   mDecP = cDecomposPAdikVar(aVNbSub);
-  StdOut()  << " NbTarget="   << NbCodeAvalaible() << "\n";
+  StdOut()  << " NbModelTarget="   << NbCodeAvalaible() << "\n";
 
 }
 
@@ -171,13 +188,71 @@ int cParamCodedTarget::NbCodeAvalaible() const
    return  mDecP.MulBase();
 }
 
+
+tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT)
+{
+     tImTarget aImT(mSzBin);
+     tDataImT  & aDImT = aImT.DIm();
+
+     double mRhoWhit1 = mRhoEndStar * ExtRatioW1;
+     double mRhoCode  = mRhoEndStar * ExtRatioCode;
+
+     for (const auto & aPix : aDImT)
+     {
+         cPt2dr  aPixN =  Pix2Norm(aPix);     // "Nomalized" coordinate
+         cPt2dr  aRT  = ToPolar(aPixN,0.0);   // Polar then Rho teta
+	 double  aRho = aRT.x();
+         double  aTeta = aRT.y();
+
+	 bool IsW = true;  // Default is white
+
+         if (aRho < mRhoEndStar)  
+         {
+               if (aTeta < 0)
+                   aTeta += 2 *M_PI;
+               
+               int aIndTeta = round_down((aTeta/(M_PI/2.0)));
+               IsW = (aIndTeta%2)==0;
+         }
+         else if (aRho<mRhoWhit1)
+	 {
+             IsW = true;
+	 }
+         else if (aRho<mRhoCode)
+         {
+             IsW = false;
+         }
+/*
+         else
+         {
+              // Outside => border and fid marks (done after)
+	      int aDInter = aRectHT.Interiority(aPix);
+	      IsW = (aDInter<aDW) || (aDInter>=aDB);
+         }
+*/
+
+         int aVal = IsW ? 255 : 0;
+         aDImT.SetV(aPix,aVal);
+     }
+
+
+     return aImT;
+}
+
+
 tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 {
+     if (mCodeExt)
+        return MakeImCodeExt(aSetCodesOfT);
+
+     cRect2 aRectHT = cRect2::BoxWindow(ToI(mMidle),mNbPixelBin/2);
+
      tImTarget aImT(mSzBin);
      tDataImT  & aDImT = aImT.DIm();
 
      int aDW = (mRhoEndBrdWhiteExt-mRhoEndBrdBlack) * mScale;
      int aDB = (mRhoEndBrdWhiteExt-mRhoEnBrdWhiteInt ) * mScale;
+
 
      //  Parse all pixels of image
      for (const auto & aPix : aDImT)
@@ -196,16 +271,24 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 	     {
 		if (aTeta < 0)
                    aTeta += 2 *M_PI;
-                int aIndRho = round_down((aRho-mRhoEndTargetC)/mThRing);
-                aIndRho = std::max(0,std::min(mNbCircle-1,aIndRho));
-		const cSetCodeOf1Circle & aSet1C =  mVecSetOfCode.at(aIndRho);
-		int aN  = aSet1C.N();
+                if (mCodeExt)
+                {
+                   int aIndTeta = round_down((aTeta/(M_PI/2.0)));
+                   IsW = (aIndTeta%2)==0;
+                }
+                else
+                {
+                    int aIndRho = round_down((aRho-mRhoEndTargetC)/mThRing);
+                    aIndRho = std::max(0,std::min(mNbCircle-1,aIndRho));
+		    const cSetCodeOf1Circle & aSet1C =  mVecSetOfCode.at(aIndRho);
+		    int aN  = aSet1C.N();
 
-		int aIndTeta = round_down((aTeta*aN*mNbRedond)/(2*M_PI));
-		aIndTeta = aIndTeta % aN;
-                const tBinCodeTarg & aCodeBin = aSetCodesOfT.CodeOfNumC(aIndRho);
-                if (aCodeBin.IsInside(aIndTeta))
-                   IsW = false;
+		    int aIndTeta = round_down((aTeta*aN*mNbRedond)/(2*M_PI));
+		    aIndTeta = aIndTeta % aN;
+                    const tBinCodeTarg & aCodeBin = aSetCodesOfT.CodeOfNumC(aIndRho);
+                    if (aCodeBin.IsInside(aIndTeta))
+                       IsW = false;
+                }
 	     }
 	     else
 	     {
@@ -224,7 +307,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
          else
          {
               // Outside => border and fid marks (done after)
-	      int aDInter = aDImT.Interiority(aPix);
+	      int aDInter = aRectHT.Interiority(aPix);
 	      IsW = (aDInter<aDW) || (aDInter>=aDB);
          }
 
@@ -234,17 +317,19 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 
      // Print the string of number
      {
-         std::string aStr = ToStr(aSetCodesOfT.Num(),2);
-         cIm2D<tU_INT1> aImStr = ImageOfString(aStr,1);
-         cDataIm2D<tU_INT1> & aDImStr = aImStr.DIm();
-	 cPt2di aNbPixStr = aDImStr.Sz();
-	 double mHString = 0.7;
-	 double  aScaleStr =  (mHString/aNbPixStr.y()) * mScale;
+          std::string aStrCode = ToStr(aSetCodesOfT.Num(),2);
+          cIm2D<tU_INT1> aImStr = ImageOfString(aStrCode,mCodeExt ? 1 : -1);
+          cDataIm2D<tU_INT1> & aDImStr = aImStr.DIm();
+          cPt2di aNbPixStr = aDImStr.Sz();
+          // Ratio between pix of bin image and pix of string
+          double  aScaleStr =  (mThTxt/(mCodeExt ? aNbPixStr.y() : aNbPixStr.x())) * mScale; 
+
          // StdOut() << "STR=[" << aStr <<  "] ScSt " << aScaleStr << "\n";
 
 	 cPt2dr aSzStr = ToR(aNbPixStr) * aScaleStr;
 	 // cPt2di aP0 = ToI(aMidStr-aSzStr/2.0);
-	 cPt2di aP0(aDB,aDB);
+	 // cPt2di aP0(aDB,aDB);
+	 cPt2di aP0 = Pt_round_up(cPt2dr(mThBrdWhiteExt,mThBrdWhiteExt)*mScale);
 	 cPt2di aP1 = aP0 + ToI(aSzStr);
 
 	 cRect2 aBox(aP0,aP1);

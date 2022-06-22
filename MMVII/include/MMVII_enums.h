@@ -379,7 +379,18 @@ enum class eModeCaracMatch
    eNbVals
 };
 
+/** Filters for detecteting coded target */
 
+enum class eDCTFilters
+{
+   eSym,       // symetry filters arround pts
+   eBin,       // binarity of the  histogramm
+   eRad,       // radiality of the distribution
+   eGrad,      // average  gradient
+   eNbVals
+};
+
+const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
 const std::string & E2Str(const eTA2007 &);         

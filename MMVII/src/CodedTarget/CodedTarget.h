@@ -6,9 +6,27 @@
 
 namespace MMVII
 {
+template<class TypeEl>
+   double IndBinarity(const  cDataIm2D<TypeEl> & aDIm,const cPt2di & aP0,const std::vector<cPt2di> & aVectVois);
+
 template<class TypeEl> cIm2D<TypeEl> ImBinarity(const  cDataIm2D<TypeEl> & aDIm,double aR0,double aR1,double Epsilon);
+
+std::vector<cPt2dr> VecDir(const  std::vector<cPt2di>&  aVectVois);
+template<class TypeEl> double Starity
+                              (
+                                  const  cImGrad<TypeEl> & aImGrad,
+                                  const cPt2dr & aP0,
+                                  const  std::vector<cPt2di>&  aVectVois ,
+                                  const  std::vector<cPt2dr>&  aVecDir,
+                                  double Epsilon
+                              );
+
+
 template<class TypeEl> cIm2D<TypeEl> ImStarity(const  cImGrad<TypeEl> & aImGrad,double aR0,double aR1,double Epsilon);
-template<class TypeEl> cIm2D<TypeEl> ImSymetricity(const  cDataIm2D<TypeEl> & aDImIn,double aR0,double aR1,double Epsilon);
+
+
+
+template<class TypeEl> cIm2D<TypeEl> ImSymetricity(cIm2D<TypeEl> anImIn,double aR0,double aR1,double Epsilon);
 
 
 
@@ -75,6 +93,7 @@ class cParamCodedTarget
        int NbCodeAvalaible() const;         // Number of different code we can generate
        cCodesOf1Target CodesOfNum(int);     // One combinaison of binary code
        tImTarget  MakeIm(const cCodesOf1Target &);  // Generate the image of 1 combinaison
+       tImTarget  MakeImCodeExt(const cCodesOf1Target &);  // Generate the image of 1 combinaison
 
        void AddData(const cAuxAr2007 & anAux);
 
@@ -85,6 +104,7 @@ class cParamCodedTarget
        cPt2dr    Norm2PixR(const cPt2dr &) const;
        cPt2di    Norm2PixI(const cPt2dr &) const;
 
+       bool      mCodeExt;   // if true the code is not at the center but code bar at periphery
        int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
        int       mNbCircle;  // Number of circles encoding information
 
@@ -94,6 +114,8 @@ class cParamCodedTarget
        double    mThBrdWhiteInt;    // Thickness of white internal border
        double    mThBrdBlack;    // Thickness of black border
        double    mThBrdWhiteExt;    // Thickness of black border
+       // double    mThBrdWhiteExt;    // Thickness of black border
+       double    mThTxt;            // Thickness of text
 
        double    mScaleTopo;         // Scale used to create identifiable center 4 toto
        int       mNbPixelBin;        // Number of pixel  Binary image
@@ -108,6 +130,7 @@ class cParamCodedTarget
        double    mRhoEnBrdWhiteInt;   // Rho where ends interior white border
        double    mRhoEndBrdBlack;   // Rho where ends black border
        double    mRhoEndBrdWhiteExt;   // Rho where ends white border
+       double    mRhoEndTxt;   // Rho where ends text
 
 
        cPt2di    mSzBin;

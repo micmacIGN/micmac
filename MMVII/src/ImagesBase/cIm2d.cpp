@@ -142,10 +142,18 @@ const cPt2di & ShowPt(const cPt2di &aSz,const std::string & aMsg)
 }
 */
 
+/*
+template <class Type>  cIm2D<Type>::cIm2D(tDIM & anIm) :
+   mSPtr(& anIm),
+   mPIm (mSPtr.get())
+{
+}
+*/
 
 template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) :
    mSPtr(new cDataIm2D<Type>(aP0,aP1,aRawDataLin,aModeInit)),
    mPIm (mSPtr.get())
+   //  cIm2D<Type> (*(new cDataIm2D<Type>(aP0,aP1,aRawDataLin,aModeInit)))
 {
 }
 
