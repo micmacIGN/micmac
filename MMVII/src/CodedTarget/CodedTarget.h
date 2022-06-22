@@ -93,6 +93,7 @@ class cParamCodedTarget
        int NbCodeAvalaible() const;         // Number of different code we can generate
        cCodesOf1Target CodesOfNum(int);     // One combinaison of binary code
        tImTarget  MakeIm(const cCodesOf1Target &);  // Generate the image of 1 combinaison
+       tImTarget  MakeImCodeExt(const cCodesOf1Target &);  // Generate the image of 1 combinaison
 
        void AddData(const cAuxAr2007 & anAux);
 
@@ -103,6 +104,7 @@ class cParamCodedTarget
        cPt2dr    Norm2PixR(const cPt2dr &) const;
        cPt2di    Norm2PixI(const cPt2dr &) const;
 
+       bool      mCodeExt;   // if true the code is not at the center but code bar at periphery
        int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
        int       mNbCircle;  // Number of circles encoding information
 
