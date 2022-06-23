@@ -370,10 +370,10 @@ void cMMVII_Appli::InitParam()
       <<  AOpt2007(mNbProcAllowed,GOP_NbProc,"Number of process allowed in parallelisation",aGlob)
       <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Global})
       <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for add,"+ MMVII_NONE + "for no out)",aGlob)
-      <<  AOpt2007(mLevelCall,GIP_LevCall,"Internal : Don't Use !! Level Of Call",aInternal)
-      <<  AOpt2007(mShowAll,GIP_ShowAll,"Internal : Don't Use !!",aInternal)
-      <<  AOpt2007(mPrefixGMA,GIP_PGMA,"Internal : Don't Use !! Prefix Global Main Appli",aInternal)
-      <<  AOpt2007(mDirProjGMA,GIP_DirProjGMA,"Internal : Don't Use !! Folder Project Global Main Appli",aInternal)
+      <<  AOpt2007(mLevelCall,GIP_LevCall," Level Of Call",aInternal)
+      <<  AOpt2007(mShowAll,GIP_ShowAll,"",aInternal)
+      <<  AOpt2007(mPrefixGMA,GIP_PGMA," Prefix Global Main Appli",aInternal)
+      <<  AOpt2007(mDirProjGMA,GIP_DirProjGMA," Folder Project Global Main Appli",aInternal)
   ;
   mNbProcAllowed = std::min(mNbProcAllowed,mNbProcSystem); ///< avoid greedy/gluton user
 
@@ -848,7 +848,7 @@ void cMMVII_Appli::LogCommandIn(const std::string & aName,bool MainLogFile)
    aOfs.Ofs() << "========================================================================\n";
    aOfs.Ofs() << "  Id : " <<  mPrefixNameAppli << "\n";
    aOfs.Ofs() << "  begining at : " <<  StrDateCur() << "\n\n";
-   aOfs.Ofs() << "  " << Command() << "\n\n";
+   aOfs.Ofs() << "  " << CommandOfMain() << "\n\n";
    aOfs.Ofs().close();
 }
 
@@ -938,7 +938,10 @@ void cMMVII_Appli::GenerateHelp()
                       GlobalMet = true;
                    }
 
-                   HelpOut()  << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
+                   HelpOut()  << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " ;
+                   if (IsIinternal)
+                       HelpOut()  << "(!!== INTERNAL DONT USE DIRECTLY ==!!)";
+                   HelpOut()  << Arg->Com() ;
                    bool HasDefVal = Arg->HasType(eTA2007::HDV);
                    if (HasDefVal)
                    {
@@ -1448,7 +1451,7 @@ void   cMMVII_Appli::ExeMultiAutoRecallMMVII
 
 int   cMMVII_Appli::LevelCall() const { return mLevelCall; }
 
-std::string  cMMVII_Appli::Command() const
+std::string  cMMVII_Appli::CommandOfMain() const
 {
     std::string  aRes;
     for (int aK=0 ; aK<(int) mArgv.size() ; aK++)

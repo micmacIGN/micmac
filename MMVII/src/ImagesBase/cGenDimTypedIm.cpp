@@ -269,7 +269,7 @@ template <class Type>  void cBenchImNDim<Type>::FinaleRec(tIndex & anIndex,int a
        Type aV1 = Func(anIndex);
        Type aV2 = mIm.GetV(anIndex);
        // StdOut() << " vvvvvVVv=" << aV1-aV2 << " " << aV1 << " " << aV2 << "\n";
-       MMVII_INTERNAL_ASSERT_tiny(std::abs(aV1-aV2)<1e-5,"Final Rec");
+       MMVII_INTERNAL_ASSERT_bench(std::abs(aV1-aV2)<1e-5,"Final Rec");
    }
 }
 

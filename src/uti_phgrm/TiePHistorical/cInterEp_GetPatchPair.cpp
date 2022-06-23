@@ -344,7 +344,8 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                             printf("aPCornerPatch[%d], aPCornerR[%d]: %.2lf\t%.2lf\t%.2lf\t%.2lf\n", i, i, aPCornerPatch[i].x, aPCornerPatch[i].y, aPCornerR[i].x, aPCornerR[i].y);
                     }
 
-                    if(aUnValid == false){
+                    //if(aUnValid == false)
+                    {
                         if(!ELISE_fp::exist_file(aNameSave)){
                             ElPackHomologue aPack;
                             for(int i=0; i<4; i++)

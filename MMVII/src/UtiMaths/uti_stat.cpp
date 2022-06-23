@@ -26,16 +26,19 @@ double FactExpFromSigma2(double aS2)
 template <class Type> cComputeStdDev<Type>::cComputeStdDev() :
    mSomW   (0.0),
    mSomWV  (0.0),
-   mSomWV2 (0.0)
+   mSomWV2 (0.0),
+   mStdDev (0.0) 
 {
 }
 
+/*
 template <class Type> void cComputeStdDev<Type>::Add(const Type & aW,const Type & aV)
 {
     mSomW   += aW;
     mSomWV  += aW *aV;
     mSomWV2 += aW * Square(aV);
 }
+*/
 
 
 template <class Type> void cComputeStdDev<Type>::SelfNormalize(const Type&  Epsilon)
@@ -366,12 +369,12 @@ template<class Type> cSymMeasure<Type>::cSymMeasure() :
 {
 }
 
-template<class Type> void cSymMeasure<Type>::Add(Type aV1,Type aV2)
+template<class Type> const cComputeStdDev<Type > & cSymMeasure<Type>::Dev() const 
 {
-   mDif += Square(aV1-aV2);
-   mDev.Add(1.0,aV1);
-   mDev.Add(1.0,aV2);
+   return mDev;
 }
+
+
 
 template<class Type> Type  cSymMeasure<Type>::Sym(const Type & anEspilon) const
 {

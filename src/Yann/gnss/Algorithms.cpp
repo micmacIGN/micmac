@@ -880,3 +880,49 @@ Solution Algorithms::triple_difference_kalman(ObservationData rover,
     return solution;
 
 }
+
+// -------------------------------------------------------------------------------
+// Algorithme de résolution des ambiüités sur une époque où la position de la
+// station mobile (et de la station de base) sont connues exactement.
+// -------------------------------------------------------------------------------
+double Algorithms::solve_ambiguity_ref(ObservationData rov, ObservationData bas, NavigationData nav, GPSTime time, std::string sat1, std::string sat2){
+
+
+    double L1 = Utils::C/L1_FREQ;
+
+    ECEFCoords pos_r = rov.getApproxAntennaPosition();
+    ECEFCoords pos_b = bas.getApproxAntennaPosition();
+
+    ObservationSlot slot_b = bas.lookForEpoch(time);
+    ObservationSlot slot_r = rov.lookForEpoch(time);
+
+    double diff_b = slot_b.getTimestamp()-time;
+    double diff_r = slot_r.getTimestamp()-time;
+
+    if (diff_b != 0){
+        std::cout << "Warning: base station not synchronized. Time diff = " << diff_b*1e6 << " us" << std::endl;
+    }
+    if (diff_r != 0){
+        std::cout << "Warning: rover station not synchronized. Time diff = " << diff_b*1e6 << " us" << std::endl;
+    }
+
+    // Observations
+    double C1b = slot_b.getObservation(sat1).getC1(); double L1b = slot_b.getObservation(sat1).getL1();
+    double C2b = slot_b.getObservation(sat2).getC1(); double L2b = slot_b.getObservation(sat2).getL1();
+    double C1r = slot_r.getObservation(sat1).getC1(); double L1r = slot_r.getObservation(sat1).getL1();
+    double C2r = slot_r.getObservation(sat2).getC1(); double L2r = slot_r.getObservation(sat2).getL1();
+
+    // Positions et distances théoriques
+    ECEFCoords pos_sat1b = nav.computeSatellitePos(sat1, slot_b.getTimestamp(), C1b); double D1b = pos_b.distanceTo(pos_sat1b);
+    ECEFCoords pos_sat2b = nav.computeSatellitePos(sat2, slot_b.getTimestamp(), C2b); double D2b = pos_b.distanceTo(pos_sat2b);
+    ECEFCoords pos_sat1r = nav.computeSatellitePos(sat1, slot_r.getTimestamp(), C1r); double D1r = pos_r.distanceTo(pos_sat1r);
+    ECEFCoords pos_sat2r = nav.computeSatellitePos(sat2, slot_r.getTimestamp(), C2r); double D2r = pos_r.distanceTo(pos_sat2r);
+
+    // Doubles différences observées et théoriques
+    double dd_obs = (L1b - L2b) - (L1r - L2r);
+    double dd_thq = ((D1b - D2b) - (D1r - D2r))/L1;
+
+    // Résolution de l'ambigüité entière
+    return  dd_obs - dd_thq;
+
+}

@@ -944,6 +944,19 @@ template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2
        &&  (aPt.y() <  aBox.P1().y() - aSzW.y()-1) ;
 }
 
+template <class Type> bool WindInside(const cBox2di & aBox,const cPt2di & aPt,const  cPt2di & aSzW)
+{
+   return
+	   (aPt.x() >= aBox.P0().x() + aSzW.x())
+       &&  (aPt.y() >= aBox.P0().y() + aSzW.y())
+       &&  (aPt.x() <  aBox.P1().x() - aSzW.x())
+       &&  (aPt.y() <  aBox.P1().y() - aSzW.y()) ;
+}
+
+template <class Type> bool WindInside(const cBox2di & aBox,const cPt2di & aPt,const int  & aSz)
+{
+    return WindInside(aBox,aPt,cPt2di(aSz,aSz));
+}
 
 /* ========================== */
 /*       INSTANTIATION        */

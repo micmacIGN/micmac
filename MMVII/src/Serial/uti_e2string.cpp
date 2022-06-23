@@ -244,6 +244,14 @@ template<> cE2Str<eModePaddingEpip>::tMapE2Str cE2Str<eModePaddingEpip>::mE2S
            };
 TPL_ENUM_2_STRING(eModePaddingEpip);
 
+template<> cE2Str<eDCTFilters>::tMapE2Str cE2Str<eDCTFilters>::mE2S
+           {
+                {eDCTFilters::eSym,"Sym"},
+                {eDCTFilters::eBin,"Bin"},
+                {eDCTFilters::eRad,"Rad"},
+                {eDCTFilters::eGrad,"Grad"}
+           };
+TPL_ENUM_2_STRING(eDCTFilters);
 
 template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
            {
@@ -369,6 +377,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eModeEpipMatch>();
     TplBenchEnum<eModePaddingEpip>();
     TplBenchEnum<eModeCaracMatch>();
+    TplBenchEnum<eDCTFilters>();
 
     aParam.EndBench();
 }

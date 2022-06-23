@@ -4,6 +4,22 @@ namespace MMVII
 {
 
 /* ========================== */
+/*         cBox2di            */
+/* ========================== */
+
+cBox2di DilateFromIntervPx(const cBox2di & aBox,int aDPx0,int aDPx1)
+{
+   cPt2di aP0 = aBox.P0();
+   cPt2di aP1 = aBox.P1();
+   return  cBox2di
+           (
+                cPt2di(aP0.x()+aDPx0,aP0.y()),
+                cPt2di(aP1.x()+aDPx1,aP1.y())
+           );
+}
+
+
+/* ========================== */
 /*    cSegment2DCompiled      */
 /* ========================== */
 

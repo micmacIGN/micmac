@@ -523,6 +523,12 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
             tPB::AssertInside(aP);
             Value(aP) = tNumTrait<Type>::Trunc(aV);
         }
+          /// "Safe" set, test P and V
+        void SetVTruncIfInside(const cPt2di & aP,const tBase & aV)
+        { 
+            if (tPB::Inside(aP))
+               SetVTrunc(aP,aV);
+        }
 
         /// Increment Value, check acces and overflow
         const Type & AddVal(const cPt2di & aP,const Type & aValAdd )  
@@ -648,6 +654,9 @@ template <class Type>  class cIm2D
     public :
        typedef cDataIm2D<Type>  tDIM;
 
+       /// Create a smart pointer on an existing allocated image 
+       //  cIm2D(tDIM&); =>  DONT WORK, have to understand why !!!
+
        /// Alow to allocate image with origin not in (0,0)
        cIm2D(const cPt2di & aP0,const cPt2di & aP1, Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); 
        /// Image with origin on (0,0)
@@ -706,16 +715,19 @@ template<class TypeEl> class  cAppliParseBoxIm
 	      aRes.Read(cDataFileIm2D::Create(aName,mIsGray),CurBoxIn().P0());
 	      return aRes;
         }
-	/*
-	template <class Type2>   void  APBI_WriteIm(const std::string & aName,cIm2D<Type2> anIm)
-	{
-		anIm.Write(cDataFileIm2D::Create(aName),Pt,1,Box);,1,Box);
-	}
-	*/
-       // void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
-       // void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
 
-        cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray,const cPt2di & aSzTiles,const cPt2di & aSzOverlap) ;
+
+	template <class Type2>   void  APBI_WriteIm(const std::string & aName,cIm2D<Type2> anIm,eTyNums aTyN)
+	{
+             cDataFileIm2D  aDF = cDataFileIm2D::Create(aName,aTyN,mDFI2d.Sz(),1);
+	     anIm.Write(aDF,CurP0(),1.0,CurBoxOutLoc());
+	}
+	template <class Type2>   void  APBI_WriteIm(const std::string & aName,cIm2D<Type2> anIm)
+        {
+               APBI_WriteIm(aName,anIm,tElemNumTrait<Type2>::TyNum());
+        }
+
+        cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray,const cPt2di & aSzTiles,const cPt2di & aSzOverlap,bool ParalTiles) ;
         ~cAppliParseBoxIm();
 
 	void  APBI_ExecAll(); ///< Execute Action on all Box of file  OR  only on Test Box if exist
@@ -725,35 +737,50 @@ template<class TypeEl> class  cAppliParseBoxIm
 
 
         tDataIm &  APBI_DIm();  ///< Accessor to loaded image
+        const tDataIm &  APBI_DIm() const;  ///< Accessor to loaded image
+        tIm &       APBI_Im();  ///< Accessor to loaded image
+        const tIm & APBI_Im() const;  ///< Accessor to loaded image
         bool      APBI_TestMode() const; ///< Ar we in test mode
         const std::string & APBI_NameIm() const;     ///< Name of image to parse
 
+        cBox2di       CurBoxIn()  const;   
+        cPt2di        CurSzIn()  const;   
+        cPt2di        CurP0()  const;   
+        cBox2di       CurBoxOut() const; 
+        cBox2di       CurBoxInLoc() const; 
+        cBox2di       CurBoxOutLoc() const; 
+        const cDataFileIm2D &  DFI2d() const;   ///< accessor
 
-
-    private :
+    // private :
         cAppliParseBoxIm(const cAppliParseBoxIm &) = delete;
 	bool InsideParsing() const;
 	void AssertInParsing() const;
 	void AssertNotInParsing() const;
         tDataIm & LoadI(const cBox2di & aBox); ///< Load file for the Box, return loaded image
-        cBox2di       CurBoxIn()  const;   
-        cBox2di       CurBoxOut() const; 
-        cBox2di       CurBoxOutLoc() const; 
 
-        cBox2di       mBoxTest;    ///< Box for quick testing, in case we dont parse all image
+        bool InsideParalRecall() const ; /// Indicate if we are in a recall of a parallal excecution
+        bool TopCallParallTile() const ; /// Indicate if we are at the "top level" of a call in parallel
+
+          // mandatory params
         std::string   mNameIm;     ///< Name of image to parse
+          // Optional params
+        cBox2di        mBoxTest;    ///< Box for quick testing, in case we dont parse all image
+	cPt2di         mSzTiles;    ///< Size of tiles to parse global file
+	cPt2di         mSzOverlap;  ///< Size of overlap between each tile
+        bool           mParalTiles;   ///< Loaded image
+        cPt2di         mIndBoxRecal;  ///< Index for box when recalling in paral
+
+        cMMVII_Appli & mAppli;   ///< Ineriting appli ("daughter")
+        bool           mIsGray;  ///< Is it a gray file
         cParseBoxInOut<2> *mParseBox;  ///<Current structure used to parse the  box
 	cPt2di         mCurPixIndex; ///< Index of parsing box
         cDataFileIm2D  mDFI2d;   ///< Data for file image to parse
-        bool           mIsGray;  ///< Is it a gray file
-        cMMVII_Appli & mAppli;   ///< Ineriting appli ("daughter")
-	cPt2di         mSzTiles;    ///< Size of tiles to parse global file
-	cPt2di         mSzOverlap;  ///< Size of overlap between each tile
         tIm            mIm;      ///< Loaded image
+
 };
 
-
-
+///  Create a masq image if file exist, else create a masq with 1
+cIm2D<tU_INT1>  ReadMasqWithDef(const cBox2di& aBox,const std::string &);
 
 /// Generate an image of the string, using basic font, implemanted with a call to mmv1
 cIm2D<tU_INT1> ImageOfString(const std::string & ,int aSpace);

@@ -107,29 +107,41 @@ void cElImplemBitmFont::AddChar(char anEntry,const char* aStr)
 
 Im2D_Bits<1> cElBitmFont::BasicImageString(const std::string & aStr,int aSpace)
 {
+   bool  isHor = (aSpace>=0);
+   aSpace = std::abs(aSpace);
+
    if (aStr=="")
    {
       return  ImChar(' ');
    }
    Pt2di aSzRes(0,0);
+   Pt2di aSzIm (0,0);
 
    for (const char * aC = aStr.c_str(); (*aC) ; aC++) 
    {
       Im2D_Bits<1> anIm = ImChar(*aC);
-      Pt2di aSzIm = anIm.sz();
+      aSzIm = anIm.sz();
       if (aSzRes.x==0)
       {
            aSzRes = aSzIm;
       }
       else
       {
-           aSzRes.x += aSzIm.x + aSpace;
-           ELISE_ASSERT(aSzRes.y==aSzIm.y,"ImageString Height variable for font");
+           if (isHor)
+           {
+               aSzRes.x += aSzIm.x + aSpace;
+               ELISE_ASSERT(aSzRes.y==aSzIm.y,"ImageString Height variable for font");
+           }
+           else
+           {
+               aSzRes.y += aSzIm.y + aSpace;
+               ELISE_ASSERT(aSzRes.x==aSzIm.x,"ImageString Width variable for font");
+           }
       }
    }
 
    Im2D_Bits<1> aRes(aSzRes.x,aSzRes.y,0);
-   int OffsetX=0;
+   Pt2di anOffset(0,0);
 
    for (const char * aC = aStr.c_str(); (*aC) ; aC++) 
    {
@@ -137,11 +149,14 @@ Im2D_Bits<1> cElBitmFont::BasicImageString(const std::string & aStr,int aSpace)
       Pt2di aSzIm = anIm.sz();
       ELISE_COPY
       (
-           rectangle(Pt2di(OffsetX,0),Pt2di(OffsetX+aSzIm.x,aSzIm.y)),
-           trans( anIm.in(),-Pt2di(OffsetX,0)),
+           rectangle(anOffset,aSzIm+anOffset), 
+           trans( anIm.in(),-anOffset),
            aRes.out()
       );
-      OffsetX += aSzIm.x + aSpace;
+      if (isHor)
+         anOffset.x += aSzIm.x + aSpace;
+      else
+         anOffset.y += aSzIm.y + aSpace;
    }
 
    return aRes;
@@ -329,6 +344,7 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
    theFont_10x8->AddChar
    (
         '0',
+        ".........."
         "...####..."   
         "..#....#.."
         "..#....#.."
@@ -339,12 +355,12 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "...####..."
 
         ".........."
-        ".........."
    );
 
    theFont_10x8->AddChar
    (
         '1',
+        ".........."
         "......#..."
         ".....##..."
         "....#.#..."
@@ -355,12 +371,12 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "....####.."
 
         ".........."
-        ".........."
    );
 
    theFont_10x8->AddChar
    (
         '2',
+        ".........."
         "...###...."
         "..#...#..."
         "..#....#.."
@@ -371,12 +387,12 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "..######.."
 
         ".........."
-        ".........."
    );
 
    theFont_10x8->AddChar
    (
         '3',
+        ".........."
         "....##...."
         "...#..#..."
         "......#..."
@@ -387,12 +403,12 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "....###..."
 
         ".........."
-        ".........."
    );
 
    theFont_10x8->AddChar
    (
         '4',
+        ".........."
         "......#..."
         ".....#...."
         "....#....."
@@ -403,12 +419,12 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "......#..."
 
         ".........."
-        ".........."
    );
 
    theFont_10x8->AddChar
    (
         '5',
+        ".........."
         "..#####..."
         "..#......."
         "..#......."
@@ -419,12 +435,12 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "..#####..."
 
         ".........."
-        ".........."
    );
 
    theFont_10x8->AddChar
    (
         '6',
+        ".........."
         ".....###.."
         "....#....."
         ".. #......"
@@ -435,12 +451,12 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "...#####.."
 
         ".........."
-        ".........."
    );
 
    theFont_10x8->AddChar
    (
         '7',
+        ".........."
         "...#####.."
         ".......#.."
         "......#..."
@@ -451,12 +467,12 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "....#....."
 
         ".........."
-        ".........."
    );
 
    theFont_10x8->AddChar
    (
         '8',
+        ".........."
         "...####..."
         "..#....#.."
         "..#....#.."
@@ -467,12 +483,12 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "..######.."
 
         ".........."
-        ".........."
    );
 
    theFont_10x8->AddChar
    (
         '9',
+        ".........."
         "..#####..."
         ".#.....#.."
         ".#....##.."
@@ -482,7 +498,6 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         ".....#...."
         "..###....."
 
-        ".........."
         ".........."
    );
 

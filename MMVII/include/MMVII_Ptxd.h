@@ -151,10 +151,10 @@ template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGr
 /// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
 //std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
 /// Implemented
-std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1,bool IsSym=false); // > R0 et <= R1
 
-/// ASym  means that there is only one out of 2 between -P and P
-std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym) ;
+/// IsSym  means that there is only one out of 2 between -P and P
+std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSym=false) ;
 
 
 
@@ -633,8 +633,15 @@ typedef cTplBox<double,3>  cBox3dr;
 cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord
 
 
+// Is window inside the box 
+template <class Type> bool WindInside(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
+template <class Type> bool WindInside(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  int & aSzW);
 // Is window inside the box taking into account bilinear interpol ?
 template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
+
+
+cBox2di DilateFromIntervPx(const cBox2di & aBox,int aDPx0,int aDPx1);
+
 
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cTplBox<Type,Dim> &aBox)
 { return  OS << "{" << aBox.P0() <<   " :: " << aBox.P1()<< "}"; }
