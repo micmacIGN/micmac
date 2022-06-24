@@ -382,9 +382,15 @@ template <const int aNbBit>  cIm2D<tU_INT1>  BitsV1ToV2(const Im2D_Bits<aNbBit> 
 }
 
 
-cIm2D<tU_INT1> ImageOfString(const std::string & aStr ,int aSpace)
+cIm2D<tU_INT1> ImageOfString_10x8(const std::string & aStr ,int aSpace)
 {
     Im2D_Bits<1> aImV1 =  cElBitmFont::BasicFont_10x8().BasicImageString(aStr,aSpace);
+    return BitsV1ToV2(aImV1);
+}
+
+cIm2D<tU_INT1> ImageOfString_DCT(const std::string & aStr ,int aSpace)
+{
+    Im2D_Bits<1> aImV1 =  cElBitmFont::FontCodedTarget().BasicImageString(aStr,aSpace);
     return BitsV1ToV2(aImV1);
 }
 
