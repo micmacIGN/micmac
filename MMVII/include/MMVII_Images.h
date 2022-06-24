@@ -783,7 +783,8 @@ template<class TypeEl> class  cAppliParseBoxIm
 cIm2D<tU_INT1>  ReadMasqWithDef(const cBox2di& aBox,const std::string &);
 
 /// Generate an image of the string, using basic font, implemanted with a call to mmv1
-cIm2D<tU_INT1> ImageOfString(const std::string & ,int aSpace);
+cIm2D<tU_INT1> ImageOfString_10x8(const std::string & ,int aSpace);
+cIm2D<tU_INT1> ImageOfString_DCT(const std::string & ,int aSpace);
 
 
 ///  Class for 1D image in Ram of a given type
