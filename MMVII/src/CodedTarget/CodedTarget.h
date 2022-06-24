@@ -98,6 +98,8 @@ class cParamCodedTarget
 
        bool CodeBinOfPts(double aRho,double aTeta,const cCodesOf1Target & aSetCodesOfT,double aRho0,double aThRho);
 
+       std::string NameOfNum(int) const; ///  Juste the apha num
+       std::string NameFileOfNum(int) const; ///  Juste the apha num
 
 
     private :

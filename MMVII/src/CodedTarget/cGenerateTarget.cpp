@@ -12,7 +12,8 @@ namespace MMVII
 
 static constexpr double ExtRatioW1   = 1.25;
 static constexpr double ExtRatioCode = 1.6;
-static constexpr double ExtRatioBrd =  1.65;
+static constexpr double ExtRatioBrdW =  1.62;
+static constexpr double ExtRatioBrdB =  1.64;
 
 static constexpr double ExtTextMargin =  0.3;  // Margin if we want text not sticked to coding
 
@@ -104,6 +105,7 @@ void cParamCodedTarget::InitFromFile(const std::string & aNameFile)
 }
 
 
+
 cParamCodedTarget::cParamCodedTarget() :
    mCodeExt       (true),
    mNbRedond      (2),
@@ -155,7 +157,7 @@ void cParamCodedTarget::Finish()
   mScale = mNbPixelBin / (2.0 * mRhoEndBrdWhiteExt);
   if (mCodeExt)
   {
-      mScale = mNbPixelBin / (2.0 * ExtRatioBrd * mRhoEndStar);
+      mScale = mNbPixelBin / (2.0 * ExtRatioBrdB * mRhoEndStar);
   }
 
   std::vector<int> aVNbSub;
@@ -213,6 +215,32 @@ int cParamCodedTarget::BaseForNum() const
     return -1;
 }
 
+std::string cParamCodedTarget::NameOfNum(int aNum) const
+{
+   if (!mCodeExt)
+      return ToStr(aNum,2);
+
+  int aBase = BaseForNum();
+  std::string aRes;
+  for (int aK=0 ; aK<2 ;aK++)
+  {
+      int aDigit = (aNum%aBase) ;
+      aNum /= aBase;
+      char aCar = (aDigit < 10) ? ('0'+aDigit) : ('A'+(aDigit-10));
+      aRes.push_back(aCar);
+  }
+  std::reverse(aRes.begin(),aRes.end());
+
+   return aRes;
+}
+
+std::string cParamCodedTarget::NameFileOfNum(int aNum) const
+{
+   return "Target_" + NameOfNum(aNum) + ".tif";
+}
+
+
+
 bool cParamCodedTarget::CodeBinOfPts(double aRho,double aTeta,const cCodesOf1Target & aSetCodesOfT,double aRho0,double aThRho)
 {
      int aIndRho = round_down((aRho-aRho0)/aThRho);  // indexe o
@@ -233,6 +261,7 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
 
      double mRhoWhit1 = mRhoEndStar * ExtRatioW1;
      double mRhoCode  = mRhoEndStar * ExtRatioCode;
+     int aBrdBlack = (0.5* (ExtRatioBrdB-ExtRatioBrdW)/ExtRatioBrdB) *mNbPixelBin;
 
      for (const auto & aPix : aDImT)
      {
@@ -271,14 +300,13 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
          {
              IsW = ! CodeBinOfPts(aRho,aTeta,aSetCodesOfT,mRhoWhit1,mRhoCode-mRhoWhit1);
          }
-/*
          else
          {
               // Outside => border and fid marks (done after)
-	      int aDInter = aRectHT.Interiority(aPix);
-	      IsW = (aDInter<aDW) || (aDInter>=aDB);
+	      int aDInter = aDImT.Interiority(aPix);
+              if  (aDInter <aBrdBlack)
+	          IsW = false;
          }
-*/
 
          int aVal = IsW ? 255 : 0;
          aDImT.SetV(aPix,aVal);
@@ -286,19 +314,17 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
 
      ///compute string 
      int aNum = aSetCodesOfT.Num();
-     int aBase = BaseForNum();
+     std::string aName = NameOfNum(aNum);
      for (int aK=0 ; aK<2 ;aK++)
      {
-          int aDigit = (aK==0) ? (aNum%aBase) : (aNum/aBase);
-	  char aCar = (aDigit < 10) ? ('0'+aDigit) : ('A'+(aDigit-10));
 	  std::string aStr;
-	  aStr.push_back(aCar);
+	  aStr.push_back(aName[aK]);
 
           cIm2D<tU_INT1> aImStr = ImageOfString_DCT(aStr,1);
           cDataIm2D<tU_INT1>&  aDataImStr = aImStr.DIm();
 
-	  double aPropFree =    ( (sqrt(2)-1)/(sqrt(2))) *  ExtRatioCode / ExtRatioBrd   // Prop free on diag inside coding
-		              + (ExtRatioBrd-ExtRatioCode)  / ExtRatioBrd;               // Prop free due to the border
+	  double aPropFree =    ( (sqrt(2)-1)/(sqrt(2))) *  ExtRatioCode / ExtRatioBrdB   // Prop free on diag inside coding
+		              + (ExtRatioBrdW-ExtRatioCode)  / ExtRatioBrdB;               // Prop free due to the border
 
 	  aPropFree *= (1-ExtTextMargin);
 
@@ -306,17 +332,25 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
 	  
 	  cPt2di aSzTarget (aNbTarget,aNbTarget);
 
-	  cPt2di aOfs((aK==0)*(mSzBin.x()-aNbTarget),0);
 
 	  cPt2dr aRatio = DivCByC(ToR(aDataImStr.Sz()),ToR(aSzTarget));
 
+	  cPt2di aOfsGlob((aK!=0)*(mSzBin.x()-aNbTarget),0);
+          if (aK!=0)
+             aOfsGlob = aOfsGlob + cPt2di(-aBrdBlack,aBrdBlack);
+          else
+             aOfsGlob = aOfsGlob + cPt2di(aBrdBlack,aBrdBlack);
+          cPt2di aOfPix((aK!=0)*-3,0);
+
+// StdOut() << aOfsGlob << aOfPix << "\n";
+
 	  for (const auto & aPix : cRect2(cPt2di(0,0),aSzTarget))
           {
-	      cPt2di aPixIm = aPix+aOfs;
+	      cPt2di aPixIm = aPix+aOfsGlob;
               cPt2di aPixSym = mSzBin-aPixIm-cPt2di(1,1);
 
 	      cPt2di aPixStr = ToI(MulCByC(ToR(aPix),aRatio));
-	      int aVal = aDataImStr.DefGetV(aPixStr,0) ? 255 : 0;
+	      int aVal = aDataImStr.DefGetV(aPixStr+aOfPix,0) ? 255 : 0;
 
               aDImT.SetV(aPixIm,aVal);
               aDImT.SetV(aPixSym,aVal);
@@ -489,8 +523,8 @@ int  cAppliGenCodedTarget::Exe()
       aCodes.Show();
       tImTarget aImT= mPCT.MakeIm(aCodes);
       
-      std::string aName = "Target_" + ToStr(aNum) + ".tif";
-      aImT.DIm().ToFile(aName);
+      // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
+      aImT.DIm().ToFile(mPCT.NameFileOfNum(aNum));
       // FakeUseIt(aCodes);
    }
 

@@ -22,15 +22,34 @@ namespace  cNS_CodedTarget
 class cAppliSimulCodeTarget : public cMMVII_Appli
 {
      public :
+        typedef tREAL4  tElem;
+        typedef cIm2D<tElem>  tIm;
+
+
         cAppliSimulCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
      private :
+        // =========== overridding cMMVII_Appli::methods ============
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
+        // =========== other methods ============
+
+        void    AddPosTarget(int aNum);  ///< Add the position of the target, don insert it
+
+
+        // =========== Mandatory args ============
 	std::string mNameIm;
 	std::string mNameTarget;
+
+        // =========== Optionnal args ============
+        cPt2dr              mRayMinMax;
+
+        // =========== Internal param ============
+        tIm                 mImIn;
+        cParamCodedTarget   mPCT;
+	std::string         mDirTarget;
 };
 
 
@@ -41,7 +60,9 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 /* *************************************************** */
 
 cAppliSimulCodeTarget::cAppliSimulCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli  (aVArgs,aSpec)
+   cMMVII_Appli  (aVArgs,aSpec),
+   mRayMinMax    (15.0,60.0),
+   mImIn         (cPt2di(1,1))
 {
 }
 
@@ -58,28 +79,44 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
 {
    return 
 	        anArgOpt
+             <<   Arg2007(mRayMinMax,"Min/Max ray for gen target",{eTA2007::HDV})
    ;
 }
 
 
+class cGeomSim
+{
+    public :
+    private :
+       cPt2dr mC;
+    
+};
+
+void   cAppliSimulCodeTarget::AddPosTarget(int aNum)
+{
+     // cBox2r aBox 
+     while (true)
+     {
+           // cPt2dr aP = ToR(mIm.DIm().GeneratePointInside();
+     }
+}
+
 int  cAppliSimulCodeTarget::Exe()
 {
-	/*
-   mTestedFilters = SubOfPat<eDCTFilters>(mPatF,true);
-   StdOut()  << " IIIIm=" << APBI_NameIm()   << "\n";
-
-   if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
-      return ResultMultiSet();
-
    mPCT.InitFromFile(mNameTarget);
-   APBI_ExecAll();  // run the parse file
-   */
+   mDirTarget =  DirOfPath(mNameTarget);
+
+    mIm = tIm::FromFile(mNameIm);
+
+   for (int aNum = 0 ; aNum<mPCT.NbCodeAvalaible() ; aNum++)
+   {
+        std::string aName = mDirTarget + mPCT.NameFileOfNum(aNum);
+        StdOut() << "NNN= " << aName << "\n";
+   }
 
 
    return EXIT_SUCCESS;
 }
-#if (0)
-#endif
 };
 
 
@@ -88,25 +125,23 @@ int  cAppliSimulCodeTarget::Exe()
 /*                       ::                        */
 /*                                                 */
 /* =============================================== */
-/*
 using namespace  cNS_CodedTarget;
 
-tMMVII_UnikPApli Alloc_ExtractCodedTarget(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_SimulCodedTarget(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppliExtractCodeTarget(aVArgs,aSpec));
+   return tMMVII_UnikPApli(new cAppliSimulCodeTarget(aVArgs,aSpec));
 }
 
-cSpecMMVII_Appli  TheSpecExtractCodedTarget
+cSpecMMVII_Appli  TheSpecSimulCodedTarget
 (
-     "CodedTargetExtract",
-      Alloc_ExtractCodedTarget,
+     "CodedTargetSimul",
+      Alloc_SimulCodedTarget,
       "Extract coded target from images",
       {eApF::CodedTarget,eApF::ImProc},
       {eApDT::Image,eApDT::Xml},
-      {eApDT::Xml},
+      {eApDT::Image,eApDT::Xml},
       __FILE__
 );
-*/
 
 
 };
