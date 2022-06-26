@@ -17,6 +17,8 @@ static constexpr double ExtRatioBrdB =  1.64;
 
 static constexpr double ExtTextMargin =  0.3;  // Margin if we want text not sticked to coding
 
+static constexpr double SzGaussDeZoom =  3;  // Margin if we want text not sticked to coding
+
 namespace  cNS_CodedTarget
 {
 
@@ -79,6 +81,7 @@ int cCodesOf1Target::Num() const {return mNum;}
 
 void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
 {
+	/*
     MMVII::AddData(cAuxAr2007("NbRedond",anAux),mNbRedond);
     MMVII::AddData(cAuxAr2007("NbC",anAux),mNbCircle);
 
@@ -91,6 +94,9 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
 
     MMVII::AddData(cAuxAr2007("ScaleTopo",anAux),mScaleTopo);
     MMVII::AddData(cAuxAr2007("NbPixBin",anAux),mNbPixelBin);
+    */
+    MMVII::AddData(cAuxAr2007("SzF",anAux),mSzF);
+    MMVII::AddData(cAuxAr2007("CenterF",anAux),mCenterF);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
@@ -151,9 +157,12 @@ void cParamCodedTarget::Finish()
   mRhoEndTxt    =  mRhoEndBrdWhiteExt + mThTxt ;
 
   int aWidthBin =   mNbPixelBin * (mNbPixelBin ? 1 : (mRhoEndTxt/mRhoEndBrdWhiteExt));
+  aWidthBin = (aWidthBin/2) * 2;  // assure size is even
   mSzBin = cPt2di(aWidthBin,aWidthBin);
 
-  mMidle = ToR(mSzBin) / 2.0;
+  // With pixel center model,  is sz=2 -> pixel 0 and 1 => center is 0.5
+  mMidle = ToR(mSzBin-cPt2di(1,1)) / 2.0;
+
   mScale = mNbPixelBin / (2.0 * mRhoEndBrdWhiteExt);
   if (mCodeExt)
   {
@@ -358,7 +367,7 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
      }
 
      // MMVII_INTERNAL_ASSERT_User(aN<256,"For
-     aImT = aImT.GaussDeZoom(3);
+     aImT = aImT.GaussDeZoom(SzGaussDeZoom);
      return aImT;
 }
 
@@ -456,7 +465,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 
      }
 
-     aImT = aImT.GaussDeZoom(3);
+     aImT = aImT.GaussDeZoom(SzGaussDeZoom);
      return aImT;
 }
 
@@ -526,7 +535,10 @@ int  cAppliGenCodedTarget::Exe()
       // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
       aImT.DIm().ToFile(mPCT.NameFileOfNum(aNum));
       // FakeUseIt(aCodes);
+      mPCT.mSzF = aImT.DIm().Sz();
+      mPCT.mCenterF = mPCT.mMidle / SzGaussDeZoom;
    }
+
 
    SaveInFile(mPCT,"Target_Spec.xml");
 

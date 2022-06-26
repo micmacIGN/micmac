@@ -75,6 +75,8 @@
 #include "MMVII_Sensor.h"
 
 #include "MMVII_DeclareAllCmd.h"
+
+#include "MMVII_Interpolators.h"
 // communication MMVII/MMv1
 
 #include "MMVII_MMV1Compat.h"

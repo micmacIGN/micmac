@@ -958,6 +958,18 @@ template <class Type> bool WindInside(const cBox2di & aBox,const cPt2di & aPt,co
     return WindInside(aBox,aPt,cPt2di(aSz,aSz));
 }
 
+/*
+template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & aBox)
+{
+	 return cTplBox<tREAL8,Dim>(ToR(aBox.P0()),ToR(aBox.P1()));
+}
+
+template <const int Dim>  cTplBox<int,Dim> ToI(const  cTplBox<tREAL8,Dim> & aBox)
+{
+	 return cTplBox<int,Dim>(ToI(aBox.P0()),ToI(aBox.P1()));
+}
+*/
+
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
@@ -969,12 +981,22 @@ INSTANTIATE_GEOM_REAL(tREAL4)
 INSTANTIATE_GEOM_REAL(tREAL8)
 INSTANTIATE_GEOM_REAL(tREAL16)
 
+	/*
+template   cTplBox<tREAL8,2> ToR(const  cTplBox<int,2> & aBox);
+template   cTplBox<tREAL8,3> ToR(const  cTplBox<int,3> & aBox);
+template   cTplBox<int,2> ToI(const  cTplBox<tREAL8,2> & aBox);
+template   cTplBox<int,3> ToI(const  cTplBox<tREAL8,3> & aBox);
+*/
+
+
+
 
 #define INSTANTIATE_ABS_SURF(TYPE)\
 template  cPtxd<TYPE,3> TP3z0  (const cPtxd<TYPE,2> & aPt);\
 template  cPtxd<TYPE,2> Proj  (const cPtxd<TYPE,3> & aPt);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& aP2);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);
+
 
 INSTANTIATE_ABS_SURF(tINT4)
 INSTANTIATE_ABS_SURF(tREAL4)

@@ -134,6 +134,47 @@ template <class Type>  class cSim2D
           tPt mSc;
 };
 
+template <class Type>  class cAffin2D
+{
+      public :
+          static constexpr int    TheDim=2;
+          typedef Type            tTypeElem;
+          typedef cAffin2D<Type>  tTypeMap;
+          typedef cAffin2D<Type>  tTypeMapInv;
+
+          typedef cPtxd<Type,2> tPt;
+
+          cAffin2D(const tPt & aTr,const tPt & aImX,const tPt aImY) ; 
+          static const int NbDOF();
+          tPt  Value(const tPt & aP) const ;
+          tPt  Inverse(const tPt & aP) const ;
+          tTypeMapInv  MapInverse() const ;
+
+	  tTypeMap operator *(const tTypeMap&) const;
+          tPt  VecInverse(const tPt & aP) const ;
+          tPt  VecValue(const tPt & aP) const ;
+	  
+	  //  allocator static
+          static  tTypeMap  AllocRandom(const Type & aDeltaMin);
+          static  tTypeMap  Translation(const tPt  & aTr);
+          static  tTypeMap  Rotation(const Type & aScale);
+          static  tTypeMap  Homot(const Type & aScale);
+          static  tTypeMap  HomotXY(const Type & aScaleX,const Type & aScaleY);
+                
+      private :
+          tPt   mTr;
+          tPt   mVX;
+          tPt   mVY;
+	  Type  mDelta;
+          tPt   mVInvX;
+          tPt   mVInvY;
+};
+typedef  cAffin2D<tREAL8>  cAff2D_r;
+cBox2dr  ImageOfBox(const cAff2D_r & aAff,const cBox2dr & aBox);
+
+
+//template <class Type,class TMap>  cTplBox<2,Type>  ImageOfBox();
+
 
 
 template <class Type> class  cTriangle2DCompiled : public cTriangle<Type,2>

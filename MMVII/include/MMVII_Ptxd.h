@@ -618,6 +618,8 @@ template <class Type,const int Dim>  class cTplBox
     private :
 };
 
+// template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & );
+// template <const int Dim>  cTplBox<int,Dim> ToI(const  cTplBox<tREAL8,Dim> & );
 
 /** Function computing corner of box, this one is specific to dim=1 because it respect
 trigonometric order, a notion not generalisable */
@@ -689,7 +691,7 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
     public :
        typedef cPtxd<Type,Dim> tPt;
        cSegmentCompiled(const tPt& aP1,const tPt& aP2);
-    private :
+    protected :
        Type    mN2;
        tPt     mTgt;
 };

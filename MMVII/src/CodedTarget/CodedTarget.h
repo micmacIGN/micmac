@@ -102,11 +102,15 @@ class cParamCodedTarget
        std::string NameFileOfNum(int) const; ///  Juste the apha num
 
 
+       cPt2dr    mCenterF;   // symetry center at end
+       cPt2di    mSzF;       // sz at end
+       cPt2dr    mMidle;
     private :
 
        cPt2dr    Pix2Norm(const cPt2di &) const;
        cPt2dr    Norm2PixR(const cPt2dr &) const;
        cPt2di    Norm2PixI(const cPt2dr &) const;
+
 
        bool      mCodeExt;   // if true the code is not at the center but code bar at periphery
        int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
@@ -138,7 +142,6 @@ class cParamCodedTarget
 
 
        cPt2di    mSzBin;
-       cPt2dr    mMidle;
        double    mScale;  // Sz of Pixel in normal coord
 
        std::vector<cSetCodeOf1Circle>     mVecSetOfCode;
