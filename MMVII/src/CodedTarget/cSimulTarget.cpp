@@ -220,7 +220,7 @@ void  cAppliSimulCodeTarget::IncrustTarget(const cGeomSimDCT & aGSD)
     tDIm & aDImIn = mImIn.DIm();
     for (const auto & aPix : cRect2(aBoxIm))
     {
-        if (aDImIn.Inside(aPix))
+        if ( aDImIn.Inside(aPix))
 	{
             cRessampleWeigth  aRW = cRessampleWeigth::GaussBiCub(ToR(aPix),aMapIm2T,mSzKernel);
 	    const std::vector<cPt2di>  & aVPts = aRW.mVPts;
@@ -261,11 +261,11 @@ int  cAppliSimulCodeTarget::Exe()
    }
    SaveInFile(mRS,"SimulTarget_"+mNameIm +".xml");
 
-
    for (const auto  & aG : mRS.mVG)
    {
        IncrustTarget(aG);
    }
+
 
    mImIn.DIm().ToFile("SimulTarget_"+mNameIm +".tif");
 

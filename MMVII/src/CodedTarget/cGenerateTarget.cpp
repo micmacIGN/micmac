@@ -1,23 +1,11 @@
 #include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 
-/*
-    1313  966
-    1188  936  6
-*/
-
 
 namespace MMVII
 {
 
-static constexpr double ExtRatioW1   = 1.25;
-static constexpr double ExtRatioCode = 1.6;
-static constexpr double ExtRatioBrdW =  1.62;
-static constexpr double ExtRatioBrdB =  1.64;
-
-static constexpr double ExtTextMargin =  0.3;  // Margin if we want text not sticked to coding
-
-static constexpr double SzGaussDeZoom =  3;  // Margin if we want text not sticked to coding
+static constexpr double SzGaussDeZoom =  3;  // De Zoom to have a gray value target
 
 namespace  cNS_CodedTarget
 {
@@ -81,20 +69,6 @@ int cCodesOf1Target::Num() const {return mNum;}
 
 void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
 {
-	/*
-    MMVII::AddData(cAuxAr2007("NbRedond",anAux),mNbRedond);
-    MMVII::AddData(cAuxAr2007("NbC",anAux),mNbCircle);
-
-
-    MMVII::AddData(cAuxAr2007("ThicknessTargetC",anAux),mThTargetC);
-    MMVII::AddData(cAuxAr2007("ThcknessStars",anAux),mThStars);
-    MMVII::AddData(cAuxAr2007("ThBrdWhiteInt",anAux),mThBrdWhiteInt);
-    MMVII::AddData(cAuxAr2007("ThBorderB",anAux),mThBrdBlack);
-    MMVII::AddData(cAuxAr2007("ThBorderW",anAux),mThBrdWhiteExt);
-
-    MMVII::AddData(cAuxAr2007("ScaleTopo",anAux),mScaleTopo);
-    MMVII::AddData(cAuxAr2007("NbPixBin",anAux),mNbPixelBin);
-    */
     MMVII::AddData(cAuxAr2007("SzF",anAux),mSzF);
     MMVII::AddData(cAuxAr2007("CenterF",anAux),mCenterF);
 }
@@ -110,21 +84,18 @@ void cParamCodedTarget::InitFromFile(const std::string & aNameFile)
     Finish();
 }
 
-
-
 cParamCodedTarget::cParamCodedTarget() :
-   mCodeExt       (true),
+   mNbBit         (9),
+   mWithParity    (true),
    mNbRedond      (2),
    mNbCircle      (1),
-   mThTargetC     (0.0), // (0.8),
-   mThStars       (4),
-   mThBlCircExt   (0.0), // (0.5),
-   mThBrdWhiteInt (1.0),
-   mThBrdBlack    (mCodeExt ? 0 : 0.7),
-   mThBrdWhiteExt (mCodeExt ? 0 : 0.1),
-   mThTxt         (1.5),
-   mScaleTopo     (0.5),
    mNbPixelBin    (1800),
+   mSz_CCB        (1),
+   mThickN_WInt   (0.35),
+   mThickN_Code   (0.35),
+   mThickN_WExt   (0.2),
+   mThickN_Car    (0.8),
+   mThickN_BExt   (0.05),
    mDecP          ({1,1})  // "Fake" init 4 now
 {
 }
@@ -147,42 +118,42 @@ int&    cParamCodedTarget::NbCircle() {return mNbCircle;}
 
 void cParamCodedTarget::Finish()
 {
-  mThRing = mThStars / mNbCircle;
-  mRhoEndTargetC     = mThTargetC;
-  mRhoEndStar        = mRhoEndTargetC     +  mThStars;
-  mRhoEndBlackCircle = mRhoEndStar        +  mThBlCircExt;
-  mRhoEnBrdWhiteInt  = mRhoEndBlackCircle +  mThBrdWhiteInt;
-  mRhoEndBrdBlack    = mRhoEnBrdWhiteInt  +  mThBrdBlack;
-  mRhoEndBrdWhiteExt = mRhoEndBrdBlack    +  mThBrdWhiteExt;
-  mRhoEndTxt    =  mRhoEndBrdWhiteExt + mThTxt ;
+  MMVII_INTERNAL_ASSERT_strong(((mNbPixelBin%2)==0),"Require odd pixel 4 binary image");
+  mSzBin = cPt2di(mNbPixelBin,mNbPixelBin);
 
-  int aWidthBin =   mNbPixelBin * (mNbPixelBin ? 1 : (mRhoEndTxt/mRhoEndBrdWhiteExt));
-  aWidthBin = (aWidthBin/2) * 2;  // assure size is even
-  mSzBin = cPt2di(aWidthBin,aWidthBin);
+  double aCumulThick = 1.0;
+  mRho_0_EndCCB = mSz_CCB     * aCumulThick;
 
-  // With pixel center model,  is sz=2 -> pixel 0 and 1 => center is 0.5
-  mMidle = ToR(mSzBin-cPt2di(1,1)) / 2.0;
+  aCumulThick += mThickN_WInt;
+  mRho_1_BeginCode =  mSz_CCB   * aCumulThick;
 
-  mScale = mNbPixelBin / (2.0 * mRhoEndBrdWhiteExt);
-  if (mCodeExt)
-  {
-      mScale = mNbPixelBin / (2.0 * ExtRatioBrdB * mRhoEndStar);
-  }
+  aCumulThick += mThickN_Code;
+  mRho_2_EndCode =  mSz_CCB   * aCumulThick;
+
+  aCumulThick += mThickN_WExt;
+  mRho_3_BeginCar =  mSz_CCB   * aCumulThick;
+
+  mRho_4_EndCar = std::max
+                  (
+                        mRho_3_BeginCar,
+                        mRho_3_BeginCar/sqrt(2) + mThickN_Car
+                  );
+  
+
+
+  mMidle = ToR(mSzBin-cPt2di(1,1)) / 2.0; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
+  mScale = mNbPixelBin / (2.0 * mRho_4_EndCar);
 
   std::vector<int> aVNbSub;
   for (int aKCirc = 0 ; aKCirc< mNbCircle ; aKCirc++)
   {
-      // double aRho0 = mRhoEndTargetC + aKCirc * mThRing;
-      int  aNb = mCodeExt ? 9 :8;
+      int  aNb =  mNbBit ;
+      int aStep = mWithParity ? 2 : 1;
+      int aN0 = mWithParity ? 1 : 0;
 
       std::vector<int>  aVK;
-      if (mCodeExt)
-      {
-          for (int aK=1 ; aK<aNb ; aK+=2 )
-	      aVK.push_back(aK);       
-      }
-      else
-         aVK.push_back(aNb/2);
+      for (int aK=aN0 ; aK<=aNb ; aK+= aStep)
+          aVK.push_back(aK);       
 
       mVecSetOfCode.push_back(cSetCodeOf1Circle(aVK,aNb));
       aVNbSub.push_back( mVecSetOfCode.back().NbSub());
@@ -216,7 +187,7 @@ int cParamCodedTarget::BaseForNum() const
     int aNBC = NbCodeAvalaible();
     if (aNBC < 100)
 	    return 10;  // decimal number on 2 dig
-    if (aNBC < 256)
+    if (aNBC <= 256)
 	    return 16;  // hexadecimal on 2 dig
     if (aNBC < 1296)
 	    return 36;  // alpha num   on 2 dig
@@ -226,9 +197,6 @@ int cParamCodedTarget::BaseForNum() const
 
 std::string cParamCodedTarget::NameOfNum(int aNum) const
 {
-   if (!mCodeExt)
-      return ToStr(aNum,2);
-
   int aBase = BaseForNum();
   std::string aRes;
   for (int aK=0 ; aK<2 ;aK++)
@@ -263,14 +231,12 @@ bool cParamCodedTarget::CodeBinOfPts(double aRho,double aTeta,const cCodesOf1Tar
      return aCodeBin.IsInside(aIndTeta);
 }
 
-tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT)
+tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 {
      tImTarget aImT(mSzBin);
      tDataImT  & aDImT = aImT.DIm();
 
-     double mRhoWhit1 = mRhoEndStar * ExtRatioW1;
-     double mRhoCode  = mRhoEndStar * ExtRatioCode;
-     int aBrdBlack = (0.5* (ExtRatioBrdB-ExtRatioBrdW)/ExtRatioBrdB) *mNbPixelBin;
+     int aBrdBlack =  (mThickN_BExt/mRho_4_EndCar) * (mNbPixelBin/2);
 
      for (const auto & aPix : aDImT)
      {
@@ -283,31 +249,18 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
 
 	 bool IsW = true;  // Default is white
 
-         if (aRho < mRhoEndStar)  
+         if (aRho < mRho_0_EndCCB)  
          {
-               
-               int aIndTeta = round_down((aTeta/(M_PI/2.0)));
-               IsW = (aIndTeta%2)==0;
+            int aIndTeta = round_down(0.5+(aTeta/(M_PI/2.0)));
+            IsW = (aIndTeta%2)==0;
          }
-         else if (aRho<mRhoWhit1)
+         else if (aRho<mRho_1_BeginCode)
 	 {
              IsW = true;
-	     /*
-             int aIndRho = round_down((aRho-mRhoWhit1)/(mRhoCode-mRhoWhit1));
-             aIndRho = std::max(0,std::min(mNbCircle-1,aIndRho));
-	     const cSetCodeOf1Circle & aSet1C =  mVecSetOfCode.at(aIndRho);
-		    int aN  = aSet1C.N();
-
-		    int aIndTeta = round_down((aTeta*aN*mNbRedond)/(2*M_PI));
-		    aIndTeta = aIndTeta % aN;
-                    const tBinCodeTarg & aCodeBin = aSetCodesOfT.CodeOfNumC(aIndRho);
-                    if (aCodeBin.IsInside(aIndTeta))
-                       IsW = false;
-		*/
 	 }
-         else if (aRho<mRhoCode)
+         else if (aRho<mRho_2_EndCode)
          {
-             IsW = ! CodeBinOfPts(aRho,aTeta,aSetCodesOfT,mRhoWhit1,mRhoCode-mRhoWhit1);
+             IsW = ! CodeBinOfPts(aRho,aTeta,aSetCodesOfT,mRho_1_BeginCode,mRho_2_EndCode-mRho_1_BeginCode);
          }
          else
          {
@@ -329,29 +282,20 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
 	  std::string aStr;
 	  aStr.push_back(aName[aK]);
 
-          cIm2D<tU_INT1> aImStr = ImageOfString_DCT(aStr,1);
+           cIm2D<tU_INT1> aImStr =   (BaseForNum() <= 16)       ?
+                                     ImageOfString_DCT(aStr,1)  :
+                                     ImageOfString_10x8(aStr,1) ;
           cDataIm2D<tU_INT1>&  aDataImStr = aImStr.DIm();
 
-	  double aPropFree =    ( (sqrt(2)-1)/(sqrt(2))) *  ExtRatioCode / ExtRatioBrdB   // Prop free on diag inside coding
-		              + (ExtRatioBrdW-ExtRatioCode)  / ExtRatioBrdB;               // Prop free due to the border
 
-	  aPropFree *= (1-ExtTextMargin);
-
-	  int  aNbTarget =  round_ni((mNbPixelBin/2)  * aPropFree);
+	  int  aNbTarget =  round_ni((mNbPixelBin/2)  * (mThickN_Car /mRho_4_EndCar));
 	  
 	  cPt2di aSzTarget (aNbTarget,aNbTarget);
 
 
 	  cPt2dr aRatio = DivCByC(ToR(aDataImStr.Sz()),ToR(aSzTarget));
-
 	  cPt2di aOfsGlob((aK!=0)*(mSzBin.x()-aNbTarget),0);
-          if (aK!=0)
-             aOfsGlob = aOfsGlob + cPt2di(-aBrdBlack,aBrdBlack);
-          else
-             aOfsGlob = aOfsGlob + cPt2di(aBrdBlack,aBrdBlack);
           cPt2di aOfPix((aK!=0)*-3,0);
-
-// StdOut() << aOfsGlob << aOfPix << "\n";
 
 	  for (const auto & aPix : cRect2(cPt2di(0,0),aSzTarget))
           {
@@ -372,6 +316,127 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
 }
 
 
+/*  *********************************************************** */
+/*                                                              */
+/*             cAppliGenCodedTarget                             */
+/*                                                              */
+/*  *********************************************************** */
+
+class cAppliGenCodedTarget : public cMMVII_Appli
+{
+     public :
+        cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+
+
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+
+	int                mPerGen;  // Pattern of numbers
+	cParamCodedTarget  mPCT;
+};
+
+
+/* *************************************************** */
+/*                                                     */
+/*              cAppliGenCodedTarget                   */
+/*                                                     */
+/* *************************************************** */
+
+
+cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+   cMMVII_Appli  (aVArgs,aSpec)
+{
+}
+
+cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+ return
+      anArgObl
+          <<   Arg2007(mPerGen,"Periode of generated, give 1 to generate all")
+   ;
+}
+
+cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+          << AOpt2007(mPCT.mNbBit,"NbBit","Nb Bit printed",{eTA2007::HDV})
+          << AOpt2007(mPCT.mWithParity,"WPar","With parity bit",{eTA2007::HDV})
+
+          << AOpt2007(mPCT.mThickN_WInt,"ThW0","Thickness of interior white circle",{eTA2007::HDV})
+          << AOpt2007(mPCT.mThickN_Code,"ThCod","Thickness of bin-coding black circle",{eTA2007::HDV})
+          << AOpt2007(mPCT.mThickN_WExt,"ThSepCar","Thickness of sep bin-code / ahpha code",{eTA2007::HDV})
+          << AOpt2007(mPCT.mThickN_Car,"ThCar","Thickness of separation alpha ccode ",{eTA2007::HDV})
+          << AOpt2007(mPCT.mThickN_BExt,"ThBExt","Thickness of black border ",{eTA2007::HDV})
+
+/*  For now dont confuse user with these values probably unused
+          << AOpt2007(mPCT.NbRedond(), "Redund","Number of repetition inside a circle",{eTA2007::HDV})
+          << AOpt2007(mPCT.NbCircle(), "NbC","Number of circles",{eTA2007::HDV})
+*/
+   ;
+}
+
+
+int  cAppliGenCodedTarget::Exe()
+{
+   mPCT.Finish();
+
+   for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen)
+   {
+      cCodesOf1Target aCodes = mPCT.CodesOfNum(aNum);
+      aCodes.Show();
+      tImTarget aImT= mPCT.MakeIm(aCodes);
+      
+      // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
+      aImT.DIm().ToFile(mPCT.NameFileOfNum(aNum));
+      // FakeUseIt(aCodes);
+      mPCT.mSzF = aImT.DIm().Sz();
+      mPCT.mCenterF = mPCT.mMidle / SzGaussDeZoom;
+   }
+
+   SaveInFile(mPCT,"Target_Spec.xml");
+
+   return EXIT_SUCCESS;
+}
+/*
+*/
+};
+
+
+/* =============================================== */
+/*                                                 */
+/*                       ::                        */
+/*                                                 */
+/* =============================================== */
+using namespace  cNS_CodedTarget;
+
+tMMVII_UnikPApli Alloc_GenCodedTarget(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppliGenCodedTarget(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpecGenCodedTarget
+(
+     "CodedTargetGenerate",
+      Alloc_GenCodedTarget,
+      "Generate images for coded target",
+      {eApF::CodedTarget},
+      {eApDT::Console},
+      {eApDT::Image},
+      __FILE__
+);
+
+
+};
+
+
+/*  ===   Old target, was coding on all the stars, maybe it will be reused later ...
+
+*/
+/*
 tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 {
      if (mCodeExt)
@@ -468,110 +533,5 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
      aImT = aImT.GaussDeZoom(SzGaussDeZoom);
      return aImT;
 }
-
-/*  *********************************************************** */
-/*                                                              */
-/*             cAppliGenCodedTarget                             */
-/*                                                              */
-/*  *********************************************************** */
-
-class cAppliGenCodedTarget : public cMMVII_Appli
-{
-     public :
-        cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-
-     private :
-
-
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-
-
-	int                mPerGen;  // Pattern of numbers
-	cParamCodedTarget  mPCT;
-};
-
-
-/* *************************************************** */
-/*                                                     */
-/*              cAppliGenCodedTarget                   */
-/*                                                     */
-/* *************************************************** */
-
-
-cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli  (aVArgs,aSpec)
-{
-}
-
-cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl) 
-{
- return
-      anArgObl
-          <<   Arg2007(mPerGen,"Periode of generated, give 1 to generate all")
-   ;
-}
-
-cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-   return anArgOpt
-          << AOpt2007(mPCT.NbRedond(), "Redund","Number of repetition inside a circle",{eTA2007::HDV})
-          << AOpt2007(mPCT.NbCircle(), "NbC","Number of circles",{eTA2007::HDV})
-   ;
-}
-
-
-int  cAppliGenCodedTarget::Exe()
-{
-   mPCT.Finish();
-
-   for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen)
-   {
-      cCodesOf1Target aCodes = mPCT.CodesOfNum(aNum);
-      aCodes.Show();
-      tImTarget aImT= mPCT.MakeIm(aCodes);
-      
-      // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
-      aImT.DIm().ToFile(mPCT.NameFileOfNum(aNum));
-      // FakeUseIt(aCodes);
-      mPCT.mSzF = aImT.DIm().Sz();
-      mPCT.mCenterF = mPCT.mMidle / SzGaussDeZoom;
-   }
-
-
-   SaveInFile(mPCT,"Target_Spec.xml");
-
-
-   return EXIT_SUCCESS;
-}
-/*
 */
-};
 
-
-/* =============================================== */
-/*                                                 */
-/*                       ::                        */
-/*                                                 */
-/* =============================================== */
-using namespace  cNS_CodedTarget;
-
-tMMVII_UnikPApli Alloc_GenCodedTarget(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppliGenCodedTarget(aVArgs,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpecGenCodedTarget
-(
-     "CodedTargetGenerate",
-      Alloc_GenCodedTarget,
-      "Generate images for coded target",
-      {eApF::CodedTarget},
-      {eApDT::Console},
-      {eApDT::Image},
-      __FILE__
-);
-
-
-};

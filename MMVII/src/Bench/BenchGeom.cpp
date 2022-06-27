@@ -269,7 +269,6 @@ template <class tMap,class TypeEl> void TplBenchMap2D(const tMap & aMap,const tM
 	tMap aMap12 = aMap2 * aMap;
 	auto aQ3 = aMap12.Value(aP1);
 	aD = Norm2(aP3-aQ3) /tElemNumTrait<TypeEl>::Accuracy();
-	StdOut() << "DDDDD= " << aD << "\n";
 	MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapInv");
 
 }
@@ -286,7 +285,6 @@ void  BenchMap2D()
        TplElBenchMap2D<tREAL4>();
        TplElBenchMap2D<tREAL8>();
        TplElBenchMap2D<tREAL16>();
-       StdOut() << "  =====================\n";
    }
 }
 
