@@ -389,7 +389,6 @@ class  cSymetricityCalc
 
 template<class TypeEl> cIm2D<TypeEl> ImSymetricity(cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon)
 {
-StdOut() << "JJJJJ " << __LINE__ << "\n";
     cDataIm2D<TypeEl> & aDImIn = aImIn.DIm();
     const TypeEl* aData = aDImIn.RawDataLin();
 
@@ -405,6 +404,7 @@ StdOut() << "JJJJJ " << __LINE__ << "\n";
     cIm2D<TypeEl> aImOut(aSz,nullptr,eModeInitImage::eMIA_V1);
     cDataIm2D<TypeEl> & aDImOut = aImOut.DIm();
 
+    StdOut() << "Begin computation low level\n";
     for (const auto & aPix : cRect2(aPW,aSz-aPW))
     {
           cSymMeasure<float> aSM;
@@ -428,7 +428,9 @@ StdOut() << "JJJJJ " << __LINE__ << "\n";
           }
 	  */
     }
+    StdOut() << "End computation sym low level\n";
 
+    StdOut() << "Begin cmp  low/high level\n";
     {
        cSymFilterCT<TypeEl> aSymF(aImIn,aR0,aR1,Epsilon);
        cIm2D<TypeEl>  anI2 = aSymF.ComputeIm();
@@ -437,13 +439,14 @@ StdOut() << "JJJJJ " << __LINE__ << "\n";
        {
            TypeEl aV1 = aDImOut.GetV(aPix);
            TypeEl aV2 = aDI2.GetV(aPix);
-           if (std::abs(aV1-aV2) > 1e-8)
+           if (std::abs(aV1-aV2) > 1e-5)
            {
-               StdOut() << "Diiiff = " <<aV1 -  aV2  << "\n";
-               getchar();
+               StdOut() << "Diiiff = " <<aV1 -  aV2  << " PIX= " << aPix << "\n";
+               // getchar();
            }
        }
     }
+    StdOut() << "end computation sym\n";
 
 
     return aImOut;

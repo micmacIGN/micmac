@@ -52,6 +52,17 @@ template <class Type>  cSim2D<Type> cSim2D<Type>::FromExample(const tPt & aP0In,
     return cSim2D<Type>(aP0Out-aScale*aP0In,aScale);
 }
 
+template <class Type>  cSim2D<Type> cSim2D<Type>::RandomSimInv(const Type & AmplTr,const Type & AmplSc,const Type & AmplMinSc)
+{
+    return cSim2D<Type>
+	   (
+	       tPt::PRandC() * AmplTr,
+	       tPt::PRandUnitDiff(tPt(0,0),AmplMinSc/AmplSc)*AmplSc
+	   );
+}
+
+
+
 template <class Type>  cSimilitud3D<Type> cSim2D<Type>::Ext3D() const
 {
      Type aNSc = Norm2(mSc);
@@ -181,6 +192,7 @@ INSTANTIATE_GEOM_REAL(tREAL16)
 
 
 #define MACRO_INSTATIATE_GEOM2D(TYPE)\
+template  cSim2D<TYPE> cSim2D<TYPE>::RandomSimInv(const TYPE & AmplTr,const TYPE & AmplSc,const TYPE & AmplMinSc);\
 template  cSim2D<TYPE> cSim2D<TYPE>::FromExample(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;\
 template  cSimilitud3D<TYPE> cSim2D<TYPE>::Ext3D() const;\
 template  cDenseMatrix<TYPE> MatOfMul (const cPtxd<TYPE,2> & aP);

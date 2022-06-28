@@ -168,9 +168,12 @@ template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(eModeSSR aMod
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixVar(const int & aNumV,const Type & aVal,const Type& aWeight)
 {
+// StdOut() << "VAEFC " << aNumV << " " << CurSol().
      tSVect aSV;
      aSV.AddIV(aNumV,1.0);
-     mSys->AddObservation(aWeight,aSV,aVal);
+     // Dont forget that the linear system compute the difference with current solution ...
+     mSys->AddObservation(aWeight,aSV,aVal-CurSol(aNumV));
+     // mSys->AddObservation(aWeight,aSV,CurSol(aNumV)+aVal);
 }
 
 

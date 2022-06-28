@@ -2,6 +2,12 @@
 #include "include/MMVII_Tpl_Images.h"
 
 
+// ==========  3 variable used for debuging  , will disappear
+//
+static constexpr double THE_AMPL_P = 0.1; // Coefficient of amplitude of the pertubation
+static constexpr double    THE_TETA_SIM = 0;//  M_PI/2; // Sign of similitude for position init
+static constexpr int    THE_NB_ITER  = 20; // Sign of similitude for position init
+
 using namespace NS_SymbolicDerivative;
 using namespace MMVII;
 
@@ -43,6 +49,7 @@ template <class Type>  class  cPNetwork
 {
       public :
             typedef cBenchNetwork<Type> tNetW;
+            typedef cPtxd<Type,2>       tPt;
 
              /// Create a point with its number, grid position and the network itself
 	    cPNetwork(int aNumPt,const cPt2di & aPTh,tNetW &);
@@ -50,19 +57,20 @@ template <class Type>  class  cPNetwork
             /**  Cur point ,  for "standard" point just access to the unknown NumX,NumY
                  for "schurs" points, as they are not stored, make an estimation with neighbourhood
             */
-	    cPtxd<Type,2>  PCur() const;  
-	    cPtxd<Type,2>  PTh() const;  ///< Acessor
+	    tPt  PCur() const;  
+	    const tPt &  TheorPt() const;  ///< Acessor
 
 	    /// Are the two point linked  (will their distances be an observation compensed)
 	    bool Linked(const cPNetwork<Type> & aP2) const;
 
-            int            mNumPt;  ///< Num in vector
-            cPt2di         mPosTh;  ///< Theoreticall position; used to compute distances and check accuracy recovered
+            int            mNumPt;     ///< Num in vector
+            cPt2di         mInd;       ///< Index in the grid
+            tPt            mTheorPt;  ///< Theoreticall position; used to compute distances and check accuracy recovered
 	    const tNetW *  mNetW;    ///<  link to the network itself
-            cPtxd<Type,2>  mPosInit; ///< initial position : pertubation of theoretical one
-	    bool           mFrozen;  ///< is this point frozen
+            tPt            mPosInit; ///< initial position : pertubation of theoretical one
 	    bool           mFrozenX; ///< is abscisse of this point frozen
-	    bool           mTmpUk;   ///< is it a temporay point (point not computed, for testing schur complement)
+	    bool           mFrozenY;  ///< is this point frozen
+	    bool           mSchurrPoint;   ///< is it a temporay point (point not computed, for testing schur complement)
 	    int            mNumX;    ///< Num of x unknown
 	    int            mNumY;    ///< Num of y unknown
 
@@ -72,6 +80,7 @@ template <class Type>  class  cPNetwork
 template <class Type>  class  cBenchNetwork
 {
 	public :
+          typedef cPtxd<Type,2>             tPt;
           typedef cPNetwork<Type>           tPNet;
           typedef tPNet *                   tPNetPtr;
           typedef cResolSysNonLinear<Type>  tSys;
@@ -100,6 +109,12 @@ template <class Type>  class  cBenchNetwork
           {
                return (std::abs(aP.x())<=mN) && (std::abs(aP.y())<=mN) ;
           }
+
+	  ///  Compute the geometry of an index using internal parameters
+	  tPt  Ind2Geom(const cPt2di & anInd) const;
+
+	  ///  Classically for the gauge fixing the direction by fixing a var we must take precaution
+	  bool  XIsHoriz() const;
 	private :
           /// Acces to reference of a adress if point from pixel value
 	  tPNetPtr & PNetPtrOfGrid(const cPt2di  & aP) {return mMatrP[aP.y()+mN][aP.x()+mN];}
@@ -113,7 +128,9 @@ template <class Type>  class  cBenchNetwork
 	  tCalc *             mCalcD;  ///< Equation that compute distance & derivate/points corrd
           cRect2              mBoxPix; ///< Box of pixel containing the points
 
-
+	  /**  Similitude transforming the index in the geometry, use it to make the test more general, and also
+	      to test co-variance tranfsert with geometric change  */
+	   cSim2D<Type>        mSimInd2G;  
 };
 
 /* ======================================== */
@@ -134,8 +151,13 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
     mWithSchur (WithSchurr),
     mNum       (0),
     mMatrP     (cMemManager::AllocMat<tPNetPtr>(mSzM,mSzM)),
-    mBoxPix    (cRect2::BoxWindow(mN))
+    mBoxPix    (cRect2::BoxWindow(mN)),
+    // For now I dont understand why it doese not work with too big angle ?
+     mSimInd2G  (cSim2D<Type>::RandomSimInv(5.0,3.0,1)) 
+    // mSimInd2G  (tPt::PRandC()*Type(50.0),FromPolar(Type(1.0 + RandUnif_0_1()*2),Type(RandUnif_C()*0.5)))
+    // mSimInd2G  (tPt(0,0),FromPolar(Type(1.0),Type(THE_TETA_SIM)))
 {
+     //  StdOut() <<  "ZZZZ  " << mSimInd2G.Tr() << " " <<mSimInd2G.Sc() <<  "XISH " << XIsHoriz() << "\n";
 
      // generate in VPix a regular grid, put them in random order for testing more config in matrix
      std::vector<cPt2di> aVPix;
@@ -150,14 +172,14 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
          tPNet aPNet(mVPts.size(),aPix,*this);
          mVPts.push_back(aPNet);
 
-	 if (! aPNet.mTmpUk)
+	 if (! aPNet.mSchurrPoint)
 	 {
              aVCoord0.push_back(aPNet.mPosInit.x());
              aVCoord0.push_back(aPNet.mPosInit.y());
 	 }
      }
      for (auto & aPNet : mVPts)
-         PNetPtrOfGrid(aPNet.mPosTh) = & aPNet;
+         PNetPtrOfGrid(aPNet.mInd) = & aPNet;
          
      
      // Initiate system "mSys" for solving
@@ -189,9 +211,9 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
 		       // this will make easier the regrouping of equation concerning the same tmp
 		       // the logic of this lines of code take use the fact that K1 and K2 cannot be both Tmp
 		
-                       if (aPN1.mTmpUk)  // K1 is Tmp and not K2, save K1->K2
+                       if (aPN1.mSchurrPoint)  // K1 is Tmp and not K2, save K1->K2
                           aPN1.mLinked.push_back(aPN2.mNumPt);
-		       else if (aPN2.mTmpUk) // K2 is Tmp and not K1, save K2->K2
+		       else if (aPN2.mSchurrPoint) // K2 is Tmp and not K1, save K2->K2
                           aPN2.mLinked.push_back(aPN1.mNumPt);
 		       else // None Tmp, does not matters which way it is stored
                           aPN1.mLinked.push_back(aPN2.mNumPt);  
@@ -201,6 +223,18 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
      }
      // create the "functor" that will compute values and derivates
      mCalcD =  EqConsDist(true,1);
+}
+
+template <class Type> bool  cBenchNetwork<Type>::XIsHoriz() const
+{
+     const tPt& aSc = mSimInd2G.Sc();
+
+     return std::abs(aSc.x()) > std::abs(aSc.y());
+}
+
+template <class Type> cPtxd<Type,2>  cBenchNetwork<Type>::Ind2Geom(const cPt2di & anInd) const
+{
+    return mSimInd2G.Value(tPt(anInd.x(),anInd.y()));
 }
 
 template <class Type> cBenchNetwork<Type>::~cBenchNetwork()
@@ -224,17 +258,18 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
      for (const auto & aPN : mVPts)
      {
         // Add distance between theoreticall value and curent
-        if (! aPN.mTmpUk)
+        if (! aPN.mSchurrPoint)
         {
             aNbEc++;
-            aSomEc += Norm2(aPN.PCur() -aPN.PTh());
+            aSomEc += Norm2(aPN.PCur() -aPN.TheorPt());
+	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << "\n";
         }
         // EQ:FIXVAR
 	// Fix X and Y for the two given points
+	if (aPN.mFrozenY) // If Y is frozenn add equation fixing Y to its theoreticall value
+           mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
 	if (aPN.mFrozenX)   // If X is frozenn add equation fixing X to its theoreticall value
-           mSys->AddEqFixVar(aPN.mNumX,aPN.PTh().x(),aWeightFix);
-	if (aPN.mFrozen) // If Y is frozenn add equation fixing Y to its theoreticall value
-           mSys->AddEqFixVar(aPN.mNumY,aPN.PTh().y(),aWeightFix);
+           mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
      }
      
      //  Add observation on distances
@@ -242,7 +277,7 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
      for (const auto & aPN1 : mVPts)
      {
          // If PN1 is a temporary unknown we will use schurr complement
-         if (aPN1.mTmpUk)
+         if (aPN1.mSchurrPoint)
 	 {
             // SCHURR:CALC
             cSetIORSNL_SameTmp<Type> aSetIO; // structure to grouping all equation relative to PN1
@@ -254,11 +289,10 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
                 const tPNet & aPN2 = mVPts.at(aI2);
 	        //std::vector<int> aVIndMixt{aPN2.mNumX,aPN2.mNumY,-1,-1};  // Compute index of unknowns for this equation
 	        std::vector<int> aVIndMixt{-1,-1,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns for this equation
-                std::vector<Type> aVObs{Type(Norm2(aPN1.PTh()-aPN2.PTh()))}; // compute observations=target distance
+                std::vector<Type> aVObs{Type(Norm2(aPN1.TheorPt()-aPN2.TheorPt()))}; // compute observations=target distance
                 // Add eq in aSetIO, using CalcD intantiated with VInd,aVTmp,aVObs
 		mSys->AddEq2Subst(aSetIO,mCalcD,aVIndMixt,aVTmp,aVObs);
 	    }
-	    //  StdOut()  << "Id: " << aPN1.mPosTh << " NL:" << aPN1.mLinked.size() << "\n";
 	    mSys->AddObsWithTmpUK(aSetIO);
 	 }
 	 else
@@ -268,7 +302,7 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
                {
                     const tPNet & aPN2 = mVPts.at(aI2);
 	            std::vector<int> aVInd{aPN1.mNumX,aPN1.mNumY,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns
-                    std::vector<Type> aVObs{Type(Norm2(aPN1.PTh()-aPN2.PTh()))};  // compute observations=target distance
+                    std::vector<Type> aVObs{Type(Norm2(aPN1.TheorPt()-aPN2.TheorPt()))};  // compute observations=target distance
                     // Add eq  using CalcD intantiated with VInd and aVObs
 	            mSys->CalcAndAddObs(mCalcD,aVInd,aVObs);
 	       }
@@ -289,27 +323,44 @@ template <class Type> const Type & cBenchNetwork<Type>::CurSol(int aK) const
 /*                                          */
 /* ======================================== */
 
-template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & aPTh,cBenchNetwork<Type> & aNet) :
+template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd,cBenchNetwork<Type> & aNet) :
      mNumPt    (aNumPt),
-     mPosTh    (aPTh),
+     mInd      (anInd),
+     // mTheorPt (tPt(mInd.x(),mInd.y())),
+     // mTheorPt (tPt(mInd.x(),mInd.y()) + tPt(10,5)),
+     // mTheorPt  (tPt(mInd.x(),mInd.y())* tPt(1,-1) + tPt(10,5) ), //+  tPt::PRandC()*Type(0.005)),
+     mTheorPt  (aNet.Ind2Geom(mInd)),
      mNetW     (&aNet),
-     mFrozen   (mPosTh==cPt2di(0,0)),  // fix origin
-     mFrozenX  (mFrozen|| (mPosTh==cPt2di(0,1))),  //fix orientation
-     mTmpUk    (aNet.WithSchur() && (mPosTh.x()==1)),  // If test schur complement, Line x=1 will be temporary
+	//  Tricky set cPt2di(-1,0)) to avoid interact with schurr points
+     mFrozenX  (( mInd==cPt2di(0,0)  ) ||  (  aNet.XIsHoriz() ? (mInd==cPt2di(0,1)) : (mInd==cPt2di(-1,0)))),
+     mFrozenY  ( mInd==cPt2di(0,0)  ), // fix origin
+     mSchurrPoint    (aNet.WithSchur() && (mInd.x()==1)),  // If test schur complement, Line x=1 will be temporary
      mNumX     (-1),
      mNumY     (-1)
 {
-     double aAmplP = 0.1;
-     // Pertubate position with global movtmt + random mvmt
-     mPosInit.x() =  mPosTh.x() + aAmplP*(-mPosTh.x() +  mPosTh.y()/2.0 +std::abs(mPosTh.y()) +2*RandUnif_C());;
-     mPosInit.y() =  mPosTh.y() + aAmplP*(mPosTh.y() + 4*Square(mPosTh.x()/Type(aNet.N())) + RandUnif_C() *0.2);
+     //  To assess the correctness of our code , we must prove that we are able to recover the "real" position from
+     //  a pertubated one;  the perturbation must be sufficiently complicated to be sure that position is not recovered 
+     //  by "chance" , but also not to big to be sure that the gradient descent will work
+     //  The pertubation is the a mix of sytematism and random, all is being mulitplied by some amplitude (aAmplP)
+     
+     {
+        double aAmplP = THE_AMPL_P; // Coefficient of amplitude of the pertubation
+	Type aSysX = -mInd.x() +  mInd.y()/2.0 +std::abs(mInd.y());  // sytematism on X : Linear + non linear abs
+        Type aSysY  =  mInd.y() + 4*Square(mInd.x()/Type(aNet.N())); // sytematism on U : Linear + quadratic term
 
-     if (mFrozen)
-       mPosInit.y() = mPosTh.y();
+        mPosInit.x() =  mTheorPt.x() + aAmplP*(aSysX + 2*RandUnif_C());;
+        mPosInit.y() =  mTheorPt.y() + aAmplP*(aSysY + 2*RandUnif_C() );
+     }
+
+     //  To fix globally the network (gauge) 3 coordinate are frozen, for these one the pertubation if void
+     //  so that recover the good position
      if (mFrozenX)
-       mPosInit.x() = mPosTh.x();
+       mPosInit.x() = mTheorPt.x();
+     if (mFrozenY)
+       mPosInit.y() = mTheorPt.y();
 
-     if (!mTmpUk)
+
+     if (!mSchurrPoint)
      {
         mNumX = aNet.Num()++;
         mNumY = aNet.Num()++;
@@ -318,7 +369,7 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & aPTh,
 template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PCur() const
 {
 	// For standard unknown, read the cur solution of the system
-    if (!mTmpUk)
+    if (!mSchurrPoint)
 	return cPtxd<Type,2>(mNetW->CurSol(mNumX),mNetW->CurSol(mNumY));
 
     /*  For temporary unknown we must compute the "best guess" as we do by bundle intersection.
@@ -338,7 +389,7 @@ template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PCur() const
     for (const auto & aI2 : mLinked)
     {
            const  cPNetwork<Type> & aPN2 = mNetW->PNet(aI2);
-	   if (mPosTh.y() == aPN2.mPosTh.y())
+	   if (mInd.y() == aPN2.mInd.y())
 	   {
                aSomP +=  aPN2.PCur();
                aNbPts++;
@@ -349,22 +400,23 @@ template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PCur() const
     return aSomP / (Type) aNbPts;
 }
 
-template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PTh() const
+template <class Type> const cPtxd<Type,2> &  cPNetwork<Type>::TheorPt() const
 {
-	return cPtxd<Type,2>(mPosTh.x(),mPosTh.y());
+	return mTheorPt;
 }
 
 template <class Type> bool cPNetwork<Type>::Linked(const cPNetwork<Type> & aP2) const
 {
    // Precaution, a poinnt is not linked yo itself
-   if (mPosTh== aP2.mPosTh) 
+   if (mInd== aP2.mInd) 
       return false;
 
    //  If two temporay point, they are not observable
-   if (mTmpUk && aP2.mTmpUk)
+   if (mSchurrPoint && aP2.mSchurrPoint)
       return false;
 
-    return NormInf(mPosTh-aP2.mPosTh) <=1;
+    //  else point are linked is they are same column, or neighbooring colums
+    return NormInf(mInd-aP2.mInd) <=1;
 }
 
 
@@ -388,10 +440,10 @@ template<class Type> void  TplOneBenchSSRNL
      Type aPrec = tElemNumTrait<Type>::Accuracy() ;
      cBenchNetwork<Type> aBN(aMode,aNb,WithSchurr,aParam);
      double anEc =100;
-     for (int aK=0 ; aK < 10 ; aK++)
+     for (int aK=0 ; aK < THE_NB_ITER ; aK++)
      {
          anEc = aBN.OneItereCompensation();
-         // StdOut() << "ECc== " << anEc /aPrec<< "\n";
+         // StdOut() << "  ECc== " << anEc /aPrec<< "\n";
      }
      // StdOut() << "Fin-ECc== " << anEc  / aPrec << " Nb=" << aNb << "\n";
      // getchar();
@@ -400,9 +452,9 @@ template<class Type> void  TplOneBenchSSRNL
 
 void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
 {
-    TplOneBenchSSRNL<tREAL4>(aMode,aNb,WithSchurr,aParam);
     TplOneBenchSSRNL<tREAL8>(aMode,aNb,WithSchurr,aParam);
     TplOneBenchSSRNL<tREAL16>(aMode,aNb,WithSchurr,aParam);
+    TplOneBenchSSRNL<tREAL4>(aMode,aNb,WithSchurr,aParam);
 }
 
 };
@@ -413,6 +465,8 @@ void BenchSSRNL(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("SSRNL")) return;
 
+     OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,1,false);
+     OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,2,false);
 
      // Basic test, test the 3 mode of matrix , with and w/o schurr subst
      for (const auto &  aNb : {3,4,5})

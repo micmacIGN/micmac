@@ -120,10 +120,14 @@ template <class Type>  class cSim2D
           {
           }
           static cSim2D FromExample(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;
+	  /// Compute a random similitude, assuring that Amplitude of scale has a minimal value
+          static cSim2D RandomSimInv(const Type & AmplTr,const Type & AmplSc,const Type & AmplMinSc);
           static const int NbDOF() {return 4;}
 
           inline tPt  Value(const tPt & aP) const {return mTr + aP * mSc;}
           inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
+          inline tPt  Tr() const {return mTr ;}
+          inline tPt  Sc() const {return mSc ;}
 
           tTypeMapInv  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
                 

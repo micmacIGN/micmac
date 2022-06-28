@@ -157,10 +157,12 @@ void cAppliExtractCodeTarget::MarkDCT()
           cPt3di aCoul (-1,-1,-1);
 
           if (aDCT.mState == eResDCT::Ok)      aCoul =  cRGBImage::Green;
+	  /*
           if (aDCT.mState == eResDCT::Divg)    aCoul =  cRGBImage::Red;
           if (aDCT.mState == eResDCT::LowSym)  aCoul =  cRGBImage::Yellow;
           if (aDCT.mState == eResDCT::LowBin)  aCoul =  cRGBImage::Blue;
           if (aDCT.mState == eResDCT::LowRad)  aCoul =  cRGBImage::Cyan;
+	  */
 
 
           if (aCoul.x() >=0)
