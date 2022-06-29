@@ -387,7 +387,40 @@ class  cSymetricityCalc
        /*               SYMETRY                              */
        /* ================================================== */
 
-template<class TypeEl> cIm2D<TypeEl> ImSymetricity(cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon)
+template<class TypeEl> void CheckSymetricity
+                           (
+                                cDataIm2D<TypeEl> & aDIm2Check,
+                                cIm2D<TypeEl>  aImIn,
+                                double aR0,
+                                double aR1,
+                                double Epsilon
+                           )
+{     
+    cDataIm2D<TypeEl> & aDImIn = aImIn.DIm();
+    cPt2di aSz = aDImIn.Sz();
+    int aD = round_up(aR1);
+    cPt2di aPW(aD+1,aD+1);
+
+    StdOut() << "Begin cmp  low/high level\n";
+    {
+       cSymFilterCT<TypeEl> aSymF(aImIn,aR0,aR1,Epsilon);
+       cIm2D<TypeEl>  anI2 = aSymF.ComputeIm();
+       cDataIm2D<TypeEl>& aDI2 = anI2.DIm();
+       for (const auto & aPix : cRect2(aPW,aSz-aPW))
+       {
+           TypeEl aV1 = aDIm2Check.GetV(aPix);
+           TypeEl aV2 = aDI2.GetV(aPix);
+           if (std::abs(aV1-aV2) > 1e-5)
+           {
+               StdOut() << "Diiiff = " <<aV1 -  aV2  << " PIX= " << aPix << "\n";
+               // getchar();
+           }
+       }
+    }
+    StdOut() << "end computation sym\n";
+}
+
+template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool doCheck,cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon)
 {
     cDataIm2D<TypeEl> & aDImIn = aImIn.DIm();
     const TypeEl* aData = aDImIn.RawDataLin();
@@ -417,46 +450,22 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(cIm2D<TypeEl>  aImIn,double a
 
           double aVal = aSM.Sym(Epsilon);
 	  aDImOut.SetV(aPix,aVal);
-	  /*
-          {
-              double aVal2 = aSymF.ComputeVal(ToR(aPix));
-              if (std::abs(aVal-aVal2) > 1e-8)
-              {
-                  StdOut() << "Diiiff = " <<aVal -  aVal2  << "\n";
-                  getchar();
-              }
-          }
-	  */
     }
     StdOut() << "End computation sym low level\n";
-
-    StdOut() << "Begin cmp  low/high level\n";
+    if (doCheck)
     {
-       cSymFilterCT<TypeEl> aSymF(aImIn,aR0,aR1,Epsilon);
-       cIm2D<TypeEl>  anI2 = aSymF.ComputeIm();
-       cDataIm2D<TypeEl>& aDI2 = anI2.DIm();
-       for (const auto & aPix : cRect2(aPW,aSz-aPW))
-       {
-           TypeEl aV1 = aDImOut.GetV(aPix);
-           TypeEl aV2 = aDI2.GetV(aPix);
-           if (std::abs(aV1-aV2) > 1e-5)
-           {
-               StdOut() << "Diiiff = " <<aV1 -  aV2  << " PIX= " << aPix << "\n";
-               // getchar();
-           }
-       }
+       CheckSymetricity(aDImOut,aImIn,aR0,aR1,Epsilon);
     }
-    StdOut() << "end computation sym\n";
-
 
     return aImOut;
 }
+
 
 #define INSTANTIATE_FILTER_TARGET(TYPE)\
 template double Starity(const cImGrad<TYPE> &,const cPt2dr &,const std::vector<cPt2di>&,const  std::vector<cPt2dr>&,double Epsilon);\
 template cIm2D<TYPE> ImBinarity(const  cDataIm2D<TYPE> & aDIm,double aR0,double aR1,double Epsilon);\
 template cIm2D<TYPE> ImStarity(const  cImGrad<TYPE> & aImGrad,double aR0,double aR1,double Epsilon);\
-template cIm2D<TYPE> ImSymetricity(cIm2D<TYPE>  aDImIn,double aR0,double aR1,double Epsilon);
+template cIm2D<TYPE> ImSymetricity(bool doCheck,cIm2D<TYPE>  aDImIn,double aR0,double aR1,double Epsilon);
 
 INSTANTIATE_FILTER_TARGET(tREAL4)
 

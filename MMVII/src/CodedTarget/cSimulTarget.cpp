@@ -267,7 +267,7 @@ int  cAppliSimulCodeTarget::Exe()
    }
 
 
-   mImIn.DIm().ToFile("SimulTarget_"+mNameIm +".tif");
+   mImIn.DIm().ToFile("SimulTarget_"+mNameIm +".tif",eTyNums::eTN_U_INT1);
 
 
 

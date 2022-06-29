@@ -178,7 +178,7 @@ void  cAppliExtractCodeTarget::DoExtract()
      // mNbPtsIm = aDIm.Sz().x() * aDIm.Sz().y();
 
      // Extract point that are extremum of symetricity
-     cIm2D<tREAL4>  aImSym = ImSymetricity(aIm,mR0Sym,mR1Sym,0);
+     cIm2D<tREAL4>  aImSym = ImSymetricity(false,aIm,mR0Sym,mR1Sym,0);
      cResultExtremum aRExtre(true,false);
      ExtractExtremum1(aImSym.DIm(),aRExtre,mRExtreSym);
 
@@ -264,7 +264,7 @@ void  cAppliExtractCodeTarget::TestFilters()
                 aImF = ImBinarity(aDIm,mRaysTF.x(),mRaysTF.y(),1.0);
 
             if (anEF==eDCTFilters::eSym)
-                aImF = ImSymetricity(aIm,mRaysTF.x(),mRaysTF.y(),1.0);
+                aImF = ImSymetricity(true,aIm,mRaysTF.x(),mRaysTF.y(),1.0);
 
             if (anEF==eDCTFilters::eRad)
             {

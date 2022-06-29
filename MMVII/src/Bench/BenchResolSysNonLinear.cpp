@@ -1,137 +1,20 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "BenchResolSysNonLinear.h"
 
 
 // ==========  3 variable used for debuging  , will disappear
 //
-static constexpr double THE_AMPL_P = 0.1; // Coefficient of amplitude of the pertubation
-static constexpr double    THE_TETA_SIM = 0;//  M_PI/2; // Sign of similitude for position init
-static constexpr int    THE_NB_ITER  = 20; // Sign of similitude for position init
 
-using namespace NS_SymbolicDerivative;
-using namespace MMVII;
+static constexpr double SZ_RAND_TH = 0.1; // Pertubation theoriticall / regular grid
+static constexpr double THE_AMPL_P = 0.1; // Amplitude of pertubation of initial / theoreticall
+static constexpr int    THE_NB_ITER  = 10; // Sign of similitude for position init
+
+// using namespace NS_SymbolicDerivative;
+// using namespace MMVII;
 
 namespace MMVII
 {
-/* ************************************************************ */
-/*                                                              */
-/*                  BENCH                                       */
-/*                                                              */
-/* ************************************************************ */
-
-/*   To check some correctness  on cResolSysNonLinear, we will do the following stuff
-     which is more or less a simulation of triangulation
- 
-     #  create a network for which we have approximate coordinate  (except few point for 
-        which they are exact) and exact mesure of distances between pair of points
-
-     # we try to recover the coordinates using compensation on distances
-
-
-     The network is made of [-N,N] x [-N,N],  as the preservation of distance would not be sufficient for
-     uniqueness of solution, some arbitrary constraint are added on "frozen" points  (X0=0,Y0=0 and X1=0)
-
-Classes :
-     # cPNetwork       represent one point of the network 
-     # cBenchNetwork   represent the network  itself
-*/
-namespace NB_Bench_RSNL
+namespace NS_Bench_RSNL
 {
-
-   /* ======================================== */
-   /*         HEADER                           */
-   /* ======================================== */
-
-template <class Type>  class  cBenchNetwork;
-template <class Type>  class  cPNetwork;
-
-template <class Type>  class  cPNetwork
-{
-      public :
-            typedef cBenchNetwork<Type> tNetW;
-            typedef cPtxd<Type,2>       tPt;
-
-             /// Create a point with its number, grid position and the network itself
-	    cPNetwork(int aNumPt,const cPt2di & aPTh,tNetW &);
-
-            /**  Cur point ,  for "standard" point just access to the unknown NumX,NumY
-                 for "schurs" points, as they are not stored, make an estimation with neighbourhood
-            */
-	    tPt  PCur() const;  
-	    const tPt &  TheorPt() const;  ///< Acessor
-
-	    /// Are the two point linked  (will their distances be an observation compensed)
-	    bool Linked(const cPNetwork<Type> & aP2) const;
-
-            int            mNumPt;     ///< Num in vector
-            cPt2di         mInd;       ///< Index in the grid
-            tPt            mTheorPt;  ///< Theoreticall position; used to compute distances and check accuracy recovered
-	    const tNetW *  mNetW;    ///<  link to the network itself
-            tPt            mPosInit; ///< initial position : pertubation of theoretical one
-	    bool           mFrozenX; ///< is abscisse of this point frozen
-	    bool           mFrozenY;  ///< is this point frozen
-	    bool           mSchurrPoint;   ///< is it a temporay point (point not computed, for testing schur complement)
-	    int            mNumX;    ///< Num of x unknown
-	    int            mNumY;    ///< Num of y unknown
-
-	    std::list<int> mLinked;   ///< list of linked points, if Tmp/UK the links start from tmp, if Uk/Uk order does not matters
-};
-
-template <class Type>  class  cBenchNetwork
-{
-	public :
-          typedef cPtxd<Type,2>             tPt;
-          typedef cPNetwork<Type>           tPNet;
-          typedef tPNet *                   tPNetPtr;
-          typedef cResolSysNonLinear<Type>  tSys;
-          typedef NS_SymbolicDerivative::cCalculator<tREAL8>  tCalc;
-
-          cBenchNetwork(eModeSSR aMode,int aN,bool WithSchurr,cParamSparseNormalLstSq * = nullptr);
-          ~cBenchNetwork();
-
-          int   N() const;
-          bool WithSchur()  const;
-          int&  Num() ;
-
-
-	  Type OneItereCompensation();
-
-          /// Access to CurSol of mSys
-	  const Type & CurSol(int aK) const;
-
-          /// Acces to a point from its number
-	  const tPNet & PNet(int aK) const {return mVPts.at(aK);}
-
-          /// Acces to a point from pixel value
-	  tPNet & PNetOfGrid(const cPt2di  & aP) {return *(PNetPtrOfGrid(aP));}
-          /// Is a Pixel in the grid [-N,N]^2
-          bool IsInGrid(const cPt2di  & aP)  const
-          {
-               return (std::abs(aP.x())<=mN) && (std::abs(aP.y())<=mN) ;
-          }
-
-	  ///  Compute the geometry of an index using internal parameters
-	  tPt  Ind2Geom(const cPt2di & anInd) const;
-
-	  ///  Classically for the gauge fixing the direction by fixing a var we must take precaution
-	  bool  XIsHoriz() const;
-	private :
-          /// Acces to reference of a adress if point from pixel value
-	  tPNetPtr & PNetPtrOfGrid(const cPt2di  & aP) {return mMatrP[aP.y()+mN][aP.x()+mN];}
-	  int   mN;                    ///< Size of network is  [-N,N]x[-N,N]
-          int   mSzM;                  ///<  1+2*aN  = Sz of Matrix of point
-	  bool  mWithSchur;            ///< Do we test Schurr complement
-	  int   mNum;                  ///< Current num of unknown
-	  std::vector<tPNet>  mVPts;   ///< Vector of point of unknowns coordinate
-          tPNet ***           mMatrP;  ///< Indexed matrice of points, give basic spatial indexing
-	  tSys *              mSys;    ///< Sys for solving non linear equations 
-	  tCalc *             mCalcD;  ///< Equation that compute distance & derivate/points corrd
-          cRect2              mBoxPix; ///< Box of pixel containing the points
-
-	  /**  Similitude transforming the index in the geometry, use it to make the test more general, and also
-	      to test co-variance tranfsert with geometric change  */
-	   cSim2D<Type>        mSimInd2G;  
-};
 
 /* ======================================== */
 /*                                          */
@@ -150,14 +33,11 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
     mSzM       (1+2*aN),
     mWithSchur (WithSchurr),
     mNum       (0),
-    mMatrP     (cMemManager::AllocMat<tPNetPtr>(mSzM,mSzM)),
+    mMatrP     (cMemManager::AllocMat<tPNetPtr>(mSzM,mSzM)), // alloc a grid of pointers
     mBoxPix    (cRect2::BoxWindow(mN)),
     // For now I dont understand why it doese not work with too big angle ?
      mSimInd2G  (cSim2D<Type>::RandomSimInv(5.0,3.0,1)) 
-    // mSimInd2G  (tPt::PRandC()*Type(50.0),FromPolar(Type(1.0 + RandUnif_0_1()*2),Type(RandUnif_C()*0.5)))
-    // mSimInd2G  (tPt(0,0),FromPolar(Type(1.0),Type(THE_TETA_SIM)))
 {
-     //  StdOut() <<  "ZZZZ  " << mSimInd2G.Tr() << " " <<mSimInd2G.Sc() <<  "XISH " << XIsHoriz() << "\n";
 
      // generate in VPix a regular grid, put them in random order for testing more config in matrix
      std::vector<cPt2di> aVPix;
@@ -178,9 +58,28 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
              aVCoord0.push_back(aPNet.mPosInit.y());
 	 }
      }
+     // Put adress of points in a grid so that they are accessible by indexes
      for (auto & aPNet : mVPts)
          PNetPtrOfGrid(aPNet.mInd) = & aPNet;
          
+     /*  For the schur point, the estimation of current position, is done by averaging of PCur of neighboors (left&right),
+         see comment in ::PCur() 
+        
+         Iw we randomize the coordinate, this estimator will not converge to the theoreticall position.
+         So forthe special case of schur point, we use the same formula for their theoreticall
+         and the esitmator of PCur
+      */
+
+     for (auto& aPix: mBoxPix)
+     {
+	  tPNet &  aPSch = PNetOfGrid(aPix);
+          if (aPSch.mSchurrPoint) 
+          {
+	      const tPNet & aPL = PNetOfGrid(aPSch.mInd+cPt2di(-1,0));  // PLeft
+	      const tPNet & aPR = PNetOfGrid(aPSch.mInd+cPt2di( 1,0));  // PRight
+	      aPSch.mTheorPt  =   (aPL.TheorPt()+aPR.TheorPt())/Type(2.0);
+          }
+     }
      
      // Initiate system "mSys" for solving
      if ((aMode==eModeSSR::eSSR_LsqNormSparse)  && (aParam!=nullptr))
@@ -207,9 +106,10 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
                   // Test on num to do it only one way
                   if ((aPN1.mNumPt>aPN2.mNumPt) && aPN1.Linked(aPN2))
 	          {
-                       // create the links, be careful that for Tmp unknown all the links start from Tmp
-		       // this will make easier the regrouping of equation concerning the same tmp
-		       // the logic of this lines of code take use the fact that K1 and K2 cannot be both Tmp
+                       // create the links, be careful that for pair with schur point all the links start from schur ,
+		       // this will make easier the regrouping of equation concerning the same point,
+		       // the logic of this lines of code take use the fact that K1 and K2 cannot be both 
+                       // schur points (tested in Linked())
 		
                        if (aPN1.mSchurrPoint)  // K1 is Tmp and not K2, save K1->K2
                           aPN1.mLinked.push_back(aPN2.mNumPt);
@@ -218,6 +118,7 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
 		       else // None Tmp, does not matters which way it is stored
                           aPN1.mLinked.push_back(aPN2.mNumPt);  
 	          }
+                  
              }
           }
      }
@@ -225,7 +126,7 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
      mCalcD =  EqConsDist(true,1);
 }
 
-template <class Type> bool  cBenchNetwork<Type>::XIsHoriz() const
+template <class Type> bool  cBenchNetwork<Type>::AxeXIsHoriz() const
 {
      const tPt& aSc = mSimInd2G.Sc();
 
@@ -234,7 +135,7 @@ template <class Type> bool  cBenchNetwork<Type>::XIsHoriz() const
 
 template <class Type> cPtxd<Type,2>  cBenchNetwork<Type>::Ind2Geom(const cPt2di & anInd) const
 {
-    return mSimInd2G.Value(tPt(anInd.x(),anInd.y()));
+    return mSimInd2G.Value(tPt(anInd.x(),anInd.y())  + tPt::PRandC()*Type(SZ_RAND_TH));
 }
 
 template <class Type> cBenchNetwork<Type>::~cBenchNetwork()
@@ -250,18 +151,18 @@ template <class Type> int&  cBenchNetwork<Type>::Num() {return mNum;}
 
 template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
 {
-     Type aWeightFix=100.0; // arbitray weight for fixing the 3 variable X0,Y0,X1 (the "jauge")
+     Type aWeightFix=100.0; // arbitray weight for fixing the 3 variable X0,Y0,X1 (the "gauge")
 
-     Type  aSomEc = 0;
-     Type  aNbEc = 0;
+     Type  aSumResidual = 0;
+     Type  aNbPairTested = 0;
      //  Compute dist to sol + add constraint for fixed var
      for (const auto & aPN : mVPts)
      {
-        // Add distance between theoreticall value and curent
+        // Add distance between theoreticall value and curent to compute global residual
         if (! aPN.mSchurrPoint)
         {
-            aNbEc++;
-            aSomEc += Norm2(aPN.PCur() -aPN.TheorPt());
+            aNbPairTested++;
+            aSumResidual += Norm2(aPN.PCur() -aPN.TheorPt());
 	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << "\n";
         }
         // EQ:FIXVAR
@@ -310,7 +211,7 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
      }
 
      mSys->SolveUpdateReset();
-     return aSomEc / aNbEc ;
+     return aSumResidual / aNbPairTested ;
 }
 template <class Type> const Type & cBenchNetwork<Type>::CurSol(int aK) const
 {
@@ -332,7 +233,7 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
      mTheorPt  (aNet.Ind2Geom(mInd)),
      mNetW     (&aNet),
 	//  Tricky set cPt2di(-1,0)) to avoid interact with schurr points
-     mFrozenX  (( mInd==cPt2di(0,0)  ) ||  (  aNet.XIsHoriz() ? (mInd==cPt2di(0,1)) : (mInd==cPt2di(-1,0)))),
+     mFrozenX  (( mInd==cPt2di(0,0)  ) ||  (  aNet.AxeXIsHoriz() ? (mInd==cPt2di(0,1)) : (mInd==cPt2di(-1,0)))),
      mFrozenY  ( mInd==cPt2di(0,0)  ), // fix origin
      mSchurrPoint    (aNet.WithSchur() && (mInd.x()==1)),  // If test schur complement, Line x=1 will be temporary
      mNumX     (-1),
@@ -426,8 +327,22 @@ template <class Type> bool cPNetwork<Type>::Linked(const cPNetwork<Type> & aP2) 
 /*                                          */
 /* ======================================== */
 
-/** Make on test with different parameter, check that after 10 iteration we are sufficiently close
+/** Make on test with different parameter, check that after given number iteration we are sufficiently close
     to "real" network
+
+   [0]   void BenchSSRNL(cParamExeBench & aParam)  :
+         global function, declared in header make  call to OneBenchSSRNL with various
+         parameters  (size of network, type of underlying matrix, parameters for these matrices)
+
+   [1]   void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
+         for a given set of parameters , test the different template instanciation (REAL on 4,8,16 bytes)
+          
+    
+    [2] template<class Type> void  TplOneBenchSSRNL(....)
+        do the job for a  given type and given set of parameters, 
+                *   construct the network, 
+                *  iterate gauss newton, 
+                *  check we reach the theoreticall solution
 */
 template<class Type> void  TplOneBenchSSRNL
                            (
@@ -459,7 +374,7 @@ void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLst
 
 };
 
-using namespace NB_Bench_RSNL;
+using namespace NS_Bench_RSNL;
 
 void BenchSSRNL(cParamExeBench & aParam)
 {

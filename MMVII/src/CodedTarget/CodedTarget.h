@@ -26,7 +26,7 @@ template<class TypeEl> cIm2D<TypeEl> ImStarity(const  cImGrad<TypeEl> & aImGrad,
 
 
 
-template<class TypeEl> cIm2D<TypeEl> ImSymetricity(cIm2D<TypeEl> anImIn,double aR0,double aR1,double Epsilon);
+template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool DoCheck,cIm2D<TypeEl> anImIn,double aR0,double aR1,double Epsilon);
 
 
 
