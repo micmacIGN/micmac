@@ -25,23 +25,23 @@ namespace NS_Bench_RSNL
 template <class Type> cBenchNetwork<Type>::cBenchNetwork
                       (
 		            eModeSSR aMode,
-                            int aN,
+                            cRect2   aRect,
 			    bool WithSchurr,
 			    cParamSparseNormalLstSq * aParam
 		      ) :
-    mN         (aN),
-    mSzM       (1+2*aN),
+    mBoxInd    (aRect),
+    mX_SzM     (mBoxInd.Sz().x()),
+    mY_SzM     (mBoxInd.Sz().y()),
     mWithSchur (WithSchurr),
     mNum       (0),
-    mMatrP     (cMemManager::AllocMat<tPNetPtr>(mSzM,mSzM)), // alloc a grid of pointers
-    mBoxPix    (cRect2::BoxWindow(mN)),
+    mMatrP     (cMemManager::AllocMat<tPNetPtr>(mX_SzM,mY_SzM)), // alloc a grid of pointers
     // For now I dont understand why it doese not work with too big angle ?
      mSimInd2G  (cSim2D<Type>::RandomSimInv(5.0,3.0,1)) 
 {
 
      // generate in VPix a regular grid, put them in random order for testing more config in matrix
      std::vector<cPt2di> aVPix;
-     for (const auto& aPix: mBoxPix)
+     for (const auto& aPix: mBoxInd)
          aVPix.push_back(aPix);
      aVPix = RandomOrder(aVPix);
 
@@ -61,6 +61,7 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
      // Put adress of points in a grid so that they are accessible by indexes
      for (auto & aPNet : mVPts)
          PNetPtrOfGrid(aPNet.mInd) = & aPNet;
+
          
      /*  For the schur point, the estimation of current position, is done by averaging of PCur of neighboors (left&right),
          see comment in ::PCur() 
@@ -70,7 +71,7 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
          and the esitmator of PCur
       */
 
-     for (auto& aPix: mBoxPix)
+     for (auto& aPix: mBoxInd)
      {
 	  tPNet &  aPSch = PNetOfGrid(aPix);
           if (aPSch.mSchurrPoint) 
@@ -95,7 +96,7 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
      }
 
      // compute links between Pts of Networks,
-     for (const auto& aPix: mBoxPix)
+     for (const auto& aPix: mBoxInd)
      {
 	  tPNet &  aPN1 = PNetOfGrid(aPix);
           for (const auto& aNeigh: cRect2::BoxWindow(aPix,1))
@@ -126,6 +127,18 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
      mCalcD =  EqConsDist(true,1);
 }
 
+template <class Type> 
+   cBenchNetwork<Type>::cBenchNetwork
+   (
+          eModeSSR aMode,
+          int  aN,
+          bool WithSchurr,
+          cParamSparseNormalLstSq * aParam
+   ) :
+        cBenchNetwork<Type>(aMode,cRect2::BoxWindow(aN),WithSchurr,aParam)
+{
+}
+
 template <class Type> bool  cBenchNetwork<Type>::AxeXIsHoriz() const
 {
      const tPt& aSc = mSimInd2G.Sc();
@@ -140,12 +153,11 @@ template <class Type> cPtxd<Type,2>  cBenchNetwork<Type>::Ind2Geom(const cPt2di 
 
 template <class Type> cBenchNetwork<Type>::~cBenchNetwork()
 {
-    cMemManager::FreeMat<tPNetPtr>(mMatrP,mSzM);
+    cMemManager::FreeMat<tPNetPtr>(mMatrP,mY_SzM);
     delete mSys;
     delete mCalcD;
 }
 
-template <class Type> int   cBenchNetwork<Type>::N() const {return mN;}
 template <class Type> bool  cBenchNetwork<Type>::WithSchur()  const {return mWithSchur;}
 template <class Type> int&  cBenchNetwork<Type>::Num() {return mNum;}
 
@@ -232,8 +244,14 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
      // mTheorPt  (tPt(mInd.x(),mInd.y())* tPt(1,-1) + tPt(10,5) ), //+  tPt::PRandC()*Type(0.005)),
      mTheorPt  (aNet.Ind2Geom(mInd)),
      mNetW     (&aNet),
-	//  Tricky set cPt2di(-1,0)) to avoid interact with schurr points
-     mFrozenX  (( mInd==cPt2di(0,0)  ) ||  (  aNet.AxeXIsHoriz() ? (mInd==cPt2di(0,1)) : (mInd==cPt2di(-1,0)))),
+	//  Tricky ,for direction set cPt2di(-1,0)) to avoid interact with schurr points
+	//  but is there is no schurr point, set it to cPt2di(1,0) to allow network [0,1]x[0,1]
+     mFrozenX  (      ( mInd==cPt2di(0,0)) 
+		  ||  (   aNet.AxeXIsHoriz() ? 
+			  (mInd==cPt2di(0,1)) : 
+			  (aNet.WithSchur()   ?  (mInd==cPt2di(-1,0)) : (mInd==cPt2di(1,0)))
+                       )
+	        ),
      mFrozenY  ( mInd==cPt2di(0,0)  ), // fix origin
      mSchurrPoint    (aNet.WithSchur() && (mInd.x()==1)),  // If test schur complement, Line x=1 will be temporary
      mNumX     (-1),
@@ -247,7 +265,7 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
      {
         double aAmplP = THE_AMPL_P; // Coefficient of amplitude of the pertubation
 	Type aSysX = -mInd.x() +  mInd.y()/2.0 +std::abs(mInd.y());  // sytematism on X : Linear + non linear abs
-        Type aSysY  =  mInd.y() + 4*Square(mInd.x()/Type(aNet.N())); // sytematism on U : Linear + quadratic term
+        Type aSysY  =  mInd.y() + 4*Square(mInd.x()/aNet.NetSz()); // sytematism on U : Linear + quadratic term
 
         mPosInit.x() =  mTheorPt.x() + aAmplP*(aSysX + 2*RandUnif_C());;
         mPosInit.y() =  mTheorPt.y() + aAmplP*(aSysY + 2*RandUnif_C() );
@@ -347,13 +365,13 @@ template <class Type> bool cPNetwork<Type>::Linked(const cPNetwork<Type> & aP2) 
 template<class Type> void  TplOneBenchSSRNL
                            (
                                eModeSSR aMode,
-                               int aNb,
+                               cRect2 aRect,
                                bool WithSchurr,
                                cParamSparseNormalLstSq * aParam=nullptr
                            )
 {
      Type aPrec = tElemNumTrait<Type>::Accuracy() ;
-     cBenchNetwork<Type> aBN(aMode,aNb,WithSchurr,aParam);
+     cBenchNetwork<Type> aBN(aMode,aRect,WithSchurr,aParam);
      double anEc =100;
      for (int aK=0 ; aK < THE_NB_ITER ; aK++)
      {
@@ -364,9 +382,21 @@ template<class Type> void  TplOneBenchSSRNL
      // getchar();
      MMVII_INTERNAL_ASSERT_bench(anEc<aPrec,"Error in Network-SSRNL Bench");
 }
+template<class Type> void  TplOneBenchSSRNL
+                           (
+                               eModeSSR aMode,
+                               int aNb,
+                               bool WithSchurr,
+                               cParamSparseNormalLstSq * aParam=nullptr
+			   )
+{
+	TplOneBenchSSRNL<Type>(aMode,cRect2::BoxWindow(aNb),WithSchurr,aParam);
+}
 
 void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
 {
+    TplOneBenchSSRNL<tREAL8>(aMode,cBox2di(cPt2di(0,0),cPt2di(2,2)),false,aParam);
+
     TplOneBenchSSRNL<tREAL8>(aMode,aNb,WithSchurr,aParam);
     TplOneBenchSSRNL<tREAL16>(aMode,aNb,WithSchurr,aParam);
     TplOneBenchSSRNL<tREAL4>(aMode,aNb,WithSchurr,aParam);
@@ -378,6 +408,8 @@ using namespace NS_Bench_RSNL;
 
 void BenchSSRNL(cParamExeBench & aParam)
 {
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense,cBox2di(cPt2di(0,0),cPt2di(2,2)),false);
+
      if (! aParam.NewBench("SSRNL")) return;
 
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,1,false);

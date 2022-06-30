@@ -83,12 +83,16 @@ template <class Type>  class  cBenchNetwork
           typedef cResolSysNonLinear<Type>  tSys;
           typedef NS_SymbolicDerivative::cCalculator<tREAL8>  tCalc;
 
+	  /// initial simplify constructor,  take  N a parameterand construct [-N,N]x[N,N]
           cBenchNetwork(eModeSSR aMode,int aN,bool WithSchurr,cParamSparseNormalLstSq * = nullptr);
+
+          cBenchNetwork(eModeSSR aMode,cRect2,bool WithSchurr,cParamSparseNormalLstSq * = nullptr);
           ~cBenchNetwork();
 
-          int   N() const;
+          //int   N() const;
           bool WithSchur()  const;
           int&  Num() ;
+	  Type  NetSz() const {return Norm2(mBoxInd.Sz());}
 
 
 	  Type OneItereCompensation();
@@ -104,7 +108,8 @@ template <class Type>  class  cBenchNetwork
           /// Is a Pixel in the grid [-N,N]^2
           bool IsInGrid(const cPt2di  & aP)  const
           {
-               return (std::abs(aP.x())<=mN) && (std::abs(aP.y())<=mN) ;
+               // return (std::abs(aP.x())<=mN) && (std::abs(aP.y())<=mN) ;
+               return mBoxInd.Inside(aP);
           }
 
 	  ///  Compute the geometry of an index using internal parameters => global simi + some random value
@@ -118,16 +123,17 @@ template <class Type>  class  cBenchNetwork
 	  bool  AxeXIsHoriz() const;
 	private :
           /// Acces to reference of a adress if point from pixel value
-	  tPNetPtr & PNetPtrOfGrid(const cPt2di  & aP) {return mMatrP[aP.y()+mN][aP.x()+mN];}
-	  int   mN;                    ///< Size of network is  [-N,N]x[-N,N]
-          int   mSzM;                  ///<  1+2*aN  = Sz of Matrix of point
+	  tPNetPtr & PNetPtrOfGrid(const cPt2di  & aP) {return mMatrP[aP.y()-mBoxInd.P0().y()][aP.x()-mBoxInd.P0().x()];}
+
+	  cRect2 mBoxInd;                ///< rectangle of the network
+          int   mX_SzM;                  ///<  1+2*aN  = Sz of Matrix of point
+          int   mY_SzM;                  ///<  1+2*aN  = Sz of Matrix of point
 	  bool  mWithSchur;            ///< Do we test Schurr complement
 	  int   mNum;                  ///< Current num of unknown
 	  std::vector<tPNet>  mVPts;   ///< Vector of point of unknowns coordinate
           tPNet ***           mMatrP;  ///< Indexed matrice of points, give basic spatial indexing
 	  tSys *              mSys;    ///< Sys for solving non linear equations 
 	  tCalc *             mCalcD;  ///< Equation that compute distance & derivate/points corrd
-          cRect2              mBoxPix; ///< Box of pixel containing the points
 
 	  /**  Similitude transforming the index in the geometry, use it to make the test more general, and also
 	      to test co-variance tranfsert with geometric change  */

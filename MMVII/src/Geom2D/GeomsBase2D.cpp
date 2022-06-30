@@ -159,6 +159,12 @@ template <class Type>  cAffin2D<Type> cAffin2D<Type>::HomotXY(const Type & aScal
 }
 
 
+template <class Type>  const Type& cAffin2D<Type>::Delta() const {return mDelta;}
+template <class Type>  const cPtxd<Type,2> & cAffin2D<Type>::Tr() const {return mTr;}
+template <class Type>  const cPtxd<Type,2> & cAffin2D<Type>::VX() const {return mVX;}
+template <class Type>  const cPtxd<Type,2> & cAffin2D<Type>::VY() const {return mVY;}
+template <class Type>  const cPtxd<Type,2> & cAffin2D<Type>::VInvX() const {return mVInvX;}
+template <class Type>  const cPtxd<Type,2> & cAffin2D<Type>::VInvY() const {return mVInvY;}
 
 
 

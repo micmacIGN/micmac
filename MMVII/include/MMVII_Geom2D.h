@@ -154,6 +154,14 @@ template <class Type>  class cAffin2D
           tPt  Inverse(const tPt & aP) const ;
           tTypeMapInv  MapInverse() const ;
 
+	  // ========== Accesors =================
+	  const Type &  Delta() const;  ///<  Accessor
+	  const tPt &   VX() const;  ///<  Accessor
+	  const tPt &   VY() const;  ///<  Accessor
+	  const tPt &   Tr() const;  ///<  Accessor
+	  const tPt &   VInvX() const;  ///<  Accessor
+	  const tPt &   VInvY() const;  ///<  Accessor
+
 	  tTypeMap operator *(const tTypeMap&) const;
           tPt  VecInverse(const tPt & aP) const ;
           tPt  VecValue(const tPt & aP) const ;
