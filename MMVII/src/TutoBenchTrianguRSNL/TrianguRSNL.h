@@ -126,7 +126,11 @@ template <class Type>  class  cMainNetwork
 	  bool  AxeXIsHoriz() const;
 
           const cSim2D<Type> &  SimInd2G() const;   ///<Accessor
+
+	  void TestCov();
+
 	protected :
+	  void TestCov(const cRect2 &);
           /// Acces to reference of a adress if point from pixel value
 	  tPNetPtr & PNetPtrOfGrid(const cPt2di  & aP) {return mMatrP[aP.y()-mBoxInd.P0().y()][aP.x()-mBoxInd.P0().x()];}
 

@@ -6,7 +6,6 @@ namespace MMVII
 namespace NS_Bench_RSNL
 {
 
-/* ***************************************** */
 
 /**  Class for implemanting an "elementary = small" newtork,
      on which we will compute covariance that will be transfered
@@ -22,9 +21,11 @@ template <class Type>  class  cElemNetwork : public cMainNetwork<Type>
 
         cElemNetwork(tMainNW & aMainW,const cRect2 & aRectMain);
 
+	void CalcCov(int aNbIter);
+
+    private :
         /// Give the homologous of point in the main network
         tPNet & MainHom(const tPNet &) const;
-    private :
        
          tMainNW * mMainNW;
          cRect2    mBoxM;
@@ -33,6 +34,11 @@ template <class Type>  class  cElemNetwork : public cMainNetwork<Type>
          cSim2D<Type> mSimM2This;  
 };
 
+/* *************************************** */
+/*                                         */
+/*          cElemNetwork                   */
+/*                                         */
+/* *************************************** */
 
 template <class Type> cElemNetwork<Type>::cElemNetwork(tMainNW & aMainNW,const cRect2 & aBoxM) :
         // We put the local box with origin in (0,0) because frozen point are on this point
@@ -54,13 +60,51 @@ template <class Type> cElemNetwork<Type>::cElemNetwork(tMainNW & aMainNW,const c
 
 template <class Type>  cPNetwork<Type> & cElemNetwork<Type>::MainHom(const tPNet & aPN) const
 {
-   return mMainNW->PNetOfGrid(aPN.mInd+mBoxM.P1() );
+   return mMainNW->PNetOfGrid(aPN.mInd+mBoxM.P0() );
 }
 
-template class cElemNetwork<tREAL8>;
+
+template <class Type>  void cElemNetwork<Type>::CalcCov(int aNbIter)
+{
+     for (int aK=0 ; aK<(aNbIter-1); aK++)
+         this->OneItereCompensation(false);
+     this->OneItereCompensation(true);
+}
+
+/* *************************************** */
+/*                                         */
+/*          cMainNetwork                   */
+/*                                         */
+/* *************************************** */
+
+template <class Type>  void cMainNetwork<Type>::TestCov(const cRect2 &aRect)
+{
+     cElemNetwork<Type>  aNetElem(*this,aRect);
+     aNetElem.CalcCov(10);
+}
+
+template <class Type>  void cMainNetwork<Type>::TestCov()
+{
+     cPt2di aSz(2,2);
+     cRect2  aRect(mBoxInd.P0(),mBoxInd.P1()-aSz);
+
+     for (const auto & aPix: aRect)
+     {
+         TestCov(cRect2(aPix,aPix+aSz));
+     }
+}
 
 
+/* ======================================== */
+/*           INSTANTIATION                  */
+/* ======================================== */
+#define PROP_COV_INSTANTIATE(TYPE)\
+template class cElemNetwork<TYPE>;\
+template class cMainNetwork<TYPE>;
+
+PROP_COV_INSTANTIATE(tREAL4)
+PROP_COV_INSTANTIATE(tREAL8)
+PROP_COV_INSTANTIATE(tREAL16)
 
 };
-
 };

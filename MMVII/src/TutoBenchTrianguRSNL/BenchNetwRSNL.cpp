@@ -82,6 +82,12 @@ void BenchSSRNL(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("SSRNL")) return;
 
+     {
+         cMainNetwork <tREAL8> aNet(eModeSSR::eSSR_LsqDense,5,false);
+
+	 aNet.TestCov();
+     }
+
      // Test with non centered netowrk 
      TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense,cBox2di(cPt2di(0,0),cPt2di(2,2)),false);
 
