@@ -265,8 +265,8 @@ template <class tMap,class TypeEl> void TplBenchMap2D(const tMap & aMap,const tM
 	aD = Norm2(aP1-aQ1) /tElemNumTrait<TypeEl>::Accuracy();
 	if (aD>=1e-2)
 	{
-		StdOut() << "DDDelta " <<  aMap.Delta() << " accc : " << tElemNumTrait<TypeEl>::Accuracy() << "\n";
-		StdOut() << "Tr " <<  aMap.Tr() << " Vx " << aMap.VX() << " VY " << aMap.VY() << "\n";
+		// StdOut() << "DDDelta " <<  aMap.Delta() << " accc : " << tElemNumTrait<TypeEl>::Accuracy() << "\n";
+		// StdOut() << "Tr " <<  aMap.Tr() << " Vx " << aMap.VX() << " VY " << aMap.VY() << "\n";
 		StdOut() << "DDD " <<  aD << "\n";
 	    MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapInv");
 	}
@@ -282,6 +282,7 @@ template <class tMap,class TypeEl> void TplBenchMap2D(const tMap & aMap,const tM
 template <class Type> void TplElBenchMap2D()
 {
    TplBenchMap2D(cAffin2D<Type>::AllocRandom(1e-1),cAffin2D<Type>::AllocRandom(1e-1),(Type*)nullptr);
+   TplBenchMap2D(cSim2D<Type>::RandomSimInv(5,2,1e-1),cSim2D<Type>::RandomSimInv(3,4,1e-1),(Type*)nullptr);
 }
 
 void  BenchMap2D()

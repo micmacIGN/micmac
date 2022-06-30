@@ -104,6 +104,13 @@ template <class Type>  class cHomot2D
           Type mSc;
 };
 
+/** Class for a similitude 2D  P ->  Tr + Sc * P
+
+       * Tr is the translation
+       * Sc is the both homthethy and rotation as is used the complex number for point multiplication
+*/
+
+
 template <class Type>  class cSim2D
 {
       public :
@@ -130,6 +137,7 @@ template <class Type>  class cSim2D
           inline tPt  Sc() const {return mSc ;}
 
           tTypeMapInv  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
+	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+mSc*aS2.mTr,mSc*aS2.mSc);}
                 
 	  ///  Generate the 3D-Sim having same impact in the plane X,Y
 	  cSimilitud3D<Type> Ext3D() const;

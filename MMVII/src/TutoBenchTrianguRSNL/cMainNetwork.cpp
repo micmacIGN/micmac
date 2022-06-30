@@ -1,12 +1,12 @@
-#include "BenchResolSysNonLinear.h"
+#include "TrianguRSNL.h"
 
 
 // ==========  3 variable used for debuging  , will disappear
 //
 
-static constexpr double SZ_RAND_TH = 0.1; // Pertubation theoriticall / regular grid
-static constexpr double THE_AMPL_P = 0.1; // Amplitude of pertubation of initial / theoreticall
-static constexpr int    THE_NB_ITER  = 10; // Sign of similitude for position init
+// static constexpr double SZ_RAND_TH = 0.1; // Pertubation theoriticall / regular grid
+// static constexpr double THE_AMPL_P = 0.1; // Amplitude of pertubation of initial / theoreticall
+// static constexpr int    THE_NB_ITER  = 10; // Sign of similitude for position init
 
 // using namespace NS_SymbolicDerivative;
 // using namespace MMVII;
@@ -18,11 +18,11 @@ namespace NS_Bench_RSNL
 
 /* ======================================== */
 /*                                          */
-/*              cBenchNetwork               */
+/*              cMainNetwork                */
 /*                                          */
 /* ======================================== */
 
-template <class Type> cBenchNetwork<Type>::cBenchNetwork
+template <class Type> cMainNetwork <Type>::cMainNetwork 
                       (
 		            eModeSSR aMode,
                             cRect2   aRect,
@@ -35,8 +35,8 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
     mWithSchur (WithSchurr),
     mNum       (0),
     mMatrP     (cMemManager::AllocMat<tPNetPtr>(mX_SzM,mY_SzM)), // alloc a grid of pointers
-    // For now I dont understand why it doese not work with too big angle ?
-     mSimInd2G  (cSim2D<Type>::RandomSimInv(5.0,3.0,1)) 
+    // Amplitude of scale muste
+     mSimInd2G  (cSim2D<Type>::RandomSimInv(5.0,3.0,0.1)) 
 {
 
      // generate in VPix a regular grid, put them in random order for testing more config in matrix
@@ -128,40 +128,43 @@ template <class Type> cBenchNetwork<Type>::cBenchNetwork
 }
 
 template <class Type> 
-   cBenchNetwork<Type>::cBenchNetwork
+   cMainNetwork <Type>::cMainNetwork 
    (
           eModeSSR aMode,
           int  aN,
           bool WithSchurr,
           cParamSparseNormalLstSq * aParam
    ) :
-        cBenchNetwork<Type>(aMode,cRect2::BoxWindow(aN),WithSchurr,aParam)
+        cMainNetwork <Type>(aMode,cRect2::BoxWindow(aN),WithSchurr,aParam)
 {
 }
 
-template <class Type> bool  cBenchNetwork<Type>::AxeXIsHoriz() const
+template <class Type> bool  cMainNetwork <Type>::AxeXIsHoriz() const
 {
      const tPt& aSc = mSimInd2G.Sc();
 
      return std::abs(aSc.x()) > std::abs(aSc.y());
 }
 
-template <class Type> cPtxd<Type,2>  cBenchNetwork<Type>::Ind2Geom(const cPt2di & anInd) const
+template <class Type> cPtxd<Type,2>  cMainNetwork <Type>::Ind2Geom(const cPt2di & anInd) const
 {
-    return mSimInd2G.Value(tPt(anInd.x(),anInd.y())  + tPt::PRandC()*Type(SZ_RAND_TH));
+    return mSimInd2G.Value(tPt(anInd.x(),anInd.y())  + tPt::PRandC()*Type(AMPL_Grid2Real));
 }
 
-template <class Type> cBenchNetwork<Type>::~cBenchNetwork()
+template <class Type> cMainNetwork <Type>::~cMainNetwork ()
 {
     cMemManager::FreeMat<tPNetPtr>(mMatrP,mY_SzM);
     delete mSys;
     delete mCalcD;
 }
 
-template <class Type> bool  cBenchNetwork<Type>::WithSchur()  const {return mWithSchur;}
-template <class Type> int&  cBenchNetwork<Type>::Num() {return mNum;}
+template <class Type> bool  cMainNetwork <Type>::WithSchur()  const {return mWithSchur;}
+template <class Type> int&  cMainNetwork <Type>::Num() {return mNum;}
 
-template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
+template <class Type> const cSim2D<Type>& cMainNetwork<Type>::SimInd2G()const {return mSimInd2G;}
+
+
+template <class Type> Type cMainNetwork <Type>::OneItereCompensation(bool ForCovCalc)
 {
      Type aWeightFix=100.0; // arbitray weight for fixing the 3 variable X0,Y0,X1 (the "gauge")
 
@@ -177,12 +180,17 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
             aSumResidual += Norm2(aPN.PCur() -aPN.TheorPt());
 	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << "\n";
         }
-        // EQ:FIXVAR
-	// Fix X and Y for the two given points
-	if (aPN.mFrozenY) // If Y is frozenn add equation fixing Y to its theoreticall value
-           mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
-	if (aPN.mFrozenX)   // If X is frozenn add equation fixing X to its theoreticall value
-           mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
+        // if we are computing covariance we want it in a free network (the gauge constraint 
+        // in the local network have no meaning in the coordinate of the global network)
+        if (! ForCovCalc)
+        {
+           // EQ:FIXVAR
+	   // Fix X and Y for the two given points
+	   if (aPN.mFrozenY) // If Y is frozenn add equation fixing Y to its theoreticall value
+              mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
+	   if (aPN.mFrozenX)   // If X is frozenn add equation fixing X to its theoreticall value
+              mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
+         }
      }
      
      //  Add observation on distances
@@ -222,13 +230,20 @@ template <class Type> Type cBenchNetwork<Type>::OneItereCompensation()
 	 }
      }
 
-     mSys->SolveUpdateReset();
+     // If we are computing for covariance : (1) the system is not inversible (no gauge constraints)
+     // (2) we dont want to reset it   ;  so just skip this step
+     if (! ForCovCalc)
+     {
+        mSys->SolveUpdateReset();
+     }
+
      return aSumResidual / aNbPairTested ;
 }
-template <class Type> const Type & cBenchNetwork<Type>::CurSol(int aK) const
+template <class Type> const Type & cMainNetwork <Type>::CurSol(int aK) const
 {
     return mSys->CurSol(aK);
 }
+
 
 /* ======================================== */
 /*                                          */
@@ -236,12 +251,10 @@ template <class Type> const Type & cBenchNetwork<Type>::CurSol(int aK) const
 /*                                          */
 /* ======================================== */
 
-template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd,cBenchNetwork<Type> & aNet) :
+
+template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd,cMainNetwork <Type> & aNet) :
      mNumPt    (aNumPt),
      mInd      (anInd),
-     // mTheorPt (tPt(mInd.x(),mInd.y())),
-     // mTheorPt (tPt(mInd.x(),mInd.y()) + tPt(10,5)),
-     // mTheorPt  (tPt(mInd.x(),mInd.y())* tPt(1,-1) + tPt(10,5) ), //+  tPt::PRandC()*Type(0.005)),
      mTheorPt  (aNet.Ind2Geom(mInd)),
      mNetW     (&aNet),
 	//  Tricky ,for direction set cPt2di(-1,0)) to avoid interact with schurr points
@@ -257,11 +270,9 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
      mNumX     (-1),
      mNumY     (-1)
 {
-     //  To assess the correctness of our code , we must prove that we are able to recover the "real" position from
-     //  a pertubated one;  the perturbation must be sufficiently complicated to be sure that position is not recovered 
-     //  by "chance" , but also not to big to be sure that the gradient descent will work
-     //  The pertubation is the a mix of sytematism and random, all is being mulitplied by some amplitude (aAmplP)
+     MakePosInit(AMPL_Real2Init);
      
+/*
      {
         double aAmplP = THE_AMPL_P; // Coefficient of amplitude of the pertubation
 	Type aSysX = -mInd.x() +  mInd.y()/2.0 +std::abs(mInd.y());  // sytematism on X : Linear + non linear abs
@@ -270,6 +281,7 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
         mPosInit.x() =  mTheorPt.x() + aAmplP*(aSysX + 2*RandUnif_C());;
         mPosInit.y() =  mTheorPt.y() + aAmplP*(aSysY + 2*RandUnif_C() );
      }
+*/
 
      //  To fix globally the network (gauge) 3 coordinate are frozen, for these one the pertubation if void
      //  so that recover the good position
@@ -285,6 +297,24 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
         mNumY = aNet.Num()++;
      }
 }
+
+/**  To assess the correctness of our code , we must prove that we are able to recover the "real" position from
+     a pertubated one;  the perturbation must be sufficiently complicated to be sure that position is not recovered 
+     by "chance" , but also not to big to be sure that the gradient descent will work
+     The pertubation is the a mix of sytematism and random, all is being mulitplied by some amplitude (aAmplP)
+*/
+
+template <class Type> void cPNetwork<Type>::MakePosInit(const double & aMulAmpl)
+{
+   double aAmplP = aMulAmpl* Norm2(mNetW->SimInd2G().Sc()); // Coefficient of amplitude of the pertubation
+   Type aSysX = -mInd.x() +  mInd.y()/2.0 +std::abs(mInd.y());  // sytematism on X : Linear + non linear abs
+   Type aSysY  =  mInd.y() + 4*Square(mInd.x()/mNetW->NetSz()); // sytematism on U : Linear + quadratic term
+
+   mPosInit.x() =  mTheorPt.x() + aAmplP*(aSysX + 2*RandUnif_C());;
+   mPosInit.y() =  mTheorPt.y() + aAmplP*(aSysY + 2*RandUnif_C() );
+}
+
+
 template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PCur() const
 {
 	// For standard unknown, read the cur solution of the system
@@ -338,117 +368,17 @@ template <class Type> bool cPNetwork<Type>::Linked(const cPNetwork<Type> & aP2) 
     return NormInf(mInd-aP2.mInd) <=1;
 }
 
-
 /* ======================================== */
-/*                                          */
-/*              ::                          */
-/*                                          */
+/*           INSTANTIATION                  */
 /* ======================================== */
+#define NETWORK_INSTANTIATE(TYPE)\
+template class cMainNetwork<TYPE>;\
+template class cPNetwork<TYPE>;
 
-/** Make on test with different parameter, check that after given number iteration we are sufficiently close
-    to "real" network
 
-   [0]   void BenchSSRNL(cParamExeBench & aParam)  :
-         global function, declared in header make  call to OneBenchSSRNL with various
-         parameters  (size of network, type of underlying matrix, parameters for these matrices)
-
-   [1]   void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
-         for a given set of parameters , test the different template instanciation (REAL on 4,8,16 bytes)
-          
-    
-    [2] template<class Type> void  TplOneBenchSSRNL(....)
-        do the job for a  given type and given set of parameters, 
-                *   construct the network, 
-                *  iterate gauss newton, 
-                *  check we reach the theoreticall solution
-*/
-template<class Type> void  TplOneBenchSSRNL
-                           (
-                               eModeSSR aMode,
-                               cRect2 aRect,
-                               bool WithSchurr,
-                               cParamSparseNormalLstSq * aParam=nullptr
-                           )
-{
-     Type aPrec = tElemNumTrait<Type>::Accuracy() ;
-     cBenchNetwork<Type> aBN(aMode,aRect,WithSchurr,aParam);
-     double anEc =100;
-     for (int aK=0 ; aK < THE_NB_ITER ; aK++)
-     {
-         anEc = aBN.OneItereCompensation();
-         // StdOut() << "  ECc== " << anEc /aPrec<< "\n";
-     }
-     // StdOut() << "Fin-ECc== " << anEc  / aPrec << " Nb=" << aNb << "\n";
-     // getchar();
-     MMVII_INTERNAL_ASSERT_bench(anEc<aPrec,"Error in Network-SSRNL Bench");
-}
-template<class Type> void  TplOneBenchSSRNL
-                           (
-                               eModeSSR aMode,
-                               int aNb,
-                               bool WithSchurr,
-                               cParamSparseNormalLstSq * aParam=nullptr
-			   )
-{
-	TplOneBenchSSRNL<Type>(aMode,cRect2::BoxWindow(aNb),WithSchurr,aParam);
-}
-
-void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
-{
-    TplOneBenchSSRNL<tREAL8>(aMode,cBox2di(cPt2di(0,0),cPt2di(2,2)),false,aParam);
-
-    TplOneBenchSSRNL<tREAL8>(aMode,aNb,WithSchurr,aParam);
-    TplOneBenchSSRNL<tREAL16>(aMode,aNb,WithSchurr,aParam);
-    TplOneBenchSSRNL<tREAL4>(aMode,aNb,WithSchurr,aParam);
-}
-
+NETWORK_INSTANTIATE(tREAL4)
+NETWORK_INSTANTIATE(tREAL8)
+NETWORK_INSTANTIATE(tREAL16)
 };
-
-using namespace NS_Bench_RSNL;
-
-void BenchSSRNL(cParamExeBench & aParam)
-{
-     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense,cBox2di(cPt2di(0,0),cPt2di(2,2)),false);
-
-     if (! aParam.NewBench("SSRNL")) return;
-
-     OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,1,false);
-     OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,2,false);
-
-     // Basic test, test the 3 mode of matrix , with and w/o schurr subst
-     for (const auto &  aNb : {3,4,5})
-     {
-        cParamSparseNormalLstSq aParamSq(3.0,4,9);
-	// w/o schurr
-        OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq);
-        OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,false);
-        OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,false);
-
-	// with schurr
-         OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
-         OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
-         OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
-     }
-
-
-     // test  normal sparse matrix with many parameters
-     for (int aK=0 ; aK<20 ; aK++)
-     {
-        int aNb = 3+ RandUnif_N(3);
-	int aNbVar = 2 * Square(2*aNb+1);
-        cParamSparseNormalLstSq aParamSq(3.0,RandUnif_N(3),RandUnif_N(10));
-
-	// add random subset of dense variable
-	for (const auto & aI:  RandSet(aNbVar/10,aNbVar))
-           aParamSq.mVecIndDense.push_back(size_t(aI));
-
-        TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq); // w/o schurr
-        TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq); // with schurr
-     }
-
-
-     aParam.EndBench();
-}
-
 
 };

@@ -29,22 +29,21 @@ namespace MMVII
 
 Classes :
      # cPNetwork       represent one point of the network 
-     # cBenchNetwork   represent the network  itself
+     # cMainNetwork   represent the network  itself
 */
 namespace NS_Bench_RSNL
 {
+constexpr double AMPL_Grid2Real= 0.1;   // Amplitude of random differerence between real position and regular grid
+constexpr double AMPL_Real2Init = 0.1;  // Amplitude of random and syst differerence  betwen real an init position
 
-   /* ======================================== */
-   /*         HEADER                           */
-   /* ======================================== */
 
-template <class Type>  class  cBenchNetwork; 
+template <class Type>  class  cMainNetwork; 
 template <class Type>  class  cPNetwork;
 
 template <class Type>  class  cPNetwork
 {
       public :
-            typedef cBenchNetwork<Type> tNetW;
+            typedef cMainNetwork<Type> tNetW;
             typedef cPtxd<Type,2>       tPt;
 
              /// Create a point with its number, grid position and the network itself
@@ -56,6 +55,9 @@ template <class Type>  class  cPNetwork
 	    tPt  PCur() const;  
 	    const tPt &  TheorPt() const;  ///< Acessor
 	    // void  SetTheorPt(const tPt&);  ///< Modifier
+
+            /// Compute initial guess : add some noise+some systematism to "real" position
+            void MakePosInit(const double & aMulAmpl);
 
 	    /// Are the two point linked  (will their distances be an observation compensed)
 	    bool Linked(const cPNetwork<Type> & aP2) const;
@@ -74,9 +76,10 @@ template <class Type>  class  cPNetwork
 	    std::list<int> mLinked;   ///< list of linked points, if Tmp/UK the links start from tmp, if Uk/Uk order does not matters
 };
 
-template <class Type>  class  cBenchNetwork
+template <class Type>  class  cMainNetwork
 {
 	public :
+
           typedef cPtxd<Type,2>             tPt;
           typedef cPNetwork<Type>           tPNet;
           typedef tPNet *                   tPNetPtr;
@@ -84,18 +87,18 @@ template <class Type>  class  cBenchNetwork
           typedef NS_SymbolicDerivative::cCalculator<tREAL8>  tCalc;
 
 	  /// initial simplify constructor,  take  N a parameterand construct [-N,N]x[N,N]
-          cBenchNetwork(eModeSSR aMode,int aN,bool WithSchurr,cParamSparseNormalLstSq * = nullptr);
+          cMainNetwork(eModeSSR aMode,int aN,bool WithSchurr,cParamSparseNormalLstSq * = nullptr);
 
-          cBenchNetwork(eModeSSR aMode,cRect2,bool WithSchurr,cParamSparseNormalLstSq * = nullptr);
-          ~cBenchNetwork();
+          cMainNetwork(eModeSSR aMode,cRect2,bool WithSchurr,cParamSparseNormalLstSq * = nullptr);
+          ~cMainNetwork();
 
           //int   N() const;
           bool WithSchur()  const;
           int&  Num() ;
 	  Type  NetSz() const {return Norm2(mBoxInd.Sz());}
 
-
-	  Type OneItereCompensation();
+          /// If we use this iteration for covariance calculation , we dont add constraint, and dont solve
+	  Type OneItereCompensation(bool ForCovCalc);
 
           /// Access to CurSol of mSys
 	  const Type & CurSol(int aK) const;
@@ -121,7 +124,9 @@ template <class Type>  class  cBenchNetwork
                fix x1=Cste or y1=Cste depending if AxeXIsHoriz
           */
 	  bool  AxeXIsHoriz() const;
-	private :
+
+          const cSim2D<Type> &  SimInd2G() const;   ///<Accessor
+	protected :
           /// Acces to reference of a adress if point from pixel value
 	  tPNetPtr & PNetPtrOfGrid(const cPt2di  & aP) {return mMatrP[aP.y()-mBoxInd.P0().y()][aP.x()-mBoxInd.P0().x()];}
 
@@ -139,5 +144,5 @@ template <class Type>  class  cBenchNetwork
 	      to test co-variance tranfsert with geometric change  */
 	   cSim2D<Type>        mSimInd2G;  
 };
-};
-};
+}; // namespace NS_Bench_RSNL
+}; // namespace MMVII
