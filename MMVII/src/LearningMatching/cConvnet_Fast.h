@@ -135,7 +135,6 @@ public:
         mFast->push_back("StereoJoin",StereoJoin1());
     }
 /**********************************************************************/
-
     torch::Tensor forward(torch::Tensor x)   
     {
     	auto& model_ref = *mFast;

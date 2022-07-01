@@ -10,7 +10,6 @@
  * 
  * */
 /******************************************************/
-
 ImagePyramid::ImagePyramid( const int nLevels, const float scaleFactor)
 {
     m_nLevels = nLevels;

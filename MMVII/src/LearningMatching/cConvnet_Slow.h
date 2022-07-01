@@ -43,7 +43,7 @@ public:
     	    }
     	}
     	mSlow->push_back(std::string("Reshape"),Reshape(BS,2*mfeatureMaps)); //Reshape
-    	
+    
     	// Add Fully Connected Layers 
     	 for (auto i=0; i<mNbHiddenLayers2;i++)
     	{

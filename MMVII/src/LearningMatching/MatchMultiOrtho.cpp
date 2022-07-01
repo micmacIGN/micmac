@@ -1,6 +1,5 @@
 #include "include/MMVII_all.h"
 
-
 // include model architecture 
 #include "cCnnModelPredictor.h"
 
@@ -83,8 +82,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 	int           mNbScale;  // Number of scale in image
 	cPt2di        mSzW;      // Sizeof of windows
 	bool          mIm1Mast;  //  Is first image the master image ?
-
-
+	
 	// -------------- Internal variables -------------------
 	tImSimil                   mImSimil;   // computed image of similarity
 	std::string                mPrefixZ;   // Prefix for a gizen Z
@@ -105,7 +103,8 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     ConvNet_FastBnRegister mNetFastMVCNNReg=ConvNet_FastBnRegister(3,5,1,112,torch::kCPU);// changed from 64 to 112
     Fast_ProjectionHead mNetFastPrjHead=Fast_ProjectionHead(3,5,1,1,112,112,64,torch::kCPU);
     //MSNet_Attention mMSNet=MSNet_Attention(32);
-    MSNetHead mMSNet=MSNetHead(32);
+    //MSNetHead mMSNet=MSNetHead(32);
+    torch::jit::script::Module mMSNet /* MSNet_AttentionCustom mMSNet=MSNet_AttentionCustom(32)*/;
     FastandHead mNetFastMVCNNMLP=FastandHead(3,5,4,1,184,184,9,64,torch::kCPU);
     SimilarityNet mNetFastMVCNNDirectSIM=SimilarityNet(3,5,4,1,184,184,64,torch::kCPU);
     //FastandHead mNetFastMVCNNMLP; // Fast MVCNN + MLP for Multiview Features Aggregation
@@ -256,18 +255,15 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
     
             mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
             //Add padding to maintain the same size as output 
-            
-            
-            /*
-                auto common=mMSNet->common; 
+               /* auto common=mMSNet->common; 
                 for (auto& module : common->children())
                 {
                     if(auto* conv2d = module->as<torch::nn::Conv2d>())
                         {
                             conv2d->as<torch::nn::Conv2dImpl>()->options.padding()=1;
                         }
-                }
-             */
+                }*/
+            
         }
         if(mArchitecture==TheFastArchWithMLP)
         {
@@ -569,7 +565,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::ve
         // Compute correl separately 
         //using namespace torch::indexing;
         auto aSim=AllSimilarities->at(aKIm-1).slice(0,aP.y(),aP.y()+1,1).slice(1,aP.x(),aP.x()+1,1);
-        //std::cout<<" slave vector "<<aVecOther<<std::endl;
+        std::cout<<" slave vector "<<aSim<<std::endl;
         aCorrel=(float)aSim.item<float>();
         /**************************************************************************************/  
 	    if (AllOk)
@@ -609,7 +605,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterMaxMoy(std::vect
         
         // compute element wise cross product along feature size dimension 
         auto aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(0),AllOrthosEmbeddings->at(k),0).squeeze();
-        StdOut()<<"Cross Product values "<<aCrossProd.min()<<"   "<<aCrossProd.max()<<"\n";
+        //StdOut()<<"Cross Product values "<<aCrossProd.min()<<"   "<<aCrossProd.max()<<"\n";
         AllSimilarities->push_back(aCrossProd);
     }
     // Free all ortho OneOrthoEmbeding 
@@ -648,7 +644,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterMaxMoy(std::vect
         // Compute correl separately 
         //using namespace torch::indexing;
         auto aSim=AllSimilarities->at(aKIm-1).slice(0,aP.y(),aP.y()+1,1).slice(1,aP.x(),aP.x()+1,1);
-        //std::cout<<" slave vector "<<aVecOther<<std::endl;
+        //std::cout<<" slave vector "<<aSim<<std::endl;
         aCorrel=(float)aSim.item<float>();
         /**************************************************************************************/  
 	    if (AllOk)
@@ -1076,7 +1072,7 @@ int  cAppliMatchMultipleOrtho::Exe()
             if (mArchitecture==TheMSNet)
             {
                 //ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(OrthosEmbeddings); // Size 4*numberofOrthos
-                ComputeSimilByLearnedCorrelMasterEnhanced(OrthosEmbeddings);
+                ComputeSimilByLearnedCorrelMasterMaxMoy(OrthosEmbeddings);
             }
             else
             {
