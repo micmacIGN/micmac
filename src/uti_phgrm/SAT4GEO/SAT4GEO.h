@@ -141,6 +141,7 @@ class cCommonAppliSat3D
 	std::string   mMMVII_ModePad;
 	std::string   mMMVII_ImName;
 	Pt2di         mMMVII_SzTile;
+	Pt2di         mMMVII_SzOverL;
     int           mMMVII_NbProc;
 
         /* Bascule param */
