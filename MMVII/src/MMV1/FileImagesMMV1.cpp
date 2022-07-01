@@ -202,10 +202,19 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
 
    if (ReadMode)
    {
+      Symb_FNum  aFIn = aTF.in();
+      if ((aFIn.dimf_out()>1) && (aVecImV2.size()==1))
+      {
+         Fonc_Num aNewF = aFIn.kth_proj(0);
+         for (int aKF=1 ; aKF< aFIn.dimf_out() ; aKF++)
+             aNewF = aNewF + aFIn.kth_proj(aKF);
+          aFIn = aNewF / aFIn.dimf_out();
+      }
+          
       ELISE_COPY
       (
            rectangle(aP0Im,aP1Im),
-           trans(El_CTypeTraits<Type>::TronqueF(aTF.in()*aDyn),aTrans),
+           trans(El_CTypeTraits<Type>::TronqueF(aFIn*aDyn),aTrans),
            aOutImV1
       );
    }

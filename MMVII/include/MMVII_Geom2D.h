@@ -104,6 +104,13 @@ template <class Type>  class cHomot2D
           Type mSc;
 };
 
+/** Class for a similitude 2D  P ->  Tr + Sc * P
+
+       * Tr is the translation
+       * Sc is the both homthethy and rotation as is used the complex number for point multiplication
+*/
+
+
 template <class Type>  class cSim2D
 {
       public :
@@ -120,12 +127,17 @@ template <class Type>  class cSim2D
           {
           }
           static cSim2D FromExample(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;
+	  /// Compute a random similitude, assuring that Amplitude of scale has a minimal value
+          static cSim2D RandomSimInv(const Type & AmplTr,const Type & AmplSc,const Type & AmplMinSc);
           static const int NbDOF() {return 4;}
 
           inline tPt  Value(const tPt & aP) const {return mTr + aP * mSc;}
           inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
+          inline tPt  Tr() const {return mTr ;}
+          inline tPt  Sc() const {return mSc ;}
 
           tTypeMapInv  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
+	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+mSc*aS2.mTr,mSc*aS2.mSc);}
                 
 	  ///  Generate the 3D-Sim having same impact in the plane X,Y
 	  cSimilitud3D<Type> Ext3D() const;
@@ -133,6 +145,55 @@ template <class Type>  class cSim2D
           tPt mTr;
           tPt mSc;
 };
+
+template <class Type>  class cAffin2D
+{
+      public :
+          static constexpr int    TheDim=2;
+          typedef Type            tTypeElem;
+          typedef cAffin2D<Type>  tTypeMap;
+          typedef cAffin2D<Type>  tTypeMapInv;
+
+          typedef cPtxd<Type,2> tPt;
+
+          cAffin2D(const tPt & aTr,const tPt & aImX,const tPt aImY) ; 
+          static const int NbDOF();
+          tPt  Value(const tPt & aP) const ;
+          tPt  Inverse(const tPt & aP) const ;
+          tTypeMapInv  MapInverse() const ;
+
+	  // ========== Accesors =================
+	  const Type &  Delta() const;  ///<  Accessor
+	  const tPt &   VX() const;  ///<  Accessor
+	  const tPt &   VY() const;  ///<  Accessor
+	  const tPt &   Tr() const;  ///<  Accessor
+	  const tPt &   VInvX() const;  ///<  Accessor
+	  const tPt &   VInvY() const;  ///<  Accessor
+
+	  tTypeMap operator *(const tTypeMap&) const;
+          tPt  VecInverse(const tPt & aP) const ;
+          tPt  VecValue(const tPt & aP) const ;
+	  
+	  //  allocator static
+          static  tTypeMap  AllocRandom(const Type & aDeltaMin);
+          static  tTypeMap  Translation(const tPt  & aTr);
+          static  tTypeMap  Rotation(const Type & aScale);
+          static  tTypeMap  Homot(const Type & aScale);
+          static  tTypeMap  HomotXY(const Type & aScaleX,const Type & aScaleY);
+                
+      private :
+          tPt   mTr;
+          tPt   mVX;
+          tPt   mVY;
+	  Type  mDelta;
+          tPt   mVInvX;
+          tPt   mVInvY;
+};
+typedef  cAffin2D<tREAL8>  cAff2D_r;
+cBox2dr  ImageOfBox(const cAff2D_r & aAff,const cBox2dr & aBox);
+
+
+//template <class Type,class TMap>  cTplBox<2,Type>  ImageOfBox();
 
 
 

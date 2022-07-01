@@ -26,7 +26,7 @@ template<class TypeEl> cIm2D<TypeEl> ImStarity(const  cImGrad<TypeEl> & aImGrad,
 
 
 
-template<class TypeEl> cIm2D<TypeEl> ImSymetricity(cIm2D<TypeEl> anImIn,double aR0,double aR1,double Epsilon);
+template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool DoCheck,cIm2D<TypeEl> anImIn,double aR0,double aR1,double Epsilon);
 
 
 
@@ -98,45 +98,42 @@ class cParamCodedTarget
 
        bool CodeBinOfPts(double aRho,double aTeta,const cCodesOf1Target & aSetCodesOfT,double aRho0,double aThRho);
 
+       std::string NameOfNum(int) const; ///  Juste the apha num
+       std::string NameFileOfNum(int) const; ///  Juste the apha num
 
 
-    private :
+       cPt2dr    mCenterF;   // symetry center at end
+       cPt2di    mSzF;       // sz at end
+       cPt2dr    mMidle;
+    // private :
 
        cPt2dr    Pix2Norm(const cPt2di &) const;
        cPt2dr    Norm2PixR(const cPt2dr &) const;
        cPt2di    Norm2PixI(const cPt2dr &) const;
 
-       bool      mCodeExt;   // if true the code is not at the center but code bar at periphery
+
+       int       mNbBit;  // Do not include parity, so 5=> gives 16 if parity used
+       bool      mWithParity;  // Do we use parirty check
        int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
        int       mNbCircle;  // Number of circles encoding information
-
-       double    mThTargetC;  // Thickness of central target
-       double    mThStars;  //   Thickness of "star" pattern
-       double    mThBlCircExt;  //   Thickness of External Black circle
-       double    mThBrdWhiteInt;    // Thickness of white internal border
-       double    mThBrdBlack;    // Thickness of black border
-       double    mThBrdWhiteExt;    // Thickness of black border
-       // double    mThBrdWhiteExt;    // Thickness of black border
-       double    mThTxt;            // Thickness of text
-
-       double    mScaleTopo;         // Scale used to create identifiable center 4 toto
        int       mNbPixelBin;        // Number of pixel  Binary image
+       const double    mSz_CCB;      // size of central chekcboard/target , everything prop to it, 1 by convention
 
-       std::vector<double> mTetasQ;  // Tetas of first quarter
+       double    mThickN_WInt;  // Thickness white circle separating code/
+       double    mThickN_Code;  // Thickness of coding part
+       double    mThickN_WExt;  // Thickness of white separatio,
+       double    mThickN_Car;  // thickness of black border (needed only on pannel)
+       double    mThickN_BExt;  // thickness of black border (needed only on pannel)
 
-       double    mThRing ;      // Thickness of each ring of star : mThStars/mNbCircle
 
-       double    mRhoEndTargetC;  // Rho when central targe ends
-       double    mRhoEndStar;      // Rho when ends stars pattern
-       double    mRhoEndBlackCircle;      // Rho when ends external black circle
-       double    mRhoEnBrdWhiteInt;   // Rho where ends interior white border
-       double    mRhoEndBrdBlack;   // Rho where ends black border
-       double    mRhoEndBrdWhiteExt;   // Rho where ends white border
-       double    mRhoEndTxt;   // Rho where ends text
+       double          mRho_0_EndCCB;// End of Central CB , here Rho=ThickN ...
+       double          mRho_1_BeginCode;// ray where begins the coding stuff
+       double          mRho_2_EndCode;// ray where begins the coding stuff
+       double          mRho_3_BeginCar;// ray where begins the coding stuff
+       double          mRho_4_EndCar;  // ray where begins the coding stuff
 
 
        cPt2di    mSzBin;
-       cPt2dr    mMidle;
        double    mScale;  // Sz of Pixel in normal coord
 
        std::vector<cSetCodeOf1Circle>     mVecSetOfCode;

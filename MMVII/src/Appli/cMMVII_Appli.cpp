@@ -330,6 +330,7 @@ void cMMVII_Appli::InitParam()
   // Add common optional parameters
   cSpecOneArg2007::tAllSemPL aInternal{eTA2007::Internal,eTA2007::Global}; // just to make shorter lines
   cSpecOneArg2007::tAllSemPL aGlob{eTA2007::Global}; // just to make shorter lines
+  cSpecOneArg2007::tAllSemPL aGlobHDV{eTA2007::Global,eTA2007::HDV}; // just to make shorter lines
 
 
   /*  Decoding AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
@@ -366,8 +367,8 @@ void cMMVII_Appli::InitParam()
       // <<  AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
       // <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})
       <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",aGlob)
-      <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aGlob)
-      <<  AOpt2007(mNbProcAllowed,GOP_NbProc,"Number of process allowed in parallelisation",aGlob)
+      <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aGlobHDV)
+      <<  AOpt2007(mNbProcAllowed,GOP_NbProc,"Number of process allowed in parallelisation",aGlobHDV)
       <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Global})
       <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for add,"+ MMVII_NONE + "for no out)",aGlob)
       <<  AOpt2007(mLevelCall,GIP_LevCall," Level Of Call",aInternal)
@@ -375,7 +376,6 @@ void cMMVII_Appli::InitParam()
       <<  AOpt2007(mPrefixGMA,GIP_PGMA," Prefix Global Main Appli",aInternal)
       <<  AOpt2007(mDirProjGMA,GIP_DirProjGMA," Folder Project Global Main Appli",aInternal)
   ;
-  mNbProcAllowed = std::min(mNbProcAllowed,mNbProcSystem); ///< avoid greedy/gluton user
 
   // Check that names of optionnal parameters begin with alphabetic caracters
   for (const auto & aSpec : mArgFac.Vec())
@@ -543,6 +543,7 @@ void cMMVII_Appli::InitParam()
        aVSpec[aK]->InitParam(aVValues[aK]);
        mSetInit.Add(aVSpec[aK]->AdrParam()); ///< Memorize this value was initialized
   }
+  mNbProcAllowed = std::min(mNbProcAllowed,mNbProcSystem); ///< avoid greedy/gluton user
   mMainProcess   = (mLevelCall==0);
   mGlobalMainAppli = mMainProcess && mMainAppliInsideP;
   // Compute an Id , unique and (more or less ;-) understandable

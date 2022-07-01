@@ -567,7 +567,7 @@ class cCubAppGauss
 */
 
 /// If we dont need any kernel interface keep it simple 
-tREAL8 CubAppGaussVal(const tREAL8&);   
+// tREAL8 CubAppGaussVal(const tREAL8&);   
 
 /*  ********************************* */
 /*       Witch Min and Max            */

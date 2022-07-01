@@ -105,11 +105,15 @@ template <class Type> Type * cDataIm2D<Type>::GetLine(int aY)
    AssertYInside(aY);
    return mRawData2D[aY];
 }
+template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,eTyNums aType) const
+{
+    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,aType,Sz(),1);
+    Write(aDFI,P0());
+}
 
 template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName) const
 {
-    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),1);
-    Write(aDFI,P0());
+    ToFile(aName,tElemNumTrait<Type>::TyNum());
 }
 
 template <class Type>  void cDataIm2D<Type>::ClipToFile(const std::string & aName,const cRect2& aBox) const
