@@ -246,6 +246,55 @@ void BenchIsometrie(cParamExeBench & aParam)
     TplBenchIsometrie<tREAL16>(aParam);
 }
 
+
+/* ========================== */
+/*          BenchGlobImage    */
+/* ========================== */
+
+template <class tMap,class TypeEl> void TplBenchMap2D(const tMap & aMap,const tMap & aMap2,TypeEl *)
+{
+	auto aP1 = tMap::tPt::PRandC();
+	auto aP2 = aMap.Value(aP1);
+	auto aQ1 = aMap.Inverse(aP2);
+
+	TypeEl aD = Norm2(aP1-aQ1) /tElemNumTrait<TypeEl>::Accuracy();
+	MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapInv");
+
+	tMap aMapI =  aMap.MapInverse();
+	aQ1 = aMapI.Value(aP2);
+	aD = Norm2(aP1-aQ1) /tElemNumTrait<TypeEl>::Accuracy();
+	if (aD>=1e-2)
+	{
+		// StdOut() << "DDDelta " <<  aMap.Delta() << " accc : " << tElemNumTrait<TypeEl>::Accuracy() << "\n";
+		// StdOut() << "Tr " <<  aMap.Tr() << " Vx " << aMap.VX() << " VY " << aMap.VY() << "\n";
+		StdOut() << "DDD " <<  aD << "\n";
+	    MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapInv");
+	}
+
+	auto aP3 = aMap2.Value(aP2);
+	tMap aMap12 = aMap2 * aMap;
+	auto aQ3 = aMap12.Value(aP1);
+	aD = Norm2(aP3-aQ3) /tElemNumTrait<TypeEl>::Accuracy();
+	MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapInv");
+
+}
+
+template <class Type> void TplElBenchMap2D()
+{
+   TplBenchMap2D(cAffin2D<Type>::AllocRandom(1e-1),cAffin2D<Type>::AllocRandom(1e-1),(Type*)nullptr);
+   TplBenchMap2D(cSim2D<Type>::RandomSimInv(5,2,1e-1),cSim2D<Type>::RandomSimInv(3,4,1e-1),(Type*)nullptr);
+}
+
+void  BenchMap2D()
+{
+   for(int aK=0 ;aK<100; aK++)
+   {
+       TplElBenchMap2D<tREAL4>();
+       TplElBenchMap2D<tREAL8>();
+       TplElBenchMap2D<tREAL16>();
+   }
+}
+
 /* ========================== */
 /*          BenchGlobImage    */
 /* ========================== */
@@ -257,6 +306,7 @@ void BenchGeom(cParamExeBench & aParam)
 
     BenchIsometrie(aParam);
     BenchRotation3D(aParam);
+    BenchMap2D();
 
     aParam.EndBench();
 }

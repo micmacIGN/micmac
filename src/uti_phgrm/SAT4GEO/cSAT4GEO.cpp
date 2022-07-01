@@ -62,6 +62,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mMMVII_mode("MMV1"),
 	mMMVII_ImName("Px1_MMVII.tif"),
 	mMMVII_SzTile(Pt2di(1024,1024)),
+    mMMVII_SzOverL(Pt2di(50,30)),
         mMMVII_NbProc(8),
         //mZoomF(1),
 	//mHasVeg(true),
@@ -116,7 +117,6 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 //			<< EAM(mCMS,"CMS",true,"Image matching: Multi Scale Correl (Def=ByEpip)")
 //			<< EAM(mHasVeg,"HasVeg",true,"Image matching: Has vegetation, Def= false")
 //			<< EAM(mHasSBG,"HasSBG",true,"Image matching: Has Sky Background , Def= true")
-			<< EAM(mEZA,"EZA",true,"Image matching: Export Z absolute (Def=false)")
 			<< EAM(mDoPly,"DoPly",true,"Image matching: Generate Ply")
 			<< EAM(mInc,"Inc",true,"Image matching: Sigma Pixel for coherence (Def=1.5)")
 			<< EAM(mRegul,"Regul",true,"Image matching: Regularisation factor (Def=0.2)")
@@ -129,9 +129,11 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
             << EAM(mMMVII_ModePad,"MMVII_ModePad",true,"Image matching: if MMVII==1, {NoPad PxPos PxNeg SzEq}")
             << EAM(mMMVII_ImName,"MMVII_ImName",true,"Image matching: if MMVII==1, name of depth map")
             << EAM(mMMVII_SzTile,"MMVII_SzTile",true,"Image matching: if MMVII==1, Size of tiling used to split computation, Def=[1024,1024]")
+            << EAM(mMMVII_SzOverL,"MMVII_SzOverL",true,"Image matching: if MMVII==1, Size of overlap between tiles ,[Default=[50,30]")
             << EAM(mMMVII_NbProc,"MMVII_NbProc",true,"Image matching: if MMVII==1, Nb of cores for II processing in MMVII, Def=8");
 
 	*mArgFuse
+			<< EAM(mEZA,"EZA",true,"Image matching: Export Z absolute (Def=false)")
 			<< EAM(mOutRPC,"OutRPC",true,"Fusion: RPC recal/Depth map fusion: RPC orientation directory (corresp. to epipolar images)")
 			<< EAM(mOutSMDM,"OutSMDM",true,"Fusion: Depth map fusion: Name of the output folder, Def=Fusion/");
 
@@ -228,7 +230,8 @@ std::string cCommonAppliSat3D::ComParamMatch()
         aCom += BLANK + "MMVII=" + ToString(mMMVII);
         if (EAMIsInit(&mMMVII_mode))    aCom += BLANK + "MMVII_mode=" + mMMVII_mode;
         if (EAMIsInit(&mMMVII_ImName))  aCom += BLANK + "MMVII_ImName=" + mMMVII_ImName;
-	if (EAMIsInit(&mMMVII_SzTile))  aCom += BLANK + "MMVII_SzTile=" + ToString(mMMVII_SzTile);
+	    if (EAMIsInit(&mMMVII_SzTile))  aCom += BLANK + "MMVII_SzTile=" + ToString(mMMVII_SzTile);
+	    if (EAMIsInit(&mMMVII_SzOverL)) aCom += BLANK + "MMVII_SzOverL=" + ToString(mMMVII_SzOverL);
         if (EAMIsInit(&mMMVII_NbProc))  aCom += BLANK + "MMVII_NbProc=" + ToString(mMMVII_NbProc); 
     }
     else
@@ -236,22 +239,10 @@ std::string cCommonAppliSat3D::ComParamMatch()
         if (EAMIsInit(&mExpTxt))  aCom += aCom  + " ExpTxt=" + ToString(mExpTxt);
         if (EAMIsInit(&mZoom0))   aCom +=  " Zoom0=" + ToString(mZoom0);
         if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
-/*	if (EAMIsInit(&mResolTerrain))
-          aCom = aCom + BLANK + "ResolTerrain=" + ToString(mResolTerrain);*/
-        /*if (EAMIsInit(&mBoxTerrain)) not needed since accounted for in the epip generation
-        {
-          aCom  =  aCom + BLANK 
-		  +  std::string("BoxTerrain=")   
-                  +  std::string("[") + ToString(mBoxTerrain._p0.x)
-                  +  std::string(",") + ToString(mBoxTerrain._p0.y)
-                  +  std::string(",") + ToString(mBoxTerrain._p1.x)
-                  +  std::string(",") + ToString(mBoxTerrain._p1.y) 
-		  + std::string("]");
-        }*/
 
         //if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
         //if (EAMIsInit(&mCMS))     aCom +=  " CMS=" + ToString(mCMS);
-        if (EAMIsInit(&mEZA))     aCom +=  " EZA=" + ToString(mEZA);
+
             //if (EAMIsInit(&mHasVeg))  aCom +=  " HasVeg=" + ToString(mHasVeg);
             //if (EAMIsInit(&mHasSBG))  aCom +=  " HasSBG=" + ToString(mHasSBG);
         if (EAMIsInit(&mInc))  aCom +=  " Inc=" + ToString(mInc);
@@ -272,8 +263,9 @@ std::string cCommonAppliSat3D::ComParamFuse()
 {
 	std::string aCom;
 	aCom += " OutRPC=" + mOutRPC;
-        if (EAMIsInit(&mNbProc))    aCom +=  " NbP=" + ToString(mNbProc);
+    if (EAMIsInit(&mNbProc))    aCom +=  " NbP=" + ToString(mNbProc);
         
+    if (EAMIsInit(&mEZA))     aCom +=  " EZA=" + ToString(mEZA);
 
 	if (EAMIsInit(&mResolTerrain))
           aCom = aCom + BLANK + "ResolTerrain=" + ToString(mResolTerrain);
@@ -613,6 +605,7 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
                                                      + BLANK + aNI1 + BLANK + aNI2 
                                                      + BLANK + "Out=" + (*aDir_it) + mCAS3D.mMMVII_ImName
                                                      + ((EAMIsInit(&mCAS3D.mMMVII_SzTile)) ? (BLANK + "SzTile=" + ToString(mCAS3D.mMMVII_SzTile)) : "") 
+	                                                 + ((EAMIsInit(&mCAS3D.mMMVII_SzOverL))? (BLANK + "SzOverL=" + ToString(mCAS3D.mMMVII_SzOverL)) : "")
                                                      + ((EAMIsInit(&mCAS3D.mMMVII_NbProc)) ? (BLANK + "NbProc=" + ToString(mCAS3D.mMMVII_NbProc)) : "")
 						     + BLANK + "MMInit=MMV1";
             aLCom.push_back(aComTmp);
@@ -872,18 +865,6 @@ void cAppliFusion::DoAll()
 
 	if (EAMIsInit(&mCAS3D.mResolTerrain))
           aCom = aCom + BLANK + "ResolTerrain=" + ToString(mCAS3D.mResolTerrain);
-
-	/*if (EAMIsInit(&mCAS3D.mBoxTerrain)) not needed since accounted for in the epip generation
-        {
-          aCom  =  aCom + BLANK
-		  +  std::string("BoxTerrain=")  
-                  +  std::string("[") + ToString(mCAS3D.mBoxTerrain._p0.x)
-                  +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p0.y)
-                  +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p1.x)
-                  +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p1.y)
-                  + std::string("]");
-        }*/
-
 
 
 

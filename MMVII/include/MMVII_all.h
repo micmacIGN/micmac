@@ -58,6 +58,7 @@
 //  Classes for images manipulation
 
 #include "MMVII_Images.h"
+#include "MMVII_Image2D.h"
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_NonLinear2DFiltering.h"
 #include "MMVII_Matrix.h"
@@ -74,6 +75,8 @@
 #include "MMVII_Sensor.h"
 
 #include "MMVII_DeclareAllCmd.h"
+
+#include "MMVII_Interpolators.h"
 // communication MMVII/MMv1
 
 #include "MMVII_MMV1Compat.h"

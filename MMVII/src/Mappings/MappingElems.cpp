@@ -85,8 +85,28 @@ template <class cMapElem>
 }
 
 
+template <class tMapElem> class  cMapOfBox
+{
+     public :
+	 static constexpr int    TheDim=tMapElem::TheDim;
+         typedef  typename tMapElem::tTypeElem  tTypeElem;
+
+         typedef  cTplBox<tTypeElem,TheDim> tBox;
+
+	 static tBox ImageOfBox(const tMapElem& aMap,const tBox & aBox)
+	 {
+              cInvertMappingFromElem<tMapElem> aIMapFE(aMap);
+              return aIMapFE.BoxOfCorners(aBox);
+	 }
+};
+
+cBox2dr  ImageOfBox(const cAff2D_r & aAff,const cBox2dr & aBox)
+{
+   return cMapOfBox<cAff2D_r>::ImageOfBox(aAff,aBox);
+}
 
 
+template  class cInvertMappingFromElem<cAffin2D<tREAL8>>;
 template  class cInvertMappingFromElem<cSim2D<tREAL8>>;
 template  class cInvertMappingFromElem<cHomot2D<tREAL8>>;
 template  class cInvertMappingFromElem<cBijAffMapElem<tREAL8,2>>;

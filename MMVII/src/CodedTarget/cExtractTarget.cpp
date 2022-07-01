@@ -10,142 +10,6 @@ namespace MMVII
 
 namespace  cNS_CodedTarget
 {
-
-
-class cRGBImage
-{
-     public :
-        typedef cIm2D<tU_INT1>   tIm1C;  // Type of image for 1 chanel
-
-        cRGBImage(const cPt2di & aSz);
-
-        /// set values iff param are OK,  RGB image are made for visu, not for intensive computation
-        void SetRGBPix(const cPt2di & aPix,int aR,int aG,int aB);
-        void SetRGBPix(const cPt2di & aPix,const cPt3di &);
-        cPt3di GetRGBPix(const cPt2di & aPix) const;
-
-        ///  Alpha =>  1 force colour  , 0 no effect
-        void SetRGBPixWithAlpha(const cPt2di & aPix,const cPt3di &,const cPt3dr & aAlpha);
-        ///  
-        void SetRGBrectWithAlpha(const cPt2di & aPix,int aSzW,const cPt3di & aCoul,const double & aAlpha);
-
-        void SetGrayPix(const cPt2di & aPix,int aGray);
-
-
-        void ToFile(const std::string & aName);
-
-        tIm1C  ImR(); ///< Accessor
-        tIm1C  ImG(); ///< Accessor
-        tIm1C  ImB(); ///< Accessor
-
-        static const  cPt3di  Red;
-        static const  cPt3di  Green;
-        static const  cPt3di  Blue;
-        static const  cPt3di  Yellow;
-        static const  cPt3di  Magenta;
-        static const  cPt3di  Cyan;
-
-     private :
-        tIm1C  mImR;
-        tIm1C  mImG;
-        tIm1C  mImB;
-};
-
-const cPt3di cRGBImage::Red(255,0,0);
-const cPt3di cRGBImage::Green(0,255,0);
-const cPt3di cRGBImage::Blue(0,0,255);
-const cPt3di cRGBImage::Yellow(255,255,0);
-const cPt3di cRGBImage::Magenta(255,0,255);
-const cPt3di cRGBImage::Cyan(0,255,255);
-
-template <class Type> void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<Type> & aIm,const double & aMul=1.0);
-/// Do it for all pix; 
-template <class Type> void SetGrayPix(cRGBImage&,const cDataIm2D<Type> & aIm,const double & aMul=1.0);
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aIm,const double & aMul=1.0);
-
-typename cRGBImage::tIm1C cRGBImage::ImR() {return mImR;}
-typename cRGBImage::tIm1C cRGBImage::ImG() {return mImG;}
-typename cRGBImage::tIm1C cRGBImage::ImB() {return mImB;}
-
-cRGBImage::cRGBImage(const cPt2di & aSz) :
-    mImR (aSz),
-    mImG (aSz),
-    mImB (aSz)
-{
-}
-void cRGBImage::SetRGBPix(const cPt2di & aPix,int aR,int aG,int aB)
-{
-    mImR.DIm().SetVTruncIfInside(aPix,aR);
-    mImG.DIm().SetVTruncIfInside(aPix,aG);
-    mImB.DIm().SetVTruncIfInside(aPix,aB);
-}
-
-void cRGBImage::SetRGBPix(const cPt2di & aPix,const cPt3di & aCoul)
-{
-     SetRGBPix(aPix,aCoul.x(),aCoul.y(),aCoul.z());
-}
-
-cPt3di cRGBImage::GetRGBPix(const cPt2di & aPix) const
-{
-    return cPt3di(mImR.DIm().GetV(aPix),mImG.DIm().GetV(aPix),mImB.DIm().GetV(aPix));
-}
-
-void cRGBImage::SetGrayPix(const cPt2di & aPix,int aGray)
-{
-     SetRGBPix(aPix,aGray,aGray,aGray);
-}
-
-void cRGBImage::ToFile(const std::string & aName)
-{
-    mImR.DIm().ToFile(aName,mImG.DIm(),mImB.DIm());
-}
-
-void cRGBImage::SetRGBPixWithAlpha(const cPt2di & aPix,const cPt3di &aCoul,const cPt3dr & aAlpha)
-{
-      cPt3di aCurC = GetRGBPix(aPix); 
-
-      cPt3di aMix
-             (
-                 round_ni(aCurC.x()*aAlpha.x() + aCoul.x()*(1.0-aAlpha.x())),
-                 round_ni(aCurC.y()*aAlpha.y() + aCoul.y()*(1.0-aAlpha.y())),
-                 round_ni(aCurC.z()*aAlpha.z() + aCoul.z()*(1.0-aAlpha.z()))
-             );
-      SetRGBPix(aPix,aMix);
-}
-
-void cRGBImage::SetRGBrectWithAlpha(const cPt2di & aC,int aSzW,const cPt3di & aCoul,const double & aAlpha)
-{
-    for (const auto & aPix  :  cRect2::BoxWindow(aC,aSzW))
-        SetRGBPixWithAlpha(aPix,aCoul,cPt3dr(aAlpha,aAlpha,aAlpha));
-}
-
-    ///  ===========  Manipulation from gray images ========================
-
-template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,const cDataIm2D<Type> & aGrayIm,const double & aMul)
-{
-    aRGBIm.SetGrayPix(aPix,round_ni(aMul*aGrayIm.GetV(aPix)));
-}
-
-template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & aGrayIm,const double & aMul)
-{
-    for (const auto & aPix : aRGBIm.ImR().DIm())
-        SetGrayPix(aRGBIm,aPix,aGrayIm,aMul);
-}
-
-
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul)
-{
-   cRGBImage aRes(aGrayIm.Sz());
-
-   SetGrayPix(aRes,aGrayIm,aMul);
-
-   return aRes;
-}
-
-template  void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<tREAL4> & aIm,const double &);
-template  void SetGrayPix(cRGBImage&,const cDataIm2D<tREAL4> & aIm,const double &);
-template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const double & aMul);
-
 /*  *********************************************************** */
 /*                                                              */
 /*             cAppliExtractCodeTarget                          */
@@ -157,6 +21,7 @@ enum class eResDCT // Result Detect Code Target
      Ok,
      Divg,
      LowSym,
+     LowSymMin,
      LowBin,
      LowRad
 };
@@ -204,7 +69,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
 	void TestFilters();
 	void DoExtract();
-        void ShowStats(const std::string & aMes) const;
+        void ShowStats(const std::string & aMes) ;
         void MarkDCT() ;
 
 	std::string mNameTarget;
@@ -275,7 +140,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
    ;
 }
 
-void cAppliExtractCodeTarget::ShowStats(const std::string & aMes) const
+void cAppliExtractCodeTarget::ShowStats(const std::string & aMes) 
 {
    int aNbOk=0;
    for (const auto & aR : mVDCT)
@@ -283,7 +148,7 @@ void cAppliExtractCodeTarget::ShowStats(const std::string & aMes) const
       if (aR.mState == eResDCT::Ok)
          aNbOk++;
    }
-  std::cout <<  aMes << " NB DCT = " << aNbOk << " Prop " << (double) aNbOk / (double) APBI_DIm().NbElem() << "\n";
+   StdOut() <<  aMes << " NB DCT = " << aNbOk << " Prop " << (double) aNbOk / (double) APBI_DIm().NbElem() << "\n";
 }
 
 void cAppliExtractCodeTarget::MarkDCT() 
@@ -293,10 +158,13 @@ void cAppliExtractCodeTarget::MarkDCT()
           cPt3di aCoul (-1,-1,-1);
 
           if (aDCT.mState == eResDCT::Ok)      aCoul =  cRGBImage::Green;
+	  /*
           if (aDCT.mState == eResDCT::Divg)    aCoul =  cRGBImage::Red;
           if (aDCT.mState == eResDCT::LowSym)  aCoul =  cRGBImage::Yellow;
           if (aDCT.mState == eResDCT::LowBin)  aCoul =  cRGBImage::Blue;
           if (aDCT.mState == eResDCT::LowRad)  aCoul =  cRGBImage::Cyan;
+	  */
+          if (aDCT.mState == eResDCT::LowSymMin)  aCoul =  cRGBImage::Red;
 
 
           if (aCoul.x() >=0)
@@ -312,7 +180,7 @@ void  cAppliExtractCodeTarget::DoExtract()
      // mNbPtsIm = aDIm.Sz().x() * aDIm.Sz().y();
 
      // Extract point that are extremum of symetricity
-     cIm2D<tREAL4>  aImSym = ImSymetricity(aIm,mR0Sym,mR1Sym,0);
+     cIm2D<tREAL4>  aImSym = ImSymetricity(false,aIm,mR0Sym,mR1Sym,0);
      cResultExtremum aRExtre(true,false);
      ExtractExtremum1(aImSym.DIm(),aRExtre,mRExtreSym);
 
@@ -337,7 +205,7 @@ void  cAppliExtractCodeTarget::DoExtract()
      }
      ShowStats("LowSym ");
 
-     //   ====   Symetry filters ====
+     //   ====   Binarity filters ====
      {
          std::vector<cPt2di>  aVectVois =  VectOfRadius(6,8,false);
 
@@ -353,7 +221,7 @@ void  cAppliExtractCodeTarget::DoExtract()
      }
      ShowStats("Binary ");
 
-     //   ====   Radian filters ====
+     //   ====   Radial filters ====
      {
          cImGrad<tREAL4>  aImG = Deriche(aDIm,1.0);
          // std::vector<cPt2di>  aVectVois =  VectOfRadius(3.5,5.5,false);
@@ -373,6 +241,34 @@ void  cAppliExtractCodeTarget::DoExtract()
         }
      }
      ShowStats("Starity ");
+
+     //   ====   MinOf Symetry ====
+     {
+         // std::vector<cPt2di>  aVectVois =  VectOfRadius(3.5,5.5,false);
+         std::vector<tREAL8>  aVRadius ={3.0,4.0,5.0,6.0};
+         tREAL8 aThickN = 1.5;
+         
+         std::vector<std::vector<cPt2di> >  aVVOis ;
+         for (const auto & aRadius : aVRadius)
+             aVVOis.push_back(VectOfRadius(aRadius,aRadius+aThickN,true));
+/*
+
+         for (auto & aDCT : mVDCT)
+         {
+             if (aDCT.mState == eResDCT::Ok)
+             {
+                 double aMaxSym = 0.0;
+
+                 aDCT.mRad =  Starity (aImG,aDCT.mPt,aVectVois,aVDir,1.0);
+
+                 if (aDCT.mRad>0.5)
+                    aDCT.mState = eResDCT::LowRad;  
+             }
+        }
+*/
+     }
+     ShowStats("MaxSym ");
+
 
 
      MarkDCT() ;
@@ -398,7 +294,7 @@ void  cAppliExtractCodeTarget::TestFilters()
                 aImF = ImBinarity(aDIm,mRaysTF.x(),mRaysTF.y(),1.0);
 
             if (anEF==eDCTFilters::eSym)
-                aImF = ImSymetricity(aIm,mRaysTF.x(),mRaysTF.y(),1.0);
+                aImF = ImSymetricity(true,aIm,mRaysTF.x(),mRaysTF.y(),1.0);
 
             if (anEF==eDCTFilters::eRad)
             {
@@ -464,7 +360,7 @@ int  cAppliExtractCodeTarget::Exe()
       return ResultMultiSet();
 
    mPCT.InitFromFile(mNameTarget);
-   APBI_ExecAll();  // run the parse file
+   APBI_ExecAll();  // run the parse file  SIMPL
 
 
    return EXIT_SUCCESS;
