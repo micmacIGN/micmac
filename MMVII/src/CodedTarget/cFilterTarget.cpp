@@ -47,12 +47,12 @@ template <class Type>  class  cSymFilterCT : public cFilterDCT<Type>
 
            cSymFilterCT(tIm anIm,double aR0,double aR1,double aEpsilon);
 
+    private  :
            void Reset()               override;
            void Add(const Type & aWeight,const cPt2dr & aNeigh)   override;
            double Compute()           override;
 
           cSymMeasure<Type> SM() const;
-    private  :
           double mEpsilon ;
           cSymMeasure<Type> mSM;
 };

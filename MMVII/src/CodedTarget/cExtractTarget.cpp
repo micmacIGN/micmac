@@ -21,6 +21,7 @@ enum class eResDCT // Result Detect Code Target
      Ok,
      Divg,
      LowSym,
+     LowSymMin,
      LowBin,
      LowRad
 };
@@ -68,7 +69,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
 	void TestFilters();
 	void DoExtract();
-        void ShowStats(const std::string & aMes) const;
+        void ShowStats(const std::string & aMes) ;
         void MarkDCT() ;
 
 	std::string mNameTarget;
@@ -139,7 +140,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
    ;
 }
 
-void cAppliExtractCodeTarget::ShowStats(const std::string & aMes) const
+void cAppliExtractCodeTarget::ShowStats(const std::string & aMes) 
 {
    int aNbOk=0;
    for (const auto & aR : mVDCT)
@@ -147,7 +148,7 @@ void cAppliExtractCodeTarget::ShowStats(const std::string & aMes) const
       if (aR.mState == eResDCT::Ok)
          aNbOk++;
    }
-  std::cout <<  aMes << " NB DCT = " << aNbOk << " Prop " << (double) aNbOk / (double) APBI_DIm().NbElem() << "\n";
+   StdOut() <<  aMes << " NB DCT = " << aNbOk << " Prop " << (double) aNbOk / (double) APBI_DIm().NbElem() << "\n";
 }
 
 void cAppliExtractCodeTarget::MarkDCT() 
@@ -163,6 +164,7 @@ void cAppliExtractCodeTarget::MarkDCT()
           if (aDCT.mState == eResDCT::LowBin)  aCoul =  cRGBImage::Blue;
           if (aDCT.mState == eResDCT::LowRad)  aCoul =  cRGBImage::Cyan;
 	  */
+          if (aDCT.mState == eResDCT::LowSymMin)  aCoul =  cRGBImage::Red;
 
 
           if (aCoul.x() >=0)
@@ -203,7 +205,7 @@ void  cAppliExtractCodeTarget::DoExtract()
      }
      ShowStats("LowSym ");
 
-     //   ====   Symetry filters ====
+     //   ====   Binarity filters ====
      {
          std::vector<cPt2di>  aVectVois =  VectOfRadius(6,8,false);
 
@@ -219,7 +221,7 @@ void  cAppliExtractCodeTarget::DoExtract()
      }
      ShowStats("Binary ");
 
-     //   ====   Radian filters ====
+     //   ====   Radial filters ====
      {
          cImGrad<tREAL4>  aImG = Deriche(aDIm,1.0);
          // std::vector<cPt2di>  aVectVois =  VectOfRadius(3.5,5.5,false);
@@ -239,6 +241,34 @@ void  cAppliExtractCodeTarget::DoExtract()
         }
      }
      ShowStats("Starity ");
+
+     //   ====   MinOf Symetry ====
+     {
+         // std::vector<cPt2di>  aVectVois =  VectOfRadius(3.5,5.5,false);
+         std::vector<tREAL8>  aVRadius ={3.0,4.0,5.0,6.0};
+         tREAL8 aThickN = 1.5;
+         
+         std::vector<std::vector<cPt2di> >  aVVOis ;
+         for (const auto & aRadius : aVRadius)
+             aVVOis.push_back(VectOfRadius(aRadius,aRadius+aThickN,true));
+/*
+
+         for (auto & aDCT : mVDCT)
+         {
+             if (aDCT.mState == eResDCT::Ok)
+             {
+                 double aMaxSym = 0.0;
+
+                 aDCT.mRad =  Starity (aImG,aDCT.mPt,aVectVois,aVDir,1.0);
+
+                 if (aDCT.mRad>0.5)
+                    aDCT.mState = eResDCT::LowRad;  
+             }
+        }
+*/
+     }
+     ShowStats("MaxSym ");
+
 
 
      MarkDCT() ;
@@ -330,7 +360,7 @@ int  cAppliExtractCodeTarget::Exe()
       return ResultMultiSet();
 
    mPCT.InitFromFile(mNameTarget);
-   APBI_ExecAll();  // run the parse file
+   APBI_ExecAll();  // run the parse file  SIMPL
 
 
    return EXIT_SUCCESS;
