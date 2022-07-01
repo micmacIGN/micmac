@@ -266,6 +266,10 @@ class cAppliMM1P : cCommonAppliSat3D
         cAppliMM1P(int argc, char** argv);
 
     private:
+        void CreateNuageLastFile(const std::string& Dir, const std::string& ImName);
+        std::string NameOccluMask();
+        std::string NameCorrel();
+
         cCommonAppliSat3D mCAS3D;
         std::string       mFilePairs;
         std::string       mOri;

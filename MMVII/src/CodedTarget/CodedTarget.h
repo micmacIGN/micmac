@@ -49,16 +49,14 @@ typedef cDataIm2D<tU_INT1> tDataImT;
 class cSetCodeOf1Circle
 {
     public :
-      cSetCodeOf1Circle(double aRho0,int aK,int aN);
+      cSetCodeOf1Circle(const std::vector<int> & aCards,int aN);
       int  NbSub() const;
       const tBinCodeTarg & CodeOfNum(int aNum) const;
       int N() const;
-      int K() const;
     private :
-      double   mRho0;
-      int      mK;
+      std::vector<int>   mVCards;
       int      mN;
-      tVSetICT mVSet ;
+      tVSetICT mVSet ;  //   All the binary code of one target 
 };
 
 
@@ -91,11 +89,15 @@ class cParamCodedTarget
        void      Finish();
 
        int NbCodeAvalaible() const;         // Number of different code we can generate
+       int BaseForNum() const;         // Base used for converting integer to string
        cCodesOf1Target CodesOfNum(int);     // One combinaison of binary code
        tImTarget  MakeIm(const cCodesOf1Target &);  // Generate the image of 1 combinaison
        tImTarget  MakeImCodeExt(const cCodesOf1Target &);  // Generate the image of 1 combinaison
 
        void AddData(const cAuxAr2007 & anAux);
+
+       bool CodeBinOfPts(double aRho,double aTeta,const cCodesOf1Target & aSetCodesOfT,double aRho0,double aThRho);
+
 
 
     private :

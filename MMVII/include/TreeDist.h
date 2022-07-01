@@ -31,6 +31,7 @@
 #if (TREEDIST_WITH_MMVII)
 #include "include/MMVII_all.h"
 #define TREEDIST_cMemCheck MMVII::cMemCheck
+#define TREEDIST_FakeUseIt MMVII::FakeUseIt
 #else             //========================================================== WITH_MMVI
 class TREEDIST_cMemCheck
 {
@@ -41,6 +42,7 @@ class TREEDIST_cMemCheck
 #include <vector>
 #include <iostream>
 #include <algorithm>
+template <class Type> void TREEDIST_FakeUseIt(const Type &) {};
 #endif   //========================================================== WITH_MMVI
 
 namespace NS_MMVII_FastTreeDist
@@ -751,8 +753,8 @@ void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
        {
            for (int aS2=0 ; aS2<mNbSom ; aS2++)
            {
-               int aD= mFTD.Dist(aS1,aS2);  // Fast distance
-               int aD2= mAdjG.RawDist(aS1,aS2);  // Easy algorihtm to check
+               int aD= mFTD.Dist(aS1,aS2); TREEDIST_FakeUseIt(aD);  // Fast distance
+               int aD2= mAdjG.RawDist(aS1,aS2); TREEDIST_FakeUseIt(aD2); // Easy algorihtm to check
                assert(aD==aD2);
            }
        }

@@ -10,9 +10,11 @@
 namespace MMVII
 {
 
-static constexpr double ExtRatioW1   = 1.3;
-static constexpr double ExtRatioCode = 1.8;
-static constexpr double ExtRatioBrd =  1.8;
+static constexpr double ExtRatioW1   = 1.25;
+static constexpr double ExtRatioCode = 1.6;
+static constexpr double ExtRatioBrd =  1.65;
+
+static constexpr double ExtTextMargin =  0.3;  // Margin if we want text not sticked to coding
 
 namespace  cNS_CodedTarget
 {
@@ -20,13 +22,16 @@ namespace  cNS_CodedTarget
 
 /* ****    cSetCodeOf1Circle  ***** */
   
-cSetCodeOf1Circle::cSetCodeOf1Circle(double aRho0,int aK,int aN):
-   mRho0   (aRho0),
-   mK      (aK),
-   mN      (aN),
-   mVSet   (SubKAmongN<tBinCodeTarg>(aK,aN))
+cSetCodeOf1Circle::cSetCodeOf1Circle(const std::vector<int> & aVCard,int aN):
+   mVCards    (aVCard),
+   mN         (aN)
 {
+   for (const auto &aCard : aVCard)
+       AppendIn(mVSet,SubKAmongN<tBinCodeTarg>(aCard,aN));
 }
+
+
+
 int  cSetCodeOf1Circle::NbSub() const {return mVSet.size();}
 
 const tBinCodeTarg & cSetCodeOf1Circle::CodeOfNum(int aNum) const
@@ -35,7 +40,7 @@ const tBinCodeTarg & cSetCodeOf1Circle::CodeOfNum(int aNum) const
 }
 
 int cSetCodeOf1Circle::N() const {return mN;}
-int cSetCodeOf1Circle::K() const {return mK;}
+// int cSetCodeOf1Circle::K() const {return mK;}
 
 /* ****    cCodesOf1Target   ***** */
 
@@ -156,14 +161,21 @@ void cParamCodedTarget::Finish()
   std::vector<int> aVNbSub;
   for (int aKCirc = 0 ; aKCirc< mNbCircle ; aKCirc++)
   {
-      double aRho0 = mRhoEndTargetC + aKCirc * mThRing;
-      int  aNb =8;
-      int aK = aNb/2;
-      aK =std::max(1,std::min(aNb-1,aK));
+      // double aRho0 = mRhoEndTargetC + aKCirc * mThRing;
+      int  aNb = mCodeExt ? 9 :8;
 
-      mVecSetOfCode.push_back(cSetCodeOf1Circle(aRho0,aK,aNb));
+      std::vector<int>  aVK;
+      if (mCodeExt)
+      {
+          for (int aK=1 ; aK<aNb ; aK+=2 )
+	      aVK.push_back(aK);       
+      }
+      else
+         aVK.push_back(aNb/2);
+
+      mVecSetOfCode.push_back(cSetCodeOf1Circle(aVK,aNb));
       aVNbSub.push_back( mVecSetOfCode.back().NbSub());
-      StdOut()  << " aK=" << aK << " N=" << aNb  <<  " C(k,n)=" <<  aVNbSub.back() << "\n";
+      StdOut()  << " aK=" << aVK << " N=" << aNb  <<  " C(k,n)=" <<  aVNbSub.back() << "\n";
   }
   mDecP = cDecomposPAdikVar(aVNbSub);
   StdOut()  << " NbModelTarget="   << NbCodeAvalaible() << "\n";
@@ -188,6 +200,31 @@ int cParamCodedTarget::NbCodeAvalaible() const
    return  mDecP.MulBase();
 }
 
+int cParamCodedTarget::BaseForNum() const
+{
+    int aNBC = NbCodeAvalaible();
+    if (aNBC < 100)
+	    return 10;  // decimal number on 2 dig
+    if (aNBC < 256)
+	    return 16;  // hexadecimal on 2 dig
+    if (aNBC < 1296)
+	    return 36;  // alpha num   on 2 dig
+    MMVII_INTERNAL_ERROR("Too big number of code for current system");
+    return -1;
+}
+
+bool cParamCodedTarget::CodeBinOfPts(double aRho,double aTeta,const cCodesOf1Target & aSetCodesOfT,double aRho0,double aThRho)
+{
+     int aIndRho = round_down((aRho-aRho0)/aThRho);  // indexe o
+     aIndRho = std::max(0,std::min(mNbCircle-1,aIndRho));
+     const cSetCodeOf1Circle & aSet1C =  mVecSetOfCode.at(aIndRho);
+     int aN  = aSet1C.N();
+
+     int aIndTeta = round_down((aTeta*aN*mNbRedond)/(2*M_PI));
+     aIndTeta = aIndTeta % aN;
+     const tBinCodeTarg & aCodeBin = aSetCodesOfT.CodeOfNumC(aIndRho);
+     return aCodeBin.IsInside(aIndTeta);
+}
 
 tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT)
 {
@@ -203,13 +240,13 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
          cPt2dr  aRT  = ToPolar(aPixN,0.0);   // Polar then Rho teta
 	 double  aRho = aRT.x();
          double  aTeta = aRT.y();
+         if (aTeta < 0)
+            aTeta += 2 *M_PI;
 
 	 bool IsW = true;  // Default is white
 
          if (aRho < mRhoEndStar)  
          {
-               if (aTeta < 0)
-                   aTeta += 2 *M_PI;
                
                int aIndTeta = round_down((aTeta/(M_PI/2.0)));
                IsW = (aIndTeta%2)==0;
@@ -217,10 +254,22 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
          else if (aRho<mRhoWhit1)
 	 {
              IsW = true;
+	     /*
+             int aIndRho = round_down((aRho-mRhoWhit1)/(mRhoCode-mRhoWhit1));
+             aIndRho = std::max(0,std::min(mNbCircle-1,aIndRho));
+	     const cSetCodeOf1Circle & aSet1C =  mVecSetOfCode.at(aIndRho);
+		    int aN  = aSet1C.N();
+
+		    int aIndTeta = round_down((aTeta*aN*mNbRedond)/(2*M_PI));
+		    aIndTeta = aIndTeta % aN;
+                    const tBinCodeTarg & aCodeBin = aSetCodesOfT.CodeOfNumC(aIndRho);
+                    if (aCodeBin.IsInside(aIndTeta))
+                       IsW = false;
+		*/
 	 }
          else if (aRho<mRhoCode)
          {
-             IsW = false;
+             IsW = ! CodeBinOfPts(aRho,aTeta,aSetCodesOfT,mRhoWhit1,mRhoCode-mRhoWhit1);
          }
 /*
          else
@@ -235,7 +284,47 @@ tImTarget  cParamCodedTarget::MakeImCodeExt(const cCodesOf1Target & aSetCodesOfT
          aDImT.SetV(aPix,aVal);
      }
 
+     ///compute string 
+     int aNum = aSetCodesOfT.Num();
+     int aBase = BaseForNum();
+     for (int aK=0 ; aK<2 ;aK++)
+     {
+          int aDigit = (aK==0) ? (aNum%aBase) : (aNum/aBase);
+	  char aCar = (aDigit < 10) ? ('0'+aDigit) : ('A'+(aDigit-10));
+	  std::string aStr;
+	  aStr.push_back(aCar);
 
+          cIm2D<tU_INT1> aImStr = ImageOfString_DCT(aStr,1);
+          cDataIm2D<tU_INT1>&  aDataImStr = aImStr.DIm();
+
+	  double aPropFree =    ( (sqrt(2)-1)/(sqrt(2))) *  ExtRatioCode / ExtRatioBrd   // Prop free on diag inside coding
+		              + (ExtRatioBrd-ExtRatioCode)  / ExtRatioBrd;               // Prop free due to the border
+
+	  aPropFree *= (1-ExtTextMargin);
+
+	  int  aNbTarget =  round_ni((mNbPixelBin/2)  * aPropFree);
+	  
+	  cPt2di aSzTarget (aNbTarget,aNbTarget);
+
+	  cPt2di aOfs((aK==0)*(mSzBin.x()-aNbTarget),0);
+
+	  cPt2dr aRatio = DivCByC(ToR(aDataImStr.Sz()),ToR(aSzTarget));
+
+	  for (const auto & aPix : cRect2(cPt2di(0,0),aSzTarget))
+          {
+	      cPt2di aPixIm = aPix+aOfs;
+              cPt2di aPixSym = mSzBin-aPixIm-cPt2di(1,1);
+
+	      cPt2di aPixStr = ToI(MulCByC(ToR(aPix),aRatio));
+	      int aVal = aDataImStr.DefGetV(aPixStr,0) ? 255 : 0;
+
+              aDImT.SetV(aPixIm,aVal);
+              aDImT.SetV(aPixSym,aVal);
+          }
+     }
+
+     // MMVII_INTERNAL_ASSERT_User(aN<256,"For
+     aImT = aImT.GaussDeZoom(3);
      return aImT;
 }
 
@@ -271,24 +360,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 	     {
 		if (aTeta < 0)
                    aTeta += 2 *M_PI;
-                if (mCodeExt)
-                {
-                   int aIndTeta = round_down((aTeta/(M_PI/2.0)));
-                   IsW = (aIndTeta%2)==0;
-                }
-                else
-                {
-                    int aIndRho = round_down((aRho-mRhoEndTargetC)/mThRing);
-                    aIndRho = std::max(0,std::min(mNbCircle-1,aIndRho));
-		    const cSetCodeOf1Circle & aSet1C =  mVecSetOfCode.at(aIndRho);
-		    int aN  = aSet1C.N();
-
-		    int aIndTeta = round_down((aTeta*aN*mNbRedond)/(2*M_PI));
-		    aIndTeta = aIndTeta % aN;
-                    const tBinCodeTarg & aCodeBin = aSetCodesOfT.CodeOfNumC(aIndRho);
-                    if (aCodeBin.IsInside(aIndTeta))
-                       IsW = false;
-                }
+                IsW = ! CodeBinOfPts(aRho,aTeta,aSetCodesOfT,mRhoEndTargetC,mThRing);
 	     }
 	     else
 	     {
@@ -318,7 +390,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
      // Print the string of number
      {
           std::string aStrCode = ToStr(aSetCodesOfT.Num(),2);
-          cIm2D<tU_INT1> aImStr = ImageOfString(aStrCode,mCodeExt ? 1 : -1);
+          cIm2D<tU_INT1> aImStr = ImageOfString_10x8(aStrCode,mCodeExt ? 1 : -1);
           cDataIm2D<tU_INT1> & aDImStr = aImStr.DIm();
           cPt2di aNbPixStr = aDImStr.Sz();
           // Ratio between pix of bin image and pix of string

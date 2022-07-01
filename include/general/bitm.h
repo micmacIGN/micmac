@@ -2064,6 +2064,7 @@ class cElBitmFont
 {
     public :
        static  cElBitmFont & BasicFont_10x8();
+       static  cElBitmFont & FontCodedTarget();
        virtual Im2D_Bits<1> ImChar(char) = 0;
        virtual ~cElBitmFont();
 
@@ -2072,6 +2073,7 @@ class cElBitmFont
 
     private :
       static class cElImplemBitmFont * theFont_10x8;
+      static class cElImplemBitmFont * theFontCodedTarget;
 };
 
 

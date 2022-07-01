@@ -7,6 +7,7 @@ namespace MMVII
 /** \file MMVII_SetITpl.h
     \brief classses fot sets of integers
 
+      cSetISingleFixed<tVal>  : fixed  size, contain a subset as flag of bit coded on a a single int
 
 */
 
