@@ -128,7 +128,7 @@ ECEFCoords ObservationData::getApproxAntennaPosition(){
     ref.X -= 1;
     ref.Y -= 1;
     ref.Z -= 1;
-    ENUCoords approx_enu = this->approximate_position.toENUCoords(ref) - this->delta_enu;
+    ENUCoords approx_enu = this->approximate_position.toENUCoords(ref) + this->delta_enu;
     return approx_enu.toECEFCoords(ref);
 }
 
