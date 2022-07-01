@@ -344,7 +344,6 @@ void aCnnModelPredictor::PopulateModelMSNetHead(/*MSNetHead Network*/ torch::jit
     
     std::string aModel=mDirModel+mSetModelBinaries.at(0); // just one pickled model 
     Network=torch::jit::load(aModel);
-    //torch::load(Network,aModel);
     StdOut()<<"TORCH LOAD  "<<"\n";
 }
 /***********************************************************************/
@@ -757,21 +756,12 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTile(/*MSNet_Attention*/torch::jit
 	mNet.eval();
     tREAL4 ** mPatchLData=aPatchLV.DIm().ExtractRawData2D();
     torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
-    // 4 scale tensor is needed for now test by passing the same tensor at each stage of the network 
-    /*torch::Tensor a4ScaleTens=aPL.repeat_interleave(4,1);
-    std::cout<<" a4ScaleTens size "<<a4ScaleTens.sizes()<<std::endl;
-    assert
-    (
-      (a4ScaleTens.size(1)==4)  
-    );*/
     torch::jit::IValue inp(aPL);
     std::vector<torch::jit::IValue> allinp={inp};
     //std::cout<<"IVALUE CREATED "<<std::endl; 
     auto out=mNet.forward(allinp);
     auto output=out.toTensor().squeeze();
     return output;
-    //auto output=mNet->forward(a4ScaleTens).squeeze();
-    //return output;
 }
 /**********************************************************************************************************************/
 torch::Tensor aCnnModelPredictor::PredictMSNetAtt(MSNet_Attention mNet, std::vector<tTImV2> aPatchLV, cPt2di aPSz)
@@ -806,10 +796,8 @@ torch::Tensor aCnnModelPredictor::PredictMSNetHead(/*MSNetHead*/ torch::jit::scr
 {
 	torch::Device device(torch::kCPU);
 	torch::NoGradGuard no_grad;
-    //mNet.to(device);
 	mNet.eval();
     torch::Tensor aPAllScales=torch::empty({(int) aPatchLV.size(),aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));;
-    
     for (int cc=0;cc<(int) aPatchLV.size();cc++)
     {
         tREAL4 ** mPatchLData=aPatchLV.at(cc).DIm().ExtractRawData2D();
@@ -825,13 +813,8 @@ torch::Tensor aCnnModelPredictor::PredictMSNetHead(/*MSNetHead*/ torch::jit::scr
     );*/
     aPAllScales=aPAllScales.unsqueeze(0);
     StdOut()<<"Patches "<<aPAllScales.sizes()<<"\n";
-    /*for (auto module :mNet->named_parameters())
-    {
-        StdOut()<<"Param "<<module.name<<"\n";
-    }*/
     torch::jit::IValue inp(aPAllScales);
     std::vector<torch::jit::IValue> allinp={inp};
-    //std::cout<<"IVALUE CREATED "<<std::endl; 
     auto out=mNet.forward(allinp);
     auto output=out.toTensor().squeeze();
     return output;

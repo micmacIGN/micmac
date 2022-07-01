@@ -76,7 +76,6 @@ struct cOneModele
         //FastandHead mNetFastMVCNNMLP; // Fast MVCNN + MLP for Multiview Features Aggregation
         // LATER SLOW NET 
         ConvNet_Slow mNetSlowStd=ConvNet_Slow(3,4,4); // Conv Kernel= 3x3 , Convlayers=4, Fully Connected Layers =4
-        //MSNet_Attention mMSNet=MSNet_Attention(32);
         torch::jit::script::Module mMSNet;
         
 };
@@ -456,16 +455,8 @@ cOneModele::cOneModele
             mCNNPredictor->PopulateModelMSNetHead(mMSNet);
     
             mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
-            //Add padding to maintain the same size as output 
-            /*auto common=mMSNet->common; 
-            for (auto& module : common->children())
-             {
-                if(auto* conv2d = module->as<torch::nn::Conv2d>())
-                    {
-                        conv2d->as<torch::nn::Conv2dImpl>()->options.padding()=1;
-                    }
-             } */
-        }
+
+        } 
     }
 }
 
@@ -848,7 +839,7 @@ int  cAppliFillCubeCost::Exe()
         if (aVMods.at(0)->mArchitecture==TheFastArch)   FeatSize=184;
         if (aVMods.at(0)->mArchitecture==TheFastArchWithMLP)   FeatSize=184;
         if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)   FeatSize=184;
-        if (aVMods.at(0)->mArchitecture==TheMSNet) FeatSize=32 ;
+        if (aVMods.at(0)->mArchitecture==TheMSNet) FeatSize=64 ;
         torch::Tensor LREmbeddingsL=torch::empty({1,FeatSize,aSzL.y(),aSzL.x()},torch::TensorOptions().dtype(torch::kFloat32));
         torch::Tensor LREmbeddingsR=torch::empty({1,FeatSize,aSzR.y(),aSzR.x()},torch::TensorOptions().dtype(torch::kFloat32));
         if (aVMods.at(0)->mArchitecture==TheFastStandard)

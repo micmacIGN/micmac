@@ -72,7 +72,6 @@ class aCnnModelPredictor
        void PopulateModelMSNetHead(/*MSNetHead*/  torch::jit::script::Module & Net);
        
        
-       
        void PopulateModelFastandHead(FastandHead Network);
        void PopulateModelSimNet(SimilarityNet Network);
        void PopulateSlowModelFromBinary(ConvNet_Slow Net);

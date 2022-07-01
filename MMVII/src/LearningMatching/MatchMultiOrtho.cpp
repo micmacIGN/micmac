@@ -254,16 +254,6 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
             mCNNPredictor->PopulateModelMSNetHead(mMSNet);
     
             mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
-            //Add padding to maintain the same size as output 
-               /* auto common=mMSNet->common; 
-                for (auto& module : common->children())
-                {
-                    if(auto* conv2d = module->as<torch::nn::Conv2d>())
-                        {
-                            conv2d->as<torch::nn::Conv2dImpl>()->options.padding()=1;
-                        }
-                }*/
-            
         }
         if(mArchitecture==TheFastArchWithMLP)
         {
@@ -605,7 +595,6 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterMaxMoy(std::vect
         
         // compute element wise cross product along feature size dimension 
         auto aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(0),AllOrthosEmbeddings->at(k),0).squeeze();
-        //StdOut()<<"Cross Product values "<<aCrossProd.min()<<"   "<<aCrossProd.max()<<"\n";
         AllSimilarities->push_back(aCrossProd);
     }
     // Free all ortho OneOrthoEmbeding 
@@ -1072,7 +1061,7 @@ int  cAppliMatchMultipleOrtho::Exe()
             if (mArchitecture==TheMSNet)
             {
                 //ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(OrthosEmbeddings); // Size 4*numberofOrthos
-                ComputeSimilByLearnedCorrelMasterMaxMoy(OrthosEmbeddings);
+                ComputeSimilByLearnedCorrelMasterEnhanced(OrthosEmbeddings);
             }
             else
             {
