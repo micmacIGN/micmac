@@ -5,75 +5,80 @@
 
 namespace MMVII
 {
-// static bool BUGSYM = false;
-
-template <class Type>  class  cFilterDCT : public cMemCheck
-{
-    public :
-           typedef cIm2D<Type>     tIm;
-           typedef cDataIm2D<Type> tDIm;
-
-
-           cFilterDCT(tIm anIm,bool IsSym,double aR0,double aR1,eDCTFilters aMode);
-
-           virtual void Reset() = 0;
-           virtual void Add(const Type & aWeight,const cPt2dr & aNeigh) = 0;
-           virtual double Compute() =0;
-
-           double ComputeVal(const cPt2dr & aP);
-           tIm    ComputeIm();
-
-    protected  :
-           cFilterDCT (const cFilterDCT<Type> &) = delete;
-
-           tIm                  mIm;
-           tDIm&                mDIm;
-           cPt2di               mSz;
-           bool                 mIsSym;
-           double               mR0;
-           double               mR1;
-           cPt2dr               mCurC;
-           eDCTFilters          mMode;
-           std::vector<cPt2di>  mIVois;
-           std::vector<cPt2dr>  mRVois;
-           
-};
-
-template <class Type>  class  cSymFilterCT : public cFilterDCT<Type>
-{
-    public :
-           typedef cIm2D<Type>     tIm;
-           typedef cDataIm2D<Type> tDIm;
-
-           cSymFilterCT(tIm anIm,double aR0,double aR1,double aEpsilon);
-
-    private  :
-           void Reset()               override;
-           void Add(const Type & aWeight,const cPt2dr & aNeigh)   override;
-           double Compute()           override;
-
-          cSymMeasure<Type> SM() const;
-          double mEpsilon ;
-          cSymMeasure<Type> mSM;
-};
-           
 
 /* ================================================= */
 /*               cFilterDCT                          */
 /* ================================================= */
 
-template <class Type>  cFilterDCT<Type>::cFilterDCT(tIm anIm,bool IsSym,double aR0,double aR1,eDCTFilters aMode) :
-   mIm    (anIm),
-   mDIm   (anIm.DIm()),
-   mSz    (mDIm.Sz()),
-   mIsSym (IsSym),
-   mR0    (aR0),
-   mR1    (aR1),
-   mMode  (aMode),
-   mIVois (SortedVectOfRadius(aR0,aR1,IsSym))
+template <class Type>  
+   cFilterDCT<Type>::cFilterDCT
+   (
+          bool        isCumul,
+          eDCTFilters aTypeF,
+          tIm anIm,
+          bool IsSym,
+          double aR0,
+          double aR1,
+          eDCTFilters aMode,
+          double aThickN
+   ) :
+      mIsCumul (isCumul),
+      mTypeF   (aTypeF),
+      mIm      (anIm),
+      mDIm     (anIm.DIm()),
+      mSz      (mDIm.Sz()),
+      mIsSym   (IsSym),
+      mR0      (aR0),
+      mR1      (aR1),
+      mThickN  (aThickN),
+      mMode    (aMode),
+      mIVois   (SortedVectOfRadius(aR0,aR1,IsSym))
 {
    for (const auto & aPix : mIVois)
        mRVois.push_back(ToR(aPix));
+
+   mRhoEnd = Norm2(mRVois.back());
+
+   int aK0=0;
+   int aK1=aK0;
+   IncrK1(aK1,aK0);
+   mVK0K1.push_back(cPt2di(0,0));
+   mVK0K1.push_back(cPt2di(aK0,aK1));
+   // StdOut() << "KKKK " << aK0 << " " << aK1 << " \n";
+
+   while (aK1<int(mIVois.size()))
+   {
+       IncrK0(aK0);
+       IncrK1(aK1,aK0);
+       mVK0K1.push_back(cPt2di(aK0,aK1));
+       // StdOut() << "KKKK " << aK0 << " " << aK1 << " \n";
+   }
+
+   // StdOut() << "LLLLLLLLLLLLLl \n";
+   // getchar();
+}
+
+template <class Type>   void cFilterDCT<Type>::IncrK0(int & aK0)
+{
+     double aEpsilon=1e-3;
+
+     double  aRhoMax =  Norm2(mIVois[aK0]) + aEpsilon;
+     if (! mIsCumul)
+     {
+        aRhoMax = std::min(aRhoMax +mThickN,mRhoEnd-mThickN+2*aEpsilon);
+     }
+     while  (  (aK0<int(mIVois.size()))  &&  (Norm2(mRVois[aK0])<aRhoMax)  )
+     {
+           aK0++;
+     }
+}
+
+template <class Type>   void cFilterDCT<Type>::IncrK1(int & aK1,const int & aK0)
+{
+    int aRhoMax = round_up(Square(  Norm2(mIVois[aK0]) + mThickN));
+
+    while ( (aK1<int(mIVois.size()))  && (SqN2(mIVois[aK1]) <= aRhoMax))
+          aK1++;
 }
 
 template <class Type> double cFilterDCT<Type>::ComputeVal(const cPt2dr & aP)
@@ -84,6 +89,35 @@ template <class Type> double cFilterDCT<Type>::ComputeVal(const cPt2dr & aP)
         Add(1.0,aNeigh);
 
     return Compute();
+}
+
+template <class Type> double cFilterDCT<Type>::ComputeValMaxCrown(const cPt2dr & aP,const double & aThreshold)
+{
+    mCurC = aP;
+    Reset() ;
+
+    double aVMax = -1;
+    for (int aKPt=0 ; (aKPt+1)<int(mVK0K1.size()) ; aKPt++)
+    {
+        const cPt2di & aKPrec = mVK0K1.at(aKPt);
+        const cPt2di & aKNext = mVK0K1.at(aKPt+1);
+        int aK0Prec = aKPrec.x();
+        int aK0Next = aKNext.x();
+        int aK1Prec = aKPrec.y();
+        int aK1Next = aKNext.y();
+
+        for (int aK=aK1Prec ; aK<aK1Next ; aK++)
+            Add(1.0,mRVois[aK]);
+        for (int aK=aK0Prec ; aK<aK0Next ; aK++)
+            Add(-1.0,mRVois[aK]);
+        UpdateMax(aVMax,Compute());
+        if (aVMax> aThreshold)  
+           return aVMax;
+        if (! mIsCumul)
+           Reset();
+    }
+
+    return aVMax;
 }
 
 template <class Type> cIm2D<Type> cFilterDCT<Type>::ComputeIm()
@@ -102,10 +136,44 @@ template <class Type> cIm2D<Type> cFilterDCT<Type>::ComputeIm()
     return aImRes;
 }
 
+template <class Type> cIm2D<Type> cFilterDCT<Type>::ComputeImMaxCrown(const double& aThreshold)
+{
+    cIm2D<Type> aImRes(mSz,nullptr,eModeInitImage::eMIA_V1);
+    cDataIm2D<Type> & aDRes = aImRes.DIm();
+
+    int aD = round_up(mR1)+1;
+
+    for (const auto & aPix : cRect2(mDIm.Dilate(-aD)))
+    {
+        aDRes.SetV(aPix,ComputeValMaxCrown(ToR(aPix),aThreshold));
+    }
+
+    return aImRes;
+}
+
+template <class Type>  eDCTFilters cFilterDCT<Type>::TypeF() const {return mTypeF;}
 
 /* ================================================= */
 /*               cSymFilterCT                        */
 /* ================================================= */
+
+template <class Type>  class  cSymFilterCT : public cFilterDCT<Type>
+{
+    public :
+           typedef cIm2D<Type>     tIm;
+           typedef cDataIm2D<Type> tDIm;
+
+           cSymFilterCT(tIm anIm,double aR0,double aR1,double aEpsilon);
+
+    private  :
+          void Reset()               override;
+          void Add(const Type & aWeight,const cPt2dr & aNeigh)   override;
+          double Compute()           override;
+
+          cSymMeasure<Type> SM() const;
+          double mEpsilon ;
+          cSymMeasure<Type> mSM;
+};
 
 
 template <class Type>  void  cSymFilterCT<Type>::Reset()
@@ -125,7 +193,7 @@ template <class Type>  double  cSymFilterCT<Type>::Compute()
 }
 
 template <class Type>  cSymFilterCT<Type>::cSymFilterCT(tIm anIm,double aR0,double aR1,double aEpsilon) :
-    cFilterDCT<Type>(anIm,true,aR0,aR1,eDCTFilters::eSym),
+    cFilterDCT<Type>(true,eDCTFilters::eSym,anIm,true,aR0,aR1,eDCTFilters::eSym),
     mEpsilon (aEpsilon)
 {
 }
@@ -135,48 +203,6 @@ template <class Type>  cSymMeasure<Type> cSymFilterCT<Type>::SM() const
   return mSM;
 }
 
-template class  cSymFilterCT<tREAL4>;
-template class  cFilterDCT<tREAL4>;
-
-
-
-       /* ================================================== */
-       /*               SCALITY                              */
-       /* ================================================== */
-
-template <class Type>  class cComputeScaleInv
-{
-       public :
-           cComputeScaleInv(cIm2D<Type> aIm1,double aScale,double aR0,double aR1);
-       private :
-           
-           std::vector<cPt2di>  mVois;
-};
-
-
-/*
-template<class TypeEl> double ScalInv
-                              (
-                                  const  cDataIm2D<TypeEl> & aDIm1,
-                                  const  cDataIm2D<TypeEl> & aDIm2,
-                                  const  cPt2dr & aPt,
-                                  double aScale,
-                                  const std::vector<cPt2di>  & aV0,
-                                  double aR0,
-                                  double Epsilon
-                              )
-{
-    cMatIner2Var<double> aMat;
-    double aMinCorrel = 1e-4;
-    for (const auto & aVInt  : aVectVois)
-    {
-           cPt2dr aV1 = ToR(aVInt);
-           cPt2dr aV2 = aV1 * aScale ;
-           TypeEl aVal1 = aDIm1.GetVBL(aPt+aV1);
-           TypeEl aVal2 = aDIm2.GetVBL(aPt+aV2);
-    }
-}
-*/
 
 /*
 template<class TypeEl> cIm2D<TypeEl> ImScalab(const  cDataIm2D<TypeEl> & aDImIn,double aR0,double Epsilon)
@@ -387,6 +413,12 @@ class  cSymetricityCalc
        /*               SYMETRY                              */
        /* ================================================== */
 
+template<class TypeEl> cIm2D<TypeEl> ImSymMin(cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon)
+{
+    cSymFilterCT<TypeEl> aSymF(aImIn,aR0,aR1,Epsilon);
+    return  aSymF.ComputeImMaxCrown(10);
+}
+
 template<class TypeEl> void CheckSymetricity
                            (
                                 cDataIm2D<TypeEl> & aDIm2Check,
@@ -461,13 +493,65 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool doCheck,cIm2D<TypeEl>  a
 }
 
 
+
+       /* ================================================== */
+       /*               SCALITY                              */
+       /* ================================================== */
+
+template <class Type>  class cComputeScaleInv
+{
+       public :
+           cComputeScaleInv(cIm2D<Type> aIm1,double aScale,double aR0,double aR1);
+       private :
+           
+           std::vector<cPt2di>  mVois;
+};
+
+
+/*
+template<class TypeEl> double ScalInv
+                              (
+                                  const  cDataIm2D<TypeEl> & aDIm1,
+                                  const  cDataIm2D<TypeEl> & aDIm2,
+                                  const  cPt2dr & aPt,
+                                  double aScale,
+                                  const std::vector<cPt2di>  & aV0,
+                                  double aR0,
+                                  double Epsilon
+                              )
+{
+    cMatIner2Var<double> aMat;
+    double aMinCorrel = 1e-4;
+    for (const auto & aVInt  : aVectVois)
+    {
+           cPt2dr aV1 = ToR(aVInt);
+           cPt2dr aV2 = aV1 * aScale ;
+           TypeEl aVal1 = aDIm1.GetVBL(aPt+aV1);
+           TypeEl aVal2 = aDIm2.GetVBL(aPt+aV2);
+    }
+}
+*/
+
+/* ======================================== */
+/*           ALLOCATOR                      */
+/* ======================================== */
+
+template <class Type>  
+    cFilterDCT<Type> * cFilterDCT<Type>::AllocSym(tIm anIm,double aR0,double aR1,double aEpsilon)
+{
+    return new  cSymFilterCT<Type>(anIm,aR0,aR1,aEpsilon);
+}
+
 #define INSTANTIATE_FILTER_TARGET(TYPE)\
 template double Starity(const cImGrad<TYPE> &,const cPt2dr &,const std::vector<cPt2di>&,const  std::vector<cPt2dr>&,double Epsilon);\
 template cIm2D<TYPE> ImBinarity(const  cDataIm2D<TYPE> & aDIm,double aR0,double aR1,double Epsilon);\
 template cIm2D<TYPE> ImStarity(const  cImGrad<TYPE> & aImGrad,double aR0,double aR1,double Epsilon);\
-template cIm2D<TYPE> ImSymetricity(bool doCheck,cIm2D<TYPE>  aDImIn,double aR0,double aR1,double Epsilon);
+template cIm2D<TYPE> ImSymetricity(bool doCheck,cIm2D<TYPE>  aDImIn,double aR0,double aR1,double Epsilon);\
+template cIm2D<TYPE> ImSymMin(cIm2D<TYPE>  aImIn,double aR0,double aR1,double Epsilon);
 
 INSTANTIATE_FILTER_TARGET(tREAL4)
+template class  cSymFilterCT<tREAL4>;
+template class  cFilterDCT<tREAL4>;
 
 
 };

@@ -6,6 +6,54 @@
 
 namespace MMVII
 {
+
+template <class Type>  class  cFilterDCT : public cMemCheck
+{
+    public :
+           typedef cIm2D<Type>     tIm;
+           typedef cDataIm2D<Type> tDIm;
+
+
+           static cFilterDCT<Type> * AllocSym(tIm anIm,double aR0,double aR1,double aEpsilon);
+
+           cFilterDCT(bool IsCumul,eDCTFilters,tIm anIm,bool IsSym,double aR0,double aR1,eDCTFilters aMode,double aThickN=1.5);
+
+           virtual void Reset() = 0;
+           virtual void Add(const Type & aWeight,const cPt2dr & aNeigh) = 0;
+           virtual double Compute() =0;
+
+           double ComputeVal(const cPt2dr & aP);
+           tIm    ComputeIm();
+           double ComputeValMaxCrown(const cPt2dr & aP,const double& aThreshold);
+           tIm    ComputeImMaxCrown(const double& aThreshold);
+
+           eDCTFilters  TypeF() const;
+
+    protected  :
+           cFilterDCT (const cFilterDCT<Type> &) = delete;
+
+           void IncrK0(int & aK0);
+           void IncrK1(int & aK1,const int & aK0);
+
+           bool                 mIsCumul;
+           eDCTFilters          mTypeF;
+           tIm                  mIm;
+           tDIm&                mDIm;
+           cPt2di               mSz;
+           bool                 mIsSym;
+           double               mR0;
+           double               mR1;
+           double               mThickN;
+           cPt2dr               mCurC;
+           eDCTFilters          mMode;
+           std::vector<cPt2di>  mIVois;
+           std::vector<cPt2dr>  mRVois;
+           double               mRhoEnd;
+
+           std::vector<cPt2di>  mVK0K1;
+};
+
+
 template<class TypeEl>
    double IndBinarity(const  cDataIm2D<TypeEl> & aDIm,const cPt2di & aP0,const std::vector<cPt2di> & aVectVois);
 
@@ -23,6 +71,9 @@ template<class TypeEl> double Starity
 
 
 template<class TypeEl> cIm2D<TypeEl> ImStarity(const  cImGrad<TypeEl> & aImGrad,double aR0,double aR1,double Epsilon);
+
+template<class TypeEl> cIm2D<TypeEl> ImSymMin(cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon);
+
 
 
 
