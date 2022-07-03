@@ -2,88 +2,20 @@
 #define _CODED_TARGET_H_
 #include "include/MMVII_all.h"
 #include "include/MMVII_SetITpl.h"
-
+#include "FilterCodedTarget.h"
 
 namespace MMVII
 {
-
-template <class Type>  class  cFilterDCT : public cMemCheck
-{
-    public :
-           typedef cIm2D<Type>     tIm;
-           typedef cDataIm2D<Type> tDIm;
-
-
-           static cFilterDCT<Type> * AllocSym(tIm anIm,double aR0,double aR1,double aEpsilon);
-
-           cFilterDCT(bool IsCumul,eDCTFilters,tIm anIm,bool IsSym,double aR0,double aR1,eDCTFilters aMode,double aThickN=1.5);
-
-           virtual void Reset() = 0;
-           virtual void Add(const Type & aWeight,const cPt2dr & aNeigh) = 0;
-           virtual double Compute() =0;
-
-           double ComputeVal(const cPt2dr & aP);
-           tIm    ComputeIm();
-           double ComputeValMaxCrown(const cPt2dr & aP,const double& aThreshold);
-           tIm    ComputeImMaxCrown(const double& aThreshold);
-
-           eDCTFilters  TypeF() const;
-
-    protected  :
-           cFilterDCT (const cFilterDCT<Type> &) = delete;
-
-           void IncrK0(int & aK0);
-           void IncrK1(int & aK1,const int & aK0);
-
-           bool                 mIsCumul;
-           eDCTFilters          mTypeF;
-           tIm                  mIm;
-           tDIm&                mDIm;
-           cPt2di               mSz;
-           bool                 mIsSym;
-           double               mR0;
-           double               mR1;
-           double               mThickN;
-           cPt2dr               mCurC;
-           eDCTFilters          mMode;
-           std::vector<cPt2di>  mIVois;
-           std::vector<cPt2dr>  mRVois;
-           double               mRhoEnd;
-
-           std::vector<cPt2di>  mVK0K1;
-};
-
-
-template<class TypeEl>
-   double IndBinarity(const  cDataIm2D<TypeEl> & aDIm,const cPt2di & aP0,const std::vector<cPt2di> & aVectVois);
-
-template<class TypeEl> cIm2D<TypeEl> ImBinarity(const  cDataIm2D<TypeEl> & aDIm,double aR0,double aR1,double Epsilon);
-
-std::vector<cPt2dr> VecDir(const  std::vector<cPt2di>&  aVectVois);
-template<class TypeEl> double Starity
-                              (
-                                  const  cImGrad<TypeEl> & aImGrad,
-                                  const cPt2dr & aP0,
-                                  const  std::vector<cPt2di>&  aVectVois ,
-                                  const  std::vector<cPt2dr>&  aVecDir,
-                                  double Epsilon
-                              );
-
-
-template<class TypeEl> cIm2D<TypeEl> ImStarity(const  cImGrad<TypeEl> & aImGrad,double aR0,double aR1,double Epsilon);
-
-template<class TypeEl> cIm2D<TypeEl> ImSymMin(cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon);
-
-
-
-
-template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool DoCheck,cIm2D<TypeEl> anImIn,double aR0,double aR1,double Epsilon);
-
-
-
-
 namespace  cNS_CodedTarget
 {
+
+class cGeomSimDCT;
+class cResSimul;
+class cSetCodeOf1Circle;
+class cCodesOf1Target;
+class cParamCodedTarget;
+class cDCT;
+
 
 typedef cSetISingleFixed<tU_INT4>  tBinCodeTarg;
 typedef std::vector<tBinCodeTarg> tVSetICT;
@@ -91,11 +23,73 @@ typedef cIm2D<tU_INT1>     tImTarget;
 typedef cDataIm2D<tU_INT1> tDataImT;
 
 
-/*  *********************************************************** */
-/*                                                              */
-/*                      cParamCodedTarget                       */
-/*                                                              */
-/*  *********************************************************** */
+/*   ==============  Simulation  =============  */
+
+class cGeomSimDCT
+{
+    public :
+       cGeomSimDCT();
+       cGeomSimDCT(int aNum,const  cPt2dr& aC,const double& aR1,const double& aR2);
+       bool Intersect(const cGeomSimDCT &  aG2) const ;
+
+       cDCT * mResExtr;
+       int    mNum;
+       cPt2dr mC;            // Theoreticall center
+       cPt2dr mCornEl1;     // Theoreticall corner 1 of ellipse
+       cPt2dr mCornEl2;     // Theoreticall corner 2 of ellipse
+       double mR1;
+       double mR2;
+};
+void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD);
+
+class cResSimul
+{
+     public :
+       cResSimul() ;
+       static  cResSimul  FromFile(const std::string&);
+
+       double BorderGlob() const ;
+       std::string                mCom;
+       cPt2dr                     mRayMinMax;
+       double                     mBorder;
+       double                     mRatioMax;
+       std::vector<cGeomSimDCT>   mVG;
+};
+void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS);
+
+/*   ==============  Result extract  =============  */
+
+enum class eResDCT // Result Detect Code Target
+{
+     Ok,
+     Divg,
+     LowSym,
+     LowSymMin,
+     LowBin,
+     LowRad
+};
+
+class  cDCT
+{
+     public  :
+         cDCT(const cPt2di aPt,cAffineExtremum<tREAL4> & anAffEx);
+
+         cPt2di  Pix()  const {return ToI(mPt);}
+         cPt2di  Pix0() const {return mPix0;}
+
+         cGeomSimDCT * mGT;
+         cPt2di        mPix0;
+         cPt2dr        mPt;
+         eResDCT       mState;
+
+         double        mSym;
+         double        mBin;
+         double        mRad;
+
+};
+
+/*   ==============  Target spec  =============  */
+
 
 class cSetCodeOf1Circle
 {
@@ -155,6 +149,8 @@ class cParamCodedTarget
 
        cPt2dr    mCenterF;   // symetry center at end
        cPt2di    mSzF;       // sz at end
+       cPt2dr    mCornEl1;
+       cPt2dr    mCornEl2;
        cPt2dr    mMidle;
     // private :
 
@@ -168,7 +164,7 @@ class cParamCodedTarget
        int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
        int       mNbCircle;  // Number of circles encoding information
        int       mNbPixelBin;        // Number of pixel  Binary image
-       const double    mSz_CCB;      // size of central chekcboard/target , everything prop to it, 1 by convention
+       double    mSz_CCB;      // size of central chekcboard/target , everything prop to it, 1 by convention
 
        double    mThickN_WInt;  // Thickness white circle separating code/
        double    mThickN_Code;  // Thickness of coding part
@@ -192,8 +188,6 @@ class cParamCodedTarget
 };
 
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT);
-
-
 };
 };
 #endif // _CODED_TARGET_H_

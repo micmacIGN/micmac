@@ -10,46 +10,59 @@ namespace MMVII
 
 namespace  cNS_CodedTarget
 {
+ 
+/*  *********************************************************** */
+/*                                                              */
+/*                   cGeomSimDCT                                */
+/*                                                              */
+/*  *********************************************************** */
 
-class cGeomSimDCT
+bool cGeomSimDCT::Intersect(const cGeomSimDCT &  aG2) const 
 {
-    public :
-       cGeomSimDCT(){}
-       cGeomSimDCT(int aNum,const  cPt2dr& aC,const double& aR1,const double& aR2):
-           mNum (aNum),
-           mC   (aC),
-	   mR1  (aR1),
-	   mR2  (aR2)
-       {
-       }
-       bool Intersect(const cGeomSimDCT &  aG2) const {return  Norm2(mC-aG2.mC) < mR2+aG2.mR2 ;}
-       int    mNum;
-       cPt2dr mC;
-       double mR1;
-       double mR2;
-};
+     return  Norm2(mC-aG2.mC) < mR2+aG2.mR2 ;
+}
+cGeomSimDCT::cGeomSimDCT() :
+    mResExtr (nullptr)
+{
+}
+
+cGeomSimDCT::cGeomSimDCT(int aNum,const  cPt2dr& aC,const double& aR1,const double& aR2):
+    mResExtr (nullptr),
+    mNum (aNum),
+    mC   (aC),
+    mR1  (aR1),
+    mR2  (aR2)
+{
+}
 
 void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD)
 {
    MMVII::AddData(cAuxAr2007("Num",anAux),aGSD.mNum);
    MMVII::AddData(cAuxAr2007("Center",anAux),aGSD.mC);
+   MMVII::AddData(cAuxAr2007("CornEl1",anAux),aGSD.mCornEl1);
+   MMVII::AddData(cAuxAr2007("CornEl2",anAux),aGSD.mCornEl2);
    MMVII::AddData(cAuxAr2007("R1",anAux),aGSD.mR1);
    MMVII::AddData(cAuxAr2007("R2",anAux),aGSD.mR2);
 }
 
-class cResSimul
+/*  *********************************************************** */
+/*                                                              */
+/*                      cResSimul                               */
+/*                                                              */
+/*  *********************************************************** */
+
+cResSimul::cResSimul() :
+    mRayMinMax (15.0,60.0),
+    mBorder    (1.0),
+    mRatioMax  (3.0)
 {
-     public :	 
-       cResSimul() :
-           mRayMinMax (15.0,60.0),
-           mRatioMax  (3.0)
-	{
-	}
-       std::string                mCom;
-       cPt2dr                     mRayMinMax;
-       double                     mRatioMax;
-       std::vector<cGeomSimDCT>   mVG;
-};
+}
+
+double cResSimul::BorderGlob() const 
+{
+    return mBorder * mRayMinMax.y();
+}
+
 void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS)
 {
    MMVII::AddData(cAuxAr2007("Com",anAux),aRS.mCom);
@@ -57,6 +70,15 @@ void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS)
    MMVII::AddData(cAuxAr2007("RatioMax",anAux),aRS.mRatioMax);
    MMVII::AddData(cAuxAr2007("Geoms",anAux),aRS.mVG);
 }
+
+cResSimul  cResSimul::FromFile(const std::string& aName)
+{
+   cResSimul aRes;
+
+   ReadFromFile(aRes,aName);
+   return aRes;
+}
+
 
 
 /*  *********************************************************** */
@@ -87,7 +109,7 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
         // =========== other methods ============
 
         void  AddPosTarget(int aNum);  ///< Add the position of the target, don insert it
-        void  IncrustTarget(const cGeomSimDCT & aGSD);
+        void  IncrustTarget(cGeomSimDCT & aGSD);
 
 	double RandomRay() const;
 
@@ -99,8 +121,10 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
         // =========== Optionnal args ============
 	cResSimul           mRS;
 	int                 mPerN;
-	double              mDownScale;
         double              mSzKernel;
+
+                //  --   
+	double              mDownScale;
 	double              mAttenGray;
 	double              mPropSysLin;
 	double              mAmplWhiteNoise;
@@ -109,6 +133,7 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
         tIm                        mImIn;
         cParamCodedTarget          mPCT;
 	std::string                mDirTarget;
+	std::string                mPrefixOut;
 };
 
 
@@ -121,8 +146,8 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 cAppliSimulCodeTarget::cAppliSimulCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
    mPerN            (1),
-   mDownScale       (3.0),
    mSzKernel        (2.0),
+   mDownScale       (3.0),
    mAttenGray       (0.2),
    mPropSysLin      (0.2),
    mAmplWhiteNoise  (0.1),
@@ -145,6 +170,8 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
 	        anArgOpt
              <<   AOpt2007(mRS.mRayMinMax,"Rays","Min/Max ray for gen target",{eTA2007::HDV})
              <<   AOpt2007(mSzKernel,"SzK","Sz of Kernel for interpol",{eTA2007::HDV})
+             <<   AOpt2007(mRS.mBorder,"Border","Border w/o target, prop to R Max",{eTA2007::HDV})
+
              <<   AOpt2007(mPerN,"PerN","Period for target, to doc quick in test",{eTA2007::HDV,eTA2007::Tuning})
    ;
 }
@@ -155,9 +182,10 @@ double cAppliSimulCodeTarget::RandomRay() const { return RandInInterval(mRS.mRay
 
 void   cAppliSimulCodeTarget::AddPosTarget(int aNum)
 {
+     cBox2dr aBoxGenerate = mImIn.DIm().ToR().Dilate(-mRS.BorderGlob());
      for (int aK=0 ; aK< 200 ; aK++)
      {
-        cPt2dr  aC = mImIn.DIm().ToR() .GeneratePointInside();
+        cPt2dr  aC = aBoxGenerate.GeneratePointInside();
 	// StdOut() << "HHH " << aC << " K=" << aK << "\n";
         //  Compute two random ray in the given interval
         double  aR1 = RandomRay() ;
@@ -181,7 +209,7 @@ void   cAppliSimulCodeTarget::AddPosTarget(int aNum)
      }
 }
 
-void  cAppliSimulCodeTarget::IncrustTarget(const cGeomSimDCT & aGSD)
+void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
 {
     std::string aName = mDirTarget + mPCT.NameFileOfNum(aGSD.mNum);
     tIm aImT =  tIm::FromFile(aName).GaussDeZoom(mDownScale,5);
@@ -243,11 +271,24 @@ void  cAppliSimulCodeTarget::IncrustTarget(const cGeomSimDCT & aGSD)
 	    }
 	}
     }
+    aGSD.mCornEl1 = aMapT2Im.Value(mPCT.mCornEl1/mDownScale);
+    aGSD.mCornEl2 = aMapT2Im.Value(mPCT.mCornEl2/mDownScale);
+
+    if (0)  // Marking point specific, do it only for tuning
+    {
+        for (const auto & aDec : cRect2::BoxWindow(0))
+        {
+             aDImIn.SetV(ToI(aGSD.mCornEl1)+aDec,128);
+             aDImIn.SetV(ToI(aGSD.mCornEl2)+aDec,128);
+        }
+     }
+
     StdOut() << "NNN= " << aName << " C0=" << aC0 <<  aBoxIm.Sz() <<  " " << aGSD.mR2/aGSD.mR1 << "\n";
 }
 
 int  cAppliSimulCodeTarget::Exe()
 {
+   mPrefixOut =  "SimulTarget_" + LastPrefix(mNameIm);
    mRS.mCom = CommandOfMain();
    mPCT.InitFromFile(mNameTarget);
    mDirTarget =  DirOfPath(mNameTarget);
@@ -259,15 +300,14 @@ int  cAppliSimulCodeTarget::Exe()
         AddPosTarget(aNum);
         StdOut() <<  "Ccc=" << mRS.mVG.back().mC << "\n";
    }
-   SaveInFile(mRS,"SimulTarget_"+mNameIm +".xml");
 
-   for (const auto  & aG : mRS.mVG)
+   for (auto  & aG : mRS.mVG)
    {
        IncrustTarget(aG);
    }
+   SaveInFile(mRS,mPrefixOut +"_GroundTruth.xml");
 
-
-   mImIn.DIm().ToFile("SimulTarget_"+mNameIm +".tif",eTyNums::eTN_U_INT1);
+   mImIn.DIm().ToFile(mPrefixOut+".tif",eTyNums::eTN_U_INT1);
 
 
 
