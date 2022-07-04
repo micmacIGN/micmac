@@ -5,6 +5,11 @@ namespace MMVII
 {
 template <class Type>  class  cFilterDCT;
 
+namespace  cNS_CodedTarget
+{
+    class cDCT;
+};
+
 
 template <class Type>  class  cFilterDCT : public cMemCheck
 {
@@ -25,6 +30,9 @@ template <class Type>  class  cFilterDCT : public cMemCheck
            virtual void Reset() = 0;
            virtual void Add(const Type & aWeight,const cPt2dr & aNeigh) = 0;
            virtual double Compute() =0;
+
+           /// Some stuff computed by the filter may be of interest for followings
+           virtual void UpdateSelected(cNS_CodedTarget::cDCT & aDC) const ;
 
            double ComputeVal(const cPt2dr & aP);
            tIm    ComputeIm();

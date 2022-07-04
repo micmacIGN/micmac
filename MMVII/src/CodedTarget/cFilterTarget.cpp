@@ -6,6 +6,7 @@
 namespace MMVII
 {
 
+
 /* ================================================= */
 /*                                                   */
 /*               cFilterDCT                          */
@@ -62,6 +63,11 @@ template <class Type>
 template <class Type>  cFilterDCT<Type>::~cFilterDCT()
 {
 }
+
+template <class Type> void cFilterDCT<Type>::UpdateSelected(cNS_CodedTarget::cDCT & aDC)  const
+{
+}
+
 
 template <class Type>   void cFilterDCT<Type>::IncrK0(int & aK0)
 {
@@ -281,13 +287,23 @@ template <class Type>  class  cBinFilterCT : public cFilterDCT<Type>
 
            cBinFilterCT(tIm anIm,double aR0,double aR1);
 
+           void UpdateSelected(cNS_CodedTarget::cDCT & aDC) const override;
+
     private  :
           void Reset()               override;
           void Add(const Type & aWeight,const cPt2dr & aNeigh)   override;
           double Compute()           override;
 
           std::vector<float> mVVal;
+          float mVBlack ;
+          float mVWhite ;
 };
+
+template<class Type> void  cBinFilterCT<Type>::UpdateSelected(cNS_CodedTarget::cDCT & aDC) const 
+{
+    aDC.mVBlack = mVBlack;
+    aDC.mVWhite = mVWhite;
+}
 
 template<class Type> void cBinFilterCT<Type>::Add(const Type & aWeight,const cPt2dr & aNeigh) 
 {
@@ -307,9 +323,9 @@ template<class Type> double  cBinFilterCT<Type>::Compute()
 
     int aIndBlack = round_ni(aPRop * aNb);
     int aIndWhite =  aNb-1- aIndBlack;
-    float aVBlack = mVVal[aIndBlack];
-    float aVWhite = mVVal[aIndWhite];
-    float aVThreshold = (aVBlack+aVWhite)/2.0;
+    mVBlack = mVVal[aIndBlack];
+    mVWhite = mVVal[aIndWhite];
+    float aVThreshold = (mVBlack+mVWhite)/2.0;
 
     int aNbBlack = 0;
     double aSumDifBlack = 0;
@@ -317,7 +333,7 @@ template<class Type> double  cBinFilterCT<Type>::Compute()
     for (const auto & aV : mVVal)
     {
         bool IsBLack = (aV <aVThreshold ) ;
-        float aVRef = (IsBLack ) ?  aVBlack : aVWhite;
+        float aVRef = (IsBLack ) ?  mVBlack : mVWhite;
         float aDif = std::abs(aVRef-aV);
         if (IsBLack)
         {
@@ -331,10 +347,10 @@ template<class Type> double  cBinFilterCT<Type>::Compute()
     }
     double aValue=1.0;
     int aNbWhite = aNb -aNbBlack;
-    if ((aNbBlack!=0) && (aNbWhite!= 0)  && (aVBlack!=aVWhite))
+    if ((aNbBlack!=0) && (aNbWhite!= 0)  && (mVBlack!=mVWhite))
     {
         double aDifMoy  =  aSumDifBlack/ aNbBlack + aSumDifWhite/aNbWhite;
-        aValue = aDifMoy  / (aVWhite - aVBlack);
+        aValue = aDifMoy  / (mVWhite - mVBlack);
     }
 	  
     return aValue;
@@ -514,6 +530,7 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool doCheck,cIm2D<TypeEl>  a
        /*               SCALITY                              */
        /* ================================================== */
 
+/*
 template <class Type>  class cComputeScaleInv
 {
        public :
@@ -524,7 +541,6 @@ template <class Type>  class cComputeScaleInv
 };
 
 
-/*
 template<class TypeEl> double ScalInv
                               (
                                   const  cDataIm2D<TypeEl> & aDIm1,
@@ -547,6 +563,115 @@ template<class TypeEl> double ScalInv
     }
 }
 */
+
+template <class Type>  class cExtractDir
+{
+     public :
+         typedef cIm2D<Type>     tIm;
+         typedef cDataIm2D<Type> tDIm;
+
+         cExtractDir(tIm anIm,double aRho0,double aRho1,double aRh0Init);
+         bool  DoExtract(cNS_CodedTarget::cDCT &) const;
+     public :
+
+          tIm     mIm;
+          tDIm&   mDIm;
+          typedef std::vector<cPt2dr> tVDir;
+
+          std::vector<tResFlux>   mVCircles;
+          std::vector<tVDir>      mVDIrC;
+       // (SortedVectOfRadius(aR0,aR1,IsSym))
+};
+
+template <class Type>  cExtractDir<Type>::cExtractDir(tIm anIm,double aRho0,double aRho1,double aRh0Init) :
+     mIm  (anIm),
+     mDIm (mIm.DIm())
+{
+    for (double aRho = aRh0Init ; aRho<aRho1 ; aRho++)
+    {
+         mVCircles.push_back(GetPts_Circle(cPt2dr(0,0),aRho,true));
+         mVDIrC.push_back(tVDir());
+
+         for (const auto& aPix :  mVCircles.back())
+         {
+               mVDIrC.back().push_back(VUnit(ToR(aPix)));
+         }
+    }
+}
+
+
+template <class Type>  bool cExtractDir<Type>::DoExtract(cNS_CodedTarget::cDCT & aDCT) const
+{
+     std::vector<float>  aVVals;
+     std::vector<bool>   aVIsW;
+     cPt2di aC= ToI(aDCT.mPt);
+     float aVThrs = (aDCT.mVBlack+aDCT.mVWhite)/2.0;
+
+     
+     cPt2dr aSomDir[2] = {{0,0},{0,0}};
+
+     for (int aKC=0 ; aKC<int(mVCircles.size()) ; aKC++)
+     {
+         const auto & aCircle  = mVCircles[aKC];
+         const auto & aVDir    = mVDIrC[aKC];
+         int aNbInC = aCircle.size();
+         aVVals.clear();
+         aVIsW.clear();
+         for (const auto & aPt : aCircle)
+         {
+             float aVal  = mDIm.GetV(aC+aPt);
+             aVVals.push_back(aVal);
+             aVIsW.push_back(aVal>aVThrs);
+         }
+         int aCpt = 0;
+         for (int  aKp=0 ; aKp<aNbInC ; aKp++)
+         {
+             int aKp1 = (aKp+1)%aNbInC;
+             if (aVIsW[aKp] != aVIsW[aKp1])
+             {
+                 aCpt++;
+                 cPt2dr aP1  = aVDir[aKp];
+                 cPt2dr aP2  = aVDir[aKp1];
+                 double aV1 = aVVals[aKp];
+                 double aV2 = aVVals[aKp1];
+                 cPt2dr aDir =   (aP1 *(aV2-aVThrs) + aP2 * (aVThrs-aV1)) / (aV2-aV1);
+                 if (SqN2(aDir)==0) return false;
+                 aDir = VUnit(aDir);
+                 aDir = aDir * aDir;  // make a tensor of it => double its angle
+                 aSomDir[aVIsW[aKp]] += aDir;
+             }
+         }
+         if (aCpt!=4 )  return false;
+     }
+
+     for (auto & aDir : aSomDir)
+     {
+         aDir = ToPolar(aDir,0.0);
+         aDir = FromPolar(1.0,aDir.y()/2.0);
+     }
+     if (aDCT.mGT)
+     {
+         StdOut() << aSomDir[0]  << " " << aSomDir[1]  << "\n";
+         StdOut() << VUnit(aDCT.mGT->mCornEl1-aDCT.mGT->mC)   << " " << VUnit(aDCT.mGT->mCornEl2-aDCT.mGT->mC) << "\n\n";
+     }
+     return true;
+}
+
+
+template class cExtractDir<tREAL4>;
+/*
+*/
+
+bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm)
+{
+    cExtractDir<tREAL4>  anED(anIm,3,8,5);
+    bool Ok = anED.DoExtract(aDCT);
+
+    return Ok;
+
+}
+
+
 
 /* ======================================== */
 /*           ALLOCATOR                      */

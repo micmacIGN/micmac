@@ -403,7 +403,6 @@ int  cAppliGenCodedTarget::Exe()
       mPCT.mCenterF = mPCT.mMidle / SzGaussDeZoom;
 
       double aRhoChB = ((mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar) * (mPCT.mNbPixelBin /2.0)  )/SzGaussDeZoom;
-      StdOut() << "RRRR " << aRhoChB << "\n";
       mPCT.mCornEl1 = mPCT.mCenterF+FromPolar(aRhoChB,M_PI/4.0);
       mPCT.mCornEl2 = mPCT.mCenterF+FromPolar(aRhoChB,3.0*(M_PI/4.0));
 

@@ -7,6 +7,7 @@
 
 namespace MMVII
 {
+bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm);
 
 namespace  cNS_CodedTarget
 {
@@ -214,6 +215,7 @@ void cAppliExtractCodeTarget::SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool M
       if (aDCT->mState == eResDCT::Ok)
       {
          double aSc =  MinCrown ?   aFilter->ComputeValMaxCrown(aDCT->mPt,aThrS)   : aFilter->ComputeVal(aDCT->mPt);
+         aFilter->UpdateSelected(*aDCT);
          if (aSc>aThrS)
             aDCT->mState = aModeSup;
       }
@@ -234,11 +236,11 @@ void cAppliExtractCodeTarget::MatchOnGT(cGeomSimDCT & aGSD)
      {
 	aGSD.mResExtr = aWMin.IndexExtre();
 	aGSD.mResExtr->mGT =& aGSD;
-        StdOut()<< "ddddd " << Norm2(aGSD.mC- aGSD.mResExtr->mPt)  << " " <<  Norm2(aGSD.mC- ToR(aGSD.mResExtr->mPix0))  << "\n";
+        // StdOut()<< "ddddd " << Norm2(aGSD.mC- aGSD.mResExtr->mPt)  << " " <<  Norm2(aGSD.mC- ToR(aGSD.mResExtr->mPix0))  << "\n";
      }
      else
      {
-        StdOut()<< "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn\n";
+        // StdOut()<< "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn\n";
      }
 }
 
@@ -290,11 +292,25 @@ void  cAppliExtractCodeTarget::DoExtract()
      //   ====   Radial filters ====
      SelectOnFilter(cFilterDCT<tREAL4>::AllocRad(mImGrad,3.5,5.5,1.0),false,0.5,eResDCT::LowRad);
 
+
      // Min of symetry
      SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,4,8,1),true,0.8,eResDCT::LowSym);
 
      // Min of bin 
      SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,4,8),true,mTHRS_Bin,eResDCT::LowBin);
+
+
+     
+     for (auto aPtrDCT : mVDCT)
+     {
+          // if (aPtrDCT->mGT)
+          if (aPtrDCT->mState == eResDCT::Ok)
+          {
+             if (!TestDirDCT(*aPtrDCT,APBI_Im()))
+                aPtrDCT->mState = eResDCT::BadDir ;
+          }
+     }
+     ShowStats("ExtractDir");
 
      //   ====   MinOf Symetry ====
      //   ====   MinOf Symetry ====

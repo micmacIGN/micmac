@@ -66,7 +66,8 @@ enum class eResDCT // Result Detect Code Target
      LowSym,
      LowSymMin,
      LowBin,
-     LowRad
+     LowRad,
+     BadDir
 };
 
 class  cDCT
@@ -85,6 +86,9 @@ class  cDCT
          double        mSym;
          double        mBin;
          double        mRad;
+
+         float         mVBlack;
+         float         mVWhite;
 
 };
 
