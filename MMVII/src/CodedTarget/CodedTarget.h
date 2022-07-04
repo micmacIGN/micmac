@@ -81,6 +81,8 @@ class  cDCT
          cGeomSimDCT * mGT;
          cPt2di        mPix0;
          cPt2dr        mPt;
+         cPt2dr        mDirC1;     //  Direction of corner 1
+         cPt2dr        mDirC2;     //  Direction of corner 2
          eResDCT       mState;
 
          double        mSym;

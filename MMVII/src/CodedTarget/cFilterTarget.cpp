@@ -569,25 +569,38 @@ template <class Type>  class cExtractDir
      public :
          typedef cIm2D<Type>     tIm;
          typedef cDataIm2D<Type> tDIm;
+	 typedef cNS_CodedTarget::cDCT tDCT;
 
          cExtractDir(tIm anIm,double aRho0,double aRho1,double aRh0Init);
-         bool  DoExtract(cNS_CodedTarget::cDCT &) const;
+         bool  DoExtract(tDCT &) ;
      public :
+
+	 double Score(const cPt2dr & ,double aTeta); 
+	 cPt2dr OptimScore(const cPt2dr & ,double aStepTeta); 
+
 
           tIm     mIm;
           tDIm&   mDIm;
+          float   mRho0;
+          float   mRho1;
+          float   mRho0Init;
           typedef std::vector<cPt2dr> tVDir;
 
           std::vector<tResFlux>   mVCircles;
           std::vector<tVDir>      mVDIrC;
+          float                   mVThrs ;
+	  tDCT *                  mPDCT;
        // (SortedVectOfRadius(aR0,aR1,IsSym))
 };
 
-template <class Type>  cExtractDir<Type>::cExtractDir(tIm anIm,double aRho0,double aRho1,double aRh0Init) :
-     mIm  (anIm),
-     mDIm (mIm.DIm())
+template <class Type>  cExtractDir<Type>::cExtractDir(tIm anIm,double aRho0,double aRho1,double aRho0Init) :
+     mIm        (anIm),
+     mDIm       (mIm.DIm()),
+     mRho0      (aRho0),
+     mRho1      (aRho1),
+     mRho0Init  (aRho0Init)
 {
-    for (double aRho = aRh0Init ; aRho<aRho1 ; aRho++)
+    for (double aRho = aRho0Init ; aRho<aRho1 ; aRho++)
     {
          mVCircles.push_back(GetPts_Circle(cPt2dr(0,0),aRho,true));
          mVDIrC.push_back(tVDir());
@@ -599,13 +612,82 @@ template <class Type>  cExtractDir<Type>::cExtractDir(tIm anIm,double aRho0,doub
     }
 }
 
-
-template <class Type>  bool cExtractDir<Type>::DoExtract(cNS_CodedTarget::cDCT & aDCT) const
+template <class Type>  double cExtractDir<Type>::Score(const cPt2dr & aDInit,double aDeltaTeta) 
 {
+    cPt2dr aDir = aDInit * FromPolar(1.0,aDeltaTeta);
+    double aSomDiff = 0.0;
+    double aStepRho = 1.0;
+    int aNb=0;
+
+    for (double aRho =mRho0 ; aRho<mRho1; aRho+=aStepRho)
+    {
+         float aV1 = mDIm.GetVBL(mPDCT->mPt+aRho* aDir);
+         float aV2 = mDIm.GetVBL(mPDCT->mPt-aRho* aDir);
+
+	 aSomDiff += std::abs(aV1-mVThrs) + std::abs(aV2-mVThrs);
+	 aNb += 2;
+    }
+
+    return aSomDiff /aNb;
+}
+
+template <class Type>  cPt2dr cExtractDir<Type>::OptimScore(const cPt2dr & aDir,double aStepTeta)
+{
+    cWhitchMin<int,double>  aWMin(0,1e10);
+
+    for (int aK=-1; aK<=1 ; aK++)
+        aWMin.Add(aK,Score(aDir,aStepTeta*aK));
+
+    aStepTeta *= aWMin.IndexExtre();
+
+    if (aStepTeta==0) return aDir;
+
+    double aScore = aWMin.ValExtre();
+    double aScorePrec = 2*aScore;
+    int aKTeta = 1;
+
+    while(aScore < aScorePrec)
+    {
+	 aScorePrec = aScore;
+	 aScore= Score(aDir,aStepTeta*(aKTeta+1));
+	 aKTeta++;
+    }
+    aKTeta--;
+
+    return aDir * FromPolar(1.0,aKTeta*aStepTeta);
+
+}
+
+double TestDir(const cNS_CodedTarget::cGeomSimDCT & aGT,const cNS_CodedTarget::cDCT  &aDCT)
+{
+    cPt2dr anEl1 = VUnit(aGT.mCornEl1-aGT.mC) ;
+    cPt2dr anEl2 = VUnit(aGT.mCornEl2-aGT.mC) ;
+
+    //StdOut()<<  (anEl1^anEl2) <<  " " <<  (aDCT.mDirC1 ^aDCT.mDirC2) << "\n";
+
+    if (Scal(anEl2,aDCT.mDirC2) < 0)
+    {
+        anEl1 = - anEl1;
+        anEl2 = - anEl2;
+    }
+
+    cPt2dr aD1 = anEl1 / aDCT.mDirC1;
+    cPt2dr aD2 = anEl2 / aDCT.mDirC2;
+
+
+    double aSc =  (std::abs(ToPolar(aD1).y()) + std::abs( ToPolar(aD2).y())) /  2.0 ;
+
+    return aSc;
+}
+
+
+template <class Type>  bool cExtractDir<Type>::DoExtract(cNS_CodedTarget::cDCT & aDCT) 
+{
+     mPDCT = & aDCT;
      std::vector<float>  aVVals;
      std::vector<bool>   aVIsW;
      cPt2di aC= ToI(aDCT.mPt);
-     float aVThrs = (aDCT.mVBlack+aDCT.mVWhite)/2.0;
+     mVThrs = (aDCT.mVBlack+aDCT.mVWhite)/2.0;
 
      
      cPt2dr aSomDir[2] = {{0,0},{0,0}};
@@ -621,7 +703,7 @@ template <class Type>  bool cExtractDir<Type>::DoExtract(cNS_CodedTarget::cDCT &
          {
              float aVal  = mDIm.GetV(aC+aPt);
              aVVals.push_back(aVal);
-             aVIsW.push_back(aVal>aVThrs);
+             aVIsW.push_back(aVal>mVThrs);
          }
          int aCpt = 0;
          for (int  aKp=0 ; aKp<aNbInC ; aKp++)
@@ -634,7 +716,7 @@ template <class Type>  bool cExtractDir<Type>::DoExtract(cNS_CodedTarget::cDCT &
                  cPt2dr aP2  = aVDir[aKp1];
                  double aV1 = aVVals[aKp];
                  double aV2 = aVVals[aKp1];
-                 cPt2dr aDir =   (aP1 *(aV2-aVThrs) + aP2 * (aVThrs-aV1)) / (aV2-aV1);
+                 cPt2dr aDir =   (aP1 *(aV2-mVThrs) + aP2 * (mVThrs-aV1)) / (aV2-aV1);
                  if (SqN2(aDir)==0) return false;
                  aDir = VUnit(aDir);
                  aDir = aDir * aDir;  // make a tensor of it => double its angle
@@ -649,18 +731,32 @@ template <class Type>  bool cExtractDir<Type>::DoExtract(cNS_CodedTarget::cDCT &
          aDir = ToPolar(aDir,0.0);
          aDir = FromPolar(1.0,aDir.y()/2.0);
      }
+     aDCT.mDirC1 = aSomDir[1];
+     aDCT.mDirC2 = aSomDir[0];
+
+     // As each directio is up to Pi, make it oriented
+     if ( (aDCT.mDirC1^aDCT.mDirC2) < 0)
+     {
+         aDCT.mDirC2 = -aDCT.mDirC2;
+     }
+
      if (aDCT.mGT)
      {
-         StdOut() << aSomDir[0]  << " " << aSomDir[1]  << "\n";
-         StdOut() << VUnit(aDCT.mGT->mCornEl1-aDCT.mGT->mC)   << " " << VUnit(aDCT.mGT->mCornEl2-aDCT.mGT->mC) << "\n\n";
+// aDCT.mDirC1  =aDCT.mDirC1 * FromPolar(1.0,0.05);
+// aDCT.mDirC2  =aDCT.mDirC2 * FromPolar(1.0,-0.05);
+
+        double aSc1 = TestDir(*aDCT.mGT,aDCT);
+        aDCT.mDirC1 =  OptimScore(aDCT.mDirC1,1e-3);
+        aDCT.mDirC2 =  OptimScore(aDCT.mDirC2,1e-3);
+
+        double aSc2 = TestDir(*aDCT.mGT,aDCT);
+        StdOut() << " * ScDirs=  " << aSc1  << " " << aSc2 << "\n";
      }
      return true;
 }
 
 
 template class cExtractDir<tREAL4>;
-/*
-*/
 
 bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm)
 {
