@@ -5,10 +5,15 @@ namespace MMVII
 {
 template <class Type>  class  cFilterDCT;
 
+
+
 namespace  cNS_CodedTarget
 {
     class cDCT;
 };
+
+bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB);
+
 
 
 template <class Type>  class  cFilterDCT : public cMemCheck

@@ -85,6 +85,8 @@ class  cDCT
          cPt2dr        mDirC2;     //  Direction of corner 2
          eResDCT       mState;
 
+         double        mScRadDir; /// Score of matching radiom
+         double        mCorMinDir; /// Score of matching radiom
          double        mSym;
          double        mBin;
          double        mRad;
