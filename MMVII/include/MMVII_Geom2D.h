@@ -69,6 +69,7 @@ template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
        cSegment2DCompiled(const tPt& aP1,const tPt& aP2);
        tPt  ToCoordLoc(const tPt&) const;
        tPt  FromCoordLoc(const tPt&) const;
+       Type  Dist(const tPt&) const;
     private :
        tPt     mNorm;
 };

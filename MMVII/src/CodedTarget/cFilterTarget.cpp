@@ -570,6 +570,7 @@ template <class Type>  class cExtractDir
          typedef cIm2D<Type>     tIm;
          typedef cDataIm2D<Type> tDIm;
 	 typedef cNS_CodedTarget::cDCT tDCT;
+         typedef std::vector<cPt2dr> tVDir;
 
          cExtractDir(tIm anIm,double aRho0,double aRho1,double aRh0Init);
          bool  DoExtract(tDCT &) ;
@@ -584,8 +585,8 @@ template <class Type>  class cExtractDir
           float   mRho0;
           float   mRho1;
           float   mRho0Init;
-          typedef std::vector<cPt2dr> tVDir;
 
+	  tResFlux                mPtsCrown;
           std::vector<tResFlux>   mVCircles;
           std::vector<tVDir>      mVDIrC;
           float                   mVThrs ;
@@ -598,7 +599,8 @@ template <class Type>  cExtractDir<Type>::cExtractDir(tIm anIm,double aRho0,doub
      mDIm       (mIm.DIm()),
      mRho0      (aRho0),
      mRho1      (aRho1),
-     mRho0Init  (aRho0Init)
+     mRho0Init  (aRho0Init),
+     mPtsCrown  (SortedVectOfRadius(mRho0,mRho1))
 {
     for (double aRho = aRho0Init ; aRho<aRho1 ; aRho++)
     {
@@ -740,17 +742,52 @@ template <class Type>  bool cExtractDir<Type>::DoExtract(cNS_CodedTarget::cDCT &
          aDCT.mDirC2 = -aDCT.mDirC2;
      }
 
+     aDCT.mDirC1 =  OptimScore(aDCT.mDirC1,1e-3);
+     aDCT.mDirC2 =  OptimScore(aDCT.mDirC2,1e-3);
+
+     cAffin2D  aInit2Loc(aDCT.mPt,aDCT.mDirC1,aDCT.mDirC2);
+     cAffin2D  aLoc2Init = aInit2Loc.MapInverse();
+
+     cSegment2DCompiled aSeg1(aDCT.mPt,aDCT.mDirC1);
+     cSegment2DCompiled aSeg2(aDCT.mPt,aDCT.mDirC2);
+
+     FakeUseIt(aLoc2Init);
+
+
+     double aSomWeight = 0.0;
+     double aSomWEc     = 0.0;
+     for (const auto & aPCr : mPtsCrown)
+     {
+          cPt2di aIPix = aPCr+aDCT.Pix();
+          cPt2dr aRPix = ToR(aIPix);
+          cPt2dr aRPixInit = aLoc2Init.Value(aRPix);
+
+	  float aVal = mDIm.GetV(aIPix);
+	  bool isW = ((aRPixInit.x()>=0) != (aRPixInit.y()>=0) );
+	  float aValTheo = isW ?  aDCT.mVWhite : aDCT.mVBlack;
+
+	  double aWeight = 1.0;
+	  double aD1 =  aSeg1.Dist(aRPix);
+	  double aD2 =  aSeg2.Dist(aRPix);
+	  aWeight = std::min(   std::min(aD1,1.0), std::min(aD2,1.0));
+
+	  aSomWeight += aWeight;
+	  aSomWEc +=  aWeight * std::abs(aValTheo-aVal);
+     }
+
+     aSomWEc /= aSomWeight;
+     double aDev = aDCT.mVWhite - aDCT.mVBlack;
+
+
+     if (aDCT.mGT)
+        StdOut() << "Difff=" <<    aSomWEc / aDev  << "   "  << (aDCT.mGT ? "++" : "--") << "\n"; 
      if (aDCT.mGT)
      {
-// aDCT.mDirC1  =aDCT.mDirC1 * FromPolar(1.0,0.05);
-// aDCT.mDirC2  =aDCT.mDirC2 * FromPolar(1.0,-0.05);
-
+	     /*
         double aSc1 = TestDir(*aDCT.mGT,aDCT);
-        aDCT.mDirC1 =  OptimScore(aDCT.mDirC1,1e-3);
-        aDCT.mDirC2 =  OptimScore(aDCT.mDirC2,1e-3);
-
         double aSc2 = TestDir(*aDCT.mGT,aDCT);
         StdOut() << " * ScDirs=  " << aSc1  << " " << aSc2 << "\n";
+     */
      }
      return true;
 }
