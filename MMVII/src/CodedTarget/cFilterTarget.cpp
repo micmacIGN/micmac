@@ -16,13 +16,13 @@ namespace MMVII
 template <class Type>  
    cFilterDCT<Type>::cFilterDCT
    (
-          bool        isCumul,
-          eDCTFilters aModeF,
-          tIm anIm,
-          bool IsSym,
-          double aR0,
-          double aR1,
-          double aThickN
+          bool        isCumul,  // is it efficient as cumul filter
+          eDCTFilters aModeF,   // type of filter
+          tIm anIm,             // first image (give the size)
+          bool IsSym,           // Is it symetric
+          double aR0,           // R min
+          double aR1,           // R Max
+          double aThickN        // thickness use in "min value mode"
    ) :
       mIsCumul (isCumul),
       mModeF   (aModeF),
@@ -33,13 +33,15 @@ template <class Type>
       mR0      (aR0),
       mR1      (aR1),
       mThickN  (aThickN),
-      mIVois   (SortedVectOfRadius(aR0,aR1,IsSym))
+      mIVois   (SortedVectOfRadius(aR0,aR1,IsSym))   // sorted by ray neigboor, with o w/o symetric pixel
 {
+   // compute real neigboor
    for (const auto & aPix : mIVois)
-       mRVois.push_back(ToR(aPix));
+       mRVois.push_back(ToR(aPix));  
 
    mRhoEnd = Norm2(mRVois.back());
 
+   //  compute the series of intervall,  
    int aK0=0;
    int aK1=aK0;
    if (mIsCumul)
@@ -102,12 +104,6 @@ template <class Type> double cFilterDCT<Type>::ComputeVal(const cPt2dr & aP)
 
 template <class Type> double cFilterDCT<Type>::ComputeValMaxCrown(const cPt2dr & aP,const double & aThreshold)
 {
-	/*
-static int aCpt=0; aCpt ++;
-StdOut() <<  "CCCC  " << aCpt <<  " Cum " << mIsCumul << "\n";
-BUGF = (aCpt==  9137);
-*/
-
     mCurC = aP;
     double aVMax = -1;
 
@@ -191,6 +187,11 @@ template <class Type>  eDCTFilters cFilterDCT<Type>::ModeF() const {return mMode
 /*                                                   */
 /* ================================================= */
 
+/** Class for defining the symetry filter 
+
+    See  cSymMeasure  in "include/MMVII_Matrix.h"
+*/
+
 template <class Type>  class  cSymFilterCT : public cFilterDCT<Type>
 {
     public :
@@ -200,34 +201,46 @@ template <class Type>  class  cSymFilterCT : public cFilterDCT<Type>
            cSymFilterCT(tIm anIm,double aR0,double aR1,double aEpsilon);
 
     private  :
-          void Reset()               override;
+          /// method used when a new neighboor arrive
           void Add(const Type & aWeight,const cPt2dr & aNeigh)   override;
+          /// compute the value once a pixel is arrived
           double Compute()           override;
+          /// Reset the computation once we begin a new pixel
+          void Reset()               override;
 
           cSymMeasure<Type> SM() const;
-          double mEpsilon ;
-          cSymMeasure<Type> mSM;
+          double mEpsilon ; ///< used to not devide by zero when constant distribution (max of stddev an Eps)
+          cSymMeasure<Type> mSM; ///<  measure the symetry
 };
+
+template <class Type>  void  cSymFilterCT<Type>::Add(const Type & aW,const cPt2dr & aNeigh)
+{
+     Type aV1 = this->mDIm.GetVBL(this->mCurC+aNeigh);  // compute value of Neigh
+     Type aV2 = this->mDIm.GetVBL(this->mCurC-aNeigh);  // compute value of its symetric
+     mSM.Add(aW,aV1,aV2);   // Add thi pair of value to the symetric
+}
 
 
 template <class Type>  void  cSymFilterCT<Type>::Reset()
 {
-          mSM = cSymMeasure<Type>();
+          mSM = cSymMeasure<Type>();  // reinitialise the symetry object
 }
 
-template <class Type>  void  cSymFilterCT<Type>::Add(const Type & aW,const cPt2dr & aNeigh)
-{
-     Type aV1 = this->mDIm.GetVBL(this->mCurC+aNeigh);
-     Type aV2 = this->mDIm.GetVBL(this->mCurC-aNeigh);
-     mSM.Add(aW,aV1,aV2);
-}
 template <class Type>  double  cSymFilterCT<Type>::Compute() 
 {
-     return mSM.Sym(mEpsilon);
+     return mSM.Sym(mEpsilon);  
 }
 
 template <class Type>  cSymFilterCT<Type>::cSymFilterCT(tIm anIm,double aR0,double aR1,double aEpsilon) :
-    cFilterDCT<Type>(true,eDCTFilters::eSym,anIm,true,aR0,aR1),
+    cFilterDCT<Type>
+    (
+           true,  // I am efficient in cumulation
+           eDCTFilters::eSym,  // this is my nature
+           anIm,   // first (an only here) image I am workin
+           true,   // I am symetruc
+           aR0,    // minimal ray of crown
+           aR1     // max ray of crown
+    ),
     mEpsilon (aEpsilon)
 {
 }

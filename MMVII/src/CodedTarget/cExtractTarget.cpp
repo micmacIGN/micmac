@@ -55,7 +55,6 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 	/// compute direction of ellipses
         void ExtractDir(cDCT & aDCT);
 	/// Print statistique initial 
-        void ShowStatGTInit();
 
 	int ExeOnParsedBox() override;
 
@@ -85,7 +84,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
         std::vector<cDCT*>  mVDCT; ///< vector of detected target
         std::vector<cDCT*>  mVDCTOk; ///< sub vector of detected target Ok,
-	cResSimul           mRSim; ///< result of simulation when exist
+	cResSimul           mGTResSim; ///< result of simulation when exist
 
 
         cRGBImage      mImVisu;
@@ -155,7 +154,16 @@ void cAppliExtractCodeTarget::ShowStats(const std::string & aMes)
       if (aR->mState == eResDCT::Ok)
          aNbOk++;
    }
-   StdOut() <<  aMes << " NB DCT = " << aNbOk << " Prop " << (double) aNbOk / (double) APBI_DIm().NbElem() << "\n";
+   StdOut() <<  aMes << " NB DCT = " << aNbOk << " Prop " << (double) aNbOk / (double) APBI_DIm().NbElem() ;
+
+/*
+  if (mWithGT && )
+  {
+        //for (auto & aGSD : mGTResSim.mVG)
+  }
+*/
+
+   StdOut()   << "\n";
 }
 
 
@@ -240,7 +248,7 @@ void  cAppliExtractCodeTarget::DoExtract()
 
      if (mWithGT)
      {
-        for (auto & aGSD : mRSim.mVG)
+        for (auto & aGSD : mGTResSim.mVG)
              MatchOnGT(aGSD);
      }
          //
@@ -347,7 +355,7 @@ int  cAppliExtractCodeTarget::Exe()
    if (ExistFile(aNameGT))
    {
       mWithGT = true;
-      mRSim   = cResSimul::FromFile(aNameGT);
+      mGTResSim   = cResSimul::FromFile(aNameGT);
    }
  
    mTestedFilters = SubOfPat<eDCTFilters>(mPatF,true);
