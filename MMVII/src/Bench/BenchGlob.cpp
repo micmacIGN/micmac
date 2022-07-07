@@ -420,6 +420,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchEnum(aParam); // Read/Write of enum for which it exist
         this->BenchFiles(aParam); // Creation deletion of file
         Bench_Nums(aParam); // Basic numericall services
+        BenchHamming(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
         BenchSet(aParam,mDirTestMMVII);  // Set (in extension)
         BenchSelector(aParam,mDirTestMMVII);  // Set (in comprehension)

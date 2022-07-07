@@ -45,9 +45,9 @@ template <typename tVal> class cSetISingleFixed
 
          void AddElem(const tElem & anElem) {mFlagBits |= FlagSingle(anElem);}
 
+         cSetISingleFixed(const tVal & aFlagBit) : mFlagBits (aFlagBit) {}
     private :
          static constexpr  size_t NbBits = 8 *sizeof(tVal);
-         cSetISingleFixed(const tVal & aFlagBit) : mFlagBits (aFlagBit) {}
          static tVal  FlagSingle(const tElem & anElem) {return (1<<anElem);}
 
          tVal    mFlagBits;

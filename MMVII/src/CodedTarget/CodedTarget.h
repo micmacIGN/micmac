@@ -163,7 +163,8 @@ class cParamCodedTarget
        int NbCodeAvalaible() const;         // Number of different code we can generate
        int BaseForNum() const;         // Base used for converting integer to string
        cCodesOf1Target CodesOfNum(int);     // One combinaison of binary code
-       tImTarget  MakeIm(const cCodesOf1Target &);  // Generate the image of 1 combinaison
+       tImTarget  MakeImDrone(const cCodesOf1Target &);  // Generate the image of 1 combinaison
+       tImTarget  MakeImCircle(const cCodesOf1Target &);  // Generate the image of 1 combinaison
        tImTarget  MakeImCodeExt(const cCodesOf1Target &);  // Generate the image of 1 combinaison
 
        void AddData(const cAuxAr2007 & anAux);

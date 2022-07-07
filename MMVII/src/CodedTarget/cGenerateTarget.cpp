@@ -238,7 +238,7 @@ bool cParamCodedTarget::CodeBinOfPts(double aRho,double aTeta,const cCodesOf1Tar
      return aCodeBin.IsInside(aIndTeta);
 }
 
-tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
+tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT)
 {
      tImTarget aImT(mSzBin);
      tDataImT  & aDImT = aImT.DIm();
@@ -395,7 +395,7 @@ int  cAppliGenCodedTarget::Exe()
    {
       cCodesOf1Target aCodes = mPCT.CodesOfNum(aNum);
       aCodes.Show();
-      tImTarget aImT= mPCT.MakeIm(aCodes);
+      tImTarget aImT= mPCT.MakeImCircle(aCodes);
       
       // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
       // FakeUseIt(aCodes);
