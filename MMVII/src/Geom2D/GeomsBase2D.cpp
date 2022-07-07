@@ -40,6 +40,11 @@ template <class Type> cPtxd<Type,2> cSegment2DCompiled<Type>::FromCoordLoc(const
     return  this->mP1 + this->mTgt*aPt.x()  + mNorm*aPt.y();
 }
 
+template <class Type> Type cSegment2DCompiled<Type>::Dist(const tPt& aPt) const
+{
+    return std::abs(Scal(mNorm,aPt - this->mP1));
+}
+
 
 /* ========================== */
 /*          cSim2D            */

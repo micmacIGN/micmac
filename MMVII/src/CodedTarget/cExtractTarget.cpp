@@ -7,52 +7,37 @@
 
 namespace MMVII
 {
-
 namespace  cNS_CodedTarget
 {
+
+/*  *********************************************************** */
+/*                                                              */
+/*                       cDCT                                   */
+/*                                                              */
+/*  *********************************************************** */
+
+
+cDCT::cDCT(const cPt2di aPt,cAffineExtremum<tREAL4> & anAffEx) :
+   mGT       (nullptr),
+   mPix0     (aPt),
+   mPt       (anAffEx.StdIter(ToR(aPt),1e-2,3)),
+   mState    (eResDCT::Ok),
+   mScRadDir (1e5),
+   mSym      (1e5),
+   mBin      (1e5),
+   mRad      (1e5)
+
+{
+    if ( (anAffEx.Im().Interiority(Pix())<20) || (Norm2(mPt-ToR(aPt))>2.0)  )  
+       mState = eResDCT::Divg;
+}
+
+
 /*  *********************************************************** */
 /*                                                              */
 /*             cAppliExtractCodeTarget                          */
 /*                                                              */
 /*  *********************************************************** */
-
-enum class eResDCT // Result Detect Code Target
-{
-     Ok,
-     Divg,
-     LowSym,
-     LowSymMin,
-     LowBin,
-     LowRad
-};
-
-class  cDCT
-{
-     public  :
-         cDCT(const cPt2di aPt,cAffineExtremum<tREAL4> & anAffEx) :
-             mPix0  (aPt),
-             mPt    (anAffEx.StdIter(ToR(aPt),1e-2,3)),
-             mState (eResDCT::Ok),
-             mSym   (-1),
-             mBin   (-1),
-             mRad   (-1)
-         {
-               if ( (anAffEx.Im().Interiority(Pix())<20) || (Norm2(mPt-ToR(aPt))>2.0)  )  
-                    mState = eResDCT::Divg;
-         }
-
-         cPt2di  Pix()  const {return ToI(mPt);}
-         cPt2di  Pix0() const {return mPix0;}
-
-         cPt2di  mPix0;
-         cPt2dr  mPt;
-         eResDCT mState;
-
-         double  mSym;
-         double  mBin;
-         double  mRad;
-};
-
 
 class cAppliExtractCodeTarget : public cMMVII_Appli,
 	                        public cAppliParseBoxIm<tREAL4>
@@ -65,53 +50,73 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
+	///  Create the matching between GT and extracted
+        void MatchOnGT(cGeomSimDCT & aGSD);
+	/// compute direction of ellipses
+        void ExtractDir(cDCT & aDCT);
+	/// Print statistique initial 
+
 	int ExeOnParsedBox() override;
 
 	void TestFilters();
 	void DoExtract();
         void ShowStats(const std::string & aMes) ;
         void MarkDCT() ;
+        void SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool MinCrown,double aThrS,eResDCT aModeSup);
 
 	std::string mNameTarget;
 
 	cParamCodedTarget        mPCT;
+        double                   mDiamMinD;
 	cPt2dr                   mRaysTF;
         std::vector<eDCTFilters> mTestedFilters;    
 
-        double   mR0Sym;     ///< R min for first very quick selection on symetry
-        double   mR1Sym;     ///< R max for first very quick selection on symetry
-        double   mRExtreSym; ///< R to compute indice of local maximal of symetry
-        double   mTHRS_Sym; ///< Threshold for symetricity
+        cImGrad<tREAL4>  mImGrad;  ///< Result of gradient
+        double   mRayMinCB;        ///<  Ray Min CheckBoard
+        double   mR0Sym;           ///< R min for first very quick selection on symetry
+        double   mR1Sym;           ///< R max for first very quick selection on symetry
+        double   mRExtreSym;       ///< R to compute indice of local maximal of symetry
+        double   mTHRS_Sym;        ///< Threshold for symetricity
 
 
         double mTHRS_Bin;
+        void FilterDCTOk();
 
-        std::vector<cDCT>   mVDCT; ///< vector of detected target
+        std::vector<cDCT*>  mVDCT; ///< vector of detected target
+        std::vector<cDCT*>  mVDCTOk; ///< sub vector of detected target Ok,
+	cResSimul           mGTResSim; ///< result of simulation when exist
 
 
-        cRGBImage  mImVisu;
-        std::string mPatF;
+        cRGBImage      mImVisu;
+        std::string    mPatF;
+        bool           mWithGT;
+        double         mDMaxMatch;
          
 };
 
 
+
 /* *************************************************** */
 /*                                                     */
-/*              cAppliExtractCodeTarget                   */
+/*              cAppliExtractCodeTarget                */
 /*                                                     */
 /* *************************************************** */
 
 cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
    cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(5000,5000),cPt2di(300,300),false), // static_cast<cMMVII_Appli & >(*this))
+   mDiamMinD      (40.0),
    mRaysTF        ({4,8}),
+   mImGrad        (cPt2di(1,1)),
    mR0Sym         (3.0),
    mR1Sym         (8.0),
-   mRExtreSym     (7.0),
-   mTHRS_Sym      (0.8),
+   mRExtreSym     (9.0),
+   mTHRS_Sym      (0.7),
    mTHRS_Bin      (0.5),
    mImVisu        (cPt2di(1,1)),
-   mPatF          ("XXX")
+   mPatF          ("XXX"),
+   mWithGT        (false),
+   mDMaxMatch     (2.0)
 {
 }
 
@@ -134,6 +139,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
    return APBI_ArgOpt
 	  (
 	        anArgOpt
+                    << AOpt2007(mDiamMinD, "DMD","Diam min for detect",{eTA2007::HDV})
                     << AOpt2007(mRaysTF, "RayTF","Rays Min/Max for testing filter",{eTA2007::HDV,eTA2007::Tuning})
                     << AOpt2007(mPatF, "PatF","Pattern filters" ,{AC_ListVal<eDCTFilters>()})
 	  );
@@ -145,11 +151,21 @@ void cAppliExtractCodeTarget::ShowStats(const std::string & aMes)
    int aNbOk=0;
    for (const auto & aR : mVDCT)
    {
-      if (aR.mState == eResDCT::Ok)
+      if (aR->mState == eResDCT::Ok)
          aNbOk++;
    }
-   StdOut() <<  aMes << " NB DCT = " << aNbOk << " Prop " << (double) aNbOk / (double) APBI_DIm().NbElem() << "\n";
+   StdOut() <<  aMes << " NB DCT = " << aNbOk << " Prop " << (double) aNbOk / (double) APBI_DIm().NbElem() ;
+
+/*
+  if (mWithGT && )
+  {
+        //for (auto & aGSD : mGTResSim.mVG)
+  }
+*/
+
+   StdOut()   << "\n";
 }
+
 
 void cAppliExtractCodeTarget::MarkDCT() 
 {
@@ -157,18 +173,55 @@ void cAppliExtractCodeTarget::MarkDCT()
      {
           cPt3di aCoul (-1,-1,-1);
 
-          if (aDCT.mState == eResDCT::Ok)      aCoul =  cRGBImage::Green;
+          if (aDCT->mState == eResDCT::Ok)      aCoul =  cRGBImage::Green;
 	  /*
           if (aDCT.mState == eResDCT::Divg)    aCoul =  cRGBImage::Red;
           if (aDCT.mState == eResDCT::LowSym)  aCoul =  cRGBImage::Yellow;
           if (aDCT.mState == eResDCT::LowBin)  aCoul =  cRGBImage::Blue;
           if (aDCT.mState == eResDCT::LowRad)  aCoul =  cRGBImage::Cyan;
 	  */
-          if (aDCT.mState == eResDCT::LowSymMin)  aCoul =  cRGBImage::Red;
+          if (aDCT->mState == eResDCT::LowSymMin)  aCoul =  cRGBImage::Red;
 
 
           if (aCoul.x() >=0)
-             mImVisu.SetRGBrectWithAlpha(aDCT.Pix0(),2,aCoul,0.5);
+             mImVisu.SetRGBrectWithAlpha(aDCT->Pix0(),2,aCoul,0.5);
+     }
+}
+
+void cAppliExtractCodeTarget::SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool MinCrown,double aThrS,eResDCT aModeSup)
+{
+  mVDCTOk.clear();
+  for (auto & aDCT : mVDCT)
+  {
+      if (aDCT->mState == eResDCT::Ok)
+      {
+         double aSc =  MinCrown ?   aFilter->ComputeValMaxCrown(aDCT->mPt,aThrS)   : aFilter->ComputeVal(aDCT->mPt);
+         aFilter->UpdateSelected(*aDCT);
+         if (aSc>aThrS)
+            aDCT->mState = aModeSup;
+         else
+            mVDCTOk.push_back(aDCT);
+      }
+  }
+  ShowStats(E2Str(aFilter->ModeF()) + " Min=" +ToStr(MinCrown));
+  delete aFilter;
+}
+
+void cAppliExtractCodeTarget::MatchOnGT(cGeomSimDCT & aGSD)
+{
+
+     cWhitchMin<cDCT*,double>  aWMin(nullptr,1e10);
+
+     for (auto aPtrDCT : mVDCT)
+         aWMin.Add(aPtrDCT,SqN2(aPtrDCT->mPt-aGSD.mC));
+
+     if (aWMin.ValExtre() < Square(mDMaxMatch))
+     {
+	aGSD.mResExtr = aWMin.IndexExtre();
+	aGSD.mResExtr->mGT =& aGSD;
+     }
+     else
+     {
      }
 }
 
@@ -179,100 +232,77 @@ void  cAppliExtractCodeTarget::DoExtract()
      mImVisu =   RGBImFromGray(aDIm);
      // mNbPtsIm = aDIm.Sz().x() * aDIm.Sz().y();
 
-     // Extract point that are extremum of symetricity
-     cIm2D<tREAL4>  aImSym = ImSymetricity(false,aIm,mR0Sym,mR1Sym,0);
-     cResultExtremum aRExtre(true,false);
-     ExtractExtremum1(aImSym.DIm(),aRExtre,mRExtreSym);
+     // [1]   Extract point that are extremum of symetricity
+     
+         //    [1.1]   extract integer pixel
+     cIm2D<tREAL4>  aImSym = ImSymetricity(false,aIm,mRayMinCB*0.4,mRayMinCB*0.8,0);  // compute fast symetry
+     cResultExtremum aRExtre(true,false);              //structire for result of extremun , compute min not max
+     ExtractExtremum1(aImSym.DIm(),aRExtre,mRExtreSym);  // do the extraction
 
+         // [1.2]  afine to real coordinate by fiting quadratic models
      cAffineExtremum<tREAL4> anAffEx(aImSym.DIm(),2.0);
-
-
      for (const auto & aPix : aRExtre.mPtsMin)
      {
-          mVDCT.push_back(cDCT(aPix,anAffEx));
+          mVDCT.push_back(new cDCT(aPix,anAffEx));
      }
+
+     if (mWithGT)
+     {
+        for (auto & aGSD : mGTResSim.mVG)
+             MatchOnGT(aGSD);
+     }
+         //
      ShowStats("Init ");
 
      //   ====   Symetry filters ====
      for (auto & aDCT : mVDCT)
      {
-        if (aDCT.mState == eResDCT::Ok)
+        if (aDCT->mState == eResDCT::Ok)
         {
-           aDCT.mSym = aImSym.DIm().GetV(aDCT.Pix());
-           if (aDCT.mSym>mTHRS_Sym)
-              aDCT.mState = eResDCT::LowSym;  
+           aDCT->mSym = aImSym.DIm().GetV(aDCT->Pix());
+           if (aDCT->mSym>mTHRS_Sym)
+              aDCT->mState = eResDCT::LowSym;  
         }
      }
-     ShowStats("LowSym ");
+     ShowStats("LowSym");
 
      //   ====   Binarity filters ====
-     {
-         std::vector<cPt2di>  aVectVois =  VectOfRadius(6,8,false);
+     SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),false,mTHRS_Bin,eResDCT::LowBin);
 
-         for (auto & aDCT : mVDCT)
-         {
-             if (aDCT.mState == eResDCT::Ok)
-             {
-                 aDCT.mBin = IndBinarity(aDIm,aDCT.Pix(),aVectVois);
-                 if (aDCT.mBin>mTHRS_Bin)
-                    aDCT.mState = eResDCT::LowBin;  
-             }
-        }
-     }
-     ShowStats("Binary ");
 
      //   ====   Radial filters ====
+     SelectOnFilter(cFilterDCT<tREAL4>::AllocRad(mImGrad,3.5,5.5,1.0),false,0.5,eResDCT::LowRad);
+
+
+     // Min of symetry
+     SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,mRayMinCB*0.4,mRayMinCB*0.8,1),true,0.8,eResDCT::LowSym);
+
+     // Min of bin 
+     SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),true,mTHRS_Bin,eResDCT::LowBin);
+
+
+     
+     mVDCTOk.clear();
+     for (auto aPtrDCT : mVDCT)
      {
-         cImGrad<tREAL4>  aImG = Deriche(aDIm,1.0);
-         // std::vector<cPt2di>  aVectVois =  VectOfRadius(3.5,5.5,false);
-         std::vector<cPt2di>  aVectVois =  VectOfRadius(2,4,false);
-         std::vector<cPt2dr>  aVDir = VecDir(aVectVois);
-
-
-         for (auto & aDCT : mVDCT)
-         {
-             if (aDCT.mState == eResDCT::Ok)
-             {
-                 aDCT.mRad =  Starity (aImG,aDCT.mPt,aVectVois,aVDir,1.0);
-
-                 if (aDCT.mRad>0.5)
-                    aDCT.mState = eResDCT::LowRad;  
-             }
-        }
+          // if (aPtrDCT->mGT)
+          if (aPtrDCT->mState == eResDCT::Ok)
+          {
+             if (!TestDirDCT(*aPtrDCT,APBI_Im(),mRayMinCB))
+                aPtrDCT->mState = eResDCT::BadDir ;
+             else
+                mVDCTOk.push_back(aPtrDCT);
+          }
      }
-     ShowStats("Starity ");
+     ShowStats("ExtractDir");
+     StdOut()  << "MAINTAINED " << mVDCTOk.size() << "\n";
 
      //   ====   MinOf Symetry ====
-     {
-         // std::vector<cPt2di>  aVectVois =  VectOfRadius(3.5,5.5,false);
-         std::vector<tREAL8>  aVRadius ={3.0,4.0,5.0,6.0};
-         tREAL8 aThickN = 1.5;
-         
-         std::vector<std::vector<cPt2di> >  aVVOis ;
-         for (const auto & aRadius : aVRadius)
-             aVVOis.push_back(VectOfRadius(aRadius,aRadius+aThickN,true));
-/*
-
-         for (auto & aDCT : mVDCT)
-         {
-             if (aDCT.mState == eResDCT::Ok)
-             {
-                 double aMaxSym = 0.0;
-
-                 aDCT.mRad =  Starity (aImG,aDCT.mPt,aVectVois,aVDir,1.0);
-
-                 if (aDCT.mRad>0.5)
-                    aDCT.mState = eResDCT::LowRad;  
-             }
-        }
-*/
-     }
-     ShowStats("MaxSym ");
-
-
+     //   ====   MinOf Symetry ====
 
      MarkDCT() ;
      mImVisu.ToFile("VisuCodeTarget.tif");
+     // APBI_DIm().ToFile("VisuWEIGHT.tif");
 }
 
 
@@ -286,65 +316,33 @@ void  cAppliExtractCodeTarget::TestFilters()
 
      for (const auto & anEF :  mTestedFilters)
      {
-            StdOut()  << " F=" << E2Str(anEF) << "\n";
+          StdOut()  << " F=" << E2Str(anEF) << "\n";
+          cFilterDCT<tREAL4> * aFilter = nullptr;
 
-            cIm2D<tREAL4> aImF(cPt2di(1,1));
+	  if (anEF==eDCTFilters::eSym)
+	     aFilter =  cFilterDCT<tREAL4>::AllocSym(aIm,mRaysTF.x(),mRaysTF.y(),1);
 
-            if (anEF==eDCTFilters::eBin)
-                aImF = ImBinarity(aDIm,mRaysTF.x(),mRaysTF.y(),1.0);
+	  if (anEF==eDCTFilters::eBin)
+	     aFilter =  cFilterDCT<tREAL4>::AllocBin(aIm,mRaysTF.x(),mRaysTF.y());
 
-            if (anEF==eDCTFilters::eSym)
-                aImF = ImSymetricity(true,aIm,mRaysTF.x(),mRaysTF.y(),1.0);
+	  if (anEF==eDCTFilters::eRad)
+	     aFilter =  cFilterDCT<tREAL4>::AllocRad(mImGrad,mRaysTF.x(),mRaysTF.y(),1);
 
-            if (anEF==eDCTFilters::eRad)
-            {
-                cImGrad<tREAL4>  aImG = Deriche(aDIm,1.0);
-                aImF = ImStarity(aImG,mRaysTF.x(),mRaysTF.y(),1.0);
-            }
+	  if (aFilter)
+	  {
+              cIm2D<tREAL4>  aImF = aFilter->ComputeIm();
+	      std::string aName = "TestDCT_" +  E2Str(anEF)  + "_" + Prefix(mNameIm) + ".tif";
+	      aImF.DIm().ToFile(aName);
+	  }
 
-
-            if (aImF.DIm().Sz().x() > 1)
-            {
-	       std::string aName = "TestDCT_" +  E2Str(anEF)  + "_" + Prefix(mNameIm) + ".tif";
-	       aImF.DIm().ToFile(aName);
-            }
-
-/*
-  
-          cIm2D<tREAL4>  aImBin = ImBinarity(aDIm,aDist/1.5,aDist,1.0);
-	  std::string aName = "TestBin_" + ToStr(aDist) + "_" + Prefix(APBI_NameIm()) + ".tif";
-	  aImBin.DIm().ToFile(aName);
-	  StdOut() << "Done Bin\n";
-          cIm2D<tREAL4>  aImSym = ImSymetricity(aDIm,aDist/1.5,aDist,1.0);
-	  std::string aName = "TestSym_" + ToStr(aDist) + "_" + Prefix(APBI_NameIm()) + ".tif";
-	  aImSym.DIm().ToFile(aName);
-	  StdOut() << "Done Sym\n";
-*/
-
-	  /*
-          cIm2D<tREAL4>  aImStar = ImStarity(aImG,aDist/1.5,aDist,1.0);
-	  aName = "TestStar_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
-	  aImStar.DIm().ToFile(aName);
-	  StdOut() << "Done Star\n";
-
-          cIm2D<tREAL4>  aImMixte =   aImSym + aImStar * 2.0;
-	  aName = "TestMixte_" + ToStr(aDist) + "_" + Prefix(mNameIm) + ".tif";
-	  aImMixte.DIm().ToFile(aName);
-	  */
+	  delete aFilter;
      }
 
 }
 
 int cAppliExtractCodeTarget::ExeOnParsedBox()
 {
-/*
-   if (APBI_TestMode())
-   {
-   }
-   else
-   {
-   }
-*/
+   mImGrad    =  Deriche(APBI_DIm(),2.0);
    TestFilters();
    DoExtract();
 
@@ -353,13 +351,23 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 int  cAppliExtractCodeTarget::Exe()
 {
+   std::string aNameGT = LastPrefix(APBI_NameIm()) + std::string("_GroundTruth.xml");
+   if (ExistFile(aNameGT))
+   {
+      mWithGT = true;
+      mGTResSim   = cResSimul::FromFile(aNameGT);
+   }
+ 
    mTestedFilters = SubOfPat<eDCTFilters>(mPatF,true);
-   StdOut()  << " IIIIm=" << APBI_NameIm()   << "\n";
+   StdOut()  << " IIIIm=" << APBI_NameIm()   << " " << aNameGT << "\n";
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
       return ResultMultiSet();
 
    mPCT.InitFromFile(mNameTarget);
+   mRayMinCB = (mDiamMinD/2.0) * (mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar);
+
+// StdOut() << "mRayMinCB " << mRayMinCB << "\n"; getchar();
    APBI_ExecAll();  // run the parse file  SIMPL
 
 

@@ -71,6 +71,13 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
 {
     MMVII::AddData(cAuxAr2007("SzF",anAux),mSzF);
     MMVII::AddData(cAuxAr2007("CenterF",anAux),mCenterF);
+    MMVII::AddData(cAuxAr2007("CornEl1",anAux),mCornEl1);
+    MMVII::AddData(cAuxAr2007("CornEl2",anAux),mCornEl2);
+    MMVII::AddData(cAuxAr2007("SzCCB",anAux),mSz_CCB);
+    MMVII::AddData(cAuxAr2007("ThickN_WhiteInt",anAux),mThickN_WInt);
+    MMVII::AddData(cAuxAr2007("ThickN_Code",anAux),mThickN_Code);
+    MMVII::AddData(cAuxAr2007("ThickN_WhiteExt",anAux),mThickN_WExt);
+    MMVII::AddData(cAuxAr2007("ThickN_Car",anAux),mThickN_Car);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
@@ -391,10 +398,24 @@ int  cAppliGenCodedTarget::Exe()
       tImTarget aImT= mPCT.MakeIm(aCodes);
       
       // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
-      aImT.DIm().ToFile(mPCT.NameFileOfNum(aNum));
       // FakeUseIt(aCodes);
       mPCT.mSzF = aImT.DIm().Sz();
       mPCT.mCenterF = mPCT.mMidle / SzGaussDeZoom;
+
+      double aRhoChB = ((mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar) * (mPCT.mNbPixelBin /2.0)  )/SzGaussDeZoom;
+      mPCT.mCornEl1 = mPCT.mCenterF+FromPolar(aRhoChB,M_PI/4.0);
+      mPCT.mCornEl2 = mPCT.mCenterF+FromPolar(aRhoChB,3.0*(M_PI/4.0));
+
+      if (0)  // Marking point specific, do it only for tuning
+      {
+         for (const auto & aDec : cRect2::BoxWindow(3))
+         {
+              aImT.DIm().SetV(ToI(mPCT.mCornEl1)+aDec,128);
+              aImT.DIm().SetV(ToI(mPCT.mCornEl2)+aDec,128);
+         }
+      }
+
+      aImT.DIm().ToFile(mPCT.NameFileOfNum(aNum));
    }
 
    SaveInFile(mPCT,"Target_Spec.xml");

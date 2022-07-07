@@ -12,7 +12,7 @@
 namespace MMVII
 {
 
-typedef std::vector<cPt2di> tResFlux;
+// typedef std::vector<cPt2di> tResFlux;
 
 
 void  FluxToV2Points(tResFlux & aRes,Flux_Pts aFlux)
