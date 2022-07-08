@@ -33,8 +33,14 @@ Classes :
 */
 namespace NS_Bench_RSNL
 {
+#define  DEBUG_RSNL true
+#if (DEBUG_RSNL)
+constexpr double AMPL_Grid2Real= 0.0;   // Amplitude of random differerence between real position and regular grid
+constexpr double AMPL_Real2Init = 0.0;  // Amplitude of random and syst differerence  betwen real an init position
+#else
 constexpr double AMPL_Grid2Real= 0.1;   // Amplitude of random differerence between real position and regular grid
 constexpr double AMPL_Real2Init = 0.1;  // Amplitude of random and syst differerence  betwen real an init position
+#endif
 
 
 template <class Type>  class  cMainNetwork; 

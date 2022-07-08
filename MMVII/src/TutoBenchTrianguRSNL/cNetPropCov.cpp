@@ -24,15 +24,17 @@ template <class Type>  class  cElemNetwork : public cMainNetwork<Type>
 	void CalcCov(int aNbIter);
         void PropagCov();
 
+	 int DebugN() const {return mDebugN;}
     private :
         /// Give the homologous of point in the main network
         tPNet & MainHom(const tPNet &) const;
        
          tMainNW * mMainNW;
          cRect2    mBoxM;
-
          // We compute the global similitude from main to this local
          cSim2D<Type> mSimM2This;  
+
+	 int mDebugN; 
 };
 
 /* *************************************** */
@@ -41,14 +43,22 @@ template <class Type>  class  cElemNetwork : public cMainNetwork<Type>
 /*                                         */
 /* *************************************** */
 
+
 template <class Type> cElemNetwork<Type>::cElemNetwork(tMainNW & aMainNW,const cRect2 & aBoxM) :
         // We put the local box with origin in (0,0) because frozen point are on this point
           tMainNW     (eModeSSR::eSSR_LsqDense,cRect2(cPt2di(0,0),aBoxM.Sz()),false),
           mMainNW     (&aMainNW),
           mBoxM       (aBoxM),
-          mSimM2This  (tPt(0,0),tPt(1,0)) // (cSim2D<Type>::RandomSimInv(5.0,3.0,0.3))
+#if (DEBUG_RSNL)
+          mSimM2This  (tPt(0,0),tPt(1,0)) 
+#else 
+          (cSim2D<Type>::RandomSimInv(5.0,3.0,0.3))
+#endif
 
 {
+static int TheNumDebug=0;	
+mDebugN = ++TheNumDebug;
+
      //  To have the right scale compute mSimInd2G from mSimM2This 
     this->mSimInd2G =  mSimM2This   * mMainNW->SimInd2G() ;
     // make it a copy of mMainNW with some similitude
@@ -74,6 +84,8 @@ template <class Type>  void cElemNetwork<Type>::CalcCov(int aNbIter)
 
 template <class Type>  void cElemNetwork<Type>::PropagCov()
 {
+bool Bug = (mDebugN==3);
+
     std::vector<tPt> aVLoc;
     std::vector<tPt> aVMain;
     for (const auto & aPNet : this->mVPts)
@@ -81,10 +93,16 @@ template <class Type>  void cElemNetwork<Type>::PropagCov()
          const tPNet & aHomMain = MainHom(aPNet);
          aVLoc.push_back(aPNet.PCur());
          aVMain.push_back(aHomMain.PCur());
+ if (1|| Bug)
+ {
+     StdOut()  << "PTS " << aPNet.PCur() << " " <<  aHomMain.PCur()  << "\n";
+     StdOut()  << "  I " << aPNet.mInd << aPNet.mInd -  aHomMain.mInd  << "\n";
+ }
     }
     cSim2D<Type>  aSim =  cSim2D<Type>::FromExample(aVLoc,aVMain);
 
-    StdOut() << "SSS " << aSim.Tr() << " " << aSim.Sc() << "\n";
+    StdOut()  <<  mDebugN << " SSS " << aSim.Tr() << " " << aSim.Sc() << "\n";
+    getchar();
 }
 
 /* *************************************** */
