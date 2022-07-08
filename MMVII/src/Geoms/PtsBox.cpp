@@ -37,18 +37,6 @@ template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled
 }
 
 /* ========================== */
-/*    cSegment2DCompiled      */
-/* ========================== */
-
-/*
-template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const tPt& aP1,const tPt& aP2) :
-    cSegment<Type,2> (aP1,aP2),
-    mNorm            (Rot90(this->mTgt))
-{
-}
-*/
-
-/* ========================== */
 /*          ::                */
 /* ========================== */
 
@@ -974,12 +962,6 @@ template <const int Dim>  cTplBox<int,Dim> ToI(const  cTplBox<tREAL8,Dim> & aBox
 /*       INSTANTIATION        */
 /* ========================== */
 
-#define INSTANTIATE_GEOM_REAL(TYPE)\
-class cSegment2DCompiled<TYPE>;
-
-INSTANTIATE_GEOM_REAL(tREAL4)
-INSTANTIATE_GEOM_REAL(tREAL8)
-INSTANTIATE_GEOM_REAL(tREAL16)
 
 	/*
 template   cTplBox<tREAL8,2> ToR(const  cTplBox<int,2> & aBox);

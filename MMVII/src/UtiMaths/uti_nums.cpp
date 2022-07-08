@@ -1,7 +1,200 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_SetITpl.h"
 
 namespace MMVII
 {
+
+int HammingDist(tU_INT4 aV1,tU_INT4 aV2)
+{
+   int aCpt=0;
+   tU_INT4 aDif = aV1^aV2;
+ 
+   for (tU_INT4 aFlag=1; (aFlag<=aDif) ; aFlag <<= 1)
+   {
+       if (aFlag&aDif)
+          aCpt++;
+   }
+   return aCpt;
+}
+
+
+class  cHamingCoder
+{
+    public :
+         cHamingCoder(int aNbBitsIn);
+         tU_INT4  Coding(tU_INT4) const;
+
+	 int  UnCodeWhenCorrect(tU_INT4);
+         int NbBitsOut() const;
+         int NbBitsIn() const;
+         int NbBitsRed() const;
+
+         
+    private :
+        int mNbBitsIn;
+        int mNbBitsRed;
+        int mNbBitsOut;
+
+        std::vector<bool>  mIsBitRed;
+        std::vector<int>   mNumI2O;
+        std::vector<int>   mNumO2I;
+};
+
+int cHamingCoder::NbBitsOut() const { return mNbBitsOut; }
+int cHamingCoder::NbBitsRed() const { return mNbBitsRed; }
+int cHamingCoder::NbBitsIn () const { return mNbBitsIn ; }
+
+/*
+  x x   x
+0 1 2 3 4 5 6 7
+
+
+O2I: [-1,-1,-1,1,-1,2,3,4]
+I2O: [-1,3,5,6,7]
+
+*/  
+
+int cHamingCoder::UnCodeWhenCorrect(tU_INT4 aVal)
+{
+   aVal *= 2;
+
+    tU_INT4 aRes = 0;
+    for(int aK=1 ; aK<=mNbBitsIn ; aK++)
+    {
+	  if (aVal & (1<<mNumI2O[aK]))
+	     aRes |= (1<<(aK-1));		   
+    }
+
+    return (Coding(aRes) == aVal/2) ? aRes : -1;
+}
+
+tU_INT4 cHamingCoder::Coding(tU_INT4 aV) const
+{
+   cSetISingleFixed<tU_INT4> aSetV (aV);
+   std::vector<int> aVecBits =aSetV.ToVect();
+
+    int aRes = 0;
+    for(const auto & aNumBit : aVecBits)
+    {
+          aRes |= (1<< mNumI2O[aNumBit+1]);
+    }
+
+    for (int aK=0 ; aK<mNbBitsRed ; aK++)
+    {
+         int aFlag = 1<< aK;
+         int aCpt = 0;
+         for  (const auto & aBit : aVecBits)
+         {
+             if ((mNumI2O[aBit+1])&aFlag)
+                aCpt++;
+         }
+         if (aCpt%2)
+            aRes |= (1<<aFlag);
+    }
+
+   return aRes/2;
+}
+
+cHamingCoder::cHamingCoder(int aNbBitsIn) :
+   mNbBitsIn  (aNbBitsIn),
+   mNbBitsRed (1),
+   mNbBitsOut (mNbBitsIn+mNbBitsRed)
+{
+    while (  (1<<mNbBitsRed) <= mNbBitsOut)
+    {
+        mNbBitsRed++;
+        mNbBitsOut++;
+    }
+    //  StdOut() << "HHHC " << mNbBitsIn << " " << mNbBitsRed << " " <<  mNbBitsOut << "\n";
+    mIsBitRed = std::vector<bool>(mNbBitsOut+1,false);
+    mNumI2O   = std::vector<int> (mNbBitsIn+1,-1);
+    mNumO2I   = std::vector<int> (mNbBitsOut+1,-1);
+
+    for (int aK=0 ; aK<mNbBitsRed ; aK++)
+        mIsBitRed.at(1<<aK) = true;
+
+    int aKIn=1;
+    for (int aKOut=1 ; aKOut<=mNbBitsOut ; aKOut++)
+    {
+         if (! mIsBitRed[aKOut])
+         {
+            mNumO2I[aKOut] = aKIn ;
+            mNumI2O[aKIn ] = aKOut ;
+            aKIn++;
+         }
+    }
+    /*
+StdOut()   << "O2I: " <<  mNumO2I << "\n";
+StdOut()   << "I2O: " <<  mNumI2O << "\n";
+getchar();
+*/
+
+}
+
+void BenchHammingDist(int  aV1,int aV2)
+{
+   cSetISingleFixed<tU_INT4> aSetV (aV1^aV2);
+   int aC1 = aSetV.Cardinality(); 
+   int aC2 = HammingDist(aV1,aV2);
+
+   MMVII_INTERNAL_ASSERT_bench(aC1==aC2,"Ham dist");
+}
+
+void BenchHammingCode(int aNbB)
+{
+   cHamingCoder aHC(aNbB);
+   FakeUseIt(aHC);
+
+   std::vector<int>  aVC;
+   std::vector<bool>  aVIsCorrect(1<<aHC.NbBitsOut(),false);
+   for (int aK=0 ; aK<(1<<aNbB) ; aK++)
+   {
+      int aC = aHC.Coding(aK);
+      aVC.push_back(aC);
+      aVIsCorrect.at(aC) = true;
+      MMVII_INTERNAL_ASSERT_bench(aK==aHC.UnCodeWhenCorrect(aC),"Ham decode");
+      //  StdOut() << "HH " << aK << " "<< aC  << " " << aHC.UnCodeWhenCorrect(aC) << "\n";
+   }
+
+   for (tU_INT4 aK=0 ; aK<aVIsCorrect.size() ; aK++)
+   {
+       if (!aVIsCorrect[aK])
+       {
+            MMVII_INTERNAL_ASSERT_bench(aHC.UnCodeWhenCorrect(aK)==-1,"Ham decode");
+       }
+   }
+   for (int aK1=0 ; aK1<int(aVC.size()) ; aK1++)
+   {
+       cWhitchMin<int,int> aWM(-1,100);
+       for (int aK2=0 ; aK2<int(aVC.size()) ; aK2++)
+       {
+           if (aK1!=aK2)
+           {
+              aWM.Add(aK2,HammingDist(aVC[aK1],aVC[aK2]));
+           }
+       }
+       // StdOut() << "DH " << aWM.ValExtre() << "\n";
+       MMVII_INTERNAL_ASSERT_bench(aWM.ValExtre()>=3 ,"Ham dist");
+   }
+
+}
+
+void BenchHamming(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("Hamming")) return;
+
+    BenchHammingDist(0,2);
+    for (int aK1=0 ; aK1<23; aK1++)
+        for (int aK2=0 ; aK2<23; aK2++)
+            BenchHammingDist(aK1,aK2);
+
+    BenchHammingCode(4);
+    BenchHammingCode(11);
+    BenchHammingCode(13);
+    aParam.EndBench();
+}
+
+
 
 /* ****************  cDecomposPAdikVar *************  */
 
@@ -247,7 +440,6 @@ void BenchTraits()
        const cVirtualTypeNum & aVTN =  cVirtualTypeNum::FromEnum(eTyNums(aK));
        MMVII_INTERNAL_ASSERT_bench (int(aVTN.V_TyNum())==aK,"Bench cVirtualTypeNum::FromEnum");
    }
-   // getchar();
 }
 
 tINT4 EmbeddedIntVal(tREAL8 aRealVal)
@@ -367,7 +559,6 @@ template <class Type> void BenchFuncAnalytique(int aNb,double aEps,double EpsDer
        Type aDerY = DerYAtanXsY_sX(aX,aY);
        MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aDerDifY,aDerY) <EpsDer,"Der AtanXsY_SX");
    }
-   // getchar();
 }
 
 void Bench_Nums(cParamExeBench & aParam)
