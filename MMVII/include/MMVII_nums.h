@@ -741,6 +741,37 @@ template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Typ
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
 
 
+/*  ****************************************** */
+/*       BIT MANIPULATION FUNCTIONS            */
+/* ******************************************* */
+
+int HammingDist(tU_INT4 aV1,tU_INT4 aV2);
+
+class  cHamingCoder
+{
+    public :
+         /// Constructor , indicate the number of bit of information
+         cHamingCoder(int aNbBitsIn);
+
+         int NbBitsOut() const; ///< Number of bit of coded messages
+         int NbBitsIn() const;  ///< Number of bits of information
+         int NbBitsRed() const; ///< Number of bits of redundancy
+
+         tU_INT4  Coding(tU_INT4) const;  ///< From raw to encoded message
+         /// Return initial message IFF no alteration, else return -1
+         int  UnCodeWhenCorrect(tU_INT4);
+
+    private :
+        int mNbBitsIn;
+        int mNbBitsRed;
+        int mNbBitsOut;
+
+        std::vector<bool>  mIsBitRed;
+        std::vector<int>   mNumI2O;
+        std::vector<int>   mNumO2I;
+};
+
+
 
 
 

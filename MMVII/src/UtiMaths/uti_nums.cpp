@@ -17,29 +17,6 @@ int HammingDist(tU_INT4 aV1,tU_INT4 aV2)
    return aCpt;
 }
 
-
-class  cHamingCoder
-{
-    public :
-         cHamingCoder(int aNbBitsIn);
-         tU_INT4  Coding(tU_INT4) const;
-
-	 int  UnCodeWhenCorrect(tU_INT4);
-         int NbBitsOut() const;
-         int NbBitsIn() const;
-         int NbBitsRed() const;
-
-         
-    private :
-        int mNbBitsIn;
-        int mNbBitsRed;
-        int mNbBitsOut;
-
-        std::vector<bool>  mIsBitRed;
-        std::vector<int>   mNumI2O;
-        std::vector<int>   mNumO2I;
-};
-
 int cHamingCoder::NbBitsOut() const { return mNbBitsOut; }
 int cHamingCoder::NbBitsRed() const { return mNbBitsRed; }
 int cHamingCoder::NbBitsIn () const { return mNbBitsIn ; }

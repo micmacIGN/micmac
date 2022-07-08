@@ -232,6 +232,14 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRandInSph
    return aRes;
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  
+      cPtxd<Type,Dim>::PRandUnitNonAligned(const cPtxd<Type,Dim>& aP0,const Type & aDist)
+{
+   cPtxd<Type,Dim> aRes = PRandUnit();
+   while ((NormInf(aRes-aP0)<aDist) || (NormInf(aRes+aP0)<aDist) )
+        aRes = PRandUnit();
+   return aRes;
+}
 
 
 template <class Type,const int Dim> cPtxd<Type,Dim>  
@@ -1021,6 +1029,7 @@ template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandInSphere();\
 template typename cPtxd<TYPE,DIM>::tBigNum cPtxd<TYPE,DIM>::MinSqN2(const std::vector<tPt> &,bool SVP) const;\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitNonAligned(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  double NormK(const cPtxd<TYPE,DIM> & aPt,double anExp);\
 template  double Norm2(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE Norm1(const cPtxd<TYPE,DIM> & aPt);\

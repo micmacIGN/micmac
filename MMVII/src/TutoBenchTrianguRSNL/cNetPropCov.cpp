@@ -22,6 +22,7 @@ template <class Type>  class  cElemNetwork : public cMainNetwork<Type>
         cElemNetwork(tMainNW & aMainW,const cRect2 & aRectMain);
 
 	void CalcCov(int aNbIter);
+        void PropagCov();
 
     private :
         /// Give the homologous of point in the main network
@@ -45,7 +46,7 @@ template <class Type> cElemNetwork<Type>::cElemNetwork(tMainNW & aMainNW,const c
           tMainNW     (eModeSSR::eSSR_LsqDense,cRect2(cPt2di(0,0),aBoxM.Sz()),false),
           mMainNW     (&aMainNW),
           mBoxM       (aBoxM),
-          mSimM2This  (cSim2D<Type>::RandomSimInv(5.0,3.0,1))
+          mSimM2This  (tPt(0,0),tPt(1,0)) // (cSim2D<Type>::RandomSimInv(5.0,3.0,0.3))
 
 {
      //  To have the right scale compute mSimInd2G from mSimM2This 
@@ -67,8 +68,23 @@ template <class Type>  cPNetwork<Type> & cElemNetwork<Type>::MainHom(const tPNet
 template <class Type>  void cElemNetwork<Type>::CalcCov(int aNbIter)
 {
      for (int aK=0 ; aK<(aNbIter-1); aK++)
-         this->OneItereCompensation(false);
-     this->OneItereCompensation(true);
+         this->OneItereCompensation(false);  // Iterations with a gauge
+     this->OneItereCompensation(true);       // last iteration w/o a gauge
+}
+
+template <class Type>  void cElemNetwork<Type>::PropagCov()
+{
+    std::vector<tPt> aVLoc;
+    std::vector<tPt> aVMain;
+    for (const auto & aPNet : this->mVPts)
+    {
+         const tPNet & aHomMain = MainHom(aPNet);
+         aVLoc.push_back(aPNet.PCur());
+         aVMain.push_back(aHomMain.PCur());
+    }
+    cSim2D<Type>  aSim =  cSim2D<Type>::FromExample(aVLoc,aVMain);
+
+    StdOut() << "SSS " << aSim.Tr() << " " << aSim.Sc() << "\n";
 }
 
 /* *************************************** */
@@ -77,21 +93,36 @@ template <class Type>  void cElemNetwork<Type>::CalcCov(int aNbIter)
 /*                                         */
 /* *************************************** */
 
+/*
 template <class Type>  void cMainNetwork<Type>::TestCov(const cRect2 &aRect)
 {
      cElemNetwork<Type>  aNetElem(*this,aRect);
      aNetElem.CalcCov(10);
 }
+*/
 
 template <class Type>  void cMainNetwork<Type>::TestCov()
 {
      cPt2di aSz(2,2);
      cRect2  aRect(mBoxInd.P0(),mBoxInd.P1()-aSz);
 
+     std::vector<cElemNetwork<Type> *> aVNet;
+
      for (const auto & aPix: aRect)
      {
-         TestCov(cRect2(aPix,aPix+aSz));
+         cRect2 aRect(aPix,aPix+aSz);
+         auto aPtrN = new cElemNetwork<Type>(*this,aRect);
+         aVNet.push_back(aPtrN);
+         aPtrN->CalcCov(10);
      }
+
+     for (int aTime=0 ; aTime<1 ; aTime++)
+     {
+          for (auto & aPtrNet : aVNet)
+             aPtrNet->PropagCov();
+     }
+
+     DeleteAllAndClear(aVNet);
 }
 
 
