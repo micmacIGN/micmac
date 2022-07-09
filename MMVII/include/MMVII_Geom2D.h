@@ -142,7 +142,7 @@ template <class Type>  class cSim2D
           
 
           static cSim2D FromExample(const tPt&aP0In,const tPt&aP1In,const tPt&aP0Out,const tPt&aP1Out);
-          static cSim2D FromExample(const std::vector<tPt>& aVIn,const std::vector<tPt>& aVOut);
+          static cSim2D FromExample(const std::vector<tPt>& aVIn,const std::vector<tPt>& aVOut,Type * aRes2=nullptr);
 	  /// Compute a random similitude, assuring that Amplitude of scale has a minimal value
           static cSim2D RandomSimInv(const Type&AmplTr,const Type&AmplSc,const Type&AmplMinSc);
 

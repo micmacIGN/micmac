@@ -1,4 +1,5 @@
 #include "TrianguRSNL.h"
+#include "include/MMVII_Tpl_Images.h"
 
 
 namespace MMVII
@@ -49,15 +50,10 @@ template <class Type> cElemNetwork<Type>::cElemNetwork(tMainNW & aMainNW,const c
           tMainNW     (eModeSSR::eSSR_LsqDense,cRect2(cPt2di(0,0),aBoxM.Sz()),false),
           mMainNW     (&aMainNW),
           mBoxM       (aBoxM),
-#if (DEBUG_RSNL)
-          mSimM2This  (tPt(0,0),tPt(1,0)) 
-#else 
-          (cSim2D<Type>::RandomSimInv(5.0,3.0,0.3))
-#endif
-
+          mSimM2This  (cSim2D<Type>::RandomSimInv(5.0,3.0,0.3))
 {
-static int TheNumDebug=0;	
-mDebugN = ++TheNumDebug;
+    static int TheNumDebug=0;	
+    mDebugN = ++TheNumDebug;
 
      //  To have the right scale compute mSimInd2G from mSimM2This 
     this->mSimInd2G =  mSimM2This   * mMainNW->SimInd2G() ;
@@ -84,25 +80,77 @@ template <class Type>  void cElemNetwork<Type>::CalcCov(int aNbIter)
 
 template <class Type>  void cElemNetwork<Type>::PropagCov()
 {
-bool Bug = (mDebugN==3);
-
     std::vector<tPt> aVLoc;
     std::vector<tPt> aVMain;
+ 
     for (const auto & aPNet : this->mVPts)
     {
          const tPNet & aHomMain = MainHom(aPNet);
          aVLoc.push_back(aPNet.PCur());
          aVMain.push_back(aHomMain.PCur());
- if (1|| Bug)
- {
-     StdOut()  << "PTS " << aPNet.PCur() << " " <<  aHomMain.PCur()  << "\n";
-     StdOut()  << "  I " << aPNet.mInd << aPNet.mInd -  aHomMain.mInd  << "\n";
- }
     }
-    cSim2D<Type>  aSim =  cSim2D<Type>::FromExample(aVLoc,aVMain);
+    Type aSqResidual;
+    cSim2D<Type>  aSimM2L =  cSim2D<Type>::FromExample(aVMain,aVLoc,&aSqResidual);
+    tPt  aTr = aSimM2L.Tr();
+    tPt  aSc = aSimM2L.Sc();
+/*
+    Loc =   aSimM2L * Main
 
-    StdOut()  <<  mDebugN << " SSS " << aSim.Tr() << " " << aSim.Sc() << "\n";
-    getchar();
+    X_loc    (Trx)     (Sx   -Sy)   (X_Main)
+    Y_loc =  (Try) +   (Sx   -Sy) * (Y_Main)
+    
+*/
+
+     int aNbVar = this->mNum;
+     std::vector<int>    aVIndTransf(this->mNum,-1);
+     cDenseMatrix<Type>  aMatrixTranf(aNbVar,eModeInitImage::eMIA_Null);  ///< Square
+     cDenseVect<Type>    aVecTranf(aNbVar,eModeInitImage::eMIA_Null);  ///< Square
+
+     for (const auto & aPNet : this->mVPts)
+     {
+         const tPNet & aHomMain = MainHom(aPNet);
+         int aKx = aPNet.mNumX;
+         int aKy = aPNet.mNumY;
+         aVIndTransf.at(aKx) = aHomMain.mNumX;
+         aVIndTransf.at(aKy) = aHomMain.mNumY;
+
+         aVecTranf(aKx) = aTr.x();
+         aVecTranf(aKy) = aTr.y();
+
+         aMatrixTranf.SetElem(aKx,aKx,aSc.x());
+         aMatrixTranf.SetElem(aKy,aKx,-aSc.y());
+         aMatrixTranf.SetElem(aKx,aKy,aSc.y());
+         aMatrixTranf.SetElem(aKy,aKy,aSc.x());
+     }
+
+     if (DEBUG_RSNL)
+     {
+           cDenseVect<Type>    aVecLoc(aNbVar,eModeInitImage::eMIA_Null);  ///< Square
+           cDenseVect<Type>    aVecGlob(aNbVar,eModeInitImage::eMIA_Null);  ///< Square
+           for (const auto & aPNet : this->mVPts)
+           {
+               const tPNet & aHomMain = MainHom(aPNet);
+               int aKx = aPNet.mNumX;
+               int aKy = aPNet.mNumY;
+               tPt aPLoc = aPNet.PCur();
+               tPt aPGlob = aHomMain.PCur();
+
+               aVecLoc(aKx) = aPLoc.x();
+               aVecLoc(aKy) = aPLoc.y();
+               aVecGlob(aKx) = aPGlob.x();
+               aVecGlob(aKy) = aPGlob.y();
+           }
+    // aVecGlob + aVecTranf;
+/*
+
+           cDenseVect<Type>  aVLoc2 =  (aMatrixTranf * aVecGlob) + aVecTranf;
+           cDenseVect<Type>  aVDif = aVLoc2 - aVecLoc;
+
+           StdOut() << "DIF " << aVDif.L2Norm() << "\n";
+*/
+
+     }
+
 }
 
 /* *************************************** */

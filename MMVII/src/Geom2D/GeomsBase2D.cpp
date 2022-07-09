@@ -122,13 +122,13 @@ template <class TypeMap> class  cLeastSquareEstimate
            typedef  std::vector<tPt>   tVPts;
 
            /// Estimate the map M such that  M(aVIn[aK]) = aVOut[aK]
-           static inline TypeMap Estimate(const  tVPts& aVIn,const tVPts & aVOut);
+           static inline TypeMap Estimate(const  tVPts& aVIn,const tVPts & aVOut,tTypeElem * aRes2);
     private :
 
 };
 
 template <class TypeMap>  
-    TypeMap  cLeastSquareEstimate<TypeMap>::Estimate(const  tVPts & aVIn,const tVPts & aVOut)
+    TypeMap  cLeastSquareEstimate<TypeMap>::Estimate(const  tVPts & aVIn,const tVPts & aVOut,tTypeElem * aRes2)
 {
    cLeasSqtAA<tTypeElem> aSys(TypeMap::NbDOF());
    cDenseVect<tTypeElem> aVX(TypeMap::NbDOF());
@@ -144,18 +144,28 @@ template <class TypeMap>
         aSys.AddObservation(1,aVY,aVOut[aK].y());
    }
    cDenseVect<tTypeElem> aSol =  aSys.Solve();
+   TypeMap aMap =  TypeMap::FromParam(aSol);
 
+   if (aRes2)
+   {
+      *aRes2 = 0.0;
+      for (int aK=0; aK<int(aVIn.size()) ; aK++)
+      {
+          *aRes2 += SqN2(aVOut[aK]-aMap.Value(aVIn[aK]));
+      }
+      ///StdOut() << "NOOrrrmSol= " << aSomR2 << "\n";
+   }
 /*
    cDenseVect<tTypeElem> aTest = aSys.tAA() * aSol ;
    StdOut() << "NOOrrrmSol= " << aTest.L2Dist(aSys.tARhs()) << "\n";
 */
 
-   return TypeMap::FromParam(aSol);
+   return aMap;
 }
 
-template <class Type>  cSim2D<Type> cSim2D<Type>::FromExample(const std::vector<tPt>& aVIn,const std::vector<tPt>& aVOut)
+template <class Type>  cSim2D<Type> cSim2D<Type>::FromExample(const std::vector<tPt>& aVIn,const std::vector<tPt>& aVOut,Type * aRes2)
 {
-    return cLeastSquareEstimate<cSim2D<Type>>::Estimate(aVIn,aVOut);
+    return cLeastSquareEstimate<cSim2D<Type>>::Estimate(aVIn,aVOut,aRes2);
 }
 
 
@@ -304,7 +314,7 @@ template  cSim2D<TYPE> cSim2D<TYPE>::RandomSimInv(const TYPE & AmplTr,const TYPE
 template  cSim2D<TYPE> cSim2D<TYPE>::FromExample(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;\
 template  cSimilitud3D<TYPE> cSim2D<TYPE>::Ext3D() const;\
 template  cSim2D<TYPE> cSim2D<TYPE>::FromParam(const cDenseVect<TYPE> & aVec) ;\
-template  cSim2D<TYPE> cSim2D<TYPE>::FromExample(const std::vector<tPt>& aVIn,const std::vector<tPt>& aVOut);\
+template  cSim2D<TYPE> cSim2D<TYPE>::FromExample(const std::vector<tPt>&,const std::vector<tPt>&,TYPE*);\
 template  cDenseMatrix<TYPE> MatOfMul (const cPtxd<TYPE,2> & aP);
 
 

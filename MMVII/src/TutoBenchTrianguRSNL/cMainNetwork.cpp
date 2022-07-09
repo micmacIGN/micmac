@@ -37,6 +37,8 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
     mMatrP     (cMemManager::AllocMat<tPNetPtr>(mX_SzM,mY_SzM)), // alloc a grid of pointers
     // Amplitude of scale muste
      mSimInd2G  (cSim2D<Type>::RandomSimInv(5.0,3.0,0.1)) 
+/*
+*/
 {
 
      // generate in VPix a regular grid, put them in random order for testing more config in matrix
@@ -57,6 +59,15 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
              aVCoord0.push_back(aPNet.mPosInit.x());
              aVCoord0.push_back(aPNet.mPosInit.y());
 	 }
+     }
+     if (1) // Eventually put in random order to check implicit order of NumX,NumY is not used 
+     {
+        mVPts = RandomOrder(mVPts);
+        // But need to reset the num of points which is used in link construction
+        for (int aK=0 ; aK<int(mVPts.size()) ; aK++)
+        {
+            mVPts[aK].mNumPt = aK;
+        }
      }
      // Put adress of points in a grid so that they are accessible by indexes
      for (auto & aPNet : mVPts)
