@@ -82,8 +82,12 @@ void BenchSSRNL(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("SSRNL")) return;
 
+     if (DEBUG_RSNL)
+	     StdOut() << "DEBUG_RSNLlllllllllllllllllllllllllllllllllllllll\n";
+
+     for (int aK=0 ; aK<10 ; aK++)
      {
-         cMainNetwork <tREAL8> aNet(eModeSSR::eSSR_LsqDense,5,false);
+         cMainNetwork <tREAL8> aNet(eModeSSR::eSSR_LsqDense,2,false);
 
 	 aNet.TestCov();
      }

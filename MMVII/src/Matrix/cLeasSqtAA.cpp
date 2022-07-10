@@ -262,6 +262,39 @@ template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::SparseSolve()
    return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
 }
 
+template<class Type> cDenseMatrix<Type> cLeasSqtAA<Type>::V_tAA() const
+{
+     cDenseMatrix<Type> aRes = mtAA.Dup();
+     aRes.SelfSymetrizeBottom();
+     return aRes;
+}
+
+template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::V_tARhs() const
+{
+	return mtARhs;
+}
+template<class Type> bool cLeasSqtAA<Type>::Acces2NormalEq() const
+{
+	return true;
+}
+
+template<class Type> void cLeasSqtAA<Type>::AddCov
+                          (const cDenseMatrix<Type> & aMat,const cDenseVect<Type>& aVect,const std::vector<int> &aVInd)
+{
+    for (int aKx = 0 ; aKx<int(aVInd.size()) ; aKx++)
+    {
+        mtARhs(aVInd[aKx]) += aVect(aKx);
+        for (int aKy = 0 ; aKy<int(aVInd.size()) ; aKy++)
+        {
+             // Only triangular sup used
+	     if (aVInd[aKx] >= aVInd[aKy])
+	        mtAA.AddElem(aVInd[aKx],aVInd[aKy],aMat.GetElem(aKx,aKy));
+        }
+    }
+}
+
+
+
 /* *********************************** */
 /*                                     */
 /*            cLeasSq                  */
@@ -358,6 +391,35 @@ template<class Type> void cLinearOverCstrSys<Type>::AddObsWithTmpUK(const cSetIO
 {
 	MMVII_INTERNAL_ERROR("Used AddObsWithTmpK unsupported");
 }
+
+
+template<class Type> cDenseMatrix<Type> cLinearOverCstrSys<Type>::V_tAA() const
+{
+	MMVII_INTERNAL_ERROR("No acces to tAA for this class");
+
+	return *((cDenseMatrix<Type> *)nullptr);
+}
+
+template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::V_tARhs() const
+{
+	MMVII_INTERNAL_ERROR("No acces to tARhs for this class");
+
+	return *((cDenseVect<Type> *)nullptr);
+}
+
+template <class Type> void cLinearOverCstrSys<Type>::AddCov
+                          (const cDenseMatrix<Type> &,const cDenseVect<Type>& ,const std::vector<int> &aVInd)
+{
+	MMVII_INTERNAL_ERROR("No AddCov for this class");
+}
+
+
+
+template<class Type> bool cLinearOverCstrSys<Type>::Acces2NormalEq() const
+{
+	return false;
+}
+
 
 
 
