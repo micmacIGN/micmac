@@ -11,7 +11,7 @@
 
 
 // #define SYMBDER_WITH_MMVII true
-#define SYMBDER_WITH_EIGEN false
+#define SYMBDER_WITH_EIGEN true
 
 
 #if SYMBDER_WITH_EIGEN

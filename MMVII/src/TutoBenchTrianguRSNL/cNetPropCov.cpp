@@ -7,8 +7,8 @@ namespace MMVII
 namespace NS_Bench_RSNL
 {
 
-#define CHEATING_MAPTRANSFERT  false
-#define CHEAT_W                0.3
+#define CHEATING_MAPTRANSFERT  true
+#define CHEAT_W                1.0
 
 /**  Class for implemanting an "elementary = small" newtork,
      on which we will compute covariance that will be transfered
@@ -276,7 +276,7 @@ template <class Type>  void cMainNetwork<Type>::TestCov()
 	 MMVII_INTERNAL_ASSERT_bench(aRes<1e-8,"No conv 4 sub net");
      }
 
-     for (int aTime=0 ; aTime<20 ; aTime++)
+     for (int aTime=0 ; aTime<10 ; aTime++)
      {
 	 Type   aResidual = CalcResidual() ;
 	 StdOut()   << aTime <<  " RRR  " << aResidual << "\n";//  getchar();

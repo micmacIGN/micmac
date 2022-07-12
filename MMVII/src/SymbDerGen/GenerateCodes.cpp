@@ -210,6 +210,7 @@ int cAppliGenCode::Exe()
        // cDist2DConservation aD2C;
        GenCodesFormula((tREAL8*)nullptr,cDist2DConservation(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRatioDist2DConservation(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cNetworConsDistProgCov(cPt2di(2,2)),WithDer);
    }
 /*
    cMMVIIUnivDist           aDist(3,1,1,false);
@@ -274,6 +275,8 @@ cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf)
     return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,false,true),aSzBuf);
 }
 
+
+//    Cons distance
 template <class Type> cCalculator<Type> * TplEqConsDist(bool WithDerive,int aSzBuf)
 { 
     return cName2Calc<Type>::CalcFromName(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
@@ -282,14 +285,19 @@ template <class Type> cCalculator<Type> * TplEqConsDist(bool WithDerive,int aSzB
 cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf)
 { 
     return TplEqConsDist<double>(WithDerive,aSzBuf);
-    // return cName2Calc<double>::CalcFromName(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
 }
 
+//  cons ratio dist
 cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf)
 { 
     return cName2Calc<double>::CalcFromName(NameFormula(cRatioDist2DConservation(),WithDerive),aSzBuf);
 }
 
+//  Network 4 points  
+cCalculator<double> * EqNetworkConsDistProgCov(bool WithDerive,int aSzBuf,const cPt2di& aSzN)
+{ 
+    return cName2Calc<double>::CalcFromName(NameFormula(cNetworConsDistProgCov(aSzN),WithDerive),aSzBuf);
+}
 
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)

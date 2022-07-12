@@ -1,9 +1,7 @@
 #ifndef _FORMULA_GEOMED_H_
 #define _FORMULA_GEOMED_H_
 
-#include "include/MMVII_all.h"
-#include "include/SymbDer/SymbolicDerivatives.h"
-#include <typeinfo>       // operator typeid
+#include "ComonHeaderSymb.h"
 
 using namespace NS_SymbolicDerivative;
 
@@ -81,6 +79,77 @@ class cRatioDist2DConservation
 };
 
 
+
+class cNetworConsDistProgCov
+{
+      public :
+          cNetworConsDistProgCov(const cPt2di  & aSzN) :
+              mSzN       (aSzN),
+              mNbPts     (mSzN.x() * mSzN.y()),
+              mNbCoord   (2*mNbPts),
+              mElemQuad  (Square(mNbCoord))
+          {
+          }
+          std::string FormulaName() const { return "PropCovNwCD_" + ToStr(mNbPts) ;}
+
+          const std::vector<std::string> VNamesUnknowns()  const
+          {
+               std::vector<std::string>  aRes {"x_tr","y_tr","x_sc","y_sc"}; 
+               for  (int aK=0 ; aK<mNbPts ; aK++)
+               {
+                   aRes.push_back("x_P" + ToStr(aK));
+                   aRes.push_back("y_P" + ToStr(aK));
+               }
+               return aRes;
+          }
+          const std::vector<std::string> VNamesObs()       const
+          { 
+               std::vector<std::string>  aRes;
+               aRes.push_back("Cste");
+               for  (int aKVar=0 ; aKVar<mNbPts ; aKVar++)
+               {
+                    aRes.push_back("xLEq_" +  ToStr(aKVar));
+                    aRes.push_back("yLEq_" +  ToStr(aKVar));
+               }
+               return aRes;
+          }
+
+          template <typename tUk> 
+                     std::vector<tUk> formula
+                     (
+                          const std::vector<tUk> & aVUk,
+                          const std::vector<tUk> & aVObs
+                     ) const
+           {
+
+                 cPtxd<tUk,2>  aTr(aVUk[0],aVUk[1]);
+                 cPtxd<tUk,2>  aSc(aVUk[2],aVUk[3]);
+                 int aIndUk   = 4;
+
+                 int aIndObs  = 0;
+                 tUk aCste = aVObs[aIndObs++];
+
+                 tUk  aResidual = -aCste;
+
+                 for  (int aKVar=0 ; aKVar<mNbPts ; aKVar++)
+                 {
+                      tUk  aX = aVUk[aIndUk++];
+                      tUk  aY = aVUk[aIndUk++];
+                      tUk  aLX = aVObs[aIndObs++];
+                      tUk  aLY = aVObs[aIndObs++];
+                      cPtxd<tUk,2> aPLoc = aTr + aSc*cPtxd<tUk,2>(aX,aY);
+                      aResidual = aResidual + aLX * aPLoc.x() + aLY * aPLoc.y();
+                 }
+
+                 return {aResidual};
+           }
+          
+      public :
+          cPt2di mSzN;
+          int    mNbPts;
+          int    mNbCoord;
+          int    mElemQuad;
+};
 
 
 
