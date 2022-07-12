@@ -1092,9 +1092,12 @@ const cStructBlockCam & cImplemBlockCam::SBC() const {return mSBC;}
 
 void cImplemBlockCam::EstimCurOri(const cXml_EstimateOrientationInitBlockCamera & anEOIB)
 {
+    Pt3di color(255,0,0);
+
    cLiaisonsSHC aLSHC;
    for (int aKC=0 ; aKC<mNbCam ; aKC++)
    {
+       cPlyCloud cloudLiaison;
        if (anEOIB.Show().Val())
           std::cout << "=================================================\n";
        cIBC_OneCam * aCam  = mNum2Cam[aKC];
@@ -1126,12 +1129,15 @@ void cImplemBlockCam::EstimCurOri(const cXml_EstimateOrientationInitBlockCamera 
                    if (anEOIB.Show().Val())
                    {
                        std::cout << "  EstimCurOri " << aP0->Name() <<  " " << aP1->Name() << "\n";
-                       std::cout << "    " <<  aR1to0.ImAff(Pt3dr(0,0,0)) 
-                                         << " " << aR1to0.teta01() 
-                                         << " " << aR1to0.teta02() 
-                                         << " " << aR1to0.teta12() 
+                       std::cout << "    " <<  aR1to0.ImAff(Pt3dr(0,0,0))
+                                         << " " << aR1to0.teta01()
+                                         << " " << aR1to0.teta02()
+                                         << " " << aR1to0.teta12()
                                          << "\n";
                    }
+                   // Output coordinates to show relative position
+                   cloudLiaison.AddPt(color, aR1to0.ImAff(Pt3dr(0,0,0)));
+
                    aSomTr = aSomTr+ aR1to0.tr();
                    aSomM += aR1to0.Mat();
                    aSomP++;
@@ -1152,7 +1158,7 @@ void cImplemBlockCam::EstimCurOri(const cXml_EstimateOrientationInitBlockCamera 
            Pt3dr aSomTr = aRMoy.tr();
            ElMatrix<double> aSomM = aRMoy.Mat();
            double aSomP = 0.0;
-           
+
            double aSomEcP = 0.0;
            double aSomEcM = 0.0;
            for (int aKT=0 ; aKT<mNbTime ; aKT++)
@@ -1178,9 +1184,9 @@ void cImplemBlockCam::EstimCurOri(const cXml_EstimateOrientationInitBlockCamera 
 
            std::cout << "  ==========  AVERAGE =========== \n";
            std::cout << "    " <<  aRMoy.ImAff(Pt3dr(0,0,0))
-                               << " tetas " << aRMoy.teta01() 
-                               << "  " << aRMoy.teta02() 
-                               << "  " << aRMoy.teta12() 
+                               << " tetas " << aRMoy.teta01()
+                               << "  " << aRMoy.teta02()
+                               << "  " << aRMoy.teta12()
                                << "\n";
            std::cout << "    DispTr=" << aSomEcP << " DispMat=" << aSomEcM << "\n";
 
@@ -1190,9 +1196,21 @@ void cImplemBlockCam::EstimCurOri(const cXml_EstimateOrientationInitBlockCamera 
            aP.Rot() = ExportMatr(aSomM);
            aLSHC.ParamOrientSHC().push_back(aP);
        }
+       if (anEOIB.GenPly().Val())
+       {
+           std::cout << "OUI GEN PLY\n";
+           std::string cloudName = "Blinis_" + aCam->NameCam() + ".ply";
+           cloudLiaison.PutFile(cloudName);
+       }
+
+       if (anEOIB.FltrSigma().Val() > 0.)
+       {
+           std::cout << "Ceci est un sigma" << anEOIB.FltrSigma().Val() << "\n";
+       }
    }
-   
+
    mEstimSBC.LiaisonsSHC().SetVal(aLSHC);
+
 }
 
 void cImplemBlockCam::AddContraintes(bool Stricte)

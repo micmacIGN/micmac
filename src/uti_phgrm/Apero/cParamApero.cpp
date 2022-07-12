@@ -3059,17 +3059,54 @@ const cTplValGesInit< bool > & cXml_EstimateOrientationInitBlockCamera::Show()co
    return mShow;
 }
 
+cTplValGesInit< bool > & cXml_EstimateOrientationInitBlockCamera::GenPly()
+{
+   return mGenPly;
+}
+
+const cTplValGesInit< bool > & cXml_EstimateOrientationInitBlockCamera::GenPly()const
+{
+   return mGenPly;
+}
+
+cTplValGesInit< double > & cXml_EstimateOrientationInitBlockCamera::FltrSigma()
+{
+   return mFltrSigma;
+}
+
+const cTplValGesInit< double > & cXml_EstimateOrientationInitBlockCamera::FltrSigma()const
+{
+   return mFltrSigma;
+}
+
 void  BinaryUnDumpFromFile(cXml_EstimateOrientationInitBlockCamera & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.Id(),aFp);
-  { bool IsInit;
-       BinaryUnDumpFromFile(IsInit,aFp);
+    BinaryUnDumpFromFile(anObj.Id(),aFp);
+    { bool IsInit;
+        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.Show().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.Show().ValForcedForUnUmp(),aFp);
+            anObj.Show().SetInitForUnUmp();
+            BinaryUnDumpFromFile(anObj.Show().ValForcedForUnUmp(),aFp);
         }
         else  anObj.Show().SetNoInit();
-  } ;
+    } ;
+    { bool IsInit;
+        BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+            anObj.GenPly().SetInitForUnUmp();
+            BinaryUnDumpFromFile(anObj.GenPly().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.GenPly().SetNoInit();
+    } ;
+    { bool IsInit;
+        BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+            anObj.FltrSigma().SetInitForUnUmp();
+            BinaryUnDumpFromFile(anObj.FltrSigma().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FltrSigma().SetNoInit();
+    } ;
+
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_EstimateOrientationInitBlockCamera & anObj)
@@ -3077,18 +3114,32 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_EstimateOrientationInitBlockCam
     BinaryDumpInFile(aFp,anObj.Id());
     BinaryDumpInFile(aFp,anObj.Show().IsInit());
     if (anObj.Show().IsInit()) BinaryDumpInFile(aFp,anObj.Show().Val());
+
+    BinaryDumpInFile(aFp,anObj.GenPly().IsInit());
+    if (anObj.GenPly().IsInit()) BinaryDumpInFile(aFp,anObj.GenPly().Val());
+
+    BinaryDumpInFile(aFp,anObj.FltrSigma().IsInit());
+    if (anObj.FltrSigma().IsInit()) BinaryDumpInFile(aFp,anObj.FltrSigma().Val());
 }
 
 cElXMLTree * ToXMLTree(const cXml_EstimateOrientationInitBlockCamera & anObj)
 {
-  XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_EstimateOrientationInitBlockCamera",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
-   if (anObj.Show().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("Show"),anObj.Show().Val())->ReTagThis("Show"));
-  aRes->mGXml = anObj.mGXml;
-  XMLPopContext(anObj.mGXml);
-  return aRes;
+    XMLPushContext(anObj.mGXml);
+    cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_EstimateOrientationInitBlockCamera",eXMLBranche);
+    aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+    if (anObj.Show().IsInit())
+        aRes->AddFils(::ToXMLTree(std::string("Show"),anObj.Show().Val())->ReTagThis("Show"));
+
+    if (anObj.GenPly().IsInit())
+        aRes->AddFils(::ToXMLTree(std::string("GenPly"),anObj.GenPly().Val())->ReTagThis("GenPly"));
+
+    if (anObj.FltrSigma().IsInit())
+        aRes->AddFils(::ToXMLTree(std::string("FltrSigma"),anObj.FltrSigma().Val())->ReTagThis("FltrSigma"));
+
+
+    aRes->mGXml = anObj.mGXml;
+    XMLPopContext(anObj.mGXml);
+    return aRes;
 }
 
 void xml_init(cXml_EstimateOrientationInitBlockCamera & anObj,cElXMLTree * aTree)
@@ -3099,6 +3150,10 @@ void xml_init(cXml_EstimateOrientationInitBlockCamera & anObj,cElXMLTree * aTree
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
    xml_init(anObj.Show(),aTree->Get("Show",1),bool(false)); //tototo 
+
+   xml_init(anObj.GenPly(),aTree->Get("GenPly",1),bool(false)); //tototo 
+
+   xml_init(anObj.FltrSigma(),aTree->Get("FltrSigma",1),double(0.0)); //tototo 
 }
 
 std::string  Mangling( cXml_EstimateOrientationInitBlockCamera *) {return "45400A05984F87F5FD3F";};

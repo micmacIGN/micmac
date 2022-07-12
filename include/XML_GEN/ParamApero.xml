@@ -376,6 +376,8 @@
 <Xml_EstimateOrientationInitBlockCamera Nb="1"   Class="true" ToReference="true">
      <Id Nb="1" Type="std::string"> </Id>
      <Show Type="bool" Nb="?" Def="false"> </Show>
+     <GenPly Type="bool" Nb="?" Def="false"> </GenPly>
+     <FltrSigma Type="double" Nb="1" Def="0.0"> </FltrSigma>
 </Xml_EstimateOrientationInitBlockCamera>
 
    <ParamApero  Nb="1" Class="true">

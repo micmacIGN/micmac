@@ -8,6 +8,8 @@
           <Symb>Ori=XXX </Symb>
           <Symb>PatternIm=XXX</Symb>
           <Symb>Out=XXX </Symb>
+          <Symb>GenPly=false </Symb>
+          <Symb>FltrSigma=0.0 </Symb>
      </DicoLoc>
      <SectionBDD_Observation>
           <BDD_Orient>
@@ -68,6 +70,8 @@
                     <EstimateOrientationInitBlockCamera>
                          <Id>   TheBlock </Id>
                          <Show> true </Show>
+                         <GenPly> ${GenPly} </GenPly>
+                         <FltrSigma> ${FltrSigma} </FltrSigma>
                     </EstimateOrientationInitBlockCamera>
                </IterationsCompensation>
 <!--

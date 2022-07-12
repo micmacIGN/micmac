@@ -1060,9 +1060,19 @@ class cXml_EstimateOrientationInitBlockCamera
 
         cTplValGesInit< bool > & Show();
         const cTplValGesInit< bool > & Show()const ;
+
+        cTplValGesInit< bool > & GenPly();
+        const cTplValGesInit< bool > & GenPly()const ;
+
+        cTplValGesInit< double > & FltrSigma();
+        const cTplValGesInit< double > & FltrSigma()const ;
+
     private:
         std::string mId;
         cTplValGesInit< bool > mShow;
+
+        cTplValGesInit< bool > mGenPly;
+        cTplValGesInit< double > mFltrSigma;
 };
 cElXMLTree * ToXMLTree(const cXml_EstimateOrientationInitBlockCamera &);
 
