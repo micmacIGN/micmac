@@ -73,8 +73,10 @@ template <class Type,const int Dim> class cPtxd
        /// Pt random in sphere
        static cPtxd<Type,Dim>  PRandInSphere();
 
-       /// Initialisation random VUnit not too close to P1
+       /// Initialisation random VUnit not too close to P
        static cPtxd<Type,Dim>  PRandUnitDiff(const cPtxd<Type,Dim>&,const Type &aDist = 1e-2);
+       /// Initialisation random VUnit not too close to P or -P
+       static cPtxd<Type,Dim>  PRandUnitNonAligned(const cPtxd<Type,Dim>&,const Type &aDist = 1e-2);
 
         static cPtxd<Type,Dim> Col(const cDenseMatrix<Type>&,int aCol);  ///< Init with colum of matrix
         static cPtxd<Type,Dim> Line(int aLine,const cDenseMatrix<Type>&); ///< Init with line of matrix

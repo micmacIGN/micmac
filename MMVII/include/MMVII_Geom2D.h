@@ -127,18 +127,28 @@ template <class Type>  class cSim2D
               mSc (aSc)
           {
           }
-          static cSim2D FromExample(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;
-	  /// Compute a random similitude, assuring that Amplitude of scale has a minimal value
-          static cSim2D RandomSimInv(const Type & AmplTr,const Type & AmplSc,const Type & AmplMinSc);
-          static const int NbDOF() {return 4;}
+          
+          ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
+          static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /// compute the vector used in least square equation
+          static void ToParam(cDenseVect<Type>&,cDenseVect<Type> &,const tPt &);
+
 
           inline tPt  Value(const tPt & aP) const {return mTr + aP * mSc;}
           inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
+          static const int NbDOF() {return 4;}
+          tTypeMapInv  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
+	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+mSc*aS2.mTr,mSc*aS2.mSc);}
+          
+
+          static cSim2D FromExample(const tPt&aP0In,const tPt&aP1In,const tPt&aP0Out,const tPt&aP1Out);
+          static cSim2D FromExample(const std::vector<tPt>& aVIn,const std::vector<tPt>& aVOut,Type * aRes2=nullptr);
+	  /// Compute a random similitude, assuring that Amplitude of scale has a minimal value
+          static cSim2D RandomSimInv(const Type&AmplTr,const Type&AmplSc,const Type&AmplMinSc);
+
           inline tPt  Tr() const {return mTr ;}
           inline tPt  Sc() const {return mSc ;}
 
-          tTypeMapInv  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
-	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+mSc*aS2.mTr,mSc*aS2.mSc);}
                 
 	  ///  Generate the 3D-Sim having same impact in the plane X,Y
 	  cSimilitud3D<Type> Ext3D() const;
@@ -244,6 +254,8 @@ template<class Type> class cTriangulation2D : public cTriangulation<Type,2>
 	public :
 };
 
+/// Return random point that are not degenerated, +or- pertubation of unity roots
+template <class Type> std::vector<cPtxd<Type,2> > RandomPtsOnCircle(int aNbPts);
 
 // geometric   Flux of pixel
 

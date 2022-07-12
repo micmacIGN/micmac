@@ -18,10 +18,13 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
        }
 
        // Compute a Normal Repair completing 2 vect
-       cPtxd<Type,3> aP1  =  cPtxd<Type,3>::PRandUnitDiff(aP0,1e-2);
+       cPtxd<Type,3> aP1  =  cPtxd<Type,3>::PRandUnitNonAligned(aP0,1e-2);
        cRotation3D<Type> aRP01 = cRotation3D<Type>::CompleteRON(aP0,aP1);
        {
-          MMVII_INTERNAL_ASSERT_bench(aRP01.Mat().Unitarity()<1e-5,"Complete RON 1 Vect"); // Its a rot
+          // Type anAcc =  tElemNumTrait<Type>::Accuracy();
+          Type aU= aRP01.Mat().Unitarity();
+          // StdOut() << "UUUUU " << aU  << " " << Scal(aP0,aP1) << "\n";
+          MMVII_INTERNAL_ASSERT_bench(aU<1e-5,"Complete RON 1 Vect"); // Its a rot
           MMVII_INTERNAL_ASSERT_bench(Norm1( aP0-aRP01.AxeI())<1e-5,"Complete RON 1 Vect"); //Its axe is P0
           MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aP1,aRP01.AxeK()))<1e-5,"Complete RON 1 Vect"); // Orthog to P1
        }
@@ -276,13 +279,57 @@ template <class tMap,class TypeEl> void TplBenchMap2D(const tMap & aMap,const tM
 	auto aQ3 = aMap12.Value(aP1);
 	aD = Norm2(aP3-aQ3) /tElemNumTrait<TypeEl>::Accuracy();
 	MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapInv");
-
 }
+
+
+template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
+{
+
+     std::vector<cPtxd<TypeEl,2> > aVIn;
+     std::vector<cPtxd<TypeEl,2> > aVOut;
+     int aNbPts = tMap::NbDOF()/2;
+ 
+     // Generate some random point on the circle, not degenerated =>  Put a top level in .h
+     std::vector<int> aVInd =  RandPerm(aNbPts);
+     double aTeta0 = RandUnif_0_1() * 2 * M_PI;
+     double aEcartTeta =  ( 2 * M_PI)/aNbPts;
+     double aRho  = RandUnif_C_NotNull(0.1);
+     cPtxd<TypeEl,2> aP0 = cPtxd<TypeEl,2>::PRand();
+
+
+     for (int aK=0 ; aK<aNbPts ; aK++)
+     {
+          double aTeta = aTeta0 +  aEcartTeta * (aVInd[aK] +0.2 * RandUnif_C());
+          cPtxd<TypeEl,2> aP =  aP0 + FromPolar(TypeEl(aRho),TypeEl(aTeta));
+          aVIn.push_back(aP);
+
+          aVOut.push_back(cPtxd<TypeEl,2>::PRand());
+     }
+     aVIn =  RandomPtsOnCircle<TypeEl>(aNbPts);
+
+    tMap aMap =  tMap::FromExample(aVIn,aVOut);
+
+     for (int aK=0 ; aK<int(aVIn.size()); aK++)
+     {
+          TypeEl anEr = Norm2(aVOut[aK] - aMap.Value(aVIn[aK]));
+	  anEr /= tElemNumTrait<TypeEl>::Accuracy();
+          // StdOut() << anEr << " " << " Gt=" << aVOut[aK] <<  " Map->" << aMap.Value(aVIn[aK]) << "\n";
+	  MMVII_INTERNAL_ASSERT_bench(anEr<1e-2,"Least Sq Estimat 4 Mapping");
+    }
+   // StdOut() << "Calc  " << aMap.Tr() << aMap.Sc() << "\n";
+   // aMap =  tMap::FromExample(aVIn[0],aVIn[1],aVOut[0],aVOut[1]);
+   // StdOut() << "Th   " << aMap.Tr() << aMap.Sc() << "\n";
+    // StdOut() << "=================llll===========\n";
+}
+
 
 template <class Type> void TplElBenchMap2D()
 {
    TplBenchMap2D(cAffin2D<Type>::AllocRandom(1e-1),cAffin2D<Type>::AllocRandom(1e-1),(Type*)nullptr);
    TplBenchMap2D(cSim2D<Type>::RandomSimInv(5,2,1e-1),cSim2D<Type>::RandomSimInv(3,4,1e-1),(Type*)nullptr);
+
+
+   TplBenchMap2D_LSQ<cSim2D<Type>>((Type*)nullptr);
 }
 
 void  BenchMap2D()

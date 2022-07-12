@@ -27,8 +27,10 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
 		            eModeSSR aMode,
                             cRect2   aRect,
 			    bool WithSchurr,
-			    cParamSparseNormalLstSq * aParam
+			    cParamSparseNormalLstSq * aParam,
+                            tECCI *  anECCI
 		      ) :
+    mECCI      (anECCI),
     mBoxInd    (aRect),
     mX_SzM     (mBoxInd.Sz().x()),
     mY_SzM     (mBoxInd.Sz().y()),
@@ -37,6 +39,8 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
     mMatrP     (cMemManager::AllocMat<tPNetPtr>(mX_SzM,mY_SzM)), // alloc a grid of pointers
     // Amplitude of scale muste
      mSimInd2G  (cSim2D<Type>::RandomSimInv(5.0,3.0,0.1)) 
+/*
+*/
 {
 
      // generate in VPix a regular grid, put them in random order for testing more config in matrix
@@ -57,6 +61,15 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
              aVCoord0.push_back(aPNet.mPosInit.x());
              aVCoord0.push_back(aPNet.mPosInit.y());
 	 }
+     }
+     if (1) // Eventually put in random order to check implicit order of NumX,NumY is not used 
+     {
+        mVPts = RandomOrder(mVPts);
+        // But need to reset the num of points which is used in link construction
+        for (int aK=0 ; aK<int(mVPts.size()) ; aK++)
+        {
+            mVPts[aK].mNumPt = aK;
+        }
      }
      // Put adress of points in a grid so that they are accessible by indexes
      for (auto & aPNet : mVPts)
@@ -133,9 +146,10 @@ template <class Type>
           eModeSSR aMode,
           int  aN,
           bool WithSchurr,
-          cParamSparseNormalLstSq * aParam
+          cParamSparseNormalLstSq * aParam,
+          tECCI *  anECCI
    ) :
-        cMainNetwork <Type>(aMode,cRect2::BoxWindow(aN),WithSchurr,aParam)
+        cMainNetwork <Type>(aMode,cRect2::BoxWindow(aN),WithSchurr,aParam,anECCI)
 {
 }
 
@@ -148,6 +162,11 @@ template <class Type> bool  cMainNetwork <Type>::AxeXIsHoriz() const
 
 template <class Type> cPtxd<Type,2>  cMainNetwork <Type>::Ind2Geom(const cPt2di & anInd) const
 {
+    if (mECCI)
+    {
+        return CovPropInd2Geom(anInd);
+    }
+
     return mSimInd2G.Value(tPt(anInd.x(),anInd.y())  + tPt::PRandC()*Type(AMPL_Grid2Real));
 }
 
@@ -163,11 +182,10 @@ template <class Type> int&  cMainNetwork <Type>::Num() {return mNum;}
 
 template <class Type> const cSim2D<Type>& cMainNetwork<Type>::SimInd2G()const {return mSimInd2G;}
 
+template <class Type> cResolSysNonLinear<Type>* cMainNetwork<Type>::Sys() {return mSys;}
 
-template <class Type> Type cMainNetwork <Type>::OneItereCompensation(bool ForCovCalc)
+template <class Type> Type cMainNetwork <Type>::CalcResidual() 
 {
-     Type aWeightFix=100.0; // arbitray weight for fixing the 3 variable X0,Y0,X1 (the "gauge")
-
      Type  aSumResidual = 0;
      Type  aNbPairTested = 0;
      //  Compute dist to sol + add constraint for fixed var
@@ -180,18 +198,34 @@ template <class Type> Type cMainNetwork <Type>::OneItereCompensation(bool ForCov
             aSumResidual += Norm2(aPN.PCur() -aPN.TheorPt());
 	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << "\n";
         }
-        // if we are computing covariance we want it in a free network (the gauge constraint 
-        // in the local network have no meaning in the coordinate of the global network)
-        if (! ForCovCalc)
-        {
+     }
+     return aSumResidual / aNbPairTested ;
+}
+
+template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightFix)
+{
+     //  Compute dist to sol + add constraint for fixed var
+     for (const auto & aPN : mVPts)
+     {
            // EQ:FIXVAR
 	   // Fix X and Y for the two given points
 	   if (aPN.mFrozenY) // If Y is frozenn add equation fixing Y to its theoreticall value
               mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
 	   if (aPN.mFrozenX)   // If X is frozenn add equation fixing X to its theoreticall value
               mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
-         }
      }
+}
+
+template <class Type> Type cMainNetwork <Type>::OneItereCompensation(bool ForCovCalc)
+{
+     Type   aResidual = CalcResidual() ;
+     // if we are computing covariance we want it in a free network (the gauge constraint 
+     // in the local network have no meaning in the coordinate of the global network)
+     if (! ForCovCalc)
+     {
+         AddGaugeConstraint(100.0);
+     }
+     
      
      //  Add observation on distances
 
@@ -237,7 +271,8 @@ template <class Type> Type cMainNetwork <Type>::OneItereCompensation(bool ForCov
         mSys->SolveUpdateReset();
      }
 
-     return aSumResidual / aNbPairTested ;
+     return aResidual;
+     // return aSumResidual / aNbPairTested ;
 }
 template <class Type> const Type & cMainNetwork <Type>::CurSol(int aK) const
 {

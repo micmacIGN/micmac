@@ -153,7 +153,19 @@ template<class T1,class T2,class T3>
      return aI1;
 }
 
+template<class T1,class T2,class T3>  
+   cIm1D<T1> AddImage(T1* /*Type specifier*/ ,const cIm1D<T2> & aI2,const cIm1D<T3> & aI3)
+{
+     cIm1D<T1>  aI1(aI2.DIm().X0(),aI2.DIm().X1());
+     AddImageInPlace(aI1.DIm(),aI2.DIm(),aI3.DIm());
+     return aI1;
+}
+
 template<class T2,class T3>   cIm2D<T2> operator + (const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)  
+{
+   return AddImage((T2 *)nullptr,aI2,aI3);
+}
+template<class T2,class T3>   cIm1D<T2> operator + (const cIm1D<T2> & aI2,const cIm1D<T3> & aI3)  
 {
    return AddImage((T2 *)nullptr,aI2,aI3);
 }

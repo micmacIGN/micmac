@@ -83,6 +83,92 @@ template <class Type>  cSimilitud3D<Type> cSim2D<Type>::Ext3D() const
 
 }
 
+static constexpr int SimIndTrx = 0;
+static constexpr int SimIndTry = 1;
+static constexpr int SimIndScx = 2;
+static constexpr int SimIndScy = 3;
+
+
+template <class Type>  cSim2D<Type> cSim2D<Type>::FromParam(const cDenseVect<Type> & aVec) 
+{
+   return cSim2D<Type> 
+          (
+              tPt(aVec(SimIndTrx),aVec(SimIndTry)),
+              tPt(aVec(SimIndScx),aVec(SimIndScy))
+          );
+}
+
+template <class Type>  void cSim2D<Type>::ToParam(cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aP)
+{
+   //  param = trx try scx scy
+   //  XOut  =   1*trx + 0*try +  scx * XIN - scy YIN 
+   //  YOut  =   0*trx + 1*try +  scx * YIN + scy XIN 
+   aVX(SimIndTrx) = 1;
+   aVX(SimIndTry) = 0;
+   aVX(SimIndScx) = aP.x();
+   aVX(SimIndScy) = -aP.y();
+
+   aVY(SimIndTrx) = 0;
+   aVY(SimIndTry) = 1;
+   aVY(SimIndScx) = aP.y();
+   aVY(SimIndScy) = aP.x();
+}
+
+template <class TypeMap> class  cLeastSquareEstimate
+{
+    public :
+           typedef  typename TypeMap::tPt  tPt;
+           typedef  typename TypeMap::tTypeElem  tTypeElem;
+           typedef  std::vector<tPt>   tVPts;
+
+           /// Estimate the map M such that  M(aVIn[aK]) = aVOut[aK]
+           static inline TypeMap Estimate(const  tVPts& aVIn,const tVPts & aVOut,tTypeElem * aRes2);
+    private :
+
+};
+
+template <class TypeMap>  
+    TypeMap  cLeastSquareEstimate<TypeMap>::Estimate(const  tVPts & aVIn,const tVPts & aVOut,tTypeElem * aRes2)
+{
+   cLeasSqtAA<tTypeElem> aSys(TypeMap::NbDOF());
+   cDenseVect<tTypeElem> aVX(TypeMap::NbDOF());
+   cDenseVect<tTypeElem> aVY(TypeMap::NbDOF());
+
+   MMVII_INTERNAL_ASSERT_medium(aVIn.size()==aVOut.size(),"Bad sizes in cLeastSquareEstimate");
+   MMVII_INTERNAL_ASSERT_medium( (int(aVIn.size())*2>= TypeMap::NbDOF()),"Not enough obs in cLeastSquareEstimate");
+
+   for (int aK=0; aK<int(aVIn.size()) ; aK++)
+   {
+        TypeMap::ToParam(aVX,aVY,aVIn[aK]);
+        aSys.AddObservation(1,aVX,aVOut[aK].x());
+        aSys.AddObservation(1,aVY,aVOut[aK].y());
+   }
+   cDenseVect<tTypeElem> aSol =  aSys.Solve();
+   TypeMap aMap =  TypeMap::FromParam(aSol);
+
+   if (aRes2)
+   {
+      *aRes2 = 0.0;
+      for (int aK=0; aK<int(aVIn.size()) ; aK++)
+      {
+          *aRes2 += SqN2(aVOut[aK]-aMap.Value(aVIn[aK]));
+      }
+      ///StdOut() << "NOOrrrmSol= " << aSomR2 << "\n";
+   }
+/*
+   cDenseVect<tTypeElem> aTest = aSys.tAA() * aSol ;
+   StdOut() << "NOOrrrmSol= " << aTest.L2Dist(aSys.tARhs()) << "\n";
+*/
+
+   return aMap;
+}
+
+template <class Type>  cSim2D<Type> cSim2D<Type>::FromExample(const std::vector<tPt>& aVIn,const std::vector<tPt>& aVOut,Type * aRes2)
+{
+    return cLeastSquareEstimate<cSim2D<Type>>::Estimate(aVIn,aVOut,aRes2);
+}
+
+
 /* ========================== */
 /*          cAffin2D          */
 /* ========================== */
@@ -188,11 +274,32 @@ template <class Type> cDenseMatrix<Type> MatOfMul (const cPtxd<Type,2> & aP)
     return aRes;
 }
 
+template <class Type> std::vector<cPtxd<Type,2> > RandomPtsOnCircle(int aNbPts)
+{
+  std::vector<cPtxd<Type,2> > aRes;
+  std::vector<int> aVInd =  RandPerm(aNbPts);
+  double aTeta0 = RandUnif_0_1() * 2 * M_PI;
+  double aEcartTeta =  ( 2 * M_PI)/aNbPts;
+  double aRho  = RandUnif_C_NotNull(0.1);
+  cPtxd<Type,2> aP0 = cPtxd<Type,2>::PRand();
+
+  for (int aK=0 ; aK<aNbPts ; aK++)
+  {
+       double aTeta = aTeta0 +  aEcartTeta * (aVInd[aK] +0.2 * RandUnif_C());
+       cPtxd<Type,2> aP =  aP0 + FromPolar(Type(aRho),Type(aTeta));
+       aRes.push_back(aP);
+  }
+
+  return aRes;
+}
+
+
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
 
 #define INSTANTIATE_GEOM_REAL(TYPE)\
+template std::vector<cPtxd<TYPE,2> > RandomPtsOnCircle<TYPE>(int aNbPts);\
 template class cSegment2DCompiled<TYPE>;\
 template class  cAffin2D<TYPE>;
 
@@ -206,6 +313,8 @@ INSTANTIATE_GEOM_REAL(tREAL16)
 template  cSim2D<TYPE> cSim2D<TYPE>::RandomSimInv(const TYPE & AmplTr,const TYPE & AmplSc,const TYPE & AmplMinSc);\
 template  cSim2D<TYPE> cSim2D<TYPE>::FromExample(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;\
 template  cSimilitud3D<TYPE> cSim2D<TYPE>::Ext3D() const;\
+template  cSim2D<TYPE> cSim2D<TYPE>::FromParam(const cDenseVect<TYPE> & aVec) ;\
+template  cSim2D<TYPE> cSim2D<TYPE>::FromExample(const std::vector<tPt>&,const std::vector<tPt>&,TYPE*);\
 template  cDenseMatrix<TYPE> MatOfMul (const cPtxd<TYPE,2> & aP);
 
 

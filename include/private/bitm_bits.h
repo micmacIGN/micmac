@@ -372,9 +372,12 @@ template <const INT nbb>  GenIm::type_el  DataGenImBits<nbb>::type() const
  * Ref: https://github.com/MicrosoftDocs/cpp-docs/blob/main/docs/overview/cpp-conformance-improvements-2019.md
  * "Conformance improvements in Visual Studio 2019 version 16.5"
  * "  Explicit specialization declaration without an initializer isn't a definition"
+ *
+ * It seems that Visual C++ 16.8 still doesn't interpret correctly the followind code.
+ * So, comment it for MSVC for now
 */
 
-#if ! defined(_MSC_VER) || _MSC_VER >= 1925
+#if ! defined(_MSC_VER)
 template <> GenIm::type_el DataGenImBits<1>::type_el_bitm;
 template <> GenIm::type_el DataGenImBits<2>::type_el_bitm;
 template <> GenIm::type_el DataGenImBits<4>::type_el_bitm;

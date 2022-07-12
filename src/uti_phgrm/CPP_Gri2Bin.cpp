@@ -14,3 +14,12 @@ int Gri2Bin_main(int argc, char **argv)
 	gri.WriteBinary(nomBin);
 	return 0;
 }
+
+/*
+int Gri2RPC_main(int argc, char **argv)
+{
+}
+*/
+
+
+

@@ -31,7 +31,7 @@ template <class Type> class cResolSysNonLinear
           typedef cSetIORSNL_SameTmp<Type>                      tSetIO_ST;
 
 
-          typedef cLinearOverCstrSys<Type>                      tSysSR;
+          typedef cLinearOverCstrSys<Type>                      tLinearSysSR;
           typedef cDenseVect<Type>                              tDVect;
           typedef cSparseVect<Type>                             tSVect;
           typedef std::vector<Type>                             tStdVect;
@@ -42,7 +42,7 @@ template <class Type> class cResolSysNonLinear
 	  /// basic constructor, using a mode of matrix + a solution  init
           cResolSysNonLinear(eModeSSR,const tDVect & aInitSol);
 	  ///  constructor  using linear system, allow finer control
-          cResolSysNonLinear(tSysSR *,const tDVect & aInitSol);
+          cResolSysNonLinear(tLinearSysSR *,const tDVect & aInitSol);
 	  /// destructor 
           ~cResolSysNonLinear();
 
@@ -50,6 +50,8 @@ template <class Type> class cResolSysNonLinear
           const tDVect  &    CurGlobSol() const;
           /// Value of a given num var
           const Type  &    CurSol(int aNumV) const;
+
+          tLinearSysSR *  SysLinear() ;
 
           /// Solve solution,  update the current solution, Reset the least square system
           const tDVect  &    SolveUpdateReset() ;
@@ -82,7 +84,7 @@ template <class Type> class cResolSysNonLinear
 
           int        mNbVar;       ///< Number of variable, facility
           tDVect     mCurGlobSol;  ///< Curent solution
-          tSysSR*    mSys;         ///< Sys to solve equations, equation are concerning the differences with current solution
+          tLinearSysSR*    mSysLinear;         ///< Sys to solve equations, equation are concerning the differences with current solution
 };
 
 /**  Class for weighting residuals : compute the vector of weight from a 
@@ -219,6 +221,15 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
        /// Accessor
        int NbVar() const;
 
+      /// Normal Matrix defined 4 now only in cLeasSqtAA, maybe later defined in other classe, else error
+      virtual cDenseMatrix<Type>  V_tAA() const;
+      /// Idem  "normal" vector
+      virtual cDenseVect<Type>    V_tARhs() const;  
+      /// Indicate if it gives acces to these normal "stuff"
+      virtual bool   Acces2NormalEq() const;  
+
+
+      virtual void   AddCov(const cDenseMatrix<Type> &,const cDenseVect<Type>& ,const std::vector<int> &aVInd);
 
     protected :
        int mNbVar;
@@ -264,6 +275,8 @@ template <class Type> class  cLeasSq  :  public cLinearOverCstrSys<Type>
        
        /// Basic dense systems  => cLeasSqtAA
        static cLeasSq<Type>*  AllocDenseLstSq(int aNbVar);
+
+
 };
 
 /**  Implemant least by suming tA A ,  simple and efficient, by the way known to have
@@ -292,6 +305,14 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        cDenseMatrix<Type> & tAA   () ;         ///< Accessor 
        cDenseVect<Type>   & tARhs () ;         ///< Accessor 
 
+      /// access to tAA via virtual interface
+      cDenseMatrix<Type>  V_tAA() const override;
+      /// access to tARhs via virtual interface
+      cDenseVect<Type>    V_tARhs() const override;  
+      /// true because acces is given
+      bool   Acces2NormalEq() const override;  
+
+      void   AddCov(const cDenseMatrix<Type> &,const cDenseVect<Type>& ,const std::vector<int> &aVInd) override;
     private :
        cDenseMatrix<Type>  mtAA;    /// Som(W tA A)
        cDenseVect<Type>    mtARhs;  /// Som(W tA Rhs)
