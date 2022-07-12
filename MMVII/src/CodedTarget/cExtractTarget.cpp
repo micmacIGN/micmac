@@ -2,6 +2,9 @@
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include "include/MMVII_Tpl_Images.h"
 
+#include <random>
+
+#define PI 3.14159265
 
 // Test git branch
 
@@ -28,7 +31,7 @@ cDCT::cDCT(const cPt2di aPt,cAffineExtremum<tREAL4> & anAffEx) :
    mRad      (1e5)
 
 {
-    if ( (anAffEx.Im().Interiority(Pix())<20) || (Norm2(mPt-ToR(aPt))>2.0)  )  
+    if ( (anAffEx.Im().Interiority(Pix())<20) || (Norm2(mPt-ToR(aPt))>2.0)  )
        mState = eResDCT::Divg;
 }
 
@@ -54,22 +57,26 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         void MatchOnGT(cGeomSimDCT & aGSD);
 	/// compute direction of ellipses
         void ExtractDir(cDCT & aDCT);
-	/// Print statistique initial 
+	/// Print statistique initial
 
-	int ExeOnParsedBox() override;
+        int ExeOnParsedBox() override;
 
-	void TestFilters();
-	void DoExtract();
+        void TestFilters();
+        void DoExtract();
         void ShowStats(const std::string & aMes) ;
         void MarkDCT() ;
         void SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool MinCrown,double aThrS,eResDCT aModeSup);
+
+        std::vector<double> fitEllipse(std::vector<cPt2dr>);     ///< Least squares estimation of an ellipse from 2D points
+        double* cartesianToNaturalEllipse(double*);              ///< Convert (A,B,C,D,E,F) ellipse parameters to (x0,y0,a,b,theta)
+        cPt2dr generatePointOnEllipse(double*, double, double);  ///< Generate point on ellipse from natural parameters
 
 	std::string mNameTarget;
 
 	cParamCodedTarget        mPCT;
         double                   mDiamMinD;
 	cPt2dr                   mRaysTF;
-        std::vector<eDCTFilters> mTestedFilters;    
+        std::vector<eDCTFilters> mTestedFilters;
 
         cImGrad<tREAL4>  mImGrad;  ///< Result of gradient
         double   mRayMinCB;        ///<  Ray Min CheckBoard
@@ -91,7 +98,10 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         std::string    mPatF;
         bool           mWithGT;
         double         mDMaxMatch;
-         
+
+        bool mTest;
+
+
 };
 
 
@@ -120,7 +130,7 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
 {
 }
 
-cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgObl(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
    // Standard use, we put args of  cAppliParseBoxIm first
    return
@@ -142,11 +152,12 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mDiamMinD, "DMD","Diam min for detect",{eTA2007::HDV})
                     << AOpt2007(mRaysTF, "RayTF","Rays Min/Max for testing filter",{eTA2007::HDV,eTA2007::Tuning})
                     << AOpt2007(mPatF, "PatF","Pattern filters" ,{AC_ListVal<eDCTFilters>()})
+                    << AOpt2007(mTest, "Test", "Test for Ellipse Fit", {eTA2007::HDV})
 	  );
    ;
 }
 
-void cAppliExtractCodeTarget::ShowStats(const std::string & aMes) 
+void cAppliExtractCodeTarget::ShowStats(const std::string & aMes)
 {
    int aNbOk=0;
    for (const auto & aR : mVDCT)
@@ -167,7 +178,7 @@ void cAppliExtractCodeTarget::ShowStats(const std::string & aMes)
 }
 
 
-void cAppliExtractCodeTarget::MarkDCT() 
+void cAppliExtractCodeTarget::MarkDCT()
 {
      for (auto & aDCT : mVDCT)
      {
@@ -233,7 +244,7 @@ void  cAppliExtractCodeTarget::DoExtract()
      // mNbPtsIm = aDIm.Sz().x() * aDIm.Sz().y();
 
      // [1]   Extract point that are extremum of symetricity
-     
+
          //    [1.1]   extract integer pixel
      cIm2D<tREAL4>  aImSym = ImSymetricity(false,aIm,mRayMinCB*0.4,mRayMinCB*0.8,0);  // compute fast symetry
      cResultExtremum aRExtre(true,false);              //structire for result of extremun , compute min not max
@@ -261,7 +272,7 @@ void  cAppliExtractCodeTarget::DoExtract()
         {
            aDCT->mSym = aImSym.DIm().GetV(aDCT->Pix());
            if (aDCT->mSym>mTHRS_Sym)
-              aDCT->mState = eResDCT::LowSym;  
+              aDCT->mState = eResDCT::LowSym;
         }
      }
      ShowStats("LowSym");
@@ -277,11 +288,11 @@ void  cAppliExtractCodeTarget::DoExtract()
      // Min of symetry
      SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,mRayMinCB*0.4,mRayMinCB*0.8,1),true,0.8,eResDCT::LowSym);
 
-     // Min of bin 
+     // Min of bin
      SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),true,mTHRS_Bin,eResDCT::LowBin);
 
 
-     
+
      mVDCTOk.clear();
      for (auto aPtrDCT : mVDCT)
      {
@@ -340,6 +351,121 @@ void  cAppliExtractCodeTarget::TestFilters()
 
 }
 
+
+// ---------------------------------------------------------------------------
+// Function to fit an ellipse on a set of 2D points
+// Inputs: a vector of 2D points
+// Output: a vector of parameters (A,B,C,D,E,F) with the constraints :
+//     - F = 1
+//     - 4AC-B^2 = 1
+// ---------------------------------------------------------------------------
+std::vector<double> cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points){
+    std::vector<double> PARAM = {0,0,0,0,0,0};
+
+    unsigned N = points.size();
+    cDenseMatrix<double> D1(N,N);
+    cDenseMatrix<double> D2(1,1);
+
+    StdOut() << "x,y\n";
+    for (unsigned i=0; i<N; i++){
+        double x = points.at(i).x(); double y = points.at(i).y();
+        D1.SetElem(i,0,x*x);  D1.SetElem(i,1,x*y);  D1.SetElem(i,2,y*y);
+        D2.SetElem(i,0,x)  ;  D2.SetElem(i,1,y)  ;  D2.SetElem(i,2,1)  ;
+    }
+
+    for (unsigned i=0; i<N; i++){
+        StdOut() << D1(i,0) << " " << D1(i,1) << " " << D1(i,2) << "\n";
+    }
+
+
+    return PARAM;
+}
+
+
+// ---------------------------------------------------------------------------
+// Function to convert cartesian parameters (A,B,C,D,E,F) to natural
+// parameters (x0, y0, a, b, theta).
+// Inputs: an array of 6 floating point parameters
+// Output: an array of 5 floating point parameters
+// ---------------------------------------------------------------------------
+// Ellipse algebraic equation: e(x,y) = Ax2 + Bxy + Cy2 + Dx + Ey + F = 0 with
+// B2 - 4AC < 0.
+// ---------------------------------------------------------------------------
+double* cAppliExtractCodeTarget::cartesianToNaturalEllipse(double* parameters){
+    static double output[5] = {0, 0, 0, 0, 0};
+    double A, B, C, D, F, G;
+    double x0, y0, a, b, theta;
+    double delta, num, fac, temp = 0;
+
+    // Conversions for applying e'(x,y) = ax^2 + 2bxy + cy^2 + 2dx + 2fy + g
+    A = parameters[0];
+    B = parameters[1]/2;
+    C = parameters[2];
+    D = parameters[3]/2;
+    F = parameters[4]/2;
+    G = parameters[5];
+
+
+    delta = B*B - A*C;
+
+    if (delta > 0){
+        StdOut() << "Error: bad coefficients for ellipse algebraic equation \n";
+        return output;
+    }
+
+    // Center of ellipse
+    x0 = (C*D-B*F)/delta;
+    y0 = (A*F-B*D)/delta;
+
+    num = 2*(A*F*F+C*D*D+G*B*B-2*B*D*F-A*C*G);
+    fac = sqrt(pow(A-C, 2) + 4*B*B);
+
+    // Semi-major and semi-minor axes
+    a = sqrt(num/delta/(fac-A-C));
+    b = sqrt(num/delta/(-fac-A-C));
+    if (b > a){
+        temp = a; a = b; b = temp;
+    }
+
+    // Ellipse orientation
+    if (b == 0){
+        theta = (A < C)? 0:PI/2;
+    }else{
+        theta = atan(2.0*B/(A-C))/2.0 + ((A>C)?PI/2:0);
+    }
+    theta += temp? PI/2 : 0;
+
+    theta = std::fmod(theta,PI);
+
+    output[0] = x0; output[1] = y0;
+    output[2] = a ; output[3] = b ;
+    output[4] = theta;
+
+    return output;
+
+}
+
+
+
+// ---------------------------------------------------------------------------
+// Function to generate a point at coordinate (double) t from natural
+// parameters of an ellipse
+// Inputs: an array of 5 floating point parameters, a coordinate double t and
+// a noise level (standard deviation).
+// Output: a cPt2dr object
+// ---------------------------------------------------------------------------
+cPt2dr cAppliExtractCodeTarget::generatePointOnEllipse(double* parameters, double t, double noise = 0.0){
+    static std::default_random_engine generator;
+    double x, y;
+    double x0 = parameters[0]; double y0 = parameters[1];
+    double a = parameters[2]; double b = parameters[3]; double theta = parameters[4];
+    std::normal_distribution<double> distribution(0.0, noise);
+    x = x0 + a*cos(t)*cos(theta) - b*sin(t)*sin(theta) + distribution(generator);
+    y = y0 + a*cos(t)*sin(theta) + b*sin(t)*cos(theta) + distribution(generator);
+    return cPt2dr(x,y);
+}
+
+
 int cAppliExtractCodeTarget::ExeOnParsedBox()
 {
    mImGrad    =  Deriche(APBI_DIm(),2.0);
@@ -351,13 +477,45 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 int  cAppliExtractCodeTarget::Exe()
 {
+
+    if (mTest){
+        std::vector<cPt2dr> POINTS;
+
+        double params[6] = {-0.51513547, 0.6975136, -0.49810664, 6.47831123, -6.24814367, -16.19627976};
+        double* nat_par = cartesianToNaturalEllipse(params);
+
+        /*
+        StdOut() << "x0 = " << " " << nat_par[0] << "\n";
+        StdOut() << "y0 = " << " " << nat_par[1] << "\n";
+        StdOut() << "a = " << " " << nat_par[2] << "\n";
+        StdOut() << "b = " << " " << nat_par[3] << "\n";
+        StdOut() << "theta = " << " " << nat_par[4] << "\n";
+        */
+
+
+        //  StdOut() << "x,y\n";
+
+        for (double t=0; t<2*PI; t+=0.02){
+            cPt2dr aPoint = generatePointOnEllipse(nat_par, t, 0.5);
+            POINTS.push_back(aPoint);
+           // StdOut() << aPoint.x() << "," << aPoint.y() << "\n";
+        }
+
+        std::vector<double> PARAM = fitEllipse(POINTS);
+
+
+
+
+        return 0;
+    }
+
    std::string aNameGT = LastPrefix(APBI_NameIm()) + std::string("_GroundTruth.xml");
    if (ExistFile(aNameGT))
    {
       mWithGT = true;
       mGTResSim   = cResSimul::FromFile(aNameGT);
    }
- 
+
    mTestedFilters = SubOfPat<eDCTFilters>(mPatF,true);
    StdOut()  << " IIIIm=" << APBI_NameIm()   << " " << aNameGT << "\n";
 

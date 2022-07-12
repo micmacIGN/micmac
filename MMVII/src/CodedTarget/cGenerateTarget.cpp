@@ -12,7 +12,7 @@ namespace  cNS_CodedTarget
 
 
 /* ****    cSetCodeOf1Circle  ***** */
-  
+
 cSetCodeOf1Circle::cSetCodeOf1Circle(const std::vector<int> & aVCard,int aN):
    mVCards    (aVCard),
    mN         (aN)
@@ -145,7 +145,7 @@ void cParamCodedTarget::Finish()
                         mRho_3_BeginCar,
                         mRho_3_BeginCar/sqrt(2) + mThickN_Car
                   );
-  
+
 
 
   mMidle = ToR(mSzBin-cPt2di(1,1)) / 2.0; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
@@ -160,7 +160,7 @@ void cParamCodedTarget::Finish()
 
       std::vector<int>  aVK;
       for (int aK=aN0 ; aK<=aNb ; aK+= aStep)
-          aVK.push_back(aK);       
+          aVK.push_back(aK);
 
       mVecSetOfCode.push_back(cSetCodeOf1Circle(aVK,aNb));
       aVNbSub.push_back( mVecSetOfCode.back().NbSub());
@@ -256,7 +256,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 
 	 bool IsW = true;  // Default is white
 
-         if (aRho < mRho_0_EndCCB)  
+         if (aRho < mRho_0_EndCCB)
          {
             int aIndTeta = round_down(0.5+(aTeta/(M_PI/2.0)));
             IsW = (aIndTeta%2)==0;
@@ -281,7 +281,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
          aDImT.SetV(aPix,aVal);
      }
 
-     ///compute string 
+     ///compute string
      int aNum = aSetCodesOfT.Num();
      std::string aName = NameOfNum(aNum);
      for (int aK=0 ; aK<2 ;aK++)
@@ -296,7 +296,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 
 
 	  int  aNbTarget =  round_ni((mNbPixelBin/2)  * (mThickN_Car /mRho_4_EndCar));
-	  
+
 	  cPt2di aSzTarget (aNbTarget,aNbTarget);
 
 
@@ -359,7 +359,7 @@ cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVAr
 {
 }
 
-cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
  return
       anArgObl
@@ -396,7 +396,7 @@ int  cAppliGenCodedTarget::Exe()
       cCodesOf1Target aCodes = mPCT.CodesOfNum(aNum);
       aCodes.Show();
       tImTarget aImT= mPCT.MakeIm(aCodes);
-      
+
       // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
       // FakeUseIt(aCodes);
       mPCT.mSzF = aImT.DIm().Sz();
@@ -419,6 +419,7 @@ int  cAppliGenCodedTarget::Exe()
    }
 
    SaveInFile(mPCT,"Target_Spec.xml");
+
 
    return EXIT_SUCCESS;
 }
@@ -482,7 +483,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 
 	 bool IsW = true;  // Default is white
 
-         if (aRho < mRhoEndStar)  
+         if (aRho < mRhoEndStar)
          {
              // Generate the stars
 	     if (aRho>=mRhoEndTargetC)
@@ -523,7 +524,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
           cDataIm2D<tU_INT1> & aDImStr = aImStr.DIm();
           cPt2di aNbPixStr = aDImStr.Sz();
           // Ratio between pix of bin image and pix of string
-          double  aScaleStr =  (mThTxt/(mCodeExt ? aNbPixStr.y() : aNbPixStr.x())) * mScale; 
+          double  aScaleStr =  (mThTxt/(mCodeExt ? aNbPixStr.y() : aNbPixStr.x())) * mScale;
 
          // StdOut() << "STR=[" << aStr <<  "] ScSt " << aScaleStr << "\n";
 
