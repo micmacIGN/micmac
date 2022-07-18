@@ -1,9 +1,9 @@
 #include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include "include/MMVII_Tpl_Images.h"
-
+#include "src/Matrix/MMVII_EigenWrap.h"
 #include <random>
-
+#include <typeinfo>
 #define PI 3.14159265
 
 // Test git branch
@@ -67,8 +67,8 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         void MarkDCT() ;
         void SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool MinCrown,double aThrS,eResDCT aModeSup);
 
-        std::vector<double> fitEllipse(std::vector<cPt2dr>);     ///< Least squares estimation of an ellipse from 2D points
-        double* cartesianToNaturalEllipse(double*);              ///< Convert (A,B,C,D,E,F) ellipse parameters to (x0,y0,a,b,theta)
+        int fitEllipse(std::vector<cPt2dr>, double*);     ///< Least squares estimation of an ellipse from 2D points
+        int cartesianToNaturalEllipse(double*, double*);              ///< Convert (A,B,C,D,E,F) ellipse parameters to (x0,y0,a,b,theta)
         cPt2dr generatePointOnEllipse(double*, double, double);  ///< Generate point on ellipse from natural parameters
 
 	std::string mNameTarget;
@@ -357,28 +357,63 @@ void  cAppliExtractCodeTarget::TestFilters()
 // Inputs: a vector of 2D points
 // Output: a vector of parameters (A,B,C,D,E,F) with the constraints :
 //     - F = 1
-//     - 4AC-B^2 = 1
+//     - 4AC-B^2 > 0
 // ---------------------------------------------------------------------------
-std::vector<double> cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points){
-    std::vector<double> PARAM = {0,0,0,0,0,0};
+// NUMERICALLY STABLE DIRECT LEAST SQUARES FITTING OF ELLIPSES
+// (Halir and Flusser, 1998)
+// ---------------------------------------------------------------------------
+int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* output){
 
-    unsigned N = points.size();
-    cDenseMatrix<double> D1(N,N);
-    cDenseMatrix<double> D2(1,1);
+	const unsigned N = points.size();
+    MatrixXd D1(N,3);
+    MatrixXd D2(N,3);
+    Eigen::Matrix<double, 3, 3> M;
 
-    StdOut() << "x,y\n";
+
     for (unsigned i=0; i<N; i++){
         double x = points.at(i).x(); double y = points.at(i).y();
-        D1.SetElem(i,0,x*x);  D1.SetElem(i,1,x*y);  D1.SetElem(i,2,y*y);
-        D2.SetElem(i,0,x)  ;  D2.SetElem(i,1,y)  ;  D2.SetElem(i,2,1)  ;
+        D1(i,0) = x*x;  D1(i,1) = x*y;  D1(i,2) = y*y;
+        D2(i,0) = x  ;  D2(i,1) = y  ;  D2(i,2) = 1  ;
     }
 
-    for (unsigned i=0; i<N; i++){
-        StdOut() << D1(i,0) << " " << D1(i,1) << " " << D1(i,2) << "\n";
-    }
+	MatrixXd S1 = D1.transpose() * D1;
+    MatrixXd S2 = D1.transpose() * D2;
+    MatrixXd S3 = D2.transpose() * D2;
+    MatrixXd T  = (-1)*S3.inverse() * S2.transpose();
+    MatrixXd M1 = S1 + S2*T;
+
+	for (unsigned i=0; i<3; i++){
+		M(0,i) = +M1(2,i)/2.0;
+		M(1,i) = -M1(1,i);
+		M(2,i) = +M1(0,i)/2.0;
+	}
+
+	Eigen::EigenSolver<Eigen::Matrix<double, 3,3>> eigensolver(M);
+
+	auto P = eigensolver.eigenvectors();
+
+	double v12 = P(0,1).real(); double v13 = P(0,2).real();
+	double v22 = P(1,1).real(); double v23 = P(1,2).real();
+	double v32 = P(2,1).real(); double v33 = P(2,2).real();
 
 
-    return PARAM;
+	bool cond2 = 4*v12*v32-v22*v22 > 0;
+	bool cond3 = 4*v13*v33-v23*v23 > 0;
+	int index = cond2*1 + cond3*2;
+
+	double a1 = P(0,index).real();
+	double a2 = P(1,index).real();
+	double a3 = P(2,index).real();
+
+	output[0] = a1;
+	output[1] = a2;
+	output[2] = a3;
+	output[3] = T(0,0)*a1 + T(0,1)*a2 + T(0,2)*a3;
+	output[4] = T(1,0)*a1 + T(1,1)*a2 + T(1,2)*a3;
+	output[5] = T(2,0)*a1 + T(2,1)*a2 + T(2,2)*a3;
+
+    return 0;
+
 }
 
 
@@ -391,8 +426,8 @@ std::vector<double> cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> poin
 // Ellipse algebraic equation: e(x,y) = Ax2 + Bxy + Cy2 + Dx + Ey + F = 0 with
 // B2 - 4AC < 0.
 // ---------------------------------------------------------------------------
-double* cAppliExtractCodeTarget::cartesianToNaturalEllipse(double* parameters){
-    static double output[5] = {0, 0, 0, 0, 0};
+int cAppliExtractCodeTarget::cartesianToNaturalEllipse(double* parameters, double* output){
+
     double A, B, C, D, F, G;
     double x0, y0, a, b, theta;
     double delta, num, fac, temp = 0;
@@ -410,7 +445,7 @@ double* cAppliExtractCodeTarget::cartesianToNaturalEllipse(double* parameters){
 
     if (delta > 0){
         StdOut() << "Error: bad coefficients for ellipse algebraic equation \n";
-        return output;
+        return 1;
     }
 
     // Center of ellipse
@@ -441,7 +476,7 @@ double* cAppliExtractCodeTarget::cartesianToNaturalEllipse(double* parameters){
     output[2] = a ; output[3] = b ;
     output[4] = theta;
 
-    return output;
+    return 0;
 
 }
 
@@ -481,32 +516,78 @@ int  cAppliExtractCodeTarget::Exe()
     if (mTest){
         std::vector<cPt2dr> POINTS;
 
-        double params[6] = {-0.51513547, 0.6975136, -0.49810664, 6.47831123, -6.24814367, -16.19627976};
-        double* nat_par = cartesianToNaturalEllipse(params);
+        double params[6] = {-0.49610428,   0.67946411,  -0.54056366,   6.55701404,  -6.59996909, -16.53083264};
+        double nat_par[5];
+        cartesianToNaturalEllipse(params, nat_par);
 
-        /*
+
+    /*
         StdOut() << "x0 = " << " " << nat_par[0] << "\n";
         StdOut() << "y0 = " << " " << nat_par[1] << "\n";
         StdOut() << "a = " << " " << nat_par[2] << "\n";
         StdOut() << "b = " << " " << nat_par[3] << "\n";
         StdOut() << "theta = " << " " << nat_par[4] << "\n";
+*/
+
+
+        StdOut() << "x,y\n";
+
+/*
+        for (double t=0.5*PI; t<PI; t+=0.02){
+            cPt2dr aPoint = generatePointOnEllipse(nat_par, t, 0.05);
+            POINTS.push_back(aPoint);
+            StdOut() << aPoint.x() << "," << aPoint.y() << "\n";
+        }
+
+          for (double t=1.5*PI; t<2*PI; t+=0.02){
+            cPt2dr aPoint = generatePointOnEllipse(nat_par, t, 0.05);
+            POINTS.push_back(aPoint);
+            StdOut() << aPoint.x() << "," << aPoint.y() << "\n";
+        }
+*/
+
+        // StdOut() << "-------------------------------------\n";
+
+        double PARAM[5];
+        fitEllipse(POINTS, PARAM);
+
+
+        double nat_par2[5];
+        cartesianToNaturalEllipse(PARAM, nat_par2);
+
+
+
+        for (double t=0; t<2*PI; t+=0.001){
+            cPt2dr aPoint = generatePointOnEllipse(nat_par, t);
+            StdOut() << aPoint.x() << "," << aPoint.y() << "\n";
+        }
+
+
+        /*
+        StdOut() << "x0 = " << " " << nat_par2[0] << "\n";
+        StdOut() << "y0 = " << " " << nat_par2[1] << "\n";
+        StdOut() << "a = " << " " << nat_par2[2] << "\n";
+        StdOut() << "b = " << " " << nat_par2[3] << "\n";
+        StdOut() << "theta = " << " " << nat_par2[4] << "\n";
+
+        StdOut() << "-------------------------------------\n";
+    */
+
+
+        /*
+        StdOut() << "--------------------------------\n";
+
+
+        StdOut() << "x0 = " << " " << nat_par2[0] << "\n";
+        StdOut() << "y0 = " << " " << nat_par2[1] << "\n";
+        StdOut() << "a = " << " " << nat_par2[2] << "\n";
+        StdOut() << "b = " << " " << nat_par2[3] << "\n";
+        StdOut() << "theta = " << " " << nat_par2[4] << "\n";
         */
 
 
-        //  StdOut() << "x,y\n";
-
-        for (double t=0; t<2*PI; t+=0.02){
-            cPt2dr aPoint = generatePointOnEllipse(nat_par, t, 0.5);
-            POINTS.push_back(aPoint);
-           // StdOut() << aPoint.x() << "," << aPoint.y() << "\n";
-        }
-
-        std::vector<double> PARAM = fitEllipse(POINTS);
-
-
-
-
         return 0;
+
     }
 
    std::string aNameGT = LastPrefix(APBI_NameIm()) + std::string("_GroundTruth.xml");
