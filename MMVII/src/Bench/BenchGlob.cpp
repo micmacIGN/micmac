@@ -319,12 +319,20 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (const std::vector<std::string> & aVArgs,
   mNumBugRecall   (-1),
   mDoBUSD         (false)
 {
-  MMVII_INTERNAL_ASSERT_always
-  (
-        The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny,
-        "MMVII Bench requires highest level of debug"
-  );
-  // The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_weak;
+  if (The_MMVII_DebugLevel < The_MMVII_DebugLevel_InternalError_tiny)
+  {
+      StdOut() << "WARNN  MMVII Bench requires highest level of debug \n" ; getchar();
+  }
+  else
+  {
+/*
+      MMVII_INTERNAL_ASSERT_always
+      (
+            The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny,
+            "MMVII Bench requires highest level of debug"
+      );
+*/
+  }
 }
 
 
@@ -412,6 +420,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchEnum(aParam); // Read/Write of enum for which it exist
         this->BenchFiles(aParam); // Creation deletion of file
         Bench_Nums(aParam); // Basic numericall services
+        BenchHamming(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
         BenchSet(aParam,mDirTestMMVII);  // Set (in extension)
         BenchSelector(aParam,mDirTestMMVII);  // Set (in comprehension)

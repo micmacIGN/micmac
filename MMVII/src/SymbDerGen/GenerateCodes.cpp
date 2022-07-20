@@ -113,8 +113,8 @@ class cAppliGenCode : public cMMVII_Appli
         cAppliBenchAnswer BenchAnswer() const override ; ///< Has it a bench, default : no
         int  ExecuteBench(cParamExeBench &) override ;
 
-//      private :
-        template <typename tDist> void GenCodesFormula(const tDist & aDist,bool WithDerive);
+        /// tCompute is a fake paremeter, it'used to force the value
+        template <typename tDist,typename tCompute> void GenCodesFormula(tCompute *,const tDist & aDist,bool WithDerive);
 
        // =========== Data ========
             // Mandatory args
@@ -153,13 +153,13 @@ cCollecSpecArg2007 & cAppliGenCode::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 }
 
 
-template <typename tFormula> void cAppliGenCode::GenCodesFormula(const tFormula & aFormula,bool WithDerive)
+template <typename tFormula,typename tCompute> void cAppliGenCode::GenCodesFormula(tCompute *,const tFormula & aFormula,bool WithDerive)
 {
    int aSzBuf=1;
    // std::string aNF = anEq.FormulaName() +   std::string(WithDerive ?"VDer":"Val");
    std::string aNF =  NameFormula(aFormula,WithDerive);
 
-   NS_SymbolicDerivative::cCoordinatorF<double> 
+   NS_SymbolicDerivative::cCoordinatorF<tCompute> 
    aCEq(aNF,aSzBuf,aFormula.VNamesUnknowns(),aFormula.VNamesObs()); // Gives the liste of names
 
    // Set header in a place to compilation path of MMVII
@@ -182,15 +182,15 @@ void cAppliGenCode::GenerateOneDist(const cPt3di & aDeg)
    cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);  // Projection 3D->2D
 
 
-   GenCodesFormula(anEqDist,false);  //  Dist without derivative
-   GenCodesFormula(anEqDist,true);   //  Dist with derivative
-   GenCodesFormula(anEqIntr,false);  //  Proj without derivative
-   GenCodesFormula(anEqIntr,true);   //  Proj with derivative
+   GenCodesFormula((tREAL8*)nullptr,anEqDist,false);  //  Dist without derivative
+   GenCodesFormula((tREAL8*)nullptr,anEqDist,true);   //  Dist with derivative
+   GenCodesFormula((tREAL8*)nullptr,anEqIntr,false);  //  Proj without derivative
+   GenCodesFormula((tREAL8*)nullptr,anEqIntr,true);   //  Proj with derivative
 
    // Generate the base of all functions
    cMMVIIUnivDist           aDistBase(aDeg.x(),aDeg.y(),aDeg.z(),true);
    cEqDist<cMMVIIUnivDist>  anEqBase(aDistBase);
-   GenCodesFormula(anEqBase,false);
+   GenCodesFormula((tREAL8*)nullptr,anEqBase,false);
 }
 
 
@@ -208,8 +208,8 @@ int cAppliGenCode::Exe()
    for (const auto WithDer : {true,false})
    {
        // cDist2DConservation aD2C;
-       GenCodesFormula(cDist2DConservation(),WithDer);
-       GenCodesFormula(cRatioDist2DConservation(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cDist2DConservation(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cRatioDist2DConservation(),WithDer);
    }
 /*
    cMMVIIUnivDist           aDist(3,1,1,false);
@@ -274,9 +274,15 @@ cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf)
     return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,false,true),aSzBuf);
 }
 
+template <class Type> cCalculator<Type> * TplEqConsDist(bool WithDerive,int aSzBuf)
+{ 
+    return cName2Calc<Type>::CalcFromName(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
+}
+
 cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf)
 { 
-    return cName2Calc<double>::CalcFromName(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
+    return TplEqConsDist<double>(WithDerive,aSzBuf);
+    // return cName2Calc<double>::CalcFromName(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
 }
 
 cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf)

@@ -14,7 +14,7 @@ Solution Algorithms::estimateSpeed(std::vector<double> doppler, std::vector<ECEF
     if (freq == 2) EMISSION_FREQ = L2_FREQ;
 
     // Vecteur d'obs et matrice schéma
-	ElMatrix<REAL> A(4,n,0.0); 
+	ElMatrix<REAL> A(4,n,0.0);
 	ElMatrix<REAL> B(1,n,0.0);
     for (unsigned i=0; i<n; i++){
         ECEFCoords radius = (rcv-sat_pos.at(i)); radius.normalize();
@@ -166,17 +166,17 @@ Solution Algorithms::estimateApproxPosition(std::vector<double> psr, std::vector
 
 	// Matrice des pondérations
 	ElMatrix<REAL> P = gaussj(SIGMA);
-	
+
     if (n < 4) return solution;
 
     // Initialisation
     ElMatrix<REAL> X(1,4,0.0);
-	
+
     // Itérations
     while (!convergence){
 
         // Design and obs matrices
-        ElMatrix<REAL> A(4,n,0.0); 
+        ElMatrix<REAL> A(4,n,0.0);
 		ElMatrix<REAL> B(1,n,0.0);
         for (unsigned i=0; i<n; i++){
 
@@ -208,7 +208,7 @@ Solution Algorithms::estimateApproxPosition(std::vector<double> psr, std::vector
 
     solution.setPosition(position);
 	solution.setDeltaTime(X(0,3)/Utils::C);
-	
+
 
     return solution;
 
@@ -224,7 +224,7 @@ void Algorithms::computeDopIndices(Solution& solution, std::vector<ECEFCoords> s
 
     size_t n = sat_pos.size();
 
-    ElMatrix<REAL> G(4,n,0.0); 
+    ElMatrix<REAL> G(4,n,0.0);
     for (unsigned i=0; i<n; i++) {
         r = sat_pos.at(i).distanceTo(rcv);
         temp = sat_pos.at(i).toENUCoords(rcv);
@@ -241,7 +241,7 @@ void Algorithms::computeDopIndices(Solution& solution, std::vector<ECEFCoords> s
     solution.setHDOP(sqrt(DOP(0, 0)+DOP(1, 1)));
     solution.setPDOP(sqrt(DOP(0, 0)+DOP(1, 1)+DOP(2, 2)));
     solution.setGDOP(sqrt(DOP(0, 0)+DOP(1, 1)+DOP(2, 2)+DOP(3, 3)));
-	
+
 }
 
 // -------------------------------------------------------------------------------
@@ -353,13 +353,13 @@ Solution Algorithms::estimatePosition(std::vector<std::string> sat_names,
         sat_names_final = sat_names_masked;
     }
 
-    
+
 	// Elevation mapping function
 	std::vector<double> m;
 	for (unsigned i=0; i<weights_final.size(); i++){
 		m.push_back(0.8/sin(weights_final.at(i)));
 	}
-	
+
 	// Calcul des poids de Gauss-Markov
 	ElMatrix<REAL> W(static_cast<int>(weights_final.size()), static_cast<int>(weights_final.size()), 0.0);
     for (unsigned i=0; i<weights_final.size(); i++) {
@@ -370,12 +370,12 @@ Solution Algorithms::estimatePosition(std::vector<std::string> sat_names,
     Solution output = estimateApproxPosition(psr_final, satellite_positions_final, W);
     output.setNumberOfVisibleSatellites(static_cast<int>(pseudorange.size()));
     output.setUsedSatellites(sat_names_final);
-	
+
 	// ----------------------------------------------
     // Calcul des indicateurs DOP
     // ----------------------------------------------
     computeDopIndices(output, satellite_positions_final);
-	
+
     return output;
 
 }
@@ -443,12 +443,12 @@ Solution Algorithms::estimatePosition(ObservationSlot slot, NavigationData nav){
     Solution solution =  estimatePosition(sat_candidates, psr, sats, atm);;
     solution.setTimestamp(slot.getTimestamp());
     solution.setNumberOfVisibleSatellites(static_cast<int>(sat_names.size()));
-	
+
 	// ----------------------------------------------
     // Calcul des résidus
     // ----------------------------------------------
 	solution.setResiduals(computeResiduals(solution, solution.getUsedSatellites(), slot, nav));
-	
+
     return solution;
 
 }
@@ -670,12 +670,12 @@ Solution Algorithms::estimateDifferentialPosition(ObservationSlot rover, Observa
     output.setNumberOfVisibleSatellites(nb_visible_sats);
     output.setUsedSatellites(sat_base);
     output.setTimestamp(time_rover);
-	
+
 	// ----------------------------------------------
     // Calcul des indicateurs DOP
     // ----------------------------------------------
     computeDopIndices(output, ephemeride);
-	
+
     return output;
 
 }
@@ -726,14 +726,14 @@ Solution Algorithms::triple_difference_kalman(ObservationData rover,
     std::string channel = "L1";
 
     // Matrice identité I3
-    ElMatrix<REAL> I3(3,3,0.0); 
+    ElMatrix<REAL> I3(3,3,0.0);
     I3(0,0) = I3(1,1) = I3(2,2) = 1;
 
     // Solution initiale
-	ElMatrix<REAL> X0(1,3,0.0); 
+	ElMatrix<REAL> X0(1,3,0.0);
 
     // Matrice de covariances a priori
-	ElMatrix<REAL> Pn(3,3,0.0); 
+	ElMatrix<REAL> Pn(3,3,0.0);
     Pn(0,0) = Pn(1,1) = Pn(2,2) = 1e10;
 
     // Filtrage de Kalman
@@ -801,11 +801,11 @@ Solution Algorithms::triple_difference_kalman(ObservationData rover,
 
         // Matrice de triple différence
         ElMatrix<REAL> TD = makeTripleDifferenceMatrix(N, 0);
-		
+
 
         // Matrice de covariance des observations
         ElMatrix<REAL> P = TD*TD.transpose()*1e-10;
-		
+
         // Observations brutes
          ElMatrix<REAL> PHI(1, PRN.size()*4, 0.0);
 
@@ -821,7 +821,7 @@ Solution Algorithms::triple_difference_kalman(ObservationData rover,
 
         // TD théoriques
         ElMatrix<REAL> G(1, PRN.size()*4, 0.0);
-		
+
 
         // Moindres carrés
         for (unsigned iter=0; iter<50; iter++){
@@ -855,7 +855,7 @@ Solution Algorithms::triple_difference_kalman(ObservationData rover,
                 J(2, i-1) = (POS.Z-EPH11.Z)/Ri1 - (POS.Z-EPH21.Z)/Rj1 - (POS.Z-EPH12.Z)/Ri2 + (POS.Z-EPH22.Z)/Rj2;
 
             }
-			
+
 
             ElMatrix<REAL> Y = O-F;
             ElMatrix<REAL> S = J*Pn*J.transpose() + P;
@@ -869,7 +869,7 @@ Solution Algorithms::triple_difference_kalman(ObservationData rover,
         ECEFCoords SOL(X0(0,0)-3e-2, X0(0,1), X0(0,2)-3e-2);
         solution.setPosition(SOL);
 
-		
+
 		//usleep(50000);
         std::cout << "EPOCH " << t1 << "  ";
         std::cout << SOL << "  NSAT = " << N;
@@ -878,5 +878,51 @@ Solution Algorithms::triple_difference_kalman(ObservationData rover,
     }
 
     return solution;
+
+}
+
+// -------------------------------------------------------------------------------
+// Algorithme de résolution des ambiüités sur une époque où la position de la
+// station mobile (et de la station de base) sont connues exactement.
+// -------------------------------------------------------------------------------
+double Algorithms::solve_ambiguity_ref(ObservationData rov, ObservationData bas, NavigationData nav, GPSTime time, std::string sat1, std::string sat2){
+
+
+    double L1 = Utils::C/L1_FREQ;
+
+    ECEFCoords pos_r = rov.getApproxAntennaPosition();
+    ECEFCoords pos_b = bas.getApproxAntennaPosition();
+
+    ObservationSlot slot_b = bas.lookForEpoch(time);
+    ObservationSlot slot_r = rov.lookForEpoch(time);
+
+    double diff_b = slot_b.getTimestamp()-time;
+    double diff_r = slot_r.getTimestamp()-time;
+
+    if (diff_b != 0){
+        std::cout << "Warning: base station not synchronized. Time diff = " << diff_b*1e6 << " us" << std::endl;
+    }
+    if (diff_r != 0){
+        std::cout << "Warning: rover station not synchronized. Time diff = " << diff_b*1e6 << " us" << std::endl;
+    }
+
+    // Observations
+    double C1b = slot_b.getObservation(sat1).getC1(); double L1b = slot_b.getObservation(sat1).getL1();
+    double C2b = slot_b.getObservation(sat2).getC1(); double L2b = slot_b.getObservation(sat2).getL1();
+    double C1r = slot_r.getObservation(sat1).getC1(); double L1r = slot_r.getObservation(sat1).getL1();
+    double C2r = slot_r.getObservation(sat2).getC1(); double L2r = slot_r.getObservation(sat2).getL1();
+
+    // Positions et distances théoriques
+    ECEFCoords pos_sat1b = nav.computeSatellitePos(sat1, slot_b.getTimestamp(), C1b); double D1b = pos_b.distanceTo(pos_sat1b);
+    ECEFCoords pos_sat2b = nav.computeSatellitePos(sat2, slot_b.getTimestamp(), C2b); double D2b = pos_b.distanceTo(pos_sat2b);
+    ECEFCoords pos_sat1r = nav.computeSatellitePos(sat1, slot_r.getTimestamp(), C1r); double D1r = pos_r.distanceTo(pos_sat1r);
+    ECEFCoords pos_sat2r = nav.computeSatellitePos(sat2, slot_r.getTimestamp(), C2r); double D2r = pos_r.distanceTo(pos_sat2r);
+
+    // Doubles différences observées et théoriques
+    double dd_obs = (L1b - L2b) - (L1r - L2r);
+    double dd_thq = ((D1b - D2b) - (D1r - D2r))/L1;
+
+    // Résolution de l'ambigüité entière
+    return  dd_obs - dd_thq;
 
 }

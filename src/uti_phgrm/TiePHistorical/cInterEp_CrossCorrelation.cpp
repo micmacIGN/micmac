@@ -264,11 +264,14 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
         cElHomographie  aH1 = vHomoL[aIdxL].Inverse();
         cElHomographie  aH2 = vHomoR[aIdxR].Inverse();
 
-        if(0){
-            printf("------------------------------------------------\n");
+        if(bPrint){
+            printf("------------------------%dth Tie Pt------------------------\n", nPtNum);
+            cout<<"Left patch file: "<<aPatchDir+"/"+vPatchesL[aIdxL]<<endl;
+            cout<<"Right patch file: "<<aPatchDir+"/"+vPatchesR[aIdxR]<<endl;
             printf("PatchSz: [%.2lf, %.2lf]; BufferSz: [%.2lf, %.2lf]; CoreaPatchSz: [%.2lf, %.2lf]; PatchNum: [%.2lf, %.2lf]\n", aPatchSz.x, aPatchSz.y, aBufferSz.x, aBufferSz.y, CoreaPatchSz.x, CoreaPatchSz.y, PatchNum.x, PatchNum.y);
-            printf("Location of patch (2D Index[x,y]): [%d, %d]; 1D Index: %d\n", aIdxX, aIdxY, aIdxL);
+            printf("Location of left patch (2D Index[x,y]): [%d, %d]; 1D Index: %d\n", aIdxX, aIdxY, aIdxL);
             cElComposHomographie aH = aH1.HX();
+            printf("Homography from left image to left patch\n");
             printf("%.2lf, %.2lf, %.2lf\n", aH.CoeffX(), aH.CoeffY(), aH.Coeff1());
             aH = aH1.HY();
             printf("%.2lf, %.2lf, %.2lf\n", aH.CoeffX(), aH.CoeffY(), aH.Coeff1());
@@ -298,6 +301,11 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
 
             //aP1InPatch = aH1(aP1);
             aP2InPatch = aH2(aP2);
+
+            if(bPrint){
+                cout<<"Modified right patch file: "<<aPatchDir+"/"+vPatchesR[aIdxR]<<endl;
+            }
+
         }
 
         if(aIdxL >= nPatchLNum || aIdxR >= nPatchRNum){
@@ -314,11 +322,14 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
             if(bRes1 == false || bRes2 == false)
             {
                 if(bPrint){
-                    printf("------Out of border-------\n %dth pt, Original coor: %lf %lf %lf %lf\n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y);
-                    printf("new coor: %lf %lf %lf %lf\n", aP1InPatch.x, aP1InPatch.y, aP2InPatch.x, aP2InPatch.y);
-                    printf("Step to move to adjecent patch: [%d, %d]\n", aMove.x, aMove.y);
-                    printf("aP2InPatch1stTry: [%.2lf, %.2lf]; aP2InPatch2ndTry: [%.2lf, %.2lf]\n", aP2InPatch1stTry.x, aP2InPatch1stTry.y, aP2InPatch.x, aP2InPatch.y);
-                    cout<<aPatchDir+"/"+vPatchesL[aIdxL]<<", "<<aPatchDir+"/"+vPatchesR[aIdxR]<<endl;
+                    printf("------Out of border-------\n %dth pt, Original coor: ([%lf, %lf], [%lf, %lf])\n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y);
+                    if(bRes1 == false)
+                        printf("Left pt out of border\n");
+                    if(bRes2 == false)
+                        printf("Right pt out of border\n");
+                    printf("patch coor (before modification of right patch): ([%lf, %lf], [%lf, %lf])\n", aP1InPatch.x, aP1InPatch.y, aP2InPatch1stTry.x, aP2InPatch1stTry.y);
+                    printf("Step to move to adjecent patch (modification of right patch): [%d, %d]\n", aMove.x, aMove.y);
+                    printf("patch coor (after modification of right patch): ([%lf, %lf], [%lf, %lf])\n", aP1InPatch.x, aP1InPatch.y, aP2InPatch.x, aP2InPatch.y);
                 }
                 nOutOfBorder++;
                 continue;
@@ -326,7 +337,7 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
 
             double dCorr = CalcCorssCorr(aPxVal1, aPxVal2, bPrint);
             if(bPrint){
-                printf("%dth pt, Original coor: %.2lf %.2lf %.2lf %.2lf; Coor: %.2lf \n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y, dCorr);
+                printf("%dth pt, Original coor: ([%lf, %lf], [%lf, %lf]); CrossCorrelation: %.2lf \n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y, dCorr);
             }
 
             if(dCorr >= aThreshold)

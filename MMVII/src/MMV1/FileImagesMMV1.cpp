@@ -202,10 +202,19 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
 
    if (ReadMode)
    {
+      Symb_FNum  aFIn = aTF.in();
+      if ((aFIn.dimf_out()>1) && (aVecImV2.size()==1))
+      {
+         Fonc_Num aNewF = aFIn.kth_proj(0);
+         for (int aKF=1 ; aKF< aFIn.dimf_out() ; aKF++)
+             aNewF = aNewF + aFIn.kth_proj(aKF);
+          aFIn = aNewF / aFIn.dimf_out();
+      }
+          
       ELISE_COPY
       (
            rectangle(aP0Im,aP1Im),
-           trans(El_CTypeTraits<Type>::TronqueF(aTF.in()*aDyn),aTrans),
+           trans(El_CTypeTraits<Type>::TronqueF(aFIn*aDyn),aTrans),
            aOutImV1
       );
    }
@@ -382,9 +391,15 @@ template <const int aNbBit>  cIm2D<tU_INT1>  BitsV1ToV2(const Im2D_Bits<aNbBit> 
 }
 
 
-cIm2D<tU_INT1> ImageOfString(const std::string & aStr ,int aSpace)
+cIm2D<tU_INT1> ImageOfString_10x8(const std::string & aStr ,int aSpace)
 {
     Im2D_Bits<1> aImV1 =  cElBitmFont::BasicFont_10x8().BasicImageString(aStr,aSpace);
+    return BitsV1ToV2(aImV1);
+}
+
+cIm2D<tU_INT1> ImageOfString_DCT(const std::string & aStr ,int aSpace)
+{
+    Im2D_Bits<1> aImV1 =  cElBitmFont::FontCodedTarget().BasicImageString(aStr,aSpace);
     return BitsV1ToV2(aImV1);
 }
 

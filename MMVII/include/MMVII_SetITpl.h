@@ -7,6 +7,7 @@ namespace MMVII
 /** \file MMVII_SetITpl.h
     \brief classses fot sets of integers
 
+      cSetISingleFixed<tVal>  : fixed  size, contain a subset as flag of bit coded on a a single int
 
 */
 
@@ -44,9 +45,9 @@ template <typename tVal> class cSetISingleFixed
 
          void AddElem(const tElem & anElem) {mFlagBits |= FlagSingle(anElem);}
 
+         cSetISingleFixed(const tVal & aFlagBit) : mFlagBits (aFlagBit) {}
     private :
          static constexpr  size_t NbBits = 8 *sizeof(tVal);
-         cSetISingleFixed(const tVal & aFlagBit) : mFlagBits (aFlagBit) {}
          static tVal  FlagSingle(const tElem & anElem) {return (1<<anElem);}
 
          tVal    mFlagBits;

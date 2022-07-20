@@ -26,6 +26,19 @@ cSetIntDyn::cSetIntDyn(size_t aNb) :
 {
 }
 
+void cSetIntDyn::SortInd()
+{
+    std::sort(mVIndOcc.begin(),mVIndOcc.end());
+}
+
+cSetIntDyn::cSetIntDyn(size_t aNb,const std::vector<size_t> & aVInd) :
+     cSetIntDyn (aNb)
+{
+    for (const auto & anInd : aVInd)
+        AddInd(anInd);
+}
+
+
 void cSetIntDyn::Clear()
 {
    for (const auto & aInd : mVIndOcc)
@@ -39,11 +52,7 @@ void cSetIntDyn::AddInd(size_t aK)
       while (mOccupied.size() <= aK)
             mOccupied.push_back(false);
 
-      if (!mOccupied[aK])
-      {
-         mOccupied[aK] = true;
-         mVIndOcc.push_back(aK);
-      }
+      AddIndFixe(aK);
 }
 };
 

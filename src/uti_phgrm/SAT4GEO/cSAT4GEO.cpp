@@ -62,6 +62,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mMMVII_mode("MMV1"),
 	mMMVII_ImName("Px1_MMVII.tif"),
 	mMMVII_SzTile(Pt2di(1024,1024)),
+    mMMVII_SzOverL(Pt2di(50,30)),
         mMMVII_NbProc(8),
         //mZoomF(1),
 	//mHasVeg(true),
@@ -116,7 +117,6 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 //			<< EAM(mCMS,"CMS",true,"Image matching: Multi Scale Correl (Def=ByEpip)")
 //			<< EAM(mHasVeg,"HasVeg",true,"Image matching: Has vegetation, Def= false")
 //			<< EAM(mHasSBG,"HasSBG",true,"Image matching: Has Sky Background , Def= true")
-			<< EAM(mEZA,"EZA",true,"Image matching: Export Z absolute (Def=false)")
 			<< EAM(mDoPly,"DoPly",true,"Image matching: Generate Ply")
 			<< EAM(mInc,"Inc",true,"Image matching: Sigma Pixel for coherence (Def=1.5)")
 			<< EAM(mRegul,"Regul",true,"Image matching: Regularisation factor (Def=0.2)")
@@ -129,9 +129,11 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
             << EAM(mMMVII_ModePad,"MMVII_ModePad",true,"Image matching: if MMVII==1, {NoPad PxPos PxNeg SzEq}")
             << EAM(mMMVII_ImName,"MMVII_ImName",true,"Image matching: if MMVII==1, name of depth map")
             << EAM(mMMVII_SzTile,"MMVII_SzTile",true,"Image matching: if MMVII==1, Size of tiling used to split computation, Def=[1024,1024]")
+            << EAM(mMMVII_SzOverL,"MMVII_SzOverL",true,"Image matching: if MMVII==1, Size of overlap between tiles ,[Default=[50,30]")
             << EAM(mMMVII_NbProc,"MMVII_NbProc",true,"Image matching: if MMVII==1, Nb of cores for II processing in MMVII, Def=8");
 
 	*mArgFuse
+			<< EAM(mEZA,"EZA",true,"Image matching: Export Z absolute (Def=false)")
 			<< EAM(mOutRPC,"OutRPC",true,"Fusion: RPC recal/Depth map fusion: RPC orientation directory (corresp. to epipolar images)")
 			<< EAM(mOutSMDM,"OutSMDM",true,"Fusion: Depth map fusion: Name of the output folder, Def=Fusion/");
 
@@ -228,7 +230,8 @@ std::string cCommonAppliSat3D::ComParamMatch()
         aCom += BLANK + "MMVII=" + ToString(mMMVII);
         if (EAMIsInit(&mMMVII_mode))    aCom += BLANK + "MMVII_mode=" + mMMVII_mode;
         if (EAMIsInit(&mMMVII_ImName))  aCom += BLANK + "MMVII_ImName=" + mMMVII_ImName;
-	if (EAMIsInit(&mMMVII_SzTile))  aCom += BLANK + "MMVII_SzTile=" + ToString(mMMVII_SzTile);
+	    if (EAMIsInit(&mMMVII_SzTile))  aCom += BLANK + "MMVII_SzTile=" + ToString(mMMVII_SzTile);
+	    if (EAMIsInit(&mMMVII_SzOverL)) aCom += BLANK + "MMVII_SzOverL=" + ToString(mMMVII_SzOverL);
         if (EAMIsInit(&mMMVII_NbProc))  aCom += BLANK + "MMVII_NbProc=" + ToString(mMMVII_NbProc); 
     }
     else
@@ -236,22 +239,10 @@ std::string cCommonAppliSat3D::ComParamMatch()
         if (EAMIsInit(&mExpTxt))  aCom += aCom  + " ExpTxt=" + ToString(mExpTxt);
         if (EAMIsInit(&mZoom0))   aCom +=  " Zoom0=" + ToString(mZoom0);
         if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
-/*	if (EAMIsInit(&mResolTerrain))
-          aCom = aCom + BLANK + "ResolTerrain=" + ToString(mResolTerrain);*/
-        /*if (EAMIsInit(&mBoxTerrain)) not needed since accounted for in the epip generation
-        {
-          aCom  =  aCom + BLANK 
-		  +  std::string("BoxTerrain=")   
-                  +  std::string("[") + ToString(mBoxTerrain._p0.x)
-                  +  std::string(",") + ToString(mBoxTerrain._p0.y)
-                  +  std::string(",") + ToString(mBoxTerrain._p1.x)
-                  +  std::string(",") + ToString(mBoxTerrain._p1.y) 
-		  + std::string("]");
-        }*/
 
         //if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
         //if (EAMIsInit(&mCMS))     aCom +=  " CMS=" + ToString(mCMS);
-        if (EAMIsInit(&mEZA))     aCom +=  " EZA=" + ToString(mEZA);
+
             //if (EAMIsInit(&mHasVeg))  aCom +=  " HasVeg=" + ToString(mHasVeg);
             //if (EAMIsInit(&mHasSBG))  aCom +=  " HasSBG=" + ToString(mHasSBG);
         if (EAMIsInit(&mInc))  aCom +=  " Inc=" + ToString(mInc);
@@ -272,8 +263,9 @@ std::string cCommonAppliSat3D::ComParamFuse()
 {
 	std::string aCom;
 	aCom += " OutRPC=" + mOutRPC;
-        if (EAMIsInit(&mNbProc))    aCom +=  " NbP=" + ToString(mNbProc);
+    if (EAMIsInit(&mNbProc))    aCom +=  " NbP=" + ToString(mNbProc);
         
+    if (EAMIsInit(&mEZA))     aCom +=  " EZA=" + ToString(mEZA);
 
 	if (EAMIsInit(&mResolTerrain))
           aCom = aCom + BLANK + "ResolTerrain=" + ToString(mResolTerrain);
@@ -607,73 +599,42 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 		
 		if (mCAS3D.mMMVII)
 		{
+            
 			ELISE_fp::MkDirSvp((*aDir_it));	
 			aComTmp = "MMVII DenseMatchEpipGen" + BLANK + mCAS3D.mMMVII_mode
                                                      + BLANK + aNI1 + BLANK + aNI2 
-                                                     + BLANK + "Out=" + (*aDir_it++) + mCAS3D.mMMVII_ImName
+                                                     + BLANK + "Out=" + (*aDir_it) + mCAS3D.mMMVII_ImName
                                                      + ((EAMIsInit(&mCAS3D.mMMVII_SzTile)) ? (BLANK + "SzTile=" + ToString(mCAS3D.mMMVII_SzTile)) : "") 
+	                                                 + ((EAMIsInit(&mCAS3D.mMMVII_SzOverL))? (BLANK + "SzOverL=" + ToString(mCAS3D.mMMVII_SzOverL)) : "")
                                                      + ((EAMIsInit(&mCAS3D.mMMVII_NbProc)) ? (BLANK + "NbProc=" + ToString(mCAS3D.mMMVII_NbProc)) : "")
-						     + BLANK + "MMInit=MMV1"; 
+						     + BLANK + "MMInit=MMV1";
+            aLCom.push_back(aComTmp);
+
+			//create masks of occlusions and a confidence map (correlation)
+            std::string Masq1Name = mCAS3D.mICNM->Assoc1To1("Key-Assoc-Std-Masq-Image",aNI1,true);
+            std::string Masq2Name = mCAS3D.mICNM->Assoc1To1("Key-Assoc-Std-Masq-Image",aNI2,true);
+
+			std::string aComOC = "MMVII DenseMatchEpipEval" + BLANK + aNI1 + BLANK + aNI2 
+                               + BLANK + (*aDir_it) + mCAS3D.mMMVII_ImName + " true "
+                               + BLANK + "HiddenMask=" + (*aDir_it) + NameOccluMask()
+                               + BLANK + "ImCorrel=" + (*aDir_it) + NameCorrel()
+                               + BLANK + "Masq1=" + Masq1Name + BLANK + "Masq2=" + Masq2Name;
+            aLCom.push_back(aComOC);
+
+            (*aDir_it++);
 
 		}
 		else
 		{
 
-                        //Update terrain box to image geometry
-			/*if(EAMIsInit(&mCAS3D.mBoxTerrain)) not needed since accounted for in the epip generation
-			{
-			    / Read cameras 
-                            cBasicGeomCap3D * aCamI1 = mCAS3D.mICNM->StdCamGenerikOfNames(mCAS3D.mOutRPC,aNI1);
-                            
-			    //Sz
-			    Pt2dr aSz = aCamI1->SzPixel();
-
-			    //Z
-			    double aZ = aCamI1->GetAltiSol();
-			    Pt3dr Pt1, Pt2, Pt3, Pt4;
-
-          		    Pt1.x = mCAS3D.mBoxTerrain._p0.x;  
-			    Pt1.y = mCAS3D.mBoxTerrain._p0.y;  
-			    Pt1.z = aZ;
-                            Pt2.x = mCAS3D.mBoxTerrain._p1.x;  
-			    Pt2.y = mCAS3D.mBoxTerrain._p1.y;  
-			    Pt2.z = aZ;
-                            Pt3.x = Pt2.x;        
-			    Pt3.y = Pt1.y;        
-			    Pt3.z = aZ;
-
-                            Pt4.x = Pt1.x;        
-			    Pt4.y = Pt2.y;        
-			    Pt4.z = aZ;
-
-			    Pt2dr PtIm1 = aCamI1->Ter2Capteur(Pt1);
-			    Pt2dr PtIm2 = aCamI1->Ter2Capteur(Pt2);
-			    Pt2dr PtIm3 = aCamI1->Ter2Capteur(Pt3);
-			    Pt2dr PtIm4 = aCamI1->Ter2Capteur(Pt4);
-			
-
-			    int Bord = 20; 
-                            mCAS3D.mBoxTerrain._p0.x = std::max(std::min(std::min(PtIm2.x,PtIm4.x), std::min(PtIm1.x,PtIm3.x))-Bord,0.0);
-                            mCAS3D.mBoxTerrain._p0.y = std::max(std::min(std::min(PtIm2.y,PtIm4.y), std::min(PtIm1.y,PtIm3.y))-Bord,0.0);
-                            mCAS3D.mBoxTerrain._p1.x= std::min(std::max(std::max(PtIm2.x,PtIm4.x), std::max(PtIm1.x,PtIm3.x))+Bord,aSz.x);
-                            mCAS3D.mBoxTerrain._p1.y = std::min(std::max(std::max(PtIm2.y,PtIm4.y), std::max(PtIm1.y,PtIm3.y))+Bord,aSz.y);
-
-                            std::cout << "IMAGE BOX : " << mCAS3D.mBoxTerrain._p0 << " " << mCAS3D.mBoxTerrain._p1 << std::endl;
-
-	    	            delete aCamI1;
-
-			}*/
-
+            //Update terrain box to image geometry
 			aComTmp = MMBinFile(MM3DStr) + "MMAI4Geo " + mCAS3D.mDir + BLANK
                               + aNI1 + BLANK + aNI2 + BLANK
                               + "DirMEC=" + (*aDir_it++)
                               + mCAS3D.ComParamMatch();
+            aLCom.push_back(aComTmp);
 
 		}
-
-
-
-        aLCom.push_back(aComTmp);
 
     }
 
@@ -686,6 +647,93 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
     }
 
 
+    if (mCAS3D.mExe) {
+    // create MMNuageLast.xml for deep-learning correlation
+    if (mCAS3D.mMMVII && (mCAS3D.mMMVII_mode=="PSMNet"))
+	{
+        aDir_it = aLDirMec.Name().begin();
+        for (auto itP : aPairs.Cple())
+            CreateNuageLastFile((*aDir_it++),mCAS3D.mMMVII_ImName);
+    }
+    }
+
+}
+
+std::string cAppliMM1P::NameOccluMask()
+{
+    return  "Occlussion_Masq.tif"; 
+}
+
+std::string cAppliMM1P::NameCorrel()
+{
+    return  "Correl.tif"; 
+}
+
+void cAppliMM1P::CreateNuageLastFile(const std::string& Dir, const std::string& ImName)
+{
+    //read the depth map to read the image size
+    Tiff_Im     aImProfMMVII( (Dir + ImName).c_str());
+    
+    //fill the XML_ParamNuage3DMaille structure
+    cXML_ParamNuage3DMaille aNMVII;
+    aNMVII.SsResolRef() = 1;
+    aNMVII.NbPixel() = aImProfMMVII.sz();
+    
+    cPN3M_Nuage aPN;
+    cImage_Profondeur  aImP;
+    aImP.Image() = ImName;
+    
+    aImP.Correl() = NameCorrel();
+    aImP.Masq() = NameOccluMask();
+    
+    aImP.OrigineAlti() = 0;
+    aImP.ResolutionAlti() = 1;
+    aImP.GeomRestit() = eGeomPxBiDim;
+    
+    aPN.Image_Profondeur() = aImP;
+    aNMVII.PN3M_Nuage() = aPN;
+    
+    cOrientationConique aOc;
+    cAffinitePlane aAP;
+    aAP.I00() = Pt2dr(0,0);
+    aAP.V10() = Pt2dr(1,0);
+    aAP.V01() = Pt2dr(0,1);
+    aOc.OrIntImaM2C() = aAP;
+    
+    aOc.ZoneUtileInPixel() = true;
+    aOc.TypeProj() = eProjOrthographique;
+    
+    cOrientationExterneRigide aEOR;
+    aEOR.Centre() = Pt3dr(0,0,0);
+    cRotationVect aRotVec;
+    cTypeCodageMatr aRotCode;
+    aRotCode.L1() = Pt3dr(1,0,0);
+    aRotCode.L2() = Pt3dr(0,1,0);
+    aRotCode.L3() = Pt3dr(0,0,1);
+    aRotVec.CodageMatr() = aRotCode;
+    
+    aEOR.ParamRotation() = aRotVec;
+    
+    aOc.Externe() = aEOR;
+    
+    cConvOri aCOri;
+    aCOri.KnownConv() = eConvApero_DistM2C;
+    aOc.ConvOri() = aCOri;
+    
+    aNMVII.Orientation() = aOc;
+    
+    
+    aNMVII.RatioResolAltiPlani() = 1;
+    
+    cPM3D_ParamSpecifs aParSpec;
+    cModeFaisceauxImage aMFI;
+    aMFI.DirFaisceaux() = Pt3dr(0,0,1);
+    aMFI.ZIsInverse() = false;
+    aMFI.IsSpherik() = false;
+    aParSpec.ModeFaisceauxImage() = aMFI;
+    aNMVII.PM3D_ParamSpecifs() = aParSpec;
+    
+    MakeFileXML(aNMVII,Dir+"MMLastNuage.xml");
 }
 
 int CPP_AppliMM1P_main(int argc,char ** argv)
@@ -818,18 +866,6 @@ void cAppliFusion::DoAll()
 	if (EAMIsInit(&mCAS3D.mResolTerrain))
           aCom = aCom + BLANK + "ResolTerrain=" + ToString(mCAS3D.mResolTerrain);
 
-	/*if (EAMIsInit(&mCAS3D.mBoxTerrain)) not needed since accounted for in the epip generation
-        {
-          aCom  =  aCom + BLANK
-		  +  std::string("BoxTerrain=")  
-                  +  std::string("[") + ToString(mCAS3D.mBoxTerrain._p0.x)
-                  +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p0.y)
-                  +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p1.x)
-                  +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p1.y)
-                  + std::string("]");
-        }*/
-
-
 
 
     if (mCAS3D.mExe)
@@ -865,7 +901,7 @@ void cAppliFusion::DoAll()
 						 + "NbP=" + ToString(mCAS3D.mNbProc) + " "
 						 + "Exe=" + ToString(mCAS3D.mExe) + " " 
                          + ((mCAS3D.mMMVII) ? ("MMVII=" + ToString(mCAS3D.mMMVII) + " ") : "") 
-                         + ((EAMIsInit(&mCAS3D.mMMVII_ImName)) ? ("MMVII_ImName=" + mCAS3D.mMMVII_ImName) : "");
+                         + ((mCAS3D.mMMVII) ? ("MMVII_ImName=" + mCAS3D.mMMVII_ImName) : "");
 
 		/*std::string aCTG2to1 = MMBinFile(MM3DStr) + "TestLib TransGeom "
 				         + mCAS3D.mDir + " " 
@@ -1092,7 +1128,6 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 	std::string aIm2;
 	std::string aPx1NameOut;
 	std::string aPx1MasqName;
-	std::string aPx1MasqNameOut;
 	bool InParal = true;
 	bool CalleByP = false;
 	int aSzDecoup = 2000;
@@ -1134,77 +1169,7 @@ int CPP_TransformGeom_main(int argc, char ** argv)
     //if MMVII create the NuageLast.xml file (if it does not exist)
     if (aMMVII && (!ELISE_fp::exist_file(aNuageName)))
     {
-        //read the depth map to read the image size 
-		Tiff_Im     aImProfMMVII( (aDirMEC + aMMVII_ImProfName).c_str());
-
-        //fill the XML_ParamNuage3DMaille structure 
-        cXML_ParamNuage3DMaille aNMVII;
-        aNMVII.SsResolRef() = 1;
-        aNMVII.NbPixel() = aImProfMMVII.sz();
-
-        cPN3M_Nuage aPN;
-        cImage_Profondeur  aImP;
-        aImP.Image() = aMMVII_ImProfName;
-
-        std::string aMasqPre; 
-        std::vector<std::string> aMasqPosts;
-        SplitInNArroundCar(aIm1,'.',aMasqPre,aMasqPosts);
-        aImP.Masq() = aMasqPre ;
-        for (int el=0; el<int(aMasqPosts.size()-1); el++)
-            aImP.Masq() += "." + aMasqPosts[el];
-       
-        aImP.Masq() += "_Masq.tif";
-          
-        aImP.OrigineAlti() = 0;
-        aImP.ResolutionAlti() = 1;
-        aImP.GeomRestit() = eGeomPxBiDim;
-        
-        aPN.Image_Profondeur() = aImP;
-        aNMVII.PN3M_Nuage() = aPN;
-
-
-        cOrientationConique aOc;
-        cAffinitePlane aAP;
-        aAP.I00() = Pt2dr(0,0);
-        aAP.V10() = Pt2dr(1,0);
-        aAP.V01() = Pt2dr(0,1);
-        aOc.OrIntImaM2C() = aAP;
-
-        aOc.ZoneUtileInPixel() = true;
-        aOc.TypeProj() = eProjOrthographique;
-
-        cOrientationExterneRigide aEOR;
-        aEOR.Centre() = Pt3dr(0,0,0);
-        cRotationVect aRotVec;
-        cTypeCodageMatr aRotCode;
-        aRotCode.L1() = Pt3dr(1,0,0);
-        aRotCode.L2() = Pt3dr(0,1,0);
-        aRotCode.L3() = Pt3dr(0,0,1);
-        aRotVec.CodageMatr() = aRotCode;
-
-        aEOR.ParamRotation() = aRotVec;
-
-        aOc.Externe() = aEOR;
-
-        cConvOri aCOri;
-        aCOri.KnownConv() = eConvApero_DistM2C; 
-        aOc.ConvOri() = aCOri;
-
-        aNMVII.Orientation() = aOc;
-
-
-        aNMVII.RatioResolAltiPlani() = 1;
-
-        cPM3D_ParamSpecifs aParSpec;
-        cModeFaisceauxImage aMFI;
-        aMFI.DirFaisceaux() = Pt3dr(0,0,1);
-        aMFI.ZIsInverse() = false;
-        aMFI.IsSpherik() = false;
-        aParSpec.ModeFaisceauxImage() = aMFI;
-        aNMVII.PM3D_ParamSpecifs() = aParSpec;
-        
-        MakeFileXML(aNMVII,aNuageName);
-        
+	   ELISE_ASSERT(false,"MMNuageLast.xml missing")
     }
 
 
@@ -1226,7 +1191,6 @@ int CPP_TransformGeom_main(int argc, char ** argv)
     aNuageNameOut   = StdPrefix(aNuageName) + aPostFix + ".xml";
     aPx1NameOut     = aDirMEC + StdPrefix(aImProfPx.Image()) + aPostFix + ".tif";
 	aPx1MasqName    = aDirMEC + aImProfPx.Masq();
-	aPx1MasqNameOut = aDirMEC + StdPrefix(aImProfPx.Masq()) + aPostFix + ".tif";
 
 
 	/* Create new depth map if needed */
@@ -1239,19 +1203,6 @@ int CPP_TransformGeom_main(int argc, char ** argv)
                             Tiff_Im::No_Compr,
                             Tiff_Im::BlackIsZero
                          );
-
-
-
-
-	Tiff_Im  aImMasqZTif =  Tiff_Im::CreateIfNeeded(
-                            isModified,
-                            aPx1MasqNameOut.c_str(),
-                            aSz,
-                            GenIm::bits1_msbf,
-                            Tiff_Im::No_Compr,
-                            Tiff_Im::BlackIsZero
-                      );
-
 
 
 	if (CalleByP)
@@ -1291,10 +1242,7 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 
     
 		/* Create the depth map & mask to which we will write */
-		//TIm2D<float,double> aTImProfZ(aSz);
-  		//Im2D_Bits<1>        aTMasqZ(aSz.x,aSz.y,0);
 		TIm2D<float,double> aTImProfZ(aSzOut);
-  		Im2D_Bits<1>        aTMasqZ(aSzOut.x,aSzOut.y,0);
 
 
 		/* Read cameras */
@@ -1320,7 +1268,6 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 				{
 
 					Pt2dr aPt2InFul(aPt1InFul.x + aTImProfPx.get(aPt1), aPt1InFul.y);
-
                     
 					ElSeg3D aSeg1 = aCamI1->Capteur2RayTer(Pt2dr(aPt1InFul.x,aPt1InFul.y)*aResolPlaniReel); 
 					ElSeg3D aSeg2 = aCamI2->Capteur2RayTer(aPt2InFul*aResolPlaniReel); 
@@ -1329,11 +1276,8 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 					
 					Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
 
-					//aTImProfZ.oset(aPt1InFul,aRes.z/aResolPlaniEquiAlt);
 					aTImProfZ.oset(aPt1,aRes.z/aResolPlaniEquiAlt);
 				
-					//aTMasqZ.set(aPt1InFul.x,aPt1InFul.y,1);
-					aTMasqZ.set(aPt1.x,aPt1.y,1);
 				}
 			}
 		}
@@ -1341,13 +1285,6 @@ int CPP_TransformGeom_main(int argc, char ** argv)
     
 
 		/* Write box to new depth map */
-        /*ELISE_COPY
-        (
-            rectangle(aBoxOut._p0,aBoxOut._p1), 
-            //trans(aTImProfZ.in(),aBoxOut._p0),
-            aTImProfZ.in(),
-            aImProfZTif.out()
-        );*/
         ELISE_COPY
         (
             rectangle(aBoxOut._p0,aBoxOut._p1), 
@@ -1355,47 +1292,7 @@ int CPP_TransformGeom_main(int argc, char ** argv)
             aImProfZTif.out()
         );
    	
-		/* Write box to the new mask */
-		/*ELISE_COPY
-		(
-			rectangle(aBoxOut._p0,aBoxOut._p1),
-			aTMasqZ.in(),
-			aImMasqZTif.out()	
-		);*/
-		ELISE_COPY
-		(
-			rectangle(aBoxOut._p0,aBoxOut._p1),
-			trans(aTMasqZ.in(),-aBoxOut._p0),
-			aImMasqZTif.out()	
-		);
 
-
-
-
-		/*Disc_Pal  Pdisc = Disc_Pal::P8COL();
-		Gray_Pal  Pgr (30);
-		Circ_Pal  Pcirc = Circ_Pal::PCIRC6(30);
-       	RGB_Pal   Prgb  (5,5,5);
-		Elise_Set_Of_Palette SOP
-        (    NewLElPal(Pdisc)
-            + Elise_Palette(Pgr)
-            + Elise_Palette(Prgb)
-            + Elise_Palette(Pcirc)  );
-
-		
-        Video_Display Ecr((char *) NULL);
-        Ecr.load(SOP);
-
-		Pt2di aSzWin(-110+aSzOut.x,-50+aSzOut.y);
-	    Video_Win   W  (Ecr,SOP,Pt2di(50,50),aSzOut);
-		ELISE_COPY
-        (
-            rectangle(Pt2di(110,50),aSzWin),
-            trans(aTImProfZ.in(),aBoxOut._p0),
-            W.out(Pgr)
-        );*/
-
-		//getchar();
    		
 
 	}
@@ -1457,7 +1354,8 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 		{
 			/* Update aNuageIn */
             aImProfPx.Image()           = NameWithoutDir(aPx1NameOut);
-			aImProfPx.Masq()            = NameWithoutDir(aPx1MasqNameOut);
+			aImProfPx.Correl()          = NameWithoutDir(aImProfPx.Correl().Val());
+			aImProfPx.Masq()            = NameWithoutDir(aPx1MasqName);
             aImProfPx.GeomRestit()      = eGeomMNTFaisceauIm1ZTerrain_Px1D;
             aNuageIn.Image_Profondeur() = aImProfPx;
             aNuageIn.NameOri() = aICNM->StdNameCamGenOfNames(aOri,aIm1);

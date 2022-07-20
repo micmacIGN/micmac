@@ -73,8 +73,10 @@ template <class Type,const int Dim> class cPtxd
        /// Pt random in sphere
        static cPtxd<Type,Dim>  PRandInSphere();
 
-       /// Initialisation random VUnit not too close to P1
+       /// Initialisation random VUnit not too close to P
        static cPtxd<Type,Dim>  PRandUnitDiff(const cPtxd<Type,Dim>&,const Type &aDist = 1e-2);
+       /// Initialisation random VUnit not too close to P or -P
+       static cPtxd<Type,Dim>  PRandUnitNonAligned(const cPtxd<Type,Dim>&,const Type &aDist = 1e-2);
 
         static cPtxd<Type,Dim> Col(const cDenseMatrix<Type>&,int aCol);  ///< Init with colum of matrix
         static cPtxd<Type,Dim> Line(int aLine,const cDenseMatrix<Type>&); ///< Init with line of matrix
@@ -151,10 +153,10 @@ template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGr
 /// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
 //std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
 /// Implemented
-std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1,bool IsSym=false); // > R0 et <= R1
 
-/// ASym  means that there is only one out of 2 between -P and P
-std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym) ;
+/// IsSym  means that there is only one out of 2 between -P and P
+std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSym=false) ;
 
 
 
@@ -618,6 +620,8 @@ template <class Type,const int Dim>  class cTplBox
     private :
 };
 
+// template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & );
+// template <const int Dim>  cTplBox<int,Dim> ToI(const  cTplBox<tREAL8,Dim> & );
 
 /** Function computing corner of box, this one is specific to dim=1 because it respect
 trigonometric order, a notion not generalisable */
@@ -633,8 +637,15 @@ typedef cTplBox<double,3>  cBox3dr;
 cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord
 
 
+// Is window inside the box 
+template <class Type> bool WindInside(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
+template <class Type> bool WindInside(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  int & aSzW);
 // Is window inside the box taking into account bilinear interpol ?
 template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
+
+
+cBox2di DilateFromIntervPx(const cBox2di & aBox,int aDPx0,int aDPx1);
+
 
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cTplBox<Type,Dim> &aBox)
 { return  OS << "{" << aBox.P0() <<   " :: " << aBox.P1()<< "}"; }
@@ -682,7 +693,7 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
     public :
        typedef cPtxd<Type,Dim> tPt;
        cSegmentCompiled(const tPt& aP1,const tPt& aP2);
-    private :
+    protected :
        Type    mN2;
        tPt     mTgt;
 };

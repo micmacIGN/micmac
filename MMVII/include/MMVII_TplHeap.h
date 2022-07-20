@@ -8,7 +8,8 @@ template <class Type,class Compare> class cKBestValue;  // efficient memorizatio
 template <class Type> class DefaultParamHeap; // usable as 3rd template param of cIndexedHeap when only non idexed heap is needed
 
 
-#define HEAP_NO_INDEX -1
+// #define HEAP_NO_INDEX -1
+static constexpr int HEAP_NO_INDEX = -1;
 
 /**  Class to use for non indexable heap */
 template <class Type> class DefaultParamHeap
@@ -100,9 +101,9 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
             return PopPtr(0);
         }
              /// directly get the poped value, but require not empty ...
-        Type  PopVal() 
+        Type  PopVal(const Type & aDef) 
         {
-             Type aV;
+             Type aV = aDef;
              bool Ok= PopPtr(&aV);
 
              MMVII_INTERNAL_ASSERT_tiny(Ok,"Popval in enty heap");
@@ -111,6 +112,12 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
 
              /// return ptr to lowest elem if not empty, 0 else
         const Type * Lowest() const
+        {
+           if (IsEmpty()) return nullptr;
+           return & mElements[0];
+        }
+             /// return ptr to lowest elem if not empty, 0 else
+        Type * Lowest() 
         {
            if (IsEmpty()) return nullptr;
            return & mElements[0];

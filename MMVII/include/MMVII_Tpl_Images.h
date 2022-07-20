@@ -153,7 +153,19 @@ template<class T1,class T2,class T3>
      return aI1;
 }
 
+template<class T1,class T2,class T3>  
+   cIm1D<T1> AddImage(T1* /*Type specifier*/ ,const cIm1D<T2> & aI2,const cIm1D<T3> & aI3)
+{
+     cIm1D<T1>  aI1(aI2.DIm().X0(),aI2.DIm().X1());
+     AddImageInPlace(aI1.DIm(),aI2.DIm(),aI3.DIm());
+     return aI1;
+}
+
 template<class T2,class T3>   cIm2D<T2> operator + (const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)  
+{
+   return AddImage((T2 *)nullptr,aI2,aI3);
+}
+template<class T2,class T3>   cIm1D<T2> operator + (const cIm1D<T2> & aI2,const cIm1D<T3> & aI3)  
 {
    return AddImage((T2 *)nullptr,aI2,aI3);
 }
@@ -356,6 +368,55 @@ template<class T>  cIm2D<T> NormalizedAvgDev(const cIm2D<T> & aIm,tREAL8 aEpsilo
     NormalizedAvgDev(aRes.DIm(),aEpsilon);
     return aRes;
 }
+
+
+template <class TFonc,class TMasq>
+         bool BornesFonc
+              (
+                   int & aPxMin,
+                   int & aPxMax,
+                   cIm2D<TFonc> aIFonc,
+                   cIm2D<TMasq> * aPtrIM,
+                   int aNbDecim,
+                   double aProp,
+                   double aRatio
+              )
+{
+      aIFonc =  aIFonc.Decimate(aNbDecim);
+      cIm2D<TMasq> *  aPtrIMR = nullptr;
+
+      cIm2D<TMasq>    aIMR(cPt2di(1,1));
+      if (aPtrIM)
+      {
+           aIMR = aPtrIM->Decimate(aNbDecim);
+           aPtrIM = & aIMR;
+      }
+
+      std::vector<double> aVPx;
+      for (const auto & aP : aIFonc.DIm())
+      {
+          if ((aPtrIMR ==nullptr) || (aPtrIMR->DIm().GetV(aP) != 0))
+          {
+             aVPx.push_back(aIFonc.DIm().GetV(aP));
+          }
+      }
+      if (aVPx.size() > 0)
+      {
+         aPxMin = round_ni(aRatio * KthVal(aVPx,  aProp));
+         aPxMax = round_ni(aRatio * KthVal(aVPx,1-aProp));
+         return true;
+      }
+      else
+      {
+         aPxMin = 0;
+         aPxMax = 0;
+         return false;
+      }
+}
+
+
+
+
 
 };
 

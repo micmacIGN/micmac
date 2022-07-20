@@ -209,7 +209,7 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet
     {
         std::vector<Type> aV; // read data in a vect
         AddData(aTagSet,aV);
-        for (const auto el: aV)  // put the vect in the set
+        for (const auto & el: aV)  // put the vect in the set G++11
             aSet.Add(el);
     }
     else

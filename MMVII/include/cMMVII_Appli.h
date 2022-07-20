@@ -390,6 +390,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
         virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
+        std::string  CommandOfMain() const; ///< Glob command by aggregation of ArgcArgv
     protected :
 
         /// Constructor, essenntially memorize command line and specifs
@@ -408,7 +409,6 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void InitOutFromIn(std::string &aFileOut,const std::string& aFileIn); ///< If out is not init set In, else DirProj+Out
 
         void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
-        std::string  Command() const; ///< Glob command by aggregation of ArgcArgv
 
         bool RunMultiSet(int aKParam,int aKSet);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed
         int  ResultMultiSet() const; /// Iff RunMultiSet was execute

@@ -4,6 +4,10 @@
 namespace MMVII
 {
 
+// Call V1 Fast kth value extraction
+double KthVal(std::vector<double> &, double aProportion);
+
+
 // some time needs a null val for any type with + (neutral for +)
 
 template <class T> class cNV
@@ -563,7 +567,7 @@ class cCubAppGauss
 */
 
 /// If we dont need any kernel interface keep it simple 
-tREAL8 CubAppGaussVal(const tREAL8&);   
+// tREAL8 CubAppGaussVal(const tREAL8&);   
 
 /*  ********************************* */
 /*       Witch Min and Max            */
@@ -735,6 +739,37 @@ template <typename Type> Type DerYAtanXsY_sX(const Type & X,const Type & Y);
 template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
    /// Same as DerXAtanXY_sX ...  ... bench
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
+
+
+/*  ****************************************** */
+/*       BIT MANIPULATION FUNCTIONS            */
+/* ******************************************* */
+
+int HammingDist(tU_INT4 aV1,tU_INT4 aV2);
+
+class  cHamingCoder
+{
+    public :
+         /// Constructor , indicate the number of bit of information
+         cHamingCoder(int aNbBitsIn);
+
+         int NbBitsOut() const; ///< Number of bit of coded messages
+         int NbBitsIn() const;  ///< Number of bits of information
+         int NbBitsRed() const; ///< Number of bits of redundancy
+
+         tU_INT4  Coding(tU_INT4) const;  ///< From raw to encoded message
+         /// Return initial message IFF no alteration, else return -1
+         int  UnCodeWhenCorrect(tU_INT4);
+
+    private :
+        int mNbBitsIn;
+        int mNbBitsRed;
+        int mNbBitsOut;
+
+        std::vector<bool>  mIsBitRed;
+        std::vector<int>   mNumI2O;
+        std::vector<int>   mNumO2I;
+};
 
 
 

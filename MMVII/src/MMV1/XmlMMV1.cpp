@@ -583,8 +583,8 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
             if (aPATP.mOkAutoCor &&  aPATP.mSFSelected && aPATP.mStable && aPATP.mOKLP)
             {
                  cAimePCar aAPC;
-                 bool Ok = aPATP.FillAPC(mFPC,aAPC,false);
-                 MMVII_INTERNAL_ASSERT_tiny(Ok,"Incoherence in FillAPC");
+                 // bool Ok = aPATP.FillAPC(mFPC,aAPC,false);
+                 MMVII_INTERNAL_ASSERT_tiny(aPATP.FillAPC(mFPC,aAPC,false),"Incoherence in FillAPC");
                  aPATP.mNumAPC = mSetAPC.VPC().size();
                  mSetAPC.VPC().push_back(aAPC);
             }

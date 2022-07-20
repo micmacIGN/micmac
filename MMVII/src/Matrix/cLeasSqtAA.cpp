@@ -57,9 +57,11 @@ template <class Type>
      mNbTmp = aSetSetEq.NbTmpUk();
      for (const auto & anEq : aSetSetEq.AllEq())
      {
-         for (const auto & anInd : anEq.mVInd)
+         for (const auto & anInd : anEq.mVIndUk)
              mSetInd.AddInd(anInd);
      }
+     mSetInd.SortInd();
+
      mNbUk = mSetInd.mVIndOcc.size();
      mNbUkTot = mNbUk + mNbTmp;
 
@@ -83,13 +85,26 @@ template <class Type>
      //  Compute the reduced  least square system
      for (const auto & aSetEq : aSetSetEq.AllEq())
      {
-         const std::vector<int> & aVI =   aSetEq.mVInd;
-	 size_t aNbI = aVI.size();
+         // const std::vector<int> & aVI =   aSetEq.mVIndUk;
+	 // size_t aNbI = aVI.size();
          for (size_t aKEq=0 ; aKEq<aSetEq.mVals.size() ; aKEq++)
 	 {
               mSV.Reset();
 	      const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
 
+              int aIndTmp = 0;
+              for (size_t aKGlob=0 ; aKGlob<aSetEq.mVIndGlob.size() ; aKGlob++)
+              {
+                   const Type  & aDer = aVDer.at(aKGlob);
+                   int aInd = aSetEq.mVIndGlob[aKGlob];
+                   if (aInd<0)
+                       mSV.AddIV(aIndTmp++,aDer);
+                   else
+                       mSV.AddIV(mNbTmp+mNumComp.at(aInd),aDer);
+                     
+              }
+
+/*
 	      // fill sparse vector with  "real" unknown
               for (size_t aKV=0 ; aKV< aNbI ; aKV++)
 	      {
@@ -101,6 +116,7 @@ template <class Type>
 	      {
                   mSV.AddIV((aKV-aNbI),aVDer.at(aKV));
 	      }
+*/
 	      // fill reduced normal equation
 	      mSysRed.AddObservation(aSetEq.WeightOfKthResisual(aKEq),mSV,-aSetEq.mVals.at(aKEq));
 	 }
@@ -246,6 +262,39 @@ template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::SparseSolve()
    return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
 }
 
+template<class Type> cDenseMatrix<Type> cLeasSqtAA<Type>::V_tAA() const
+{
+     cDenseMatrix<Type> aRes = mtAA.Dup();
+     aRes.SelfSymetrizeBottom();
+     return aRes;
+}
+
+template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::V_tARhs() const
+{
+	return mtARhs;
+}
+template<class Type> bool cLeasSqtAA<Type>::Acces2NormalEq() const
+{
+	return true;
+}
+
+template<class Type> void cLeasSqtAA<Type>::AddCov
+                          (const cDenseMatrix<Type> & aMat,const cDenseVect<Type>& aVect,const std::vector<int> &aVInd)
+{
+    for (int aKx = 0 ; aKx<int(aVInd.size()) ; aKx++)
+    {
+        mtARhs(aVInd[aKx]) += aVect(aKx);
+        for (int aKy = 0 ; aKy<int(aVInd.size()) ; aKy++)
+        {
+             // Only triangular sup used
+	     if (aVInd[aKx] >= aVInd[aKy])
+	        mtAA.AddElem(aVInd[aKx],aVInd[aKy],aMat.GetElem(aKx,aKy));
+        }
+    }
+}
+
+
+
 /* *********************************** */
 /*                                     */
 /*            cLeasSq                  */
@@ -328,7 +377,7 @@ template<class Type> cLinearOverCstrSys<Type> * cLinearOverCstrSys<Type>::AllocS
      switch (aMode)
      {
 	     case eModeSSR::eSSR_LsqDense  :  return cLeasSq<Type>::AllocDenseLstSq (aNbVar);
-	     case eModeSSR::eSSR_LsqNormSparse :  return cLeasSq<Type>::AllocSparseNormalLstSq(aNbVar);
+	     case eModeSSR::eSSR_LsqNormSparse :  return cLeasSq<Type>::AllocSparseNormalLstSq(aNbVar,cParamSparseNormalLstSq());
 	     case eModeSSR::eSSR_LsqSparseGC :  return cLeasSq<Type>::AllocSparseGCLstSq(aNbVar);
              
              default :;
@@ -342,6 +391,35 @@ template<class Type> void cLinearOverCstrSys<Type>::AddObsWithTmpUK(const cSetIO
 {
 	MMVII_INTERNAL_ERROR("Used AddObsWithTmpK unsupported");
 }
+
+
+template<class Type> cDenseMatrix<Type> cLinearOverCstrSys<Type>::V_tAA() const
+{
+	MMVII_INTERNAL_ERROR("No acces to tAA for this class");
+
+	return *((cDenseMatrix<Type> *)nullptr);
+}
+
+template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::V_tARhs() const
+{
+	MMVII_INTERNAL_ERROR("No acces to tARhs for this class");
+
+	return *((cDenseVect<Type> *)nullptr);
+}
+
+template <class Type> void cLinearOverCstrSys<Type>::AddCov
+                          (const cDenseMatrix<Type> &,const cDenseVect<Type>& ,const std::vector<int> &aVInd)
+{
+	MMVII_INTERNAL_ERROR("No AddCov for this class");
+}
+
+
+
+template<class Type> bool cLinearOverCstrSys<Type>::Acces2NormalEq() const
+{
+	return false;
+}
+
 
 
 
