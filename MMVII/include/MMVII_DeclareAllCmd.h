@@ -42,7 +42,7 @@ extern cSpecMMVII_Appli  TheSpecDensifyRefMatch;
 extern cSpecMMVII_Appli  TheSpecCloudClip; 
 extern cSpecMMVII_Appli  TheSpecMeshDev; 
 extern cSpecMMVII_Appli  TheSpecGenMeshDev; 
-
+extern cSpecMMVII_Appli  TheSpecComputeStatsCorrel; 
 };
 
 #endif  //  _MMVII_DeclareAllCmd_H_

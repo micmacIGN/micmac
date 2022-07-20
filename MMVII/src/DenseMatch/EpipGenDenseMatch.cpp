@@ -717,7 +717,7 @@ std::string cAppli::ComMatch(cParam1Match & aParam)
        case eModeEpipMatch::eMEM_PSMNet :
        {
 		  std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
-          std::string aCom = "bash " + aDenseMDir + "run.sh " 
+          std::string aCom = "bash " + aDenseMDir + "run_docker.sh "   // ===> changed from run.sh to run_docker.sh
 				             //+ BLANK + "--loadmodel"  + BLANK + mTrainedModel
                              + BLANK + "--leftimg"  + BLANK + DirTmpOfCmd() + aParam.mClipNameIm1
                              + BLANK + "--rightimg" + BLANK + DirTmpOfCmd() + aParam.mClipNameIm2

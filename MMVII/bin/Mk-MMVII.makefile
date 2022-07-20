@@ -11,10 +11,10 @@ MMV2ElisePath=${MMDir}/lib/libelise.a
 # LIBRARY TORCH LIBS AND INLCUDES 
 #==========================================================#
 TORCHLIBPath=$(HOME)/Documents/Evaluation_MCC-CNN_CODE/Code_Inference_Marc_2/libtorch
-TORCHLIB_NVCC=-L$(TORCHLIBPath)/lib -Xlinker -rpath,$(TORCHLIBPath)/lib
+TORCHLIB_NVCC=-L$(TORCHLIBPath)/lib -Xlinker -rpath=$(TORCHLIBPath)/lib
 TORCHLIB_CPP=-L$(TORCHLIBPath)/lib -Wl,-rpath=$(TORCHLIBPath)/lib
 TORCHINCLUDE=-I$(TORCHLIBPath)/include -I$(TORCHLIBPath)/include/torch/csrc/api/include
-TORCHLIBS=-ltorch -ltorch_cuda -ltorch_cpu -lcaffe2_nvrtc -lc10 -lc10_cuda -lcuda -lnvrtc -lnvToolsExt -lcudart -lcudnn
+TORCHLIBS=-Wl,--no-as-needed -ltorch -ltorch_cuda_cpp -ltorch_cuda_cu -ltorch_cuda -lc10d_cuda_test -ltorch_cpu -lcaffe2_nvrtc -lc10 -lc10_cuda $(TORCHLIBPath)/lib/libnvrtc-builtins-4730a239.so.11.3 -lnvrtc -lnvToolsExt -lcudart
 #===========================================================#
 MMV2Exe=MMVII
 MMV2_INSTALL_PATH=${abspath ${MMV2DirBin}}/
@@ -191,14 +191,13 @@ CXX=g++
 CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir} ${TORCHINCLUDE} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
 #CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-march=native" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
 
-
 BOOST_LIBS=
 QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../../lib/libANN.a
 ## MacOS : may be -lstdc++fs should be replaced by -lc++experimental
 LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs} ${TORCHLIBS}  -lstdc++fs
 #
 ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ElisePath}
-	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${TORCHLIB_CPP} ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
+	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${TORCHLIB_CPP} ${TORCHLIB_NVCC} ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
 	rm -f libP2007.a
 	ar rvs libP2007.a    ${OBJ}  
 #

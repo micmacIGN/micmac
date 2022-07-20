@@ -398,28 +398,8 @@ cOneModele::cOneModele
         if(mArchitecture==TheFastArchDirectSim)
         {
             mCNNPredictor = new aCnnModelPredictor(TheFastArchDirectSim,mModelBinDir);
-            StdOut()<<"LOADING NETWORKKKK   ------> "<<"\n";
-            mCNNPredictor->PopulateModelSimNet(mNetFastMVCNNDirectSIM);
-            StdOut()<<"MODEL LOADED-SIMILARITY NETWORK    ------> "<<"\n";
-            //mNetFastMVCNNMLP->to(torch::kCPU);
-            mCNNWin=mCNNPredictor->GetWindowSizeSimNet(mNetFastMVCNNDirectSIM);
-				
-            //Add padding to maintain the same size as output 
-            auto Fast=mNetFastMVCNNDirectSIM->mFast; 
-            
-            // ACTIVATE PADDING (NOW DEACTIVATED)
-            
-            size_t Sz=Fast->size();
-            size_t cc=0;
-            for (cc=0;cc<Sz;cc++)
-            {
-                std::string LayerName=Fast->named_children()[cc].key();
-                if (LayerName.rfind(std::string("conv"),0)==0)
-                {   //torch::nn::Conv2dImpl *mod=Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>();
-                        //std::cout<<"condition verified on name of convolution "<<std::endl;
-                    Fast->named_children()[cc].value().get()->as<torch::nn::Conv2dImpl>()->options.padding()=1;
-                }
-            }
+            mCNNPredictor->PopulateModelMSNetHead(mMSNet);  // load script module 
+            mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
         }
         else if (mArchitecture==TheFastStandard)
         {
@@ -453,9 +433,7 @@ cOneModele::cOneModele
         { 
             mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir);
             mCNNPredictor->PopulateModelMSNetHead(mMSNet);
-    
             mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
-
         } 
     }
 }
@@ -838,7 +816,7 @@ int  cAppliFillCubeCost::Exe()
         if (aVMods.at(0)->mArchitecture==TheFastArchReg) FeatSize=64 ;
         if (aVMods.at(0)->mArchitecture==TheFastArch)   FeatSize=184;
         if (aVMods.at(0)->mArchitecture==TheFastArchWithMLP)   FeatSize=184;
-        if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)   FeatSize=184;
+        if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)   FeatSize=64;
         if (aVMods.at(0)->mArchitecture==TheMSNet) FeatSize=64 ;
         torch::Tensor LREmbeddingsL=torch::empty({1,FeatSize,aSzL.y(),aSzL.x()},torch::TensorOptions().dtype(torch::kFloat32));
         torch::Tensor LREmbeddingsR=torch::empty({1,FeatSize,aSzR.y(),aSzR.x()},torch::TensorOptions().dtype(torch::kFloat32));
@@ -869,15 +847,15 @@ int  cAppliFillCubeCost::Exe()
              }
         else if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)
              {
-               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictSimNetConv(aVMods.at(0)->mNetFastMVCNNDirectSIM,this->IMNorm1(),aSzL);
-               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictSimNetConv(aVMods.at(0)->mNetFastMVCNNDirectSIM,this->IMNorm2(),aSzR);
+               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictMSNetTileFeatures(aVMods.at(0)->mMSNet,this->mIm1,aSzL); // chnaged mMSNET
+               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictMSNetTileFeatures(aVMods.at(0)->mMSNet,this->mIm2,aSzR);  // chnaged mMSNET
              }
         else if (aVMods.at(0)->mArchitecture==TheMSNet)
              {
                LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictMSNetTile(aVMods.at(0)->mMSNet,this->mIm1,aSzL);
                LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictMSNetTile(aVMods.at(0)->mMSNet,this->mIm2,aSzR);
             }
-        
+    
         StdOut()  <<" EMBEDDING TENSOR SIZE LEFT  "<<LREmbeddingsL.sizes()<<"\n";
         StdOut()  <<" EMBEDDING TENSOR SIZE RIGHT  "<<LREmbeddingsR.sizes()<<"\n";
         // DIMS OF LREmbeddings == {2,FEAT_VECTOR_SIZE=184 OU 64, TILE_HEIGHT,TILE_WIDTH }
@@ -918,8 +896,8 @@ int  cAppliFillCubeCost::Exe()
                                             //StdOut() <<" shape element embedding "<<LREmbeddingsR.sizes()<<"\n";
                                             auto aVecR=LREmbeddingsR.index({0,Slice(0,FeatSize,1),aPC2Z.y(),aPC2Z.x()}).unsqueeze(0);
                                             //StdOut() <<" shape element "<<aVecR.sizes()<<"\n";
-                                            auto aSim=aVMods.at(0)->mCNNPredictor->PredictSimNetMLP(aVMods.at(0)->mNetFastMVCNNDirectSIM,aVecL,aVecR);
-                                            aTabCost[aK] =(1-(double)aSim.item<float>())/2.0 ;
+                                            auto aSim=aVMods.at(0)->mCNNPredictor->PredictDecisionNet(aVMods.at(0)->mMSNet,aVecL,aVecR);
+                                            aTabCost[aK] =(1-(double)aSim.item<float>());
                                             aTabOk[aK]=true;
                                         }
                                     }

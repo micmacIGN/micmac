@@ -49,15 +49,16 @@ class aCnnModelPredictor
        torch::Tensor PredictPrjHead(Fast_ProjectionHead Net,tTImV2 aTilL,cPt2di aPSz);
        
        torch::Tensor PredictMSNet(MSNet Net,std::vector<tTImV2> aTilL,cPt2di aPSz);
-       torch::Tensor PredictMSNetTile(/*MSNet_Attention*/torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz);
+       torch::Tensor PredictMSNetTile(torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz);
        torch::Tensor PredictMSNetAtt(MSNet_Attention Net,std::vector<tTImV2> aTilL,cPt2di aPSz);
        torch::Tensor PredictMSNetHead(/*MSNetHead*/ torch::jit::script::Module mNet, std::vector<tTImV2> aPatchLV, cPt2di aPSz);
-       
+       torch::Tensor PredictUNetWDecision(torch::jit::script::Module mNet, std::vector<tTImV2> aMasterP,std::vector<tTImV2> aPatchLV, cPt2di aPSz);
        torch::Tensor PredictMSNet1(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNet2(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNet3(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNet4(MSNet Net,torch::Tensor X);
-       
+       torch::Tensor PredictMSNetTileFeatures(torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz);
+       torch::Tensor PredictDecisionNet(torch::jit::script::Module mNet, torch::Tensor Left, torch::Tensor Right);
        torch::Tensor PredictMSNetCommon(MSNet Net,tTImV2 aTilL,cPt2di aPSz);
        
        torch::Tensor ReadBinaryFile(std::string aFilename, torch::Tensor aHost);
