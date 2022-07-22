@@ -1090,126 +1090,171 @@ void  cImplemBlockCam::DoAMD(cAMD_Interf * anAMD)
 const cStructBlockCam & cImplemBlockCam::SBC() const {return mSBC;}
 
 
+ElRotation3D getMean(int aKC, unsigned mNbTime, vector<cIBC_ImsOneTime *> mNum2ITime, bool debug)
+{
+    ElRotation3D aRMoy = ElRotation3D::Id;
+
+    Pt3dr aSomTr(0,0,0); //Position
+    double aSomP=0;
+    ElMatrix<double> aSomM(3,3,0.0); //Angle
+    for (unsigned int aKT=0 ; aKT < mNbTime ; aKT++)
+    {
+        cIBC_ImsOneTime *  aTime =  mNum2ITime[aKT];
+        cPoseCam * aP0 = aTime->Pose(0);
+        cPoseCam * aP1 = aTime->Pose(aKC);
+        if (aP0 && aP1)
+        {
+            ElRotation3D  aR0toM = aP0->CurCam()->Orient().inv(); // CONV-ORI
+            ElRotation3D  aR1toM = aP1->CurCam()->Orient().inv();
+
+            ElRotation3D aR1to0 = aR0toM.inv() * aR1toM;  //  CONV-ORI
+
+            if (debug)
+            {
+                std::cout << "  EstimCurOri " << aP0->Name() <<  " " << aP1->Name() << "\n";
+                std::cout << "    " <<  aR1to0.ImAff(Pt3dr(0,0,0))
+                    << " " << aR1to0.teta01()
+                    << " " << aR1to0.teta02()
+                    << " " << aR1to0.teta12()
+                    << "\n";
+            }
+            // Output coordinates to show relative position
+            //                cloudLiaison.AddPt(color, aR1to0.ImAff(Pt3dr(0,0,0)));
+
+            aSomTr = aSomTr + aR1to0.tr(); //Position
+            aSomM += aR1to0.Mat(); //Angle
+            aSomP++;
+        }
+    }
+    if (aSomP)
+    {
+        aSomTr = aSomTr / aSomP;
+        aSomM *=  1.0/aSomP;
+        aSomM = NearestRotation(aSomM);
+        aRMoy = ElRotation3D(aSomTr,aSomM,true);
+    }
+
+    return aRMoy;
+}
+
 void cImplemBlockCam::EstimCurOri(const cXml_EstimateOrientationInitBlockCamera & anEOIB)
 {
     Pt3di color(255,0,0);
 
-   cLiaisonsSHC aLSHC;
-   for (int aKC=0 ; aKC<mNbCam ; aKC++)
-   {
-       cPlyCloud cloudLiaison;
-       if (anEOIB.Show().Val())
-          std::cout << "=================================================\n";
-       cIBC_OneCam * aCam  = mNum2Cam[aKC];
+    cLiaisonsSHC aLSHC;
+    for (int aKC = 0 ; aKC<mNbCam ; aKC++)
+    {
+        cPlyCloud cloudLiaison;
+        if (anEOIB.Show().Val())
+            std::cout << "=================================================\n";
+        cIBC_OneCam * aCam  = mNum2Cam[aKC];
 
-       bool ValueKnown = false;
-       ElRotation3D aRMoy = ElRotation3D::Id;
-       if (aCam->PtrRF())
-       {
-          ValueKnown = true;
-          aRMoy = aCam->PtrRF()->CurRot();
-       }
-       else
-       {
-          Pt3dr aSomTr(0,0,0);
-          double aSomP=0;
-          ElMatrix<double> aSomM(3,3,0.0);
-          for (int aKT=0 ; aKT<mNbTime ; aKT++)
-          {
-               cIBC_ImsOneTime *  aTime =  mNum2ITime[aKT];
-               cPoseCam * aP0 = aTime->Pose(0);
-               cPoseCam * aP1 = aTime->Pose(aKC);
-               if (aP0 && aP1)
-               {
-                   ElRotation3D  aR0toM = aP0->CurCam()->Orient().inv(); // CONV-ORI
-                   ElRotation3D  aR1toM = aP1->CurCam()->Orient().inv();
+        bool ValueKnown = false;
+        ElRotation3D aRMoy = ElRotation3D::Id;
+        //First get the mean value
+        if (aCam->PtrRF())
+        {
+            aRMoy = aCam->PtrRF()->CurRot();
+        }
+        else
+        {
+            aRMoy = getMean(aKC, mNbTime, mNum2ITime, anEOIB.Show().Val());
+        }
 
-                   ElRotation3D aR1to0 = aR0toM.inv() * aR1toM;  //  CONV-ORI
+        if (ValueKnown)
+        {
+            Pt3dr aSomTr = aRMoy.tr(); //Position
+            ElMatrix<double> aSomM = aRMoy.Mat(); //Angle
 
-                   if (anEOIB.Show().Val())
-                   {
-                       std::cout << "  EstimCurOri " << aP0->Name() <<  " " << aP1->Name() << "\n";
-                       std::cout << "    " <<  aR1to0.ImAff(Pt3dr(0,0,0))
-                                         << " " << aR1to0.teta01()
-                                         << " " << aR1to0.teta02()
-                                         << " " << aR1to0.teta12()
-                                         << "\n";
-                   }
-                   // Output coordinates to show relative position
-                   cloudLiaison.AddPt(color, aR1to0.ImAff(Pt3dr(0,0,0)));
+            std::vector<ElRotation3D> aViews;
 
-                   aSomTr = aSomTr+ aR1to0.tr();
-                   aSomM += aR1to0.Mat();
-                   aSomP++;
-               }
-          }
-          if (aSomP)
-          {
-             ValueKnown = true;
-             aSomTr = aSomTr / aSomP;
-             aSomM *=  1.0/aSomP;
-             aSomM = NearestRotation(aSomM);
-             aRMoy = ElRotation3D(aSomTr,aSomM,true);
-          }
-       }
+            Pt3dr aFiltTr = aRMoy.tr(); //Position
+            ElMatrix<double> aFiltM = aRMoy.Mat(); //Angle
+            double aFiltP = 0.0;
 
-       if (ValueKnown)
-       {
-           Pt3dr aSomTr = aRMoy.tr();
-           ElMatrix<double> aSomM = aRMoy.Mat();
-           double aSomP = 0.0;
+            double aSomP = 0.0;
 
-           double aSomEcP = 0.0;
-           double aSomEcM = 0.0;
-           for (int aKT=0 ; aKT<mNbTime ; aKT++)
-           {
-               cIBC_ImsOneTime *  aTime =  mNum2ITime[aKT];
-               cPoseCam * aP0 = aTime->Pose(0);
-               cPoseCam * aP1 = aTime->Pose(aKC);
-               if (aP0 && aP1)
-               {
-                   ElRotation3D  aR0toM = aP0->CurCam()->Orient().inv(); // CONV-ORI
-                   ElRotation3D  aR1toM = aP1->CurCam()->Orient().inv();
-                   ElRotation3D aR1to0 = aR0toM.inv() * aR1toM;  //  CONV-ORI
-                   Pt3dr aTr =  aR1to0.tr();
-                   ElMatrix<double>       aMatr=  aR1to0.Mat();
+            double aSomEcP = 0.0;
+            double aSomEcM = 0.0;
+            for (int aKT = 0; aKT < mNbTime; aKT++)
+            {
+                cIBC_ImsOneTime*  aTime = mNum2ITime[aKT];
+                cPoseCam* aP0 = aTime->Pose(0);
+                cPoseCam* aP1 = aTime->Pose(aKC);
+                if (aP0 && aP1)
+                {
+                    ElRotation3D  aR0toM = aP0->CurCam()->Orient().inv(); // CONV-ORI
+                    ElRotation3D  aR1toM = aP1->CurCam()->Orient().inv();
+                    ElRotation3D aR1to0 = aR0toM.inv() * aR1toM;  //  CONV-ORI
 
-                   aSomEcP += euclid(aTr-aSomTr);
-                   aSomEcM += aMatr.L2(aSomM);
-                   aSomP++;
-               }
-           }
-           aSomEcP /= aSomP;
-           aSomEcM = sqrt(aSomEcM) / aSomP;
+                    aViews.push_back(aR1to0);
 
-           std::cout << "  ==========  AVERAGE =========== \n";
-           std::cout << "    " <<  aRMoy.ImAff(Pt3dr(0,0,0))
-                               << " tetas " << aRMoy.teta01()
-                               << "  " << aRMoy.teta02()
-                               << "  " << aRMoy.teta12()
-                               << "\n";
-           std::cout << "    DispTr=" << aSomEcP << " DispMat=" << aSomEcM << "\n";
+                    Pt3dr aTr =  aR1to0.tr();
+                    ElMatrix<double>       aMatr=  aR1to0.Mat();
 
-           cParamOrientSHC aP;
-           aP.IdGrp() = aCam->NameCam();
-           aP.Vecteur() = aRMoy.ImAff(Pt3dr(0,0,0));
-           aP.Rot() = ExportMatr(aSomM);
-           aLSHC.ParamOrientSHC().push_back(aP);
-       }
-       if (anEOIB.GenPly().Val())
-       {
-           std::cout << "OUI GEN PLY\n";
-           std::string cloudName = "Blinis_" + aCam->NameCam() + ".ply";
-           cloudLiaison.PutFile(cloudName);
-       }
+                    aSomEcP += euclid(aTr-aSomTr);
+                    aSomEcM += aMatr.L2(aSomM);
+                    aSomP++;
+                }
+            }
 
-       if (anEOIB.FltrSigma().Val() > 0.)
-       {
-           std::cout << "Ceci est un sigma" << anEOIB.FltrSigma().Val() << "\n";
-       }
-   }
+            aSomEcP /= aSomP;
+            aSomEcM = sqrt(aSomEcM) / aSomP;
+            if (anEOIB.FltrSigma().Val() > 0.)
+            {
+                std::cout << "Filtering view with sigma: " << anEOIB.FltrSigma().Val() << "\n";
+                cloudLiaison = {};
+                double disparity = aSomEcP;
+                aSomEcP = 0;
+                aSomEcM = 0;
+                std::vector<ElRotation3D> aNViews;
+                for (auto view : aViews)
+                {
+                    double e = euclid(view.tr()-aSomTr);
+                    if (e < disparity * anEOIB.FltrSigma().Val())
+                    {
+                        aFiltTr = aFiltTr+ view.tr(); //Position
+                        aFiltM += view.Mat(); //Angle
+                        aFiltP++;
 
-   mEstimSBC.LiaisonsSHC().SetVal(aLSHC);
+                        cloudLiaison.AddPt(color, view.ImAff(Pt3dr(0,0,0)));
+                        aSomEcP += e;
+                        aSomEcM += view.Mat().L2(aSomM);
+                        aSomP++;
+                        aNViews.push_back(view);
+                    }
+                }
+                aViews.clear();
+                aViews.insert(aViews.end(), aNViews.begin(), aNViews.end());
+
+                aSomEcP /= aSomP;
+                aSomEcM = sqrt(aSomEcM) / aSomP;
+            }
+
+            std::cout << "  ==========  AVERAGE =========== \n";
+            std::cout << "    " <<  aRMoy.ImAff(Pt3dr(0,0,0))
+                << " tetas " << aRMoy.teta01()
+                << "  " << aRMoy.teta02()
+                << "  " << aRMoy.teta12()
+                << "\n";
+            std::cout << "    DispTr=" << aSomEcP << " DispMat=" << aSomEcM << "\n";
+
+            cParamOrientSHC aP;
+            aP.IdGrp() = aCam->NameCam();
+            aP.Vecteur() = aRMoy.ImAff(Pt3dr(0,0,0));
+            aP.Rot() = ExportMatr(aSomM);
+            aLSHC.ParamOrientSHC().push_back(aP);
+        }
+        if (anEOIB.GenPly().Val())
+        {
+            std::cout << "Relative View Position Ply generated.\n";
+            std::string cloudName = "Blinis_" + aCam->NameCam() + ".ply";
+            cloudLiaison.PutFile(cloudName);
+        }
+
+    }
+
+    mEstimSBC.LiaisonsSHC().SetVal(aLSHC);
 
 }
 

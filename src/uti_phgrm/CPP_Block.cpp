@@ -51,7 +51,7 @@ int Blinis_main(int argc,char ** argv)
     std::string  aFileOut;
     std::string  aMasterGrp;
     bool         genPly = false;
- //   float        sigmaFilter = 0.1;
+    double       FltrSigma = 0.;
 
 
     ElInitArgMain
@@ -63,8 +63,8 @@ int Blinis_main(int argc,char ** argv)
                     << EAMC(aFileOut,"File for destination"),
         LArgMain()
                     << EAM(aMasterGrp,"MGrp",true,"Master Group if you need to fix it (as in IMU for example)")
-                    << EAM(genPly,"GenPly",true,"Generate Ply of block point to show disparity.(Def=false)")
-//                    << EAM(sigmaFilter,"FiltSigma",true,"Filter the view transformation by sigma. If 0 disabled.[Def=0.0]")
+                    << EAM(genPly,"GenPly",true,"Generate Ply of block point to show disparity.[Def=false]")
+                    << EAM(FltrSigma,"FiltSigma",true,"Filter the view transformation by sigma. If 0 disabled.[Def=0.0]")
     );
 
     if (!MMVisualMode)
@@ -90,7 +90,11 @@ int Blinis_main(int argc,char ** argv)
                        + std::string(" +Ori=") + AeroIn
                        + std::string(" +Out=") + aFileOut
                     ;
+    if (EAMIsInit(&genPly))
+        aCom =  aCom + " +GenPly=" +ToString(genPly);
 
+    if (EAMIsInit(&FltrSigma))
+        aCom =  aCom + " +FltrSigma=" +ToString(FltrSigma);
 
     std::cout << "Com = " << aCom << "\n";
     int aRes = System(aCom.c_str(),false,true,true);
