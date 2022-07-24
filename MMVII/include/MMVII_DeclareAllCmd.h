@@ -44,6 +44,7 @@ extern cSpecMMVII_Appli  TheSpecDensifyRefMatch;
 extern cSpecMMVII_Appli  TheSpecCloudClip; 
 extern cSpecMMVII_Appli  TheSpecMeshDev; 
 extern cSpecMMVII_Appli  TheSpecGenMeshDev; 
+extern cSpecMMVII_Appli  TheSpecTestCovProp; 
 
 };
 

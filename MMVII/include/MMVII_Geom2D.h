@@ -74,6 +74,8 @@ template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
        tPt     mNorm;
 };
 
+template <class TypeMap> class  cLeastSquareEstimate;
+
 
 /** This class represent 2D Homotetie , it can aussi be used for an non
    distorted camera with :
@@ -88,15 +90,20 @@ template <class Type>  class cHomot2D
           typedef Type  tTypeElem;
           typedef cHomot2D<Type>  tTypeMap;
           typedef cHomot2D<Type>  tTypeMapInv;
-
           typedef cPtxd<Type,2> tPt;
 
           static const int NbDOF() {return 3;}
+          ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
+          static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
+
           cHomot2D(const tPt & aTr,const Type & aSc)  :
               mTr (aTr),
               mSc (aSc)
           {
           }
+          cHomot2D() :  cHomot2D<Type>(tPt(0.0,0.0),1.0) {};
           inline tPt  Value(const tPt & aP) const   {return mTr + aP * mSc;}
           inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
           tTypeMapInv MapInverse() const {return cHomot2D<Type>(-mTr/mSc,1.0/mSc);}
@@ -104,6 +111,9 @@ template <class Type>  class cHomot2D
           tPt mTr;
           Type mSc;
 };
+
+/** Usefull when we want to visualize objects : compute box of visu + Mapping Visu/Init */
+cBox2di BoxAndCorresp(cHomot2D<tREAL8> & aHomIn2Image,const cBox2dr & aBox,int aSzIm,int aMargeImage);
 
 /** Class for a similitude 2D  P ->  Tr + Sc * P
 
@@ -130,13 +140,14 @@ template <class Type>  class cSim2D
           
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
-          /// compute the vector used in least square equation
-          static void ToParam(cDenseVect<Type>&,cDenseVect<Type> &,const tPt &);
+          /// compute the vectors and constants used in least square equation
+          static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
+          /// Degree of freedoom
+          static const int NbDOF() {return 4;}
 
 
           inline tPt  Value(const tPt & aP) const {return mTr + aP * mSc;}
           inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
-          static const int NbDOF() {return 4;}
           tTypeMapInv  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
 	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+mSc*aS2.mTr,mSc*aS2.mSc);}
           

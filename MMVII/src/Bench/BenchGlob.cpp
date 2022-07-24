@@ -987,7 +987,7 @@ tMMVII_UnikPApli Alloc_MPDTest(const std::vector<std::string> & aVArgs,const cSp
 
 cSpecMMVII_Appli  TheSpecMPDTest
 (
-     "MPDTest",
+     "TestMPD",
       Alloc_MPDTest,
       "This used a an entry point to all quick and dirty test by MPD ...",
       {eApF::Test},

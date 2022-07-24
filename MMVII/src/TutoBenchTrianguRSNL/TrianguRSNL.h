@@ -33,14 +33,7 @@ Classes :
 */
 namespace NS_Bench_RSNL
 {
-#define  DEBUG_RSNL true
-#if (DEBUG_RSNL)
-constexpr double AMPL_Grid2Real= 0.1;   // Amplitude of random differerence between real position and regular grid
-constexpr double AMPL_Real2Init = 0.1;  // Amplitude of random and syst differerence  betwen real an init position
-#else
-constexpr double AMPL_Grid2Real= 0.1;   // Amplitude of random differerence between real position and regular grid
-constexpr double AMPL_Real2Init = 0.1;  // Amplitude of random and syst differerence  betwen real an init position
-#endif
+// #define  DEBUG_RSNL true
 
 
 template <class Type>  class  cMainNetwork; 
@@ -63,7 +56,7 @@ template <class Type>  class  cPNetwork
             */
 	    tPt  PCur() const;  
 	    const tPt &  TheorPt() const;  ///< Acessor
-	    // void  SetTheorPt(const tPt&);  ///< Modifier
+	    const tPt &  PosInit() const;  ///< Acessor
 
             /// Compute initial guess : add some noise+some systematism to "real" position
             void MakePosInit(const double & aMulAmpl);
@@ -85,6 +78,15 @@ template <class Type>  class  cPNetwork
 	    std::list<int> mLinked;   ///< list of linked points, if Tmp/UK the links start from tmp, if Uk/Uk order does not matters
 };
 
+class cParamMainNW
+{
+    public :
+       cParamMainNW();
+
+       double mAmplGrid2Real;   // Amplitude of random differerence between real position and regular grid
+       double mAmplReal2Init;  // Amplitude of random and syst differerence  betwen real an init position
+};
+
 template <class Type>  class  cMainNetwork
 {
 	public :
@@ -97,10 +99,10 @@ template <class Type>  class  cMainNetwork
           typedef cElemCalcCoordInit<Type>                    tECCI;
 
 	  /// initial simplify constructor,  take  N a parameterand construct [-N,N]x[N,N]
-	  cMainNetwork(eModeSSR aMode,int aN,bool WithSchurr,cParamSparseNormalLstSq * = nullptr,tECCI * =nullptr);
+	  cMainNetwork(eModeSSR aMode,int aN,bool WithSchurr,const cParamMainNW &,cParamSparseNormalLstSq * = nullptr,tECCI * =nullptr);
 
-          cMainNetwork(eModeSSR aMode,cRect2,bool WithSchurr,cParamSparseNormalLstSq * = nullptr, tECCI * =nullptr);
-          ~cMainNetwork();
+          cMainNetwork(eModeSSR aMode,cRect2,bool WithSchurr,const cParamMainNW &,cParamSparseNormalLstSq * = nullptr, tECCI * =nullptr);
+          virtual ~cMainNetwork();
 
           //int   N() const;
           bool WithSchur()  const;
@@ -108,7 +110,7 @@ template <class Type>  class  cMainNetwork
 	  Type  NetSz() const {return Norm2(mBoxInd.Sz());}
 
           /// If we use this iteration for covariance calculation , we dont add constraint, and dont solve
-	  Type OneItereCompensation(bool ForCovCalc);
+	  Type OneIterationCompensation(bool WithGauge,bool WithCalcReset);
 
 	  Type CalcResidual();
 	  void AddGaugeConstraint(Type aWeight);
@@ -141,7 +143,8 @@ template <class Type>  class  cMainNetwork
           */
 	  bool  AxeXIsHoriz() const;
 
-          const cSim2D<Type> &  SimInd2G() const;   ///<Accessor
+          const cSim2D<Type> &  SimInd2G() const;  ///<Accessor
+          const cParamMainNW &  ParamNW() const;   ///<Accessor
 	  tSys * Sys();
 
 	  void TestCov();
@@ -155,6 +158,7 @@ template <class Type>  class  cMainNetwork
           int   mX_SzM;                  ///<  1+2*aN  = Sz of Matrix of point
           int   mY_SzM;                  ///<  1+2*aN  = Sz of Matrix of point
 	  bool  mWithSchur;            ///< Do we test Schurr complement
+          cParamMainNW  mParamNW;
 	  int   mNum;                  ///< Current num of unknown
 	  std::vector<tPNet>  mVPts;   ///< Vector of point of unknowns coordinate
           tPNet ***           mMatrP;  ///< Indexed matrice of points, give basic spatial indexing
@@ -163,7 +167,9 @@ template <class Type>  class  cMainNetwork
 
 	  /**  Similitude transforming the index in the geometry, use it to make the test more general, and also
 	      to test co-variance tranfsert with geometric change  */
-	   cSim2D<Type>        mSimInd2G;  
+          cSim2D<Type>        mSimInd2G;  
+
+          cBox2dr     mBoxPts;  /// Box englobing Theor + Init
 };
 }; // namespace NS_Bench_RSNL
 }; // namespace MMVII

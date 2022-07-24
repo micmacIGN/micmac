@@ -9,6 +9,8 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+/**  Class for generating code relative to 2D-distance conservation for triangalution simulation */
+
 class cDist2DConservation
 {
   public :
@@ -40,6 +42,8 @@ class cDist2DConservation
           return { sqrt(square(x1-x2) + square(y1-y2))/ObsDist - aCst1 } ;
      }
 };
+
+/**  Class for generating code relative to 2D-"RATIO of distance"  */
 
 class cRatioDist2DConservation
 {
@@ -78,23 +82,42 @@ class cRatioDist2DConservation
      }
 };
 
+/** class for covariance propag   :
+     Uknonw  :  Similitude + 4 points of a small network    Tr(x,y)  Sc(x,y)   P0(x,y) ... P3(x,y)
 
+     Observation  :   Linera coeff of 4 pt + cste    :     L0(x,y)  .. L3(x,y)   Cst
+ */
 
-class cNetworConsDistProgCov
+class cBaseNetCDPC
+{
+   public :
+       cBaseNetCDPC(const cPt2di  & aSzN) :
+           mSzN       (aSzN),
+           mNbPts     (mSzN.x() * mSzN.y()),
+           mNbCoord   (2*mNbPts)
+       {
+       }
+       static std::vector<std::string>  VectSim (bool WithSim)  
+       {
+            return WithSim ? std::vector<std::string> {"x_tr","y_tr","x_sc","y_sc"} :  EMPTY_VSTR;
+       } 
+       cPt2di mSzN;
+       int    mNbPts;
+       int    mNbCoord;
+};
+
+class cNetworConsDistProgCov : public  cBaseNetCDPC
 {
       public :
           cNetworConsDistProgCov(const cPt2di  & aSzN) :
-              mSzN       (aSzN),
-              mNbPts     (mSzN.x() * mSzN.y()),
-              mNbCoord   (2*mNbPts),
-              mElemQuad  (Square(mNbCoord))
+                cBaseNetCDPC(aSzN)
           {
           }
           std::string FormulaName() const { return "PropCovNwCD_" + ToStr(mNbPts) ;}
 
           const std::vector<std::string> VNamesUnknowns()  const
           {
-               std::vector<std::string>  aRes {"x_tr","y_tr","x_sc","y_sc"}; 
+               std::vector<std::string>  aRes = VectSim(true);
                for  (int aK=0 ; aK<mNbPts ; aK++)
                {
                    aRes.push_back("x_P" + ToStr(aK));
@@ -105,12 +128,12 @@ class cNetworConsDistProgCov
           const std::vector<std::string> VNamesObs()       const
           { 
                std::vector<std::string>  aRes;
-               aRes.push_back("Cste");
                for  (int aKVar=0 ; aKVar<mNbPts ; aKVar++)
                {
                     aRes.push_back("xLEq_" +  ToStr(aKVar));
                     aRes.push_back("yLEq_" +  ToStr(aKVar));
                }
+               aRes.push_back("Cste");
                return aRes;
           }
 
@@ -127,9 +150,8 @@ class cNetworConsDistProgCov
                  int aIndUk   = 4;
 
                  int aIndObs  = 0;
-                 tUk aCste = aVObs[aIndObs++];
 
-                 tUk  aResidual = -aCste;
+                 tUk  aResidual =  CreateCste(0.0,aResidual);  // create a symbolic formula for constant 0
 
                  for  (int aKVar=0 ; aKVar<mNbPts ; aKVar++)
                  {
@@ -140,17 +162,83 @@ class cNetworConsDistProgCov
                       cPtxd<tUk,2> aPLoc = aTr + aSc*cPtxd<tUk,2>(aX,aY);
                       aResidual = aResidual + aLX * aPLoc.x() + aLY * aPLoc.y();
                  }
-
+                 aResidual = aResidual -  aVObs[aIndObs++];  // substract constant
                  return {aResidual};
            }
           
       public :
-          cPt2di mSzN;
-          int    mNbPts;
-          int    mNbCoord;
-          int    mElemQuad;
 };
 
+/** XXXXXX ag*/
+
+class cNetWConsDistFixPts : public  cBaseNetCDPC
+{
+      public :
+          cNetWConsDistFixPts(const cPt2di  & aSzN,bool SimIsUk) :
+                cBaseNetCDPC(aSzN),
+                mSimIsUk    (SimIsUk)
+          {
+          }
+          std::string FormulaName() const 
+          { 
+               return "FixPointNwCD_" + std::string(mSimIsUk ? "SimUK" : "SimFix") + ToStr(mNbPts) ;
+          }
+
+          const std::vector<std::string> VNamesUnknowns()  const
+          {
+               // The vector of unknown containt the similitude iff mSimIsUk
+               std::vector<std::string> aRes =   VectSim(mSimIsUk) ;
+               for  (int aK=0 ; aK<mNbPts ; aK++)
+               {
+                   aRes.push_back("x_P" + ToStr(aK));
+                   aRes.push_back("y_P" + ToStr(aK));
+               }
+               return aRes;
+          }
+          const std::vector<std::string> VNamesObs()       const
+          { 
+               // If similitude is not unknown then it's an observation
+               std::vector<std::string> aRes =   VectSim(!mSimIsUk) ;
+               for  (int aKVar=0 ; aKVar<mNbPts ; aKVar++)
+               {
+                    aRes.push_back("xRef_" +  ToStr(aKVar));
+                    aRes.push_back("yRef_" +  ToStr(aKVar));
+               }
+               return aRes;
+          }
+
+          template <typename tUk> 
+                     std::vector<tUk> formula
+                     (
+                          const std::vector<tUk> & aVUk,
+                          const std::vector<tUk> & aVObs
+                     ) const
+           {
+                 const std::vector<tUk> & aVSim =  mSimIsUk ? aVUk : aVObs;
+                 cPtxd<tUk,2>  aTr(aVSim[0],aVSim[1]);
+                 cPtxd<tUk,2>  aSc(aVSim[2],aVSim[3]);
+
+                 int aIndUk   =  mSimIsUk ? 4 : 0;
+                 int aIndObs  =  4 - aIndUk;
+
+                 std::vector<tUk> aVecResidual;
+
+                 for  (int aKVar=0 ; aKVar<mNbPts ; aKVar++)
+                 {
+                      tUk  aX = aVUk[aIndUk++];
+                      tUk  aY = aVUk[aIndUk++];
+                      tUk  aRefX = aVObs[aIndObs++];
+                      tUk  aRefY = aVObs[aIndObs++];
+                      cPtxd<tUk,2> aPLoc = aTr + aSc*cPtxd<tUk,2>(aX,aY);
+                      aVecResidual.push_back(aPLoc.x()-aRefX);
+                      aVecResidual.push_back(aPLoc.y()-aRefY);
+                 }
+                 return aVecResidual;
+           }
+          
+      public :
+           bool     mSimIsUk; // is the similitude Glob->Loc an unknown or an observation
+};
 
 
 };//  namespace MMVII

@@ -138,13 +138,14 @@ template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const
 /*                                                              */
 /* ************************************************************ */
 
-template <class Type>  cResidualWeighter<Type>::cResidualWeighter()
+template <class Type>  cResidualWeighter<Type>::cResidualWeighter(const Type & aVal) :
+    mVal (aVal)
 {
 }
 
 template <class Type>  std::vector<Type>  cResidualWeighter<Type>::WeightOfResidual(const tStdVect & aVResidual) const
 {
-	return tStdVect(aVResidual.size(),1.0);
+	return tStdVect(aVResidual.size(),mVal);
 }
 
 
@@ -199,6 +200,8 @@ template <class Type> cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLi
 {
     return mSysLinear;
 }
+
+template <class Type> int cResolSysNonLinear<Type>::NbVar() const {return mNbVar;}
 
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const int & aNumV,const Type& aWeight)

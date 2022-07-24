@@ -18,6 +18,18 @@ namespace NS_Bench_RSNL
 
 /* ======================================== */
 /*                                          */
+/*              cParamMainNW                */
+/*                                          */
+/* ======================================== */
+
+cParamMainNW::cParamMainNW() :
+    mAmplGrid2Real  (0.1),
+    mAmplReal2Init  (0.1)
+{
+}
+
+/* ======================================== */
+/*                                          */
 /*              cMainNetwork                */
 /*                                          */
 /* ======================================== */
@@ -27,7 +39,8 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
 		            eModeSSR aMode,
                             cRect2   aRect,
 			    bool WithSchurr,
-			    cParamSparseNormalLstSq * aParam,
+                            const cParamMainNW & aParamNW,
+			    cParamSparseNormalLstSq * aParamLSQ,
                             tECCI *  anECCI
 		      ) :
     mECCI      (anECCI),
@@ -35,10 +48,12 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
     mX_SzM     (mBoxInd.Sz().x()),
     mY_SzM     (mBoxInd.Sz().y()),
     mWithSchur (WithSchurr),
+    mParamNW   (aParamNW),
     mNum       (0),
     mMatrP     (cMemManager::AllocMat<tPNetPtr>(mX_SzM,mY_SzM)), // alloc a grid of pointers
     // Amplitude of scale muste
-     mSimInd2G  (cSim2D<Type>::RandomSimInv(5.0,3.0,0.1)) 
+    mSimInd2G   (cSim2D<Type>::RandomSimInv(5.0,3.0,0.1)) ,
+    mBoxPts     (cBox2dr::Empty())
 /*
 */
 {
@@ -51,10 +66,13 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
 
      std::vector<Type> aVCoord0; // initial coordinates for creating unknowns
      // Initiate Pts of Networks in mVPts,
+     cTplBoxOfPts<Type,2>  aBox;
      for (const auto& aPix: aVPix)
      {
          tPNet aPNet(mVPts.size(),aPix,*this);
          mVPts.push_back(aPNet);
+         aBox.Add(aPNet.TheorPt());
+         aBox.Add(aPNet.PosInit());
 
 	 if (! aPNet.mSchurrPoint)
 	 {
@@ -62,9 +80,13 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
              aVCoord0.push_back(aPNet.mPosInit.y());
 	 }
      }
+     mBoxPts   =  cBox2dr(ToR(aBox.P0()),ToR(aBox.P1()));
      if (1) // Eventually put in random order to check implicit order of NumX,NumY is not used 
      {
-        mVPts = RandomOrder(mVPts);
+        if (0)
+           mVPts = RandomOrder(mVPts);
+        else
+           StdOut() << "NO ORDER RANDOM\n";
         // But need to reset the num of points which is used in link construction
         for (int aK=0 ; aK<int(mVPts.size()) ; aK++)
         {
@@ -96,10 +118,10 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
      }
      
      // Initiate system "mSys" for solving
-     if ((aMode==eModeSSR::eSSR_LsqNormSparse)  && (aParam!=nullptr))
+     if ((aMode==eModeSSR::eSSR_LsqNormSparse)  && (aParamLSQ!=nullptr))
      {
          // LEASTSQ:CONSTRUCTOR , case Normal sparse, create first the least square
-	 cLeasSq<Type>*  aLeasSQ =  cLeasSq<Type>::AllocSparseNormalLstSq(aVCoord0.size(),*aParam);
+	 cLeasSq<Type>*  aLeasSQ =  cLeasSq<Type>::AllocSparseNormalLstSq(aVCoord0.size(),*aParamLSQ);
          mSys = new tSys(aLeasSQ,cDenseVect<Type>(aVCoord0));
      }
      else
@@ -146,10 +168,11 @@ template <class Type>
           eModeSSR aMode,
           int  aN,
           bool WithSchurr,
-          cParamSparseNormalLstSq * aParam,
+          const cParamMainNW & aParamNW,
+          cParamSparseNormalLstSq * aParamLSQ,
           tECCI *  anECCI
    ) :
-        cMainNetwork <Type>(aMode,cRect2::BoxWindow(aN),WithSchurr,aParam,anECCI)
+        cMainNetwork <Type>(aMode,cRect2::BoxWindow(aN),WithSchurr,aParamNW,aParamLSQ,anECCI)
 {
 }
 
@@ -167,7 +190,7 @@ template <class Type> cPtxd<Type,2>  cMainNetwork <Type>::Ind2Geom(const cPt2di 
         return CovPropInd2Geom(anInd);
     }
 
-    return mSimInd2G.Value(tPt(anInd.x(),anInd.y())  + tPt::PRandC()*Type(AMPL_Grid2Real));
+    return mSimInd2G.Value(  tPt(anInd.x(),anInd.y()) + tPt::PRandC()*Type(mParamNW.mAmplGrid2Real)  );
 }
 
 template <class Type> cMainNetwork <Type>::~cMainNetwork ()
@@ -180,7 +203,8 @@ template <class Type> cMainNetwork <Type>::~cMainNetwork ()
 template <class Type> bool  cMainNetwork <Type>::WithSchur()  const {return mWithSchur;}
 template <class Type> int&  cMainNetwork <Type>::Num() {return mNum;}
 
-template <class Type> const cSim2D<Type>& cMainNetwork<Type>::SimInd2G()const {return mSimInd2G;}
+template <class Type> const cSim2D<Type>& cMainNetwork<Type>::SimInd2G() const {return mSimInd2G;}
+template <class Type> const cParamMainNW& cMainNetwork<Type>::ParamNW()  const {return mParamNW;}
 
 template <class Type> cResolSysNonLinear<Type>* cMainNetwork<Type>::Sys() {return mSys;}
 
@@ -216,12 +240,13 @@ template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightF
      }
 }
 
-template <class Type> Type cMainNetwork <Type>::OneItereCompensation(bool ForCovCalc)
+template <class Type> Type cMainNetwork<Type>::OneIterationCompensation(bool WithGauge,bool WithCalcReset)
+
 {
      Type   aResidual = CalcResidual() ;
      // if we are computing covariance we want it in a free network (the gauge constraint 
      // in the local network have no meaning in the coordinate of the global network)
-     if (! ForCovCalc)
+     if (WithGauge)
      {
          AddGaugeConstraint(100.0);
      }
@@ -266,7 +291,7 @@ template <class Type> Type cMainNetwork <Type>::OneItereCompensation(bool ForCov
 
      // If we are computing for covariance : (1) the system is not inversible (no gauge constraints)
      // (2) we dont want to reset it   ;  so just skip this step
-     if (! ForCovCalc)
+     if (WithCalcReset)
      {
         mSys->SolveUpdateReset();
      }
@@ -305,7 +330,7 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
      mNumX     (-1),
      mNumY     (-1)
 {
-     MakePosInit(AMPL_Real2Init);
+     MakePosInit(aNet.ParamNW().mAmplReal2Init);
      
 /*
      {
@@ -384,10 +409,8 @@ template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PCur() const
     return aSomP / (Type) aNbPts;
 }
 
-template <class Type> const cPtxd<Type,2> &  cPNetwork<Type>::TheorPt() const
-{
-	return mTheorPt;
-}
+template <class Type> const cPtxd<Type,2> &  cPNetwork<Type>::TheorPt() const { return mTheorPt; }
+template <class Type> const cPtxd<Type,2> &  cPNetwork<Type>::PosInit() const { return mPosInit; }
 
 template <class Type> bool cPNetwork<Type>::Linked(const cPNetwork<Type> & aP2) const
 {

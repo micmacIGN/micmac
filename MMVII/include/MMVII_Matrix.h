@@ -23,6 +23,7 @@ template <class Type> class cDenseVect ;
 template <class Type> class cMatrix  ;
 template <class Type> class cUnOptDenseMatrix ;
 template <class Type> class cDenseMatrix ;
+template <class Type> class cLeasSqtAA ;
 
 template <class Type> std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV);
 template <class Type> std::ostream & operator << (std::ostream & OS,const cMatrix<Type> &aMat);
@@ -60,6 +61,7 @@ template <class Type> class  cSparseVect  : public cMemCheck
         /// SzInit fill with arbitray value, only to reserve space
         // cSparseVect(int aSzReserve=-1,int aSzInit=-1) ;  
         cSparseVect(int aSzReserve=-1) ;  
+        cSparseVect(const cDenseVect<Type> &);
 	/// Check the vector can be used in a matrix,vect [0,Nb[, used in the assertions
         bool IsInside(int aNb) const;
 	void Reset();
@@ -383,6 +385,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tDM  Inverse() const;  ///< Basic inverse
         tDM  Inverse(double Eps,int aNbIter) const;  ///< N'amene rien, eigen fonctionne deja tres bien en general 
 
+        void  SolveIn(tDM& aRes,const tDM &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDM  Solve(const tDM &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDV  Solve(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDV  SolveLine(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
@@ -498,6 +501,39 @@ template <class Type> class cResulQR_Decomp
 
 };
 
+
+/// Auxialry class for cDecSumSqLinear
+
+template <class Type>  class cElemDecompQuad
+{
+     public :
+         cElemDecompQuad(const Type& aW,const cDenseVect<Type> & aV,const Type & aCste);
+         Type              mW;  // weight
+         cDenseVect<Type>  mCoeff;
+         Type              mCste;  // weight
+};
+/**  Class to decompose a positive quadratic form a sum of square of linear form :
+
+      input A,B  => out  (Wi Li  Ci), such that :
+      tX A X  - 2tB X + tBB =  Sum ( Wi (Li X-Ci))^2
+      Li are norm 1 and orthogonal to each others
+*/
+
+template <class Type>  class cDecSumSqLinear
+{
+     public :
+         typedef cElemDecompQuad<Type>  tElem;
+         void  Set(const cDenseMatrix<Type> & aMat,const cDenseVect<Type> & aVect);
+         cDecSumSqLinear();
+
+         // recover initial system (check/Bench)
+         cLeasSqtAA<Type>  OriSys() const;
+         const std::vector<tElem> &   VElems() const;
+     private :
+         int                  mNbVar;
+         std::vector<tElem>   mVElems;
+
+};
 
 
 
