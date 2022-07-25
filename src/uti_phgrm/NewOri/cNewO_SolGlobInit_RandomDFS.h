@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -58,7 +58,7 @@ namespace SolGlobInit_DFS {
 #define IFLAG -1.0
 #define MIN_LNK_SEED 4
 #define MAX_SAMPLE_SEED 50
-		
+
 class cNOSolIn_AttrSom;
 class cNOSolIn_AttrASym;
 class cNOSolIn_AttrArc;
@@ -107,7 +107,7 @@ class cNOSolIn_AttrSom
 		 ElRotation3D                     mCurRot;
          ElRotation3D                     mTestRot;
 
-		 //unique Id, corresponds to the distance of the triplet 
+		 //unique Id, corresponds to the distance of the triplet
 		 //which built/included this node in the solution;
 		 //mNumCC is used in the graph-based incoherence computation
 		 int 							  mNumCC;
@@ -203,7 +203,7 @@ class cNOSolIn_Triplet
 		  ElRotation3D  mR2on1;
           ElRotation3D  mR3on1;
           float         mBOnH;
-		
+
 		  int           mHeapIndex;
 };
 
@@ -300,7 +300,7 @@ class cNOSolIn_AttrASym
      private :
          std::vector<cLinkTripl>  mLnk3; // Liste des triplets partageant cet arc
 		 std::vector<cLinkTripl*> mLnk3Ptr; //Dirty trick pour faire marcher heap
-	
+
 		 int                      mNumArc;
 };
 
@@ -328,7 +328,7 @@ typedef ElHeap<cNOSolIn_Triplet*,cNO_CmpTriSolByCost,cNO_HeapIndTriSol_NSI> tHea
 
 struct CmpLnk
 {
-	bool operator()(cLinkTripl* T1, cLinkTripl* T2) const 
+	bool operator()(cLinkTripl* T1, cLinkTripl* T2) const
 	{
 		return (T1->m3->NumId()) < (T2->m3->NumId());
 	}
@@ -351,7 +351,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 		void RandomSolAllCC();
 		void RandomSolOneCC(cNO_CC_TripSom *);
 		void RandomSolOneCC(cNOSolIn_Triplet *,int) ;
-		
+
 		void BestSolAllCC();
 		void BestSolOneCC(cNO_CC_TripSom *);
 
@@ -440,11 +440,11 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 #endif
 		std::string mGraphName;
 		tHeapTriSolNSI mHeapTriAll;//contains all triplets
-		tHeapTriNSI    mHeapTriDyn; 
+		tHeapTriNSI    mHeapTriDyn;
 
         double mDistThresh;
         bool   mApplyCostPds;
-        double mAlphaProb; 
+        double mAlphaProb;
 
 
 };
@@ -458,15 +458,15 @@ class cAppliGenOptTriplets : public cCommonMartiniAppli
 {
 	public:
 		cAppliGenOptTriplets(int argc,char ** argv);
-		
+
 
 	private:
-        
+
 		ElMatrix<double> RandPeturbR();
         ElMatrix<double> RandPeturbRGovindu();
         ElMatrix<double> w2R(double[]);
 
-		std::string mFullPat; 
+		std::string mFullPat;
 		std::string InOri;
 
 
@@ -480,7 +480,7 @@ class cAppliGenOptTriplets : public cCommonMartiniAppli
 		RandUnifQuick * TheRandUnif;
 };
 
-class RandUnifQuick 
+class RandUnifQuick
 {
     public:
         RandUnifQuick(int Seed);
