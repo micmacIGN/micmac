@@ -518,7 +518,8 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
          aDImT.SetV(aPix,aVal);
      }
 
-     // Print the string of number
+     // Print th
+e string of number
      {
           std::string aStrCode = ToStr(aSetCodesOfT.Num(),2);
           cIm2D<tU_INT1> aImStr = ImageOfString_10x8(aStrCode,mCodeExt ? 1 : -1);

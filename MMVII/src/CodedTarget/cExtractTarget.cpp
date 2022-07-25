@@ -3,7 +3,9 @@
 #include "include/MMVII_Tpl_Images.h"
 #include "src/Matrix/MMVII_EigenWrap.h"
 #include <random>
+#include <time.h>
 #include <typeinfo>
+
 #define PI 3.14159265
 
 // Test git branch
@@ -70,6 +72,8 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         int fitEllipse(std::vector<cPt2dr>, double*);     ///< Least squares estimation of an ellipse from 2D points
         int cartesianToNaturalEllipse(double*, double*);              ///< Convert (A,B,C,D,E,F) ellipse parameters to (x0,y0,a,b,theta)
         cPt2dr generatePointOnEllipse(double*, double, double);  ///< Generate point on ellipse from natural parameters
+        void printMatrix(MatrixXd);
+
 
 	std::string mNameTarget;
 
@@ -180,11 +184,13 @@ void cAppliExtractCodeTarget::ShowStats(const std::string & aMes)
 
 void cAppliExtractCodeTarget::MarkDCT()
 {
+
      for (auto & aDCT : mVDCT)
      {
           cPt3di aCoul (-1,-1,-1);
 
           if (aDCT->mState == eResDCT::Ok)      aCoul =  cRGBImage::Green;
+
 	  /*
           if (aDCT.mState == eResDCT::Divg)    aCoul =  cRGBImage::Red;
           if (aDCT.mState == eResDCT::LowSym)  aCoul =  cRGBImage::Yellow;
@@ -194,8 +200,10 @@ void cAppliExtractCodeTarget::MarkDCT()
           if (aDCT->mState == eResDCT::LowSymMin)  aCoul =  cRGBImage::Red;
 
 
-          if (aCoul.x() >=0)
-             mImVisu.SetRGBrectWithAlpha(aDCT->Pix0(),2,aCoul,0.5);
+          if (aCoul.x() >=0){
+             mImVisu.SetRGBrectWithAlpha(aDCT->Pix0(),0,aCoul,0.0);
+          }
+
      }
 }
 
@@ -238,6 +246,8 @@ void cAppliExtractCodeTarget::MatchOnGT(cGeomSimDCT & aGSD)
 
 void  cAppliExtractCodeTarget::DoExtract()
 {
+
+
      tDataIm &  aDIm = APBI_DIm();
      tIm        aIm = APBI_Im();
      mImVisu =   RGBImFromGray(aDIm);
@@ -294,6 +304,7 @@ void  cAppliExtractCodeTarget::DoExtract()
 
 
      mVDCTOk.clear();
+
      for (auto aPtrDCT : mVDCT)
      {
           // if (aPtrDCT->mGT)
@@ -304,6 +315,9 @@ void  cAppliExtractCodeTarget::DoExtract()
              else
                 mVDCTOk.push_back(aPtrDCT);
           }
+
+
+
      }
      ShowStats("ExtractDir");
      StdOut()  << "MAINTAINED " << mVDCTOk.size() << "\n";
@@ -311,7 +325,113 @@ void  cAppliExtractCodeTarget::DoExtract()
      //   ====   MinOf Symetry ====
      //   ====   MinOf Symetry ====
 
+
+    int counter = 0;
+    for (auto & aDCT : mVDCT){
+        if (aDCT->mState == eResDCT::Ok){
+            cPt2di center = aDCT->Pix0();
+            double vx1 = aDCT->mDirC1.x(); double vy1 = aDCT->mDirC1.y();
+            double vx2 = aDCT->mDirC2.x(); double vy2 = aDCT->mDirC2.y();
+
+            StdOut() << "Directions: " << center  << "(" << counter << ")" << "\n";
+
+            /*
+                MatrixXd M(61,61);
+                for (int i=-30; i<=30; i++){
+                    for (int j=-30; j<=30; j++){
+                         M(i+30, j+30) = aDIm.GetVBL(cPt2dr(center.x()+i+0.0,center.y()+j+0.0));
+                    }
+                }
+                printMatrix(M);
+                 */
+
+                 if (counter >= 0){
+
+       std::vector<cPt2dr> POINTS;
+
+            for (double t=0.1; t<0.9; t+=0.1){
+                for (int sign=-1; sign<=1; sign+=2){
+                    for (int i=5; i<=50; i++){
+                        double vx = t*vx1 + (1-t)*vx2;
+                        double vy = t*vy1 + (1-t)*vy2;
+                        double x = center.x()+sign*vx*i;
+                        double y = center.y()+sign*vy*i;
+                        cPt2di pi = cPt2di(x, y);
+                        cPt2dr pf = cPt2dr(x, y);
+                        double z = aDIm.GetVBL(pf);
+                       // mImVisu.SetRGBrectWithAlpha(pi,0,cRGBImage::Red,0.5);
+
+                        if (z > 128){
+                            //StdOut() << x << "," << y << "," << z << ",\n";
+                            mImVisu.SetRGBrectWithAlpha(pi,1,cRGBImage::Blue,0.5);
+                            POINTS.push_back(pf);
+                            break;
+                        }
+
+                    }
+                }
+            }
+
+
+
+            for (unsigned iii=0; iii<POINTS.size(); iii++){
+                StdOut() << POINTS.at(iii).x() << " " << POINTS.at(iii).y() << "\n";
+            }
+
+
+            if (counter == 39) {
+                counter ++; continue;
+            }
+            if (counter == 40) {
+                counter ++; continue;
+            }
+            if (counter == 87) {
+                counter ++; continue;
+            }
+            if (counter == 89) {
+                counter ++; continue;
+            }
+            if (counter == 128) {
+                counter ++; continue;
+            }
+            if (counter == 203) {
+                counter ++; continue;
+            }
+            if (counter == 213) {
+                counter ++; continue;
+            }
+            if (counter == 226) {
+                counter ++; continue;
+            }
+
+
+
+            double ellipse[5];
+            fitEllipse(POINTS, ellipse);
+
+
+            //StdOut() << "------------------------------------\n";
+
+            for (double t=0; t<2*PI; t+=0.01){
+                cPt2dr aPoint = generatePointOnEllipse(ellipse, t, 0.0);
+                cPt2di pt = cPt2di(aPoint.x(), aPoint.y());
+                if ((pt.x() < aDIm.Sz().x()) && (pt.y() < aDIm.Sz().y())){
+                    if ((pt.x() >= 0) && (pt.y() >= 0)){
+                        mImVisu.SetRGBrectWithAlpha(pt,0,cRGBImage::Red,0.0);
+                    }
+                }
+            }
+
+
+        }
+        counter++;
+        }
+
+    }
+
+
      MarkDCT() ;
+
      mImVisu.ToFile("VisuCodeTarget.tif");
      // APBI_DIm().ToFile("VisuWEIGHT.tif");
 }
@@ -352,12 +472,32 @@ void  cAppliExtractCodeTarget::TestFilters()
 }
 
 
+
+// ---------------------------------------------------------------------------
+// Function to inspect a matrix in R
+// ---------------------------------------------------------------------------
+void cAppliExtractCodeTarget::printMatrix(MatrixXd M){
+    StdOut() << "================================================================\n";
+    StdOut() << "M = matrix(c(\n";
+    for (int i=0; i<M.rows(); i++){
+        for (int j=0; j<M.cols(); j++){
+            StdOut() << M(i,j);
+            if ((i != M.rows()-1) || (j != M.cols()-1)) StdOut() << ",";
+        }
+        StdOut() << "\n";
+    }
+    StdOut() << " ), ncol=" << M.cols() <<", nrow=" << M.rows() << ", byrow=TRUE)\n";
+    StdOut() << "image(M, col = gray.colors(255))\n";
+    StdOut() << "================================================================\n";
+}
+
 // ---------------------------------------------------------------------------
 // Function to fit an ellipse on a set of 2D points
 // Inputs: a vector of 2D points
-// Output: a vector of parameters (A,B,C,D,E,F) with the constraints :
-//     - F = 1
-//     - 4AC-B^2 > 0
+// Output: a vector of parameters (x0, y0, a, b, theta) with:
+//     - (x0, y0) center of the ellipse
+//     - (a, b) the semi minor and major axes
+//     - theta the angle (in rad) from the x axis.
 // ---------------------------------------------------------------------------
 // NUMERICALLY STABLE DIRECT LEAST SQUARES FITTING OF ELLIPSES
 // (Halir and Flusser, 1998)
@@ -368,6 +508,20 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
     MatrixXd D1(N,3);
     MatrixXd D2(N,3);
     Eigen::Matrix<double, 3, 3> M;
+
+    double xmin = 1e300;
+    double ymin = 1e300;
+
+    for (unsigned i=0; i<N; i++){
+        if (points.at(i).x() < xmin) xmin = points.at(i).x();
+        if (points.at(i).y() < ymin) ymin = points.at(i).y();
+
+    }
+
+    for (unsigned i=0; i<N; i++){
+        points.at(i).x() -= xmin;
+        points.at(i).y() -= ymin;
+    }
 
 
     for (unsigned i=0; i<N; i++){
@@ -405,12 +559,18 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
 	double a2 = P(1,index).real();
 	double a3 = P(2,index).real();
 
-	output[0] = a1;
-	output[1] = a2;
-	output[2] = a3;
-	output[3] = T(0,0)*a1 + T(0,1)*a2 + T(0,2)*a3;
-	output[4] = T(1,0)*a1 + T(1,1)*a2 + T(1,2)*a3;
-	output[5] = T(2,0)*a1 + T(2,1)*a2 + T(2,2)*a3;
+	double ellipse[6];
+	ellipse[0] = a1;
+	ellipse[1] = a2;
+	ellipse[2] = a3;
+	ellipse[3] = T(0,0)*a1 + T(0,1)*a2 + T(0,2)*a3;
+	ellipse[4] = T(1,0)*a1 + T(1,1)*a2 + T(1,2)*a3;
+	ellipse[5] = T(2,0)*a1 + T(2,1)*a2 + T(2,2)*a3;
+
+
+	cartesianToNaturalEllipse(ellipse, output);
+	output[0] += xmin;
+	output[1] += ymin;
 
     return 0;
 
@@ -513,40 +673,25 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 int  cAppliExtractCodeTarget::Exe()
 {
 
-    if (mTest){
+
+if (mTest){
+
         std::vector<cPt2dr> POINTS;
 
         double params[6] = {-0.49610428,   0.67946411,  -0.54056366,   6.55701404,  -6.59996909, -16.53083264};
         double nat_par[5];
         cartesianToNaturalEllipse(params, nat_par);
 
+        nat_par[0] = 0;
+        nat_par[1] = 0;
+        nat_par[2] = 3;
+        nat_par[3] = 1;
+		nat_par[4] = 0.76;
 
-    /*
-        StdOut() << "x0 = " << " " << nat_par[0] << "\n";
-        StdOut() << "y0 = " << " " << nat_par[1] << "\n";
-        StdOut() << "a = " << " " << nat_par[2] << "\n";
-        StdOut() << "b = " << " " << nat_par[3] << "\n";
-        StdOut() << "theta = " << " " << nat_par[4] << "\n";
-*/
-
-
-        StdOut() << "x,y\n";
-
-/*
-        for (double t=0.5*PI; t<PI; t+=0.02){
-            cPt2dr aPoint = generatePointOnEllipse(nat_par, t, 0.05);
+        for (double t=0; t<2*PI; t+=0.01){
+            cPt2dr aPoint = generatePointOnEllipse(nat_par, t, 0.1);
             POINTS.push_back(aPoint);
-            StdOut() << aPoint.x() << "," << aPoint.y() << "\n";
         }
-
-          for (double t=1.5*PI; t<2*PI; t+=0.02){
-            cPt2dr aPoint = generatePointOnEllipse(nat_par, t, 0.05);
-            POINTS.push_back(aPoint);
-            StdOut() << aPoint.x() << "," << aPoint.y() << "\n";
-        }
-*/
-
-        // StdOut() << "-------------------------------------\n";
 
         double PARAM[5];
         fitEllipse(POINTS, PARAM);
@@ -556,39 +701,10 @@ int  cAppliExtractCodeTarget::Exe()
         cartesianToNaturalEllipse(PARAM, nat_par2);
 
 
-
-        for (double t=0; t<2*PI; t+=0.001){
-            cPt2dr aPoint = generatePointOnEllipse(nat_par, t);
-            StdOut() << aPoint.x() << "," << aPoint.y() << "\n";
-        }
-
-
-        /*
-        StdOut() << "x0 = " << " " << nat_par2[0] << "\n";
-        StdOut() << "y0 = " << " " << nat_par2[1] << "\n";
-        StdOut() << "a = " << " " << nat_par2[2] << "\n";
-        StdOut() << "b = " << " " << nat_par2[3] << "\n";
-        StdOut() << "theta = " << " " << nat_par2[4] << "\n";
-
-        StdOut() << "-------------------------------------\n";
-    */
-
-
-        /*
-        StdOut() << "--------------------------------\n";
-
-
-        StdOut() << "x0 = " << " " << nat_par2[0] << "\n";
-        StdOut() << "y0 = " << " " << nat_par2[1] << "\n";
-        StdOut() << "a = " << " " << nat_par2[2] << "\n";
-        StdOut() << "b = " << " " << nat_par2[3] << "\n";
-        StdOut() << "theta = " << " " << nat_par2[4] << "\n";
-        */
-
-
         return 0;
 
     }
+
 
    std::string aNameGT = LastPrefix(APBI_NameIm()) + std::string("_GroundTruth.xml");
    if (ExistFile(aNameGT))
@@ -607,6 +723,11 @@ int  cAppliExtractCodeTarget::Exe()
    mRayMinCB = (mDiamMinD/2.0) * (mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar);
 
 // StdOut() << "mRayMinCB " << mRayMinCB << "\n"; getchar();
+
+
+
+
+
    APBI_ExecAll();  // run the parse file  SIMPL
 
 

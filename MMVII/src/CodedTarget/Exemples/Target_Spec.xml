@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<MMVII_Serialization>
+   <SzF>600 600</SzF>
+   <CenterF>299.833333333333 299.833333333333</CenterF>
+   <CornEl1>398.798459955847 398.798459955847</CornEl1>
+   <CornEl2>200.868206710819 398.798459955847</CornEl2>
+   <SzCCB>1</SzCCB>
+   <ThickN_WhiteInt>0.35</ThickN_WhiteInt>
+   <ThickN_Code>0.35</ThickN_Code>
+   <ThickN_WhiteExt>0.2</ThickN_WhiteExt>
+   <ThickN_Car>0.8</ThickN_Car>
+</MMVII_Serialization>
