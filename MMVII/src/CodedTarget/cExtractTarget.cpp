@@ -349,33 +349,22 @@ void  cAppliExtractCodeTarget::DoExtract()
 
        std::vector<cPt2dr> POINTS;
 
-            for (double t=0.1; t<0.9; t+=0.1){
+            for (double t=0.1; t<0.9; t+=0.01){
                 for (int sign=-1; sign<=1; sign+=2){
                     for (int i=5; i<=50; i++){
                         double vx = t*vx1 + (1-t)*vx2;
                         double vy = t*vy1 + (1-t)*vy2;
                         double x = center.x()+sign*vx*i;
                         double y = center.y()+sign*vy*i;
-                        cPt2di pi = cPt2di(x, y);
                         cPt2dr pf = cPt2dr(x, y);
                         double z = aDIm.GetVBL(pf);
                        // mImVisu.SetRGBrectWithAlpha(pi,0,cRGBImage::Red,0.5);
-
                         if (z > 128){
-                            //StdOut() << x << "," << y << "," << z << ",\n";
-                            mImVisu.SetRGBrectWithAlpha(pi,1,cRGBImage::Blue,0.5);
-                            POINTS.push_back(pf);
-                            break;
+                            POINTS.push_back(pf); break;
                         }
 
                     }
                 }
-            }
-
-
-
-            for (unsigned iii=0; iii<POINTS.size(); iii++){
-                StdOut() << POINTS.at(iii).x() << " " << POINTS.at(iii).y() << "\n";
             }
 
 
@@ -421,6 +410,13 @@ void  cAppliExtractCodeTarget::DoExtract()
                     }
                 }
             }
+
+
+            for (unsigned iii=0; iii<POINTS.size(); iii++){
+                cPt2di pi = cPt2di(POINTS.at(iii).x(), POINTS.at(iii).y());
+                mImVisu.SetRGBrectWithAlpha(pi,0,cRGBImage::Blue,0.5);
+            }
+
 
 
         }
