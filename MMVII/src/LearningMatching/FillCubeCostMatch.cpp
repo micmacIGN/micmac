@@ -77,6 +77,7 @@ struct cOneModele
         // LATER SLOW NET 
         ConvNet_Slow mNetSlowStd=ConvNet_Slow(3,4,4); // Conv Kernel= 3x3 , Convlayers=4, Fully Connected Layers =4
         torch::jit::script::Module mMSNet;
+        torch::jit::script::Module mDecisionNet;
         
 };
 static const std::string TheNameCorrel  = "MMVIICorrel";
@@ -161,6 +162,8 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 	const tImZ  & ImZMin() {return  mImZMin;}
 	const tImZ  & ImZMax() {return  mImZMax;}
 	void MakeNormalizedIm();
+        // if with decision Network 
+    bool mWithPredictionNetwork=true;
 	// -------------- Internal variables -------------------
      private :
 
@@ -205,6 +208,7 @@ class cAppliFillCubeCost : public cAppliLearningMatch
     // ADDED CNN PARAMS 
     std::string mModelBinaries;
     std::string mModelArchitecture;
+
 	// -------------- Internal variables -------------------
 	
 	std::string StdName(const std::string & aPre,const std::string & aPost);
@@ -432,8 +436,12 @@ cOneModele::cOneModele
         else if(mArchitecture==TheMSNet)
         { 
             mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir);
-            mCNNPredictor->PopulateModelMSNetHead(mMSNet);
-            mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
+            mCNNPredictor->PopulateModelFeatures(mMSNet);
+            mCNNWin=cPt2di(7,7); 
+            if (mAppli->mWithPredictionNetwork)
+            {
+              mCNNPredictor->PopulateModelDecision(mDecisionNet);  
+            }
         } 
     }
 }
@@ -806,6 +814,8 @@ int  cAppliFillCubeCost::Exe()
    // WORK BY MODEL IF USING LEARNING THAT DO BATCH COST CALCUL ELSE 
     if (aVMods.at(0)->mWIthMVCNNCorr)
     {
+        auto cuda_available = torch::cuda::is_available();
+        torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
         aVMods.at(0)->CalcCorrelMvCNN();
         // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
         cPt2di aSzL = this->NDI1().Sz();      
@@ -818,8 +828,7 @@ int  cAppliFillCubeCost::Exe()
         if (aVMods.at(0)->mArchitecture==TheFastArchWithMLP)   FeatSize=184;
         if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)   FeatSize=64;
         if (aVMods.at(0)->mArchitecture==TheMSNet) FeatSize=64 ;
-        torch::Tensor LREmbeddingsL=torch::empty({1,FeatSize,aSzL.y(),aSzL.x()},torch::TensorOptions().dtype(torch::kFloat32));
-        torch::Tensor LREmbeddingsR=torch::empty({1,FeatSize,aSzR.y(),aSzR.x()},torch::TensorOptions().dtype(torch::kFloat32));
+        torch::Tensor LREmbeddingsL,LREmbeddingsR;
         if (aVMods.at(0)->mArchitecture==TheFastStandard)
              {
                LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictTile(aVMods.at(0)->mNetFastStd,this->IMNorm1(),aSzL);
@@ -863,9 +872,7 @@ int  cAppliFillCubeCost::Exe()
         
         cPt2di aPix;
         using namespace torch::indexing;
-        /*LREmbeddingsL=LREmbeddingsL.index({0});
-        LREmbeddingsR=LREmbeddingsR.index({0});*/
-        if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)
+        if (mWithPredictionNetwork)
         {
             for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
             {
@@ -874,16 +881,13 @@ int  cAppliFillCubeCost::Exe()
                         cPt2di aPAbs = aPix + mP0Z;
                         cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
                         cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
-                        //auto aVecL=LREmbeddingsL.slice(2,aPC1.y(),aPC1.y()+1).slice(3,aPC1.x(),aPC1.x()+1);
                         using namespace torch::indexing;
-                        auto aVecL=LREmbeddingsL.index({0,Slice(0,FeatSize,1),aPC1.y(),aPC1.x()}).unsqueeze(0); // of size {1,FeatSize,1,1}
-                        //StdOut()<<"   left size "<<aVecL.sizes()<<"\n";
-                        //StdOut() <<"pax limits "<<"MIN "<<aDZMin.GetV(aPix)<<" MAX "<<aDZMax.GetV(aPix)<<"\n";
+                        auto aVecL=LREmbeddingsL.index({0,Slice(0,FeatSize,1),aPC1.y(),aPC1.x()}).unsqueeze(0).unsqueeze(2).unsqueeze(3);
                         for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
                         {
                             double aTabCost[2]={1.0,1.0};
                             bool   aTabOk[2]={false,false};
-                            // Get location of the pixel for which to compute correl given the limits of lower and upper layers (NAPPES)
+                            // Get location of the pixel for which to compute correl given the limits of lower and upper layers (NAPPES ENGMOBANTES)
                             cPt2di aPC2Z(round_ni(aPC20.x()+aDz*this->StepZ()),aPC20.y());  // INTEG FOR NOW   
                             //StdOut() <<" COORDINATE AT RIGHT IM "<<aPC2Z.x()<<"\n";
                             for (int aK=0 ; aK<int(aVMods.size()) ; aK++)
@@ -894,9 +898,9 @@ int  cAppliFillCubeCost::Exe()
                                             //auto aVecR=LREmbeddingsR.slice(2,aPC2Z.y(),aPC2Z.y()+1).slice(3,aPC2Z.x(),aPC2Z.x()+1);
                                             using namespace torch::indexing;
                                             //StdOut() <<" shape element embedding "<<LREmbeddingsR.sizes()<<"\n";
-                                            auto aVecR=LREmbeddingsR.index({0,Slice(0,FeatSize,1),aPC2Z.y(),aPC2Z.x()}).unsqueeze(0);
+                                            auto aVecR=LREmbeddingsR.index({0,Slice(0,FeatSize,1),aPC2Z.y(),aPC2Z.x()}).unsqueeze(0).unsqueeze(2).unsqueeze(3);
                                             //StdOut() <<" shape element "<<aVecR.sizes()<<"\n";
-                                            auto aSim=aVMods.at(0)->mCNNPredictor->PredictDecisionNet(aVMods.at(0)->mMSNet,aVecL,aVecR);
+                                            auto aSim=aVMods.at(0)->mCNNPredictor->PredictDecisionNet(aVMods.at(0)->mDecisionNet,aVecL,aVecR);
                                             aTabCost[aK] =(1-(double)aSim.item<float>());
                                             aTabOk[aK]=true;
                                         }

@@ -230,6 +230,12 @@ class cAppli : public cMMVII_Appli
         int    mNbLevel ;  ///< Number of level in the pyram [0 mNbLevel]  , 0 = initial image
         double mRatioByL ; ///< Scale between 2 successive levels
 	int    mMaxAmplPxCur;  ///< Maximal amplitude of Px 
+	
+	     // Case where SGM CUDA is USED in CORRELATION 
+	     std::string mModelPath,mModelDecisionPath;
+         std::string Penalty1,Penalty2;
+         tREAL4 mPenalty1=0.02;
+         tREAL4 mPenalty2=1.0;
 
         std::vector<tPtrIm>     mIms;  ///< Contain the 2 images
         bool           mDoFileCommands;  ///<  Do we store all commands
@@ -643,11 +649,17 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          << AOpt2007(mOutPx,CurOP_Out,"Name of Out file, def=Px_+$Im1")
          << AOpt2007(mModePad,"ModePad","Type of padding, default depend of match mode",{AC_ListVal<eModePaddingEpip>()})
          << AOpt2007(mRandPaded,"RandPaded","Generate random value for added pixel")
+         // Case sgm cuda 
+         << AOpt2007(mModelPath,"Model2Call","Case when SGM CUDA IS TO BE LAUNCED WITH TRAINED CNN ?")
+         << AOpt2007(mModelDecisionPath,"ModelDecision2Call","Case when SGM CUDA IS TO BE LAUNCED WITH TRAINED CNN ?")
+         << AOpt2007(Penalty1,"Penalty1","Case when SGM CUDA GIVE Penalty1 default is 0.02 ?")
+         << AOpt2007(Penalty2,"Penalty2","Case when SGM CUDA GIVE Penalty2 default is 1.0 ?")
          // -- Tuning
          << AOpt2007(mDoPyram,"DoPyram","Compute the pyramid",{eTA2007::HDV,eTA2007::Tuning})
          << AOpt2007(mDoClip,"DoClip","Compute the clip of images",{eTA2007::HDV,eTA2007::Tuning})
          << AOpt2007(mDoMatch,"DoMatch","Do the matching",{eTA2007::HDV,eTA2007::Tuning})
          << AOpt2007(mDoPurge,"DoPurge","Do we purge the result ?",{eTA2007::HDV,eTA2007::Tuning})
+         
    ;
 }
 
@@ -676,25 +688,27 @@ std::string cAppli::ComMatch(cParam1Match & aParam)
        	  break;
        }
        /*******************************************************************/
-       /*case eModeEpipMatch::eMEM_MVCNN :
+       case eModeEpipMatch::eMEM_UNETDECISION :
        {
-          std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
-          std::string aCom = "bash " + aDenseMDir + "run.sh " 
-                                            //+ BLANK + "--loadmodel"  + BLANK + mTrainedModel
-                             + BLANK + "--leftimg"  + BLANK + DirTmpOfCmd() + aParam.mClipNameIm1
-                             + BLANK + "--rightimg" + BLANK + DirTmpOfCmd() + aParam.mClipNameIm2
-                             + BLANK + "--result"     + BLANK + DirTmpOfCmd() + aParam.mClipNamePx;
-                                 
-          
+          if (Penalty1!="") mPenalty1=std::stof(Penalty1);
+          if (Penalty2!="") mPenalty2=std::stof(Penalty2);
+          std::string aCom = "MMVII SGMCUDA_IN_MM "
+                         +  BLANK  +  mModelPath
+                         +  BLANK  +  mModelDecisionPath
+                         +  BLANK  +  DirTmpOfCmd() + aParam.mClipNameIm1
+                         +  BLANK  +  DirTmpOfCmd() + aParam.mClipNameIm2
+                         +  BLANK  +  DirTmpOfCmd() + aParam.mClipNamePx
+                         +  BLANK  +  "P1=" + std::to_string(mPenalty1) 
+                         +  BLANK  +  "P2=" + std::to_string(mPenalty2); 
                  return aCom;
           break;
-       }*/
+       }
        /*******************************************************************/
 
        case eModeEpipMatch::eMEM_PSMNet :
        {
 		  std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
-          std::string aCom = "bash " + aDenseMDir + "run_docker.sh "   // ===> changed from run.sh to run_docker.sh
+          std::string aCom = "bash " + aDenseMDir + "run.sh "   // ===> changed from run.sh to run_docker.sh
 				             //+ BLANK + "--loadmodel"  + BLANK + mTrainedModel
                              + BLANK + "--leftimg"  + BLANK + DirTmpOfCmd() + aParam.mClipNameIm1
                              + BLANK + "--rightimg" + BLANK + DirTmpOfCmd() + aParam.mClipNameIm2
@@ -803,6 +817,11 @@ void  cAppli::MatchOneLevel(int aLevel)
 	         aModePad = eModePaddingEpip::eMPE_PxNeg; 
 	         aAmplMax = 180;
             break;
+    
+            case eModeEpipMatch::eMEM_UNETDECISION  :    
+	         aModePad = eModePaddingEpip::eMPE_PxNeg; 
+	         aAmplMax = 180;
+            break;
 
             case eModeEpipMatch::eMEM_NoMatch :    
 	          aModePad = eModePaddingEpip::eMPE_NoPad; 
@@ -870,7 +889,6 @@ void  cAppli::MatchOneLevel(int aLevel)
                 if (aParam.mCanDoMatch)
                    aILev1.SaveGlobPx(aParam);
             }
-
             // empty all that for next computation not to redo the same stuff
             aLComClip.clear();
             aLComMatch.clear();
@@ -906,6 +924,7 @@ int cAppli::Exe()
        {
             case eModeEpipMatch::eMEM_MMV1    :    mModePad = eModePaddingEpip::eMPE_NoPad; break;
             case eModeEpipMatch::eMEM_PSMNet  :    mModePad = eModePaddingEpip::eMPE_PxNeg; break;
+            case eModeEpipMatch::eMEM_UNETDECISION :    mModePad = eModePaddingEpip::eMPE_PxNeg; break;
             case eModeEpipMatch::eMEM_NoMatch :    mModePad = eModePaddingEpip::eMPE_NoPad; break;
             case eModeEpipMatch::eNbVals      :                                             break;
        }

@@ -183,6 +183,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecMeshDev);
         TheVecAll.push_back(&TheSpecGenMeshDev);
         TheVecAll.push_back(&TheSpecComputeStatsCorrel);
+        TheVecAll.push_back(&TheSpecProgDynEpipolar);
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
    

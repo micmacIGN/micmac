@@ -340,13 +340,53 @@ void aCnnModelPredictor::PopulateModelMSNetAtt(MSNet_Attention Network)
 void aCnnModelPredictor::PopulateModelMSNetHead(/*MSNetHead Network*/ torch::jit::script::Module & Network)
 {
     //StdOut()<<"TO LOAD MODEL "<<"\n";
-    
     std::string aModel=mDirModel+mSetModelBinaries.at(0); // just one pickled model 
     Network=torch::jit::load(aModel);
     auto cuda_available = torch::cuda::is_available();
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
     Network.to(device);
     StdOut()<<"TORCH LOAD  "<<"\n";
+}
+/***********************************************************************/
+void aCnnModelPredictor::PopulateModelFeatures(torch::jit::script::Module & Network)
+{
+    // add a convention on Model Name TAKE FOR EXAMPLES FEATURES AS A KEY FOR THE FEATURE MODULE 
+    std::string aModel;
+    for (unsigned int i=0;i<mSetModelBinaries.size();i++)
+    {
+        if (mSetModelBinaries.at(i).find("FEATURES") != std::string::npos)
+        {
+            aModel=mDirModel+mSetModelBinaries.at(i);
+            std::cout<<"Models checked "<<mSetModelBinaries.at(i)<<std::endl;
+            break;
+        }
+    }
+    Network=torch::jit::load(aModel);
+    auto cuda_available = torch::cuda::is_available();
+    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    Network.to(device);
+    StdOut()<<"MODEL FEATURES LOADED !!!!!! "<<"\n";
+}
+/***************************************************************************************/
+
+void aCnnModelPredictor::PopulateModelDecision(torch::jit::script::Module & Network)
+{
+    // add a convention on Model Name TAKE FOR EXAMPLES FEATURES AS A KEY FOR THE FEATURE MODULE 
+    std::string aModel;
+    for (unsigned int i=0;i<mSetModelBinaries.size();i++)
+    {
+        if (mSetModelBinaries.at(i).find("DECISION_NET") != std::string::npos)
+        {
+            std::cout<<"Models checked for the decision NEtwork"<<mSetModelBinaries.at(i)<<std::endl;
+            aModel=mDirModel+mSetModelBinaries.at(i);
+            break;
+        }
+    }
+    Network=torch::jit::load(aModel);
+    auto cuda_available = torch::cuda::is_available();
+    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    Network.to(device);
+    StdOut()<<"MODEL DECISION LOADED !!  "<<"\n";
 }
 /***********************************************************************/
 void aCnnModelPredictor::PopulateModelSimNet(SimilarityNet Network)
@@ -784,16 +824,17 @@ torch::Tensor aCnnModelPredictor::PredictUNetWDecision(torch::jit::script::Modul
 /**********************************************************************************************************************/
 torch::Tensor aCnnModelPredictor::PredictMSNetTile(torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz)
 {
-    torch::Device device(torch::kCPU);
+    auto cuda_available = torch::cuda::is_available();
+    //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
+    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
 	torch::NoGradGuard no_grad;
 	mNet.eval();
     tREAL4 ** mPatchLData=aPatchLV.DIm().ExtractRawData2D();
-    torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+    torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32)).to(device);
     torch::jit::IValue inp(aPL);
     std::vector<torch::jit::IValue> allinp={inp};
-    //std::cout<<"IVALUE CREATED "<<std::endl; 
     auto out=mNet.forward(allinp);
-    auto output=out.toTensor().squeeze();
+    auto output=out.toTensor();
     return output;
 }
 /**********************************************************************************************************************/

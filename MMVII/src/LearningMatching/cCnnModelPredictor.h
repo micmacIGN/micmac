@@ -61,6 +61,10 @@ class aCnnModelPredictor
        torch::Tensor PredictDecisionNet(torch::jit::script::Module mNet, torch::Tensor Left, torch::Tensor Right);
        torch::Tensor PredictMSNetCommon(MSNet Net,tTImV2 aTilL,cPt2di aPSz);
        
+       
+       void PopulateModelFeatures(torch::jit::script::Module & Network);
+       void PopulateModelDecision(torch::jit::script::Module & Network);
+       
        torch::Tensor ReadBinaryFile(std::string aFilename, torch::Tensor aHost);
        void PopulateModelFromBinary(ConvNet_Fast Net);
        void PopulateModelFromBinaryWithBN(ConvNet_FastBn Net);
