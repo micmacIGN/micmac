@@ -64,7 +64,7 @@ int Blinis_main(int argc,char ** argv)
         LArgMain()
                     << EAM(aMasterGrp,"MGrp",true,"Master Group if you need to fix it (as in IMU for example)")
                     << EAM(genPly,"GenPly",true,"Generate Ply of block point to show disparity.[Def=false]")
-                    << EAM(FltrSigma,"FiltSigma",true,"Filter the view transformation by sigma. If 0 disabled.[Def=0.0]")
+                    << EAM(FltrSigma,"FiltrSigma",true,"Filter the view transformation by sigma. If 0 disabled.[Def=0.0]")
     );
 
     if (!MMVisualMode)

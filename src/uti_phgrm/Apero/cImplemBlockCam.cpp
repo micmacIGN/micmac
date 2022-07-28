@@ -1155,10 +1155,12 @@ void cImplemBlockCam::EstimCurOri(const cXml_EstimateOrientationInitBlockCamera 
         if (aCam->PtrRF())
         {
             aRMoy = aCam->PtrRF()->CurRot();
+            ValueKnown = true;
         }
         else
         {
             aRMoy = getMean(aKC, mNbTime, mNum2ITime, anEOIB.Show().Val());
+            ValueKnown = true;
         }
 
         if (ValueKnown)
@@ -1223,6 +1225,29 @@ void cImplemBlockCam::EstimCurOri(const cXml_EstimateOrientationInitBlockCamera 
                         aSomP++;
                         aNViews.push_back(view);
                     }
+                }
+                aViews.clear();
+                aViews.insert(aViews.end(), aNViews.begin(), aNViews.end());
+
+                aSomEcP /= aSomP;
+                aSomEcM = sqrt(aSomEcM) / aSomP;
+            } else {
+                cloudLiaison = {};
+                aSomEcP = 0;
+                aSomEcM = 0;
+                std::vector<ElRotation3D> aNViews;
+                for (auto view : aViews)
+                {
+                    double e = euclid(view.tr()-aSomTr);
+                        aFiltTr = aFiltTr+ view.tr(); //Position
+                        aFiltM += view.Mat(); //Angle
+                        aFiltP++;
+
+                        cloudLiaison.AddPt(color, view.ImAff(Pt3dr(0,0,0)));
+                        aSomEcP += e;
+                        aSomEcM += view.Mat().L2(aSomM);
+                        aSomP++;
+                        aNViews.push_back(view);
                 }
                 aViews.clear();
                 aViews.insert(aViews.end(), aNViews.begin(), aNViews.end());
