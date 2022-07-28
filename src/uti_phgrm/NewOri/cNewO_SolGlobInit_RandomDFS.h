@@ -340,11 +340,6 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
         cSolGlobInit_NRandom(int argc,char ** argv);
 		cNewO_NameManager & NM() {return *mNM;}
 
-		// begin old pipeline
-		void DoOneRandomDFS(bool UseCoherence=false);
-		void DoRandomDFS();
-		// end old pipeline
-
 		// new pipeline entry point
 		void DoNRandomSol();
 
@@ -408,7 +403,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 		int 					mFlag3CC;
 		int 					mFlagS;
         bool            		mDebug;
-        int             		mNbSamples;
+        int           		mNbSamples;
         ElTimer         		mChrono;
 		int                     mIterCur;
 		bool                    mGraphCoher;
