@@ -302,6 +302,38 @@ class cSetIntDyn
           std::vector<size_t>  mVIndOcc;   ///< list  of element
 };
 
+/** Class for representing a set of int simply as a vector of int,
+    usefull for K among N when N is big 
+    make no control of duplicate,  just an interface to vector<int> as a set
+*/
+
+class cSetIExtension
+{
+    public :
+         cSetIExtension();
+         cSetIExtension(const std::vector<size_t>&);
+         static cSetIExtension EmptySet();
+         void AddElem(size_t);
+
+         std::vector<size_t>  mElems;
+};
+
+/** Generate Q subset of cardinal K [0,N], all different,  if Q too big, truncated */
+void GenRanQsubCardKAmongN(std::vector<cSetIExtension> & aRes,int aQ,int aK,int aN);
+
+class cParamRansac
+{   
+    public :
+
+        int  NbTestOfErrAdm(int aNbSample) const;
+        cParamRansac(double  aProba1Err,double anErrAdm);
+    private :
+        double mProba1Err;
+        double mErrAdm;
+};
+
+
+
 
 
 };

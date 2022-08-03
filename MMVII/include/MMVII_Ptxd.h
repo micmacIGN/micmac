@@ -168,7 +168,9 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSy
 // template <class Type,const int DimOut,const int DimIn> void CastDim(cPtxd<Type,DimOut> &,const cPtxd<Type,DimIn>);
 template <class Type,const int DimOut,const int DimIn> cPtxd<Type,DimOut> CastDim(const cPtxd<Type,DimIn>&);
 
-template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP1) { return (aP1.x() !=0) || (aP1.y()!=0);}
+template <class Type> inline bool IsNull (const cPtxd<Type,2> & aP) { return (aP.x() ==0) && (aP.y()==0);}
+template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP) { return ! IsNull(aP);}
+//template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP) { return  (aP.x() !=0) || (aP.y()!=0);}
 
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
 template <class Type> inline void AssertNonNul(const cPtxd<Type,2> &aP1) 
@@ -438,7 +440,9 @@ template <class T> inline cPtxd<tREAL8,1> ToR(const cPtxd<T,1> & aP) {return cPt
 template <class T> inline cPtxd<tREAL8,2> ToR(const cPtxd<T,2> & aP) {return cPtxd<tREAL8,2>(aP.x(),aP.y());}
 template <class T> inline cPtxd<tREAL8,3> ToR(const cPtxd<T,3> & aP) {return cPtxd<tREAL8,3>(aP.x(),aP.y(),aP.z());}
 template <class T> inline cPtxd<tREAL8,4> ToR(const cPtxd<T,4> & aP) {return cPtxd<tREAL8,4>(aP.x(),aP.y(),aP.z(),aP.t());}
+
 /*
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts);
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2dr & aP) {return cPt2dr(aP.x(),aP.y());}

@@ -851,6 +851,30 @@ template<class Type> cDenseVect<Type> EigenSolveLsqGC
                                            int   aNbVar
                                       );
 
+class cParamCtrNLsq
+{
+     public :
+        /// Memorize a new error , and eventualy indicate statbility
+        bool StabilityAfterNextError(double) ;
+        cParamCtrNLsq();
+     private : 
+        double GainRel(int aK1,int aK2) const;  // ex GainRel(1,2) 
+        inline double ValBack(int aK) const;  // ex GainRel(1,2) 
+        std::vector<double> mVER;
+};
+
+class  cParamCtrlOpt
+{
+    public :
+        cParamCtrlOpt(const cParamRansac &,const cParamCtrNLsq &);
+        const cParamRansac  & ParamRS() const;
+        const cParamCtrNLsq & ParamLSQ() const;
+        static cParamCtrlOpt  Default();
+    private :
+        cParamRansac  mParamRS;
+        cParamCtrNLsq mParamLSQ;
+};
+
 
 
 

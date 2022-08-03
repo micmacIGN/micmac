@@ -87,6 +87,8 @@ template  <typename tSet> tSet  SetI_Interv(int aK1, int aK2)
     return aResult;
 }
 
+
+
 // Subset of K element among N, using "Pascal Triangle"  C(K,N) = C(K-1,N-1) + C(K,N-1)
 template  <typename tSet> std::vector<tSet>  SubKAmongN(int aK, int aN)
 {

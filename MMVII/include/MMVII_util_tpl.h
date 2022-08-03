@@ -216,7 +216,14 @@ template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
    aVec.erase(std::remove_if(aVec.begin(),aVec.end(),aFonc),aVec.end());
 }
 
+/// return -1 0 or 1 , regarding < , == or >
 template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+/// return if aV1 < aV2 as LexicoCmp==-1
+template <class Type> bool operator < (const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+template <class Type> bool operator == (const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+template <class Type> bool operator != (const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+
+
 
 template <class Type> void AppendIn(std::vector<Type> & aRes, const std::vector<Type> & aVec)
 {

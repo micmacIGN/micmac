@@ -211,7 +211,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov()
     }
 
     Type aSqResidual;
-    cSim2D<Type>  aSimM2L =  cSim2D<Type>::FromExample(aVMain,aVLoc,&aSqResidual);
+    cSim2D<Type>  aSimM2L =  cSim2D<Type>::LeastSquareEstimate(aVMain,aVLoc,&aSqResidual);
     {
        tPt  aSomRes(0,0);
        Type aSomDist = 0;
@@ -222,10 +222,10 @@ template <class Type>  void cElemNetwork<Type>::PropagCov()
             tPt aRes = aPNet.PCur() - aSimM2L.Value(aHomMain.PCur());
             aSomDist += Norm2(aRes);
             aSomRes = aSomRes + aRes;
-StdOut() << "DDD " << Norm2(aPNet.PCur()-aPNet.TheorPt()) << "\n";
+//   StdOut() << "DDD " << Norm2(aPNet.PCur()-aPNet.TheorPt()) << "\n";
             aNb++;
        }
-       StdOut() << "AvgRes="  <<  aSomRes/Type(aNb)  << " AvgD=" << aSomDist/Type(aNb) <<  "\n";
+       //  StdOut() << "AvgRes="  <<  aSomRes/Type(aNb)  << " AvgD=" << aSomDist/Type(aNb) <<  "\n";
     }
 
     tPt  aTr = aSimM2L.Tr();

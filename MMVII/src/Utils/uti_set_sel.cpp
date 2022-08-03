@@ -13,49 +13,6 @@
 
 */
 
-/* ======================================================= */
-/*                                                         */
-/*             cSetIntDyn:                                 */
-/*                                                         */
-/* ======================================================= */
-namespace MMVII
-{
-
-cSetIntDyn::cSetIntDyn(size_t aNb) :
-      mOccupied(aNb,false)
-{
-}
-
-void cSetIntDyn::SortInd()
-{
-    std::sort(mVIndOcc.begin(),mVIndOcc.end());
-}
-
-cSetIntDyn::cSetIntDyn(size_t aNb,const std::vector<size_t> & aVInd) :
-     cSetIntDyn (aNb)
-{
-    for (const auto & anInd : aVInd)
-        AddInd(anInd);
-}
-
-
-void cSetIntDyn::Clear()
-{
-   for (const auto & aInd : mVIndOcc)
-       mOccupied.at(aInd) = false;
-   mVIndOcc.clear();
-}
-
-
-void cSetIntDyn::AddInd(size_t aK)
-{
-      while (mOccupied.size() <= aK)
-            mOccupied.push_back(false);
-
-      AddIndFixe(aK);
-}
-};
-
 
 /* ======================================== */
 /*                                          */

@@ -421,6 +421,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         this->BenchFiles(aParam); // Creation deletion of file
         Bench_Nums(aParam); // Basic numericall services
         BenchHamming(aParam);
+        BenchRansSubset(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
         BenchSet(aParam,mDirTestMMVII);  // Set (in extension)
         BenchSelector(aParam,mDirTestMMVII);  // Set (in comprehension)
@@ -893,6 +894,8 @@ void ShowAdr(double & anAdr)
        StdOut () <<  "ADDDDDr " << &(anAdr) << "\n";
 }
 void TTT();
+
+
 
 // #include <limits>
 int cAppli_MPDTest::Exe()

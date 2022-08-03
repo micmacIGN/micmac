@@ -212,6 +212,8 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
 {
      Type  aSumResidual = 0;
      Type  aNbPairTested = 0;
+     std::vector<tPt>  aVCur;
+     std::vector<tPt>  aVTh;
      //  Compute dist to sol + add constraint for fixed var
      for (const auto & aPN : mVPts)
      {
@@ -219,9 +221,24 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
         if (! aPN.mSchurrPoint)
         {
             aNbPairTested++;
+            aVCur.push_back(aPN.PCur());
+            aVTh.push_back(aPN.TheorPt());
             aSumResidual += Norm2(aPN.PCur() -aPN.TheorPt());
 	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << "\n";
+            if (aPN.mFrozenX || aPN.mFrozenY)
+            {
+	        StdOut() << "CCC=> " << aPN.PCur() << aPN.TheorPt() << aPN.mInd << "\n";
+            }
         }
+     }
+     if (1)
+     {
+         Type aRes;
+         auto  aMap = cSim2D<Type>::LeastSquareEstimate(aVCur,aVTh,&aRes);
+         FakeUseIt(aMap);
+         StdOut() << "RESIDUAL By Map Fit ";
+         StdOut() << aVCur[1] - aVCur[0] / aVTh[1]-aVTh[0] <<  "\n";
+         return aRes;
      }
      return aSumResidual / aNbPairTested ;
 }

@@ -73,7 +73,7 @@ template <class Type> cSimilitud3D<Type>
     cSimilitud3D<Type> anIs = FromTriOut(aKIn,aTriIn).MapInverse();
 
     //return anIs;
-    cSim2D<Type> aS2D =  cSim2D<Type>::FromExample(cPtxd<Type,2>(0,0),cPtxd<Type,2>(1,0),aP1,aP2);
+    cSim2D<Type> aS2D =  cSim2D<Type>::FromMinimalSamples(cPtxd<Type,2>(0,0),cPtxd<Type,2>(1,0),aP1,aP2);
 
     return aS2D.Ext3D()* anIs;
     /*
