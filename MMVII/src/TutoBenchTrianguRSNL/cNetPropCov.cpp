@@ -15,40 +15,19 @@ static constexpr int  MODE_PROPAG_PTS_SIMFIX = 2;
 //======================================
 
 static constexpr bool  CHEATING_MAPTRANSFERT = false;
-static constexpr double  CHEAT_W             =  1.0;
-static constexpr int  MODE_PROPAG = MODE_PROPAG_PTS_SIMUK;
+static constexpr double  CHEAT_W             =  0.8;
+static constexpr int  MODE_PROPAG = MODE_PROPAG_PTS_SIMFIX;
+
+static constexpr bool COV_WITH_GAUGE=false;
 
 //======================================
 
 static constexpr bool  SIMUK = ((MODE_PROPAG==MODE_PROPAG_COV) ||(MODE_PROPAG ==  MODE_PROPAG_PTS_SIMUK));
 static constexpr bool  PROP_COV = (MODE_PROPAG==MODE_PROPAG_COV) ;
 
-template<class Type> class cElemCalcCoordInit
-{
-	public :
-            typedef  cMainNetwork<Type>  tMainNW;
-            typedef cPtxd<Type,2>        tPt;
-            typedef cPNetwork<Type>      tPNet;
+template <class Type>  class  cElemNetwork ;
+template <class Type>  class  cCovNetwork  ;
 
-            cElemCalcCoordInit(tMainNW * aMainW,const cRect2 & aRectMain) :
-		    mMainNW (aMainW),
-		    mBoxM   (aRectMain)
-	     {
-	     }
-
-            tMainNW *     mMainNW;
-            cRect2        mBoxM;
-
-            cPNetwork<Type> & IndMainHom(const cPt2di & anInd) const
-            {
-                  return mMainNW->PNetOfGrid(anInd+mBoxM.P0() );
-            }
-            cPNetwork<Type> & MainHom(const tPNet & aPN) const
-            {
-                  return IndMainHom(aPN.mInd);
-            }
-
-};
 
 
 /**  Class for implemanting an "elementary = small" newtork,
@@ -56,11 +35,25 @@ template<class Type> class cElemCalcCoordInit
      in the "big" network
 */
 
-template <class Type>  class  cElemNetwork :   public cElemCalcCoordInit<Type>,
-	                                       public cMainNetwork<Type>
+
+
+template <class Type>  class  cCovNetwork :   public cMainNetwork<Type>
+{
+     public :
+           cCovNetwork(eModeSSR aMode,cRect2,const cParamMainNW &,cParamSparseNormalLstSq * = nullptr);
+           ~cCovNetwork();
+
+           void PostInit() override;
+           void TestCov();
+
+     private :
+           std::vector<cElemNetwork<Type> *> mVNetElem;
+};
+
+template <class Type>  class  cElemNetwork : public cMainNetwork<Type>
 {
     public :
-        typedef  cMainNetwork<Type>  tMainNW;
+        typedef cMainNetwork<Type>        tMainNW;
         typedef cPtxd<Type,2>             tPt;
         typedef cPNetwork<Type>           tPNet;
 
@@ -71,18 +64,110 @@ template <class Type>  class  cElemNetwork :   public cElemCalcCoordInit<Type>,
 	Type CalcCov(int aNbIter);
         void PropagCov();
 
-	 int DebugN() const {return mDebugN;}
+        int DebugN() const {return mDebugN;}
+        
+        tPt  ComputeInd2Geom(const cPt2di & anInd) const override ;
+        
     private :
+         cPNetwork<Type> & IndMainHom(const cPt2di & anInd) const
+         {
+               return mMainNW->PNetOfGrid(anInd+mBoxM.P0() );
+         }
+         cPNetwork<Type> & MainHom(const tPNet & aPN) const
+         {
+               return IndMainHom(aPN.mInd);
+         }
         /// Give the homologous of point in the main network
         // tPNet & MainHom(const tPNet &) const;
        
 
+         tMainNW *                mMainNW;
+         cRect2                   mBoxM;
 	 int mDebugN; 
          cCalculator<double> *    mCalcCov;
          cCalculator<double> *    mCalcPtsSimFix;
          cCalculator<double> *    mCalcPtsSimVar;
          cDecSumSqLinear<Type>    mDSSL;
 };
+
+/* *************************************** */
+/*                                         */
+/*          cCovNetwork                    */
+/*                                         */
+/* *************************************** */
+
+
+template <class Type>  
+     cCovNetwork<Type>::cCovNetwork
+     (
+         eModeSSR aMode,
+         cRect2 aRect,
+         const cParamMainNW & aParamNW,
+         cParamSparseNormalLstSq * aParamLSQ
+     ) :
+         cMainNetwork<Type>(aMode,aRect,false,aParamNW,aParamLSQ)
+{
+}
+
+template <class Type> 
+        void cCovNetwork<Type>::PostInit() 
+{
+     cMainNetwork<Type>::PostInit();
+
+     cPt2di aSz(2,2);
+     cRect2  aRect(this->mBoxInd.P0(),this->mBoxInd.P1()-aSz+cPt2di(1,1));
+
+     for (const auto & aPix: aRect)
+     {
+         cRect2 aRect(aPix,aPix+aSz);
+         auto aPtrN = new cElemNetwork<Type>(*this,aRect);
+         aPtrN->PostInit();
+         mVNetElem.push_back(aPtrN);
+         Type aRes = aPtrN->CalcCov(10);
+	 MMVII_INTERNAL_ASSERT_bench(aRes<1e-8,"No conv 4 sub net");
+     }
+}
+
+template <class Type>  cCovNetwork<Type>::~cCovNetwork()
+{
+     DeleteAllAndClear(mVNetElem);
+}
+
+
+
+
+template <class Type>  void cCovNetwork<Type>::TestCov()
+{
+
+     Type   aRes0 = 1.0;
+     int aNbIter = SIMUK ? 10 : 10;
+     for (int aTime=0 ; aTime<aNbIter ; aTime++)
+     {
+	 Type   aResidual = this->CalcResidual() ;
+         if (aTime==0)
+            aRes0 = aResidual;
+	 StdOut()   << aTime <<  " RRR  " << aResidual << " " << aResidual/aRes0 << "\n";//  getchar();
+
+          for (auto & aPtrNet : mVNetElem)
+             aPtrNet->PropagCov();
+
+	  this->AddGaugeConstraint(1);
+	  this->mSys->SolveUpdateReset();
+
+     }
+     if (CHEATING_MAPTRANSFERT)
+     {
+         StdOut()  <<  "CHEATTTTTTTTTTiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiingggggggggg\n";
+     }
+     getchar();
+
+
+}
+
+
+
+// template class cCovNetwork<tREAL8>;
+
 
 /* *************************************** */
 /*                                         */
@@ -94,28 +179,37 @@ template <class Type>  class  cElemNetwork :   public cElemCalcCoordInit<Type>,
 
 template <class Type> cElemNetwork<Type>::cElemNetwork(tMainNW & aMainNW,const cRect2 & aBoxM) :
         // We put the local box with origin in (0,0) because frozen point are on this point
-	  cElemCalcCoordInit<Type> (&aMainNW,aBoxM),
-          tMainNW        (eModeSSR::eSSR_LsqDense,cRect2(cPt2di(0,0),aBoxM.Sz()),false,cParamMainNW(),nullptr,this),
-          mCalcCov       (EqNetworkConsDistProgCov(true,1,aBoxM.Sz())),
-          mCalcPtsSimFix (EqNetworkConsDistFixPoints(true,1,aBoxM.Sz(),false)),
-          mCalcPtsSimVar (EqNetworkConsDistFixPoints(true,1,aBoxM.Sz(),true))
+          cMainNetwork<Type>       (eModeSSR::eSSR_LsqDense,cRect2(cPt2di(0,0),aBoxM.Sz()),false,cParamMainNW()),
+          mMainNW                  (&aMainNW),
+          mBoxM                    (aBoxM),
+          mCalcCov                 (EqNetworkConsDistProgCov(true,1,aBoxM.Sz())),
+          mCalcPtsSimFix           (EqNetworkConsDistFixPoints(true,1,aBoxM.Sz(),false)),
+          mCalcPtsSimVar           (EqNetworkConsDistFixPoints(true,1,aBoxM.Sz(),true))
 
           // mMainNW     (&aMainNW),
           // mBoxM       (aBoxM),
 {
+    // to "play the game" of covariance propagation wiht unknown transformation, the elementary network
+    // will have a similitude different from the main, but it must have the same scale as we define a
+    // triangulation with distance conservation
+  
+    this->mSimInd2G  = mMainNW->SimInd2G() * cRot2D<Type>::RandomRot(4.0).Sim();
     static int TheNumDebug=0;	
     mDebugN = ++TheNumDebug;
-
-    /*
-    this->mSimInd2G =  this->mSimM2This   * this->mMainNW->SimInd2G() ;
-    // make it a copy of mMainNW with some similitude
-    for (auto  & aPN :  this->mVPts)
-    {
-           aPN.mTheorPt = this->mSimM2This.Value(this->MainHom(aPN).mTheorPt);  // copy the geometry
-           aPN.MakePosInit(AMPL_Real2Init);  // Make init position a noisy version of  real coord
-   }
-   */
 }
+
+template <class Type> cPtxd<Type,2>  cElemNetwork<Type>::ComputeInd2Geom(const cPt2di & anInd) const
+{
+     cPNetwork<Type> &  aPMain = IndMainHom(anInd);
+
+     tPt aP = aPMain.mTheorPt;  // get the real point
+     aP = mMainNW->SimInd2G().Inverse(aP) ;     // go back to index (perturbated)
+     aP = this->mSimInd2G.Value(aP);  // transfom the index using the similitude of the newtork
+     
+     return aP;
+}
+/*
+*/
 
 template <class Type> cElemNetwork<Type>::~cElemNetwork()
 {
@@ -138,7 +232,7 @@ template <class Type>  Type cElemNetwork<Type>::CalcCov(int aNbIter)
          this->OneIterationCompensation(true,true);  // Iterations with a gauge and solve
      } 
      Type aRes = this->CalcResidual();
-     this->OneIterationCompensation(false,false);       // last iteration with a gauge w/o solve
+     this->OneIterationCompensation(COV_WITH_GAUGE,false);       // last iteration with a gauge w/o solve
 
 
      // Now get the normal matrix and vector, and decompose it in a weighted sum of square  of linear forms
@@ -188,14 +282,14 @@ template <class Type>  void cElemNetwork<Type>::PropagCov()
     std::vector<tPt> aVLoc;
     std::vector<tPt> aVMain;
 
-    int aNbUkSim = SIMUK ?  4 : 0; // Number of parameters for unknown similitudes
-    std::vector<int> aVIndUk(this->mVPts.size()*2+aNbUkSim,-1);  // Index of unknown, if SimUk begin with 4 Tmp-Schur for similitude
+    int aNbUkRot = SIMUK ?  3 : 0; // Number of parameters for unknown similitudes
+    std::vector<int> aVIndUk(this->mVPts.size()*2+aNbUkRot,-1);  // Index of unknown, if SimUk begin with 4 Tmp-Schur for similitude
  
     for (const auto & aPNet : this->mVPts)
     {
          const tPNet & aHomMain = this->MainHom(aPNet);
-         aVIndUk.at(aNbUkSim+aPNet.mNumX) = aHomMain.mNumX;
-         aVIndUk.at(aNbUkSim+aPNet.mNumY) = aHomMain.mNumY;
+         aVIndUk.at(aNbUkRot+aPNet.mNumX) = aHomMain.mNumX;
+         aVIndUk.at(aNbUkRot+aPNet.mNumY) = aHomMain.mNumY;
 // StdOut() << " " << aPNet.mNumX << " " << aPNet.mNumY  ;
 
 	 if(CHEATING_MAPTRANSFERT)
@@ -211,7 +305,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov()
     }
 
     Type aSqResidual;
-    cSim2D<Type>  aSimM2L =  cSim2D<Type>::LeastSquareEstimate(aVMain,aVLoc,&aSqResidual);
+    cRot2D<Type>  aRotM2L =  cRot2D<Type>::StdGlobEstimate(aVMain,aVLoc,&aSqResidual);
     {
        tPt  aSomRes(0,0);
        Type aSomDist = 0;
@@ -219,23 +313,23 @@ template <class Type>  void cElemNetwork<Type>::PropagCov()
        for (const auto & aPNet : this->mVPts)
        {
             const tPNet & aHomMain = this->MainHom(aPNet);
-            tPt aRes = aPNet.PCur() - aSimM2L.Value(aHomMain.PCur());
+            tPt aRes = aPNet.PCur() - aRotM2L.Value(aHomMain.PCur());
             aSomDist += Norm2(aRes);
             aSomRes = aSomRes + aRes;
 //   StdOut() << "DDD " << Norm2(aPNet.PCur()-aPNet.TheorPt()) << "\n";
             aNb++;
        }
-       //  StdOut() << "AvgRes="  <<  aSomRes/Type(aNb)  << " AvgD=" << aSomDist/Type(aNb) <<  "\n";
+       StdOut() << "AvgRes="  <<  aSomRes/Type(aNb)  << " AvgD=" << aSomDist/Type(aNb) <<  "\n";
+       getchar();
     }
 
-    tPt  aTr = aSimM2L.Tr();
-    tPt  aSc = aSimM2L.Sc();
+    tPt  aTr   = aRotM2L.Tr();
+    Type aTeta = aRotM2L.Teta();
 
-    std::vector<Type> aVTmpSim;
-    aVTmpSim.push_back(aTr.x());
-    aVTmpSim.push_back(aTr.y());
-    aVTmpSim.push_back(aSc.x());
-    aVTmpSim.push_back(aSc.y());
+    std::vector<Type> aVTmpRot;
+    aVTmpRot.push_back(aTr.x());
+    aVTmpRot.push_back(aTr.y());
+    aVTmpRot.push_back(aTeta);
 /*
     Loc =   aSimM2L * Main
 
@@ -253,13 +347,13 @@ template <class Type>  void cElemNetwork<Type>::PropagCov()
            cResidualWeighter<Type>  aRW(anElemLin.mW);
            std::vector<Type> aVObs = anElemLin.mCoeff.ToStdVect();
            aVObs.push_back(anElemLin.mCste);
-           this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcCov,aVIndUk,aVTmpSim,aVObs,aRW);
+           this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcCov,aVIndUk,aVTmpRot,aVObs,aRW);
        }
        this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
     }
     else
     {
-        std::vector<Type> aVObs  =  SIMUK ?  std::vector<Type>()  : aVTmpSim;
+        std::vector<Type> aVObs  =  SIMUK ?  std::vector<Type>()  : aVTmpRot;
         for (const auto & aPNet : this->mVPts)
         {
              // const tPNet & aHomMain = this->MainHom(aPNet);
@@ -270,7 +364,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov()
         if (SIMUK)
         {
             cSetIORSNL_SameTmp<Type> aSetIO;
-            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVTmpSim,aVObs);
+            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVTmpRot,aVObs);
             this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
         }
         else
@@ -286,6 +380,8 @@ if (0)
      std::vector<int>    aVIndTransf(this->mNum,-1);
      cDenseMatrix<Type>  aMatrixTranf(aNbVar,eModeInitImage::eMIA_Null);  ///< Square
      cDenseVect<Type>    aVecTranf(aNbVar,eModeInitImage::eMIA_Null);  ///< Square
+
+     tPt aSc(cos(aTeta),sin(aTeta));
 
      for (const auto & aPNet : this->mVPts)
      {
@@ -361,74 +457,12 @@ if (0)
 }
 }
 
-/* *************************************** */
-/*                                         */
-/*          cMainNetwork                   */
-/*                                         */
-/* *************************************** */
-
-template <class Type> cPtxd<Type,2>  cMainNetwork <Type>::CovPropInd2Geom(const cPt2di & anInd) const
-{
-        cPNetwork<Type> &  aPMain = mECCI->IndMainHom(anInd);
-	cMainNetwork * aMNw = mECCI->mMainNW;
-
-	//  This point is more or less the index, but exact image of TheorPt by a global sim
-	tPt  aIndR = aMNw->mSimInd2G.Inverse(aPMain.mTheorPt);
-
-	return mSimInd2G.Value(aIndR);
-}
-
-
-
-template <class Type>  void cMainNetwork<Type>::TestCov()
-{
-     cPt2di aSz(2,2);
-     cRect2  aRect(mBoxInd.P0(),mBoxInd.P1()-aSz+cPt2di(1,1));
-
-     std::vector<cElemNetwork<Type> *> aVNet;
-
-     for (const auto & aPix: aRect)
-     {
-         cRect2 aRect(aPix,aPix+aSz);
-         auto aPtrN = new cElemNetwork<Type>(*this,aRect);
-         aVNet.push_back(aPtrN);
-         Type aRes = aPtrN->CalcCov(10);
-	 MMVII_INTERNAL_ASSERT_bench(aRes<1e-8,"No conv 4 sub net");
-     }
-
-     Type   aRes0 = 1.0;
-     int aNbIter = SIMUK ? 10 : 100;
-     for (int aTime=0 ; aTime<aNbIter ; aTime++)
-     {
-	 Type   aResidual = CalcResidual() ;
-         if (aTime==0)
-            aRes0 = aResidual;
-	 StdOut()   << aTime <<  " RRR  " << aResidual << " " << aResidual/aRes0 << "\n";//  getchar();
-
-          for (auto & aPtrNet : aVNet)
-             aPtrNet->PropagCov();
-
-	  AddGaugeConstraint(1);
-	  mSys->SolveUpdateReset();
-
-     }
-     if (CHEATING_MAPTRANSFERT)
-     {
-         StdOut()  <<  "CHEATTTTTTTTTTiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiingggggggggg\n";
-     }
-     getchar();
-
-
-     DeleteAllAndClear(aVNet);
-}
-
-
 /* ======================================== */
 /*           INSTANTIATION                  */
 /* ======================================== */
 #define PROP_COV_INSTANTIATE(TYPE)\
 template class cElemNetwork<TYPE>;\
-template class cMainNetwork<TYPE>;
+template class cCovNetwork<TYPE>;
 
 PROP_COV_INSTANTIATE(tREAL4)
 PROP_COV_INSTANTIATE(tREAL8)
@@ -458,7 +492,7 @@ class cAppli_TestPropCov : public cMMVII_Appli
          int mSzMainN;
          int mSzSubN;
          cParamMainNW           mParam;
-         cMainNetwork<tREAL8> * mMainNet;
+         cCovNetwork<tREAL8> * mMainNet;
 };
 
 
@@ -487,14 +521,15 @@ cCollecSpecArg2007 & cAppli_TestPropCov::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int  cAppli_TestPropCov::Exe() 
 {
-   mMainNet = new cMainNetwork <tREAL8>(eModeSSR::eSSR_LsqDense,mSzMainN,false,mParam);
+   for (int aK=0 ; aK<10 ; aK++)
+   {
+       mMainNet = new cCovNetwork <tREAL8>(eModeSSR::eSSR_LsqDense,cRect2::BoxWindow(mSzMainN),mParam);
+       mMainNet->PostInit();
 
-   mMainNet->TestCov();
+       mMainNet->TestCov();
 
-
-
-
-   delete mMainNet;
+       delete mMainNet;
+   }
 
    return EXIT_SUCCESS;
 }

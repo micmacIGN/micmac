@@ -291,7 +291,6 @@ template <class tMap,class TypeEl> void TplBenchMap2D(const tMap & aMap,const tM
 
 template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
 {
-
      int aNbPts = (tMap::NbDOF+1)/2;
      std::vector<cPtxd<TypeEl,2> > aVIn =  RandomPtsOnCircle<TypeEl>(aNbPts);
      std::vector<cPtxd<TypeEl,2> > aVOut;
@@ -302,7 +301,7 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
           aVOut.push_back(cPtxd<TypeEl,2>::PRand());
      }
 
-     tMap aMap =  tMap::LeastSquareEstimate(aVIn,aVOut);
+     tMap aMap =  tMap::StdGlobEstimate(aVIn,aVOut);
 
      if (tMap::NbDOF%2) // in this case match cannot be perfect "naturally", not enoug DOF, must cheat
      {
@@ -311,7 +310,7 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
          {
               aVOut.push_back(aMap.Value(aVIn[aK]));
          }
-         aMap =  tMap::LeastSquareEstimate(aVIn,aVOut);
+         aMap =  tMap::StdGlobEstimate(aVIn,aVOut);
      }
      typename tMap::tTabMin aTabIn;
      typename tMap::tTabMin aTabOut;
@@ -419,6 +418,7 @@ template <class Type> void TplElBenchMap2D()
          (Type*)nullptr
    );
 
+   TplBenchMap2D_LSQ<cRot2D<Type>>((Type*)nullptr);
    TplBenchMap2D_LSQ<cAffin2D<Type>>((Type*)nullptr);
    TplBenchMap2D_LSQ<cSim2D<Type>>((Type*)nullptr);
    TplBenchMap2D_LSQ<cHomot2D<Type>>((Type*)nullptr);

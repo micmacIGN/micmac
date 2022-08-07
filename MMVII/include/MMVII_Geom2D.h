@@ -113,7 +113,7 @@ template <class Type>  class cHomot2D
           /// compute the vector used in least square equation
           static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
-          static tTypeMap LeastSquareEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
 
@@ -189,7 +189,7 @@ template <class Type>  class cSim2D
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
 
           /// compute by least square the mapping such that Sim(PIn[aK]) = POut[aK]
-          static tTypeMap LeastSquareEstimate(tCRVPts & aVIn,tCRVPts& aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
+          static tTypeMap StdGlobEstimate(tCRVPts & aVIn,tCRVPts& aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
 	  /// Compute a random similitude, assuring that Amplitude of scale has a minimal value
@@ -206,8 +206,7 @@ template <class Type>  class cSim2D
           tPt mSc;
 };
 
-/** Class for a rotation  2D , implemeted using similitude with ||Sc|| = 1
-*/
+/** Class for a rotation  2D , implemeted using similitude with ||Sc|| = 1 */
 
 template <class Type>  class cRot2D
 {
@@ -246,6 +245,7 @@ template <class Type>  class cRot2D
           inline const tPt&  Tr() const {return mSim.Tr() ;}
           inline const tPt&  Sc() const {return mSim.Sc() ;}
           inline const Type& Teta() const {return mTeta ;}
+          inline const cSim2D<Type> & Sim() const {return mSim;}
 
           static tTypeMap RandomRot(const Type&AmplTr);
 
@@ -258,7 +258,7 @@ template <class Type>  class cRot2D
           /// Refine an existing solution using least square
           tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
           /// compute least square , after a ransac init, the mapping such that Sim(PIn[aK]) = POut[aK]
-          static tTypeMap LeastSquareEstimate 
+          static tTypeMap StdGlobEstimate 
                           (
                              tCRVPts aVIn,
                              tCRVPts aVOut,
@@ -328,7 +328,7 @@ template <class Type>  class cAffin2D
           /// compute with minimal number of samples
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
-          static tTypeMap LeastSquareEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
 
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);

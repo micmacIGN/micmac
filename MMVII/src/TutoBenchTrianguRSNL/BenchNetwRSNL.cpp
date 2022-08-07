@@ -47,6 +47,7 @@ template<class Type> void  TplOneBenchSSRNL
      cParamMainNW aParamNW;
      Type aPrec = tElemNumTrait<Type>::Accuracy() ;
      cMainNetwork <Type> aBN(aMode,aRect,WithSchurr,aParamNW,aParam);
+     aBN.PostInit();
      double anEc =100;
      for (int aK=0 ; aK < THE_NB_ITER ; aK++)
      {

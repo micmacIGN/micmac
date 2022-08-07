@@ -101,6 +101,10 @@ class cBaseNetCDPC
        {
             return WithSim ? std::vector<std::string> {"x_tr","y_tr","x_sc","y_sc"} :  EMPTY_VSTR;
        } 
+       static std::vector<std::string>  VectRot (bool WithRot)  
+       {
+            return WithRot ? std::vector<std::string> {"x_tr","y_tr","teta"} :  EMPTY_VSTR;
+       } 
        cPt2di mSzN;
        int    mNbPts;
        int    mNbCoord;
@@ -117,7 +121,7 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
 
           const std::vector<std::string> VNamesUnknowns()  const
           {
-               std::vector<std::string>  aRes = VectSim(true);
+               std::vector<std::string>  aRes = VectRot(true);
                for  (int aK=0 ; aK<mNbPts ; aK++)
                {
                    aRes.push_back("x_P" + ToStr(aK));
@@ -146,12 +150,14 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
            {
 
                  cPtxd<tUk,2>  aTr(aVUk[0],aVUk[1]);
-                 cPtxd<tUk,2>  aSc(aVUk[2],aVUk[3]);
-                 int aIndUk   = 4;
+                 tUk aTeta = aVUk[2];
+                 cPtxd<tUk,2>  aSc(cos(aTeta),sin(aTeta));
+
+                 int aIndUk   = 3;
 
                  int aIndObs  = 0;
 
-                 tUk  aResidual =  CreateCste(0.0,aResidual);  // create a symbolic formula for constant 0
+                 tUk  aResidual =  CreateCste(0.0,aTeta);  // create a symbolic formula for constant 0
 
                  for  (int aKVar=0 ; aKVar<mNbPts ; aKVar++)
                  {
@@ -174,20 +180,20 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
 class cNetWConsDistFixPts : public  cBaseNetCDPC
 {
       public :
-          cNetWConsDistFixPts(const cPt2di  & aSzN,bool SimIsUk) :
+          cNetWConsDistFixPts(const cPt2di  & aSzN,bool RotIsUk) :
                 cBaseNetCDPC(aSzN),
-                mSimIsUk    (SimIsUk)
+                mRotIsUk    (RotIsUk)
           {
           }
           std::string FormulaName() const 
           { 
-               return "FixPointNwCD_" + std::string(mSimIsUk ? "SimUK" : "SimFix") + ToStr(mNbPts) ;
+               return "FixPointNwCD_" + std::string(mRotIsUk ? "SimUK" : "SimFix") + ToStr(mNbPts) ;
           }
 
           const std::vector<std::string> VNamesUnknowns()  const
           {
-               // The vector of unknown containt the similitude iff mSimIsUk
-               std::vector<std::string> aRes =   VectSim(mSimIsUk) ;
+               // The vector of unknown containt the similitude iff mRotIsUk
+               std::vector<std::string> aRes =   VectRot(mRotIsUk) ;
                for  (int aK=0 ; aK<mNbPts ; aK++)
                {
                    aRes.push_back("x_P" + ToStr(aK));
@@ -198,7 +204,7 @@ class cNetWConsDistFixPts : public  cBaseNetCDPC
           const std::vector<std::string> VNamesObs()       const
           { 
                // If similitude is not unknown then it's an observation
-               std::vector<std::string> aRes =   VectSim(!mSimIsUk) ;
+               std::vector<std::string> aRes =   VectRot(!mRotIsUk) ;
                for  (int aKVar=0 ; aKVar<mNbPts ; aKVar++)
                {
                     aRes.push_back("xRef_" +  ToStr(aKVar));
@@ -214,12 +220,13 @@ class cNetWConsDistFixPts : public  cBaseNetCDPC
                           const std::vector<tUk> & aVObs
                      ) const
            {
-                 const std::vector<tUk> & aVSim =  mSimIsUk ? aVUk : aVObs;
+                 const std::vector<tUk> & aVSim =  mRotIsUk ? aVUk : aVObs;
                  cPtxd<tUk,2>  aTr(aVSim[0],aVSim[1]);
-                 cPtxd<tUk,2>  aSc(aVSim[2],aVSim[3]);
+                 tUk aTeta = aVSim[2];
+                 cPtxd<tUk,2>  aSc(cos(aTeta),sin(aTeta));
 
-                 int aIndUk   =  mSimIsUk ? 4 : 0;
-                 int aIndObs  =  4 - aIndUk;
+                 int aIndUk   =  mRotIsUk ? 3 : 0;
+                 int aIndObs  =  3 - aIndUk;
 
                  std::vector<tUk> aVecResidual;
 
@@ -237,7 +244,7 @@ class cNetWConsDistFixPts : public  cBaseNetCDPC
            }
           
       public :
-           bool     mSimIsUk; // is the similitude Glob->Loc an unknown or an observation
+           bool     mRotIsUk; // is the similitude Glob->Loc an unknown or an observation
 };
 
 

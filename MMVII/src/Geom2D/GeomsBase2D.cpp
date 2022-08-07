@@ -195,10 +195,40 @@ template <class TypeMap>
 
     TypeMap  aDelta = LeasSqEstimate(aVOut,aVMI,aRes2,aVW);
 
+if (aRes2)
+StdOut() << "===RRRR " << *aRes2 << "\n";
+
     return aMap0 * aDelta.MapInverse() ;
 }
 
-//           static TypeMap LeastSquareNLEstimate(tCRVPts,tCRVPts,tTypeElem*,tCPVVals,const cParamCtrlOpt&);
+template <class TypeMap>  
+    TypeMap  cMapEstimate<TypeMap>::LeastSquareNLEstimate
+             (
+                  tCRVPts aVIn,
+                  tCRVPts aVOut,
+                  tTypeElem* aPtrRes,
+                  tCPVVals   aVW,
+                  const cParamCtrlOpt& aParam
+             )
+{
+    TypeMap  aMap = RansacL1Estimate(aVIn,aVOut,aParam.ParamRS().NbTestOfErrAdm(TypeMap::NbPtsMin));
+    cParamCtrNLsq  aPLSq= aParam.ParamLSQ();
+ 
+    tTypeElem  aResidual;
+    if (aPtrRes==nullptr)
+       aPtrRes = &aResidual;
+
+    while (true)
+    {
+         aMap =   LeastSquareRefine(aMap,aVIn,aVOut,aPtrRes,aVW);
+         if (aPLSq.StabilityAfterNextError(*aPtrRes))
+            return aMap;
+    }
+
+    return aMap;
+}
+/*
+*/
 
 
 /* ========================== */
@@ -246,7 +276,7 @@ template <class Type>  void cHomot2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>
 
 
 template <class Type>  
-     cHomot2D<Type> cHomot2D<Type>::LeastSquareEstimate
+     cHomot2D<Type> cHomot2D<Type>::StdGlobEstimate
                         (tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVWeights)
 {
     return cMapEstimate<cHomot2D<Type>>::LeasSqEstimate(aVIn,aVOut,aRes2,aVWeights);
@@ -369,7 +399,7 @@ template <class Type>  void cSim2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& 
 
 
 
-template <class Type>  cSim2D<Type> cSim2D<Type>::LeastSquareEstimate
+template <class Type>  cSim2D<Type> cSim2D<Type>::StdGlobEstimate
                         (tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVWeights)
 {
     return cMapEstimate<cSim2D<Type>>::LeasSqEstimate(aVIn,aVOut,aRes2,aVWeights);
@@ -456,8 +486,19 @@ template <class Type>  cRot2D<Type> cRot2D<Type>::FromMinimalSamples(const tTabM
   return  cRot2D<Type>(aCdgOut-aCdgIn*aRot,ToPolar(aRot,Type(0.0)).y());
    
 }
-/*
-*/
+
+template <class Type>  
+         cRot2D<Type> cRot2D<Type>::StdGlobEstimate
+                      (
+                           tCRVPts aVIn,
+                           tCRVPts aVOut,
+                           tTypeElem* aRes,
+                           tCPVVals   aVW,
+                           cParamCtrlOpt aParam
+                      )
+{
+    return  cMapEstimate<cRot2D<Type> >::LeastSquareNLEstimate(aVIn,aVOut,aRes,aVW,aParam);
+}
 
 //  cRot2D<Type> cRot2D<Type>::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest)
 //  cRot2D<Type> cRot2D<Type>::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVW)const
@@ -615,7 +656,7 @@ template <class Type>   cAffin2D<Type>  cAffin2D<Type>::FromMinimalSamples(const
 }
 
 template <class Type>  
-     cAffin2D<Type> cAffin2D<Type>::LeastSquareEstimate
+     cAffin2D<Type> cAffin2D<Type>::StdGlobEstimate
                         (tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVWeights)
 {
     return cMapEstimate<cAffin2D<Type>>::LeasSqEstimate(aVIn,aVOut,aRes2,aVWeights);
@@ -685,19 +726,16 @@ template TMAP TMAP::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest)
 
 
 #define MACRO_INSTATIATE_LINEAR_GEOM2D_MAPPING(TYPE,TMAP,DIM)\
-template  TMAP TMAP::LeastSquareEstimate(tCRVPts,tCRVPts,TYPE*,tCPVVals);\
+template  TMAP TMAP::StdGlobEstimate(tCRVPts,tCRVPts,TYPE*,tCPVVals);\
 MACRO_INSTATIATE_GEOM2D_MAPPING(TYPE,TMAP,DIM)
 
 #define MACRO_INSTATIATE_NON_LINEAR_GEOM2D_MAPPING(TYPE,TMAP,DIM)\
 MACRO_INSTATIATE_GEOM2D_MAPPING(TYPE,TMAP,DIM); \
-
-#define TOTO(TYPE,TMAP,DIM)\
-template TMAP TMAP::LeastSquareRefine(tCRVPts,tCRVPts,TYPE *,tCPVVals)const;
-
+template TMAP TMAP::LeastSquareRefine(tCRVPts,tCRVPts,TYPE *,tCPVVals)const;\
+template TMAP TMAP::StdGlobEstimate(tCRVPts,tCRVPts,tTypeElem*,tCPVVals,cParamCtrlOpt);
 
 
 #define MACRO_INSTATIATE_GEOM2D(TYPE)\
-TOTO(TYPE,cRot2D<TYPE>,2);\
 MACRO_INSTATIATE_NON_LINEAR_GEOM2D_MAPPING(TYPE,cRot2D<TYPE>,2);\
 template  cRot2D<TYPE> cRot2D<TYPE>::RandomRot(const TYPE & AmplTr);\
 MACRO_INSTATIATE_LINEAR_GEOM2D_MAPPING(TYPE,cSim2D<TYPE>,2);\
