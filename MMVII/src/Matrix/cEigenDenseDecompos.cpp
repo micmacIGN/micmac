@@ -396,9 +396,10 @@ template <class Type>  cDecSumSqLinear<Type>::cDecSumSqLinear() :
 }
 
 template <class Type>  void cDecSumSqLinear<Type>::Set
-                         (const cDenseMatrix<Type> & aMat,const cDenseVect<Type> & aVect) 
+                         (const cDenseVect<Type> & aX0,const cDenseMatrix<Type> & aMat,const cDenseVect<Type> & aVecB) 
 
 {
+   cDenseVect<Type> aVect = aVecB + aMat * aX0;
    mNbVar =aMat.Sz().x() ;
    cMatrix<Type>::CheckSquare(aMat);
   //       tXAX-2BX   

@@ -16,9 +16,9 @@ static constexpr int  MODE_PROPAG_PTS_SIMFIX = 2;
 
 static constexpr bool  CHEATING_MAPTRANSFERT = false;
 static constexpr double  CHEAT_W             =  0.8;
-static constexpr int  MODE_PROPAG = MODE_PROPAG_PTS_SIMFIX;
+static constexpr int  MODE_PROPAG = MODE_PROPAG_COV;
 
-static constexpr bool COV_WITH_GAUGE=false;
+static constexpr bool COV_WITH_GAUGE=true;
 
 //======================================
 
@@ -44,7 +44,7 @@ template <class Type>  class  cCovNetwork :   public cMainNetwork<Type>
            ~cCovNetwork();
 
            void PostInit() override;
-           void TestCov();
+           void TestCov(int aNbIter);
 
      private :
            std::vector<cElemNetwork<Type> *> mVNetElem;
@@ -136,11 +136,11 @@ template <class Type>  cCovNetwork<Type>::~cCovNetwork()
 
 
 
-template <class Type>  void cCovNetwork<Type>::TestCov()
+template <class Type>  void cCovNetwork<Type>::TestCov(int aNbIter)
 {
 
      Type   aRes0 = 1.0;
-     int aNbIter = SIMUK ? 10 : 10;
+     // int aNbIter = SIMUK ? 10 : 1000;
      for (int aTime=0 ; aTime<aNbIter ; aTime++)
      {
 	 Type   aResidual = this->CalcResidual() ;
@@ -239,7 +239,8 @@ template <class Type>  Type cElemNetwork<Type>::CalcCov(int aNbIter)
      if (MODE_PROPAG == MODE_PROPAG_COV)
      {
         auto  aSL = this->mSys->SysLinear();
-        mDSSL.Set(aSL->V_tAA(),aSL->V_tARhs());
+        auto aSol = this->mSys->CurGlobSol();
+        mDSSL.Set(aSol,aSL->V_tAA(),aSL->V_tARhs());
 
         if (0)
         {
@@ -319,8 +320,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov()
 //   StdOut() << "DDD " << Norm2(aPNet.PCur()-aPNet.TheorPt()) << "\n";
             aNb++;
        }
-       StdOut() << "AvgRes="  <<  aSomRes/Type(aNb)  << " AvgD=" << aSomDist/Type(aNb) <<  "\n";
-       getchar();
+       // StdOut() << "AvgRes="  <<  aSomRes/Type(aNb)  << " AvgD=" << aSomDist/Type(aNb) <<  "\n"; getchar();
     }
 
     tPt  aTr   = aRotM2L.Tr();
@@ -342,13 +342,17 @@ template <class Type>  void cElemNetwork<Type>::PropagCov()
     if (PROP_COV)
     {
        cSetIORSNL_SameTmp<Type> aSetIO;
+       Type aMinW(1e10);
        for (const auto anElemLin : mDSSL.VElems())
        {
+           UpdateMin(aMinW,anElemLin.mW);
            cResidualWeighter<Type>  aRW(anElemLin.mW);
            std::vector<Type> aVObs = anElemLin.mCoeff.ToStdVect();
            aVObs.push_back(anElemLin.mCste);
            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcCov,aVIndUk,aVTmpRot,aVObs,aRW);
+           //  StdOut() << "CSTE " << anElemLin.mCste << "\n";
        }
+       //  StdOut() << "NBEL " << mDSSL.VElems().size() << " MinW= " << aMinW << "\n";
        this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
     }
     else
@@ -491,6 +495,8 @@ class cAppli_TestPropCov : public cMMVII_Appli
      private :
          int mSzMainN;
          int mSzSubN;
+         int mNbItCovProp;
+
          cParamMainNW           mParam;
          cCovNetwork<tREAL8> * mMainNet;
 };
@@ -499,7 +505,8 @@ class cAppli_TestPropCov : public cMMVII_Appli
 cAppli_TestPropCov::cAppli_TestPropCov(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  ( aVArgs,aSpec),
    mSzMainN      (2),
-   mSzSubN       (2)
+   mSzSubN       (2),
+   mNbItCovProp  (10)
 {
 }
 
@@ -515,6 +522,9 @@ cCollecSpecArg2007 & cAppli_TestPropCov::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return
        anArgOpt
            << AOpt2007(mSzSubN, "SzSubN","Size of subnetwork N->[0,N[x[0,N[",{eTA2007::HDV})
+           << AOpt2007(mNbItCovProp, "NbICP","Number of iteration for cov prop",{eTA2007::HDV})
+           << AOpt2007(mParam.mAmplGrid2Real, "NoiseG2R","Perturbation between grid & real position",{eTA2007::HDV})
+           << AOpt2007(mParam.mAmplReal2Init, "NoiseR2I","Perturbation between real & init position",{eTA2007::HDV})
    ;
 }
 
@@ -526,7 +536,7 @@ int  cAppli_TestPropCov::Exe()
        mMainNet = new cCovNetwork <tREAL8>(eModeSSR::eSSR_LsqDense,cRect2::BoxWindow(mSzMainN),mParam);
        mMainNet->PostInit();
 
-       mMainNet->TestCov();
+       mMainNet->TestCov(mNbItCovProp);
 
        delete mMainNet;
    }

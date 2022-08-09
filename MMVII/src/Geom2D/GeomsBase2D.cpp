@@ -193,12 +193,14 @@ template <class TypeMap>
     for (const auto & aPtIn : aVIn)
        aVMI.push_back(aMap0.Value(aPtIn));
 
-    TypeMap  aDelta = LeasSqEstimate(aVOut,aVMI,aRes2,aVW);
+    TypeMap  aDeltaM1 = LeasSqEstimate(aVOut,aVMI,aRes2,aVW);
 
+/*
 if (aRes2)
 StdOut() << "===RRRR " << *aRes2 << "\n";
+*/
 
-    return aMap0 * aDelta.MapInverse() ;
+    return aDeltaM1.MapInverse() * aMap0;
 }
 
 template <class TypeMap>  

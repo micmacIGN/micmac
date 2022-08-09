@@ -727,7 +727,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
 void BenchLsqDegenerate()
 {
     int aKer = RandUnif_N(5);  // Sz of kernel (dim of null vector)
-    int aSz=  aKer + 1 +RandUnif_N(10);  // Sz of matric
+    int aSz =  aKer + 1 +RandUnif_N(10);  // Sz of matric
     int aNbV=  1 +RandUnif_N(aSz*2);  // Number of equation
 
     //  Allocate a rank deficient matric corresponding to parameters
@@ -773,7 +773,8 @@ void BenchLsqDegenerate()
     }
     {
         cDecSumSqLinear<tREAL8> aDSSL;
-        aDSSL.Set(atAA,atARhs);
+        cDenseVect<tREAL8>  aV0 = cDenseVect<tREAL8>::Cste(aSz,0.0);
+        aDSSL.Set(aV0,atAA,atARhs);
         cLeasSqtAA<tREAL8> aSys2 = aDSSL.OriSys();
         tREAL8 aDV =  aSys2.V_tARhs().L2Dist(atARhs) ;
         tREAL8 aDM =   aSys2.V_tAA().L2Dist(atAA);

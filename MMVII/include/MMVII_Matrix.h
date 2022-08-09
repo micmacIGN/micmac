@@ -514,16 +514,19 @@ template <class Type>  class cElemDecompQuad
 };
 /**  Class to decompose a positive quadratic form a sum of square of linear form :
 
-      input A,B  => out  (Wi Li  Ci), such that :
-      tX A X  - 2tB X + tBB =  Sum ( Wi (Li X-Ci))^2
+     input A,B,X0  => out  (Wi Li  Ci), such that :
+      t(X-AX0) A (X-X0)  - 2tB (X-X0) + tBB =  Sum ( Wi (Li X-Ci))^2 
       Li are norm 1 and orthogonal to each others
+
+     Generally B will be equal to 0 , as the elements commes from minimization where the 
+     value are stored relativelt to current solution, so B~0 at stability ...
 */
 
 template <class Type>  class cDecSumSqLinear
 {
      public :
          typedef cElemDecompQuad<Type>  tElem;
-         void  Set(const cDenseMatrix<Type> & aMat,const cDenseVect<Type> & aVect);
+         void  Set(const cDenseVect<Type> & aX0,const cDenseMatrix<Type> & aMat,const cDenseVect<Type> & aVectB);
          cDecSumSqLinear();
 
          // recover initial system (check/Bench)

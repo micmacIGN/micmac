@@ -29,8 +29,11 @@ template <class Type> class cDenseVect;
 template <class Type,const int Dim> class cPtxd
 {
     public :
-       typedef typename  tNumTrait<Type>::tBig  tBigNum ;
-       typedef cPtxd<Type,Dim>                  tPt;
+       typedef typename  tNumTrait<Type>::tBig               tBigNum ;
+       typedef cPtxd<Type,Dim>                               tPt;
+       typedef typename  tElemNumTrait<Type>::tFloatAssoc    tReal;
+       typedef cPtxd<tReal,Dim>                              tPtR;
+
 
        static const int TheDim = Dim;
        /// Maybe some function will require generic access to data
@@ -207,6 +210,13 @@ template <class Type> inline void operator += (cPtxd<Type,3> & aP1,const cPtxd<T
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
     aP1.z() += aP2.z(); 
+}
+template <class Type> inline void operator += (cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{ 
+    aP1.x() += aP2.x(); 
+    aP1.y() += aP2.y(); 
+    aP1.z() += aP2.z(); 
+    aP1.t() += aP2.t(); 
 }
 
 
@@ -441,8 +451,8 @@ template <class T> inline cPtxd<tREAL8,2> ToR(const cPtxd<T,2> & aP) {return cPt
 template <class T> inline cPtxd<tREAL8,3> ToR(const cPtxd<T,3> & aP) {return cPtxd<tREAL8,3>(aP.x(),aP.y(),aP.z());}
 template <class T> inline cPtxd<tREAL8,4> ToR(const cPtxd<T,4> & aP) {return cPtxd<tREAL8,4>(aP.x(),aP.y(),aP.z(),aP.t());}
 
-/*
 template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts);
+/*
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2dr & aP) {return cPt2dr(aP.x(),aP.y());}
