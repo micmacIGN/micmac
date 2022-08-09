@@ -73,22 +73,22 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
     mNameNOMode        (TheStdModeNewOri)
 {
 
-      (*mArg) 
+      (*mArg)
               << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
-              << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes 
-              << EAM(mExtName,"ExtName",true,"User's added Prefix , Def=\"\"")  // SH par homogeneite avec autre commandes 
-              << EAM(mExpTxt,"ExpTxt",true,"Homol in text format? , Def=\"false\"")  
-              << EAM(mNameNOMode,"ModeNO",true,"Mode Def=Std (TTK StdNoTTK OnlyHomogr)")  
-              << EAM(mInOri,"InOri",true,"Existing orientation if any")  
-              << EAM(mOriOut,"OriOut",true,"Output orientation dir")  
-              << EAM(mOriGPS,"OriGPS",true,"Orientation where find gps data when exists")  
+              << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes
+              << EAM(mExtName,"ExtName",true,"User's added Prefix , Def=\"\"")  // SH par homogeneite avec autre commandes
+              << EAM(mExpTxt,"ExpTxt",true,"Homol in text format? , Def=\"false\"")
+              << EAM(mNameNOMode,"ModeNO",true,"Mode Def=Std (TTK StdNoTTK OnlyHomogr)")
+              << EAM(mInOri,"InOri",true,"Existing orientation if any")
+              << EAM(mOriOut,"OriOut",true,"Output orientation dir")
+              << EAM(mOriGPS,"OriGPS",true,"Orientation where find gps data when exists")
               << EAM(mOriCheck,"OriCheck",true,"Reference Orientation  to check results")
-              << EAM(mDebug,"Debug",true,"Debug ....")  
-              << EAM(mAcceptUnSym,"AUS",true,"Accept non symetric homologous point;")  
-              << EAM(mQuick,"Quick",true,"If true (default) do less test")  
-              << EAM(mTStdNbMaxTriplet,"StdNbPtTrip",true,"Max num of triplets per edge (Std mode)")  
-              << EAM(mTQuickNbMaxTriplet,"QNbPtTrip",true,"Max num of triplets per edge (Quick mode), Def=8")  
-              << EAM(mTNbMinTriplet,"NbTrip",true,"Min num of points to calculate a triplet")  
+              << EAM(mDebug,"Debug",true,"Debug ....")
+              << EAM(mAcceptUnSym,"AUS",true,"Accept non symetric homologous point;")
+              << EAM(mQuick,"Quick",true,"If true (default) do less test")
+              << EAM(mTStdNbMaxTriplet,"StdNbPtTrip",true,"Max num of triplets per edge (Std mode)")
+              << EAM(mTQuickNbMaxTriplet,"QNbPtTrip",true,"Max num of triplets per edge (Quick mode), Def=8")
+              << EAM(mTNbMinTriplet,"NbTrip",true,"Min num of points to calculate a triplet")
               << EAM(mShow,"Show",true,"If true (non default) print (a lot of) messages")  ;
 
 }
@@ -104,7 +104,7 @@ void cCommonMartiniAppli::PostInit() const
 
 cNewO_NameManager *  cCommonMartiniAppli::NM(const std::string & aDir) const
 {
-   if (mNM==0) 
+   if (mNM==0)
       mNM =  new cNewO_NameManager(mExtName,mPrefHom,mQuick,aDir,mNameOriCalib,mExpTxt ? "txt" : "dat" ,mOriOut);
    return mNM;
 }
@@ -227,7 +227,7 @@ void cAppli_Martini::Banniere(bool Quick)
         std::cout <<  " *********************************************\n";
         std::cout <<  " *     MARTIN                                *\n";
         std::cout <<  " *     Gale d'                               *\n";
-        std::cout <<  " *     IN-itialisation (stronger version)    *\n"; 
+        std::cout <<  " *     IN-itialisation (stronger version)    *\n";
         std::cout <<  " *********************************************\n\n";
     }
 
@@ -238,16 +238,16 @@ void cAppli_Martini::DoAll()
      // 1-  Calcul de toute les orientations relatives entre paires d'images
      // NO_AllOri2Im =>  cNewO_CpleIm.cpp => TestAllNewOriImage_main
      // mm3d TestLib  NO_AllOri2Im "IMGP70.*JPG" OriCalib=AllRel Quick=1 PrefHom=
-     // 
+     //
      // Appelle  TestLib NO_Ori2Im   => TestNewOriImage_main
- 
+
      StdCom("NO_AllOri2Im");
 
      if (ModeNO()==eModeNO_OnlyHomogr)
      {
          return ;
      }
-     
+
      // Homologues flottants
      // StdCom("NO_AllHomFloat"); => Supprime, pris en compte dans NO_AllOri2Im
 
@@ -291,7 +291,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
    (
         argc,argv,
         LArgMain() << EAMC(mPat,"Image Pat", eSAM_IsPatFile),
-        LArgMain() 
+        LArgMain()
                    << EAM(mExe,"Exe",true,"Execute commands, def=true (if false, only print)")
                    << ArgCMA()
    );
@@ -363,7 +363,7 @@ class cAppliTestMartini
 };
 
 
-void cAppliTestMartini::OneTest(int aKIter) 
+void cAppliTestMartini::OneTest(int aKIter)
 {
    mKIter = aKIter;
    mDist  = 2000 * ElSquare(NRrandom3());
@@ -371,15 +371,15 @@ void cAppliTestMartini::OneTest(int aKIter)
 
    double aExpProba = 2.0;
    mProbaSel =  ElMax(0.0,ElMin(1.0,NRrandom3()));
-   
+
    if (mProbaSel < 0.5)
        mProbaSel = pow(mProbaSel,aExpProba);
    else
        mProbaSel = 1.0- pow(1.0-mProbaSel,aExpProba);
-   
 
-   std::string aComRat =    MMBinFile(MM3DStr) + " Ratafia " 
-                        + mPat 
+
+   std::string aComRat =    MMBinFile(MM3DStr) + " Ratafia "
+                        + mPat
                         + " Out=" + mExtHom
                         + " DistPMul=" + ToString(mDist)
                         + " MVG=" + ToString(mVGFact)
@@ -388,14 +388,14 @@ void cAppliTestMartini::OneTest(int aKIter)
 
    std::cout << "RAAT " << aComRat << "\n";
 
-   std::string aComMartini =    MMBinFile(MM3DStr) 
-                                    + " Martini " 
+   std::string aComMartini =    MMBinFile(MM3DStr)
+                                    + " Martini "
                                     +  mPat
-                                    + " ExtName=TM" 
+                                    + " ExtName=TM"
                                     + " SH=" + mExtHom
                                     + " OriCalib=" + mNameOriCalib;
    std::string aDirPurge = "NewOriTmpTM"+mExtHom+mNameOriCalib + "Quick/";
-   
+
    if (aKIter>= mK0)
    {
        System(aComRat);
@@ -444,7 +444,7 @@ int TestMartini_Main(int argc,char ** argv)
 Ce logiciel est un programme informatique servant a  la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est regi par la licence CeCILL-B soumise au droit français et
+Ce logiciel est regi par la licence CeCILL-B soumise au droit fran?ais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
 de la licence CeCILL-B telle que diffusee par le CEA, le CNRS et l'INRIA
@@ -452,22 +452,22 @@ sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilite au code source et des droits de copie,
 de modification et de redistribution accordes par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitee.  Pour les mêmes raisons,
+offert aux utilisateurs qu'une garantie limitee.  Pour les m?mes raisons,
 seule une responsabilite restreinte pese sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concedants successifs.
 
 A cet egard  l'attention de l'utilisateur est attiree sur les risques
 associes au chargement,    l'utilisation,    la modification et/ou au
 developpement et  la reproduction du logiciel par l'utilisateur etant
-donne sa specificite de logiciel libre, qui peut le rendre complexe 
+donne sa specificite de logiciel libre, qui peut le rendre complexe
 manipuler et qui le reserve donc   des developpeurs et des professionnels
 avertis possedant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invites a  charger  et  tester  l'adequation  du
 logiciel a  leurs besoins dans des conditions permettant d'assurer la
 securite de leurs systemes et ou de leurs donnees et, plus generalement,
-a  l'utiliser et l'exploiter dans les mêmes conditions de securite.
+a  l'utiliser et l'exploiter dans les m?mes conditions de securite.
 
-Le fait que vous puissiez acceder a  cet en-tête signifie que vous avez
+Le fait que vous puissiez acceder a  cet en-t?te signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepte les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
