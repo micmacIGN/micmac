@@ -86,8 +86,11 @@ template <class Type> void cMainNetwork <Type>::PostInit()
      mBoxPts   =  cBox2dr(ToR(aBox.P0()),ToR(aBox.P1()));
      if (1) // Eventually put in random order to check implicit order of NumX,NumY is not used 
      {
-        if (0)
+        if (1)
+	{
            mVPts = RandomOrder(mVPts);
+           // StdOut() << " Dooo :  ORDER RANDOM\n";
+	}
         else
            StdOut() << "NO ORDER RANDOM\n";
         // But need to reset the num of points which is used in link construction
@@ -242,15 +245,15 @@ template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightF
      }
 }
 
-template <class Type> Type cMainNetwork<Type>::OneIterationCompensation(bool WithGauge,bool WithCalcReset)
+template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double aWeigthGauge,bool WithCalcReset)
 
 {
      Type   aResidual = CalcResidual() ;
      // if we are computing covariance we want it in a free network (the gauge constraint 
      // in the local network have no meaning in the coordinate of the global network)
-     if (WithGauge)
+     if (aWeigthGauge > 0)
      {
-         AddGaugeConstraint(100.0);
+         AddGaugeConstraint(aWeigthGauge);
      }
      
      

@@ -108,7 +108,7 @@ template <class Type>  class  cMainNetwork
 	  Type  NetSz() const {return Norm2(mBoxInd.Sz());}
 
           /// If we use this iteration for covariance calculation , we dont add constraint, and dont solve
-	  Type OneIterationCompensation(bool WithGauge,bool WithCalcReset);
+	  Type DoOneIterationCompensation(double  aWeigthGauge,bool WithCalcReset);
 
 	  Type CalcResidual();
 	  void AddGaugeConstraint(Type aWeight);

@@ -51,7 +51,7 @@ template<class Type> void  TplOneBenchSSRNL
      double anEc =100;
      for (int aK=0 ; aK < THE_NB_ITER ; aK++)
      {
-         anEc = aBN.OneIterationCompensation(true,true);
+         anEc = aBN.DoOneIterationCompensation(100.0,true);
          // StdOut() << "  ECc== " << anEc /aPrec<< "\n";
      }
      // StdOut() << "Fin-ECc== " << anEc  / aPrec << " Nb=" << aNb << "\n";

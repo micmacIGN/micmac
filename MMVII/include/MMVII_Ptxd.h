@@ -31,8 +31,9 @@ template <class Type,const int Dim> class cPtxd
     public :
        typedef typename  tNumTrait<Type>::tBig               tBigNum ;
        typedef cPtxd<Type,Dim>                               tPt;
-       typedef typename  tElemNumTrait<Type>::tFloatAssoc    tReal;
-       typedef cPtxd<tReal,Dim>                              tPtR;
+       // To see later (C Meynard ?) why this create compile pb
+       // typedef typename  tElemNumTrait<Type>::tFloatAssoc    tReal;
+       //typedef cPtxd<tReal,Dim>                              tPtR;
 
 
        static const int TheDim = Dim;
