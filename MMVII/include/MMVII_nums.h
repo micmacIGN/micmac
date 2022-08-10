@@ -89,6 +89,22 @@ std::vector<int> RandNeighSet(int aK,int aN,const std::vector<int> & aSet);
 /// Complement of aSet in [0,1...., N[    ;  ]]
 std::vector<int> ComplemSet(int aN,const std::vector<int> & aSet);
 
+
+/** class to generate a random subset of  K among N, not veru efficent if K<<N because all [0,N] must be parsed
+    on the other hand efficient in memory */
+
+
+class cRandKAmongN
+{
+    public :
+      cRandKAmongN(int aK,int aN);
+
+      bool GetNext();
+    private :
+        int mK;
+        int mN;
+};
+
 /// K is the numbre to select, it will be selected regularly with a proportion aProp
 bool SelectWithProp(int aK,double aProp);
 bool SelectQAmongN(int aK,int aQ,int aN);
@@ -369,6 +385,7 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
          typedef tElemNumTrait<Type>  tETrait;
          typedef typename  tETrait::tBase tBase;
          typedef typename  tETrait::tBig  tBig ;
+         // typedef typename  tETrait::tFloatAssoc  tFloatAssoc ;
       // ===========================
          bool V_IsInt()  const override {return  tBaseNumTrait<tBase>::IsInt();}
          bool V_Signed() const override {return  tETrait::Signed();}
@@ -470,6 +487,9 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
     MMVII_INTERNAL_ASSERT_tiny(b>0,"DivSup");
     return (a+b-1)/b; 
 }
+/// a/b but upper valuer  6/3=> 2 7/3 => 3
+#define DIV_SUP(a,b) ((a+b-1)/b)  // macro version usefull for constexpr
+inline tINT4 DivSup(const tINT4 &a,const tINT4& b) {return DivSup(a,b);}  //non macro w/o side effect
 
 /// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
 double NormalisedRatio(double aI1,double aI2);

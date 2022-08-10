@@ -33,21 +33,13 @@ Classes :
 */
 namespace NS_Bench_RSNL
 {
-#define  DEBUG_RSNL true
-#if (DEBUG_RSNL)
-constexpr double AMPL_Grid2Real= 0.1;   // Amplitude of random differerence between real position and regular grid
-constexpr double AMPL_Real2Init = 0.1;  // Amplitude of random and syst differerence  betwen real an init position
-#else
-constexpr double AMPL_Grid2Real= 0.1;   // Amplitude of random differerence between real position and regular grid
-constexpr double AMPL_Real2Init = 0.1;  // Amplitude of random and syst differerence  betwen real an init position
-#endif
+// #define  DEBUG_RSNL true
 
 
 template <class Type>  class  cMainNetwork; 
 template <class Type>  class  cPNetwork;
 
 // This class is used  only in covariance propagation
-template <class Type>  class   cElemCalcCoordInit ;
 
 template <class Type>  class  cPNetwork
 {
@@ -63,7 +55,7 @@ template <class Type>  class  cPNetwork
             */
 	    tPt  PCur() const;  
 	    const tPt &  TheorPt() const;  ///< Acessor
-	    // void  SetTheorPt(const tPt&);  ///< Modifier
+	    const tPt &  PosInit() const;  ///< Acessor
 
             /// Compute initial guess : add some noise+some systematism to "real" position
             void MakePosInit(const double & aMulAmpl);
@@ -85,6 +77,15 @@ template <class Type>  class  cPNetwork
 	    std::list<int> mLinked;   ///< list of linked points, if Tmp/UK the links start from tmp, if Uk/Uk order does not matters
 };
 
+class cParamMainNW
+{
+    public :
+       cParamMainNW();
+
+       double mAmplGrid2Real;   // Amplitude of random differerence between real position and regular grid
+       double mAmplReal2Init;  // Amplitude of random and syst differerence  betwen real an init position
+};
+
 template <class Type>  class  cMainNetwork
 {
 	public :
@@ -94,13 +95,12 @@ template <class Type>  class  cMainNetwork
           typedef tPNet *                   tPNetPtr;
           typedef cResolSysNonLinear<Type>  tSys;
           typedef NS_SymbolicDerivative::cCalculator<tREAL8>  tCalc;
-          typedef cElemCalcCoordInit<Type>                    tECCI;
 
-	  /// initial simplify constructor,  take  N a parameterand construct [-N,N]x[N,N]
-	  cMainNetwork(eModeSSR aMode,int aN,bool WithSchurr,cParamSparseNormalLstSq * = nullptr,tECCI * =nullptr);
 
-          cMainNetwork(eModeSSR aMode,cRect2,bool WithSchurr,cParamSparseNormalLstSq * = nullptr, tECCI * =nullptr);
-          ~cMainNetwork();
+          cMainNetwork(eModeSSR aMode,cRect2,bool WithSchurr,const cParamMainNW &,cParamSparseNormalLstSq * = nullptr);
+          /// Do real construction that cannot be made in constructor do to call to virtual funcs
+          virtual void PostInit();
+          virtual ~cMainNetwork();
 
           //int   N() const;
           bool WithSchur()  const;
@@ -108,7 +108,7 @@ template <class Type>  class  cMainNetwork
 	  Type  NetSz() const {return Norm2(mBoxInd.Sz());}
 
           /// If we use this iteration for covariance calculation , we dont add constraint, and dont solve
-	  Type OneItereCompensation(bool ForCovCalc);
+	  Type DoOneIterationCompensation(double  aWeigthGauge,bool WithCalcReset);
 
 	  Type CalcResidual();
 	  void AddGaugeConstraint(Type aWeight);
@@ -130,9 +130,9 @@ template <class Type>  class  cMainNetwork
           }
 
 	  ///  Compute the geometry of an index using internal parameters => global simi + some random value
-	  tPt  Ind2Geom(const cPt2di & anInd) const;
+	  virtual tPt  ComputeInd2Geom(const cPt2di & anInd) const;
 	  ///  Compute the geometry in case of cov propag
-	  tPt  CovPropInd2Geom(const cPt2di & anInd) const;
+	  //  tPt  CovPropInd2Geom(const cPt2di & anInd) const;
 
 	  /**  Classically for the gauge fixing the direction by fixing some specific var, we must take precaution
                i.e if P0=(0,0) is fixed  and P1=(1,0),  if we fix   x1=Cste for the gauge, the 
@@ -141,20 +141,22 @@ template <class Type>  class  cMainNetwork
           */
 	  bool  AxeXIsHoriz() const;
 
-          const cSim2D<Type> &  SimInd2G() const;   ///<Accessor
+          const cSim2D<Type> &  SimInd2G() const;  ///<Accessor
+          const cParamMainNW &  ParamNW() const;   ///<Accessor
 	  tSys * Sys();
 
-	  void TestCov();
 
 	protected :
           /// Acces to reference of a adress if point from pixel value
 	  tPNetPtr & PNetPtrOfGrid(const cPt2di  & aP) {return mMatrP[aP.y()-mBoxInd.P0().y()][aP.x()-mBoxInd.P0().x()];}
 
-	  tECCI *  mECCI;
+          eModeSSR mModeSSR;             ///< Mode for allocating Sys Over Constrained
+          cParamSparseNormalLstSq * mParamLSQ; ///< Additional parameter for allocating sparse
 	  cRect2 mBoxInd;                ///< rectangle of the network
           int   mX_SzM;                  ///<  1+2*aN  = Sz of Matrix of point
           int   mY_SzM;                  ///<  1+2*aN  = Sz of Matrix of point
 	  bool  mWithSchur;            ///< Do we test Schurr complement
+          cParamMainNW  mParamNW;
 	  int   mNum;                  ///< Current num of unknown
 	  std::vector<tPNet>  mVPts;   ///< Vector of point of unknowns coordinate
           tPNet ***           mMatrP;  ///< Indexed matrice of points, give basic spatial indexing
@@ -163,7 +165,9 @@ template <class Type>  class  cMainNetwork
 
 	  /**  Similitude transforming the index in the geometry, use it to make the test more general, and also
 	      to test co-variance tranfsert with geometric change  */
-	   cSim2D<Type>        mSimInd2G;  
+          cSim2D<Type>        mSimInd2G;  
+
+          cBox2dr     mBoxPts;  /// Box englobing Theor + Init
 };
 }; // namespace NS_Bench_RSNL
 }; // namespace MMVII

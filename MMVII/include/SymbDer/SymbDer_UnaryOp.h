@@ -310,6 +310,63 @@ template <class TypeElem> class cSqrtF : public cUnaryF<TypeElem>
             }
 };
 
+template <class TypeElem>  cFormula<TypeElem> cos(const cFormula<TypeElem> & aF);
+template <class TypeElem>  cFormula<TypeElem> sin(const cFormula<TypeElem> & aF);
+
+
+/**  Classe for sin */
+template <class TypeElem> class cSinF : public cUnaryF<TypeElem>
+{
+     public :
+            using cUnaryF<TypeElem>::mF;
+            using cUnaryF<TypeElem>::mDataF;
+            using cImplemF<TypeElem>::mDataBuf;
+
+            cSinF (cFormula<TypeElem> aF,const std::string & aName) :
+                cUnaryF <TypeElem> (aF,aName)
+            { }
+            static TypeElem Operation(const TypeElem & aV1) {return std::sin(aV1);}
+      private :
+            const std::string &  NameOperator() const override {static std::string s("std::sin"); return s;}
+            void ComputeBuf(int aK0,int aK1) override
+            {
+                for (int aK=aK0 ; aK<aK1 ; aK++)
+                    mDataBuf[aK] =  std::sin(mDataF[aK]);
+            }
+            ///  rule : (sin(F))' =   F' cos(F) 
+            cFormula<TypeElem> Derivate(int aK) const override
+            {
+                return  mF->Derivate(aK)  * cos(mF);
+            }
+};
+
+/**  Classe for cos */
+template <class TypeElem> class cCosF : public cUnaryF<TypeElem>
+{
+     public :
+            using cUnaryF<TypeElem>::mF;
+            using cUnaryF<TypeElem>::mDataF;
+            using cImplemF<TypeElem>::mDataBuf;
+
+            cCosF (cFormula<TypeElem> aF,const std::string & aName) :
+                cUnaryF <TypeElem> (aF,aName)
+            { }
+            static TypeElem Operation(const TypeElem & aV1) {return std::cos(aV1);}
+      private :
+            const std::string &  NameOperator() const override {static std::string s("std::cos"); return s;}
+            void ComputeBuf(int aK0,int aK1) override
+            {
+                for (int aK=aK0 ; aK<aK1 ; aK++)
+                    mDataBuf[aK] =  std::cos(mDataF[aK]);
+            }
+            ///  rule : (sin(F))' =   F' cos(F) 
+            cFormula<TypeElem> Derivate(int aK) const override
+            {
+                return  - mF->Derivate(aK)  * sin(mF);
+            }
+};
+
+
 
       /* ---------------------------------------*/
       /*           Global Functio on unary op   */
@@ -418,6 +475,18 @@ template <class TypeElem>
 inline cFormula<TypeElem> sqrt(const cFormula<TypeElem> & aF)
 {
     return cGenOperatorUnaire<cSqrtF<TypeElem> >::Generate(aF,"sqrt");
+}
+
+template <class TypeElem>
+inline cFormula<TypeElem> cos(const cFormula<TypeElem> & aF)
+{
+    return cGenOperatorUnaire<cCosF<TypeElem> >::Generate(aF,"cos");
+}
+
+template <class TypeElem>
+inline cFormula<TypeElem> sin(const cFormula<TypeElem> & aF)
+{
+    return cGenOperatorUnaire<cSinF<TypeElem> >::Generate(aF,"sin");
 }
 
 

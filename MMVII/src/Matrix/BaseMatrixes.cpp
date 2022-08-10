@@ -30,6 +30,13 @@ template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve) :
      IV().reserve(aSzReserve);
 }
 
+template <class Type> cSparseVect<Type>::cSparseVect(const cDenseVect<Type> & aDV) :
+    cSparseVect<Type>  (aDV.Sz())
+{
+    for (int aK=0 ; aK<aDV.Sz() ; aK++)
+       AddIV(aK,aDV(aK));
+}
+
 template <class Type>  bool cSparseVect<Type>::IsInside(int aNb) const
 {
     for (const auto & aP : *(mIV.get()))

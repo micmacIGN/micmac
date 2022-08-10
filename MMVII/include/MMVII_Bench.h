@@ -91,6 +91,9 @@ void BenchDenseMatrix0(cParamExeBench & aParam); ///< Basic Vector
 // void cAppli_MMVII_Bench::Bench_0000_String(); => Bench on string-split
 void BenchSerialization(cParamExeBench & aParam,const std::string & aDirOut,const std::string & aDirIn); ///< Bench on seriaization function
 
+// Test generation of random subet for ransac
+void BenchRansSubset(cParamExeBench & aParam);
+
 
 //  void BenchGlob();      ///< All Bench
 

@@ -75,6 +75,14 @@ template <class Type> class cSegment2DCompiled : public cSegmentCompiled<Type,2>
 };
 
 
+/*  Class of 2D mapping having the same interface, usable for ransac & least square */
+template <class Type>  class cHomot2D;
+template <class Type>  class cSim2D;
+template <class Type>  class cRot2D;
+template <class Type>  class cAffin2D;
+template <class TypeMap> class  cLeastSquareEstimate;
+
+
 /** This class represent 2D Homotetie , it can aussi be used for an non
    distorted camera with :
        * mTr -> principal point
@@ -85,25 +93,52 @@ template <class Type>  class cHomot2D
 {
       public :
           static constexpr int TheDim=2;
+          static constexpr int NbDOF = 3;
+          static std::string Name() {return "Homot2D";}
+          static constexpr int NbPtsMin = DIV_SUP(NbDOF,TheDim);
+
           typedef Type  tTypeElem;
           typedef cHomot2D<Type>  tTypeMap;
           typedef cHomot2D<Type>  tTypeMapInv;
 
-          typedef cPtxd<Type,2> tPt;
+          typedef cPtxd<Type,2>     tPt;
+          typedef std::vector<tPt>  tVPts;
+          typedef const tVPts&      tCRVPts;
+          typedef std::vector<Type> tVVals;
+          typedef const tVVals *    tCPVVals;
+          typedef tPt   tTabMin[NbPtsMin];  // Used for estimate with min number of point=> for ransac
 
-          static const int NbDOF() {return 3;}
+          ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
+          static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
+          /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
+          /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
+          static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+
+	  /// Compute a random homotethy, assuring that Amplitude of scale has a minimal value
+          static tTypeMap RandomHomotInv(const Type&AmplTr,const Type&AmplSc,const Type&AmplMinSc);
+
+          static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
+
           cHomot2D(const tPt & aTr,const Type & aSc)  :
               mTr (aTr),
               mSc (aSc)
           {
           }
+          cHomot2D() :  cHomot2D<Type>(tPt(0.0,0.0),1.0) {};
           inline tPt  Value(const tPt & aP) const   {return mTr + aP * mSc;}
           inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
           tTypeMapInv MapInverse() const {return cHomot2D<Type>(-mTr/mSc,1.0/mSc);}
+	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+mSc*aS2.mTr,mSc*aS2.mSc);}
       private :
           tPt mTr;
           Type mSc;
 };
+
+/** Usefull when we want to visualize objects : compute box of visu + Mapping Visu/Init */
+cBox2di BoxAndCorresp(cHomot2D<tREAL8> & aHomIn2Image,const cBox2dr & aBox,int aSzIm,int aMargeImage);
 
 /** Class for a similitude 2D  P ->  Tr + Sc * P
 
@@ -111,43 +146,57 @@ template <class Type>  class cHomot2D
        * Sc is the both homthethy and rotation as is used the complex number for point multiplication
 */
 
-
 template <class Type>  class cSim2D
 {
       public :
           static constexpr int TheDim=2;
+          static constexpr int  NbDOF = 4;
+          static std::string Name() {return "Sim2D";}
+          static constexpr int  NbPtsMin = DIV_SUP(NbDOF,TheDim);
+
           typedef Type          tTypeElem;
           typedef cSim2D<Type>  tTypeMap;
           typedef cSim2D<Type>  tTypeMapInv;
 
           typedef cPtxd<Type,2> tPt;
+          typedef std::vector<tPt>  tVPts;
+          typedef const tVPts&      tCRVPts;
+          typedef std::vector<Type> tVVals;
+          typedef const tVVals *    tCPVVals;
+          typedef tPt   tTabMin[NbPtsMin];  // Used for estimate with min number of point=> for ransac
 
           cSim2D(const tPt & aTr,const tPt & aSc)  :
               mTr (aTr),
               mSc (aSc)
           {
           }
+          cSim2D() : cSim2D<Type>(tPt(0,0),tPt(1,0)) {}
           
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
-          /// compute the vector used in least square equation
-          static void ToParam(cDenseVect<Type>&,cDenseVect<Type> &,const tPt &);
+          /// compute the vectors and constants used in least square equation
+          static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
+          /// Degree of freedoom
 
 
           inline tPt  Value(const tPt & aP) const {return mTr + aP * mSc;}
           inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
-          static const int NbDOF() {return 4;}
           tTypeMapInv  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
 	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+mSc*aS2.mTr,mSc*aS2.mSc);}
           
 
-          static cSim2D FromExample(const tPt&aP0In,const tPt&aP1In,const tPt&aP0Out,const tPt&aP1Out);
-          static cSim2D FromExample(const std::vector<tPt>& aVIn,const std::vector<tPt>& aVOut,Type * aRes2=nullptr);
+          static tTypeMap FromMinimalSamples(const tPt&aP0In,const tPt&aP1In,const tPt&aP0Out,const tPt&aP1Out);
+          static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
+
+          /// compute by least square the mapping such that Sim(PIn[aK]) = POut[aK]
+          static tTypeMap StdGlobEstimate(tCRVPts & aVIn,tCRVPts& aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
+          /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
+          static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
 	  /// Compute a random similitude, assuring that Amplitude of scale has a minimal value
           static cSim2D RandomSimInv(const Type&AmplTr,const Type&AmplSc,const Type&AmplMinSc);
 
-          inline tPt  Tr() const {return mTr ;}
-          inline tPt  Sc() const {return mSc ;}
+          inline const tPt &  Tr() const {return mTr ;}
+          inline const tPt &  Sc() const {return mSc ;}
 
                 
 	  ///  Generate the 3D-Sim having same impact in the plane X,Y
@@ -157,18 +206,98 @@ template <class Type>  class cSim2D
           tPt mSc;
 };
 
+/** Class for a rotation  2D , implemeted using similitude with ||Sc|| = 1 */
+
+template <class Type>  class cRot2D
+{
+      public :
+          static constexpr int TheDim=2;
+          static constexpr int  NbDOF = 3;
+          static std::string Name() {return "Rot2D";}
+          static constexpr int  NbPtsMin = DIV_SUP(NbDOF,TheDim);
+
+          typedef Type          tTypeElem;
+          typedef cRot2D<Type>  tTypeMap;
+          typedef cRot2D<Type>  tTypeMapInv;
+
+          typedef cPtxd<Type,2>     tPt;
+          typedef std::vector<tPt>  tVPts;
+          typedef const tVPts&      tCRVPts;
+          typedef std::vector<Type> tVVals;
+          typedef const tVVals *    tCPVVals;
+          typedef tPt   tTabMin[NbPtsMin];  // Used for estimate with min number of point=> for ransac
+
+
+          cRot2D(const tPt & aTr,const Type & aTeta)  :
+              mTeta (aTeta),
+              mSim  (aTr,FromPolar(Type(1.0),aTeta))
+          {
+          }
+          cRot2D() : cRot2D<Type> (tPt(0,0),0) {}
+          
+
+
+          inline tPt  Value(const tPt & aP) const {return mSim.Value(aP);}
+          inline tPt  Inverse(const tPt & aP) const {return mSim.Inverse(aP)  ;}
+          tTypeMapInv  MapInverse() const {return cRot2D<Type>(-Tr()/Sc(),-mTeta);}
+	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(Tr()+Sc()*aS2.Tr(),mTeta+aS2.mTeta);}
+
+          inline const tPt&  Tr() const {return mSim.Tr() ;}
+          inline const tPt&  Sc() const {return mSim.Sc() ;}
+          inline const Type& Teta() const {return mTeta ;}
+          inline const cSim2D<Type> & Sim() const {return mSim;}
+
+          static tTypeMap RandomRot(const Type&AmplTr);
+
+
+          ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
+          static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /// compute the vectors and constants used in least square equation
+          static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
+
+          /// Refine an existing solution using least square
+          tTypeMap LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr)const;
+          /// compute least square , after a ransac init, the mapping such that Sim(PIn[aK]) = POut[aK]
+          static tTypeMap StdGlobEstimate 
+                          (
+                             tCRVPts aVIn,
+                             tCRVPts aVOut,
+                             Type * aRes2=nullptr,
+                             tCPVVals=nullptr,
+                             cParamCtrlOpt=cParamCtrlOpt::Default()
+                          );
+          /// compute with minimal number of samples
+          static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
+          /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
+          static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+      private :
+          Type          mTeta;
+          cSim2D<Type>  mSim;
+};
+
+
+
 template <class Type>  class cAffin2D
 {
       public :
-          static constexpr int    TheDim=2;
+          static constexpr int    TheDim= 2;
+          static constexpr int    NbDOF = 6;
+          static std::string Name() {return "Affin2D";}
+          static constexpr int    NbPtsMin = DIV_SUP(NbDOF,TheDim);
+
           typedef Type            tTypeElem;
           typedef cAffin2D<Type>  tTypeMap;
           typedef cAffin2D<Type>  tTypeMapInv;
 
           typedef cPtxd<Type,2> tPt;
+          typedef std::vector<tPt>  tVPts;
+          typedef const tVPts&      tCRVPts;
+          typedef std::vector<Type> tVVals;
+          typedef const tVVals *    tCPVVals;
+          typedef tPt   tTabMin[NbPtsMin];  // Used for estimate with min number of point=> for ransac
 
           cAffin2D(const tPt & aTr,const tPt & aImX,const tPt aImY) ; 
-          static const int NbDOF();
+          cAffin2D();
           tPt  Value(const tPt & aP) const ;
           tPt  Inverse(const tPt & aP) const ;
           tTypeMapInv  MapInverse() const ;
@@ -192,6 +321,18 @@ template <class Type>  class cAffin2D
           static  tTypeMap  Homot(const Type & aScale);
           static  tTypeMap  HomotXY(const Type & aScaleX,const Type & aScaleY);
                 
+          ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
+          static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /// compute the vectors and constants used in least square equation
+          static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
+          /// compute with minimal number of samples
+          static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
+          /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
+
+          /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
+          static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+
       private :
           tPt   mTr;
           tPt   mVX;

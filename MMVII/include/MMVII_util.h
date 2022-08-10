@@ -110,6 +110,9 @@ bool IsDirectory(const std::string & aName);
 
 /// Create a selector associated to a regular expression, by convention return Cste-true selector if string=""
 tNameSelector  AllocRegex(const std::string& aRegEx);
+/// Indicate if name match patter, uses AllocRegex
+bool  MatchRegex(const std::string& aName,const std::string& aPat);
+
 
 /// Exract name of files located in the directory, by return value
 std::vector<std::string>  GetFilesFromDir(const std::string & aDir,const tNameSelector& ,bool OnlyRegular=true);
@@ -301,6 +304,38 @@ class cSetIntDyn
           std::vector<bool>    mOccupied;  ///< direct acces to the belonging
           std::vector<size_t>  mVIndOcc;   ///< list  of element
 };
+
+/** Class for representing a set of int simply as a vector of int,
+    usefull for K among N when N is big 
+    make no control of duplicate,  just an interface to vector<int> as a set
+*/
+
+class cSetIExtension
+{
+    public :
+         cSetIExtension();
+         cSetIExtension(const std::vector<size_t>&);
+         static cSetIExtension EmptySet();
+         void AddElem(size_t);
+
+         std::vector<size_t>  mElems;
+};
+
+/** Generate Q subset of cardinal K [0,N], all different,  if Q too big, truncated */
+void GenRanQsubCardKAmongN(std::vector<cSetIExtension> & aRes,int aQ,int aK,int aN);
+
+class cParamRansac
+{   
+    public :
+
+        int  NbTestOfErrAdm(int aNbSample) const;
+        cParamRansac(double  aProba1Err,double anErrAdm);
+    private :
+        double mProba1Err;
+        double mErrAdm;
+};
+
+
 
 
 

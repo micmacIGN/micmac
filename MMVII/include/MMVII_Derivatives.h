@@ -425,6 +425,7 @@ template <int Nb> class tElemNumTrait<cEpsNum<Nb> >
     public :
          typedef cEpsNum<Nb> tBase;
          typedef cEpsNum<Nb> tBig ;
+         typedef cEpsNum<Nb> tFloatAssoc ;
 };
 
 

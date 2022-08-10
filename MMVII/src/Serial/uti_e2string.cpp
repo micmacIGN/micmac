@@ -235,6 +235,17 @@ template<> cE2Str<eModeEpipMatch>::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
            };
 TPL_ENUM_2_STRING(eModeEpipMatch);
 
+template<> cE2Str<eModeTestPropCov>::tMapE2Str cE2Str<eModeTestPropCov>::mE2S
+           {
+                {eModeTestPropCov::eMTPC_MatCovRFix  ,"MatCovRFix"},
+                {eModeTestPropCov::eMTPC_SomL2RUk    ,"SomL2RUk"},
+                {eModeTestPropCov::eMTPC_PtsRFix     ,"PtsRFix"},
+                {eModeTestPropCov::eMTPC_PtsRUk      ,"PtsRUk"}
+           };
+TPL_ENUM_2_STRING(eModeTestPropCov);
+
+
+
 template<> cE2Str<eModePaddingEpip>::tMapE2Str cE2Str<eModePaddingEpip>::mE2S
            {
                 {eModePaddingEpip::eMPE_NoPad,"NoPad"},
@@ -375,6 +386,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eTyInvRad>();
     TplBenchEnum<eTyPyrTieP>();
     TplBenchEnum<eModeEpipMatch>();
+    TplBenchEnum<eModeTestPropCov>();
     TplBenchEnum<eModePaddingEpip>();
     TplBenchEnum<eModeCaracMatch>();
     TplBenchEnum<eDCTFilters>();

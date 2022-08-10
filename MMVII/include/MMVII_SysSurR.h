@@ -48,6 +48,9 @@ template <class Type> class cResolSysNonLinear
 
           /// Accessor
           const tDVect  &    CurGlobSol() const;
+   
+          /// Accessor
+          int NbVar() const;  
           /// Value of a given num var
           const Type  &    CurSol(int aNumV) const;
 
@@ -95,9 +98,10 @@ template <class Type> class cResidualWeighter
        public :
             typedef std::vector<Type>     tStdVect;
 
-            cResidualWeighter();
+            cResidualWeighter(const Type & aVal=1.0);
             virtual tStdVect WeightOfResidual(const tStdVect &) const;
        private :
+             Type mVal;
 
 };
 
@@ -361,9 +365,10 @@ template <class Type> class  cBufSchurrSubst
           size_t            mNbUkTot;
 
           cDenseMatrix<Type> mL;
-          cDenseMatrix<Type> mLInv;
+          // cDenseMatrix<Type> mLInv;
           cDenseMatrix<Type> mtB;
           cDenseMatrix<Type> mtB_LInv;
+          cDenseMatrix<Type> mLInv_B;
           cDenseMatrix<Type> mB;
           cDenseMatrix<Type> mtB_LInv_B;
           cDenseMatrix<Type> mM11;

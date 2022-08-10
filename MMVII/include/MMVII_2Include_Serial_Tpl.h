@@ -251,12 +251,26 @@ template<class Type> void  SaveInFile(const Type & aVal,const std::string & aNam
    }
 }
 
+/*
 template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
 {
     std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArHashVal(ordered),DeleteAr);
     cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
     AddData(aGLOB,const_cast<Type&>(aVal));
     return HashValFromAr(*anAr);
+}
+
+*/
+template<class Type> size_t  HashValue(cAr2007 * anAr,const Type & aVal,bool ordered)
+{
+    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+    AddData(aGLOB,const_cast<Type&>(aVal));
+    return HashValFromAr(*anAr);
+}
+template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
+{
+    std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArHashVal(ordered),DeleteAr);
+    return HashValue(anAr.get(),aVal,ordered);
 }
 
 

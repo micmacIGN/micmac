@@ -261,6 +261,8 @@ template <class tMap,class TypeEl> void TplBenchMap2D(const tMap & aMap,const tM
 	auto aQ1 = aMap.Inverse(aP2);
 
 	TypeEl aD = Norm2(aP1-aQ1) /tElemNumTrait<TypeEl>::Accuracy();
+
+
 	MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapInv");
 
 	tMap aMapI =  aMap.MapInverse();
@@ -279,66 +281,164 @@ template <class tMap,class TypeEl> void TplBenchMap2D(const tMap & aMap,const tM
 	auto aQ3 = aMap12.Value(aP1);
 	aD = Norm2(aP3-aQ3) /tElemNumTrait<TypeEl>::Accuracy();
 	MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapInv");
+
+        tMap aIdent;
+        auto aR1 = aIdent.Value(aP1);
+	aD = Norm2(aP1-aR1) /tElemNumTrait<TypeEl>::Accuracy();
+	MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapIdent");
 }
 
 
 template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
 {
-
-     std::vector<cPtxd<TypeEl,2> > aVIn;
+     int aNbPts = (tMap::NbDOF+1)/2;
+     std::vector<cPtxd<TypeEl,2> > aVIn =  RandomPtsOnCircle<TypeEl>(aNbPts);
      std::vector<cPtxd<TypeEl,2> > aVOut;
-     int aNbPts = tMap::NbDOF()/2;
  
      // Generate some random point on the circle, not degenerated =>  Put a top level in .h
-     std::vector<int> aVInd =  RandPerm(aNbPts);
-     double aTeta0 = RandUnif_0_1() * 2 * M_PI;
-     double aEcartTeta =  ( 2 * M_PI)/aNbPts;
-     double aRho  = RandUnif_C_NotNull(0.1);
-     cPtxd<TypeEl,2> aP0 = cPtxd<TypeEl,2>::PRand();
-
-
      for (int aK=0 ; aK<aNbPts ; aK++)
      {
-          double aTeta = aTeta0 +  aEcartTeta * (aVInd[aK] +0.2 * RandUnif_C());
-          cPtxd<TypeEl,2> aP =  aP0 + FromPolar(TypeEl(aRho),TypeEl(aTeta));
-          aVIn.push_back(aP);
-
           aVOut.push_back(cPtxd<TypeEl,2>::PRand());
      }
-     aVIn =  RandomPtsOnCircle<TypeEl>(aNbPts);
 
-    tMap aMap =  tMap::FromExample(aVIn,aVOut);
+     tMap aMap =  tMap::StdGlobEstimate(aVIn,aVOut);
+
+     if (tMap::NbDOF%2) // in this case match cannot be perfect "naturally", not enoug DOF, must cheat
+     {
+         aVOut.clear();
+         for (int aK=0 ; aK<aNbPts ; aK++)
+         {
+              aVOut.push_back(aMap.Value(aVIn[aK]));
+         }
+         aMap =  tMap::StdGlobEstimate(aVIn,aVOut);
+     }
+     typename tMap::tTabMin aTabIn;
+     typename tMap::tTabMin aTabOut;
 
      for (int aK=0 ; aK<int(aVIn.size()); aK++)
      {
           TypeEl anEr = Norm2(aVOut[aK] - aMap.Value(aVIn[aK]));
 	  anEr /= tElemNumTrait<TypeEl>::Accuracy();
-          // StdOut() << anEr << " " << " Gt=" << aVOut[aK] <<  " Map->" << aMap.Value(aVIn[aK]) << "\n";
 	  MMVII_INTERNAL_ASSERT_bench(anEr<1e-2,"Least Sq Estimat 4 Mapping");
+          aTabIn[aK] = aVIn[aK];
+          aTabOut[aK] = aVOut[aK];
     }
-   // StdOut() << "Calc  " << aMap.Tr() << aMap.Sc() << "\n";
-   // aMap =  tMap::FromExample(aVIn[0],aVIn[1],aVOut[0],aVOut[1]);
-   // StdOut() << "Th   " << aMap.Tr() << aMap.Sc() << "\n";
-    // StdOut() << "=================llll===========\n";
+
+
+    // Test  estimation from a minimum of samples
+    aMap =  tMap::FromMinimalSamples(aTabIn,aTabOut);
+
+    for (int aK=0 ; aK<int(aVIn.size()); aK++)
+    {
+         TypeEl anEr = Norm2(aVOut[aK] - aMap.Value(aVIn[aK]));
+         anEr /= tElemNumTrait<TypeEl>::Accuracy();
+         MMVII_INTERNAL_ASSERT_bench(anEr<1e-2,"Least Sq Estimat 4 Mapping");
+    }
+
+    // Test ransac
+     {
+         // Generate a set with perfect match and a subset of noisy match
+         // perfact match are created with previous map
+         aVIn.clear();
+         aVOut.clear();
+         int aNbPts = 50;  
+         int aNbBad = 20;
+         cRandKAmongN aSelBad(aNbBad,aNbPts);
+         for (int aK=0 ; aK<aNbPts ; aK++)
+         {
+             cPtxd<TypeEl,2> aPIn = cPtxd<TypeEl,2>::PRandC();
+             cPtxd<TypeEl,2> aPOut =  aMap.Value(aPIn);
+             if (aSelBad.GetNext())
+                aPIn = aPIn + cPtxd<TypeEl,2>::PRandC()*TypeEl(0.1);
+             aVIn.push_back (aPIn);
+             aVOut.push_back(aPOut);
+         }
+         // Estimate match by ransac
+         tMap aMapRS = aMap.RansacL1Estimate(aVIn,aVOut,100);
+
+         //  Map should be equal to inital value, test this by action on points
+         for (int aK=0 ; aK<aNbPts ; aK++)
+         {
+             TypeEl anEr =  Norm2(aMap.Value(aVIn[aK])-aMapRS.Value(aVIn[aK])) ;
+             anEr /= tElemNumTrait<TypeEl>::Accuracy();
+
+             MMVII_INTERNAL_ASSERT_bench(anEr<1e-3,"Ransac  Estimat 4 Mapping");
+         }
+      }
 }
 
 
+template <class tMap,class TypeEl> void TplBenchMap2D_NonLinear(const tMap & aMap0,const tMap &aPerturb,TypeEl *)
+{
+    int aNbPts = 50;
+    std::vector<cPtxd<TypeEl,2> > aVIn ;
+    std::vector<cPtxd<TypeEl,2> > aVOutNoise;
+    std::vector<cPtxd<TypeEl,2> > aVOutRef;
+
+    for (int aK=0 ; aK<aNbPts ; aK++)
+    {
+         cPtxd<TypeEl,2>  aPIn = cPtxd<TypeEl,2>::PRandC();
+         cPtxd<TypeEl,2>  aPOut = aMap0.Value(aPIn);
+         cPtxd<TypeEl,2>  aPNoise = aPOut +  cPtxd<TypeEl,2>::PRandC() * TypeEl(0.1);
+
+         if (aK%3==0)
+            aPNoise =  cPtxd<TypeEl,2>::PRandC() * TypeEl(2);
+
+         aVIn.push_back(aPIn);
+         aVOutRef.push_back(aPOut);
+         aVOutNoise.push_back(aPNoise);
+    }
+
+    tMap aMap = tMap::RansacL1Estimate(aVIn, aVOutNoise,300) *  aPerturb;
+
+    TypeEl aRes;
+    TypeEl aResMin=10;
+    for (int aKIter=0 ; aKIter<10 ; aKIter++)
+    {
+        aMap = aMap.LeastSquareRefine(aVIn,aVOutRef,&aRes);
+        // StdOut() << "      RESIDUAL=" << aRes << "\n";
+        aResMin= std::min(aRes,aResMin);
+    }
+    aRes /= tElemNumTrait<TypeEl>::Accuracy();
+
+    //StdOut() << "RESIDUAL=" << aRes << " " << aResMin << "\n";
+
+    MMVII_INTERNAL_ASSERT_bench(aResMin<1e-5,"Ransac  Estimat 4 Mapping");
+    // Dont understand why sometimes it grows back after initial decrease, to see later ...
+    MMVII_INTERNAL_ASSERT_Unresolved(aRes<1e-3,"Ransac  Estimat 4 Mapping");
+    // StdOut() << "Hhhhhhhhhhhhh \n"; getchar();
+}
+
 template <class Type> void TplElBenchMap2D()
 {
+   TplBenchMap2D_NonLinear
+   (
+         cRot2D<Type>::RandomRot(5) ,
+         cRot2D<Type>(cPtxd<Type,2>::PRandC()*Type(0.3), Type(RandUnif_C()*0.2)),
+         (Type*)nullptr
+   );
+
+   TplBenchMap2D_LSQ<cRot2D<Type>>((Type*)nullptr);
+   TplBenchMap2D_LSQ<cAffin2D<Type>>((Type*)nullptr);
+   TplBenchMap2D_LSQ<cSim2D<Type>>((Type*)nullptr);
+   TplBenchMap2D_LSQ<cHomot2D<Type>>((Type*)nullptr);
+
+
    TplBenchMap2D(cAffin2D<Type>::AllocRandom(1e-1),cAffin2D<Type>::AllocRandom(1e-1),(Type*)nullptr);
    TplBenchMap2D(cSim2D<Type>::RandomSimInv(5,2,1e-1),cSim2D<Type>::RandomSimInv(3,4,1e-1),(Type*)nullptr);
+   TplBenchMap2D(cHomot2D<Type>::RandomHomotInv(5,2,1e-1),cHomot2D<Type>::RandomHomotInv(3,4,1e-1),(Type*)nullptr);
+   TplBenchMap2D(cRot2D<Type>::RandomRot(5),cRot2D<Type>::RandomRot(3),(Type*)nullptr);
 
 
-   TplBenchMap2D_LSQ<cSim2D<Type>>((Type*)nullptr);
 }
 
 void  BenchMap2D()
 {
    for(int aK=0 ;aK<100; aK++)
    {
-       TplElBenchMap2D<tREAL4>();
        TplElBenchMap2D<tREAL8>();
        TplElBenchMap2D<tREAL16>();
+       TplElBenchMap2D<tREAL4>();
    }
 }
 
