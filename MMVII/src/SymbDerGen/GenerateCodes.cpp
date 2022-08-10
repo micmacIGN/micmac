@@ -212,7 +212,7 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cRatioDist2DConservation(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cNetworConsDistProgCov(cPt2di(2,2)),WithDer);
        for (const auto WithSimUk : {true,false})
-           GenCodesFormula((tREAL8*)nullptr, cNetWConsDistFixPts(cPt2di(2,2),WithSimUk),WithDer);
+           GenCodesFormula((tREAL8*)nullptr, cNetWConsDistSetPts(cPt2di(2,2),WithSimUk),WithDer);
    }
 /*
    cMMVIIUnivDist           aDist(3,1,1,false);
@@ -303,7 +303,7 @@ cCalculator<double> * EqNetworkConsDistProgCov(bool WithDerive,int aSzBuf,const 
 
 cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,const cPt2di& aSzN,bool WithSimUK)
 { 
-    return cName2Calc<double>::CalcFromName(NameFormula(cNetWConsDistFixPts(aSzN,WithSimUK),WithDerive),aSzBuf);
+    return cName2Calc<double>::CalcFromName(NameFormula(cNetWConsDistSetPts(aSzN,WithSimUK),WithDerive),aSzBuf);
 }
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)

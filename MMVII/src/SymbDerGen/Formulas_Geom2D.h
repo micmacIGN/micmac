@@ -177,17 +177,17 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
 
 /** XXXXXX ag*/
 
-class cNetWConsDistFixPts : public  cBaseNetCDPC
+class cNetWConsDistSetPts : public  cBaseNetCDPC
 {
       public :
-          cNetWConsDistFixPts(const cPt2di  & aSzN,bool RotIsUk) :
+          cNetWConsDistSetPts(const cPt2di  & aSzN,bool RotIsUk) :
                 cBaseNetCDPC(aSzN),
                 mRotIsUk    (RotIsUk)
           {
           }
           std::string FormulaName() const 
           { 
-               return "FixPointNwCD_" + std::string(mRotIsUk ? "SimUK" : "SimFix") + ToStr(mNbPts) ;
+               return "SetPointNwCD_" + std::string(mRotIsUk ? "SimUK" : "SimFix") + ToStr(mNbPts) ;
           }
 
           const std::vector<std::string> VNamesUnknowns()  const
@@ -220,9 +220,11 @@ class cNetWConsDistFixPts : public  cBaseNetCDPC
                           const std::vector<tUk> & aVObs
                      ) const
            {
-                 const std::vector<tUk> & aVSim =  mRotIsUk ? aVUk : aVObs;
-                 cPtxd<tUk,2>  aTr(aVSim[0],aVSim[1]);
-                 tUk aTeta = aVSim[2];
+                 // Rot is OR unkown OR observation
+                 const std::vector<tUk> & aVRot =  mRotIsUk ? aVUk : aVObs;
+                 cPtxd<tUk,2>  aTr(aVRot[0],aVRot[1]);
+                 tUk aTeta = aVRot[2];
+                 //  vector of rotation
                  cPtxd<tUk,2>  aSc(cos(aTeta),sin(aTeta));
 
                  int aIndUk   =  mRotIsUk ? 3 : 0;

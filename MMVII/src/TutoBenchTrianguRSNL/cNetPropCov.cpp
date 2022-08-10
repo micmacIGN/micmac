@@ -1,6 +1,169 @@
 #include "TrianguRSNL.h"
 #include "include/MMVII_Tpl_Images.h"
 
+/** \file cNetPropCov.cpp
+    \brief test the covariance propagation 
+
+     Test the covariance propgation on network triangulation.
+
+     Let note the global network (class cCovNetwork) :
+
+
+      ... Pm12 --  P02  --  P12 -- P22
+           |    /   |    /   |   /   |
+           |   /    |   /    |  /    |
+      ... Pm11 --  P01  --  P11 -- P21
+           |    /   |    /   |   /   |
+           |   /    |   /    |  /    |
+      ... Pm10 --  P00  --  P10 -- P20
+          ............................
+
+      For each point (except when it would overflow) we create a 4 point subnetwork (class cElemNetwork),
+      for example whith origin P01 we create the ABCD network and  memorizing the homologous function H:
+  
+
+            C_k  --  D_k       H_k(P01) = A_k
+             |    /   |        H_k(P11) = B_k
+             |   /    |        H_k(P02) = C_k
+            A_k  --  B_k       H_k(P12) = D_k
+
+                 //  kth subnetwork //
+
+
+       For the simulation to be complete, the ABCD are the transformation of the Pij by a random rotation.
+
+       For each sub-ntework we make a global optimiztion and get optimal solution, we memorize
+       this solution and eventually the covariance matrix (this done arround the tag #CCM1 where
+       is called the optimization).  At each iteration we estimate the rotation  R_k
+       between two set of coordinates (Pij being curent value in glob, H_k(Pij) being final value in sub) such that:
+
+                   R_k(Pij) = H_k(Pij)= hk_ij
+
+       This estimation is done arround the tag #PC1
+
+                       ==========================================
+
+       In case of PtsRFix/PtsRUk  case (without covariance), we simply solve by leas-square :
+
+              Sum(k,i,j) { || R_k(Pij) - hk_ij ||^2}  = 0  (1)
+
+       This minimization being made on the sum all sub network and all points of the sub-network.
+       The hk_ij (value at convergence) being the observation and the Pij the unknowns.  For the R_k,
+       they can be considered as observation at each step (case  PtsRFix)  or temporary unknown
+       that will be used with some schur complement like methods.
+
+       The generation of the code, has be done in the class "cNetWConsDistSetPts" 
+       in file "Formulas_Geom2D.h".
+       
+
+                       ==========================================
+
+       The case covariance propagation is in fact not so different, let write :
+                  
+                R_k(Pij) =(Xk_ij,Yk_ij) and hk_ij =(xk_ij,yk_ij)
+
+            And    Qk = (Xk_00 Yk_00 Xk_10 Yk_10 ....)
+            And    qk = (xk_00 xk_00 xk_10 xk_10 ....)
+
+        Contribution of network k to equation (1) can be writen as
+
+                     ||Qk-qk||^2 t(Qk-qk) I (Qk-qk) = 0 (2)
+
+         Where I is the identity matrix.  In covariance propgation we simply subsitituate the I
+         matrix by the covariance matrix  A_k :
+
+
+                 ||Qk-qk||_k ^2 =    t(Qk-qk) A_k (Qk-qk) = 0 (3)
+
+          As we  want to use equation (3) in a least square system we use the diagonalization of A to
+          write :
+
+                  A_k = tRk D^2 Rk (4)   where Rk is orthogonal and D is diagonal
+                  
+
+         We can write  (4)  as:
+
+                 ||Qk-qk||_k ^2 =  || DRk (Qk-qk)||^2  (5)
+
+                
+         Equation (5) correpond to a decomposition of (3) as a sum of square of linear form.  The tag #CCM2 
+         in the code call the library that make the decomposition.
+
+         The linear form are then used in global least square arround #PC2
+
+
+         The generation of the code, has be done in the class "cNetworConsDistProgCov" 
+         in file "Formulas_Geom2D.h". As in linear (5), the formula is pretty simple, it is :
+
+              Sum(i,j){Lkx_ij Xk_ij  + Lky_ij Yk_ij}  - Cste_k
+               
+                      ==========================================
+                      ===    RESULTS                         ===
+                      ==========================================
+
+With Set Pts, unknwon rotation we get :
+
+    MMVII TestCovProp   PtsRUk  NbICP=10
+
+    0 RResiduals :   0.722085
+    1 RResiduals :   0.0623607
+    2 RResiduals :   0.000504209
+    3 RResiduals :   3.0851e-08
+    4 RResiduals :   1.71559e-15
+    .... 
+    9 RResiduals :   2.38234e-15
+
+Which "prove" that the implemantation is probably correct and convergence quite fast.
+
+           -----------------------------------------------
+
+With Set Pts, fix rotation we get :
+
+    MMVII TestCovProp   PtsRFix  NbICP=100
+
+    0 RResiduals :   0.722085
+    1 RResiduals :   0.565646
+    2 RResiduals :   0.500051
+    3 RResiduals :   0.451668
+      ..
+    25 RResiduals :  0.232989
+      ..
+    500 RResiduals : 0.0580753
+      ..
+    2000 RResiduals : 0.000755532
+      ..
+    7000 RResiduals : 4.07673e-10
+      ..
+    12000 RResiduals :   3.58846e-15
+
+We have a convergence but very slow. This experiment, if transferable to bundle adjustment,
+show that we MUST consider the tranfer mapping as an unknown.
+
+           -----------------------------------------------
+
+With covariance propag, rotation unknown, and decomposition as sum of sqaure we get :
+
+     MMVII TestCovProp   SomL2RUk  NbICP=10 
+     0 RResiduals :   0.722085
+     1 RResiduals :   0.0577052
+     2 RResiduals :   0.000452253
+     3 RResiduals :   2.71006e-08
+       ...
+     9 RResiduals :   3.8805e-15
+
+The results are pretty identic to first case (set point, unkonwn rot), which is not a surprise,
+with perfect data (no noise on observation) they both converge to the solution pretty fast.
+
+With such data set, we would probably not get very interesting difference in adding noise, because
+all the variable are homogeneous and there is no such bug correlation bewteen variable (to test ??).
+
+The purpose of this game example is not to prove the theoreticall gain of the method, but rather to
+asse the computationnel correctness of the code that implement it.  And also to use as canvas for
+implementing it with more complex cases like "freenet bundle adjsustment".
+ 
+*/
+
+
 
 
 namespace MMVII
@@ -11,16 +174,18 @@ namespace NS_Bench_RSNL
 //======================================
 
 
-template <class Type>  class  cElemNetwork ;
-template <class Type>  class  cCovNetwork  ;
+template <class Type>  class  cElemNetwork ;  // "Elementary" network
+template <class Type>  class  cCovNetwork  ;  // "Big" network
 
 
+/**   Class implementing a network that is "resolved" using covariance propagation.  It contains a subset
+      of small network.
 
-/**  Class for implemanting an "elementary = small" newtork,
-     on which we will compute covariance that will be transfered
-     in the "big" network
+      The method is :
+          * compute independanly the solution in small network, covariance and solution will be used
+          * the iteraritvely estimate similitude between 2 network (big/small) and propagate covariance/solution
+
 */
-
 
 
 template <class Type>  class  cCovNetwork :   public cMainNetwork<Type>
@@ -29,14 +194,28 @@ template <class Type>  class  cCovNetwork :   public cMainNetwork<Type>
            cCovNetwork(double aWeightGCM,eModeTestPropCov,eModeSSR,cRect2,const cParamMainNW &,cParamSparseNormalLstSq * = nullptr);
            ~cCovNetwork();
 
-           void PostInit() override;
-           void TestCov(double aCheatMT,int aNbIter);
+           void PostInit() override;  ///< method that does the complete init
+
+           /**  Solve the network using cov-prop on small ones ,
+
+                Parameter CheatMT => Cheating Mappingg Transfer, if not 0, use (with weight CheatMT) the 
+                real coordinate to compute the geometric mappinf (rotation) bewteen big/small. This is 
+                obviously cheating as in real life we dont know the value of coordinates in big (this is
+                what we want to compute).  Just for tuning and trying to understand why the fix/rotation case
+                converge so slowly
+           */
+           void SolveByCovPropagation(double aCheatMT,int aNbIter);
 
      private :
 	   double                            mWeightGaugeCovMat; ///< Gauge for computing cov matrices on small networks
            eModeTestPropCov                  mModeTPC;  ///<  Mode : Matric, Sum L2, Pts ...  
            std::vector<cElemNetwork<Type> *> mVNetElem; ///<  Elementary networks
 };
+
+/**  Class for implemanting an "elementary = small" newtork,
+     on which we will compute covariance that will be transfered
+     in the "big" network
+*/
 
 template <class Type>  class  cElemNetwork : public cMainNetwork<Type>
 {
@@ -46,40 +225,51 @@ template <class Type>  class  cElemNetwork : public cMainNetwork<Type>
         typedef cPNetwork<Type>           tPNet;
 
 
-        cElemNetwork(eModeTestPropCov,tMainNW & aMainW,const cRect2 & aRectMain);
+        cElemNetwork
+        (
+               eModeTestPropCov,  ///< mode of propag (cov/sum l2/pts) and  (fix/uk) 
+               tMainNW & aMainW,  ///< the main network it belongs to
+               const cRect2 & aRectMain  ///< rectangle, typicalyy [0,2[x[0,2[
+        );
         ~cElemNetwork();
 
+        /**  "resolve" the small network, essentiall compute its solution and its covariance matrix, 
+             eventually decompose in sum a square of
+             linear form, will be used */
 	Type ComputeCovMatrix(double aWeighGauge,int aNbIter);
+
+        /**  Make one iteration of covariance propagation in the network*/
         void PropagCov(double aWCheatMT);
 
-        int DebugN() const {return mDebugN;}
+        int DebugN() const {return mDebugN;}  ///< accessor to Debugging number
         
+        /**  Redefine the function Index->Geom, taking into account the network is copy (up to a rotation)
+             of the subset of the big one */
         tPt  ComputeInd2Geom(const cPt2di & anInd) const override ;
         
     private :
-         cPNetwork<Type> & IndMainHom(const cPt2di & anInd) const
-         {
-               return mMainNW->PNetOfGrid(anInd+mBoxM.P0() );
-         }
+         /// return for each node of the network, its homologous in the big one
          cPNetwork<Type> & MainHom(const tPNet & aPN) const
          {
                return IndMainHom(aPN.mInd);
          }
-        /// Give the homologous of point in the main network
-        // tPNet & MainHom(const tPNet &) const;
-       
+         /// return for each INDEX  of the network, its homologous in the big one
+         cPNetwork<Type> & IndMainHom(const cPt2di & anInd) const
+         {
+               return mMainNW->PNetOfGrid(anInd+mBoxM.P0() );
+         }
 
-         eModeTestPropCov         mModeTPC;
-	 bool                     mRotUk;
-	 bool                     mL2Cov;
-	 bool                     mPtsAtt;  ///<  Mode attach directly topoint
-         tMainNW *                mMainNW;
-         cRect2                   mBoxM;
-	 int mDebugN; 
-         cCalculator<double> *    mCalcCov;
-         cCalculator<double> *    mCalcPtsSimFix;
-         cCalculator<double> *    mCalcPtsSimVar;
-         cDecSumSqLinear<Type>    mDSSL;
+         eModeTestPropCov         mModeTPC;  ///< mode propag cov
+	 bool                     mRotUk;    ///< is the rotation unknown in this mode
+	 bool                     mL2Cov;    ///< is it a mode where cov is used as sum a square linear
+	 bool                     mPtsAtt;   ///<  Mode attach directly topoint
+         tMainNW *                mMainNW;   ///<  The main network it belongs to
+         cRect2                   mBoxM;     ///<  Box of the network
+	 int mDebugN;                        ///< identifier, was used in debuginng
+         cCalculator<double> *    mCalcSumL2RUk;  ///< calculcator usde in mode som L2 with unknown rot
+         cCalculator<double> *    mCalcPtsRFix;   ///< calculator used with known point/ Rot fix
+         cCalculator<double> *    mCalcPtsSimVar;  ///< calculator used with known point/Rot unknown
+         cDecSumSqLinear<Type>    mDSSL;           ///< structur for storing covariance as sum of square linear form
 };
 
 /* *************************************** */
@@ -105,22 +295,32 @@ template <class Type>
 {
 }
 
+
 template <class Type> 
         void cCovNetwork<Type>::PostInit() 
 {
+     // 1-  First call the usual initialisation to create the nodes
      cMainNetwork<Type>::PostInit();
 
+     // 2- Now create the sub network
      cPt2di aSz(2,2);
-     cRect2  aRect(this->mBoxInd.P0(),this->mBoxInd.P1()-aSz+cPt2di(1,1));
+          // rectangle containings all origins of sub-networks
+     cRect2  aOriginsSubN(this->mBoxInd.P0(),this->mBoxInd.P1()-aSz+cPt2di(1,1));
 
-     for (const auto & aPix: aRect)
+     for (const auto & aPix: aOriginsSubN)  // map origins
      {
          cRect2 aRect(aPix,aPix+aSz);
-         auto aPtrN = new cElemNetwork<Type>(mModeTPC,*this,aRect);
-         aPtrN->PostInit();
+         auto aPtrN = new cElemNetwork<Type>(mModeTPC,*this,aRect);  // create the sub network
+         aPtrN->PostInit(); // finish its initalisattion, that will use "this" (the main network)
          mVNetElem.push_back(aPtrN);
+         //  compute solution and covariance in each network
          Type aRes = aPtrN->ComputeCovMatrix(mWeightGaugeCovMat,10);
-	 MMVII_INTERNAL_ASSERT_bench(aRes<1e-8,"No conv 4 sub net");
+         // consistancy, check that the sub-network reach convergence
+	 if (aRes>=1e-8)
+         {
+             StdOut() << " Residual  " << aRes << "\n";
+	     MMVII_INTERNAL_ASSERT_bench(false,"No conv 4 sub net");
+         }
      }
 }
 
@@ -130,31 +330,26 @@ template <class Type>  cCovNetwork<Type>::~cCovNetwork()
 }
 
 
-template <class Type>  void cCovNetwork<Type>::TestCov(double aCheatMT,int aNbIter)
+template <class Type>  void cCovNetwork<Type>::SolveByCovPropagation(double aCheatMT,int aNbIter)
 {
 
-     Type   aRes0 = 1.0;
-     for (int aTime=0 ; aTime<aNbIter ; aTime++)
+     for (int aTime=0 ; aTime<aNbIter ; aTime++) // make aNbIter iteration
      {
+         // compute and print the difference comuted values/ground truth
 	 Type   aResidual = this->CalcResidual() ;
-         if (aTime==0)
-            aRes0 = aResidual;
-	 StdOut()   << aTime <<  " RRR  " << aResidual << " " << aResidual/aRes0 << "\n";//  getchar();
+	 StdOut()   << aTime <<  " RResiduals :   " << aResidual <<  "\n";
 
+          // for all subnetwork propagate the covariance
           for (auto & aPtrNet : mVNetElem)
              aPtrNet->PropagCov(aCheatMT);
 
-	  this->AddGaugeConstraint(10);
-	  this->mSys->SolveUpdateReset();
+          //  Add a gauge constraint for the main newtork, as all subnetnwork are computed up to a rotation
+	  this->AddGaugeConstraint(10.0);
+	  this->mSys->SolveUpdateReset();  // classical gauss jordan iteration
 
      }
-StdOut() << " MMVII TestCovProp  SomL2RUk  NbICP=100 NoiseG2R=1 NoiseR2I=2\n";
      getchar();
 }
-
-
-
-// template class cCovNetwork<tREAL8>;
 
 
 /* *************************************** */
@@ -180,15 +375,12 @@ template <class Type>
 	  mPtsAtt                  (MatchRegex(E2Str(mModeTPC),"Pts.*")),
           mMainNW                  (&aMainNW),
           mBoxM                    (aBoxM),
-          mCalcCov                 (EqNetworkConsDistProgCov(true,1,aBoxM.Sz())),
-          mCalcPtsSimFix           (EqNetworkConsDistFixPoints(true,1,aBoxM.Sz(),false)),
+          mCalcSumL2RUk            (EqNetworkConsDistProgCov(true,1,aBoxM.Sz())),
+          mCalcPtsRFix             (EqNetworkConsDistFixPoints(true,1,aBoxM.Sz(),false)),
           mCalcPtsSimVar           (EqNetworkConsDistFixPoints(true,1,aBoxM.Sz(),true))
-
-          // mMainNW     (&aMainNW),
-          // mBoxM       (aBoxM),
 {
     // to "play the game" of covariance propagation wiht unknown transformation, the elementary network
-    // will have a similitude different from the main, but it must have the same scale as we define a
+    // will have a rotation different from the main, but it must have the same scale as we define a
     // triangulation with distance conservation
   
     this->mSimInd2G  = mMainNW->SimInd2G() * cRot2D<Type>::RandomRot(4.0).Sim();
@@ -196,49 +388,48 @@ template <class Type>
     mDebugN = ++TheNumDebug;
 }
 
+/*  Compute the ground truth from the index, the defaut value is randomization, this redefinition
+    make the small network an exact copy, up to an arbitray rotatin, of the corresping subnetwork
+    in the big one.
+*/
 template <class Type> cPtxd<Type,2>  cElemNetwork<Type>::ComputeInd2Geom(const cPt2di & anInd) const
 {
-     cPNetwork<Type> &  aPMain = IndMainHom(anInd);
-
-     tPt aP = aPMain.mTheorPt;  // get the real point
-     aP = mMainNW->SimInd2G().Inverse(aP) ;     // go back to index (perturbated)
+  
+     cPNetwork<Type> &  aPMain = IndMainHom(anInd); // get corresponding point
+     tPt aP = aPMain.mTheorPt;  // get the ground truch point in big network
+     aP = mMainNW->SimInd2G().Inverse(aP) ;  // go back to index (perturbated)
      aP = this->mSimInd2G.Value(aP);  // transfom the index using the similitude of the newtork
      
      return aP;
 }
-/*
-*/
 
 template <class Type> cElemNetwork<Type>::~cElemNetwork()
 {
-    delete mCalcCov;
-    delete mCalcPtsSimFix;
+    delete mCalcSumL2RUk;
+    delete mCalcPtsRFix;
     delete mCalcPtsSimVar;
 }
-/*
-template <class Type>  cPNetwork<Type> & cElemNetwork<Type>::MainHom(const tPNet & aPN) const
-{
-   return this->mMainNW->PNetOfGrid(aPN.mInd+this->mBoxM.P0() );
-}
-*/
 
 
-template <class Type>  Type cElemNetwork<Type>::ComputeCovMatrix(double aWGCovMatr,int aNbIter)
+template <class Type>  Type cElemNetwork<Type>::ComputeCovMatrix(double aWGaugeCovMatr,int aNbIter)
 {
+     // #CCM1    Iteration to compute the 
      for (int aK=0 ; aK<(aNbIter-1); aK++)
      {
          this->DoOneIterationCompensation(10.0,true);  // Iterations with a gauge and solve
      } 
-     Type aRes = this->CalcResidual();
-     this->DoOneIterationCompensation(aWGCovMatr,false);       // last iteration with a gauge w/o solve
+     Type aRes = this->CalcResidual(); // memorization of residual
+
+     // last iteration with a gauge w/o solve (because solving would reinit the covariance) 
+     this->DoOneIterationCompensation(aWGaugeCovMatr,false);     
 
 
-     // Now get the normal matrix and vector, and decompose it in a weighted sum of square  of linear forms
+     // #CCM2  Now get the normal matrix and vector, and decompose it in a weighted sum of square  of linear forms
      if (mL2Cov)
      {
-        auto  aSL = this->mSys->SysLinear();
-        auto aSol = this->mSys->CurGlobSol();
-        mDSSL.Set(aSol,aSL->V_tAA(),aSL->V_tARhs());
+        auto  aSL = this->mSys->SysLinear();  // extract linear system
+        auto aSol = this->mSys->CurGlobSol(); // extract solution
+        mDSSL.Set(aSol,aSL->V_tAA(),aSL->V_tARhs());  // make the decomposition
 
      }
 
@@ -247,34 +438,44 @@ template <class Type>  Type cElemNetwork<Type>::ComputeCovMatrix(double aWGCovMa
 
 template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
 {
-    std::vector<tPt> aVLoc;
-    std::vector<tPt> aVMain;
+    // ========  1- Estimate  the rotation between Big current network and final small network
+    //              compute also indexes of point in big network
 
-    int aNbUkRot = mRotUk ?  3 : 0; // Number of parameters for unknown similitudes
-    std::vector<int> aVIndUk(this->mVPts.size()*2+aNbUkRot,-1);  // Index of unknown, if SimUk begin with 4 Tmp-Schur for similitude
+        // 1.0  declare vector for storing 
+    std::vector<tPt> aVLoc;   // points of small network we have convergerd to
+    std::vector<tPt> aVMain;  // current point of main network
+
+    int aNbUkRot = mRotUk ?  3 : 0; // Number of parameters for unknown rotationn
+    // Index of unknown, if Rotation unknown,  begin with 3 Tmp-Schur for rotation
+    std::vector<int> aVIndUk(this->mVPts.size()*2+aNbUkRot,-1); 
  
+        // 1.1  compute indexes and homologous points
     for (const auto & aPNet : this->mVPts)
     {
          const tPNet & aHomMain = this->MainHom(aPNet);
+         // this index mapping is required because for example if first point has Num 2, and corresponding
+         // global index if 36, the index 36 must be at place 2, after eventually rotations indexes
          aVIndUk.at(aNbUkRot+aPNet.mNumX) = aHomMain.mNumX;
          aVIndUk.at(aNbUkRot+aPNet.mNumY) = aHomMain.mNumY;
-// StdOut() << " " << aPNet.mNumX << " " << aPNet.mNumY  ;
 
-	 if(aWCheatMT>=0)
+	 if(aWCheatMT<=0)
+	 {
+             // standard case
+             aVLoc.push_back(aPNet.PCur());  // Cur point of local, where it has converger
+             aVMain.push_back(aHomMain.PCur());  // Cur point of global, will evolve
+	 }
+	 else
 	 {
              aVLoc.push_back(aPNet.mTheorPt);
              aVMain.push_back(aHomMain.mTheorPt*Type(aWCheatMT) +aHomMain.PCur()*Type(1-aWCheatMT));
 	 }
-	 else
-	 {
-             aVLoc.push_back(aPNet.PCur());
-             aVMain.push_back(aHomMain.PCur());
-	 }
     }
 
+           // 1.2  estimate the rotation (done here  by ransac + several linearization+least square) #PC1
     Type aSqResidual;
     cRot2D<Type>  aRotM2L =  cRot2D<Type>::StdGlobEstimate(aVMain,aVLoc,&aSqResidual);
 
+           // 1.3  make a vector of observtion/temp unkown of this rotation
     tPt  aTr   = aRotM2L.Tr();
     Type aTeta = aRotM2L.Teta();
 
@@ -282,6 +483,66 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     aVTmpRot.push_back(aTr.x());
     aVTmpRot.push_back(aTr.y());
     aVTmpRot.push_back(aTeta);
+
+    // ========  2- Now make the process corresponding to different mode
+
+    if (mPtsAtt)
+    {
+       /* ---------  2-A  case where we use   directly the points (no covariance)
+              see cNetWConsDistFixPts , it return all the observation of the network
+              For kieme point we have:
+                Obs_k =  Rot(Plob_k) - PLoc_k
+              The vector will be {Obs_0.x Obs_0.y  Obs_1.x .... }
+       */
+
+           // VectObs : (Trx Try Teta)  X1 Y1 X2 Y2 ...  
+        std::vector<Type> aVObs  =  mRotUk ?  std::vector<Type>()  : aVTmpRot; // Rot is OR an observation OR an unknown
+	int aNbObsRot = aVObs.size();  
+	aVObs.resize(aVObs.size()+2*this->mVPts.size()); // extend to required size
+
+        for (const auto & aPNet : this->mVPts)  // for all points of network
+        {
+             tPt aPt =    aPNet.PCur();
+             // put points  of network as observation
+             aVObs.at(aNbObsRot+aPNet.mNumX) = aPt.x(); 
+             aVObs.at(aNbObsRot+aPNet.mNumY) = aPt.y();
+        }
+        if (mRotUk) // if rotation unknown use schurr complement or equivalent
+        {
+            cSetIORSNL_SameTmp<Type> aSetIO;
+            // compute all the observations 
+            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVTmpRot,aVObs);
+            // add it to system with schurr substitution
+            this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
+        }
+        else // just add observation if rotation is fix
+        {
+           this->mMainNW->Sys()->CalcAndAddObs(mCalcPtsRFix,aVIndUk,aVObs);
+        }
+    }
+    else if (mL2Cov)
+    {
+       // ---------  2-B  case where we use  the decomposition covariance as sum of SqL,  #PC2
+       cSetIORSNL_SameTmp<Type> aSetIO; // structure for schur subst
+       for (const auto anElemLin : mDSSL.VElems()) // parse all linear system
+       {
+           cResidualWeighter<Type>  aRW(anElemLin.mW);  // the weigth as given by eigen values
+           std::vector<Type> aVObs = anElemLin.mCoeff.ToStdVect(); // coefficient of the linear forme
+           aVObs.push_back(anElemLin.mCste);  // cste  of the linear form
+           // Add the equation in the structure
+           this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcSumL2RUk,aVIndUk,aVTmpRot,aVObs,aRW);
+       }
+       // Once all equation have been bufferd in aSetIO, add it to the system
+       //  the unknown rotation will be eliminated
+       this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
+    }
+    else
+    {
+        // case where we directly add the covariance matrix, it was the way the method was initiated
+        // obsoletr for now as : (1) slow if rotation is fix (2) if rotation is unknown, more complicated 
+        // than sum of square  of linear forms
+
+        // maintain it , in case we want to go back to this, but no comment in detail
 /*
     Loc =   aSimM2L * Main
 
@@ -289,49 +550,6 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     Y_loc =  (Try) +   (Sy    Sx) * (Y_Main)
     
 */
-
-
-    if (mL2Cov)
-    {
-       cSetIORSNL_SameTmp<Type> aSetIO;
-       Type aMinW(1e10);
-       for (const auto anElemLin : mDSSL.VElems())
-       {
-           UpdateMin(aMinW,anElemLin.mW);
-           cResidualWeighter<Type>  aRW(anElemLin.mW);
-           std::vector<Type> aVObs = anElemLin.mCoeff.ToStdVect();
-           aVObs.push_back(anElemLin.mCste);
-           this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcCov,aVIndUk,aVTmpRot,aVObs,aRW);
-           //  StdOut() << "CSTE " << anElemLin.mCste << "\n";
-       }
-       //  StdOut() << "NBEL " << mDSSL.VElems().size() << " MinW= " << aMinW << "\n";
-       this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
-    }
-    else if (mPtsAtt)
-    {
-        std::vector<Type> aVObs  =  mRotUk ?  std::vector<Type>()  : aVTmpRot;
-	int aNbObsRot = 3-aNbUkRot;
-	aVObs.resize(aVObs.size()+2*this->mVPts.size());
-        for (const auto & aPNet : this->mVPts)
-        {
-             // const tPNet & aHomMain = this->MainHom(aPNet);
-             tPt aPt =    aPNet.PCur();
-             aVObs.at(aNbObsRot+aPNet.mNumX) = aPt.x();
-             aVObs.at(aNbObsRot+aPNet.mNumY) = aPt.y();
-        }
-        if (mRotUk)
-        {
-            cSetIORSNL_SameTmp<Type> aSetIO;
-            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVTmpRot,aVObs);
-            this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
-        }
-        else
-        {
-           this->mMainNW->Sys()->CalcAndAddObs(mCalcPtsSimFix,aVIndUk,aVObs);
-        }
-    }
-    else
-    {
          int aNbVar = this->mNum;
          std::vector<int>    aVIndTransf(this->mNum,-1);
          cDenseMatrix<Type>  aMatrixTranf(aNbVar,eModeInitImage::eMIA_Null);  ///< Square
@@ -504,7 +722,7 @@ int  cAppli_TestPropCov::Exe()
 		  );
        mMainNet->PostInit();
 
-       mMainNet->TestCov(mWCheatMT ,mNbItCovProp);
+       mMainNet->SolveByCovPropagation(mWCheatMT ,mNbItCovProp);
 
        delete mMainNet;
    }
