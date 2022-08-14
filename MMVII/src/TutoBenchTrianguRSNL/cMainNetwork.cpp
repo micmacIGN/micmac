@@ -24,7 +24,9 @@ namespace NS_Bench_RSNL
 
 cParamMainNW::cParamMainNW() :
     mAmplGrid2Real  (0.1),
-    mAmplReal2Init  (0.1)
+    mAmplReal2Init  (0.1),
+    mNoiseOnDist    (0.0),
+    mFactXY         (1,1)
 {
 }
 
@@ -146,7 +148,7 @@ template <class Type> void cMainNetwork <Type>::PostInit()
               {
 	          tPNet &  aPN2 = PNetOfGrid(aNeigh);
                   // Test on num to do it only one way
-                  if ((aPN1.mNumPt>aPN2.mNumPt) && aPN1.Linked(aPN2))
+                  if ((aPN1.mNumPt>aPN2.mNumPt) && aPN1.AreLinked(aPN2))
 	          {
                        // create the links, be careful that for pair with schur point all the links start from schur ,
 		       // this will make easier the regrouping of equation concerning the same point,
@@ -168,6 +170,19 @@ template <class Type> void cMainNetwork <Type>::PostInit()
      mCalcD =  EqConsDist(true,1);
 }
 
+/// Default value return exact distance 
+template <class Type>  Type cMainNetwork<Type>::ObsDist(const tPNet & aPN1,const tPNet & aPN2) const
+{
+     return Norm2(aPN1.TheorPt()-aPN2.TheorPt()); 
+}
+
+template <class Type>  bool cMainNetwork<Type>::OwnLinkingFiltrage(const cPt2di &,const cPt2di &) const
+{
+   return true;
+}
+
+
+
 
 template <class Type> bool  cMainNetwork <Type>::AxeXIsHoriz() const
 {
@@ -178,7 +193,11 @@ template <class Type> bool  cMainNetwork <Type>::AxeXIsHoriz() const
 
 template <class Type> cPtxd<Type,2>  cMainNetwork <Type>::ComputeInd2Geom(const cPt2di & anInd) const
 {
-    return mSimInd2G.Value(tPt(anInd.x(),anInd.y()) + tPt::PRandC()*Type(mParamNW.mAmplGrid2Real)  );
+    Type aIndX = anInd.x()*mParamNW.mFactXY.x();
+    Type aIndY = anInd.y()*mParamNW.mFactXY.y();
+// StdOut() << "SSSS " << mParamNW.mFactXY << "\n";
+
+    return mSimInd2G.Value(tPt(aIndX,aIndY) + tPt::PRandC()*Type(mParamNW.mAmplGrid2Real)  );
 }
 
 template <class Type> cMainNetwork <Type>::~cMainNetwork ()
@@ -211,7 +230,7 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
             aNbPairTested++;
             aVCur.push_back(aPN.PCur());
             aVTh.push_back(aPN.TheorPt());
-            aSumResidual += Norm2(aPN.PCur() -aPN.TheorPt());
+            aSumResidual += SqN2(aPN.PCur() -aPN.TheorPt());
 	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << "\n";
             if (aPN.mFrozenX || aPN.mFrozenY)
             {
@@ -228,7 +247,7 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
          //StdOut() << aVCur[1] - aVCur[0] / aVTh[1]-aVTh[0] <<  "\n";
          return aRes;
      }
-     return aSumResidual / aNbPairTested ;
+     return sqrt(aSumResidual / aNbPairTested );
 }
 
 template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightFix)
@@ -274,7 +293,7 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
                 const tPNet & aPN2 = mVPts.at(aI2);
 	        //std::vector<int> aVIndMixt{aPN2.mNumX,aPN2.mNumY,-1,-1};  // Compute index of unknowns for this equation
 	        std::vector<int> aVIndMixt{-1,-1,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns for this equation
-                std::vector<Type> aVObs{Type(Norm2(aPN1.TheorPt()-aPN2.TheorPt()))}; // compute observations=target distance
+                std::vector<Type> aVObs{ObsDist(aPN1,aPN2)}; // compute observations=target distance
                 // Add eq in aSetIO, using CalcD intantiated with VInd,aVTmp,aVObs
 		mSys->AddEq2Subst(aSetIO,mCalcD,aVIndMixt,aVTmp,aVObs);
 	    }
@@ -287,7 +306,7 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
                {
                     const tPNet & aPN2 = mVPts.at(aI2);
 	            std::vector<int> aVInd{aPN1.mNumX,aPN1.mNumY,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns
-                    std::vector<Type> aVObs{Type(Norm2(aPN1.TheorPt()-aPN2.TheorPt()))};  // compute observations=target distance
+                    std::vector<Type> aVObs{ObsDist(aPN1,aPN2)};  // compute observations=target distance
                     // Add eq  using CalcD intantiated with VInd and aVObs
 	            mSys->CalcAndAddObs(mCalcD,aVInd,aVObs);
 	       }
@@ -417,7 +436,7 @@ template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PCur() const
 template <class Type> const cPtxd<Type,2> &  cPNetwork<Type>::TheorPt() const { return mTheorPt; }
 template <class Type> const cPtxd<Type,2> &  cPNetwork<Type>::PosInit() const { return mPosInit; }
 
-template <class Type> bool cPNetwork<Type>::Linked(const cPNetwork<Type> & aP2) const
+template <class Type> bool cPNetwork<Type>::AreLinked(const cPNetwork<Type> & aP2) const
 {
    // Precaution, a poinnt is not linked yo itself
    if (mInd== aP2.mInd) 
@@ -428,7 +447,9 @@ template <class Type> bool cPNetwork<Type>::Linked(const cPNetwork<Type> & aP2) 
       return false;
 
     //  else point are linked is they are same column, or neighbooring colums
-    return NormInf(mInd-aP2.mInd) <=1;
+    if (NormInf(mInd-aP2.mInd) >1) return false;
+
+    return mNetW->OwnLinkingFiltrage(mInd,aP2.mInd);
 }
 
 /* ======================================== */

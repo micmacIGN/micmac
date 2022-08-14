@@ -493,6 +493,15 @@ template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
    return aRes;
 }
 
+template <const int Dim> tINT8  cPixBox<Dim>::IndexeUnorderedPair(const tPt&aP1,const tPt&aP2) const
+{
+    tINT8 aI1 = IndexeLinear(aP1);  // num of P1 in Box
+    tINT8 aI2 = IndexeLinear(aP2);  // num of P2 in Box
+    OrderMinMax(aI1,aI2);           // to assure P1,P2 = P2,P1
+    return  aI1*this->NbElem() + aI2;     // make a unique index
+}
+
+
 template <const int Dim> bool  cPixBox<Dim>::SignalAtFrequence(const tPt & anIndex,double aFreq) const
 {
    return MMVII::SignalAtFrequence(IndexeLinear(anIndex),aFreq,this->mNbElem-1);

@@ -244,17 +244,25 @@ template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,con
     return aRes;
 }
 
+//  resize only in increasing mode
+template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal)
+{
+   if (aSz>aV1.size())
+      aV1.resize(aSz,aVal);
+}
 
+
+///  compute the cartesian product of all seq {12,A,xyz} ->  {1Ax,2Ax,1Ay....} 
 template <class Type>  std::vector<std::vector<Type>>  ProdCart(const std::vector<std::vector<Type>>  aVV)
 {
      std::vector<std::vector<Type>> aVVRes;
-     aVVRes.push_back(std::vector<Type>());
-     for (const auto & aVNewV : aVV)
+     aVVRes.push_back(std::vector<Type>()); /// initialize with neutral elemnt for cart prod of setq {{}} 
+     for (const auto & aVNewV : aVV)  // for each input sequence
      {
           std::vector<std::vector<Type>>  aNewVVRes;
-          for (const auto & aVR : aVVRes)
+          for (const auto & aVR : aVVRes)  // for each sequence already compute
           {
-              for (const auto & aNewVal : aVNewV)
+              for (const auto & aNewVal : aVNewV)  // add each val to existing sequence
               {
                   std::vector<Type> aNewVect = aVR;
                   aNewVect.push_back(aNewVal);

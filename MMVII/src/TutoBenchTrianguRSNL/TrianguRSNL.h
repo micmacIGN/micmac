@@ -61,7 +61,7 @@ template <class Type>  class  cPNetwork
             void MakePosInit(const double & aMulAmpl);
 
 	    /// Are the two point linked  (will their distances be an observation compensed)
-	    bool Linked(const cPNetwork<Type> & aP2) const;
+	    bool AreLinked(const cPNetwork<Type> & aP2) const;
 
             int            mNumPt;     ///< Num in vector
             cPt2di         mInd;       ///< Index in the grid
@@ -84,6 +84,8 @@ class cParamMainNW
 
        double mAmplGrid2Real;   // Amplitude of random differerence between real position and regular grid
        double mAmplReal2Init;  // Amplitude of random and syst differerence  betwen real an init position
+       double mNoiseOnDist;  // Noise on distance measurement, default 0 (ignored  in cMainNetwork)
+       cPt2dr mFactXY;
 };
 
 template <class Type>  class  cMainNetwork
@@ -98,7 +100,7 @@ template <class Type>  class  cMainNetwork
 
 
           cMainNetwork(eModeSSR aMode,cRect2,bool WithSchurr,const cParamMainNW &,cParamSparseNormalLstSq * = nullptr);
-          /// Do real construction that cannot be made in constructor do to call to virtual funcs
+          /// Do real construction that cannot be made in constructor (because call to virtual funcs ie ComputeInd2Geom)
           virtual void PostInit();
           virtual ~cMainNetwork();
 
@@ -109,6 +111,13 @@ template <class Type>  class  cMainNetwork
 
           /// If we use this iteration for covariance calculation , we dont add constraint, and dont solve
 	  Type DoOneIterationCompensation(double  aWeigthGauge,bool WithCalcReset);
+
+
+          ///  Distance observed between 2 points, can be redefines if we want to add noise
+          virtual Type ObsDist(const tPNet & aPN1,const tPNet & aPN2) const;
+
+	  /// A network can filter the linking on it own criteria, default -> true
+	  virtual bool OwnLinkingFiltrage(const cPt2di & aP1,const cPt2di & aP2) const;
 
 	  Type CalcResidual();
 	  void AddGaugeConstraint(Type aWeight);
