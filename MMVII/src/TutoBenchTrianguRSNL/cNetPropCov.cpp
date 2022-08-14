@@ -278,12 +278,17 @@ MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=1000 NoiseDist=1e-3  WConf=[0,1,0]  
 
 We suppress a conexion in subnetwork and make a dilatation. 
 
-     --------- (5) LowCn45  -----------------
+      --------- (5) LowCn4 ------------------
+MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,0] SzMainN=5
+
+We have sub-network with poor geometry & topology.
+
+     --------- (6) LowCn45  -----------------
 MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,1] SzMainN=5
 
 We add the two network that are badly configured (cnxion and geometry) in X and Y
 
-     --------- (6) LowCn2345  -----------------
+     --------- (7) LowCn2345  -----------------
 MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,1,1,1,1] SzMainN=5
 
 We add the 4 network that are badly connected.
@@ -403,7 +408,7 @@ MMVII TestCovProp PtsRUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,1] 
 -> AVG=0.0482969 RefAvg=0.00734164 Med=0.0435764 RefMed=0.0062305
 
 Case LowCn4
-MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,1] SzMainN=5
+MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,0] SzMainN=5
 AVG=0.0489416 RefAvg=0.00746846 Med=0.0389798 RefMed=0.00678199
 MMVII TestCovProp PtsRUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,0] SzMainN=5
 AVG=0.0802936 RefAvg=0.00746846 Med=0.0725622 RefMed=0.00678199
