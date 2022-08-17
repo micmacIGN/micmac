@@ -44,12 +44,14 @@ template<class Type> void  TplOneBenchSSRNL
                                cParamSparseNormalLstSq * aParam=nullptr
                            )
 {
+     cParamMainNW aParamNW;
      Type aPrec = tElemNumTrait<Type>::Accuracy() ;
-     cMainNetwork <Type> aBN(aMode,aRect,WithSchurr,aParam);
+     cMainNetwork <Type> aBN(aMode,aRect,WithSchurr,aParamNW,aParam);
+     aBN.PostInit();
      double anEc =100;
      for (int aK=0 ; aK < THE_NB_ITER ; aK++)
      {
-         anEc = aBN.OneItereCompensation(false);
+         anEc = aBN.DoOneIterationCompensation(100.0,true);
          // StdOut() << "  ECc== " << anEc /aPrec<< "\n";
      }
      // StdOut() << "Fin-ECc== " << anEc  / aPrec << " Nb=" << aNb << "\n";
@@ -81,16 +83,15 @@ void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLst
 void BenchSSRNL(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("SSRNL")) return;
-
-     if (DEBUG_RSNL)
-	     StdOut() << "DEBUG_RSNLlllllllllllllllllllllllllllllllllllllll\n";
-
+/*
      for (int aK=0 ; aK<10 ; aK++)
      {
-         cMainNetwork <tREAL8> aNet(eModeSSR::eSSR_LsqDense,2,false);
+         cParamMainNW aParamNW;
+         cMainNetwork <tREAL8> aNet(eModeSSR::eSSR_LsqDense,2,false,aParamNW);
 
 	 aNet.TestCov();
      }
+*/
 
      // Test with non centered netowrk 
      TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense,cBox2di(cPt2di(0,0),cPt2di(2,2)),false);

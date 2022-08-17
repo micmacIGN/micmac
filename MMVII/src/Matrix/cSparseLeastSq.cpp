@@ -127,9 +127,11 @@ template<class Type>  class cSparseLeasSq : public cLeasSq<Type>
          cSparseLeasSq(int  aNbVar);
 };
 
-template<class Type> void cSparseLeasSq<Type>::AddObservation(const Type& ,const cDenseVect<Type> & ,const Type &  ) 
+template<class Type> void cSparseLeasSq<Type>::AddObservation
+                      (const Type& aW ,const cDenseVect<Type> & aDV ,const Type & aVal ) 
 {
-	MMVII_INTERNAL_ERROR("Used dense vector onn cSparseLeasSqtAA");
+   // call to virtual  method, dont know why, compiler dont agre w/o cast 
+    static_cast<cLinearOverCstrSys<Type> *>(this)-> AddObservation(aW,cSparseVect(aDV),aVal);
 }
 
 template<class Type> 

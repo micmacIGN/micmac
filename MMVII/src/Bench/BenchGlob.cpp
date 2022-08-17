@@ -421,6 +421,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         this->BenchFiles(aParam); // Creation deletion of file
         Bench_Nums(aParam); // Basic numericall services
         BenchHamming(aParam);
+        BenchRansSubset(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
         BenchSet(aParam,mDirTestMMVII);  // Set (in extension)
         BenchSelector(aParam,mDirTestMMVII);  // Set (in comprehension)
@@ -894,6 +895,8 @@ void ShowAdr(double & anAdr)
 }
 void TTT();
 
+
+
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
@@ -987,7 +990,7 @@ tMMVII_UnikPApli Alloc_MPDTest(const std::vector<std::string> & aVArgs,const cSp
 
 cSpecMMVII_Appli  TheSpecMPDTest
 (
-     "MPDTest",
+     "TestMPD",
       Alloc_MPDTest,
       "This used a an entry point to all quick and dirty test by MPD ...",
       {eApF::Test},

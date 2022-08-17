@@ -88,6 +88,13 @@ NS_SymbolicDerivative::cCalculator<double> * EqConsDist(bool WithDerive,int aSzB
 /// Ratio of dist, Uk={x1,y1,x2,y2,x3,y3} Obs={D12,D13,D23} ,  3 Residuals as D(p1,p2)/D12 - D(p1,p3)/D13
 NS_SymbolicDerivative::cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf);
 
+/// For propag cov in network (in dev ....)
+NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistProgCov(bool WithDerive,int aSzBuf,const cPt2di& aSzN);
+
+/// For propag in network  W/O covariance (i.e propagate directly the points)
+NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,const cPt2di& aSzN,bool WithSimUK);
+
+
 
 
 };

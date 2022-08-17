@@ -53,6 +53,7 @@ std::string FixDigToStr(double aSignedVal,int aNbDigBefore,int aNbDigAfter); // 
 
 template <>  std::string cStrIO<bool>::ToStr(const bool & anI);
 template <>  bool cStrIO<bool>::FromStr(const std::string & aStr);
+template <>  size_t cStrIO<size_t>::FromStr(const std::string & aStr);
 template <>  std::string cStrIO<int>::ToStr(const int & anI);
 template <>  int cStrIO<int>::FromStr(const std::string & aStr);
 template <>  std::string cStrIO<double>::ToStr(const double & anI);
@@ -305,6 +306,7 @@ size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
 void AddData(const  cAuxAr2007 & anAux, bool  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, size_t  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
 void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Pair of string

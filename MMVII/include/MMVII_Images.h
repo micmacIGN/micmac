@@ -64,6 +64,7 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         const iterator &  end()   const {return mEnd;}   ///< For auto
         tINT8     IndexeLinear(const tPt &) const; ///< Num of pixel when we iterate
         tPt     FromIndexeLinear(tINT8 ) const; ///< Num of pixel when we iterate
+        tINT8   IndexeUnorderedPair(const tPt &,const tPt &) const; ///< create a unique index for pair, AB~BA
         /// Required by iterators  as they do not copy well becaus of ptr
         cPixBox(const cPixBox<Dim> &) ;
         cPixBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty = false);

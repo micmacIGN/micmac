@@ -157,6 +157,17 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVect
    return aRes;
 }
 
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts)
+{
+   MMVII_INTERNAL_ASSERT_tiny((!aVPts.empty()),"Bad size in Vec/Pt");
+
+   cPtxd<tREAL8,Dim> aRes = ToR(aVPts[0]);
+   for (int aK=1 ; aK<int(aVPts.size()) ; aK++)
+      aRes += ToR(aVPts[aK]);
+
+   return aRes/ tREAL8(aVPts.size());
+}
+
 
 
 int NbPixVign(const int & aVign){return 1+2*aVign;}
@@ -481,6 +492,15 @@ template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
       aRes += tINT8(aP[aK]-tBox::mP0[aK]) * tINT8(tBox::mSzCum[aK]);
    return aRes;
 }
+
+template <const int Dim> tINT8  cPixBox<Dim>::IndexeUnorderedPair(const tPt&aP1,const tPt&aP2) const
+{
+    tINT8 aI1 = IndexeLinear(aP1);  // num of P1 in Box
+    tINT8 aI2 = IndexeLinear(aP2);  // num of P2 in Box
+    OrderMinMax(aI1,aI2);           // to assure P1,P2 = P2,P1
+    return  aI1*this->NbElem() + aI2;     // make a unique index
+}
+
 
 template <const int Dim> bool  cPixBox<Dim>::SignalAtFrequence(const tPt & anIndex,double aFreq) const
 {
@@ -1020,6 +1040,7 @@ MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,1);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,2);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,3);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,4);\
+template  cPtxd<tREAL8,DIM> Barry(const std::vector<cPtxd<TYPE,DIM> > & aVPts);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\

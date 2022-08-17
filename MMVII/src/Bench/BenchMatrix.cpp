@@ -6,8 +6,6 @@
 namespace MMVII
 {
 
-
-
 /* ===================================================== */
 /* ===================================================== */
 /* ===================================================== */
@@ -517,11 +515,17 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
       std::vector<Type>               aLVal;
 
       int aNbEq = Exact ? aNbVar : 6 * aNbVar;
-  
+
+      cDenseMatrix<Type> aMatrReg = cDenseMatrix<Type>::RandomSquareRegMatrix(cPt2di(aNbVar,aNbVar),false,1e-1,1e-1);
       for (int aK=0 ; aK<aNbEq ; aK++)
       {
           Type aWeight = 1+aK;
           cDenseVect<Type> aDV(aNbVar,eModeInitImage::eMIA_Rand);
+          // If we test exact system, with no reduncy, we must be sure that system is not degenerated
+          if (Exact)
+          {
+              aDV = aMatrReg.ReadCol(aK);
+          }
           cSparseVect<Type> aSV(aNbVar);
           for (int aK=0 ; aK<aNbVar ; aK++)
           {
@@ -640,7 +644,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
      for (int aK=0 ; aK<20 ; aK++)
      {
          int aNbVar = 1+ RandUnif_N(10);
-         int aNbEq =  aNbVar + 3 ;
+         int aNbEq =  2 * aNbVar + 3 ;
 
 	 cParamSparseNormalLstSq aParam
 		                 (
@@ -656,9 +660,11 @@ template <class Type,class TypeSys> void TplBenchLsq()
 	 for (int aNbTest=0 ; aNbTest<3 ; aNbTest++)
 	 {
 
-	      for (int aK=0 ; aK<= 2*aNbEq ; aK++)
+              std::vector< cSparseVect<Type> > aVSV;
+	      for (int aK=0 ; aK<= 3*aNbEq ; aK++)
 	      {
                   cSparseVect<Type> aVCoeff = cSparseVect<Type>::RanGenerate(aNbVar,double(aK)/aNbEq);
+                  aVSV.push_back(aVCoeff);
                   Type  aCste =  RandUnif_C();
                   Type  aW    =   0.5 + RandUnif_0_1();
 	          for (auto & aSys : aVSys)
@@ -666,14 +672,41 @@ template <class Type,class TypeSys> void TplBenchLsq()
 	      }
 
 	      std::vector<cDenseVect<Type> > aVSol;
-	      for (auto & aSys : aVSys)
+	      for (int aKSys=0 ; aKSys<int(aVSys.size()) ;  aKSys++)
 	      {
+	          auto & aSys  =  aVSys[aKSys];
                   aVSol.push_back(aSys->Solve());
-	          Type aDist = aVSol[0].L2Dist(aVSol.back());
-                  MMVII_INTERNAL_ASSERT_bench(aDist<1e-5,"Cmp Least Square");
+	          Type aDist = aVSol[0].L2Dist(aVSol.back()) / tNumTrait<Type>::Accuracy() ;
+                  if (aDist>=1e-2)
+                  {
+                      for (const auto& aCoefs : aVSV)
+                      {
+                            for (const auto& aIV : aCoefs.IV())
+                                StdOut() << "[" << aIV.mInd << "," << aIV.mVal << "] ";
+                            StdOut() << "\n";
+                      }
+                      StdOut() << "KS=" << aKSys << " DDddd " << aDist 
+                               << " Acc=" << tNumTrait<Type>::Accuracy() << "\n";
+                      StdOut() << " NBV=" << aNbVar << " NbE=" << aNbEq << "\n"; 
 
-		  aSys->Reset();
+                      cDenseMatrix<Type>  atAA = aVSys[0]->V_tAA();
+                      cDenseVect<Type>    atARhs = aVSys[0]->V_tARhs();
+                       
+	              for (int aKS2=0 ; aKS2<int(aVSys.size()) ;  aKS2++)
+                      {
+                          cDenseVect<Type> aRes = atAA * aVSys[aKS2]->Solve() - atARhs;
+                          StdOut() << "NNNN " << aRes.L2Norm()   << " " << atARhs.L2Norm() << "\n";
+                      }
+  
+                      MMVII_INTERNAL_ASSERT_bench(false,"Cmp Least Square");
+                  }
+
 	      }
+	      for (int aKSys=0 ; aKSys<int(aVSys.size()) ;  aKSys++)
+              {
+	          auto & aSys  =  aVSys[aKSys];
+		  aSys->Reset();
+              }
 	 }
 
 	 DeleteAllAndClear(aVSys);
@@ -685,8 +718,85 @@ template <class Type,class TypeSys> void TplBenchLsq()
      OneTplBenchLsq<Type,TypeSys>(4);
 }
 
+/** Test/Bench to see how the solver are robust to rank deficient least-square
+    
+     The (surprising !) conclusion being that  the dense least square using normal equation
+    is the more robust.
+*/
+
+void BenchLsqDegenerate()
+{
+    int aKer = RandUnif_N(5);  // Sz of kernel (dim of null vector)
+    int aSz =  aKer + 1 +RandUnif_N(10);  // Sz of matric
+    int aNbV=  1 +RandUnif_N(aSz*2);  // Number of equation
+
+    //  Allocate a rank deficient matric corresponding to parameters
+    cResulSVDDecomp<tREAL8> aRSVD = cDenseMatrix<tREAL8>::RandomSquareRankDefSVD(cPt2di(aSz,aSz),aKer);
+    cDenseMatrix<tREAL8>  aMatr = aRSVD.OriMatr() ;
+
+
+    std::vector<cLeasSq<tREAL8>*> aVSys;
+    cParamSparseNormalLstSq  aParam;
+
+    aVSys.push_back(cLeasSq<tREAL8>::AllocSparseGCLstSq(aSz));   //  0 => sparse, memo eq
+    aVSys.push_back(cLeasSq<tREAL8>::AllocSparseNormalLstSq(aSz,aParam));  // 1 => sparse normal matrix
+    aVSys.push_back(cLeasSq<tREAL8>::AllocDenseLstSq(aSz));    // 2 => dense matrix, normal eq
+
+    for (int aK=0 ; aK<aNbV ; aK++)
+    {
+        // random vector
+        cDenseVect<tREAL8> aV(aSz,eModeInitImage::eMIA_Rand);
+
+        aV = aMatr * aV; // all vector belongs to image(aMatr)
+        double aVal = RandUnif_C();
+
+        for (const auto & aPtrSys : aVSys)
+            aPtrSys->AddObservation(1.0,aV,aVal);
+    }
+    
+    cDenseMatrix<tREAL8>  atAA = aVSys[2]->V_tAA();
+    cDenseVect<tREAL8>  atARhs = aVSys[2]->V_tARhs();
+    for (int aK=0 ; aK<int(aVSys.size()) ; aK++ )
+    {
+        // check if  tAA * Sol = tARhs  or not ...
+        const auto & aPtrSys = aVSys[aK];
+        cDenseVect<tREAL8>  aSol = aPtrSys->Solve();
+        cDenseVect<tREAL8> aDif  = atAA * aSol - atARhs;
+        //  stop only if DenseLeastSq, as other are not robust (to investigate ...)
+        if ((aDif.L2Norm()>=1e-5) && (aK==2))
+        {
+             StdOut() << aK  << "   NNNN " <<  aDif.L2Norm() 
+                      << " Ker="   <<aKer << " Sz="   <<aSz << " NbV="   <<aNbV
+                      << "\n";
+            MMVII_INTERNAL_ASSERT_bench(false,"lsq with degenerate sys");
+        }
+    }
+    {
+        cDecSumSqLinear<tREAL8> aDSSL;
+        cDenseVect<tREAL8>  aV0 = cDenseVect<tREAL8>::Cste(aSz,0.0);
+        aDSSL.Set(aV0,atAA,atARhs);
+        cLeasSqtAA<tREAL8> aSys2 = aDSSL.OriSys();
+        tREAL8 aDV =  aSys2.V_tARhs().L2Dist(atARhs) ;
+        tREAL8 aDM =   aSys2.V_tAA().L2Dist(atAA);
+    
+         // StdOut() << "Ddddd " << aDV << " " << aDM  << " \n";
+         MMVII_INTERNAL_ASSERT_bench(aDV<1e-5,"cDecSumSqLinear vector");
+         MMVII_INTERNAL_ASSERT_bench(aDM<1e-5,"cDecSumSqLinear matrix");
+         ///  StdOut() << "mmmMMMMmm " << aSys2.V_tAA().L2Dist(atAA) << " \n";
+    }
+    DeleteAllAndClear(aVSys);
+}
+
 void BenchLsq()
 {
+     {
+         for (int aK=0 ; aK<200 ; aK++)
+         {
+            BenchLsqDegenerate();
+         }
+         // StdOut() << "EEEEEEEeeeeeeeeeeeeeeee\n"; getchar();
+     }
+
      TplBenchLsq<tREAL4 ,cLeasSqtAA<tREAL4> >();
      TplBenchLsq<tREAL8 ,cLeasSqtAA<tREAL8> >();
      TplBenchLsq<tREAL16,cLeasSqtAA<tREAL16> >();
