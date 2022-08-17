@@ -103,6 +103,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mThickN_WExt   (0.2),
    mThickN_Car    (0.8),
    mThickN_BExt   (0.05),
+   mChessboardAng (M_PI/4.0),
    mDecP          ({1,1})  // "Fake" init 4 now
 {
 }
@@ -256,15 +257,19 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT)
 
 	 bool IsW = true;  // Default is white
 
-         if (aRho < mRho_0_EndCCB)
+
+         if (aRho < mRho_0_EndCCB)  // if we are inside the square bord circle
          {
-            int aIndTeta = round_down(0.5+(aTeta/(M_PI/2.0)));
+            double PIsur2 = M_PI/2.0;
+            double OrigineTeta = this->mChessboardAng;     // Origine angle of chessboard pattern; // 0; // Pi/4
+
+            int aIndTeta = round_down((aTeta+OrigineTeta)/PIsur2);
             IsW = (aIndTeta%2)==0;
          }
          else if (aRho<mRho_1_BeginCode)
-	 {
+	     {
              IsW = true;
-	 }
+         }
          else if (aRho<mRho_2_EndCode)
          {
              IsW = ! CodeBinOfPts(aRho,aTeta,aSetCodesOfT,mRho_1_BeginCode,mRho_2_EndCode-mRho_1_BeginCode);
@@ -378,6 +383,8 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mPCT.mThickN_WExt,"ThSepCar","Thickness of sep bin-code / ahpha code",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_Car,"ThCar","Thickness of separation alpha ccode ",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_BExt,"ThBExt","Thickness of black border ",{eTA2007::HDV})
+          << AOpt2007(mPCT.mChessboardAng,"Theta","Origin angle of chessboard pattern ",{eTA2007::HDV})
+
 
 /*  For now dont confuse user with these values probably unused
           << AOpt2007(mPCT.NbRedond(), "Redund","Number of repetition inside a circle",{eTA2007::HDV})
@@ -395,9 +402,9 @@ int  cAppliGenCodedTarget::Exe()
    {
       cCodesOf1Target aCodes = mPCT.CodesOfNum(aNum);
       aCodes.Show();
-	  
+
 	  tImTarget aImT= mPCT.MakeImCircle(aCodes);
-      
+
       // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
       // FakeUseIt(aCodes);
       mPCT.mSzF = aImT.DIm().Sz();

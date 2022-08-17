@@ -74,9 +74,9 @@ void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS);
 /*   ==============  Result extract  =============  */
 
 /**   Result Detect Code Target, contains OK if the object is stil candidate,
-      or another value indicating why it was eliminated 
+      or another value indicating why it was eliminated
 */
-enum class eResDCT 
+enum class eResDCT
 {
      Ok,
      Divg,
@@ -97,7 +97,7 @@ class  cDCT
          cPt2di  Pix()  const {return ToI(mPt);} /// convert to integer coordinates
          cPt2di  Pix0() const {return mPix0;}   /// initial position
 
-         cGeomSimDCT * mGT;        ///< possible ground truth 
+         cGeomSimDCT * mGT;        ///< possible ground truth
          cPt2di        mPix0;      ///< initial integer position
          cPt2dr        mPt;        ///< refined position sub-pixel
          cPt2dr        mDirC1;     ///< Direction of corner 1 (detected axe of chekboard)
@@ -128,7 +128,7 @@ class cSetCodeOf1Circle
     private :
       std::vector<int>   mVCards;
       int      mN;
-      tVSetICT mVSet ;  //   All the binary code of one target 
+      tVSetICT mVSet ;  //   All the binary code of one target
 };
 
 
@@ -194,11 +194,13 @@ class cParamCodedTarget
        int       mNbPixelBin;        // Number of pixel  Binary image
        double    mSz_CCB;      // size of central chekcboard/target , everything prop to it, 1 by convention
 
+
        double    mThickN_WInt;  // Thickness white circle separating code/
        double    mThickN_Code;  // Thickness of coding part
        double    mThickN_WExt;  // Thickness of white separatio,
        double    mThickN_Car;  // thickness of black border (needed only on pannel)
        double    mThickN_BExt;  // thickness of black border (needed only on pannel)
+       double    mChessboardAng;     // Origine angle of chessboard pattern
 
 
        double          mRho_0_EndCCB;// End of Central CB , here Rho=ThickN ...
