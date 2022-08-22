@@ -354,7 +354,7 @@ LowCn45 :   here we have two poor set of sub network, but that are complementary
             But what is more interesing is that :
 
                  *  for CovProp the factor of gain between LowCn4 and LowCn45 is  3.1
-                 *  for Pointrop the factor  is 1.66
+                 *  for Pointrop the factor  is only  1.66
                  * at the end CovProp is ~ 3.5 better than PointProp and "only" twice as bad as reference
 
             we can interpret this , because the two subnetwork have accuracy/unaccuracy in different direction,
@@ -367,7 +367,7 @@ LowCn2345 :   maybe the best advocating for cov-prop ...
 
               We interpret this way :
 
-                  * in the 4 networks, there is the information for globally descring the newtok
+                  * in the 4 set of sub-networks, there is the information for globally descring the newtok
                   * the information in  config 4 and 5 is very noisy in some direction and average blindly by point prop
                   * conversely cov-prop make a rigourous weighted average
 
