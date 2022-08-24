@@ -29,6 +29,7 @@ class cDevTriangu3d;
    /* ======  header   ====== */
    /* ======================= */
 
+/*
 class cGenerateSurfDevOri
 {
      public :
@@ -50,6 +51,7 @@ class cGenerateSurfDevOri
 	 bool      mPlaneCart; ///< if true generate a plane cartesian mesh
 
 };
+*/
 
 /** Class that effectively compute the "optimal" devlopment of a surface
  * Separate from cAppliMeshDev to be eventually reusable
@@ -105,6 +107,7 @@ class cDevTriangu3d
 /*                                                         */
 /* ******************************************************* */
 
+/*
 int  cGenerateSurfDevOri::NumOfPix(const cPt2di & aKpt)  const
 {
      return aKpt.x() + aKpt.y() *  (mNb.x());
@@ -180,6 +183,7 @@ cGenerateSurfDevOri::cGenerateSurfDevOri(const cPt2di & aNb,double aFactNonDev) 
      mPlaneCart   (false)
 {
 }
+*/
 
 /* ******************************************************* */
 /*                                                         */
@@ -187,6 +191,7 @@ cGenerateSurfDevOri::cGenerateSurfDevOri(const cPt2di & aNb,double aFactNonDev) 
 /*                                                         */
 /* ******************************************************* */
 
+/*
 class cAppliGenMeshDev : public cMMVII_Appli
 {
      public :
@@ -258,6 +263,7 @@ int  cAppliGenMeshDev::Exe()
    aDev.ShowQualityStat();
    return EXIT_SUCCESS;
 }
+*/
 
 
 
@@ -543,6 +549,7 @@ cSpecMMVII_Appli  TheSpecMeshDev
       __FILE__
 );
 
+/*
 tMMVII_UnikPApli Alloc_GenMeshDev(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
    return tMMVII_UnikPApli(new cAppliGenMeshDev(aVArgs,aSpec));
@@ -557,6 +564,7 @@ cSpecMMVII_Appli  TheSpecGenMeshDev
       {eApDT::Ply},
       __FILE__
 );
+*/
 
 
 };

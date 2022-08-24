@@ -5,7 +5,7 @@
 namespace MMVII
 {
 
-static constexpr double SzGaussDeZoom =  3;  // De Zoom to have a gray value target
+static constexpr int SzGaussDeZoom =  3;  // De Zoom to have a gray value target
 
 namespace  cNS_CodedTarget
 {
@@ -96,7 +96,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mWithParity    (true),
    mNbRedond      (2),
    mNbCircle      (1),
-   mNbPixelBin    (1800),
+   mNbPixelBin    (round_to(1800,2*SzGaussDeZoom)), // make size a multiple of 2 * zoom, to have final center at 1/2 pix
    mSz_CCB        (1),
    mThickN_WInt   (0.35),
    mThickN_Code   (0.35),
@@ -149,7 +149,8 @@ void cParamCodedTarget::Finish()
 
 
 
-  mMidle = ToR(mSzBin-cPt2di(1,1)) / 2.0; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
+  // mMidle = ToR(mSzBin-cPt2di(1,1)) / 2.0 - cPt2dr(1,1) ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
+  mMidle = ToR(mSzBin-cPt2di(SzGaussDeZoom,SzGaussDeZoom)) / 2.0  ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
   mScale = mNbPixelBin / (2.0 * mRho_4_EndCar);
 
   std::vector<int> aVNbSub;
@@ -408,7 +409,9 @@ int  cAppliGenCodedTarget::Exe()
       // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
       // FakeUseIt(aCodes);
       mPCT.mSzF = aImT.DIm().Sz();
-      mPCT.mCenterF = mPCT.mMidle / SzGaussDeZoom;
+      mPCT.mCenterF = mPCT.mMidle / double(SzGaussDeZoom);
+
+StdOut() << "mPCT.mCenterF  " << mPCT.mCenterF  << mPCT.mMidle << "\n";
 
       double aRhoChB = ((mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar) * (mPCT.mNbPixelBin /2.0)  )/SzGaussDeZoom;
       mPCT.mCornEl1 = mPCT.mCenterF+FromPolar(aRhoChB,M_PI/4.0);

@@ -458,6 +458,12 @@ template <> class tMergeF<tREAL8,tREAL8> { public : typedef tREAL8  tMax; };
 /* ================= Modulo ======================= */
 
 /// work only when b > 0
+inline tINT4 round_to(tINT4 a,tINT4 b)
+{
+   return (a/b) * b;
+}
+
+/// work only when b > 0
 inline tINT4 mod(tINT4 a,tINT4 b)
 {
     tINT4 r = a%b;
