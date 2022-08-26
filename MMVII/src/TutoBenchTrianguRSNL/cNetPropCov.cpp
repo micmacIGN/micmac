@@ -278,12 +278,17 @@ MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=1000 NoiseDist=1e-3  WConf=[0,1,0]  
 
 We suppress a conexion in subnetwork and make a dilatation. 
 
-     --------- (5) LowCn45  -----------------
+      --------- (5) LowCn4 ------------------
+MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,0] SzMainN=5
+
+We have sub-network with poor geometry & topology.
+
+     --------- (6) LowCn45  -----------------
 MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,1] SzMainN=5
 
 We add the two network that are badly configured (cnxion and geometry) in X and Y
 
-     --------- (6) LowCn2345  -----------------
+     --------- (7) LowCn2345  -----------------
 MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,1,1,1,1] SzMainN=5
 
 We add the 4 network that are badly connected.
@@ -349,7 +354,7 @@ LowCn45 :   here we have two poor set of sub network, but that are complementary
             But what is more interesing is that :
 
                  *  for CovProp the factor of gain between LowCn4 and LowCn45 is  3.1
-                 *  for Pointrop the factor  is 1.66
+                 *  for Pointrop the factor  is only  1.66
                  * at the end CovProp is ~ 3.5 better than PointProp and "only" twice as bad as reference
 
             we can interpret this , because the two subnetwork have accuracy/unaccuracy in different direction,
@@ -362,7 +367,7 @@ LowCn2345 :   maybe the best advocating for cov-prop ...
 
               We interpret this way :
 
-                  * in the 4 networks, there is the information for globally descring the newtok
+                  * in the 4 set of sub-networks, there is the information for globally descring the newtok
                   * the information in  config 4 and 5 is very noisy in some direction and average blindly by point prop
                   * conversely cov-prop make a rigourous weighted average
 
@@ -403,7 +408,7 @@ MMVII TestCovProp PtsRUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,1] 
 -> AVG=0.0482969 RefAvg=0.00734164 Med=0.0435764 RefMed=0.0062305
 
 Case LowCn4
-MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,1] SzMainN=5
+MMVII TestCovProp SomL2RUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,0] SzMainN=5
 AVG=0.0489416 RefAvg=0.00746846 Med=0.0389798 RefMed=0.00678199
 MMVII TestCovProp PtsRUk  NbICP=10 NbTest=100 NoiseDist=1e-3  WConf=[0,0,0,1,0] SzMainN=5
 AVG=0.0802936 RefAvg=0.00746846 Med=0.0725622 RefMed=0.00678199
