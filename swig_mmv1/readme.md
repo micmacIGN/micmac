@@ -42,8 +42,8 @@ Dependencies:
  - pdoc3
 
 On debian:
-    apt install swig python3-dev pkg-config python3-pip python3-numpy python3-wheel
-    pip3 install libclang
+    apt install swig python3-dev pkg-config python3-pip
+    pip3 install libclang wheel
 
 To compile, select "WITH_APIPYTHON" in cmake interface, then:
     make apipy

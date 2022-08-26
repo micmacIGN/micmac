@@ -48,7 +48,8 @@ setup (name = 'mm3d',
        py_modules = ["mm3d"],
        data_files = [("mm3d/include/XML_MicMac", xml_micmac_files),
                      ("mm3d/include/XML_GEN", xml_gen_files)],
-       platforms  = ['x86_64']
+       platforms  = ['x86_64'],
+       install_requires=['numpy']
        )
 
 #https://docs.python.org/3/extending/building.html
