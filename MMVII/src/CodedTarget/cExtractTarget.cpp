@@ -74,6 +74,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         cPt2dr generatePointOnEllipse(double*, double, double);       ///< Generate point on ellipse from natural parameters
         int decodeTarget(tDataImT &, double, double);                 ///< Decode a potential target
         void printMatrix(MatrixXd);
+        bool plotSafeRectangle(cRGBImage, cPt2di, double, cPt3di, int, int, double);
 
 
 	std::string mNameTarget;
@@ -251,6 +252,32 @@ void  cAppliExtractCodeTarget::DoExtract(){
     spec.InitFromFile("Target_Spec.xml");
 
 
+    // --------------------------------------------------------------------------------------------------------
+    // Build list of codes from specification file
+    // --------------------------------------------------------------------------------------------------------
+
+    std::string CODES[2*spec.NbCodeAvalaible()+1];
+    for (int i=0; i<2*spec.NbCodeAvalaible()+1; i++){
+        CODES[i] = "NA";
+    }
+
+    for (int aNum=0 ; aNum<spec.NbCodeAvalaible(); aNum++){
+        std::vector<int> code = spec.CodesOfNum(aNum).CodeOfNumC(0).ToVect();
+        std::vector<int> binary_code;
+        int sum = 0;
+        binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0);
+        binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0);
+        binary_code.push_back(0);
+        for (unsigned i=0; i<code.size(); i++){
+            binary_code.at(code.at(i)) = 1;
+            sum += pow(2, code.at(i));
+        }
+        CODES[sum] = spec.NameOfNum(aNum);
+        //StdOut() << spec.NameOfNum(aNum) << " " << binary_code << "\n";
+    }
+
+    // --------------------------------------------------------------------------------------------------------
+
      tDataIm &  aDIm = APBI_DIm();
      tIm        aIm = APBI_Im();
      mImVisu =   RGBImFromGray(aDIm);
@@ -341,51 +368,30 @@ void  cAppliExtractCodeTarget::DoExtract(){
             double vx2 = aDCT->mDirC2.x(); double vy2 = aDCT->mDirC2.y();
             double threshold = (aDCT->mVBlack + aDCT->mVWhite)/2.0;
 
-            /*
-                MatrixXd M(61,61);
-                for (int i=-30; i<=30; i++){
-                    for (int j=-30; j<=30; j++){
-                         M(i+30, j+30) = aDIm.GetVBL(cPt2dr(center.x()+i+0.0,center.y()+j+0.0));
-                    }
+
+            std::vector<cPt2dr> POINTS;
+
+
+            for (int sign=-1; sign<=1; sign+=2){
+                for (int i=1; i<=50; i++){
+                    plotSafeRectangle(mImVisu, cPt2di(center.x()+sign*vx1*i, center.y()+sign*vy1*i), 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
+                    plotSafeRectangle(mImVisu, cPt2di(center.x()+sign*vx2*i, center.y()+sign*vy2*i), 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
                 }
-                printMatrix(M);
-            */
-
-        if (counter >= 0){
-
-
-
-            if (counter == 85) {
-                counter ++; continue;
-            }
-            if (counter == 94) {
-                counter ++; continue;
-            }
-            if (counter == 136) {
-                counter ++; continue;
             }
 
-
-       std::vector<cPt2dr> POINTS;
-
-
-       for (int sign=-1; sign<=1; sign+=2){
-            for (int i=1; i<=50; i++){
-                mImVisu.SetRGBrectWithAlpha(cPt2di(center.x()+sign*vx1*i, center.y()+sign*vy1*i),0,cRGBImage::Green,0.5);
-                mImVisu.SetRGBrectWithAlpha(cPt2di(center.x()+sign*vx2*i, center.y()+sign*vy2*i),0,cRGBImage::Green,0.5);
-            }
-        }
 
             for (double t=0.1; t<0.9; t+=0.01){
                 for (int sign=-1; sign<=1; sign+=2){
-                    for (int i=5; i<=50; i++){
+                    for (int i=5; i<=100; i++){
                         double vx = t*vx1 + (1-t)*vx2;
                         double vy = t*vy1 + (1-t)*vy2;
                         double x = center.x()+sign*vx*i;
                         double y = center.y()+sign*vy*i;
                         cPt2dr pf = cPt2dr(x, y);
+                        if ((x < 0) || (y < 0) || (x >= aDIm.Sz().x()-1) || (y >= aDIm.Sz().y()-1)){
+                            continue;
+                        }
                         double z = aDIm.GetVBL(pf);
-                        //mImVisu.SetRGBrectWithAlpha(cPt2di(x, y),0,cRGBImage::Green,0.5);
                         if (z > threshold){
                             POINTS.push_back(pf); break;
                         }
@@ -393,9 +399,6 @@ void  cAppliExtractCodeTarget::DoExtract(){
                     }
                 }
             }
-
-
-
 
             double param[6];
             fitEllipse(POINTS, param);
@@ -407,19 +410,12 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
             if (ellipse[0] != ellipse[0])  continue;
 
-            //StdOut() << "------------------------------------\n";
 
             for (double t=0; t<2*PI; t+=0.01){
                 cPt2dr aPoint = generatePointOnEllipse(ellipse, t, 0.0);
                 cPt2di pt = cPt2di(aPoint.x(), aPoint.y());
-                if ((pt.x() < aDIm.Sz().x()) && (pt.y() < aDIm.Sz().y())){
-                    if ((pt.x() >= 0) && (pt.y() >= 0)){
-                        mImVisu.SetRGBrectWithAlpha(pt,0,cRGBImage::Red,0.0);
-                    }
-                }
+                plotSafeRectangle(mImVisu, pt, 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
             }
-
-
 
              // Solve intersections
             double cx = center.x();
@@ -446,13 +442,10 @@ void  cAppliExtractCodeTarget::DoExtract(){
             double x3 = center.x() + t21*vx2; double y3 = center.y() + t21*vy2; cPt2di p3 = cPt2di(x3, y3);
             double x4 = center.x() + t12*vx1; double y4 = center.y() + t12*vy1; cPt2di p4 = cPt2di(x4, y4);
 
-
-            mImVisu.SetRGBrectWithAlpha(p1,1,cRGBImage::Blue,0.0);
-            mImVisu.SetRGBrectWithAlpha(p2,1,cRGBImage::Blue,0.0);
-            mImVisu.SetRGBrectWithAlpha(p3,1,cRGBImage::Blue,0.0);
-            mImVisu.SetRGBrectWithAlpha(p4,1,cRGBImage::Blue,0.0);
-
-
+            plotSafeRectangle(mImVisu, p1, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+            plotSafeRectangle(mImVisu, p2, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+            plotSafeRectangle(mImVisu, p3, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+            plotSafeRectangle(mImVisu, p4, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
 
             // Affinity estimation
             double a11 = (x1 + x2 - x3 - x4)/4.0;
@@ -462,6 +455,11 @@ void  cAppliExtractCodeTarget::DoExtract(){
             double bx  = (x1 + x2 + x3 + x4)/4.0;
             double by  = (y1 + y2 + y3 + y4)/4.0;
 
+
+            if ((isnan(a11)) || (isnan(a12)) || (isnan(a21)) || (isnan(a22)) || (isnan(bx)) || (isnan(by))){
+                continue;
+            }
+
             // Image generation
             int Nout = 600;
             double irel, jrel, it, jt;
@@ -469,42 +467,79 @@ void  cAppliExtractCodeTarget::DoExtract(){
             tDataImT  & aDImT = aImT.DIm();
             for (int i=0; i<Nout; i++){
                 for (int j=0; j<Nout; j++){
-                    irel = 6*((double)i-Nout/2.0)/Nout;
-                    jrel = 6*((double)j-Nout/2.0)/Nout;
+                    irel = +6*((double)i-Nout/2.0)/Nout;
+                    jrel = -6*((double)j-Nout/2.0)/Nout;
                     it = a11*irel + a12*jrel + bx;
                     jt = a21*irel + a22*jrel + by;
+                    if ((it < 0) || (jt < 0) || (it >= aDIm.Sz().x()-1) || (jt >= aDIm.Sz().y()-1)){
+                        continue;
+                    }
+
                     aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(cPt2dr(it, jt)));
+
                     if ((i == 0) || (j == 0) || (i == Nout-1) || (j == Nout-1)){
-                        mImVisu.SetRGBrectWithAlpha(cPt2di(it, jt), 0, cRGBImage::Blue, 0.0);
+                        plotSafeRectangle(mImVisu, cPt2di(it, jt), 0.0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
                     }
                 }
             }
 
 
+            // --------------------------------------------------------------------------------
+            // Begin print console
+            // --------------------------------------------------------------------------------
+            double x_centre_moy = (ellipse[0] + aDCT->mPt.x())/2.0;
+            double y_centre_moy = (ellipse[1] + aDCT->mPt.y())/2.0;
+
+            StdOut() << " [" << counter << "]" << " Centre: [";
+            StdOut() << x_centre_moy << "," << y_centre_moy << "]  -  ";
+            // -------------------------------------------------------------------------------
+
             int code = decodeTarget(aDImT, aDCT->mVWhite, aDCT->mVBlack);
+
             if (code == -1){
                 continue;
             }
 
+            std::string chaine = CODES[code];
+            it = 4*(a11 + a12) + bx;
+            jt = 4*(a21 + a22) + by;
+            for (int lettre=0; lettre<2; lettre++){
 
-            std::string name_file = "target_" + std::to_string(code) + ".tif";
-            StdOut() << " [" << counter << "]" << " Centre: " << aDCT->mPt;
-            StdOut() << "  -  Ellipse: " << ellipse[0] << " " << ellipse[1] << "  - " << name_file << "\n";
+                std::string aStr;
+                aStr.push_back(chaine[lettre]);
+
+                cIm2D<tU_INT1> aImStr = ImageOfString_10x8(aStr,1);
+                cDataIm2D<tU_INT1>&  aDataImStr = aImStr.DIm();
+
+                for (int i=0; i<11; i++){
+                    for (int j=0; j<11; j++){
+                        if (aDataImStr.DefGetV(cPt2di(i,j),0)){
+                            cPt2di pt = cPt2di(it + i + lettre*10, jt + j);
+                            plotSafeRectangle(mImVisu, pt, 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+                        }
+                    }
+                }
+            }
+
+
+            // --------------------------------------------------------------------------------
+            // End print console
+            // --------------------------------------------------------------------------------
+            std::string name_file = "target_" + chaine + ".tif";
+            StdOut() << "  ->  " << name_file << "\n";
+            // --------------------------------------------------------------------------------
+
             aImT.DIm().ToFile(output_folder+ "/" + name_file);
 
-        }
         counter++;
-        }
 
+        }
     }
 
 
      MarkDCT() ;
 
      mImVisu.ToFile("VisuCodeTarget.tif");
-
-
-    // StdOut() << spec.mChessboardAng << "\n";
 
      // APBI_DIm().ToFile("VisuWEIGHT.tif");
 }
@@ -542,6 +577,21 @@ void  cAppliExtractCodeTarget::TestFilters()
 	  delete aFilter;
      }
 
+}
+
+
+
+// ---------------------------------------------------------------------------
+// Function to plot "safe" rectanngle in image
+// ---------------------------------------------------------------------------
+bool cAppliExtractCodeTarget::plotSafeRectangle(cRGBImage image, cPt2di point, double sz, cPt3di color, int imax, int jmax, double transparency){
+    if ((point.x() < imax) && (point.y() < jmax)){
+        if ((point.x() >= 0) && (point.y() >= 0)){
+            image.SetRGBrectWithAlpha(point, sz, color, transparency);
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -796,7 +846,7 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
     // Code central symetry control and decoding
     // -------------------------------------------
     int bits = 0;
-    for (int t=0; t<10; t++){
+    for (int t=0; t<9; t++){
         double theta = (1.0/18.0 + t/9.0)*PI;
         double xc_code = 300 + R2*cos(theta);
         double yc_code = 300 + R2*sin(theta);
@@ -810,11 +860,13 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
 
         bits += ((value1 + value2)/2.0 > threshold ? 0:1)*pow(2,t);
 
+        StdOut() << ((value1 + value2)/2.0 > threshold ? 0:1) << " ";
+
         // Image modification (at the end!)
         aDImT.SetV(cPt2di(xc_code     ,yc_code    ), 255.0);
         aDImT.SetV(cPt2di(xc_code_opp ,yc_code_opp), 255.0);
-    }
 
+    }
     return bits;
 }
 

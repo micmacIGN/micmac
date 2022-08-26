@@ -47,6 +47,7 @@ class cGeomSimDCT
        cPt2dr mCornEl2;   ///< Theoreticall corner 2 of ellipse
        double mR1;        ///< "small" size of deformaed rectangle
        double mR2;        ///<  "big " size ....
+       std::string name;
 };
 /// method for serializing cGeomSimDCT
 void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD);
@@ -141,6 +142,7 @@ class cCodesOf1Target
       void  Show();
       const tBinCodeTarg & CodeOfNumC(int) const;
       int   Num() const;
+      int getCodeLength();
    private :
       int                        mNum;
       std::vector<tBinCodeTarg>  mCodes;

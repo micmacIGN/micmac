@@ -10,14 +10,14 @@ namespace MMVII
 
 namespace  cNS_CodedTarget
 {
- 
+
 /*  *********************************************************** */
 /*                                                              */
 /*                   cGeomSimDCT                                */
 /*                                                              */
 /*  *********************************************************** */
 
-bool cGeomSimDCT::Intersect(const cGeomSimDCT &  aG2) const 
+bool cGeomSimDCT::Intersect(const cGeomSimDCT &  aG2) const
 {
      return  Norm2(mC-aG2.mC) < mR2+aG2.mR2 ;
 }
@@ -38,6 +38,7 @@ cGeomSimDCT::cGeomSimDCT(int aNum,const  cPt2dr& aC,const double& aR1,const doub
 void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD)
 {
    MMVII::AddData(cAuxAr2007("Num",anAux),aGSD.mNum);
+   MMVII::AddData(cAuxAr2007("Name",anAux),aGSD.name);
    MMVII::AddData(cAuxAr2007("Center",anAux),aGSD.mC);
    MMVII::AddData(cAuxAr2007("CornEl1",anAux),aGSD.mCornEl1);
    MMVII::AddData(cAuxAr2007("CornEl2",anAux),aGSD.mCornEl2);
@@ -58,7 +59,7 @@ cResSimul::cResSimul() :
 {
 }
 
-double cResSimul::BorderGlob() const 
+double cResSimul::BorderGlob() const
 {
     return mBorder * mRayMinMax.y();
 }
@@ -123,7 +124,7 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 	int                 mPerN;
         double              mSzKernel;
 
-                //  --   
+                //  --
 	double              mDownScale;
 	double              mAttenGray;
 	double              mPropSysLin;
@@ -155,7 +156,7 @@ cAppliSimulCodeTarget::cAppliSimulCodeTarget(const std::vector<std::string> & aV
 {
 }
 
-cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgObl(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
    return  anArgObl
              <<   Arg2007(mNameIm,"Name of image (first one)",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
@@ -166,7 +167,7 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgObl(cCollecSpecArg2007 & anArgObl
 
 cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
-   return 
+   return
 	        anArgOpt
              <<   AOpt2007(mRS.mRayMinMax,"Rays","Min/Max ray for gen target",{eTA2007::HDV})
              <<   AOpt2007(mSzKernel,"SzK","Sz of Kernel for interpol",{eTA2007::HDV})
@@ -211,6 +212,7 @@ void   cAppliSimulCodeTarget::AddPosTarget(int aNum)
 
 void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
 {
+    aGSD.name = mPCT.NameOfNum(aGSD.mNum);
     std::string aName = mDirTarget + mPCT.NameFileOfNum(aGSD.mNum);
     tIm aImT =  tIm::FromFile(aName).GaussDeZoom(mDownScale,5);
     tDIm & aDImT = aImT.DIm();

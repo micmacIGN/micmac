@@ -53,6 +53,10 @@ void  cCodesOf1Target::Show()
     StdOut()  << "\n";
 }
 
+int cCodesOf1Target::getCodeLength(){
+    return mCodes.size();
+}
+
 const tBinCodeTarg & cCodesOf1Target::CodeOfNumC(int aK) const
 {
     return  mCodes.at(aK);
@@ -78,6 +82,23 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("ThickN_Code",anAux),mThickN_Code);
     MMVII::AddData(cAuxAr2007("ThickN_WhiteExt",anAux),mThickN_WExt);
     MMVII::AddData(cAuxAr2007("ThickN_Car",anAux),mThickN_Car);
+    MMVII::AddData(cAuxAr2007("ChessBoardAngle",anAux),mChessboardAng);
+
+
+    /*
+    std::vector<std::string> TARGET_NAMES;
+    std::vector<std::vector<int>> TARGET_CODES;
+
+    for (int aNum=0 ; aNum<NbCodeAvalaible(); aNum++){
+        TARGET_NAMES.push_back(NameOfNum(aNum));
+        cCodesOf1Target code = CodesOfNum(aNum);
+        TARGET_CODES.push_back(code.CodeOfNumC(0).ToVect());
+    }
+
+    MMVII::AddData(cAuxAr2007("TargetNames",anAux), TARGET_NAMES);
+    MMVII::AddData(cAuxAr2007("TargetCodes",anAux), TARGET_CODES);
+    */
+
 }
 
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
@@ -323,6 +344,7 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT)
      }
 
      // MMVII_INTERNAL_ASSERT_User(aN<256,"For
+
      aImT = aImT.GaussDeZoom(SzGaussDeZoom);
      return aImT;
 }
