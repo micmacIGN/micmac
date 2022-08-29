@@ -22,36 +22,41 @@ typedef  cPtxd<tCoordDevTri,3>          tPt3D;
 typedef  cPtxd<tCoordDevTri,2>          tPt2D;
 typedef cTriangle<int,2> tTriPix;
 
-class cGenerateSurfDevOri;
+class cSomDevT3D;
+class cFaceDevT3D;
 class cDevTriangu3d;
 
    /* ======================= */
    /* ======  header   ====== */
    /* ======================= */
 
-/*
-class cGenerateSurfDevOri
+
+class cSomDevT3D
 {
-     public :
-         cGenerateSurfDevOri(const cPt2di & aNb = cPt2di(15,5),double  aFactNonDev=0);
-
-	 // tTriangulation3D cTriangulation(const tVPt& =tVPt(),const tVFace & =tVFace());
-	 //
-	 std::vector<tPt3D> VPts() const;
-	 std::vector<cPt3di>   VFaces() const;
-
-	 tPt3D PCenter() const;
-
-     private :
-	 int  NumOfPix(const cPt2di & aKpt) const; ///< Basic numerotation of points using video sens
-	 tPt3D  Pt3OfPix(const tPt2D & aKpt) const; ///< Basic numerotation of points using video sens
-
-	 cPt2di    mNb;
-	 double    mFactNonDev;
-	 bool      mPlaneCart; ///< if true generate a plane cartesian mesh
+    public :
+        cSomDevT3D(cDevTriangu3d * aDevTri,int aNum,const tPt3D & aP3);
+    private :
+        cDevTriangu3d  * mDevTri;
+        bool  mReached;
+        tPt3D mPt3;
+        tPt2D mPt2;
+        int   mNumPt;
 
 };
-*/
+
+class cFaceDevT3D
+{
+   public :
+      cFaceDevT3D (cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom);
+      int IndKthSom(int aK) const;
+      void SetReached();
+      bool IsReached() const;
+   private :
+      cDevTriangu3d  * mDevTri;
+      bool             mReached;
+      int              mNumFace;
+      cPt3di           mIndSoms;
+};
 
 /** Class that effectively compute the "optimal" devlopment of a surface
  * Separate from cAppliMeshDev to be eventually reusable
@@ -64,7 +69,7 @@ class cDevTriangu3d
 
           static constexpr int NO_STEP = -1;
 
-          cDevTriangu3d(const  tTriangulation3D &);
+          cDevTriangu3d(tTriangulation3D &);
           /// Generate the 2D devlopment of 3D surface
           void DoDevlpt ();
 	  ///  Defautl face is not ok for real 3d surface
@@ -81,191 +86,63 @@ class cDevTriangu3d
       private :
 	  cDevTriangu3d(const cDevTriangu3d &) = delete;
 
-	  void AddOneFace(int aKFace); // Mark the face and its sums as reached when not
-	  std::vector<int>  VNumsUnreached(int aKFace) const; // subset of the 3 vertices not reached
+	  void OldAddOneFace(int aKFace); ///< Mark the face and its sums as reached when not
+	  std::vector<int>  VNumsUnreached(int aKFace) const; ///< subset of the 3 vertices not reached
 
 	  // tPt3D
 
 	  int MakeNewFace();
 
-	  int               mNumCurStep;
-          int               mNbFaceReached;
-	  const tTriangulation3D & mTri;
-	  std::vector<int>  mStepReach_S;  ///< indicate if a submit is selected and at which step
-	  std::vector<tPt2D>  mVPtsDev; ///< Vector of devloped 2D points
-	  // size_t                mLastNbSel;  
-	  std::vector<int>  mStepReach_F;  ///< indicate if a face and at which step
-          int               mIndexFC; ///< Index of centerface
-	  cPt3di            mFaceC;
+	  int               mNumCurStep;       ///< num of iteration in devlopment, +- dist to center face
+          int               mNbFaceReached;    ///< number of face reached untill now
+	  const tTriangulation3D & mTri;       ///< reference to the 3D-triangulation to devlop
+          const cGraphDual &       mDualGr;    ///< reference to the dual graph
+	  std::vector<int>  mStepReach_S;      ///< indicate if a submit is selected and at which step
+	  std::vector<tPt2D>  mVPtsDev;        ///< Vector of devloped 2D points
+	  std::vector<int>  mStepReach_F;      ///< indicate at which step a face is reached (NO_STEP while unreached)
+          int               mIndexFC;          ///< Index of centerface
+	  cPt3di            mFaceC;            ///< Center face
+
+
+          
+          std::vector<cSomDevT3D>   mVSoms;
+          std::vector<cFaceDevT3D>  mVFaces;
 };
 
 
-
 /* ******************************************************* */
 /*                                                         */
-/*               cGenerateSurfDevOri                       */
-/*                                                         */
-/* ******************************************************* */
-
-/*
-int  cGenerateSurfDevOri::NumOfPix(const cPt2di & aKpt)  const
-{
-     return aKpt.x() + aKpt.y() *  (mNb.x());
-}
-
-
-tPt3D  cGenerateSurfDevOri::Pt3OfPix(const tPt2D & aKpt) const
-{
-     if (mPlaneCart)
-     {
-        return tPt3D(aKpt.x(),aKpt.y(),0.0);
-     }
-     double aNbTour =  1.5;
-     double aRatiobByTour = 1.5;
-
-     double aAmpleTeta =  aNbTour * 2 * M_PI;
-
-     double aTeta =  aAmpleTeta * ((double(aKpt.x())  / (mNb.x()-1) -0.5));
-     double aRho = pow(aRatiobByTour,aTeta/(2*M_PI));
-     aRho = aRho * (1 + (round_ni(aKpt.x()+aKpt.y())%2)* mFactNonDev);
-     tPt2D  aPPlan = FromPolar(aRho,aTeta);
-     double  aZCyl = (aKpt.y() * aAmpleTeta) / (mNb.x()-1);
-
-     tPt3D  aPCyl(aPPlan.x(),aPPlan.y(),aZCyl);
-
-
-     return tPt3D(aPCyl.y(),aPCyl.z(),aPCyl.x());
-
-}
-
-std::vector<tPt3D> cGenerateSurfDevOri::VPts() const
-{
-    std::vector<tPt3D> aRes(mNb.x()*mNb.y());
-
-    for (const auto & aPix : cRect2(cPt2di(0,0),mNb))
-    {
-         aRes.at(NumOfPix(aPix)) = Pt3OfPix(ToR(aPix));
-    }
-
-    return aRes;
-}
-
-std::vector<cPt3di> cGenerateSurfDevOri::VFaces() const
-{
-    std::vector<cPt3di> aRes;
-    // parse rectangle into each pixel
-    for (const auto & aPix00 : cRect2(cPt2di(0,0),mNb-cPt2di(1,1)))
-    {
-         // split the pixel in two tri
-          // const std::vector<cTriangle<int,2> > &   aVTri = SplitPixIn2<int>(HeadOrTail());
-	  for (const auto & aTri : SplitPixIn2<int>(HeadOrTail()))
-	  {
-              cPt3di aFace;
-              for (int aK=0 ; aK<3 ; aK++)
-              {
-                   cPt2di aPix = aPix00 + aTri.Pt(aK);
-		   aFace[aK] = NumOfPix(aPix);
-              }
-	      aRes.push_back(aFace);
-	  }
-    }
-    return aRes;
-}
-
-tPt3D  cGenerateSurfDevOri::PCenter() const
-{
-     return Pt3OfPix(ToR(mNb)/2.0);
-}
-
-cGenerateSurfDevOri::cGenerateSurfDevOri(const cPt2di & aNb,double aFactNonDev) :
-     mNb          (aNb),
-     mFactNonDev  (aFactNonDev),
-     mPlaneCart   (false)
-{
-}
-*/
-
-/* ******************************************************* */
-/*                                                         */
-/*                 cAppliGenMeshDev                        */
+/*                    cSomDevT3D                           */
 /*                                                         */
 /* ******************************************************* */
 
-/*
-class cAppliGenMeshDev : public cMMVII_Appli
-{
-     public :
-
-        cAppliGenMeshDev(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-
-     private :
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-
-           // --- Mandatory ----
-	      std::string mNameCloudOut;
-           // --- Optionnal ----
-	      bool        mBinOut;
-	      double      mFactNonDev;  // Make the surface non devlopable
-           // --- Internal ----
-
-};
-
-cAppliGenMeshDev::cAppliGenMeshDev(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli     (aVArgs,aSpec),
-   mBinOut          (true)
+cSomDevT3D::cSomDevT3D(cDevTriangu3d * aDevTri,int aNum,const tPt3D & aP3):
+    mDevTri  (aDevTri),
+    mReached (false),
+    mPt3     (aP3),
+    mPt2     (-123456,78901),  // random
+    mNumPt   (aNum)
 {
 }
 
+/* ******************************************************* */
+/*                                                         */
+/*                    cFaceDevT3D                          */
+/*                                                         */
+/* ******************************************************* */
 
-cCollecSpecArg2007 & cAppliGenMeshDev::ArgObl(cCollecSpecArg2007 & anArgObl) 
+cFaceDevT3D::cFaceDevT3D(cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom) :
+    mDevTri  (aDevTri),
+    mReached (false),
+    mNumFace (aNumF),
+    mIndSoms (aIndSom)
 {
- return anArgObl
-	  <<   Arg2007(mNameCloudOut,"Name of output cloud/mesh", {eTA2007::FileDirProj})
-   ;
 }
 
-cCollecSpecArg2007 & cAppliGenMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-   return anArgOpt
-            << AOpt2007(mFactNonDev,"NonDevFact","make the surface more or less devlopable ",{eTA2007::HDV})
-            << AOpt2007(mBinOut,CurOP_OutBin,"Generate out in binary format",{eTA2007::HDV})
-           // << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file")
-   ;
-}
+int cFaceDevT3D::IndKthSom(int aK) const {return mIndSoms[aK];}
 
-
-
-int  cAppliGenMeshDev::Exe()
-{
-   {
-      auto aPtr = EqConsDist(true,100);
-      auto aPtr2 = EqConsRatioDist(true,100);
-      StdOut() << "DIFPTR "  << ((void*) aPtr2) <<  ((void *) aPtr) << "\n";
-      delete aPtr;
-      delete aPtr2;
-   }
-
-
-   // generate synthetic mesh
-   cGenerateSurfDevOri aGenSD (cPt2di(15,5),mFactNonDev);
-   tTriangulation3D  aTri(aGenSD.VPts(),aGenSD.VFaces());
-   aTri.WriteFile(mNameCloudOut,mBinOut);
-   aTri.MakeTopo();
-
-   //  devlop it
-   cDevTriangu3d aDev(aTri);
-   aDev.SetFaceC(aTri.IndexClosestFace(aGenSD.PCenter()));
-   aDev.DoDevlpt();
-   aDev.ExportDev("Devlp_"+mNameCloudOut);
-
-   aDev.ShowQualityStat();
-   return EXIT_SUCCESS;
-}
-*/
-
-
+void cFaceDevT3D::SetReached() {mReached=true;}
+bool cFaceDevT3D::IsReached() const {return mReached;}
 
 
 /* ******************************************************* */
@@ -274,18 +151,81 @@ int  cAppliGenMeshDev::Exe()
 /*                                                         */
 /* ******************************************************* */
 
-cDevTriangu3d::cDevTriangu3d(const tTriangulation3D & aTri) :
+cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri) :
      mNumCurStep  (0),
      mNbFaceReached (0),
      mTri         (aTri),
+     mDualGr      (mTri.DualGr()),
      mStepReach_S (mTri.NbPts() ,NO_STEP),
      mVPtsDev     (mTri.NbPts()),
      mStepReach_F (mTri.NbFace(),NO_STEP),
-     mIndexFC     (-1)
+     mIndexFC     (NO_STEP),
+     mFaceC       (NO_STEP,NO_STEP,NO_STEP)
 {
+   for (int aKPt=0 ; aKPt<mTri.NbPts() ; aKPt++)
+   {
+      mVSoms.push_back(cSomDevT3D(this,aKPt,mTri.KthPts(aKPt)));
+   }
+
+
+   for (int aKF=0 ; aKF<mTri.NbFace() ; aKF++)
+   {
+       mVFaces.push_back(cFaceDevT3D(this,aKF,mTri.KthFace(aKF)));
+   }
+
+   mIndexFC = mTri.IndexCenterFace();
+   mVFaces.at(mIndexFC).SetReached();
+
+
+
+/*
+   {
+       tTri3D  aTriC = mTri.KthTri(mIndexFC);  // 3D triangle
+       tIsom3D  anIsom =  tIsom3D::FromTriOut(0,aTriC).MapInverse();  // Isometry plane TriC-> plane Z=0
+
+       for (int aK=0 ; aK<3 ;aK++)
+       {
+            mVPtsDev.at(mFaceC[aK]) =  Proj(anIsom.Value(aTriC.Pt(aK)));
+	    // StdOut() << " Pt= " << mFaceC[aK] << " " << mTri.NbPts() << "\n";
+	    // StdOut() << " Pt= " << anIsom.Value(aTriC.Pt(aK)) << "\n";
+       }
+       // getchar();
+   }
+*/
+
+   aTri.MakeTopo();
+   std::vector<int>  mVCurFace {mIndexFC};
+   size_t aIndNewF0 = 0;
+
+   while (aIndNewF0!=mVCurFace.size())
+   {
+        StdOut() << "IIIi " << aIndNewF0 << " " << mVCurFace.size() << "\n"; 
+        size_t aIndNewF1 = mVCurFace.size(); 
+
+        for (size_t aIndFace=aIndNewF0 ; aIndFace<aIndNewF1 ; aIndFace++)
+        {
+            std::vector<int> aVN;
+            mDualGr.GetFacesNeighOfFace(aVN,mVCurFace.at(aIndFace));
+            for (const auto & aNewF : aVN)
+            {
+                 cFaceDevT3D & aFace = mVFaces.at(aNewF);
+                 if (! aFace.IsReached())
+                 {
+                     aFace.SetReached();
+                     mVCurFace.push_back(aNewF);
+                 }
+            }
+        }
+
+        aIndNewF0 = aIndNewF1;
+   }
+   StdOut() << "Wwwww\n"; getchar();
 }
 
-void cDevTriangu3d::AddOneFace(int aKFace)
+
+
+
+void cDevTriangu3d::OldAddOneFace(int aKFace)
 {
      if (mStepReach_F.at(aKFace) != NO_STEP) return; // if face already reached nothing to do
 
@@ -304,15 +244,15 @@ void cDevTriangu3d::AddOneFace(int aKFace)
 
 std::vector<int>  cDevTriangu3d::VNumsUnreached(int aKFace) const
 {
-     const tFace & aFace = mTri.KthFace(aKFace);
+     const tFace & aFace = mTri.KthFace(aKFace);  // get the face
 
      std::vector<int>  aRes;
-     for (int aNumV=0 ; aNumV<3 ; aNumV++)
+     for (int aNumV=0 ; aNumV<3 ; aNumV++) // parse 3 submiy
      {
-         int aKS= aFace[aNumV];
-         if (mStepReach_S.at(aKS) == NO_STEP)
+         int aKS= aFace[aNumV];  // get the submit
+         if (mStepReach_S.at(aKS) == NO_STEP) // if not reached
 	 {
-            aRes.push_back(aNumV);
+            aRes.push_back(aNumV);  // add it
 	 }
      }
      return aRes;
@@ -334,14 +274,14 @@ int cDevTriangu3d::MakeNewFace()
      }
      // Now mark the faces 
      for (const auto & aKF : aVFNeigh)
-         AddOneFace(aKF);
+         OldAddOneFace(aKF);
 
      // Mark face that containt 3 reaches vertices (may have been created
      // by previous step)
      for (int aKF=0 ; aKF<mTri.NbFace() ; aKF++)
      {
          if (VNumsUnreached(aKF).size()==0)
-            AddOneFace(aKF);
+            OldAddOneFace(aKF);
      }
 
      return aVFNeigh.size();
@@ -385,7 +325,7 @@ void  cDevTriangu3d::DoDevlpt ()
         SetFaceC(mTri.IndexCenterFace());
 
     // 1.2  Make face and soms marked
-    AddOneFace(mIndexFC); 
+    OldAddOneFace(mIndexFC); 
 
     // 1.3 computes its geometry
     {
@@ -515,13 +455,18 @@ cCollecSpecArg2007 & cAppliMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int  cAppliMeshDev::Exe()
 {
-   InitOutFromIn(mNameCloudOut,"Clip_"+mNameCloudIn);
+   InitOutFromIn(mNameCloudOut,"Dev_"+mNameCloudIn);
 
    tTriangulation3D  aTri(mNameCloudIn);
    // aTri.WriteFile(DirProject()+mNameCloudOut,mBinOut);
 
    cDevTriangu3d aDev(aTri);
+   aTri.MakeTopo();
+
+
    aDev.DoDevlpt();
+
+// StdOut()  << "DUAL " << &(aTri.DualGr()) << "\n";
 
    return EXIT_SUCCESS;
 }
@@ -548,23 +493,6 @@ cSpecMMVII_Appli  TheSpecMeshDev
       {eApDT::Ply},
       __FILE__
 );
-
-/*
-tMMVII_UnikPApli Alloc_GenMeshDev(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppliGenMeshDev(aVArgs,aSpec));
-}
-cSpecMMVII_Appli  TheSpecGenMeshDev
-(
-     "MeshDevGen",
-      Alloc_GenMeshDev,
-      "Generate artificial(synthetic) devlopable surface",
-      {eApF::Cloud},
-      {eApDT::Console},
-      {eApDT::Ply},
-      __FILE__
-);
-*/
 
 
 };
