@@ -239,6 +239,27 @@ template <class Type> void TestInterBL(cPt2di aSz,Type aCste,Type aCoeffX,Type a
              StdOut() << aP << "V1 " << aV1 << " dif " << aV1-aV2 << "\n";
              MMVII_INTERNAL_ASSERT_bench(false,"Bench image error");
         }
+        //  =============== Test on grad =========================
+
+            // Make a pts not too close to pixel limit
+        aP =   cPt2dr(round_down(aP.x()),round_down(aP.y())) 
+             + cPt2dr(0.1,0.1) 
+             + cPt2dr(RandUnif_0_1(),RandUnif_0_1()) * 0.8;
+
+         
+            // compute Gx,Gy,Val
+        cPt3dr aGV =  aDIm.GetGradAndVBL(aP);
+
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aGV.z()  - aDIm.GetVBL(aP)) < 1e-10 ,"Bench val/grad image");
+
+        double aEps = 0.025;
+
+            // compute numerical gradient to compare
+        double aGx = (aDIm.GetVBL(aP+cPt2dr(aEps,0)) - aDIm.GetVBL(aP+cPt2dr(-aEps,0))) / (2*aEps);
+        double aGy = (aDIm.GetVBL(aP+cPt2dr(0,aEps)) - aDIm.GetVBL(aP+cPt2dr(0,-aEps))) / (2*aEps);
+
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aGV.x() - aGx) < 1e-5 ,"Bench val/grad image");
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aGV.y() - aGy) < 1e-5 ,"Bench val/grad image");
     }
 }
 
