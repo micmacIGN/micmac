@@ -238,7 +238,7 @@ template<class Type> void  cLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_Sa
 template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::Solve()
 {
    mtAA.SelfSymetrizeBottom();
-   return mtAA.Solve(mtARhs,eTyEigenDec::eTED_LLDT);
+   return mtAA.SolveColumn(mtARhs,eTyEigenDec::eTED_LLDT);
 }
 
 template<class Type> const cDenseMatrix<Type> & cLeasSqtAA<Type>::tAA () const {return mtAA;}

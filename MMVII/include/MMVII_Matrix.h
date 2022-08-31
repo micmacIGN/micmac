@@ -387,7 +387,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         void  SolveIn(tDM& aRes,const tDM &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDM  Solve(const tDM &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
-        tDV  Solve(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
+        tDV  SolveColumn(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDV  SolveLine(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
 
 

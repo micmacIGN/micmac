@@ -40,12 +40,27 @@ template<class Type> cDenseVect<Type> EigenSolveLsqGC
    LeastSquaresConjugateGradient< Eigen::SparseMatrix<Type> >  aLSCG;
    aLSCG.compute(aSpMat);
 
+   if (EigenDoTestSuccess())
+   {
+      if (aLSCG.info()!=Eigen::Success)
+      {
+          ON_EIGEN_NO_SUCC("LeastSquaresConjugateGradient::compute");
+      }
+   }
+
    cConst_EigenColVectWrap  aWVec(aVec);
 
    cDenseVect<Type> aRes(aNbVar);
    cNC_EigenColVectWrap<Type> aWRes(aRes);
-
    aWRes.EW() = aLSCG.solve(aWVec.EW());
+
+   if (EigenDoTestSuccess())
+   {
+      if (aLSCG.info()!=Eigen::Success)
+      {
+          ON_EIGEN_NO_SUCC("LeastSquaresConjugateGradient::solve");
+      }
+   }
 
    return aRes;
 }
@@ -69,7 +84,16 @@ template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
 
    cDenseVect<Type> aRes(aN);
    cNC_EigenColVectWrap<Type> aWRes(aRes);
+
    aWRes.EW() = aChol.solve(aWVec.EW());
+
+   if (EigenDoTestSuccess())
+   {
+      if (aChol.info()!=Eigen::Success)
+      {
+          ON_EIGEN_NO_SUCC("SimplicialCholesky::solve");
+      }
+   }
 
    return aRes;
 }
