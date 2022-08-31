@@ -8,6 +8,43 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+
+template <class Type> class cFormulaOnIm2D
+{
+       public :
+          // cGenerateFormulaOnIm2D(const std::string & aPrefix);
+
+          static std::vector<std::string> NameObs(const std::string & aPrefix);
+};
+
+
+template <class Type>   
+   std::vector<std::string> cFormulaOnIm2D<Type>::NameObs(const std::string & aPrefix)
+{
+   return std::vector<std::string> 
+          {
+              "PtX0_" + aPrefix,
+              "PtY0_" + aPrefix,
+              "Im00_" + aPrefix,
+              "Im10_" + aPrefix,
+              "Im01_" + aPrefix,
+              "Im11_" + aPrefix
+          };
+}
+
+template class cFormulaOnIm2D<tREAL8>;
+
+
+/* ******************************** */
+/*                                  */
+/*         cDescOneFuncDist         */
+/*                                  */
+/* ******************************** */
+
+
+
+
+
 cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
    mType    (aType),
    mDegMon  (-1,-1),
