@@ -114,7 +114,7 @@ template <class Type> cPt2dr cAffineExtremum<Type>::OneIter(const cPt2dr & aP0)
    mVectPt(0) = -aSolPol(1)/2.0;
    mVectPt(1) = -aSolPol(2)/2.0;
 
-   cDenseVect<tREAL4> aSolPt = mMatPt.Solve(mVectPt);
+   cDenseVect<tREAL4> aSolPt = mMatPt.SolveColumn(mVectPt);
 
    // Solution was in "local" coordinates, put it in absolute
    return cPt2dr( aC.x()+aSolPt(0) , aC.y()+aSolPt(1));

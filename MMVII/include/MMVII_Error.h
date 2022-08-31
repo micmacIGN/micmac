@@ -96,6 +96,7 @@ void MMVII_UnclasseUsEr(const std::string & aMes);
 {MMVII_INTERNAL_ERROR(aMes);}
 
 
+
 ////====================  SPECIFIC ASSERTION ON NUMERICAL VALUE ================
 
 #define  MMVII_ASSERT_INVERTIBLE_VALUE(VALUE)\
@@ -112,6 +113,15 @@ void DoNothingWithIt(void *);  /// Used to avoid compiler optimization, make bel
 
 #define BREAK_POINT(MSG)  {StdOut() << MSG << "; BREAK POINT at " << __LINE__ << " of " << __FILE__ << "\n";getchar();}
 
+/* handling of eigen test on sucess of decomposition, by default it generate an error, btw this
+can be temporarily supress if the use know what he does. For example see BenchLsqDegenerate
+*/
+bool EigenDoTestSuccess();  ///< do we test result of eigen operation
+void OnEigenNoSucc(const  char * aMesg,int aLine,const char * aFile); ///< func to execute if not sucess
+#define ON_EIGEN_NO_SUCC(MESG)  OnEigenNoSucc(MESG,__LINE__,__FILE__);
+
+void PushErrorEigenErrorLevel(eLevelCheck aLevel);  ///< change behaving : no test, warning, error
+void PopErrorEigenErrorLevel(); ///< restore previous behaving
 
 };
 

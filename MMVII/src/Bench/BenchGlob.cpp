@@ -445,7 +445,6 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         // Test derivation with Jets
         BenchMyJets(aParam);
         BenchJetsCam(aParam);
-        BenchSSRNL(aParam);
 
         // Test extremum computation on images, or 3 images (case of multi scale),
         // seems easy  but rigourous handling of equality
@@ -494,6 +493,8 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         {
            BenchUnbiasedStdDev();
         }
+
+        BenchSSRNL(aParam);
     }
 
     // Now call the bench of all application that define their own bench

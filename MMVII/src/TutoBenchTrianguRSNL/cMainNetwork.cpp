@@ -53,13 +53,14 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
     mParamNW   (aParamNW),
     mNum       (0),
     mMatrP     (cMemManager::AllocMat<tPNetPtr>(mX_SzM,mY_SzM)), // alloc a grid of pointers
+    mSys       (nullptr),
+    mCalcD     (nullptr),
     // Amplitude of scale muste
     mSimInd2G   (cSim2D<Type>::RandomSimInv(5.0,3.0,0.1)) ,
     mBoxPts     (cBox2dr::Empty())
 {
 }
-/*
-*/
+
 template <class Type> void cMainNetwork <Type>::PostInit()
 {
 

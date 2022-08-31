@@ -146,7 +146,7 @@ template<class Type,const int Dim>
     cPtxd<Type,Dim> SolveCol(const cDenseMatrix<Type>& aMat,const cPtxd<Type,Dim>& aPCol)
 {
     cDenseVect<Type> aVCol = aPCol.ToVect();
-    cDenseVect<Type> aVRes = aMat.Solve(aVCol);
+    cDenseVect<Type> aVRes = aMat.SolveColumn(aVCol);
     return  cPtxd<Type,Dim>::FromVect(aVRes);
 }
 template<class Type,const int Dim>

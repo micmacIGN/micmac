@@ -96,6 +96,13 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
            tPB::AssertInsideBL(aP);
            return  ValueBL(aP);
        }
+       /// return grad + value in bilinaire mode : (Gx,Gy,Val)
+       inline cPt3dr  GetGradAndVBL(const cPt2dr & aP)  const
+       {
+           tPB::AssertInsideBL(aP);
+           return  ValueAndGradBL(aP);
+       }
+
        inline double DefGetVBL(const cPt2dr & aP,double aDef) const
        {
             if (tPB::InsideBL(aP))
@@ -223,6 +230,33 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 
             return  (1-aWeightY1) * (aWeightX0*aL0[0]  + aWeigthX1*aL0[1])
                   +     aWeightY1 * (aWeightX0*aL1[0]  + aWeigthX1*aL1[1])  ;
+        } 
+
+        /** Bilinear interpolation + Grad of bilinear interpol */
+        cPt3dr  ValueAndGradBL(const cPt2dr & aP)  const
+        {
+            int aX0 = round_down(aP.x());  ///<  "Left" limit of  pixel
+            int aY0 = round_down(aP.y());  ///<  "Up" limit of pixel
+
+            double aWeigthX1 = aP.x() - aX0;
+            double aWeightX0 = 1-aWeigthX1;
+            double aWeightY1 = aP.y() - aY0;
+            double aWeightY0 = 1-aWeightY1;
+
+            const Type  * aL0 = mRawData2D[aY0  ] + aX0;
+            const Type  * aL1 = mRawData2D[aY0+1] + aX0;
+
+            return   cPt3dr
+                     (
+                            aWeightY0 * (aL0[1]-aL0[0])  // Gx on line 0
+                          + aWeightY1 * (aL1[1]-aL1[0]), // Gx on line 1
+
+                            aWeightX0 * (aL1[0]-aL0[0])  // Gy on col 0
+                          + aWeigthX1 * (aL1[1]-aL0[1]), // Gy on col 1
+
+                           aWeightY0 *(aWeightX0*aL0[0] + aWeigthX1*aL0[1])
+                       +   aWeightY1 *(aWeightX0*aL1[0] + aWeigthX1*aL1[1])  
+                     );
         } 
 
         /** Bilinear interpolation */

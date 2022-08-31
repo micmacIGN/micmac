@@ -162,38 +162,24 @@ template <class Type,const int Dim>
 
 
 cEdgeDual::cEdgeDual() :
-     mI1  (NO_INIT),
-     mI2  (NO_INIT),
-     mF1  (NO_INIT),
-     mF2  (NO_INIT)
+     mS  {NO_INIT,NO_INIT},
+     mF  {NO_INIT,NO_INIT}
 {
 }
 
 cEdgeDual::cEdgeDual(int aS1,int aS2,int aF1) :
-     mI1  (aS1),
-     mI2  (aS2),
-     mF1  (aF1),
-     mF2  (NO_INIT)
+     mS  {aS1,aS2},
+     mF  {aF1,NO_INIT}
 {
 }
 
 void cEdgeDual::SetFace2(int aF2) 
 {
-     MMVII_INTERNAL_ASSERT_tiny((mF1!=NO_INIT)&&(mF2==NO_INIT),"SetOtherFace incohe");
-     mF2 = aF2;
+     MMVII_INTERNAL_ASSERT_tiny((mF[0]!=NO_INIT)&&(mF[1]==NO_INIT),"SetOtherFace incohe");
+     mF[1] = aF2;
 }
 
 
-cEdgeDual *  cGraphDual::GetEdge(int aS1,int aS2)
-{
-     for (const auto & aPtrE : mSomNeigh.at(aS1))
-     {
-        // it exist iff s2 is one of both submit (the other being s1)
-	if (aPtrE->GetOtherSom(aS2,true)== aS1)
-	   return aPtrE;
-     }
-     return nullptr;
-}
 
 /* *********************************************************** */
 /*                                                             */
@@ -218,10 +204,10 @@ void cGraphDual::Init(int aNbSom, const std::vector<tFace>& aVFace)
 void  cGraphDual::AddEdge(int aFace,int aS1,int aS2)
 {
     // s1->s2 and  s2->s1 are the same physicall edge, one exists iff the other exists
-    cEdgeDual * anE12 = GetEdge(aS1,aS2);
+    cEdgeDual * anE12 = GetEdgeOfSoms(aS1,aS2);
     if ( anE12==nullptr)
     {
-         MMVII_INTERNAL_ASSERT_tiny(GetEdge(aS2,aS1)==nullptr,"Sym Check in cGraphDual::AddEdge");
+         MMVII_INTERNAL_ASSERT_tiny(GetEdgeOfSoms(aS2,aS1)==nullptr,"Sym Check in cGraphDual::AddEdge");
          mReserve.push_back(cEdgeDual(aS1,aS2,aFace));
 	 anE12 = &mReserve.back();
          mSomNeigh.at(aS1).push_back(anE12);
@@ -230,7 +216,7 @@ void  cGraphDual::AddEdge(int aFace,int aS1,int aS2)
     }
     else
     {
-         MMVII_INTERNAL_ASSERT_tiny(GetEdge(aS2,aS1)==anE12,"Sym Check in cGraphDual::AddEdge");
+         MMVII_INTERNAL_ASSERT_tiny(GetEdgeOfSoms(aS2,aS1)==anE12,"Sym Check in cGraphDual::AddEdge");
 	 anE12->SetFace2(aFace);
          mFaceNeigh.at(aFace).push_back(anE12);
     }
@@ -241,6 +227,37 @@ void  cGraphDual::AddTri(int aNumFace,const cPt3di & aTri)
       for (int aK=0 ; aK<3 ; aK++)
           AddEdge(aNumFace,aTri[aK],aTri[(aK+1)%3]);
 }
+
+cEdgeDual *  cGraphDual::GetEdgeOfSoms(int aS1,int aS2)
+{
+     for (const auto & aPtrE : mSomNeigh.at(aS1))
+     {
+        // it exist iff s2 is one of both submit (the other being s1)
+	if (aPtrE->GetOtherSom(aS2,true)== aS1)
+	   return aPtrE;
+     }
+     return nullptr;
+}
+
+void  cGraphDual::GetSomsNeighOfSom(std::vector<int> & aRes,int aS1) const
+{
+   aRes.clear();
+   for (const auto & aPtrE : mSomNeigh.at(aS1))
+      aRes.push_back(aPtrE->GetOtherSom(aS1,false));
+}
+
+void  cGraphDual::GetFacesNeighOfFace(std::vector<int> & aRes,int aF1) const
+{
+   aRes.clear();
+   for (const auto & aPtrE : mFaceNeigh.at(aF1))
+   {
+      int aNF = aPtrE->GetOtherFace(aF1,true);
+      if (aNF!= cEdgeDual::NO_INIT)
+         aRes.push_back(aNF);
+   }
+}
+
+
 
 /* *********************************************************** */
 /*                                                             */
@@ -273,6 +290,9 @@ template <class Type,const int Dim> bool cTriangulation<Type,Dim>::ValidFace(con
    return true;
 
 }
+
+template <class Type,const int Dim> const cGraphDual &  cTriangulation<Type,Dim>::DualGr() const {return mDualGr;}
+
 
 
 template <class Type,const int Dim> void cTriangulation<Type,Dim>::MakeTopo()

@@ -199,11 +199,37 @@ template <class Type>  void cDenseMatrix<Type>::SolveIn(tDM & aRes,const tDM & a
     // aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
     if (aTED == eTyEigenDec::eTED_PHQR)
     {
-       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+       // aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+// -       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+        if (EigenDoTestSuccess())
+        {
+           auto solver = aWThis.EW().colPivHouseholderQr();
+           aWRes.EW() = solver.solve(aWMat.EW());
+           if (solver.info()!=Eigen::Success)
+           {
+               ON_EIGEN_NO_SUCC("SolveIn(eTED_PHQR)");
+           }
+        }
+        else
+        {
+           aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+        }
     }
     else if (aTED == eTyEigenDec::eTED_LLDT)
     {
-       aWRes.EW() = aWThis.EW().ldlt().solve(aWMat.EW());
+       if (EigenDoTestSuccess())
+       {
+          auto solver = aWThis.EW().ldlt();
+          aWRes.EW() = solver.solve(aWMat.EW());
+          if (solver.info()!=Eigen::Success)
+          {
+              ON_EIGEN_NO_SUCC("SolveIn(eTED_LLDT)");
+          }
+       }
+       else
+       {
+          aWRes.EW() = aWThis.EW().ldlt().solve(aWMat.EW());
+       }
     }
     else
     {
@@ -219,7 +245,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Solve(const tDM & 
     return aRes;
 }
 
-template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::Solve(const tDV & aVect,eTyEigenDec aTED) const
+template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::SolveColumn(const tDV & aVect,eTyEigenDec aTED) const
 {
     tMat::CheckSquare(*this);
     tMat::TplCheckSizeX(aVect.Sz());
@@ -232,11 +258,35 @@ template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::Solve(const tDV & aV
 
     if (aTED == eTyEigenDec::eTED_PHQR)
     {
-       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+       if (EigenDoTestSuccess())
+       {
+          auto solver = aWThis.EW().colPivHouseholderQr();
+          aWRes.EW() = solver.solve(aWVect.EW());
+          if (solver.info()!=Eigen::Success)
+          {
+             ON_EIGEN_NO_SUCC("SolveColVect(eTED_PHQR)");
+          }
+       }
+       else
+       {
+          aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+       }
     }
     else if (aTED == eTyEigenDec::eTED_LLDT)
     {
-       aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+       if (EigenDoTestSuccess())
+       {
+          auto solver = aWThis.EW().ldlt();
+          aWRes.EW() = solver.solve(aWVect.EW());
+          if (solver.info()!=Eigen::Success)
+          {
+              ON_EIGEN_NO_SUCC("SolveColVect(eTED_LLDT)");
+          }
+       }
+       else
+       {
+          aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+       }
     }
     else
     {
@@ -259,11 +309,35 @@ template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::SolveLine(const tDV 
 
     if (aTED == eTyEigenDec::eTED_PHQR)
     {
-       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+       if (EigenDoTestSuccess())
+       {
+          auto solver = aWThis.EW().colPivHouseholderQr();
+          aWRes.EW() = solver.solve(aWVect.EW());
+          if (solver.info()!=Eigen::Success)
+          {
+             ON_EIGEN_NO_SUCC("SolveLine(eTED_PHQR)");
+          }
+       }
+       else
+       {
+           aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+       }
     }
     else if (aTED == eTyEigenDec::eTED_LLDT)
     {
-       aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+       if (EigenDoTestSuccess())
+       {
+           auto solver = aWThis.EW().ldlt();
+           aWRes.EW() = solver.solve(aWVect.EW());
+           if (solver.info()!=Eigen::Success)
+           {
+               ON_EIGEN_NO_SUCC("SolveLine(eTED_LLDT)");
+           }
+       }
+       else
+       {
+              aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+       }
     }
     else
     {
@@ -408,7 +482,7 @@ template <class Type>  void cDecSumSqLinear<Type>::Set
   //     = (X-S) tR L  L  R (X-S)     with L=sqrt(LD)
   //      Som( ||li (RiX-RiS)
 
-    cDenseVect<Type> aSol =  aMat.Solve(aVect,eTyEigenDec::eTED_LLDT);
+    cDenseVect<Type> aSol =  aMat.SolveColumn(aVect,eTyEigenDec::eTED_LLDT);
 
     cResulSymEigenValue<Type> aRSEV = aMat.SymEigenValue() ;
     const cDenseVect<Type>   &  aVEVal = aRSEV.EigenValues() ;
