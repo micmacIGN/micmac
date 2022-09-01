@@ -16,19 +16,8 @@ using namespace  NS_SymbolicDerivative;
 namespace MMVII
 {
 
-	/*
-template <class Type> class cFormulaBilinIm2D
-{
-       public :
-          // cGenerateFormulaOnIm2D(const std::string & aPrefix);
-          static std::vector<std::string> NameObs(const std::string & aPrefix);
-          static void InitObs(std::vector<Type> & aVObs,int aK0,cPt2dr aPt,cIm2D<tREAL4> aIm);
-          static void InitObs(std::vector<Type> & aVObs,int aK0,cPt2dr aPt,cIm2D<tU_INT1> aIm);
-};
-*/
-
 template <class TypeUk,class TypeObs>   
-         TypeUk  FormulaBilinVal
+         TypeUk  FormalBilinIm2D_Formula
                  (
                       const std::vector<TypeObs> & aVObs,
                       int aKObs0,
@@ -53,6 +42,25 @@ template <class TypeUk,class TypeObs>
           + aWX1 * aWY1 * aVObs.at(aKObs0+5) ;
 
 }
+
+template <class Type,class TypeIm>
+   void FormalBilinIm2D_SetObs(std::vector<Type> & aVObs,size_t aK0,cPt2dr aPt,cIm2D<TypeIm> aIm)
+{
+     const cDataIm2D<TypeIm> & aDIm = aIm.DIm();
+     cPt2di aP0 = Pt_round_down(aPt);
+
+     SetOrPush(aVObs, aK0  ,  aPt.x()                            );
+     SetOrPush(aVObs, aK0+1,  aPt.y()                            );
+     SetOrPush(aVObs, aK0+2,  (Type) aDIm.GetV(aP0)              );
+     SetOrPush(aVObs, aK0+3,  (Type) aDIm.GetV(aP0+cPt2di(1,0))  );
+     SetOrPush(aVObs, aK0+4,  (Type) aDIm.GetV(aP0+cPt2di(0,1))  );
+     SetOrPush(aVObs, aK0+5,  (Type) aDIm.GetV(aP0+cPt2di(1,1))  );
+}
+
+
+
+
+
 
 
 };

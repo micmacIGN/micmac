@@ -13,10 +13,14 @@ void FFF()
 {
    std::vector<double> aV;
 
-   FormulaBilinVal(aV,0,1.0,1.0);
+   FormalBilinIm2D_Formula(aV,0,1.0,1.0);
 
    std::vector<cFormula<tREAL8> > aVF;
-   FormulaBilinVal(aVF,0,aVF.back(),aVF.back());
+   FormalBilinIm2D_Formula(aVF,0,aVF.back(),aVF.back());
+
+   cIm2D<tU_INT2> aIm(cPt2di(10,10));
+   FormalBilinIm2D_SetObs(aV,8,cPt2dr(0.4,1.5),aIm);
+
 }
 	
 /*
