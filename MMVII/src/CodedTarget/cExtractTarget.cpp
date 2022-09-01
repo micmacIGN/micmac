@@ -456,6 +456,18 @@ void  cAppliExtractCodeTarget::DoExtract(){
             double by  = (y1 + y2 + y3 + y4)/4.0;
 
 
+            double theta = PI/4.0 - spec.mChessboardAng;
+
+            // Chessboard rotation
+            double a11t =  a11*cos(theta) + a12*sin(theta);
+            double a12t = -a11*sin(theta) + a12*cos(theta);
+            double a21t =  a21*cos(theta) + a22*sin(theta);
+            double a22t = -a21*sin(theta) + a22*cos(theta);
+            a11 = a11t;
+            a12 = a12t;
+            a21 = a21t;
+            a22 = a22t;
+
             if ((isnan(a11)) || (isnan(a12)) || (isnan(a21)) || (isnan(a22)) || (isnan(bx)) || (isnan(by))){
                 continue;
             }
