@@ -87,6 +87,13 @@ enum class eModeCreateDir
               eNbVals        ///< Tag for number of value
            };
 
+/// Type of Error
+enum class eLevelCheck    
+           {
+              NoCheck,
+              Warning,
+              Error
+           };
 
 /// Type of set creation
 enum class eTySC    

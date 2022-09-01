@@ -41,7 +41,7 @@ class cGenerateSurfDevOri
              double  aFactNonDev=0
          );
 
-	 std::vector<tPt3D> VPts() const;
+	 std::vector<tPt3D> VPts(bool Plane) const;  ///< return Pt3d of surface
 	 std::vector<cPt3di>   VFaces() const;
 
 	 tPt3D PCenter() const;
@@ -49,7 +49,10 @@ class cGenerateSurfDevOri
      private :
 	 int  NumOfPix(const cPt2di & aKpt) const; ///< Basic numerotation of points using video sens, create index for mesh
 	 tPt3D  PlaneToSurf(const tPt2D & aKpt) const; ///< Map the plane to the 3D-surface
-         tPt2D  AbsiceToCurve(const tCoordDevTri & aXCoord) const;
+         tPt3D  IndexToDev(const cPt2di & aKpt) const; ///< return a devlpt of the surface
+         tPt2D  AbsiceToCurve(const tCoordDevTri & aXCoord) const; ///< compute point on the spiral
+         double  ZOfY(const tCoordDevTri & aYCoord) const; ///< Compute Z from Y index (before rotation by RToAxe)
+         double  FactNDev(const cPt2di & ) const; ///< Factor used to make surface non dev/non planar
 
          // =========  parameters of the surface
 	 cPt2di    mNb;
@@ -62,6 +65,8 @@ class cGenerateSurfDevOri
          // =========   value computed from parameters
          double    mTotalAngle;  // total variation of angle on the curve
          tRot      mRToAxe;  // transforme a cylindre with generatrix OZ in cylindre with  geneatrix AxeCyl
+
+         std::vector<double>  mIntegAbs;  // integral of curvil abs on spiral -> to generate GT for plane tri
 
 };
 
@@ -84,6 +89,16 @@ tPt2D  cGenerateSurfDevOri::AbsiceToCurve(const tCoordDevTri & aXCoord) const
      return FromPolar(aRho,aTeta); // make them cartesian
 }
 
+double  cGenerateSurfDevOri::ZOfY(const tCoordDevTri & aYCoord) const
+{
+     return  (aYCoord * mTotalAngle) / (mNb.x()-1);
+}
+
+double  cGenerateSurfDevOri::FactNDev(const cPt2di & aInd) const
+{
+    return  ((aInd.x()+aInd.y())%2) * mFactNonDev;
+}
+
 tPt3D  cGenerateSurfDevOri::PlaneToSurf(const tPt2D & aKpt) const
 {
      if (mPlaneCart)  // if planar stop here
@@ -91,36 +106,33 @@ tPt3D  cGenerateSurfDevOri::PlaneToSurf(const tPt2D & aKpt) const
         return tPt3D(aKpt.x(),aKpt.y(),0.0);
      }
 
-
-
      // compute polar coordinates
-/*
-     double aTeta =  mTotalAngle * ((double(aKpt.x())  / (mNb.x()-1) -0.5));
-     double aRho = pow(mFactRhoByTour,aTeta/(2*M_PI));
-     aRho = aRho * (1 + (round_ni(aKpt.x()+aKpt.y())%2)* mFactNonDev);
-     tPt2D  aPPlan = FromPolar(aRho,aTeta); // make them cartesian
-*/
-     tPt2D  aPPlan = AbsiceToCurve(aKpt.x()) *  (1 + (round_ni(aKpt.x()+aKpt.y())%2)* mFactNonDev);
-     double  aZCyl = (aKpt.y() * mTotalAngle) / (mNb.x()-1);
+     tPt2D  aPPlan = AbsiceToCurve(aKpt.x()) *  (1 + FactNDev(ToI(aKpt)));
+     double  aZCyl = ZOfY(aKpt.y()); //  (aKpt.y() * mTotalAngle) / (mNb.x()-1);
 
      tPt3D  aPCyl(aPPlan.x(),aPPlan.y(),aZCyl);
 
-     //tPt3D aAxe(1,1,1);
-     //tRot aR3 =  tRot::CompleteRON(mAxeCyl);  // create a RON with Axe as  AxeI
-     //aR3 =  tRot::CompleteRON(aR3.AxeJ(),aR3.AxeK()); // create a RON with Axe as AxeK
-      
 
      return mRToAxe.Value(aPCyl); // tPt3D(aPCyl.y(),aPCyl.z(),aPCyl.x());
 
 }
 
-std::vector<tPt3D> cGenerateSurfDevOri::VPts() const
+tPt3D  cGenerateSurfDevOri::IndexToDev(const cPt2di & aKpt) const
+{
+    double aX =  mIntegAbs.at(aKpt.x());
+    double aY =  ZOfY(aKpt.y());
+    double aZ =  FactNDev(aKpt);
+
+    return tPt3D(aX,aY,aZ);
+}
+
+std::vector<tPt3D> cGenerateSurfDevOri::VPts(bool PlaneDevlpt) const
 {
     std::vector<tPt3D> aRes(mNb.x()*mNb.y());
 
     for (const auto & aPix : cRect2(cPt2di(0,0),mNb))
     {
-         aRes.at(NumOfPix(aPix)) = PlaneToSurf(ToR(aPix));
+         aRes.at(NumOfPix(aPix)) =  PlaneDevlpt ? IndexToDev(aPix) : PlaneToSurf(ToR(aPix));
     }
 
     return aRes;
@@ -132,14 +144,13 @@ std::vector<cPt3di> cGenerateSurfDevOri::VFaces() const
     // parse rectangle into each pixel
     for (const auto & aPix00 : cRect2(cPt2di(0,0),mNb-cPt2di(1,1)))
     {
-         // split the pixel in two tri
-          // const std::vector<cTriangle<int,2> > &   aVTri = SplitPixIn2<int>(HeadOrTail());
-	  for (const auto & aTri : SplitPixIn2<int>(HeadOrTail()))
+         // split the pixel in two tri, generate randomy the two possible decomposistion
+	  for (const auto & aTri : SplitPixIn2<int>(HeadOrTail())) // parse the two triangle
 	  {
               cPt3di aFace;
-              for (int aK=0 ; aK<3 ; aK++)
+              for (int aK=0 ; aK<3 ; aK++) // parse 3 submit of elementary tri
               {
-                   cPt2di aPix = aPix00 + aTri.Pt(aK);
+                   cPt2di aPix = aPix00 + aTri.Pt(aK); // add coordinat to have global index
 		   aFace[aK] = NumOfPix(aPix);
               }
 	      aRes.push_back(aFace);
@@ -166,6 +177,15 @@ cGenerateSurfDevOri::cGenerateSurfDevOri(const cPt2di & aNb,double aFactNonDev) 
      mRToAxe         (  tRot::CompleteRON(mAxeCyl))  // create a RON with Axe as  AxeI
 {
      mRToAxe =  tRot::CompleteRON(mRToAxe.AxeJ(),mRToAxe.AxeK()); // create a RON with Axe as AxeK
+      
+     // compute integral of abscisse  along the discrete curve
+     mIntegAbs.push_back(0);
+     for (int aKx=1 ; aKx<=mNb.x() ; aKx++)
+     {
+          tPt2D  aP1 = AbsiceToCurve(aKx-1);
+          tPt2D  aP2 = AbsiceToCurve(aKx);
+          mIntegAbs.push_back(mIntegAbs.back() + Norm2(aP1-aP2));
+     }
 }
 
 /* ******************************************************* */
@@ -188,6 +208,7 @@ class cAppliGenMeshDev : public cMMVII_Appli
            // --- Mandatory ----
 	      std::string mNameCloudOut;
            // --- Optionnal ----
+	      bool        mPlanDevSurf; // generate the developped surf
 	      bool        mBinOut;
 	      double      mFactNonDev;  // Make the surface non devlopable
            // --- Internal ----
@@ -196,6 +217,7 @@ class cAppliGenMeshDev : public cMMVII_Appli
 
 cAppliGenMeshDev::cAppliGenMeshDev(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
+   mPlanDevSurf     (false),
    mBinOut          (true)
 {
 }
@@ -213,6 +235,7 @@ cCollecSpecArg2007 & cAppliGenMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
             << AOpt2007(mFactNonDev,"NonDevFact","make the surface more or less devlopable ",{eTA2007::HDV})
             << AOpt2007(mBinOut,CurOP_OutBin,"Generate out in binary format",{eTA2007::HDV})
+            << AOpt2007(mPlanDevSurf,"DevPlane","Generate the devloped planar surf",{eTA2007::HDV})
            // << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file")
    ;
 }
@@ -234,9 +257,11 @@ int  cAppliGenMeshDev::Exe()
 
    // generate synthetic mesh
    cGenerateSurfDevOri aGenSD (cPt2di(15,5),mFactNonDev);
-   tTriangulation3D  aTri(aGenSD.VPts(),aGenSD.VFaces());
+   tTriangulation3D  aTri(aGenSD.VPts(mPlanDevSurf),aGenSD.VFaces());
    aTri.WriteFile(mNameCloudOut,mBinOut);
-   aTri.MakeTopo();
+
+
+   // aTri.MakeTopo();
 
    //  devlop it
 /*

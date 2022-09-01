@@ -30,8 +30,8 @@
 
 //===========================================
 #include "MMVII_AllClassDeclare.h"
-#include "MMVII_Error.h"
 #include "MMVII_enums.h"
+#include "MMVII_Error.h"
 // Header MMVII
 // #include "TypeNum.h"
 #include "MMVII_Sys.h"

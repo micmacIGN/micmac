@@ -10,19 +10,21 @@ class cEdgeDual
         cEdgeDual();
         cEdgeDual(int aS1,int aS2,int aF1);
         /// return 1 or 2, -1 if none and none allowed
-        int GetOtherSom(int aS,bool AllowNone)  const
+        int GetOtherSom(int aS,bool AllowNone)  const { return GetOtherObj(mS,aS,AllowNone); }
+        int GetOtherFace(int aF,bool AllowNone) const { return GetOtherObj(mF,aF,AllowNone); }
+        void SetFace2(int aF) ;
+     private :
+        typedef int  tTab2I[2];
+        int GetOtherObj(const tTab2I &aTab,int aObj,bool AllowNone)  const
         {
-            if (mI1==aS) return mI2;
-            if (mI2==aS) return mI1;
+            if (aTab[0]==aObj) return aTab[1];
+            if (aTab[1]==aObj) return aTab[0];
             MMVII_INTERNAL_ASSERT_tiny(AllowNone,"cEdgeDual::GetNumSom");
             return NO_INIT;
         }
-        void SetFace2(int aF) ;
-     private :
-        int mI1;
-        int mI2;
-        int mF1;
-        int mF2;
+
+        tTab2I  mS;
+        tTab2I  mF;
 };
 
 class cGraphDual
@@ -33,16 +35,18 @@ class cGraphDual
 
          cGraphDual();
          void Init(int aNbSom,const std::vector<tFace>&);
-         void  AddEdge(int aFace,int aS1,int aS2);
          void  AddTri(int aFace,const cPt3di &);
 
-	 std::list<int>  SuccOfSom(int aS1) const;
+         cEdgeDual * GetEdgeOfSoms(int aS1,int aS2); ///< return egde s1->s2 if it exist, else return null
+	 void  GetSomsNeighOfSom(std::vector<int> & aRes,int aS1) const;
+	 void  GetFacesNeighOfFace(std::vector<int> & aRes,int aF1) const;
      private :
-         cEdgeDual * GetEdge(int aS1,int aS2); ///< return egde s1->s2 if it exist, else return null
+         void  AddEdge(int aFace,int aS1,int aS2);
+         cGraphDual(const cGraphDual &) = delete;
 
          std::vector<tListAdj>     mSomNeigh;
          std::vector<tListAdj>     mFaceNeigh;
-         std::vector<cEdgeDual> mReserve;
+         std::list<cEdgeDual>      mReserve;
 };
 
 
