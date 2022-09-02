@@ -57,10 +57,9 @@ template <class Type,class TypeIm>
      SetOrPush(aVObs, aK0+5,  (Type) aDIm.GetV(aP0+cPt2di(1,1))  );
 }
 
+constexpr size_t FormalBilinIm2D_NbObs=6;
 
-
-
-
+std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix);
 
 
 };

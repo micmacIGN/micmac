@@ -132,6 +132,9 @@ template <class Type>  class cHomot2D
           inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
           tTypeMapInv MapInverse() const {return cHomot2D<Type>(-mTr/mSc,1.0/mSc);}
 	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+mSc*aS2.mTr,mSc*aS2.mSc);}
+
+          inline const tPt&  Tr() const   {return mTr;}
+          inline Type        Sc() const   {return mSc;}
       private :
           tPt mTr;
           Type mSc;

@@ -1,6 +1,7 @@
 #include "include/MMVII_all.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_GenNameAlloc.h"
+#include "Formulas_ImagesDeform.h"
 #include "Formulas_CamStenope.h"
 #include "Formulas_Geom2D.h"
 
@@ -213,6 +214,8 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cNetworConsDistProgCov(cPt2di(2,2)),WithDer);
        for (const auto WithSimUk : {true,false})
            GenCodesFormula((tREAL8*)nullptr, cNetWConsDistSetPts(cPt2di(2,2),WithSimUk),WithDer);
+
+       GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy(),WithDer);
    }
 /*
    cMMVIIUnivDist           aDist(3,1,1,false);
@@ -295,7 +298,7 @@ cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf)
     return cName2Calc<double>::CalcFromName(NameFormula(cRatioDist2DConservation(),WithDerive),aSzBuf);
 }
 
-//  Network 4 points  
+//  Network for points  
 cCalculator<double> * EqNetworkConsDistProgCov(bool WithDerive,int aSzBuf,const cPt2di& aSzN)
 { 
     return cName2Calc<double>::CalcFromName(NameFormula(cNetworConsDistProgCov(aSzN),WithDerive),aSzBuf);
@@ -306,12 +309,16 @@ cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,cons
     return cName2Calc<double>::CalcFromName(NameFormula(cNetWConsDistSetPts(aSzN,WithSimUK),WithDerive),aSzBuf);
 }
 
+cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf)
+{
+     return cName2Calc<double>::CalcFromName(NameFormula(cDeformImHomotethy(),WithDerive),aSzBuf);
+}
+
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
 {
    cMMVIIUnivDist  aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
 
    return aDist.VDescParams();
- 
 }
 
 

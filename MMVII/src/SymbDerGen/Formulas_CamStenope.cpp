@@ -8,7 +8,20 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix)
+{
+   return std::vector<std::string> 
+          {
+              "PtX0_" + aPrefix,
+              "PtY0_" + aPrefix,
+              "Im00_" + aPrefix,
+              "Im10_" + aPrefix,
+              "Im01_" + aPrefix,
+              "Im11_" + aPrefix
+          };
+}
 
+/*
 void FFF()
 {
    std::vector<double> aV;
@@ -23,7 +36,6 @@ void FFF()
 
 }
 	
-/*
 
 template <class Type> class cFormulaBilinIm2D
 {
