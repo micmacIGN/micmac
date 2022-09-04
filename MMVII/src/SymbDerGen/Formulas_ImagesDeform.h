@@ -59,23 +59,29 @@ class cDeformImHomotethy
           size_t IndBilin = 0;
           size_t IndX = FormalBilinIm2D_NbObs+ IndBilin;
 
+	  // extract observation on model 
           const auto & xModele    = aVObs[IndX];
           const auto & yModele    = aVObs[IndX+1];
           const auto & vModelInit = aVObs[IndX+2];
 
+	  // extract unknowns
           const auto & aRadSc     = aVUk[0];
           const auto & aRadTr     = aVUk[1];
           const auto & aGeomScale = aVUk[2];
           const auto & aGeomTrx   = aVUk[3];
           const auto & aGeomTry   = aVUk[4];
 
+	  // compute pixel homologous to model in image
           auto  xIm = aGeomTrx + aGeomScale *  xModele;
           auto  yIm = aGeomTry + aGeomScale *  yModele;
 
+	  // compute formula of bilinear interpolation
           auto aValueIm = FormalBilinIm2D_Formula(aVObs,IndBilin,xIm,yIm);
-          // auto aValueModele = aRaTr + aRadSc * vModelInit;
+	  // take into account radiometric transform
+          auto aValueModele = aRadTr + aRadSc * vModelInit;
 
-          return { vModelInit - (aRadTr + aRadSc *aValueIm)};
+	  // residual is simply the difference  between both value
+          return { aValueModele - aValueIm};
      }
 };
 

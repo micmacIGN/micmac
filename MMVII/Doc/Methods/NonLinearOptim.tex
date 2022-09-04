@@ -654,6 +654,58 @@ want to do is to :
 
 This is done by the method {\tt SolveUpdateReset() ;}.
 
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Image, optmization and differenciation in MMVII}
+
+          %  - - - - - - - - - - - - - - - - - - - 
+\subsection{Introduction}
+
+In this section we present the facilities offered in MMVII when we want to mix non
+linear optimisation with images. Typically example of such use are :
+
+\begin{itemize}
+     \item computing a deformation that transform a model of form  to an image;
+           this is (will be) used  in MMVII for refining the  geometry of coded target detection;
+           as very similar example, is in optical caracter recognition, if we know the font,
+           the matching between a potential detectected character and the model ("Ab\'ec\'edaire" in french);
+
+      \item this will/could be used (maybe) in matching method that used deformable mesh for modeling
+            the geometry between different images (a well known variant being least-square matching);
+
+      \item this could be used for deformable contour (a topics that used to be very active in 
+            pattern recognition).
+\end{itemize}
+
+          %  - - - - - - - - - - - - - - - - - - - 
+\subsection{Mathematicall modelization}
+
+The basic mathematicall modelization is simply  to consider the images as functions.
+As we deal with  continuous optimization, we need to have an interpolation scheme that
+allow to consider them as function from $\RR^2 \rightarrow \RR$.
+Ideally (to be mathematically consistant with derivation) we should use an interpolation 
+model that is continuously derivable as bicubic interpolation. However for efficiency reason,
+we will generally prefer a non rigourous model as bilinear,  because the redundancy make
+neglectable the difference with bicubic (later the bicubic option is planed to be added for finer
+tests).
+
+A typicall example is :
+
+\begin{itemize}
+      \item we have an image $I$, considered as a function $\RR^2 \rightarrow \RR$;
+      \item we have a mapping of  $\RR^2$ ,  $\phi : \RR^2 \rightarrow \RR$.
+      \item we want to use the composed function $I \circ \phi$;
+\end{itemize}
+
+Let $q$ , be a point and $q=(x_q,y_q)=\phi(p)$ its transformation by $\phi$. Let $x_0$ and $y_0$
+be the lower bound of $q$ ,and $x_1=x_0+1, y_1 = y_0+1$:
+
+\begin{equation}
+	x_0 \leq x_q < x_1   \;\;  y_0 \leq y_q < y_1
+\end{equation}
+
 
 
 
