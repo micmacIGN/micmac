@@ -23,11 +23,11 @@ class cDist2DConservation
 
     std::string FormulaName() const { return "Dist2DCons";}
 
-    template <typename tUk> 
+    template <typename tUk,typename tObs> 
              static std::vector<tUk> formula
                   (
                       const std::vector<tUk> & aVUk,
-                      const std::vector<tUk> & aVObs
+                      const std::vector<tObs> & aVObs
                   ) // const
     {
           const auto & x1 = aVUk[0];

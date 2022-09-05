@@ -244,6 +244,17 @@ template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,con
     return aRes;
 }
 
+///  set value or push at end, 
+template <class Type> void SetOrPush(std::vector<Type> & aVec,size_t aIndex,const Type & aVal)
+{
+     MMVII_INTERNAL_ASSERT_tiny(aIndex<=aVec.size(),"Bad size for SetOrPush");
+     if (aIndex==aVec.size())
+        aVec.push_back(aVal);
+     else
+        aVec.at(aIndex) = aVal;
+}
+
+
 //  resize only in increasing mode
 template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal)
 {
