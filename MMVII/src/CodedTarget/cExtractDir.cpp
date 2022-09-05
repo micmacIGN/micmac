@@ -27,7 +27,7 @@ template <class Type>  cExtractDir<Type>::cExtractDir(tIm anIm,double aRhoMin,do
     }
 }
 
-template <class Type>  double cExtractDir<Type>::Score(const cPt2dr & aDInit,double aDeltaTeta) 
+template <class Type>  double cExtractDir<Type>::Score(const cPt2dr & aDInit,double aDeltaTeta)
 {
     cPt2dr aDir = aDInit * FromPolar(1.0,aDeltaTeta);
     double aSomDiff = 0.0;
@@ -96,15 +96,15 @@ double TestDir(const cNS_CodedTarget::cGeomSimDCT & aGT,const cNS_CodedTarget::c
 }
 
 
-template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT) 
+template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT)
 {
      mPDCT = & aDCT;  // memorize as internal variables
      std::vector<float>  aVVals;  // vectors of value of pixel , here to avoir reallocation
      std::vector<bool>   aVIsW;   // vector of boolean IsWhite ?  / IsBlack ?
      cPt2di aC= ToI(aDCT.mPt); // memorize integer center
-     mVThrs = (aDCT.mVBlack+aDCT.mVWhite)/2.0;  // threshold for being black or white 
+     mVThrs = (aDCT.mVBlack+aDCT.mVWhite)/2.0;  // threshold for being black or white
 
-     
+
      cPt2dr aSomDir[2] = {{0,0},{0,0}};  // accumulate for black and white average direction
 
      //  Parse all circles
@@ -115,14 +115,14 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT)
          int aNbInC = aCircle.size();
          aVVals.clear();
          aVIsW.clear();
-         //  parse the circle , for each pixel compute gray level and its thresholding 
+         //  parse the circle , for each pixel compute gray level and its thresholding
          for (const auto & aPt : aCircle)
          {
              float aVal  = mDIm.GetV(aC+aPt);
              aVVals.push_back(aVal);
              aVIsW.push_back(aVal>mVThrs);
          }
-         
+
          int aCpt = 0;
          // parse the value to detect black/white transitions
          for (int  aKp=0 ; aKp<aNbInC ; aKp++)
@@ -138,8 +138,8 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT)
                  // make a weighted average of P1/P2 corresponding to linear interpolation with threshold
                  cPt2dr aDir =   (aP1 *(aV2-mVThrs) + aP2 * (mVThrs-aV1)) / (aV2-aV1);
                  if (SqN2(aDir)==0) return false;  // not interesting case
-                 aDir = VUnit(aDir);  // reput to unitary 
-                 aDir = aDir * aDir;  // make a tensor of it => double its angle, complexe-point multiplication 
+                 aDir = VUnit(aDir);  // reput to unitary
+                 aDir = aDir * aDir;  // make a tensor of it => double its angle, complexe-point multiplication
                  aSomDir[aVIsW[aKp]] += aDir;  // acculate the direction in black or whit transition
              }
          }
@@ -150,16 +150,16 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT)
      // now recover from the tensor one of its two vectors (we have no control one which)
      for (auto & aDir : aSomDir)
      {
-         aDir = ToPolar(aDir,0.0);  // cartesian => polar  P= (Rho,Theta)  
+         aDir = ToPolar(aDir,0.0);  // cartesian => polar  P= (Rho,Theta)
          aDir = FromPolar(1.0,aDir.y()/2.0);  // polar=>cartesian  P.y() = theta
      }
 
      aDCT.mDirC1 = aSomDir[1];
      aDCT.mDirC2 = aSomDir[0];
 
-     // As each directio is up to Pi,  and this arbirtray Pi is indepensant we may have 
+     // As each directio is up to Pi,  and this arbirtray Pi is indepensant we may have
      // an orientation problem  and Dir1,Dir2 being sometime a direct repair and sometime
-     // an indirect one.  
+     // an indirect one.
      if ( (aDCT.mDirC1^aDCT.mDirC2) < 0)
      {
          aDCT.mDirC2 = -aDCT.mDirC2;
@@ -174,7 +174,7 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT)
 /*  In this function we will establish a theoreticall model of the radiometry of the target,
     and compute a difference with the effective radiometry fund in the image
 */
-template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT) 
+template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
 {
      // compute the affine transformation that goes frome the canonical target repair to the image
      cAffin2D  aInit2Loc(aDCT.mPt,aDCT.mDirC1,aDCT.mDirC2);
@@ -218,7 +218,7 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
           //  accumulate for difference
 	  aSomWeight += aWeight;
 	  aSomWEc +=  aWeight * std::abs(aValTheo-aVal);
- 
+
           // accumulate for correlation
           aMat.Add(aWeight,aVal,aValTheo);
 
@@ -241,7 +241,7 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
            StdOut() <<  " *********************";
         if (aDCT.mGT &&(aCorMin<0.9))
            StdOut() <<  " ########################";
-        
+
         StdOut() << "\n";
      }
 
@@ -259,7 +259,13 @@ bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB)
 
     anED.ScoreRadiom(aDCT) ;
 
-    return (aDCT.mScRadDir <0.12) && (aDCT.mCorMinDir>0.85) ;
+    double th1 = 0.12;
+    double th2 = 0.85;
+
+  //  th1 = 0.25;
+  //  th2 = 0.7;
+
+    return (aDCT.mScRadDir < th1) && (aDCT.mCorMinDir> th2) ;
 
 }
 

@@ -193,17 +193,16 @@ void cAppliExtractCodeTarget::MarkDCT()
 
           if (aDCT->mState == eResDCT::Ok)      aCoul =  cRGBImage::Green;
 
-	  /*
-          if (aDCT.mState == eResDCT::Divg)    aCoul =  cRGBImage::Red;
-          if (aDCT.mState == eResDCT::LowSym)  aCoul =  cRGBImage::Yellow;
-          if (aDCT.mState == eResDCT::LowBin)  aCoul =  cRGBImage::Blue;
-          if (aDCT.mState == eResDCT::LowRad)  aCoul =  cRGBImage::Cyan;
-	  */
-          if (aDCT->mState == eResDCT::LowSymMin)  aCoul =  cRGBImage::Red;
-
+/*
+          if (aDCT->mState == eResDCT::Divg)    aCoul =  cRGBImage::Red;
+          if (aDCT->mState == eResDCT::LowSym)  aCoul =  cRGBImage::Yellow;
+          if (aDCT->mState == eResDCT::LowBin)  aCoul =  cRGBImage::Blue;
+          if (aDCT->mState == eResDCT::LowRad)  aCoul =  cRGBImage::Cyan;
+          if (aDCT->mState == eResDCT::LowSymMin)  aCoul =  cRGBImage::Magenta;
+*/
 
           if (aCoul.x() >=0){
-             mImVisu.SetRGBrectWithAlpha(aDCT->Pix0(),0,aCoul,0.0);
+             mImVisu.SetRGBrectWithAlpha(aDCT->Pix0(), 1, aCoul, 0.0);
           }
 
      }
@@ -317,6 +316,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
      }
      ShowStats("LowSym");
 
+
      //   ====   Binarity filters ====
      SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),false,mTHRS_Bin,eResDCT::LowBin);
 
@@ -326,12 +326,11 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
 
      // Min of symetry
-     SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,mRayMinCB*0.4,mRayMinCB*0.8,1),true,0.8,eResDCT::LowSym);
+    // SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,mRayMinCB*0.4,mRayMinCB*0.8,1),true,0.8,eResDCT::LowSym);
+    SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,mRayMinCB*0.4,mRayMinCB*0.8,1),true,0.2,eResDCT::LowSym);
 
      // Min of bin
      SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),true,mTHRS_Bin,eResDCT::LowBin);
-
-
 
      mVDCTOk.clear();
 
@@ -372,13 +371,6 @@ void  cAppliExtractCodeTarget::DoExtract(){
             std::vector<cPt2dr> POINTS;
 
 
-            for (int sign=-1; sign<=1; sign+=2){
-                for (int i=1; i<=50; i++){
-                    plotSafeRectangle(mImVisu, cPt2di(center.x()+sign*vx1*i, center.y()+sign*vy1*i), 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
-                    plotSafeRectangle(mImVisu, cPt2di(center.x()+sign*vx2*i, center.y()+sign*vy2*i), 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
-                }
-            }
-
 
             for (double t=0.1; t<0.9; t+=0.01){
                 for (int sign=-1; sign<=1; sign+=2){
@@ -410,11 +402,11 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
             if (ellipse[0] != ellipse[0])  continue;
 
-
+            std::vector<cPt2di> ELLIPSE_TO_PLOT;
             for (double t=0; t<2*PI; t+=0.01){
                 cPt2dr aPoint = generatePointOnEllipse(ellipse, t, 0.0);
                 cPt2di pt = cPt2di(aPoint.x(), aPoint.y());
-                plotSafeRectangle(mImVisu, pt, 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+                ELLIPSE_TO_PLOT.push_back(pt);
             }
 
              // Solve intersections
@@ -442,10 +434,6 @@ void  cAppliExtractCodeTarget::DoExtract(){
             double x3 = center.x() + t21*vx2; double y3 = center.y() + t21*vy2; cPt2di p3 = cPt2di(x3, y3);
             double x4 = center.x() + t12*vx1; double y4 = center.y() + t12*vy1; cPt2di p4 = cPt2di(x4, y4);
 
-            plotSafeRectangle(mImVisu, p1, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-            plotSafeRectangle(mImVisu, p2, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-            plotSafeRectangle(mImVisu, p3, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-            plotSafeRectangle(mImVisu, p4, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
 
             // Affinity estimation
             double a11 = (x1 + x2 - x3 - x4)/4.0;
@@ -477,6 +465,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
             double irel, jrel, it, jt;
             tImTarget aImT(cPt2di(Nout, Nout));
             tDataImT  & aDImT = aImT.DIm();
+            std::vector<cPt2di> FRAME_TO_PLOT;
             for (int i=0; i<Nout; i++){
                 for (int j=0; j<Nout; j++){
                     irel = +6*((double)i-Nout/2.0)/Nout;
@@ -490,7 +479,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
                     aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(cPt2dr(it, jt)));
 
                     if ((i == 0) || (j == 0) || (i == Nout-1) || (j == Nout-1)){
-                        plotSafeRectangle(mImVisu, cPt2di(it, jt), 0.0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+                        FRAME_TO_PLOT.push_back(cPt2di(it, jt));
                     }
                 }
             }
@@ -539,6 +528,39 @@ void  cAppliExtractCodeTarget::DoExtract(){
             // --------------------------------------------------------------------------------
             std::string name_file = "target_" + chaine + ".tif";
             StdOut() << "  ->  " << name_file << "\n";
+            // --------------------------------------------------------------------------------
+
+
+
+            // --------------------------------------------------------------
+            // Begin plot debug image
+            // --------------------------------------------------------------
+            for (int sign=-1; sign<=1; sign+=2){
+                for (int i=1; i<=50; i++){
+                    plotSafeRectangle(mImVisu, cPt2di(center.x()+sign*vx1*i, center.y()+sign*vy1*i), 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
+                    plotSafeRectangle(mImVisu, cPt2di(center.x()+sign*vx2*i, center.y()+sign*vy2*i), 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
+                }
+            }
+
+            for (unsigned i=0; i<FRAME_TO_PLOT.size(); i++){
+                plotSafeRectangle(mImVisu, FRAME_TO_PLOT.at(i), 0.0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+            }
+
+            for (unsigned i=0; i<ELLIPSE_TO_PLOT.size(); i++){
+                plotSafeRectangle(mImVisu, ELLIPSE_TO_PLOT.at(i), 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+            }
+
+            plotSafeRectangle(mImVisu, p1, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+            plotSafeRectangle(mImVisu, p2, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+            plotSafeRectangle(mImVisu, p3, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+            plotSafeRectangle(mImVisu, p4, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+
+
+
+     StdOut() << p1 << p2 << p3 << p4 << "\n";
+
+            // --------------------------------------------------------------------------------
+            // End plot console
             // --------------------------------------------------------------------------------
 
             aImT.DIm().ToFile(output_folder+ "/" + name_file);
