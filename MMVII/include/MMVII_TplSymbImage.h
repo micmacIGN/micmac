@@ -44,13 +44,13 @@ namespace MMVII
 
  */
 
-template <class TypeUk,class TypeObs>   
+template <class TypeFunc,class TypeObs>   
          TypeUk  FormalBilinIm2D_Formula
                  (
                       const std::vector<TypeObs> & aVObs,
                       int aKObs0,
-                      const TypeUk  &  FX,  
-                      const TypeUk  & FY    
+                      const TypeFunc  &  FX,  
+                      const TypeFunc  & FY    
                  )
 {
     TypeUk aX0   (aVObs.at(aKObs0));
@@ -70,6 +70,9 @@ template <class TypeUk,class TypeObs>
           + aWX1 * aWY1 * aVObs.at(aKObs0+5) ; // I11
 
 }
+
+/**  standard name for observation */
+std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix);
 
 /**  This is the "companion" function of  FormalBilinIm2D_Formula, it fill
      the vector aVObs with X0,Y0,I00,   that will be used in FormalBilinIm2D_Formula.
@@ -97,7 +100,6 @@ template <class Type,class TypeIm>
 
 constexpr size_t FormalBilinIm2D_NbObs=6;
 
-std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix);
 
 
 };
