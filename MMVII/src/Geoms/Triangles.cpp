@@ -17,6 +17,16 @@ template <class Type,const int Dim>
    mPts[2] = aP2;
 }
 
+template <class Type,const int Dim>  
+    int cTriangle<Type,Dim>::IndexLongestSeg() const
+{
+    cWhitchMax<int,typename tPt::tBigNum> aWMax(0,SqN2(mPts[0]-mPts[1]));
+    for (int aK=1 ; aK<3 ; aK++)
+        aWMax.Add(aK,SqN2(mPts[aK+1]-mPts[(aK+1)%3]));
+
+    return aWMax.IndexExtre();
+}
+
 
 template <class Type,const int Dim> const cPtxd<Type,Dim>& cTriangle<Type,Dim>::Pt(int aK) const
 {

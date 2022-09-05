@@ -49,11 +49,11 @@ class cFaceDevT3D
    public :
       cFaceDevT3D (cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom);
       int IndKthSom(int aK) const;
-      void SetReached();
+      void SetReached(int aNumStepReach);
       bool IsReached() const;
    private :
       cDevTriangu3d  * mDevTri;
-      bool             mReached;
+      int              mNumStepReach;
       int              mNumFace;
       cPt3di           mIndSoms;
 };
@@ -102,6 +102,7 @@ class cDevTriangu3d
 	  std::vector<int>  mStepReach_F;      ///< indicate at which step a face is reached (NO_STEP while unreached)
           int               mIndexFC;          ///< Index of centerface
 	  cPt3di            mFaceC;            ///< Center face
+          int               mNumGen;           ///< Num Gen
 
 
           
@@ -132,17 +133,23 @@ cSomDevT3D::cSomDevT3D(cDevTriangu3d * aDevTri,int aNum,const tPt3D & aP3):
 /* ******************************************************* */
 
 cFaceDevT3D::cFaceDevT3D(cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom) :
-    mDevTri  (aDevTri),
-    mReached (false),
-    mNumFace (aNumF),
-    mIndSoms (aIndSom)
+    mDevTri       (aDevTri),
+    mNumStepReach (-1),
+    mNumFace      (aNumF),
+    mIndSoms      (aIndSom)
 {
+}
+void cFaceDevT3D::SetReached(int aNumStepReach) 
+{
+   mNumStepReach=aNumStepReach;
 }
 
 int cFaceDevT3D::IndKthSom(int aK) const {return mIndSoms[aK];}
 
-void cFaceDevT3D::SetReached() {mReached=true;}
-bool cFaceDevT3D::IsReached() const {return mReached;}
+bool cFaceDevT3D::IsReached() const 
+{
+   return mNumStepReach >= 0;
+}
 
 
 /* ******************************************************* */
@@ -160,45 +167,35 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri) :
      mVPtsDev     (mTri.NbPts()),
      mStepReach_F (mTri.NbFace(),NO_STEP),
      mIndexFC     (NO_STEP),
-     mFaceC       (NO_STEP,NO_STEP,NO_STEP)
+     mFaceC       (NO_STEP,NO_STEP,NO_STEP),
+     mNumGen      (0)
 {
+   //  generate topology
+   aTri.MakeTopo();
+
+   // create the vector of points
    for (int aKPt=0 ; aKPt<mTri.NbPts() ; aKPt++)
    {
       mVSoms.push_back(cSomDevT3D(this,aKPt,mTri.KthPts(aKPt)));
    }
 
-
+   // create the vector of faces
    for (int aKF=0 ; aKF<mTri.NbFace() ; aKF++)
    {
        mVFaces.push_back(cFaceDevT3D(this,aKF,mTri.KthFace(aKF)));
    }
 
    mIndexFC = mTri.IndexCenterFace();
-   mVFaces.at(mIndexFC).SetReached();
+   mVFaces.at(mIndexFC).SetReached(mNumGen);
+       //tTri3D  aTriC = mTri.KthTri(mIndexFC);  // 3D triangle
+       //tIsom3D  anIsom =  tIsom3D::FromTriOut(0,aTriC).MapInverse();  // Isometry plane TriC-> plane Z=0
 
-
-
-/*
-   {
-       tTri3D  aTriC = mTri.KthTri(mIndexFC);  // 3D triangle
-       tIsom3D  anIsom =  tIsom3D::FromTriOut(0,aTriC).MapInverse();  // Isometry plane TriC-> plane Z=0
-
-       for (int aK=0 ; aK<3 ;aK++)
-       {
-            mVPtsDev.at(mFaceC[aK]) =  Proj(anIsom.Value(aTriC.Pt(aK)));
-	    // StdOut() << " Pt= " << mFaceC[aK] << " " << mTri.NbPts() << "\n";
-	    // StdOut() << " Pt= " << anIsom.Value(aTriC.Pt(aK)) << "\n";
-       }
-       // getchar();
-   }
-*/
-
-   aTri.MakeTopo();
    std::vector<int>  mVCurFace {mIndexFC};
    size_t aIndNewF0 = 0;
 
    while (aIndNewF0!=mVCurFace.size())
    {
+        mNumGen++;
         StdOut() << "IIIi " << aIndNewF0 << " " << mVCurFace.size() << "\n"; 
         size_t aIndNewF1 = mVCurFace.size(); 
 
@@ -211,7 +208,7 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri) :
                  cFaceDevT3D & aFace = mVFaces.at(aNewF);
                  if (! aFace.IsReached())
                  {
-                     aFace.SetReached();
+                     aFace.SetReached(mNumGen);
                      mVCurFace.push_back(aNewF);
                  }
             }

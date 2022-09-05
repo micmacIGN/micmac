@@ -732,6 +732,9 @@ template <class Type,const int Dim> class  cTriangle
        /// Barrycenter with equal weights
        tPt  Barry() const;
 
+       ///  return K such that Pt(K)Pt(K+1) is the longest
+       int  IndexLongestSeg() const;
+
        /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
        Type Regularity() const;
        /// Area of the triangle
