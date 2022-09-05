@@ -177,10 +177,11 @@ void cTestDeformIm::OneIterationFitModele(bool IsLast)
 	 cPt2dr aPIm  = aCurHomM2I.Value(aPMod); // image of aPMod by current homotethy
 	 if (mDIm.InsideBL(aPIm))  // avoid error 
 	 {
-	     // put in  observations info on image and point-image
+	     // put observations in vectors
+	          //  observations on image and point-image
              FormalBilinIm2D_SetObs(aVObs,0,aPIm,mDIm);  
 
-	     // put in observation point model and value model
+	          //  observation point model and value model
 	     aVObs[6] = aPMod.x();
 	     aVObs[7] = aPMod.y();
 	     aVObs[8] =  mValueMod[aKPt];

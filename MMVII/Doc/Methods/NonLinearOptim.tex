@@ -669,7 +669,7 @@ linear optimisation with images. Typically example of such use are :
 \begin{itemize}
      \item computing a deformation that transform a model of form  to an image;
            this is (will be) used  in MMVII for refining the  geometry of coded target detection;
-           as very similar example, is in optical caracter recognition, if we know the font,
+           a very similar example, occurs in optical caracter recognition, if we know the font,
            the matching between a potential detectected character and the model ("Ab\'ec\'edaire" in french);
 
       \item this will/could be used (maybe) in matching method that used deformable mesh for modeling
@@ -688,7 +688,7 @@ allow to consider them as function from $\RR^2 \rightarrow \RR$.
 Ideally (to be mathematically consistant with derivation) we should use an interpolation 
 model that is continuously derivable as bicubic interpolation. Also for efficiency reason,
 we will generally prefer a non rigourous model as bilinear;  however the redundancy generally make
-neglectable the difference with bicubic (however, later, the bicubic option is planed to be added for finer
+neglectable the difference with bicubic (probably, later, the bicubic option will be added for finer
 tests).
 
 A typicall example is :
@@ -768,6 +768,10 @@ The parameter are :
 
 \section{Test example for image differenciation in MMVII}
 
+In this section we describe a test example, that has been implemented in MicMac, this example 
+has two objective : (1) make a didactic illustration of the fonctionnalities and (2) 
+be usable in the automatic test of MMVII ("proof" of correctness and no regression).
+
 \subsection{Mathemical problem}
 
 We have :
@@ -795,7 +799,7 @@ make a theoreticall analysis of robustness, just illustrate and test implementat
 More precisely we use a gaussian fonction :
 
 \begin{equation}
-	M(x,y) =  e^{\frac{|p-\mu|^2}{\sigma^2}}
+	M(x,y) =  e^{-\frac{|p-\mu|^2}{\sigma^2}}
 \end{equation}
 
 The  parameter of transformation has 5 value :  $P=\{A,B,S,T_x,T_y\}$, where $\{A,B\}$ parametrises
@@ -816,6 +820,7 @@ the parameter of invert homothety $\{\tilde{S},\tilde{T}_x,\tilde{T}_y\}$:
 	I(\tilde{T}_x + \tilde{S}*x,\tilde{T}_y + \tilde{S}*y) =  B + A * M(x,y) \label{EqDefImInv}
 \end{equation}
 
+So what we will estimate is $\{A,B,\tilde{S},\tilde{T}_x,\tilde{T}_y\}$,
 
 
 \subsection{Generating the code}
@@ -849,7 +854,27 @@ Just focus on the point specific to bilinear interpolation :
 
 
 \subsection{Using the generated code}
-     {\tt src/Bench/BenchTutoImageDef.cpp} contains the tuto code that solve that use generated code
-           solve  the problem of matching .
+
+The file using the generated code for doing optimization can be found in 
+{\tt src/Bench/BenchTutoImageDef.cpp}.  The main class is {\tt cTestDeformIm},
+it main action are done in the constructor and the medthod {\tt OneIterationFitModele}.
+
+The main action of constructor {\tt cTestDeformIm} are :
+
+\begin{itemize}
+    \item  inialize the ground truth homotethy and its inverse ({\tt mGT\_I2Mod} and {\tt mGT\_Mod2Im};
+    \item  inialize the gaussian law in image an model geometry ( {\tt mGaussIm}  and {\tt mGaussModel});
+    \item  initialize the image  in {\tt mIm}; 
+    \item  put in vectors a set of point $P$ in model space and their associated value $M(P)$
+           ({\tt mVPtsMod} and {\tt mValueMod});
+\end{itemize}
+
+
+In {\tt OneIterationFitModele} we parse all the point of the model, and for each point we
+add an obsevation corresponding to equation~\ref{EqDefImInv}.
+
+
+
+
 
 

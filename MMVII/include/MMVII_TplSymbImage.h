@@ -45,7 +45,7 @@ namespace MMVII
  */
 
 template <class TypeFunc,class TypeObs>   
-         TypeUk  FormalBilinIm2D_Formula
+         TypeFunc  FormalBilinIm2D_Formula
                  (
                       const std::vector<TypeObs> & aVObs,
                       int aKObs0,
@@ -53,14 +53,14 @@ template <class TypeFunc,class TypeObs>
                       const TypeFunc  & FY    
                  )
 {
-    TypeUk aX0   (aVObs.at(aKObs0));
-    TypeUk aY0   (aVObs.at(aKObs0+1));
-    TypeUk aCst1 = CreateCste(1.0,aX0);  // create a symbolic formula for constant 1
+    TypeFunc aX0   (aVObs.at(aKObs0));
+    TypeFunc aY0   (aVObs.at(aKObs0+1));
+    TypeFunc aCst1 = CreateCste(1.0,aX0);  // create a symbolic formula for constant 1
 
-    TypeUk aWX1 = FX -aX0;                   // weigth for I10 and I11
-    TypeUk aWX0 = aCst1 - aWX1;              // weigth for I00 and I01
-    TypeUk aWY1 = FY -aY0;                   // weigth for I10 and I11
-    TypeUk aWY0 = aCst1 - aWY1;              // weigth for I00 and I10
+    TypeFunc aWX1 = FX -aX0;                   // weigth for I10 and I11
+    TypeFunc aWX0 = aCst1 - aWX1;              // weigth for I00 and I01
+    TypeFunc aWY1 = FY -aY0;                   // weigth for I10 and I11
+    TypeFunc aWY0 = aCst1 - aWY1;              // weigth for I00 and I10
 
 
     return 
@@ -87,11 +87,14 @@ template <class Type,class TypeIm>
 	    const cDataIm2D<TypeIm> & aDIm   // image 
         )
 {
+     // compute coordinate of left-high corner of including pixel
      cPt2di aP0 = Pt_round_down(aPtIm);
 
+     // push integer coordinate of point 
      SetOrPush(aVObs, aK0  ,  Type(aP0.x())                      );
      SetOrPush(aVObs, aK0+1,  Type(aP0.y())                      );
 
+     // push values of image at its 4 corners
      SetOrPush(aVObs, aK0+2,  (Type) aDIm.GetV(aP0)              );
      SetOrPush(aVObs, aK0+3,  (Type) aDIm.GetV(aP0+cPt2di(1,0))  );
      SetOrPush(aVObs, aK0+4,  (Type) aDIm.GetV(aP0+cPt2di(0,1))  );
