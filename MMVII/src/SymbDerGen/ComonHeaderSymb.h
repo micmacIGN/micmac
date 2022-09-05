@@ -14,7 +14,7 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
-// required so that we can define points on formula ...
+/// required so that we can define points on formula ...
 
 template <> class tElemNumTrait<cFormula <tREAL8> >
 {
@@ -24,6 +24,7 @@ template <> class tElemNumTrait<cFormula <tREAL8> >
         typedef cFormula<tREAL8>  tBase;
         typedef cFormula<tREAL8>  tBig;
 };
+
 
 
 };//  namespace MMVII
