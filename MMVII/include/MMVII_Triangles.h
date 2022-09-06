@@ -78,6 +78,7 @@ template <class Type,const int Dim> class  cTriangle
        /// Point equidistant to 3 point,  To finish for dim 3
        tPt CenterInscribedCircle() const;
        const tPt & Pt(int aK) const;   ///< Accessor
+       const tPt & PtCirc(int aK) const;   ///<  %3, always correc even >3 or <0
        tPt KVect(int aK) const;   ///<   Pk->Pk+1
        cTplBox<Type,Dim>  BoxEngl() const;
        cTplBox<int,Dim>     BoxPixEngl() const;  // May be a bit bigger
@@ -113,10 +114,10 @@ template <class Type,const int Dim> class cTriangulation
           const std::vector<tPt> &   VPts() const;  ///< Standard Accessor
           const std::vector<tFace> & VFaces() const;  ///< Standard Accessor
 
-          int  NbFace() const;  ///< Number of faces
-          int  NbPts() const;   ///< Number of points
-          const tFace &  KthFace(int aK) const;  ///<  Faces number K
-	  const tPt  & KthPts(int aK) const;  ///< Points number K
+          size_t  NbFace() const;  ///< Number of faces
+          size_t  NbPts() const;   ///< Number of points
+          const tFace &  KthFace(size_t aK) const;  ///<  Faces number K
+	  const tPt  & KthPts(size_t aK) const;  ///< Points number K
 
           tTri  KthTri(int aK) const;  ///< Triangle corresponding to the face
 	  bool  ValidFace(const tFace &) const;  ///< is it a valide face (i.e. : all index in [0,NbPts[)

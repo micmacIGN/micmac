@@ -20,9 +20,9 @@ template <class Type,const int Dim>
 template <class Type,const int Dim>  
     int cTriangle<Type,Dim>::IndexLongestSeg() const
 {
-    cWhitchMax<int,typename tPt::tBigNum> aWMax(0,SqN2(mPts[0]-mPts[1]));
+    cWhitchMax<int,typename tPt::tBigNum> aWMax(0,SqN2(KVect(0)));
     for (int aK=1 ; aK<3 ; aK++)
-        aWMax.Add(aK,SqN2(mPts[aK+1]-mPts[(aK+1)%3]));
+        aWMax.Add(aK,SqN2(KVect(1)));
 
     return aWMax.IndexExtre();
 }
@@ -32,6 +32,11 @@ template <class Type,const int Dim> const cPtxd<Type,Dim>& cTriangle<Type,Dim>::
 {
      MMVII_INTERNAL_ASSERT_tiny((aK>=0) && (aK<3),"cTriangle2D::Pt");
      return mPts[aK];
+}
+
+template <class Type,const int Dim> const cPtxd<Type,Dim>& cTriangle<Type,Dim>::PtCirc(int aK) const
+{
+     return mPts[mod(aK,3)];
 }
 
 template <class Type,const int Dim>  cPtxd<Type,Dim> cTriangle<Type,Dim>::KVect(int aK) const
@@ -317,8 +322,8 @@ template <class Type,const int Dim> void cTriangulation<Type,Dim>::AddFace(const
     mVFaces.push_back(aFace);
 }
 
-template <class Type,const int Dim> int cTriangulation<Type,Dim>::NbFace() const { return mVFaces.size(); }
-template <class Type,const int Dim> int cTriangulation<Type,Dim>::NbPts() const { return mVPts.size(); }
+template <class Type,const int Dim> size_t cTriangulation<Type,Dim>::NbFace() const { return mVFaces.size(); }
+template <class Type,const int Dim> size_t cTriangulation<Type,Dim>::NbPts() const { return mVPts.size(); }
 
 
 
@@ -327,12 +332,12 @@ template <class Type,const int Dim> const  std::vector<cPt3di> & cTriangulation<
 {
    return mVFaces;
 }
-template <class Type,const int Dim> const cPt3di & cTriangulation<Type,Dim>::KthFace(int aK) const
+template <class Type,const int Dim> const cPt3di & cTriangulation<Type,Dim>::KthFace(size_t aK) const
 {
    return mVFaces.at(aK);
 }
 
-template <class Type,const int Dim> const cPtxd<Type,Dim> & cTriangulation<Type,Dim>::KthPts(int aK) const
+template <class Type,const int Dim> const cPtxd<Type,Dim> & cTriangulation<Type,Dim>::KthPts(size_t aK) const
 {
    return mVPts.at(aK);
 }
