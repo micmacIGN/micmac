@@ -75,6 +75,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         cPt2dr generatePointOnEllipse(double*, double, double);       ///< Generate point on ellipse from natural parameters
         int decodeTarget(tDataImT &, double, double);                 ///< Decode a potential target
         std::vector<cPt2dr> solveIntersections(cDCT*, double*);
+        std::vector<double> estimateAffinity(double, double, double, double, double, double, double, double, double);
         void printMatrix(MatrixXd);
         bool plotSafeRectangle(cRGBImage, cPt2di, double, cPt3di, int, int, double);
 
@@ -82,7 +83,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 	std::string mNameTarget;
 
 	cParamCodedTarget        mPCT;
-        double                   mDiamMinD;
+    double                   mDiamMinD;
 	cPt2dr                   mRaysTF;
         std::vector<eDCTFilters> mTestedFilters;
 
@@ -416,32 +417,6 @@ void  cAppliExtractCodeTarget::DoExtract(){
             }
 
              // Solve intersections
-             /*
-            double cx = center.x();
-            double cy = center.y();
-            double A = param[0]; double B = param[1]; double C = param[2];
-            double D = param[3]; double E = param[4]; double F = param[5];
-            double a1 = A*vx1*vx1 + B*vx1*vy1 + C*vy1*vy1;
-            double b1 = 2*A*cx*vx1 + B*(cx*vy1 + cy*vx1) + 2*C*cy*vy1 + D*vx1 + E*vy1;
-            double c1 = A*cx*cx + B*cx*cy + C*cy*cy + D*cx + E*cy + F;
-            double sqrt_del1 = sqrt(b1*b1-4*a1*c1);
-            double t11 = (-b1-sqrt_del1)/(2*a1);
-            double t12 = (-b1+sqrt_del1)/(2*a1);
-
-            double a2 = A*vx2*vx2 + B*vx2*vy2 + C*vy2*vy2;
-            double b2 = 2*A*cx*vx2 + B*(cx*vy2 + cy*vx2) + 2*C*cy*vy2 + D*vx2 + E*vy2;
-            double c2 = A*cx*cx + B*cx*cy + C*cy*cy + D*cx + E*cy + F;
-            double sqrt_del2 = sqrt(b2*b2-4*a2*c2);
-            double t21 = (-b2-sqrt_del2)/(2*a2);
-            double t22 = (-b2+sqrt_del2)/(2*a2);
-
-
-            double x1 = center.x() + t22*vx2; double y1 = center.y() + t22*vy2; cPt2di p1 = cPt2di(x1, y1);
-            double x2 = center.x() + t11*vx1; double y2 = center.y() + t11*vy1; cPt2di p2 = cPt2di(x2, y2);
-            double x3 = center.x() + t21*vx2; double y3 = center.y() + t21*vy2; cPt2di p3 = cPt2di(x3, y3);
-            double x4 = center.x() + t12*vx1; double y4 = center.y() + t12*vy1; cPt2di p4 = cPt2di(x4, y4);
-            */
-
             std::vector<cPt2dr> INTERSECTIONS = solveIntersections(aDCT, param);
             double x1 = INTERSECTIONS.at(0).x(); double y1 = INTERSECTIONS.at(0).y(); cPt2di p1 = cPt2di(x1, y1);
             double x2 = INTERSECTIONS.at(1).x(); double y2 = INTERSECTIONS.at(1).y(); cPt2di p2 = cPt2di(x2, y2);
@@ -449,32 +424,56 @@ void  cAppliExtractCodeTarget::DoExtract(){
             double x4 = INTERSECTIONS.at(3).x(); double y4 = INTERSECTIONS.at(3).y(); cPt2di p4 = cPt2di(x4, y4);
 
 
-
-
             // Affinity estimation
-            double a11 = (x1 + x2 - x3 - x4)/4.0;
-            double a12 = (x1 - x2 - x3 + x4)/4.0;
-            double a21 = (y1 + y2 - y3 - y4)/4.0;
-            double a22 = (y1 - y2 - y3 + y4)/4.0;
-            double bx  = (x1 + x2 + x3 + x4)/4.0;
-            double by  = (y1 + y2 + y3 + y4)/4.0;
-
-
             double theta = PI/4.0 - spec.mChessboardAng;
-
-            // Chessboard rotation
-            double a11t =  a11*cos(theta) + a12*sin(theta);
-            double a12t = -a11*sin(theta) + a12*cos(theta);
-            double a21t =  a21*cos(theta) + a22*sin(theta);
-            double a22t = -a21*sin(theta) + a22*cos(theta);
-            a11 = a11t;
-            a12 = a12t;
-            a21 = a21t;
-            a22 = a22t;
+            std::vector<double> transfo = estimateAffinity(x1, y1, x2, y2, x3, y3, x4, y4, theta);
+            double a11 = transfo[0];
+            double a12 = transfo[1];
+            double a21 = transfo[2];
+            double a22 = transfo[3];
+            double bx  = transfo[4];
+            double by  = transfo[5];
 
             if ((isnan(a11)) || (isnan(a12)) || (isnan(a21)) || (isnan(a22)) || (isnan(bx)) || (isnan(by))){
                 continue;
             }
+
+            // ---------------------------------------------------
+            // Recomputing directions and intersections if needed
+            // ---------------------------------------------------
+            double size_target_ellipse = sqrt(ellipse[2]* ellipse[2] + ellipse[3]*ellipse[3]);
+            if (size_target_ellipse > 30){
+
+                // Recomputing directions if needed
+                double correction_factor = size_target_ellipse/15.0;
+                StdOut() << "\nSIZE OF TARGET: " << size_target_ellipse << " - RECOMPUTING DIRECTIONS WITH FACTOR " << correction_factor << "\n";
+                StdOut() << " " << TestDirDCT(*aDCT, APBI_Im(), mRayMinCB, correction_factor) << " ";
+                vx1 = aDCT->mDirC1.x(); vy1 = aDCT->mDirC1.y();
+                vx2 = aDCT->mDirC2.x(); vy2 = aDCT->mDirC2.y();
+
+                // Recomputing intersections if needed
+                INTERSECTIONS = solveIntersections(aDCT, param);
+                x1 = INTERSECTIONS.at(0).x(); y1 = INTERSECTIONS.at(0).y(); p1 = cPt2di(x1, y1);
+                x2 = INTERSECTIONS.at(1).x(); y2 = INTERSECTIONS.at(1).y(); p2 = cPt2di(x2, y2);
+                x3 = INTERSECTIONS.at(2).x(); y3 = INTERSECTIONS.at(2).y(); p3 = cPt2di(x3, y3);
+                x4 = INTERSECTIONS.at(3).x(); y4 = INTERSECTIONS.at(3).y(); p4 = cPt2di(x4, y4);
+
+                // Recomputing affinity if needed
+                transfo = estimateAffinity(x1, y1, x2, y2, x3, y3, x4, y4, theta);
+                double a11 = transfo[0];
+                double a12 = transfo[1];
+                double a21 = transfo[2];
+                double a22 = transfo[3];
+                double bx  = transfo[4];
+                double by  = transfo[5];
+
+                if ((isnan(a11)) || (isnan(a12)) || (isnan(a21)) || (isnan(a22)) || (isnan(bx)) || (isnan(by))){
+                    continue;
+                }
+
+            }
+
+
 
             // Image generation
             int Nout = 600;
@@ -519,25 +518,6 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
             std::string chaine = CODES[code];
 
-            double size_target_ellipse = sqrt(ellipse[2]* ellipse[2] + ellipse[3]*ellipse[3]);
-            if (size_target_ellipse > 30){
-
-                // Recomputing directions if needed
-                double correction_factor = size_target_ellipse/15.0;
-                StdOut() << "\nSIZE OF TARGET: " << size_target_ellipse << " - RECOMPUTING DIRECTIONS WITH FACTOR " << correction_factor << "\n";
-                StdOut() << " " << TestDirDCT(*aDCT, APBI_Im(), mRayMinCB, correction_factor) << " ";
-                vx1 = aDCT->mDirC1.x(); vy1 = aDCT->mDirC1.y();
-                vx2 = aDCT->mDirC2.x(); vy2 = aDCT->mDirC2.y();
-
-                // Recomputing intersections if needed
-                INTERSECTIONS = solveIntersections(aDCT, param);
-                x1 = INTERSECTIONS.at(0).x(); y1 = INTERSECTIONS.at(0).y(); p1 = cPt2di(x1, y1);
-                x2 = INTERSECTIONS.at(1).x(); y2 = INTERSECTIONS.at(1).y(); p2 = cPt2di(x2, y2);
-                x3 = INTERSECTIONS.at(2).x(); y3 = INTERSECTIONS.at(2).y(); p3 = cPt2di(x3, y3);
-                x4 = INTERSECTIONS.at(3).x(); y4 = INTERSECTIONS.at(3).y(); p4 = cPt2di(x4, y4);
-
-
-            }
 
             // --------------------------------------------------------------------------------
             // End print console
@@ -875,6 +855,35 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::solveIntersections(cDCT* target, do
     INTERSECTIONS.push_back(cPt2dr(cx + t12*vx1, cy + t12*vy1));
 
     return INTERSECTIONS;
+}
+
+// ---------------------------------------------------------------------------
+// Function to estimate affinity on 4 points
+// ---------------------------------------------------------------------------
+// Inputs:
+//  - Corner coordinates in pixels x1, y1, x2, y2, x3, y3, x4, y4
+//  - Chessboard rotation angle theta
+// Outputs:
+//  - vector of parameters a11, a12, a21, a22,
+// ---------------------------------------------------------------------------
+std::vector<double> cAppliExtractCodeTarget::estimateAffinity(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, double theta){
+
+    std::vector<double> transfo = {0, 0, 0, 0, 0, 0};
+
+    double a11 = (x1 + x2 - x3 - x4)/4.0;
+    double a12 = (x1 - x2 - x3 + x4)/4.0;
+    double a21 = (y1 + y2 - y3 - y4)/4.0;
+    double a22 = (y1 - y2 - y3 + y4)/4.0;
+    transfo[4]  = (x1 + x2 + x3 + x4)/4.0;
+    transfo[5]  = (y1 + y2 + y3 + y4)/4.0;
+
+    // Chessboard rotation
+    transfo[0] =  a11*cos(theta) + a12*sin(theta);
+    transfo[1] = -a11*sin(theta) + a12*cos(theta);
+    transfo[2] =  a21*cos(theta) + a22*sin(theta);
+    transfo[3] = -a21*sin(theta) + a22*cos(theta);
+
+    return transfo;
 }
 
 
