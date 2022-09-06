@@ -6,6 +6,7 @@
 #include <time.h>
 #include <typeinfo>
 
+
 #define PI 3.14159265
 
 // Test git branch
@@ -73,6 +74,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         int cartesianToNaturalEllipse(double*, double*);              ///< Convert (A,B,C,D,E,F) ellipse parameters to (x0,y0,a,b,theta)
         cPt2dr generatePointOnEllipse(double*, double, double);       ///< Generate point on ellipse from natural parameters
         int decodeTarget(tDataImT &, double, double);                 ///< Decode a potential target
+        std::vector<cPt2dr> solveIntersections(cDCT*, double*);
         void printMatrix(MatrixXd);
         bool plotSafeRectangle(cRGBImage, cPt2di, double, cPt3di, int, int, double);
 
@@ -339,7 +341,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
           // if (aPtrDCT->mGT)
           if (aPtrDCT->mState == eResDCT::Ok)
           {
-             if (!TestDirDCT(*aPtrDCT,APBI_Im(),mRayMinCB))
+             if (!TestDirDCT(*aPtrDCT,APBI_Im(), mRayMinCB, 1.0))
                 aPtrDCT->mState = eResDCT::BadDir ;
              else
                 mVDCTOk.push_back(aPtrDCT);
@@ -360,19 +362,17 @@ void  cAppliExtractCodeTarget::DoExtract(){
      CreateDirectories(output_folder, true);
 
     int counter = 0;
-    for (auto & aDCT : mVDCT){
+    //for (auto & aDCT : mVDCT){
+    for (auto aDCT : mVDCT){
         if (aDCT->mState == eResDCT::Ok){
             cPt2di center = aDCT->Pix0();
             double vx1 = aDCT->mDirC1.x(); double vy1 = aDCT->mDirC1.y();
             double vx2 = aDCT->mDirC2.x(); double vy2 = aDCT->mDirC2.y();
             double threshold = (aDCT->mVBlack + aDCT->mVWhite)/2.0;
 
-
             std::vector<cPt2dr> POINTS;
 
-
-
-            for (double t=0.1; t<0.9; t+=0.01){
+            for (double t=0.2; t<0.8; t+=0.01){
                 for (int sign=-1; sign<=1; sign+=2){
                     for (int i=5; i<=100; i++){
                         double vx = t*vx1 + (1-t)*vx2;
@@ -385,21 +385,27 @@ void  cAppliExtractCodeTarget::DoExtract(){
                         }
                         double z = aDIm.GetVBL(pf);
                         if (z > threshold){
-                            POINTS.push_back(pf); break;
+                            POINTS.push_back(pf);
+                           // plotSafeRectangle(mImVisu, cPt2di(pf.x(), pf.y()), 1.0, cRGBImage::Magenta, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);   // PLOT !!!!
+                            break;
                         }
-
                     }
                 }
             }
 
+
+            // -----------------------------------------------------------------
+            // Ellipse fit
+            // -----------------------------------------------------------------
             double param[6];
             fitEllipse(POINTS, param);
 
 
             double ellipse[5];
             cartesianToNaturalEllipse(param, ellipse);
+            // -----------------------------------------------------------------
 
-
+            // Invalid ellipse fit
             if (ellipse[0] != ellipse[0])  continue;
 
             std::vector<cPt2di> ELLIPSE_TO_PLOT;
@@ -410,6 +416,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
             }
 
              // Solve intersections
+             /*
             double cx = center.x();
             double cy = center.y();
             double A = param[0]; double B = param[1]; double C = param[2];
@@ -433,6 +440,15 @@ void  cAppliExtractCodeTarget::DoExtract(){
             double x2 = center.x() + t11*vx1; double y2 = center.y() + t11*vy1; cPt2di p2 = cPt2di(x2, y2);
             double x3 = center.x() + t21*vx2; double y3 = center.y() + t21*vy2; cPt2di p3 = cPt2di(x3, y3);
             double x4 = center.x() + t12*vx1; double y4 = center.y() + t12*vy1; cPt2di p4 = cPt2di(x4, y4);
+            */
+
+            std::vector<cPt2dr> INTERSECTIONS = solveIntersections(aDCT, param);
+            double x1 = INTERSECTIONS.at(0).x(); double y1 = INTERSECTIONS.at(0).y(); cPt2di p1 = cPt2di(x1, y1);
+            double x2 = INTERSECTIONS.at(1).x(); double y2 = INTERSECTIONS.at(1).y(); cPt2di p2 = cPt2di(x2, y2);
+            double x3 = INTERSECTIONS.at(2).x(); double y3 = INTERSECTIONS.at(2).y(); cPt2di p3 = cPt2di(x3, y3);
+            double x4 = INTERSECTIONS.at(3).x(); double y4 = INTERSECTIONS.at(3).y(); cPt2di p4 = cPt2di(x4, y4);
+
+
 
 
             // Affinity estimation
@@ -502,26 +518,26 @@ void  cAppliExtractCodeTarget::DoExtract(){
             }
 
             std::string chaine = CODES[code];
-            it = 4*(a11 + a12) + bx;
-            jt = 4*(a21 + a22) + by;
-            for (int lettre=0; lettre<2; lettre++){
 
-                std::string aStr;
-                aStr.push_back(chaine[lettre]);
+            double size_target_ellipse = sqrt(ellipse[2]* ellipse[2] + ellipse[3]*ellipse[3]);
+            if (size_target_ellipse > 30){
 
-                cIm2D<tU_INT1> aImStr = ImageOfString_10x8(aStr,1);
-                cDataIm2D<tU_INT1>&  aDataImStr = aImStr.DIm();
+                // Recomputing directions if needed
+                double correction_factor = size_target_ellipse/15.0;
+                StdOut() << "\nSIZE OF TARGET: " << size_target_ellipse << " - RECOMPUTING DIRECTIONS WITH FACTOR " << correction_factor << "\n";
+                StdOut() << " " << TestDirDCT(*aDCT, APBI_Im(), mRayMinCB, correction_factor) << " ";
+                vx1 = aDCT->mDirC1.x(); vy1 = aDCT->mDirC1.y();
+                vx2 = aDCT->mDirC2.x(); vy2 = aDCT->mDirC2.y();
 
-                for (int i=0; i<11; i++){
-                    for (int j=0; j<11; j++){
-                        if (aDataImStr.DefGetV(cPt2di(i,j),0)){
-                            cPt2di pt = cPt2di(it + i + lettre*10, jt + j);
-                            plotSafeRectangle(mImVisu, pt, 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-                        }
-                    }
-                }
+                // Recomputing intersections if needed
+                INTERSECTIONS = solveIntersections(aDCT, param);
+                x1 = INTERSECTIONS.at(0).x(); y1 = INTERSECTIONS.at(0).y(); p1 = cPt2di(x1, y1);
+                x2 = INTERSECTIONS.at(1).x(); y2 = INTERSECTIONS.at(1).y(); p2 = cPt2di(x2, y2);
+                x3 = INTERSECTIONS.at(2).x(); y3 = INTERSECTIONS.at(2).y(); p3 = cPt2di(x3, y3);
+                x4 = INTERSECTIONS.at(3).x(); y4 = INTERSECTIONS.at(3).y(); p4 = cPt2di(x4, y4);
+
+
             }
-
 
             // --------------------------------------------------------------------------------
             // End print console
@@ -550,17 +566,34 @@ void  cAppliExtractCodeTarget::DoExtract(){
                 plotSafeRectangle(mImVisu, ELLIPSE_TO_PLOT.at(i), 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
             }
 
+            it = 4*(a11 + a12) + bx;
+            jt = 4*(a21 + a22) + by;
+            for (int lettre=0; lettre<2; lettre++){
+
+                std::string aStr;
+                aStr.push_back(chaine[lettre]);
+
+                cIm2D<tU_INT1> aImStr = ImageOfString_10x8(aStr,1);
+                cDataIm2D<tU_INT1>&  aDataImStr = aImStr.DIm();
+
+                for (int i=0; i<11; i++){
+                    for (int j=0; j<11; j++){
+                        if (aDataImStr.DefGetV(cPt2di(i,j),0)){
+                            cPt2di pt = cPt2di(it + i + lettre*10, jt + j);
+                            plotSafeRectangle(mImVisu, pt, 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+                        }
+                    }
+                }
+            }
+
             plotSafeRectangle(mImVisu, p1, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
             plotSafeRectangle(mImVisu, p2, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
             plotSafeRectangle(mImVisu, p3, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
             plotSafeRectangle(mImVisu, p4, 1, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
 
 
-
-     StdOut() << p1 << p2 << p3 << p4 << "\n";
-
             // --------------------------------------------------------------------------------
-            // End plot console
+            // End plot image
             // --------------------------------------------------------------------------------
 
             aImT.DIm().ToFile(output_folder+ "/" + name_file);
@@ -801,6 +834,48 @@ int cAppliExtractCodeTarget::cartesianToNaturalEllipse(double* parameters, doubl
 
 }
 
+// ---------------------------------------------------------------------------
+// Function to solve intersection between cross segments and ellipse
+// ---------------------------------------------------------------------------
+// Inputs:
+//    - a pointer to target
+//    - param double vector (A, B, C, D, E, F)
+// Ouput:
+//    - vector of 4 cPt2dr intersections
+// ---------------------------------------------------------------------------
+std::vector<cPt2dr> cAppliExtractCodeTarget::solveIntersections(cDCT* target, double* param){
+
+    std::vector<cPt2dr> INTERSECTIONS;
+
+    double cx = target->Pix0().x();
+    double cy = target->Pix0().y();
+
+    double vx1 = target->mDirC1.x(); double vy1 = target->mDirC1.y();
+    double vx2 = target->mDirC2.x(); double vy2 = target->mDirC2.y();
+
+    double A = param[0]; double B = param[1]; double C = param[2];
+    double D = param[3]; double E = param[4]; double F = param[5];
+    double a1 = A*vx1*vx1 + B*vx1*vy1 + C*vy1*vy1;
+    double b1 = 2*A*cx*vx1 + B*(cx*vy1 + cy*vx1) + 2*C*cy*vy1 + D*vx1 + E*vy1;
+    double c1 = A*cx*cx + B*cx*cy + C*cy*cy + D*cx + E*cy + F;
+    double sqrt_del1 = sqrt(b1*b1-4*a1*c1);
+    double t11 = (-b1-sqrt_del1)/(2*a1);
+    double t12 = (-b1+sqrt_del1)/(2*a1);
+
+    double a2 = A*vx2*vx2 + B*vx2*vy2 + C*vy2*vy2;
+    double b2 = 2*A*cx*vx2 + B*(cx*vy2 + cy*vx2) + 2*C*cy*vy2 + D*vx2 + E*vy2;
+    double c2 = A*cx*cx + B*cx*cy + C*cy*cy + D*cx + E*cy + F;
+    double sqrt_del2 = sqrt(b2*b2-4*a2*c2);
+    double t21 = (-b2-sqrt_del2)/(2*a2);
+    double t22 = (-b2+sqrt_del2)/(2*a2);
+
+    INTERSECTIONS.push_back(cPt2dr(cx + t22*vx2, cy + t22*vy2));
+    INTERSECTIONS.push_back(cPt2dr(cx + t11*vx1, cy + t11*vy1));
+    INTERSECTIONS.push_back(cPt2dr(cx + t21*vx2, cy + t21*vy2));
+    INTERSECTIONS.push_back(cPt2dr(cx + t12*vx1, cy + t12*vy1));
+
+    return INTERSECTIONS;
+}
 
 
 // ---------------------------------------------------------------------------
@@ -920,31 +995,6 @@ int  cAppliExtractCodeTarget::Exe()
 
 
 if (mTest){
-
-        std::vector<cPt2dr> POINTS;
-
-        double params[6] = {-0.49610428,   0.67946411,  -0.54056366,   6.55701404,  -6.59996909, -16.53083264};
-        double nat_par[5];
-        cartesianToNaturalEllipse(params, nat_par);
-
-        nat_par[0] = 0;
-        nat_par[1] = 0;
-        nat_par[2] = 3;
-        nat_par[3] = 1;
-		nat_par[4] = 0.76;
-
-        for (double t=0; t<2*PI; t+=0.01){
-            cPt2dr aPoint = generatePointOnEllipse(nat_par, t, 0.1);
-            POINTS.push_back(aPoint);
-        }
-
-        double PARAM[5];
-        fitEllipse(POINTS, PARAM);
-
-
-        double nat_par2[5];
-        cartesianToNaturalEllipse(PARAM, nat_par2);
-
 
         return 0;
 

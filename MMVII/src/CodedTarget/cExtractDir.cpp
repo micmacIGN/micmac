@@ -233,6 +233,7 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
      aDCT.mScRadDir = aSomWEc;
      aDCT.mCorMinDir = aCorMin;
 
+     /*
      if (aDCT.mGT)
      {
         StdOut() << (aDCT.mGT ? "++" : "--");
@@ -244,6 +245,7 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
 
         StdOut() << "\n";
      }
+     */
 
      return aSomWEc;
 }
@@ -251,9 +253,8 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
 
 template class cExtractDir<tREAL4>;
 
-bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB)
-{
-    cExtractDir<tREAL4>  anED(anIm,aRayCB*0.4,aRayCB*0.8);
+bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor){
+    cExtractDir<tREAL4>  anED(anIm,aRayCB*0.4,aRayCB*0.8*size_factor);
     bool Ok = anED.CalcDir(aDCT);
     if (!Ok) return false;
 

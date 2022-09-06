@@ -79,7 +79,7 @@ template <class Type>  class  cFilterDCT : public cMemCheck
            std::vector<cPt2di>  mIVois;
            std::vector<cPt2dr>  mRVois;
            double               mRhoEnd;
-            
+
            /**   when we want to compute the filter in mode "min on all crown" we will use this
                  vector of pair index;  suppose we have made a computation, the current crown
                  is interval  [10,20[  , and next interval is [13,26[
@@ -97,7 +97,7 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool DoCheck,cIm2D<TypeEl> an
 template <class Type>  class cExtractDir
 {
      public :
-         typedef cIm2D<Type>     tIm;   // shared pointer 
+         typedef cIm2D<Type>     tIm;   // shared pointer
          typedef cDataIm2D<Type> tDIm;  // raw reference/pointer for manipulating object
          typedef cNS_CodedTarget::cDCT tDCT;
          typedef std::vector<cPt2dr> tVDir;
@@ -105,7 +105,7 @@ template <class Type>  class cExtractDir
          cExtractDir(tIm anIm,double aRhoMin,double aRhoMax);
 
          /// try the computation of two directions of checkboard, mail fail , return true if sucess
-         bool  CalcDir(tDCT &) ; 
+         bool  CalcDir(tDCT &) ;
 
          /// computes scores once the direction have been computed
          double ScoreRadiom(tDCT & aDCT) ;
@@ -114,7 +114,7 @@ template <class Type>  class cExtractDir
          /// possible refinement of direction (not so usefull in fact ...)
          cPt2dr OptimScore(const cPt2dr & ,double aStepTeta);
          /// score used in OptimScore
-         double Score(const cPt2dr & ,double aTeta); 
+         double Score(const cPt2dr & ,double aTeta);
 
           tIm     mIm;  ///< smart pointer , will indicate that we need the object (no to free)
           tDIm&   mDIm;  ///< reference pour acces rapide
@@ -128,7 +128,7 @@ template <class Type>  class cExtractDir
           tDCT *                  mPDCT;       ///< tested target
        // (SortedVectOfRadius(aR0,aR1,IsSym))
 };
-bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB);
+bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor);
 
 };
 #endif // _FILTER_CODED_TARGET_H_
