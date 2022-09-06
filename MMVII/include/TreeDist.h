@@ -1,3 +1,4 @@
+#pragma once
 /** \file MMVII_TreeDist.h
     \brief  classes for fast computation  of distance in tree
 
@@ -147,7 +148,11 @@ class cAdjGraph  : public TREEDIST_cMemCheck
        /// Compute connected component
        inline void CalcCC(std::vector<int> & aRes,int aS0,std::vector<int> & aMarq,int aMIn,int aMOut);
     protected :
-        void AssertOk(int aNumS) const; ///< Check num is valide range
+        void AssertOk(int aNumS) const ///< Check num is valide range
+        {
+            assert(aNumS>=0);
+            assert(aNumS<int(mNbSom));
+        }
 
         int mNbSom;                        ///< Number of summits
         std::vector<int *>    mBeginNeigh; ///< Pointer to begin of neighoor
@@ -291,11 +296,8 @@ void cAdjGraph::InitAdj(const std::vector<int> & aVS1,const std::vector<int> & a
    }
 }
 
-void cAdjGraph::AssertOk(int aNumS) const
-{
-    assert(aNumS>=0);
-    assert(aNumS<int(mNbSom));
-}
+//void cAdjGraph::AssertOk(int aNumS) const
+
 
 
 void cAdjGraph::Show() const

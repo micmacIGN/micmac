@@ -240,9 +240,11 @@ class cLinkTripl
 
 
          cNOSolIn_Triplet  *  m3;
+
          U_INT1               mK1;
          U_INT1               mK2;
          U_INT1               mK3;
+
          tSomNSI *            S1() const;
          tSomNSI *            S2() const;
          tSomNSI *            S3() const;
@@ -257,6 +259,8 @@ class cNO_CC_TripSom
     public :
         std::vector<cNOSolIn_Triplet *> mTri;
         std::vector<tSomNSI *>          mSoms;
+
+        //Index of the connected component in with this sommet is
         int                             mNumCC;
 };
 
@@ -390,6 +394,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 		std::map<std::string,tSomNSI *> mVS; //variable to keep the visited sommets
 
 
+        //Complete list of loaded triplets
         std::vector<cNOSolIn_Triplet*> mV3;
 		std::vector<cNO_CC_TripSom *>  mVCC;
 
