@@ -117,7 +117,7 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet, std::vector<
             Pt2dr pts_proj = triplet->KSom(i)->attr().Camera()->Ter2Capteur(aInt);
             auto a = euclid(pts_proj, pts[i]);
             residu_pts += a;
-            std::cout << pts[i] << " -- " << pts_proj << " -- " << a << std::endl;
+            //std::cout << pts[i] << " -- " << pts_proj << " -- " << a << std::endl;
         }
         value += residu_pts/3.;
     }
@@ -145,7 +145,7 @@ double cNOSolIn_Triplet::ProjTest() const {
         ElRotation3D aRA2 = aSolRig.TransformOriC2M(aRLoc);
         pos.push_back(aRA2);
     }
-    double res = computeResiduFromPos(this, aVRAbs);
+    double res = computeResiduFromPos(this, pos);
     std::cout << "--- Residu: " << res << std::endl;
     return res;
 }
@@ -661,6 +661,7 @@ void RandomForest::NumeroteCC(Dataset& data) {
 
             FreeAllFlag(aCCS, aFlagSom);
             data.mGr.free_flag_som(aFlagSom);
+
 
         std::cout << "Nb of sommets " << aCCS.size() << " in CC " << aNumCC
                   << "\n";
