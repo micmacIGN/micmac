@@ -263,9 +263,6 @@ bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, d
     double th1 = 0.12;
     double th2 = 0.85;
 
-  //  th1 = 0.25;
-  //  th2 = 0.7;
-
     return (aDCT.mScRadDir < th1) && (aDCT.mCorMinDir> th2) ;
 
 }

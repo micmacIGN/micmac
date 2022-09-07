@@ -198,10 +198,10 @@ void cAppliExtractCodeTarget::MarkDCT()
 
 /*
           if (aDCT->mState == eResDCT::Divg)    aCoul =  cRGBImage::Red;
-          if (aDCT->mState == eResDCT::LowSym)  aCoul =  cRGBImage::Yellow;
-          if (aDCT->mState == eResDCT::LowBin)  aCoul =  cRGBImage::Blue;
-          if (aDCT->mState == eResDCT::LowRad)  aCoul =  cRGBImage::Cyan;
-          if (aDCT->mState == eResDCT::LowSymMin)  aCoul =  cRGBImage::Magenta;
+          if (aDCT->mState == eResDCT::LowSym)  aCoul =  cRGBImage::Yellow;               // High symmetry
+          if (aDCT->mState == eResDCT::LowBin)  aCoul =  cRGBImage::Blue;                 // High binarity
+          if (aDCT->mState == eResDCT::LowRad)  aCoul =  cRGBImage::Cyan;                 // High radiality
+          if (aDCT->mState == eResDCT::LowSymMin)  aCoul =  cRGBImage::Magenta;           // High symmetry
 */
 
           if (aCoul.x() >=0){
@@ -249,6 +249,16 @@ void cAppliExtractCodeTarget::MatchOnGT(cGeomSimDCT & aGSD)
 }
 
 void  cAppliExtractCodeTarget::DoExtract(){
+
+
+/*
+for (const int i : {4,5,6,7})
+{
+cHamingCoder aHC(i);
+StdOut() << aHC.NbBitsIn() << " " << aHC.NbBitsOut() << "\n";
+}
+*/
+
 
     cParamCodedTarget spec;
     spec.InitFromFile("Target_Spec.xml");
@@ -321,19 +331,20 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
 
      //   ====   Binarity filters ====
-     SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),false,mTHRS_Bin,eResDCT::LowBin);
+        SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),false,mTHRS_Bin,eResDCT::LowBin);
+    //    SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.7,mRayMinCB*1.4),false,1.7,eResDCT::LowBin);
 
 
      //   ====   Radial filters ====
-     SelectOnFilter(cFilterDCT<tREAL4>::AllocRad(mImGrad,3.5,5.5,1.0),false,0.5,eResDCT::LowRad);
+     //SelectOnFilter(cFilterDCT<tREAL4>::AllocRad(mImGrad,3.5,5.5,1.0),false,0.5,eResDCT::LowRad);
+     SelectOnFilter(cFilterDCT<tREAL4>::AllocRad(mImGrad,5.5,8.5,2.0),false,0.9,eResDCT::LowRad);
 
 
      // Min of symetry
-    // SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,mRayMinCB*0.4,mRayMinCB*0.8,1),true,0.8,eResDCT::LowSym);
-    SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,mRayMinCB*0.4,mRayMinCB*0.8,1),true,0.2,eResDCT::LowSym);
+     SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,mRayMinCB*0.4,mRayMinCB*0.8,1),true,0.8,eResDCT::LowSym);
 
      // Min of bin
-     SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),true,mTHRS_Bin,eResDCT::LowBin);
+    // SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),true,mTHRS_Bin,eResDCT::LowBin);
 
      mVDCTOk.clear();
 
@@ -364,9 +375,19 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
     int counter = 0;
     //for (auto & aDCT : mVDCT){
+
     for (auto aDCT : mVDCT){
         if (aDCT->mState == eResDCT::Ok){
             cPt2di center = aDCT->Pix0();
+
+            // -----------------------------------------------------------------
+            // Testing borders
+            // -----------------------------------------------------------------
+            if (center.x() < 30) continue;
+            if (center.y() < 30) continue;
+            if (aDIm.Sz().x()-center.x() < 30) continue;
+            if (aDIm.Sz().y()-center.y() < 30) continue;
+
             double vx1 = aDCT->mDirC1.x(); double vy1 = aDCT->mDirC1.y();
             double vx2 = aDCT->mDirC2.x(); double vy2 = aDCT->mDirC2.y();
             double threshold = (aDCT->mVBlack + aDCT->mVWhite)/2.0;
@@ -405,6 +426,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
             double ellipse[5];
             cartesianToNaturalEllipse(param, ellipse);
             // -----------------------------------------------------------------
+
 
             // Invalid ellipse fit
             if (ellipse[0] != ellipse[0])  continue;
@@ -447,7 +469,8 @@ void  cAppliExtractCodeTarget::DoExtract(){
                 // Recomputing directions if needed
                 double correction_factor = size_target_ellipse/15.0;
                 StdOut() << "\nSIZE OF TARGET: " << size_target_ellipse << " - RECOMPUTING DIRECTIONS WITH FACTOR " << correction_factor << "\n";
-                StdOut() << " " << TestDirDCT(*aDCT, APBI_Im(), mRayMinCB, correction_factor) << " ";
+
+                TestDirDCT(*aDCT, APBI_Im(), mRayMinCB, correction_factor);
                 vx1 = aDCT->mDirC1.x(); vy1 = aDCT->mDirC1.y();
                 vx2 = aDCT->mDirC2.x(); vy2 = aDCT->mDirC2.y();
 
@@ -459,6 +482,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
                 x4 = INTERSECTIONS.at(3).x(); y4 = INTERSECTIONS.at(3).y(); p4 = cPt2di(x4, y4);
 
                 // Recomputing affinity if needed
+
                 transfo = estimateAffinity(x1, y1, x2, y2, x3, y3, x4, y4, theta);
                 double a11 = transfo[0];
                 double a12 = transfo[1];
@@ -472,7 +496,6 @@ void  cAppliExtractCodeTarget::DoExtract(){
                 }
 
             }
-
 
 
             // Image generation

@@ -419,6 +419,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int  cAppliGenCodedTarget::Exe()
 {
+
    mPCT.Finish();
 
    for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen)
