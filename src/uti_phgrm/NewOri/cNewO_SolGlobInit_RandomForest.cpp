@@ -46,6 +46,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <vector>
 
 #include "general/bitm.h"
+#include "general/opt_debug.h"
 #include "general/photogram.h"
 
 using namespace SolGlobInit::RandomForest;
@@ -145,7 +146,7 @@ double cNOSolIn_Triplet::ProjTest() const {
         ElRotation3D aRA2 = aSolRig.TransformOriC2M(aRLoc);
         pos.push_back(aRA2);
     }
-    double res = computeResiduFromPos(this, pos);
+    double res = computeResiduFromPos(this, aVRAbs);
     std::cout << "--- Residu: " << res << std::endl;
     return res;
 }
@@ -169,6 +170,7 @@ double cNOSolIn_Triplet::CoherTest() const {
 
         double aD = DistanceRot(aRAbs, aRA2, mBOnH);
         aRes += aD;
+        //TODO verifier si chaque triplet a ses points homologues
         // std::cout << "RES=" << aRes  << " " << aD <<  " "<< mBOnH << "\n";
     }
     aRes = aRes / 3.0;
@@ -501,10 +503,10 @@ void RandomForest::loadHomol(cNOSolIn_Triplet* aTriplet, tTriPointList& aLst) {
         if (e->NbSom() == 3) {
             //std::cout << "0 " << e->GetVal(0) << " 1 " << e->GetVal(1)
              //         << " 2 " << e->GetVal(2) << "\n";
-            //TODO another type to store ?
             aLst.push_back({e->GetVal(0), e->GetVal(1), e->GetVal(2)});
         }
     }
+    ELISE_ASSERT(aLst.size() > 0, "Homol points empty for triplet");
 }
 
 void RandomForest::loadDataset(Dataset& data) {
