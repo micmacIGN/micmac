@@ -27,7 +27,7 @@ typedef cResolSysNonLinear<tCoordDevTri> tSys;
 typedef cDenseVect<tCoordDevTri>         tDenseV;
 typedef cCalculator<tCoordDevTri>        tCalc;
 
-class cSomFace3D
+class cSomFace3D;
 class cSomDevT3D;
 class cFaceDevT3D;
 class cDevTriangu3d;

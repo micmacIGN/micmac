@@ -572,7 +572,7 @@ template <class Type,const int Dim>
 {
     cBijAffMapElem<Type,Dim>  aDif = mMap.Linearize (mPSeed); // Compute linear application at PSeed
 
-    cInvertMappingFromElem<cBijAffMapElem<Type,Dim> > aMap(aDif.MapInverse()); // Copput inverse mapping
+    cInvertMappingFromElem<cBijAffMapElem<Type,Dim> > aMap(aDif.MapInverse()); // Compute inverse mapping
 
     cTplBox<Type,Dim> aRes=  aMap.BoxOfCorners(mSet.Box());  // compute recripoque image of box out
     return aRes;

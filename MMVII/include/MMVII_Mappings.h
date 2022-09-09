@@ -28,7 +28,12 @@
 
 namespace MMVII
 {
+
 template <class Type,const int Dim> class cDataBoundedSet ;
+template <class Type,const int Dim> class cSphereBoundedSet;//   cDataBoundedSet<Type,Dim>
+
+
+
 template <class Type,const int DimIn,const int DimOut> class cMapping;
 template <class Type,const int DimIn,const int DimOut> class cDataMapping;
 template <class Type,const int Dim> class cDataInvertibleMapping ;// :  public cDataMapping<Type,Dim,Dim>
@@ -147,8 +152,9 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
       /// Generate random point inside 
       tPt GeneratePointInside() const;
 
-       /// Generate grid, not used for now
+       /// Generate regular grid at given step, not used for now
        void GridPointInsideAtStep(tVecPt&,Type aStepMoy) const;
+       /// idem, but fix the number of point (total number, not for each direction)
        void GridPointInsideOfNbPoints(tVecPt&,int aStepMoy) const;
        
     private :
@@ -158,16 +164,21 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 
 cDataBoundedSet<tREAL8,3> *  MMV1_Masq(const cBox3dr &,const std::string & aNameFile);
 
+/** specialization of BoundedSet to sphere, used for example to define convergence domain
+    of radial function
+ */
+
 template <class Type,const int Dim> class cSphereBoundedSet : public cDataBoundedSet<Type,Dim>
 {
      public :
          typedef  cTplBox<Type,Dim> tBox;
          typedef  cPtxd<Type,Dim>   tPt;
+         /// construct from Box, center and radius
          cSphereBoundedSet(const tBox & aBox,const tPt & , const Type & aRadius);
-         bool Inside(const tPt &) const override;
+         bool Inside(const tPt &) const override; ///<    true iff D(Pt,Center) < Radius
      private :
-         tPt  mCenter;
-         Type mR2;
+         tPt  mCenter;  ///<  center of the spher
+         Type mR2;      ///< square of ray ,
 
 };
 
@@ -240,9 +251,13 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
 
 
            // ========== Computation of values ==============
+
+      ///  buffered method, call unbeferred one
       virtual  const  tVecOut &  Values(tVecOut &,const tVecIn & ) const;  //V2
-      const  tVecOut &  Values(const tVecIn & ) const;   //  V1
+      ///  unbuffered method, call unbeferred one ...
       virtual  tPtOut Value(const tPtIn &) const;
+      /// buffered, calls V2 with  own buffer
+      const  tVecOut &  Values(const tVecIn & ) const;   //  V1
 
       /// PRE ALLOCATED VALUES ;  Pts is clear and must be pushed back, Jacob contain already the matrixes
       virtual tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const;  //J2
@@ -279,6 +294,7 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
        static tVecIn&   JBufInCleared()  {JBufIn().clear()  ; return JBufIn(); }
 
        static tVecIn &  BufIn1Val()  {static tVecIn  aRes{tPtIn()}; return aRes;}
+       /// return a "Buffer" of jacobian, satic becaus alloc in class
        static tVecJac & BufJac(tU_INT4 aSz) ; 
 #else  // !MAP_STATIC_BUF
     private :
@@ -301,9 +317,13 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
        inline tVecIn&   JBufIn()     const {return mJBufIn;}
        inline tVecIn&   JBufInCleared()  const {mJBufIn.clear(); return mJBufIn;}
        inline tVecIn &  BufIn1Val() const {return mBufIn1Val;}
+
+       /// return a "Buffer" of jacobian, on own ressources, const -> modify mutable var
        tVecJac & BufJac(tU_INT4 aSz) const ; 
 #endif // MAP_STATIC_BUF
 };
+
+/** Specialization for DimIn=DimOut */
 
 template <class Type,const int Dim> class cDataNxNMapping : public cDataMapping<Type,Dim,Dim>
 {
@@ -313,9 +333,9 @@ template <class Type,const int Dim> class cDataNxNMapping : public cDataMapping<
       using typename tDMap::tResJac;
       using typename tDMap::tJac;
 
-      cDataNxNMapping(const tPt &);
-      cDataNxNMapping();
-      /// return bijective differential application 
+      cDataNxNMapping(const tPt &);  ///< just initialize cDataMapping
+      cDataNxNMapping();  ///< just initialize cDataMapping
+      /// return bijective differential application , used for ex in BoxInByJacobian
       cBijAffMapElem<Type,Dim>  Linearize(const tPt & aPt) const;
 };
 
@@ -427,14 +447,18 @@ template <class Type,const int Dim> class cDataIIMFromMap : public cDataIterInve
 
 /** Represntation of identity as a mapping */
 
-template <class Type,const int Dim> class cMappingIdentity :  public cDataMapping<Type,Dim,Dim>
+// template <class Type,const int Dim> class cMappingIdentity :  public cDataMapping<Type,Dim,Dim>
+template <class Type,const int Dim> class cMappingIdentity :  public cDataNxNMapping<Type,Dim>
 {
     public :
       typedef cDataMapping<Type,Dim,Dim> tDataMap;
       typedef typename  tDataMap::tPtIn  tPt;
       typedef typename  tDataMap::tVecIn tVecPt;
+
       tPt Value(const tPt &) const override;
       const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;
+      /// Initialize with eps=1 (no importance), later maybe add jacobian
+      cMappingIdentity();
 };
 
 template <class Type,const int DimIn,const int DimOut>
