@@ -10,10 +10,11 @@ using namespace MMVII;
 namespace MMVII
 {
 
-          
-
-
    /* ======  header of header  ====== */
+
+/**  class are not templated, because there is no evidence that there would be any benefit, but just 
+ * in case, keep the possibility of templating more easily if required */
+
 typedef tREAL8  tCoordDevTri;
 typedef  cTriangulation3D<tCoordDevTri> tTriangulation3D;
 typedef  cTriangle<tCoordDevTri,3>      tTri3D;
@@ -26,6 +27,7 @@ typedef cResolSysNonLinear<tCoordDevTri> tSys;
 typedef cDenseVect<tCoordDevTri>         tDenseV;
 typedef cCalculator<tCoordDevTri>        tCalc;
 
+class cSomFace3D
 class cSomDevT3D;
 class cFaceDevT3D;
 class cDevTriangu3d;
@@ -33,6 +35,8 @@ class cDevTriangu3d;
    /* ======================= */
    /* ======  header   ====== */
    /* ======================= */
+
+/** There is thing common to submit and faces, put in mother class cSomFace3D */
 
 class cSomFace3D
 {
@@ -48,16 +52,18 @@ class cSomFace3D
         }
         int  NumObj() const {return mNumObj;} ///< accessor
      protected :
-        cDevTriangu3d  *   mDevTri;
-        int                mNumStepReach;
-        int                mNumObj;
+        cDevTriangu3d  *   mDevTri;        ///< the global object for triangulation-development
+        int                mNumStepReach;  ///<  num of the step where object was reachedd by progressive devlopment
+        int                mNumObj;        ///<  id of the object
 };
 
 class cSomDevT3D : public cSomFace3D
 {
     public :
         cSomDevT3D(cDevTriangu3d * aDevTri,int aNum,const tPt3D & aP3);
+	/// add one more measur, for growing process
 	void  AddPt2(const tPt2D & aPt,tCoordDevTri aWeight);
+	///  set point for
 	void  SetPt2(const tPt2D & aPt);
 	const tPt2D & Pt2() const;
 	const tPt3D & Pt3() const;
@@ -66,7 +72,7 @@ class cSomDevT3D : public cSomFace3D
     private :
         tPt3D         mPt3;
         tPt2D         mPt2;
-	tCoordDevTri  mSomWInit;  ///< sum of weight on initialization
+	tCoordDevTri  mSomWInit;  ///< sum of weight on initialization, because a submit can be reache by several faces in on step
 
 };
 
@@ -483,12 +489,13 @@ tCoordDevTri cDevTriangu3d::GlobDistortiontDist() const
 
 void cDevTriangu3d::TestGroundTruth2D(const tTriangulation3D & aDevGT)
 {
-    std::vector<tPt2D>  aVDev;
-    std::vector<tPt2D>  aVGT;
+    std::vector<tPt2D>  aVDev;  // vector of devloped pt2d
+    std::vector<tPt2D>  aVGT;   // vector of ground truth pt2d
 
     MMVII_INTERNAL_ASSERT_bench(mTri.NbPts()==aDevGT.NbPts(),"Mesh dev");
 
-    tCoordDevTri aSomDInit=0.0;
+    // 1 - compute vector of 2d points
+    tCoordDevTri aSomDInit=0.0; // som distance before computing rotatio,
     for (size_t aK=0 ; aK<mTri.NbPts() ; aK++)
     {
        aVDev.push_back(mVSoms.at(aK).Pt2());
@@ -497,10 +504,11 @@ void cDevTriangu3d::TestGroundTruth2D(const tTriangulation3D & aDevGT)
     }
     // StdOut() << "SOMD0 " << aSomDInit  << "\n";
 
+    // 2 - compute best rotation for maping of vector to the other
     tCoordDevTri aDistAdjusted=1e6;
     cRot2D<tCoordDevTri>  aRot = cRot2D<tCoordDevTri>::StdGlobEstimate(aVDev,aVGT,&aDistAdjusted); 
-    FakeUseIt(aRot);
 
+    // 3 - Now check   R(Dev) = GT
     for (size_t aK=0 ; aK<mTri.NbPts() ; aK++)
     {
        tCoordDevTri aD = Norm2(aRot.Value(aVDev[aK])-aVGT[aK]);
