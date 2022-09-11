@@ -282,9 +282,9 @@ template <class Type,const int DimIn,const int DimOut>
         }
     }
 /**/MACRO_CHECK_RECURS_END;
-StdOut() <<  "TO CHECK LINE " << __LINE__  << " of " << __FILE__ << "\n";
+      // StdOut() <<  "TO CHECK LINE " << __LINE__  << " of " << __FILE__ << "\n";
      return tCsteResVecJac(aRes.first,aRes.second);
-     // return aRes;  // dont understand why not that, maybe some type checking with some version of compilor ?
+     //  return aRes;  // dont understand why not that, maybe some type checking with some version of compilor ?
 }
 
 template <class Type,const int DimIn,const int DimOut> 
