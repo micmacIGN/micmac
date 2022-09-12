@@ -182,6 +182,18 @@ template <class Type,const int Dim> class cSphereBoundedSet : public cDataBounde
 
 };
 
+
+/*
+     Convention for gradiant vs/line columns  :  tJac(DimIn,DimOut)  SzX = DimIn = Number of col
+      For examlpe   R^3 (x,yz)  -> R^2  (u,v)
+
+            d/dx    d/dy  d/dz
+        u    *       *     *
+        v    *       *     *
+ 
+*/
+
+
 /**   Mother base classe for defining a mapping  R^k => R^n with k=DimIn and n=DimOut
 
       The virtual methods "Values" and "Value" compute the image of poinst by the mapping.
@@ -323,7 +335,9 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
 #endif // MAP_STATIC_BUF
 };
 
-/** Specialization for DimIn=DimOut */
+/** Specialization for DimIn=DimOut , introduce because we want to force invertible mapping
+    to have DimIn==DimOut
+*/
 
 template <class Type,const int Dim> class cDataNxNMapping : public cDataMapping<Type,Dim,Dim>
 {
@@ -341,7 +355,11 @@ template <class Type,const int Dim> class cDataNxNMapping : public cDataMapping<
 
 /**   This is the mother class of maping that can compute the inverse of a point.
 
-      The method comptuing the inverse are "Inverse(s)", and we have the same behaviour as with Value(s).
+      The method comptuing the inverse are "Inverse(s)", and we have the same behaviour as with Value(s) :
+        * No inverse is really defined, the 3 methods recall each-others
+        * if no methods is redefined a fatal error will occurs (infinite recursion)
+        * benefit is that  user has only to redefine buffered or unbuffered
+      
 */
 
 template <class Type,const int Dim> class cDataInvertibleMapping :  public cDataNxNMapping<Type,Dim>
@@ -380,6 +398,7 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
 /* class doing the real iterative computation */
 
 template <class Type,const int Dim> class cInvertDIMByIter;
+
 /**   This class offer a concrete computation of the inverse by a iterative method, relying
     on jacobian computation. A first "guess" of the inverse must be given. If the mapping is
     very smooth globally close to a linear mapping the guess is of no importance for the convergence.
@@ -406,13 +425,14 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       // Accessors 
       const tDataMap *     RoughInv() const ;
       const Type & DTolInv() const;
+      /// Access to the structure, only needed in some bench to create artificial difficult situations
+      tHelperInvertIter *  StrInvertIter() const;
     protected :
-      cDataIterInvertMapping(const tPt &,tMap,const Type& aDistTol,int aNbIterMax);
-      cDataIterInvertMapping(tMap,const Type& aDistTol,int aNbIterMax);
+      cDataIterInvertMapping(const tPt & aEpsDiff,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
+      cDataIterInvertMapping(tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
 
     private :
       cDataIterInvertMapping(const cDataIterInvertMapping<Type,Dim> & ) = delete;
-      tHelperInvertIter *  StrInvertIter() const;
 
       mutable std::shared_ptr<tHelperInvertIter> mStrInvertIter;
       tMap                mRoughInv;
@@ -420,8 +440,8 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       int                 mNbIterMaxInv;
 };
 
-/** When we have an existing mapping, we want to invert it by iteration, we cannot inherit
-if we cannot modify, so we make it member .  The methods just call method of mMap...
+/** When we have an existing mapping, we want to invert it by iteration, if we cannot inherit
+    (we only get the object) we cannot modify; so we make the object a member .  The methods just call method of mMap...
 */
 
 template <class Type,const int Dim> class cDataIIMFromMap : public cDataIterInvertMapping<Type,Dim>
@@ -461,11 +481,12 @@ template <class Type,const int Dim> class cMappingIdentity :  public cDataNxNMap
       cMappingIdentity();
 };
 
+/** Create an interface for using a generated code as a mapping.
+*/
 template <class Type,const int DimIn,const int DimOut>
     class cDataMapCalcSymbDer : public cDataMapping<Type,DimIn,DimOut>
 {   
     public :
-      virtual ~cDataMapCalcSymbDer<Type,DimIn,DimOut>();
       typedef typename NS_SymbolicDerivative::cCalculator<Type> tCalc;
       typedef cDataMapping<Type,DimIn,DimOut> tDataMap;
 
@@ -477,16 +498,18 @@ template <class Type,const int DimIn,const int DimOut>
       using typename tDataMap::tPtIn;
       using typename tDataMap::tPtOut;
 
-       const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;  //V2
-       tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  //J2
+      virtual ~cDataMapCalcSymbDer<Type,DimIn,DimOut>();
+
+       const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;  ///< V2 : use mCalc to fill values
+       tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  ///< J2 : use mCalcDer to compute derivative
 
        cDataMapCalcSymbDer(tCalc  * aCalcVal,tCalc  * aCalcDer,const std::vector<Type> & aVObs,bool ToDelete);
-       void SetObs(const std::vector<Type> &);
+       void SetObs(const std::vector<Type> &); ///< just modify mVObs
        // void SetDeleteCalc(bool);
 
     private  :
        cDataMapCalcSymbDer(const cDataMapCalcSymbDer<Type,DimIn,DimOut> & ) = delete;
-       void CheckDim(tCalc *,bool Derive);
+       void CheckDim(tCalc *,bool Derive); ///< used to check that both calculator have adequate structure
        tCalc  *           mCalcVal;
        tCalc  *           mCalcDer;
        std::vector<Type>  mVObs;

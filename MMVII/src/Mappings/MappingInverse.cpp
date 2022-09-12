@@ -25,6 +25,8 @@ template <class Type,const int Dim>
 {
 }
 
+/**  buffered version, call unbuferred version */
+
 template <class Type,const int Dim>
     const typename cDataInvertibleMapping<Type,Dim>::tVecPt & 
                    cDataInvertibleMapping<Type,Dim>::Inverses(tVecPt & aBufOut,const tVecPt & aVIn) const
@@ -36,6 +38,7 @@ template <class Type,const int Dim>
     return aBufOut;
 }
 
+/** buffer version, without furnish the buf, call previous one with standard buff */
 template <class Type,const int Dim>
     const typename cDataInvertibleMapping<Type,Dim>::tVecPt &
                    cDataInvertibleMapping<Type,Dim>::Inverses(const tVecPt & aVImages) const
@@ -44,6 +47,7 @@ template <class Type,const int Dim>
 }
 
 
+/**  unbuffered version, call buferred version with a buffer of size 1 */
 template <class Type,const int Dim>
     typename cDataInvertibleMapping<Type,Dim>::tPt  
           cDataInvertibleMapping<Type,Dim>::Inverse(const tPt & aPImage) const
@@ -57,6 +61,36 @@ template <class Type,const int Dim>
 /*            cInvertByIter<Type,Dim>            */
 /*            - cStrPtInvDIM<Type,Dim>           */
 /* ============================================= */
+
+/*  
+   The method for inversion may seems quite complex, it aims to avoid one trap of MMV1, with the too
+  current message "too many iteration in inversion by finite diferenece unstable ..;"
+
+   (1)  void cInvertDIMByIter<Type,Dim>::OneIterInversion()
+
+   (2) void cInvertDIMByIter<Type,Dim>::OneIterDicot()
+
+    Method for inversion  , at each iteration (1) ,  make one refinement of computing
+    the value and the gradient and solve the linear equation,  three possibility :
+
+          * we have converged  -> bingo, just memorize  the solution for final export
+
+          * we have made an improvment but not converger, ->  memorize the next iteration
+
+          * we have make no significant improvement, or worst we have  increase the resisudual
+            in this case we will make a dicotomic (2) resarch, on the line of gradient, but without
+            differenciation
+    
+
+    Note :  at different point we have subset that increase then decrase, we use the same pattern :
+         * create an index VIND of object,
+         * when we are in creation phase : init by clear and pushback
+         * when we are in reduction phase :
+               * create an ind of end, INDEND =0
+               * insert by VIND.at(INDEN)++ = Something (no overflow because its a subset)
+               * at end VIND.resize(INDEND)
+    Used for  mVSubSet and  mVSubDicot
+*/
 
 template <class Type,const int Dim>  struct cStrPtInvDIM
 {
@@ -83,12 +117,12 @@ template <class Type,const int Dim>  struct cStrPtInvDIM
         cPtxd<Type,Dim>  mBestVal;
 
         // For dicotomy approach, inverse & val at extremities
-        cPtxd<Type,Dim>  mInvDic0;
-        cPtxd<Type,Dim>  mValDic0;
-        cPtxd<Type,Dim>  mInvDic1;
-        cPtxd<Type,Dim>  mValDic1;
 
-        cPtxd<Type,Dim>  mPTarget;
+        tPt  mInvDic0;
+        tPt  mValDic0;
+        tPt  mInvDic1;
+        tPt  mValDic1;
+        tPt  mPTarget;
 };
 
 template <class Type,const int Dim> class cInvertDIMByIter : public cMemCheck
@@ -109,11 +143,14 @@ template <class Type,const int Dim> class cInvertDIMByIter : public cMemCheck
 
       void PushResult(tVecPt &) const;
 
+      void SetRatioGainDicot(const Type & aRGD) {mRatioGainDicot = aRGD;}
     private :
+      /// Make one iteration by dicotomy, for point that could not improved by gradient
       void OneIterDicot();
       bool Converged(const tSPIDIM & aSInv) const {return aSInv.mBestErr<mDIM.mDTolInv;}
 
       const tDIM &           mDIM;
+      Type                   mRatioGainDicot;  ///< Ratio for gain of error that will run dicothomy
       std::vector<tSPIDIM>   mVInv;
       std::vector<tU_INT4>   mVSubSet;   // Subset of index still to compute
       std::vector<tU_INT4>   mVSubDicot;  // Subset of point that dont improve (enough) with jacobian
@@ -140,7 +177,7 @@ template <class Type,const int Dim>
    const  tVecPt &  aVSampleVal =  mDIM.Values(aVSampleInv);
 
    tU_INT4  aIndEchInv=0; // Use to follow the aVSampleVal  and aVSampleInv
-   tU_INT4  aIndSubDicot=0; // Use to follow the aVSampleVal  and aVSampleInv
+   tU_INT4  aIndSubDicot=0; // Use to follow the index remaining in Dicot
    for (tU_INT4 aKInd = 0 ; aKInd<mVSubDicot.size() ; aKInd++)
    {
        tSPIDIM & aSInv  =  mVInv.at(mVSubDicot.at(aKInd));
@@ -210,7 +247,7 @@ template <class Type,const int Dim>
        tSPIDIM & aSInv = InvOfKSubS(aKInd);
        aSInv.mBestVal =  aVJ.first->at(aKInd);
        aSInv.mBestErr = aSInv.Score(aSInv.mBestVal);
-       aSInv.mThreshNextEr =  aSInv.mBestErr / 2.0;
+       aSInv.mThreshNextEr =  aSInv.mBestErr / mRatioGainDicot ;
        if (Converged(aSInv))
        {
             // Nothing to do , mBestInv is a good inverse
@@ -275,8 +312,10 @@ template <class Type,const int Dim>
 
    for (int aKIter=0 ; (aKIter<10) && (!mVSubDicot.empty()) ; aKIter++)
    {
+       StdOut() << "DICOT  " <<    mVSubDicot.size() << "\n"; //getchar();
        OneIterDicot();
    }
+   StdOut() << "cInvertDIMByIter " <<   aNewInd << " " << mVSubDicot.size() << "\n\n"; //getchar();
 }
 
 template <class Type,const int Dim>
@@ -288,7 +327,8 @@ template <class Type,const int Dim>
 
 template <class Type,const int Dim> 
      cInvertDIMByIter<Type,Dim>::cInvertDIMByIter(const tDIM & aDIM):
-       mDIM (aDIM)
+       mDIM             (aDIM),
+       mRatioGainDicot  (2.0)
 {
 }
 
@@ -942,18 +982,25 @@ INSTANCE_INVERT_MAPPING(3)
 /* ============================================= */
 /* ============================================= */
 
+/**  A class for testing inversion, implement a mapping R3 -> R3 with the sum of
+  
+       * a "dominant" basic linear function 
+       * some  cosinus/sinus to make it non  linear but smooth
+*/
 
 class cTestMapInv : public cDataIterInvertMapping<tREAL8,3>
 {
     public :
-/*  Initialisation a bit tricky, because class is its own rough invers and we must
-   must avoid infinite recursion,  TO CHANGE LATER with a two step init ...
+/*  Initialisation a bit tricky, because class is its own rough inverse (with different parameters) and we must
+   must avoid infinite recursion,  
+
+     Called with   IsRoughInv=false => create the rough inverse  IsRoughInv=true, now do try to call again ..
 */
-       cTestMapInv(double aFx,double aFy,double aFz,double aFreqCos,double aMulCos,bool ForRoughInv=false) :
+       cTestMapInv(double aFx,double aFy,double aFz,double aFreqCos,double aMulCos,bool IsRoughInv=false) :
           cDataIterInvertMapping<tREAL8,3> 
           (
               cPt3dr::PCste(1e-3/std::max(1e-5,mFreqCos)),
-              cMapping<tREAL8,3,3>(ForRoughInv?nullptr:new cTestMapInv(1.0/aFy,1.0/aFx,1.0/aFz,1.0,0.0,true)),
+              cMapping<tREAL8,3,3>(IsRoughInv?nullptr:new cTestMapInv(1.0/aFy,1.0/aFx,1.0/aFz,1.0,0.0,true)),
               1e-4,
               20
           ),
@@ -1026,7 +1073,11 @@ void BenchInvertMapping(cParamExeBench & aParam)
        aM1.SetRoughInv(aMInv,aEpsInv,20);
 */
        cDataInvertibleMapping<tREAL8,3> * aPM1 = & aM1;
+       cDataIterInvertMapping<tREAL8,3> * aPMIter1 = & aM1;
 
+       StdOut()  << "JJJJ " << aPMIter1->StrInvertIter() << "\n";
+       
+       aPMIter1->StrInvertIter()->SetRatioGainDicot(20.0);
 
        tREAL8  aEpsInv = aM1.DTolInv();
        for (int aKP=0 ; aKP<100 ; aKP++)
