@@ -156,6 +156,7 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
        cTplBox<Type,Dim> mBox;
 };
 
+cDataBoundedSet<tREAL8,3> *  MMV1_Masq(const cBox3dr &,const std::string & aNameFile);
 
 template <class Type,const int Dim> class cSphereBoundedSet : public cDataBoundedSet<Type,Dim>
 {
@@ -498,7 +499,7 @@ template <class Type,int Dim> class  cDataNxNMapCalcSymbDer  : public cDataNxNMa
   an after reuse these code in global mappings, this is possible if the "small" mapping
   complies with the following "contract" :
 
-      define the type :    typedef Type  TheType;
+      //  => NONNN : define the type :    typedef Type  TheType;
       degines its dimension :    static constexpr int TheDim=2;
       defines its degree of freedom :    static const int NbDOF() {return 4;}
       defiens direct mapping :    inline tPt  Value(const tPt & aP) 

@@ -80,6 +80,7 @@ void BenchStrIO(cParamExeBench & aParam); ///< Test str/obj conv, specially for 
 void Bench_Nums(cParamExeBench & aParam); ///< Bench on rounding, modulo ... basic numeric service
 void BenchSet(cParamExeBench & aParam,const std::string & aDir); ///< Bench on cExtSet (set "en extension")
 void BenchSelector(cParamExeBench & aParam,const std::string & aDir); ///< Bench on selecto, (set "en comprehension")
+void Bench_Heap(cParamExeBench & aParam); ///< Bench on rounding, modulo ... basic numeric service
 
 // Check conversion time/string; not sure essential, but it exist => no harm ...
 void Bench_Duration(cParamExeBench & aParam);
@@ -89,6 +90,9 @@ void BenchDenseMatrix0(cParamExeBench & aParam); ///< Basic Vector
 
 // void cAppli_MMVII_Bench::Bench_0000_String(); => Bench on string-split
 void BenchSerialization(cParamExeBench & aParam,const std::string & aDirOut,const std::string & aDirIn); ///< Bench on seriaization function
+
+// Test generation of random subet for ransac
+void BenchRansSubset(cParamExeBench & aParam);
 
 
 //  void BenchGlob();      ///< All Bench
@@ -110,7 +114,13 @@ void BenchInvertMapping(cParamExeBench & aParam);
 void BenchSymDerMap(cParamExeBench & aParam);
 void BenchLeastSqMap(cParamExeBench & aParam);
 
+void BenchDelaunay(cParamExeBench & aParam);
+void BenchTri2D(cParamExeBench & aParam);
+void BenchPly(cParamExeBench & aParam);
+void BenchHamming(cParamExeBench & aParam);
 
+void BenchSSRNL(cParamExeBench & aParam);  // Syst Sur Resol Non Linear
+void BenchDeformIm(cParamExeBench & aParam); // using image in non-linear least square system
 
 
 

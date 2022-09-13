@@ -108,7 +108,7 @@ int Homol2GND_main(int argc,char ** argv)
 
     std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
-    computeAllHomol(aDirImages,aPatIm,aSetIm,allHomols,aCKin,allPics,false,nbCells);
+    computeAllHomol(aDirImages,aPatIm,aSetIm,Pt2di(0,0),allHomols,aCKin,allPics,false,nbCells);
 
     std::cout<<"Found "<<allHomols.size()<<" homols."<<endl;
 

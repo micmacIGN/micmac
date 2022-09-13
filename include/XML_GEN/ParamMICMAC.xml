@@ -293,6 +293,7 @@
       <PxApply      Nb="?"  Type="ePxApply" Def="eApplyPx12">       </PxApply>
       <PatternSelFiltre Nb="?" Type="cElRegex_Ptr">    </PatternSelFiltre>
       <NbIteration Nb="?" Type="int" Def="1"> </NbIteration>
+      <NbItereIntern Nb="?" Type="int" Def="1"> </NbItereIntern>
       <AmplitudeSignal Nb="?" Type="double" Def="255"> </AmplitudeSignal>
       <UseIt Nb="?" Type="bool" Def="true"> </UseIt>
   </SpecFitrageImage>
@@ -987,6 +988,12 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         <GPU_Correl Nb="?" AccessorFils="false">    
                                 <Unused Nb="?" Type="std::string"> </Unused>
                         </GPU_Correl>
+
+                        <MutiCorrelOrthoExt Nb="?" AccessorFils="false">    
+                                <Cmd Nb="?" Type="std::string" Def="MMVII  DM4MatchMultipleOrtho "> </Cmd>
+                                <Options Nb="?" Type="std::string"> </Options>
+                                <DeltaZ Nb="?" Type="int" Def="50"> </DeltaZ>
+                        </MutiCorrelOrthoExt>
 
                         <!-- Afin de conserver le max de simplicite -->
                         <GPU_CorrelBasik Nb="?" AccessorFils="false">    

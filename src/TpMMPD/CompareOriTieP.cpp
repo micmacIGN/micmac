@@ -252,7 +252,7 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
 
     std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
-    computeAllHomol(aDirImages,aPatIm,aSetIm,allHomols,aCK,allPics,false,0);
+    computeAllHomol(aDirImages,aPatIm,aSetIm,Pt2di(0,0),allHomols,aCK,allPics,false,0);
     
     std::vector<Pt3dr> aVPt3DO1;
     std::vector<Pt3dr> aVPt3DO2;

@@ -5,7 +5,7 @@
 #include "MMVII_all.h"
 #include <stdexcept>
 
-const std::string MMVII::DirBin2007 = std::string(getenv("HOME"))+"/.local/mmv2/include/XML_GEN/";
+const std::string MMVII::DirBin2007 = std::string(getenv("HOME"))+"/.local/mmv2/MMVII/bin/";
 extern bool TheExitOnBrkp;
 
 static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
@@ -20,68 +20,11 @@ static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,con
 }
 
 
-namespace MMVII
-{
-
-void ShowArgsMain()
-{
-}
-
-cAppli_Py::cAppli_Py(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (aVArgs,aSpec)
-{
-    SetNot4Exe();
-}
-
-cAppli_Py::~cAppli_Py()
-{
-    std::cout<<"cAppli_Py::~cAppli_Py"<<std::endl;
-}
-
-int cAppli_Py::Exe()
-{
-     std::cout<<"cAppli_Py::Exe"<<std::endl;
-     return 0;
-}
-
-cCollecSpecArg2007 & cAppli_Py::ArgObl(cCollecSpecArg2007 & anArgObl)
-{
-    return anArgObl;
-}
-
-cCollecSpecArg2007 & cAppli_Py::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-    return  anArgOpt;
-}
-
-
-tMMVII_UnikPApli Alloc_Py(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_Py(aVArgs,aSpec));
-}
-
-
-}
-
-
-
 void mmv2_init()
 {
 	TheExitOnBrkp =true;
 	MMVII::MMVII_SetErrorHandler(ErrHanlderPy);
-
-	MMVII::cSpecMMVII_Appli  TheSpecPy
-	(
-	     "Py",
-	      MMVII::Alloc_Py,
-	      "Fake command for Python",
-	      {MMVII::eApF::Perso},
-	      {MMVII::eApDT::Xml},
-	      {MMVII::eApDT::Xml},
-	      __FILE__
-	);
-	MMVII::cAppli_Py *appli = new MMVII::cAppli_Py({},TheSpecPy);
-	(void) appli;
+	MMVII::InitStandAloneAppli("apipy");
 
 	std::cout<<"mmv2 initialized."<<std::endl;
 	//delete appli; //the fake apply must exist during module usage

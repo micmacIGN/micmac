@@ -116,10 +116,14 @@ void EnhacedSpG(std::string aImg1, std::string aImg2, Pt2dr aPatchLSz, Pt2dr aBu
         /* 1.3 - SuperGlue for rough co-registration */
         /**************************************/
         std::string aImgPair = StdPrefix(aCAS3D.mImgPair) + aRotate[i] + "." + StdPostfix(aCAS3D.mImgPair);
+        cout<<"aImgPair: "<<aImgPair<<endl;
         aCom = "";
         if (!EAMIsInit(&aCAS3D.mInput_dir))    aCom +=  " InDir=" + aOutDir+"/";
         //if (!EAMIsInit(&aCAS3D.mOutput_dir))   aCom +=  " SpGOutDir=" + aOutDir+"/";
         aCom +=  " CheckNb=\" " + ToString(aCheckNb) + "\"";
+        aCom +=  " Rotate=" + ToString(nRotate);
+        aCom += " Resize=[" + ToString(aCAS3D.mResize.x) + "," + ToString(aCAS3D.mResize.y) + "]";
+        aCom += " Viz=" + ToString(aCAS3D.mViz);
         aFullCom = StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + aCAS3D.ComParamSuperGlue(), aExe);
         //cout<<aFullCom<<endl;
 

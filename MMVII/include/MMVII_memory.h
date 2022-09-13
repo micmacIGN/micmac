@@ -91,6 +91,11 @@ class cMemManager
            return  static_cast<Type *> (cMemManager::Calloc(nmemb,sizeof(Type)));
         }
 
+        template <class Type> static inline Type * Alloc(int aX0,int aX1)
+        {
+           return  Alloc<Type>(size_t(aX1-aX0)) - aX0;
+	}
+
         template <class Type> static inline Type ** AllocMat(int aTx,int aTy)
         {
            Type ** aRes = Alloc<Type*>(aTy);

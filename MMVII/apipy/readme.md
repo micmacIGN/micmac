@@ -42,17 +42,13 @@ Dependencies:
  - for documentation: doxygen and GraphViz, or pdoc3
 
 On debian:
-    apt install swig python3-dev pkg-config python3-pip python3-numpy python3-wheel
-    pip3 install libclang
+    apt install swig python3-dev pkg-config python3-pip
+    pip3 install libclang wheel
 
 First, compile MMv1 and MMv2.
 
 Apipy compilation:
     make -f Makefile_apipy_linux
-
-Or if MMv1 was compiled with Qt:
-    make -f Makefile_apipy_linux USEQT=ON
-
 
 Distribution
 ------------

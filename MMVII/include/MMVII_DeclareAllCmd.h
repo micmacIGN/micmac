@@ -25,6 +25,7 @@ extern cSpecMMVII_Appli  TheSpecCalcDiscIm;
 extern cSpecMMVII_Appli  TheSpecCalcDescPCar;
 extern cSpecMMVII_Appli  TheSpecMatchTieP;
 extern cSpecMMVII_Appli  TheSpecEpipGenDenseMatch;
+extern cSpecMMVII_Appli  TheSpecEpipDenseMatchEval; 
 extern cSpecMMVII_Appli  TheSpecGenSymbDer;
 extern cSpecMMVII_Appli  TheSpecKapture;
 extern cSpecMMVII_Appli  TheSpecFormatTDEDM_WT;  // Wu Teng
@@ -34,9 +35,16 @@ extern cSpecMMVII_Appli  TheSpecExtractLearnVecDM;
 extern cSpecMMVII_Appli  TheSpecCalcHistoCarac; 
 extern cSpecMMVII_Appli  TheSpecCalcHistoNDim; 
 extern cSpecMMVII_Appli  TheSpecFillCubeCost; 
+extern cSpecMMVII_Appli  TheSpecMatchMultipleOrtho; 
 extern cSpecMMVII_Appli  TheSpecDMEvalRef; 
 extern cSpecMMVII_Appli  TheSpecGenCodedTarget; 
 extern cSpecMMVII_Appli  TheSpecExtractCodedTarget; 
+extern cSpecMMVII_Appli  TheSpecSimulCodedTarget; 
+extern cSpecMMVII_Appli  TheSpecDensifyRefMatch; 
+extern cSpecMMVII_Appli  TheSpecCloudClip; 
+extern cSpecMMVII_Appli  TheSpecMeshDev; 
+extern cSpecMMVII_Appli  TheSpecGenMeshDev; 
+extern cSpecMMVII_Appli  TheSpecTestCovProp; 
 
 };
 

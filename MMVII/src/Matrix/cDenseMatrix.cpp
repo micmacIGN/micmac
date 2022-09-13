@@ -1,10 +1,6 @@
 #include "include/MMVII_all.h"
 
 
-//#include "MMVII_EigenWrap.h"
-
-
-// using namespace Eigen;
 
 namespace MMVII
 {
@@ -36,6 +32,33 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Dup() const
     return  cDenseMatrix<Type>(Im().Dup());
 }
 
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ExtendSquareMat(int aNewSz,eModeInitImage aMode)
+{
+    this->CheckSquare(*this);
+    MMVII_INTERNAL_ASSERT_medium(aNewSz>=Sz().x(),"ExtendSquareMat cannot reduce size");
+
+    tDM aRes(aNewSz,aMode);
+
+    for (const auto & aPix : DIm())
+    {
+          aRes.DIm().SetV(aPix,DIm().GetV(aPix));
+    }
+    return aRes;
+}
+
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ExtendSquareMatId(int aNewSz)
+{
+     return  ExtendSquareMat(aNewSz,eModeInitImage::eMIA_MatrixId);
+}
+
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ExtendSquareMatNull(int aNewSz)
+{
+     return  ExtendSquareMat(aNewSz,eModeInitImage::eMIA_Null);
+}
+
+// eMIA_Null,
+
+
 template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVect<Type> & aV)
 {
     cDenseMatrix<Type> aRes(aV.Sz(),eModeInitImage::eMIA_Null);
@@ -49,6 +72,8 @@ template <class Type> Type  cDenseMatrix<Type>::L2Dist(const cDenseMatrix<Type> 
 {
    return DIm().L2Dist(aV.DIm());
 }
+
+
 
 
 template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareRegSVD
@@ -106,7 +131,7 @@ template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareReg
        {
           aIMM.Add(aK,std::abs(aVDiag(aK)));
        }
-       double aCond = aIMM.Min().Val() / aIMM.Max().Val() ;
+       double aCond = aIMM.Min().ValExtre() / aIMM.Max().ValExtre() ;
        // if conditionning is too low
        if (aCond <aCondMinAccept)
        {
@@ -117,7 +142,7 @@ template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareReg
             //  Max =  Max (1+ C/(1-C))
             //  Min =  Max * C/(1-C)           
             //  and cond is equal to C !
-            Type AbsToAdd = (1.01 * aIMM.Max().Val() * aCondMinAccept) / (1-aCondMinAccept);
+            Type AbsToAdd = (1.01 * aIMM.Max().ValExtre() * aCondMinAccept) / (1-aCondMinAccept);
             for (int aK=0 ; aK<aNb  ; aK++)
             {
                aVDiag(aK) += AbsToAdd * SignSupEq0(aVDiag(aK)); // 1 or -1
@@ -139,6 +164,10 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::RandomSquareRegMat
 {
     cResulSVDDecomp<Type>  aSVDD = RandomSquareRegSVD(aSz,IsSym,AmplAcc,aCondMinAccept);
     return aSVDD.OriMatr();
+/*
+StdOut() << "HHhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh\n";
+    return RandomSquareRegSVD(aSz,IsSym,AmplAcc,aCondMinAccept).OriMatr();
+*/
 }
 
 template <class Type> cResulSVDDecomp<Type>  
@@ -174,9 +203,9 @@ template<class Type> cDenseVect<Type> cDenseMatrix<Type>::Kernel(Type * aVp) con
         aWMin.Add(aK,std::abs(aVDiag(aK)));
 
     if (aVp) 
-       *aVp = aVDiag(aWMin.Index());
+       *aVp = aVDiag(aWMin.IndexExtre());
     
-    return aSVDD.MatV().ReadCol(aWMin.Index());
+    return aSVDD.MatV().ReadCol(aWMin.IndexExtre());
 }
 
 template<class Type> cDenseVect<Type> cDenseMatrix<Type>::EigenVect(const Type & aVal,Type * aVp) const
@@ -464,6 +493,25 @@ template <class Type> cUnOptDenseMatrix<Type> operator * (const cUnOptDenseMatri
    return aRes;
 }
 
+template <class Type> void cUnOptDenseMatrix<Type>::ResizeAndCropIn
+                           (
+                                const cPt2di & aP0,
+                                const cPt2di & aP1,
+                                const cUnOptDenseMatrix<Type> & aM2
+                           )
+{
+     //aDIm.ResizeI(aP1-aP0);
+     Resize(aP1-aP0);
+     tDIm & aDIm =   mIm.DIm();
+
+     aDIm.CropIn(aP0,aM2.DIm());
+}
+
+template <class Type> void cUnOptDenseMatrix<Type>::Resize(const cPt2di & aSz)
+{
+     static_cast<cRect2 &>(*this) = cRect2(aSz);
+     DIm().Resize(aSz);
+}
 
 /* ===================================================== */
 /* =====              INSTANTIATION                ===== */

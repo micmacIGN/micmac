@@ -167,10 +167,10 @@ double  cAimeDescriptor::DistanceFromIShift(const cAimeDescriptor & aAD2,int aSh
    tU_INT1 * const * aData1 = aDIm1.ExtractRawData2D();
 
    const cDataIm2D<tU_INT1>  & aDIm2(aAD2.mILP.DIm());
-   cPt2di aSz2= aDIm2.Sz();
+   // === cPt2di aSz2= aDIm2.Sz();
    tU_INT1 * const * aData2 = aDIm2.ExtractRawData2D();
 
-   MMVII_INTERNAL_ASSERT_tiny(aSz1==aSz2,"cAimeDescriptor::Distance");
+   MMVII_INTERNAL_ASSERT_tiny(aSz1==aDIm2.Sz(),"cAimeDescriptor::Distance");
    int aNbX = aSz1.x();
    aShift = mod(aShift,aNbX);
    int aIRes = 0;

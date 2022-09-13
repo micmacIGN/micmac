@@ -455,13 +455,35 @@ class LArgMain
 // initialisee dans GenMain, utilisee dans ElInitArgMain
 extern bool MMVisualMode;
 
-int MMRunVisualMode
+// Ch.M: MMRunVisualMode is now a pointer to function which is statically
+// initialized to the empty function MMRunVisualModeNoQt (return 0).
+// mm3d may dynamically changes it to MMRunVisualModeQt if needed.
+// This trick allows to put the depandancy on Qt library only in mm3d
+// instead of all users of ElInitArgMain
+extern int (*MMRunVisualMode)
+     (
+         int argc,char ** argv,
+         std::vector<cMMSpecArg> & aVAM,
+         std::vector<cMMSpecArg> & aVAO,
+         std::string aFirstArg
+     );
+
+int MMRunVisualModeQt
      (
          int argc,char ** argv,
          std::vector<cMMSpecArg> & aVAM,
          std::vector<cMMSpecArg> & aVAO,
          std::string aFirstArg = ""
      );
+
+int MMRunVisualModeNoQt
+     (
+         int argc,char ** argv,
+         std::vector<cMMSpecArg> & aVAM,
+         std::vector<cMMSpecArg> & aVAO,
+         std::string aFirstArg = ""
+     );
+
 
 typedef void (*tActionOnHelp)(int argc,char ** argv);
 extern tActionOnHelp TheActionOnHelp;

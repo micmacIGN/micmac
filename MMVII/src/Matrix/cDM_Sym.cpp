@@ -5,6 +5,31 @@ namespace MMVII
 {
 
 
+static std::vector<eLevelCheck> VEigenDoTestSucces{eLevelCheck::Error};
+
+void PushErrorEigenErrorLevel(eLevelCheck aLevel)
+{
+    VEigenDoTestSucces.push_back(aLevel);
+}
+void PopErrorEigenErrorLevel()
+{
+    VEigenDoTestSucces.pop_back();
+}
+
+bool EigenDoTestSuccess() 
+{
+    return VEigenDoTestSucces.back() != eLevelCheck::NoCheck;
+}
+void OnEigenNoSucc(const  char * aMesg,int aLine,const char * aFile)
+{
+    StdOut() << "EIGEN operation didnot reached success : " << aMesg 
+             << " at line "<< aLine << " of "<< aFile<<"\n";
+    if (VEigenDoTestSucces.back() == eLevelCheck::Error)
+    {
+        MMVII_INTERNAL_ERROR("Unhandled error in Eigen operation");
+    }
+}
+
 /* ============================================= */
 /*      cDenseMatrix<Type>                       */
 /* ============================================= */
@@ -129,21 +154,31 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::AntiSymetrize() co
    return aRes;
 }
 
+
+
 template <class Type>  void cDenseMatrix<Type>::TransposeIn(tDM & aM2) const
 {
+
      MMVII_INTERNAL_ASSERT_medium(aM2.Sz() == PSymXY(Sz()) ,"Bad size for in place transposition")
      MMVII_INTERNAL_ASSERT_medium(&(aM2.DIm()) != &(this->DIm()) ,"Use TransposeIn with same matrix");
 
      // Rest du bug bizarre sur :RandomSquareRegMatrix
      // cPixBox<2> aBox = *this;
      // for (const auto & aP : aBox)
+/*
      for (const auto & aP : *this)
-     // for (auto & aP  = this->begin() ;aP!=this->end() ; aP++)
      {
 
+  StdOut() << "xxxxx "  << aP << Sz() << " " << DIm().Sz() << "\n";
           aM2.SetElem(aP.y(),aP.x(),GetElem(aP));
      }
+*/
 
+     //  for (const auto & aP : *this) => generate bug with -O0 compile option, why : ?!?
+     // not satifyed with this correction, but the show must go on ...
+     cPixBox<2> aBox = *this;
+     for (const auto & aP : aBox)
+          aM2.SetElem(aP.y(),aP.x(),GetElem(aP));
 }
 
 template <class Type>  void cDenseMatrix<Type>::SelfTransposeIn()

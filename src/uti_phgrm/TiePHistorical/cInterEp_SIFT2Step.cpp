@@ -123,7 +123,7 @@ ElSimilitude EstimateHomography(std::string aDir, std::string aImg1, std::string
 
     std::string aNameFile1 = aDir + "/Homol" + CurSH + "-dat/Pastis" + aImg1 + "/"+aImg2+".dat";
     */
-    std::string aNameFile1 = aDir + "/Homol" + CurSH + "/Pastis" + aImg1 + "/"+aImg2+".txt";
+    std::string aNameFile1 = aDir + "/Homol" + CurSH+"-2DRANSAC" + "/Pastis" + aImg1 + "/"+aImg2+".txt";
     if (ELISE_fp::exist_file(aNameFile1) == true)
     {
         ElPackHomologue aPack =  ElPackHomologue::FromFile(aNameFile1);
@@ -187,9 +187,11 @@ ElSimilitude ReverseSimi(ElSimilitude aSimCur)
 */
 void SIFT2Step(std::string aDir, std::string aImg1, std::string aImg2, std::string outSH, double dScale, bool bCheckFile, double dScaleL, double dScaleR, double aR2DTh1st, double aR2dIter1st, ElSimilitude aSimCur, double dSearchSpace, bool bPrint,  bool aCheckScale, bool aCheckAngle, double aThreshScale, double aThreshAngle, bool bSkip1stSIFT, bool bSkip2ndSIFT, bool bCheckSclRot, double aThreshScaleR2D, double aThreshAngleR2D)
 {
-    Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
+    //Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+"/"+aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
-    Tiff_Im aRGBIm2((aDir+"/"+aImg2).c_str());
+    //Tiff_Im aRGBIm2((aDir+"/"+aImg2).c_str());
+    Tiff_Im aRGBIm2 = Tiff_Im::StdConvGen((aDir+"/"+aImg2).c_str(), -1, true ,true);
     Pt2di ImgSzR = aRGBIm2.sz();
 
     std::string aImg1Key = ExtractSIFT(aImg1, aDir, dScaleL);
@@ -220,6 +222,7 @@ void SIFT2Step(std::string aDir, std::string aImg1, std::string aImg2, std::stri
     if(bSkip1stSIFT == false)
         aSimCur = EstimateHomography(aDir, aImg1, aImg2, outSH, dScale, bCheckFile, dScaleL, dScaleR, aR2DTh1st, aR2dIter1st, aVSiftOriL, aVSiftOriR, bPrint, bCheckSclRot, aThreshScaleR2D, aThreshAngleR2D);
 
+    printf("Simi for guidance: Translation: [%.2lf,%.2lf]; Scl: %.2lf, Rot: %.2lf\n", aSimCur.tr().x, aSimCur.tr().y, aSimCur.sc().x, aSimCur.sc().y);
     if(bSkip2ndSIFT == false && IsHomolFileExist(aDir, aImg1, aImg2, outSH, bCheckFile) == false)
     {
         printf("Key point number of master image for 2th step: %d.\nKey point number of secondary image for 2th step: %d.\n", int(aVSiftOriL.size()), int(aVSiftOriR.size()));

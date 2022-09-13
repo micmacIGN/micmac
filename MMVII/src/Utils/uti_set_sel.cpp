@@ -470,6 +470,10 @@ tNameSelector  AllocRegex(const std::string& aPat)
    return cSelector<std::string>(new cDataStdRegex(aPat));
 }
 
+bool  MatchRegex(const std::string& aName,const std::string& aPat)
+{
+	 return AllocRegex(aPat).Match(aName);
+}
 
 
 
@@ -1135,6 +1139,8 @@ void BenchSet(cParamExeBench & aParam,const std::string & aDir)
     }
     aParam.EndBench();
 }
+
+
 
 };
 

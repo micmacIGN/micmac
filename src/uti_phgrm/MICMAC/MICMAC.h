@@ -147,7 +147,6 @@ typedef enum
 
 
 
-
 GenIm::type_el TypeIMIL2El(eIFImL_TypeNumerique);
 
 template <class TypeEl,class TypeBase> 
@@ -2733,6 +2732,7 @@ class   cGPU_LoadedImGeom
        tImGpu  ImSomO();
        tImGpu  ImSomO2();
        tImGpu  ImSom12();
+
 
        bool InitValNorms(int anX,int anY,int aNbScaleIm);
        double ValNorm(int anX,int anY) const 

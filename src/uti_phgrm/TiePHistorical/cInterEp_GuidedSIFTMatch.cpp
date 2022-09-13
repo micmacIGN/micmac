@@ -173,9 +173,11 @@ Pt2dr GetScaleRotate(std::string aImg1, std::string aImg2, std::string aDSMFileL
         return Pt2dr(1,0);
     }
 
-    Tiff_Im aRGBIm1(aImg1.c_str());
+    //Tiff_Im aRGBIm1(aImg1.c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
-    Tiff_Im aRGBIm2(aImg2.c_str());
+    //Tiff_Im aRGBIm2(aImg2.c_str());
+    Tiff_Im aRGBIm2 = Tiff_Im::StdConvGen((aImg2).c_str(), -1, true ,true);
     Pt2di ImgSzR = aRGBIm2.sz();
 
     std::string aNameOriL = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
@@ -324,9 +326,11 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     if(IsHomolFileExist(aDir, aImg1, aImg2, outSH, bCheckFile) == true)
         return;
 
-    Tiff_Im aRGBIm1(aImg1.c_str());
+    //Tiff_Im aRGBIm1(aImg1.c_str());
+    Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aImg1).c_str(), -1, true ,true);
     Pt2di ImgSzL = aRGBIm1.sz();
-    Tiff_Im aRGBIm2(aImg2.c_str());
+    //Tiff_Im aRGBIm2(aImg2.c_str());
+    Tiff_Im aRGBIm2 = Tiff_Im::StdConvGen((aImg2).c_str(), -1, true ,true);
     Pt2di ImgSzR = aRGBIm2.sz();
 
     std::string aImgScaledName1 = GetScaledImgName(aImg1, ImgSzL, dScaleL);

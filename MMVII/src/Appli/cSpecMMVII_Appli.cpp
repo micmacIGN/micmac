@@ -49,6 +49,9 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
    }
    static int aCptCallIntern=0;
    aCptCallIntern++;
+   if (TheCmdArgs.size() == 0)
+       TheCmdArgs = aVArgs;
+
    int aNbObjLive = cMemCheck::NbObjLive();
    // Add this one to check  destruction with unique_ptr
    const cMemState  aMemoState= cMemManager::CurState() ;
@@ -160,6 +163,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecCalcDescPCar);
         TheVecAll.push_back(&TheSpecMatchTieP);
         TheVecAll.push_back(&TheSpecEpipGenDenseMatch);
+        TheVecAll.push_back(&TheSpecEpipDenseMatchEval);
         TheVecAll.push_back(&TheSpecGenSymbDer);
         TheVecAll.push_back(&TheSpecKapture);
         TheVecAll.push_back(&TheSpecFormatTDEDM_WT);
@@ -169,9 +173,16 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecCalcHistoNDim);
         TheVecAll.push_back(&TheSpecTestHypStep);
         TheVecAll.push_back(&TheSpecFillCubeCost);
+        TheVecAll.push_back(&TheSpecMatchMultipleOrtho);
         TheVecAll.push_back(&TheSpecDMEvalRef);
         TheVecAll.push_back(&TheSpecGenCodedTarget);
         TheVecAll.push_back(&TheSpecExtractCodedTarget);
+        TheVecAll.push_back(&TheSpecSimulCodedTarget);
+        TheVecAll.push_back(&TheSpecDensifyRefMatch);
+        TheVecAll.push_back(&TheSpecCloudClip);
+        TheVecAll.push_back(&TheSpecMeshDev);
+        TheVecAll.push_back(&TheSpecGenMeshDev);
+        TheVecAll.push_back(&TheSpecTestCovProp);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
@@ -202,6 +213,17 @@ cSpecMMVII_Appli*  cSpecMMVII_Appli::SpecOfName(const std::string & aNameCom,boo
    return 0;
 }
 
+std::vector<std::string> cSpecMMVII_Appli::TheCmdArgs;
+
+void cSpecMMVII_Appli::ShowCmdArgs(void)
+{
+    if (TheCmdArgs.size() == 0)
+        return;
+    std::cout << "========= ARGS OF COMMAND ==========\n";
+    for (const auto& aArg: TheCmdArgs)
+        std::cout << aArg << " ";
+    std::cout << "\n";
+}
 
 };
 

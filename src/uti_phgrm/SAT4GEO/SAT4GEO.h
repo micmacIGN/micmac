@@ -141,6 +141,7 @@ class cCommonAppliSat3D
 	std::string   mMMVII_ModePad;
 	std::string   mMMVII_ImName;
 	Pt2di         mMMVII_SzTile;
+	Pt2di         mMMVII_SzOverL;
     int           mMMVII_NbProc;
 
         /* Bascule param */
@@ -266,6 +267,10 @@ class cAppliMM1P : cCommonAppliSat3D
         cAppliMM1P(int argc, char** argv);
 
     private:
+        void CreateNuageLastFile(const std::string& Dir, const std::string& ImName);
+        std::string NameOccluMask();
+        std::string NameCorrel();
+
         cCommonAppliSat3D mCAS3D;
         std::string       mFilePairs;
         std::string       mOri;

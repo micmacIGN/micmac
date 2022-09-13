@@ -26,6 +26,8 @@ enum class eTA2007
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File of Dir Proj
                 FileImage,     ///< File containing an image
+                FileCloud,     ///< File containing a cloud file (ply ?)
+                File3DRegion,  ///< File containing a 3D region
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
             // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
@@ -52,6 +54,7 @@ enum class eApF
                Match,      ///< Dense Matching
                TieP,       ///< Tie-Point processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
+               Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
@@ -84,6 +87,13 @@ enum class eModeCreateDir
               eNbVals        ///< Tag for number of value
            };
 
+/// Type of Error
+enum class eLevelCheck    
+           {
+              NoCheck,
+              Warning,
+              Error
+           };
 
 /// Type of set creation
 enum class eTySC    
@@ -139,6 +149,7 @@ enum class eTyUEr
               eBadDimForBox,
               eBadSize4Vect,
               eMultiplePostifx,
+              eBadPostfix,
               eUnClassedError,
               eNbVals
            };
@@ -244,15 +255,33 @@ enum class eModeOutPCar
      eNbVals          ///< Tag End of Vals
 };
 
+/** Mode test prop cov */
+enum class eModeTestPropCov
+{
+   eMTPC_MatCovRFix,  // Mode directly add the covariance matrix, rotation fix
+   //   eMTPC_MatCovRUk,  // Mode directly add the covariance matrix, rotation unknown (to implemant ?)
+   //   eMTPC_SomL2RFix,  // Mode sum of square linear form, Rotation fix (to implement ?)
+   eMTPC_SomL2RUk,  // Mode sum of square linear form, Rotation uknonwn
+   eMTPC_PtsRFix,  // Mode direct distance to points, rotation fix
+   eMTPC_PtsRUk,  // Mode direct distance to points, rotation unknown
+   eNbVals
+};
 
 /** Mode "Matcher" callable in DenseMatchEpipGen */
-
 enum class eModeEpipMatch
 {
    eMEM_MMV1,  // Mode MicMac V1
    eMEM_PSMNet,// Mode PSMNet
    eMEM_NoMatch,  // Do no match, used for debuging
    eNbVals
+};
+
+/**  Mode os system "sur resolus"  */
+enum class eModeSSR
+{
+      eSSR_LsqDense,        ///< Least square, normal equation, with dense implementation
+      eSSR_LsqNormSparse,   ///< Least square, normal equation, with sparse implementation
+      eSSR_LsqSparseGC      ///< Least square, NO normal equation (Conjugate Gradient) , with sparse implementation
 };
 
 
@@ -367,7 +396,18 @@ enum class eModeCaracMatch
    eNbVals
 };
 
+/** Filters for detecteting coded target */
 
+enum class eDCTFilters
+{
+   eSym,       // symetry filters arround pts
+   eBin,       // binarity of the  histogramm
+   eRad,       // radiality of the distribution
+   eGrad,      // average  gradient
+   eNbVals
+};
+
+const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
 const std::string & E2Str(const eTA2007 &);         
@@ -376,6 +416,7 @@ const std::string & E2Str(const eTyNums &);
 const std::string & E2Str(const eTyInvRad &);         
 const std::string & E2Str(const eTyPyrTieP &);         
 const std::string & E2Str(const eModeEpipMatch &);         
+const std::string & E2Str(const eModeTestPropCov &);         
 const std::string & E2Str(const eModePaddingEpip &);         
 const std::string & E2Str(const eModeCaracMatch &);         
 

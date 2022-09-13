@@ -401,14 +401,15 @@ Fonc_Num  OneItereFiltrageImMicMac
 	 Symb_FNum  sM (Rconv(aFoncMasq));
 
 	 Fonc_Num fSom = Virgule(sM,sM*sF,sM*Square(sF));
-         fSom = rect_som(fSom,aSzI)/ElSquare(1.0+2.0*aSzI);  // Pour Eviter les divergences
+	 for (int aKIter=0 ; aKIter< aParam.NbItereIntern().Val() ;aKIter++)
+             fSom = rect_som(fSom,aSzI)/ElSquare(1.0+2.0*aSzI);  // Pour Eviter les divergences
          Symb_FNum  S012 (fSom);
 
          Symb_FNum s0 (S012.v0());
          Symb_FNum s1 (S012.v1()/s0);
          Symb_FNum s2 (S012.v2()/s0-Square(s1));
          Symb_FNum ect  (sqrt(Max(1,s2)));
-	 return 255*erfcc((aFonc-s1)/(ect*sqrt(2.0)));
+	 return aParam.AmplitudeSignal().Val() *erfcc((aFonc-s1)/(ect*sqrt(2.0)));
 
        }
        break ;

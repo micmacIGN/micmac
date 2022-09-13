@@ -145,6 +145,8 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::DirProject,"DP"},
                 {eTA2007::FileDirProj,"FDP"},
                 {eTA2007::FileImage,"Im"},
+                {eTA2007::FileCloud,"Cloud"},
+                {eTA2007::File3DRegion,"3DReg"},
                 {eTA2007::MPatFile,"MPF"},
                 {eTA2007::AddCom,"AddCom"},
                 {eTA2007::Internal,"##Intern"},
@@ -202,6 +204,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eBadDimForBox,"BadDimension4Box"},
                 {eTyUEr::eBadSize4Vect,"BadSize4Vector"},
                 {eTyUEr::eMultiplePostifx,"MultiplePostifx"},
+                {eTyUEr::eBadPostfix,"BadPostifx"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 TPL_ENUM_2_STRING(eTyUEr);
@@ -232,6 +235,17 @@ template<> cE2Str<eModeEpipMatch>::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
            };
 TPL_ENUM_2_STRING(eModeEpipMatch);
 
+template<> cE2Str<eModeTestPropCov>::tMapE2Str cE2Str<eModeTestPropCov>::mE2S
+           {
+                {eModeTestPropCov::eMTPC_MatCovRFix  ,"MatCovRFix"},
+                {eModeTestPropCov::eMTPC_SomL2RUk    ,"SomL2RUk"},
+                {eModeTestPropCov::eMTPC_PtsRFix     ,"PtsRFix"},
+                {eModeTestPropCov::eMTPC_PtsRUk      ,"PtsRUk"}
+           };
+TPL_ENUM_2_STRING(eModeTestPropCov);
+
+
+
 template<> cE2Str<eModePaddingEpip>::tMapE2Str cE2Str<eModePaddingEpip>::mE2S
            {
                 {eModePaddingEpip::eMPE_NoPad,"NoPad"},
@@ -241,6 +255,14 @@ template<> cE2Str<eModePaddingEpip>::tMapE2Str cE2Str<eModePaddingEpip>::mE2S
            };
 TPL_ENUM_2_STRING(eModePaddingEpip);
 
+template<> cE2Str<eDCTFilters>::tMapE2Str cE2Str<eDCTFilters>::mE2S
+           {
+                {eDCTFilters::eSym,"Sym"},
+                {eDCTFilters::eBin,"Bin"},
+                {eDCTFilters::eRad,"Rad"},
+                {eDCTFilters::eGrad,"Grad"}
+           };
+TPL_ENUM_2_STRING(eDCTFilters);
 
 template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
            {
@@ -364,8 +386,10 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eTyInvRad>();
     TplBenchEnum<eTyPyrTieP>();
     TplBenchEnum<eModeEpipMatch>();
+    TplBenchEnum<eModeTestPropCov>();
     TplBenchEnum<eModePaddingEpip>();
     TplBenchEnum<eModeCaracMatch>();
+    TplBenchEnum<eDCTFilters>();
 
     aParam.EndBench();
 }

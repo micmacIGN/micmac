@@ -119,7 +119,7 @@ int  cAppliCalcHistoCarac::Exe()
 
    {
        cMultipleOfs  aMulOfs(NameReport());
-       aMulOfs << "COM=[" << Command() << "]\n\n";
+       aMulOfs << "COM=[" << CommandOfMain() << "]\n\n";
        mStats->ShowSepar(".*",aMulOfs);
    }
 

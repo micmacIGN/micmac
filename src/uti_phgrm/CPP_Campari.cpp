@@ -588,8 +588,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
                     << EAM(mNumPtsAttrNewF,"NAWNF",true,"Num Attribute for Weigthing in New Format")
                     << EAM(mROP,"ROP",true,"Rappel On Pose [IdOr,SigmaC,SigmaOr,Pattern]")
-                    << EAM(mFileObsPlane,"FOP",true,"File for plane observation on centers")
-                    << EAM(mWeigthObsPlane,"WOP",true,"File for plane observation on centers")
+                    << EAM(mFileObsPlane,"FOP",true,"File for plane observations on centers")
+                    << EAM(mWeigthObsPlane,"WOP",true,"Weight of plane observation on centers")
                     << EAM(mExtenZ,"ExtIntZ",true,"Extension of Z Interval for elimination")
     );
 

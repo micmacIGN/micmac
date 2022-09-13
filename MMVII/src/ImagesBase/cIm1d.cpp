@@ -89,8 +89,20 @@ template <class Type>  cDataIm1D<Type>::cDataIm1D
     PostInit();
 }
 
+template <class Type>  void cDataIm1D<Type>::CropIn(const int & aX0,const cDataIm1D<Type> & aI2)
+{
+    aI2.AssertInside(aX0);
+    aI2.AssertInside(aX0+Sz()-1);
+
+    MemCopy(mRawData1D,aI2.mRawData1D+aX0,Sz());
+
+}
+
 template <class Type>  void cDataIm1D<Type>::Resize ( const cPt1di & aP0, const cPt1di & aP1, eModeInitImage aModeInit)  
 {
+   if ((aP0==this->P0()) && (aP1==this->P1()) && (aModeInit==eModeInitImage::eMIA_NoInit))
+       return;
+
    cDataTypedIm<Type,1>::Resize(aP0,aP1,aModeInit);
    PostInit();
 }
@@ -137,6 +149,14 @@ template <class Type>  cIm1D<Type>::cIm1D(const int & aSz,Type * aRawDataLin,eMo
    cIm1D<Type> (0,aSz,aRawDataLin,aModeInit)
 {
 }
+
+template <class Type>  cIm1D<Type>::cIm1D(const std::vector<Type> & aV) :
+   cIm1D<Type> (int(aV.size()))
+{
+     for (size_t aK=0;aK<aV.size(); aK++)
+         this->DIm().SetV(aK,aV[aK]);
+}
+
 
 template <class Type>  cIm1D<Type>  cIm1D<Type>::Dup() const
 {

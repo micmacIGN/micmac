@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamMICMAC[2179] = {
+const char * theNameVar_ParamMICMAC[2186] = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -295,6 +295,7 @@ const char * theNameVar_ParamMICMAC[2179] = {
 "      <PxApply      Nb=\"?\"  Type=\"ePxApply\" Def=\"eApplyPx12\">       </PxApply>\n",
 "      <PatternSelFiltre Nb=\"?\" Type=\"cElRegex_Ptr\">    </PatternSelFiltre>\n",
 "      <NbIteration Nb=\"?\" Type=\"int\" Def=\"1\"> </NbIteration>\n",
+"      <NbItereIntern Nb=\"?\" Type=\"int\" Def=\"1\"> </NbItereIntern>\n",
 "      <AmplitudeSignal Nb=\"?\" Type=\"double\" Def=\"255\"> </AmplitudeSignal>\n",
 "      <UseIt Nb=\"?\" Type=\"bool\" Def=\"true\"> </UseIt>\n",
 "  </SpecFitrageImage>\n",
@@ -989,6 +990,12 @@ const char * theNameVar_ParamMICMAC[2179] = {
 "                        <GPU_Correl Nb=\"?\" AccessorFils=\"false\">    \n",
 "                                <Unused Nb=\"?\" Type=\"std::string\"> </Unused>\n",
 "                        </GPU_Correl>\n",
+"\n",
+"                        <MutiCorrelOrthoExt Nb=\"?\" AccessorFils=\"false\">    \n",
+"                                <Cmd Nb=\"?\" Type=\"std::string\" Def=\"MMVII  DM4MatchMultipleOrtho \"> </Cmd>\n",
+"                                <Options Nb=\"?\" Type=\"std::string\"> </Options>\n",
+"                                <DeltaZ Nb=\"?\" Type=\"int\" Def=\"50\"> </DeltaZ>\n",
+"                        </MutiCorrelOrthoExt>\n",
 "\n",
 "                        <!-- Afin de conserver le max de simplicite -->\n",
 "                        <GPU_CorrelBasik Nb=\"?\" AccessorFils=\"false\">    \n",

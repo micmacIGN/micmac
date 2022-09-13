@@ -94,6 +94,10 @@ class cSpecMMVII_Appli
 
        // bool HasDataTypeIn(const eApDT & aType) const;
        // bool HasDataTypeOut(const eApDT & aType) const;
+
+       // Display command line args
+       static void ShowCmdArgs(void);
+
     private :
        static std::vector<cSpecMMVII_Appli*> TheVecAll;
        static std::vector<cSpecMMVII_Appli*> & InternVecAll(); ///< vectors of all specifs
@@ -106,6 +110,8 @@ class cSpecMMVII_Appli
        tVaDT                 mVOutputs;   ///<  Vector Output Data Type
        std::string           mNameFile;   ///< C++ file where it is defined, may be usefull for devlopers ?
 
+   // Args in the first call of an AllocExecuteDestruct(args) are stored in TheCmdArgs
+       static std::vector<std::string> TheCmdArgs;
 };
 
 /// Class to store Mandatory args for recursive call
@@ -341,6 +347,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static bool   ExistAppli();         ///< Return if the appli exist, no error
         static cMMVII_Appli & CurrentAppli();   ///< Return the unique appli, error if not
         virtual int Exe() = 0;              ///< Do the "real" job
+        virtual int ExeOnParsedBox(); ///< Action to exec for each box, When the appli parse a big file , def error
+
+
         virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
@@ -381,6 +390,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
         virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
+        std::string  CommandOfMain() const; ///< Glob command by aggregation of ArgcArgv
     protected :
 
         /// Constructor, essenntially memorize command line and specifs
@@ -399,7 +409,6 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void InitOutFromIn(std::string &aFileOut,const std::string& aFileIn); ///< If out is not init set In, else DirProj+Out
 
         void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
-        std::string  Command() const; ///< Glob command by aggregation of ArgcArgv
 
         bool RunMultiSet(int aKParam,int aKSet);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed
         int  ResultMultiSet() const; /// Iff RunMultiSet was execute
@@ -525,5 +534,16 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 
 bool    IsInit(const void *);  ///< Call IsInit on the appli def
+
+// To build application outside of the main MMVII executable
+
+// To build a completly separate application
+// Must be called in main() before any use of MMVII items
+void InitStandAloneAppli(const char* aAppName, const char *aComment="");
+
+// To build a MMVII like application (arguments parsing)
+// a cSpecMMVII_Appli must be defined ...
+int InitStandAloneAppli(const cSpecMMVII_Appli & aSpec, int argc, char*argv[]);
+
 };
 #endif  //  _cMMVII_Appli_H_

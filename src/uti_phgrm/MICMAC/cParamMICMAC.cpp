@@ -1103,6 +1103,17 @@ const cTplValGesInit< int > & cSpecFitrageImage::NbIteration()const
 }
 
 
+cTplValGesInit< int > & cSpecFitrageImage::NbItereIntern()
+{
+   return mNbItereIntern;
+}
+
+const cTplValGesInit< int > & cSpecFitrageImage::NbItereIntern()const 
+{
+   return mNbItereIntern;
+}
+
+
 cTplValGesInit< double > & cSpecFitrageImage::AmplitudeSignal()
 {
    return mAmplitudeSignal;
@@ -1163,6 +1174,14 @@ void  BinaryUnDumpFromFile(cSpecFitrageImage & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.NbItereIntern().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbItereIntern().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NbItereIntern().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.AmplitudeSignal().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.AmplitudeSignal().ValForcedForUnUmp(),aFp);
         }
@@ -1190,6 +1209,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSpecFitrageImage & anObj)
     if (anObj.PatternSelFiltre().IsInit()) BinaryDumpInFile(aFp,anObj.PatternSelFiltre().Val());
     BinaryDumpInFile(aFp,anObj.NbIteration().IsInit());
     if (anObj.NbIteration().IsInit()) BinaryDumpInFile(aFp,anObj.NbIteration().Val());
+    BinaryDumpInFile(aFp,anObj.NbItereIntern().IsInit());
+    if (anObj.NbItereIntern().IsInit()) BinaryDumpInFile(aFp,anObj.NbItereIntern().Val());
     BinaryDumpInFile(aFp,anObj.AmplitudeSignal().IsInit());
     if (anObj.AmplitudeSignal().IsInit()) BinaryDumpInFile(aFp,anObj.AmplitudeSignal().Val());
     BinaryDumpInFile(aFp,anObj.UseIt().IsInit());
@@ -1210,6 +1231,8 @@ cElXMLTree * ToXMLTree(const cSpecFitrageImage & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PatternSelFiltre"),anObj.PatternSelFiltre().Val())->ReTagThis("PatternSelFiltre"));
    if (anObj.NbIteration().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbIteration"),anObj.NbIteration().Val())->ReTagThis("NbIteration"));
+   if (anObj.NbItereIntern().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbItereIntern"),anObj.NbItereIntern().Val())->ReTagThis("NbItereIntern"));
    if (anObj.AmplitudeSignal().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("AmplitudeSignal"),anObj.AmplitudeSignal().Val())->ReTagThis("AmplitudeSignal"));
    if (anObj.UseIt().IsInit())
@@ -1236,12 +1259,14 @@ void xml_init(cSpecFitrageImage & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NbIteration(),aTree->Get("NbIteration",1),int(1)); //tototo 
 
+   xml_init(anObj.NbItereIntern(),aTree->Get("NbItereIntern",1),int(1)); //tototo 
+
    xml_init(anObj.AmplitudeSignal(),aTree->Get("AmplitudeSignal",1),double(255)); //tototo 
 
    xml_init(anObj.UseIt(),aTree->Get("UseIt",1),bool(true)); //tototo 
 }
 
-std::string  Mangling( cSpecFitrageImage *) {return "7E1459E372E55CBBFF3F";};
+std::string  Mangling( cSpecFitrageImage *) {return "305A77304BD912DDFE3F";};
 
 
 double & cXML_RatioCorrImage::Ratio()
@@ -6779,7 +6804,7 @@ void xml_init(cSection_PriseDeVue & anObj,cElXMLTree * aTree)
    xml_init(anObj.ClassEquivalenceImage(),aTree->Get("ClassEquivalenceImage",1)); //tototo 
 }
 
-std::string  Mangling( cSection_PriseDeVue *) {return "A38D2F064DE260DCFE3F";};
+std::string  Mangling( cSection_PriseDeVue *) {return "02C3FBEF3BE2D087FF3F";};
 
 
 int & cEchantillonagePtsInterets::FreqEchantPtsI()
@@ -7808,6 +7833,106 @@ void xml_init(cGPU_Correl & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cGPU_Correl *) {return "70BE79E33E0436B7FDBF";};
+
+
+cTplValGesInit< std::string > & cMutiCorrelOrthoExt::Cmd()
+{
+   return mCmd;
+}
+
+const cTplValGesInit< std::string > & cMutiCorrelOrthoExt::Cmd()const 
+{
+   return mCmd;
+}
+
+
+cTplValGesInit< std::string > & cMutiCorrelOrthoExt::Options()
+{
+   return mOptions;
+}
+
+const cTplValGesInit< std::string > & cMutiCorrelOrthoExt::Options()const 
+{
+   return mOptions;
+}
+
+
+cTplValGesInit< int > & cMutiCorrelOrthoExt::DeltaZ()
+{
+   return mDeltaZ;
+}
+
+const cTplValGesInit< int > & cMutiCorrelOrthoExt::DeltaZ()const 
+{
+   return mDeltaZ;
+}
+
+void  BinaryUnDumpFromFile(cMutiCorrelOrthoExt & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Cmd().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Cmd().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Cmd().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Options().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Options().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Options().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.DeltaZ().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DeltaZ().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DeltaZ().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cMutiCorrelOrthoExt & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Cmd().IsInit());
+    if (anObj.Cmd().IsInit()) BinaryDumpInFile(aFp,anObj.Cmd().Val());
+    BinaryDumpInFile(aFp,anObj.Options().IsInit());
+    if (anObj.Options().IsInit()) BinaryDumpInFile(aFp,anObj.Options().Val());
+    BinaryDumpInFile(aFp,anObj.DeltaZ().IsInit());
+    if (anObj.DeltaZ().IsInit()) BinaryDumpInFile(aFp,anObj.DeltaZ().Val());
+}
+
+cElXMLTree * ToXMLTree(const cMutiCorrelOrthoExt & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MutiCorrelOrthoExt",eXMLBranche);
+   if (anObj.Cmd().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Cmd"),anObj.Cmd().Val())->ReTagThis("Cmd"));
+   if (anObj.Options().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Options"),anObj.Options().Val())->ReTagThis("Options"));
+   if (anObj.DeltaZ().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DeltaZ"),anObj.DeltaZ().Val())->ReTagThis("DeltaZ"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cMutiCorrelOrthoExt & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Cmd(),aTree->Get("Cmd",1),std::string("MMVII  DM4MatchMultipleOrtho ")); //tototo 
+
+   xml_init(anObj.Options(),aTree->Get("Options",1)); //tototo 
+
+   xml_init(anObj.DeltaZ(),aTree->Get("DeltaZ",1),int(50)); //tototo 
+}
+
+std::string  Mangling( cMutiCorrelOrthoExt *) {return "006BFD020F1FA285FF3F";};
 
 
 cTplValGesInit< std::string > & cGPU_CorrelBasik::Unused()
@@ -9619,6 +9744,17 @@ const cTplValGesInit< cGPU_Correl > & cTypeCAH::GPU_Correl()const
 }
 
 
+cTplValGesInit< cMutiCorrelOrthoExt > & cTypeCAH::MutiCorrelOrthoExt()
+{
+   return mMutiCorrelOrthoExt;
+}
+
+const cTplValGesInit< cMutiCorrelOrthoExt > & cTypeCAH::MutiCorrelOrthoExt()const 
+{
+   return mMutiCorrelOrthoExt;
+}
+
+
 cTplValGesInit< cGPU_CorrelBasik > & cTypeCAH::GPU_CorrelBasik()
 {
    return mGPU_CorrelBasik;
@@ -9746,6 +9882,14 @@ void  BinaryUnDumpFromFile(cTypeCAH & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.MutiCorrelOrthoExt().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.MutiCorrelOrthoExt().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.MutiCorrelOrthoExt().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.GPU_CorrelBasik().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.GPU_CorrelBasik().ValForcedForUnUmp(),aFp);
         }
@@ -9825,6 +9969,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cTypeCAH & anObj)
     if (anObj.Correl2DLeastSquare().IsInit()) BinaryDumpInFile(aFp,anObj.Correl2DLeastSquare().Val());
     BinaryDumpInFile(aFp,anObj.GPU_Correl().IsInit());
     if (anObj.GPU_Correl().IsInit()) BinaryDumpInFile(aFp,anObj.GPU_Correl().Val());
+    BinaryDumpInFile(aFp,anObj.MutiCorrelOrthoExt().IsInit());
+    if (anObj.MutiCorrelOrthoExt().IsInit()) BinaryDumpInFile(aFp,anObj.MutiCorrelOrthoExt().Val());
     BinaryDumpInFile(aFp,anObj.GPU_CorrelBasik().IsInit());
     if (anObj.GPU_CorrelBasik().IsInit()) BinaryDumpInFile(aFp,anObj.GPU_CorrelBasik().Val());
     BinaryDumpInFile(aFp,anObj.MultiCorrelPonctuel().IsInit());
@@ -9855,6 +10001,8 @@ cElXMLTree * ToXMLTree(const cTypeCAH & anObj)
       aRes->AddFils(ToXMLTree(anObj.Correl2DLeastSquare().Val())->ReTagThis("Correl2DLeastSquare"));
    if (anObj.GPU_Correl().IsInit())
       aRes->AddFils(ToXMLTree(anObj.GPU_Correl().Val())->ReTagThis("GPU_Correl"));
+   if (anObj.MutiCorrelOrthoExt().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.MutiCorrelOrthoExt().Val())->ReTagThis("MutiCorrelOrthoExt"));
    if (anObj.GPU_CorrelBasik().IsInit())
       aRes->AddFils(ToXMLTree(anObj.GPU_CorrelBasik().Val())->ReTagThis("GPU_CorrelBasik"));
    if (anObj.MultiCorrelPonctuel().IsInit())
@@ -9889,6 +10037,8 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.GPU_Correl(),aTree->Get("GPU_Correl",1)); //tototo 
 
+   xml_init(anObj.MutiCorrelOrthoExt(),aTree->Get("MutiCorrelOrthoExt",1)); //tototo 
+
    xml_init(anObj.GPU_CorrelBasik(),aTree->Get("GPU_CorrelBasik",1)); //tototo 
 
    xml_init(anObj.MultiCorrelPonctuel(),aTree->Get("MultiCorrelPonctuel",1)); //tototo 
@@ -9908,7 +10058,7 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
    xml_init(anObj.MasqueAutoByTieP(),aTree->Get("MasqueAutoByTieP",1)); //tototo 
 }
 
-std::string  Mangling( cTypeCAH *) {return "642413B8D96483F4FA3F";};
+std::string  Mangling( cTypeCAH *) {return "402BA28C661D14BEFDBF";};
 
 
 cTplValGesInit< double > & cCorrelAdHoc::EpsilonAddMoyenne()
@@ -10040,6 +10190,17 @@ cTplValGesInit< cGPU_Correl > & cCorrelAdHoc::GPU_Correl()
 const cTplValGesInit< cGPU_Correl > & cCorrelAdHoc::GPU_Correl()const 
 {
    return TypeCAH().GPU_Correl();
+}
+
+
+cTplValGesInit< cMutiCorrelOrthoExt > & cCorrelAdHoc::MutiCorrelOrthoExt()
+{
+   return TypeCAH().MutiCorrelOrthoExt();
+}
+
+const cTplValGesInit< cMutiCorrelOrthoExt > & cCorrelAdHoc::MutiCorrelOrthoExt()const 
+{
+   return TypeCAH().MutiCorrelOrthoExt();
 }
 
 
@@ -10236,7 +10397,7 @@ void xml_init(cCorrelAdHoc & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeCAH(),aTree->Get("TypeCAH",1)); //tototo 
 }
 
-std::string  Mangling( cCorrelAdHoc *) {return "0439049ACA056BCBFBBF";};
+std::string  Mangling( cCorrelAdHoc *) {return "90BFEB1511F29DABFE3F";};
 
 
 cTplValGesInit< double > & cDoImageBSurH::Dyn()
@@ -11255,7 +11416,7 @@ void xml_init(cPostFiltragePx & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneFitragePx(),aTree->GetAll("OneFitragePx",false,1));
 }
 
-std::string  Mangling( cPostFiltragePx *) {return "74BFFFAEECB7BD87FE3F";};
+std::string  Mangling( cPostFiltragePx *) {return "7206265CB6FE31F7FD3F";};
 
 
 double & cPostFiltrageDiscont::SzFiltre()
@@ -15934,6 +16095,17 @@ const cTplValGesInit< cGPU_Correl > & cEtapeMEC::GPU_Correl()const
 }
 
 
+cTplValGesInit< cMutiCorrelOrthoExt > & cEtapeMEC::MutiCorrelOrthoExt()
+{
+   return CorrelAdHoc().Val().TypeCAH().MutiCorrelOrthoExt();
+}
+
+const cTplValGesInit< cMutiCorrelOrthoExt > & cEtapeMEC::MutiCorrelOrthoExt()const 
+{
+   return CorrelAdHoc().Val().TypeCAH().MutiCorrelOrthoExt();
+}
+
+
 cTplValGesInit< cGPU_CorrelBasik > & cEtapeMEC::GPU_CorrelBasik()
 {
    return CorrelAdHoc().Val().TypeCAH().GPU_CorrelBasik();
@@ -19532,7 +19704,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "A3F1B5DAFD755CBAFD3F";};
+std::string  Mangling( cEtapeMEC *) {return "CA2807F9C86831B4FE3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -20722,7 +20894,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "78620FD38C3BB5A1FE3F";};
+std::string  Mangling( cSection_MEC *) {return "2C67CF6DB6CB9184FCBF";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -29763,6 +29935,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "805C6E8BFFBE7289FE3F";};
+std::string  Mangling( cParamMICMAC *) {return "90B2E932151BA0A1FE3F";};
 
 // Quelque chose

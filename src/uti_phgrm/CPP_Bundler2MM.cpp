@@ -708,8 +708,8 @@ void cAppliBundler::FromBundler()
 
 
     //read camera sizes (pas top)
-    //ReadCoords();
-	IntCamSz(); //replacing ReadCoors
+    ReadCoords();
+//	IntCamSz(); //replacing ReadCoors
 
     if (ReadPoses())
         std::cout << "[Bundler2MM] Poses done!" << "\n";
