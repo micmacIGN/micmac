@@ -25,6 +25,35 @@ template <> class tElemNumTrait<cFormula <tREAL8> >
         typedef cFormula<tREAL8>  tBig;
 };
 
+template <class Type> Type SqNormL2V2(const Type & aX,const Type & aY)
+{
+    return Square(aX) + Square(aY);
+}
+template <class Type> Type SqNormL2V3(const Type & aX,const Type & aY,const Type & aZ)
+{
+    return Square(aX) + Square(aY) + Square(aZ);
+}
+
+
+template <class Type> Type NormL2V2(const Type & aX,const Type & aY)
+{
+    return sqrt(SqNormL2V2(aX,aY));
+}
+template <class Type> Type NormL2V3(const Type & aX,const Type & aY,const Type & aZ)
+{
+    return sqrt(SqNormL2V3(aX,aY,aZ));
+}
+
+
+
+
+template <class Type> Type NormL2Vec2(const std::vector<Type> & aVec)
+{
+    return NormL2V2(aVec.at(0),aVec.at(1));
+}
+
+
+
 
 
 };//  namespace MMVII

@@ -437,6 +437,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         //====  MORE CONSISTENT BENCH
 
         BenchPly(aParam);
+	BenchMeshDev(aParam);
         BenchTri2D(aParam);
         BenchDelaunay(aParam);
         // Test Fast Tree Dist

@@ -121,6 +121,8 @@ void BenchHamming(cParamExeBench & aParam);
 
 void BenchSSRNL(cParamExeBench & aParam);  // Syst Sur Resol Non Linear
 void BenchDeformIm(cParamExeBench & aParam); // using image in non-linear least square system
+void BenchMeshDev(cParamExeBench & aParam);  // bench  devlopment  (on devlopable surface)
+
 
 
 

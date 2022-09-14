@@ -25,6 +25,8 @@ template <class Type,const int Dim>
 {
 }
 
+/**  buffered version, call unbuferred version */
+
 template <class Type,const int Dim>
     const typename cDataInvertibleMapping<Type,Dim>::tVecPt & 
                    cDataInvertibleMapping<Type,Dim>::Inverses(tVecPt & aBufOut,const tVecPt & aVIn) const
@@ -36,6 +38,7 @@ template <class Type,const int Dim>
     return aBufOut;
 }
 
+/** buffer version, without furnish the buf, call previous one with standard buff */
 template <class Type,const int Dim>
     const typename cDataInvertibleMapping<Type,Dim>::tVecPt &
                    cDataInvertibleMapping<Type,Dim>::Inverses(const tVecPt & aVImages) const
@@ -44,6 +47,7 @@ template <class Type,const int Dim>
 }
 
 
+/**  unbuffered version, call buferred version with a buffer of size 1 */
 template <class Type,const int Dim>
     typename cDataInvertibleMapping<Type,Dim>::tPt  
           cDataInvertibleMapping<Type,Dim>::Inverse(const tPt & aPImage) const
@@ -57,6 +61,36 @@ template <class Type,const int Dim>
 /*            cInvertByIter<Type,Dim>            */
 /*            - cStrPtInvDIM<Type,Dim>           */
 /* ============================================= */
+
+/*  
+   The method for inversion may seems quite complex, it aims to avoid one trap of MMV1, with the too
+  current message "too many iteration in inversion by finite diferenece unstable ..;"
+
+   (1)  void cInvertDIMByIter<Type,Dim>::OneIterInversion()
+
+   (2) void cInvertDIMByIter<Type,Dim>::OneIterDicot()
+
+    Method for inversion  , at each iteration (1) ,  make one refinement of computing
+    the value and the gradient and solve the linear equation,  three possibility :
+
+          * we have converged  -> bingo, just memorize  the solution for final export
+
+          * we have made an improvment but not converger, ->  memorize the next iteration
+
+          * we have make no significant improvement, or worst we have  increase the resisudual
+            in this case we will make a dicotomic (2) resarch, on the line of gradient, but without
+            differenciation
+    
+
+    Note :  at different point we have subset that increase then decrase, we use the same pattern :
+         * create an index VIND of object,
+         * when we are in creation phase : init by clear and pushback
+         * when we are in reduction phase :
+               * create an ind of end, INDEND =0
+               * insert by VIND.at(INDEN)++ = Something (no overflow because its a subset)
+               * at end VIND.resize(INDEND)
+    Used for  mVSubSet and  mVSubDicot
+*/
 
 template <class Type,const int Dim>  struct cStrPtInvDIM
 {
@@ -83,12 +117,12 @@ template <class Type,const int Dim>  struct cStrPtInvDIM
         cPtxd<Type,Dim>  mBestVal;
 
         // For dicotomy approach, inverse & val at extremities
-        cPtxd<Type,Dim>  mInvDic0;
-        cPtxd<Type,Dim>  mValDic0;
-        cPtxd<Type,Dim>  mInvDic1;
-        cPtxd<Type,Dim>  mValDic1;
 
-        cPtxd<Type,Dim>  mPTarget;
+        tPt  mInvDic0;
+        tPt  mValDic0;
+        tPt  mInvDic1;
+        tPt  mValDic1;
+        tPt  mPTarget;
 };
 
 template <class Type,const int Dim> class cInvertDIMByIter : public cMemCheck
@@ -109,11 +143,14 @@ template <class Type,const int Dim> class cInvertDIMByIter : public cMemCheck
 
       void PushResult(tVecPt &) const;
 
+      void SetRatioGainDicot(const Type & aRGD) {mRatioGainDicot = aRGD;}
     private :
+      /// Make one iteration by dicotomy, for point that could not improved by gradient
       void OneIterDicot();
       bool Converged(const tSPIDIM & aSInv) const {return aSInv.mBestErr<mDIM.mDTolInv;}
 
       const tDIM &           mDIM;
+      Type                   mRatioGainDicot;  ///< Ratio for gain of error that will run dicothomy
       std::vector<tSPIDIM>   mVInv;
       std::vector<tU_INT4>   mVSubSet;   // Subset of index still to compute
       std::vector<tU_INT4>   mVSubDicot;  // Subset of point that dont improve (enough) with jacobian
@@ -140,7 +177,7 @@ template <class Type,const int Dim>
    const  tVecPt &  aVSampleVal =  mDIM.Values(aVSampleInv);
 
    tU_INT4  aIndEchInv=0; // Use to follow the aVSampleVal  and aVSampleInv
-   tU_INT4  aIndSubDicot=0; // Use to follow the aVSampleVal  and aVSampleInv
+   tU_INT4  aIndSubDicot=0; // Use to follow the index remaining in Dicot
    for (tU_INT4 aKInd = 0 ; aKInd<mVSubDicot.size() ; aKInd++)
    {
        tSPIDIM & aSInv  =  mVInv.at(mVSubDicot.at(aKInd));
@@ -210,7 +247,7 @@ template <class Type,const int Dim>
        tSPIDIM & aSInv = InvOfKSubS(aKInd);
        aSInv.mBestVal =  aVJ.first->at(aKInd);
        aSInv.mBestErr = aSInv.Score(aSInv.mBestVal);
-       aSInv.mThreshNextEr =  aSInv.mBestErr / 2.0;
+       aSInv.mThreshNextEr =  aSInv.mBestErr / mRatioGainDicot ;
        if (Converged(aSInv))
        {
             // Nothing to do , mBestInv is a good inverse
@@ -275,8 +312,10 @@ template <class Type,const int Dim>
 
    for (int aKIter=0 ; (aKIter<10) && (!mVSubDicot.empty()) ; aKIter++)
    {
+       //StdOut() << "DICOT  " <<    mVSubDicot.size() << "\n"; //getchar();
        OneIterDicot();
    }
+   // StdOut() << "cInvertDIMByIter " <<   aNewInd << " " << mVSubDicot.size() << "\n\n"; //getchar();
 }
 
 template <class Type,const int Dim>
@@ -288,7 +327,8 @@ template <class Type,const int Dim>
 
 template <class Type,const int Dim> 
      cInvertDIMByIter<Type,Dim>::cInvertDIMByIter(const tDIM & aDIM):
-       mDIM (aDIM)
+       mDIM             (aDIM),
+       mRatioGainDicot  (2.0)
 {
 }
 
@@ -460,6 +500,8 @@ template <class Type,const int Dim>  struct cPtsExtendCMI
          * a validity domain on the output space EOut
          * a "seed" point in input space
 
+      The criterion for validity if   || J(Seed)^-1 * J(p) -Id ||  <  Threshold   J=Jacobian
+
        This is adapted to distorsion where :
           * we know the output space -> sensor space + an optional validty (masq image, circle ...)
           * we jo
@@ -479,7 +521,8 @@ template <class Type,const int Dim>  struct cPtsExtendCMI
 template <class Type,const int Dim> class  cComputeMapInverse
 {
     public :
-        friend void OneBench_CMI(double);
+	    //  aCMaxRel => define the zone relatively to the rho max
+        friend void OneBench_CMI(double aCMaxRel);
         // using enum eLabelIm;
         typedef cLeastSqComputeMaps<Type,Dim,Dim> tLSQ;
         typedef cDataBoundedSet<Type,Dim>         tSet;
@@ -506,7 +549,6 @@ template <class Type,const int Dim> class  cComputeMapInverse
 
         static int constexpr  TheNbIterByStep = 3;
         static Type constexpr TheStepFrontLim = 3e-2;
-        static void OneBench(double aCMaxRel);
     private :
         cComputeMapInverse(const cComputeMapInverse<Type,Dim> &) = delete;
         /** Compute an approximation of Input box as reciproque of output box, use jacobian as
@@ -543,13 +585,13 @@ template <class Type,const int Dim> class  cComputeMapInverse
 
          // Copy of parameters
         Type          mThresholdJac; 
-        tPtR          mPSeed;
+        tPtR          mPSeed; //  seed point that is waranteed to be inside the domain
         tSet &        mSet;   // Definition set of Output space
-        tMap &        mMap;
-        tLSQ &        mLSQ;
+        tMap &        mMap;   // Map to invert
+        tLSQ &        mLSQ;   // systeme to compute the inverse as a linear composition of given base functions (using least square)
           // Created members 
         tBoxR         mBoxByJac; ///< Box computed assuming that Map is equal to its jacobian in PSeed
-        tBoxR         mBoxMaj;  ///< Majoration of box, taking into account possible instability
+        tBoxR         mBoxMaj;  ///< Majoration of box, taking into account possible  unstability and jacobian threshold
         Type          mStep;    ///< Step on the grid
         cPixBox<Dim>              mBoxPix;  ///< Pixel box to make image processing stuff
         cDataTypedIm<tU_INT1,Dim> mMarker;  ///< Marker image to make growing
@@ -572,7 +614,7 @@ template <class Type,const int Dim>
 {
     cBijAffMapElem<Type,Dim>  aDif = mMap.Linearize (mPSeed); // Compute linear application at PSeed
 
-    cInvertMappingFromElem<cBijAffMapElem<Type,Dim> > aMap(aDif.MapInverse()); // Copput inverse mapping
+    cInvertMappingFromElem<cBijAffMapElem<Type,Dim> > aMap(aDif.MapInverse()); // Compute inverse mapping
 
     cTplBox<Type,Dim> aRes=  aMap.BoxOfCorners(mSet.Box());  // compute recripoque image of box out
     return aRes;
@@ -582,6 +624,10 @@ template <class Type,const int Dim>
 template <class Type,const int Dim> 
    void  cComputeMapInverse<Type,Dim>::AddObsMapDirect(const tPtR & aPIn,const tPtR & aPOut,bool IsFront)
 {
+     /*  Carrefull we add aPIn-aPOut : 
+            * in distortion (see  PProjToImNorm in cMMVIIUnivDist) the code part is the additional part,
+	    * i.e the distortion identity is the code by {0,0,...} params
+     */
      mLSQ.AddObs(aPOut,aPIn-aPOut); // put is as as sample  Out => Map-Identity  = PIn-POut
      if (mTest)
      {
@@ -603,21 +649,26 @@ template <class Type,const int Dim>
     // Fix a limit number of step, and stop when empty
     for (int aKStep=0 ; (aKStep<TheNbIterByStep) && (!aVSel.empty()) ; aKStep++)
     {
-        std::vector<int> aNextVSel;
+        // for points still OK, go a step further to the frontier
         std::vector<tPtR> aVPt;
         for (int aKSel=0 ; aKSel<int(aVSel.size()) ; aKSel++)
         {
            const tExtent & anExt = mVExt[aVSel[aKSel]];
            aVPt.push_back(anExt.mCurP + anExt.mDir*aStepFront);
         }
+	// compute their coordinates and jacobians
         tCsteResVecJac  aVecPJ = mMap.Jacobian(aVPt);
+
+	// select those who are valid
+        std::vector<int> aNextVSel; // prepare for next iter
         for (int aKSel=0 ; aKSel<int(aVSel.size()) ; aKSel++)
         {
-            if (ValidateK(aVecPJ,aKSel))
+            if (ValidateK(aVecPJ,aKSel))  // inside and jacobian still ok
             {
-                tExtent & anExt = mVExt[aVSel[aKSel]];
+                int aIndGlob = aVSel[aKSel];   // Ind in full point of frontier
+                tExtent & anExt = mVExt[aIndGlob];
                 anExt.mCurP = aVPt[aKSel];
-                aNextVSel.push_back(aVSel[aKSel]);
+                aNextVSel.push_back(aIndGlob);
             }
         }
         // aNextVSel = aVSel;
@@ -714,32 +765,37 @@ template <class Type,const int Dim> void
      typename tMap::tResJac  aPJ = mMap.Jacobian(mPSeed);
      mJacInv0 = aPJ.second.Inverse();
 
-     Add1PixelTopo(aPixSeed);
-     FilterAndAddPixelsGeom();
-     MMVII_INTERNAL_ASSERT_tiny( mNextGen.size()==1,"Seed Geom pb");
+     // 0-  Init with the seed
+     Add1PixelTopo(aPixSeed);   // init the  heap struct (nexgtgen , marker etc ... with the seed
+     FilterAndAddPixelsGeom();  // create the geometry of the seed
+
+     MMVII_INTERNAL_ASSERT_tiny( mNextGen.size()==1,"Seed Geom pb");  // if filtering removed the seed, we are bad ...
 
 
+     // 1-  now recursively add valide point/pixel connected to  new one and still not explorer
      while (! mNextGen.empty())
      {
-        std::vector<tPtI>     aCurGen  = mNextGen;
-        mNextGen.clear();
-        for (auto const & aPix : aCurGen)
+        std::vector<tPtI>     aCurGen  = mNextGen; // memorize current
+        mNextGen.clear(); // clear fornext gen
+        for (auto const & aPix : aCurGen)  // par cur gen
         {
-            for (auto const & aN : mNeigh)
+            for (auto const & aN : mNeigh) // parse neighbourhood
             {
-                Add1PixelTopo(aPix+aN);
+                Add1PixelTopo(aPix+aN);  // tentative add  (if not already visited)
             }
         }
-        FilterAndAddPixelsGeom();
+        FilterAndAddPixelsGeom(); // select those who are OK
      }
 
      // 2- Make the extension to have point close to the frontier 
 
          // 2-1 Compute in grid pixel frontier :  reached pixel neighbor of unreached
-     for (const auto aPix : mMarker)
+	 // at this step put in structure to have the benefit of paralleization
+     for (const auto aPix : mMarker)  // parse all pixel of image
      {
          if (mMarker.VI_GetV(aPix)== tU_INT1(eLabelIm::eReached))
          {
+            // compute it is a frontier pixel (one neighbour not reached)
             bool isFront = false;
             for (auto const & aN : mNeigh)
             {
@@ -760,6 +816,7 @@ template <class Type,const int Dim> void
 
 
          // 2-2 Make extension at degrowing step
+	 // for each step, we will be able to parallelize on all points of the frontier
      for (double aStepFront=1.0 ; aStepFront>mStepFrontLim; aStepFront /= 2.0)
      {
          OneStepFront(aStepFront);
@@ -894,28 +951,6 @@ void  OneBench_CMI(double aCMaxRel)
 
 
 
-/*
-template <class Type,const int Dim> 
-   cComputeMapInverse<Type,Dim>::cComputeMapInverse
-   (
-        const Type& aThresholdJac,
-        const tPtR& aPSeed,
-        const int & aNbPts,
-        tSet &      aSet,
-        tMap&       aMap,
-        tLSQ&       aLSQ
-    ) :
-       mThresholdJac  (aThresholdJac),
-       mPSeed         (aPSeed),
-
-
-std::vector<double> DistInverse
-                    (
-                        cPt3di  aDeg,
-                    )
-{
-}
-*/
 
 /* ============================================= */
 /*          INSTANTIATION                        */
@@ -942,18 +977,25 @@ INSTANCE_INVERT_MAPPING(3)
 /* ============================================= */
 /* ============================================= */
 
+/**  A class for testing inversion, implement a mapping R3 -> R3 with the sum of
+  
+       * a "dominant" basic linear function 
+       * some  cosinus/sinus to make it non  linear but smooth
+*/
 
 class cTestMapInv : public cDataIterInvertMapping<tREAL8,3>
 {
     public :
-/*  Initialisation a bit tricky, because class is its own rough invers and we must
-   must avoid infinite recursion,  TO CHANGE LATER with a two step init ...
+/*  Initialisation a bit tricky, because class is its own rough inverse (with different parameters) and we must
+   must avoid infinite recursion,  
+
+     Called with   IsRoughInv=false => create the rough inverse  IsRoughInv=true, now do try to call again ..
 */
-       cTestMapInv(double aFx,double aFy,double aFz,double aFreqCos,double aMulCos,bool ForRoughInv=false) :
+       cTestMapInv(double aFx,double aFy,double aFz,double aFreqCos,double aMulCos,bool IsRoughInv=false) :
           cDataIterInvertMapping<tREAL8,3> 
           (
               cPt3dr::PCste(1e-3/std::max(1e-5,mFreqCos)),
-              cMapping<tREAL8,3,3>(ForRoughInv?nullptr:new cTestMapInv(1.0/aFy,1.0/aFx,1.0/aFz,1.0,0.0,true)),
+              cMapping<tREAL8,3,3>(IsRoughInv?nullptr:new cTestMapInv(1.0/aFy,1.0/aFx,1.0/aFz,1.0,0.0,true)),
               1e-4,
               20
           ),
@@ -1026,7 +1068,13 @@ void BenchInvertMapping(cParamExeBench & aParam)
        aM1.SetRoughInv(aMInv,aEpsInv,20);
 */
        cDataInvertibleMapping<tREAL8,3> * aPM1 = & aM1;
+       cDataIterInvertMapping<tREAL8,3> * aPMIter1 = & aM1;
 
+       // StdOut()  << "JJJJ " << aPMIter1->StrInvertIter() << "\n";
+       
+       std::vector<double> aVRatio{1.0,5.0,25.0,125.0,625.0};
+       double aRatio = aVRatio.at(aKMap%5);
+       aPMIter1->StrInvertIter()->SetRatioGainDicot(aRatio);
 
        tREAL8  aEpsInv = aM1.DTolInv();
        for (int aKP=0 ; aKP<100 ; aKP++)
