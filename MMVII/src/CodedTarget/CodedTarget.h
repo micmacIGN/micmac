@@ -162,12 +162,12 @@ class cParamCodedTarget
        double &  RatioBar();  // Ratio on codin bar
        void      Finish();
 
-       int NbCodeAvalaible() const;         // Number of different code we can generate
-       int BaseForNum() const;         // Base used for converting integer to string
-       cCodesOf1Target CodesOfNum(int);     // One combinaison of binary code
-       tImTarget  MakeImDrone(const cCodesOf1Target &);  // Generate the image of 1 combinaison
-       tImTarget  MakeImCircle(const cCodesOf1Target &);  // Generate the image of 1 combinaison
-       tImTarget  MakeImCodeExt(const cCodesOf1Target &);  // Generate the image of 1 combinaison
+       int NbCodeAvalaible() const;                           // Number of different code we can generate
+       int BaseForNum() const;                                // Base used for converting integer to string
+       cCodesOf1Target CodesOfNum(int);                       // One combinaison of binary code
+       tImTarget  MakeImDrone(const cCodesOf1Target &);       // Generate the image of 1 combinaison
+       tImTarget  MakeImCircle(const cCodesOf1Target &, bool);
+       tImTarget  MakeImCodeExt(const cCodesOf1Target &);
 
        void AddData(const cAuxAr2007 & anAux);
 
@@ -203,6 +203,8 @@ class cParamCodedTarget
        double    mThickN_Car;  // thickness of black border (needed only on pannel)
        double    mThickN_BExt;  // thickness of black border (needed only on pannel)
        double    mChessboardAng;     // Origine angle of chessboard pattern
+
+       bool mModeFlight;  // Special mode for Patricio
 
 
        double          mRho_0_EndCCB;// End of Central CB , here Rho=ThickN ...

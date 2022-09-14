@@ -1,3 +1,4 @@
+#include <bitset>
 #include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 
@@ -83,6 +84,7 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("ThickN_WhiteExt",anAux),mThickN_WExt);
     MMVII::AddData(cAuxAr2007("ThickN_Car",anAux),mThickN_Car);
     MMVII::AddData(cAuxAr2007("ChessBoardAngle",anAux),mChessboardAng);
+    MMVII::AddData(cAuxAr2007("ModeFlight",anAux),mModeFlight);
 
 
     /*
@@ -145,10 +147,17 @@ cPt2di cParamCodedTarget::Norm2PixI(const cPt2dr & aP) const
 int&    cParamCodedTarget::NbRedond() {return mNbRedond;}
 int&    cParamCodedTarget::NbCircle() {return mNbCircle;}
 
-void cParamCodedTarget::Finish()
-{
+void cParamCodedTarget::Finish(){
+
   MMVII_INTERNAL_ASSERT_strong(((mNbPixelBin%2)==0),"Require odd pixel 4 binary image");
-  mSzBin = cPt2di(mNbPixelBin,mNbPixelBin);
+
+  if (mModeFlight){
+    mSzBin = cPt2di(0.95*0.707*mNbPixelBin,0.95*mNbPixelBin);
+    mThickN_WInt = 0.1;
+    mThickN_Code = 0;
+  } else{
+    mSzBin = cPt2di(mNbPixelBin,mNbPixelBin);
+  }
 
   double aCumulThick = 1.0;
   mRho_0_EndCCB = mSz_CCB     * aCumulThick;
@@ -261,23 +270,22 @@ bool cParamCodedTarget::CodeBinOfPts(double aRho,double aTeta,const cCodesOf1Tar
      return aCodeBin.IsInside(aIndTeta);
 }
 
-tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT)
+tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT, bool modeFlight)
 {
      tImTarget aImT(mSzBin);
      tDataImT  & aDImT = aImT.DIm();
 
      int aBrdBlack =  (mThickN_BExt/mRho_4_EndCar) * (mNbPixelBin/2);
 
-     for (const auto & aPix : aDImT)
-     {
+     for (const auto & aPix : aDImT){
          cPt2dr  aPixN =  Pix2Norm(aPix);     // "Nomalized" coordinate
          cPt2dr  aRT  = ToPolar(aPixN,0.0);   // Polar then Rho teta
-	 double  aRho = aRT.x();
+         double  aRho = aRT.x();
          double  aTeta = aRT.y();
          if (aTeta < 0)
             aTeta += 2 *M_PI;
 
-	 bool IsW = true;  // Default is white
+         bool IsW = true;  // Default is white
 
 
          if (aRho < mRho_0_EndCCB)  // if we are inside the square bord circle
@@ -301,12 +309,60 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT)
               // Outside => border and fid marks (done after)
 	      int aDInter = aDImT.Interiority(aPix);
               if  (aDInter <aBrdBlack)
-	          IsW = false;
+	          IsW = false || mModeFlight;
          }
 
+
          int aVal = IsW ? 255 : 0;
-         aDImT.SetV(aPix,aVal);
+         cPt2di aNewPx = cPt2di(aPix.x(), aPix.y()-250);
+
+
+         if ((aNewPx.y() > 0)){
+            aDImT.SetV(aNewPx, aVal);
+         }
+
+         if ((aDImT.Sz().y()-aPix.y() < 250)){
+             aDImT.SetV(aPix, 255);
+         }
+
      }
+
+
+
+
+    // -------------------------------------------------------------
+    // Hamming code for flight mode
+    // -------------------------------------------------------------
+    std::vector<int> code = aSetCodesOfT.CodeOfNumC(0).ToVect();
+    std::vector<int> binary_code;
+    int sum = 0;
+    for (int i=0; i<mNbBit; i++)  binary_code.push_back(0);
+
+    for (unsigned i=0; i<code.size(); i++){
+        binary_code.at(code.at(i)) = 1;
+        sum += pow(2, code.at(i));
+    }
+
+    cHamingCoder aHC(binary_code.size());
+    tU_INT4 hammingCode = aHC.Coding(sum);
+
+    std::bitset<10> hammingBinaryCode = std::bitset<10>(hammingCode);
+
+    int sq_vt = 180;
+    int sq_sz = 900/mNbBit;
+    int idl, idc;
+    for (int k=0; k<10; k++){
+        idc = k % mNbBit;
+        idl = (k>=mNbBit)*1;
+        for (int px=150 + idc*sq_sz; px<150 + (idc+1)*sq_sz; px++){
+            for (int py=1250 + idl*sq_vt; py<1250 + sq_vt + idl*sq_vt; py++){
+                aDImT.SetV(cPt2di(px, py), 255*hammingBinaryCode[k]);
+            }
+        }
+    }
+
+
+
 
      ///compute string
      int aNum = aSetCodesOfT.Num();
@@ -324,6 +380,12 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT)
 
 	  int  aNbTarget =  round_ni((mNbPixelBin/2)  * (mThickN_Car /mRho_4_EndCar));
 
+	  if (modeFlight){
+         aNbTarget /= 3;
+	  }
+
+
+	//  aNbTarget /= 3;
 	  cPt2di aSzTarget (aNbTarget,aNbTarget);
 
 
@@ -337,12 +399,17 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT)
               cPt2di aPixSym = mSzBin-aPixIm-cPt2di(1,1);
 
 	      cPt2di aPixStr = ToI(MulCByC(ToR(aPix),aRatio));
-	      int aVal = aDataImStr.DefGetV(aPixStr+aOfPix,0) ? 255 : 0;
+	    int aVal = aDataImStr.DefGetV(aPixStr+aOfPix,0) ? 255 : 0;
+	    if (modeFlight) aVal = 255 - aVal;
 
               aDImT.SetV(aPixIm,aVal);
               aDImT.SetV(aPixSym,aVal);
           }
      }
+
+
+
+
 
      // MMVII_INTERNAL_ASSERT_User(aN<256,"For
 
@@ -407,6 +474,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mPCT.mThickN_Car,"ThCar","Thickness of separation alpha ccode ",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_BExt,"ThBExt","Thickness of black border ",{eTA2007::HDV})
           << AOpt2007(mPCT.mChessboardAng,"Theta","Origin angle of chessboard pattern ",{eTA2007::HDV})
+          << AOpt2007(mPCT.mModeFlight,"ModeFlight","Special mode for Patricio ",{eTA2007::HDV})
 
 
 /*  For now dont confuse user with these values probably unused
@@ -427,7 +495,7 @@ int  cAppliGenCodedTarget::Exe()
       cCodesOf1Target aCodes = mPCT.CodesOfNum(aNum);
       aCodes.Show();
 
-	  tImTarget aImT= mPCT.MakeImCircle(aCodes);
+	  tImTarget aImT= mPCT.MakeImCircle(aCodes, mPCT.mModeFlight);
 
       // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
       // FakeUseIt(aCodes);
