@@ -5,6 +5,56 @@ namespace MMVII
 bool NeverHappens() {return false;}
 
 
+class cMMVII_Warning
+{
+    int           mCpt;
+    std::string   mMes;
+    int           mLine;
+    std::string   mFile;
+  public :
+    cMMVII_Warning(const std::string & aMes,int aLine,const std::string &  aFile);
+    ~cMMVII_Warning();
+    void Activate();
+};
+
+cMMVII_Warning::cMMVII_Warning(const std::string & aMes,int aLine,const std::string &  aFile) :
+   mCpt     (0),
+   mMes     (aMes),
+   mLine    (aLine),
+   mFile    (aFile)
+{
+}
+
+cMMVII_Warning::~cMMVII_Warning()
+{
+    if (mCpt==0) return;
+
+    StdOut() << "Nb Warning "<< mCpt << "for :[" << mMes<<"]\n";
+    
+}
+
+void cMMVII_Warning::Activate()
+{
+   mCpt++;
+
+   if (mCpt!=1) 
+      return;
+   StdOut() << "MVII Warning at line " <<  mLine << " of " << mFile << "\n";
+   StdOut() << mMes << "\n";
+}
+
+
+
+/*
+typedef std::pair<int,std::string> tLFile;
+void MMVII_Warning(const std::string & aMes,int aLine,const std::string &  aFile)
+{
+    tLFile aLF(aLine,aFile);
+    static std::set<
+}
+*/
+
+
 int GlobSysCall(const std::string & aCom, bool SVP) 
 {
    int aResult = system(aCom.c_str());
