@@ -123,6 +123,21 @@ void OnEigenNoSucc(const  char * aMesg,int aLine,const char * aFile); ///< func 
 void PushErrorEigenErrorLevel(eLevelCheck aLevel);  ///< change behaving : no test, warning, error
 void PopErrorEigenErrorLevel(); ///< restore previous behaving
 
+
+class cMMVII_Warning
+{
+    int           mCpt;
+    std::string   mMes;
+    int           mLine;
+    std::string   mFile;
+  public :
+    cMMVII_Warning(const std::string & aMes,int aLine,const std::string &  aFile);
+    ~cMMVII_Warning();
+    void Activate();
+};
+
+#define MMVII_WARGING(MES) {static cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
+
 };
 
 #endif  //  _MMVII_MMError_H_

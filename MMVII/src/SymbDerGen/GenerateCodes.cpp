@@ -92,8 +92,8 @@ void BenchProjToDirBundle(cParamExeBench & aParam)
    OneBenchProjToDirBundle<cProjFE_EquiDist> (aParam);
    OneBenchProjToDirBundle<cProjStereroGraphik> (aParam);
    OneBenchProjToDirBundle<cProjOrthoGraphic> (aParam);
-/*
    OneBenchProjToDirBundle<cProjFE_EquiSolid> (aParam);
+/*
 */
 }
 
