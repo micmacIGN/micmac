@@ -54,7 +54,7 @@ void  cCodesOf1Target::Show()
     StdOut()  << "\n";
 }
 
-int cCodesOf1Target::getCodeLength(){
+int cCodesOf1Target::getCodeLength() const{
     return mCodes.size();
 }
 
@@ -74,6 +74,7 @@ int cCodesOf1Target::Num() const {return mNum;}
 
 void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
 {
+    MMVII::AddData(cAuxAr2007("NbBits",anAux),mNbBit);
     MMVII::AddData(cAuxAr2007("SzF",anAux),mSzF);
     MMVII::AddData(cAuxAr2007("CenterF",anAux),mCenterF);
     MMVII::AddData(cAuxAr2007("CornEl1",anAux),mCornEl1);
@@ -199,7 +200,19 @@ void cParamCodedTarget::Finish(){
       StdOut()  << " aK=" << aVK << " N=" << aNb  <<  " C(k,n)=" <<  aVNbSub.back() << "\n";
   }
   mDecP = cDecomposPAdikVar(aVNbSub);
-  StdOut()  << " NbModelTarget="   << NbCodeAvalaible() << "\n";
+
+
+  cHamingCoder aHCTest(mNbBit-1*mWithParity);
+
+
+
+
+  StdOut() << "-------------------------------------------------------------------\n";
+  StdOut() << "Number of targets: "   << NbCodeAvalaible() << "\n";
+  if (mModeFlight){
+    StdOut() << "Code pattern: " << ceil(((double)aHCTest.NbBitsOut())/2.0) << " x 2 " << "\n";
+  }
+  StdOut() << "-------------------------------------------------------------------\n";
 
 }
 
@@ -333,35 +346,32 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT,
     // -------------------------------------------------------------
     // Hamming code for flight mode
     // -------------------------------------------------------------
-    std::vector<int> code = aSetCodesOfT.CodeOfNumC(0).ToVect();
-    std::vector<int> binary_code;
-    int sum = 0;
-    for (int i=0; i<mNbBit; i++)  binary_code.push_back(0);
+    cHamingCoder aHC(mNbBit-1);
+    tU_INT4 hammingCode = aHC.Coding(aSetCodesOfT.Num());
 
-    for (unsigned i=0; i<code.size(); i++){
-        binary_code.at(code.at(i)) = 1;
-        sum += pow(2, code.at(i));
-    }
+    // 21 bits for maximal code size of 16
+    std::bitset<21> hammingBinaryCode = std::bitset<21>(hammingCode);
+    StdOut() << "Hamming code: ";
 
-    cHamingCoder aHC(binary_code.size());
-    tU_INT4 hammingCode = aHC.Coding(sum);
-
-    std::bitset<10> hammingBinaryCode = std::bitset<10>(hammingCode);
+    int NbCols = ceil(((double)aHC.NbBitsOut())/2.0);
 
     int sq_vt = 180;
-    int sq_sz = 900/mNbBit;
+    int sq_sz = 900/NbCols;
     int idl, idc;
-    for (int k=0; k<10; k++){
-        idc = k % mNbBit;
-        idl = (k>=mNbBit)*1;
+
+    for (int k=0; k<aHC.NbBitsOut(); k++){
+        idc = k % NbCols;
+        idl = (k>=NbCols)*1;
+        //StdOut() << "idc = " << idc << " idl = " << idl << " bit = ";
         for (int px=150 + idc*sq_sz; px<150 + (idc+1)*sq_sz; px++){
             for (int py=1250 + idl*sq_vt; py<1250 + sq_vt + idl*sq_vt; py++){
-                aDImT.SetV(cPt2di(px, py), 255*hammingBinaryCode[k]);
+                aDImT.SetV(cPt2di(px, py), 255*(1-hammingBinaryCode[k]));
             }
         }
+        StdOut() << hammingBinaryCode[k] << ",";
     }
 
-
+    StdOut() << "   ";
 
 
      ///compute string
@@ -401,7 +411,6 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT,
 	      cPt2di aPixStr = ToI(MulCByC(ToR(aPix),aRatio));
 	    int aVal = aDataImStr.DefGetV(aPixStr+aOfPix,0) ? 255 : 0;
 	    if (modeFlight) aVal = 255 - aVal;
-
               aDImT.SetV(aPixIm,aVal);
               aDImT.SetV(aPixSym,aVal);
           }
@@ -490,10 +499,11 @@ int  cAppliGenCodedTarget::Exe()
 
    mPCT.Finish();
 
-   for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen)
-   {
+   for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen){
+
       cCodesOf1Target aCodes = mPCT.CodesOfNum(aNum);
-      aCodes.Show();
+
+      StdOut() << "[" << mPCT.NameOfNum(aNum) << "]  ";
 
 	  tImTarget aImT= mPCT.MakeImCircle(aCodes, mPCT.mModeFlight);
 
@@ -502,7 +512,7 @@ int  cAppliGenCodedTarget::Exe()
       mPCT.mSzF = aImT.DIm().Sz();
       mPCT.mCenterF = mPCT.mMidle / double(SzGaussDeZoom);
 
-StdOut() << "mPCT.mCenterF  " << mPCT.mCenterF  << mPCT.mMidle << "\n";
+      //StdOut() << "mPCT.mCenterF  " << mPCT.mCenterF  << mPCT.mMidle << "\n";
 
       double aRhoChB = ((mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar) * (mPCT.mNbPixelBin /2.0)  )/SzGaussDeZoom;
       mPCT.mCornEl1 = mPCT.mCenterF+FromPolar(aRhoChB,M_PI/4.0);
@@ -517,10 +527,14 @@ StdOut() << "mPCT.mCenterF  " << mPCT.mCenterF  << mPCT.mMidle << "\n";
          }
       }
 
+      StdOut() << mPCT.NameFileOfNum(aNum) << " created\n";
       aImT.DIm().ToFile(mPCT.NameFileOfNum(aNum));
    }
 
+   StdOut() << "-------------------------------------------------------------------\n";
    SaveInFile(mPCT,"Target_Spec.xml");
+   StdOut() << "File " << "Target_Spec.xml" << " created\n";
+   StdOut() << "-------------------------------------------------------------------\n";
 
 
    return EXIT_SUCCESS;

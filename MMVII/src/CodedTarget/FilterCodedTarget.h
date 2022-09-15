@@ -14,6 +14,56 @@ namespace  cNS_CodedTarget
     class cDCT;
 };
 
+class cParam1FilterDCT
+{
+     public :
+         cParam1FilterDCT();  ///< default constructor for serialization
+
+         virtual bool        IsSym() const =0;   ///< Being sym is a property constant in the derived class
+         virtual bool        IsCumul() const =0;   ///< Being sym is a property constant in the derived class
+         virtual eDCTFilters ModeF() const=0;    ///< Mode is a property constant in the derived class
+         void AddData(const cAuxAr2007 & anAux); ///< serialization
+
+
+         double   R0()     const;  ///< accessor
+         double   R1()     const;  ///< accessor
+         double   ThickN() const;  ///< accessor
+     private :
+         double   mR0;
+         double   mR1;
+         double   mThickN;
+};
+
+
+class cParamFilterDCT_Bin : public cParam1FilterDCT
+{
+     public :
+         cParamFilterDCT_Bin();  ///< default constructor for serialization
+
+         bool        IsSym() const override;     ///< No
+         bool        IsCumul() const override;   ///< No
+         eDCTFilters ModeF() const override;     ///<  eBin
+
+         void AddData(const cAuxAr2007 & anAux); ///< serialization
+         double   PropBW() const;  ///< accessor
+     private :
+         double  mPropBW; ///< prop for estimation of black & white
+};
+
+class cParamAllFilterDCT
+{
+     public :
+        void AddData(const cAuxAr2007 & anAux); ///< serialization
+
+        double   RGlob()     const;  ///< accessor
+	const cParamFilterDCT_Bin & Bin() const ;
+     private :
+        cParamFilterDCT_Bin  mBin;  ///< default constructor for serialization
+        double  mRGlob; ///< glob multiplier of all ray
+};
+
+
+
 
 
 /**  mother class of all filters used in detection; all these fiters share the same caracteristics :
@@ -41,6 +91,7 @@ template <class Type>  class  cFilterDCT : public cMemCheck
            static cFilterDCT<Type> * AllocSym(tIm anIm,double aR0,double aR1,double aEpsilon);
            static cFilterDCT<Type> * AllocBin(tIm anIm,double aR0,double aR1);
            static cFilterDCT<Type> * AllocRad(const tImGr & aImGr,double aR0,double aR1,double aEpsilon);
+           static cFilterDCT<Type> * AllocBin(tIm anIm,const cParamAllFilterDCT &);
 
 	   virtual ~cFilterDCT();  ///<  X::~X() virtual as there is virtual methods
 
@@ -61,6 +112,7 @@ template <class Type>  class  cFilterDCT : public cMemCheck
 
     protected  :
            cFilterDCT(bool IsCumul,eDCTFilters aMode,tIm anIm,bool IsSym,double aR0,double aR1,double aThickN=1.5);
+	   cFilterDCT(tIm anIm,const cParamAllFilterDCT & aGlob,const cParam1FilterDCT *);
            cFilterDCT (const cFilterDCT<Type> &) = delete;
 
            void IncrK0(int & aK0);
@@ -74,7 +126,7 @@ template <class Type>  class  cFilterDCT : public cMemCheck
            bool                 mIsSym;
            double               mR0;
            double               mR1;
-           double               mThickN;
+           double               mThickN; ///< if filter is not cumulative, step of crown in ComputeValMaxCrown
            cPt2dr               mCurC;
            std::vector<cPt2di>  mIVois;
            std::vector<cPt2dr>  mRVois;

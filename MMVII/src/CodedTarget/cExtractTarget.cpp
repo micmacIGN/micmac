@@ -13,6 +13,9 @@
 
 namespace MMVII
 {
+void TestParamTarg();
+
+
 namespace  cNS_CodedTarget
 {
 
@@ -109,6 +112,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         double         mDMaxMatch;
 
         bool mTest;
+	std::vector<double>  mParamBin;
 
 
 };
@@ -133,7 +137,7 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mTHRS_Sym      (0.7),
    mTHRS_Bin      (0.5),
    mImVisu        (cPt2di(1,1)),
-   mPatF          ("XXX"),
+   mPatF          (".*"),
    mWithGT        (false),
    mDMaxMatch     (2.0)
 {
@@ -160,8 +164,9 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
 	        anArgOpt
                     << AOpt2007(mDiamMinD, "DMD","Diam min for detect",{eTA2007::HDV})
                     << AOpt2007(mRaysTF, "RayTF","Rays Min/Max for testing filter",{eTA2007::HDV,eTA2007::Tuning})
-                    << AOpt2007(mPatF, "PatF","Pattern filters" ,{AC_ListVal<eDCTFilters>()})
+                    << AOpt2007(mPatF, "PatF","Pattern filters" ,{AC_ListVal<eDCTFilters>(),eTA2007::HDV})
                     << AOpt2007(mTest, "Test", "Test for Ellipse Fit", {eTA2007::HDV})
+                    << AOpt2007(mParamBin, "BinF", "Param for binary filter", {eTA2007::HDV})
 	  );
    ;
 }
@@ -1022,12 +1027,14 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
    return EXIT_SUCCESS;
 }
 
+
 int  cAppliExtractCodeTarget::Exe()
 {
 
 
 if (mTest){
 
+	TestParamTarg();
         return 0;
 
     }

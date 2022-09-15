@@ -1,10 +1,80 @@
 #include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include "include/MMVII_Tpl_Images.h"
+// #include "../include/MMVII_2Include_Serial_Tpl.h"
 
 
 namespace MMVII
 {
+
+
+
+/* =================================== */
+/*            cParam1FilterDCT         */
+/* =================================== */
+
+void cParam1FilterDCT::AddData(const cAuxAr2007 & anAux)
+{
+     MMVII::AddData(cAuxAr2007("R0",anAux),mR0);
+     MMVII::AddData(cAuxAr2007("R1",anAux),mR1);
+     MMVII::AddData(cAuxAr2007("ThickN",anAux),mThickN);
+}
+
+cParam1FilterDCT::cParam1FilterDCT() :
+    mR0     (-1),
+    mR1     (-2),
+    mThickN (-3)
+{
+}
+double   cParam1FilterDCT::R0() const {return mR0;}
+double   cParam1FilterDCT::R1() const {return mR1;}
+double   cParam1FilterDCT::ThickN() const {return mThickN;}
+
+
+/* =================================== */
+/*           cParamFilterDCT_Bin       */
+/* =================================== */
+
+bool cParamFilterDCT_Bin::IsSym() const {return false;}
+bool cParamFilterDCT_Bin::IsCumul() const {return false;}
+eDCTFilters cParamFilterDCT_Bin::ModeF() const {return eDCTFilters::eBin;}
+
+cParamFilterDCT_Bin::cParamFilterDCT_Bin() :
+     mPropBW (-4)
+{
+}
+
+void cParamFilterDCT_Bin::AddData(const cAuxAr2007 & anAux)
+{
+     cParam1FilterDCT::AddData(cAuxAr2007("Glob",anAux));
+     MMVII::AddData(cAuxAr2007("PropBW",anAux),mPropBW);
+}
+
+
+
+/* =================================== */
+/*           cParamAllFilterDCT        */
+/* =================================== */
+
+void cParamAllFilterDCT::AddData(const cAuxAr2007 & anAux)
+{
+     mBin.AddData(cAuxAr2007("Bin",anAux));
+     MMVII::AddData(cAuxAr2007("RGlob",anAux),mRGlob);
+}
+double   cParamAllFilterDCT::RGlob() const {return mRGlob;}
+
+const cParamFilterDCT_Bin & cParamAllFilterDCT::Bin() const {return mBin;}
+
+void AddData(const  cAuxAr2007 & anAux,cParamAllFilterDCT & aParam)
+{
+   aParam.AddData(anAux);
+}
+
+void TestParamTarg()
+{
+   cParamAllFilterDCT aParam;
+   SaveInFile(aParam,"toto.xml");
+}
 
 
 /* ================================================= */
@@ -33,7 +103,7 @@ template <class Type>
       mR0      (aR0),
       mR1      (aR1),
       mThickN  (aThickN),
-      mIVois   (SortedVectOfRadius(aR0,aR1,IsSym))   // sorted by ray neigboor, with o w/o symetric pixel
+      mIVois   (SortedVectOfRadius(aR0,aR1,mIsSym))   // sorted by ray neigboor, with o w/o symetric pixel
 {
    // compute real neigboor
    for (const auto & aPix : mIVois)
@@ -58,6 +128,22 @@ template <class Type>
    }
 
 }
+
+template <class Type>  
+   cFilterDCT<Type>::cFilterDCT(tIm anIm,const  cParamAllFilterDCT & aGlob,const cParam1FilterDCT * aSpecif) :
+	   cFilterDCT<Type>
+           (
+                  aSpecif->IsCumul(),
+                  aSpecif->ModeF(),   // type of filter
+                  anIm,               // first image (give the size)
+                  aSpecif->IsSym(),
+                  aSpecif->R0() * aGlob.RGlob(),
+                  aSpecif->R1() * aGlob.RGlob(),
+                  aSpecif->ThickN()
+           ) 
+{
+}
+
 
 template <class Type>  cFilterDCT<Type>::~cFilterDCT()
 {
@@ -296,6 +382,7 @@ template <class Type>  class  cBinFilterCT : public cFilterDCT<Type>
            typedef cDataIm2D<Type> tDIm;
 
            cBinFilterCT(tIm anIm,double aR0,double aR1);
+           cBinFilterCT(tIm anIm,const cParamAllFilterDCT &);
 
            void UpdateSelected(cNS_CodedTarget::cDCT & aDC) const override;
 
@@ -368,6 +455,11 @@ template<class Type> double  cBinFilterCT<Type>::Compute()
 
 template <class Type>  cBinFilterCT<Type>::cBinFilterCT(tIm anIm,double aR0,double aR1) :
     cFilterDCT<Type>(false,eDCTFilters::eBin,anIm,false,aR0,aR1)
+{
+}
+
+template <class Type>  cBinFilterCT<Type>::cBinFilterCT(tIm anIm,const cParamAllFilterDCT & aParam) :
+    cFilterDCT<Type>(anIm,aParam,&(aParam.Bin()))
 {
 }
 
