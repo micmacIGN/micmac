@@ -186,6 +186,10 @@ template <class Type> const Type & cResolSysNonLinear<Type>::CurSol(int aNumV) c
 {
     return mCurGlobSol(aNumV);
 }
+template <class Type> void cResolSysNonLinear<Type>::SetCurSol(int aNumV,const Type & aVal) 
+{
+    mCurGlobSol(aNumV) = aVal;
+}
 
 template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset() 
 {

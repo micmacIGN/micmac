@@ -336,7 +336,8 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         std::string GetImage_Profondeur(std::string aDSMDir, std::string aDSMFile);
 //        std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
 
-
+        bool CheckFileComplete();
+        bool bFileComplete;
         bool        mDebug;
         cCommonAppliTiepHistorical mCAS3D;
 
@@ -409,6 +410,7 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
 bool FallInBox(Pt2dr* aPCorner, Pt2dr aLeftTop, Pt2di aRightLower);
 void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res);
 void GetRandomNum(double dMin, double dMax, int nNum, std::vector<double> & res);
+bool GetImgs(std::string aFullPattern, std::vector<std::string>& aVIm, bool bPrint);
 bool GetImgListVec(std::string aFullPattern, std::vector<std::string>& aVIm, bool bPrint=true);
 void ReadXml(std::string & aImg1, std::string & aImg2, std::string aSubPatchXml, std::vector<std::string>& vPatchesL, std::vector<std::string>& vPatchesR, std::vector<cElHomographie>& vHomoL, std::vector<cElHomographie>& vHomoR);
 void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt);

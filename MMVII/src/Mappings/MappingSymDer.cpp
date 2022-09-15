@@ -11,6 +11,8 @@ namespace MMVII
 /* ============================================= */
 
 
+/// check that the calculator is effectively  R^DimIn --> R^DimOut
+
 template <class Type,const int DimIn,const int DimOut> 
   void  cDataMapCalcSymbDer<Type,DimIn,DimOut>::CheckDim(tCalc  * aCalc,bool Derive)
 {
@@ -18,6 +20,7 @@ template <class Type,const int DimIn,const int DimOut>
    MMVII_INTERNAL_ASSERT_strong(DimOut==aCalc->NbElem(),"Output dim in calculator");
    MMVII_INTERNAL_ASSERT_strong(aCalc->WithDer()==Derive,"Derive dim in calculator");
 }
+
 
 template <class Type,const int DimIn,const int DimOut> 
   void  cDataMapCalcSymbDer<Type,DimIn,DimOut>::SetObs(const std::vector<Type> & aVObs)
@@ -53,16 +56,20 @@ template <class Type,const int DimIn,const int DimOut>
 
    MMVII_INTERNAL_ASSERT_strong(mCalcVal->NbInBuf()==0,"Buff not empty");
    tU_INT4 aSzBuf = mCalcVal->SzBuf();
+   // split to respect size of buffer of the calculator
    for (tU_INT4 aK0=0 ;aK0<aVecIn.size() ; aK0+=aSzBuf)
    {
-       tU_INT4 aK1 = std::min(tU_INT4(aVecIn.size()),aK0+aSzBuf);
+       tU_INT4 aK1 = std::min(tU_INT4(aVecIn.size()),aK0+aSzBuf); // compute interval of buf in [K0 K1[
+       //  push input values -> will be put in internall input buffer of mCalcVal
        for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++)
        {
            for (int aD=0 ; aD<DimIn ; aD++)
                aVUk[aD] = aVecIn[aK][aD];
            mCalcVal->PushNewEvals(aVUk,mVObs);
        }
+       //  ask mCalcVal to effectively to the computation
        mCalcVal->EvalAndClear();
+       //  empty the output buffer of mCalcVal to put it in  aRes
        for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++)
        {
            tPtOut aPRes;
@@ -87,19 +94,23 @@ template <class Type,const int DimIn,const int DimOut>
 
    MMVII_INTERNAL_ASSERT_strong(mCalcDer->NbInBuf()==0,"Buff not empty");
    tU_INT4 aSzBuf = mCalcDer->SzBuf();
+   // split to respect size of buffer of the calculator
    for (tU_INT4 aK0=0 ;aK0<aVecIn.size() ; aK0+=aSzBuf)
    {
-       tU_INT4 aK1 = std::min(tU_INT4(aVecIn.size()),aK0+aSzBuf);
-       for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++)
+       tU_INT4 aK1 = std::min(tU_INT4(aVecIn.size()),aK0+aSzBuf); // [K0 K1[ is interval computed
+       for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++) // fill buf in
        {
            for (int aD=0 ; aD<DimIn ; aD++)
                aVUk[aD] = aVecIn[aK][aD];
            mCalcDer->PushNewEvals(aVUk,mVObs);
        }
 
-       mCalcDer->EvalAndClear();
+       mCalcDer->EvalAndClear(); // compute values and derivatives
+       // export value and derivatice from mCalcDer to  vector value/jac in  aRes
        for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++)
        {
+          // =>  remember : tJac(DimIn,DimOut)  SzX = DimIn = Number of col
+
            tPtOut aPRes;
            for (int aDOut=0 ; aDOut<DimOut ; aDOut++)
            {
@@ -129,9 +140,7 @@ template <class Type,const int DimIn,const int DimOut>
 }
 
 
-
 template class cDataMapCalcSymbDer<tREAL8,2,2> ;
-
 
 
 /* ============================================= */
@@ -179,9 +188,6 @@ cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::v
                    true
               );
 }
-
-
-
 
 
 

@@ -53,6 +53,8 @@ template <class Type> class cResolSysNonLinear
           int NbVar() const;  
           /// Value of a given num var
           const Type  &    CurSol(int aNumV) const;
+          /// Set value, usefull for ex in dev-mesh because variable are activated stepby step
+          void SetCurSol(int aNumV,const Type&) ;
 
           tLinearSysSR *  SysLinear() ;
 

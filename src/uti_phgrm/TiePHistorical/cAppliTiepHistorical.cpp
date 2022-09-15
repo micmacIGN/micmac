@@ -273,7 +273,6 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
 
         //StdCorrecNameOrient(mOutRPC,mDir,true);
 
-    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 }
 
 LArgMain & cCommonAppliTiepHistorical::ArgBasic()
@@ -592,9 +591,123 @@ int GetXmlImgPair(std::string aName, std::vector<std::string>& aResL, std::vecto
     return num;
 }
 
+bool cAppliTiepHistoricalPipeline::CheckFileComplete()
+{
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+
+    std::vector<std::string> aVIm1;
+    std::vector<std::string> aVIm2;
+
+    GetImgs(mImgList1, aVIm1, 1);
+    GetImgs(mImgList2, aVIm2, 1);
+
+    unsigned int i;
+    std::string aImgName;
+    std::string aOri2 = RemoveOri(mOri2);
+
+    StdCorrecNameOrient(mOri1,"./",true);
+    for (i=0;i<aVIm1.size();i++)
+    {
+        aImgName = aVIm1[i];
+        //std::string aImgOri = "./Ori-"+mOri1+"/Orientation-"+aImgName+".xml";
+        std::string aImgOri = mICNM->StdNameCamGenOfNames(mOri1, aImgName);
+        if (ELISE_fp::exist_file(aImgOri) == false)
+        {
+            cout<<"The orientation file of "<<aImgName<<" doesn't exist."<<endl;
+            bFileComplete = false;
+            //return false;
+        }
+    }
+
+    StdCorrecNameOrient(aOri2,"./",true);
+    for (i=0;i<aVIm2.size();i++)
+    {
+        aImgName = aVIm2[i];
+        //std::string aImgOri = "./Ori-"+aOri2+"/Orientation-"+aImgName+".xml";
+        std::string aImgOri = mICNM->StdNameCamGenOfNames(aOri2, aImgName);
+        if (ELISE_fp::exist_file(aImgOri) == false)
+        {
+            cout<<"The orientation file of "<<aImgName<<" doesn't exist."<<endl;
+            bFileComplete = false;
+            //return false;
+        }
+    }
+
+    std::string aDSMDir = "./" + mDSMDirL + "/";
+    std::string aDSMFile = aDSMDir + "MMLastNuage.xml";
+    if (ELISE_fp::exist_file(aDSMFile) == false)
+    {
+        cout<<aDSMFile<<" doesn't exist."<<endl;
+        bFileComplete = false;
+
+        //return false;
+    }
+    else{
+        cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
+        (
+        aDSMFile,
+        StdGetFileXMLSpec("SuperposImage.xml"),
+        "XML_ParamNuage3DMaille",
+        "XML_ParamNuage3DMaille"
+        );
+
+        cImage_Profondeur aImProfPx = aNuageIn.Image_Profondeur().Val();
+        std::string aImName = aDSMDir + aImProfPx.Image();
+
+        if (ELISE_fp::exist_file(aImName) == false)
+        {
+            cout<<aImName<<" doesn't exist."<<endl;
+            bFileComplete = false;
+        }
+    }
+
+    aDSMDir = "./" + mDSMDirR + "/";
+    aDSMFile = aDSMDir + "MMLastNuage.xml";
+    if (ELISE_fp::exist_file(aDSMFile) == false)
+    {
+        cout<<aDSMFile<<" doesn't exist."<<endl;
+        bFileComplete = false;
+        //return false;
+    }
+    else{
+        cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
+        (
+        aDSMFile,
+        StdGetFileXMLSpec("SuperposImage.xml"),
+        "XML_ParamNuage3DMaille",
+        "XML_ParamNuage3DMaille"
+        );
+
+        cImage_Profondeur aImProfPx = aNuageIn.Image_Profondeur().Val();
+        std::string aImName = aDSMDir + aImProfPx.Image();
+
+        if (ELISE_fp::exist_file(aImName) == false)
+        {
+            cout<<aImName<<" doesn't exist."<<endl;
+            bFileComplete = false;
+        }
+    }
+/*
+
+    << EAMC(mOri1,"Ori1: Orientation of epoch1")
+    << EAMC(mOri2,"Ori2: Orientation of epoch2")
+    << EAMC(mImgList1,"ImgList1: All RGB images in epoch1 (Dir+Pattern, or txt file of image list)")
+    << EAMC(mImgList2,"ImgList2: All RGB images in epoch2 (Dir+Pattern, or txt file of image list)")
+    << EAMC(mDSMDirL, "DSM directory of epoch1")
+    << EAMC(mDSMDirR, "DSM directory of epoch2"),
+*/
+    return true;
+}
+
 void cAppliTiepHistoricalPipeline::DoAll()
 {
     std::string aCom;
+
+    if(bFileComplete == false)
+    {
+        cout<<"Input files incomplete, therefore skipped. Please check the hints above."<<endl;
+        return;
+    }
 
     std::string aBaseOutDir = "./Tmp_Patches";
     if(aBaseOutDir.find("/") == aBaseOutDir.length()-1)
@@ -1238,7 +1351,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                );
 
    StdCorrecNameOrient(mOri1,mCAS3D.mDir,true);
-   cout<<mOri1<<endl;
+   //cout<<mOri1<<endl;
 
    //mCoRegOri = mOri2;
    if(mCoRegOri1.length() == 0)
@@ -1259,6 +1372,9 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
 
    if(mImg4MatchList2.length() == 0)
        mImg4MatchList2 = mImgList2;
+
+   bFileComplete = true;
+   CheckFileComplete();
 }
 
 std::string RemoveOri(std::string aOri)
@@ -1726,6 +1842,25 @@ void GetRandomNum(double dMin, double dMax, int nNum, std::vector<double> & res)
     }
 }
 
+bool GetImgs(std::string aFullPattern, std::vector<std::string>& aVIm, bool bPrint)
+{        // Initialize name manipulator & files
+    std::string aDirImages,aPatIm;
+    SplitDirAndFile(aDirImages,aPatIm,aFullPattern);
+
+    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
+
+    if(bPrint)
+        std::cout<<"Selected files:"<<std::endl;
+    for (unsigned int i=0;i<aSetIm.size();i++)
+    {
+        if(bPrint)
+            std::cout<<" - "<<aSetIm[i]<<std::endl;
+        aVIm.push_back(aSetIm[i]);
+    }
+    return true;
+}
+
 bool GetImgListVec(std::string aFullPattern, std::vector<std::string>& aVIm, bool bPrint)
 {
     bool bTxt = false;
@@ -1748,9 +1883,32 @@ bool GetImgListVec(std::string aFullPattern, std::vector<std::string>& aVIm, boo
         }
         bTxt = true;
     }
+    else if(aFullPattern.substr(aFullPattern.length()-4,4) == ".xml")
+    {
+        if (ELISE_fp::exist_file(aFullPattern) == false)
+            printf("File %s does not exist.\n", aFullPattern.c_str());
+
+        cListOfName         aLDirMec = StdGetFromPCP(aFullPattern,ListOfName);
+        auto aDir_it = aLDirMec.Name().begin();
+
+        if(bPrint)
+            printf("Images in %s:\n", aFullPattern.c_str());
+
+        for (int i=0; i<(int)aLDirMec.Name().size(); i++)
+        {
+            std::string s = (*aDir_it);
+            aVIm.push_back(s);
+            if(bPrint)
+                printf(" - %s\n", s.c_str());
+            (*aDir_it++);
+        }
+        bTxt = true;
+    }
     //image pattern
     else
     {
+        GetImgs(aFullPattern, aVIm, bPrint);
+        /*
         // Initialize name manipulator & files
         std::string aDirImages,aPatIm;
         SplitDirAndFile(aDirImages,aPatIm,aFullPattern);
@@ -1766,6 +1924,7 @@ bool GetImgListVec(std::string aFullPattern, std::vector<std::string>& aVIm, boo
                 std::cout<<" - "<<aSetIm[i]<<std::endl;
             aVIm.push_back(aSetIm[i]);
         }
+        */
     }
     return bTxt;
 }

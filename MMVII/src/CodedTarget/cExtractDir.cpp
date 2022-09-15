@@ -208,8 +208,8 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
 
           // compute a weight to decrease the influence of transition pixel
 	  double aWeight = 1.0;
-	  double aD1 =  aSeg1.Dist(aRPix);  // distance to first line
-	  double aD2 =  aSeg2.Dist(aRPix);  // distance to second
+	  double aD1 =  aSeg1.DistLine(aRPix);  // distance to first line
+	  double aD2 =  aSeg2.DistLine(aRPix);  // distance to second
           // weight is 0 on the line,  1 if we are far enough, and proportional to line (closests)
           // in between;  what far enough means is controled by aMaxW
           double aMaxW= 1.0;

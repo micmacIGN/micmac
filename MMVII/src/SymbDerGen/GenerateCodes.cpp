@@ -54,7 +54,7 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
 
        TyProj::Proj(aV);
        TyProj::Proj(aVF);
-       TyProj::ToDirBundle(aP);
+       TyProj::ToDirBundle(aV);
    }
    // Generate random point aPt0, project aVIm0, inverse aPt1, and check collinearity between Pt1 and Pt0
    for (int aK=0 ; aK<10000 ; )
@@ -65,7 +65,11 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
        {
 
           std::vector<double> aVIm0 =  TyProj::Proj(aPt0.ToStdVector());
-          cPt3dr aPt1 =  TyProj::ToDirBundle(cPt2dr::FromStdVector(aVIm0));
+          
+          auto aVPt1 =  TyProj::ToDirBundle(aVIm0);
+          // auto aVPt1 =  TyProj::ToDirBundle(cPt2dr::FromStdVector(aVIm0));
+          cPt3dr aPt1(aVPt1[0],aVPt1[1],aVPt1[2]);
+   
           MMVII_INTERNAL_ASSERT_bench(std::abs(Cos(aPt0,aPt1)-1.0)<1e-8,"Proj/ToDirBundle");
           aK++;
        }
@@ -89,6 +93,8 @@ void BenchProjToDirBundle(cParamExeBench & aParam)
    OneBenchProjToDirBundle<cProjStereroGraphik> (aParam);
    OneBenchProjToDirBundle<cProjOrthoGraphic> (aParam);
    OneBenchProjToDirBundle<cProjFE_EquiSolid> (aParam);
+/*
+*/
 }
 
 

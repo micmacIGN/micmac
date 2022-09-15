@@ -4,6 +4,7 @@
 #include "include/MMVII_all.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_MACRO.h"
+#include "ComonHeaderSymb.h"
 
 namespace NS_SymbolicDerivative
 {
@@ -546,16 +547,30 @@ class cProjStenope : public cDefinedZPos
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
            MMVII_INTERNAL_ASSERT_tiny(aXYZ.size()==3,"Inconsistent param number");
+
            const auto & aX = aXYZ.at(0);
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
+
            return {aX/aZ,aY/aZ};
         }
 
-        template <typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aP)
+        template <typename tScal> static  std::vector<tScal>  ToDirBundle(const std::vector<tScal>  & aXY)
         {
-           return cPtxd<tScal,3>(aP.x(),aP.y(),1.0);
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
+
+           const auto & aX = aXY.at(0);
+           const auto & aY = aXY.at(1);
+           tScal aC1 = CreateCste(1.0,aX);
+
+           return {aX,aY,aC1};
         }
+};
+
+     /** class that allow to generate code from formulas */
+template <class  TypeProj>  class cFormulaProj
+{
+    public :
 };
 
    // ==========================================================
@@ -598,7 +613,7 @@ class cProjFE_EquiDist : public cUnDefinedAtPole
            const auto & aX = aXYZ.at(0);
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
-           const auto  r = sqrt(Square(aX)+Square(aY));
+           const auto  r = NormL2V2(aX,aY);
            const auto aTeta_sR  = AtanXsY_sX(r,aZ);
 
            return {aX*aTeta_sR,aY*aTeta_sR};
@@ -614,11 +629,14 @@ class cProjFE_EquiDist : public cUnDefinedAtPole
          = (U sinc(teta), V sinc(teta), cos(teta))
     As AtanXsY_sX,  the sinC implementation is a mix of sin/x and taylor expension close to 0
 */
-        template <typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aP)
+        template <typename tScal> static std::vector<tScal>  ToDirBundle(const std::vector<tScal> & aXY)
         {
-           auto aTeta = Norm2(aP);
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
+
+           auto aTeta = NormL2Vec2(aXY);
            auto aSinC = sinC(aTeta);
-           return cPtxd<tScal,3>(aP.x()*aSinC,aP.y()*aSinC,cos(aTeta));
+
+           return {aXY[0]*aSinC,aXY[1]*aSinC,cos(aTeta)};
         }
 };
 
@@ -652,11 +670,14 @@ Also :
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
            MMVII_INTERNAL_ASSERT_tiny(aXYZ.size()==3,"Inconsistent param number");
+
            const auto & aX = aXYZ.at(0);
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
-           const auto  aR = sqrt(Square(aX)+Square(aY)+Square(aZ));
-           const auto  aMul = 2.0/(aR+aZ);
+           tScal aC2 = CreateCste(2.0,aX);
+
+           const auto  aR = NormL2V3(aX,aY,aZ);
+           const auto  aMul = aC2 /(aR+aZ);
            return {aMul*aX,aMul*aY};
         }
 /* Inverse we have:
@@ -673,10 +694,19 @@ Also :
    
 
 */
-        template <typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aP)
+        template <typename tScal> static std::vector<tScal>  ToDirBundle(const  std::vector<tScal> & aXY)
         {
-           auto aDiv = (1+SqN2(aP)/4.0);
-           return {aP.x()/aDiv,aP.y()/aDiv,2.0/aDiv-1};
+           // auto aDiv = (1+SqN2(aP)/4.0);
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
+
+           const auto & aX = aXY.at(0);
+           const auto & aY = aXY.at(1);
+           tScal aC1 = CreateCste(1.0,aX);
+           tScal aC2 = CreateCste(2.0,aX);
+           tScal aC4 = CreateCste(4.0,aX);
+
+           auto aDiv = (aC1+SqNormL2V2(aX,aY)/aC4);
+           return {aX/aDiv,aY/aDiv,aC2/aDiv-aC1};
         }
 };
 
@@ -696,16 +726,28 @@ class cProjOrthoGraphic : public cDefinedZPos
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
            MMVII_INTERNAL_ASSERT_tiny(aXYZ.size()==3,"Inconsistent param number");
+
            const auto & aX = aXYZ.at(0);
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
+
            auto aR = sqrt(Square(aX)+Square(aY)+Square(aZ));
            return {aX/aR,aY/aR};
         }
 
-        template <typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aP)
+        template <typename tScal> static std::vector<tScal>  ToDirBundle(const  std::vector<tScal> & aXY)
         {
-           return cPtxd<tScal,3> (aP.x(),aP.y(),sqrt(std::max(0.0,1.0-SqN2(aP))));
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
+
+           const auto & aX = aXY.at(0);
+           const auto & aY = aXY.at(1);
+           tScal aC1 = CreateCste(1.0,aX);
+
+           // return {aX,aY,sqrt(std::max(0.0,1.0-SqN2(aP)));
+           //  !!  Warning  -> have supress the max for sort term derivation
+           // StdOut() << "Warning cProjOrthoGraphic::ToDirBundle \n";
+           MMVII_WARGING("Warning cProjOrthoGraphic::ToDirBundle");
+           return {aX,aY,sqrt(aC1-SqNormL2V2(aX,aY))};
 
         }
 };
@@ -733,12 +775,15 @@ class cProjFE_EquiSolid  : public cUnDefinedAtPole
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
            MMVII_INTERNAL_ASSERT_tiny(aXYZ.size()==3,"Inconsistent param number");
+
            const auto & aX = aXYZ.at(0);
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
+           tScal aC2 = CreateCste(2.0,aX);
+
            auto aR = sqrt(Square(aX)+Square(aY)+Square(aZ));
-           auto aDiv = sqrt(2.0*aR*(aR+aZ));
-           return {(2.0*aX)/aDiv,(2.0*aY)/aDiv};
+           auto aDiv = sqrt(aC2*aR*(aR+aZ));
+           return {(aC2*aX)/aDiv,(aC2*aY)/aDiv};
         }
 /*
    Theory
@@ -747,13 +792,21 @@ class cProjFE_EquiSolid  : public cUnDefinedAtPole
     U/r sin(A) = U/(2sin(a/2)) (2sin(a/2)cos(a/2))  = U cos(a/2)
 */
 
-        template <typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aP)
+        template <typename tScal> static std::vector<tScal> ToDirBundle(const  std::vector<tScal> & aXY)
         {
-           auto r = Norm2(aP);
-           auto A = 2 * std::asin(std::min(1.0,r/2.0));
-           auto cAs2 = std::cos(A/2);
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
 
-           return {aP.x()*cAs2,aP.y()*cAs2,std::cos(A)};
+           const auto & aX = aXY.at(0);
+           const auto & aY = aXY.at(1);
+           tScal aC2 = CreateCste(2.0,aX);
+
+           auto r = NormL2Vec2(aXY);
+           // auto A = 2 * std::asin(std::min(1.0,r/2.0));
+           MMVII_WARGING("Warning cProjFE_EquiSolid::ToDirBundle");
+           auto A = aC2 * asin(r/aC2);
+           auto cAs2 = cos(A/aC2);
+
+           return {aX*cAs2,aY*cAs2,cos(A)};
         }
 };
 
