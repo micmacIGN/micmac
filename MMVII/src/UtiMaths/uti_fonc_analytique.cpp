@@ -3,16 +3,48 @@
 namespace MMVII
 {
 
-/*
-template <typename Type> Type Fact(const Type & aTeta)
+
+template <typename Type> Type DerASin(const Type & aSin)
 {
-   return std::tgamma(aVal
+   Type UMS2 = 1-Square(aSin);
+   MMVII_ASSERT_STRICT_POS_VALUE(UMS2);
+   return 1.0 / std::sqrt(UMS2);
 }
-*/
+
+template <typename Type> Type ASin(const Type & aSin)
+{
+     MMVII_INTERNAL_ASSERT_tiny((aSin>=-1) && (aSin<=1),"Bad value for arcsinus");
+     return std::asin(aSin);
+}
+
+
 constexpr int Fact3 = 2 * 3;
 constexpr int Fact5 = 2 * 3 * 4 * 5;  // Dont use Fact3, we dont control order of creation
 constexpr int Fact7 = 2 * 3 * 4 * 5 * 6 * 7 ;
 constexpr int Fact9 = 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9;
+constexpr int Fact11 = 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9;
+
+
+template <typename Type> Type DerSinC(const Type & aTeta,const Type & aEps)
+{
+/*  sin(X)/X' =  (x cos(x) -sinx) / X^ 2 */
+   if (std::abs(aTeta) > aEps)
+      return (aTeta*std::cos(aTeta)-std::sin(aTeta))/Square(aTeta);
+
+   Type aTeta2 = Square(aTeta);
+
+   Type aT3 = aTeta * aTeta2;
+   Type aT5 = aT3   * aTeta2;
+   Type aT7 = aT5   * aTeta2;
+   Type aT9 = aT7   * aTeta2;
+
+
+   return  - aTeta*(2.0/Fact3) + aT3 *(4.0/Fact5) - aT5*(6.0/Fact7) + aT7*(8.0/Fact9) - aT9 * (10.0/Fact11);
+}
+template <typename Type> Type DerSinC(const Type & aTeta)
+{
+   return DerSinC(aTeta,tElemNumTrait<Type>::Accuracy());
+}
 
 template <typename Type> Type sinC(const Type & aTeta,const Type & aEps)
 {
@@ -76,8 +108,12 @@ template <typename Type> Type DerYAtanXsY_sX(const Type & X,const Type & Y)
 }
 
 #define INSTATIATE_FUNC_ANALYTIQUE(TYPE)\
+template  TYPE DerASin(const TYPE & aSin);\
+template  TYPE ASin(const TYPE & aSin);\
 template  TYPE sinC(const TYPE & aTeta,const TYPE & aEps);\
 template  TYPE sinC(const TYPE & aTeta);\
+template  TYPE DerSinC(const TYPE & aTeta,const TYPE & aEps);\
+template  TYPE DerSinC(const TYPE & aTeta);\
 template  TYPE AtanXsY_sX(const TYPE & X,const TYPE & Y,const TYPE & aEps);\
 template  TYPE AtanXsY_sX(const TYPE & X,const TYPE & Y);\
 template  TYPE DerXAtanXsY_sX(const TYPE & X,const TYPE & Y,const TYPE & aEps);\

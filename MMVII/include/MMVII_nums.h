@@ -748,9 +748,23 @@ bool SignalAtFrequence(tREAL8 anIndex,tREAL8 aFreq,tREAL8  aCenterPhase);
 /*       Analytical function used with fisheye */
 /* ******************************************* */
 
-// Sinus cardinal with caution on tiny values
-template <typename Type> Type sinC(const Type & aTeta);
+/// Sinus cardinal with caution on tiny values < aEps
 template <typename Type> Type sinC(const Type & aTeta,const Type & aEps);
+/// Sinus cardinal default with epsilon of type, to have interface of unitary function
+template <typename Type> Type sinC(const Type & aTeta);
+/// Derivative Sinus cardinal with caution on tiny values < aEps
+template <typename Type> Type DerSinC(const Type & aTeta,const Type & aEps);
+/// Derivative Sinus cardinal with default epsilon of type, to have interface of unitary function
+template <typename Type> Type DerSinC(const Type & aTeta);
+
+/// to have it in good namespace in code gen
+template <typename Type> Type ASin(const Type & aSin);
+/// to have it as operator in code gen
+template <typename Type> Type DerASin(const Type & aSin);
+
+
+
+
 
   //  ----- Function used for equilinear fisheye ----
 

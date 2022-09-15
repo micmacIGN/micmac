@@ -45,6 +45,7 @@ std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive,bool ForBase )
 
 template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
 {
+   cHelperProj<TyProj> aProj;
    // Just to force compile with these tricky classes
    if (NeverHappens())
    {
@@ -55,25 +56,55 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
        TyProj::Proj(aV);
        TyProj::Proj(aVF);
        TyProj::ToDirBundle(aV);
+
+       aProj.ToDirBundle(aP);
+       aProj.Proj(aProj.ToDirBundle(aP));
    }
    // Generate random point aPt0, project aVIm0, inverse aPt1, and check collinearity between Pt1 and Pt0
+   cPt3dr AxeK(0,0,1);
    for (int aK=0 ; aK<10000 ; )
    {
        cPt3dr aP000(0,0,0);
-       cPt3dr aPt0 =  cPt3dr::PRandUnitDiff(aP000);
-       if (TyProj::DegreeDef(aPt0)>1e-5)
+       cPt3dr aPt3d =  cPt3dr::PRandUnitDiff(aP000);
+       if (TyProj::DegreeDef(aPt3d)>1e-5)
        {
-
-          std::vector<double> aVIm0 =  TyProj::Proj(aPt0.ToStdVector());
-          
-          auto aVPt1 =  TyProj::ToDirBundle(aVIm0);
-          // auto aVPt1 =  TyProj::ToDirBundle(cPt2dr::FromStdVector(aVIm0));
-          cPt3dr aPt1(aVPt1[0],aVPt1[1],aVPt1[2]);
+          // 1- test inversion
+          cPt2dr aProj2 =  aProj.Proj(aPt3d);
+          cPt3dr aRay3d =  aProj.ToDirBundle(aProj2);
    
-          MMVII_INTERNAL_ASSERT_bench(std::abs(Cos(aPt0,aPt1)-1.0)<1e-8,"Proj/ToDirBundle");
+          MMVII_INTERNAL_ASSERT_bench(std::abs(Cos(aPt3d,aRay3d)-1.0)<1e-8,"Inversion Proj/ToDirBundle");
+
+          // 2- test radiality  , conservation of angles :  aRay2, aRay3d, AxeK  must be coplanar
+          cPt3dr aRay2(aProj2.x(),aProj2.y(),1.0);
+	  double aDet =  Scal(AxeK,aRay2^aRay3d) ;
+	     //   StdOut() <<  "DETtt " << aDet << "\n";
+          MMVII_INTERNAL_ASSERT_bench(std::abs(aDet)<1e-8,"Proj/ToDirBundle");
+
+          // 3- test radiality  , conservation of distance , image of circle is a cylinder
+
+          cPt2dr aQ2 =  aProj2 * FromPolar(1.0,RandUnif_C()*10);
+          cPt3dr aQ3 =  aProj.ToDirBundle(aQ2);
+	  double aDif = Norm2(AxeK-aQ3) - Norm2(AxeK-aRay3d);
+          MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-8,"Proj/ToDirBundle");
+	 /*
+	  *
+	  StdOut() << "DDDdddd " << aDif  << "\n";
+
+	  //double aRho = Norm2(cPt2dr(xi,yi));
+	  // cPt2dr aPt2 = FromPolar(aRho,RandUnif_C()*10);
+	  */
+
+
+
           aK++;
        }
+
    }
+   std::vector<double> aV00{0,0};
+   cPt3dr aPtZ = cPt3dr::FromStdVector(TyProj::ToDirBundle(aV00));
+   MMVII_INTERNAL_ASSERT_bench(Norm2(aPtZ-AxeK)<1e-8,"Proj/ToDirBundle");
+
+
    if (aParam.Show())
    {
       StdOut() << "NAME=" << TyProj::NameProj() << "\n";
@@ -127,6 +158,7 @@ class cAppliGenCode : public cMMVII_Appli
             // Mandatory args
         std::string mDirGenCode;
         void GenerateOneDist(const cPt3di & aDeg) ;
+        template <typename tProj> void GenerateCodeProjCentralPersp();
 };
 
 
@@ -200,6 +232,15 @@ void cAppliGenCode::GenerateOneDist(const cPt3di & aDeg)
    GenCodesFormula((tREAL8*)nullptr,anEqBase,false);
 }
 
+template <typename tProj> void cAppliGenCode::GenerateCodeProjCentralPersp()
+{
+   for (const auto WithDer : {true,false})
+   {
+       GenCodesFormula((tREAL8*)nullptr,cGenCode_ProjDir<tProj>(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cGenCode_ProjInv<tProj>(),WithDer);
+   }
+}
+
 
 int cAppliGenCode::Exe()
 {
@@ -223,6 +264,14 @@ int cAppliGenCode::Exe()
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy(),WithDer);
    }
+
+   GenerateCodeProjCentralPersp<cProjStenope>();
+   GenerateCodeProjCentralPersp<cProjFE_EquiDist>();
+   GenerateCodeProjCentralPersp<cProjStereroGraphik>();
+   GenerateCodeProjCentralPersp<cProjOrthoGraphic>();
+   GenerateCodeProjCentralPersp<cProjFE_EquiSolid>(); //  ->  asin
+   // GenCodesFormula((tREAL8*)nullptr,cGenCode_ProjDir<cProjStenope>(),false);
+
 /*
    cMMVIIUnivDist           aDist(3,1,1,false);
    cEqDist<cMMVIIUnivDist>  anEqDist(aDist);

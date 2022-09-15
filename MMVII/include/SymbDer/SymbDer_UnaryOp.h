@@ -234,6 +234,7 @@ template <class TypeElem> class cExpF : public cUnaryF<TypeElem>
             }
 };
 
+///  class for unary minus
 template <class TypeElem> class cMin1F : public cUnaryF<TypeElem>
 {
      public :
@@ -258,6 +259,8 @@ template <class TypeElem> class cMin1F : public cUnaryF<TypeElem>
                 return   - mF->Derivate(aK)  ;
             }
 };
+
+/// class for neperien/natural  logarithms
 
 template <class TypeElem> class cLogF : public cUnaryF<TypeElem>
 {
@@ -492,6 +495,22 @@ inline cFormula<TypeElem> sin(const cFormula<TypeElem> & aF)
 
 template <class TypeElem> inline cFormula<TypeElem>  pow8 (const cFormula<TypeElem> & aF){return pow(aF,8);}
 template <class TypeElem> inline cFormula<TypeElem>  pow9 (const cFormula<TypeElem> & aF){return pow(aF,9);}
+
+
+/**  This function is used when dont wish to define derivation, because with ad hoc
+  function one may "obliged" to define a derivate even when dont use it */
+
+
+template <class TypeElem> cFormula <TypeElem> UndefinedOperUn(const cFormula <TypeElem> & aF1 )
+{
+    UserSError("UndefinedOperUnary",aF1->Name());
+    return aF1; // must return something
+}
+
+
+
+
+
 } //   NS_Symbolic_Derivative
 
 

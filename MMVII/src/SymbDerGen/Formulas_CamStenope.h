@@ -8,15 +8,19 @@
 
 namespace NS_SymbolicDerivative
 {
-// See above the needs of a differentiable operator AtanXsY_sX=atan(X/Y)/X C-infinite
+//  add sinus cardinal and arc-sinus as operator on formulas
+MACRO_SD_DEFINE_STD_UNARY_FUNC_OP_DERIVABLE(MMVII,ASin,DerASin)
+MACRO_SD_DEFINE_STD_UNARY_FUNC_OP_DERIVABLE(MMVII,sinC,DerSinC)
 
+/// See bellow the needs of a differentiable operator AtanXsY_sX=atan(X/Y)/X C-infinite
 MACRO_SD_DEFINE_STD_BINARY_FUNC_OP_DERIVABLE(MMVII,AtanXsY_sX,DerXAtanXsY_sX,DerYAtanXsY_sX)
+
 }
 using namespace NS_SymbolicDerivative;
 
-
 namespace MMVII
 {
+
 
 /*  
     ================ Physicall modelisation ===============
@@ -34,6 +38,24 @@ namespace MMVII
     Extrinseq                           Intrinseq           Intrinseq
 
 */
+
+class cMMVIIUnivDist;  // can generate distorsion as fun R2->R2, or basis of these function 
+class cDefinedZPos;    //  define definition validity for some projection (Z>0)
+class cUnDefinedAtPole;  // define definition validity for some projection , define every where but at pole
+      // projection
+class cProjStenope ;      //  classical  stenope
+class cProjFE_EquiDist;    // fish-eye equidisant
+class cProjStereroGraphik ; // stereographic
+class cProjOrthoGraphic ;   // orthographic
+class cProjFE_EquiSolid ;   // fish-eye equi solid
+ // to do xyz <--> teta phi for "360" degree images
+ 
+template <typename tProj> class   cGenCode_ProjDir;  // class to generate code for projection  x,y,z -> i,j
+template <typename tProj> class   cGenCode_ProjInv;  // class to generate code for projection   i,j -> x,y,z
+
+template <typename TypeDist>  class cEqDist;  // class to generate code for direct distorsion  Pp->Pd
+template <typename TypeDist>  class cEqIntr;  // class for generating    Pp-> Pix
+
 
 
 /*
@@ -644,6 +666,7 @@ class cProjFE_EquiDist : public cUnDefinedAtPole
 
        /**  fisheye orthographic  */
 
+
 class cProjStereroGraphik : public cUnDefinedAtPole
 {
    public :
@@ -753,6 +776,7 @@ class cProjOrthoGraphic : public cDefinedZPos
 };
 
    // ==========================================================
+   
 
        /**  EquiSolid (Equal-Area,equivalente) Projection  */
 
@@ -803,14 +827,76 @@ class cProjFE_EquiSolid  : public cUnDefinedAtPole
            auto r = NormL2Vec2(aXY);
            // auto A = 2 * std::asin(std::min(1.0,r/2.0));
            MMVII_WARGING("Warning cProjFE_EquiSolid::ToDirBundle");
-           auto A = aC2 * asin(r/aC2);
+           auto A = aC2 * ASin(r/aC2);
            auto cAs2 = cos(A/aC2);
 
            return {aX*cAs2,aY*cAs2,cos(A)};
         }
 };
 
+template <typename tProj> class   cGenCode_ProjDir
+{
+	public :
+            static const std::vector<std::string> VNamesUnknowns() { return {"PtX","PtY","PtZ"}; }
+            static const std::vector<std::string> VNamesObs()      { return {}; }
 
+            std::string FormulaName() const { return "Dir_" + tProj::NameProj();}
+
+	    template <typename tUk>
+                     std::vector<tUk> formula
+                     (
+                           const std::vector<tUk> & aVUk,
+                           const std::vector<tUk> & aVObs
+                      ) const
+             {
+		     return tProj::Proj(aVUk);
+             }
+
+
+};
+template <typename tProj> class   cGenCode_ProjInv
+{
+	public :
+            static const std::vector<std::string> VNamesUnknowns() { return {"PixI","PixJ"}; }
+            static const std::vector<std::string> VNamesObs()      { return {}; }
+
+            std::string FormulaName() const { return "Inv_" + tProj::NameProj();}
+
+	    template <typename tUk>
+                     std::vector<tUk> formula
+                     (
+                           const std::vector<tUk> & aVUk,
+                           const std::vector<tUk> & aVObs
+                      ) const
+             {
+		     return tProj::ToDirBundle(aVUk);
+             }
+
+
+};
+
+/**  Proj manipulate vector for code generation, but for testing its easier to manipulate points */
+template <typename tProj> class   cHelperProj
+{
+	public :
+
+           template<typename tScal> static cPtxd<tScal,2>  Proj(const  cPtxd<tScal,3> & aXYZ)
+	   {
+		   return  cPtxd<tScal,2>::FromStdVector(tProj::Proj(aXYZ.ToStdVector()));
+	   }
+           template<typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aXYZ)
+	   {
+		   return  cPtxd<tScal,3>::FromStdVector(tProj::ToDirBundle(aXYZ.ToStdVector()));
+	   }
+
+};
+
+
+
+
+
+/*
+ * Dont know if its usefull for now
 template <typename tScal>  
   inline std::vector<tScal> 
     TransformPPxyz(const std::vector<tScal> & aPts,const std::vector<tScal> & aParam,int aInd)
@@ -827,6 +913,7 @@ template <typename tScal>
 
         return {xOut,yOut};
 }
+*/
 
 template <typename TypeDist>  class cEqDist
 {
@@ -849,7 +936,6 @@ template <typename TypeDist>  class cEqDist
   private :
     TypeDist                 mDist;
 };
-
 
 
 
