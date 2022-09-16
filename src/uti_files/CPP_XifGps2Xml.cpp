@@ -158,7 +158,7 @@ void cAppli_XifGps2Xml::ExportCoordTxtFile(std::string aOut, std::string aOutFor
 				if(aOutFormat == "WGS84_rad")
 					fprintf(aFP,"%s %lf %lf %lf \n",anIm.mName.c_str(),aPt.x,aPt.y,aPt.z);
 				else if(aOutFormat == "WGS84_deg")
-					fprintf(aFP,"%s %lf %lf %lf \n",anIm.mName.c_str(),aPt.x*180/_Pi,aPt.y*180/_Pi,aPt.z);
+					fprintf(aFP,"%s %lf %lf %lf \n",anIm.mName.c_str(),aPt.x*180/M_PI,aPt.y*180/M_PI,aPt.z);
 				else if(aOutFormat == "GeoC")
 					fprintf(aFP,"%s %lf %lf %lf \n",anIm.mName.c_str(),mPGeoC.x,mPGeoC.y,mPGeoC.z);
 				else

@@ -50,6 +50,7 @@ extern const std::string TmpMMVIIProcSubDir;
 
 //  String 
 extern const std::string BLANK;  // just std::string(" ") to avoid char * + char *
+extern const std::vector<std::string> EMPTY_VSTR;  // just std::string(" ") to avoid char * + char *
 
 
 //  Files

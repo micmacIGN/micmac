@@ -52,7 +52,7 @@ class cAppliDensifyRefMatch : public cAppliLearningMatch,
 
 cAppliDensifyRefMatch::cAppliDensifyRefMatch(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cAppliLearningMatch        (aVArgs,aSpec),
-   cAppliParseBoxIm<tREAL4>   (*this,true,cPt2di(2000,2000),cPt2di(50,50)),
+   cAppliParseBoxIm<tREAL4>   (*this,true,cPt2di(2000,2000),cPt2di(50,50),false),
    mThreshGrad                (0.3),
    mNoisePx                   (1.0),
    mMasq2Tri                  (0),
@@ -209,7 +209,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
 
 
     // Initiate image of interpolated value
-    for (int aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
+    for (size_t aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
     {
          MakeOneTri(cTriangle2DCompiled(aTriangul.KthTri(aKTri)));
     }

@@ -35,6 +35,9 @@ struct cResultExtremum
          std::vector<cPt2di>  mPtsMax;
          void Clear();
 
+         cResultExtremum(bool DoMin=true,bool DoMax=true);
+         bool mDoMin;
+         bool mDoMax;
 };
 
 /// compute extrema , ie points for wich I(X) is sup (inf) than any point in a circle of radius aRad
@@ -66,6 +69,7 @@ template <class Type> class cAffineExtremum
        cAffineExtremum(const cDataIm2D<Type>  &anIm,double aRadius);
        cPt2dr OneIter(const cPt2dr &);
        cPt2dr StdIter(const cPt2dr &,double Epsilon,int aNbIterMax); ///< aNbIterMax both res and val
+       const cDataIm2D<Type>  &  Im() const;
     private :
        const cDataIm2D<Type>  &  mIm;
        double                    mRadius;

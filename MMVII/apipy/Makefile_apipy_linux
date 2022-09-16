@@ -7,22 +7,25 @@ PY_FILES = $(I_SRCS:.i=.py)
 WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cpp)
 WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
+PYTHON = python3
+PIP = pip3
+
 .PHONY: clean doc apipy
 
 all: apipy doc
 
 apipy: clean tmp/typemaps.i tmp/h_to_include.i tmp/rename_nonref.i tmp/return_nonref.i tmp/ignore_nonconst_overloading.i
-	python3 setup.py build
-	python3 setup.py bdist_wheel
-	pip3 install --user dist/*.whl
-	#python3 setup.py install --user
-	@if python3 -c "import mmv2" ; then echo "APIPY OK" ; else echo "APIPY error! Use c++filt to demangle missing symbols." ; fi
+	$(PYTHON) setup.py build
+	$(PYTHON) setup.py bdist_wheel
+	$(PIP) install --user dist/*.whl
+	#$(PYTHON) setup.py install --user
+	@if $(PYTHON) -c "import mmv2" ; then echo "APIPY OK" ; else echo "APIPY error! Use c++filt to demangle missing symbols." ; fi
 
 tmp/typemaps.i: gen_typemaps.py
-	python3 gen_typemaps.py
+	$(PYTHON) gen_typemaps.py
 
 tmp/return_nonref.i tmp/ignore_nonconst_overloading.i tmp/h_to_include.i tmp/rename_nonref.i: gen_fix_classes.py
-	python3 gen_fix_classes.py
+	$(PYTHON) gen_fix_classes.py
 
 doc: apipy
 	pydoc3 -w mmv2
@@ -30,6 +33,6 @@ doc: apipy
 clean:
 	rm -Rf $(PY_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) tmp
 	rm -Rf $(DOCDIR)/html build/ dist/ $(MODULE_NAME).egg-info/ __pycache__/
-	python3 setup.py clean
-	pip3 uninstall -y $(MODULE_NAME)
+	$(PYTHON) setup.py clean
+	$(PIP) uninstall -y $(MODULE_NAME)
 

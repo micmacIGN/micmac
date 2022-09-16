@@ -91,6 +91,9 @@ void BenchDenseMatrix0(cParamExeBench & aParam); ///< Basic Vector
 // void cAppli_MMVII_Bench::Bench_0000_String(); => Bench on string-split
 void BenchSerialization(cParamExeBench & aParam,const std::string & aDirOut,const std::string & aDirIn); ///< Bench on seriaization function
 
+// Test generation of random subet for ransac
+void BenchRansSubset(cParamExeBench & aParam);
+
 
 //  void BenchGlob();      ///< All Bench
 
@@ -114,8 +117,11 @@ void BenchLeastSqMap(cParamExeBench & aParam);
 void BenchDelaunay(cParamExeBench & aParam);
 void BenchTri2D(cParamExeBench & aParam);
 void BenchPly(cParamExeBench & aParam);
+void BenchHamming(cParamExeBench & aParam);
 
 void BenchSSRNL(cParamExeBench & aParam);  // Syst Sur Resol Non Linear
+void BenchDeformIm(cParamExeBench & aParam); // using image in non-linear least square system
+void BenchMeshDev(cParamExeBench & aParam);  // bench  devlopment  (on devlopable surface)
 
 
 

@@ -382,6 +382,8 @@ void cBenchBaseImage::DoBenchRO()
    }
 
    // Test the SetErrorHandler mecanism, abality to recover on error
+   //     => do it only if verification is high;  else the error will not be detected and check cannot work 
+   if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny)
    {
        MMVII_SetErrorHandler(TestBenchRectObjError);
        cPixBox<1>  aR(cPt1di(10),cPt1di(0));

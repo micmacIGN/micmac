@@ -29,8 +29,12 @@ template <class Type> class cDenseVect;
 template <class Type,const int Dim> class cPtxd
 {
     public :
-       typedef typename  tNumTrait<Type>::tBig  tBigNum ;
-       typedef cPtxd<Type,Dim>                  tPt;
+       typedef typename  tNumTrait<Type>::tBig               tBigNum ;
+       typedef cPtxd<Type,Dim>                               tPt;
+       // To see later (C Meynard ?) why this create compile pb
+       // typedef typename  tElemNumTrait<Type>::tFloatAssoc    tReal;
+       //typedef cPtxd<tReal,Dim>                              tPtR;
+
 
        static const int TheDim = Dim;
        /// Maybe some function will require generic access to data
@@ -73,8 +77,10 @@ template <class Type,const int Dim> class cPtxd
        /// Pt random in sphere
        static cPtxd<Type,Dim>  PRandInSphere();
 
-       /// Initialisation random VUnit not too close to P1
+       /// Initialisation random VUnit not too close to P
        static cPtxd<Type,Dim>  PRandUnitDiff(const cPtxd<Type,Dim>&,const Type &aDist = 1e-2);
+       /// Initialisation random VUnit not too close to P or -P
+       static cPtxd<Type,Dim>  PRandUnitNonAligned(const cPtxd<Type,Dim>&,const Type &aDist = 1e-2);
 
         static cPtxd<Type,Dim> Col(const cDenseMatrix<Type>&,int aCol);  ///< Init with colum of matrix
         static cPtxd<Type,Dim> Line(int aLine,const cDenseMatrix<Type>&); ///< Init with line of matrix
@@ -151,10 +157,10 @@ template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGr
 /// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
 //std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
 /// Implemented
-std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1,bool IsSym=false); // > R0 et <= R1
 
-/// ASym  means that there is only one out of 2 between -P and P
-std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym) ;
+/// IsSym  means that there is only one out of 2 between -P and P
+std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSym=false) ;
 
 
 
@@ -166,7 +172,9 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym
 // template <class Type,const int DimOut,const int DimIn> void CastDim(cPtxd<Type,DimOut> &,const cPtxd<Type,DimIn>);
 template <class Type,const int DimOut,const int DimIn> cPtxd<Type,DimOut> CastDim(const cPtxd<Type,DimIn>&);
 
-template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP1) { return (aP1.x() !=0) || (aP1.y()!=0);}
+template <class Type> inline bool IsNull (const cPtxd<Type,2> & aP) { return (aP.x() ==0) && (aP.y()==0);}
+template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP) { return ! IsNull(aP);}
+//template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP) { return  (aP.x() !=0) || (aP.y()!=0);}
 
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
 template <class Type> inline void AssertNonNul(const cPtxd<Type,2> &aP1) 
@@ -203,6 +211,13 @@ template <class Type> inline void operator += (cPtxd<Type,3> & aP1,const cPtxd<T
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
     aP1.z() += aP2.z(); 
+}
+template <class Type> inline void operator += (cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{ 
+    aP1.x() += aP2.x(); 
+    aP1.y() += aP2.y(); 
+    aP1.z() += aP2.z(); 
+    aP1.t() += aP2.t(); 
 }
 
 
@@ -436,6 +451,8 @@ template <class T> inline cPtxd<tREAL8,1> ToR(const cPtxd<T,1> & aP) {return cPt
 template <class T> inline cPtxd<tREAL8,2> ToR(const cPtxd<T,2> & aP) {return cPtxd<tREAL8,2>(aP.x(),aP.y());}
 template <class T> inline cPtxd<tREAL8,3> ToR(const cPtxd<T,3> & aP) {return cPtxd<tREAL8,3>(aP.x(),aP.y(),aP.z());}
 template <class T> inline cPtxd<tREAL8,4> ToR(const cPtxd<T,4> & aP) {return cPtxd<tREAL8,4>(aP.x(),aP.y(),aP.z(),aP.t());}
+
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts);
 /*
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}
@@ -618,6 +635,8 @@ template <class Type,const int Dim>  class cTplBox
     private :
 };
 
+// template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & );
+// template <const int Dim>  cTplBox<int,Dim> ToI(const  cTplBox<tREAL8,Dim> & );
 
 /** Function computing corner of box, this one is specific to dim=1 because it respect
 trigonometric order, a notion not generalisable */
@@ -633,8 +652,15 @@ typedef cTplBox<double,3>  cBox3dr;
 cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord
 
 
+// Is window inside the box 
+template <class Type> bool WindInside(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
+template <class Type> bool WindInside(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  int & aSzW);
 // Is window inside the box taking into account bilinear interpol ?
 template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
+
+
+cBox2di DilateFromIntervPx(const cBox2di & aBox,int aDPx0,int aDPx1);
+
 
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cTplBox<Type,Dim> &aBox)
 { return  OS << "{" << aBox.P0() <<   " :: " << aBox.P1()<< "}"; }
@@ -682,7 +708,7 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
     public :
        typedef cPtxd<Type,Dim> tPt;
        cSegmentCompiled(const tPt& aP1,const tPt& aP2);
-    private :
+    protected :
        Type    mN2;
        tPt     mTgt;
 };
@@ -705,6 +731,9 @@ template <class Type,const int Dim> class  cTriangle
        tPt  FromCoordBarry(const cPtxd<Type,3> & aWeight) const;
        /// Barrycenter with equal weights
        tPt  Barry() const;
+
+       ///  return K such that Pt(K)Pt(K+1) is the longest
+       int  IndexLongestSeg() const;
 
        /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
        Type Regularity() const;

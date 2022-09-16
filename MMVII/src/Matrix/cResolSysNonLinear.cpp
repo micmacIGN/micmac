@@ -138,13 +138,14 @@ template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const
 /*                                                              */
 /* ************************************************************ */
 
-template <class Type>  cResidualWeighter<Type>::cResidualWeighter()
+template <class Type>  cResidualWeighter<Type>::cResidualWeighter(const Type & aVal) :
+    mVal (aVal)
 {
 }
 
 template <class Type>  std::vector<Type>  cResidualWeighter<Type>::WeightOfResidual(const tStdVect & aVResidual) const
 {
-	return tStdVect(aVResidual.size(),1.0);
+	return tStdVect(aVResidual.size(),mVal);
 }
 
 
@@ -154,10 +155,10 @@ template <class Type>  std::vector<Type>  cResidualWeighter<Type>::WeightOfResid
 /*                                                              */
 /* ************************************************************ */
 
-template <class Type> cResolSysNonLinear<Type>:: cResolSysNonLinear(tSysSR * aSys,const tDVect & aInitSol) :
+template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(tLinearSysSR * aSys,const tDVect & aInitSol) :
     mNbVar      (aInitSol.Sz()),
     mCurGlobSol (aInitSol.Dup()),
-    mSys        (aSys)
+    mSysLinear        (aSys)
 {
 }
 
@@ -168,9 +169,12 @@ template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(eModeSSR aMod
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixVar(const int & aNumV,const Type & aVal,const Type& aWeight)
 {
+// StdOut() << "VAEFC " << aNumV << " " << CurSol().
      tSVect aSV;
      aSV.AddIV(aNumV,1.0);
-     mSys->AddObservation(aWeight,aSV,aVal);
+     // Dont forget that the linear system compute the difference with current solution ...
+     mSysLinear->AddObservation(aWeight,aSV,aVal-CurSol(aNumV));
+     // mSys->AddObservation(aWeight,aSV,CurSol(aNumV)+aVal);
 }
 
 
@@ -182,15 +186,26 @@ template <class Type> const Type & cResolSysNonLinear<Type>::CurSol(int aNumV) c
 {
     return mCurGlobSol(aNumV);
 }
+template <class Type> void cResolSysNonLinear<Type>::SetCurSol(int aNumV,const Type & aVal) 
+{
+    mCurGlobSol(aNumV) = aVal;
+}
 
 template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset() 
 {
-    // mCurGlobSol += mSys->Solve();
-    mCurGlobSol += mSys->SparseSolve();
-    mSys->Reset();
+    mCurGlobSol += mSysLinear->Solve();
+    //  mCurGlobSol += mSysLinear->SparseSolve();
+    mSysLinear->Reset();
 
     return mCurGlobSol;
 }
+
+template <class Type> cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLinear() 
+{
+    return mSysLinear;
+}
+
+template <class Type> int cResolSysNonLinear<Type>::NbVar() const {return mNbVar;}
 
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const int & aNumV,const Type& aWeight)
@@ -215,7 +230,7 @@ template <class Type> void cResolSysNonLinear<Type>::CalcAndAddObs
 
 template <class Type> cResolSysNonLinear<Type>::~cResolSysNonLinear()
 {
-    delete mSys;
+    delete mSysLinear;
 }
 
 
@@ -240,7 +255,7 @@ template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<
                      aSV.AddIV(aIO.mVIndUk[aKUk],aVDer[aKUk]);
 	         }
 		 // Note the minus sign :  F(X0+dx) = F(X0) + Gx.dx   =>   Gx.dx = -F(X0)
-	         mSys->AddObservation(aW,aSV,-aIO.mVals[aKVal]);
+	         mSysLinear->AddObservation(aW,aSV,-aIO.mVals[aKVal]);
 	      }
 	  }
 
@@ -262,7 +277,7 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEq2Subst
 			     
 template <class Type> void cResolSysNonLinear<Type>::AddObsWithTmpUK (const tSetIO_ST & aSetIO)
 {
-    mSys->AddObsWithTmpUK(aSetIO);
+    mSysLinear->AddObsWithTmpUK(aSetIO);
 }
 
 template <class Type> void   cResolSysNonLinear<Type>::CalcVal

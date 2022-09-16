@@ -11,7 +11,7 @@
 
 
 // #define SYMBDER_WITH_MMVII true
-#define SYMBDER_WITH_EIGEN false
+#define SYMBDER_WITH_EIGEN true
 
 
 #if SYMBDER_WITH_EIGEN
@@ -654,6 +654,9 @@ template <class TypeElem> class cFormula
        tImplemF* mPtr;  ///< Faster than shared and deallocation is easy as object controlled by context
 };
 
+
+
+
 /* *************************************************** */
 /* *************************************************** */
 /* *                                                 * */
@@ -1245,7 +1248,25 @@ inline std::string cCoordinatorF<TypeElem>::TypeElemName() const
     return "";
 }
 
-} //   NS_Symbolic_Derivative
+} //  namespace NS_SymbolicDerivative
+
+
+/*
+#if SYMBDER_WITH_MMVII
+/// requiredfor cPtxd<cFormula> ....  but dont solve the pb, so keep it minimal fornow
+template <class TypeElem>  class MMVII::tElemNumTrait<NS_SymbolicDerivative::cFormula<TypeElem> >
+{
+    public :
+         typedef NS_SymbolicDerivative::cFormula<TypeElem> tBase;
+         typedef NS_SymbolicDerivative::cFormula<TypeElem> tBig ;
+         typedef NS_SymbolicDerivative::cFormula<TypeElem> tFloatAssoc ;
+};
+namespace MMVII
+{
+}  // namespace MMVII
+
+#endif
+*/
 
 #include "SymbDer_UnaryOp.h"
 #include "SymbDer_BinaryOp.h"

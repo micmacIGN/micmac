@@ -2,7 +2,7 @@ numpy==1.20.2
 --find-links https://download.pytorch.org/whl/cu110/torch_stable.html
 torch==1.7.0
 --find-links https://download.pytorch.org/whl/cu110/torch_stable.html
-torchvision=0.8.1
+torchvision==0.8.1
 imageio
 scikit-image
 opencv-python

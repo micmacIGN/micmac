@@ -37,18 +37,6 @@ template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled
 }
 
 /* ========================== */
-/*    cSegment2DCompiled      */
-/* ========================== */
-
-/*
-template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const tPt& aP1,const tPt& aP2) :
-    cSegment<Type,2> (aP1,aP2),
-    mNorm            (Rot90(this->mTgt))
-{
-}
-*/
-
-/* ========================== */
 /*          ::                */
 /* ========================== */
 
@@ -169,6 +157,17 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVect
    return aRes;
 }
 
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts)
+{
+   MMVII_INTERNAL_ASSERT_tiny((!aVPts.empty()),"Bad size in Vec/Pt");
+
+   cPtxd<tREAL8,Dim> aRes = ToR(aVPts[0]);
+   for (int aK=1 ; aK<int(aVPts.size()) ; aK++)
+      aRes += ToR(aVPts[aK]);
+
+   return aRes/ tREAL8(aVPts.size());
+}
+
 
 
 int NbPixVign(const int & aVign){return 1+2*aVign;}
@@ -244,6 +243,14 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRandInSph
    return aRes;
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  
+      cPtxd<Type,Dim>::PRandUnitNonAligned(const cPtxd<Type,Dim>& aP0,const Type & aDist)
+{
+   cPtxd<Type,Dim> aRes = PRandUnit();
+   while ((NormInf(aRes-aP0)<aDist) || (NormInf(aRes+aP0)<aDist) )
+        aRes = PRandUnit();
+   return aRes;
+}
 
 
 template <class Type,const int Dim> cPtxd<Type,Dim>  
@@ -485,6 +492,15 @@ template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
       aRes += tINT8(aP[aK]-tBox::mP0[aK]) * tINT8(tBox::mSzCum[aK]);
    return aRes;
 }
+
+template <const int Dim> tINT8  cPixBox<Dim>::IndexeUnorderedPair(const tPt&aP1,const tPt&aP2) const
+{
+    tINT8 aI1 = IndexeLinear(aP1);  // num of P1 in Box
+    tINT8 aI2 = IndexeLinear(aP2);  // num of P2 in Box
+    OrderMinMax(aI1,aI2);           // to assure P1,P2 = P2,P1
+    return  aI1*this->NbElem() + aI2;     // make a unique index
+}
+
 
 template <const int Dim> bool  cPixBox<Dim>::SignalAtFrequence(const tPt & anIndex,double aFreq) const
 {
@@ -944,17 +960,45 @@ template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2
        &&  (aPt.y() <  aBox.P1().y() - aSzW.y()-1) ;
 }
 
+template <class Type> bool WindInside(const cBox2di & aBox,const cPt2di & aPt,const  cPt2di & aSzW)
+{
+   return
+	   (aPt.x() >= aBox.P0().x() + aSzW.x())
+       &&  (aPt.y() >= aBox.P0().y() + aSzW.y())
+       &&  (aPt.x() <  aBox.P1().x() - aSzW.x())
+       &&  (aPt.y() <  aBox.P1().y() - aSzW.y()) ;
+}
+
+template <class Type> bool WindInside(const cBox2di & aBox,const cPt2di & aPt,const int  & aSz)
+{
+    return WindInside(aBox,aPt,cPt2di(aSz,aSz));
+}
+
+/*
+template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & aBox)
+{
+	 return cTplBox<tREAL8,Dim>(ToR(aBox.P0()),ToR(aBox.P1()));
+}
+
+template <const int Dim>  cTplBox<int,Dim> ToI(const  cTplBox<tREAL8,Dim> & aBox)
+{
+	 return cTplBox<int,Dim>(ToI(aBox.P0()),ToI(aBox.P1()));
+}
+*/
 
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
 
-#define INSTANTIATE_GEOM_REAL(TYPE)\
-class cSegment2DCompiled<TYPE>;
 
-INSTANTIATE_GEOM_REAL(tREAL4)
-INSTANTIATE_GEOM_REAL(tREAL8)
-INSTANTIATE_GEOM_REAL(tREAL16)
+	/*
+template   cTplBox<tREAL8,2> ToR(const  cTplBox<int,2> & aBox);
+template   cTplBox<tREAL8,3> ToR(const  cTplBox<int,3> & aBox);
+template   cTplBox<int,2> ToI(const  cTplBox<tREAL8,2> & aBox);
+template   cTplBox<int,3> ToI(const  cTplBox<tREAL8,3> & aBox);
+*/
+
+
 
 
 #define INSTANTIATE_ABS_SURF(TYPE)\
@@ -962,6 +1006,7 @@ template  cPtxd<TYPE,3> TP3z0  (const cPtxd<TYPE,2> & aPt);\
 template  cPtxd<TYPE,2> Proj  (const cPtxd<TYPE,3> & aPt);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& aP2);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);
+
 
 INSTANTIATE_ABS_SURF(tINT4)
 INSTANTIATE_ABS_SURF(tREAL4)
@@ -995,6 +1040,7 @@ MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,1);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,2);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,3);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,4);\
+template  cPtxd<tREAL8,DIM> Barry(const std::vector<cPtxd<TYPE,DIM> > & aVPts);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\
@@ -1004,6 +1050,7 @@ template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandInSphere();\
 template typename cPtxd<TYPE,DIM>::tBigNum cPtxd<TYPE,DIM>::MinSqN2(const std::vector<tPt> &,bool SVP) const;\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitNonAligned(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  double NormK(const cPtxd<TYPE,DIM> & aPt,double anExp);\
 template  double Norm2(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE Norm1(const cPtxd<TYPE,DIM> & aPt);\

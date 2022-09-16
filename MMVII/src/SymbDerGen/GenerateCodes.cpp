@@ -1,6 +1,7 @@
 #include "include/MMVII_all.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_GenNameAlloc.h"
+#include "Formulas_ImagesDeform.h"
 #include "Formulas_CamStenope.h"
 #include "Formulas_Geom2D.h"
 
@@ -53,7 +54,7 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
 
        TyProj::Proj(aV);
        TyProj::Proj(aVF);
-       TyProj::ToDirBundle(aP);
+       TyProj::ToDirBundle(aV);
    }
    // Generate random point aPt0, project aVIm0, inverse aPt1, and check collinearity between Pt1 and Pt0
    for (int aK=0 ; aK<10000 ; )
@@ -64,7 +65,11 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
        {
 
           std::vector<double> aVIm0 =  TyProj::Proj(aPt0.ToStdVector());
-          cPt3dr aPt1 =  TyProj::ToDirBundle(cPt2dr::FromStdVector(aVIm0));
+          
+          auto aVPt1 =  TyProj::ToDirBundle(aVIm0);
+          // auto aVPt1 =  TyProj::ToDirBundle(cPt2dr::FromStdVector(aVIm0));
+          cPt3dr aPt1(aVPt1[0],aVPt1[1],aVPt1[2]);
+   
           MMVII_INTERNAL_ASSERT_bench(std::abs(Cos(aPt0,aPt1)-1.0)<1e-8,"Proj/ToDirBundle");
           aK++;
        }
@@ -88,6 +93,8 @@ void BenchProjToDirBundle(cParamExeBench & aParam)
    OneBenchProjToDirBundle<cProjStereroGraphik> (aParam);
    OneBenchProjToDirBundle<cProjOrthoGraphic> (aParam);
    OneBenchProjToDirBundle<cProjFE_EquiSolid> (aParam);
+/*
+*/
 }
 
 
@@ -210,6 +217,11 @@ int cAppliGenCode::Exe()
        // cDist2DConservation aD2C;
        GenCodesFormula((tREAL8*)nullptr,cDist2DConservation(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRatioDist2DConservation(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cNetworConsDistProgCov(cPt2di(2,2)),WithDer);
+       for (const auto WithSimUk : {true,false})
+           GenCodesFormula((tREAL8*)nullptr, cNetWConsDistSetPts(cPt2di(2,2),WithSimUk),WithDer);
+
+       GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy(),WithDer);
    }
 /*
    cMMVIIUnivDist           aDist(3,1,1,false);
@@ -274,6 +286,8 @@ cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf)
     return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,false,true),aSzBuf);
 }
 
+
+//    Cons distance
 template <class Type> cCalculator<Type> * TplEqConsDist(bool WithDerive,int aSzBuf)
 { 
     return cName2Calc<Type>::CalcFromName(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
@@ -282,22 +296,35 @@ template <class Type> cCalculator<Type> * TplEqConsDist(bool WithDerive,int aSzB
 cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf)
 { 
     return TplEqConsDist<double>(WithDerive,aSzBuf);
-    // return cName2Calc<double>::CalcFromName(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
 }
 
+//  cons ratio dist
 cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf)
 { 
     return cName2Calc<double>::CalcFromName(NameFormula(cRatioDist2DConservation(),WithDerive),aSzBuf);
 }
 
+//  Network for points  
+cCalculator<double> * EqNetworkConsDistProgCov(bool WithDerive,int aSzBuf,const cPt2di& aSzN)
+{ 
+    return cName2Calc<double>::CalcFromName(NameFormula(cNetworConsDistProgCov(aSzN),WithDerive),aSzBuf);
+}
 
+cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,const cPt2di& aSzN,bool WithSimUK)
+{ 
+    return cName2Calc<double>::CalcFromName(NameFormula(cNetWConsDistSetPts(aSzN,WithSimUK),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf)
+{
+     return cName2Calc<double>::CalcFromName(NameFormula(cDeformImHomotethy(),WithDerive),aSzBuf);
+}
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
 {
    cMMVIIUnivDist  aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
 
    return aDist.VDescParams();
- 
 }
 
 

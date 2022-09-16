@@ -4,7 +4,9 @@ namespace MMVII
 {
 
 /* ============================================= */
+/*                                               */
 /*      cDataBoundedSet<Type>                    */
+/*                                               */
 /* ============================================= */
 
 template <class Type,const int Dim>
@@ -36,6 +38,7 @@ template <class Type,const int Dim>
    return mBox;
 }
 
+///  algo : generate random in bounding box, untill it is inside
 template <class Type,const int Dim>
     typename cDataBoundedSet<Type,Dim>::tPt  cDataBoundedSet<Type,Dim>::GeneratePointInside() const
 {
@@ -45,10 +48,11 @@ template <class Type,const int Dim>
    return aRes;
 }
 
+/// algo : generate the regular grid in box, select points if inside
 template <class Type,const int Dim>
     void cDataBoundedSet<Type,Dim>::GridPointInsideAtStep(tVecPt& aRes,Type aStepMoy) const
 {
-     cPtxd<int,Dim>  aNb =  Pt_round_up(mBox.Sz()/aStepMoy);
+     cPtxd<int,Dim>  aNb =  Pt_round_up(mBox.Sz()/aStepMoy); 
      cPixBox<Dim>  aPixB (aNb+cPtxd<int,Dim>::PCste(1));
      tPt   aStep  = DivCByC(mBox.Sz(),ToR(aNb));
 
@@ -70,7 +74,9 @@ template <class Type,const int Dim>
 }
 
 /* ============================================= */
+/*                                               */
 /*      cSphereBoundedSet<Type>                  */
+/*                                               */
 /* ============================================= */
 
 template <class Type,const int Dim> 
@@ -110,7 +116,9 @@ template <class Type,int Dim>
 
 
 /* ============================================= */
+/*                                               */
 /*      cDataMapping<Type>                       */
+/*                                               */
 /* ============================================= */
 
      //  =========== Constructors =============
@@ -162,6 +170,7 @@ template <class Type,const int DimIn,const int DimOut>
     return aBufOut;
 }
 
+    ///   call previous method with local buffer
 template <class Type,const int DimIn,const int DimOut> 
     const typename cDataMapping<Type,DimIn,DimOut>::tVecOut & 
                    cDataMapping<Type,DimIn,DimOut>::Values(const tVecIn & aVIn) const
@@ -228,42 +237,43 @@ template <class Type,const int DimIn,const int DimOut>
     // tResVecJac aRes(nullptr,nullptr);
     if (mJacByFiniteDif)
     {
-       // tU_INT4 aNbPByJac = 1+2*DimIn;
+       // compute number in buf , be sure at least one
        tU_INT4 aNbInBuf = std::max(tU_INT4(1),tU_INT4(aNbIn/(1+2*DimIn)));
        for (tU_INT4 aKpt0=0 ; aKpt0<aNbIn ; aKpt0+=aNbInBuf)
        {
           tU_INT4 aKpt1 = std::min(aKpt0+aNbInBuf,aNbIn);
-          tVecIn& aBufIn = JBufInCleared();
-          for (tU_INT4 aKpt=aKpt0 ; aKpt<aKpt1 ; aKpt++)
+          tVecIn& aBufIn = JBufInCleared(); // buf in of jacobian, dif of buf in used in values
+          for (tU_INT4 aKpt=aKpt0 ; aKpt<aKpt1 ; aKpt++) // put all points
           {
-              tPtIn aPK = aVIn[aKpt];
+              tPtIn aPK = aVIn[aKpt];  // make a copy of input
               aBufIn.push_back(aPK);
-              for (int aD=0 ; aD<DimIn ; aD++)
+              for (int aD=0 ; aD<DimIn ; aD++)  // parse all dims
               {
                   aPK[aD] -= mEpsJac[aD];
-                  aBufIn.push_back(aPK);
+                  aBufIn.push_back(aPK);   // put xk -eps
                   aPK[aD] += 2.0*mEpsJac[aD];
-                  aBufIn.push_back(aPK);
-                  aPK[aD] -= mEpsJac[aD];
+                  aBufIn.push_back(aPK);  // put xk+eps
+                  aPK[aD] -= mEpsJac[aD];  // restore initial value of xk
               }
           }
-          const tVecOut & aResOut =   Values(aBufIn);
-          int aInd = 0;
+          const tVecOut & aResOut =   Values(aBufIn); // compute all val 
+          int aInd = 0;  // will parse value in same order 
           for (tU_INT4 aKpt=aKpt0 ; aKpt<aKpt1 ; aKpt++)
           {
-             aJBufOut.push_back(aResOut[aInd++]);
+             aJBufOut.push_back(aResOut[aInd++]);  // first we have the point
              for (int aD=0 ; aD<DimIn ; aD++)
              {
-                tPtOut aPm = aResOut[aInd++];
-                tPtOut aGrad = (aResOut[aInd++]-aPm) / (2.0*mEpsJac[aD]);
+                tPtOut aPm = aResOut[aInd++];  // get xk -eps
+                tPtOut aGrad = (aResOut[aInd++]-aPm) / (2.0*mEpsJac[aD]);  // get xk+ eps, deduce finite difference
 
-                SetCol(aBufJac[aKpt],aD,aGrad);
+                SetCol(aBufJac[aKpt],aD,aGrad); // fill the colums of jacobian
              }
           }
        }
     }
     else
     {
+        // else call elem function
         for (tU_INT4 aKpt=0 ; aKpt<aNbIn ; aKpt++)
         {
            auto [aPt,aJac] = Jacobian(aVIn[aKpt]);
@@ -272,7 +282,9 @@ template <class Type,const int DimIn,const int DimOut>
         }
     }
 /**/MACRO_CHECK_RECURS_END;
-    return tCsteResVecJac(aRes.first,aRes.second);
+      // StdOut() <<  "TO CHECK LINE " << __LINE__  << " of " << __FILE__ << "\n";
+     return tCsteResVecJac(aRes.first,aRes.second);
+     //  return aRes;  // dont understand why not that, maybe some type checking with some version of compilor ?
 }
 
 template <class Type,const int DimIn,const int DimOut> 
@@ -315,7 +327,9 @@ template <class Type,const int DimIn,const int DimOut>
 }
 
 /* ============================================= */
-/*      cDataMapping<Type>                       */
+/*                                               */
+/*      cDataNxNMapping<Type>                    */
+/*                                               */
 /* ============================================= */
 
 template <class Type,const int Dim>
@@ -343,7 +357,9 @@ template <class Type,const int Dim>
 
 
 /* ============================================= */
+/*                                               */
 /*                cMapping<Type>                 */
+/*                                               */
 /* ============================================= */
 
 template <class Type,const int DimIn,const int DimOut>  
@@ -355,7 +371,9 @@ template <class Type,const int DimIn,const int DimOut>
 
 
 /* ============================================= */
+/*                                               */
 /*        cMappingIdentity<Type>                 */
+/*                                               */
 /* ============================================= */
 
 
@@ -375,6 +393,12 @@ template <class Type,const int Dim>
                    cMappingIdentity<Type,Dim>::Value(const tPt & aPt) const
 {
    return aPt;
+}
+
+template <class Type,const int Dim>
+         cMappingIdentity<Type,Dim>::cMappingIdentity() :
+             cDataNxNMapping<Type,Dim> (tPt::PCste(Type(1)))
+{
 }
 
      /* ============================================= */
@@ -406,6 +430,10 @@ INSTANCE_ONE_DIM_MAPPING(3)
 /* ============================================= */
 /* ============================================= */
 
+/**   class used to make some basic bench on mappings,
+      it define a smooth mapping (Image) R3->R2,
+      and its hancrafter gradient
+*/
 
 class cTestMapp 
 {
@@ -420,16 +448,18 @@ class cTestMapp
        static cDenseMatrix<tREAL16> Grad(const cPt2dLR & aP) 
        {
           double aDiv = Square(1+Square(aP.x())+Square(aP.y()));
-          cPt3dLR aGx(0.3,1.0+0.2*cos(2*aP.x()),(-2*aP.x())/aDiv);
-          cPt3dLR aGy(0.9+0.1*cos(aP.y()),0,(-2*aP.y())/aDiv);
 
-          cDenseMatrix<tREAL16> aRes(2,3);
+          cPt3dLR aGx(0.3,1.0+0.2*cos(2*aP.x()),(-2*aP.x())/aDiv); // handcrafted  dImage/dx
+          cPt3dLR aGy(0.9+0.1*cos(aP.y()),0,(-2*aP.y())/aDiv);     // hancrafted   dImage/dy
+
+          cDenseMatrix<tREAL16> aRes(2,3); // Gradient is a Matrix 2 colum, 3line
           SetCol(aRes,0,aGx);
           SetCol(aRes,1,aGy);
           return aRes;
        }
 };
 
+/**  Test a mapping that defines values as elementary ones & and no grad but an epsilon value*/
 class cTestMap1 : public cDataMapping<tREAL16,2,3>
 {
     public :
@@ -440,6 +470,7 @@ class cTestMap1 : public cDataMapping<tREAL16,2,3>
         }
 };
 
+/**  Test a mapping that defines values in a buffer and  no grad */
 class cTestMap2 : public cDataMapping<tREAL16,2,3>
 {
     public :
@@ -467,9 +498,9 @@ template <class TypeMap> void OneBenchMapping(cParamExeBench & aParam)
     for (int aKTest=0 ; aKTest<1000; aKTest++)
     {
         tU_INT4 aSzV = RandUnif_N(50);
-        std::vector<cPt2dLR>  aVIn;
-        std::vector<cPt3dLR>  aVOut;
-        std::vector<cDenseMatrix<tREAL16>>  aVDif;
+        std::vector<cPt2dLR>  aVIn;  // Vector of random input points
+        std::vector<cPt3dLR>  aVOut;  // Image of this point by the "Ground Truth"
+        std::vector<cDenseMatrix<tREAL16>>  aVDif; // Differiential of these point with the ground truth
         for (tU_INT4 aKP=0 ; aKP<aSzV ; aKP++)
         {
              cPt2dLR aP= cPt2dLR::PRandC();
@@ -478,13 +509,14 @@ template <class TypeMap> void OneBenchMapping(cParamExeBench & aParam)
              aVDif.push_back(cTestMapp::Grad(aP));
         }
         TypeMap aMap;
-        cDataMapping<tREAL16,2,3> * aPM = &aMap;
+        cDataMapping<tREAL16,2,3> * aPM = &aMap; // use a pointer because virtuality
         // compute vector of input
         const auto & aVO2 = aPM->Values(aVIn);
+        // check size
         MMVII_INTERNAL_ASSERT_bench(aVOut.size()==aSzV,"Sz in BenchMapping");
         MMVII_INTERNAL_ASSERT_bench(aVO2.size() ==aSzV,"Sz in BenchMapping");
 
-        // check vector  of input with grad + unbefferd
+        // check vector  of input with by buffer (VO2) and by Value elem
         for (tU_INT4 aKP=0 ; aKP<aSzV ; aKP++) 
         {
             MMVII_INTERNAL_ASSERT_bench(Norm2(aVOut[aKP] - aVO2[aKP])<1e-5,"Buf/UnBuf in mapping");
@@ -501,7 +533,9 @@ template <class TypeMap> void OneBenchMapping(cParamExeBench & aParam)
     }
 }
 
-
+/** Check efficiency MACRO_CHECK_RECURS_BEGIN, this function define no elementary value, nor
+    buffered value, so it will activate a fatal error
+*/
 
 class cBugRecMap : public cDataMapping<tREAL8,2,2>
 {

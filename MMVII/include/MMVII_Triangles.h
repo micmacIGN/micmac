@@ -10,19 +10,21 @@ class cEdgeDual
         cEdgeDual();
         cEdgeDual(int aS1,int aS2,int aF1);
         /// return 1 or 2, -1 if none and none allowed
-        int GetOtherSom(int aS,bool AllowNone)  const
+        int GetOtherSom(int aS,bool AllowNone)  const { return GetOtherObj(mS,aS,AllowNone); }
+        int GetOtherFace(int aF,bool AllowNone) const { return GetOtherObj(mF,aF,AllowNone); }
+        void SetFace2(int aF) ;
+     private :
+        typedef int  tTab2I[2];
+        int GetOtherObj(const tTab2I &aTab,int aObj,bool AllowNone)  const
         {
-            if (mI1==aS) return mI2;
-            if (mI2==aS) return mI1;
+            if (aTab[0]==aObj) return aTab[1];
+            if (aTab[1]==aObj) return aTab[0];
             MMVII_INTERNAL_ASSERT_tiny(AllowNone,"cEdgeDual::GetNumSom");
             return NO_INIT;
         }
-        void SetFace2(int aF) ;
-     private :
-        int mI1;
-        int mI2;
-        int mF1;
-        int mF2;
+
+        tTab2I  mS;
+        tTab2I  mF;
 };
 
 class cGraphDual
@@ -33,16 +35,18 @@ class cGraphDual
 
          cGraphDual();
          void Init(int aNbSom,const std::vector<tFace>&);
-         void  AddEdge(int aFace,int aS1,int aS2);
          void  AddTri(int aFace,const cPt3di &);
 
-	 std::list<int>  SuccOfSom(int aS1) const;
+         cEdgeDual * GetEdgeOfSoms(int aS1,int aS2); ///< return egde s1->s2 if it exist, else return null
+	 void  GetSomsNeighOfSom(std::vector<int> & aRes,int aS1) const;
+	 void  GetFacesNeighOfFace(std::vector<int> & aRes,int aF1) const;
      private :
-         cEdgeDual * GetEdge(int aS1,int aS2); ///< return egde s1->s2 if it exist, else return null
+         void  AddEdge(int aFace,int aS1,int aS2);
+         cGraphDual(const cGraphDual &) = delete;
 
          std::vector<tListAdj>     mSomNeigh;
          std::vector<tListAdj>     mFaceNeigh;
-         std::vector<cEdgeDual> mReserve;
+         std::list<cEdgeDual>      mReserve;
 };
 
 
@@ -64,6 +68,9 @@ template <class Type,const int Dim> class  cTriangle
        /// Barrycenter with equal weights
        tPt  Barry() const;
 
+       ///  return K such that Pt(K)Pt(K+1) is the longest
+       int  IndexLongestSeg() const;
+
        /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
        Type Regularity() const;
        /// Area of the triangle
@@ -71,6 +78,7 @@ template <class Type,const int Dim> class  cTriangle
        /// Point equidistant to 3 point,  To finish for dim 3
        tPt CenterInscribedCircle() const;
        const tPt & Pt(int aK) const;   ///< Accessor
+       const tPt & PtCirc(int aK) const;   ///<  %3, always correc even >3 or <0
        tPt KVect(int aK) const;   ///<   Pk->Pk+1
        cTplBox<Type,Dim>  BoxEngl() const;
        cTplBox<int,Dim>     BoxPixEngl() const;  // May be a bit bigger
@@ -106,10 +114,10 @@ template <class Type,const int Dim> class cTriangulation
           const std::vector<tPt> &   VPts() const;  ///< Standard Accessor
           const std::vector<tFace> & VFaces() const;  ///< Standard Accessor
 
-          int  NbFace() const;  ///< Number of faces
-          int  NbPts() const;   ///< Number of points
-          const tFace &  KthFace(int aK) const;  ///<  Faces number K
-	  const tPt  & KthPts(int aK) const;  ///< Points number K
+          size_t  NbFace() const;  ///< Number of faces
+          size_t  NbPts() const;   ///< Number of points
+          const tFace &  KthFace(size_t aK) const;  ///<  Faces number K
+	  const tPt  & KthPts(size_t aK) const;  ///< Points number K
 
           tTri  KthTri(int aK) const;  ///< Triangle corresponding to the face
 	  bool  ValidFace(const tFace &) const;  ///< is it a valide face (i.e. : all index in [0,NbPts[)
