@@ -13,6 +13,9 @@
 
 namespace MMVII
 {
+void TestParamTarg();
+
+
 namespace  cNS_CodedTarget
 {
 
@@ -109,6 +112,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         double         mDMaxMatch;
 
         bool mTest;
+	std::vector<double>  mParamBin;
 
 
 };
@@ -133,7 +137,7 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mTHRS_Sym      (0.7),
    mTHRS_Bin      (0.5),
    mImVisu        (cPt2di(1,1)),
-   mPatF          ("XXX"),
+   mPatF          (".*"),
    mWithGT        (false),
    mDMaxMatch     (2.0)
 {
@@ -160,8 +164,9 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
 	        anArgOpt
                     << AOpt2007(mDiamMinD, "DMD","Diam min for detect",{eTA2007::HDV})
                     << AOpt2007(mRaysTF, "RayTF","Rays Min/Max for testing filter",{eTA2007::HDV,eTA2007::Tuning})
-                    << AOpt2007(mPatF, "PatF","Pattern filters" ,{AC_ListVal<eDCTFilters>()})
+                    << AOpt2007(mPatF, "PatF","Pattern filters" ,{AC_ListVal<eDCTFilters>(),eTA2007::HDV})
                     << AOpt2007(mTest, "Test", "Test for Ellipse Fit", {eTA2007::HDV})
+                    << AOpt2007(mParamBin, "BinF", "Param for binary filter", {eTA2007::HDV})
 	  );
    ;
 }
@@ -374,7 +379,7 @@ StdOut() << aHC.NbBitsIn() << " " << aHC.NbBitsOut() << "\n";
      CreateDirectories(output_folder, true);
 
     int counter = 0;
-    //for (auto & aDCT : mVDCT){
+    //for (auto & aDCT : mVDCT){}
 
     for (auto aDCT : mVDCT){
         if (aDCT->mState == eResDCT::Ok){
@@ -669,6 +674,8 @@ bool cAppliExtractCodeTarget::plotSafeRectangle(cRGBImage image, cPt2di point, d
 // ---------------------------------------------------------------------------
 // Function to inspect a matrix in R
 // ---------------------------------------------------------------------------
+
+// EIGEN
 void cAppliExtractCodeTarget::printMatrix(MatrixXd M){
     StdOut() << "================================================================\n";
     StdOut() << "M = matrix(c(\n";
@@ -733,7 +740,9 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
 		M(2,i) = +M1(0,i)/2.0;
 	}
 
-	Eigen::EigenSolver<Eigen::Matrix<double, 3,3>> eigensolver(M);
+	MMVII_INTERNAL_ERROR("This doesnt compiles");
+#if (0)
+	Eigen::EigenSolver<Eigen::Matrix<double, 3,3>> eigensolver(M);  // YANN : HERE IS THE PROBLEM
 
 	auto P = eigensolver.eigenvectors();
 
@@ -768,6 +777,7 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
     output[3] = D - B*v - 2*A*u;
     output[4] = E - 2*C*v - B*u;
     output[5] = F + A*u*u  + C*v*v + B*u*v  - D*u - E*v;
+#endif
 
     return 0;
 
@@ -1022,12 +1032,14 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
    return EXIT_SUCCESS;
 }
 
+
 int  cAppliExtractCodeTarget::Exe()
 {
 
 
 if (mTest){
 
+	TestParamTarg();
         return 0;
 
     }
@@ -1059,7 +1071,7 @@ if (mTest){
 
 
    return EXIT_SUCCESS;
-}
+} 
 };
 
 
@@ -1088,3 +1100,4 @@ cSpecMMVII_Appli  TheSpecExtractCodedTarget
 
 
 };
+

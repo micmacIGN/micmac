@@ -297,6 +297,7 @@ int  cAppliSimulCodeTarget::Exe()
 
    mImIn = tIm::FromFile(mNameIm);
 
+
    for (int aNum = 0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerN)
    {
         AddPosTarget(aNum);

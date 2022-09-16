@@ -141,8 +141,8 @@ class cCodesOf1Target
       void AddOneCode(const tBinCodeTarg &);
       void  Show();
       const tBinCodeTarg & CodeOfNumC(int) const;
-      int   Num() const;
-      int getCodeLength();
+      int  Num() const;
+      int getCodeLength() const;
    private :
       int                        mNum;
       std::vector<tBinCodeTarg>  mCodes;
