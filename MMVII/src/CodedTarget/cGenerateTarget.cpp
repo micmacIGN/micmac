@@ -368,7 +368,7 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT,
                 aDImT.SetV(cPt2di(px, py), 255*(1-hammingBinaryCode[k]));
             }
         }
-        StdOut() << hammingBinaryCode[k] << ",";
+        StdOut() << hammingBinaryCode[k];
     }
 
     StdOut() << "   ";
