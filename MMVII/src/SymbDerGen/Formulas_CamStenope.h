@@ -564,7 +564,8 @@ class cUnDefinedAtPole
 class cProjStenope : public cDefinedZPos
 {
    public :
-        static const std::string & NameProj() {static std::string aName("Stenope"); return aName;}
+        //  static const std::string & NameProj() {static std::string aName("Stenope"); return aName;}
+        static eProjPC  TypeProj() {return eProjPC::eStenope;}
 
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
@@ -590,10 +591,12 @@ class cProjStenope : public cDefinedZPos
 };
 
      /** class that allow to generate code from formulas */
-template <class  TypeProj>  class cFormulaProj
+/*
+template <class  T ypeProj>  class cFormulaProj
 {
     public :
 };
+*/
 
    // ==========================================================
 
@@ -603,7 +606,8 @@ class cProjFE_EquiDist : public cUnDefinedAtPole
 {
    public :
 
-        static const std::string & NameProj() {static std::string aName("FE_EquiDist"); return aName;}
+        //static const std::string & NameProj() {static std::string aName("FE_EquiDist"); return aName;}
+        static eProjPC  TypeProj() {return eProjPC::eFE_EquiDist;}
 /*
   theoretically :
          R = sqrt(X^2+Y2)  tan(teta)=R/Z   teta = atan2(R,Z)
@@ -670,7 +674,8 @@ class cProjFE_EquiDist : public cUnDefinedAtPole
 class cProjStereroGraphik : public cUnDefinedAtPole
 {
    public :
-        static const std::string & NameProj() {static std::string aName("FE_StereoGr"); return aName;}
+        // static const std::string & NameProj() {static std::string aName("FE_StereoGr"); return aName;}
+        static eProjPC  TypeProj() {return eProjPC::eStereroGraphik;}
 /*  Theory :
         r=sqrt(X2+Y2)  R = sqrt(X2+Y2+Z2)   r' = r/R  z'=Z/R
 
@@ -744,7 +749,8 @@ class cProjOrthoGraphic : public cDefinedZPos
     Direct N = vunit(P)  => N.x,Ny
     Invese Norm(N) = sin(alpha) , cos = sqrt(1-sin^2) 
 */
-        static const std::string & NameProj() {static std::string aName("FE_OrthoGr"); return aName;}
+        // static const std::string & NameProj() {static std::string aName("FE_OrthoGr"); return aName;}
+        static eProjPC  TypeProj() {return eProjPC::eOrthoGraphik;}
 
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
@@ -783,7 +789,8 @@ class cProjOrthoGraphic : public cDefinedZPos
 class cProjFE_EquiSolid  : public cUnDefinedAtPole
 {
    public :
-        static const std::string & NameProj() {static std::string aName("FE_EquiSolid"); return aName;}
+        // static const std::string & NameProj() {static std::string aName("FE_EquiSolid"); return aName;}
+        static eProjPC  TypeProj() {return eProjPC::eFE_EquiSolid;}
 /* Theory
     R2 = X2 +Y2+Z2   , r2 = X2+Y2
     (X,Y,Z)  = R (sin A,0,cos A) ->  2 sin(A/2) = L  
@@ -834,13 +841,16 @@ class cProjFE_EquiSolid  : public cUnDefinedAtPole
         }
 };
 
+std::string FormulaName_ProjDir(eProjPC aProj);
+std::string FormulaName_ProjInv(eProjPC aProj);
+
 template <typename tProj> class   cGenCode_ProjDir
 {
 	public :
             static const std::vector<std::string> VNamesUnknowns() { return {"PtX","PtY","PtZ"}; }
             static const std::vector<std::string> VNamesObs()      { return {}; }
 
-            std::string FormulaName() const { return "Dir_" + tProj::NameProj();}
+            std::string FormulaName() const { return  FormulaName_ProjDir(tProj::TypeProj());}
 
 	    template <typename tUk>
                      std::vector<tUk> formula
@@ -854,13 +864,15 @@ template <typename tProj> class   cGenCode_ProjDir
 
 
 };
+
+
 template <typename tProj> class   cGenCode_ProjInv
 {
 	public :
             static const std::vector<std::string> VNamesUnknowns() { return {"PixI","PixJ"}; }
             static const std::vector<std::string> VNamesObs()      { return {}; }
 
-            std::string FormulaName() const { return "Inv_" + tProj::NameProj();}
+            std::string FormulaName() const { return FormulaName_ProjInv(tProj::TypeProj());}
 
 	    template <typename tUk>
                      std::vector<tUk> formula

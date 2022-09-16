@@ -407,6 +407,18 @@ enum class eDCTFilters
    eNbVals
 };
 
+enum class eProjPC
+{
+     eStenope,
+     eFE_EquiDist,
+     eFE_EquiSolid,
+     eStereroGraphik,
+     eOrthoGraphik,
+     eNbVals
+};
+
+
+const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         

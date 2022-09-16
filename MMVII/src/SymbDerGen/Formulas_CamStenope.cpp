@@ -8,6 +8,10 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
+std::string FormulaName_ProjDir(eProjPC aProj) {return  "Dir_" + E2Str(aProj);}
+std::string FormulaName_ProjInv(eProjPC aProj) {return  "Inv_" + E2Str(aProj);}
+
 std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix)
 {
    return std::vector<std::string> 

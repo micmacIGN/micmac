@@ -18,15 +18,22 @@ La compil:
 */
 
 using namespace NS_SymbolicDerivative;
-using namespace MMVII;
+// using namespace MMVII;
 
-namespace NS_GenerateCode
+namespace MMVII
 {
 
+std::string NameFormulaOfStr(const std::string & aName,bool WithDerive)
+{
+   return  aName +  std::string(WithDerive ?"VDer":"Val");
+}
 template <typename TypeFormula> std::string NameFormula(const TypeFormula & anEq,bool WithDerive)
 {
-   return  anEq.FormulaName() +  std::string(WithDerive ?"VDer":"Val");
+   return  NameFormulaOfStr(anEq.FormulaName(),WithDerive);
+   //return  anEq.FormulaName() +  std::string(WithDerive ?"VDer":"Val");
 }
+
+
 
 // EqBaseFuncDist
 std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive,bool ForBase )
@@ -86,15 +93,6 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
           cPt3dr aQ3 =  aProj.ToDirBundle(aQ2);
 	  double aDif = Norm2(AxeK-aQ3) - Norm2(AxeK-aRay3d);
           MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-8,"Proj/ToDirBundle");
-	 /*
-	  *
-	  StdOut() << "DDDdddd " << aDif  << "\n";
-
-	  //double aRho = Norm2(cPt2dr(xi,yi));
-	  // cPt2dr aPt2 = FromPolar(aRho,RandUnif_C()*10);
-	  */
-
-
 
           aK++;
        }
@@ -104,10 +102,18 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
    cPt3dr aPtZ = cPt3dr::FromStdVector(TyProj::ToDirBundle(aV00));
    MMVII_INTERNAL_ASSERT_bench(Norm2(aPtZ-AxeK)<1e-8,"Proj/ToDirBundle");
 
+   if  (1)
+   {
+        cCalculator<double> *  aCalcDirDev = EqCPProjDir(TyProj::TypeProj(),true,10);
+	StdOut()  << " aCalcDirDev " << aCalcDirDev << "\n";
+
+	delete aCalcDirDev;
+   }
+
 
    if (aParam.Show())
    {
-      StdOut() << "NAME=" << TyProj::NameProj() << "\n";
+      StdOut() << "NAME=" << E2Str(TyProj::TypeProj()) << "\n";
    }
 }
 
@@ -124,8 +130,6 @@ void BenchProjToDirBundle(cParamExeBench & aParam)
    OneBenchProjToDirBundle<cProjStereroGraphik> (aParam);
    OneBenchProjToDirBundle<cProjOrthoGraphic> (aParam);
    OneBenchProjToDirBundle<cProjFE_EquiSolid> (aParam);
-/*
-*/
 }
 
 
@@ -159,6 +163,8 @@ class cAppliGenCode : public cMMVII_Appli
         std::string mDirGenCode;
         void GenerateOneDist(const cPt3di & aDeg) ;
         template <typename tProj> void GenerateCodeProjCentralPersp();
+
+	eProjPC  mTypeProj;
 };
 
 
@@ -188,7 +194,9 @@ cCollecSpecArg2007 & cAppliGenCode::ArgObl(cCollecSpecArg2007 & anArgObl)
 cCollecSpecArg2007 & cAppliGenCode::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return
-      anArgOpt;
+      anArgOpt
+         << AOpt2007(mTypeProj,"TypeProj","Type of projection for specific generation",{AC_ListVal<eProjPC>()})
+      ;
 }
 
 
@@ -244,6 +252,11 @@ template <typename tProj> void cAppliGenCode::GenerateCodeProjCentralPersp()
 
 int cAppliGenCode::Exe()
 {
+   if (IsInit(&mTypeProj))
+   {
+       // will process later ...
+       return EXIT_SUCCESS;
+   }
    cGenNameAlloc::Reset();
    mDirGenCode = TopDirMMVII() + "src/GeneratedCodes/";
 
@@ -319,11 +332,6 @@ tMMVII_UnikPApli Alloc_GenCode(const std::vector<std::string> &  aVArgs,const cS
    return tMMVII_UnikPApli(new cAppliGenCode(aVArgs,aSpec));
 }
 
-} // NS_GenerateCode
-
-using namespace NS_GenerateCode;
-namespace MMVII
-{
 
 cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
 { 
@@ -369,6 +377,18 @@ cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf)
      return cName2Calc<double>::CalcFromName(NameFormula(cDeformImHomotethy(),WithDerive),aSzBuf);
 }
 
+//  Projection
+cCalculator<double> * EqCPProjDir(eProjPC  aType,bool WithDerive,int aSzBuf)
+{ 
+    return cName2Calc<double>::CalcFromName(NameFormulaOfStr(FormulaName_ProjDir(aType),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf)
+{ 
+    return cName2Calc<double>::CalcFromName(NameFormulaOfStr(FormulaName_ProjInv(aType),WithDerive),aSzBuf);
+}
+
+
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
 {
    cMMVIIUnivDist  aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
@@ -377,10 +397,11 @@ std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
 }
 
 
+
 cSpecMMVII_Appli  TheSpecGenSymbDer
 (
      "GenCodeSymDer",
-      NS_GenerateCode::Alloc_GenCode,
+      Alloc_GenCode,
       "Generation of code for symbolic derivatives",
       {eApF::ManMMVII},
       {eApDT::ToDef},

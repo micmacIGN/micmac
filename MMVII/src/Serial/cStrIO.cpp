@@ -178,6 +178,7 @@ template <>  std::string cStrIO<ETYPE>::ToStr(const ETYPE & anEnum) { return  E2
 template <>  ETYPE cStrIO<ETYPE>::FromStr(const std::string & aStr) { return Str2E<ETYPE>(aStr); }\
 template <>  const std::string cStrIO<ETYPE>::msNameType = ENAME;
 
+MACRO_INSTANTITATE_STRIO_ENUM(eProjPC,"ProjPC")
 MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")

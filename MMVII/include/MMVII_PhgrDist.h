@@ -97,6 +97,14 @@ NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistProgCov(bool WithD
 /// For propag in network  W/O covariance (i.e propagate directly the points)
 NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,const cPt2di& aSzN,bool WithSimUK);
 
+///  For computing central perspectives projections     R3->R2
+NS_SymbolicDerivative::cCalculator<double> * EqCPProjDir(eProjPC  aType,bool WithDerive,int aSzBuf);
+///  For computing projections "inverse"   R2->R3 , return in fact direction of  bundle
+NS_SymbolicDerivative::cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf);
+
+
+
+
 
 
 

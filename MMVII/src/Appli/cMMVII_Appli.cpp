@@ -964,9 +964,10 @@ void cMMVII_Appli::GenerateHelp()
                 }
 */
                 }
+	        if (DoIt)
+                    PrintAdditionnalComments(Arg);
              }
           }
-          PrintAdditionnalComments(Arg);
       }
    }
    HelpOut() << "\n";
