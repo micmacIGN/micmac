@@ -132,6 +132,20 @@ template<> cE2Str<eOpAff>::tMapE2Str cE2Str<eOpAff>::mE2S
            };
 TPL_ENUM_2_STRING(eOpAff);
 
+
+template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
+           {
+               {eProjPC::eStenope,"Stenope"},
+               {eProjPC::eFE_EquiDist,"FE_EquiDist"},
+               {eProjPC::eFE_EquiSolid,"FE_EquiSolid"},
+               {eProjPC::eStereroGraphik,"StereroGraphik"},
+               {eProjPC::eOrthoGraphik,"OrthoGraphik"}
+           };
+TPL_ENUM_2_STRING(eProjPC);
+
+
+
+
 template<> cE2Str<eTySC>::tMapE2Str cE2Str<eTySC>::mE2S
            {
                            {eTySC::NonInit,MMVII_NONE},
@@ -378,6 +392,7 @@ void BenchEnum(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Enum")) return;
 
+    TplBenchEnum<eProjPC>();
     TplBenchEnum<eOpAff>();
     TplBenchEnum<eTySC>();
     TplBenchEnum<eTA2007>();

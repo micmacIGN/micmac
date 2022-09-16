@@ -8,6 +8,10 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
+std::string FormulaName_ProjDir(eProjPC aProj) {return  "Dir_" + E2Str(aProj);}
+std::string FormulaName_ProjInv(eProjPC aProj) {return  "Inv_" + E2Str(aProj);}
+
 std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix)
 {
    return std::vector<std::string> 
@@ -21,116 +25,11 @@ std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix)
           };
 }
 
-/*
-void FFF()
-{
-   std::vector<double> aV;
-
-   FormalBilinIm2D_Formula(aV,0,1.0,1.0);
-
-   std::vector<cFormula<tREAL8> > aVF;
-   FormalBilinIm2D_Formula(aVF,0,aVF.back(),aVF.back());
-
-   cIm2D<tU_INT2> aIm(cPt2di(10,10));
-   FormalBilinIm2D_SetObs(aV,8,cPt2dr(0.4,1.5),aIm);
-
-}
-	
-
-template <class Type> class cFormulaBilinIm2D
-{
-       public :
-          // cGenerateFormulaOnIm2D(const std::string & aPrefix);
-	  typedef cFormula<Type> tFormula;
-
-          static std::vector<std::string> NameObs(const std::string & aPrefix);
-
-	  tFormula  BilinVal(const std::vector<tFormula> & aVObs,int aKObs0,const tFormula&  FX,const tFormula& FY);
-
-	  static void InitObs(std::vector<Type> & aVObs,int aK0,cPt2dr aPt,cIm2D<tREAL4> aIm);
-	  static void InitObs(std::vector<Type> & aVObs,int aK0,cPt2dr aPt,cIm2D<tU_INT1> aIm);
-};
-
-
-
-template <class Type>   
-   std::vector<std::string> cFormulaBilinIm2D<Type>::NameObs(const std::string & aPrefix)
-{
-   return std::vector<std::string> 
-          {
-              "PtX0_" + aPrefix,
-              "PtY0_" + aPrefix,
-              "Im00_" + aPrefix,
-              "Im10_" + aPrefix,
-              "Im01_" + aPrefix,
-              "Im11_" + aPrefix
-          };
-}
-
-template <class Type>   
-	 cFormula<Type> cFormulaBilinIm2D<Type>::BilinVal
-	                (
-                            const std::vector<tFormula> & aVObs,
-                            int aKObs0,
-                            const tFormula&  FX,
-                            const tFormula& FY
-                         )
-{
-    tFormula aX0 = aVObs.at(aKObs0  );
-    tFormula aY0 = aVObs.at(aKObs0+1);
-    tFormula aCst1 = CreateCste(1.0,aX0);  // create a symbolic formula for constant 1
-
-    tFormula aWX1 = FX -aX0;
-    tFormula aWX0 = aCst1 - aWX1;
-    tFormula aWY1 = FY -aY0;
-    tFormula aWY0 = aCst1 - aWY1;
-
-
-    return 
-	    aWX0 * aWY0 * aVObs.at(aKObs0+2)
-	  + aWX1 * aWY0 * aVObs.at(aKObs0+3)
-	  + aWX0 * aWY1 * aVObs.at(aKObs0+4)
-	  + aWX1 * aWY1 * aVObs.at(aKObs0+5) ;
-
-}
-
-template <class Type,class TypeIm>   
-   void GlobInitObs(std::vector<Type> & aVObs,int aK0,cPt2dr aPt,cIm2D<TypeIm> aIm)
-{
-     const cDataIm2D<TypeIm> & aDIm = aIm.DIm();
-     cPt2di aP0 = Pt_round_down(aPt);
-
-     aVObs.at(aK0)   = aPt.x();
-     aVObs.at(aK0+1) = aPt.y();
-     aVObs.at(aK0+2) = aDIm.GetV(aP0);
-     aVObs.at(aK0+3) = aDIm.GetV(aP0+cPt2di(1,0));
-     aVObs.at(aK0+4) = aDIm.GetV(aP0+cPt2di(0,1));
-     aVObs.at(aK0+5) = aDIm.GetV(aP0+cPt2di(1,1));
-}
-
-
-template <class Type>   
-	  void cFormulaBilinIm2D<Type>::InitObs(std::vector<Type> & aVObs,int aK0,cPt2dr aPt,cIm2D<tREAL4> aIm)
-{
-   GlobInitObs(aVObs,aK0,aPt,aIm);
-}
-template <class Type>   
-	  void cFormulaBilinIm2D<Type>::InitObs(std::vector<Type> & aVObs,int aK0,cPt2dr aPt,cIm2D<tU_INT1> aIm)
-{
-   GlobInitObs(aVObs,aK0,aPt,aIm);
-}
-
-template class cFormulaBilinIm2D<tREAL8>;
-
-*/
-
 /* ******************************** */
 /*                                  */
 /*         cDescOneFuncDist         */
 /*                                  */
 /* ******************************** */
-
-
 
 
 
@@ -207,21 +106,6 @@ double  MajNormJacOfRho
 
    return aRes;
 }
-
-
-/*
-double  MajNormJacOfRho
-        (
-             const cPtxd<double> & aCenter,
-             const cTplBox<Type,2> & aBox,
-             const std::vector<cDescOneFuncDist> & aVDesc,
-             const std::vector<double> & aVCoef
-        )
-{
-    double aRes =0.0;
-    typename cTplBox<double,2>::tCorner  aTabC;
-}
-*/
 
 
 

@@ -379,7 +379,7 @@ StdOut() << aHC.NbBitsIn() << " " << aHC.NbBitsOut() << "\n";
      CreateDirectories(output_folder, true);
 
     int counter = 0;
-    //for (auto & aDCT : mVDCT){
+    //for (auto & aDCT : mVDCT){}
 
     for (auto aDCT : mVDCT){
         if (aDCT->mState == eResDCT::Ok){
@@ -674,6 +674,8 @@ bool cAppliExtractCodeTarget::plotSafeRectangle(cRGBImage image, cPt2di point, d
 // ---------------------------------------------------------------------------
 // Function to inspect a matrix in R
 // ---------------------------------------------------------------------------
+
+// EIGEN
 void cAppliExtractCodeTarget::printMatrix(MatrixXd M){
     StdOut() << "================================================================\n";
     StdOut() << "M = matrix(c(\n";
@@ -738,7 +740,9 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
 		M(2,i) = +M1(0,i)/2.0;
 	}
 
-	Eigen::EigenSolver<Eigen::Matrix<double, 3,3>> eigensolver(M);
+	MMVII_INTERNAL_ERROR("This doesnt compiles");
+#if (0)
+	Eigen::EigenSolver<Eigen::Matrix<double, 3,3>> eigensolver(M);  // YANN : HERE IS THE PROBLEM
 
 	auto P = eigensolver.eigenvectors();
 
@@ -773,6 +777,7 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
     output[3] = D - B*v - 2*A*u;
     output[4] = E - 2*C*v - B*u;
     output[5] = F + A*u*u  + C*v*v + B*u*v  - D*u - E*v;
+#endif
 
     return 0;
 
@@ -1066,7 +1071,7 @@ if (mTest){
 
 
    return EXIT_SUCCESS;
-}
+} 
 };
 
 
@@ -1095,3 +1100,4 @@ cSpecMMVII_Appli  TheSpecExtractCodedTarget
 
 
 };
+

@@ -895,7 +895,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     {
        // ---------  2-B  case where we use  the decomposition covariance as sum of SqL,  #PC2
        cSetIORSNL_SameTmp<Type> aSetIO; // structure for schur subst
-       for (const auto anElemLin : mDSSL.VElems()) // parse all linear system
+       for (const auto & anElemLin : mDSSL.VElems()) // parse all linear system
        {
            cResidualWeighter<Type>  aRW(anElemLin.mW);  // the weigth as given by eigen values
            std::vector<Type> aVObs = anElemLin.mCoeff.ToStdVect(); // coefficient of the linear forme

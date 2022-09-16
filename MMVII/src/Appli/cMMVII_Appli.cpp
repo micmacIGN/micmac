@@ -368,6 +368,7 @@ void cMMVII_Appli::InitParam()
       // <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})
       <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",aGlob)
       <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aGlobHDV)
+      <<  AOpt2007(msWithWarning,GOP_WW,"Do we print warnings",aGlobHDV)
       <<  AOpt2007(mNbProcAllowed,GOP_NbProc,"Number of process allowed in parallelisation",aGlobHDV)
       <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Global})
       <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for add,"+ MMVII_NONE + "for no out)",aGlob)
@@ -963,9 +964,10 @@ void cMMVII_Appli::GenerateHelp()
                 }
 */
                 }
+	        if (DoIt)
+                    PrintAdditionnalComments(Arg);
              }
           }
-          PrintAdditionnalComments(Arg);
       }
    }
    HelpOut() << "\n";
@@ -1083,6 +1085,9 @@ int  cMMVII_Appli::DefSeedRand()
    return msDefSeedRand;
 }
 
+bool cMMVII_Appli::msWithWarning =  true;
+bool cMMVII_Appli::WithWarnings() {return  msWithWarning;}
+
     // ========== Miscelaneous functions =================
 
 void cMMVII_Appli::AssertInitParam() const
@@ -1197,7 +1202,7 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
    for (const auto & aPOpt : anAOpt.V())
    {
        // Special case, it may have be add by the auto recal process , but it will be handled separately
-       if ((aPOpt.first != GIP_LevCall) && (aPOpt.first !=GIP_PGMA) && (aPOpt.first !=GIP_DirProjGMA))
+       if ((aPOpt.first != GIP_LevCall) && (aPOpt.first !=GIP_PGMA) && (aPOpt.first !=GIP_DirProjGMA)&& (aPOpt.first!=GOP_WW))
        {
           std::string aVal = aPOpt.second;
           int aKSubst=0;
@@ -1222,6 +1227,7 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
    aRes.AddArgs(GIP_LevCall + "=" + ToStr(mLevelCall+1));
    aRes.AddArgs(GIP_PGMA + "=" + mPrefixGMA);
    aRes.AddArgs(GIP_DirProjGMA + "=" + mDirProjGMA);
+   aRes.AddArgs(GOP_WW + "=" +  ToStr(WithWarnings()));
    // aRes.AddArgs(GIP_PGMA + "=" + mPrefixGMA);
 
    // If no substitution, it means it was to be added simply

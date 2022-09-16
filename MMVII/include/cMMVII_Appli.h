@@ -323,6 +323,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         int ExtSysCall(const std::string & aCom, bool SVP);
 
 
+        static bool WithWarnings();
         /// MMVII call itself
         int   ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,bool ByLineCom=true); 
         void  ExeMultiAutoRecallMMVII
@@ -445,6 +446,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static int                                TheNbCallInsideP;  ///< Number of Appli created in the same process
         static bool                               msInDstructor;  ///< Some caution must be taken once destruction has begun
         static const int                          msDefSeedRand;  ///<  Default value for Seed random generator
+	static bool                               msWithWarning;  ///<   do we print warnings
         void                                      AssertInitParam() const; ///< Check Init was called
     protected :
         virtual int                               DefSeedRand();  ///< Clas can redefine instead of msDefSeedRand, value <=0 mean init from time:w

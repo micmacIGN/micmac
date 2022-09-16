@@ -5,22 +5,6 @@ namespace MMVII
 bool NeverHappens() {return false;}
 
 
-/*
-class cMMVII_Warning
-{
-    int           mCpt;
-    std::string   mMes;
-    int           mLine;
-    std::string   mFile;
-  public :
-    cMMVII_Warning(const std::string & aMes,int aLine,const std::string &  aFile);
-    ~cMMVII_Warning();
-    void Activate();
-};
-
-#define MMVII_WARGING(MES) {static cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
-*/
-
 cMMVII_Warning::cMMVII_Warning(const std::string & aMes,int aLine,const std::string &  aFile) :
    mCpt     (0),
    mMes     (aMes),
@@ -34,7 +18,8 @@ cMMVII_Warning::~cMMVII_Warning()
     if (mCpt==0) return;
 
     // At this step StdOut() may have be destroyed
-    std::cout << "##   - Nb Warning "<< mCpt << ", for :[" << mMes<<"]\n";
+    if (cMMVII_Appli::WithWarnings())
+       std::cout << "##   - Nb Warning "<< mCpt << ", for :[" << mMes<<"]\n";
 }
 
 void cMMVII_Warning::Activate()
@@ -43,8 +28,11 @@ void cMMVII_Warning::Activate()
 
    if (mCpt!=1) 
       return;
-   StdOut() << "   - MVII Warning at line " <<  mLine << " of " << mFile << "\n";
-   StdOut() << "   - " << mMes << "\n";
+   if (cMMVII_Appli::WithWarnings())
+   {
+      StdOut() << "   - MVII Warning at line " <<  mLine << " of " << mFile << "\n";
+      StdOut() << "   - " << mMes << "\n";
+   }
 }
 
 
