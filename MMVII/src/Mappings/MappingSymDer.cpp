@@ -141,6 +141,9 @@ template <class Type,const int DimIn,const int DimOut>
 
 
 template class cDataMapCalcSymbDer<tREAL8,2,2> ;
+template class cDataMapCalcSymbDer<tREAL8,2,3> ;
+template class cDataMapCalcSymbDer<tREAL8,3,2> ;
+template class cDataMapCalcSymbDer<tREAL8,3,3> ;
 
 
 /* ============================================= */

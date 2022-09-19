@@ -50,6 +50,22 @@ std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive,bool ForBase )
 /*      BENCH  PART             */
 /* **************************** */
 
+
+typedef std::pair<cPt2dr,cPt3dr>  tPair23;
+
+/** Generate a pair P2/P3 mutually homologous and in validity domain for proj */
+template<class TyProj> tPair23  GenerateRandPair4Proj()
+{
+   tPair23 aRes(cPt2dr(0,0), cPt3dr::PRandUnitDiff(cPt3dr(0,0,0),1e-3));
+   while (TyProj::DegreeDef(aRes.second)<1e-5)
+       aRes.second =  cPt3dr::PRandUnitDiff(cPt3dr(0,0,0),1e-3);
+   cHelperProj<TyProj> aProj;
+   aRes.first =  aProj.Proj(aRes.second);
+   aRes.second =  aProj.ToDirBundle(aRes.first);
+
+   return aRes;
+}
+
 template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
 {
    cHelperProj<TyProj> aProj;
@@ -71,28 +87,29 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
    cPt3dr AxeK(0,0,1);
    for (int aK=0 ; aK<10000 ; )
    {
-       cPt3dr aP000(0,0,0);
-       cPt3dr aPt3d =  cPt3dr::PRandUnitDiff(aP000);
-       if (TyProj::DegreeDef(aPt3d)>1e-5)
        {
+          tPair23  aP23 = GenerateRandPair4Proj<TyProj>();
+
           // 1- test inversion
-          cPt2dr aProj2 =  aProj.Proj(aPt3d);
-          cPt3dr aRay3d =  aProj.ToDirBundle(aProj2);
+          cPt2dr aProj2 =  aProj.Proj(aP23.second);
+          cPt3dr aRay3d =  aProj.ToDirBundle(aP23.first);
    
-          MMVII_INTERNAL_ASSERT_bench(std::abs(Cos(aPt3d,aRay3d)-1.0)<1e-8,"Inversion Proj/ToDirBundle");
+          MMVII_INTERNAL_ASSERT_bench(Norm2(aP23.second-aRay3d)<1e-8,"Inversion Proj/ToDirBundle");
 
-          // 2- test radiality  , conservation of angles :  aRay2, aRay3d, AxeK  must be coplanar
-          cPt3dr aRay2(aProj2.x(),aProj2.y(),1.0);
-	  double aDet =  Scal(AxeK,aRay2^aRay3d) ;
-	     //   StdOut() <<  "DETtt " << aDet << "\n";
-          MMVII_INTERNAL_ASSERT_bench(std::abs(aDet)<1e-8,"Proj/ToDirBundle");
+	  if (1) // 2- test radiality  => to skeep for non physical proj like 360 synthetic image
+	  {
+          // 2.1  , conservation of angles :  aRay2, aRay3d, AxeK  must be coplanar
+              cPt3dr aRay2(aProj2.x(),aProj2.y(),1.0);
+	      double aDet =  Scal(AxeK,aRay2^aRay3d) ;
+              MMVII_INTERNAL_ASSERT_bench(std::abs(aDet)<1e-8,"Proj/ToDirBundle");
 
-          // 3- test radiality  , conservation of distance , image of circle is a cylinder
+          // 2.2- test radiality  , conservation of distance , image of circle is a cylinder
 
-          cPt2dr aQ2 =  aProj2 * FromPolar(1.0,RandUnif_C()*10);
-          cPt3dr aQ3 =  aProj.ToDirBundle(aQ2);
-	  double aDif = Norm2(AxeK-aQ3) - Norm2(AxeK-aRay3d);
-          MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-8,"Proj/ToDirBundle");
+              cPt2dr aQ2 =  aProj2 * FromPolar(1.0,RandUnif_C()*10);
+              cPt3dr aQ3 =  aProj.ToDirBundle(aQ2);
+	      double aDif = Norm2(AxeK-aQ3) - Norm2(AxeK-aRay3d);
+              MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-8,"Proj/ToDirBundle");
+	  }
 
           aK++;
        }
@@ -102,12 +119,44 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
    cPt3dr aPtZ = cPt3dr::FromStdVector(TyProj::ToDirBundle(aV00));
    MMVII_INTERNAL_ASSERT_bench(Norm2(aPtZ-AxeK)<1e-8,"Proj/ToDirBundle");
 
-   if  (1)
+   if  (1)  // to skeep if code not generated ...
    {
-        cCalculator<double> *  aCalcDirDev = EqCPProjDir(TyProj::TypeProj(),true,10);
-	StdOut()  << " aCalcDirDev " << aCalcDirDev << "\n";
+	cDataMapCalcSymbDer<tREAL8,3,2> aProjDir
+        (
+            EqCPProjDir(TyProj::TypeProj(),false,10),
+            EqCPProjDir(TyProj::TypeProj(),true,10),
+            std::vector<tREAL8>(),
+            true
+        );
+	cDataMapCalcSymbDer<tREAL8,2,3> aProjInv
+        (
+            EqCPProjInv(TyProj::TypeProj(),false,10),
+            EqCPProjInv(TyProj::TypeProj(),true,10),
+            std::vector<tREAL8>(),
+            true
+        );
+        for (int aK=0 ; aK<10000 ; )
+        {
+            size_t aNb = 1+ RandUnif_N(100);
+	    std::vector<cPt2dr>  aVP2;  // input for projinv
+	    std::vector<cPt3dr>  aVP3;  // out put forproj
 
-	delete aCalcDirDev;
+	    while (aVP2.size() < aNb)
+	    {
+                tPair23  aP23 = GenerateRandPair4Proj<TyProj>();
+		aVP2.push_back(aP23.first);
+		aVP3.push_back(aP23.second);
+	    }
+	    // static cast because Values(POut,PIn) is defined in class and hides definition in upper class ..
+	    const std::vector<cPt2dr> & aVQ2 = static_cast<cDataMapping<tREAL8,3,2>&>(aProjDir).Values(aVP3);
+	    const std::vector<cPt3dr> & aVQ3 = static_cast<cDataMapping<tREAL8,2,3>&>(aProjInv).Values(aVP2);
+	    for (size_t aKp=0 ;  aKp< aNb ; aKp++)
+	    {
+                MMVII_INTERNAL_ASSERT_bench(Norm2(aVP2[aKp]-aVQ2[aKp])<1e-8,"Proj/ToDirBundle");
+                MMVII_INTERNAL_ASSERT_bench(Norm2(aVP3[aKp]-aVQ3[aKp])<1e-8,"Proj/ToDirBundle");
+	    }
+	    aK += aNb;
+        }
    }
 
 
