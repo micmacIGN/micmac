@@ -80,8 +80,8 @@ using tSubGrNSI = ElSubGraphe<cNOSolIn_AttrSom, cNOSolIn_AttrArc>;
 
 using tHeapTriNSI = ElHeap<cLinkTripl*, cNO_CmpTriByCost, cNO_HeapIndTri_NSI>;
 
-using tMapM = cStructMergeTieP<cFixedSizeMergeTieP<3, Pt2dr, cCMT_NoVal>>;
 using tElM = cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal>;
+using tMapM = cStructMergeTieP<tElM>;
 using tListM = std::list<tElM *>;
 
 
@@ -108,7 +108,6 @@ class cNOSolIn_AttrSom {
     std::vector<cLinkTripl>& Lnk3() { return mLnk3; }
     int& NumCC() { return mNumCC; }
     int& NumId() { return mNumId; }
-    CamStenope* Camera() { return camera; }
 
    private:
     std::string mName;
@@ -118,7 +117,6 @@ class cNOSolIn_AttrSom {
     std::vector<cLinkTripl> mLnk3;
     ElRotation3D mCurRot;
     ElRotation3D mTestRot;
-    CamStenope* camera;
 
     // unique Id, corresponds to the distance of the triplet
     // which built/included this node in the solution;
@@ -181,10 +179,13 @@ class cNOSolIn_Triplet {
 
     float CostArc() const { return mCostArc; }
     float& CostArc() { return mCostArc; }
+
     float CostArcMed() const { return mCostArcMed; }
     float& CostArcMed() { return mCostArcMed; }
+
     std::vector<double>& CostArcPerSample() { return mCostArcPerSample; };
     std::vector<double>& DistArcPerSample() { return mDistArcPerSample; };
+
     double PdsSum() const { return mPdsSum; }
     double& PdsSum() { return mPdsSum; }
     double CostPdsSum() const { return mCostPdsSum; }
@@ -198,6 +199,7 @@ class cNOSolIn_Triplet {
     cNOSolIn_Triplet(const cNOSolIn_Triplet&);  // N.I.
     RandomForest* mAppli;
     tSomNSI* mSoms[3];
+    // Arc between 
     tArcNSI* mArcs[3];
 
     tTriPointList mHomolPts;
@@ -346,7 +348,9 @@ class Dataset {
     tGrNSI mGr;
 
     ElFlagAllocator mAllocFlag3;
+    // Flag to indicate if tripplet was visited
     int mFlag3CC;
+    // Flag to indicate if sommit was visited
     int mFlagS;
 
     /*
@@ -413,6 +417,8 @@ class RandomForest : public cCommonMartiniAppli {
 
     void RandomSolAllCC(Dataset& data);
     void RandomSolOneCC(Dataset& data, cNO_CC_TripSom*);
+
+    void RandomSolAllCC(Dataset& data, cNO_CC_TripSom* aCC);
     void RandomSolOneCC(Dataset& data, cNOSolIn_Triplet* seed, int NbSomCC);
 
     void BestSolAllCC(Dataset& data);
@@ -426,7 +432,8 @@ class RandomForest : public cCommonMartiniAppli {
 
     void CoherTriplets(Dataset& data);
     void CoherTriplets(std::vector<cNOSolIn_Triplet*>& aV3);
-    void CoherTripletsGraphBasedV2(std::vector<cNOSolIn_Triplet*>& aV3, int,
+    void CoherTripletsGraphBasedV2(Dataset& data,
+std::vector<cNOSolIn_Triplet*>& aV3, int,
                                    int);
     void CoherTripletsAllSamples(Dataset& data);
     void CoherTripletsAllSamplesMesPond(Dataset& data);
@@ -458,6 +465,7 @@ class RandomForest : public cCommonMartiniAppli {
     tHeapTriNSI mHeapTriDyn;
 
     double mDistThresh;
+    double mResidu;
     bool mApplyCostPds;
     double mAlphaProb;
 

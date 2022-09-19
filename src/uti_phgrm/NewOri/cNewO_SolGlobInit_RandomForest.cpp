@@ -38,7 +38,9 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "cNewO_SolGlobInit_RandomForest.h"
+#include <math.h>
 #include <sys/types.h>
+#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <ostream>
@@ -46,6 +48,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <vector>
 
 #include "general/bitm.h"
+#include "general/exemple_basculement.h"
 #include "general/opt_debug.h"
 #include "general/photogram.h"
 
@@ -105,22 +108,30 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet, std::vector<
     std::cout << triplet->getHomolPts().size() << std::endl;
     for (auto& pts : triplet->getHomolPts()) {
         std::vector<ElSeg3D> aVSeg;
+        uint n = 0;
         for (int i = 0; i < 3; i++) {
-            triplet->KSom(i)->attr().Camera()->SetOrientation(pos[i].inv());
-            aVSeg.push_back(triplet->KSom(i)->attr().Camera()->Capteur2RayTer(pts[i]));
+            if (!pts[i].x && !pts[i].y)
+                continue;
+            n++;
+
+            triplet->KSom(i)->attr().Im()->CS()->SetOrientation(pos[i].inv());
+            aVSeg.push_back(triplet->KSom(i)->attr().Im()->CS()->Capteur2RayTer(pts[i]));
         }
         bool ISOK=false;
         Pt3dr aInt = ElSeg3D::L2InterFaisceaux(0, aVSeg, &ISOK);
 
         double residu_pts = 0;
         for (int i = 0; i < 3; i++) {
-            triplet->KSom(i)->attr().Camera()->SetOrientation(pos[i].inv());
-            Pt2dr pts_proj = triplet->KSom(i)->attr().Camera()->Ter2Capteur(aInt);
+            if (!pts[i].x && !pts[i].y)
+                continue;
+
+            triplet->KSom(i)->attr().Im()->CS()->SetOrientation(pos[i].inv());
+            Pt2dr pts_proj = triplet->KSom(i)->attr().Im()->CS()->Ter2Capteur(aInt);
             auto a = euclid(pts_proj, pts[i]);
             residu_pts += a;
             //std::cout << pts[i] << " -- " << pts_proj << " -- " << a << std::endl;
         }
-        value += residu_pts/3.;
+        value += residu_pts/n;
     }
     value /= triplet->getHomolPts().size();
     cout.precision(12);
@@ -136,17 +147,19 @@ double cNOSolIn_Triplet::ProjTest() const {
         aVRAbs.push_back(mSoms[aK]->attr().CurRot());
         // aVRAbs.push_back(mSoms[aK]->attr().TestRot());
     }
+    double res = computeResiduFromPos(this, aVRAbs);
 
     cSolBasculeRig aSolRig = cSolBasculeRig::SolM2ToM1(aVRAbs, aVRLoc);
 
     std::vector<ElRotation3D> pos;
     for (int aK = 0; aK < 3; aK++) {
-        //const ElRotation3D& aRAbs = aVRAbs[aK];
+        const ElRotation3D& aRAbs = aVRAbs[aK];
         const ElRotation3D& aRLoc = aVRLoc[aK];
         ElRotation3D aRA2 = aSolRig.TransformOriC2M(aRLoc);
         pos.push_back(aRA2);
+        std::cout << "Absolute : " << aRAbs.tr() << " Relative: " << aRA2.tr() << std::endl;
+        std::cout << "Absolute : " << aRAbs.teta01() << " Relative: " << aRA2.teta01() << std::endl;
     }
-    double res = computeResiduFromPos(this, aVRAbs);
     std::cout << "--- Residu: " << res << std::endl;
     return res;
 }
@@ -224,7 +237,6 @@ cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string& aName,
       mIm(new cNewO_OneIm(mAppli->NM(), mName)),
       mCurRot(ElRotation3D::Id),
       mTestRot(ElRotation3D::Id) {
-    camera = mAppli->NM().CalibrationCamera(aName);
 }
 
 //cNOSolIn_AttrSom::~cNOSolIn_AttrSom() { delete mIm; }
@@ -425,6 +437,7 @@ RandomForest::RandomForest(int argc, char** argv)
       mHeapTriAll(TheCmp3Sol),
       mHeapTriDyn(TheCmp3),
       mDistThresh(1e3),
+      mResidu(20),
       mApplyCostPds(false),
       mAlphaProb(0.5) {
 
@@ -435,15 +448,17 @@ RandomForest::RandomForest(int argc, char** argv)
             << EAM(mNbSamples, "Nb", true, "Number of samples, Def=1000")
             << EAM(mGraphCoher, "GraphCoh", true,
                    "Graph-based incoherence, Def=true")
-            << EAM(mApplyCostPds, "CostPds", true,
-                   "Apply Pds to cost, Def=false")
+            /*<< EAM(mApplyCostPds, "CostPds", true,
+                   "Apply Pds to cost, Def=false")*/
             << EAM(mDistThresh, "DistThresh", true,
                    "Apply distance threshold when computing incoh on samples")
+            << EAM(mResidu, "Residu", true,
+                   "Minimal residu considered as good. Def=20")
             << EAM(aModeBin, "Bin", true, "Binaries file, def = true",
                    eSAM_IsBool)
-            << EAM(mAlphaProb, "Alpha", true,
+            /*<< EAM(mAlphaProb, "Alpha", true,
                    "Probability that a triplet at distance Dist is not an "
-                   "outlier, Prob=Alpha^Dist; Def=0.5")
+                   "outlier, Prob=Alpha^Dist; Def=0.5")*/
             << ArgCMA());
 
         mEASF.Init(mFullPat);
@@ -497,12 +512,13 @@ void RandomForest::loadHomol(cNOSolIn_Triplet* aTriplet, tTriPointList& aLst) {
     }
     aMap.DoExport();
 
-    const tListM aLM = aMap.ListMerged();
+    tListM aLM = aMap.ListMerged();
 
-    for (auto& e : aLM) {
+    for (auto e : aLM) {
         if (e->NbSom() == 3) {
             //std::cout << "0 " << e->GetVal(0) << " 1 " << e->GetVal(1)
              //         << " 2 " << e->GetVal(2) << "\n";
+            //aLst.push_back({e->GetVal(0), e->GetVal(1), e->GetVal(2)});
             aLst.push_back({e->GetVal(0), e->GetVal(1), e->GetVal(2)});
         }
     }
@@ -558,7 +574,6 @@ void RandomForest::loadDataset(Dataset& data) {
         if (mDebug)
             std::cout << "% " << aN3 << " " << data.mV3.size() << " "
                       << data.mNbTrip << "\n";
-
 
         //Load tie point for the triplet :
         tTriPointList homolPts;
@@ -649,6 +664,7 @@ void RandomForest::NumeroteCC(Dataset& data) {
             aKCur++;
         }
 
+        {
             // Compute the sommet of the CC, it's easy, just be careful to get
             // them only once
             int aFlagSom = data.mGr.alloc_flag_som();
@@ -663,7 +679,7 @@ void RandomForest::NumeroteCC(Dataset& data) {
 
             FreeAllFlag(aCCS, aFlagSom);
             data.mGr.free_flag_som(aFlagSom);
-
+        }
 
         std::cout << "Nb of sommets " << aCCS.size() << " in CC " << aNumCC
                   << "\n";
@@ -720,7 +736,7 @@ static void EstimRt(cLinkTripl* aLnk) {
     aS3->attr().TestRot() =
         ElRotation3D(aT3, aRL2M * aC3ToL.Mat(), true);
 
-    //aS3->attr().Camera()->SetOrientation(aS3->attr().CurRot().inv());
+    aS3->attr().Im()->CS()->SetOrientation(aS3->attr().CurRot().inv());
 }
 
 /*
@@ -774,7 +790,7 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNOSolIn_Triplet* aSeed, int Nb
         aTri->S3()->attr().NumId() = aTri->m3->NumId();
 
         // Propagate R,t and flag sommet as visited
-        EstimRt(aTri); //TODO placer quelquepar
+        EstimRt(aTri);
 
         // Mark node as vistied
         aTri->S3()->flag_set_kth_true(data.mFlagS);
@@ -798,7 +814,7 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNOSolIn_Triplet* aSeed, int Nb
 */
 void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     DataTravel travel(data);
-    NRrandom3InitOfTime();
+    //NRrandom3InitOfTime(); //TODO Activer pour debug
     std::cout << "DFS per CC, Nb Som " << aCC->mSoms.size() << ", nb triplets "
               << aCC->mTri.size() << "\n";
 
@@ -822,10 +838,40 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     RandomSolOneCC(data, aTri0, aCC->mSoms.size());
 
     // Calculate coherence scores within this CC
-    CoherTripletsGraphBasedV2(aCC->mTri, aCC->mSoms.size(), aTri0->NumId());
+    CoherTripletsGraphBasedV2(data, aCC->mTri, aCC->mSoms.size(), aTri0->NumId());
 
     travel.resetFlags(aCC);
 }
+
+void RandomForest::RandomSolAllCC(Dataset& data, cNO_CC_TripSom* aCC) {
+    DataTravel travel(data);
+    NRrandom3InitOfTime();
+    std::cout << "DFS per CC, Nb Som " << aCC->mSoms.size() << ", nb triplets "
+              << aCC->mTri.size() << "\n";
+
+    for (cNOSolIn_Triplet* aTri0 : aCC->mTri) {
+        std::cout << "Seed triplet " << aTri0->KSom(0)->attr().Im()->Name()
+                  << " " << aTri0->KSom(1)->attr().Im()->Name() << " "
+                  << aTri0->KSom(2)->attr().Im()->Name() << " "
+                  << aTri0->KSom(0)->attr().NumId() << " "
+                  << aTri0->KSom(1)->attr().NumId() << " "
+                  << aTri0->KSom(2)->attr().NumId() << "\n";
+
+        // Flag as visited
+        aTri0->Flag().set_kth_true(data.mFlag3CC);
+
+        ELISE_ASSERT(aTri0 != 0, "Cannot compute seed in RandomSolOneCC");
+
+        // Build the initial solution in this CC
+        RandomSolOneCC(data, aTri0, aCC->mSoms.size());
+
+        // Calculate coherence scores within this CC
+        CoherTripletsGraphBasedV2(data, aCC->mTri, aCC->mSoms.size(), aTri0->NumId());
+
+        travel.resetFlags(aCC);
+    }
+}
+
 
 void RandomForest::AddTriOnHeap(Dataset& data, cLinkTripl* aLnk) {
     std::vector<cLinkTripl*> aVMaj;
@@ -866,8 +912,9 @@ void RandomForest::AddTriOnHeap(Dataset& data, cLinkTripl* aLnk) {
 void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     int NbSomCC = int(aCC->mSoms.size());
 
-    // Pick the best triplet
-    cNOSolIn_Triplet* aTri0 = GetBestTri();
+    // Pick the  triplet
+    cNOSolIn_Triplet* aTri0 = GetBestTri();//TODO tirer toujours le meme triplet
+                                           //de depart pour debug
     std::cout << "Best triplet " << aTri0->KSom(0)->attr().Im()->Name() << " "
               << aTri0->KSom(1)->attr().Im()->Name() << " "
               << aTri0->KSom(2)->attr().Im()->Name() << " " << aTri0->CostArc()
@@ -931,16 +978,18 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
 
 void RandomForest::RandomSolAllCC(Dataset& data) {
     std::cout << "Nb of connected components=" << data.mVCC.size() << "\n";
-    for (int aKC = 0; aKC < int(data.mVCC.size()); aKC++)
+    for (int aKC = 0; aKC < int(data.mVCC.size()); aKC++) {
+        //RandomSolAllCC(data, data.mVCC[aKC]);
         RandomSolOneCC(data, data.mVCC[aKC]);
+    }
 }
 
 void RandomForest::BestSolAllCC(Dataset& data) {
     // Add all triplets to global heap
-    // (used only to get best seed)
+    // (used only to get  seed)
     HeapPerSol(data);
 
-    // Get best solution for each CC
+    // Get  solution for each CC
     for (int aKC = 0; aKC < int(data.mVCC.size()); aKC++) {
         BestSolOneCC(data, data.mVCC[aKC]);
 
@@ -965,7 +1014,8 @@ void RandomForest::BestSolAllCC(Dataset& data) {
  * */
 // FIXME Cleanup
 void RandomForest::CoherTripletsGraphBasedV2(
-    std::vector<cNOSolIn_Triplet*>& aV3, int NbSom, int TriSeedId) {
+    Dataset& data, std::vector<cNOSolIn_Triplet*>& aV3, int NbSom,
+    int TriSeedId) {
     std::cout << "Nb of sommets" << NbSom << " seed=" << TriSeedId << "\n";
 
     // ==== Fast Tree Distance ===
@@ -1023,18 +1073,19 @@ void RandomForest::CoherTripletsGraphBasedV2(
 
     aFTD.MakeDist(aFTV1, aFTV2);
     aAdjG.InitAdj(aFTV1, aFTV2);
+    aAdjG.Show();
 
     // int aCntFlags=0;
     for (int aT = 0; aT < int(aV3.size()); aT++) {
         auto& currentTriplet = aV3[aT];
 
-        int aD1 = aFTD.Dist(aCCGlob2Loc[TriSeedId],
+        double aD1 = aFTD.Dist(aCCGlob2Loc[TriSeedId],
                             aCCGlob2Loc[currentTriplet->KSom(0)->attr().NumId()]);
 
-        int aD2 = aFTD.Dist(aCCGlob2Loc[TriSeedId],
+        double aD2 = aFTD.Dist(aCCGlob2Loc[TriSeedId],
                             aCCGlob2Loc[currentTriplet->KSom(1)->attr().NumId()]);
 
-        int aD3 = aFTD.Dist(aCCGlob2Loc[TriSeedId],
+        double aD3 = aFTD.Dist(aCCGlob2Loc[TriSeedId],
                             aCCGlob2Loc[currentTriplet->KSom(2)->attr().NumId()]);
 
         // std::cout << "TriNumId=" << aV3[aT]->NumId() << " | SomNumId=" <<
@@ -1056,15 +1107,15 @@ void RandomForest::CoherTripletsGraphBasedV2(
         double aDist = std::ceil((aD1 + aD2 + aD3) / 3.0);
 
         if (aDist < mDistThresh) {
-            double aCostCur = ElMin(abs(currentTriplet->ProjTest()), 1e3);
-
+            double aResidue = abs(currentTriplet->ProjTest());
             // std::cout << ",Dist=" << aDist << " CohTest(à=" <<
             // aV3[aT]->CoherTest() << ",CostN=" <<  aCostCur << ",CPds=" <<
             // aCostCur/sqrt(aDist) << "\n"; std::cout <<
             // aTri->m3->Flag().set_kth_true(mFlag3CC);
+            double aCostCur = 0;
 
             // Take into account the non-visited triplets
-            if (!ValFlag(*(aV3[aT]), 0)) {
+            if (!ValFlag(*(aV3[aT]), data.mFlag3CC)) {
                 // std::cout << "Flag0 OK " << aCntFlags++ << "\n";
 
                 if (aDist == 0) aDist = 1;
@@ -1072,9 +1123,14 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 double aPds = 1.0;
 
                 if (mGraphCoher) {
-                    // aPds = std::pow(0.5,aDist);
-                    // aPds = std::pow(0.7,aDist);
-                    aPds = 1.0 / sqrt(aDist);
+                    //aPds = std::pow(0.5,aDist);
+                    //aPds = std::pow(0.7,aDist);
+                    //aPds = 1.0 / sqrt(aDist);
+                    aPds = 1. / sqrt(aDist);
+                    aCostCur = aResidue;
+                    if (aResidue > mResidu) {
+                        aPds = 1./aPds;
+                    }
                 }
 
                 // Mean
@@ -1082,7 +1138,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 aV3[aT]->PdsSum() += aPds;
 
                 // Median
-                aV3[aT]->CostArcPerSample().push_back(aCostCur * aPds);
+                aV3[aT]->CostArcPerSample().push_back(aCostCur);
                 aV3[aT]->DistArcPerSample().push_back(aPds);
 
                 // Plot coherence vs sample vs distance
@@ -1177,7 +1233,7 @@ void RandomForest::CoherTripletsAllSamplesMesPond(Dataset& data) {
         }
 
         /* Weighted median */
-        if (aVCostPds.size())
+        //if (aVCostPds.size())
         data.mV3[aT]->CostArcMed() =
             PropPond(aVCostPds, 0.1, 0);  // MedianPond(aVCostPds,0);
     }
@@ -1298,7 +1354,7 @@ void RandomForest::DoNRandomSol(Dataset& data) {
     }
 
     // Calculate median/mean incoherence scores of mNbSamples
-    CoherTripletsAllSamples(data);
+    //CoherTripletsAllSamples(data);
     CoherTripletsAllSamplesMesPond(data);
 
     // Print the cost for all triplets
