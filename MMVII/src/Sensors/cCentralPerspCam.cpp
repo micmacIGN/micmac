@@ -14,17 +14,82 @@
 namespace MMVII
 {
 
-class cPixelSpace : public cDataBoundedSet<tREAL8,2>
+template <class Type,const int Dim> class cDataInvertOfMapping : public cDataInvertibleMapping <Type,Dim>
 {
-	public :
-            cPixelSpace(const cPt2di &aSz);
-            virtual ~ cPixelSpace();
-            virtual * cPixelSpace  Dup_PS ();  ///< default work because deleted in mother class
+   public :
+         typedef  cDataInvertibleMapping<Type,Dim>  tIMap;
+         typedef cPtxd<Type,Dim>                    tPt;
+         typedef std::vector<tPt>                   tVecPt;
 
-	private :
-	    cPt2di    mSz;
+         cDataInvertOfMapping(const tIMap * aMapToInv,bool toAdopt);
+         ~cDataInvertOfMapping();
+
+         const  tVecPt &  Inverses(tVecPt &,const tVecPt & ) const;
+         const  tVecPt &  Values(tVecPt &,const tVecPt & ) const;
+   private :
+         const tIMap * mMapToInv;
+         bool          mAdopted;
+};
+
+
+template <class Type,const int Dim> 
+    cDataInvertOfMapping<Type,Dim>::cDataInvertOfMapping(const tIMap * aMapToInv,bool toAdopt) :
+         mMapToInv(aMapToInv),
+         mAdopted (toAdopt)
+{
+}
+
+template <class Type,const int Dim> 
+    cDataInvertOfMapping<Type,Dim>::~cDataInvertOfMapping()
+{
+    if (mAdopted)
+       delete mMapToInv;
+}
+
+template <class Type,const int Dim> 
+         const  std::vector<cPtxd<Type,Dim>>  & 
+                 cDataInvertOfMapping<Type,Dim>::Inverses(tVecPt & aVOut,const tVecPt & aVIn) const
+{
+    return  mMapToInv->Values(aVOut,aVIn);
+}
+
+template <class Type,const int Dim> 
+         const  std::vector<cPtxd<Type,Dim>>  & 
+                 cDataInvertOfMapping<Type,Dim>::Values(tVecPt & aVOut,const tVecPt & aVIn) const
+{
+    return  mMapToInv->Inverses(aVOut,aVIn);
+}
+
+
+
+
+template  class  cDataInvertOfMapping<tREAL8,2>;
+
+/*template
+template <class Type,const int Dim> class cDeformDataBoundedSet : public cDataBoundedSet<Type,Dim>
+{
+     public :
+         typedef  cDataBoundedSet<Type,Dim>         tSetUp;
+         typedef  cDataInvertibleMapping<Type,Dim>  tIMap;
+
 
 };
+*/
+
+
+
+class cPixelSpace : public cDataBoundedSet<tREAL8,2>
+{
+      public :
+           cPixelSpace(const cPt2di &aSz);
+           virtual ~ cPixelSpace();
+           virtual cPixelSpace *  Dup_PS () const;  ///< default work because deleted in mother class
+
+      private :
+           cBox2di    mBox;
+};
+
+
 
 class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
 {
@@ -88,7 +153,7 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 	    // const  tVecOut &  Inverses(tVecIn &,const tVecOut & ) const;
 	private :
 
-            cPixelSpace                          mPixSpace;   // validity domain in pixel
+            cPixelSpace *                        mPixSpace;   // validity domain in pixel
             // cSphereBoundedSet<tREAL8,2>          mPNormSpace; // validity domain pixel-normalize (PP/F) space
 
 	    eProjPC                              mTypeProj;
@@ -109,16 +174,15 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
       const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
       int aSzBuf                          ///< sz of buffers in computation
 )  :
-    mPixSpace       (aPixSpace),
+    mPixSpace       (nullptr),
     mTypeProj       (aTypeProj),
     mDir_Proj       (nullptr),
     mDir_Dist_Val   (nullptr),
     mDir_Dist_Der   (nullptr),
     mCSPerfect      (aCSP)
 {
+     mPixSpace =  aPixSpace.Dup_PS();
 }
-/*
-*/
 
 
 /* ******************************************************* */
