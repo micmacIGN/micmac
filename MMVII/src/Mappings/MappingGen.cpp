@@ -23,14 +23,28 @@ template <class Type,const int Dim>
 template <class Type,const int Dim>
     bool cDataBoundedSet<Type,Dim>::InsideWithBox(const tPt & aPt) const
 {
-   return mBox.Inside(aPt) && Inside(aPt);
+   return InsidenessWithBox(aPt) >= 0.0 ;
 }
 
 template <class Type,const int Dim>
     bool cDataBoundedSet<Type,Dim>::Inside(const tPt & aPt) const
 {
-   return true;
+   return Insideness(aPt) >= 0.0 ;
 }
+
+
+template <class Type,const int Dim>
+    tREAL8 cDataBoundedSet<Type,Dim>::InsidenessWithBox(const tPt & aP) const
+{
+    return std::min(mBox.Insideness(aP),Insideness(aP));
+}
+
+template <class Type,const int Dim>
+    tREAL8 cDataBoundedSet<Type,Dim>::Insideness(const tPt &) const
+{
+    return 1e10;
+}
+
 
 template <class Type,const int Dim>
     const typename cDataBoundedSet<Type,Dim>::tBox & cDataBoundedSet<Type,Dim>::Box() const
@@ -75,7 +89,7 @@ template <class Type,const int Dim>
 
 /* ============================================= */
 /*                                               */
-/*      cSphereBoundedSet<Type>                  */
+/*      cSphereBoundedSet<Type,Dim>              */
 /*                                               */
 /* ============================================= */
 
@@ -83,37 +97,52 @@ template <class Type,const int Dim>
      cSphereBoundedSet<Type,Dim>::cSphereBoundedSet(const tBox & aBox,const tPt& aC,const Type & aRadius) :
         cDataBoundedSet<Type,Dim> (aBox),
         mCenter  (aC),
-        mR2      (Square(aRadius))
+        mRadius  (aRadius)
 {
 }
 
 template <class Type,const int Dim> 
-   bool   cSphereBoundedSet<Type,Dim>::Inside(const tPt & aPt) const
+   tREAL8   cSphereBoundedSet<Type,Dim>::Insideness(const tPt & aPt) const
 {
-   return SqN2(aPt-mCenter) <= mR2;
+   return  mRadius -Norm2(aPt-mCenter) ;
 }
 
-/*
-template <class Type,int Dim>
-     cCalcMapLinearRoughIn(verse<Type,Dim>::cCalcMapLinearRoughInverse(const tSet & aSet,int aNbPts) :
-         mSet   (aSet),
-         mBoxIm (aSet.Box())
+/* ============================================= */
+/*                                               */
+/*      cDataMappedBoundedSet<Type,Dim>          */
+/*                                               */
+/* ============================================= */
+
+template <class Type,const int Dim>
+   cDataMappedBoundedSet<Type,Dim>::cDataMappedBoundedSet
+   (
+          const tDBSet * aSet,
+          const tDIMap * aMap,
+          bool AdoptSet,
+          bool AdoptMap
+   ) :
+     cDataBoundedSet<Type,Dim>(aMap->BoxOfCorners(aSet->Box())),
+     mSet       (aSet),
+     mMap       (aMap),
+     mAdoptSet  (AdoptSet),
+     mAdoptMap  (AdoptMap)
 {
-     Type aVolMoy = mBoxIm.NbElem() / double(aNbPts);
-     Type aStepMoy = pow(aVolMoy,1/double(Dim));
-     tPtI  aNb =  Pt_round_up(mBoxIm.Sz()/aStepMoy);
-     cPixBox<Dim>  aPixB (aNb+tPtI::PCste(1));
-     // tPt   aStep  = mBoxIm.Sz().DivCByC(aNb);
-     tPt   aStep  = DivCByC(mBoxIm.Sz(),ToR(aNb));
-
-     for (const auto & aPix : aPixB)
-     {
-          tPt  aPtOut0 = mBoxIm.P0() + MulCByC(ToR(aPix),aStep);
-     }
-
 }
-*/
 
+template <class Type,const int Dim>
+   cDataMappedBoundedSet<Type,Dim>::~cDataMappedBoundedSet ()
+{
+    if (mAdoptSet)  delete mSet;
+    if (mAdoptMap)  delete mMap;
+}
+
+template <class Type,const int Dim> tREAL8 cDataMappedBoundedSet<Type,Dim>::Insideness (const tPt & aPt) const
+{
+        return mSet->Insideness(mMap->Inverse(aPt));
+}
+
+template class cDataMappedBoundedSet<tREAL8,2>;
+                                                      
 
 /* ============================================= */
 /*                                               */
