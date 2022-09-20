@@ -25,8 +25,9 @@ class cPixelDomain : public cDataBoundedSet<tREAL8,2>
            virtual cPixelDomain *  Dup_PS () const;  ///< default work because deleted in mother class
 
       private :
-           cBox2di    mBox;
+           cPt2di     mSz;
 };
+
 
 
 
@@ -80,7 +81,7 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
             (
                   eProjPC        aTypeProj,           ///< type of projection 
 		  const cPt3di & aDeg,                ///< degrees of distorstion  Rad/Dec/Univ
-		  const std::vector<double> & aVObs,  ///< vector of constants, or void
+		  const std::vector<double> & aVParams,  ///< vector of distorsion
 		  const cCalibStenPerfect &,           ///< Calib w/o dist
                   const  cPixelDomain  &,              ///< sz, domaine of validity in pixel
 		  const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
@@ -89,16 +90,19 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 
 	    ~cPerspCamIntrCalib();
 
-	    const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
+	     // const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
 	    // const  tVecOut &  Inverses(tVecIn &,const tVecOut & ) const;
 	private :
 
             // cSphereBoundedSet<tREAL8,2>          mPNormSpace; // validity domain pixel-normalize (PP/F) space
 
 	    eProjPC                              mTypeProj;
+	    cPt3di                               mDegrDir;
+            int                                  mSzBuf;
+	    std::vector<cDescOneFuncDist>        mVDescDist;  ///< contain a "high" level description of dist params
+	    std::vector<tREAL8>                  mVParams;    ///< Parameters of distorsion
             cDataMapCalcSymbDer<tREAL8,3,2>*     mDir_Proj;
-            cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist_Val;
-            cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist_Der;
+            cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist;
 	    cCalibStenPerfect                    mCSPerfect;    ///<
 	    cCalibStenPerfect                    mCSPInv;
             cPixelDomain *                       mPixDomain;   ///< validity domain in pixel
@@ -106,27 +110,100 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
 
+/* ******************************************************* */
+/*                                                         */
+/*                 cPerspCamIntrCalib                      */
+/*                                                         */
+/* ******************************************************* */
+
 cPerspCamIntrCalib::cPerspCamIntrCalib
 (
       eProjPC        aTypeProj,           ///< type of projection 
-      const cPt3di & aDeg,                ///< degrees of distorstion  Rad/Dec/Univ
-      const std::vector<double> & aVObs,  ///< vector of constants, or void
+      const cPt3di & aDegDir,             ///< degrees of distorstion  Rad/Dec/Univ
+      const std::vector<double> & aVParams,  ///< vector of constants, or void
       const cCalibStenPerfect & aCSP,           ///< Calib w/o dist
       const  cPixelDomain  & aPixDomain,              ///< sz, domaine of validity in pixel
       const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
       int aSzBuf                          ///< sz of buffers in computation
 )  :
     mTypeProj       (aTypeProj),
+    mDegrDir        (aDegDir),
+    mSzBuf          (aSzBuf),
+    mVDescDist      (DescDist(aDegDir)),
+    mVParams        (aVParams),
     mDir_Proj       (nullptr),
-    mDir_Dist_Val   (nullptr),
-    mDir_Dist_Der   (nullptr),
+    mDir_Dist       (nullptr),
     mCSPerfect      (aCSP),
     mCSPInv         (mCSPerfect.MapInverse()),
     mPixDomain      (aPixDomain.Dup_PS()),
     mPhgrDomain     (new cDataMappedBoundedSet<tREAL8,2>(mPixDomain,&mCSPInv,false,false))
 {
+    // correct vect param, when first use, parameter can be empty meaning all 0  
+    if (mVParams.size() != mVDescDist.size())
+    {
+       MMVII_INTERNAL_ASSERT_strong(mVParams.empty(),"cPerspCamIntrCalib Bad size for params");
+       mVParams.resize(mVDescDist.size(),0.0);
+    }
+    
+    mDir_Proj = new  cDataMapCalcSymbDer<tREAL8,3,2>
+                     (
+                          EqCPProjDir(mTypeProj,false,mSzBuf),   // equatio, w/o derivative
+                          EqCPProjDir(mTypeProj,true,mSzBuf),    // equation with derivatives
+			  std::vector<double>(),                 // parameters, empty here
+			  true                                   // equations are "adopted" (i.e will be deleted in destuctor)
+                     );
+
+    mDir_Dist = NewMapOfDist(mDegrDir,mVParams,mSzBuf);
 }
 
+cPerspCamIntrCalib::~cPerspCamIntrCalib()
+{
+     delete mPhgrDomain;	
+     delete mPixDomain;	
+     delete mDir_Dist;
+     delete mDir_Proj;
+}
+
+void BenchCentralePerspective(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("Geom")) return;
+
+    eProjPC  aTypeProj = eProjPC::eFE_EquiSolid;
+
+    cPerspCamIntrCalib aCam
+    (
+          aTypeProj,
+	  cPt3di(3,1,1),
+	  std::vector<double>(),
+	  cCalibStenPerfect(2000,cPt2dr(1520.0,1030.0)),
+	  cPixelDomain(cPt2di(3000,2000)),
+	  cPt3di(3,1,1),
+	  100
+    );
+
+    aParam.EndBench();
+}
+
+/* ******************************************************* */
+/*                                                         */
+/*                    cPixelDomain                         */
+/*                                                         */
+/* ******************************************************* */
+
+cPixelDomain::~cPixelDomain()
+{
+}
+
+cPixelDomain::cPixelDomain(const cPt2di &aSz) :
+     cDataBoundedSet<tREAL8,2>(cBox2dr(cPt2dr(0,0),ToR(aSz))),
+     mSz  (aSz)
+{
+}
+
+cPixelDomain *  cPixelDomain::Dup_PS () const
+{
+    return new cPixelDomain(mSz);
+}
 
 /* ******************************************************* */
 /*                                                         */

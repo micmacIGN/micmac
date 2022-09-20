@@ -497,6 +497,8 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 
         BenchSSRNL(aParam);
         BenchDeformIm(aParam);
+
+	BenchCentralePerspective(aParam);
     }
 
     // Now call the bench of all application that define their own bench
