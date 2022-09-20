@@ -748,9 +748,11 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
         D2Wrap(0,i) = x  ;  D2Wrap(1,i) = y  ;  D2Wrap(2,i) = 1  ;
     }
 
-    FakeUseIt(D1Wrap);
-    FakeUseIt(D2Wrap);
-    FakeUseIt(MWrap);
+    cDenseMatrix<double> S1Wrap = D1Wrap.Transpose() * D1Wrap;
+    cDenseMatrix<double> S2Wrap = D1Wrap.Transpose() * D2Wrap;
+    cDenseMatrix<double> S3Wrap = D2Wrap.Transpose() * D2Wrap;
+    cDenseMatrix<double> TWrap  = (-1)*S3Wrap.Inverse() * S2Wrap.Transpose();
+    cDenseMatrix<double> M1Wrap = S1Wrap + S2Wrap.Transpose();
 
 	MatrixXd S1 = D1.transpose() * D1;
     MatrixXd S2 = D1.transpose() * D2;
@@ -763,6 +765,16 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
 		M(1,i) = -M1(1,i);
 		M(2,i) = +M1(0,i)/2.0;
 	}
+
+
+	for (unsigned i=0; i<3; i++){
+		MWrap.SetElem(i,0,+M1Wrap(i,2)/2.0);
+		MWrap.SetElem(i,0,-M1Wrap(i,1)    );
+		MWrap.SetElem(i,0,+M1Wrap(i,0)/2.0);
+	}
+
+
+
 
 	Eigen::EigenSolver<Eigen::Matrix<double, 3,3>> eigensolver(M);  // YANN : HERE IS THE PROBLEM
 
