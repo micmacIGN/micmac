@@ -583,8 +583,6 @@ template <class Type,const int Dim>  class cTplBox
         //const tPt & SzCum() const; ///< Cumulated size, rather internal use
 
         // Boolean operators
-           /// Is this point/pixel/voxel  inside
-        bool Inside(const tPt & aP) const  {return SupEq(aP,mP0) && InfStr(aP,mP1);}
            /// Specialistion 1D
         bool Inside(const tNum & aX) const  
         {
@@ -607,6 +605,8 @@ template <class Type,const int Dim>  class cTplBox
         tBox Dilate(const Type & aVal)const;  ///< Dilatation with constant coordinate
         tBox ScaleCentered(const Type & aVal)const;  ///< Dilatation with constant scaling
 
+        Type Insideness(const tPt & aP) const;
+
         /// Assert that it is inside
         template <class TypeIndex> void AssertInside(const TypeIndex & aP) const
         {
@@ -614,6 +614,10 @@ template <class Type,const int Dim>  class cTplBox
         }
         void AssertSameArea(const tBox & aV) const; ///<  Assert object are identic
         void AssertSameSz(const   tBox & aV) const;   ///<  Check only size
+
+           /// Is this point/pixel/voxel  inside
+        bool Inside(const tPt & aP) const  {return SupEq(aP,mP0) && InfStr(aP,mP1);}
+           /// Specialistion 1D
 
         //  ---  object generation inside box ----------------
 

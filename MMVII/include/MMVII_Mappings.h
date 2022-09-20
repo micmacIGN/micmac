@@ -132,7 +132,6 @@ template <class Type,const int DimIn,const int DimOut> class cMapping
 /** Class for defining a bounded subset of R^n. TO DEVLOP ...
 */
 
-
 template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 {
     public :
@@ -142,10 +141,17 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 
       cDataBoundedSet(const tBox &);
       virtual ~cDataBoundedSet<Type,Dim>();
-      /// Does it belong to the set;  default =belong to box
+
+      /// quantitative  + inside, - outside , 0 at the frontier
+      tREAL8 InsidenessWithBox(const tPt &) const;
+      ///  default return many (infinite) because
+      virtual tREAL8 Insideness(const tPt &) const;
+
+      /// Does it belong to the set;  default =belong to box,  defined from InsidenessWithBox
       bool InsideWithBox(const tPt &) const;
-      /// Does it belong to the set;  default =true
-      virtual bool Inside(const tPt &) const;
+      /// Does it belong to the set;  default =true, defined form Insideness
+      bool Inside(const tPt &) const;
+
 
       const tBox & Box() const;
 
@@ -175,12 +181,32 @@ template <class Type,const int Dim> class cSphereBoundedSet : public cDataBounde
          typedef  cPtxd<Type,Dim>   tPt;
          /// construct from Box, center and radius
          cSphereBoundedSet(const tBox & aBox,const tPt & , const Type & aRadius);
-         bool Inside(const tPt &) const override; ///<    true iff D(Pt,Center) < Radius
+         tREAL8 Insideness(const tPt &) const override;
      private :
          tPt  mCenter;  ///<  center of the spher
-         Type mR2;      ///< square of ray ,
-
+         Type mRadius;      ///< square of ray ,
 };
+
+/** Class for defining image of bounded set by a mapping
+*/
+template <class Type,const int Dim> class  cDataMappedBoundedSet : public cDataBoundedSet<Type,Dim>
+{
+      public :
+           typedef cDataBoundedSet<Type,Dim>         tDBSet;
+           typedef cDataInvertibleMapping<Type,Dim>  tDIMap;
+           typedef cPtxd<Type,Dim>                   tPt;
+
+           cDataMappedBoundedSet (const tDBSet *,const tDIMap *,bool AdoptSet,bool AdoptMap);
+           ~cDataMappedBoundedSet ();
+           double Insideness(const tPt & aPt) const override;  ///<  Map-1(Pt) belong to Set
+      private :
+           const tDBSet * mSet;
+           const tDIMap * mMap;
+           bool           mAdoptSet;
+           bool           mAdoptMap;
+};
+
+
 
 
 /*
@@ -260,7 +286,6 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
       typedef std::pair<tPtOut ,tJac>                    tResJac;
       typedef std::pair<const tVecOut *,const tVecJac*>  tCsteResVecJac;
       typedef std::pair<tVecOut *,tVecJac*>  tResVecJac;
-
 
            // ========== Computation of values ==============
 
@@ -391,6 +416,25 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
        inline tVecPt&  BufInvOutCleared()    const {mBufInvOut.clear();return mBufOut;}
 #endif
 };
+
+template <class Type,const int Dim> class cDataInvertOfMapping : public cDataInvertibleMapping <Type,Dim>
+{
+   public :
+         typedef  cDataInvertibleMapping<Type,Dim>  tIMap;
+         typedef cPtxd<Type,Dim>                    tPt;
+         typedef std::vector<tPt>                   tVecPt;
+
+         cDataInvertOfMapping(const tIMap * aMapToInv,bool toAdopt);
+         ~cDataInvertOfMapping();
+
+         const  tVecPt &  Inverses(tVecPt &,const tVecPt & ) const;
+         const  tVecPt &  Values(tVecPt &,const tVecPt & ) const;
+   private :
+         const tIMap * mMapToInv;
+         bool          mAdopted;
+};
+
+
 
 
 

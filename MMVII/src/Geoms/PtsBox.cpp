@@ -713,6 +713,15 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Sup(co
   return tBox(PtInfEq(mP0,aB2.mP0),PtSupEq(mP1,aB2.mP1),true);
 }
 
+template <class Type,const int Dim> Type cTplBox<Type,Dim>::Insideness(const tPt & aP) const
+{
+     Type  aRes = std::min(aP[0]-mP0[0],mP1[0]-aP[0]);
+
+     for (int aD=1 ; aD<Dim ; aD++)
+         UpdateMin(aRes,std::min(aP[aD]-mP0[aD],mP1[aD]-aP[aD]));
+
+     return aRes;
+}
 
 
 
