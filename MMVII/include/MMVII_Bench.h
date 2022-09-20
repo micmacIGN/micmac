@@ -87,6 +87,8 @@ void Bench_Duration(cParamExeBench & aParam);
 
 // To inspect in detail, apparenly some bench dont work completely, after many iter=> numerical problem
 void BenchDenseMatrix0(cParamExeBench & aParam); ///< Basic Vector 
+void Bench_EigenDecompos(cParamExeBench & aParam);
+
 
 // void cAppli_MMVII_Bench::Bench_0000_String(); => Bench on string-split
 void BenchSerialization(cParamExeBench & aParam,const std::string & aDirOut,const std::string & aDirIn); ///< Bench on seriaization function

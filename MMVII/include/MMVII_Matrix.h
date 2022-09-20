@@ -306,6 +306,8 @@ template <class Type> class cStrStat2;
 template <class Type> class cNC_EigenMatWrap;
 template <class Type> class cResulQR_Decomp;
 template <class Type> class cResulSVDDecomp;
+template <class Type> class cResulEigenDecomp;
+
 
 /**  Dense Matrix, probably one single class. 
      Targeted to be instantiated with 4-8-16 byte floating point
@@ -397,7 +399,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         cResulSymEigenValue<Type> SymEigenValue() const;
         tRSVD  SVD() const;
 
-        cResulQR_Decomp<Type>  QR_Decomposition() const;
+        cResulQR_Decomp<Type>    QR_Decomposition() const;
+        cResulEigenDecomp<Type>  Eigen_Decomposition() const;
+
 
         //  ====  Symetricity/Transpose/Triangularise manipulation
 
@@ -439,6 +443,18 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 	//  void operator -= (const cDenseMatrix<Type> &) ;  => see  "include/MMVII_Tpl_Images.h"
 
 };
+
+template <class Type> class cResulEigenDecomp
+{
+      public :
+         cResulEigenDecomp<Type>(int aN);
+         cDenseMatrix<Type>  mEigenVec_R;  ///< real part
+         cDenseMatrix<Type>  mEigenVec_I;  ///< imaginary part
+
+         cDenseVect<Type>    mEigenVal_R;  ///<
+         cDenseVect<Type>    mEigenVal_I;  ///<
+};
+
 
 
 template <class Type> class cResulSymEigenValue

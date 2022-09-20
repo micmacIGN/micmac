@@ -50,6 +50,38 @@ class cParamFilterDCT_Bin : public cParam1FilterDCT
          double  mPropBW; ///< prop for estimation of black & white
 };
 
+class cParamFilterDCT_Sym : public cParam1FilterDCT
+{
+     public :
+         cParamFilterDCT_Sym();  ///< default constructor for serialization
+
+         bool        IsSym() const override;     ///< true
+         bool        IsCumul() const override;   ///< true
+         eDCTFilters ModeF() const override;     ///<  eSym
+
+         void AddData(const cAuxAr2007 & anAux); ///< serialization
+	 double Epsilon() const;
+     private :
+	 double mEpsilon;
+};
+
+class cParamFilterDCT_Rad : public cParam1FilterDCT
+{
+     public :
+         cParamFilterDCT_Rad();  ///< default constructor for serialization
+
+         bool        IsSym() const override;     ///< false
+         bool        IsCumul() const override;   ///< true
+         eDCTFilters ModeF() const override;     ///<  eRad
+
+         void AddData(const cAuxAr2007 & anAux); ///< serialization
+	 double Epsilon() const;
+     private :
+	 double mEpsilon;
+};
+
+
+
 class cParamAllFilterDCT
 {
      public :
@@ -57,8 +89,14 @@ class cParamAllFilterDCT
 
         double   RGlob()     const;  ///< accessor
 	const cParamFilterDCT_Bin & Bin() const ;
+	const cParamFilterDCT_Sym & Sym() const ;
+	const cParamFilterDCT_Rad & Rad() const ;
+
+	cParamAllFilterDCT();
      private :
         cParamFilterDCT_Bin  mBin;  ///< default constructor for serialization
+        cParamFilterDCT_Sym  mSym;  ///< default constructor for serialization
+        cParamFilterDCT_Rad  mRad;  ///< default constructor for serialization
         double  mRGlob; ///< glob multiplier of all ray
 };
 
@@ -88,9 +126,9 @@ template <class Type>  class  cFilterDCT : public cMemCheck
 
 
 	   //  ===============  Allocator =============
-           static cFilterDCT<Type> * AllocSym(tIm anIm,double aR0,double aR1,double aEpsilon);
-           static cFilterDCT<Type> * AllocBin(tIm anIm,double aR0,double aR1);
-           static cFilterDCT<Type> * AllocRad(const tImGr & aImGr,double aR0,double aR1,double aEpsilon);
+           static cFilterDCT<Type> * AllocSym(tIm anIm,const cParamAllFilterDCT &);
+           // static cFilterDCT<Type> * AllocBin(tIm anIm,double aR0,double aR1);
+           static cFilterDCT<Type> * AllocRad(const tImGr & aImGr,const cParamAllFilterDCT &);
            static cFilterDCT<Type> * AllocBin(tIm anIm,const cParamAllFilterDCT &);
 
 	   virtual ~cFilterDCT();  ///<  X::~X() virtual as there is virtual methods

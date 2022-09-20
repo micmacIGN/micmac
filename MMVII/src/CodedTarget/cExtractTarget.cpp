@@ -335,18 +335,19 @@ StdOut() << aHC.NbBitsIn() << " " << aHC.NbBitsOut() << "\n";
      ShowStats("LowSym");
 
 
+     cParamAllFilterDCT aGlobParam;
      //   ====   Binarity filters ====
-        SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),false,mTHRS_Bin,eResDCT::LowBin);
+        SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,aGlobParam),false,mTHRS_Bin,eResDCT::LowBin);
     //    SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.7,mRayMinCB*1.4),false,1.7,eResDCT::LowBin);
 
 
      //   ====   Radial filters ====
      //SelectOnFilter(cFilterDCT<tREAL4>::AllocRad(mImGrad,3.5,5.5,1.0),false,0.5,eResDCT::LowRad);
-     SelectOnFilter(cFilterDCT<tREAL4>::AllocRad(mImGrad,5.5,8.5,2.0),false,0.9,eResDCT::LowRad);
+     SelectOnFilter(cFilterDCT<tREAL4>::AllocRad(mImGrad,aGlobParam),false,0.9,eResDCT::LowRad);
 
 
      // Min of symetry
-     SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,mRayMinCB*0.4,mRayMinCB*0.8,1),true,0.8,eResDCT::LowSym);
+     SelectOnFilter(cFilterDCT<tREAL4>::AllocSym(aIm,aGlobParam),true,0.8,eResDCT::LowSym);
 
      // Min of bin
     // SelectOnFilter(cFilterDCT<tREAL4>::AllocBin(aIm,mRayMinCB*0.4,mRayMinCB*0.8),true,mTHRS_Bin,eResDCT::LowBin);
@@ -633,6 +634,7 @@ void  cAppliExtractCodeTarget::TestFilters()
           StdOut()  << " F=" << E2Str(anEF) << "\n";
           cFilterDCT<tREAL4> * aFilter = nullptr;
 
+	  /*
 	  if (anEF==eDCTFilters::eSym)
 	     aFilter =  cFilterDCT<tREAL4>::AllocSym(aIm,mRaysTF.x(),mRaysTF.y(),1);
 
@@ -641,6 +643,8 @@ void  cAppliExtractCodeTarget::TestFilters()
 
 	  if (anEF==eDCTFilters::eRad)
 	     aFilter =  cFilterDCT<tREAL4>::AllocRad(mImGrad,mRaysTF.x(),mRaysTF.y(),1);
+
+	     */
 
 	  if (aFilter)
 	  {
