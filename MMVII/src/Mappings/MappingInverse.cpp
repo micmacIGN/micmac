@@ -58,6 +58,38 @@ template <class Type,const int Dim>
 }
 
 /* ============================================= */
+/*        cDataInvertOfMapping<Type,Dim>         */
+/* ============================================= */
+template <class Type,const int Dim>
+    cDataInvertOfMapping<Type,Dim>::cDataInvertOfMapping(const tIMap * aMapToInv,bool toAdopt) :
+         mMapToInv(aMapToInv),
+         mAdopted (toAdopt)
+{
+}
+
+template <class Type,const int Dim>
+    cDataInvertOfMapping<Type,Dim>::~cDataInvertOfMapping()
+{
+    if (mAdopted)
+       delete mMapToInv;
+}
+
+template <class Type,const int Dim>
+         const  std::vector<cPtxd<Type,Dim>>  &
+                 cDataInvertOfMapping<Type,Dim>::Inverses(tVecPt & aVOut,const tVecPt & aVIn) const
+{
+    return  mMapToInv->Values(aVOut,aVIn);
+}
+
+template <class Type,const int Dim>
+         const  std::vector<cPtxd<Type,Dim>>  &
+                 cDataInvertOfMapping<Type,Dim>::Values(tVecPt & aVOut,const tVecPt & aVIn) const
+{
+    return  mMapToInv->Inverses(aVOut,aVIn);
+}
+
+
+/* ============================================= */
 /*            cInvertByIter<Type,Dim>            */
 /*            - cStrPtInvDIM<Type,Dim>           */
 /* ============================================= */
@@ -957,11 +989,12 @@ void  OneBench_CMI(double aCMaxRel)
 /* ============================================= */
 
 #define INSTANCE_INVERT_MAPPING(DIM)\
-template class cComputeMapInverse<double,DIM>;\
-template class cDataIIMFromMap<double,DIM>;\
-template class cDataInvertibleMapping<double,DIM>;\
-template class cDataIterInvertMapping<double,DIM>;\
-template class cInvertDIMByIter<double,DIM>;
+template  class  cDataInvertOfMapping<tREAL8,DIM>;\
+template class cComputeMapInverse<tREAL8,DIM>;\
+template class cDataIIMFromMap<tREAL8,DIM>;\
+template class cDataInvertibleMapping<tREAL8,DIM>;\
+template class cDataIterInvertMapping<tREAL8,DIM>;\
+template class cInvertDIMByIter<tREAL8,DIM>;
 
 INSTANCE_INVERT_MAPPING(2)
 INSTANCE_INVERT_MAPPING(3)
@@ -1070,6 +1103,10 @@ void BenchInvertMapping(cParamExeBench & aParam)
        cDataInvertibleMapping<tREAL8,3> * aPM1 = & aM1;
        cDataIterInvertMapping<tREAL8,3> * aPMIter1 = & aM1;
 
+       cDataInvertOfMapping<tREAL8,3> aInvM1 (&aM1,false);
+
+
+
        // StdOut()  << "JJJJ " << aPMIter1->StrInvertIter() << "\n";
        
        std::vector<double> aVRatio{1.0,5.0,25.0,125.0,625.0};
@@ -1084,7 +1121,10 @@ void BenchInvertMapping(cParamExeBench & aParam)
            cPt3dr aPtDI = aM1.Inverse(aPtD);
 
            cPt3dr aPtI = aM1.Inverse(aPt);
+           MMVII_INTERNAL_ASSERT_bench(Norm2(aPtI -aInvM1.Value(aPt))<1e-10,"cDataInvertOfMapping::Value");
+	   
            cPt3dr aPtID = aM1.Value(aPtI);
+           MMVII_INTERNAL_ASSERT_bench(Norm2(aPtID -aInvM1.Inverse(aPtI))<1e-10,"cDataInvertOfMapping::Inverse");
 
            MMVII_INTERNAL_ASSERT_bench(Norm2(aPt -aPtDI)<10*aEpsInv,"elem inverse");
            MMVII_INTERNAL_ASSERT_bench(Norm2(aPt -aPtID)<10*aEpsInv,"elem inverse");
