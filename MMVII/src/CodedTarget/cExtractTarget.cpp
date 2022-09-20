@@ -711,17 +711,10 @@ void cAppliExtractCodeTarget::printMatrix(MatrixXd M){
 // ---------------------------------------------------------------------------
 int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* output){
 
-
-
 	const unsigned N = points.size();
-    MatrixXd D1(N,3);
-    MatrixXd D2(N,3);
-    Eigen::Matrix<double, 3, 3> M;
-
     cDenseMatrix<double>  D1Wrap(3,N);
     cDenseMatrix<double>  D2Wrap(3,N);
     cDenseMatrix<double>  MWrap(3,3);
-
 
     double xmin = 1e300;
     double ymin = 1e300;
@@ -740,70 +733,49 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
 
     for (unsigned i=0; i<N; i++){
         double x = points.at(i).x(); double y = points.at(i).y();
-        D1(i,0) = x*x;  D1(i,1) = x*y;  D1(i,2) = y*y;
-        D2(i,0) = x  ;  D2(i,1) = y  ;  D2(i,2) = 1  ;
-
-        // New wrapper
         D1Wrap.SetElem(0,i,x*x);  D1Wrap.SetElem(1,i,x*y);  D1Wrap.SetElem(2,i,y*y);
         D2Wrap.SetElem(0,i,x)  ;  D2Wrap.SetElem(1,i,y  );  D2Wrap.SetElem(2,i,1  );
-        //  D1Wrap(0,i) = x*x;  D1Wrap(1,i) = x*y;  D1Wrap(2,i) = y*y;
-        //  D2Wrap(0,i) = x  ;  D2Wrap(1,i) = y  ;  D2Wrap(2,i) = 1  ;
     }
 
     cDenseMatrix<double> S1Wrap = D1Wrap.Transpose() * D1Wrap;
     cDenseMatrix<double> S2Wrap = D1Wrap.Transpose() * D2Wrap;
     cDenseMatrix<double> S3Wrap = D2Wrap.Transpose() * D2Wrap;
     cDenseMatrix<double> TWrap  = (-1)*S3Wrap.Inverse() * S2Wrap.Transpose();
-    cDenseMatrix<double> M1Wrap = S1Wrap + S2Wrap.Transpose();
-
-	MatrixXd S1 = D1.transpose() * D1;
-    MatrixXd S2 = D1.transpose() * D2;
-    MatrixXd S3 = D2.transpose() * D2;
-    MatrixXd T  = (-1)*S3.inverse() * S2.transpose();
-    MatrixXd M1 = S1 + S2*T;
-
-	for (unsigned i=0; i<3; i++){
-		M(0,i) = +M1(2,i)/2.0;
-		M(1,i) = -M1(1,i);
-		M(2,i) = +M1(0,i)/2.0;
-	}
+    cDenseMatrix<double> M1Wrap = S1Wrap + S2Wrap*TWrap;
 
 	for (unsigned i=0; i<3; i++){
 		MWrap.SetElem(i,0,+M1Wrap(i,2)/2.0);
-		MWrap.SetElem(i,0,-M1Wrap(i,1)    );
-		MWrap.SetElem(i,0,+M1Wrap(i,0)/2.0);
+		MWrap.SetElem(i,1,-M1Wrap(i,1)    );
+		MWrap.SetElem(i,2,+M1Wrap(i,0)/2.0);
 	}
 
-	MMVII_INTERNAL_ERROR("DO NOT COMPILE");
-#if (0)
-	Eigen::EigenSolver<Eigen::Matrix<double, 3,3>> eigensolver(M);  // YANN : HERE IS THE PROBLEM
+    cResulEigenDecomp<double> eigensolverWrap  = MWrap.Eigen_Decomposition();
 
-	auto P = eigensolver.eigenvectors();
+    cDenseMatrix<double>  PWrap = eigensolverWrap.mEigenVec_R;
 
-	double v12 = P(0,1).real(); double v13 = P(0,2).real();
-	double v22 = P(1,1).real(); double v23 = P(1,2).real();
-	double v32 = P(2,1).real(); double v33 = P(2,2).real();
-
+	double v12 = PWrap.GetElem(1,0); double v13 = PWrap.GetElem(2,0);
+	double v22 = PWrap.GetElem(1,1); double v23 = PWrap.GetElem(2,1);
+	double v32 = PWrap.GetElem(1,2); double v33 = PWrap.GetElem(2,2);
 
 	bool cond2 = 4*v12*v32-v22*v22 > 0;
 	bool cond3 = 4*v13*v33-v23*v23 > 0;
 	int index = cond2*1 + cond3*2;
 
-	double a1 = P(0,index).real();
-	double a2 = P(1,index).real();
-	double a3 = P(2,index).real();
+	double a1 = PWrap.GetElem(index, 0);
+	double a2 = PWrap.GetElem(index, 1);
+	double a3 = PWrap.GetElem(index, 2);
 
 	double A, B, C, D, E, F;
 	A = a1;
 	B = a2;
 	C = a3;
-	D = T(0,0)*a1 + T(0,1)*a2 + T(0,2)*a3;
-	E = T(1,0)*a1 + T(1,1)*a2 + T(1,2)*a3;
-	F = T(2,0)*a1 + T(2,1)*a2 + T(2,2)*a3;
-
+	D = TWrap.GetElem(0,0)*a1 + TWrap.GetElem(1,0)*a2 + TWrap.GetElem(2,0)*a3;
+	E = TWrap.GetElem(0,1)*a1 + TWrap.GetElem(1,1)*a2 + TWrap.GetElem(2,1)*a3;
+	F = TWrap.GetElem(0,2)*a1 + TWrap.GetElem(1,2)*a2 + TWrap.GetElem(2,2)*a3;
 
 	double u = xmin;
 	double v = ymin;
+
 	// Translation
     output[0] = A;
     output[1] = B;
@@ -811,7 +783,6 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
     output[3] = D - B*v - 2*A*u;
     output[4] = E - 2*C*v - B*u;
     output[5] = F + A*u*u  + C*v*v + B*u*v  - D*u - E*v;
-#endif
 
 
     return 0;
