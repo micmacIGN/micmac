@@ -133,7 +133,7 @@ void TestParamTarg()
 /*                                                   */
 /* ================================================= */
 
-template <class Type>  
+template <class Type>
    cFilterDCT<Type>::cFilterDCT
    (
           bool        isCumul,  // is it efficient as cumul filter
@@ -157,11 +157,11 @@ template <class Type>
 {
    // compute real neigboor
    for (const auto & aPix : mIVois)
-       mRVois.push_back(ToR(aPix));  
+       mRVois.push_back(ToR(aPix));
 
    mRhoEnd = Norm2(mRVois.back());
 
-   //  compute the series of intervall,  
+   //  compute the series of intervall,
    int aK0=0;
    int aK1=aK0;
    if (mIsCumul)
@@ -179,7 +179,7 @@ template <class Type>
 
 }
 
-template <class Type>  
+template <class Type>
    cFilterDCT<Type>::cFilterDCT(tIm anIm,const  cParamAllFilterDCT & aGlob,const cParam1FilterDCT * aSpecif) :
 	   cFilterDCT<Type>
            (
@@ -190,7 +190,7 @@ template <class Type>
                   aSpecif->R0() * aGlob.RGlob(),
                   aSpecif->R1() * aGlob.RGlob(),
                   aSpecif->ThickN()
-           ) 
+           )
 {
 }
 
@@ -261,7 +261,7 @@ template <class Type> double cFilterDCT<Type>::ComputeValMaxCrown(const cPt2dr &
            for (int aK=aK0Prec ; aK<aK0Next ; aK++)
                Add(-1.0,mRVois[aK]);
            UpdateMax(aVMax,Compute());
-           if (aVMax> aThreshold)  
+           if (aVMax> aThreshold)
               return aVMax;
        }
     }
@@ -276,7 +276,7 @@ template <class Type> double cFilterDCT<Type>::ComputeValMaxCrown(const cPt2dr &
            for (int aK=aK0 ; aK<aK1 ; aK++)
                Add(1.0,mRVois[aK]);
            UpdateMax(aVMax,Compute());
-           if (aVMax> aThreshold)  
+           if (aVMax> aThreshold)
               return aVMax;
        }
     }
@@ -323,7 +323,7 @@ template <class Type>  eDCTFilters cFilterDCT<Type>::ModeF() const {return mMode
 /*                                                   */
 /* ================================================= */
 
-/** Class for defining the symetry filter 
+/** Class for defining the symetry filter
 
     See  cSymMeasure  in "include/MMVII_Matrix.h"
 */
@@ -363,9 +363,9 @@ template <class Type>  void  cSymFilterCT<Type>::Reset()
           mSM = cSymMeasure<Type>();  // reinitialise the symetry object
 }
 
-template <class Type>  double  cSymFilterCT<Type>::Compute() 
+template <class Type>  double  cSymFilterCT<Type>::Compute()
 {
-     return mSM.Sym(mEpsilon);  
+     return mSM.Sym(mEpsilon);
 }
 
 template <class Type>  cSymFilterCT<Type>::cSymFilterCT(tIm anIm,double aR0,double aR1,double aEpsilon) :
@@ -452,13 +452,13 @@ template <class Type>  class  cBinFilterCT : public cFilterDCT<Type>
           float mVWhite ;
 };
 
-template<class Type> void  cBinFilterCT<Type>::UpdateSelected(cNS_CodedTarget::cDCT & aDC) const 
+template<class Type> void  cBinFilterCT<Type>::UpdateSelected(cNS_CodedTarget::cDCT & aDC) const
 {
     aDC.mVBlack = mVBlack;
     aDC.mVWhite = mVWhite;
 }
 
-template<class Type> void cBinFilterCT<Type>::Add(const Type & aWeight,const cPt2dr & aNeigh) 
+template<class Type> void cBinFilterCT<Type>::Add(const Type & aWeight,const cPt2dr & aNeigh)
 {
      mVVal.push_back(this->mDIm.GetV(ToI(this->mCurC+aNeigh)));
 }
@@ -505,7 +505,7 @@ template<class Type> double  cBinFilterCT<Type>::Compute()
         double aDifMoy  =  aSumDifBlack/ aNbBlack + aSumDifWhite/aNbWhite;
         aValue = aDifMoy  / (mVWhite - mVBlack);
     }
-	  
+
     return aValue;
 }
 
@@ -558,9 +558,9 @@ template <class Type>  void  cRadFilterCT<Type>::Reset()
 {
     mSomScal = 0;
     mSomG2  = 0;
-} 
+}
 
-template <class Type> void cRadFilterCT<Type>::Add(const Type & aWeight,const cPt2dr & aNeigh)   
+template <class Type> void cRadFilterCT<Type>::Add(const Type & aWeight,const cPt2dr & aNeigh)
 {
     cPt2dr aDir = VUnit(aNeigh);
     cPt2dr aPt = this->mCurC + aNeigh;
@@ -609,7 +609,7 @@ template<class TypeEl> void CheckSymetricity
                                 double aR1,
                                 double Epsilon
                            )
-{     
+{
     cDataIm2D<TypeEl> & aDImIn = aImIn.DIm();
     cPt2di aSz = aDImIn.Sz();
     int aD = round_up(aR1);
@@ -680,19 +680,19 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool doCheck,cIm2D<TypeEl>  a
 /*           ALLOCATOR                      */
 /* ======================================== */
 
-template <class Type>  
+template <class Type>
     cFilterDCT<Type> * cFilterDCT<Type>::AllocSym(tIm anIm,const cParamAllFilterDCT & aParam)
 {
     return new  cSymFilterCT<Type>(anIm,aParam);
 }
 
-template <class Type>  
+template <class Type>
     cFilterDCT<Type> * cFilterDCT<Type>::AllocBin(tIm anIm,const cParamAllFilterDCT & aParam)
 {
     return new  cBinFilterCT<Type>(anIm,aParam);
 }
 
-template <class Type>  
+template <class Type>
     cFilterDCT<Type> * cFilterDCT<Type>::AllocRad(const tImGr & aImGr,const cParamAllFilterDCT & aParam)
 {
     return new  cRadFilterCT<Type>(aImGr,aParam);

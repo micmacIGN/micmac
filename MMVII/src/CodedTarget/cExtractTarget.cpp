@@ -111,7 +111,9 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         bool           mWithGT;
         double         mDMaxMatch;
 
-        bool mTest;
+        bool mTest;               ///< Test option for debugging program
+        bool mRecompute;          ///< Recompute affinity for size adaptation
+
 	std::vector<double>  mParamBin;
 
 
@@ -139,7 +141,9 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mImVisu        (cPt2di(1,1)),
    mPatF          (".*"),
    mWithGT        (false),
-   mDMaxMatch     (2.0)
+   mDMaxMatch     (2.0),
+   mTest          (false),
+   mRecompute     (false)
 {
 }
 
@@ -167,6 +171,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mPatF, "PatF","Pattern filters" ,{AC_ListVal<eDCTFilters>(),eTA2007::HDV})
                     << AOpt2007(mTest, "Test", "Test for Ellipse Fit", {eTA2007::HDV})
                     << AOpt2007(mParamBin, "BinF", "Param for binary filter", {eTA2007::HDV})
+                    << AOpt2007(mRecompute, "Recompute", "Recompute affinity if needed", {eTA2007::HDV})
 	  );
    ;
 }
@@ -470,7 +475,7 @@ StdOut() << aHC.NbBitsIn() << " " << aHC.NbBitsOut() << "\n";
             // Recomputing directions and intersections if needed
             // ---------------------------------------------------
             double size_target_ellipse = sqrt(ellipse[2]* ellipse[2] + ellipse[3]*ellipse[3]);
-            if (size_target_ellipse > 30){
+            if ((size_target_ellipse > 30) && (mRecompute)){
 
                 // Recomputing directions if needed
                 double correction_factor = size_target_ellipse/15.0;
@@ -706,10 +711,17 @@ void cAppliExtractCodeTarget::printMatrix(MatrixXd M){
 // ---------------------------------------------------------------------------
 int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* output){
 
+
+
 	const unsigned N = points.size();
     MatrixXd D1(N,3);
     MatrixXd D2(N,3);
     Eigen::Matrix<double, 3, 3> M;
+
+    cDenseMatrix<double>  D1Wrap(3,N);
+    cDenseMatrix<double>  D2Wrap(3,N);
+    cDenseMatrix<double>  MWrap(3,3);
+
 
     double xmin = 1e300;
     double ymin = 1e300;
@@ -730,7 +742,15 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
         double x = points.at(i).x(); double y = points.at(i).y();
         D1(i,0) = x*x;  D1(i,1) = x*y;  D1(i,2) = y*y;
         D2(i,0) = x  ;  D2(i,1) = y  ;  D2(i,2) = 1  ;
+
+        // New wrapper
+        D1Wrap(0,i) = x*x;  D1Wrap(1,i) = x*y;  D1Wrap(2,i) = y*y;
+        D2Wrap(0,i) = x  ;  D2Wrap(1,i) = y  ;  D2Wrap(2,i) = 1  ;
     }
+
+    FakeUseIt(D1Wrap);
+    FakeUseIt(D2Wrap);
+    FakeUseIt(MWrap);
 
 	MatrixXd S1 = D1.transpose() * D1;
     MatrixXd S2 = D1.transpose() * D2;
@@ -744,8 +764,6 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
 		M(2,i) = +M1(0,i)/2.0;
 	}
 
-	MMVII_INTERNAL_ERROR("This doesnt compiles");
-#if (0)
 	Eigen::EigenSolver<Eigen::Matrix<double, 3,3>> eigensolver(M);  // YANN : HERE IS THE PROBLEM
 
 	auto P = eigensolver.eigenvectors();
@@ -781,7 +799,7 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
     output[3] = D - B*v - 2*A*u;
     output[4] = E - 2*C*v - B*u;
     output[5] = F + A*u*u  + C*v*v + B*u*v  - D*u - E*v;
-#endif
+
 
     return 0;
 
@@ -1043,7 +1061,10 @@ int  cAppliExtractCodeTarget::Exe()
 
 if (mTest){
 
-	TestParamTarg();
+	cDenseMatrix<double>  aMat(3,3);
+	StdOut() << aMat << "\n";
+
+    FakeUseIt(aMat);
         return 0;
 
     }
@@ -1075,7 +1096,7 @@ if (mTest){
 
 
    return EXIT_SUCCESS;
-} 
+}
 };
 
 

@@ -951,6 +951,9 @@ void BenchDenseMatrix0(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Matrix0")) return;
 
+    Bench_EigenDecompos(aParam);
+
+
     for (int aK=0 ; aK<100 ; aK++)
     {
        BenchMatPt<tREAL4,3,2>();
