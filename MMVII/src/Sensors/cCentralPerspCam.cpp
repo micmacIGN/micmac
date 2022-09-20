@@ -13,13 +13,16 @@
 
 namespace MMVII
 {
+class cPixelDomain ;
+class cCalibStenPerfect ;
+class cPerspCamIntrCalib ;
 	
-class cPixelSpace : public cDataBoundedSet<tREAL8,2>
+class cPixelDomain : public cDataBoundedSet<tREAL8,2>
 {
       public :
-           cPixelSpace(const cPt2di &aSz);
-           virtual ~ cPixelSpace();
-           virtual cPixelSpace *  Dup_PS () const;  ///< default work because deleted in mother class
+           cPixelDomain(const cPt2di &aSz);
+           virtual ~ cPixelDomain();
+           virtual cPixelDomain *  Dup_PS () const;  ///< default work because deleted in mother class
 
       private :
            cBox2di    mBox;
@@ -79,7 +82,7 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 		  const cPt3di & aDeg,                ///< degrees of distorstion  Rad/Dec/Univ
 		  const std::vector<double> & aVObs,  ///< vector of constants, or void
 		  const cCalibStenPerfect &,           ///< Calib w/o dist
-                  const  cPixelSpace  &,              ///< sz, domaine of validity in pixel
+                  const  cPixelDomain  &,              ///< sz, domaine of validity in pixel
 		  const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
 		  int aSzBuf                          ///< sz of buffers in computatio,
             );
@@ -98,8 +101,8 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist_Der;
 	    cCalibStenPerfect                    mCSPerfect;    ///<
 	    cCalibStenPerfect                    mCSPInv;
-            cPixelSpace *                        mPixSpace;   ///< validity domain in pixel
-	    cDataMappedBoundedSet<tREAL8,2>*     mPhgrSpace;  ///<  validity in F/PP corected space,
+            cPixelDomain *                       mPixDomain;   ///< validity domain in pixel
+	    cDataMappedBoundedSet<tREAL8,2>*     mPhgrDomain;  ///<  validity in F/PP corected space,
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
 
@@ -109,7 +112,7 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
       const cPt3di & aDeg,                ///< degrees of distorstion  Rad/Dec/Univ
       const std::vector<double> & aVObs,  ///< vector of constants, or void
       const cCalibStenPerfect & aCSP,           ///< Calib w/o dist
-      const  cPixelSpace  & aPixSpace,              ///< sz, domaine of validity in pixel
+      const  cPixelDomain  & aPixDomain,              ///< sz, domaine of validity in pixel
       const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
       int aSzBuf                          ///< sz of buffers in computation
 )  :
@@ -119,8 +122,8 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
     mDir_Dist_Der   (nullptr),
     mCSPerfect      (aCSP),
     mCSPInv         (mCSPerfect.MapInverse()),
-    mPixSpace       (aPixSpace.Dup_PS()),
-    mPhgrSpace      (new cDataMappedBoundedSet<tREAL8,2>(mPixSpace,&mCSPInv,false,false))
+    mPixDomain      (aPixDomain.Dup_PS()),
+    mPhgrDomain     (new cDataMappedBoundedSet<tREAL8,2>(mPixDomain,&mCSPInv,false,false))
 {
 }
 
