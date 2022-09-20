@@ -744,8 +744,10 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
         D2(i,0) = x  ;  D2(i,1) = y  ;  D2(i,2) = 1  ;
 
         // New wrapper
-        D1Wrap(0,i) = x*x;  D1Wrap(1,i) = x*y;  D1Wrap(2,i) = y*y;
-        D2Wrap(0,i) = x  ;  D2Wrap(1,i) = y  ;  D2Wrap(2,i) = 1  ;
+        D1Wrap.SetElem(0,i,x*x);  D1Wrap.SetElem(1,i,x*y);  D1Wrap.SetElem(2,i,y*y);
+        D2Wrap.SetElem(0,i,x)  ;  D2Wrap.SetElem(1,i,y  );  D2Wrap.SetElem(2,i,1  );
+        //  D1Wrap(0,i) = x*x;  D1Wrap(1,i) = x*y;  D1Wrap(2,i) = y*y;
+        //  D2Wrap(0,i) = x  ;  D2Wrap(1,i) = y  ;  D2Wrap(2,i) = 1  ;
     }
 
     cDenseMatrix<double> S1Wrap = D1Wrap.Transpose() * D1Wrap;
@@ -766,16 +768,14 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
 		M(2,i) = +M1(0,i)/2.0;
 	}
 
-
 	for (unsigned i=0; i<3; i++){
 		MWrap.SetElem(i,0,+M1Wrap(i,2)/2.0);
 		MWrap.SetElem(i,0,-M1Wrap(i,1)    );
 		MWrap.SetElem(i,0,+M1Wrap(i,0)/2.0);
 	}
 
-
-
-
+	MMVII_INTERNAL_ERROR("DO NOT COMPILE");
+#if (0)
 	Eigen::EigenSolver<Eigen::Matrix<double, 3,3>> eigensolver(M);  // YANN : HERE IS THE PROBLEM
 
 	auto P = eigensolver.eigenvectors();
@@ -811,6 +811,7 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
     output[3] = D - B*v - 2*A*u;
     output[4] = E - 2*C*v - B*u;
     output[5] = F + A*u*u  + C*v*v + B*u*v  - D*u - E*v;
+#endif
 
 
     return 0;
