@@ -96,17 +96,25 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 
             // cSphereBoundedSet<tREAL8,2>          mPNormSpace; // validity domain pixel-normalize (PP/F) space
 
+
+	        // comon to dir & inverse
 	    eProjPC                              mTypeProj;
-	    cPt3di                               mDegrDir;
             int                                  mSzBuf;
-	    std::vector<cDescOneFuncDist>        mVDescDist;  ///< contain a "high" level description of dist params
-	    std::vector<tREAL8>                  mVParams;    ///< Parameters of distorsion
-            cDataMapCalcSymbDer<tREAL8,3,2>*     mDir_Proj;
-            cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist;
-	    cCalibStenPerfect                    mCSPerfect;    ///<
+	        // parameters for direct projection  DirBundle -> pixel
+	    cPt3di                               mDegrDir;
+	    std::vector<cDescOneFuncDist>        mVDescDistDir;  ///< contain a "high" level description of dist params
+	    std::vector<tREAL8>                  mVParamsDir;    ///< Parameters of distorsion
+            cDataMapCalcSymbDer<tREAL8,3,2>*     mDir_Proj;   ///< direct projection  R3->R2
+            cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist;   ///< direct disorstion  R2->R2
+	    cCalibStenPerfect                    mCSPerfect;  ///< R2-phgr -> pixels
+            cPixelDomain *                       mPixDomain;  ///< validity domain in pixel
+                // now for "inversion"  pix->DirBundle
 	    cCalibStenPerfect                    mCSPInv;
-            cPixelDomain *                       mPixDomain;   ///< validity domain in pixel
 	    cDataMappedBoundedSet<tREAL8,2>*     mPhgrDomain;  ///<  validity in F/PP corected space,
+	    cPt3di                               mDegrInv;
+	    std::vector<cDescOneFuncDist>        mVDescDistInv;  ///< contain a "high" level description of dist params
+	    std::vector<tREAL8>                  mVParamsInv;    ///< Parameters of distorsion
+							       
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
 
@@ -126,23 +134,28 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
       const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
       int aSzBuf                          ///< sz of buffers in computation
 )  :
+	// ------------ global -------------
     mTypeProj       (aTypeProj),
-    mDegrDir        (aDegDir),
     mSzBuf          (aSzBuf),
-    mVDescDist      (DescDist(aDegDir)),
-    mVParams        (aVParams),
+	// ------------ direct -------------
+    mDegrDir        (aDegDir),
+    mVDescDistDir   (DescDist(aDegDir)),
+    mVParamsDir     (aVParams),
     mDir_Proj       (nullptr),
     mDir_Dist       (nullptr),
     mCSPerfect      (aCSP),
-    mCSPInv         (mCSPerfect.MapInverse()),
     mPixDomain      (aPixDomain.Dup_PS()),
+	// ------------ inverse -------------
+    mCSPInv         (mCSPerfect.MapInverse()),
     mPhgrDomain     (new cDataMappedBoundedSet<tREAL8,2>(mPixDomain,&mCSPInv,false,false))
 {
+        // 1 - construct direct parameters
+	
     // correct vect param, when first use, parameter can be empty meaning all 0  
-    if (mVParams.size() != mVDescDist.size())
+    if (mVParamsDir.size() != mVDescDistDir.size())
     {
-       MMVII_INTERNAL_ASSERT_strong(mVParams.empty(),"cPerspCamIntrCalib Bad size for params");
-       mVParams.resize(mVDescDist.size(),0.0);
+       MMVII_INTERNAL_ASSERT_strong(mVParamsDir.empty(),"cPerspCamIntrCalib Bad size for params");
+       mVParamsDir.resize(mVDescDistDir.size(),0.0);
     }
     
     mDir_Proj = new  cDataMapCalcSymbDer<tREAL8,3,2>
@@ -153,7 +166,7 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
 			  true                                   // equations are "adopted" (i.e will be deleted in destuctor)
                      );
 
-    mDir_Dist = NewMapOfDist(mDegrDir,mVParams,mSzBuf);
+    mDir_Dist = NewMapOfDist(mDegrDir,mVParamsDir,mSzBuf);
 }
 
 cPerspCamIntrCalib::~cPerspCamIntrCalib()
@@ -166,7 +179,7 @@ cPerspCamIntrCalib::~cPerspCamIntrCalib()
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
-    if (! aParam.NewBench("Geom")) return;
+    if (! aParam.NewBench("CentralPersp")) return;
 
     eProjPC  aTypeProj = eProjPC::eFE_EquiSolid;
 

@@ -584,6 +584,118 @@ template <class Type,int Dim> class  cDataNxNMapCalcSymbDer  : public cDataNxNMa
 
 };
 
+/**  Helper for extending map invere near frontier */
+template <class Type,const int Dim>  struct cPtsExtendCMI;
+
+/**   Class for computing an inverse mapping from :
+         * the direct mapping to invert  EIn => EOut
+         * a set of base function that linerly code the invert
+         * a validity domain on the output space EOut
+         * a "seed" point in input space
+
+      The criterion for validity if   || J(Seed)^-1 * J(p) -Id ||  <  Threshold   J=Jacobian
+
+       This is adapted to distorsion where :
+          * we know the output space -> sensor space + an optional validty (masq image, circle ...)
+          * we jo
+
+       The method make grow a space where the mapping can reasonnabily be expect to be invertible,
+  the critrion being for this is to ensure that the jacobian is always sufficiently close to the jacobian
+  at the seed (pushed to the limit, when equals it means that function is linear).
+
+       The growing is made on a grid by a connected component analysis starting from the seed.
+
+       At the end, due to the sampling we may have few or no point close to the border/frontier. This
+    is no good as we know that extrapolation do not work well, so we have a step  were we add
+    a prolongation to go nearer to the frontier
+*/
+
+
+
+template <class Type,const int Dim> class  cComputeMapInverse
+{
+    public :
+            //  aCMaxRel => define the zone relatively to the rho max
+        friend void OneBench_CMI(double aCMaxRel);
+        // using enum eLabelIm_CMI;
+        typedef cLeastSqComputeMaps<Type,Dim,Dim> tLSQ;
+        typedef cDataBoundedSet<Type,Dim>         tSet;
+        typedef cDataNxNMapping<Type,Dim>         tMap;
+        typedef cPtxd<Type,Dim>                   tPtR;
+        typedef cPtxd<int,Dim>                    tPtI;
+        typedef cTplBox<Type,Dim>                 tBoxR;
+        typedef cPtsExtendCMI<Type,Dim>           tExtent;
+        typedef typename tMap::tCsteResVecJac     tCsteResVecJac;
+
+        /// Constructor, essentially memorize parameters
+        cComputeMapInverse
+        (
+             const Type & aThreshJac, ///< Threshold on jacobian to ensure inversability
+             const tPtR& aSeed,       ///< Seed point, in input space
+             const int & aNbPtsIn,    ///< Approximate number of point (in the biggest size)
+             tSet &,  ///< Set of validity, in output space
+             tMap&,   ///< Maping to invert : InputSpace -> OutputSpace
+             tLSQ&,  ///< Structure for computing the invert on base of function using least square   
+             bool Test=false
+        );
+        void  DoAll(std::vector<Type> & aVSol);
+
+        static int constexpr  TheNbIterByStep = 3;
+        static Type constexpr TheStepFrontLim = 3e-2;
+
+   private :
+        cComputeMapInverse(const cComputeMapInverse<Type,Dim> &) = delete;
+        /** Compute an approximation of Input box as reciproque of output box, use jacobian as
+            we dont know inverse (else we would not be here ...) */
+        tBoxR  BoxInByJacobian() const;
+        /** From input real space to grid space */
+        tPtI ToPix(const tPtR& aPR) const;
+        /** From grid space to input real space*/
+        tPtR FromPix(const tPtI& aPI) const;
+        /// Is the jacobian sufficently close to its value on seed ?
+        bool ValideJac(const cDenseMatrix<Type> & aMat) const;
+
+        /// Add a Pixel in the queue if has not already be visited
+        void Add1PixelTopo(const tPtI & aPix);
+        /// Filters pixel geometrically OK (Jac+domain) and add them as obs for least square
+        void FilterAndAddPixelsGeom();
+
+        /// Make on iteration, at given step, to have point closer to the frontier
+        void OneStepFront(const Type & aStepFront);
+
+        /// Validate (POut/Jac) if in domain and jacobian is OK
+        bool ValidateK(const tCsteResVecJac & aVecPJ,int aKp);
+        /// Add one observtion for computing inverse, IsFront used for memo in test mode
+        void AddObsMapDirect(const tPtR & aPIn,const tPtR & aPOut,bool IsFront);
+
+	         // Copy of parameters
+        Type          mThresholdJac;
+        tPtR          mPSeed; //  seed point that is waranteed to be inside the domain
+        tSet &        mSet;   // Definition set of Output space
+        tMap &        mMap;   // Map to invert
+        tLSQ &        mLSQ;   // systeme to compute the inverse as a linear composition of given base functions (using least square)
+          // Created members
+        tBoxR         mBoxByJac; ///< Box computed assuming that Map is equal to its jacobian in PSeed
+        tBoxR         mBoxMaj;  ///< Majoration of box, taking into account possible  unstability and jacobian threshold
+        Type          mStep;    ///< Step on the grid
+        cPixBox<Dim>              mBoxPix;  ///< Pixel box to make image processing stuff
+        cDataTypedIm<tU_INT1,Dim> mMarker;  ///< Marker image to make growing
+        std::vector<tPtI>         mNextGen; ///< Next generation of pixel in growing region
+        cDenseMatrix<Type>        mJacInv0; ///< Matrix invert of Jacobian in PSeed
+        cDenseMatrix<Type>        mMatId;   ///< Id Matrix, helper for computing Jacobian criteria
+        const std::vector<tPtI> &       mNeigh; ///< Neighbourhood for image-morpho-operation
+        std::vector<tExtent>      mVExt; ///< Vector of "extension" to the frontier
+        bool                      mTest; ///< Are we in test mode ?
+    public :
+        Type                      mStepFrontLim; // TheStepFrontLim
+        std::vector<tPtR>         mVPtsInt; ///< For test, memo point interior
+        std::vector<tPtR>         mVPtsFr;  ///< For test, memo point frontier
+
+};
+
+
+
+
 
 /**
     Sometime we want to manipulate "small" maping directly, with no virtual interface,
