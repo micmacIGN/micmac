@@ -10,9 +10,12 @@
    \brief implementation  of functionnality for intrincic calibration of 
 */
 
+using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
+
 class cPixelDomain ;
 class cCalibStenPerfect ;
 class cPerspCamIntrCalib ;
@@ -90,6 +93,9 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 
 	    ~cPerspCamIntrCalib();
 
+	    ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
+	    void UpdateLSQDistInv();
+
 	     // const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
 	    // const  tVecOut &  Inverses(tVecIn &,const tVecOut & ) const;
 	private :
@@ -101,20 +107,23 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 	    eProjPC                              mTypeProj;
             int                                  mSzBuf;
 	        // parameters for direct projection  DirBundle -> pixel
-	    cPt3di                               mDegrDir;
-	    std::vector<cDescOneFuncDist>        mVDescDistDir;  ///< contain a "high" level description of dist params
-	    std::vector<tREAL8>                  mVParamsDir;    ///< Parameters of distorsion
+	    cPt3di                               mDir_Degr;
+	    std::vector<cDescOneFuncDist>        mDir_VDesc;  ///< contain a "high" level description of dist params
+	    std::vector<tREAL8>                  mDir_Params;    ///< Parameters of distorsion
             cDataMapCalcSymbDer<tREAL8,3,2>*     mDir_Proj;   ///< direct projection  R3->R2
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist;   ///< direct disorstion  R2->R2
 	    cCalibStenPerfect                    mCSPerfect;  ///< R2-phgr -> pixels
             cPixelDomain *                       mPixDomain;  ///< validity domain in pixel
                 // now for "inversion"  pix->DirBundle
-	    cCalibStenPerfect                    mCSPInv;
+	    cCalibStenPerfect                    mInv_CSP;
 	    cDataMappedBoundedSet<tREAL8,2>*     mPhgrDomain;  ///<  validity in F/PP corected space,
-	    cPt3di                               mDegrInv;
-	    std::vector<cDescOneFuncDist>        mVDescDistInv;  ///< contain a "high" level description of dist params
-	    std::vector<tREAL8>                  mVParamsInv;    ///< Parameters of distorsion
-							       
+	    cPt3di                               mInv_Degr;
+	    std::vector<cDescOneFuncDist>        mInv_VDesc;  ///< contain a "high" level description of dist params
+	    std::vector<tREAL8>                  mInv_Params;    ///< Parameters of distorsion
+            cDataNxNMapCalcSymbDer<tREAL8,2>*    mInvApproxLSQ_Dist;   ///< approximate LSQ invert disorstion  R2->R2
+	    cCalculator<tREAL8> *                mInv_BaseFDist;  ///<  base of function for inverse distortion
+            cLeastSqCompMapCalcSymb<tREAL8,2,2>* mInv_CalcLSQ;  ///< structure for least square estimation
+	    tREAL8                               mThreshJacPI; ///< threshlod for jacobian in pseudo inversion
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
 
@@ -135,27 +144,34 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
       int aSzBuf                          ///< sz of buffers in computation
 )  :
 	// ------------ global -------------
-    mTypeProj       (aTypeProj),
-    mSzBuf          (aSzBuf),
+    mTypeProj           (aTypeProj),
+    mSzBuf              (aSzBuf),
 	// ------------ direct -------------
-    mDegrDir        (aDegDir),
-    mVDescDistDir   (DescDist(aDegDir)),
-    mVParamsDir     (aVParams),
-    mDir_Proj       (nullptr),
-    mDir_Dist       (nullptr),
-    mCSPerfect      (aCSP),
-    mPixDomain      (aPixDomain.Dup_PS()),
+    mDir_Degr           (aDegDir),
+    mDir_VDesc          (DescDist(aDegDir)),
+    mDir_Params         (aVParams),
+    mDir_Proj           (nullptr),
+    mDir_Dist           (nullptr),
+    mCSPerfect          (aCSP),
+    mPixDomain          (aPixDomain.Dup_PS()),
 	// ------------ inverse -------------
-    mCSPInv         (mCSPerfect.MapInverse()),
-    mPhgrDomain     (new cDataMappedBoundedSet<tREAL8,2>(mPixDomain,&mCSPInv,false,false))
+    mInv_CSP            (mCSPerfect.MapInverse()),
+    mPhgrDomain         (new cDataMappedBoundedSet<tREAL8,2>(mPixDomain,&mInv_CSP,false,false)),
+    mInv_Degr           (aDegPseudoInv),
+    mInv_VDesc          (DescDist(mInv_Degr)),
+    mInv_Params         (mInv_VDesc.size(),0.0),
+    mInvApproxLSQ_Dist  (nullptr),
+    mInv_BaseFDist      (nullptr),
+    mInv_CalcLSQ        (nullptr),
+    mThreshJacPI        (0.5)
 {
         // 1 - construct direct parameters
 	
     // correct vect param, when first use, parameter can be empty meaning all 0  
-    if (mVParamsDir.size() != mVDescDistDir.size())
+    if (mDir_Params.size() != mDir_VDesc.size())
     {
-       MMVII_INTERNAL_ASSERT_strong(mVParamsDir.empty(),"cPerspCamIntrCalib Bad size for params");
-       mVParamsDir.resize(mVDescDistDir.size(),0.0);
+       MMVII_INTERNAL_ASSERT_strong(mDir_Params.empty(),"cPerspCamIntrCalib Bad size for params");
+       mDir_Params.resize(mDir_VDesc.size(),0.0);
     }
     
     mDir_Proj = new  cDataMapCalcSymbDer<tREAL8,3,2>
@@ -166,7 +182,30 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
 			  true                                   // equations are "adopted" (i.e will be deleted in destuctor)
                      );
 
-    mDir_Dist = NewMapOfDist(mDegrDir,mVParamsDir,mSzBuf);
+    mDir_Dist = NewMapOfDist(mDir_Degr,mDir_Params,mSzBuf);
+
+        // 2 - construct direct parameters
+    mInvApproxLSQ_Dist  = NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf);
+    mInv_BaseFDist = EqBaseFuncDist(mInv_Degr,mSzBuf);
+    mInv_CalcLSQ   = new cLeastSqCompMapCalcSymb<tREAL8,2,2>(mInv_BaseFDist);
+
+}
+
+void cPerspCamIntrCalib::UpdateLSQDistInv()
+{
+	/*
+    cComputeMapInverse
+    (
+       mThreshJacPI, ///< Threshold on jacobian to ensure inversability
+       cPt2dr(0,0),       ///< Seed point, in input space
+       mInv_VDesc.size(),    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
+             tSet &,  ///< Set of validity, in output space
+             tMap&,   ///< Maping to invert : InputSpace -> OutputSpace
+       (*mInv_BaseFDist),  ///< Structure for computing the invert on base of function using least square
+       false  // Test
+   );
+   */
+
 }
 
 cPerspCamIntrCalib::~cPerspCamIntrCalib()
@@ -175,6 +214,10 @@ cPerspCamIntrCalib::~cPerspCamIntrCalib()
      delete mPixDomain;	
      delete mDir_Dist;
      delete mDir_Proj;
+
+     delete mInvApproxLSQ_Dist;
+     delete mInv_BaseFDist;
+     delete mInv_CalcLSQ;
 }
 
 void BenchCentralePerspective(cParamExeBench & aParam)

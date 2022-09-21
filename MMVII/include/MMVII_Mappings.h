@@ -789,6 +789,7 @@ template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMap
          typedef  std::vector<tPtOut>         tVecOut;
 
          cLeastSqComputeMaps(size_t aNbFunc);
+         virtual  ~cLeastSqComputeMaps();
          /// Add obs 
          void AddObs(const tPtIn & aPt,const tPtOut & aValue,const tPtOut & aPds);
          void AddObs(const tPtIn & aPt,const tPtOut & aValue,const Type & aPds);
@@ -818,7 +819,8 @@ template <class Type,const int DimIn,const int DimOut>
          using typename tSuper::tVecOut;
 
          typedef typename NS_SymbolicDerivative::cCalculator<Type> tCalc;
-         cLeastSqCompMapCalcSymb(tCalc *);
+         cLeastSqCompMapCalcSymb(tCalc *);  ///< create from a calculator : Not Adopted for deletion
+         virtual ~cLeastSqCompMapCalcSymb();
          void ComputeValFuncsBase(tVecOut &,const tPtIn & aPt) override;
     private :
          cLeastSqCompMapCalcSymb(const cLeastSqCompMapCalcSymb<Type,DimIn,DimOut>&)=delete;

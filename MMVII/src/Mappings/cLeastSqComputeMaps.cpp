@@ -19,6 +19,10 @@ template <class Type,const int  DimIn,const int DimOut>
 }
 
 template <class Type,const int  DimIn,const int DimOut> 
+    cLeastSqComputeMaps<Type,DimIn,DimOut>::~cLeastSqComputeMaps()
+{
+}
+template <class Type,const int  DimIn,const int DimOut> 
     void  cLeastSqComputeMaps<Type,DimIn,DimOut>::ComputeSolNotClear(std::vector<Type>& aRes)
 {
      cDenseVect<Type> aVD =  mLSQ.Solve();
@@ -103,6 +107,11 @@ template <class Type,const int  DimIn,const int DimOut>
         }
     }
     MMVII_INTERNAL_ASSERT_tiny(aKVal==aResVal.size(),"Size in ComputeValFuncsBase");
+}
+
+template <class Type,const int  DimIn,const int DimOut> 
+     cLeastSqCompMapCalcSymb<Type,DimIn,DimOut>::~cLeastSqCompMapCalcSymb()
+{
 }
 
 /* ===================================================== */
