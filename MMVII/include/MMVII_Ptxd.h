@@ -628,7 +628,9 @@ template <class Type,const int Dim>  class cTplBox
         tPt   GeneratePointInside() const;   ///< Random point in integer rect
         tBox  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
         void Corners(tCorner & aRes) const;
-        Type Dist2Corners(const tPt&) const;
+        Type DistMax2Corners(const tPt&) const;
+	static size_t NbFlagCorner() ;
+	tPt  CornerOfFlag(size_t aFlag) const;
 
     protected :
         tPt       mP0;         ///< "smallest"

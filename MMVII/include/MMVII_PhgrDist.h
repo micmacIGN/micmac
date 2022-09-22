@@ -63,22 +63,22 @@ class cRandInvertibleDist
 
        double                          mRhoMax;  
        cPt3di                          mDeg;     ///< Degree of dist
+       std::vector<cDescOneFuncDist>   mVecDesc; ///< Vector of descriptor
        tCalc *                         mEqVal;   ///< Calculator for values only
        tCalc *                         mEqDer;   ///< Calculator for values and derivatoves
        int                             mNbParam; ///< Number of parameters
        std::vector<double>             mVParam;  ///< Computed parameters
-       std::vector<cDescOneFuncDist>   mVecDesc; ///< Vector of descriptor
 };
 
 
 
 
 
-///  Allocate a calculator computing the distorsion
+///  Allocate a calculator computing the distorsion  UK=x,y  Obs=K1,K2 .....   K1 r +K2 R^3 ...
 NS_SymbolicDerivative::cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf);
-/// Allocate a calculator computing the base familly of a distorsion
+/// Allocate a calculator computing the base familly of a distorsion  UK=x,y Obs=K1,K2 .....  Kr, K2 R^3 
 NS_SymbolicDerivative::cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf);
-/// Alloc a map corresponding to  distorsions
+/// Alloc a map corresponding to  distorsions : 
 cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::vector<double> & aVObs,int aSzBuf);
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);

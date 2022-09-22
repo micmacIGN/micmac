@@ -585,7 +585,17 @@ template <class Type,int Dim> class  cDataNxNMapCalcSymbDer  : public cDataNxNMa
 };
 
 /**  Helper for extending map invere near frontier */
-template <class Type,const int Dim>  struct cPtsExtendCMI;
+
+template <class Type,const int Dim>  struct cPtsExtendCMI
+{
+     public :
+         typedef cPtxd<Type,Dim> tPt;
+         cPtsExtendCMI(const tPt & aCurP,const tPt & aDir) ;
+
+         tPt  mCurP;
+         tPt  mDir;
+};
+
 
 /**   Class for computing an inverse mapping from :
          * the direct mapping to invert  EIn => EOut

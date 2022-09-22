@@ -93,11 +93,17 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 
 	    ~cPerspCamIntrCalib();
 
+	    ///  For test, put random param while take care of being invertible
+	    void InitRandom(double aAmpl);
+	    ///  Test the accuracy of "guess" invert
+	    void TestInvInit();
+
 	    ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
 	    void UpdateLSQDistInv();
 
 	     // const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
 	    // const  tVecOut &  Inverses(tVecIn &,const tVecOut & ) const;
+	    //
 	private :
 
             // cSphereBoundedSet<tREAL8,2>          mPNormSpace; // validity domain pixel-normalize (PP/F) space
@@ -185,26 +191,6 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
     mDir_Dist = NewMapOfDist(mDir_Degr,mDir_Params,mSzBuf);
 
         // 2 - construct direct parameters
-    mInvApproxLSQ_Dist  = NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf);
-    mInv_BaseFDist = EqBaseFuncDist(mInv_Degr,mSzBuf);
-    mInv_CalcLSQ   = new cLeastSqCompMapCalcSymb<tREAL8,2,2>(mInv_BaseFDist);
-
-}
-
-void cPerspCamIntrCalib::UpdateLSQDistInv()
-{
-	/*
-    cComputeMapInverse
-    (
-       mThreshJacPI, ///< Threshold on jacobian to ensure inversability
-       cPt2dr(0,0),       ///< Seed point, in input space
-       mInv_VDesc.size(),    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
-             tSet &,  ///< Set of validity, in output space
-             tMap&,   ///< Maping to invert : InputSpace -> OutputSpace
-       (*mInv_BaseFDist),  ///< Structure for computing the invert on base of function using least square
-       false  // Test
-   );
-   */
 
 }
 
@@ -220,22 +206,103 @@ cPerspCamIntrCalib::~cPerspCamIntrCalib()
      delete mInv_CalcLSQ;
 }
 
-void BenchCentralePerspective(cParamExeBench & aParam)
+void cPerspCamIntrCalib::UpdateLSQDistInv()
 {
-    if (! aParam.NewBench("CentralPersp")) return;
+    if (mInvApproxLSQ_Dist==nullptr)
+    {
+        mInvApproxLSQ_Dist  = NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf);
+        mInv_BaseFDist = EqBaseFuncDist(mInv_Degr,mSzBuf);
+        mInv_CalcLSQ   = new cLeastSqCompMapCalcSymb<tREAL8,2,2>(mInv_BaseFDist);
+    }
 
-    eProjPC  aTypeProj = eProjPC::eFE_EquiSolid;
+    cComputeMapInverse aCMI
+    (
+       mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
+       cPt2dr(0,0),          ///< Seed point, in input space
+       mInv_VDesc.size(),    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
+       (*mPhgrDomain),       ///< Set of validity, in output space
+       (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
+       (* mInv_CalcLSQ),     ///< Structure for computing the invert on base of function using least square
+       false                 ///< Not in  Test
+   );
+   aCMI.DoAll(mInv_Params);
+   mInvApproxLSQ_Dist->SetObs(mInv_Params);
+}
+
+void cPerspCamIntrCalib::TestInvInit()
+{
+     double aRhoMax =  mPhgrDomain->Box().DistMax2Corners(cPt2dr(0,0));
+     std::vector<cPt2dr>  aVPt1;
+     mPhgrDomain->GridPointInsideAtStep(aVPt1,aRhoMax/50.0);
+
+     std::vector<cPt2dr>  aVPt2; // undist
+     mInvApproxLSQ_Dist->Values(aVPt2,aVPt1);
+
+     std::vector<cPt2dr>  aVPt3;
+     mDir_Dist->Values(aVPt3,aVPt2);
+
+     double aSD12=0;
+     double aSD23=0;
+     double aSD13=0;
+     for (size_t aKPt=0 ; aKPt<aVPt1.size() ; aKPt++)
+     {
+          aSD12 +=  SqN2(aVPt1.at(aKPt)-aVPt2.at(aKPt));
+          aSD23 +=  SqN2(aVPt2.at(aKPt)-aVPt3.at(aKPt));
+          aSD13 +=  SqN2(aVPt1.at(aKPt)-aVPt3.at(aKPt));
+     }
+     aSD12 = std::sqrt(aSD12/aVPt1.size());
+     aSD23 = std::sqrt(aSD23/aVPt1.size());
+     aSD13 = std::sqrt(aSD13/aVPt1.size());
+
+     StdOut() <<  "SSSS " <<  aSD13/aSD12 << "\n";
+}
+
+void cPerspCamIntrCalib::InitRandom(double aAmpl)
+{
+     double aRhoMax =  mPhgrDomain->Box().DistMax2Corners(cPt2dr(0,0));
+
+     cRandInvertibleDist  aParamRID ( mDir_Degr, aRhoMax, RandUnif_0_1(), aAmpl);
+
+     mDir_Dist->SetObs(aParamRID.VParam());
+}
+ 
+    //cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,double aProbaNotNul,double aTargetSomJac) :
+
+void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
+{
+    tREAL8 aDiag = 1000 * (1+10*RandUnif_0_1());
+    cPt2di aSz (aDiag*(1+RandUnif_0_1()),aDiag*(1+RandUnif_0_1()));
+    cPt2dr aPP(   aSz.x()*(0.5+0.1*RandUnif_C())  , aSz.y()*(0.5+0.1*RandUnif_C())  );
+    tREAL8  aFoc =  aDiag * (0.2 + 3.0*RandUnif_0_1());
 
     cPerspCamIntrCalib aCam
     (
           aTypeProj,
 	  cPt3di(3,1,1),
 	  std::vector<double>(),
-	  cCalibStenPerfect(2000,cPt2dr(1520.0,1030.0)),
-	  cPixelDomain(cPt2di(3000,2000)),
-	  cPt3di(3,1,1),
+	  cCalibStenPerfect(aFoc,aPP),
+	  cPixelDomain(aSz),
+	  cPt3di(5,1,1),
 	  100
     );
+
+    aCam.InitRandom(0.1);
+    aCam.UpdateLSQDistInv();
+    aCam.TestInvInit();
+}
+
+void BenchCentralePerspective(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("CentralPersp")) return;
+
+    for (int aTime=0 ; aTime<20 ; aTime++)
+    {
+        for (int aKEnum=0 ; aKEnum<int(eProjPC::eNbVals) ; aKEnum++)
+        {
+            BenchCentralePerspective(aParam,eProjPC(aKEnum));
+        }
+        StdOut()  << "TTTtt " << aTime<< "\n"; getchar();
+    }
 
     aParam.EndBench();
 }

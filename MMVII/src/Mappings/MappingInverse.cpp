@@ -496,24 +496,19 @@ template <class Type,const int Dim>
 
 
 /* ============================================= */
-/*          Compute MapInverse                   */
+/*               cPtsExtendCMI                   */
 /* ============================================= */
 
-/**  Helper for extending map invere near frontier */
-template <class Type,const int Dim>  struct cPtsExtendCMI
+template <class Type,const int Dim>   
+  cPtsExtendCMI<Type,Dim>::cPtsExtendCMI(const tPt & aCurP,const tPt & aDir) :
+     mCurP (aCurP),
+     mDir  (aDir)
 {
-     public :
-         typedef cPtxd<Type,Dim> tPt;
-
-         cPtsExtendCMI(const tPt & aCurP,const tPt & aDir) :
-             mCurP (aCurP),
-             mDir  (aDir)
-         {
-         }
+}
         
-         tPt  mCurP;
-         tPt  mDir;
-};
+/* ============================================= */
+/*          Compute MapInverse                   */
+/* ============================================= */
 
 enum class eLabelIm_CMI : tU_INT1
 {

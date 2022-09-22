@@ -206,11 +206,11 @@ cRandInvertibleDist::~cRandInvertibleDist()
 cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,double aProbaNotNul,double aTargetSomJac) :
    mRhoMax  (aRhoMax),
    mDeg     (aDeg),
-   mEqVal   (EqDist(aDeg,false,1+RandUnif_N(50))),  // Random for size buf
-   mEqDer   (EqDist(aDeg,true,1+RandUnif_N(50))),
-   mNbParam (mEqVal->NbObs()),
-   mVParam  (mNbParam,0.0),
-   mVecDesc (DescDist(mDeg))
+   mVecDesc (DescDist(mDeg)),
+   mEqVal   (nullptr), 
+   mEqDer   (nullptr), 
+   mNbParam (mVecDesc.size()),
+   mVParam  (mNbParam,0.0)
 {
    // 1- Initialize, without precautions
 
@@ -237,7 +237,7 @@ cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,doub
 
 cDataNxNMapCalcSymbDer<double,2> * cRandInvertibleDist::MapDerSymb()
 {
-   return new cDataNxNMapCalcSymbDer<double,2>(mEqVal,mEqDer,mVParam,false);
+   return new cDataNxNMapCalcSymbDer<double,2>(&(EqVal()),&(EqDer()),mVParam,false);
 }
 
 const std::vector<double> & cRandInvertibleDist::VParam() const
@@ -246,8 +246,16 @@ const std::vector<double> & cRandInvertibleDist::VParam() const
 }
 
 
-cCalculator<double> &  cRandInvertibleDist::EqVal() {return *mEqVal;}
-cCalculator<double> &  cRandInvertibleDist::EqDer() {return *mEqDer;}
+cCalculator<double> &  cRandInvertibleDist::EqVal() 
+{
+   if (mEqVal==nullptr) mEqVal= EqDist(mDeg,false,1+RandUnif_N(50));
+   return *mEqVal;
+}
+cCalculator<double> &  cRandInvertibleDist::EqDer() 
+{
+   if (mEqDer==nullptr) mEqDer= EqDist(mDeg,true,1+RandUnif_N(50));
+   return *mEqDer;
+}
 
 
 /* ============================================= */
