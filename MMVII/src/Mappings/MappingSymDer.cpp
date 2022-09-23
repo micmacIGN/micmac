@@ -293,12 +293,13 @@ void BenchSymDerMap(cParamExeBench & aParam)
        double aTargetSomJac = 0.2;
        cRandInvertibleDist aRID(aDeg,aRhoMax,aProbaNotNul,aTargetSomJac) ;
        cDataNxNMapCalcSymbDer<double,2> * aMCS = aRID.MapDerSymb();
-       cMapping<double,2,2>            aMapCS(aMCS);
+       //cMapping<double,2,2>            aMapCS(aMCS);
 
        auto aDId = new cMappingIdentity<double,2> ;
-       cMapping<double,2,2>            aMapId(aDId);
+       //cMapping<double,2,2>            aMapId(aDId);
 
-       cDataIIMFromMap<double,2> aIMap(aMapCS,aMapId,1e-6,15);
+       // cDataIIMFromMap<double,2> aIMap(aMapCS,aMapId,1e-6,15);
+       cDataIIMFromMap<double,2> aIMap(aMCS,aDId,1e-6,15,true,true);
 
        // Generate in VIn a random set, with random size, of points in disk of radius aRhoMax
        int aNbPts  = 1+RandUnif_N(100);

@@ -391,31 +391,38 @@ template <class Type,const int Dim>
 
 template <class Type,const int Dim>
    cDataIterInvertMapping<Type,Dim>::cDataIterInvertMapping
-   (const tPt& aEps,tMap aRoughInv,const Type& aDistTol,int aNbIterMaxInv) :
+   (const tPt& aEps,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMaxInv,bool AdoptRoughInv) :
        cDataInvertibleMapping<Type,Dim> (aEps),
        mStrInvertIter                   (nullptr),
        mRoughInv                        (aRoughInv),
        mDTolInv                         (aDistTol),
-       mNbIterMaxInv                    (aNbIterMaxInv)
+       mNbIterMaxInv                    (aNbIterMaxInv),
+       mAdoptRoughInv                   (AdoptRoughInv)
 {
 }
 
 template <class Type,const int Dim>
-   cDataIterInvertMapping<Type,Dim>::cDataIterInvertMapping(tMap aRoughInv,const Type& aDistTol,int aNbIterMaxInv) :
-      cDataIterInvertMapping<Type,Dim>(tPt::PCste(0.0),aRoughInv,aDistTol,aNbIterMaxInv)
+   cDataIterInvertMapping<Type,Dim>::cDataIterInvertMapping(tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMaxInv,bool AdoptRoughInv) :
+      cDataIterInvertMapping<Type,Dim>(tPt::PCste(0.0),aRoughInv,aDistTol,aNbIterMaxInv,AdoptRoughInv)
 {
 }
 
+template <class Type,const int Dim> cDataIterInvertMapping<Type,Dim>::~cDataIterInvertMapping()
+{
+    if (mAdoptRoughInv)  delete mRoughInv;
+    delete mStrInvertIter;
+}
+	
 template <class Type,const int Dim>  
       typename cDataIterInvertMapping<Type,Dim>::tHelperInvertIter *  
                cDataIterInvertMapping<Type,Dim>::StrInvertIter() const
 {
-   if (mStrInvertIter.get()==nullptr)
+   if (mStrInvertIter==nullptr)
    {
        // mStrInvertIter = std::shared_ptr<tHelperInvertIter>(new  tHelperInvertIter(*this));
-       mStrInvertIter.reset(new  tHelperInvertIter(*this));
+       mStrInvertIter  = new  tHelperInvertIter(*this);
    }
-   return mStrInvertIter.get();
+   return mStrInvertIter;
 }
 
 template <class Type,const int Dim>
@@ -423,7 +430,7 @@ template <class Type,const int Dim>
    // std::unique_ptr<const typename cDataIterInvertMapping<Type,Dim>::tDataMap> 
                   cDataIterInvertMapping<Type,Dim>::RoughInv() const
 {
-       return   mRoughInv.DM();
+       return   mRoughInv;
 }
 
 template <class Type,const int Dim>
@@ -462,20 +469,26 @@ template <class Type,const int Dim>
 
 template <class Type,const int Dim> 
       cDataIIMFromMap<Type,Dim>::cDataIIMFromMap
-           (tMap aMap,const tPt & aEps,tMap aRoughInv,const Type& aDistTol,int aNbIterMax) :
-              tDataIIMap   (aEps,aRoughInv,aDistTol,aNbIterMax),
-              mMap(aMap)
+           (tDataMap * aMap,const tPt & aEps,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptMap,bool AdoptRIM) :
+              tDataIIMap   (aEps,aRoughInv,aDistTol,aNbIterMax,AdoptRIM),
+              mMap         (aMap),
+	      mAdoptMap    (AdoptMap)
 {
 }
 
 template <class Type,const int Dim> 
       cDataIIMFromMap<Type,Dim>::cDataIIMFromMap
-           (tMap aMap,tMap aRoughInv,const Type& aDistTol,int aNbIterMax) :
-              tDataIIMap   (aRoughInv,aDistTol,aNbIterMax),
-              mMap         (aMap)
+           (tDataMap * aMap,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptMap,bool AdoptRIM) :
+              tDataIIMap   (aRoughInv,aDistTol,aNbIterMax,AdoptRIM),
+              mMap         (aMap),
+	      mAdoptMap    (AdoptMap)
 {
 }
 
+template <class Type,const int Dim> cDataIIMFromMap<Type,Dim>::~cDataIIMFromMap()
+{
+    if (mAdoptMap) delete mMap;
+}
 
 
 
@@ -484,14 +497,14 @@ template <class Type,const int Dim>
       const  typename cDataIIMFromMap<Type,Dim>::tVecPt &  
             cDataIIMFromMap<Type,Dim>::Values(tVecPt & aVecOut,const tVecPt & aVecIn) const
 {
-    return mMap.DM()->Values(aVecOut,aVecIn);
+    return mMap->Values(aVecOut,aVecIn);
 }
 
 template <class Type,const int Dim> 
       typename cDataIIMFromMap<Type,Dim>::tCsteResVecJac 
             cDataIIMFromMap<Type,Dim>::Jacobian(tResVecJac aResJac,const tVecPt & aVecIn) const
 {
-    return mMap.DM()->Jacobian(aResJac,aVecIn);
+    return mMap->Jacobian(aResJac,aVecIn);
 }
 
 
@@ -928,9 +941,10 @@ class cTestMapInv : public cDataIterInvertMapping<tREAL8,3>
           cDataIterInvertMapping<tREAL8,3> 
           (
               cPt3dr::PCste(1e-3/std::max(1e-5,mFreqCos)),
-              cMapping<tREAL8,3,3>(IsRoughInv?nullptr:new cTestMapInv(1.0/aFy,1.0/aFx,1.0/aFz,1.0,0.0,true)),
+              (IsRoughInv?nullptr:new cTestMapInv(1.0/aFy,1.0/aFx,1.0/aFz,1.0,0.0,true)),
               1e-4,
-              20
+              20,
+	      true
           ),
           mFx      (aFx),
           mFy      (aFy),

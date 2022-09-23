@@ -27,6 +27,7 @@ class cPixelDomain : public cDataBoundedSet<tREAL8,2>
            virtual ~ cPixelDomain();
            virtual cPixelDomain *  Dup_PS () const;  ///< default work because deleted in mother class
 
+	   const cPt2di & Sz() const;
       private :
            cPt2di     mSz;
 };
@@ -49,6 +50,8 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
 	 const  tVecPt &  Inverses(tVecPt &,const tVecPt & ) const override;
 	 const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;
 
+         const tScal& F()  const;   ///<  Focal
+         const tPt  & PP() const;  ///<  Principal point
      private :
          tScal  mF;   ///<  Focal
          tPt    mPP;  ///<  Principal point
@@ -80,6 +83,7 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
             typedef std::vector<tPtIn>   tVecIn;
             typedef std::vector<tPtOut>  tVecOut;
 
+    // ================== construction of object ===============
 	    cPerspCamIntrCalib
             (
                   eProjPC        aTypeProj,           ///< type of projection 
@@ -91,19 +95,30 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 		  int aSzBuf                          ///< sz of buffers in computatio,
             );
 
+	        ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
+	    void UpdateLSQDistInv();
+
+	        /// manye delete in destructor ....
 	    ~cPerspCamIntrCalib();
 
+    // ==================   points computation ===================
+	    const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
+	    const  tVecIn  &  Inverses(tVecIn &,const tVecOut & ) const;
+
+    // ==================   Accessors & Modifiers ===================
+	    const double & F() const;   ///< access to focal
+	    const cPt2dr & PP() const;  ///< acess to principal point
+
+	    void SetThresholdPhgrAccInv(double); ///< modifier of threshold for accuracy inversion, photogrametric unit
+	    void SetThresholdPixAccInv(double);  ///< modifier of threshold for accuracy inversion, pixel  unit
+
+
+    // ==================   Test & Bench ===================
+		
 	    ///  For test, put random param while take care of being invertible
 	    void InitRandom(double aAmpl);
 	    ///  Test the accuracy of "guess" invert
-	    void TestInvInit();
-
-	    ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
-	    void UpdateLSQDistInv();
-
-	     // const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
-	    // const  tVecOut &  Inverses(tVecIn &,const tVecOut & ) const;
-	    //
+	    void TestInvInit(double aTolApprox,double aTolAccurate);
 	private :
 
             // cSphereBoundedSet<tREAL8,2>          mPNormSpace; // validity domain pixel-normalize (PP/F) space
@@ -129,9 +144,18 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mInvApproxLSQ_Dist;   ///< approximate LSQ invert disorstion  R2->R2
 	    cCalculator<tREAL8> *                mInv_BaseFDist;  ///<  base of function for inverse distortion
             cLeastSqCompMapCalcSymb<tREAL8,2,2>* mInv_CalcLSQ;  ///< structure for least square estimation
+	    cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
+            cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
 	    tREAL8                               mThreshJacPI; ///< threshlod for jacobian in pseudo inversion
+							      
+	    double                               mThresholdPhgrAccInv;
+	    double                               mThresholdPixAccInv;
+	    int                                  mNbIterInv;
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
+
+//       cDataIIMFromMap(tMap aMap,const tPt &,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
+
 
 /* ******************************************************* */
 /*                                                         */
@@ -169,8 +193,13 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
     mInvApproxLSQ_Dist  (nullptr),
     mInv_BaseFDist      (nullptr),
     mInv_CalcLSQ        (nullptr),
-    mThreshJacPI        (0.5)
+    mDist_DirInvertible (nullptr),
+    mInv_Proj           (nullptr),
+    mThreshJacPI        (0.5),
+    mNbIterInv          (10)
 {
+     SetThresholdPixAccInv(1e-3);
+
         // 1 - construct direct parameters
 	
     // correct vect param, when first use, parameter can be empty meaning all 0  
@@ -194,6 +223,28 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
 
 }
 
+const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tVecIn & aV0 ) const 
+{
+     static tVecOut aV1,aV2;
+     mDir_Proj->Values(aV1,aV0);
+     mDir_Dist->Values(aV2,aV1);
+     mCSPerfect.Values(aV3,aV2);
+     
+     return aV3;
+}
+
+
+const  std::vector<cPt3dr> &  cPerspCamIntrCalib::Inverses(tVecIn & aV3 ,const tVecOut & aV0 ) const 
+{
+     static tVecOut aV1,aV2;
+     mInv_CSP.Values(aV1,aV0);
+     mDist_DirInvertible->Inverses(aV2,aV1);
+     mInv_Proj->Values(aV3,aV2);
+     
+     return aV3;
+}
+
+
 cPerspCamIntrCalib::~cPerspCamIntrCalib()
 {
      delete mPhgrDomain;	
@@ -204,6 +255,8 @@ cPerspCamIntrCalib::~cPerspCamIntrCalib()
      delete mInvApproxLSQ_Dist;
      delete mInv_BaseFDist;
      delete mInv_CalcLSQ;
+     delete mDist_DirInvertible;
+     delete mInv_Proj;
 }
 
 void cPerspCamIntrCalib::UpdateLSQDistInv()
@@ -213,6 +266,15 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
         mInvApproxLSQ_Dist  = NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf);
         mInv_BaseFDist = EqBaseFuncDist(mInv_Degr,mSzBuf);
         mInv_CalcLSQ   = new cLeastSqCompMapCalcSymb<tREAL8,2,2>(mInv_BaseFDist);
+	mDist_DirInvertible = new   cDataIIMFromMap<tREAL8,2> (mDir_Dist,mInvApproxLSQ_Dist,mThresholdPhgrAccInv,mNbIterInv,false,false);
+
+        mInv_Proj = new  cDataMapCalcSymbDer<tREAL8,2,3>
+                         (
+                              EqCPProjInv(mTypeProj,false,mSzBuf),   // equatio, w/o derivative
+                              EqCPProjInv(mTypeProj,true,mSzBuf),    // equation with derivatives
+			      std::vector<double>(),                 // parameters, empty here
+			      true                                   // equations are "adopted" (i.e will be deleted in destuctor)
+                         );
     }
 
     cComputeMapInverse aCMI
@@ -229,32 +291,99 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
    mInvApproxLSQ_Dist->SetObs(mInv_Params);
 }
 
-void cPerspCamIntrCalib::TestInvInit()
+void cPerspCamIntrCalib::SetThresholdPhgrAccInv(double aThr)
 {
-     double aRhoMax =  mPhgrDomain->Box().DistMax2Corners(cPt2dr(0,0));
-     std::vector<cPt2dr>  aVPt1;
-     mPhgrDomain->GridPointInsideAtStep(aVPt1,aRhoMax/50.0);
+    mThresholdPhgrAccInv = aThr;
+    mThresholdPixAccInv = aThr * F();
+}
 
-     std::vector<cPt2dr>  aVPt2; // undist
-     mInvApproxLSQ_Dist->Values(aVPt2,aVPt1);
+void cPerspCamIntrCalib::SetThresholdPixAccInv(double aThr)
+{
+     SetThresholdPhgrAccInv(aThr/F());
+}
 
-     std::vector<cPt2dr>  aVPt3;
-     mDir_Dist->Values(aVPt3,aVPt2);
+const double & cPerspCamIntrCalib::F()  const {return mCSPerfect.F() ;}
+const cPt2dr & cPerspCamIntrCalib::PP() const {return mCSPerfect.PP();}
 
-     double aSD12=0;
-     double aSD23=0;
-     double aSD13=0;
-     for (size_t aKPt=0 ; aKPt<aVPt1.size() ; aKPt++)
+void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
+{
      {
-          aSD12 +=  SqN2(aVPt1.at(aKPt)-aVPt2.at(aKPt));
-          aSD23 +=  SqN2(aVPt2.at(aKPt)-aVPt3.at(aKPt));
-          aSD13 +=  SqN2(aVPt1.at(aKPt)-aVPt3.at(aKPt));
-     }
-     aSD12 = std::sqrt(aSD12/aVPt1.size());
-     aSD23 = std::sqrt(aSD23/aVPt1.size());
-     aSD13 = std::sqrt(aSD13/aVPt1.size());
+         // generate 2d-point ine photogram coordinate , after distorsion
+         double aRhoMax =  mPhgrDomain->Box().DistMax2Corners(cPt2dr(0,0));
+         std::vector<cPt2dr>  aVPt1;
+         mPhgrDomain->GridPointInsideAtStep(aVPt1,aRhoMax/10.0);
 
-     StdOut() <<  "SSSS " <<  aSD13/aSD12 << "\n";
+	 //  undist them by approx-lsq invers
+         std::vector<cPt2dr>  aVPt2; // undist
+         mInvApproxLSQ_Dist->Values(aVPt2,aVPt1);
+
+	 // distord them back, should have  aVPt3 ~ aVPt1
+         std::vector<cPt2dr>  aVPt3;
+         mDir_Dist->Values(aVPt3,aVPt2);
+
+	 //  undist them more accurately with predictive + iterative
+         std::vector<cPt2dr>  aVPt4; // undist
+         mDist_DirInvertible->Inverses(aVPt4,aVPt1);
+
+	 // distord them back, should have  aVPt5 ~ aVPt1 (more accurateky)
+         std::vector<cPt2dr>  aVPt5;
+         mDir_Dist->Values(aVPt5,aVPt4);
+
+         double aSD12=0;  // som dist  V1/V2 to have a referebce
+         double aSD23=0;  // som dist  V1/V2 to have another referebce
+         double aSD13=0;  //  V1/V3 should be low
+         double aSD15=0;  //  V1/V5 should be very low
+         for (size_t aKPt=0 ; aKPt<aVPt1.size() ; aKPt++)
+         {
+		 //  add all that, use square dist for efficiency
+              aSD12 +=  SqN2(aVPt1.at(aKPt)-aVPt2.at(aKPt));
+              aSD23 +=  SqN2(aVPt2.at(aKPt)-aVPt3.at(aKPt));
+              aSD13 +=  SqN2(aVPt1.at(aKPt)-aVPt3.at(aKPt));
+              aSD15 +=  SqN2(aVPt1.at(aKPt)-aVPt5.at(aKPt));
+
+         }
+	     // transform sum of square dist  an averager of distance
+         aSD12 = std::sqrt(aSD12/aVPt1.size());
+         aSD23 = std::sqrt(aSD23/aVPt1.size());
+         aSD13 = std::sqrt(aSD13/aVPt1.size());
+         aSD15 = std::sqrt(aSD15/aVPt1.size());
+
+         MMVII_INTERNAL_ASSERT_bench((aSD13/aSD12<aTolApprox),"Test approx inv");
+         MMVII_INTERNAL_ASSERT_bench((aSD15/aSD12<aTolAccurate),"Test approx inv");
+     }
+
+     {
+static int aCpt=0; aCpt++;
+
+         std::vector<cPt2dr>  aVPt1;
+         mPixDomain->GridPointInsideAtStep(aVPt1,Norm2(mPixDomain->Sz())/20.0);
+
+         std::vector<cPt3dr>  aVPt2;
+	 Inverses(aVPt2,aVPt1);
+
+         std::vector<cPt2dr>  aVPt3;
+	 Values(aVPt3,aVPt2);
+
+         double aSD13=0;  
+
+         for (size_t aKPt=0 ; aKPt<aVPt1.size() ; aKPt++)
+         {
+              double aD =  SqN2(aVPt1.at(aKPt)-aVPt3.at(aKPt));
+	      if (!ValidFloatValue(aD))
+	      {
+		      cPt2dr aP1 = aVPt1[aKPt];
+		      cPt3dr aP2 = aVPt2[aKPt];
+		      StdOut()  <<  "NNNN " << aD << " " << aKPt  << aP1  << aP2<< "\n";
+
+	      }
+              aSD13 += aD;
+	 }
+
+	 StdOut() <<  "DIST PIX " << aSD13 << " " << aVPt1.size() << "\n";
+         aSD13 = std::sqrt(aSD13/aVPt1.size());
+
+	 StdOut() <<  "DIST PIX " << aSD13 << " CPT=" << aCpt << " " << E2Str(mTypeProj) << "\n";
+     }
 }
 
 void cPerspCamIntrCalib::InitRandom(double aAmpl)
@@ -275,33 +404,38 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
     cPt2dr aPP(   aSz.x()*(0.5+0.1*RandUnif_C())  , aSz.y()*(0.5+0.1*RandUnif_C())  );
     tREAL8  aFoc =  aDiag * (0.2 + 3.0*RandUnif_0_1());
 
-    cPerspCamIntrCalib aCam
-    (
+    for (int aK=0 ; aK<2 ; aK++)
+    {
+       cPerspCamIntrCalib aCam
+       (
           aTypeProj,
-	  cPt3di(3,1,1),
+	  (aK==0) ? cPt3di(2,0,0) : cPt3di(3,1,1),
 	  std::vector<double>(),
 	  cCalibStenPerfect(aFoc,aPP),
 	  cPixelDomain(aSz),
-	  cPt3di(5,1,1),
+	  (aK==0) ? cPt3di(5,1,1) :cPt3di(7,2,5),
 	  100
-    );
+       );
+       aCam.SetThresholdPhgrAccInv(1e-9);
 
-    aCam.InitRandom(0.1);
-    aCam.UpdateLSQDistInv();
-    aCam.TestInvInit();
+       aCam.InitRandom(0.1);
+       aCam.UpdateLSQDistInv();
+       aCam.TestInvInit((aK==0) ? 1e-3 : 1e-2, 1e-4);
+    }
 }
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("CentralPersp")) return;
 
-    for (int aTime=0 ; aTime<20 ; aTime++)
+    int aNbTime = std::min(20,3+aParam.Level());
+    for (int aTime=0 ; aTime<aNbTime ; aTime++)
     {
         for (int aKEnum=0 ; aKEnum<int(eProjPC::eNbVals) ; aKEnum++)
         {
             BenchCentralePerspective(aParam,eProjPC(aKEnum));
         }
-        StdOut()  << "TTTtt " << aTime<< "\n"; getchar();
+        // StdOut()  << "TTTtt " << aTime<< "\n"; //getchar();
     }
 
     aParam.EndBench();
@@ -328,9 +462,11 @@ cPixelDomain *  cPixelDomain::Dup_PS () const
     return new cPixelDomain(mSz);
 }
 
+const cPt2di & cPixelDomain::Sz() const {return mSz;}
+
 /* ******************************************************* */
 /*                                                         */
-/*                 cCalibStenPerfect                        */
+/*                 cCalibStenPerfect                       */
 /*                                                         */
 /* ******************************************************* */
 
@@ -349,6 +485,8 @@ cCalibStenPerfect cCalibStenPerfect::MapInverse() const
     //  aQ= PP+ aP * F  ;  aP = (aQ-PP) /aF
     return  cCalibStenPerfect(  1.0/mF  ,  -mPP/mF  );
 }
+const double & cCalibStenPerfect::F()  const {return mF ;}
+const cPt2dr & cCalibStenPerfect::PP() const {return mPP;}
 
 const  typename cCalibStenPerfect::tVecPt &  cCalibStenPerfect::Values(tVecPt & aVOut,const tVecPt & aVIn) const
 {

@@ -391,12 +391,14 @@ template <class Type,const int Dim>
 /*                                               */
 /* ============================================= */
 
+/*
 template <class Type,const int DimIn,const int DimOut>  
        cMapping<Type,DimIn,DimOut>::cMapping(tDataMap * aDM) :
             mPtr    (aDM),
             mRawPtr (aDM)
 {
 }
+*/
 
 
 /* ============================================= */
@@ -435,8 +437,9 @@ template <class Type,const int Dim>
      /* ============================================= */
 
 #define INSTANCE_TWO_DIM_MAPPING(DIM1,DIM2)\
-template class cDataMapping<double,DIM1,DIM2>;\
-template class cMapping<double,DIM1,DIM2>;
+template class cDataMapping<double,DIM1,DIM2>;
+
+//template class cMapping<double,DIM1,DIM2>;
 
 #define INSTANCE_ONE_DIM_MAPPING(DIM)\
 template class cDataNxNMapping<double,DIM>;\

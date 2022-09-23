@@ -116,6 +116,7 @@ template <class Type,const int Dim> class cBijAffMapElem;
     In the devlopment step  cDataMapping is still accessible.
 */
 
+/*
 template <class Type,const int DimIn,const int DimOut> class cMapping
 {
     public :
@@ -128,6 +129,7 @@ template <class Type,const int DimIn,const int DimOut> class cMapping
       std::shared_ptr<tDataMap>   mPtr; 
       tDataMap*                   mRawPtr;
 };
+*/
 
 /** Class for defining a bounded subset of R^n. TO DEVLOP ...
 */
@@ -276,7 +278,7 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
 {
     public :
       virtual ~cDataMapping<Type,DimIn,DimOut>();
-      typedef  cMapping<Type,DimIn,DimOut> tMap;
+      // typedef  cMapping<Type,DimIn,DimOut> tMap;
       typedef  cPtxd<Type,DimOut>          tPtOut;
       typedef  cPtxd<Type,DimIn>           tPtIn;
       typedef  std::vector<tPtIn>          tVecIn;
@@ -460,7 +462,7 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       typedef typename  tDataInvMap::tPt       tPt;
       typedef typename  tDataInvMap::tVecPt    tVecPt;
 
-      typedef cMapping<Type,Dim,Dim>         tMap;
+      // typedef cMapping<Type,Dim,Dim>         tMap;
       typedef cDataMapping<Type,Dim,Dim>     tDataMap;
       typedef typename  tDataMap::tResVecJac tResVecJac;
 
@@ -471,17 +473,21 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       const Type & DTolInv() const;
       /// Access to the structure, only needed in some bench to create artificial difficult situations
       tHelperInvertIter *  StrInvertIter() const;
+
+      ~cDataIterInvertMapping();
     protected :
-      cDataIterInvertMapping(const tPt & aEpsDiff,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
-      cDataIterInvertMapping(tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
+      cDataIterInvertMapping(const tPt & aEpsDiff,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptRoughInv);
+      cDataIterInvertMapping(tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptRoughInv);
 
     private :
       cDataIterInvertMapping(const cDataIterInvertMapping<Type,Dim> & ) = delete;
 
-      mutable std::shared_ptr<tHelperInvertIter> mStrInvertIter;
-      tMap                mRoughInv;
+      // mutable std::shared_ptr<tHelperInvertIter> mStrInvertIter;
+      mutable tHelperInvertIter* mStrInvertIter;
+      tDataMap *          mRoughInv;
       Type                mDTolInv;
       int                 mNbIterMaxInv;
+      bool                mAdoptRoughInv;
 };
 
 /** When we have an existing mapping, we want to invert it by iteration, if we cannot inherit
@@ -492,21 +498,24 @@ template <class Type,const int Dim> class cDataIIMFromMap : public cDataIterInve
 {
     public :
       typedef cDataIterInvertMapping<Type,Dim> tDataIIMap;
-      typedef cMapping<Type,Dim,Dim>         tMap;
+      typedef cDataMapping<Type,Dim,Dim>     tDataMap;
+      // typedef cMapping<Type,Dim,Dim>         tMap;
 
       using typename tDataIIMap::tPt;
       using typename tDataIIMap::tVecPt;
       using typename tDataIIMap::tCsteResVecJac;
       using typename tDataIIMap::tResVecJac;
 
-      cDataIIMFromMap(tMap aMap,const tPt &,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
-      cDataIIMFromMap(tMap aMap,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
+      cDataIIMFromMap(tDataMap * aMap,const tPt &,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptMap,bool AdoptRIM);
+      cDataIIMFromMap(tDataMap * aMap,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptMap,bool AdoptRIM);
 
       const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;  //V2
       tCsteResVecJac  Jacobian(tResVecJac,const tVecPt &) const override;  //J2
+      ~cDataIIMFromMap();
     private :
       cDataIIMFromMap(const cDataIIMFromMap<Type,Dim> & ) = delete;
-      tMap                mMap;
+      tDataMap *                mMap;									   
+      bool                      mAdoptMap;
 };
 
 /** Represntation of identity as a mapping */

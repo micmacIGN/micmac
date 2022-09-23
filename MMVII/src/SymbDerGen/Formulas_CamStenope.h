@@ -668,6 +668,13 @@ class cProjFE_EquiDist : public cUnDefinedAtPole
 
    // ==========================================================
 
+class cProjectionPerpC 
+{
+       public :
+          virtual tREAL8  P3DIsDef(const cPt3dr &) const = 0;
+          virtual tREAL8  P2DIsDef(const cPt2dr &) const = 0;
+};
+
        /**  fisheye orthographic  */
 
 
@@ -738,6 +745,8 @@ Also :
         }
 };
 
+
+
    // ==========================================================
 
        /**  Orthographic Projection  */
@@ -751,6 +760,8 @@ class cProjOrthoGraphic : public cDefinedZPos
 */
         // static const std::string & NameProj() {static std::string aName("FE_OrthoGr"); return aName;}
         static eProjPC  TypeProj() {return eProjPC::eOrthoGraphik;}
+
+
 
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {

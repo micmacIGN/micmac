@@ -313,6 +313,7 @@ int cAppliGenCode::Exe()
        GenerateOneDist(cPt3di(3,1,1));
        GenerateOneDist(cPt3di(2,0,0));
        GenerateOneDist(cPt3di(5,1,1));
+       GenerateOneDist(cPt3di(7,2,5));
    }
 
    for (const auto WithDer : {true,false})
