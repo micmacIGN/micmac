@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <iterator>
 #include <ostream>
 #include <utility>
 #include <vector>
@@ -106,32 +107,53 @@ cNOSolIn_Triplet::cNOSolIn_Triplet(RandomForest* anAppli,
 static double computeResiduFromPos(const cNOSolIn_Triplet* triplet, std::vector<ElRotation3D>& pos) {
     double value = 0;
     std::cout << triplet->getHomolPts().size() << std::endl;
+    double residues[3] = {};
+    double n_res[3] = {0};
+    for (auto& r : pos) {
+        std::cout
+            << r.Mat()(0,0) << " " << r.Mat()(1,0) << " " << r.Mat()(2,0) << std::endl
+            << r.Mat()(0,1) << " " << r.Mat()(1,1) << " " << r.Mat()(2,1) << std::endl
+            << r.Mat()(0,2) << " " << r.Mat()(1,2) << " " << r.Mat()(2,2) << std::endl
+            << r.tr() << std::endl;
+        std::cout << "-----------------" << std::endl;
+    }
+
     for (auto& pts : triplet->getHomolPts()) {
         std::vector<ElSeg3D> aVSeg;
-        uint n = 0;
         for (int i = 0; i < 3; i++) {
             if (!pts[i].x && !pts[i].y)
                 continue;
-            n++;
 
             triplet->KSom(i)->attr().Im()->CS()->SetOrientation(pos[i].inv());
             aVSeg.push_back(triplet->KSom(i)->attr().Im()->CS()->Capteur2RayTer(pts[i]));
         }
         bool ISOK=false;
         Pt3dr aInt = ElSeg3D::L2InterFaisceaux(0, aVSeg, &ISOK);
+        std::cout << "3D Intersection: " << aInt << std::endl;
 
         double residu_pts = 0;
+        uint n_residu = 0;
         for (int i = 0; i < 3; i++) {
             if (!pts[i].x && !pts[i].y)
                 continue;
+            n_residu++;
 
             triplet->KSom(i)->attr().Im()->CS()->SetOrientation(pos[i].inv());
             Pt2dr pts_proj = triplet->KSom(i)->attr().Im()->CS()->Ter2Capteur(aInt);
-            auto a = euclid(pts_proj, pts[i]);
+            auto a = euclid(pts[i], pts_proj);
+            std::cout
+                << "Input point: " << pts[i] << " Output point: " << pts_proj
+                << " Res: " << a
+                << std::endl;
+            residues[i] += a;
+            n_res[i]++;
             residu_pts += a;
-            //std::cout << pts[i] << " -- " << pts_proj << " -- " << a << std::endl;
         }
-        value += residu_pts/n;
+        value += residu_pts/n_residu;
+    }
+    for (int i = 0; i < 3; i++) {
+        std::cout << "Image: " << triplet->KSom(i)->attr().Im()->Name()
+            << " Res: " << residues[i]/n_res[i] << std::endl;
     }
     value /= triplet->getHomolPts().size();
     cout.precision(12);
@@ -149,17 +171,16 @@ double cNOSolIn_Triplet::ProjTest() const {
     }
     double res = computeResiduFromPos(this, aVRAbs);
 
-    cSolBasculeRig aSolRig = cSolBasculeRig::SolM2ToM1(aVRAbs, aVRLoc);
+    //cSolBasculeRig aSolRig = cSolBasculeRig::SolM2ToM1(aVRAbs, aVRLoc);
 
-    std::vector<ElRotation3D> pos;
+    /*std::vector<ElRotation3D> pos;
     for (int aK = 0; aK < 3; aK++) {
         const ElRotation3D& aRAbs = aVRAbs[aK];
         const ElRotation3D& aRLoc = aVRLoc[aK];
         ElRotation3D aRA2 = aSolRig.TransformOriC2M(aRLoc);
         pos.push_back(aRA2);
-        std::cout << "Absolute : " << aRAbs.tr() << " Relative: " << aRA2.tr() << std::endl;
-        std::cout << "Absolute : " << aRAbs.teta01() << " Relative: " << aRA2.teta01() << std::endl;
     }
+    */
     std::cout << "--- Residu: " << res << std::endl;
     return res;
 }
@@ -792,7 +813,7 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNOSolIn_Triplet* aSeed, int Nb
         // Propagate R,t and flag sommet as visited
         EstimRt(aTri);
 
-        // Mark node as vistied
+        // Mark sommit as vistied
         aTri->S3()->flag_set_kth_true(data.mFlagS);
 
         // Free mSCur3Adj from all triplets connected to S3
@@ -1118,7 +1139,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
             if (!ValFlag(*(aV3[aT]), data.mFlag3CC)) {
                 // std::cout << "Flag0 OK " << aCntFlags++ << "\n";
 
-                if (aDist == 0) aDist = 1;
+                if (aDist <= 1) aDist = 1;
 
                 double aPds = 1.0;
 
@@ -1126,11 +1147,13 @@ void RandomForest::CoherTripletsGraphBasedV2(
                     //aPds = std::pow(0.5,aDist);
                     //aPds = std::pow(0.7,aDist);
                     //aPds = 1.0 / sqrt(aDist);
-                    aPds = 1. / sqrt(aDist);
+                    //aPds = 1. / sqrt(aDist);
+                    aPds = 1.;
                     aCostCur = aResidue;
-                    if (aResidue > mResidu) {
+
+                    /*if (aResidue > mResidu) {
                         aPds = 1./aPds;
-                    }
+                    }*/
                 }
 
                 // Mean
@@ -1234,8 +1257,8 @@ void RandomForest::CoherTripletsAllSamplesMesPond(Dataset& data) {
 
         /* Weighted median */
         //if (aVCostPds.size())
-        data.mV3[aT]->CostArcMed() =
-            PropPond(aVCostPds, 0.1, 0);  // MedianPond(aVCostPds,0);
+        //data.mV3[aT]->CostArcMed() =
+        //    PropPond(aVCostPds, 0.1, 0);  // MedianPond(aVCostPds,0);
     }
 }
 
