@@ -668,11 +668,13 @@ class cProjFE_EquiDist : public cUnDefinedAtPole
 
    // ==========================================================
 
-class cProjectionPerpC 
+class cProjectionPerspC 
 {
        public :
           virtual tREAL8  P3DIsDef(const cPt3dr &) const = 0;
           virtual tREAL8  P2DIsDef(const cPt2dr &) const = 0;
+
+	  static const cProjectionPerspC & ProjOfType(eProjPC);
 };
 
        /**  fisheye orthographic  */
