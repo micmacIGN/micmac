@@ -195,6 +195,8 @@ class cNOSolIn_Triplet {
 
     int& HeapIndex() { return mHeapIndex; }
 
+    double residue;
+
    private:
     cNOSolIn_Triplet(const cNOSolIn_Triplet&);  // N.I.
     RandomForest* mAppli;

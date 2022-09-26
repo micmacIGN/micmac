@@ -45,6 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <iostream>
 #include <iterator>
 #include <ostream>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -52,6 +53,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "general/exemple_basculement.h"
 #include "general/opt_debug.h"
 #include "general/photogram.h"
+#include "general/ptxd.h"
 
 using namespace SolGlobInit::RandomForest;
 
@@ -78,6 +80,242 @@ static cNO_CmpTriSolByCost TheCmp3Sol;
 
 //=====================================================================================
 
+#include  <graphviz/gvc.h>
+
+static GVC_t* GRAPHVIZ_GVCInit(const std::string& aGName) {
+    std::string Prefix = "-o";
+
+    int SzPref = int(Prefix.size());
+    int aSzIn = int(aGName.size());
+    int aSzOut = aSzIn + SzPref;
+    char* aGNChar = new char[aSzOut];
+
+    // copy the prefix of the name
+    for (int i = 0; i < SzPref; i++) aGNChar[i] = Prefix[i];
+
+    // copy the name from the function argument
+    for (int i = 0; i < aSzIn; i++) aGNChar[SzPref + i] = aGName[i];
+
+    int argc = 4;
+    char* dummy_args[] = {(char*)"fn_name",
+                          //(char *)"-Kneato",
+                          (char*)"-Kneato", aGNChar, (char*)"-Teps"};
+    char** argv = dummy_args;
+
+    GVC_t* gvc = gvContext();
+
+    gvParseArgs(gvc, argc, argv);
+
+    return gvc;
+}
+
+static std::pair<graph_t*, GVC_t*> GRAPHVIZ_GraphInit(
+    const std::string& aGName) {
+    GVC_t* gvc = GRAPHVIZ_GVCInit(aGName);
+
+    char* aNG = new char[2];
+    aNG[0] = 'g';
+
+    graph_t* g = agopen(aNG, Agdirected, 0);
+
+    return std::pair<graph_t*, GVC_t*>(g, gvc);
+}
+
+static void GRAPHIZ_GraphSerialize(std::string& aFName, graph_t* g) {
+    FILE* fp;
+    fp = fopen(aFName.c_str(), "w");
+    agwrite(g, fp);
+    fclose(fp);
+}
+
+static void GRAPHIZ_GraphKill(graph_t* g, GVC_t* gvc, std::string aWriteName) {
+    gvLayoutJobs(gvc, g);
+
+    gvRenderJobs(gvc, g);
+
+    gvFreeLayout(gvc, g);
+
+    // serialization of the graph
+    if (aWriteName != "") {
+        GRAPHIZ_GraphSerialize(aWriteName, g);
+    }
+
+    agclose(g);
+
+    gvFreeContext(gvc);
+}
+
+static void GRAPHIZ_NodeInit(graph_t* g, const std::string& aName1,
+                             Pt3dr& pos1, const std::string& aName2,
+                             Pt3dr& pos2, const std::string& aName3,
+                             Pt3dr& pos3) {
+    node_t* ns = agnode(g, (char*)aName1.c_str(), 1);
+    node_t* ms = agnode(g, (char*)aName2.c_str(), 1);
+
+    // add the new node
+    node_t* os = agnode(g, (char*)aName3.c_str(), 1);
+
+    // add new edges
+    // edge_t *e1,*e2,*e3;
+    agedge(g, ns, ms, 0, 1);
+    agedge(g, ns, os, 0, 1);
+    agedge(g, ms, os, 0, 1);
+
+    Agsym_t* symShape = agattr(g, AGNODE, (char*)"shape", (char*)"circle");
+
+    if (symShape) printf("The default shape is %s.\n", symShape->defval);
+    std::string pos1_ = "" + std::to_string(pos1.x) + "," +
+                        std::to_string(pos1.y) + "," + std::to_string(pos1.z) +
+                        "!";
+    agsafeset(ns, (char*)"pos", (char*)pos1_.c_str(), "");
+
+    std::string pos2_ = "" + std::to_string(pos2.x) + "," +
+                        std::to_string(pos2.y) + "," + std::to_string(pos2.z) +
+                        "!";
+    agsafeset(ms, (char*)"pos", (char*)pos2_.c_str(), "");
+
+    std::string pos3_ = "" + std::to_string(pos3.x) + "," +
+                        std::to_string(pos3.y) + "," + std::to_string(pos3.z) +
+                        "!";
+    agsafeset(os, (char*)"pos", (char*)pos3_.c_str(), "");
+}
+
+static void GRAPHVIZ_NodeAdd(graph_t* g, const std::string& aName1,
+                             const std::string& aName2,
+                             const std::string& aName3,
+                             Pt3dr& pos3) {
+    node_t* n = agnode(g, (char*)aName1.c_str(), 0);
+    node_t* m = agnode(g, (char*)aName2.c_str(), 0);
+    // add the new node
+    node_t* o = agnode(g, (char*)aName3.c_str(), 1);
+
+    // add new edges
+    agedge(g, n, o, 0, 1);
+    agedge(g, m, o, 0, 1);
+
+    std::string pos3_ = "" +
+                    std::to_string(pos3.x) + "," +
+                    std::to_string(pos3.y) + "," +
+                    std::to_string(pos3.z) + "!";
+    agsafeset(o, (char*)"pos", (char*)pos3_.c_str(), "");
+}
+
+/*
+static void GRAPHVIZ_EdgeChgColor(graph_t* g, const std::string& aName1,
+                                  const std::string& aName2,
+                                  std::string aColor) {
+    char* aN1Name = (char*)aName1.c_str();
+    char* aN2Name = (char*)aName2.c_str();
+
+    node_t* n = agnode(g, aN1Name, 0);
+    node_t* m = agnode(g, aN2Name, 0);
+
+    edge_t* e1;
+    e1 = agedge(g, n, m, 0, 1);
+
+    // Change color
+    char* aC = (char*)"color";
+    char* aCR = (char*)aColor.c_str();
+    char aCEmpty = ' ';
+
+    agsafeset(e1, aC, aCR, &aCEmpty);
+}
+*/
+
+/* Find node and change its color */
+/*
+static void GRAPHVIZ_NodeChgColor(graph_t* g,const std::string& aName)
+{
+
+    char * aNName = (char *)aName.c_str();
+
+
+    char * aC = (char *)"color";
+    char * aCR = (char *)"blue";
+    char  aCEmpty = ' ';
+
+    node_t *n_ = agnode(g,aNName,0);//0 to indicate that it exists
+    agsafeset(n_,aC,aCR,&aCEmpty);
+
+}
+*/
+
+static void WriteGraphToFile(Dataset& data, std::string mGraphName) {
+    DataTravel travel(data);
+    // Clear the sommets
+    travel.mVS.clear();
+
+    int aNumCC = 0;
+
+    cNOSolIn_Triplet* aTri0 = data.mV3[0];
+
+    // initialise the graph
+    std::pair<graph_t*, GVC_t*> aGGVC = GRAPHVIZ_GraphInit(mGraphName);
+    graph_t* g = aGGVC.first;
+    GVC_t* gvc = aGGVC.second;
+
+    // initialise the starting node
+    GRAPHIZ_NodeInit(g, aTri0->KSom(0)->attr().Im()->Name(),
+                     aTri0->KSom(0)->attr().CurRot().tr(),
+                     aTri0->KSom(1)->attr().Im()->Name(),
+                     aTri0->KSom(1)->attr().CurRot().tr(),
+                     aTri0->KSom(2)->attr().Im()->Name(),
+                     aTri0->KSom(2)->attr().CurRot().tr());
+
+    // Create a new component
+    cNO_CC_TripSom* aNewCC3S = new cNO_CC_TripSom;
+    aNewCC3S->mNumCC = aNumCC;
+    data.mVCC.push_back(aNewCC3S);
+    std::vector<cNOSolIn_Triplet*>* aCC3 = &(aNewCC3S->mTri);
+
+    // Add first triplet
+    aCC3->push_back(aTri0);
+    aTri0->Flag().set_kth_true(data.mFlag3CC);  // explored
+    aTri0->NumCC() = aNumCC;
+
+    unsigned aKCur = 0;
+    // Visit all sommets (not all triplets)
+    while (aKCur != aCC3->size()) {
+        cNOSolIn_Triplet * aTri1 = (*aCC3)[aKCur];
+        // For each edge of the current triplet
+        for (int aKA = 0; aKA < 3; aKA++) {
+            // Get triplet adjacent to this edge and parse them
+            std::vector<cLinkTripl>& aLnk =
+                aTri1->KArc(aKA)->attr().ASym()->Lnk3();
+
+            for (unsigned aKL = 0; aKL < aLnk.size(); aKL++) {
+                // If not marked, mark it and push it in aCC3, return it was
+                // added
+                if (SetFlagAdd(*aCC3, aLnk[aKL].m3, data.mFlag3CC)) {
+                    aLnk[aKL].m3->NumCC() = aNumCC;
+                    //travel.mVS[aLnk[aKL].S3()->attr().Im()->Name()] =
+                     //   aLnk[aKL].S3();
+
+                    std::cout << aCC3->size() << "=["
+                              << aLnk[aKL].S1()->attr().Im()->Name();
+                    std::cout << "," << aLnk[aKL].S2()->attr().Im()->Name();
+                    std::cout << "," << aLnk[aKL].S3()->attr().Im()->Name()
+                              << "=====\n";
+
+                    GRAPHVIZ_NodeAdd(g, aLnk[aKL].S1()->attr().Im()->Name(),
+                                     aLnk[aKL].S2()->attr().Im()->Name(),
+                                     aLnk[aKL].S3()->attr().Im()->Name(),
+                                     aLnk[aKL].S3()->attr().CurRot().tr());
+                }
+            }
+        }
+        aKCur++;
+    }
+
+    GRAPHIZ_GraphKill(g, gvc, mGraphName);
+
+    // Unflag all triplets do pursue with DFS
+    for (unsigned aK3 = 0; aK3 < data.mV3.size(); aK3++) {
+        data.mV3[aK3]->Flag().set_kth_false(data.mFlag3CC);
+        data.mV3[aK3]->NumCC() = IFLAG;
+    }
+}
+
 /******************************
   Start cNOSolIn_Triplet
 *******************************/
@@ -102,14 +340,17 @@ cNOSolIn_Triplet::cNOSolIn_Triplet(RandomForest* anAppli,
     mSoms[0] = aS1;
     mSoms[1] = aS2;
     mSoms[2] = aS3;
+    residue = aTrip.ResiduTriplet();
+    std::cout << residue << std::endl;
 }
 
-static double computeResiduFromPos(const cNOSolIn_Triplet* triplet, std::vector<ElRotation3D>& pos) {
+static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
     double value = 0;
     std::cout << triplet->getHomolPts().size() << std::endl;
     double residues[3] = {};
     double n_res[3] = {0};
-    for (auto& r : pos) {
+    for (uint i = 0; i < 3; i++) {
+        auto r = triplet->KSom(i)->attr().CurRot().inv();
         std::cout
             << r.Mat()(0,0) << " " << r.Mat()(1,0) << " " << r.Mat()(2,0) << std::endl
             << r.Mat()(0,1) << " " << r.Mat()(1,1) << " " << r.Mat()(2,1) << std::endl
@@ -124,10 +365,10 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet, std::vector<
             if (!pts[i].x && !pts[i].y)
                 continue;
 
-            triplet->KSom(i)->attr().Im()->CS()->SetOrientation(pos[i].inv());
+            triplet->KSom(i)->attr().Im()->CS()->SetOrientation(triplet->KSom(i)->attr().CurRot().inv());
             aVSeg.push_back(triplet->KSom(i)->attr().Im()->CS()->Capteur2RayTer(pts[i]));
         }
-        bool ISOK=false;
+        bool ISOK = false;
         Pt3dr aInt = ElSeg3D::L2InterFaisceaux(0, aVSeg, &ISOK);
         std::cout << "3D Intersection: " << aInt << std::endl;
 
@@ -138,7 +379,7 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet, std::vector<
                 continue;
             n_residu++;
 
-            triplet->KSom(i)->attr().Im()->CS()->SetOrientation(pos[i].inv());
+            triplet->KSom(i)->attr().Im()->CS()->SetOrientation(triplet->KSom(i)->attr().CurRot().inv());
             Pt2dr pts_proj = triplet->KSom(i)->attr().Im()->CS()->Ter2Capteur(aInt);
             auto a = euclid(pts[i], pts_proj);
             std::cout
@@ -157,7 +398,7 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet, std::vector<
     }
     value /= triplet->getHomolPts().size();
     cout.precision(12);
-    std::cout << "Residu for triplet: " << value  << std::endl;
+    std::cout << "Residu for triplet: " << value  << "  " << triplet->residue << std::endl;
     return value;
 }
 
@@ -169,7 +410,7 @@ double cNOSolIn_Triplet::ProjTest() const {
         aVRAbs.push_back(mSoms[aK]->attr().CurRot());
         // aVRAbs.push_back(mSoms[aK]->attr().TestRot());
     }
-    double res = computeResiduFromPos(this, aVRAbs);
+    double res = computeResiduFromPos(this);
 
     //cSolBasculeRig aSolRig = cSolBasculeRig::SolM2ToM1(aVRAbs, aVRLoc);
 
@@ -204,7 +445,6 @@ double cNOSolIn_Triplet::CoherTest() const {
 
         double aD = DistanceRot(aRAbs, aRA2, mBOnH);
         aRes += aD;
-        //TODO verifier si chaque triplet a ses points homologues
         // std::cout << "RES=" << aRes  << " " << aD <<  " "<< mBOnH << "\n";
     }
     aRes = aRes / 3.0;
@@ -602,9 +842,13 @@ void RandomForest::loadDataset(Dataset& data) {
         aTriplet->AddHomolPts(homolPts);
 
         ///  ADD-SOM-TRIPLET
-        aS1->attr().AddTriplet(aTriplet, 1, 2, 0);
+        /*aS1->attr().AddTriplet(aTriplet, 1, 2, 0);
         aS2->attr().AddTriplet(aTriplet, 0, 2, 1);
-        aS3->attr().AddTriplet(aTriplet, 0, 1, 2);
+        aS3->attr().AddTriplet(aTriplet, 0, 1, 2);*/
+
+        aS1->attr().AddTriplet(aTriplet, 0, 1, 2);
+        aS2->attr().AddTriplet(aTriplet, 1, 2, 0);
+        aS3->attr().AddTriplet(aTriplet, 2, 0, 1);
 
         ///  ADD-EDGE-TRIPLET
         data.CreateArc(aS1, aS2, aTriplet, 0, 1, 2);
@@ -933,6 +1177,10 @@ void RandomForest::AddTriOnHeap(Dataset& data, cLinkTripl* aLnk) {
 void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     int NbSomCC = int(aCC->mSoms.size());
 
+    std::pair<graph_t*, GVC_t*> aGGVC = GRAPHVIZ_GraphInit("final.dot");
+    graph_t* g = aGGVC.first;
+    GVC_t* gvc = aGGVC.second;
+
     // Pick the  triplet
     cNOSolIn_Triplet* aTri0 = GetBestTri();//TODO tirer toujours le meme triplet
                                            //de depart pour debug
@@ -953,6 +1201,16 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
 
         // PrintRotation(aTri0->KSom(aK)->attr().CurRot().Mat(),ToString(aK));
     }
+    std::cout << "Final seed residue: " << computeResiduFromPos(aTri0) << std::endl;
+
+    // initialise the starting node
+    // TODO create node, link node, make size
+    GRAPHIZ_NodeInit(g, aTri0->KSom(0)->attr().Im()->Name(),
+                     aTri0->KSom(0)->attr().CurRot().tr(),
+                     aTri0->KSom(1)->attr().Im()->Name(),
+                     aTri0->KSom(1)->attr().CurRot().tr(),
+                     aTri0->KSom(2)->attr().Im()->Name(),
+                     aTri0->KSom(2)->attr().CurRot().tr());
 
     // Fill the dynamic heap with triplets connected to this triplet
     cLinkTripl* aLnk0 = new cLinkTripl(aTri0, 0, 1, 2);
@@ -977,9 +1235,13 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
 
             // Propagate R,t
             EstimRt(aTriNext);
-
+            GRAPHVIZ_NodeAdd(g, aTriNext->S1()->attr().Im()->Name(),
+                                     aTriNext->S2()->attr().Im()->Name(),
+                                     aTriNext->S3()->attr().Im()->Name(),
+                                     aTriNext->S3()->attr().CurRot().tr());
             // Mark node as vistied
             aTriNext->S3()->flag_set_kth_true(data.mFlagS);
+            std::cout << "Final residue: " << computeResiduFromPos(aTriNext->m3) << std::endl;
 
             // Add to heap
             AddTriOnHeap(data, aTriNext);
@@ -993,6 +1255,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
         }
     }
 
+    GRAPHIZ_GraphKill(g, gvc, "final.dot");
     std::cout << "Nb final sommets=" << Cpt + 3 << ", out of " << NbSomCC
               << "\n";
 }
@@ -1004,6 +1267,10 @@ void RandomForest::RandomSolAllCC(Dataset& data) {
         RandomSolOneCC(data, data.mVCC[aKC]);
     }
 }
+
+
+
+//"%f,%f,%f('!')?"
 
 void RandomForest::BestSolAllCC(Dataset& data) {
     // Add all triplets to global heap
@@ -1057,6 +1324,13 @@ void RandomForest::CoherTripletsGraphBasedV2(
             aItTriActive++;
         }
     }
+
+    cNOSolIn_Triplet* aTriSeed = aV3[TriSeedId];
+    Pt3dr center;
+    center = center + aTriSeed->KSom(0)->attr().CurRot().tr();
+    center = center + aTriSeed->KSom(1)->attr().CurRot().tr();
+    center = center + aTriSeed->KSom(2)->attr().CurRot().tr();
+    center = center / 3.;
 
     // Build the tree for FastTree distance
     for (int aT = 0; aT < int(aV3.size()); aT++) {
@@ -1126,9 +1400,18 @@ void RandomForest::CoherTripletsGraphBasedV2(
 
         // double aDist = aV3[aT]->CalcDistArc();
         double aDist = std::ceil((aD1 + aD2 + aD3) / 3.0);
+        Pt3dr center2;
+        center2 = center2 + currentTriplet->KSom(0)->attr().CurRot().tr();
+        center2 = center2 + currentTriplet->KSom(1)->attr().CurRot().tr();
+        center2 = center2 + currentTriplet->KSom(2)->attr().CurRot().tr();
+        center2 = center2 / 3.;
+
+        double aDistAl = square_euclid(center2, center);
+        std::cout << "Distance euclid: " << aDistAl << std::endl;
 
         if (aDist < mDistThresh) {
             double aResidue = abs(currentTriplet->ProjTest());
+            //double aRot = abs(currentTriplet->CoherTest());
             // std::cout << ",Dist=" << aDist << " CohTest(à=" <<
             // aV3[aT]->CoherTest() << ",CostN=" <<  aCostCur << ",CPds=" <<
             // aCostCur/sqrt(aDist) << "\n"; std::cout <<
@@ -1136,6 +1419,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
             double aCostCur = 0;
 
             // Take into account the non-visited triplets
+            // TODO verifier les triplets qui sont dans la solution
             if (!ValFlag(*(aV3[aT]), data.mFlag3CC)) {
                 // std::cout << "Flag0 OK " << aCntFlags++ << "\n";
 
@@ -1147,8 +1431,8 @@ void RandomForest::CoherTripletsGraphBasedV2(
                     //aPds = std::pow(0.5,aDist);
                     //aPds = std::pow(0.7,aDist);
                     //aPds = 1.0 / sqrt(aDist);
-                    //aPds = 1. / sqrt(aDist);
-                    aPds = 1.;
+                    //aPds = 1.;
+                    aPds = aDist;
                     aCostCur = aResidue;
 
                     /*if (aResidue > mResidu) {
@@ -1157,7 +1441,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 }
 
                 // Mean
-                aV3[aT]->CostPdsSum() += aCostCur * aPds;
+                aV3[aT]->CostPdsSum() += aCostCur;
                 aV3[aT]->PdsSum() += aPds;
 
                 // Median
@@ -1256,9 +1540,10 @@ void RandomForest::CoherTripletsAllSamplesMesPond(Dataset& data) {
         }
 
         /* Weighted median */
-        //if (aVCostPds.size())
-        //data.mV3[aT]->CostArcMed() =
-        //    PropPond(aVCostPds, 0.1, 0);  // MedianPond(aVCostPds,0);
+        if (aVCostPds.size())
+            data.mV3[aT]->CostArcMed() =
+                PropPond(aVCostPds, 0.1, 0);
+             //MedianPond(aVCostPds,0);
     }
 }
 
@@ -1386,6 +1671,7 @@ void RandomForest::DoNRandomSol(Dataset& data) {
 
     // Build "most coherent" solution
     BestSolAllCC(data);
+    WriteGraphToFile(data, "total.dot");
 }
 
 /******************************
