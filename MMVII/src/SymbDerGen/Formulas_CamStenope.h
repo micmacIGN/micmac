@@ -14,6 +14,7 @@ MACRO_SD_DEFINE_STD_UNARY_FUNC_OP_DERIVABLE(MMVII,sinC,DerSinC)
 
 /// See bellow the needs of a differentiable operator AtanXsY_sX=atan(X/Y)/X C-infinite
 MACRO_SD_DEFINE_STD_BINARY_FUNC_OP_DERIVABLE(MMVII,AtanXsY_sX,DerXAtanXsY_sX,DerYAtanXsY_sX)
+MACRO_SD_DEFINE_STD_BINARY_FUNC_OP_DERIVABLE(MMVII,ATan2,DerX_ATan2,DerY_ATan2)
 
 }
 using namespace NS_SymbolicDerivative;
@@ -544,7 +545,7 @@ class cMMVIIUnivDist
 class cDefinedZPos
 {
    public :
-        template<typename tScal> static double DegreeDef(const  cPtxd<tScal,3>  & aP)
+        template<typename tScal> static double P3DIsDef(const  cPtxd<tScal,3>  & aP)
         {
            return VUnit(aP).z() ;
         }
@@ -553,7 +554,7 @@ class cDefinedZPos
 class cUnDefinedAtPole
 {
    public :
-        template<typename tScal> static double DegreeDef(const  cPtxd<tScal,3>  & aP)
+        template<typename tScal> static double P3DIsDef(const  cPtxd<tScal,3>  & aP)
         {
            return Norm2(VUnit(aP)-cPtxd<tScal,3>(0,0,-1)) ;
         }
@@ -561,11 +562,23 @@ class cUnDefinedAtPole
 
        /**  Basic projection */
 
-class cProjStenope : public cDefinedZPos
+class cProjStenope : public cDefProjPerspC
 {
    public :
+
         //  static const std::string & NameProj() {static std::string aName("Stenope"); return aName;}
         static eProjPC  TypeProj() {return eProjPC::eStenope;}
+
+
+	///< no continuous extension for Z<=0
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  {return cDefinedZPos::P3DIsDef(aP);}
+
+        ///  questionable, as always defined could return 1.0, but it make sense to compute a distance to infinite point
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            return 1.0/(1.0+Norm2(aP));
+        }
+
 
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
@@ -602,12 +615,20 @@ template <class  T ypeProj>  class cFormulaProj
 
        /**  fisheye equidistant  */
 
-class cProjFE_EquiDist : public cUnDefinedAtPole
+class cProjFE_EquiDist : public cDefProjPerspC
 {
    public :
 
         //static const std::string & NameProj() {static std::string aName("FE_EquiDist"); return aName;}
         static eProjPC  TypeProj() {return eProjPC::eFE_EquiDist;}
+	///< fish eye can have FOV over 180, and mathematicall formula is defined execte at pole (axe 0 0 -1 )
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  {return cUnDefinedAtPole::P3DIsDef(aP);}
+
+        /// image of pole converge to the circle of ray PI, 
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            return M_PI - Norm2(aP) ;
+	}
 /*
   theoretically :
          R = sqrt(X^2+Y2)  tan(teta)=R/Z   teta = atan2(R,Z)
@@ -668,6 +689,7 @@ class cProjFE_EquiDist : public cUnDefinedAtPole
 
    // ==========================================================
 
+/*
 class cProjectionPerspC 
 {
        public :
@@ -676,15 +698,25 @@ class cProjectionPerspC
 
 	  static const cProjectionPerspC & ProjOfType(eProjPC);
 };
+*/
 
        /**  fisheye orthographic  */
 
 
-class cProjStereroGraphik : public cUnDefinedAtPole
+class cProjStereroGraphik : public cDefProjPerspC
 {
    public :
         // static const std::string & NameProj() {static std::string aName("FE_StereoGr"); return aName;}
         static eProjPC  TypeProj() {return eProjPC::eStereroGraphik;}
+	//
+	///< fish eye can have FOV over 180, and mathematicall formula is defined execte at pole (axe 0 0 -1 )
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  {return cUnDefinedAtPole::P3DIsDef(aP);}
+
+        /// more or less as stenope, defined everywhere but be not to close to infinite point ...
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            return 1 / (1+Norm2(aP));
+	}
 /*  Theory :
         r=sqrt(X2+Y2)  R = sqrt(X2+Y2+Z2)   r' = r/R  z'=Z/R
 
@@ -753,7 +785,7 @@ Also :
 
        /**  Orthographic Projection  */
 
-class cProjOrthoGraphic : public cDefinedZPos
+class cProjOrthoGraphic : public cDefProjPerspC
 {
    public :
 /* Quite basic :
@@ -762,6 +794,14 @@ class cProjOrthoGraphic : public cDefinedZPos
 */
         // static const std::string & NameProj() {static std::string aName("FE_OrthoGr"); return aName;}
         static eProjPC  TypeProj() {return eProjPC::eOrthoGraphik;}
+	///< no continuous extension for Z<=0
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  {return cDefinedZPos::P3DIsDef(aP);}
+
+        ///  The equator project on circle of ray 1,  over its is degenerate and the formula cannot be inverted
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            return 1.0 - Norm2(aP);
+        }
 
 
 
@@ -796,14 +836,84 @@ class cProjOrthoGraphic : public cDefinedZPos
 
    // ==========================================================
    
+/*
+     Theory  :
+
+         Bundle  :
+	    U,V  ->  
+	           X = cos V sin U
+		   Y = sin V
+		   Z = cos V cos U
+
+           X,Y,Z : 
+              R = sqrt(X^2+Y^2+Z^2) 
+	      x = X/R  y= Y/R  z=Z/R
+
+          V = ASin(y)
+	  U = atan2(x,z) = atan2(X,Z)
+ */
+class cProj_EquiRect  : public cDefProjPerspC
+{
+   public :
+        static eProjPC  TypeProj() {return eProjPC::eEquiRect;}
+	///< always defines, but singular when x,z=0
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  
+	{
+             return 1.0 -std::abs(aP.y()/Norm2(aP));
+	}
+
+        ///  can be prolongated at  equtor not at the pole
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            tREAL8 aU = aP.x();
+            tREAL8 aV = aP.y();
+            return std::min
+		    (
+		       std::min(M_PI+aU,M_PI-aU)     ,
+		       std::min(M_PI_2+aV,M_PI_2-aV)
+		    );
+        }
+        template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
+	{
+           const auto & aX = aXYZ.at(0);
+           const auto & aY = aXYZ.at(1);
+           const auto & aZ = aXYZ.at(2);
+
+	   auto aR = sqrt(Square(aX)+Square(aY)+Square(aZ));
+
+	   return  {ATan2(aX,aZ),ASin(aY/aR)} ;
+	}
+
+        template <typename tScal> static std::vector<tScal> ToDirBundle(const  std::vector<tScal> & aXY)
+        {
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
+
+           const auto & aU = aXY.at(0);
+           const auto & aV = aXY.at(1);
+           auto CosV  = cos(aV);
+
+           return {CosV * sin(aU) ,  sin(aV) , CosV *cos(aU)};
+        }
+};
+
+
 
        /**  EquiSolid (Equal-Area,equivalente) Projection  */
 
-class cProjFE_EquiSolid  : public cUnDefinedAtPole
+class cProjFE_EquiSolid  : public cDefProjPerspC
 {
    public :
         // static const std::string & NameProj() {static std::string aName("FE_EquiSolid"); return aName;}
         static eProjPC  TypeProj() {return eProjPC::eFE_EquiSolid;}
+
+	///< like equidisant 
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  {return cUnDefinedAtPole::P3DIsDef(aP);}
+
+        ///  The equator project on circle of ray 1,  over its is degenerate and the formula cannot be inverted
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            return 2-Norm2(aP);
+        }
 /* Theory
     R2 = X2 +Y2+Z2   , r2 = X2+Y2
     (X,Y,Z)  = R (sin A,0,cos A) ->  2 sin(A/2) = L  
@@ -900,7 +1010,7 @@ template <typename tProj> class   cGenCode_ProjInv
 
 };
 
-/**  Proj manipulate vector for code generation, but for testing its easier to manipulate points */
+/**  Proj manipulate vector for code generation, but for testing it is easier to manipulate points */
 template <typename tProj> class   cHelperProj
 {
 	public :

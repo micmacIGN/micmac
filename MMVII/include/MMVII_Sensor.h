@@ -14,6 +14,18 @@ namespace MMVII
 
 */
 
+class cDefProjPerspC
+{
+       public :
+          /// signed belonging function for 3-d points
+          virtual tREAL8  P3DIsDef(const cPt3dr &) const = 0 ;
+          /// signed belonging function for 2-d points
+          virtual tREAL8  P2DIsDef(const cPt2dr &) const =0 ;
+
+          static const cDefProjPerspC & ProjOfType(eProjPC);
+};
+
+
 /// Base class for all image geometry, laser
 /*
 class cDataGeomSensor : public cDataMapping<tREAL8,3,2>

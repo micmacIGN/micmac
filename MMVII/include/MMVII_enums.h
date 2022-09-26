@@ -414,6 +414,7 @@ enum class eProjPC
      eFE_EquiSolid,
      eStereroGraphik,
      eOrthoGraphik,
+     eEquiRect,
      eNbVals
 };
 

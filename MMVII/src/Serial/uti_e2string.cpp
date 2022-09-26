@@ -139,7 +139,8 @@ template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
                {eProjPC::eFE_EquiDist,"FE_EquiDist"},
                {eProjPC::eFE_EquiSolid,"FE_EquiSolid"},
                {eProjPC::eStereroGraphik,"StereroGraphik"},
-               {eProjPC::eOrthoGraphik,"OrthoGraphik"}
+               {eProjPC::eOrthoGraphik,"OrthoGraphik"},
+               {eProjPC::eEquiRect,"eEquiRect"}
            };
 TPL_ENUM_2_STRING(eProjPC);
 

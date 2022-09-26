@@ -56,12 +56,13 @@ typedef std::pair<cPt2dr,cPt3dr>  tPair23;
 /** Generate a pair P2/P3 mutually homologous and in validity domain for proj */
 template<class TyProj> tPair23  GenerateRandPair4Proj()
 {
+   TyProj aProj;
    tPair23 aRes(cPt2dr(0,0), cPt3dr::PRandUnitDiff(cPt3dr(0,0,0),1e-3));
-   while (TyProj::DegreeDef(aRes.second)<1e-5)
+   while (aProj.P3DIsDef(aRes.second)<1e-5)
        aRes.second =  cPt3dr::PRandUnitDiff(cPt3dr(0,0,0),1e-3);
-   cHelperProj<TyProj> aProj;
-   aRes.first =  aProj.Proj(aRes.second);
-   aRes.second =  aProj.ToDirBundle(aRes.first);
+   cHelperProj<TyProj> aHelpP;
+   aRes.first =  aHelpP.Proj(aRes.second);
+   aRes.second =  aHelpP.ToDirBundle(aRes.first);
 
    return aRes;
 }

@@ -2,6 +2,7 @@
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_MACRO.h"
 #include "include/MMVII_TplSymbImage.h"
+#include "Formulas_CamStenope.h"
 
 using namespace NS_SymbolicDerivative;
 
@@ -108,6 +109,33 @@ double  MajNormJacOfRho
 }
 
 
+/* ******************************** */
+/*                                  */
+/*           cDefProjPerspC         */
+/*                                  */
+/* ******************************** */
+
+const cDefProjPerspC & cDefProjPerspC::ProjOfType(eProjPC eProj)
+{
+    static cProjStenope        TheProjStenope;
+    static cProjFE_EquiDist    TheProjFE_EquiDist;
+    static cProjStereroGraphik TheProjFE_StereroGraphik;
+    static cProjOrthoGraphic   TheProjFE_OrthoGraphic;
+    static cProjFE_EquiSolid   TheProjFE_EquiSolid;
+    static std::vector<const cDefProjPerspC *> TheVProj;
+
+    if (TheVProj.empty())
+    {
+        TheVProj.resize(size_t(eProjPC::eNbVals),nullptr);
+	TheVProj.at(size_t(eProjPC::eStenope))        = & TheProjStenope;
+	TheVProj.at(size_t(eProjPC::eFE_EquiDist))    = & TheProjFE_EquiDist;
+	TheVProj.at(size_t(eProjPC::eStereroGraphik)) = & TheProjFE_StereroGraphik;
+	TheVProj.at(size_t(eProjPC::eOrthoGraphik))   = & TheProjFE_OrthoGraphic;
+	TheVProj.at(size_t(eProjPC::eFE_EquiSolid))   = & TheProjFE_EquiSolid;
+    }
+
+    return *(TheVProj.at(size_t(eProj)));
+}
 
 
 };//  namespace MMVII

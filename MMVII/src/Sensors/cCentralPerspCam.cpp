@@ -57,6 +57,18 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
          tPt    mPP;  ///<  Principal point
 };
 
+/*
+class cProjPixelDomain : public cPixelDomain
+{
+      public :
+           cPixelDomain(const cPt2di &aSz,cDefProjPerspC *);
+           virtual ~ cProjPixelDomain();
+           virtual cProjPixelDomain *  Dup_PS () const;  ///< default work because deleted in mother class
+
+      private :
+           cPt2di     mSz;
+};
+*/
 
 
 
@@ -105,6 +117,9 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 	    const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
 	    const  tVecIn  &  Inverses(tVecIn &,const tVecOut & ) const;
 
+	    // for a point in pixel coordinates, indicate how much its invert projection is defined, not parallized !
+	    tREAL8  InvProjIsDef(const tPtOut & aPix ) const;
+
     // ==================   Accessors & Modifiers ===================
 	    const double & F() const;   ///< access to focal
 	    const cPt2dr & PP() const;  ///< acess to principal point
@@ -120,13 +135,12 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 	    ///  Test the accuracy of "guess" invert
 	    void TestInvInit(double aTolApprox,double aTolAccurate);
 	private :
-
-            // cSphereBoundedSet<tREAL8,2>          mPNormSpace; // validity domain pixel-normalize (PP/F) space
-
+            cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
 
 	        // comon to dir & inverse
 	    eProjPC                              mTypeProj;
             int                                  mSzBuf;
+	    const cDefProjPerspC &               mDefProj;
 	        // parameters for direct projection  DirBundle -> pixel
 	    cPt3di                               mDir_Degr;
 	    std::vector<cDescOneFuncDist>        mDir_VDesc;  ///< contain a "high" level description of dist params
@@ -176,6 +190,7 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
 	// ------------ global -------------
     mTypeProj           (aTypeProj),
     mSzBuf              (aSzBuf),
+    mDefProj            (cDefProjPerspC::ProjOfType(mTypeProj)),
 	// ------------ direct -------------
     mDir_Degr           (aDegDir),
     mDir_VDesc          (DescDist(aDegDir)),
@@ -244,6 +259,10 @@ const  std::vector<cPt3dr> &  cPerspCamIntrCalib::Inverses(tVecIn & aV3 ,const t
      return aV3;
 }
 
+tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
+{
+    return mDefProj.P2DIsDef(mDist_DirInvertible->Inverse(mInv_CSP.Value(aPix)));
+}
 
 cPerspCamIntrCalib::~cPerspCamIntrCalib()
 {
@@ -353,36 +372,35 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
      }
 
      {
-static int aCpt=0; aCpt++;
+         // generate 2D point on grid
+         std::vector<cPt2dr>  aVPt0;
+         mPixDomain->GridPointInsideAtStep(aVPt0,Norm2(mPixDomain->Sz())/20.0);
 
+	 // filter them because witj some projection point to far are not invetrible
          std::vector<cPt2dr>  aVPt1;
-         mPixDomain->GridPointInsideAtStep(aVPt1,Norm2(mPixDomain->Sz())/20.0);
+	 for (const auto & aPt0 : aVPt0)
+             if (InvProjIsDef(aPt0) >= 1e-2)
+                aVPt1.push_back(aPt0);
 
+	 // compute direction of bundles
          std::vector<cPt3dr>  aVPt2;
 	 Inverses(aVPt2,aVPt1);
 
+	 // back project on images
          std::vector<cPt2dr>  aVPt3;
 	 Values(aVPt3,aVPt2);
 
+         // aSD13 -> som dist between initial points and their back proj
          double aSD13=0;  
-
          for (size_t aKPt=0 ; aKPt<aVPt1.size() ; aKPt++)
          {
               double aD =  SqN2(aVPt1.at(aKPt)-aVPt3.at(aKPt));
-	      if (!ValidFloatValue(aD))
-	      {
-		      cPt2dr aP1 = aVPt1[aKPt];
-		      cPt3dr aP2 = aVPt2[aKPt];
-		      StdOut()  <<  "NNNN " << aD << " " << aKPt  << aP1  << aP2<< "\n";
-
-	      }
+	      MMVII_INTERNAL_ASSERT_tiny(ValidFloatValue(aD),"Bad value in TestInvInit");
               aSD13 += aD;
 	 }
 
-	 StdOut() <<  "DIST PIX " << aSD13 << " " << aVPt1.size() << "\n";
-         aSD13 = std::sqrt(aSD13/aVPt1.size());
-
-	 StdOut() <<  "DIST PIX " << aSD13 << " CPT=" << aCpt << " " << E2Str(mTypeProj) << "\n";
+         aSD13 = std::sqrt(aSD13/aVPt1.size())  / mCSPerfect.F()  ;
+         MMVII_INTERNAL_ASSERT_bench(aSD13<1e-8,"Test approx inv");
      }
 }
 
