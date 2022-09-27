@@ -3,6 +3,13 @@
 #include <omp.h>
 #endif
 
+/*
+ CamStenope * Std_Cal_From_File
+             (
+                 const std::string & aNameFile,
+                 const std::string &  aNameTag = "CalibrationInternConique"
+             );
+*/
 
 /**
    \file cCentralPerspCam.cpp
@@ -56,19 +63,6 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
          tScal  mF;   ///<  Focal
          tPt    mPP;  ///<  Principal point
 };
-
-/*
-class cProjPixelDomain : public cPixelDomain
-{
-      public :
-           cPixelDomain(const cPt2di &aSz,cDefProjPerspC *);
-           virtual ~ cProjPixelDomain();
-           virtual cProjPixelDomain *  Dup_PS () const;  ///< default work because deleted in mother class
-
-      private :
-           cPt2di     mSz;
-};
-*/
 
 
 
@@ -324,6 +318,10 @@ void cPerspCamIntrCalib::SetThresholdPixAccInv(double aThr)
 const double & cPerspCamIntrCalib::F()  const {return mCSPerfect.F() ;}
 const cPt2dr & cPerspCamIntrCalib::PP() const {return mCSPerfect.PP();}
 
+       /* ================================================================== */
+       /*                 BENCH VERIF PART                                   */
+       /* ================================================================== */
+
 void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
 {
      {
@@ -413,10 +411,10 @@ void cPerspCamIntrCalib::InitRandom(double aAmpl)
      mDir_Dist->SetObs(aParamRID.VParam());
 }
  
-    //cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,double aProbaNotNul,double aTargetSomJac) :
 
 void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 {
+    // StdOut() <<  "Pppp " << E2Str(aTypeProj) << "\n";
     tREAL8 aDiag = 1000 * (1+10*RandUnif_0_1());
     cPt2di aSz (aDiag*(1+RandUnif_0_1()),aDiag*(1+RandUnif_0_1()));
     cPt2dr aPP(   aSz.x()*(0.5+0.1*RandUnif_C())  , aSz.y()*(0.5+0.1*RandUnif_C())  );
@@ -442,9 +440,25 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
     }
 }
 
+void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string & aName)
+{
+     std::string aFullName = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ori-MMV1" +  StringDirSeparator() + aName;
+
+
+     cExportV1StenopeCalInterne  aExp(aFullName);
+
+     StdOut() << "aFullNameaFullName " << aFullName << "\n";
+
+}
+
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("CentralPersp")) return;
+
+    BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-11500_Cam-imx477imx477-1.xml");
+    BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml");
+
+
 
     int aNbTime = std::min(20,3+aParam.Level());
     for (int aTime=0 ; aTime<aNbTime ; aTime++)
@@ -455,6 +469,7 @@ void BenchCentralePerspective(cParamExeBench & aParam)
         }
         // StdOut()  << "TTTtt " << aTime<< "\n"; //getchar();
     }
+
 
     aParam.EndBench();
 }

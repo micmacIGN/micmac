@@ -77,6 +77,15 @@ template <class Type> class cResolSysNonLinear
 	  /** Once "aSetIO" has been filled by multiple calls to  "AddEq2Subst",  do it using for exemple schurr complement
 	   */
           void  AddObsWithTmpUK (const tSetIO_ST & aSetIO);
+
+	       //    frozen  checking
+
+	   void  SetFrozenVar(int aK,bool Frozen);  ///< indicate it var must be frozen /unfrozen
+	   void  UnfrozeAll() ;                     ///< indicate it var must be frozen /unfrozen
+	   bool  VarIsFrozen(int aK) const;         ///< indicate it var must be frozen /unfrozen
+	   void  AssertNotInEquation() const;       ///< verify that we are notin equation step (to allow froze modification)
+
+
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
 
@@ -90,6 +99,10 @@ template <class Type> class cResolSysNonLinear
           int        mNbVar;       ///< Number of variable, facility
           tDVect     mCurGlobSol;  ///< Curent solution
           tLinearSysSR*    mSysLinear;         ///< Sys to solve equations, equation are concerning the differences with current solution
+
+	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
+	  std::vector<bool>    mVarIsFrozen;       ///< indicate for each var is it is frozen
+	  std::vector<Type>    mValueFrozenVar;    ///< indicate for each var the possible value where it is frozen
 };
 
 /**  Class for weighting residuals : compute the vector of weight from a 

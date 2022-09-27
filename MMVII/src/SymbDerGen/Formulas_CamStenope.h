@@ -855,6 +855,7 @@ class cProjOrthoGraphic : public cDefProjPerspC
 class cProj_EquiRect  : public cDefProjPerspC
 {
    public :
+        bool  HasRadialSym() const override {return false;}
         static eProjPC  TypeProj() {return eProjPC::eEquiRect;}
 	///< always defines, but singular when x,z=0
         tREAL8  P3DIsDef(const cPt3dr & aP) const override  

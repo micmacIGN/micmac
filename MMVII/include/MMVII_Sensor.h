@@ -14,6 +14,8 @@ namespace MMVII
 
 */
 
+
+/**  Interface class for specification where of a projection is defined: */
 class cDefProjPerspC
 {
        public :
@@ -22,19 +24,35 @@ class cDefProjPerspC
           /// signed belonging function for 2-d points
           virtual tREAL8  P2DIsDef(const cPt2dr &) const =0 ;
 
+          /// Radial symetry, true for physcicall based model, false for ex with equirect
+          virtual bool  HasRadialSym() const ;
           static const cDefProjPerspC & ProjOfType(eProjPC);
 };
 
-
-/// Base class for all image geometry, laser
-/*
-class cDataGeomSensor : public cDataMapping<tREAL8,3,2>
+/** class for representing  a 3D point paired with it 2d image projection */
+ 
+struct  cPair2D3D
 {
-   public :
-       cDataGeomSensor();
-   private :
+     public :
+          cPair2D3D(const cPt2dr &,const cPt3dr &);
+          cPt2dr mP2;
+          cPt3dr mP3;
 };
-*/
+
+/**  class for representing  set of pairs 2-3  */
+struct cSet2D3D
+{
+     public :
+         typedef std::vector<cPair2D3D>   tCont2D3D;
+
+         void AddPair(const cPair2D3D &);
+         const tCont2D3D &  Pairs() const;
+         void  Clear() ;
+
+     private :
+        tCont2D3D  mPairs;
+};
+
 
 
 /*

@@ -60,16 +60,17 @@ template<class TyProj> tPair23  GenerateRandPair4Proj()
    tPair23 aRes(cPt2dr(0,0), cPt3dr::PRandUnitDiff(cPt3dr(0,0,0),1e-3));
    while (aProj.P3DIsDef(aRes.second)<1e-5)
        aRes.second =  cPt3dr::PRandUnitDiff(cPt3dr(0,0,0),1e-3);
-   cHelperProj<TyProj> aHelpP;
-   aRes.first =  aHelpP.Proj(aRes.second);
-   aRes.second =  aHelpP.ToDirBundle(aRes.first);
+   cHelperProj<TyProj> aPropPt;
+   aRes.first =  aPropPt.Proj(aRes.second);
+   aRes.second =  aPropPt.ToDirBundle(aRes.first);
 
    return aRes;
 }
 
 template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
 {
-   cHelperProj<TyProj> aProj;
+   cHelperProj<TyProj> aPropPt;
+   const cDefProjPerspC &    aDefProf = cDefProjPerspC::ProjOfType(TyProj::TypeProj());
    // Just to force compile with these tricky classes
    if (NeverHappens())
    {
@@ -81,8 +82,8 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
        TyProj::Proj(aVF);
        TyProj::ToDirBundle(aV);
 
-       aProj.ToDirBundle(aP);
-       aProj.Proj(aProj.ToDirBundle(aP));
+       aPropPt.ToDirBundle(aP);
+       aPropPt.Proj(aPropPt.ToDirBundle(aP));
    }
    // Generate random point aPt0, project aVIm0, inverse aPt1, and check collinearity between Pt1 and Pt0
    cPt3dr AxeK(0,0,1);
@@ -92,12 +93,12 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
           tPair23  aP23 = GenerateRandPair4Proj<TyProj>();
 
           // 1- test inversion
-          cPt2dr aProj2 =  aProj.Proj(aP23.second);
-          cPt3dr aRay3d =  aProj.ToDirBundle(aP23.first);
+          cPt2dr aProj2 =  aPropPt.Proj(aP23.second);
+          cPt3dr aRay3d =  aPropPt.ToDirBundle(aP23.first);
    
           MMVII_INTERNAL_ASSERT_bench(Norm2(aP23.second-aRay3d)<1e-8,"Inversion Proj/ToDirBundle");
 
-	  if (1) // 2- test radiality  => to skeep for non physical proj like 360 synthetic image
+	  if (! aDefProf.HasRadialSym()) // 2- test radiality  => to skeep for non physical proj like 360 synthetic image
 	  {
           // 2.1  , conservation of angles :  aRay2, aRay3d, AxeK  must be coplanar
               cPt3dr aRay2(aProj2.x(),aProj2.y(),1.0);
@@ -107,7 +108,7 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
           // 2.2- test radiality  , conservation of distance , image of circle is a cylinder
 
               cPt2dr aQ2 =  aProj2 * FromPolar(1.0,RandUnif_C()*10);
-              cPt3dr aQ3 =  aProj.ToDirBundle(aQ2);
+              cPt3dr aQ3 =  aPropPt.ToDirBundle(aQ2);
 	      double aDif = Norm2(AxeK-aQ3) - Norm2(AxeK-aRay3d);
               MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-8,"Proj/ToDirBundle");
 	  }
@@ -334,6 +335,7 @@ int cAppliGenCode::Exe()
    GenerateCodeProjCentralPersp<cProjStereroGraphik>();
    GenerateCodeProjCentralPersp<cProjOrthoGraphic>();
    GenerateCodeProjCentralPersp<cProjFE_EquiSolid>(); //  ->  asin
+   GenerateCodeProjCentralPersp<cProj_EquiRect>(); //  ->  asin
    // GenCodesFormula((tREAL8*)nullptr,cGenCode_ProjDir<cProjStenope>(),false);
 
 /*

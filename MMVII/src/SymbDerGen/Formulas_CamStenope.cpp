@@ -115,6 +115,8 @@ double  MajNormJacOfRho
 /*                                  */
 /* ******************************** */
 
+bool  cDefProjPerspC::HasRadialSym() const { return false; }
+
 const cDefProjPerspC & cDefProjPerspC::ProjOfType(eProjPC eProj)
 {
     static cProjStenope        TheProjStenope;
@@ -122,6 +124,7 @@ const cDefProjPerspC & cDefProjPerspC::ProjOfType(eProjPC eProj)
     static cProjStereroGraphik TheProjFE_StereroGraphik;
     static cProjOrthoGraphic   TheProjFE_OrthoGraphic;
     static cProjFE_EquiSolid   TheProjFE_EquiSolid;
+    static cProj_EquiRect      TheProjFE_EquiRect;
     static std::vector<const cDefProjPerspC *> TheVProj;
 
     if (TheVProj.empty())
@@ -132,6 +135,7 @@ const cDefProjPerspC & cDefProjPerspC::ProjOfType(eProjPC eProj)
 	TheVProj.at(size_t(eProjPC::eStereroGraphik)) = & TheProjFE_StereroGraphik;
 	TheVProj.at(size_t(eProjPC::eOrthoGraphik))   = & TheProjFE_OrthoGraphic;
 	TheVProj.at(size_t(eProjPC::eFE_EquiSolid))   = & TheProjFE_EquiSolid;
+	TheVProj.at(size_t(eProjPC::eEquiRect))       = & TheProjFE_EquiRect;
     }
 
     return *(TheVProj.at(size_t(eProj)));

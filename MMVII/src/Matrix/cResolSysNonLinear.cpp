@@ -156,15 +156,24 @@ template <class Type>  std::vector<Type>  cResidualWeighter<Type>::WeightOfResid
 /* ************************************************************ */
 
 template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(tLinearSysSR * aSys,const tDVect & aInitSol) :
-    mNbVar      (aInitSol.Sz()),
-    mCurGlobSol (aInitSol.Dup()),
-    mSysLinear        (aSys)
+    mNbVar          (aInitSol.Sz()),
+    mCurGlobSol     (aInitSol.Dup()),
+    mSysLinear      (aSys),
+    mInPhaseAddEq   (false),
+    mVarIsFrozen    (mNbVar,false),
+    mValueFrozenVar (mNbVar,-1)
 {
 }
 
 template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(eModeSSR aMode,const tDVect & aInitSol) :
     cResolSysNonLinear<Type>  (cLinearOverCstrSys<Type>::AllocSSR(aMode,aInitSol.Sz()),aInitSol)
 {
+}
+
+template <class Type> void cResolSysNonLinear<Type>::AssertNotInEquation() const
+{
+    if (mInPhaseAddEq)
+       MMVII_INTERNAL_ERROR("Operation forbiden while adding equations");
 }
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixVar(const int & aNumV,const Type & aVal,const Type& aWeight)
@@ -188,6 +197,7 @@ template <class Type> const Type & cResolSysNonLinear<Type>::CurSol(int aNumV) c
 }
 template <class Type> void cResolSysNonLinear<Type>::SetCurSol(int aNumV,const Type & aVal) 
 {
+    AssertNotInEquation();
     mCurGlobSol(aNumV) = aVal;
 }
 
