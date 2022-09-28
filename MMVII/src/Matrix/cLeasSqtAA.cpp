@@ -58,8 +58,13 @@ template <class Type>
      mNbTmp = aSetSetEq.NbTmpUk();
      for (const auto & anEq : aSetSetEq.AllEq())
      {
-         for (const auto & anInd : anEq.mVIndUk)
-             mSetInd.AddInd(anInd);
+         for (const auto & anInd : anEq.mVIndGlob)
+	 {
+             if (anInd>=0)
+	     {
+                 mSetInd.AddInd(anInd);
+	     }
+	 }
      }
      mSetInd.SortInd();
 
@@ -86,8 +91,6 @@ template <class Type>
      //  Compute the reduced  least square system
      for (const auto & aSetEq : aSetSetEq.AllEq())
      {
-         // const std::vector<int> & aVI =   aSetEq.mVIndUk;
-	 // size_t aNbI = aVI.size();
          for (size_t aKEq=0 ; aKEq<aSetEq.mVals.size() ; aKEq++)
 	 {
               mSV.Reset();

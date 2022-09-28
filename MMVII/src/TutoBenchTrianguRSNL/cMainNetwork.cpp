@@ -260,8 +260,14 @@ template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightF
 	   // Fix X and Y for the two given points
 	   if (aPN.mFrozenY) // If Y is frozenn add equation fixing Y to its theoreticall value
               mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
+
+
 	   if (aPN.mFrozenX)   // If X is frozenn add equation fixing X to its theoreticall value
-              mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
+	   {
+		   StdOut() << "TAHT HER\n";
+              mSys->SetFrozenVar(aPN.mNumX,aPN.TheorPt().x());
+	   }
+              // mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
      }
 }
 
@@ -370,10 +376,14 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
 
      //  To fix globally the network (gauge) 3 coordinate are frozen, for these one the pertubation if void
      //  so that recover the good position
+     //  =>>                                 NO LONGER TRUE
+/*
      if (mFrozenX)
        mPosInit.x() = mTheorPt.x();
      if (mFrozenY)
        mPosInit.y() = mTheorPt.y();
+*/
+		   StdOut() << "TAHT HER\n";
 
 
      if (!mSchurrPoint)

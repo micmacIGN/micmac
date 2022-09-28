@@ -54,9 +54,12 @@ template<class Type> void  TplOneBenchSSRNL
          anEc = aBN.DoOneIterationCompensation(100.0,true);
          // StdOut() << "  ECc== " << anEc /aPrec<< "\n";
      }
-     // StdOut() << "Fin-ECc== " << anEc  / aPrec << " Nb=" << aNb << "\n";
      // getchar();
-     MMVII_INTERNAL_ASSERT_bench(anEc<aPrec,"Error in Network-SSRNL Bench");
+     if (anEc>aPrec)
+     {
+           StdOut() << "Fin-ECc== " << anEc /aPrec   << "\n";
+           MMVII_INTERNAL_ASSERT_bench(anEc<aPrec,"Error in Network-SSRNL Bench");
+     }
 }
 template<class Type> void  TplOneBenchSSRNL
                            (
@@ -94,6 +97,7 @@ void BenchSSRNL(cParamExeBench & aParam)
 */
 
      // Test with non centered netowrk 
+ StdOut() << "LLLL " << __LINE__ << "\n";
      TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense,cBox2di(cPt2di(0,0),cPt2di(2,2)),false);
 
 
@@ -101,21 +105,28 @@ void BenchSSRNL(cParamExeBench & aParam)
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,1,false);
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,2,false);
 
+ StdOut() << "LLLL " << __LINE__ << "\n";
      // Basic test, test the 3 mode of matrix , with and w/o schurr subst, with different size
      for (const auto &  aNb : {3,4,5})
      {
+ StdOut() << "LLLL " << __LINE__ << "\n";
         cParamSparseNormalLstSq aParamSq(3.0,4,9);
 	// w/o schurr
         OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq);
         OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,false);
         OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,false);
 
+ StdOut() << "LLLL " << __LINE__ << "\n";
 	// with schurr
          OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
+ StdOut() << "LLLL " << __LINE__ << "\n";
          OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
+ StdOut() << "LLLL " << __LINE__ << "\n";
          OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
+ StdOut() << "LLLL " << __LINE__ << "\n";
      }
 
+ StdOut() << "LLLL " << __LINE__ << "\n";
 
      // test  normal sparse matrix with many parameters handling starsity
      for (int aK=0 ; aK<20 ; aK++)

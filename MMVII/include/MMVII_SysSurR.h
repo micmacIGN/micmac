@@ -146,11 +146,12 @@ template <class Type> class cInputOutputRSNL
 	  ///  Real unknowns + Temporary
 	  size_t NbUkTot() const;
 
-          tVectInd   mVIndUk;    ///<  index of unknown in the system , no TMP
+          //  tVectInd   mVIndUk;    ///<  index of unknown in the system , no TMP
           tStdVect   mVTmpUK;   ///< possible value of temporary unknown,that would be eliminated by schur complement
           tVectInd   mVIndGlob;    ///<  index of unknown in the system + TMP (with -1)
           tStdVect   mVObs;     ///< Observation (i.e constants)
 
+	  int                     mNbTmpUk;
           tStdVect                mWeights;  ///< Weights of eq, size can equal mVals or be 1 (cste) or 0 (all 1.0) 
           tStdVect                mVals;     ///< values of fctr, i.e. residuals
           std::vector<tStdVect>   mDers;     ///< derivate of fctr
