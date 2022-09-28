@@ -218,6 +218,10 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb> UseDEMInit=false </Symb>
    <Symb> DEMInitXML="XXXXXX" </Symb>
    <Symb> DEMInitIMG="XXXXXX" </Symb>
+
+   <Symb> UseEnvMNTInit=false </Symb>
+   <Symb> EnvZInf="YYYYYYYY" </Symb>
+   <Symb> EnvZsup="YYYYYYYY" </Symb>
 <!--
 
     <Symb>  UseEqui=t=rue </Symb>
@@ -288,6 +292,14 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                      <MNT_Init_Xml> ${DEMInitXML} </MNT_Init_Xml>
                  </MNT_Init>
              </#WHEN>
+
+             <#WHEN VTEST=${UseEnvMNTInit}>
+                  <EnveloppeMNT_INIT>
+                         <ZInf >  ${EnvZInf} </ZInf>
+                         <ZSup >  ${EnvZSup} </ZSup>
+                    </EnveloppeMNT_INIT>
+             </#WHEN>
+
       </IntervAltimetrie>
 
       <IntervSpecialZInv>
