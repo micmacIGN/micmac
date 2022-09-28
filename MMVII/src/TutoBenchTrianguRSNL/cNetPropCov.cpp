@@ -677,12 +677,13 @@ template <class Type>  Type cCovNetwork<Type>::SolveByCovPropagation(double aChe
 	 aResidual = this->CalcResidual() ;
 	 StdOut()   << aTime <<  " RResiduals :   " << aResidual <<  "\n";
 
+          //  Add a gauge constraint for the main newtork, as all subnetnwork are computed up to a rotation
+	  //  do it before propag, as required in case of hard constraint
+	  this->AddGaugeConstraint(-1);
           // for all subnetwork propagate the covariance
           for (auto & aPtrNet : mVNetElem)
              aPtrNet->PropagCov(aCheatMT);
 
-          //  Add a gauge constraint for the main newtork, as all subnetnwork are computed up to a rotation
-	  this->AddGaugeConstraint(10.0);
 	  this->mSys->SolveUpdateReset();  // classical gauss jordan iteration
 
      }
@@ -787,12 +788,14 @@ template <class Type>  Type cElemNetwork<Type>::ComputeCovMatrix(double aWGaugeC
      // #CCM1    Iteration to compute the 
      for (int aK=0 ; aK<(aNbIter-1); aK++)
      {
-         this->DoOneIterationCompensation(10.0,true);  // Iterations with a gauge and solve
+         // this->DoOneIterationCompensation(10.0,true);  // Iterations with a gauge and solve
+         this->DoOneIterationCompensation(-1,true);  // Iterations with a gauge and solve
      } 
      Type aRes = this->CalcResidual(); // memorization of residual
 
      // last iteration with a gauge w/o solve (because solving would reinit the covariance) 
      this->DoOneIterationCompensation(aWGaugeCovMatr,false);     
+     // StdOut() << "aWGaugeCovMatr " << aWGaugeCovMatr << "\n";
 
 
      // #CCM2  Now get the normal matrix and vector, and decompose it in a weighted sum of square  of linear forms

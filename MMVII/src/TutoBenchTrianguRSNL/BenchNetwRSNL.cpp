@@ -51,7 +51,8 @@ template<class Type> void  TplOneBenchSSRNL
      double anEc =100;
      for (int aK=0 ; aK < THE_NB_ITER ; aK++)
      {
-         anEc = aBN.DoOneIterationCompensation(100.0,true);
+         double aWGauge = (aK%2) ? -1 : 100.0; // alternate "hard" constraint and soft, to test more ..
+         anEc = aBN.DoOneIterationCompensation(aWGauge,true);
          // StdOut() << "  ECc== " << anEc /aPrec<< "\n";
      }
      // getchar();
@@ -97,7 +98,6 @@ void BenchSSRNL(cParamExeBench & aParam)
 */
 
      // Test with non centered netowrk 
- StdOut() << "LLLL " << __LINE__ << "\n";
      TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense,cBox2di(cPt2di(0,0),cPt2di(2,2)),false);
 
 
@@ -105,28 +105,20 @@ void BenchSSRNL(cParamExeBench & aParam)
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,1,false);
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,2,false);
 
- StdOut() << "LLLL " << __LINE__ << "\n";
      // Basic test, test the 3 mode of matrix , with and w/o schurr subst, with different size
      for (const auto &  aNb : {3,4,5})
      {
- StdOut() << "LLLL " << __LINE__ << "\n";
         cParamSparseNormalLstSq aParamSq(3.0,4,9);
 	// w/o schurr
         OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq);
         OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,false);
         OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,false);
 
- StdOut() << "LLLL " << __LINE__ << "\n";
 	// with schurr
          OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
- StdOut() << "LLLL " << __LINE__ << "\n";
          OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
- StdOut() << "LLLL " << __LINE__ << "\n";
          OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
- StdOut() << "LLLL " << __LINE__ << "\n";
      }
-
- StdOut() << "LLLL " << __LINE__ << "\n";
 
      // test  normal sparse matrix with many parameters handling starsity
      for (int aK=0 ; aK<20 ; aK++)

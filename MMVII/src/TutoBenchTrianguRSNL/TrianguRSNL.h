@@ -120,7 +120,7 @@ template <class Type>  class  cMainNetwork
 	  virtual bool OwnLinkingFiltrage(const cPt2di & aP1,const cPt2di & aP2) const;
 
 	  Type CalcResidual();
-	  void AddGaugeConstraint(Type aWeight);
+	  void AddGaugeConstraint(Type aWeight); // W<0 : hard constraint, W>0 soft, W==0  None 
 
 
           /// Access to CurSol of mSys

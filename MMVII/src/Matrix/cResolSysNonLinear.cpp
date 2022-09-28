@@ -246,7 +246,7 @@ template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL&
 	      {
                    Type & aVDer = aIO.mDers.at(aKEq).at(aKVar);
 	           //  Som  aVDer (Xk-CurJ) = aVal
-		   aIO.mVals[aKEq]  -=  aVDer * aDeltaVar;
+		   aIO.mVals[aKEq]  +=  aVDer * aDeltaVar;
 		   aVDer = 0;
 	      }
 	 }

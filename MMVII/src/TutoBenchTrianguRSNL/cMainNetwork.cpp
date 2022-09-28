@@ -259,15 +259,21 @@ template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightF
            // EQ:FIXVAR
 	   // Fix X and Y for the two given points
 	   if (aPN.mFrozenY) // If Y is frozenn add equation fixing Y to its theoreticall value
-              mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
+	   {
+              if (aWeightFix>=0)
+                 mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
+	      else
+                 mSys->SetFrozenVar(aPN.mNumY,aPN.TheorPt().y());
+	   }
 
 
 	   if (aPN.mFrozenX)   // If X is frozenn add equation fixing X to its theoreticall value
 	   {
-		   StdOut() << "TAHT HER\n";
-              mSys->SetFrozenVar(aPN.mNumX,aPN.TheorPt().x());
+              if (aWeightFix>=0)
+                  mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
+	      else 
+                 mSys->SetFrozenVar(aPN.mNumX,aPN.TheorPt().x());
 	   }
-              // mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
      }
 }
 
@@ -277,10 +283,7 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
      Type   aResidual = CalcResidual() ;
      // if we are computing covariance we want it in a free network (the gauge constraint 
      // in the local network have no meaning in the coordinate of the global network)
-     if (aWeigthGauge > 0)
-     {
-         AddGaugeConstraint(aWeigthGauge);
-     }
+     AddGaugeConstraint(aWeigthGauge);
      
      
      //  Add observation on distances
@@ -383,7 +386,6 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
      if (mFrozenY)
        mPosInit.y() = mTheorPt.y();
 */
-		   StdOut() << "TAHT HER\n";
 
 
      if (!mSchurrPoint)
