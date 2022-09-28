@@ -245,7 +245,7 @@ template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL&
               for (size_t aKEq=0 ; aKEq<aIO.mVals.size() ; aKEq++)
 	      {
                    Type & aVDer = aIO.mDers.at(aKEq).at(aKVar);
-	           //  Som  aVDer (Xk-CurJ) = aVal
+	           //  Taylor expension :   Som_k {aVDer (Xk-Curk)}  + aVal
 		   aIO.mVals[aKEq]  +=  aVDer * aDeltaVar;
 		   aVDer = 0;
 	      }

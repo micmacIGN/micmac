@@ -253,6 +253,7 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
 
 template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightFix)
 {
+     if (aWeightFix==0) return;
      //  Compute dist to sol + add constraint for fixed var
      for (const auto & aPN : mVPts)
      {
