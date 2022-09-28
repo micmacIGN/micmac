@@ -170,6 +170,37 @@ template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(eModeSSR aMod
 {
 }
 
+template <class Type> cResolSysNonLinear<Type>::~cResolSysNonLinear()
+{
+    delete mSysLinear;
+}
+
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(int aK,const  Type & aVal)
+{
+    AssertNotInEquation();
+    mVarIsFrozen.at(aK) = true;
+    mValueFrozenVar.at(aK) = aVal;
+}
+
+template <class Type> void cResolSysNonLinear<Type>::SetUnFrozen(int aK)
+{
+    AssertNotInEquation();
+    mVarIsFrozen.at(aK) = false;
+}
+
+template <class Type> void cResolSysNonLinear<Type>::UnfrozeAll()
+{
+    AssertNotInEquation();
+    for (int aK=0 ; aK<mNbVar ; aK++)
+        mVarIsFrozen[aK] = false;
+}
+
+template <class Type> bool cResolSysNonLinear<Type>::VarIsFrozen(int aK) const
+{
+     return mVarIsFrozen.at(aK);
+}
+
+
 template <class Type> void cResolSysNonLinear<Type>::AssertNotInEquation() const
 {
     if (mInPhaseAddEq)
@@ -203,6 +234,12 @@ template <class Type> void cResolSysNonLinear<Type>::SetCurSol(int aNumV,const T
 
 template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset() 
 {
+    mInPhaseAddEq = false;
+    // for var frozen, they are not involved in any equation, we must fix their value other way
+    for (int aK=0 ; aK<mNbVar ; aK++)
+        if (mVarIsFrozen[aK])
+           AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
+
     mCurGlobSol += mSysLinear->Solve();
     //  mCurGlobSol += mSysLinear->SparseSolve();
     mSysLinear->Reset();
@@ -212,6 +249,7 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
 
 template <class Type> cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLinear() 
 {
+    mInPhaseAddEq = true;
     return mSysLinear;
 }
 
@@ -238,14 +276,11 @@ template <class Type> void cResolSysNonLinear<Type>::CalcAndAddObs
 }
 
 
-template <class Type> cResolSysNonLinear<Type>::~cResolSysNonLinear()
-{
-    delete mSysLinear;
-}
 
 
 template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<tIO_RSNL>& aVIO)
 {
+      mInPhaseAddEq = true;
       // Parse all the linearized equation
       for (const auto & aIO : aVIO)
       {
@@ -298,6 +333,7 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
 				  const tResidualW & aWeighter
                               )
 {
+      mInPhaseAddEq = true;
       MMVII_INTERNAL_ASSERT_tiny(aCalcVal->NbInBuf()==0,"Buff not empty");
 
       // Put input data

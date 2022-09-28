@@ -80,14 +80,18 @@ template <class Type> class cResolSysNonLinear
 
 	       //    frozen  checking
 
-	   void  SetFrozenVar(int aK,bool Frozen);  ///< indicate it var must be frozen /unfrozen
-	   void  UnfrozeAll() ;                     ///< indicate it var must be frozen /unfrozen
-	   bool  VarIsFrozen(int aK) const;         ///< indicate it var must be frozen /unfrozen
-	   void  AssertNotInEquation() const;       ///< verify that we are notin equation step (to allow froze modification)
+	   void  SetFrozenVar(int aK,const  Type &);  ///< indicate it var must be frozen /unfrozen
+	   void  SetUnFrozen(int aK);  ///< indicate it var must be frozen /unfrozen
+	   void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
+	   bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
+	   void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
 
 
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
+
+	  ///  Modify equations to take into account var is frozen
+	  void  ModifyFrozenVar (tIO_RSNL&);
 
           /// Add observations as computed by CalcVal
           void   AddObs(const std::vector<tIO_RSNL>&);
