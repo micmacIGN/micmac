@@ -152,8 +152,13 @@ class cNOSolIn_Triplet {
 
     int Nb3() const { return mNb3; }
     ElTabFlag& Flag() { return mTabFlag; }
+    //Number of connected component
     int& NumCC() { return mNumCC; }
+
+    //Unique id of the triplet
     int& NumId() { return mNumId; }
+
+    // The number order in the tree
     int& NumTT() { return mNumTT; }
 
     const ElRotation3D& RotOfSom(tSomNSI* aS) const {
@@ -201,7 +206,7 @@ class cNOSolIn_Triplet {
     cNOSolIn_Triplet(const cNOSolIn_Triplet&);  // N.I.
     RandomForest* mAppli;
     tSomNSI* mSoms[3];
-    // Arc between 
+    // Arc between
     tArcNSI* mArcs[3];
 
     tTriPointList mHomolPts;
@@ -390,10 +395,11 @@ class DataTravel {
     Dataset& data;
 
     // CC vars
-    std::set<cLinkTripl*, CmpLnk>
-        mSCur3Adj;  // dynamic list of currently adjacent triplets
-
+    // dynamic list of currently adjacent triplets
+    std::set<cLinkTripl*, CmpLnk> mSCur3Adj;
     void AddArcOrCur(cNOSolIn_AttrASym*);
+    void AddArcOrCur(cNOSolIn_AttrASym* anArc, int flagSommet);
+
     void FreeSomNumCCFlag();
     void FreeSomNumCCFlag(std::vector<tSomNSI*>);
     void FreeTriNumTTFlag(std::vector<cNOSolIn_Triplet*>&);
@@ -402,6 +408,14 @@ class DataTravel {
     void resetFlags(cNO_CC_TripSom* aCC);
 
     cLinkTripl* GetRandTri();
+    /*
+     * Get the next triplet from tree previously generated.
+     * Undefined behavior if tree not generated before
+     *
+     * Flag is the flag used to mark sommit as explored
+     *
+     */
+    cLinkTripl* GetNextTri(int flag);
 };
 
 class RandomForest : public cCommonMartiniAppli {
@@ -473,6 +487,180 @@ std::vector<cNOSolIn_Triplet*>& aV3, int,
 
     bool aModeBin = true;
 };
+
+
+#ifdef GRAPHVIZ_ENABLED
+
+#include  <graphviz/gvc.h>
+
+class GraphViz {
+   public:
+    GraphViz() { g = agopen((char*)"g", Agundirected, 0); }
+    ~GraphViz() { agclose(g); }
+
+    void write(const std::string aFName) {
+        FILE* fp = fopen((char*)aFName.c_str(), "w");
+        agwrite(g, fp);
+        fclose(fp);
+    }
+
+    void addTriplet(cNOSolIn_Triplet& node) {
+        node_t* n[3];
+        for (int i = 0; i < 3; i++) {
+            n[i] = agnode(g, (char*)node.KSom(i)->attr().Im()->Name().c_str(), 0);
+            if (!n[i]) { //Node don't exist so create and make it position
+                n[i] =
+                    agnode(g, (char*)node.KSom(i)->attr().Im()->Name().c_str(), 1);
+                auto tr = node.KSom(i)->attr().CurRot().tr();
+                std::string pos = "" +
+                    std::to_string(tr.x) + "," +
+                    std::to_string(tr.y) + "," +
+                    std::to_string(tr.z) + "!";
+                agsafeset(n[i], (char*)"pos", (char*)pos.c_str(), "");
+            }
+        }
+
+        edge_t* e[3] = {
+            agedge(g, n[0], n[1], 0, 1),
+            agedge(g, n[2], n[1], 0, 1),
+            agedge(g, n[2], n[0], 0, 1)
+        };
+        (void)e;
+
+        for (int i = 0; i < 3; i++) {
+            //agsafeset(e[i], (char*)"weight", std::to_string(node.CostArc()).c_str(), "");
+        }
+    }
+
+    void travelGraph(Dataset& data, cNO_CC_TripSom& aCC,
+                     cNOSolIn_Triplet* aSeed) {
+        auto travelFlagTri = data.mAllocFlag3.flag_alloc();
+        auto travelFlagSom = data.mGr.alloc_flag_som();
+
+        DataTravel travel(data);
+
+        addTriplet(*aSeed);
+
+        for (int aK = 0; aK < 3; aK++) {
+            // Mark as explored
+            aSeed->KSom(aK)->flag_set_kth_true(travelFlagSom);
+        }
+
+        for (int aK = 0; aK < 3; aK++) {
+            // Add the seed adjacent to the set of not visited triplets
+            travel.AddArcOrCur(aSeed->KArc(aK)->attr().ASym(), travelFlagSom);
+        }
+
+        size_t Cpt = 0;
+        cLinkTripl* aTri = 0;
+        while ((aTri = travel.GetNextTri(travelFlagSom)) &&
+               ((Cpt + 3) < aCC.mTri.size())) {
+            std::cout << "GRAPH Size: "
+                      << std::to_string(travel.mSCur3Adj.size()) << std::endl;
+            // Flag as visted
+            aTri->m3->Flag().set_kth_true(travelFlagTri);
+            // Mark sommit as vistied
+            aTri->S3()->flag_set_kth_true(travelFlagSom);
+            addTriplet(*aTri->m3);
+
+            // Free mSCur3Adj from all triplets connected to S3
+            travel.FreeSCur3Adj(aTri->S3());
+
+            // Add two new edges and their respective adjacent triplets
+            travel.AddArcOrCur(aTri->m3->KArc(aTri->mK1)->attr().ASym(),
+                               travelFlagSom);
+            travel.AddArcOrCur(aTri->m3->KArc(aTri->mK2)->attr().ASym(),
+                               travelFlagSom);
+
+            Cpt++;
+        }
+
+        // Unflag all triplets do pursue with DFS
+        for (unsigned aK3 = 0; aK3 < data.mV3.size(); aK3++) {
+            data.mV3[aK3]->Flag().set_kth_false(travelFlagTri);
+        }
+        FreeAllFlag(aCC.mSoms, travelFlagSom);
+
+        std::cout << "\nIn this CC, nb of connected nodes " << Cpt + 3 << "\n";
+
+        data.mGr.free_flag_som(travelFlagSom);
+        data.mAllocFlag3.flag_free(travelFlagTri);
+    }
+
+    void loadTotalGraph(Dataset& data) {
+        DataTravel travel(data);
+        // Clear the sommets
+        travel.mVS.clear();
+        auto flag = data.mAllocFlag3.flag_alloc();
+
+        cNOSolIn_Triplet* aTri0 = data.mV3[0];
+
+        // initialise the starting node
+        addTriplet(*aTri0);
+        std::vector<cNOSolIn_Triplet*> aCC3;
+        // Add first triplet
+        aCC3.push_back(aTri0);
+        aTri0->Flag().set_kth_true(flag);  // explored
+
+        unsigned aKCur = 0;
+        // Visit all sommets (not all triplets)
+        while (aKCur != aCC3.size()) {
+            cNOSolIn_Triplet* aTri1 = aCC3[aKCur];
+            // For each edge of the current triplet
+            for (int aKA = 0; aKA < 3; aKA++) {
+                // Get triplet adjacent to this edge and parse them
+                std::vector<cLinkTripl>& aLnk =
+                    aTri1->KArc(aKA)->attr().ASym()->Lnk3();
+
+                for (unsigned aKL = 0; aKL < aLnk.size(); aKL++) {
+                    // If not marked, mark it and push it in aCC3, return it was
+                    // added
+                    if (SetFlagAdd(aCC3, aLnk[aKL].m3, flag)) {
+                        // travel.mVS[aLnk[aKL].S3()->attr().Im()->Name()] =
+                        //    aLnk[aKL].S3();
+
+                        std::cout << aCC3.size() << "=["
+                                  << aLnk[aKL].S1()->attr().Im()->Name();
+                        std::cout << "," << aLnk[aKL].S2()->attr().Im()->Name();
+                        std::cout << "," << aLnk[aKL].S3()->attr().Im()->Name()
+                                  << "=====\n";
+
+                        addTriplet(*aLnk[aKL].m3);
+                    }
+                }
+            }
+            aKCur++;
+        }
+
+        // Unflag all triplets do pursue with DFS
+        for (unsigned aK3 = 0; aK3 < data.mV3.size(); aK3++) {
+            data.mV3[aK3]->Flag().set_kth_false(flag);
+        }
+
+        data.mAllocFlag3.flag_free(flag);
+    }
+
+   private:
+    graph_t* g;
+};
+#else
+class GraphViz {
+   public:
+    GraphViz() {}
+    ~GraphViz() {}
+
+    void write(const std::string aFName) {}
+
+    void addTriplet(cNOSolIn_Triplet& node) {}
+
+    void travelGraph(Dataset& data, cNO_CC_TripSom& aCC,
+                     cNOSolIn_Triplet* aSeed) {}
+
+    void loadTotalGraph(Dataset& data) {}
+
+   private:
+};
+#endif
 
 }  // namespace RandomForest
 

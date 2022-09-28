@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cNewO_SolGlobInit_RandomForest.h"
 #include <math.h>
 #include <sys/types.h>
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <iostream>
@@ -79,242 +80,6 @@ static cNO_CmpTriByCost TheCmp3;
 static cNO_CmpTriSolByCost TheCmp3Sol;
 
 //=====================================================================================
-
-#include  <graphviz/gvc.h>
-
-static GVC_t* GRAPHVIZ_GVCInit(const std::string& aGName) {
-    std::string Prefix = "-o";
-
-    int SzPref = int(Prefix.size());
-    int aSzIn = int(aGName.size());
-    int aSzOut = aSzIn + SzPref;
-    char* aGNChar = new char[aSzOut];
-
-    // copy the prefix of the name
-    for (int i = 0; i < SzPref; i++) aGNChar[i] = Prefix[i];
-
-    // copy the name from the function argument
-    for (int i = 0; i < aSzIn; i++) aGNChar[SzPref + i] = aGName[i];
-
-    int argc = 4;
-    char* dummy_args[] = {(char*)"fn_name",
-                          //(char *)"-Kneato",
-                          (char*)"-Kneato", aGNChar, (char*)"-Teps"};
-    char** argv = dummy_args;
-
-    GVC_t* gvc = gvContext();
-
-    gvParseArgs(gvc, argc, argv);
-
-    return gvc;
-}
-
-static std::pair<graph_t*, GVC_t*> GRAPHVIZ_GraphInit(
-    const std::string& aGName) {
-    GVC_t* gvc = GRAPHVIZ_GVCInit(aGName);
-
-    char* aNG = new char[2];
-    aNG[0] = 'g';
-
-    graph_t* g = agopen(aNG, Agdirected, 0);
-
-    return std::pair<graph_t*, GVC_t*>(g, gvc);
-}
-
-static void GRAPHIZ_GraphSerialize(std::string& aFName, graph_t* g) {
-    FILE* fp;
-    fp = fopen(aFName.c_str(), "w");
-    agwrite(g, fp);
-    fclose(fp);
-}
-
-static void GRAPHIZ_GraphKill(graph_t* g, GVC_t* gvc, std::string aWriteName) {
-    gvLayoutJobs(gvc, g);
-
-    gvRenderJobs(gvc, g);
-
-    gvFreeLayout(gvc, g);
-
-    // serialization of the graph
-    if (aWriteName != "") {
-        GRAPHIZ_GraphSerialize(aWriteName, g);
-    }
-
-    agclose(g);
-
-    gvFreeContext(gvc);
-}
-
-static void GRAPHIZ_NodeInit(graph_t* g, const std::string& aName1,
-                             Pt3dr& pos1, const std::string& aName2,
-                             Pt3dr& pos2, const std::string& aName3,
-                             Pt3dr& pos3) {
-    node_t* ns = agnode(g, (char*)aName1.c_str(), 1);
-    node_t* ms = agnode(g, (char*)aName2.c_str(), 1);
-
-    // add the new node
-    node_t* os = agnode(g, (char*)aName3.c_str(), 1);
-
-    // add new edges
-    // edge_t *e1,*e2,*e3;
-    agedge(g, ns, ms, 0, 1);
-    agedge(g, ns, os, 0, 1);
-    agedge(g, ms, os, 0, 1);
-
-    Agsym_t* symShape = agattr(g, AGNODE, (char*)"shape", (char*)"circle");
-
-    if (symShape) printf("The default shape is %s.\n", symShape->defval);
-    std::string pos1_ = "" + std::to_string(pos1.x) + "," +
-                        std::to_string(pos1.y) + "," + std::to_string(pos1.z) +
-                        "!";
-    agsafeset(ns, (char*)"pos", (char*)pos1_.c_str(), "");
-
-    std::string pos2_ = "" + std::to_string(pos2.x) + "," +
-                        std::to_string(pos2.y) + "," + std::to_string(pos2.z) +
-                        "!";
-    agsafeset(ms, (char*)"pos", (char*)pos2_.c_str(), "");
-
-    std::string pos3_ = "" + std::to_string(pos3.x) + "," +
-                        std::to_string(pos3.y) + "," + std::to_string(pos3.z) +
-                        "!";
-    agsafeset(os, (char*)"pos", (char*)pos3_.c_str(), "");
-}
-
-static void GRAPHVIZ_NodeAdd(graph_t* g, const std::string& aName1,
-                             const std::string& aName2,
-                             const std::string& aName3,
-                             Pt3dr& pos3) {
-    node_t* n = agnode(g, (char*)aName1.c_str(), 0);
-    node_t* m = agnode(g, (char*)aName2.c_str(), 0);
-    // add the new node
-    node_t* o = agnode(g, (char*)aName3.c_str(), 1);
-
-    // add new edges
-    agedge(g, n, o, 0, 1);
-    agedge(g, m, o, 0, 1);
-
-    std::string pos3_ = "" +
-                    std::to_string(pos3.x) + "," +
-                    std::to_string(pos3.y) + "," +
-                    std::to_string(pos3.z) + "!";
-    agsafeset(o, (char*)"pos", (char*)pos3_.c_str(), "");
-}
-
-/*
-static void GRAPHVIZ_EdgeChgColor(graph_t* g, const std::string& aName1,
-                                  const std::string& aName2,
-                                  std::string aColor) {
-    char* aN1Name = (char*)aName1.c_str();
-    char* aN2Name = (char*)aName2.c_str();
-
-    node_t* n = agnode(g, aN1Name, 0);
-    node_t* m = agnode(g, aN2Name, 0);
-
-    edge_t* e1;
-    e1 = agedge(g, n, m, 0, 1);
-
-    // Change color
-    char* aC = (char*)"color";
-    char* aCR = (char*)aColor.c_str();
-    char aCEmpty = ' ';
-
-    agsafeset(e1, aC, aCR, &aCEmpty);
-}
-*/
-
-/* Find node and change its color */
-/*
-static void GRAPHVIZ_NodeChgColor(graph_t* g,const std::string& aName)
-{
-
-    char * aNName = (char *)aName.c_str();
-
-
-    char * aC = (char *)"color";
-    char * aCR = (char *)"blue";
-    char  aCEmpty = ' ';
-
-    node_t *n_ = agnode(g,aNName,0);//0 to indicate that it exists
-    agsafeset(n_,aC,aCR,&aCEmpty);
-
-}
-*/
-
-static void WriteGraphToFile(Dataset& data, std::string mGraphName) {
-    DataTravel travel(data);
-    // Clear the sommets
-    travel.mVS.clear();
-
-    int aNumCC = 0;
-
-    cNOSolIn_Triplet* aTri0 = data.mV3[0];
-
-    // initialise the graph
-    std::pair<graph_t*, GVC_t*> aGGVC = GRAPHVIZ_GraphInit(mGraphName);
-    graph_t* g = aGGVC.first;
-    GVC_t* gvc = aGGVC.second;
-
-    // initialise the starting node
-    GRAPHIZ_NodeInit(g, aTri0->KSom(0)->attr().Im()->Name(),
-                     aTri0->KSom(0)->attr().CurRot().tr(),
-                     aTri0->KSom(1)->attr().Im()->Name(),
-                     aTri0->KSom(1)->attr().CurRot().tr(),
-                     aTri0->KSom(2)->attr().Im()->Name(),
-                     aTri0->KSom(2)->attr().CurRot().tr());
-
-    // Create a new component
-    cNO_CC_TripSom* aNewCC3S = new cNO_CC_TripSom;
-    aNewCC3S->mNumCC = aNumCC;
-    data.mVCC.push_back(aNewCC3S);
-    std::vector<cNOSolIn_Triplet*>* aCC3 = &(aNewCC3S->mTri);
-
-    // Add first triplet
-    aCC3->push_back(aTri0);
-    aTri0->Flag().set_kth_true(data.mFlag3CC);  // explored
-    aTri0->NumCC() = aNumCC;
-
-    unsigned aKCur = 0;
-    // Visit all sommets (not all triplets)
-    while (aKCur != aCC3->size()) {
-        cNOSolIn_Triplet * aTri1 = (*aCC3)[aKCur];
-        // For each edge of the current triplet
-        for (int aKA = 0; aKA < 3; aKA++) {
-            // Get triplet adjacent to this edge and parse them
-            std::vector<cLinkTripl>& aLnk =
-                aTri1->KArc(aKA)->attr().ASym()->Lnk3();
-
-            for (unsigned aKL = 0; aKL < aLnk.size(); aKL++) {
-                // If not marked, mark it and push it in aCC3, return it was
-                // added
-                if (SetFlagAdd(*aCC3, aLnk[aKL].m3, data.mFlag3CC)) {
-                    aLnk[aKL].m3->NumCC() = aNumCC;
-                    //travel.mVS[aLnk[aKL].S3()->attr().Im()->Name()] =
-                     //   aLnk[aKL].S3();
-
-                    std::cout << aCC3->size() << "=["
-                              << aLnk[aKL].S1()->attr().Im()->Name();
-                    std::cout << "," << aLnk[aKL].S2()->attr().Im()->Name();
-                    std::cout << "," << aLnk[aKL].S3()->attr().Im()->Name()
-                              << "=====\n";
-
-                    GRAPHVIZ_NodeAdd(g, aLnk[aKL].S1()->attr().Im()->Name(),
-                                     aLnk[aKL].S2()->attr().Im()->Name(),
-                                     aLnk[aKL].S3()->attr().Im()->Name(),
-                                     aLnk[aKL].S3()->attr().CurRot().tr());
-                }
-            }
-        }
-        aKCur++;
-    }
-
-    GRAPHIZ_GraphKill(g, gvc, mGraphName);
-
-    // Unflag all triplets do pursue with DFS
-    for (unsigned aK3 = 0; aK3 < data.mV3.size(); aK3++) {
-        data.mV3[aK3]->Flag().set_kth_false(data.mFlag3CC);
-        data.mV3[aK3]->NumCC() = IFLAG;
-    }
-}
 
 /******************************
   Start cNOSolIn_Triplet
@@ -408,20 +173,8 @@ double cNOSolIn_Triplet::ProjTest() const {
     for (int aK = 0; aK < 3; aK++) {
         aVRLoc.push_back(RotOfK(aK));
         aVRAbs.push_back(mSoms[aK]->attr().CurRot());
-        // aVRAbs.push_back(mSoms[aK]->attr().TestRot());
     }
     double res = computeResiduFromPos(this);
-
-    //cSolBasculeRig aSolRig = cSolBasculeRig::SolM2ToM1(aVRAbs, aVRLoc);
-
-    /*std::vector<ElRotation3D> pos;
-    for (int aK = 0; aK < 3; aK++) {
-        const ElRotation3D& aRAbs = aVRAbs[aK];
-        const ElRotation3D& aRLoc = aVRLoc[aK];
-        ElRotation3D aRA2 = aSolRig.TransformOriC2M(aRLoc);
-        pos.push_back(aRA2);
-    }
-    */
     std::cout << "--- Residu: " << res << std::endl;
     return res;
 }
@@ -575,12 +328,16 @@ void Dataset::CreateArc(tSomNSI* aS1, tSomNSI* aS2, cNOSolIn_Triplet* aTripl,
  *
  * */
 void DataTravel::AddArcOrCur(cNOSolIn_AttrASym* anArc) {
+    AddArcOrCur(anArc, data.mFlagS);
+}
+
+void DataTravel::AddArcOrCur(cNOSolIn_AttrASym* anArc, int flagSommet) {
     // Adjacent triplets
     std::vector<cLinkTripl>& aLnk = anArc->Lnk3();
     for (unsigned aK = 0; aK < aLnk.size(); aK++) {
         // Test if the sommet S3 exists
-        if (!aLnk.at(aK).S3()->flag_kth(data.mFlagS)) {
-            // Add to dynamic structure
+        if (!aLnk.at(aK).S3()->flag_kth(flagSommet)) {
+            // Add to adjacent list
             mSCur3Adj.insert(&(aLnk.at(aK)));
             continue;
         }
@@ -591,13 +348,14 @@ void DataTravel::AddArcOrCur(cNOSolIn_AttrASym* anArc) {
             if (anArc == aLnk.at(aK).m3->KArc(aKArc)->attr().ASym()) {
                 continue;
             }
+
             // Secondary triplets adjacent to S1-S3 or S2-S3
             std::vector<cLinkTripl>& aLnkSec =
                 aLnk.at(aK).m3->KArc(aKArc)->attr().ASym()->Lnk3();
 
             for (int aT = 0; aT < int(aLnkSec.size()); aT++) {
                 // Test if the "collateral" sommet S3 exists
-                if (!aLnkSec.at(aT).S3()->flag_kth(data.mFlagS)) {
+                if (!aLnkSec.at(aT).S3()->flag_kth(flagSommet)) {
                     // Add to dynamic structure
                     mSCur3Adj.insert(&(aLnkSec.at(aT)));
                 }
@@ -644,6 +402,22 @@ cLinkTripl* DataTravel::GetRandTri() {
         // If the sommet was in the meantime added to global solution,
         // search for another one
     } while (aTri->S3()->flag_kth(data.mFlagS) && mSCur3Adj.size());
+
+    return aTri;
+}
+
+/* Get the next Triplet from mSCur3Adj BFS style */
+cLinkTripl* DataTravel::GetNextTri(int flag) {
+    if (!mSCur3Adj.size()) {
+        return nullptr;
+    }
+    cLinkTripl* aTri;
+    auto it = std::min_element(mSCur3Adj.begin(), mSCur3Adj.end(),
+                               [](cLinkTripl* a, cLinkTripl* b) {
+                               return a->m3->NumTT() < b->m3->NumTT();
+                               });
+    aTri = *it;
+    mSCur3Adj.erase(it);
 
     return aTri;
 }
@@ -1102,6 +876,11 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     // Build the initial solution in this CC
     RandomSolOneCC(data, aTri0, aCC->mSoms.size());
 
+    static int n = 0;
+    GraphViz g;
+    g.travelGraph(data, *aCC, aTri0);
+    g.write("graph/random_tree_" + std::to_string(n++) + ".dot");
+
     // Calculate coherence scores within this CC
     CoherTripletsGraphBasedV2(data, aCC->mTri, aCC->mSoms.size(), aTri0->NumId());
 
@@ -1109,6 +888,7 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
 }
 
 void RandomForest::RandomSolAllCC(Dataset& data, cNO_CC_TripSom* aCC) {
+    return;
     DataTravel travel(data);
     NRrandom3InitOfTime();
     std::cout << "DFS per CC, Nb Som " << aCC->mSoms.size() << ", nb triplets "
@@ -1176,10 +956,7 @@ void RandomForest::AddTriOnHeap(Dataset& data, cLinkTripl* aLnk) {
 
 void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     int NbSomCC = int(aCC->mSoms.size());
-
-    std::pair<graph_t*, GVC_t*> aGGVC = GRAPHVIZ_GraphInit("final.dot");
-    graph_t* g = aGGVC.first;
-    GVC_t* gvc = aGGVC.second;
+    GraphViz g;
 
     // Pick the  triplet
     cNOSolIn_Triplet* aTri0 = GetBestTri();//TODO tirer toujours le meme triplet
@@ -1204,13 +981,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     std::cout << "Final seed residue: " << computeResiduFromPos(aTri0) << std::endl;
 
     // initialise the starting node
-    // TODO create node, link node, make size
-    GRAPHIZ_NodeInit(g, aTri0->KSom(0)->attr().Im()->Name(),
-                     aTri0->KSom(0)->attr().CurRot().tr(),
-                     aTri0->KSom(1)->attr().Im()->Name(),
-                     aTri0->KSom(1)->attr().CurRot().tr(),
-                     aTri0->KSom(2)->attr().Im()->Name(),
-                     aTri0->KSom(2)->attr().CurRot().tr());
+    g.addTriplet(*aTri0);
 
     // Fill the dynamic heap with triplets connected to this triplet
     cLinkTripl* aLnk0 = new cLinkTripl(aTri0, 0, 1, 2);
@@ -1235,10 +1006,9 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
 
             // Propagate R,t
             EstimRt(aTriNext);
-            GRAPHVIZ_NodeAdd(g, aTriNext->S1()->attr().Im()->Name(),
-                                     aTriNext->S2()->attr().Im()->Name(),
-                                     aTriNext->S3()->attr().Im()->Name(),
-                                     aTriNext->S3()->attr().CurRot().tr());
+
+            g.addTriplet(*aTriNext->m3);
+
             // Mark node as vistied
             aTriNext->S3()->flag_set_kth_true(data.mFlagS);
             std::cout << "Final residue: " << computeResiduFromPos(aTriNext->m3) << std::endl;
@@ -1255,7 +1025,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
         }
     }
 
-    GRAPHIZ_GraphKill(g, gvc, "final.dot");
+    g.write("graph/final.dot");
     std::cout << "Nb final sommets=" << Cpt + 3 << ", out of " << NbSomCC
               << "\n";
 }
@@ -1671,7 +1441,10 @@ void RandomForest::DoNRandomSol(Dataset& data) {
 
     // Build "most coherent" solution
     BestSolAllCC(data);
-    WriteGraphToFile(data, "total.dot");
+
+    GraphViz g;
+    g.loadTotalGraph(data);
+    g.write("graph/total.dot");
 }
 
 /******************************
