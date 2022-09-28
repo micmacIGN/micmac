@@ -40,8 +40,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 //#include "general/CMake_defines.h"
+#include <fstream>
 #include <locale>
+#include <map>
 #include <random>
+#include <string>
 #include <tuple>
 #include <vector>
 #include <array>
@@ -488,6 +491,43 @@ std::vector<cNOSolIn_Triplet*>& aV3, int,
     bool aModeBin = true;
 };
 
+template<typename... T>
+class DataLog {
+   public:
+    DataLog() {}
+
+    void add(std::tuple<T...> e) {
+        data.push_back(e);
+    }
+
+    void write(std::string filename)
+    {
+        std::ofstream f(filename, std::ios::out);
+        for (auto& e : data) {
+            print(f, e);
+            f << std::endl;
+        }
+    }
+
+
+   private:
+    std::vector<std::tuple<T...>> data;
+    template<typename S, std::size_t I = 0, typename... Tp>
+        inline typename std::enable_if<I == sizeof...(Tp), void>::type
+        print(S& s, std::tuple<Tp...>& t)
+        { }
+
+    template<typename S, std::size_t I = 0, typename... Tp>
+        inline typename std::enable_if<I < sizeof...(Tp), void>::type
+        print(S& s,std::tuple<Tp...>& t)
+        {
+            s << std::to_string(std::get<I>(t)) << ",";
+            print<S, I + 1, Tp...>(s, t);
+        }
+
+
+};
+
 
 #ifdef GRAPHVIZ_ENABLED
 
@@ -517,6 +557,7 @@ class GraphViz {
                     std::to_string(tr.y) + "," +
                     std::to_string(tr.z) + "!";
                 agsafeset(n[i], (char*)"pos", (char*)pos.c_str(), "");
+                agsafeset(n[i], (char*)"label", (char*)std::to_string(node.KSom(i)->attr().NumId()).c_str(), "");
             }
         }
 
@@ -528,7 +569,7 @@ class GraphViz {
         (void)e;
 
         for (int i = 0; i < 3; i++) {
-            //agsafeset(e[i], (char*)"weight", std::to_string(node.CostArc()).c_str(), "");
+            agsafeset(e[i], (char*)"weight", (char*)std::to_string(node.CostArc()).c_str(), "");
         }
     }
 
@@ -661,6 +702,7 @@ class GraphViz {
    private:
 };
 #endif
+
 
 }  // namespace RandomForest
 

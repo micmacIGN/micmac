@@ -957,6 +957,7 @@ void RandomForest::AddTriOnHeap(Dataset& data, cLinkTripl* aLnk) {
 void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     int NbSomCC = int(aCC->mSoms.size());
     GraphViz g;
+    DataLog<int, double, double> log;
 
     // Pick the  triplet
     cNOSolIn_Triplet* aTri0 = GetBestTri();//TODO tirer toujours le meme triplet
@@ -965,6 +966,8 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
               << aTri0->KSom(1)->attr().Im()->Name() << " "
               << aTri0->KSom(2)->attr().Im()->Name() << " " << aTri0->CostArc()
               << "\n";
+
+    log.add({aTri0->NumId(), 0., aTri0->CostArc()});
 
     // Flag triplet as marked
     aTri0->Flag().set_kth_true(data.mFlag3CC);
@@ -1000,6 +1003,21 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
                       << aTriNext->m3->CostArcMed() << ", "
                       << aTriNext->m3->CostArc() << "\n";
 
+            // Flag triplet order
+            aTriNext->m3->NumTT() = ElMax(aTriNext->S1()->attr().NumCC(),
+                                          aTriNext->S2()->attr().NumCC()) +
+                                    1;
+
+            // Flag the concatenation order of the node
+            // = order of the "builder" triplet
+            aTriNext->S3()->attr().NumCC() = aTriNext->m3->NumTT();
+
+            // Id per sommet to know from which triplet it was generated => Fast
+            // Tree Dist util
+            aTriNext->S3()->attr().NumId() = aTriNext->m3->NumId();
+
+            log.add({aTriNext->m3->NumId(), aTriNext->m3->NumTT(), aTriNext->m3->CostArc()});
+
             /*PrintRotation(aTriNext->S1()->attr().CurRot().Mat(),"0");
               PrintRotation(aTriNext->S2()->attr().CurRot().Mat(),"1");
               PrintRotation(aTriNext->S3()->attr().CurRot().Mat(),"2");*/
@@ -1026,6 +1044,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     }
 
     g.write("graph/final.dot");
+    log.write("graph/logs/final.csv");
     std::cout << "Nb final sommets=" << Cpt + 3 << ", out of " << NbSomCC
               << "\n";
 }
@@ -1075,6 +1094,8 @@ void RandomForest::CoherTripletsGraphBasedV2(
     Dataset& data, std::vector<cNOSolIn_Triplet*>& aV3, int NbSom,
     int TriSeedId) {
     std::cout << "Nb of sommets" << NbSom << " seed=" << TriSeedId << "\n";
+
+    DataLog<int, double, double> log;
 
     // ==== Fast Tree Distance ===
     std::vector<int> aFTV1;
@@ -1187,6 +1208,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
             // aCostCur/sqrt(aDist) << "\n"; std::cout <<
             // aTri->m3->Flag().set_kth_true(mFlag3CC);
             double aCostCur = 0;
+            log.add({currentTriplet->NumId(), aDist, aResidue});
 
             // Take into account the non-visited triplets
             // TODO verifier les triplets qui sont dans la solution
@@ -1224,6 +1246,8 @@ void RandomForest::CoherTripletsGraphBasedV2(
             }
         }
     }
+    static int n = 0;
+    log.write("graph/logs/run_"+ std::to_string(n++) + ".csv");
 }
 
 /* obsolete
