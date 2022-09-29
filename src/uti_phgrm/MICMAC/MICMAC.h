@@ -1891,7 +1891,6 @@ class cLoadTer // dans cFilePx.cpp
 struct cArgOneEtapePx  
 {
        public :
-
           REAL  mRegul;
           REAL  mRegul_Quad;
           REAL  mUserPas;  // Nom Change pour verifier usage

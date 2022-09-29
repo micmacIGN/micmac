@@ -112,6 +112,7 @@ template <class TargAux> class cTplCelOptProgDyn
                 mCostCum[aSens],
                 mCostSommet+aCostTrans+aCel2.mCostCum[aSens]
             );
+	   //std::cout<<"Cost cumul "<<mCostCum[aSens]<<std::endl;
         }
 
         tCostPrgD CostPassageForce() const
@@ -272,7 +273,7 @@ template <class TArg> void cProg2DOptimiser<TArg>::BalayageOneSens
           tCelOpt *aVCelOpt = mCels.Data()[aNext];
           for (int aZ=aZMin ; aZ<aZMax ; aZ++)
           {
-              aVCelOpt[aZ].InitCumulSommetStandard(aSens);
+              aVCelOpt[aZ].InitCumulSommetStandard(aSens);//1e9
           }
        }
 
