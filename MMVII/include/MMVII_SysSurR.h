@@ -48,8 +48,13 @@ template <class Type> class cResolSysNonLinear
 
           /// Accessor
           const tDVect  &    CurGlobSol() const;
+   
+          /// Accessor
+          int NbVar() const;  
           /// Value of a given num var
           const Type  &    CurSol(int aNumV) const;
+          /// Set value, usefull for ex in dev-mesh because variable are activated stepby step
+          void SetCurSol(int aNumV,const Type&) ;
 
           tLinearSysSR *  SysLinear() ;
 
@@ -72,8 +77,21 @@ template <class Type> class cResolSysNonLinear
 	  /** Once "aSetIO" has been filled by multiple calls to  "AddEq2Subst",  do it using for exemple schurr complement
 	   */
           void  AddObsWithTmpUK (const tSetIO_ST & aSetIO);
+
+	       //    frozen  checking
+
+	   void  SetFrozenVar(int aK,const  Type &);  ///< indicate it var must be frozen /unfrozen
+	   void  SetUnFrozen(int aK);  ///< indicate it var must be frozen /unfrozen
+	   void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
+	   bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
+	   void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
+
+
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
+
+	  ///  Modify equations to take into account var is frozen
+	  void  ModifyFrozenVar (tIO_RSNL&);
 
           /// Add observations as computed by CalcVal
           void   AddObs(const std::vector<tIO_RSNL>&);
@@ -85,6 +103,10 @@ template <class Type> class cResolSysNonLinear
           int        mNbVar;       ///< Number of variable, facility
           tDVect     mCurGlobSol;  ///< Curent solution
           tLinearSysSR*    mSysLinear;         ///< Sys to solve equations, equation are concerning the differences with current solution
+
+	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
+	  std::vector<bool>    mVarIsFrozen;       ///< indicate for each var is it is frozen
+	  std::vector<Type>    mValueFrozenVar;    ///< indicate for each var the possible value where it is frozen
 };
 
 /**  Class for weighting residuals : compute the vector of weight from a 
@@ -95,9 +117,10 @@ template <class Type> class cResidualWeighter
        public :
             typedef std::vector<Type>     tStdVect;
 
-            cResidualWeighter();
+            cResidualWeighter(const Type & aVal=1.0);
             virtual tStdVect WeightOfResidual(const tStdVect &) const;
        private :
+             Type mVal;
 
 };
 
@@ -123,11 +146,12 @@ template <class Type> class cInputOutputRSNL
 	  ///  Real unknowns + Temporary
 	  size_t NbUkTot() const;
 
-          tVectInd   mVIndUk;    ///<  index of unknown in the system , no TMP
+          //  tVectInd   mVIndUk;    ///<  index of unknown in the system , no TMP
           tStdVect   mVTmpUK;   ///< possible value of temporary unknown,that would be eliminated by schur complement
           tVectInd   mVIndGlob;    ///<  index of unknown in the system + TMP (with -1)
           tStdVect   mVObs;     ///< Observation (i.e constants)
 
+	  int                     mNbTmpUk;
           tStdVect                mWeights;  ///< Weights of eq, size can equal mVals or be 1 (cste) or 0 (all 1.0) 
           tStdVect                mVals;     ///< values of fctr, i.e. residuals
           std::vector<tStdVect>   mDers;     ///< derivate of fctr
@@ -361,9 +385,10 @@ template <class Type> class  cBufSchurrSubst
           size_t            mNbUkTot;
 
           cDenseMatrix<Type> mL;
-          cDenseMatrix<Type> mLInv;
+          // cDenseMatrix<Type> mLInv;
           cDenseMatrix<Type> mtB;
           cDenseMatrix<Type> mtB_LInv;
+          cDenseMatrix<Type> mLInv_B;
           cDenseMatrix<Type> mB;
           cDenseMatrix<Type> mtB_LInv_B;
           cDenseMatrix<Type> mM11;

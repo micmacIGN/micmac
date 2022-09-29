@@ -47,6 +47,7 @@ class cGeomSimDCT
        cPt2dr mCornEl2;   ///< Theoreticall corner 2 of ellipse
        double mR1;        ///< "small" size of deformaed rectangle
        double mR2;        ///<  "big " size ....
+       std::string name;
 };
 /// method for serializing cGeomSimDCT
 void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD);
@@ -74,9 +75,9 @@ void AddData(const  cAuxAr2007 & anAux,cResSimul & aRS);
 /*   ==============  Result extract  =============  */
 
 /**   Result Detect Code Target, contains OK if the object is stil candidate,
-      or another value indicating why it was eliminated 
+      or another value indicating why it was eliminated
 */
-enum class eResDCT 
+enum class eResDCT
 {
      Ok,
      Divg,
@@ -97,7 +98,7 @@ class  cDCT
          cPt2di  Pix()  const {return ToI(mPt);} /// convert to integer coordinates
          cPt2di  Pix0() const {return mPix0;}   /// initial position
 
-         cGeomSimDCT * mGT;        ///< possible ground truth 
+         cGeomSimDCT * mGT;        ///< possible ground truth
          cPt2di        mPix0;      ///< initial integer position
          cPt2dr        mPt;        ///< refined position sub-pixel
          cPt2dr        mDirC1;     ///< Direction of corner 1 (detected axe of chekboard)
@@ -128,7 +129,7 @@ class cSetCodeOf1Circle
     private :
       std::vector<int>   mVCards;
       int      mN;
-      tVSetICT mVSet ;  //   All the binary code of one target 
+      tVSetICT mVSet ;  //   All the binary code of one target
 };
 
 
@@ -140,7 +141,8 @@ class cCodesOf1Target
       void AddOneCode(const tBinCodeTarg &);
       void  Show();
       const tBinCodeTarg & CodeOfNumC(int) const;
-      int   Num() const;
+      int  Num() const;
+      int getCodeLength() const;
    private :
       int                        mNum;
       std::vector<tBinCodeTarg>  mCodes;
@@ -160,12 +162,12 @@ class cParamCodedTarget
        double &  RatioBar();  // Ratio on codin bar
        void      Finish();
 
-       int NbCodeAvalaible() const;         // Number of different code we can generate
-       int BaseForNum() const;         // Base used for converting integer to string
-       cCodesOf1Target CodesOfNum(int);     // One combinaison of binary code
-       tImTarget  MakeImDrone(const cCodesOf1Target &);  // Generate the image of 1 combinaison
-       tImTarget  MakeImCircle(const cCodesOf1Target &);  // Generate the image of 1 combinaison
-       tImTarget  MakeImCodeExt(const cCodesOf1Target &);  // Generate the image of 1 combinaison
+       int NbCodeAvalaible() const;                           // Number of different code we can generate
+       int BaseForNum() const;                                // Base used for converting integer to string
+       cCodesOf1Target CodesOfNum(int);                       // One combinaison of binary code
+       tImTarget  MakeImDrone(const cCodesOf1Target &);       // Generate the image of 1 combinaison
+       tImTarget  MakeImCircle(const cCodesOf1Target &, bool);
+       tImTarget  MakeImCodeExt(const cCodesOf1Target &);
 
        void AddData(const cAuxAr2007 & anAux);
 
@@ -194,11 +196,15 @@ class cParamCodedTarget
        int       mNbPixelBin;        // Number of pixel  Binary image
        double    mSz_CCB;      // size of central chekcboard/target , everything prop to it, 1 by convention
 
+
        double    mThickN_WInt;  // Thickness white circle separating code/
        double    mThickN_Code;  // Thickness of coding part
        double    mThickN_WExt;  // Thickness of white separatio,
        double    mThickN_Car;  // thickness of black border (needed only on pannel)
        double    mThickN_BExt;  // thickness of black border (needed only on pannel)
+       double    mChessboardAng;     // Origine angle of chessboard pattern
+
+       bool mModeFlight;  // Special mode for Patricio
 
 
        double          mRho_0_EndCCB;// End of Central CB , here Rho=ThickN ...

@@ -234,6 +234,7 @@ template <class TypeElem> class cExpF : public cUnaryF<TypeElem>
             }
 };
 
+///  class for unary minus
 template <class TypeElem> class cMin1F : public cUnaryF<TypeElem>
 {
      public :
@@ -258,6 +259,8 @@ template <class TypeElem> class cMin1F : public cUnaryF<TypeElem>
                 return   - mF->Derivate(aK)  ;
             }
 };
+
+/// class for neperien/natural  logarithms
 
 template <class TypeElem> class cLogF : public cUnaryF<TypeElem>
 {
@@ -309,6 +312,63 @@ template <class TypeElem> class cSqrtF : public cUnaryF<TypeElem>
                 return  mF->Derivate(aK)  / (2.0 * sqrt(mF));
             }
 };
+
+template <class TypeElem>  cFormula<TypeElem> cos(const cFormula<TypeElem> & aF);
+template <class TypeElem>  cFormula<TypeElem> sin(const cFormula<TypeElem> & aF);
+
+
+/**  Classe for sin */
+template <class TypeElem> class cSinF : public cUnaryF<TypeElem>
+{
+     public :
+            using cUnaryF<TypeElem>::mF;
+            using cUnaryF<TypeElem>::mDataF;
+            using cImplemF<TypeElem>::mDataBuf;
+
+            cSinF (cFormula<TypeElem> aF,const std::string & aName) :
+                cUnaryF <TypeElem> (aF,aName)
+            { }
+            static TypeElem Operation(const TypeElem & aV1) {return std::sin(aV1);}
+      private :
+            const std::string &  NameOperator() const override {static std::string s("std::sin"); return s;}
+            void ComputeBuf(int aK0,int aK1) override
+            {
+                for (int aK=aK0 ; aK<aK1 ; aK++)
+                    mDataBuf[aK] =  std::sin(mDataF[aK]);
+            }
+            ///  rule : (sin(F))' =   F' cos(F) 
+            cFormula<TypeElem> Derivate(int aK) const override
+            {
+                return  mF->Derivate(aK)  * cos(mF);
+            }
+};
+
+/**  Classe for cos */
+template <class TypeElem> class cCosF : public cUnaryF<TypeElem>
+{
+     public :
+            using cUnaryF<TypeElem>::mF;
+            using cUnaryF<TypeElem>::mDataF;
+            using cImplemF<TypeElem>::mDataBuf;
+
+            cCosF (cFormula<TypeElem> aF,const std::string & aName) :
+                cUnaryF <TypeElem> (aF,aName)
+            { }
+            static TypeElem Operation(const TypeElem & aV1) {return std::cos(aV1);}
+      private :
+            const std::string &  NameOperator() const override {static std::string s("std::cos"); return s;}
+            void ComputeBuf(int aK0,int aK1) override
+            {
+                for (int aK=aK0 ; aK<aK1 ; aK++)
+                    mDataBuf[aK] =  std::cos(mDataF[aK]);
+            }
+            ///  rule : (sin(F))' =   F' cos(F) 
+            cFormula<TypeElem> Derivate(int aK) const override
+            {
+                return  - mF->Derivate(aK)  * sin(mF);
+            }
+};
+
 
 
       /* ---------------------------------------*/
@@ -420,9 +480,37 @@ inline cFormula<TypeElem> sqrt(const cFormula<TypeElem> & aF)
     return cGenOperatorUnaire<cSqrtF<TypeElem> >::Generate(aF,"sqrt");
 }
 
+template <class TypeElem>
+inline cFormula<TypeElem> cos(const cFormula<TypeElem> & aF)
+{
+    return cGenOperatorUnaire<cCosF<TypeElem> >::Generate(aF,"cos");
+}
+
+template <class TypeElem>
+inline cFormula<TypeElem> sin(const cFormula<TypeElem> & aF)
+{
+    return cGenOperatorUnaire<cSinF<TypeElem> >::Generate(aF,"sin");
+}
+
 
 template <class TypeElem> inline cFormula<TypeElem>  pow8 (const cFormula<TypeElem> & aF){return pow(aF,8);}
 template <class TypeElem> inline cFormula<TypeElem>  pow9 (const cFormula<TypeElem> & aF){return pow(aF,9);}
+
+
+/**  This function is used when dont wish to define derivation, because with ad hoc
+  function one may "obliged" to define a derivate even when dont use it */
+
+
+template <class TypeElem> cFormula <TypeElem> UndefinedOperUn(const cFormula <TypeElem> & aF1 )
+{
+    UserSError("UndefinedOperUnary",aF1->Name());
+    return aF1; // must return something
+}
+
+
+
+
+
 } //   NS_Symbolic_Derivative
 
 

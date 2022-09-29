@@ -11,6 +11,8 @@ namespace MMVII
 /* ============================================= */
 
 
+/// check that the calculator is effectively  R^DimIn --> R^DimOut
+
 template <class Type,const int DimIn,const int DimOut> 
   void  cDataMapCalcSymbDer<Type,DimIn,DimOut>::CheckDim(tCalc  * aCalc,bool Derive)
 {
@@ -18,6 +20,7 @@ template <class Type,const int DimIn,const int DimOut>
    MMVII_INTERNAL_ASSERT_strong(DimOut==aCalc->NbElem(),"Output dim in calculator");
    MMVII_INTERNAL_ASSERT_strong(aCalc->WithDer()==Derive,"Derive dim in calculator");
 }
+
 
 template <class Type,const int DimIn,const int DimOut> 
   void  cDataMapCalcSymbDer<Type,DimIn,DimOut>::SetObs(const std::vector<Type> & aVObs)
@@ -53,16 +56,20 @@ template <class Type,const int DimIn,const int DimOut>
 
    MMVII_INTERNAL_ASSERT_strong(mCalcVal->NbInBuf()==0,"Buff not empty");
    tU_INT4 aSzBuf = mCalcVal->SzBuf();
+   // split to respect size of buffer of the calculator
    for (tU_INT4 aK0=0 ;aK0<aVecIn.size() ; aK0+=aSzBuf)
    {
-       tU_INT4 aK1 = std::min(tU_INT4(aVecIn.size()),aK0+aSzBuf);
+       tU_INT4 aK1 = std::min(tU_INT4(aVecIn.size()),aK0+aSzBuf); // compute interval of buf in [K0 K1[
+       //  push input values -> will be put in internall input buffer of mCalcVal
        for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++)
        {
            for (int aD=0 ; aD<DimIn ; aD++)
                aVUk[aD] = aVecIn[aK][aD];
            mCalcVal->PushNewEvals(aVUk,mVObs);
        }
+       //  ask mCalcVal to effectively to the computation
        mCalcVal->EvalAndClear();
+       //  empty the output buffer of mCalcVal to put it in  aRes
        for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++)
        {
            tPtOut aPRes;
@@ -87,19 +94,23 @@ template <class Type,const int DimIn,const int DimOut>
 
    MMVII_INTERNAL_ASSERT_strong(mCalcDer->NbInBuf()==0,"Buff not empty");
    tU_INT4 aSzBuf = mCalcDer->SzBuf();
+   // split to respect size of buffer of the calculator
    for (tU_INT4 aK0=0 ;aK0<aVecIn.size() ; aK0+=aSzBuf)
    {
-       tU_INT4 aK1 = std::min(tU_INT4(aVecIn.size()),aK0+aSzBuf);
-       for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++)
+       tU_INT4 aK1 = std::min(tU_INT4(aVecIn.size()),aK0+aSzBuf); // [K0 K1[ is interval computed
+       for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++) // fill buf in
        {
            for (int aD=0 ; aD<DimIn ; aD++)
                aVUk[aD] = aVecIn[aK][aD];
            mCalcDer->PushNewEvals(aVUk,mVObs);
        }
 
-       mCalcDer->EvalAndClear();
+       mCalcDer->EvalAndClear(); // compute values and derivatives
+       // export value and derivatice from mCalcDer to  vector value/jac in  aRes
        for (tU_INT4 aK=aK0 ; aK<aK1 ; aK++)
        {
+          // =>  remember : tJac(DimIn,DimOut)  SzX = DimIn = Number of col
+
            tPtOut aPRes;
            for (int aDOut=0 ; aDOut<DimOut ; aDOut++)
            {
@@ -129,9 +140,10 @@ template <class Type,const int DimIn,const int DimOut>
 }
 
 
-
 template class cDataMapCalcSymbDer<tREAL8,2,2> ;
-
+template class cDataMapCalcSymbDer<tREAL8,2,3> ;
+template class cDataMapCalcSymbDer<tREAL8,3,2> ;
+template class cDataMapCalcSymbDer<tREAL8,3,3> ;
 
 
 /* ============================================= */
@@ -182,9 +194,6 @@ cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::v
 
 
 
-
-
-
 /* ============================================= */
 /*          cRandInvertibleDist                  */
 /* ============================================= */
@@ -197,11 +206,11 @@ cRandInvertibleDist::~cRandInvertibleDist()
 cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,double aProbaNotNul,double aTargetSomJac) :
    mRhoMax  (aRhoMax),
    mDeg     (aDeg),
-   mEqVal   (EqDist(aDeg,false,1+RandUnif_N(50))),  // Random for size buf
-   mEqDer   (EqDist(aDeg,true,1+RandUnif_N(50))),
-   mNbParam (mEqVal->NbObs()),
-   mVParam  (mNbParam,0.0),
-   mVecDesc (DescDist(mDeg))
+   mVecDesc (DescDist(mDeg)),
+   mEqVal   (nullptr), 
+   mEqDer   (nullptr), 
+   mNbParam (mVecDesc.size()),
+   mVParam  (mNbParam,0.0)
 {
    // 1- Initialize, without precautions
 
@@ -228,7 +237,7 @@ cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,doub
 
 cDataNxNMapCalcSymbDer<double,2> * cRandInvertibleDist::MapDerSymb()
 {
-   return new cDataNxNMapCalcSymbDer<double,2>(mEqVal,mEqDer,mVParam,false);
+   return new cDataNxNMapCalcSymbDer<double,2>(&(EqVal()),&(EqDer()),mVParam,false);
 }
 
 const std::vector<double> & cRandInvertibleDist::VParam() const
@@ -237,8 +246,16 @@ const std::vector<double> & cRandInvertibleDist::VParam() const
 }
 
 
-cCalculator<double> &  cRandInvertibleDist::EqVal() {return *mEqVal;}
-cCalculator<double> &  cRandInvertibleDist::EqDer() {return *mEqDer;}
+cCalculator<double> &  cRandInvertibleDist::EqVal() 
+{
+   if (mEqVal==nullptr) mEqVal= EqDist(mDeg,false,1+RandUnif_N(50));
+   return *mEqVal;
+}
+cCalculator<double> &  cRandInvertibleDist::EqDer() 
+{
+   if (mEqDer==nullptr) mEqDer= EqDist(mDeg,true,1+RandUnif_N(50));
+   return *mEqDer;
+}
 
 
 /* ============================================= */
@@ -276,12 +293,13 @@ void BenchSymDerMap(cParamExeBench & aParam)
        double aTargetSomJac = 0.2;
        cRandInvertibleDist aRID(aDeg,aRhoMax,aProbaNotNul,aTargetSomJac) ;
        cDataNxNMapCalcSymbDer<double,2> * aMCS = aRID.MapDerSymb();
-       cMapping<double,2,2>            aMapCS(aMCS);
+       //cMapping<double,2,2>            aMapCS(aMCS);
 
        auto aDId = new cMappingIdentity<double,2> ;
-       cMapping<double,2,2>            aMapId(aDId);
+       //cMapping<double,2,2>            aMapId(aDId);
 
-       cDataIIMFromMap<double,2> aIMap(aMapCS,aMapId,1e-6,15);
+       // cDataIIMFromMap<double,2> aIMap(aMapCS,aMapId,1e-6,15);
+       cDataIIMFromMap<double,2> aIMap(aMCS,aDId,1e-6,15,true,true);
 
        // Generate in VIn a random set, with random size, of points in disk of radius aRhoMax
        int aNbPts  = 1+RandUnif_N(100);

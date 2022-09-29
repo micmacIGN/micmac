@@ -24,7 +24,7 @@ class cMasq_MMV1asBoundeSet : public cDataBoundedSet<tREAL8,3>
 {
     public :
 	cMasq_MMV1asBoundeSet(const cBox3dr &,const std::string & aNameFile);
-	 bool Inside(const tPt &) const override;
+	 tREAL8 Insideness(const tPt &) const override;
 	 ~cMasq_MMV1asBoundeSet();
      private :
 	 cMasqBin3D * mV1Masq3D;
@@ -42,9 +42,9 @@ cMasq_MMV1asBoundeSet::~cMasq_MMV1asBoundeSet()
     delete mV1Masq3D;
 }
 
-bool cMasq_MMV1asBoundeSet::Inside(const tPt & aPt) const
+tREAL8 cMasq_MMV1asBoundeSet::Insideness(const tPt & aPt) const
 {
-	return mV1Masq3D->IsInMasq(ToMMV1(aPt));
+	return mV1Masq3D->IsInMasq(ToMMV1(aPt)) ? 1 : -1.0;
 }
 
 cDataBoundedSet<tREAL8,3> *  MMV1_Masq(const cBox3dr &aBox,const std::string & aNameFile)

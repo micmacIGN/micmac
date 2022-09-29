@@ -164,6 +164,10 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::RandomSquareRegMat
 {
     cResulSVDDecomp<Type>  aSVDD = RandomSquareRegSVD(aSz,IsSym,AmplAcc,aCondMinAccept);
     return aSVDD.OriMatr();
+/*
+StdOut() << "HHhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh\n";
+    return RandomSquareRegSVD(aSz,IsSym,AmplAcc,aCondMinAccept).OriMatr();
+*/
 }
 
 template <class Type> cResulSVDDecomp<Type>  
@@ -496,9 +500,9 @@ template <class Type> void cUnOptDenseMatrix<Type>::ResizeAndCropIn
                                 const cUnOptDenseMatrix<Type> & aM2
                            )
 {
-     tDIm & aDIm =   mIm.DIm();
      //aDIm.ResizeI(aP1-aP0);
      Resize(aP1-aP0);
+     tDIm & aDIm =   mIm.DIm();
 
      aDIm.CropIn(aP0,aM2.DIm());
 }

@@ -1,0 +1,1 @@
+MMVII CodedTargetExtract SimulTarget_test.tif Target_Spec.xml DMD=30 SzTiles=[10000,10000]

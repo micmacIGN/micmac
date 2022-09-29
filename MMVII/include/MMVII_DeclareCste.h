@@ -34,6 +34,7 @@ extern const std::string GOP_Int1;     ///< FFI1
 extern const std::string GOP_StdOut;   ///< StdOut, Output redirection
 extern const std::string GOP_SeedRand; ///< If an explicit seed generationyy
 extern const std::string GOP_NbProc;   ///< Number of Process in paral
+extern const std::string GOP_WW;       ///< With Warning
 //  Name of Global INTERNAL optional parameter
 extern const std::string GIP_LevCall;     ///< Level of MMVII call
 extern const std::string GIP_ShowAll;     ///< Show a lot of intermediary steps
@@ -50,6 +51,7 @@ extern const std::string TmpMMVIIProcSubDir;
 
 //  String 
 extern const std::string BLANK;  // just std::string(" ") to avoid char * + char *
+extern const std::vector<std::string> EMPTY_VSTR;  // just std::string(" ") to avoid char * + char *
 
 
 //  Files

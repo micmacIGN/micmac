@@ -1,12 +1,38 @@
 #include "include/MMVII_all.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_MACRO.h"
+#include "include/MMVII_TplSymbImage.h"
+#include "Formulas_CamStenope.h"
 
 using namespace NS_SymbolicDerivative;
 
 
 namespace MMVII
 {
+
+std::string FormulaName_ProjDir(eProjPC aProj) {return  "Dir_" + E2Str(aProj);}
+std::string FormulaName_ProjInv(eProjPC aProj) {return  "Inv_" + E2Str(aProj);}
+
+std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix)
+{
+   return std::vector<std::string> 
+          {
+              "PtX0_" + aPrefix,
+              "PtY0_" + aPrefix,
+              "Im00_" + aPrefix,
+              "Im10_" + aPrefix,
+              "Im01_" + aPrefix,
+              "Im11_" + aPrefix
+          };
+}
+
+/* ******************************** */
+/*                                  */
+/*         cDescOneFuncDist         */
+/*                                  */
+/* ******************************** */
+
+
 
 cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
    mType    (aType),
@@ -83,21 +109,37 @@ double  MajNormJacOfRho
 }
 
 
-/*
-double  MajNormJacOfRho
-        (
-             const cPtxd<double> & aCenter,
-             const cTplBox<Type,2> & aBox,
-             const std::vector<cDescOneFuncDist> & aVDesc,
-             const std::vector<double> & aVCoef
-        )
+/* ******************************** */
+/*                                  */
+/*           cDefProjPerspC         */
+/*                                  */
+/* ******************************** */
+
+bool  cDefProjPerspC::HasRadialSym() const { return false; }
+
+const cDefProjPerspC & cDefProjPerspC::ProjOfType(eProjPC eProj)
 {
-    double aRes =0.0;
-    typename cTplBox<double,2>::tCorner  aTabC;
+    static cProjStenope        TheProjStenope;
+    static cProjFE_EquiDist    TheProjFE_EquiDist;
+    static cProjStereroGraphik TheProjFE_StereroGraphik;
+    static cProjOrthoGraphic   TheProjFE_OrthoGraphic;
+    static cProjFE_EquiSolid   TheProjFE_EquiSolid;
+    static cProj_EquiRect      TheProjFE_EquiRect;
+    static std::vector<const cDefProjPerspC *> TheVProj;
+
+    if (TheVProj.empty())
+    {
+        TheVProj.resize(size_t(eProjPC::eNbVals),nullptr);
+	TheVProj.at(size_t(eProjPC::eStenope))        = & TheProjStenope;
+	TheVProj.at(size_t(eProjPC::eFE_EquiDist))    = & TheProjFE_EquiDist;
+	TheVProj.at(size_t(eProjPC::eStereroGraphik)) = & TheProjFE_StereroGraphik;
+	TheVProj.at(size_t(eProjPC::eOrthoGraphik))   = & TheProjFE_OrthoGraphic;
+	TheVProj.at(size_t(eProjPC::eFE_EquiSolid))   = & TheProjFE_EquiSolid;
+	TheVProj.at(size_t(eProjPC::eEquiRect))       = & TheProjFE_EquiRect;
+    }
+
+    return *(TheVProj.at(size_t(eProj)));
 }
-*/
-
-
 
 
 };//  namespace MMVII

@@ -157,6 +157,17 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVect
    return aRes;
 }
 
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts)
+{
+   MMVII_INTERNAL_ASSERT_tiny((!aVPts.empty()),"Bad size in Vec/Pt");
+
+   cPtxd<tREAL8,Dim> aRes = ToR(aVPts[0]);
+   for (int aK=1 ; aK<int(aVPts.size()) ; aK++)
+      aRes += ToR(aVPts[aK]);
+
+   return aRes/ tREAL8(aVPts.size());
+}
+
 
 
 int NbPixVign(const int & aVign){return 1+2*aVign;}
@@ -482,6 +493,15 @@ template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
    return aRes;
 }
 
+template <const int Dim> tINT8  cPixBox<Dim>::IndexeUnorderedPair(const tPt&aP1,const tPt&aP2) const
+{
+    tINT8 aI1 = IndexeLinear(aP1);  // num of P1 in Box
+    tINT8 aI2 = IndexeLinear(aP2);  // num of P2 in Box
+    OrderMinMax(aI1,aI2);           // to assure P1,P2 = P2,P1
+    return  aI1*this->NbElem() + aI2;     // make a unique index
+}
+
+
 template <const int Dim> bool  cPixBox<Dim>::SignalAtFrequence(const tPt & anIndex,double aFreq) const
 {
    return MMVII::SignalAtFrequence(IndexeLinear(anIndex),aFreq,this->mNbElem-1);
@@ -693,6 +713,15 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Sup(co
   return tBox(PtInfEq(mP0,aB2.mP0),PtSupEq(mP1,aB2.mP1),true);
 }
 
+template <class Type,const int Dim> Type cTplBox<Type,Dim>::Insideness(const tPt & aP) const
+{
+     Type  aRes = std::min(aP[0]-mP0[0],mP1[0]-aP[0]);
+
+     for (int aD=1 ; aD<Dim ; aD++)
+         UpdateMin(aRes,std::min(aP[aD]-mP0[aD],mP1[aD]-aP[aD]));
+
+     return aRes;
+}
 
 
 
@@ -754,16 +783,38 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::FromNorm
     // return Proj(aRes);
 }
 
+template <class Type,const int Dim> size_t  cTplBox<Type,Dim>::NbFlagCorner() {return 1<<Dim;}
+
+template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::CornerOfFlag(size_t aFlag) const
+{
+   tPt aRes;
+   for (size_t aD=0 ; aD<Dim ; aD++)
+   {
+       aRes[aD] = (aFlag & (1<<aD)) ? mP0[aD] : mP1[aD];
+   }
+   return aRes;
+}
+
 template <class Type,const int Dim> void  cTplBox<Type,Dim>::Corners(tCorner & aRes) const
 {
-    for (size_t aKpt=0; aKpt<(1<<Dim)  ; aKpt++)
+    for (size_t aFlag=0; aFlag<NbFlagCorner()  ; aFlag++)
     {
-        for (size_t aD=0 ; aD<Dim ; aD++)
-        {
-            aRes[aKpt][aD] = (aKpt & (1<<aD)) ? mP0[aD] : mP1[aD];
-        }
+        aRes[aFlag] = CornerOfFlag(aFlag);
     }
 }
+
+template <class Type,const int Dim> Type  cTplBox<Type,Dim>::DistMax2Corners(const tPt& aPt) const
+{
+    Type aRes = SqN2(aPt-CornerOfFlag(0));
+    for (size_t aFlag=1; aFlag<NbFlagCorner()  ; aFlag++)
+    {
+        UpdateMax(aRes,(Type)SqN2(aPt-CornerOfFlag(aFlag)));
+    }
+    return std::sqrt(aRes);
+}
+
+
+
 
 template <class Type,const int Dim> cPtxd<double,Dim>  cTplBox<Type,Dim>::ToNormaliseCoord(const cPtxd<Type,Dim> & aP) const 
 {
@@ -1020,6 +1071,7 @@ MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,1);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,2);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,3);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,4);\
+template  cPtxd<tREAL8,DIM> Barry(const std::vector<cPtxd<TYPE,DIM> > & aVPts);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\

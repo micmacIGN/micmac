@@ -4,18 +4,24 @@
 #include "include/MMVII_all.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_MACRO.h"
+#include "ComonHeaderSymb.h"
 
 namespace NS_SymbolicDerivative
 {
-// See above the needs of a differentiable operator AtanXsY_sX=atan(X/Y)/X C-infinite
+//  add sinus cardinal and arc-sinus as operator on formulas
+MACRO_SD_DEFINE_STD_UNARY_FUNC_OP_DERIVABLE(MMVII,ASin,DerASin)
+MACRO_SD_DEFINE_STD_UNARY_FUNC_OP_DERIVABLE(MMVII,sinC,DerSinC)
 
+/// See bellow the needs of a differentiable operator AtanXsY_sX=atan(X/Y)/X C-infinite
 MACRO_SD_DEFINE_STD_BINARY_FUNC_OP_DERIVABLE(MMVII,AtanXsY_sX,DerXAtanXsY_sX,DerYAtanXsY_sX)
+MACRO_SD_DEFINE_STD_BINARY_FUNC_OP_DERIVABLE(MMVII,ATan2,DerX_ATan2,DerY_ATan2)
+
 }
 using namespace NS_SymbolicDerivative;
 
-
 namespace MMVII
 {
+
 
 /*  
     ================ Physicall modelisation ===============
@@ -33,6 +39,24 @@ namespace MMVII
     Extrinseq                           Intrinseq           Intrinseq
 
 */
+
+class cMMVIIUnivDist;  // can generate distorsion as fun R2->R2, or basis of these function 
+class cDefinedZPos;    //  define definition validity for some projection (Z>0)
+class cUnDefinedAtPole;  // define definition validity for some projection , define every where but at pole
+      // projection
+class cProjStenope ;      //  classical  stenope
+class cProjFE_EquiDist;    // fish-eye equidisant
+class cProjStereroGraphik ; // stereographic
+class cProjOrthoGraphic ;   // orthographic
+class cProjFE_EquiSolid ;   // fish-eye equi solid
+ // to do xyz <--> teta phi for "360" degree images
+ 
+template <typename tProj> class   cGenCode_ProjDir;  // class to generate code for projection  x,y,z -> i,j
+template <typename tProj> class   cGenCode_ProjInv;  // class to generate code for projection   i,j -> x,y,z
+
+template <typename TypeDist>  class cEqDist;  // class to generate code for direct distorsion  Pp->Pd
+template <typename TypeDist>  class cEqIntr;  // class for generating    Pp-> Pix
+
 
 
 /*
@@ -521,7 +545,7 @@ class cMMVIIUnivDist
 class cDefinedZPos
 {
    public :
-        template<typename tScal> static double DegreeDef(const  cPtxd<tScal,3>  & aP)
+        template<typename tScal> static double P3DIsDef(const  cPtxd<tScal,3>  & aP)
         {
            return VUnit(aP).z() ;
         }
@@ -530,7 +554,7 @@ class cDefinedZPos
 class cUnDefinedAtPole
 {
    public :
-        template<typename tScal> static double DegreeDef(const  cPtxd<tScal,3>  & aP)
+        template<typename tScal> static double P3DIsDef(const  cPtxd<tScal,3>  & aP)
         {
            return Norm2(VUnit(aP)-cPtxd<tScal,3>(0,0,-1)) ;
         }
@@ -538,35 +562,73 @@ class cUnDefinedAtPole
 
        /**  Basic projection */
 
-class cProjStenope : public cDefinedZPos
+class cProjStenope : public cDefProjPerspC
 {
    public :
-        static const std::string & NameProj() {static std::string aName("Stenope"); return aName;}
+
+        //  static const std::string & NameProj() {static std::string aName("Stenope"); return aName;}
+        static eProjPC  TypeProj() {return eProjPC::eStenope;}
+
+
+	///< no continuous extension for Z<=0
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  {return cDefinedZPos::P3DIsDef(aP);}
+
+        ///  questionable, as always defined could return 1.0, but it make sense to compute a distance to infinite point
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            return 1.0/(1.0+Norm2(aP));
+        }
+
 
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
            MMVII_INTERNAL_ASSERT_tiny(aXYZ.size()==3,"Inconsistent param number");
+
            const auto & aX = aXYZ.at(0);
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
+
            return {aX/aZ,aY/aZ};
         }
 
-        template <typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aP)
+        template <typename tScal> static  std::vector<tScal>  ToDirBundle(const std::vector<tScal>  & aXY)
         {
-           return cPtxd<tScal,3>(aP.x(),aP.y(),1.0);
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
+
+           const auto & aX = aXY.at(0);
+           const auto & aY = aXY.at(1);
+           tScal aC1 = CreateCste(1.0,aX);
+
+           return {aX,aY,aC1};
         }
 };
+
+     /** class that allow to generate code from formulas */
+/*
+template <class  T ypeProj>  class cFormulaProj
+{
+    public :
+};
+*/
 
    // ==========================================================
 
        /**  fisheye equidistant  */
 
-class cProjFE_EquiDist : public cUnDefinedAtPole
+class cProjFE_EquiDist : public cDefProjPerspC
 {
    public :
 
-        static const std::string & NameProj() {static std::string aName("FE_EquiDist"); return aName;}
+        //static const std::string & NameProj() {static std::string aName("FE_EquiDist"); return aName;}
+        static eProjPC  TypeProj() {return eProjPC::eFE_EquiDist;}
+	///< fish eye can have FOV over 180, and mathematicall formula is defined execte at pole (axe 0 0 -1 )
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  {return cUnDefinedAtPole::P3DIsDef(aP);}
+
+        /// image of pole converge to the circle of ray PI, 
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            return M_PI - Norm2(aP) ;
+	}
 /*
   theoretically :
          R = sqrt(X^2+Y2)  tan(teta)=R/Z   teta = atan2(R,Z)
@@ -598,7 +660,7 @@ class cProjFE_EquiDist : public cUnDefinedAtPole
            const auto & aX = aXYZ.at(0);
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
-           const auto  r = sqrt(Square(aX)+Square(aY));
+           const auto  r = NormL2V2(aX,aY);
            const auto aTeta_sR  = AtanXsY_sX(r,aZ);
 
            return {aX*aTeta_sR,aY*aTeta_sR};
@@ -614,22 +676,47 @@ class cProjFE_EquiDist : public cUnDefinedAtPole
          = (U sinc(teta), V sinc(teta), cos(teta))
     As AtanXsY_sX,  the sinC implementation is a mix of sin/x and taylor expension close to 0
 */
-        template <typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aP)
+        template <typename tScal> static std::vector<tScal>  ToDirBundle(const std::vector<tScal> & aXY)
         {
-           auto aTeta = Norm2(aP);
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
+
+           auto aTeta = NormL2Vec2(aXY);
            auto aSinC = sinC(aTeta);
-           return cPtxd<tScal,3>(aP.x()*aSinC,aP.y()*aSinC,cos(aTeta));
+
+           return {aXY[0]*aSinC,aXY[1]*aSinC,cos(aTeta)};
         }
 };
 
    // ==========================================================
 
+/*
+class cProjectionPerspC 
+{
+       public :
+          virtual tREAL8  P3DIsDef(const cPt3dr &) const = 0;
+          virtual tREAL8  P2DIsDef(const cPt2dr &) const = 0;
+
+	  static const cProjectionPerspC & ProjOfType(eProjPC);
+};
+*/
+
        /**  fisheye orthographic  */
 
-class cProjStereroGraphik : public cUnDefinedAtPole
+
+class cProjStereroGraphik : public cDefProjPerspC
 {
    public :
-        static const std::string & NameProj() {static std::string aName("FE_StereoGr"); return aName;}
+        // static const std::string & NameProj() {static std::string aName("FE_StereoGr"); return aName;}
+        static eProjPC  TypeProj() {return eProjPC::eStereroGraphik;}
+	//
+	///< fish eye can have FOV over 180, and mathematicall formula is defined execte at pole (axe 0 0 -1 )
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  {return cUnDefinedAtPole::P3DIsDef(aP);}
+
+        /// more or less as stenope, defined everywhere but be not to close to infinite point ...
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            return 1 / (1+Norm2(aP));
+	}
 /*  Theory :
         r=sqrt(X2+Y2)  R = sqrt(X2+Y2+Z2)   r' = r/R  z'=Z/R
 
@@ -652,11 +739,14 @@ Also :
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
            MMVII_INTERNAL_ASSERT_tiny(aXYZ.size()==3,"Inconsistent param number");
+
            const auto & aX = aXYZ.at(0);
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
-           const auto  aR = sqrt(Square(aX)+Square(aY)+Square(aZ));
-           const auto  aMul = 2.0/(aR+aZ);
+           tScal aC2 = CreateCste(2.0,aX);
+
+           const auto  aR = NormL2V3(aX,aY,aZ);
+           const auto  aMul = aC2 /(aR+aZ);
            return {aMul*aX,aMul*aY};
         }
 /* Inverse we have:
@@ -673,51 +763,158 @@ Also :
    
 
 */
-        template <typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aP)
+        template <typename tScal> static std::vector<tScal>  ToDirBundle(const  std::vector<tScal> & aXY)
         {
-           auto aDiv = (1+SqN2(aP)/4.0);
-           return {aP.x()/aDiv,aP.y()/aDiv,2.0/aDiv-1};
+           // auto aDiv = (1+SqN2(aP)/4.0);
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
+
+           const auto & aX = aXY.at(0);
+           const auto & aY = aXY.at(1);
+           tScal aC1 = CreateCste(1.0,aX);
+           tScal aC2 = CreateCste(2.0,aX);
+           tScal aC4 = CreateCste(4.0,aX);
+
+           auto aDiv = (aC1+SqNormL2V2(aX,aY)/aC4);
+           return {aX/aDiv,aY/aDiv,aC2/aDiv-aC1};
         }
 };
+
+
 
    // ==========================================================
 
        /**  Orthographic Projection  */
 
-class cProjOrthoGraphic : public cDefinedZPos
+class cProjOrthoGraphic : public cDefProjPerspC
 {
    public :
 /* Quite basic :
     Direct N = vunit(P)  => N.x,Ny
     Invese Norm(N) = sin(alpha) , cos = sqrt(1-sin^2) 
 */
-        static const std::string & NameProj() {static std::string aName("FE_OrthoGr"); return aName;}
+        // static const std::string & NameProj() {static std::string aName("FE_OrthoGr"); return aName;}
+        static eProjPC  TypeProj() {return eProjPC::eOrthoGraphik;}
+	///< no continuous extension for Z<=0
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  {return cDefinedZPos::P3DIsDef(aP);}
+
+        ///  The equator project on circle of ray 1,  over its is degenerate and the formula cannot be inverted
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            return 1.0 - Norm2(aP);
+        }
+
+
 
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
            MMVII_INTERNAL_ASSERT_tiny(aXYZ.size()==3,"Inconsistent param number");
+
            const auto & aX = aXYZ.at(0);
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
+
            auto aR = sqrt(Square(aX)+Square(aY)+Square(aZ));
            return {aX/aR,aY/aR};
         }
 
-        template <typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aP)
+        template <typename tScal> static std::vector<tScal>  ToDirBundle(const  std::vector<tScal> & aXY)
         {
-           return cPtxd<tScal,3> (aP.x(),aP.y(),sqrt(std::max(0.0,1.0-SqN2(aP))));
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
+
+           const auto & aX = aXY.at(0);
+           const auto & aY = aXY.at(1);
+           tScal aC1 = CreateCste(1.0,aX);
+
+           // return {aX,aY,sqrt(std::max(0.0,1.0-SqN2(aP)));
+           //  !!  Warning  -> have supress the max for sort term derivation
+           // StdOut() << "Warning cProjOrthoGraphic::ToDirBundle \n";
+           MMVII_WARGING("Warning cProjOrthoGraphic::ToDirBundle");
+           return {aX,aY,sqrt(aC1-SqNormL2V2(aX,aY))};
 
         }
 };
 
    // ==========================================================
+   
+/*
+     Theory  :
+
+         Bundle  :
+	    U,V  ->  
+	           X = cos V sin U
+		   Y = sin V
+		   Z = cos V cos U
+
+           X,Y,Z : 
+              R = sqrt(X^2+Y^2+Z^2) 
+	      x = X/R  y= Y/R  z=Z/R
+
+          V = ASin(y)
+	  U = atan2(x,z) = atan2(X,Z)
+ */
+class cProj_EquiRect  : public cDefProjPerspC
+{
+   public :
+        bool  HasRadialSym() const override {return false;}
+        static eProjPC  TypeProj() {return eProjPC::eEquiRect;}
+	///< always defines, but singular when x,z=0
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  
+	{
+             return 1.0 -std::abs(aP.y()/Norm2(aP));
+	}
+
+        ///  can be prolongated at  equtor not at the pole
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            tREAL8 aU = aP.x();
+            tREAL8 aV = aP.y();
+            return std::min
+		    (
+		       std::min(M_PI+aU,M_PI-aU)     ,
+		       std::min(M_PI_2+aV,M_PI_2-aV)
+		    );
+        }
+        template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
+	{
+           const auto & aX = aXYZ.at(0);
+           const auto & aY = aXYZ.at(1);
+           const auto & aZ = aXYZ.at(2);
+
+	   auto aR = sqrt(Square(aX)+Square(aY)+Square(aZ));
+
+	   return  {ATan2(aX,aZ),ASin(aY/aR)} ;
+	}
+
+        template <typename tScal> static std::vector<tScal> ToDirBundle(const  std::vector<tScal> & aXY)
+        {
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
+
+           const auto & aU = aXY.at(0);
+           const auto & aV = aXY.at(1);
+           auto CosV  = cos(aV);
+
+           return {CosV * sin(aU) ,  sin(aV) , CosV *cos(aU)};
+        }
+};
+
+
 
        /**  EquiSolid (Equal-Area,equivalente) Projection  */
 
-class cProjFE_EquiSolid  : public cUnDefinedAtPole
+class cProjFE_EquiSolid  : public cDefProjPerspC
 {
    public :
-        static const std::string & NameProj() {static std::string aName("FE_EquiSolid"); return aName;}
+        // static const std::string & NameProj() {static std::string aName("FE_EquiSolid"); return aName;}
+        static eProjPC  TypeProj() {return eProjPC::eFE_EquiSolid;}
+
+	///< like equidisant 
+        tREAL8  P3DIsDef(const cPt3dr & aP) const override  {return cUnDefinedAtPole::P3DIsDef(aP);}
+
+        ///  The equator project on circle of ray 1,  over its is degenerate and the formula cannot be inverted
+        tREAL8  P2DIsDef(const cPt2dr & aP) const override
+        {
+            return 2-Norm2(aP);
+        }
 /* Theory
     R2 = X2 +Y2+Z2   , r2 = X2+Y2
     (X,Y,Z)  = R (sin A,0,cos A) ->  2 sin(A/2) = L  
@@ -733,12 +930,15 @@ class cProjFE_EquiSolid  : public cUnDefinedAtPole
         template<typename tScal> static std::vector<tScal> Proj(const  std::vector<tScal> & aXYZ)
         {
            MMVII_INTERNAL_ASSERT_tiny(aXYZ.size()==3,"Inconsistent param number");
+
            const auto & aX = aXYZ.at(0);
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
+           tScal aC2 = CreateCste(2.0,aX);
+
            auto aR = sqrt(Square(aX)+Square(aY)+Square(aZ));
-           auto aDiv = sqrt(2.0*aR*(aR+aZ));
-           return {(2.0*aX)/aDiv,(2.0*aY)/aDiv};
+           auto aDiv = sqrt(aC2*aR*(aR+aZ));
+           return {(aC2*aX)/aDiv,(aC2*aY)/aDiv};
         }
 /*
    Theory
@@ -747,17 +947,92 @@ class cProjFE_EquiSolid  : public cUnDefinedAtPole
     U/r sin(A) = U/(2sin(a/2)) (2sin(a/2)cos(a/2))  = U cos(a/2)
 */
 
-        template <typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aP)
+        template <typename tScal> static std::vector<tScal> ToDirBundle(const  std::vector<tScal> & aXY)
         {
-           auto r = Norm2(aP);
-           auto A = 2 * std::asin(std::min(1.0,r/2.0));
-           auto cAs2 = std::cos(A/2);
+           MMVII_INTERNAL_ASSERT_tiny(aXY.size()==2,"Inconsistent param number");
 
-           return {aP.x()*cAs2,aP.y()*cAs2,std::cos(A)};
+           const auto & aX = aXY.at(0);
+           const auto & aY = aXY.at(1);
+           tScal aC2 = CreateCste(2.0,aX);
+
+           auto r = NormL2Vec2(aXY);
+           // auto A = 2 * std::asin(std::min(1.0,r/2.0));
+           MMVII_WARGING("Warning cProjFE_EquiSolid::ToDirBundle");
+           auto A = aC2 * ASin(r/aC2);
+           auto cAs2 = cos(A/aC2);
+
+           return {aX*cAs2,aY*cAs2,cos(A)};
         }
 };
 
+std::string FormulaName_ProjDir(eProjPC aProj);
+std::string FormulaName_ProjInv(eProjPC aProj);
 
+template <typename tProj> class   cGenCode_ProjDir
+{
+	public :
+            static const std::vector<std::string> VNamesUnknowns() { return {"PtX","PtY","PtZ"}; }
+            static const std::vector<std::string> VNamesObs()      { return {}; }
+
+            std::string FormulaName() const { return  FormulaName_ProjDir(tProj::TypeProj());}
+
+	    template <typename tUk>
+                     std::vector<tUk> formula
+                     (
+                           const std::vector<tUk> & aVUk,
+                           const std::vector<tUk> & aVObs
+                      ) const
+             {
+		     return tProj::Proj(aVUk);
+             }
+
+
+};
+
+
+template <typename tProj> class   cGenCode_ProjInv
+{
+	public :
+            static const std::vector<std::string> VNamesUnknowns() { return {"PixI","PixJ"}; }
+            static const std::vector<std::string> VNamesObs()      { return {}; }
+
+            std::string FormulaName() const { return FormulaName_ProjInv(tProj::TypeProj());}
+
+	    template <typename tUk>
+                     std::vector<tUk> formula
+                     (
+                           const std::vector<tUk> & aVUk,
+                           const std::vector<tUk> & aVObs
+                      ) const
+             {
+		     return tProj::ToDirBundle(aVUk);
+             }
+
+
+};
+
+/**  Proj manipulate vector for code generation, but for testing it is easier to manipulate points */
+template <typename tProj> class   cHelperProj
+{
+	public :
+
+           template<typename tScal> static cPtxd<tScal,2>  Proj(const  cPtxd<tScal,3> & aXYZ)
+	   {
+		   return  cPtxd<tScal,2>::FromStdVector(tProj::Proj(aXYZ.ToStdVector()));
+	   }
+           template<typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aXYZ)
+	   {
+		   return  cPtxd<tScal,3>::FromStdVector(tProj::ToDirBundle(aXYZ.ToStdVector()));
+	   }
+
+};
+
+
+
+
+
+/*
+ * Dont know if its usefull for now
 template <typename tScal>  
   inline std::vector<tScal> 
     TransformPPxyz(const std::vector<tScal> & aPts,const std::vector<tScal> & aParam,int aInd)
@@ -774,6 +1049,7 @@ template <typename tScal>
 
         return {xOut,yOut};
 }
+*/
 
 template <typename TypeDist>  class cEqDist
 {
@@ -796,7 +1072,6 @@ template <typename TypeDist>  class cEqDist
   private :
     TypeDist                 mDist;
 };
-
 
 
 

@@ -87,6 +87,13 @@ enum class eModeCreateDir
               eNbVals        ///< Tag for number of value
            };
 
+/// Type of Error
+enum class eLevelCheck    
+           {
+              NoCheck,
+              Warning,
+              Error
+           };
 
 /// Type of set creation
 enum class eTySC    
@@ -248,9 +255,19 @@ enum class eModeOutPCar
      eNbVals          ///< Tag End of Vals
 };
 
+/** Mode test prop cov */
+enum class eModeTestPropCov
+{
+   eMTPC_MatCovRFix,  // Mode directly add the covariance matrix, rotation fix
+   //   eMTPC_MatCovRUk,  // Mode directly add the covariance matrix, rotation unknown (to implemant ?)
+   //   eMTPC_SomL2RFix,  // Mode sum of square linear form, Rotation fix (to implement ?)
+   eMTPC_SomL2RUk,  // Mode sum of square linear form, Rotation uknonwn
+   eMTPC_PtsRFix,  // Mode direct distance to points, rotation fix
+   eMTPC_PtsRUk,  // Mode direct distance to points, rotation unknown
+   eNbVals
+};
 
 /** Mode "Matcher" callable in DenseMatchEpipGen */
-
 enum class eModeEpipMatch
 {
    eMEM_MMV1,  // Mode MicMac V1
@@ -395,6 +412,19 @@ enum class eDCTFilters
    eNbVals
 };
 
+enum class eProjPC
+{
+     eStenope,
+     eFE_EquiDist,
+     eFE_EquiSolid,
+     eStereroGraphik,
+     eOrthoGraphik,
+     eEquiRect,
+     eNbVals
+};
+
+
+const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
@@ -404,6 +434,7 @@ const std::string & E2Str(const eTyNums &);
 const std::string & E2Str(const eTyInvRad &);         
 const std::string & E2Str(const eTyPyrTieP &);         
 const std::string & E2Str(const eModeEpipMatch &);         
+const std::string & E2Str(const eModeTestPropCov &);         
 const std::string & E2Str(const eModePaddingEpip &);         
 const std::string & E2Str(const eModeCaracMatch &);         
 

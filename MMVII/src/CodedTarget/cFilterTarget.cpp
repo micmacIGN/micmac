@@ -1,10 +1,130 @@
 #include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include "include/MMVII_Tpl_Images.h"
+// #include "../include/MMVII_2Include_Serial_Tpl.h"
 
 
 namespace MMVII
 {
+
+
+
+/* =================================== */
+/*            cParam1FilterDCT         */
+/* =================================== */
+
+void cParam1FilterDCT::AddData(const cAuxAr2007 & anAux)
+{
+     MMVII::AddData(cAuxAr2007("R0",anAux),mR0);
+     MMVII::AddData(cAuxAr2007("R1",anAux),mR1);
+     MMVII::AddData(cAuxAr2007("ThickN",anAux),mThickN);
+}
+
+cParam1FilterDCT::cParam1FilterDCT() :
+    mR0     (0.4),
+    mR1     (0.8),
+    mThickN (1.5)
+{
+}
+double   cParam1FilterDCT::R0() const {return mR0;}
+double   cParam1FilterDCT::R1() const {return mR1;}
+double   cParam1FilterDCT::ThickN() const {return mThickN;}
+
+
+/* =================================== */
+/*           cParamFilterDCT_Bin       */
+/* =================================== */
+
+bool cParamFilterDCT_Bin::IsSym() const {return false;}
+bool cParamFilterDCT_Bin::IsCumul() const {return false;}
+eDCTFilters cParamFilterDCT_Bin::ModeF() const {return eDCTFilters::eBin;}
+
+cParamFilterDCT_Bin::cParamFilterDCT_Bin() :
+     cParam1FilterDCT(),
+     mPropBW (0.15)
+{
+}
+
+void cParamFilterDCT_Bin::AddData(const cAuxAr2007 & anAux)
+{
+     cParam1FilterDCT::AddData(cAuxAr2007("Glob",anAux));
+     MMVII::AddData(cAuxAr2007("PropBW",anAux),mPropBW);
+}
+
+
+/* =================================== */
+/*           cParamFilterDCT_Sym       */
+/* =================================== */
+
+bool cParamFilterDCT_Sym::IsSym() const {return true;}
+bool cParamFilterDCT_Sym::IsCumul() const {return true;}
+eDCTFilters cParamFilterDCT_Sym::ModeF() const {return eDCTFilters::eSym;}
+
+cParamFilterDCT_Sym::cParamFilterDCT_Sym() :
+     cParam1FilterDCT(),
+     mEpsilon (1.0)
+{
+}
+
+double cParamFilterDCT_Sym::Epsilon() const {return mEpsilon;}
+void cParamFilterDCT_Sym::AddData(const cAuxAr2007 & anAux)
+{
+     cParam1FilterDCT::AddData(cAuxAr2007("Glob",anAux));
+}
+
+/* =================================== */
+/*           cParamFilterDCT_Rad       */
+/* =================================== */
+
+bool cParamFilterDCT_Rad::IsSym()   const {return false;}
+bool cParamFilterDCT_Rad::IsCumul() const {return true;}
+eDCTFilters cParamFilterDCT_Rad::ModeF() const {return eDCTFilters::eRad;}
+
+cParamFilterDCT_Rad::cParamFilterDCT_Rad() :
+     cParam1FilterDCT(),
+     mEpsilon (2.0)
+{
+}
+
+double cParamFilterDCT_Rad::Epsilon() const {return mEpsilon;}
+
+void cParamFilterDCT_Rad::AddData(const cAuxAr2007 & anAux)
+{
+     cParam1FilterDCT::AddData(cAuxAr2007("Glob",anAux));
+}
+
+/* =================================== */
+/*           cParamAllFilterDCT        */
+/* =================================== */
+
+cParamAllFilterDCT::cParamAllFilterDCT() :
+	mRGlob (10.0)
+{
+}
+
+void cParamAllFilterDCT::AddData(const cAuxAr2007 & anAux)
+{
+     mBin.AddData(cAuxAr2007("Bin",anAux));
+     mSym.AddData(cAuxAr2007("Sym",anAux));
+     mRad.AddData(cAuxAr2007("Rad",anAux));
+     MMVII::AddData(cAuxAr2007("RGlob",anAux),mRGlob);
+}
+double   cParamAllFilterDCT::RGlob() const {return mRGlob;}
+
+const cParamFilterDCT_Bin & cParamAllFilterDCT::Bin() const {return mBin;}
+const cParamFilterDCT_Sym & cParamAllFilterDCT::Sym() const {return mSym;}
+const cParamFilterDCT_Rad & cParamAllFilterDCT::Rad() const {return mRad;}
+
+void AddData(const  cAuxAr2007 & anAux,cParamAllFilterDCT & aParam)
+{
+   aParam.AddData(anAux);
+}
+
+void TestParamTarg()
+{
+   cParamAllFilterDCT aParam;
+   SaveInFile(aParam,"toto.xml");
+}
 
 
 /* ================================================= */
@@ -13,7 +133,7 @@ namespace MMVII
 /*                                                   */
 /* ================================================= */
 
-template <class Type>  
+template <class Type>
    cFilterDCT<Type>::cFilterDCT
    (
           bool        isCumul,  // is it efficient as cumul filter
@@ -33,15 +153,15 @@ template <class Type>
       mR0      (aR0),
       mR1      (aR1),
       mThickN  (aThickN),
-      mIVois   (SortedVectOfRadius(aR0,aR1,IsSym))   // sorted by ray neigboor, with o w/o symetric pixel
+      mIVois   (SortedVectOfRadius(aR0,aR1,mIsSym))   // sorted by ray neigboor, with o w/o symetric pixel
 {
    // compute real neigboor
    for (const auto & aPix : mIVois)
-       mRVois.push_back(ToR(aPix));  
+       mRVois.push_back(ToR(aPix));
 
    mRhoEnd = Norm2(mRVois.back());
 
-   //  compute the series of intervall,  
+   //  compute the series of intervall,
    int aK0=0;
    int aK1=aK0;
    if (mIsCumul)
@@ -58,6 +178,22 @@ template <class Type>
    }
 
 }
+
+template <class Type>
+   cFilterDCT<Type>::cFilterDCT(tIm anIm,const  cParamAllFilterDCT & aGlob,const cParam1FilterDCT * aSpecif) :
+	   cFilterDCT<Type>
+           (
+                  aSpecif->IsCumul(),
+                  aSpecif->ModeF(),   // type of filter
+                  anIm,               // first image (give the size)
+                  aSpecif->IsSym(),
+                  aSpecif->R0() * aGlob.RGlob(),
+                  aSpecif->R1() * aGlob.RGlob(),
+                  aSpecif->ThickN()
+           )
+{
+}
+
 
 template <class Type>  cFilterDCT<Type>::~cFilterDCT()
 {
@@ -125,7 +261,7 @@ template <class Type> double cFilterDCT<Type>::ComputeValMaxCrown(const cPt2dr &
            for (int aK=aK0Prec ; aK<aK0Next ; aK++)
                Add(-1.0,mRVois[aK]);
            UpdateMax(aVMax,Compute());
-           if (aVMax> aThreshold)  
+           if (aVMax> aThreshold)
               return aVMax;
        }
     }
@@ -140,7 +276,7 @@ template <class Type> double cFilterDCT<Type>::ComputeValMaxCrown(const cPt2dr &
            for (int aK=aK0 ; aK<aK1 ; aK++)
                Add(1.0,mRVois[aK]);
            UpdateMax(aVMax,Compute());
-           if (aVMax> aThreshold)  
+           if (aVMax> aThreshold)
               return aVMax;
        }
     }
@@ -187,7 +323,7 @@ template <class Type>  eDCTFilters cFilterDCT<Type>::ModeF() const {return mMode
 /*                                                   */
 /* ================================================= */
 
-/** Class for defining the symetry filter 
+/** Class for defining the symetry filter
 
     See  cSymMeasure  in "include/MMVII_Matrix.h"
 */
@@ -199,6 +335,7 @@ template <class Type>  class  cSymFilterCT : public cFilterDCT<Type>
            typedef cDataIm2D<Type> tDIm;
 
            cSymFilterCT(tIm anIm,double aR0,double aR1,double aEpsilon);
+           cSymFilterCT(tIm anIm,const cParamAllFilterDCT &);
 
     private  :
           /// method used when a new neighboor arrive
@@ -226,9 +363,9 @@ template <class Type>  void  cSymFilterCT<Type>::Reset()
           mSM = cSymMeasure<Type>();  // reinitialise the symetry object
 }
 
-template <class Type>  double  cSymFilterCT<Type>::Compute() 
+template <class Type>  double  cSymFilterCT<Type>::Compute()
 {
-     return mSM.Sym(mEpsilon);  
+     return mSM.Sym(mEpsilon);
 }
 
 template <class Type>  cSymFilterCT<Type>::cSymFilterCT(tIm anIm,double aR0,double aR1,double aEpsilon) :
@@ -242,6 +379,11 @@ template <class Type>  cSymFilterCT<Type>::cSymFilterCT(tIm anIm,double aR0,doub
            aR1     // max ray of crown
     ),
     mEpsilon (aEpsilon)
+{
+}
+template <class Type>  cSymFilterCT<Type>::cSymFilterCT(tIm anIm,const cParamAllFilterDCT & aParam) :
+    cFilterDCT<Type>(anIm,aParam,&(aParam.Sym())),
+    mEpsilon (aParam.Sym().Epsilon())
 {
 }
 
@@ -295,7 +437,8 @@ template <class Type>  class  cBinFilterCT : public cFilterDCT<Type>
            typedef cIm2D<Type>     tIm;
            typedef cDataIm2D<Type> tDIm;
 
-           cBinFilterCT(tIm anIm,double aR0,double aR1);
+           // cBinFilterCT(tIm anIm,double aR0,double aR1);
+           cBinFilterCT(tIm anIm,const cParamAllFilterDCT &);
 
            void UpdateSelected(cNS_CodedTarget::cDCT & aDC) const override;
 
@@ -309,13 +452,13 @@ template <class Type>  class  cBinFilterCT : public cFilterDCT<Type>
           float mVWhite ;
 };
 
-template<class Type> void  cBinFilterCT<Type>::UpdateSelected(cNS_CodedTarget::cDCT & aDC) const 
+template<class Type> void  cBinFilterCT<Type>::UpdateSelected(cNS_CodedTarget::cDCT & aDC) const
 {
     aDC.mVBlack = mVBlack;
     aDC.mVWhite = mVWhite;
 }
 
-template<class Type> void cBinFilterCT<Type>::Add(const Type & aWeight,const cPt2dr & aNeigh) 
+template<class Type> void cBinFilterCT<Type>::Add(const Type & aWeight,const cPt2dr & aNeigh)
 {
      mVVal.push_back(this->mDIm.GetV(ToI(this->mCurC+aNeigh)));
 }
@@ -362,20 +505,16 @@ template<class Type> double  cBinFilterCT<Type>::Compute()
         double aDifMoy  =  aSumDifBlack/ aNbBlack + aSumDifWhite/aNbWhite;
         aValue = aDifMoy  / (mVWhite - mVBlack);
     }
-	  
+
     return aValue;
 }
 
-template <class Type>  cBinFilterCT<Type>::cBinFilterCT(tIm anIm,double aR0,double aR1) :
-    cFilterDCT<Type>(false,eDCTFilters::eBin,anIm,false,aR0,aR1)
+
+template <class Type>  cBinFilterCT<Type>::cBinFilterCT(tIm anIm,const cParamAllFilterDCT & aParam) :
+    cFilterDCT<Type>(anIm,aParam,&(aParam.Bin()))
 {
 }
 
-template<class TypeEl> cIm2D<TypeEl> ImBinarity(cIm2D<TypeEl>  aImIn,double aR0,double aR1)
-{
-    cBinFilterCT<TypeEl> aBinF(aImIn,aR0,aR1);
-    return  aBinF.ComputeIm();
-}
 
 /* ================================================== */
 /*                                                    */
@@ -390,27 +529,28 @@ template <class Type>  class  cRadFilterCT : public cFilterDCT<Type>
            typedef cDataIm2D<Type> tDIm;
            typedef cImGrad<Type>   tImGr;
 
-           cRadFilterCT(const  tImGr&,double aR0,double aR1,double aEpsilon);
+           cRadFilterCT(const  tImGr&,const cParamAllFilterDCT & aParam);
+           // cRadFilterCT(const  tImGr&,double aR0,double aR1,double aEpsilon);
 
     private  :
           void Reset()               override;
           void Add(const Type & aWeight,const cPt2dr & aNeigh)   override;
           double Compute()           override;
 
+	  const cParamFilterDCT_Rad* mParRad;
 	  tImGr                mGrad;
 	  tDIm &               mGX;
 	  tDIm &               mGY;
-          double               mEpsilon ;
           double               mSomScal ;
           double               mSomG2;
 };
 
-template <class Type>  cRadFilterCT<Type>::cRadFilterCT(const  tImGr& aImGr ,double aR0,double aR1,double aEpsilon) :
-    cFilterDCT<Type>(true,eDCTFilters::eRad,aImGr.mGx,false,aR0,aR1),
+template <class Type>  cRadFilterCT<Type>::cRadFilterCT(const  tImGr& aImGr ,const cParamAllFilterDCT & aParam) :
+    cFilterDCT<Type>(aImGr.mGx,aParam,&(aParam.Rad())),
+    mParRad  (&(aParam.Rad())),
     mGrad    (aImGr),
     mGX      (mGrad.mGx.DIm()),
-    mGY      (mGrad.mGy.DIm()),
-    mEpsilon (aEpsilon)
+    mGY      (mGrad.mGy.DIm())
 {
 }
 
@@ -418,9 +558,9 @@ template <class Type>  void  cRadFilterCT<Type>::Reset()
 {
     mSomScal = 0;
     mSomG2  = 0;
-} 
+}
 
-template <class Type> void cRadFilterCT<Type>::Add(const Type & aWeight,const cPt2dr & aNeigh)   
+template <class Type> void cRadFilterCT<Type>::Add(const Type & aWeight,const cPt2dr & aNeigh)
 {
     cPt2dr aDir = VUnit(aNeigh);
     cPt2dr aPt = this->mCurC + aNeigh;
@@ -432,7 +572,7 @@ template <class Type> void cRadFilterCT<Type>::Add(const Type & aWeight,const cP
 
 template <class Type> double cRadFilterCT<Type>::Compute()
 {
-    return std::max(mSomScal,mEpsilon) / std::max(mSomG2,mEpsilon);
+    return std::max(mSomScal,mParRad->Epsilon()) / std::max(mSomG2,mParRad->Epsilon());
 }
 
 
@@ -469,7 +609,7 @@ template<class TypeEl> void CheckSymetricity
                                 double aR1,
                                 double Epsilon
                            )
-{     
+{
     cDataIm2D<TypeEl> & aDImIn = aImIn.DIm();
     cPt2di aSz = aDImIn.Sz();
     int aD = round_up(aR1);
@@ -540,28 +680,28 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool doCheck,cIm2D<TypeEl>  a
 /*           ALLOCATOR                      */
 /* ======================================== */
 
-template <class Type>  
-    cFilterDCT<Type> * cFilterDCT<Type>::AllocSym(tIm anIm,double aR0,double aR1,double aEpsilon)
+template <class Type>
+    cFilterDCT<Type> * cFilterDCT<Type>::AllocSym(tIm anIm,const cParamAllFilterDCT & aParam)
 {
-    return new  cSymFilterCT<Type>(anIm,aR0,aR1,aEpsilon);
+    return new  cSymFilterCT<Type>(anIm,aParam);
 }
 
-template <class Type>  
-    cFilterDCT<Type> * cFilterDCT<Type>::AllocBin(tIm anIm,double aR0,double aR1)
+template <class Type>
+    cFilterDCT<Type> * cFilterDCT<Type>::AllocBin(tIm anIm,const cParamAllFilterDCT & aParam)
 {
-    return new  cBinFilterCT<Type>(anIm,aR0,aR1);
+    return new  cBinFilterCT<Type>(anIm,aParam);
 }
 
-template <class Type>  
-    cFilterDCT<Type> * cFilterDCT<Type>::AllocRad(const tImGr & aImGr,double aR0,double aR1,double aEpsilon)
+template <class Type>
+    cFilterDCT<Type> * cFilterDCT<Type>::AllocRad(const tImGr & aImGr,const cParamAllFilterDCT & aParam)
 {
-    return new  cRadFilterCT<Type>(aImGr,aR0,aR1,aEpsilon);
+    return new  cRadFilterCT<Type>(aImGr,aParam);
 }
 
 
+// template cIm2D<TYPE> ImBinarity(cIm2D<TYPE>  aDIm,double aR0,double aR1);
 
 #define INSTANTIATE_FILTER_TARGET(TYPE)\
-template cIm2D<TYPE> ImBinarity(cIm2D<TYPE>  aDIm,double aR0,double aR1);\
 template cIm2D<TYPE> ImSymetricity(bool doCheck,cIm2D<TYPE>  aDImIn,double aR0,double aR1,double Epsilon);\
 template cIm2D<TYPE> ImSymMin(cIm2D<TYPE>  aImIn,double aR0,double aR1,double Epsilon);
 

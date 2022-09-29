@@ -209,7 +209,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
 
 
     // Initiate image of interpolated value
-    for (int aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
+    for (size_t aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
     {
          MakeOneTri(cTriangle2DCompiled(aTriangul.KthTri(aKTri)));
     }

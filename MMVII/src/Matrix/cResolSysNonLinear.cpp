@@ -22,24 +22,20 @@ template <class Type>  cInputOutputRSNL<Type>::cInputOutputRSNL(const tVectInd& 
 template <class Type>  cInputOutputRSNL<Type>::cInputOutputRSNL(const tVectInd& aVInd,const tStdVect & aVTmp,const tStdVect & aVObs):
      mVTmpUK    (aVTmp),
      mVIndGlob  (aVInd),
-     mVObs      (aVObs)
+     mVObs      (aVObs),
+     mNbTmpUk   (0)
 {
 
     //  Check consistency on temporary indexes
-    int aNbInd2Subst=0;
     for (const auto & anInd : aVInd)
     {
         if (anInd<0) 
         {
             MMVII_INTERNAL_ASSERT_tiny(anInd==RSL_INDEX_SUBST_TMP,"IndTmp bas val");
-            aNbInd2Subst ++;
-        }
-        else
-        {
-           mVIndUk.push_back(anInd);
+	    mNbTmpUk++;
         }
     }
-    MMVII_INTERNAL_ASSERT_tiny(aNbInd2Subst==(int)mVTmpUK.size(),"Size Tmp/subst in  cInputOutputRSNL");
+    MMVII_INTERNAL_ASSERT_tiny(mNbTmpUk==(int)mVTmpUK.size(),"Size Tmp/subst in  cInputOutputRSNL");
 }
 
 template <class Type> Type cInputOutputRSNL<Type>::WeightOfKthResisual(int aK) const
@@ -138,13 +134,14 @@ template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const
 /*                                                              */
 /* ************************************************************ */
 
-template <class Type>  cResidualWeighter<Type>::cResidualWeighter()
+template <class Type>  cResidualWeighter<Type>::cResidualWeighter(const Type & aVal) :
+    mVal (aVal)
 {
 }
 
 template <class Type>  std::vector<Type>  cResidualWeighter<Type>::WeightOfResidual(const tStdVect & aVResidual) const
 {
-	return tStdVect(aVResidual.size(),1.0);
+	return tStdVect(aVResidual.size(),mVal);
 }
 
 
@@ -154,10 +151,15 @@ template <class Type>  std::vector<Type>  cResidualWeighter<Type>::WeightOfResid
 /*                                                              */
 /* ************************************************************ */
 
+      // =====    constructors / destructors ================
+
 template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(tLinearSysSR * aSys,const tDVect & aInitSol) :
-    mNbVar      (aInitSol.Sz()),
-    mCurGlobSol (aInitSol.Dup()),
-    mSysLinear        (aSys)
+    mNbVar          (aInitSol.Sz()),
+    mCurGlobSol     (aInitSol.Dup()),
+    mSysLinear      (aSys),
+    mInPhaseAddEq   (false),
+    mVarIsFrozen    (mNbVar,false),
+    mValueFrozenVar (mNbVar,-1)
 {
 }
 
@@ -166,16 +168,93 @@ template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(eModeSSR aMod
 {
 }
 
+template <class Type> cResolSysNonLinear<Type>::~cResolSysNonLinear()
+{
+    delete mSysLinear;
+}
+
+      // =============  miscelaneous accessors    ================
+     
+template <class Type> cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLinear() 
+{
+    mInPhaseAddEq = true;  // cautious, if user requires this access he may modify
+    return mSysLinear;
+}
+
+template <class Type> int cResolSysNonLinear<Type>::NbVar() const {return mNbVar;}
+
+      // =====    handling of frozen vars ================
+
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(int aK,const  Type & aVal)
+{
+    AssertNotInEquation();
+    mVarIsFrozen.at(aK) = true;
+    mValueFrozenVar.at(aK) = aVal;
+}
+
+template <class Type> void cResolSysNonLinear<Type>::SetUnFrozen(int aK)
+{
+    AssertNotInEquation();
+    mVarIsFrozen.at(aK) = false;
+}
+
+template <class Type> void cResolSysNonLinear<Type>::UnfrozeAll()
+{
+    AssertNotInEquation();
+    for (int aK=0 ; aK<mNbVar ; aK++)
+        mVarIsFrozen[aK] = false;
+}
+
+template <class Type> bool cResolSysNonLinear<Type>::VarIsFrozen(int aK) const
+{
+     return mVarIsFrozen.at(aK);
+}
+
+template <class Type> void cResolSysNonLinear<Type>::AssertNotInEquation() const
+{
+    if (mInPhaseAddEq)
+       MMVII_INTERNAL_ERROR("Operation forbiden while adding equations");
+}
+
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixVar(const int & aNumV,const Type & aVal,const Type& aWeight)
 {
-// StdOut() << "VAEFC " << aNumV << " " << CurSol().
      tSVect aSV;
      aSV.AddIV(aNumV,1.0);
      // Dont forget that the linear system compute the difference with current solution ...
      mSysLinear->AddObservation(aWeight,aSV,aVal-CurSol(aNumV));
-     // mSys->AddObservation(aWeight,aSV,CurSol(aNumV)+aVal);
+
+     {
+         // StdOut() << "XXXxxx= " << aVal - CurSol(aNumV) << "\n";
+	 // getchar();
+     }
 }
 
+template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const int & aNumV,const Type& aWeight)
+{
+     AddEqFixVar(aNumV,mCurGlobSol(aNumV),aWeight);
+}
+
+template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL& aIO)
+{
+    for (size_t aKVar=0 ; aKVar<aIO.mVIndGlob.size() ; aKVar++)
+    {
+         int aIndGlob = aIO.mVIndGlob[aKVar];
+	 if ( (aIndGlob>=0) && (mVarIsFrozen.at(aIndGlob)))
+	 {
+              Type aDeltaVar = mValueFrozenVar.at(aIndGlob) - mCurGlobSol(aIndGlob);
+              for (size_t aKEq=0 ; aKEq<aIO.mVals.size() ; aKEq++)
+	      {
+                   Type & aVDer = aIO.mDers.at(aKEq).at(aKVar);
+	           //  Taylor expension :   Som_k {aVDer (Xk-Curk)}  + aVal
+		   aIO.mVals[aKEq]  +=  aVDer * aDeltaVar;
+		   aVDer = 0;
+	      }
+	 }
+    }
+}
+
+
+      // =============  access to current solution    ================
 
 template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::CurGlobSol() const 
 {
@@ -185,93 +264,39 @@ template <class Type> const Type & cResolSysNonLinear<Type>::CurSol(int aNumV) c
 {
     return mCurGlobSol(aNumV);
 }
-
-template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset() 
+template <class Type> void cResolSysNonLinear<Type>::SetCurSol(int aNumV,const Type & aVal) 
 {
-    mCurGlobSol += mSysLinear->Solve();
-    //  mCurGlobSol += mSysLinear->SparseSolve();
-    mSysLinear->Reset();
-
-    return mCurGlobSol;
-}
-
-template <class Type> cLinearOverCstrSys<Type> * cResolSysNonLinear<Type>::SysLinear() 
-{
-    return mSysLinear;
+    AssertNotInEquation();
+    mCurGlobSol(aNumV) = aVal;
 }
 
 
-template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const int & aNumV,const Type& aWeight)
-{
-     AddEqFixVar(aNumV,mCurGlobSol(aNumV),aWeight);
-}
+     /*     =========================    adding equations ==================================
+ 
+       # Global :
+	      CalcVal  -> *  fondamental methods, 
+	                  *  generate the computation of formal derivative and put the result
+	                     in  vector<cInputOutputRSNL>,  
+	                  *  used in case schur an
+			  *  it's a vector to allow later, a possible use in parallel
 
-template <class Type> void cResolSysNonLinear<Type>::CalcAndAddObs
-                           (
-                                  tCalc * aCalcVal,
-			          const tVectInd & aVInd,
-				  const tStdVect& aVObs,
-				  const tResidualW & aWeigther
-                            )
-{
-    std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
+       # Case Non Schurr :
+	      CalcAndAddObs ->   * calc CalcVal to compute derivative then AddObs
+				
+	      AddObs  ->         *  send cInputOutputRSNL this in linear system
 
-    CalcVal(aCalcVal,aVIO,true,aWeigther);
-    AddObs(aVIO);
-}
+       # Case Schurr :
 
+              AddEq2Subst   ->   *   CalcVal to compute derivative  then 
+	                             push the result in a structure cSetIORSNL_SameTmp
 
-template <class Type> cResolSysNonLinear<Type>::~cResolSysNonLinear()
-{
-    delete mSysLinear;
-}
+              AddObsWithTmpUK -> *  sens a structure cSetIORSNL_SameTmp to the linear system
+	                            to make the schurr elimination
 
+       # Remark : using schurr and paralelizing formal derivatives will require additionnal methods.
+                  (with probably more sophisticated/complex protocols)
 
-template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<tIO_RSNL>& aVIO)
-{
-      // Parse all the linearized equation
-      for (const auto & aIO : aVIO)
-      {
-	  // check we dont use temporary value
-          MMVII_INTERNAL_ASSERT_tiny(aIO.mVTmpUK.empty(),"Cannot use tmp uk w/o Schurr complement");
-
-	  // parse all values
-	  for (size_t aKVal=0 ; aKVal<aIO.mVals.size() ; aKVal++)
-	  {
-	      Type aW = aIO.WeightOfKthResisual(aKVal);
-	      if (aW>0)
-	      {
-	         tSVect aSV;
-		 const tStdVect & aVDer = aIO.mDers[aKVal];
-	         for (size_t aKUk=0 ; aKUk<aIO.mVIndUk.size() ; aKUk++)
-                 {
-                     aSV.AddIV(aIO.mVIndUk[aKUk],aVDer[aKUk]);
-	         }
-		 // Note the minus sign :  F(X0+dx) = F(X0) + Gx.dx   =>   Gx.dx = -F(X0)
-	         mSysLinear->AddObservation(aW,aSV,-aIO.mVals[aKVal]);
-	      }
-	  }
-
-      }
-}
-
-
-template <class Type> void   cResolSysNonLinear<Type>::AddEq2Subst 
-                             (
-			          tSetIO_ST & aSetIO,tCalc * aCalc,const tVectInd & aVInd,const tStdVect& aVTmp,
-			          const tStdVect& aVObs,const tResidualW & aWeighter
-			     )
-{
-    std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVTmp,aVObs));
-    CalcVal(aCalc,aVIO,true,aWeighter);
-
-    aSetIO.AddOneEq(aVIO.at(0));
-}
-			     
-template <class Type> void cResolSysNonLinear<Type>::AddObsWithTmpUK (const tSetIO_ST & aSetIO)
-{
-    mSysLinear->AddObsWithTmpUK(aSetIO);
-}
+     */
 
 template <class Type> void   cResolSysNonLinear<Type>::CalcVal
                              (
@@ -281,6 +306,7 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
 				  const tResidualW & aWeighter
                               )
 {
+      mInPhaseAddEq = true;
       MMVII_INTERNAL_ASSERT_tiny(aCalcVal->NbInBuf()==0,"Buff not empty");
 
       // Put input data
@@ -333,11 +359,92 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
                }
 	   }
            aIO.mWeights = aWeighter.WeightOfResidual(aIO.mVals);
+	   ModifyFrozenVar(aIO);
       }
 }
-#if (0)
 
-#endif
+
+template <class Type> void cResolSysNonLinear<Type>::CalcAndAddObs
+                           (
+                                  tCalc * aCalcVal,
+			          const tVectInd & aVInd,
+				  const tStdVect& aVObs,
+				  const tResidualW & aWeigther
+                            )
+{
+    std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
+
+    CalcVal(aCalcVal,aVIO,true,aWeigther);
+    AddObs(aVIO);
+}
+
+
+template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<tIO_RSNL>& aVIO)
+{
+      mInPhaseAddEq = true;
+      // Parse all the linearized equation
+      for (const auto & aIO : aVIO)
+      {
+	  // check we dont use temporary value
+          MMVII_INTERNAL_ASSERT_tiny(aIO.mVTmpUK.empty(),"Cannot use tmp uk w/o Schurr complement");
+
+	  // parse all values
+	  for (size_t aKVal=0 ; aKVal<aIO.mVals.size() ; aKVal++)
+	  {
+	      Type aW = aIO.WeightOfKthResisual(aKVal);
+	      if (aW>0)
+	      {
+	         tSVect aSV;
+		 const tStdVect & aVDer = aIO.mDers[aKVal];
+	         for (size_t aKUk=0 ; aKUk<aIO.mVIndGlob.size() ; aKUk++)
+                 {
+                     aSV.AddIV(aIO.mVIndGlob[aKUk],aVDer[aKUk]);
+	         }
+		 // Note the minus sign :  F(X0+dx) = F(X0) + Gx.dx   =>   Gx.dx = -F(X0)
+	         mSysLinear->AddObservation(aW,aSV,-aIO.mVals[aKVal]);
+	      }
+	  }
+
+      }
+}
+
+
+template <class Type> void   cResolSysNonLinear<Type>::AddEq2Subst 
+                             (
+			          tSetIO_ST & aSetIO,tCalc * aCalc,const tVectInd & aVInd,const tStdVect& aVTmp,
+			          const tStdVect& aVObs,const tResidualW & aWeighter
+			     )
+{
+    std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVTmp,aVObs));
+    CalcVal(aCalc,aVIO,true,aWeighter);
+
+    aSetIO.AddOneEq(aVIO.at(0));
+}
+			     
+template <class Type> void cResolSysNonLinear<Type>::AddObsWithTmpUK (const tSetIO_ST & aSetIO)
+{
+    mSysLinear->AddObsWithTmpUK(aSetIO);
+}
+
+
+
+            //  =========    resolving ==========================
+
+template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset() 
+{
+    mInPhaseAddEq = false;
+    // for var frozen, they are not involved in any equation, we must fix their value other way
+    for (int aK=0 ; aK<mNbVar ; aK++)
+        if (mVarIsFrozen[aK])
+           AddEqFixVar(aK,mValueFrozenVar[aK],1.0);
+
+    mCurGlobSol += mSysLinear->Solve();     //  mCurGlobSol += mSysLinear->SparseSolve();
+    mSysLinear->Reset();
+
+    return mCurGlobSol;
+}
+
+
 
 
 /* ************************************************************ */

@@ -13,6 +13,21 @@ tNameSet  MMV1InitSet(const std::string & aName);
 tNameRel  MMV1InitRel(const std::string & aName);
 
 
+/** class for exporting internal calibration resulting of MMV1process, mainly exported as
+ */
+struct  cExportV1StenopeCalInterne
+{
+       public :
+             cExportV1StenopeCalInterne(const std::string& aFile,int aNbPointPerDim=30,int aNbLayer=2);
+
+	     eProjPC   eProj;
+	     cPt2di    mSzCam;
+	     tREAL8    mFoc;
+	     cPt2dr    mPP;
+	     cSet2D3D  mCorresp;
+};
+
+
 //  Defined in MMVII_Stringifier.h for Serialization
 // template<class Type> void  MMv1_SaveInFile(const Type & aVal,const std::string & aName)
 // template<> void  MMv1_SaveInFile(const tNameSet & aVal,const std::string & aName);

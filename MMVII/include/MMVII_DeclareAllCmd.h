@@ -46,6 +46,7 @@ extern cSpecMMVII_Appli  TheSpecMeshDev;
 extern cSpecMMVII_Appli  TheSpecGenMeshDev; 
 extern cSpecMMVII_Appli  TheSpecComputeStatsCorrel; 
 extern cSpecMMVII_Appli  TheSpecProgDynEpipolar;
+extern cSpecMMVII_Appli  TheSpecTestCovProp; 
 };
 
 #endif  //  _MMVII_DeclareAllCmd_H_

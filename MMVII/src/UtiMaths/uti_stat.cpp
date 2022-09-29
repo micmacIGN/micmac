@@ -19,6 +19,94 @@ double FactExpFromSigma2(double aS2)
 
 /* *************************************** */
 /*                                         */
+/*            cParamRansac                 */
+/*                                         */
+/* *************************************** */
+
+cParamRansac::cParamRansac(double  aProba1Err,double anErrAdm) :
+    mProba1Err (aProba1Err),
+    mErrAdm    (anErrAdm)
+{
+}
+
+
+int  cParamRansac::NbTestOfErrAdm(int aNbSample) const
+{
+   double aProbaAllOk = pow(1-mProba1Err,aNbSample);
+
+   // (1- aProbaAllOk) ^ Nb < mErrAdm
+   return round_up(log(mErrAdm) / log(1-aProbaAllOk));
+}
+
+/* *************************************** */
+/*                                         */
+/*            cParamCtrNLsq                */
+/*                                         */
+/* *************************************** */
+
+cParamCtrNLsq::cParamCtrNLsq()
+{
+}
+
+double cParamCtrNLsq::ValBack(int aK) const
+{
+   return mVER.at(mVER.size()-1-aK);
+}
+
+
+double cParamCtrNLsq::GainRel(int aK1,int aK2) const
+{
+    return (ValBack(aK2)-ValBack(aK1))  / ValBack(aK2);
+}
+
+
+bool cParamCtrNLsq::StabilityAfterNextError(double anErr) 
+{
+    // Err can decrease, stop now to avoid / by 0
+    if (anErr<=0) 
+       return true;
+
+    mVER.push_back(anErr);
+
+    int aNb = mVER.size() ; // If less 2 value, cannot estimate variation
+    if (aNb>10)
+       return true;
+
+    if (aNb<2) 
+       return false;
+    
+    if (GainRel(0,1)<1e-4) // if err increase or almosr stable
+       return true;
+
+    return false;
+}
+
+/* *************************************** */
+/*                                         */
+/*        cParamCtrlOpt                    */
+/*                                         */
+/* *************************************** */
+
+
+cParamCtrlOpt::cParamCtrlOpt(const cParamRansac & aPRS,const cParamCtrNLsq & aPLS) :
+    mParamRS  (aPRS),
+    mParamLSQ (aPLS)
+{
+}
+const cParamRansac  & cParamCtrlOpt::ParamRS()  const {return mParamRS;}
+const cParamCtrNLsq & cParamCtrlOpt::ParamLSQ() const {return mParamLSQ;}
+
+cParamCtrlOpt  cParamCtrlOpt::Default()
+{
+   return cParamCtrlOpt
+          (
+              cParamRansac(0.5,1e-6),
+              cParamCtrNLsq()
+          );
+}
+
+/* *************************************** */
+/*                                         */
 /*        cComputeStdDev                   */
 /*                                         */
 /* *************************************** */

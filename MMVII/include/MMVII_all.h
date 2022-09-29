@@ -30,8 +30,8 @@
 
 //===========================================
 #include "MMVII_AllClassDeclare.h"
-#include "MMVII_Error.h"
 #include "MMVII_enums.h"
+#include "MMVII_Error.h"
 // Header MMVII
 // #include "TypeNum.h"
 #include "MMVII_Sys.h"
@@ -77,12 +77,12 @@
 #include "MMVII_DeclareAllCmd.h"
 
 #include "MMVII_Interpolators.h"
-// communication MMVII/MMv1
+#include "MMVII_PhgrDist.h"
 
-#include "MMVII_MMV1Compat.h"
+// communication MMVII/MMv1
+#include "MMVII_MMV1Compat.h"  // should be at end, as it uses potentially many types of V2
 //  #include "MMVII_Derivatives.h" => not include by default now, requires <Eigen/Dense> => time consuming
 
-#include "MMVII_PhgrDist.h"
 
 
 #endif //  _MMVII_ALL_H_

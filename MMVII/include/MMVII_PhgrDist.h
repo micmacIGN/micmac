@@ -63,22 +63,22 @@ class cRandInvertibleDist
 
        double                          mRhoMax;  
        cPt3di                          mDeg;     ///< Degree of dist
+       std::vector<cDescOneFuncDist>   mVecDesc; ///< Vector of descriptor
        tCalc *                         mEqVal;   ///< Calculator for values only
        tCalc *                         mEqDer;   ///< Calculator for values and derivatoves
        int                             mNbParam; ///< Number of parameters
        std::vector<double>             mVParam;  ///< Computed parameters
-       std::vector<cDescOneFuncDist>   mVecDesc; ///< Vector of descriptor
 };
 
 
 
 
 
-///  Allocate a calculator computing the distorsion
+///  Allocate a calculator computing the distorsion  UK=x,y  Obs=K1,K2 .....   K1 r +K2 R^3 ...
 NS_SymbolicDerivative::cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf);
-/// Allocate a calculator computing the base familly of a distorsion
+/// Allocate a calculator computing the base familly of a distorsion  UK=x,y Obs=K1,K2 .....  Kr, K2 R^3 
 NS_SymbolicDerivative::cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf);
-/// Alloc a map corresponding to  distorsions
+/// Alloc a map corresponding to  distorsions : 
 cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::vector<double> & aVObs,int aSzBuf);
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);
@@ -87,6 +87,25 @@ std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);
 NS_SymbolicDerivative::cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf);
 /// Ratio of dist, Uk={x1,y1,x2,y2,x3,y3} Obs={D12,D13,D23} ,  3 Residuals as D(p1,p2)/D12 - D(p1,p3)/D13
 NS_SymbolicDerivative::cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf);
+
+/// Equation used to optimize homothetic transform between model and image (used as a tutorial for deformable model)
+NS_SymbolicDerivative::cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf);
+
+
+/// For propag cov in network 
+NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistProgCov(bool WithDerive,int aSzBuf,const cPt2di& aSzN);
+/// For propag in network  W/O covariance (i.e propagate directly the points)
+NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,const cPt2di& aSzN,bool WithSimUK);
+
+///  For computing central perspectives projections     R3->R2
+NS_SymbolicDerivative::cCalculator<double> * EqCPProjDir(eProjPC  aType,bool WithDerive,int aSzBuf);
+///  For computing projections "inverse"   R2->R3 , return in fact direction of  bundle
+NS_SymbolicDerivative::cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf);
+
+
+
+
+
 
 
 

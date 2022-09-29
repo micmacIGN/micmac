@@ -19,9 +19,10 @@ template <class Type>
          mSetInd    (aNbVar),
 	 mSysRed    (1),
 	 mL         (1,1),
-	 mLInv      (1,1),
+	 // mLInv      (1,1),
 	 mtB        (1,1),
 	 mtB_LInv   (1,1),
+	 mLInv_B    (1,1),
 	 mB         (1,1),
 	 mtB_LInv_B (1,1),
          mM11       (1,1),
@@ -57,8 +58,13 @@ template <class Type>
      mNbTmp = aSetSetEq.NbTmpUk();
      for (const auto & anEq : aSetSetEq.AllEq())
      {
-         for (const auto & anInd : anEq.mVIndUk)
-             mSetInd.AddInd(anInd);
+         for (const auto & anInd : anEq.mVIndGlob)
+	 {
+             if (anInd>=0)
+	     {
+                 mSetInd.AddInd(anInd);
+	     }
+	 }
      }
      mSetInd.SortInd();
 
@@ -85,8 +91,6 @@ template <class Type>
      //  Compute the reduced  least square system
      for (const auto & aSetEq : aSetSetEq.AllEq())
      {
-         // const std::vector<int> & aVI =   aSetEq.mVIndUk;
-	 // size_t aNbI = aVI.size();
          for (size_t aKEq=0 ; aKEq<aSetEq.mVals.size() ; aKEq++)
 	 {
               mSV.Reset();
@@ -137,13 +141,13 @@ template <class Type>
       mC1.ResizeAndCropIn(mNbTmp,mNbUkTot,atARhs);
 
 
-      // compute L-1 in  mLInv
-      mLInv.Resize(aSzTmp);
-      mLInv.InverseInPlace(mL);  //  ============  TO OPTIM MATR SYM
 
-      // compute tB*L-1 in  mtB_mLInv
+      // compute tB*L-1 in  mtB_LInv
       mtB_LInv.Resize(cPt2di(mNbTmp,mNbUk));
-      mtB_LInv.MatMulInPlace(mtB,mLInv);
+      mLInv_B.Resize(cPt2di(mNbUk,mNbTmp));
+      mL.SolveIn(mLInv_B,mB,eTyEigenDec::eTED_LLDT);   // mLInv_B = L-1 B
+      mLInv_B.TransposeIn(mtB_LInv);                   // mtB_LInv = tB L-1 as L=tL
+  
 
       // compute tB*L-1*B  in  mtB_mLInv_B
       mtB_LInv_B.Resize(cPt2di(mNbUk,mNbUk)) ;
@@ -237,7 +241,7 @@ template<class Type> void  cLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_Sa
 template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::Solve()
 {
    mtAA.SelfSymetrizeBottom();
-   return mtAA.Solve(mtARhs,eTyEigenDec::eTED_LLDT);
+   return mtAA.SolveColumn(mtARhs,eTyEigenDec::eTED_LLDT);
 }
 
 template<class Type> const cDenseMatrix<Type> & cLeasSqtAA<Type>::tAA () const {return mtAA;}

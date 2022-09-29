@@ -14,6 +14,94 @@ namespace  cNS_CodedTarget
     class cDCT;
 };
 
+class cParam1FilterDCT
+{
+     public :
+         cParam1FilterDCT();  ///< default constructor for serialization
+
+         virtual bool        IsSym() const =0;   ///< Being sym is a property constant in the derived class
+         virtual bool        IsCumul() const =0;   ///< Being sym is a property constant in the derived class
+         virtual eDCTFilters ModeF() const=0;    ///< Mode is a property constant in the derived class
+         void AddData(const cAuxAr2007 & anAux); ///< serialization
+
+
+         double   R0()     const;  ///< accessor
+         double   R1()     const;  ///< accessor
+         double   ThickN() const;  ///< accessor
+     private :
+         double   mR0;
+         double   mR1;
+         double   mThickN;
+};
+
+
+class cParamFilterDCT_Bin : public cParam1FilterDCT
+{
+     public :
+         cParamFilterDCT_Bin();  ///< default constructor for serialization
+
+         bool        IsSym() const override;     ///< No
+         bool        IsCumul() const override;   ///< No
+         eDCTFilters ModeF() const override;     ///<  eBin
+
+         void AddData(const cAuxAr2007 & anAux); ///< serialization
+         double   PropBW() const;  ///< accessor
+     private :
+         double  mPropBW; ///< prop for estimation of black & white
+};
+
+class cParamFilterDCT_Sym : public cParam1FilterDCT
+{
+     public :
+         cParamFilterDCT_Sym();  ///< default constructor for serialization
+
+         bool        IsSym() const override;     ///< true
+         bool        IsCumul() const override;   ///< true
+         eDCTFilters ModeF() const override;     ///<  eSym
+
+         void AddData(const cAuxAr2007 & anAux); ///< serialization
+	 double Epsilon() const;
+     private :
+	 double mEpsilon;
+};
+
+class cParamFilterDCT_Rad : public cParam1FilterDCT
+{
+     public :
+         cParamFilterDCT_Rad();  ///< default constructor for serialization
+
+         bool        IsSym() const override;     ///< false
+         bool        IsCumul() const override;   ///< true
+         eDCTFilters ModeF() const override;     ///<  eRad
+
+         void AddData(const cAuxAr2007 & anAux); ///< serialization
+	 double Epsilon() const;
+     private :
+	 double mEpsilon;
+};
+
+
+
+class cParamAllFilterDCT
+{
+     public :
+        void AddData(const cAuxAr2007 & anAux); ///< serialization
+
+        double   RGlob()     const;  ///< accessor
+	const cParamFilterDCT_Bin & Bin() const ;
+	const cParamFilterDCT_Sym & Sym() const ;
+	const cParamFilterDCT_Rad & Rad() const ;
+
+	cParamAllFilterDCT();
+     private :
+        cParamFilterDCT_Bin  mBin;  ///< default constructor for serialization
+        cParamFilterDCT_Sym  mSym;  ///< default constructor for serialization
+        cParamFilterDCT_Rad  mRad;  ///< default constructor for serialization
+        double  mRGlob; ///< glob multiplier of all ray
+};
+
+
+
 
 
 /**  mother class of all filters used in detection; all these fiters share the same caracteristics :
@@ -38,9 +126,10 @@ template <class Type>  class  cFilterDCT : public cMemCheck
 
 
 	   //  ===============  Allocator =============
-           static cFilterDCT<Type> * AllocSym(tIm anIm,double aR0,double aR1,double aEpsilon);
-           static cFilterDCT<Type> * AllocBin(tIm anIm,double aR0,double aR1);
-           static cFilterDCT<Type> * AllocRad(const tImGr & aImGr,double aR0,double aR1,double aEpsilon);
+           static cFilterDCT<Type> * AllocSym(tIm anIm,const cParamAllFilterDCT &);
+           // static cFilterDCT<Type> * AllocBin(tIm anIm,double aR0,double aR1);
+           static cFilterDCT<Type> * AllocRad(const tImGr & aImGr,const cParamAllFilterDCT &);
+           static cFilterDCT<Type> * AllocBin(tIm anIm,const cParamAllFilterDCT &);
 
 	   virtual ~cFilterDCT();  ///<  X::~X() virtual as there is virtual methods
 
@@ -61,6 +150,7 @@ template <class Type>  class  cFilterDCT : public cMemCheck
 
     protected  :
            cFilterDCT(bool IsCumul,eDCTFilters aMode,tIm anIm,bool IsSym,double aR0,double aR1,double aThickN=1.5);
+	   cFilterDCT(tIm anIm,const cParamAllFilterDCT & aGlob,const cParam1FilterDCT *);
            cFilterDCT (const cFilterDCT<Type> &) = delete;
 
            void IncrK0(int & aK0);
@@ -74,12 +164,12 @@ template <class Type>  class  cFilterDCT : public cMemCheck
            bool                 mIsSym;
            double               mR0;
            double               mR1;
-           double               mThickN;
+           double               mThickN; ///< if filter is not cumulative, step of crown in ComputeValMaxCrown
            cPt2dr               mCurC;
            std::vector<cPt2di>  mIVois;
            std::vector<cPt2dr>  mRVois;
            double               mRhoEnd;
-            
+
            /**   when we want to compute the filter in mode "min on all crown" we will use this
                  vector of pair index;  suppose we have made a computation, the current crown
                  is interval  [10,20[  , and next interval is [13,26[
@@ -97,7 +187,7 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool DoCheck,cIm2D<TypeEl> an
 template <class Type>  class cExtractDir
 {
      public :
-         typedef cIm2D<Type>     tIm;   // shared pointer 
+         typedef cIm2D<Type>     tIm;   // shared pointer
          typedef cDataIm2D<Type> tDIm;  // raw reference/pointer for manipulating object
          typedef cNS_CodedTarget::cDCT tDCT;
          typedef std::vector<cPt2dr> tVDir;
@@ -105,7 +195,7 @@ template <class Type>  class cExtractDir
          cExtractDir(tIm anIm,double aRhoMin,double aRhoMax);
 
          /// try the computation of two directions of checkboard, mail fail , return true if sucess
-         bool  CalcDir(tDCT &) ; 
+         bool  CalcDir(tDCT &) ;
 
          /// computes scores once the direction have been computed
          double ScoreRadiom(tDCT & aDCT) ;
@@ -114,7 +204,7 @@ template <class Type>  class cExtractDir
          /// possible refinement of direction (not so usefull in fact ...)
          cPt2dr OptimScore(const cPt2dr & ,double aStepTeta);
          /// score used in OptimScore
-         double Score(const cPt2dr & ,double aTeta); 
+         double Score(const cPt2dr & ,double aTeta);
 
           tIm     mIm;  ///< smart pointer , will indicate that we need the object (no to free)
           tDIm&   mDIm;  ///< reference pour acces rapide
@@ -128,7 +218,7 @@ template <class Type>  class cExtractDir
           tDCT *                  mPDCT;       ///< tested target
        // (SortedVectOfRadius(aR0,aR1,IsSym))
 };
-bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB);
+bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor);
 
 };
 #endif // _FILTER_CODED_TARGET_H_

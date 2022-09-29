@@ -23,6 +23,7 @@ template <class Type> class cDenseVect ;
 template <class Type> class cMatrix  ;
 template <class Type> class cUnOptDenseMatrix ;
 template <class Type> class cDenseMatrix ;
+template <class Type> class cLeasSqtAA ;
 
 template <class Type> std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV);
 template <class Type> std::ostream & operator << (std::ostream & OS,const cMatrix<Type> &aMat);
@@ -60,6 +61,7 @@ template <class Type> class  cSparseVect  : public cMemCheck
         /// SzInit fill with arbitray value, only to reserve space
         // cSparseVect(int aSzReserve=-1,int aSzInit=-1) ;  
         cSparseVect(int aSzReserve=-1) ;  
+        cSparseVect(const cDenseVect<Type> &);
 	/// Check the vector can be used in a matrix,vect [0,Nb[, used in the assertions
         bool IsInside(int aNb) const;
 	void Reset();
@@ -304,6 +306,8 @@ template <class Type> class cStrStat2;
 template <class Type> class cNC_EigenMatWrap;
 template <class Type> class cResulQR_Decomp;
 template <class Type> class cResulSVDDecomp;
+template <class Type> class cResulEigenDecomp;
+
 
 /**  Dense Matrix, probably one single class. 
      Targeted to be instantiated with 4-8-16 byte floating point
@@ -383,8 +387,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tDM  Inverse() const;  ///< Basic inverse
         tDM  Inverse(double Eps,int aNbIter) const;  ///< N'amene rien, eigen fonctionne deja tres bien en general 
 
+        void  SolveIn(tDM& aRes,const tDM &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDM  Solve(const tDM &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
-        tDV  Solve(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
+        tDV  SolveColumn(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDV  SolveLine(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
 
 
@@ -394,7 +399,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         cResulSymEigenValue<Type> SymEigenValue() const;
         tRSVD  SVD() const;
 
-        cResulQR_Decomp<Type>  QR_Decomposition() const;
+        cResulQR_Decomp<Type>    QR_Decomposition() const;
+        cResulEigenDecomp<Type>  Eigen_Decomposition() const;
+
 
         //  ====  Symetricity/Transpose/Triangularise manipulation
 
@@ -436,6 +443,18 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 	//  void operator -= (const cDenseMatrix<Type> &) ;  => see  "include/MMVII_Tpl_Images.h"
 
 };
+
+template <class Type> class cResulEigenDecomp
+{
+      public :
+         cResulEigenDecomp<Type>(int aN);
+         cDenseMatrix<Type>  mEigenVec_R;  ///< real part
+         cDenseMatrix<Type>  mEigenVec_I;  ///< imaginary part
+
+         cDenseVect<Type>    mEigenVal_R;  ///<
+         cDenseVect<Type>    mEigenVal_I;  ///<
+};
+
 
 
 template <class Type> class cResulSymEigenValue
@@ -498,6 +517,42 @@ template <class Type> class cResulQR_Decomp
 
 };
 
+
+/// Auxialry class for cDecSumSqLinear
+
+template <class Type>  class cElemDecompQuad
+{
+     public :
+         cElemDecompQuad(const Type& aW,const cDenseVect<Type> & aV,const Type & aCste);
+         Type              mW;  // weight
+         cDenseVect<Type>  mCoeff;
+         Type              mCste;  // weight
+};
+/**  Class to decompose a positive quadratic form a sum of square of linear form :
+
+     input A,B,X0  => out  (Wi Li  Ci), such that :
+      t(X-AX0) A (X-X0)  - 2tB (X-X0) + tBB =  Sum ( Wi (Li X-Ci))^2 
+      Li are norm 1 and orthogonal to each others
+
+     Generally B will be equal to 0 , as the elements commes from minimization where the 
+     value are stored relativelt to current solution, so B~0 at stability ...
+*/
+
+template <class Type>  class cDecSumSqLinear
+{
+     public :
+         typedef cElemDecompQuad<Type>  tElem;
+         void  Set(const cDenseVect<Type> & aX0,const cDenseMatrix<Type> & aMat,const cDenseVect<Type> & aVectB);
+         cDecSumSqLinear();
+
+         // recover initial system (check/Bench)
+         cLeasSqtAA<Type>  OriSys() const;
+         const std::vector<tElem> &   VElems() const;
+     private :
+         int                  mNbVar;
+         std::vector<tElem>   mVElems;
+
+};
 
 
 
@@ -814,6 +869,30 @@ template<class Type> cDenseVect<Type> EigenSolveLsqGC
                                            const std::vector<Type> & aVec,
                                            int   aNbVar
                                       );
+
+class cParamCtrNLsq
+{
+     public :
+        /// Memorize a new error , and eventualy indicate statbility
+        bool StabilityAfterNextError(double) ;
+        cParamCtrNLsq();
+     private : 
+        double GainRel(int aK1,int aK2) const;  // ex GainRel(1,2) 
+        inline double ValBack(int aK) const;  // ex GainRel(1,2) 
+        std::vector<double> mVER;
+};
+
+class  cParamCtrlOpt
+{
+    public :
+        cParamCtrlOpt(const cParamRansac &,const cParamCtrNLsq &);
+        const cParamRansac  & ParamRS() const;
+        const cParamCtrNLsq & ParamLSQ() const;
+        static cParamCtrlOpt  Default();
+    private :
+        cParamRansac  mParamRS;
+        cParamCtrNLsq mParamLSQ;
+};
 
 
 

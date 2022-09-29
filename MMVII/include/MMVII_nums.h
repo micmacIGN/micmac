@@ -89,6 +89,22 @@ std::vector<int> RandNeighSet(int aK,int aN,const std::vector<int> & aSet);
 /// Complement of aSet in [0,1...., N[    ;  ]]
 std::vector<int> ComplemSet(int aN,const std::vector<int> & aSet);
 
+
+/** class to generate a random subset of  K among N, not veru efficent if K<<N because all [0,N] must be parsed
+    on the other hand efficient in memory */
+
+
+class cRandKAmongN
+{
+    public :
+      cRandKAmongN(int aK,int aN);
+
+      bool GetNext();
+    private :
+        int mK;
+        int mN;
+};
+
 /// K is the numbre to select, it will be selected regularly with a proportion aProp
 bool SelectWithProp(int aK,double aProp);
 bool SelectQAmongN(int aK,int aQ,int aN);
@@ -369,6 +385,7 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
          typedef tElemNumTrait<Type>  tETrait;
          typedef typename  tETrait::tBase tBase;
          typedef typename  tETrait::tBig  tBig ;
+         // typedef typename  tETrait::tFloatAssoc  tFloatAssoc ;
       // ===========================
          bool V_IsInt()  const override {return  tBaseNumTrait<tBase>::IsInt();}
          bool V_Signed() const override {return  tETrait::Signed();}
@@ -441,6 +458,12 @@ template <> class tMergeF<tREAL8,tREAL8> { public : typedef tREAL8  tMax; };
 /* ================= Modulo ======================= */
 
 /// work only when b > 0
+inline tINT4 round_to(tINT4 a,tINT4 b)
+{
+   return (a/b) * b;
+}
+
+/// work only when b > 0
 inline tINT4 mod(tINT4 a,tINT4 b)
 {
     tINT4 r = a%b;
@@ -470,6 +493,9 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
     MMVII_INTERNAL_ASSERT_tiny(b>0,"DivSup");
     return (a+b-1)/b; 
 }
+/// a/b but upper valuer  6/3=> 2 7/3 => 3
+#define DIV_SUP(a,b) ((a+b-1)/b)  // macro version usefull for constexpr
+inline tINT4 DivSup(const tINT4 &a,const tINT4& b) {return DivSup(a,b);}  //non macro w/o side effect
 
 /// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
 double NormalisedRatio(double aI1,double aI2);
@@ -722,9 +748,32 @@ bool SignalAtFrequence(tREAL8 anIndex,tREAL8 aFreq,tREAL8  aCenterPhase);
 /*       Analytical function used with fisheye */
 /* ******************************************* */
 
-// Sinus cardinal with caution on tiny values
-template <typename Type> Type sinC(const Type & aTeta);
+/// Sinus cardinal with caution on tiny values < aEps
 template <typename Type> Type sinC(const Type & aTeta,const Type & aEps);
+/// Sinus cardinal default with epsilon of type, to have interface of unitary function
+template <typename Type> Type sinC(const Type & aTeta);
+/// Derivative Sinus cardinal with caution on tiny values < aEps
+template <typename Type> Type DerSinC(const Type & aTeta,const Type & aEps);
+/// Derivative Sinus cardinal with default epsilon of type, to have interface of unitary function
+template <typename Type> Type DerSinC(const Type & aTeta);
+
+/// to have it in good namespace in code gen
+template <typename Type> Type ASin(const Type & aSin);
+/// to have it as operator in code gen
+template <typename Type> Type DerASin(const Type & aSin);
+
+
+/// to have it in good namespace in code gen
+template <typename Type> Type ATan2(const Type & aX,const Type & aY);
+/// to have it d/dx in code gen
+template <typename Type> Type DerX_ATan2(const Type & aX,const Type & aY);
+/// to have it d/dy in code gen
+template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY);
+
+
+
+
+
 
   //  ----- Function used for equilinear fisheye ----
 
@@ -739,6 +788,8 @@ template <typename Type> Type DerYAtanXsY_sX(const Type & X,const Type & Y);
 template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
    /// Same as DerXAtanXY_sX ...  ... bench
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
+
+  
 
 
 /*  ****************************************** */

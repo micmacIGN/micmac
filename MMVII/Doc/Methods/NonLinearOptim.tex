@@ -654,6 +654,226 @@ want to do is to :
 
 This is done by the method {\tt SolveUpdateReset() ;}.
 
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Image, optmization and differenciation in MMVII}
+
+          %  - - - - - - - - - - - - - - - - - - - 
+\subsection{Introduction}
+
+In this section we present the facilities offered in MMVII when we want to mix non
+linear optimisation with images. Typically example of such use are :
+
+\begin{itemize}
+     \item computing a deformation that transform a model of form  to an image;
+           this is (will be) used  in MMVII for refining the  geometry of coded target detection;
+           a very similar example, occurs in optical caracter recognition, if we know the font,
+           the matching between a potential detectected character and the model ("Ab\'ec\'edaire" in french);
+
+      \item this will/could be used (maybe) in matching method that used deformable mesh for modeling
+            the geometry between different images (a well known variant being least-square matching);
+
+      \item this could be used for deformable contour (a topics that used to be very active in 
+            pattern recognition).
+\end{itemize}
+
+          %  - - - - - - - - - - - - - - - - - - - 
+\subsection{Mathematicall modelization}
+
+The basic mathematicall modelization is simply  to consider the images as functions.
+As we deal with  continuous optimization, we need to have an interpolation scheme that
+allow to consider them as function from $\RR^2 \rightarrow \RR$.
+Ideally (to be mathematically consistant with derivation) we should use an interpolation 
+model that is continuously derivable as bicubic interpolation. Also for efficiency reason,
+we will generally prefer a non rigourous model as bilinear;  however the redundancy generally make
+neglectable the difference with bicubic (probably, later, the bicubic option will be added for finer
+tests).
+
+A typicall example is :
+
+\begin{itemize}
+      \item we have an image $I$, we note $I[i,k]$ its value for integer points;
+      \item we extend  $I$ to a function $\RR^2 \rightarrow \RR$ via the interpolation;
+      \item we have a mapping of  $\RR^2$ ,  $\phi : \RR^2 \rightarrow \RR$.
+      \item we want to use the composed function $I \circ \phi$;
+\end{itemize}
+
+Let $q$ , be a point and $q=(\tilde{x}_q,\tilde{y}_q)=\phi(p)$ its transformation by $\phi$. Let $x_0$ and $y_0$
+be the lower bound of $q$ ,and $x_1=x_0+1, y_1 = y_0+1$:
+
+\begin{equation}
+	x_0 \leq \tilde{x}_q < x_1   \; and \;  y_0 \leq \tilde{y}_q < y_1
+\end{equation}
+
+Almost everywhere \footnote{except for integer values of $\tilde{x}_q,\tilde{y}_q$ }, 
+the value of $I \circ \phi$ in a neighourhood of $p$ with  bilinear
+interpolation is given by :
+
+\begin{equation}
+	I(\phi(p)) =   (x_1-\tilde{x}_q)(y_1-\tilde{y}_q) I[x_0,y_0]  
+	             + (\tilde{x}_q-x_0)(y_1-\tilde{y}_q)I[x_1,y_0] \dots 
+		     \label{Eq:Bilinear}
+\end{equation}
+
+We see with equation~\ref{Eq:Bilinear} that we dont need to add new primitive to compute $I \circ \phi$ ,
+as it just a polynomial combination of existing primitive.   By the way, reprogramming it,
+each time we need it would be fastidious and MMVII offer facility functions to make the use of 
+formula~\ref{Eq:Bilinear}  easier.
+
+          %  - - - - - - - - - - - - - - - - - - - 
+\subsection{Facility functions}
+
+\subsubsection{For code generation}
+
+The facility functions are defined in the file {\tt "include/MMVII\_TplSymbImage.h"}. Note that this file 
+muste be explicitely included as it is not included by default in the library.
+
+The template function {\tt FormalBilinIm2D\_Formula} is a direct implementation of equation~\ref{Eq:Bilinear}.
+It will be used in the function generating code when we need things like $I \circ \phi$.
+It takes two kind of parameters :
+
+\begin{itemize}
+   \item the parameters {\tt FX} and {\tt FY} correspond to function $\phi$ :  
+	  {\tt FX $\sim \tilde{x}_q$} and {\tt FY $\sim \tilde{Y}_q$}, 
+         they will be of type formulas; 
+
+   \item the parameter {\tt aVObs}  corresponds to formula for the observations of equation~\ref{Eq:Bilinear},
+         it contains $6$ values $x_0,y_0, I[x_0,y_0] \dots$ .
+\end{itemize}
+
+Fonction {\tt FormalBilinIm2D\_NameObs} just generate a vector of $6$ names, it use is recommande for standardizing generated code.
+Note that it takes a prefix added to  each name, it will be usefull in case we need to use several image in the same
+formula to avoid name clash in generated code.
+	
+
+\subsubsection{For using generated code}
+
+When using code generated, we need to fill the value of observation with values    $x_0,y_0, I[x_0,y_0] \dots$
+in a given context.  The function {\tt FormalBilinIm2D\_SetObs} can be used to facilitate this filling .
+More important it must be used to warantee the coherence of ordering with  {\tt FormalBilinIm2D\_Formula}.
+The parameter are :
+
+\begin{itemize}
+    \item {\tt aVObs } is the vector to fill, {\tt K0} is the first index where filling begin;
+    \item {\tt aPtIm}  is the point where want to evaluate $I$;
+    \item {\tt aDIm}  is the image;
+\end{itemize}
+
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Test example for image differenciation in MMVII}
+
+In this section we describe a test example, that has been implemented in MicMac, this example 
+has two objective : (1) make a didactic illustration of the fonctionnalities and (2) 
+be usable in the automatic test of MMVII ("proof" of correctness and no regression).
+
+\subsection{Mathemical problem}
+
+We have :
+
+\begin {itemize}
+    \item a model $M$  function, this model function can be given by an analytic  formula or by a model image;
+          in our case it will be a gaussian function;
+
+    \item a parametric transformation of the model, here it is both geometric and radiometric;
+
+    \item a ground truth for the parameters;
+
+    \item an image that contain the transformation of the model with the ground truth parameter;
+
+    \item an initial guess of the parametric transformation, this guess being sufficiantly close to the
+	    truth (whatever means "sufficiantly close");
+
+     \item given the model, the image and the initial guess we want to recover the "exact" parameters of the 
+           transformation.
+
+\end {itemize}
+
+For the model, we use  a smooth function to have an easy convergence (we dont want to 
+make a theoreticall analysis of robustness, just illustrate and test implementation).
+More precisely we use a gaussian fonction :
+
+\begin{equation}
+	M(x,y) =  e^{-\frac{|p-\mu|^2}{\sigma^2}}
+\end{equation}
+
+The  parameter of transformation has 5 value :  $P=\{A,B,S,T_x,T_y\}$, where $\{A,B\}$ parametrises
+the radiometric homotethy,  and $\{S,T_x,T_y\}$ parametrises the geometric homotethy.
+So that :
+
+\begin{equation}
+	I[i,j] =  B + A * M(T_x + S*i,T_y+S*j) , (i,j) \in \NN^2  \label{EqDefIm}
+\end{equation}
+
+Knowing approximate guess   $\{A',B',S',T'_x,T'_y\}$ , the model , the image and equation
+\ref{EqDefIm} we want to recover "exact" value of $P$.
+
+Note that we will use equation ~\ref{EqDefIm} in the invert sense of geometry, noting
+the parameter of invert homothety $\{\tilde{S},\tilde{T}_x,\tilde{T}_y\}$:
+
+\begin{equation}
+	I(\tilde{T}_x + \tilde{S}*x,\tilde{T}_y + \tilde{S}*y) =  B + A * M(x,y) \label{EqDefImInv}
+\end{equation}
+
+So what we will estimate is $\{A,B,\tilde{S},\tilde{T}_x,\tilde{T}_y\}$,
+
+
+\subsection{Generating the code}
+
+The code for generating the automatic derivation applied to the example are localed in the two files.
+
+\begin{itemize}
+    \item {\tt src/SymbDerGen/Formulas\_ImagesDeform.h } contain the definition of  class 
+              {\tt cDeformImHomotethy} that will be used for generating the code, it is the homologous
+              of class  {\tt cDist2DConservation} seen bellow;
+
+    \item {\tt src/SymbDerGen/GenerateCodes.cpp} , as bellow, contains the code generate the code
+          creating calculator;
+
+\end{itemize}
+
+There is no much commentary to do on the code of {\tt cDeformImHomotethy} who
+should be explicit given previous section of this chapter.
+Just focus on the point specific to bilinear interpolation :
+
+\begin{itemize}
+	\item for {\tt VNamesObs} we use the standard names of observation on bilinear 
+              and add $3$ name specificto the model;
+
+      \item for computing bilinear interopation of $I \circ \phi$ we use {\tt FormalBilinIm2D\_Formula};
+
+      \item else the computation done in {\tt cDeformImHomotethy::formula()} is a direct "traduction"
+	      of equations~\ref{EqDefImInv} and~\ref{Eq:Bilinear}.
+
+\end{itemize}
+
+
+\subsection{Using the generated code}
+
+The file using the generated code for doing optimization can be found in 
+{\tt src/Bench/BenchTutoImageDef.cpp}.  The main class is {\tt cTestDeformIm},
+it main action are done in the constructor and the medthod {\tt OneIterationFitModele}.
+
+The main action of constructor {\tt cTestDeformIm} are :
+
+\begin{itemize}
+    \item  inialize the ground truth homotethy and its inverse ({\tt mGT\_I2Mod} and {\tt mGT\_Mod2Im};
+    \item  inialize the gaussian law in image an model geometry ( {\tt mGaussIm}  and {\tt mGaussModel});
+    \item  initialize the image  in {\tt mIm}; 
+    \item  put in vectors a set of point $P$ in model space and their associated value $M(P)$
+           ({\tt mVPtsMod} and {\tt mValueMod});
+\end{itemize}
+
+
+In {\tt OneIterationFitModele} we parse all the point of the model, and for each point we
+add an obsevation corresponding to equation~\ref{EqDefImInv}.
+
+
 
 
 

@@ -132,6 +132,21 @@ template<> cE2Str<eOpAff>::tMapE2Str cE2Str<eOpAff>::mE2S
            };
 TPL_ENUM_2_STRING(eOpAff);
 
+
+template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
+           {
+               {eProjPC::eStenope,"Stenope"},
+               {eProjPC::eFE_EquiDist,"FE_EquiDist"},
+               {eProjPC::eFE_EquiSolid,"FE_EquiSolid"},
+               {eProjPC::eStereroGraphik,"StereroGraphik"},
+               {eProjPC::eOrthoGraphik,"OrthoGraphik"},
+               {eProjPC::eEquiRect,"eEquiRect"}
+           };
+TPL_ENUM_2_STRING(eProjPC);
+
+
+
+
 template<> cE2Str<eTySC>::tMapE2Str cE2Str<eTySC>::mE2S
            {
                            {eTySC::NonInit,MMVII_NONE},
@@ -238,6 +253,17 @@ template<> cE2Str<eModeEpipMatch>::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
                 {eModeEpipMatch::eMEM_NoMatch,"NoMatch"}
            };
 TPL_ENUM_2_STRING(eModeEpipMatch);
+
+template<> cE2Str<eModeTestPropCov>::tMapE2Str cE2Str<eModeTestPropCov>::mE2S
+           {
+                {eModeTestPropCov::eMTPC_MatCovRFix  ,"MatCovRFix"},
+                {eModeTestPropCov::eMTPC_SomL2RUk    ,"SomL2RUk"},
+                {eModeTestPropCov::eMTPC_PtsRFix     ,"PtsRFix"},
+                {eModeTestPropCov::eMTPC_PtsRUk      ,"PtsRUk"}
+           };
+TPL_ENUM_2_STRING(eModeTestPropCov);
+
+
 
 template<> cE2Str<eModePaddingEpip>::tMapE2Str cE2Str<eModePaddingEpip>::mE2S
            {
@@ -371,6 +397,7 @@ void BenchEnum(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Enum")) return;
 
+    TplBenchEnum<eProjPC>();
     TplBenchEnum<eOpAff>();
     TplBenchEnum<eTySC>();
     TplBenchEnum<eTA2007>();
@@ -379,6 +406,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eTyInvRad>();
     TplBenchEnum<eTyPyrTieP>();
     TplBenchEnum<eModeEpipMatch>();
+    TplBenchEnum<eModeTestPropCov>();
     TplBenchEnum<eModePaddingEpip>();
     TplBenchEnum<eModeCaracMatch>();
     TplBenchEnum<eDCTFilters>();
