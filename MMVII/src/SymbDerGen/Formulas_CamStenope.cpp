@@ -10,6 +10,30 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+std::vector<std::string>  NamesP3(const std::string& aPref) {return {aPref+"_x",aPref+"_y",aPref+"_z"};}
+std::vector<std::string>  NamesP2(const std::string& aPref) {return {aPref+"_x",aPref+"_y"};}
+std::vector<std::string>  NamesMatr(const std::string& aPref,const cPt2di & aSz)
+{
+     std::vector<std::string> aRes;
+     for (int aY=0 ; aY<aSz.y() ; aY++)
+         for (int aX=0 ; aX<aSz.x() ; aX++)
+             aRes.push_back(aPref+"_"+ToStr(aX)+"_"+ToStr(aY));
+
+     return aRes;
+}
+
+std::vector<std::string>  NamesPose(const std::string& aNameC ,const std::string&  aNameOmega)
+{
+	return Append(NamesP3(aNameC),NamesP3(aNameOmega));
+}
+
+std::vector<std::string>  NamesIntr(const std::string& aPref)
+{
+	return {"F_"+aPref,"PPx_"+aPref,"PPy_"+aPref};
+}
+
+
+
 std::string FormulaName_ProjDir(eProjPC aProj) {return  "Dir_" + E2Str(aProj);}
 std::string FormulaName_ProjInv(eProjPC aProj) {return  "Inv_" + E2Str(aProj);}
 

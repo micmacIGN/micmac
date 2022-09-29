@@ -9,14 +9,55 @@ namespace MMVII
 /*                                                     */
 /*   ************************************************* */
 
-/*
- CamStenope * Std_Cal_From_File
-             (
-                 const std::string & aNameFile,
-                 const std::string &  aNameTag = "CalibrationInternConique"
-             );
+/**   generate correspodance  3d/2d for a given camerastenope.
 
 */
+void DoCorresp
+     (
+        cSet2D3D & aSet,      ///< result where put the correspondance
+	CamStenope * aCamV1,  ///< camera-stenope-V1  generating the correspondance
+	int aNbPointPerDim,   ///< number of point in each dimension
+	int aNbLayer          ///< number of layer
+     )
+{
+   size_t aNbPtsMin = Square(aNbPointPerDim);
+   cPt2di aSzCam = ToI(ToMMVII(aCamV1->SzPixel()));
+
+   // generate 2-point on camera,  take into account the fact that some points are invalid (as with fish-eye)
+   std::vector<Pt2dr> aVP2;
+   while (aVP2.size() < aNbPtsMin)
+   {
+       aVP2.clear();
+       for (int aKX=0 ; aKX<aNbPointPerDim ; aKX++)
+       {
+           double aX = ((aKX+0.5) / aNbPointPerDim) * aSzCam.x();
+           for (int aKY=0 ; aKY<aNbPointPerDim ; aKY++)
+           {
+               double aY = ((aKY+0.5) / aNbPointPerDim) * aSzCam.y();
+               Pt2dr aPImV1(aX,aY);
+
+               if (aCamV1->CaptHasData(aPImV1))
+               {
+                  aVP2.push_back(aPImV1);
+               }
+           }
+       }
+       // if not enough point increase
+        double aMul = sqrt(   (aNbPtsMin*1.1)  /   std::max(double(aVP2.size()),1.0) );
+       aNbPointPerDim = std::max(aNbPointPerDim+2,int(aNbPointPerDim*aMul));
+   }
+
+   // now generate the points 
+   aSet.Clear();
+   for (int aLayer=0 ; aLayer<aNbLayer ; aLayer++)
+   {
+       for (const auto & aPImV1 : aVP2)
+       {
+           Pt3dr aPGroundV1 = aCamV1->ImEtProf2Terrain(aPImV1,aLayer+1);
+           aSet.AddPair(cPair2D3D(ToMMVII(aPImV1),ToMMVII(aPGroundV1)));
+       }
+   }
+}
 
 cExportV1StenopeCalInterne::cExportV1StenopeCalInterne(const std::string& aFile,int aNbPointPerDim,int aNbLayer)
 {
@@ -71,6 +112,8 @@ cExportV1StenopeCalInterne::cExportV1StenopeCalInterne(const std::string& aFile,
              MMVII_INTERNAL_ERROR("Impossible internal calibration conversion from MMV1");
        }
    }
+   DoCorresp(mCorresp,aCamV1,aNbPointPerDim,aNbLayer);
+   /*
    bool  GotEnoughPoint=false;
    while (! GotEnoughPoint)
    {
@@ -99,6 +142,7 @@ cExportV1StenopeCalInterne::cExportV1StenopeCalInterne(const std::string& aFile,
 	 GotEnoughPoint = (aNb >= 500);
          aNbPointPerDim = std::max(aNbPointPerDim+2,int(aNbPointPerDim*1.5));
    }
+   */
 }
 
 };

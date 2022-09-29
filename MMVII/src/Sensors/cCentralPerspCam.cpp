@@ -447,7 +447,7 @@ void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string
 
      cExportV1StenopeCalInterne  aExp(aFullName);
 
-     StdOut() << "aFullNameaFullName " << aFullName << "\n";
+     StdOut() << "aFullNameaFullName " << aFullName  << " " << aExp.mCorresp.Pairs().size() << "\n";
 
 }
 
@@ -457,6 +457,8 @@ void BenchCentralePerspective(cParamExeBench & aParam)
 
     BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-11500_Cam-imx477imx477-1.xml");
     BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml");
+
+    StdOut() << "BenchCentralePerspectiveBenchCentralePerspective\n";  getchar();
 
 
 

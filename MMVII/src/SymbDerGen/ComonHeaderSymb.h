@@ -44,15 +44,37 @@ template <class Type> Type NormL2V3(const Type & aX,const Type & aY,const Type &
     return sqrt(SqNormL2V3(aX,aY,aZ));
 }
 
-
-
-
 template <class Type> Type NormL2Vec2(const std::vector<Type> & aVec)
 {
     return NormL2V2(aVec.at(0),aVec.at(1));
 }
 
 
+
+
+template  <typename tScal> tScal PScal(const cPtxd<tScal,3> & aP1,const cPtxd<tScal,3> & aP2)
+{
+         return aP1.x()*aP2.x() + aP1.y() *aP2.y() + aP1.z() * aP2.z();
+}
+template  <typename tScal> cPtxd<tScal,3>  VtoP3(const  std::vector<tScal> & aV,size_t aInd)
+{
+        return cPtxd<tScal,3>(aV.at(aInd),aV.at(aInd+1),aV.at(aInd+2));
+}
+
+template  <typename tScal> cPtxd<tScal,2>  VtoP2(const  std::vector<tScal> & aV,size_t aInd)
+{
+        return cPtxd<tScal,2>(aV.at(aInd),aV.at(aInd+1));
+}
+
+
+template  <typename tScal> cPtxd<tScal,3>   MulMat(const std::vector<tScal> & aV,size_t aInd,const  cPtxd<tScal,3> & aP)
+{
+     cPtxd<tScal,3> aL1 =  VtoP3(aV,aInd);
+     cPtxd<tScal,3> aL2 =  VtoP3(aV,aInd+3);
+     cPtxd<tScal,3> aL3 =  VtoP3(aV,aInd+6);
+
+     return cPtxd<tScal,3>(PScal(aP,aL1),PScal(aP,aL2),PScal(aP,aL3));
+}
 
 
 

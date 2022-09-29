@@ -277,13 +277,13 @@ void cAppliGenCode::GenerateOneDist(const cPt3di & aDeg)
 {
    cMMVIIUnivDist           aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
    cEqDist<cMMVIIUnivDist>  anEqDist(aDist);  // Distorsion function 2D->2D
-   cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);  // Projection 3D->2D
+   //cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);  // Projection 3D->2D
 
 
    GenCodesFormula((tREAL8*)nullptr,anEqDist,false);  //  Dist without derivative
    GenCodesFormula((tREAL8*)nullptr,anEqDist,true);   //  Dist with derivative
-   GenCodesFormula((tREAL8*)nullptr,anEqIntr,false);  //  Proj without derivative
-   GenCodesFormula((tREAL8*)nullptr,anEqIntr,true);   //  Proj with derivative
+   // GenCodesFormula((tREAL8*)nullptr,anEqIntr,false);  //  Proj without derivative
+   // GenCodesFormula((tREAL8*)nullptr,anEqIntr,true);   //  Proj with derivative
 
    // Generate the base of all functions
    cMMVIIUnivDist           aDistBase(aDeg.x(),aDeg.y(),aDeg.z(),true);
@@ -336,6 +336,13 @@ int cAppliGenCode::Exe()
    GenerateCodeProjCentralPersp<cProjOrthoGraphic>();
    GenerateCodeProjCentralPersp<cProjFE_EquiSolid>(); //  ->  asin
    GenerateCodeProjCentralPersp<cProj_EquiRect>(); //  ->  asin
+
+
+   {
+       
+       //cEqDist<cMMVIIUnivDist>  anEqDist(aDist);  // Distorsion function 2D->2D
+       // GenCodesFormula((tREAL8*)nullptr,cGenCode_ProjDir<tProj>(),true);
+   }
    // GenCodesFormula((tREAL8*)nullptr,cGenCode_ProjDir<cProjStenope>(),false);
 
 /*
