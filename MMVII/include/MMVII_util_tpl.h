@@ -246,13 +246,13 @@ template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,con
 
 template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,const std::vector<Type> & aV2,const std::vector<Type> & aV3)
 {
-	Append(aV1,Append(aV2,aV3));
+    return Append(aV1,Append(aV2,aV3));
 }
 
 template <class Type> std::vector<Type> Append
     (const std::vector<Type> & aV1,const std::vector<Type> & aV2,const std::vector<Type> & aV3,const std::vector<Type> & aV4)
 {
-	Append(Append(aV1,aV2),Append(aV3,aV4));
+     return Append(Append(aV1,aV2),Append(aV3,aV4));
 }
 
 ///  set value or push at end, 

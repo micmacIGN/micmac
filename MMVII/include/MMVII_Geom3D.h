@@ -10,7 +10,16 @@ template<class T> cDenseMatrix<T> MatFromCols(const cPtxd<T,3>&aP0,const cPtxd<T
 /// use the 3 "line vector" to compute the matrix
 template<class T> cDenseMatrix<T> MatFromLines(const cPtxd<T,3>&aP0,const cPtxd<T,3>&aP1,const cPtxd<T,3>&aP2);
 /// Vector product 
-template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,3> & aP2);
+template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,3> & aP2)
+{
+   return cPtxd<T,3>
+          (
+               aP1.y() * aP2.z() -aP1.z()*aP2.y(),
+               aP1.z() * aP2.x() -aP1.x()*aP2.z(),
+               aP1.x() * aP2.y() -aP1.y()*aP2.x()
+          );
+}
+
 // Return one vector orthog,  choice is not univoque , quikcly select on stable
 template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP);
 

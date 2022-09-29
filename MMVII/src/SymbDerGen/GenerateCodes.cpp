@@ -340,8 +340,9 @@ int cAppliGenCode::Exe()
 
    {
        
-       //cEqDist<cMMVIIUnivDist>  anEqDist(aDist);  // Distorsion function 2D->2D
-       // GenCodesFormula((tREAL8*)nullptr,cGenCode_ProjDir<tProj>(),true);
+       cMMVIIUnivDist aDist(3,1,1,false);  // Distorsion function 2D->2D
+       cEqProjPerspCentral<cMMVIIUnivDist,cProjFE_EquiSolid>  anEq(aDist);
+       GenCodesFormula((tREAL8*)nullptr,anEq,true);
    }
    // GenCodesFormula((tREAL8*)nullptr,cGenCode_ProjDir<cProjStenope>(),false);
 

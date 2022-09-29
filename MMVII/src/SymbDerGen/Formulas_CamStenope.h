@@ -550,6 +550,11 @@ template <typename TypeDist>  class cEqDist
 template <typename TypeDist,typename TypeProj>  class cEqProjPerspCentral
 {
 	public :
+           cEqProjPerspCentral(const TypeDist & aDist) :
+		   mDist (aDist)
+	   {
+	   }
+          std::string FormulaName() const { return "EqPPX_" + E2Str(TypeProj::TypeProj())    + "_" + mDist.NameModel();}
            std::vector<std::string>  VNamesUnknowns() const
 	   {
 		   return Append
@@ -557,7 +562,7 @@ template <typename TypeDist,typename TypeProj>  class cEqProjPerspCentral
 			      NamesP3("PGround"),   // 3
 			      NamesPose("CCam","W"),  // 6
 		              NamesIntr(""),          // 3
-			      TypeDist::VNamesParams()
+			      mDist.VNamesParams()
 			  );
 	   }
 
@@ -581,16 +586,18 @@ template <typename TypeDist,typename TypeProj>  class cEqProjPerspCentral
 		   cPtxd<tUk,2>  aPtIm    = VtoP2(aVObs,0);
 
                    cPtxd<tUk,3>  aVCP = aPGround - aCCcam;
-		   cPtxd<tUk,3> aPCam = MulMat(aVObs,12,aVCP);
-		   aPCam = aPCam + aW ^ aPCam;
+		   cPtxd<tUk,3> aPCam = MulMat(aVObs,2,aVCP);
+		   aPCam = aPCam + (aW ^ aPCam);
 
-                   cPtxd<tUk,2> aPProj = cHelperProj<TypeProj>::Proj(aPCam);
 
-                   auto  aVectDist =  TypeDist::PProjToImNorm
-			                  (
+                   auto  aVProj = TypeProj::Proj(std::vector<tUk>({aPCam.x(),aPCam.y(),aPCam.z()}));
+                   cPtxd<tUk,2> aPProj (aVProj[0],aVProj[1]);
+
+                   auto  aVectDist =   mDist.PProjToImNorm
+			               (
 					       aPProj.x(),aPProj.y(),
-					       aVObs,2
-					  );
+					       aVUk,12
+                                       );
 		   cPtxd<tUk,2> aPDist = VtoP2(aVectDist,0);
 
 		   cPtxd<tUk,2> aPPix =  aPP + aPDist * aFoc;
@@ -599,6 +606,8 @@ template <typename TypeDist,typename TypeProj>  class cEqProjPerspCentral
 
 		   return {aResidual.x(),aResidual.y()};
            }
+	   
+	   TypeDist  mDist;
 };
 
 

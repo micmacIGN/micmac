@@ -31,7 +31,7 @@ template<class T> cDenseMatrix<T> MatFromLines(const cPtxd<T,3>&aP0,const cPtxd<
    return aRes;
 }
 
-
+/*
 template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,3> & aP2)
 {
    return cPtxd<T,3>
@@ -41,6 +41,7 @@ template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,
                aP1.x() * aP2.y() -aP1.y()*aP2.x()
           );
 }
+*/
 
 template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP)
 {
@@ -59,10 +60,10 @@ template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP)
 /*          ::                */
 /* ========================== */
 
-template cPtxd<int,3>  operator ^ (const cPtxd<int,3> & aP1,const cPtxd<int,3> & aP2);
+//template cPtxd<int,3>  operator ^ (const cPtxd<int,3> & aP1,const cPtxd<int,3> & aP2);
+//template cPtxd<TYPE,3>  operator ^ (const cPtxd<TYPE,3> & aP1,const cPtxd<TYPE,3> & aP2);
 
 #define MACRO_INSTATIATE_PTXD(TYPE)\
-template cPtxd<TYPE,3>  operator ^ (const cPtxd<TYPE,3> & aP1,const cPtxd<TYPE,3> & aP2);\
 template cDenseMatrix<TYPE> MatFromCols(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&);\
 template cDenseMatrix<TYPE> MatFromLines(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&);\
 template cPtxd<TYPE,3>  PFromNumAxe(int aNum);\
