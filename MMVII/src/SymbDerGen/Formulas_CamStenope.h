@@ -559,9 +559,9 @@ template <typename TypeDist,typename TypeProj>  class cEqProjPerspCentral
 	   {
 		   return Append
 			  (
-			      NamesP3("PGround"),   // 3
-			      NamesPose("CCam","W"),  // 6
-		              NamesIntr(""),          // 3
+			      NamesP3("PGround"),     //  0-3
+			      NamesPose("CCam","W"),  // 3-9
+		              NamesIntr(""),          // 9-12
 			      mDist.VNamesParams()
 			  );
 	   }
@@ -578,31 +578,26 @@ template <typename TypeDist,typename TypeProj>  class cEqProjPerspCentral
                           const std::vector<tUk> & aVObs
                        ) const
            {
+		   //  extract unknown parameters from vector
 		   cPtxd<tUk,3>  aPGround = VtoP3(aVUk,0);
 		   cPtxd<tUk,3>  aCCcam   = VtoP3(aVUk,3);
 		   cPtxd<tUk,3>  aW       = VtoP3(aVUk,6);
 		   tUk           aFoc     = aVUk.at(9);
 		   cPtxd<tUk,2>  aPP      = VtoP2(aVUk,10);
+
+		   // obs pixel
 		   cPtxd<tUk,2>  aPtIm    = VtoP2(aVObs,0);
 
-                   cPtxd<tUk,3>  aVCP = aPGround - aCCcam;
-		   cPtxd<tUk,3> aPCam = MulMat(aVObs,2,aVCP);
-		   aPCam = aPCam + (aW ^ aPCam);
+                   cPtxd<tUk,3>  aVCP = aPGround - aCCcam;     // vector  CenterCam -> PGround
+		   cPtxd<tUk,3> aPCam = MulMat(aVObs,2,aVCP);  // multiply by a priori rotation
+		   aPCam = aPCam + (aW ^ aPCam);               // Add unknown "small" rotation
 
+		   cPtxd<tUk,2>  aPProj = cHelperProj<TypeProj>::Proj(aPCam);  // project 3D-> photogram point
+		   cPtxd<tUk,2> aPDist = VtoP2(mDist.PProjToImNorm (aPProj.x(),aPProj.y(),aVUk,12));  // add distorsion
 
-                   auto  aVProj = TypeProj::Proj(std::vector<tUk>({aPCam.x(),aPCam.y(),aPCam.z()}));
-                   cPtxd<tUk,2> aPProj (aVProj[0],aVProj[1]);
+		   cPtxd<tUk,2> aPPix =  aPP + aPDist * aFoc; // Use Focal and PP to make pixel
 
-                   auto  aVectDist =   mDist.PProjToImNorm
-			               (
-					       aPProj.x(),aPProj.y(),
-					       aVUk,12
-                                       );
-		   cPtxd<tUk,2> aPDist = VtoP2(aVectDist,0);
-
-		   cPtxd<tUk,2> aPPix =  aPP + aPDist * aFoc;
-
-		   cPtxd<tUk,2> aResidual = aPPix - aPtIm;
+		   cPtxd<tUk,2> aResidual = aPPix - aPtIm;  // compare to mesured point
 
 		   return {aResidual.x(),aResidual.y()};
            }

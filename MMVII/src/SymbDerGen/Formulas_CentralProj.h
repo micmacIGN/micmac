@@ -30,6 +30,8 @@ namespace MMVII
        a 3D point P (the "direction") such that Proj(P) = p
 */
 
+std::string FormulaName_ProjDir(eProjPC aProj);
+std::string FormulaName_ProjInv(eProjPC aProj);
 
    // ==========================================================
 
@@ -447,8 +449,6 @@ class cProjFE_EquiSolid  : public cDefProjPerspC
         }
 };
 
-std::string FormulaName_ProjDir(eProjPC aProj);
-std::string FormulaName_ProjInv(eProjPC aProj);
 
 template <typename tProj> class   cGenCode_ProjDir
 {
@@ -499,11 +499,13 @@ template <typename tProj> class   cHelperProj
 
            template<typename tScal> static cPtxd<tScal,2>  Proj(const  cPtxd<tScal,3> & aXYZ)
 	   {
-		   return  cPtxd<tScal,2>::FromStdVector(tProj::Proj(aXYZ.ToStdVector()));
+		   //return  cPtxd<tScal,2>::FromStdVector(tProj::Proj(aXYZ.ToStdVector()));
+		   return  VtoP2(tProj::Proj(ToVect(aXYZ)));
 	   }
            template<typename tScal> static cPtxd<tScal,3>  ToDirBundle(const  cPtxd<tScal,2> & aXYZ)
 	   {
-		   return  cPtxd<tScal,3>::FromStdVector(tProj::ToDirBundle(aXYZ.ToStdVector()));
+		   //return  cPtxd<tScal,3>::FromStdVector(tProj::ToDirBundle(aXYZ.ToStdVector()));
+		   return  VtoP3(tProj::ToDirBundle(ToVect(aXYZ)));
 	   }
 
 };
