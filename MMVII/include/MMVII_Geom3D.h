@@ -83,6 +83,7 @@ template <class Type> class cRotation3D
        // tTypeMapInv  MapInverse() const {return cRotation3D(mMat.Transpose(),false);}
        tTypeMapInv  MapInverse() const;
        tTypeMap  operator* (const tTypeMap &) const;
+       static tTypeMap Identity();
 
        tPt   AxeI() const ;
        tPt   AxeJ() const ;
@@ -124,6 +125,7 @@ template <class Type> class cIsometry3D
        cIsometry3D(const tPt& aTr,const cRotation3D<Type> &);
        tTypeMapInv  MapInverse() const; // {return cIsometry3D(-mRot.Inverse(mTr),mRot.MapInverse());}
        tTypeMap  operator* (const tTypeMap &) const;
+       static tTypeMap Identity();
 
        /// Return Isometrie with given Rot such I(PTin) = I(PTout)
        static cIsometry3D<Type> FromRotAndInOut(const cRotation3D<Type> &,const tPt& aPtIn,const tPt& aPtOut );

@@ -547,14 +547,14 @@ template <typename TypeDist>  class cEqDist
 
 /**   C */
 
-template <typename TypeDist,typename TypeProj>  class cEqProjPerspCentral
+template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
 {
 	public :
-           cEqProjPerspCentral(const TypeDist & aDist) :
+           cEqColinearityCamPPC(const TypeDist & aDist) :
 		   mDist (aDist)
 	   {
 	   }
-          std::string FormulaName() const { return "EqPPX_" + E2Str(TypeProj::TypeProj())    + "_" + mDist.NameModel();}
+          std::string FormulaName() const { return "EqColinearityCamPPC_" + E2Str(TypeProj::TypeProj())    + "_" + mDist.NameModel();}
            std::vector<std::string>  VNamesUnknowns() const
 	   {
 		   return Append

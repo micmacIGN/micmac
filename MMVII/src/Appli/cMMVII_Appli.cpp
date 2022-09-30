@@ -1110,6 +1110,7 @@ const std::string & cMMVII_Appli::TmpDirTestMMVII()   const {return mTmpDirTestM
 const std::string & cMMVII_Appli::InputDirTestMMVII() const {return mInputDirTestMMVII;}
 const std::string & cMMVII_Appli::TopDirMMVII()       const {return mTopDirMMVII;}
 const std::string & cMMVII_Appli::DirProject()       const {return mDirProject;}
+int cMMVII_Appli::NbProcAllowed () const {return mNbProcAllowed;}
 
 std::string  cMMVII_Appli::DirTmpOfCmd(eModeCreateDir aMode) const
 {

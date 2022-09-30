@@ -20,6 +20,9 @@ template <class Type> cSimilitud3D<Type>::cSimilitud3D(const Type& aScale,const 
     mRot   (aRot)
 {
 }
+
+
+
 // tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt)*mScale;}
 // mRot.Inverse((aPt-mTr)/mScale)
 
@@ -103,6 +106,11 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
 {
 }
 
+template <class Type> cIsometry3D<Type>  cIsometry3D<Type>::Identity()
+{
+    return cIsometry3D<Type>(cPtxd<Type,3>(0,0,0),cRotation3D<Type>::Identity());
+}
+
 //  tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt);}
 
 template <class Type> cIsometry3D<Type>  cIsometry3D<Type>::MapInverse() const
@@ -164,6 +172,12 @@ template <class Type> cRotation3D<Type>::cRotation3D(const cDenseMatrix<Type> & 
    mMat (aMat)
 {
    MMVII_INTERNAL_ASSERT_always((! RefineIt),"Refine to write in Rotation ...");
+}
+
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::Identity()
+{
+    return cRotation3D<Type>(cDenseMatrix<Type>(3,eModeInitImage::eMIA_MatrixId),false);
 }
 
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::MapInverse() const 

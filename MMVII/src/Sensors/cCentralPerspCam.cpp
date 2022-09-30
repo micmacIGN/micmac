@@ -101,6 +101,10 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 		  int aSzBuf                          ///< sz of buffers in computatio,
             );
 
+
+	    // allocation with minimal number of parameters
+	    cPerspCamIntrCalib(eProjPC,const cPt3di &,double aFoc,cPt2di & aNbPix,int aSzBuf=-1);
+
 	        ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
 	    void UpdateLSQDistInv();
 
@@ -156,14 +160,30 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
             cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
 	    tREAL8                               mThreshJacPI; ///< threshlod for jacobian in pseudo inversion
 							      
-	    double                               mThresholdPhgrAccInv;
-	    double                               mThresholdPixAccInv;
-	    int                                  mNbIterInv;
+	    double                               mThresholdPhgrAccInv; ///< threshold for accurracy in inversion (photogram units)
+	    double                               mThresholdPixAccInv;  ///< threshold for accurracy in inversion (pixels    units)
+	    int                                  mNbIterInv;           ///< maximal number of iteration in inversion
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
 
 //       cDataIIMFromMap(tMap aMap,const tPt &,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
 
+
+class cSensorImage
+{
+     public :
+         virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
+};
+
+class cSensorCamPC : public cSensorImage
+{
+     public :
+         cPt2dr Ground2Image(const cPt3dr &) const override;
+     private :
+	     
+        cPerspCamIntrCalib * mCalib;
+	cIsometry3D<tREAL8>  mPose;   /// transformation Cam to Word
+};
 
 /* ******************************************************* */
 /*                                                         */
@@ -232,6 +252,36 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
 
 }
 
+cPerspCamIntrCalib::cPerspCamIntrCalib(eProjPC aTypeProj,const cPt3di & aDeg,double aFoc,cPt2di & aNbPix,int aSzBuf) :
+	cPerspCamIntrCalib
+	(
+	    aTypeProj, 
+	    aDeg,
+	    std::vector<double>(),
+            cCalibStenPerfect(aFoc,ToR(aNbPix)/2.0),
+            cPixelDomain(aNbPix),
+	    aDeg,
+	    aSzBuf
+	)
+{
+}
+
+cPerspCamIntrCalib::~cPerspCamIntrCalib()
+{
+     delete mPhgrDomain;	
+     delete mPixDomain;	
+     delete mDir_Dist;
+     delete mDir_Proj;
+
+     delete mInvApproxLSQ_Dist;
+     delete mInv_BaseFDist;
+     delete mInv_CalcLSQ;
+     delete mDist_DirInvertible;
+     delete mInv_Proj;
+}
+
+
+
 const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tVecIn & aV0 ) const 
 {
      static tVecOut aV1,aV2;
@@ -258,22 +308,10 @@ tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
     return mDefProj.P2DIsDef(mDist_DirInvertible->Inverse(mInv_CSP.Value(aPix)));
 }
 
-cPerspCamIntrCalib::~cPerspCamIntrCalib()
-{
-     delete mPhgrDomain;	
-     delete mPixDomain;	
-     delete mDir_Dist;
-     delete mDir_Proj;
-
-     delete mInvApproxLSQ_Dist;
-     delete mInv_BaseFDist;
-     delete mInv_CalcLSQ;
-     delete mDist_DirInvertible;
-     delete mInv_Proj;
-}
 
 void cPerspCamIntrCalib::UpdateLSQDistInv()
 {
+    // allocate obect, just need to be done once
     if (mInvApproxLSQ_Dist==nullptr)
     {
         mInvApproxLSQ_Dist  = NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf);
@@ -290,6 +328,7 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
                          );
     }
 
+    // create structure for map inversion
     cComputeMapInverse aCMI
     (
        mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
@@ -300,8 +339,8 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
        (* mInv_CalcLSQ),     ///< Structure for computing the invert on base of function using least square
        false                 ///< Not in  Test
    );
-   aCMI.DoAll(mInv_Params);
-   mInvApproxLSQ_Dist->SetObs(mInv_Params);
+   aCMI.DoAll(mInv_Params); // compute the parameters
+   mInvApproxLSQ_Dist->SetObs(mInv_Params); // set these parameters in approx inverse
 }
 
 void cPerspCamIntrCalib::SetThresholdPhgrAccInv(double aThr)
@@ -444,11 +483,15 @@ void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string
 {
      std::string aFullName = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ori-MMV1" +  StringDirSeparator() + aName;
 
-
      cExportV1StenopeCalInterne  aExp(aFullName);
 
-     StdOut() << "aFullNameaFullName " << aFullName  << " " << aExp.mCorresp.Pairs().size() << "\n";
 
+     /*
+     cCalculator<double> * anEqL =EqColinearityCamPPC(aExp.eProj,cPt3di(3,1,1),true,10);
+     StdOut() << "aFullNameaFullName " << aFullName  << " " << aExp.mCorresp.Pairs().size()  << " " << anEqL << "\n";
+
+     delete anEqL;
+     */
 }
 
 void BenchCentralePerspective(cParamExeBench & aParam)

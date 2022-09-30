@@ -112,6 +112,9 @@ NS_SymbolicDerivative::cCalculator<double> * EqCPProjDir(eProjPC  aType,bool Wit
 ///  For computing projections "inverse"   R2->R3 , return in fact direction of  bundle
 NS_SymbolicDerivative::cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf);
 
+           // .............   Equation colinearity , imply external parameter, Projectiion, distorsion, foc+PP .............
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf);
+
 
      //  ====   equations used in tuto/bench/ devpt of surface  ==============================
 

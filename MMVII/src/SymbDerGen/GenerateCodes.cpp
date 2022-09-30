@@ -23,6 +23,13 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
+{
+   cMMVIIUnivDist  aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
+
+   return aDist.VDescParams();
+}
+
 std::string NameFormulaOfStr(const std::string & aName,bool WithDerive)
 {
    return  aName +  std::string(WithDerive ?"VDer":"Val");
@@ -34,7 +41,6 @@ template <typename TypeFormula> std::string NameFormula(const TypeFormula & anEq
 }
 
 
-
 // EqBaseFuncDist
 std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive,bool ForBase )
 {
@@ -43,6 +49,114 @@ std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive,bool ForBase )
 
    return NameFormula(anEq,WithDerive);
 }
+
+template <typename tProj> std::string Tpl_NameEqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive)
+{
+   MMVII_INTERNAL_ASSERT_tiny(tProj::TypeProj()==aType,"incoherence in Tpl_NameEqProjCam");
+
+   cMMVIIUnivDist aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
+   cEqColinearityCamPPC<cMMVIIUnivDist,tProj>  anEq(aDist);
+
+   return NameFormula(anEq,WithDerive);
+}
+
+std::string NameEqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive)
+{
+    switch (aType)
+    {
+        case eProjPC::eStenope        :   return Tpl_NameEqColinearityCamPPC<cProjStenope>       (aType,aDeg,WithDerive);
+        case eProjPC::eFE_EquiDist    :   return Tpl_NameEqColinearityCamPPC<cProjFE_EquiDist>   (aType,aDeg,WithDerive);
+        case eProjPC::eFE_EquiSolid   :   return Tpl_NameEqColinearityCamPPC<cProjFE_EquiSolid>  (aType,aDeg,WithDerive);
+        case eProjPC::eStereroGraphik :   return Tpl_NameEqColinearityCamPPC<cProjStereroGraphik>(aType,aDeg,WithDerive);
+        case eProjPC::eOrthoGraphik   :   return Tpl_NameEqColinearityCamPPC<cProjOrthoGraphic>  (aType,aDeg,WithDerive);
+        case eProjPC::eEquiRect       :   return Tpl_NameEqColinearityCamPPC<cProj_EquiRect>     (aType,aDeg,WithDerive);
+
+        default :;
+
+    }    ;
+
+    MMVII_INTERNAL_ERROR("Unhandled proj in NameEqProjCam");
+    return "";
+}
+
+
+/*  ============================================= */
+/*       ALLOCATION                               */
+/*  ============================================= */
+
+cCalculator<double> *  StdAllocCalc(const std::string & aName,int aSzBuf,bool SVP=false)
+{
+    if (aSzBuf<=0)
+       aSzBuf =  cMMVII_Appli::CurrentAppli().NbProcAllowed();
+    return cName2Calc<double>::CalcFromName(aName,aSzBuf,SVP);
+}
+
+
+     //=============   Photogrammetry ============
+
+     //  distorion
+cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameEqDist(aDeg,WithDerive,false),aSzBuf);
+}
+cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf)
+{ 
+    return StdAllocCalc(NameEqDist(aDeg,false,true),aSzBuf);
+}
+
+     //  Projection
+cCalculator<double> * EqCPProjDir(eProjPC  aType,bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormulaOfStr(FormulaName_ProjDir(aType),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormulaOfStr(FormulaName_ProjInv(aType),WithDerive),aSzBuf);
+}
+
+     //  Projection+distorsion+ Foc/PP
+
+cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameEqColinearityCamPPC(aType,aDeg,WithDerive),aSzBuf);
+}
+
+     //=============   Tuto/Bench/Network ============
+
+     //    Cons distance
+template <class Type> cCalculator<Type> * TplEqConsDist(bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf)
+{ 
+    return TplEqConsDist<double>(WithDerive,aSzBuf);
+}
+
+     //  cons ratio dist
+cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormula(cRatioDist2DConservation(),WithDerive),aSzBuf);
+}
+
+     //  Network for points  
+cCalculator<double> * EqNetworkConsDistProgCov(bool WithDerive,int aSzBuf,const cPt2di& aSzN)
+{ 
+    return StdAllocCalc(NameFormula(cNetworConsDistProgCov(aSzN),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,const cPt2di& aSzN,bool WithSimUK)
+{ 
+    return StdAllocCalc(NameFormula(cNetWConsDistSetPts(aSzN,WithSimUK),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf)
+{
+     return StdAllocCalc(NameFormula(cDeformImHomotethy(),WithDerive),aSzBuf);
+}
+
 
 
 
@@ -98,7 +212,7 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
    
           MMVII_INTERNAL_ASSERT_bench(Norm2(aP23.second-aRay3d)<1e-8,"Inversion Proj/ToDirBundle");
 
-	  if (! aDefProf.HasRadialSym()) // 2- test radiality  => to skeep for non physical proj like 360 synthetic image
+	  if ( aDefProf.HasRadialSym()) // 2- test radiality  => to skeep for non physical proj like 360 synthetic image
 	  {
           // 2.1  , conservation of angles :  aRay2, aRay3d, AxeK  must be coplanar
               cPt3dr aRay2(aProj2.x(),aProj2.y(),1.0);
@@ -164,7 +278,11 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
 
    if (aParam.Show())
    {
-      StdOut() << "NAME=" << E2Str(TyProj::TypeProj()) << "\n";
+      StdOut() << "NAME=" << E2Str(TyProj::TypeProj()) 
+	       << " formula(test) =" << NameEqColinearityCamPPC(TyProj::TypeProj(),cPt3di(3,1,1),false)
+	       << "\n";
+     
+   // std::string NameEqProjCam(eProjPC  aType,const cPt3di & aDeg,bool WithDerive)
    }
 }
 
@@ -172,8 +290,8 @@ void BenchProjToDirBundle(cParamExeBench & aParam)
 {
    if (aParam.Show())
    {
-       StdOut()<<"cName2Calc T0:"<<cName2Calc<double>::CalcFromName("toto",10,true)<<"\n";
-       StdOut()<<"cName2Calc T1:"<<cName2Calc<double>::CalcFromName("EqDistDist_Rad3_Dec1_XY1",10,true)<<"\n";
+       StdOut()<<"cName2Calc T0:"<<StdAllocCalc("toto",10,true)<<"\n";
+       StdOut()<<"cName2Calc T1:"<<StdAllocCalc("EqDistDist_Rad3_Dec1_XY1",10,true)<<"\n";
    }
 
    OneBenchProjToDirBundle<cProjStenope> (aParam);
@@ -181,6 +299,7 @@ void BenchProjToDirBundle(cParamExeBench & aParam)
    OneBenchProjToDirBundle<cProjStereroGraphik> (aParam);
    OneBenchProjToDirBundle<cProjOrthoGraphic> (aParam);
    OneBenchProjToDirBundle<cProjFE_EquiSolid> (aParam);
+   OneBenchProjToDirBundle<cProj_EquiRect> (aParam);
 }
 
 
@@ -214,6 +333,7 @@ class cAppliGenCode : public cMMVII_Appli
         std::string mDirGenCode;
         void GenerateOneDist(const cPt3di & aDeg) ;
         template <typename tProj> void GenerateCodeProjCentralPersp();
+        template <typename tProj> void GenerateCodeCamPerpCentrale(const cPt3di &);
 
 	eProjPC  mTypeProj;
 };
@@ -300,6 +420,15 @@ template <typename tProj> void cAppliGenCode::GenerateCodeProjCentralPersp()
    }
 }
 
+template <typename tProj> void cAppliGenCode::GenerateCodeCamPerpCentrale(const cPt3di & aDeg)
+{
+   for (const auto WithDer : {true,false})
+   {
+       cMMVIIUnivDist aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);  // Distorsion function 2D->2D
+       cEqColinearityCamPPC<cMMVIIUnivDist,tProj>  anEq(aDist);
+       GenCodesFormula((tREAL8*)nullptr,anEq,WithDer);
+   }
+}
 
 int cAppliGenCode::Exe()
 {
@@ -338,15 +467,12 @@ int cAppliGenCode::Exe()
    GenerateCodeProjCentralPersp<cProj_EquiRect>(); //  ->  asin
 
 
-   {
-       
-       cMMVIIUnivDist aDist(3,1,1,false);  // Distorsion function 2D->2D
-       cEqProjPerspCentral<cMMVIIUnivDist,cProjFE_EquiSolid>  anEq(aDist);
-       GenCodesFormula((tREAL8*)nullptr,anEq,true);
-   }
-   // GenCodesFormula((tREAL8*)nullptr,cGenCode_ProjDir<cProjStenope>(),false);
-
+   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(3,1,1));
+   GenerateCodeCamPerpCentrale<cProjFE_EquiDist>(cPt3di(3,1,1));
 /*
+   {
+   }
+
    cMMVIIUnivDist           aDist(3,1,1,false);
    cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
    cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);
@@ -381,83 +507,10 @@ int  cAppliGenCode::ExecuteBench(cParamExeBench & aParam)
    return EXIT_SUCCESS;
 }
 
-/*  ============================================= */
-/*       ALLOCATION                               */
-/*  ============================================= */
-
-
 tMMVII_UnikPApli Alloc_GenCode(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-
-
    return tMMVII_UnikPApli(new cAppliGenCode(aVArgs,aSpec));
 }
-
-
-cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
-{ 
-    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,WithDerive,false),aSzBuf);
-}
-
-cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf)
-{ 
-    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,false,true),aSzBuf);
-}
-
-
-//    Cons distance
-template <class Type> cCalculator<Type> * TplEqConsDist(bool WithDerive,int aSzBuf)
-{ 
-    return cName2Calc<Type>::CalcFromName(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
-}
-
-cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf)
-{ 
-    return TplEqConsDist<double>(WithDerive,aSzBuf);
-}
-
-//  cons ratio dist
-cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf)
-{ 
-    return cName2Calc<double>::CalcFromName(NameFormula(cRatioDist2DConservation(),WithDerive),aSzBuf);
-}
-
-//  Network for points  
-cCalculator<double> * EqNetworkConsDistProgCov(bool WithDerive,int aSzBuf,const cPt2di& aSzN)
-{ 
-    return cName2Calc<double>::CalcFromName(NameFormula(cNetworConsDistProgCov(aSzN),WithDerive),aSzBuf);
-}
-
-cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,const cPt2di& aSzN,bool WithSimUK)
-{ 
-    return cName2Calc<double>::CalcFromName(NameFormula(cNetWConsDistSetPts(aSzN,WithSimUK),WithDerive),aSzBuf);
-}
-
-cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf)
-{
-     return cName2Calc<double>::CalcFromName(NameFormula(cDeformImHomotethy(),WithDerive),aSzBuf);
-}
-
-//  Projection
-cCalculator<double> * EqCPProjDir(eProjPC  aType,bool WithDerive,int aSzBuf)
-{ 
-    return cName2Calc<double>::CalcFromName(NameFormulaOfStr(FormulaName_ProjDir(aType),WithDerive),aSzBuf);
-}
-
-cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf)
-{ 
-    return cName2Calc<double>::CalcFromName(NameFormulaOfStr(FormulaName_ProjInv(aType),WithDerive),aSzBuf);
-}
-
-
-std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
-{
-   cMMVIIUnivDist  aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
-
-   return aDist.VDescParams();
-}
-
-
 
 cSpecMMVII_Appli  TheSpecGenSymbDer
 (

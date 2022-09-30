@@ -366,6 +366,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void InitParam();  ///< Parse the parameter list
         void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
+	int NbProcAllowed() const; ///< Accessor to nb of process allowed for the appli
         const std::string & DirProject()   const;   ///<  Accessor to directoy of project
         const std::string & TopDirMMVII()   const;   ///<  main directory of MMVII , upon include,src ..
         const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
