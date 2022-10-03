@@ -22,10 +22,129 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
-
 class cPixelDomain ;
 class cCalibStenPerfect ;
 class cPerspCamIntrCalib ;
+
+template <class Type> class cOneInteralvUnkown;
+template <class Type> class cSetIntervUK_OneObj;
+template <class Type> class cSetInterUK_MultipeObj;
+template <class Type> class cObjWithUnkowns;
+
+template <class Type> class cOneInteralvUnkown
+{
+     public :
+        Type * mVUk;
+	size_t mNb;
+	cOneInteralvUnkown(Type * aVUk,size_t aNb)  : mVUk (aVUk) , mNb (aNb) {}
+};
+
+template <class Type> class cSetIntervUK_OneObj
+{
+     public :
+	 cSetIntervUK_OneObj(cObjWithUnkowns<Type>   *anObj) : mObj (anObj) {}
+
+         cObjWithUnkowns<Type>   *         mObj;
+         std::vector<cOneInteralvUnkown<Type>>   mVInterv;
+
+};
+
+template <class Type> class cSetInterUK_MultipeObj
+{
+        public :
+
+           cSetInterUK_MultipeObj();
+
+           void  AddOneObj(cObjWithUnkowns<Type> *);
+	   std::vector<Type>  VUnKnowns();
+
+	   void AddOneInterv(Type * anAdr,size_t aSz) ;
+	   void AddOneInterv(std::vector<Type> & aV) ;
+
+        private :
+           void IO_UnKnowns(std::vector<Type> & aV,bool forExport);
+           std::vector<cSetIntervUK_OneObj<Type> >  mVVInterv;
+	   size_t                                    mNbUk;
+};
+
+template <class Type> class cObjWithUnkowns
+{
+       public :
+	       virtual void SetUnknowns(cSetInterUK_MultipeObj<Type> &) = 0;
+       private :
+};
+
+
+/* ******************************** */
+/*       cSetInterUK_MultipeObj     */
+/* ******************************** */
+
+template <class Type> void  cSetInterUK_MultipeObj<Type>::AddOneObj(cObjWithUnkowns<Type> * anObj)
+{
+	mVVInterv.push_back(cSetIntervUK_OneObj<Type>(anObj));
+	anObj->SetUnknowns(*this);
+}
+
+template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(Type * anAdr,size_t aSz) 
+{
+    mNbUk += aSz;
+    mVVInterv.back().mVInterv.push_back(cOneInteralvUnkown<Type>(anAdr,aSz));
+}
+template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(std::vector<Type> & aV)
+{
+    AddOneInterv(aV.data(),aV.size());
+} 
+
+template <class Type> cSetInterUK_MultipeObj<Type>::cSetInterUK_MultipeObj() :
+    mNbUk (0)
+{
+}
+
+template <class Type> void cSetInterUK_MultipeObj<Type>::IO_UnKnowns(std::vector<Type> & aVect,bool forExport)
+{
+    size_t anIndex=0;
+
+    for (const auto &   aVinterv : mVVInterv) // parse object
+    {
+        for (const auto & anInterv : aVinterv) // parse interv of 1 object
+	{
+            for (size_t aK=0 ; aK<anInterv.mNb ; aK++)  // parse element of the interv
+	    { 
+                Type & aVal = aVect(anIndex++);
+		if (forExport)
+                    aVal =  anInterv.mVUk[aK];
+		else
+                    anInterv.mVUk[aK] = aVal;
+	    }
+	}
+    }
+}
+
+template <class Type> std::vector<Type>  cSetInterUK_MultipeObj<Type>::VUnKnowns()
+{
+    std::vector<Type> aRes(mNbUk);
+    IO_UnKnowns(aRes,true);
+    /*
+    size_t anIndex=0;
+
+    for (const auto &   aVinterv : mVVInterv) // parse object
+    {
+        for (const auto & anInterv : aVinterv) // parse interv of 1 object
+	{
+            for (size_t aK=0 ; aK<anInterv.mNb ; aK++)  // parse element of the interv
+                aRes(anIndex++) =  anInterv.mVUk[aK];
+	}
+    }
+    */
+
+    return aRes;
+}
+
+template class cObjWithUnkowns<tREAL8>;
+
+
+
+
 	
 class cPixelDomain : public cDataBoundedSet<tREAL8,2>
 {
@@ -59,11 +178,12 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
 
          const tScal& F()  const;   ///<  Focal
          const tPt  & PP() const;  ///<  Principal point
+         tScal& F()  ;   ///<  Focal
+         tPt  & PP() ;  ///<  Principal point
      private :
          tScal  mF;   ///<  Focal
          tPt    mPP;  ///<  Principal point
 };
-
 
 
 /** this the class for computing the intric calibration of perspective camera :
@@ -80,7 +200,8 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
 
  */
 
-class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
+class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
+	                   public cObjWithUnkowns<tREAL8>
 {
 	public :
             typedef tREAL8               tScal;
@@ -132,6 +253,10 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 	    void InitRandom(double aAmpl);
 	    ///  Test the accuracy of "guess" invert
 	    void TestInvInit(double aTolApprox,double aTolAccurate);
+	    
+    // ==================   use in bundle adjustment ===================
+
+	     void SetUnknowns(cSetInterUK_MultipeObj<tREAL8> &) override ;
 	private :
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
 
@@ -169,7 +294,7 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>
 //       cDataIIMFromMap(tMap aMap,const tPt &,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
 
 
-class cSensorImage
+class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 {
      public :
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
@@ -178,12 +303,35 @@ class cSensorImage
 class cSensorCamPC : public cSensorImage
 {
      public :
+	 typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
+	 void SetUnknowns(cSetInterUK_MultipeObj<tREAL8> &) override ;
+
+
+	 cSensorCamPC(const tPose & aPose,cPerspCamIntrCalib * aCalib);
          cPt2dr Ground2Image(const cPt3dr &) const override;
+
+	 cPt3dr  Center() const;
+	 cPt3dr  AxeI()   const;
+	 cPt3dr  AxeJ()   const;
+	 cPt3dr  AxeK()   const;
+	 tPose   Pose()   const;
      private :
+	cSensorCamPC(const cSensorCamPC&) = delete;
 	     
         cPerspCamIntrCalib * mCalib;
 	cIsometry3D<tREAL8>  mPose;   /// transformation Cam to Word
 };
+
+cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const 
+{
+	//  mPose(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
+	return mCalib->Value(mPose.Inverse(aP));
+}
+
+cPt3dr cSensorCamPC::Center() const {return mPose.Tr();}
+cPt3dr cSensorCamPC::AxeI() const {return mPose.Rot().AxeI();}
+cPt3dr cSensorCamPC::AxeJ() const {return mPose.Rot().AxeI();}
+cPt3dr cSensorCamPC::AxeK() const {return mPose.Rot().AxeJ();}
 
 /* ******************************************************* */
 /*                                                         */
@@ -246,6 +394,8 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
 			  true                                   // equations are "adopted" (i.e will be deleted in destuctor)
                      );
 
+    // TO CHANGE SUPRRESS DIR PARAM GET ACESS TO mDir_Dist
+    MMVII_WARGING("TO CHANGE SUPRRESS DIR PARAM GET ACESS TO mDir_Dist");
     mDir_Dist = NewMapOfDist(mDir_Degr,mDir_Params,mSzBuf);
 
         // 2 - construct direct parameters
@@ -281,6 +431,22 @@ cPerspCamIntrCalib::~cPerspCamIntrCalib()
 }
 
 
+void cPerspCamIntrCalib::SetUnknowns(cSetInterUK_MultipeObj<tREAL8> & aSet) 
+{
+    aSet.AddOneInterv(&mCSPerfect.F(),3);
+    aSet.AddOneInterv(mDir_Dist->VObs());
+	/*
+     aVect.push_back(&mCSPerfect.F());
+     aVect.push_back(&mCSPerfect.PP().x());
+     aVect.push_back(&mCSPerfect.PP().y());
+
+     for (auto & aCoef :  mDir_Dist->VObs())
+        aVect.push_back(&aCoef);
+	*/
+}
+	     
+
+	     //  geometric manips
 
 const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tVecIn & aV0 ) const 
 {
@@ -516,6 +682,10 @@ void BenchCentralePerspective(cParamExeBench & aParam)
     }
 
 
+    cCalibStenPerfect aCS(1,cPt2dr(0,0));
+    MMVII_INTERNAL_ASSERT_bench(&(aCS.F())+1 == &(aCS.PP().x()) ,"Assertion cCalibStenPerfect memory model");
+    MMVII_INTERNAL_ASSERT_bench(&(aCS.F())+2 == &(aCS.PP().y()) ,"Assertion cCalibStenPerfect memory model");
+
     aParam.EndBench();
 }
 
@@ -558,13 +728,17 @@ cCalibStenPerfect::cCalibStenPerfect(const cCalibStenPerfect & aCS) :
 {
 }
 
+
 cCalibStenPerfect cCalibStenPerfect::MapInverse() const
 {
     //  aQ= PP+ aP * F  ;  aP = (aQ-PP) /aF
     return  cCalibStenPerfect(  1.0/mF  ,  -mPP/mF  );
 }
+
 const double & cCalibStenPerfect::F()  const {return mF ;}
 const cPt2dr & cCalibStenPerfect::PP() const {return mPP;}
+double & cCalibStenPerfect::F()  {return mF ;}
+cPt2dr & cCalibStenPerfect::PP() {return mPP;}
 
 const  typename cCalibStenPerfect::tVecPt &  cCalibStenPerfect::Values(tVecPt & aVOut,const tVecPt & aVIn) const
 {

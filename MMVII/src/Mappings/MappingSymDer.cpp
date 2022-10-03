@@ -139,6 +139,8 @@ template <class Type,const int DimIn,const int DimOut>
     }
 }
 
+template <class Type,const int DimIn,const int DimOut> std::vector<Type> &  cDataMapCalcSymbDer<Type,DimIn,DimOut>::VObs() {return mVObs;}
+template <class Type,const int DimIn,const int DimOut> const std::vector<Type> &  cDataMapCalcSymbDer<Type,DimIn,DimOut>::VObs() const {return mVObs;}
 
 template class cDataMapCalcSymbDer<tREAL8,2,2> ;
 template class cDataMapCalcSymbDer<tREAL8,2,3> ;
@@ -156,6 +158,11 @@ template <class Type,int Dim> cDataNxNMapCalcSymbDer<Type,Dim>:: cDataNxNMapCalc
      mDMS (aCalcVal,aCalcDer,aVObs,DeleteCalc)
 {
 }
+
+template <class Type,int Dim> const std::vector<Type>& cDataNxNMapCalcSymbDer<Type,Dim>::VObs() const {return mDMS.VObs();}
+template <class Type,int Dim> std::vector<Type>& cDataNxNMapCalcSymbDer<Type,Dim>::VObs() {return mDMS.VObs();}
+
+
 
 template <class Type,int Dim> 
      const typename cDataNxNMapCalcSymbDer<Type,Dim>::tVecOut &  
@@ -177,6 +184,8 @@ template <class Type,int Dim>
 {
     mDMS.SetObs(aVObs);
 }
+
+
 
 template class cDataNxNMapCalcSymbDer<tREAL8,2> ;
 

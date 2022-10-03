@@ -560,6 +560,8 @@ template <class Type,const int DimIn,const int DimOut>
        void SetObs(const std::vector<Type> &); ///< just modify mVObs
        // void SetDeleteCalc(bool);
 
+       const std::vector<Type> & VObs() const;
+       std::vector<Type> & VObs();
     private  :
        cDataMapCalcSymbDer(const cDataMapCalcSymbDer<Type,DimIn,DimOut> & ) = delete;
        void CheckDim(tCalc *,bool Derive); ///< used to check that both calculator have adequate structure
@@ -588,6 +590,8 @@ template <class Type,int Dim> class  cDataNxNMapCalcSymbDer  : public cDataNxNMa
 
       cDataNxNMapCalcSymbDer(tCalc  * aCalcVal,tCalc  * aCalcDer,const std::vector<Type> & aVObs,bool DeleteCalc);
       void SetObs(const std::vector<Type> &);
+      const std::vector<Type> & VObs() const;
+      std::vector<Type> & VObs();
     public :
        cDataMapCalcSymbDer<Type,Dim,Dim>  mDMS;
 

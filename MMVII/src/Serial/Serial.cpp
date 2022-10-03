@@ -565,7 +565,7 @@ int cIXml_Ar2007::SkeepWhite()
 
 /// Xml write archive
 /**
-    An archive for reading XML file saved by MMVII with cOXml_Ar2007
+    An archive for writing XML file 
     Much easier than reading ...
 */
 class cOXml_Ar2007 : public cAr2007
