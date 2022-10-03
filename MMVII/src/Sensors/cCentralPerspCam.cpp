@@ -56,13 +56,14 @@ template <class Type> class cSetInterUK_MultipeObj
            cSetInterUK_MultipeObj();
 
            void  AddOneObj(cObjWithUnkowns<Type> *);
-	   std::vector<Type>  VUnKnowns();
+	   cDenseVect<Type>  GetVUnKnowns() const;
+	   void  SetVUnKnowns(const cDenseVect<Type> &);
 
 	   void AddOneInterv(Type * anAdr,size_t aSz) ;
 	   void AddOneInterv(std::vector<Type> & aV) ;
 
         private :
-           void IO_UnKnowns(std::vector<Type> & aV,bool forExport);
+           void IO_UnKnowns(cDenseVect<Type> & aV,bool forExport);
            std::vector<cSetIntervUK_OneObj<Type> >  mVVInterv;
 	   size_t                                    mNbUk;
 };
@@ -100,13 +101,13 @@ template <class Type> cSetInterUK_MultipeObj<Type>::cSetInterUK_MultipeObj() :
 {
 }
 
-template <class Type> void cSetInterUK_MultipeObj<Type>::IO_UnKnowns(std::vector<Type> & aVect,bool forExport)
+template <class Type> void cSetInterUK_MultipeObj<Type>::IO_UnKnowns(cDenseVect<Type> & aVect,bool forExport)
 {
     size_t anIndex=0;
 
     for (const auto &   aVinterv : mVVInterv) // parse object
     {
-        for (const auto & anInterv : aVinterv) // parse interv of 1 object
+        for (const auto & anInterv : aVinterv.mVInterv) // parse interv of 1 object
 	{
             for (size_t aK=0 ; aK<anInterv.mNb ; aK++)  // parse element of the interv
 	    { 
@@ -120,27 +121,23 @@ template <class Type> void cSetInterUK_MultipeObj<Type>::IO_UnKnowns(std::vector
     }
 }
 
-template <class Type> std::vector<Type>  cSetInterUK_MultipeObj<Type>::VUnKnowns()
+template <class Type> cDenseVect<Type>  cSetInterUK_MultipeObj<Type>::GetVUnKnowns() const
 {
-    std::vector<Type> aRes(mNbUk);
-    IO_UnKnowns(aRes,true);
-    /*
-    size_t anIndex=0;
-
-    for (const auto &   aVinterv : mVVInterv) // parse object
-    {
-        for (const auto & anInterv : aVinterv) // parse interv of 1 object
-	{
-            for (size_t aK=0 ; aK<anInterv.mNb ; aK++)  // parse element of the interv
-                aRes(anIndex++) =  anInterv.mVUk[aK];
-	}
-    }
-    */
+    cDenseVect<Type> aRes(mNbUk);
+    const_cast<cSetInterUK_MultipeObj<Type>*>(this)->IO_UnKnowns(aRes,true);
 
     return aRes;
 }
 
+template <class Type> void  cSetInterUK_MultipeObj<Type>::SetVUnKnowns(const cDenseVect<Type> & aVect)
+{
+     IO_UnKnowns(const_cast<cDenseVect<Type> &>(aVect),false);
+}
+
+
+
 template class cObjWithUnkowns<tREAL8>;
+template class cSetInterUK_MultipeObj<tREAL8>;
 
 
 
@@ -435,14 +432,6 @@ void cPerspCamIntrCalib::SetUnknowns(cSetInterUK_MultipeObj<tREAL8> & aSet)
 {
     aSet.AddOneInterv(&mCSPerfect.F(),3);
     aSet.AddOneInterv(mDir_Dist->VObs());
-	/*
-     aVect.push_back(&mCSPerfect.F());
-     aVect.push_back(&mCSPerfect.PP().x());
-     aVect.push_back(&mCSPerfect.PP().y());
-
-     for (auto & aCoef :  mDir_Dist->VObs())
-        aVect.push_back(&aCoef);
-	*/
 }
 	     
 
@@ -644,6 +633,9 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
        aCam.TestInvInit((aK==0) ? 1e-3 : 1e-2, 1e-4);
     }
 }
+
+
+//class c
 
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string & aName)
 {
