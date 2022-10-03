@@ -239,6 +239,8 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
     // ==================   Accessors & Modifiers ===================
 	    const double & F() const;   ///< access to focal
 	    const cPt2dr & PP() const;  ///< acess to principal point
+	    const cPt3di & DegDir() const;  ///< acess to direct degrees
+
 
 	    void SetThresholdPhgrAccInv(double); ///< modifier of threshold for accuracy inversion, photogrametric unit
 	    void SetThresholdPixAccInv(double);  ///< modifier of threshold for accuracy inversion, pixel  unit
@@ -509,8 +511,10 @@ void cPerspCamIntrCalib::SetThresholdPixAccInv(double aThr)
      SetThresholdPhgrAccInv(aThr/F());
 }
 
-const double & cPerspCamIntrCalib::F()  const {return mCSPerfect.F() ;}
-const cPt2dr & cPerspCamIntrCalib::PP() const {return mCSPerfect.PP();}
+const double & cPerspCamIntrCalib::F()      const {return mCSPerfect.F() ;}
+const cPt2dr & cPerspCamIntrCalib::PP()     const {return mCSPerfect.PP();}
+const cPt3di & cPerspCamIntrCalib::DegDir() const {return mDir_Degr;}
+
 
        /* ================================================================== */
        /*                 BENCH VERIF PART                                   */
@@ -635,7 +639,16 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 }
 
 
-//class c
+class cCentralPerspConversion
+{
+    public :
+         cCentralPerspConversion(cPerspCamIntrCalib * ,const cSet2D3D &);
+    private :
+         cPerspCamIntrCalib * mCalib;
+         cSensorCamPC         mCamPC;
+};
+
+
 
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string & aName)
 {
