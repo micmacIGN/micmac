@@ -137,7 +137,8 @@ template <class Type> class cIsometry3D
 
 
        const cRotation3D<Type> & Rot() const {return mRot;}  ///< Accessor
-       const tPt Tr() const {return mTr;}  ///< Accessor
+       const tPt &Tr() const {return mTr;}  ///< Accessor
+       tPt &Tr() {return mTr;}  ///< Accessor
 
        tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt);}
        tPt   Inverse(const tPt & aPt) const {return mRot.Inverse(aPt-mTr) ;}  // Work as M tM = Id

@@ -54,6 +54,7 @@ template <class Type> class cSetInterUK_MultipeObj
         public :
 
            cSetInterUK_MultipeObj();
+           ~cSetInterUK_MultipeObj();
 
            void  AddOneObj(cObjWithUnkowns<Type> *);
 	   cDenseVect<Type>  GetVUnKnowns() const;
@@ -61,8 +62,10 @@ template <class Type> class cSetInterUK_MultipeObj
 
 	   void AddOneInterv(Type * anAdr,size_t aSz) ;
 	   void AddOneInterv(std::vector<Type> & aV) ;
+	   void AddOneInterv(cPtxd<Type,3> &);
 
         private :
+	   cSetInterUK_MultipeObj(const cSetInterUK_MultipeObj<Type> &) = delete;
            void IO_UnKnowns(cDenseVect<Type> & aV,bool forExport);
            std::vector<cSetIntervUK_OneObj<Type> >  mVVInterv;
 	   size_t                                    mNbUk;
@@ -71,19 +74,63 @@ template <class Type> class cSetInterUK_MultipeObj
 template <class Type> class cObjWithUnkowns
 {
        public :
-	       virtual void SetUnknowns(cSetInterUK_MultipeObj<Type> &) = 0;
-       private :
-};
+          friend class cSetInterUK_MultipeObj<Type>;
+	  cObjWithUnkowns();
 
+	  bool  UkIsInit() const;
+	  int   IndUK0() const;
+       private :
+          virtual void SetUnknowns(cSetInterUK_MultipeObj<Type> &) = 0;
+
+	  cSetInterUK_MultipeObj<Type> *  mSetInterv;
+	  int   mIndUK0;
+};
 
 /* ******************************** */
 /*       cSetInterUK_MultipeObj     */
 /* ******************************** */
 
+template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns() :
+   mSetInterv(nullptr),
+   mIndUK0  (-1)
+{
+}
+
+template <class Type> int cObjWithUnkowns<Type>::IndUK0()  const
+{
+    MMVII_INTERNAL_ASSERT_tiny(mSetInterv!=nullptr,"IndUK0 not init");
+    return mIndUK0;
+}
+
+template <class Type> bool cObjWithUnkowns<Type>::UkIsInit()  const
+{
+   return mIndUK0>=0;
+}
+
+/* ******************************** */
+/*       cSetInterUK_MultipeObj     */
+/* ******************************** */
+
+template <class Type> cSetInterUK_MultipeObj<Type>::cSetInterUK_MultipeObj() :
+    mNbUk (0)
+{
+}
+
+template <class Type> cSetInterUK_MultipeObj<Type>::~cSetInterUK_MultipeObj() 
+{
+    for (auto &   aVinterv : mVVInterv) // parse object
+    {
+        aVinterv.mObj->mSetInterv = nullptr;
+        aVinterv.mObj->mIndUK0 = -1;
+    }
+}
+
 template <class Type> void  cSetInterUK_MultipeObj<Type>::AddOneObj(cObjWithUnkowns<Type> * anObj)
 {
-	mVVInterv.push_back(cSetIntervUK_OneObj<Type>(anObj));
-	anObj->SetUnknowns(*this);
+     anObj->mIndUK0 = mNbUk;
+     anObj->mSetInterv = this;
+     mVVInterv.push_back(cSetIntervUK_OneObj<Type>(anObj));
+     anObj->SetUnknowns(*this);
 }
 
 template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(Type * anAdr,size_t aSz) 
@@ -96,9 +143,9 @@ template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(std::vecto
     AddOneInterv(aV.data(),aV.size());
 } 
 
-template <class Type> cSetInterUK_MultipeObj<Type>::cSetInterUK_MultipeObj() :
-    mNbUk (0)
+template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(cPtxd<Type,3> & aPt)
 {
+    AddOneInterv(aPt.PtRawData(),3);
 }
 
 template <class Type> void cSetInterUK_MultipeObj<Type>::IO_UnKnowns(cDenseVect<Type> & aVect,bool forExport)
@@ -256,6 +303,8 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
     // ==================   use in bundle adjustment ===================
 
 	     void SetUnknowns(cSetInterUK_MultipeObj<tREAL8> &) override ;
+
+             cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf);
 	private :
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
 
@@ -303,7 +352,6 @@ class cSensorCamPC : public cSensorImage
 {
      public :
 	 typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
-	 void SetUnknowns(cSetInterUK_MultipeObj<tREAL8> &) override ;
 
 
 	 cSensorCamPC(const tPose & aPose,cPerspCamIntrCalib * aCalib);
@@ -314,23 +362,41 @@ class cSensorCamPC : public cSensorImage
 	 cPt3dr  AxeJ()   const;
 	 cPt3dr  AxeK()   const;
 	 tPose   Pose()   const;
+
+	 // interaction in unknowns
+	 void SetUnknowns(cSetInterUK_MultipeObj<tREAL8> &) override ;
      private :
 	cSensorCamPC(const cSensorCamPC&) = delete;
 	     
-        cPerspCamIntrCalib * mCalib;
 	cIsometry3D<tREAL8>  mPose;   /// transformation Cam to Word
+        cPerspCamIntrCalib * mCalib;
+	cPt3dr               mOmega;  // vector for tiny rotation when used in unknown, mW  in code gene ...
 };
+
+cSensorCamPC::cSensorCamPC(const tPose & aPose,cPerspCamIntrCalib * aCalib) :
+   mPose  (aPose),
+   mCalib (aCalib),
+   mOmega (0,0,0)
+{
+}
+
+void cSensorCamPC::SetUnknowns(cSetInterUK_MultipeObj<tREAL8> & aSet)
+{
+    aSet.AddOneInterv(mPose.Tr());
+    aSet.AddOneInterv(mOmega);
+}
 
 cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const 
 {
 	//  mPose(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
-	return mCalib->Value(mPose.Inverse(aP));
+     return mCalib->Value(mPose.Inverse(aP));
 }
 
 cPt3dr cSensorCamPC::Center() const {return mPose.Tr();}
 cPt3dr cSensorCamPC::AxeI() const {return mPose.Rot().AxeI();}
 cPt3dr cSensorCamPC::AxeJ() const {return mPose.Rot().AxeI();}
 cPt3dr cSensorCamPC::AxeK() const {return mPose.Rot().AxeJ();}
+
 
 /* ******************************************************* */
 /*                                                         */
@@ -609,6 +675,10 @@ void cPerspCamIntrCalib::InitRandom(double aAmpl)
      mDir_Dist->SetObs(aParamRID.VParam());
 }
  
+cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf)
+{
+    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf);
+}
 
 void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 {
@@ -638,17 +708,54 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
     }
 }
 
+/* ******************************************************* */
+/*                                                         */
+/*                 cPerspCamIntrCalib                      */
+/*                                                         */
+/* ******************************************************* */
 
 class cCentralPerspConversion
 {
     public :
          cCentralPerspConversion(cPerspCamIntrCalib * ,const cSet2D3D &);
+	 ~cCentralPerspConversion();
+
+	 void OneIteration();
     private :
-         cPerspCamIntrCalib * mCalib;
-         cSensorCamPC         mCamPC;
+         cPerspCamIntrCalib *               mCalib;
+         cSensorCamPC                       mCamPC;
+	 cSet2D3D                           mSetCorresp;
+	 int                                mSzBuf;
+         cCalculator<double> *              mEqColinearity;
+	 cSetInterUK_MultipeObj<double>     mSetInterv;
+	 cResolSysNonLinear<double> *       mSys;
 };
 
+cCentralPerspConversion::cCentralPerspConversion(cPerspCamIntrCalib * aCalib,const cSet2D3D & aSetCorresp) :
+    mCalib         (aCalib),
+    mCamPC         (cIsometry3D<tREAL8>::Identity(),aCalib),
+    mSetCorresp    (aSetCorresp),
+    mSzBuf         (100),
+    mEqColinearity (mCalib->EqColinearity(true,mSzBuf))
+{
+    mSetInterv.AddOneObj(mCalib);
+    mSetInterv.AddOneObj(&mCamPC);
 
+    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
+}
+
+cCentralPerspConversion::~cCentralPerspConversion() 
+{
+    delete mEqColinearity;
+    delete mSys;
+}
+
+/*
+void cCentralPerspConversion::OneIteration()
+{
+    
+}
+*/
 
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string & aName)
 {
@@ -656,7 +763,11 @@ void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string
 
      cExportV1StenopeCalInterne  aExp(aFullName);
 
+     cPerspCamIntrCalib aCalib(aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
 
+     cCentralPerspConversion aConv(&aCalib,aExp.mCorresp);
+
+     StdOut() << "FFF= " << aCalib.F() << "\n";
      /*
      cCalculator<double> * anEqL =EqColinearityCamPPC(aExp.eProj,cPt3di(3,1,1),true,10);
      StdOut() << "aFullNameaFullName " << aFullName  << " " << aExp.mCorresp.Pairs().size()  << " " << anEqL << "\n";
