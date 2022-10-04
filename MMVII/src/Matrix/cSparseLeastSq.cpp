@@ -842,11 +842,11 @@ template<class Type>  void  cSparseLeasSqGC<Type>::AddObsWithTmpUK(const cSetIOR
 		 Type aSW = Sqrt(aSetEq.WeightOfKthResisual(aKEq));
 
                  size_t  aIndTmp =  this->mNbVar+mNbTmpVar;
-		 for (size_t aKGlob=0 ; aKGlob<aSetEq.mVIndGlob.size() ; aKGlob++)
+		 for (size_t aKGlob=0 ; aKGlob<aSetEq.mGlobVInd.size() ; aKGlob++)
                  {
-                     int aInd = aSetEq.mVIndGlob[aKGlob];
-                     if (aInd<0)
-                        aInd = aIndTmp++;
+                     int aInd = aSetEq.mGlobVInd[aKGlob];
+                     if (cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd))
+                        aInd = aIndTmp + cSetIORSNL_SameTmp<Type>::ToIndTmp(aInd);
                      tTri aTri(mVRhs.size(),aInd,aVDer.at(aKGlob)*aSW);
                      mVTri.push_back(aTri);
                  }
@@ -854,8 +854,8 @@ template<class Type>  void  cSparseLeasSqGC<Type>::AddObsWithTmpUK(const cSetIOR
                  mVRhs.push_back(-aSetEq.mVals.at(aKEq)*aSW);
 	 }
     }
-    size_t aNbTmp = aSetSetEq.AllEq().at(0).mVTmpUK.size();
-    mNbTmpVar += aNbTmp;
+    // size_t aNbTmp = aSetSetEq.AllEq().at(0).mVTmpUK.size();
+    mNbTmpVar += aSetSetEq.NbTmpUk();
 }
 
 

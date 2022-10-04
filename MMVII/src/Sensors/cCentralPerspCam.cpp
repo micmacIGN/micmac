@@ -78,12 +78,13 @@ template <class Type> class cObjWithUnkowns
 	  cObjWithUnkowns();
 
 	  bool  UkIsInit() const;
-	  int   IndUK0() const;
-       private :
-          virtual void SetUnknowns(cSetInterUK_MultipeObj<Type> &) = 0;
-
+       protected :
 	  cSetInterUK_MultipeObj<Type> *  mSetInterv;
-	  int   mIndUK0;
+       private :
+          virtual void SetUnknowns() = 0;
+
+	  int   mNumObj;
+	  int   mNbObj;
 };
 
 /* ******************************** */
@@ -91,20 +92,16 @@ template <class Type> class cObjWithUnkowns
 /* ******************************** */
 
 template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns() :
-   mSetInterv(nullptr),
-   mIndUK0  (-1)
+   mSetInterv (nullptr),
+   mNumObj    (-1),
+   mNbObj     (-1)
 {
 }
 
-template <class Type> int cObjWithUnkowns<Type>::IndUK0()  const
-{
-    MMVII_INTERNAL_ASSERT_tiny(mSetInterv!=nullptr,"IndUK0 not init");
-    return mIndUK0;
-}
 
 template <class Type> bool cObjWithUnkowns<Type>::UkIsInit()  const
 {
-   return mIndUK0>=0;
+   return mSetInterv != nullptr;
 }
 
 /* ******************************** */
@@ -121,16 +118,18 @@ template <class Type> cSetInterUK_MultipeObj<Type>::~cSetInterUK_MultipeObj()
     for (auto &   aVinterv : mVVInterv) // parse object
     {
         aVinterv.mObj->mSetInterv = nullptr;
-        aVinterv.mObj->mIndUK0 = -1;
     }
 }
 
 template <class Type> void  cSetInterUK_MultipeObj<Type>::AddOneObj(cObjWithUnkowns<Type> * anObj)
 {
-     anObj->mIndUK0 = mNbUk;
+     MMVII_INTERNAL_ASSERT_tiny(anObj->mSetInterv==nullptr,"Multiple set interv simultaneously for same object");
+
+     anObj->mNumObj = mVVInterv.size();
      anObj->mSetInterv = this;
      mVVInterv.push_back(cSetIntervUK_OneObj<Type>(anObj));
-     anObj->SetUnknowns(*this);
+     anObj->SetUnknowns();
+     anObj->mNbObj = mVVInterv.size() - anObj->mNumObj ;
 }
 
 template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(Type * anAdr,size_t aSz) 
@@ -302,7 +301,7 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
 	    
     // ==================   use in bundle adjustment ===================
 
-	     void SetUnknowns(cSetInterUK_MultipeObj<tREAL8> &) override ;
+	     void SetUnknowns() override ;
 
              cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf);
 	private :
@@ -364,7 +363,7 @@ class cSensorCamPC : public cSensorImage
 	 tPose   Pose()   const;
 
 	 // interaction in unknowns
-	 void SetUnknowns(cSetInterUK_MultipeObj<tREAL8> &) override ;
+	 void SetUnknowns() override ;
      private :
 	cSensorCamPC(const cSensorCamPC&) = delete;
 	     
@@ -380,10 +379,10 @@ cSensorCamPC::cSensorCamPC(const tPose & aPose,cPerspCamIntrCalib * aCalib) :
 {
 }
 
-void cSensorCamPC::SetUnknowns(cSetInterUK_MultipeObj<tREAL8> & aSet)
+void cSensorCamPC::SetUnknowns()
 {
-    aSet.AddOneInterv(mPose.Tr());
-    aSet.AddOneInterv(mOmega);
+    mSetInterv->AddOneInterv(mPose.Tr());
+    mSetInterv->AddOneInterv(mOmega);
 }
 
 cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const 
@@ -496,10 +495,10 @@ cPerspCamIntrCalib::~cPerspCamIntrCalib()
 }
 
 
-void cPerspCamIntrCalib::SetUnknowns(cSetInterUK_MultipeObj<tREAL8> & aSet) 
+void cPerspCamIntrCalib::SetUnknowns() 
 {
-    aSet.AddOneInterv(&mCSPerfect.F(),3);
-    aSet.AddOneInterv(mDir_Dist->VObs());
+    mSetInterv->AddOneInterv(&mCSPerfect.F(),3);
+    mSetInterv->AddOneInterv(mDir_Dist->VObs());
 }
 	     
 
@@ -750,12 +749,11 @@ cCentralPerspConversion::~cCentralPerspConversion()
     delete mSys;
 }
 
-/*
 void cCentralPerspConversion::OneIteration()
 {
-    
+     //cSetIORSNL_SameTmp<tREAL8>   aStrSubst;
 }
-*/
+
 
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string & aName)
 {

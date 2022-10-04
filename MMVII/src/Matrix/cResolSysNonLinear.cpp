@@ -14,14 +14,9 @@ namespace MMVII
 /*                                                              */
 /* ************************************************************ */
 
-template <class Type>  cInputOutputRSNL<Type>::cInputOutputRSNL(const tVectInd& aVInd,const tStdVect & aVObs):
-     cInputOutputRSNL<Type>(aVInd,{},aVObs)
-{
-}
 
-template <class Type>  cInputOutputRSNL<Type>::cInputOutputRSNL(const tVectInd& aVInd,const tStdVect & aVTmp,const tStdVect & aVObs):
-     mVTmpUK    (aVTmp),
-     mVIndGlob  (aVInd),
+template <class Type>  cInputOutputRSNL<Type>::cInputOutputRSNL(const tVectInd& aVInd,const tStdVect & aVObs):
+     mGlobVInd  (aVInd),
      mVObs      (aVObs),
      mNbTmpUk   (0)
 {
@@ -29,13 +24,12 @@ template <class Type>  cInputOutputRSNL<Type>::cInputOutputRSNL(const tVectInd& 
     //  Check consistency on temporary indexes
     for (const auto & anInd : aVInd)
     {
-        if (anInd<0) 
+        if (cSetIORSNL_SameTmp<Type>::IsIndTmp(anInd))
         {
-            MMVII_INTERNAL_ASSERT_tiny(anInd==RSL_INDEX_SUBST_TMP,"IndTmp bas val");
 	    mNbTmpUk++;
         }
     }
-    MMVII_INTERNAL_ASSERT_tiny(mNbTmpUk==(int)mVTmpUK.size(),"Size Tmp/subst in  cInputOutputRSNL");
+    // MMVII_INTERNAL_ASSERT_tiny(mNbTmpUk==mVTmpUk.size(),"Size Tmp/subst in  cInputOutputRSNL");
 }
 
 template <class Type> Type cInputOutputRSNL<Type>::WeightOfKthResisual(int aK) const
@@ -49,7 +43,7 @@ template <class Type> Type cInputOutputRSNL<Type>::WeightOfKthResisual(int aK) c
 }
 template <class Type> size_t cInputOutputRSNL<Type>::NbUkTot() const
 {
-	return mVIndGlob.size() ;
+	return mGlobVInd.size() ;
 }
 
 template <class Type> bool cInputOutputRSNL<Type>::IsOk() const
@@ -82,29 +76,40 @@ template <class Type> bool cInputOutputRSNL<Type>::IsOk() const
 /*                                                              */
 /* ************************************************************ */
 
-template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp() :
-	mOk (false),
-	mNbEq (0)
+template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp(const tStdVect & aValTmpUk) :
+	mOk           (false),
+	mNbTmpUk      (aValTmpUk.size()),
+	mValTmpUk     (aValTmpUk),
+	mNbEq         (0),
+	mSetIndTmpUk  (mNbTmpUk)
 {
 }
 
+template <class Type> size_t cSetIORSNL_SameTmp<Type>::ToIndTmp(int anInd) { return -(anInd+1); }
+template <class Type> bool   cSetIORSNL_SameTmp<Type>::IsIndTmp(int anInd) { return anInd<0; }
+
+
+
 template <class Type> void cSetIORSNL_SameTmp<Type>::AddOneEq(const tIO_OneEq & anIO)
 {
-    // there would be no meaning to have variable size of tmp
-    if (!mVEq.empty())
-    {
-         MMVII_INTERNAL_ASSERT_tiny
-         (
-             (anIO.mVTmpUK.size()==mVEq.back().mVTmpUK.size()),
-	     "Variable size of temporaries"
-         );
-    }
     MMVII_INTERNAL_ASSERT_tiny(anIO.IsOk(),"Bad size for cInputOutputRSNL");
+
+    for (const auto & anInd : anIO.mGlobVInd)
+    {
+        if (IsIndTmp(anInd))
+	{
+           mSetIndTmpUk.AddInd(ToIndTmp(anInd));
+	}
+    }
+
 
     mVEq.push_back(anIO);
     mNbEq += anIO.mVals.size();
-    // A priori there is no use to less or equal equation, this doesnt give any constraint
-    if (mNbEq > anIO.mVTmpUK.size())
+    if 
+    (
+            (mNbEq > mNbTmpUk)  // A priori there is no use to less or equal equation, this doesnt give any constraint
+	 && ( mSetIndTmpUk.NbElem()== mNbTmpUk)  // we are sure to have good index, because we cannot add oustide
+    )
     {
         mOk = true; 
     }
@@ -123,10 +128,11 @@ template <class Type> void cSetIORSNL_SameTmp<Type>::AssertOk() const
       MMVII_INTERNAL_ASSERT_tiny(mOk,"Not enough eq to use tmp unknowns");
 }
 
-template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const
-{
-    return mVEq.at(0).mVTmpUK.size();
-}
+template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const { return mNbTmpUk; }
+template <class Type> const std::vector<Type> & cSetIORSNL_SameTmp<Type>::ValTmpUk() const { return mValTmpUk; }
+
+
+template <class Type> Type  cSetIORSNL_SameTmp<Type>::Val1TmpUk(int aInd) const { return mValTmpUk.at(ToIndTmp(aInd));}
 
 /* ************************************************************ */
 /*                                                              */
@@ -222,12 +228,33 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixVar(const int & a
      aSV.AddIV(aNumV,1.0);
      // Dont forget that the linear system compute the difference with current solution ...
      mSysLinear->AddObservation(aWeight,aSV,aVal-CurSol(aNumV));
-
-     {
-         // StdOut() << "XXXxxx= " << aVal - CurSol(aNumV) << "\n";
-	 // getchar();
-     }
 }
+
+template <class Type> void   cResolSysNonLinear<Type>::AddFixVarTmp (tSetIO_ST & aSetIO,int aInd,const Type& aVal,const Type& aWeight)
+{
+     MMVII_INTERNAL_ASSERT_tiny
+     (
+	 cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd),
+	 "Non tempo index in AddFixVarTmp"
+     );
+
+     // tVectInd aVInd{anInd};
+
+     cInputOutputRSNL<Type> aIO({aInd},{});
+     aIO.mWeights.push_back(aWeight);
+     aIO.mDers.push_back({1.0});
+     Type aDVal = aSetIO.Val1TmpUk(aInd)-aVal;
+     aIO.mVals.push_back({aDVal});
+
+     aSetIO.AddOneEq(aIO);
+}
+
+template <class Type> void   cResolSysNonLinear<Type>::AddFixCurVarTmp (tSetIO_ST & aSetIO,int aInd,const Type& aWeight)
+{
+     AddFixVarTmp(aSetIO,aInd,aSetIO.Val1TmpUk(aInd),aWeight); 
+}
+
+
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const int & aNumV,const Type& aWeight)
 {
@@ -236,10 +263,10 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const int 
 
 template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL& aIO)
 {
-    for (size_t aKVar=0 ; aKVar<aIO.mVIndGlob.size() ; aKVar++)
+    for (size_t aKVar=0 ; aKVar<aIO.mGlobVInd.size() ; aKVar++)
     {
-         int aIndGlob = aIO.mVIndGlob[aKVar];
-	 if ( (aIndGlob>=0) && (mVarIsFrozen.at(aIndGlob)))
+         int aIndGlob = aIO.mGlobVInd[aKVar];
+	 if ( (! cSetIORSNL_SameTmp<Type>::IsIndTmp(aIndGlob)) && (mVarIsFrozen.at(aIndGlob)))
 	 {
               Type aDeltaVar = mValueFrozenVar.at(aIndGlob) - mCurGlobSol(aIndGlob);
               for (size_t aKEq=0 ; aKEq<aIO.mVals.size() ; aKEq++)
@@ -302,6 +329,7 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
                              (
 			          tCalc * aCalcVal,
 				  std::vector<tIO_RSNL>& aVIO,
+				  const tStdVect & aValTmpUk,
 				  bool WithDer,
 				  const tResidualW & aWeighter
                               )
@@ -314,14 +342,16 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
       {
           tStdCalcVect aVCoord;
 	  // transferate global coordinates
-          size_t anIndTmp=0;
-	  for (const auto & anInd : aIO.mVIndGlob)
+          //  size_t anIndTmp=0;
+	  for (const auto & anInd : aIO.mGlobVInd)
           {
-              if (anInd >=0)
-                 aVCoord.push_back(mCurGlobSol(anInd));
+              if (cSetIORSNL_SameTmp<Type>::IsIndTmp(anInd))
+	      {
+                  aVCoord.push_back(aValTmpUk.at(cSetIORSNL_SameTmp<Type>::ToIndTmp(anInd)));
+	      }
               else
               {
-                  aVCoord.push_back(aIO.mVTmpUK.at(anIndTmp++));
+                 aVCoord.push_back(mCurGlobSol(anInd));
               }
           }
           // Make a type converstion to calc type
@@ -374,7 +404,7 @@ template <class Type> void cResolSysNonLinear<Type>::CalcAndAddObs
 {
     std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
 
-    CalcVal(aCalcVal,aVIO,true,aWeigther);
+    CalcVal(aCalcVal,aVIO,{},true,aWeigther);
     AddObs(aVIO);
 }
 
@@ -386,7 +416,7 @@ template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<
       for (const auto & aIO : aVIO)
       {
 	  // check we dont use temporary value
-          MMVII_INTERNAL_ASSERT_tiny(aIO.mVTmpUK.empty(),"Cannot use tmp uk w/o Schurr complement");
+          MMVII_INTERNAL_ASSERT_tiny(aIO.mNbTmpUk==0,"Cannot use tmp uk w/o Schurr complement");
 
 	  // parse all values
 	  for (size_t aKVal=0 ; aKVal<aIO.mVals.size() ; aKVal++)
@@ -396,9 +426,9 @@ template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<
 	      {
 	         tSVect aSV;
 		 const tStdVect & aVDer = aIO.mDers[aKVal];
-	         for (size_t aKUk=0 ; aKUk<aIO.mVIndGlob.size() ; aKUk++)
+	         for (size_t aKUk=0 ; aKUk<aIO.mGlobVInd.size() ; aKUk++)
                  {
-                     aSV.AddIV(aIO.mVIndGlob[aKUk],aVDer[aKUk]);
+                     aSV.AddIV(aIO.mGlobVInd[aKUk],aVDer[aKUk]);
 	         }
 		 // Note the minus sign :  F(X0+dx) = F(X0) + Gx.dx   =>   Gx.dx = -F(X0)
 	         mSysLinear->AddObservation(aW,aSV,-aIO.mVals[aKVal]);
@@ -411,12 +441,12 @@ template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEq2Subst 
                              (
-			          tSetIO_ST & aSetIO,tCalc * aCalc,const tVectInd & aVInd,const tStdVect& aVTmp,
+			          tSetIO_ST & aSetIO,tCalc * aCalc,const tVectInd & aVInd, 
 			          const tStdVect& aVObs,const tResidualW & aWeighter
 			     )
 {
-    std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVTmp,aVObs));
-    CalcVal(aCalc,aVIO,true,aWeighter);
+    std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
+    CalcVal(aCalc,aVIO,aSetIO.ValTmpUk(),true,aWeighter);
 
     aSetIO.AddOneEq(aVIO.at(0));
 }

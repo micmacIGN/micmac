@@ -822,6 +822,8 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     int aNbUkRot = mRotUk ?  3 : 0; // Number of parameters for unknown rotationn
     // Index of unknown, if Rotation unknown,  begin with 3 Tmp-Schur for rotation
     std::vector<int> aVIndUk(this->mVPts.size()*2+aNbUkRot,-1); 
+    for (int aK=0 ; aK<aNbUkRot ; aK++)
+        aVIndUk[aK] = - (1+aK);
  
         // 1.1  compute indexes and homologous points
     for (const auto & aPNet : this->mVPts)
@@ -883,9 +885,9 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
         }
         if (mRotUk) // if rotation unknown use schurr complement or equivalent
         {
-            cSetIORSNL_SameTmp<Type> aSetIO;
+            cSetIORSNL_SameTmp<Type> aSetIO(aVTmpRot);
             // compute all the observations 
-            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVTmpRot,aVObs);
+            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVObs);
             // add it to system with schurr substitution
             this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
         }
@@ -897,14 +899,14 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     else if (mL2Cov)
     {
        // ---------  2-B  case where we use  the decomposition covariance as sum of SqL,  #PC2
-       cSetIORSNL_SameTmp<Type> aSetIO; // structure for schur subst
+       cSetIORSNL_SameTmp<Type> aSetIO(aVTmpRot); // structure for schur subst
        for (const auto & anElemLin : mDSSL.VElems()) // parse all linear system
        {
            cResidualWeighter<Type>  aRW(anElemLin.mW);  // the weigth as given by eigen values
            std::vector<Type> aVObs = anElemLin.mCoeff.ToStdVect(); // coefficient of the linear forme
            aVObs.push_back(anElemLin.mCste);  // cste  of the linear form
            // Add the equation in the structure
-           this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcSumL2RUk,aVIndUk,aVTmpRot,aVObs,aRW);
+           this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcSumL2RUk,aVIndUk,aVObs,aRW);
        }
        // Once all equation have been bufferd in aSetIO, add it to the system
        //  the unknown rotation will be eliminated

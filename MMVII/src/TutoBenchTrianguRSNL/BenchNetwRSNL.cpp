@@ -41,12 +41,13 @@ template<class Type> void  TplOneBenchSSRNL
                                eModeSSR aMode,
                                cRect2 aRect,
                                bool WithSchurr,
-                               cParamSparseNormalLstSq * aParam=nullptr
+                               cParamSparseNormalLstSq * aParam=nullptr,
+			       const std::vector<Type> &  aWeightSetSchur ={0.0,0.0,0.0,0.0}
                            )
 {
      cParamMainNW aParamNW;
      Type aPrec = tElemNumTrait<Type>::Accuracy() ;
-     cMainNetwork <Type> aBN(aMode,aRect,WithSchurr,aParamNW,aParam);
+     cMainNetwork <Type> aBN(aMode,aRect,WithSchurr,aParamNW,aParam,aWeightSetSchur);
      aBN.PostInit();
      double anEc =100;
      for (int aK=0 ; aK < THE_NB_ITER ; aK++)
@@ -67,10 +68,11 @@ template<class Type> void  TplOneBenchSSRNL
                                eModeSSR aMode,
                                int aNb,
                                bool WithSchurr,
-                               cParamSparseNormalLstSq * aParam=nullptr
+                               cParamSparseNormalLstSq * aParam=nullptr,
+			       const std::vector<Type> &  aWeightSetSchur = {0.0,0.0,0.0,0.0}
 			   )
 {
-	TplOneBenchSSRNL<Type>(aMode,cRect2::BoxWindow(aNb),WithSchurr,aParam);
+	TplOneBenchSSRNL<Type>(aMode,cRect2::BoxWindow(aNb),WithSchurr,aParam,aWeightSetSchur);
 }
 
 void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
@@ -118,6 +120,11 @@ void BenchSSRNL(cParamExeBench & aParam)
          OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
          OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
          OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
+
+         TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq,{1,1,0.1,0.1});
+         TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense     ,aNb,true ,nullptr,{1,1,0.1,0.1});
+         TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqSparseGC  ,aNb,true ,nullptr,{1,1,0.1,0.1});
+         //OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
      }
 
      // test  normal sparse matrix with many parameters handling starsity

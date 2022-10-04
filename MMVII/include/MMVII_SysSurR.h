@@ -1,5 +1,7 @@
 #ifndef  _MMVII_SysSurR_H_
 #define  _MMVII_SysSurR_H_
+
+
 namespace MMVII
 {
 /** \file MMVII_SysSurR.h
@@ -72,8 +74,14 @@ template <class Type> class cResolSysNonLinear
           /**  Add 1 equation in structure aSetIO ,  who will accumulate all equation of a given temporary set of unknowns
 	       relatively basic 4 now because don't use parallelism of tCalc
 	  */
-          void  AddEq2Subst (tSetIO_ST & aSetIO,tCalc *,const tVectInd &,const tStdVect& aVTmp,
+          void  AddEq2Subst (tSetIO_ST & aSetIO,tCalc *,const tVectInd &,
                              const tStdVect& aVObs,const tResidualW & = tResidualW());
+
+          /// Force tmp to its current value,  aNum is the same index (negative) than in AddEq2Subst
+          void  AddFixCurVarTmp (tSetIO_ST & aSetIO,int aNum,const Type& aWeight);
+          /// Force tmp to a different value, probably not usefull in real,  execpt for test
+          void  AddFixVarTmp (tSetIO_ST & aSetIO,int aNum,const Type& aVal,const Type& aWeight);
+
 	  /** Once "aSetIO" has been filled by multiple calls to  "AddEq2Subst",  do it using for exemple schurr complement
 	   */
           void  AddObsWithTmpUK (const tSetIO_ST & aSetIO);
@@ -98,7 +106,7 @@ template <class Type> class cResolSysNonLinear
 
           /** Bases function of calculating derivatives, dont modify the system as is
               to avoid in case  of schur complement */
-          void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,bool WithDer,const tResidualW & );
+          void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,const tStdVect & aVTmp,bool WithDer,const tResidualW & );
 
           int        mNbVar;       ///< Number of variable, facility
           tDVect     mCurGlobSol;  ///< Curent solution
@@ -137,7 +145,7 @@ template <class Type> class cInputOutputRSNL
 	  /// Create Input data w/o temporay
 	  cInputOutputRSNL(const tVectInd&,const tStdVect & aVObs);
 	  /// Create Input data with temporary temporay
-	  cInputOutputRSNL(const tVectInd&,const tStdVect &aVTmp,const tStdVect & aVObs);
+	  // cInputOutputRSNL(const tVectInd&,const tStdVect &aVTmp,const tStdVect & aVObs);
 
 	  /// Give the weight, handle case where mWeights is empty (1.0) or size 1 (considered constant)
 	  Type WeightOfKthResisual(int aK) const;
@@ -146,15 +154,12 @@ template <class Type> class cInputOutputRSNL
 	  ///  Real unknowns + Temporary
 	  size_t NbUkTot() const;
 
-          //  tVectInd   mVIndUk;    ///<  index of unknown in the system , no TMP
-          tStdVect   mVTmpUK;   ///< possible value of temporary unknown,that would be eliminated by schur complement
-          tVectInd   mVIndGlob;    ///<  index of unknown in the system + TMP (with -1)
+          tVectInd   mGlobVInd;    ///<  index of unknown in the system + TMP (with -1)   mVIndGlob
           tStdVect   mVObs;     ///< Observation (i.e constants)
-
-	  int                     mNbTmpUk;
           tStdVect                mWeights;  ///< Weights of eq, size can equal mVals or be 1 (cste) or 0 (all 1.0) 
           tStdVect                mVals;     ///< values of fctr, i.e. residuals
           std::vector<tStdVect>   mDers;     ///< derivate of fctr
+	  size_t                  mNbTmpUk;
 
 };
 
@@ -168,9 +173,10 @@ template <class Type> class cSetIORSNL_SameTmp
 	public :
             typedef cInputOutputRSNL<Type>  tIO_OneEq;
 	    typedef std::vector<tIO_OneEq>  tIO_AllEq;
+            typedef std::vector<Type>  tStdVect;
 
 	    /// Constructor :  Create an empty set
-	    cSetIORSNL_SameTmp();
+	    cSetIORSNL_SameTmp(const tStdVect & aValTmpUk);
 
 	    /// Add and equation,  check the coherence
 	    void AddOneEq(const tIO_OneEq &);
@@ -181,11 +187,21 @@ template <class Type> class cSetIORSNL_SameTmp
 
 	    ///  Number of temporary unkown
 	    size_t  NbTmpUk() const;
+	    const tStdVect & ValTmpUk() const;
+	    Type  Val1TmpUk(int aInd) const; ///make the correction of negativeness
+
+	    static size_t ToIndTmp(int ) ;
+	    static bool   IsIndTmp(int ) ;
 
 	private :
+	    cSetIORSNL_SameTmp(const cSetIORSNL_SameTmp&) = delete;
 	    tIO_AllEq        mVEq;
+
 	    bool             mOk;
+	    size_t           mNbTmpUk;
+	    tStdVect         mValTmpUk;
 	    size_t           mNbEq;
+            cSetIntDyn       mSetIndTmpUk;
 };
 
 

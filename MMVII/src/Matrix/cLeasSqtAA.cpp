@@ -58,9 +58,9 @@ template <class Type>
      mNbTmp = aSetSetEq.NbTmpUk();
      for (const auto & anEq : aSetSetEq.AllEq())
      {
-         for (const auto & anInd : anEq.mVIndGlob)
+         for (const auto & anInd : anEq.mGlobVInd)
 	 {
-             if (anInd>=0)
+             if (!cSetIORSNL_SameTmp<Type>::IsIndTmp(anInd))
 	     {
                  mSetInd.AddInd(anInd);
 	     }
@@ -96,13 +96,12 @@ template <class Type>
               mSV.Reset();
 	      const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
 
-              int aIndTmp = 0;
-              for (size_t aKGlob=0 ; aKGlob<aSetEq.mVIndGlob.size() ; aKGlob++)
+              for (size_t aKGlob=0 ; aKGlob<aSetEq.mGlobVInd.size() ; aKGlob++)
               {
                    const Type  & aDer = aVDer.at(aKGlob);
-                   int aInd = aSetEq.mVIndGlob[aKGlob];
-                   if (aInd<0)
-                       mSV.AddIV(aIndTmp++,aDer);
+                   int aInd = aSetEq.mGlobVInd[aKGlob];
+                   if ( cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd))
+                       mSV.AddIV(cSetIORSNL_SameTmp<Type>::ToIndTmp(aInd),aDer);
                    else
                        mSV.AddIV(mNbTmp+mNumComp.at(aInd),aDer);
                      
