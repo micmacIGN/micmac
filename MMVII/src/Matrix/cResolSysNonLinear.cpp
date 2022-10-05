@@ -91,6 +91,7 @@ template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp
 	mSetIndTmpUk       (mNbTmpUk)
 {
     MMVII_INTERNAL_ASSERT_tiny((aVFix.size()==aValFix.size()) || aValFix.empty(),"Bad size for fix var tmp");
+
     for (size_t aKInd=0 ; aKInd<aVFix.size() ; aKInd++)
     {
         int anIndFix = aVFix[aKInd];
@@ -129,18 +130,12 @@ template <class Type> void cSetIORSNL_SameTmp<Type>::AddOneEq(const tIO_OneEq & 
            if (mVarTmpIsFrozen.at(aIndPos))
            {
               Type aDeltaVar = mValueFrozenVarTmp.at(aIndPos) - mValTmpUk.at(aIndPos);
-FakeUseIt(aDeltaVar);
-OOOO
-		   /*
-                   Type & aVDer = aIO.mDers.at(aKEq).at(aKVar);
-		   aIO.mVals[aKEq]  +=  aVDer * aDeltaVar;
+              for (size_t aKEq=0 ; aKEq<anIO.mVals.size() ; aKEq++)
+              {
+                   Type & aVDer = anIO.mDers.at(aKEq).at(aKInd);
+		   anIO.mVals[aKEq]  +=  aVDer * aDeltaVar;
 		   aVDer = 0;
-
-                   Type & aVDer = aIO.mDers.at(aKEq).at(aKVar);
-	           //  Taylor expension :   Som_k {aVDer (Xk-Curk)}  + aVal
-		   aIO.mVals[aKEq]  +=  aVDer * aDeltaVar;
-		   aVDer = 0;
-		   */
+              }
            }
 	}
     }

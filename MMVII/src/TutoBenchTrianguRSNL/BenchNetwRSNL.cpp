@@ -106,10 +106,10 @@ void BenchSSRNL(cParamExeBench & aParam)
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,1,false);
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,2,false);
 
+     cParamSparseNormalLstSq aParamSq(3.0,4,9);
      // Basic test, test the 3 mode of matrix , with and w/o schurr subst, with different size
      for (const auto &  aNb : {3,4,5})
      {
-        cParamSparseNormalLstSq aParamSq(3.0,4,9);
 	// w/o schurr
         OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq);
         OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,false);
@@ -120,11 +120,17 @@ void BenchSSRNL(cParamExeBench & aParam)
          OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
          OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
 
-         TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq,{1,1,0.1,0.1});
-         TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense     ,aNb,true ,nullptr,{1,1,0.1,0.1});
-         TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqSparseGC  ,aNb,true ,nullptr,{1,1,0.1,0.1});
          //OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
      }
+      //  soft constraint on temporary , add low cost to current (slow but do not avoid real value)
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,3,true ,&aParamSq,{1,1,0.1,0.1});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense     ,3,true ,nullptr  ,{1,1,0.1,0.1});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqSparseGC  ,3,true ,nullptr  ,{1,1,0.1,0.1});
+
+     // mix hard & soft constraint on temporary
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,3,true ,&aParamSq,{-1,1,0,0});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense     ,3,true ,nullptr  ,{1,-1,0,0});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqSparseGC  ,3,true ,nullptr  ,{-1,-1,0,0});
 
      // test  normal sparse matrix with many parameters handling starsity
      for (int aK=0 ; aK<20 ; aK++)

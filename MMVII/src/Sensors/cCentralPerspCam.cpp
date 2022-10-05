@@ -80,11 +80,10 @@ template <class Type> class cObjWithUnkowns
 	  bool  UkIsInit() const;
        protected :
 	  cSetInterUK_MultipeObj<Type> *  mSetInterv;
-       private :
           virtual void SetUnknowns() = 0;
-
 	  int   mNumObj;
-	  int   mNbObj;
+	  int   mIndUk0;
+	  int   mIndUk1;
 };
 
 /* ******************************** */
@@ -94,7 +93,8 @@ template <class Type> class cObjWithUnkowns
 template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns() :
    mSetInterv (nullptr),
    mNumObj    (-1),
-   mNbObj     (-1)
+   mIndUk0    (-1),
+   mIndUk1    (-1)
 {
 }
 
@@ -125,11 +125,13 @@ template <class Type> void  cSetInterUK_MultipeObj<Type>::AddOneObj(cObjWithUnko
 {
      MMVII_INTERNAL_ASSERT_tiny(anObj->mSetInterv==nullptr,"Multiple set interv simultaneously for same object");
 
+     anObj->mIndUk0 = mNbUk;
      anObj->mNumObj = mVVInterv.size();
      anObj->mSetInterv = this;
      mVVInterv.push_back(cSetIntervUK_OneObj<Type>(anObj));
      anObj->SetUnknowns();
-     anObj->mNbObj = mVVInterv.size() - anObj->mNumObj ;
+
+     anObj->mIndUk1 = mNbUk ;
 }
 
 template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(Type * anAdr,size_t aSz) 
@@ -721,6 +723,7 @@ class cCentralPerspConversion
 
 	 void OneIteration();
     private :
+	 cPt3dr                             mPGround;
          cPerspCamIntrCalib *               mCalib;
          cSensorCamPC                       mCamPC;
 	 cSet2D3D                           mSetCorresp;
@@ -751,7 +754,12 @@ cCentralPerspConversion::~cCentralPerspConversion()
 
 void cCentralPerspConversion::OneIteration()
 {
-     //cSetIORSNL_SameTmp<tREAL8>   aStrSubst;
+     std::vector<int> aVInd{-1,-2,-3};
+     for (const auto & aCorrep : mSetCorresp. Pairs())
+     {
+FakeUseIt(aCorrep);
+          // cSetIORSNL_SameTmp<tREAL8>   aStrSubst({
+     }
 }
 
 

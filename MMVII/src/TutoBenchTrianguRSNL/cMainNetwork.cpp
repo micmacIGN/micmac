@@ -256,7 +256,6 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
 
 template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightFix)
 {
-	      //StdOut() <<   "Gggggggggggggggggggggggggggggggggggg " << aWeightFix << "\n";
      if (aWeightFix==0) return;
      //  Compute dist to sol + add constraint for fixed var
      for (const auto & aPN : mVPts)
@@ -265,9 +264,6 @@ template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightF
 	   // Fix X and Y for the two given points
 	   if (aPN.mFrozenY) // If Y is frozenn add equation fixing Y to its theoreticall value
 	   {
-	      //StdOut() <<  aPN.mTheorPt -  aPN.mPosInit  << "\n";
-	      //StdOut() <<  aPN.mTheorPt -  aPN.PCur()  << "\n";
-	      //getchar();
               if (aWeightFix>=0)
                  mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
 	      else
@@ -303,8 +299,24 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
 	 {
             // SCHURR:CALC
 	    cPtxd<Type,2> aP1= aPN1.PCur(); // current value, required for linearization
+            cPtxd<Type,2> aPTh1= aPN1.TheorPt(); // theoreticall value, used for test on fix var (else it's cheating to use it)
             std::vector<Type> aVTmp{aP1.x(),aP1.y()};  // vectors of temporary
-            cSetIORSNL_SameTmp<Type> aSetIO(aVTmp); // structure to grouping all equation relative to PN1
+
+	    // structure to generate "hard" constraints on temporary , cheat with theoreticall values
+            std::vector<int>    aVIndFrozen;
+            std::vector<Type>   aVValFrozen;
+	    if (mWeightSetSchur.at(1)<0)
+	    {
+                aVIndFrozen.push_back(-2);
+		aVValFrozen.push_back(aPTh1.y());
+	    }
+	    if (mWeightSetSchur.at(0)<0)
+	    {
+                aVIndFrozen.push_back(-1);
+		aVValFrozen.push_back(aPTh1.x());
+	    }
+
+            cSetIORSNL_SameTmp<Type> aSetIO(aVTmp,aVIndFrozen,aVValFrozen); // structure to grouping all equation relative to PN1
 	    // Parse all obsevation on PN1
             for (const auto & aI2 : aPN1.mLinked)
             {
@@ -316,12 +328,10 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
 		mSys->AddEq2Subst(aSetIO,mCalcD,aVIndMixt,aVObs);
 	    }
 	    {
-                cPtxd<Type,2> aPTh1= aPN1.TheorPt(); // current value, required for linearization
-                aSetIO.AddFixVarTmp(-1,aPTh1.x(), mWeightSetSchur.at(0));
-                aSetIO.AddFixVarTmp(-2,aPTh1.y(), mWeightSetSchur.at(1));
-
-                aSetIO.AddFixCurVarTmp(-1, mWeightSetSchur.at(2));
-                aSetIO.AddFixCurVarTmp(-2, mWeightSetSchur.at(3));
+                if (mWeightSetSchur.at(0)>=0) aSetIO.AddFixVarTmp(-1,aPTh1.x(), mWeightSetSchur.at(0)); // soft constraint-x  on theoreticall
+                if (mWeightSetSchur.at(1)>=0) aSetIO.AddFixVarTmp(-2,aPTh1.y(), mWeightSetSchur.at(1)); // soft constraint-y  on theoreticall
+                if (mWeightSetSchur.at(2)>=0) aSetIO.AddFixCurVarTmp(-1, mWeightSetSchur.at(2)); // soft constraint-x  on current
+                if (mWeightSetSchur.at(3)>=0) aSetIO.AddFixCurVarTmp(-2, mWeightSetSchur.at(3)); // soft constraint-y  on current
 		// StdOut() << "GGGGGgg\n";getchar();
 	    }
 	    mSys->AddObsWithTmpUK(aSetIO);
