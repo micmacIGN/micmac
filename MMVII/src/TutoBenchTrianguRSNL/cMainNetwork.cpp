@@ -125,6 +125,7 @@ template <class Type> void cMainNetwork <Type>::PostInit()
 	      const tPNet & aPL = PNetOfGrid(aPSch.mInd+cPt2di(-1,0));  // PLeft
 	      const tPNet & aPR = PNetOfGrid(aPSch.mInd+cPt2di( 1,0));  // PRight
 	      aPSch.mTheorPt  =   (aPL.TheorPt()+aPR.TheorPt())/Type(2.0);
+
           }
      }
      
@@ -255,6 +256,7 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
 
 template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightFix)
 {
+	      //StdOut() <<   "Gggggggggggggggggggggggggggggggggggg " << aWeightFix << "\n";
      if (aWeightFix==0) return;
      //  Compute dist to sol + add constraint for fixed var
      for (const auto & aPN : mVPts)
@@ -263,6 +265,9 @@ template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightF
 	   // Fix X and Y for the two given points
 	   if (aPN.mFrozenY) // If Y is frozenn add equation fixing Y to its theoreticall value
 	   {
+	      //StdOut() <<  aPN.mTheorPt -  aPN.mPosInit  << "\n";
+	      //StdOut() <<  aPN.mTheorPt -  aPN.PCur()  << "\n";
+	      //getchar();
               if (aWeightFix>=0)
                  mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
 	      else
@@ -312,11 +317,12 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
 	    }
 	    {
                 cPtxd<Type,2> aPTh1= aPN1.TheorPt(); // current value, required for linearization
-                mSys->AddFixVarTmp(aSetIO,-1,aPTh1.x(), mWeightSetSchur.at(0));
-                mSys->AddFixVarTmp(aSetIO,-2,aPTh1.y(), mWeightSetSchur.at(1));
+                aSetIO.AddFixVarTmp(-1,aPTh1.x(), mWeightSetSchur.at(0));
+                aSetIO.AddFixVarTmp(-2,aPTh1.y(), mWeightSetSchur.at(1));
 
-                mSys->AddFixCurVarTmp(aSetIO,-1, mWeightSetSchur.at(2));
-                mSys->AddFixCurVarTmp(aSetIO,-2, mWeightSetSchur.at(3));
+                aSetIO.AddFixCurVarTmp(-1, mWeightSetSchur.at(2));
+                aSetIO.AddFixCurVarTmp(-2, mWeightSetSchur.at(3));
+		// StdOut() << "GGGGGgg\n";getchar();
 	    }
 	    mSys->AddObsWithTmpUK(aSetIO);
 	 }

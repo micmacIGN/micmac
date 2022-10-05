@@ -77,11 +77,6 @@ template <class Type> class cResolSysNonLinear
           void  AddEq2Subst (tSetIO_ST & aSetIO,tCalc *,const tVectInd &,
                              const tStdVect& aVObs,const tResidualW & = tResidualW());
 
-          /// Force tmp to its current value,  aNum is the same index (negative) than in AddEq2Subst
-          void  AddFixCurVarTmp (tSetIO_ST & aSetIO,int aNum,const Type& aWeight);
-          /// Force tmp to a different value, probably not usefull in real,  execpt for test
-          void  AddFixVarTmp (tSetIO_ST & aSetIO,int aNum,const Type& aVal,const Type& aWeight);
-
 	  /** Once "aSetIO" has been filled by multiple calls to  "AddEq2Subst",  do it using for exemple schurr complement
 	   */
           void  AddObsWithTmpUK (const tSetIO_ST & aSetIO);
@@ -174,9 +169,17 @@ template <class Type> class cSetIORSNL_SameTmp
             typedef cInputOutputRSNL<Type>  tIO_OneEq;
 	    typedef std::vector<tIO_OneEq>  tIO_AllEq;
             typedef std::vector<Type>  tStdVect;
+            typedef std::vector<int>   tVectInd;
 
-	    /// Constructor :  Create an empty set
-	    cSetIORSNL_SameTmp(const tStdVect & aValTmpUk);
+	    /** Constructor :  take value of tmp+ optional vector of fixed var (given wih negatives value like {-1,-2})
+	        if aValFix is not given, default is current value
+	     */
+	    cSetIORSNL_SameTmp(const tStdVect & aValTmpUk,const tVectInd & aVFix={},const tStdVect & aValFix ={});
+
+            /// Force tmp to its current value,  aNum is the same index (negative) than in AddEq2Subst
+            void  AddFixCurVarTmp (int aNum,const Type& aWeight);
+            /// Force tmp to a different value, probably not usefull in real (if we have a better value, why not use it), execpt for test
+            void  AddFixVarTmp (int aNum,const Type& aVal,const Type& aWeight);
 
 	    /// Add and equation,  check the coherence
 	    void AddOneEq(const tIO_OneEq &);
@@ -197,11 +200,13 @@ template <class Type> class cSetIORSNL_SameTmp
 	    cSetIORSNL_SameTmp(const cSetIORSNL_SameTmp&) = delete;
 	    tIO_AllEq        mVEq;
 
-	    bool             mOk;
-	    size_t           mNbTmpUk;
-	    tStdVect         mValTmpUk;
-	    size_t           mNbEq;
-            cSetIntDyn       mSetIndTmpUk;
+	    bool               mOk;
+	    size_t             mNbTmpUk;
+	    tStdVect           mValTmpUk;
+	    std::vector<bool>  mVarTmpIsFrozen;       ///< indicate for each temporary var if it is frozen
+	    tStdVect           mValueFrozenVarTmp;    ///< value of frozen tmp
+	    size_t             mNbEq;
+            cSetIntDyn         mSetIndTmpUk;
 };
 
 

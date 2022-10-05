@@ -45,6 +45,7 @@ template<class Type> void  TplOneBenchSSRNL
 			       const std::vector<Type> &  aWeightSetSchur ={0.0,0.0,0.0,0.0}
                            )
 {
+     static int aCpt=0 ; aCpt++;  // use to make jauge constant along one iteration, to check the correctnes of hard constraints
      cParamMainNW aParamNW;
      Type aPrec = tElemNumTrait<Type>::Accuracy() ;
      cMainNetwork <Type> aBN(aMode,aRect,WithSchurr,aParamNW,aParam,aWeightSetSchur);
@@ -52,11 +53,9 @@ template<class Type> void  TplOneBenchSSRNL
      double anEc =100;
      for (int aK=0 ; aK < THE_NB_ITER ; aK++)
      {
-         double aWGauge = (aK%2) ? -1 : 100.0; // alternate "hard" constraint and soft, to test more ..
+         double aWGauge = (aCpt%2) ? -1 : 100; // alternate "hard" constraint and soft, to test more ..
          anEc = aBN.DoOneIterationCompensation(aWGauge,true);
-         // StdOut() << "  ECc== " << anEc /aPrec<< "\n";
      }
-     // getchar();
      if (anEc>aPrec)
      {
            StdOut() << "Fin-ECc== " << anEc /aPrec   << "\n";

@@ -76,34 +76,75 @@ template <class Type> bool cInputOutputRSNL<Type>::IsOk() const
 /*                                                              */
 /* ************************************************************ */
 
-template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp(const tStdVect & aValTmpUk) :
-	mOk           (false),
-	mNbTmpUk      (aValTmpUk.size()),
-	mValTmpUk     (aValTmpUk),
-	mNbEq         (0),
-	mSetIndTmpUk  (mNbTmpUk)
+template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp
+                      (
+		           const tStdVect & aValTmpUk,
+                           const tVectInd & aVFix,
+		           const tStdVect & aValFix
+                      ) :
+	mOk                (false),
+	mNbTmpUk           (aValTmpUk.size()),
+	mValTmpUk          (aValTmpUk),
+	mVarTmpIsFrozen    (mNbTmpUk,false),
+	mValueFrozenVarTmp (mNbTmpUk,-283971), // random val
+	mNbEq              (0),
+	mSetIndTmpUk       (mNbTmpUk)
 {
+    MMVII_INTERNAL_ASSERT_tiny((aVFix.size()==aValFix.size()) || aValFix.empty(),"Bad size for fix var tmp");
+    for (size_t aKInd=0 ; aKInd<aVFix.size() ; aKInd++)
+    {
+        int anIndFix = aVFix[aKInd];
+	Type aVal = aValFix.empty() ? Val1TmpUk(anIndFix)  : aValFix.at(aKInd);
+
+	// Need to fix the var that will be elimined, need to do it now because line after will change
+        AddFixVarTmp(anIndFix,aVal,1.0); 
+        mVarTmpIsFrozen.at(ToIndTmp(anIndFix)) = true;
+        mValueFrozenVarTmp.at(ToIndTmp(anIndFix)) = aVal;
+    }
 }
 
 template <class Type> size_t cSetIORSNL_SameTmp<Type>::ToIndTmp(int anInd) { return -(anInd+1); }
 template <class Type> bool   cSetIORSNL_SameTmp<Type>::IsIndTmp(int anInd) { return anInd<0; }
+template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const { return mNbTmpUk; }
+template <class Type> const std::vector<Type> & cSetIORSNL_SameTmp<Type>::ValTmpUk() const { return mValTmpUk; }
+template <class Type> Type  cSetIORSNL_SameTmp<Type>::Val1TmpUk(int aInd) const { return mValTmpUk.at(ToIndTmp(aInd));}
 
 
 
-template <class Type> void cSetIORSNL_SameTmp<Type>::AddOneEq(const tIO_OneEq & anIO)
+template <class Type> void cSetIORSNL_SameTmp<Type>::AddOneEq(const tIO_OneEq & anIO_In)
 {
+    mVEq.push_back(anIO_In);
+    tIO_OneEq & anIO = mVEq.back();
+
     MMVII_INTERNAL_ASSERT_tiny(anIO.IsOk(),"Bad size for cInputOutputRSNL");
 
-    for (const auto & anInd : anIO.mGlobVInd)
+    // for (const auto & anInd : anIO.mGlobVInd)
+    for (size_t aKInd=0 ; aKInd<anIO.mGlobVInd.size() ;aKInd++)
     {
-        if (IsIndTmp(anInd))
+        int anIndSigned = anIO.mGlobVInd[aKInd];
+        if (IsIndTmp(anIndSigned))
 	{
-           mSetIndTmpUk.AddInd(ToIndTmp(anInd));
+           size_t aIndPos = ToIndTmp(anIndSigned);
+           mSetIndTmpUk.AddInd(aIndPos); // add it to the computed list of indexes
+           if (mVarTmpIsFrozen.at(aIndPos))
+           {
+              Type aDeltaVar = mValueFrozenVarTmp.at(aIndPos) - mValTmpUk.at(aIndPos);
+FakeUseIt(aDeltaVar);
+OOOO
+		   /*
+                   Type & aVDer = aIO.mDers.at(aKEq).at(aKVar);
+		   aIO.mVals[aKEq]  +=  aVDer * aDeltaVar;
+		   aVDer = 0;
+
+                   Type & aVDer = aIO.mDers.at(aKEq).at(aKVar);
+	           //  Taylor expension :   Som_k {aVDer (Xk-Curk)}  + aVal
+		   aIO.mVals[aKEq]  +=  aVDer * aDeltaVar;
+		   aVDer = 0;
+		   */
+           }
 	}
     }
 
-
-    mVEq.push_back(anIO);
     mNbEq += anIO.mVals.size();
     if 
     (
@@ -115,6 +156,29 @@ template <class Type> void cSetIORSNL_SameTmp<Type>::AddOneEq(const tIO_OneEq & 
     }
 }
 
+template <class Type> void   cSetIORSNL_SameTmp<Type>::AddFixVarTmp (int aInd,const Type& aVal,const Type& aWeight)
+{
+     MMVII_INTERNAL_ASSERT_tiny
+     (
+	 cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd),
+	 "Non tempo index in AddFixVarTmp"
+     );
+
+     // tVectInd aVInd{anInd};
+
+     cInputOutputRSNL<Type> aIO({aInd},{});
+     aIO.mWeights.push_back(aWeight);
+     aIO.mDers.push_back({1.0});
+     Type aDVal = Val1TmpUk(aInd)-aVal;
+     aIO.mVals.push_back({aDVal});
+
+     AddOneEq(aIO);
+}
+
+template <class Type> void   cSetIORSNL_SameTmp<Type>::AddFixCurVarTmp (int aInd,const Type& aWeight)
+{
+     AddFixVarTmp(aInd,Val1TmpUk(aInd),aWeight); 
+}
 
 template <class Type> 
     const std::vector<cInputOutputRSNL<Type> >& 
@@ -128,11 +192,6 @@ template <class Type> void cSetIORSNL_SameTmp<Type>::AssertOk() const
       MMVII_INTERNAL_ASSERT_tiny(mOk,"Not enough eq to use tmp unknowns");
 }
 
-template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const { return mNbTmpUk; }
-template <class Type> const std::vector<Type> & cSetIORSNL_SameTmp<Type>::ValTmpUk() const { return mValTmpUk; }
-
-
-template <class Type> Type  cSetIORSNL_SameTmp<Type>::Val1TmpUk(int aInd) const { return mValTmpUk.at(ToIndTmp(aInd));}
 
 /* ************************************************************ */
 /*                                                              */
@@ -230,29 +289,6 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixVar(const int & a
      mSysLinear->AddObservation(aWeight,aSV,aVal-CurSol(aNumV));
 }
 
-template <class Type> void   cResolSysNonLinear<Type>::AddFixVarTmp (tSetIO_ST & aSetIO,int aInd,const Type& aVal,const Type& aWeight)
-{
-     MMVII_INTERNAL_ASSERT_tiny
-     (
-	 cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd),
-	 "Non tempo index in AddFixVarTmp"
-     );
-
-     // tVectInd aVInd{anInd};
-
-     cInputOutputRSNL<Type> aIO({aInd},{});
-     aIO.mWeights.push_back(aWeight);
-     aIO.mDers.push_back({1.0});
-     Type aDVal = aSetIO.Val1TmpUk(aInd)-aVal;
-     aIO.mVals.push_back({aDVal});
-
-     aSetIO.AddOneEq(aIO);
-}
-
-template <class Type> void   cResolSysNonLinear<Type>::AddFixCurVarTmp (tSetIO_ST & aSetIO,int aInd,const Type& aWeight)
-{
-     AddFixVarTmp(aSetIO,aInd,aSetIO.Val1TmpUk(aInd),aWeight); 
-}
 
 
 
@@ -271,8 +307,8 @@ template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL&
               Type aDeltaVar = mValueFrozenVar.at(aIndGlob) - mCurGlobSol(aIndGlob);
               for (size_t aKEq=0 ; aKEq<aIO.mVals.size() ; aKEq++)
 	      {
+		   //  ..  Der* (X-X0) + Val  ..
                    Type & aVDer = aIO.mDers.at(aKEq).at(aKVar);
-	           //  Taylor expension :   Som_k {aVDer (Xk-Curk)}  + aVal
 		   aIO.mVals[aKEq]  +=  aVDer * aDeltaVar;
 		   aVDer = 0;
 	      }
