@@ -420,8 +420,138 @@ template <class Type> class  cBufSchurrSubst
 };
 
 
+    /*  =======================   classes used for facilitating numerotation of unkwons ================= 
+     *
+     *   cObjWithUnkowns     ->  base-class for object having  unknows 
+     *
+     *   cOneInteralvUnkown  ->  an interval of Type*  , simply a pair  Type* - int
+     *   cSetIntervUK_OneObj -> all the interval of an object  + the object itself
+     *   cSetInterUK_MultipeObj -> all the object interacting in one system
+     *
+     * =================================================================================================== */
+
+template <class Type> class cOneInteralvUnkown;
+template <class Type> class cSetIntervUK_OneObj;
+template <class Type> class cSetInterUK_MultipeObj;
+template <class Type> class cObjWithUnkowns;
+
+/*  Typical scenario
+ 
+     //  for object having unknowns, make them inherit of cObjWithUnkowns, describe behaviour with PutUknowsInSetInterval
+     class  cObj: public cObjWithUnkowns
+     {
+	  double mUK1[4];  // first set of unknowns
+	  int    mToto;
+	  double mUK2[7];  // secon set unk
+       
+	   ...  do stuff specific to cObj ...
+
+          void PutUknowsInSetInterval() override 
+	  {
+	       mSetInterv->AddOneInterv(mUK1,4);
+	       mSetInterv->AddOneInterv(mUK2,7);
+	  }
+     };
+
+     {
+        cObj aO1,aO2;
+        cSetInterUK_MultipeObj<Type>  aSet;    //  create the object
+        aSet.AddOneObj(aO1); // in this call aSet will call O1->PutUknowsInSetInterval()
+        aSet.AddOneObj(aO2);
+
+	// create a sys with the vector of all unkwnon
+	cResolSysNonLinear<double> * aSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
 
 
+	const auto & aVectSol = mSys->SolveUpdateReset();
+	// modify all unkowns with new solution, call the method OnUpdate in case object have something to do
+        mSetInterv.SetVUnKnowns(aVectSol);
+     }
+
+*/
+
+
+
+///  represent one interval of consecutive unkown
+template <class Type> class cOneInteralvUnkown
+{
+     public :
+        Type * mVUk;
+        size_t mNb;
+        cOneInteralvUnkown(Type * aVUk,size_t aNb)  : mVUk (aVUk) , mNb (aNb) {}
+};
+
+///  represent all the unkown interval of one object
+template <class Type> class cSetIntervUK_OneObj
+{
+     public :
+         cSetIntervUK_OneObj(cObjWithUnkowns<Type>   *anObj) : mObj (anObj) {}
+
+         cObjWithUnkowns<Type>   *         mObj;
+         std::vector<cOneInteralvUnkown<Type>>   mVInterv;
+
+};
+
+///  represent all the object with unknown of a given system of equation
+template <class Type> class cSetInterUK_MultipeObj
+{
+        public :
+
+           cSetInterUK_MultipeObj(); /// constructor, init mNbUk
+           ~cSetInterUK_MultipeObj();  /// indicate to all object that they are no longer active
+
+	   /// This method is used to add the unknowns of one object
+           void  AddOneObj(cObjWithUnkowns<Type> *);
+
+	   ///  return a DenseVect filled with all unknowns  as expected to create a cResolSysNonLinear
+           cDenseVect<Type>  GetVUnKnowns() const;
+
+	   ///  fills all unknown of object with a vector as created by cResolSysNonLinear::SolveUpdateReset()
+           void  SetVUnKnowns(const cDenseVect<Type> &);
+
+	        // different method for adding intervalls
+
+           void AddOneInterv(Type * anAdr,size_t aSz) ; ///<  generall method
+           void AddOneInterv(std::vector<Type> & aV) ;  ///<  call previous with a vector
+           void AddOneInterv(cPtxd<Type,3> &);          ///<  call previous wih a point
+
+        private :
+           cSetInterUK_MultipeObj(const cSetInterUK_MultipeObj<Type> &) = delete;
+
+           void IO_UnKnowns(cDenseVect<Type> & aV,bool forExport);
+
+           std::vector<cSetIntervUK_OneObj<Type> >  mVVInterv;
+           size_t                                    mNbUk;
+};
+
+template <class Type> class cObjWithUnkowns
+{
+       public :
+          friend class cSetInterUK_MultipeObj<Type>;
+
+	  /// defautl constructor, put non init in all vars
+          cObjWithUnkowns();
+	  
+          /// Fundamental methos :  the object put it sets on unknowns intervals  in the glob struct
+          virtual void PutUknowsInSetInterval() = 0;
+
+          /// This callbak method is called after update, used when modification of linear var is not enough (see cSensorCamPC)
+          virtual void OnUpdate();
+
+	  ///  Push in vector all the number of unknowns
+          void FillIndexes(std::vector<int> &);
+
+	  ///  indicate if the object has been initialized
+          bool  UkIsInit() const;
+
+       protected :
+
+
+          cSetInterUK_MultipeObj<Type> *  mSetInterv;
+          int   mNumObj;
+          int   mIndUk0;
+          int   mIndUk1;
+};
 
 };
 

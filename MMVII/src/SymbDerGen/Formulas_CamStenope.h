@@ -554,7 +554,7 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
 		   mDist (aDist)
 	   {
 	   }
-          std::string FormulaName() const { return "EqColinearityCamPPC_" + E2Str(TypeProj::TypeProj())    + "_" + mDist.NameModel();}
+           std::string FormulaName() const { return "EqColinearityCamPPC_" + E2Str(TypeProj::TypeProj())    + "_" + mDist.NameModel();}
            std::vector<std::string>  VNamesUnknowns() const
 	   {
 		   return Append

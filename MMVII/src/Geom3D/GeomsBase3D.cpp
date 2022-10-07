@@ -32,6 +32,24 @@ template<class T> cDenseMatrix<T> MatFromLines(const cPtxd<T,3>&aP0,const cPtxd<
 }
 
 /*
+    (X1)   (X2)      Y1*Z2 - Z1*Y2     ( 0   -Z1    Y1)   (X2) 
+    (Y1) ^ (Y2) =    Z1*X2 - X1*Z2  =  ( Z1    0   -X1) * (Y2)
+    (Z1)   (Z2)      X1*Y2 - Y1*X2     (-Y1    X1    0)   (Z2)
+ 
+*/
+
+template<class T> cDenseMatrix<T> MatProdVect(const cPtxd<T,3>& W)
+{
+	return MatFromLines<T>
+               (
+	          cPtxd<T,3>(  0    , -W.z() ,  W.y() ),
+	          cPtxd<T,3>( W.z() ,   0    , -W.x() ),
+	          cPtxd<T,3>(-W.y() ,  W.x() ,   0    )
+	       );
+}
+
+
+/*
 template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,3> & aP2)
 {
    return cPtxd<T,3>
@@ -64,6 +82,7 @@ template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP)
 //template cPtxd<TYPE,3>  operator ^ (const cPtxd<TYPE,3> & aP1,const cPtxd<TYPE,3> & aP2);
 
 #define MACRO_INSTATIATE_PTXD(TYPE)\
+template cDenseMatrix<TYPE> MatProdVect(const cPtxd<TYPE,3>& W);\
 template cDenseMatrix<TYPE> MatFromCols(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&);\
 template cDenseMatrix<TYPE> MatFromLines(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&,const cPtxd<TYPE,3>&);\
 template cPtxd<TYPE,3>  PFromNumAxe(int aNum);\

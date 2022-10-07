@@ -20,6 +20,9 @@ template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,
           );
 }
 
+/// Matrix corresponf to P ->  W ^ P
+template<class T> cDenseMatrix<T> MatProdVect(const cPtxd<T,3>& aW);
+
 // Return one vector orthog,  choice is not univoque , quikcly select on stable
 template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP);
 
@@ -95,8 +98,12 @@ template <class Type> class cRotation3D
        static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
        // Compute a rotation arround a given axe and with a given angle
        static cRotation3D<Type> RotFromAxe(const tPt & anAxe,Type aTeta);
+       //  Rotation arround Axe + Teta
+       static cRotation3D<Type> RotFromAxiator(const tPt & anAxe);
        // Compute a random rotation for test/bench
        static cRotation3D<Type> RandomRot();
+       // Compute a "small" random rot controlled by ampl
+       static cRotation3D<Type> RandomRot(const Type & aAmpl);
 
        // Extract Axes of a rotation and compute its angle 
        void ExtractAxe(tPt & anAxe,Type & aTeta);
@@ -135,6 +142,7 @@ template <class Type> class cIsometry3D
        static cIsometry3D<Type> FromTriOut(int aKOut,const tTri  & aTriOut);
 
 
+       void SetRotation(const cRotation3D<Type> &);
 
        const cRotation3D<Type> & Rot() const {return mRot;}  ///< Accessor
        const tPt &Tr() const {return mTr;}  ///< Accessor

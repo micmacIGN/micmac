@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -104,6 +105,11 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
     mTr  (aTr),
     mRot (aRot)
 {
+}
+
+template <class Type> void cIsometry3D<Type>::SetRotation(const cRotation3D<Type> & aRot)
+{
+    mRot = aRot;
 }
 
 template <class Type> cIsometry3D<Type>  cIsometry3D<Type>::Identity()
@@ -214,6 +220,18 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tP
     return  cRotation3D<Type>(MatFromCols(aP0,aP1,aP2),false);
 }
 
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromAxiator(const tPt & anAxe)
+{
+     Type aNorm = Norm2(anAxe);
+     if (aNorm<1e-5)
+     {
+         cDenseMatrix<Type>  aMW =  cDenseMatrix<Type>::Identity(3) + MatProdVect(anAxe);
+
+         return cRotation3D<Type>(aMW.ClosestOrthog(),false);
+     }
+     return RotFromAxe(anAxe/aNorm,aNorm);
+}
+
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromAxe(const tPt & aP0,Type aTeta)
 {
    // Compute a repair with P0 as first axes
@@ -240,6 +258,12 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot()
        aP1 = tPt::PRandUnit();
    return CompleteRON(aP0,aP1);
 }
+
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot(const Type & aAmpl)
+{
+	return RotFromAxiator(cPtxd<Type,3>::PRandC()*aAmpl);
+}
+
 
 template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTeta)
 {

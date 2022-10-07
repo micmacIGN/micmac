@@ -54,24 +54,13 @@ struct cSet2D3D
 };
 
 
-
-/*
-/// Base class for all image geometry, laser
-class cPoseStenope : public cGeomSensor
+class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 {
-   public :
-       /// To make a general mapping, just a synomym of Proj
-       cPtxd<double,2> Direct(const cPtxd<double,3> &) const override;
-       /// 
-       cPt2dr  Proj(const cPt3dr &);
-
-       cPoseStenope(const cPt3dr & aC);
-       
-       const cPt3dr & C() const;
-   private :
-       cPt3dr  mC;
+     public :
+         virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
+         virtual double SqResidual(const cPair2D3D &) const;
+         virtual double AvgResidual(const cSet2D3D &) const;
 };
-*/
 
 
 };

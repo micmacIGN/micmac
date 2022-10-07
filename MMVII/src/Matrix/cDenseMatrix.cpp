@@ -22,6 +22,12 @@ template <class Type> cDenseMatrix<Type>::cDenseMatrix(tIm anIm) :
 {
 }
 
+
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Identity(int aSz)
+{
+	return cDenseMatrix(aSz,eModeInitImage::eMIA_MatrixId);
+}
+
 template <class Type> cDenseMatrix<Type>::cDenseMatrix(int aXY,eModeInitImage aMode) :
                              cDenseMatrix<Type>(aXY,aXY,aMode)
 {
@@ -68,12 +74,38 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVe
     return aRes;
 }
 
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ClosestOrthog() const
+{
+    this->CheckSquare(*this);
+    cResulSVDDecomp<Type> aSVD  =   SVD();
+
+    // OriMatr :  return mMatU * cDenseMatrix<Type>::Diag(mSingularValues) * mMatV.Transpose();
+    cDenseVect<Type> aVP = aSVD.SingularValues().Dup(); 
+    for (int aK=0 ; aK<aVP.Sz(); aK++)
+        aVP(aK) = (aVP(aK)>=0)  ? 1 : - 1;
+
+    return aSVD.MatU() * cDenseMatrix<Type>::Diag(aVP) * aSVD.MatV().Transpose();
+}
+
 template <class Type> Type  cDenseMatrix<Type>::L2Dist(const cDenseMatrix<Type> & aV) const
 {
    return DIm().L2Dist(aV.DIm());
 }
 
+template <class Type> void cDenseMatrix<Type>::PushByLine(std::vector<Type> & aRes) const
+{
+    for (const auto & aPix : DIm())
+    {
+          aRes.push_back(GetElem(aPix));
+    }
+}
 
+template <class Type> void cDenseMatrix<Type>::PushByCol(std::vector<Type> & aRes) const
+{
+    for (int aX=0 ; aX<Sz().x() ; aX++)
+        for (int aY=0 ; aY<Sz().y() ; aY++)
+            aRes.push_back(GetElem(aX,aY));
+}
 
 
 template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareRegSVD
