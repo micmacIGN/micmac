@@ -246,7 +246,9 @@ void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string 
     }
 
     Save3DXml(vPt3DL, aRGBImgDir+"/"+aOut3DXml1);
+    printf("xdg-open %s\n", aOut3DXml1.c_str());
     Save3DXml(vPt3DR, aRGBImgDir+"/"+aOut3DXml2);
+    printf("xdg-open %s\n", aOut3DXml2.c_str());
 
     //std::string aOut3DTxt1 = aRGBImgDir+"/"+StdPrefix(aOut3DXml1)+".txt";
     //Save3DTxt(vPt3DL, aOut3DTxt1);
@@ -272,12 +274,10 @@ void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string 
     }
     */
 
-    Get2DCoor(aRGBImgDir, vImgList1, vPt3DL, aOri1, aICNM,  aOut2DXml1);
-    Get2DCoor(aRGBImgDir, vImgList2, vPt3DR, aOri2, aICNM,  aOut2DXml2);
+    Get2DCoor(aRGBImgDir, vImgList1, vPt3DL, aOri1, aICNM, aOut2DXml1);
     printf("xdg-open %s\n", aOut2DXml1.c_str());
-    printf("xdg-open %s\n", aOut3DXml1.c_str());
+    Get2DCoor(aRGBImgDir, vImgList2, vPt3DR, aOri2, aICNM, aOut2DXml2);
     printf("xdg-open %s\n", aOut2DXml2.c_str());
-    printf("xdg-open %s\n", aOut3DXml2.c_str());
 }
 
 int CreateGCPs_main(int argc,char ** argv)
@@ -321,8 +321,8 @@ int CreateGCPs_main(int argc,char ** argv)
                     << EAMC(aRGBImgDir,"The directory of RGB image")
                     << EAMC(aImgList1,"ImgList1: All RGB images in epoch1 (Dir+Pattern, or txt file of image list)")
                     << EAMC(aImgList2,"ImgList2: All RGB images in epoch2 (Dir+Pattern, or txt file of image list)")
-               << EAMC(aOri1,"Orientation of images in epoch1")
-               << EAMC(aOri2,"Orientation of images in epoch2")
+               << EAMC(aOri1,"Ori1: Orientation of images in epoch1")
+               << EAMC(aOri2,"Ori2: Orientation of images in epoch2")
                << EAMC(aDSMDirL,"DSM direcotry of epoch1")
                << EAMC(aDSMDirR,"DSM direcotry of epoch2"),
         LArgMain()

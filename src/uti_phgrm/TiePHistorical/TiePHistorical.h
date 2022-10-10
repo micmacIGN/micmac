@@ -411,7 +411,7 @@ bool FallInBox(Pt2dr* aPCorner, Pt2dr aLeftTop, Pt2di aRightLower);
 void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res);
 void GetRandomNum(double dMin, double dMax, int nNum, std::vector<double> & res);
 bool GetImgs(std::string aFullPattern, std::vector<std::string>& aVIm, bool bPrint);
-bool GetImgListVec(std::string aFullPattern, std::vector<std::string>& aVIm, bool bPrint=true);
+std::string GetImgListVec(std::string aFullPattern, std::vector<std::string>& aVIm, bool bPrint=true);
 void ReadXml(std::string & aImg1, std::string & aImg2, std::string aSubPatchXml, std::vector<std::string>& vPatchesL, std::vector<std::string>& vPatchesR, std::vector<cElHomographie>& vHomoL, std::vector<cElHomographie>& vHomoR);
 void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt);
 bool CheckRange(int nMin, int nMax, double & value);
