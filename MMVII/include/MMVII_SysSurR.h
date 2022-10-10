@@ -496,6 +496,7 @@ template <class Type> class cSetIntervUK_OneObj
 template <class Type> class cSetInterUK_MultipeObj
 {
         public :
+           friend class cObjWithUnkowns<Type>;
 
            cSetInterUK_MultipeObj(); /// constructor, init mNbUk
            ~cSetInterUK_MultipeObj();  /// indicate to all object that they are no longer active
@@ -516,9 +517,11 @@ template <class Type> class cSetInterUK_MultipeObj
            void AddOneInterv(cPtxd<Type,3> &);          ///<  call previous wih a point
 
         private :
+	   size_t IndOfVal(const cObjWithUnkowns<Type>&,const Type *) const;
+
            cSetInterUK_MultipeObj(const cSetInterUK_MultipeObj<Type> &) = delete;
 
-           void IO_UnKnowns(cDenseVect<Type> & aV,bool forExport);
+           void IO_UnKnowns(cDenseVect<Type> & aV,bool isSetUK);
 
            std::vector<cSetIntervUK_OneObj<Type> >  mVVInterv;
            size_t                                    mNbUk;
@@ -531,6 +534,10 @@ template <class Type> class cObjWithUnkowns
 
 	  /// defautl constructor, put non init in all vars
           cObjWithUnkowns();
+	  ///  check that object is no longer referenced when destroyd
+          virtual ~cObjWithUnkowns();
+	  /// defautl constructor, put non init in all vars
+          void Reset();
 	  
           /// Fundamental methos :  the object put it sets on unknowns intervals  in the glob struct
           virtual void PutUknowsInSetInterval() = 0;
@@ -543,6 +550,9 @@ template <class Type> class cObjWithUnkowns
 
 	  ///  indicate if the object has been initialized
           bool  UkIsInit() const;
+
+	  /// recover the index from a value
+	  size_t IndOfVal(const Type *) const;
 
        protected :
 

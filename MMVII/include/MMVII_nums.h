@@ -762,6 +762,10 @@ template <typename Type> Type ASin(const Type & aSin);
 /// to have it as operator in code gen
 template <typename Type> Type DerASin(const Type & aSin);
 
+/// as sqrt but check value
+template <typename Type> Type Sqrt(const Type & aX);
+///  as 1/(2 sqrt) but check value
+template <typename Type> Type DerSqrt(const Type & aX);
 
 /// to have it in good namespace in code gen
 template <typename Type> Type ATan2(const Type & aX,const Type & aY);

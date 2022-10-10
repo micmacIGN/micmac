@@ -37,11 +37,11 @@ template <class Type> Type SqNormL2V3(const Type & aX,const Type & aY,const Type
 
 template <class Type> Type NormL2V2(const Type & aX,const Type & aY)
 {
-    return sqrt(SqNormL2V2(aX,aY));
+    return Sqrt(SqNormL2V2(aX,aY));
 }
 template <class Type> Type NormL2V3(const Type & aX,const Type & aY,const Type & aZ)
 {
-    return sqrt(SqNormL2V3(aX,aY,aZ));
+    return Sqrt(SqNormL2V3(aX,aY,aZ));
 }
 
 template <class Type> Type NormL2Vec2(const std::vector<Type> & aVec)

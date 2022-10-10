@@ -3,6 +3,20 @@
 namespace MMVII
 {
 
+	/*
+template  TYPE Sqrt(const TYPE & aSin);
+template <typename Type> Type Sqrt(const Type & aX)
+{
+     MMVII_INTERNAL_ASSERT_tiny((aX>=0),"Bad value for arcsinus");
+     return std::sqrt(aX);
+}
+*/
+
+template <typename Type> Type DerSqrt(const Type & aX)
+{
+     MMVII_INTERNAL_ASSERT_tiny((aX>0),"Bad value for arcsinus");
+     return 1/(2*std::sqrt(aX));
+}
 
 template <typename Type> Type DerASin(const Type & aSin)
 {
@@ -131,6 +145,7 @@ template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY)
 
 
 #define INSTATIATE_FUNC_ANALYTIQUE(TYPE)\
+template  TYPE DerSqrt(const TYPE & aSin);\
 template  TYPE DerASin(const TYPE & aSin);\
 template  TYPE ASin(const TYPE & aSin);\
 template  TYPE sinC(const TYPE & aTeta,const TYPE & aEps);\

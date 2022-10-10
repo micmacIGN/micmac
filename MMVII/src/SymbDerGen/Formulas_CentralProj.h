@@ -297,7 +297,7 @@ class cProjOrthoGraphic : public cDefProjPerspC
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
 
-           auto aR = sqrt(Square(aX)+Square(aY)+Square(aZ));
+           auto aR = Sqrt(Square(aX)+Square(aY)+Square(aZ));
            return {aX/aR,aY/aR};
         }
 
@@ -309,10 +309,9 @@ class cProjOrthoGraphic : public cDefProjPerspC
            const auto & aY = aXY.at(1);
            tScal aC1 = CreateCste(1.0,aX);
 
-           // return {aX,aY,sqrt(std::max(0.0,1.0-SqN2(aP)));
+           // return {aX,aY,sqrt(std::max(0.0,1.0-SqN2(aP)))};
            //  !!  Warning  -> have supress the max for sort term derivation
            // StdOut() << "Warning cProjOrthoGraphic::ToDirBundle \n";
-           MMVII_WARGING("Warning cProjOrthoGraphic::ToDirBundle");
            return {aX,aY,sqrt(aC1-SqNormL2V2(aX,aY))};
 
         }
@@ -440,8 +439,6 @@ class cProjFE_EquiSolid  : public cDefProjPerspC
            tScal aC2 = CreateCste(2.0,aX);
 
            auto r = NormL2Vec2(aXY);
-           // auto A = 2 * std::asin(std::min(1.0,r/2.0));
-           MMVII_WARGING("Warning cProjFE_EquiSolid::ToDirBundle");
            auto A = aC2 * ASin(r/aC2);
            auto cAs2 = cos(A/aC2);
 

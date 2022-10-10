@@ -72,12 +72,16 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 
-#include "MMVII_Sensor.h"
 
 #include "MMVII_DeclareAllCmd.h"
 
 #include "MMVII_Interpolators.h"
 #include "MMVII_PhgrDist.h"
+
+
+#include "MMVII_Sensor.h"
+#include "MMVII_PCSens.h"
+
 
 // communication MMVII/MMv1
 #include "MMVII_MMV1Compat.h"  // should be at end, as it uses potentially many types of V2

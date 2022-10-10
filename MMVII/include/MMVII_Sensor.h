@@ -14,20 +14,11 @@ namespace MMVII
 
 */
 
+struct  cPair2D3D;
+struct cSet2D3D;
+class cSensorImage;
+class cPixelDomain;
 
-/**  Interface class for specification where of a projection is defined: */
-class cDefProjPerspC
-{
-       public :
-          /// signed belonging function for 3-d points
-          virtual tREAL8  P3DIsDef(const cPt3dr &) const = 0 ;
-          /// signed belonging function for 2-d points
-          virtual tREAL8  P2DIsDef(const cPt2dr &) const =0 ;
-
-          /// Radial symetry, true for physcicall based model, false for ex with equirect
-          virtual bool  HasRadialSym() const ;
-          static const cDefProjPerspC & ProjOfType(eProjPC);
-};
 
 /** class for representing  a 3D point paired with it 2d image projection */
  
@@ -53,6 +44,7 @@ struct cSet2D3D
         tCont2D3D  mPairs;
 };
 
+/*  base-class  4 all image sensor */
 
 class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 {
@@ -61,6 +53,21 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
          virtual double SqResidual(const cPair2D3D &) const;
          virtual double AvgResidual(const cSet2D3D &) const;
 };
+
+/*  base-class  4 definition of validity domaine in image space  */
+class cPixelDomain : public cDataBoundedSet<tREAL8,2>
+{
+      public :
+           cPixelDomain(const cPt2di &aSz);
+           virtual ~ cPixelDomain();
+           virtual cPixelDomain *  Dup_PS () const;  ///< default work because deleted in mother class
+
+           const cPt2di & Sz() const;
+      private :
+           cPt2di     mSz;
+};
+
+
 
 
 };

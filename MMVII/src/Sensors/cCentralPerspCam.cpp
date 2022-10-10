@@ -22,262 +22,6 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
-class cPixelDomain ;
-class cCalibStenPerfect ;
-class cPerspCamIntrCalib ;
-
-
-
-
-	
-class cPixelDomain : public cDataBoundedSet<tREAL8,2>
-{
-      public :
-           cPixelDomain(const cPt2di &aSz);
-           virtual ~ cPixelDomain();
-           virtual cPixelDomain *  Dup_PS () const;  ///< default work because deleted in mother class
-
-	   const cPt2di & Sz() const;
-      private :
-           cPt2di     mSz;
-};
-
-
-
-
-class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
-{
-     public :
-         typedef tREAL8               tScal;
-         typedef cPtxd<tScal,2>       tPt;
-         typedef std::vector<tPt>     tVecPt;
-
-	 cCalibStenPerfect(tScal aFoc,const tPt & aPP);
-         cCalibStenPerfect(const cCalibStenPerfect & aPS);  ///< default wouldnt work because deleted in mother class
-	 cCalibStenPerfect MapInverse() const;
-
-	 tPt  Value(const tPt& aPt) const override {return mPP + aPt*mF;}
-	 const  tVecPt &  Inverses(tVecPt &,const tVecPt & ) const override;
-	 const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;
-
-         const tScal& F()  const;   ///<  Focal
-         const tPt  & PP() const;  ///<  Principal point
-         tScal& F()  ;   ///<  Focal
-         tPt  & PP() ;  ///<  Principal point
-     private :
-         tScal  mF;   ///<  Focal
-         tPt    mPP;  ///<  Principal point
-};
-
-
-/** this the class for computing the intric calibration of perspective camera :
- 
-    The intric calibration compute the maping from a 3D camera coordinate to image coordinates.
-    So it is a mapping R3 -> R2,   and as is heritates from cDataMapping<tREAL8,3,2>
-
-    The mapping  is made by compination  of 3 functions :
-
-         * mProjDir R3->R2 , the projection function, it can be stenope(x/z,y/z), fish-eye , 360 degre -> (teta,phi)  ...
-	   it belongs to a finite set of  possibility code by enumeration eProjPC;  for each model it has no parameter
-
-	 * dirtortion  R2->R2 , its a function close to identity (at least ideally)
-
- */
-
-class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
-	                   public cObjWithUnkowns<tREAL8>
-{
-	public :
-            typedef tREAL8               tScal;
-            typedef cPtxd<tScal,2>       tPtOut;
-            typedef cPtxd<tScal,3>       tPtIn;
-            typedef std::vector<tPtIn>   tVecIn;
-            typedef std::vector<tPtOut>  tVecOut;
-
-    // ================== construction of object ===============
-	    cPerspCamIntrCalib
-            (
-                  eProjPC        aTypeProj,           ///< type of projection 
-		  const cPt3di & aDeg,                ///< degrees of distorstion  Rad/Dec/Univ
-		  const std::vector<double> & aVParams,  ///< vector of distorsion
-		  const cCalibStenPerfect &,           ///< Calib w/o dist
-                  const  cPixelDomain  &,              ///< sz, domaine of validity in pixel
-		  const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
-		  int aSzBuf                          ///< sz of buffers in computatio,
-            );
-
-
-	    // allocation with minimal number of parameters
-	    cPerspCamIntrCalib(eProjPC,const cPt3di &,double aFoc,cPt2di & aNbPix,int aSzBuf=-1);
-
-	        ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
-	    void UpdateLSQDistInv();
-
-	        /// manye delete in destructor ....
-	    ~cPerspCamIntrCalib();
-
-    // ==================   points computation ===================
-	    const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
-	    const  tVecIn  &  Inverses(tVecIn &,const tVecOut & ) const;
-
-	    // for a point in pixel coordinates, indicate how much its invert projection is defined, not parallized !
-	    tREAL8  InvProjIsDef(const tPtOut & aPix ) const;
-
-    // ==================   Accessors & Modifiers ===================
-	    const double & F() const;   ///< access to focal
-	    const cPt2dr & PP() const;  ///< acess to principal point
-	    const cPt3di & DegDir() const;  ///< acess to direct degrees
-
-
-	    void SetThresholdPhgrAccInv(double); ///< modifier of threshold for accuracy inversion, photogrametric unit
-	    void SetThresholdPixAccInv(double);  ///< modifier of threshold for accuracy inversion, pixel  unit
-
-
-    // ==================   Test & Bench ===================
-		
-	    ///  For test, put random param while take care of being invertible
-	    void InitRandom(double aAmpl);
-	    ///  Test the accuracy of "guess" invert
-	    void TestInvInit(double aTolApprox,double aTolAccurate);
-	    
-    // ==================   use in bundle adjustment ===================
-
-	     void PutUknowsInSetInterval() override ;
-
-             cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf);
-	private :
-            cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
-
-	        // comon to dir & inverse
-	    eProjPC                              mTypeProj;
-            int                                  mSzBuf;
-	    const cDefProjPerspC &               mDefProj;
-	        // parameters for direct projection  DirBundle -> pixel
-	    cPt3di                               mDir_Degr;
-	    std::vector<cDescOneFuncDist>        mDir_VDesc;  ///< contain a "high" level description of dist params
-	    std::vector<tREAL8>                  mDir_Params;    ///< Parameters of distorsion
-            cDataMapCalcSymbDer<tREAL8,3,2>*     mDir_Proj;   ///< direct projection  R3->R2
-            cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist;   ///< direct disorstion  R2->R2
-	    cCalibStenPerfect                    mCSPerfect;  ///< R2-phgr -> pixels
-            cPixelDomain *                       mPixDomain;  ///< validity domain in pixel
-                // now for "inversion"  pix->DirBundle
-	    cCalibStenPerfect                    mInv_CSP;
-	    cDataMappedBoundedSet<tREAL8,2>*     mPhgrDomain;  ///<  validity in F/PP corected space,
-	    cPt3di                               mInv_Degr;
-	    std::vector<cDescOneFuncDist>        mInv_VDesc;  ///< contain a "high" level description of dist params
-	    std::vector<tREAL8>                  mInv_Params;    ///< Parameters of distorsion
-            cDataNxNMapCalcSymbDer<tREAL8,2>*    mInvApproxLSQ_Dist;   ///< approximate LSQ invert disorstion  R2->R2
-	    cCalculator<tREAL8> *                mInv_BaseFDist;  ///<  base of function for inverse distortion
-            cLeastSqCompMapCalcSymb<tREAL8,2,2>* mInv_CalcLSQ;  ///< structure for least square estimation
-	    cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
-            cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
-	    tREAL8                               mThreshJacPI; ///< threshlod for jacobian in pseudo inversion
-							      
-	    double                               mThresholdPhgrAccInv; ///< threshold for accurracy in inversion (photogram units)
-	    double                               mThresholdPixAccInv;  ///< threshold for accurracy in inversion (pixels    units)
-	    int                                  mNbIterInv;           ///< maximal number of iteration in inversion
-            // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
-};
-
-//       cDataIIMFromMap(tMap aMap,const tPt &,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
-
-
-
-class cSensorCamPC : public cSensorImage
-{
-     public :
-	 typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
-
-
-	 cSensorCamPC(const tPose & aPose,cPerspCamIntrCalib * aCalib);
-         cPt2dr Ground2Image(const cPt3dr &) const override;
-
-	 cPt3dr  Center() const;
-	 cPt3dr  AxeI()   const;
-	 cPt3dr  AxeJ()   const;
-	 cPt3dr  AxeK()   const;
-	 tPose   Pose()   const;
-	 cPt3dr  Omega()  const; 
-
-	 // interaction in unknowns
-	 void PutUknowsInSetInterval() override ;  // add the interval on udpate
-         void OnUpdate() override;                 // "reaction" after linear update
-     private :
-	cSensorCamPC(const cSensorCamPC&) = delete;
-	     
-	cIsometry3D<tREAL8>  mPose;   /// transformation Cam to Word
-        cPerspCamIntrCalib * mCalib;
-	cPt3dr               mOmega;  // vector for tiny rotation when used in unknown, mW  in code gene ...
-};
-
-/* ******************************************************* */
-/*                                                         */
-/*                   cSensorImage                          */
-/*                                                         */
-/* ******************************************************* */
-
-double  cSensorImage::SqResidual(const cPair2D3D & aPair) const
-{
-     return SqN2(aPair.mP2-Ground2Image(aPair.mP3));
-}
-
-double  cSensorImage::AvgResidual(const cSet2D3D & aSet) const
-{
-     double aSum = 0;
-     for (const auto & aPair : aSet.Pairs() )
-     {
-         aSum +=  SqResidual(aPair);
-     }
-     return std::sqrt(aSum/aSet.Pairs().size());
-}
-
-
-	 // virtual double AvgResidual(const cSet2D3D &) const;
-
-/* ******************************************************* */
-/*                                                         */
-/*                   cSensorCamPC                          */
-/*                                                         */
-/* ******************************************************* */
-
-cSensorCamPC::cSensorCamPC(const tPose & aPose,cPerspCamIntrCalib * aCalib) :
-   mPose  (aPose),
-   mCalib (aCalib),
-   mOmega (0,0,0)
-{
-}
-
-void cSensorCamPC::PutUknowsInSetInterval()
-{
-    mSetInterv->AddOneInterv(mPose.Tr());
-    mSetInterv->AddOneInterv(mOmega);
-}
-
-cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const 
-{
-	//  mPose(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
-     return mCalib->Value(mPose.Inverse(aP));
-}
-
-cPt3dr cSensorCamPC::Center() const {return mPose.Tr();}
-cPt3dr cSensorCamPC::Omega()  const {return mOmega;}
-cPt3dr cSensorCamPC::AxeI()   const {return mPose.Rot().AxeI();}
-cPt3dr cSensorCamPC::AxeJ()   const {return mPose.Rot().AxeI();}
-cPt3dr cSensorCamPC::AxeK()   const {return mPose.Rot().AxeJ();}
-cIsometry3D<tREAL8> cSensorCamPC::Pose() const {return mPose;}
-
-/*   Let P be the rotation of pose  P : Cam-> Word, what is optimized in colinearity is Word->Cam  tR(P-C)
- *
- *          (1+^W) tR0 =tR'   --->   R'=R0 t(1+^W)
- *
- */
-
-void cSensorCamPC::OnUpdate() 
-{
-// StdOut() << "cSensorCamPC::OnUpdatecSensorCamPC::OnUpdate \n";
-     mPose.SetRotation(mPose.Rot() * cRotation3D<tREAL8>::RotFromAxiator(-mOmega));
-     mOmega = cPt3dr(0,0,0);
-}
 
 /* ******************************************************* */
 /*                                                         */
@@ -289,7 +33,7 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
 (
       eProjPC        aTypeProj,           ///< type of projection 
       const cPt3di & aDegDir,             ///< degrees of distorstion  Rad/Dec/Univ
-      const std::vector<double> & aVParams,  ///< vector of constants, or void
+      std::vector<double>  aVParams,  ///< vector of constants, or void
       const cCalibStenPerfect & aCSP,           ///< Calib w/o dist
       const  cPixelDomain  & aPixDomain,              ///< sz, domaine of validity in pixel
       const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
@@ -326,10 +70,10 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
         // 1 - construct direct parameters
 	
     // correct vect param, when first use, parameter can be empty meaning all 0  
-    if (mDir_Params.size() != mDir_VDesc.size())
+    if (aVParams.size() != mDir_VDesc.size())
     {
-       MMVII_INTERNAL_ASSERT_strong(mDir_Params.empty(),"cPerspCamIntrCalib Bad size for params");
-       mDir_Params.resize(mDir_VDesc.size(),0.0);
+       MMVII_INTERNAL_ASSERT_strong(aVParams.empty(),"cPerspCamIntrCalib Bad size for params");
+       aVParams.resize(mDir_VDesc.size(),0.0);
     }
     
     mDir_Proj = new  cDataMapCalcSymbDer<tREAL8,3,2>
@@ -341,8 +85,8 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
                      );
 
     // TO CHANGE SUPRRESS DIR PARAM GET ACESS TO mDir_Dist
-    MMVII_WARGING("TO CHANGE SUPRRESS DIR PARAM GET ACESS TO mDir_Dist");
-    mDir_Dist = NewMapOfDist(mDir_Degr,mDir_Params,mSzBuf);
+    // MMVII_WARGING("TO CHANGE SUPRRESS DIR PARAM GET ACESS TO mDir_Dist");
+    mDir_Dist = NewMapOfDist(mDir_Degr,aVParams,mSzBuf);
 
         // 2 - construct direct parameters
 
@@ -412,6 +156,13 @@ tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
     return mDefProj.P2DIsDef(mDist_DirInvertible->Inverse(mInv_CSP.Value(aPix)));
 }
 
+void cPerspCamIntrCalib::OnUpdate() 
+{
+    // udpate invers, only if required, maybe later add a test to see if current inverse is ok ...
+    if (mInvApproxLSQ_Dist!=nullptr)
+      UpdateLSQDistInv();
+}
+
 
 void cPerspCamIntrCalib::UpdateLSQDistInv()
 {
@@ -469,6 +220,7 @@ const cPt3di & cPerspCamIntrCalib::DegDir() const {return mDir_Degr;}
 
 void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
 {
+	// test inversion for the distorsion
      {
          // generate 2d-point ine photogram coordinate , after distorsion
          double aRhoMax =  mPhgrDomain->Box().DistMax2Corners(cPt2dr(0,0));
@@ -514,6 +266,7 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
          MMVII_INTERNAL_ASSERT_bench((aSD15/aSD12<aTolAccurate),"Test approx inv");
      }
 
+     // test global inversion
      {
          // generate 2D point on grid
          std::vector<cPt2dr>  aVPt0;
@@ -589,135 +342,16 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
     }
 }
 
-/* ******************************************************* */
-/*                                                         */
-/*                 cPerspCamIntrCalib                      */
-/*                                                         */
-/* ******************************************************* */
-
-/*
-       NamesP3("PGround"),     //  0-3
-       NamesPose("CCam","W"),  // 3-9
-       NamesIntr(""),          // 9-12
-       mDist.VNamesParams()
-*/
-
-
-class cCentralPerspConversion
-{
-    public :
-         cCentralPerspConversion
-         (
-              cPerspCamIntrCalib * ,
-	      const cSet2D3D &,
-	      const cIsometry3D<tREAL8> &  = cIsometry3D<tREAL8>::Identity()
-         );
-	 ~cCentralPerspConversion();
-
-	 void OneIteration();
-    private :
-	 cPt3dr                             mPGround;
-         cPerspCamIntrCalib *               mCalib;
-         cSensorCamPC                       mCamPC;
-	 cSet2D3D                           mSetCorresp;
-	 int                                mSzBuf;
-         cCalculator<double> *              mEqColinearity;
-	 cSetInterUK_MultipeObj<double>     mSetInterv;
-	 cResolSysNonLinear<double> *       mSys;
-};
-
-cCentralPerspConversion::cCentralPerspConversion
-(
-     cPerspCamIntrCalib * aCalib,
-     const cSet2D3D & aSetCorresp,
-     const cIsometry3D<tREAL8> & aPose
-) :
-    mCalib         (aCalib),
-    mCamPC         (aPose,mCalib),
-    mSetCorresp    (aSetCorresp),
-    mSzBuf         (100),
-    mEqColinearity (mCalib->EqColinearity(true,mSzBuf))
-{
-    mSetInterv.AddOneObj(&mCamPC);
-    mSetInterv.AddOneObj(mCalib);
-
-    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
-}
-
-cCentralPerspConversion::~cCentralPerspConversion() 
-{
-    delete mEqColinearity;
-    delete mSys;
-}
-
-void cCentralPerspConversion::OneIteration()
-{
-     StdOut() << "RR=" << mCamPC.AvgResidual(mSetCorresp) 
-	      << " F=" <<  mCalib->F() 
-	      << " CC=" << mCamPC.Center() 
-	      << " W=" <<  mCamPC.Omega() 
-	      << "\n"; 
-     std::vector<int> aVIndGround{-1,-2,-3};
-     std::vector<int> aVIndGlob = aVIndGround;
-     mCamPC.FillIndexes(aVIndGlob);
-     mCalib->FillIndexes(aVIndGlob);
-
-     for (const auto & aCorresp : mSetCorresp.Pairs())
-     {
-         cSetIORSNL_SameTmp<tREAL8>   aStrSubst(aCorresp.mP3.ToStdVector(),aVIndGround);
-
-	 std::vector<double> aVObs = aCorresp.mP2.ToStdVector();
-	 mCamPC.Pose().Rot().Mat().PushByCol(aVObs);
-	 mSys->AddEq2Subst(aStrSubst,mEqColinearity,aVIndGlob,aVObs);
-	 mSys->AddObsWithTmpUK(aStrSubst);
-     }
-
-     const auto & aVectSol = mSys->SolveUpdateReset();
-     mSetInterv.SetVUnKnowns(aVectSol);
-}
-
-
-void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string & aName)
-{
-     std::string aFullName = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ori-MMV1" +  StringDirSeparator() + aName;
-
-     cExportV1StenopeCalInterne  aExp(aFullName);
-
-     cPerspCamIntrCalib aCalib(aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
-
-     cIsometry3D<tREAL8> aPose0 
-	                 (
-			      cPt3dr::PRandC() * 0.1,
-			      cRotation3D<tREAL8>::RandomRot(0.05)
-			 );
-
-     cCentralPerspConversion aConv(&aCalib,aExp.mCorresp,aPose0);
-
-     StdOut() << "FFF= " << aCalib.F() << "\n";
-
-     for (int aK=0 ; aK<10 ; aK++)
-     {
-         aConv.OneIteration();
-         //StdOut() << "FFF= " << aCalib.F() << "\n";
-     }
-     /*
-     cCalculator<double> * anEqL =EqColinearityCamPPC(aExp.eProj,cPt3di(3,1,1),true,10);
-     StdOut() << "aFullNameaFullName " << aFullName  << " " << aExp.mCorresp.Pairs().size()  << " " << anEqL << "\n";
-
-     delete anEqL;
-     */
-     StdOut() << "  ========================= \n";
-}
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("CentralPersp")) return;
 
-    BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-11500_Cam-imx477imx477-1.xml");
-    BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml");
+    cCalibStenPerfect aCS(1,cPt2dr(0,0));
+    MMVII_INTERNAL_ASSERT_bench(&(aCS.F())+1 == &(aCS.PP().x()) ,"Assertion cCalibStenPerfect memory model");
+    MMVII_INTERNAL_ASSERT_bench(&(aCS.F())+2 == &(aCS.PP().y()) ,"Assertion cCalibStenPerfect memory model");
 
-    StdOut() << "BenchCentralePerspectiveBenchCentralePerspective\n";  getchar();
-
+    BenchCentralePerspective_ImportV1(aParam);
 
 
     int aNbTime = std::min(20,3+aParam.Level());
@@ -731,35 +365,11 @@ void BenchCentralePerspective(cParamExeBench & aParam)
     }
 
 
-    cCalibStenPerfect aCS(1,cPt2dr(0,0));
-    MMVII_INTERNAL_ASSERT_bench(&(aCS.F())+1 == &(aCS.PP().x()) ,"Assertion cCalibStenPerfect memory model");
-    MMVII_INTERNAL_ASSERT_bench(&(aCS.F())+2 == &(aCS.PP().y()) ,"Assertion cCalibStenPerfect memory model");
 
     aParam.EndBench();
 }
 
-/* ******************************************************* */
-/*                                                         */
-/*                    cPixelDomain                         */
-/*                                                         */
-/* ******************************************************* */
 
-cPixelDomain::~cPixelDomain()
-{
-}
-
-cPixelDomain::cPixelDomain(const cPt2di &aSz) :
-     cDataBoundedSet<tREAL8,2>(cBox2dr(cPt2dr(0,0),ToR(aSz))),
-     mSz  (aSz)
-{
-}
-
-cPixelDomain *  cPixelDomain::Dup_PS () const
-{
-    return new cPixelDomain(mSz);
-}
-
-const cPt2di & cPixelDomain::Sz() const {return mSz;}
 
 /* ******************************************************* */
 /*                                                         */
