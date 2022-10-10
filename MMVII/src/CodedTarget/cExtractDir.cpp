@@ -254,11 +254,15 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
 template class cExtractDir<tREAL4>;
 
 bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor){
+
     cExtractDir<tREAL4>  anED(anIm,aRayCB*0.4,aRayCB*0.8*size_factor);
     bool Ok = anED.CalcDir(aDCT);
     if (!Ok) return false;
 
     anED.ScoreRadiom(aDCT) ;
+
+//    double th1 = 0.50;
+//    double th2 = 0.50;
 
     double th1 = 0.12;
     double th2 = 0.85;

@@ -329,49 +329,78 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT,
          int aVal = IsW ? 255 : 0;
          cPt2di aNewPx = cPt2di(aPix.x(), aPix.y()-250);
 
+         if (mModeFlight){
+             if ((aNewPx.y() > 0)){
+                aDImT.SetV(aNewPx, aVal);
+             }
 
-         if ((aNewPx.y() > 0)){
-            aDImT.SetV(aNewPx, aVal);
-         }
-
-         if ((aDImT.Sz().y()-aPix.y() < 250)){
-             aDImT.SetV(aPix, 255);
+             if ((aDImT.Sz().y()-aPix.y() < 250)){
+                 aDImT.SetV(aPix, 255);
+             }
+         }else{
+            aDImT.SetV(aPix, aVal);
          }
 
      }
 
 
 
+    // -------------------------------------------------------------
+    // Orientation mark for flight mode
+    // -------------------------------------------------------------
+    if (mModeFlight){
+        int sz = 90;
+
+        double cx = aDImT.Sz().x()/2.0;
+        double cy = aDImT.Sz().y()/2-250;
+
+        double dx = 3.5/10.0*aDImT.Sz().x();
+        double dy = 0;
+
+        double theta = mChessboardAng-0.785398;
+        double px = cx + dx*cos(theta) + dy*sin(theta);
+        double py = cy - dx*sin(theta) + dy*cos(theta);
+
+        for (int i=-sz; i<=sz; i++){
+            for (int j=-sz; j<=sz; j++){
+                if (abs(i)+abs(j) > sz) continue;
+                aDImT.SetV(cPt2di(px+i, py+j), 0);
+            }
+        }
+    }
 
     // -------------------------------------------------------------
     // Hamming code for flight mode
     // -------------------------------------------------------------
-    cHamingCoder aHC(mNbBit-1);
-    tU_INT4 hammingCode = aHC.Coding(aSetCodesOfT.Num());
+    if (mModeFlight){
+        cHamingCoder aHC(mNbBit-1);
+        tU_INT4 hammingCode = aHC.Coding(aSetCodesOfT.Num());
 
-    // 21 bits for maximal code size of 16
-    std::bitset<21> hammingBinaryCode = std::bitset<21>(hammingCode);
-    StdOut() << "Hamming code: ";
+        // 21 bits for maximal code size of 16
+        std::bitset<21> hammingBinaryCode = std::bitset<21>(hammingCode);
+        StdOut() << "Hamming code: ";
 
-    int NbCols = ceil(((double)aHC.NbBitsOut())/2.0);
+        int NbCols = ceil(((double)aHC.NbBitsOut())/2.0);
 
-    int sq_vt = 180;
-    int sq_sz = 900/NbCols;
-    int idl, idc;
+        int sq_vt = 180;
+        int sq_sz = 900/NbCols;
+        int idl, idc;
 
-    for (int k=0; k<aHC.NbBitsOut(); k++){
-        idc = k % NbCols;
-        idl = (k>=NbCols)*1;
-        //StdOut() << "idc = " << idc << " idl = " << idl << " bit = ";
-        for (int px=150 + idc*sq_sz; px<150 + (idc+1)*sq_sz; px++){
-            for (int py=1250 + idl*sq_vt; py<1250 + sq_vt + idl*sq_vt; py++){
-                aDImT.SetV(cPt2di(px, py), 255*(1-hammingBinaryCode[k]));
+        for (int k=0; k<aHC.NbBitsOut(); k++){
+            idc = k % NbCols;
+            idl = (k>=NbCols)*1;
+            //StdOut() << "idc = " << idc << " idl = " << idl << " bit = ";
+            for (int px=150 + idc*sq_sz; px<150 + (idc+1)*sq_sz; px++){
+                for (int py=1250 + idl*sq_vt; py<1250 + sq_vt + idl*sq_vt; py++){
+                    aDImT.SetV(cPt2di(px, py), 255*(1-hammingBinaryCode[k]));
+                }
             }
+            StdOut() << hammingBinaryCode[k];
         }
-        StdOut() << hammingBinaryCode[k];
+
+        StdOut() << "   "  <<  aSetCodesOfT.Num() << "   " ;
     }
 
-    StdOut() << "   ";
 
 
      ///compute string
