@@ -1,4 +1,6 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -29,6 +31,8 @@ namespace MMVII
 /*                                                         */
 /* ******************************************************* */
 
+	// constructor destuctor  "big" modifier
+
 cPerspCamIntrCalib::cPerspCamIntrCalib
 (
       eProjPC        aTypeProj,           ///< type of projection 
@@ -46,7 +50,7 @@ cPerspCamIntrCalib::cPerspCamIntrCalib
 	// ------------ direct -------------
     mDir_Degr           (aDegDir),
     mDir_VDesc          (DescDist(aDegDir)),
-    mDir_Params         (aVParams),
+    // mDir_Params         (aVParams),
     mDir_Proj           (nullptr),
     mDir_Dist           (nullptr),
     mCSPerfect          (aCSP),
@@ -120,48 +124,66 @@ cPerspCamIntrCalib::~cPerspCamIntrCalib()
      delete mInv_Proj;
 }
 
-
-void cPerspCamIntrCalib::PutUknowsInSetInterval() 
+void cPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux)
 {
-    mSetInterv->AddOneInterv(&mCSPerfect.F(),3);
-    mSetInterv->AddOneInterv(mDir_Dist->VObs());
+    {
+        std::string aNameProj= E2Str(mTypeProj);
+        MMVII::AddData(cAuxAr2007("Projection",anAux),aNameProj);
+	mTypeProj = Str2E<eProjPC>(aNameProj);
+    }
+    {
+           cAuxAr2007 aAuxSten("PerfectProj",anAux);
+           MMVII::AddData(cAuxAr2007("F",aAuxSten),mCSPerfect.F());
+           MMVII::AddData(cAuxAr2007("PP",aAuxSten),mCSPerfect.PP());
+    }
+    std::vector<double> &  aVPD = VParamDist() ;
+
+    std::vector<std::string>  aTypeDist={"Radial","Decentric","Polynomial"};
+    {
+       cAuxAr2007 aAuDist("Distorsion",anAux);
+       for (int aTest=0 ; aTest<3 ; aTest++)
+       {
+           cAuxAr2007 aAuxTypeDist(aTypeDist.at(aTest),aAuDist);
+	   for (size_t aKD=0 ; aKD<mDir_VDesc.size() ; aKD++)
+	   {
+               // tricky make assumption on int equiv : eRad, eDecX, eDecY, eMonX, eMonY,
+               bool DoAtThisStep = ((int(mDir_VDesc[aKD].mType)+1)/2)==aTest;
+	       if (DoAtThisStep)
+	       {
+                   MMVII::AddData(cAuxAr2007(mDir_VDesc[aKD].mName,aAuxTypeDist),aVPD[aKD]);
+		   AddComment(anAux.Ar(),mDir_VDesc[aKD].mLongName);
+	       }
+           }
+       /*
+
+	   eRad,   ///<  Coefficient for radial distorsion
+              eDecX,  ///< Coefficient for decentric distorsion x mean derived by Cx (it has X and Y components)
+              eDecY,  ///< Coefficient for decentric distorsion y mean derived by Cy (it has X and Y components)
+              eMonX,  ///< Coefficient for a monom in X, of the polynomial distorsion
+              eMonY,  ///
+	   for (size_t aKD=0 ; aKD<mDir_VDesc.size() ; aKD++)
+	   {
+               
+           }
+       */
+       }
+    }
 }
-	     
 
-	     //  geometric manips
-
-const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tVecIn & aV0 ) const 
+void AddData(const cAuxAr2007 & anAux,cPerspCamIntrCalib & aPCIC)
 {
-     static tVecOut aV1,aV2;
-     mDir_Proj->Values(aV1,aV0);
-     mDir_Dist->Values(aV2,aV1);
-     mCSPerfect.Values(aV3,aV2);
-     
-     return aV3;
+    aPCIC.AddData(anAux);
 }
 
-
-const  std::vector<cPt3dr> &  cPerspCamIntrCalib::Inverses(tVecIn & aV3 ,const tVecOut & aV0 ) const 
+void  cPerspCamIntrCalib::ToFile(const std::string & aNameFile ) const
 {
-     static tVecOut aV1,aV2;
-     mInv_CSP.Values(aV1,aV0);
-     mDist_DirInvertible->Inverses(aV2,aV1);
-     mInv_Proj->Values(aV3,aV2);
-     
-     return aV3;
+	SaveInFile(*this,aNameFile);
 }
 
-tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
-{
-    return mDefProj.P2DIsDef(mDist_DirInvertible->Inverse(mInv_CSP.Value(aPix)));
-}
 
-void cPerspCamIntrCalib::OnUpdate() 
-{
-    // udpate invers, only if required, maybe later add a test to see if current inverse is ok ...
-    if (mInvApproxLSQ_Dist!=nullptr)
-      UpdateLSQDistInv();
-}
+//  void  ToFile(const std::string & ) ; ///< export in xml/dmp ...
+//  static cPerspCamIntrCalib * FromFile(const std::string &); ///< create form xml/dmp ...
+
 
 
 void cPerspCamIntrCalib::UpdateLSQDistInv()
@@ -198,6 +220,59 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
    mInvApproxLSQ_Dist->SetObs(mInv_Params); // set these parameters in approx inverse
 }
 
+
+
+
+	     // ==================  geometric manips =====================
+
+const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tVecIn & aV0 ) const 
+{
+     static tVecOut aV1,aV2;
+     mDir_Proj->Values(aV1,aV0);
+     mDir_Dist->Values(aV2,aV1);
+     mCSPerfect.Values(aV3,aV2);
+     
+     return aV3;
+}
+
+
+const  std::vector<cPt3dr> &  cPerspCamIntrCalib::Inverses(tVecIn & aV3 ,const tVecOut & aV0 ) const 
+{
+     static tVecOut aV1,aV2;
+     mInv_CSP.Values(aV1,aV0);
+     mDist_DirInvertible->Inverses(aV2,aV1);
+     mInv_Proj->Values(aV3,aV2);
+     
+     return aV3;
+}
+
+tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
+{
+    return mDefProj.P2DIsDef(mDist_DirInvertible->Inverse(mInv_CSP.Value(aPix)));
+}
+
+      //   ----  object in unknown system (bundle adj ...) ----------------
+     
+void cPerspCamIntrCalib::OnUpdate() 
+{
+    if (mInvApproxLSQ_Dist!=nullptr)
+      UpdateLSQDistInv();
+}
+
+void cPerspCamIntrCalib::PutUknowsInSetInterval() 
+{
+    mSetInterv->AddOneInterv(&mCSPerfect.F(),3);
+    //mSetInterv->AddOneInterv(mDir_Dist->VObs());
+    mSetInterv->AddOneInterv(VParamDist());
+}
+
+cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf)
+{
+    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf);
+}
+
+      //   ----  Accessor  -  modifier ----------------
+
 void cPerspCamIntrCalib::SetThresholdPhgrAccInv(double aThr)
 {
     mThresholdPhgrAccInv = aThr;
@@ -212,6 +287,8 @@ void cPerspCamIntrCalib::SetThresholdPixAccInv(double aThr)
 const double & cPerspCamIntrCalib::F()      const {return mCSPerfect.F() ;}
 const cPt2dr & cPerspCamIntrCalib::PP()     const {return mCSPerfect.PP();}
 const cPt3di & cPerspCamIntrCalib::DegDir() const {return mDir_Degr;}
+const std::vector<double> & cPerspCamIntrCalib::VParamDist() const { return mDir_Dist->VObs(); }
+std::vector<double> & cPerspCamIntrCalib::VParamDist() { return mDir_Dist->VObs(); }
 
 
        /* ================================================================== */
@@ -309,10 +386,6 @@ void cPerspCamIntrCalib::InitRandom(double aAmpl)
      mDir_Dist->SetObs(aParamRID.VParam());
 }
  
-cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf)
-{
-    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf);
-}
 
 void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 {

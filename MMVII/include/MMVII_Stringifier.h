@@ -300,6 +300,9 @@ class cAuxAr2007
 /// Create an archive for hashing value
 cAr2007* AllocArHashVal(bool ordered);
 size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
+				 
+void AddComment(cAr2007 & anAr, const std::string & aString);
+
 
 /** Here are the atomic serialization function */
 

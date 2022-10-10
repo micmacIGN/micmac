@@ -56,6 +56,12 @@ std::vector<std::string> FormalBilinIm2D_NameObs(const std::string & aPrefix)
 /*                                  */
 /* ******************************** */
 
+std::string NamePow(const std::string aExpr,int aExposant) 
+{  
+    if (aExposant==0) return "";
+    if (aExposant==1) return aExpr;
+    return aExpr + "^" + ToStr(aExposant);
+}
 
 
 cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
@@ -67,14 +73,34 @@ cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
    if (mType==eTypeFuncDist::eRad)
    {
        mName = "K" + ToStr(aNum);  //  K1 K2 K3 ...
+       mLongName = "(X,Y) * "+  NamePow("(X^2+Y^2)",aNum);
+				   //  mLongName
        mDegTot = 1 + 2 * (aNum);   //  X (X^2+Y^2) ^N
        mNum = aNum;
    }
    else if ((mType==eTypeFuncDist::eDecX) ||  (mType==eTypeFuncDist::eDecY))
    {
-       int aDec = (mType==eTypeFuncDist::eDecX)?-1:0;
+       bool aDecX = (mType==eTypeFuncDist::eDecX);
+       int aShiftNum = aDecX?-1:0;  // DecX p1 , DecY p2 ... 
        // p1,p2  as usual, and by generalization p3 p4 p5 ...
-       mName = "p" + ToStr(2*aNum+aDec);
+       // DecX  [R2^N+2NX^2R2^(N-1),2NXYR2^(N-1)] :N=1=>[R2+2X^2,2XY]=[3X2+Y2,2XY]
+       // DecY   [2XYNR2^(N-1), R2^N+2NY^2R^(N-1)  ] :N=1=>[2XY,R2+2Y^2]=[2XY,X2+3Y2]
+       if (aDecX)
+       {
+           if (aNum==1)
+               mLongName = "(3X2+Y2,2XY)";
+	   else
+               mLongName = "d/dX {(X,Y) * (X^2+Y^2) ^" +ToStr(aNum) + "}";
+       }
+       else
+       {
+           if (aNum==1)
+               mLongName = "(2XY,X2+3Y2)";
+	   else
+               mLongName = "d/dY {(X,Y) * (X^2+Y^2) ^"+ToStr(aNum) + "}";
+       }
+
+       mName = "p" + ToStr(2*aNum+aShiftNum);
        mDegTot =  2 * (aNum);  // Derivates of X (X^2+Y^2) ^N
        mNum = aNum;
    }
@@ -82,7 +108,8 @@ cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
    {
       mDegMon = aDegXY;
       mDegTot = mDegMon.x() + mDegMon.y();
-      if ((mType==eTypeFuncDist::eMonX) && (mDegTot==1))
+      bool isX = (mType==eTypeFuncDist::eMonX);
+      if ((isX) && (mDegTot==1))
       {
           mName = ( mDegMon.x() == 1) ? "b1" : "b2";  // Usual convention
       }
@@ -92,6 +119,16 @@ cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
                  + "_" + ToStr(mDegMon.x())
                  + "_" + ToStr(mDegMon.y()) ;
       }
+      std::string aStrMon="";
+      if (mDegMon.x()==0)
+        aStrMon = NamePow("Y",mDegMon.y());
+      else if (mDegMon.y()==0)
+        aStrMon = NamePow("X",mDegMon.x());
+      else
+        aStrMon = NamePow("X",mDegMon.x()) + "*" + NamePow("Y",mDegMon.y());
+
+      mLongName = isX ? ("("+aStrMon+",0)")  : ("(0,"+aStrMon+")");
+
    }
 }
 

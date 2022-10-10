@@ -785,7 +785,8 @@ class cAppli_MPDTest : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
-        bool mMMV1_GenCodeTestCam;
+        bool   mMMV1_GenCodeTestCam;
+        cPt3di mDegDistTest;
 };
 
 cCollecSpecArg2007 & cAppli_MPDTest::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
@@ -793,6 +794,7 @@ cCollecSpecArg2007 & cAppli_MPDTest::ArgOpt(cCollecSpecArg2007 & anArgOpt)
   return
       anArgOpt
          << AOpt2007(mMMV1_GenCodeTestCam,"V1_GCTC","Generate code for Test Cam")
+         << AOpt2007(mDegDistTest,"DDT","Degree Distorion Test")
   ;
 }
 
@@ -905,11 +907,20 @@ void TTT();
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   if (IsInit(&mDegDistTest))
+   {
+      std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest);
+
+      for (const auto & aDesc : aVD)
+	      StdOut() << " "  << aDesc.mName <<  " " << aDesc.mLongName << "\n";
+
+      return EXIT_SUCCESS;
+   }
    TTT ();
    if (true)
    {
-     std::cout << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << "\n";
-     std::cout << "T1:" << cName2Calc<double>::CalcFromName("EqDist_Dist_Rad3_Dec1_XY1",10) << "\n";
+     StdOut() << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << "\n";
+     StdOut() << "T1:" << cName2Calc<double>::CalcFromName("EqDist_Dist_Rad3_Dec1_XY1",10) << "\n";
       return EXIT_SUCCESS;
    }
 

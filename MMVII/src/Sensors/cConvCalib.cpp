@@ -1,6 +1,7 @@
 #include "include/MMVII_all.h"
 
 
+
 /**
    \file cConvCalib.cpp
 
@@ -172,7 +173,10 @@ void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string
 
         if (aResidual<aAccuracy)
         {
-            // StdOut() << "---------------RR=" <<  aResidual  << "\n";
+            StdOut() << "---------------RR=" <<  aResidual  << "\n";
+
+	    aConv.Calib().ToFile("toto.xml");
+	    getchar();
             return;
         }
      }

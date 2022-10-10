@@ -31,11 +31,12 @@ class cDescOneFuncDist
       /// Majorarion of norms of jacobian , used in simulation
       double MajNormJacOfRho(double aRho) const;
 
-      eTypeFuncDist mType;   ///< Type of dist (Rad, DecX ....)
-      std::string   mName;   ///< Name : used as id for code gen & prety print
-      cPt2di        mDegMon;  ///< Degree for a polynomial
-      int           mNum;     ///< Order for radial and decentric
-      int           mDegTot;  ///< Total degree of the polynome
+      eTypeFuncDist mType;       ///< Type of dist (Rad, DecX ....)
+      std::string   mName;       ///< Name : used as id for code gen & prety print
+      std::string   mLongName;   ///< explicit long name
+      cPt2di        mDegMon;     ///< Degree for a polynomial
+      int           mNum;        ///< Order for radial and decentric
+      int           mDegTot;     ///< Total degree of the polynome
 };
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);

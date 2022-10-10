@@ -101,6 +101,11 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
                 /// manye delete in destructor ....
             ~cPerspCamIntrCalib();
 
+	     void AddData(const cAuxAr2007 & anAux); ///< serialization for export
+	     void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...  
+	     static cPerspCamIntrCalib * FromFile(const std::string &); ///< create form xml/dmp ...
+
+
     // ==================   geometric points computation ===================
             const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
             const  tVecIn  &  Inverses(tVecIn &,const tVecOut & ) const;
@@ -108,11 +113,14 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
             // for a point in pixel coordinates, indicate how much its invert projection is defined, not parallized !
             tREAL8  InvProjIsDef(const tPtOut & aPix ) const;
 
+
     // ==================   Accessors & Modifiers ===================
             const double & F() const;   ///< access to focal
             const cPt2dr & PP() const;  ///< acess to principal point
             const cPt3di & DegDir() const;  ///< acess to direct degrees
 
+	    std::vector<double> & VParamDist();
+	    const std::vector<double> & VParamDist() const;
 
             void SetThresholdPhgrAccInv(double); ///< modifier of threshold for accuracy inversion, photogrametric unit
             void SetThresholdPixAccInv(double);  ///< modifier of threshold for accuracy inversion, pixel  unit
@@ -126,9 +134,10 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
 
     // ==================   use in bundle adjustment ===================
 
-             void PutUknowsInSetInterval() override ;
-             void OnUpdate() override;    // "reaction" after linear update, eventually update inversion
+             void PutUknowsInSetInterval() override ;///< describes its unknowns
+             void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
 
+	     /// return calculator adapted to model of camera (degree, projection)
              cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf);
 
        private :
@@ -146,7 +155,7 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
                 //
             cPt3di                               mDir_Degr;
             std::vector<cDescOneFuncDist>        mDir_VDesc;  ///< contain a "high" level description of dist params
-            std::vector<tREAL8>                  mDir_Params;    ///< Parameters of distorsion
+           //  std::vector<tREAL8>                  mDir_Params;    ///< Parameters of distorsion -> deprecated, redundant
             cDataMapCalcSymbDer<tREAL8,3,2>*     mDir_Proj;   ///< direct projection  R3->R2
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist;   ///< direct disorstion  R2->R2
             cCalibStenPerfect                    mCSPerfect;  ///< R2-phgr -> pixels
@@ -170,6 +179,8 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
             int                                  mNbIterInv;           ///< maximal number of iteration in inversion
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
+
+void AddData(const cAuxAr2007 & anAux,cPerspCamIntrCalib &);
 
 /**  Class for modelizing the geometry of perspective-central image, contain essentially a pose (Centre+rotation)
  *   and a pointer to a (generally) shared internall calibration
