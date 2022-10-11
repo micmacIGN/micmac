@@ -16,6 +16,8 @@ template <class Type> class  cLeasSqtAA ;
 template <class Type> class  cBufSchurrSubst; 
 template <class Type> class  cSetIORSNL_SameTmp;
 template <class Type> class cResidualWeighter;
+template <class Type> class cObjWithUnkowns;
+template <class Type> class cSetInterUK_MultipeObj;
 
 /// Index to use in vector of index indicating a variable to substituate
 static constexpr int RSL_INDEX_SUBST_TMP = -1;
@@ -40,6 +42,7 @@ template <class Type> class cResolSysNonLinear
           typedef std::vector<int>                              tVectInd;
           typedef cResolSysNonLinear<Type>                      tRSNL;
           typedef cResidualWeighter<Type>                       tResidualW;
+          typedef cObjWithUnkowns<Type>                         tObjWUk;
 
 	  /// basic constructor, using a mode of matrix + a solution  init
           cResolSysNonLinear(eModeSSR,const tDVect & aInitSol);
@@ -84,6 +87,15 @@ template <class Type> class cResolSysNonLinear
 	       //    frozen  checking
 
 	   void  SetFrozenVar(int aK,const  Type &);  ///< indicate it var must be frozen /unfrozen
+	       // frozen for  cObjWithUnkowns
+	   void  SetFrozenVar(tObjWUk & anObj,const  Type &);  ///< indicate it var must be frozen /unfrozen
+	   void  SetFrozenVar(tObjWUk & anObj,const  Type *,size_t);  ///< indicate it var must be frozen /unfrozen
+	   void  SetFrozenVar(tObjWUk & anObj,const tStdVect &);  ///< indicate it var must be frozen /unfrozen
+	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,3> &);  ///< indicate it var must be frozen /unfrozen
+	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,2> &);  ///< indicate it var must be frozen /unfrozen
+
+
+
 	   void  SetUnFrozen(int aK);  ///< indicate it var must be frozen /unfrozen
 	   void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
 	   bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
@@ -493,6 +505,7 @@ template <class Type> class cSetIntervUK_OneObj
 };
 
 ///  represent all the object with unknown of a given system of equation
+
 template <class Type> class cSetInterUK_MultipeObj
 {
         public :
@@ -500,6 +513,7 @@ template <class Type> class cSetInterUK_MultipeObj
 
            cSetInterUK_MultipeObj(); /// constructor, init mNbUk
            ~cSetInterUK_MultipeObj();  /// indicate to all object that they are no longer active
+	   void Reset();  /// Maybe private later, now used for tricky destruction order
 
 	   /// This method is used to add the unknowns of one object
            void  AddOneObj(cObjWithUnkowns<Type> *);

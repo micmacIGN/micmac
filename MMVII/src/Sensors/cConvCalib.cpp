@@ -43,7 +43,15 @@ class cCentralPerspConversion
          void OneIteration();
 
          const cSensorCamPC  &       CamPC() const;  ///<  Accessor
-         const cPerspCamIntrCalib &  Calib() const;  ///<  Accessor
+         // const cPerspCamIntrCalib &  Calib() const;  ///<  Accessor
+
+	 void ResetUk() 
+	 {
+		 MMVII_WARGNING("cCentralPerspConversion ResetUk");
+		 mSetInterv.Reset();
+	 }
+         const cSet2D3D  & SetCorresp() const {return   mSetCorresp;}
+         cPerspCamIntrCalib *    Calib() {return mCalib;}
 
     private :
          tPose                              mPoseInit;
@@ -92,14 +100,13 @@ cCentralPerspConversion::~cCentralPerspConversion()
 
 
 const cSensorCamPC  &       cCentralPerspConversion::CamPC() const {return mCamPC;}
-const cPerspCamIntrCalib &  cCentralPerspConversion::Calib() const {return *mCalib;}
+// const cPerspCamIntrCalib &  cCentralPerspConversion::Calib() const {return *mCalib;}
 
 void cCentralPerspConversion::OneIteration()
 {
      if (mCFix)
      {
-        // size_t aNumCx
-        // CenterFix
+        mSys->SetFrozenVar(mCamPC,mCamPC.Center());
      }
      std::vector<int> aVIndGround{-1,-2,-3};
 
@@ -135,48 +142,65 @@ void cCentralPerspConversion::OneIteration()
      mSetInterv.SetVUnKnowns(aVectSol);
 }
 
-
-void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string & aName,bool HCG,bool  CenterFix,double aAccuracy)
+cCentralPerspConversion *  AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix)
 {
-     std::string aFullName = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ori-MMV1" +  StringDirSeparator() + aName;
+     bool  isForTest = (!HCG) ||  (! CenterFix);
+     cExportV1StenopeCalInterne  aExp(true,aFullName,10);
 
-     cExportV1StenopeCalInterne  aExp(aFullName,10);
+     if (isForTest)
+     {
+         aExp.mFoc *=  (1.0 + 0.05*RandUnif_C());
+         aExp.mPP = MulCByC(aExp.mPP,  cPt2dr(1,1)+cPt2dr::PRandC()*0.05);
+     }
 
-     double aF0 = aExp.mFoc;
-     cPt2dr aPP0 = aExp.mPP;
-     aExp.mFoc *=  (1.0 + 0.05*RandUnif_C());
-     aExp.mPP = MulCByC(aExp.mPP,  cPt2dr(1,1)+cPt2dr::PRandC()*0.05);
-
-     cPerspCamIntrCalib aCalib(aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
+     std::string aNameCam = LastPrefix(FileOfPath(aFullName,false));
+     cDataPerspCamIntrCalib aDataCalib(aNameCam,aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
+     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::Alloc(aDataCalib);
 
      cIsometry3D<tREAL8> aPose0
                          (
                               cPt3dr::PRandC() * (CenterFix ? 0.0 : 0.1),
                               cRotation3D<tREAL8>::RandomRot(0.05)
                          );
+     if (!isForTest)
+        aPose0 = cIsometry3D<tREAL8>::Identity();
+     return new cCentralPerspConversion(aCalib,aExp.mCorresp,aPose0,HCG,CenterFix);
+}
 
-     cCentralPerspConversion aConv(&aCalib,aExp.mCorresp,aPose0,HCG,CenterFix);
-     const cSensorCamPC  &       aCamPC =  aConv.CamPC() ;
 
 
+void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string & aName,bool HCG,bool  CenterFix,double aAccuracy)
+{
+     std::string aFullName = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ori-MMV1" +  StringDirSeparator() + aName;
+     cCentralPerspConversion * aConv =   AllocV1Converter(aFullName,HCG,CenterFix);
+
+     const cSensorCamPC  &       aCamPC =  aConv->CamPC() ;
+      cPerspCamIntrCalib *       aCalib =  aConv->Calib() ;
 
      double aResidual  = 10;
      for (int aK=0 ; aK<20 ; aK++)
      {
-        if (0)
-        {
-            const cPerspCamIntrCalib &  aCalib =  aConv.Calib();
-            StdOut() << "FFF="  <<  aF0  - aCalib.F() <<  " " << aPP0-aCalib.PP() << "\n";
-        }
-        aConv.OneIteration();
-        aResidual  = aCamPC.AvgResidual(aExp.mCorresp);
+        aConv->OneIteration();
+        aResidual  = aCamPC.AvgResidual(aConv->SetCorresp());
 
         if (aResidual<aAccuracy)
         {
-            StdOut() << "---------------RR=" <<  aResidual  << "\n";
+	    std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "TestCalib.xml";
+	    aCalib->ToFile(aNameTmp);
 
-	    aConv.Calib().ToFile("toto.xml");
-	    getchar();
+	    cPerspCamIntrCalib *  aCam2 = cPerspCamIntrCalib::FromFile(aNameTmp);
+            cSensorCamPC          aSensor2 (aConv->CamPC().Pose(),aCam2) ;
+	    double aR2 = aSensor2.AvgResidual(aConv->SetCorresp());
+           
+	    //  Accuracy must be as good as initial camera, but small diff possible due to string conv
+            MMVII_INTERNAL_ASSERT_bench(aR2< aAccuracy+1e-5  ,"Reload camera  xml");
+	    // diff of accuracy should be tiny
+            MMVII_INTERNAL_ASSERT_bench(std::abs(aR2-aResidual)< 1e-10  ,"Reload camera  xml");
+
+ StdOut() << "ssssssssssssssssssssssssss\n";getchar();
+	    delete aConv;
+	    delete aCam2;
+	    delete aCalib;
             return;
         }
      }

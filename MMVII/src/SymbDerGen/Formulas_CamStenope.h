@@ -363,9 +363,9 @@ class cMMVIIUnivDist
               }
 
               // Generate description of monomes in X and Y that are to maintain
-              for (int aDx=0 ; aDx<=DegUniv() ; aDx++)
+              for (int aDy=0 ; aDy<=DegUniv() ; aDy++)
               {
-                  for (int aDy=0 ; (aDx+aDy)<=DegUniv() ; aDy++)
+                  for (int aDx=0 ; (aDx+aDy)<=DegUniv() ; aDx++)
                   {
                       cPt2di aDXY(aDx,aDy);
                       if (OkMonome(true,aDx,aDy))

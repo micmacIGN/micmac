@@ -20,6 +20,7 @@ template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns()
 
 template <class Type> cObjWithUnkowns<Type>::~cObjWithUnkowns() 
 {
+    // MMVII_WARGNING("cObjWithUnkowns mSetInterv==nullptr to reactivate");	
      MMVII_INTERNAL_ASSERT_tiny(mSetInterv==nullptr,"Unfreed object in cObjWithUnkowns");
 }
 
@@ -65,12 +66,18 @@ template <class Type> cSetInterUK_MultipeObj<Type>::cSetInterUK_MultipeObj() :
 {
 }
 
-template <class Type> cSetInterUK_MultipeObj<Type>::~cSetInterUK_MultipeObj()
+template <class Type> void  cSetInterUK_MultipeObj<Type>::Reset()
 {
     for (auto &   aVinterv : mVVInterv) // parse object to reset them
     {
         aVinterv.mObj->Reset();
     }
+    mVVInterv.clear();
+}
+
+template <class Type> cSetInterUK_MultipeObj<Type>::~cSetInterUK_MultipeObj()
+{
+   Reset();
 }
 
 template <class Type> void  cSetInterUK_MultipeObj<Type>::AddOneObj(cObjWithUnkowns<Type> * anObj)
@@ -170,7 +177,11 @@ template <class Type> size_t  cSetInterUK_MultipeObj<Type>::IndOfVal(const cObjW
 
 
 
+template class cObjWithUnkowns<tREAL4>;
+template class cSetInterUK_MultipeObj<tREAL4>;
 template class cObjWithUnkowns<tREAL8>;
 template class cSetInterUK_MultipeObj<tREAL8>;
+template class cObjWithUnkowns<tREAL16>;
+template class cSetInterUK_MultipeObj<tREAL16>;
 
 };

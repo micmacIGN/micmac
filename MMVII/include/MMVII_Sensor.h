@@ -49,25 +49,42 @@ struct cSet2D3D
 class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 {
      public :
+
+         cSensorImage(const std::string &);
+
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
          virtual double SqResidual(const cPair2D3D &) const;
          virtual double AvgResidual(const cSet2D3D &) const;
+
+     private :
+	 std::string                                    mName;
+	 // static std::map<std::string,cSensorImage*>  mDicoSensor;
+	 // static int                                  mNum;
 };
 
-/*  base-class  4 definition of validity domaine in image space  */
-class cPixelDomain : public cDataBoundedSet<tREAL8,2>
+/**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
+ * minimal data for description, with def contructor from the more "sophisticated" object  */
+class cDataPixelDomain 
 {
       public :
-           cPixelDomain(const cPt2di &aSz);
-           virtual ~ cPixelDomain();
-           virtual cPixelDomain *  Dup_PS () const;  ///< default work because deleted in mother class
+           cDataPixelDomain(const cPt2di &aSz);
 
            const cPt2di & Sz() const;
-      private :
+	   virtual void AddData(const cAuxAr2007 & anAux);
+      protected :
            cPt2di     mSz;
 };
 
 
+/*  base-class  4 definition of validity domaine in image space  */
+class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
+{
+	public :
+		cPixelDomain(cDataPixelDomain *);
+
+	private :
+		cDataPixelDomain * mDPD;
+};
 
 
 };

@@ -252,6 +252,34 @@ template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(int aK,const  
     mValueFrozenVar.at(aK) = aVal;
 }
 
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const  Type & aVal)
+{
+	SetFrozenVar(anObj.IndOfVal(&aVal),aVal);
+}
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const  Type * anAdr,size_t aNb)
+{
+	for (size_t aK=0 ; aK<aNb ; aK++)
+            SetFrozenVar(anObj,*(anAdr+aK));
+}
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const tStdVect &  aVect)
+{
+            SetFrozenVar(anObj,aVect.data(),aVect.size());
+}
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,3> &  aPt)
+{
+            SetFrozenVar(anObj,aPt.PtRawData(),3);
+}
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,2> &  aPt)
+{
+            SetFrozenVar(anObj,aPt.PtRawData(),2);
+}
+
+/*
+           void  SetFrozenVar(tObjWUk & anObj,tStdVect &);  ///< indicate it var must be frozen /unfrozen
+           void  SetFrozenVar(tObjWUk & anObj,cPtxd<Type,3> &);  ///< indicate it var must be frozen /unfrozen
+           void  SetFrozenVar(tObjWUk & anObj,cPtxd<Type,2> &);  ///< indicate it var must be frozen /unfrozen
+*/
+
 template <class Type> void cResolSysNonLinear<Type>::SetUnFrozen(int aK)
 {
     AssertNotInEquation();

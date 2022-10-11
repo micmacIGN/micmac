@@ -18,9 +18,10 @@ namespace MMVII
 /* ******************************************************* */
 
 cSensorCamPC::cSensorCamPC(const tPose & aPose,cPerspCamIntrCalib * aCalib) :
-   mPose  (aPose),
-   mCalib (aCalib),
-   mOmega (0,0,0)
+   cSensorImage  ("tttttyuiiiiiiiiiiii"),
+   mPose         (aPose),
+   mCalib        (aCalib),
+   mOmega        (0,0,0)
 {
 }
 
@@ -43,12 +44,12 @@ size_t  cSensorCamPC::NumXCenter() const
 
 
 
-cPt3dr cSensorCamPC::Center() const {return mPose.Tr();}
-cPt3dr cSensorCamPC::Omega()  const {return mOmega;}
+const cPt3dr & cSensorCamPC::Center() const {return mPose.Tr();}
+const cPt3dr & cSensorCamPC::Omega()  const {return mOmega;}
 cPt3dr cSensorCamPC::AxeI()   const {return mPose.Rot().AxeI();}
 cPt3dr cSensorCamPC::AxeJ()   const {return mPose.Rot().AxeI();}
 cPt3dr cSensorCamPC::AxeK()   const {return mPose.Rot().AxeJ();}
-cIsometry3D<tREAL8> cSensorCamPC::Pose() const {return mPose;}
+const cIsometry3D<tREAL8> & cSensorCamPC::Pose() const {return mPose;}
 
 /*   Let R be the rotation of pose  P=(C,P= : Cam-> Word, what is optimized in colinearity for a ground point G
  *   is Word->Cam  :

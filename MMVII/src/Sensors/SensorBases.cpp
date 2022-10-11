@@ -44,32 +44,41 @@ void  cSet2D3D::Clear()
 /* ******************************************************* */
 /*                                                         */
 /*                    cPixelDomain                         */
+/*                    cDataPixelDomain                     */
 /*                                                         */
 /* ******************************************************* */
 
-cPixelDomain::~cPixelDomain()
-{
-}
+      //  ============ cDataPixelDomain  ================
 
-cPixelDomain::cPixelDomain(const cPt2di &aSz) :
-     cDataBoundedSet<tREAL8,2>(cBox2dr(cPt2dr(0,0),ToR(aSz))),
+cDataPixelDomain::cDataPixelDomain(const cPt2di &aSz) :
      mSz  (aSz)
 {
 }
 
-cPixelDomain *  cPixelDomain::Dup_PS () const
+const cPt2di & cDataPixelDomain::Sz() const {return mSz;}
+
+void cDataPixelDomain::AddData(const cAuxAr2007 & anAux)
 {
-    return new cPixelDomain(mSz);
+    MMVII::AddData(cAuxAr2007("NbPix",anAux),mSz);
 }
 
-const cPt2di & cPixelDomain::Sz() const {return mSz;}
+      //  ============ cPixelDomain  ================
 
-
+cPixelDomain::cPixelDomain(cDataPixelDomain * aDPD) :
+     cDataBoundedSet<tREAL8,2>(cBox2dr(cPt2dr(0,0),ToR(aDPD->Sz()))),
+     mDPD  (aDPD)
+{
+}
 /* ******************************************************* */
 /*                                                         */
 /*                   cSensorImage                          */
 /*                                                         */
 /* ******************************************************* */
+
+cSensorImage::cSensorImage(const std::string & aName) :
+     mName (aName)
+{
+}
 
 double  cSensorImage::SqResidual(const cPair2D3D & aPair) const
 {

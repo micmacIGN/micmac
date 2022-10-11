@@ -136,7 +136,7 @@ class cMMVII_Warning
     void Activate();
 };
 
-#define MMVII_WARGING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
+#define MMVII_WARGNING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
 
 };
 

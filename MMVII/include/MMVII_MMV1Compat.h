@@ -18,13 +18,16 @@ tNameRel  MMV1InitRel(const std::string & aName);
 struct  cExportV1StenopeCalInterne
 {
        public :
-             cExportV1StenopeCalInterne(const std::string& aFile,int aNbPointPerDim=30,int aNbLayer=2);
+             cExportV1StenopeCalInterne(bool isForCalib,const std::string& aFile,int aNbPointPerDim=30,int aNbLayer=2);
 
-	     eProjPC   eProj;
-	     cPt2di    mSzCam;
-	     tREAL8    mFoc;
-	     cPt2dr    mPP;
-	     cSet2D3D  mCorresp;
+	     cIsometry3D<tREAL8>   mPose;
+	     std::string           mNameCalib;
+             bool                  mIsForCalib;
+	     eProjPC               eProj;
+	     cPt2di                mSzCam;
+	     tREAL8                mFoc;
+	     cPt2dr                mPP;
+	     cSet2D3D              mCorresp;
 };
 
 

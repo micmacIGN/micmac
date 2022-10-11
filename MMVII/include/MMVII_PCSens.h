@@ -55,6 +55,43 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
          tPt    mPP;  ///<  Principal point
 };
 
+/**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
+ * minimal data for description, with def contructor from the more "sophisticated" object  */
+
+
+class cDataPerspCamIntrCalib
+{
+   public :
+      void AddData(const cAuxAr2007 & anAux);
+
+      cDataPerspCamIntrCalib();
+      cDataPerspCamIntrCalib
+      (
+	    const std::string  &   aName,
+            eProjPC        aTypeProj,           ///< type of projection
+            const cPt3di & aDegDir,             ///< degrees of distorstion  Rad/Dec/Univ
+            const  std::vector<double> & aVParams,  ///< vector of distorsion
+            const cCalibStenPerfect & aCSP,           ///< Calib w/o dist
+            const  cDataPixelDomain  & aPixDomain,              ///< sz, domaine of validity in pixel
+            const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
+            int aSzBuf                         ///< sz of buffers in computation
+      )  ;
+      cDataPerspCamIntrCalib(const std::string & aName,eProjPC,const cPt3di &,double aFoc,cPt2di & aNbPix,int aSzBuf=-1);
+
+
+   protected :
+      std::string                    mName;
+      eProjPC                        mTypeProj;           ///< type of projection
+      cPt3di                         mDir_Degr;             ///< degrees of distorstion  Rad/Dec/Univ
+      std::vector<cDescOneFuncDist>  mDir_VDesc;
+      mutable std::vector<double>    mVTmpCopyParams;     ///< tempo copy of param, used 4 serialization
+      cCalibStenPerfect              mCSPerfect;                ///< Calib w/o dist
+      cDataPixelDomain               mDataPixDomain;              ///< sz, domaine of validity in pixel
+      cPt3di                         mInv_Degr;       ///< degree of inverse approx by least square
+      int                            mSzBuf;                         ///< sz of buffers in computation
+};
+
+
 /** this the class for computing the intric calibration of perspective camera :
 
     The intric calibration compute the maping from a 3D camera coordinate to image coordinates.
@@ -70,7 +107,8 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
  */
 
 class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
-                           public cObjWithUnkowns<tREAL8>
+                           public cObjWithUnkowns<tREAL8>,
+			   public cDataPerspCamIntrCalib
 {
         public :
             typedef tREAL8               tScal;
@@ -80,20 +118,9 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
             typedef std::vector<tPtOut>  tVecOut;
 
     // ================== construction of object ===============
-            cPerspCamIntrCalib
-            (
-                  eProjPC        aTypeProj,           ///< type of projection 
-                  const cPt3di & aDeg,                ///< degrees of distorstion  Rad/Dec/Univ
-                  std::vector<double>  aVParams,  ///< vector of distorsion
-                  const cCalibStenPerfect &,           ///< Calib w/o dist
-                  const  cPixelDomain  &,              ///< sz, domaine of validity in pixel
-                  const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
-                  int aSzBuf                          ///< sz of buffers in computatio,
-            );
+            static cPerspCamIntrCalib * Alloc(const cDataPerspCamIntrCalib &);
 
 
-            // allocation with minimal number of parameters
-            cPerspCamIntrCalib(eProjPC,const cPt3di &,double aFoc,cPt2di & aNbPix,int aSzBuf=-1);
 
                 ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
             void UpdateLSQDistInv();
@@ -141,30 +168,33 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
              cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf);
 
        private :
-	     //===  big object, no valuable copy
+	    ///  real constructor not accessible directly, must use allocator
+            cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
+	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
 
          // ==================   DATA PART   ===================
 	 //
                 // comon to dir & inverse
-            eProjPC                              mTypeProj;
-            int                                  mSzBuf;
+            // eProjPC                              mTypeProj;
+            // int                                  mSzBuf;
             const cDefProjPerspC &               mDefProj;
+            cPixelDomain                         mPixDomain;              ///< sz, domaine of validity in pixel
 
                 // ------------ parameters for direct projection  DirBundle -> pixel ------------
                 //
-            cPt3di                               mDir_Degr;
-            std::vector<cDescOneFuncDist>        mDir_VDesc;  ///< contain a "high" level description of dist params
+            // cPt3di                               mDir_Degr;
+            // std::vector<cDescOneFuncDist>        mDir_VDesc;  ///< contain a "high" level description of dist params
            //  std::vector<tREAL8>                  mDir_Params;    ///< Parameters of distorsion -> deprecated, redundant
             cDataMapCalcSymbDer<tREAL8,3,2>*     mDir_Proj;   ///< direct projection  R3->R2
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist;   ///< direct disorstion  R2->R2
-            cCalibStenPerfect                    mCSPerfect;  ///< R2-phgr -> pixels
-            cPixelDomain *                       mPixDomain;  ///< validity domain in pixel
+            // cCalibStenPerfect                    mCSPerfect;  ///< R2-phgr -> pixels
+            // cPixelDomain *                       mPixDomain;  ///< validity domain in pixel
                //  -------------  now for "inversion"  pix->DirBundle --------------------
                 //
             cCalibStenPerfect                    mInv_CSP;
             cDataMappedBoundedSet<tREAL8,2>*     mPhgrDomain;  ///<  validity in F/PP corected space, initialization use mInv_CSP
-            cPt3di                               mInv_Degr;
+            // cPt3di                               mInv_Degr;
             std::vector<cDescOneFuncDist>        mInv_VDesc;  ///< contain a "high" level description of dist params
             std::vector<tREAL8>                  mInv_Params;    ///< Parameters of distorsion
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mInvApproxLSQ_Dist;   ///< approximate LSQ invert disorstion  R2->R2
@@ -195,14 +225,14 @@ class cSensorCamPC : public cSensorImage
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
 	 // different accessor to the pose
-         tPose   Pose()   const;
-         cPt3dr  Center() const;
+         const tPose &   Pose()   const;
+         const cPt3dr &  Center() const;
          cPt3dr  AxeI()   const;
          cPt3dr  AxeJ()   const;
          cPt3dr  AxeK()   const;
 
 	 // access to tiny rotation used in bundled adjustment
-         cPt3dr  Omega()  const;
+         const cPt3dr &  Omega()  const;
 
          // interaction in unknowns
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
