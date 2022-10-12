@@ -40,6 +40,54 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
 
+#include <random>
+
+
+
+template <class Type> void  SaveNappe(const std::string & aName,Type ** aDataIn,const Box2di & aBoxIn)
+{
+   Pt2di aP0 = aBoxIn._p0;
+   Pt2di aSz = aBoxIn.sz();
+
+   // Create a temporary image
+   Im2D<Type,typename El_CTypeTraits<Type>::tBase >  anImOut(aSz.x,aSz.y);
+   Type ** aDataOut = anImOut.data();
+
+
+   for (int aY=0 ; aY<aSz.y ; aY++)
+   {
+       memcpy
+       (
+            aDataOut[aY],
+            aDataIn[aY+aP0.y]+aP0.x,
+            aSz.x * sizeof(Type)
+       );
+   }
+
+   L_Arg_Opt_Tiff aLArg;
+   aLArg = aLArg + Arg_Tiff(Tiff_Im::ANoStrip());
+
+   Tiff_Im::CreateFromIm(anImOut,aName,aLArg);
+}
+
+std::string random_string(std::size_t length)
+{
+    const std::string CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    std::random_device random_device;
+    std::mt19937 generator(random_device());
+    std::uniform_int_distribution<> distribution(0, CHARACTERS.size() - 1);
+
+    std::string random_string;
+
+    for (std::size_t i = 0; i < length; ++i)
+    {
+        random_string += CHARACTERS[distribution(generator)];
+    }
+
+    return random_string;
+}
+
 /*************************************************/
 /*                                               */
 /*          cOneNappePx                          */
@@ -177,6 +225,7 @@ void cOneNappePx::ForceConnexions()
            Pt2di aP0(aClX,aClY);
            int aMin0 = mTImPxMin.get(aP0);
            int aMax0 = mTImPxMax.get(aP0);
+
            for (int aDx=-1 ; aDx<=1 ;aDx++)
            {
                for (int aDy=-1 ; aDy<=1 ;aDy++)
@@ -228,6 +277,7 @@ void  cOneNappePx::ComplWithProj32(const cResProj32 & aRP32)
    }
    else
    {
+      std::cout<<"$$$$$$$$$$$$   COMPL WITH proj32 CHANGE 0 BY 1"<<"\n";
       ELISE_COPY
       (
           mImPxMin.all_pts(),
@@ -699,8 +749,6 @@ bool cFilePx::GenFile() const
 
 
 
-
-
          // ACCESSEURS      
 
 REAL  cFilePx::UserPas() const
@@ -786,6 +834,7 @@ void cFilePx::LoadNappeEstim
            Box2di aBoxIn
      )
 {
+
 
 // Boite englobante homologue en px prec, un peu elargie
     Pt2di aP0Prec = aBoxIn._p0 /mRatioDzPrec - Pt2di(2,2);
@@ -891,29 +940,65 @@ void cFilePx::LoadNappeEstim
              (aFMin+aFMax)/2,
              aNappe.mPxInit.out()
          );
-
-
     }
 
+    if (
+              (mAppli.IntervParalaxe().IsInit())
+           && (mAppli.EnveloppePAX_INIT().IsInit())
+       )
+    {
+        cEnveloppePAX_INIT aEnv=mAppli.EnveloppePAX_INIT().Val();
+        Tiff_Im aTifInf  = Tiff_Im::StdConv(aEnv.ZInf());
+        Tiff_Im aTifSup  = Tiff_Im::StdConv(aEnv.ZSup());
 
-    aFMin =   aFMasq      * (aFMin-mDilatAltiMoins-aRadDZMoins) + (1-aFMasq)  * aMaxShrt;
+
+         aFMin  = trans(aTifInf.in(aMaxShrt),aBoxIn._p0);
+         aFMax  = trans(aTifSup.in(-aMaxShrt),aBoxIn._p0);
+
+         ELISE_COPY
+         (
+             aNappe.mPxInit.all_pts(),
+             (aFMin+aFMax)/2,
+             aNappe.mPxInit.out()
+         );
+
+         mDilatAltiMoins=0;
+         mDilatAltiPlus= 0;
+         mDilatPlani=1;
+     }
+
+    //this->Show("INIT_LOAD_NAPPE_ESTIM");
+
+    aFMin =   aFMasq  * (aFMin-mDilatAltiMoins-aRadDZMoins) + (1-aFMasq)  * aMaxShrt;
     aFMax =   aFMasq  * (aFMax+mDilatAltiPlus+1) + (1-aFMasq)  * (-aMaxShrt);
 
+    /***********************************************/
 
+   /* Im2D_INT2 aImage(aSz.x,aSz.y);
 
+    ELISE_COPY
+            (
+                aImage.all_pts(),
+                aFMin,
+                aImage.out()
+
+            );
+
+    SaveNappe("./DILA_ZMIN_"+random_string(5)+".tif",aImage.data(),aBoxIn);
+    */
+    /***********************************************/
     ELISE_COPY
     (
        aNappe.mPxInit.all_pts(),
        Virgule
-       ( 
+       (
            rect_min(aFMin,mDilatPlani+aRadDPlMoins),
            rect_max(aFMax,mDilatPlani)
        ),
        Virgule ( aNappe.mImPxMin.out(), aNappe.mImPxMax.out())
     );
 
-
-// aNappe.TestDebugOPX("INIT");
+    //aNappe.TestDebugOPX("INIT");
 
 
    int aNb ;
@@ -923,17 +1008,19 @@ void cFilePx::LoadNappeEstim
        Virgule (aNappe.mImPxMin.in()  ,aNappe.mImPxMax.in()  ,1),
        Virgule (VMin(aNappe.mVPxMin)  ,VMax(aNappe.mVPxMax)  ,sigma(aNb))
     );
+
     if (aNb==0)
     {
       aNappe.mVPxMin = 0;
       aNappe.mVPxMax = 0;
     }
 
-    // cout << "Nb " << aNb << " " << aNappe.mVMin << " "<< aNappe.mVMax << "\n";
+    //cout << "Nb " << aNb << " " << aNappe.mVPxMin << " "<< aNappe.mVPxMax << "\n";
 
     if  ((mPredCalc->mPredCalc) || (mKPx!=0))  // BUG dit "du patriarche"  !! Corrc Bug Pat =>
     {
        aNappe.ComplWithProj32(aRP32);
+
     }
     else
     {
@@ -950,12 +1037,30 @@ void cFilePx::LoadNappeEstim
                  Fonc_Num (0,1),
                  Virgule(aNappe.mImPxMin.out(),aNappe.mImPxMax.out())
            );
+
    
     }
 
 // aNappe.TestDebugOPX("COMPL 32");
     if ( NappeIsEpaisse())
        aNappe.ForceConnexions();
+
+    /***********************************************/
+
+    /*Im2D_INT2 aImage(aSz.x,aSz.y);
+
+     ELISE_COPY
+             (
+                 aImage.all_pts(),
+                 aNappe.mImPxMax.in(),
+                 aImage.out()
+
+             );
+
+     SaveNappe("./DILA_ZMAXX_FORCE_CNX_"+random_string(5)+".tif",aImage.data(),aBoxIn);*/
+
+     /***********************************************/
+
 
     // On initialise le resultat sur la valeur init, comme ca les
     // algo peuvent eventuellement ignorer une des 2 Px 
@@ -1187,6 +1292,7 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
     // MODIF 5-2-2012 PASSE DESCENDU ICI
     // On initialise le resultat sur la valeur init, comme ca les
     // algo peuvent eventuellement ignorer une des 2 Px 
+
     ELISE_COPY
     (
         aNappe.mPxInit.all_pts(),
@@ -1248,33 +1354,33 @@ void  cFilePx::SauvResulPxRel
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant ?  la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+Ce logiciel est r??gi par la licence CeCILL-B soumise au droit fran??ais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffus??e par le CEA, le CNRS et l'INRIA 
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
+En contrepartie de l'accessibilit?? au code source et des droits de copie,
+de modification et de redistribution accord??s par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limit??e.  Pour les m??mes raisons,
+seule une responsabilit?? restreinte p??se sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les conc??dants successifs.
 
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
-manipuler et qui le réserve donc �  des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+A cet ??gard  l'attention de l'utilisateur est attir??e sur les risques
+associ??s au chargement,  ?  l'utilisation,  ?  la modification et/ou au
+d??veloppement et ?  la reproduction du logiciel par l'utilisateur ??tant 
+donn?? sa sp??cificit?? de logiciel libre, qui peut le rendre complexe ?  
+manipuler et qui le r??serve donc ?  des d??veloppeurs et des professionnels
+avertis poss??dant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invit??s ?  charger  et  tester  l'ad??quation  du
+logiciel ?  leurs besoins dans des conditions permettant d'assurer la
+s??curit?? de leurs syst??mes et ou de leurs donn??es et, plus g??n??ralement, 
+?  l'utiliser et l'exploiter dans les m??mes conditions de s??curit??. 
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+Le fait que vous puissiez acc??der ?  cet en-t??te signifie que vous avez 
+pris connaissance de la licence CeCILL-B, et que vous en avez accept?? les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

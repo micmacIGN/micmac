@@ -183,13 +183,13 @@ void cAppliDensifyRefMatch::MakeOneTri(const  tTriangle2DCompiled & aTri)
     }
 }
 
+
 int  cAppliDensifyRefMatch::ExeOnParsedBox()
 {
     mIPx    =  APBI_ReadIm<tREAL4> ( Px1FromIm1(APBI_NameIm()));
     mDIPx = &mIPx.DIm();
     mIMasqIn =  APBI_ReadIm<tU_INT1>( Masq1FromIm1(APBI_NameIm()));
     mDIMasqIn = &mIMasqIn.DIm();
-
     mImInterp = cIm2D<tREAL4>(mDIPx->Sz(),nullptr,eModeInitImage::eMIA_Null);
     mDImInterp = &(mImInterp.DIm());
     mIMasqOut  = cIm2D<tU_INT1>(mDIPx->Sz(),nullptr,eModeInitImage::eMIA_Null);

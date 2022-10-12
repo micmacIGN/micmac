@@ -827,8 +827,8 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTile(torch::jit::script::Module mN
     auto cuda_available = torch::cuda::is_available();
     //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
-	torch::NoGradGuard no_grad;
-	mNet.eval();
+    torch::NoGradGuard no_grad;
+    mNet.eval();
     tREAL4 ** mPatchLData=aPatchLV.DIm().ExtractRawData2D();
     torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32)).to(device);
     torch::jit::IValue inp(aPL);

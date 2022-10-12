@@ -318,6 +318,7 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
          if (TopCallParallTile() && (aPixI!=cPt2di(0,0)))
          {
             std::string aCom = mAppli.CommandOfMain() + " " +NameIndBoxRecal + "=" + ToStr(aPixI);
+            std::cout<<" THE COMMAND TO TILE "<<aCom<<std::endl;
              aLComParal.push_back(aCom);
          }
          else

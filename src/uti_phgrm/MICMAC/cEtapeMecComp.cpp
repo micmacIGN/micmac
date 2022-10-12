@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -51,14 +51,14 @@ static const std::string PrefMasq3d2d = "Mask3d2d_";
 /*************************************************/
 
 static void InitArgOneEtapePx
-	    (
+            (
                 const cAppliMICMAC & anAppli,
                 std::string    aMode,
-	        const  cGeomDiscFPx & aGeomOfEtape,
-		int    aNumPx,
-		bool   isVraiFirstEtape,
+                const  cGeomDiscFPx & aGeomOfEtape,
+                int    aNumPx,
+                bool   isVraiFirstEtape,
                 cArgOneEtapePx & anArg,
-		bool  isRealEtape,  // Vraie premiere etape
+                bool  isRealEtape,  // Vraie premiere etape
                 bool  VerifInit,    // Versus verif not init
                 const std::string & aMes,
                 const cEtapeMEC &   anEtape,
@@ -66,12 +66,12 @@ static void InitArgOneEtapePx
                 const cTplValGesInit<double> &  aRegul,
                 const cTplValGesInit<double> &  aPas,
                 const cTplValGesInit<int> &     aDilatAlti,
-	        const cTplValGesInit<int> &     aDilatPlani,
+                const cTplValGesInit<int> &     aDilatPlani,
                 const cTplValGesInit<double> &  aDilatPlaniProp,
-	        const cTplValGesInit<bool> &    aRedrPx,
-	        const cTplValGesInit<bool> &    aDeqRedrPx,
+                const cTplValGesInit<bool> &    aRedrPx,
+                const cTplValGesInit<bool> &    aDeqRedrPx,
                 bool                            isOptimDiff
-	    )
+            )
 {
 
     static int aCpt=0; aCpt++;
@@ -80,34 +80,34 @@ static void InitArgOneEtapePx
     {
        if ( isRealEtape)
        {
-	  if  (
+          if  (
                      (!aRegul.IsInit())
                  ||  (!aPas.IsInit())
                  ||  (!aDilatAlti.IsInit())
                  ||  (!aDilatPlani.IsInit())
-	        )
+                )
           {
-              cout << "Paralaxe-MEC, Pas d'initialisation pour  : " << aMes 
+              cout << "Paralaxe-MEC, Pas d'initialisation pour  : " << aMes
                    << " (DeZoom = " << anEtape.DeZoom() << ")\n";
               ELISE_ASSERT
               (
-	             false,
-		     "Error dans la partie Paralaxe specif Etapes "
+                     false,
+                     "Error dans la partie Paralaxe specif Etapes "
               );
           }
-	  else
+          else
           {
-	      anArg.mRegul_Quad  = aRegul_Quad.ValWithDef(0.0);
-	      anArg.mRegul      = aRegul.Val();
-	      anArg.mUserPas        =  isOptimDiff ?  aPas.Val()  : anAppli.AdaptPas(aPas.Val());
+              anArg.mRegul_Quad  = aRegul_Quad.ValWithDef(0.0);
+              anArg.mRegul      = aRegul.Val();
+              anArg.mUserPas        =  isOptimDiff ?  aPas.Val()  : anAppli.AdaptPas(aPas.Val());
               anArg.mComputedPas    =  anArg.mUserPas;
 
 
-	      anArg.mDilatAltiPlus  = aDilatAlti.Val();
-	      anArg.mDilatAltiMoins  = aDilatAlti.Val();
+              anArg.mDilatAltiPlus  = aDilatAlti.Val();
+              anArg.mDilatAltiMoins  = aDilatAlti.Val();
 
 
-	      anArg.mDilatPlani = aDilatPlani.Val();
+              anArg.mDilatPlani = aDilatPlani.Val();
               anArg.mRedrPx     = aRedrPx.ValWithDef(false);
               anArg.mDeqRedrPx  = aDeqRedrPx.ValWithDef(true);
               anArg.mDilatPlaniProp = aDilatPlaniProp.ValWithDef(0.0);
@@ -122,16 +122,16 @@ static void InitArgOneEtapePx
 
               anArg.mIncertPxPlus = aGeomOfEtape.GetEcartInitialPlus(anArg.mUserPas,aNumPx);
               anArg.mIncertPxMoins = aGeomOfEtape.GetEcartInitialMoins(anArg.mUserPas,aNumPx);
-	      if (isVraiFirstEtape)
-	      {
-	          anArg.mDilatAltiPlus +=  anArg.mIncertPxPlus ;
-	          anArg.mDilatAltiMoins +=  anArg.mIncertPxMoins ;
+              if (isVraiFirstEtape)
+              {
+                  anArg.mDilatAltiPlus +=  anArg.mIncertPxPlus ;
+                  anArg.mDilatAltiMoins +=  anArg.mIncertPxMoins ;
                   if ((anArg.mIncertPxPlus<0) || (anArg.mIncertPxMoins<0))
                   {
                       std::cout << "anArg.mIncertPx " << anArg.mIncertPxMoins << " " << anArg.mIncertPxPlus<< "\n";
                       ELISE_ASSERT(false,"anArg.mIncertPx");
                   }
-	      }
+              }
 
           }
        }
@@ -149,11 +149,11 @@ static void InitArgOneEtapePx
              ||  (aDilatPlaniProp.IsInit())
           )
        {
-          cout << "Paralaxe-MEC, Initialisation interdite pour  : " << aMes 
+          cout << "Paralaxe-MEC, Initialisation interdite pour  : " << aMes
                << " (DeZoom = " << anEtape.DeZoom() << ")\n";
           ELISE_ASSERT
           (
-	       false,
+               false,
                "Error dans la partie Paralaxe specif Etapes "
           );
        }
@@ -163,36 +163,36 @@ static void InitArgOneEtapePx
 }
 
 void Init3ArgOneEtapePx
-	    (
-	        const  cGeomDiscFPx & aGeomOfEtape,
-	        const cAppliMICMAC & anAppli,
+            (
+                const  cGeomDiscFPx & aGeomOfEtape,
+                const cAppliMICMAC & anAppli,
                 cArgOneEtapePx & aZArg,
                 cArgOneEtapePx & aPx1Arg,
                 cArgOneEtapePx & aPx2Arg,
-		int  aNumEtape,  // Vraie premiere etape
+                int  aNumEtape,  // Vraie premiere etape
                 eModeGeomMEC aModeMEC,
                 const cEtapeMEC &   anEtape,
                 bool                isEtOpDiff
-	    )
+            )
 {
     InitArgOneEtapePx
     (
           anAppli,
           "Z",
           aGeomOfEtape,
-	  0,
-	  (aNumEtape==1),
+          0,
+          (aNumEtape==1),
           aZArg,
-	  (aNumEtape>=0),
-	  (aModeMEC==eGeomMECTerrain) ,
-	  "Z",
-	  anEtape,
-	  anEtape.ZRegul_Quad(),
-	  anEtape.ZRegul(),
-	  anEtape.ZPas(),
-	  anEtape.ZDilatAlti(),
-	  anEtape.ZDilatPlani(),
-	  anEtape.ZDilatPlaniPropPtsInt(),
+          (aNumEtape>=0),
+          (aModeMEC==eGeomMECTerrain) ,
+          "Z",
+          anEtape,
+          anEtape.ZRegul_Quad(),
+          anEtape.ZRegul(),
+          anEtape.ZPas(),
+          anEtape.ZDilatAlti(),
+          anEtape.ZDilatPlani(),
+          anEtape.ZDilatPlaniPropPtsInt(),
           anEtape.ZRedrPx(),
           anEtape.ZDeqRedr(),
           isEtOpDiff
@@ -203,19 +203,19 @@ void Init3ArgOneEtapePx
           anAppli,
           "Px1",
           aGeomOfEtape,
-	  0,
-	  (aNumEtape==1),
+          0,
+          (aNumEtape==1),
           aPx1Arg,
-	  (aNumEtape>=0),
-	  (aModeMEC==eGeomMECIm1) ,
-	  "Px1",
-	  anEtape,
-	  anEtape.Px1Regul_Quad(),
-	  anEtape.Px1Regul(),
-	  anEtape.Px1Pas(),
-	  anEtape.Px1DilatAlti(),
-	  anEtape.Px1DilatPlani(),
-	  anEtape.Px1DilatPlaniPropPtsInt(),
+          (aNumEtape>=0),
+          (aModeMEC==eGeomMECIm1) ,
+          "Px1",
+          anEtape,
+          anEtape.Px1Regul_Quad(),
+          anEtape.Px1Regul(),
+          anEtape.Px1Pas(),
+          anEtape.Px1DilatAlti(),
+          anEtape.Px1DilatPlani(),
+          anEtape.Px1DilatPlaniPropPtsInt(),
           anEtape.Px1RedrPx(),
           anEtape.Px1DeqRedr(),
           isEtOpDiff
@@ -226,19 +226,19 @@ void Init3ArgOneEtapePx
           anAppli,
           "Px2",
           aGeomOfEtape,
-	  1,
-	  (aNumEtape==1),
+          1,
+          (aNumEtape==1),
           aPx2Arg,
-	  (aNumEtape>=0),
-	  (aModeMEC==eGeomMECIm1)  && (anAppli.DimPx()==2),
-	  "Px2",
-	  anEtape,
-	  anEtape.Px2Regul_Quad(),
-	  anEtape.Px2Regul(),
-	  anEtape.Px2Pas(),
-	  anEtape.Px2DilatAlti(),
-	  anEtape.Px2DilatPlani(),
-	  anEtape.Px2DilatPlaniPropPtsInt(),
+          (aNumEtape>=0),
+          (aModeMEC==eGeomMECIm1)  && (anAppli.DimPx()==2),
+          "Px2",
+          anEtape,
+          anEtape.Px2Regul_Quad(),
+          anEtape.Px2Regul(),
+          anEtape.Px2Pas(),
+          anEtape.Px2DilatAlti(),
+          anEtape.Px2DilatPlani(),
+          anEtape.Px2DilatPlaniPropPtsInt(),
           anEtape.Px2RedrPx(),
           anEtape.Px2DeqRedr(),
           isEtOpDiff
@@ -310,7 +310,7 @@ cEtapeMecComp::cEtapeMecComp
                   "ExportZAbs requires continuous optimisation && last step"
           );
      }
-    
+
      if (mIsOptimCont)
      {
         ELISE_ASSERT
@@ -319,15 +319,15 @@ cEtapeMecComp::cEtapeMecComp
            "Optimisation differentielle uniquement en derniere etape"
         );
      }
-     
+
      if (!aVEtPrec.empty())
      {
         VerifInit(mEtape.SzW().IsInit(),"SzW");
         VerifInit(mEtape.AlgoRegul().IsInit(),"AlgoRegul");
 
-	mEtape.DynamiqueCorrel().SetValIfNotInit(eCoeffCorrelStd);
-	mEtape.AggregCorr().SetValIfNotInit(eAggregSymetrique);
-	mEtape.ModeInterpolation().SetValIfNotInit(eInterpolMPD);
+        mEtape.DynamiqueCorrel().SetValIfNotInit(eCoeffCorrelStd);
+        mEtape.AggregCorr().SetValIfNotInit(eAggregSymetrique);
+        mEtape.ModeInterpolation().SetValIfNotInit(eInterpolMPD);
      }
 
       bool iPF = aVEtPrec.empty(); // is Pseudo First
@@ -352,9 +352,9 @@ cEtapeMecComp::cEtapeMecComp
          aZArg,
          aPx1Arg,
          aPx2Arg,
-	 (int) aVEtPrec.size(),
-	 anAppli.ModeGeomMEC(),
-	 anEtape,
+         (int) aVEtPrec.size(),
+         anAppli.ModeGeomMEC(),
+         anEtape,
          mIsOptimCont
       );
 
@@ -363,22 +363,22 @@ cEtapeMecComp::cEtapeMecComp
       {
           mFilesPx.push_back
           (
-	       new cFilePx(aZArg,anAppli,*this,GetPred(aVEtPrec,0),iPF,"Z",0)
+               new cFilePx(aZArg,anAppli,*this,GetPred(aVEtPrec,0),iPF,"Z",0)
           );
       }
       if (anAppli.ModeGeomMEC()==eGeomMECIm1)
       {
           mFilesPx.push_back
           (
-	       new cFilePx(aPx1Arg,anAppli,*this,GetPred(aVEtPrec,0),iPF,"Px1",0)
+               new cFilePx(aPx1Arg,anAppli,*this,GetPred(aVEtPrec,0),iPF,"Px1",0)
           );
-	  if (anAppli.DimPx() == 2)
-	  {
+          if (anAppli.DimPx() == 2)
+          {
             mFilesPx.push_back
             (
-	       new cFilePx(aPx2Arg,anAppli,*this,GetPred(aVEtPrec,1),iPF,"Px2",1)
+               new cFilePx(aPx2Arg,anAppli,*this,GetPred(aVEtPrec,1),iPF,"Px2",1)
             );
-	   }
+           }
       }
 
       double aVPas[theDimPxMax];
@@ -390,6 +390,7 @@ cEtapeMecComp::cEtapeMecComp
       for (int aK=0 ; aK<int(mFilesPx.size()) ; aK++)
       {
           aVPas[aK] = mFilesPx[aK]->UserPas();
+          //std::cout<<"passsssss  PASSSSSSSS passssss "<<aVPas[aK] <<std::endl;
           if (mFilesPx[aK]->NappeIsEpaisse())
           {
              mNumSeuleNapEp = aK;
@@ -436,30 +437,30 @@ cEtapeMecComp::cEtapeMecComp
 
       if ((mNbNappesEp==0) && (aVEtPrec.size() > 1)  && (mAlgoRegul!=eAlgoLeastSQ))
       {
-         cout << "Etape numero " << mNum 
+         cout << "Etape numero " << mNum
               << " a DeZoom " << DeZoomTer() << "\n";
          ELISE_ASSERT
          (
               false,
-	      "Toutes les nappes sans epaisseur !! "
+              "Toutes les nappes sans epaisseur !! "
          );
       }
 
       if ((mNbNappesEp>1) && (mEtape.AlgoRegul().Val()==eAlgoCoxRoy))
       {
-         cout << "Etape numero " << mNum 
+         cout << "Etape numero " << mNum
               << " a DeZoom " << DeZoomTer() << "\n";
          ELISE_ASSERT
          (
               false,
-	      "Plusieurs nappes epaisses en Cox Roy"
+              "Plusieurs nappes epaisses en Cox Roy"
          );
       }
 
 
       if (mEtape.RelSelecteur().IsInit())
       {
-          ELISE_ASSERT (ModeGeomIsIm1InvarPx(mAppli),"RelSelecteur requires master image")
+          ELISE_ASSERT (ModeGeomIsIm1InvarPx(mAppli),"RelSelecteur requires master image");
           mSelectByRel =  GetStrFromGenStrRel(mAppli.ICNM(),mEtape.RelSelecteur().Val(),mAppli.PDV1()->Name());
          // aPDV->SetMaitre(IsModeIm1Maitre(mEtape.AggregCorr().Val()));
       }
@@ -469,7 +470,7 @@ cEtapeMecComp::cEtapeMecComp
       {
          mPatternModeExcl = mEtape.ImageSelecteur().Val().ModeExclusion();
          std::list<string> aLPat  = mEtape.ImageSelecteur().Val().PatternSel();
-         for 
+         for
          (
               std::list<string>::iterator itS = aLPat.begin();
               itS != aLPat.end() ;
@@ -496,7 +497,7 @@ cEtapeMecComp::cEtapeMecComp
       // Si la taille est 0, on sauvgarde le booleen a la bonne valeur
       // ensuite on  met une taille + importante pour bufferiser
       // et eviter trop d'appel cLineariseProj::Init, mais le fait
-      // de mattre mUseGeomDerivable a 0, inhibe la derivation dans 
+      // de mattre mUseGeomDerivable a 0, inhibe la derivation dans
       mUseGeomDerivable = (mSzGeomDerivable!=0);
       if (mSzGeomDerivable ==0)
          mSzGeomDerivable = 10;
@@ -508,8 +509,8 @@ cEtapeMecComp::cEtapeMecComp
           const tListMod & aLMod = aMod.OneModeleAnalytique();
           for(tListMod::const_iterator itM=aLMod.begin();itM!=aLMod.end();itM++)
           {
-	     if (itM->UseIt().Val())
-	     {
+             if (itM->UseIt().Val())
+             {
                  cModeleAnalytiqueComp * aMod = new cModeleAnalytiqueComp(mAppli,*itM,*this);
                  if (itM->ReuseModele().ValWithDef(itM->TypeModele()==eTMA_DHomD))
                  {
@@ -531,17 +532,17 @@ cEtapeMecComp::cEtapeMecComp
           }
       }
       InitModeleImported(aVEtPrec);
- 
+
       // Pour que les eventuels fichier de correlation soient creees dans le processu
       // pere
 
       if (    (mGenImageCorrel)
            && (!mAppli.DoNothingBut().IsInit())
-	 )
+         )
       {
          FileCorrel();
       }
-    
+
 
       // Pour eviter les conflits lorsque les fichiers sont crees par les
       // process en paralelles
@@ -662,11 +663,11 @@ cEtapeMecComp::cEtapeMecComp
 
       //   Calcul l'etape la + proche avec generation de masque autom
      if (mArgMaskAuto) mPredMaskAuto = this;
-     for 
+     for
      (
          tContEMC::const_reverse_iterator itC= aVEtPrec.rbegin();
          (itC != aVEtPrec.rend()) && (mPredMaskAuto==0) && ((*itC)->mDeZoomTer==mDeZoomTer);
-	 itC++
+         itC++
      )
      {
            if (((*itC)->mNum!=0) && ((*itC)->mArgMaskAuto))
@@ -676,11 +677,11 @@ cEtapeMecComp::cEtapeMecComp
      }
 
       //   Calcul l'etape la + proche avec parties cachees
-     for 
+     for
      (
          tContEMC::const_reverse_iterator itC= aVEtPrec.rbegin();
          (itC != aVEtPrec.rend()) && (mPredPC==0);
-	 itC++
+         itC++
      )
      {
            if (
@@ -739,7 +740,7 @@ cCaracOfDeZoom &  cEtapeMecComp::CaracOfZ()
 
 void cEtapeMecComp::ExportModelesAnalytiques()
 {
-   for 
+   for
    (
        std::list<cModeleAnalytiqueComp*>::iterator itM=mModelesOut.begin();
        itM!=mModelesOut.end();
@@ -792,7 +793,7 @@ std::string cEtapeMecComp::NameFileCorrel() const
 
 Tiff_Im  cEtapeMecComp::FileRes(GenIm::type_el aTypeEl,const std::string &  aPref,bool NoTile) const
 {
-   
+
    L_Arg_Opt_Tiff  aLArg = Tiff_Im::Empty_ARG;
    if (NoTile)
    {
@@ -810,7 +811,7 @@ Tiff_Im  cEtapeMecComp::FileRes(GenIm::type_el aTypeEl,const std::string &  aPre
               aLArg
           );
 
-   if (IsModified) 
+   if (IsModified)
       ELISE_COPY(aRes.all_pts(),0,aRes.out());
 
    return aRes;
@@ -863,7 +864,7 @@ bool cEtapeMecComp::SelectImage(cPriseDeVue * aPDV) const
     const std::string & aName = aPDV->Name();
     bool aRes = mPatternModeExcl;
     for
-    ( 
+    (
          std::list<cSetName *>::const_iterator itP = mListAutomDeSel.begin();
          itP != mListAutomDeSel.end();
          itP++
@@ -906,11 +907,11 @@ void cEtapeMecComp::VerifInit(bool aTest,const std::string & aMes)
 {
    if (! aTest)
    {
-        cout << "No INIT  for " << aMes  
-             << " ,etape numero " << mNum 
-             << " a DeZoom " << DeZoomTer() 
-	     << "\n";
-	ELISE_ASSERT(false,"cEtapeMecComp::VerifInit");
+        cout << "No INIT  for " << aMes
+             << " ,etape numero " << mNum
+             << " a DeZoom " << DeZoomTer()
+             << "\n";
+        ELISE_ASSERT(false,"cEtapeMecComp::VerifInit");
    }
 
 }
@@ -931,11 +932,11 @@ cEtapeMecComp::~cEtapeMecComp()
 
 cFilePx * cEtapeMecComp::GetPred(const tContEMC & aCont,int anInd)
 {
-    for 
+    for
     (
          tContEMC::const_reverse_iterator itC= aCont.rbegin();
          itC != aCont.rend();
-	 itC++
+         itC++
     )
         // Appelee avant que Px1IncCalc soit utilise, donc on
         // tient compte du cas ou Num == 0
@@ -959,11 +960,11 @@ bool cEtapeMecComp::PxAfterModAnIsNulle() const
 void  cEtapeMecComp::InitModeleImported(const tContEMC & aCont)
 {
     bool PredImm= true;
-    for 
+    for
     (
          tContEMC::const_reverse_iterator itC= aCont.rbegin();
          itC != aCont.rend();
-	 itC++
+         itC++
     )
     {
         if ((*itC)->mModeleAnToReuse)
@@ -977,7 +978,7 @@ void  cEtapeMecComp::InitModeleImported(const tContEMC & aCont)
 }
 
 
-         // ACCESSEURS      
+         // ACCESSEURS
 
 Pt2di cEtapeMecComp::SzFile() const
 {
@@ -1036,13 +1037,13 @@ const cGeomDiscFPx &  cEtapeMecComp::GeomTer() const
 cGeomDiscFPx  cEtapeMecComp::GeomTerFinal() const
 {
    cGeomDiscFPx aRes = mGeomTer;
-   if(mIsExportZAbs) 
+   if(mIsExportZAbs)
      aRes.SetZIsAbs();
 
    return aRes;
 }
 
-cGeomDiscFPx &  cEtapeMecComp::GeomTer() 
+cGeomDiscFPx &  cEtapeMecComp::GeomTer()
 {
    return mGeomTer;
 }
@@ -1134,7 +1135,7 @@ Fonc_Num cEtapeMecComp::FoncMasqIn(bool ForceReinj)
 
    if (mPrec && mPrec->mArgMaskAuto && (ForceReinj|| mPrec->mArgMaskAuto->ReInjectMask().Val()))
    {
-      
+
       Tiff_Im aTFM =   mPrec->FileMaskAuto();
 
       double aRatio  = DeZoomTer() / double(mPrec->DeZoomTer());
@@ -1290,14 +1291,14 @@ void cEtapeMecComp::RemplitOri(cFileOriMnt & aFOM) const
    if (mFilesPx.size())
       mFilesPx[0]->RemplitOri(aFOM);
    aFOM.NameFileMasque().SetVal(mAppli.NameImageMasqOfResol(mEtape.DeZoom()));
-   
+
 }
 
 void PostFiltragePx
      (
          Im2DGen anIm,
          const cPostFiltrageDiscont & aParam,
-	 Fonc_Num  aFoncMasq
+         Fonc_Num  aFoncMasq
      )
 {
    if (aParam.ValGradAtten().IsInit())
@@ -1307,8 +1308,8 @@ void PostFiltragePx
        double aValGrAtt = aParam.ValGradAtten().Val();
 
        Symb_FNum aSGrad(deriche(anIm.in_proj(),aFDer));
-       Fonc_Num aG2 =    (Square(aSGrad.v0()) +Square(aSGrad.v1())) 
-                      /  ElSquare(aValGrAtt); 
+       Fonc_Num aG2 =    (Square(aSGrad.v0()) +Square(aSGrad.v1()))
+                      /  ElSquare(aValGrAtt);
 
       aFoncMasq = aFoncMasq/(1+pow(aG2,aExpGr/2.0));
    }
@@ -1324,7 +1325,7 @@ void PostFiltragePx
    {
        aFP_P = canny_exp_filt(aFP_P,aFact,aFact);
    }
-   Symb_FNum aSP_P( aFP_P); 
+   Symb_FNum aSP_P( aFP_P);
    Symb_FNum aFP (aSP_P.v0());
    Symb_FNum aP  (aSP_P.v1());
 
@@ -1338,14 +1339,14 @@ void PostFiltragePx
    );
 }
 
-Tiff_Im cEtapeMecComp::FileMasqOfNoDef() 
+Tiff_Im cEtapeMecComp::FileMasqOfNoDef()
 {
    std::string aName =    mAppli.FullDirPyr()
                        +  std::string("Masq_NoDef_")
-		       +  mAppli.NameChantier()
-		       + std::string("_Num_")
-		       + ToString(mNum)
-		       +  std::string(".tif");
+                       +  mAppli.NameChantier()
+                       + std::string("_Num_")
+                       + ToString(mNum)
+                       +  std::string(".tif");
 
 
    if (! ELISE_fp::exist_file(aName))
@@ -1357,7 +1358,7 @@ Tiff_Im cEtapeMecComp::FileMasqOfNoDef()
                      GenIm::bits1_msbf,
                      Tiff_Im::No_Compr,
                      Tiff_Im::BlackIsZero
-	       );
+               );
 
       return aFile;
    }
@@ -1366,7 +1367,7 @@ Tiff_Im cEtapeMecComp::FileMasqOfNoDef()
 }
 
 
-void cEtapeMecComp::SauvNappes 
+void cEtapeMecComp::SauvNappes
      (
         cLoadTer & aVNappes,
         Box2di      aBoxOut,
@@ -1381,8 +1382,8 @@ void cEtapeMecComp::SauvNappes
 
    cResProj32 aRP32 = Projection32
                       (
-		         (! aVNappes.ImOneDefCorr().in()) && aVNappes.ImMasqSsPI().in(),
-			 aVNappes.ImOneDefCorr().sz()
+                         (! aVNappes.ImOneDefCorr().in()) && aVNappes.ImMasqSsPI().in(),
+                         aVNappes.ImOneDefCorr().sz()
                       );
 
    Im2D_Bits<1> aImMasqMnt(1,1);
@@ -1390,7 +1391,7 @@ void cEtapeMecComp::SauvNappes
 
    for (int aK=0 ; aK< int(mFilesPx.size()) ; aK++)
    {
-      
+
       cOneNappePx & aNP = aVNappes.KthNap(aK);
       // Im2DGen & aIResult =  *( mIsOptimCont ?  new Im2DGen(aNP.mPxRedr) : new Im2DGen(aNP.mPxRes));
       // Im2DGen * aPIResult =  ( mIsOptimCont ?  (Im2DGen *)& aNP.mPxRedr :  (Im2DGen *)&aNP.mPxRes);
@@ -1420,11 +1421,11 @@ void cEtapeMecComp::SauvNappes
       if ( mEtape.PostFiltrageDiscont().IsInit())
       {
           PostFiltragePx
-	  (
-	      aIResult,
-	      mEtape.PostFiltrageDiscont().Val(),
-	      aVNappes.ImMasqSsPI().in(0)
-	  );
+          (
+              aIResult,
+              mEtape.PostFiltrageDiscont().Val(),
+              aVNappes.ImMasqSsPI().in(0)
+          );
       }
 
       if (aK==0)
@@ -1433,14 +1434,14 @@ void cEtapeMecComp::SauvNappes
           Pt2di aP1  = Inf(aIResult.sz(),aBoxOut._p1 - aBoxIn._p0 + Pt2di(5,5));
 
           AllBasculeMnt
-	  (
-	     aP0,aP1,
-	     aNP.mPxRedr.data(),
-	     aNP.mPxRes.data(),
-	     aNP.mPxRes.sz()
-	  );
+          (
+             aP0,aP1,
+             aNP.mPxRedr.data(),
+             aNP.mPxRes.data(),
+             aNP.mPxRes.sz()
+          );
 
-          
+
       }
 
       if (0)
@@ -1452,7 +1453,7 @@ void cEtapeMecComp::SauvNappes
 
               std::cout << "REDR \n";
               std::cin >> aDyn;
- 
+
               ELISE_COPY(aW.all_pts(),aNP.mPxRedr.in()*aDyn,aW.ocirc());
 
               std::cout << "Result \n";
@@ -1467,7 +1468,7 @@ void cEtapeMecComp::SauvNappes
       mFilesPx[aK]->SauvResulPx
       (
           // mIsOptimCont ? aNP.mPxRedr.in() : aNP.mPxRes.in(),
-	  aIResult.in(),
+          aIResult.in(),
           aBoxOut,
           aBoxIn
       );
@@ -1501,7 +1502,7 @@ void cEtapeMecComp::SauvNappes
           // PxDisc2PxReel(REAL *,const int *) const;
 
           Tiff_Im::Create8BFromFonc("RPCMasq.tif",aSzIn,255*aImMasqMnt.in());
-std::cout <<  "FFffffFf== " << mFilesPx[aK]->NameFile()  << " www " << mGeomTer.ResolutionAlti() 
+std::cout <<  "FFffffFf== " << mFilesPx[aK]->NameFile()  << " www " << mGeomTer.ResolutionAlti()
           << " " << aZMin << " " << aZMax << "\n";
 getchar() ;
       }
@@ -1536,13 +1537,13 @@ getchar() ;
       )
       {
           std::vector<cPriseDeVue *> aPdvs  = mAppli.AllPDV();
-	  for (int aKP=0; aKP<int(aPdvs.size()) ; aKP++)
-	  {
-	     if (! BoolFind(itG->NumsImageDontApply(),aKP))
-	     {
+          for (int aKP=0; aKP<int(aPdvs.size()) ; aKP++)
+          {
+             if (! BoolFind(itG->NumsImageDontApply(),aKP))
+             {
                 SauvProjImage(*itG,*aPdvs[aKP],aVNappes,aBoxOut,aBoxIn);
-	     }
-	  }
+             }
+          }
       }
    }
 
@@ -1581,12 +1582,12 @@ Pt2dr  cEtapeMecComp::ProjectionInImage
      (
          const cGeomImage  & aGeom,
          cLoadTer & aLT,
-	 Pt2dr      aP
+         Pt2dr      aP
      )
 {
    double aPx[theDimPxMax];
    InitPaxResul(aLT,aP,aPx);
-   return aGeom.Objet2ImageInit_Euclid(mGeomTer.RDiscToR2(aP),aPx);  
+   return aGeom.Objet2ImageInit_Euclid(mGeomTer.RDiscToR2(aP),aPx);
 }
 
 
@@ -1600,7 +1601,7 @@ Pt2dr  cEtapeMecComp::ProjectionInImage
 
 
 void cEtapeMecComp::SauvProjImage
-     ( 
+     (
          const cGenerateProjectionInImages& aGPI,
          const cPriseDeVue & aPDV,
          cLoadTer & aLT,
@@ -1638,7 +1639,7 @@ void cEtapeMecComp::SauvProjImage
                 aTSup.oset(aP,aTIm2.getprojR(aPIm-Pt2dr(aDecIm)));
                 // aTSup.oset(aP,aTIm2.getprojR(Pt2dr(aP)));
                 // aTSup.oset(aP,mGeomTer.RDiscToR2(Pt2dr(aP)).y);
-   // return aGeom.Objet2ImageInit_Euclid(mGeomTer.RDiscToR2(aP),aPx);  
+   // return aGeom.Objet2ImageInit_Euclid(mGeomTer.RDiscToR2(aP),aPx);
            }
            if (aSubXY)
            {
@@ -1783,7 +1784,7 @@ int cEtapeMecComp::MemSizePixelAlgo() const
 
       for (int aK=0 ; aK<int(mFilesPx.size()) ; aK++)
           aNbCel *= 1 + ( mFilesPx[aK]->DilatAltiMoins() +mFilesPx[aK]->DilatAltiPlus())
-		    + mFilesPx[aK]->DilatPlani();
+                    + mFilesPx[aK]->DilatPlani();
 
       return     aNbCel* MemSizeCelluleAlgo()
               +  MemSizePixelSsCelluleAlgo();
@@ -1831,7 +1832,7 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cMMExportNuage & 
        anEN.MTD_Nuage_Maille(),
        aNuage,
        ( aMTD && anEN.DataInside().Val()) ?
-          eModeCarteProfInterne           : 
+          eModeCarteProfInterne           :
           eModeCarteProfExterne
     );
 
@@ -1927,7 +1928,7 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cMMExportNuage & 
 
 std::string cEtapeMecComp::NameMasqCarteProf() const
 {
-   if (mPredMaskAuto) 
+   if (mPredMaskAuto)
    {
       return mPredMaskAuto->NameFileRes(PrefAutoM);
    }
@@ -2078,7 +2079,7 @@ void cEtapeMecComp::RemplitXMLNuage
 
      double aSensibility = euclid(aVE[0]-aVE[1]);
      aNuage.TolVerifNuage().SetVal(aSensibility/20.0);
-    
+
     // aIP
     // aIP.Image() =;
 }
@@ -2086,33 +2087,33 @@ void cEtapeMecComp::RemplitXMLNuage
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant Ã  la mise en
+Ce logiciel est un programme informatique servant ?  la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est rÃ©gi par la licence CeCILL-B soumise au droit franÃ§ais et
+Ce logiciel est régi par la licence CeCILL-B soumise au droit fran?ais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusÃ©e par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilitÃ© au code source et des droits de copie,
-de modification et de redistribution accordÃ©s par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitÃ©e.  Pour les mÃªmes raisons,
-seule une responsabilitÃ© restreinte pÃ¨se sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concÃ©dants successifs.
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les m?mes raisons,
+seule une responsabilité restreinte p?se sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
 
-A cet Ã©gard  l'attention de l'utilisateur est attirÃ©e sur les risques
-associÃ©s au chargement,  Ã  l'utilisation,  Ã  la modification et/ou au
-dÃ©veloppement et Ã  la reproduction du logiciel par l'utilisateur Ã©tant 
-donnÃ© sa spÃ©cificitÃ© de logiciel libre, qui peut le rendre complexe Ã  
-manipuler et qui le rÃ©serve donc Ã  des dÃ©veloppeurs et des professionnels
-avertis possÃ©dant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invitÃ©s Ã  charger  et  tester  l'adÃ©quation  du
-logiciel Ã  leurs besoins dans des conditions permettant d'assurer la
-sÃ©curitÃ© de leurs systÃ¨mes et ou de leurs donnÃ©es et, plus gÃ©nÃ©ralement, 
-Ã  l'utiliser et l'exploiter dans les mÃªmes conditions de sÃ©curitÃ©. 
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  ?  l'utilisation,  ?  la modification et/ou au
+développement et ?  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe ?
+manipuler et qui le réserve donc ?  des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités ?  charger  et  tester  l'adéquation  du
+logiciel ?  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs syst?mes et ou de leurs données et, plus généralement,
+?  l'utiliser et l'exploiter dans les m?mes conditions de sécurité.
 
-Le fait que vous puissiez accÃ©der Ã  cet en-tÃªte signifie que vous avez 
-pris connaissance de la licence CeCILL-B, et que vous en avez acceptÃ© les
+Le fait que vous puissiez accéder ?  cet en-t?te signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

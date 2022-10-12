@@ -221,7 +221,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
    <Symb> UseEnvMNTInit=false </Symb>
    <Symb> EnvZInf="YYYYYYYY" </Symb>
-   <Symb> EnvZsup="YYYYYYYY" </Symb>
+   <Symb> EnvZSup="YYYYYYYY" </Symb>
 <!--
 
     <Symb>  UseEqui=t=rue </Symb>
@@ -297,7 +297,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                   <EnveloppeMNT_INIT>
                          <ZInf >  ${EnvZInf} </ZInf>
                          <ZSup >  ${EnvZSup} </ZSup>
-                    </EnveloppeMNT_INIT>
+                   </EnveloppeMNT_INIT>
              </#WHEN>
 
       </IntervAltimetrie>

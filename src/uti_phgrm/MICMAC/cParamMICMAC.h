@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #ifndef Define_NotMicMac
 #define Define_NotMicMac
 // NO MORE
@@ -889,6 +889,7 @@ class cEnveloppeMNT_INIT
         std::string mZInf;
         std::string mZSup;
 };
+
 cElXMLTree * ToXMLTree(const cEnveloppeMNT_INIT &);
 
 void  BinaryDumpInFile(ELISE_fp &,const cEnveloppeMNT_INIT &);
@@ -896,6 +897,33 @@ void  BinaryDumpInFile(ELISE_fp &,const cEnveloppeMNT_INIT &);
 void  BinaryUnDumpFromFile(cEnveloppeMNT_INIT &,ELISE_fp &);
 
 std::string  Mangling( cEnveloppeMNT_INIT *);
+
+class cEnveloppePAX_INIT
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cEnveloppePAX_INIT & anObj,cElXMLTree * aTree);
+
+
+        std::string & ZInf();
+        const std::string & ZInf()const ;
+
+        std::string & ZSup();
+        const std::string & ZSup()const ;
+    private:
+        std::string mZInf;
+        std::string mZSup;
+};
+
+cElXMLTree * ToXMLTree(const cEnveloppePAX_INIT &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cEnveloppePAX_INIT &);
+
+void  BinaryUnDumpFromFile(cEnveloppePAX_INIT &,ELISE_fp &);
+
+std::string  Mangling( cEnveloppePAX_INIT *);
+
 
 class cIntervAltimetrie
 {
@@ -981,6 +1009,11 @@ class cIntervParalaxe
 
         cTplValGesInit< double > & Px2IncZonage();
         const cTplValGesInit< double > & Px2IncZonage()const ;
+
+        // add Init PAX IMAGES
+        cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT();
+        const cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT()const ;
+
     private:
         cTplValGesInit< double > mPx1Moy;
         cTplValGesInit< double > mPx2Moy;
@@ -989,7 +1022,9 @@ class cIntervParalaxe
         cTplValGesInit< double > mPx2IncCalc;
         cTplValGesInit< double > mPx1IncZonage;
         cTplValGesInit< double > mPx2IncZonage;
+        cTplValGesInit< cEnveloppePAX_INIT > mEnveloppePAX_INIT;
 };
+
 cElXMLTree * ToXMLTree(const cIntervParalaxe &);
 
 void  BinaryDumpInFile(ELISE_fp &,const cIntervParalaxe &);
@@ -1239,8 +1274,12 @@ class cSection_Terrain
         cTplValGesInit< cEnveloppeMNT_INIT > & EnveloppeMNT_INIT();
         const cTplValGesInit< cEnveloppeMNT_INIT > & EnveloppeMNT_INIT()const ;
 
+        cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT();
+        const cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT()const ;
+
         cTplValGesInit< cIntervAltimetrie > & IntervAltimetrie();
         const cTplValGesInit< cIntervAltimetrie > & IntervAltimetrie()const ;
+
 
         cTplValGesInit< double > & Px1Moy();
         const cTplValGesInit< double > & Px1Moy()const ;
@@ -6857,6 +6896,9 @@ class cParamMICMAC
 
         cTplValGesInit< double > & Px2IncZonage();
         const cTplValGesInit< double > & Px2IncZonage()const ;
+
+        cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT();
+        const cTplValGesInit< cEnveloppePAX_INIT > & EnveloppePAX_INIT()const ;
 
         cTplValGesInit< cIntervParalaxe > & IntervParalaxe();
         const cTplValGesInit< cIntervParalaxe > & IntervParalaxe()const ;

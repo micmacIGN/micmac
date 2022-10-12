@@ -2509,7 +2509,7 @@ std::string & cEnveloppeMNT_INIT::ZInf()
    return mZInf;
 }
 
-const std::string & cEnveloppeMNT_INIT::ZInf()const 
+const std::string & cEnveloppeMNT_INIT::ZInf()const
 {
    return mZInf;
 }
@@ -2520,7 +2520,7 @@ std::string & cEnveloppeMNT_INIT::ZSup()
    return mZSup;
 }
 
-const std::string & cEnveloppeMNT_INIT::ZSup()const 
+const std::string & cEnveloppeMNT_INIT::ZSup()const
 {
    return mZSup;
 }
@@ -2553,12 +2553,76 @@ void xml_init(cEnveloppeMNT_INIT & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
-   xml_init(anObj.ZInf(),aTree->Get("ZInf",1)); //tototo 
+   xml_init(anObj.ZInf(),aTree->Get("ZInf",1)); //tototo
 
-   xml_init(anObj.ZSup(),aTree->Get("ZSup",1)); //tototo 
+   xml_init(anObj.ZSup(),aTree->Get("ZSup",1)); //tototo
 }
 
 std::string  Mangling( cEnveloppeMNT_INIT *) {return "EACA33104168F789FF3F";};
+
+
+
+/***************************************************************/
+ // PARALLAX ZSup and ZInf Init
+
+std::string & cEnveloppePAX_INIT::ZInf()
+{
+   return mZInf;
+}
+
+const std::string & cEnveloppePAX_INIT::ZInf()const
+{
+   return mZInf;
+}
+
+
+std::string & cEnveloppePAX_INIT::ZSup()
+{
+   return mZSup;
+}
+
+const std::string & cEnveloppePAX_INIT::ZSup()const
+{
+   return mZSup;
+}
+
+void  BinaryUnDumpFromFile(cEnveloppePAX_INIT & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ZInf(),aFp);
+    BinaryUnDumpFromFile(anObj.ZSup(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cEnveloppePAX_INIT & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ZInf());
+    BinaryDumpInFile(aFp,anObj.ZSup());
+}
+
+cElXMLTree * ToXMLTree(const cEnveloppePAX_INIT & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"EnveloppePAX_INIT",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("ZInf"),anObj.ZInf())->ReTagThis("ZInf"));
+   aRes->AddFils(::ToXMLTree(std::string("ZSup"),anObj.ZSup())->ReTagThis("ZSup"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cEnveloppePAX_INIT & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.ZInf(),aTree->Get("ZInf",1)); //tototo
+
+   xml_init(anObj.ZSup(),aTree->Get("ZSup",1)); //tototo
+}
+
+std::string  Mangling( cEnveloppePAX_INIT *) {return "EACA33104168F789FF3FPAX";};
+
+/***************************************************************/
+
 
 
 cTplValGesInit< double > & cIntervAltimetrie::ZMoyen()
@@ -2858,6 +2922,17 @@ const cTplValGesInit< double > & cIntervParalaxe::Px2IncZonage()const
    return mPx2IncZonage;
 }
 
+cTplValGesInit< cEnveloppePAX_INIT > & cIntervParalaxe::EnveloppePAX_INIT()
+{
+   return mEnveloppePAX_INIT;
+}
+
+const cTplValGesInit< cEnveloppePAX_INIT > & cIntervParalaxe::EnveloppePAX_INIT() const
+{
+   return mEnveloppePAX_INIT;
+}
+
+
 void  BinaryUnDumpFromFile(cIntervParalaxe & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -2909,6 +2984,14 @@ void  BinaryUnDumpFromFile(cIntervParalaxe & anObj,ELISE_fp & aFp)
         }
         else  anObj.Px2IncZonage().SetNoInit();
   } ;
+    { bool IsInit;
+         BinaryUnDumpFromFile(IsInit,aFp);
+          if (IsInit) {
+               anObj.EnveloppePAX_INIT().SetInitForUnUmp();
+               BinaryUnDumpFromFile(anObj.EnveloppePAX_INIT().ValForcedForUnUmp(),aFp);
+          }
+          else  anObj.EnveloppePAX_INIT().SetNoInit();
+    } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cIntervParalaxe & anObj)
@@ -2926,6 +3009,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cIntervParalaxe & anObj)
     if (anObj.Px1IncZonage().IsInit()) BinaryDumpInFile(aFp,anObj.Px1IncZonage().Val());
     BinaryDumpInFile(aFp,anObj.Px2IncZonage().IsInit());
     if (anObj.Px2IncZonage().IsInit()) BinaryDumpInFile(aFp,anObj.Px2IncZonage().Val());
+    BinaryDumpInFile(aFp,anObj.EnveloppePAX_INIT().IsInit());
+    if (anObj.EnveloppePAX_INIT().IsInit()) BinaryDumpInFile(aFp,anObj.EnveloppePAX_INIT().Val());
 }
 
 cElXMLTree * ToXMLTree(const cIntervParalaxe & anObj)
@@ -2945,6 +3030,8 @@ cElXMLTree * ToXMLTree(const cIntervParalaxe & anObj)
       aRes->AddFils(::ToXMLTree(std::string("Px1IncZonage"),anObj.Px1IncZonage().Val())->ReTagThis("Px1IncZonage"));
    if (anObj.Px2IncZonage().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Px2IncZonage"),anObj.Px2IncZonage().Val())->ReTagThis("Px2IncZonage"));
+   if (anObj.EnveloppePAX_INIT().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.EnveloppePAX_INIT().Val())->ReTagThis("EnveloppePAX_INIT"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -2967,7 +3054,9 @@ void xml_init(cIntervParalaxe & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Px1IncZonage(),aTree->Get("Px1IncZonage",1)); //tototo 
 
-   xml_init(anObj.Px2IncZonage(),aTree->Get("Px2IncZonage",1)); //tototo 
+   xml_init(anObj.Px2IncZonage(),aTree->Get("Px2IncZonage",1)); //tototo
+
+   xml_init(anObj.EnveloppePAX_INIT(),aTree->Get("EnveloppePAX_INIT",1)); //tototo
 }
 
 std::string  Mangling( cIntervParalaxe *) {return "8408ACE1BEEA2BA9FD3F";};
@@ -3743,23 +3832,60 @@ const cTplValGesInit< cMNT_Init > & cSection_Terrain::MNT_Init()const
 
 std::string & cSection_Terrain::ZInf()
 {
-   return IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZInf();
+    static std::string empty = "";
+    if (IntervAltimetrie().IsInit())
+     {
+            return IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZInf();
+     }
+    if (IntervParalaxe().IsInit())
+     {
+           return IntervParalaxe().Val().EnveloppePAX_INIT().Val().ZInf();
+     }
+    return empty;
 }
 
 const std::string & cSection_Terrain::ZInf()const 
 {
-   return IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZInf();
+    static const std::string empty = "";
+    if (IntervAltimetrie().IsInit())
+        {
+            return IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZInf();
+        }
+    if (IntervParalaxe().IsInit())
+        {
+           return IntervParalaxe().Val().EnveloppePAX_INIT().Val().ZInf();
+        }
+    return empty;
 }
 
 
 std::string & cSection_Terrain::ZSup()
 {
-   return IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZSup();
+    static std::string empty = "";
+    if (IntervAltimetrie().IsInit())
+        {
+            return IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZSup();
+        }
+    if (IntervParalaxe().IsInit())
+        {
+           return IntervParalaxe().Val().EnveloppePAX_INIT().Val().ZSup();
+        }
+    return empty;
 }
 
 const std::string & cSection_Terrain::ZSup()const 
 {
-   return IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZSup();
+    static const std::string empty = "";
+
+    if (IntervAltimetrie().IsInit())
+        {
+            return IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZSup();
+        }
+    if (IntervParalaxe().IsInit())
+        {
+           return IntervParalaxe().Val().EnveloppePAX_INIT().Val().ZSup();
+        }
+    return empty;
 }
 
 
@@ -3861,7 +3987,6 @@ const cTplValGesInit< double > & cSection_Terrain::Px2IncZonage()const
    return IntervParalaxe().Val().Px2IncZonage();
 }
 
-
 cTplValGesInit< cIntervParalaxe > & cSection_Terrain::IntervParalaxe()
 {
    return mIntervParalaxe;
@@ -3871,6 +3996,17 @@ const cTplValGesInit< cIntervParalaxe > & cSection_Terrain::IntervParalaxe()cons
 {
    return mIntervParalaxe;
 }
+cTplValGesInit< cEnveloppePAX_INIT > & cSection_Terrain::EnveloppePAX_INIT()
+{
+   return IntervParalaxe().Val().EnveloppePAX_INIT();
+}
+
+const cTplValGesInit< cEnveloppePAX_INIT > & cSection_Terrain::EnveloppePAX_INIT()const
+{
+   return IntervParalaxe().Val().EnveloppePAX_INIT();
+}
+
+
 
 
 std::string & cSection_Terrain::NameNuageXML()
@@ -27082,25 +27218,60 @@ const cTplValGesInit< cMNT_Init > & cParamMICMAC::MNT_Init()const
 
 std::string & cParamMICMAC::ZInf()
 {
-   return Section_Terrain().IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZInf();
+    static std::string empty="";
+    if(Section_Terrain().IntervAltimetrie().IsInit())
+        {
+            return Section_Terrain().IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZInf();
+        }
+    if (Section_Terrain().IntervParalaxe().IsInit())
+        {
+          return Section_Terrain().IntervParalaxe().Val().EnveloppePAX_INIT().Val().ZInf();
+        }
+    return empty;
 }
 
 const std::string & cParamMICMAC::ZInf()const 
 {
-   return Section_Terrain().IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZInf();
+    static const std::string empty="";
+    if(Section_Terrain().IntervAltimetrie().IsInit())
+        {
+            return Section_Terrain().IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZInf();
+        }
+    if (Section_Terrain().IntervParalaxe().IsInit())
+        {
+          return Section_Terrain().IntervParalaxe().Val().EnveloppePAX_INIT().Val().ZInf();
+        }
+    return empty;
 }
 
 
 std::string & cParamMICMAC::ZSup()
 {
-   return Section_Terrain().IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZSup();
+    static std::string empty="";
+    if(Section_Terrain().IntervAltimetrie().IsInit())
+        {
+            return Section_Terrain().IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZSup();
+        }
+    if (Section_Terrain().IntervParalaxe().IsInit())
+        {
+          return Section_Terrain().IntervParalaxe().Val().EnveloppePAX_INIT().Val().ZSup();
+        }
+    return empty;
 }
 
 const std::string & cParamMICMAC::ZSup()const 
 {
-   return Section_Terrain().IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZSup();
+    static const std::string empty="";
+    if(Section_Terrain().IntervAltimetrie().IsInit())
+        {
+            return Section_Terrain().IntervAltimetrie().Val().EnveloppeMNT_INIT().Val().ZSup();
+        }
+    if (Section_Terrain().IntervParalaxe().IsInit())
+        {
+          return Section_Terrain().IntervParalaxe().Val().EnveloppePAX_INIT().Val().ZSup();
+        }
+    return empty;
 }
-
 
 cTplValGesInit< cEnveloppeMNT_INIT > & cParamMICMAC::EnveloppeMNT_INIT()
 {
@@ -27200,6 +27371,17 @@ const cTplValGesInit< double > & cParamMICMAC::Px2IncZonage()const
    return Section_Terrain().IntervParalaxe().Val().Px2IncZonage();
 }
 
+/****************************************************/
+cTplValGesInit< cEnveloppePAX_INIT > & cParamMICMAC::EnveloppePAX_INIT()
+{
+   return Section_Terrain().IntervParalaxe().Val().EnveloppePAX_INIT();
+}
+
+const cTplValGesInit< cEnveloppePAX_INIT > & cParamMICMAC::EnveloppePAX_INIT()const
+{
+   return Section_Terrain().IntervParalaxe().Val().EnveloppePAX_INIT();
+}
+/****************************************************/
 
 cTplValGesInit< cIntervParalaxe > & cParamMICMAC::IntervParalaxe()
 {
@@ -27221,7 +27403,6 @@ const std::string & cParamMICMAC::NameNuageXML()const
 {
    return Section_Terrain().NuageXMLInit().Val().NameNuageXML();
 }
-
 
 cTplValGesInit< bool > & cParamMICMAC::CanAdaptGeom()
 {

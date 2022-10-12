@@ -504,6 +504,10 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
              <Px2IncCalc Nb="?" Type="double">      </Px2IncCalc>
              <Px1IncZonage Nb="?" Type="double">    </Px1IncZonage>
              <Px2IncZonage Nb="?" Type="double">    </Px2IncZonage>
+             <EnveloppePAX_INIT Nb="?">
+                  <ZInf Nb="1" Type="std::string"> </ZInf>
+                  <ZSup Nb="1" Type="std::string"> </ZSup>
+             </EnveloppePAX_INIT>
        </IntervParalaxe>
 
 

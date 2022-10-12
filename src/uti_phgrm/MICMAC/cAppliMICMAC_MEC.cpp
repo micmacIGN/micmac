@@ -95,10 +95,12 @@ void cAppliMICMAC::DoAllMEC()
         if (mDoTheMEC  && (!DoNothingBut().IsInit()))
         {
            DoOneEtapeMEC(**itE);
+           //std::cout<<" NUM ETAPE ======= >>>> "<<(*itE)->Num()<< "  "<<FirstEtapeMEC().Val()<<std::endl;
         }
+
         if (
                  ( (*itE)->Num()>=FirstEtapeMEC().Val())
-           &&    ( (*itE)->Num()<LastEtapeMEC().Val())
+           &&    ( (*itE)->Num()<=LastEtapeMEC().Val())
            )
         {
             if (! CalledByProcess().Val())
@@ -593,13 +595,14 @@ void cAppliMICMAC::DoOneBloc
 
    mBoxIn = aBoxIn;
    mBoxOut = aBoxOut;
+   //std::cout<<" $$$$$$$$ DIMENSION PARALLAX   "<<mDimPx<<std::endl;
    mLTer = new cLoadTer(mDimPx,aBoxIn.sz(),*mCurEtape);
 
    double aNbCel = mCurEtape->LoadNappesAndSetGeom(*mLTer,aBoxIn);
 
 
    int aSzCel = mCurEtape->MultiplierNbSizeCellule();
-   //std::cout << "SzzEcccell " <<  aSzCel*aNbCel <<"\n"; 
+   //std::cout << "SzzEcccellLLLLLLLLLLLLLLLLLLLL " <<  aSzCel*aNbCel <<"\n";
 
    int aLMin = ElMin(aBoxOut._p1.x-aBoxOut._p0.x,aBoxOut._p1.y-aBoxOut._p0.y);
 

@@ -115,6 +115,8 @@ class cMMOnePair
       bool              mUseCensQ;
       std::string       mModeCensus;
       int               mNbS;
+      std::string       mEnvZInf;
+      std::string       mEnvZSup;
       int               mSzW0;
 };
 
@@ -183,7 +185,9 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mExpTxt	    (false),
     mUseCensQ       (false),
     mModeCensus     ("eMCC_CensusCorrel"),
-    mNbS            (3)
+    mNbS            (3),
+    mEnvZInf ("xxxxx"),
+    mEnvZSup ("xxxxx")
 {
   ElInitArgMain
   (
@@ -217,6 +221,10 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mHasVeget,"HasVeg",true,"Has vegetation, Def= false", eSAM_IsBool)
                     << EAM(mSkyBackgGound,"HasSBG",true,"Has Sky Background , Def= true", eSAM_IsBool)
                     << EAM(mMM1PMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
+
+                    << EAM(mEnvZInf,"EnvZInf",true,"Envelop inf of Z/Px")
+                    << EAM(mEnvZSup,"EnvZSup",true,"Envelop sup of Z/Px")
+
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",false,"Def cor (Def=0.5)")
                     << EAM(mZReg,"ZReg",false,"Regularisation factor (Def=0.05)")
@@ -860,6 +868,22 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
           aCom = aCom + " +DoPly=true " + " +ScalePly=" + ToString(mScalePly) +  " ";
      }
 */
+
+     // CHECK IF ENVELOPPE INITIALE HAS BEEN ACTIVATED
+
+     {
+     //Prise en compte d'un DEM initial si celui-ci a ete mis en entree
+          bool ZInfInit = EAMIsInit(&mEnvZInf);
+          bool ZSupInit = EAMIsInit(&mEnvZSup);
+          ELISE_ASSERT(ZInfInit==ZSupInit,"incohrence in ZInfInit/ZSupInit");
+
+          if (ZInfInit && ZSupInit)
+          {
+              aCom  =    aCom + " +UseEnvPAXInit=true"
+                              +  std::string(" +EnvZInf=") + mEnvZInf
+                              +  std::string(" +EnvZSup=") + mEnvZSup;
+          }
+     }
 
      ExeCom(aCom);
 

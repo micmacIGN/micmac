@@ -38,7 +38,7 @@ struct cOneModele
             //aCnnModelPredictor  & aPredicor
         );*/
 
-	    double ComputeCost(bool &Ok,const cPt2di & aPC1,const cPt2di & aPC2,int aDZ) const;
+        double ComputeCost(bool &Ok,const cPt2di & aPC1,const cPt2di & aPC2,int aDZ) const;
         void CalcCorrelExterneTerm(const cBox2di & aBoxInitIm1,int aPxMin,int aPxMax);
         void CalcCorrelExterneRecurs(const cBox2di & aBoxIm1);
         void CalcCorrelExterne();
@@ -46,9 +46,10 @@ struct cOneModele
         
        // ADDED METHODS FOR MVCNN
         void CalcCorrelMvCNN();
+        void UseZInfZSup();
 
-	    cAppliFillCubeCost  * mAppli;
-	    std::string           mNameModele;
+        cAppliFillCubeCost  * mAppli;
+        std::string           mNameModele;
         bool                  mWithIntCorr;
         bool                  mWithExtCorr;
         // ADDED MVCNN
@@ -64,7 +65,7 @@ struct cOneModele
         aCnnModelPredictor * mCNNPredictor=nullptr;
         std::string mArchitecture ="";
         std::string mModelBinDir="";
-        cPt2di               mCNNWin;
+        cPt2di              mCNNWin;
         
         // Networks architectures 
         ConvNet_Fast mNetFastStd= ConvNet_Fast(3,4);  // Conv Kernel= 3x3 , Convlayers=4
@@ -103,7 +104,7 @@ class cAppliFillCubeCost : public cAppliLearningMatch
         typedef cDataIm2D<tElemZ>          tDataImZ;
         typedef cIm2D<tREAL4>              tImRad;
         typedef cDataIm2D<tREAL4>          tDataImRad;
-	    typedef cLayer3D<float,tElemZ>     tLayerCor;
+        typedef cLayer3D<float,tElemZ>     tLayerCor;
         typedef cIm2D<tREAL4>              tImPx;
         typedef cDataIm2D<tU_INT1>         tDataImMasq;
         typedef cDataIm2D<tREAL4>          tDataImPx;
@@ -445,7 +446,6 @@ cOneModele::cOneModele
         } 
     }
 }
-
 void cOneModele::CalcCorrelExterneTerm(const cBox2di & aBoxInitIm1,int aPxMin,int aPxMax)
 {
      // cBox2di aBoxDil = aBoxInitIm1.Inter
@@ -523,6 +523,12 @@ void cOneModele::CalcCorrelMvCNN()
    mAppli->MakeNormalizedIm();
 }
 
+
+void UseZInfZSup()
+{
+    std::cout<<"Handling Nappes englobantes "<<std::endl;
+
+}
 
 double cOneModele::ComputeCost(bool & Ok,const cPt2di & aPC1,const cPt2di & aPC20,int aDZ) const
 {
@@ -770,7 +776,6 @@ int  cAppliFillCubeCost::Exe()
    mNameZMin = StdName("ZMin","tif");
    mNameZMax = StdName("ZMax","tif");
    mNameCube = StdName("MatchingCube","data");
-   
    //  Read images 
    mImZMin = tImZ::FromFile(mNameZMin);
    tDataImZ & aDZMin = mImZMin.DIm();
@@ -790,8 +795,6 @@ int  cAppliFillCubeCost::Exe()
    if (mCmpCorLearn)
        aVMods.push_back(new cOneModele(mNameCmpModele,*this));
 
-
-   
    /*
     * 
     * CONDITION IF LEARNED MVCNN THEN WORK WITH NORMALIZED IMAGES 
