@@ -394,6 +394,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
         virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
         std::string  CommandOfMain() const; ///< Glob command by aggregation of ArgcArgv
+
+	static void AddObj2DelAtEnd(cObj2DelAtEnd *);
     protected :
 
         /// Constructor, essenntially memorize command line and specifs
@@ -534,6 +536,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mCarPPrefIn;   ///< Prefix for input  Carac point ...
         std::string                               mTiePPrefOut;  ///< Prefix for output Tie Points ...
         std::string                               mTiePPrefIn;   ///< Prefix for inout  Tie Points ...
+
+	static std::vector<cObj2DelAtEnd *>       mVectObj2DelAtEnd;
 };
 
 

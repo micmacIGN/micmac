@@ -1,7 +1,6 @@
 #include "include/MMVII_all.h"
 
 
-
 /**
    \file cConvCalib.cpp
 
@@ -12,7 +11,10 @@
 namespace MMVII
 {
 
-/**  Class for otimizinf a model of camerato  using 3d-2d correspondance and bundle adjustment.  Typically these
+
+
+
+/**  Class for otimizing a model of camera  using 3d-2d correspondance and bundle adjustment.  Typically these
  *   corresponance will be synthetic ones coming from another camera. It can be used in, two scenario :
  *
  *    -(1) primary test/bench  on functionnality to do BA
@@ -41,11 +43,11 @@ class cCentralPerspConversion
          ~cCentralPerspConversion();
 
          static cCentralPerspConversion *  AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix);
+         static cPerspCamIntrCalib *       AllocCalibV1(const std::string & aFullName);
+         static cSensorCamPC *             AllocSensorPCV1(const std::string& aNameIm,const std::string & aFullName);
 
          void OneIteration();
 
-         const cSensorCamPC  &       CamPC() const;  ///<  Accessor
-         // const cPerspCamIntrCalib &  Calib() const;  ///<  Accessor
 
 	 void ResetUk() 
 	 {
@@ -53,6 +55,8 @@ class cCentralPerspConversion
 		 mSetInterv.Reset();
 	 }
          const cSet2D3D  & SetCorresp() const {return   mSetCorresp;}
+
+         const cSensorCamPC  &       CamPC() const {return mCamPC;}
          cPerspCamIntrCalib *    Calib() {return mCalib;}
 
     private :
@@ -69,6 +73,7 @@ class cCentralPerspConversion
          cResolSysNonLinear<double> *       mSys;
 };
 
+     // ==============  constructor & destructor ================
 
 cCentralPerspConversion::cCentralPerspConversion
 (
@@ -82,7 +87,7 @@ cCentralPerspConversion::cCentralPerspConversion
     mHCG           (HardConstrOnGCP),
     mCFix          (CenterFix),
     mCalib         (aCalib),
-    mCamPC         (mPoseInit,mCalib),
+    mCamPC         ("NONE",mPoseInit,mCalib),
     mSetCorresp    (aSetCorresp),
     mSzBuf         (100),
     mEqColinearity (mCalib->EqColinearity(true,mSzBuf))
@@ -93,16 +98,13 @@ cCentralPerspConversion::cCentralPerspConversion
     mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
 }
 
-
 cCentralPerspConversion::~cCentralPerspConversion()
 {
     delete mEqColinearity;
     delete mSys;
 }
 
-
-const cSensorCamPC  &       cCentralPerspConversion::CamPC() const {return mCamPC;}
-// const cPerspCamIntrCalib &  cCentralPerspConversion::Calib() const {return *mCalib;}
+     // ==============   Iteration to  ================
 
 void cCentralPerspConversion::OneIteration()
 {
@@ -145,11 +147,12 @@ void cCentralPerspConversion::OneIteration()
 }
 
 
+     // ==============  conversion for V1 ================
 
 cCentralPerspConversion *  cCentralPerspConversion::AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix)
 {
      bool  isForTest = (!HCG) ||  (! CenterFix);
-     cExportV1StenopeCalInterne  aExp(true,aFullName,10);
+     cExportV1StenopeCalInterne  aExp(true,aFullName,15);
 
      cIsometry3D<tREAL8>   aPose0 = cIsometry3D<tREAL8>::Identity();
      // in mode test perturbate internal et external parameters
@@ -165,36 +168,20 @@ cCentralPerspConversion *  cCentralPerspConversion::AllocV1Converter(const std::
      }
 
      std::string aNameCam = LastPrefix(FileOfPath(aFullName,false));
-     cDataPerspCamIntrCalib aDataCalib(aNameCam,aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
+     cDataPerspCamIntrCalib aDataCalib("FromMMV1-"+aNameCam,aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
      cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::Alloc(aDataCalib);
 
      return new cCentralPerspConversion(aCalib,aExp.mCorresp,aPose0,HCG,CenterFix);
 }
 
-/*
-template <class TypeKey,class TypeVal>
-{
-};
-*/
-
-static std::map<std::string,cPerspCamIntrCalib *> TheMap;
-void DELETE_CAMERA_TRES_SALE()
-{
-    for (const auto & anIter : TheMap)
-    {
-	    // StdOut() << "DDDD " << anIter.first << " =>" << anIter.second << "\n";
-	    delete anIter.second;
-    }
-	// StdOut() << "MPPP SZ " << TheMap.size() << "\n";
-}
-
-cPerspCamIntrCalib * AllocV1(const std::string & aFullName)
+cPerspCamIntrCalib * cCentralPerspConversion::AllocCalibV1(const std::string & aFullName)
 { 
+     static std::map<std::string,cPerspCamIntrCalib *> TheMap;
      cPerspCamIntrCalib * & aPersp = TheMap[aFullName];
 
      if (aPersp==0)
      {
-         cCentralPerspConversion * aConvertor = cCentralPerspConversion::AllocV1Converter(aFullName,false,false);
+         cCentralPerspConversion * aConvertor = cCentralPerspConversion::AllocV1Converter(aFullName,true,true);
 
          for (int aK=0 ; aK<10 ; aK++)
          {
@@ -202,26 +189,40 @@ cPerspCamIntrCalib * AllocV1(const std::string & aFullName)
          }
 
          aPersp = aConvertor->Calib();
+	 cMMVII_Appli::AddObj2DelAtEnd(aPersp);
          aConvertor->ResetUk();
 	 delete aConvertor;
      }
-	// StdOut() << "MPPP SZ " << TheMap.size() << "\n";
 
      return aPersp;
 }
 
+cSensorCamPC * cCentralPerspConversion::AllocSensorPCV1(const std::string & aNameIm,const std::string & aFullName)
+{
+     cExportV1StenopeCalInterne  aExp(false,aFullName,0); // Alloc w/o  3d-2d correspondance
+
+     std::string aNameCal = DirOfPath(aFullName,false) + FileOfPath(aExp.mNameCalib,false);
+     cPerspCamIntrCalib * aCalib =  cCentralPerspConversion::AllocCalibV1(aNameCal);
+
+     return new cSensorCamPC(aNameIm,aExp.mPose,aCalib);
+}
+
+
+
+   /* ********************************************************** */
+   /*                                                            */
+   /*               BENCH PART                                   */
+   /*                                                            */
+   /* ********************************************************** */
+
+
 
 void BenchCentralePerspective_ImportCalibV1(cParamExeBench & aParam,const std::string & aName,bool HCG,bool  CenterFix,double aAccuracy)
 {
+static int aCpt=0; aCpt++;
+
      std::string aFullName = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ori-MMV1" +  StringDirSeparator() + aName;
 
-
-     {
-         auto aCal = AllocV1(aFullName);
-	 FakeUseIt(aCal);
-         StdOut() << "FFF " <<  aCal->F() << " &=" << aCal << "\n";
-	 // delete aCal;
-     }
 
      cCentralPerspConversion * aConv =   cCentralPerspConversion::AllocV1Converter(aFullName,HCG,CenterFix);
 
@@ -236,11 +237,12 @@ void BenchCentralePerspective_ImportCalibV1(cParamExeBench & aParam,const std::s
 
         if (aResidual<aAccuracy)
         {
-	    std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "TestCalib.xml";
+            // create a new file , to avoid reading in map in "FromFile"
+	    std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "TestCalib_" + ToStr(aCpt) + ".xml";
 	    aCalib->ToFile(aNameTmp);
 
 	    cPerspCamIntrCalib *  aCam2 = cPerspCamIntrCalib::FromFile(aNameTmp);
-            cSensorCamPC          aSensor2 (aConv->CamPC().Pose(),aCam2) ;
+            cSensorCamPC          aSensor2 ("NONE",aConv->CamPC().Pose(),aCam2) ;
 	    double aR2 = aSensor2.AvgResidual(aConv->SetCorresp());
            
 	    //  Accuracy must be as good as initial camera, but small diff possible due to string conv
@@ -248,10 +250,9 @@ void BenchCentralePerspective_ImportCalibV1(cParamExeBench & aParam,const std::s
 	    // diff of accuracy should be tiny
             MMVII_INTERNAL_ASSERT_bench(std::abs(aR2-aResidual)< 1e-10  ,"Reload camera  xml");
 
- //  StdOut() << "ssssssssssssssssssssssssss\n";getchar();
 	    delete aConv;
-	    delete aCam2;
-	    delete aCalib;
+	    //delete aCam2; dont delete -> create by FromFile, autom delete at end
+	    delete aCalib; // create at hand  -> delete
             return;
         }
      }
@@ -260,18 +261,36 @@ void BenchCentralePerspective_ImportCalibV1(cParamExeBench & aParam,const std::s
 
 }
 
-/*
-void BenchCentralePerspective_PoseImportV1(cParamExeBench & aParam,const std::string & aName,bool HCG,bool  CenterFix,double aAccuracy)
+
+
+void BenchPoseImportV1(const std::string & aName,double anAccuracy)
 {
+     std::string aFullName = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ori-MMV1" +  StringDirSeparator() + aName;
+
+     // AllocSensorPCV1
+
+     cExportV1StenopeCalInterne  aExp(false,aFullName,10); 
+     cSensorCamPC  *aPC  =  cCentralPerspConversion::AllocSensorPCV1("BENCH",aFullName);
+     double aResidual  =  aPC->AvgResidual(aExp.mCorresp);
+
+     MMVII_INTERNAL_ASSERT_bench(aResidual<anAccuracy ,"No convergence in BenchCentralePerspective_ImportV1");
+
+     std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "ccTestOri.xml";
+     aPC->ToFile(aNameTmp);
+
+     cSensorCamPC  *aPC2  =  cSensorCamPC::FromFile(aNameTmp);
+
+     StdOut()<< "DONNEuuuu " <<  aPC2->AvgResidual(aExp.mCorresp) << "\n"; getchar();
+
+     delete aPC;
+     delete aPC2;
+
 }
-*/
 
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam)
 {
-
-        BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",false,false,1e-5);
-        BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",false,true ,1e-5);
-	/*
+    BenchPoseImportV1("Orientation-_DSC8385.tif.xml" ,1e-5);
+    BenchPoseImportV1("Orientation-Img0937.tif.xml"  ,1e-5);
 
     for (int aK=0 ; aK<3 ; aK++)
     {
@@ -282,10 +301,117 @@ void BenchCentralePerspective_ImportV1(cParamExeBench & aParam)
 
         BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-11500_Cam-imx477imx477-1.xml",false,false,1e-3);
     }
-    */
-
 }
 
+    // ===============================================================================================
+    // ===============================================================================================
+    // ===============================================================================================
+
+class cPhotogrammetricProject
+{
+      public :
+
+
+          
+       //  method to share the parameters
+          tPtrArg2007  OriInMand() ;
+          tPtrArg2007  OriOutMand();
+          tPtrArg2007  OriInOpt() ;// {return  AOpt2007(mOriIn ,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input });}
+
+      private :
+          std::string mFolderProject;
+          std::string mOriIn;
+          std::string mOriOut;
+};
+
+tPtrArg2007 cPhotogrammetricProject::OriInMand() {return  Arg2007(mOriIn ,"Input Orientation",{eTA2007::Orient,eTA2007::Input });}
+tPtrArg2007 cPhotogrammetricProject:: OriOutMand() {return Arg2007(mOriOut,"Outot Orientation",{eTA2007::Orient,eTA2007::Output});}
+tPtrArg2007 cPhotogrammetricProject::OriInOpt(){return AOpt2007(mOriIn,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input});}
+
+
+   /* ********************************************************** */
+   /*                                                            */
+   /*                 cAppli_OriConvV1V2                         */
+   /*                                                            */
+   /* ********************************************************** */
+
+class cAppli_OriConvV1V2 : public cMMVII_Appli
+{
+     public :
+        cAppli_OriConvV1V2(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+     private :
+	std::string              mDirMMV1;
+	cPhotogrammetricProject  mPhProj;
+};
+
+cAppli_OriConvV1V2::cAppli_OriConvV1V2(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+   cMMVII_Appli(aVArgs,aSpec)
+{
+}
+
+cCollecSpecArg2007 & cAppli_OriConvV1V2::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+    return anArgObl
+	      <<  Arg2007(mDirMMV1 ,"Input Orientation for MMV1 Files")
+	      <<  mPhProj.OriOutMand()
+           ;
+}
+
+cCollecSpecArg2007 & cAppli_OriConvV1V2::ArgOpt(cCollecSpecArg2007 & anArgObl) 
+{
+    
+    return anArgObl
+           ;
+}
+
+int cAppli_OriConvV1V2::Exe()
+{
+//	StdOut() << DirProject() << "\n";
+
+    std::string aPatV1 = "Orientation-(.*)\\.xml";
+    std::vector<std::string> aListOriV1 = GetFilesFromDir(mDirMMV1,AllocRegex(aPatV1),true);
+
+    for (const auto & aName : aListOriV1)
+    {
+        std::string aNameIm = ReplacePattern(aPatV1,"$1",aName);
+        cSensorCamPC * aPC =  cCentralPerspConversion::AllocSensorPCV1(aNameIm,mDirMMV1+aName);
+
+
+	//std::string aNameIm =  std::regex_replace (aName,std::regex(aPatV1),"sub-$1");
+
+        StdOut() << "N="  << aName << " " << aPC->Center() 
+		<< " CalN=" << aPC->InternalCalib()->Name() 
+		<< " ### [" <<   aNameIm << "]\n";
+
+
+
+
+	delete aPC;
+    }
+
+
+    return EXIT_SUCCESS;
+}
+
+
+tMMVII_UnikPApli Alloc_OriConvV1V2(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_OriConvV1V2(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_OriConvV1V2
+(
+     "OriConvV1V2",
+      Alloc_OriConvV1V2,
+      "Convert orientation of MMV1  to MMVII",
+      {eApF::Ori},
+      {eApDT::Orient},
+      {eApDT::Orient},
+      __FILE__
+);
 
 
 }; // MMVII

@@ -1,5 +1,6 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
+#include <set>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -214,11 +215,29 @@ void  cPerspCamIntrCalib::ToFile(const std::string & aNameFile ) const
     SaveInFile((cDataPerspCamIntrCalib&)*this,aNameFile);
 }
 
+void  cPerspCamIntrCalib::ToFileIfFirstime(const std::string & aNameFile ) const
+{
+   static std::set<std::string> aSetFilesAlreadySaved;
+   if (!BoolFind(aSetFilesAlreadySaved,aNameFile))
+   {
+        aSetFilesAlreadySaved.insert(aNameFile);
+	ToFile(aNameFile);
+   }
+}
+
 cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName)
 {
-     cDataPerspCamIntrCalib aData;
-     ReadFromFile(aData,aName);
-     return new cPerspCamIntrCalib(aData);
+     static std::map<std::string,cPerspCamIntrCalib *> TheMap;
+     cPerspCamIntrCalib * & aPersp = TheMap[aName];
+
+     if (aPersp == 0)
+     {
+        cDataPerspCamIntrCalib aData;
+        ReadFromFile(aData,aName);
+        aPersp = new cPerspCamIntrCalib(aData);
+	cMMVII_Appli::AddObj2DelAtEnd(aPersp);
+     }
+     return aPersp;
 }
 
 	//  ==================  destuctor  "big" modifier ====================
@@ -334,6 +353,7 @@ void cPerspCamIntrCalib::SetThresholdPixAccInv(double aThr)
      SetThresholdPhgrAccInv(aThr/F());
 }
 
+const std::string & cPerspCamIntrCalib::Name()   const {return mName ;}
 const double & cPerspCamIntrCalib::F()      const {return mCSPerfect.F() ;}
 const cPt2dr & cPerspCamIntrCalib::PP()     const {return mCSPerfect.PP();}
 const cPt3di & cPerspCamIntrCalib::DegDir() const {return mDir_Degr;}

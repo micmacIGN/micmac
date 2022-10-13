@@ -138,15 +138,20 @@ template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 #define DEBUGKILLAPP()\
 std::cout << "HERE " << __LINE__ << "\n";
 
-void DELETE_CAMERA_TRES_SALE();
+std::vector<cObj2DelAtEnd *>       cMMVII_Appli::mVectObj2DelAtEnd;
+
+void cMMVII_Appli::AddObj2DelAtEnd(cObj2DelAtEnd * aPtrO)
+{
+     mVectObj2DelAtEnd.push_back(aPtrO);
+}
 
 cMMVII_Appli::~cMMVII_Appli()
 {
-if (mMainAppliInsideP)
-{
-   MMVII_WARGNING("DELETE_CAMERA_TRES_SALE");
-   DELETE_CAMERA_TRES_SALE();
-}
+   if (mMainAppliInsideP)
+   {
+        for (auto  aPtrO : mVectObj2DelAtEnd)
+            delete aPtrO;
+   }
 
    if (mForExe)
    {

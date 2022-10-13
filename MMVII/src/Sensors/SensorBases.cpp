@@ -75,10 +75,17 @@ cPixelDomain::cPixelDomain(cDataPixelDomain * aDPD) :
 /*                                                         */
 /* ******************************************************* */
 
-cSensorImage::cSensorImage(const std::string & aName) :
-     mName (aName)
+cSensorImage::cSensorImage(const std::string & aNameImage) :
+     mNameImage (aNameImage)
 {
 }
+
+void cSensorImage::SetNameImage(const std::string & aNameImage)
+{
+     mNameImage = aNameImage;
+}
+
+const std::string & cSensorImage::NameImage() const {return mNameImage;}
 
 double  cSensorImage::SqResidual(const cPair2D3D & aPair) const
 {

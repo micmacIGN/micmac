@@ -112,6 +112,9 @@ bool IsDirectory(const std::string & aName);
 tNameSelector  AllocRegex(const std::string& aRegEx);
 /// Indicate if name match patter, uses AllocRegex
 bool  MatchRegex(const std::string& aName,const std::string& aPat);
+/// replace a pattern  yy(.*)zz , A$1 , yytotozz  => Atoto
+std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString);
+
 
 
 /// Exract name of files located in the directory, by return value

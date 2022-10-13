@@ -475,6 +475,11 @@ bool  MatchRegex(const std::string& aName,const std::string& aPat)
 	 return AllocRegex(aPat).Match(aName);
 }
 
+std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString)
+{
+   return std::regex_replace(aString,std::regex(aPattern),aSubst);
+}
+
 
 
 void BenchSelector(cParamExeBench & aParam,const std::string & aDir)

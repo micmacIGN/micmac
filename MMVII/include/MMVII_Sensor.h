@@ -50,14 +50,17 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 {
      public :
 
-         cSensorImage(const std::string &);
+         cSensorImage(const std::string & aNameImage);
 
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
          virtual double SqResidual(const cPair2D3D &) const;
          virtual double AvgResidual(const cSet2D3D &) const;
 
+	 const std::string & NameImage() const;
+	 void SetNameImage(const std::string &);
+
      private :
-	 std::string                                    mName;
+	 std::string                                    mNameImage;
 	 // static std::map<std::string,cSensorImage*>  mDicoSensor;
 	 // static int                                  mNum;
 };

@@ -106,7 +106,8 @@ class cDataPerspCamIntrCalib
 
  */
 
-class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
+class cPerspCamIntrCalib : public cObj2DelAtEnd,
+	                   public cDataMapping<tREAL8,3,2>,
                            public cObjWithUnkowns<tREAL8>,
 			   public cDataPerspCamIntrCalib
 {
@@ -130,6 +131,7 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
 
 	     void AddData(const cAuxAr2007 & anAux); ///< serialization for export
 	     void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...  
+	     void  ToFileIfFirstime(const std::string & ) const ; ///< to avoid many write 4 same cam
 	     static cPerspCamIntrCalib * FromFile(const std::string &); ///< create form xml/dmp ...
 
 
@@ -145,6 +147,7 @@ class cPerspCamIntrCalib : public cDataMapping<tREAL8,3,2>,
             const double & F() const;   ///< access to focal
             const cPt2dr & PP() const;  ///< acess to principal point
             const cPt3di & DegDir() const;  ///< acess to direct degrees
+            const std::string & Name() const;   ///< Name of the file
 
 	    std::vector<double> & VParamDist();
 	    const std::vector<double> & VParamDist() const;
@@ -221,7 +224,7 @@ class cSensorCamPC : public cSensorImage
      public :
          typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
 
-         cSensorCamPC(const tPose & aPose,cPerspCamIntrCalib * aCalib);
+         cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
 	 // different accessor to the pose
@@ -230,6 +233,8 @@ class cSensorCamPC : public cSensorImage
          cPt3dr  AxeI()   const;
          cPt3dr  AxeJ()   const;
          cPt3dr  AxeK()   const;
+
+	 cPerspCamIntrCalib * InternalCalib();
 
 	 // access to tiny rotation used in bundled adjustment
          const cPt3dr &  Omega()  const;
@@ -240,12 +245,17 @@ class cSensorCamPC : public cSensorImage
 
          size_t NumXCenter() const;  /// num of Center().x when used as cObjWithUnkowns (y and z follow)
          size_t NumXOmega() const;   /// num of mOmega().x when used as cObjWithUnkowns (y and z follow)
+
+         void AddData(const cAuxAr2007 & anAux);
+	 void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...  
+	 static cSensorCamPC * FromFile(const std::string &); ///< create form xml/dmp ...
      private :
         cSensorCamPC(const cSensorCamPC&) = delete;
 
         cIsometry3D<tREAL8>  mPose;   ///< transformation Cam to Word
-        cPerspCamIntrCalib * mCalib;  ///< pointer to internal calibration
+        cPerspCamIntrCalib * mInternalCalib;  ///< pointer to internal calibration
         cPt3dr               mOmega;  ///< vector for tiny rotation when used in unknown, mW  in code gene ...
+	std::string          mTmpNameCalib; ///< use as tmp var in addata
 };
 
 

@@ -136,7 +136,7 @@ class cMemManager
 
 
 /**
-    This classe redefine l'operetor new and delate to checker alloc / desalloc and (some) bad access.
+    This classe redefine operators new and delate to check alloc / desalloc and (some) bad access.
     Allocation and desallocation is delegated to  cMemManager
 */
 
@@ -170,6 +170,14 @@ class  cMemCheck
        // to avoid use 
 };
 
+/**  some object have to live untill the end of the process, just before the verif is done in main
+ *   appli destructor.
+ */
+class cObj2DelAtEnd
+{
+        public :
+                virtual ~cObj2DelAtEnd();
+};
 
 
 ///  Usefull, delete all object of the container
