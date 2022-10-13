@@ -40,6 +40,8 @@ class cCentralPerspConversion
          );
          ~cCentralPerspConversion();
 
+         static cCentralPerspConversion *  AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix);
+
          void OneIteration();
 
          const cSensorCamPC  &       CamPC() const;  ///<  Accessor
@@ -47,7 +49,7 @@ class cCentralPerspConversion
 
 	 void ResetUk() 
 	 {
-		 MMVII_WARGNING("cCentralPerspConversion ResetUk");
+		 // MMVII_WARGNING("cCentralPerspConversion ResetUk");
 		 mSetInterv.Reset();
 	 }
          const cSet2D3D  & SetCorresp() const {return   mSetCorresp;}
@@ -142,40 +144,89 @@ void cCentralPerspConversion::OneIteration()
      mSetInterv.SetVUnKnowns(aVectSol);
 }
 
-cCentralPerspConversion *  AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix)
+
+
+cCentralPerspConversion *  cCentralPerspConversion::AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix)
 {
      bool  isForTest = (!HCG) ||  (! CenterFix);
      cExportV1StenopeCalInterne  aExp(true,aFullName,10);
 
+     cIsometry3D<tREAL8>   aPose0 = cIsometry3D<tREAL8>::Identity();
+     // in mode test perturbate internal et external parameters
      if (isForTest)
      {
          aExp.mFoc *=  (1.0 + 0.05*RandUnif_C());
          aExp.mPP = MulCByC(aExp.mPP,  cPt2dr(1,1)+cPt2dr::PRandC()*0.05);
+         aPose0 = cIsometry3D<tREAL8>
+                         (
+                              cPt3dr::PRandC() * (CenterFix ? 0.0 : 0.1),
+                              cRotation3D<tREAL8>::RandomRot(0.05)
+                         );
      }
 
      std::string aNameCam = LastPrefix(FileOfPath(aFullName,false));
      cDataPerspCamIntrCalib aDataCalib(aNameCam,aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
      cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::Alloc(aDataCalib);
 
-     cIsometry3D<tREAL8> aPose0
-                         (
-                              cPt3dr::PRandC() * (CenterFix ? 0.0 : 0.1),
-                              cRotation3D<tREAL8>::RandomRot(0.05)
-                         );
-     if (!isForTest)
-        aPose0 = cIsometry3D<tREAL8>::Identity();
      return new cCentralPerspConversion(aCalib,aExp.mCorresp,aPose0,HCG,CenterFix);
 }
 
+/*
+template <class TypeKey,class TypeVal>
+{
+};
+*/
+
+static std::map<std::string,cPerspCamIntrCalib *> TheMap;
+void DELETE_CAMERA_TRES_SALE()
+{
+    for (const auto & anIter : TheMap)
+    {
+	    // StdOut() << "DDDD " << anIter.first << " =>" << anIter.second << "\n";
+	    delete anIter.second;
+    }
+	// StdOut() << "MPPP SZ " << TheMap.size() << "\n";
+}
+
+cPerspCamIntrCalib * AllocV1(const std::string & aFullName)
+{ 
+     cPerspCamIntrCalib * & aPersp = TheMap[aFullName];
+
+     if (aPersp==0)
+     {
+         cCentralPerspConversion * aConvertor = cCentralPerspConversion::AllocV1Converter(aFullName,false,false);
+
+         for (int aK=0 ; aK<10 ; aK++)
+         {
+            aConvertor->OneIteration();
+         }
+
+         aPersp = aConvertor->Calib();
+         aConvertor->ResetUk();
+	 delete aConvertor;
+     }
+	// StdOut() << "MPPP SZ " << TheMap.size() << "\n";
+
+     return aPersp;
+}
 
 
-void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string & aName,bool HCG,bool  CenterFix,double aAccuracy)
+void BenchCentralePerspective_ImportCalibV1(cParamExeBench & aParam,const std::string & aName,bool HCG,bool  CenterFix,double aAccuracy)
 {
      std::string aFullName = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ori-MMV1" +  StringDirSeparator() + aName;
-     cCentralPerspConversion * aConv =   AllocV1Converter(aFullName,HCG,CenterFix);
+
+
+     {
+         auto aCal = AllocV1(aFullName);
+	 FakeUseIt(aCal);
+         StdOut() << "FFF " <<  aCal->F() << " &=" << aCal << "\n";
+	 // delete aCal;
+     }
+
+     cCentralPerspConversion * aConv =   cCentralPerspConversion::AllocV1Converter(aFullName,HCG,CenterFix);
 
      const cSensorCamPC  &       aCamPC =  aConv->CamPC() ;
-      cPerspCamIntrCalib *       aCalib =  aConv->Calib() ;
+     cPerspCamIntrCalib *        aCalib =  aConv->Calib() ;
 
      double aResidual  = 10;
      for (int aK=0 ; aK<20 ; aK++)
@@ -197,7 +248,7 @@ void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string
 	    // diff of accuracy should be tiny
             MMVII_INTERNAL_ASSERT_bench(std::abs(aR2-aResidual)< 1e-10  ,"Reload camera  xml");
 
- StdOut() << "ssssssssssssssssssssssssss\n";getchar();
+ //  StdOut() << "ssssssssssssssssssssssssss\n";getchar();
 	    delete aConv;
 	    delete aCam2;
 	    delete aCalib;
@@ -209,17 +260,29 @@ void BenchCentralePerspective_ImportV1(cParamExeBench & aParam,const std::string
 
 }
 
+/*
+void BenchCentralePerspective_PoseImportV1(cParamExeBench & aParam,const std::string & aName,bool HCG,bool  CenterFix,double aAccuracy)
+{
+}
+*/
+
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam)
 {
+
+        BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",false,false,1e-5);
+        BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",false,true ,1e-5);
+	/*
+
     for (int aK=0 ; aK<3 ; aK++)
     {
-        BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",false,false,1e-5);
-        BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",false,true ,1e-5);
-        BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",true ,false,1e-5);
-        BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",true ,true ,1e-5);
+        BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",false,false,1e-5);
+        BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",false,true ,1e-5);
+        BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",true ,false,1e-5);
+        BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-60000_Cam-NIKON_D810.xml",true ,true ,1e-5);
 
-        BenchCentralePerspective_ImportV1(aParam,"AutoCal_Foc-11500_Cam-imx477imx477-1.xml",false,false,1e-3);
+        BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-11500_Cam-imx477imx477-1.xml",false,false,1e-3);
     }
+    */
 
 }
 

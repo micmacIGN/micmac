@@ -1,3 +1,4 @@
+#include "MMVII_all.h"
 #ifndef  _cMMVII_Appli_H_
 #define  _cMMVII_Appli_H_
 
