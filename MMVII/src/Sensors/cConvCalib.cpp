@@ -278,9 +278,11 @@ void BenchPoseImportV1(const std::string & aName,double anAccuracy)
      std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "ccTestOri.xml";
      aPC->ToFile(aNameTmp);
 
-     cSensorCamPC  *aPC2  =  cSensorCamPC::FromFile(aNameTmp);
 
-     StdOut()<< "DONNEuuuu " <<  aPC2->AvgResidual(aExp.mCorresp) << "\n"; getchar();
+     StdOut()<< "DONNEuuuu " <<  aPC->AvgResidual(aExp.mCorresp) << "\n"; 
+     cSensorCamPC  *aPC2  =  cSensorCamPC::FromFile(aNameTmp);
+     StdOut()<< "fffffff yyyyyyyyyyyyy " << aPC2->AvgResidual(aExp.mCorresp)   << "\n"; getchar();
+
 
      delete aPC;
      delete aPC2;

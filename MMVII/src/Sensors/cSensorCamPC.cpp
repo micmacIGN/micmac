@@ -104,7 +104,7 @@ void cSensorCamPC::AddData(const cAuxAr2007 & anAux)
     }
     MMVII::AddData(cAuxAr2007("EigenQuaternion",anAux),aQuat);
 
-    if (!anAux.Input())
+    if (anAux.Input())
     {
          SetNameImage(aNameImage);
          mPose = tPose(aC,cRotation3D<tREAL8>(MatFromCols(aI,aJ,aK),false));
