@@ -8,14 +8,50 @@ namespace MMVII
 {
 /** \file MMVII_PCSens.h
     \brief Interface class for central perspective sensors
+ *  
+ *  The two main classes are :
+ *     - cPerspCamIntrCalib ->  intrincic calibration
+ *     - cSensorCamPC       ->  extrinsic calibration = Pose + (cPerspCamIntrCalib *)
+ *
+ *  The most tricky thing is read/write of this object (on xml, dmp, json ...) . Mostly because the
+ *  same intrinsic calibration will be shared by several (many) cSensorCamPC, this has to be the case
+ *  as in bundle, we want to have one only set of unknows for the same internal calib.
+ *
+ *  So the policy is as follow for reading calibration:
+ *
+ *     - inside a process, when reading an internal calibration, a dictionnary name->object is maintained,
+ *     if the name has already been encountered the same object is returned;
+ *
+ *     - the cSensorCamPC must not free their internal calib, because its shared, so this freeing
+ *     is done at end of this application  using the " cMMVII_Appli::AddObj2DelAtEnd" method
+ *     (an altenative would have been to used shared_ptr ...)
+ *
+ *  For writing, identically, a memory of files having already been writen is maitained, and if the file has
+ *  be already encouterd nothing is done.
+ *
+ *  Both decision, should be adequate for most situation and are consequently the by defauly choice. If necessary
+ *  new option can be added.  For reading, when processing a file already encountered, for wich we have an existing calib,
+ *  we may have 3 option :
+ *
+ *      - return the existing calib as is (the default choice, the only one for now)
+ *      - return a new object
+ *      - return the same object but update it
+ *
 */
 
-class cDefProjPerspC;
-class cCalibStenPerfect ;
-class cPerspCamIntrCalib ;
-class cSensorCamPC ;
+class cDefProjPerspC;  // interface for nowing if where a proj is def
+class cCalibStenPerfect ;  // pure intrinsic calib (only PP + F)
+class cDataPerspCamIntrCalib;  // primary data part of a cPerspCamIntrCalib -> minimal data to save in a file to be able to reconstruct a cal
+class cPerspCamIntrCalib ; // object allowing computation of internal calib = cDataPerspCamIntrCalib + many calculators computed from data
+class cSensorCamPC ; // Sensor for one image = Pose + pointer to cPerspCamIntrCalib
 
-/**  Interface class for description of domaines where of a projection is defined in 3d-ground-space and 2-space-image */
+/**  Interface class for description of domaines where of a projection is defined in 3d-ground-space and 2-space-image 
+ *
+ *   For example, for othographic proj :
+ *
+ *     - 3D is def if Z>0  => P3DIsDef = Z
+ *     - 2D if Def if ||P|| <1  => P2DIsDef = 1 - sqrt(X^2+Y^2) 
+ * */
 class cDefProjPerspC
 {
        public :
@@ -26,10 +62,15 @@ class cDefProjPerspC
 
           /// Radial symetry, true for physcicall based model, false for ex with equirect
           virtual bool  HasRadialSym() const ;
+	  /// return an object from its enum (for a given enum, will be always the same)
           static const cDefProjPerspC & ProjOfType(eProjPC);
 };
 
-/**  Class for modelisation of intrisic calibration w/o distorsion */
+/**  Class for modelisation of intrisic calibration w/o distorsion : essentially the mapping
+ *
+ *      (photogrammetric space)     Q -> PP + F * Q   (pixel space)
+ *
+ */
 
 class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
 {
@@ -55,7 +96,7 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
          tPt    mPP;  ///<  Principal point
 };
 
-/**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
+/**  helper for cPerspCamIntrCalib, as the cPerspCamIntrCalib must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
 
 
@@ -78,6 +119,8 @@ class cDataPerspCamIntrCalib
       )  ;
       cDataPerspCamIntrCalib(const std::string & aName,eProjPC,const cPt3di &,double aFoc,cPt2di & aNbPix,int aSzBuf=-1);
 
+      void PushInformation(const std::string &);
+      std::vector<std::string> & VecInfo() ;
 
    protected :
       std::string                    mName;
@@ -89,6 +132,7 @@ class cDataPerspCamIntrCalib
       cDataPixelDomain               mDataPixDomain;              ///< sz, domaine of validity in pixel
       cPt3di                         mInv_Degr;       ///< degree of inverse approx by least square
       int                            mSzBuf;                         ///< sz of buffers in computation
+      std::vector<std::string>       mVectInfo;  ///< vector of potential commentarys
 };
 
 
@@ -103,6 +147,8 @@ class cDataPerspCamIntrCalib
            it belongs to a finite set of  possibility code by enumeration eProjPC;  for each model it has no parameter
 
          * dirtortion  R2->R2 , its a function close to identity (at least ideally)
+	 
+	 * cCalibStenPerfect  R2->R2  transformat additmentional unit in pixels
 
  */
 
@@ -133,6 +179,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...  
 	     void  ToFileIfFirstime(const std::string & ) const ; ///< to avoid many write 4 same cam
 	     static cPerspCamIntrCalib * FromFile(const std::string &); ///< create form xml/dmp ...
+             static std::string  PrefixName() ;
 
 
     // ==================   geometric points computation ===================
@@ -249,6 +296,11 @@ class cSensorCamPC : public cSensorImage
          void AddData(const cAuxAr2007 & anAux);
 	 void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...  
 	 static cSensorCamPC * FromFile(const std::string &); ///< create form xml/dmp ...
+
+         static std::string  PrefixName() ;
+         std::string  V_PrefixName() const override;
+
+
      private :
         cSensorCamPC(const cSensorCamPC&) = delete;
 

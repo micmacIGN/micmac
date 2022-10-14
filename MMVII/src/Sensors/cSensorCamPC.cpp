@@ -81,6 +81,8 @@ void cSensorCamPC::OnUpdate()
 }
 
 
+     // =================  READ/WRITE on files ===================
+
 void cSensorCamPC::AddData(const cAuxAr2007 & anAux)
 {
      std::string aNameImage = NameImage();
@@ -102,7 +104,19 @@ void cSensorCamPC::AddData(const cAuxAr2007 & anAux)
         MMVII::AddData(cAuxAr2007("AxeJ",aAuxRot),aJ);
         MMVII::AddData(cAuxAr2007("AxeK",aAuxRot),aK);
     }
-    MMVII::AddData(cAuxAr2007("EigenQuaternion",anAux),aQuat);
+    MMVII::AddData(cAuxAr2007("EQ",anAux),aQuat);
+    AddComment(anAux.Ar(),"EigenQuaternion, for information");
+
+    cPt3dr aWPK = mPose.Rot().ToWPK() *  (180.0/M_PI);
+    MMVII::AddData(cAuxAr2007("WPK",anAux),aWPK);
+    AddComment(anAux.Ar(),"Omega Phi Kapa in degree, for information");
+
+
+    cPt3dr aYPR = mPose.Rot().ToYPR() *  (180.0/M_PI);
+    MMVII::AddData(cAuxAr2007("YPR",anAux),aYPR);
+    AddComment(anAux.Ar(),"Yaw Pitch Roll in degree, for information");
+
+
 
     if (anAux.Input())
     {
@@ -137,6 +151,8 @@ cSensorCamPC * cSensorCamPC::FromFile(const std::string & aFile)
    return aPC;
 }
 
+std::string  cSensorCamPC::V_PrefixName() const { return PrefixName() ; }
+std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 
 }; // MMVII
 

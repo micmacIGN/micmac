@@ -53,11 +53,16 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
          cSensorImage(const std::string & aNameImage);
 
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
-         virtual double SqResidual(const cPair2D3D &) const;
-         virtual double AvgResidual(const cSet2D3D &) const;
+         double SqResidual(const cPair2D3D &) const;
+         double AvgResidual(const cSet2D3D &) const;
 
 	 const std::string & NameImage() const;
-	 void SetNameImage(const std::string &);
+	 void SetNameImage(const std::string &);  ///< used when reading from file
+
+	 std::string NameOriStd() const ;
+
+	 static std::string  PrefixName() ;
+	 virtual std::string  V_PrefixName() const = 0  ;
 
      private :
 	 std::string                                    mNameImage;

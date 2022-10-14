@@ -103,6 +103,9 @@ double  cSensorImage::AvgResidual(const cSet2D3D & aSet) const
 }
 
 
+std::string cSensorImage::PrefixName() { return "Ori"; }
+std::string cSensorImage::NameOriStd() const { return PrefixName() + "-" + V_PrefixName() + "-" + mNameImage + ".xml"; }
+
 
 
 }; // MMVII

@@ -143,6 +143,36 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
            MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"Mat ProdVect"); 
        }
    }
+
+   double aSomD=0;
+   for (int aKTest=0 ; aKTest<20 ; aKTest++)
+   {
+	// generate WPK, with caution to have cos phi not to close to 0
+        cPtxd<Type,3>  aWPK(RandUnif_C()*20,RandUnif_C()*1.5,RandUnif_C()*20);
+
+	// now force to PI/2 and -PI/2 sometime
+	if (aKTest%3!=1)
+	{
+            aWPK.y() = (M_PI/2.0) * (aKTest%3 -1) + RandUnif_C()*1e-4;
+	}
+
+	cRotation3D<Type>  aR0 = cRotation3D<Type>::RotFromWPK(aWPK);
+	aWPK = aR0.ToWPK();
+	cRotation3D<Type>  aR1 = cRotation3D<Type>::RotFromWPK(aWPK);
+
+	Type aD = aR0.Mat().DIm().L2Dist(aR1.Mat().DIm());
+	aSomD += aD;
+        MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"Omega Phi Kapa"); 
+
+
+	aR0 = cRotation3D<Type>::RotFromYPR(aWPK);
+	aWPK = aR0.ToYPR();
+	aR1 = cRotation3D<Type>::RotFromYPR(aWPK);
+	aD = aR0.Mat().DIm().L2Dist(aR1.Mat().DIm());
+        MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"Omega Phi Kapa"); 
+	// StdOut() << "DDDD " << aD << "\n";
+   }
+   // StdOut() << "============================\n";
 }
 
 void BenchRotation3D(cParamExeBench & aParam)

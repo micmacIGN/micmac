@@ -133,10 +133,19 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux)
        }
     }
 
+    MMVII::AddData(cAuxAr2007("Informations",anAux),mVectInfo);
 
     if (!anAux.Input())
         mVTmpCopyParams.clear();
 }
+
+void cDataPerspCamIntrCalib::PushInformation(const std::string & anInfo)
+{
+   mVectInfo.push_back(anInfo);
+}
+std::vector<std::string> & cDataPerspCamIntrCalib::VecInfo() {return mVectInfo;}
+
+
 
 /* ******************************************************* */
 /*                                                         */
@@ -239,6 +248,8 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName)
      }
      return aPersp;
 }
+
+std::string cPerspCamIntrCalib::PrefixName() {return "Calib-" + cSensorCamPC::PrefixName() + "-";}
 
 	//  ==================  destuctor  "big" modifier ====================
 

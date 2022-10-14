@@ -98,7 +98,7 @@ template <class Type> class cRotation3D
        static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
        // Compute a rotation arround a given axe and with a given angle
        static cRotation3D<Type> RotFromAxe(const tPt & anAxe,Type aTeta);
-       //  Rotation arround Axe + Teta
+       //  Axiator close to Rot From but teta=Norm !!  exp(Mat(^Axe))
        static cRotation3D<Type> RotFromAxiator(const tPt & anAxe);
        // Compute a random rotation for test/bench
        static cRotation3D<Type> RandomRot();
@@ -107,6 +107,14 @@ template <class Type> class cRotation3D
 
        // Extract Axes of a rotation and compute its angle 
        void ExtractAxe(tPt & anAxe,Type & aTeta);
+
+       // conversion to Omega Phi Kapa
+       static cRotation3D<Type>  RotFromWPK(const tPt & aWPK);
+       tPt                       ToWPK() const;
+
+       // conversion to Yaw Pitch Roll
+       static cRotation3D<Type>  RotFromYPR(const tPt & aWPK);
+       tPt                       ToYPR() const;
 
     private :
        cDenseMatrix<Type>  mMat;
