@@ -762,6 +762,19 @@ template <typename Type> Type ASin(const Type & aSin);
 /// to have it as operator in code gen
 template <typename Type> Type DerASin(const Type & aSin);
 
+/// as sqrt but check value
+template <typename Type> Type Sqrt(const Type & aX);
+///  as 1/(2 sqrt) but check value
+template <typename Type> Type DerSqrt(const Type & aX);
+
+/// to have it in good namespace in code gen
+template <typename Type> Type ATan2(const Type & aX,const Type & aY);
+/// to have it d/dx in code gen
+template <typename Type> Type DerX_ATan2(const Type & aX,const Type & aY);
+/// to have it d/dy in code gen
+template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY);
+
+
 
 
 
@@ -779,6 +792,8 @@ template <typename Type> Type DerYAtanXsY_sX(const Type & X,const Type & Y);
 template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
    /// Same as DerXAtanXY_sX ...  ... bench
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
+
+  
 
 
 /*  ****************************************** */

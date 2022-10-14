@@ -139,7 +139,8 @@ template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
                {eProjPC::eFE_EquiDist,"FE_EquiDist"},
                {eProjPC::eFE_EquiSolid,"FE_EquiSolid"},
                {eProjPC::eStereroGraphik,"StereroGraphik"},
-               {eProjPC::eOrthoGraphik,"OrthoGraphik"}
+               {eProjPC::eOrthoGraphik,"OrthoGraphik"},
+               {eProjPC::eEquiRect,"eEquiRect"}
            };
 TPL_ENUM_2_STRING(eProjPC);
 
@@ -162,6 +163,9 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::FileCloud,"Cloud"},
                 {eTA2007::File3DRegion,"3DReg"},
                 {eTA2007::MPatFile,"MPF"},
+                {eTA2007::Orient,"Ori"},
+                {eTA2007::Input,"In"},
+                {eTA2007::Output,"Out"},
                 {eTA2007::AddCom,"AddCom"},
                 {eTA2007::Internal,"##Intern"},
                 {eTA2007::Tuning,"##Tune"},

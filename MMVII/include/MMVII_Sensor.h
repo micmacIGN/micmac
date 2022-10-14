@@ -14,34 +14,85 @@ namespace MMVII
 
 */
 
-/// Base class for all image geometry, laser
-/*
-class cDataGeomSensor : public cDataMapping<tREAL8,3,2>
+struct  cPair2D3D;
+struct cSet2D3D;
+class cSensorImage;
+class cPixelDomain;
+
+
+/** class for representing  a 3D point paired with it 2d image projection */
+ 
+struct  cPair2D3D
 {
-   public :
-       cDataGeomSensor();
-   private :
+     public :
+          cPair2D3D(const cPt2dr &,const cPt3dr &);
+          cPt2dr mP2;
+          cPt3dr mP3;
 };
-*/
 
-
-/*
-/// Base class for all image geometry, laser
-class cPoseStenope : public cGeomSensor
+/**  class for representing  set of pairs 2-3  */
+struct cSet2D3D
 {
-   public :
-       /// To make a general mapping, just a synomym of Proj
-       cPtxd<double,2> Direct(const cPtxd<double,3> &) const override;
-       /// 
-       cPt2dr  Proj(const cPt3dr &);
+     public :
+         typedef std::vector<cPair2D3D>   tCont2D3D;
 
-       cPoseStenope(const cPt3dr & aC);
-       
-       const cPt3dr & C() const;
-   private :
-       cPt3dr  mC;
+         void AddPair(const cPair2D3D &);
+         const tCont2D3D &  Pairs() const;
+         void  Clear() ;
+
+     private :
+        tCont2D3D  mPairs;
 };
-*/
+
+/*  base-class  4 all image sensor */
+
+class cSensorImage  :  public cObjWithUnkowns<tREAL8>
+{
+     public :
+
+         cSensorImage(const std::string & aNameImage);
+
+         virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
+         double SqResidual(const cPair2D3D &) const;
+         double AvgResidual(const cSet2D3D &) const;
+
+	 const std::string & NameImage() const;
+	 void SetNameImage(const std::string &);  ///< used when reading from file
+
+	 std::string NameOriStd() const ;
+
+	 static std::string  PrefixName() ;
+	 virtual std::string  V_PrefixName() const = 0  ;
+
+     private :
+	 std::string                                    mNameImage;
+	 // static std::map<std::string,cSensorImage*>  mDicoSensor;
+	 // static int                                  mNum;
+};
+
+/**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
+ * minimal data for description, with def contructor from the more "sophisticated" object  */
+class cDataPixelDomain 
+{
+      public :
+           cDataPixelDomain(const cPt2di &aSz);
+
+           const cPt2di & Sz() const;
+	   virtual void AddData(const cAuxAr2007 & anAux);
+      protected :
+           cPt2di     mSz;
+};
+
+
+/*  base-class  4 definition of validity domaine in image space  */
+class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
+{
+	public :
+		cPixelDomain(cDataPixelDomain *);
+
+	private :
+		cDataPixelDomain * mDPD;
+};
 
 
 };

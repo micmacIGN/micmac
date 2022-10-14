@@ -418,6 +418,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     std::string aDEMInitXML;
     std::string aDEMInitIMG;
 
+    std::string aEnvZInf;
+    std::string aEnvZSup;
+
     std::string mTemplate="";
     ElInitArgMain
     (
@@ -498,6 +501,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(aDEMInitIMG,"DEMInitIMG",true,"img of the DEM used to initialise the depth research", eSAM_NoInit)
                     << EAM(aDEMInitXML,"DEMInitXML",true,"xml of the DEM used to initialise the depth research", eSAM_NoInit)
                     << EAM(mExtenZ,"ExtIntZ",true,"Extension of Z Interval for elimination")
+
+                    << EAM(aEnvZInf,"EnvZInf",true,"Envelop inf of Z/Px")
+                    << EAM(aEnvZSup,"EnvZSup",true,"Envelop sup of Z/Px")
 
      );
 
@@ -1347,6 +1353,19 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +DEMInitXML=") + aDEMInitXML;
       }
 
+      {
+      //Prise en compte d'un DEM initial si celui-ci a ete mis en entree
+           bool ZInfInit = EAMIsInit(&aEnvZInf);
+           bool ZSupInit = EAMIsInit(&aEnvZSup);
+           ELISE_ASSERT(ZInfInit==ZSupInit,"incohrence in ZInfInit/ZSupInit");
+
+           if (ZInfInit && ZSupInit)
+           {
+               mCom  =    mCom + " +UseEnvMNTInit=true"
+                               +  std::string(" +EnvZInf=") + aEnvZInf
+                               +  std::string(" +EnvZSup=") + aEnvZSup;
+           }
+      }
 
       if (EAMIsInit(&aBoxTerrain))
       {

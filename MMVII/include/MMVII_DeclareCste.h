@@ -48,6 +48,8 @@ extern const std::string TmpMMVIIDirGlob;
 extern const std::string TmpMMVIIDirPCar;
 extern const std::string MMVIITestDir;
 extern const std::string TmpMMVIIProcSubDir;
+extern const std::string MMVIIDirOrient;
+extern const std::string MMVIIDirHomol;
 
 //  String 
 extern const std::string BLANK;  // just std::string(" ") to avoid char * + char *

@@ -567,8 +567,9 @@ What is done is what can be expected :
 The tag  {\tt  SCHURR:CALC} in {\tt BenchResolSysNonLinear.cpp} contain an example of such use.
 Adding equation with temporary variables, is slightly more complex, as the elimination
 can only be done once we have all the equations involving a given subset of unknowns.
-So the computation is done in $2$ steps : (1) accumulation in a structure 
-with {\tt AddEq2Subst}, (2) using this structure
+So the computation is done in $2$ steps : (1) create a structure, give at this initialisation
+step  the current values of unkonws (2) accumulation in a structure 
+with {\tt AddEq2Subst}, (3) using this structure
 for adding the equation on unknowns after having done the elimination of temporary unknowns with
 {\tt  AddObsWithTmpUK}
 
@@ -577,7 +578,7 @@ equation has the signature :
 
 \tiny
 \begin{lstlisting}
-    void  AddEq2Subst (tSetIO\_ST & aSetIO,tCalc *,const tVectInd &,const tStdVect& aVTmp,
+    void  AddEq2Subst (tSetIO\_ST & aSetIO,tCalc *,const tVectInd &,
                        const tStdVect& aVObs,const tResidualW & aWeighter= tResidualW());
 \end{lstlisting}
 \normalsize
@@ -586,12 +587,14 @@ In this method {\tt aVObs} and {\tt aWeighter} are identic to the equivalent in
 {\tt CalcAndAddObs}. For the others :
 
 \begin{enumerate}
-   \item the first one {\tt cSetIORSNL\_SameTmp<Type>}, is the accumulating structure;
+   \item the first one {\tt cSetIORSNL\_SameTmp<Type>}, is the accumulating structure, it
+	   constructor takes current values of temporaries;
 
    \item  the vector {\tt aVI} contains the  unknown and temporary unkown,  
-          as temporay unknowns have no numbering they are declared with 
-          conventionnal value {\tt -1},  standard unknown are processed as before; 
-         see {\tt aVIndMixt} after tag {\tt SCHURR:CALC}
+	   conventionnaly the numbering of unknown is made with negative numbers starting from
+           $-1$ to distinguish them from standard unknown, in this example they are $-1$ and $-2$,
+           standard unknown are processed as before; 
+         s  ee {\tt aVIndMixt} after tag {\tt SCHURR:CALC}
 
    \item  the vector {\tt aVTmp} contains the  values of temporary unknowns;
 \end{enumerate}

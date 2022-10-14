@@ -42,7 +42,8 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
                             cRect2   aRect,
 			    bool WithSchurr,
                             const cParamMainNW & aParamNW,
-			    cParamSparseNormalLstSq * aParamLSQ
+			    cParamSparseNormalLstSq * aParamLSQ,
+			    const std::vector<Type>  & aWeightSetSchur
 		      ) :
     mModeSSR   (aMode),
     mParamLSQ  (aParamLSQ),
@@ -57,7 +58,8 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
     mCalcD     (nullptr),
     // Amplitude of scale muste
     mSimInd2G   (cSim2D<Type>::RandomSimInv(5.0,3.0,0.1)) ,
-    mBoxPts     (cBox2dr::Empty())
+    mBoxPts     (cBox2dr::Empty()),
+    mWeightSetSchur  (aWeightSetSchur)
 {
 }
 
@@ -123,6 +125,7 @@ template <class Type> void cMainNetwork <Type>::PostInit()
 	      const tPNet & aPL = PNetOfGrid(aPSch.mInd+cPt2di(-1,0));  // PLeft
 	      const tPNet & aPR = PNetOfGrid(aPSch.mInd+cPt2di( 1,0));  // PRight
 	      aPSch.mTheorPt  =   (aPL.TheorPt()+aPR.TheorPt())/Type(2.0);
+
           }
      }
      
@@ -253,15 +256,28 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
 
 template <class Type> void cMainNetwork <Type>::AddGaugeConstraint(Type aWeightFix)
 {
+     if (aWeightFix==0) return;
      //  Compute dist to sol + add constraint for fixed var
      for (const auto & aPN : mVPts)
      {
            // EQ:FIXVAR
 	   // Fix X and Y for the two given points
 	   if (aPN.mFrozenY) // If Y is frozenn add equation fixing Y to its theoreticall value
-              mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
+	   {
+              if (aWeightFix>=0)
+                 mSys->AddEqFixVar(aPN.mNumY,aPN.TheorPt().y(),aWeightFix);
+	      else
+                 mSys->SetFrozenVar(aPN.mNumY,aPN.TheorPt().y());
+	   }
+
+
 	   if (aPN.mFrozenX)   // If X is frozenn add equation fixing X to its theoreticall value
-              mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
+	   {
+              if (aWeightFix>=0)
+                  mSys->AddEqFixVar(aPN.mNumX,aPN.TheorPt().x(),aWeightFix);
+	      else 
+                 mSys->SetFrozenVar(aPN.mNumX,aPN.TheorPt().x());
+	   }
      }
 }
 
@@ -271,10 +287,7 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
      Type   aResidual = CalcResidual() ;
      // if we are computing covariance we want it in a free network (the gauge constraint 
      // in the local network have no meaning in the coordinate of the global network)
-     if (aWeigthGauge > 0)
-     {
-         AddGaugeConstraint(aWeigthGauge);
-     }
+     AddGaugeConstraint(aWeigthGauge);
      
      
      //  Add observation on distances
@@ -285,18 +298,41 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
          if (aPN1.mSchurrPoint)
 	 {
             // SCHURR:CALC
-            cSetIORSNL_SameTmp<Type> aSetIO; // structure to grouping all equation relative to PN1
 	    cPtxd<Type,2> aP1= aPN1.PCur(); // current value, required for linearization
+            cPtxd<Type,2> aPTh1= aPN1.TheorPt(); // theoreticall value, used for test on fix var (else it's cheating to use it)
             std::vector<Type> aVTmp{aP1.x(),aP1.y()};  // vectors of temporary
+
+	    // structure to generate "hard" constraints on temporary , cheat with theoreticall values
+            std::vector<int>    aVIndFrozen;
+            std::vector<Type>   aVValFrozen;
+	    if (mWeightSetSchur.at(1)<0)
+	    {
+                aVIndFrozen.push_back(-2);
+		aVValFrozen.push_back(aPTh1.y());
+	    }
+	    if (mWeightSetSchur.at(0)<0)
+	    {
+                aVIndFrozen.push_back(-1);
+		aVValFrozen.push_back(aPTh1.x());
+	    }
+
+            cSetIORSNL_SameTmp<Type> aSetIO(aVTmp,aVIndFrozen,aVValFrozen); // structure to grouping all equation relative to PN1
 	    // Parse all obsevation on PN1
             for (const auto & aI2 : aPN1.mLinked)
             {
                 const tPNet & aPN2 = mVPts.at(aI2);
 	        //std::vector<int> aVIndMixt{aPN2.mNumX,aPN2.mNumY,-1,-1};  // Compute index of unknowns for this equation
-	        std::vector<int> aVIndMixt{-1,-1,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns for this equation
+	        std::vector<int> aVIndMixt{-1,-2,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns for this equation
                 std::vector<Type> aVObs{ObsDist(aPN1,aPN2)}; // compute observations=target distance
                 // Add eq in aSetIO, using CalcD intantiated with VInd,aVTmp,aVObs
-		mSys->AddEq2Subst(aSetIO,mCalcD,aVIndMixt,aVTmp,aVObs);
+		mSys->AddEq2Subst(aSetIO,mCalcD,aVIndMixt,aVObs);
+	    }
+	    {
+                if (mWeightSetSchur.at(0)>=0) aSetIO.AddFixVarTmp(-1,aPTh1.x(), mWeightSetSchur.at(0)); // soft constraint-x  on theoreticall
+                if (mWeightSetSchur.at(1)>=0) aSetIO.AddFixVarTmp(-2,aPTh1.y(), mWeightSetSchur.at(1)); // soft constraint-y  on theoreticall
+                if (mWeightSetSchur.at(2)>=0) aSetIO.AddFixCurVarTmp(-1, mWeightSetSchur.at(2)); // soft constraint-x  on current
+                if (mWeightSetSchur.at(3)>=0) aSetIO.AddFixCurVarTmp(-2, mWeightSetSchur.at(3)); // soft constraint-y  on current
+		// StdOut() << "GGGGGgg\n";getchar();
 	    }
 	    mSys->AddObsWithTmpUK(aSetIO);
 	 }
@@ -370,10 +406,13 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
 
      //  To fix globally the network (gauge) 3 coordinate are frozen, for these one the pertubation if void
      //  so that recover the good position
+     //  =>>                                 NO LONGER TRUE
+/*
      if (mFrozenX)
        mPosInit.x() = mTheorPt.x();
      if (mFrozenY)
        mPosInit.y() = mTheorPt.y();
+*/
 
 
      if (!mSchurrPoint)

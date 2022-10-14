@@ -58,8 +58,13 @@ template <class Type>
      mNbTmp = aSetSetEq.NbTmpUk();
      for (const auto & anEq : aSetSetEq.AllEq())
      {
-         for (const auto & anInd : anEq.mVIndUk)
-             mSetInd.AddInd(anInd);
+         for (const auto & anInd : anEq.mGlobVInd)
+	 {
+             if (!cSetIORSNL_SameTmp<Type>::IsIndTmp(anInd))
+	     {
+                 mSetInd.AddInd(anInd);
+	     }
+	 }
      }
      mSetInd.SortInd();
 
@@ -86,20 +91,17 @@ template <class Type>
      //  Compute the reduced  least square system
      for (const auto & aSetEq : aSetSetEq.AllEq())
      {
-         // const std::vector<int> & aVI =   aSetEq.mVIndUk;
-	 // size_t aNbI = aVI.size();
          for (size_t aKEq=0 ; aKEq<aSetEq.mVals.size() ; aKEq++)
 	 {
               mSV.Reset();
 	      const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
 
-              int aIndTmp = 0;
-              for (size_t aKGlob=0 ; aKGlob<aSetEq.mVIndGlob.size() ; aKGlob++)
+              for (size_t aKGlob=0 ; aKGlob<aSetEq.mGlobVInd.size() ; aKGlob++)
               {
                    const Type  & aDer = aVDer.at(aKGlob);
-                   int aInd = aSetEq.mVIndGlob[aKGlob];
-                   if (aInd<0)
-                       mSV.AddIV(aIndTmp++,aDer);
+                   int aInd = aSetEq.mGlobVInd[aKGlob];
+                   if ( cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd))
+                       mSV.AddIV(cSetIORSNL_SameTmp<Type>::ToIndTmp(aInd),aDer);
                    else
                        mSV.AddIV(mNbTmp+mNumComp.at(aInd),aDer);
                      

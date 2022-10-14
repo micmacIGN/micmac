@@ -343,7 +343,10 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         cDenseMatrix(int aX,eModeInitImage=eModeInitImage::eMIA_NoInit);  ///< Square
         cDenseMatrix(tIm);
         cDenseMatrix Dup() const;
+        static cDenseMatrix Identity(int aSz);  ///< return identity matrix
         static cDenseMatrix Diag(const tDV &);
+        cDenseMatrix ClosestOrthog() const;  ///< return closest 
+
         /**  Generate a random square matrix having "good" conditionning property , i.e with eigen value constraint,
             usefull for bench as when the random matrix is close to singular, it may instability that fail
             the numerical test.
@@ -372,6 +375,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         // Type & GetElem(const cPt2di & aP)  { return tUO_DM::GetElem(aP);}
         void  SetElem(int  aX,int  aY,const Type & aV) {  tUO_DM::SetElem(aX,aY,aV);}
         void  AddElem(int  aX,int  aY,const Type & aV) {  tUO_DM::AddElem(aX,aY,aV);}
+
+	void PushByLine(std::vector<Type> &) const; /// write all the matrix, do it line-first
+	void PushByCol(std::vector<Type> &) const; /// write all the matrix, do it Colum-first
 
         void Show() const;
 
@@ -553,8 +559,6 @@ template <class Type>  class cDecSumSqLinear
          std::vector<tElem>   mVElems;
 
 };
-
-
 
 template <class Type> cDenseMatrix<Type> operator * (const cDenseMatrix<Type> &,const cDenseMatrix<Type>&);
 template <class T1,class T2> cDenseVect<T1> operator * (const cDenseVect<T1> &,const cDenseMatrix<T2>&);

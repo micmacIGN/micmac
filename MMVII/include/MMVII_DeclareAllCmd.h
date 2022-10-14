@@ -45,6 +45,7 @@ extern cSpecMMVII_Appli  TheSpecCloudClip;
 extern cSpecMMVII_Appli  TheSpecMeshDev; 
 extern cSpecMMVII_Appli  TheSpecGenMeshDev; 
 extern cSpecMMVII_Appli  TheSpecTestCovProp; 
+extern cSpecMMVII_Appli  TheSpec_OriConvV1V2; 
 
 };
 

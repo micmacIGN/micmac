@@ -783,16 +783,38 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::FromNorm
     // return Proj(aRes);
 }
 
+template <class Type,const int Dim> size_t  cTplBox<Type,Dim>::NbFlagCorner() {return 1<<Dim;}
+
+template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::CornerOfFlag(size_t aFlag) const
+{
+   tPt aRes;
+   for (size_t aD=0 ; aD<Dim ; aD++)
+   {
+       aRes[aD] = (aFlag & (1<<aD)) ? mP0[aD] : mP1[aD];
+   }
+   return aRes;
+}
+
 template <class Type,const int Dim> void  cTplBox<Type,Dim>::Corners(tCorner & aRes) const
 {
-    for (size_t aKpt=0; aKpt<(1<<Dim)  ; aKpt++)
+    for (size_t aFlag=0; aFlag<NbFlagCorner()  ; aFlag++)
     {
-        for (size_t aD=0 ; aD<Dim ; aD++)
-        {
-            aRes[aKpt][aD] = (aKpt & (1<<aD)) ? mP0[aD] : mP1[aD];
-        }
+        aRes[aFlag] = CornerOfFlag(aFlag);
     }
 }
+
+template <class Type,const int Dim> Type  cTplBox<Type,Dim>::DistMax2Corners(const tPt& aPt) const
+{
+    Type aRes = SqN2(aPt-CornerOfFlag(0));
+    for (size_t aFlag=1; aFlag<NbFlagCorner()  ; aFlag++)
+    {
+        UpdateMax(aRes,(Type)SqN2(aPt-CornerOfFlag(aFlag)));
+    }
+    return std::sqrt(aRes);
+}
+
+
+
 
 template <class Type,const int Dim> cPtxd<double,Dim>  cTplBox<Type,Dim>::ToNormaliseCoord(const cPtxd<Type,Dim> & aP) const 
 {

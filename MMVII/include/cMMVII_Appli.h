@@ -1,3 +1,4 @@
+#include "MMVII_all.h"
 #ifndef  _cMMVII_Appli_H_
 #define  _cMMVII_Appli_H_
 
@@ -366,6 +367,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void InitParam();  ///< Parse the parameter list
         void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
+	int NbProcAllowed() const; ///< Accessor to nb of process allowed for the appli
         const std::string & DirProject()   const;   ///<  Accessor to directoy of project
         const std::string & TopDirMMVII()   const;   ///<  main directory of MMVII , upon include,src ..
         const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
@@ -392,6 +394,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
         virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
         std::string  CommandOfMain() const; ///< Glob command by aggregation of ArgcArgv
+
+	static void AddObj2DelAtEnd(cObj2DelAtEnd *);
     protected :
 
         /// Constructor, essenntially memorize command line and specifs
@@ -532,6 +536,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mCarPPrefIn;   ///< Prefix for input  Carac point ...
         std::string                               mTiePPrefOut;  ///< Prefix for output Tie Points ...
         std::string                               mTiePPrefIn;   ///< Prefix for inout  Tie Points ...
+
+	static std::vector<cObj2DelAtEnd *>       mVectObj2DelAtEnd;
 };
 
 

@@ -1,5 +1,5 @@
 #include "include/MMVII_all.h"
-//#include "include/MMVII_Tpl_Images.h"
+#include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -116,7 +116,63 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
                 MMVII_INTERNAL_ASSERT_bench(aDist<1e-5,"Rot->Quat->Rot"); // Inversion this way
            }
        }
+
    }
+   for (int aKTest=0 ; aKTest<20 ; aKTest++)
+   {
+       {
+           cPtxd<Type,3> aW = cPtxd<Type,3>::PRandC() *Type(3.0);
+	   cDenseMatrix<Type> aMW = MatProdVect(aW);
+           cPtxd<Type,3> aP = cPtxd<Type,3>::PRandC() *Type(10.0);
+	   cPtxd<Type,3> aQ1 = aW ^aP;
+	   cPtxd<Type,3> aQ2 =  aMW * aP;
+	   Type aD = Norm2(aQ1-aQ2);
+
+           MMVII_INTERNAL_ASSERT_bench(aD<1e-5,"Mat ProdVect"); // Inversion this way
+           cRotation3D<Type>  aR = cRotation3D<Type>::RotFromAxiator(aW);
+
+	   // will comput exp(MW) by  (1+MW/N) ^N  for N big
+           int aNbPow2 = 15;
+	   // init by MatExp = 1+MW/2^N
+	   cDenseMatrix<Type>  aMatExp = cDenseMatrix<Type>::Identity(3) + aMW *Type(1.0/(1<<aNbPow2));
+	   for (int aK=0 ; aK<aNbPow2 ; aK++)  // quick pow 2^N by iterative square
+               aMatExp = aMatExp * aMatExp;
+
+	   aD =  aR.Mat().DIm().L2Dist(aMatExp.DIm());
+	   // Low accuracy required becaus if NPow2 too big numerical error, too small formula wrong ...
+           MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"Mat ProdVect"); 
+       }
+   }
+
+   double aSomD=0;
+   for (int aKTest=0 ; aKTest<20 ; aKTest++)
+   {
+	// generate WPK, with caution to have cos phi not to close to 0
+        cPtxd<Type,3>  aWPK(RandUnif_C()*20,RandUnif_C()*1.5,RandUnif_C()*20);
+
+	// now force to PI/2 and -PI/2 sometime
+	if (aKTest%3!=1)
+	{
+            aWPK.y() = (M_PI/2.0) * (aKTest%3 -1) + RandUnif_C()*1e-4;
+	}
+
+	cRotation3D<Type>  aR0 = cRotation3D<Type>::RotFromWPK(aWPK);
+	aWPK = aR0.ToWPK();
+	cRotation3D<Type>  aR1 = cRotation3D<Type>::RotFromWPK(aWPK);
+
+	Type aD = aR0.Mat().DIm().L2Dist(aR1.Mat().DIm());
+	aSomD += aD;
+        MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"Omega Phi Kapa"); 
+
+
+	aR0 = cRotation3D<Type>::RotFromYPR(aWPK);
+	aWPK = aR0.ToYPR();
+	aR1 = cRotation3D<Type>::RotFromYPR(aWPK);
+	aD = aR0.Mat().DIm().L2Dist(aR1.Mat().DIm());
+        MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"Omega Phi Kapa"); 
+	// StdOut() << "DDDD " << aD << "\n";
+   }
+   // StdOut() << "============================\n";
 }
 
 void BenchRotation3D(cParamExeBench & aParam)

@@ -116,6 +116,7 @@ template <class Type,const int Dim> class cBijAffMapElem;
     In the devlopment step  cDataMapping is still accessible.
 */
 
+/*
 template <class Type,const int DimIn,const int DimOut> class cMapping
 {
     public :
@@ -128,6 +129,7 @@ template <class Type,const int DimIn,const int DimOut> class cMapping
       std::shared_ptr<tDataMap>   mPtr; 
       tDataMap*                   mRawPtr;
 };
+*/
 
 /** Class for defining a bounded subset of R^n. TO DEVLOP ...
 */
@@ -276,7 +278,7 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
 {
     public :
       virtual ~cDataMapping<Type,DimIn,DimOut>();
-      typedef  cMapping<Type,DimIn,DimOut> tMap;
+      // typedef  cMapping<Type,DimIn,DimOut> tMap;
       typedef  cPtxd<Type,DimOut>          tPtOut;
       typedef  cPtxd<Type,DimIn>           tPtIn;
       typedef  std::vector<tPtIn>          tVecIn;
@@ -460,7 +462,7 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       typedef typename  tDataInvMap::tPt       tPt;
       typedef typename  tDataInvMap::tVecPt    tVecPt;
 
-      typedef cMapping<Type,Dim,Dim>         tMap;
+      // typedef cMapping<Type,Dim,Dim>         tMap;
       typedef cDataMapping<Type,Dim,Dim>     tDataMap;
       typedef typename  tDataMap::tResVecJac tResVecJac;
 
@@ -471,17 +473,21 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       const Type & DTolInv() const;
       /// Access to the structure, only needed in some bench to create artificial difficult situations
       tHelperInvertIter *  StrInvertIter() const;
+
+      ~cDataIterInvertMapping();
     protected :
-      cDataIterInvertMapping(const tPt & aEpsDiff,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
-      cDataIterInvertMapping(tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
+      cDataIterInvertMapping(const tPt & aEpsDiff,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptRoughInv);
+      cDataIterInvertMapping(tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptRoughInv);
 
     private :
       cDataIterInvertMapping(const cDataIterInvertMapping<Type,Dim> & ) = delete;
 
-      mutable std::shared_ptr<tHelperInvertIter> mStrInvertIter;
-      tMap                mRoughInv;
+      // mutable std::shared_ptr<tHelperInvertIter> mStrInvertIter;
+      mutable tHelperInvertIter* mStrInvertIter;
+      tDataMap *          mRoughInv;
       Type                mDTolInv;
       int                 mNbIterMaxInv;
+      bool                mAdoptRoughInv;
 };
 
 /** When we have an existing mapping, we want to invert it by iteration, if we cannot inherit
@@ -492,21 +498,24 @@ template <class Type,const int Dim> class cDataIIMFromMap : public cDataIterInve
 {
     public :
       typedef cDataIterInvertMapping<Type,Dim> tDataIIMap;
-      typedef cMapping<Type,Dim,Dim>         tMap;
+      typedef cDataMapping<Type,Dim,Dim>     tDataMap;
+      // typedef cMapping<Type,Dim,Dim>         tMap;
 
       using typename tDataIIMap::tPt;
       using typename tDataIIMap::tVecPt;
       using typename tDataIIMap::tCsteResVecJac;
       using typename tDataIIMap::tResVecJac;
 
-      cDataIIMFromMap(tMap aMap,const tPt &,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
-      cDataIIMFromMap(tMap aMap,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
+      cDataIIMFromMap(tDataMap * aMap,const tPt &,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptMap,bool AdoptRIM);
+      cDataIIMFromMap(tDataMap * aMap,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptMap,bool AdoptRIM);
 
       const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;  //V2
       tCsteResVecJac  Jacobian(tResVecJac,const tVecPt &) const override;  //J2
+      ~cDataIIMFromMap();
     private :
       cDataIIMFromMap(const cDataIIMFromMap<Type,Dim> & ) = delete;
-      tMap                mMap;
+      tDataMap *                mMap;									   
+      bool                      mAdoptMap;
 };
 
 /** Represntation of identity as a mapping */
@@ -551,6 +560,8 @@ template <class Type,const int DimIn,const int DimOut>
        void SetObs(const std::vector<Type> &); ///< just modify mVObs
        // void SetDeleteCalc(bool);
 
+       const std::vector<Type> & VObs() const;
+       std::vector<Type> & VObs();
     private  :
        cDataMapCalcSymbDer(const cDataMapCalcSymbDer<Type,DimIn,DimOut> & ) = delete;
        void CheckDim(tCalc *,bool Derive); ///< used to check that both calculator have adequate structure
@@ -579,10 +590,134 @@ template <class Type,int Dim> class  cDataNxNMapCalcSymbDer  : public cDataNxNMa
 
       cDataNxNMapCalcSymbDer(tCalc  * aCalcVal,tCalc  * aCalcDer,const std::vector<Type> & aVObs,bool DeleteCalc);
       void SetObs(const std::vector<Type> &);
+      const std::vector<Type> & VObs() const;
+      std::vector<Type> & VObs();
     public :
        cDataMapCalcSymbDer<Type,Dim,Dim>  mDMS;
 
 };
+
+/**  Helper for extending map invere near frontier */
+
+template <class Type,const int Dim>  struct cPtsExtendCMI
+{
+     public :
+         typedef cPtxd<Type,Dim> tPt;
+         cPtsExtendCMI(const tPt & aCurP,const tPt & aDir) ;
+
+         tPt  mCurP;
+         tPt  mDir;
+};
+
+
+/**   Class for computing an inverse mapping from :
+         * the direct mapping to invert  EIn => EOut
+         * a set of base function that linerly code the invert
+         * a validity domain on the output space EOut
+         * a "seed" point in input space
+
+      The criterion for validity if   || J(Seed)^-1 * J(p) -Id ||  <  Threshold   J=Jacobian
+
+       This is adapted to distorsion where :
+          * we know the output space -> sensor space + an optional validty (masq image, circle ...)
+          * we jo
+
+       The method make grow a space where the mapping can reasonnabily be expect to be invertible,
+  the critrion being for this is to ensure that the jacobian is always sufficiently close to the jacobian
+  at the seed (pushed to the limit, when equals it means that function is linear).
+
+       The growing is made on a grid by a connected component analysis starting from the seed.
+
+       At the end, due to the sampling we may have few or no point close to the border/frontier. This
+    is no good as we know that extrapolation do not work well, so we have a step  were we add
+    a prolongation to go nearer to the frontier
+*/
+
+
+
+template <class Type,const int Dim> class  cComputeMapInverse
+{
+    public :
+            //  aCMaxRel => define the zone relatively to the rho max
+        friend void OneBench_CMI(double aCMaxRel);
+        // using enum eLabelIm_CMI;
+        typedef cLeastSqComputeMaps<Type,Dim,Dim> tLSQ;
+        typedef cDataBoundedSet<Type,Dim>         tSet;
+        typedef cDataNxNMapping<Type,Dim>         tMap;
+        typedef cPtxd<Type,Dim>                   tPtR;
+        typedef cPtxd<int,Dim>                    tPtI;
+        typedef cTplBox<Type,Dim>                 tBoxR;
+        typedef cPtsExtendCMI<Type,Dim>           tExtent;
+        typedef typename tMap::tCsteResVecJac     tCsteResVecJac;
+
+        /// Constructor, essentially memorize parameters
+        cComputeMapInverse
+        (
+             const Type & aThreshJac, ///< Threshold on jacobian to ensure inversability
+             const tPtR& aSeed,       ///< Seed point, in input space
+             const int & aNbPtsIn,    ///< Approximate number of point (in the biggest size)
+             tSet &,  ///< Set of validity, in output space
+             tMap&,   ///< Maping to invert : InputSpace -> OutputSpace
+             tLSQ&,  ///< Structure for computing the invert on base of function using least square   
+             bool Test=false
+        );
+        void  DoAll(std::vector<Type> & aVSol);
+
+        static int constexpr  TheNbIterByStep = 3;
+        static Type constexpr TheStepFrontLim = 3e-2;
+
+   private :
+        cComputeMapInverse(const cComputeMapInverse<Type,Dim> &) = delete;
+        /** Compute an approximation of Input box as reciproque of output box, use jacobian as
+            we dont know inverse (else we would not be here ...) */
+        tBoxR  BoxInByJacobian() const;
+        /** From input real space to grid space */
+        tPtI ToPix(const tPtR& aPR) const;
+        /** From grid space to input real space*/
+        tPtR FromPix(const tPtI& aPI) const;
+        /// Is the jacobian sufficently close to its value on seed ?
+        bool ValideJac(const cDenseMatrix<Type> & aMat) const;
+
+        /// Add a Pixel in the queue if has not already be visited
+        void Add1PixelTopo(const tPtI & aPix);
+        /// Filters pixel geometrically OK (Jac+domain) and add them as obs for least square
+        void FilterAndAddPixelsGeom();
+
+        /// Make on iteration, at given step, to have point closer to the frontier
+        void OneStepFront(const Type & aStepFront);
+
+        /// Validate (POut/Jac) if in domain and jacobian is OK
+        bool ValidateK(const tCsteResVecJac & aVecPJ,int aKp);
+        /// Add one observtion for computing inverse, IsFront used for memo in test mode
+        void AddObsMapDirect(const tPtR & aPIn,const tPtR & aPOut,bool IsFront);
+
+	         // Copy of parameters
+        Type          mThresholdJac;
+        tPtR          mPSeed; //  seed point that is waranteed to be inside the domain
+        tSet &        mSet;   // Definition set of Output space
+        tMap &        mMap;   // Map to invert
+        tLSQ &        mLSQ;   // systeme to compute the inverse as a linear composition of given base functions (using least square)
+          // Created members
+        tBoxR         mBoxByJac; ///< Box computed assuming that Map is equal to its jacobian in PSeed
+        tBoxR         mBoxMaj;  ///< Majoration of box, taking into account possible  unstability and jacobian threshold
+        Type          mStep;    ///< Step on the grid
+        cPixBox<Dim>              mBoxPix;  ///< Pixel box to make image processing stuff
+        cDataTypedIm<tU_INT1,Dim> mMarker;  ///< Marker image to make growing
+        std::vector<tPtI>         mNextGen; ///< Next generation of pixel in growing region
+        cDenseMatrix<Type>        mJacInv0; ///< Matrix invert of Jacobian in PSeed
+        cDenseMatrix<Type>        mMatId;   ///< Id Matrix, helper for computing Jacobian criteria
+        const std::vector<tPtI> &       mNeigh; ///< Neighbourhood for image-morpho-operation
+        std::vector<tExtent>      mVExt; ///< Vector of "extension" to the frontier
+        bool                      mTest; ///< Are we in test mode ?
+    public :
+        Type                      mStepFrontLim; // TheStepFrontLim
+        std::vector<tPtR>         mVPtsInt; ///< For test, memo point interior
+        std::vector<tPtR>         mVPtsFr;  ///< For test, memo point frontier
+
+};
+
+
+
 
 
 /**
@@ -677,6 +812,7 @@ template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMap
          typedef  std::vector<tPtOut>         tVecOut;
 
          cLeastSqComputeMaps(size_t aNbFunc);
+         virtual  ~cLeastSqComputeMaps();
          /// Add obs 
          void AddObs(const tPtIn & aPt,const tPtOut & aValue,const tPtOut & aPds);
          void AddObs(const tPtIn & aPt,const tPtOut & aValue,const Type & aPds);
@@ -706,7 +842,8 @@ template <class Type,const int DimIn,const int DimOut>
          using typename tSuper::tVecOut;
 
          typedef typename NS_SymbolicDerivative::cCalculator<Type> tCalc;
-         cLeastSqCompMapCalcSymb(tCalc *);
+         cLeastSqCompMapCalcSymb(tCalc *);  ///< create from a calculator : Not Adopted for deletion
+         virtual ~cLeastSqCompMapCalcSymb();
          void ComputeValFuncsBase(tVecOut &,const tPtIn & aPt) override;
     private :
          cLeastSqCompMapCalcSymb(const cLeastSqCompMapCalcSymb<Type,DimIn,DimOut>&)=delete;

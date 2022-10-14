@@ -1,5 +1,7 @@
 #ifndef  _MMVII_SysSurR_H_
 #define  _MMVII_SysSurR_H_
+
+
 namespace MMVII
 {
 /** \file MMVII_SysSurR.h
@@ -14,6 +16,8 @@ template <class Type> class  cLeasSqtAA ;
 template <class Type> class  cBufSchurrSubst; 
 template <class Type> class  cSetIORSNL_SameTmp;
 template <class Type> class cResidualWeighter;
+template <class Type> class cObjWithUnkowns;
+template <class Type> class cSetInterUK_MultipeObj;
 
 /// Index to use in vector of index indicating a variable to substituate
 static constexpr int RSL_INDEX_SUBST_TMP = -1;
@@ -38,6 +42,7 @@ template <class Type> class cResolSysNonLinear
           typedef std::vector<int>                              tVectInd;
           typedef cResolSysNonLinear<Type>                      tRSNL;
           typedef cResidualWeighter<Type>                       tResidualW;
+          typedef cObjWithUnkowns<Type>                         tObjWUk;
 
 	  /// basic constructor, using a mode of matrix + a solution  init
           cResolSysNonLinear(eModeSSR,const tDVect & aInitSol);
@@ -72,24 +77,51 @@ template <class Type> class cResolSysNonLinear
           /**  Add 1 equation in structure aSetIO ,  who will accumulate all equation of a given temporary set of unknowns
 	       relatively basic 4 now because don't use parallelism of tCalc
 	  */
-          void  AddEq2Subst (tSetIO_ST & aSetIO,tCalc *,const tVectInd &,const tStdVect& aVTmp,
+          void  AddEq2Subst (tSetIO_ST & aSetIO,tCalc *,const tVectInd &,
                              const tStdVect& aVObs,const tResidualW & = tResidualW());
+
 	  /** Once "aSetIO" has been filled by multiple calls to  "AddEq2Subst",  do it using for exemple schurr complement
 	   */
           void  AddObsWithTmpUK (const tSetIO_ST & aSetIO);
+
+	       //    frozen  checking
+
+	   void  SetFrozenVar(int aK,const  Type &);  ///< indicate it var must be frozen /unfrozen
+	       // frozen for  cObjWithUnkowns
+	   void  SetFrozenVar(tObjWUk & anObj,const  Type &);  ///< indicate it var must be frozen /unfrozen
+	   void  SetFrozenVar(tObjWUk & anObj,const  Type *,size_t);  ///< indicate it var must be frozen /unfrozen
+	   void  SetFrozenVar(tObjWUk & anObj,const tStdVect &);  ///< indicate it var must be frozen /unfrozen
+	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,3> &);  ///< indicate it var must be frozen /unfrozen
+	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,2> &);  ///< indicate it var must be frozen /unfrozen
+
+
+
+	   void  SetUnFrozen(int aK);  ///< indicate it var must be frozen /unfrozen
+	   void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
+	   bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
+	   void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
+
+
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
+
+	  ///  Modify equations to take into account var is frozen
+	  void  ModifyFrozenVar (tIO_RSNL&);
 
           /// Add observations as computed by CalcVal
           void   AddObs(const std::vector<tIO_RSNL>&);
 
           /** Bases function of calculating derivatives, dont modify the system as is
               to avoid in case  of schur complement */
-          void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,bool WithDer,const tResidualW & );
+          void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,const tStdVect & aVTmp,bool WithDer,const tResidualW & );
 
           int        mNbVar;       ///< Number of variable, facility
           tDVect     mCurGlobSol;  ///< Curent solution
           tLinearSysSR*    mSysLinear;         ///< Sys to solve equations, equation are concerning the differences with current solution
+
+	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
+	  std::vector<bool>    mVarIsFrozen;       ///< indicate for each var is it is frozen
+	  std::vector<Type>    mValueFrozenVar;    ///< indicate for each var the possible value where it is frozen
 };
 
 /**  Class for weighting residuals : compute the vector of weight from a 
@@ -120,7 +152,7 @@ template <class Type> class cInputOutputRSNL
 	  /// Create Input data w/o temporay
 	  cInputOutputRSNL(const tVectInd&,const tStdVect & aVObs);
 	  /// Create Input data with temporary temporay
-	  cInputOutputRSNL(const tVectInd&,const tStdVect &aVTmp,const tStdVect & aVObs);
+	  // cInputOutputRSNL(const tVectInd&,const tStdVect &aVTmp,const tStdVect & aVObs);
 
 	  /// Give the weight, handle case where mWeights is empty (1.0) or size 1 (considered constant)
 	  Type WeightOfKthResisual(int aK) const;
@@ -129,14 +161,12 @@ template <class Type> class cInputOutputRSNL
 	  ///  Real unknowns + Temporary
 	  size_t NbUkTot() const;
 
-          tVectInd   mVIndUk;    ///<  index of unknown in the system , no TMP
-          tStdVect   mVTmpUK;   ///< possible value of temporary unknown,that would be eliminated by schur complement
-          tVectInd   mVIndGlob;    ///<  index of unknown in the system + TMP (with -1)
+          tVectInd   mGlobVInd;    ///<  index of unknown in the system + TMP (with -1)   mVIndGlob
           tStdVect   mVObs;     ///< Observation (i.e constants)
-
           tStdVect                mWeights;  ///< Weights of eq, size can equal mVals or be 1 (cste) or 0 (all 1.0) 
           tStdVect                mVals;     ///< values of fctr, i.e. residuals
           std::vector<tStdVect>   mDers;     ///< derivate of fctr
+	  size_t                  mNbTmpUk;
 
 };
 
@@ -150,9 +180,18 @@ template <class Type> class cSetIORSNL_SameTmp
 	public :
             typedef cInputOutputRSNL<Type>  tIO_OneEq;
 	    typedef std::vector<tIO_OneEq>  tIO_AllEq;
+            typedef std::vector<Type>  tStdVect;
+            typedef std::vector<int>   tVectInd;
 
-	    /// Constructor :  Create an empty set
-	    cSetIORSNL_SameTmp();
+	    /** Constructor :  take value of tmp+ optional vector of fixed var (given wih negatives value like {-1,-2})
+	        if aValFix is not given, default is current value
+	     */
+	    cSetIORSNL_SameTmp(const tStdVect & aValTmpUk,const tVectInd & aVFix={},const tStdVect & aValFix ={});
+
+            /// Force tmp to its current value,  aNum is the same index (negative) than in AddEq2Subst
+            void  AddFixCurVarTmp (int aNum,const Type& aWeight);
+            /// Force tmp to a different value, probably not usefull in real (if we have a better value, why not use it), execpt for test
+            void  AddFixVarTmp (int aNum,const Type& aVal,const Type& aWeight);
 
 	    /// Add and equation,  check the coherence
 	    void AddOneEq(const tIO_OneEq &);
@@ -163,11 +202,23 @@ template <class Type> class cSetIORSNL_SameTmp
 
 	    ///  Number of temporary unkown
 	    size_t  NbTmpUk() const;
+	    const tStdVect & ValTmpUk() const;
+	    Type  Val1TmpUk(int aInd) const; ///make the correction of negativeness
+
+	    static size_t ToIndTmp(int ) ;
+	    static bool   IsIndTmp(int ) ;
 
 	private :
+	    cSetIORSNL_SameTmp(const cSetIORSNL_SameTmp&) = delete;
 	    tIO_AllEq        mVEq;
-	    bool             mOk;
-	    size_t           mNbEq;
+
+	    bool               mOk;
+	    size_t             mNbTmpUk;
+	    tStdVect           mValTmpUk;
+	    std::vector<bool>  mVarTmpIsFrozen;       ///< indicate for each temporary var if it is frozen
+	    tStdVect           mValueFrozenVarTmp;    ///< value of frozen tmp
+	    size_t             mNbEq;
+            cSetIntDyn         mSetIndTmpUk;
 };
 
 
@@ -381,8 +432,150 @@ template <class Type> class  cBufSchurrSubst
 };
 
 
+    /*  =======================   classes used for facilitating numerotation of unkwons ================= 
+     *
+     *   cObjWithUnkowns     ->  base-class for object having  unknows 
+     *
+     *   cOneInteralvUnkown  ->  an interval of Type*  , simply a pair  Type* - int
+     *   cSetIntervUK_OneObj -> all the interval of an object  + the object itself
+     *   cSetInterUK_MultipeObj -> all the object interacting in one system
+     *
+     * =================================================================================================== */
+
+template <class Type> class cOneInteralvUnkown;
+template <class Type> class cSetIntervUK_OneObj;
+template <class Type> class cSetInterUK_MultipeObj;
+template <class Type> class cObjWithUnkowns;
+
+/*  Typical scenario
+ 
+     //  for object having unknowns, make them inherit of cObjWithUnkowns, describe behaviour with PutUknowsInSetInterval
+     class  cObj: public cObjWithUnkowns
+     {
+	  double mUK1[4];  // first set of unknowns
+	  int    mToto;
+	  double mUK2[7];  // secon set unk
+       
+	   ...  do stuff specific to cObj ...
+
+          void PutUknowsInSetInterval() override 
+	  {
+	       mSetInterv->AddOneInterv(mUK1,4);
+	       mSetInterv->AddOneInterv(mUK2,7);
+	  }
+     };
+
+     {
+        cObj aO1,aO2;
+        cSetInterUK_MultipeObj<Type>  aSet;    //  create the object
+        aSet.AddOneObj(aO1); // in this call aSet will call O1->PutUknowsInSetInterval()
+        aSet.AddOneObj(aO2);
+
+	// create a sys with the vector of all unkwnon
+	cResolSysNonLinear<double> * aSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
 
 
+	const auto & aVectSol = mSys->SolveUpdateReset();
+	// modify all unkowns with new solution, call the method OnUpdate in case object have something to do
+        mSetInterv.SetVUnKnowns(aVectSol);
+     }
+
+*/
+
+
+
+///  represent one interval of consecutive unkown
+template <class Type> class cOneInteralvUnkown
+{
+     public :
+        Type * mVUk;
+        size_t mNb;
+        cOneInteralvUnkown(Type * aVUk,size_t aNb)  : mVUk (aVUk) , mNb (aNb) {}
+};
+
+///  represent all the unkown interval of one object
+template <class Type> class cSetIntervUK_OneObj
+{
+     public :
+         cSetIntervUK_OneObj(cObjWithUnkowns<Type>   *anObj) : mObj (anObj) {}
+
+         cObjWithUnkowns<Type>   *         mObj;
+         std::vector<cOneInteralvUnkown<Type>>   mVInterv;
+
+};
+
+///  represent all the object with unknown of a given system of equation
+
+template <class Type> class cSetInterUK_MultipeObj
+{
+        public :
+           friend class cObjWithUnkowns<Type>;
+
+           cSetInterUK_MultipeObj(); /// constructor, init mNbUk
+           ~cSetInterUK_MultipeObj();  /// indicate to all object that they are no longer active
+	   void Reset();  /// Maybe private later, now used for tricky destruction order
+
+	   /// This method is used to add the unknowns of one object
+           void  AddOneObj(cObjWithUnkowns<Type> *);
+
+	   ///  return a DenseVect filled with all unknowns  as expected to create a cResolSysNonLinear
+           cDenseVect<Type>  GetVUnKnowns() const;
+
+	   ///  fills all unknown of object with a vector as created by cResolSysNonLinear::SolveUpdateReset()
+           void  SetVUnKnowns(const cDenseVect<Type> &);
+
+	        // different method for adding intervalls
+
+           void AddOneInterv(Type * anAdr,size_t aSz) ; ///<  generall method
+           void AddOneInterv(std::vector<Type> & aV) ;  ///<  call previous with a vector
+           void AddOneInterv(cPtxd<Type,3> &);          ///<  call previous wih a point
+
+        private :
+	   size_t IndOfVal(const cObjWithUnkowns<Type>&,const Type *) const;
+
+           cSetInterUK_MultipeObj(const cSetInterUK_MultipeObj<Type> &) = delete;
+
+           void IO_UnKnowns(cDenseVect<Type> & aV,bool isSetUK);
+
+           std::vector<cSetIntervUK_OneObj<Type> >  mVVInterv;
+           size_t                                    mNbUk;
+};
+
+template <class Type> class cObjWithUnkowns
+{
+       public :
+          friend class cSetInterUK_MultipeObj<Type>;
+
+	  /// defautl constructor, put non init in all vars
+          cObjWithUnkowns();
+	  ///  check that object is no longer referenced when destroyd
+          virtual ~cObjWithUnkowns();
+	  /// defautl constructor, put non init in all vars
+          void Reset();
+	  
+          /// Fundamental methos :  the object put it sets on unknowns intervals  in the glob struct
+          virtual void PutUknowsInSetInterval() = 0;
+
+          /// This callbak method is called after update, used when modification of linear var is not enough (see cSensorCamPC)
+          virtual void OnUpdate();
+
+	  ///  Push in vector all the number of unknowns
+          void FillIndexes(std::vector<int> &);
+
+	  ///  indicate if the object has been initialized
+          bool  UkIsInit() const;
+
+	  /// recover the index from a value
+	  size_t IndOfVal(const Type *) const;
+
+       protected :
+
+
+          cSetInterUK_MultipeObj<Type> *  mSetInterv;
+          int   mNumObj;
+          int   mIndUk0;
+          int   mIndUk1;
+};
 
 };
 

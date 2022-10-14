@@ -60,6 +60,9 @@ class cAr2007 : public cMemCheck
          {
                 RawAddDataTerm(aVal);
          }
+
+         /// default do nothing
+	 virtual void AddComment(const std::string &);
          ///  Tagged File = xml Like, important for handling optionnal parameter
          bool  Tagged() const; 
          ///  May optimize the action
@@ -98,6 +101,14 @@ class cAr2007 : public cMemCheck
       // Final non atomic type for serialization
 };
 
+
+void cAr2007::AddComment(const std::string &){}
+
+
+void AddComment(cAr2007 & anAr, const std::string & aString)
+{
+	anAr.AddComment(aString);
+}
 
 void cAr2007::RawBeginName(const cAuxAr2007& anOT) {}
 void cAr2007::RawEndName(const cAuxAr2007& anOT) {}
@@ -198,6 +209,7 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cTplBox<Ty
 }
 
 
+template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,4>  &  aVal) ;
 
 #define MACRO_INSTANTIATE_AddDataPtxD(DIM)\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,DIM>  &  aVal) ;\
@@ -565,7 +577,7 @@ int cIXml_Ar2007::SkeepWhite()
 
 /// Xml write archive
 /**
-    An archive for reading XML file saved by MMVII with cOXml_Ar2007
+    An archive for writing XML file 
     Much easier than reading ...
 */
 class cOXml_Ar2007 : public cAr2007
@@ -575,6 +587,7 @@ class cOXml_Ar2007 : public cAr2007
           inline std::ostream  & Ofs() {return mMMOs.Ofs();}
           ~cOXml_Ar2007();
 
+	 virtual void AddComment(const std::string &) override;
      private :
          void Indent(); ///< add white correspond to xml level
 
@@ -592,6 +605,10 @@ class cOXml_Ar2007 : public cAr2007
          bool mFirst;  ///< new line is done before <tag> or </tag>, mFirst is used to avoid at first one
 };
 
+void cOXml_Ar2007::AddComment(const std::string & aString) 
+{
+    mMMOs.Ofs() << "  " <<aXMLBeginCom  << aString << aXMLEndCom;
+}
 
 cOXml_Ar2007::cOXml_Ar2007(const std::string & aName) : 
    cAr2007(false,true),  // Output, Tagged

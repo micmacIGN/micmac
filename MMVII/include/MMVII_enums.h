@@ -24,12 +24,15 @@ enum class eTA2007
            {
             // ---------- Printed --------------
                 DirProject,    ///< Exact Dir of Proj
-                FileDirProj,   ///< File of Dir Proj
+                FileDirProj,   ///< File that define the  Dir Proj
                 FileImage,     ///< File containing an image
                 FileCloud,     ///< File containing a cloud file (ply ?)
                 File3DRegion,  ///< File containing a 3D region
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
+                Orient,        ///< Foledr for  orientation
+                Input,         ///< Is this parameter used as input/read
+                Output,        ///< Is this parameter used as output/write
             // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
                 AddCom,        ///< Not an attribute, used to embed additionnal comment in Help mode
             // ---------- Not Printed -----------
@@ -67,6 +70,7 @@ enum class eApDT
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
               Image,   ///< Image
+              Orient,   ///< Orientations files
               Ply,    ///< Ply file
               None,     ///< Nothing 
               ToDef,     ///< still unclassed
@@ -414,6 +418,7 @@ enum class eProjPC
      eFE_EquiSolid,
      eStereroGraphik,
      eOrthoGraphik,
+     eEquiRect,
      eNbVals
 };
 

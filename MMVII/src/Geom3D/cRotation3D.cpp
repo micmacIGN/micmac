@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -20,6 +21,9 @@ template <class Type> cSimilitud3D<Type>::cSimilitud3D(const Type& aScale,const 
     mRot   (aRot)
 {
 }
+
+
+
 // tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt)*mScale;}
 // mRot.Inverse((aPt-mTr)/mScale)
 
@@ -103,6 +107,16 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
 {
 }
 
+template <class Type> void cIsometry3D<Type>::SetRotation(const cRotation3D<Type> & aRot)
+{
+    mRot = aRot;
+}
+
+template <class Type> cIsometry3D<Type>  cIsometry3D<Type>::Identity()
+{
+    return cIsometry3D<Type>(cPtxd<Type,3>(0,0,0),cRotation3D<Type>::Identity());
+}
+
 //  tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt);}
 
 template <class Type> cIsometry3D<Type>  cIsometry3D<Type>::MapInverse() const
@@ -166,6 +180,12 @@ template <class Type> cRotation3D<Type>::cRotation3D(const cDenseMatrix<Type> & 
    MMVII_INTERNAL_ASSERT_always((! RefineIt),"Refine to write in Rotation ...");
 }
 
+
+template <class Type> cRotation3D<Type> cRotation3D<Type>::Identity()
+{
+    return cRotation3D<Type>(cDenseMatrix<Type>(3,eModeInitImage::eMIA_MatrixId),false);
+}
+
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::MapInverse() const 
 {
     return cRotation3D(mMat.Transpose(),false);
@@ -200,6 +220,18 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tP
     return  cRotation3D<Type>(MatFromCols(aP0,aP1,aP2),false);
 }
 
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromAxiator(const tPt & anAxe)
+{
+     Type aNorm = Norm2(anAxe);
+     if (aNorm<1e-5)
+     {
+         cDenseMatrix<Type>  aMW =  cDenseMatrix<Type>::Identity(3) + MatProdVect(anAxe);
+
+         return cRotation3D<Type>(aMW.ClosestOrthog(),false);
+     }
+     return RotFromAxe(anAxe/aNorm,aNorm);
+}
+
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromAxe(const tPt & aP0,Type aTeta)
 {
    // Compute a repair with P0 as first axes
@@ -227,6 +259,12 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot()
    return CompleteRON(aP0,aP1);
 }
 
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RandomRot(const Type & aAmpl)
+{
+	return RotFromAxiator(cPtxd<Type,3>::PRandC()*aAmpl);
+}
+
+
 template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTeta)
 {
     cDenseVect<Type> aDVAxe =  mMat.EigenVect(1.0);
@@ -246,6 +284,108 @@ template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTet
     aTeta = aRhoTeta.y();
 }
 
+/*    WPK = Rx(W) Ry(P) Rz(K)  
+ *    YPR = Rz(Y) Ry(P) Rx(R)
+ *
+ *     M =  Rx(W) Ry(P) Rz(K) = 
+ *
+ *   YPR(y,p,r)   Rz(y) Ry(p) Rx(r)  = t( Rx(-r)  Ry(-p) Rz(-y) ) = t WPK(-r,-p,-y)
+ *
+ */
+
+
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromYPR(const tPt & aYPR)
+{
+    return  RotFromWPK(tPt(-aYPR.z(),-aYPR.y(),-aYPR.x())).MapInverse();
+}
+
+template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToYPR() const
+{
+	tPt aWPK = MapInverse().ToWPK();
+
+	return tPt(-aWPK.z(),-aWPK.y(),-aWPK.x());
+}
+
+template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromWPK(const tPt & aWPK)
+{
+   return 
+	    RotFromAxe(cPtxd<Type,3>(1,0,0),aWPK.x())
+	  * RotFromAxe(cPtxd<Type,3>(0,1,0),aWPK.y())
+	  * RotFromAxe(cPtxd<Type,3>(0,0,1),aWPK.z()) 
+   ;
+}
+
+
+template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
+{
+    Type aSinPhi = std::min(Type(1.0),std::max(Type(-1.0),mMat(2,0)));
+    Type aPhi = ASin(aSinPhi);
+    Type aCosPhi = std::cos(aPhi);
+
+    Type aKapa ,aOmega;
+    if (std::abs(aCosPhi) < 1e-4)
+    {
+
+        // aSinPhi=1  mMat(0,1),mMat(1,1)    =      CosW SinK+SinW CosK  , cosW CosK-sinW sinK =   sin(W+K), cos(W+K)   
+        // aSinPhi=-11  mMat(0,1),mMat(1,1)  =      CosW SinK-SinW CosK  , cosW CosK+sinW sinK =   sin(K-W), cos(K-W)   
+        Type aCombin = std::atan2(mMat(0,1),mMat(1,1));
+        if (aSinPhi>0)
+	{
+              aKapa = aCombin/2;
+	      aOmega = aCombin/2;
+	}
+	else
+	{
+              aKapa = aCombin/2;
+              aOmega = -aCombin/2;
+	}
+    }
+    else
+    {
+       aKapa =  std::atan2(-mMat(1,0),mMat(0,0));
+       aOmega = std::atan2(-mMat(2,1),mMat(2,2));
+    }
+
+    tPt aWPK(aOmega,aPhi,aKapa);
+
+    // aWPK += tPt::PRandC()*Type(0.05);
+
+    // now make some least square optim, do it we finite difference because I am a lazzy guy ;-)
+    for (int aK=0 ; aK<1 ; aK++)
+    {
+        Type aEps = 1e-3;
+	std::vector<cDenseMatrix<Type> > aVecDer;
+
+	cLeasSqtAA<Type>  aSys(3);
+	for (int aKCoord =0 ; aKCoord<3 ; aKCoord++)
+	{
+              tPt aWPK_p = aWPK;
+              tPt aWPK_m = aWPK;
+	      aWPK_p[aKCoord] += aEps;
+	      aWPK_m[aKCoord] -= aEps;
+
+	      cDenseMatrix<Type> aMat_p = RotFromWPK(aWPK_p).Mat();
+	      cDenseMatrix<Type> aMat_m = RotFromWPK(aWPK_m).Mat();
+	      aVecDer.push_back( (aMat_p-aMat_m) * Type(1.0/(2*aEps)));
+
+	}
+	aSys.AddObsFixVar(1e-4,0,0.0);  // add some constraint becaus if guimball dont want to have degenerate sys
+
+	for (const auto & aPix : aVecDer[0].DIm())
+	{
+             cDenseVect<Type> aVCoef(3);
+	     for (int aKCoord =0 ; aKCoord<3 ; aKCoord++)
+                aVCoef(aKCoord) = aVecDer[aKCoord].GetElem(aPix);
+	     aSys.AddObservation(1.0,aVCoef ,mMat.GetElem(aPix));
+
+	}
+
+	cDenseVect<Type> aSol = aSys.Solve();
+	aWPK += tPt::FromVect(aSol);
+    }
+
+    return aWPK;
+}
 
 
 /*

@@ -139,6 +139,8 @@ template <class Type,const int DimIn,const int DimOut>
     }
 }
 
+template <class Type,const int DimIn,const int DimOut> std::vector<Type> &  cDataMapCalcSymbDer<Type,DimIn,DimOut>::VObs() {return mVObs;}
+template <class Type,const int DimIn,const int DimOut> const std::vector<Type> &  cDataMapCalcSymbDer<Type,DimIn,DimOut>::VObs() const {return mVObs;}
 
 template class cDataMapCalcSymbDer<tREAL8,2,2> ;
 template class cDataMapCalcSymbDer<tREAL8,2,3> ;
@@ -156,6 +158,11 @@ template <class Type,int Dim> cDataNxNMapCalcSymbDer<Type,Dim>:: cDataNxNMapCalc
      mDMS (aCalcVal,aCalcDer,aVObs,DeleteCalc)
 {
 }
+
+template <class Type,int Dim> const std::vector<Type>& cDataNxNMapCalcSymbDer<Type,Dim>::VObs() const {return mDMS.VObs();}
+template <class Type,int Dim> std::vector<Type>& cDataNxNMapCalcSymbDer<Type,Dim>::VObs() {return mDMS.VObs();}
+
+
 
 template <class Type,int Dim> 
      const typename cDataNxNMapCalcSymbDer<Type,Dim>::tVecOut &  
@@ -177,6 +184,8 @@ template <class Type,int Dim>
 {
     mDMS.SetObs(aVObs);
 }
+
+
 
 template class cDataNxNMapCalcSymbDer<tREAL8,2> ;
 
@@ -206,11 +215,11 @@ cRandInvertibleDist::~cRandInvertibleDist()
 cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,double aProbaNotNul,double aTargetSomJac) :
    mRhoMax  (aRhoMax),
    mDeg     (aDeg),
-   mEqVal   (EqDist(aDeg,false,1+RandUnif_N(50))),  // Random for size buf
-   mEqDer   (EqDist(aDeg,true,1+RandUnif_N(50))),
-   mNbParam (mEqVal->NbObs()),
-   mVParam  (mNbParam,0.0),
-   mVecDesc (DescDist(mDeg))
+   mVecDesc (DescDist(mDeg)),
+   mEqVal   (nullptr), 
+   mEqDer   (nullptr), 
+   mNbParam (mVecDesc.size()),
+   mVParam  (mNbParam,0.0)
 {
    // 1- Initialize, without precautions
 
@@ -237,7 +246,7 @@ cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,doub
 
 cDataNxNMapCalcSymbDer<double,2> * cRandInvertibleDist::MapDerSymb()
 {
-   return new cDataNxNMapCalcSymbDer<double,2>(mEqVal,mEqDer,mVParam,false);
+   return new cDataNxNMapCalcSymbDer<double,2>(&(EqVal()),&(EqDer()),mVParam,false);
 }
 
 const std::vector<double> & cRandInvertibleDist::VParam() const
@@ -246,8 +255,16 @@ const std::vector<double> & cRandInvertibleDist::VParam() const
 }
 
 
-cCalculator<double> &  cRandInvertibleDist::EqVal() {return *mEqVal;}
-cCalculator<double> &  cRandInvertibleDist::EqDer() {return *mEqDer;}
+cCalculator<double> &  cRandInvertibleDist::EqVal() 
+{
+   if (mEqVal==nullptr) mEqVal= EqDist(mDeg,false,1+RandUnif_N(50));
+   return *mEqVal;
+}
+cCalculator<double> &  cRandInvertibleDist::EqDer() 
+{
+   if (mEqDer==nullptr) mEqDer= EqDist(mDeg,true,1+RandUnif_N(50));
+   return *mEqDer;
+}
 
 
 /* ============================================= */
@@ -285,12 +302,13 @@ void BenchSymDerMap(cParamExeBench & aParam)
        double aTargetSomJac = 0.2;
        cRandInvertibleDist aRID(aDeg,aRhoMax,aProbaNotNul,aTargetSomJac) ;
        cDataNxNMapCalcSymbDer<double,2> * aMCS = aRID.MapDerSymb();
-       cMapping<double,2,2>            aMapCS(aMCS);
+       //cMapping<double,2,2>            aMapCS(aMCS);
 
        auto aDId = new cMappingIdentity<double,2> ;
-       cMapping<double,2,2>            aMapId(aDId);
+       //cMapping<double,2,2>            aMapId(aDId);
 
-       cDataIIMFromMap<double,2> aIMap(aMapCS,aMapId,1e-6,15);
+       // cDataIIMFromMap<double,2> aIMap(aMapCS,aMapId,1e-6,15);
+       cDataIIMFromMap<double,2> aIMap(aMCS,aDId,1e-6,15,true,true);
 
        // Generate in VIn a random set, with random size, of points in disk of radius aRhoMax
        int aNbPts  = 1+RandUnif_N(100);

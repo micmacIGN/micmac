@@ -41,32 +41,37 @@ template<class Type> void  TplOneBenchSSRNL
                                eModeSSR aMode,
                                cRect2 aRect,
                                bool WithSchurr,
-                               cParamSparseNormalLstSq * aParam=nullptr
+                               cParamSparseNormalLstSq * aParam=nullptr,
+			       const std::vector<Type> &  aWeightSetSchur ={0.0,0.0,0.0,0.0}
                            )
 {
+     static int aCpt=0 ; aCpt++;  // use to make jauge constant along one iteration, to check the correctnes of hard constraints
      cParamMainNW aParamNW;
      Type aPrec = tElemNumTrait<Type>::Accuracy() ;
-     cMainNetwork <Type> aBN(aMode,aRect,WithSchurr,aParamNW,aParam);
+     cMainNetwork <Type> aBN(aMode,aRect,WithSchurr,aParamNW,aParam,aWeightSetSchur);
      aBN.PostInit();
      double anEc =100;
      for (int aK=0 ; aK < THE_NB_ITER ; aK++)
      {
-         anEc = aBN.DoOneIterationCompensation(100.0,true);
-         // StdOut() << "  ECc== " << anEc /aPrec<< "\n";
+         double aWGauge = (aCpt%2) ? -1 : 100; // alternate "hard" constraint and soft, to test more ..
+         anEc = aBN.DoOneIterationCompensation(aWGauge,true);
      }
-     // StdOut() << "Fin-ECc== " << anEc  / aPrec << " Nb=" << aNb << "\n";
-     // getchar();
-     MMVII_INTERNAL_ASSERT_bench(anEc<aPrec,"Error in Network-SSRNL Bench");
+     if (anEc>aPrec)
+     {
+           StdOut() << "Fin-ECc== " << anEc /aPrec   << "\n";
+           MMVII_INTERNAL_ASSERT_bench(anEc<aPrec,"Error in Network-SSRNL Bench");
+     }
 }
 template<class Type> void  TplOneBenchSSRNL
                            (
                                eModeSSR aMode,
                                int aNb,
                                bool WithSchurr,
-                               cParamSparseNormalLstSq * aParam=nullptr
+                               cParamSparseNormalLstSq * aParam=nullptr,
+			       const std::vector<Type> &  aWeightSetSchur = {0.0,0.0,0.0,0.0}
 			   )
 {
-	TplOneBenchSSRNL<Type>(aMode,cRect2::BoxWindow(aNb),WithSchurr,aParam);
+	TplOneBenchSSRNL<Type>(aMode,cRect2::BoxWindow(aNb),WithSchurr,aParam,aWeightSetSchur);
 }
 
 void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
@@ -101,10 +106,10 @@ void BenchSSRNL(cParamExeBench & aParam)
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,1,false);
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,2,false);
 
+     cParamSparseNormalLstSq aParamSq(3.0,4,9);
      // Basic test, test the 3 mode of matrix , with and w/o schurr subst, with different size
      for (const auto &  aNb : {3,4,5})
      {
-        cParamSparseNormalLstSq aParamSq(3.0,4,9);
 	// w/o schurr
         OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq);
         OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,false);
@@ -114,8 +119,18 @@ void BenchSSRNL(cParamExeBench & aParam)
          OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
          OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
          OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
-     }
 
+         //OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
+     }
+      //  soft constraint on temporary , add low cost to current (slow but do not avoid real value)
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,3,true ,&aParamSq,{1,1,0.1,0.1});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense     ,3,true ,nullptr  ,{1,1,0.1,0.1});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqSparseGC  ,3,true ,nullptr  ,{1,1,0.1,0.1});
+
+     // mix hard & soft constraint on temporary
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,3,true ,&aParamSq,{-1,1,0,0});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense     ,3,true ,nullptr  ,{1,-1,0,0});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqSparseGC  ,3,true ,nullptr  ,{-1,-1,0,0});
 
      // test  normal sparse matrix with many parameters handling starsity
      for (int aK=0 ; aK<20 ; aK++)

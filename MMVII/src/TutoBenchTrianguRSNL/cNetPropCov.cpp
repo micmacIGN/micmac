@@ -677,12 +677,13 @@ template <class Type>  Type cCovNetwork<Type>::SolveByCovPropagation(double aChe
 	 aResidual = this->CalcResidual() ;
 	 StdOut()   << aTime <<  " RResiduals :   " << aResidual <<  "\n";
 
+          //  Add a gauge constraint for the main newtork, as all subnetnwork are computed up to a rotation
+	  //  do it before propag, as required in case of hard constraint
+	  this->AddGaugeConstraint(-1);
           // for all subnetwork propagate the covariance
           for (auto & aPtrNet : mVNetElem)
              aPtrNet->PropagCov(aCheatMT);
 
-          //  Add a gauge constraint for the main newtork, as all subnetnwork are computed up to a rotation
-	  this->AddGaugeConstraint(10.0);
 	  this->mSys->SolveUpdateReset();  // classical gauss jordan iteration
 
      }
@@ -787,12 +788,14 @@ template <class Type>  Type cElemNetwork<Type>::ComputeCovMatrix(double aWGaugeC
      // #CCM1    Iteration to compute the 
      for (int aK=0 ; aK<(aNbIter-1); aK++)
      {
-         this->DoOneIterationCompensation(10.0,true);  // Iterations with a gauge and solve
+         // this->DoOneIterationCompensation(10.0,true);  // Iterations with a gauge and solve
+         this->DoOneIterationCompensation(-1,true);  // Iterations with a gauge and solve
      } 
      Type aRes = this->CalcResidual(); // memorization of residual
 
      // last iteration with a gauge w/o solve (because solving would reinit the covariance) 
      this->DoOneIterationCompensation(aWGaugeCovMatr,false);     
+     // StdOut() << "aWGaugeCovMatr " << aWGaugeCovMatr << "\n";
 
 
      // #CCM2  Now get the normal matrix and vector, and decompose it in a weighted sum of square  of linear forms
@@ -819,6 +822,8 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     int aNbUkRot = mRotUk ?  3 : 0; // Number of parameters for unknown rotationn
     // Index of unknown, if Rotation unknown,  begin with 3 Tmp-Schur for rotation
     std::vector<int> aVIndUk(this->mVPts.size()*2+aNbUkRot,-1); 
+    for (int aK=0 ; aK<aNbUkRot ; aK++)
+        aVIndUk[aK] = - (1+aK);
  
         // 1.1  compute indexes and homologous points
     for (const auto & aPNet : this->mVPts)
@@ -880,9 +885,9 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
         }
         if (mRotUk) // if rotation unknown use schurr complement or equivalent
         {
-            cSetIORSNL_SameTmp<Type> aSetIO;
+            cSetIORSNL_SameTmp<Type> aSetIO(aVTmpRot);
             // compute all the observations 
-            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVTmpRot,aVObs);
+            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVObs);
             // add it to system with schurr substitution
             this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
         }
@@ -894,14 +899,14 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     else if (mL2Cov)
     {
        // ---------  2-B  case where we use  the decomposition covariance as sum of SqL,  #PC2
-       cSetIORSNL_SameTmp<Type> aSetIO; // structure for schur subst
+       cSetIORSNL_SameTmp<Type> aSetIO(aVTmpRot); // structure for schur subst
        for (const auto & anElemLin : mDSSL.VElems()) // parse all linear system
        {
            cResidualWeighter<Type>  aRW(anElemLin.mW);  // the weigth as given by eigen values
            std::vector<Type> aVObs = anElemLin.mCoeff.ToStdVect(); // coefficient of the linear forme
            aVObs.push_back(anElemLin.mCste);  // cste  of the linear form
            // Add the equation in the structure
-           this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcSumL2RUk,aVIndUk,aVTmpRot,aVObs,aRW);
+           this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcSumL2RUk,aVIndUk,aVObs,aRW);
        }
        // Once all equation have been bufferd in aSetIO, add it to the system
        //  the unknown rotation will be eliminated

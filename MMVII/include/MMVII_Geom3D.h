@@ -10,7 +10,19 @@ template<class T> cDenseMatrix<T> MatFromCols(const cPtxd<T,3>&aP0,const cPtxd<T
 /// use the 3 "line vector" to compute the matrix
 template<class T> cDenseMatrix<T> MatFromLines(const cPtxd<T,3>&aP0,const cPtxd<T,3>&aP1,const cPtxd<T,3>&aP2);
 /// Vector product 
-template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,3> & aP2);
+template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,3> & aP2)
+{
+   return cPtxd<T,3>
+          (
+               aP1.y() * aP2.z() -aP1.z()*aP2.y(),
+               aP1.z() * aP2.x() -aP1.x()*aP2.z(),
+               aP1.x() * aP2.y() -aP1.y()*aP2.x()
+          );
+}
+
+/// Matrix corresponf to P ->  W ^ P
+template<class T> cDenseMatrix<T> MatProdVect(const cPtxd<T,3>& aW);
+
 // Return one vector orthog,  choice is not univoque , quikcly select on stable
 template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP);
 
@@ -74,6 +86,7 @@ template <class Type> class cRotation3D
        // tTypeMapInv  MapInverse() const {return cRotation3D(mMat.Transpose(),false);}
        tTypeMapInv  MapInverse() const;
        tTypeMap  operator* (const tTypeMap &) const;
+       static tTypeMap Identity();
 
        tPt   AxeI() const ;
        tPt   AxeJ() const ;
@@ -85,11 +98,23 @@ template <class Type> class cRotation3D
        static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
        // Compute a rotation arround a given axe and with a given angle
        static cRotation3D<Type> RotFromAxe(const tPt & anAxe,Type aTeta);
+       //  Axiator close to Rot From but teta=Norm !!  exp(Mat(^Axe))
+       static cRotation3D<Type> RotFromAxiator(const tPt & anAxe);
        // Compute a random rotation for test/bench
        static cRotation3D<Type> RandomRot();
+       // Compute a "small" random rot controlled by ampl
+       static cRotation3D<Type> RandomRot(const Type & aAmpl);
 
        // Extract Axes of a rotation and compute its angle 
        void ExtractAxe(tPt & anAxe,Type & aTeta);
+
+       // conversion to Omega Phi Kapa
+       static cRotation3D<Type>  RotFromWPK(const tPt & aWPK);
+       tPt                       ToWPK() const;
+
+       // conversion to Yaw Pitch Roll
+       static cRotation3D<Type>  RotFromYPR(const tPt & aWPK);
+       tPt                       ToYPR() const;
 
     private :
        cDenseMatrix<Type>  mMat;
@@ -115,6 +140,7 @@ template <class Type> class cIsometry3D
        cIsometry3D(const tPt& aTr,const cRotation3D<Type> &);
        tTypeMapInv  MapInverse() const; // {return cIsometry3D(-mRot.Inverse(mTr),mRot.MapInverse());}
        tTypeMap  operator* (const tTypeMap &) const;
+       static tTypeMap Identity();
 
        /// Return Isometrie with given Rot such I(PTin) = I(PTout)
        static cIsometry3D<Type> FromRotAndInOut(const cRotation3D<Type> &,const tPt& aPtIn,const tPt& aPtOut );
@@ -124,9 +150,11 @@ template <class Type> class cIsometry3D
        static cIsometry3D<Type> FromTriOut(int aKOut,const tTri  & aTriOut);
 
 
+       void SetRotation(const cRotation3D<Type> &);
 
        const cRotation3D<Type> & Rot() const {return mRot;}  ///< Accessor
-       const tPt Tr() const {return mTr;}  ///< Accessor
+       const tPt &Tr() const {return mTr;}  ///< Accessor
+       tPt &Tr() {return mTr;}  ///< Accessor
 
        tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt);}
        tPt   Inverse(const tPt & aPt) const {return mRot.Inverse(aPt-mTr) ;}  // Work as M tM = Id

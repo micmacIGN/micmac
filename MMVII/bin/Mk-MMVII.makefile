@@ -132,6 +132,11 @@ SrcBenchSNL=$(wildcard ${MMV2DirBenchSNL}*.cpp)
 ObjBenchSNL=$(SrcBenchSNL:.cpp=.o) 
 #
 #
+MMV2DirSensors=${MMV2DirSrc}Sensors/
+SrcSensors=$(wildcard ${MMV2DirSensors}*.cpp)
+ObjSensors=$(SrcSensors:.cpp=.o) 
+#
+#
 MMV2DirSymbDerGen=${MMV2DirSrc}SymbDerGen/
 SrcSymbDerGen=$(wildcard ${MMV2DirSymbDerGen}*.cpp)
 ObjSymbDerGen=$(SrcSymbDerGen:.cpp=.o) 
@@ -173,7 +178,7 @@ ObjKapture=$(SrcKapture:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjGeom2D} ${ObjGeom3D}  ${ObjMappings} ${ObjKapture} ${ObjLearnMatch} ${ObjCodedTarget} ${ObjBenchSNL}
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjSensors} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjGeom2D} ${ObjGeom3D}  ${ObjMappings} ${ObjKapture} ${ObjLearnMatch} ${ObjCodedTarget} ${ObjBenchSNL}
 #
 #=========  Header ========
 #
@@ -184,7 +189,7 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #  Binaries
 #== CFLAGS etc...
 #
-CXX=g++-8
+CXX=g++-11
 CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
 #CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-march=native" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
 
@@ -216,6 +221,8 @@ ${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER} ${MMSymbDerHeader}
 ${MMV2DirT4MkF}%.o :  ${MMV2DirT4MkF}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirBench}%.o :  ${MMV2DirBench}%.cpp ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirSensors}%.o :  ${MMV2DirSensors}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirAppli}%.o :  ${MMV2DirAppli}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@

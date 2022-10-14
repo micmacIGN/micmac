@@ -99,7 +99,15 @@ template <class Type>  class  cMainNetwork
           typedef NS_SymbolicDerivative::cCalculator<tREAL8>  tCalc;
 
 
-          cMainNetwork(eModeSSR aMode,cRect2,bool WithSchurr,const cParamMainNW &,cParamSparseNormalLstSq * = nullptr);
+          cMainNetwork
+          (
+	        eModeSSR aMode,
+	        cRect2,
+	        bool WithSchurr,
+	        const cParamMainNW &,
+	        cParamSparseNormalLstSq * = nullptr,
+	        const std::vector<Type>  & aWeightSetSchur = {0.0,0.0,0.0,0.0}  /// for testing AddFixVarTmp
+	   );
           /// Do real construction that cannot be made in constructor (because call to virtual funcs ie ComputeInd2Geom)
           virtual void PostInit();
           virtual ~cMainNetwork();
@@ -120,7 +128,7 @@ template <class Type>  class  cMainNetwork
 	  virtual bool OwnLinkingFiltrage(const cPt2di & aP1,const cPt2di & aP2) const;
 
 	  Type CalcResidual();
-	  void AddGaugeConstraint(Type aWeight);
+	  void AddGaugeConstraint(Type aWeight); // W<0 : hard constraint, W>0 soft, W==0  None 
 
 
           /// Access to CurSol of mSys
@@ -177,6 +185,7 @@ template <class Type>  class  cMainNetwork
           cSim2D<Type>        mSimInd2G;  
 
           cBox2dr     mBoxPts;  /// Box englobing Theor + Init
+	  std::vector<Type>   mWeightSetSchur;   /// for testing AddFixVarTmp
 };
 }; // namespace NS_Bench_RSNL
 }; // namespace MMVII

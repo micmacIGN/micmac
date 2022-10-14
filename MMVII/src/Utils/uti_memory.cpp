@@ -14,6 +14,13 @@ void DoNothingWithIt(void *)
    // As expected ;-)
 }
 
+//================ cObj2DelAtEnd =======
+
+cObj2DelAtEnd::~cObj2DelAtEnd()
+{
+        // StdOut() << "DELO2DEAE " << this << "\n";
+}
+
 
 //================ cMemState =======
 

@@ -138,8 +138,21 @@ template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 #define DEBUGKILLAPP()\
 std::cout << "HERE " << __LINE__ << "\n";
 
+std::vector<cObj2DelAtEnd *>       cMMVII_Appli::mVectObj2DelAtEnd;
+
+void cMMVII_Appli::AddObj2DelAtEnd(cObj2DelAtEnd * aPtrO)
+{
+     mVectObj2DelAtEnd.push_back(aPtrO);
+}
+
 cMMVII_Appli::~cMMVII_Appli()
 {
+   if (mMainAppliInsideP)
+   {
+        for (auto  aPtrO : mVectObj2DelAtEnd)
+            delete aPtrO;
+   }
+
    if (mForExe)
    {
       if (! mModeHelp)
@@ -1110,6 +1123,7 @@ const std::string & cMMVII_Appli::TmpDirTestMMVII()   const {return mTmpDirTestM
 const std::string & cMMVII_Appli::InputDirTestMMVII() const {return mInputDirTestMMVII;}
 const std::string & cMMVII_Appli::TopDirMMVII()       const {return mTopDirMMVII;}
 const std::string & cMMVII_Appli::DirProject()       const {return mDirProject;}
+int cMMVII_Appli::NbProcAllowed () const {return mNbProcAllowed;}
 
 std::string  cMMVII_Appli::DirTmpOfCmd(eModeCreateDir aMode) const
 {

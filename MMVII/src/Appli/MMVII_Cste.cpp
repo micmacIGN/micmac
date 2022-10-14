@@ -24,12 +24,16 @@ const std::string TagSetOfCpleName = "SetCpleOfName";
 // const std::string TheMMVII_SysName => voir Utils/uti_sysdep.cpp
  
 // Name of standard directories
-const std::string TmpMMVIIDirPrefix        = "Tmp-2007-Dir";
-const std::string TmpMMVIIDirGlob        = TmpMMVIIDirPrefix + "-Glob/";
-const std::string TmpMMVIIDirPCar        = TmpMMVIIDirPrefix + "-PCar/";
+const std::string MMVII_ComonPrefix      =  "MMVII";
+const std::string TmpMMVIIDirPrefix      =  MMVII_ComonPrefix +"-Tmp-Dir";
+const std::string TmpMMVIIDirGlob        =  TmpMMVIIDirPrefix + "-Glob" + StringDirSeparator();
+const std::string TmpMMVIIDirPCar        =  TmpMMVIIDirPrefix + "-PCar" + StringDirSeparator();
 
-const std::string MMVIITestDir       = "MMVII-TestDir/";
-const std::string TmpMMVIIProcSubDir = "Process/";
+const std::string MMVIIDirOrient      =  MMVII_ComonPrefix +"-Orient" + StringDirSeparator();
+const std::string MMVIIDirHomol       =  MMVII_ComonPrefix +"-Homol" + StringDirSeparator();
+
+const std::string MMVIITestDir       = "MMVII-TestDir" +StringDirSeparator();
+const std::string TmpMMVIIProcSubDir = "Process" + StringDirSeparator();
 
 const std::string BLANK = " ";
 const std::vector<std::string>  EMPTY_VSTR;

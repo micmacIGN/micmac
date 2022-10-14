@@ -15,7 +15,9 @@ namespace MMVII
 class cConcavexMapP1M1 : public cFctrRR
 {
    public :
+      /// non virtual  F
       double NVF (double) const; 
+      ///  virtual for heriting cFctrRR , 
       virtual  double F (double) const override ;
       void Show() const;
       // static cFctrRR  TheOne;  ///< the object return always 1
