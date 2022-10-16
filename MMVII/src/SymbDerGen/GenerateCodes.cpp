@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "ComonHeaderSymb.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_ImagesDeform.h"

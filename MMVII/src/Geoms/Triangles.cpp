@@ -498,7 +498,9 @@ template <class Type,const int Dim> int  cTriangulation<Type,Dim>::IndexClosestF
 
     for (int aKF=0 ; aKF<int(mVFaces.size()) ; aKF++)
     {
-       aWMin.Add(aKF,Norm2(aPClose- KthTri(aKF).Barry()));
+       tTri aTri = KthTri(aKF);
+       if (aTri.Regularity() > 0)
+          aWMin.Add(aKF,Norm2(aPClose- aTri.Barry()));
     }
     return aWMin.IndexExtre();
 }

@@ -306,8 +306,6 @@ void BenchCentralePerspective_ImportV1(cParamExeBench & aParam)
 
         BenchCentralePerspective_ImportCalibV1(aParam,"AutoCal_Foc-11500_Cam-imx477imx477-1.xml",false,false,1e-3);
     }
-
-    StdOut() << "JJJJJJJJJlllllllllll\n"; getchar();
 }
 
     // ===============================================================================================

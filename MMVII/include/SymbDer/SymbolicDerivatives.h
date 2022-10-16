@@ -1251,7 +1251,20 @@ inline std::string cCoordinatorF<TypeElem>::TypeElemName() const
 } //  namespace NS_SymbolicDerivative
 
 
+
 /*
+#if SYMBDER_WITH_MMVII
+template <> class MMVII::tElemNumTrait<NS_SymbolicDerivative::cFormula<double> >
+{
+    public :
+         typedef NS_SymbolicDerivative::cFormula<double> tBase;
+         typedef NS_SymbolicDerivative::cFormula<double> tBig ;
+         typedef NS_SymbolicDerivative::cFormula<double> tFloatAssoc ;
+
+	 static void AssertValueOk(const NS_SymbolicDerivative::cFormula<double> & ) {}
+};
+#endif
+
 #if SYMBDER_WITH_MMVII
 /// requiredfor cPtxd<cFormula> ....  but dont solve the pb, so keep it minimal fornow
 template <class TypeElem>  class MMVII::tElemNumTrait<NS_SymbolicDerivative::cFormula<TypeElem> >

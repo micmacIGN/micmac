@@ -252,6 +252,11 @@ template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(int aK,const  
     mValueFrozenVar.at(aK) = aVal;
 }
 
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVarCurVal(int aK)
+{
+	SetFrozenVar(aK,CurSol(aK));
+}
+
 template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const  Type & aVal)
 {
 	SetFrozenVar(anObj.IndOfVal(&aVal),aVal);

@@ -88,13 +88,35 @@ template <class Type,const int Dim> class cPtxd
         static cPtxd<Type,Dim> FromStdVector(const std::vector<Type>&); ///< Init with line of matrix
 
        /// Contructor for 1 dim point, statically checked
-       explicit cPtxd(const Type & x) :  mCoords{x} {static_assert(Dim==1,"bad dim in cPtxd initializer");}
+       explicit cPtxd(const Type & x) :  mCoords{x} 
+       {
+	       tNumTrait<Type>::AssertValueOk(x);
+	       static_assert(Dim==1,"bad dim in cPtxd initializer");
+       }
        /// Contructor for 2 dim point, statically checked
-       cPtxd(const Type & x,const Type &y) :  mCoords{x,y} {static_assert(Dim==2,"bad dim in cPtxd initializer");}
+       cPtxd(const Type & x,const Type &y) :  mCoords{x,y} 
+       {
+	       tNumTrait<Type>::AssertValueOk(x);
+	       tNumTrait<Type>::AssertValueOk(y);
+	       static_assert(Dim==2,"bad dim in cPtxd initializer");
+       }
        /// Contructor for 3 dim point, statically checked
-       cPtxd(const Type & x,const Type &y,const Type &z) :  mCoords{x,y,z} {static_assert(Dim==3,"bad dim in cPtxd initializer");}
+       cPtxd(const Type & x,const Type &y,const Type &z) :  mCoords{x,y,z} 
+       {
+	       tNumTrait<Type>::AssertValueOk(x);
+	       tNumTrait<Type>::AssertValueOk(y);
+	       tNumTrait<Type>::AssertValueOk(z);
+	       static_assert(Dim==3,"bad dim in cPtxd initializer");
+       }
        /// Contructor for 4 dim point, statically checked
-       cPtxd(const Type & x,const Type &y,const Type &z,const Type &t) :  mCoords{x,y,z,t} {static_assert(Dim==4,"bad dim in cPtxd initializer");}
+       cPtxd(const Type & x,const Type &y,const Type &z,const Type &t) :  mCoords{x,y,z,t} 
+       {
+	       tNumTrait<Type>::AssertValueOk(x);
+	       tNumTrait<Type>::AssertValueOk(y);
+	       tNumTrait<Type>::AssertValueOk(z);
+	       tNumTrait<Type>::AssertValueOk(t);
+	       static_assert(Dim==4,"bad dim in cPtxd initializer");
+       }
 
        /// Contructor for 1 dim point, statically checked
        explicit cPtxd(const Type * aV)  {MemCopy(&mCoords[0],aV,Dim);}
@@ -718,89 +740,6 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
        Type    mN2;
        tPt     mTgt;
 };
-
-#if (0)
-
-/// Class for storing  basic triangle in 2 or 3 D
-template <class Type,const int Dim> class  cTriangle
-{
-     public :
-       typedef cPtxd<Type,Dim>     tPt;
-       typedef cTriangle<Type,Dim> tTri;
-
-       cTriangle(const tPt & aP0,const tPt & aP1,const tPt & aP2);
-
-       tTri  TriSwapPt(int aK0) const; ///< "same" but with different orientation by swap K0/1+K0
-
-       static tTri  RandomTri(const Type & aSz,const Type & aRegulMin = Type(1e-2));
-       /// aWeight  encode in a point the 3 weights
-       tPt  FromCoordBarry(const cPtxd<Type,3> & aWeight) const;
-       /// Barrycenter with equal weights
-       tPt  Barry() const;
-
-       ///  return K such that Pt(K)Pt(K+1) is the longest
-       int  IndexLongestSeg() const;
-
-       /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
-       Type Regularity() const;
-       /// Area of the triangle
-       Type Area() const;
-       /// Point equidistant to 3 point,  To finish for dim 3
-       tPt CenterInscribedCircle() const;
-       const tPt & Pt(int aK) const;   ///< Accessor
-       tPt KVect(int aK) const;   ///<   Pk->Pk+1
-       cTplBox<Type,Dim>  BoxEngl() const;
-       cTplBox<int,Dim>     BoxPixEngl() const;  // May be a bit bigger
-
-     protected :
-       tPt  mPts[3];
-};
-
-
-template <class Type,const int Dim> class cTriangulation
-{
-     public :
-          typedef Type                  tCoord;
-          typedef cPtxd<tCoord,Dim>     tPt;
-          typedef cTriangle<tCoord,Dim> tTri;
-          typedef cPt3di                tFace;
-          typedef std::vector<tPt>      tVPt;
-          typedef std::vector<tFace>    tVFace;
-
-	  tPt PAvg() const; ///< return an average point 
-	  int   IndexClosestFace(const tPt& aPClose) const; ///< Face closest to a given point
-	  /**  return a Face more or less at the center,  4 now ompute face closest to Avg , not perfect
-	   * but work with simple suface, if necessary will evolve as a real geodetic center */
-	  int   IndexCenterFace() const;
-
-
-          int  NbFace() const;
-          const tFace &  KthFace(int aK) const;
-          tTri  KthTri(int aK) const;
-	  bool  ValidFace(const tFace &) const;
-          int  NbPts() const;
-	  const tPt  & KthPts() const;
-
-	  /// Create a sub tri of vertices belonging to the set, require 1,2 or 3 vertice in each tri
-	  void Filter(const cDataBoundedSet<tREAL8,Dim> &,int aNbVertixThres=3) ;
-	  /// Box of Pts, error when empty, FactMargin make it slightly bigger
-	  cTplBox<tCoord,Dim>  BoxEngl(Type aFactMargin = 1e-2) const;
-
-	  /// Equality is difficiult, because of permutation,just make heuristik test
-	  bool  HeuristikAlmostEqual (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;
-     protected :
-	  /// More a
-	  bool  HeuristikAlmostInclude (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;
-
-          cTriangulation(const tVPt& =tVPt(),const tVFace & =tVFace());
-          void AddFace(const tFace &);
-          void ResetTopo();
-
-          std::vector<tPt>    mVPts;
-          std::vector<tFace>  mVFaces;
-};
-#endif
-
 
 
 };

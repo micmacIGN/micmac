@@ -463,8 +463,17 @@ template<int N> double EpsDifference(const cEpsNum<N> & aEps,const cVarEpsNum & 
     return aRes;
 }
 
-
-
+template <const int Nb> class tNumTrait<cEpsNum<Nb>>
+{
+    public :
+        // For these type rounding mean something
+        // static bool IsInt() {return true;}
+        // typedef cFormula<tREAL8>  tBase;
+        // typedef cFormula<tREAL8>  tBig;
+        typedef cEpsNum<Nb>  tBase;
+        typedef cEpsNum<Nb>  tBig;
+        static void AssertValueOk(const cEpsNum<Nb> & ) {}
+};
 
 
 };
