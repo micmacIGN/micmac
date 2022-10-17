@@ -1,7 +1,84 @@
 #include "include/MMVII_all.h"
+#include <set>
 
 namespace MMVII
 {
+
+class cVecEquiv
+{
+    public :
+        cVecEquiv(size_t aNb);
+	void  StableRenums(const std::vector<cPt2di> &,bool Show);
+
+	size_t NbCompressed() const;
+	const std::vector<int> & LutCompress() const;
+    private :
+	bool OneIterRenums(const std::vector<cPt2di> &);
+	bool OneRenum(const cPt2di &);
+
+	std::vector<int> mNums;
+	size_t           mNbCompressed;
+};
+
+
+cVecEquiv::cVecEquiv(size_t aNb) :
+	mNums (aNb)
+{
+    for (size_t aK=0 ; aK<aNb ; aK++)
+         mNums[aK] = aK;
+}
+
+bool cVecEquiv::OneRenum(const cPt2di & aP)
+{
+     int & aNx = mNums[aP.x()];
+     int & aNy = mNums[aP.y()];
+
+     int aNewNum = std::min(aNx,aNy);
+
+     bool aChg = (aNewNum!=aNx) || (aNewNum!=aNy);
+
+     aNy = aNewNum;
+     aNy = aNewNum;
+
+     return aChg;
+}
+
+bool cVecEquiv::OneIterRenums(const std::vector<cPt2di> & aVEdge)
+{
+    bool Got1Chg = false;
+
+    for (const auto & anEdge : aVEdge)
+    {
+        if( OneRenum(anEdge) ) 
+          Got1Chg = true;
+   }
+   return Got1Chg;
+}
+
+void  cVecEquiv::StableRenums(const std::vector<cPt2di> & aVEdge,bool Show)
+{
+      while (OneIterRenums(aVEdge)) ;
+
+      mNbCompressed =0;
+      for (size_t aK=0 ; aK<mNums.size() ; aK++)
+      {
+         if (mNums[aK]!=int(aK))
+         {
+             if (Show)
+                StdOut() << "KKK " << aK  << " -> " << mNums[aK]<< "\n";
+	 }
+	 else
+	 {
+		 mNums[aK] = mNbCompressed++;
+	 }
+      }
+
+      if (Show)
+         StdOut() << "NB RDUX " << mNums.size() - mNbCompressed << "\n";
+}
+
+size_t cVecEquiv::NbCompressed() const {return mNbCompressed;}
+const std::vector<int> & cVecEquiv::LutCompress() const {return mNums;}
 
 /* ********************************************** */
 /*                                                */
@@ -81,6 +158,20 @@ template <class Type,const int Dim> Type cTriangle<Type,Dim>::Regularity() const
     if (aSomSqN2==0) return 0;
     return AbsSurfParalogram(aV01,aV02) / aSomSqN2;
 }
+
+template <class Type,const int Dim> Type cTriangle<Type,Dim>::MinDist() const
+{
+    tPt aV01 = mPts[1]-mPts[0];
+    tPt aV02 = mPts[2]-mPts[0];
+    tPt aV12 = mPts[2]-mPts[1];
+    typename tPt::tBigNum aMinSqN2 = std::min(SqN2(aV01),std::min(SqN2(aV02),SqN2(aV12)));
+    return std::sqrt(aMinSqN2);
+}
+
+
+
+
+
 
 template <class Type,const int Dim> Type cTriangle<Type,Dim>::Area() const
 {
@@ -509,6 +600,89 @@ template <class Type,const int Dim> int cTriangulation<Type,Dim>::IndexCenterFac
 {
 	return IndexClosestFace(PAvg());
 }
+
+
+template <class Type,const int Dim> bool cTriangulation<Type,Dim>::CheckAndCorrect(bool Correct)
+{
+    bool Show = true;
+    int aNbFaceIrreg = 0;
+
+    // std::vector<int> aVEquiv(mVPts.size(),-1);
+
+
+    std::vector<cPt2di> aVEdges;  // indexes of point that are identical in the same face
+
+    for (int aKF=0 ; aKF<int(mVFaces.size()) ; aKF++)
+    {
+       tTri aTri = KthTri(aKF);
+       if (aTri.Regularity() <= 0)
+       {
+           const tFace & aFace = mVFaces[aKF];
+           aNbFaceIrreg++;
+	   for (int aK=0 ; aK<3 ; aK++)
+	   {
+               int aInd1 = aFace[aK];
+               int aInd2 = aFace[(aK+1)%3];
+               int aInd3 = aFace[(aK+2)%3];
+
+	       if (mVPts[aInd1]==mVPts[aInd2])
+	       {
+                   aVEdges.push_back(cPt2di(aInd1,aInd2));
+                   aVEdges.push_back(cPt2di(aInd2,aInd1));
+		   // aVEquiv[aInd1].insert(aInd2);
+		   // aVEquiv[aInd2].insert(aInd1);
+                   if (Show)
+		   {
+                       StdOut() << "--------Multiple sommet : " << aInd1 
+			        << " " << aInd2 
+			        << " " << aInd3 
+			        << " (" << aInd3 << ")\n";
+		   }
+	       }
+	   }
+	   if (Show)
+	      StdOut() << "====================\n";
+       }
+    }
+
+
+    if (Show) 
+       StdOut() << "--------Irregular faces : " << aNbFaceIrreg << "\n";
+
+    cVecEquiv aVEquiv(mVPts.size());
+    aVEquiv.StableRenums(aVEdges,Show);
+
+
+    if (Correct)
+    {
+       std::vector<tPt>    aVNewPts(aVEquiv.NbCompressed());
+       std::vector<tFace>  aVNewFaces;
+       const std::vector<int> &  aLutC = aVEquiv.LutCompress() ;
+
+       for (int aKF=0 ; aKF<int(mVFaces.size()) ; aKF++)
+       {
+          tTri aTri = KthTri(aKF);
+          if (aTri.MinDist() > 0) // we supress only faces with multiple points
+          {
+              const tFace & aFace = mVFaces[aKF];
+              aVNewFaces.push_back(tFace(aLutC.at(aFace[0]),aLutC.at(aFace[1]),aLutC.at(aFace[2])));
+          }
+       }
+
+       // for reduced point, we will write several time at fusionned point
+       for (size_t aKp=0 ; aKp<mVPts.size() ; aKp++)
+       {
+            aVNewPts.at(aLutC.at(aKp)) = mVPts[aKp];
+       }
+
+
+       mVPts = aVNewPts;
+       mVFaces = aVNewFaces;
+    }
+
+    return (aNbFaceIrreg==0);
+}
+
 
 
 #if (0)

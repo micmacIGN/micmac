@@ -153,6 +153,18 @@ template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,
     return aRes;
 }
 
+template <class Type> cTriangle<Type,2> cIsometry3D<Type>::ToPlaneZ0(int aKOut,const tTri  & aTriOut)
+{
+     cIsometry3D<Type> aIso = FromTriOut(aKOut,aTriOut);
+
+     tPt aP0 = aIso.Inverse(aTriOut.Pt(aKOut));
+     tPt aP1 = aIso.Inverse(aTriOut.Pt((aKOut+1)%3));
+     tPt aP2 = aIso.Inverse(aTriOut.Pt((aKOut+2)%3));
+
+     // StdOut() << "ToPlaneZ0 " << aP0.z() << " " << aP1.z() << " " << aP2.z() << "\n";
+
+     return tTri2d(Proj(aP0),Proj(aP1),Proj(aP2));
+}
 
 
 

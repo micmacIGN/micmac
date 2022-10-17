@@ -4,6 +4,106 @@
 namespace MMVII
 {
 
+/* =============================================== */
+/*                                                 */
+/*                 cAppliCloudClip                 */
+/*                                                 */
+/* =============================================== */
+
+/**  A basic application for clipping 3d data ,  almost all the job is done in
+ * libraries so it essentially interface to command line */
+
+class cAppliCheckMesh : public cMMVII_Appli
+{
+     public :
+
+        cAppliCheckMesh(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+     // --- Mandatory ----
+	std::string mNameCloudIn;
+
+     // --- Optionnal ----
+	std::string mNameCloudOut;
+	bool        mBinOut;
+	bool        mDoCorrect;
+     // --- Internal ----
+};
+
+cAppliCheckMesh::cAppliCheckMesh(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+   cMMVII_Appli     (aVArgs,aSpec),
+   mBinOut          (false),
+   mDoCorrect       (false)
+{
+}
+
+
+cCollecSpecArg2007 & cAppliCheckMesh::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+ return anArgObl
+	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileCloud})
+   ;
+}
+
+cCollecSpecArg2007 & cAppliCheckMesh::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+           << AOpt2007(mBinOut,CurOP_OutBin,"Generate out in binary format",{eTA2007::HDV})
+           << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file if correction are done")
+   ;
+}
+
+int cAppliCheckMesh::Exe() 
+{
+   mDoCorrect  = IsInit(&mNameCloudOut);
+
+   cTriangulation3D<tREAL8>  aTri(mNameCloudIn);
+   aTri.CheckAndCorrect(mDoCorrect);
+
+   if (mDoCorrect)
+   {
+       aTri.WriteFile(DirProject()+mNameCloudOut,mBinOut);
+       /*
+       for (size_t aK=0 ; aK<aTri.NbFace() ; aK++)
+           cIsometry3D<tREAL8>::ToPlaneZ0(1,aTri.KthTri(aK));
+	   */
+   }
+
+
+
+   return EXIT_SUCCESS;
+}
+
+     /* =============================================== */
+     /*                       ::                        */
+     /* =============================================== */
+
+tMMVII_UnikPApli Alloc_CheckMesh(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppliCheckMesh(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpecMeshCheck
+(
+     "MeshCheck",
+      Alloc_CheckMesh,
+      "Make some checking on a mesh, eventually correct it 4 easy defaults",
+      {eApF::Cloud},
+      {eApDT::Ply},
+      {eApDT::Ply},
+      __FILE__
+);
+
+/* =============================================== */
+/*                                                 */
+/*                       cAppliCloudClip           */
+/*                                                 */
+/* =============================================== */
+
 /**  A basic application for clipping 3d data ,  almost all the job is done in
  * libraries so it essentially interface to command line */
 
@@ -29,7 +129,8 @@ class cAppliCloudClip : public cMMVII_Appli
 };
 
 cAppliCloudClip::cAppliCloudClip(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli     (aVArgs,aSpec)
+   cMMVII_Appli     (aVArgs,aSpec),
+   mBinOut          (false)
 {
 }
 
@@ -66,12 +167,9 @@ int  cAppliCloudClip::Exe()
 }
 
 
-
-/* =============================================== */
-/*                                                 */
-/*                       ::                        */
-/*                                                 */
-/* =============================================== */
+     /* =============================================== */
+     /*                       ::                        */
+     /* =============================================== */
 
 tMMVII_UnikPApli Alloc_CloudClip(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
@@ -80,9 +178,9 @@ tMMVII_UnikPApli Alloc_CloudClip(const std::vector<std::string> &  aVArgs,const 
 
 cSpecMMVII_Appli  TheSpecCloudClip
 (
-     "CloudClip",
+     "MeshCloudClip",
       Alloc_CloudClip,
-      "Clip a point cloud/mesh  using a region",
+      "Clip a point mesh/cloud  using a region",
       {eApF::Cloud},
       {eApDT::Ply},
       {eApDT::Ply},

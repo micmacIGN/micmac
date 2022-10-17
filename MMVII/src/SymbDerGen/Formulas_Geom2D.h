@@ -91,9 +91,8 @@ class cRatioDist2DConservation
 class cBaseNetCDPC
 {
    public :
-       cBaseNetCDPC(const cPt2di  & aSzN) :
-           mSzN       (aSzN),
-           mNbPts     (mSzN.x() * mSzN.y()),
+       cBaseNetCDPC(int aNbPts) :
+           mNbPts     (aNbPts),
            mNbCoord   (2*mNbPts)
        {
        }
@@ -105,7 +104,7 @@ class cBaseNetCDPC
        {
             return WithRot ? std::vector<std::string> {"x_tr","y_tr","teta"} :  EMPTY_VSTR;
        } 
-       cPt2di mSzN;
+       //cPt2di mSzN;
        int    mNbPts;
        int    mNbCoord;
 };
@@ -114,7 +113,7 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
 {
       public :
           cNetworConsDistProgCov(const cPt2di  & aSzN) :
-                cBaseNetCDPC(aSzN)
+                cBaseNetCDPC(MulCoord(aSzN))
           {
           }
           std::string FormulaName() const { return "PropCovNwCD_" + ToStr(mNbPts) ;}
@@ -180,14 +179,22 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
 class cNetWConsDistSetPts : public  cBaseNetCDPC
 {
       public :
-          cNetWConsDistSetPts(const cPt2di  & aSzN,bool RotIsUk) :
-                cBaseNetCDPC(aSzN),
+          cNetWConsDistSetPts(int aNbPts,bool RotIsUk) :
+                cBaseNetCDPC(aNbPts),
                 mRotIsUk    (RotIsUk)
           {
           }
+
+          cNetWConsDistSetPts(const cPt2di  & aSzN,bool RotIsUk) :
+                cNetWConsDistSetPts(MulCoord(aSzN),RotIsUk)
+          {
+          }
+
+
+
           std::string FormulaName() const 
           { 
-               return "SetPointNwCD_" + std::string(mRotIsUk ? "SimUK" : "SimFix") + ToStr(mNbPts) ;
+               return "SetPointNwCD_" + std::string(mRotIsUk ? "RotUK" : "RotFix") + ToStr(mNbPts) ;
           }
 
           const std::vector<std::string> VNamesUnknowns()  const

@@ -71,8 +71,10 @@ template <class Type,const int Dim> class  cTriangle
        ///  return K such that Pt(K)Pt(K+1) is the longest
        int  IndexLongestSeg() const;
 
-       /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
+       /// How much is it a non degenerate triangle,  without unity, 0=> degenerate (point aligned)
        Type Regularity() const;
+       /// High degeneracy, 0 indicate two point indentics
+       Type MinDist() const;
        /// Area of the triangle
        Type Area() const;
        /// Point equidistant to 3 point,  To finish for dim 3
@@ -82,6 +84,7 @@ template <class Type,const int Dim> class  cTriangle
        tPt KVect(int aK) const;   ///<   Pk->Pk+1
        cTplBox<Type,Dim>  BoxEngl() const;
        cTplBox<int,Dim>     BoxPixEngl() const;  // May be a bit bigger
+
 
      protected :
        tPt  mPts[3];
@@ -130,9 +133,12 @@ template <class Type,const int Dim> class cTriangulation
 	  /// Equality is difficiult, because of permutation,just make heuristik test
 	  bool  HeuristikAlmostEqual (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;
 
-	  ///  Generate topology of dual graphe => implemanted but 4 now, nor used nor tested ...
+	  ///  Generate topology of dual graphe => implemanted ; used in mesh dev (so +or- tested)
 	  void MakeTopo();
           const cGraphDual & DualGr() const;
+
+	  ///  Make some (basic) test on correction of a triangulation, eventually correct some default
+          bool CheckAndCorrect(bool Correct);
      protected :
 	  /// More a
 	  bool  HeuristikAlmostInclude (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;

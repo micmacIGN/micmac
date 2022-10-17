@@ -131,6 +131,7 @@ template <class Type> class cIsometry3D
        typedef cPtxd<Type,3>      tPt;
        typedef cPtxd<Type,2>      tPt2;
        typedef cTriangle<Type,3>  tTri;
+       typedef cTriangle<Type,2>  tTri2d;
        typedef Type               tTypeElem;
        typedef cIsometry3D<Type> tTypeMap;
        typedef cIsometry3D<Type> tTypeMapInv;
@@ -148,6 +149,9 @@ template <class Type> class cIsometry3D
        static cIsometry3D<Type> FromTriInAndOut(int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut);
        /// Idem put use canonique tri = 0,I,J as input
        static cIsometry3D<Type> FromTriOut(int aKOut,const tTri  & aTriOut);
+
+       /// return a 2D triangle isometric to 3d, PK in 0,0  PK->PK1 // to Ox
+       static tTri2d ToPlaneZ0(int aKOut,const tTri  & aTriOut);
 
 
        void SetRotation(const cRotation3D<Type> &);

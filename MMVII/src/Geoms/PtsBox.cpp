@@ -328,6 +328,19 @@ template <class T,const int Dim>
    return aRes;
 }
 
+template <class T,const int Dim>  
+   typename  tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> &aPt)
+{
+   typename tNumTrait<T>::tBig  aRes = aPt[0];
+   for (int aD=1 ; aD<Dim; aD++)
+      aRes *=  aPt[aD];
+   return aRes;
+}
+
+
+
+
+
 template <class T,const int Dim>  T Cos(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
    return T(Scal(aP1,aP2)) / (Norm2(aP1)*Norm2(aP2));
@@ -1088,6 +1101,7 @@ template  TYPE Norm1(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE NormInf(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE MinAbsCoord(const cPtxd<TYPE,DIM> & aPt);\
 template  typename  tNumTrait<TYPE>::tBig Scal(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+template  typename  tNumTrait<TYPE>::tBig MulCoord(const cPtxd<TYPE,DIM> &);\
 template  TYPE Cos(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE AbsAngle(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);\

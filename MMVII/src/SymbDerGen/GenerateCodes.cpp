@@ -153,6 +153,11 @@ cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,cons
     return StdAllocCalc(NameFormula(cNetWConsDistSetPts(aSzN,WithSimUK),WithDerive),aSzBuf);
 }
 
+cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,int aNbPts)
+{ 
+    return StdAllocCalc(NameFormula(cNetWConsDistSetPts(aNbPts,true),WithDerive),aSzBuf);
+}
+
 cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf)
 {
      return StdAllocCalc(NameFormula(cDeformImHomotethy(),WithDerive),aSzBuf);
@@ -456,8 +461,9 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cNetworConsDistProgCov(cPt2di(2,2)),WithDer);
        for (const auto WithSimUk : {true,false})
            GenCodesFormula((tREAL8*)nullptr, cNetWConsDistSetPts(cPt2di(2,2),WithSimUk),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cNetWConsDistSetPts(3,true),WithDer);
 
-       GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
    }
 
    GenerateCodeProjCentralPersp<cProjStenope>();

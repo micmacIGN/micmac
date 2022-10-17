@@ -326,7 +326,8 @@ template <class T,const int Dim> T Norm1(const cPtxd<T,Dim> & aP);
 template <class T,const int Dim> T NormInf(const cPtxd<T,Dim> & aP);
 template <class T,const int Dim> double Norm2(const cPtxd<T,Dim> & aP);
 
-template <class T,const int Dim> typename  tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+template <class T,const int Dim> typename tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+template <class T,const int Dim> typename tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> & aP);
 
 template <class T,const int Dim> T Cos(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 template <class T,const int Dim> T AbsAngle(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
