@@ -68,6 +68,8 @@ template <class Type,const int Dim> class cPtxd
       
        /// Initialisation from PInt
        static cPtxd<Type,Dim>  FromPtInt(const  cPtxd<int,Dim> & aVal) ;
+       /// Initialisation from PInt
+       static cPtxd<Type,Dim>  FromPtR(const  cPtxd<tREAL8,Dim> & aVal) ;
        /// Initialisation random
        static cPtxd<Type,Dim>  PRand();
        /// Initialisation random

@@ -74,7 +74,7 @@ void  cVecEquiv::StableRenums(const std::vector<cPt2di> & aVEdge,bool Show)
       }
 
       if (Show)
-         StdOut() << "NB RDUX " << mNums.size() - mNbCompressed << "\n";
+         StdOut() << "NB RDUX " << mNums.size() - mNbCompressed << "\n\n";
 }
 
 size_t cVecEquiv::NbCompressed() const {return mNbCompressed;}
@@ -260,6 +260,17 @@ template <class Type,const int Dim>
 	return RandomTri(aSz,aRegulMin);
 }
 
+template <class T>   cTriangle<T,2> Proj  (const cTriangle<T,3> & aTri)
+{
+    return cTriangle<T,2>(Proj(aTri.Pt(0)),Proj(aTri.Pt(1)),Proj(aTri.Pt(2)));
+}
+
+template <class T>   cTriangle<T,3> TP3z0  (const cTriangle<T,2> & aTri)
+{
+    return cTriangle<T,3>(TP3z0(aTri.Pt(0)),TP3z0(aTri.Pt(1)),TP3z0(aTri.Pt(2)));
+}
+
+
 /* *********************************************************** */
 /*                                                             */
 /*                 cEdgeDual                                   */
@@ -334,7 +345,7 @@ void  cGraphDual::AddTri(int aNumFace,const cPt3di & aTri)
           AddEdge(aNumFace,aTri[aK],aTri[(aK+1)%3]);
 }
 
-cEdgeDual *  cGraphDual::GetEdgeOfSoms(int aS1,int aS2)
+cEdgeDual *  cGraphDual::GetEdgeOfSoms(int aS1,int aS2) const
 {
      for (const auto & aPtrE : mSomNeigh.at(aS1))
      {
@@ -371,6 +382,16 @@ void  cGraphDual::GetFacesNeighOfFace(std::vector<int> & aRes,int aF1) const
 /*                                                             */
 /* *********************************************************** */
 
+
+int  IndOfSomInFace(const cPt3di & aFace,int aNumS,bool SVP)
+{
+    for (int aK=0 ; aK<3 ; aK++)
+        if  (aFace[aK]==aNumS)
+            return aK;
+
+    MMVII_INTERNAL_ASSERT_tiny(SVP,"Bad IndOfSomInFace");
+    return -1;
+}
 
 
 template <class Type,const int Dim> cTriangulation<Type,Dim>::cTriangulation(const tVPt& aVPts,const tVFace& aVFace)  :
@@ -685,9 +706,6 @@ template <class Type,const int Dim> bool cTriangulation<Type,Dim>::CheckAndCorre
 
 
 
-#if (0)
-#endif
-
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
@@ -698,6 +716,8 @@ template class cTriangulation<TYPE,DIM>;\
 template class cTriangle<TYPE,DIM>;
 
 #define  INSTANTIATE_TRI(TYPE)\
+template   cTriangle<TYPE,2> Proj  (const cTriangle<TYPE,3> & aTri);\
+template   cTriangle<TYPE,3> TP3z0 (const cTriangle<TYPE,2> & aTri);\
 template cPtxd<TYPE,3> NormalUnit(const cTriangle<TYPE,3> & aTri);\
 INSTANTIATE_TRI_DIM(TYPE,2)\
 INSTANTIATE_TRI_DIM(TYPE,3)\

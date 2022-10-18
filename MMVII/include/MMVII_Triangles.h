@@ -37,7 +37,7 @@ class cGraphDual
          void Init(int aNbSom,const std::vector<tFace>&);
          void  AddTri(int aFace,const cPt3di &);
 
-         cEdgeDual * GetEdgeOfSoms(int aS1,int aS2); ///< return egde s1->s2 if it exist, else return null
+         cEdgeDual * GetEdgeOfSoms(int aS1,int aS2) const; ///< return egde s1->s2 if it exist, else return null
 	 void  GetSomsNeighOfSom(std::vector<int> & aRes,int aS1) const;
 	 void  GetFacesNeighOfFace(std::vector<int> & aRes,int aF1) const;
      private :
@@ -89,12 +89,15 @@ template <class Type,const int Dim> class  cTriangle
      protected :
        tPt  mPts[3];
 };
+typedef   cTriangle<tREAL8,2>  tTri2dR;
+typedef   cTriangle<tREAL8,3>  tTri3dR;
 
 
 /// return 2 elementay triangle both oriented, DiagCrois : diag contain 00->11 , else 01->10
 template <class Type> const std::vector<cTriangle<Type,2> > &  SplitPixIn2(bool DiagCrois);
 
-
+/// return K such Face[K] = NumS, if  not found : -1 if SVP, error if not
+int  IndOfSomInFace(const cPt3di & aFace,int aNumS,bool SVP=false);
 
 template <class Type,const int Dim> class cTriangulation
 {
@@ -139,6 +142,7 @@ template <class Type,const int Dim> class cTriangulation
 
 	  ///  Make some (basic) test on correction of a triangulation, eventually correct some default
           bool CheckAndCorrect(bool Correct);
+
      protected :
 	  /// More a
 	  bool  HeuristikAlmostInclude (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;

@@ -148,10 +148,10 @@ template <class Type> class cIsometry3D
        /// Return Isome such thqt I(InJ) = OutK ;  In(InJJp1) // OutKKp1 ; In(Norm0) = NormOut
        static cIsometry3D<Type> FromTriInAndOut(int aKIn,const tTri  & aTriIn,int aKOut,const tTri  & aTriOut);
        /// Idem put use canonique tri = 0,I,J as input
-       static cIsometry3D<Type> FromTriOut(int aKOut,const tTri  & aTriOut);
+       static cIsometry3D<Type> FromTriOut(int aKOut,const tTri  & aTriOut,bool Direct=true);
 
        /// return a 2D triangle isometric to 3d, PK in 0,0  PK->PK1 // to Ox
-       static tTri2d ToPlaneZ0(int aKOut,const tTri  & aTriOut);
+       static tTri2d ToPlaneZ0(int aKOut,const tTri  & aTriOut,bool Direct=true);
 
 
        void SetRotation(const cRotation3D<Type> &);
@@ -210,6 +210,33 @@ template <class Type> class cSimilitud3D
        cRotation3D<Type>  mRot;
 };
 
+/**  Class to store the devlopment planar of two adjacent faces      :          P2
+ * adjacent face . At the end we have two 2Dtriangle   with  P0P1    :         /    \   [T1] 
+ * identic, P2 of each side.  T1 direct , T2 indirect (if there      :       /       \
+ * is no orientation problem                                         :      P0 -------P1
+ *                                                                   :       |     _ /
+ *                                                                   :        P2 -      [T2]
+ * */
+
+template <class Type> class cDevBiFaceMesh
+{
+   public :
+      typedef  cPtxd<Type,2> tPt;
+
+      cDevBiFaceMesh(const cTriangle<Type,2> & aT1, const cTriangle<Type,2> & aT2);
+      cDevBiFaceMesh();
+      bool Ok() const;
+      bool WellOriented() const;
+      const cTriangle<Type,2> & T1() const;
+      const cTriangle<Type,2> & T2() const;
+
+   private :
+      void AssertOk() const;
+      bool              mOk;
+      bool              mWellOriented;
+      cTriangle<Type,2> mT1;
+      cTriangle<Type,2> mT2;
+};
 
 
 
@@ -230,6 +257,11 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 
 	   static void Bench();
 
+	   void CheckOri3D();
+	   void CheckOri2D();
+
+	   cTriangle<Type,2>     TriDevlpt(int aKF,int aNumSom) const;  // aNumSom in [0,1,2]
+	   cDevBiFaceMesh<Type>  DoDevBiFace(int aKF1,int aNumSom) const;  // aNumSom in [0,1,2]
         private :
            /// Read/Write in ply format using
            void PlyInit(const std::string &);

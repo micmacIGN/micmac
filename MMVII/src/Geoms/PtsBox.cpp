@@ -147,6 +147,7 @@ template <class T>   cPtxd<T,2> Proj  (const cPtxd<T,3> & aPt)
     return cPtxd<T,2>(aPt.x(),aPt.y());
 }
 
+
 template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVector(const std::vector<Type>& aV)
 {
    cPtxd<Type,Dim> aRes;
@@ -203,12 +204,14 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::FromPtInt(
    return aRes;
 }
 
-/*
-void ff()
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::FromPtR(const cPtxd<tREAL8,Dim> & aPtR)
 {
-    cPtxd<double,3>::FromPtInt(cPt3di(0,0,0));
+   cPtxd<Type,Dim> aRes;
+   for (int aK=0 ; aK<Dim; aK++)
+       aRes.mCoords[aK]= aPtR[aK];
+   return aRes;
 }
-*/
+
 
 
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRand()
@@ -1105,7 +1108,8 @@ template  typename  tNumTrait<TYPE>::tBig MulCoord(const cPtxd<TYPE,DIM> &);\
 template  TYPE Cos(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE AbsAngle(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);\
-template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtInt(const cPtxd<int,DIM> & aPInt);
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtInt(const cPtxd<int,DIM> & aPInt);\
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtR(const cPtxd<tREAL8,DIM> & aPInt);
 
 // template  cPtxd<TYPE,DIM>  PCste(const DIM & aVal);
 

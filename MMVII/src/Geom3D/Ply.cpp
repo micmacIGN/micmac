@@ -2161,14 +2161,161 @@ template <class Type> void cTriangulation3D<Type>::WriteFile(const std::string &
     }
 }
 
+template <class Type> class cDevBiFace
+{
+   public :
+      cDevBiFace(const cTriangle<Type,2> & aT1, const cTriangle<Type,2> & aT2);
+      cTriangle<Type,2> mT1;
+      cTriangle<Type,2> mT2;
+};
+
+template <class Type> cTriangle<Type,2>   cTriangulation3D<Type>::TriDevlpt(int aKF,int aNumSom) const
+{
+     return cIsometry3D<Type>::ToPlaneZ0(aNumSom,this->KthTri(aKF));
+}
+
+
+template <class Type> cDevBiFaceMesh<Type> cTriangulation3D<Type>::DoDevBiFace(int aKF1,int aKS1) const 
+{
+     const  tFace & aFace1 = this->mVFaces[aKF1];
+     int aIS1 = aFace1[aKS1];
+     int aIS2 = aFace1[(aKS1+1)%3];
+     cEdgeDual *  aE12 = this->mDualGr.GetEdgeOfSoms(aIS1,aIS2);
+     MMVII_INTERNAL_ASSERT_tiny(aE12!=nullptr,"Bad edge in CheckOri3D");
+     int aKF2 = aE12->GetOtherFace(aKF1,true);
+
+     if (aKF2<0)
+	return cDevBiFaceMesh<Type> ();
+
+     cTriangle<Type,2> aT1 = TriDevlpt(aKF1,aKS1);  // cIsometry3D<Type>::ToPlaneZ0(aKS1,this->KthTri(aKF1));
+
+
+
+     tFace aFace2 = this->mVFaces[aKF2];
+     int aKS2 = IndOfSomInFace(aFace2,aIS2);
+     cTriangle<Type,2> aT2 = cIsometry3D<Type>::ToPlaneZ0(aKS2,this->KthTri(aKF2),false);
+
+     if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny)
+     {
+            Type aDif =  Norm2(this->KthPts(aIS1)-this->KthPts(aIS2)) -  Norm2(aT1.Pt(0)-aT1.Pt(1));
+            MMVII_INTERNAL_ASSERT_tiny(std::abs(aDif)<1e-8,"Bad ToPlaneZ0");
+
+            MMVII_INTERNAL_ASSERT_tiny(NormInf(aT1.Pt(0) )<1e-8,"Bad ToPlaneZ0");
+            MMVII_INTERNAL_ASSERT_tiny(NormInf(aT2.Pt(0) )<1e-8,"Bad ToPlaneZ0");
+            MMVII_INTERNAL_ASSERT_tiny(NormInf(aT1.Pt(1)-aT2.Pt(1) )<1e-8,"Bad ToPlaneZ0");
+
+     }
+     return cDevBiFaceMesh<Type> (aT1,aT2);
+}
+
+
+
+template <class Type> void cTriangulation3D<Type>::CheckOri3D()
+{
+     this->MakeTopo();
+
+
+     int aNbBadOri = 0;
+     int aNbEInt = 0;
+     int aNbEExt = 0;
+     for (size_t aKF1=0 ; aKF1<this->NbFace() ; aKF1++)
+     {
+          for (int aKS1=0 ; aKS1<3 ; aKS1++)
+	  {
+              cDevBiFaceMesh<Type>  aDBF = DoDevBiFace(aKF1,aKS1);
+              if (aDBF.Ok())
+	      {
+                  if (! aDBF.WellOriented())
+                     aNbBadOri++;
+                  aNbEInt++;
+	      }
+	      else
+	      {
+                  aNbEExt++;
+	      }
+	  }
+     }
+     StdOut() << " * NbEdgeInt=" << aNbEInt  << " NbEdgeExt=" << aNbEExt  <<  "\n";
+     StdOut() << " Non Orientable  Edges :  " << aNbBadOri <<  " on " << (aNbEInt+aNbEExt) << "\n\n";
+}
+
+template <class Type> void cTriangulation3D<Type>::CheckOri2D()
+{
+     int aNbOriP = 0;
+     int aNbOriM = 0;
+     for (size_t aKF=0 ; aKF<this->NbFace() ; aKF++)
+     {
+          cTriangle<Type,3> aT = this->KthTri(aKF);
+	  cPtxd<Type,3> aV = aT.KVect(0) ^aT.KVect(1);
+
+          if (aV.z()>0)
+             aNbOriP++;
+          else
+             aNbOriM++;
+     }
+
+     int aNbBadOri = std::min(aNbOriP,aNbOriM);
+     StdOut() << " 2D-Bad Orientation " << aNbBadOri << " on " << this->NbFace() <<  "\n\n";
+}
+
+/* ********************************************************** */
+/*                                                            */
+/*                                                            */
+/*                                                            */
+/* ********************************************************** */
+
+template <class Type> cDevBiFaceMesh<Type>::cDevBiFaceMesh() :
+    mOk (false),
+    mWellOriented (false),
+    mT1 (tPt(0,0),tPt(0,0),tPt(0,0)),
+    mT2 (tPt(0,0),tPt(0,0),tPt(0,0))
+{
+}
+
+template <class Type> cDevBiFaceMesh<Type>::cDevBiFaceMesh(const cTriangle<Type,2> & aT1, const cTriangle<Type,2> & aT2) :
+    mOk (true),
+    mWellOriented (false),
+    mT1 (aT1),
+    mT2 (aT2)
+{
+    Type aY1 = aT1.Pt(2).y() ;
+    Type aY2 = aT2.Pt(2).y() ;
+
+    mWellOriented = ((aY1>=0) != (aY2>0)) ;
+}
+
+template <class Type> void cDevBiFaceMesh<Type>::AssertOk() const
+{
+      MMVII_INTERNAL_ASSERT_tiny(mOk,"Un-init cDevBiFaceMesh");
+}
+
+
+template <class Type> const cTriangle<Type,2> &  cDevBiFaceMesh<Type>::T1() const {AssertOk(); return mT1;}
+template <class Type> const cTriangle<Type,2> &  cDevBiFaceMesh<Type>::T2() const {AssertOk(); return mT2;}
+template <class Type> bool  cDevBiFaceMesh<Type>::Ok() const { return mOk;}
+template <class Type> bool  cDevBiFaceMesh<Type>::WellOriented() const {AssertOk(); return mWellOriented;}
+
+/*
+      cDevBiFaceMesh(const cTriangle<Type,2> & aT1, const cTriangle<Type,2> & aT2);
+      cDevBiFaceMesh();
+      bool Ok() const;
+      const cTriangle<Type,2> & T1() const;
+      const cTriangle<Type,2> & T2() const;
+      */
+
+
+
 /* ========================== */
 /*     INSTANTIATION          */
 /* ========================== */
 
-template class cTriangulation3D<tREAL4>;
-template class cTriangulation3D<tREAL8>;
-template class cTriangulation3D<tREAL16>;
+#define INSTANTIATE_TRI3D(TYPE)\
+template class cTriangulation3D<TYPE>;\
+template class cDevBiFaceMesh<TYPE>;
 
 
+INSTANTIATE_TRI3D(tREAL4)
+INSTANTIATE_TRI3D(tREAL8)
+INSTANTIATE_TRI3D(tREAL16)
 
 };

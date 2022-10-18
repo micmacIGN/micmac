@@ -31,13 +31,15 @@ class cAppliCheckMesh : public cMMVII_Appli
 	std::string mNameCloudOut;
 	bool        mBinOut;
 	bool        mDoCorrect;
+	bool        mDo2D;
      // --- Internal ----
 };
 
 cAppliCheckMesh::cAppliCheckMesh(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
    mBinOut          (false),
-   mDoCorrect       (false)
+   mDoCorrect       (false),
+   mDo2D            (false)
 {
 }
 
@@ -54,23 +56,26 @@ cCollecSpecArg2007 & cAppliCheckMesh::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
            << AOpt2007(mBinOut,CurOP_OutBin,"Generate out in binary format",{eTA2007::HDV})
            << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file if correction are done")
+           << AOpt2007(mDo2D,"Do2DC","check also as a 2D-triangulation (orientation)",{eTA2007::HDV})
+           << AOpt2007(mDoCorrect,"Correct","Do correction, Defaut: Do It Out specified")
    ;
 }
 
 int cAppliCheckMesh::Exe() 
 {
-   mDoCorrect  = IsInit(&mNameCloudOut);
+   if (! IsInit(&mDoCorrect))
+       mDoCorrect  = IsInit(&mNameCloudOut);
 
    cTriangulation3D<tREAL8>  aTri(mNameCloudIn);
    aTri.CheckAndCorrect(mDoCorrect);
 
-   if (mDoCorrect)
+   aTri.CheckOri3D();
+   if (mDo2D)
+      aTri.CheckOri2D();
+
+   if (IsInit(&mNameCloudOut))
    {
        aTri.WriteFile(DirProject()+mNameCloudOut,mBinOut);
-       /*
-       for (size_t aK=0 ; aK<aTri.NbFace() ; aK++)
-           cIsometry3D<tREAL8>::ToPlaneZ0(1,aTri.KthTri(aK));
-	   */
    }
 
 

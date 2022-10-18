@@ -140,12 +140,13 @@ template <class Type>
 }
 
 
-template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,const tTri  & aTriOut)
+template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,const tTri  & aTriOut,bool Direct)
 {
+    int Delta = Direct ? 1 : 2;
     tTypeMap aRes
 	     (
 	           aTriOut.Pt(aKOut),
-                   cRotation3D<Type>::CompleteRON(aTriOut.KVect(aKOut),aTriOut.KVect((aKOut+1)%3))
+                   cRotation3D<Type>::CompleteRON(aTriOut.KVect(aKOut),aTriOut.KVect((aKOut+Delta)%3))
 	     );
 
 
@@ -153,17 +154,17 @@ template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriOut(int aKOut,
     return aRes;
 }
 
-template <class Type> cTriangle<Type,2> cIsometry3D<Type>::ToPlaneZ0(int aKOut,const tTri  & aTriOut)
+template <class Type> cTriangle<Type,2> cIsometry3D<Type>::ToPlaneZ0(int aKOut,const tTri  & aTriOut,bool Direct)
 {
-     cIsometry3D<Type> aIso = FromTriOut(aKOut,aTriOut);
+     cIsometry3D<Type> aIso = FromTriOut(aKOut,aTriOut,Direct);
 
      tPt aP0 = aIso.Inverse(aTriOut.Pt(aKOut));
      tPt aP1 = aIso.Inverse(aTriOut.Pt((aKOut+1)%3));
      tPt aP2 = aIso.Inverse(aTriOut.Pt((aKOut+2)%3));
 
-     // StdOut() << "ToPlaneZ0 " << aP0.z() << " " << aP1.z() << " " << aP2.z() << "\n";
-
-     return tTri2d(Proj(aP0),Proj(aP1),Proj(aP2));
+      //StdOut() << "ToPlaneZ0 " << aP0.z() << " " << aP1.z() << " " << aP2.z() << "\n";
+     // return tTri2d(Proj(aP0),Proj(aP1),Proj(aP2));
+     return Proj(tTri(aP0,aP1,aP2));
 }
 
 

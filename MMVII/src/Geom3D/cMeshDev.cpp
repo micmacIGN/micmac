@@ -56,6 +56,8 @@ class cSomFace3D
         }
         int  NumObj() const {return mNumObj;} ///< accessor
 
+	bool IsFrozen() const;
+
      protected :
         cDevTriangu3d  *   mDevTri;        ///< the global object for triangulation-development
         int                mNumStepReach;  ///<  num of the step where object was reachedd by progressive devlopment
@@ -74,14 +76,7 @@ class cSomDevT3D : public cSomFace3D
 	const tPt3D & Pt3() const;
         int  NumX() const;               
         int  NumY() const;               
-	bool IsFrozen() const;
 
-	/*
-	bool IsOk()
-	{
-		return  tTraits::ValueOk(aV)
-	}
-	*/
     private :
         tPt3D         mPt3;
         tPt2D         mPt2;
@@ -92,19 +87,35 @@ class cSomDevT3D : public cSomFace3D
 class cFaceDevT3D : public cSomFace3D
 {
    public :
-      cFaceDevT3D (cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom);
+      cFaceDevT3D (cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom,const tTri2dR &);
       int IndKthSom(int aK) const;
 
       tCoordDevTri  DistortionDist(tCoordDevTri & aSomDiff,tCoordDevTri & aSomDist) const;
       
+      const tTri2dR &  Tri2D() const;
+      double &  EcMax();
    private :
       cPt3di           mIndSoms;
+      tTri2dR          mTri2D;
+      double           mEcMax;
 };
 
+class cParamDevTri3D
+{
+     public :
+          cParamDevTri3D();
+
+          double mFactRand;
+	  int    mNbCmpByStep;
+	  bool   mShowAv;
+	  double mWeightEdgeTriDist;
+	  double mWeightTriRot;
+};
 
 /** Class that effectively compute the "optimal" devlopment of a surface
  * Separate from cAppliMeshDev to be eventually reusable
  */
+
 
 class cDevTriangu3d
 {
@@ -113,7 +124,7 @@ class cDevTriangu3d
 
           static constexpr int NO_STEP = -1;
 
-          cDevTriangu3d(tTriangulation3D &,tCoordDevTri aFactRand,int aNbCByS,bool ShowAv);
+          cDevTriangu3d(tTriangulation3D &,const cParamDevTri3D &);
           ~cDevTriangu3d();
 
           /// Export devloped surface as ply file
@@ -136,11 +147,11 @@ class cDevTriangu3d
 
 
 	  // tPt3D
+	  cParamDevTri3D    mParam;
 
 
 	  int               mNumCurStep;       ///< num of iteration in devlopment, +- dist to center face
 	  const tTriangulation3D & mTri;       ///< reference to the 3D-triangulation to devlop
-          tCoordDevTri             mFactRand;
           const cGraphDual &       mDualGr;    ///< reference to the dual graph
           int               mIndexFC;          ///< Index of centerface
 	  cPt3di            mFaceC;            ///< Center face
@@ -153,12 +164,22 @@ class cDevTriangu3d
           std::vector<size_t>       mVReachedSoms;
           tSys *                    mSys;          // Non linear sys to compensate rotations
           tCalc *                   mCalcCD;       // calculator for distance conservation
+          tCalc *                   mCalcTriRot;   // calculator for conservation of triangle up to a rot
           std::vector<int>          mV3FrozenVar;  // vector contain the index of 3 frozen var 
           tDenseV                   mSolInit;      // solution with first face to create sys
-	  int                       mNbCompensByStep;
-	  bool                      mShowAv; // Show avancement with messages
 };
 
+/* ******************************************************* */
+/*                                                         */
+/*                    cSomFace3D                           */
+/*                                                         */
+/* ******************************************************* */
+
+bool cSomFace3D::IsFrozen() const
+{
+    return     (!IsReached())
+           ||  (mDevTri->IsFrozenGen(mNumStepReach));
+}
 
 
 /* ******************************************************* */
@@ -198,23 +219,23 @@ const tPt3D & cSomDevT3D::Pt3() const { return mPt3; }
 int  cSomDevT3D::NumX() const {return mNumObj * 2;}
 int  cSomDevT3D::NumY() const {return NumX() + 1;}
 
-bool cSomDevT3D::IsFrozen() const
-{
-    return     (!IsReached())
-           ||  (mDevTri->IsFrozenGen(mNumStepReach));
-}
-
 /* ******************************************************* */
 /*                                                         */
 /*                    cFaceDevT3D                          */
 /*                                                         */
 /* ******************************************************* */
 
-cFaceDevT3D::cFaceDevT3D(cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom) :
+cFaceDevT3D::cFaceDevT3D(cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom,const tTri2dR & aTri2) :
     cSomFace3D    (aDevTri,aNumF),
-    mIndSoms      (aIndSom)
+    mIndSoms      (aIndSom),
+    mTri2D        (aTri2),
+    mEcMax        (0.0)
 {
 }
+
+
+double &  cFaceDevT3D::EcMax() {return mEcMax;}
+
 
 int cFaceDevT3D::IndKthSom(int aK) const {return mIndSoms[aK];}
 
@@ -234,6 +255,23 @@ tCoordDevTri cFaceDevT3D::DistortionDist(tCoordDevTri& aSomDif,tCoordDevTri& aSo
     return aSomDif / aSomDist;
 }
 
+const tTri2dR &  cFaceDevT3D::Tri2D() const {return mTri2D;}
+
+/* ******************************************************* */
+/*                                                         */
+/*                    cParamDevTri3D                       */
+/*                                                         */
+/* ******************************************************* */
+
+cParamDevTri3D::cParamDevTri3D() :
+   mFactRand           (0.0),
+   mNbCmpByStep        (3),
+   mShowAv             (true),
+   mWeightEdgeTriDist  (0.0),
+   mWeightTriRot       (1.0)
+{
+}
+
 
 /* ******************************************************* */
 /*                                                         */
@@ -244,10 +282,10 @@ tCoordDevTri cFaceDevT3D::DistortionDist(tCoordDevTri& aSomDif,tCoordDevTri& aSo
 // NS_SymbolicDerivative::cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf);
 //typeded cCalculator<tCoordDevTri>        tCalc;
 
-cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,tCoordDevTri aFactRand,int aNbCByS,bool ShowAv) :
+cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,const cParamDevTri3D & aParam) :
+     mParam       (aParam),
      mNumCurStep  (0),
      mTri         (aTri),
-     mFactRand    (aFactRand),
      mDualGr      (mTri.DualGr()),
      mIndexFC     (NO_STEP),
      mFaceC       (NO_STEP,NO_STEP,NO_STEP),
@@ -255,9 +293,8 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,tCoordDevTri aFactRand,int 
      mNumGenFrozen (-1),
      mSys         (nullptr),
      mCalcCD      (EqConsDist(true,1)),
-     mSolInit     (mTri.NbPts()*2,eModeInitImage::eMIA_Null),
-     mNbCompensByStep (aNbCByS),
-     mShowAv          (ShowAv)
+     mCalcTriRot  (EqNetworkConsDistFixPoints(true,1,3)),
+     mSolInit     (mTri.NbPts()*2,eModeInitImage::eMIA_Null)
 {
    //  generate topology
    aTri.MakeTopo();
@@ -271,7 +308,7 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,tCoordDevTri aFactRand,int 
    // create the vector of faces
    for (size_t aKF=0 ; aKF<mTri.NbFace() ; aKF++)
    {
-       mVFaces.push_back(cFaceDevT3D(this,aKF,mTri.KthFace(aKF)));
+       mVFaces.push_back(cFaceDevT3D(this,aKF,mTri.KthFace(aKF),mTri.TriDevlpt(aKF,0)));
    }
 
    // add fisrt face
@@ -290,9 +327,9 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,tCoordDevTri aFactRand,int 
    {
         mNumGen++;
 
-	mNumGenFrozen = mNumGen - std::max(3,round_up(std::sqrt(mNumGen)));
+	mNumGenFrozen = mNumGen - (6+round_up(2.0*std::sqrt(mNumGen)));
 
-	if (mShowAv)
+	if (mParam.mShowAv)
            StdOut() << "DONE " <<aIndNewF0 << " on " <<  mTri.NbFace()   << " ### NG=" << mNumGen << " NGF=" << mNumGenFrozen << "\n";
 
         size_t aIndNewF1 = mVReachedFaces.size();  // memorize size to avoid doing everything in one step
@@ -313,14 +350,14 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,tCoordDevTri aFactRand,int 
             }
         }
 
-        for (int aKCompens=0 ; aKCompens<mNbCompensByStep ; aKCompens++)
+        for (int aKCompens=0 ; aKCompens<mParam.mNbCmpByStep ; aKCompens++)
         {
             OneIterationCompens(false);
         }
 
         aIndNewF0 = aIndNewF1;
    }
-   if (mShowAv)
+   if (mParam.mShowAv)
    {
       StdOut() << "\nFACE DONE " <<aIndNewF0 << " on " <<  mTri.NbFace()   << " NG=" << mNumGen << " NGF=" << mNumGenFrozen << "\n\n";
    }
@@ -331,7 +368,7 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,tCoordDevTri aFactRand,int 
    int aNbIterEnd = 6 + round_up(2*std::sqrt(mNumGen));
    for (int aKIter=0 ; aKIter<aNbIterEnd ; aKIter++)
    {
-       if (mShowAv)
+       if (mParam.mShowAv)
            StdOut() << "ITER END "   <<  aKIter << " on " << aNbIterEnd << "\n";
        OneIterationCompens(true);
    }
@@ -344,7 +381,7 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,tCoordDevTri aFactRand,int 
             aNbFDegen++;
         }
    }
-   if (mShowAv)
+   if (mParam.mShowAv)
       StdOut() << " NbDeg=" << aNbFDegen  <<  " NbReach=" << mVReachedFaces.size() << " NbF=" << mTri.NbFace() << "\n";
 
    MMVII_INTERNAL_ASSERT_tiny((mVReachedFaces.size()+aNbFDegen)==mTri.NbFace(),"in Dev : Pb in reached face");  // Check firt point is 0
@@ -356,6 +393,7 @@ cDevTriangu3d::~cDevTriangu3d()
 {
     delete mSys;
     delete mCalcCD;
+    delete mCalcTriRot;
 }
 
 const tTriangulation3D & cDevTriangu3d::Tri() const {return  mTri;}
@@ -481,11 +519,11 @@ THE_BUG_MESH = Bug;
           tSim3D  aSim = tSim3D::FromTriInAndSeg(aP1,aP2,aIndK1,aTri3D); // compute similitude
           tPt2D   aPDev =  Proj(aSim.Value(aTri3D.Pt(aIndK0))); // get image of point by this similitude
 
-          if (mFactRand>0)
+          if (mParam.mFactRand>0)
           {
               cSegment2DCompiled<tCoordDevTri> aSeg12(aP1,aP2);
               tCoordDevTri  aDist = aSeg12.DistLine(aPDev);
-              aPDev += cPt2dr::PRandC() * (mFactRand * aDist);
+              aPDev += cPt2dr::PRandC() * (mParam.mFactRand * aDist);
           }
 
 	  cSomDevT3D & aS0 = mVSoms.at(aFace.IndKthSom(aIndK0));
@@ -529,29 +567,96 @@ void  cDevTriangu3d::OneIterationCompens(bool IsLast)
     
     // 3 - add the equation for distance conservation
 
-    for (const auto & aKF : mVReachedFaces)
+    if (mParam.mWeightEdgeTriDist >0)
     {
-        const cFaceDevT3D& aFace = mVFaces.at(aKF);
+         cResidualWeighter<tREAL8>  aWeighter(mParam.mWeightEdgeTriDist);
+         for (const auto & aKF : mVReachedFaces)
+         {
+             const cFaceDevT3D& aFace = mVFaces.at(aKF);
 
-        for (int aK3=0 ; aK3<3 ; aK3++)
-        {
-            const cSomDevT3D & aS1 = mVSoms.at(aFace.IndKthSom(aK3)); // a som
-            const cSomDevT3D & aS2 = mVSoms.at(aFace.IndKthSom((aK3+1)%3));  // its sucessor
+             for (int aK3=0 ; aK3<3 ; aK3++)
+             {
+                 const cSomDevT3D & aS1 = mVSoms.at(aFace.IndKthSom(aK3)); // a som
+                 const cSomDevT3D & aS2 = mVSoms.at(aFace.IndKthSom((aK3+1)%3));  // its sucessor
 
-	    if ((!aS1.IsFrozen()) || (!aS2.IsFrozen()))
-	    {
-	        std::vector<int>  aVInd{aS1.NumX(),aS1.NumY(),aS2.NumX(),aS2.NumY()};  // Ind Uk  x1,y1,x2,y2
-	        std::vector<tCoordDevTri>  aVObs{Norm2(aS1.Pt3()-aS2.Pt3())};          // we force dist-dev=dist-3D
-	        mSys->CalcAndAddObs(mCalcCD,aVInd,aVObs);
-	    }
-        }
+	         if ((!aS1.IsFrozen()) || (!aS2.IsFrozen()))
+	         {
+	             std::vector<int>  aVInd{aS1.NumX(),aS1.NumY(),aS2.NumX(),aS2.NumY()};  // Ind Uk  x1,y1,x2,y2
+	             std::vector<tCoordDevTri>  aVObs{Norm2(aS1.Pt3()-aS2.Pt3())};          // we force dist-dev=dist-3D
+	             mSys->CalcAndAddObs(mCalcCD,aVInd,aVObs,aWeighter);
+	         }
+             }
+         }
     }
+
+    // 4- now make a compensation whit rot  such that Rot(TriUk)  = Dev
+    if (mParam.mWeightTriRot>0)
+    {
+       std::vector<double>  aVSomEc;
+       for (const auto & aKF : mVReachedFaces)
+       {
+           cFaceDevT3D& aFace = mVFaces.at(aKF);
+           if (!aFace.IsFrozen())
+	   {
+               std::vector<cPt2dr> aVIn;
+               std::vector<cPt2dr> aVOut; //vector of current points
+	       std::vector<int>    aVIndUk{-1,-2,-3};
+	       std::vector<double> aVObs;
+	       for (int aK=0 ; aK<3 ; aK++)
+	       {
+                    const cSomDevT3D & aSom = mVSoms.at(aFace.IndKthSom(aK)); // a som
+		    aVIn.push_back(aSom.Pt2());
+		    aVIndUk.push_back(aSom.NumX());
+		    aVIndUk.push_back(aSom.NumY());
+		    cPt2dr aPDev = aFace.Tri2D().Pt(aK);
+		    aVOut.push_back(aPDev);
+		    aVObs.push_back(aPDev.x());
+		    aVObs.push_back(aPDev.y());
+	       }
+	       cRot2D<tREAL8> aRot = cRot2D<tREAL8>::QuickEstimate(aVIn,aVOut);
+              //FakeUseIt(aEqSubs);
+               double aSomD=0;
+               double aSomEc=0;
+               for (int aK=0 ;aK<3 ; aK++)
+               {
+	            aSomEc += Norm2(aRot.Value(aVIn[aK])-aVOut[aK]);
+	            aSomD += (Norm2(aVIn[aK]-aVIn[(aK+1)%3]) + Norm2(aVOut[aK]-aVOut[(aK+1)%3])) / 2.0;
+               }
+	       double aEcNorm = aSomEc/aSomD;
+	       aVSomEc.push_back(aEcNorm);
+	       aFace.EcMax() = std::max(aEcNorm,aFace.EcMax());
+ 
+	       double aWeigth = mParam.mWeightTriRot * (1+ std::min(200.0,aFace.EcMax()*500));
+               cResidualWeighter<tREAL8>  aWeighter(aWeigth);
+	       std::vector<double> aVTmp{aRot.Tr().x(),aRot.Tr().y(),aRot.Teta()};
+
+	       cSetIORSNL_SameTmp<tREAL8>  aSetIO(aVTmp);
+	       mSys->AddEq2Subst(aSetIO,mCalcTriRot,aVIndUk,aVObs,aWeighter);
+	       mSys->AddObsWithTmpUK(aSetIO);
+
+
+
+	   }
+       }
+       if (mParam.mShowAv)
+       {
+           size_t aNb= aVSomEc.size();
+           std::sort(aVSomEc.begin(),aVSomEc.end());
+           for (double aResi = 0.5 ; aResi>1e-6 ; aResi/=4.0)
+	   {
+                StdOut()  << " Ec " << 100.0*(1-aResi) << " :  "  << aVSomEc.at(aNb*(1-aResi))  << "\n";
+	   }
+	   StdOut()  << " Ec Max=" << aVSomEc.back() << "\n";
+
+       }
+    }
+
     double aT1 = cMMVII_Appli::CurrentAppli().SecFromT0();
 
 
 
     
-    // 4 - sove and transfert
+    // 5 - sove and transfert
      const tDenseV  & aSol = mSys->SolveUpdateReset() ;
 
      for (auto & aSom : mVSoms)
@@ -566,7 +671,7 @@ void  cDevTriangu3d::OneIterationCompens(bool IsLast)
 //StdOut() << "=========================OneIterationCompens " << __LINE__ << "\n";
 
     FakeUseIt(aT2);
-    if (mShowAv)
+    if (mParam.mShowAv)
        StdOut() << "  -- TIME-EQ=" << aT1-aT0   << " TIME-SOLVE=" << aT2 - aT1 << "\n";
 }
 
@@ -648,22 +753,17 @@ class cAppliMeshDev : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
            // --- Mandatory ----
-        std::string mNameCloudIn;
+        std::string       mNameCloudIn;
            // --- Optionnal ----
-        std::string mNameCloudOut;
-        bool        mBinOut;
-        double      mFactRand;
-	int         mNbCByS;
-	bool        mShowAv;
+        std::string       mNameCloudOut;
+        bool              mBinOut;
+	cParamDevTri3D    mParam;
            // --- Internal ----
 
 };
 
 cAppliMeshDev::cAppliMeshDev(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli     (aVArgs,aSpec),
-   mFactRand        (0.0),
-   mNbCByS          (3),
-   mShowAv          (true)
+   cMMVII_Appli     (aVArgs,aSpec)
 {
 }
 
@@ -680,9 +780,11 @@ cCollecSpecArg2007 & cAppliMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
            << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file")
            << AOpt2007(mBinOut,CurOP_OutBin,"Generate out in binary format",{eTA2007::HDV})
-           << AOpt2007(mNbCByS,"NbCByS","Number of compensation by step",{eTA2007::HDV})
-           << AOpt2007(mFactRand,"FactRand","Factor of randomization (for bench)",{eTA2007::HDV,eTA2007::Tuning})
-           << AOpt2007(mShowAv,"ShowAv","Show advancement of computation",{eTA2007::HDV})
+           << AOpt2007(mParam.mNbCmpByStep,"NbCByS","Number of compensation by step",{eTA2007::HDV})
+           << AOpt2007(mParam.mFactRand,"FactRand","Factor of randomization (for bench)",{eTA2007::HDV,eTA2007::Tuning})
+           << AOpt2007(mParam.mShowAv,"ShowAv","Show advancement of computation",{eTA2007::HDV})
+           << AOpt2007(mParam.mWeightEdgeTriDist,"WDistE","Weight on edge dist",{eTA2007::HDV})
+           << AOpt2007(mParam.mWeightTriRot,"WRot","Weight on rot on 2d triangles",{eTA2007::HDV})
    ;
 }
 
@@ -692,7 +794,7 @@ int  cAppliMeshDev::Exe()
    InitOutFromIn(mNameCloudOut,"Dev_"+mNameCloudIn);
 
    tTriangulation3D  aTri(mNameCloudIn);
-   cDevTriangu3d aDev(aTri,mFactRand,mNbCByS,mShowAv);
+   cDevTriangu3d aDev(aTri,mParam);
    aDev.ExportDev(mNameCloudOut,mBinOut);
 
 
@@ -733,7 +835,16 @@ void BenchMeshDev(cParamExeBench & aParam)
        tTriangulation3D  aTri3D(aDir+"Cyl3D.ply");
        tTriangulation3D  aTri2D(aDir+"Cyl2D.ply");
 
-       cDevTriangu3d aDev(aTri3D,0.1,3,false);
+       cParamDevTri3D aParam;
+       aParam.mFactRand = 0.1;
+       aParam.mShowAv   = false;
+
+       aParam.mWeightEdgeTriDist =  aK%2;
+       aParam.mWeightTriRot      =  (aK+1)%2;
+
+       // StdOut() <<  "WWWWs= " <<  aParam.mWeightEdgeTriDist  << " " << aParam.mWeightTriRot << "\n";
+
+       cDevTriangu3d aDev(aTri3D,aParam);
        tCoordDevTri  aDist = aDev.GlobDistortiontDist();
        if (aDist>=1e-10)
        {

@@ -34,6 +34,8 @@ template <class T>   T operator ^ (const cPtxd<T,2> & aP1,const cPtxd<T,2> & aP2
 
 template <class T>   cPtxd<T,3> TP3z0  (const cPtxd<T,2> & aPt);
 template <class T>   cPtxd<T,2> Proj   (const cPtxd<T,3> & aPt);
+template <class T>   cTriangle<T,3> TP3z0  (const cTriangle<T,2> & aPt);
+template <class T>   cTriangle<T,2> Proj   (const cTriangle<T,3> & aPt);
 
 
 template <class T>  inline cPtxd<T,2> ToPolar(const cPtxd<T,2> & aP1)  ///<  From x,y to To rho,teta
@@ -273,6 +275,8 @@ template <class Type>  class cRot2D
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+          /// compute a quick estimate, assuming no outlayers, +or- generalization of FromMinimalSamples
+          static tTypeMap QuickEstimate(tCRVPts aVIn,tCRVPts aVOut);
       private :
           Type          mTeta;
           cSim2D<Type>  mSim;
@@ -372,6 +376,8 @@ template <class Type> class  cTriangle2DCompiled : public cTriangle<Type,2>
            Type Insideness(const tPt &) const; // <0 out, > inside, 0 : frontier
            bool   Insides(const tPt &,Type aTol=0.0) const; // Tol<0 give more points
            void PixelsInside(std::vector<cPt2di> & aRes,double aTol=-1e-5) const;
+
+	   Type Delta() const {return mDelta;}
 
        private :
            void  AssertRegular() const;  //  Non degenerate i.e  delta !=0
