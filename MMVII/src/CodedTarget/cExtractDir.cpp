@@ -48,7 +48,7 @@ template <class Type>  double cExtractDir<Type>::Score(const cPt2dr & aDInit,dou
 
 template <class Type>  cPt2dr cExtractDir<Type>::OptimScore(const cPt2dr & aDir,double aStepTeta)
 {
-    cWhitchMin<int,double>  aWMin(0,1e10);
+    cWhichMin<int,double>  aWMin(0,1e10);
 
     for (int aK=-1; aK<=1 ; aK++)
         aWMin.Add(aK,Score(aDir,aStepTeta*aK));

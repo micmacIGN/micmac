@@ -53,7 +53,7 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
 
        cDataIm2D<Type>  & aIm = aPIm.DIm();
        aIm.InitRandom();
-       cPt2di aPMax = WhitchMax(aIm) ;
+       cPt2di aPMax = WhichMax(aIm) ;
        for (const auto & aP : aRect)
        {
            MMVII_INTERNAL_ASSERT_bench(aIm.GetV(aPMax)>=aIm.GetV(aP),"Bench image error");

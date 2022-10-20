@@ -253,7 +253,7 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
        cElemSpaceResection<Type> anESR(aTriBund,aTriG);
        auto aLBC = anESR.ComputeBC();  //list of b,c,Perimeter
 
-       cWhitchMin<cPtxd<Type,3>,Type> aWMin(cPtxd<Type,3>(0,0,0),1e10);  // will extract b,c closest to ours
+       cWhichMin<cPtxd<Type,3>,Type> aWMin(cPtxd<Type,3>(0,0,0),1e10);  // will extract b,c closest to ours
        for (auto & aTripl : aLBC)
        {
            aWMin.Add(aTripl,std::abs(aTripl.x()-b)+std::abs(aTripl.y()-c));

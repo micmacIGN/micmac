@@ -120,7 +120,7 @@ void cAppliDensifyRefMatch::MakeOneTri(const  tTriangle2DCompiled & aTri)
 	aPPx[aKp] = mDIPx->GetV(ToI(aTri.Pt(aKp)));
     }
     //  Tricky for WMM, but if used aWMM() => generate warning
-    cWhitchMinMax<int,double>  aWMM(0,aPPx[0]);
+    cWhichMinMax<int,double>  aWMM(0,aPPx[0]);
     for (int aKp=1 ; aKp<3 ; aKp++)
     {
         aWMM.Add(aKp,aPPx[aKp]);

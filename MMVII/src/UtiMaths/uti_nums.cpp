@@ -143,7 +143,7 @@ void BenchHammingCode(int aNbB)
    }
    for (int aK1=0 ; aK1<int(aVC.size()) ; aK1++)
    {
-       cWhitchMin<int,int> aWM(-1,100);
+       cWhichMin<int,int> aWM(-1,100);
        for (int aK2=0 ; aK2<int(aVC.size()) ; aK2++)
        {
            if (aK1!=aK2)
@@ -498,7 +498,7 @@ template <class Type> void  TplBenchMinMax(int aNb)
 {
 
     std::vector<Type> aVVals;
-    cWhitchMinMax<int,Type> aWMM;
+    cWhichMinMax<int,Type> aWMM;
     for (int aK=0 ; aK<aNb ; aK++)
     {
        Type aVal = tNumTrait<Type>::RandomValueCenter();

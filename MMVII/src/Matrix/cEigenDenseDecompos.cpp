@@ -96,7 +96,7 @@ template <class Type> void  cResulSymEigenValue<Type>::SetKthEigenValue(int aK,c
 
 template <class Type> Type  cResulSymEigenValue<Type>::Cond(Type aDef) const
 {
-   cWhitchMinMax<int,Type> aIMM(0,std::abs(mEigenValues(0)));
+   cWhichMinMax<int,Type> aIMM(0,std::abs(mEigenValues(0)));
    for (int aK=1 ; aK<mEigenValues.Sz()  ; aK++)
    {
           aIMM.Add(aK,std::abs(mEigenValues(aK)));

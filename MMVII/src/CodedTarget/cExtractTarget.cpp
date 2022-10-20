@@ -286,7 +286,7 @@ void cAppliExtractCodeTarget::SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool M
 void cAppliExtractCodeTarget::MatchOnGT(cGeomSimDCT & aGSD)
 {
      // strtucture for extracting min
-     cWhitchMin<cDCT*,double>  aWMin(nullptr,1e10);
+     cWhichMin<cDCT*,double>  aWMin(nullptr,1e10);
 
      for (auto aPtrDCT : mVDCT)
          aWMin.Add(aPtrDCT,SqN2(aPtrDCT->mPt-aGSD.mC));

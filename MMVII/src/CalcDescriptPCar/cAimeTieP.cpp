@@ -207,9 +207,9 @@ double cAimeDescriptor::DistanceFromStdPeek(int aIPeek,const cAimeDescriptor & a
 }
 
 
-cWhitchMin<int,double>  cAimeDescriptor::DistanceFromBestPeek(const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const
+cWhichMin<int,double>  cAimeDescriptor::DistanceFromBestPeek(const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const
 {
-    cWhitchMin<int,double> aWMin(-1,1e60);
+    cWhichMin<int,double> aWMin(-1,1e60);
     for (int aK=0 ; aK<int(mDirPrinc.size()) ; aK++)
     {
         aWMin.Add(aK,DistanceFromStdPeek(aK,aAD2,aSet));
@@ -340,7 +340,7 @@ double CalcOrient(const cDataIm2D<tREAL4>&  aDIm,eModeNormOr aMode)
     }
 
     // Get integer max value
-    int aIRes = WhitchMax(aDHisto).x();
+    int aIRes = WhichMax(aDHisto).x();
     // refine it by parabol fitting
     double aDelta =  StableInterpoleExtr
                      (

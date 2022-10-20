@@ -613,16 +613,16 @@ class cCubAppGauss
 /*       Witch Min and Max            */
 /* ********************************** */
 
-template <class TypeIndex,class TypeVal,const bool IsMin> class cWhitchExtrem
+template <class TypeIndex,class TypeVal,const bool IsMin> class cWhichExtrem
 {
      public :
-         cWhitchExtrem(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhichExtrem(const TypeIndex & anIndex,const TypeVal & aVal) :
              mIsInit     (true),
              mIndexExtre (anIndex),
              mValExtre   (aVal)
          {
          }
-         cWhitchExtrem() :
+         cWhichExtrem() :
              mIsInit   (false),
              mIndexExtre (cNV<TypeIndex>::V0()),  // required else compiler complains for possible use of un-initialised
              // mIndexExtre (NullVal<TypeIndex>()),  // required else compiler complains for possible use of un-initialised
@@ -652,53 +652,53 @@ template <class TypeIndex,class TypeVal,const bool IsMin> class cWhitchExtrem
          TypeVal   mValExtre;
 };
 
-template <class TypeIndex,class TypeVal> class cWhitchMin : public cWhitchExtrem<TypeIndex,TypeVal,true>
+template <class TypeIndex,class TypeVal> class cWhichMin : public cWhichExtrem<TypeIndex,TypeVal,true>
 {
      public :
-         typedef  cWhitchExtrem<TypeIndex,TypeVal,true> tExrem;
+         typedef  cWhichExtrem<TypeIndex,TypeVal,true> tExrem;
 
-         cWhitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhichMin(const TypeIndex & anIndex,const TypeVal & aVal) :
             tExrem (anIndex,aVal) 
          {
          }
-         cWhitchMin() : tExrem () {}
+         cWhichMin() : tExrem () {}
      private :
 };
-template <class TypeIndex,class TypeVal> class cWhitchMax : public cWhitchExtrem<TypeIndex,TypeVal,false>
+template <class TypeIndex,class TypeVal> class cWhichMax : public cWhichExtrem<TypeIndex,TypeVal,false>
 {
      public :
-         typedef  cWhitchExtrem<TypeIndex,TypeVal,false> tExrem;
+         typedef  cWhichExtrem<TypeIndex,TypeVal,false> tExrem;
 
-         cWhitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhichMax(const TypeIndex & anIndex,const TypeVal & aVal) :
             tExrem (anIndex,aVal) 
          {
          }
-         cWhitchMax() : tExrem () {}
+         cWhichMax() : tExrem () {}
      private :
 };
 
 
-template <class TypeIndex,class TypeVal> class cWhitchMinMax
+template <class TypeIndex,class TypeVal> class cWhichMinMax
 {
      public  :
-         cWhitchMinMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhichMinMax(const TypeIndex & anIndex,const TypeVal & aVal) :
              mMin(anIndex,aVal),
              mMax(anIndex,aVal)
          {
          }
-         cWhitchMinMax() { }
+         cWhichMinMax() { }
 
          void Add(const TypeIndex & anIndex,const TypeVal & aVal)
          {
              mMin.Add(anIndex,aVal);
              mMax.Add(anIndex,aVal);
          }
-         const cWhitchMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
-         const cWhitchMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
+         const cWhichMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
+         const cWhichMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
 
      private :
-         cWhitchMin<TypeIndex,TypeVal> mMin;
-         cWhitchMax<TypeIndex,TypeVal> mMax;
+         cWhichMin<TypeIndex,TypeVal> mMin;
+         cWhichMax<TypeIndex,TypeVal> mMax;
 };
 
 template <class TypeVal> void UpdateMin(TypeVal & aVar,const TypeVal & aValue) {if (aValue<aVar) aVar = aValue;}
