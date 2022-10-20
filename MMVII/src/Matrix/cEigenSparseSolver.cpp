@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 
 #include "MMVII_EigenWrap.h"
 #include "ExternalInclude/Eigen/Sparse"

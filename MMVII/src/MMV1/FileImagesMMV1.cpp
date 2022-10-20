@@ -1,4 +1,7 @@
-#include "include/V1VII.h"
+#include "V1VII.h"
+#include "MMVII_util.h"
+#include "MMVII_Image2D.h"
+#include "MMVII_DeclareCste.h"
 
 
 extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff

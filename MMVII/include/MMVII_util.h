@@ -1,6 +1,13 @@
 #ifndef  _MMVII_Util_H_
 #define  _MMVII_Util_H_
 
+#include <numeric>
+#include <sstream>
+
+#include "MMVII_nums.h"
+#include "MMVII_memory.h"
+
+
 namespace MMVII
 {
 

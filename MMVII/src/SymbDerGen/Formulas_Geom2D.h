@@ -1,6 +1,11 @@
 #ifndef _FORMULA_GEOMED_H_
 #define _FORMULA_GEOMED_H_
 
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_Ptxd.h"
+#include "MMVII_Stringifier.h"
+#include "MMVII_DeclareCste.h"
+
 #include "ComonHeaderSymb.h"
 
 using namespace NS_SymbolicDerivative;

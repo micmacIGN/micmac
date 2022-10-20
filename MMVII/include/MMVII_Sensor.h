@@ -1,6 +1,8 @@
 #ifndef  _MMVII_SENSOR_H_
 #define  _MMVII_SENSOR_H_
 
+#include "MMVII_Mappings.h"
+
 namespace MMVII
 {
 

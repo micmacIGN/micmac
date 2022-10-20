@@ -1,7 +1,7 @@
 #ifndef _CODED_TARGET_H_
 #define _CODED_TARGET_H_
-#include "include/MMVII_all.h"
-#include "include/MMVII_SetITpl.h"
+#include "MMVII_ImageInfoExtract.h"
+#include "MMVII_SetITpl.h"
 #include "FilterCodedTarget.h"   // Contains image processing that may be not specific to coded target
 
 namespace MMVII

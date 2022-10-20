@@ -9,6 +9,10 @@
 
 */
 
+#include "MMVII_DeclareCste.h"
+#include "MMVII_Stringifier.h"
+#include "MMVII_Matrix.h"
+
 
 namespace MMVII
 {

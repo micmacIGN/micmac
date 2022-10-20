@@ -1,9 +1,8 @@
-#include "include/MMVII_all.h"
-
+#include "MMVII_Bench.h"
+#include "MMVII_Linear2DFiltering.h"
 
 namespace MMVII
 {
-
 
 
 template <class Type> void TestFilterExp(cPt2di aP0,cPt2di aP1,const Type & aV0)

@@ -1,5 +1,7 @@
 #ifndef  _MMVII_Class4Dench_H_
 #define  _MMVII_Class4Dench_H_
+#include "MMVII_memory.h"
+#include "MMVII_Ptxd.h"
 
 namespace MMVII
 {

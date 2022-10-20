@@ -1,6 +1,10 @@
 #ifndef  _MMVII_PCSENS_H_
 #define  _MMVII_PCSENS_H_
 
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_PhgrDist.h"
+#include "MMVII_Sensor.h"
+#include "MMVII_Geom3D.h"
 
 using namespace NS_SymbolicDerivative;
 

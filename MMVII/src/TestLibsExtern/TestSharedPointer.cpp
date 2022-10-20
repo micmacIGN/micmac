@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 
 #include <algorithm>
 #include <tuple>
@@ -8,6 +8,8 @@
 #include <functional>
 
 //#include <Eigen/Dense>
+
+#include "cMMVII_Appli.h"
 
 namespace MMVII
 {

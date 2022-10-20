@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_TplHeap.h"
+#include "MMVII_SysSurR.h"
+#include "MMVII_TplHeap.h"
+#include "MMVII_Sys.h"
 
 
 namespace MMVII

@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "cMMVII_Appli.h"
+
 #include <boost/functional/hash.hpp>
 
 
@@ -16,6 +17,8 @@
 
 */
 
+#include "MMVII_Stringifier.h"
+#include "MMVII_DeclareCste.h"
 
 namespace MMVII
 {

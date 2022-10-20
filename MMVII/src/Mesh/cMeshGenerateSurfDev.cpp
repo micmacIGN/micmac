@@ -1,8 +1,10 @@
-#include "include/MMVII_all.h"
-
-#include "include/SymbDer/SymbolicDerivatives.h"
-#include "include/SymbDer/SymbDer_GenNameAlloc.h"
-
+#include "SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbDer_GenNameAlloc.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
+#include "cMMVII_Appli.h"
+#include "MMVII_PhgrDist.h"
+#include "MMVII_DeclareCste.h"
 
 using namespace NS_SymbolicDerivative;
 using namespace MMVII;

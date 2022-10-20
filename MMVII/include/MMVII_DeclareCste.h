@@ -1,6 +1,8 @@
 #ifndef  _MMVII_DeclareCste_H_
 #define  _MMVII_DeclareCste_H_
 
+#include "MMVII_AllClassDeclare.h"
+
 namespace MMVII
 {
 

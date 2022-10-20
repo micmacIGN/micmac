@@ -13,7 +13,7 @@ MMV2_GENDIR=${MMV2_SRCDIR}/GeneratedCodes
 
 # =========== Includes & Libraries
 MMV1_INCLUDES=-I ${MMV1_DIR}/include -I${MMV1_DIR}
-MMV2_INCLUDES=-I ${MMV2_DIR} -I ${MMV2_DIR}/ExternalInclude
+MMV2_INCLUDES=-I ${MMV2_DIR} -I ${MMV2_INCDIR} -I ${MMV2_DIR}/ExternalInclude
 
 MMV2_LIBNAME=P2007
 MMV2_LIB=${MMV2_BINDIR}/lib${MMV2_LIBNAME}.a

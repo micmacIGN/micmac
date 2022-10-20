@@ -1,4 +1,5 @@
-#include "include/V1VII.h"
+#include "V1VII.h"
+#include "MMVII_Geom2D.h"
 
 /** \file  FluxPtsMMV1.cpp
     \brief file for using MMV1 flux; converting them a vect of point

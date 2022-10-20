@@ -1,6 +1,8 @@
 #ifndef  _MMVII_GEOM3D_H_
 #define  _MMVII_GEOM3D_H_
 
+#include "MMVII_Triangles.h"
+
 namespace MMVII
 {
 

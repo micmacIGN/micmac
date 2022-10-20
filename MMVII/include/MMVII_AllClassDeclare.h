@@ -1,6 +1,27 @@
 #ifndef  _MMVII_AllClassDeclare_H_
 #define  _MMVII_AllClassDeclare_H_
 
+// Header standard c++
+#include "memory.h"
+#include <memory>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <string>
+#include <typeinfo>
+#include <vector>
+#include <list>
+#include <map>
+#include <ctime>
+#include <chrono>
+#include <optional>
+#include <cmath>
+
+//========== LIB EXTEN==============
+
+
+//===========================================
+
 namespace MMVII
 {
 

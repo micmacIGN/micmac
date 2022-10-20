@@ -1,4 +1,7 @@
-#include "include/MMVII_all.h"
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_PhgrDist.h"
+
 
 using namespace NS_SymbolicDerivative;
 

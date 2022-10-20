@@ -1,5 +1,5 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_TplSimpleOperator.h"
+#include "MMVII_Image2D.h"
+#include "MMVII_TplSimpleOperator.h"
 
 namespace MMVII
 {

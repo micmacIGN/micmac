@@ -1,5 +1,8 @@
 #ifndef  _MMVII_TplLayer3D_H_
 #define  _MMVII_TplLayer3D_H_
+
+#include "MMVII_Matrix.h"
+
 namespace MMVII
 {
 
@@ -88,7 +91,7 @@ template <class TObj,class TLayer>  class cLayerData3D
             }
         }
 
-	tIm        mZMin;
+        tIm        mZMin;
         tIm        mZMax;
         tDIm&      mDZMin;
         tDIm&      mDZMax;

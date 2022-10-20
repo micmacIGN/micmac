@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
+#include "MMVII_Tpl_Images.h"
 
 namespace MMVII
 {

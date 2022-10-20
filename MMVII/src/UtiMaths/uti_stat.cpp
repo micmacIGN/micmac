@@ -1,4 +1,6 @@
-#include "include/MMVII_all.h"
+#include "MMVII_util.h"
+#include "MMVII_Matrix.h"
+#include "MMVII_Linear2DFiltering.h"
 
 namespace MMVII
 {

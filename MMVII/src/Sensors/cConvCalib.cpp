@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-
+#include "MMVII_PCSens.h"
+#include "MMVII_MMV1Compat.h"
+#include "MMVII_DeclareCste.h"
 
 /**
    \file cConvCalib.cpp

@@ -1,9 +1,10 @@
 #ifndef  _MMVII_TplSymbIm_
 #define  _MMVII_TplSymbIm_
 
-#include "include/SymbDer/SymbolicDerivatives.h"
-#include "include/SymbDer/SymbDer_MACRO.h"
+#include "SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbDer_MACRO.h"
 
+#include "MMVII_Ptxd.h"
 
 /** \file MMVII_TplSymbImage.h
     \brief Contains helpers for image as formula

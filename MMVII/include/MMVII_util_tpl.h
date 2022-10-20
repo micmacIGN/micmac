@@ -2,6 +2,7 @@
 #define  _MMVII_Util_TPL_H_
 
 #include <algorithm>
+#include "MMVII_enums.h"
 
 namespace MMVII
 {

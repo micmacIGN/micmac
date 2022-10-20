@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+
+#include "MMVII_Stringifier.h"
 
 namespace MMVII
 {

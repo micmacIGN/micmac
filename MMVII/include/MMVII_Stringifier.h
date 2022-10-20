@@ -1,6 +1,9 @@
 #ifndef  _MMVII_Stringifier_H_
 #define  _MMVII_Stringifier_H_
 
+#include "MMVII_memory.h"
+#include "MMVII_Ptxd.h"
+
 namespace MMVII
 {
 

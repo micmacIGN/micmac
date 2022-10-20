@@ -1,9 +1,11 @@
 #ifndef _FORMULA_CENTRAL_PROJ_H_
 #define _FORMULA_CENTRAL_PROJ_H_
 
-#include "include/MMVII_all.h"
-#include "include/SymbDer/SymbolicDerivatives.h"
-#include "include/SymbDer/SymbDer_MACRO.h"
+#include "MMVII_Ptxd.h"
+#include "MMVII_PCSens.h"
+
+#include "SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbDer_MACRO.h"
 #include "ComonHeaderSymb.h"
 
 

@@ -1,5 +1,8 @@
 #ifndef  _MMVII_Images_H_
 #define  _MMVII_Images_H_
+
+#include "cMMVII_Appli.h"
+
 namespace MMVII
 {
 

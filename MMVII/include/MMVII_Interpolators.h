@@ -1,6 +1,8 @@
 #ifndef  _MMVII_Interpolators_H_
 #define  _MMVII_Interpolators_H_
 
+#include "MMVII_Geom2D.h"
+
 namespace MMVII
 {
 /*  ********************************* */

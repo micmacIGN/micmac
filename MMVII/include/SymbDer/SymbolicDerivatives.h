@@ -92,8 +92,7 @@
 
 /*
 #if (SYMBDER_WITH_MMVII)
-#include "include/MMVII_all.h"
-#include "include/MMVII_Derivatives.h"
+#include "MMVII_Derivatives.h"
 #define SYMBDER_cMemCheck  MMVII::cMemCheck
 #else             //========================================================== WITH_MMVI
 class SYMBDER_cMemCheck

@@ -1,6 +1,8 @@
 #include "TrianguRSNL.h"
-#include "include/MMVII_Tpl_Images.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_PhgrDist.h"
+
 
 // 100 Iter
 //                  Std      X*10        W/o X=1     W/o X=1 X*10

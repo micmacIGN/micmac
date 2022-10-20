@@ -1,5 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_ImageInfoExtract.h"
+#include "MMVII_Interpolators.h"
+#include "MMVII_NonLinear2DFiltering.h"
 
 
 namespace MMVII

@@ -1,5 +1,7 @@
-#include "include/MMVII_all.h"
-
+#include "cMMVII_Appli.h"
+#include "MMVII_DeclareCste.h"
+#include "MMVII_Geom3D.h"
+#include "MMVII_Sensor.h"
 
 namespace MMVII
 {

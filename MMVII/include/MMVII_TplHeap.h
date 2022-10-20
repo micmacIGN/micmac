@@ -1,5 +1,9 @@
 #ifndef _MMVII_HEAP_H_
 #define _MMVII_HEAP_H_
+
+#include "MMVII_Error.h"
+#include "MMVII_nums.h"
+
 namespace MMVII
 {
 

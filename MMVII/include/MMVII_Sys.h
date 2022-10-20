@@ -5,6 +5,8 @@
 #include <unistd.h>
 #endif
 
+#include "MMVII_AllClassDeclare.h"
+
 namespace MMVII
 {
 

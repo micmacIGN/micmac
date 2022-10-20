@@ -1,7 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
-
-
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_Matrix.h"
+#include "MMVII_SysSurR.h"
+#include "MMVII_Sys.h"
 
 namespace MMVII
 {

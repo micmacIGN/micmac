@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_SysSurR.h"
 
 // test git cred again again ... vi 
 

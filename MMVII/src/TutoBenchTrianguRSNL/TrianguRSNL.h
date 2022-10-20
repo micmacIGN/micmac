@@ -1,6 +1,8 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_Geom2D.h"
 
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_SysSurR.h"
 
 // ==========  3 variable used for debuging  , will disappear
 //

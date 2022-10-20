@@ -1,6 +1,8 @@
 #ifndef  _MMVII_Bench_H_
 #define  _MMVII_Bench_H_
 
+#include "MMVII_util_tpl.h"
+
 namespace MMVII
 {
 

@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+#include "MMVII_DeclareAllCmd.h"
 #include <algorithm>
 
 namespace MMVII

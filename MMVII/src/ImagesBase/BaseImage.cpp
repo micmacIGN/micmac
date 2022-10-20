@@ -1,5 +1,5 @@
-#include "include/MMVII_all.h"
 
+#include "MMVII_Images.h"
 // #include <Eigen/Dense>
 
 namespace MMVII

@@ -1,5 +1,8 @@
 #ifndef  _MMVII_ImageInfoExtract_H_
 #define  _MMVII_ImageInfoExtract_H_
+
+#include "MMVII_SysSurR.h"
+
 namespace MMVII
 {
 

@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_DeclareAllCmd.h"
 
 
 /** \file cMMVII_CalcSet.cpp

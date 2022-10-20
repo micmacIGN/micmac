@@ -1,13 +1,16 @@
 #include "include/V1VII.h"
 
+#include "MMVII_Mappings.h"
+#include "MMVII_AimeTieP.h"
+
 
 #include "src/uti_image/NewRechPH/cParamNewRechPH.h"
 // #include "../CalcDescriptPCar/AimeTieP.h"
 
-#include "include/im_tpl/cPtOfCorrel.h"
-#include "include/algo_geom/qdt.h"
-#include "include/algo_geom/qdt_implem.h"
-#include "include/ext_stl/heap.h"
+#include "im_tpl/cPtOfCorrel.h"
+#include "algo_geom/qdt.h"
+#include "algo_geom/qdt_implem.h"
+#include "ext_stl/heap.h"
 
 
 namespace MMVII

@@ -1,5 +1,9 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_TplSymbImage.h"
+#include "MMVII_Image2D.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_PhgrDist.h"
+#include "src/TutoBenchTrianguRSNL/TrianguRSNL.h"
+
+#include "MMVII_TplSymbImage.h"
 
 using namespace NS_SymbolicDerivative;
 

@@ -1,10 +1,10 @@
 #ifndef  _MMVII_Matrix_H_
 #define  _MMVII_Matrix_H_
+
+#include "MMVII_Image2D.h"
+
 namespace MMVII
 {
-
-  // Gittttttttttttt
-
 
 /** \file MMVII_Matrix.h
     \brief Classes for matrix manipulation, 

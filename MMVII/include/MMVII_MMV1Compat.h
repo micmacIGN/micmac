@@ -1,6 +1,9 @@
 #ifndef  _MMVII_MMV1_Compat_H_
 #define  _MMVII_MMV1_Compat_H_
 
+#include "MMVII_Sensor.h"
+#include "MMVII_Geom3D.h"
+
 namespace MMVII
 {
 

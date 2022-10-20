@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Bench.h"
 
 namespace MMVII
 {

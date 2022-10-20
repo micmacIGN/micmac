@@ -1,5 +1,8 @@
 #ifndef  _MMVII_Tpl_Images_H_
 #define  _MMVII_Tpl_Images_H_
+
+#include "MMVII_Matrix.h"
+
 namespace MMVII
 {
 

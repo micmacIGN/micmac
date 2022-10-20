@@ -1,7 +1,5 @@
-#include "include/MMVII_all.h"
-//#include "../SymbDerGen/ComonHeaderSymb.h"
-#include "include/MMVII_Derivatives.h"
-
+#include "MMVII_Derivatives.h"
+#include "cMMVII_Appli.h"
 
 namespace MMVII
 {

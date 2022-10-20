@@ -1,5 +1,9 @@
 #ifndef  _MMVII_Triangles_H_
 #define  _MMVII_Triangles_H_
+
+#include "MMVII_Ptxd.h"
+
+
 namespace MMVII
 {
 

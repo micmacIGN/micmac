@@ -1,6 +1,8 @@
 #ifndef  _MMVII_SysSurR_H_
 #define  _MMVII_SysSurR_H_
 
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_Matrix.h"
 
 namespace MMVII
 {

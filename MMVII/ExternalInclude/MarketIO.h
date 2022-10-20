@@ -25,6 +25,7 @@
 #ifndef EIGEN_SPARSE_MARKET_IO_H
 #define EIGEN_SPARSE_MARKET_IO_H
 
+#include "MMVII_AllClassDeclare.h"
 
 template<typename SparseMatrixType>
 bool loadMarket(SparseMatrixType& mat, const std::string& filename)

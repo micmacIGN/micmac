@@ -1,11 +1,10 @@
 #ifndef FORMULA_CAMSTENOPE_H
 #define FORMULA_CAMSTENOPE_H
 
-#include "include/MMVII_all.h"
-#include "include/SymbDer/SymbolicDerivatives.h"
-#include "include/SymbDer/SymbDer_MACRO.h"
+#include "SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbDer_MACRO.h"
 #include "ComonHeaderSymb.h"
-
+#include "MMVII_PhgrDist.h"
 #include "Formulas_CentralProj.h"
 
 namespace NS_SymbolicDerivative

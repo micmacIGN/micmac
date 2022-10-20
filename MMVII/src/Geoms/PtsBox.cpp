@@ -1,6 +1,6 @@
-#include "include/MMVII_all.h"
-
-// #include <Eigen/Dense>
+#include "MMVII_Images.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_MMV1Compat.h"
 
 namespace MMVII
 {

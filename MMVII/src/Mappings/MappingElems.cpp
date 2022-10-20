@@ -1,4 +1,6 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Mappings.h"
+#include "MMVII_Geom2D.h"
+
 
 namespace MMVII
 {

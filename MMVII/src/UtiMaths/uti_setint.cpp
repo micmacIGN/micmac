@@ -1,6 +1,5 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_SetITpl.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_SetITpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 /*
 #include <regex>
 #include <unordered_set>

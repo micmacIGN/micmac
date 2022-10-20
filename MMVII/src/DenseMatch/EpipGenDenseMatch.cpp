@@ -1,6 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/V1VII.h"
-#include "include/MMVII_Tpl_Images.h"
+
+#include "V1VII.h"
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_DeclareCste.h"
 
 static bool  DEBUG_EDM = false;
 

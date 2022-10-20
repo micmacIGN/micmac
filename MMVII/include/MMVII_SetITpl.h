@@ -1,6 +1,8 @@
 #ifndef  _MMVII_SET_I_TPL_H_
 #define  _MMVII_SET_I_TPL_H_
 
+#include "MMVII_nums.h"
+
 namespace MMVII
 {
 

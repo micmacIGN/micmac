@@ -1,10 +1,11 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_SysSurR.h"
 
 #include "MMVII_EigenWrap.h"
-#include "ExternalInclude/Eigen/Eigenvalues" 
-#include "ExternalInclude/Eigen/Householder"  // HouseholderQR.h"
-// #include "ExternalInclude/Eigen/Cholesky"  // HouseholderQR.h"
+#include "Eigen/Eigenvalues"
+#include "Eigen/Householder"  // HouseholderQR.h"
+// #include "Eigen/Cholesky"  // HouseholderQR.h"
 
 using namespace Eigen;
 

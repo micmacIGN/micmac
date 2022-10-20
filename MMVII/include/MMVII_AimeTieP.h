@@ -1,6 +1,8 @@
 #ifndef _AIME_TIEP_H_
 #define _AIME_TIEP_H_
 
+#include "MMVII_Linear2DFiltering.h"
+
 namespace MMVII
 {
 class cAimeDescriptor;

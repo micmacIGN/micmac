@@ -1,6 +1,8 @@
 #ifndef _INDEXBINAIRE_H_
 #define _INDEXBINAIRE_H_
 
+#include "MMVII_SysSurR.h"
+
 namespace MMVII
 {
 

@@ -1,6 +1,10 @@
 #ifndef _FILTER_CODED_TARGET_H_
 #define _FILTER_CODED_TARGET_H_
 
+#include "MMVII_Linear2DFiltering.h"
+#include "MMVII_Geom2D.h"
+
+
 /** \file  FilterCodedTarget.h
 
     \brief contains image processing tools, developed 4 target detection, but

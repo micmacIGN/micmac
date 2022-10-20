@@ -1,8 +1,8 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Class4Bench.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Bench.h"
+#include "MMVII_Class4Bench.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
-
+#include "MMVII_Geom2D.h"
 
 
 /** \file BenchSerial.cpp

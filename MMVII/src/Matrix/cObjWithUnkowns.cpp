@@ -1,6 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
-
+#include "cMMVII_Appli.h"
+#include "MMVII_Tpl_Images.h"
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_SysSurR.h"
 
 using namespace NS_SymbolicDerivative;
 using namespace MMVII;

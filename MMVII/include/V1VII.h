@@ -2,7 +2,10 @@
 #define _V1V2_H_
 
 #include "StdAfx.h"
-#include "include/MMVII_all.h"
+#include "MMVII_Ptxd.h"
+#include "MMVII_Stringifier.h"
+#include "MMVII_MMV1Compat.h"
+
 
 
 namespace MMVII

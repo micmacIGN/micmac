@@ -1,5 +1,6 @@
-#include "include/TreeDist.h"
-#include "include/MMVII_all.h"
+#include "TreeDist.h"
+
+#include "MMVII_Bench.h"
 
 
 namespace MMVII

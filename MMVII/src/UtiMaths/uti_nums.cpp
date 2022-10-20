@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_SetITpl.h"
+#include "MMVII_SetITpl.h"
+#include "MMVII_Sys.h"
+#include "cMMVII_Appli.h"
 
 namespace MMVII
 {

@@ -5,8 +5,7 @@
    \brief contain functionnality that are required for code gen and need micma lib
 */
 
-#include "include/MMVII_all.h"
-#include "include/SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbolicDerivatives.h"
 #include <typeinfo>       // operator typeid
 
 using namespace NS_SymbolicDerivative;

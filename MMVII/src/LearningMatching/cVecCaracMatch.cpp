@@ -1,6 +1,8 @@
-#include "include/MMVII_all.h"
+
 #include "LearnDM.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_ImageInfoExtract.h"
+
 
 namespace MMVII
 {

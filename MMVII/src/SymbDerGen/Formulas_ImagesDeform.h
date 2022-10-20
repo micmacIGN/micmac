@@ -1,6 +1,7 @@
 #ifndef _FORMULA_IMAGES_DEFORM_H_
 #define _FORMULA_IMAGES_DEFORM_H_
-#include "include/MMVII_TplSymbImage.h"
+#include "MMVII_TplSymbImage.h"
+#include "MMVII_util_tpl.h"
 
 /**
     \brief  class to generate code for images transformation by mimnization

@@ -1,6 +1,8 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_AimeTieP.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_ImageInfoExtract.h"
 
 
 namespace MMVII

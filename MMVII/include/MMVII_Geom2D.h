@@ -1,6 +1,9 @@
 #ifndef  _MMVII_GEOM2D_H_
 #define  _MMVII_GEOM2D_H_
 
+#include "MMVII_Matrix.h"
+#include "MMVII_Triangles.h"
+
 namespace MMVII
 {
 

@@ -1,7 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_SetITpl.h"
+#include "MMVII_Ptxd.h"
+#include "cMMVII_Appli.h"
+#include "MMVII_SetITpl.h"
 #include <random>
-
 
 /** \file uti_rand.cpp
     \brief Implementation of random generator

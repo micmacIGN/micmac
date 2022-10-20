@@ -1,6 +1,7 @@
 #ifndef  _MMVII_PHGR_DIST_H_
 #define  _MMVII_PHGR_DIST_H_
 
+#include "MMVII_Mappings.h"
 
 namespace MMVII
 {

@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_MACRO.h"
 #include "include/MMVII_TplSymbImage.h"

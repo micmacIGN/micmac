@@ -1,6 +1,8 @@
 #ifndef  _MMVII_DeclareAllCmd_H_
 #define  _MMVII_DeclareAllCmd_H_
 
+#include "cMMVII_Appli.h"
+
 namespace MMVII
 {
 

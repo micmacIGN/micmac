@@ -29,7 +29,10 @@
 
 
 #if (TREEDIST_WITH_MMVII)
-#include "include/MMVII_all.h"
+#include "MMVII_util.h"
+#include "MMVII_Sys.h"
+#include "SymbDer/SymbDer_Common.h"
+
 #define TREEDIST_cMemCheck MMVII::cMemCheck
 #define TREEDIST_FakeUseIt MMVII::FakeUseIt
 #else             //========================================================== WITH_MMVI

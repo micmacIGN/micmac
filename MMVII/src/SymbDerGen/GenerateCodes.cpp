@@ -1,11 +1,12 @@
-#include "include/MMVII_all.h"
+
 #include "ComonHeaderSymb.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_ImagesDeform.h"
 #include "Formulas_CamStenope.h"
 #include "Formulas_Geom2D.h"
-
+#include "MMVII_Sys.h"
+#include "MMVII_Geom2D.h"
 
 /*
 La compil:

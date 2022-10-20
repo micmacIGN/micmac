@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 #include "include/MMVII_TplLayers3D.h"
 
 namespace MMVII

@@ -1,7 +1,8 @@
 #ifndef  _MMVII_Derivatives_H_
 #define  _MMVII_Derivatives_H_
 
-#include "ExternalInclude/Eigen/Dense"
+#include "Eigen/Dense"
+#include "MMVII_nums.h"
 
 namespace MMVII
 {

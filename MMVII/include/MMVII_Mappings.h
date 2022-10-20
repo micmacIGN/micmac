@@ -1,6 +1,9 @@
 #ifndef  _MMVII_MAPPINGS_H_
 #define  _MMVII_MAPPINGS_H_
 
+
+#include "MMVII_ImageInfoExtract.h"
+
 /* For in & out computation of vector of points, do we use static buffer or 
    do each object has its own buffer. First option is more economic, but can lead to
    sides effect if buffering is not well understood . So for now I maintain the possibility

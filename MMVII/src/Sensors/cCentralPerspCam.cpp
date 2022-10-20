@@ -1,5 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_PCSens.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Geom2D.h"
 #include <set>
 
 #ifdef _OPENMP

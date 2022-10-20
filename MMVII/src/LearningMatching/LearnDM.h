@@ -1,4 +1,8 @@
-#include "include/MMVII_all.h"
+#include "MMVII_enums.h"
+#include "MMVII_AimeTieP.h"
+#include "cMMVII_Appli.h"
+#include "MMVII_Matrix.h"
+
 
 /*
     Caracteristiques envisagees :

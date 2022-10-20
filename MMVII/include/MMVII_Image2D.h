@@ -1,6 +1,8 @@
 #ifndef  _MMVII_Images2D_H_
 #define  _MMVII_Images2D_H_
 
+#include "MMVII_Images.h"
+
 namespace MMVII
 {
 /** \file MMVII_Image2D.h

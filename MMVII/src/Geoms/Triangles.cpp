@@ -1,4 +1,10 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Triangles.h"
+#include "cMMVII_Appli.h"
+#include "MMVII_SysSurR.h"
+#include "MMVII_Mappings.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
+
 #include <set>
 
 namespace MMVII

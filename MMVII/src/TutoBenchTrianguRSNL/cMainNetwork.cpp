@@ -1,4 +1,8 @@
 #include "TrianguRSNL.h"
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Sys.h"
+#include "MMVII_PhgrDist.h"
 
 
 // ==========  3 variable used for debuging  , will disappear

@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 
 /** \file uti_string.cpp
     \brief Implementation of utilitary services
@@ -15,6 +15,8 @@
 
 #include <filesystem>
 
+#include "MMVII_util.h"
+#include "cMMVII_Appli.h"
 
 #include <boost/algorithm/string.hpp>
 

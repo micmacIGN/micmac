@@ -1,6 +1,10 @@
-#include "MMVII_all.h"
 #ifndef  _cMMVII_Appli_H_
 #define  _cMMVII_Appli_H_
+
+#include "MMVII_util.h"
+#include "MMVII_Stringifier.h"
+#include "MMVII_Bench.h"
+
 
 namespace MMVII
 {

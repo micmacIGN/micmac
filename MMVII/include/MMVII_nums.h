@@ -1,6 +1,8 @@
 #ifndef  _MMVII_nums_H_
 #define  _MMVII_nums_H_
 
+#include "MMVII_Error.h"
+
 namespace MMVII
 {
 
