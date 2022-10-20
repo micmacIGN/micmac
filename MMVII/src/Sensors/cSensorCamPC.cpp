@@ -151,6 +151,13 @@ cSensorCamPC * cSensorCamPC::FromFile(const std::string & aFile)
    return aPC;
 }
 
+std::string  cSensorCamPC::NameOri_From_Image(const std::string & aNameImage)
+{
+   return cSensorImage::NameOri_From_PrefixAndImage(PrefixName(),aNameImage);
+}
+
+
+
 std::string  cSensorCamPC::V_PrefixName() const { return PrefixName() ; }
 std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 

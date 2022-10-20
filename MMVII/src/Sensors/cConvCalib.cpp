@@ -312,37 +312,15 @@ void BenchCentralePerspective_ImportV1(cParamExeBench & aParam)
     // ===============================================================================================
     // ===============================================================================================
 
-class cPhotogrammetricProject
-{
-      public :
-          
-       //  method to share the parameters loadings from arc/argv
-          tPtrArg2007  OriInMand() ;
-          tPtrArg2007  OriOutMand();
-          tPtrArg2007  OriInOpt() ;// {return  AOpt2007(mOriIn ,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input });}
-				   //
-          cPhotogrammetricProject(cMMVII_Appli &);
-
-	  /// some initialisation can be done only once Appli is itself init
-	  void FinishInit() ;  
-	  void SaveCamPC(const cSensorCamPC &) const;
-
-      private :
-          cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
-          cMMVII_Appli &  mAppli;
-          std::string     mFolderProject;
-
-          std::string     mOriIn;
-          std::string     mOriOut;
-
-          std::string     mFullOriOut;
-          std::string     mFullOriIn;
-
-};
 
 cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mAppli  (anAppli)
 {
+}
+
+cPhotogrammetricProject::~cPhotogrammetricProject() 
+{
+    DeleteAllAndClear(mLCam2Del);
 }
 
 tPtrArg2007 cPhotogrammetricProject::OriInMand() {return  Arg2007(mOriIn ,"Input Orientation",{eTA2007::Orient,eTA2007::Input });}
@@ -364,6 +342,19 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 {
     aCamPC.ToFile(mFullOriOut + aCamPC.NameOriStd());
 }
+
+cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete)
+{
+    std::string aNameCam  = mFullOriIn + cSensorCamPC::NameOri_From_Image(aNameIm);
+    cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam);
+
+    if (ToDelete)
+       mLCam2Del.push_back(aCamPC);
+
+    return aCamPC;
+}
+/*
+*/
 
    /* ********************************************************** */
    /*                                                            */

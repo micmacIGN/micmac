@@ -296,6 +296,9 @@ class cSensorCamPC : public cSensorImage
          void AddData(const cAuxAr2007 & anAux);
 	 void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...  
 	 static cSensorCamPC * FromFile(const std::string &); ///< create form xml/dmp ...
+	 static  std::string  NameOri_From_Image(const std::string & aNameImage);
+
+							      
 
          static std::string  PrefixName() ;
          std::string  V_PrefixName() const override;

@@ -89,8 +89,8 @@ template <class Type,const int Dim> class  cTriangle
      protected :
        tPt  mPts[3];
 };
-typedef   cTriangle<tREAL8,2>  tTri2dR;
-typedef   cTriangle<tREAL8,3>  tTri3dR;
+typedef   cTriangle<tREAL8,2>  cTri2dR;
+typedef   cTriangle<tREAL8,3>  cTri3dR;
 
 
 /// return 2 elementay triangle both oriented, DiagCrois : diag contain 00->11 , else 01->10

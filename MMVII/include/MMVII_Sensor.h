@@ -18,6 +18,7 @@ struct  cPair2D3D;
 struct cSet2D3D;
 class cSensorImage;
 class cPixelDomain;
+class cSensorCamPC;
 
 
 /** class for representing  a 3D point paired with it 2d image projection */
@@ -60,6 +61,8 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	 void SetNameImage(const std::string &);  ///< used when reading from file
 
 	 std::string NameOriStd() const ;
+	 static  std::string  NameOri_From_PrefixAndImage(const std::string & aPrefix,const std::string & aNameImage);
+
 
 	 static std::string  PrefixName() ;
 	 virtual std::string  V_PrefixName() const = 0  ;
@@ -93,6 +96,39 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 	private :
 		cDataPixelDomain * mDPD;
 };
+
+class cPhotogrammetricProject
+{
+      public :
+
+       //  method to share the parameters loadings from arc/argv
+          tPtrArg2007  OriInMand() ;
+          tPtrArg2007  OriOutMand();
+          tPtrArg2007  OriInOpt() ;// {return  AOpt2007(mOriIn ,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input });}
+                                   //
+          cPhotogrammetricProject(cMMVII_Appli &);
+
+          /// some initialisation can be done only once Appli is itself init
+          void FinishInit() ;
+          void SaveCamPC(const cSensorCamPC &) const;
+	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete);
+
+          ~cPhotogrammetricProject();
+      private :
+          cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
+          cMMVII_Appli &  mAppli;
+          std::string     mFolderProject;
+
+          std::string     mOriIn;
+          std::string     mOriOut;
+
+          std::string     mFullOriOut;
+          std::string     mFullOriIn;
+
+	  std::list<cSensorCamPC*>  mLCam2Del;
+
+};
+
 
 
 };

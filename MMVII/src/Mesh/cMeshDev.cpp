@@ -87,16 +87,16 @@ class cSomDevT3D : public cSomFace3D
 class cFaceDevT3D : public cSomFace3D
 {
    public :
-      cFaceDevT3D (cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom,const tTri2dR &);
+      cFaceDevT3D (cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom,const cTri2dR &);
       int IndKthSom(int aK) const;
 
       tCoordDevTri  DistortionDist(tCoordDevTri & aSomDiff,tCoordDevTri & aSomDist) const;
       
-      const tTri2dR &  Tri2D() const;
+      const cTri2dR &  Tri2D() const;
       double &  EcMax();
    private :
       cPt3di           mIndSoms;
-      tTri2dR          mTri2D;
+      cTri2dR          mTri2D;
       double           mEcMax;
 };
 
@@ -225,7 +225,7 @@ int  cSomDevT3D::NumY() const {return NumX() + 1;}
 /*                                                         */
 /* ******************************************************* */
 
-cFaceDevT3D::cFaceDevT3D(cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom,const tTri2dR & aTri2) :
+cFaceDevT3D::cFaceDevT3D(cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom,const cTri2dR & aTri2) :
     cSomFace3D    (aDevTri,aNumF),
     mIndSoms      (aIndSom),
     mTri2D        (aTri2),
@@ -255,7 +255,7 @@ tCoordDevTri cFaceDevT3D::DistortionDist(tCoordDevTri& aSomDif,tCoordDevTri& aSo
     return aSomDif / aSomDist;
 }
 
-const tTri2dR &  cFaceDevT3D::Tri2D() const {return mTri2D;}
+const cTri2dR &  cFaceDevT3D::Tri2D() const {return mTri2D;}
 
 /* ******************************************************* */
 /*                                                         */
