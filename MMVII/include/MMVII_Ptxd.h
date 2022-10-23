@@ -742,6 +742,8 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
     public :
        typedef cPtxd<Type,Dim> tPt;
        cSegmentCompiled(const tPt& aP1,const tPt& aP2);
+       tPt  Proj(const tPt &) const;
+       Type Dist(const tPt &) const;
     protected :
        Type    mN2;
        tPt     mTgt;

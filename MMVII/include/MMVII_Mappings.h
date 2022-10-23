@@ -310,6 +310,8 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
       cTplBox<Type,DimOut> BoxOfCorners(const cTplBox<Type,DimIn>&) const;
 
 
+      cTriangle<Type,DimOut>  TriValue(const cTriangle<Type,DimIn> &) const;
+
       /// compute diffenrentiable method , default = erreur
     protected :
        /// This one can compute jacobian

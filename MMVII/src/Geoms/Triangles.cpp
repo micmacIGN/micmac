@@ -100,6 +100,13 @@ template <class Type,const int Dim>
    mPts[2] = aP2;
 }
 
+template <class Type,const int Dim>    cTriangle<Type,Dim> cTriangle<Type,Dim>::Tri000()
+{
+    tPt aP0 = tPt::PCste(0);
+    return tTri(aP0,aP0,aP0);
+}
+
+
 template <class Type,const int Dim>  
     int cTriangle<Type,Dim>::IndexLongestSeg() const
 {
@@ -254,6 +261,10 @@ template<class Type> cPtxd<Type,3> NormalUnit(const cTriangle<Type,3> & aTri)
 {
 	//  V01 ^ V12 = V01 ^ (V10 + V02) = V01 ^ V02
 	return VUnit(aTri.KVect(0) ^ aTri.KVect(1));
+}
+template<class Type> cPtxd<Type,3> Normal(const cTriangle<Type,3> & aTri)
+{
+	return aTri.KVect(0) ^ aTri.KVect(1);
 }
 
 template <class Type,const int Dim>  
@@ -725,6 +736,7 @@ template class cTriangle<TYPE,DIM>;
 template   cTriangle<TYPE,2> Proj  (const cTriangle<TYPE,3> & aTri);\
 template   cTriangle<TYPE,3> TP3z0 (const cTriangle<TYPE,2> & aTri);\
 template cPtxd<TYPE,3> NormalUnit(const cTriangle<TYPE,3> & aTri);\
+template cPtxd<TYPE,3> Normal(const cTriangle<TYPE,3> & aTri);\
 INSTANTIATE_TRI_DIM(TYPE,2)\
 INSTANTIATE_TRI_DIM(TYPE,3)\
 //

@@ -87,7 +87,8 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
          cCalibStenPerfect(const cCalibStenPerfect & aPS);  ///< default wouldnt work because deleted in mother class
          cCalibStenPerfect MapInverse() const;
 
-         tPt  Value(const tPt& aPt) const override {return mPP + aPt*mF;}
+         tPt    Value(const tPt& aPt) const override {return mPP + aPt*mF;}
+         tPt    Inverse(const tPt& aPt) const override {return (aPt-mPP) / mF;}
          const  tVecPt &  Inverses(tVecPt &,const tVecPt & ) const override;
          const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;
 
@@ -189,6 +190,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
     // ==================   geometric points computation ===================
             const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
             const  tVecIn  &  Inverses(tVecIn &,const tVecOut & ) const;
+	    tPtIn  Inverse(const tPtOut &) const;
 
             // for a point in pixel coordinates, indicate how much its invert projection is defined, not parallized !
             tREAL8  InvProjIsDef(const tPtOut & aPix ) const;
@@ -221,11 +223,15 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     /// return calculator adapted to model of camera (degree, projection)
              cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf);
 
+	     void UpdateCSP();  ///< when PP/F modified
+
+	     const cPt2di & SzPix() const;
        private :
 	    ///  real constructor not accessible directly, must use allocator
             cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
+
 
          // ==================   DATA PART   ===================
 	 //
@@ -278,6 +284,10 @@ class cSensorCamPC : public cSensorImage
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
+         cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
+         cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
+
+
 	 // different accessor to the pose
          const tPose &   Pose()   const;
          const cPt3dr &  Center() const;
@@ -303,6 +313,7 @@ class cSensorCamPC : public cSensorImage
 	 static  std::string  NameOri_From_Image(const std::string & aNameImage);
 
 							      
+         const cPt2di & SzPix() const;
 
          static std::string  PrefixName() ;
          std::string  V_PrefixName() const override;

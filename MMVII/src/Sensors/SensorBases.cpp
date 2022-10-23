@@ -70,6 +70,9 @@ cPixelDomain::cPixelDomain(cDataPixelDomain * aDPD) :
      mDPD  (aDPD)
 {
 }
+
+const cPt2di & cPixelDomain::Sz() const {return mDPD->Sz();}
+
 /* ******************************************************* */
 /*                                                         */
 /*                   cSensorImage                          */
@@ -112,7 +115,28 @@ std::string  cSensorImage::NameOri_From_PrefixAndImage(const std::string & aPref
     return PrefixName() + "-" + aPrefix + "-" + aNameImage + ".xml"; 
 }
 std::string cSensorImage::NameOriStd() const { return  NameOri_From_PrefixAndImage(V_PrefixName(),mNameImage);}
-//  PrefixName() + "-" + V_PrefixName() + "-" + mNameImage + ".xml"; }
+
+/* ******************************************************* */
+/*                                                         */
+/*                   cSIMap_Ground2ImageAndProf            */
+/*                                                         */
+/* ******************************************************* */
+
+cSIMap_Ground2ImageAndProf::cSIMap_Ground2ImageAndProf(cSensorImage * aSens)  :
+    mSI  (aSens)
+{
+}
+
+cPt3dr cSIMap_Ground2ImageAndProf::Value(const cPt3dr & aPt) const
+{
+	return mSI->Ground2ImageAndDepth(aPt);
+}
+
+cPt3dr cSIMap_Ground2ImageAndProf::Inverse(const cPt3dr & aPt) const
+{
+	return mSI->ImageAndDepth2Ground(aPt);
+}
+
 
 }; // MMVII
 

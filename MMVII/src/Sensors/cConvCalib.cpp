@@ -277,6 +277,17 @@ void BenchPoseImportV1(const std::string & aNameOriV1,double anAccuracy)
      cSensorCamPC  *aPC  =  cCentralPerspConversion::AllocSensorPCV1(V1NameOri2NameImage(aNameOriV1),aFullName);
      double aResidual  =  aPC->AvgResidual(aExp.mCorresp);
 
+
+     for (const auto & aCorresp : aExp.mCorresp.Pairs())
+     {
+         cPt3dr aPGround = aCorresp.mP3;
+	 cPt3dr aPImAndD = aPC->Ground2ImageAndDepth(aPGround);
+	 cPt3dr aPG2 = aPC->ImageAndDepth2Ground(aPImAndD);
+
+	 double aDist = Norm2(aPGround - aPG2);
+          MMVII_INTERNAL_ASSERT_bench(aDist<1e-5 ,"I&Depth inversion");
+     }
+
      MMVII_INTERNAL_ASSERT_bench(aResidual<anAccuracy ,"No convergence in BenchCentralePerspective_ImportV1");
 
      std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() +  aPC->NameOriStd();  // "ccTestOri.xml";

@@ -16,11 +16,14 @@ namespace MMVII
 
 */
 
-struct  cPair2D3D;
+struct cPair2D3D;
 struct cSet2D3D;
-class cSensorImage;
-class cPixelDomain;
-class cSensorCamPC;
+class  cSensorImage;
+class  cDataPixelDomain ;
+class  cPixelDomain;
+class  cSensorCamPC;
+class  cPhotogrammetricProject;
+class  cSIMap_Ground2ImageAndProf ;
 
 
 /** class for representing  a 3D point paired with it 2d image projection */
@@ -55,24 +58,47 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 
          cSensorImage(const std::string & aNameImage);
 
+	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
-         double SqResidual(const cPair2D3D &) const;
-         double AvgResidual(const cSet2D3D &) const;
 
-	 const std::string & NameImage() const;
+	 ///  add the distance to bundle,to see if have a default with bundle+Gr2Ima
+         //virtual cPt3dr Ground2ImageAndDist(const cPt3dr &) const = 0;
+	 
+	 ///  add the the depth (to see if have a default with bundle+Gr2Ima)
+         virtual cPt3dr Ground2ImageAndDepth(const cPt3dr &) const = 0;
+         /// Invert of Ground2ImageAndDepth
+         virtual cPt3dr ImageAndDepth2Ground(const cPt3dr &) const = 0;
+
+         double SqResidual(const cPair2D3D &) const;  ///< residual Proj(P3)-P2 , squared for efficiency
+         double AvgResidual(const cSet2D3D &) const;  ///< avereage on all pairs, not squared
+
+	 const std::string & NameImage() const;   ///< accessor
 	 void SetNameImage(const std::string &);  ///< used when reading from file
 
-	 std::string NameOriStd() const ;
+	 // --------------------   methods to compute names of an orientation --------------------
+	 static std::string  PrefixName() ;  ///<  Prefix to all file for ori of 1 images
+	 ///  Compute the name from the specific prefix of subtype and image name, need a static access in creation
 	 static  std::string  NameOri_From_PrefixAndImage(const std::string & aPrefix,const std::string & aNameImage);
-
-
-	 static std::string  PrefixName() ;
+	 ///  Simply return the name
+	 std::string NameOriStd() const ;
+	 ///  Prefix of the subtype
 	 virtual std::string  V_PrefixName() const = 0  ;
 
      private :
 	 std::string                                    mNameImage;
 	 // static std::map<std::string,cSensorImage*>  mDicoSensor;
 	 // static int                                  mNum;
+};
+
+/**  Interfac to make sensor a 3d-mapping, using Ground2ImageAndDepth function */
+class cSIMap_Ground2ImageAndProf : public cDataInvertibleMapping<tREAL8,3>
+{
+       public :
+           cSIMap_Ground2ImageAndProf(cSensorImage *);
+	   cPt3dr Value(const cPt3dr &) const;   ///< 3D ->  2D+depth
+	   cPt3dr Inverse(const cPt3dr &) const;  ///< 2D+depth -> 3D
+       private :
+           cSensorImage * mSI;
 };
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
@@ -94,26 +120,36 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 {
 	public :
 		cPixelDomain(cDataPixelDomain *);
-
+                const cPt2di & Sz() const;
 	private :
 		cDataPixelDomain * mDPD;
 };
+
+/** Class to facilitate the management of orientations (and others ?) in a photogrammetric
+ * application.  Offers facilities for :
+ *        * readr/write an orient to file
+ *        * read/write parameters from line command on a standardized way
+ *        * eventually, deallocation of cameras
+ *
+ */
 
 class cPhotogrammetricProject
 {
       public :
 
        //  method to share the parameters loadings from arc/argv
-          tPtrArg2007  OriInMand() ;
-          tPtrArg2007  OriOutMand();
-          tPtrArg2007  OriInOpt() ;// {return  AOpt2007(mOriIn ,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input });}
-                                   //
+          tPtrArg2007  OriInMand() ;  ///< Input Orientation as mandatory paramaters
+          tPtrArg2007  OriOutMand();  ///< Output Orientation as mandatory paramaters
+	  // {return  AOpt2007(mOriIn ,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input });}
+          tPtrArg2007  OriInOpt() ;  ///< Input Orientation as optional paramaters
+	  
+	  ///< constructor will memorize application
           cPhotogrammetricProject(cMMVII_Appli &);
 
-          /// some initialisation can be done only once Appli is itself init
+          /// some initialisation can be done only once Appli is itself init, method must be calles in mAppli.Exe()
           void FinishInit() ;
-          void SaveCamPC(const cSensorCamPC &) const;
-	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete);
+          void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using InPut-orientation
+	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Outpt orientation
 
           ~cPhotogrammetricProject();
       private :

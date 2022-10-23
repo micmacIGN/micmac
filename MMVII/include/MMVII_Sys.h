@@ -55,12 +55,6 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::stri
 
 
 
-/// A fake function, to stop momentarilly warnings about unused variable ...
-template <class Type> void FakeUseIt(const Type &) {}
-/** A function returning always false, use when we dont want to execute something want to compile it
- even with too "clever" compiler who would skip if (0) */
-bool NeverHappens();
-
 };
 
 #endif  //  _MMVII_Sys_H_

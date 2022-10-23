@@ -140,6 +140,14 @@ class cMMVII_Warning
 
 #define MMVII_WARGNING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
 
+
+/// A fake function, to stop momentarilly warnings about unused variable ...
+template <class Type> void FakeUseIt(const Type &) {}
+/** A function returning always false, use when we dont want to execute something want to compile it
+ even with too "clever" compiler who would skip if (0) */
+bool NeverHappens();
+
+
 };
 
 #endif  //  _MMVII_MMError_H_

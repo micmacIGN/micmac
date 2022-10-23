@@ -113,6 +113,7 @@ template <class TypeObj,class TypeLayer>  class cLayer3D ;
 // MMVII_Matrix.h
 template <class Type> class  cDenseVect;
 
+template <class Type,const int Dim> class cTriangle ;
 
 // MMVII_Mappings.h
 template <class Type,const int Dim> class cDataBoundedSet ;

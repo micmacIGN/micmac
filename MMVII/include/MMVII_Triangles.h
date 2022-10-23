@@ -64,6 +64,9 @@ template <class Type,const int Dim> class  cTriangle
 
        cTriangle(const tPt & aP0,const tPt & aP1,const tPt & aP2);
 
+       /// some time we need a fake init, safer to have it explict rather than using a default constructor
+       static tTri  Tri000();
+
        tTri  TriSwapPt(int aK0) const; ///< "same" but with different orientation by swap K0/1+K0
 
        static tTri  RandomTri(const Type & aSz,const Type & aRegulMin = Type(1e-2));

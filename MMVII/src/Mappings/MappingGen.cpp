@@ -1,4 +1,5 @@
 #include "MMVII_Mappings.h"
+#include "MMVII_Triangles.h"
 
 namespace MMVII
 {
@@ -353,6 +354,20 @@ template <class Type,const int DimIn,const int DimOut>
 
    return  cTplBox<Type,DimOut>(aBoxOfPts.P0(),aBoxOfPts.P1());
    
+}
+
+template <class Type,const int DimIn,const int DimOut>
+      cTriangle<Type,DimOut> cDataMapping<Type,DimIn,DimOut>::TriValue(const cTriangle<Type,DimIn> &aTriIn) const
+{
+	std::vector<tPtIn> aVPtIn;
+
+	for (int aK=0 ; aK<3 ; aK++)
+	{
+             aVPtIn.push_back(aTriIn.Pt(aK));
+	}
+	std::vector<tPtOut> aVPtOut = Values(aVPtIn);
+
+	return cTriangle<Type,DimOut> (aVPtOut[0],aVPtOut[1],aVPtOut[2]);
 }
 
 /* ============================================= */

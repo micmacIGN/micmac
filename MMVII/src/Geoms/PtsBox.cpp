@@ -36,6 +36,15 @@ template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled
 {
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  cSegmentCompiled<Type,Dim>::Proj(const tPt & aPt) const
+{
+     return this->mP1 + mTgt * Type(Scal(mTgt,aPt-this->mP1)) ;
+}
+
+template <class Type,const int Dim> Type  cSegmentCompiled<Type,Dim>::Dist(const tPt & aPt) const
+{
+	return Norm2(aPt-Proj(aPt));
+}
 /* ========================== */
 /*          ::                */
 /* ========================== */

@@ -378,7 +378,9 @@ template <class Type> class  cTriangle2DCompiled : public cTriangle<Type,2>
 
            Type Insideness(const tPt &) const; // <0 out, > inside, 0 : frontier
            bool   Insides(const tPt &,Type aTol=0.0) const; // Tol<0 give more points
-           void PixelsInside(std::vector<cPt2di> & aRes,double aTol=-1e-5) const;
+
+	   /// generate all the pixels inside a triangle, aVWeight to get barrycentric weighting, Tol to have all pixels
+           void PixelsInside(std::vector<cPt2di> & aRes,double aTol=-1e-5,std::vector<t3Val> * aVWeight = nullptr) const;
 
 	   Type Delta() const {return mDelta;}
 

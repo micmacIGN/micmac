@@ -29,6 +29,7 @@ template<class T> cDenseMatrix<T> MatProdVect(const cPtxd<T,3>& aW);
 template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP);
 
 template<class Type> cPtxd<Type,3> NormalUnit(const cTriangle<Type,3> &);  // V01 ^ V02
+template<class Type> cPtxd<Type,3> Normal(const cTriangle<Type,3> &);  // V01 ^ V02
 
 // ===============================================================================
 //  Quaternion part  : I use them essentially for interface with other library,

@@ -1,70 +1,303 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_PCSens.h"
+#include "MMVII_Geom2D.h"
 
 namespace MMVII
 {
 
+/**  This class make a conversion between pixel space and real space using a R^2->R^2 map,
+ * frequently used wih homothety when we do sampling*/
+
+	
+template <class TypeMap>  class  cMapPixelization
+{
+        public :
+            typedef typename TypeMap::tTypeElem   tTypeElem;
+            typedef cPtxd<tTypeElem,2>            tPtR;
+            typedef cPtxd<int,2>                  tPixel;  // use typedef, maybe later in 3D 
+
+	    cMapPixelization(const TypeMap & aMap) : mMap (aMap) {}
+
+            inline tPixel  ToPix(const tPtR & aPtR) const   {return  ToI(mMap.Value(aPtR));  }
+
+        private :
+	    TypeMap  mMap;
+};
+
+
 /**   This abstract class is used to decribe an object containing many triangles.
+ *
  * In Z-Buffer, we can use an explicit mesh, but also an implicit one if we parse an image
  * where each pixel is made from two triangle. This implicit class allow to maipulate the two
- * object in the same interface (an avoid converting the pixel in million of triangles ...)
+ * object in the same interface (an avoid converting the pixels in hundred million of triangles ...)
  */
 
-	/*
 class  cTri3DIterator
 {
      public :
         virtual bool GetNextTri(cTri3dR &) = 0;
         virtual bool GetNextPoint(cPt3dr &) = 0;
-        virtual void Reset()  = 0;
+        virtual void ResetTri()  = 0;
+        virtual void ResetPts()  = 0;
+
+        void ResetAll() ;
      private :
 };
+
+/** in many case, the implementation can be done by counters */
+
+class cCountTri3DIterator : public cTri3DIterator
+{
+     public :
+        cCountTri3DIterator(size_t aNbP,size_t aNbF);
+
+	virtual cPt3dr  KthP(int aKP) const = 0;
+	virtual cTri3dR KthF(int aKF) const = 0;
+
+        bool GetNextTri(cTri3dR &) override;
+        bool GetNextPoint(cPt3dr &) override;
+        void ResetTri()  override;
+        void ResetPts()  override;
+     private :
+	size_t  mNbP;
+	size_t  mNbF;
+	size_t  mIndexF;
+	size_t  mIndexP;
+};
+
+class cMeshTri3DIterator : public cCountTri3DIterator
+{
+     public :
+        cMeshTri3DIterator(cTriangulation3D<tREAL8> *);
+
+	cPt3dr  KthP(int aKP) const override;
+	cTri3dR KthF(int aKF) const override;
+     private :
+	cTriangulation3D<tREAL8> *  mTri;
+};
+
+/* =============================================== */
+/*                                                 */
+/*                 cTri3DIterator                  */
+/*                                                 */
+/* =============================================== */
+
+void cTri3DIterator::ResetAll()
+{
+    ResetTri();
+    ResetPts();
+}
+
+/* =============================================== */
+/*                                                 */
+/*            cCountTri3DIterator                  */
+/*                                                 */
+/* =============================================== */
+
+cCountTri3DIterator::cCountTri3DIterator(size_t aNbP,size_t aNbF) :
+    mNbP  (aNbP),
+    mNbF  (aNbF)
+{
+   ResetPts();
+   ResetTri();
+}
+
+void cCountTri3DIterator::ResetTri() { mIndexF=0;}
+void cCountTri3DIterator::ResetPts() { mIndexP=0;}
+
+bool cCountTri3DIterator::GetNextPoint(cPt3dr & aP )
+{
+    if (mIndexP>=mNbP) return false;
+    aP = KthP(mIndexP);
+    mIndexP++;
+    return true;
+}
+
+bool cCountTri3DIterator::GetNextTri(cTri3dR & aTri)
+{
+    if (mIndexF>=mNbF) return false;
+    aTri = KthF(mIndexF);
+    mIndexF++;
+    return true;
+}
+
+/* =============================================== */
+/*                                                 */
+/*              cMeshTri3DIterator                 */
+/*                                                 */
+/* =============================================== */
+
+cMeshTri3DIterator::cMeshTri3DIterator(cTriangulation3D<tREAL8> * aTri) :
+    cCountTri3DIterator(aTri->NbPts(),aTri->NbFace()),
+    mTri (aTri)
+{
+}
+
+cPt3dr  cMeshTri3DIterator::KthP(int aKP) const {return mTri->KthPts(aKP);}
+cTri3dR cMeshTri3DIterator::KthF(int aKF) const {return mTri->KthTri(aKF);}
+
+
+/* =============================================== */
+/* =============================================== */
+/* =============================================== */
+
 
 class  cZBuffer
 {
       public :
-          typedef cDataInvertibleMapping<tREAL8,3>  tMap;
 
-          cZBuffer(cTri3DIterator & aMesh,const tMap & aMap,const cBox2dr * aBoxOutClip);
+          typedef tREAL4                            tElem;
+          typedef cDataIm2D<tElem>                  tDIm;
+          typedef cIm2D<tElem>                      tIm;
+	  typedef cIm2D<tINT1>                      tImSign;
+	  typedef cDataIm2D<tINT1>                  tDImSign;
+
+          typedef cDataInvertibleMapping<tREAL8,3>  tMap;
+          typedef cDataBoundedSet<tREAL8,3>         tSet;
+
+	  static constexpr tElem mInfty =  -1e20;
+
+          cZBuffer(cTri3DIterator & aMesh,const tMap & aMap,const tSet & aSet,double aResolOut);
+
+          const cPt2di  SzPix() ;
+          void MakeOneTri(const cTri3dR &);
+
+	  void MakeZBuf
+               (
+	       );
       private :
           cZBuffer(const cZBuffer & ) = delete;
 
-
+	  cPt2dr  ToPix(const cPt3dr&) const;
+    //mROut2Pix.Value(Proj(mBoxOut.P1()));
 
 	  cTri3DIterator & mMesh;
 	  const tMap &     mMapI2O;
-          const cBox2dr*   mBoxOutClip;
-          cBox3dr          mBoxIn;  ///< Box in input space, not sure usefull, but ....
-          cBox3dr          mBoxOut; ///< Box in output space, usefull for xy, not sure for z , but ...
+          const tSet &     mSet;
+	  double           mResolOut;
+
+          cBox3dr          mBoxIn;     ///< Box in input space, not sure usefull, but ....
+          cBox3dr          mBoxOut;    ///< Box in output space, usefull for xy, not sure for z , but ...
+	  cHomot2D<tREAL8> mROut2Pix;  ///<  Mapping Out Coord -> Pix Coord
+	  tIm              mZBuf;
+	  tImSign          mImSign;   ///< sign of normal  1 or -1 , 0 if uninit
+	  tDImSign  *      mDImSign;
+          cPt2di           mSzPix;
 };
 
-cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tMap & aMapI2O,const cBox2dr * aBoxOutClip) :
+cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tMap & aMapI2O,const tSet &  aSet,double aResolOut) :
     mMesh     (aMesh),
     mMapI2O   (aMapI2O),
+    mSet      (aSet),
+    mResolOut (aResolOut),
 
     mBoxIn    (cBox3dr::Empty()),
-    mBoxOut   (cBox3dr::Empty())
+    mBoxOut   (cBox3dr::Empty()),
+    mROut2Pix (),
+    mZBuf     (cPt2di(1,1)),
+    mImSign   (cPt2di(1,1)),
+    mDImSign  (nullptr)
 {
-    cTplBoxOfPts<tReal8,3> aBoxIn;
-    cTplBoxOfPts<tReal8,3> aBoxOut;
+    cTplBoxOfPts<tREAL8,3> aBoxOfPtsIn;
+    cTplBoxOfPts<tREAL8,3> aBoxOfPtsOut;
 
     //  compute the box in put and output space
     cPt3dr aPIn;
+
+    mMesh.ResetAll();
+    int aCptTot=0;
+    int aCptIn=0;
     while (mMesh.GetNextPoint(aPIn))
     {
+        aCptTot++;
         cPt3dr aPOut = mMapI2O.Value(aPIn);
 
-	if (1)
+	if (mSet.InsideWithBox(aPOut))
 	{
-           aBoxIn.Add(aPIn);
-           aBoxOut.Add(aPut);
+           aCptIn++;
+           aBoxOfPtsIn.Add(aPIn);
+           aBoxOfPtsOut.Add(aPOut);
+
+	   //StdOut() << "PTS " <<  aPIn << " " << aPOut << "\n";
 	}
     }
+    // StdOut() << " cCCCCCCCCCCC " << aCptIn  << " " << aCptTot << "\n";
+    mMesh.ResetPts();
+
+    mBoxIn = aBoxOfPtsIn.CurBox();
+    mBoxOut = aBoxOfPtsOut.CurBox();
+
+    //   aP0/aResout + aTr -> 1,1
+    cPt2dr aTr = cPt2dr(1,1) - Proj(mBoxOut.P0()) * (1.0/mResolOut);
+    mROut2Pix = cHomot2D<tREAL8>(aTr,1.0/mResolOut);
+
+    mSzPix =  Pt_round_up(ToPix(mBoxOut.P1()));
+
+    StdOut() << "SZPIX " << mSzPix << " BOX=" << mBoxOut.P0() << " " << mBoxOut.P1() << "\n";
+
+    mZBuf = tIm(mSzPix);
+    mZBuf.DIm().InitCste(mInfty);
+    mImSign = tImSign(mSzPix,nullptr,eModeInitImage::eMIA_Null);
+    mDImSign =  &(mImSign.DIm());
+}
+
+cPt2dr  cZBuffer::ToPix(const cPt3dr & aPt) const {return mROut2Pix.Value(Proj(aPt));}
+
+void cZBuffer::MakeZBuf
+     (
+     )
+{
+    cTri3dR  aTriIn = cTri3dR::Tri000();
+    while (mMesh.GetNextTri(aTriIn))
+    {
+         //  not sure this us to test that, or the user to assure it give clean data ...
+         if (aTriIn.Regularity() >0)
+	 {
+             cTri3dR aTriOut = mMapI2O.TriValue(aTriIn);
+	     
+             if (aTriOut.Regularity() >0)
+	     {
+                  MakeOneTri(aTriOut);
+	     }
+	 }
+    }
+}
+
+void cZBuffer::MakeOneTri(const cTri3dR &aTri3)
+{
+    for (int aK3=0 ; aK3<3 ; aK3++)
+    {
+        const cPt3dr & aPt = aTri3.Pt(aK3);
+        if (! mSet.InsideWithBox(aPt))
+           return ;
+    }
+
+    cTriangle2DCompiled<tREAL8>  aTri2(ToPix(aTri3.Pt(0)) , ToPix(aTri3.Pt(1)) ,ToPix(aTri3.Pt(2)));
+
+    StdOut() << " tttt " << ToPix(aTri3.Pt(0)) <<  ToPix(aTri3.Pt(1)) << ToPix(aTri3.Pt(2)) << "\n";
+
+    std::vector<cPt2di> aVPix;
+    std::vector<cPt3dr> aVW;
+
+     aTri2.PixelsInside(aVPix,1e-8,&aVW);
+
+    StdOut() << " qqqqtttt " << aVPix.size() << "\n";
+
+     cPt3dr aNorm = Normal(aTri3);
+     int aSign = (aNorm.z() > 0) ? 1 : - 1;
+
+     static int aCpt     =0;
+     static int aCptPlus =0;
+     aCpt++;
+     if (aSign==1) aCptPlus++;
+     StdOut() << " CPT Sign Normal " << aCpt << " +=" << aCptPlus << "\n";
+
+     for (size_t aK=0 ; aK<aVPix.size() ; aK++)
+     {
+          
+     }
 
 }
-*/
-
-
 
 /* =============================================== */
 /*                                                 */
@@ -98,7 +331,7 @@ class cAppliProMeshImage : public cMMVII_Appli
 
      // --- constructed ---
         cPhotogrammetricProject   mPhProj;
-        // cTriangulation3D<tREAL8>  mTri3D;
+        cTriangulation3D<tREAL8>* mTri3D;
         cSensorCamPC *            mCamPC;
 };
 
@@ -112,10 +345,10 @@ cCollecSpecArg2007 & cAppliProMeshImage::ArgObl(cCollecSpecArg2007 & anArgObl)
    ;
 }
 
-
 cAppliProMeshImage::cAppliProMeshImage(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
    mPhProj          (*this),
+   mTri3D           (nullptr),
    mCamPC           (nullptr)
 {
 }
@@ -134,11 +367,27 @@ int cAppliProMeshImage::Exe()
 {
    mPhProj.FinishInit();
 
+   mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
+   cMeshTri3DIterator  aTriIt(mTri3D);
+
    mCamPC = mPhProj.AllocCamPC(mNameIm,true);
+   cSIMap_Ground2ImageAndProf aMapCamDepth(mCamPC);
 
-   StdOut() << "FOCALE "  << mCamPC->InternalCalib()->F() << "\n";
 
+   double Infty =1e20;
+   cPt2di aSzPix = mCamPC->SzPix();
+   // StdOut() << "SZPIX " << aSzPix << "\n";
+   cBox3dr  aBox(cPt3dr(0,0,-Infty),cPt3dr(aSzPix.x(),aSzPix.y(),Infty));
+   cDataBoundedSet<tREAL8,3>  aSetCam(aBox);
 
+   
+
+   StdOut() << "FOCALE "  << mCamPC->InternalCalib()->F() << " " << &aMapCamDepth << "\n";
+
+   cZBuffer aZBuf(aTriIt,aMapCamDepth,aSetCam,3.0);
+   aZBuf.MakeZBuf();
+
+   delete mTri3D;
    return EXIT_SUCCESS;
 }
 
