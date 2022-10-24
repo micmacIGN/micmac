@@ -60,6 +60,8 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
+	 /// Indicate if a point belongs to sensor visibilty domain
+         virtual bool IsVisible(const cPt3dr &) const =0 ;
 
 	 ///  add the distance to bundle,to see if have a default with bundle+Gr2Ima
          //virtual cPt3dr Ground2ImageAndDist(const cPt3dr &) const = 0;

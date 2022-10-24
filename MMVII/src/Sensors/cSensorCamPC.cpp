@@ -39,19 +39,17 @@ cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
      return mInternalCalib->Value(mPose.Inverse(aP));
 }
 
+bool cSensorCamPC::IsVisible(const cPt3dr & aP) const
+{
+     return mInternalCalib->IsVisible(mPose.Inverse(aP));
+}
+
 cPt3dr cSensorCamPC::Ground2ImageAndDepth(const cPt3dr & aP) const
 {
-    //StdOut () << "aaa " << aP  << "\n";
     cPt3dr aPCam = mPose.Inverse(aP);  // P in camera coordinate
+    cPt2dr aPIm = mInternalCalib->Value(aPCam);
 
-    //StdOut () << "zzz " << aPCam << " " << mInternalCalib << "\n";
-       cPt2dr aPIm = mInternalCalib->Value(aPCam);
-
-    //StdOut () << "iii " << aPIm  << "\n";
-    //StdOut () << "iiim1 " << mInternalCalib->Value(mInternalCalib->Inverse(aPIm))  << "\n";
-    //getchar();
-
-       return cPt3dr(aPIm.x(),aPIm.y(),aPCam.z());
+    return cPt3dr(aPIm.x(),aPIm.y(),aPCam.z());
 }
 
 const cPt2di & cSensorCamPC::SzPix() const {return  mInternalCalib->SzPix();}
@@ -60,11 +58,8 @@ cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aP) const
 {
     cPt3dr aPCam = mInternalCalib->Inverse(Proj(aP));
 
-    // StdOut () << "ZZZZZ " << aPCam <<  mInternalCalib << "\n";
-
     return mPose.Value(aPCam * (aP.z() / aPCam.z()));
 
-    // return mPose.Tr() +  mPose.Rot().Value(aPCam * (aP.z() / aPCam.z()));
 }
 
 size_t  cSensorCamPC::NumXCenter() const

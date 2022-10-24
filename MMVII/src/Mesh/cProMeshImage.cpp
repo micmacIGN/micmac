@@ -24,6 +24,17 @@ template <class TypeMap>  class  cMapPixelization
 	    TypeMap  mMap;
 };
 
+class cSetVisibility : public cDataBoundedSet<tREAL8,3> 
+{
+    public :
+        cSetVisibility(cSensorImage * aSens) : 
+            cDataBoundedSet<tREAL8,3>(cBox3dr::BigBox()),
+            mSens (aSens) 
+	{}
+        tREAL8 Insideness(const tPt & aP) const {return mSens->IsVisible(aP) ? 1 : -1;}
+    private :
+	  cSensorImage * mSens;
+};
 
 /**   This abstract class is used to decribe an object containing many triangles.
  *
@@ -157,7 +168,7 @@ class  cZBuffer
 
 	  static constexpr tElem mInfty =  -1e20;
 
-          cZBuffer(cTri3DIterator & aMesh,const tMap & aMap,const tSet & aSet,double aResolOut);
+          cZBuffer(cTri3DIterator & aMesh,const tSet & aSetIn,const tMap & aMap,const tSet & aSetOut,double aResolOut);
 
           const cPt2di  SzPix() ;
           void MakeOneTri(const cTri3dR &);
@@ -169,11 +180,10 @@ class  cZBuffer
           cZBuffer(const cZBuffer & ) = delete;
 
 	  cPt2dr  ToPix(const cPt3dr&) const;
-    //mROut2Pix.Value(Proj(mBoxOut.P1()));
-
 	  cTri3DIterator & mMesh;
 	  const tMap &     mMapI2O;
-          const tSet &     mSet;
+          const tSet &     mSetIn;
+          const tSet &     mSetOut;
 	  double           mResolOut;
 
           cBox3dr          mBoxIn;     ///< Box in input space, not sure usefull, but ....
@@ -185,10 +195,11 @@ class  cZBuffer
           cPt2di           mSzPix;
 };
 
-cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tMap & aMapI2O,const tSet &  aSet,double aResolOut) :
+cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMapI2O,const tSet &  aSetOut,double aResolOut) :
     mMesh     (aMesh),
     mMapI2O   (aMapI2O),
-    mSet      (aSet),
+    mSetIn    (aSetIn),
+    mSetOut   (aSetOut),
     mResolOut (aResolOut),
 
     mBoxIn    (cBox3dr::Empty()),
@@ -210,15 +221,16 @@ cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tMap & aMapI2O,const tSet &  aSe
     while (mMesh.GetNextPoint(aPIn))
     {
         aCptTot++;
-        cPt3dr aPOut = mMapI2O.Value(aPIn);
-
-	if (mSet.InsideWithBox(aPOut))
+	if (mSetIn.InsideWithBox(aPIn))
 	{
-           aCptIn++;
-           aBoxOfPtsIn.Add(aPIn);
-           aBoxOfPtsOut.Add(aPOut);
+            cPt3dr aPOut = mMapI2O.Value(aPIn);
 
-	   //StdOut() << "PTS " <<  aPIn << " " << aPOut << "\n";
+	    if (mSetOut.InsideWithBox(aPOut))
+	    {
+               aCptIn++;
+               aBoxOfPtsIn.Add(aPIn);
+               aBoxOfPtsOut.Add(aPOut);
+	    }
 	}
     }
     // StdOut() << " cCCCCCCCCCCC " << aCptIn  << " " << aCptTot << "\n";
@@ -251,11 +263,11 @@ void cZBuffer::MakeZBuf
     while (mMesh.GetNextTri(aTriIn))
     {
          //  not sure this us to test that, or the user to assure it give clean data ...
-         if (aTriIn.Regularity() >0)
+         if ((aTriIn.Regularity() >0)  && mSetIn.InsideWithBox(aTriIn))
 	 {
              cTri3dR aTriOut = mMapI2O.TriValue(aTriIn);
 	     
-             if (aTriOut.Regularity() >0)
+             if ((aTriOut.Regularity() >0)  && mSetOut.InsideWithBox(aTriOut))
 	     {
                   MakeOneTri(aTriOut);
 	     }
@@ -265,12 +277,6 @@ void cZBuffer::MakeZBuf
 
 void cZBuffer::MakeOneTri(const cTri3dR &aTri3)
 {
-    for (int aK3=0 ; aK3<3 ; aK3++)
-    {
-        const cPt3dr & aPt = aTri3.Pt(aK3);
-        if (! mSet.InsideWithBox(aPt))
-           return ;
-    }
 
     cTriangle2DCompiled<tREAL8>  aTri2(ToPix(aTri3.Pt(0)) , ToPix(aTri3.Pt(1)) ,ToPix(aTri3.Pt(2)));
 
@@ -373,6 +379,7 @@ int cAppliProMeshImage::Exe()
    mCamPC = mPhProj.AllocCamPC(mNameIm,true);
    cSIMap_Ground2ImageAndProf aMapCamDepth(mCamPC);
 
+   cSetVisibility aSetVis(mCamPC);
 
    double Infty =1e20;
    cPt2di aSzPix = mCamPC->SzPix();
@@ -384,7 +391,7 @@ int cAppliProMeshImage::Exe()
 
    StdOut() << "FOCALE "  << mCamPC->InternalCalib()->F() << " " << &aMapCamDepth << "\n";
 
-   cZBuffer aZBuf(aTriIt,aMapCamDepth,aSetCam,3.0);
+   cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,3.0);
    aZBuf.MakeZBuf();
 
    delete mTri3D;

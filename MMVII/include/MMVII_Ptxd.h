@@ -587,9 +587,11 @@ template <class Type,const int Dim>  class cTplBox
 
         cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
         cTplBox(const tPt & aSz,bool AllowEmpty=false); // Create a box with origin in 0,0,..
-        static cTplBox Empty();
-        static cTplBox FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty=false);
-        static cTplBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
+        static tBox Empty();
+        static tBox FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty=false);
+        static tBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
+        static tBox BoxCste(Type);
+        static tBox BigBox();
 
 	cTplBox<tREAL8,Dim> ToR() const;
 	cTplBox<tINT4,Dim>  ToI() const;

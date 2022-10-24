@@ -317,10 +317,30 @@ const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tV
      return aV3;
 }
 
+bool cPerspCamIntrCalib::IsVisible(const cPt3dr & aP) const
+{
+     if (mInvApproxLSQ_Dist==nullptr)
+     {
+         const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
+     }
+     cPt2dr aPphgr = mDir_Proj->Value(aP);
+     cPt2dr aPDist  = mDir_Dist->Value(aPphgr);
+
+     {
+        cPt2dr aPIm   = mCSPerfect.Value(aPDist);
+        if (! mPixDomain.InsideWithBox(aPIm))
+           return false;
+     }
+
+     cPt2dr aPPhgrBack = mDist_DirInvertible->Inverse(aPDist);
+
+     double anEc = Norm2(aPphgr-aPPhgrBack);
+     return (anEc * F())  < 1e-2;
+}
+
 
 const  std::vector<cPt3dr> &  cPerspCamIntrCalib::Inverses(tVecIn & aV3 ,const tVecOut & aV0 ) const 
 {
-
      if (mInvApproxLSQ_Dist==nullptr)
      {
          const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
@@ -340,8 +360,6 @@ cPt3dr  cPerspCamIntrCalib::Inverse(const tPtOut & aPt) const
      const  std::vector<tPtIn> & aVRes = Inverses(aVecIn,aVecOut);
 
      cPt3dr aRes =  aVRes.at(0);
-
-
      return aRes;
 }
 

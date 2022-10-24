@@ -154,6 +154,8 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 
       /// Does it belong to the set;  default =belong to box,  defined from InsidenessWithBox
       bool InsideWithBox(const tPt &) const;
+      /// Does it belong to the set;  default =belong to box,  defined from InsidenessWithBox
+      bool InsideWithBox(const cTriangle<Type,Dim> &) const;
       /// Does it belong to the set;  default =true, defined form Insideness
       bool Inside(const tPt &) const;
 

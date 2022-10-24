@@ -28,6 +28,16 @@ template <class Type,const int Dim>
 }
 
 template <class Type,const int Dim>
+    bool cDataBoundedSet<Type,Dim>::InsideWithBox(const cTriangle<Type,Dim> & aTri) const
+{
+   for (int aK=0 ; aK<3 ; aK++)
+      if (! InsideWithBox(aTri.Pt(aK)))
+         return false;
+   return true;
+}
+
+
+template <class Type,const int Dim>
     bool cDataBoundedSet<Type,Dim>::Inside(const tPt & aPt) const
 {
    return Insideness(aPt) >= 0.0 ;

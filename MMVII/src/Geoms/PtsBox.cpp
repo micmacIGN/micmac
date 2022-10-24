@@ -700,6 +700,18 @@ template <class Type,const int Dim>
 {
 }
 
+template <class Type,const int Dim>
+   cTplBox<Type,Dim>  cTplBox<Type,Dim>::BoxCste(Type aVal)
+{
+   return cTplBox<Type,Dim>(tPt::PCste(-aVal),tPt::PCste(aVal));
+}
+
+template <class Type,const int Dim>
+   cTplBox<Type,Dim>  cTplBox<Type,Dim>::BigBox()
+{
+     return  BoxCste(tNumTrait<Type>::MaxValue());
+}
+
 
 template <class Type,const int Dim> bool  cTplBox<Type,Dim>::IsEmpty() const
 {
@@ -942,6 +954,8 @@ template <class Type,const int Dim>   cTplBoxOfPts<Type,Dim>::cTplBoxOfPts() :
    mP1    (tPt::PCste(0))
 {
 }
+
+
 
 template <class Type,const int Dim> 
    cTplBoxOfPts<Type,Dim>  cTplBoxOfPts<Type,Dim>::FromVect(const tPt * aBegin,const tPt * aEnd)
