@@ -159,6 +159,20 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
             tBI::AssertValueOk(aRes);
             return (Value(aP) = aRes);
         }
+        /// Modify min 
+        void SetMin(const cPt2di & aP,const Type & aNewVal )  
+        {
+            tPB::AssertInside(aP);
+            tBI::AssertValueOk(aNewVal);
+	    UpdateMin(Value(aP),aNewVal);
+        }
+        /// Modify min 
+        void SetMax(const cPt2di & aP,const Type & aNewVal )  
+        {
+            tPB::AssertInside(aP);
+            tBI::AssertValueOk(aNewVal);
+	    UpdateMax(Value(aP),aNewVal);
+        }
 
           // Interface as generic image
 

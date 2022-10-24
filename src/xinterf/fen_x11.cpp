@@ -1167,15 +1167,16 @@ Data_Elise_Video_Win::Data_Elise_Video_Win
     // lorsque l'on passe dans le if(1) ci-dessus
     // empiriquement, l'erreur ne se produit pas si on utilise
     // XDefaultRootWindow(_devd->_disp) plutot que _w
-    //std::cout << "On passe la"<<std::endl;
+    //std::cout << "On passe la"<<std::endl; // getchar();
     _xi = XGetImage
     (
      _devd->_disp,
-     /*_w*/XDefaultRootWindow(_devd->_disp),
+     /*_w ,*/ XDefaultRootWindow(_devd->_disp),
      0,0,
      sz.x,1,
      AllPlanes,ZPixmap
      );
+    //std::cout << "On passe ici"<<std::endl;
     
 //-OK-  std::cout << "xazerty   11 \n"; getchar();
     _bli = (U_INT1 *)_xi->data;

@@ -166,20 +166,26 @@ class  cZBuffer
           typedef cDataInvertibleMapping<tREAL8,3>  tMap;
           typedef cDataBoundedSet<tREAL8,3>         tSet;
 
-	  static constexpr tElem mInfty =  -1e20;
+	  static constexpr tElem mInfty =  1e20;
 
           cZBuffer(cTri3DIterator & aMesh,const tSet & aSetIn,const tMap & aMap,const tSet & aSetOut,double aResolOut);
 
-          const cPt2di  SzPix() ;
+          const cPt2di  SzPix() ; ///< Accessor
+	  tIm   ZBuf() const; ///< Accessor
           void MakeOneTri(const cTri3dR &);
 
 	  void MakeZBuf
                (
 	       );
+
       private :
           cZBuffer(const cZBuffer & ) = delete;
 
+
 	  cPt2dr  ToPix(const cPt3dr&) const;
+
+	  bool             mZF_SameOri; ///< Axe of Z (in out coord) and oriented surface have same orientation
+          int              mMultZ;
 	  cTri3DIterator & mMesh;
 	  const tMap &     mMapI2O;
           const tSet &     mSetIn;
@@ -196,18 +202,20 @@ class  cZBuffer
 };
 
 cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMapI2O,const tSet &  aSetOut,double aResolOut) :
-    mMesh     (aMesh),
-    mMapI2O   (aMapI2O),
-    mSetIn    (aSetIn),
-    mSetOut   (aSetOut),
-    mResolOut (aResolOut),
+    mZF_SameOri (false),
+    mMultZ      (mZF_SameOri ? 1 : -1),
+    mMesh       (aMesh),
+    mMapI2O     (aMapI2O),
+    mSetIn      (aSetIn),
+    mSetOut     (aSetOut),
+    mResolOut   (aResolOut),
 
-    mBoxIn    (cBox3dr::Empty()),
-    mBoxOut   (cBox3dr::Empty()),
-    mROut2Pix (),
-    mZBuf     (cPt2di(1,1)),
-    mImSign   (cPt2di(1,1)),
-    mDImSign  (nullptr)
+    mBoxIn      (cBox3dr::Empty()),
+    mBoxOut     (cBox3dr::Empty()),
+    mROut2Pix   (),
+    mZBuf       (cPt2di(1,1)),
+    mImSign     (cPt2di(1,1)),
+    mDImSign    (nullptr)
 {
     cTplBoxOfPts<tREAL8,3> aBoxOfPtsIn;
     cTplBoxOfPts<tREAL8,3> aBoxOfPtsOut;
@@ -239,11 +247,12 @@ cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMap
     mBoxIn = aBoxOfPtsIn.CurBox();
     mBoxOut = aBoxOfPtsOut.CurBox();
 
+    cPt2di aBrd(2,2);
     //   aP0/aResout + aTr -> 1,1
-    cPt2dr aTr = cPt2dr(1,1) - Proj(mBoxOut.P0()) * (1.0/mResolOut);
+    cPt2dr aTr = ToR(aBrd) - Proj(mBoxOut.P0()) * (1.0/mResolOut);
     mROut2Pix = cHomot2D<tREAL8>(aTr,1.0/mResolOut);
 
-    mSzPix =  Pt_round_up(ToPix(mBoxOut.P1()));
+    mSzPix =  Pt_round_up(ToPix(mBoxOut.P1())) + aBrd;
 
     StdOut() << "SZPIX " << mSzPix << " BOX=" << mBoxOut.P0() << " " << mBoxOut.P1() << "\n";
 
@@ -254,6 +263,9 @@ cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMap
 }
 
 cPt2dr  cZBuffer::ToPix(const cPt3dr & aPt) const {return mROut2Pix.Value(Proj(aPt));}
+
+cZBuffer::tIm  cZBuffer::ZBuf() const {return mZBuf;}
+
 
 void cZBuffer::MakeZBuf
      (
@@ -277,32 +289,34 @@ void cZBuffer::MakeZBuf
 
 void cZBuffer::MakeOneTri(const cTri3dR &aTri3)
 {
-
     cTriangle2DCompiled<tREAL8>  aTri2(ToPix(aTri3.Pt(0)) , ToPix(aTri3.Pt(1)) ,ToPix(aTri3.Pt(2)));
-
-    StdOut() << " tttt " << ToPix(aTri3.Pt(0)) <<  ToPix(aTri3.Pt(1)) << ToPix(aTri3.Pt(2)) << "\n";
+    cPt3dr aPtZ(aTri3.Pt(0).z(),aTri3.Pt(1).z(),aTri3.Pt(2).z());
 
     std::vector<cPt2di> aVPix;
     std::vector<cPt3dr> aVW;
 
-     aTri2.PixelsInside(aVPix,1e-8,&aVW);
 
-    StdOut() << " qqqqtttt " << aVPix.size() << "\n";
+    cPt3dr aNorm = Normal(aTri3);
 
-     cPt3dr aNorm = Normal(aTri3);
-     int aSign = (aNorm.z() > 0) ? 1 : - 1;
+    int aSign = (aNorm.z() > 0) ? 1 : - 1;
+     ///  the axe K of camera is in direction of view, the normal is in direction of visibility => they are opposite
+    bool WellOriented =  mZF_SameOri ?  (aSign>0)  :(aSign<0);
+    FakeUseIt(WellOriented);
 
-     static int aCpt     =0;
-     static int aCptPlus =0;
-     aCpt++;
-     if (aSign==1) aCptPlus++;
-     StdOut() << " CPT Sign Normal " << aCpt << " +=" << aCptPlus << "\n";
 
-     for (size_t aK=0 ; aK<aVPix.size() ; aK++)
-     {
-          
-     }
 
+    aTri2.PixelsInside(aVPix,1e-8,&aVW);
+    tDIm & aDZImB = mZBuf.DIm();
+    for (size_t aK=0 ; aK<aVPix.size() ; aK++)
+    {
+       const cPt2di  & aPix = aVPix[aK];
+       tElem aNewZ = mMultZ * Scal(aPtZ,aVW[aK]);
+       tElem aZCur = aDZImB.GetV(aPix);
+       if (aNewZ> aZCur)
+       {
+           aDZImB.SetV(aPix,aNewZ);
+       }
+    }
 }
 
 /* =============================================== */
@@ -393,6 +407,9 @@ int cAppliProMeshImage::Exe()
 
    cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,3.0);
    aZBuf.MakeZBuf();
+
+
+   aZBuf.ZBuf().DIm().ToFile("toto.tif");
 
    delete mTri3D;
    return EXIT_SUCCESS;
