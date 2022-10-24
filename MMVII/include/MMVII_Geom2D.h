@@ -306,6 +306,8 @@ template <class Type>  class cAffin2D
           typedef const tVVals *    tCPVVals;
           typedef tPt   tTabMin[NbPtsMin];  // Used for estimate with min number of point=> for ransac
 
+          typedef cTriangle<Type,2>  tTri;
+
           cAffin2D(const tPt & aTr,const tPt & aImX,const tPt aImY) ; 
           cAffin2D();
           tPt  Value(const tPt & aP) const ;
@@ -337,11 +339,17 @@ template <class Type>  class cAffin2D
           static void ToEqParam(tPt& aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt & aPtIn,const tPt & aPtOut);
           /// compute with minimal number of samples
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
+          /// Affity transforming a triangle in another ~ FromMinimalSamples, just interface
+          static tTypeMap Tri2Tri(const tTri& aTriIn,const tTri& aTriOut);
+
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
           static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
 
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+
+          /// compute the minimal resolution in all possible direction
+          Type  MinResolution() const;
 
       private :
           tPt   mTr;

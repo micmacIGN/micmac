@@ -689,6 +689,28 @@ template <class Type>   cAffin2D<Type>  cAffin2D<Type>::FromMinimalSamples(const
     return aR0ToOut* aR0ToIn.MapInverse() ;
 }
 
+template <class Type>   cAffin2D<Type>  cAffin2D<Type>:: Tri2Tri(const tTri& aTriIn,const tTri& aTriOut)
+{
+    tTabMin aTabIn {aTriIn.Pt(0) ,aTriIn.Pt(1) ,aTriIn.Pt(2) };
+    tTabMin aTabOut{aTriOut.Pt(0),aTriOut.Pt(1),aTriOut.Pt(2)};
+
+    return FromMinimalSamples(aTabIn,aTabOut);
+}
+
+/*
+template <class Type> Type cAffin2D<Type>::MinResolution() const
+{
+    //  See documentation of mmv1, appendix E, for justification of the forlua
+    
+    Type aVX2 =   SqN2(mVX) ;
+    Type aVY2 =   SqN2(mVY) ;
+
+    Type aRadical = Square(aVX2-aVY2);
+
+    Type aRes = aVX2 + aVY2 + std::sqrt(std
+}
+*/
+
 template <class Type>  
      cAffin2D<Type> cAffin2D<Type>::StdGlobEstimate
                         (tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVWeights)
