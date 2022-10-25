@@ -504,7 +504,6 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
 }
 /// a/b but upper valuer  6/3=> 2 7/3 => 3
 #define DIV_SUP(a,b) ((a+b-1)/b)  // macro version usefull for constexpr
-inline tINT4 DivSup(const tINT4 &a,const tINT4& b) {return DivSup(a,b);}  //non macro w/o side effect
 
 /// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
 double NormalisedRatio(double aI1,double aI2);
