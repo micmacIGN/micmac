@@ -1169,10 +1169,9 @@ int CPP_TransformGeom_main(int argc, char ** argv)
     //if MMVII create the NuageLast.xml file (if it does not exist)
     if (aMMVII && (!ELISE_fp::exist_file(aNuageName)))
     {
-	   ELISE_ASSERT(false,"MMNuageLast.xml missing")
+        std::string error =  aNuageName + " missing";
+        ELISE_ASSERT(false, error.c_str())
     }
-
-
 
     /* Read the depth map */
     cXML_ParamNuage3DMaille  aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
