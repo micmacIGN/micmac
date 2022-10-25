@@ -6,6 +6,29 @@
 #include "MMVII_Radiom.h"
 #include <unistd.h>
 #include <cmath>
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>
+#endif // _WIN32
+
+using namespace std;
+
+
+// Cross-platform sleep function
+// or use
+// #include <chrono>
+// #include <thread>
+// std::this_thread::sleep_for(std::chrono::milliseconds(x));
+
+void sleepcp(int milliseconds)
+{
+    #ifdef _WIN32
+        Sleep(milliseconds);
+    #else
+        usleep(milliseconds * 1000);
+    #endif // _WIN32
+}
 
 using namespace NS_SymbolicDerivative ;
 /** \file BenchGlob.cpp
@@ -954,7 +977,8 @@ int cAppli_MPDTest::Exe()
    {
        // Si on le met a 10h => reveil a 6h20
        double t = 8.0;
-       sleep(3600.0 * t);
+       //sleep(3600.0 * t);
+       sleepcp(3600.0 * t * 1000);
        std::string aName= "/home/mpd/Bureau/Perso1/Musik/Bach/bach-goldberg-variations-bwv-988-glenn-gould-1981.mp3";
        aName = "cvlc " + aName;
        StdOut() << system(aName.c_str()) << "\n";;
