@@ -504,7 +504,7 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
 }
 /// a/b but upper valuer  6/3=> 2 7/3 => 3
 #define DIV_SUP(a,b) ((a+b-1)/b)  // macro version usefull for constexpr
-inline tINT4 DivSup(const tINT4 &a,const tINT4& b) {return DivSup(a,b);}  //non macro w/o side effect
+inline tINT4 DivSup(const tINT4 &a,const tINT4& b) {return DivSup<tINT4>(a,b);}  //non macro w/o side effect
 
 /// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
 double NormalisedRatio(double aI1,double aI2);
@@ -773,19 +773,6 @@ template <typename Type> Type ASin(const Type & aSin);
 /// to have it as operator in code gen
 template <typename Type> Type DerASin(const Type & aSin);
 
-/// as sqrt but check value
-template <typename Type> Type Sqrt(const Type & aX);
-///  as 1/(2 sqrt) but check value
-template <typename Type> Type DerSqrt(const Type & aX);
-
-/// to have it in good namespace in code gen
-template <typename Type> Type ATan2(const Type & aX,const Type & aY);
-/// to have it d/dx in code gen
-template <typename Type> Type DerX_ATan2(const Type & aX,const Type & aY);
-/// to have it d/dy in code gen
-template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY);
-
-
 
 
 
@@ -803,8 +790,6 @@ template <typename Type> Type DerYAtanXsY_sX(const Type & X,const Type & Y);
 template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
    /// Same as DerXAtanXY_sX ...  ... bench
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
-
-  
 
 
 /*  ****************************************** */
