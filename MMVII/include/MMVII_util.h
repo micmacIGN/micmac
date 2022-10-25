@@ -211,26 +211,18 @@ class cMMVII_Ifs : public cMemCheck
          std::string   mName;
 };
 
-class cMultipleOfs  : public  std::ostream
+class cMultipleOfs
+#if   (THE_MACRO_MMVII_SYS != MMVII_SYS_A)
+: public  std::ostream
+#endif
 {
     public :
-        cMultipleOfs(std::ostream & aOfs) :
-            mOfsCreated(nullptr)
-        {
-           Add(aOfs);
-        }
-        cMultipleOfs(const std::string & aS,bool ModeAppend = false)
-        {
-             mOfsCreated = new cMMVII_Ofs(aS,ModeAppend);
-             Add(mOfsCreated->Ofs());
-        }
-        ~cMultipleOfs()
-        {
-            delete mOfsCreated;
-        }
+    cMultipleOfs(std::ostream & aOfs);
+    cMultipleOfs(const std::string & aS,bool ModeAppend = false);
+    ~cMultipleOfs();
 
-        void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
-        void Clear() {mVOfs.clear();}
+    void Add(std::ostream & aOfs);
+    void Clear();
 
         // template <class Type> cMultipleOfs & operator << (Type & aVal);
         template <class Type> cMultipleOfs & ShowCont (const Type & aCont,const std::string & aGram)
@@ -261,6 +253,7 @@ class cMultipleOfs  : public  std::ostream
     private :
         
         cMultipleOfs(const cMultipleOfs &) = delete;
+        cMultipleOfs() = delete;
         cMMVII_Ofs *                mOfsCreated;
         std::vector<std::ostream *> mVOfs;
 };

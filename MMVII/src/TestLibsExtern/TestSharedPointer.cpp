@@ -185,7 +185,10 @@ void  TestSharedPointer()
        cFonc1V aF = X()+3+(X()+4);
        StdOut() << "F(10) = " << aF.GetVal(10) << " Count= " << cTestMMV2Obj::NbObj() << "\n";
        StdOut() << "F'(10) = " << aF.Derive().GetVal(10)  << "\n";
-       aF->Show(StdOut()) ; StdOut() << "\n";
+#if   (THE_MACRO_MMVII_SYS != MMVII_SYS_A)
+       aF->Show(StdOut()) ;
+#endif
+       StdOut() << "\n";
    }
    StdOut()  << " Compte final " << cTestMMV2Obj::NbObj() << "\n";
 }
