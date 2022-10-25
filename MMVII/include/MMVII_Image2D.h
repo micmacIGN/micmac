@@ -455,6 +455,7 @@ class cRGBImage
         typedef cIm2D<tU_INT1>   tIm1C;  // Type of image for 1 chanel
 
         cRGBImage(const cPt2di & aSz);
+        cRGBImage(const cPt2di & aSz,const cPt3di & aCoul);
 
         /// set values iff param are OK,  RGB image are made for visu, not for intensive computation
         void SetRGBPix(const cPt2di & aPix,int aR,int aG,int aB);

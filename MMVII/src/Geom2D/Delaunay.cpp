@@ -758,6 +758,14 @@ void BenchDelaunay(cParamExeBench & aParam)
 
 }
 
+template<class Type>  cTriangulation2D<Type>::cTriangulation2D(const cTriangulation<Type,3>& aTri3) 
+{
+    for (const auto & aP3 : aTri3.VPts())
+        this->mVPts.push_back(Proj(aP3));
+    this->mVFaces = aTri3.VFaces();
+}
+
+
 /* *********************************************************** */
 /*                INSTANTIATION                                */
 /* *********************************************************** */

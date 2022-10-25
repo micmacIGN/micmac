@@ -365,6 +365,9 @@ cBox2dr  ImageOfBox(const cAff2D_r & aAff,const cBox2dr & aBox);
 
 //template <class Type,class TMap>  cTplBox<2,Type>  ImageOfBox();
 
+/// Image of an tri by a mapping
+template <class Type,class tMap>  cTriangle<Type,2>  ImageOfTri(const cTriangle<Type,2> &,const tMap &);
+
 
 
 template <class Type> class  cTriangle2DCompiled : public cTriangle<Type,2>
@@ -413,6 +416,8 @@ template<class Type> class cTriangulation2D : public cTriangulation<Type,2>
            typedef cPtxd<Type,2>      tPt;
 
            cTriangulation2D(const std::vector<tPt>&);
+	   /// create by flatening to z=0 the points
+           cTriangulation2D(const cTriangulation<Type,3>&);
 	   void  MakeDelaunay();
 	public :
 };

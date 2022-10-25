@@ -697,7 +697,6 @@ template <class Type>   cAffin2D<Type>  cAffin2D<Type>:: Tri2Tri(const tTri& aTr
     return FromMinimalSamples(aTabIn,aTabOut);
 }
 
-/*
 template <class Type> Type cAffin2D<Type>::MinResolution() const
 {
     //  See documentation of mmv1, appendix E, for justification of the forlua
@@ -705,10 +704,13 @@ template <class Type> Type cAffin2D<Type>::MinResolution() const
     Type aVX2 =   SqN2(mVX) ;
     Type aVY2 =   SqN2(mVY) ;
 
-    Type aRadical = Square(aVX2-aVY2);
+    Type aRadical = Square(aVX2-aVY2) +4*Square(Scal(mVX,mVY));
 
-    Type aRes = aVX2 + aVY2 + std::sqrt(std
+    Type aRes = (aVX2 + aVY2 - std::sqrt(aRadical)) / 2.0;
+
+    return std::sqrt(std::max(Type(0.0),aRes));
 }
+/*
 */
 
 template <class Type>  
@@ -757,6 +759,11 @@ template <class Type> std::vector<cPtxd<Type,2> > RandomPtsOnCircle(int aNbPts)
   return aRes;
 }
 
+template <class Type,class tMap>  cTriangle<Type,2>  ImageOfTri(const cTriangle<Type,2> & aTri,const tMap & aMap)
+{
+     return  cTriangle<Type,2>(aMap.Value(aTri.Pt(0)),aMap.Value(aTri.Pt(1)),aMap.Value(aTri.Pt(2)));
+}
+
 
 /* ========================== */
 /*       INSTANTIATION        */
@@ -775,6 +782,7 @@ INSTANTIATE_GEOM_REAL(tREAL16)
 
 
 #define MACRO_INSTATIATE_GEOM2D_MAPPING(TYPE,TMAP,DIM)\
+template   cTriangle<TYPE,2>  ImageOfTri(const cTriangle<TYPE,2> & aTri,const TMAP & aMap);\
 template  TMAP TMAP::FromParam(const cDenseVect<TYPE> & aVec) ;\
 template  void TMAP::ToEqParam(tPt&,cDenseVect<TYPE>&,cDenseVect<TYPE> &,const tPt &,const tPt &);\
 template  TMAP TMAP::FromMinimalSamples(const tTabMin& ,const tTabMin& );\
