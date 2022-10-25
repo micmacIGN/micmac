@@ -53,6 +53,10 @@ class cAppli_SaisiePts;
 class cSP_PointeImage;
 class cSP_PointGlob;
 class cCaseNamePoint;
+class cMMByImNM;
+class cMasqBin3D;
+class cInterfChantierNameManipulateur;
+template <class Type> class  cResultSubstAndStdGetFile;
 
 typedef enum
 {
@@ -513,6 +517,7 @@ private:
 };
 #endif
 
+//class cResultSubstAndStdGetFile;
 
 class cAppli_SaisiePts
 {
