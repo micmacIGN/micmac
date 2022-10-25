@@ -614,11 +614,20 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
             std::string Masq1Name = mCAS3D.mICNM->Assoc1To1("Key-Assoc-Std-Masq-Image",aNI1,true);
             std::string Masq2Name = mCAS3D.mICNM->Assoc1To1("Key-Assoc-Std-Masq-Image",aNI2,true);
 
+            //on parallelise?
+            int ParalT=1;
+            if (EAMIsInit(&mCAS3D.mMMVII_NbProc))
+            {
+                if (mCAS3D.mMMVII_NbProc<=1) ParalT = 0;
+            }
+            
 			std::string aComOC = "MMVII DenseMatchEpipEval" + BLANK + aNI1 + BLANK + aNI2 
                                + BLANK + (*aDir_it) + mCAS3D.mMMVII_ImName + " true "
                                + BLANK + "HiddenMask=" + (*aDir_it) + NameOccluMask()
                                + BLANK + "ImCorrel=" + (*aDir_it) + NameCorrel()
-                               + BLANK + "Masq1=" + Masq1Name + BLANK + "Masq2=" + Masq2Name;
+                               + BLANK + "Masq1=" + Masq1Name + BLANK + "Masq2=" + Masq2Name
+                               + BLANK + "ParalT=" + ToString(ParalT);
+
             aLCom.push_back(aComOC);
 
             (*aDir_it++);
@@ -646,7 +655,8 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
             std::cout << "SUBCOM= " << iCmd << "\n";
     }
 
-
+  // ce serait plus propre si c'etait aussi une commande a part antiere, sinon on ne peut pas reproduire
+  // le traitement pas a pas pour isoler un bog
     if (mCAS3D.mExe) {
     // create MMNuageLast.xml for deep-learning correlation
     if (mCAS3D.mMMVII && (mCAS3D.mMMVII_mode=="PSMNet"))
