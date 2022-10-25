@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_SAISIEPTS_ALL_H_
 #define _ELISE_SAISIEPTS_ALL_H_
 
+//#include "StdAfx.h"
+#include "XML_GEN/all.h"
 #include "cParamSaisiePts.h"
 
 class cSP_PointeImage;

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include "MMVII_enums.h"
+#include "MMVII_Error.h"
 
 namespace MMVII
 {

@@ -29,6 +29,7 @@ template <class Type> void DoNothingButRemoveWarningUnused(const Type & ) { }
 #include <cctype>
 #include <algorithm>
 #include <cfloat>
+#include <math.h>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>

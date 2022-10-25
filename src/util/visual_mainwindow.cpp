@@ -1,4 +1,5 @@
 //TODO: ELISE HEADER?
+#include "general/CMake_defines.h"
 #if ELISE_QT
 #include "general/visual_mainwindow.h"
 

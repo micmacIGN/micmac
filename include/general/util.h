@@ -42,6 +42,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_UTIL_H
 #define _ELISE_UTIL_H
 
+#include <string>
+#include "general/sys_dep.h"
+#include "general/opt_debug.h"
+using namespace std;
+
 class cParamCalcVarUnkEl;
 extern cParamCalcVarUnkEl * NullPCVU;
 class tFileOffset;
