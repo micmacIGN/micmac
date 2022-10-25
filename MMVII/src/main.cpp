@@ -19,7 +19,7 @@ using namespace MMVII;
 
 int main(int argc, char ** argv)
 {
-   std::setlocale(LC_ALL, "C");
+   setlocale(LC_ALL, "C");
    // std::setlocale(LC_ALL, "en_US.UTF-8");
 
    // Debug, print command
