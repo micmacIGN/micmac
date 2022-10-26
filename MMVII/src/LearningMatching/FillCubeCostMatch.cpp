@@ -79,6 +79,7 @@ struct cOneModele
         ConvNet_Slow mNetSlowStd=ConvNet_Slow(3,4,4); // Conv Kernel= 3x3 , Convlayers=4, Fully Connected Layers =4
         torch::jit::script::Module mMSNet;
         torch::jit::script::Module mDecisionNet;
+        torch::jit::script::Module mMatcherNet;
         
 };
 static const std::string TheNameCorrel  = "MMVIICorrel";
@@ -94,6 +95,7 @@ static const std::string TheFastStandard = "MCNNStd";
 static const std::string TheFastArchWithMLP= "MVCNNFastMLP";
 static const std::string TheFastArchDirectSim="MVCNNFastDirectSIM";
 static const std::string TheMSNet="MSNet";
+static const std::string TheUnetMlpCubeMatcher="UnetMLPMatcher";
 //.....................................................
 
 class cAppliFillCubeCost : public cAppliLearningMatch
@@ -165,6 +167,7 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 	void MakeNormalizedIm();
         // if with decision Network 
     bool mWithPredictionNetwork=true;
+    bool mWithMatcher3D=true;
 	// -------------- Internal variables -------------------
      private :
 
@@ -444,6 +447,21 @@ cOneModele::cOneModele
               mCNNPredictor->PopulateModelDecision(mDecisionNet);  
             }
         } 
+        else if (mArchitecture==TheUnetMlpCubeMatcher)
+            {
+                mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,mModelBinDir);
+                mCNNPredictor->PopulateModelFeatures(mMSNet);
+                mCNNWin=cPt2di(7,7);
+                if (mAppli->mWithPredictionNetwork)
+                {
+                  mCNNPredictor->PopulateModelDecision(mDecisionNet);
+                }
+                if (mAppli->mWithMatcher3D)
+                    {
+                        // Enhance the  generated correlation coefficients using the last stage conv3d MATCHER
+                        mCNNPredictor->PopulateModelMatcher(mMatcherNet);
+                    }
+            }
     }
 }
 void cOneModele::CalcCorrelExterneTerm(const cBox2di & aBoxInitIm1,int aPxMin,int aPxMax)
@@ -831,6 +849,7 @@ int  cAppliFillCubeCost::Exe()
         if (aVMods.at(0)->mArchitecture==TheFastArchWithMLP)   FeatSize=184;
         if (aVMods.at(0)->mArchitecture==TheFastArchDirectSim)   FeatSize=64;
         if (aVMods.at(0)->mArchitecture==TheMSNet) FeatSize=64 ;
+        if (aVMods.at(0)->mArchitecture==TheUnetMlpCubeMatcher) FeatSize=64 ;
         torch::Tensor LREmbeddingsL,LREmbeddingsR;
         if (aVMods.at(0)->mArchitecture==TheFastStandard)
              {
@@ -866,7 +885,12 @@ int  cAppliFillCubeCost::Exe()
              {
                LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictMSNetTile(aVMods.at(0)->mMSNet,this->mIm1,aSzL);
                LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictMSNetTile(aVMods.at(0)->mMSNet,this->mIm2,aSzR);
-            }
+             }
+        else if (aVMods.at(0)->mArchitecture==TheUnetMlpCubeMatcher)
+             {
+               LREmbeddingsL=aVMods.at(0)->mCNNPredictor->PredictMSNetTileFeatures(aVMods.at(0)->mMSNet,this->mIm1,aSzL);
+               LREmbeddingsR=aVMods.at(0)->mCNNPredictor->PredictMSNetTileFeatures(aVMods.at(0)->mMSNet,this->mIm2,aSzR);
+             }
     
         StdOut()  <<" EMBEDDING TENSOR SIZE LEFT  "<<LREmbeddingsL.sizes()<<"\n";
         StdOut()  <<" EMBEDDING TENSOR SIZE RIGHT  "<<LREmbeddingsR.sizes()<<"\n";
@@ -875,7 +899,7 @@ int  cAppliFillCubeCost::Exe()
         
         cPt2di aPix;
         using namespace torch::indexing;
-        if (mWithPredictionNetwork)
+        if (mWithPredictionNetwork && !mWithMatcher3D)
         {
             for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
             {
@@ -918,6 +942,139 @@ int  cAppliFillCubeCost::Exe()
                         }
                 }
             }
+        }
+        else if(mWithPredictionNetwork && mWithMatcher3D)
+
+        {
+            // CREATE THE COST VOLUME AND PUSH COST AT RELEVANT NAPPE LOCATIONS
+
+            // calculer le min sur les nappes
+            int  aMinZmin=1e8;
+            int  aMaxZmax=-1e8;
+            cPt2di aPix;
+
+            for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
+            {
+                for (aPix.x()=0 ; aPix.x()<aSzL.x() ; aPix.x()++)
+                {
+                        if (aDZMin.GetV(aPix)<aMinZmin) aMinZmin=aDZMin.GetV(aPix);
+                        if (aDZMax.GetV(aPix)>aMaxZmax) aMaxZmax=aDZMax.GetV(aPix);
+                }
+            }
+            // Construct a cube of features to be forwarded into the network
+            auto cuda_available = torch::cuda::is_available();
+            torch::Device TheAvailDevice(cuda_available ? torch::kCPU : torch::kCPU);
+            ELISE_ASSERT(aMaxZmax-aMinZmin, "PAX INTERVAL NULL !");
+
+
+            using namespace torch::indexing;
+
+            auto aSlcL=LREmbeddingsL.index({Slice(0,FeatSize,1),
+                                            Slice(mP0Z.y()-mBoxGlob1.P0().y()
+                                            ,aSzL.y()+mP0Z.y()-mBoxGlob1.P0().y(),1),
+                                            Slice(mP0Z.x()-mBoxGlob1.P0().x(),
+                                            aSzL.x()+mP0Z.x()-mBoxGlob1.P0().x(),1)}); // FeatSize,H,W
+
+            int Intervalle_DPAX=round_ni(aMaxZmax-aMinZmin);// /this->StepZ());
+            torch::Tensor CUBE= torch::ones({2*FeatSize,Intervalle_DPAX,aSzL.y(),aSzL.x()},torch::TensorOptions().dtype(torch::kFloat32).device(TheAvailDevice)).mul(0.5);
+
+            ELISE_ASSERT(Intervalle_DPAX==aMaxZmax-aMinZmin, "ISSUE WITH PAWX INTERVAL ");
+
+            for (int dd=0;dd<Intervalle_DPAX;dd++)
+                {
+                    // Get relevant right features
+
+                    CUBE.index({Slice(0,FeatSize,1),dd,Slice(0,None,1),Slice(0,None,1)}).copy_(aSlcL);
+
+                    int lim_inf=round_ni(mP0Z.x()-mBoxGlob2.P0().x()+dd+aMinZmin);
+                    int lim_sup=round_ni(mP0Z.x()-mBoxGlob2.P0().x()+dd+aMinZmin+aSzL.x());
+
+                    // CONDITIONS ON CUBE LIMITS
+                    if (lim_sup<=0 || lim_inf>=aSzR.x())
+                        {}
+                    else if (lim_inf<0)
+                        {
+                         auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
+                                                            Slice(mP0Z.y()-mBoxGlob2.P0().y()
+                                                            ,aSzL.y()+mP0Z.y()-mBoxGlob2.P0().y(),1),
+                                                            Slice(0,lim_sup,1)}); // FEatSize,H,W
+                         //std::cout<<"liminf <0 "<<std::endl;
+                         CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,Slice(0,None,1),Slice(-lim_inf,CUBE.size(3),1)}).copy_(aSlcR);
+                        }
+                    else if (lim_sup>aSzR.x())
+                        {
+                            auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
+                                                               Slice(mP0Z.y()-mBoxGlob2.P0().y()
+                                                               ,aSzL.y()+mP0Z.y()-mBoxGlob2.P0().y(),1),
+                                                               Slice(lim_inf,aSzR.x(),1)}); // FEatSize,H,W
+                            //std::cout<<"limsup sup "<<std::endl;
+                            CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,Slice(0,None,1),Slice(0,aSlcR.size(2),1)}).copy_(aSlcR);
+                        }
+                    else
+                        {
+                            // TAKE USUAL RANGES
+                            auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
+                                                               Slice(mP0Z.y()-mBoxGlob2.P0().y()
+                                                               ,aSzL.y()+mP0Z.y()-mBoxGlob2.P0().y(),1),
+                                                               Slice(lim_inf,lim_sup,1)}); // FEatSize,H,W
+                            CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,Slice(0,None,1),Slice(0,None,1)}).copy_(aSlcR);
+                        }
+                }
+
+            std::cout<<"GENERATED CUBE OF FEATURES "<<std::endl;
+            // Clear embeddings
+            LREmbeddingsL.resize_(at::IntArrayRef{0});
+            LREmbeddingsR.resize_(at::IntArrayRef{0});
+            // infer to get the similarity cost volume
+            //auto aSimilCUBE=aVMods.at(0)->mCNNPredictor->PredictCUBE(aVMods.at(0)->mDecisionNet,aVMods.at(0)->mMatcherNet,CUBE);
+            auto aSimilCUBE=aVMods.at(0)->mCNNPredictor->PredictONCUBE(aVMods.at(0)->mDecisionNet,aVMods.at(0)->mMatcherNet,CUBE);
+            CUBE.resize_(at::IntArrayRef{0});
+            std::cout<<" SIMIL CUBE IS GENERATED =====+>   "<<aSimilCUBE.sizes()<<std::endl;
+            /*std::cout<<"A sample of data "<<
+                       aSimilCUBE.slice(0,5,6,1)<<std::endl;*/
+
+            if (aSimilCUBE.dim()==4)
+            {
+                aSimilCUBE.squeeze();
+            }
+            // Refill tables defining layers of NAPPES WITH GENERATED CORREL
+                for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
+                {
+                    for (aPix.x()=0 ; aPix.x()<aSzL.x() ; aPix.x()++)
+                    {
+                            cPt2di aPAbs = aPix + mP0Z;
+                            cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
+                            cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
+                            for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
+                            {
+                                double aTabCost[2]={1.0,1.0};
+                                bool   aTabOk[2]={false,false};
+                                cPt2di aPC2Z(round_ni(aPC20.x()+aDz*this->StepZ()),aPC20.y());  // INTEG FOR NOW
+                                for (int aK=0 ; aK<int(aVMods.size()) ; aK++)
+                                        {
+                                            bool IsInside=WindInside4BL(this->DI1(),aPC1,aVMods[aK]->mCNNWin) && WindInside4BL(this->DI2(),aPC2Z,aVMods[aK]->mCNNWin);
+                                            if(IsInside)
+                                            {
+                                                //auto aVecR=LREmbeddingsR.slice(2,aPC2Z.y(),aPC2Z.y()+1).slice(3,aPC2Z.x(),aPC2Z.x()+1);
+                                                using namespace torch::indexing;
+                                                auto aSim=aSimilCUBE.index({Slice(aDz-aMinZmin,aDz-aMinZmin+1,1),
+                                                                                Slice(aPix.y(),aPix.y()+1,1),
+                                                                                Slice(aPix.x(),aPix.x()+1,1)});
+                                                ELISE_ASSERT(aSim.item<float>()<=1.0 && aSim.item<float>()>=0, "Similarity values issue not in bound 0 ,1 ");
+                                                aTabCost[aK] =(1-(double)aSim.item<float>());
+                                                aTabOk[aK]=true;
+                                            }
+                                        }
+                                PushCost(aTabCost[0]);
+                                if (mCmpCorLearn && aTabOk[0] && aTabOk[1])
+                                {
+                                        double aC0 = ToCmpCost(aTabCost[0]);
+                                        double aC1 = ToCmpCost(aTabCost[1]);
+                                        mImCmp.DIm().AddVBL(cPt2dr(aC1,aC0),1.0);
+                                }
+                            }
+                    }
+                }
         }
         else
         {

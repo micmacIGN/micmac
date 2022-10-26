@@ -59,11 +59,15 @@ class aCnnModelPredictor
        torch::Tensor PredictMSNet4(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNetTileFeatures(torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz);
        torch::Tensor PredictDecisionNet(torch::jit::script::Module mNet, torch::Tensor Left, torch::Tensor Right);
+       torch::Tensor PredictONCUBE(torch::jit::script::Module mMlp,torch::jit::script::Module mMatcher, torch::Tensor aCube);
        torch::Tensor PredictMSNetCommon(MSNet Net,tTImV2 aTilL,cPt2di aPSz);
        
        
+
+       // 3 MOdels used to coompute features, compute similarities, enhance similarities in the 3D space
        void PopulateModelFeatures(torch::jit::script::Module & Network);
        void PopulateModelDecision(torch::jit::script::Module & Network);
+       void PopulateModelMatcher(torch::jit::script::Module & Network);
        
        torch::Tensor ReadBinaryFile(std::string aFilename, torch::Tensor aHost);
        void PopulateModelFromBinary(ConvNet_Fast Net);
