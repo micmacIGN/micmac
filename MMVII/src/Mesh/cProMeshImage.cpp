@@ -7,7 +7,6 @@ namespace MMVII
 
 /**  This class make a conversion between pixel space and real space using a R^2->R^2 map,
  * frequently used wih homothety when we do sampling*/
-
 	
 	/*
 template <class TypeMap>  class  cMapPixelization
@@ -23,18 +22,6 @@ template <class TypeMap>  class  cMapPixelization
 
         private :
 	    TypeMap  mMap;
-};
-
-class cSetVisibility : public cDataBoundedSet<tREAL8,3> 
-{
-    public :
-        cSetVisibility(cSensorImage * aSens) : 
-            cDataBoundedSet<tREAL8,3>(cBox3dr::BigBox()),
-            mSens (aSens) 
-	{}
-        tREAL8 Insideness(const tPt & aP) const {return mSens->IsVisible(aP) ? 1 : -1;}
-    private :
-	  cSensorImage * mSens;
 };
 */
 
