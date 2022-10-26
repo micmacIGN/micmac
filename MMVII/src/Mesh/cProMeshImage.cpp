@@ -9,6 +9,7 @@ namespace MMVII
  * frequently used wih homothety when we do sampling*/
 
 	
+	/*
 template <class TypeMap>  class  cMapPixelization
 {
         public :
@@ -35,6 +36,7 @@ class cSetVisibility : public cDataBoundedSet<tREAL8,3>
     private :
 	  cSensorImage * mSens;
 };
+*/
 
 /**   This abstract class is used to decribe an object containing many triangles.
  *

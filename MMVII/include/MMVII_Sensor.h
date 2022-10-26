@@ -117,7 +117,7 @@ class cDataPixelDomain
 };
 
 
-/*  base-class  4 definition of validity domaine in image space  */
+/**  base-class  4 definition of validity domaine in image space  */
 class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 {
 	public :
@@ -126,6 +126,21 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 	private :
 		cDataPixelDomain * mDPD;
 };
+
+/** represent the set of visible point of the camera */
+class cSetVisibility : public cDataBoundedSet<tREAL8,3>
+{
+    public :
+        cSetVisibility(cSensorImage * aSens) :
+            cDataBoundedSet<tREAL8,3>(cBox3dr::BigBox()),
+            mSens (aSens)
+        {}
+        tREAL8 Insideness(const tPt & aP) const {return mSens->IsVisible(aP) ? 1 : -1;}
+    private :
+          cSensorImage * mSens;
+};
+
+
 
 /** Class to facilitate the management of orientations (and others ?) in a photogrammetric
  * application.  Offers facilities for :
