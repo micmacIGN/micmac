@@ -131,11 +131,8 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 class cSetVisibility : public cDataBoundedSet<tREAL8,3>
 {
     public :
-        cSetVisibility(cSensorImage * aSens) :
-            cDataBoundedSet<tREAL8,3>(cBox3dr::BigBox()),
-            mSens (aSens)
-        {}
-        tREAL8 Insideness(const tPt & aP) const {return mSens->IsVisible(aP) ? 1 : -1;}
+        cSetVisibility(cSensorImage * aSens) ;
+        tREAL8 Insideness(const tPt & aP) const;
     private :
           cSensorImage * mSens;
 };

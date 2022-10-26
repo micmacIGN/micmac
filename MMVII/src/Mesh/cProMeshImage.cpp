@@ -158,14 +158,16 @@ cTri3dR cMeshTri3DIterator::KthF(int aKF) const {return mTri->KthTri(aKF);}
 
 enum class eZBufRes
            {
-              Undefined,     ///< to have some value to return when nothing is computed
-              UnRegIn,       ///< Un-Regular since input
-              OutIn,         ///< Out domain  since input (current ?)
-              UnRegOut,      ///< Un-Regular since output
-              OutOut,        ///< Out domain  since output (never )
-              BadOriented,   ///< Badly oriented
-              Hidden,        ///< Hidden by other
-              Visible        ///< Visible 
+              Undefined,      ///< to have some value to return when nothing is computed
+              UnRegIn,        ///< Un-Regular since input
+              OutIn,          ///< Out domain  since input (current ?)
+              UnRegOut,       ///< Un-Regular since output
+              OutOut,         ///< Out domain  since output (never )
+              BadOriented,    ///< Badly oriented
+              Hidden,         ///< Hidden by other
+              NoPix,          ///< When there is no pixel in triangle, decision har to do
+              LikelyVisible,  ///< Probably visible -> No Pixel but connected to visible
+              Visible         ///< Visible 
            };
 
 enum class eZBufModeIter
@@ -405,13 +407,16 @@ eZBufRes cZBuffer::MakeOneTri(const cTri3dR & aTriIn,const cTri3dR &aTri3,eZBufM
           aRes =  eZBufRes::BadOriented;
        else
        {
-           bool IsVis = (aNbVis > (int(aVPix.size())/2));
+           bool IsVis = (aNbVis >= (int(aVPix.size())/2));
            aRes = IsVis ? eZBufRes::Visible : eZBufRes::Hidden;
 	   if (IsVis)
 	   {
                mLastResSurfDev = ComputeResol(aTriIn,aTri3);
 	       UpdateMax(mMaxRSD,mLastResSurfDev);
 	   }
+
+	   if ((aVPix.size()<=1) && (aNbVis==0))
+              aRes = eZBufRes::NoPix;
        }
     }
 
@@ -520,11 +525,14 @@ void cAppliProMeshImage::MakeDevlptIm(const cZBuffer &  aZB )
 
        if (aRD.mResult == eZBufRes::BadOriented)  aCoul = cRGBImage::Green;
        if (aRD.mResult == eZBufRes::Hidden)       aCoul = cRGBImage::Red;
-       if (aRD.mResult == eZBufRes::OutIn)       aCoul = cRGBImage::Cyan;
+       if (aRD.mResult == eZBufRes::OutIn)        aCoul = cRGBImage::Cyan;
+       if (aRD.mResult == eZBufRes::NoPix)        aCoul = cRGBImage::Blue;
        if (aRD.mResult == eZBufRes::Visible)
        {
            int aGray = round_ni(255 *  aRD.mResol/ aZB.MaxRSD());
+	   aGray = 128;
            aCoul = cPt3di(aGray,aGray,aGray);
+
        }
        cTri2dR  aTriPix = aTri2D.KthTri(aKF);
        cTriangle2DCompiled<tREAL8>  aTriComp(ImageOfTri(aTriPix,mHTri2Pix));
