@@ -46,6 +46,7 @@ enum class eTA2007
 		PatParamCalib, ///< It's a pattern for parameter of calibration
             // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
                 AddCom,        ///< Not an attribute, used to embed additionnal comment in Help mode
+                AllowedValues, ///< String of possible values for enums type, automagically added for args of enum type
             // ---------- Not Printed -----------
             // !!!!! Shared must be first UNPRINTED  !!! because of test in Name4Help()
                 Shared,        ///< Parameter  Shared by many (several) command
