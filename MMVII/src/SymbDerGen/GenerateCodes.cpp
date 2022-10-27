@@ -5,6 +5,7 @@
 #include "Formulas_CamStenope.h"
 #include "Formulas_Geom2D.h"
 #include "Formulas_Radiom.h"
+#include "Formulas_Geom3D.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
 
@@ -173,7 +174,17 @@ cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf)
      return StdAllocCalc(NameFormula(cDeformImHomotethy(),WithDerive),aSzBuf);
 }
 
+// dist3d
+//    Cons distance
+template <class Type> cCalculator<Type> * TplEqDist3D(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cDist3D(),WithDerive),aSzBuf);
+}
 
+cCalculator<double> * EqDist3D(bool WithDerive,int aSzBuf)
+{
+    return TplEqDist3D<double>(WithDerive,aSzBuf);
+}
 
 
 /* **************************** */
@@ -485,6 +496,8 @@ int cAppliGenCode::Exe()
        for (const auto WithSimUk : {true,false})
            GenCodesFormula((tREAL8*)nullptr, cNetWConsDistSetPts(cPt2di(2,2),WithSimUk),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cNetWConsDistSetPts(3,true),WithDer);
+
+       GenCodesFormula((tREAL8*)nullptr,cDist3D(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);

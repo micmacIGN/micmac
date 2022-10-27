@@ -130,6 +130,11 @@ NS_SymbolicDerivative::cCalculator<double> * EqConsDist(bool WithDerive,int aSzB
 /// Ratio of dist, Uk={x1,y1,x2,y2,x3,y3} Obs={D12,D13,D23} ,  3 Residuals as D(p1,p2)/D12 - D(p1,p3)/D13
 NS_SymbolicDerivative::cCalculator<double> * EqConsRatioDist(bool WithDerive,int aSzBuf);
 
+// .............   Equation implying 3D distance .............
+
+/// Calc for conservation of dist, Uk={x1,y1,z1,x2,y2,z2} Obs={D12} , let pk=(xk,yk,zk)  Residual :  D(p1,p2) - d12
+NS_SymbolicDerivative::cCalculator<double> * EqDist3D(bool WithDerive,int aSzBuf);
+
            // .............   Equation implying 2D distance conservation .............
 	   
 /// Equation used to optimize homothetic transform between model and image (used as a tutorial for deformable model)
