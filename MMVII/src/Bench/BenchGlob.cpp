@@ -477,6 +477,9 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         // Test some matrix op : QR, EigenSym ....
         BenchDenseMatrix0(aParam);
 
+        // Test topo compensation
+        BenchTopoComp(aParam);
+
         // Call several test on images : File, RectObj, Im1D, Im2D, BaseImage
         BenchGlobImage(aParam);
         

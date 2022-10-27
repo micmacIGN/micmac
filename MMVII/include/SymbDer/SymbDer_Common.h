@@ -226,7 +226,7 @@ void cCalculator<T>::PushNewEvals(const std::vector<T> &aVUK, const std::vector<
     }
     if (aVObs.size() != NbObs())  // Check size are coherents
     {
-        UserSError("Bad size in Onservations",Name());
+        UserSError("Bad size in Observations",Name());
     }
 
     this->SetNewUks(aVUK);

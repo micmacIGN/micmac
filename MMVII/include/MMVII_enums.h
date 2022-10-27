@@ -64,6 +64,7 @@ enum class eApF
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
+               Topo,        ///< Topometry
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
            };

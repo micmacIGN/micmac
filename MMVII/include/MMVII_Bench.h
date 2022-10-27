@@ -91,6 +91,7 @@ void Bench_Duration(cParamExeBench & aParam);
 void BenchDenseMatrix0(cParamExeBench & aParam); ///< Basic Vector 
 void Bench_EigenDecompos(cParamExeBench & aParam);
 
+void BenchTopoComp(cParamExeBench & aParam); ///< Topometric compensation
 
 // void cAppli_MMVII_Bench::Bench_0000_String(); => Bench on string-split
 void BenchSerialization(cParamExeBench & aParam,const std::string & aDirOut,const std::string & aDirIn); ///< Bench on seriaization function
