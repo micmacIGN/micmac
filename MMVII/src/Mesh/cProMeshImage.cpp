@@ -1,6 +1,10 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_PCSens.h"
 #include "MMVII_Geom2D.h"
+#include "MMVII_DeclareCste.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MeshDev.h"
+
 
 namespace MMVII
 {
@@ -184,6 +188,17 @@ struct cResModeSurfD
 };
 
 
+void  AddData(const cAuxAr2007  &anAux,cResModeSurfD& aRMS )
+{
+     int aResult = int(aRMS.mResult);
+     AddData(cAuxAr2007("Result",anAux),aResult);
+     if (anAux.Input())
+        aRMS.mResult = eZBufRes(aResult);
+     AddData(cAuxAr2007("Resol",anAux),aRMS.mResol);
+}
+
+
+
 class  cZBuffer
 {
       public :
@@ -209,7 +224,8 @@ class  cZBuffer
 	  void MakeZBuf(eZBufModeIter aMode);
           double ComputeResol(const cTri3dR & aTriIn ,const cTri3dR & aTriOut) const;
 
-	  const cResModeSurfD&  ResSurfD(size_t) const;
+	  cResModeSurfD&  ResSurfD(size_t) ;
+	  std::vector<cResModeSurfD> & VecResSurfD() ;
 	  double  MaxRSD() const;
 
       private :
@@ -293,7 +309,6 @@ cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMap
 
     mSzPix =  Pt_round_up(ToPix(mBoxOut.P1())) + aBrd;
 
-    StdOut() << "SZPIX " << mSzPix << " BOX=" << mBoxOut.P0() << " " << mBoxOut.P1() << "\n";
 
     mZBufIm = tIm(mSzPix);
     mZBufIm.DIm().InitCste(mInfty);
@@ -302,8 +317,10 @@ cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMap
 
 cPt2dr  cZBuffer::ToPix(const cPt3dr & aPt) const {return mROut2Pix.Value(Proj(aPt));}
 cZBuffer::tIm  cZBuffer::ZBufIm() const {return mZBufIm;}
-const cResModeSurfD&  cZBuffer::ResSurfD(size_t aK) const {return mResSurfD.at(aK);}
+cResModeSurfD&  cZBuffer::ResSurfD(size_t aK)  {return mResSurfD.at(aK);}
 double  cZBuffer::MaxRSD() const {return mMaxRSD;}
+
+std::vector<cResModeSurfD> & cZBuffer::VecResSurfD() {return mResSurfD;}
 
 void cZBuffer::MakeZBuf(eZBufModeIter aMode)
 {
@@ -407,21 +424,38 @@ eZBufRes cZBuffer::MakeOneTri(const cTri3dR & aTriIn,const cTri3dR &aTri3,eZBufM
           aRes =  eZBufRes::BadOriented;
        else
        {
-           bool IsVis = (aNbVis >= (int(aVPix.size())/2));
+           bool IsVis = ((aNbVis*2)  > int(aVPix.size()));
            aRes = IsVis ? eZBufRes::Visible : eZBufRes::Hidden;
+           mLastResSurfDev = ComputeResol(aTriIn,aTri3);
 	   if (IsVis)
 	   {
-               mLastResSurfDev = ComputeResol(aTriIn,aTri3);
 	       UpdateMax(mMaxRSD,mLastResSurfDev);
 	   }
 
-	   if ((aVPix.size()<=1) && (aNbVis==0))
+	   if ((aVPix.size()<=0) && (aNbVis==0))
               aRes = eZBufRes::NoPix;
        }
     }
 
     return aRes;
 }
+
+/* =============================================== */
+/*                                                 */
+/*                 cMeshDev_BestIm                 */
+/*                                                 */
+/* =============================================== */
+
+const std::string  MeshDev_NameTriResol = "TabBestResol.xml";
+
+
+void AddData(const cAuxAr2007 & anAux,cMeshDev_BestIm& aRMS)
+{
+    AddData(cAuxAr2007("Name",anAux),aRMS.mNames);
+    AddData(cAuxAr2007("NumsIm",anAux),aRMS.mNumBestIm);
+    AddData(cAuxAr2007("Resol",anAux),aRMS.mBestResol);
+}
+
 
 /* =============================================== */
 /*                                                 */
@@ -443,8 +477,11 @@ class cAppliProMeshImage : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+        std::string  NameResult(const std::string & aNameIm) const;
 
-	void MakeDevlptIm(const cZBuffer &  aZB);
+	void MakeDevlptIm(cZBuffer &  aZB);
+        void ProcessNoPix(cZBuffer &  aZB);
+        void MergeResults();
 
      // --- Mandatory ----
 	std::string mNameCloud3DIn;
@@ -461,13 +498,17 @@ class cAppliProMeshImage : public cMMVII_Appli
         cPhotogrammetricProject   mPhProj;
         cTriangulation3D<tREAL8>* mTri3D;
         cSensorCamPC *            mCamPC;
+	std::string               mDirMeshDev;
+	std::string               mNameResult;
+        bool                      mDoImages;
+        bool                      mSKE;
 };
 
 cCollecSpecArg2007 & cAppliProMeshImage::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
    return anArgObl
-	  <<   Arg2007(mNameCloud3DIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileCloud,eTA2007::Input})
-	  <<   Arg2007(mNameIm,"Name of image", {eTA2007::FileImage,eTA2007::OptionalExist})
+	  <<   Arg2007(mNameIm,"Name of image", {{eTA2007::MPatFile,"0"},eTA2007::FileDirProj} )
+	  <<   Arg2007(mNameCloud3DIn,"Name of input cloud/mesh", {eTA2007::FileCloud,eTA2007::Input})
 	  <<   mPhProj.OriInMand()
 
    ;
@@ -479,7 +520,9 @@ cAppliProMeshImage::cAppliProMeshImage(const std::vector<std::string> & aVArgs,c
    mNbPixImRedr     (2000),
    mPhProj          (*this),
    mTri3D           (nullptr),
-   mCamPC           (nullptr)
+   mCamPC           (nullptr),
+   mDoImages        (false),
+   mSKE             (true)
 {
 }
 
@@ -489,12 +532,14 @@ cCollecSpecArg2007 & cAppliProMeshImage::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
            << AOpt2007(mNameCloud2DIn,"M2","Mesh 2D, dev of cloud 3D,to generate a visu of hiden part ",{eTA2007::FileCloud,eTA2007::Input})
            << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
+	  <<  AOpt2007(mDoImages,"DoIm","Do images", {eTA2007::HDV})
            << AOpt2007(mNbPixImRedr,"NbPixIR","Resolution of ZBuffer", {eTA2007::HDV})
+           << AOpt2007(mSKE,CurOP_SkipWhenExist,"Skip command when result exist")
    ;
 
 }
 
-void cAppliProMeshImage::MakeDevlptIm(const cZBuffer &  aZB )
+void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
 {
    
    cTriangulation2D<tREAL8> aTri2D (cTriangulation3D<tREAL8>(DirProject()+mNameCloud2DIn));
@@ -513,7 +558,6 @@ void cAppliProMeshImage::MakeDevlptIm(const cZBuffer &  aZB )
 
    cPt2di aSz = Pt_round_up(mHTri2Pix.Value(aBox2.P1())) + cPt2di(0,0);
 
-   StdOut() << "SSS " <<  aScale  << " Szzz=" << aSz << "\n";
 
 
    cRGBImage  aIm(aSz,cRGBImage::Yellow);
@@ -523,14 +567,16 @@ void cAppliProMeshImage::MakeDevlptIm(const cZBuffer &  aZB )
        const cResModeSurfD&   aRD = aZB.ResSurfD(aKF) ;
        cPt3di aCoul(0,0,0);
 
-       if (aRD.mResult == eZBufRes::BadOriented)  aCoul = cRGBImage::Green;
-       if (aRD.mResult == eZBufRes::Hidden)       aCoul = cRGBImage::Red;
-       if (aRD.mResult == eZBufRes::OutIn)        aCoul = cRGBImage::Cyan;
-       if (aRD.mResult == eZBufRes::NoPix)        aCoul = cRGBImage::Blue;
-       if (aRD.mResult == eZBufRes::Visible)
+       if (aRD.mResult == eZBufRes::BadOriented)    aCoul = cRGBImage::Green;
+       if (aRD.mResult == eZBufRes::Hidden)         aCoul = cRGBImage::Red;
+       if (aRD.mResult == eZBufRes::OutIn)          aCoul = cRGBImage::Cyan;
+       if (aRD.mResult == eZBufRes::NoPix)          aCoul = cRGBImage::Blue;
+       if (aRD.mResult == eZBufRes::LikelyVisible)  aCoul = cRGBImage::Magenta;
+
+       if ((aRD.mResult == eZBufRes::Visible) || (aRD.mResult == eZBufRes::LikelyVisible))
        {
            int aGray = round_ni(255 *  aRD.mResol/ aZB.MaxRSD());
-	   aGray = 128;
+	   // aGray = 128;
            aCoul = cPt3di(aGray,aGray,aGray);
 
        }
@@ -544,14 +590,109 @@ void cAppliProMeshImage::MakeDevlptIm(const cZBuffer &  aZB )
            aIm.SetRGBPix(aPix,aCoul);
    }
 
-   aIm.ToFile("tata.tif");
+   aIm.ToFile(mDirMeshDev+"Dev-"+LastPrefix(mNameIm)+".tif");
+}
+
+void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
+{
+    mTri3D->MakeTopo();
+    const cGraphDual &  aGrD = mTri3D->DualGr() ;
+
+    bool  GoOn = true;
+    while (GoOn)
+    {
+        GoOn = false;
+        for (size_t aKF1 = 0 ; aKF1<mTri3D->NbFace() ; aKF1++)
+        {
+            if (aZB.ResSurfD(aKF1).mResult == eZBufRes::NoPix)
+            {
+                std::vector<int> aVF2;
+                aGrD.GetFacesNeighOfFace(aVF2,aKF1);
+                for (const auto &  aKF2 : aVF2)
+		{
+                     if (     (aZB.ResSurfD(aKF2).mResult == eZBufRes::Visible)
+                          ||  (aZB.ResSurfD(aKF2).mResult == eZBufRes::LikelyVisible)
+			)
+		     {
+                        aZB.ResSurfD(aKF1).mResult =  eZBufRes::LikelyVisible;
+                        GoOn = true;
+		     }
+		}
+            }
+        }
+    }
+}
+
+std::string  cAppliProMeshImage::NameResult(const std::string & aNameIm) const
+{
+   return  mDirMeshDev +  "TabResolTri-" + aNameIm  + ".dmp";
+}
+
+void cAppliProMeshImage:: MergeResults()
+{
+    mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
+    size_t aNbF = mTri3D->NbFace();
+    cMeshDev_BestIm aMBI;
+    aMBI.mNames = VectMainSet(0);
+    aMBI.mNumBestIm.resize(aNbF,-1);
+    aMBI.mBestResol.resize(aNbF,-1);
+
+    for (size_t aKIm=0 ; aKIm<aMBI.mNames.size(); aKIm++)
+    {
+        std::string aName = aMBI.mNames.at(aKIm);
+
+        std::vector<cResModeSurfD> aVRMS;
+	ReadFromFile(aVRMS,NameResult(aName));
+        MMVII_INTERNAL_ASSERT_tiny(aVRMS.size()==aNbF,"Incompat tri 3 , TabResolTri");
+
+	for (size_t aKF=0 ; aKF<aNbF ; aKF++)
+	{
+           const cResModeSurfD & aRMS = aVRMS.at(aKF);
+           eZBufRes aRes = aRMS.mResult;
+
+           if (      ((aRes == eZBufRes::Visible) || (aRes == eZBufRes::LikelyVisible))
+                 &&  (aRMS.mResol > aMBI.mBestResol.at(aKF))
+	      )
+	   {
+              aMBI.mBestResol.at(aKF) = aRMS.mResol;
+              aMBI.mNumBestIm.at(aKF) = aKIm;
+	   }
+	}
+    }
+    delete mTri3D;
+
+    SaveInFile(aMBI,mDirMeshDev+MeshDev_NameTriResol);
 }
 
 int cAppliProMeshImage::Exe() 
 {
+
+   mDirMeshDev = DirProject()+ MMVIIDirMeshDev;
+   if (LevelCall()==0)
+   {
+      CreateDirectories(mDirMeshDev,true);
+   } 
    mPhProj.FinishInit();
 
+   if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
+   {
+      int aResult =  ResultMultiSet();
+
+      MergeResults();
+	
+
+      return aResult;
+   }
+
+   // By default  SKE true with multiple file (i.e. we are recalled) but false with single file (why else run it)
+   SetIfNotInit(mSKE,LevelCall()!=0);
+   mNameResult = NameResult(mNameIm);
+
+   if (mSKE && ExistFile(mNameResult))
+      return EXIT_SUCCESS;
+
    mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
+
    cMeshTri3DIterator  aTriIt(mTri3D);
 
    mCamPC = mPhProj.AllocCamPC(mNameIm,true);
@@ -561,25 +702,30 @@ int cAppliProMeshImage::Exe()
 
    double Infty =1e20;
    cPt2di aSzPix = mCamPC->SzPix();
-   // StdOut() << "SZPIX " << aSzPix << "\n";
    cBox3dr  aBox(cPt3dr(0,0,-Infty),cPt3dr(aSzPix.x(),aSzPix.y(),Infty));
    cDataBoundedSet<tREAL8,3>  aSetCam(aBox);
 
-   
-
-   StdOut() << "FOCALE "  << mCamPC->InternalCalib()->F() << " " << &aMapCamDepth << "\n";
 
    cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,mResolZBuf);
    aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
    aZBuf.MakeZBuf(eZBufModeIter::SurfDevlpt);
 
+   ProcessNoPix(aZBuf);
 
-   aZBuf.ZBufIm().DIm().ToFile("toto.tif");
+
+   // if (mDoImage)
+      //aZBuf.ZBufIm().DIm().ToFile(mDirMeshDev+ "ZBuf-"+ mNameIm);
+   // aIm.ToFile(mDirMeshDev+"Dev-"+LastPrefix(mNameIm)+".tif");
+   if (mDoImages)
+      aZBuf.ZBufIm().DIm().ToFile(mDirMeshDev+"ZBuf-"+LastPrefix(mNameIm)+".tif");
+
 
    if (IsInit(&mNameCloud2DIn))
    {
       MakeDevlptIm(aZBuf);
    }
+
+   SaveInFile(aZBuf.VecResSurfD(),mNameResult);
 
    delete mTri3D;
    return EXIT_SUCCESS;

@@ -27,6 +27,7 @@ extern const std::string TheMMVII_SysName ; ///< Name of Operating system
 // Name of current optionnal parameters, to facilitate sharings ...
 extern const std::string CurOP_Out;  ///< Many command have an Output file 
 extern const std::string CurOP_OutBin;  ///< Generate out in binary/txt mode 
+extern const std::string CurOP_SkipWhenExist;  ///< Skip command when results already exist
 
 // Name of global optionnal parameters
 extern const std::string GOP_DirProj;  ///< Directory of Proj
@@ -52,6 +53,7 @@ extern const std::string MMVIITestDir;
 extern const std::string TmpMMVIIProcSubDir;
 extern const std::string MMVIIDirOrient;
 extern const std::string MMVIIDirHomol;
+extern const std::string MMVIIDirMeshDev;
 
 //  String 
 extern const std::string BLANK;  // just std::string(" ") to avoid char * + char *

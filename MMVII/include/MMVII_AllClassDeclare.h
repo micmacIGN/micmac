@@ -1,6 +1,8 @@
 #ifndef  _MMVII_AllClassDeclare_H_
 #define  _MMVII_AllClassDeclare_H_
 
+#undef _OPENMP
+
 // Header standard c++
 #include "memory.h"
 #include <memory>

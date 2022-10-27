@@ -422,7 +422,7 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
 #else  // !MAP_STATIC_BUF
        mutable tVecPt  mBufInvOut;
        inline tVecPt&  BufInvOut()    const {return mBufInvOut;}
-       inline tVecPt&  BufInvOutCleared()    const {mBufInvOut.clear();return mBufOut;}
+       inline tVecPt&  BufInvOutCleared()    const {mBufInvOut.clear();return mBufInvOut;}
 #endif
 };
 

@@ -34,6 +34,9 @@ const std::string TmpMMVIIDirPCar        =  TmpMMVIIDirPrefix + "-PCar" + String
 const std::string MMVIIDirOrient      =  MMVII_ComonPrefix +"-Orient" + StringDirSeparator();
 const std::string MMVIIDirHomol       =  MMVII_ComonPrefix +"-Homol" + StringDirSeparator();
 
+const std::string MMVIIDirMeshDev      =  MMVII_ComonPrefix +"-MeshDev" + StringDirSeparator();
+
+
 const std::string MMVIITestDir       = "MMVII-TestDir" +StringDirSeparator();
 const std::string TmpMMVIIProcSubDir = "Process" + StringDirSeparator();
 
@@ -46,6 +49,7 @@ const std::string MMVII_LogFile = "MMVII-LogFile.txt";
       // -- Current
 const std::string CurOP_Out = "Out";  ///< Many command have an Output file 
 const std::string CurOP_OutBin = "Bin";  ///< Bin format
+const std::string CurOP_SkipWhenExist = "SkWE";
       // -- External
 const std::string GOP_WW       = "WW";
 const std::string GOP_DirProj  = "DirProj";
