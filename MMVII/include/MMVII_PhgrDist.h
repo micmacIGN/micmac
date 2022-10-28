@@ -132,8 +132,11 @@ NS_SymbolicDerivative::cCalculator<double> * EqConsRatioDist(bool WithDerive,int
 
 // .............   Equation implying 3D distance .............
 
-/// Calc for conservation of dist, Uk={x1,y1,z1,x2,y2,z2} Obs={D12} , let pk=(xk,yk,zk)  Residual :  D(p1,p2) - d12
+/// Calc for dist, Uk={x1,y1,z1,x2,y2,z2} Obs={D12} , let pk=(xk,yk,zk)  Residual :  D(p1,p2) - d12
 NS_SymbolicDerivative::cCalculator<double> * EqDist3D(bool WithDerive,int aSzBuf);
+
+/// Calc for parametrizes dist, Uk={d,x1,y1,z1,x2,y2,z2} Obs={} , let pk=(xk,yk,zk)  Residual :  D(p1,p2) - d
+NS_SymbolicDerivative::cCalculator<double> * EqDist3DParam(bool WithDerive,int aSzBuf);
 
            // .............   Equation implying 2D distance conservation .............
 	   

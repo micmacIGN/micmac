@@ -186,6 +186,18 @@ cCalculator<double> * EqDist3D(bool WithDerive,int aSzBuf)
     return TplEqDist3D<double>(WithDerive,aSzBuf);
 }
 
+// dist3d with dist parameter
+//    Cons distance
+template <class Type> cCalculator<Type> * TplEqDist3DParam(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cDist3DParam(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqDist3DParam(bool WithDerive,int aSzBuf)
+{
+    return TplEqDist3DParam<double>(WithDerive,aSzBuf);
+}
+
 
 /* **************************** */
 /*      BENCH  PART             */
@@ -498,6 +510,7 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cNetWConsDistSetPts(3,true),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDist3D(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cDist3DParam(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
