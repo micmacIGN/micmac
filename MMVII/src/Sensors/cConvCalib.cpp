@@ -365,6 +365,9 @@ cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,b
 
     return aCamPC;
 }
+
+const std::string & cPhotogrammetricProject::OriIn() const {return mOriIn;}
+
 /*
 */
 

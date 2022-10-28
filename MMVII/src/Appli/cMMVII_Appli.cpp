@@ -85,9 +85,7 @@ int cParamCallSys::Execute() const
    }
    else
    {
-       // StdOut() << "EXTERN   cParamCallSys::  \n";
        int aRes = GlobSysCall(mCom,false);
-       // StdOut() << "   ##### EXTERN   cParamCallSys::  " << aRes << " \n";
        return aRes;
    }
 }
@@ -247,7 +245,8 @@ cMMVII_Appli::cMMVII_Appli
    mCarPPrefOut   (MMVII_StdDest),
    mCarPPrefIn    (MMVII_StdDest),
    mTiePPrefOut   (MMVII_StdDest),
-   mTiePPrefIn    (MMVII_StdDest)
+   mTiePPrefIn    (MMVII_StdDest),
+   mIsInBenchMode (false)
 {
    mNumCallInsideP = TheNbCallInsideP;
    TheNbCallInsideP++;
@@ -574,7 +573,6 @@ void cMMVII_Appli::InitParam()
        mPrefixGMA  = mPrefixNameAppli;
        mDirProjGMA = mDirProject;
    }
-   // StdOut() << "mPrefixNameAppliii " << mPrefixNameAppli << " " << mPrefixGMA << "\n";
 
   // Manange OutPut redirection
   if (IsInit(&mParamStdOut))
@@ -654,7 +652,9 @@ void cMMVII_Appli::InitParam()
          // don't accept multiple initialisation
          if (!mVMainSets.at(aNum).IsInit())
          {
-            mVMainSets.at(aNum)= SetNameFromString(mDirProject+aVValues[aK],true);
+            // mVMainSets.at(aNum)= SetNameFromString(mDirProject+aVValues[aK],true);
+            mVMainSets.at(aNum)= SetNameFromString(mDirProject+FileOfPath(aVValues[aK],false),true);
+
             //  Filter with interval
             {
                std::string & aNameInterval = mIntervFilterMS[aNum];
@@ -666,7 +666,15 @@ void cMMVII_Appli::InitParam()
             // Test non empty
             if (! AcceptEmptySet(aNum) && (mVMainSets.at(aNum).size()==0))
             {
-                MMVII_UsersErrror(eTyUEr::eEmptyPattern,"Specified set of files was empty");
+                // if we are in a recall mode, posibly pattern comes file xml, and file insid can be un-existent
+                if (mLevelCall>0)
+		{
+                   mVMainSets.at(aNum).Add(aVValues[aK]);
+		}
+		else
+                {
+                   MMVII_UsersErrror(eTyUEr::eEmptyPattern,"Specified set of files was empty");
+                }
             }
          }
          else
@@ -730,6 +738,11 @@ void cMMVII_Appli::InitParam()
   {
       mSeedRand =  std::chrono::system_clock::to_time_t(mT0);
   }
+}
+
+tPtrArg2007 cMMVII_Appli::AOptBench()
+{
+     return   AOpt2007(mIsInBenchMode,GIP_BenchMode,"Is the command executed in bench mode",{eTA2007::Internal,eTA2007::HDV});
 }
 
 
@@ -1429,12 +1442,18 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
 
 bool cMMVII_Appli::RunMultiSet(int aKParam,int aKSet)
 {
-    const std::vector<std::string> &  aVSetIm = VectMainSet(aKSet);
-
-    if (aVSetIm.size() != 1)  // Multiple image, run in parall 
+    std::vector<std::string> aVSetPluDir;
     {
-         ExeMultiAutoRecallMMVII(ToStr(aKParam),aVSetIm); // Recall with substitute recall itself
-         mResulMultiS = (aVSetIm.empty()) ? EXIT_FAILURE : EXIT_SUCCESS;
+       const std::vector<std::string> &  aVSetIm = VectMainSet(aKSet);
+       for (const auto & aName : aVSetIm)
+          aVSetPluDir.push_back(mDirProject + aName);
+    }
+
+
+    if (aVSetPluDir.size() != 1)  // Multiple image, run in parall 
+    {
+         ExeMultiAutoRecallMMVII(ToStr(aKParam),aVSetPluDir); // Recall with substitute recall itself
+         mResulMultiS = (aVSetPluDir.empty()) ? EXIT_FAILURE : EXIT_SUCCESS;
          mRMSWasUsed = true;
          return true;
     }

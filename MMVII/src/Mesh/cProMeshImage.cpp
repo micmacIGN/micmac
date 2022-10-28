@@ -7,6 +7,7 @@
 #include "MMVII_Image2D.h"
 #include "MMVII_ZBuffer.h"
 #include "MeshDev.h"
+#include "MMVII_Sys.h"
 
 namespace MMVII
 {
@@ -61,6 +62,7 @@ void AddData(const cAuxAr2007 & anAux,cMeshDev_BestIm& aRMS)
 {
     AddData(cAuxAr2007("Name",anAux),aRMS.mNames);
     AddData(cAuxAr2007("NumsIm",anAux),aRMS.mNumBestIm);
+    AddData(cAuxAr2007("AvgResol",anAux),aRMS.mAvgResol);
     AddData(cAuxAr2007("Resol",anAux),aRMS.mBestResol);
 }
 
@@ -85,16 +87,27 @@ class cAppliProMeshImage : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        cAppliBenchAnswer BenchAnswer() const override;  ///< this command is used in the bench
+	int  ExecuteBench(cParamExeBench &) override ;   ///< indicate what is done in the bench
+
+
+	/// name to save the result of an image
         std::string  NameResult(const std::string & aNameIm) const;
 
-	void MakeDevlptIm(cZBuffer &  aZB);
+	/** Process the triangle that correspond to no pixel => make them almost visble if close to 
+	    a triangle which is visible */
         void ProcessNoPix(cZBuffer &  aZB);
+	/** After all images have been processed , merge their result to extract best image*/
         void MergeResults();
 
+	/** Make a  developped  and visualisation to check labelisartion*/
+	void MakeDevlptIm(cZBuffer &  aZB);
+
      // --- Mandatory ----
+	std::string mNamePatternIm;
+	std::string mNameSingleIm;
 	std::string mNameCloud3DIn;
-	std::string mNameIm;
-	std::string mNameOri;
 
 
      // --- Optionnal ----
@@ -115,7 +128,7 @@ class cAppliProMeshImage : public cMMVII_Appli
 cCollecSpecArg2007 & cAppliProMeshImage::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
    return anArgObl
-	  <<   Arg2007(mNameIm,"Name of image", {{eTA2007::MPatFile,"0"},eTA2007::FileDirProj} )
+	  <<   Arg2007(mNamePatternIm,"Name of image", {{eTA2007::MPatFile,"0"},eTA2007::FileDirProj} )
 	  <<   Arg2007(mNameCloud3DIn,"Name of input cloud/mesh", {eTA2007::FileCloud,eTA2007::Input})
 	  <<   mPhProj.OriInMand()
 
@@ -143,9 +156,35 @@ cCollecSpecArg2007 & cAppliProMeshImage::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	  <<  AOpt2007(mDoImages,"DoIm","Do images", {eTA2007::HDV})
            << AOpt2007(mNbPixImRedr,"NbPixIR","Resolution of ZBuffer", {eTA2007::HDV})
            << AOpt2007(mSKE,CurOP_SkipWhenExist,"Skip command when result exist")
+	   << AOptBench()
    ;
 
 }
+
+cAppliBenchAnswer cAppliProMeshImage::BenchAnswer() const
+{
+   return cAppliBenchAnswer(true,0.1);
+}
+
+
+
+int  cAppliProMeshImage::ExecuteBench(cParamExeBench & aParam) 
+{
+   // no randomization, so once is enough
+   if (aParam.Level() != 0)
+      return EXIT_SUCCESS;
+
+   std::string aCom =
+	              Bin2007 + BLANK
+		  +   mSpecs.Name() + BLANK
+		  +  mInputDirTestMMVII + "Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh BenchMode=1";
+
+   // MMVII  0_MeshProjImage ../MMVII-TestDir/Input/Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh BenchMode=1
+   GlobSysCall(aCom);
+
+    return EXIT_SUCCESS;
+}
+
 
 void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
 {
@@ -198,7 +237,7 @@ void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
            aIm.SetRGBPix(aPix,aCoul);
    }
 
-   aIm.ToFile(mDirMeshDev+"Dev-"+LastPrefix(mNameIm)+".tif");
+   aIm.ToFile(mDirMeshDev+"Dev-"+LastPrefix(mNameSingleIm)+".tif");
 }
 
 void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
@@ -207,11 +246,12 @@ void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
     const cGraphDual &  aGrD = mTri3D->DualGr() ;
 
     bool  GoOn = true;
-    while (GoOn)
+    while (GoOn)  // continue as long as we made a modification
     {
         GoOn = false;
         for (size_t aKF1 = 0 ; aKF1<mTri3D->NbFace() ; aKF1++)
         {
+            // check if a NoPix face has a neigboor visible or likely
             if (aZB.ResSurfD(aKF1).mResult == eZBufRes::NoPix)
             {
                 std::vector<int> aVF2;
@@ -233,7 +273,12 @@ void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
 
 std::string  cAppliProMeshImage::NameResult(const std::string & aNameIm) const
 {
-   return  mDirMeshDev +  "TabResolTri-" + aNameIm  + ".dmp";
+   std::string aName =  "TabResolTri-" + aNameIm  + ".dmp";
+   aName = (mIsInBenchMode ? MMVII_PrefRefBench  : mPhProj.OriIn())  + aName;
+
+   //std::cout << "NNNNNNNNNNN " << aName  << " [" << <<"]\n";
+
+   return  mDirMeshDev   +  aName;
 }
 
 void cAppliProMeshImage:: MergeResults()
@@ -267,9 +312,36 @@ void cAppliProMeshImage:: MergeResults()
 	   }
 	}
     }
+
+
+    // double aSumSurf = 0.0;
+    // double aSomWResol = 0.0;
+    cWeightAv<tREAL8>  aWAvg;
+    for (size_t aKF=0 ; aKF<aNbF ; aKF++)
+    {
+        aWAvg.Add(mTri3D->KthTri(aKF).Area(),aMBI.mBestResol.at(aKF) );
+    }
+    aMBI.mAvgResol= aWAvg.Average();
+
     delete mTri3D;
 
-    SaveInFile(aMBI,mDirMeshDev+MeshDev_NameTriResol);
+    if (mIsInBenchMode)
+    {
+       cMeshDev_BestIm aRef;
+       ReadFromFile(aRef,mDirMeshDev+MMVII_PrefRefBench+MeshDev_NameTriResol);
+
+       MMVII_INTERNAL_ASSERT_bench(aRef.mNumBestIm.size()==aMBI.mNumBestIm.size(),"size dif in bench projmesh");
+
+       for (size_t aK=0 ; aK<aMBI.mNumBestIm.size() ; aK++)
+       {
+           MMVII_INTERNAL_ASSERT_bench(aRef.mNumBestIm.at(aK)==aMBI.mNumBestIm.at(aK),"best-im dif in bench projmesh");
+       }
+       MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aRef.mAvgResol,aMBI.mAvgResol)<1e-5,"relative avg in bench projmesh");
+    }
+    else
+    {
+        SaveInFile(aMBI,mDirMeshDev+mPhProj.OriIn()+MeshDev_NameTriResol);
+    }
 }
 
 int cAppliProMeshImage::Exe() 
@@ -287,23 +359,24 @@ int cAppliProMeshImage::Exe()
       int aResult =  ResultMultiSet();
 
       MergeResults();
-	
 
       return aResult;
    }
 
+   // if there is a single file in a xml set of file, the subst has not been made ...
+   mNameSingleIm = FileOfPath(VectMainSet(0).at(0),false);
    // By default  SKE true with multiple file (i.e. we are recalled) but false with single file (why else run it)
    SetIfNotInit(mSKE,LevelCall()!=0);
-   mNameResult = NameResult(mNameIm);
+   mNameResult = NameResult(mNameSingleIm);
 
-   if (mSKE && ExistFile(mNameResult))
+   if (  (!mIsInBenchMode) && (mSKE && ExistFile(mNameResult)) )
       return EXIT_SUCCESS;
 
    mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
 
    cMeshTri3DIterator  aTriIt(mTri3D);
 
-   mCamPC = mPhProj.AllocCamPC(mNameIm,true);
+   mCamPC = mPhProj.AllocCamPC(mNameSingleIm,true);
    cSIMap_Ground2ImageAndProf aMapCamDepth(mCamPC);
 
    cSetVisibility aSetVis(mCamPC);
@@ -321,11 +394,8 @@ int cAppliProMeshImage::Exe()
    ProcessNoPix(aZBuf);
 
 
-   // if (mDoImage)
-      //aZBuf.ZBufIm().DIm().ToFile(mDirMeshDev+ "ZBuf-"+ mNameIm);
-   // aIm.ToFile(mDirMeshDev+"Dev-"+LastPrefix(mNameIm)+".tif");
    if (mDoImages)
-      aZBuf.ZBufIm().DIm().ToFile(mDirMeshDev+"ZBuf-"+LastPrefix(mNameIm)+".tif");
+      aZBuf.ZBufIm().DIm().ToFile(mDirMeshDev+"ZBuf-"+LastPrefix(mNameSingleIm)+".tif");
 
 
    if (IsInit(&mNameCloud2DIn))
@@ -333,7 +403,24 @@ int cAppliProMeshImage::Exe()
       MakeDevlptIm(aZBuf);
    }
 
-   SaveInFile(aZBuf.VecResSurfD(),mNameResult);
+   if (mIsInBenchMode)
+   {
+      std::vector<cResModeSurfD> aRef;
+      ReadFromFile(aRef,mNameResult);
+      const std::vector<cResModeSurfD> & aVRSD = aZBuf.VecResSurfD();
+
+      MMVII_INTERNAL_ASSERT_bench(aRef.size()==aVRSD.size(),"size dif in bench projmesh");
+
+      for (size_t aK=0 ; aK<aVRSD.size() ; aK++)
+      {
+         MMVII_INTERNAL_ASSERT_bench(aRef.at(aK).mResult ==aVRSD.at(aK).mResult,"result dif in bench projmesh");
+         MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aRef.at(aK).mResol,aVRSD.at(aK).mResol)<1e-5,"resol dif in bench projmesh");
+      }
+   }
+   else
+   {
+       SaveInFile(aZBuf.VecResSurfD(),mNameResult);
+   }
 
    delete mTri3D;
    return EXIT_SUCCESS;
@@ -352,7 +439,7 @@ cSpecMMVII_Appli  TheSpecProMeshImage
 (
      "0_MeshProjImage",
       Alloc_ProMeshImage,
-      "(internal) Project a mes on an image",
+      "(internal) Project a mes on an image to prepare devlopment",
       {eApF::Cloud},
       {eApDT::Ply,eApDT::Orient},
       {eApDT::FileSys},

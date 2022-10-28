@@ -43,6 +43,7 @@ extern const std::string GIP_LevCall;     ///< Level of MMVII call
 extern const std::string GIP_ShowAll;     ///< Show a lot of intermediary steps
 extern const std::string GIP_PGMA;     ///< Prefix Global Main Appli
 extern const std::string GIP_DirProjGMA;     ///< Dir Proj of Global Main Application
+extern const std::string GIP_BenchMode;     ///< For command who have a bench mode
 
 
 // Folders
@@ -81,6 +82,7 @@ const   std::string & StdPostF_ArMMVII(bool xml); ///< one of 2 above
 
 extern const   std::string MMVII_NONE;  ///< For command, each time a "no value" can be used
 extern const   std::string MMVII_StdDest;  ///< For destination parameter (TieP ...) , def value
+extern const   std::string MMVII_PrefRefBench; ///< Prefix for file used as reference in bench
 
  /*=====================================================*/
  /*                                                     */

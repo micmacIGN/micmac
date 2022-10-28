@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<MMVII_Serialization>
+   <Name>"Calib-PerspCentral-Foc-14000_Cam-DCGX9"</Name>
+   <PixelFrame>
+      <NbPix>5184 3888</NbPix>
+   </PixelFrame>
+   <Projection>"Stenope"</Projection>
+   <Auxiliary>
+      <SzBuffer>-1</SzBuffer>
+      <Degree>3 1 1</Degree>
+      <DegreeApproxInv>3 1 1</DegreeApproxInv>
+   </Auxiliary>
+   <PerfectProj>
+      <F>4408.43161788941</F>
+      <PP>2570.71917851253 1900.56616414677</PP>
+   </PerfectProj>
+   <Distorsion>
+      <Radial>
+         <K1>-0.0624802923050587</K1>  <!--(X,Y) * (X^2+Y^2)-->
+         <K2>0.046110292348372</K2>  <!--(X,Y) * (X^2+Y^2)^2-->
+         <K3>-0.0231468711545528</K3>  <!--(X,Y) * (X^2+Y^2)^3-->
+      </Radial>
+      <Decentric>
+         <p1>-0.00186322829093519</p1>  <!--(3X2+Y2,2XY)-->
+         <p2>-0.00291238984726251</p2>  <!--(2XY,X2+3Y2)-->
+      </Decentric>
+      <Polynomial>
+         <b1>3.93791114039116e-05</b1>  <!--(X,0)-->
+         <b2>-3.97720561144428e-05</b2>  <!--(Y,0)-->
+      </Polynomial>
+   </Distorsion>
+   <Informations>
+      <Nb>1</Nb>
+      <el>"Converted from MMV1"</el>
+   </Informations>
+</MMVII_Serialization>

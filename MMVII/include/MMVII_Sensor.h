@@ -157,6 +157,8 @@ class cPhotogrammetricProject
 	  // {return  AOpt2007(mOriIn ,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input });}
           tPtrArg2007  OriInOpt() ;  ///< Input Orientation as optional paramaters
 	  
+
+          const std::string & OriIn() const; ///< accessor
 	  ///< constructor will memorize application
           cPhotogrammetricProject(cMMVII_Appli &);
 

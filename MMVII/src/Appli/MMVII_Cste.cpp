@@ -64,6 +64,7 @@ const std::string GIP_LevCall = "LevCall";
 const std::string GIP_ShowAll = "ShowAll";
 const std::string GIP_PGMA = "PrefixGMA";
 const std::string GIP_DirProjGMA = "DirGMA";
+const std::string GIP_BenchMode = "BenchMode";
 
 
 #if (THE_MACRO_MMVII_SYS == MMVII_SYS_L)
@@ -75,6 +76,7 @@ const std::string  Bin2007 = "MMVII";
 // User/Command
 const   std::string MMVII_NONE = "NONE";
 const   std::string MMVII_StdDest = "STD";
+const   std::string MMVII_PrefRefBench = "RefBench-";
 
 // PostFix 4 files
 const   std::string PostF_XmlFiles  = "xml";

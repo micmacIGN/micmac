@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<MMVII_Serialization>
+   <NameImage>"P1056161.JPG"</NameImage>
+   <NameInternalCalib>"Calib-PerspCentral-Foc-14000_Cam-DCGX9"</NameInternalCalib>
+   <Center>-0.714496611241126 -0.258443179584421 0.414966368394388</Center>
+   <RotMatrix>
+      <AxeI>0.0221396694368138 -0.999506078310199 -0.0223032387377963</AxeI>
+      <AxeJ>-0.730867919585156 -0.000959280440456421 -0.682518251699032</AxeJ>
+      <AxeK>0.682159746070152 0.0314114501735129 -0.730528166219142</AxeK>
+   </RotMatrix>
+   <EQ>-0.269560857125629 0.662122933467874 -0.653343174821217 0.249144257802834</EQ>  <!--EigenQuaternion, for information-->
+   <WPK>-177.537896986867 43.012644618794 88.2649097143864</WPK>  <!--Omega Phi Kapa in degree, for information-->
+   <YPR>-88.7310710334094 1.27798741658313 -136.945942962457</YPR>  <!--Yaw Pitch Roll in degree, for information-->
+</MMVII_Serialization>

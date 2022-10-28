@@ -11,8 +11,8 @@ class cMeshDev_BestIm
     public :
        std::vector<std::string> mNames;
        std::vector<int>         mNumBestIm;
+       double                   mAvgResol;
        std::vector<double>      mBestResol;
-
 };
 
 //void AddData(cAuxAr2007  anAux,cMeshDev_BestIm& aRMS);

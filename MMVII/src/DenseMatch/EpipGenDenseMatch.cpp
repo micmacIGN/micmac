@@ -924,6 +924,7 @@ cAppliBenchAnswer cAppli::BenchAnswer() const
 
 int  cAppli::ExecuteBench(cParamExeBench & aParam) 
 {
+   MMVII_WARGNING("cAppli::ExecuteBenc to correct");
    // As it is quite long and not randomized, dont do it each time
    if (aParam.Level() != 3) 
       return EXIT_SUCCESS;
