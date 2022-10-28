@@ -1364,7 +1364,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                mCom  =    mCom + " +UseEnvMNTInit=true"
                                +  std::string(" +EnvZInf=") + aEnvZInf
                                +  std::string(" +EnvZSup=") + aEnvZSup;
-           }
+           }else{
+	     mCom = mCom +" +UseEnvMNTInit=false"
+	       +  std::string(" +EnvZInf=")
+	       +  std::string(" +EnvZSup=");
+	   }
       }
 
       if (EAMIsInit(&aBoxTerrain))
