@@ -1562,225 +1562,29 @@ void cSolGlobInit_NRandom::WriteGraphToFile()
   End cSolGlobInit_NRandom
 *******************************/
 
-/******************************
-  Start cAppliGenOptTriplets
-*******************************/
 
-cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
-    mSigma(0),
-    mRatioOutlier(0),
-    TheRandUnif(new RandUnifQuick(100))
+////////////////////////// Mains //////////////////////////
 
+class RandUnifQuick2
 {
-    /*std::set<double> RandSet; //:
-      RandSet.insert(1.0);
-      RandSet.insert(1.0);
-      RandSet.insert(2.0);
-      std::cout << RandSet.size() << "\n";
-      getchar();
-      for (int i=0; i<100000; i++)
-      {
-      double rndNo = TheRandUnif->Unif_0_1();
-      RandSet.insert(rndNo);
-      }
-      std::cout << RandSet.size() << "\n";
-      getchar();*/
+    public:
+        RandUnifQuick2(int Seed);
+        double Unif_0_1();
+        ~RandUnifQuick2() {}
 
-    NRrandom3InitOfTime();
+    private:
+        std::mt19937                     mGen;
+        std::uniform_real_distribution<> mDis01;
 
-    std::string aDir;
-    bool aModeBin = true;
-
-    ElInitArgMain
-        (
-         argc,argv,
-         LArgMain() << EAMC(mFullPat,"Pattern of images")
-                    << EAMC(InOri,"InOri that wil serve to build perfect triplets"),
-         LArgMain() << EAM(mSigma,"Sigma",true,"Sigma of the added noise, Def=0 no noise added")
-                    << EAM(mRatioOutlier,"Ratio","Good to bad triplet ratio (outliers), Def=0")
-                    << EAM(aModeBin,"Bin",true,"Binaries file, def = true",eSAM_IsBool)
-                    << ArgCMA()
-        );
-
-    mEASF.Init(mFullPat);
-    mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mNameOriCalib,"dat");
-    //const cInterfChantierNameManipulateur::tSet * aVIm = mEASF.SetIm();
-
-    StdCorrecNameOrient(mNameOriCalib,aDir);
-    StdCorrecNameOrient(InOri,aDir);
-
-    cXml_TopoTriplet aXml3 =  StdGetFromSI(mNM->NameTopoTriplet(true),Xml_TopoTriplet);
-    mNbTri = int(aXml3.Triplets().size());
-
-
-    // Identify a set of random triplets that will become outliers
-    std::set<int> aOutlierList;
-    if (mRatioOutlier>0) {
-        int aNbOutliers = std::floor(mRatioOutlier * mNbTri);
-        for (int aK=0; aK<aNbOutliers; aK++) {
-            aOutlierList.insert(NRrandom3(mNbTri-1));
-        }
-    }
-
-    // Save the triplets and perturb with outliers if asked
-    int aK=0;
-    for (auto it3 : aXml3.Triplets()) {
-        bool Ok;
-        std::pair<ElRotation3D,ElRotation3D> aPair =
-            mNM->OriRelTripletFromExisting(
-                                           InOri,
-                                           it3.Name1(),
-                                           it3.Name2(),
-                                           it3.Name3(),
-                                           Ok);
-
-        std::string aNameSauveXml =
-            mNM->NameOriOptimTriplet(false,
-                                     it3.Name1(),
-                                     it3.Name2(),
-                                     it3.Name3(),
-                                     false);
-        std::string aNameSauveBin =
-            mNM->NameOriOptimTriplet(true,
-                                     it3.Name1(),
-                                     it3.Name2(),
-                                     it3.Name3(),
-                                     false);
-
-        cXml_Ori3ImInit aXml;
-        if (DicBoolFind(aOutlierList,aK)) {
-            aXml.Ori2On1() = El2Xml(
-                                    ElRotation3D(
-                                                 aPair.first.tr(),
-                                                 RandPeturbRGovindu(),
-                                                 true
-                                                 )
-                                   );
-            aXml.Ori3On1() = El2Xml(
-                                    ElRotation3D(
-                                                 aPair.second.tr(),
-                                                 RandPeturbRGovindu(),
-                                                 true
-                                                )
-                                   );
-            std::cout << "Perturbed R=[" << it3.Name1()
-                << ","   << it3.Name2()
-                << ","   << it3.Name3()
-                << "], " << aPair.first.tr()
-                << " "   << aPair.second.tr() << "\n";
-        } else {
-            aXml.Ori2On1() = El2Xml(
-                                    ElRotation3D(
-                                                 aPair.first.tr(),
-                                                 aPair.first.Mat(),
-                                                 true)
-                                   );
-            aXml.Ori3On1() = El2Xml(
-                                    ElRotation3D(
-                                                 aPair.second.tr(),
-                                                 aPair.second.Mat(),
-                                                 true)
-                                   );
-        }
-
-        MakeFileXML(aXml,aNameSauveXml);
-        MakeFileXML(aXml,aNameSauveBin);
-
-        aK++;
-    }
-}
-
-/* Kanatani : Geometric Computation for Machine Vision */
-ElMatrix<double> cAppliGenOptTriplets::w2R(double w[])
-{
-    ElMatrix<double> aRes(3,3,0);//identity
-    for (int i=0; i<3; i++)
-        aRes(i,i)=1.0;
-
-    double norm = sqrt(w[0]*w[0] + w[1]*w[1] + w[2]*w[2]);
-
-    if (norm>0)
-    {
-        w[0] /= norm;
-        w[1] /= norm;
-        w[2] /= norm;
-
-        double s = sin(norm);
-        double c = cos(norm);
-        double cc = 1-c;
-
-        aRes(0,0) = c+w[0]*w[0]*cc;  //c+n1*n1*cc
-        aRes(1,0) = w[0]*w[1]*cc+w[2]*s;//n12cc+n3s
-        aRes(2,0) = w[2]*w[0]*cc-w[1]*s;//n31cc-n2s
-
-        aRes(0,1) = w[0]*w[1]*cc-w[2]*s;//n12cc-n3s;
-        aRes(1,1) = c+w[1]*w[1]*cc;//c+n2*n2*cc;
-        aRes(2,1) = w[1]*w[2]*cc+w[0]*s;//n23cc+n1s;
-
-        aRes(0,2) = w[2]*w[0]*cc+w[1]*s;//n31cc+n2s;
-        aRes(1,2) = w[1]*w[2]*cc+w[0]*s;//n23cc-n1s;
-        aRes(2,2) = c+w[2]*w[2]*cc;//c+n3*n3*cc;
-
-    }
-
-    return aRes;
-
-}
-
-ElMatrix<double> cAppliGenOptTriplets::RandPeturbRGovindu()
-{
-    double aW[] = {100*PI*(TheRandUnif->Unif_0_1()-0.5)*2.0,
-        100*PI*(TheRandUnif->Unif_0_1()-0.5)*2.0,
-        100*PI*(TheRandUnif->Unif_0_1()-0.5)*2.0};
-
-    return w2R(aW);
-}
-
-ElMatrix<double> cAppliGenOptTriplets::RandPeturbR()
-{
-
-    double aW[] = {NRrandom3(),NRrandom3(),NRrandom3()};
-
-    Pt3dr aI(exp(0),exp(aW[2]),exp(-aW[1]));
-    Pt3dr aJ(exp(-aW[2]),exp(0),exp(aW[0]));
-    Pt3dr aK(exp(aW[1]),exp(-aW[0]),exp(0));
-
-    ElMatrix<double> aRes = MatFromCol(aI,aJ,aK);
-
-
-    return aRes;
-}
-
-/******************************
-  End cAppliGenOptTriplets
-*******************************/
-
-/******************************
-  Start RandUnifQuick
-*******************************/
-
-RandUnifQuick::RandUnifQuick(int Seed):
+};
+RandUnifQuick2::RandUnifQuick2(int Seed):
     mGen     (Seed),
     mDis01   (0.0,1.0)
 {}
 
-double RandUnifQuick::Unif_0_1()
+double RandUnifQuick2::Unif_0_1()
 {
     return mDis01(mGen);
-}
-
-/******************************
-  end RandUnifQuick
-*******************************/
-
-
-////////////////////////// Mains //////////////////////////
-
-int CPP_GenOptTriplets(int argc,char ** argv)
-{
-    cAppliGenOptTriplets aAppGenTri(argc,argv);
-
-    return EXIT_SUCCESS;
 }
 
 int TestFastTreeDist(int argc,char ** argv)
@@ -1788,7 +1592,7 @@ int TestFastTreeDist(int argc,char ** argv)
     int aNbSom=8;
     int aNbCC=1;
 
-    RandUnifQuick * TheRandUnif = new RandUnifQuick(100);
+    RandUnifQuick2 * TheRandUnif = new RandUnifQuick2(100);
 
     NS_MMVII_FastTreeDist::cOneBenchFastTreeDist aBFTD(aNbSom,aNbCC);
     aBFTD.MakeOneTest(true,true);

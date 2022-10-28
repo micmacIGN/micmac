@@ -21779,15 +21779,42 @@ const cXml_Elips3D & cXml_Ori3ImInit::Elips()const
    return mElips;
 }
 
-void  BinaryUnDumpFromFile(cXml_Ori3ImInit & anObj,ELISE_fp & aFp)
+bool& cXml_Ori3ImInit::IsGen() {
+    return generated;
+}
+
+const bool& cXml_Ori3ImInit::IsGen() const {
+    return generated;
+}
+
+int& cXml_Ori3ImInit::GenCat() {
+    return genCategory ;
+}
+
+const int& cXml_Ori3ImInit::GenCat() const {
+    return genCategory;
+}
+
+std::vector<double>& cXml_Ori3ImInit::Sigma() {
+    return sigma;
+}
+
+const std::vector<double>& cXml_Ori3ImInit::Sigma() const {
+    return sigma;
+}
+
+void BinaryUnDumpFromFile(cXml_Ori3ImInit & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.Ori2On1(),aFp);
+    BinaryUnDumpFromFile(anObj.Ori2On1(),aFp);
     BinaryUnDumpFromFile(anObj.Ori3On1(),aFp);
     BinaryUnDumpFromFile(anObj.NbTriplet(),aFp);
     BinaryUnDumpFromFile(anObj.ResiduTriplet(),aFp);
     BinaryUnDumpFromFile(anObj.BSurH(),aFp);
     BinaryUnDumpFromFile(anObj.PMed(),aFp);
     BinaryUnDumpFromFile(anObj.Elips(),aFp);
+    BinaryUnDumpFromFile(anObj.IsGen(),aFp);
+    BinaryUnDumpFromFile(anObj.GenCat(),aFp);
+    //BinaryUnDumpFromFile(anObj.Sigma(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Ori3ImInit & anObj)
@@ -21799,6 +21826,9 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Ori3ImInit & anObj)
     BinaryDumpInFile(aFp,anObj.BSurH());
     BinaryDumpInFile(aFp,anObj.PMed());
     BinaryDumpInFile(aFp,anObj.Elips());
+    BinaryDumpInFile(aFp,anObj.IsGen());
+    BinaryDumpInFile(aFp,anObj.GenCat());
+    BinaryDumpInFile(aFp,anObj.Sigma());
 }
 
 cElXMLTree * ToXMLTree(const cXml_Ori3ImInit & anObj)
@@ -21812,6 +21842,9 @@ cElXMLTree * ToXMLTree(const cXml_Ori3ImInit & anObj)
    aRes->AddFils(::ToXMLTree(std::string("BSurH"),anObj.BSurH())->ReTagThis("BSurH"));
    aRes->AddFils(::ToXMLTree(std::string("PMed"),anObj.PMed())->ReTagThis("PMed"));
    aRes->AddFils(ToXMLTree(anObj.Elips())->ReTagThis("Elips"));
+   aRes->AddFils(::ToXMLTree(std::string("IsGenerated"),anObj.IsGen())->ReTagThis("IsGenerated"));
+   aRes->AddFils(::ToXMLTree(std::string("GeneratedCategory"),anObj.GenCat())->ReTagThis("GeneratedCategory"));
+   aRes->AddFils(::ToXMLTree(std::string("Sigma"),anObj.Sigma())->ReTagThis("Sigma"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21835,6 +21868,10 @@ void xml_init(cXml_Ori3ImInit & anObj,cElXMLTree * aTree)
    xml_init(anObj.PMed(),aTree->Get("PMed",1)); //tototo 
 
    xml_init(anObj.Elips(),aTree->Get("Elips",1)); //tototo 
+
+   xml_init(anObj.IsGen(),aTree->Get("IsGenerated",1));
+   xml_init(anObj.GenCat(),aTree->Get("GeneratedCategory",1));
+   xml_init(anObj.Sigma(),aTree->Get("Sigma",1));
 }
 
 std::string  Mangling( cXml_Ori3ImInit *) {return "700099207B82559DFE3F";};
