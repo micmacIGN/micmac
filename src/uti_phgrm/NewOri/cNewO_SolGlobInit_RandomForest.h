@@ -38,14 +38,17 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include <sys/types.h>
 #include "NewOri.h"
 //#include "general/CMake_defines.h"
+#include <cstdint>
 #include <fstream>
 #include <locale>
 #include <map>
 #include <random>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 #include <array>
 
@@ -191,6 +194,12 @@ class cNOSolIn_Triplet {
     float CostArcMed() const { return mCostArcMed; }
     float& CostArcMed() { return mCostArcMed; }
 
+    double Residue() const { return mResidue; }
+    double& Residue() { return mResidue; }
+
+    double Dist() const { return mDistance; }
+    double& Dist() { return mDistance; }
+
     std::vector<double>& CostArcPerSample() { return mCostArcPerSample; };
     std::vector<double>& DistArcPerSample() { return mDistArcPerSample; };
 
@@ -213,6 +222,11 @@ class cNOSolIn_Triplet {
     tArcNSI* mArcs[3];
 
     tTriPointList mHomolPts;
+    //Stats
+    double mResidue;
+    double mDistance;
+
+    //End Stats
 
     float mCostArc;
     float mCostArcMed;
@@ -292,6 +306,7 @@ struct cNO_HeapIndTri_NSI {
 struct cNO_CmpTriByCost {
     bool operator()(cLinkTripl* aL1, cLinkTripl* aL2) {
         return (aL1->m3)->CostArcMed() < (aL2->m3)->CostArcMed();
+        //return (aL1->m3)->CostArc() < (aL2->m3)->CostArc();
     }
 };
 
@@ -463,7 +478,10 @@ std::vector<cNOSolIn_Triplet*>& aV3, int,
     void ShowTripletCostPerSample(Dataset& data);
 
     cNOSolIn_Triplet* GetBestTri();
+    cNOSolIn_Triplet* GetBestTri(Dataset& data);
     cLinkTripl* GetBestTriDyn();
+
+    void logTotalGraph(Dataset& data, std::string filename);
 
     void Save(Dataset& data, std::string& OriOut, bool SaveListOfName = false);
 
@@ -494,7 +512,13 @@ std::vector<cNOSolIn_Triplet*>& aV3, int,
 template<typename... T>
 class DataLog {
    public:
-    DataLog() {}
+    DataLog() {
+        hasHeader = false;
+    }
+    DataLog(std::array<std::string, sizeof...(T)> i) {
+        header = i;
+        hasHeader = true;
+    }
 
     void add(std::tuple<T...> e) {
         data.push_back(e);
@@ -503,15 +527,23 @@ class DataLog {
     void write(std::string filename)
     {
         std::ofstream f(filename, std::ios::out);
+        if (hasHeader) {
+            for (auto a : header) {
+                f << a << ",";
+            }
+            f << std::endl;
+        }
         for (auto& e : data) {
             print(f, e);
             f << std::endl;
         }
     }
 
-
    private:
+    bool hasHeader;
+    std::array<std::string, sizeof...(T)> header;
     std::vector<std::tuple<T...>> data;
+
     template<typename S, std::size_t I = 0, typename... Tp>
         inline typename std::enable_if<I == sizeof...(Tp), void>::type
         print(S& s, std::tuple<Tp...>& t)
@@ -521,13 +553,19 @@ class DataLog {
         inline typename std::enable_if<I < sizeof...(Tp), void>::type
         print(S& s,std::tuple<Tp...>& t)
         {
-            s << std::to_string(std::get<I>(t)) << ",";
+            s << to_string(std::get<I>(t)) << ",";
             print<S, I + 1, Tp...>(s, t);
         }
 
+    template<typename A>
+    std::string to_string(A& t) {
+        return std::to_string(t);
+    }
+    std::string to_string(std::string& t) {
+        return t;
+    }
 
 };
-
 
 #ifdef GRAPHVIZ_ENABLED
 
@@ -535,7 +573,17 @@ class DataLog {
 
 class GraphViz {
    public:
-    GraphViz() { g = agopen((char*)"g", Agundirected, 0); }
+    Pt3dr offset;
+    GraphViz() {
+        g = agopen((char*)"g", Agundirected, 0);
+        tripG = agsubg(g, (char*)"triplets", 1);
+        nG = agsubg(g, (char*)"views", 1);
+        tnG = agsubg(g, (char*)"triplets_views", 1);
+        agsafeset(g, (char*)"component", (char*)"true", "");
+        //agattr(g,AGNODE,(char*)"component", (char*)"True");
+
+        //offset.z = 10;
+    }
     ~GraphViz() { agclose(g); }
 
     void write(const std::string aFName) {
@@ -546,27 +594,66 @@ class GraphViz {
 
     void addTriplet(cNOSolIn_Triplet& node) {
         node_t* n[3];
+        std::string names[] = {node.KSom(0)->attr().Im()->Name(),
+                             node.KSom(1)->attr().Im()->Name(),
+                             node.KSom(2)->attr().Im()->Name()};
+        std::string triplet_name = std::to_string(node.NumId());
+
+        node_t* triplet = agnode(tripG, (char*)triplet_name.c_str(), 0);
+        if (!triplet) { //Triplet Id don't exist
+            triplet = agnode(tripG, (char*)triplet_name.c_str(), 1);
+        }
+        Pt3dr center;
         for (int i = 0; i < 3; i++) {
-            n[i] = agnode(g, (char*)node.KSom(i)->attr().Im()->Name().c_str(), 0);
+            n[i] = agnode(nG, (char*)names[i].c_str(), 0);
+            auto tr = node.KSom(i)->attr().CurRot().tr();
             if (!n[i]) { //Node don't exist so create and make it position
                 n[i] =
-                    agnode(g, (char*)node.KSom(i)->attr().Im()->Name().c_str(), 1);
-                auto tr = node.KSom(i)->attr().CurRot().tr();
+                    agnode(nG, (char*)names[i].c_str(), 1);
                 std::string pos = "" +
                     std::to_string(tr.x) + "," +
                     std::to_string(tr.y) + "," +
-                    std::to_string(tr.z) + "!";
+                    std::to_string(tr.z);
                 agsafeset(n[i], (char*)"pos", (char*)pos.c_str(), "");
-                agsafeset(n[i], (char*)"label", (char*)std::to_string(node.KSom(i)->attr().NumId()).c_str(), "");
+                //agsafeset(n[i], (char*)"label", (char*)std::to_string(node.KSom(i)->attr().NumId()).c_str(), "");
+                agsafeset(n[i], (char*)"label", (char*)std::to_string(node.NumTT()).c_str(), "");
+            }
+            center = center + tr;
+        }
+        center = center / 3;
+        center = center + offset;
+        std::string pos = "" + std::to_string(center.x) + "," +
+                          std::to_string(center.y) + "," +
+                          std::to_string(center.z);
+        agsafeset(triplet, (char*)"pos", (char*)pos.c_str(), "");
+        agsafeset(triplet, (char*)"label", (char*)triplet_name.c_str(), "");
+
+        //Edge triplet to triplet
+        for (uint8_t i = 0; i < 3; i++) {
+            auto ltrip = node.KSom(i)->attr().Lnk3();
+            for (auto lt : ltrip) {
+                std::string triplet_name2 = std::to_string(lt.m3->NumId());
+                node_t* t = agnode(tripG, (char*)triplet_name2.c_str(), 0);
+                if (t)
+                    agedge(tripG, triplet, t, 0, 1);
             }
         }
 
+        //Edge view to view
         edge_t* e[3] = {
-            agedge(g, n[0], n[1], 0, 1),
-            agedge(g, n[2], n[1], 0, 1),
-            agedge(g, n[2], n[0], 0, 1)
+            agedge(nG, n[0], n[1], 0, 1),
+            agedge(nG, n[2], n[1], 0, 1),
+            agedge(nG, n[2], n[0], 0, 1)
+        };
+
+        //Edge triplet to view
+        edge_t* te[3] = {
+            agedge(tnG, triplet, n[0], 0, 1),
+            agedge(tnG, triplet, n[1], 0, 1),
+            agedge(tnG, triplet, n[2], 0, 1),
         };
         (void)e;
+        (void)te;
 
         for (int i = 0; i < 3; i++) {
             agsafeset(e[i], (char*)"weight", (char*)std::to_string(node.CostArc()).c_str(), "");
@@ -683,6 +770,9 @@ class GraphViz {
 
    private:
     graph_t* g;
+    graph_t* tripG;
+    graph_t* nG;
+    graph_t* tnG;
 };
 #else
 class GraphViz {

@@ -40,16 +40,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cNewO_SolGlobInit_RandomForest.h"
 #include <math.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <iterator>
+#include <list>
+#include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "ext_stl/numeric.h"
 #include "general/bitm.h"
 #include "general/exemple_basculement.h"
 #include "general/opt_debug.h"
@@ -106,22 +111,27 @@ cNOSolIn_Triplet::cNOSolIn_Triplet(RandomForest* anAppli,
     mSoms[1] = aS2;
     mSoms[2] = aS3;
     residue = aTrip.ResiduTriplet();
-    std::cout << residue << std::endl;
 }
 
 static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
     double value = 0;
+    double number = 0;
     std::cout << triplet->getHomolPts().size() << std::endl;
     double residues[3] = {};
     double n_res[3] = {0};
     for (uint i = 0; i < 3; i++) {
         auto r = triplet->KSom(i)->attr().CurRot().inv();
+        /*
         std::cout
             << r.Mat()(0,0) << " " << r.Mat()(1,0) << " " << r.Mat()(2,0) << std::endl
             << r.Mat()(0,1) << " " << r.Mat()(1,1) << " " << r.Mat()(2,1) << std::endl
             << r.Mat()(0,2) << " " << r.Mat()(1,2) << " " << r.Mat()(2,2) << std::endl
             << r.tr() << std::endl;
-        std::cout << "-----------------" << std::endl;
+        std::cout << "-----------------" << std::endl;*/
+    }
+
+    if (!triplet->getHomolPts().size()) {
+        return std::numeric_limits<double>::max();
     }
 
     for (auto& pts : triplet->getHomolPts()) {
@@ -135,35 +145,47 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
         }
         bool ISOK = false;
         Pt3dr aInt = ElSeg3D::L2InterFaisceaux(0, aVSeg, &ISOK);
-        std::cout << "3D Intersection: " << aInt << std::endl;
-
+        //std::cout << "3D Intersection: " << aInt << std::endl;
+        bool visible = true;
+        for (int i = 0; i < 3; i++) {
+            visible = visible && triplet->KSom(i)->attr().Im()->CS()->PIsVisibleInImage(aInt);
+        }
         double residu_pts = 0;
         uint n_residu = 0;
-        for (int i = 0; i < 3; i++) {
-            if (!pts[i].x && !pts[i].y)
-                continue;
-            n_residu++;
+        if (visible) {
+            for (int i = 0; i < 3; i++) {
+                if (!pts[i].x && !pts[i].y)
+                    continue;
+                n_residu++;
 
-            triplet->KSom(i)->attr().Im()->CS()->SetOrientation(triplet->KSom(i)->attr().CurRot().inv());
-            Pt2dr pts_proj = triplet->KSom(i)->attr().Im()->CS()->Ter2Capteur(aInt);
-            auto a = euclid(pts[i], pts_proj);
-            std::cout
-                << "Input point: " << pts[i] << " Output point: " << pts_proj
-                << " Res: " << a
-                << std::endl;
-            residues[i] += a;
-            n_res[i]++;
-            residu_pts += a;
+                triplet->KSom(i)->attr().Im()->CS()->SetOrientation(triplet->KSom(i)->attr().CurRot().inv());
+                Pt2dr pts_proj = triplet->KSom(i)->attr().Im()->CS()->Ter2Capteur(aInt);
+                auto a = euclid(pts[i], pts_proj);
+                /*std::cout
+                  << "Input point: " << pts[i] << " Output point: " << pts_proj
+                  << " Res: " << a
+                  << std::endl;*/
+                residues[i] += a;
+                n_res[i]++;
+                residu_pts += a;
+            }
+        } else {
+            //TODO get max size of image
+            residu_pts = 5120;
+            n_residu = 1;
         }
+
         value += residu_pts/n_residu;
+        number += 1;
     }
+    /*
     for (int i = 0; i < 3; i++) {
         std::cout << "Image: " << triplet->KSom(i)->attr().Im()->Name()
             << " Res: " << residues[i]/n_res[i] << std::endl;
-    }
-    value /= triplet->getHomolPts().size();
+    }*/
+    value /= number;
     cout.precision(12);
-    std::cout << "Residu for triplet: " << value  << "  " << triplet->residue << std::endl;
+    //std::cout << "Residu for triplet: " << value  << "  " << triplet->residue << std::endl;
     return value;
 }
 
@@ -175,7 +197,7 @@ double cNOSolIn_Triplet::ProjTest() const {
         aVRAbs.push_back(mSoms[aK]->attr().CurRot());
     }
     double res = computeResiduFromPos(this);
-    std::cout << "--- Residu: " << res << std::endl;
+    //std::cout << "--- Residu: " << res << std::endl;
     return res;
 }
 
@@ -557,7 +579,13 @@ void RandomForest::loadHomol(cNOSolIn_Triplet* aTriplet, tTriPointList& aLst) {
             aLst.push_back({e->GetVal(0), e->GetVal(1), e->GetVal(2)});
         }
     }
-    ELISE_ASSERT(aLst.size() > 0, "Homol points empty for triplet");
+    if (aLst.size() == 0)
+        std::cout << "No tie point for Triplet["
+            << aTriplet->KSom(0)->attr().Im()->Name() << ","
+            << aTriplet->KSom(1)->attr().Im()->Name() << ","
+            << aTriplet->KSom(2)->attr().Im()->Name()
+            << "]" << std::endl;
+    //ELISE_ASSERT(aLst.size() > 0, "Homol points empty for triplet");
 }
 
 void RandomForest::loadDataset(Dataset& data) {
@@ -643,7 +671,23 @@ cLinkTripl* RandomForest::GetBestTriDyn() {
     return 0;
 }
 
-cNOSolIn_Triplet* RandomForest::GetBestTri() {
+cNOSolIn_Triplet* RandomForest::GetBestTri(Dataset& data) {
+    /*std::list<cNOSolIn_Triplet*> ordered(data.mV3.begin(), data.mV3.end());
+    std::map<cNOSolIn_Triplet*, double> scores;
+    for (auto a : ordered) {
+        double score = 0;
+        for (uint8_t i = 0; i < 3; i++) {
+            //score += a->KSom(i)->attr().Lnk3().size();
+            score += a->KArc(i)->attr().ASym()->NumArc();
+        }
+        scores[a] = score/3.;
+    }
+    ordered.sort([&scores](cNOSolIn_Triplet* a, cNOSolIn_Triplet* b){
+                return scores[a] > scores[b];
+                });
+    return ordered.front();*/
+
+     //Old Version
     cNOSolIn_Triplet* aLnk;
     if (mHeapTriAll.pop(aLnk)) return aLnk;
 
@@ -957,17 +1001,16 @@ void RandomForest::AddTriOnHeap(Dataset& data, cLinkTripl* aLnk) {
 void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     int NbSomCC = int(aCC->mSoms.size());
     GraphViz g;
-    DataLog<int, double, double> log;
+    DataLog<int, double, double> log({"Id", "Distance", "Residue"});
 
     // Pick the  triplet
-    cNOSolIn_Triplet* aTri0 = GetBestTri();//TODO tirer toujours le meme triplet
-                                           //de depart pour debug
+    cNOSolIn_Triplet* aTri0 = GetBestTri(data);
     std::cout << "Best triplet " << aTri0->KSom(0)->attr().Im()->Name() << " "
               << aTri0->KSom(1)->attr().Im()->Name() << " "
               << aTri0->KSom(2)->attr().Im()->Name() << " " << aTri0->CostArc()
               << "\n";
 
-    log.add({aTri0->NumId(), 0., aTri0->CostArc()});
+    log.add({aTri0->NumId(), 0., aTri0->CostArcMed()});
 
     // Flag triplet as marked
     aTri0->Flag().set_kth_true(data.mFlag3CC);
@@ -1016,7 +1059,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
             // Tree Dist util
             aTriNext->S3()->attr().NumId() = aTriNext->m3->NumId();
 
-            log.add({aTriNext->m3->NumId(), aTriNext->m3->NumTT(), aTriNext->m3->CostArc()});
+            log.add({aTriNext->m3->NumId(), aTriNext->m3->NumTT(), aTriNext->m3->CostArcMed()});
 
             /*PrintRotation(aTriNext->S1()->attr().CurRot().Mat(),"0");
               PrintRotation(aTriNext->S2()->attr().CurRot().Mat(),"1");
@@ -1095,7 +1138,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
     int TriSeedId) {
     std::cout << "Nb of sommets" << NbSom << " seed=" << TriSeedId << "\n";
 
-    DataLog<int, double, double> log;
+    DataLog<int, double, double> log({"Id", "Distance", "Residue"});
 
     // ==== Fast Tree Distance ===
     std::vector<int> aFTV1;
@@ -1197,8 +1240,8 @@ void RandomForest::CoherTripletsGraphBasedV2(
         center2 = center2 + currentTriplet->KSom(2)->attr().CurRot().tr();
         center2 = center2 / 3.;
 
-        double aDistAl = square_euclid(center2, center);
-        std::cout << "Distance euclid: " << aDistAl << std::endl;
+        //double aDistAl = square_euclid(center2, center);
+        //std::cout << "Distance euclid: " << aDistAl << std::endl;
 
         if (aDist < mDistThresh) {
             double aResidue = abs(currentTriplet->ProjTest());
@@ -1241,13 +1284,13 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 aV3[aT]->DistArcPerSample().push_back(aPds);
 
                 // Plot coherence vs sample vs distance
-                std::cout << "==PLOT== " << aCostCur * aPds << " " << aDist
-                          << " " << aPds << "\n";
+                //std::cout << "==PLOT== " << aCostCur * aPds << " " << aDist
+                 //         << " " << aPds << "\n";
             }
         }
     }
     static int n = 0;
-    log.write("graph/logs/run_"+ std::to_string(n++) + ".csv");
+    log.write("graph/logs/runs/run_"+ std::to_string(n++) + ".csv");
 }
 
 /* obsolete
@@ -1314,15 +1357,52 @@ void RandomForest::CoherTripletsAllSamples(Dataset& data) {
     }
 }
 
+double median(vector<double> &v)
+{
+    size_t n = v.size() / 2;
+    nth_element(v.begin(), v.begin()+n, v.end());
+    return v[n];
+}
+
+double findMedian(vector<double> a, int n) {
+    // If size of the arr[] is even
+    if (n % 2 == 0) {
+        // Applying nth_element
+        // on n/2th index
+        nth_element(a.begin(), a.begin() + n / 2., a.end());
+
+        // Applying nth_element
+        // on (n-1)/2 th index
+        nth_element(a.begin(), a.begin() + (n - 1) / 2, a.end());
+
+        // Find the average of value at
+        // index N/2 and (N-1)/2
+        return (double)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+    }
+
+    // If size of the arr[] is odd
+    else {
+        // Applying nth_element
+        // on n/2
+        nth_element(a.begin(), a.begin() + n / 2, a.end());
+
+        // Value at index (N/2)th
+        // is the median
+        return (double)a[n / 2];
+    }
+}
+
 /* Final incoherence computed as a weighted median
    - optionally takes into account only triplets with distance < threshold */
 void RandomForest::CoherTripletsAllSamplesMesPond(Dataset& data) {
     for (int aT = 0; aT < int(data.mV3.size()); aT++) {
         /* Weighted mean */
-        data.mV3[aT]->CostArc() = data.mV3[aT]->CostPdsSum() / data.mV3[aT]->PdsSum();
+        data.mV3[aT]->CostArc() =
+            data.mV3[aT]->CostPdsSum() / data.mV3[aT]->PdsSum();
 
         std::vector<Pt2df> aVCostPds;
-        for (int aS = 0; aS < int(data.mV3[aT]->CostArcPerSample().size()); aS++) {
+        for (int aS = 0; aS < int(data.mV3[aT]->CostArcPerSample().size());
+             aS++) {
             aVCostPds.push_back(Pt2df(data.mV3[aT]->CostArcPerSample()[aS],
                                       data.mV3[aT]->DistArcPerSample()[aS]));
             // aVCostPds.push_back (Pt2df(mV3[aT]->CostArcPerSample()[aS], 0));
@@ -1335,9 +1415,8 @@ void RandomForest::CoherTripletsAllSamplesMesPond(Dataset& data) {
 
         /* Weighted median */
         if (aVCostPds.size())
-            data.mV3[aT]->CostArcMed() =
-                PropPond(aVCostPds, 0.1, 0);
-             //MedianPond(aVCostPds,0);
+            data.mV3[aT]->CostArcMed() = MedianeSup(data.mV3[aT]->CostArcPerSample());
+        // MedianPond(aVCostPds, 0);
     }
 }
 
@@ -1449,15 +1528,40 @@ void RandomForest::DoNRandomSol(Dataset& data) {
     // Create connected components
     NumeroteCC(data);
 
+    {
+        DataLog<std::string, std::string, std::string, std::string> log(
+            {"Id", "Image1", "Image2", "Image3"});
+        for (auto& trip : data.mV3) {
+            log.add({std::to_string(trip->NumId()),
+                     trip->KSom(0)->attr().Im()->Name(),
+                     trip->KSom(1)->attr().Im()->Name(),
+                     trip->KSom(2)->attr().Im()->Name()});
+        }
+        log.write("graph/logs/all.csv");
+    }
+
+    std::cout << "CREATE CC" << std::endl;
+
     // Build random inital solutions default 1000 ?
     for (int aIterCur = 0; aIterCur < mNbSamples; aIterCur++) {
         std::cout << "Iter=" << aIterCur << "\n";
         RandomSolAllCC(data);
     }
 
+    std::cout << "GENERATED Trees" << std::endl;
+
+    for (auto& t : data.mV3) {
+        DataLog<size_t, double, double> log({"Id", "Distance", "Residue"});
+        for (size_t i = 0; i < t->CostArcPerSample().size(); i++) {
+            log.add({i, t->DistArcPerSample()[i], t->CostArcPerSample()[i]});
+        }
+        log.write("graph/logs/triplets/" + std::to_string(t->NumId()) + ".csv");
+    }
+
     // Calculate median/mean incoherence scores of mNbSamples
     //CoherTripletsAllSamples(data);
     CoherTripletsAllSamplesMesPond(data);
+    std::cout << "Ponderate Trees" << std::endl;
 
     // Print the cost for all triplets
     ShowTripletCost(data);
@@ -1469,6 +1573,82 @@ void RandomForest::DoNRandomSol(Dataset& data) {
     GraphViz g;
     g.loadTotalGraph(data);
     g.write("graph/total.dot");
+    logTotalGraph(data, "graph/logs/total.csv");
+}
+void RandomForest::logTotalGraph(Dataset& data, std::string filename) {
+    DataTravel travel(data);
+    DataLog<int, double, double, double> log({"Id", "Distance", "Residue", "Cost"});
+    // Clear the sommets
+    travel.mVS.clear();
+    auto flag = data.mAllocFlag3.flag_alloc();
+
+    cNOSolIn_Triplet* aTri0 = data.mV3[0];
+
+    // initialise the starting node
+    double residue = 0;
+    for (auto a : aTri0->CostArcPerSample()) {
+        residue += a;
+    }
+    residue /= aTri0->CostArcPerSample().size();
+    double distance = 0;
+    for (auto a : aTri0->DistArcPerSample()) {
+        distance += a;
+    }
+    distance /= aTri0->DistArcPerSample().size();
+    log.add({aTri0->NumId(), distance, residue, aTri0->CostArcMed()});
+
+    std::vector<cNOSolIn_Triplet*> aCC3;
+    // Add first triplet
+    aCC3.push_back(aTri0);
+    aTri0->Flag().set_kth_true(flag);  // explored
+
+    unsigned aKCur = 0;
+    // Visit all sommets (not all triplets)
+    while (aKCur != aCC3.size()) {
+        cNOSolIn_Triplet* aTri1 = aCC3[aKCur];
+        // For each edge of the current triplet
+        for (int aKA = 0; aKA < 3; aKA++) {
+            // Get triplet adjacent to this edge and parse them
+            std::vector<cLinkTripl>& aLnk =
+                aTri1->KArc(aKA)->attr().ASym()->Lnk3();
+
+            for (unsigned aKL = 0; aKL < aLnk.size(); aKL++) {
+                // If not marked, mark it and push it in aCC3, return it was
+                // added
+                if (SetFlagAdd(aCC3, aLnk[aKL].m3, flag)) {
+                    // travel.mVS[aLnk[aKL].S3()->attr().Im()->Name()] =
+                    //    aLnk[aKL].S3();
+
+                    std::cout << aCC3.size() << "=["
+                              << aLnk[aKL].S1()->attr().Im()->Name();
+                    std::cout << "," << aLnk[aKL].S2()->attr().Im()->Name();
+                    std::cout << "," << aLnk[aKL].S3()->attr().Im()->Name()
+                              << "=====\n";
+                    double residue = 0;
+                    for (auto a : aLnk[aKL].m3->CostArcPerSample()) {
+                        residue += a;
+                    }
+                    residue /= aLnk[aKL].m3->CostArcPerSample().size();
+                    double distance = 0;
+                    for (auto a : aLnk[aKL].m3->DistArcPerSample()) {
+                        distance += a;
+                    }
+                    distance /= aLnk[aKL].m3->DistArcPerSample().size();
+
+                    log.add({aLnk[aKL].m3->NumId(), distance, residue, aLnk[aKL].m3->CostArcMed()});
+                }
+            }
+        }
+        aKCur++;
+    }
+
+    // Unflag all triplets do pursue with DFS
+    for (unsigned aK3 = 0; aK3 < data.mV3.size(); aK3++) {
+        data.mV3[aK3]->Flag().set_kth_false(flag);
+    }
+
+    data.mAllocFlag3.flag_free(flag);
+    log.write(filename);
 }
 
 /******************************
@@ -1483,7 +1663,9 @@ int CPP_SolGlobInit_RandomForest_main(int argc, char** argv) {
     std::cout << "INIT" << std::endl;
 
     Dataset data;
+    std::cout << "INIT Dataset" << std::endl;
     aSGI.loadDataset(data);
+    std::cout << "LOADED Dataset" << std::endl;
 
     aSGI.DoNRandomSol(data);
 
