@@ -1,0 +1,167 @@
+#ifndef  _MMVII_ZBUFFER_H_
+#define  _MMVII_ZBUFFER_H_
+
+#include "MMVII_AllClassDeclare.h"
+
+
+
+namespace MMVII
+{
+
+/**   This abstract class is used to decribe an object containing many triangles.
+ *
+ * In Z-Buffer, we can use an explicit mesh, but also an implicit one if we parse an image
+ * where each pixel is made from two triangle. This implicit class allow to maipulate the two
+ * object in the same interface (an avoid converting the pixels in hundred million of triangles ...)
+ */
+
+class  cTri3DIterator
+{
+     public :
+        virtual bool GetNextTri(cTri3dR &) = 0;
+        virtual bool GetNextPoint(cPt3dr &) = 0;
+        virtual void ResetTri()  = 0;
+        virtual void ResetPts()  = 0;
+
+        ///  Down cast
+        virtual cCountTri3DIterator * CastCount();
+
+        void ResetAll() ;
+     private :
+};
+
+/** in many case, the implementation can be done by counters */
+
+class cCountTri3DIterator : public cTri3DIterator
+{
+     public :
+        cCountTri3DIterator(size_t aNbP,size_t aNbF);
+
+        virtual cPt3dr  KthP(int aKP) const = 0;
+        virtual cTri3dR KthF(int aKF) const = 0;
+
+        bool GetNextTri(cTri3dR &) override;
+        bool GetNextPoint(cPt3dr &) override;
+        void ResetTri()  override;
+        void ResetPts()  override;
+        cCountTri3DIterator * CastCount() override;
+
+     private :
+        size_t  mNbP;
+        size_t  mNbF;
+        size_t  mIndexF;
+        size_t  mIndexP;
+};
+
+/** A mesh as counter triangle iterator */
+
+class cMeshTri3DIterator : public cCountTri3DIterator
+{
+     public :
+        cMeshTri3DIterator(cTriangulation3D<tREAL8> *);
+
+        cPt3dr  KthP(int aKP) const override;
+        cTri3dR KthF(int aKF) const override;
+     private :
+        cTriangulation3D<tREAL8> *  mTri;
+};
+
+/**  Enum for stories the state of a triangle after zbuffer computation */
+
+enum class eZBufRes
+           {
+              Undefined,      ///< to have some value to return when nothing is computed
+              UnRegIn,        ///< Un-Regular since input
+              OutIn,          ///< Out domain  since input (current ?)
+              UnRegOut,       ///< Un-Regular since output
+              OutOut,         ///< Out domain  since output (never )
+              BadOriented,    ///< Badly oriented
+              Hidden,         ///< Hidden by other
+              NoPix,          ///< When there is no pixel in triangle, decision har to do
+              LikelyVisible,  ///< Probably visible -> No Pixel but connected to visible
+              Visible         ///< Visible
+           };
+
+/**  Enum for stories the kind of computation to do inside a zbuffer */
+
+enum class eZBufModeIter
+           {
+               ProjInit,   ///< initial projection (compute Z Buffer itself)
+               SurfDevlpt  ///< computed visibility + resolution of visible tri
+           };
+
+/** Result for each triangle in surface devlpt */
+
+struct cResModeSurfD
+{
+    public :
+        eZBufRes mResult;
+        double   mResol   ;
+};
+void  AddData(const cAuxAr2007  &anAux,cResModeSurfD& aRMS ); ///< serialization
+
+
+class  cZBuffer
+{
+      public :
+
+          typedef tREAL4                            tElem;
+          typedef cDataIm2D<tElem>                  tDIm;
+          typedef cIm2D<tElem>                      tIm;
+          typedef cIm2D<tU_INT1>                    tImSign;
+          typedef cDataIm2D<tU_INT1>                tDImSign;
+
+          typedef cDataInvertibleMapping<tREAL8,3>  tMap;
+          typedef cDataBoundedSet<tREAL8,3>         tSet;
+
+          static constexpr tElem mInfty =  -1e10;
+
+          cZBuffer(cTri3DIterator & aMesh,const tSet & aSetIn,const tMap & aMap,const tSet & aSetOut,double aResolOut);
+
+          const cPt2di  SzPix() ; ///< Accessor
+          tIm   ZBufIm() const; ///< Accessor
+          eZBufRes MakeOneTri(const cTri3dR & aTriIn,const cTri3dR & aTriOut,eZBufModeIter aMode);
+
+
+          void MakeZBuf(eZBufModeIter aMode);
+          double ComputeResol(const cTri3dR & aTriIn ,const cTri3dR & aTriOut) const;
+
+          cResModeSurfD&  ResSurfD(size_t) ;
+          std::vector<cResModeSurfD> & VecResSurfD() ;
+          double  MaxRSD() const;
+
+      private :
+          cZBuffer(const cZBuffer & ) = delete;
+
+
+          cPt2dr  ToPix(const cPt3dr&) const;
+
+          bool                  mZF_SameOri; ///< Axe of Z (in out coord) and oriented surface have same orientation
+          int                   mMultZ;
+          cTri3DIterator &      mMesh;
+          cCountTri3DIterator * mCountMesh;
+          const tMap &          mMapI2O;
+          const tSet &          mSetIn;
+          const tSet &          mSetOut;
+          double                mResolOut;
+
+          cBox3dr          mBoxIn;     ///< Box in input space, not sure usefull, but ....
+          cBox3dr          mBoxOut;    ///< Box in output space, usefull for xy, not sure for z , but ...
+          cHomot2D<tREAL8> mROut2Pix;  ///<  Mapping Out Coord -> Pix Coord
+          tIm              mZBufIm;
+          tImSign          mImSign;   ///< sign of normal  1 or -1 , 0 if uninit
+          cPt2di           mSzPix;
+
+          double           mLastResSurfDev;
+          double           mMaxRSD;
+
+          std::vector<cResModeSurfD>  mResSurfD;
+};
+
+
+
+
+
+};
+
+#endif  //  _MMVII_ZBUFFER_H_

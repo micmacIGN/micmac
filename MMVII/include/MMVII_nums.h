@@ -114,6 +114,7 @@ bool SelectQAmongN(int aK,int aQ,int aN);
 
 /* ============ Definition of numerical type ================*/
 
+/*
 typedef float       tREAL4;
 typedef double      tREAL8;
 typedef long double tREAL16;
@@ -134,6 +135,7 @@ typedef unsigned long int tU_INT8;
 typedef int    tStdInt;  ///< "natural" int
 typedef unsigned int    tStdUInt;  ///< "natural" int
 typedef double tStdDouble;  ///< "natural" int
+*/
 
 /* ================= rounding  ======================= */
 

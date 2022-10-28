@@ -39,6 +39,29 @@ namespace MMVII
 
 enum class eTyUEr;
 
+typedef float       tREAL4;
+typedef double      tREAL8;
+typedef long double tREAL16;
+
+typedef signed char  tINT1;
+typedef signed short tINT2;
+typedef signed int   tINT4;
+typedef long int     tINT8;
+
+
+
+typedef unsigned char  tU_INT1;
+typedef unsigned short tU_INT2;
+typedef unsigned int   tU_INT4;
+typedef unsigned long int tU_INT8;
+
+
+typedef int    tStdInt;  ///< "natural" int
+typedef unsigned int    tStdUInt;  ///< "natural" int
+typedef double tStdDouble;  ///< "natural" int
+
+
+
 // MMVII_memory.h :  Memory
 
 class  cMemState; // Memory state
@@ -51,6 +74,16 @@ template<class Type> class cGestObjetEmpruntable;
 class cCarLookUpTable;
 class cMMVII_Ofs ;
 class cMMVII_Ifs ;
+class cMultipleOfs ;
+class cMMVII_Duration;
+class cSetIntDyn;
+class cSetIExtension;
+class cParamRansac;
+class cMMVII_Ifs;
+class cMMVII_Ofs;
+// cMultipleOfs& StdOut(); /// Call the ostream of cMMVII_Appli if exist (else std::cout)
+// cMultipleOfs& HelpOut();
+// cMultipleOfs& ErrOut();
 
 // MMVII_util_tpl.h
 
@@ -67,8 +100,32 @@ typedef cExtSet<tNamePair>          tNameRel;
 
 
 
-// MMVII_Ptxd.h
+//===================== MMVII_Ptxd.h ===========================
 template <class Type,const int Dim> class cPtxd;
+template <class Type,const int Dim> class cTplBox;
+
+    ///  1 dimension specializatio,
+typedef cPtxd<double,1>  cPt1dr ;
+typedef cPtxd<int,1>     cPt1di ;
+typedef cPtxd<float,1>   cPt1df ;
+
+    ///  2 dimension specialization
+typedef cPtxd<tREAL16,2> cPt2dLR ;
+typedef cPtxd<double,2>  cPt2dr ;
+typedef cPtxd<int,2>     cPt2di ;
+typedef cPtxd<float,2>   cPt2df ;
+    ///  3 dimension specialization
+typedef cPtxd<tREAL16,3> cPt3dLR ;
+typedef cPtxd<double,3>  cPt3dr ;
+typedef cPtxd<int,3>     cPt3di ;
+typedef cPtxd<float,3>   cPt3df ;
+
+typedef cTplBox<int,2>  cBox2di;
+typedef cTplBox<double,2>  cBox2dr;
+typedef cTplBox<int,3>  cBox3di;
+typedef cTplBox<double,3>  cBox3dr;
+
+
 
 // MMVII_Bench.h
 
@@ -116,6 +173,10 @@ template <class TypeObj,class TypeLayer>  class cLayer3D ;
 template <class Type> class  cDenseVect;
 
 template <class Type,const int Dim> class cTriangle ;
+typedef   cTriangle<tREAL8,2>  cTri2dR;
+typedef   cTriangle<tREAL8,3>  cTri3dR;
+
+
 
 // MMVII_Mappings.h
 template <class Type,const int Dim> class cDataBoundedSet ;
@@ -139,6 +200,16 @@ template <class Type> class cRotation3D;
 template <class Type> class cIsometrie3D;
 template <class Type> class cSimilitud3D;
 template <class Type> class cTriangulation3D;
+
+// MMVII_ZBuffer.h
+class cCountTri3DIterator ;
+class cCountTri3DIterator ;
+class cMeshTri3DIterator;
+enum class eZBufRes;
+enum class eZBufModeIter;
+struct cResModeSurfD;
+class  cZBuffer;
+
 
 
 
