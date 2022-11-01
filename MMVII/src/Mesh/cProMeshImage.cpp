@@ -55,14 +55,16 @@ template <class TypeMap>  class  cMapPixelization
 /*                                                 */
 /* =============================================== */
 
-const std::string  MeshDev_NameTriResol = "TabBestResol.xml";
+const std::string  MeshDev_NameTriResol = "TabBestResol.dmp";
 
 
 void AddData(const cAuxAr2007 & anAux,cMeshDev_BestIm& aRMS)
 {
-    AddData(cAuxAr2007("Name",anAux),aRMS.mNames);
-    AddData(cAuxAr2007("NumsIm",anAux),aRMS.mNumBestIm);
     AddData(cAuxAr2007("AvgResol",anAux),aRMS.mAvgResol);
+    AddData(cAuxAr2007("Ori",anAux),aRMS.mNameOri);
+    AddData(cAuxAr2007("Ply",anAux),aRMS.mNamePly);
+    AddData(cAuxAr2007("NamesIms",anAux),aRMS.mNames);
+    AddData(cAuxAr2007("NumsIm",anAux),aRMS.mNumBestIm);
     AddData(cAuxAr2007("Resol",anAux),aRMS.mBestResol);
 }
 
@@ -114,6 +116,10 @@ class cAppliProMeshImage : public cMMVII_Appli
 	std::string mNameCloud2DIn;
 	double      mResolZBuf;
 	int         mNbPixImRedr;
+        bool        mDoImages;
+        bool        mSKE;
+        bool        mNameBenchMode;
+	double      mMII;   ///<  Marge Inside Image
 
      // --- constructed ---
         cPhotogrammetricProject   mPhProj;
@@ -121,9 +127,25 @@ class cAppliProMeshImage : public cMMVII_Appli
         cSensorCamPC *            mCamPC;
 	std::string               mDirMeshDev;
 	std::string               mNameResult;
-        bool                      mDoImages;
-        bool                      mSKE;
+	std::string               mPrefixNames;
 };
+
+
+cAppliProMeshImage::cAppliProMeshImage(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+   cMMVII_Appli     (aVArgs,aSpec),
+    // opt args
+   mResolZBuf       (3.0),
+   mNbPixImRedr     (2000),
+   mDoImages        (false),
+   mSKE             (true),
+   mNameBenchMode   (false),
+   mMII             (4.0),
+    // internal vars
+   mPhProj          (*this),
+   mTri3D           (nullptr),
+   mCamPC           (nullptr)
+{
+}
 
 cCollecSpecArg2007 & cAppliProMeshImage::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
@@ -135,19 +157,6 @@ cCollecSpecArg2007 & cAppliProMeshImage::ArgObl(cCollecSpecArg2007 & anArgObl)
    ;
 }
 
-cAppliProMeshImage::cAppliProMeshImage(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli     (aVArgs,aSpec),
-   mResolZBuf       (3.0),
-   mNbPixImRedr     (2000),
-   mPhProj          (*this),
-   mTri3D           (nullptr),
-   mCamPC           (nullptr),
-   mDoImages        (false),
-   mSKE             (true)
-{
-}
-
-
 cCollecSpecArg2007 & cAppliProMeshImage::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
@@ -155,7 +164,9 @@ cCollecSpecArg2007 & cAppliProMeshImage::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
 	  <<  AOpt2007(mDoImages,"DoIm","Do images", {eTA2007::HDV})
            << AOpt2007(mNbPixImRedr,"NbPixIR","Resolution of ZBuffer", {eTA2007::HDV})
+           << AOpt2007(mMII,"MII","Margin Inside Image (for triangle validation)", {eTA2007::HDV})
            << AOpt2007(mSKE,CurOP_SkipWhenExist,"Skip command when result exist")
+           << AOpt2007(mNameBenchMode,"NameBM","Use name as in bench mode",{eTA2007::HDV,eTA2007::Tuning})
 	   << AOptBench()
    ;
 
@@ -273,15 +284,10 @@ void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
 
 std::string  cAppliProMeshImage::NameResult(const std::string & aNameIm) const
 {
-   std::string aName =  "TabResolTri-" + aNameIm  + ".dmp";
-   aName = (mIsInBenchMode ? MMVII_PrefRefBench  : mPhProj.OriIn())  + aName;
-
-   //std::cout << "NNNNNNNNNNN " << aName  << " [" << <<"]\n";
-
-   return  mDirMeshDev   +  aName;
+   return  mDirMeshDev   +  mPrefixNames + "TabResolTri-" + aNameIm  + ".dmp";
 }
 
-void cAppliProMeshImage:: MergeResults()
+void cAppliProMeshImage::MergeResults()
 {
     mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
     size_t aNbF = mTri3D->NbFace();
@@ -322,13 +328,17 @@ void cAppliProMeshImage:: MergeResults()
         aWAvg.Add(mTri3D->KthTri(aKF).Area(),aMBI.mBestResol.at(aKF) );
     }
     aMBI.mAvgResol= aWAvg.Average();
+    aMBI.mNameOri = mPhProj.OriIn();
+    aMBI.mNamePly = mNameCloud3DIn;
 
     delete mTri3D;
+
+    std::string aNameMerge =mDirMeshDev+mPrefixNames +MeshDev_NameTriResol;
 
     if (mIsInBenchMode)
     {
        cMeshDev_BestIm aRef;
-       ReadFromFile(aRef,mDirMeshDev+MMVII_PrefRefBench+MeshDev_NameTriResol);
+       ReadFromFile(aRef,aNameMerge);
 
        MMVII_INTERNAL_ASSERT_bench(aRef.mNumBestIm.size()==aMBI.mNumBestIm.size(),"size dif in bench projmesh");
 
@@ -340,19 +350,25 @@ void cAppliProMeshImage:: MergeResults()
     }
     else
     {
-        SaveInFile(aMBI,mDirMeshDev+mPhProj.OriIn()+MeshDev_NameTriResol);
+        SaveInFile(aMBI,aNameMerge);
     }
 }
 
 int cAppliProMeshImage::Exe() 
 {
+	// StdOut()<<  "OOOOO =" << mPhProj.OriIn() << "\n";
+   mPhProj.FinishInit();
+   mNameBenchMode =  mNameBenchMode || mIsInBenchMode;
+   mPrefixNames  =  (   mNameBenchMode ? 
+		        MMVII_PrefRefBench  : 
+		        (LastPrefix(mNameCloud3DIn)  + "-"+mPhProj.OriIn()+"-")
+                    );
 
    mDirMeshDev = DirProject()+ MMVIIDirMeshDev;
    if (LevelCall()==0)
    {
       CreateDirectories(mDirMeshDev,true);
    } 
-   mPhProj.FinishInit();
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
@@ -379,11 +395,11 @@ int cAppliProMeshImage::Exe()
    mCamPC = mPhProj.AllocCamPC(mNameSingleIm,true);
    cSIMap_Ground2ImageAndProf aMapCamDepth(mCamPC);
 
-   cSetVisibility aSetVis(mCamPC);
+   cSetVisibility aSetVis(mCamPC,mMII);
 
    double Infty =1e20;
    cPt2di aSzPix = mCamPC->SzPix();
-   cBox3dr  aBox(cPt3dr(0,0,-Infty),cPt3dr(aSzPix.x(),aSzPix.y(),Infty));
+   cBox3dr  aBox(cPt3dr(mMII,mMII,-Infty),cPt3dr(aSzPix.x()-mMII,aSzPix.y()-mMII,Infty));
    cDataBoundedSet<tREAL8,3>  aSetCam(aBox);
 
 
@@ -437,7 +453,7 @@ tMMVII_UnikPApli Alloc_ProMeshImage(const std::vector<std::string> &  aVArgs,con
 
 cSpecMMVII_Appli  TheSpecProMeshImage
 (
-     "0_MeshProjImage",
+     "MeshProjImage",
       Alloc_ProMeshImage,
       "(internal) Project a mes on an image to prepare devlopment",
       {eApF::Cloud},
@@ -445,8 +461,5 @@ cSpecMMVII_Appli  TheSpecProMeshImage
       {eApDT::FileSys},
       __FILE__
 );
-
-#if (0)
-#endif
 
 }

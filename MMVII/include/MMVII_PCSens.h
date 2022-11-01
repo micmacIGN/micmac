@@ -228,7 +228,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     const cPt2di & SzPix() const;
 
 	     /// Used by CamPC
-	     bool IsVisible(const cPt3dr &) const ;
+	     double Visibility(const cPt3dr &) const ;
+
+	     double VisibilityOnImFrame(const cPt2dr &) const;
        private :
 	    ///  real constructor not accessible directly, must use allocator
             cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
@@ -286,7 +288,10 @@ class cSensorCamPC : public cSensorImage
 
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
          cPt2dr Ground2Image(const cPt3dr &) const override;
-	 bool IsVisible(const cPt3dr &) const override;
+
+	 double Visibility(const cPt3dr &) const override;
+	 double VisibilityOnImFrame(const cPt2dr &) const override;
+
 
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;

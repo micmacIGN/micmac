@@ -9,13 +9,16 @@ namespace MMVII
 class cMeshDev_BestIm
 {
     public :
+       double                   mAvgResol;
+       std::string              mNameOri;
+       std::string              mNamePly;
        std::vector<std::string> mNames;
        std::vector<int>         mNumBestIm;
-       double                   mAvgResol;
        std::vector<double>      mBestResol;
 };
 
-//void AddData(cAuxAr2007  anAux,cMeshDev_BestIm& aRMS);
+void AddData(const cAuxAr2007 & anAux,cMeshDev_BestIm& aRMS);
+
 
 extern const std::string  MeshDev_NameTriResol;
 

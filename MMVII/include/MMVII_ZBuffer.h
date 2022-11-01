@@ -116,44 +116,46 @@ class  cZBuffer
 
           static constexpr tElem mInfty =  -1e10;
 
+	  ///  constructor
           cZBuffer(cTri3DIterator & aMesh,const tSet & aSetIn,const tMap & aMap,const tSet & aSetOut,double aResolOut);
+
+
+	  /// 
+          void MakeZBuf(eZBufModeIter aMode);
+
 
           const cPt2di  SzPix() ; ///< Accessor
           tIm   ZBufIm() const; ///< Accessor
-          eZBufRes MakeOneTri(const cTri3dR & aTriIn,const cTri3dR & aTriOut,eZBufModeIter aMode);
-
-
-          void MakeZBuf(eZBufModeIter aMode);
-          double ComputeResol(const cTri3dR & aTriIn ,const cTri3dR & aTriOut) const;
-
-          cResModeSurfD&  ResSurfD(size_t) ;
-          std::vector<cResModeSurfD> & VecResSurfD() ;
-          double  MaxRSD() const;
+          cResModeSurfD&  ResSurfD(size_t) ;   ///< accessor to VecResSurfD
+          std::vector<cResModeSurfD> & VecResSurfD() ;   ///< accessor
+          double  MaxRSD() const;   ///< accessor
 
       private :
           cZBuffer(const cZBuffer & ) = delete;
-
-
-          cPt2dr  ToPix(const cPt3dr&) const;
+          cPt2dr  ToPix(const cPt3dr&) const;  /// Output coord-> pix coord
+          /// compute resolution between  resol (in worst dir) between a  3D tri in and a 2D tri Out (in facts proj of the 3D out)
+          double ComputeResol(const cTri3dR & aTriIn ,const cTri3dR & aTriOut) const;
+	  ///  make the job for one triangle, different computation possible depending on aMode
+          eZBufRes MakeOneTri(const cTri3dR & aTriIn,const cTri3dR & aTriOut,eZBufModeIter aMode);
 
           bool                  mZF_SameOri; ///< Axe of Z (in out coord) and oriented surface have same orientation
-          int                   mMultZ;
-          cTri3DIterator &      mMesh;
-          cCountTri3DIterator * mCountMesh;
-          const tMap &          mMapI2O;
-          const tSet &          mSetIn;
-          const tSet &          mSetOut;
-          double                mResolOut;
+          int                   mMultZ;      ///< multiplier associated to SameOri
+          cTri3DIterator &      mMesh;       ///<  The mesh described as an iterator on triangles
+          cCountTri3DIterator * mCountMesh;  ///< posible cast on a counting-iteraror (unused 4 now)
+          const tMap &          mMapI2O;     ///<  Map Input -> Output 
+          const tSet &          mSetIn;      ///< Set where input triangles are defined
+          const tSet &          mSetOut;     ///< Set where output triangles are defined
+          double                mResolOut;   ///<  Resolution for computing Z Buf (ratio  )
 
           cBox3dr          mBoxIn;     ///< Box in input space, not sure usefull, but ....
           cBox3dr          mBoxOut;    ///< Box in output space, usefull for xy, not sure for z , but ...
           cHomot2D<tREAL8> mROut2Pix;  ///<  Mapping Out Coord -> Pix Coord
-          tIm              mZBufIm;
+          tIm              mZBufIm;    ///<  Image storing the Z buffer its (max or min depending on mZF_SameOri)
           tImSign          mImSign;   ///< sign of normal  1 or -1 , 0 if uninit
-          cPt2di           mSzPix;
+          cPt2di           mSzPix;      ///<  sz of pixels images (sign, zbuf)
 
-          double           mLastResSurfDev;
-          double           mMaxRSD;
+          double           mLastResSurfDev;  ///< store the last resolution computed (facility 4 multiple results)
+          double           mMaxRSD;          ///< max resolution reacged
 
           std::vector<cResModeSurfD>  mResSurfD;
 };

@@ -660,9 +660,14 @@ template <class Type,const int Dim>  class cTplBox
         static cPtxd<double,Dim>  RandomNormalised() ;     ///<  Random point in "hyper cube" [0,1] ^ Dim
         tPt   GeneratePointInside() const;   ///< Random point in integer rect
         tBox  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
+
+        static void Corners(tCorner & aRes,const tPt &aP0,const tPt &aP1);
         void Corners(tCorner & aRes) const;
+
+
         Type DistMax2Corners(const tPt&) const;
 	static size_t NbFlagCorner() ;
+	static tPt  CornerOfFlag(size_t aFlag,const tPt &aP0,const tPt &aP1) ;
 	tPt  CornerOfFlag(size_t aFlag) const;
 
     protected :
@@ -672,6 +677,7 @@ template <class Type,const int Dim>  class cTplBox
         tBigPt    mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK-1]
         tBigNum   mNbElem;     ///< Number of pixel = Cum[Dim-1]
     private :
+
 };
 
 // template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & );

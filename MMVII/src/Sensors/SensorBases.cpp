@@ -143,12 +143,16 @@ cPt3dr cSIMap_Ground2ImageAndProf::Inverse(const cPt3dr & aPt) const
 /*                                                         */
 /* ******************************************************* */
 
-cSetVisibility::cSetVisibility(cSensorImage * aSens) :
-            cDataBoundedSet<tREAL8,3>(cBox3dr::BigBox()),
-            mSens (aSens)
+cSetVisibility::cSetVisibility(cSensorImage * aSens,double aBorder) :
+            cDataBoundedSet<tREAL8,3> (cBox3dr::BigBox()),
+            mSens                     (aSens),
+	    mBorder                   (aBorder)
 {}
 
-tREAL8 cSetVisibility::Insideness(const tPt & aP) const {return mSens->IsVisible(aP) ? 1 : -1;}
+tREAL8 cSetVisibility::Insideness(const tPt & aP) const 
+{
+    return mSens->Visibility(aP) - mBorder;
+}
 
 
 

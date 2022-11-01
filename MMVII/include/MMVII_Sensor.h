@@ -61,7 +61,10 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
 	 /// Indicate if a point belongs to sensor visibilty domain
-         virtual bool IsVisible(const cPt3dr &) const =0 ;
+         virtual double Visibility(const cPt3dr &) const =0 ;
+
+	 /// Indicacte how a 2 D points belongs to definition of image frame
+         virtual double VisibilityOnImFrame(const cPt2dr &) const =0 ;
 
 	 ///  add the distance to bundle,to see if have a default with bundle+Gr2Ima
          //virtual cPt3dr Ground2ImageAndDist(const cPt3dr &) const = 0;
@@ -131,10 +134,11 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 class cSetVisibility : public cDataBoundedSet<tREAL8,3>
 {
     public :
-        cSetVisibility(cSensorImage * aSens) ;
+        cSetVisibility(cSensorImage * aSens,double aBorder = 0) ;
         tREAL8 Insideness(const tPt & aP) const;
     private :
-          cSensorImage * mSens;
+        cSensorImage * mSens;
+	double         mBorder;
 };
 
 
@@ -159,6 +163,7 @@ class cPhotogrammetricProject
 	  
 
           const std::string & OriIn() const; ///< accessor
+          void  SetOriIn(const std::string &) ;    ///< modifier 
 	  ///< constructor will memorize application
           cPhotogrammetricProject(cMMVII_Appli &);
 

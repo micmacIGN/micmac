@@ -1,5 +1,5 @@
-
 #include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
 
 namespace MMVII
 {
@@ -765,6 +765,10 @@ template<class Type>  cTriangulation2D<Type>::cTriangulation2D(const cTriangulat
     this->mVFaces = aTri3.VFaces();
 }
 
+template<class Type>  cTriangulation2D<Type>::cTriangulation2D(const std::string & aName) :
+     cTriangulation2D<Type>(cTriangulation3D<Type>(aName))
+{
+}
 
 /* *********************************************************** */
 /*                INSTANTIATION                                */

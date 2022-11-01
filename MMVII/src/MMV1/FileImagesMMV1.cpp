@@ -273,12 +273,25 @@ template <> void cMMV1_Conv<tREAL16>::ReadWrite
 {
    MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
 }
+template <> void cMMV1_Conv<tU_INT4>::ReadWrite
+                 (bool,const tImMMVII &,const tImMMVII &,const tImMMVII &,const cDataFileIm2D &,const cPt2di &,double,const cRect2& )
+{
+   MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
+}
 
 
 template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
      cMMV1_Conv<Type>::ReadWrite(true,*this,aFile,aP0,aDyn,aR2);
 }
+
+template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,tIm &aImG,tIm &aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
+{
+     cMMV1_Conv<Type>::ReadWrite(true,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
+}
+
+
+
 template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
      cMMV1_Conv<Type>::ReadWrite(false,*this,aFile,aP0,aDyn,aR2);
@@ -287,7 +300,7 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
 template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const tIm &aImG,const tIm &aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
      //cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
-     cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
+       cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
 }
 /*
 */

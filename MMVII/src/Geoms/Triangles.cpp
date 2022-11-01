@@ -410,6 +410,13 @@ int  IndOfSomInFace(const cPt3di & aFace,int aNumS,bool SVP)
     return -1;
 }
 
+template <class Type,const int Dim>  
+    cTriangle<Type,Dim>  TriFromFace(const std::vector<cPtxd<Type,Dim>> & aVP, const cPt3di & aF)
+{
+    return cTriangle<Type,Dim>(aVP.at(aF[0]),aVP.at(aF[1]),aVP.at(aF[2]));
+}
+
+
 
 template <class Type,const int Dim> cTriangulation<Type,Dim>::cTriangulation(const tVPt& aVPts,const tVFace& aVFace)  :
     mVPts  (aVPts)
@@ -470,6 +477,12 @@ template <class Type,const int Dim> const cPtxd<Type,Dim> & cTriangulation<Type,
 {
    return mVPts.at(aK);
 }
+template <class Type,const int Dim> cPtxd<Type,Dim> & cTriangulation<Type,Dim>::KthPts(size_t aK) 
+{
+   return mVPts.at(aK);
+}
+
+
 template <class Type,const int Dim> const std::vector<cPtxd<Type,Dim> > & cTriangulation<Type,Dim>::VPts() const
 {
    return mVPts;
@@ -729,6 +742,7 @@ template <class Type,const int Dim> bool cTriangulation<Type,Dim>::CheckAndCorre
 
 template class cTriangle<int,2>;
 #define  INSTANTIATE_TRI_DIM(TYPE,DIM)\
+template cTriangle<TYPE,DIM> TriFromFace(const std::vector<cPtxd<TYPE,DIM>>&,const cPt3di&);\
 template class cTriangulation<TYPE,DIM>;\
 template class cTriangle<TYPE,DIM>;
 

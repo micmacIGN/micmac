@@ -325,52 +325,6 @@ void BenchCentralePerspective_ImportV1(cParamExeBench & aParam)
     // ===============================================================================================
 
 
-cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
-    mAppli  (anAppli)
-{
-}
-
-cPhotogrammetricProject::~cPhotogrammetricProject() 
-{
-    DeleteAllAndClear(mLCam2Del);
-}
-
-tPtrArg2007 cPhotogrammetricProject::OriInMand() {return  Arg2007(mOriIn ,"Input Orientation",{eTA2007::Orient,eTA2007::Input });}
-tPtrArg2007 cPhotogrammetricProject:: OriOutMand() {return Arg2007(mOriOut,"Outot Orientation",{eTA2007::Orient,eTA2007::Output});}
-tPtrArg2007 cPhotogrammetricProject::OriInOpt(){return AOpt2007(mOriIn,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input});}
-
-void cPhotogrammetricProject::FinishInit() 
-{
-    mFullOriOut  = mAppli.DirProject() + MMVIIDirOrient + mOriOut + StringDirSeparator();
-    mFullOriIn   = mAppli.DirProject() + MMVIIDirOrient + mOriIn  + StringDirSeparator();
-
-    if (mAppli.IsInit(&mOriOut))
-    {
-        CreateDirectories(mFullOriOut,true);
-    }
-}
-
-void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
-{
-    aCamPC.ToFile(mFullOriOut + aCamPC.NameOriStd());
-}
-
-cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete)
-{
-    std::string aNameCam  = mFullOriIn + cSensorCamPC::NameOri_From_Image(aNameIm);
-    cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam);
-
-    if (ToDelete)
-       mLCam2Del.push_back(aCamPC);
-
-    return aCamPC;
-}
-
-const std::string & cPhotogrammetricProject::OriIn() const {return mOriIn;}
-
-/*
-*/
-
    /* ********************************************************** */
    /*                                                            */
    /*                 cAppli_OriConvV1V2                         */
