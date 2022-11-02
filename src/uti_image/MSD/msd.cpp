@@ -265,7 +265,7 @@ inline bool Gauss22_invert_b( REAL8 *i_m, REAL8 *i_b )
         for( i=j; i<2; i++ )
         {
             REAL8 a    = At(i,j);
-            REAL8 absa = fabsf( a );
+            REAL8 absa = std::abs( a );
             if ( absa>maxabsa )
             {
                 maxa    = a ;
