@@ -1,3 +1,5 @@
+#include "MMVII_Radiom.h"
+
 #include "cMMVII_Appli.h"
 #include "MMVII_PCSens.h"
 #include "MMVII_Geom2D.h"
@@ -8,6 +10,7 @@
 #include "MeshDev.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Triangles.h"
+
 
 namespace MMVII
 {
@@ -89,6 +92,9 @@ cAppliMeshImageDevlp::cAppliMeshImageDevlp(const std::vector<std::string> & aVAr
    mSetPCurIm       (0),
    mGlobIm          (cPt2di(1,1))
 {
+
+	cPtxd<tU_INT1,2>  aPt(0,0);
+	FakeUseIt(aPt);
 }
 
 

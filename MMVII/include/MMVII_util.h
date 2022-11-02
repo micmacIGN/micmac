@@ -310,9 +310,12 @@ class cSetIntDyn
           size_t NbElem() const {return mVIndOcc.size();}
 	  /// Generally order is of no importance, but if it has, can sort it in increasing order
 	  void SortInd();
+	  ///   Actualize  mVInvertInd, do the SortInd() that is required
+	  void MakeInvertIndex();
 
-          std::vector<bool>    mOccupied;  ///< direct acces to the belonging
-          std::vector<size_t>  mVIndOcc;   ///< list  of element
+          std::vector<bool>    mOccupied;     ///< direct acces to the belonging  [0 1 0 0 1 0 1 0]
+          std::vector<size_t>  mVIndOcc;      ///< list  of element               [1 4 6]
+          std::vector<int   >  mVInvertInd;   ///< if created, give for an index its rank [ _ 0 _ _  1 _ 2 _]
 };
 
 /** Class for representing a set of int simply as a vector of int,

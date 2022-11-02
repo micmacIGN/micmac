@@ -106,7 +106,10 @@ template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp
 }
 
 template <class Type> size_t cSetIORSNL_SameTmp<Type>::ToIndTmp(int anInd) { return -(anInd+1); }
-template <class Type> bool   cSetIORSNL_SameTmp<Type>::IsIndTmp(int anInd) { return anInd<0; }
+template <class Type> bool   cSetIORSNL_SameTmp<Type>::IsIndTmp(int anInd) 
+{ 
+    return anInd<0; 
+}
 template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const { return mNbTmpUk; }
 template <class Type> const std::vector<Type> & cSetIORSNL_SameTmp<Type>::ValTmpUk() const { return mValTmpUk; }
 template <class Type> Type  cSetIORSNL_SameTmp<Type>::Val1TmpUk(int aInd) const { return mValTmpUk.at(ToIndTmp(aInd));}

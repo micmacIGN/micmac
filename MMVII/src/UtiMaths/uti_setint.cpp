@@ -35,6 +35,16 @@ void cSetIntDyn::SortInd()
     std::sort(mVIndOcc.begin(),mVIndOcc.end());
 }
 
+
+void cSetIntDyn::MakeInvertIndex()
+{
+    SortInd();
+    mVInvertInd.resize(mOccupied.size(),-1);
+
+   for (size_t anInd=0 ; anInd<mVIndOcc.size() ; anInd++)
+       mVInvertInd[mVIndOcc[anInd]] = anInd;
+}
+
 cSetIntDyn::cSetIntDyn(size_t aNb,const std::vector<size_t> & aVInd) :
      cSetIntDyn (aNb)
 {

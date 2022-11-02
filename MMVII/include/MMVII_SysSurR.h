@@ -412,7 +412,6 @@ template <class Type> class  cBufSchurrSubst
      private :
 
           size_t            mNbVar;
-          std::vector<size_t>  mNumComp;
           cSetIntDyn        mSetInd;
           cLeasSqtAA<Type>  mSysRed;
           cSparseVect<Type> mSV;
