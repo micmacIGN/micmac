@@ -3,6 +3,7 @@
 
 #include "MMVII_Ptxd.h"
 #include "MMVII_PCSens.h"
+#include "MMVII_util.h"
 
 #include "SymbDer/SymbolicDerivatives.h"
 #include "SymbDer/SymbDer_MACRO.h"

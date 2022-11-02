@@ -4,6 +4,7 @@
 #include "include/SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_ImagesDeform.h"
 #include "Formulas_CamStenope.h"
+#include "Formulas_CentralProj.h"
 #include "Formulas_Geom2D.h"
 #include "Formulas_Radiom.h"
 #include "MMVII_Sys.h"

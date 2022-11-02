@@ -7,7 +7,7 @@
 #include "MMVII_Sys.h"
 #include "MMVII_nums.h"
 #include "MMVII_memory.h"
-
+#include "uti_fonc_analytique.h"
 
 namespace MMVII
 {

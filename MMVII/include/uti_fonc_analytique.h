@@ -1,3 +1,5 @@
+#ifndef  _MMVII_uti_fonc_analytique_H_
+#define  _MMVII_uti_fonc_analytique_H_
 
 #include "MMVII_Ptxd.h"
 
@@ -169,3 +171,4 @@ INSTATIATE_FUNC_ANALYTIQUE(tREAL16)
 
 };
 
+#endif
