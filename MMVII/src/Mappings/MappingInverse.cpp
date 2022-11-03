@@ -738,7 +738,7 @@ template <class Type,const int Dim> void
 
          // 2-1 Compute in grid pixel frontier :  reached pixel neighbor of unreached
 	 // at this step put in structure to have the benefit of paralleization
-     for (const auto aPix : mMarker)  // parse all pixel of image
+     for (const auto & aPix : mMarker)  // parse all pixel of image
      {
          if (mMarker.VI_GetV(aPix)== tU_INT1(eLabelIm_CMI::eReached))
          {

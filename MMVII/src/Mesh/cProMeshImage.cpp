@@ -263,7 +263,7 @@ void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
        std::vector<cPt2di> aVPix;
        aTriComp.PixelsInside(aVPix,1e-8);
 
-       for (const auto aPix : aVPix)
+       for (const auto & aPix : aVPix)
            aIm.SetRGBPix(aPix,aCoul);
    }
 
