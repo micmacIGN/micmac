@@ -199,6 +199,17 @@ cCalculator<double> * EqDist3DParam(bool WithDerive,int aSzBuf)
 }
 
 
+// topo subframe with dist parameter
+template <class Type> cCalculator<Type> * TplEqTopoSubFrame(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cTopoSubFrame(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTopoSubFrame(bool WithDerive,int aSzBuf)
+{
+    return TplEqTopoSubFrame<double>(WithDerive,aSzBuf);
+}
+
 /* **************************** */
 /*      BENCH  PART             */
 /* **************************** */
@@ -511,6 +522,7 @@ int cAppliGenCode::Exe()
 
        GenCodesFormula((tREAL8*)nullptr,cDist3D(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cDist3DParam(),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cTopoSubFrame(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
