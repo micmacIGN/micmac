@@ -21,7 +21,8 @@ class cImageRadiomData
 	void AddObsGray(tIndex,tRadiom,const tPtMem &);
 
 	void AddData(const  cAuxAr2007 & anAux); ///< Serialization
-        void MakeOrdered(cSetIntDyn &);
+        void MakeOrdered();
+	static void Bench(cParamExeBench & aParam);
    private :
 	void AddIndex(tIndex);
 
@@ -32,7 +33,7 @@ class cImageRadiomData
 
 	std::vector<tIndex>    mVIndex;
 	std::vector<tPtMem>    mVPts;
-	std::vector<tVRadiom>  mVRadiom;
+	std::vector<tVRadiom>  mVVRadiom;
 };
 
 };

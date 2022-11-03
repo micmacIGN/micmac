@@ -137,6 +137,7 @@ class cMMVII_Ap_NameManip;
 class cMMVII_Ap_CPU;
 class cMMVII_Appli ;
 class cExplicitCopy; ///<  Fake class use for add X(const X&) explicit with  X(cExplicitCopy,const X&)
+class cParamExeBench;
 
 
 // MMVII_Stringifier.h

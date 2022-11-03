@@ -3,6 +3,7 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_PhgrDist.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_Radiom.h"
 #include <unistd.h>
 #include <cmath>
 
@@ -504,6 +505,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchDeformIm(aParam);
 
 	BenchCentralePerspective(aParam);
+	cImageRadiomData::Bench(aParam);
     }
 
     // Now call the bench of all application that define their own bench
