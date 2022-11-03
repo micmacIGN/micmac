@@ -51,7 +51,7 @@ int mmvii_GetPId();
 
 int GlobSysCall(const std::string &, bool SVP=false); ///< call system, if SVP=false error not EXIT_SUCCESS
 ///  Execucte the command in parallel by generating a makefile
-int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::string> & aListCom,int aNbProcess,bool SVP=false);
+int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::string> & aListCom,int aNbProcess,bool SVP=false,bool Silence=false);
 
 
 

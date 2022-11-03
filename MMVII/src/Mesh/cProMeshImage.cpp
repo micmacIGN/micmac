@@ -97,7 +97,7 @@ class cAppliProMeshImage : public cMMVII_Appli
 	/// name to save the result of an image
         std::string  NameResult(const std::string & aNameIm) const;
 
-	/** Process the triangle that correspond to no pixel => make them almost visble if close to 
+	/** Process the triangle that correspond to no pixel => make them almost visble if conected to 
 	    a triangle which is visible */
         void ProcessNoPix(cZBuffer &  aZB);
 	/** After all images have been processed , merge their result to extract best image*/
@@ -107,9 +107,9 @@ class cAppliProMeshImage : public cMMVII_Appli
 	void MakeDevlptIm(cZBuffer &  aZB);
 
      // --- Mandatory ----
-	std::string mNamePatternIm;
-	std::string mNameSingleIm;
-	std::string mNameCloud3DIn;
+	std::string mNamePatternIm;   ///< Patern of image for which we compute proj
+	std::string mNameCloud3DIn;   ///< Name of Mesh
+                                      //  mOri =>   Handled in mPhProj
 
 
      // --- Optionnal ----
@@ -123,6 +123,7 @@ class cAppliProMeshImage : public cMMVII_Appli
 
      // --- constructed ---
         cPhotogrammetricProject   mPhProj;
+	std::string               mNameSingleIm;  ///< if there is a single file in a xml set of file, the subst has not been made ...
         cTriangulation3D<tREAL8>* mTri3D;
         cSensorCamPC *            mCamPC;
 	std::string               mDirMeshDev;
@@ -181,10 +182,13 @@ cAppliBenchAnswer cAppliProMeshImage::BenchAnswer() const
 
 int  cAppliProMeshImage::ExecuteBench(cParamExeBench & aParam) 
 {
-   // no randomization, so once is enough
    if (aParam.Level() != 0)
+   {
+      // just in case, propably dont access here
       return EXIT_SUCCESS;
+   }
 
+   // call the proj for all file in FileTestMesh.xml => in the recall we will test the result with the reference
    std::string aCom =
 	              Bin2007 + BLANK
 		  +   mSpecs.Name() + BLANK
@@ -199,48 +203,41 @@ int  cAppliProMeshImage::ExecuteBench(cParamExeBench & aParam)
 
 void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
 {
-   
+      // Read the 2-D Triangulation and check its coherence with the 3-D one
    cTriangulation2D<tREAL8> aTri2D (cTriangulation3D<tREAL8>(DirProject()+mNameCloud2DIn));
-   // mTri2D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud2DIn);
-
    MMVII_INTERNAL_ASSERT_tiny(aTri2D.NbFace()==mTri3D->NbFace(),"Incompat tri 2/3");
    MMVII_INTERNAL_ASSERT_tiny(aTri2D.NbPts ()==mTri3D->NbPts (),"Incompat tri 2/3");
 
-
+       // compute size of result and corresponce pixel 2-D-triangulation
    cBox2dr   aBox2 = aTri2D.BoxEngl(1e-3);
-   // cBox2dr   aBox2(Proj(aBox3.P0()),Proj(aBox3.P1()));
-
    double aScale = mNbPixImRedr / double(NormInf(aBox2.Sz()));
-
    cHomot2D<tREAL8> mHTri2Pix = cHomot2D<tREAL8>(cPt2dr(2,2) - aBox2.P0()*aScale, aScale);
-
    cPt2di aSz = Pt_round_up(mHTri2Pix.Value(aBox2.P1())) + cPt2di(0,0);
 
-
-
-   cRGBImage  aIm(aSz,cRGBImage::Yellow);
+   cRGBImage  aIm(aSz,cRGBImage::Yellow);   // create image
 
    for (size_t aKF=0 ; aKF<aTri2D.NbFace() ; aKF++)
    {
        const cResModeSurfD&   aRD = aZB.ResSurfD(aKF) ;
        cPt3di aCoul(0,0,0);
 
+          // compute color corresponding to label for unvisible faces
        if (aRD.mResult == eZBufRes::BadOriented)    aCoul = cRGBImage::Green;
        if (aRD.mResult == eZBufRes::Hidden)         aCoul = cRGBImage::Red;
        if (aRD.mResult == eZBufRes::OutIn)          aCoul = cRGBImage::Cyan;
        if (aRD.mResult == eZBufRes::NoPix)          aCoul = cRGBImage::Blue;
        if (aRD.mResult == eZBufRes::LikelyVisible)  aCoul = cRGBImage::Magenta;
 
+          // if triangle visible, or almost, compute a gray value proportional to resolution
        if ((aRD.mResult == eZBufRes::Visible) || (aRD.mResult == eZBufRes::LikelyVisible))
        {
            int aGray = round_ni(255 *  aRD.mResol/ aZB.MaxRSD());
-	   // aGray = 128;
            aCoul = cPt3di(aGray,aGray,aGray);
 
        }
+          // compute pixels inside the triangles
        cTri2dR  aTriPix = aTri2D.KthTri(aKF);
        cTriangle2DCompiled<tREAL8>  aTriComp(ImageOfTri(aTriPix,mHTri2Pix));
-
        std::vector<cPt2di> aVPix;
        aTriComp.PixelsInside(aVPix,1e-8);
 
@@ -248,21 +245,24 @@ void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
            aIm.SetRGBPix(aPix,aCoul);
    }
 
+     // save image
    aIm.ToFile(mDirMeshDev+"Dev-"+LastPrefix(mNameSingleIm)+".tif");
 }
 
 void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
 {
+    // comppute dual graph to have neigbouring relation between faces
     mTri3D->MakeTopo();
     const cGraphDual &  aGrD = mTri3D->DualGr() ;
 
     bool  GoOn = true;
-    while (GoOn)  // continue as long as we made a modification
+    while (GoOn)  // continue as long as we get some modification
     {
         GoOn = false;
-        for (size_t aKF1 = 0 ; aKF1<mTri3D->NbFace() ; aKF1++)
+	// parse all face
+        for (size_t aKF1 = 0 ; aKF1<mTri3D->NbFace() ; aKF1++)  
         {
-            // check if a NoPix face has a neigboor visible or likely
+            // check for each face labled  "NoPix" if it  has a neigboor visible (or likely)
             if (aZB.ResSurfD(aKF1).mResult == eZBufRes::NoPix)
             {
                 std::vector<int> aVF2;
@@ -273,6 +273,7 @@ void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
                           ||  (aZB.ResSurfD(aKF2).mResult == eZBufRes::LikelyVisible)
 			)
 		     {
+                        // Got 1 => this face is likely , and we must prolongate the global process
                         aZB.ResSurfD(aKF1).mResult =  eZBufRes::LikelyVisible;
                         GoOn = true;
 		     }
@@ -289,26 +290,31 @@ std::string  cAppliProMeshImage::NameResult(const std::string & aNameIm) const
 
 void cAppliProMeshImage::MergeResults()
 {
+	// Read triangultion , will be used to weight the resolutio with area of triangle
     mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
     size_t aNbF = mTri3D->NbFace();
+        // initialise the strutc for resulT
     cMeshDev_BestIm aMBI;
-    aMBI.mNames = VectMainSet(0);
+    aMBI.mNames = VectMainSet(0);  
     aMBI.mNumBestIm.resize(aNbF,-1);
     aMBI.mBestResol.resize(aNbF,-1);
 
+    // Parse all the images
     for (size_t aKIm=0 ; aKIm<aMBI.mNames.size(); aKIm++)
     {
+	    // read the result on 1 image (label & resol for each face)
         std::string aName = aMBI.mNames.at(aKIm);
-
         std::vector<cResModeSurfD> aVRMS;
 	ReadFromFile(aVRMS,NameResult(aName));
         MMVII_INTERNAL_ASSERT_tiny(aVRMS.size()==aNbF,"Incompat tri 3 , TabResolTri");
 
+	// Parse all the faces
 	for (size_t aKF=0 ; aKF<aNbF ; aKF++)
 	{
            const cResModeSurfD & aRMS = aVRMS.at(aKF);
            eZBufRes aRes = aRMS.mResult;
 
+	   // change attribution if we have found a better face
            if (      ((aRes == eZBufRes::Visible) || (aRes == eZBufRes::LikelyVisible))
                  &&  (aRMS.mResol > aMBI.mBestResol.at(aKF))
 	      )
@@ -319,21 +325,21 @@ void cAppliProMeshImage::MergeResults()
 	}
     }
 
-
-    // double aSumSurf = 0.0;
-    // double aSomWResol = 0.0;
+    // compute avg resolution as a weighted average of best resol
     cWeightAv<tREAL8>  aWAvg;
     for (size_t aKF=0 ; aKF<aNbF ; aKF++)
     {
         aWAvg.Add(mTri3D->KthTri(aKF).Area(),aMBI.mBestResol.at(aKF) );
     }
+
+    // sace some parameters of computation
     aMBI.mAvgResol= aWAvg.Average();
-    aMBI.mNameOri = mPhProj.OriIn();
+    aMBI.mNameOri = mPhProj.GetOriIn();
     aMBI.mNamePly = mNameCloud3DIn;
 
     delete mTri3D;
 
-    std::string aNameMerge =mDirMeshDev+mPrefixNames +MeshDev_NameTriResol;
+    std::string aNameMerge = mDirMeshDev+mPrefixNames +MeshDev_NameTriResol;
 
     if (mIsInBenchMode)
     {
@@ -356,12 +362,11 @@ void cAppliProMeshImage::MergeResults()
 
 int cAppliProMeshImage::Exe() 
 {
-	// StdOut()<<  "OOOOO =" << mPhProj.OriIn() << "\n";
    mPhProj.FinishInit();
    mNameBenchMode =  mNameBenchMode || mIsInBenchMode;
    mPrefixNames  =  (   mNameBenchMode ? 
 		        MMVII_PrefRefBench  : 
-		        (LastPrefix(mNameCloud3DIn)  + "-"+mPhProj.OriIn()+"-")
+		        (LastPrefix(mNameCloud3DIn)  + "-"+mPhProj.GetOriIn()+"-")
                     );
 
    mDirMeshDev = DirProject()+ MMVIIDirMeshDev;
@@ -370,7 +375,7 @@ int cAppliProMeshImage::Exe()
       CreateDirectories(mDirMeshDev,true);
    } 
 
-   if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
+   if (RunMultiSet(0,0,mIsInBenchMode))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set, Silence if Bench
    {
       int aResult =  ResultMultiSet();
 

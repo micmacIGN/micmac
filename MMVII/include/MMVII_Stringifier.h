@@ -311,7 +311,12 @@ void AddComment(cAr2007 & anAr, const std::string & aString);
 
 void AddData(const  cAuxAr2007 & anAux, bool  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
+void AddData(const  cAuxAr2007 & anAux, tINT1  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, tU_INT1  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, tINT2  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal); ///< for unsigned short
+							   
 void AddData(const  cAuxAr2007 & anAux, size_t  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string

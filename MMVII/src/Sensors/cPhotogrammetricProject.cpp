@@ -31,7 +31,7 @@ cPhotogrammetricProject::~cPhotogrammetricProject()
 }
 
 tPtrArg2007 cPhotogrammetricProject::OriInMand() {return  Arg2007(mOriIn ,"Input Orientation",{eTA2007::Orient,eTA2007::Input });}
-tPtrArg2007 cPhotogrammetricProject:: OriOutMand() {return Arg2007(mOriOut,"Outot Orientation",{eTA2007::Orient,eTA2007::Output});}
+tPtrArg2007 cPhotogrammetricProject::OriOutMand() {return Arg2007(mOriOut,"Outot Orientation",{eTA2007::Orient,eTA2007::Output});}
 tPtrArg2007 cPhotogrammetricProject::OriInOpt(){return AOpt2007(mOriIn,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input});}
 
 
@@ -88,7 +88,7 @@ cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,b
     return aCamPC;
 }
 
-const std::string & cPhotogrammetricProject::OriIn() const {return mOriIn;}
+const std::string & cPhotogrammetricProject::GetOriIn() const {return mOriIn;}
 void cPhotogrammetricProject::SetOriIn(const std::string & aNameOri)
 {
 	mOriIn = aNameOri;

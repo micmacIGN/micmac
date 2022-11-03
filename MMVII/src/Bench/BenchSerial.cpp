@@ -16,10 +16,21 @@ namespace MMVII
 
 //  ==========  cTestSerial0 =================
 
-bool cTestSerial0::operator ==   (const cTestSerial0 & aT0) const {return (mP1==aT0.mP1) && (mP2==aT0.mP2);}
+bool cTestSerial0::operator ==   (const cTestSerial0 & aT0) const 
+{
+	// StdOut() << "cTestSerial0cTestSerial0\n";
+	return     (mP1==aT0.mP1) 
+		&& (mI1==aT0.mI1)
+		&& (mR4==aT0.mR4)
+		&& (mP2==aT0.mP2)
+        ;
+}
+
 cTestSerial0::cTestSerial0() : 
     mP1 (1,2) , 
-    mP2(3,3) 
+    mI1 (22),
+    mR4 (4.5),
+    mP2 (3,3) 
 {
 }
 
@@ -27,6 +38,8 @@ cTestSerial0::cTestSerial0() :
 void AddData(const cAuxAr2007 & anAux, cTestSerial0 &    aTS0) 
 {
     AddData(cAuxAr2007("P1",anAux),aTS0.mP1);
+    AddData(cAuxAr2007("I1",anAux),aTS0.mI1);
+    AddData(cAuxAr2007("R4",anAux),aTS0.mR4);
     AddData(cAuxAr2007("P2",anAux),aTS0.mP2);
 }
 //  ==========  cTestSerial1 =================
@@ -87,6 +100,8 @@ class cTestSerial2 : public cTestSerial1
 void AddData(const cAuxAr2007 & anAux, cTestSerial2 &    aTS2) 
 {
     AddData(cAuxAr2007("TS0:P1",anAux),aTS2.mTS0.mP1);
+    AddData(cAuxAr2007("TS0:I1",anAux),aTS2.mTS0.mI1);
+    AddData(cAuxAr2007("TS0:R4",anAux),aTS2.mTS0.mR4);
     AddData(cAuxAr2007("TS0:P2",anAux),aTS2.mTS0.mP2);
     AddData(cAuxAr2007("S",anAux),aTS2.mS);
     AddData(cAuxAr2007("P3",anAux),aTS2.mP3);
@@ -307,24 +322,26 @@ void BenchSerialization
     // Check dump value are preserved
     {
         cTestSerial1 aP34;
+        cTestSerial1 aP34_0 = aP34;
         ReadFromFile(aP34,aDirOut+"F3."+PostF_DumpFiles);
-        MMVII_INTERNAL_ASSERT_bench(aP34==cTestSerial1(),"cAppli_MMVII_TestSerial");
-        SaveInFile(aP34,aDirOut+"F4."+PostF_XmlFiles);
+        MMVII_INTERNAL_ASSERT_bench(aP34==aP34_0,"cAppli_MMVII_TestSerial");
+
+
+	aP34.mTS0.mI1 =-123;
+	aP34.mTS0.mR4 = 100.5;
+        aP34_0 = aP34;
+	//std::vector<string> aVPost ({PostF_DumpFiles,PostF_XmlFiles})
+
+	for (const auto & aPost : {PostF_DumpFiles,PostF_XmlFiles})
+        {
+           SaveInFile(aP34,aDirOut+"F10."+aPost);
+           cTestSerial1 aP34_Read;
+           ReadFromFile(aP34_Read,aDirOut+"F10."+aPost);
+           MMVII_INTERNAL_ASSERT_bench(aP34_Read==aP34_0,"cAppli_MMVII_TestSerial");
+	}
     }
 
 
-/*
-    {
-        SaveInFile(cTestSerial2(),aDirOut+"F_T2."+PostF_XmlFiles);
-        cTestSerial2 aT2;
-    
-        ReadFromFile(aT2,aDirOut+"F3."+PostF_DumpFiles);   // OK also in binary, the format has no influence
-SaveInFile(aT2,"DEBUG."+PostF_XmlFiles);
-        // And the value is still the same as dump is compatible at binary level
-
-        MMVII_INTERNAL_ASSERT_bench(aT2==cTestSerial2(),"cAppli_MMVII_TestSerial");
-    }
-*/
     {
         SaveInFile(cTestSerial2(),aDirOut+"F_T2."+PostF_XmlFiles);
         cTestSerial2 aT2;

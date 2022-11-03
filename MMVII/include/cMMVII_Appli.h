@@ -340,9 +340,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 
         int ExeComSerial(const std::list<cParamCallSys> &);    ///< 1 after 1
-        int ExeComParal(const std::list<cParamCallSys> &);     ///< soon paral with Make for now (other to see ...)
-        int ExeComParal(const std::list<std::string> & aLCom); ///< in paral for any command; cut in pack and call ExeOnePackComParal
-        int ExeOnePackComParal(const std::list<std::string> & aLCom); ///< really run in paral for any command
+        int ExeComParal(const std::list<cParamCallSys> &,bool Silence=false);     ///< soon paral with Make for now (other to see ...)
+        int ExeComParal(const std::list<std::string> & aLCom,bool Silence=false); ///< in paral for any command; cut in pack and call ExeOnePackComParal
+        int ExeOnePackComParal(const std::list<std::string> & aLCom,bool Silence=false); ///< really run in paral for any command
 
 
 
@@ -419,7 +419,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
 
-        bool RunMultiSet(int aKParam,int aKSet);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed
+        bool RunMultiSet(int aKParam,int aKSet,bool MkFSilence=false);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed
         int  ResultMultiSet() const; /// Iff RunMultiSet was execute
         tPtrArg2007 AOptBench();  ///< to add in args mode if command can execute in bench mode
     private :

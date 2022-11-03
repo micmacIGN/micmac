@@ -33,6 +33,7 @@ const std::string TmpMMVIIDirPCar        =  TmpMMVIIDirPrefix + "-PCar" + String
 
 const std::string MMVIIDirOrient      =  MMVII_ComonPrefix +"-Orient" + StringDirSeparator();
 const std::string MMVIIDirHomol       =  MMVII_ComonPrefix +"-Homol" + StringDirSeparator();
+const std::string MMVIIDirRadiom      =  MMVII_ComonPrefix +"-Radiom" + StringDirSeparator();
 
 const std::string MMVIIDirMeshDev      =  MMVII_ComonPrefix +"-MeshDev" + StringDirSeparator();
 

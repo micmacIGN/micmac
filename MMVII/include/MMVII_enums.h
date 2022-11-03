@@ -220,6 +220,7 @@ enum class eTyModeRecall
                eTMR_Inside, ///< Recall in the same process
                eTMR_Serial, ///< Recall by sub-process in serial
                eTMR_Parall, ///< Recall by sub-process in parallel
+               eTMR_ParallSilence, ///< Recall by sub-process in parallel
                eNbVals      ///< Tag End of Vals
            };
 

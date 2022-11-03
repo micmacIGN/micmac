@@ -62,7 +62,7 @@ int GlobSysCall(const std::string & aCom, bool SVP)
 }
 
 
-int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::string> & aListCom,int aNbProcess,bool SVP)
+int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::string> & aListCom,int aNbProcess,bool SVP,bool Silence)
 {
    //RemoveFile(const  std::string & aFile,bool SVP)
 
@@ -74,7 +74,7 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::stri
        std::string aNameTask = "Task_" + ToStr(aNumTask);
        aStrAllTask += BLANK  + aNameTask;
        aOfs.Ofs() << aNameTask << " :\n";
-       aOfs.Ofs() << "\t" << aNameCom << "\n";
+       aOfs.Ofs() << (Silence ? "\t@" : "\t") << aNameCom << "\n";
        aNumTask++;
    }
    aOfs.Ofs() << aStrAllTask << "\n";

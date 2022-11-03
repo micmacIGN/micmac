@@ -1339,7 +1339,7 @@ int cMMVII_Appli::ExeComSerial(const std::list<cParamCallSys> & aL)
     return EXIT_SUCCESS;
 }
 
-int  cMMVII_Appli::ExeOnePackComParal(const std::list<std::string> & aLCom)
+int  cMMVII_Appli::ExeOnePackComParal(const std::list<std::string> & aLCom,bool Silence)
 {
    if (aLCom.empty()) return EXIT_SUCCESS;
    std::string aNameMk = "MkFile_" + mPrefixNameAppli ;
@@ -1353,7 +1353,7 @@ int  cMMVII_Appli::ExeOnePackComParal(const std::list<std::string> & aLCom)
       aOfs.Ofs().close();
    }
 
-   int aResult =  GlobParalSysCallByMkF(aNameMk,aLCom,mNbProcAllowed);
+   int aResult =  GlobParalSysCallByMkF(aNameMk,aLCom,mNbProcAllowed,false,Silence);
    {
       cMMVII_Ofs  aOfs(aName,true);
       if (aResult == EXIT_SUCCESS)
@@ -1366,7 +1366,7 @@ int  cMMVII_Appli::ExeOnePackComParal(const std::list<std::string> & aLCom)
    return aResult;
 }
 
-int  cMMVII_Appli::ExeComParal(const std::list<std::string> & aGlobLCom)
+int  cMMVII_Appli::ExeComParal(const std::list<std::string> & aGlobLCom,bool Silence)
 {
     int aNbMaxInFile =  round_up(mNbProcSystem * mMulNbInMk); // Size of allow task
 
@@ -1379,7 +1379,7 @@ int  cMMVII_Appli::ExeComParal(const std::list<std::string> & aGlobLCom)
         aNb++;
         if (aNb == aNbMaxInFile) // if we have reached the limit exec an clear
         {
-            int aResult = ExeOnePackComParal(aSubList); 
+            int aResult = ExeOnePackComParal(aSubList,Silence); 
             if (aResult != EXIT_SUCCESS)
                return aResult;
             aSubList.clear();
@@ -1387,18 +1387,18 @@ int  cMMVII_Appli::ExeComParal(const std::list<std::string> & aGlobLCom)
         }
     }
     // It may remain some command
-    return ExeOnePackComParal(aSubList);
+    return ExeOnePackComParal(aSubList,Silence);
 
     // return aResult;
 }
 
-int cMMVII_Appli::ExeComParal(const std::list<cParamCallSys> & aLParam)
+int cMMVII_Appli::ExeComParal(const std::list<cParamCallSys> & aLParam,bool Silence)
 {
     std::list<std::string> aLCom;
     for (const auto & aParam : aLParam)
        aLCom.push_back(aParam.Com());
 
-    return ExeComParal(aLCom);
+    return ExeComParal(aLCom,Silence);
 }
 
 void cMMVII_Appli::InitColFromVInit()
@@ -1440,7 +1440,7 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
     return aRes;
 }
 
-bool cMMVII_Appli::RunMultiSet(int aKParam,int aKSet)
+bool cMMVII_Appli::RunMultiSet(int aKParam,int aKSet,bool MkFSilence)
 {
     std::vector<std::string> aVSetPluDir;
     {
@@ -1452,7 +1452,8 @@ bool cMMVII_Appli::RunMultiSet(int aKParam,int aKSet)
 
     if (aVSetPluDir.size() != 1)  // Multiple image, run in parall 
     {
-         ExeMultiAutoRecallMMVII(ToStr(aKParam),aVSetPluDir); // Recall with substitute recall itself
+         eTyModeRecall aMode = MkFSilence ?  eTyModeRecall::eTMR_ParallSilence  : eTyModeRecall::eTMR_Parall  ;
+         ExeMultiAutoRecallMMVII(ToStr(aKParam),aVSetPluDir,cColStrAOpt::Empty, aMode); // Recall with substitute recall itself
          mResulMultiS = (aVSetPluDir.empty()) ? EXIT_FAILURE : EXIT_SUCCESS;
          mRMSWasUsed = true;
          return true;
@@ -1480,9 +1481,13 @@ void   cMMVII_Appli::ExeMultiAutoRecallMMVII
 {
     bool Separate = (aMode==eTyModeRecall::eTMR_Inside);
     std::list<cParamCallSys>  aLPCS = ListStrAutoRecallMMVII(aNameOpt,aLVals,Separate,aLSubstInit);
-    if (aMode==eTyModeRecall::eTMR_Parall)
+    if (aMode==eTyModeRecall::eTMR_Parall) 
     {
        ExeComParal(aLPCS);
+    }
+    else if (aMode==eTyModeRecall::eTMR_ParallSilence) 
+    {
+       ExeComParal(aLPCS,true);
     }
     else
     {

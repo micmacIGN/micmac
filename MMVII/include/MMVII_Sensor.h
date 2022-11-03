@@ -154,25 +154,43 @@ class cSetVisibility : public cDataBoundedSet<tREAL8,3>
 class cPhotogrammetricProject
 {
       public :
+	      
+	 //===================================================================
+         //==============   CONSTRUCTION & DESTRUCTION   =====================
+	 //===================================================================
 
-       //  method to share the parameters loadings from arc/argv
+	        /// constructor : will memorize application
+          cPhotogrammetricProject(cMMVII_Appli &);
+                /// some initialisation can be done only once Appli is itself init, method must be calles in mAppli.Exe()
+          void FinishInit() ;
+	        /// destructor  ,  some object delegates their destruction to this
+          ~cPhotogrammetricProject();
+
+	 //===================================================================
+         //==================   ORIENTAION       =============================
+	 //===================================================================
+	 
+               //  method to share the parameters loadings from arc/argv
           tPtrArg2007  OriInMand() ;  ///< Input Orientation as mandatory paramaters
           tPtrArg2007  OriOutMand();  ///< Output Orientation as mandatory paramaters
-	  // {return  AOpt2007(mOriIn ,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input });}
-          tPtrArg2007  OriInOpt() ;  ///< Input Orientation as optional paramaters
-	  
-
-          const std::string & OriIn() const; ///< accessor
+          tPtrArg2007  OriInOpt() ;   ///< Input Orientation as optional paramaters
+               //  Accessor et modifier 
+          const std::string & GetOriIn() const; ///< accessor
           void  SetOriIn(const std::string &) ;    ///< modifier 
-	  ///< constructor will memorize application
-          cPhotogrammetricProject(cMMVII_Appli &);
-
-          /// some initialisation can be done only once Appli is itself init, method must be calles in mAppli.Exe()
-          void FinishInit() ;
+               //  Accessor et modifier 
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using InPut-orientation
 	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Outpt orientation
 
-          ~cPhotogrammetricProject();
+
+	 //===================================================================
+         //==================   RADIOMETRY       =============================
+	 //===================================================================
+
+               //  method to share the parameters loadings from arc/argv
+          tPtrArg2007  RadiomOptOut() ;   ///< Output Radiometry as optional paramaters
+               //  Accessor et modifier 
+	  void SetRadiomOut(const std::string &) ; ///< modifier
+
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
           cMMVII_Appli &  mAppli;
@@ -180,9 +198,11 @@ class cPhotogrammetricProject
 
           std::string     mOriIn;
           std::string     mOriOut;
-
           std::string     mFullOriOut;
           std::string     mFullOriIn;
+
+          std::string     mRadiomOut;
+          std::string     mFullRadiomOut;
 
 	  std::list<cSensorCamPC*>  mLCam2Del;
 

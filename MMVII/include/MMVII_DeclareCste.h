@@ -55,6 +55,7 @@ extern const std::string TmpMMVIIProcSubDir;
 extern const std::string MMVIIDirOrient;
 extern const std::string MMVIIDirHomol;
 extern const std::string MMVIIDirMeshDev;
+extern const std::string MMVIIDirRadiom;
 
 //  String 
 extern const std::string BLANK;  // just std::string(" ") to avoid char * + char *
