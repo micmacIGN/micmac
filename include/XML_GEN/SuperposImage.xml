@@ -1484,6 +1484,9 @@
     <BSurH Nb="1" Type="double"> </BSurH>
     <PMed Nb="1" Type="Pt3dr"> </PMed>
     <Elips Nb="1" RefType="Xml_Elips3D"> </Elips>
+    <IsGenerated Nb="1" Type="bool"> </IsGenerated>
+    <GeneratedCategory Nb="1" Type="int"> </GeneratedCategory>
+    <Sigma Nb="1" Type="std::vector<double>"> </Sigma>
 </Xml_Ori3ImInit>
 
 <Xml_OneTriplet  Nb="1" Class="true" ToReference="true">

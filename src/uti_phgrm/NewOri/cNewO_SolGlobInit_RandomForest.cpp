@@ -60,6 +60,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "general/opt_debug.h"
 #include "general/photogram.h"
 #include "general/ptxd.h"
+#include "general/util.h"
 
 using namespace SolGlobInit::RandomForest;
 
@@ -111,6 +112,7 @@ cNOSolIn_Triplet::cNOSolIn_Triplet(RandomForest* anAppli,
     mSoms[1] = aS2;
     mSoms[2] = aS3;
     residue = aTrip.ResiduTriplet();
+    category = aTrip.GenCat();
 }
 
 static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
@@ -496,7 +498,8 @@ RandomForest::RandomForest(int argc, char** argv)
       mDistThresh(1e3),
       mResidu(20),
       mApplyCostPds(false),
-      mAlphaProb(0.5) {
+      mAlphaProb(0.5),
+      mR0(100) {
 
     ElInitArgMain(
         argc, argv, LArgMain() << EAMC(mFullPat, "Pattern"),
@@ -513,6 +516,7 @@ RandomForest::RandomForest(int argc, char** argv)
                    "Minimal residu considered as good. Def=20")
             << EAM(aModeBin, "Bin", true, "Binaries file, def = true",
                    eSAM_IsBool)
+            << EAM(mR0, "R0", true, "The R0 for selection, def = 100")
             /*<< EAM(mAlphaProb, "Alpha", true,
                    "Probability that a triplet at distance Dist is not an "
                    "outlier, Prob=Alpha^Dist; Def=0.5")*/
@@ -642,6 +646,7 @@ void RandomForest::loadDataset(Dataset& data) {
         tTriPointList homolPts;
         loadHomol(aTriplet, homolPts);
         aTriplet->AddHomolPts(homolPts);
+
 
         ///  ADD-SOM-TRIPLET
         /*aS1->attr().AddTriplet(aTriplet, 1, 2, 0);
@@ -1001,7 +1006,7 @@ void RandomForest::AddTriOnHeap(Dataset& data, cLinkTripl* aLnk) {
 void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     int NbSomCC = int(aCC->mSoms.size());
     GraphViz g;
-    DataLog<int, double, double> log({"Id", "Distance", "Residue"});
+    DataLog<int, int, double, double> log({"Id", "Category", "Distance", "Residue"});
 
     // Pick the  triplet
     cNOSolIn_Triplet* aTri0 = GetBestTri(data);
@@ -1010,7 +1015,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
               << aTri0->KSom(2)->attr().Im()->Name() << " " << aTri0->CostArc()
               << "\n";
 
-    log.add({aTri0->NumId(), 0., aTri0->CostArcMed()});
+    log.add({aTri0->NumId(), aTri0->category, 0., aTri0->CostArcMed()});
 
     // Flag triplet as marked
     aTri0->Flag().set_kth_true(data.mFlag3CC);
@@ -1059,7 +1064,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
             // Tree Dist util
             aTriNext->S3()->attr().NumId() = aTriNext->m3->NumId();
 
-            log.add({aTriNext->m3->NumId(), aTriNext->m3->NumTT(), aTriNext->m3->CostArcMed()});
+            log.add({aTriNext->m3->NumId(), aTriNext->m3->category, aTriNext->m3->NumTT(), aTriNext->m3->CostArcMed()});
 
             /*PrintRotation(aTriNext->S1()->attr().CurRot().Mat(),"0");
               PrintRotation(aTriNext->S2()->attr().CurRot().Mat(),"1");
@@ -1274,6 +1279,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
                         aPds = 1./aPds;
                     }*/
                 }
+                double score = aCostCur / (aCostCur  + aDist + mR0);
 
                 // Mean
                 aV3[aT]->CostPdsSum() += aCostCur;
@@ -1281,6 +1287,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
 
                 // Median
                 aV3[aT]->CostArcPerSample().push_back(aCostCur);
+                aV3[aT]->CostPerSample().push_back(score);
                 aV3[aT]->DistArcPerSample().push_back(aPds);
 
                 // Plot coherence vs sample vs distance
@@ -1551,9 +1558,9 @@ void RandomForest::DoNRandomSol(Dataset& data) {
     std::cout << "GENERATED Trees" << std::endl;
 
     for (auto& t : data.mV3) {
-        DataLog<size_t, double, double> log({"Id", "Distance", "Residue"});
+        DataLog<size_t, double, double, double> log({"Id", "Distance", "Residue", "Score"});
         for (size_t i = 0; i < t->CostArcPerSample().size(); i++) {
-            log.add({i, t->DistArcPerSample()[i], t->CostArcPerSample()[i]});
+            log.add({i, t->DistArcPerSample()[i], t->CostArcPerSample()[i], t->CostPerSample()[i]});
         }
         log.write("graph/logs/triplets/" + std::to_string(t->NumId()) + ".csv");
     }
@@ -1577,7 +1584,7 @@ void RandomForest::DoNRandomSol(Dataset& data) {
 }
 void RandomForest::logTotalGraph(Dataset& data, std::string filename) {
     DataTravel travel(data);
-    DataLog<int, double, double, double> log({"Id", "Distance", "Residue", "Cost"});
+    DataLog<int, int, double, double, double, double> log({"Id", "Category", "Distance", "Residue", "Cost", "Score"});
     // Clear the sommets
     travel.mVS.clear();
     auto flag = data.mAllocFlag3.flag_alloc();
@@ -1594,8 +1601,13 @@ void RandomForest::logTotalGraph(Dataset& data, std::string filename) {
     for (auto a : aTri0->DistArcPerSample()) {
         distance += a;
     }
-    distance /= aTri0->DistArcPerSample().size();
-    log.add({aTri0->NumId(), distance, residue, aTri0->CostArcMed()});
+
+    double score = 0;
+    for (auto a : aTri0->CostPerSample()) {
+        score += a;
+    }
+    score /= aTri0->CostPerSample().size();
+    log.add({aTri0->NumId(), aTri0->category, distance, residue, aTri0->CostArcMed(), score});
 
     std::vector<cNOSolIn_Triplet*> aCC3;
     // Add first triplet
@@ -1635,7 +1647,13 @@ void RandomForest::logTotalGraph(Dataset& data, std::string filename) {
                     }
                     distance /= aLnk[aKL].m3->DistArcPerSample().size();
 
-                    log.add({aLnk[aKL].m3->NumId(), distance, residue, aLnk[aKL].m3->CostArcMed()});
+                    double score = 0;
+                    for (auto a : aLnk[aKL].m3->CostPerSample()) {
+                        score += a;
+                    }
+                    score /= aLnk[aKL].m3->CostPerSample().size();
+
+                    log.add({aLnk[aKL].m3->NumId(),aLnk[aKL].m3->category, distance, residue, aLnk[aKL].m3->CostArcMed(), score});
                 }
             }
         }

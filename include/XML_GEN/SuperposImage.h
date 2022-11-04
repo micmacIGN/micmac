@@ -6690,25 +6690,25 @@ class cXml_Ori3ImInit
         bool& IsGen();
         const bool& IsGen()const ;
 
-        int& GenCat();
-        const int& GenCat()const ;
+        int & GenCat();
+        const int & GenCat()const ;
 
-        std::vector<double> & Sigma();
-        const std::vector<double> & Sigma() const ;
+      //  cTplValGesInit< std::vector<double> > & Sigma();
+       // const cTplValGesInit< std::vector<double> > & Sigma() const ;
 
     private:
         cXml_Rotation mOri2On1;
         cXml_Rotation mOri3On1;
         int mNbTriplet;
+        bool generated;
+        int genCategory;
         double mResiduTriplet;
         double mBSurH;
         Pt3dr mPMed;
         cXml_Elips3D mElips;
-        bool generated = false;
         //If generated, the section of random assigned
-        int genCategory = 0;
         // double: SigmaT, double: SigmaR
-        std::vector<double> sigma{0,0};
+        //cTplValGesInit< std::vector<double> > sigma;
 
 };
 cElXMLTree * ToXMLTree(const cXml_Ori3ImInit &);

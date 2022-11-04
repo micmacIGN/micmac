@@ -201,6 +201,7 @@ class cNOSolIn_Triplet {
     double& Dist() { return mDistance; }
 
     std::vector<double>& CostArcPerSample() { return mCostArcPerSample; };
+    std::vector<double>& CostPerSample() { return mCostPerSample; };
     std::vector<double>& DistArcPerSample() { return mDistArcPerSample; };
 
     double PdsSum() const { return mPdsSum; }
@@ -214,6 +215,8 @@ class cNOSolIn_Triplet {
 
     double residue;
 
+    int category = -1;
+
    private:
     cNOSolIn_Triplet(const cNOSolIn_Triplet&);  // N.I.
     RandomForest* mAppli;
@@ -226,11 +229,13 @@ class cNOSolIn_Triplet {
     double mResidue;
     double mDistance;
 
+
     //End Stats
 
     float mCostArc;
     float mCostArcMed;
     std::vector<double> mCostArcPerSample;
+    std::vector<double> mCostPerSample;
     std::vector<double> mDistArcPerSample;
     double mPdsSum;      // sum of Pds for the computation of the weighted mean
     double mCostPdsSum;  // sum of cost times pds for the computation of the
@@ -505,6 +510,8 @@ std::vector<cNOSolIn_Triplet*>& aV3, int,
     double mResidu;
     bool mApplyCostPds;
     double mAlphaProb;
+
+    double mR0;
 
     bool aModeBin = true;
 };

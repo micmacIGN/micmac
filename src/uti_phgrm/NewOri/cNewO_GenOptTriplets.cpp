@@ -160,7 +160,7 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
             cXml_Ori3ImInit aXml;
             aXml.IsGen() = true;
             aXml.GenCat() = s;
-            aXml.Sigma() = {cur_sigma_t, cur_sigma_r};
+            //aXml.Sigma() = {cur_sigma_t, cur_sigma_r};
             //------------
             if (!cur_sigma_t && !cur_sigma_r) {
                 aXml.Ori2On1() = El2Xml(
