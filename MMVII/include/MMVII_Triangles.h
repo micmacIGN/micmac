@@ -96,8 +96,8 @@ template <class Type,const int Dim> class  cTriangle
      protected :
        tPt  mPts[3];
 };
-typedef   cTriangle<tREAL8,2>  cTri2dR;
-typedef   cTriangle<tREAL8,3>  cTri3dR;
+typedef   cTriangle<tREAL8,2>  tTri2dr;
+typedef   cTriangle<tREAL8,3>  tTri3dr;
 
 
 /// return 2 elementay triangle both oriented, DiagCrois : diag contain 00->11 , else 01->10
@@ -152,6 +152,9 @@ template <class Type,const int Dim> class cTriangulation
 
 	  ///  Make some (basic) test on correction of a triangulation, eventually correct some default
           bool CheckAndCorrect(bool Correct);
+
+
+	  std::vector<size_t> IndexPts3D(size_t aNpPtsTot);
 
      protected :
 	  /// More a

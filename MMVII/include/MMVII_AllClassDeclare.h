@@ -125,7 +125,12 @@ typedef cTplBox<double,2>  cBox2dr;
 typedef cTplBox<int,3>  cBox3di;
 typedef cTplBox<double,3>  cBox3dr;
 
+// Later replace cPt3dr  ...  by tPt3dr , more coherent with other notation ...
 
+typedef cPtxd<int,2>     tPt2di ;
+typedef cPtxd<int,3>     tPt3di ;
+typedef cPtxd<double,2>  tPt2dr ;
+typedef cPtxd<double,3>  tPt3dr ;
 
 // MMVII_Bench.h
 
@@ -173,9 +178,18 @@ template <class TypeObj,class TypeLayer>  class cLayer3D ;
 // MMVII_Matrix.h
 template <class Type> class  cDenseVect;
 
+
+//  MMVII_Triangles.h
 template <class Type,const int Dim> class cTriangle ;
-typedef   cTriangle<tREAL8,2>  cTri2dR;
-typedef   cTriangle<tREAL8,3>  cTri3dR;
+typedef   cTriangle<tREAL8,2>  tTri2dr;
+typedef   cTriangle<tREAL8,3>  tTri3dr;
+
+template <class Type,const int Dim> class cTriangulation ;
+typedef cTriangulation<tREAL8,2>  tTriangul2dr;
+typedef cTriangulation<tREAL8,3>  tTriangul3dr;
+
+
+
 
 
 
@@ -211,6 +225,8 @@ enum class eZBufModeIter;
 struct cResModeSurfD;
 class  cZBuffer;
 
+// MMVII_Radiom.h
+class cImageRadiomData;
 
 
 

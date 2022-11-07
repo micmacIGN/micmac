@@ -10,6 +10,13 @@
 
 namespace MMVII
 {
+
+bool  ZBufLabIsOk(eZBufRes aLab)
+{
+     return (aLab==eZBufRes::Visible) || (aLab==eZBufRes::LikelyVisible) ;
+}
+
+
 /* =============================================== */
 /*                                                 */
 /*                 cTri3DIterator                  */
@@ -49,7 +56,7 @@ bool cCountTri3DIterator::GetNextPoint(cPt3dr & aP )
     return true;
 }
 
-bool cCountTri3DIterator::GetNextTri(cTri3dR & aTri)
+bool cCountTri3DIterator::GetNextTri(tTri3dr & aTri)
 {
     if (mIndexF>=mNbF) return false;
     aTri = KthF(mIndexF);
@@ -72,7 +79,7 @@ cMeshTri3DIterator::cMeshTri3DIterator(cTriangulation3D<tREAL8> * aTri) :
 }
 
 cPt3dr  cMeshTri3DIterator::KthP(int aKP) const {return mTri->KthPts(aKP);}
-cTri3dR cMeshTri3DIterator::KthF(int aKF) const {return mTri->KthTri(aKF);}
+tTri3dr cMeshTri3DIterator::KthF(int aKF) const {return mTri->KthTri(aKF);}
 
 /* =============================================== */
 /*                                                 */
@@ -171,7 +178,7 @@ void cZBuffer::MakeZBuf(eZBufModeIter aMode)
         mMaxRSD = 0.0;
     }
 
-    cTri3dR  aTriIn = cTri3dR::Tri000();
+    tTri3dr  aTriIn = tTri3dr::Tri000();
     while (mMesh.GetNextTri(aTriIn))
     {
         mLastResSurfDev = -1;
@@ -183,7 +190,7 @@ void cZBuffer::MakeZBuf(eZBufModeIter aMode)
            aRes = eZBufRes::OutIn;
         else
         {
-            cTri3dR aTriOut = mMapI2O.TriValue(aTriIn);
+            tTri3dr aTriOut = mMapI2O.TriValue(aTriIn);
 
             if (aTriOut.Regularity() <=0)
                aRes = eZBufRes::UnRegOut;
@@ -207,12 +214,12 @@ void cZBuffer::MakeZBuf(eZBufModeIter aMode)
 }
 
 
-double cZBuffer::ComputeResol(const cTri3dR & aTri3In ,const cTri3dR & aTri3Out) const
+double cZBuffer::ComputeResol(const tTri3dr & aTri3In ,const tTri3dr & aTri3Out) const
 {
         // input triangle, developped isometrically on the plane
-        cTri2dR aTri2In  = cIsometry3D<tREAL8>::ToPlaneZ0(0,aTri3In,true);
+        tTri2dr aTri2In  = cIsometry3D<tREAL8>::ToPlaneZ0(0,aTri3In,true);
         // output triangle, projected on the plane
-        cTri2dR aTri2Out = Proj(aTri3Out);
+        tTri2dr aTri2Out = Proj(aTri3Out);
         // Affinity  Input-Dev -> Output proj
         cAffin2D<tREAL8> aAffI2O =  cAffin2D<tREAL8>::Tri2Tri(aTri2In,aTri2Out);
 
@@ -220,7 +227,7 @@ double cZBuffer::ComputeResol(const cTri3dR & aTri3In ,const cTri3dR & aTri3Out)
 }
 
 
-eZBufRes cZBuffer::MakeOneTri(const cTri3dR & aTriIn,const cTri3dR &aTri3,eZBufModeIter  aMode)
+eZBufRes cZBuffer::MakeOneTri(const tTri3dr & aTriIn,const tTri3dr &aTri3,eZBufModeIter  aMode)
 {
     eZBufRes aRes = eZBufRes::Undefined;
 

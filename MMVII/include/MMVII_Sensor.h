@@ -176,10 +176,10 @@ class cPhotogrammetricProject
           tPtrArg2007  OriInOpt() ;   ///< Input Orientation as optional paramaters
                //  Accessor et modifier 
           const std::string & GetOriIn() const; ///< accessor
-          void  SetOriIn(const std::string &) ;    ///< modifier 
-               //  Accessor et modifier 
-          void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using InPut-orientation
-	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Outpt orientation
+          void  SetOriIn(const std::string &) ;    ///< modifier, if in-ori not fixed by argv (but contained in a file)
+               //  Read/Write
+          void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
+	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Input orientation
 
 
 	 //===================================================================
@@ -187,9 +187,14 @@ class cPhotogrammetricProject
 	 //===================================================================
 
                //  method to share the parameters loadings from arc/argv
+          tPtrArg2007  RadiomInMand() ;   ///< Input Radiometry as mandatory paramaters
           tPtrArg2007  RadiomOptOut() ;   ///< Output Radiometry as optional paramaters
                //  Accessor et modifier 
-	  void SetRadiomOut(const std::string &) ; ///< modifier
+               //  Read/Write
+          void SaveRadiomData(const cImageRadiomData &) const; ///< Save camera using OutPut-orientation
+	  cImageRadiomData * AllocRadiom(const std::string &); ///< Create Camera using Input orientation
+
+	  bool RadiomOptOutIsInit() const;
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
@@ -201,7 +206,9 @@ class cPhotogrammetricProject
           std::string     mFullOriOut;
           std::string     mFullOriIn;
 
+          std::string     mRadiomIn;
           std::string     mRadiomOut;
+          std::string     mFullRadiomIn;
           std::string     mFullRadiomOut;
 
 	  std::list<cSensorCamPC*>  mLCam2Del;

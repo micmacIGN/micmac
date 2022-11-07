@@ -499,6 +499,9 @@ class cRGBImage
         static const  cPt3di  Magenta;
         static const  cPt3di  Cyan;
 
+	/// return a lut adapted to visalise label in one chanel (blue), an maximize constrat in 2 other
+	static  std::vector<cPt3di>  LutVisuLabRand(int aNbLab);
+
      private :
         tIm1C  mImR;
         tIm1C  mImG;

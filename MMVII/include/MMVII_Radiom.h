@@ -18,17 +18,29 @@ class cImageRadiomData : public cMemCheck
 
         cImageRadiomData(const std::string & aNameIm,int aNbChanel,bool withPoint);
 	static cImageRadiomData * FromFile(const std::string & aNameFile);
+	void    ToFile(const std::string & aNameFile) const;
+	static std::string NameFileOfImage(const std::string&);
+	std::string NameFile() const;
+
+	// non const <= possible reordering
+	void GetIndexCommon(std::vector<tPt2di> &,cImageRadiomData &);
 
 	void AddObsGray(tIndex,tRadiom);
 	void AddObsGray(tIndex,tRadiom,const tPtMem &);
 	void AddObsRGB(tIndex,tRadiom,tRadiom,tRadiom);
 	void AddObsRGB(tIndex,tRadiom,tRadiom,tRadiom,const tPtMem &);
 
+	///  switch on one other AddObs depending on internal variable
+	void AddObs_Adapt(tIndex,tRadiom,tRadiom,tRadiom,const tPtMem &);
+
 	void AddData(const  cAuxAr2007 & anAux); ///< Serialization
 						
         void MakeOrdered();
 	static void Bench(cParamExeBench & aParam);
 
+	const std::vector<tIndex> & VIndex()             const;
+	const std::vector<tPtMem> & VPts()               const;
+	const tVRadiom            & VRadiom(size_t aKCh) const;
    private :
 	void AddIndex(tIndex);
 	void CheckAndAdd(tIndex ,tRadiom ,int aNbCh,bool WithPoint);

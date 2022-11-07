@@ -34,6 +34,10 @@ class cAppliMeshImageDevlp : public cMMVII_Appli
 	// int  ExecuteBench(cParamExeBench &) override ;   ///< indicate what is done in the bench
 
 
+        std::string NameRes(const std::string& aPref,const std::string& aPost)
+	{
+            return  MMVIIDirMeshDev + aPref +"-" +  LastPrefix(FileOfPath(mNameFile_MDBI)) + "." + aPost;
+	}
 
      // --- Mandatory ----
 	std::string mNameCloud2DIn;
@@ -41,6 +45,8 @@ class cAppliMeshImageDevlp : public cMMVII_Appli
 
      // --- Optionnal ----
 	bool                           mMiror; 
+	bool                           mWGrayLab; 
+	bool                           mWRGBLab; 
 	/*
 	double      mResolZBuf;
 	int         mNbPixImRedr;
@@ -57,7 +63,6 @@ class cAppliMeshImageDevlp : public cMMVII_Appli
 
         cHomot2D<tREAL8>               mHDev2Pix ;
 	cPt2di                         mSzPix;
-	std::string                    mNameImRes;
 
         cMeshDev_BestIm                mMDBI;
 	size_t                         mNbIm;
@@ -69,6 +74,10 @@ class cAppliMeshImageDevlp : public cMMVII_Appli
 	std::vector<cPt2dr>            mPtsGlob;
 	cSetIntDyn                     mSetPCurIm;
 	cRGBImage                      mGlobIm;
+	cIm2D<tINT2>                   mGrLabIm;
+	cRGBImage                      mRGBLabIm;
+
+	std::vector<cPt3di>            mLutLabel;
 
 };
 
@@ -85,16 +94,17 @@ cAppliMeshImageDevlp::cAppliMeshImageDevlp(const std::vector<std::string> & aVAr
    cMMVII_Appli     (aVArgs,aSpec),
     // opt args
    mMiror           (true),
+   mWGrayLab        (false),
+   mWRGBLab         (false),
     // internal vars
    mPhProj          (*this),
    mTriDev          (nullptr),
    mBoxDev          (cBox2dr::Empty()),
    mSetPCurIm       (0),
-   mGlobIm          (cPt2di(1,1))
+   mGlobIm          (cPt2di(1,1)),
+   mGrLabIm         (cPt2di(1,1)),
+   mRGBLabIm        (cPt2di(1,1))
 {
-
-	cPtxd<tU_INT1,2>  aPt(0,0);
-	FakeUseIt(aPt);
 }
 
 
@@ -102,6 +112,8 @@ cAppliMeshImageDevlp::cAppliMeshImageDevlp(const std::vector<std::string> & aVAr
 cCollecSpecArg2007 & cAppliMeshImageDevlp::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
+           << AOpt2007(mWGrayLab,"WGL","With Gray Label 2-byte image generation",{eTA2007::HDV})
+           << AOpt2007(mWRGBLab,"WRGBL","With RGB Label  1 chanel-label/2 label contrast",{eTA2007::HDV})
 /*
            << AOpt2007(mNameCloud2DIn,"M2","Mesh 2D, dev of cloud 3D,to generate a visu of hiden part ",{eTA2007::FileCloud,eTA2007::Input})
            << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
@@ -162,13 +174,14 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
 	    << " " << aBoxPixIm
 	    << "\n"; 
 
+   // === cPt3di aRGBLab(aKIm,aKIm,aKIm);
 
    for (const auto & aIndF :   mVListIndTri.at(aKIm))
    {
         const cPt3di  & aFace =  mTriDev->KthFace(aIndF);
 
         cTriangle2DCompiled<tREAL8> aTriGlob  = TriFromFace(mPtsGlob,aFace);
-        cTri2dR aTriCurIm = TriFromFace(mPtsCurIm,aFace);
+        tTri2dr aTriCurIm = TriFromFace(mPtsCurIm,aFace);
 
         cAffin2D<tREAL8> aAffG2I = cAffin2D<tREAL8>::Tri2Tri(aTriGlob,aTriCurIm);
 	aAffG2I = cAffin2D<tREAL8>::Translation(-ToR(aBoxPixIm.P0())) * aAffG2I;
@@ -181,13 +194,13 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
 	for (const auto & aPixG : aVPixGlob)
 	{
             cPt2dr aPtIm = aAffG2I.Value(ToR(aPixG));
-//StdOut() <<  "IiIm=" <<  aPtIm <<  " "    <<  aImCur.ImR().DIm().Sz()   << " GLOB=" << aPixG << "\n";
-//getchar();
-
 	    cPt3di aRGB = aImCur.GetRGBPixBL(aPtIm);
 
-
             mGlobIm.SetRGBPix(aPixG,aRGB);
+	    if (mWGrayLab)
+               mGrLabIm.DIm().SetV(aPixG,aKIm);
+	    if (mWRGBLab)
+               mRGBLabIm.SetRGBPix(aPixG,mLutLabel.at(aKIm));
 	}
    }
 
@@ -220,6 +233,7 @@ int cAppliMeshImageDevlp::Exe()
 
      //  Initialize mVListIndTri
      mNbIm = mMDBI.mNames.size();
+     mLutLabel = cRGBImage::LutVisuLabRand(mNbIm+1);
      mVListIndTri.resize(mNbIm);
      for (size_t aKTri=0 ; aKTri<mMDBI.mNumBestIm.size() ; aKTri++)
      {
@@ -243,13 +257,15 @@ int cAppliMeshImageDevlp::Exe()
 
      // Create file if required
      mSzPix = Pt_round_up(aBrd+mHDev2Pix.Value(mBoxDev.P1()));
-     mNameImRes = MMVIIDirMeshDev + "DevIm-" +  LastPrefix(FileOfPath(mNameFile_MDBI)) + ".tif";
-     if ( (LevelCall()==0) &&  (!ExistFile(mNameImRes)) )
-     {
-        cDataFileIm2D::Create(mNameImRes,eTyNums::eTN_U_INT1,mSzPix,3);
-     }
 
-     mGlobIm = cRGBImage::FromFile(mNameImRes);
+     mGlobIm = cRGBImage(mSzPix);
+     if (mWGrayLab)
+     {
+        mGrLabIm.DIm().Resize(mSzPix);
+        mGrLabIm.DIm().InitCste(-1);
+     }
+     if (mWRGBLab)
+        mRGBLabIm = cRGBImage(mSzPix,mLutLabel.at(mNbIm)) ;
 
 
      for (size_t aKIm = 0 ; aKIm < mNbIm ; aKIm++)
@@ -257,7 +273,14 @@ int cAppliMeshImageDevlp::Exe()
           DoAnIm(aKIm);
      }
 
-     mGlobIm.Write(mNameImRes,cPt2di(0,0));
+     mGlobIm.ToFile(NameRes("DevIm","tif"));
+     if (mWGrayLab)
+        mGrLabIm.DIm().ToFile(NameRes("LabGRIm","tif"));
+     if (mWRGBLab)
+        mRGBLabIm.ToFile(NameRes("LabRGBIm","tif"));
+
+     if (mWGrayLab || mWRGBLab)
+        SaveInFile(mMDBI.mNames,NameRes("LabNames","xml"));
 
      delete mTriDev;
      delete mTri3;

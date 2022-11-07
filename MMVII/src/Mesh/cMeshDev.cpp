@@ -23,6 +23,7 @@ namespace MMVII
 typedef tREAL8  tCoordDevTri;
 typedef  cTriangulation3D<tCoordDevTri> tTriangulation3D;
 typedef  cTriangle<tCoordDevTri,3>      tTri3D;
+typedef  cTriangle<tCoordDevTri,2>      tTri2D;
 typedef  cIsometry3D<tCoordDevTri>      tIsom3D;
 typedef  cSimilitud3D<tCoordDevTri>     tSim3D;
 typedef  cPtxd<tCoordDevTri,3>          tPt3D;
@@ -92,16 +93,16 @@ class cSomDevT3D : public cSomFace3D
 class cFaceDevT3D : public cSomFace3D
 {
    public :
-      cFaceDevT3D (cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom,const cTri2dR &);
+      cFaceDevT3D (cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom,const tTri2D &);
       int IndKthSom(int aK) const;
 
       tCoordDevTri  DistortionDist(tCoordDevTri & aSomDiff,tCoordDevTri & aSomDist) const;
       
-      const cTri2dR &  Tri2D() const;
+      const tTri2D &  Tri2D() const;
       double &  EcMax();
    private :
       cPt3di           mIndSoms;
-      cTri2dR          mTri2D;
+      tTri2D          mTri2D;
       double           mEcMax;
 };
 
@@ -231,7 +232,7 @@ int  cSomDevT3D::NumY() const {return NumX() + 1;}
 /*                                                         */
 /* ******************************************************* */
 
-cFaceDevT3D::cFaceDevT3D(cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom,const cTri2dR & aTri2) :
+cFaceDevT3D::cFaceDevT3D(cDevTriangu3d * aDevTri,int aNumF,cPt3di aIndSom,const tTri2D & aTri2) :
     cSomFace3D    (aDevTri,aNumF),
     mIndSoms      (aIndSom),
     mTri2D        (aTri2),
@@ -261,7 +262,7 @@ tCoordDevTri cFaceDevT3D::DistortionDist(tCoordDevTri& aSomDif,tCoordDevTri& aSo
     return aSomDif / aSomDist;
 }
 
-const cTri2dR &  cFaceDevT3D::Tri2D() const {return mTri2D;}
+const tTri2D &  cFaceDevT3D::Tri2D() const {return mTri2D;}
 
 /* ******************************************************* */
 /*                                                         */

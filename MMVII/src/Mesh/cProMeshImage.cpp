@@ -8,6 +8,7 @@
 #include "MMVII_ZBuffer.h"
 #include "MeshDev.h"
 #include "MMVII_Sys.h"
+#include "MMVII_Radiom.h"
 
 namespace MMVII
 {
@@ -32,7 +33,22 @@ template <class TypeMap>  class  cMapPixelization
 };
 */
 
+/*
+class cLoadRGBFromMesh
+{
+       public :
+	       cLoadRGBFromMesh(const cSensorImage&,const cZBuffer &,const tTriangul3dr & ,double aRatioResolAcc);
 
+       private :
+	       cRGBImage  mRGB;
+};
+
+cLoadRGBFromMesh::cLoadRGBFromMesh(const cSensorImage&,const cZBuffer &,const tTriangul3dr & ,double aRatioResolAcc)
+	mRGB(cPt2di(1,1))
+{
+  
+}
+*/
 
 /* =============================================== */
 /* =============================================== */
@@ -71,7 +87,7 @@ void AddData(const cAuxAr2007 & anAux,cMeshDev_BestIm& aRMS)
 
 /* =============================================== */
 /*                                                 */
-/*                 cAppliCloudClip                 */
+/*              cAppliProMeshImage                 */
 /*                                                 */
 /* =============================================== */
 
@@ -106,6 +122,9 @@ class cAppliProMeshImage : public cMMVII_Appli
 	/** Make a  developped  and visualisation to check labelisartion*/
 	void MakeDevlptIm(cZBuffer &  aZB);
 
+	/**  Generate data for radiom equalization */
+	void MakeRadiomData(cZBuffer &  aZB);
+
      // --- Mandatory ----
 	std::string mNamePatternIm;   ///< Patern of image for which we compute proj
 	std::string mNameCloud3DIn;   ///< Name of Mesh
@@ -125,6 +144,8 @@ class cAppliProMeshImage : public cMMVII_Appli
         cPhotogrammetricProject   mPhProj;
 	std::string               mNameSingleIm;  ///< if there is a single file in a xml set of file, the subst has not been made ...
         cTriangulation3D<tREAL8>* mTri3D;
+	size_t                    mNbF;
+	size_t                    mNbP;
         cSensorCamPC *            mCamPC;
 	std::string               mDirMeshDev;
 	std::string               mNameResult;
@@ -163,12 +184,13 @@ cCollecSpecArg2007 & cAppliProMeshImage::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
            << AOpt2007(mNameCloud2DIn,"M2","Mesh 2D, dev of cloud 3D,to generate a visu of hiden part ",{eTA2007::FileCloud,eTA2007::Input})
            << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
-	  <<  AOpt2007(mDoImages,"DoIm","Do images", {eTA2007::HDV})
+           << AOpt2007(mDoImages,"DoIm","Do images", {eTA2007::HDV})
            << AOpt2007(mNbPixImRedr,"NbPixIR","Resolution of ZBuffer", {eTA2007::HDV})
            << AOpt2007(mMII,"MII","Margin Inside Image (for triangle validation)", {eTA2007::HDV})
            << AOpt2007(mSKE,CurOP_SkipWhenExist,"Skip command when result exist")
            << AOpt2007(mNameBenchMode,"NameBM","Use name as in bench mode",{eTA2007::HDV,eTA2007::Tuning})
 	   << AOptBench()
+	   << mPhProj.RadiomOptOut()
    ;
 
 }
@@ -205,8 +227,8 @@ void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
 {
       // Read the 2-D Triangulation and check its coherence with the 3-D one
    cTriangulation2D<tREAL8> aTri2D (cTriangulation3D<tREAL8>(DirProject()+mNameCloud2DIn));
-   MMVII_INTERNAL_ASSERT_tiny(aTri2D.NbFace()==mTri3D->NbFace(),"Incompat tri 2/3");
-   MMVII_INTERNAL_ASSERT_tiny(aTri2D.NbPts ()==mTri3D->NbPts (),"Incompat tri 2/3");
+   MMVII_INTERNAL_ASSERT_tiny(aTri2D.NbFace()==mNbF,"Incompat tri 2/3");
+   MMVII_INTERNAL_ASSERT_tiny(aTri2D.NbPts ()==mNbP,"Incompat tri 2/3");
 
        // compute size of result and corresponce pixel 2-D-triangulation
    cBox2dr   aBox2 = aTri2D.BoxEngl(1e-3);
@@ -216,7 +238,7 @@ void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
 
    cRGBImage  aIm(aSz,cRGBImage::Yellow);   // create image
 
-   for (size_t aKF=0 ; aKF<aTri2D.NbFace() ; aKF++)
+   for (size_t aKF=0 ; aKF<mNbF ; aKF++)
    {
        const cResModeSurfD&   aRD = aZB.ResSurfD(aKF) ;
        cPt3di aCoul(0,0,0);
@@ -236,7 +258,7 @@ void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
 
        }
           // compute pixels inside the triangles
-       cTri2dR  aTriPix = aTri2D.KthTri(aKF);
+       tTri2dr  aTriPix = aTri2D.KthTri(aKF);
        cTriangle2DCompiled<tREAL8>  aTriComp(ImageOfTri(aTriPix,mHTri2Pix));
        std::vector<cPt2di> aVPix;
        aTriComp.PixelsInside(aVPix,1e-8);
@@ -249,6 +271,127 @@ void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
    aIm.ToFile(mDirMeshDev+"Dev-"+LastPrefix(mNameSingleIm)+".tif");
 }
 
+
+void cAppliProMeshImage::MakeRadiomData(cZBuffer &  aZB)
+{
+    tREAL8 mNbSampleRad = 1e4;
+    tREAL8 mNbPtsIm = 5e6;
+    bool mWithPt = true; 
+    int  mNbCh = 1;
+
+
+    //  (2 * aNbPtsByS)^2  * mNbSampleRad = mNbPtsIm
+    int aNbPtsByS  =  round_up(std::sqrt(mNbPtsIm/mNbSampleRad)/2);
+    cImageRadiomData aIRD(mNameSingleIm,mNbCh,mWithPt);
+
+
+    cDataFileIm2D aDFI =  cDataFileIm2D::Create(mNameSingleIm,false);
+
+    cTplBoxOfPts<int,2> aBoxPtsIm;
+
+    tREAL8 aResolMin =  aZB.MaxRSD() * 0.3;
+
+    // 1-   compute areas + Box Im
+    std::vector<tREAL8> aVAreas(mNbF);
+    double aAreaTot = 0.0;
+    for (size_t aKF= 0 ; aKF<mNbF ; aKF++)
+    {
+	//  Accumulate area
+        tTri3dr aTri  = mTri3D->KthTri(aKF);
+	tREAL8 anArea = std::abs(aTri.Area());
+	aVAreas.at(aKF) = anArea;
+	aAreaTot += anArea;
+
+	//  Add to box if Face is Ok
+        const cResModeSurfD&  aRMS =  aZB.ResSurfD(aKF);
+	bool  OkFace = ZBufLabIsOk(aRMS.mResult)  && (aRMS.mResol>aResolMin);
+	if (OkFace)
+	{
+           for (int aK3=0 ; aK3<3 ; aK3++)
+               aBoxPtsIm.Add(ToI(mCamPC->Ground2Image(aTri.Pt(aK3))));
+	}
+    }
+
+    cBox2di aBoxIm = aBoxPtsIm.CurBox().Dilate(4).Inter(aDFI);
+    cRGBImage  aIm = cRGBImage::FromFile(mNameSingleIm,aBoxIm);
+
+
+    size_t aIndex =0;
+    for (size_t aKF= 0 ; aKF<mNbF ; aKF++)
+    {
+        const cResModeSurfD&  aRMS =  aZB.ResSurfD(aKF);
+	bool  OkFace = ZBufLabIsOk(aRMS.mResult)  && (aRMS.mResol>aResolMin);
+
+        tTri3dr aTri  = mTri3D->KthTri(aKF);
+	tREAL8 aNbPts =  mNbSampleRad * (aVAreas.at(aKF)/aAreaTot);
+
+	// aNbSample^2/2 = aNbPts
+	int aNbSample = round_up(std::sqrt(2*aNbPts));
+
+	//  We compute the base of the triangle, the point inside triangle will paremtrized as
+	//  P0 + wx Vx + wy Vy  with  wx + wy <=1   wx>=0 wy>=0
+	tPt3dr aP0 = aTri.Pt(0);
+	tPt3dr aVx = aTri.Pt(1)-aP0;
+	tPt3dr aVy = aTri.Pt(2)-aP0;
+
+        // we construct a regular grid ,  parse all point whatever happens, to have the same indexing with all images
+	for (int aKx1=0 ; aKx1<aNbSample ; aKx1++)
+	{
+            // with this fomula with N=5  W will parse {0.1 0.3 ... 0.9}
+            tREAL8 aWx1 = (aKx1+0.5) / double (aNbSample) ;
+	    // with born bellow,  when Kx+Ky=N-1 ,  Wx+Wy=1 (due to the add of 0.5)
+            for (int aKy1=0 ; aKy1<aNbSample -aKx1 ; aKy1++)
+	    {
+                 aIndex++;
+		 // Now specific to face where we will compute something
+		 if (OkFace)
+		 {
+                     tREAL8 aWy1 = (aKy1+0.5) / double (aNbSample) ;
+		     tPt3dr aGrid1 = aP0 + aWx1 * aVx + aWy1 * aVy;
+		     if (mCamPC->Visibility(aGrid1)>0)
+		     {
+                         bool isAllOk = true;
+			 int aNbOk = 0;
+			 cPt3di  aSomCoul(0,0,0);
+                         // Now parse a subgrid arround P0
+		         // The step on major grid is  1/aNbSample , on minor Grid 1/aNbSample *(1+2*aNbPtsByS)
+                         for (int aKx2=-aNbPtsByS; aKx2<=aNbPtsByS ; aKx2++)
+                         {
+                             tREAL8 aWx2 = aWx1 + aKx2 / double (aNbSample  * (1+2*aNbPtsByS));
+                             for (int aKy2=-aNbPtsByS; aKy2<=aNbPtsByS ; aKy2++)
+                             {
+                                  tREAL8 aWy2 = aWy1 + aKy2 / double (aNbSample  * (1+2*aNbPtsByS));
+		                  tPt3dr aGrid2 = aGrid1 + aWx2 * aVx + aWy2 * aVy;
+				  tPt2dr aPIm2 =  mCamPC->Ground2Image(aGrid2) - ToR(aBoxIm.P0());
+
+				  if (aIm.InsideBL(aPIm2))
+				  {
+                                      aSomCoul += aIm.GetRGBPixBL(aPIm2);
+                                      aNbOk++;
+				  }
+				  else
+				  {
+                                       isAllOk = false;
+				  }
+                             }
+                         }
+			 if (isAllOk && (aNbOk!=0))
+			 {
+                             aSomCoul = aSomCoul/aNbOk;
+                             tPt2dr aPIm1 =  mCamPC->Ground2Image(aGrid1);
+                             aIRD.AddObs_Adapt(aIndex,aSomCoul.x(),aSomCoul.y(),aSomCoul.z(),ToI(aPIm1));
+			 }
+		     }
+		 }
+	    }
+	}
+    }
+    mPhProj.SaveRadiomData(aIRD);
+}
+
+
+
+
 void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
 {
     // comppute dual graph to have neigbouring relation between faces
@@ -260,7 +403,7 @@ void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
     {
         GoOn = false;
 	// parse all face
-        for (size_t aKF1 = 0 ; aKF1<mTri3D->NbFace() ; aKF1++)  
+        for (size_t aKF1 = 0 ; aKF1<mNbF ; aKF1++)  
         {
             // check for each face labled  "NoPix" if it  has a neigboor visible (or likely)
             if (aZB.ResSurfD(aKF1).mResult == eZBufRes::NoPix)
@@ -269,9 +412,7 @@ void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
                 aGrD.GetFacesNeighOfFace(aVF2,aKF1);
                 for (const auto &  aKF2 : aVF2)
 		{
-                     if (     (aZB.ResSurfD(aKF2).mResult == eZBufRes::Visible)
-                          ||  (aZB.ResSurfD(aKF2).mResult == eZBufRes::LikelyVisible)
-			)
+                     if ( ZBufLabIsOk(aZB.ResSurfD(aKF2).mResult) )
 		     {
                         // Got 1 => this face is likely , and we must prolongate the global process
                         aZB.ResSurfD(aKF1).mResult =  eZBufRes::LikelyVisible;
@@ -292,12 +433,11 @@ void cAppliProMeshImage::MergeResults()
 {
 	// Read triangultion , will be used to weight the resolutio with area of triangle
     mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
-    size_t aNbF = mTri3D->NbFace();
         // initialise the strutc for resulT
     cMeshDev_BestIm aMBI;
     aMBI.mNames = VectMainSet(0);  
-    aMBI.mNumBestIm.resize(aNbF,-1);
-    aMBI.mBestResol.resize(aNbF,-1);
+    aMBI.mNumBestIm.resize(mNbF,-1);
+    aMBI.mBestResol.resize(mNbF,-1);
 
     // Parse all the images
     for (size_t aKIm=0 ; aKIm<aMBI.mNames.size(); aKIm++)
@@ -306,16 +446,16 @@ void cAppliProMeshImage::MergeResults()
         std::string aName = aMBI.mNames.at(aKIm);
         std::vector<cResModeSurfD> aVRMS;
 	ReadFromFile(aVRMS,NameResult(aName));
-        MMVII_INTERNAL_ASSERT_tiny(aVRMS.size()==aNbF,"Incompat tri 3 , TabResolTri");
+        MMVII_INTERNAL_ASSERT_tiny(aVRMS.size()==mNbF,"Incompat tri 3 , TabResolTri");
 
 	// Parse all the faces
-	for (size_t aKF=0 ; aKF<aNbF ; aKF++)
+	for (size_t aKF=0 ; aKF<mNbF ; aKF++)
 	{
            const cResModeSurfD & aRMS = aVRMS.at(aKF);
-           eZBufRes aRes = aRMS.mResult;
+           // eZBufRes aRes = aRMS.mResult;
 
 	   // change attribution if we have found a better face
-           if (      ((aRes == eZBufRes::Visible) || (aRes == eZBufRes::LikelyVisible))
+           if (      (ZBufLabIsOk(aRMS.mResult))
                  &&  (aRMS.mResol > aMBI.mBestResol.at(aKF))
 	      )
 	   {
@@ -327,7 +467,7 @@ void cAppliProMeshImage::MergeResults()
 
     // compute avg resolution as a weighted average of best resol
     cWeightAv<tREAL8>  aWAvg;
-    for (size_t aKF=0 ; aKF<aNbF ; aKF++)
+    for (size_t aKF=0 ; aKF<mNbF ; aKF++)
     {
         aWAvg.Add(mTri3D->KthTri(aKF).Area(),aMBI.mBestResol.at(aKF) );
     }
@@ -375,6 +515,10 @@ int cAppliProMeshImage::Exe()
       CreateDirectories(mDirMeshDev,true);
    } 
 
+   mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
+   mNbF   = mTri3D->NbFace();
+   mNbP   = mTri3D->NbPts();
+
    if (RunMultiSet(0,0,mIsInBenchMode))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set, Silence if Bench
    {
       int aResult =  ResultMultiSet();
@@ -393,7 +537,6 @@ int cAppliProMeshImage::Exe()
    if (  (!mIsInBenchMode) && (mSKE && ExistFile(mNameResult)) )
       return EXIT_SUCCESS;
 
-   mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
 
    cMeshTri3DIterator  aTriIt(mTri3D);
 
@@ -422,6 +565,11 @@ int cAppliProMeshImage::Exe()
    if (IsInit(&mNameCloud2DIn))
    {
       MakeDevlptIm(aZBuf);
+   }
+
+   if (mPhProj.RadiomOptOutIsInit())
+   {
+       MakeRadiomData(aZBuf);
    }
 
    if (mIsInBenchMode)
@@ -463,7 +611,7 @@ cSpecMMVII_Appli  TheSpecProMeshImage
       "(internal) Project a mes on an image to prepare devlopment",
       {eApF::Cloud},
       {eApDT::Ply,eApDT::Orient},
-      {eApDT::FileSys},
+      {eApDT::FileSys,eApDT::Radiom},
       __FILE__
 );
 

@@ -18,7 +18,7 @@ namespace MMVII
 class  cTri3DIterator
 {
      public :
-        virtual bool GetNextTri(cTri3dR &) = 0;
+        virtual bool GetNextTri(tTri3dr &) = 0;
         virtual bool GetNextPoint(cPt3dr &) = 0;
         virtual void ResetTri()  = 0;
         virtual void ResetPts()  = 0;
@@ -38,9 +38,9 @@ class cCountTri3DIterator : public cTri3DIterator
         cCountTri3DIterator(size_t aNbP,size_t aNbF);
 
         virtual cPt3dr  KthP(int aKP) const = 0;
-        virtual cTri3dR KthF(int aKF) const = 0;
+        virtual tTri3dr KthF(int aKF) const = 0;
 
-        bool GetNextTri(cTri3dR &) override;
+        bool GetNextTri(tTri3dr &) override;
         bool GetNextPoint(cPt3dr &) override;
         void ResetTri()  override;
         void ResetPts()  override;
@@ -61,7 +61,7 @@ class cMeshTri3DIterator : public cCountTri3DIterator
         cMeshTri3DIterator(cTriangulation3D<tREAL8> *);
 
         cPt3dr  KthP(int aKP) const override;
-        cTri3dR KthF(int aKF) const override;
+        tTri3dr KthF(int aKF) const override;
      private :
         cTriangulation3D<tREAL8> *  mTri;
 };
@@ -81,6 +81,8 @@ enum class eZBufRes
               LikelyVisible,  ///< Probably visible -> No Pixel but connected to visible
               Visible         ///< Visible
            };
+
+bool  ZBufLabIsOk(eZBufRes aLab); // return if visible or likely
 
 /**  Enum for stories the kind of computation to do inside a zbuffer */
 
@@ -134,9 +136,9 @@ class  cZBuffer
           cZBuffer(const cZBuffer & ) = delete;
           cPt2dr  ToPix(const cPt3dr&) const;  /// Output coord-> pix coord
           /// compute resolution between  resol (in worst dir) between a  3D tri in and a 2D tri Out (in facts proj of the 3D out)
-          double ComputeResol(const cTri3dR & aTriIn ,const cTri3dR & aTriOut) const;
+          double ComputeResol(const tTri3dr & aTriIn ,const tTri3dr & aTriOut) const;
 	  ///  make the job for one triangle, different computation possible depending on aMode
-          eZBufRes MakeOneTri(const cTri3dR & aTriIn,const cTri3dR & aTriOut,eZBufModeIter aMode);
+          eZBufRes MakeOneTri(const tTri3dr & aTriIn,const tTri3dr & aTriOut,eZBufModeIter aMode);
 
           bool                  mZF_SameOri; ///< Axe of Z (in out coord) and oriented surface have same orientation
           int                   mMultZ;      ///< multiplier associated to SameOri

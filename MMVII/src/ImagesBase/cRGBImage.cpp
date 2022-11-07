@@ -155,6 +155,28 @@ void cRGBImage::Write(const std::string & aName,const cPt2di & aP0,double aDyn,c
 }
 
 
+std::vector<cPt3di>  cRGBImage::LutVisuLabRand(int aNbLab)
+{
+    int aNbByC = round_up(std::sqrt(aNbLab));
+    std::vector<cPt2di> aV2;
+    for (int aK=0 ; aK<aNbLab ; aK++)
+    {
+         int aR = ((aK % aNbByC) * 255) / (aNbByC-1);
+         int aG = ((aK / aNbByC) * 255) / (aNbByC-1);
+
+	 aV2.push_back(cPt2di(aR,aG));
+    }
+    aV2 = RandomOrder(aV2);
+
+    std::vector<cPt3di> aRes;
+    for (int aK=0 ; aK<aNbLab ; aK++)
+        aRes.push_back(cPt3di(aV2.at(aK).x(),aV2.at(aK).y(),aK));
+
+    return aRes;
+}
+
+
+
 template  void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<tREAL4> & aIm,const double &);
 template  void SetGrayPix(cRGBImage&,const cDataIm2D<tREAL4> & aIm,const double & aMul=1.0);
 template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const double & aMul =1.0);
