@@ -208,9 +208,18 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cDense
 
 template <class Type> Type  cDenseVect<Type>::ProdElem() const
 {
-   Type aRes = (*this)(0);
-   for (int aK=1 ; aK<Sz() ; aK++)
+   Type aRes = 1.0;
+   for (int aK=0 ; aK<Sz() ; aK++)
         aRes *= (*this)(aK);
+
+   return aRes;
+}
+
+template <class Type> Type  cDenseVect<Type>::SumElem() const
+{
+   Type aRes = 0.0;
+   for (int aK=0 ; aK<Sz() ; aK++)
+        aRes += (*this)(aK);
 
    return aRes;
 }

@@ -119,6 +119,7 @@ template <class Type> class  cDenseVect
         const tIM & Im() const {return mIm;}
 
         Type ProdElem() const; ///< Mul of all element, usefull for det computation
+        Type SumElem() const; ///< Som of all element
 
         // operator -= 
         double DotProduct(const cDenseVect &) const;

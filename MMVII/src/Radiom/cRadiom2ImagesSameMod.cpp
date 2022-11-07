@@ -27,7 +27,8 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
         cAppliRadiom2ImageSameMod(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
      private :
-        typedef cLeasSqtAA<double>  tSys;
+        typedef tREAL8              tElSys;
+        typedef cLeasSqtAA<tElSys>  tSys;
 
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
@@ -49,6 +50,8 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
         cPhotogrammetricProject            mPhProj;
 	std::vector<cImageRadiomData *>    mVIRD;
 	size_t                             mNbIm;
+	tElSys                             mSomWLinear; // som of weight use in linear step, to fix the gauge constraint
+        cDenseVect<tElSys>                 mSolLinear;  // Solution of first linear equation
 };
 
 
@@ -64,8 +67,8 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgObl(cCollecSpecArg2007 & anAr
 cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
+           << AOpt2007(mShow,"Show","Show messages",{eTA2007::HDV})
 	   /*
-           << AOpt2007(mNameCloud2DIn,"M2","Mesh 2D, dev of cloud 3D,to generate a visu of hiden part ",{eTA2007::FileCloud,eTA2007::Input})
            << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
 	   */
    ;
@@ -75,9 +78,10 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgOpt(cCollecSpecArg2007 & anAr
 
 cAppliRadiom2ImageSameMod::cAppliRadiom2ImageSameMod(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli               (aVArgs,aSpec),
-    mShow                      (false),
+    mShow                      (true),
     mNbMinByClpe               (50),
-    mPhProj                    (*this)
+    mPhProj                    (*this),
+    mSolLinear                 (1)
 {
 }
 
@@ -91,6 +95,7 @@ void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2,tSys & aS
       const cImageRadiomData::tVRadiom & aVRad1 = mVIRD[aK1]->VRadiom(0);
       const cImageRadiomData::tVRadiom & aVRad2 = mVIRD[aK2]->VRadiom(0);
 
+      // compute the median of ration as a robust estimator
       std::vector<double>  aVRatio;
       for (const auto & aCpl : aVCpleI)
       {
@@ -101,9 +106,21 @@ void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2,tSys & aS
 	  aVRatio.push_back(aRatio);
 
       }
-      //  aRatio = R1/R2   R1-R2 Ratio = 0
-      //    R1/Sqrt(R) -R2/Sqrt(R) = 0
       double aRMed = KthVal(aVRatio,0.5);
+
+      //  Use sqrt of ratio to have a more symetric equation
+      //  aRatio = R1/R2   R1-R2 Ratio = 0
+      //    R1/Sqrt(R) -R2*Sqrt(R) = 0
+      double aSqrR = std::sqrt(aRMed);
+
+      tElSys  aWeight = std::sqrt(aVCpleI.size()); // a bit (a lot ?) arbitrary
+      mSomWLinear += aWeight;						   
+
+      cSparseVect<tElSys>  aSV;
+      aSV.AddIV(aK1,1.0/aSqrR);
+      aSV.AddIV(aK2,-aSqrR);
+      aSys.AddObservation(aWeight,aSV,0.0);
+
 
       if (mShow)
          StdOut() 
@@ -119,6 +136,7 @@ void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2,tSys & aS
 
 void cAppliRadiom2ImageSameMod::MakeLinearModel()
 {
+    mSomWLinear = 0.0;
     tSys  aSys(mNbIm);
     for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
     {
@@ -128,6 +146,22 @@ void cAppliRadiom2ImageSameMod::MakeLinearModel()
             MakeLinearCpleIm(aKIm1,aKIm2,aSys);
         }
     }
+
+    // Add an equation that fix  Avg(Ratio) = 1
+    cDenseVect<tElSys>  aVecAll1 = cDenseVect<tElSys>::Cste( mNbIm,1.0);
+    aSys.AddObservation(mSomWLinear/1e2,aVecAll1,tElSys(mNbIm));
+
+    mSolLinear = aSys.Solve();
+    tElSys anAVg = mSolLinear.SumElem() /mNbIm;
+    StdOut() << " 111 - AVG LINEAR= " << anAVg-1 << "\n";
+
+    for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
+    {
+	mSolLinear(aKIm1) /= anAVg;
+        StdOut()  << "LINEAR " << mSolLinear(aKIm1)  << " for : " << VectMainSet(0).at(aKIm1) << "\n";
+    }
+    anAVg = mSolLinear.SumElem() /mNbIm;
+    StdOut() << "AVG LINEAR= " << anAVg-1 << "\n";
 }
 
 
@@ -139,6 +173,8 @@ int cAppliRadiom2ImageSameMod::Exe()
 
     for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
     {
+        if (mShow) 
+           StdOut()  << "Reading, Still " << mNbIm - aKIm1 << "\n";
         std::string aNameIm = VectMainSet(0).at(aKIm1);
         mVIRD.push_back(mPhProj.AllocRadiom(aNameIm));
     }
