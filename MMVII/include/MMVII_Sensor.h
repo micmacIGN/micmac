@@ -172,6 +172,7 @@ class cPhotogrammetricProject
 	 
                //  method to share the parameters loadings from arc/argv
           tPtrArg2007  OriInMand() ;  ///< Input Orientation as mandatory paramaters
+          tPtrArg2007  CalibInMand();  ///< Input Calobration as mandatory paramaters
           tPtrArg2007  OriOutMand();  ///< Output Orientation as mandatory paramaters
           tPtrArg2007  OriInOpt() ;   ///< Input Orientation as optional paramaters
                //  Accessor et modifier 
@@ -180,6 +181,8 @@ class cPhotogrammetricProject
                //  Read/Write
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
 	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Input orientation
+	  /// For now read PC and extract it (later use xif as in MMV1 in case PC does not exist)
+          cPerspCamIntrCalib *  AllocCalib(const std::string &);
 
 
 	 //===================================================================
@@ -198,6 +201,9 @@ class cPhotogrammetricProject
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
+	  void AssertOriInIsInit()    const;
+	  void AssertRadiomInIsInit() const;
+
           cMMVII_Appli &  mAppli;
           std::string     mFolderProject;
 

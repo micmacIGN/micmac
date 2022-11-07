@@ -50,6 +50,17 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
 {
 }
 
+void cPhotogrammetricProject::AssertOriInIsInit()    const
+{
+     MMVII_INTERNAL_ASSERT_tiny(mAppli.IsInit(&mOriIn),"Orientation required non init");
+}
+
+void cPhotogrammetricProject::AssertRadiomInIsInit() const
+{
+     MMVII_INTERNAL_ASSERT_tiny(mAppli.IsInit(&mRadiomIn),"Radiometry required non init");
+}
+
+
 void cPhotogrammetricProject::FinishInit() 
 {
     // the user can give the full directory, which may be usefull with car completion
@@ -81,6 +92,7 @@ cPhotogrammetricProject::~cPhotogrammetricProject()
 }
 
         //  =============  Arg processing =================
+tPtrArg2007 cPhotogrammetricProject::CalibInMand(){return Arg2007(mOriIn ,"Input Calibration",{eTA2007::Orient,eTA2007::Input });}
 
 tPtrArg2007 cPhotogrammetricProject::OriInMand() {return  Arg2007(mOriIn ,"Input Orientation",{eTA2007::Orient,eTA2007::Input });}
 tPtrArg2007 cPhotogrammetricProject::OriOutMand() {return Arg2007(mOriOut,"Output Orientation",{eTA2007::Orient,eTA2007::Output});}
@@ -108,6 +120,8 @@ void cPhotogrammetricProject::SaveRadiomData(const cImageRadiomData & anIRD) con
 
 cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete)
 {
+    AssertOriInIsInit();
+
     std::string aNameCam  = mFullOriIn + cSensorCamPC::NameOri_From_Image(aNameIm);
     cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam);
 
@@ -119,11 +133,26 @@ cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,b
 
 cImageRadiomData * cPhotogrammetricProject::AllocRadiom(const std::string & aNameIm)
 {
+    AssertRadiomInIsInit();
+
     std::string aFullName  = mFullRadiomIn + cImageRadiomData::NameFileOfImage(aNameIm);
     return cImageRadiomData::FromFile(aFullName);
 }
 
+cPerspCamIntrCalib *  cPhotogrammetricProject::AllocCalib(const std::string & aNameIm)
+{
+    // 4 now, pretty basic allox sensor, extract internal, destroy
+    // later will have to handle :
+    //    * case where calib exist but not pose
+    //    * case where nor calib nor pose exist, and must be created from xif 
+    AssertOriInIsInit();
 
+    cSensorCamPC *  aPC = AllocCamPC(aNameIm,false);
+    cPerspCamIntrCalib * aCalib = aPC->InternalCalib();
+    delete aPC;
+
+    return aCalib;
+}
 
 
 

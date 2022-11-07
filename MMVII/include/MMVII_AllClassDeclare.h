@@ -225,6 +225,12 @@ enum class eZBufModeIter;
 struct cResModeSurfD;
 class  cZBuffer;
 
+
+// MMVII_Sensor.h
+class cSensorImage;
+class cPhotogrammetricProject;
+class cPerspCamIntrCalib;
+
 // MMVII_Radiom.h
 class cImageRadiomData;
 

@@ -63,6 +63,7 @@ std::string cImageRadiomData::NameFile() const
 }
 
 const std::vector<size_t> & cImageRadiomData::VIndex() const {return mVIndex;}
+const std::vector<cPt2di> & cImageRadiomData::VPts() const {return mVPts;}
 
 const cImageRadiomData::tVRadiom & cImageRadiomData::VRadiom(size_t aKCh) const {return mVVRadiom.at(aKCh);}
 

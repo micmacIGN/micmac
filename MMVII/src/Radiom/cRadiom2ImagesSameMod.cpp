@@ -1,14 +1,8 @@
-/*
-#include "MMVII_Ptxd.h"
-#include "MMVII_Radiom.h"
-#include "MMVII_Stringifier.h"
-#include "MMVII_2Include_Serial_Tpl.h"
-#include "MMVII_Bench.h"
-*/
-
-#include "MMVII_Sensor.h"
-#include "MMVII_Radiom.h"
 #include "cMMVII_Appli.h"
+#include "MMVII_Sensor.h"
+#include "MMVII_PCSens.h"
+#include "MMVII_Radiom.h"
+
 
 
 namespace MMVII
@@ -20,6 +14,26 @@ namespace MMVII
    /*                                                 */
    /* =============================================== */
 
+class cRadOneIma;
+class cRad_SIoSC;  // SetImOfSameCalib
+
+
+class cRadOneIma
+{
+    public :
+       cImageRadiomData*     mIRD;
+       std::string           mName;
+       cPerspCamIntrCalib*   mCalib;
+       cRad_SIoSC *          mGRP;
+};
+
+class cRad_SIoSC   // SetImOfSameCalib
+{
+     public :
+        std::list<cRadOneIma*>   mLIm;
+};
+
+
 class cAppliRadiom2ImageSameMod : public cMMVII_Appli
 {
      public :
@@ -29,6 +43,7 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
      private :
         typedef tREAL8              tElSys;
         typedef cLeasSqtAA<tElSys>  tSys;
+        typedef cWeightAv<tElSys>   tWAvg;
 
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
@@ -36,6 +51,8 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
 
         void MakeLinearCpleIm(size_t aK1,size_t aK2,tSys &);
         void MakeLinearModel();
+        void MakeRadialModel(size_t aK1,size_t aK2,tSys & aSys,tWAvg &);
+        void MakeRadialModel();
 
      // ---  Mandatory args ------
     
@@ -45,13 +62,16 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
      // ---  Optionnal args ------
 	bool    mShow;
 	size_t  mNbMinByClpe;
+	size_t  mNbDegRad;
 
      // --- constructed ---
         cPhotogrammetricProject            mPhProj;
-	std::vector<cImageRadiomData *>    mVIRD;
+	std::vector<cRadOneIma>            mVRadIm;
 	size_t                             mNbIm;
 	tElSys                             mSomWLinear; // som of weight use in linear step, to fix the gauge constraint
         cDenseVect<tElSys>                 mSolLinear;  // Solution of first linear equation
+
+	std::map<cPerspCamIntrCalib*,cRad_SIoSC>  mMapCal2Im;
 };
 
 
@@ -60,6 +80,7 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgObl(cCollecSpecArg2007 & anAr
    return anArgObl
           <<   Arg2007(mNamePatternIm,"Name of image", {{eTA2007::MPatFile,"0"},eTA2007::FileDirProj} )
           <<   mPhProj.RadiomInMand()
+          <<   mPhProj.CalibInMand()
 
    ;
 }
@@ -80,6 +101,7 @@ cAppliRadiom2ImageSameMod::cAppliRadiom2ImageSameMod(const std::vector<std::stri
     cMMVII_Appli               (aVArgs,aSpec),
     mShow                      (true),
     mNbMinByClpe               (50),
+    mNbDegRad                  (4),
     mPhProj                    (*this),
     mSolLinear                 (1)
 {
@@ -89,11 +111,11 @@ cAppliRadiom2ImageSameMod::cAppliRadiom2ImageSameMod(const std::vector<std::stri
 void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2,tSys & aSys)
 {
       std::vector<cPt2di> aVCpleI;
-      mVIRD[aK1]->GetIndexCommon(aVCpleI,*mVIRD[aK2]);
+      mVRadIm[aK1].mIRD->GetIndexCommon(aVCpleI,*mVRadIm[aK2].mIRD);
       if (aVCpleI.size() < mNbMinByClpe)
          return;
-      const cImageRadiomData::tVRadiom & aVRad1 = mVIRD[aK1]->VRadiom(0);
-      const cImageRadiomData::tVRadiom & aVRad2 = mVIRD[aK2]->VRadiom(0);
+      const cImageRadiomData::tVRadiom & aVRad1 = mVRadIm[aK1].mIRD->VRadiom(0);
+      const cImageRadiomData::tVRadiom & aVRad2 = mVRadIm[aK2].mIRD->VRadiom(0);
 
       // compute the median of ration as a robust estimator
       std::vector<double>  aVRatio;
@@ -151,7 +173,7 @@ void cAppliRadiom2ImageSameMod::MakeLinearModel()
     cDenseVect<tElSys>  aVecAll1 = cDenseVect<tElSys>::Cste( mNbIm,1.0);
     aSys.AddObservation(mSomWLinear/1e2,aVecAll1,tElSys(mNbIm));
 
-    mSolLinear = aSys.Solve();
+    mSolLinear = aSys.Solve().Dup();
     tElSys anAVg = mSolLinear.SumElem() /mNbIm;
     StdOut() << " 111 - AVG LINEAR= " << anAVg-1 << "\n";
 
@@ -165,25 +187,105 @@ void cAppliRadiom2ImageSameMod::MakeLinearModel()
 }
 
 
+void cAppliRadiom2ImageSameMod::MakeRadialModel(size_t aKIm1,size_t aKIm2,tSys & aSys,tWAvg & aWAvg)
+{
+      cRadOneIma & aRIm1 = mVRadIm[aKIm1];
+      cImageRadiomData * aIRD1 = aRIm1.mIRD;
+      const cImageRadiomData::tVRadiom & aVRad1 = aIRD1->VRadiom(0);
+      tElSys aRatio1 = mSolLinear(aKIm1);
+      const std::vector<cPt2di> & aVP1 = aIRD1->VPts();
+
+      cRadOneIma & aRIm2 = mVRadIm[aKIm2];
+      cImageRadiomData * aIRD2 = aRIm2.mIRD;
+      const cImageRadiomData::tVRadiom & aVRad2 = aIRD2->VRadiom(0);
+      tElSys aRatio2 = mSolLinear(aKIm2);
+      const std::vector<cPt2di> & aVP2 = aIRD2->VPts();
+
+      std::vector<cPt2di> aVCpleI;
+      aIRD1->GetIndexCommon(aVCpleI,*aIRD2);
+
+      tPt2di aC1 = ToI(aRIm1.mCalib->PP());
+      tPt2di aC2 = ToI(aRIm2.mCalib->PP());
+
+      size_t aK1=0;
+      size_t aK2=0;
+
+ 
+      for (const auto & aCpl : aVCpleI)
+      {
+          cImageRadiomData::tRadiom aRad1 = aVRad1.at(aCpl.x()) / aRatio1;
+          cImageRadiomData::tRadiom aRad2 = aVRad2.at(aCpl.y()) / aRatio2;
+
+          aWAvg.Add(1.0,std::abs(aRad1-aRad2));
+
+          cDenseVect<tElSys>  aVec = cDenseVect<tElSys>::Cste(aSys.NbVar(),0.0);
+	  tREAL8  aR2_1 = SqN2(aVP1.at(aCpl.x())-aC1);
+	  tREAL8  aR2_2 = SqN2(aVP2.at(aCpl.y())-aC2);
+
+	  tREAL8 aPowR1 = aR2_1;
+	  tREAL8 aPowR2 = aR2_2;
+	  for (size_t aDeg=0 ; aDeg<mNbDegRad ; aDeg++)
+	  {
+              /*    Rad1 (1 + K1 R1^2 + K2 R^4 +  ...) =  Rad2 (1 + K1 R1^2 + K2 R^4 +  ...)  */	  
+              aVec(aK1+aDeg)  +=  aRad1 * aPowR1;
+              aVec(aK2+aDeg)  -=  aRad2 * aPowR2;
+
+	      aPowR1 *= aR2_1;
+	      aPowR2 *= aR2_2;
+	  }
+	  aSys.AddObservation(1.0,aVec,aRad2-aRad1);
+      }
+}
+
+void cAppliRadiom2ImageSameMod::MakeRadialModel()
+{
+    tWAvg anAvg;
+    tSys  aSys(mNbDegRad);
+
+    for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
+    {
+        for (size_t aKIm2=aKIm1+1 ; aKIm2<mNbIm; aKIm2++)
+        {
+            MakeRadialModel(aKIm1,aKIm2,aSys,anAvg);
+        }
+    }
+    StdOut()  <<  " AVGG " << anAvg.Average() << "\n";
+}
+
+
 int cAppliRadiom2ImageSameMod::Exe()
 {
     mPhProj.FinishInit();
 
     mNbIm = VectMainSet(0).size();
 
+    mVRadIm.resize(mNbIm);
+
     for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
     {
         if (mShow) 
            StdOut()  << "Reading, Still " << mNbIm - aKIm1 << "\n";
         std::string aNameIm = VectMainSet(0).at(aKIm1);
-        mVIRD.push_back(mPhProj.AllocRadiom(aNameIm));
-    }
+	cRadOneIma* aRadI = & mVRadIm[aKIm1];
+        cPerspCamIntrCalib* aCalib = mPhProj.AllocCalib(aNameIm);
 
+	aRadI->mName = aNameIm; 
+	aRadI->mIRD = mPhProj.AllocRadiom(aNameIm);
+	aRadI->mCalib = aCalib;
+
+	mMapCal2Im[aCalib].mLIm.push_back(aRadI);
+        aRadI->mGRP = & mMapCal2Im[aCalib];
+    }
+    MMVII_INTERNAL_ASSERT_tiny(mMapCal2Im.size() ==1,"Dont handle multi calib");
 
     MakeLinearModel();
+    MakeRadialModel();
 
+    for (auto & aRadIm : mVRadIm)
+    {
+        delete aRadIm.mIRD;
+    }
 
-    DeleteAllAndClear(mVIRD);
     return EXIT_SUCCESS;
 }
 
