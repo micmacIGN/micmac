@@ -24,8 +24,10 @@
     #else
         #include <experimental/optional>
         namespace std{
-            template <class T>
+           template <class T>
             using optional = experimental::optional<T>;
+            struct nullopt_t {};
+            constexpr nullopt_t nullopt;
         }
     #endif
 #endif
