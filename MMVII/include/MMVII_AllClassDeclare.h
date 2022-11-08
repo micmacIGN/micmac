@@ -16,9 +16,19 @@
 #include <map>
 #include <ctime>
 #include <chrono>
-#include <optional>
 #include <cmath>
 
+#if defined (__GNUC__) && !defined(__APPLE__)
+    #if __cplusplus > 201402L
+        #include <optional>
+    #else
+        #include <experimental/optional>
+        namespace std{
+            template <class T>
+            using optional = experimental::optional<T>;
+        }
+    #endif
+#endif
 //========== LIB EXTEN==============
 
 
