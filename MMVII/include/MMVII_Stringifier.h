@@ -237,7 +237,6 @@ class cCollecSpecArg2007
       void clear() ;
       cCollecSpecArg2007 & operator << (tPtrArg2007 aVal);
    private :
-      friend class cMMVII_Appli;
       tVecArg2007 & Vec();
       cCollecSpecArg2007(const cCollecSpecArg2007&) = delete;
       tVecArg2007  mV;
