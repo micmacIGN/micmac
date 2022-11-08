@@ -1,7 +1,11 @@
 #include "cMMVII_Appli.h"
 
+#include <boost/version.hpp>
+#if BOOST_VERSION > 106700
+#include <boost/container_hash/hash.hpp>
+#else
 #include <boost/functional/hash.hpp>
-
+#endif
 
 /** \file Serial.cpp
     \brief Implementation of serialisation servive
