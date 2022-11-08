@@ -104,6 +104,7 @@ void  AddData(const cAuxAr2007  &anAux,cResModeSurfD& aRMS )
 
 
 cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMapI2O,const tSet &  aSetOut,double aResolOut) :
+    mIsOk       (true),
     mZF_SameOri (false),
     mMultZ      (mZF_SameOri ? 1 : -1),
     mMesh       (aMesh),
@@ -134,17 +135,23 @@ cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMap
         aCptTot++;
         if (mSetIn.InsideWithBox(aPIn))
         {
+            aCptIn++;
             cPt3dr aPOut = mMapI2O.Value(aPIn);
 
             if (mSetOut.InsideWithBox(aPOut))
             {
-               aCptIn++;
                aBoxOfPtsIn.Add(aPIn);
                aBoxOfPtsOut.Add(aPOut);
             }
         }
     }
     mMesh.ResetPts();
+
+    if ((aBoxOfPtsIn.NbPts()<3) || (aBoxOfPtsOut.NbPts()<3))
+    {
+        mIsOk = false;
+        return;
+    }
 
     mBoxIn = aBoxOfPtsIn.CurBox();
     mBoxOut = aBoxOfPtsOut.CurBox();
@@ -169,9 +176,16 @@ double  cZBuffer::MaxRSD() const {return mMaxRSD;}
 
 std::vector<cResModeSurfD> & cZBuffer::VecResSurfD() {return mResSurfD;}
 
+void cZBuffer::AssertIsOk() const
+{
+   MMVII_INTERNAL_ASSERT_tiny(mIsOk,"Non ok Buffer");
+}
+
+bool cZBuffer::IsOk() const {return mIsOk;}
 
 void cZBuffer::MakeZBuf(eZBufModeIter aMode)
 {
+
     if (aMode==eZBufModeIter::SurfDevlpt)
     {
         mResSurfD.clear();
@@ -179,12 +193,16 @@ void cZBuffer::MakeZBuf(eZBufModeIter aMode)
     }
 
     tTri3dr  aTriIn = tTri3dr::Tri000();
+    int aNbTriVis = 0;
     while (mMesh.GetNextTri(aTriIn))
     {
         mLastResSurfDev = -1;
         eZBufRes aRes = eZBufRes::Undefined;
-        //  not sure this us to test that, or the user to assure it give clean data ...
-        if (aTriIn.Regularity() <=0)
+        if (!mIsOk)
+        {
+        }
+        //  not sure this is us to test that, or the user to assure it give clean data ...
+        else if (aTriIn.Regularity() <=0)
            aRes = eZBufRes::UnRegIn;
         else if (! mSetIn.InsideWithBox(aTriIn))
            aRes = eZBufRes::OutIn;
@@ -198,6 +216,7 @@ void cZBuffer::MakeZBuf(eZBufModeIter aMode)
                aRes = eZBufRes::OutOut;
             else
             {
+               aNbTriVis++;
                aRes = MakeOneTri(aTriIn,aTriOut,aMode);
             }
         }
@@ -210,6 +229,9 @@ void cZBuffer::MakeZBuf(eZBufModeIter aMode)
            mResSurfD.push_back(aRMS);
         }
     }
+    if (aNbTriVis==0) 
+       mIsOk=false;
+
     mMesh.ResetTri();
 }
 

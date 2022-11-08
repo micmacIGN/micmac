@@ -117,6 +117,7 @@ class cParamDevTri3D
 	  bool   mCheckReached;
 	  double mWeightEdgeTriDist;
 	  double mWeightTriRot;
+	  int    mNbIterEnd;
 };
 
 /** Class that effectively compute the "optimal" devlopment of a surface
@@ -131,7 +132,7 @@ class cDevTriangu3d
 
           static constexpr int NO_STEP = -1;
 
-          cDevTriangu3d(tTriangulation3D &,const cParamDevTri3D &);
+          cDevTriangu3d(tTriangulation3D &,cParamDevTri3D &);
           ~cDevTriangu3d();
 
           /// Export devloped surface as ply file
@@ -276,7 +277,8 @@ cParamDevTri3D::cParamDevTri3D() :
    mShowAv             (true),
    mCheckReached       (true),
    mWeightEdgeTriDist  (0.0),
-   mWeightTriRot       (1.0)
+   mWeightTriRot       (1.0),
+   mNbIterEnd          (-1)
 {
 }
 
@@ -290,7 +292,7 @@ cParamDevTri3D::cParamDevTri3D() :
 // NS_SymbolicDerivative::cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf);
 //typeded cCalculator<tCoordDevTri>        tCalc;
 
-cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,const cParamDevTri3D & aParam) :
+cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,cParamDevTri3D & aParam) :
      mParam       (aParam),
      mNumCurStep  (0),
      mTri         (aTri),
@@ -373,11 +375,13 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,const cParamDevTri3D & aPar
    // now we free everything
    mNumGenFrozen = -1;
 
-   int aNbIterEnd = 6 + round_up(2*std::sqrt(mNumGen));
-   for (int aKIter=0 ; aKIter<aNbIterEnd ; aKIter++)
+   // Tricky but but cannot use mParam for test as it's a copy of aParam ...
+   if (! cMMVII_Appli::CurrentAppli().IsInit(&aParam.mNbIterEnd))
+       mParam.mNbIterEnd =6 + round_up(2*std::sqrt(mNumGen));
+   for (int aKIter=0 ; aKIter<mParam.mNbIterEnd ; aKIter++)
    {
        if (mParam.mShowAv)
-           StdOut() << "ITER END "   <<  aKIter << " on " << aNbIterEnd << "\n";
+           StdOut() << "ITER END "   <<  aKIter << " on " << mParam.mNbIterEnd << "\n";
        OneIterationCompens(true);
    }
 
@@ -847,7 +851,7 @@ cCollecSpecArg2007 & cAppliMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
            << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file")
-           << AOpt2007(mNameCloudFilter,"OutFilter3D","Name of output file for filtered 3D")
+           << AOpt2007(mNameCloudFilter,"OutFilter3D","Name of output file for filtered 3D (supression of unreached)")
            << AOpt2007(mBinOut,CurOP_OutBin,"Generate out in binary format",{eTA2007::HDV})
            << AOpt2007(mParam.mNbCmpByStep,"NbCByS","Number of compensation by step",{eTA2007::HDV})
            << AOpt2007(mParam.mFactRand,"FactRand","Factor of randomization (for bench)",{eTA2007::HDV,eTA2007::Tuning})
@@ -855,6 +859,7 @@ cCollecSpecArg2007 & cAppliMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            << AOpt2007(mParam.mCheckReached,"CheckReach","Check reached face&som at end",{eTA2007::HDV})
            << AOpt2007(mParam.mWeightEdgeTriDist,"WDistE","Weight on edge dist",{eTA2007::HDV})
            << AOpt2007(mParam.mWeightTriRot,"WRot","Weight on rot on 2d triangles",{eTA2007::HDV})
+           << AOpt2007(mParam.mNbIterEnd,"NbIE","Number of iteration at end")
    ;
 }
 

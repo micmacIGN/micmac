@@ -511,7 +511,9 @@ double NormalisedRatioPos(double aI1,double aI2);
 
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
-int BinomialCoeff(int aK,int aN);
+tREAL8   rBinomialCoeff(int aK,int aN);
+tU_INT8  liBinomialCoeff(int aK,int aN);
+tU_INT4  iBinomialCoeff(int aK,int aN);
 /* ****************  cDecomposPAdikVar *************  */
 
 //  P-adik decomposition

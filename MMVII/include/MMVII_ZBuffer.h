@@ -130,16 +130,19 @@ class  cZBuffer
           tIm   ZBufIm() const; ///< Accessor
           cResModeSurfD&  ResSurfD(size_t) ;   ///< accessor to VecResSurfD
           std::vector<cResModeSurfD> & VecResSurfD() ;   ///< accessor
-          double  MaxRSD() const;   ///< accessor
+          double  MaxRSD() const;                        ///< accessor
+          bool  IsOk() const;                            ///< accessor
 
       private :
           cZBuffer(const cZBuffer & ) = delete;
+          void AssertIsOk() const;
           cPt2dr  ToPix(const cPt3dr&) const;  /// Output coord-> pix coord
           /// compute resolution between  resol (in worst dir) between a  3D tri in and a 2D tri Out (in facts proj of the 3D out)
           double ComputeResol(const tTri3dr & aTriIn ,const tTri3dr & aTriOut) const;
 	  ///  make the job for one triangle, different computation possible depending on aMode
           eZBufRes MakeOneTri(const tTri3dr & aTriIn,const tTri3dr & aTriOut,eZBufModeIter aMode);
 
+          bool                  mIsOk;       ///< Many things can happen bad ...
           bool                  mZF_SameOri; ///< Axe of Z (in out coord) and oriented surface have same orientation
           int                   mMultZ;      ///< multiplier associated to SameOri
           cTri3DIterator &      mMesh;       ///<  The mesh described as an iterator on triangles

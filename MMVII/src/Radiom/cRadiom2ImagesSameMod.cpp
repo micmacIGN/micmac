@@ -30,9 +30,20 @@ class cRadOneIma
 class cRad_SIoSC   // SetImOfSameCalib
 {
      public :
+        cRad_SIoSC();
         std::list<cRadOneIma*>   mLIm;
+        int                      mNum;
+        static int               TheCpt;
 };
 
+int cRad_SIoSC::TheCpt = 0;
+cRad_SIoSC::cRad_SIoSC() :
+   mNum  (TheCpt++)
+{
+}
+
+
+typedef tREAL8              tElSys;
 
 class cAppliRadiom2ImageSameMod : public cMMVII_Appli
 {
@@ -41,7 +52,6 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
         cAppliRadiom2ImageSameMod(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
      private :
-        typedef tREAL8              tElSys;
         typedef cLeasSqtAA<tElSys>  tSys;
         typedef cWeightAv<tElSys>   tWAvg;
 
@@ -51,8 +61,8 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
 
         void MakeLinearCpleIm(size_t aK1,size_t aK2,tSys &);
         void MakeLinearModel();
-        void MakeRadialModel(size_t aK1,size_t aK2,tSys & aSys,tWAvg &);
-        void MakeRadialModel();
+        void   MakeRadialModel(int aKIter,size_t aK1,size_t aK2,tSys & aSys,tWAvg &,tWAvg &,tElSys aSigma);
+        tElSys MakeRadialModel(int aKIter,tElSys aSigma);
 
      // ---  Mandatory args ------
     
@@ -70,6 +80,7 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
 	size_t                             mNbIm;
 	tElSys                             mSomWLinear; // som of weight use in linear step, to fix the gauge constraint
         cDenseVect<tElSys>                 mSolLinear;  // Solution of first linear equation
+        cDenseVect<tElSys>                 mSolRadial;  // Solution of radial system 
 
 	std::map<cPerspCamIntrCalib*,cRad_SIoSC>  mMapCal2Im;
 };
@@ -103,7 +114,8 @@ cAppliRadiom2ImageSameMod::cAppliRadiom2ImageSameMod(const std::vector<std::stri
     mNbMinByClpe               (50),
     mNbDegRad                  (4),
     mPhProj                    (*this),
-    mSolLinear                 (1)
+    mSolLinear                 (1),
+    mSolRadial                 (1)
 {
 }
 
@@ -150,8 +162,8 @@ void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2,tSys & aS
 	      << " MED=" << aRMed
 	      << " High=" << KthVal(aVRatio,0.8) 
 	      << " Nb=" << aVCpleI.size()
-	      << " " << VectMainSet(0).at(aK1)  
-	      << " " << VectMainSet(0).at(aK2) 
+	      << " " << mVRadIm.at(aK1).mName
+	      << " " << mVRadIm.at(aK2).mName
 	      << "\n"; 
 
 }
@@ -180,76 +192,101 @@ void cAppliRadiom2ImageSameMod::MakeLinearModel()
     for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
     {
 	mSolLinear(aKIm1) /= anAVg;
-        StdOut()  << "LINEAR " << mSolLinear(aKIm1)  << " for : " << VectMainSet(0).at(aKIm1) << "\n";
+        StdOut()  << "LINEAR " << mSolLinear(aKIm1)  << " for : " <<  mVRadIm.at(aKIm1).mName << "\n";
     }
     anAVg = mSolLinear.SumElem() /mNbIm;
     StdOut() << "AVG LINEAR= " << anAVg-1 << "\n";
 }
 
 
-void cAppliRadiom2ImageSameMod::MakeRadialModel(size_t aKIm1,size_t aKIm2,tSys & aSys,tWAvg & aWAvg)
+void cAppliRadiom2ImageSameMod::MakeRadialModel
+     (int aKIter,size_t aKIm1,size_t aKIm2,tSys & aSys,tWAvg & aWAvg,tWAvg & aWAvg0,tElSys aSigma)
 {
       cRadOneIma & aRIm1 = mVRadIm[aKIm1];
       cImageRadiomData * aIRD1 = aRIm1.mIRD;
       const cImageRadiomData::tVRadiom & aVRad1 = aIRD1->VRadiom(0);
       tElSys aRatio1 = mSolLinear(aKIm1);
       const std::vector<cPt2di> & aVP1 = aIRD1->VPts();
+      size_t aK1= aRIm1.mGRP->mNum;
 
       cRadOneIma & aRIm2 = mVRadIm[aKIm2];
       cImageRadiomData * aIRD2 = aRIm2.mIRD;
       const cImageRadiomData::tVRadiom & aVRad2 = aIRD2->VRadiom(0);
       tElSys aRatio2 = mSolLinear(aKIm2);
       const std::vector<cPt2di> & aVP2 = aIRD2->VPts();
+      size_t aK2= aRIm2.mGRP->mNum;
 
       std::vector<cPt2di> aVCpleI;
       aIRD1->GetIndexCommon(aVCpleI,*aIRD2);
 
-      tPt2di aC1 = ToI(aRIm1.mCalib->PP());
-      tPt2di aC2 = ToI(aRIm2.mCalib->PP());
+      tPt2dr aC1 = aRIm1.mCalib->PP();
+      tPt2dr aC2 = aRIm2.mCalib->PP();
 
-      size_t aK1=0;
-      size_t aK2=0;
+      tElSys aSqF1 = Square(aRIm1.mCalib->F());
+      tElSys aSqF2 = Square(aRIm2.mCalib->F());
 
  
       for (const auto & aCpl : aVCpleI)
       {
-          cImageRadiomData::tRadiom aRad1 = aVRad1.at(aCpl.x()) / aRatio1;
-          cImageRadiomData::tRadiom aRad2 = aVRad2.at(aCpl.y()) / aRatio2;
+          cImageRadiomData::tRadiom aRad1 = aVRad1.at(aCpl.x()) ;
+          cImageRadiomData::tRadiom aRad2 = aVRad2.at(aCpl.y()) ;
+          aWAvg0.Add(1.0,std::abs(aRad1-aRad2));
 
-          aWAvg.Add(1.0,std::abs(aRad1-aRad2));
+          aRad1 /= aRatio1;
+          aRad2 /= aRatio2;
 
           cDenseVect<tElSys>  aVec = cDenseVect<tElSys>::Cste(aSys.NbVar(),0.0);
-	  tREAL8  aR2_1 = SqN2(aVP1.at(aCpl.x())-aC1);
-	  tREAL8  aR2_2 = SqN2(aVP2.at(aCpl.y())-aC2);
+	  tElSys  aSqR1 = SqN2(ToR(aVP1.at(aCpl.x()))-aC1) / aSqF1 ;
+	  tElSys  aSqR2 = SqN2(ToR(aVP2.at(aCpl.y()))-aC2) / aSqF2 ;
 
-	  tREAL8 aPowR1 = aR2_1;
-	  tREAL8 aPowR2 = aR2_2;
+          tElSys aCorR1 = 1.0;
+          tElSys aCorR2 = 1.0;
+
+	  tElSys aPowR1 = aSqR1;
+	  tElSys aPowR2 = aSqR2;
 	  for (size_t aDeg=0 ; aDeg<mNbDegRad ; aDeg++)
 	  {
               /*    Rad1 (1 + K1 R1^2 + K2 R^4 +  ...) =  Rad2 (1 + K1 R1^2 + K2 R^4 +  ...)  */	  
               aVec(aK1+aDeg)  +=  aRad1 * aPowR1;
               aVec(aK2+aDeg)  -=  aRad2 * aPowR2;
+               
+              aCorR1 += mSolRadial(aK1+aDeg) * aPowR1;
+              aCorR2 += mSolRadial(aK2+aDeg) * aPowR2;
 
-	      aPowR1 *= aR2_1;
-	      aPowR2 *= aR2_2;
+	      aPowR1 *= aSqR1;
+	      aPowR2 *= aSqR2;
 	  }
-	  aSys.AddObservation(1.0,aVec,aRad2-aRad1);
+
+          tElSys aWeight = 1.0;
+          tElSys   aDif = std::abs(aRad1*aCorR1-aRad2*aCorR2);
+          if (aSigma>0)
+          {
+               aWeight = 1 / std::sqrt(1.0+Square(aDif/(aSigma)));
+          }
+             
+	  aSys.AddObservation(aWeight,aVec,aRad2-aRad1);
+          aWAvg.Add(1.0,aDif);
       }
 }
 
-void cAppliRadiom2ImageSameMod::MakeRadialModel()
+tElSys cAppliRadiom2ImageSameMod::MakeRadialModel(int aKIter,tElSys aSigma)
 {
     tWAvg anAvg;
+    tWAvg anAvg0;
     tSys  aSys(mNbDegRad);
 
     for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
     {
         for (size_t aKIm2=aKIm1+1 ; aKIm2<mNbIm; aKIm2++)
         {
-            MakeRadialModel(aKIm1,aKIm2,aSys,anAvg);
+            MakeRadialModel(aKIter,aKIm1,aKIm2,aSys,anAvg,anAvg0,aSigma);
         }
     }
-    StdOut()  <<  " AVGG " << anAvg.Average() << "\n";
+    mSolRadial = aSys.Solve().Dup();
+    aSys.Reset();
+    StdOut()  <<  " AVGG " << anAvg.Average() << " Init: " << anAvg0.Average()<< "\n";
+
+    return anAvg.Average();
 }
 
 
@@ -261,25 +298,40 @@ int cAppliRadiom2ImageSameMod::Exe()
 
     mVRadIm.resize(mNbIm);
 
+    size_t aNbImOk =0;
     for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
     {
         if (mShow) 
            StdOut()  << "Reading, Still " << mNbIm - aKIm1 << "\n";
         std::string aNameIm = VectMainSet(0).at(aKIm1);
-	cRadOneIma* aRadI = & mVRadIm[aKIm1];
-        cPerspCamIntrCalib* aCalib = mPhProj.AllocCalib(aNameIm);
+        cImageRadiomData* aIRD = mPhProj.AllocRadiom(aNameIm);
+        if (aIRD->VIndex().size() >10)
+        {
+	    cRadOneIma* aRadI = & mVRadIm[aNbImOk];
+            cPerspCamIntrCalib* aCalib = mPhProj.AllocCalib(aNameIm);
 
-	aRadI->mName = aNameIm; 
-	aRadI->mIRD = mPhProj.AllocRadiom(aNameIm);
-	aRadI->mCalib = aCalib;
+	    aRadI->mName = aNameIm; 
+	    aRadI->mIRD = aIRD;
+	    aRadI->mCalib = aCalib;
 
-	mMapCal2Im[aCalib].mLIm.push_back(aRadI);
-        aRadI->mGRP = & mMapCal2Im[aCalib];
+	    mMapCal2Im[aCalib].mLIm.push_back(aRadI);
+            aRadI->mGRP = & mMapCal2Im[aCalib];
+
+            aNbImOk++;
+        }
+        else
+           delete aIRD;
     }
-    MMVII_INTERNAL_ASSERT_tiny(mMapCal2Im.size() ==1,"Dont handle multi calib");
+    mNbIm  = aNbImOk;
+    mVRadIm.resize(aNbImOk);
+
 
     MakeLinearModel();
-    MakeRadialModel();
+
+    mSolRadial = cDenseVect<tElSys>::Cste(mNbDegRad,0.0);
+    double aSigma=-1;
+    for (int aKIter=0 ; aKIter<4 ; aKIter++)
+        aSigma=MakeRadialModel(aKIter,aSigma);
 
     for (auto & aRadIm : mVRadIm)
     {

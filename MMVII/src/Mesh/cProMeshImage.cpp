@@ -312,7 +312,9 @@ void cAppliProMeshImage::MakeRadiomData(cZBuffer &  aZB)
 	}
     }
 
-    cBox2di aBoxIm = aBoxPtsIm.CurBox().Dilate(4).Inter(aDFI);
+    bool isOkBox =  aBoxPtsIm.NbPts() > 10;
+
+    cBox2di aBoxIm = isOkBox ? aBoxPtsIm.CurBox().Dilate(4).Inter(aDFI) : cBox2di(cPt2di(0,0),cPt2di(10,10)) ;
     cRGBImage  aIm = cRGBImage::FromFile(mNameSingleIm,aBoxIm);
 
 
@@ -320,7 +322,7 @@ void cAppliProMeshImage::MakeRadiomData(cZBuffer &  aZB)
     for (size_t aKF= 0 ; aKF<mNbF ; aKF++)
     {
         const cResModeSurfD&  aRMS =  aZB.ResSurfD(aKF);
-	bool  OkFace = ZBufLabIsOk(aRMS.mResult)  && (aRMS.mResol>aResolMin);
+	bool  OkFace = isOkBox && ZBufLabIsOk(aRMS.mResult)  && (aRMS.mResol>aResolMin);
 
         tTri3dr aTri  = mTri3D->KthTri(aKF);
 	tREAL8 aNbPts =  mNbSampleRad * (aVAreas.at(aKF)/aAreaTot);
@@ -446,21 +448,25 @@ void cAppliProMeshImage::MergeResults()
         std::string aName = aMBI.mNames.at(aKIm);
         std::vector<cResModeSurfD> aVRMS;
 	ReadFromFile(aVRMS,NameResult(aName));
-        MMVII_INTERNAL_ASSERT_tiny(aVRMS.size()==mNbF,"Incompat tri 3 , TabResolTri");
+        // Is there was problem in zbuf, it must be empty
+        if (1)
+        {
+           MMVII_INTERNAL_ASSERT_tiny(aVRMS.size()==mNbF,"Incompat tri 3 , TabResolTri");
 
-	// Parse all the faces
-	for (size_t aKF=0 ; aKF<mNbF ; aKF++)
-	{
-           const cResModeSurfD & aRMS = aVRMS.at(aKF);
-           // eZBufRes aRes = aRMS.mResult;
-
-	   // change attribution if we have found a better face
-           if (      (ZBufLabIsOk(aRMS.mResult))
-                 &&  (aRMS.mResol > aMBI.mBestResol.at(aKF))
-	      )
+	   // Parse all the faces
+	   for (size_t aKF=0 ; aKF<mNbF ; aKF++)
 	   {
-              aMBI.mBestResol.at(aKF) = aRMS.mResol;
-              aMBI.mNumBestIm.at(aKF) = aKIm;
+              const cResModeSurfD & aRMS = aVRMS.at(aKF);
+              // eZBufRes aRes = aRMS.mResult;
+
+	      // change attribution if we have found a better face
+              if (      (ZBufLabIsOk(aRMS.mResult))
+                    &&  (aRMS.mResol > aMBI.mBestResol.at(aKF))
+	         )
+	      {
+                 aMBI.mBestResol.at(aKF) = aRMS.mResol;
+                 aMBI.mNumBestIm.at(aKF) = aKIm;
+	      }
 	   }
 	}
     }
@@ -552,26 +558,29 @@ int cAppliProMeshImage::Exe()
 
 
    cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,mResolZBuf);
+
    aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
-   aZBuf.MakeZBuf(eZBufModeIter::SurfDevlpt);
-
-   ProcessNoPix(aZBuf);
-
-
-   if (mDoImages)
-      aZBuf.ZBufIm().DIm().ToFile(mDirMeshDev+"ZBuf-"+LastPrefix(mNameSingleIm)+".tif");
-
-
-   if (IsInit(&mNameCloud2DIn))
+   // if (aZBuf.IsOk())
    {
-      MakeDevlptIm(aZBuf);
-   }
+       aZBuf.MakeZBuf(eZBufModeIter::SurfDevlpt);
 
-   if (mPhProj.RadiomOptOutIsInit())
-   {
-       MakeRadiomData(aZBuf);
-   }
+       ProcessNoPix(aZBuf);
 
+       if (mDoImages)
+          aZBuf.ZBufIm().DIm().ToFile(mDirMeshDev+"ZBuf-"+LastPrefix(mNameSingleIm)+".tif");
+
+
+       if (IsInit(&mNameCloud2DIn))
+       {
+          MakeDevlptIm(aZBuf);
+       }
+
+       if (mPhProj.RadiomOptOutIsInit())
+       {
+           MakeRadiomData(aZBuf);
+       }
+
+   }
    if (mIsInBenchMode)
    {
       std::vector<cResModeSurfD> aRef;

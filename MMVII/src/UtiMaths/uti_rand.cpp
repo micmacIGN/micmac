@@ -103,7 +103,7 @@ template <typename tSet>  void OneBenchSet()
     {
         int aN = 10;
 	std::vector<tSet>  aLSet =  SubKAmongN<tSet>(aK,aN);
-        MMVII_INTERNAL_ASSERT_bench((int)aLSet.size()==BinomialCoeff(aK,aN),"Subset Int "); // Check good number of subset
+        MMVII_INTERNAL_ASSERT_bench(aLSet.size()==iBinomialCoeff(aK,aN),"Subset Int "); // Check good number of subset
 	for (const auto & aSet : aLSet)
 	{
             MMVII_INTERNAL_ASSERT_bench(aK==(int)aSet.Cardinality(),"Subset Int ");  // Check each subset has good number of elem

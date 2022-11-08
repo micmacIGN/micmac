@@ -275,15 +275,15 @@ void cDecomposPAdikVar::Bench()
 
    /* -------------------------------------------- */
 
-int BinomialCoeff(int aK,int aN)
+tREAL8 rBinomialCoeff(int aK,int aN)
 {
   if ((aK<0) || (aK>aN)) 
-     return aK;
+     return 0;
   if (aK> (aN/2)) 
      aK= aN-aK;
 
-  tINT8 aNum = 1;
-  tINT8 aDenom = 1;
+  tREAL8 aNum = 1;
+  tREAL8 aDenom = 1;
 
   for (int aP = 1 ; aP<=aK ; aP++)
   {
@@ -291,6 +291,22 @@ int BinomialCoeff(int aK,int aN)
       aNum *= (aN+1-aP);
   }
   return aNum / aDenom;
+}
+
+tU_INT4 iBinomialCoeff(int aK,int aN)
+{
+   tREAL8 aRR = rBinomialCoeff(aK,aN);
+   MMVII_INTERNAL_ASSERT_tiny(aRR< std::numeric_limits<tU_INT4>::max() , "Overflow on iBinomialCoeff");
+
+   return tU_INT4(aRR);
+}
+
+tU_INT8 liBinomialCoeff(int aK,int aN)
+{
+   tREAL8 aRR = rBinomialCoeff(aK,aN);
+   MMVII_INTERNAL_ASSERT_tiny(aRR< std::numeric_limits<tU_INT8>::max() , "Overflow on iBinomialCoeff");
+
+   return tU_INT8(aRR);
 }
 
 double  RelativeDifference(const double & aV1,const double & aV2,bool * aResOk)
@@ -555,12 +571,12 @@ void Bench_Nums(cParamExeBench & aParam)
    BenchMinMax();
 
    //for (
-   MMVII_INTERNAL_ASSERT_bench (BinomialCoeff(2,10)==45,"Bench binom");
+   MMVII_INTERNAL_ASSERT_bench (iBinomialCoeff(2,10)==45,"Bench binom");
    {
       int aS=0;
       for (int aK=0 ; aK<=10 ; aK++)
       {
-         aS += BinomialCoeff(aK,10);
+         aS += iBinomialCoeff(aK,10);
       }
       MMVII_INTERNAL_ASSERT_bench (aS==(1<<10),"Bench binom");
    }
