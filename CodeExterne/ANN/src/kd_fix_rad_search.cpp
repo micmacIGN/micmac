@@ -147,11 +147,11 @@ void ANNkd_split::ann_FR_search(ANNdist box_dist)
 
 void ANNkd_leaf::ann_FR_search(ANNdist box_dist)
 {
-	register ANNdist dist;				// distance to data point
-	register ANNcoord* pp;				// data coordinate pointer
-	register ANNcoord* qq;				// query coordinate pointer
-	register ANNcoord t;
-	register int d;
+	/*register*/ ANNdist dist;				// distance to data point
+	/*register*/ ANNcoord* pp;				// data coordinate pointer
+	/*register*/ ANNcoord* qq;				// query coordinate pointer
+	/*register*/ ANNcoord t;
+	/*register*/ int d;
 
 	for (int i = 0; i < n_pts; i++) {	// check points in bucket
 
