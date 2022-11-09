@@ -86,9 +86,9 @@ public:
 		PQinfo inf)						// item info
 		{
 			if (++n > max_size) annError("Priority queue overflow.", ANNabort);
-			register int r = n;
+			/*register*/ int r = n;
 			while (r > 1) {				// sift up new item
-				register int p = r/2;
+				/*register*/ int p = r/2;
 				ANN_FLOP(1)				// increment floating ops
 				if (pq[p].key <= kv)	// in proper order
 					break;
@@ -105,9 +105,9 @@ public:
 		{
 			kv = pq[1].key;				// key of min item
 			inf = pq[1].info;			// information of min item
-			register PQkey kn = pq[n--].key;// last item in queue
-			register int p = 1;			// p points to item out of position
-			register int r = p<<1;		// left child of p
+			/*register*/ PQkey kn = pq[n--].key;// last item in queue
+			/*register*/ int p = 1;			// p points to item out of position
+			/*register*/ int r = p<<1;		// left child of p
 			while (r <= n) {			// while r is still within the heap
 				ANN_FLOP(2)				// increment floating ops
 										// set r to smaller child of p
