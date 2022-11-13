@@ -91,12 +91,15 @@ template <class Type> class cResolSysNonLinear
 	   void  SetFrozenVar(int aK,const  Type &);  ///< seti var var frozen /unfrozen
 	   void  SetFrozenVarCurVal(int aK);  ///< idem to current val
 	       // frozen for  cObjWithUnkowns
-	   void  SetFrozenVar(tObjWUk & anObj,const  Type &);  ///< indicate it var must be frozen /unfrozen
-	   void  SetFrozenVar(tObjWUk & anObj,const  Type *,size_t);  ///< indicate it var must be frozen /unfrozen
-	   void  SetFrozenVar(tObjWUk & anObj,const tStdVect &);  ///< indicate it var must be frozen /unfrozen
-	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,3> &);  ///< indicate it var must be frozen /unfrozen
-	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,2> &);  ///< indicate it var must be frozen /unfrozen
+	   void  SetFrozenVar(tObjWUk & anObj,const  Type & aVal);  ///< Froze the value aVal, that must belong to anObj
+	   void  SetFrozenVar(tObjWUk & anObj,const  Type * Vals,size_t aNb);  ///< Froze Nb values aVal, that must belong to anObj
+	   void  SetFrozenVar(tObjWUk & anObj,const tStdVect & aVect);  ///< Froze aVect, that must belong to anObj
+	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,3> & aPt);  ///< Froze aPt that must belong to anObj
+	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,2> & aPt);  ///< Froze aPt that must belong to anObj
+	   void  SetFrozenAllCurrentValues(tObjWUk & anObj);  ///< Froze all the value beloning to an anObj
 
+           void AddObservationLinear(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)  ;
+           void AddObservationLinear(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) ;
 
 
 	   void  SetUnFrozen(int aK);  ///< indicate it var must be frozen /unfrozen
@@ -188,6 +191,9 @@ template <class Type> class cSetIORSNL_SameTmp
 
 	    /** Constructor :  take value of tmp+ optional vector of fixed var (given wih negatives value like {-1,-2})
 	        if aValFix is not given, default is current value
+		It can be strange to fix value of tmp var, but it's usefull for example if we want to use the same
+		equation with unknown variable and fix value. This is the case in bundle adj when the same colinearity 
+		equation can be use with tie-point or with a known GCP.
 	     */
 	    cSetIORSNL_SameTmp(const tStdVect & aValTmpUk,const tVectInd & aVFix={},const tStdVect & aValFix ={});
 
@@ -529,6 +535,7 @@ template <class Type> class cSetInterUK_MultipeObj
 	        // different method for adding intervalls
 
            void AddOneInterv(Type * anAdr,size_t aSz) ; ///<  generall method
+           void AddOneInterv(Type & anAdr) ;            ///<  call with a single value
            void AddOneInterv(std::vector<Type> & aV) ;  ///<  call previous with a vector
            void AddOneInterv(cPtxd<Type,3> &);          ///<  call previous wih a point
 
@@ -562,13 +569,16 @@ template <class Type> class cObjWithUnkowns
           virtual void OnUpdate();
 
 	  ///  Push in vector all the number of unknowns
-          void FillIndexes(std::vector<int> &);
+          void PushIndexes(std::vector<int> &);
 
 	  ///  indicate if the object has been initialized
           bool  UkIsInit() const;
 
 	  /// recover the index from a value
 	  size_t IndOfVal(const Type *) const;
+
+          int   IndUk0() const;   ///< Accessor
+          int   IndUk1() const;   ///< Accessor
 
        protected :
 

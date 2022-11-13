@@ -381,7 +381,7 @@ void cAppliProMeshImage::MakeRadiomData(cZBuffer &  aZB)
 			 {
                              aSomCoul = aSomCoul/aNbOk;
                              tPt2dr aPIm1 =  mCamPC->Ground2Image(aGrid1);
-                             aIRD.AddObs_Adapt(aIndex,aSomCoul.x(),aSomCoul.y(),aSomCoul.z(),ToI(aPIm1));
+                             aIRD.AddObs_Adapt(aIndex,aSomCoul.x(),aSomCoul.y(),aSomCoul.z(),ToF(aPIm1));
 			 }
 		     }
 		 }

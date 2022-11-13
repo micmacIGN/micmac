@@ -87,6 +87,14 @@ template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeI
 {
 }
 
+template <class Type> cDenseVect<Type>::cDenseVect(int aSz,const tSpV & aSpV) :
+       cDenseVect<Type>(aSz,eModeInitImage::eMIA_Null)
+{
+     for (const auto & aPair : aSpV)
+          mIm.DIm().SetV(aPair.mInd,aPair.mVal);
+}
+
+
 template <class Type> cDenseVect<Type> cDenseVect<Type>::Dup() const
 {
     return cDenseVect<Type>(mIm.Dup());
@@ -224,6 +232,17 @@ template <class Type> Type  cDenseVect<Type>::SumElem() const
    return aRes;
 }
 
+template <class Type> Type  cDenseVect<Type>::AvgElem() const
+{
+    return SumElem() / Type(Sz());
+}
+
+template <class Type> void  cDenseVect<Type>::SetAvg(const Type & aTargAvg)
+{
+   Type  aMul = SafeDiv (aTargAvg,AvgElem());
+   for (int aK=0 ; aK<Sz() ; aK++)
+        (*this)(aK) *= aMul;
+}
 
 /* ========================== */
 /*          cMatrix       */

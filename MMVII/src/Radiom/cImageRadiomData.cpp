@@ -37,6 +37,7 @@ cImageRadiomData::cImageRadiomData(const std::string & aNameIm,int aNbChanel,boo
     mNameIm            (aNameIm),
     mNbChanel          (aNbChanel),
     mWithPoints        (withPoint),
+    mLimitIndex        (0),
     mVVRadiom          (aNbChanel)
 {
 }
@@ -62,10 +63,25 @@ std::string cImageRadiomData::NameFile() const
       return NameFileOfImage(mNameIm);
 }
 
-const std::vector<size_t> & cImageRadiomData::VIndex() const {return mVIndex;}
-const std::vector<cPt2di> & cImageRadiomData::VPts() const {return mVPts;}
+const std::vector<size_t> &    cImageRadiomData::VIndex() const {return mVIndex;}
+const cImageRadiomData::tVPt & cImageRadiomData::VPts() const {return mVPts;}
+
+
+const cImageRadiomData::tPtMem & cImageRadiomData::Pt(size_t aIndex) const {return mVPts.at(aIndex);}
+
+cImageRadiomData::tRadiom cImageRadiomData::Gray(size_t aIndex) const
+{
+   if (mNbChanel==1) return mVVRadiom[0].at(aIndex);
+   int aSom=0;
+   for (int aKC=0 ; aKC<mNbChanel ; aKC++)
+       aSom += mVVRadiom[aKC].at(aIndex);
+
+   return aSom/mNbChanel;
+}
+
 
 const cImageRadiomData::tVRadiom & cImageRadiomData::VRadiom(size_t aKCh) const {return mVVRadiom.at(aKCh);}
+size_t cImageRadiomData::LimitIndex() const{return mLimitIndex;}
 
 
 
@@ -74,6 +90,7 @@ void cImageRadiomData::AddIndex(tIndex anIndex)
     if (mIndexWellOrdered && (!mVIndex.empty()) && (anIndex<=mVIndex.back()))
        mIndexWellOrdered = false;
      mVIndex.push_back(anIndex);
+     mLimitIndex = std::max(mLimitIndex,anIndex+1);
 }
 
 void cImageRadiomData::CheckAndAdd(tIndex anIndex,tRadiom aRadiom,int aNbCh,bool WithPoint)
@@ -201,6 +218,7 @@ void cImageRadiomData::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("NbChanels",anAux),mNbChanel);
     MMVII::AddData(cAuxAr2007("WithPts",anAux),mWithPoints);
     MMVII::AddData(cAuxAr2007("Index",anAux),mVIndex);
+    MMVII::AddData(cAuxAr2007("LimitIndex",anAux),mLimitIndex);
     MMVII::AddData(cAuxAr2007("Pts",anAux),mVPts);
     MMVII::AddData(cAuxAr2007("Radioms",anAux),mVVRadiom);
 }
@@ -378,6 +396,44 @@ void cImageRadiomData::Bench(cParamExeBench & aParam)
 
       aParam.EndBench();
 }
+
+   /* =============================================== */
+   /*                                                 */
+   /*              cFusionIRDSEt                      */
+   /*                                                 */
+   /* =============================================== */
+
+cFusionIRDSEt::cFusionIRDSEt(size_t aNbMax) :
+        mVVIndexes (aNbMax)
+{
+}
+void cFusionIRDSEt::Resize(size_t aNbMax)
+{
+    mVVIndexes.resize(aNbMax);
+}
+
+void cFusionIRDSEt::AddIndex(int aNumIm, const std::vector<tIndex> & aVInd)
+{
+     for (size_t aK=0 ; aK<aVInd.size() ; aK++)
+     {
+         mVVIndexes.at(aVInd[aK]).push_back(tImInd(aNumIm,aK));
+     }
+}
+
+void cFusionIRDSEt::FilterSzMin(size_t aSzMin)
+{
+     std::vector<tV1Index > aDup;
+     for (const auto & aVInd : mVVIndexes)
+     {
+         if (aVInd.size() >= aSzMin)
+            aDup.push_back(aVInd);
+     }
+     mVVIndexes = aDup;
+}
+
+const std::vector<cFusionIRDSEt::tV1Index > & cFusionIRDSEt::VVIndexes() const {return mVVIndexes;}
+
+
 
 
 

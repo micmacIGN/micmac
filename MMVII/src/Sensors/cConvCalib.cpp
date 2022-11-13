@@ -119,8 +119,8 @@ void cCentralPerspConversion::OneIteration()
 
      // Fill indexe Glob in the same order as in cEqColinearityCamPPC::VNamesUnknowns()
      std::vector<int> aVIndGlob = aVIndGround;
-     mCamPC.FillIndexes(aVIndGlob);
-     mCalib->FillIndexes(aVIndGlob);
+     mCamPC.PushIndexes(aVIndGlob);
+     mCalib->PushIndexes(aVIndGlob);
 
      for (const auto & aCorresp : mSetCorresp.Pairs())
      {

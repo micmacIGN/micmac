@@ -117,6 +117,9 @@ NS_SymbolicDerivative::cCalculator<double> * EqCPProjInv(eProjPC  aType,bool Wit
            // .............   Equation colinearity , imply external parameter, Projectiion, distorsion, foc+PP .............
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf);
 
+           // .............   Equation radiometry .............
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf);
+
 
      //  ====   equations used in tuto/bench/ devpt of surface  ==============================
 
