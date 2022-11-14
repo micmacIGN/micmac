@@ -24,6 +24,7 @@ void Default_MMVVI_Error(const std::string & aType,const std::string &  aMes,con
     }
     getchar();
     exit(-1);
+    return;
 }
 
 

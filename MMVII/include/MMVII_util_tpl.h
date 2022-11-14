@@ -100,7 +100,7 @@ void BenchSet(const std::string & aDir);
 template <class Type> class cExtSet  : public  cSelector<Type>
 {
     public :
-         virtual ~cExtSet() ;
+         //virtual ~cExtSet() ;
          cExtSet<Type>   Dupl() const ; // return a duplicata
          cExtSet<Type>   EmptySet() const ; // return a set from same type
 
@@ -141,7 +141,6 @@ template <class Type> cExtSet<Type> operator - (const cExtSet<Type> & aS1,const 
 
 /// Sort on pointed value and not adress  
 template <class Type> void SortPtrValue(std::vector<Type*> &aV);
-
 
 // Xml or pat
 tNameSet SetNameFromPat    (const std::string&); ///< create a set of file from a pattern

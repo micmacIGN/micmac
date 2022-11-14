@@ -627,9 +627,9 @@ template <class Type> cExtSet<Type>::cExtSet(eTySC aKindOf) :
 {
 }
 
-template <class Type> cExtSet<Type>::~cExtSet() 
-{
-}
+//template <class Type> cExtSet<Type>::~cExtSet()
+//{
+//}
 
 template <class Type> bool cExtSet<Type>::IsInit() const
 {
