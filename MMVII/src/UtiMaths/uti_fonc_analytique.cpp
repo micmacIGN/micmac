@@ -23,7 +23,7 @@ template <typename Type> Type DerASin(const Type & aSin)
 {
    Type UMS2 = 1-Square(aSin);
    MMVII_ASSERT_STRICT_POS_VALUE(UMS2);
-   return 1.0 / std::sqrt(UMS2);
+   return 1 / std::sqrt(UMS2);
 }
 
 template <typename Type> Type ASin(const Type & aSin)
@@ -54,7 +54,11 @@ template <typename Type> Type DerSinC(const Type & aTeta,const Type & aEps)
    Type aT9 = aT7   * aTeta2;
 
 
-   return  - aTeta*(2.0/Fact3) + aT3 *(4.0/Fact5) - aT5*(6.0/Fact7) + aT7*(8.0/Fact9) - aT9 * (10.0/Fact11);
+   return  - aTeta * (static_cast<Type>(2.0)/static_cast<Type>(Fact3))
+           + aT3 * (static_cast<Type>(4.0)/static_cast<Type>(Fact5))
+           - aT5 * (static_cast<Type>(6.0)/static_cast<Type>(Fact7))
+           + aT7 * (static_cast<Type>(8.0)/static_cast<Type>(Fact9))
+           - aT9 * (static_cast<Type>(10.0)/static_cast<Type>(Fact11));
 }
 template <typename Type> Type DerSinC(const Type & aTeta)
 {
@@ -72,7 +76,7 @@ template <typename Type> Type sinC(const Type & aTeta,const Type & aEps)
    Type aT6 = aT4 * aT2;
    Type aT8 = Square(aT4);
 
-   return 1.0 - aT2/Fact3 + aT4/Fact5 - aT6/Fact7 + aT8/Fact9;
+   return static_cast<Type>(1.0) - aT2/static_cast<Type>(Fact3) + aT4/static_cast<Type>(Fact5) - aT6/static_cast<Type>(Fact7) + aT8/static_cast<Type>(Fact9);
 }
 template <typename Type> Type sinC(const Type & aTeta)
 {
@@ -90,7 +94,11 @@ template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Typ
    Type XsY6 = XsY4 * XsY2;
    Type XsY8 = XsY4 * XsY4;
 
-   return (1 -XsY2/3.0 + XsY4/5.0 -XsY6/7.0 + XsY8/9.0) / Y;
+   return (1
+           - static_cast<Type>(XsY2)/static_cast<Type>(3.0)
+           + static_cast<Type>(XsY4)/static_cast<Type>(5.0)
+           - static_cast<Type>(XsY6)/static_cast<Type>(7.0)
+           + static_cast<Type>(XsY8)/static_cast<Type>(9.0) ) / static_cast<Type>(Y);
 }
 template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y)
 {
@@ -109,7 +117,11 @@ template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const
    Type XsY6 = XsY4 * XsY2;
    Type XsY8 = XsY4 * XsY4;
 
-   return (X/Cube(Y)) *( -(2.0/3.0) + (4.0/5.0)*XsY2 -(6.0/7.0)*XsY4 + (8.0/9.0) *XsY6 -(10.0/11.0)*XsY8);
+   return (X/Cube(Y)) * ( - static_cast<Type>(2.0/3.0)
+                          + static_cast<Type>(4.0/5.0) * XsY2
+                          - static_cast<Type>(6.0/7.0) * XsY4
+                          + static_cast<Type>(8.0/9.0) * XsY6
+                          - static_cast<Type>(10.0/11.0) * XsY8);
 }
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y)
 {
