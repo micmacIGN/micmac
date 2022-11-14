@@ -215,7 +215,7 @@ cSpecMMVII_Appli*  cSpecMMVII_Appli::SpecOfName(const std::string & aNameCom,boo
       MMVII_INTERNAL_ASSERT_always(false,"Cannot find command of name ["+ aNameCom + "]");
    }
 
-   return 0;
+   return nullptr;
 }
 
 std::vector<std::string> cSpecMMVII_Appli::TheCmdArgs;
