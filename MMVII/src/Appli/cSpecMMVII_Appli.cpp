@@ -231,5 +231,17 @@ void cSpecMMVII_Appli::ShowCmdArgs(void)
     std::cout << "\n";
 }
 
+
+bool cSpecMMVII_Appli::ExitOnBrkp(void)
+{
+    if (TheCmdArgs.size() == 0)
+        return false;
+     // if at least one cmd has the exit code, then true
+    std::string exit_code="@ExitOnBrkp";
+    for (const auto& aArg: TheCmdArgs)
+        if (aArg.find(exit_code)!=std::string::npos) return true;
+    
+    return false;
+}
 };
 

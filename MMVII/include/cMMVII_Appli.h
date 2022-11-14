@@ -91,6 +91,7 @@ class cSpecMMVII_Appli
 */
 
        static cSpecMMVII_Appli* SpecOfName(const std::string & aName,bool SVP); ///< Get spec; non case sensitive search
+      static bool ExitOnBrkp(void);
 
        const std::string &    Name() const; ///< Accessor
        tMMVII_AppliAllocator  Alloc() const; ///< Accessor

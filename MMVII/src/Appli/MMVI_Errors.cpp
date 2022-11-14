@@ -19,12 +19,11 @@ void Default_MMVVI_Error(const std::string & aType,const std::string &  aMes,con
 
     if (!cMMVII_Appli::ExistAppli())
     {
-       getchar();
+       if (!cSpecMMVII_Appli::ExitOnBrkp()) getchar();
        exit(-1);
     }
-    getchar();
+    if (!cSpecMMVII_Appli::ExitOnBrkp()) getchar();
     exit(-1);
-    return;
 }
 
 
