@@ -191,7 +191,7 @@ class  cSpecOneArg2007 : public cMemCheck
         virtual void  CheckSize(const std::string &) const = 0;  ///< Used to check size of vect from a parameter like "[4,6]"
 
         /// Does any of  mVSem contains aType
-        bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
+        bool HasType(const eTA2007 & aType,std::string * aValue=nullptr)            const;
 
         const tAllSemPL & SemPL() const;         ///< Accessor
         const std::string  & Name() const;  ///< Accessor
