@@ -251,7 +251,7 @@ template <class Type> class cMatrix  : public cRect2
         virtual void  Weighted_Add_tAA(Type aWeight,const tSpV & aColLine,bool OnlySup=true);
 
       //  Constructor && destr
-         virtual ~cMatrix();  ///< Public because called by shared ptr 
+         virtual ~cMatrix() = default;  ///< Public because called by shared ptr 
      protected :
          cMatrix(int aX,int aY);
 

@@ -100,7 +100,7 @@ void BenchSet(const std::string & aDir);
 template <class Type> class cExtSet  : public  cSelector<Type>
 {
     public :
-         virtual ~cExtSet() ;
+         virtual ~cExtSet() = default;
          cExtSet<Type>   Dupl() const ; // return a duplicata
          cExtSet<Type>   EmptySet() const ; // return a set from same type
 
