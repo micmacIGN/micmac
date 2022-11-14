@@ -847,7 +847,7 @@ void BenchLsq()
          }
          PopErrorEigenErrorLevel();
          // reactivate if you want to check 
-         if (0)
+#if 0
          {
              for (int aK=0 ; aK<200 ; aK++)
              {
@@ -855,6 +855,7 @@ void BenchLsq()
              }
          }
          // StdOut() << "EEEEEEEeeeeeeeeeeeeeeee\n"; getchar();
+#endif
      }
 
      TplBenchLsq<tREAL4 ,cLeasSqtAA<tREAL4> >();
