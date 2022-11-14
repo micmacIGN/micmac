@@ -18,10 +18,11 @@
 #include <chrono>
 #include <cmath>
 
-#if defined (__GNUC__) && !defined(__APPLE__)
-    #if __cplusplus > 201402L
-        #include <optional>
-    #else
+#if defined (__GNUC__)
+    #define _STR(x) #x
+    #define STR(x) _STR(x)
+    #if __cplusplus < 201401L
+        #pragma message ("old __cplusplus " STR(__cplusplus) " using experimental::optional" )
         #include <experimental/optional>
         namespace std{
            template <class T>
@@ -29,6 +30,8 @@
             struct nullopt_t {};
             constexpr nullopt_t nullopt;
         }
+    #else
+        #include <optional>
     #endif
 #endif
 //========== LIB EXTEN==============
