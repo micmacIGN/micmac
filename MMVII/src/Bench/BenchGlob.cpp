@@ -961,13 +961,13 @@ int cAppli_MPDTest::Exe()
       return EXIT_SUCCESS;
    }
    TTT ();
-   if (true)
+#if 1
    {
      StdOut() << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << "\n";
      StdOut() << "T1:" << cName2Calc<double>::CalcFromName("EqDist_Dist_Rad3_Dec1_XY1",10) << "\n";
       return EXIT_SUCCESS;
    }
-
+#else
    if (mMMV1_GenCodeTestCam)
    {
        //StdOut() << "kkk=[" << mTopDirMMVII <<"]\n";
@@ -1002,7 +1002,6 @@ int cAppli_MPDTest::Exe()
     }
     PrintAndTrue("ccccc");
     cRotation3D<double>::RandomRot();
-
    
 /*
    cSparseVect<float>  aSV;
@@ -1042,6 +1041,8 @@ int cAppli_MPDTest::Exe()
 */
 
    return EXIT_SUCCESS;
+    
+#endif
 }
 
 tMMVII_UnikPApli Alloc_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)

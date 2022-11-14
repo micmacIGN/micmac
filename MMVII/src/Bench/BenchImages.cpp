@@ -468,13 +468,15 @@ void TestInitIm1D(int aX0, int aX1)
   {
      aDI.SetV(aX,FoncTestIm(aX));
   }
+#if 0
   if (0)
      aDI.SetV(aX1,0);  // detected in AssertInside
   if (0)
      aDI.SetV(aX0-1,0);  // detected in AssertInside
   if (0)
      aDI.RawDataLin()[-1] = 0; // detected in Free
-
+#endif
+    
   cIm1D<double> aDup = aI.Dup();
   for (int aX=aX0 ; aX<aX1 ; aX++)
   {
@@ -540,10 +542,10 @@ void BenchIm1D()
     BenchHisto(8,1.0);
     BenchHisto(8,2.0);
     //BenchHisto(8,1.0);
-    if (0)  // Not freed
-    {
-       new cIm1D<double>(10);
-    }
+//    if (0)  // Not freed
+//    {
+//       new cIm1D<double>(10);
+//    }
     if (1)
     {
         TestInitIm1D(0,10);
