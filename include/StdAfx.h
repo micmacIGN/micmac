@@ -14,9 +14,10 @@
 
 // #define NOMINMAX
 // #include "vld.h"
-
+#ifdef __VERBOSE__
 #if (  __VERBOSE__>1 )
     #define __TRACE_SYSTEM__
+#endif
 #endif
 
 template <class Type> void DoNothingButRemoveWarningUnused(const Type & ) { }

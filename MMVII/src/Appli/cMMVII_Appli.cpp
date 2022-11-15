@@ -18,8 +18,7 @@ int  cMMVII_Appli::ExecuteBench(cParamExeBench &)
 }
 
 
-
-#define MSD_DEGUG()  StdOut() << "MSD_DEGUGMSD_DEGUG " << __LINE__ << " of " << __FILE__ << "\n";
+//#define MSD_DEGUG()  StdOut() << "MSD_DEGUGMSD_DEGUG " << __LINE__ << " of " << __FILE__ << "\n";
 
 /*  ============================================== */
 /*                                                 */
@@ -134,8 +133,7 @@ template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 //        cMMVII_Appli::cMMVII_Appli ( int argc, char ** argv, const cSpecMMVII_Appli & aSpec) 
 //        void cMMVII_Appli::InitParam() => main initialisation must be done after Cstrctor as call virtual methods
 
-#define DEBUGKILLAPP()\
-std::cout << "HERE " << __LINE__ << "\n";
+//#define DEBUGKILLAPP() std::cout << "HERE " << __LINE__ << "\n";
 
 std::vector<cObj2DelAtEnd *>       cMMVII_Appli::mVectObj2DelAtEnd;
 

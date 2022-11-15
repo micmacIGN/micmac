@@ -935,8 +935,8 @@ bool PrintAndTrue(const std::string & aMes)
     StdOut() <<"FFFFF=" << aMes << "\n"; 
     return true;
 }
-#define UN 1
-#define DEUX 2 
+//#define UN 1
+//#define DEUX 2 
 
 void ShowAdr(double & anAdr)
 {
