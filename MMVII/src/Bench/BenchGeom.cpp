@@ -450,7 +450,7 @@ template <class tMap,class TypeEl> void TplBenchMap2D_NonLinear(const tMap & aMa
 
     tMap aMap = tMap::RansacL1Estimate(aVIn, aVOutNoise,300) *  aPerturb;
 
-    TypeEl aRes;
+    TypeEl aRes (0);
     TypeEl aResMin=10;
     for (int aKIter=0 ; aKIter<10 ; aKIter++)
     {
