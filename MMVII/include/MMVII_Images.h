@@ -647,7 +647,6 @@ class cTabulFonc1D : public cFctrRR
        double F (double) const override;  ///< Virtual usable as cFctRR
 
        cTabulFonc1D(const cFctrRR & aFctr,double XMin,double XMax,int aNbStep);
-       virtual ~ cTabulFonc1D() = default;
 
      private  :
        inline int    ToIntCoord(double aX) const;
