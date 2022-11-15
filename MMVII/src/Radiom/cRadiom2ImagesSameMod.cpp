@@ -6,6 +6,23 @@
 
 namespace MMVII
 {
+
+class cMedaDataImage
+{
+      public :
+          double  Aperture() const;
+	  cMedaDataImage(const std::string & aNameIm);
+
+      private :
+          std::string    mCameraName;
+          double         mAperture;
+          double         mFocalMM;
+          double         mFocalMMEqui35;
+};
+
+
+
+/*========================================================*/
 class cCalibRadiomSensor ;
 class cRadialCRS ;  //  public cCalibRadiomSensor
 class cComputeCalibRadSensor;  
@@ -13,6 +30,9 @@ class cComputeCalibRadSensor;
 class cCalibRadiomIma ;
 class cCalRadIm_CstRadial ; // : public  cCalibRadiomIma
 class cComputeCalibRadIma ;
+
+
+
 
 class cCalibRadiomSensor : public cMemCheck
 {
