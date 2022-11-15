@@ -6,6 +6,13 @@
 
 namespace MMVII
 {
+class cCalibRadiomSensor ;
+class cRadialCRS ;  //  public cCalibRadiomSensor
+class cComputeCalibRadSensor;  
+
+class cCalibRadiomIma ;
+class cCalRadIm_CstRadial ; // : public  cCalibRadiomIma
+class cComputeCalibRadIma ;
 
 class cCalibRadiomSensor : public cMemCheck
 {
@@ -16,13 +23,30 @@ class cCalibRadiomSensor : public cMemCheck
 class cRadialCRS : public cCalibRadiomSensor
 {
     public :
+        cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix);
+
 	tREAL8  NormalizedRho2(const cPt2dr & aPt) const;
         tREAL8  FlatField(const cPt2dr &) const override;
+        std::vector<double> &  CoeffRad();
+    private :
 
-        tREAL8                 mScale;
         cPt2dr                 mCenter;
         std::vector<double>    mCoeffRad;
+        cPt2di                 mSzPix;
+        tREAL8                 mScale;
 };
+
+cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix) :
+    mCenter    (aCenter),
+    mCoeffRad  (aDegRad,0.0),
+    mSzPix     (aSzPix)
+{
+     cBox2dr aBoxIm(ToR(mSzPix));
+     mScale = Square(aBoxIm.DistMax2Corners(mCenter));
+}
+
+ std::vector<double>& cRadialCRS::CoeffRad() {return mCoeffRad;}
+
 
 tREAL8  cRadialCRS::NormalizedRho2(const cPt2dr & aPt) const
 {
@@ -44,6 +68,43 @@ tREAL8  cRadialCRS::FlatField(const cPt2dr & aPt) const
 }
 
 
+class cCalibRadiomIma : public cMemCheck
+{
+        public :
+            virtual tREAL8  ImageCorrec(const cPt2dr &) const   = 0;
+};
+
+class cCalRadIm_CstRadial : public  cCalibRadiomIma
+{
+        public :
+            tREAL8  ImageCorrec(const cPt2dr &) const  override;
+	    cCalRadIm_CstRadial(cCalibRadiomSensor *);
+
+	    tREAL8 & DivIm();
+	    const tREAL8 & DivIm() const ;
+            cCalibRadiomSensor &  CalibSens();
+        public :
+             cCalibRadiomSensor *  mCalibSens;
+	     tREAL8        mDivIm;
+
+
+};
+
+cCalRadIm_CstRadial::cCalRadIm_CstRadial(cCalibRadiomSensor * aCalSens) :
+      mCalibSens  (aCalSens),
+      mDivIm      (1.0)
+{
+}
+
+tREAL8  cCalRadIm_CstRadial::ImageCorrec(const cPt2dr & aPt) const
+{
+    return mDivIm * mCalibSens->FlatField(aPt);
+}
+
+
+tREAL8 & cCalRadIm_CstRadial::DivIm() {return mDivIm;}
+const tREAL8 & cCalRadIm_CstRadial::DivIm() const {return mDivIm;}
+cCalibRadiomSensor &  cCalRadIm_CstRadial::CalibSens() {return *mCalibSens;}
 
    /* =============================================== */
    /*                                                 */
@@ -52,7 +113,7 @@ tREAL8  cRadialCRS::FlatField(const cPt2dr & aPt) const
    /* =============================================== */
 
 typedef tREAL8              tElSys;
-class cComputeCalibRadSensor;  // SetImOfSameCalib
+
 
 
 class cComputeCalibRadIma : public cMemCheck,
@@ -60,16 +121,22 @@ class cComputeCalibRadIma : public cMemCheck,
 {
     public :
        cComputeCalibRadIma (const std::string& aName,cImageRadiomData*,cComputeCalibRadSensor* aGRP);
-
-       std::string           mNameIm;
-       cImageRadiomData*     mIRD;
-       cComputeCalibRadSensor *          mCalRad;
-       tElSys                mDivIm;
        void PutUknowsInSetInterval() override ;
+       tREAL8   CorrectedRadiom(tREAL8,const cPt2df & aPt) const;
 
-       tElSys  FactCorrecRadiom(const cPt2df & aPt) const;
+       const std::string & NameIm() const;
+       cImageRadiomData&   IRD();
+       cComputeCalibRadSensor & ComputeCalSens();
+       ~cComputeCalibRadIma();
+       tREAL8 DivIm() const;
+
     private :
        cComputeCalibRadIma(const cComputeCalibRadIma &) = delete;
+
+       std::string               mNameIm;
+       cImageRadiomData*         mIRD;
+       cComputeCalibRadSensor *  mComputeCalSens;
+       cCalRadIm_CstRadial       mCalRadIm;
 };
 
 
@@ -82,46 +149,53 @@ class cComputeCalibRadSensor : public cMemCheck,  // SetImOfSameCalib
 
 	tElSys  NormalizedRho2(const cPt2df & aPt) const {return mRCRS.NormalizedRho2(ToR(aPt)) ;}
 	tElSys  FactCorrecRadiom(const cPt2df & aPt) const;
-
-     //private :
+	cRadialCRS & RCRS();
+     private :
 	cComputeCalibRadSensor(const cComputeCalibRadSensor &) = delete;
 
-	cRadialCRS   mRCRS;
+	cRadialCRS    mRCRS;
 };
 
     // ===================================================
     //             cComputeCalibRadIma   
     // ===================================================
 
-cComputeCalibRadIma::cComputeCalibRadIma(const std::string& aNameIm,cImageRadiomData* aIRD,cComputeCalibRadSensor* aCalRad) :
-   mNameIm (aNameIm),
-   mIRD    (aIRD),
-   mCalRad (aCalRad),
-   mDivIm  (1.0)
+cComputeCalibRadIma::cComputeCalibRadIma(const std::string& aNameIm,cImageRadiomData* aIRD,cComputeCalibRadSensor* aCompCalS) :
+   mNameIm           (aNameIm),
+   mIRD              (aIRD),
+   mComputeCalSens   (aCompCalS),
+   mCalRadIm         (&(aCompCalS->RCRS()))
 {
+}
+
+cComputeCalibRadIma::~cComputeCalibRadIma()
+{
+   delete mIRD;
 }
 
 void cComputeCalibRadIma::PutUknowsInSetInterval() 
 {
-	mSetInterv->AddOneInterv(mDivIm);
+	mSetInterv->AddOneInterv(mCalRadIm.DivIm());
 }
 
-tElSys  cComputeCalibRadIma::FactCorrecRadiom(const cPt2df & aPt) const
+tElSys  cComputeCalibRadIma::CorrectedRadiom(tREAL8 aRadInit,const cPt2df & aPt) const
 {
-	return 1/ (mCalRad->FactCorrecRadiom(aPt) * mDivIm);
+	return aRadInit / (mCalRadIm.ImageCorrec(ToR(aPt)));
 }
+
+const std::string & cComputeCalibRadIma::NameIm() const {return mNameIm;}
+cImageRadiomData&   cComputeCalibRadIma::IRD() {return *mIRD;}
+
+cComputeCalibRadSensor & cComputeCalibRadIma::ComputeCalSens() {return *mComputeCalSens;}
+tREAL8 cComputeCalibRadIma::DivIm() const {return mCalRadIm.DivIm();}
 
     // ===================================================
     //             cComputeCalibRadSensor   
     // ===================================================
 
-cComputeCalibRadSensor::cComputeCalibRadSensor(cPerspCamIntrCalib * aCalib,int aNbRad) 
+cComputeCalibRadSensor::cComputeCalibRadSensor(cPerspCamIntrCalib * aCalib,int aNbRad)  :
+       mRCRS (aCalib->PP(),aNbRad,aCalib->SzPix())
 {
-   mRCRS.mCoeffRad.resize(aNbRad,0.0);
-   mRCRS.mCenter =  aCalib->PP();
-   // mRCRS.mScale  =   Square(aCalib->F());
-   mRCRS.mScale  =   SqN2(ToR(aCalib->SzPix())/2.0);
-
    int TheCpt = 0; 
    TheCpt++;
    if (TheCpt!=1)
@@ -133,7 +207,7 @@ cComputeCalibRadSensor::cComputeCalibRadSensor(cPerspCamIntrCalib * aCalib,int a
 
 void cComputeCalibRadSensor::PutUknowsInSetInterval() 
 {
-     mSetInterv->AddOneInterv(mRCRS.mCoeffRad);
+     mSetInterv->AddOneInterv(mRCRS.CoeffRad());
 }
 
 tElSys  cComputeCalibRadSensor::FactCorrecRadiom(const cPt2df & aPt) const
@@ -141,6 +215,7 @@ tElSys  cComputeCalibRadSensor::FactCorrecRadiom(const cPt2df & aPt) const
      return mRCRS.FlatField(ToR(aPt));
 }
 
+cRadialCRS & cComputeCalibRadSensor::RCRS() {return mRCRS;}
 
 /* **************************************************************** */
 /*                                                                  */
@@ -236,11 +311,11 @@ cAppliRadiom2ImageSameMod::cAppliRadiom2ImageSameMod(const std::vector<std::stri
 void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2)
 {
       std::vector<cPt2di> aVCpleI;
-      mVRadIm[aK1]->mIRD->GetIndexCommon(aVCpleI,*(mVRadIm[aK2]->mIRD));
+      mVRadIm[aK1]->IRD().GetIndexCommon(aVCpleI,mVRadIm[aK2]->IRD());
       if (aVCpleI.size() < mNbMinByClpe)
          return;
-      const cImageRadiomData::tVRadiom & aVRad1 = mVRadIm[aK1]->mIRD->VRadiom(0);
-      const cImageRadiomData::tVRadiom & aVRad2 = mVRadIm[aK2]->mIRD->VRadiom(0);
+      const cImageRadiomData::tVRadiom & aVRad1 = mVRadIm[aK1]->IRD().VRadiom(0);
+      const cImageRadiomData::tVRadiom & aVRad2 = mVRadIm[aK2]->IRD().VRadiom(0);
 
       // compute the median of ration as a robust estimator
       std::vector<double>  aVRatio;
@@ -275,8 +350,8 @@ void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2)
 	      << " MED=" << aRMed
 	      << " High=" << NC_KthVal(aVRatio,0.8) 
 	      << " Nb=" << aVCpleI.size()
-	      << " " << mVRadIm.at(aK1)->mNameIm
-	      << " " << mVRadIm.at(aK2)->mNameIm
+	      << " " << mVRadIm.at(aK1)->NameIm()
+	      << " " << mVRadIm.at(aK2)->NameIm()
 	      << "\n"; 
 
 }
@@ -332,14 +407,6 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
      else
         mCurSys->UnfrozeAll();
 
-     /*
-     for (auto & aPair : mMapCal2Im)
-     {
-          //mCurSys->SetFrozenVar(*aPair.second,aPair.second->mRCRS.mCoeffRad[3]);
-          //mCurSys->SetFrozenVar(*aPair.second,aPair.second->mRCRS.mCoeffRad[4]);
-     }
-     */
-
      // 1- Compute sigma
      cWeightAv<tElSys>  aAvgDev;
      cWeightAv<tElSys>  aAvgCRS;  ///  Correction radial signed
@@ -351,15 +418,14 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
          for (const  auto & aImInd : aVecIndMul)
          {
              cComputeCalibRadIma * aRIM = mVRadIm.at(aImInd.x());
-	          // cComputeCalibRadSensor * aCalRad = aRIM->mCalRad;
 	     int aInd = aImInd.y();
 
-	     const cPt2df & aPt =  aRIM->mIRD->Pt(aInd);
-	     tREAL8    aRadCor =  aRIM->mIRD->Gray(aInd) * aRIM->FactCorrecRadiom(aPt);
+	     const cPt2df & aPt = aRIM->IRD().Pt(aInd);
+	     tREAL8    aRadCor =   aRIM->CorrectedRadiom(aRIM->IRD().Gray(aInd),aPt);
 
              aDev.Add(&aRadCor,1.0);
 
-	     tElSys aCor =  aRIM->mCalRad->FactCorrecRadiom(aPt);
+	     tElSys aCor =  aRIM->ComputeCalSens().FactCorrecRadiom(aPt);
 	     aAvgCRS.Add(1.0,aCor-1.0);
 	     aAvgCRA.Add(1.0,std::abs(aCor-1.0));
          }
@@ -382,8 +448,8 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
          {
               cComputeCalibRadIma * aRIM = mVRadIm.at(aImInd.x());
               int aInd = aImInd.y();
-              const cPt2df & aPt =  aRIM->mIRD->Pt(aInd);
-              aAlbedo +=  aRIM->mIRD->Gray(aInd) * aRIM->FactCorrecRadiom(aPt);
+              const cPt2df & aPt =  aRIM->IRD().Pt(aInd);
+              aAlbedo +=  aRIM->CorrectedRadiom(aRIM->IRD().Gray(aInd),aPt);
          }
          aAlbedo /= aVecIndMul.size();
 
@@ -396,14 +462,14 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
          {
              cComputeCalibRadIma * aRIM = mVRadIm.at(aImInd.x());
              int aInd = aImInd.y();
-             const cPt2df & aPt =  aRIM->mIRD->Pt(aInd);
-             tElSys aRho2 =  aRIM->mCalRad->NormalizedRho2(aPt);
-             tElSys aRadIm = aRIM->mIRD->Gray(aInd);
+             const cPt2df & aPt =  aRIM->IRD().Pt(aInd);
+             tElSys aRho2 =  aRIM->ComputeCalSens().NormalizedRho2(aPt);
+             tElSys aRadIm = aRIM->IRD().Gray(aInd);
 
              std::vector<tElSys> aVObs({aRadIm,aRho2});
              std::vector<int>  aVInd({-1});
              aRIM->PushIndexes(aVInd);
-             aRIM->mCalRad->PushIndexes(aVInd);
+             aRIM->ComputeCalSens().PushIndexes(aVInd);
 
              mCurSys->AddEq2Subst(aSetTmp,mCalcMixt,aVInd,aVObs,aRW);
 
@@ -428,7 +494,7 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
 
     tElSys  aSomDiv=0;
     for (auto & aPtrIm : mVRadIm)
-        aSomDiv += aPtrIm->mDivIm;
+        aSomDiv += aPtrIm->DivIm();
 
      tElSys aDev = aAvgDev.Average() ;
      StdOut() << " DEV=" <<  aDev  << " S[75%]=" << aSigma << " AvgDiv=" << (aSomDiv/mNbIm -1) << "\n";
@@ -436,11 +502,11 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
 
      for (auto & aPair : mMapCal2Im)
      {
-         StdOut() <<  "COEFF=" << aPair.second->mRCRS.mCoeffRad << "\n";
+         StdOut() <<  "COEFF=" << aPair.second->RCRS().CoeffRad() << "\n";
 
 	 cPt2dr aMil = ToR(aPair.first->SzPix()/2);
 	 for (int aK=0 ; aK<=10 ; aK++)
-		 StdOut() << " " << (aPair.second->mRCRS.FlatField(aMil*(1-aK/10.0)) -1.0) ;
+		 StdOut() << " " << (aPair.second->RCRS().FlatField(aMil*(1-aK/10.0)) -1.0) ;
          StdOut() << "\n";
      }
 
@@ -496,7 +562,7 @@ int cAppliRadiom2ImageSameMod::Exe()
                 mMapCal2Im[aCalib] = new cComputeCalibRadSensor(aCalib,mNbDegRad);
 
 	    cComputeCalibRadIma* aRadI = new cComputeCalibRadIma(aNameIm,aIRD,mMapCal2Im[aCalib]);
-            aRadI->mCalRad =  mMapCal2Im[aCalib];
+            // aRadI->mCalRad =  mMapCal2Im[aCalib];
 	    mVRadIm.push_back(aRadI);
         }
         else
@@ -507,7 +573,7 @@ int cAppliRadiom2ImageSameMod::Exe()
 
     mFusIndex.Resize(aLimitIndex);
     for (size_t aKIm=0 ; aKIm<mNbIm ; aKIm++)
-        mFusIndex.AddIndex(aKIm,mVRadIm[aKIm]->mIRD->VIndex());
+        mFusIndex.AddIndex(aKIm,mVRadIm[aKIm]->IRD().VIndex());
     mFusIndex.FilterSzMin(2);
     // ----------------  Linear ----------------------
 
@@ -523,7 +589,6 @@ int cAppliRadiom2ImageSameMod::Exe()
 
     for (auto & aRadIm : mVRadIm)
     {
-        delete aRadIm->mIRD;
         delete aRadIm;
     }
     for (auto & aPair: mMapCal2Im)
