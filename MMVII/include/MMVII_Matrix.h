@@ -596,7 +596,7 @@ template <class Type> class cStrStat2
        double KthNormalizedCoord(int,const cDenseVect<Type>  & aV2) const;
        // Accessors
        cDenseMatrix<Type>& Cov() ;
-       const double              Pds() const;
+       double              Pds() const;
        const cDenseVect<Type>  & Moy() const;
        const cDenseMatrix<Type>& Cov() const;
     private :
