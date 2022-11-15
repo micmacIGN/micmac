@@ -414,7 +414,7 @@ template <class Type> cStrStat2<Type>::cStrStat2(int aSz) :
 {
 }
 
-template <class Type> const double              cStrStat2<Type>::Pds() const {return mPds;}
+template <class Type> double              cStrStat2<Type>::Pds() const {return mPds;}
 template <class Type> const cDenseVect<Type>  & cStrStat2<Type>::Moy() const {return mMoy;}
 template <class Type> const cDenseMatrix<Type>& cStrStat2<Type>::Cov() const {return mCov;}
 template <class Type> cDenseMatrix<Type>& cStrStat2<Type>::Cov() {return mCov;}
