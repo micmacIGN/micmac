@@ -154,6 +154,19 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::AllocCalib(const std::string & aN
     return aCalib;
 }
 
+cMedaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm) const
+{
+   static std::map<std::string,cMedaDataImage> aMap;
+
+   auto  anIt = aMap.find(aNameIm);
+
+   if (anIt== aMap.end())
+   {
+        aMap[aNameIm] = cMedaDataImage(aNameIm);
+   }
+
+   return aMap[aNameIm];
+}
 
 
         //  =============  Accessor/Modiier to dir =================

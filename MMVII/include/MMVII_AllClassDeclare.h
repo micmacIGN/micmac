@@ -227,9 +227,17 @@ class  cZBuffer;
 
 
 // MMVII_Sensor.h
-class cSensorImage;
-class cPhotogrammetricProject;
-class cPerspCamIntrCalib;
+
+struct cPair2D3D;
+struct cSet2D3D;
+class  cSensorImage;
+class  cDataPixelDomain ;
+class  cPixelDomain;
+class  cSensorCamPC;
+class  cPhotogrammetricProject;
+class  cSIMap_Ground2ImageAndProf ;
+class  cPerspCamIntrCalib;
+class  cMedaDataImage;
 
 // MMVII_Radiom.h
 class cImageRadiomData;

@@ -243,6 +243,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eBadSize4Vect,"BadSize4Vector"},
                 {eTyUEr::eMultiplePostifx,"MultiplePostifx"},
                 {eTyUEr::eBadPostfix,"BadPostifx"},
+                {eTyUEr::eNoAperture,"NoAperture"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 TPL_ENUM_2_STRING(eTyUEr);

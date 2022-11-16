@@ -141,6 +141,21 @@ class cSetVisibility : public cDataBoundedSet<tREAL8,3>
 	double         mBorder;
 };
 
+/**  class for storing meta-data as stored in xif part*/
+class cMedaDataImage
+{
+      public :
+          tREAL8  Aperture() const;
+          cMedaDataImage(const std::string & aNameIm);
+          cMedaDataImage();
+      private :
+
+          std::string    mCameraName;
+          tREAL8         mAperture;
+          tREAL8         mFocalMM;
+          tREAL8         mFocalMMEqui35;
+          std::string    mNameImage;
+};
 
 
 /** Class to facilitate the management of orientations (and others ?) in a photogrammetric
@@ -165,6 +180,7 @@ class cPhotogrammetricProject
           void FinishInit() ;
 	        /// destructor  ,  some object delegates their destruction to this
           ~cPhotogrammetricProject();
+
 
 	 //===================================================================
          //==================   ORIENTAION       =============================
@@ -198,6 +214,10 @@ class cPhotogrammetricProject
 	  cImageRadiomData * AllocRadiom(const std::string &); ///< Create Camera using Input orientation
 
 	  bool RadiomOptOutIsInit() const;
+          std::string NameCalibSensor(const cPerspCamIntrCalib &,const cMedaDataImage &) const;
+
+         //==================   META-DATA       =============================
+          cMedaDataImage GetMetaData(const std::string &) const;
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;

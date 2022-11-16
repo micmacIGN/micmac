@@ -145,7 +145,7 @@ void cMMVII_Ifs::VoidRead(void * aPtr,size_t aNb)
        MMVII_INTERNAL_ASSERT_tiny
        (
            false,
-           std::string("Error in write for file ") + mName
+           std::string("Error in read for file ") + mName
        );
     }
 #endif

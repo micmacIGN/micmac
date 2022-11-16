@@ -160,6 +160,7 @@ enum class eTyUEr
               eBadSize4Vect,
               eMultiplePostifx,
               eBadPostfix,
+              eNoAperture,
               eUnClassedError,
               eNbVals
            };
