@@ -168,6 +168,12 @@ cMedaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm)
    return aMap[aNameIm];
 }
 
+std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMedaDataImage & aMTD) const
+{
+    return  "RadiomCalib-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
+}
+
+
 
         //  =============  Accessor/Modiier to dir =================
 

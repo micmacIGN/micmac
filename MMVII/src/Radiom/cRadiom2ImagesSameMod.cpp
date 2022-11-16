@@ -28,6 +28,10 @@ class cCalibRadiomSensor : public cMemCheck
 {
        public :
            virtual tREAL8  FlatField(const cPt2dr &) const =  0;
+	   cCalibRadiomSensor(const std::string & aNameCal);
+	   const std::string & NameCal() const;
+       protected :
+           std::string            mNameCal;   ///< Name of file
 };
 
 /**  class for radial calibration radiometric of sensor , 
@@ -36,7 +40,7 @@ class cCalibRadiomSensor : public cMemCheck
 class cRadialCRS : public cCalibRadiomSensor
 {
     public :
-        cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const cMedaDataImage &);
+        cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string &);
 
 	tREAL8  NormalizedRho2(const cPt2dr & aPt) const;
         tREAL8  FlatField(const cPt2dr &) const override;
@@ -51,13 +55,19 @@ class cRadialCRS : public cCalibRadiomSensor
         tREAL8                 mScaleNor;  ///< Scale of normalization
 };
 
+cCalibRadiomSensor::cCalibRadiomSensor(const std::string & aNameCal) :
+    mNameCal  (aNameCal)
+{
+}
+const std::string & cCalibRadiomSensor::NameCal() const {return mNameCal;}
 
 void  cRadialCRS::AddData(const cAuxAr2007 & anAux)
 {
-     MMVII::AddData(cAuxAr2007("Center",anAux)  ,mCenter);
-     MMVII::AddData(cAuxAr2007("CoeffRad",anAux),mCoeffRad);
-     MMVII::AddData(cAuxAr2007("SzPix",anAux),mSzPix);
-     MMVII::AddData(cAuxAr2007("ScaleNorm",anAux),mScaleNor);
+     MMVII::AddData(cAuxAr2007("Name",anAux)      ,mNameCal);
+     MMVII::AddData(cAuxAr2007("Center",anAux)    ,mCenter);
+     MMVII::AddData(cAuxAr2007("CoeffRad",anAux)  ,mCoeffRad);
+     MMVII::AddData(cAuxAr2007("SzPix",anAux)     ,mSzPix);
+     MMVII::AddData(cAuxAr2007("ScaleNorm",anAux) ,mScaleNor);
 }
 
 void AddData(const cAuxAr2007 & anAux,cRadialCRS & aRCRS)
@@ -66,10 +76,11 @@ void AddData(const cAuxAr2007 & anAux,cRadialCRS & aRCRS)
 }
 
 
-cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const cMedaDataImage &) :
-    mCenter    (aCenter),
-    mCoeffRad  (aDegRad,0.0),
-    mSzPix     (aSzPix)
+cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal) :
+    cCalibRadiomSensor   (aNameCal),
+    mCenter              (aCenter),
+    mCoeffRad            (aDegRad,0.0),
+    mSzPix               (aSzPix)
 {
      cBox2dr aBoxIm(ToR(mSzPix));
      mScaleNor = Square(aBoxIm.DistMax2Corners(mCenter));
@@ -113,11 +124,11 @@ class cCalRadIm_CstRadial : public  cCalibRadiomIma
 	    tREAL8 & DivIm();
 	    const tREAL8 & DivIm() const ;
             cCalibRadiomSensor &  CalibSens();
+            void  AddData(const cAuxAr2007 & anAux); 
         public :
              cCalibRadiomSensor *  mCalibSens;
-	     tREAL8        mDivIm;
-
-
+	     tREAL8                mDivIm;
+             std::string           mTmpCalib;
 };
 
 cCalRadIm_CstRadial::cCalRadIm_CstRadial(cCalibRadiomSensor * aCalSens) :
@@ -135,6 +146,14 @@ tREAL8  cCalRadIm_CstRadial::ImageCorrec(const cPt2dr & aPt) const
 tREAL8 & cCalRadIm_CstRadial::DivIm() {return mDivIm;}
 const tREAL8 & cCalRadIm_CstRadial::DivIm() const {return mDivIm;}
 cCalibRadiomSensor &  cCalRadIm_CstRadial::CalibSens() {return *mCalibSens;}
+
+void  cCalRadIm_CstRadial::AddData(const cAuxAr2007 & anAux)
+{
+
+    if (!anAux.Input())
+       mTmpCalib = mCalibSens->NameCal();
+    MMVII::AddData(cAuxAr2007("NameCal",anAux) ,mTmpCalib);
+}
 
    /* =============================================== */
    /*                                                 */
@@ -174,7 +193,7 @@ class cComputeCalibRadSensor : public cMemCheck,  // SetImOfSameCalib
 	           public cObjWithUnkowns<tElSys>
 {
      public :
-        cComputeCalibRadSensor(cPerspCamIntrCalib * aCalib,int aNbRad,const cMedaDataImage &);
+        cComputeCalibRadSensor(cPerspCamIntrCalib * aCalib,int aNbRad,const std::string& aNameCalRad);
         void PutUknowsInSetInterval() override ;
 
 	tElSys  NormalizedRho2(const cPt2df & aPt) const {return mRCRS.NormalizedRho2(ToR(aPt)) ;}
@@ -223,8 +242,8 @@ tREAL8 cComputeCalibRadIma::DivIm() const {return mCalRadIm.DivIm();}
     //             cComputeCalibRadSensor   
     // ===================================================
 
-cComputeCalibRadSensor::cComputeCalibRadSensor(cPerspCamIntrCalib * aCalib,int aNbRad,const cMedaDataImage & aMTD)  :
-       mRCRS (aCalib->PP(),aNbRad,aCalib->SzPix(),aMTD)
+cComputeCalibRadSensor::cComputeCalibRadSensor(cPerspCamIntrCalib * aCalib,int aNbRad,const std::string& aNameCalRad)  :
+       mRCRS (aCalib->PP(),aNbRad,aCalib->SzPix(),aNameCalRad)
 {
    int TheCpt = 0; 
    TheCpt++;
@@ -592,6 +611,7 @@ int cAppliRadiom2ImageSameMod::Exe()
 
             cMedaDataImage aMetaData =  mPhProj.GetMetaData(aNameIm);
 
+
             int aDelta= 0;
             if (false) // activate this if, for test, we want to generate multi calib
             {
@@ -599,12 +619,13 @@ int cAppliRadiom2ImageSameMod::Exe()
                int aDelta = (aCpt%4);
                StdOut() << "DDDD "<< aDelta << "\n";
             }
+	    std::string aNameCalRad = mPhProj.NameCalibRadiomSensor(*aCalib,aMetaData);
 
 
             tIdCalRad aIdCalRad{aCalib,aMetaData.Aperture()+aDelta};
 	    if (mMapCal2Im[aIdCalRad]==nullptr)
             {
-                mMapCal2Im[aIdCalRad] = new cComputeCalibRadSensor(aCalib,mNbDegRad,aMetaData);
+                mMapCal2Im[aIdCalRad] = new cComputeCalibRadSensor(aCalib,mNbDegRad,aNameCalRad);
             }
 
 	    cComputeCalibRadIma* aRadI = new cComputeCalibRadIma(aNameIm,aIRD,mMapCal2Im[aIdCalRad]);

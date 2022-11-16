@@ -214,7 +214,7 @@ class cPhotogrammetricProject
 	  cImageRadiomData * AllocRadiom(const std::string &); ///< Create Camera using Input orientation
 
 	  bool RadiomOptOutIsInit() const;
-          std::string NameCalibSensor(const cPerspCamIntrCalib &,const cMedaDataImage &) const;
+          std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMedaDataImage &) const;
 
          //==================   META-DATA       =============================
           cMedaDataImage GetMetaData(const std::string &) const;

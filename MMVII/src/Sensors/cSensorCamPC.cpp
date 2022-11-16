@@ -189,5 +189,6 @@ std::string  cSensorCamPC::NameOri_From_Image(const std::string & aNameImage)
 std::string  cSensorCamPC::V_PrefixName() const { return PrefixName() ; }
 std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 
+
 }; // MMVII
 
