@@ -83,12 +83,6 @@ void cPhotogrammetricProject::FinishInit()
     {
        mRadiomOut = mRadiomIn;
     }
-    if(0)
-    {
-	    StdOut() << "WWWWWWWWWWWWWWWwwwwwwwwwwwwwwwwwwwwwwwwww " << mRadiomOut << "\n";
-	    StdOut() << "cccccccccccccccccccccccccccccccccccccc " << mRadiomIn << "\n";
-	    getchar();
-    }
     mFullRadiomOut =   mAppli.DirProject() +  MMVIIDirRadiom + mRadiomOut + StringDirSeparator();
     if (mAppli.IsInSpec(&mRadiomOut) )
     {
