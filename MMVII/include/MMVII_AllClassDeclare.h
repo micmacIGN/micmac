@@ -240,7 +240,17 @@ class  cPerspCamIntrCalib;
 class  cMedaDataImage;
 
 // MMVII_Radiom.h
-class cImageRadiomData;
+class cImageRadiomData;  ///< store data used for radiometric equalisation
+class cFusionIRDSEt;     ///< store fusion
+
+      // radiometric sensor calibration
+class cCalibRadiomSensor ;    // base class for representing a calib radiom of a camera
+class cRadialCRS ;            // class for "standard" model : radial function
+
+      // radiometric  image calibration
+class cCalibRadiomIma ;     //  base class  for representing a calib
+class cCalRadIm_Cst ;       // class for standar model :   Cste + Sensor
+
 
 
 

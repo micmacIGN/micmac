@@ -2,7 +2,7 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Geom2D.h"
-#include <set>
+// #include <set>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -119,13 +119,14 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux)
     std::vector<std::string>  aTypeDist={"Radial","Decentric","Polynomial"};
     {
        cAuxAr2007 aAuDist("Distorsion",anAux);
-       for (int aTest=0 ; aTest<3 ; aTest++)
+       for (int aKTypeDist=0 ; aKTypeDist<3 ; aKTypeDist++)
        {
-           cAuxAr2007 aAuxTypeDist(aTypeDist.at(aTest),aAuDist);
+           cAuxAr2007 aAuxTypeDist(aTypeDist.at(aKTypeDist),aAuDist);
 	   for (size_t aKD=0 ; aKD<mDir_VDesc.size() ; aKD++)
 	   {
                // tricky make assumption on int equiv : eRad, eDecX, eDecY, eMonX, eMonY,
-               bool DoAtThisStep = ((int(mDir_VDesc[aKD].mType)+1)/2)==aTest;
+               //   eRad(0) =>0  ::   eDecX(1), eDecY(2) => 1   ::   eMonX(3), eMonY(4) => 2
+               bool DoAtThisStep = ((int(mDir_VDesc[aKD].mType)+1)/2)==aKTypeDist;
 	       if (DoAtThisStep)
 	       {
                    MMVII::AddData(cAuxAr2007(mDir_VDesc[aKD].mName,aAuxTypeDist),mVTmpCopyParams.at(aKD));
@@ -222,18 +223,14 @@ void AddData(const cAuxAr2007 & anAux,cDataPerspCamIntrCalib & aPCIC)
 
 void  cPerspCamIntrCalib::ToFile(const std::string & aNameFile ) const
 {
+    //  make a local copy to have a own for constness
     mVTmpCopyParams = VParamDist();
-    SaveInFile((cDataPerspCamIntrCalib&)*this,aNameFile);
+    SaveInFile(static_cast<const cDataPerspCamIntrCalib&>(*this),aNameFile);
 }
 
 void  cPerspCamIntrCalib::ToFileIfFirstime(const std::string & aNameFile ) const
 {
-   static std::set<std::string> aSetFilesAlreadySaved;
-   if (!BoolFind(aSetFilesAlreadySaved,aNameFile))
-   {
-        aSetFilesAlreadySaved.insert(aNameFile);
-	ToFile(aNameFile);
-   }
+     MMVII::ToFileIfFirstime(*this,aNameFile);
 }
 
 cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName)

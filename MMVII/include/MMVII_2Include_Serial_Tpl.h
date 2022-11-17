@@ -12,6 +12,7 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Stringifier.h"
 #include "MMVII_Matrix.h"
+#include <set>
 
 
 namespace MMVII
@@ -297,6 +298,16 @@ template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & a
       ReadFromFile(aVal,aName);
    else
       aVal = Type();
+}
+
+template<class Type> void  ToFileIfFirstime(const Type & anObj,const std::string & aNameFile)
+{
+   static std::set<std::string> aSetFilesAlreadySaved;
+   if (!BoolFind(aSetFilesAlreadySaved,aNameFile))
+   {
+        aSetFilesAlreadySaved.insert(aNameFile);
+        anObj.ToFile(aNameFile);
+   }
 }
 
 
