@@ -35,6 +35,8 @@ class cComputeCalibRadIma : public cMemCheck,
        ~cComputeCalibRadIma();
        tREAL8 DivIm() const;
 
+       const cCalibRadiomIma & CalibRabIma() const;
+
     private :
        cComputeCalibRadIma(const cComputeCalibRadIma &) = delete;
 
@@ -69,9 +71,11 @@ cComputeCalibRadIma::cComputeCalibRadIma(const std::string& aNameIm,cImageRadiom
    mNameIm           (aNameIm),
    mIRD              (aIRD),
    mComputeCalSens   (aCompCalS),
-   mCalRadIm         (&(aCompCalS->RCRS()))
+   mCalRadIm         (&(aCompCalS->RCRS()),aNameIm)
 {
 }
+
+const cCalibRadiomIma & cComputeCalibRadIma::CalibRabIma() const {return mCalRadIm;}
 
 cComputeCalibRadIma::~cComputeCalibRadIma()
 {
@@ -190,6 +194,7 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgOpt(cCollecSpecArg2007 & anAr
 {
    return anArgOpt
            << AOpt2007(mShow,"Show","Show messages",{eTA2007::HDV})
+	   << mPhProj.RadiomOptOut()
 	   /*
            << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
 	   */
@@ -502,14 +507,20 @@ int cAppliRadiom2ImageSameMod::Exe()
 
     MakeLinearModel();
 
-    // ----------------  Radial ----------------------
     
-
-
-    MakeMixtModel();
 
     // ----------------  Mixte ----------------------
 
+    MakeMixtModel();
+
+    // ----------------  Save ----------------------
+
+    for (auto & aRadIm : mVRadIm)
+    {
+        mPhProj.SaveCalibRad(aRadIm->CalibRabIma());
+    }
+
+    // ----------------  Delete ----------------------
     for (auto & aRadIm : mVRadIm)
     {
         delete aRadIm;

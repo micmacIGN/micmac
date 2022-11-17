@@ -135,24 +135,32 @@ class cRadialCRS : public cCalibRadiomSensor
         tREAL8                 mScaleNor;  ///< Scale of normalization
 };
 
+/**  Base-class for calibration of radiometry */
 class cCalibRadiomIma : public cMemCheck
 {
         public :
             virtual tREAL8  ImageCorrec(const cPt2dr &) const   = 0;
+            virtual void  ToFile(const std::string &) const =0; ///< export in xml/dmp ...  
+	    const std::string & NameIm() const;
+        protected :
+	    cCalibRadiomIma(const std::string & aNameIm);
+
+	    std::string mNameIm;
 };
 
+/**   calibration of radiometry with cte model/image */
 class cCalRadIm_Cst : public  cCalibRadiomIma
 {
         public :
             tREAL8  ImageCorrec(const cPt2dr &) const  override;
-            cCalRadIm_Cst(cCalibRadiomSensor *);
+            cCalRadIm_Cst(cCalibRadiomSensor *,const std::string & aNameIm);
 
             tREAL8 & DivIm();
             const tREAL8 & DivIm() const ;
             cCalibRadiomSensor &  CalibSens();
             void  AddData(const cAuxAr2007 & anAux);
 
-            void  ToFile(const std::string &) const ; ///< export in xml/dmp ...  
+            void  ToFile(const std::string &) const override ; ///< export in xml/dmp ...  
             static cCalRadIm_Cst * FromFile(const std::string &); ///< create form xml/dmp ...
         public :
              cCalibRadiomSensor *  mCalibSens;

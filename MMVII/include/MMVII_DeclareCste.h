@@ -79,6 +79,9 @@ extern const   std::string PostF_XmlFiles; ///< xml now
 extern const   std::string PostF_DumpFiles; ///< dmp now
 const   std::string & StdPostF_ArMMVII(bool xml); ///< one of 2 above
 
+// PreFix 4 files
+extern const std::string  PrefixCalRad;
+
 // Users Value
 
 extern const   std::string MMVII_NONE;  ///< For command, each time a "no value" can be used

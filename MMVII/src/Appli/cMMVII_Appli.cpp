@@ -435,6 +435,10 @@ void cMMVII_Appli::InitParam()
   std::vector<std::string> aVValues;
   tVecArg2007              aVSpec;
 
+  //  Memorize this value was used in spec 
+  for (const auto  & aSpec : mArgFac.Vec())
+       mSetVarsInSpec.Add(aSpec->AdrParam()); 
+
   for (int aKArg=0 ; aKArg<mArgc ; aKArg++)
   {
       Optional = (aNbArgGot>=aNbObl);
@@ -1125,6 +1129,12 @@ bool  cMMVII_Appli::IsInit(const void * aPtr)
 {
     return  mSetInit.In(aPtr);
 }
+bool  cMMVII_Appli::IsInSpec(const void * aPtr)
+{
+    return  mSetVarsInSpec.In(aPtr);
+}
+
+
 
 void cMMVII_Appli::MMVII_WARNING(const std::string & aMes)
 {

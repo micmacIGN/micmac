@@ -84,13 +84,24 @@ tREAL8  cRadialCRS::FlatField(const cPt2dr & aPt) const
 }
 
 /* ================================================== */
-/*                    cCalRadIm_Cst                   */
+/*                  cCalibRadiomIma                   */
+/* ================================================== */
+
+cCalibRadiomIma::cCalibRadiomIma(const std::string & aNameIm) :
+   mNameIm  (aNameIm)
+{
+}
+const std::string & cCalibRadiomIma::NameIm() const {return mNameIm;}
+
+/* ================================================== */
+/*                  cCalRadIm_Cst                     */
 /* ================================================== */
 
 
-cCalRadIm_Cst::cCalRadIm_Cst(cCalibRadiomSensor * aCalSens) :
-      mCalibSens  (aCalSens),
-      mDivIm      (1.0)
+cCalRadIm_Cst::cCalRadIm_Cst(cCalibRadiomSensor * aCalSens,const std::string & aNameIm) :
+      cCalibRadiomIma  (aNameIm),
+      mCalibSens       (aCalSens),
+      mDivIm           (1.0)
 {
 }
 
@@ -107,6 +118,7 @@ cCalibRadiomSensor &  cCalRadIm_Cst::CalibSens() {return *mCalibSens;}
 void  cCalRadIm_Cst::AddData(const cAuxAr2007 & anAux)
 {
     MMVII::AddData(cAuxAr2007("DivIm",anAux) ,mDivIm);
+    MMVII::AddData(cAuxAr2007("NameIm",anAux) ,mNameIm);
 
     if (!anAux.Input())
        mTmpCalib = mCalibSens->NameCal();
@@ -126,9 +138,5 @@ void  cCalRadIm_Cst::ToFile(const std::string & aNameFile) const
 
     mTmpCalib = "";
 }
-/*
-*/
-
-
 
 };

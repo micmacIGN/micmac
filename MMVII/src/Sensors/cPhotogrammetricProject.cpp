@@ -67,8 +67,8 @@ void cPhotogrammetricProject::FinishInit()
     if (mAppli.IsInit(&mOriIn))  // dont do it if OriIn not used ...
         mOriIn  = SuppresDir(MMVIIDirOrient,mOriIn);
 
-    mFullOriOut  = mAppli.DirProject() + MMVIIDirOrient + mOriOut + StringDirSeparator();
     mFullOriIn   = mAppli.DirProject() + MMVIIDirOrient + mOriIn  + StringDirSeparator();
+    mFullOriOut  = mAppli.DirProject() + MMVIIDirOrient + mOriOut + StringDirSeparator();
     if (mAppli.IsInit(&mOriOut))
     {
         CreateDirectories(mFullOriOut,true);
@@ -79,8 +79,18 @@ void cPhotogrammetricProject::FinishInit()
         mRadiomIn  = SuppresDir(MMVIIDirRadiom,mRadiomIn);
 
     mFullRadiomIn  =   mAppli.DirProject() +  MMVIIDirRadiom + mRadiomIn  + StringDirSeparator();
+    if (mAppli.IsInSpec(&mRadiomOut) &&  (! mAppli.IsInit(&mRadiomOut)))
+    {
+       mRadiomOut = mRadiomIn;
+    }
+    if(0)
+    {
+	    StdOut() << "WWWWWWWWWWWWWWWwwwwwwwwwwwwwwwwwwwwwwwwww " << mRadiomOut << "\n";
+	    StdOut() << "cccccccccccccccccccccccccccccccccccccc " << mRadiomIn << "\n";
+	    getchar();
+    }
     mFullRadiomOut =   mAppli.DirProject() +  MMVIIDirRadiom + mRadiomOut + StringDirSeparator();
-    if (mAppli.IsInit(&mRadiomOut))
+    if (mAppli.IsInSpec(&mRadiomOut) )
     {
         CreateDirectories(mFullRadiomOut,true);
     }
@@ -114,6 +124,11 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 void cPhotogrammetricProject::SaveRadiomData(const cImageRadiomData & anIRD) const
 {
     anIRD.ToFile(mFullRadiomOut+anIRD.NameFile());
+}
+
+void cPhotogrammetricProject::SaveCalibRad(const cCalibRadiomIma & aCalRad) const
+{
+     aCalRad.ToFile(mFullRadiomOut + PrefixCalRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
 }
 
         //  =============  Creating object =================
@@ -157,9 +172,7 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::AllocCalib(const std::string & aN
 cMedaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm) const
 {
    static std::map<std::string,cMedaDataImage> aMap;
-
    auto  anIt = aMap.find(aNameIm);
-
    if (anIt== aMap.end())
    {
         aMap[aNameIm] = cMedaDataImage(aNameIm);
@@ -170,7 +183,7 @@ cMedaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm)
 
 std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMedaDataImage & aMTD) const
 {
-    return  "RadiomCalib-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
+    return  PrefixCalRad + "Sensor-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
 }
 
 

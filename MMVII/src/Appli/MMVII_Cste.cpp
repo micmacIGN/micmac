@@ -87,6 +87,9 @@ const   std::string & StdPostF_ArMMVII(bool isXml)
     return isXml ? PostF_XmlFiles  : PostF_DumpFiles;
 }
 
+// PreFix 4 files
+const std::string  PrefixCalRad = "CalibRadiom-";
+
 
 
 };

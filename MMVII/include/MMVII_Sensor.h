@@ -213,6 +213,8 @@ class cPhotogrammetricProject
           void SaveRadiomData(const cImageRadiomData &) const; ///< Save camera using OutPut-orientation
 	  cImageRadiomData * AllocRadiom(const std::string &); ///< Create Camera using Input orientation
 
+          void SaveCalibRad(const cCalibRadiomIma &) const; ///< Save radiom-calib using OutPut-orientation
+
 	  bool RadiomOptOutIsInit() const;
           std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMedaDataImage &) const;
 

@@ -914,6 +914,8 @@ void TTT();
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   int aVatNotInSpec;
+   StdOut() <<  "mDegDistTest " << IsInSpec(&mDegDistTest) << " " << IsInSpec(&aVatNotInSpec) << "\n";
    if (IsInit(&mDegDistTest))
    {
       std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest);
