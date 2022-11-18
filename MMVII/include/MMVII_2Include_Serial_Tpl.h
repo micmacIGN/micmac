@@ -13,6 +13,7 @@
 #include "MMVII_Stringifier.h"
 #include "MMVII_Matrix.h"
 #include <set>
+#include <map>
 
 
 namespace MMVII
@@ -310,7 +311,20 @@ template<class Type> void  ToFileIfFirstime(const Type & anObj,const std::string
    }
 }
 
+template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::string & aName)
+{
+     static std::map<std::string,Type *> TheMap;
+     Type * & anExistingRes = TheMap[aName];
 
+     if (anExistingRes == 0)
+     {
+        TypeTmp aDataCreate;
+        ReadFromFile(aDataCreate,aName);
+        anExistingRes = new Type(aDataCreate);
+        cMMVII_Appli::AddObj2DelAtEnd(anExistingRes);
+     }
+     return anExistingRes;
+}
 
 };
 

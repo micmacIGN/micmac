@@ -231,9 +231,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     double Visibility(const cPt3dr &) const ;
 
 	     double VisibilityOnImFrame(const cPt2dr &) const;
-       private :
-	    ///  real constructor not accessible directly, must use allocator
+	    ///  real constructor (accessible directly because RemanentObjectFromFile)
             cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
+       private :
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
 

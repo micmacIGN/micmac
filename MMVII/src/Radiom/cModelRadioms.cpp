@@ -39,6 +39,11 @@ cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzP
      mScaleNor = Square(aBoxIm.DistMax2Corners(mCenter));
 }
 
+cRadialCRS::cRadialCRS() :
+    cRadialCRS(cPt2dr(-1e10,-1e10),0,cPt2di(0,0),"NONE")
+{
+    mScaleNor = -1.0;
+}
 
 void  cRadialCRS::AddData(const cAuxAr2007 & anAux)
 {
@@ -58,6 +63,14 @@ void  cRadialCRS::ToFile(const std::string & aNameFile) const
 {
       SaveInFile(const_cast<cRadialCRS&>(*this),aNameFile);
 }
+
+cRadialCRS * cRadialCRS::FromFile(const std::string & aNameFile)
+{
+   return RemanentObjectFromFile<cRadialCRS,cRadialCRS>(aNameFile);
+}
+/*
+*/
+
 
 
 

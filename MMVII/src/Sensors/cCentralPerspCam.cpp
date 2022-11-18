@@ -233,19 +233,10 @@ void  cPerspCamIntrCalib::ToFileIfFirstime(const std::string & aNameFile ) const
      MMVII::ToFileIfFirstime(*this,aNameFile);
 }
 
+
 cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName)
 {
-     static std::map<std::string,cPerspCamIntrCalib *> TheMap;
-     cPerspCamIntrCalib * & aPersp = TheMap[aName];
-
-     if (aPersp == 0)
-     {
-        cDataPerspCamIntrCalib aData;
-        ReadFromFile(aData,aName);
-        aPersp = new cPerspCamIntrCalib(aData);
-	cMMVII_Appli::AddObj2DelAtEnd(aPersp);
-     }
-     return aPersp;
+    return RemanentObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
 }
 
 std::string cPerspCamIntrCalib::PrefixName() {return "Calib-" + cSensorCamPC::PrefixName() + "-";}

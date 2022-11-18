@@ -98,7 +98,8 @@ class cFusionIRDSEt
 };
 
 /**  Base class for radiometric calibration of a sensor */
-class cCalibRadiomSensor : public cMemCheck
+class cCalibRadiomSensor :   public cObj2DelAtEnd,
+                             public cMemCheck
 {
        public :
            virtual tREAL8  FlatField(const cPt2dr &) const =  0;
@@ -118,14 +119,17 @@ class cCalibRadiomSensor : public cMemCheck
 class cRadialCRS : public cCalibRadiomSensor
 {
     public :
+        cRadialCRS();  ///< usefull for addata .
         cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string &);
+
+        void  AddData(const cAuxAr2007 & anAux);
+        static cRadialCRS * FromFile(const std::string & aNameFile);
+        void ToFile(const std::string & aNameFile) const override;
 
         tREAL8  NormalizedRho2(const cPt2dr & aPt) const;
         tREAL8  FlatField(const cPt2dr &) const override;
         std::vector<double> &  CoeffRad();
-        void  AddData(const cAuxAr2007 & anAux);
 
-        void ToFile(const std::string & aNameFile) const override;
 
     private :
 
