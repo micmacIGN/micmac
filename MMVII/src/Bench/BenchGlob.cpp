@@ -199,6 +199,18 @@ void Bench_0000_String(cParamExeBench & aParam)
     MMVII_INTERNAL_ASSERT_bench(Postfix("AA",'.',true,false)=="","Postfix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench(Prefix("AA",'.',true,false)=="AA","Postfix in Bench_0000_String");
 
+
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","")==true,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","AB")==true,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","ABC")==true,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("","")==true,"starts_with");
+
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","ABCD")==false,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("","A")==false,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","Ab")==false,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","a")==false,"starts_with");
+
+
     MMVII_INTERNAL_ASSERT_bench(OneUpStd("/a/bbb///c////")=="/a/bbb/","Up dir");
     MMVII_INTERNAL_ASSERT_bench(OneUpStd("/a/bbb///c")=="/a/bbb/","Up dir");
     MMVII_INTERNAL_ASSERT_bench(OneUpStd("ccc")=="","Up dir");

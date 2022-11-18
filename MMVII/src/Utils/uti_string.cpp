@@ -585,6 +585,22 @@ std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelect
     return aRes;
 }
 
+bool starts_with(const std::string & aFullStr,const std::string & aPrefix)
+{
+    auto anItFull  = aFullStr.begin();
+    auto anItPref = aPrefix.begin();
+
+    while ((anItFull!=aFullStr.end()) && (anItPref!=aPrefix.end()))
+    {
+         if (*anItFull!=*anItPref) 
+            return false;
+	 anItFull++;
+	 anItPref++;
+    }
+
+    return anItPref==aPrefix.end();
+}
+
 
 /*
 std::vector<std::string>  GetFilesFromDirAndER(const std::string & aDir,const std::string & aRegEx)

@@ -76,6 +76,9 @@ std::string LastPrefix(const std::string & aStr,char aSep='.'); ///< No error:  
 std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool PrivPref=true);
 std::string LastPostfix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "c"
 
+bool starts_with(const std::string & aFullStr,const std::string & aBegining); /// as c++20  std::string.starts_with
+bool ends_with(const std::string & aFullStr,const std::string & aEnding); /// as c++20  std::string.starts_with TO IMPLEMENT
+bool contains(const std::string & aFullStr,const std::string & aEnding); /// as c++23  std::string.contains TO IMPLEMENT
 
 // Direcytory and files names, Rely on boost
 void MakeNameDir(std::string & aDir); ///< Add a '/', or equiv, to make a name of directory

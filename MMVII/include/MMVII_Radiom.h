@@ -102,11 +102,21 @@ class cCalibRadiomSensor :   public cObj2DelAtEnd,
                              public cMemCheck
 {
        public :
-           virtual tREAL8  FlatField(const cPt2dr &) const =  0;
+           /// constructor, just share the name / identifier
+           cCalibRadiomSensor(const std::string & aNameCal);
+	   /// Allocator : switch on derived class according to name prefix
+           static cCalibRadiomSensor * FromFile(const std::string & aNameFile);
+
+	   /// Save in file,  defined in each derived class
            virtual void ToFile(const std::string & aNameFile) const = 0;
+
+	   /// Save only is first time (in the same process) for this name 
            void ToFileIfFirstime(const std::string & aNameFile) const;
 
-           cCalibRadiomSensor(const std::string & aNameCal);
+	   /// Function to divide radiometry for normalisation
+           virtual tREAL8  FlatField(const cPt2dr &) const =  0;
+
+           /// Accessor
            const std::string & NameCal() const;
        protected :
            std::string            mNameCal;   ///< Name of file
@@ -156,16 +166,20 @@ class cCalibRadiomIma : public cMemCheck
 class cCalRadIm_Cst : public  cCalibRadiomIma
 {
         public :
-            tREAL8  ImageCorrec(const cPt2dr &) const  override;
+            cCalRadIm_Cst(); ///< For AddData
             cCalRadIm_Cst(cCalibRadiomSensor *,const std::string & aNameIm);
-
-            tREAL8 & DivIm();
-            const tREAL8 & DivIm() const ;
-            cCalibRadiomSensor &  CalibSens();
             void  AddData(const cAuxAr2007 & anAux);
 
             void  ToFile(const std::string &) const override ; ///< export in xml/dmp ...  
             static cCalRadIm_Cst * FromFile(const std::string &); ///< create form xml/dmp ...
+
+
+            tREAL8  ImageCorrec(const cPt2dr &) const  override;
+
+            tREAL8 & DivIm();
+            const tREAL8 & DivIm() const ;
+            cCalibRadiomSensor &  CalibSens();
+
         public :
              cCalibRadiomSensor *  mCalibSens;
              tREAL8                mDivIm;

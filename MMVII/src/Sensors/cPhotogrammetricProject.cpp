@@ -122,7 +122,7 @@ void cPhotogrammetricProject::SaveRadiomData(const cImageRadiomData & anIRD) con
 
 void cPhotogrammetricProject::SaveCalibRad(const cCalibRadiomIma & aCalRad) const
 {
-     aCalRad.ToFile(mFullRadiomOut + PrefixCalRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
+     aCalRad.ToFile(mFullRadiomOut + PrefixCalRadRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
 }
 
         //  =============  Creating object =================
@@ -177,7 +177,7 @@ cMedaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm)
 
 std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMedaDataImage & aMTD) const
 {
-    return  PrefixCalRad + "Sensor-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
+    return  PrefixCalRadRad  + "Sensor-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
 }
 
 

@@ -24,6 +24,13 @@ void  cCalibRadiomSensor::ToFileIfFirstime(const std::string & aNameFile) const
     MMVII::ToFileIfFirstime(*this,aNameFile);
 }
 
+/*
+CalibRadiomSensor * FromFile(const std::string & aNameFile)
+{
+   if (:
+}
+*/
+
 
 /* ================================================== */
 /*                    cRadialCRS                      */
@@ -68,11 +75,6 @@ cRadialCRS * cRadialCRS::FromFile(const std::string & aNameFile)
 {
    return RemanentObjectFromFile<cRadialCRS,cRadialCRS>(aNameFile);
 }
-/*
-*/
-
-
-
 
 std::vector<double>& cRadialCRS::CoeffRad() {return mCoeffRad;}
 
@@ -123,6 +125,16 @@ tREAL8  cCalRadIm_Cst::ImageCorrec(const cPt2dr & aPt) const
     return mDivIm * mCalibSens->FlatField(aPt);
 }
 
+/*
+cCalRadIm_Cst * cCalRadIm_Cst::FromFile(const std::string & aName)
+{
+     cCalRadIm_Cst *  aRes = new cCalRadIm_Cst(nullptr,"NONE");
+     ReadFromFile(aRes,aName);
+     aRes->mCalibSens = cCalibRadiomSensor::
+
+     return aRes; 
+}
+*/
 
 tREAL8 & cCalRadIm_Cst::DivIm() {return mDivIm;}
 const tREAL8 & cCalRadIm_Cst::DivIm() const {return mDivIm;}

@@ -88,7 +88,7 @@ const   std::string & StdPostF_ArMMVII(bool isXml)
 }
 
 // PreFix 4 files
-const std::string  PrefixCalRad = "CalibRadiom-";
+const std::string  PrefixCalRadRad = "CalibRadiom-Radial-";
 
 
 
