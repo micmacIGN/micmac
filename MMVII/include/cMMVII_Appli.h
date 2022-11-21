@@ -361,6 +361,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
         bool    IsInit(const void *);       ///< indicate for each variable if it was initiazed by argc/argv
         bool    IsInSpec(const void *);  ///< indicate for each variable if it was in an arg opt list (used with cPhotogrammetricProject)
+	void    SetVarInit(void * aPtr);
+
         template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
         {
             if (! IsInit(&aVar))

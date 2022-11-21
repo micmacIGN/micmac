@@ -101,11 +101,16 @@ tPtrArg2007 cPhotogrammetricProject::CalibInMand(){return Arg2007(mOriIn ,"Input
 tPtrArg2007 cPhotogrammetricProject::OriInMand() {return  Arg2007(mOriIn ,"Input Orientation",{eTA2007::Orient,eTA2007::Input });}
 tPtrArg2007 cPhotogrammetricProject::OriOutMand() {return Arg2007(mOriOut,"Output Orientation",{eTA2007::Orient,eTA2007::Output});}
 tPtrArg2007 cPhotogrammetricProject::OriInOpt(){return AOpt2007(mOriIn,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input});}
+
 tPtrArg2007  cPhotogrammetricProject::RadiomOptOut() 
   {return AOpt2007(mRadiomOut,"OutRad","Output Radiometry ",{eTA2007::Radiom,eTA2007::Output});}
+
+tPtrArg2007  cPhotogrammetricProject::RadiomOptIn() {return AOpt2007(mRadiomIn,"InRad","Output Radiometry ",{eTA2007::Radiom,eTA2007::Input});}
+
 tPtrArg2007 cPhotogrammetricProject::RadiomInMand() {return Arg2007(mRadiomIn,"Input Radiometry",{eTA2007::Radiom,eTA2007::Input});}
 
 bool  cPhotogrammetricProject::RadiomOptOutIsInit() const {return mAppli.IsInit(&mRadiomOut);}
+bool  cPhotogrammetricProject::RadiomOptInIsInit() const {return mAppli.IsInit(&mRadiomIn);}
 
 
         //  =============  Saving object =================
@@ -125,6 +130,21 @@ void cPhotogrammetricProject::SaveCalibRad(const cCalibRadiomIma & aCalRad) cons
      aCalRad.ToFile(mFullRadiomOut + PrefixCalRadRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
 }
 
+cCalibRadiomIma * cPhotogrammetricProject::AllocCalibRadiomIma(const std::string & aNameIm) const
+{
+/* With only the name of images and the folder, cannot determinate the model used, so the methods
+ * test the possible model by testing existence of files.
+ */	
+    std::string aNameFile = mFullRadiomIn + PrefixCalRadRad + aNameIm + "." + PostF_XmlFiles;
+    if (ExistFile(aNameFile))
+       return cCalRadIm_Cst::FromFile(aNameFile);
+
+   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mFullRadiomIn);
+   return nullptr;
+}
+
+
+
         //  =============  Creating object =================
 
 cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete)
@@ -140,7 +160,7 @@ cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,b
     return aCamPC;
 }
 
-cImageRadiomData * cPhotogrammetricProject::AllocRadiom(const std::string & aNameIm)
+cImageRadiomData * cPhotogrammetricProject::AllocRadiomData(const std::string & aNameIm) const
 {
     AssertRadiomInIsInit();
 
@@ -187,7 +207,8 @@ std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCa
 const std::string & cPhotogrammetricProject::GetOriIn() const {return mOriIn;}
 void cPhotogrammetricProject::SetOriIn(const std::string & aNameOri)
 {
-	mOriIn = aNameOri;
+     mOriIn = aNameOri;
+     mAppli.SetVarInit(&mOriIn); // required becaus of AssertOriInIsInit
 }
 
 

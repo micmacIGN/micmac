@@ -1133,6 +1133,10 @@ bool  cMMVII_Appli::IsInSpec(const void * aPtr)
 {
     return  mSetVarsInSpec.In(aPtr);
 }
+void cMMVII_Appli::SetVarInit(void * aPtr)
+{
+    mSetInit.Add(aPtr); 
+}
 
 
 

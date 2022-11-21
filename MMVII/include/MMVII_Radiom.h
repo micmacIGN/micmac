@@ -156,6 +156,7 @@ class cCalibRadiomIma : public cMemCheck
             virtual tREAL8  ImageCorrec(const cPt2dr &) const   = 0;
             virtual void  ToFile(const std::string &) const =0; ///< export in xml/dmp ...  
 	    const std::string & NameIm() const;
+	    virtual ~cCalibRadiomIma() ;  ///< nothing to do, but maybe in derived classes
         protected :
 	    cCalibRadiomIma(const std::string & aNameIm);
 

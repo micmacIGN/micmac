@@ -207,15 +207,18 @@ class cPhotogrammetricProject
 
                //  method to share the parameters loadings from arc/argv
           tPtrArg2007  RadiomInMand() ;   ///< Input Radiometry as mandatory paramaters
+          tPtrArg2007  RadiomOptIn() ;    ///< Input Radiometry as optional paramaters
           tPtrArg2007  RadiomOptOut() ;   ///< Output Radiometry as optional paramaters
                //  Accessor et modifier 
                //  Read/Write
           void SaveRadiomData(const cImageRadiomData &) const; ///< Save camera using OutPut-orientation
-	  cImageRadiomData * AllocRadiom(const std::string &); ///< Create Camera using Input orientation
+	  cImageRadiomData * AllocRadiomData(const std::string &) const; ///< Create Camera using Input orientation
 
           void SaveCalibRad(const cCalibRadiomIma &) const; ///< Save radiom-calib using OutPut-orientation
+	  cCalibRadiomIma * AllocCalibRadiomIma(const std::string &) const;
 
 	  bool RadiomOptOutIsInit() const;
+	  bool RadiomOptInIsInit() const;
           std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMedaDataImage &) const;
 
          //==================   META-DATA       =============================

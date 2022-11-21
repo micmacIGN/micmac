@@ -464,7 +464,7 @@ int cAppliRadiom2ImageSameMod::Exe()
         if ((aKIm1%20)==0)
            StdOut()  << "Reading, Still " << mNbIm - aKIm1 << "\n";
         std::string aNameIm = VectMainSet(0).at(aKIm1);
-        cImageRadiomData* aIRD = mPhProj.AllocRadiom(aNameIm);
+        cImageRadiomData* aIRD = mPhProj.AllocRadiomData(aNameIm);
         if (aIRD->VIndex().size() >10)
         {
             cPerspCamIntrCalib* aCalib = mPhProj.AllocCalib(aNameIm);

@@ -24,11 +24,15 @@ void  cCalibRadiomSensor::ToFileIfFirstime(const std::string & aNameFile) const
     MMVII::ToFileIfFirstime(*this,aNameFile);
 }
 
-/*
-CalibRadiomSensor * FromFile(const std::string & aNameFile)
+cCalibRadiomSensor * cCalibRadiomSensor::FromFile(const std::string & aNameFile)
 {
-   if (:
+   if (starts_with(FileOfPath(aNameFile),PrefixCalRadRad))
+      return cRadialCRS::FromFile(aNameFile);
+
+   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine radiom-file mode for :" + aNameFile);
+   return nullptr;
 }
+/*
 */
 
 
@@ -40,16 +44,19 @@ cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzP
     cCalibRadiomSensor   (aNameCal),
     mCenter              (aCenter),
     mCoeffRad            (aDegRad,0.0),
-    mSzPix               (aSzPix)
+    mSzPix               (aSzPix),
+    mScaleNor            (-1.0)
 {
-     cBox2dr aBoxIm(ToR(mSzPix));
-     mScaleNor = Square(aBoxIm.DistMax2Corners(mCenter));
+     if (mSzPix.x() >0)
+     {
+         cBox2dr aBoxIm(ToR(mSzPix));
+         mScaleNor = Square(aBoxIm.DistMax2Corners(mCenter));
+     }
 }
 
 cRadialCRS::cRadialCRS() :
     cRadialCRS(cPt2dr(-1e10,-1e10),0,cPt2di(0,0),"NONE")
 {
-    mScaleNor = -1.0;
 }
 
 void  cRadialCRS::AddData(const cAuxAr2007 & anAux)
@@ -108,6 +115,8 @@ cCalibRadiomIma::cCalibRadiomIma(const std::string & aNameIm) :
 }
 const std::string & cCalibRadiomIma::NameIm() const {return mNameIm;}
 
+cCalibRadiomIma::~cCalibRadiomIma() {}
+
 /* ================================================== */
 /*                  cCalRadIm_Cst                     */
 /* ================================================== */
@@ -125,16 +134,15 @@ tREAL8  cCalRadIm_Cst::ImageCorrec(const cPt2dr & aPt) const
     return mDivIm * mCalibSens->FlatField(aPt);
 }
 
-/*
 cCalRadIm_Cst * cCalRadIm_Cst::FromFile(const std::string & aName)
 {
      cCalRadIm_Cst *  aRes = new cCalRadIm_Cst(nullptr,"NONE");
-     ReadFromFile(aRes,aName);
-     aRes->mCalibSens = cCalibRadiomSensor::
+     ReadFromFile(*aRes,aName);
+     aRes->mCalibSens = cCalibRadiomSensor::FromFile(DirOfPath(aName) + aRes->mTmpCalib + ".xml");
+     aRes->mTmpCalib = "";
 
      return aRes; 
 }
-*/
 
 tREAL8 & cCalRadIm_Cst::DivIm() {return mDivIm;}
 const tREAL8 & cCalRadIm_Cst::DivIm() const {return mDivIm;}

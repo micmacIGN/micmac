@@ -114,6 +114,7 @@ cCollecSpecArg2007 & cAppliMeshImageDevlp::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
            << AOpt2007(mWGrayLab,"WGL","With Gray Label 2-byte image generation",{eTA2007::HDV})
            << AOpt2007(mWRGBLab,"WRGBL","With RGB Label  1 chanel-label/2 label contrast",{eTA2007::HDV})
+	   << mPhProj.RadiomOptIn()
 /*
            << AOpt2007(mNameCloud2DIn,"M2","Mesh 2D, dev of cloud 3D,to generate a visu of hiden part ",{eTA2007::FileCloud,eTA2007::Input})
            << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
@@ -129,12 +130,18 @@ cCollecSpecArg2007 & cAppliMeshImageDevlp::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
 {
+   cCalibRadiomIma * aRadIma = nullptr;
    if (mVListIndTri.at(aKIm).empty())
    {
       return;
    }
 
    std::string aNameIm = mMDBI.mNames[aKIm];
+   if (mPhProj.RadiomOptInIsInit())
+   {
+       aRadIma = mPhProj.AllocCalibRadiomIma(aNameIm);
+   }
+
    cDataFileIm2D aDFIIm = cDataFileIm2D::Create(aNameIm,false);
 
    cSensorCamPC * aCamPC = mPhProj.AllocCamPC(aNameIm,false);
@@ -162,6 +169,7 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
    // Create box of pix from box of Tri Proj : dilate (for margin),  cast to int, intersect with box of image
    cBox2di  aBoxPixIm =  aBoxIm.CurBox().Dilate(4.0).ToI();
    aBoxPixIm = aBoxPixIm.Inter(aDFIIm);
+   cPt2dr aP0Im = ToR(aBoxPixIm.P0()); // used for radial correc
 
 
    cRGBImage  aImCur = cRGBImage::FromFile(aNameIm,aBoxPixIm);
@@ -196,6 +204,12 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
             cPt2dr aPtIm = aAffG2I.Value(ToR(aPixG));
 	    cPt3di aRGB = aImCur.GetRGBPixBL(aPtIm);
 
+	    if (aRadIma)
+	    {
+                double aDiv = aRadIma->ImageCorrec(aPtIm+ aP0Im);
+		aRGB = ToI(ToR(aRGB)/aDiv);
+	    }
+
             mGlobIm.SetRGBPix(aPixG,aRGB);
 	    if (mWGrayLab)
                mGrLabIm.DIm().SetV(aPixG,aKIm);
@@ -205,6 +219,7 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
    }
 
    delete aCamPC;
+   delete aRadIma;
    mSetPCurIm.Clear();
 }
 

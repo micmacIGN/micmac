@@ -23,7 +23,17 @@ cMedaDataImage::cMedaDataImage(const std::string & aNameIm) :
    cMedaDataImage()
 {
      mNameImage    = aNameIm;
-     mAperture = 11.0;  
+     if (starts_with(aNameIm,"_DSC"))
+         mAperture = 11.0;  
+     else if (starts_with(aNameIm,"Img"))
+         mAperture = 11.0;  
+     else 
+     {
+         mAperture = 11.0;  
+         // MMVII_INTERNAL_ERROR("cMedaDataImage to implemant");
+     }
+
+
      MMVII_WARGNING("cMedaDataImage : quick and (VERY) dirty implementation, most probably wrong");
 }
 
