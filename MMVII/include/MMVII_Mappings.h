@@ -310,7 +310,7 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
 
       /** compute the box that contain the image of corners of BoxIn, note that due to non linerity
           it may not contain the full image of the box */
-      cTplBox<Type,DimOut> BoxOfCorners(const cTplBox<Type,DimIn>& by mapping) const;
+      cTplBox<Type,DimOut> BoxOfCorners(const cTplBox<Type,DimIn>& BoxIn) const;
 
       /** compute the triangle with submit image of mapping */
       cTriangle<Type,DimOut>  TriValue(const cTriangle<Type,DimIn> &) const;
