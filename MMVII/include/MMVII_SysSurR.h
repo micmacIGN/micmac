@@ -521,7 +521,6 @@ template <class Type> class cSetInterUK_MultipeObj
 
            cSetInterUK_MultipeObj(); /// constructor, init mNbUk
            ~cSetInterUK_MultipeObj();  /// indicate to all object that they are no longer active
-	   void Reset();  /// Maybe private later, now used for tricky destruction order
 
 	   /// This method is used to add the unknowns of one object
            void  AddOneObj(cObjWithUnkowns<Type> *);
@@ -538,8 +537,10 @@ template <class Type> class cSetInterUK_MultipeObj
            void AddOneInterv(Type & anAdr) ;            ///<  call with a single value
            void AddOneInterv(std::vector<Type> & aV) ;  ///<  call previous with a vector
            void AddOneInterv(cPtxd<Type,3> &);          ///<  call previous wih a point
-
         private :
+
+	   void Reset();  /// Maybe private later, now used for tricky destruction order
+
 	   size_t IndOfVal(const cObjWithUnkowns<Type>&,const Type *) const;
 
            cSetInterUK_MultipeObj(const cSetInterUK_MultipeObj<Type> &) = delete;
@@ -559,8 +560,6 @@ template <class Type> class cObjWithUnkowns
           cObjWithUnkowns();
 	  ///  check that object is no longer referenced when destroyd
           virtual ~cObjWithUnkowns();
-	  /// defautl constructor, put non init in all vars
-          void Reset();
 	  
           /// Fundamental methos :  the object put it sets on unknowns intervals  in the glob struct
           virtual void PutUknowsInSetInterval() = 0;
@@ -581,6 +580,9 @@ template <class Type> class cObjWithUnkowns
           int   IndUk1() const;   ///< Accessor
 
        protected :
+	  /// defautl constructor, put non init in all vars
+          void Reset();
+          cObjWithUnkowns(const cObjWithUnkowns<Type> &) = delete;
 
 
           cSetInterUK_MultipeObj<Type> *  mSetInterv;

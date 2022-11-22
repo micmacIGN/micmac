@@ -52,11 +52,6 @@ class cCentralPerspConversion
          void OneIteration();
 
 
-	 void ResetUk() 
-	 {
-		 // MMVII_WARGNING("cCentralPerspConversion ResetUk");
-		 mSetInterv.Reset();
-	 }
          const cSet2D3D  & SetCorresp() const {return   mSetCorresp;}
 
          const cSensorCamPC  &       CamPC() const {return mCamPC;}
@@ -195,7 +190,6 @@ cPerspCamIntrCalib * cCentralPerspConversion::AllocCalibV1(const std::string & a
 
          aPersp = aConvertor->Calib();
 	 cMMVII_Appli::AddObj2DelAtEnd(aPersp);
-         aConvertor->ResetUk();
 	 delete aConvertor;
      }
 

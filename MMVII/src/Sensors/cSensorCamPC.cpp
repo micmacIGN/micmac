@@ -67,10 +67,12 @@ cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aP) const
 
 }
 
+/*
 size_t  cSensorCamPC::NumXCenter() const
 {
    return IndOfVal(&(mPose.Tr().x()));
 }
+*/
 
 cPerspCamIntrCalib * cSensorCamPC::InternalCalib() {return mInternalCalib;}
 

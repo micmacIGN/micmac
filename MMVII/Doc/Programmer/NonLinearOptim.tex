@@ -420,6 +420,12 @@ correspond in file {\tt BenchResolSysNonLinear.cpp}  to line :
 
 \section{Non linear system}
 
+This section was written supossing that the user explicitely control the numbering of all
+the variables  because this the way it was done at the begining. Meanwhile, a mecanism
+described in~\ref{SecAutoUkAlloc} has been added to facilitate this automatic numbering.
+By the way the explicit numbering is still accessible, because it is believed that the
+two mecanism are usefull.
+
 \subsection{Introduction}
 
 The class for solving  non linear system is the template class 
@@ -603,9 +609,15 @@ Once the equation have been accumulated, it is sufficient to call {\tt AddObsWit
 with the structure as parameter.
 
           %  - - - - - - - - - - - - - - - - - - - 
+          %  - - - - - - - - - - - - - - - - - - - 
+          %  - - - - - - - - - - - - - - - - - - - 
 
-\subsection{Weighted equation fixing a variable}
+\subsection{Equation fixing a variable}
 
+          %  - - - - - - - - - - - - - - - - - - - 
+\subsubsection{Weigthed version for standard variables}
+
+\label{WeightedFixVar}
 The tag  {\tt  EQ:FIXVAR} in {\tt BenchResolSysNonLinear.cpp} contain an example .
 
 It currently happen that the solution we compute is undetermined
@@ -624,6 +636,54 @@ of the equation.  It simply add the following term  to the minimization :
 \end{equation}
 
 The variant {\tt AddEqFixCurVar} fix the value of $x_k$ to its current value.
+
+          %  - - - - - - - - - - - - - - - - - - - 
+
+\subsubsection{Rigid fixing of a variable}
+
+Sometime, we want to fix rigidly a variable to a given value.  Doing it with
+a very high weight (almost "infinite") using method of~\ref{WeightedFixVar} would not be very 
+good idea in general because the notion of very high weight is dependant of the context
+and of the "dynamic" of the variable, and setting it to a universally  high value would lead to numerical 
+instability.
+
+In this case, the {\tt SetFrozenVar} familly must be used. The way it works is  totally
+different of {\tt AddEqFixVar} and is the following :
+
+\begin{itemize}
+    \item {\tt MMVII} keep memory of all variable that have been frozen ;
+    \item each time a linearized equation is added $\sum a_k X_k = B $ , for
+             each $k$ where the variable $X_k$ is frozen to $F_k$ , $a_k$ is set to $0$ and $B$
+             is set to $B - a_k F_k$;
+
+    \item   also at the end (before solving) we had the equation $X_k=F_k$ with a weight of $1$
+            for each frozen variable.
+\end{itemize}
+
+To have a correct behaviour of this "interception" mecanism it is required that all the frozen variable
+are known before any equation is added. This constraint is tested by {\tt MMVII} and a dynamic
+error will occur if this is not respected (see {\tt AssertNotInEquation}).
+
+There is two method using explicit numbering :
+\begin{itemize}
+    \item {\tt void  SetFrozenVar(int aK,const  Type \&);} froze to an explicit value;
+    \item {\tt void  SetFrozenVarCurVal(int aK);} froze to current value.
+\end{itemize}
+
+There exist also a familly of method for using with automatic numerotation, see~\ref{SecAutoUkAlloc}.
+
+
+          %  - - - - - - - - - - - - - - - - - - - 
+
+\subsubsection{Weighted equation fixing a temporary}
+
+In some case, it may be usefull to add a weighted fix observation  on temporary variable.
+For example, if we have some ground observation on $3-d$ points associated to a tie-points.
+
+This can be done, inside the {\tt cSetIORSNL\_SameTmp} with the method {\tt AddFixVarTmp}.
+
+%%:w void  AddFixVarTmp (int aNum,const Type& aVal,const Type& aWeight);
+
 
           %  - - - - - - - - - - - - - - - - - - - 
 
@@ -875,6 +935,147 @@ The main action of constructor {\tt cTestDeformIm} are :
 
 In {\tt OneIterationFitModele} we parse all the point of the model, and for each point we
 add an obsevation corresponding to equation~\ref{EqDefImInv}.
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Mechanism for automatic unknown allocation}
+
+\label{SecAutoUkAlloc}
+
+%---------------------------------------------
+
+\subsection{General principle}
+
+This section present a mecanism for automatizing the mecanism of variable numbering in 
+equation solver; this mecanism can be especially interesting when the same objects 
+appears in different kind of problem.
+
+The general priniciple is :
+
+\begin{itemize}
+     \item all the object that have unknowns must inherit from the class {\tt cObjWithUnkowns};
+
+     \item this object must describe their unknown as in intervall of {\tt double*};
+
+     \item  all the object of a same solver must be accumulated in an object of the class
+            {\tt cSetInterUK\_MultipeObj};
+
+      \item once this is done, the class offer many facility for communicating with a solver.
+     
+\end{itemize}
+
+%---------------------------------------------
+
+\subsection{Class {\tt cSetInterUK\_MultipeObj}}
+
+The class organize the "coordination" between all object that will participate to the same solver.
+The main method usable are :
+
+\begin{itemize}
+    \item  {\tt  AddOneObj(cObjWithUnkowns<Type> * Obj);} , that must be called once with each object \emph{Obj},
+           that has unknowns involved in the solver, the \emph{Set} will memorize the \emph{Obj},
+           will make some initialization on  \emph{Obj} and then will call    the
+           {\tt PutUknowsInSetInterval} on  \emph{Obj} 
+
+    \item  {\tt  AddOneInterv} where an \emph{Obj}  will indicate its unknowns intervall,
+          this method will be  called by  \emph{Obj} inside its {\tt PutUknowsInSetInterval};
+          the base methods take an adress {\tt double *} and a number, the other are
+          just facility that recall this base method;
+          
+    \item  {\tt GetVUnKnowns}  return a vector of all the unknons and can be used to create a solver
+           by giving the initial values;
+
+    \item  {\tt SetVUnKnowns}  modify all the unknown with a vector (typically resulting from
+           next iteration of the solver), will also call the method {\tt OnUpdate()} on all its \emph{Obj}.
+\end{itemize}
+
+
+
+%---------------------------------------------
+
+\subsection{Class {\tt cObjWithUnkowns}}
+
+This is the base class for all object that will benefit from automatic ordering. It must override
+the pure virtual method {\tt PutUknowsInSetInterval}, when this method is called by a set :
+
+\begin{itemize}
+   \item the protected field {\tt mSetInterv} will have been initialized 
+   \item the object has just to call {\tt mSetInterv->AddOneInterv} with its unkonwn;
+\end{itemize}
+
+The other usefull methods are :
+
+\begin{itemize}
+   \item    {\tt void PushIndexes(std::vector<int> \& VI);}  add the indexe of unknowns in  {\tt VI}
+            for used to add an equation in the solver (as with {\tt CalcAndAddObs}));
+
+   \item    {\tt OnUpdate()}, this virtual call back, will be used after the  object has been
+            modified by a {\tt SetVUnKnowns}.
+\end{itemize}
+
+
+%---------------------------------------------
+\subsection{Example in bundle adjustment with camera classes}
+
+\subsubsection{Global presentation}
+
+We take the example of two classes where this mecanism is used ,
+{\tt cPerspCamIntrCalib} for representing internal calibration of central pesrpective
+camera, and {\tt cSensorCamPC}  for representing the pose of camera (contains
+the pose itself + a refererence to the calibration).
+These two classes are derivates classes of {\tt cObjWithUnkowns<tREAL8>}.
+
+The code corresponing can be found in :
+
+\begin{itemize}
+   \item {\tt MMVII\_PCSens.h} for declaration of classes;
+
+   \item {\tt cSensorCamPC.cpp}  and {\tt cCentralPerspCam.cpp} for definition of classes;
+
+   \item {\tt cConvCalib.cpp}  that contain the  example where a bundle adjsutemnt is done;
+         it's a very specific case, as the bundle is used to make a conversion of camera using
+         generated $3d-2d$ correspondances;
+
+\end{itemize}
+
+
+\subsubsection{Class cSensorCamPC}
+
+The unknowns that are specific to a pose are the center  and  the rotation (coded as an axiator $\omega$ ).
+The  formalisation is that the unknon rotation is the product of the currant rotation
+and the a small rotation corresponding to the axiator ($X \rightarrow X + \omega\; \hat{}\; X$).
+So, as a    {\tt cObjWithUnkowns<tREAL8>} the cSensorCamPC overrides {\tt PutUknowsInSetInterval} :
+
+\begin{lstlisting}
+void cSensorCamPC::PutUknowsInSetInterval()
+{
+    mSetInterv->AddOneInterv(mPose.Tr());
+    mSetInterv->AddOneInterv(mOmega);
+}
+\end{lstlisting}
+
+Also once the system has evolved, we still to udate $\omega$  and the current rotation
+so that the unkwon rotation coded by $\omega$  remains "tiny". This is done  by
+overriding {\tt OnUpdate} :
+
+
+\begin{lstlisting}
+void cSensorCamPC::OnUpdate()
+{
+     mPose.SetRotation(mPose.Rot() * cRotation3D<tREAL8>::RotFromAxiator(-mOmega));
+     mOmega = cPt3dr(0,0,0);
+}
+\end{lstlisting}
+
+%---------------------------------------------
+\subsection{Limitation}
+
+All or none
+Non multiple belonging
+Contiguous unknown
+
 
 
 

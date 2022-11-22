@@ -175,7 +175,7 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
 	std::map<tIdCalRad,cComputeCalibRadSensor*>  mMapCal2Im;
 	cFusionIRDSEt                              mFusIndex;
 	cCalculator<double> *                      mCalcMixt;
-	cSetInterUK_MultipeObj<tElSys>             mSetInterv;
+	cSetInterUK_MultipeObj<tElSys> *           mSetInterv;
 	cResolSysNonLinear<tElSys> *               mCurSys;
 };
 
@@ -270,11 +270,12 @@ void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2)
 
 void cAppliRadiom2ImageSameMod::MakeLinearModel()
 {
+    mSetInterv = new cSetInterUK_MultipeObj<tElSys> ;
     //for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
     for (auto & aPtrIm : mVRadIm)
-	mSetInterv.AddOneObj(aPtrIm);
+	mSetInterv->AddOneObj(aPtrIm);
 
-    mCurSys = new  cResolSysNonLinear<tElSys>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
+    mCurSys = new  cResolSysNonLinear<tElSys>(eModeSSR::eSSR_LsqDense,mSetInterv->GetVUnKnowns());
 
     mSomWLinear = 0.0;
     for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
@@ -294,11 +295,12 @@ void cAppliRadiom2ImageSameMod::MakeLinearModel()
     cDenseVect<tElSys> aSol = mCurSys->SolveUpdateReset();
 
     aSol.SetAvg(1.0);
-    mSetInterv.SetVUnKnowns(aSol);
+    mSetInterv->SetVUnKnowns(aSol);
 
     StdOut() << " 111 - AVG LINEAR= " << aSol.AvgElem()-1 << "\n";
 
-    mSetInterv.Reset();
+    delete mSetInterv;
+    mSetInterv = nullptr;
     delete mCurSys;
     mCurSys = nullptr;
 }
@@ -402,7 +404,7 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
     }
 
     cDenseVect<tElSys> aSol = mCurSys->SolveUpdateReset();
-    mSetInterv.SetVUnKnowns(aSol);
+    mSetInterv->SetVUnKnowns(aSol);
 
     tElSys  aSomDiv=0;
     for (auto & aPtrIm : mVRadIm)
@@ -427,23 +429,25 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
 
 void   cAppliRadiom2ImageSameMod::MakeMixtModel()
 {
+    mSetInterv = new cSetInterUK_MultipeObj<tElSys> ;
     mCalcMixt = EqRadiomVignettageLinear(5,true,1);
 
     for (auto & aPtrIm : mVRadIm)
-	mSetInterv.AddOneObj(aPtrIm);
+	mSetInterv->AddOneObj(aPtrIm);
 
     for (auto & aPair : mMapCal2Im)
-	mSetInterv.AddOneObj(aPair.second);
+	mSetInterv->AddOneObj(aPair.second);
 
-    mCurSys = new  cResolSysNonLinear<tElSys>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
+    mCurSys = new  cResolSysNonLinear<tElSys>(eModeSSR::eSSR_LsqDense,mSetInterv->GetVUnKnowns());
 
     for (int aK=0 ; aK<10 ; aK++)
     {
         MakeOneIterMixtModel(aK);
     }
 
+    delete mSetInterv;
+    mSetInterv = nullptr;
  
-    mSetInterv.Reset();
     delete mCurSys;
     mCurSys = nullptr;
 }
