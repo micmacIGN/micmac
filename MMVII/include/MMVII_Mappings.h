@@ -308,10 +308,11 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
       tCsteResVecJac  Jacobian(const tVecIn &) const;  //J1
       virtual tResJac     Jacobian(const tPtIn &) const;
 
-      /// 
-      cTplBox<Type,DimOut> BoxOfCorners(const cTplBox<Type,DimIn>&) const;
+      /** compute the box that contain the image of corners of BoxIn, note that due to non linerity
+          it may not contain the full image of the box */
+      cTplBox<Type,DimOut> BoxOfCorners(const cTplBox<Type,DimIn>& BoxIn) const;
 
-
+      /** compute the triangle with submit image of mapping */
       cTriangle<Type,DimOut>  TriValue(const cTriangle<Type,DimIn> &) const;
 
       /// compute diffenrentiable method , default = erreur
@@ -422,7 +423,7 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
 #else  // !MAP_STATIC_BUF
        mutable tVecPt  mBufInvOut;
        inline tVecPt&  BufInvOut()    const {return mBufInvOut;}
-       inline tVecPt&  BufInvOutCleared()    const {mBufInvOut.clear();return mBufOut;}
+       inline tVecPt&  BufInvOutCleared()    const {mBufInvOut.clear();return mBufInvOut;}
 #endif
 };
 

@@ -61,7 +61,10 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
 	 /// Indicate if a point belongs to sensor visibilty domain
-         virtual bool IsVisible(const cPt3dr &) const =0 ;
+         virtual double Visibility(const cPt3dr &) const =0 ;
+
+	 /// Indicacte how a 2 D points belongs to definition of image frame
+         virtual double VisibilityOnImFrame(const cPt2dr &) const =0 ;
 
 	 ///  add the distance to bundle,to see if have a default with bundle+Gr2Ima
          //virtual cPt3dr Ground2ImageAndDist(const cPt3dr &) const = 0;
@@ -131,15 +134,28 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 class cSetVisibility : public cDataBoundedSet<tREAL8,3>
 {
     public :
-        cSetVisibility(cSensorImage * aSens) :
-            cDataBoundedSet<tREAL8,3>(cBox3dr::BigBox()),
-            mSens (aSens)
-        {}
-        tREAL8 Insideness(const tPt & aP) const {return mSens->IsVisible(aP) ? 1 : -1;}
+        cSetVisibility(cSensorImage * aSens,double aBorder = 0) ;
+        tREAL8 Insideness(const tPt & aP) const;
     private :
-          cSensorImage * mSens;
+        cSensorImage * mSens;
+	double         mBorder;
 };
 
+/**  class for storing meta-data as stored in xif part*/
+class cMedaDataImage
+{
+      public :
+          tREAL8  Aperture() const;
+          cMedaDataImage(const std::string & aNameIm);
+          cMedaDataImage();
+      private :
+
+          std::string    mCameraName;
+          tREAL8         mAperture;
+          tREAL8         mFocalMM;
+          tREAL8         mFocalMMEqui35;
+          std::string    mNameImage;
+};
 
 
 /** Class to facilitate the management of orientations (and others ?) in a photogrammetric
@@ -153,32 +169,78 @@ class cSetVisibility : public cDataBoundedSet<tREAL8,3>
 class cPhotogrammetricProject
 {
       public :
+	      
+	 //===================================================================
+         //==============   CONSTRUCTION & DESTRUCTION   =====================
+	 //===================================================================
 
-       //  method to share the parameters loadings from arc/argv
-          tPtrArg2007  OriInMand() ;  ///< Input Orientation as mandatory paramaters
-          tPtrArg2007  OriOutMand();  ///< Output Orientation as mandatory paramaters
-	  // {return  AOpt2007(mOriIn ,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input });}
-          tPtrArg2007  OriInOpt() ;  ///< Input Orientation as optional paramaters
-	  
-	  ///< constructor will memorize application
+	        /// constructor : will memorize application
           cPhotogrammetricProject(cMMVII_Appli &);
-
-          /// some initialisation can be done only once Appli is itself init, method must be calles in mAppli.Exe()
+                /// some initialisation can be done only once Appli is itself init, method must be calles in mAppli.Exe()
           void FinishInit() ;
-          void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using InPut-orientation
-	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Outpt orientation
-
+	        /// destructor  ,  some object delegates their destruction to this
           ~cPhotogrammetricProject();
+
+
+	 //===================================================================
+         //==================   ORIENTAION       =============================
+	 //===================================================================
+	 
+               //  method to share the parameters loadings from arc/argv
+          tPtrArg2007  OriInMand() ;  ///< Input Orientation as mandatory paramaters
+          tPtrArg2007  CalibInMand();  ///< Input Calobration as mandatory paramaters
+          tPtrArg2007  OriOutMand();  ///< Output Orientation as mandatory paramaters
+          tPtrArg2007  OriInOpt() ;   ///< Input Orientation as optional paramaters
+               //  Accessor et modifier 
+          const std::string & GetOriIn() const; ///< accessor
+          void  SetOriIn(const std::string &) ;    ///< modifier, if in-ori not fixed by argv (but contained in a file)
+               //  Read/Write
+          void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
+	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Input orientation
+	  /// For now read PC and extract it (later use xif as in MMV1 in case PC does not exist)
+          cPerspCamIntrCalib *  AllocCalib(const std::string &);
+
+
+	 //===================================================================
+         //==================   RADIOMETRY       =============================
+	 //===================================================================
+
+               //  method to share the parameters loadings from arc/argv
+          tPtrArg2007  RadiomInMand() ;   ///< Input Radiometry as mandatory paramaters
+          tPtrArg2007  RadiomOptIn() ;    ///< Input Radiometry as optional paramaters
+          tPtrArg2007  RadiomOptOut() ;   ///< Output Radiometry as optional paramaters
+               //  Accessor et modifier 
+               //  Read/Write
+          void SaveRadiomData(const cImageRadiomData &) const; ///< Save camera using OutPut-orientation
+	  cImageRadiomData * AllocRadiomData(const std::string &) const; ///< Create Camera using Input orientation
+
+          void SaveCalibRad(const cCalibRadiomIma &) const; ///< Save radiom-calib using OutPut-orientation
+	  cCalibRadiomIma * AllocCalibRadiomIma(const std::string &) const;
+
+	  bool RadiomOptOutIsInit() const;
+	  bool RadiomOptInIsInit() const;
+          std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMedaDataImage &) const;
+
+         //==================   META-DATA       =============================
+          cMedaDataImage GetMetaData(const std::string &) const;
+
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
+	  void AssertOriInIsInit()    const;
+	  void AssertRadiomInIsInit() const;
+
           cMMVII_Appli &  mAppli;
           std::string     mFolderProject;
 
           std::string     mOriIn;
           std::string     mOriOut;
-
           std::string     mFullOriOut;
           std::string     mFullOriIn;
+
+          std::string     mRadiomIn;
+          std::string     mRadiomOut;
+          std::string     mFullRadiomIn;
+          std::string     mFullRadiomOut;
 
 	  std::list<cSensorCamPC*>  mLCam2Del;
 

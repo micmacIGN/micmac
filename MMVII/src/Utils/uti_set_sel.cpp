@@ -478,7 +478,7 @@ bool  MatchRegex(const std::string& aName,const std::string& aPat)
 
 std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString)
 {
-   return std::regex_replace(aString,std::regex(aPattern),aSubst);
+   return std::regex_replace(aString,std::regex(aPattern),aSubst, std::regex_constants::format_no_copy);
 }
 
 

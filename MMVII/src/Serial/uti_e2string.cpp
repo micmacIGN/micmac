@@ -93,6 +93,16 @@ template <class TypeEnum> class cE2Str
           return aRes;
      }
 
+     static std::vector<bool> VecBoolOfPat(const std::string & aPat,bool AcceptEmpy)
+     {
+         std::vector<TypeEnum>  aVEnum = VecOfPat(aPat,AcceptEmpy);
+	 std::vector<bool> aResult(size_t(TypeEnum::eNbVals)+1,false);
+
+	 for (const auto & aLab : aVEnum)
+		 aResult.at(size_t(aLab)) = true;
+	 return aResult;
+     }
+
    private :
      typedef std::map<TypeEnum,std::string> tMapE2Str;
      typedef std::map<std::string,TypeEnum> tMapStr2E;
@@ -123,7 +133,10 @@ template <> tSemA2007  AC_ListVal<TypeEnum>()\
 {\
    return {eTA2007::AddCom,"Allowed values for this enum:{"+StrAllVall<TypeEnum>()+"}"};\
 }\
-
+template <> std::vector<bool> VBoolOfPat<TypeEnum>(const std::string & aPat,bool AcceptEmpty)\
+{\
+   return cE2Str<TypeEnum>::VecBoolOfPat(aPat,AcceptEmpty);\
+}\
 
 
 // This part must be redefined for each
@@ -169,6 +182,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::File3DRegion,"3DReg"},
                 {eTA2007::MPatFile,"MPF"},
                 {eTA2007::Orient,"Ori"},
+                {eTA2007::Radiom,"Rad"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
                 {eTA2007::OptionalExist,"OptEx"},
@@ -229,6 +243,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eBadSize4Vect,"BadSize4Vector"},
                 {eTyUEr::eMultiplePostifx,"MultiplePostifx"},
                 {eTyUEr::eBadPostfix,"BadPostifx"},
+                {eTyUEr::eNoAperture,"NoAperture"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 TPL_ENUM_2_STRING(eTyUEr);

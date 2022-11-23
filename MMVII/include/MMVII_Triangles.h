@@ -96,12 +96,14 @@ template <class Type,const int Dim> class  cTriangle
      protected :
        tPt  mPts[3];
 };
-typedef   cTriangle<tREAL8,2>  cTri2dR;
-typedef   cTriangle<tREAL8,3>  cTri3dR;
+typedef   cTriangle<tREAL8,2>  tTri2dr;
+typedef   cTriangle<tREAL8,3>  tTri3dr;
 
 
 /// return 2 elementay triangle both oriented, DiagCrois : diag contain 00->11 , else 01->10
 template <class Type> const std::vector<cTriangle<Type,2> > &  SplitPixIn2(bool DiagCrois);
+
+template <class Type,const int Dim>  cTriangle<Type,Dim>  TriFromFace(const std::vector<cPtxd<Type,Dim>> &, const cPt3di &);
 
 /// return K such Face[K] = NumS, if  not found : -1 if SVP, error if not
 int  IndOfSomInFace(const cPt3di & aFace,int aNumS,bool SVP=false);
@@ -131,6 +133,7 @@ template <class Type,const int Dim> class cTriangulation
           size_t  NbPts() const;   ///< Number of points
           const tFace &  KthFace(size_t aK) const;  ///<  Faces number K
 	  const tPt  & KthPts(size_t aK) const;  ///< Points number K
+	  tPt  & KthPts(size_t aK) ;  ///< Points number K
 
           tTri  KthTri(int aK) const;  ///< Triangle corresponding to the face
 	  bool  ValidFace(const tFace &) const;  ///< is it a valide face (i.e. : all index in [0,NbPts[)
@@ -149,6 +152,9 @@ template <class Type,const int Dim> class cTriangulation
 
 	  ///  Make some (basic) test on correction of a triangulation, eventually correct some default
           bool CheckAndCorrect(bool Correct);
+
+
+	  std::vector<size_t> IndexPts3D(size_t aNpPtsTot);
 
      protected :
 	  /// More a

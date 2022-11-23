@@ -2,7 +2,7 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Geom2D.h"
-#include <set>
+// #include <set>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -119,13 +119,14 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux)
     std::vector<std::string>  aTypeDist={"Radial","Decentric","Polynomial"};
     {
        cAuxAr2007 aAuDist("Distorsion",anAux);
-       for (int aTest=0 ; aTest<3 ; aTest++)
+       for (int aKTypeDist=0 ; aKTypeDist<3 ; aKTypeDist++)
        {
-           cAuxAr2007 aAuxTypeDist(aTypeDist.at(aTest),aAuDist);
+           cAuxAr2007 aAuxTypeDist(aTypeDist.at(aKTypeDist),aAuDist);
 	   for (size_t aKD=0 ; aKD<mDir_VDesc.size() ; aKD++)
 	   {
                // tricky make assumption on int equiv : eRad, eDecX, eDecY, eMonX, eMonY,
-               bool DoAtThisStep = ((int(mDir_VDesc[aKD].mType)+1)/2)==aTest;
+               //   eRad(0) =>0  ::   eDecX(1), eDecY(2) => 1   ::   eMonX(3), eMonY(4) => 2
+               bool DoAtThisStep = ((int(mDir_VDesc[aKD].mType)+1)/2)==aKTypeDist;
 	       if (DoAtThisStep)
 	       {
                    MMVII::AddData(cAuxAr2007(mDir_VDesc[aKD].mName,aAuxTypeDist),mVTmpCopyParams.at(aKD));
@@ -222,33 +223,20 @@ void AddData(const cAuxAr2007 & anAux,cDataPerspCamIntrCalib & aPCIC)
 
 void  cPerspCamIntrCalib::ToFile(const std::string & aNameFile ) const
 {
+    //  make a local copy to have a own for constness
     mVTmpCopyParams = VParamDist();
-    SaveInFile((cDataPerspCamIntrCalib&)*this,aNameFile);
+    SaveInFile(static_cast<const cDataPerspCamIntrCalib&>(*this),aNameFile);
 }
 
 void  cPerspCamIntrCalib::ToFileIfFirstime(const std::string & aNameFile ) const
 {
-   static std::set<std::string> aSetFilesAlreadySaved;
-   if (!BoolFind(aSetFilesAlreadySaved,aNameFile))
-   {
-        aSetFilesAlreadySaved.insert(aNameFile);
-	ToFile(aNameFile);
-   }
+     MMVII::ToFileIfFirstime(*this,aNameFile);
 }
+
 
 cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName)
 {
-     static std::map<std::string,cPerspCamIntrCalib *> TheMap;
-     cPerspCamIntrCalib * & aPersp = TheMap[aName];
-
-     if (aPersp == 0)
-     {
-        cDataPerspCamIntrCalib aData;
-        ReadFromFile(aData,aName);
-        aPersp = new cPerspCamIntrCalib(aData);
-	cMMVII_Appli::AddObj2DelAtEnd(aPersp);
-     }
-     return aPersp;
+    return RemanentObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
 }
 
 std::string cPerspCamIntrCalib::PrefixName() {return "Calib-" + cSensorCamPC::PrefixName() + "-";}
@@ -317,8 +305,17 @@ const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tV
      return aV3;
 }
 
-bool cPerspCamIntrCalib::IsVisible(const cPt3dr & aP) const
+
+double cPerspCamIntrCalib::VisibilityOnImFrame(const cPt2dr & aP) const
 {
+   return mPixDomain.Insideness(aP);
+}
+
+
+double cPerspCamIntrCalib::Visibility(const cPt3dr & aP) const
+{
+     double MaxCalc = 100.0;
+
      if (mInvApproxLSQ_Dist==nullptr)
      {
          const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
@@ -326,16 +323,23 @@ bool cPerspCamIntrCalib::IsVisible(const cPt3dr & aP) const
      cPt2dr aPphgr = mDir_Proj->Value(aP);
      cPt2dr aPDist  = mDir_Dist->Value(aPphgr);
 
-     {
-        cPt2dr aPIm   = mCSPerfect.Value(aPDist);
-        if (! mPixDomain.InsideWithBox(aPIm))
-           return false;
-     }
+     //  For domain where dist is inversible this should be sufficient
+     cPt2dr aPIm   = mCSPerfect.Value(aPDist);
+     double aRes1 = mPixDomain.InsidenessWithBox(aPIm);
+     // dont want to do inversion too far it may overflow ...
+     if (aRes1<-MaxCalc)
+        return aRes1;
 
+     // If the point come faraway because dist non invertible, we must refute it
      cPt2dr aPPhgrBack = mDist_DirInvertible->Inverse(aPDist);
+     // multiply by focal to have pixels, subr
+     double aRes2  = 1e-2 - Norm2(aPphgr-aPPhgrBack) * F();
 
-     double anEc = Norm2(aPphgr-aPPhgrBack);
-     return (anEc * F())  < 1e-2;
+     // if we are inside,  aRes2~0 and Res1 is meaningfull for insideness
+     if ((aRes1>=0) && (aRes2>=0))  
+         return aRes1;
+
+     return std::min(aRes1,aRes2);
 }
 
 
@@ -384,8 +388,8 @@ void cPerspCamIntrCalib::OnUpdate()
 
 void cPerspCamIntrCalib::PutUknowsInSetInterval() 
 {
-    mSetInterv->AddOneInterv(&mCSPerfect.F(),3);
-    //mSetInterv->AddOneInterv(mDir_Dist->VObs());
+    mSetInterv->AddOneInterv(mCSPerfect.F());
+    mSetInterv->AddOneInterv(mCSPerfect.PP());
     mSetInterv->AddOneInterv(VParamDist());
 }
 
@@ -554,6 +558,7 @@ void BenchCentralePerspective(cParamExeBench & aParam)
     if (! aParam.NewBench("CentralPersp")) return;
 
     cCalibStenPerfect aCS(1,cPt2dr(0,0));
+    // in fact this is not necessary , btw maintain just in case and see if the test fail
     MMVII_INTERNAL_ASSERT_bench(&(aCS.F())+1 == &(aCS.PP().x()) ,"Assertion cCalibStenPerfect memory model");
     MMVII_INTERNAL_ASSERT_bench(&(aCS.F())+2 == &(aCS.PP().y()) ,"Assertion cCalibStenPerfect memory model");
 

@@ -822,23 +822,35 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::FromNorm
 
 template <class Type,const int Dim> size_t  cTplBox<Type,Dim>::NbFlagCorner() {return 1<<Dim;}
 
-template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::CornerOfFlag(size_t aFlag) const
+template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::CornerOfFlag(size_t aFlag,const tPt &aP0,const tPt &aP1) 
 {
    tPt aRes;
    for (size_t aD=0 ; aD<Dim ; aD++)
    {
-       aRes[aD] = (aFlag & (1<<aD)) ? mP0[aD] : mP1[aD];
+       aRes[aD] = (aFlag & (1<<aD)) ? aP0[aD] : aP1[aD];
    }
    return aRes;
 }
 
-template <class Type,const int Dim> void  cTplBox<Type,Dim>::Corners(tCorner & aRes) const
+template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::CornerOfFlag(size_t aFlag) const
+{
+     return CornerOfFlag(aFlag,mP0,mP1);
+}
+
+template <class Type,const int Dim> void  cTplBox<Type,Dim>::Corners(tCorner & aRes,const tPt &aP0,const tPt &aP1) 
 {
     for (size_t aFlag=0; aFlag<NbFlagCorner()  ; aFlag++)
     {
-        aRes[aFlag] = CornerOfFlag(aFlag);
+        aRes[aFlag] = CornerOfFlag(aFlag,aP0,aP1);
     }
 }
+
+template <class Type,const int Dim> void  cTplBox<Type,Dim>::Corners(tCorner & aRes) const
+{
+     Corners(aRes,mP0,mP1);
+}
+
+
 
 template <class Type,const int Dim> Type  cTplBox<Type,Dim>::DistMax2Corners(const tPt& aPt) const
 {

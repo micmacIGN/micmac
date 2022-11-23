@@ -54,6 +54,7 @@ template <class Type> class  cSparseVect  : public cMemCheck
 	{
              IV().push_back(tCplIV(anInd,aV));
 	}
+        void AddIV(const tCplIV & aCpl) { IV().push_back(aCpl); }
 
 	/// Random sparse vector
         static cSparseVect<Type>  RanGenerate(int aNbVar,double aProba);
@@ -87,6 +88,7 @@ template <class Type> class  cDenseVect
         cDenseVect(int aSz, eModeInitImage=eModeInitImage::eMIA_NoInit);
         cDenseVect(tIM anIm);
         cDenseVect(const std::vector<Type> & aVect);
+        cDenseVect(int Sz,const tSpV &);
         static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
         cDenseVect<Type>  Dup() const;
 	/// 
@@ -119,6 +121,9 @@ template <class Type> class  cDenseVect
         const tIM & Im() const {return mIm;}
 
         Type ProdElem() const; ///< Mul of all element, usefull for det computation
+        Type SumElem() const; ///< Som of all element
+        Type AvgElem() const; ///< Avereage of all elements
+        void SetAvg(const Type & anAvg); ///< multiply by a cste to fix the average
 
         // operator -= 
         double DotProduct(const cDenseVect &) const;

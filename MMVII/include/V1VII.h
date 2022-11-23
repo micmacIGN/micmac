@@ -73,7 +73,7 @@ template <class Type> class cMMV1_Conv
 std::string V1NameMasqOfIm(const std::string & aName);
 
 // Call V1 Fast kth value extraction
-// double KthVal(std::vector<double> &, double aProportion);
+double KthVal(std::vector<double> &, double aProportion);
 
 };
 

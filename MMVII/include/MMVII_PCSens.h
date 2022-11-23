@@ -98,6 +98,7 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
          tPt  & PP() ;  ///<  Principal point
      private :
          tScal  mF;   ///<  Focal
+         // std::string  mUnused; ///< To check if PP & F need to be consecutive; OK it works
          tPt    mPP;  ///<  Principal point
 };
 
@@ -228,10 +229,12 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     const cPt2di & SzPix() const;
 
 	     /// Used by CamPC
-	     bool IsVisible(const cPt3dr &) const ;
-       private :
-	    ///  real constructor not accessible directly, must use allocator
+	     double Visibility(const cPt3dr &) const ;
+
+	     double VisibilityOnImFrame(const cPt2dr &) const;
+	    ///  real constructor (accessible directly because RemanentObjectFromFile)
             cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
+       private :
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
 
@@ -286,7 +289,10 @@ class cSensorCamPC : public cSensorImage
 
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
          cPt2dr Ground2Image(const cPt3dr &) const override;
-	 bool IsVisible(const cPt3dr &) const override;
+
+	 double Visibility(const cPt3dr &) const override;
+	 double VisibilityOnImFrame(const cPt2dr &) const override;
+
 
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;

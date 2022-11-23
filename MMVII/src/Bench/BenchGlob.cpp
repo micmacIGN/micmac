@@ -3,6 +3,7 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_PhgrDist.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_Radiom.h"
 #include <unistd.h>
 #include <cmath>
 
@@ -197,6 +198,18 @@ void Bench_0000_String(cParamExeBench & aParam)
     MMVII_INTERNAL_ASSERT_bench(Prefix("AA",'.',true,true)=="","Postfix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench(Postfix("AA",'.',true,false)=="","Postfix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench(Prefix("AA",'.',true,false)=="AA","Postfix in Bench_0000_String");
+
+
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","")==true,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","AB")==true,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","ABC")==true,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("","")==true,"starts_with");
+
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","ABCD")==false,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("","A")==false,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","Ab")==false,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","a")==false,"starts_with");
+
 
     MMVII_INTERNAL_ASSERT_bench(OneUpStd("/a/bbb///c////")=="/a/bbb/","Up dir");
     MMVII_INTERNAL_ASSERT_bench(OneUpStd("/a/bbb///c")=="/a/bbb/","Up dir");
@@ -504,6 +517,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchDeformIm(aParam);
 
 	BenchCentralePerspective(aParam);
+	cImageRadiomData::Bench(aParam);
     }
 
     // Now call the bench of all application that define their own bench
@@ -912,6 +926,8 @@ void TTT();
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   int aVatNotInSpec;
+   StdOut() <<  "mDegDistTest " << IsInSpec(&mDegDistTest) << " " << IsInSpec(&aVatNotInSpec) << "\n";
    if (IsInit(&mDegDistTest))
    {
       std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest);

@@ -1,0 +1,27 @@
+
+
+============================   DM2CalcHistoCarac ========================================
+
+On each caracteristic :
+ 
+    * compute the histogramm ; used after to have an histo equal dynamic in the N Dim histogramms
+    * generate visualisation  :
+        * DMCr_MS_BestCor2Close.tif =>  histo 2D of repartiton 
+
+=============================================================================
+To do :
+
+   (0)  EVAL
+
+   (1)  Approche recursives, les entrees d'un Histo ND sont les sorties d'autres histo,
+        benefice espere combiner + de grandeur sans augmenter la dimension
+
+  (2)  Ajouter faible differences 
+
+
+   (3) Etendre sur de tres grandes distances les MS-CQ (Ou correl) pour etre capable de
+       mieux passer les zones homogenes
+
+   (4)  Ajouter une masque au descriteurm, indiauqnt validite des points pour pouvoir
+        le calculer pres des bord
+

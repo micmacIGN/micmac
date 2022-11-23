@@ -20,6 +20,10 @@ class cTestSerial0
         cTestSerial0();
         bool operator ==   (const cTestSerial0 & aT0) const ;
         cPt2dr mP1;
+
+	tINT1   mI1;
+	tREAL4  mR4;
+
         cPt2dr mP2;
 };
 

@@ -405,8 +405,8 @@ template <class TFonc,class TMasq>
       }
       if (aVPx.size() > 0)
       {
-         aPxMin = round_ni(aRatio * KthVal(aVPx,  aProp));
-         aPxMax = round_ni(aRatio * KthVal(aVPx,1-aProp));
+         aPxMin = round_ni(aRatio * NC_KthVal(aVPx,  aProp));
+         aPxMax = round_ni(aRatio * NC_KthVal(aVPx,1-aProp));
          return true;
       }
       else

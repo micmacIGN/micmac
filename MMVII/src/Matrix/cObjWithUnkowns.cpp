@@ -44,7 +44,7 @@ template <class Type> bool cObjWithUnkowns<Type>::UkIsInit()  const
 }
 
 // add indexes  of unknown in a vect, note that indexes are consecutives even if unknown are no in object
-template <class Type> void cObjWithUnkowns<Type>::FillIndexes(std::vector<int> & aVect)
+template <class Type> void cObjWithUnkowns<Type>::PushIndexes(std::vector<int> & aVect)
 {
      for (int aInd=mIndUk0; aInd<mIndUk1 ; aInd++)
          aVect.push_back(aInd);
@@ -57,6 +57,8 @@ template <class Type> size_t cObjWithUnkowns<Type>::IndOfVal(const Type * aVal) 
 }
 
 
+template <class Type> int cObjWithUnkowns<Type>::IndUk0() const {return mIndUk0;}
+template <class Type> int cObjWithUnkowns<Type>::IndUk1() const {return mIndUk1;}
 
 /* ******************************** */
 /*       cSetInterUK_MultipeObj     */
@@ -74,6 +76,7 @@ template <class Type> void  cSetInterUK_MultipeObj<Type>::Reset()
         aVinterv.mObj->Reset();
     }
     mVVInterv.clear();
+    mNbUk = 0;
 }
 
 template <class Type> cSetInterUK_MultipeObj<Type>::~cSetInterUK_MultipeObj()
@@ -109,6 +112,12 @@ template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(Type * anA
     mNbUk += aSz;
     mVVInterv.back().mVInterv.push_back(cOneInteralvUnkown<Type>(anAdr,aSz));
 }
+
+template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(Type & aVal)
+{
+    AddOneInterv(&aVal,1);
+}
+
 template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(std::vector<Type> & aV)
 {
     AddOneInterv(aV.data(),aV.size());
@@ -117,6 +126,11 @@ template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(std::vecto
 template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(cPtxd<Type,3> & aPt)
 {
     AddOneInterv(aPt.PtRawData(),3);
+}
+
+template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(cPtxd<Type,2> & aPt)
+{
+    AddOneInterv(aPt.PtRawData(),2);
 }
 
         //  ================= method for transforming unknown of each object in a global one ======================

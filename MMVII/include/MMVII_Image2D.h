@@ -206,6 +206,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 
         ///  Read file image 1 channel to 1 channel
         void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  
+        void Read(const cDataFileIm2D &,tIm &aIG,tIm &aIB,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  
         ///  Write file image 1 channel to 1 channel
         void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
         void Write(const cDataFileIm2D &,const tIm &aIG,const tIm &aIB,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
@@ -456,11 +457,27 @@ class cRGBImage
 
         cRGBImage(const cPt2di & aSz);
         cRGBImage(const cPt2di & aSz,const cPt3di & aCoul);
+        void ToFile(const std::string & aName);
+
+        static cRGBImage FromFile(const std::string& aName);  ///< Allocate and init from file
+        static cRGBImage FromFile(const std::string& aName,const cBox2di & );  ///< Allocate and init from file
+
+        void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
+        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
+
+        void Read(const std::string &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
+        void Write(const std::string &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
+	/*
+       */
 
         /// set values iff param are OK,  RGB image are made for visu, not for intensive computation
         void SetRGBPix(const cPt2di & aPix,int aR,int aG,int aB);
         void SetRGBPix(const cPt2di & aPix,const cPt3di &);
         cPt3di GetRGBPix(const cPt2di & aPix) const;
+
+        cPt3di GetRGBPixBL(const cPt2dr & aPix) const;  // Get value with BL interpol
+	bool InsideBL(const cPt2dr & aPix) const;
+
 
         ///  Alpha =>  1 force colour  , 0 no effect
         void SetRGBPixWithAlpha(const cPt2di & aPix,const cPt3di &,const cPt3dr & aAlpha);
@@ -470,7 +487,6 @@ class cRGBImage
         void SetGrayPix(const cPt2di & aPix,int aGray);
 
 
-        void ToFile(const std::string & aName);
 
         tIm1C  ImR(); ///< Accessor
         tIm1C  ImG(); ///< Accessor
@@ -482,6 +498,9 @@ class cRGBImage
         static const  cPt3di  Yellow;
         static const  cPt3di  Magenta;
         static const  cPt3di  Cyan;
+
+	/// return a lut adapted to visalise label in one chanel (blue), an maximize constrat in 2 other
+	static  std::vector<cPt3di>  LutVisuLabRand(int aNbLab);
 
      private :
         tIm1C  mImR;

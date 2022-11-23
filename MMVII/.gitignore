@@ -1,7 +1,12 @@
 include/CodeGen_*.h
 *.o
 *.aux
+*.bbl
+*.ilg
 *.idx
+*.ind
+*.blz
+*.blg
 *.log
 *.out
 *.toc

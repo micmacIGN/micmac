@@ -418,6 +418,7 @@ template<class Type> class cTriangulation2D : public cTriangulation<Type,2>
            cTriangulation2D(const std::vector<tPt>&);
 	   /// create by flatening to z=0 the points
            cTriangulation2D(const cTriangulation<Type,3>&);
+           cTriangulation2D(const std::string &);
 	   void  MakeDelaunay();
 	public :
 };

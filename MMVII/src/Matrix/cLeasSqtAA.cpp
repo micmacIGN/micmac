@@ -16,11 +16,9 @@ namespace MMVII
 template <class Type> 
     cBufSchurrSubst<Type>::cBufSchurrSubst(size_t aNbVar) :
          mNbVar     (aNbVar),
-         mNumComp   (aNbVar,100000000),
          mSetInd    (aNbVar),
 	 mSysRed    (1),
 	 mL         (1,1),
-	 // mLInv      (1,1),
 	 mtB        (1,1),
 	 mtB_LInv   (1,1),
 	 mLInv_B    (1,1),
@@ -67,17 +65,11 @@ template <class Type>
 	     }
 	 }
      }
-     mSetInd.SortInd();
+     // mSetInd.SortInd();
+     mSetInd.MakeInvertIndex();
 
      mNbUk = mSetInd.mVIndOcc.size();
      mNbUkTot = mNbUk + mNbTmp;
-
-
-     // Compute invert index  [0 NbVar[ ->  [0,NbUk[
-     for (size_t aK=0; aK<mSetInd.mVIndOcc.size() ;aK++)
-     {
-          mNumComp.at(mSetInd.mVIndOcc[aK]) = aK;
-     }
 
      // Adjust size, initialize of mSysRed
      if (mSysRed.NbVar() != int(mNbUkTot))
@@ -104,24 +96,10 @@ template <class Type>
                    if ( cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd))
                        mSV.AddIV(cSetIORSNL_SameTmp<Type>::ToIndTmp(aInd),aDer);
                    else
-                       mSV.AddIV(mNbTmp+mNumComp.at(aInd),aDer);
+                       mSV.AddIV(mNbTmp+mSetInd.mVInvertInd.at(aInd),aDer);
                      
               }
 
-/*
-	      // fill sparse vector with  "real" unknown
-              for (size_t aKV=0 ; aKV< aNbI ; aKV++)
-	      {
-                  mSV.AddIV(mNbTmp+mNumComp.at(aVI[aKV]),aVDer.at(aKV));
-	      }
-
-	      // fill sparse vector with  temporary unknown
-              for (size_t  aKV=aNbI ; aKV<aVDer.size() ; aKV++)
-	      {
-                  mSV.AddIV((aKV-aNbI),aVDer.at(aKV));
-	      }
-*/
-	      // fill reduced normal equation
 	      mSysRed.AddObservation(aSetEq.WeightOfKthResisual(aKEq),mSV,-aSetEq.mVals.at(aKEq));
 	 }
       }

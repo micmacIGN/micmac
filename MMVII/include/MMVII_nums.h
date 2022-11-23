@@ -7,7 +7,8 @@ namespace MMVII
 {
 
 // Call V1 Fast kth value extraction
-double KthVal(std::vector<double> &, double aProportion);
+double NC_KthVal(std::vector<double> &, double aProportion);
+double Cst_KthVal(const std::vector<double> &, double aProportion);
 
 
 // some time needs a null val for any type with + (neutral for +)
@@ -114,6 +115,7 @@ bool SelectQAmongN(int aK,int aQ,int aN);
 
 /* ============ Definition of numerical type ================*/
 
+/*
 typedef float       tREAL4;
 typedef double      tREAL8;
 typedef long double tREAL16;
@@ -134,6 +136,7 @@ typedef unsigned long int tU_INT8;
 typedef int    tStdInt;  ///< "natural" int
 typedef unsigned int    tStdUInt;  ///< "natural" int
 typedef double tStdDouble;  ///< "natural" int
+*/
 
 /* ================= rounding  ======================= */
 
@@ -509,7 +512,9 @@ double NormalisedRatioPos(double aI1,double aI2);
 
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
-int BinomialCoeff(int aK,int aN);
+tREAL8   rBinomialCoeff(int aK,int aN);
+tU_INT8  liBinomialCoeff(int aK,int aN);
+tU_INT4  iBinomialCoeff(int aK,int aN);
 /* ****************  cDecomposPAdikVar *************  */
 
 //  P-adik decomposition

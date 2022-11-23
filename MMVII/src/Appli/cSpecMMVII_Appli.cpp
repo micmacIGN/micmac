@@ -186,6 +186,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_OriConvV1V2);
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);
+        TheVecAll.push_back(&TheSpecMeshImageDevlp);
+        TheVecAll.push_back(&TheSpecRadiom2ImageSameMod);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

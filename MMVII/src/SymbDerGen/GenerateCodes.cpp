@@ -5,6 +5,7 @@
 #include "Formulas_ImagesDeform.h"
 #include "Formulas_CamStenope.h"
 #include "Formulas_Geom2D.h"
+#include "Formulas_Radiom.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
 
@@ -122,6 +123,11 @@ cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf)
 cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf)
 {
     return StdAllocCalc(NameEqColinearityCamPPC(aType,aDeg,WithDerive),aSzBuf);
+}
+     //    Radiometry
+cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormula(cRadiomVignettageLinear(aNbDeg),WithDerive),aSzBuf);
 }
 
      //=============   Tuto/Bench/Network ============
@@ -465,6 +471,7 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cNetWConsDistSetPts(3,true),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
    }
 
    GenerateCodeProjCentralPersp<cProjStenope>();

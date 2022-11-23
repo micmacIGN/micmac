@@ -665,6 +665,11 @@ template <class Type,class TypeSys> void TplBenchLsq()
 		                                    cLeasSq<Type>::AllocSparseGCLstSq(aNbVar),
 	                                            cLeasSq<Type>::AllocSparseNormalLstSq(aNbVar,aParam)
 	                                     };
+
+	 cDenseVect<Type> aRandSol(aNbVar,eModeInitImage::eMIA_RandCenter);
+	 // use to test NonLinear in mode AddObservationLinear
+	 cResolSysNonLinear<Type> aSysLin(eModeSSR::eSSR_LsqDense,aRandSol);
+
          // juste make several time the test , becaude chek also reseting
 	 for (int aNbTest=0 ; aNbTest<3 ; aNbTest++)
 	 {
@@ -679,6 +684,11 @@ template <class Type,class TypeSys> void TplBenchLsq()
                   Type  aW    =   0.5 + RandUnif_0_1();
 	          for (auto & aSys : aVSys)
 		      aSys->AddObservation(aW,aVCoeff,aCste);
+		  // Add sparse or dense
+		  if (aK%2)  
+		      aSysLin.AddObservationLinear(aW,aVCoeff,aCste);
+		  else
+		      aSysLin.AddObservationLinear(aW,cDenseVect<Type>(aNbVar,aVCoeff),aCste);
 	      }
 
               static int aCpt = 0; aCpt++;
@@ -739,6 +749,9 @@ template <class Type,class TypeSys> void TplBenchLsq()
                   }
 
 	      }
+	      cDenseVect<Type> aSolLin = aSysLin.SolveUpdateReset() - aVSol[0];
+	      MMVII_INTERNAL_ASSERT_bench(aSolLin.L2Norm()<1e-5,"Cmp Least Square");
+
 	      for (int aKSys=0 ; aKSys<int(aVSys.size()) ;  aKSys++)
               {
 	          auto & aSys  =  aVSys[aKSys];

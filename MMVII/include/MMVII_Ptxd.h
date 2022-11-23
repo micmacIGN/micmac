@@ -1,6 +1,7 @@
 #ifndef  _MMVII_Ptxd_H_
 #define  _MMVII_Ptxd_H_
 
+#include "MMVII_AllClassDeclare.h"
 #include "MMVII_nums.h"
 
 namespace MMVII
@@ -154,6 +155,7 @@ template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >
 
 
     ///  1 dimension specializatio,
+/*
 typedef cPtxd<double,1>  cPt1dr ;
 typedef cPtxd<int,1>     cPt1di ;
 typedef cPtxd<float,1>   cPt1df ;
@@ -168,6 +170,7 @@ typedef cPtxd<tREAL16,3> cPt3dLR ;
 typedef cPtxd<double,3>  cPt3dr ;
 typedef cPtxd<int,3>     cPt3di ;
 typedef cPtxd<float,3>   cPt3df ;
+*/
 
 
 
@@ -480,6 +483,8 @@ template <class T> inline cPtxd<tREAL8,2> ToR(const cPtxd<T,2> & aP) {return cPt
 template <class T> inline cPtxd<tREAL8,3> ToR(const cPtxd<T,3> & aP) {return cPtxd<tREAL8,3>(aP.x(),aP.y(),aP.z());}
 template <class T> inline cPtxd<tREAL8,4> ToR(const cPtxd<T,4> & aP) {return cPtxd<tREAL8,4>(aP.x(),aP.y(),aP.z(),aP.t());}
 
+template <class T> inline cPtxd<tREAL4,2> ToF(const cPtxd<T,2> & aP) {return cPtxd<tREAL4,2>(aP.x(),aP.y());}
+
 template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts);
 /*
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
@@ -657,9 +662,14 @@ template <class Type,const int Dim>  class cTplBox
         static cPtxd<double,Dim>  RandomNormalised() ;     ///<  Random point in "hyper cube" [0,1] ^ Dim
         tPt   GeneratePointInside() const;   ///< Random point in integer rect
         tBox  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
+
+        static void Corners(tCorner & aRes,const tPt &aP0,const tPt &aP1);
         void Corners(tCorner & aRes) const;
+
+
         Type DistMax2Corners(const tPt&) const;
 	static size_t NbFlagCorner() ;
+	static tPt  CornerOfFlag(size_t aFlag,const tPt &aP0,const tPt &aP1) ;
 	tPt  CornerOfFlag(size_t aFlag) const;
 
     protected :
@@ -669,6 +679,7 @@ template <class Type,const int Dim>  class cTplBox
         tBigPt    mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK-1]
         tBigNum   mNbElem;     ///< Number of pixel = Cum[Dim-1]
     private :
+
 };
 
 // template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & );
@@ -679,10 +690,15 @@ trigonometric order, a notion not generalisable */
 
 template <class Type> void CornersTrigo(typename cTplBox<Type,2>::tCorner & aRes,const cTplBox<Type,2>&);
 
+/*
 typedef cTplBox<int,2>  cBox2di; 
 typedef cTplBox<double,2>  cBox2dr; 
 typedef cTplBox<int,3>  cBox3di; 
 typedef cTplBox<double,3>  cBox3dr; 
+*/
+
+
+
 //cBox2dr ToR(const cBox2di &);  ///< Basic conversion
 //cBox2di ToI(const cBox2dr &);  ///< Convert in englobing mode
 cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord

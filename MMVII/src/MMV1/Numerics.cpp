@@ -4,11 +4,16 @@
 namespace MMVII
 {
 
-double KthVal(std::vector<double> & aV, double aProportion)
+double NC_KthVal(std::vector<double> & aV, double aProportion)
 {
    return ::KthValProp(aV,aProportion);
 }
 
 
+double Cst_KthVal(const std::vector<double> & aV, double aProportion)
+{
+     std::vector<double> aDup= aV;
+     return NC_KthVal(aDup,aProportion);
+}
 
 };

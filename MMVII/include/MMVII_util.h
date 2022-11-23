@@ -76,6 +76,9 @@ std::string LastPrefix(const std::string & aStr,char aSep='.'); ///< No error:  
 std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool PrivPref=true);
 std::string LastPostfix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "c"
 
+bool starts_with(const std::string & aFullStr,const std::string & aBegining); /// as c++20  std::string.starts_with
+bool ends_with(const std::string & aFullStr,const std::string & aEnding); /// as c++20  std::string.starts_with TO IMPLEMENT
+bool contains(const std::string & aFullStr,const std::string & aEnding); /// as c++23  std::string.contains TO IMPLEMENT
 
 // Direcytory and files names, Rely on boost
 void MakeNameDir(std::string & aDir); ///< Add a '/', or equiv, to make a name of directory
@@ -310,9 +313,12 @@ class cSetIntDyn
           size_t NbElem() const {return mVIndOcc.size();}
 	  /// Generally order is of no importance, but if it has, can sort it in increasing order
 	  void SortInd();
+	  ///   Actualize  mVInvertInd, do the SortInd() that is required
+	  void MakeInvertIndex();
 
-          std::vector<bool>    mOccupied;  ///< direct acces to the belonging
-          std::vector<size_t>  mVIndOcc;   ///< list  of element
+          std::vector<bool>    mOccupied;     ///< direct acces to the belonging  [0 1 0 0 1 0 1 0]
+          std::vector<size_t>  mVIndOcc;      ///< list  of element               [1 4 6]
+          std::vector<int   >  mVInvertInd;   ///< if created, give for an index its rank [ _ 0 _ _  1 _ 2 _]
 };
 
 /** Class for representing a set of int simply as a vector of int,

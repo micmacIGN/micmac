@@ -67,7 +67,7 @@ void BenchFilterImage_000()
             else
             {
                int aD1= std::abs(aVSomX-aVSomIX);
-               int aD2= BinomialCoeff(2,1+std::abs(aInterX)) * NbPixVign(aVign.y());
+               int aD2= iBinomialCoeff(2,1+std::abs(aInterX)) * NbPixVign(aVign.y());
                MMVII_INTERNAL_ASSERT_bench(aD1==aD2,"Bench TplCopy");
             }
 
@@ -81,7 +81,7 @@ void BenchFilterImage_000()
             else
             {
                int aD1= std::abs(aVSomY-aVSomIY);
-               int aD2= BinomialCoeff(2,1+std::abs(aInterY)) * NbPixVign(aVign.x());
+               int aD2= iBinomialCoeff(2,1+std::abs(aInterY)) * NbPixVign(aVign.x());
                MMVII_INTERNAL_ASSERT_bench(aD1==aD2,"Bench TplCopy");
             }
         }

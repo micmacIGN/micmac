@@ -33,6 +33,10 @@ const std::string TmpMMVIIDirPCar        =  TmpMMVIIDirPrefix + "-PCar" + String
 
 const std::string MMVIIDirOrient      =  MMVII_ComonPrefix +"-Orient" + StringDirSeparator();
 const std::string MMVIIDirHomol       =  MMVII_ComonPrefix +"-Homol" + StringDirSeparator();
+const std::string MMVIIDirRadiom      =  MMVII_ComonPrefix +"-Radiom" + StringDirSeparator();
+
+const std::string MMVIIDirMeshDev      =  MMVII_ComonPrefix +"-MeshDev" + StringDirSeparator();
+
 
 const std::string MMVIITestDir       = "MMVII-TestDir" +StringDirSeparator();
 const std::string TmpMMVIIProcSubDir = "Process" + StringDirSeparator();
@@ -46,6 +50,7 @@ const std::string MMVII_LogFile = "MMVII-LogFile.txt";
       // -- Current
 const std::string CurOP_Out = "Out";  ///< Many command have an Output file 
 const std::string CurOP_OutBin = "Bin";  ///< Bin format
+const std::string CurOP_SkipWhenExist = "SkWE";
       // -- External
 const std::string GOP_WW       = "WW";
 const std::string GOP_DirProj  = "DirProj";
@@ -60,6 +65,7 @@ const std::string GIP_LevCall = "LevCall";
 const std::string GIP_ShowAll = "ShowAll";
 const std::string GIP_PGMA = "PrefixGMA";
 const std::string GIP_DirProjGMA = "DirGMA";
+const std::string GIP_BenchMode = "BenchMode";
 
 
 #if (THE_MACRO_MMVII_SYS == MMVII_SYS_L)
@@ -71,6 +77,7 @@ const std::string  Bin2007 = "MMVII";
 // User/Command
 const   std::string MMVII_NONE = "NONE";
 const   std::string MMVII_StdDest = "STD";
+const   std::string MMVII_PrefRefBench = "RefBench-";
 
 // PostFix 4 files
 const   std::string PostF_XmlFiles  = "xml";
@@ -79,6 +86,9 @@ const   std::string & StdPostF_ArMMVII(bool isXml)
 {
     return isXml ? PostF_XmlFiles  : PostF_DumpFiles;
 }
+
+// PreFix 4 files
+const std::string  PrefixCalRadRad = "CalibRadiom-Radial-";
 
 
 

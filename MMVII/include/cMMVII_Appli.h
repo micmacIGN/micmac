@@ -340,9 +340,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 
         int ExeComSerial(const std::list<cParamCallSys> &);    ///< 1 after 1
-        int ExeComParal(const std::list<cParamCallSys> &);     ///< soon paral with Make for now (other to see ...)
-        int ExeComParal(const std::list<std::string> & aLCom); ///< in paral for any command; cut in pack and call ExeOnePackComParal
-        int ExeOnePackComParal(const std::list<std::string> & aLCom); ///< really run in paral for any command
+        int ExeComParal(const std::list<cParamCallSys> &,bool Silence=false);     ///< soon paral with Make for now (other to see ...)
+        int ExeComParal(const std::list<std::string> & aLCom,bool Silence=false); ///< in paral for any command; cut in pack and call ExeOnePackComParal
+        int ExeOnePackComParal(const std::list<std::string> & aLCom,bool Silence=false); ///< really run in paral for any command
 
 
 
@@ -359,7 +359,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
-        bool    IsInit(const void *);             ///< indicate for each variable if it was initiazed by argc/argv
+        bool    IsInit(const void *);       ///< indicate for each variable if it was initiazed by argc/argv
+        bool    IsInSpec(const void *);  ///< indicate for each variable if it was in an arg opt list (used with cPhotogrammetricProject)
+	void    SetVarInit(void * aPtr);
+
         template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
         {
             if (! IsInit(&aVar))
@@ -419,9 +422,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
 
-        bool RunMultiSet(int aKParam,int aKSet);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed
+        bool RunMultiSet(int aKParam,int aKSet,bool MkFSilence=false);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed
         int  ResultMultiSet() const; /// Iff RunMultiSet was execute
-
+        tPtrArg2007 AOptBench();  ///< to add in args mode if command can execute in bench mode
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
@@ -486,6 +489,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
         cExtSet<const void *>                     mSetInit;       ///< Adresses of all initialized variables
+        cExtSet<const void *>                     mSetVarsInSpec; ///< Adresses var potentially usable
         bool                                      mInitParamDone; ///< To Check Post Init was not forgotten
         cColStrAObl                               mColStrAObl;    ///< To use << for passing multiple string
         cColStrAOpt                               mColStrAOpt;    ///< To use << for passing multiple pair
@@ -541,7 +545,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mTiePPrefOut;  ///< Prefix for output Tie Points ...
         std::string                               mTiePPrefIn;   ///< Prefix for inout  Tie Points ...
 
-	static std::vector<cObj2DelAtEnd *>       mVectObj2DelAtEnd;
+	static std::vector<cObj2DelAtEnd *>       mVectObj2DelAtEnd; ///< for object which deletion is delegated to appli
+	bool                                      mIsInBenchMode;   ///< is the command executed for bench (will probably make specific test)
 };
 
 

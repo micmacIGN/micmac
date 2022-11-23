@@ -32,7 +32,8 @@ enum class eTA2007
                 File3DRegion,  ///< File containing a 3D region
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
-                Orient,        ///< Foledr for  orientation
+                Orient,        ///< Folder for  orientation
+                Radiom,        ///< Folder for  radiometry
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
@@ -56,6 +57,7 @@ enum class eApF
                Project,    ///< Project Managenent (user's)
                Test,       ///< Test
                ImProc,     ///< Image processing
+               Radiometry, ///< Radiometric modelization
                Ori,        ///< Orientation
                Match,      ///< Dense Matching
                TieP,       ///< Tie-Point processing
@@ -74,6 +76,7 @@ enum class eApDT
               TieP,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files
+              Radiom,   ///< Orientations files
               Ply,    ///< Ply file
               None,     ///< Nothing 
               ToDef,     ///< still unclassed
@@ -157,6 +160,7 @@ enum class eTyUEr
               eBadSize4Vect,
               eMultiplePostifx,
               eBadPostfix,
+              eNoAperture,
               eUnClassedError,
               eNbVals
            };
@@ -220,6 +224,7 @@ enum class eTyModeRecall
                eTMR_Inside, ///< Recall in the same process
                eTMR_Serial, ///< Recall by sub-process in serial
                eTMR_Parall, ///< Recall by sub-process in parallel
+               eTMR_ParallSilence, ///< Recall by sub-process in parallel
                eNbVals      ///< Tag End of Vals
            };
 
@@ -442,7 +447,10 @@ const std::string & E2Str(const eModeCaracMatch &);
 
 template <class Type> const Type & Str2E(const std::string &); 
 template <class Type> std::string   StrAllVall();
+/// return a vector with list all label corresponding to aPat
 template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);
+/// logically ~ SubOfPat, but returned as a vec of bool, indexable by (int)Label for direct access
+template <class Type> std::vector<bool> VBoolOfPat(const std::string & aPat,bool AcceptEmpty=false);
 
 template <class TypeEnum> class cEnumAttr;
 typedef cEnumAttr<eTA2007> tSemA2007;

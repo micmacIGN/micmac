@@ -39,9 +39,14 @@ cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
      return mInternalCalib->Value(mPose.Inverse(aP));
 }
 
-bool cSensorCamPC::IsVisible(const cPt3dr & aP) const
+double cSensorCamPC::Visibility(const cPt3dr & aP) const
 {
-     return mInternalCalib->IsVisible(mPose.Inverse(aP));
+     return mInternalCalib->Visibility(mPose.Inverse(aP));
+}
+
+double cSensorCamPC::VisibilityOnImFrame(const cPt2dr & aP) const
+{
+     return mInternalCalib->VisibilityOnImFrame(aP);
 }
 
 cPt3dr cSensorCamPC::Ground2ImageAndDepth(const cPt3dr & aP) const
@@ -62,10 +67,12 @@ cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aP) const
 
 }
 
+/*
 size_t  cSensorCamPC::NumXCenter() const
 {
    return IndOfVal(&(mPose.Tr().x()));
 }
+*/
 
 cPerspCamIntrCalib * cSensorCamPC::InternalCalib() {return mInternalCalib;}
 
@@ -183,6 +190,7 @@ std::string  cSensorCamPC::NameOri_From_Image(const std::string & aNameImage)
 
 std::string  cSensorCamPC::V_PrefixName() const { return PrefixName() ; }
 std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
+
 
 }; // MMVII
 

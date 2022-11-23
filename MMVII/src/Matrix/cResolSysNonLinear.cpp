@@ -106,7 +106,10 @@ template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp
 }
 
 template <class Type> size_t cSetIORSNL_SameTmp<Type>::ToIndTmp(int anInd) { return -(anInd+1); }
-template <class Type> bool   cSetIORSNL_SameTmp<Type>::IsIndTmp(int anInd) { return anInd<0; }
+template <class Type> bool   cSetIORSNL_SameTmp<Type>::IsIndTmp(int anInd) 
+{ 
+    return anInd<0; 
+}
 template <class Type> size_t cSetIORSNL_SameTmp<Type>::NbTmpUk() const { return mNbTmpUk; }
 template <class Type> const std::vector<Type> & cSetIORSNL_SameTmp<Type>::ValTmpUk() const { return mValTmpUk; }
 template <class Type> Type  cSetIORSNL_SameTmp<Type>::Val1TmpUk(int aInd) const { return mValTmpUk.at(ToIndTmp(aInd));}
@@ -280,6 +283,12 @@ template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anOb
             SetFrozenVar(anObj,aPt.PtRawData(),2);
 }
 
+template <class Type> void  cResolSysNonLinear<Type>::SetFrozenAllCurrentValues(tObjWUk & anObj)
+{
+     for (int aK=anObj.IndUk0() ; aK<anObj.IndUk1() ; aK++)
+         SetFrozenVarCurVal(aK);
+}
+
 /*
            void  SetFrozenVar(tObjWUk & anObj,tStdVect &);  ///< indicate it var must be frozen /unfrozen
            void  SetFrozenVar(tObjWUk & anObj,cPtxd<Type,3> &);  ///< indicate it var must be frozen /unfrozen
@@ -344,6 +353,62 @@ template <class Type> void  cResolSysNonLinear<Type>::ModifyFrozenVar (tIO_RSNL&
 	 }
     }
 }
+
+template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
+                            (
+                                 const Type& aWeight,
+                                 const cSparseVect<Type> & aCoeff,
+                                 const Type &  aRHS
+                            )
+{
+     mInPhaseAddEq = true;
+     Type  aNewRHS    = aRHS;
+     cSparseVect<Type> aNewCoeff;
+
+     for (const auto & aPair :aCoeff)
+     {
+          if (mVarIsFrozen.at(aPair.mInd))
+          {
+              aNewRHS -= mValueFrozenVar.at(aPair.mInd) *  aPair.mVal;
+          }
+          else
+          {
+              aNewRHS -=  mCurGlobSol(aPair.mInd) * aPair.mVal;
+              aNewCoeff.AddIV(aPair);
+          }
+     }
+     mSysLinear->AddObservation(aWeight,aNewCoeff,aNewRHS);
+}
+
+     
+template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
+                            (
+                                 const Type& aWeight,
+                                 const cDenseVect<Type> & aCoeff,
+                                 const Type &  aRHS
+                            )
+{
+     mInPhaseAddEq = true;
+     Type  aNewRHS    = aRHS;
+     cDenseVect<Type> aNewCoeff = aCoeff.Dup();
+
+     for (int aK=0 ; aK<mNbVar ; aK++)
+     {
+          if (mVarIsFrozen.at(aK))
+          {
+              aNewRHS -= mValueFrozenVar.at(aK) * aCoeff(aK);
+              aNewCoeff(aK)=0;
+          }
+          else
+          {
+              aNewRHS -=  mCurGlobSol(aK) * aCoeff(aK);
+          }
+     }
+     mSysLinear->AddObservation(aWeight,aNewCoeff,aNewRHS);
+}
+
+
+
 
 
       // =============  access to current solution    ================
