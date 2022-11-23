@@ -675,7 +675,7 @@ There exist also a familly of method for using with automatic numerotation, see~
 
           %  - - - - - - - - - - - - - - - - - - - 
 
-\subsubsection{Weighted equation fixing a temporary}
+\subsubsection{Weighted/Froze, equation fixing a temporary}
 
 In some case, it may be usefull to add a weighted fix observation  on temporary variable.
 For example, if we have some ground observation on $3-d$ points associated to a tie-points.
@@ -684,6 +684,7 @@ This can be done, inside the {\tt cSetIORSNL\_SameTmp} with the method {\tt AddF
 
 %%:w void  AddFixVarTmp (int aNum,const Type& aVal,const Type& aWeight);
 
+%     cSetIORSNL_SameTmp(const tStdVect & aValTmpUk,const tVectInd & aVFix={},const tStdVect & aValFix ={}); OWU
 
           %  - - - - - - - - - - - - - - - - - - - 
 
@@ -1015,6 +1016,7 @@ The other usefull methods are :
             modified by a {\tt SetVUnKnowns}.
 \end{itemize}
 
+SetFrozenVar % #OWU
 
 %---------------------------------------------
 \subsection{Example in bundle adjustment with camera classes}
@@ -1041,7 +1043,7 @@ The code corresponing can be found in :
 \end{itemize}
 
 
-\subsubsection{Class cSensorCamPC}
+\subsubsection{Class {\tt cSensorCamPC}}
 
 The unknowns that are specific to a pose are the center  and  the rotation (coded as an axiator $\omega$ ).
 The  formalisation is that the unknon rotation is the product of the currant rotation
@@ -1068,6 +1070,12 @@ void cSensorCamPC::OnUpdate()
      mOmega = cPt3dr(0,0,0);
 }
 \end{lstlisting}
+
+\subsubsection{Class {\tt cPerspCamIntrCalib}}
+
+The unknown specific to internal calibration of a central perspective camera are focal, principal 
+point and parameters of distorsion. 
+
 
 %---------------------------------------------
 \subsection{Limitation}

@@ -58,17 +58,20 @@ class cCentralPerspConversion
          cPerspCamIntrCalib *    Calib() {return mCalib;}
 
     private :
-         tPose                              mPoseInit;
-         bool                               mHCG; // HardConstrOnGCP
-         bool                               mCFix; // HardConstrOnGCP
+         tPose                              mPoseInit; ///<  Initial value of pose
+	 // When using conversion for real application, these two variable will be set to true, because we have no interest to hide
+	 // information. BTW in bench mode, we put the system in more difficult condition, to check that we all the same
+	 // get to the good solution (but a litlle slower)
+         bool                               mHCG; // HardConstrOnGCP if true the 3d point are frozen
+         bool                               mCFix; // Center Fix : if true center of rotation is frozen
 
-         cPerspCamIntrCalib *               mCalib;
-         cSensorCamPC                       mCamPC;
-         cSet2D3D                           mSetCorresp;
-         int                                mSzBuf;
-         cCalculator<double> *              mEqColinearity;
-         cSetInterUK_MultipeObj<double>     mSetInterv;
-         cResolSysNonLinear<double> *       mSys;
+         cPerspCamIntrCalib *               mCalib;  ///<  internal calibration we want to estimate
+         cSensorCamPC                       mCamPC;  ///<  Pose : rotation will be unknown (because link rotation/calib)
+         cSet2D3D                           mSetCorresp;  ///<  Set of 2D-3D correspondance
+         int                                mSzBuf;   ///<  Sz Buf for calculator
+         cCalculator<double> *              mEqColinearity;  ///< Colinearity equation 
+         cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
+         cResolSysNonLinear<double> *       mSys;   ///< Solver
 };
 
      // ==============  constructor & destructor ================
@@ -90,10 +93,11 @@ cCentralPerspConversion::cCentralPerspConversion
     mSzBuf         (100),
     mEqColinearity (mCalib->EqColinearity(true,mSzBuf))
 {
-    mSetInterv.AddOneObj(&mCamPC);
-    mSetInterv.AddOneObj(mCalib);
+    mSetInterv.AddOneObj(&mCamPC); // #OWU-AddOneObj
+    mSetInterv.AddOneObj(mCalib);  // #OWU-AddOneObj
 
-    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
+    cDenseVect<double> aVUk = mSetInterv.GetVUnKnowns();  // #OWU-GetVUnKnowns
+    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,aVUk);
 }
 
 cCentralPerspConversion::~cCentralPerspConversion()
@@ -108,21 +112,23 @@ void cCentralPerspConversion::OneIteration()
 {
      if (mCFix)
      {
-        mSys->SetFrozenVar(mCamPC,mCamPC.Center());
+        mSys->SetFrozenVar(mCamPC,mCamPC.Center()); //  #OWU-FixVar
      }
+     //  Three temporary unknowns for x-y-z of the 3d point
      std::vector<int> aVIndGround{-1,-2,-3};
 
      // Fill indexe Glob in the same order as in cEqColinearityCamPPC::VNamesUnknowns()
      std::vector<int> aVIndGlob = aVIndGround;
-     mCamPC.PushIndexes(aVIndGlob);
-     mCalib->PushIndexes(aVIndGlob);
+     mCamPC.PushIndexes(aVIndGlob);  // #OWU-PushIndex
+     mCalib->PushIndexes(aVIndGlob); // #OWU-PushIndex
 
      for (const auto & aCorresp : mSetCorresp.Pairs())
      {
-         // structure for points substistion, in mode test
+         // structure for points substistion, in mode test, 
          cSetIORSNL_SameTmp<tREAL8>   aStrSubst
                                       (
-                                         aCorresp.mP3.ToStdVector() ,
+                                         aCorresp.mP3.ToStdVector() , // we have 3 temporary unknowns with initial value
+					 // #OWU-FrozTmp   If mHCG we indicate that temporary is frozen
                                           (mHCG ? aVIndGround : std::vector<int>())
                                       );
 
@@ -132,16 +138,16 @@ void cCentralPerspConversion::OneIteration()
                aStrSubst.AddFixCurVarTmp(anInd,1.0);
          }
 
-         // "observation" of equation  : PTIm (real obs) + Cur-Rotation to avoid guimbal-lock
-         std::vector<double> aVObs = aCorresp.mP2.ToStdVector();
-         mCamPC.Pose().Rot().Mat().PushByCol(aVObs);
+         // "observation" of equation  : PTIm (real obs) + Cur-Rotation (Rot = Axiator*CurRot : to avoid guimbal-lock)
+         std::vector<double> aVObs = aCorresp.mP2.ToStdVector(); //  Add X-Im, Y-Im in obs
+         mCamPC.Pose().Rot().Mat().PushByCol(aVObs);  // Add all matrix coeff og current rot
 
          mSys->AddEq2Subst(aStrSubst,mEqColinearity,aVIndGlob,aVObs);
          mSys->AddObsWithTmpUK(aStrSubst);
      }
 
      const auto & aVectSol = mSys->SolveUpdateReset();
-     mSetInterv.SetVUnKnowns(aVectSol);
+     mSetInterv.SetVUnKnowns(aVectSol);  // #OWU  SetUnknown
 }
 
 

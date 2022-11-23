@@ -1,0 +1,133 @@
+
+
+\chapter{The mapping object}
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Introduction}
+
+%---------------------------------------------
+%\subsection{Target of mapping objects}
+
+The mapping  are targeted to offer service for object that represent "smooth" mapping
+from $\RR^n  \rightarrow  \RR^p$. As an exemple of class naturally derived from mappings used
+in photogrammetry we have :
+
+\begin{itemize}
+	\item projection $\pi : (x,y,z) \rightarrow (i,j)$ function of an image sensor, as mapping $\RR^3 \rightarrow \RR^2$;
+
+	\item extended projection $\pi_d :  (x,y,z) \leftrightarrow (i,j,d)$ , where $d$ is  the depth,
+		as \emph{bijective} mapping of $\RR^3$  ( $\RR^3 \rightarrow  \RR^3$);
+
+	\item distorsion of central perpective camera as  \emph{bijective} mapping of $\RR^2$;
+
+	\item any  transformation  between two geodetic coordinate systems as \emph{bijective}  of  $\RR^3$.
+
+\end{itemize}
+
+The minimal service that a mapping must offer is to define the method $F$ that computes its values.
+The kind of services that offers the  mappingi package is :
+
+\begin{itemize}
+     \item offer a default method computing the derivative $\frac{\partial F}{\partial x_i}$  using a basic finite differrence ,
+           the class can override this default method if has something better to offer;
+
+   \item for $\RR^n \rightarrow \RR^n$ compute the inverse $F^{-1}(v)$ of a given  value using  an iterative method;
+           the class can override this default method if has something better to offer;
+
+   \item compute the approximate inverse mapping  of given mapping using some basis of function and a  least square approach;
+
+   \item offer an interface to use generated code of symbolic derivative as a mapping.
+\end{itemize}
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{General organization}
+
+\subsection{Localization}
+
+The declaration of class for mapping are localized in file {\tt include/MMVII\_Mappings.h}.
+
+The definition of these class are located in folder {\tt src/Mappings/}.
+As the mapping class are template, there is an explicit instantiation  for
+all expected use.
+
+
+
+%---------------------------------------------
+\subsection{class {\tt cDataMapping}}
+
+         %  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Templatization}
+The base  class of all mappings is {\tt cDataMapping}, its a template class defined by $3$ 
+parameters :
+
+\begin{itemize}
+    \item {\tt class Type} which is the floatting number type on which all the computation will be made,
+          it can be {\tt tREAL4, tREAL8} or {\tt tREAL16} ;  practically it is for now obly used
+          with {\tt tREAL8}; by the way some precaution where made to assure that
+          the class be intantiated with any complete numeric type in case higher precision woul be required;
+
+
+    \item {\tt const int DimIn} the dimension of input space;
+
+    \item {\tt const int DimOut} the dimension of output space.
+\end{itemize}
+
+         %  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Values}
+
+The fundamental method that a  mappings must define is  {\tt Value(s)} and it computes the values of 
+the function.  Note that there exist two methods :
+
+\begin{itemize}
+     \item {\tt Value} that make the computation of single value ;
+
+     \item {\tt Values} that make the computation of vector of values, it can  be used
+           if the class has some parallelism option to accelerate the computation.
+\end{itemize}
+
+Note that these two virtual methods  have a default implementation : {\tt Value}
+is implemented calling {\tt Values},  while {\tt Values} is implemented calling
+{\tt Value}.  So obviously, an infinite recursion will occur if none is defined
+(BTW it is dynamically detected in debug mode).  The interest being obviously that
+in the derived class, it's possible to overload only one to benefit of both.
+
+For {\tt Value} there are two options : 
+
+\begin{itemize}
+     \item  one option where the user gives the vector for storing the result;
+
+     \item  one option where the class furnish its own buffer by reference,
+            btw the same vector is always returned, so if the user memorize
+            the adress, at next call it will be overwritten; so if the vector
+            is not used immediately, a copy must be made.
+\end{itemize}
+
+
+
+         %  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Jacobian}
+
+The jacobian is computed by returning pair point/Matrix  where point is
+the value  and matrix is the  jacobian. This is because generaly when the 
+user needs the jacobian he also needs the value, and also when you 
+compute the jacobian, you have also computed the value .
+
+Be aware that even if the user make a copy a vector containing results,
+due to {\tt MMVII} implementation of matrix (using shared pointer on data),
+at next call the jacobian will overwrite the previous call.  In this rare
+case, user should call the {\tt Dup} method.
+
+Like {\tt Value} the  class propose default definition of {\tt Jacobian} that user can override.
+
+
+
+
+
+
+
