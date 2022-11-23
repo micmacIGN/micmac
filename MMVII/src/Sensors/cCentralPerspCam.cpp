@@ -388,8 +388,8 @@ void cPerspCamIntrCalib::OnUpdate()
 
 void cPerspCamIntrCalib::PutUknowsInSetInterval() 
 {
-    mSetInterv->AddOneInterv(&mCSPerfect.F(),3);
-    //mSetInterv->AddOneInterv(mDir_Dist->VObs());
+    mSetInterv->AddOneInterv(mCSPerfect.F());
+    mSetInterv->AddOneInterv(mCSPerfect.PP());
     mSetInterv->AddOneInterv(VParamDist());
 }
 
@@ -558,6 +558,7 @@ void BenchCentralePerspective(cParamExeBench & aParam)
     if (! aParam.NewBench("CentralPersp")) return;
 
     cCalibStenPerfect aCS(1,cPt2dr(0,0));
+    // in fact this is not necessary , btw maintain just in case and see if the test fail
     MMVII_INTERNAL_ASSERT_bench(&(aCS.F())+1 == &(aCS.PP().x()) ,"Assertion cCalibStenPerfect memory model");
     MMVII_INTERNAL_ASSERT_bench(&(aCS.F())+2 == &(aCS.PP().y()) ,"Assertion cCalibStenPerfect memory model");
 

@@ -128,6 +128,11 @@ template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(cPtxd<Type
     AddOneInterv(aPt.PtRawData(),3);
 }
 
+template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(cPtxd<Type,2> & aPt)
+{
+    AddOneInterv(aPt.PtRawData(),2);
+}
+
         //  ================= method for transforming unknown of each object in a global one ======================
 	
    /*  internal method, used by  GetVUnKnowns and SetVUnKnowns */

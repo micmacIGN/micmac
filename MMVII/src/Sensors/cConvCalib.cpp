@@ -62,7 +62,7 @@ class cCentralPerspConversion
 	 // When using conversion for real application, these two variable will be set to true, because we have no interest to hide
 	 // information. BTW in bench mode, we put the system in more difficult condition, to check that we all the same
 	 // get to the good solution (but a litlle slower)
-         bool                               mHCG; // HardConstrOnGCP if true the 3d point are frozen
+         bool                               mFGC; // HardConstrOnGCP if true the 3d point are frozen
          bool                               mCFix; // Center Fix : if true center of rotation is frozen
 
          cPerspCamIntrCalib *               mCalib;  ///<  internal calibration we want to estimate
@@ -85,7 +85,7 @@ cCentralPerspConversion::cCentralPerspConversion
      bool                    CenterFix
 ) :
     mPoseInit      (aPoseInit),
-    mHCG           (HardConstrOnGCP),
+    mFGC           (HardConstrOnGCP),
     mCFix          (CenterFix),
     mCalib         (aCalib),
     mCamPC         ("NONE",mPoseInit,mCalib),
@@ -93,10 +93,10 @@ cCentralPerspConversion::cCentralPerspConversion
     mSzBuf         (100),
     mEqColinearity (mCalib->EqColinearity(true,mSzBuf))
 {
-    mSetInterv.AddOneObj(&mCamPC); // #OWU-AddOneObj
-    mSetInterv.AddOneObj(mCalib);  // #OWU-AddOneObj
+    mSetInterv.AddOneObj(&mCamPC); // #DOC-AddOneObj
+    mSetInterv.AddOneObj(mCalib);  // #DOC-AddOneObj
 
-    cDenseVect<double> aVUk = mSetInterv.GetVUnKnowns();  // #OWU-GetVUnKnowns
+    cDenseVect<double> aVUk = mSetInterv.GetVUnKnowns();  // #DOC-GetVUnKnowns
     mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,aVUk);
 }
 
@@ -112,15 +112,15 @@ void cCentralPerspConversion::OneIteration()
 {
      if (mCFix)
      {
-        mSys->SetFrozenVar(mCamPC,mCamPC.Center()); //  #OWU-FixVar
+        mSys->SetFrozenVar(mCamPC,mCamPC.Center()); //  #DOC-FixVar
      }
      //  Three temporary unknowns for x-y-z of the 3d point
      std::vector<int> aVIndGround{-1,-2,-3};
 
      // Fill indexe Glob in the same order as in cEqColinearityCamPPC::VNamesUnknowns()
      std::vector<int> aVIndGlob = aVIndGround;
-     mCamPC.PushIndexes(aVIndGlob);  // #OWU-PushIndex
-     mCalib->PushIndexes(aVIndGlob); // #OWU-PushIndex
+     mCamPC.PushIndexes(aVIndGlob);  // #DOC-PushIndex
+     mCalib->PushIndexes(aVIndGlob); // #DOC-PushIndex
 
      for (const auto & aCorresp : mSetCorresp.Pairs())
      {
@@ -128,11 +128,11 @@ void cCentralPerspConversion::OneIteration()
          cSetIORSNL_SameTmp<tREAL8>   aStrSubst
                                       (
                                          aCorresp.mP3.ToStdVector() , // we have 3 temporary unknowns with initial value
-					 // #OWU-FrozTmp   If mHCG we indicate that temporary is frozen
-                                          (mHCG ? aVIndGround : std::vector<int>())
+					 // #DOC-FrozTmp   If mFGC we indicate that temporary is frozen
+                                          (mFGC ? aVIndGround : std::vector<int>())
                                       );
 
-         if (! mHCG)
+         if (! mFGC)
          {
             for (const auto & anInd : aVIndGround)
                aStrSubst.AddFixCurVarTmp(anInd,1.0);
@@ -147,7 +147,7 @@ void cCentralPerspConversion::OneIteration()
      }
 
      const auto & aVectSol = mSys->SolveUpdateReset();
-     mSetInterv.SetVUnKnowns(aVectSol);  // #OWU  SetUnknown
+     mSetInterv.SetVUnKnowns(aVectSol);  // #DOC-SetUnknown
 }
 
 

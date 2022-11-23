@@ -98,6 +98,7 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
          tPt  & PP() ;  ///<  Principal point
      private :
          tScal  mF;   ///<  Focal
+         // std::string  mUnused; ///< To check if PP & F need to be consecutive; OK it works
          tPt    mPP;  ///<  Principal point
 };
 

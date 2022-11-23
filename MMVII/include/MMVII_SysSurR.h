@@ -536,6 +536,7 @@ template <class Type> class cSetInterUK_MultipeObj
            void AddOneInterv(Type * anAdr,size_t aSz) ; ///<  generall method
            void AddOneInterv(Type & anAdr) ;            ///<  call with a single value
            void AddOneInterv(std::vector<Type> & aV) ;  ///<  call previous with a vector
+           void AddOneInterv(cPtxd<Type,2> &);          ///<  call previous wih a point
            void AddOneInterv(cPtxd<Type,3> &);          ///<  call previous wih a point
         private :
 
