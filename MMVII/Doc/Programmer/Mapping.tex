@@ -97,7 +97,7 @@ is implemented calling {\tt Values},  while {\tt Values} is implemented calling
 (BTW it is dynamically detected in debug mode).  The interest being obviously that
 in the derived class, it's possible to overload only one to benefit of both.
 
-For {\tt Value} there are two options : 
+For {\tt Values} there are two options : 
 
 \begin{itemize}
      \item  one option where the user gives the vector for storing the result;
@@ -124,7 +124,76 @@ at next call the jacobian will overwrite the previous call.  In this rare
 case, user should call the {\tt Dup} method.
 
 Like {\tt Value} the  class propose default definition of {\tt Jacobian} that user can override.
+The users has three option :
 
+\begin{itemize}
+      \item  furnish at the construction of object a "small" value that will be used to 
+	      compute the derivative by finite difference;  this small value is a point as  the
+             meaning of "small" can be different in each dimension;
+
+      \item  furnish a version that compute jacobian for a single point;
+
+      \item  furnish a version that compute jacobian for a vector of  points;
+\end{itemize}
+
+We have the same behaviour that with value : version with point, if not overided, calls version
+with vector \dots 
+
+Note that using Jacobian, it is possible to compute the affine mapping that is the
+differential in a given point. This is done with {\tt Linearize}  (BTW, currently
+this is done in derivate class {\tt cDataNxNMapping}, probably to change).
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Mapping inversion}
+
+\section{Class {\tt cDataNxNMapping}}
+
+This class is just a specializion for case where {\tt DimIn==DimOut}. All stuff
+related to inversion will inherit from this class.
+
+
+\section{Class {\tt cDataInvertibleMapping}}
+
+This class is the mother class of mapping that are invertible. An invertible
+mapping must simply define {\tt Inverse}  or {\tt Inverses} method that compute
+the inverse of {\tt Value}.  Like usual, by default {\tt Inverse} calls  {\tt Inverses}
+and {\tt Inverses} calls  {\tt Inverse}; so one at least must be defined else an
+inifinite recursion will occur.
+
+
+\section{Class {\tt cDataInvertOfMapping}}
+
+When we have a mapping $M$ that is invertible, this class create a mapping $M'$
+that contain a pointer on $M$ and such hat  $M'.Val(P) = M.Inv(P)$ and $M'.Inv(P) = M.Val(P)$
+
+
+\section{Class {\tt cDataIterInvertMapping}}
+
+This is here that we begin to really do something \dots
+
+This class offer a concrete computation of the inverse function by iterative gradient method .
+Given $Y$, we want to find $X$  such that $F(X)=Y$,  if we have a current "guess" $X_k$,
+we write $F(X_{k+1}) = F(X_k) + \nabla (X_{k+1}-X_k) = Y$ then :
+
+\begin{equation}
+	X_{k+1} = X_k + \nabla ^{-1} (Y-F(X_k))
+\end{equation}
+
+This iterative schema require an initialization $X_0$, this is why the constructor take as
+argument a mapping named {\tt RoughInv}. For the rough inverse sometime the user
+will have information to give it, sometime identity or even 
+null function can works well is the mapping is close to a linear form,  and finally
+a convenient solution can be to use the facilities {\tt cComputeMapInverse} describes in~\ref{CompMapInv}
+(compute approximate inverse by least square on a given basis of function).
+
+
+
+
+
+\label{CompMapInv}
 
 
 
