@@ -143,19 +143,21 @@ Note that using Jacobian, it is possible to compute the affine mapping that is t
 differential in a given point. This is done with {\tt Linearize}  (BTW, currently
 this is done in derivate class {\tt cDataNxNMapping}, probably to change).
 
+\subsection{class {\tt cMappingIdentity}}
+
 %---------------------------------------------
 %---------------------------------------------
 %---------------------------------------------
 
 \section{Mapping inversion}
 
-\section{Class {\tt cDataNxNMapping}}
+\subsection{Class {\tt cDataNxNMapping}}
 
 This class is just a specializion for case where {\tt DimIn==DimOut}. All stuff
 related to inversion will inherit from this class.
 
 
-\section{Class {\tt cDataInvertibleMapping}}
+\subsection{Class {\tt cDataInvertibleMapping}}
 
 This class is the mother class of mapping that are invertible. An invertible
 mapping must simply define {\tt Inverse}  or {\tt Inverses} method that compute
@@ -164,13 +166,13 @@ and {\tt Inverses} calls  {\tt Inverse}; so one at least must be defined else an
 inifinite recursion will occur.
 
 
-\section{Class {\tt cDataInvertOfMapping}}
+\subsection{Class {\tt cDataInvertOfMapping}}
 
 When we have a mapping $M$ that is invertible, this class create a mapping $M'$
 that contain a pointer on $M$ and such hat  $M'.Val(P) = M.Inv(P)$ and $M'.Inv(P) = M.Val(P)$
 
 
-\section{Class {\tt cDataIterInvertMapping}}
+\subsection{Class {\tt cDataIterInvertMapping}}
 
 This is here that we begin to really do something \dots
 
@@ -189,6 +191,19 @@ null function can works well is the mapping is close to a linear form,  and fina
 a convenient solution can be to use the facilities {\tt cComputeMapInverse} describes in~\ref{CompMapInv}
 (compute approximate inverse by least square on a given basis of function).
 
+\subsection{Class {\tt cDataIIMFromMap}}
+
+This class is just an adaptator to use iterative inversion . Suppose class {\tt cMapSth} exist,
+you want to invert it by iterative scheme of  {\tt cDataInvertOfMapping}, but if you cannot
+modify {\tt cMapSth}, you cannot make it inherit of {\tt cDataInvertOfMapping}. So you can
+use {\tt cDataIIMFromMap}, that owns a pointer on {\tt cMapSth} on inherit of {\tt cDataIterInvertMapping}
+to make the inversion.
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Symbolic derivative \& mappings}
 
 
 
