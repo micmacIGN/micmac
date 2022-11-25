@@ -143,7 +143,24 @@ Note that using Jacobian, it is possible to compute the affine mapping that is t
 differential in a given point. This is done with {\tt Linearize}  (BTW, currently
 this is done in derivate class {\tt cDataNxNMapping}, probably to change).
 
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Simple predefinite mappings}
+
+
+%---------------------------------------------
 \subsection{class {\tt cMappingIdentity}}
+
+Sometime it can be usefull to desribe the identity function as a mapping.
+For example as an estimation of rough inverse in iterative inversion.
+
+%---------------------------------------------
+
+\subsection{class {\tt cIMElemLinear}}
+\subsection{class {\tt cBijAffMapElem}}
+\subsection{class {\tt cInvertMappingFromElem}}
 
 %---------------------------------------------
 %---------------------------------------------
@@ -186,10 +203,11 @@ we write $F(X_{k+1}) = F(X_k) + \nabla (X_{k+1}-X_k) = Y$ then :
 
 This iterative schema require an initialization $X_0$, this is why the constructor take as
 argument a mapping named {\tt RoughInv}. For the rough inverse sometime the user
-will have information to give it, sometime identity or even 
-null function can works well is the mapping is close to a linear form,  and finally
+will have information to give it, sometime identity (or even 
+null function) can works well is the mapping is close to a linear form.  For more difficult case,
 a convenient solution can be to use the facilities {\tt cComputeMapInverse} describes in~\ref{CompMapInv}
-(compute approximate inverse by least square on a given basis of function).
+that compute approximate inverse by least square on a given basis of function (it's the method
+used for invering distorsion).
 
 \subsection{Class {\tt cDataIIMFromMap}}
 
@@ -203,7 +221,23 @@ to make the inversion.
 %---------------------------------------------
 %---------------------------------------------
 
+
+\section{Least square fitting, and use for inversion}
+cLeastSqComputeMaps
+cComputeMapInverse
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
 \section{Symbolic derivative \& mappings}
+
+It's often convenient to encapsulate generated code in the class
+mappings that offer a higher level description of the same code. 
+
+cDataMapCalcSymbDer
+cDataNxNMapCalcSymbDer
+cLeastSqCompMapCalcSymb
 
 
 
