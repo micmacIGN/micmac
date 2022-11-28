@@ -2,7 +2,19 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_2Include_Serial_Tpl.h"
-#include <unistd.h>
+
+#include <filesystem>
+#include <string>
+
+
+#if   (THE_MACRO_MMVII_SYS==MMVII_SYS_L)  // Linux
+#  include <unistd.h>
+#elif (THE_MACRO_MMVII_SYS==MMVII_SYS_W)  // Windows
+#  include <windows.h>
+#else  // Max OS X
+#  include <mach-o/dyld.h>
+#endif
+
 
 namespace MMVII
 {
@@ -86,7 +98,16 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::stri
    return GlobSysCall(aComMake,false);
 }
 
+static std::string MMVII_RawSelfExecName();
 
+
+std::string MMVII_CanonicalSelfExecName()
+{
+    static std::string selfExec = MMVII_RawSelfExecName();
+    if (selfExec.length() == 0)
+        MMVII_INTERNAL_ERROR("Can't find file name of this process !");
+    return std::filesystem::canonical(selfExec);
+}
 
 
 #if   (THE_MACRO_MMVII_SYS==MMVII_SYS_L)
@@ -100,8 +121,21 @@ int mmvii_GetPId()
     return getpid();
 }
 
+std::string MMVII_RawSelfExecName()
+{
+    std::string path;
+
+    char buf[4096];
+    ssize_t result = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (result >= 0 && (size_t)result < sizeof(buf) - 1) {
+        buf[result] = 0;
+        path = buf;
+    }
+    return path;
+}
 
 #elif (THE_MACRO_MMVII_SYS==MMVII_SYS_W)
+
 const std::string TheMMVII_SysName = "Bill's shit";
 int mmvii_NbProcSys()
 {
@@ -113,7 +147,21 @@ int mmvii_GetPId()
 {
     return _getpid();
 }
+
+
+std::string MMVII_RawSelfExecName()
+{
+// Ch.M: Not tested
+    std::string path;
+    char buffer[4096];
+    DWORD size = GetModuleFileNameA(nullptr, buffer,(DWORD)sizeof(buffer));
+    if (size >=0 && size != (DWORD)sizeof(buffer))
+        path = buffer;
+    return path;
+}
+
 #else
+
 const std::string TheMMVII_SysName = "Steve's shit";
 int mmvii_GetPId()
 {
@@ -125,7 +173,23 @@ int mmvii_NbProcSys()
     MMVII_INTERNAL_ASSERT_always(false,"mmvii_NbProcSys on "+TheMMVII_SysName);
     return -1;
 }
-#endif
 
-};
+std::string MMVII_RawSelfExecName()
+{
+// Ch.M: Not tested
+    std::string result;
+
+    uint32_t size = 0;
+    _NSGetExecutablePath(nullptr, &size);
+    char *buffer = new char[size + 1];
+    if (_NSGetExecutablePath(buffer, &size) >= 0) {
+        buffer[size] = '\0';
+        path = buffer;
+    }
+    delete[] buffer;
+    return path;
+}
+
+#endif
+} // Namespace MMVII
 

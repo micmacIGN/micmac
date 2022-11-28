@@ -1,4 +1,5 @@
 #include "MMVII_util.h"
+#include "MMVII_Sys.h"
 #include "MMVII_Stringifier.h"
 #include "MMVII_DeclareCste.h"
 
@@ -72,7 +73,9 @@ const std::string GIP_BenchMode = "BenchMode";
 const char CharProctected = '\\';
 #endif
 
-const std::string  Bin2007 = "MMVII";
+const std::string DirBin2007=DirOfPath(MMVII_CanonicalSelfExecName());
+const std::string Bin2007=FileOfPath(MMVII_CanonicalSelfExecName());
+
 
 // User/Command
 const   std::string MMVII_NONE = "NONE";
