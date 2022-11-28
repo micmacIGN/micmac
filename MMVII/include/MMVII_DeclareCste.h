@@ -2,6 +2,7 @@
 #define  _MMVII_DeclareCste_H_
 
 #include "MMVII_AllClassDeclare.h"
+#include "MMVII_enums.h"
 
 namespace MMVII
 {
@@ -61,6 +62,9 @@ extern const std::string MMVIIDirOrient;
 extern const std::string MMVIIDirHomol;
 extern const std::string MMVIIDirMeshDev;
 extern const std::string MMVIIDirRadiom;
+
+// File extensions for some supported files type declared en eTA2007
+extern const std::map<eTA2007,std::vector<std::string>> MMVIISupportedFilesExt;
 
 //  String 
 extern const std::string BLANK;  // just std::string(" ") to avoid char * + char *
