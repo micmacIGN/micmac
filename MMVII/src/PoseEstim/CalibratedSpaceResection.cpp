@@ -23,6 +23,8 @@
 
      1 -2(1+b)AB  +(1+b)^2 B2 = rA(1 -2(1+c) AC + (1+c)^2 C2)
 
+      B2 b^2   + b * 2 (B2-AB) + (1-2AB+B2 -rA(1 -2(1+c) AC + (1+c)^2 C2)) = 0
+
 */
 
 namespace MMVII
