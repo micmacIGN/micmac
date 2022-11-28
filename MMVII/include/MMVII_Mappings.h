@@ -852,6 +852,9 @@ template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMap
          tVecOut            mBufPOut;
 };
 
+/** Create  a cLeastSqComputeMaps from a calculator,
+ */
+
 template <class Type,const int DimIn,const int DimOut>
     class cLeastSqCompMapCalcSymb : public cLeastSqComputeMaps<Type,DimIn,DimOut>
 {

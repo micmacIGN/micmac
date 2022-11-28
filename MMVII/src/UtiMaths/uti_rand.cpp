@@ -175,6 +175,7 @@ double RandUnif_C_NotNull(double aEps)
          aRes = RandUnif_C();
    return aRes;
 }
+double RandUnif_NotNull(double aEps) {return std::abs(RandUnif_C_NotNull(aEps));}
 
 double RandUnif_N(int aN)
 {
