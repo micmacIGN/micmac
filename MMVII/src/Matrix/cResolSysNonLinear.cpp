@@ -313,6 +313,11 @@ template <class Type> bool cResolSysNonLinear<Type>::VarIsFrozen(int aK) const
      return mVarIsFrozen.at(aK);
 }
 
+template <class Type> int cResolSysNonLinear<Type>::CountFreeVariables() const
+{
+     return std::count(mVarIsFrozen.begin(), mVarIsFrozen.end(), false);
+}
+
 template <class Type> void cResolSysNonLinear<Type>::AssertNotInEquation() const
 {
     if (mInPhaseAddEq)

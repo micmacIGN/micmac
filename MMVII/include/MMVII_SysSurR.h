@@ -105,6 +105,7 @@ template <class Type> class cResolSysNonLinear
 	   void  SetUnFrozen(int aK);  ///< indicate it var must be frozen /unfrozen
 	   void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
 	   bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
+	   int   CountFreeVariables() const;          ///< number of free variables
 	   void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
 
 
