@@ -2,6 +2,7 @@
 #define  _MMVII_nums_H_
 
 #include "MMVII_Error.h"
+//#include "MMVII_AllClassDeclare.h"
 
 namespace MMVII
 {
@@ -862,17 +863,23 @@ template <class Type> class  cPolynom
 
            cPolynom<Type> operator * (const cPolynom<Type> & aP2) const;
            cPolynom<Type> operator + (const cPolynom<Type> & aP2) const;
+           cPolynom<Type> operator - (const cPolynom<Type> & aP2) const;
            cPolynom<Type> operator * (const  Type & aVal) const;
            std::vector<Type> RealRoots(const Type & aTol,int ItMax);
 
 
            Type&   operator [] (size_t aK) {return mVCoeffs[aK];}
            const Type&   operator [] (size_t aK) const {return mVCoeffs[aK];}
+           Type  KthDef(size_t aK) const {return (aK<mVCoeffs.size()) ? mVCoeffs[aK] : static_cast<Type>(0.0) ;}
+
            const tCoeffs &  VCoeffs() const;
 
         private :
            tCoeffs  mVCoeffs;
 };
+
+/// return polynom of (Cste + X Lin)^2
+template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>& aVecCste,const cPtxd<Type,Dim>& aVecLin);
 
 };
 

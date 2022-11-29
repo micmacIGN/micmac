@@ -13,41 +13,6 @@
 namespace MMVII
 {
 
-	/*
-template <class Type> class  cPolynom
-{
-	public :
-           typedef std::vector<Type>  tCoeffs;
-	   cPolynom(const tCoeffs &);
-	   cPolynom(const cPolynom &);
-	   cPolynom(size_t aDegre);
-	   size_t  Degree() const;
-
-           static cPolynom<Type>  D0(const Type &aCste);      ///< constant polynom degre 0
-           static cPolynom<Type>  D1FromRoot(const Type &aRoot);    ///< degre 1 polynom with aRoot
-           static cPolynom<Type>  D2NoRoot(const Type & aVMin,const Type &aArgmin);  ///< +- (|V| + (x-a) ^2) , 
-
-           static cPolynom<Type>  RandomPolyg(int aDegree,Type & anAmpl);
-	   ///  Generate random polygo from its randomly generated roots => test for 
-           static cPolynom<Type>  RandomPolyg(std::vector<Type> & aVRoots,int aNbRoot,int aNbNoRoot,Type Interv,Type MinDist);
-
-	   Type  Value(const Type & aVal) const;
-
-	   cPolynom<Type> operator * (const cPolynom<Type> & aP2) const;
-	   cPolynom<Type> operator + (const cPolynom<Type> & aP2) const;
-	   cPolynom<Type> operator * (const  Type & aVal) const;
-	   std::vector<Type> RealRoots(const Type & aTol,int ItMax);
-
-
-	   Type&   operator [] (size_t aK) {return mVCoeffs[aK];}
-	   const Type&   operator [] (size_t aK) const {return mVCoeffs[aK];}
-           const tCoeffs &  VCoeffs() const;
-
-	private :
-           tCoeffs  mVCoeffs;
-};
-*/
-
 
 /* ************************************************************************ */
 /*                                                                          */
@@ -185,6 +150,17 @@ template <class Type> cPolynom<Type>  cPolynom<Type>::operator + (const cPolynom
       return aRes;
 }
 
+template <class Type> cPolynom<Type>  cPolynom<Type>::operator - (const cPolynom<Type> & aP2) const
+{
+      cPolynom<Type> aRes(std::max(Degree(),aP2.Degree()));
+
+      for (size_t aDeg=0 ; aDeg<aRes.mVCoeffs.size() ; aDeg++)
+          aRes[aDeg] = this->KthDef(aDeg) - aP2.KthDef(aDeg);
+
+      return aRes;
+}
+
+
 template <class Type> cPolynom<Type>  cPolynom<Type>::operator * (const Type & aMul) const
 {
      cPolynom<Type> aRes(*this);
@@ -194,6 +170,12 @@ template <class Type> cPolynom<Type>  cPolynom<Type>::operator * (const Type & a
 
      return aRes;
 }
+
+template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>& aVecCste,const cPtxd<Type,Dim>& aVecLin)
+{
+	return cPolynom<Type>({1,2,3});
+}
+
 
 
 template<class Type> void TplBenchPolynome()
@@ -207,24 +189,31 @@ template<class Type> void TplBenchPolynome()
 
      cPolynom<Type> aPol2({-5,4,-3,2,-1});
 
-     cPolynom<Type> aP1m2 = aPol1 * aPol2;
-     cPolynom<Type> aP2m1 = aPol2 * aPol1;
+     cPolynom<Type> aP1mul2 = aPol1 * aPol2;
+     cPolynom<Type> aP2mul1 = aPol2 * aPol1;
 
      cPolynom<Type> aP1p2 = aPol1 + aPol2;
      cPolynom<Type> aP2p1 = aPol2 + aPol1;
+
+     cPolynom<Type> aP1min2 = aPol1 - aPol2;
+     cPolynom<Type> aP2min1 = aPol2 - aPol1;
 
      Type aEps = tElemNumTrait<Type> ::Accuracy();
 
      for (int aK=0 ; aK< 20 ; aK++)
      {
          Type aV = RandUnif_C();
-	 Type aChekM  = aPol1.Value(aV) * aPol2.Value(aV);
+	 Type aChekMul  = aPol1.Value(aV) * aPol2.Value(aV);
 	 Type aChekP  = aPol1.Value(aV) + aPol2.Value(aV);
+	 Type aChekMin  = aPol1.Value(aV) - aPol2.Value(aV);
 
-         MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(aChekM,aP1m2.Value(aV)))<aEps,"Polyn  mul");
-         MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(aChekM,aP2m1.Value(aV)))<aEps,"Polyn  mul");
+         MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(aChekMul,aP1mul2.Value(aV)))<aEps,"Polyn  mul");
+         MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(aChekMul,aP2mul1.Value(aV)))<aEps,"Polyn  mul");
          MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(aChekP,aP2p1.Value(aV)))<aEps,"Polyn  mul");
          MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(aChekP,aP1p2.Value(aV)))<aEps,"Polyn  mul");
+
+         MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(aChekMin,aP1min2.Value(aV)))<aEps,"Polyn  mul");
+         MMVII_INTERNAL_ASSERT_bench(std::abs(RelativeSafeDifference(-aChekMin,aP2min1.Value(aV)))<aEps,"Polyn  mul");
      }
 
      for (int aK=0 ; aK< 200 ; aK++)
@@ -262,8 +251,13 @@ void BenchPolynome(cParamExeBench & aParam)
 }
 
 
+#define INSTANTIATE_PolSqN(TYPE,DIM)\
+template cPolynom<TYPE> PolSqN(const cPtxd<TYPE,DIM>& aVecCste,const cPtxd<TYPE,DIM>& aVecLin);
 
 
+INSTANTIATE_PolSqN(tREAL4,3);
+INSTANTIATE_PolSqN(tREAL8,3);
+INSTANTIATE_PolSqN(tREAL16,3);
 template class cPolynom<tREAL4>;
 template class cPolynom<tREAL8>;
 template class cPolynom<tREAL16>;
