@@ -1238,7 +1238,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
 
    tDImSimil & aDImSim = mImSimil.DIm();
    // Parse all pixels
-	const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(0   ).DIm();
+    const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(0   ).DIm();
     //compute similarity matrices at the beginning 
     std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;
     auto MasterOrtho=mVOrtho.at(0); //vector<tImOrtho>
@@ -1250,6 +1250,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
     }
    for (const auto & aP : aDImSim)
    {
+
         // method : average of image all ok if any, else weighted average of partial corr
         float aSumCorAllOk = 0.0; // Sum of correl of image where point are all ok
         float aSumWeightAllOk = 0.0; //   Nb of All Ok
@@ -1259,7 +1260,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
 	 using namespace torch::indexing;;
         for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
 	{
-        bool AllOk;
+            bool AllOk;
 	    float aWeight,aCorrel;
         //CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
         // Compute cosine simialrity with respect to master ortho embeddings 
@@ -1288,8 +1289,8 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
         /**************************************************************************************/  
 	    if (AllOk)
 	    {
-           aSumCorAllOk     += aCorrel;
-	       aSumWeightAllOk  += 1;
+                aSumCorAllOk     += aCorrel;
+                aSumWeightAllOk  += 1;
 	    }
 	    else
 	    {
@@ -1302,7 +1303,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
                           (aSumCorPart / std::max(1e-5f,aSumWeightPart)) ;
     //std::cout<<"avant "<<aAvgCorr<<std::endl;
     // Interpolate correlation values 
-    //InterpolatePos(spaceCorrToulouse512,spaceProbToulouse512,aAvgCorr);
+    //InterpolatePos(spaceCorrDUBLIN,spaceProbDUBLIN,aAvgCorr);
     //std::cout<<"apres "<<aAvgCorr<<std::endl;
 	aDImSim.SetV(aP,1-aAvgCorr);
    }
@@ -1699,7 +1700,7 @@ int  cAppliMatchMultipleOrtho::Exe()
     
 	    // Create similarity image with good size
 	    mImSimil = tImSimil(mSzIms);
-	    mImSimil.DIm().InitCste(2.0);   //  2 => correl of -1
+            mImSimil.DIm().InitCste(2.0);   //  2 => correl of -1
     
 
         if(mWithExtCorr)

@@ -815,16 +815,25 @@ torch::Tensor aCnnModelPredictor::PredictMSNet(MSNet mNet, std::vector<tTImV2> a
 torch::Tensor aCnnModelPredictor::PredictUNetWDecision(torch::jit::script::Module mNet, std::vector<tTImV2> aMasterP,std::vector<tTImV2> aPatchLV, cPt2di aPSz)
 {
     auto cuda_available = torch::cuda::is_available();
-    std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
+    //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
+    //std::cout<<"master vector sizes <<   "<<aMasterP.size()<<std::endl;
+    //std::cout<<"slaves vector sizes <<   "<<aPatchLV.size()<<std::endl;
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
-	torch::NoGradGuard no_grad;
-	mNet.eval();
+    torch::NoGradGuard no_grad;
+    mNet.eval();
     torch::Tensor aPAllMasters=torch::empty({(int) aMasterP.size(),aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
     torch::Tensor aPAllSlaves=torch::empty({(int) aPatchLV.size(),aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
     for (int cc=0;cc<(int) aMasterP.size();cc++)
     {
         tREAL4 ** mPatchLData=aMasterP.at(cc).DIm().ExtractRawData2D();
         torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+        //normalize apl
+        //auto std=aPL.std();
+        //aPL=aPL.sub(aPL.mean());
+        //aPL=aPL.div(std.add(1e-12));
+        //std::cout<<"  PATCH CONTENT "<<aPL<<std::endl;
+        aPL=aPL.div(255.0);
+        aPL=(aPL.sub(0.4353755468)).div(0.19367880);
         aPAllMasters.index_put_({cc},aPL);
     }
     //StdOut()<<"master "<<aPAllMasters.sizes()<<"\n";
@@ -832,10 +841,15 @@ torch::Tensor aCnnModelPredictor::PredictUNetWDecision(torch::jit::script::Modul
     {
         tREAL4 ** mPatchLData=aPatchLV.at(cc).DIm().ExtractRawData2D();
         torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+        //auto std=aPL.std();
+        //aPL=aPL.sub(aPL.mean());
+        //aPL=aPL.div(std.add(1e-12));
+        aPL=aPL.div(255.0);
+        aPL=(aPL.sub(0.4353755468)).div(0.19367880);
         aPAllSlaves.index_put_({cc},aPL);
     }
     auto aPAll=torch::cat({aPAllMasters.unsqueeze(0),aPAllSlaves.unsqueeze(0)},0).to(device); // tensor of size 2,1,W,H
-    StdOut()<<"Patches "<<aPAll.sizes()<<"\n";
+    //StdOut()<<"Patches "<<aPAll.sizes()<<"\n";
     torch::jit::IValue inp(aPAll);
     std::vector<torch::jit::IValue> allinp={inp};
     auto out=mNet.forward(allinp);
@@ -869,6 +883,12 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::M
     mNet.eval();
     tREAL4 ** mPatchLData=aPatchLV.DIm().ExtractRawData2D();
     torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32)).to(device);
+    // Normalize The tile with respect to the dataset configuration
+    // print image content
+    //std::cout<<"TILE CONTENT  ========= >  "<<aPL<<std::endl;
+    aPL=(aPL.div(255.0));
+    aPL=(aPL.sub(0.4353755468)).div(0.19367880);
+    //aPL=(aPL.sub(aPL.mean())).div(aPL.std()+1e-8);
     torch::jit::IValue inp(aPL);
     std::vector<torch::jit::IValue> allinp={inp};
     //std::cout<<"IVALUE CREATED "<<std::endl; 
@@ -884,6 +904,7 @@ torch::Tensor aCnnModelPredictor::PredictDecisionNet(torch::jit::script::Module 
     torch::NoGradGuard no_grad;
     mNet.eval();
     auto CatTensor=torch::cat({Left,Right},1); // to get a size of {1,FeatsSIZE}
+    //CatTensor=CatTensor.squeeze(0).unsqueeze(3);
     torch::jit::IValue inp(CatTensor);
     std::vector<torch::jit::IValue> allinp={inp};
     torch::Tensor OutSim=mNet.forward(allinp).toTensor().squeeze();
@@ -911,7 +932,7 @@ torch::Tensor aCnnModelPredictor::PredictONCUBE(torch::jit::script::Module mMlp,
     mMatcher.eval();
     torch::Tensor OutSim=mMatcher.forward(allinp).toTensor().sigmoid().squeeze();
     allinp.clear();
-    return OutSim;
+    return OutSimBrut;
 }
 /**********************************************************************************************************************/
 torch::Tensor aCnnModelPredictor::PredictMSNetAtt(MSNet_Attention mNet, std::vector<tTImV2> aPatchLV, cPt2di aPSz)
