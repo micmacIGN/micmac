@@ -878,6 +878,7 @@ template <class Type> class  cPolynom
            tCoeffs  mVCoeffs;
 };
 
+template <class Type,const int Dim>  cPolynom<Type> operator * (const  Type & aVal,const cPolynom<Type>  & aPol)  {return aPol*aVal;}
 /// return polynom of (Cste + X Lin)^2
 template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>& aVecCste,const cPtxd<Type,Dim>& aVecLin);
 
