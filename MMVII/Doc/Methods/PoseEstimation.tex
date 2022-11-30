@@ -1,0 +1,76 @@
+
+\chapter{Pose estimation, elementary method}
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Introduction}
+
+This chapter present the "elementary" method, that compute the pose of an image
+from observations that can, typically, be tie points (relative pose) or 
+ground control point (relative or absolute pose).
+
+By elementary we means algorithms that compute directly a solution for a limited
+(typically $2$ or $3$, a few with tomasi-kanade) number of image. These algorithm
+are the "tacticle" part, the result of the elementary algorithm will be used as
+elementary part of the puzzle by more global method that will try to have a "strategic"  view.
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Space resection, calibrated case}
+
+
+    %-----------------------------------------------------
+\subsection{Introduction}
+
+We deal here will the following problem  we have :
+
+\begin{itemize}
+   \item a calibrated camera ;
+   \item a set of point for which we know the  $3d$ word coordinates $W_k$ and their 
+        $2d$ coordinate $p_k$ in a image acquired with this camera;
+\end{itemize}
+
+We want to extract the pose $R,C$ of the camera (Rotation,center) such that for every point
+we have the usual projection equation:
+
+\begin{equation}
+       \mathcal I(\pi (R*(C-W_k))) = p_k \label{EQ:PROJ}
+\end{equation}
+
+
+Each equation~\ref{EQ:PROJ}  creates $2$ constraints : one on line and one on column.
+Also the pose $R,C$ has $6$ degrees of freedom, so we can expect that the problem has
+a finite number of solution when we have $3$ points (in general less than $3$ will create
+infinite number and more than $3$ no solution).
+
+So here we will deal specifically  with the computation of the $R,C$ satisfying
+exactly the equation~\ref{EQ:PROJ}  from a set of $3$ correspondance. Other
+chapter will discuss of how we use more (possibly many) correspondance for beign 
+robust to outlier (for
+example with Ransac) or beign more accurate in presence of "gaussian" noise (for 
+example with leas-square like) .
+
+
+    %-----------------------------------------------------
+
+\subsection{Putting things in equation}
+
+First, we remark that if we know the local coordinates $L_k$ of the points in the repair
+of the camera, the problem becomes easy : find a translation-rotation such that  :
+
+\begin{equation}
+       R*(C-W_k) = L_k  ; k\in{1,2,3} \label{SpResecEQ:WL}
+\end{equation}
+
+For each pai
+
+
+
+
+
