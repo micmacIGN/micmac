@@ -42,7 +42,6 @@ template <class Type>  class cElemSpaceResection
 	   tP3  BC;      ///<  Vector  A -> C
 	   Type abb;     ///<  (A->B).B
 
-
 	   // copy of ground point coordinates, local precision
 	   tP3  gA;
 	   tP3  gB;
@@ -75,7 +74,7 @@ template <class Type>
         AB      (B - A),
         AC      (C - A),
         BC      (C - B),
-	abb   (Scal(AB,B)),
+	abb     (Scal(AB,B)),
 
         gA (ToPt(aPGroundA)),
         gB (ToPt(aPGroundB)),
@@ -112,10 +111,10 @@ template <class Type>
 
      b^2 + 2AB.B b  + (AB^2 -rABC(cC + AC)^2  ) =0
    # P(c) =  (AB^2 -rABC (cC + AC)^2)
-     b^2 + 2AB.B b + P(c) =0   =>    
+     b^2 + 2AB.B b + P(c) =0   =  (B+AB.B)^2 - (AB.B^2 -P(c))
      2nd degre equation in b 
-     b =  - AB.B +E SQRT(AB.B -P(c))   E in {-1,+1}
-   # Q(c) = AB.B -P(c)
+     b =  - AB.B +E SQRT(AB.B^2  -P(c))   E in {-1,+1}
+   # Q(c) = AB.B^2 -P(c)
      b =  - AB.B + E S(Q(c))
 */
 
@@ -123,8 +122,8 @@ template <class Type>
      // P(c) =  (AB^2 -rABC (cC + AC)^2)
     tPol  aPol_AC_C =  PolSqN(AC,C);
     cPolynom<Type> aPc =  tPol::D0(SqN2(AB)) -  aPol_AC_C *rABC ;
-    // Q(c) = AB.B -P(c)^2
-    cPolynom<Type> aQc =  tPol::D0(abb) - aPc;
+    // Q(c) = AB.B^2 -P(c)
+    cPolynom<Type> aQc =  tPol::D0(Square(abb)) - aPc;
 
   //  Now we can eliminate b using :   b =  - AB.B + E S(Q(c))   E in {-1,1} 
 /* ======================== (2) resolve c =====================
@@ -154,6 +153,10 @@ template <class Type>
     tPol aSolver = Square(aRc) - aQc * Square(aLc) * 4;
 
     StdOut()  << "DDDD " << aSolver.Degree()  << "\n";
+
+    std::vector<Type> aVRoots = aSolver.RealRoots (1e-20,30);
+
+    StdOut()  << "RRRRR= " << aVRoots << "\n";
 	    /*
     for (Type E : {-1.0,1.0})
     {
@@ -162,6 +165,22 @@ template <class Type>
 
     FakeUseIt(aQc);
     */
+}
+
+void TestResec()
+{
+	cPt3dr A (1,0,0);
+	cPt3dr B = VUnit(cPt3dr(1,0.1,0));
+	cPt3dr C = VUnit(cPt3dr(1,0,0.2));
+
+
+   cElemSpaceResection<tREAL8>
+   (
+           A,B,C,
+	   A, B*1.2,C*1.4
+   );
+
+   StdOut()<< "RESEC : DOOOOOnnnne \n"; getchar();
 }
 
 

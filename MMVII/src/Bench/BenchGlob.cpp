@@ -921,12 +921,14 @@ void ShowAdr(double & anAdr)
        StdOut () <<  "ADDDDDr " << &(anAdr) << "\n";
 }
 void TTT();
-
+void TestResec();
 
 
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   TestResec();
+
    int aVatNotInSpec;
    StdOut() <<  "mDegDistTest " << IsInSpec(&mDegDistTest) << " " << IsInSpec(&aVatNotInSpec) << "\n";
    if (IsInit(&mDegDistTest))

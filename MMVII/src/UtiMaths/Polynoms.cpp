@@ -171,9 +171,14 @@ template <class Type> cPolynom<Type>  cPolynom<Type>::operator * (const Type & a
      return aRes;
 }
 
-template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>& aVecCste,const cPtxd<Type,Dim>& aVecLin)
+template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>& aVC,const cPtxd<Type,Dim>& aVL)
 {
-	return cPolynom<Type>({1,2,3});
+	return cPolynom<Type>
+		({
+		       static_cast<Type>(SqN2(aVC)), 
+		       static_cast<Type>(Scal(aVC,aVL)), 
+		       static_cast<Type>(SqN2(aVL))
+                });
 }
 
 
