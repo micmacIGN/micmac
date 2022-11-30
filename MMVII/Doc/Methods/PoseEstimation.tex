@@ -40,7 +40,7 @@ We want to extract the pose $R,C$ of the camera (Rotation,center) such that for 
 we have the usual projection equation:
 
 \begin{equation}
-       \mathcal I(\pi (R*(C-W_k))) = p_k \label{EQ:PROJ}
+       \mathcal I(\pi (R*(W_k-C))) = p_k \label{EQ:PROJ}
 \end{equation}
 
 
@@ -61,15 +61,116 @@ example with leas-square like) .
 
 \subsection{Putting things in equation}
 
+           %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Equivalence to local coordinates}
+
 First, we remark that if we know the local coordinates $L_k$ of the points in the repair
-of the camera, the problem becomes easy : find a translation-rotation such that  :
+of the camera, the problem becomes easy . Let show it, we will have to find a translation-rotation such that  :
 
 \begin{equation}
-       R*(C-W_k) = L_k  ; k\in{1,2,3} \label{SpResecEQ:WL}
+       R*(W_k-C) = L_k  ; k\in{1,2,3} \label{SpResecEQ:WL}
 \end{equation}
 
-For each pai
 
+For each pair $k,k'$, we have (noting $\Vec{X}_{kk'} = \overrightarrow{X_{k}X_{k'}} $):
+
+
+\begin{equation}
+	R* \Vec{W}_{kk'} =  \Vec{L}_{kk'} \label{SpResecEQ:WLVECT}
+\end{equation}
+
+As  $R$ is a rotation we have $R(A \wedge  B) = R(A) \wedge   R(B) $ and then:
+
+\begin{equation}
+	R* \begin{bmatrix} \Vec{W}_{12} & \Vec{W}_{23} &  \Vec{W}_{12} \wedge \Vec{W}_{23} \end{bmatrix} 
+        =  \begin{bmatrix} \Vec{L}_{12} & \Vec{L}_{23} &  \Vec{L}_{12} \wedge \Vec{L}_{23} \end{bmatrix} 
+        \label{SpResecEQ:WLVECT}
+\end{equation}
+
+Equation~\ref{SpResecEQ:WLVECT} allows to compute $R$ by matrix inversion and multiplication, and 
+once $R$ is known it can be injected in equation~\ref{SpResecEQ:WL} to compute $C$.
+
+           %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Equivalence to compute depth}
+
+We need to compute the local coordinates . For this, we know for each point the bundle its belongs
+to because we know internal calibration. Le $B_k$ be the bundle bearing the point $p_k$ We can write symbolicly :
+
+
+\begin{equation}
+	B_k =  \pi^{-1} (\mathcal I ^{-1} (p_k)) 
+\end{equation}
+
+Let write $B_k = (0,\Vec{u}_k)$,  we can compute $\Vec{u}_k$ with internal calibration and
+as we know that $L_k \in B_k$ we can write  :
+
+
+\begin{equation}
+	L_k = \lambda_k \Vec{u}_k
+\end{equation}
+
+So to solve our problem it is sufficent to estimate $\lambda_k$.
+
+           %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Setting equations}
+
+Now we remmber that rotation and translation are isometric, so we have conservation of
+distances between  word an local coordinates. We can then write :
+
+\begin{equation}
+     D_{kk'}	||\Vec{W}_{kk'}||   = || \Vec{L}_{kk'} || = || \lambda_k \Vec{u}_k -  \lambda_{k'} \Vec{u}_{k'}|| \label{SpResecEQ:ConsDist}
+\end{equation}
+
+
+In equation~\ref{SpResecEQ:ConsDist}, the $D_{kk'}$ and  $\Vec{u}_k$ are know, so we have $3$ equation 
+$3$ unkowns.
+
+
+
+    %-----------------------------------------------------
+
+\subsection{Solving $3$  equations with $3$ unknowns}
+
+\subsubsection{Fix notation an supress 1 unknown}
+
+We change notation to have lighter formula and to make them coherent with the {\tt C++} code of {\tt MMVII}
+impplemating this resolution. We call $\Vec{A} , \Vec{B}, \Vec{C}$  the bundles, $D_{AB}$ the distances \dots
+equations become :
+
+\begin{equation}
+	D_{AB} = || \lambda_a \Vec{A} -  \lambda_{b} \Vec{B} || \label{SpResecEQ:ABC}
+\end{equation}
+
+By doing quotient of equation~\ref{SpResecEQ:ABC} we have :
+
+\begin{equation}
+	\rho^A_{bc}  
+	=	\frac{D^2_{AB}}{D^2_{AC}} 
+	= \frac{|| \Vec{A} -  \frac{\lambda_{b}}{\lambda_{a}} \Vec{B} ||^2 }{||\Vec{A} -  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C}||^2}
+\end{equation}
+\COM{
+}
+
+
+           %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Supression another unknown}
+
+In a firtst step we will write quotient betwenn equation
+
+
+Supress
+
+    %-----------------------------------------------------
+
+\subsection{Notes for TD}
+
+TD :
+
+Begin with a calibrated camera w/o distortion,
+
+From $3$ point compute 2 lamba with MMVII , then generate the rotations, solve ambiquity (with $4$ points)
+
+From data with outlier (50\% on 50 point) use ransac like to make a robust init.
 
 
 
