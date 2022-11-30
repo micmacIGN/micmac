@@ -176,7 +176,7 @@ template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>&
 	return cPolynom<Type>
 		({
 		       static_cast<Type>(SqN2(aVC)), 
-		       static_cast<Type>(Scal(aVC,aVL)), 
+		       static_cast<Type>(2*Scal(aVC,aVL)), 
 		       static_cast<Type>(SqN2(aVL))
                 });
 }
