@@ -210,7 +210,7 @@ class cMMVII_Ifs : public cMemCheck
          std::string   mName;
 };
 
-class cMultipleOfs  : public  std::ostream
+class cMultipleOfs
 {
     public :
         cMultipleOfs(std::ostream & aOfs) :

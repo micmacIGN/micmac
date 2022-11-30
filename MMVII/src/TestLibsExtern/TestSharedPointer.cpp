@@ -87,7 +87,7 @@ class cDataFonc1V : public  cTestMMV2Obj
            virtual ~cDataFonc1V() {}
            virtual double GetVal(double anX) const = 0;
            virtual cFonc1V Derive() const = 0;
-           virtual void Show(std::ostream &) const = 0;
+           virtual void Show(cMultipleOfs &) const = 0;
 
            virtual bool IsCste0() const {return false;}
            virtual bool IsCste1() const {return false;}
@@ -118,7 +118,7 @@ class cDataFonc1V_Cste  : public cDataFonc1V
 
          double GetVal(double) const {return mCste;}
          cFonc1V Derive() const {return cFonc1V(0.0);}
-         void Show(std::ostream & os) const {os << mCste;}
+         void Show(cMultipleOfs& os) const {os << mCste;}
 
          bool IsCste0() const {return mCste==0;}
          bool IsCste1() const {return mCste==1;}
@@ -140,7 +140,7 @@ class cDataFonc1V_X  : public cDataFonc1V
 
            double GetVal(double aVal) const {return aVal;}
            cFonc1V Derive() const {return cFonc1V(1.0);}
-           void Show(std::ostream & os) const {os << "X";}
+           void Show(cMultipleOfs & os) const {os << "X";}
       private  :
 };
 
@@ -156,7 +156,7 @@ class cDataFonc1V_Som  : public cDataFonc1V
 
          double  GetVal(double aVal) const {return mF1->GetVal(aVal)+mF2->GetVal(aVal);}
          cFonc1V  Derive() const {return mF1->Derive()+mF2->Derive();}
-         void Show(std::ostream & os) const 
+         void Show(cMultipleOfs& os) const 
          {
                os << "(";
                mF1->Show(os); 
