@@ -73,8 +73,8 @@ const std::string GIP_BenchMode = "BenchMode";
 const char CharProctected = '\\';
 #endif
 
-const std::string DirBin2007=DirOfPath(MMVII_CanonicalSelfExecName());
-const std::string Bin2007=FileOfPath(MMVII_CanonicalSelfExecName());
+const std::string FullBin2007=MMVII_CanonicalSelfExecName();
+const std::string DirBin2007=DirOfPath(FullBin2007);        // order initialization is garanteed in same TU
 
 
 // User/Command

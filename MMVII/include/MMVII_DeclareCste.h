@@ -71,8 +71,8 @@ extern const std::string  MMv1XmlTag_SetName;
 extern const std::string  MMv1XmlTag_RelName;
 
 // MicMac Install
-extern const   std::string DirBin2007;  ///< computed by MM Instal
-extern const   std::string Bin2007; ///< MMVII 4 now
+extern const   std::string FullBin2007; ///< DIR + NAME of executabale, Computed at execution time
+extern const   std::string DirBin2007;  ///< computed from FullBin2007
 
 // PostFix 4 files
 extern const   std::string PostF_XmlFiles; ///< xml now

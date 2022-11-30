@@ -474,7 +474,6 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         std::string                               mFullBin;       ///< full name of binarie =argv[0]
         std::string                               mDirMMVII;      ///< directory of binary
-        std::string                               mBinMMVII;      ///< name of Binary (MMVII ?)
         std::string                               mDirMicMacv1;   ///< Dir where is located MicMac V1
         std::string                               mDirMicMacv2;   ///< Dir where is located MicMac V2
         std::string                               mDirProject;    ///< Directory of the project (./ if no way to find it)

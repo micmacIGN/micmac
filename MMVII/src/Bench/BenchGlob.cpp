@@ -527,7 +527,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
        if (aSpec->Name() != mSpecs.Name())
        {
           // Not really necessary to init, but no bad ...
-          std::vector<std::string> aVArgs = {Bin2007," "+ aSpec->Name()};
+          std::vector<std::string> aVArgs = {mFullBin," "+ aSpec->Name()};
           tMMVII_UnikPApli anAppli = aSpec->Alloc()(aVArgs,*aSpec);
           anAppli->SetNot4Exe();
 

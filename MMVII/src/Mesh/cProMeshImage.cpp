@@ -212,7 +212,7 @@ int  cAppliProMeshImage::ExecuteBench(cParamExeBench & aParam)
 
    // call the proj for all file in FileTestMesh.xml => in the recall we will test the result with the reference
    std::string aCom =
-	              Bin2007 + BLANK
+	              mFullBin + BLANK
 		  +   mSpecs.Name() + BLANK
 		  +  mInputDirTestMMVII + "Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh BenchMode=1";
 
