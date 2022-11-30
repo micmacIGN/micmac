@@ -7,28 +7,31 @@ namespace MMVII
 /**
      Default Error Function
 */
-void Default_MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
+void Default_MMVII_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
 {
+    std::cout.flush();
+    std::cerr.flush();
+    StdOut().flush();
     ErrOut() << "\n\n ######################################""\n\n";
     ErrOut() << "Level=[" << aType << "]\n";
     ErrOut() << "Mes=[" << aMes << "]\n";
     if (aFile)
        ErrOut() << "at line  " << aLine << " of file " << aFile  << "\n";
-    
-    cSpecMMVII_Appli::ShowCmdArgs();
+    ErrOut().flush();
+
+    cSpecMMVII_Appli::ShowCmdArgs();        // Writes to std::cout ..
+    std::cout.flush();
 
     if (!cMMVII_Appli::ExistAppli())
     {
-       getchar();
-       exit(-1);
+        abort();
     }
-    getchar();
-    exit(-1);
+    abort();
 }
 
 
 /// Initialize Error Handler
-PtrMMVII_Error_Handler MMVVI_Error = Default_MMVVI_Error;
+PtrMMVII_Error_Handler MMVVI_Error = Default_MMVII_Error;
 
 
 /// Change Error Handler
@@ -40,7 +43,7 @@ void MMVII_SetErrorHandler(PtrMMVII_Error_Handler aHandler)
 /// Restore to default error handler
 void MMVII_RestoreDefaultHandle()
 {
-    MMVVI_Error = Default_MMVVI_Error;
+    MMVVI_Error = Default_MMVII_Error;
 }
 
 
