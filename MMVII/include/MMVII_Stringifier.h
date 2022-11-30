@@ -107,6 +107,10 @@ template <>  const std::string cStrIO<eModeEpipMatch>::msNameType;
 template <>  const std::string cStrIO<eModePaddingEpip>::msNameType;
 template <>  const std::string cStrIO<eModeCaracMatch>::msNameType;
 
+template <>  const std::string cStrIO<eProjPC>::msNameType;
+template <>  const std::string cStrIO<eModeTestPropCov>::msNameType;
+template <>  const std::string cStrIO<eDCTFilters>::msNameType;
+
 /** These functions offer an"easy" interface to cStrIO, however I think
 *    cStrIO is still usefull when type inference becomes too compliicated
 */
