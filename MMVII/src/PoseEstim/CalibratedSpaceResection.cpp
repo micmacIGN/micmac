@@ -17,9 +17,7 @@ template <class Type>  class cElemSpaceResection
       public :
            typedef cPtxd<Type,3>   tP3;
            typedef cPolynom<Type>  tPol;
-
-
-	   tP3 ToPt(const tPt3dr &  aP) {return tP3(aP.x(),aP.y(),aP.z());}
+           typedef cPt2dr          tPairBC;
 
 	   // All points in are in REAL8, only intermediar computation is eventually on REAL16
            cElemSpaceResection
@@ -31,6 +29,13 @@ template <class Type>  class cElemSpaceResection
 	        const tPt3dr & aPGroundB,
 	        const tPt3dr & aPGroundC
 	   );
+
+	   std::list<tPairBC>  ComputeBC() const;
+	   static void OneTestCorrectness();
+
+       private :
+
+	   tP3 ToPt(const tPt3dr &  aP) {return tP3(aP.x(),aP.y(),aP.z());}
 	   
 	   // copy bundles, are unitary
 	   tP3  A;
@@ -86,6 +91,11 @@ template <class Type>
 
 	rABC  (gD2AB/gD2AC),
 	rCBA  (gD2BC/gD2AC)
+{
+}
+
+
+template <class Type> std::list<cPt2dr>  cElemSpaceResection<Type>::ComputeBC() const
 {
 /*
       3 direction  of bundles  A,B,C   we have made ||A|| = ||B|| = ||C|| = 1
@@ -186,6 +196,8 @@ template <class Type>
     tPol aSolver = Square(aRc) - aQc * Square(aLc) * 4;
     std::vector<Type> aVRoots = aSolver.RealRoots (1e-20,30);
 
+
+    std::list<tPairBC> aRes;
     for (Type c : aVRoots)
     {
         for (Type E : {-1.0,1.0})
@@ -204,30 +216,32 @@ template <class Type>
 
 		if (  (std::abs(aCheckABC)< 1e-5)  && (std::abs(aCheckCBA)< 1e-5) )
 		{
-		      StdOut()  <<  "bc " << b << " " << c << " " << aCheckABC << " " << aCheckCBA << "\n";
+                   aRes.push_back(tPairBC(b,c));
+		   StdOut()  <<  "bc " << b << " " << c << " " << aCheckABC << " " << aCheckCBA << "\n";
 		}
 	    }
         }
     }
 
+    return aRes;
+
+}
+
+template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
+{
+   cPt3dr A (1,0,0);
+   cPt3dr B = VUnit(cPt3dr(1,0.1,0));
+   cPt3dr C = VUnit(cPt3dr(1,0,0.2));
+
+   cElemSpaceResection<tREAL8> anESR(A,B,C, A,B*1.2,C*1.4);
 }
 
 void TestResec()
 {
-	cPt3dr A (1,0,0);
-	cPt3dr B = VUnit(cPt3dr(1,0.1,0));
-	cPt3dr C = VUnit(cPt3dr(1,0,0.2));
-
-
-   cElemSpaceResection<tREAL8>
-   (
-           A,B,C,
-	   A, B*1.2,C*1.4
-   );
-
+   cElemSpaceResection<tREAL8>::OneTestCorrectness();
+   cElemSpaceResection<tREAL16>::OneTestCorrectness();
    StdOut()<< "RESEC : DOOOOOnnnne \n"; getchar();
 }
-
 
 template class cElemSpaceResection<tREAL8>;
 template class cElemSpaceResection<tREAL16>;

@@ -64,6 +64,8 @@ example with leas-square like) .
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Equivalence to local coordinates}
 
+\label{SpRes:EquivLocCoord}
+
 First, we remark that if we know the local coordinates $L_k$ of the points in the repair
 of the camera, the problem becomes easy . Let show it, we will have to find a translation-rotation such that  :
 
@@ -98,15 +100,17 @@ to because we know internal calibration. Le $B_k$ be the bundle bearing the poin
 
 
 \begin{equation}
-	B_k =  \pi^{-1} (\mathcal I ^{-1} (p_k)) 
+	B_k =  \pi^{-1} (\mathcal I ^{-1} (p_k)) \label{SpResecEQ:DefBundle}
 \end{equation}
+
+
 
 Let write $B_k = (0,\Vec{u}_k)$,  we can compute $\Vec{u}_k$ with internal calibration and
 as we know that $L_k \in B_k$ we can write  :
 
 
 \begin{equation}
-	L_k = \lambda_k \Vec{u}_k
+	L_k = \lambda_k \Vec{u}_k \label{SpResecEQ:DefLambda}
 \end{equation}
 
 So to solve our problem it is sufficent to estimate $\lambda_k$.
@@ -147,30 +151,127 @@ By doing quotient of equation~\ref{SpResecEQ:ABC} we have :
 	\rho^A_{bc}  
 	=	\frac{D^2_{AB}}{D^2_{AC}} 
 	= \frac{|| \Vec{A} -  \frac{\lambda_{b}}{\lambda_{a}} \Vec{B} ||^2 }{||\Vec{A} -  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C}||^2}
+	\;\;
+	\rho^C_{ba}  
+	=	\frac{D^2_{CB}}{D^2_{CA}} 
+	= \frac{|| \frac{\lambda_{c}}{\lambda_{a}} \Vec{C} -  \frac{\lambda_{b}}{\lambda_{a}} \Vec{B} ||^2 }
+	       {||\Vec{A} -  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C}||^2}
+	       \label{SpResecEQ:ABC}
 \end{equation}
-\COM{
-}
+
+Now we see that in equation~\ref{SpResecEQ:ABC}, only the ratio $\frac{\lambda_{b}}{\lambda_{a}}$ and $\frac{\lambda_{c}}{\lambda_{a}}$
+matters, so one can solve them a system of $2$ equation with $2$ unknwons. Once we will have computed these ratio the triangle
+$(\Vec{A} , \frac{\lambda_{b}}{\lambda_{a}} \Vec{B},  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C})$ will be propoprtionnal the
+triangle $(W_A,W_B,W_C)$ and it will be sufficientt compute this proportion.
 
 
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Supression another unknown}
 
-In a firtst step we will write quotient betwenn equation
+We fix the notation for ratio :
+
+\begin{equation}
+	\frac{\lambda_{b}}{\lambda_{a}} = 1+ b  \;\;
+	\frac{\lambda_{c}}{\lambda_{a}} = 1+ c
+\end{equation}
 
 
-Supress
+The $1$ in $1+b$, is to be coherent with {\tt C++} implementation where this make a more numerically stable system.
+Also to coherent with {\tt C++} implementation, we will make the hypothesis that bundles have been normalized :
+
+\begin{equation}
+	|| \Vec{A}|| = || \Vec{B}|| = || \Vec{C}|| = 1
+\end{equation}
+
+So equations~\ref{SpResecEQ:ABC} rewrites :
+
+\begin{equation}
+	\rho^A_{bc}  
+	= \frac{|| \Vec{A} -  (1+b) \Vec{B} ||^2 }{||\Vec{A} - (1+c) \Vec{C}||^2}
+	= \frac{|| \overrightarrow{AB} +  b \Vec{B} ||^2 }{||\overrightarrow{AC}  + c \Vec{C}||^2}  \label{SpResecEQ:EqFracABC}
+\end{equation}
+\begin{equation}
+	\rho^C_{ba}  
+	= \frac{|| (1+c) \Vec{C} -  (1+b) \Vec{B} ||^2 } {||\Vec{A} -  (1+c) \Vec{C}||^2}
+	= \frac{|| \overrightarrow{BC} + c \Vec{C} -  b \Vec{B} ||^2 } {||\overrightarrow{AC}  + c \Vec{C}||^2}
+	 \label{SpResecEQ:EqFracCBA}
+\end{equation}
+
+Now we can write equation~\ref{SpResecEQ:EqFracABC} :
+
+\begin{equation}
+	b^2 + 2 b \overrightarrow{AB}. \Vec{B} + (||AB||^2 -   \rho^A_{bc} ||\overrightarrow{AC}  + c \Vec{C}||^2)
+	\label{SpResecEQ:Pol2B}
+\end{equation}
+
+Equation~\ref{SpResecEQ:Pol2B} can be see as $2d$ degree polynom in $b$, and can express $b$ as function of $c$:
+
+\begin{equation}
+	b = -\overrightarrow{AB}. \Vec{B} \pm \sqrt{Q(c)}  = -\overrightarrow{AB}. \Vec{B} + \epsilon \sqrt{Q(c)} 
+	 \;\;\;  \epsilon \in \{-1,1\}  \label{SpResecEQ:SolEqD2}
+\end{equation}
+
+With :
+\begin{equation}
+	Q(c) = (\overrightarrow{AB}. \Vec{B})^2 -  (||AB||^2 -   \rho^A_{bc} ||\overrightarrow{AC}  + c \Vec{C}||^2)
+\end{equation}
+
+           %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Resolving last unknown}
+
+We can now use equation~\ref{SpResecEQ:SolEqD2} to substituate $b$  in equation~\ref{SpResecEQ:SolEqD2}
+
+\begin{equation}
+	\rho^C_{ba}   ||\overrightarrow{AC}  + c \Vec{C}||^2
+	= || \overrightarrow{BC} + c \Vec{C} -  (-\overrightarrow{AB}. \Vec{B} + \epsilon \sqrt{Q(c)}) \Vec{B} ||^2 
+	\label{SpResecEQ:EqcInit}
+\end{equation}
+
+We note $R(c)$ the $2d$ degree polynom in $c$ defined by :
+
+\begin{equation}
+   R(c) =   \rho^C_{ba}   ||\overrightarrow{AC}  + c \Vec{C}||^2
+        - Q(c)
+        - ||\overrightarrow{BC} + c \Vec{C} + (\overrightarrow{AB}. \Vec{B}) \Vec{B} ||^2
+\end{equation}
+
+We note $L(c)$ the $1d$ degree polynom in $c$ defined by :
+
+\begin{equation}
+	L(c)=   ( \overrightarrow{BC}.\Vec{B} + \overrightarrow{AB}. \Vec{B} +   c \Vec{C}.\Vec{B}  ) 
+\end{equation}
+
+Then equation~\ref{SpResecEQ:EqcInit} writes :
+
+\begin{equation}
+	R(c) = 2 \epsilon L(c)  \sqrt{Q(c) }   \label{SpResecEQ:RL}
+\end{equation}
+
+Squaring equation~\ref{SpResecEQ:RL} we obtain a $4$ degree polynomial equation :
+
+\begin{equation}
+	R(c) ^2 - 4 L(c)^2  Q(c) = 0   \label{SpResecEQ:D4}
+\end{equation}
+
+We just need to solve equation~\ref{SpResecEQ:D4} to get possible values of $c$, 
+then get values of $b$ using~\ref{SpResecEQ:SolEqD2}, 
+then get depth $\lambda _k$, then get local coordinates $L_k$ using~\ref{SpResecEQ:DefLambda} 
+and~\ref{SpResecEQ:DefBundle}, and finally finally compute the pose $R,C$  going back to~\ref{SpRes:EquivLocCoord}.
 
     %-----------------------------------------------------
 
 \subsection{Notes for TD}
 
+
 TD :
 
-Begin with a calibrated camera w/o distortion,
+*  Begin with a calibrated camera w/o distortion,
+*  From $3$ point compute 2 lamba with MMVII , then generate the rotations, solve ambiquity (with $4$ points)
+*  From data with outlier (50\% on 50 point) use ransac like to make a robust init.
 
-From $3$ point compute 2 lamba with MMVII , then generate the rotations, solve ambiquity (with $4$ points)
+*  Do the same thing with distorsion => inverse disorsion (iterative method ? Lesqt Sq ? Majical optimzer of pytthon ?)
 
-From data with outlier (50\% on 50 point) use ransac like to make a robust init.
+*  eventually => interface
 
 
 

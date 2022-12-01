@@ -22,6 +22,11 @@ template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,
           );
 }
 
+///< compute determinant  as A.(B ^ C)
+template <class T>  T  Det (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3);
+///< compute regularity of tetraedr (including 0,0,0)
+template <class T>  T  TetraReg (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3);
+
 /// Matrix corresponf to P ->  W ^ P
 template<class T> cDenseMatrix<T> MatProdVect(const cPtxd<T,3>& aW);
 
