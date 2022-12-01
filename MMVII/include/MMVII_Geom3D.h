@@ -23,9 +23,11 @@ template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,
 }
 
 ///< compute determinant  as A.(B ^ C)
-template <class T>  T  Det (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3);
-///< compute regularity of tetraedr (including 0,0,0)
-template <class T>  T  TetraReg (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3);
+template <class T>  T  Determinant (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3);
+///< compute regularity of tetraedr (including 0,0,0),  FactEps * limit is used for too small coords
+template <class T>  T  TetraReg (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3,const T& FactEps=1e5);
+///< Idem with4 points
+template <class T>  T  TetraReg (const cPtxd<T,3> &,const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3,const T& FactEps=1e5);
 
 /// Matrix corresponf to P ->  W ^ P
 template<class T> cDenseMatrix<T> MatProdVect(const cPtxd<T,3>& aW);
