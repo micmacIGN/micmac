@@ -304,8 +304,8 @@ tU_INT4 iBinomialCoeff(int aK,int aN)
 tU_INT8 liBinomialCoeff(int aK,int aN)
 {
    tREAL8 aRR = rBinomialCoeff(aK,aN);
-   MMVII_INTERNAL_ASSERT_tiny(aRR< std::numeric_limits<tU_INT8>::max() , "Overflow on iBinomialCoeff");
-
+   // clang reports a warning when implicitly converting tU_INT8::max to tREAL8 (value decremented by 1)
+   MMVII_INTERNAL_ASSERT_tiny(aRR < static_cast<tREAL8>(std::numeric_limits<tU_INT8>::max()) , "Overflow on iBinomialCoeff");
    return tU_INT8(aRR);
 }
 
