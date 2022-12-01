@@ -109,6 +109,18 @@ template<class Type>  cTriangle<Type,3> RandomTriangRegul(Type aRegulMin,Type aA
     return RandomTriang(static_cast<Type>(0.0)); // Not sur its mandatory to have a return here
 }
 
+template<class Type>  cTriangle<Type,3> RandomTetraTriangRegul(Type aRegulMin,Type aAmpl)
+{
+    for (;;)
+    {
+        cTriangle<Type,3> aT = RandomTriang(aAmpl);
+	if (TetraReg(aT.Pt(0),aT.Pt(1),aT.Pt(2)) > aRegulMin)
+           return aT;
+    }
+    return RandomTriang(static_cast<Type>(0.0)); // Not sur its mandatory to have a return here
+}
+
+
 
 
 /* ========================== */
@@ -121,6 +133,7 @@ template<class Type>  cTriangle<Type,3> RandomTriangRegul(Type aRegulMin,Type aA
 #define MACRO_INSTATIATE_PTXD(TYPE)\
 template  cTriangle<TYPE,3> RandomTriang(TYPE aRegulMin);\
 template  cTriangle<TYPE,3> RandomTriangRegul(TYPE aRegulMin,TYPE aAmpl);\
+template  cTriangle<TYPE,3> RandomTetraTriangRegul(TYPE aRegulMin,TYPE aAmpl);\
 template TYPE  Determinant (const cPtxd<TYPE,3> & aP1,const cPtxd<TYPE,3> & aP2,const cPtxd<TYPE,3> & aP3);\
 template TYPE  TetraReg (const cPtxd<TYPE,3> & aP1,const cPtxd<TYPE,3> & aP2,const cPtxd<TYPE,3> & aP3,const TYPE&);\
 template TYPE  TetraReg (const cPtxd<TYPE,3> & aP1,const cPtxd<TYPE,3> & aP2,const cPtxd<TYPE,3> & aP3,const cPtxd<TYPE,3> & aP4,const TYPE&);\

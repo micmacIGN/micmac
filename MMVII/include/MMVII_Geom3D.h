@@ -2,6 +2,7 @@
 #define  _MMVII_GEOM3D_H_
 
 #include "MMVII_Triangles.h"
+#include "MMVII_Matrix.h"
 
 namespace MMVII
 {

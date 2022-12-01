@@ -1,5 +1,6 @@
 #include "MMVII_Ptxd.h"
 #include "cMMVII_Appli.h"
+#include "MMVII_Geom3D.h"
 
 
 /**
@@ -210,18 +211,49 @@ template <class Type> std::list<cPt2dr>  cElemSpaceResection<Type>::ComputeBC() 
 
 template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
 {
-   cPt3dr A (1,0,0);
-   cPt3dr B = VUnit(cPt3dr(1,0.1,0));
-   cPt3dr C = VUnit(cPt3dr(1,0,0.2));
+   static int aCpt=0; aCpt++;
+   {
+       cTriangle<Type,3> aTriBund = RandomTetraTriangRegul<Type>(1e-3,1e2);
 
-   cElemSpaceResection<tREAL8> anESR(A,B,C, A,B*1.2,C*1.4);
-   anESR.ComputeBC();
+       StdOut() << "RRRR "<< TetraReg(aTriBund.Pt(0),aTriBund.Pt(1),aTriBund.Pt(2))  << "\n";
+
+       cPt3dr A = ToR(VUnit(aTriBund.Pt(0)));
+       cPt3dr B = ToR(VUnit(aTriBund.Pt(1)));
+       cPt3dr C = ToR(VUnit(aTriBund.Pt(2)));
+
+       cSimilitud3D<tREAL8> aSim(
+		               RandUnif_C_NotNull(1e-2)*10.0,
+			       cPt3dr::PRandC()*100.0,
+			       cRotation3D<tREAL8>::RandomRot()
+                         );
+
+
+       double b = RandUnif_C_NotNull(1e-2) * 10;
+       double c = RandUnif_C_NotNull(1e-2) * 10;
+
+       cElemSpaceResection<tREAL8> anESR(A,B,C, aSim.Value(A),aSim.Value(B*b),aSim.Value(C*c));
+       //cElemSpaceResection<tREAL8> anESR(A,B,C, A,B*b,C*c);
+       auto aLBC =anESR.ComputeBC();
+       double aMinDist = 1e10;
+       for (auto & aPair : aLBC)
+       {
+           UpdateMin(aMinDist,Norm2(aPair-cPt2dr(b,c)));
+       }
+
+       StdOut() << " CPT=" << aCpt << " DIST " << aMinDist << " " << aLBC.size() << " BC " << b << " " << c << "\n";
+       // if (aLBC.size() >)
+       MMVII_INTERNAL_ASSERT_bench(aMinDist<1e-4,"2 value in OneTestCorrectness");
+   }
 }
 
 void TestResec()
 {
-   cElemSpaceResection<tREAL8>::OneTestCorrectness();
-   // cElemSpaceResection<tREAL16>::OneTestCorrectness();
+   for (int aK=0 ; aK< 10000 ; aK++)
+   {
+      cElemSpaceResection<tREAL8>::OneTestCorrectness();
+      // cElemSpaceResection<tREAL16>::OneTestCorrectness();
+      StdOut()<< "  ====================== \n"; 
+   }
    StdOut()<< "RESEC : DOOOOOnnnne \n"; getchar();
 }
 
