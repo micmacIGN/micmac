@@ -37,6 +37,9 @@ template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP);
 
 template<class Type> cPtxd<Type,3> NormalUnit(const cTriangle<Type,3> &);  // V01 ^ V02
 template<class Type> cPtxd<Type,3> Normal(const cTriangle<Type,3> &);  // V01 ^ V02
+								       
+template<class Type>  cTriangle<Type,3> RandomTriangRegul(Type aRegulMin,Type aAmpl);
+template<class Type>  cTriangle<Type,3> RandomTetraTriangRegul(Type aRegulMin,Type aAmpl);
 
 // ===============================================================================
 //  Quaternion part  : I use them essentially for interface with other library,
@@ -247,8 +250,6 @@ template <class Type> class cDevBiFaceMesh
       cTriangle<Type,2> mT1;
       cTriangle<Type,2> mT2;
 };
-
-
 
 
 template <class Type> class cTriangulation3D : public cTriangulation<Type,3>

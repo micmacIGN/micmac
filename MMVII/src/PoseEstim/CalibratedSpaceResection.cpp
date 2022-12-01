@@ -37,6 +37,9 @@ template <class Type>  class cElemSpaceResection
 
 	   tP3 ToPt(const tPt3dr &  aP) {return tP3(aP.x(),aP.y(),aP.z());}
 	   
+           Type nNormA;
+           Type nNormB;
+           Type nNormC;
 	   // copy bundles, are unitary
 	   tP3  A;
 	   tP3  B;
@@ -60,6 +63,8 @@ template <class Type>  class cElemSpaceResection
 	   //  ratio of dist
 	   Type  rABC;  ///<   mD2AB / mD2AC
 	   Type  rCBA;  ///<   mD2CB / mD2CA
+
+	   std::list<tPairBC>  mListPair;
 };
 
 template <class Type> 
@@ -72,9 +77,12 @@ template <class Type>
        const tPt3dr & aPGroundB,
        const tPt3dr & aPGroundC
    ) :
-        A     (VUnit(ToPt(aDirBundlA))),
-        B     (VUnit(ToPt(aDirBundlB))),
-        C     (VUnit(ToPt(aDirBundlC))),
+        nNormA  (Norm2(aDirBundlA)),
+        nNormB  (Norm2(aDirBundlB)),
+        nNormC  (Norm2(aDirBundlC)),
+        A       (ToPt(aDirBundlA) / nNormA),
+        B       (ToPt(aDirBundlB) / nNormB),
+        C       (ToPt(aDirBundlC) / nNormC),
 
         AB      (B - A),
         AC      (C - A),
@@ -93,6 +101,7 @@ template <class Type>
 	rCBA  (gD2BC/gD2AC)
 {
 }
+
 
 
 template <class Type> std::list<cPt2dr>  cElemSpaceResection<Type>::ComputeBC() const
@@ -157,39 +166,6 @@ template <class Type> std::list<cPt2dr>  cElemSpaceResection<Type>::ComputeBC() 
 		       R^2(c) = 4 L(c)^2 Q(c)
 
 */
-    /*
-    {
-	    Type b = 0.2; FakeUseIt(b);
-	    Type c = 0.4;
-	    Type Q = aQc.Value(c);
-	    ///StdOut() << "REAL bc=" << b << " " << c<< "\n";
-	    for (Type E : {-1,1})
-	    {
-	       Type b = -abb  + E * std::sqrt(Q);
-	       StdOut() << "E=" << E  << " B=" << b << "\n";
-	    }
-	    StdOut() << "______________________________\n";
-            // (BC + cC -bB) ^2 = rCBA (AC + cC) ^2
-	    //  OK StdOut () << "CHK0 " <<  SqN2(BC+c*C-b*B) - rCBA * SqN2(AC+c*C) << "\n";
-
-	    for (Type E : {1})
-	    {
-            // rCBA (AC + cC) ^2 = (BC +cC - (-AB.B + E *  S(Q)) B)^2 =   ((BC + AB.B B +c C)  - E S(Q) B) ^2
-	    // OK : StdOut() << "CHEE " << E << " " << rCBA * SqN2(AC+c*C) -SqN2((BC+abb*B+c*C) - E * std::sqrt(Q) *B) << "\n";
-
-            //  rCBA (AC + cC) ^2 - (BC + AB.B B +c C)^2  - Q  =  -2 (BC.B + AB.B  +c C.B) E S(Q)
-	    //StdOut() << "CHEE " << E << " " 
-            //		 << rCBA * SqN2(AC+c*C)  -SqN2(BC+abb*B+c*C) -Q +2 *(Scal(BC,B)+abb + c *Scal(C,B)) * E * std::sqrt(Q) << "\n";
-
-            tPol  aLc ({Scal(BC,B)+abb,Scal(B,C)});
-	    StdOut() << "CHEE " << E << " " 
-		    << rCBA * aPol_AC_C.Value(c) -PolSqN(BC +  abb*B  ,C).Value(c) -Q +2 *aLc.Value(c) * E * std::sqrt(Q) << "\n";
-	    StdOut() << "CHEE " << E << " " 
-		    << rCBA * aPol_AC_C.Value(c) -PolSqN(BC +  abb*B  ,C).Value(c) -Q +2 *(Scal(BC,B)+abb + c *Scal(C,B)) * E * std::sqrt(Q) << "\n";
-	    }
-	    StdOut() << "______________________________\n";
-    }
-*/
        
     tPol  aRc =   aPol_AC_C *rCBA  -  aQc  -  PolSqN(BC +  abb*B  ,C);
     tPol  aLc ({Scal(BC,B)+abb,Scal(B,C)});
@@ -198,6 +174,7 @@ template <class Type> std::list<cPt2dr>  cElemSpaceResection<Type>::ComputeBC() 
 
 
     std::list<tPairBC> aRes;
+
     for (Type c : aVRoots)
     {
         for (Type E : {-1.0,1.0})
@@ -211,21 +188,25 @@ template <class Type> std::list<cPt2dr>  cElemSpaceResection<Type>::ComputeBC() 
 		tP3 PB = (1+b)  * B;
 		tP3 PC = (1+c)  * C;
 
+		// Due to squaring sign of E is not always consistant, so now we check if ratio are really found
 		Type aCheckABC =  SqN2(PA-PB)/SqN2(PA-PC) - rABC;
 		Type aCheckCBA =  SqN2(PC-PB)/SqN2(PC-PA) - rCBA;
 
 		if (  (std::abs(aCheckABC)< 1e-5)  && (std::abs(aCheckCBA)< 1e-5) )
 		{
-                   aRes.push_back(tPairBC(b,c));
-		   StdOut()  <<  "bc " << b << " " << c << " " << aCheckABC << " " << aCheckCBA << "\n";
+                   aRes.push_back(tPairBC((1+b),(1+c)));
+		   // StdOut()  << " E " << E <<  " bc " << b << " " << c << " " << aCheckABC << " " << aCheckCBA << "\n";
 		}
 	    }
         }
     }
-
     return aRes;
-
 }
+
+/*
+                   Type aSqPerim0 =  SqN2(
+    Type aSqPerim0 =  gD2AB + gD2AC + gD2BC;
+*/
 
 template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
 {
@@ -234,12 +215,13 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
    cPt3dr C = VUnit(cPt3dr(1,0,0.2));
 
    cElemSpaceResection<tREAL8> anESR(A,B,C, A,B*1.2,C*1.4);
+   anESR.ComputeBC();
 }
 
 void TestResec()
 {
    cElemSpaceResection<tREAL8>::OneTestCorrectness();
-   cElemSpaceResection<tREAL16>::OneTestCorrectness();
+   // cElemSpaceResection<tREAL16>::OneTestCorrectness();
    StdOut()<< "RESEC : DOOOOOnnnne \n"; getchar();
 }
 
