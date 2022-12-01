@@ -244,8 +244,11 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eMultiplePostifx,"MultiplePostifx"},
                 {eTyUEr::eBadPostfix,"BadPostifx"},
                 {eTyUEr::eNoAperture,"NoAperture"},
+                {eTyUEr::eNoFocale,"NoFocale"},
+                {eTyUEr::eNoFocaleEqui35,"NoFocaleEqui35"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
+
 TPL_ENUM_2_STRING(eTyUEr);
 
 template<> cE2Str<eTyInvRad>::tMapE2Str cE2Str<eTyInvRad>::mE2S

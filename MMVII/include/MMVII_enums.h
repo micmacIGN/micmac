@@ -161,6 +161,8 @@ enum class eTyUEr
               eMultiplePostifx,
               eBadPostfix,
               eNoAperture,
+              eNoFocale,
+              eNoFocaleEqui35,
               eUnClassedError,
               eNbVals
            };

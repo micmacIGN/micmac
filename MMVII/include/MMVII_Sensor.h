@@ -146,6 +146,8 @@ class cMedaDataImage
 {
       public :
           tREAL8  Aperture() const;
+          tREAL8  FocalMM() const;
+          tREAL8  FocalMMEqui35() const;
           cMedaDataImage(const std::string & aNameIm);
           cMedaDataImage();
       private :
