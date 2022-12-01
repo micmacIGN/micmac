@@ -158,7 +158,7 @@ class cDevTriangu3d
 	  cParamDevTri3D    mParam;
 
 
-	  int               mNumCurStep;       ///< num of iteration in devlopment, +- dist to center face
+	  // int               mNumCurStep;       ///< num of iteration in devlopment, +- dist to center face
 	  const tTriangulation3D & mTri;       ///< reference to the 3D-triangulation to devlop
           const cGraphDual &       mDualGr;    ///< reference to the dual graph
           int               mIndexFC;          ///< Index of centerface
@@ -294,7 +294,7 @@ cParamDevTri3D::cParamDevTri3D() :
 
 cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,cParamDevTri3D & aParam) :
      mParam       (aParam),
-     mNumCurStep  (0),
+//     mNumCurStep  (0),
      mTri         (aTri),
      mDualGr      (mTri.DualGr()),
      mIndexFC     (NO_STEP),
