@@ -34,7 +34,7 @@ cMedaDataImage::cMedaDataImage(const std::string & aNameIm) :
      }
 
 
-     MMVII_WARGNING("cMedaDataImage : quick and (VERY) dirty implementation, most probably wrong");
+     MMVII_DEV_WARNING("cMedaDataImage : quick and (VERY) dirty implementation, most probably wrong");
 }
 
 cMedaDataImage::cMedaDataImage() :

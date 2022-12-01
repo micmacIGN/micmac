@@ -109,7 +109,7 @@ cComputeCalibRadSensor::cComputeCalibRadSensor(cPerspCamIntrCalib * aCalib,int a
    TheCpt++;
    if (TheCpt!=1)
    {
-      MMVII_WARGNING("cComputeCalibRadSensor test multi calib")
+      MMVII_DEV_WARNING("cComputeCalibRadSensor test multi calib")
    }
 
 }

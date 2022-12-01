@@ -21,7 +21,7 @@ std::string SuppresDir(const std::string & aDir,const std::string & aName)
 
      if (TheSYS == eSYS::Windows)
      {
-          MMVII_WARGNING("SuppresDir check regular expression on Window");
+          MMVII_DEV_WARNING("SuppresDir check regular expression on Window");
      }
      
      std::string aPat =  "(" + aDir+")?" + "([A-Za-z0-9_-]+)" + StringDirSeparator() + "?";
