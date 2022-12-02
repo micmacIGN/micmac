@@ -18,7 +18,7 @@ template <class Type>  class cElemSpaceResection
       public :
            typedef cPtxd<Type,3>   tP3;
            typedef cPolynom<Type>  tPol;
-           typedef cPt2dr          tPairBC;
+           typedef cPt3dr          tResBC;
 
 	   // All points in are in REAL8, only intermediar computation is eventually on REAL16
            cElemSpaceResection
@@ -31,8 +31,9 @@ template <class Type>  class cElemSpaceResection
 	        const tPt3dr & aPGroundC
 	   );
 
-	   std::list<tPairBC>  ComputeBC(bool Debug) const;
+	   std::list<tResBC>  ComputeBC(bool Debug) const;
 	   static void OneTestCorrectness();
+           cTriangle<Type,3>  BC2LocCoord(const tResBC &) const ;
 
        private :
 
@@ -61,11 +62,13 @@ template <class Type>  class cElemSpaceResection
 	   Type  gD2AB;
 	   Type  gD2AC;
 	   Type  gD2BC;
+
+           Type  mSqPerimG;  ///<  Square Ground perimeter 
 	   //  ratio of dist
 	   Type  rABC;  ///<   mD2AB / mD2AC
 	   Type  rCBA;  ///<   mD2CB / mD2CA
 
-	   std::list<tPairBC>  mListPair;
+	   // std::list<tPairBC>  mListPair;
 };
 
 template <class Type> 
@@ -97,6 +100,7 @@ template <class Type>
 	gD2AB (SqN2(gA-gB)),
 	gD2AC (SqN2(gA-gC)),
 	gD2BC (SqN2(gB-gC)),
+        mSqPerimG ( gD2AB + gD2AC + gD2BC),
 
 	rABC  (gD2AB/gD2AC),
 	rCBA  (gD2BC/gD2AC)
@@ -105,7 +109,7 @@ template <class Type>
 
 
 
-template <class Type> std::list<cPt2dr>  cElemSpaceResection<Type>::ComputeBC(bool Debug) const
+template <class Type> std::list<cPt3dr>  cElemSpaceResection<Type>::ComputeBC(bool Debug) const
 {
 /*
       3 direction  of bundles  A,B,C   we have made ||A|| = ||B|| = ||C|| = 1
@@ -176,7 +180,7 @@ template <class Type> std::list<cPt2dr>  cElemSpaceResection<Type>::ComputeBC(bo
     if (Debug)
         StdOut() << "aVRoots " << aVRoots.size()   << " " << aVRoots << "\n";
 
-    std::list<tPairBC> aRes;
+    std::list<tResBC> aRes;
 
     for (Type c : aVRoots)
     {
@@ -195,14 +199,19 @@ template <class Type> std::list<cPt2dr>  cElemSpaceResection<Type>::ComputeBC(bo
 		tP3 PB = (1+b)  * B;
 		tP3 PC = (1+c)  * C;
 
+                Type aD2AB =  SqN2(PA-PB);
+                Type aD2AC =  SqN2(PA-PC);
+                Type aD2BC =  SqN2(PB-PC);
+
 		// Due to squaring sign of E is not always consistant, so now we check if ratio are really found
-		Type aCheckABC =  SqN2(PA-PB)/SqN2(PA-PC) - rABC;
-		Type aCheckCBA =  SqN2(PC-PB)/SqN2(PC-PA) - rCBA;
+		Type aCheckABC =  aD2AB/aD2AC - rABC;
+		Type aCheckCBA =  aD2BC/aD2AC - rCBA;
 
 		//  test with 1e-5  generate bench problem ...
 		if (  (std::abs(aCheckABC)< 1e-3)  && (std::abs(aCheckCBA)< 1e-3) )
 		{
-                   aRes.push_back(tPairBC((1+b),(1+c)));
+                   Type aSqPerim = aD2AB + aD2AC + aD2BC;
+                   aRes.push_back(tResBC((1+b),(1+c),aSqPerim));
 		   // StdOut()  << " E " << E <<  " bc " << b << " " << c << " " << aCheckABC << " " << aCheckCBA << "\n";
 		}
 	    }
@@ -211,9 +220,17 @@ template <class Type> std::list<cPt2dr>  cElemSpaceResection<Type>::ComputeBC(bo
     return aRes;
 }
 
+template <class Type> cTriangle<Type,3>  cElemSpaceResection<Type>::BC2LocCoord(const tResBC & aRBC) const 
+{
+     const Type & b =  aRBC.x();
+     const Type & c =  aRBC.y();
+     const Type & aMul = aRBC.z();
+
+     return  cTriangle<Type,3>(aMul*A,(aMul*(1+b))*B,(aMul*(1+c))*C);
+}
+
 /*
                    Type aSqPerim0 =  SqN2(
-    Type aSqPerim0 =  gD2AB + gD2AC + gD2BC;
 */
 
 template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
@@ -222,7 +239,7 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
    {
        cTriangle<Type,3> aTriBund = RandomTetraTriangRegul<Type>(1e-3,1e2);
 
-       StdOut() << "regul "<< TetraReg(aTriBund.Pt(0),aTriBund.Pt(1),aTriBund.Pt(2))  << "\n";
+       // StdOut() << "regul "<< TetraReg(aTriBund.Pt(0),aTriBund.Pt(1),aTriBund.Pt(2))  << "\n";
 
        cPt3dr A = ToR(VUnit(aTriBund.Pt(0)));
        cPt3dr B = ToR(VUnit(aTriBund.Pt(1)));
@@ -246,25 +263,27 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
        cElemSpaceResection<tREAL8> anESR(A,B,C, aSim.Value(A),aSim.Value(B*b),aSim.Value(C*c));
        //cElemSpaceResection<tREAL8> anESR(A,B,C, A,B*b,C*c);
        auto aLBC =anESR.ComputeBC(aCpt==339104);
-       double aMinDist = 1e10;
-       for (auto & aPair : aLBC)
+
+       cWhitchMin<cPt3dr,double> aWMin(cPt3dr(0,0,0),1e10);
+       for (auto & aTripl : aLBC)
        {
-           UpdateMin(aMinDist,Norm2(aPair-cPt2dr(b,c)));
+           aWMin.Add(aTripl,std::abs(aTripl.x()-b)+std::abs(aTripl.y()-c));
        }
 
-       StdOut() << " CPT=" << aCpt << " DIST " << aMinDist << " " << aLBC.size() << " BC " << b << " " << c << "\n";
+           // cTriangle<Type,3>  BC2LocCoord(const tResBC &) const ;
+       // StdOut() << " CPT=" << aCpt << " DIST " << aMinDist << " " << aLBC.size() << " BC " << b << " " << c << "\n";
        // if (aLBC.size() >)
-       MMVII_INTERNAL_ASSERT_bench(aMinDist<1e-4,"2 value in OneTestCorrectness");
+       MMVII_INTERNAL_ASSERT_bench(aWMin.ValExtre()<1e-4,"2 value in OneTestCorrectness");
    }
 }
 
 void TestResec()
 {
-   for (int aK=0 ; aK< 1000000 ; aK++)
+   for (int aK=0 ; aK< 1000 ; aK++)
    {
       cElemSpaceResection<tREAL8>::OneTestCorrectness();
       //cElemSpaceResection<tREAL16>::OneTestCorrectness();
-      StdOut()<< "  ====================== \n"; 
+      // StdOut()<< "  ====================== \n"; 
    }
    StdOut()<< "RESEC : DOOOOOnnnne \n"; getchar();
 }
