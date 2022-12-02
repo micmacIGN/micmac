@@ -199,7 +199,7 @@ template <class Type>  class cExtractDir
          cExtractDir(tIm anIm,double aRhoMin,double aRhoMax);
 
          /// try the computation of two directions of checkboard, mail fail , return true if sucess
-         bool  CalcDir(tDCT &) ;
+         bool  CalcDir(tDCT &, std::vector<cPt2di> &) ;
 
          /// computes scores once the direction have been computed
          double ScoreRadiom(tDCT & aDCT) ;
@@ -222,7 +222,7 @@ template <class Type>  class cExtractDir
           tDCT *                  mPDCT;       ///< tested target
        // (SortedVectOfRadius(aR0,aR1,IsSym))
 };
-bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor);
+bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor, std::vector<cPt2di> & vec2plot);
 
 };
 #endif // _FILTER_CODED_TARGET_H_

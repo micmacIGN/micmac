@@ -96,8 +96,9 @@ double TestDir(const cNS_CodedTarget::cGeomSimDCT & aGT,const cNS_CodedTarget::c
 }
 
 
-template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT)
-{
+template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, std::vector<cPt2di> & vec2plot){
+
+
      mPDCT = & aDCT;  // memorize as internal variables
      std::vector<float>  aVVals;  // vectors of value of pixel , here to avoir reallocation
      std::vector<bool>   aVIsW;   // vector of boolean IsWhite ?  / IsBlack ?
@@ -121,30 +122,39 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT)
              float aVal  = mDIm.GetV(aC+aPt);
              aVVals.push_back(aVal);
              aVIsW.push_back(aVal>mVThrs);
+
          }
 
          int aCpt = 0;
+
+         double radius = 5*sqrt(aCircle.at(0).x()*aCircle.at(0).x() + aCircle.at(0).y()*aCircle.at(0).y());
+
          // parse the value to detect black/white transitions
-         for (int  aKp=0 ; aKp<aNbInC ; aKp++)
-         {
+         for (int  aKp=0 ; aKp<aNbInC ; aKp++){
+
              int aKp1 = (aKp+1)%aNbInC;  // next index, circulary speaking
              if (aVIsW[aKp] != aVIsW[aKp1])  // if we have a transition
              {
+
                  aCpt++;   // one more transition
                  cPt2dr aP1  = aVDir[aKp];  // unitary direction before transition
                  cPt2dr aP2  = aVDir[aKp1];  // unitary direction after transition
                  double aV1 = aVVals[aKp];   // value befor trans
-                 double aV2 = aVVals[aKp1];  // value after trans
-                 // make a weighted average of P1/P2 corresponding to linear interpolation with threshold
-                 cPt2dr aDir =   (aP1 *(aV2-mVThrs) + aP2 * (mVThrs-aV1)) / (aV2-aV1);
-                 if (SqN2(aDir)==0) return false;  // not interesting case
+                 double aV2 = aVVals[aKp1];  // value after trans                                             // -----------------------------------------------------------------------------------
+                 // make a weighted average of P1/P2 corresponding to linear interpolation with threshold     // REPRESENTATION TRANSITIONS
+                 cPt2dr aDir =   (aP1 *(aV2-mVThrs) + aP2 * (mVThrs-aV1)) / (aV2-aV1);                        vec2plot.push_back(cPt2di(aC.x()+radius*aDir.x(), aC.y()+radius*aDir.y()));
+                 if (SqN2(aDir)==0) return false;  // not interesting case                                    // -----------------------------------------------------------------------------------
                  aDir = VUnit(aDir);  // reput to unitary
                  aDir = aDir * aDir;  // make a tensor of it => double its angle, complexe-point multiplication
                  aSomDir[aVIsW[aKp]] += aDir;  // acculate the direction in black or whit transition
              }
          }
+
          // if we dont have exactly 4 transition, there is someting wrong ...
-         if (aCpt!=4 )  return false;
+         if (aCpt!=4 )  {
+            return false;
+        }
+
      }
 
      // now recover from the tensor one of its two vectors (we have no control one which)
@@ -187,7 +197,7 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
      cSegment2DCompiled aSeg2(aDCT.mPt,aDCT.mPt+aDCT.mDirC2);
 
 
-     double aSomWEc     = 0.0; // sum of weighted difference
+     double aSomWEc    = 0.0; // sum of weighted difference
      double aSomWeight = 0.0;  // sum of weight
 
      cMatIner2Var<double>  aMat;  // use for computing correlation
@@ -253,19 +263,38 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
 
 template class cExtractDir<tREAL4>;
 
-bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor){
+bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor, std::vector<cPt2di>& vec2plot){
+
+/*
+    bool test1 = abs(aDCT.Pix0().x() - 4493) < 2;
+    bool test2 = abs(aDCT.Pix0().y() - 163) < 2;
+    if (!test1 || !test2){
+        return false;
+    }
+*/
+
 
     cExtractDir<tREAL4>  anED(anIm,aRayCB*0.4,aRayCB*0.8*size_factor);
-    bool Ok = anED.CalcDir(aDCT);
+
+
+
+    bool Ok = anED.CalcDir(aDCT, vec2plot);
+
+
     if (!Ok) return false;
+
 
     anED.ScoreRadiom(aDCT) ;
 
-//    double th1 = 0.50;
-//    double th2 = 0.50;
+      double th1 = 0.50;
+      double th2 = 0.50;
 
-    double th1 = 0.12;
-    double th2 = 0.85;
+  //  double th1 = 0.12;
+  //  double th2 = 0.85;
+
+   // StdOut() << " Test 1 " << aDCT.mScRadDir  << " " <<  th1 << "\n";
+   // StdOut() << " Test 2 " << aDCT.mCorMinDir << " " <<  th2 << "\n";
+
 
     return (aDCT.mScRadDir < th1) && (aDCT.mCorMinDir> th2) ;
 

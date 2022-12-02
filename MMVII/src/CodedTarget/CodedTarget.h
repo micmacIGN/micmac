@@ -40,6 +40,9 @@ class cGeomSimDCT
        /// Do to simulated target intersect, used to avoid overlapping target in images
        bool Intersect(const cGeomSimDCT &  aG2) const ;
 
+       /// Usable when we use a clipped file
+       void Translate(const cPt2dr &);
+
        cDCT * mResExtr;   ///< contains the potentiel detected target extracted
        int    mNum;       ///< numbering
        cPt2dr mC;         ///< Theoreticall center
