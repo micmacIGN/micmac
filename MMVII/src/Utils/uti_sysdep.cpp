@@ -12,6 +12,7 @@
 #elif (THE_MACRO_MMVII_SYS==MMVII_SYS_W)  // Windows
 #  include <windows.h>
 #else  // Max OS X
+#  include <unistd.h>
 #  include <mach-o/dyld.h>
 #endif
 
@@ -177,7 +178,7 @@ int mmvii_NbProcSys()
 std::string MMVII_RawSelfExecName()
 {
 // Ch.M: Not tested
-    std::string result;
+    std::string path;
 
     uint32_t size = 0;
     _NSGetExecutablePath(nullptr, &size);
