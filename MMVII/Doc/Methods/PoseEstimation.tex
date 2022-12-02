@@ -8,13 +8,13 @@
 
 \section{Introduction}
 
-This chapter present the "elementary" method, that compute the pose of an image
+This chapter present the "elementary" methods, that compute the pose of an image
 from observations that can, typically, be tie points (relative pose) or 
 ground control point (relative or absolute pose).
 
 By elementary we means algorithms that compute directly a solution for a limited
-(typically $2$ or $3$, a few with tomasi-kanade) number of image. These algorithm
-are the "tacticle" part, the result of the elementary algorithm will be used as
+(typically $2$ or $3$, a few with tomasi-kanade) number of images. These algorithms
+are the "tacticle" part, the result of these elementary algorithms will be used as
 elementary part of the puzzle by more global method that will try to have a "strategic"  view.
 
 
@@ -28,11 +28,11 @@ elementary part of the puzzle by more global method that will try to have a "str
     %-----------------------------------------------------
 \subsection{Introduction}
 
-We deal here will the following problem  we have :
+We deal here with the following problem,  we have :
 
 \begin{itemize}
    \item a calibrated camera ;
-   \item a set of point for which we know the  $3d$ word coordinates $W_k$ and their 
+   \item a set of point for which we know the  $3d$ word coordinates $G_k$ and their 
         $2d$ coordinate $p_k$ in a image acquired with this camera;
 \end{itemize}
 
@@ -40,7 +40,7 @@ We want to extract the pose $R,C$ of the camera (Rotation,center) such that for 
 we have the usual projection equation:
 
 \begin{equation}
-       \mathcal I(\pi (R*(W_k-C))) = p_k \label{EQ:PROJ}
+       \mathcal I(\pi (R*(G_k-C))) = p_k \label{EQ:PROJ}
 \end{equation}
 
 
@@ -70,7 +70,7 @@ First, we remark that if we know the local coordinates $L_k$ of the points in th
 of the camera, the problem becomes easy . Let show it, we will have to find a translation-rotation such that  :
 
 \begin{equation}
-       R*(W_k-C) = L_k  ; k\in{1,2,3} \label{SpResecEQ:WL}
+       R*(G_k-C) = L_k  ; k\in{1,2,3} \label{SpResecEQ:WL}
 \end{equation}
 
 
@@ -78,13 +78,13 @@ For each pair $k,k'$, we have (noting $\Vec{X}_{kk'} = \overrightarrow{X_{k}X_{k
 
 
 \begin{equation}
-	R* \Vec{W}_{kk'} =  \Vec{L}_{kk'} \label{SpResecEQ:WLVECT}
+	R* \Vec{G}_{kk'} =  \Vec{L}_{kk'} \label{SpResecEQ:WLVECT}
 \end{equation}
 
 As  $R$ is a rotation we have $R(A \wedge  B) = R(A) \wedge   R(B) $ and then:
 
 \begin{equation}
-	R* \begin{bmatrix} \Vec{W}_{12} & \Vec{W}_{23} &  \Vec{W}_{12} \wedge \Vec{W}_{23} \end{bmatrix} 
+	R* \begin{bmatrix} \Vec{G}_{12} & \Vec{G}_{23} &  \Vec{G}_{12} \wedge \Vec{G}_{23} \end{bmatrix} 
         =  \begin{bmatrix} \Vec{L}_{12} & \Vec{L}_{23} &  \Vec{L}_{12} \wedge \Vec{L}_{23} \end{bmatrix} 
         \label{SpResecEQ:WLVECT}
 \end{equation}
@@ -122,7 +122,7 @@ Now we remmber that rotation and translation are isometric, so we have conservat
 distances between  word an local coordinates. We can then write :
 
 \begin{equation}
-     D_{kk'}	||\Vec{W}_{kk'}||   = || \Vec{L}_{kk'} || = || \lambda_k \Vec{u}_k -  \lambda_{k'} \Vec{u}_{k'}|| \label{SpResecEQ:ConsDist}
+     D_{kk'}	||\Vec{G}_{kk'}||   = || \Vec{L}_{kk'} || = || \lambda_k \Vec{u}_k -  \lambda_{k'} \Vec{u}_{k'}|| \label{SpResecEQ:ConsDist}
 \end{equation}
 
 
@@ -162,7 +162,7 @@ By doing quotient of equation~\ref{SpResecEQ:ABC} we have :
 Now we see that in equation~\ref{SpResecEQ:ABC}, only the ratio $\frac{\lambda_{b}}{\lambda_{a}}$ and $\frac{\lambda_{c}}{\lambda_{a}}$
 matters, so one can solve them a system of $2$ equation with $2$ unknwons. Once we will have computed these ratio the triangle
 $(\Vec{A} , \frac{\lambda_{b}}{\lambda_{a}} \Vec{B},  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C})$ will be propoprtionnal the
-triangle $(W_A,W_B,W_C)$ and it will be sufficientt compute this proportion.
+triangle $(G_A,G_B,G_C)$ and it will be sufficientt compute this proportion.
 
 
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -263,7 +263,8 @@ and~\ref{SpResecEQ:DefBundle}, and finally finally compute the pose $R,C$  going
 \subsection{Notes for TD}
 
 
-TD :
+\begin{verbatim}
+TD1 : SPACE RESECTION
 
 *  Begin with a calibrated camera w/o distortion,
 *  From $3$ point compute 2 lamba with MMVII , then generate the rotations, solve ambiquity (with $4$ points)
@@ -272,6 +273,12 @@ TD :
 *  Do the same thing with distorsion => inverse disorsion (iterative method ? Lesqt Sq ? Majical optimzer of pytthon ?)
 
 *  eventually => interface
+
+
+TD2 :  CMP CALIB
+
+TD3 : CALIB CONV
+\end{verbatim}
 
 
 
