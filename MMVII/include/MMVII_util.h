@@ -231,6 +231,12 @@ class cMultipleOfs
         void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
         void Clear() {mVOfs.clear();}
 
+        cMultipleOfs& flush() {
+            for (const auto & Ofs :  mVOfs)
+                Ofs->flush();
+            return *this;
+        }
+
         // template <class Type> cMultipleOfs & operator << (Type & aVal);
         template <class Type> cMultipleOfs & ShowCont (const Type & aCont,const std::string & aGram)
         {
