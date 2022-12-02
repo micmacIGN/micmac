@@ -98,11 +98,15 @@ template <class Type,const int  DimIn,const int DimOut>
        mVUk.at(aD) = aPt[aD];
     mCalc->PushNewEvals(mVUk,mVObs);
     const std::vector<std::vector<Type> *> & aVAllVal = mCalc->EvalAndClear();
+    //  aVAllVal = x1 .. xk  y1 ... yk  z1 .. zk
     std::vector<Type>  & aResVal = *(aVAllVal[0]);
-
+    // aResPt = x1 y1 z1  x2 y2 
     size_t aKVal=0;
     for (size_t aKDim=0 ; aKDim<DimOut ; aKDim++)
     {
+        // Kdim=0, P:    aResPt[0][0] , aResPt[1][0]  ....
+        // Kdim=1, P:    aResPt[0][1] , aResPt[1][1]  ....
+        // Kdim=2, P:    aResPt[0][2] , aResPt[1][2]  ....
         for (auto & aP : aResPt)
         {
             aP[aKDim] = aResVal[aKVal++];

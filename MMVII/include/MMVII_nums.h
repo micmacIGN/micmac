@@ -2,6 +2,7 @@
 #define  _MMVII_nums_H_
 
 #include "MMVII_Error.h"
+//#include "MMVII_AllClassDeclare.h"
 
 namespace MMVII
 {
@@ -63,6 +64,7 @@ double RandUnif_C();   ///<  Uniform distribution in  -1 1
 bool   HeadOrTail();   ///< 1/2 , french 'Pile ou Face'
 double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[ 
 double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, but abs > aEps
+double RandUnif_NotNull(double aEps);   ///<  Uniform distribution in  0 1, but abs > aEps
 double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
 
 /** Class for mapping object R->R */
@@ -545,6 +547,7 @@ class cDecomposPAdikVar
 };
 
 double  RelativeDifference(const double & aV1,const double & aV2,bool * Ok=nullptr);
+double RelativeSafeDifference(const double & aV1,const double & aV2);
 
 template <class Type> int SignSupEq0(const Type & aV) {return (aV>=0) ? 1 : -1;}
 
@@ -838,8 +841,46 @@ class  cHamingCoder
 };
 
 
+template <class Type> class  cPolynom
+{
+        public :
+           typedef std::vector<Type>  tCoeffs;
+           cPolynom(const tCoeffs &);
+           cPolynom(const cPolynom &);
+           cPolynom(size_t aDegre);
+           size_t  Degree() const;
+
+           static cPolynom<Type>  D0(const Type &aCste);      ///< constant polynom degre 0
+           static cPolynom<Type>  D1FromRoot(const Type &aRoot);    ///< degre 1 polynom with aRoot
+           static cPolynom<Type>  D2NoRoot(const Type & aVMin,const Type &aArgmin);  ///< +- (|V| + (x-a) ^2) ,
+
+           static cPolynom<Type>  RandomPolyg(int aDegree,Type & anAmpl);
+           ///  Generate random polygo from its randomly generated roots => test for
+           static cPolynom<Type>  RandomPolyg(std::vector<Type> & aVRoots,int aNbRoot,int aNbNoRoot,Type Interv,Type MinDist);
 
 
+           Type  Value(const Type & aVal) const;
+
+           cPolynom<Type> operator * (const cPolynom<Type> & aP2) const;
+           cPolynom<Type> operator + (const cPolynom<Type> & aP2) const;
+           cPolynom<Type> operator - (const cPolynom<Type> & aP2) const;
+           cPolynom<Type> operator * (const  Type & aVal) const;
+           std::vector<Type> RealRoots(const Type & aTol,int ItMax);
+
+
+           Type&   operator [] (size_t aK) {return mVCoeffs[aK];}
+           const Type&   operator [] (size_t aK) const {return mVCoeffs[aK];}
+           Type  KthDef(size_t aK) const {return (aK<mVCoeffs.size()) ? mVCoeffs[aK] : static_cast<Type>(0.0) ;}
+
+           const tCoeffs &  VCoeffs() const;
+
+        private :
+           tCoeffs  mVCoeffs;
+};
+
+template <class Type,const int Dim>  cPolynom<Type> operator * (const  Type & aVal,const cPolynom<Type>  & aPol)  {return aPol*aVal;}
+/// return polynom of (Cste + X Lin)^2
+template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>& aVecCste,const cPtxd<Type,Dim>& aVecLin);
 
 };
 

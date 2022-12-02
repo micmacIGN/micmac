@@ -323,6 +323,11 @@ double  RelativeDifference(const double & aV1,const double & aV2,bool * aResOk)
     return std::abs(aV1-aV2) / aSom;
 }
 
+double RelativeSafeDifference(const double & aV1,const double & aV2)
+{
+    return std::abs(aV1-aV2) / (1+std::abs(aV1) +  std::abs(aV2));
+}
+
 template <class Type> Type diff_circ(const Type & a,const Type & b,const Type & aPer)
 {
    Type aRes = mod_real(std::abs(a-b),aPer);

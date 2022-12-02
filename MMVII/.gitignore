@@ -12,6 +12,7 @@ include/CodeGen_*.h
 *.toc
 *.ilg
 *.ind
+*.swp
 MMVII/MMVII-TestDir/Input/Files/RelTest.xml
 MMVII/MMVII-TestDir/Input/Files/RelTest_0-5.xml
 .*.d

@@ -75,6 +75,10 @@ std::string V1NameMasqOfIm(const std::string & aName);
 // Call V1 Fast kth value extraction
 double KthVal(std::vector<double> &, double aProportion);
 
+// Call V1 for roots of polynomials
+template <class Type> std::vector<Type>  V1RealRoots(const std::vector<Type> &  aVCoef, Type aTol,int aNbMaxIter);
+
+
 };
 
 #endif // _V1V2_H_

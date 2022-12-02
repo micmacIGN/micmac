@@ -484,8 +484,21 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
 
       ~cDataIterInvertMapping();
     protected :
-      cDataIterInvertMapping(const tPt & aEpsDiff,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptRoughInv);
-      cDataIterInvertMapping(tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptRoughInv);
+      cDataIterInvertMapping
+      (
+            tDataMap * aRoughInv,  ///<  compute initial "Guess" of inverse to initiate gradient iterations
+	    const Type& aDistTol,  ///<  Tol to stop comutation 
+	    int aNbIterMax,        ///< Max number of iteration
+	    bool AdoptRoughInv     ///< If true, Rough inv will be deleted in destructor
+      );
+      cDataIterInvertMapping
+      (
+           const tPt & aEpsDiff,  ///< Epilonto compute jacobian with finite differences
+           tDataMap * aRoughInv,  ///<  compute initial "Guess" of inverse to initiate gradient iterations
+           const Type& aDistTol,  ///<  Tol to stop comutation
+           int aNbIterMax,        ///< Max number of iteration
+           bool AdoptRoughInv     ///< If true, Rough inv will be deleted in destructor
+      );
 
     private :
       cDataIterInvertMapping(const cDataIterInvertMapping<Type,Dim> & ) = delete;
@@ -838,6 +851,9 @@ template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMap
          cDenseVect<Type>   mCoeffs;
          tVecOut            mBufPOut;
 };
+
+/** Create  a cLeastSqComputeMaps from a calculator,
+ */
 
 template <class Type,const int DimIn,const int DimOut>
     class cLeastSqCompMapCalcSymb : public cLeastSqComputeMaps<Type,DimIn,DimOut>
