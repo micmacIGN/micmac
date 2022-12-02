@@ -51,12 +51,13 @@ template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);
 
 static inline void Error(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
 {
-    std::cout << "In SymbolicDerivative a fatal error" << "\n";
-    std::cout << "  Likely Source   ["<< aExplanation << "]\n";
+    std::cerr << "In SymbolicDerivative a fatal error" << "\n";
+    std::cerr << "  Likely Source   ["<< aExplanation << "]\n";
     if (aContext.size())
-        std::cout << "  For formula     ["<< aContext << "]\n";
-    std::cout << "  Message  ["<< aMes << "]\n";
-    assert(false);
+        std::cerr << "  For formula     ["<< aContext << "]\n";
+    std::cerr << "  Message  ["<< aMes << "]\n";
+    std::cerr << std::flush;
+    abort();
 }
      ///    Error due probably to internal mistake
 static inline void InternalError(const std::string & aMes, const std::string& aContext)
@@ -346,7 +347,7 @@ template <class Type>  class cName2Calc
            if(anIter==TheMap.end()) // There must be something associated
            {
              if (SVP) return nullptr;
-             UserSError("Cannot extract allocator,",aName);
+             UserSError("Cannot extract allocator. Check that this application was recompiled after code generation",aName);
            }
            return anIter->second;
        }
