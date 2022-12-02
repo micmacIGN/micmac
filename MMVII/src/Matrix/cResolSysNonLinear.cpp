@@ -223,7 +223,9 @@ template <class Type> cResolSysNonLinear<Type>::cResolSysNonLinear(tLinearSysSR 
     mSysLinear      (aSys),
     mInPhaseAddEq   (false),
     mVarIsFrozen    (mNbVar,false),
-    mValueFrozenVar (mNbVar,-1)
+    mValueFrozenVar (mNbVar,-1),
+    lastNbObs       (0),
+    currNbObs       (0)
 {
 }
 
@@ -332,7 +334,10 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEqFixVar(const int & a
      mSysLinear->AddObservation(aWeight,aSV,aVal-CurSol(aNumV));
 }
 
-
+template <class Type> int  cResolSysNonLinear<Type>::GetNbObs() const
+{
+    return currNbObs?currNbObs:lastNbObs;
+}
 
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const int & aNumV,const Type& aWeight)
@@ -538,7 +543,6 @@ template <class Type> void cResolSysNonLinear<Type>::CalcAndAddObs
                             )
 {
     std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
-
     CalcVal(aCalcVal,aVIO,{},true,aWeigther);
     AddObs(aVIO);
 }
@@ -550,9 +554,9 @@ template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<
       // Parse all the linearized equation
       for (const auto & aIO : aVIO)
       {
+	  currNbObs += aIO.mVals.size();
 	  // check we dont use temporary value
           MMVII_INTERNAL_ASSERT_tiny(aIO.mNbTmpUk==0,"Cannot use tmp uk w/o Schurr complement");
-
 	  // parse all values
 	  for (size_t aKVal=0 ; aKVal<aIO.mVals.size() ; aKVal++)
 	  {
@@ -597,6 +601,7 @@ template <class Type> void cResolSysNonLinear<Type>::AddObsWithTmpUK (const tSet
 
 template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset() 
 {
+    lastNbObs = currNbObs;
     mInPhaseAddEq = false;
     // for var frozen, they are not involved in any equation, we must fix their value other way
     for (int aK=0 ; aK<mNbVar ; aK++)
@@ -605,6 +610,7 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
 
     mCurGlobSol += mSysLinear->Solve();     //  mCurGlobSol += mSysLinear->SparseSolve();
     mSysLinear->Reset();
+    currNbObs = 0;
 
     return mCurGlobSol;
 }
