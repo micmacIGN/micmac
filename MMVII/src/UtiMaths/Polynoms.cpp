@@ -185,7 +185,6 @@ template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>&
 
 template<class Type> void TplBenchPolynome()
 {
-     StdOut() << " XXX TplBenchPolynome \n";
      cPolynom<Type> aPol1({3,2,1});
      
      MMVII_INTERNAL_ASSERT_bench(std::abs(aPol1.Value(1)-6)<1e-10,"Polyn 000 ");

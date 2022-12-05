@@ -1,4 +1,3 @@
-
 #include "ComonHeaderSymb.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
 #include "include/SymbDer/SymbDer_GenNameAlloc.h"
@@ -8,6 +7,10 @@
 #include "Formulas_Radiom.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
+
+#include "MMVII_PCSens.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 
 /*
 La compil:
@@ -442,6 +445,19 @@ template <typename tProj> void cAppliGenCode::GenerateCodeCamPerpCentrale(const 
        GenCodesFormula((tREAL8*)nullptr,anEq,WithDer);
    }
 }
+
+void AddData(const cAuxAr2007 & anAux,cDataPerspCamIntrCalib &);
+
+void GenerateXMLSpec()
+{
+   {
+      std::string aName = PrefixSpecifXML +"TTTT.xml";
+      // cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string &);
+      cDataPerspCamIntrCalib aDPC;
+      SaveInFile (aDPC,aName);
+   }
+}
+
 
 int cAppliGenCode::Exe()
 {

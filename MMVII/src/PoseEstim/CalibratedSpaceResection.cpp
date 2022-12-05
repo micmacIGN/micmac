@@ -12,33 +12,30 @@
 
 namespace MMVII
 {
-
 template <class Type>  class cElemSpaceResection
 {
       public :
-           typedef cPtxd<Type,3>   tP3;
-           typedef cPolynom<Type>  tPol;
-           typedef cPt3dr          tResBC;
+           typedef cPtxd<Type,3>     tP3;
+           typedef cPolynom<Type>    tPol;
+	   typedef cTriangle<Type,3> tTri;
+           typedef tP3               tResBC;
 
-	   // All points in are in REAL8, only intermediar computation is eventually on REAL16
            cElemSpaceResection
            (
-	        const tPt3dr & aDirBundlA,
-	        const tPt3dr & aDirBundlB,
-	        const tPt3dr & aDirBundlC,
-	        const tPt3dr & aPGroundA,
-	        const tPt3dr & aPGroundB,
-	        const tPt3dr & aPGroundC
+	        const tTri & aTriBundles,
+	        const tTri & aTriGround
 	   );
 
-	   std::list<tResBC>  ComputeBC(bool Debug) const;
-	   static void OneTestCorrectness();
+	       // intermediar called used in test, or usable in tutorials
+
+	   std::list<tResBC>  ComputeBC() const;
            cTriangle<Type,3>  BC2LocCoord(const tResBC &) const ;
+           cIsometry3D<Type>  BC2Pose(const tResBC &) const ;
 
+
+
+	   static void OneTestCorrectness();
        private :
-
-	   tP3 ToPt(const tPt3dr &  aP) {return tP3(aP.x(),aP.y(),aP.z());}
-	   
            Type nNormA;
            Type nNormB;
            Type nNormC;
@@ -53,6 +50,7 @@ template <class Type>  class cElemSpaceResection
 	   Type abb;     ///<  (A->B).B
 
 	   // copy of ground point coordinates, local precision
+	   tTri mTriG;
 	   tP3  gA;
 	   tP3  gB;
 	   tP3  gC;
@@ -74,32 +72,29 @@ template <class Type>  class cElemSpaceResection
 template <class Type> 
    cElemSpaceResection<Type>::cElemSpaceResection
    (
-       const tPt3dr & aDirBundlA,
-       const tPt3dr & aDirBundlB,
-       const tPt3dr & aDirBundlC,
-       const tPt3dr & aPGroundA,
-       const tPt3dr & aPGroundB,
-       const tPt3dr & aPGroundC
+       const tTri & aTriB,
+       const tTri & aTriG
    ) :
-        nNormA  (Norm2(aDirBundlA)),
-        nNormB  (Norm2(aDirBundlB)),
-        nNormC  (Norm2(aDirBundlC)),
-        A       (ToPt(aDirBundlA) / nNormA),
-        B       (ToPt(aDirBundlB) / nNormB),
-        C       (ToPt(aDirBundlC) / nNormC),
+        nNormA  (Norm2(aTriB.Pt(0))),
+        nNormB  (Norm2(aTriB.Pt(1))),
+        nNormC  (Norm2(aTriB.Pt(2))),
+        A       (aTriB.Pt(0) / nNormA),
+        B       (aTriB.Pt(1) / nNormB),
+        C       (aTriB.Pt(2) / nNormC),
 
         AB      (B - A),
         AC      (C - A),
         BC      (C - B),
 	abb     (Scal(AB,B)),
 
-        gA (ToPt(aPGroundA)),
-        gB (ToPt(aPGroundB)),
-        gC (ToPt(aPGroundC)),
+	mTriG   (aTriG),
+        gA (aTriG.Pt(0)),
+        gB (aTriG.Pt(1)),
+        gC (aTriG.Pt(2)),
 
-	gD2AB (SqN2(gA-gB)),
-	gD2AC (SqN2(gA-gC)),
-	gD2BC (SqN2(gB-gC)),
+	gD2AB (SqN2(mTriG.KVect(0))),
+	gD2AC (SqN2(mTriG.KVect(2))),
+	gD2BC (SqN2(mTriG.KVect(1))),
         mSqPerimG ( gD2AB + gD2AC + gD2BC),
 
 	rABC  (gD2AB/gD2AC),
@@ -109,7 +104,7 @@ template <class Type>
 
 
 
-template <class Type> std::list<cPt3dr>  cElemSpaceResection<Type>::ComputeBC(bool Debug) const
+template <class Type> std::list<cPtxd<Type,3>>  cElemSpaceResection<Type>::ComputeBC() const
 {
 /*
       3 direction  of bundles  A,B,C   we have made ||A|| = ||B|| = ||C|| = 1
@@ -177,17 +172,10 @@ template <class Type> std::list<cPt3dr>  cElemSpaceResection<Type>::ComputeBC(bo
     tPol aSolver = Square(aRc) - aQc * Square(aLc) * 4;
     std::vector<Type> aVRoots = aSolver.RealRoots (1e-30,60);
 
-    if (Debug)
-        StdOut() << "aVRoots " << aVRoots.size()   << " " << aVRoots << "\n";
-
     std::list<tResBC> aRes;
 
     for (Type c : aVRoots)
     {
-        if (Debug)
-	{
-		StdOut() << "RRRR " << aSolver.Value(c) << "\n";
-	}
         for (Type E : {-1.0,1.0})
         {
 	    Type Q =  aQc.Value(c);
@@ -211,7 +199,7 @@ template <class Type> std::list<cPt3dr>  cElemSpaceResection<Type>::ComputeBC(bo
 		if (  (std::abs(aCheckABC)< 1e-3)  && (std::abs(aCheckCBA)< 1e-3) )
 		{
                    Type aSqPerim = aD2AB + aD2AC + aD2BC;
-                   aRes.push_back(tResBC((1+b),(1+c),aSqPerim));
+                   aRes.push_back(tResBC((1+b),(1+c),std::sqrt(mSqPerimG/aSqPerim)));
 		   // StdOut()  << " E " << E <<  " bc " << b << " " << c << " " << aCheckABC << " " << aCheckCBA << "\n";
 		}
 	    }
@@ -226,70 +214,96 @@ template <class Type> cTriangle<Type,3>  cElemSpaceResection<Type>::BC2LocCoord(
      const Type & c =  aRBC.y();
      const Type & aMul = aRBC.z();
 
-     return  cTriangle<Type,3>(aMul*A,(aMul*(1+b))*B,(aMul*(1+c))*C);
+     return  cTriangle<Type,3>(aMul*A,(aMul*b)*B,(aMul*c)*C);
 }
 
-/*
-                   Type aSqPerim0 =  SqN2(
-*/
+template <class Type> cIsometry3D<Type> cElemSpaceResection<Type>::BC2Pose(const tResBC & aRBC) const 
+{
+     cTriangle<Type,3> aTri = BC2LocCoord(aRBC);
+
+     return cIsometry3D<Type>::FromTriInAndOut(0,aTri,0,mTriG);
+}
+
 
 template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
 {
    static int aCpt=0; aCpt++;
    {
+       // generate 3 bundle not too degenared => 0,P0,P1,P2 cot coplanar
        cTriangle<Type,3> aTriBund = RandomTetraTriangRegul<Type>(1e-3,1e2);
 
-       // StdOut() << "regul "<< TetraReg(aTriBund.Pt(0),aTriBund.Pt(1),aTriBund.Pt(2))  << "\n";
+       //   Generate b &c ;  Too extrem value =>  unaccuracyy bench ; not : RandUnif_C_NotNull(1e-2) * 10
+       Type b = pow(2.0,RandUnif_C());
+       Type c = pow(2.0,RandUnif_C());
 
-       cPt3dr A = ToR(VUnit(aTriBund.Pt(0)));
-       cPt3dr B = ToR(VUnit(aTriBund.Pt(1)));
-       cPt3dr C = ToR(VUnit(aTriBund.Pt(2)));
+       // comput A,B,C  with  ratio given by b,c and A unitary
+       cPtxd<Type,3> A = VUnit(aTriBund.Pt(0));
+       cPtxd<Type,3> B = VUnit(aTriBund.Pt(1))*b;
+       cPtxd<Type,3> C = VUnit(aTriBund.Pt(2))*c;
 
-       cSimilitud3D<tREAL8> aSim(
-		               RandUnif_C_NotNull(1e-2)*10.0,
-			       cPt3dr::PRandC()*100.0,
-			       cRotation3D<tREAL8>::RandomRot()
+       //  put them anywhere and with any ratio using a random similitud
+       cSimilitud3D<Type> aSim(
+		               static_cast<Type>(RandUnif_C_NotNull(1e-2)*10.0),
+			       cPtxd<Type,3>::PRandC()*static_cast<Type>(100.0),
+			       cRotation3D<Type>::RandomRot()
                          );
+       cTriangle<Type,3> aTriG(aSim.Value(A),aSim.Value(B),aSim.Value(C));
 
+       //  Now see that we can recover b & c
+       cElemSpaceResection<Type> anESR(aTriBund,aTriG);
+       auto aLBC = anESR.ComputeBC();  //list of b,c,Perimeter
 
-       // double b = RandUnif_C_NotNull(1e-2) * 10;
-       // double c = RandUnif_C_NotNull(1e-2) * 10;
-       // 
-       //  Too extrem value, generate sometime unaccuracyy then bench error
-       //
-       double b = pow(2.0,RandUnif_C());
-       double c = pow(2.0,RandUnif_C());
-
-       cElemSpaceResection<tREAL8> anESR(A,B,C, aSim.Value(A),aSim.Value(B*b),aSim.Value(C*c));
-       //cElemSpaceResection<tREAL8> anESR(A,B,C, A,B*b,C*c);
-       auto aLBC =anESR.ComputeBC(aCpt==339104);
-
-       cWhitchMin<cPt3dr,double> aWMin(cPt3dr(0,0,0),1e10);
+       cWhitchMin<cPtxd<Type,3>,Type> aWMin(cPtxd<Type,3>(0,0,0),1e10);  // will extract b,c closest to ours
        for (auto & aTripl : aLBC)
        {
            aWMin.Add(aTripl,std::abs(aTripl.x()-b)+std::abs(aTripl.y()-c));
        }
+       MMVII_INTERNAL_ASSERT_bench(aWMin.ValExtre()<1e-4,"2 value in OneTestCorrectness");  // is it close enough
 
-           // cTriangle<Type,3>  BC2LocCoord(const tResBC &) const ;
-       // StdOut() << " CPT=" << aCpt << " DIST " << aMinDist << " " << aLBC.size() << " BC " << b << " " << c << "\n";
-       // if (aLBC.size() >)
-       MMVII_INTERNAL_ASSERT_bench(aWMin.ValExtre()<1e-4,"2 value in OneTestCorrectness");
+
+       //  Now see that if can recover local coord from b,c
+       cTriangle<Type,3>  aTriComp = anESR.BC2LocCoord(aWMin.IndexExtre());
+       for (auto aK : {0,1,2})
+       {
+              //  Test the triangle Local and Ground are isometric
+             double aDif = RelativeSafeDifference(Norm2(aTriG.KVect(aK)),Norm2(aTriComp.KVect(aK))) ;
+             MMVII_INTERNAL_ASSERT_bench(aDif<1e-4,"Local coord in OneTestCorrectness");
+              //  Test the Local coordinate are aligned on bundles
+             double aAngle = AbsAngleTrnk(aTriBund.Pt(aK),aTriComp.Pt(aK))  ;
+             MMVII_INTERNAL_ASSERT_bench(aAngle<1e-4,"Local coord in OneTestCorrectness");
+       }
+       //  Now see that if can recover local pose from b,c
+       cIsometry3D<Type>  aPose = anESR.BC2Pose(aWMin.IndexExtre());
+       for (auto aK : {0,1,2})
+       {
+           // check that  Bundle is colinear to Pose^-1 (PGround)
+           cPtxd<Type,3>  aPLoc=  aPose.Inverse(aTriG.Pt(aK));
+           Type aAngle = AbsAngleTrnk(aPLoc,aTriBund.Pt(aK));
+           MMVII_INTERNAL_ASSERT_bench(aAngle<1e-4,"Pose in OneTestCorrectness");
+       }
    }
 }
+template class cElemSpaceResection<tREAL8>;
+template class cElemSpaceResection<tREAL16>;
 
-void TestResec()
+void BenchUnCalibResection()
 {
    for (int aK=0 ; aK< 1000 ; aK++)
    {
       cElemSpaceResection<tREAL8>::OneTestCorrectness();
-      //cElemSpaceResection<tREAL16>::OneTestCorrectness();
-      // StdOut()<< "  ====================== \n"; 
+      cElemSpaceResection<tREAL16>::OneTestCorrectness();
    }
-   StdOut()<< "RESEC : DOOOOOnnnne \n"; getchar();
 }
 
-template class cElemSpaceResection<tREAL8>;
-template class cElemSpaceResection<tREAL16>;
+
+void BenchPoseEstim(cParamExeBench & aParam)
+{
+   if (! aParam.NewBench("PoseEstim")) return;
+
+   BenchUnCalibResection();
+   aParam.EndBench();
+}
+
 
 
 

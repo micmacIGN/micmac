@@ -691,5 +691,21 @@ bool SignalAtFrequence(tREAL8 anIndex,tREAL8 aFreq,tREAL8  aCenterPhase)
 }
 
 
+template <class TCont,class TVal> double Rank(const TCont & aContainer, const TVal& aVTest)
+{
+     double  aNbInf = 0;
+     double  aNbTot = 0;
+
+     for (const auto & aV : aContainer)
+     {
+         aNbTot++;
+         if (aVTest<aV)       aNbInf++;
+         else if (aVTest==aV) aNbInf += 0.5;
+     }
+     return SafeDiv(aNbInf,aNbTot);
+}
+
+template  double Rank(const std::vector<double> & aContainer, const double& aVTest);
+
 };
 

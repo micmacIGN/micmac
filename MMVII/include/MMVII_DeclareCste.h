@@ -81,6 +81,7 @@ const   std::string & StdPostF_ArMMVII(bool xml); ///< one of 2 above
 
 // PreFix 4 files
 extern const std::string  PrefixCalRadRad;  // Radiometric radial
+extern const std::string  PrefixSpecifXML;  // file that are specification of XML (or json ?)
 
 // Users Value
 

@@ -882,6 +882,10 @@ template <class Type,const int Dim>  cPolynom<Type> operator * (const  Type & aV
 /// return polynom of (Cste + X Lin)^2
 template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>& aVecCste,const cPtxd<Type,Dim>& aVecLin);
 
+// Rank of values
+template <class TCont,class TVal> double Rank(const TCont &, const TVal&);
+
+
 };
 
 #endif  //  _MMVII_nums_H_

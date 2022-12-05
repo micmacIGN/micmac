@@ -17,6 +17,7 @@ namespace MMVII
 void TestParamTarg();
 
 
+
 namespace  cNS_CodedTarget
 {
 
@@ -27,19 +28,16 @@ namespace  cNS_CodedTarget
 /*  *********************************************************** */
 
 
-cDCT::cDCT(const cPt2di aPt,cAffineExtremum<tREAL4> & anAffEx) :
+cDCT::cDCT(const cPt2dr aPtR,eResDCT aState) :
    mGT       (nullptr),
-   mPix0     (aPt),
-   mPt       (anAffEx.StdIter(ToR(aPt),1e-2,3)),
-   mState    (eResDCT::Ok),
+   mPt       (aPtR),
+   mState    (aState),
    mScRadDir (1e5),
    mSym      (1e5),
    mBin      (1e5),
    mRad      (1e5)
 
 {
-    if ( (anAffEx.Im().Interiority(Pix())<20) || (Norm2(mPt-ToR(aPt))>2.0)  )
-       mState = eResDCT::Divg;
 }
 
 
@@ -48,6 +46,8 @@ cDCT::cDCT(const cPt2di aPt,cAffineExtremum<tREAL4> & anAffEx) :
 /*             cAppliExtractCodeTarget                          */
 /*                                                              */
 /*  *********************************************************** */
+
+
 
 class cAppliExtractCodeTarget : public cMMVII_Appli,
 	                        public cAppliParseBoxIm<tREAL4>
@@ -62,6 +62,8 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
 	///  Create the matching between GT and extracted
         void MatchOnGT(cGeomSimDCT & aGSD);
+
+	void DoAllMatchOnGT();
 	/// compute direction of ellipses
         void ExtractDir(cDCT & aDCT);
 	/// Print statistique initial
@@ -187,19 +189,32 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
 void cAppliExtractCodeTarget::ShowStats(const std::string & aMes)
 {
    int aNbOk=0;
+   int aNbGTOk=0;
+   double aSomDist=0;
+   std::vector<double> aVDistGT;
    for (const auto & aR : mVDCT)
    {
       if (aR->mState == eResDCT::Ok)
+      {
          aNbOk++;
+	 if (aR->mGT)
+	 {
+            aVDistGT.push_back(Norm2(aR->mPt-aR->mGT->mC));
+            aSomDist += aVDistGT.back();
+            aNbGTOk++;
+	 }
+      }
    }
-   StdOut() <<  aMes << " NB DCT = " << aNbOk << " Prop " << (double) aNbOk / (double) APBI_DIm().NbElem() ;
+   StdOut() <<  aMes << " NB DCT = " << aNbOk << " PropAll " << (double) aNbOk / (double) APBI_DIm().NbElem() ;
 
-/*
-  if (mWithGT && )
-  {
-        //for (auto & aGSD : mGTResSim.mVG)
-  }
-*/
+   if (aNbGTOk)
+   {
+       size_t aNbGtAll = mGTResSim.mVG.size();
+       StdOut()  <<  " PropGT=" << double(aNbGTOk)/  aNbGtAll 
+	       << " AvgDist=" << aSomDist/ aNbGTOk 
+	       // << "     ** D50,75=" << NC_KthVal(aVDistGT,0.5) << " " << NC_KthVal(aVDistGT,0.75)
+       ;
+   }
 
    StdOut()   << "\n";
 }
@@ -220,7 +235,7 @@ void cAppliExtractCodeTarget::MarkDCT()
           if (aDCT->mState == eResDCT::LowSymMin)  aCoul =  cRGBImage::Magenta;           // High symmetry
 
           if (aCoul.x() >=0){
-             mImVisu.SetRGBrectWithAlpha(aDCT->Pix0(), 1, aCoul, 0.0);
+             mImVisu.SetRGBrectWithAlpha(aDCT->Pix(), 1, aCoul, 0.0);
           }
 
           /*
@@ -278,6 +293,26 @@ void cAppliExtractCodeTarget::MatchOnGT(cGeomSimDCT & aGSD)
      }
      else
      {
+     }
+}
+
+void cAppliExtractCodeTarget::DoAllMatchOnGT()
+{
+     if (mWithGT)
+     {
+        int aNbGTMatched = 0;
+        for (auto & aGSD : mGTResSim.mVG)
+	{
+             MatchOnGT(aGSD);
+	     if (aGSD.mResExtr )
+		aNbGTMatched++; 
+	     else
+	     {
+                 StdOut() << " UNMATCH000 at " << aGSD.mC << "\n";
+	     }
+	}
+
+	StdOut()  << "GT-MATCHED : %:" << (100.0*aNbGTMatched) /mGTResSim.mVG.size() << " on " << mGTResSim.mVG.size() << " total-GT\n";
      }
 }
 
@@ -358,42 +393,104 @@ void  cAppliExtractCodeTarget::DoExtract(){
      mImVisu =   RGBImFromGray(aDIm);
      // mNbPtsIm = aDIm.Sz().x() * aDIm.Sz().y();
 
-     // [1]   Extract point that are extremum of symetricity
 
 
-     // ------------------------------------------------------------------------------------------------------------------
-     // New version
-     // ------------------------------------------------------------------------------------------------------------------
-
-
-         //    [1.1]   extract integer pixel
-     cIm2D<tREAL4>  aImSym = ImSymetricity(false,aIm,mRayMinCB*0.4,mRayMinCB*0.8,0);  // compute fast symetry
-
-     if (1)
+     if (0) //  Case prefiltring by symetry
      {
-        aImSym.DIm().ToFile("TestDCT_SYMINIT_SimulTarget_test.tif");
-     }
+          // [1]   Extract point that are extremum of symetricity
+         //    [1.1]   extract integer pixel
+         cIm2D<tREAL4>  aImSym = ImSymetricity(false,aIm,mRayMinCB*0.4,mRayMinCB*0.8,0);  // compute fast symetry
 
-     cResultExtremum aRExtre(true,false);              //structire for result of extremun , compute min not max
-     ExtractExtremum1(aImSym.DIm(),aRExtre,mRExtreSym);  // do the extraction
+         if (1)
+         {
+            aImSym.DIm().ToFile("TestDCT_SYMINIT_SimulTarget_test.tif");
+         }
+
+         cResultExtremum aRExtre(true,false);              //structire for result of extremun , compute min not max
+         ExtractExtremum1(aImSym.DIm(),aRExtre,mRExtreSym);  // do the extraction
 
          // [1.2]  afine to real coordinate by fiting quadratic models
-     cAffineExtremum<tREAL4> anAffEx(aImSym.DIm(),2.0);
-     for (const auto & aPix : aRExtre.mPtsMin)
-     {
-          mVDCT.push_back(new cDCT(aPix,anAffEx));
-     }
+         cAffineExtremum<tREAL4> anAffEx(aImSym.DIm(),2.0);
+         for (const auto & aPix : aRExtre.mPtsMin)
+         {
+             eResDCT aState = eResDCT::Ok;
+             cPt2dr aPtR =  anAffEx.StdIter(ToR(aPix),1e-2,3);
+             if ( (anAffEx.Im().Interiority(aPix)<20) || (Norm2(aPtR-ToR(aPix))>2.0)  )
+                aState = eResDCT::Divg;
 
-     if (mWithGT)
-     {
-        for (auto & aGSD : mGTResSim.mVG)
-             MatchOnGT(aGSD);
+              mVDCT.push_back(new cDCT(aPtR,aState));
+         }
+         DoAllMatchOnGT();
+         ShowStats("Init ");
      }
-         //
-     ShowStats("Init ");
+     else  // Case prefiltering by Saddle 
+     {
+         // Set for interior Maybe to adapt  DRONE
+         double aRaySaddle = mDiamMinD / 4.0;
+         double aDistSaddleExtre = mDiamMinD / 4.0;  //   Div 3 generate one false neg
+         double aThrSadCPT = 0.45;  //   Div 3 generate one false neg
 
+	 // 1.1 compute saddle images
+         StdOut()  <<  "------- BEGIN SADDLE-------------\n";
+         auto [aImDif,aImCpt] =  FastComputeSaddleCriterion(APBI_Im(),aRaySaddle);
+         StdOut()  <<  "------- END SADDLE-------------\n";
+
+	 if (0) /// Save image sadles for visu
+	 {
+	    aImDif.DIm().ToFile("SadleDif.tif");
+	    aImCpt.DIm().ToFile("SadleCpt.tif");
+	 }
+
+	 // 1.2  select point that are extrema of saddle-dif
+         cResultExtremum aRExtre(false,true);  //structire for result of extremun , compute max and not min
+         ExtractExtremum1(aImDif.DIm(),aRExtre,aDistSaddleExtre);  // do the extraction
+
+         for (const auto & aPix : aRExtre.mPtsMax)
+         {
+             eResDCT aState = eResDCT::Ok;
+	     cPt2dr aPtR = ToR(aPix);
+             if  (APBI_DIm().Interiority(aPix)<20) 
+                aState = eResDCT::Divg;
+
+              mVDCT.push_back(new cDCT(aPtR,aState));
+         }
+         DoAllMatchOnGT();  // Match on GT 
+         ShowStats("SadleDiffRel ");
+
+	 std::vector<double>  aVCPT_GT;  // cpt-sadle for ground-truh to check values
+	 std::vector<double>  aVCPT_Glob;  // cpt-sadle for all points
+
+	 // 1.3  refine position by /
+	 // WARN  RAY=5 generate many divg, see if can already estimate the ray at this Step ??
+	 cCalcSaddle  aCSad(3.0,0.5);
+
+	 for (auto & aPtrDCT :  mVDCT )
+	 {
+             tREAL8 aCpt = aImCpt.DIm().GetV(aPtrDCT->Pix());
+	     if (aPtrDCT->mGT)
+	     {
+                 aVCPT_GT.push_back(aCpt);
+	     }
+	     aVCPT_Glob.push_back(aCpt);
+
+	     if (aCpt<aThrSadCPT)
+                aPtrDCT->mState = eResDCT::LowSadleRel;
+	     if (aPtrDCT->mState ==eResDCT::Ok)
+	     {
+                  aCSad.RefineSadlePointFromIm(APBI_Im(),*aPtrDCT);
+	     }
+	 }
+	 for (double aVal : {0.4,0.45,0.5})
+	 {
+	     StdOut() << "   --- SadCPT : " << aVal  << " PropGT " <<  Rank(aVCPT_GT,aVal) << " PropStd " <<  Rank(aVCPT_Glob,aVal)<< "\n";
+	 }
+         ShowStats("SadleCpt ");
+     }
 
      //   ====   Symetry filters ====
+     /*   Not sure this very usefull as symetry is done 
+           *   optionnaly at the begining for prefiltering  (it symetry or saddle) 
+	   *   always as a post fiter
      for (auto & aDCT : mVDCT){
         if (aDCT->mState == eResDCT::Ok){
            aDCT->mSym = aImSym.DIm().GetV(aDCT->Pix());
@@ -403,6 +500,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
         }
      }
      ShowStats("LowSym");
+     */
 
 
      cParamAllFilterDCT aGlobParam;
@@ -431,8 +529,8 @@ void  cAppliExtractCodeTarget::DoExtract(){
         // -------------------------------------------
         // TEST CENTRAGE SUR UNE CIBLE
         // -------------------------------------------
-        // if (abs(aPtrDCT->Pix0().x() - 1748) > 2) continue;
-        // if (abs(aPtrDCT->Pix0().y() - 3407) > 2) continue;
+        // if (abs(aPtrDCT->Pix().x() - 1748) > 2) continue;
+        // if (abs(aPtrDCT->Pix().y() - 3407) > 2) continue;
         // -------------------------------------------
 
         if (aPtrDCT->mState == eResDCT::Ok){
@@ -476,7 +574,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
     for (auto aDCT : mVDCTOk){
 
-        cPt2di center = aDCT->Pix0();
+        cPt2di center = aDCT->Pix();
 
         // -------------------------------------------
         // Test on binarity of target
@@ -1052,8 +1150,8 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::solveIntersections(cDCT* target, do
 
     std::vector<cPt2dr> INTERSECTIONS;
 
-    double cx = target->Pix0().x();
-    double cy = target->Pix0().y();
+    double cx = target->Pix().x();
+    double cy = target->Pix().y();
 
     double vx1 = target->mDirC1.x(); double vy1 = target->mDirC1.y();
     double vx2 = target->mDirC2.x(); double vy2 = target->mDirC2.y();
@@ -1336,6 +1434,9 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
 
 int cAppliExtractCodeTarget::ExeOnParsedBox()
 {
+   // TestSadl(APBI_Im());
+  //  std::pair<cIm2D<tREAL4>,cIm2D<tREAL4>>> 
+
    mImGrad    =  Deriche(APBI_DIm(),2.0);
    DoExtract();
 

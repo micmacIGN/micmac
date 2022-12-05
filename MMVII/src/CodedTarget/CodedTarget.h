@@ -84,6 +84,7 @@ enum class eResDCT
 {
      Ok,
      Divg,
+     LowSadleRel,
      LowSym,
      LowSymMin,
      LowBin,
@@ -96,13 +97,11 @@ enum class eResDCT
 class  cDCT
 {
      public  :
-         cDCT(const cPt2di aPt,cAffineExtremum<tREAL4> & anAffEx);
+         cDCT(const cPt2dr aPtR,eResDCT aState);
 
          cPt2di  Pix()  const {return ToI(mPt);} /// convert to integer coordinates
-         cPt2di  Pix0() const {return mPix0;}   /// initial position
 
          cGeomSimDCT * mGT;        ///< possible ground truth
-         cPt2di        mPix0;      ///< initial integer position
          cPt2dr        mPt;        ///< refined position sub-pixel
          cPt2dr        mDirC1;     ///< Direction of corner 1 (detected axe of chekboard)
          cPt2dr        mDirC2;     ///< Direction of corner 2 (detected axe of check board)

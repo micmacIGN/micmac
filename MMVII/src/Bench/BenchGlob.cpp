@@ -7,6 +7,9 @@
 #include <unistd.h>
 #include <cmath>
 
+#include "MMVII_PCSens.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 using namespace NS_SymbolicDerivative ;
 /** \file BenchGlob.cpp
     \brief Main bench
@@ -440,6 +443,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         Bench_Nums(aParam); // Basic numericall services
         BenchHamming(aParam);
         BenchPolynome(aParam);
+        BenchPoseEstim(aParam);
         BenchRansSubset(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
         BenchSet(aParam,mDirTestMMVII);  // Set (in extension)
@@ -921,14 +925,12 @@ void ShowAdr(double & anAdr)
        StdOut () <<  "ADDDDDr " << &(anAdr) << "\n";
 }
 void TTT();
-void TestResec();
+
 
 
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
-   TestResec();
-
    int aVatNotInSpec;
    StdOut() <<  "mDegDistTest " << IsInSpec(&mDegDistTest) << " " << IsInSpec(&aVatNotInSpec) << "\n";
    if (IsInit(&mDegDistTest))
