@@ -119,6 +119,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          int         mSzW;
          bool        mNormByC;
          double      mTetaOpt;
+         double      mResolTerrain;
 
 };
 
@@ -664,6 +665,7 @@ class cAppli_MPI2Mnt
          void ExeCom(const std::string & aCom);
          double      mZReg;
          double      mSeuilE;
+         double      mResolTerrain;
 };
 
 void cAppli_MPI2Mnt::ExeCom(const std::string & aCom)
@@ -828,7 +830,9 @@ void cAppli_MPI2Mnt::DoMTD()
                           + " NbVI=2" 
                           + " EZA=1 "
                        ;
-
+    if (mResolTerrain > 0. )
+        aCom += " ResolTerrain=" + ToString(mResolTerrain);
+    
     ExeCom(aCom);
 
 /*
@@ -859,7 +863,8 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mPurge       (true),
     mUseTA       (false),
     mZReg        (0.02),
-    mSeuilE      (5.0)
+    mSeuilE      (5.0),
+    mResolTerrain(0.0)
 {
    ElInitArgMain
    (
@@ -877,6 +882,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mUseTA,"UseTA",true,"Use TA as filter when exist (Def=false)",eSAM_InternalUse)
                     << EAM(mResolIm,"RI",true,"Resol Im, def=1 ",eSAM_InternalUse)
                     << EAM(mSeuilE,"SeuilE",true,"Seuil d'etirement des triangle, Def=5")
+                    << EAM(mResolTerrain,"ResolTerrain",true,"Ground Resol (Def automatically computed)", eSAM_NoInit)
                     << EAM(mDeZoom, "ZoomF", true, "ZoomF, Def=2")
                     << EAM(mDirMTD, "DirMTD", true, "Subdirectory where the temporary results will be stored, Def=PIMs-TmpMnt/")
                     << EAM(mDirOrtho, "DirOrtho", true, "Subdirectory for ortho images, Def=PIMs-ORTHO/")
