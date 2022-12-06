@@ -8,6 +8,11 @@
 #include <typeinfo>
 
 
+/*   Modularistion
+ *   Code extern tel que ellipse 
+ *   Ellipse => avec centre
+ *   Pas de continue 
+ */
 #define PI 3.14159265
 
 // Test git branch
