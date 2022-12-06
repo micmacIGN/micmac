@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 #include "general/CMake_defines.h"
 #if ELISE_QT
     #ifdef Int
