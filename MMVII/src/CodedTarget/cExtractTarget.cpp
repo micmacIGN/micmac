@@ -454,10 +454,10 @@ void  cAppliExtractCodeTarget::DoExtract(){
          {
              eResDCT aState = eResDCT::Ok;
 	     cPt2dr aPtR = ToR(aPix);
-             if  (APBI_DIm().Interiority(aPix)<20) 
+             if  (APBI_DIm().Interiority(aPix)<20)  // remove point closde to border of image
                 aState = eResDCT::Divg;
-
-              mVDCT.push_back(new cDCT(aPtR,aState));
+	     else
+                mVDCT.push_back(new cDCT(aPtR,aState));
          }
          DoAllMatchOnGT();  // Match on GT 
          ShowStats("SadleDiffRel ");
