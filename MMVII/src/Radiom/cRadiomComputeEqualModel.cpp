@@ -548,7 +548,7 @@ tMMVII_UnikPApli Alloc_Radiom2ImageSameMod(const std::vector<std::string> &  aVA
 
 cSpecMMVII_Appli  TheSpecRadiom2ImageSameMod
 (
-     "RadiomTest",
+     "RadiomComputeEqual",
       Alloc_Radiom2ImageSameMod,
       "Estimate radiometric model (test 4 now)",
       {eApF::Radiometry},

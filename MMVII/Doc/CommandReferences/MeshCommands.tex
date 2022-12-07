@@ -119,8 +119,18 @@ Figure~\ref{fig:SpirAndDev} represent the 3D surface and its developped 2d surfa
   * [Name=NbIE] int :: Number of iteration at end
 \end{verbatim}
 
+\begin{figure}
+\centering
+\includegraphics[width=6cm]{CommandReferences/ImagesComRef/Mesh3D.jpg}
+\includegraphics[width=6cm]{CommandReferences/ImagesComRef/Mesh2D.jpg}
+\caption{A "real" mesh and its devlopment after MeshDev}
+\label{fig:RealDev}
+\end{figure}
+
+
 This tool is used to make the $2d$ development of a $3d$ surface. As the real surface
 is generally not strictly devlopable, this is done by minimzing the energy of deformation.
+Figure~\ref{fig:RealDev} presents a $3d$ mesh and its $2d$ devlopment.
 The constraint is that the devlopment must be, as much as possible isometric (distance on
 the plane is the same that geodetic distance on $3d$ surface).  More precisely :
 
@@ -179,7 +189,60 @@ formula of equation~\ref{Eq:MeshDev1T} :
   * [Name=FFI0] string [FFI0] :: File Filter Interval, Main Set
 \end{verbatim}
 
+This command is used to prepare the image devlopment taking into account the orientation of the
+camera and a $3$ surface.  It must decides for each triangle, which is the best image to
+use for creating textures . For each image and each triangle, the method :
 
+\begin{itemize}
+    \item decide if the triangle is visible, this is done copmputing a ZBuffer;
+    \item for a visible triangle, computes the resolution (precisely the lowest resolution 
+          on all the possible direction);
+\end{itemize}
+
+Finally the  command select for each triangle the image having the best resolution among the images where
+the triangle is visible.
+
+\begin{figure}
+\centering
+\includegraphics[width=6cm]{CommandReferences/ImagesComRef/Image_P1056148.jpg}
+\includegraphics[width=6cm]{CommandReferences/ImagesComRef/ZBuf.jpg}
+\caption{An image , the ZBuffer computed,the view on devloped mesh of visibility and resolution}
+\label{fig:RealDevZB}
+\end{figure}
+
+The figure~\ref{fig:RealDevZB} presents some intermediar result computed during
+this commande.  The left image is just the image used to illustrate the computation,
+the right image is the zbuf computed, by default this z-buffer is not saved as it is
+just an intermediar of computation, if wanted for illusration the {\tt DoIm=true} activates that.
+
+\begin{figure}
+\centering
+\includegraphics[width=6cm]{CommandReferences/ImagesComRef/Dev-P1056148.jpg}
+\includegraphics[width=6cm]{CommandReferences/ImagesComRef/LabTri.jpg}
+\caption{An image , the ZBuffer computed,the view on devloped mesh of visibility and resolution}
+\label{fig:RealDevTri}
+\end{figure}
+
+The figure~\ref{fig:RealDevTri} presents the result of computation, these two images are in the
+gemetry of devlopped $2d$ surface :
+
+\begin{itemize}
+    \item left  image present the visiblity of triangle , gray triangle are visible the gray value is
+          proportionnal to the computed resolution; cyan corresponf to background (no triangle or triangle
+          dont project in image),  red present triangle that are coorectly oriented but occluded by others,
+          green present the triangle that cannot be visible due to their orientation;
+
+    \item right image present the result of best triangle selection using a random palette to visualize the
+           triangle affected to the same image;
+
+\end{itemize}
+
+radiometry
+
+results
+
+
+%  \includegraphics[width=5cm]{CommandReferences/ImagesComRef/Dev-P1056148.jpg}
 %-----------------------------------------------------------------------
 \subsection{MeshImageDevlp}
 
