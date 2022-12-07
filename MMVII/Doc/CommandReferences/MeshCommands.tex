@@ -105,39 +105,84 @@ Figure~\ref{fig:SpirAndDev} represent the 3D surface and its developped 2d surfa
 %-----------------------------------------------------------------------
 \subsection{MeshDev}
 
+\begin{verbatim}
+== Mandatory unnamed args : ==
+  * string [FDP,Cloud] :: Name of input cloud/mesh
+== Optional named args : ==
+  * [Name=Out] string :: Name of output file
+  * [Name=Bin] bool :: Generate out in binary format ,[Default=false]
+  * [Name=NbCByS] int :: Number of compensation by step ,[Default=3]
+  * [Name=ShowAv] bool :: Show advancement of computation ,[Default=true]
+  * [Name=CheckReach] bool :: Check reached face&som at end ,[Default=true]
+  * [Name=WDistE] double :: Weight on edge dist ,[Default=0]
+  * [Name=WRot] double :: Weight on rot on 2d triangles ,[Default=1]
+  * [Name=NbIE] int :: Number of iteration at end
+\end{verbatim}
 
 This tool is used to make the $2d$ development of a $3d$ surface. As the real surface
 is generally not strictly devlopable, this is done by minimzing the energy of deformation.
-More precisely :
+The constraint is that the devlopment must be, as much as possible isometric (distance on
+the plane is the same that geodetic distance on $3d$ surface).  More precisely :
 
 \begin{itemize}
       \item let  $P_i$ be the $3d$ points of the triangulation, $P_i \in \RR^3$;
       \item let  $\phi(P_i)$ be unknown $2d$  position of the devlopment $\phi(P_i) \in \RR^2$;
-      \item let  $T_k = \{P_{k_1},P_{k_2},P_{k_3}\}$ be the triangles;
+      \item let  $\mathcal{T}_t = \{P_{t_1},P_{t_2},P_{t_3}\}, t \in [1,T] $ be the $T$ triangles;
 \end{itemize}
 
-For each triangle  $T_k$ \emph{independantly} we can easily compute a perfect development
-$q^k_1,q^k_2,q^k_3$, such that $d(q^k_m,q^k_n)=d(P_{k_m},P_{k_n}) \; m,n \in (1,2,3)$. If the development
-were perfect, there would exist for each triangle a rotation $R^k$ such that :
+
+The command offers different option corresponding to different formalization of the isometry.
+The simpler is given by :
 
 \begin{equation}
-	\phi(P_{k_m}) =  R^k q^k_m  \;\; m \in (1,2,3) \label{Eq:MeshDev1T}
+   E_d(\phi) =   \sum_{t=1}^T \sum_{m,n=1}^3  \{ d(P_{t_m},P_{t_m})-  d(\phi(P_{t_m}),\phi(P_{t_m})) \}  ^2
+   \label{DevEqDist}
+\end{equation}
+
+For technicall reason (see paper to come) the equation~\ref{DevEqDist} is not stable and
+the equation~\ref{Eq:MeshDev1T} is generally preferable.
+For each triangle  $\mathcal{T}_t$ \emph{independantly} we can easily compute a \emph{perfect} development
+in a $2d$ triangle $\mathcal{T}^2_k$= $q_{t_1},q_{t_2},q_{t_3}$, such that 
+$d(q_{t_n},q_{t_m})=d(P_{t_m},P_{t_n}) \; m,n \in (1,2,3)$, so if the development
+were perfect, there would exist for each triangle a rotation $R^t$ such that :
+
+\begin{equation}
+	\phi(P_{t_m}) =  R^t q^t_m  \;\; m \in (1,2,3) \label{Eq:MeshDev1T}
 \end{equation}
 
 
-The then try to compute the $\phi(P_i)$ and $R_k$ that minisze globaly the equation)~\ref{Eq:MeshDev1T} :
+Let note $\psi$ the application associate a rotation to each triangle $R^t = \psi(\mathcal{T}_t)=$.
+We then try to compute simultaneously the $\phi$ and $\psi$ that minizes globaly the 
+formula of equation~\ref{Eq:MeshDev1T} :
 
 \begin{equation}
-    \sum_k \sum_{m=1}^3  ||\phi(P_{k_m}) - R^k q^k_m|| ^2
+    E_R(\phi,\psi)= \sum_{t=1}^T \sum_{m=1}^3  d\{\phi(P_{t_m}) - \psi(\mathcal{T}_t)(q_{t_m})\} ^2
 \end{equation}
 
+%-----------------------------------------------------------------------
 
-\COM{
-MeshDev => Generate a planar devlopment minimizing deformations
-MeshImageDevlp =>  Compute devlopped images from 3d-mesh, 2d-dev-mesh and ori
-MeshProjImage => (internal) Project a mes on an image to prepare devlopment
+\subsection{MeshProjImage}
 
-}
+\begin{verbatim}
+ == Mandatory unnamed args : ==
+  * string [MPF0,FDP] :: Name of image
+  * string [Cloud,In] :: Name of input cloud/mesh
+  * string [Ori,In] :: Input Orientation
+ == Optional named args : ==
+  * [Name=M2] string [Cloud,In] :: Mesh 2D, dev of cloud 3D,to generate a visu of hiden part 
+  * [Name=ResZBuf] double :: Resolution of ZBuffer ,[Default=3]
+  * [Name=DoIm] bool :: Do images ,[Default=false]
+  * [Name=NbPixIR] int :: Resolution of ZBuffer ,[Default=2000]
+  * [Name=MII] double :: Margin Inside Image (for triangle validation) ,[Default=4]
+  * [Name=SkWE] bool :: Skip command when result exist
+  * [Name=OutRad] string [Rad,Out] :: Output Radiometry 
+  * [Name=FFI0] string [FFI0] :: File Filter Interval, Main Set
+\end{verbatim}
+
+
+%-----------------------------------------------------------------------
+\subsection{MeshImageDevlp}
+
 
 
 

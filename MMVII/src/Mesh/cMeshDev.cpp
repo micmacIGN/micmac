@@ -136,7 +136,7 @@ class cDevTriangu3d
           ~cDevTriangu3d();
 
           /// Export devloped surface as ply file
-	  void ExportDev(const std::string &aName,const std::string &aNameFilter,bool Bin) const;
+	  void ExportDev(const std::string &aName,bool Bin) const;
 	  
           /// Show statistics on geometry preservation : distance & angles
 	  tCoordDevTri GlobDistortiontDist() const;
@@ -694,7 +694,7 @@ void  cDevTriangu3d::OneIterationCompens(bool IsLast)
 }
 
 
-void  cDevTriangu3d::ExportDev(const std::string &aName,const std::string &aNameFilter,bool Bin) const
+void  cDevTriangu3d::ExportDev(const std::string &aName,bool Bin) const
 {
 
      bool  FilterDone = false;
@@ -747,13 +747,16 @@ void  cDevTriangu3d::ExportDev(const std::string &aName,const std::string &aName
         aVPlan3.push_back(TP3z0(aRot.Value(aPDev)));
 
      tTriangulation3D aTriPlane(aVPlan3,aVNewFace);
-     aTriPlane.WriteFile(aName,Bin);
 
 
      if (FilterDone)
      {
          tTriangulation3D aTriFilter(aVPNewP3,aVNewFace);
-         aTriFilter.WriteFile(aNameFilter,Bin);
+         aTriFilter.WriteFile(aName,Bin);
+     }
+     else 
+     {
+        aTriPlane.WriteFile(aName,Bin);
      }
 }
 
@@ -827,7 +830,6 @@ class cAppliMeshDev : public cMMVII_Appli
         std::string       mNameCloudIn;
            // --- Optionnal ----
         std::string       mNameCloudOut;
-        std::string       mNameCloudFilter;
         bool              mBinOut;
 	cParamDevTri3D    mParam;
            // --- Internal ----
@@ -851,7 +853,6 @@ cCollecSpecArg2007 & cAppliMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
            << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file")
-           << AOpt2007(mNameCloudFilter,"OutFilter3D","Name of output file for filtered 3D (supression of unreached)")
            << AOpt2007(mBinOut,CurOP_OutBin,"Generate out in binary format",{eTA2007::HDV})
            << AOpt2007(mParam.mNbCmpByStep,"NbCByS","Number of compensation by step",{eTA2007::HDV})
            << AOpt2007(mParam.mFactRand,"FactRand","Factor of randomization (for bench)",{eTA2007::HDV,eTA2007::Tuning})
@@ -867,11 +868,10 @@ cCollecSpecArg2007 & cAppliMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 int  cAppliMeshDev::Exe()
 {
    InitOutFromIn(mNameCloudOut,"Dev_"+mNameCloudIn);
-   InitOutFromIn(mNameCloudFilter,"FiltDev_"+mNameCloudIn);
 
    tTriangulation3D  aTri(mNameCloudIn);
    cDevTriangu3d aDev(aTri,mParam);
-   aDev.ExportDev(mNameCloudOut,mNameCloudFilter,mBinOut);
+   aDev.ExportDev(mNameCloudOut,mBinOut);
 
    return EXIT_SUCCESS;
 }
