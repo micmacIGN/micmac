@@ -1,9 +1,6 @@
 \chapter{Mesh related commands}
 
 
-CNR  CERN 
-
-
 %-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
@@ -173,6 +170,8 @@ formula of equation~\ref{Eq:MeshDev1T} :
 
 \subsection{MeshProjImage}
 
+\subsubsection{General use}
+
 \begin{verbatim}
  == Mandatory unnamed args : ==
   * string [MPF0,FDP] :: Name of image
@@ -219,34 +218,81 @@ just an intermediar of computation, if wanted for illusration the {\tt DoIm=true
 \centering
 \includegraphics[width=6cm]{CommandReferences/ImagesComRef/Dev-P1056148.jpg}
 \includegraphics[width=6cm]{CommandReferences/ImagesComRef/LabTri.jpg}
-\caption{An image , the ZBuffer computed,the view on devloped mesh of visibility and resolution}
+\caption{Left visibility an resolution for $1$ image, right visualisation of selected triangle}
 \label{fig:RealDevTri}
 \end{figure}
 
 The figure~\ref{fig:RealDevTri} presents the result of computation, these two images are in the
-gemetry of devlopped $2d$ surface :
+geometry of devlopped $2d$ surface :
 
 \begin{itemize}
-    \item left  image present the visiblity of triangle , gray triangle are visible the gray value is
-          proportionnal to the computed resolution; cyan corresponf to background (no triangle or triangle
-          dont project in image),  red present triangle that are coorectly oriented but occluded by others,
+    \item left  image present the visiblity of triangle , gray triangle are visible and the gray value is
+          proportionnal to the computed resolution; cyan correspond to background (no triangle or triangle
+          dont project in image),  red present triangle that are correctly oriented but occluded by others,
           green present the triangle that cannot be visible due to their orientation;
 
-    \item right image present the result of best triangle selection using a random palette to visualize the
-           triangle affected to the same image;
+    \item right image present the result of best triangle selection using a random palette (same color
+          visualize triangles affected to the same image;
 
 \end{itemize}
 
-radiometry
+     %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-results
+\subsubsection{Radiometry computation}
+
+An important option of the command is {\tt OurRad},  if used it will generate in
+the specifying folder data that can be used for radiometric equalization (see
+chapter \ref{Chap:Radiom} for structures of such data). Some details :
+
+\begin{itemize}
+    \item each $3d$ triangle is sampled on a grid , each of this point 
+
+\end{itemize}
+
+
+
+\subsubsection{Result}
+
 
 
 %  \includegraphics[width=5cm]{CommandReferences/ImagesComRef/Dev-P1056148.jpg}
 %-----------------------------------------------------------------------
 \subsection{MeshImageDevlp}
 
+\begin{verbatim}
+== Mandatory unnamed args : ==
+  * string [FDP] :: Name of 2d devloped mesh
+  * string :: Name of file resulting of MeshProjImage
+ == Optional named args : ==
+  * [Name=WGL] bool :: With Gray Label 2-byte image generation ,[Default=false]
+  * [Name=WRGBL] bool :: With RGB Label  1 chanel-label/2 label contrast ,[Default=false]
+  * [Name=InRad] string [Rad,In] :: Output Radiometry 
+\end{verbatim}
+
+This command is used for computing effectively the $2d$ devlopment of the image . Its takes two mandatory
+parameters :
+
+\begin{itemize}
+   \item the $2d$ mesh as resulting from the command {\tt MeshDev};
+   \item the folder containing the result of {\tt MeshProjImage};
+\end{itemize}
+
+If the images are to be equalized before devlopment, The optionnal parameter {\tt InRad} 
+indicate where the radiometric equalization data can be found.  
+
+The parameter {\tt WGL} and {\tt WRGBL} can be used to generate visualization as the one
+of figure~\ref{fig:RealDevTri}, except for didactic or debugging, they will be generally not usefull.
+ With {\tt WGL} a gray level- $16$ bits- image is generated,
+each level indicating the id of the triangle. With {\tt WRGBL}, a rgb-$8$ bits- image is generated, the 
+blue channel indicate the num of the triangle, while red and green channel are selected to maximize
+the contrast.
 
 
+
+{ \huge \bf
+Faire purge ...
+
+Changer pour dossier de resultat
+}
 
 
