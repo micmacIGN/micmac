@@ -159,7 +159,7 @@ cAppliProMeshImage::cAppliProMeshImage(const std::vector<std::string> & aVArgs,c
    mResolZBuf       (3.0),
    mNbPixImRedr     (2000),
    mDoImages        (false),
-   mSKE             (true),
+   mSKE             (false),
    mNameBenchMode   (false),
    mMII             (4.0),
     // internal vars

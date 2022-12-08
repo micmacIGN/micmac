@@ -46,7 +46,8 @@ std::string SuppresDir(const std::string & aDir,const std::string & aName)
         //  =============  Construction & destuction =================
 
 cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
-    mAppli  (anAppli)
+    mAppli          (anAppli),
+    mPurgeRadiomOut (false)  // by default purge, will give access to modify if necessity appears
 {
 }
 
@@ -87,6 +88,8 @@ void cPhotogrammetricProject::FinishInit()
     if (mAppli.IsInSpec(&mRadiomOut) )
     {
         CreateDirectories(mFullRadiomOut,true);
+	if (mPurgeRadiomOut)
+           RemoveRecurs(mFullRadiomOut,true,true);
     }
 }
 

@@ -243,6 +243,7 @@ class cPhotogrammetricProject
           std::string     mRadiomOut;
           std::string     mFullRadiomIn;
           std::string     mFullRadiomOut;
+	  bool            mPurgeRadiomOut;  ///< by default we purge dir of output radiom each time we write smth  : indexes will be incoherent
 
 	  std::list<cSensorCamPC*>  mLCam2Del;
 
