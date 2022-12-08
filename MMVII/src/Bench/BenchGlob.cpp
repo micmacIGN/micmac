@@ -469,8 +469,8 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchPoseEstim(aParam);
         BenchRansSubset(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
-        BenchSet(aParam,mDirTestMMVII);  // Set (in extension)
-        BenchSelector(aParam,mDirTestMMVII);  // Set (in comprehension)
+        BenchSet(aParam,DirTestMMVII());  // Set (in extension)
+        BenchSelector(aParam,DirTestMMVII());  // Set (in comprehension)
 
         Bench_Heap(aParam); // Basic numericall services
 
@@ -479,7 +479,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 	Bench_SetI(aParam); // Bench manip on set of integers
 
            // Check read/write of object usign serialization
-        BenchSerialization(aParam,mDirTestMMVII+"Tmp/",mDirTestMMVII+"Input/");
+        BenchSerialization(aParam,DirTestMMVII()+"Tmp/",DirTestMMVII()+"Input/");
         //====  MORE CONSISTENT BENCH
 
         BenchPly(aParam);
@@ -558,7 +558,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
        if (aSpec->Name() != mSpecs.Name())
        {
           // Not really necessary to init, but no bad ...
-          std::vector<std::string> aVArgs = {mFullBin," "+ aSpec->Name()};
+          std::vector<std::string> aVArgs = {FullBin()," "+ aSpec->Name()};
           tMMVII_UnikPApli anAppli = aSpec->Alloc()(aVArgs,*aSpec);
           anAppli->SetNot4Exe();
 

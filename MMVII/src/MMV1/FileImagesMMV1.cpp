@@ -2,6 +2,7 @@
 #include "MMVII_util.h"
 #include "MMVII_Image2D.h"
 #include "MMVII_DeclareCste.h"
+#include "cMMVII_Appli.h"
 
 
 extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff
@@ -16,12 +17,6 @@ std::string V1NameMasqOfIm(const std::string & aName)
 }
 
 
-const std::string & MMV1Bin()  // Use this old trick to avoid order dependancy
-{
-   static std::string aRes (DirBin2007 + "../../bin/mm3d");
-   return aRes;
-}
-
 void Init_mm3d_In_MMVII()
 {
    // 
@@ -29,10 +24,12 @@ void Init_mm3d_In_MMVII()
    if (! First) return;
    First = false;
 
+   static const std::string MMV1Bin = cMMVII_Appli::DirMicMacv1() + "bin/mm3d";
+
    // Compute mm3d location from relative position to MMVII
    // static std::string CA0 =  DirBin2007 + "../../bin/mm3d";
-   char * A0= const_cast<char *>(MMV1Bin().c_str());
-   MM3DFixeByMMVII = MMV1Bin();
+   char * A0= const_cast<char *>(MMV1Bin.c_str());
+   MM3DFixeByMMVII = MMV1Bin;
    MMD_InitArgcArgv(1,&A0);
 }
 
