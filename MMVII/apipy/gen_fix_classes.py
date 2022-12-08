@@ -14,8 +14,8 @@ from clang.cindex import CursorKind as ck
 from clang.cindex import TypeKind as tk
 
 all_headers = [
-  "MMVII_enums.h" , "MMVII_Ptxd.h", "MMVII_Images.h", "MMVII_Image2D.h",
-  "MMVII_memory.h", "MMVII_nums.h", "MMVII_AimeTieP.h"
+  "MMVII_nums.h", "MMVII_Ptxd.h", "MMVII_Images.h", "MMVII_Image2D.h",
+  "MMVII_memory.h", "MMVII_AimeTieP.h", "SymbDer/SymbDer_Common.h", "MMVII_PCSens.h"
 ]
 
 #all_headers = [ "MMVII_Images.h" ]

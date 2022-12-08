@@ -321,7 +321,7 @@ template <class Type>  class cName2Calc
         return anAlloc(aSzBuf);
     }
 
-    void static Register(const std::string & aName,tAllocator anAlloc)
+    static void Register(const std::string & aName,tAllocator anAlloc)
     {
          Name2Alloc(aName,anAlloc,false);
     }
