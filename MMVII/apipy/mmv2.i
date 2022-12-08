@@ -11,6 +11,7 @@ to read MicMac files and use its functions"
   using std::runtime_error;
   #include "MMVII_AllClassDeclare.h"
   #include "MMVII_memory.h"
+  #include "MMVII_enums.h"
   #include "api/api_mmv2.h"
   #include <sstream>
   using namespace MMVII;
@@ -110,6 +111,10 @@ import_array();
 %ignore MMVII::cPtxd<int,3>::FromStdVector;
 %ignore MMVII::cPtxd<double,2>::FromStdVector;
 %ignore MMVII::cPtxd<double,3>::FromStdVector;
+%ignore MMVII::cSensorCamPC::NumXCenter;
+%ignore MMVII::cSensorCamPC::NumXOmega;
+%ignore MMVII::cPerspCamIntrCalib::AddData;
+%ignore MMVII::AddData;
 //ignore non-const overloading to get direct access to simple types
 //(the functions will be read-only, we add setter methods in extend part)
 %include tmp/ignore_nonconst_overloading.i
