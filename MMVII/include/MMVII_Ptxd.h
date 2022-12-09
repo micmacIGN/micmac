@@ -228,27 +228,31 @@ template <class Type> inline cPtxd<Type,4> operator + (const cPtxd<Type,4> & aP1
 { return cPtxd<Type,4>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z(),aP1.t()+aP2.t()); }
 
 
-template <class Type> inline void operator += (cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+template <class Type> inline cPtxd<Type,1> operator += (cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2)
 { 
     aP1.x() += aP2.x(); 
+    return aP1;
 }
-template <class Type> inline void operator += (cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+template <class Type> inline cPtxd<Type,2> & operator += (cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2)
 { 
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
+    return aP1;
 }
-template <class Type> inline void operator += (cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+template <class Type> inline cPtxd<Type,3> operator += (cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2)
 { 
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
     aP1.z() += aP2.z(); 
+    return aP1;
 }
-template <class Type> inline void operator += (cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+template <class Type> inline cPtxd<Type,4> operator += (cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2)
 { 
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
     aP1.z() += aP2.z(); 
     aP1.t() += aP2.t(); 
+    return aP1;
 }
 
 
