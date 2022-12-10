@@ -137,7 +137,6 @@ class cAppliProMeshImage : public cMMVII_Appli
 	int         mNbPixImRedr;
         bool        mDoImages;
         bool        mSKE;
-        bool        mNameBenchMode;
 	double      mMII;   ///<  Marge Inside Image
 
      // --- constructed ---
@@ -149,7 +148,6 @@ class cAppliProMeshImage : public cMMVII_Appli
         cSensorCamPC *            mCamPC;
 	std::string               mDirMeshDev;
 	std::string               mNameResult;
-	std::string               mPrefixNames;
 };
 
 
@@ -159,8 +157,7 @@ cAppliProMeshImage::cAppliProMeshImage(const std::vector<std::string> & aVArgs,c
    mResolZBuf       (3.0),
    mNbPixImRedr     (2000),
    mDoImages        (false),
-   mSKE             (true),
-   mNameBenchMode   (false),
+   mSKE             (false),
    mMII             (4.0),
     // internal vars
    mPhProj          (*this),
@@ -174,7 +171,8 @@ cCollecSpecArg2007 & cAppliProMeshImage::ArgObl(cCollecSpecArg2007 & anArgObl)
    return anArgObl
 	  <<   Arg2007(mNamePatternIm,"Name of image", {{eTA2007::MPatFile,"0"},eTA2007::FileDirProj} )
 	  <<   Arg2007(mNameCloud3DIn,"Name of input cloud/mesh", {eTA2007::FileCloud,eTA2007::Input})
-	  <<   mPhProj.OriInMand()
+	  <<   mPhProj.DPOrient().ArgDirInMand()
+	  <<   mPhProj.DPMeshDev().ArgDirOutMand()
 
    ;
 }
@@ -188,9 +186,8 @@ cCollecSpecArg2007 & cAppliProMeshImage::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            << AOpt2007(mNbPixImRedr,"NbPixIR","Resolution of ZBuffer", {eTA2007::HDV})
            << AOpt2007(mMII,"MII","Margin Inside Image (for triangle validation)", {eTA2007::HDV})
            << AOpt2007(mSKE,CurOP_SkipWhenExist,"Skip command when result exist")
-           << AOpt2007(mNameBenchMode,"NameBM","Use name as in bench mode",{eTA2007::HDV,eTA2007::Tuning})
 	   << AOptBench()
-	   << mPhProj.RadiomOptOut()
+	   << mPhProj.DPRadiom().ArgDirOutOpt()
    ;
 
 }
@@ -214,7 +211,7 @@ int  cAppliProMeshImage::ExecuteBench(cParamExeBench & aParam)
    std::string aCom =
 	              mFullBin + BLANK
 		  +   mSpecs.Name() + BLANK
-		  +  mInputDirTestMMVII + "Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh BenchMode=1";
+		  +  mInputDirTestMMVII + "Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh TestProjMesh BenchMode=1";
 
    // MMVII  0_MeshProjImage ../MMVII-TestDir/Input/Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh BenchMode=1
    GlobSysCall(aCom);
@@ -428,7 +425,7 @@ void cAppliProMeshImage::ProcessNoPix(cZBuffer &  aZB)
 
 std::string  cAppliProMeshImage::NameResult(const std::string & aNameIm) const
 {
-   return  mDirMeshDev   +  mPrefixNames + "TabResolTri-" + aNameIm  + ".dmp";
+   return  mPhProj.DPMeshDev().FullDirOut()   +   "TabResolTri-" + aNameIm  + ".dmp";
 }
 
 void cAppliProMeshImage::MergeResults()
@@ -478,14 +475,14 @@ void cAppliProMeshImage::MergeResults()
         aWAvg.Add(mTri3D->KthTri(aKF).Area(),aMBI.mBestResol.at(aKF) );
     }
 
-    // sace some parameters of computation
+    // save some parameters of computation
     aMBI.mAvgResol= aWAvg.Average();
-    aMBI.mNameOri = mPhProj.GetOriIn();
+    aMBI.mNameOri = mPhProj.DPOrient().DirIn();
     aMBI.mNamePly = mNameCloud3DIn;
 
     delete mTri3D;
 
-    std::string aNameMerge = mDirMeshDev+mPrefixNames +MeshDev_NameTriResol;
+    std::string aNameMerge =  mPhProj.DPMeshDev().FullDirOut()  +MeshDev_NameTriResol;
 
     if (mIsInBenchMode)
     {
@@ -509,11 +506,6 @@ void cAppliProMeshImage::MergeResults()
 int cAppliProMeshImage::Exe() 
 {
    mPhProj.FinishInit();
-   mNameBenchMode =  mNameBenchMode || mIsInBenchMode;
-   mPrefixNames  =  (   mNameBenchMode ? 
-		        MMVII_PrefRefBench  : 
-		        (LastPrefix(mNameCloud3DIn)  + "-"+mPhProj.GetOriIn()+"-")
-                    );
 
    mDirMeshDev = DirProject()+ MMVIIDirMeshDev;
    if (LevelCall()==0)
@@ -537,7 +529,7 @@ int cAppliProMeshImage::Exe()
    // if there is a single file in a xml set of file, the subst has not been made ...
    mNameSingleIm = FileOfPath(VectMainSet(0).at(0),false);
    // By default  SKE true with multiple file (i.e. we are recalled) but false with single file (why else run it)
-   SetIfNotInit(mSKE,LevelCall()!=0);
+   // SetIfNotInit(mSKE,LevelCall()!=0);
    mNameResult = NameResult(mNameSingleIm);
 
    if (  (!mIsInBenchMode) && (mSKE && ExistFile(mNameResult)) )
@@ -575,7 +567,7 @@ int cAppliProMeshImage::Exe()
           MakeDevlptIm(aZBuf);
        }
 
-       if (mPhProj.RadiomOptOutIsInit())
+       if (mPhProj.DPRadiom().DirOutIsInit())
        {
            MakeRadiomData(aZBuf);
        }

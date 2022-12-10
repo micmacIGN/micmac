@@ -14,26 +14,146 @@
 namespace MMVII
 {
 
-std::string SuppresDir(const std::string & aDir,const std::string & aName)
+
+
+
+std::string SuppressDirFromNameFile(const std::string & aDir,const std::string & aName)
 {
     // mOriIn.starts_with(aDir);  -> C++20
     // to see if StringDirSeparator() is not a meta carac on window ?
 
      if (TheSYS == eSYS::Windows)
      {
-          MMVII_DEV_WARNING("SuppresDir check regular expression on Window");
+          MMVII_DEV_WARNING("SuppressDirFromNameFile check regular expression on Window");
      }
      
-     std::string aPat =  "(" + aDir+")?" + "([A-Za-z0-9_-]+)" + StringDirSeparator() + "?";
+     std::string aPat =  "(.*" + aDir+")?" + "([A-Za-z0-9_-]+)" + StringDirSeparator() + "?";
      if (! MatchRegex(aName,aPat))
      {
-	     MMVII_UsersErrror(eTyUEr::eUnClassedError,"No match for subdir, with name=" + aName + " Dir=" + aDir);
+         MMVII_UsersErrror
+         (
+             eTyUEr::eUnClassedError,
+             "SuppressDirFromNameFile:No match for subdir, with name=" + aName + " Dir=" + aDir
+         );
      }
      std::string aRes =  ReplacePattern(aPat,"$2",aName);
 	     
      return aRes;
 }
 
+   /* ********************************************************** */
+   /*                                                            */
+   /*                       cDirsPhProj                          */
+   /*                                                            */
+   /* ********************************************************** */
+
+        //   ======================  creation =======================================
+
+cDirsPhProj::cDirsPhProj(eTA2007 aMode,cPhotogrammetricProject & aPhp):
+   mMode           (aMode),
+   mPhp            (aPhp),
+   mAppli          (mPhp.Appli()),
+   mPrefix         (E2Str(mMode)),
+   mDirLocOfMode   (MMVII_DirPhp + mPrefix + StringDirSeparator()),
+   mPurgeOut       (false)
+{
+}
+
+void cDirsPhProj::Finish()
+{
+    //  Allow user to specify indiferrently short name of full name, will extract short name
+    // for ex :   "MMVII-PhgrProj/Orient/Test/" ,  "Test/",  "Test" ...  =>   "Test"
+    //
+    if (mAppli.IsInit(&mDirIn))  // dont do it if mDirIn not used ...
+        mDirIn  = SuppressDirFromNameFile(mDirLocOfMode,mDirIn);   
+
+    mFullDirIn  = mAppli.DirProject() + mDirLocOfMode + mDirIn + StringDirSeparator();
+
+    // To see if this rule applies always, 4 now dont see inconvenient
+    if (mAppli.IsInSpec(&mDirOut) &&  (! mAppli.IsInit(&mDirOut)))
+    {
+       mDirOut = mDirIn;
+    }
+    mFullDirOut = mAppli.DirProject() + mDirLocOfMode + mDirOut + StringDirSeparator();
+
+    // Create output directory if needed
+    if (mAppli.IsInSpec(&mDirOut))
+    {
+        CreateDirectories(mFullDirOut,true);
+	if (mPurgeOut)
+           RemoveRecurs(mFullDirOut,true,true);
+    }
+}
+
+        //   ======================  Arg for command =======================================
+
+tPtrArg2007    cDirsPhProj::ArgDirInMand(const std::string & aMesg) 
+{ 
+    return  Arg2007 (mDirIn              ,(aMesg == "") ? ("Input "  + mPrefix) : aMesg ,{mMode,eTA2007::Input }); 
+}
+tPtrArg2007    cDirsPhProj::ArgDirInOpt()  
+{ 
+    return  AOpt2007(mDirIn,"In"+mPrefix ,"Input "  + mPrefix,{mMode,eTA2007::Input }); 
+}
+tPtrArg2007    cDirsPhProj::ArgDirOutMand()
+{ 
+	return  Arg2007 (mDirOut             ,"Output " + mPrefix,{mMode,eTA2007::Output}); 
+}
+tPtrArg2007    cDirsPhProj::ArgDirOutOpt() 
+{ 
+	return  AOpt2007(mDirOut,"Out"+mPrefix,"Output " + mPrefix,{mMode,eTA2007::Output}); 
+}
+
+
+        //   ======================  Initialization =======================================
+
+void cDirsPhProj::AssertDirInIsInit()    const
+{
+     MMVII_INTERNAL_ASSERT_User(mAppli.IsInit(&mDirIn),eTyUEr::eUnClassedError,"Input-Dir " + mPrefix  +" required non init");
+}
+void cDirsPhProj::AssertDirOutIsInit()    const
+{
+     MMVII_INTERNAL_ASSERT_User(mAppli.IsInit(&mDirOut),eTyUEr::eUnClassedError,"Output-Dir " + mPrefix  +" required non init");
+}
+
+bool cDirsPhProj::DirInIsInit() const   
+{
+    return mAppli.IsInit(&mDirIn);
+}
+bool cDirsPhProj::DirOutIsInit() const  
+{
+    return mAppli.IsInit(&mDirOut);
+}
+
+        //   ======================  Accessor/Modifier =======================================
+
+const std::string & cDirsPhProj::DirIn() const      
+{
+   AssertDirInIsInit();
+   return mDirIn;
+}
+const std::string & cDirsPhProj::DirOut() const     
+{
+   AssertDirOutIsInit();
+   return mDirOut;
+}
+const std::string & cDirsPhProj::FullDirIn() const  
+{
+   AssertDirInIsInit();
+   return mFullDirIn;
+}
+
+const std::string & cDirsPhProj::FullDirOut() const 
+{
+   AssertDirOutIsInit();
+   return mFullDirOut;
+}
+
+void cDirsPhProj::SetDirIn(const std::string & aDirIn)
+{
+     mDirIn = aDirIn;
+     mAppli.SetVarInit(&mDirIn); // required becaus of AssertOriInIsInit
+}
 
 
 
@@ -46,48 +166,21 @@ std::string SuppresDir(const std::string & aDir,const std::string & aName)
         //  =============  Construction & destuction =================
 
 cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
-    mAppli  (anAppli)
+    mAppli          (anAppli),
+    mDPOrient       (eTA2007::Orient,*this),
+    mDPRadiom       (eTA2007::Radiom,*this),
+    mDPMeshDev      (eTA2007::MeshDev,*this)
 {
-}
-
-void cPhotogrammetricProject::AssertOriInIsInit()    const
-{
-     MMVII_INTERNAL_ASSERT_tiny(mAppli.IsInit(&mOriIn),"Orientation required non init");
-}
-
-void cPhotogrammetricProject::AssertRadiomInIsInit() const
-{
-     MMVII_INTERNAL_ASSERT_tiny(mAppli.IsInit(&mRadiomIn),"Radiometry required non init");
 }
 
 
 void cPhotogrammetricProject::FinishInit() 
 {
-    // the user can give the full directory, which may be usefull with car completion
-    if (mAppli.IsInit(&mOriIn))  // dont do it if OriIn not used ...
-        mOriIn  = SuppresDir(MMVIIDirOrient,mOriIn);
+    mFolderProject = mAppli.DirProject() ;
 
-    mFullOriIn   = mAppli.DirProject() + MMVIIDirOrient + mOriIn  + StringDirSeparator();
-    mFullOriOut  = mAppli.DirProject() + MMVIIDirOrient + mOriOut + StringDirSeparator();
-    if (mAppli.IsInit(&mOriOut))
-    {
-        CreateDirectories(mFullOriOut,true);
-    }
-
-
-    if (mAppli.IsInit(&mRadiomIn))  // dont do it if mRadiomIn not used ...
-        mRadiomIn  = SuppresDir(MMVIIDirRadiom,mRadiomIn);
-
-    mFullRadiomIn  =   mAppli.DirProject() +  MMVIIDirRadiom + mRadiomIn  + StringDirSeparator();
-    if (mAppli.IsInSpec(&mRadiomOut) &&  (! mAppli.IsInit(&mRadiomOut)))
-    {
-       mRadiomOut = mRadiomIn;
-    }
-    mFullRadiomOut =   mAppli.DirProject() +  MMVIIDirRadiom + mRadiomOut + StringDirSeparator();
-    if (mAppli.IsInSpec(&mRadiomOut) )
-    {
-        CreateDirectories(mFullRadiomOut,true);
-    }
+    mDPOrient.Finish();
+    mDPRadiom.Finish();
+    mDPMeshDev.Finish();
 }
 
 cPhotogrammetricProject::~cPhotogrammetricProject() 
@@ -95,63 +188,71 @@ cPhotogrammetricProject::~cPhotogrammetricProject()
     DeleteAllAndClear(mLCam2Del);
 }
 
-        //  =============  Arg processing =================
-tPtrArg2007 cPhotogrammetricProject::CalibInMand(){return Arg2007(mOriIn ,"Input Calibration",{eTA2007::Orient,eTA2007::Input });}
+cMMVII_Appli &  cPhotogrammetricProject::Appli()    {return mAppli;}
 
-tPtrArg2007 cPhotogrammetricProject::OriInMand() {return  Arg2007(mOriIn ,"Input Orientation",{eTA2007::Orient,eTA2007::Input });}
-tPtrArg2007 cPhotogrammetricProject::OriOutMand() {return Arg2007(mOriOut,"Output Orientation",{eTA2007::Orient,eTA2007::Output});}
-tPtrArg2007 cPhotogrammetricProject::OriInOpt(){return AOpt2007(mOriIn,"InOri","Input Orientation",{eTA2007::Orient,eTA2007::Input});}
+cDirsPhProj &   cPhotogrammetricProject::DPOrient() {return mDPOrient;}
+cDirsPhProj &   cPhotogrammetricProject::DPRadiom() {return mDPRadiom;}
+cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
 
-tPtrArg2007  cPhotogrammetricProject::RadiomOptOut() 
-  {return AOpt2007(mRadiomOut,"OutRad","Output Radiometry ",{eTA2007::Radiom,eTA2007::Output});}
-
-tPtrArg2007  cPhotogrammetricProject::RadiomOptIn() {return AOpt2007(mRadiomIn,"InRad","Output Radiometry ",{eTA2007::Radiom,eTA2007::Input});}
-
-tPtrArg2007 cPhotogrammetricProject::RadiomInMand() {return Arg2007(mRadiomIn,"Input Radiometry",{eTA2007::Radiom,eTA2007::Input});}
-
-bool  cPhotogrammetricProject::RadiomOptOutIsInit() const {return mAppli.IsInit(&mRadiomOut);}
-bool  cPhotogrammetricProject::RadiomOptInIsInit() const {return mAppli.IsInit(&mRadiomIn);}
+const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
+const cDirsPhProj &   cPhotogrammetricProject::DPRadiom() const {return mDPRadiom;}
+const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMeshDev;}
 
 
-        //  =============  Saving object =================
 
-void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
+
+        //  =============  Radiometric Data =================
+
+cImageRadiomData * cPhotogrammetricProject::AllocRadiomData(const std::string & aNameIm) const
 {
-    aCamPC.ToFile(mFullOriOut + aCamPC.NameOriStd());
+    mDPRadiom.AssertDirInIsInit();
+
+    std::string aFullName  = mDPRadiom.FullDirIn() + cImageRadiomData::NameFileOfImage(aNameIm);
+    return cImageRadiomData::FromFile(aFullName);
 }
 
 void cPhotogrammetricProject::SaveRadiomData(const cImageRadiomData & anIRD) const
 {
-    anIRD.ToFile(mFullRadiomOut+anIRD.NameFile());
+    anIRD.ToFile(mDPRadiom.FullDirOut()+anIRD.NameFile());
 }
 
-void cPhotogrammetricProject::SaveCalibRad(const cCalibRadiomIma & aCalRad) const
-{
-     aCalRad.ToFile(mFullRadiomOut + PrefixCalRadRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
-}
+        //  =============  Radiometric Calibration =================
 
 cCalibRadiomIma * cPhotogrammetricProject::AllocCalibRadiomIma(const std::string & aNameIm) const
 {
 /* With only the name of images and the folder, cannot determinate the model used, so the methods
  * test the possible model by testing existence of files.
  */	
-    std::string aNameFile = mFullRadiomIn + PrefixCalRadRad + aNameIm + "." + PostF_XmlFiles;
+    std::string aNameFile = mDPRadiom.DirIn() + PrefixCalRadRad + aNameIm + "." + PostF_XmlFiles;
     if (ExistFile(aNameFile))
        return cCalRadIm_Cst::FromFile(aNameFile);
 
-   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mFullRadiomIn);
+   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mDPRadiom.DirIn());
    return nullptr;
 }
 
+void cPhotogrammetricProject::SaveCalibRad(const cCalibRadiomIma & aCalRad) const
+{
+     aCalRad.ToFile(mDPRadiom.FullDirOut() + PrefixCalRadRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
+}
 
+std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMedaDataImage & aMTD) const
+{
+    return  PrefixCalRadRad  + "Sensor-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
+}
 
-        //  =============  Creating object =================
+        //  =============  Orientation =================
+
+void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
+{
+    aCamPC.ToFile(mDPOrient.FullDirOut() + aCamPC.NameOriStd());
+}
 
 cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete)
 {
-    AssertOriInIsInit();
+    mDPOrient.AssertDirInIsInit();
 
-    std::string aNameCam  = mFullOriIn + cSensorCamPC::NameOri_From_Image(aNameIm);
+    std::string aNameCam  =  mDPOrient.FullDirIn() + cSensorCamPC::NameOri_From_Image(aNameIm);
     cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam);
 
     if (ToDelete)
@@ -160,21 +261,13 @@ cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,b
     return aCamPC;
 }
 
-cImageRadiomData * cPhotogrammetricProject::AllocRadiomData(const std::string & aNameIm) const
-{
-    AssertRadiomInIsInit();
-
-    std::string aFullName  = mFullRadiomIn + cImageRadiomData::NameFileOfImage(aNameIm);
-    return cImageRadiomData::FromFile(aFullName);
-}
-
 cPerspCamIntrCalib *  cPhotogrammetricProject::AllocCalib(const std::string & aNameIm)
 {
     // 4 now, pretty basic allox sensor, extract internal, destroy
     // later will have to handle :
     //    * case where calib exist but not pose
     //    * case where nor calib nor pose exist, and must be created from xif 
-    AssertOriInIsInit();
+    mDPOrient.AssertDirInIsInit();
 
     cSensorCamPC *  aPC = AllocCamPC(aNameIm,false);
     cPerspCamIntrCalib * aCalib = aPC->InternalCalib();
@@ -182,6 +275,8 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::AllocCalib(const std::string & aN
 
     return aCalib;
 }
+
+        //  =============  Meta Data =================
 
 cMedaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm) const
 {
@@ -194,23 +289,6 @@ cMedaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm)
 
    return aMap[aNameIm];
 }
-
-std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMedaDataImage & aMTD) const
-{
-    return  PrefixCalRadRad  + "Sensor-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
-}
-
-
-
-        //  =============  Accessor/Modiier to dir =================
-
-const std::string & cPhotogrammetricProject::GetOriIn() const {return mOriIn;}
-void cPhotogrammetricProject::SetOriIn(const std::string & aNameOri)
-{
-     mOriIn = aNameOri;
-     mAppli.SetVarInit(&mOriIn); // required becaus of AssertOriInIsInit
-}
-
 
 
 }; // MMVII

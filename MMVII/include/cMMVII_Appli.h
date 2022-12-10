@@ -360,7 +360,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
         bool    IsInit(const void *);       ///< indicate for each variable if it was initiazed by argc/argv
-        bool    IsInSpec(const void *);  ///< indicate for each variable if it was in an arg opt list (used with cPhotogrammetricProject)
+        bool    IsInSpecObl(const void *);  ///< indicate for each variable if it was in an arg opt list (used with cPhotogrammetricProject)
+        bool    IsInSpecFac(const void *);  ///< indicate for each variable if it was in an arg obl list (used with cPhotogrammetricProject)
+        bool    IsInSpec(const void *);     ///< IsInSpecObl  or IsInSpecFac
+
 	void    SetVarInit(void * aPtr);
 
         template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
@@ -488,7 +491,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
         cExtSet<const void *>                     mSetInit;       ///< Adresses of all initialized variables
-        cExtSet<const void *>                     mSetVarsInSpec; ///< Adresses var potentially usable
+        cExtSet<const void *>                     mSetVarsSpecObl; ///< Adresses var in specif, obligatory
+        cExtSet<const void *>                     mSetVarsSpecFac; ///< Adresses var in specif, faculative 
         bool                                      mInitParamDone; ///< To Check Post Init was not forgotten
         cColStrAObl                               mColStrAObl;    ///< To use << for passing multiple string
         cColStrAOpt                               mColStrAOpt;    ///< To use << for passing multiple pair

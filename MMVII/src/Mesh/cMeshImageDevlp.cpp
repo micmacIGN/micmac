@@ -34,14 +34,13 @@ class cAppliMeshImageDevlp : public cMMVII_Appli
 	// int  ExecuteBench(cParamExeBench &) override ;   ///< indicate what is done in the bench
 
 
-        std::string NameRes(const std::string& aPref,const std::string& aPost)
+        std::string NameFileMeshDev(const std::string& aNameFile)
 	{
-            return  MMVIIDirMeshDev + aPref +"-" +  LastPrefix(FileOfPath(mNameFile_MDBI)) + "." + aPost;
+            return  mPhProj.DPMeshDev().FullDirIn() + aNameFile;
 	}
 
      // --- Mandatory ----
 	std::string mNameCloud2DIn;
-	std::string mNameFile_MDBI;  ///<  Name for cMeshDev_BestIm
 
      // --- Optionnal ----
 	bool                           mMiror; 
@@ -81,14 +80,6 @@ class cAppliMeshImageDevlp : public cMMVII_Appli
 
 };
 
-cCollecSpecArg2007 & cAppliMeshImageDevlp::ArgObl(cCollecSpecArg2007 & anArgObl) 
-{
-   return anArgObl
-	  <<   Arg2007(mNameCloud2DIn,"Name of 2d devloped mesh",{eTA2007::FileDirProj} )
-	  <<   Arg2007(mNameFile_MDBI,"Name of file resulting of MeshProjImage")
-
-   ;
-}
 
 cAppliMeshImageDevlp::cAppliMeshImageDevlp(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
@@ -114,7 +105,7 @@ cCollecSpecArg2007 & cAppliMeshImageDevlp::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
            << AOpt2007(mWGrayLab,"WGL","With Gray Label 2-byte image generation",{eTA2007::HDV})
            << AOpt2007(mWRGBLab,"WRGBL","With RGB Label  1 chanel-label/2 label contrast",{eTA2007::HDV})
-	   << mPhProj.RadiomOptIn()
+	   << mPhProj.DPRadiom().ArgDirInOpt()
 /*
            << AOpt2007(mNameCloud2DIn,"M2","Mesh 2D, dev of cloud 3D,to generate a visu of hiden part ",{eTA2007::FileCloud,eTA2007::Input})
            << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
@@ -128,6 +119,15 @@ cCollecSpecArg2007 & cAppliMeshImageDevlp::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 }
 
+cCollecSpecArg2007 & cAppliMeshImageDevlp::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+   return anArgObl
+	  <<   Arg2007(mNameCloud2DIn,"Name of 2d devloped mesh",{eTA2007::FileDirProj} )
+	  <<   mPhProj.DPMeshDev().ArgDirInMand()
+
+   ;
+}
+
 void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
 {
    cCalibRadiomIma * aRadIma = nullptr;
@@ -137,7 +137,7 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
    }
 
    std::string aNameIm = mMDBI.mNames[aKIm];
-   if (mPhProj.RadiomOptInIsInit())
+   if (mPhProj.DPRadiom().DirOutIsInit())
    {
        aRadIma = mPhProj.AllocCalibRadiomIma(aNameIm);
    }
@@ -227,9 +227,13 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
 int cAppliMeshImageDevlp::Exe() 
 {
      //  Init mMDBI & mPhProj
-     ReadFromFile(mMDBI,DirProject()+mNameFile_MDBI);
-     mPhProj.SetOriIn(mMDBI.mNameOri);
      mPhProj.FinishInit();
+     ReadFromFile(mMDBI,mPhProj.DPMeshDev().FullDirIn()+MeshDev_NameTriResol);
+     mPhProj.DPOrient().SetDirIn(mMDBI.mNameOri);
+     mPhProj.FinishInit();
+
+     StdOut() << "JJJJJ " << NameFileMeshDev("DevIm.tif")  << "\n";
+
 
      //  Read triangulations
      mTriDev = new cTriangulation2D<tREAL8>(DirProject() + FileOfPath(mNameCloud2DIn ));
@@ -288,14 +292,14 @@ int cAppliMeshImageDevlp::Exe()
           DoAnIm(aKIm);
      }
 
-     mGlobIm.ToFile(NameRes("DevIm","tif"));
+     mGlobIm.ToFile(NameFileMeshDev("DevIm.tif"));
      if (mWGrayLab)
-        mGrLabIm.DIm().ToFile(NameRes("LabGRIm","tif"));
+        mGrLabIm.DIm().ToFile(NameFileMeshDev("LabGRIm.tif"));
      if (mWRGBLab)
-        mRGBLabIm.ToFile(NameRes("LabRGBIm","tif"));
+        mRGBLabIm.ToFile(NameFileMeshDev("LabRGBIm.tif"));
 
      if (mWGrayLab || mWRGBLab)
-        SaveInFile(mMDBI.mNames,NameRes("LabNames","xml"));
+        SaveInFile(mMDBI.mNames,NameFileMeshDev("LabNames.xml"));
 
      delete mTriDev;
      delete mTri3;

@@ -809,13 +809,21 @@ class cAppli_MPDTest : public cMMVII_Appli
      public :
         cAppli_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
+        std::string mMsg;
         bool   mMMV1_GenCodeTestCam;
         cPt3di mDegDistTest;
 };
 
+cCollecSpecArg2007 & cAppli_MPDTest::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+      return      anArgObl
+	      <<  Arg2007(mMsg ,"Message (for test)")
+      ;
+
+}
 cCollecSpecArg2007 & cAppli_MPDTest::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
 {
   return
@@ -930,12 +938,22 @@ void ShowAdr(double & anAdr)
 void TTT();
 
 
-
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
-   int aVatNotInSpec;
-   StdOut() <<  "mDegDistTest " << IsInSpec(&mDegDistTest) << " " << IsInSpec(&aVatNotInSpec) << "\n";
+   if (1)
+   {
+       StdOut()  <<   " ================  TEST INIT & SPEC ===================\n";
+       int aVExt;
+       StdOut() <<  "-VExt ## InSpec: " << IsInSpec(&aVExt)        << " SpecObl: " << IsInSpecObl(&aVExt)  
+	       << " SpecFac: " << IsInSpecFac(&aVExt) << " IsInit: " << IsInit(&aVExt) << "\n";
+       StdOut() <<  "- MSG ## InSpec: " << IsInSpec(&mMsg)        << " SpecObl: " << IsInSpecObl(&mMsg) 
+	       << " SpecFac: " << IsInSpecFac(&mMsg) << " IsInit: " << IsInit(&mMsg) << "\n";
+       StdOut() <<  "- Deg ## InSpec: " << IsInSpec(&mDegDistTest)<< " SpecObl: " << IsInSpecObl(&mDegDistTest) 
+	       << " SpecFac: " << IsInSpecFac(&mDegDistTest) << " IsInit: " << IsInit(&mDegDistTest) << "\n";
+
+       getchar();
+   }
    if (IsInit(&mDegDistTest))
    {
       std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest);

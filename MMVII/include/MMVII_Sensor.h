@@ -160,6 +160,50 @@ class cMedaDataImage
 };
 
 
+/**   Class for sharind code related to management the folder for one kind (=Ori,Homol,Radiom...) of "objects"
+ *    Used by cPhotogrammetricProject
+ */
+
+class cDirsPhProj
+{
+     public :
+          cDirsPhProj(eTA2007 aMode,cPhotogrammetricProject & aPhp);
+          void Finish();
+
+          tPtrArg2007     ArgDirInMand(const std::string & aMes="") ;  ///< Input Orientation as mandatory paramaters
+          tPtrArg2007     ArgDirInOpt() ;   ///< Input Orientation as optional paramaters
+          tPtrArg2007     ArgDirOutMand();  ///< Output Orientation as mandatory paramaters
+          tPtrArg2007     ArgDirOutOpt() ;   ///< Input Orientation as optional paramaters
+
+          void  SetDirIn(const std::string&) ; ///< Modifier, use in case many out params were saved in a xml,like with MeshImageDevlp
+          const std::string & DirIn() const;   ///< Accessor
+          const std::string & DirOut() const;   ///< Accessor
+          const std::string & FullDirIn() const;   ///< Accessor
+          const std::string & FullDirOut() const;   ///< Accessor
+
+	  bool  DirInIsInit() const;
+	  bool  DirOutIsInit() const;
+          void  AssertDirInIsInit() const;
+          void  AssertDirOutIsInit() const;
+
+     private :
+          cDirsPhProj(const cDirsPhProj &) = delete;
+
+          eTA2007                   mMode;
+          cPhotogrammetricProject&  mPhp;
+          cMMVII_Appli &            mAppli;
+
+          const std::string         mPrefix;
+          std::string               mDirLocOfMode;  // For ex "MMVII-PhgrProj/Orient/"  "MMVII-PhgrProj/Radiom/"   ...
+
+          std::string               mDirIn;
+          std::string               mDirOut;
+          std::string               mFullDirIn;
+          std::string               mFullDirOut;
+          bool                      mPurgeOut;
+};
+
+
 /** Class to facilitate the management of orientations (and others ?) in a photogrammetric
  * application.  Offers facilities for :
  *        * readr/write an orient to file
@@ -167,6 +211,7 @@ class cMedaDataImage
  *        * eventually, deallocation of cameras
  *
  */
+
 
 class cPhotogrammetricProject
 {
@@ -183,19 +228,20 @@ class cPhotogrammetricProject
 	        /// destructor  ,  some object delegates their destruction to this
           ~cPhotogrammetricProject();
 
+	 //========================== ACCESSOR ===============================
+
+          cMMVII_Appli &  Appli(); ///< Accessor
+	  cDirsPhProj &   DPOrient(); ///< Accessor
+	  cDirsPhProj &   DPRadiom(); ///< Accessor
+	  cDirsPhProj &   DPMeshDev(); ///< Accessor
+	  const cDirsPhProj &   DPOrient() const; ///< Accessor
+	  const cDirsPhProj &   DPRadiom() const; ///< Accessor
+	  const cDirsPhProj &   DPMeshDev() const; ///< Accessor
 
 	 //===================================================================
-         //==================   ORIENTAION       =============================
+         //==================   ORIENTATION      =============================
 	 //===================================================================
 	 
-               //  method to share the parameters loadings from arc/argv
-          tPtrArg2007  OriInMand() ;  ///< Input Orientation as mandatory paramaters
-          tPtrArg2007  CalibInMand();  ///< Input Calobration as mandatory paramaters
-          tPtrArg2007  OriOutMand();  ///< Output Orientation as mandatory paramaters
-          tPtrArg2007  OriInOpt() ;   ///< Input Orientation as optional paramaters
-               //  Accessor et modifier 
-          const std::string & GetOriIn() const; ///< accessor
-          void  SetOriIn(const std::string &) ;    ///< modifier, if in-ori not fixed by argv (but contained in a file)
                //  Read/Write
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
 	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Input orientation
@@ -207,44 +253,36 @@ class cPhotogrammetricProject
          //==================   RADIOMETRY       =============================
 	 //===================================================================
 
-               //  method to share the parameters loadings from arc/argv
-          tPtrArg2007  RadiomInMand() ;   ///< Input Radiometry as mandatory paramaters
-          tPtrArg2007  RadiomOptIn() ;    ///< Input Radiometry as optional paramaters
-          tPtrArg2007  RadiomOptOut() ;   ///< Output Radiometry as optional paramaters
-               //  Accessor et modifier 
-               //  Read/Write
+               //     --------   Save Data ---------------------
           void SaveRadiomData(const cImageRadiomData &) const; ///< Save camera using OutPut-orientation
-	  cImageRadiomData * AllocRadiomData(const std::string &) const; ///< Create Camera using Input orientation
-
           void SaveCalibRad(const cCalibRadiomIma &) const; ///< Save radiom-calib using OutPut-orientation
-	  cCalibRadiomIma * AllocCalibRadiomIma(const std::string &) const;
 
-	  bool RadiomOptOutIsInit() const;
-	  bool RadiomOptInIsInit() const;
+               //     --------   Read Data ---------------------
+	  cImageRadiomData * AllocRadiomData(const std::string &) const; ///< Read radiometric data for 1 image
+	  cCalibRadiomIma * AllocCalibRadiomIma(const std::string &) const; ///< Read radiom calib of 1 image
+
+	  ///  Name of radiometric calibration with a  radial model , hypothesis : depends of internal calibration
+	  ///  +  metadata (aperture)
           std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMedaDataImage &) const;
 
-         //==================   META-DATA       =============================
+	 //===================================================================
+         //==================   META-DATA       ==============================
+	 //===================================================================
           cMedaDataImage GetMetaData(const std::string &) const;
+
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
-	  void AssertOriInIsInit()    const;
-	  void AssertRadiomInIsInit() const;
 
           cMMVII_Appli &  mAppli;
           std::string     mFolderProject;
 
-          std::string     mOriIn;
-          std::string     mOriOut;
-          std::string     mFullOriOut;
-          std::string     mFullOriIn;
+	  cDirsPhProj     mDPOrient;
+	  cDirsPhProj     mDPRadiom;
+	  cDirsPhProj     mDPMeshDev;
 
-          std::string     mRadiomIn;
-          std::string     mRadiomOut;
-          std::string     mFullRadiomIn;
-          std::string     mFullRadiomOut;
 
-	  std::list<cSensorCamPC*>  mLCam2Del;
+	  std::list<cSensorCamPC*>  mLCam2Del; 
 
 };
 

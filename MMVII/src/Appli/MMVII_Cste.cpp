@@ -28,6 +28,10 @@ const std::string TagSetOfCpleName = "SetCpleOfName";
  
 // Name of standard directories
 const std::string MMVII_ComonPrefix      =  "MMVII";
+
+const std::string MMVII_DirPhp = MMVII_ComonPrefix + "-PhgrProj" + StringDirSeparator();
+
+
 const std::string TmpMMVIIDirPrefix      =  MMVII_ComonPrefix +"-Tmp-Dir";
 const std::string TmpMMVIIDirGlob        =  TmpMMVIIDirPrefix + "-Glob" + StringDirSeparator();
 const std::string TmpMMVIIDirPCar        =  TmpMMVIIDirPrefix + "-PCar" + StringDirSeparator();
