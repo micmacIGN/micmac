@@ -29,7 +29,7 @@ public:
     TopoObsType getType() const {return mType;}
     std::vector<int> getIndices() const;
     std::vector<tREAL8> getVals() const;
-    tREAL8 getResidual(cTopoComp *comp) const;
+    tREAL8 getResidual(const cTopoComp *comp) const;
     std::string type2string() const;
 protected:
     cTopoObsSet* mSet;//the set containing the shared parameters

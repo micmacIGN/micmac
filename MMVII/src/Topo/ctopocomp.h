@@ -23,8 +23,10 @@ public:
     bool OneIteration(); ///< returns true if has to continue iterations
     void print();
     void createEx1();
-    cResolSysNonLinear<double>* getSys() {return mSys;}
-    cCalculator<double>* getEquation(TopoObsType tot);
+    cResolSysNonLinear<double>* getSys() const {return mSys;}
+    cCalculator<double>* getEquation(TopoObsType tot) const;
+    bool verbose {false};
+    double getSigma0() const;
 private:
     void initializeLeastSquares(); ///< call once after points and obs creation
     bool isInit;

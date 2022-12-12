@@ -106,7 +106,7 @@ std::vector<tREAL8> cTopoObs::getVals() const
     return vals;
 }
 
-tREAL8 cTopoObs::getResidual(cTopoComp *comp) const
+tREAL8 cTopoObs::getResidual(const cTopoComp *comp) const
 {
     auto eq = comp->getEquation(getType());
     std::vector<int> indices = getIndices();

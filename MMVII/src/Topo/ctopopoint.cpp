@@ -8,7 +8,6 @@ namespace MMVII
 cTopoPoint::cTopoPoint(std::string name, const cPtxd<tREAL8,3>& _coord, bool _isFree) :
     isFree(_isFree), coord(_coord), mName(name)
 {
-    std::cout<<"Create TopoPoint "<<name<<": "<<coord<<"\n";
 }
 
 

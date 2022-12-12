@@ -131,7 +131,6 @@ void cTopoObsSetSubFrame::createParams()
 void cTopoObsSetSubFrame::OnUpdate()
 {
     //update rotation
-    std::cout<<"update rotation\n";
     mRot = mRot * cRotation3D<tREAL8>::RotFromAxiator(-cPt3dr(mParams[0],mParams[1],mParams[2]));
     mParams={0.,0.,0.};
 }
