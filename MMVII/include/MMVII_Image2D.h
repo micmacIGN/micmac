@@ -422,11 +422,12 @@ template<class TypeEl> class  cAppliParseBoxIm
 	void AssertNotInParsing() const;
         tDataIm & LoadI(const cBox2di & aBox); ///< Load file for the Box, return loaded image
 
-        bool InsideParalRecall() const ; /// Indicate if we are in a recall of a parallal excecution
-        bool TopCallParallTile() const ; /// Indicate if we are at the "top level" of a call in parallel
+        bool InsideParalRecall() const ; ///< Indicate if we are in a recall of a parallal excecution
+        bool TopCallParallTile() const ; ///< Indicate if we are at the "top level" of a call in parallel
 
           // mandatory params
         std::string   mNameIm;     ///< Name of image to parse
+
           // Optional params
         cBox2di        mBoxTest;    ///< Box for quick testing, in case we dont parse all image
 	cPt2di         mSzTiles;    ///< Size of tiles to parse global file

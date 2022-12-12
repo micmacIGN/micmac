@@ -593,7 +593,7 @@ template <class Type,const int Dim>  class cTplBox
         typedef tPt   tCorner[NbCorners];
 
         cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
-        cTplBox(const tPt & aSz,bool AllowEmpty=false); // Create a box with origin in 0,0,..
+        cTplBox(const tPt & aSz={0,0},bool AllowEmpty=false); // Create a box with origin in 0,0,..
         static tBox Empty();
         static tBox FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty=false);
         static tBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
@@ -654,10 +654,9 @@ template <class Type,const int Dim>  class cTplBox
 
            /// Is this point/pixel/voxel  inside
         bool Inside(const tPt & aP) const  {return SupEq(aP,mP0) && InfStr(aP,mP1);}
-           /// Specialistion 1D
 
+        // Specialistion 1D
         //  ---  object generation inside box ----------------
-
         tPt  FromNormaliseCoord(const cPtxd<double,Dim> &) const;  ///< [0,1] * => Rect
         cPtxd<double,Dim> ToNormaliseCoord(const tPt & aP) const;  ///< Rect => [0,1] *
 
