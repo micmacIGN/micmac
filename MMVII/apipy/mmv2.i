@@ -5,15 +5,19 @@ to read MicMac files and use its functions"
 
 %module (docstring=DOCSTRING) mmv2
 %{
-  //includes to be able to compile
+  //includes for compilation
   #define SWIG_FILE_WITH_INIT
   #include <stdexcept>
   using std::runtime_error;
-  #include "MMVII_all.h"
+  #include "MMVII_AllClassDeclare.h"
+  #include "MMVII_memory.h"
   #include "api/api_mmv2.h"
   #include <sstream>
   using namespace MMVII;
 %}
+
+%include tmp/h_to_include1.i
+
 
 //----------------------------------------------------------------------
 %include "numpy.i"
@@ -141,20 +145,24 @@ import_array();
 %rename(ToI3) ToI(const cPt3dr &);
 %rename(ToR2) ToR(const cPt2di &);
 %rename(ToR3) ToR(const cPt3di &);
-%rename(E2Str_TySC)          MMVII::E2Str(const eTySC &);
-%rename(E2Str_OpAff)         MMVII::E2Str(const eOpAff &);
-%rename(E2Str_TA2007)        MMVII::E2Str(const eTA2007 &);
-%rename(E2Str_TyUEr)         MMVII::E2Str(const eTyUEr &);
-%rename(E2Str_TyNums)        MMVII::E2Str(const eTyNums &);
-%rename(E2Str_TyInvRad)      MMVII::E2Str(const eTyInvRad &);
-%rename(E2Str_TyPyrTieP)     MMVII::E2Str(const eTyPyrTieP &);
-%rename(E2Str_ModeEpipMatch) MMVII::E2Str(const eModeEpipMatch &);
+%rename(E2Str_TySC)            MMVII::E2Str(const eTySC &);
+%rename(E2Str_OpAff)           MMVII::E2Str(const eOpAff &);
+%rename(E2Str_TA2007)          MMVII::E2Str(const eTA2007 &);
+%rename(E2Str_TyUEr)           MMVII::E2Str(const eTyUEr &);
+%rename(E2Str_TyNums)          MMVII::E2Str(const eTyNums &);
+%rename(E2Str_TyInvRad)        MMVII::E2Str(const eTyInvRad &);
+%rename(E2Str_TyPyrTieP)       MMVII::E2Str(const eTyPyrTieP &);
+%rename(E2Str_ModeEpipMatch)   MMVII::E2Str(const eModeEpipMatch &);
+%rename(E2Str_DCTFilters)      MMVII::E2Str(const eDCTFilters &);
+%rename(E2Str_ModeTestPropCov) MMVII::E2Str(const eModeTestPropCov &);
+%rename(E2Str_ModePaddingEpip) MMVII::E2Str(const eModePaddingEpip &);
+%rename(E2Str_ModeCaracMatch)  MMVII::E2Str(const eModeCaracMatch &);
 
 //----------------------------------------------------------------------
 //classes to export
 %nodefaultctor;
 %include "api/api_mmv2.h"
-%include tmp/h_to_include.i
+%include tmp/h_to_include2.i
 
 //HERE typedefs are mandatory. include MMVII_nums.h is not working...
 typedef float       tREAL4;
@@ -194,7 +202,7 @@ typedef double tStdDouble;  ///< "natural" int
 %template(FloatVector)   std::vector<float>;
 %template(StringVector)  std::vector<std::string>;
 
-%template(cWhitchMinIntDouble) MMVII::cWhitchMin<int, double>;
+%template(cWhichMinIntDouble)  MMVII::cWhichMin<int, double>;
 %template(cAimePCarVector)     std::vector<MMVII::cAimePCar>;
 
 //----------------------------------------------------------------------

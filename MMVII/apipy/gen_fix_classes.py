@@ -14,7 +14,7 @@ from clang.cindex import CursorKind as ck
 from clang.cindex import TypeKind as tk
 
 all_headers = [
-  "MMVII_enums.h", "MMVII_Ptxd.h", "MMVII_Images.h",
+  "MMVII_enums.h" , "MMVII_Ptxd.h", "MMVII_Images.h", "MMVII_Image2D.h",
   "MMVII_memory.h", "MMVII_nums.h", "MMVII_AimeTieP.h"
 ]
 
@@ -22,12 +22,15 @@ all_headers = [
 
 path = "../include"
 
+verbose = False
+
 cpp_str = ""
 for h in all_headers:
   cpp_str += f'#include "{path:}/{h:}"\n'
 
-print("Cpp source:")
-print(cpp_str)
+if verbose:
+  print("Cpp source:")
+  print(cpp_str)
 
 index = clang.cindex.Index.create()
 #translation_unit
@@ -115,29 +118,37 @@ os.makedirs(dir_path, exist_ok="True")
 f_ignore = open(dir_path+"/ignore_nonconst_overloading.i", "w")
 f_rename = open(dir_path+"/rename_nonref.i", "w")
 f_nonref = open(dir_path+"/return_nonref.i", "w")
-f_include = open(dir_path+"/h_to_include.i", "w")
+f_include1 = open(dir_path+"/h_to_include1.i", "w")
+f_include2 = open(dir_path+"/h_to_include2.i", "w")
 
 f_ignore.write("// Auto-generated file\n\n")
 f_rename.write("// Auto-generated file\n\n")
 f_nonref.write("// Auto-generated file\n\n")
-f_include.write("// Auto-generated file\n\n")
+f_include1.write("// Auto-generated file\n\n")
+f_include2.write("// Auto-generated file\n\n")
 
+f_include1.write('%{\n')
 for h in all_headers:
-  f_include.write(f'%include "{h}"\n')
+  f_include1.write(f'#include "{h}"\n')
+  f_include2.write(f'%include "{h}"\n')
+f_include1.write('%}\n')
 
-f_include.close()
+f_include1.close()
+f_include2.close()
 
 for v in all_classes_cursor:
   c = CppClass(v)
   if c.empty:
     continue
-  print(c)
+  if verbose:
+    print(c)
   
   #search for duplicate methods const/non-const
   for i in range(len(c.methods)):
     for j in range(i+1,len(c.methods)):
       if c.methods[i].name == c.methods[j].name:
-        print("Duplicate: ",c.methods[i], "/", c.methods[j])
+        if verbose:
+          print("Duplicate: ",c.methods[i], "/", c.methods[j])
         f_ignore.write(f"%ignore {c.name}::{c.methods[j].name}();\n")
         if not c.methods[i].is_const:
           c.methods[i].is_shadowed = True
@@ -150,11 +161,13 @@ for v in all_classes_cursor:
       for a in c.attributes:
         if a.name == "m"+m.name and (a.type + " &" == m.res_type or "const " + a.type + " &" == m.res_type)  :
           str_const = "const" if m.is_const else ""
-          print("Getter ref:", a, "/", m)
+          if verbose:
+            print("Getter ref:", a, "/", m)
           f_rename.write(f'%ignore {c.name}::{m.name}() {str_const};\n')
           f_rename.write(f'%rename("{m.name}") {c.name}::{m.name}_py() {str_const};\n')
           f_nonref.write(f'%extend {c.name} {{ {a.type} {m.name}_py() {str_const} {{ return $self->{m.name}(); }} }}\n\n')
-  print()
+  if verbose:
+    print()
 
 f_ignore.close()
 f_rename.close()

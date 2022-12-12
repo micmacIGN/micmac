@@ -6,8 +6,6 @@
 @brief New methods for python API and existing classes
 **/
 
-#include "MMVII_all.h"
-
 //-------------------- new functions ---------------------
 
 //!internal usage

@@ -14,8 +14,6 @@ Usage
     
 ```
 
-More usage examples can be found in apipy/examples_py
-
 
 Documentation
 -------------
