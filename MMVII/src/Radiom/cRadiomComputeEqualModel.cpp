@@ -20,32 +20,36 @@ class cComputeCalibRadIma ;
 typedef tREAL8              tElSys;
 
 
+/** Class for computing the radiometric-correction of 1 image  */
 
 class cComputeCalibRadIma : public cMemCheck,
                             public cObjWithUnkowns<tElSys>
 {
     public :
        cComputeCalibRadIma (const std::string& aName,cImageRadiomData*,cComputeCalibRadSensor* aGRP);
-       void PutUknowsInSetInterval() override ;
-       tREAL8   CorrectedRadiom(tREAL8,const cPt2df & aPt) const;
+       void PutUknowsInSetInterval() override ; ///< overiding cObjWithUnkowns
+       tREAL8   CorrectedRadiom(tREAL8,const cPt2df & aPt) const; ///< used to correct radiom (before weighting)
 
-       const std::string & NameIm() const;
-       cImageRadiomData&   IRD();
-       cComputeCalibRadSensor & ComputeCalSens();
        ~cComputeCalibRadIma();
-       tREAL8 DivIm() const;
+       tREAL8 DivIm() const; ///< Value to divide image (contained in mCalRadIm)
 
-       const cCalibRadiomIma & CalibRabIma() const;
+
+       const std::string & NameIm() const;            ///< Accessor
+       cImageRadiomData&   IRD();                     ///< Accessor
+       cComputeCalibRadSensor & ComputeCalSens();     ///< Accessor
+       const cCalibRadiomIma & CalibRabIma() const;   ///< Accessor
+
 
     private :
        cComputeCalibRadIma(const cComputeCalibRadIma &) = delete;
 
-       std::string               mNameIm;
-       cImageRadiomData*         mIRD;
-       cComputeCalibRadSensor *  mComputeCalSens;
-       cCalRadIm_Cst             mCalRadIm;
+       std::string               mNameIm;         ///< Name of image, always usefull
+       cImageRadiomData*         mIRD;            ///< Data containg radiomety => ID, point, 
+       cComputeCalibRadSensor *  mComputeCalSens; ///< data that will compute sensor calib
+       cCalRadIm_Cst             mCalRadIm;       ///< Radiometric model of the image
 };
 
+/** class for computing the radiometric correction of one sensor */
 
 class cComputeCalibRadSensor : public cMemCheck,  // SetImOfSameCalib
 	           public cObjWithUnkowns<tElSys>
