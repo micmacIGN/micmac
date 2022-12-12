@@ -34,7 +34,7 @@ void cTopoComp::initializeLeastSquares()
         mSetIntervMultObj->AddOneObj(obsSet.get()); //before mSys creation
 
     cDenseVect<double> aVUk = mSetIntervMultObj->GetVUnKnowns();
-    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,aVUk);
+    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqNormSparse,aVUk);
 
     if (verbose)
     {
@@ -169,7 +169,8 @@ void BenchTopoComp(cParamExeBench & aParam)
         //mTopoComp.print();
         if (!aTopoComp.OneIteration()) break;
     }
-
+    auto targetSigma0 = 0.234259;
+    MMVII_INTERNAL_ASSERT_bench(std::abs(aTopoComp.getSigma0()-targetSigma0)<1e-5,"TopoComp sigma0 final");
 
     aParam.EndBench();
     return;
