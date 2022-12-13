@@ -176,15 +176,16 @@ formula of equation~\ref{Eq:MeshDev1T} :
  == Mandatory unnamed args : ==
   * string [MPF0,FDP] :: Name of image
   * string [Cloud,In] :: Name of input cloud/mesh
-  * string [Ori,In] :: Input Orientation
+  * string [Ori,In] :: Input Ori
+  * string [MeshDev,Out] :: Output MeshDev
  == Optional named args : ==
-  * [Name=M2] string [Cloud,In] :: Mesh 2D, dev of cloud 3D,to generate a visu of hiden part 
+  * [Name=M2] string [Cloud,In] :: Mesh 2D, dev of cloud 3D,to generate a visu of hiden part
   * [Name=ResZBuf] double :: Resolution of ZBuffer ,[Default=3]
   * [Name=DoIm] bool :: Do images ,[Default=false]
   * [Name=NbPixIR] int :: Resolution of ZBuffer ,[Default=2000]
   * [Name=MII] double :: Margin Inside Image (for triangle validation) ,[Default=4]
   * [Name=SkWE] bool :: Skip command when result exist
-  * [Name=OutRad] string [Rad,Out] :: Output Radiometry 
+  * [Name=OutRad] string [Rad,Out] :: Output Rad
   * [Name=FFI0] string [FFI0] :: File Filter Interval, Main Set
 \end{verbatim}
 
@@ -253,20 +254,21 @@ chapter \ref{Chap:Radiom} for structures of such data). Some details :
 
 \subsubsection{Result}
 
+The results are stored in a folder computed from the $4^{th}$ parameter.
 
 
-%  \includegraphics[width=5cm]{CommandReferences/ImagesComRef/Dev-P1056148.jpg}
+
 %-----------------------------------------------------------------------
 \subsection{MeshImageDevlp}
 
 \begin{verbatim}
 == Mandatory unnamed args : ==
   * string [FDP] :: Name of 2d devloped mesh
-  * string :: Name of file resulting of MeshProjImage
+  * string [MeshDev,In] :: Input MeshDev
  == Optional named args : ==
   * [Name=WGL] bool :: With Gray Label 2-byte image generation ,[Default=false]
   * [Name=WRGBL] bool :: With RGB Label  1 chanel-label/2 label contrast ,[Default=false]
-  * [Name=InRad] string [Rad,In] :: Output Radiometry 
+  * [Name=InRad] string [Rad,In] :: Input Rad
 \end{verbatim}
 
 This command is used for computing effectively the $2d$ devlopment of the image . Its takes two mandatory
@@ -287,12 +289,5 @@ each level indicating the id of the triangle. With {\tt WRGBL}, a rgb-$8$ bits- 
 blue channel indicate the num of the triangle, while red and green channel are selected to maximize
 the contrast.
 
-
-
-{ \huge \bf
-Faire purge ...
-
-Changer pour dossier de resultat
-}
 
 

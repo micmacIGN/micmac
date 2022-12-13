@@ -20,32 +20,36 @@ class cComputeCalibRadIma ;
 typedef tREAL8              tElSys;
 
 
+/** Class for computing the radiometric-correction of 1 image  */
 
 class cComputeCalibRadIma : public cMemCheck,
                             public cObjWithUnkowns<tElSys>
 {
     public :
        cComputeCalibRadIma (const std::string& aName,cImageRadiomData*,cComputeCalibRadSensor* aGRP);
-       void PutUknowsInSetInterval() override ;
-       tREAL8   CorrectedRadiom(tREAL8,const cPt2df & aPt) const;
+       void PutUknowsInSetInterval() override ; ///< overiding cObjWithUnkowns
+       tREAL8   CorrectedRadiom(tREAL8,const cPt2df & aPt) const; ///< used to correct radiom (before weighting)
 
-       const std::string & NameIm() const;
-       cImageRadiomData&   IRD();
-       cComputeCalibRadSensor & ComputeCalSens();
        ~cComputeCalibRadIma();
-       tREAL8 DivIm() const;
+       tREAL8 DivIm() const; ///< Value to divide image (contained in mCalRadIm)
 
-       const cCalibRadiomIma & CalibRabIma() const;
+
+       const std::string & NameIm() const;            ///< Accessor
+       cImageRadiomData&   IRD();                     ///< Accessor
+       cComputeCalibRadSensor & ComputeCalSens();     ///< Accessor
+       const cCalibRadiomIma & CalibRabIma() const;   ///< Accessor
+
 
     private :
        cComputeCalibRadIma(const cComputeCalibRadIma &) = delete;
 
-       std::string               mNameIm;
-       cImageRadiomData*         mIRD;
-       cComputeCalibRadSensor *  mComputeCalSens;
-       cCalRadIm_Cst             mCalRadIm;
+       std::string               mNameIm;         ///< Name of image, always usefull
+       cImageRadiomData*         mIRD;            ///< Data containg radiomety => ID, point, 
+       cComputeCalibRadSensor *  mComputeCalSens; ///< data that will compute sensor calib
+       cCalRadIm_Cst             mCalRadIm;       ///< Radiometric model of the image
 };
 
+/** class for computing the radiometric correction of one sensor */
 
 class cComputeCalibRadSensor : public cMemCheck,  // SetImOfSameCalib
 	           public cObjWithUnkowns<tElSys>
@@ -87,6 +91,7 @@ void cComputeCalibRadIma::PutUknowsInSetInterval()
 	mSetInterv->AddOneInterv(mCalRadIm.DivIm());
 }
 
+/** mCalRadIm  : contain ImageFact + Ptr to CalibSensor, so its modifed by OnUpdate */
 tElSys  cComputeCalibRadIma::CorrectedRadiom(tREAL8 aRadInit,const cPt2df & aPt) const
 {
 	return aRadInit / (mCalRadIm.ImageCorrec(ToR(aPt)));
@@ -109,7 +114,11 @@ cComputeCalibRadSensor::cComputeCalibRadSensor(cPerspCamIntrCalib * aCalib,int a
    TheCpt++;
    if (TheCpt!=1)
    {
-      MMVII_DEV_WARNING("cComputeCalibRadSensor test multi calib")
+      // A priori multiple calib has been validated
+      if (NeverHappens())
+      {
+         MMVII_DEV_WARNING("cComputeCalibRadSensor test multi calib")
+      }
    }
 
 }
@@ -134,6 +143,24 @@ cRadialCRS & cComputeCalibRadSensor::RCRS() {return mRCRS;}
 
 typedef std::pair<cPerspCamIntrCalib*,tREAL8>  tIdCalRad;
 
+/**  Class for doing a basic equalization, we have :
+ *
+ *     - a multiplicative unknown/image
+ *     - a radial unkonwown funcion/sensor
+ *
+ *
+ *     We proceed in two step :
+ *     - (1) compute image mult only, using a robust approach  
+ *          * median of ratio for each pair
+ *          * then least squaure with this median as observation
+ *     - (2) global system, using previous solution as init, the obs are :
+ *
+ *         I1(p1)              I2(p2)
+ *   ----------------- =   -------------------
+ *     k1   Rad1(p1)         k2  Rad2(p2)
+ *
+ *         during the first iterations ki are fixed,  for a supplementary obs  is addeed Avg(ki) = 1
+ */
 class cAppliRadiom2ImageSameMod : public cMMVII_Appli
 {
      public :
@@ -165,18 +192,18 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
 	size_t  mNbDegRad;
 
      // --- constructed ---
-        cPhotogrammetricProject            mPhProj;
-	std::vector<cComputeCalibRadIma*>           mVRadIm;
-	size_t                             mNbIm;
-	tElSys                             mSomWLinear; // som of weight use in linear step, to fix the gauge constraint
-        cDenseVect<tElSys>                 mSolRadial;  // Solution of radial system 
+        cPhotogrammetricProject            mPhProj;     ///< The Project, as usual
+	std::vector<cComputeCalibRadIma*>  mVRadIm;     ///< set of all unknown ca
+	size_t                             mNbIm;       ///< number of images : facility 
+	tElSys                             mSomWLinear; ///< som of weight use in linear step, to fix the gauge constraint
+        cDenseVect<tElSys>                 mSolRadial;  ///< Solution of radial system 
 
 	// std::map<cPerspCamIntrCalib*,cComputeCalibRadSensor*>  mMapCal2Im;
-	std::map<tIdCalRad,cComputeCalibRadSensor*>  mMapCal2Im;
-	cFusionIRDSEt                              mFusIndex;
-	cCalculator<double> *                      mCalcMixt;
-	cSetInterUK_MultipeObj<tElSys> *           mSetInterv;
-	cResolSysNonLinear<tElSys> *               mCurSys;
+	std::map<tIdCalRad,cComputeCalibRadSensor*>  mMapCal2Im; ///<  Mapd GeomCalib+Aperture -->  Radial Calib
+	cFusionIRDSEt                                mFusIndex;  ///< Fusion index for creating multiple points
+	cCalculator<double> *                        mCalcEqRad; ///< calculator for equalizing radiometry
+	cSetInterUK_MultipeObj<tElSys> *             mSetInterv;  ///< Handle unkwons
+	cResolSysNonLinear<tElSys> *                 mCurSys;
 };
 
 
@@ -211,7 +238,7 @@ cAppliRadiom2ImageSameMod::cAppliRadiom2ImageSameMod(const std::vector<std::stri
     mPhProj                    (*this),
     mSolRadial                 (1),
     mFusIndex                  (1),
-    mCalcMixt                  (nullptr),
+    mCalcEqRad                 (nullptr),
     mCurSys                    (nullptr)
 {
 }
@@ -385,7 +412,7 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
              aRIM->PushIndexes(aVInd);
              aRIM->ComputeCalSens().PushIndexes(aVInd);
 
-             mCurSys->AddEq2Subst(aSetTmp,mCalcMixt,aVInd,aVObs,aRW);
+             mCurSys->AddEq2Subst(aSetTmp,mCalcEqRad,aVInd,aVObs,aRW);
 
 	     aSomWRad += aW;
          }
@@ -430,7 +457,7 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
 void   cAppliRadiom2ImageSameMod::MakeMixtModel()
 {
     mSetInterv = new cSetInterUK_MultipeObj<tElSys> ;
-    mCalcMixt = EqRadiomVignettageLinear(5,true,1);
+    mCalcEqRad = EqRadiomVignettageLinear(5,true,1);
 
     for (auto & aPtrIm : mVRadIm)
 	mSetInterv->AddOneObj(aPtrIm);
@@ -532,7 +559,7 @@ int cAppliRadiom2ImageSameMod::Exe()
     for (auto & aPair: mMapCal2Im)
        delete aPair.second;
 
-    delete mCalcMixt;
+    delete mCalcEqRad;
     return EXIT_SUCCESS;
 }
 

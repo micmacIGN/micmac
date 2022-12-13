@@ -433,6 +433,8 @@ template <class TypeCompiled>  class cGenOperatorBinaire
              // Extract context (take F1 ou F2, does not matter, they must be the same)
              tCoordF * aPCont = aF1->CoordF();  
              std::string aNameForm =  aF1.NameFormulaBin(aNameOp,aF2);
+	     if (aPCont!= aF2->CoordF())  // MPD : was not tested before ?
+		     UserSError("Different coordinator","OpBin");
 
              if (aPCont->ExistFunc(aNameForm))
                return aPCont->FuncOfName(aNameForm);
@@ -455,7 +457,9 @@ template <class TypeCompiled>  class cGenOperatorBinaire
                    && TypeCompiled::IsDistribExt() 
                    && aF1->IsDistribInt() 
                    && aF2->IsDistribInt()
-                   && (aF2->NameOperator() == aF2->NameOperator())
+		   //  MPD : this seems almost surely to modify, but maintain old version 4 now
+                   // && (aF2->NameOperator() == aF2->NameOperator())
+                   && (aF1->NameOperator() == aF2->NameOperator())
                  )
              {
                 // Add IsMult, we dont want to reduce a/b+a/c

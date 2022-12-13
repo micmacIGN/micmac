@@ -135,6 +135,8 @@ public:
         !! => Warn the same memory space is recycled ...
     */
     const std::vector<std::vector<T> *> & EvalAndClear();
+    ///  Get one eval
+    std::vector<T> & DoOneEval(const std::vector<TypeElem> & aVUK,const std::vector<TypeElem> & aVObs);
 
     /// Return value computed taking into account order of storage
     const TypeElem & ValComp(int aNumPush,int aKElem) const
@@ -243,6 +245,17 @@ const std::vector<std::vector<T> *> & cCalculator<T>::EvalAndClear()
         this->mBufRes.push_back(&this->mBufLineRes[aK]);
     this->mNbInBuf = 0;
     return mBufRes;
+}
+
+template<typename T>
+std::vector<T> & cCalculator<T>::DoOneEval(const std::vector<TypeElem> & aVUK,const std::vector<TypeElem> & aVObs)
+{
+   if (this->mNbInBuf!=0)
+   {
+      UserSError("DoOneEval: buffer not empty","");
+   }
+   this->PushNewEvals(aVUK,aVObs);
+   return *(this->EvalAndClear()[0]);
 }
 
 /** Specilisation for calculator opering generated code  (v.s dynamic just after formula)
