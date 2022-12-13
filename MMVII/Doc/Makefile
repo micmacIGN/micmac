@@ -1,10 +1,22 @@
-#       DocUtil/DUGen.tex\
-#
-FTEX=   Doc2007.tex
-DocMicMac.pdf : $(FTEX) 
-	pdflatex Doc2007.tex
-	makeindex Doc2007.idx
-	pdflatex Doc2007.tex
+FTEX =   Doc2007
+
+.PHONY: clean a4 a5
+
+a4: $(FTEX)_a4.pdf
+a5: $(FTEX)_a5.pdf
+all: a4 a5
+
+SRCS:=$(FTEX).tex ${wildcard */*.tex}
+
+$(FTEX)_a4.pdf : $(FTEX)_a4.tex ${SRCS}
+	pdflatex $<
+	makeindex $(<:.tex=.idx)
+	pdflatex $<
+
+$(FTEX)_a5.pdf: $(FTEX)_a5.tex ${SRCS}
+	pdflatex $<
+	makeindex $(<:.tex=.idx)
+	pdflatex $<
+
 clean :
-	find . -iname "*.aux" -exec rm {} +
-	rm -f DocMicMac.pdf DocMicMac.dvi
+	rm -f *.aux */*.aux *.toc *.dvi *.log *.out *.idx *.ind *.ilg $(FTEX)_a4.pdf $(FTEX)_a5.pdf
