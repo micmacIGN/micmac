@@ -130,7 +130,7 @@ class SYMBDER_cMemCheck
 
 // REDUCTION RULES
 // TODO => REPLACE BY METHOD ON COORDINATOR WHEN THEY IMPROVE THINGS ....
-#define  DOREDUCE      false
+#define  DOREDUCE      true
 
 #define  REDUCE_CSTE    true    //  Cste+Cste => cste
 #define  REDUCE_MM      DOREDUCE    //  - - x => x  ;  a-(-b) => a+b

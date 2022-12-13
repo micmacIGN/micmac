@@ -379,14 +379,17 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
      {
           if (mVarIsFrozen.at(aPair.mInd))
           {
+              // if freeze => transfert value in contant
               aNewRHS -= mValueFrozenVar.at(aPair.mInd) *  aPair.mVal;
           }
           else
           {
+              // else tranfert current value as we are computing the difference to it
               aNewRHS -=  mCurGlobSol(aPair.mInd) * aPair.mVal;
               aNewCoeff.AddIV(aPair);
           }
      }
+     currNbObs++;  ///  Check JMM
      mSysLinear->AddObservation(aWeight,aNewCoeff,aNewRHS);
 }
 
@@ -414,6 +417,7 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
               aNewRHS -=  mCurGlobSol(aK) * aCoeff(aK);
           }
      }
+     currNbObs++;  ///  Check JMM
      mSysLinear->AddObservation(aWeight,aNewCoeff,aNewRHS);
 }
 
@@ -477,6 +481,8 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
       mInPhaseAddEq = true;
       MMVII_INTERNAL_ASSERT_tiny(aCalcVal->NbInBuf()==0,"Buff not empty");
 
+      // Usefull only to test correcness of DoOneEval
+      bool  TestOneVal = aVIO.size()==1;
       // Put input data
       for (const auto & aIO : aVIO)
       {
@@ -500,10 +506,14 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
               aVObs.push_back(aObs);
 	  // transferate potential temporary coordinates
 	  //  Add equation in buffer
-          aCalcVal->PushNewEvals(aVCoord,aVObs);
+	  if (TestOneVal)
+             aCalcVal->DoOneEval(aVCoord,aVObs);
+	  else
+             aCalcVal->PushNewEvals(aVCoord,aVObs);
       }
       // Make the computation
-      aCalcVal->EvalAndClear();
+      if (!TestOneVal)
+         aCalcVal->EvalAndClear();
 
       // Put output data
       size_t aNbEl = aCalcVal->NbElem();
