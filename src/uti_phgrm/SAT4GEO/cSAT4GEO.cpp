@@ -61,8 +61,8 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
         mMMVII(0),
 	mMMVII_mode("MMV1"),
 	mMMVII_ImName("Px1_MMVII.tif"),
-	mMMVII_SzTile(Pt2di(1024,1024)),
-    mMMVII_SzOverL(Pt2di(50,30)),
+	mMMVII_SzTile(Pt2di(900,900)),
+        mMMVII_SzOverL(Pt2di(50,30)),
         mMMVII_NbProc(8),
         //mZoomF(1),
 	//mHasVeg(true),
@@ -128,7 +128,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
             << EAM(mMMVII_mode,"MMVII_mode",true,"Image matching: if MMVII==1, {MMV1,PSMNet,DeepPruner} Def=MMV1")
             << EAM(mMMVII_ModePad,"MMVII_ModePad",true,"Image matching: if MMVII==1, {NoPad PxPos PxNeg SzEq}")
             << EAM(mMMVII_ImName,"MMVII_ImName",true,"Image matching: if MMVII==1, name of depth map")
-            << EAM(mMMVII_SzTile,"MMVII_SzTile",true,"Image matching: if MMVII==1, Size of tiling used to split computation, Def=[1024,1024]")
+            << EAM(mMMVII_SzTile,"MMVII_SzTile",true,"Image matching: if MMVII==1, Size of tiling used to split computation, Def=[900,900]")
             << EAM(mMMVII_SzOverL,"MMVII_SzOverL",true,"Image matching: if MMVII==1, Size of overlap between tiles ,[Default=[50,30]")
             << EAM(mMMVII_NbProc,"MMVII_NbProc",true,"Image matching: if MMVII==1, Nb of cores for II processing in MMVII, Def=8");
 
@@ -440,7 +440,8 @@ cAppliCreateEpi::cAppliCreateEpi(int argc, char** argv)
 	{
 		std::string aComTmp = MMBinFile(MM3DStr) + "CreateEpip " 
 						      + itP.N1() + BLANK + itP.N2() + BLANK + mOri  
-					              + mCAS3D.ComParamEpip();
+					              + mCAS3D.ComParamEpip()
+						      + BLANK + "@ExitOnBrkp";
 
 		aLCom.push_back(aComTmp);
 	}
@@ -501,12 +502,14 @@ cAppliRecalRPC::cAppliRecalRPC(int argc, char** argv)
         std::string aComI1 = MMBinFile(MM3DStr) + "Convert2GenBundle "
                               + aNI1 + BLANK + aNAppuisI1 + BLANK
 							  + mCAS3D.mOutRPC 
-                              + mCAS3D.ComParamRPC_Basic();
+                              + mCAS3D.ComParamRPC_Basic()
+			      + BLANK + "@ExitOnBrkp";
 
         std::string aComI2 = MMBinFile(MM3DStr) + "Convert2GenBundle "
                               + aNI2 + BLANK + aNAppuisI2 + BLANK
 							  + mCAS3D.mOutRPC
-                              + mCAS3D.ComParamRPC_Basic();
+                              + mCAS3D.ComParamRPC_Basic()
+			      + BLANK + "@ExitOnBrkp";
 
 
 		std::string aKeyGB = "NKS-Assoc-Im2GBOrient@-" +  mCAS3D.mOutRPC;
@@ -515,9 +518,11 @@ cAppliRecalRPC::cAppliRecalRPC(int argc, char** argv)
 		std::string aNameGBI2 = mCAS3D.mICNM->Assoc1To1(aKeyGB,aNI2,true);
 
 		std::string aComConv1 = MMBinFile(MM3DStr) + "Satelib RecalRPC " 
-							  + aNameGBI1 + " OriOut=" + mCAS3D.mOutRPC;
+							  + aNameGBI1 + " OriOut=" + mCAS3D.mOutRPC
+							  + BLANK + "@ExitOnBrkp";
 		std::string aComConv2 = MMBinFile(MM3DStr) + "Satelib RecalRPC " 
-							  + aNameGBI2 + " OriOut=" + mCAS3D.mOutRPC;
+							  + aNameGBI2 + " OriOut=" + mCAS3D.mOutRPC
+							  + BLANK + "@ExitOnBrkp";
 
 
 
@@ -856,7 +861,8 @@ void cAppliFusion::DoAll()
 	/* Define the global frame of the reconstruction */
 	std::string aCom = MMBinFile(MM3DStr) + "Malt UrbanMNE " 
 			             + "NKS-Set-OfFile@" + mCAS3D.mNameEpiLOF + BLANK 
-						 + mCAS3D.mOutRPC + BLANK + "DoMEC=0";
+				     + mCAS3D.mOutRPC + BLANK + "DoMEC=0"
+				     + BLANK + "@ExitOnBrkp";
 
 	if (EAMIsInit(&mCAS3D.mEZA))
 		aCom += " EZA=" + ToString(mCAS3D.mEZA);
@@ -901,7 +907,9 @@ void cAppliFusion::DoAll()
 						 + "NbP=" + ToString(mCAS3D.mNbProc) + " "
 						 + "Exe=" + ToString(mCAS3D.mExe) + " " 
                          + ((mCAS3D.mMMVII) ? ("MMVII=" + ToString(mCAS3D.mMMVII) + " ") : "") 
-                         + ((mCAS3D.mMMVII) ? ("MMVII_ImName=" + mCAS3D.mMMVII_ImName) : "");
+                         + ((mCAS3D.mMMVII) ? ("MMVII_ImName=" + mCAS3D.mMMVII_ImName) : "")
+			 + BLANK + "@ExitOnBrkp"
+			 ;
 
 		/*std::string aCTG2to1 = MMBinFile(MM3DStr) + "TestLib TransGeom "
 				         + mCAS3D.mDir + " " 
@@ -951,7 +959,8 @@ void cAppliFusion::DoAll()
 		std::string aComFuse1to2 = MMBinFile(MM3DStr) + "NuageBascule " 
 				                 + aMECBasic + StdPrefix(aNuageInName) + AddFilePostFix() + ".xml" + " " 
 							     + "MEC-Malt/" + aNuageOutName + " " 
-							     + mCAS3D.mOutSMDM + aPref + ToString(aCpt) + ".xml"; 
+							     + mCAS3D.mOutSMDM + aPref + ToString(aCpt) + ".xml"
+							     + BLANK + "@ExitOnBrkp"; 
 		aCpt++;
 		
 		/*std::string aComFuse2to1 = MMBinFile(MM3DStr) + "NuageBascule " 
@@ -979,7 +988,8 @@ void cAppliFusion::DoAll()
 
 	/* Fusion */
 	std::string aComMerge = MMBinFile(MM3DStr) + "SMDM " 
-			             + mCAS3D.mOutSMDM + aPref + ".*xml";
+			             + mCAS3D.mOutSMDM + aPref + ".*xml"
+				     + BLANK + "@ExitOnBrkp";
 
 
     if (mCAS3D.mExe)
@@ -1336,7 +1346,8 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 		for (int aK=0; aK<aDecoup.NbInterv(); aK++)
 		{
 			std::string aCom = aComBase + " CalleByP=true " 
-					         + "BoxOut=" + ToString(aDecoup.KthIntervIn(aK));
+					         + "BoxOut=" + ToString(aDecoup.KthIntervIn(aK))
+						 + BLANK + "@ExitOnBrkp";
 			aLCom.push_back(aCom);
 		}
 
