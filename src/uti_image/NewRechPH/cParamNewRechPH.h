@@ -1,5 +1,6 @@
 #ifndef Define_NotRechNewPH
 #define Define_NotRechNewPH
+#include "StdAfx.h"
 // NOMORE ...
 typedef enum
 {

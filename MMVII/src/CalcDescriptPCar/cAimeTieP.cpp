@@ -547,12 +547,13 @@ void cSetAimePCAR::SaveInFile(const std::string & aName) const
  //  StdOut() << "MMPPPDD " << aName << " "  << (const_cast<cSetAimePCAR *>(this))->VPC().size()  << "\n";
      MMVII::SaveInFile(*this,aName);
 
-     if (0)
+#if 0
      {
           for (int aK=0; aK<100 ; aK++) 
               StdOut() << "MMv1_SaveInFile\n";
           MMv1_SaveInFile<cSetAimePCAR>(*this,aName);  // generate an error as "it should"
      }
+#endif
 }
 
 

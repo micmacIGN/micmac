@@ -4,6 +4,7 @@
 #include <numeric>
 #include <sstream>
 
+#include "MMVII_Sys.h"
 #include "MMVII_nums.h"
 #include "MMVII_memory.h"
 
@@ -286,7 +287,7 @@ class cMMVII_Duration
         static cMMVII_Duration FromSecond(double aNbSec,eTyUnitTime=eTyUnitTime::eNbVals);
         void Normalise(eTyUnitTime);
 
-        std::string ToDaisyStr(std::string * aFormat=0,bool Full=false) const;
+        std::string ToDaisyStr(std::string * aFormat=nullptr,bool Full=false) const;
 
      public :
         std::string  ToString(char aSep,int aNbDigFrac,std::string * aFormat,bool Full) const;

@@ -4,6 +4,7 @@
 // If true, this directive require CERES installed, then it allows a comparison with CERES/Jet (for a potential publication) ..
 #define MMVII_WITH_CERES false
 
+#include <algorithm>
 
 #ifdef _OPENMP
 #include <omp.h>

@@ -37,7 +37,7 @@ cSpecMMVII_Appli::cSpecMMVII_Appli
 int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVArgs) const
 {
    // A conserver, on le mettra dans les sauvegarde
-   if (0)
+#if 0
    {
       StdOut() << "===Com==[";
       for (int aK=0; aK<int(aVArgs.size()) ; aK++)
@@ -47,6 +47,7 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
       }
       StdOut() << "]\n";
    }
+#endif
    static int aCptCallIntern=0;
    aCptCallIntern++;
    if (TheCmdArgs.size() == 0)
@@ -216,7 +217,7 @@ cSpecMMVII_Appli*  cSpecMMVII_Appli::SpecOfName(const std::string & aNameCom,boo
       MMVII_INTERNAL_ASSERT_always(false,"Cannot find command of name ["+ aNameCom + "]");
    }
 
-   return 0;
+   return nullptr;
 }
 
 std::vector<std::string> cSpecMMVII_Appli::TheCmdArgs;

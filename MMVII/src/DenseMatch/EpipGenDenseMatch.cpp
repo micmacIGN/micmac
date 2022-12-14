@@ -736,7 +736,8 @@ void cAppli::MakePyramid()
    else
    {
        for (int aK=0 ; aK<10 ; aK++)
-           StdOut() << "!!!!! Pyramid skeeped !!!!\n";
+           StdOut() << "!!!!! Pyramid skipped !!!!\n";
+       StdOut() << "--> type any key to continue the process\n";
        getchar();
    }
 

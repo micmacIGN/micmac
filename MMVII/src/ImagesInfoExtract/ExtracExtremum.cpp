@@ -703,7 +703,7 @@ void OneBenchAffineExtre()
     // Generate image 
     cIm2D<tREAL4> aIm(aSz);
     cDataIm2D<tREAL4> & aDIm = aIm.DIm();
-    for (const auto aPix : aDIm)
+    for (const auto & aPix : aDIm)
     {
          cPt2dr aDif = aCenter - ToR(aPix);
          tREAL4 aVal = aCste + aVA * Square(aDif.x()) + 2 * aVB * aDif.x()*aDif.y() + aVC * Square(aDif.y());

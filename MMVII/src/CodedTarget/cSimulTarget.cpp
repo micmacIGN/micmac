@@ -285,7 +285,7 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
     aGSD.mCornEl1 = aMapT2Im.Value(mPCT.mCornEl1/mDownScale);
     aGSD.mCornEl2 = aMapT2Im.Value(mPCT.mCornEl2/mDownScale);
 
-    if (0)  // Marking point specific, do it only for tuning
+#if 0  // Marking point specific, do it only for tuning
     {
         for (const auto & aDec : cRect2::BoxWindow(0))
         {
@@ -293,7 +293,8 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
              aDImIn.SetV(ToI(aGSD.mCornEl2)+aDec,128);
         }
      }
-
+#endif
+    
     StdOut() << "NNN= " << aName << " C0=" << aC0 <<  aBoxIm.Sz() <<  " " << aGSD.mR2/aGSD.mR1 << "\n";
 }
 

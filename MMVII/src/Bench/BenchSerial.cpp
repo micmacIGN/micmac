@@ -345,9 +345,10 @@ void BenchSerialization
     {
         SaveInFile(cTestSerial2(),aDirOut+"F_T2."+PostF_XmlFiles);
         cTestSerial2 aT2;
+        
         // Generate an error
-        if (0)
-          ReadFromFile(aT2,aDirOut+"F2."+PostF_XmlFiles);
+        //  ReadFromFile(aT2,aDirOut+"F2."+PostF_XmlFiles);
+        
         ReadFromFile(aT2,aDirOut+"F_T2."+PostF_XmlFiles); // OK , read what we wrote as usual
         // and the value is the same
         MMVII_INTERNAL_ASSERT_bench(aT2==cTestSerial1(),"cAppli_MMVII_TestSerial");
@@ -357,7 +358,6 @@ void BenchSerialization
 
         MMVII_INTERNAL_ASSERT_bench(aT2==cTestSerial2(),"cAppli_MMVII_TestSerial");
     }
-
     // Bench ReadFromFileWithDef
     {
         cTestSerial2 aT5;

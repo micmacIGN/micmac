@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "StdAfx.h"
+
 #include <map>
 #include <iostream>
 #include <fstream>

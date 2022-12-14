@@ -791,7 +791,7 @@ class Flux_By_Contour : public Mcheck
     protected: 
 
 
-         bool not_full_ang(REAL a0,REAL a1);
+         static bool not_full_ang(REAL a0,REAL a1);
 
         Flux_By_Contour 
         (

@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Sift/Sift.h"
-
+#include "StdAfx.h"
 
 int CPP_SiftExport_main(int argc,char** argv)
 {
