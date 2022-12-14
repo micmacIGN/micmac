@@ -546,8 +546,8 @@ int  cAppliGenCodedTarget::Exe()
       double aRhoChB = ((mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar) * (mPCT.mNbPixelBin /2.0)  )/SzGaussDeZoom;
       mPCT.mCornEl1 = mPCT.mCenterF+FromPolar(aRhoChB,M_PI/4.0);
       mPCT.mCornEl2 = mPCT.mCenterF+FromPolar(aRhoChB,3.0*(M_PI/4.0));
-
-      if (0)  // Marking point specific, do it only for tuning
+       
+#if 0  // Marking point specific, do it only for tuning
       {
          for (const auto & aDec : cRect2::BoxWindow(3))
          {
@@ -555,7 +555,8 @@ int  cAppliGenCodedTarget::Exe()
               aImT.DIm().SetV(ToI(mPCT.mCornEl2)+aDec,128);
          }
       }
-
+#endif
+       
       StdOut() << mPCT.NameFileOfNum(aNum) << " created\n";
       aImT.DIm().ToFile(mPCT.NameFileOfNum(aNum));
    }

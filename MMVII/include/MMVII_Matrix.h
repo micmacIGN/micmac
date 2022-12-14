@@ -251,7 +251,7 @@ template <class Type> class cMatrix  : public cRect2
         virtual void  Weighted_Add_tAA(Type aWeight,const tSpV & aColLine,bool OnlySup=true);
 
       //  Constructor && destr
-         virtual ~cMatrix();  ///< Public because called by shared ptr 
+         virtual ~cMatrix() = default;  ///< Public because called by shared ptr 
      protected :
          cMatrix(int aX,int aY);
 
@@ -596,7 +596,7 @@ template <class Type> class cStrStat2
        double KthNormalizedCoord(int,const cDenseVect<Type>  & aV2) const;
        // Accessors
        cDenseMatrix<Type>& Cov() ;
-       const double              Pds() const;
+       double              Pds() const;
        const cDenseVect<Type>  & Moy() const;
        const cDenseMatrix<Type>& Cov() const;
     private :

@@ -88,7 +88,7 @@ template <class Type> class cRotation3D
        typedef Type               tTypeElem;
        typedef cRotation3D<Type>  tTypeMap;
        typedef cRotation3D<Type>  tTypeMapInv;
-       static const int NbDOF()   {return 3;}
+       static int NbDOF()   {return 3;}
 
 
        // RefineIt : if true, assume not fully orthog and compute closest one
@@ -149,7 +149,7 @@ template <class Type> class cIsometry3D
        typedef Type               tTypeElem;
        typedef cIsometry3D<Type> tTypeMap;
        typedef cIsometry3D<Type> tTypeMapInv;
-       static const int NbDOF()   {return 6;}
+       static int NbDOF()   {return 6;}
 
 
        cIsometry3D(const tPt& aTr,const cRotation3D<Type> &);
@@ -194,7 +194,7 @@ template <class Type> class cSimilitud3D
        typedef Type               tTypeElem;
        typedef cSimilitud3D<Type> tTypeMap;
        typedef cSimilitud3D<Type> tTypeMapInv;
-       static const int NbDOF()   {return 7;}
+       static int NbDOF()   {return 7;}
 
 
        cSimilitud3D(const Type & aScale,const tPt& aTr,const cRotation3D<Type> &);

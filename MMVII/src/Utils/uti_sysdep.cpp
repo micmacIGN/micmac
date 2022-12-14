@@ -12,6 +12,7 @@
 #elif (THE_MACRO_MMVII_SYS==MMVII_SYS_W)  // Windows
 #  include <windows.h>
 #else  // Max OS X
+#  include <unistd.h>
 #  include <mach-o/dyld.h>
 #endif
 
@@ -165,19 +166,17 @@ std::string MMVII_RawSelfExecName()
 const std::string TheMMVII_SysName = "Steve's shit";
 int mmvii_GetPId()
 {
-    MMVII_INTERNAL_ASSERT_always(false,"mmvii_GetPId on "+TheMMVII_SysName);
-    return -1;
+    return getpid();
 }
 int mmvii_NbProcSys()
 {
-    MMVII_INTERNAL_ASSERT_always(false,"mmvii_NbProcSys on "+TheMMVII_SysName);
-    return -1;
+    return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 std::string MMVII_RawSelfExecName()
 {
 // Ch.M: Not tested
-    std::string result;
+    std::string path;
 
     uint32_t size = 0;
     _NSGetExecutablePath(nullptr, &size);

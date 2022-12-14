@@ -378,15 +378,15 @@ template<class Type> void cLinearOverCstrSys<Type>::AddObsWithTmpUK(const cSetIO
 template<class Type> cDenseMatrix<Type> cLinearOverCstrSys<Type>::V_tAA() const
 {
 	MMVII_INTERNAL_ERROR("No acces to tAA for this class");
-
-	return *((cDenseMatrix<Type> *)nullptr);
+    return cDenseMatrix<Type> (0);
+	//return *((cDenseMatrix<Type> *)nullptr);   // clang: binding dereferenced null pointer to reference has undefined behavior
 }
 
 template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::V_tARhs() const
 {
 	MMVII_INTERNAL_ERROR("No acces to tARhs for this class");
-
-	return *((cDenseVect<Type> *)nullptr);
+    return cDenseVect<Type> (0);
+	//return *((cDenseVect<Type> *)nullptr);   // clang: binding dereferenced null pointer to reference has undefined behavior
 }
 
 template <class Type> void cLinearOverCstrSys<Type>::AddCov

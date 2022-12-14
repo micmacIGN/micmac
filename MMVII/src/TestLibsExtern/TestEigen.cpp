@@ -1,5 +1,4 @@
 
-#define GPP11 (__GNUC__>=11) // G++11
 
 /** \file TestEigen.cpp
     \brief File to test eigen library

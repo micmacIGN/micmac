@@ -323,6 +323,7 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
          cSparseLeasSqtAA(int  aNbVar,const cParamSparseNormalLstSq & aParam);
          ~cSparseLeasSqtAA();
 
+         using cSparseLeasSq<Type>::AddObservation;         // Shutup CLANG about hiding overload virtual function
        /// Here memorize the obs
          void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
 
@@ -775,6 +776,7 @@ template<class Type>  class cSparseLeasSqGC : public cSparseLeasSq<Type>
 
          cSparseLeasSqGC(int  aNbVar );
 
+         using cSparseLeasSq<Type>::AddObservation;         // Shutup CLANG about hiding overload virtual function
        /// Here memorize the obs
          void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
 

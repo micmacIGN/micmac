@@ -252,10 +252,6 @@ template <class Type> cMatrix<Type>::cMatrix(int aX,int aY) :
 {
 }
 
-template <class Type> cMatrix<Type>::~cMatrix() 
-{
-}
-
 
 template <class Type> double cMatrix<Type>::TriangSupicity() const   ///< How close to triangular sup
 {

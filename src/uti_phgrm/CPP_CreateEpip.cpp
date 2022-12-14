@@ -55,7 +55,7 @@ class cMapAsDist22 : public ElDistortion22_Gen
 
 cMapAsDist22::cMapAsDist22(cElMap2D * aMap,cElMap2D * aMapInv) :
     mMapDir (aMap),
-    mMapInv ((mMapInv!=nullptr) ? mMapInv : mMapDir->Map2DInverse())
+    mMapInv ((aMapInv!=nullptr) ? aMapInv : mMapDir->Map2DInverse())
 {
 }
 

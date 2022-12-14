@@ -107,6 +107,10 @@ template <>  const std::string cStrIO<eModeEpipMatch>::msNameType;
 template <>  const std::string cStrIO<eModePaddingEpip>::msNameType;
 template <>  const std::string cStrIO<eModeCaracMatch>::msNameType;
 
+template <>  const std::string cStrIO<eProjPC>::msNameType;
+template <>  const std::string cStrIO<eModeTestPropCov>::msNameType;
+template <>  const std::string cStrIO<eDCTFilters>::msNameType;
+
 /** These functions offer an"easy" interface to cStrIO, however I think
 *    cStrIO is still usefull when type inference becomes too compliicated
 */
@@ -191,7 +195,7 @@ class  cSpecOneArg2007 : public cMemCheck
         virtual void  CheckSize(const std::string &) const = 0;  ///< Used to check size of vect from a parameter like "[4,6]"
 
         /// Does any of  mVSem contains aType
-        bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
+        bool HasType(const eTA2007 & aType,std::string * aValue=nullptr)            const;
 
         const tAllSemPL & SemPL() const;         ///< Accessor
         const std::string  & Name() const;  ///< Accessor
@@ -237,7 +241,6 @@ class cCollecSpecArg2007
       void clear() ;
       cCollecSpecArg2007 & operator << (tPtrArg2007 aVal);
    private :
-      friend class cMMVII_Appli;
       tVecArg2007 & Vec();
       cCollecSpecArg2007(const cCollecSpecArg2007&) = delete;
       tVecArg2007  mV;

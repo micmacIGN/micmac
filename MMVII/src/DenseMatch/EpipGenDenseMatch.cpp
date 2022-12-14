@@ -736,7 +736,8 @@ void cAppli::MakePyramid()
    else
    {
        for (int aK=0 ; aK<10 ; aK++)
-           StdOut() << "!!!!! Pyramid skeeped !!!!\n";
+           StdOut() << "!!!!! Pyramid skipped !!!!\n";
+       StdOut() << "--> type any key to continue the process\n";
        getchar();
    }
 
@@ -933,7 +934,7 @@ int  cAppli::ExecuteBench(cParamExeBench & aParam)
 
 
    std::string aDirData = InputDirTestMMVII() + "EPIP/Tiny/";
-   std::string aCom =    mFullBin
+   std::string aCom =    FullBin()
                        + BLANK  + mSpecs.Name()
                        + " MMV1 ImR.tif ImL.tif   Out=PxRL.tif SzTile=[300,200]"
                        + BLANK + GOP_DirProj + "=" + aDirData;

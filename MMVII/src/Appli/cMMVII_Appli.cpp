@@ -19,8 +19,6 @@ int  cMMVII_Appli::ExecuteBench(cParamExeBench &)
 
 
 
-#define MSD_DEGUG()  StdOut() << "MSD_DEGUGMSD_DEGUG " << __LINE__ << " of " << __FILE__ << "\n";
-
 /*  ============================================== */
 /*                                                 */
 /*                cColStrAObl                      */
@@ -134,8 +132,6 @@ template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 //        cMMVII_Appli::cMMVII_Appli ( int argc, char ** argv, const cSpecMMVII_Appli & aSpec) 
 //        void cMMVII_Appli::InitParam() => main initialisation must be done after Cstrctor as call virtual methods
 
-#define DEBUGKILLAPP()\
-std::cout << "HERE " << __LINE__ << "\n";
 
 std::vector<cObj2DelAtEnd *>       cMMVII_Appli::mVectObj2DelAtEnd;
 
@@ -214,15 +210,7 @@ cMMVII_Appli::cMMVII_Appli
    mArgc          (mArgv.size()),
    mSpecs         (aSpec),
    mForExe        (true),
-   mDirBinMMVII   (DirBin2007),
-   mTopDirMMVII   (UpDir(mDirBinMMVII,1)),
-   mFullBin       (FullBin2007),
-   mDirMicMacv1   (UpDir(mTopDirMMVII,1)),
-   mDirMicMacv2   (mTopDirMMVII),
    mDirProject    (DirCur()),
-   mDirTestMMVII  (mDirMicMacv2 + MMVIITestDir),
-   mTmpDirTestMMVII   (mDirTestMMVII + "Tmp/"),
-   mInputDirTestMMVII (mDirTestMMVII + "Input/"),
    mModeHelp      (false),
    mDoGlobHelp    (false),
    mDoInternalHelp(false),
@@ -256,6 +244,24 @@ cMMVII_Appli::cMMVII_Appli
    TheStackAppli.push_back(this);
    /// Minimal consistency test for installation, does the MicMac binary exist ?
    MMVII_INTERNAL_ASSERT_always(ExistFile(mFullBin),"Could not find MMVII binary (tried with " +  mFullBin + ")");
+}
+
+
+void cMMVII_Appli::InitMMVIIDirs(const std::string& aMMVIIDir)
+{
+    if (aMMVIIDir.length() == 0)
+        return;
+
+    mTopDirMMVII       = aMMVIIDir;
+    if (mTopDirMMVII.back() != '/'  && mTopDirMMVII.back() != '\\')
+        mTopDirMMVII += "/";
+    mDirBinMMVII       = mTopDirMMVII + "bin/";
+    mFullBin           = mDirBinMMVII + MMVIIBin2007;
+    mDirMicMacv1       = UpDir(mTopDirMMVII,1);
+    mDirMicMacv2       = mTopDirMMVII;
+    mDirTestMMVII      = mDirMicMacv2 + MMVIITestDir;
+    mTmpDirTestMMVII   = mDirTestMMVII + "Tmp/";
+    mInputDirTestMMVII = mDirTestMMVII + "Input/";
 }
 
 const std::vector<eSharedPO>    cMMVII_Appli::EmptyVSPO;  ///< Deafaut Vector  shared optional parameter
@@ -1160,11 +1166,26 @@ void cMMVII_Appli::MMVII_WARNING(const std::string & aMes)
    StdOut() <<  aMes << "\n";
    StdOut() << "===================================================================\n";
 }
+
+std::string cMMVII_Appli::mDirBinMMVII;
+std::string cMMVII_Appli::mTmpDirTestMMVII;
+std::string cMMVII_Appli::mInputDirTestMMVII;
+std::string cMMVII_Appli::mTopDirMMVII;
+std::string cMMVII_Appli::mFullBin;
+std::string cMMVII_Appli::mDirTestMMVII;
+std::string cMMVII_Appli::mDirMicMacv1;
+std::string cMMVII_Appli::mDirMicMacv2;
+
+              // static Accessors
+const std::string & cMMVII_Appli::TmpDirTestMMVII()   {return mTmpDirTestMMVII;}
+const std::string & cMMVII_Appli::InputDirTestMMVII() {return mInputDirTestMMVII;}
+const std::string & cMMVII_Appli::TopDirMMVII()       {return mTopDirMMVII;}
+const std::string & cMMVII_Appli::FullBin()           {return mFullBin;}
+const std::string & cMMVII_Appli::DirTestMMVII()      {return mDirTestMMVII;}
+const std::string & cMMVII_Appli::DirMicMacv1()       {return mDirMicMacv1;}
+
               // Accessors
-const std::string & cMMVII_Appli::TmpDirTestMMVII()   const {return mTmpDirTestMMVII;}
-const std::string & cMMVII_Appli::InputDirTestMMVII() const {return mInputDirTestMMVII;}
-const std::string & cMMVII_Appli::TopDirMMVII()       const {return mTopDirMMVII;}
-const std::string & cMMVII_Appli::DirProject()       const {return mDirProject;}
+const std::string & cMMVII_Appli::DirProject() const  {return mDirProject;}
 int cMMVII_Appli::NbProcAllowed () const {return mNbProcAllowed;}
 
 std::string  cMMVII_Appli::DirTmpOfCmd(eModeCreateDir aMode) const

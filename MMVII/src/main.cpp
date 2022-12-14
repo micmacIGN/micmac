@@ -1,6 +1,7 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_DeclareCste.h"
-
+#include <clocale>
+#include "MMVII_Sys.h"
 /*
 
 Delaunay/delaunator : Copyright (c) 2018 Volodymyr Bilonenko  (MIT Licence)
@@ -19,8 +20,9 @@ int main(int argc, char ** argv)
    std::setlocale(LC_ALL, "C");
    // std::setlocale(LC_ALL, "en_US.UTF-8");
 
+   cMMVII_Appli::InitMMVIIDirs(UpDir(DirOfPath(MMVII_CanonicalSelfExecName()),1));
    // Debug, print command
-   if (0)
+#if 0
    {
        StdOut() << "==========COMM=====   \n";
        for (int aK=0 ; aK<argc ; aK++)
@@ -30,7 +32,8 @@ int main(int argc, char ** argv)
        }
        StdOut() << "\n";
    }
-
+#endif
+    
    if (argc>1)
    {
       std::string aNameCom = argv[1];

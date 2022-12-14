@@ -98,7 +98,7 @@ static char re_syntax_table[CHAR_SET_SIZE];
 static void
 init_syntax_once ()
 {
-   register int c;
+   /*register*/ int c;
    static int done = 0;
 
    if (done)
@@ -545,7 +545,7 @@ print_partial_compiled_pattern (start, end)
 	case charset:
         case charset_not:
           {
-            register int c;
+            /*register*/ int c;
 
             printf ("/charset%s",
 	            (re_opcode_t) *(p - 1) == charset_not ? "_not" : "");
@@ -1038,13 +1038,13 @@ regex_compile (const char *pattern, int size, reg_syntax_t syntax, struct re_pat
   /* We fetch characters from PATTERN here.  Even though PATTERN is
      `char *' (i.e., signed), we declare these variables as unsigned, so
      they can be reliably used as array indices.  */
-  register unsigned char c, c1;
+  /*register*/ unsigned char c, c1;
 
   /* A random tempory spot in PATTERN.  */
   const char *p1;
 
   /* Points to the end of the buffer, where we should append.  */
-  register unsigned char *b;
+  /*register*/ unsigned char *b;
 
   /* Keeps track of unclosed groups.  */
   compile_stack_type compile_stack;
@@ -2061,8 +2061,8 @@ store_op2 (re_opcode_t op, unsigned char *loc, int arg1, int arg2)
 static void
 insert_op1 (re_opcode_t op, unsigned char *loc, int arg, unsigned char *end)
 {
-  register unsigned char *pfrom = end;
-  register unsigned char *pto = end + 3;
+  /*register*/ unsigned char *pfrom = end;
+  /*register*/ unsigned char *pto = end + 3;
 
   while (pfrom != loc)
     *--pto = *--pfrom;
@@ -2076,8 +2076,8 @@ insert_op1 (re_opcode_t op, unsigned char *loc, int arg, unsigned char *end)
 static void
 insert_op2 (re_opcode_t op, unsigned char *loc, int arg1, int arg2, unsigned char *end)
 {
-  register unsigned char *pfrom = end;
-  register unsigned char *pto = end + 5;
+  /*register*/ unsigned char *pfrom = end;
+  /*register*/ unsigned char *pto = end + 5;
 
   while (pfrom != loc)
     *--pto = *--pfrom;
@@ -2489,11 +2489,11 @@ re_compile_fastmap (struct re_pattern_buffer *bufp)
   /* We don't push any register information onto the failure stack.  */
   unsigned num_regs = 0;
 
-  register char *fastmap = bufp->fastmap;
+  /*register*/ char *fastmap = bufp->fastmap;
   unsigned char *pattern = bufp->buffer;
   unsigned long size = bufp->used;
   const unsigned char *p = pattern;
-  register unsigned char *pend = pattern + size;
+  /*register*/ unsigned char *pend = pattern + size;
 
   /* Assume that each path through the pattern can be null until
      proven otherwise.  We set this false at the bottom of switch
@@ -2834,8 +2834,8 @@ int
 re_search_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, const char *string2, int size2, int startpos, int range, struct re_registers *regs, int stop)
 {
   int val;
-  register char *fastmap = bufp->fastmap;
-  register char *translate = bufp->translate;
+  /*register*/ char *fastmap = bufp->fastmap;
+  /*register*/ char *translate = bufp->translate;
   int total_size = size1 + size2;
   int endpos = startpos + range;
 
@@ -2876,8 +2876,8 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, con
 	{
 	  if (range > 0)	/* Searching forwards.  */
 	    {
-	      register const char *d;
-	      register int lim = 0;
+	      /*register*/ const char *d;
+	      /*register*/ int lim = 0;
 	      int irange = range;
 
               if (startpos < size1 && startpos + range >= size1)
@@ -2900,7 +2900,7 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, con
 	    }
 	  else				/* Searching backwards.  */
 	    {
-	      register char c = (size1 == 0 || startpos >= size1
+	      /*register*/ char c = (size1 == 0 || startpos >= size1
                                  ? string2[startpos - size1]
                                  : string1[startpos]);
 
@@ -3123,7 +3123,7 @@ re_match_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, cons
 
   /* Where we are in the pattern, and the end of the pattern.  */
   unsigned char *p = bufp->buffer;
-  register unsigned char *pend = p + bufp->used;
+  /*register*/ unsigned char *pend = p + bufp->used;
 
   /* We use this to map every character in the string.  */
   char *translate = bufp->translate;
@@ -3518,7 +3518,7 @@ re_match_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, cons
 	case charset:
 	case charset_not:
 	  {
-	    register unsigned char c;
+	    /*register*/ unsigned char c;
 	    boolean not = (re_opcode_t) *(p - 1) == charset_not;
 
             DEBUG_PRINT2 ("EXECUTING charset%s.\n", not ? "_not" : "");
@@ -3724,7 +3724,7 @@ re_match_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, cons
            followed by the numeric value of <digit> as the register number.  */
         case duplicate:
 	  {
-	    register const char *d2, *dend2;
+	    /*register*/ const char *d2, *dend2;
 	    int regno = *p++;   /* Get which register to match against.  */
 	    DEBUG_PRINT2 ("EXECUTING duplicate %d.\n", regno);
 
@@ -3919,7 +3919,7 @@ re_match_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, cons
           EXTRACT_NUMBER_AND_INCR (mcnt, p);
           DEBUG_PRINT2 ("EXECUTING maybe_pop_jump %d.\n", mcnt);
           {
-	    register unsigned char *p2 = p;
+	    /*register*/ unsigned char *p2 = p;
 
             /* Compare the beginning of the repeat with what in the
                pattern follows its end. If we can establish that there
@@ -3954,7 +3954,7 @@ re_match_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, cons
             else if ((re_opcode_t) *p2 == exactn
 		     || (bufp->newline_anchor && (re_opcode_t) *p2 == endline))
 	      {
-		register unsigned char c
+		/*register*/ unsigned char c
                   = *p2 == (unsigned char) endline ? '\n' : p2[2];
 		p1 = p + mcnt;
 
@@ -4523,9 +4523,9 @@ common_op_match_null_string_p (unsigned char **p, unsigned char *end, register_i
    bytes; nonzero otherwise.  */
 
 static int
-bcmp_translate (unsigned char *s1, unsigned char *s2, register int len, char *translate)
+bcmp_translate (unsigned char *s1, unsigned char *s2, /*register*/ int len, char *translate)
 {
-  register unsigned char *p1 = s1, *p2 = s2;
+  /*register*/ unsigned char *p1 = s1, *p2 = s2;
   while (len)
     {
       if (translate[*p1++] != translate[*p2++]) return 1;

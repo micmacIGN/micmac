@@ -209,9 +209,9 @@ int  cAppliProMeshImage::ExecuteBench(cParamExeBench & aParam)
 
    // call the proj for all file in FileTestMesh.xml => in the recall we will test the result with the reference
    std::string aCom =
-	              mFullBin + BLANK
+	              FullBin() + BLANK
 		  +   mSpecs.Name() + BLANK
-		  +  mInputDirTestMMVII + "Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh TestProjMesh BenchMode=1";
+		  +  InputDirTestMMVII() + "Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh TestProjMesh BenchMode=1";
 
    // MMVII  0_MeshProjImage ../MMVII-TestDir/Input/Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh BenchMode=1
    GlobSysCall(aCom);
@@ -260,7 +260,7 @@ void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
        std::vector<cPt2di> aVPix;
        aTriComp.PixelsInside(aVPix,1e-8);
 
-       for (const auto aPix : aVPix)
+       for (const auto & aPix : aVPix)
            aIm.SetRGBPix(aPix,aCoul);
    }
 

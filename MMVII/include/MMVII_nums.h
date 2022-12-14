@@ -35,15 +35,15 @@ template <class Type> bool ValidFloatValue(const Type & aV)
 }
 template <class Type> bool ValidInvertibleFloatValue(const Type & aV)
 {
-    return ValidFloatValue(aV) && (aV!=0.0);
+    return ValidFloatValue(aV) && ( aV != static_cast<Type>(0.0));
 }
 template <class Type> bool ValidStrictPosFloatValue(const Type & aV)
 {
-    return ValidFloatValue(aV) && (aV > 0.0);
+    return ValidFloatValue(aV) && (aV > static_cast<Type>(0.0));
 }
 template <class Type> bool ValidPosFloatValue(const Type & aV)
 {
-    return ValidFloatValue(aV) && (aV >= 0.0);
+    return ValidFloatValue(aV) && (aV >= static_cast<Type>(0.0));
 }
 
 
@@ -145,7 +145,7 @@ typedef double tStdDouble;  ///< "natural" int
 /// return the smallest integral value >= r
 template<class Type> inline Type Tpl_round_up(tREAL8 r)
 {
-       Type i = (Type) r;
+       Type i = static_cast<Type> (r);
        return i + (i < r);
 }
 inline tINT4 round_up(tREAL8 r)  { return Tpl_round_up<tINT4>(r); }
@@ -155,7 +155,7 @@ inline tINT8 lround_up(tREAL8 r) { return Tpl_round_up<tINT8>(r); }
 /// return the smallest integral value > r
 template<class Type> inline Type Tpl_round_Uup(tREAL8 r)
 {
-       Type i = (Type) r;
+       Type i = static_cast<Type> (r);
        return i + (i <= r);
 }
 inline tINT4 round_Uup(tREAL8 r) { return Tpl_round_Uup<int>(r); }
@@ -164,7 +164,7 @@ inline tINT4 round_Uup(tREAL8 r) { return Tpl_round_Uup<int>(r); }
 /// return the highest integral value <= r
 template<class Type> inline Type Tpl_round_down(tREAL8 r)
 {
-       Type i = (Type) r;
+       Type i = static_cast<Type> (r);
        return i - (i > r);
 }
 inline tINT4  round_down(tREAL8 r) { return Tpl_round_down<tINT4>(r); }
@@ -173,7 +173,7 @@ inline tINT8 lround_down(tREAL8 r) { return Tpl_round_down<tINT8>(r); }
 /// return the highest integral value < r
 template<class Type> inline Type Tpl_round_Ddown(tREAL8 r)
 {
-       Type i = (Type) r;
+       Type i = static_cast<Type> (r);
        return i - (i >= r);
 }
 inline tINT4 round_Ddown(tREAL8 r) { return Tpl_round_Ddown<tINT4>(r); }
@@ -181,7 +181,7 @@ inline tINT4 round_Ddown(tREAL8 r) { return Tpl_round_Ddown<tINT4>(r); }
 /// return the integral value closest to r , if r = i +0.5 (i integer) return i+1
 template<class Type> inline Type Tpl_round_ni(tREAL8 r)
 {
-       Type i = (Type) r;
+       Type i = static_cast<Type> (r);
        i -= (i > r);
        // return i+ ((i+0.5) <= r) ; =>  2i+1<2r  => i < 2*r-i-1
        return i+ ((i+0.5) <= r) ;
@@ -353,7 +353,7 @@ template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
 template <> class tElemNumTrait<tREAL16> : public tBaseNumTrait<tREAL16>
 {
     public :
-        static tREAL16 Accuracy() {return 1e-6;} 
+        static tREAL16 Accuracy() {return static_cast<tREAL16>(1e-6);} 
         static bool      Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL16;}
         typedef tREAL16  tFloatAssoc;
@@ -506,7 +506,6 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
 }
 /// a/b but upper valuer  6/3=> 2 7/3 => 3
 #define DIV_SUP(a,b) ((a+b-1)/b)  // macro version usefull for constexpr
-inline tINT4 DivSup(const tINT4 &a,const tINT4& b) {return DivSup(a,b);}  //non macro w/o side effect
 
 /// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
 double NormalisedRatio(double aI1,double aI2);

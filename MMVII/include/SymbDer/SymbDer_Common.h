@@ -150,10 +150,10 @@ public:
         return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem +1 + aKVarDer);
     }
 
-    const bool   WithDer() const { return mWithDer; }           // With derive ? Usable for checking
-    const size_t NbUk() const { return mNbUK; }                 // Nb of unknowns
-    const size_t NbObs() const { return mNbObs; }               // Nb of Observations
-    const size_t NbElem() const { return mNbElem; }             // Nb of primary values returned by formula (w/o counting derivatives)
+    bool   WithDer() const { return mWithDer; }           // With derive ? Usable for checking
+    size_t NbUk() const { return mNbUK; }                 // Nb of unknowns
+    size_t NbObs() const { return mNbObs; }               // Nb of Observations
+    size_t NbElem() const { return mNbElem; }             // Nb of primary values returned by formula (w/o counting derivatives)
     const std::vector<tOneRes*> & Result() const { return mBufRes; }
     
     int RangeOfUk(const std::string & aName,bool SVP=false) const
