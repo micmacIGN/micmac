@@ -32,8 +32,9 @@ enum class eTA2007
                 File3DRegion,  ///< File containing a 3D region
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
-                Orient,        ///< Folder for  orientation
-                Radiom,        ///< Folder for  radiometry
+                Orient,        ///< Orientation
+                Radiom,        ///< Radiometry
+                MeshDev,       ///< Mesh Devlopment
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
@@ -64,6 +65,7 @@ enum class eApF
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
+               Topo,        ///< Topometry
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
            };
@@ -161,6 +163,8 @@ enum class eTyUEr
               eMultiplePostifx,
               eBadPostfix,
               eNoAperture,
+              eNoFocale,
+              eNoFocaleEqui35,
               eUnClassedError,
               eNbVals
            };

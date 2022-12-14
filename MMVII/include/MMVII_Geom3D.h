@@ -2,6 +2,7 @@
 #define  _MMVII_GEOM3D_H_
 
 #include "MMVII_Triangles.h"
+#include "MMVII_Matrix.h"
 
 namespace MMVII
 {
@@ -22,6 +23,13 @@ template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,
           );
 }
 
+///< compute determinant  as A.(B ^ C)
+template <class T>  T  Determinant (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3);
+///< compute regularity of tetraedr (including 0,0,0),  FactEps * limit is used for too small coords
+template <class T>  T  TetraReg (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3,const T& FactEps=1e5);
+///< Idem with4 points
+template <class T>  T  TetraReg (const cPtxd<T,3> &,const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3,const T& FactEps=1e5);
+
 /// Matrix corresponf to P ->  W ^ P
 template<class T> cDenseMatrix<T> MatProdVect(const cPtxd<T,3>& aW);
 
@@ -30,6 +38,9 @@ template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP);
 
 template<class Type> cPtxd<Type,3> NormalUnit(const cTriangle<Type,3> &);  // V01 ^ V02
 template<class Type> cPtxd<Type,3> Normal(const cTriangle<Type,3> &);  // V01 ^ V02
+								       
+template<class Type>  cTriangle<Type,3> RandomTriangRegul(Type aRegulMin,Type aAmpl);
+template<class Type>  cTriangle<Type,3> RandomTetraTriangRegul(Type aRegulMin,Type aAmpl);
 
 // ===============================================================================
 //  Quaternion part  : I use them essentially for interface with other library,
@@ -240,8 +251,6 @@ template <class Type> class cDevBiFaceMesh
       cTriangle<Type,2> mT1;
       cTriangle<Type,2> mT2;
 };
-
-
 
 
 template <class Type> class cTriangulation3D : public cTriangulation<Type,3>

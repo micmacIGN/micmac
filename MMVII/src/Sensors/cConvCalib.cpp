@@ -353,7 +353,7 @@ cCollecSpecArg2007 & cAppli_OriConvV1V2::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
 	      <<  Arg2007(mDirMMV1 ,"Input Orientation for MMV1 Files")
-	      <<  mPhProj.OriOutMand()
+	      <<  mPhProj.DPOrient().ArgDirOutMand()
            ;
 }
 

@@ -110,7 +110,7 @@ template <class Type,const int Dim>    cTriangle<Type,Dim> cTriangle<Type,Dim>::
 template <class Type,const int Dim>  
     int cTriangle<Type,Dim>::IndexLongestSeg() const
 {
-    cWhitchMax<int,typename tPt::tBigNum> aWMax(0,SqN2(KVect(0)));
+    cWhichMax<int,typename tPt::tBigNum> aWMax(0,SqN2(KVect(0)));
     for (int aK=1 ; aK<3 ; aK++)
         aWMax.Add(aK,SqN2(KVect(1)));
 
@@ -636,7 +636,7 @@ template <class Type,const int Dim> typename cTriangulation<Type,Dim>::tPt  cTri
 
 template <class Type,const int Dim> int  cTriangulation<Type,Dim>::IndexClosestFace(const tPt& aPClose) const
 {
-    cWhitchMin<int,double> aWMin;
+    cWhichMin<int,double> aWMin;
 
     for (int aKF=0 ; aKF<int(mVFaces.size()) ; aKF++)
     {

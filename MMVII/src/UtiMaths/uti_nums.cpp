@@ -143,7 +143,7 @@ void BenchHammingCode(int aNbB)
    }
    for (int aK1=0 ; aK1<int(aVC.size()) ; aK1++)
    {
-       cWhitchMin<int,int> aWM(-1,100);
+       cWhichMin<int,int> aWM(-1,100);
        for (int aK2=0 ; aK2<int(aVC.size()) ; aK2++)
        {
            if (aK1!=aK2)
@@ -323,6 +323,11 @@ double  RelativeDifference(const double & aV1,const double & aV2,bool * aResOk)
     return std::abs(aV1-aV2) / aSom;
 }
 
+double RelativeSafeDifference(const double & aV1,const double & aV2)
+{
+    return std::abs(aV1-aV2) / (1+std::abs(aV1) +  std::abs(aV2));
+}
+
 template <class Type> Type diff_circ(const Type & a,const Type & b,const Type & aPer)
 {
    Type aRes = mod_real(std::abs(a-b),aPer);
@@ -493,7 +498,7 @@ template <class Type> void  TplBenchMinMax(int aNb)
 {
 
     std::vector<Type> aVVals;
-    cWhitchMinMax<int,Type> aWMM;
+    cWhichMinMax<int,Type> aWMM;
     for (int aK=0 ; aK<aNb ; aK++)
     {
        Type aVal = tNumTrait<Type>::RandomValueCenter();
@@ -685,6 +690,22 @@ bool SignalAtFrequence(tREAL8 anIndex,tREAL8 aFreq,tREAL8  aCenterPhase)
    return lround_ni(aCoord0) != lround_ni(aCoord1);
 }
 
+
+template <class TCont,class TVal> double Rank(const TCont & aContainer, const TVal& aVTest)
+{
+     double  aNbInf = 0;
+     double  aNbTot = 0;
+
+     for (const auto & aV : aContainer)
+     {
+         aNbTot++;
+         if (aVTest<aV)       aNbInf++;
+         else if (aVTest==aV) aNbInf += 0.5;
+     }
+     return SafeDiv(aNbInf,aNbTot);
+}
+
+template  double Rank(const std::vector<double> & aContainer, const double& aVTest);
 
 };
 

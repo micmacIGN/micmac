@@ -585,7 +585,7 @@ class cOXml_Ar2007 : public cAr2007
           ~cOXml_Ar2007();
 
 	 virtual void AddComment(const std::string &) override;
-     private :
+     protected :
          void Indent(); ///< add white correspond to xml level
 
          void RawBeginName(const cAuxAr2007& anOT)  override; ///< Put opening tag
@@ -671,6 +671,40 @@ void cOXml_Ar2007::RawEndName(const cAuxAr2007& anOT)
     Ofs()  << "</" << anOT.Name() << ">";
     mXTerm = false;
 }
+
+/*============================================================*/
+/*                                                            */
+/*          cOXmlSpecif_Ar2007                                */
+/*                                                            */
+/*============================================================*/
+
+class cOXmlSpecif_Ar2007 : public cOXml_Ar2007
+{
+     public :
+          cOXmlSpecif_Ar2007(const std::string & aName) ;
+          // inline std::ostream  & Ofs() {return mMMOs.Ofs();}
+          ~cOXmlSpecif_Ar2007();
+     private :
+         void RawAddDataTerm(int &    anI)  override;  ///< write int in text
+         void RawAddDataTerm(size_t &    anI) override;
+         void RawAddDataTerm(double &    anI)  override;  ///< write double in text
+         void RawAddDataTerm(std::string &    anI)  override; // write string
+         void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
+};
+
+void cOXmlSpecif_Ar2007::RawAddDataTerm(int &    anI)          { Ofs() <<"int"   ; mXTerm=true;}
+void cOXmlSpecif_Ar2007::RawAddDataTerm(size_t &    anI)       { Ofs() <<"size_t"; mXTerm=true;}
+void cOXmlSpecif_Ar2007::RawAddDataTerm(double &    anI)       { Ofs() <<"real"  ; mXTerm=true;}
+void cOXmlSpecif_Ar2007::RawAddDataTerm(std::string &    anI)  { Ofs() <<"string"; mXTerm=true;}
+void cOXmlSpecif_Ar2007::RawAddDataTerm(cRawData4Serial & anI) { Ofs() <<"data"  ; mXTerm=true;}
+
+cOXmlSpecif_Ar2007::~cOXmlSpecif_Ar2007(){}
+
+cOXmlSpecif_Ar2007::cOXmlSpecif_Ar2007(const std::string & aName)  :
+   cOXml_Ar2007(aName)
+{
+}	
+
 /*============================================================*/
 /*                                                            */
 /*          cHashValue_Ar2007                                 */
@@ -859,9 +893,16 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    if (UCaseEqual(aPost,PostF_XmlFiles))
    {
        if (Input)
+       {
           aRes =  new cIXml_Ar2007(aName);
+       }
        else
-          aRes =  new cOXml_Ar2007(aName);
+       {
+          if (starts_with(FileOfPath(aName,false),PrefixSpecifXML))
+             aRes =  new cOXmlSpecif_Ar2007(aName);
+          else
+             aRes =  new cOXml_Ar2007(aName);
+       }
    }
    else if (UCaseEqual(aPost,PostF_DumpFiles) || UCaseEqual(aPost,"dat"))
    {

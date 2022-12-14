@@ -51,12 +51,13 @@ template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);
 
 static inline void Error(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
 {
-    std::cout << "In SymbolicDerivative a fatal error" << "\n";
-    std::cout << "  Likely Source   ["<< aExplanation << "]\n";
+    std::cerr << "In SymbolicDerivative a fatal error" << "\n";
+    std::cerr << "  Likely Source   ["<< aExplanation << "]\n";
     if (aContext.size())
-        std::cout << "  For formula     ["<< aContext << "]\n";
-    std::cout << "  Message  ["<< aMes << "]\n";
-    assert(false);
+        std::cerr << "  For formula     ["<< aContext << "]\n";
+    std::cerr << "  Message  ["<< aMes << "]\n";
+    std::cerr << std::flush;
+    abort();
 }
      ///    Error due probably to internal mistake
 static inline void InternalError(const std::string & aMes, const std::string& aContext)
@@ -134,6 +135,8 @@ public:
         !! => Warn the same memory space is recycled ...
     */
     const std::vector<std::vector<T> *> & EvalAndClear();
+    ///  Get one eval
+    std::vector<T> & DoOneEval(const std::vector<TypeElem> & aVUK,const std::vector<TypeElem> & aVObs);
 
     /// Return value computed taking into account order of storage
     const TypeElem & ValComp(int aNumPush,int aKElem) const
@@ -225,7 +228,7 @@ void cCalculator<T>::PushNewEvals(const std::vector<T> &aVUK, const std::vector<
     }
     if (aVObs.size() != NbObs())  // Check size are coherents
     {
-        UserSError("Bad size in Onservations",Name());
+        UserSError("Bad size in Observations",Name());
     }
 
     this->SetNewUks(aVUK);
@@ -242,6 +245,17 @@ const std::vector<std::vector<T> *> & cCalculator<T>::EvalAndClear()
         this->mBufRes.push_back(&this->mBufLineRes[aK]);
     this->mNbInBuf = 0;
     return mBufRes;
+}
+
+template<typename T>
+std::vector<T> & cCalculator<T>::DoOneEval(const std::vector<TypeElem> & aVUK,const std::vector<TypeElem> & aVObs)
+{
+   if (this->mNbInBuf!=0)
+   {
+      UserSError("DoOneEval: buffer not empty","");
+   }
+   this->PushNewEvals(aVUK,aVObs);
+   return *(this->EvalAndClear()[0]);
 }
 
 /** Specilisation for calculator opering generated code  (v.s dynamic just after formula)
@@ -346,7 +360,7 @@ template <class Type>  class cName2Calc
            if(anIter==TheMap.end()) // There must be something associated
            {
              if (SVP) return nullptr;
-             UserSError("Cannot extract allocator,",aName);
+             UserSError("Cannot extract allocator. Check that this application was recompiled after code generation",aName);
            }
            return anIter->second;
        }

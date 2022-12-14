@@ -7,6 +7,9 @@
 #include <unistd.h>
 #include <cmath>
 
+#include "MMVII_PCSens.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 using namespace NS_SymbolicDerivative ;
 /** \file BenchGlob.cpp
     \brief Main bench
@@ -439,6 +442,8 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         this->BenchFiles(aParam); // Creation deletion of file
         Bench_Nums(aParam); // Basic numericall services
         BenchHamming(aParam);
+        BenchPolynome(aParam);
+        BenchPoseEstim(aParam);
         BenchRansSubset(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
         BenchSet(aParam,mDirTestMMVII);  // Set (in extension)
@@ -471,6 +476,9 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 
         // Test some matrix op : QR, EigenSym ....
         BenchDenseMatrix0(aParam);
+
+        // Test topo compensation
+        BenchTopoComp(aParam);
 
         // Call several test on images : File, RectObj, Im1D, Im2D, BaseImage
         BenchGlobImage(aParam);
@@ -527,7 +535,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
        if (aSpec->Name() != mSpecs.Name())
        {
           // Not really necessary to init, but no bad ...
-          std::vector<std::string> aVArgs = {Bin2007," "+ aSpec->Name()};
+          std::vector<std::string> aVArgs = {mFullBin," "+ aSpec->Name()};
           tMMVII_UnikPApli anAppli = aSpec->Alloc()(aVArgs,*aSpec);
           anAppli->SetNot4Exe();
 
@@ -801,13 +809,21 @@ class cAppli_MPDTest : public cMMVII_Appli
      public :
         cAppli_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
+        std::string mMsg;
         bool   mMMV1_GenCodeTestCam;
         cPt3di mDegDistTest;
 };
 
+cCollecSpecArg2007 & cAppli_MPDTest::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+      return      anArgObl
+	      <<  Arg2007(mMsg ,"Message (for test)")
+      ;
+
+}
 cCollecSpecArg2007 & cAppli_MPDTest::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
 {
   return
@@ -922,12 +938,22 @@ void ShowAdr(double & anAdr)
 void TTT();
 
 
-
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
-   int aVatNotInSpec;
-   StdOut() <<  "mDegDistTest " << IsInSpec(&mDegDistTest) << " " << IsInSpec(&aVatNotInSpec) << "\n";
+   if (1)
+   {
+       StdOut()  <<   " ================  TEST INIT & SPEC ===================\n";
+       int aVExt;
+       StdOut() <<  "-VExt ## InSpec: " << IsInSpec(&aVExt)        << " SpecObl: " << IsInSpecObl(&aVExt)  
+	       << " SpecFac: " << IsInSpecFac(&aVExt) << " IsInit: " << IsInit(&aVExt) << "\n";
+       StdOut() <<  "- MSG ## InSpec: " << IsInSpec(&mMsg)        << " SpecObl: " << IsInSpecObl(&mMsg) 
+	       << " SpecFac: " << IsInSpecFac(&mMsg) << " IsInit: " << IsInit(&mMsg) << "\n";
+       StdOut() <<  "- Deg ## InSpec: " << IsInSpec(&mDegDistTest)<< " SpecObl: " << IsInSpecObl(&mDegDistTest) 
+	       << " SpecFac: " << IsInSpecFac(&mDegDistTest) << " IsInit: " << IsInit(&mDegDistTest) << "\n";
+
+       getchar();
+   }
    if (IsInit(&mDegDistTest))
    {
       std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest);

@@ -7,7 +7,6 @@ MMV2_BINDIR=${MMV2_DIR}/bin
 MMV2_SRCDIR=${MMV2_DIR}/src
 MMV2_INCDIR=${MMV2_DIR}/include
 MMV2_EXE=${MMV2_BINDIR}/MMVII
-MMV2_INSTALL_PATH=${dir ${abspath ${MMV2_EXE}}}
 
 MMV2_GENDIR=${MMV2_SRCDIR}/GeneratedCodes
 
@@ -25,7 +24,7 @@ EXT_LIBS=-lpthread -lX11 -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
+CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES}
 LDFLAGS=-fopenmp
 
 

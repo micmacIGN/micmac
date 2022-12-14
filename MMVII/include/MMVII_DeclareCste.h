@@ -52,6 +52,8 @@ extern const std::string TmpMMVIIDirGlob;
 extern const std::string TmpMMVIIDirPCar;
 extern const std::string MMVIITestDir;
 extern const std::string TmpMMVIIProcSubDir;
+
+extern const std::string MMVII_DirPhp;
 extern const std::string MMVIIDirOrient;
 extern const std::string MMVIIDirHomol;
 extern const std::string MMVIIDirMeshDev;
@@ -71,8 +73,8 @@ extern const std::string  MMv1XmlTag_SetName;
 extern const std::string  MMv1XmlTag_RelName;
 
 // MicMac Install
-extern const   std::string DirBin2007;  ///< computed by MM Instal
-extern const   std::string Bin2007; ///< MMVII 4 now
+extern const   std::string FullBin2007; ///< DIR + NAME of executabale, Computed at execution time
+extern const   std::string DirBin2007;  ///< computed from FullBin2007
 
 // PostFix 4 files
 extern const   std::string PostF_XmlFiles; ///< xml now
@@ -81,6 +83,7 @@ const   std::string & StdPostF_ArMMVII(bool xml); ///< one of 2 above
 
 // PreFix 4 files
 extern const std::string  PrefixCalRadRad;  // Radiometric radial
+extern const std::string  PrefixSpecifXML;  // file that are specification of XML (or json ?)
 
 // Users Value
 

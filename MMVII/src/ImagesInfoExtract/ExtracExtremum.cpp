@@ -165,7 +165,7 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSy
 {
     std::vector<cPt2di> aRes;
 
-    double aR02 = Square(aR0);
+    double aR02 = aR0 * std::abs(aR0); // If Neg => no filtering
     double aR12 = Square(aR1);
     
     for (const auto & aP : cRect2::BoxWindow(round_up(aR1)))

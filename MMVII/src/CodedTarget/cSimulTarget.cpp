@@ -27,6 +27,14 @@ cGeomSimDCT::cGeomSimDCT() :
 {
 }
 
+void cGeomSimDCT::Translate(const cPt2dr & aTr)
+{
+    mC += aTr;       
+    mCornEl1 += aTr; 
+    mCornEl2 += aTr;
+}
+
+
 cGeomSimDCT::cGeomSimDCT(int aNum,const  cPt2dr& aC,const double& aR1,const double& aR2):
     mResExtr (nullptr),
     mNum (aNum),

@@ -232,7 +232,7 @@ template <class Type,const int Dim>
        aVVal.push_back(aSInv.mValDic1);
 
 
-       cWhitchMin<tU_INT4,Type> aWM(-1,1e30);
+       cWhichMin<tU_INT4,Type> aWM(-1,1e30);
        for (tU_INT4 aKEch=0 ; aKEch<aVVal.size() ; aKEch++)
        {
            Type aScore = aSInv.Score(aVVal[aKEch]);

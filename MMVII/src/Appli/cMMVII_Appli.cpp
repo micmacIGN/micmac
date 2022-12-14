@@ -216,8 +216,7 @@ cMMVII_Appli::cMMVII_Appli
    mForExe        (true),
    mDirBinMMVII   (DirBin2007),
    mTopDirMMVII   (UpDir(mDirBinMMVII,1)),
-   mFullBin       (mDirBinMMVII + Bin2007),
-   mBinMMVII      (Bin2007),
+   mFullBin       (FullBin2007),
    mDirMicMacv1   (UpDir(mTopDirMMVII,1)),
    mDirMicMacv2   (mTopDirMMVII),
    mDirProject    (DirCur()),
@@ -230,6 +229,8 @@ cMMVII_Appli::cMMVII_Appli
    mShowAll       (false),
    mLevelCall     (0),
    mSetInit       (cExtSet<const void *>(eTySC::US)),
+   mSetVarsSpecObl (cExtSet<const void *>(eTySC::US)),
+   mSetVarsSpecFac (cExtSet<const void *>(eTySC::US)),
    mInitParamDone (false),
    mVMainSets     (NbMaxMainSets,tNameSet(eTySC::NonInit)),
    mResulMultiS   (EXIT_FAILURE),
@@ -437,7 +438,11 @@ void cMMVII_Appli::InitParam()
 
   //  Memorize this value was used in spec 
   for (const auto  & aSpec : mArgFac.Vec())
-       mSetVarsInSpec.Add(aSpec->AdrParam()); 
+       mSetVarsSpecFac.Add(aSpec->AdrParam()); 
+  //  Memorize this value was used in spec 
+  for (const auto  & aSpec : mArgObl.Vec())
+       mSetVarsSpecObl.Add(aSpec->AdrParam()); 
+
 
   for (int aKArg=0 ; aKArg<mArgc ; aKArg++)
   {
@@ -1129,15 +1134,24 @@ bool  cMMVII_Appli::IsInit(const void * aPtr)
 {
     return  mSetInit.In(aPtr);
 }
-bool  cMMVII_Appli::IsInSpec(const void * aPtr)
-{
-    return  mSetVarsInSpec.In(aPtr);
-}
 void cMMVII_Appli::SetVarInit(void * aPtr)
 {
     mSetInit.Add(aPtr); 
 }
 
+bool  cMMVII_Appli::IsInSpecObl(const void * aPtr)
+{
+    return  mSetVarsSpecObl.In(aPtr);
+}
+bool  cMMVII_Appli::IsInSpecFac(const void * aPtr)
+{
+    return  mSetVarsSpecFac.In(aPtr);
+}
+
+bool  cMMVII_Appli::IsInSpec(const void * aPtr)
+{
+    return IsInSpecObl(aPtr) || IsInSpecFac(aPtr);
+}
 
 
 void cMMVII_Appli::MMVII_WARNING(const std::string & aMes)

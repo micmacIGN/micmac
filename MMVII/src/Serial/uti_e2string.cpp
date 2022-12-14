@@ -183,6 +183,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::MPatFile,"MPF"},
                 {eTA2007::Orient,"Ori"},
                 {eTA2007::Radiom,"Rad"},
+                {eTA2007::MeshDev,"MeshDev"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
                 {eTA2007::OptionalExist,"OptEx"},
@@ -244,8 +245,11 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eMultiplePostifx,"MultiplePostifx"},
                 {eTyUEr::eBadPostfix,"BadPostifx"},
                 {eTyUEr::eNoAperture,"NoAperture"},
+                {eTyUEr::eNoFocale,"NoFocale"},
+                {eTyUEr::eNoFocaleEqui35,"NoFocaleEqui35"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
+
 TPL_ENUM_2_STRING(eTyUEr);
 
 template<> cE2Str<eTyInvRad>::tMapE2Str cE2Str<eTyInvRad>::mE2S

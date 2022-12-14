@@ -2,6 +2,8 @@
 
 \chapter{Use of non linear optimization in MMVII}
 
+\label{Chap:NLO}
+
 This chapter is targeted for programmer that will increase MMVII, it mainly describe classes
 interfaces in headers and a detailled example of using this classes in a cpp file.
  It's not usefull for advanced users; on the other hand,for programmer who will maintain the core of MMVII, 
@@ -180,6 +182,7 @@ We make a quick enumeration of files of MMVII that are to access for understandi
 %---------------------------------------------
 
 \section{Computing functions and their derivatives}
+\label{Compute:Deriv:SysNL}
 
 %---------------------------------------------
 \subsection{Motivation}
@@ -1183,4 +1186,139 @@ coordinator). If the need arrise to have simultaneous  coordinator, there is pos
 then contact MPD.
 
 
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Topometric compensation (WIP)}
+
+\subsection{Global presentation}
+
+The premises of a topometric compensation system can be found in \texttt{MMVII/src/Topo/}.
+
+Computation takes place in a 3D cartesian frame. For now, there is no georeferencing
+and no Earth model.
+
+All points must be given approximative coordinates as there is no automatic initialization.
+
+For now it is only used in the Bench \texttt{TopoComp}.
+This Bench will be used to illustrate the topometric classes and their usage.
+
+
+\subsection{\texttt{TopoComp} Bench example}
+\label{subsec:topoBench}
+
+The example is created by the method \texttt{cTopoComp::createEx1()}.
+
+\subsubsection{Step 1}
+
+At first, there are 3 fixed points ($A$, $B$, $C$), forming an isosceles triangle
+on an horizontal plane (Fig. \ref{fig:topoEx1}).
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=12cm]{Programmer/benchtopo1.png}
+\caption{The 3 fixed points}
+\label{fig:topoEx1}
+\end{figure}
+
+The points are instances of the \texttt{cTopoPoint} class that
+derives from \texttt{cObjWithUnkowns}, hence it has no copy constructor and
+the points have to be added as pointers to \texttt{cTopoComp::allPts()}.
+
+\begin{lstlisting}
+  //create fixed points
+  allPts.push_back(new cTopoPoint("ptA", cPt3dr(10,10,10), false));
+  allPts.push_back(new cTopoPoint("ptB", cPt3dr(20,10,10), false));
+  allPts.push_back(new cTopoPoint("ptC", cPt3dr(15,20,10), false));
+  auto ptA = allPts[0];
+  auto ptB = allPts[1];
+  auto ptC = allPts[2];
+\end{lstlisting}
+
+At this point, there are no unknowns and no observations.
+
+
+\subsubsection{Step 2}
+
+A fourth point ($D$), this time not fixed, is initialized above the $ABC$ triangle.
+Distances from $A$, $B$ and $C$ to $D$
+are measured. For redondancy and error evaluation, the distance from $C$ to $D$ is measured twice
+with different values (Fig. \ref{fig:topoEx2}).
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=12cm]{Programmer/benchtopo2.png}
+\caption{Point $D$ is determined by measured distances}
+\label{fig:topoEx2}
+\end{figure}
+
+Observations must refer to an observation set (deriving from class \texttt{cTopoObsSet})
+that is used to share parameters between observations.
+
+In the case of measured distances there is no parameter, therefore the observation set will be 
+a \texttt{cTopoObsSetSimple}. Observations sets must be created with \texttt{make\_TopoObsSet} template function.
+
+All topometric observations are instances of \texttt{cTopoObs} class.
+For distances observations, \texttt{TopoObsType::dist} is given to the constructor.
+
+\begin{lstlisting}
+  //add measured dist to point D
+  allObsSets.push_back(make_TopoObsSet<cTopoObsSetSimple>());
+  auto obsSet1 = allObsSets[0].get();
+  allPts.push_back(new cTopoPoint("ptD", cPt3dr(14,14,14), true));
+  auto ptD = allPts[3];
+  cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptA, ptD}, {10.0});
+  cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptB, ptD}, {10.0});
+  cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptC, ptD}, {10.0});
+  cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptC, ptD}, {11.0});
+\end{lstlisting}
+
+The system now contains 3 unknowns ($D$ coordinates) and 4 observations
+(measured distances $AD$, $BD$ and $CD$ two times).
+
+\subsubsection{Step 3}
+
+A second non-fixed point, $E$, is initialized inside the $ABCD$ tetrahedron,
+and observations expressing that
+the distances from $E$ to $A$, $B$, $C$ and $D$ are equal and unknown ($d$ in Fig. \ref{fig:topoEx3})
+are added.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=12cm]{Programmer/benchtopo3.png}
+\caption{Point $E$ determined by equal distance $d$}
+\label{fig:topoEx3}
+\end{figure}
+
+A new \texttt{cTopoObsSet} must be created. The \texttt{cTopoObsSetDistParam} class
+is used to create the parameter corresponding to the unknown $d$.
+
+
+\begin{lstlisting}
+  //add point E to an unknown common dist
+  allObsSets.push_back(make_TopoObsSet<cTopoObsSetDistParam>());
+  auto obsSet2 = allObsSets[1].get();
+  allPts.push_back(new cTopoPoint("ptE", cPt3dr(11,11,11), true));
+  auto ptE = allPts[4];
+  cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptA}, {});
+  cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptB}, {});
+  cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptC}, {});
+  cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptD}, {});
+\end{lstlisting}
+
+This adds 4 unknowns ($E$ coordinates and the unknown distance $d$) and 4 observations
+($EA = EB = EC = ED = d$).
+
+
+\subsection{Topometric computation}
+
+Topometric computation system is managed by the \texttt{cTopoComp} class.
+This handles the list of points and observation sets, the non-linear system
+(\texttt{cResolSysNonLinear}), and a mechanism to link the observations to
+the automatic derivation system.
+
+After \texttt{cTopoComp} object creation and filling (see \ref{subsec:topoBench}),
+the method \texttt{OneIteration()} is called to improve parameters estimation.
 

@@ -210,7 +210,7 @@ class cMMVII_Ifs : public cMemCheck
          std::string   mName;
 };
 
-class cMultipleOfs  : public  std::ostream
+class cMultipleOfs
 {
     public :
         cMultipleOfs(std::ostream & aOfs) :
@@ -230,6 +230,12 @@ class cMultipleOfs  : public  std::ostream
 
         void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
         void Clear() {mVOfs.clear();}
+
+        cMultipleOfs& flush() {
+            for (const auto & Ofs :  mVOfs)
+                Ofs->flush();
+            return *this;
+        }
 
         // template <class Type> cMultipleOfs & operator << (Type & aVal);
         template <class Type> cMultipleOfs & ShowCont (const Type & aCont,const std::string & aGram)

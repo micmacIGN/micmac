@@ -103,7 +103,7 @@ class cAimeDescriptor : public cMemCheck
          // IPeek is an index from  DirPrinc
          double  DistanceFromStdPeek(int aIPeek,const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const;
          //  Compute best match from all Dir Princ
-         cWhitchMin<int,double>  DistanceFromBestPeek(const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const;
+         cWhichMin<int,double>  DistanceFromBestPeek(const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const;
 
      private :
         cIm2D<tU_INT1>      mILP;       ///< mImLogPol

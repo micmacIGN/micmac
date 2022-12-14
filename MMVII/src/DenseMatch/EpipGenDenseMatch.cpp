@@ -924,14 +924,14 @@ cAppliBenchAnswer cAppli::BenchAnswer() const
 
 int  cAppli::ExecuteBench(cParamExeBench & aParam) 
 {
-   MMVII_WARGNING("cAppli::ExecuteBenc to correct");
+   MMVII_DEV_WARNING("cAppli::ExecuteBenc to correct");
    // As it is quite long and not randomized, dont do it each time
    if (aParam.Level() != 3) 
       return EXIT_SUCCESS;
 
 
    std::string aDirData = InputDirTestMMVII() + "EPIP/Tiny/";
-   std::string aCom =    Bin2007
+   std::string aCom =    mFullBin
                        + BLANK  + mSpecs.Name()
                        + " MMV1 ImR.tif ImL.tif   Out=PxRL.tif SzTile=[300,200]"
                        + BLANK + GOP_DirProj + "=" + aDirData;

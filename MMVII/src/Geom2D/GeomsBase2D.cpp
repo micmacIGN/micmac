@@ -150,7 +150,7 @@ template <class TypeMap>
     // generate NbTest subset
     GenRanQsubCardKAmongN(aVSubInd,aNbTest,TypeMap::NbPtsMin,aVAllIn.size());
 
-    cWhitchMin<TypeMap,tTypeElem>  aWMin(TypeMap(),1e30);
+    cWhichMin<TypeMap,tTypeElem>  aWMin(TypeMap(),1e30);
     typename TypeMap::tTabMin aVMinIn,aVMinOut;
     //  Parse all subset
     for (const auto & aSub : aVSubInd)

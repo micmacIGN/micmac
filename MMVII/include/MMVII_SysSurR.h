@@ -105,8 +105,9 @@ template <class Type> class cResolSysNonLinear
 	   void  SetUnFrozen(int aK);  ///< indicate it var must be frozen /unfrozen
 	   void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
 	   bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
+	   int   CountFreeVariables() const;          ///< number of free variables
 	   void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
-
+	   int   GetNbObs() const;                    ///< get number of observations (last iteration if after reset, or current number if after AddObs)
 
      private :
           cResolSysNonLinear(const tRSNL & ) = delete;
@@ -128,6 +129,8 @@ template <class Type> class cResolSysNonLinear
 	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
 	  std::vector<bool>    mVarIsFrozen;       ///< indicate for each var is it is frozen
 	  std::vector<Type>    mValueFrozenVar;    ///< indicate for each var the possible value where it is frozen
+	  int lastNbObs;                           ///< number of observations of last solving
+	  int currNbObs;                           ///< number of observations currently added
 };
 
 /**  Class for weighting residuals : compute the vector of weight from a 

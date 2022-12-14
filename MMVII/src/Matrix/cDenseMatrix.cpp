@@ -155,8 +155,8 @@ template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareReg
 
     // Set conditionning
     {
-       // Compute max & min of all ABS values (whitch one get it is of no interest)
-       cWhitchMinMax<int,Type> aIMM(0,std::abs(aVDiag(0)));
+       // Compute max & min of all ABS values (which one get it is of no interest)
+       cWhichMinMax<int,Type> aIMM(0,std::abs(aVDiag(0)));
        for (int aK=0 ; aK<aNb  ; aK++)
        {
           aIMM.Add(aK,std::abs(aVDiag(aK)));
@@ -228,7 +228,7 @@ template<class Type> cDenseVect<Type> cDenseMatrix<Type>::Kernel(Type * aVp) con
     cResulSVDDecomp<Type> aSVDD = SVD();
     cDenseVect<Type>  aVDiag = aSVDD.SingularValues();
 
-    cWhitchMin<int,Type> aWMin(0,std::abs(aVDiag(0)));
+    cWhichMin<int,Type> aWMin(0,std::abs(aVDiag(0)));
     for (int aK=1 ; aK<aVDiag.Sz() ; aK++)
         aWMin.Add(aK,std::abs(aVDiag(aK)));
 

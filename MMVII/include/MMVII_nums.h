@@ -2,6 +2,7 @@
 #define  _MMVII_nums_H_
 
 #include "MMVII_Error.h"
+//#include "MMVII_AllClassDeclare.h"
 
 namespace MMVII
 {
@@ -63,6 +64,7 @@ double RandUnif_C();   ///<  Uniform distribution in  -1 1
 bool   HeadOrTail();   ///< 1/2 , french 'Pile ou Face'
 double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[ 
 double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, but abs > aEps
+double RandUnif_NotNull(double aEps);   ///<  Uniform distribution in  0 1, but abs > aEps
 double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
 
 /** Class for mapping object R->R */
@@ -545,6 +547,7 @@ class cDecomposPAdikVar
 };
 
 double  RelativeDifference(const double & aV1,const double & aV2,bool * Ok=nullptr);
+double RelativeSafeDifference(const double & aV1,const double & aV2);
 
 template <class Type> int SignSupEq0(const Type & aV) {return (aV>=0) ? 1 : -1;}
 
@@ -610,16 +613,16 @@ class cCubAppGauss
 /*       Witch Min and Max            */
 /* ********************************** */
 
-template <class TypeIndex,class TypeVal,const bool IsMin> class cWhitchExtrem
+template <class TypeIndex,class TypeVal,const bool IsMin> class cWhichExtrem
 {
      public :
-         cWhitchExtrem(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhichExtrem(const TypeIndex & anIndex,const TypeVal & aVal) :
              mIsInit     (true),
              mIndexExtre (anIndex),
              mValExtre   (aVal)
          {
          }
-         cWhitchExtrem() :
+         cWhichExtrem() :
              mIsInit   (false),
              mIndexExtre (cNV<TypeIndex>::V0()),  // required else compiler complains for possible use of un-initialised
              // mIndexExtre (NullVal<TypeIndex>()),  // required else compiler complains for possible use of un-initialised
@@ -649,53 +652,53 @@ template <class TypeIndex,class TypeVal,const bool IsMin> class cWhitchExtrem
          TypeVal   mValExtre;
 };
 
-template <class TypeIndex,class TypeVal> class cWhitchMin : public cWhitchExtrem<TypeIndex,TypeVal,true>
+template <class TypeIndex,class TypeVal> class cWhichMin : public cWhichExtrem<TypeIndex,TypeVal,true>
 {
      public :
-         typedef  cWhitchExtrem<TypeIndex,TypeVal,true> tExrem;
+         typedef  cWhichExtrem<TypeIndex,TypeVal,true> tExrem;
 
-         cWhitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhichMin(const TypeIndex & anIndex,const TypeVal & aVal) :
             tExrem (anIndex,aVal) 
          {
          }
-         cWhitchMin() : tExrem () {}
+         cWhichMin() : tExrem () {}
      private :
 };
-template <class TypeIndex,class TypeVal> class cWhitchMax : public cWhitchExtrem<TypeIndex,TypeVal,false>
+template <class TypeIndex,class TypeVal> class cWhichMax : public cWhichExtrem<TypeIndex,TypeVal,false>
 {
      public :
-         typedef  cWhitchExtrem<TypeIndex,TypeVal,false> tExrem;
+         typedef  cWhichExtrem<TypeIndex,TypeVal,false> tExrem;
 
-         cWhitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhichMax(const TypeIndex & anIndex,const TypeVal & aVal) :
             tExrem (anIndex,aVal) 
          {
          }
-         cWhitchMax() : tExrem () {}
+         cWhichMax() : tExrem () {}
      private :
 };
 
 
-template <class TypeIndex,class TypeVal> class cWhitchMinMax
+template <class TypeIndex,class TypeVal> class cWhichMinMax
 {
      public  :
-         cWhitchMinMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhichMinMax(const TypeIndex & anIndex,const TypeVal & aVal) :
              mMin(anIndex,aVal),
              mMax(anIndex,aVal)
          {
          }
-         cWhitchMinMax() { }
+         cWhichMinMax() { }
 
          void Add(const TypeIndex & anIndex,const TypeVal & aVal)
          {
              mMin.Add(anIndex,aVal);
              mMax.Add(anIndex,aVal);
          }
-         const cWhitchMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
-         const cWhitchMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
+         const cWhichMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
+         const cWhichMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
 
      private :
-         cWhitchMin<TypeIndex,TypeVal> mMin;
-         cWhitchMax<TypeIndex,TypeVal> mMax;
+         cWhichMin<TypeIndex,TypeVal> mMin;
+         cWhichMax<TypeIndex,TypeVal> mMax;
 };
 
 template <class TypeVal> void UpdateMin(TypeVal & aVar,const TypeVal & aValue) {if (aValue<aVar) aVar = aValue;}
@@ -838,7 +841,49 @@ class  cHamingCoder
 };
 
 
+template <class Type> class  cPolynom
+{
+        public :
+           typedef std::vector<Type>  tCoeffs;
+           cPolynom(const tCoeffs &);
+           cPolynom(const cPolynom &);
+           cPolynom(size_t aDegre);
+           size_t  Degree() const;
 
+           static cPolynom<Type>  D0(const Type &aCste);      ///< constant polynom degre 0
+           static cPolynom<Type>  D1FromRoot(const Type &aRoot);    ///< degre 1 polynom with aRoot
+           static cPolynom<Type>  D2NoRoot(const Type & aVMin,const Type &aArgmin);  ///< +- (|V| + (x-a) ^2) ,
+
+           static cPolynom<Type>  RandomPolyg(int aDegree,Type & anAmpl);
+           ///  Generate random polygo from its randomly generated roots => test for
+           static cPolynom<Type>  RandomPolyg(std::vector<Type> & aVRoots,int aNbRoot,int aNbNoRoot,Type Interv,Type MinDist);
+
+
+           Type  Value(const Type & aVal) const;
+
+           cPolynom<Type> operator * (const cPolynom<Type> & aP2) const;
+           cPolynom<Type> operator + (const cPolynom<Type> & aP2) const;
+           cPolynom<Type> operator - (const cPolynom<Type> & aP2) const;
+           cPolynom<Type> operator * (const  Type & aVal) const;
+           std::vector<Type> RealRoots(const Type & aTol,int ItMax);
+
+
+           Type&   operator [] (size_t aK) {return mVCoeffs[aK];}
+           const Type&   operator [] (size_t aK) const {return mVCoeffs[aK];}
+           Type  KthDef(size_t aK) const {return (aK<mVCoeffs.size()) ? mVCoeffs[aK] : static_cast<Type>(0.0) ;}
+
+           const tCoeffs &  VCoeffs() const;
+
+        private :
+           tCoeffs  mVCoeffs;
+};
+
+template <class Type,const int Dim>  cPolynom<Type> operator * (const  Type & aVal,const cPolynom<Type>  & aPol)  {return aPol*aVal;}
+/// return polynom of (Cste + X Lin)^2
+template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>& aVecCste,const cPtxd<Type,Dim>& aVecLin);
+
+// Rank of values
+template <class TCont,class TVal> double Rank(const TCont &, const TVal&);
 
 
 };

@@ -303,7 +303,7 @@ template<class T1,int Dim>
 }
 
 template<class TOper,class T1,int Dim>
-   cPtxd<int,Dim> WhitchMinMax(const TOper & Op, const cDataTypedIm<T1,Dim> & aIm)
+   cPtxd<int,Dim> WhichMinMax(const TOper & Op, const cDataTypedIm<T1,Dim> & aIm)
 {
     int aKMax = 0;
     T1 aVMax = aIm.GetRDL(aKMax);
@@ -321,9 +321,9 @@ template<class TOper,class T1,int Dim>
 }
 
 template<class T1,int Dim>
-   cPtxd<int,Dim> WhitchMax(const cDataTypedIm<T1,Dim> & aIm)
+   cPtxd<int,Dim> WhichMax(const cDataTypedIm<T1,Dim> & aIm)
 {
-     return WhitchMinMax([](const T1&aV1,const T1&aV2){return aV1>aV2;},aIm);
+     return WhichMinMax([](const T1&aV1,const T1&aV2){return aV1>aV2;},aIm);
 }
 
 
@@ -417,7 +417,17 @@ template <class TFonc,class TMasq>
       }
 }
 
+/*
+template <const int Dim> std::vector< cPtxd<tREAL8,Dim> > ToR(const std::vector< cPtxd<int,Dim> > &aVPtI)
+{
+	StdOut() << "KKKKKKKKKKKKKKKKKKKKKKk\n";
+    std::vector< cPtxd<tREAL8,Dim> > aRes;
+    std::transform(aVPtI.begin(),aVPtI.end(),aRes.begin(),[](auto aPtI){return ToR<int>(aPtI);});
 
+	StdOut() << "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
+    return aRes;
+}
+*/
 
 
 

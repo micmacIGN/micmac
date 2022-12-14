@@ -19,6 +19,19 @@ tREAL8  cMedaDataImage::Aperture() const
    return mAperture;
 }
 
+tREAL8  cMedaDataImage::FocalMM() const
+{
+   MMVII_INTERNAL_ASSERT_User(mFocalMM>0,eTyUEr::eNoFocale,"Focale is not init for " + mNameImage);
+   return mFocalMM;
+}
+
+tREAL8  cMedaDataImage::FocalMMEqui35() const
+{
+    MMVII_INTERNAL_ASSERT_User(mFocalMMEqui35>0,eTyUEr::eNoFocaleEqui35,"FocaleEqui35 is not init for " + mNameImage);
+   return mFocalMMEqui35;
+}
+
+
 cMedaDataImage::cMedaDataImage(const std::string & aNameIm) :
    cMedaDataImage()
 {
@@ -34,7 +47,7 @@ cMedaDataImage::cMedaDataImage(const std::string & aNameIm) :
      }
 
 
-     MMVII_WARGNING("cMedaDataImage : quick and (VERY) dirty implementation, most probably wrong");
+     MMVII_DEV_WARNING("cMedaDataImage : quick and (VERY) dirty implementation, most probably wrong");
 }
 
 cMedaDataImage::cMedaDataImage() :

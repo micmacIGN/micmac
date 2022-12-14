@@ -9,9 +9,6 @@ eigen ...
 
 */
 
-namespace MMVII {
-  const std::string DirBin2007=MMVII_INSTALL_PATH;
-};
 
 using namespace MMVII;
 

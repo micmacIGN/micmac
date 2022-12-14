@@ -355,12 +355,21 @@ template <class T,const int Dim>
 
 template <class T,const int Dim>  T Cos(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
-   return T(Scal(aP1,aP2)) / (Norm2(aP1)*Norm2(aP2));
+   return SafeDiv(T(Scal(aP1,aP2)) , T(Norm2(aP1)*Norm2(aP2)));
 }
 template <class T,const int Dim>  T AbsAngle(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
-   return acos(Cos(aP1,aP2));
+   T aCos = Cos(aP1,aP2);
+   MMVII_INTERNAL_ASSERT_tiny((aCos>=1)&&(aCos<=-1),"AbsAngle cosinus out range");
+   return acos(aCos);
 }
+
+template <class T,const int Dim>  T AbsAngleTrnk(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
+{
+   T aCos = std::max(T(-1.0),std::min(T(1.0),Cos(aP1,aP2)));
+   return acos(aCos);
+}
+
 
 
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,Dim> &aP)
@@ -1142,6 +1151,7 @@ template  typename  tNumTrait<TYPE>::tBig Scal(const cPtxd<TYPE,DIM> &,const cPt
 template  typename  tNumTrait<TYPE>::tBig MulCoord(const cPtxd<TYPE,DIM> &);\
 template  TYPE Cos(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE AbsAngle(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+template  TYPE AbsAngleTrnk(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtInt(const cPtxd<int,DIM> & aPInt);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtR(const cPtxd<tREAL8,DIM> & aPInt);

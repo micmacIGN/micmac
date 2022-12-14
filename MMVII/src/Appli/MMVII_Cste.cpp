@@ -1,4 +1,5 @@
 #include "MMVII_util.h"
+#include "MMVII_Sys.h"
 #include "MMVII_Stringifier.h"
 #include "MMVII_DeclareCste.h"
 
@@ -27,6 +28,10 @@ const std::string TagSetOfCpleName = "SetCpleOfName";
  
 // Name of standard directories
 const std::string MMVII_ComonPrefix      =  "MMVII";
+
+const std::string MMVII_DirPhp = MMVII_ComonPrefix + "-PhgrProj" + StringDirSeparator();
+
+
 const std::string TmpMMVIIDirPrefix      =  MMVII_ComonPrefix +"-Tmp-Dir";
 const std::string TmpMMVIIDirGlob        =  TmpMMVIIDirPrefix + "-Glob" + StringDirSeparator();
 const std::string TmpMMVIIDirPCar        =  TmpMMVIIDirPrefix + "-PCar" + StringDirSeparator();
@@ -72,7 +77,9 @@ const std::string GIP_BenchMode = "BenchMode";
 const char CharProctected = '\\';
 #endif
 
-const std::string  Bin2007 = "MMVII";
+const std::string FullBin2007=MMVII_CanonicalSelfExecName();
+const std::string DirBin2007=DirOfPath(FullBin2007);        // order initialization is garanteed in same TU
+
 
 // User/Command
 const   std::string MMVII_NONE = "NONE";
@@ -89,6 +96,7 @@ const   std::string & StdPostF_ArMMVII(bool isXml)
 
 // PreFix 4 files
 const std::string  PrefixCalRadRad = "CalibRadiom-Radial-";
+const std::string  PrefixSpecifXML = "MMVII_Specif_";
 
 
 
