@@ -23,12 +23,13 @@ static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,con
 
 void mmv2_init()
 {
-	//TheExitOnBrkp =true;
-	MMVII::MMVII_SetErrorHandler(ErrHanlderPy);
-	MMVII::InitStandAloneAppli("apipy");
+    //TheExitOnBrkp =true;
+    MMVII::cMMVII_Appli::InitMMVIIDirs(std::string(getenv("HOME"))+"/.local/mmv2/MMVII/");
+    MMVII::MMVII_SetErrorHandler(ErrHanlderPy);
+    MMVII::InitStandAloneAppli("apipy");
 
-	std::cout<<"mmv2 initialized."<<std::endl;
-	//delete appli; //the fake apply must exist during module usage
+    std::cout<<"mmv2 initialized."<<std::endl;
+    //delete appli; //the fake apply must exist during module usage
 }
 
 //shadows classic ElExit to use throw(runtime_error) instead of exit(code)
