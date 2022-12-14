@@ -22,7 +22,15 @@
                   </TypeCAH>
               </CorrelAdHoc>
              </#WHEN>
-         </#WHEN>
+     </#WHEN>
+
+            <#IF VTEST=${ZRedrPx}>
+                <ZRedrPx > true     </ZRedrPx>
+            </#IF>
+            <#IF VTEST=${ZDeqRedr}>
+                <ZDeqRedr >  true    </ZDeqRedr>
+        </#IF>
+
 
      </EtapeMEC>
 

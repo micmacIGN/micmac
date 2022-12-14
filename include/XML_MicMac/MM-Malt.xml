@@ -269,6 +269,11 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <Symb>  WithExtenZ=false      </Symb>
      <Symb>  ExtenZ=0.0      </Symb>
 
+     <Symb>  ZRedrPx=false      </Symb>
+     <Symb>  ZDeqRedr=false      </Symb>
+
+     <Symb>  IsCorrelExp=false   </Symb>
+     <Symb>  TypeWCorr=eWInCorrelExp   </Symb>
 <!--
         <#WHEN VTEST=${UseCensusCost}>
               <CensusCost>
@@ -540,15 +545,42 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                    </TypeCAH>
                </CorrelAdHoc>
             </#WHEN>
-            
+
+	    <#IF VTEST=${IsCorrelExp}>
+	    <TypeWCorr> ${TypeWCorr} </TypeWCorr>
+	    <NbIterFenSpec> 2 </NbIterFenSpec>
+            </#IF>
+	    <!-- <#IF VTEST=${ZRedrPx}>
+	        <ZRedrPx > true     </ZRedrPx>
+   	    </#IF>
+	    <#IF VTEST=${ZDeqRedr}>
+                <ZDeqRedr >  true    </ZDeqRedr>
+	    </#IF>-->
+
+
+
         </EtapeMEC>
 	     
-        <EtapeMEC> 
+	<EtapeMEC> 
+		<#IF VTEST=${ZRedrPx}>
+                <ZRedrPx > true     </ZRedrPx>
+                </#IF>
+                <#IF VTEST=${ZDeqRedr}>
+                <ZDeqRedr >  true    </ZDeqRedr>
+	        </#IF>
+
                 <DeZoom >        ${ZoomInit}        </DeZoom> 
                 <ZPas>           ${DbleZPas}       </ZPas>
         </EtapeMEC>
 
-        <EtapeMEC> 
+	<EtapeMEC> 
+            <#IF VTEST=${ZRedrPx}>
+                <ZRedrPx > true     </ZRedrPx>
+            </#IF>
+            <#IF VTEST=${ZDeqRedr}>
+                <ZDeqRedr >  true    </ZDeqRedr>
+	    </#IF>
+
                 <DeZoom >        ${ZoomInit}        </DeZoom> 
 	            <ZDilatAlti>  4    </ZDilatAlti>
                 <ZDilatPlani> 3    </ZDilatPlani>
@@ -557,13 +589,28 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
         
 
         <#WHEN VTEST=${AddZoom64}>
-              <EtapeMEC>
+	    <EtapeMEC>
+		<#IF VTEST=${ZRedrPx}>
+                <ZRedrPx > true     </ZRedrPx>
+            </#IF>
+            <#IF VTEST=${ZDeqRedr}>
+                <ZDeqRedr >  true    </ZDeqRedr>
+ 	    </#IF>
+
                   <DeZoom >        64        </DeZoom>
                   <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
               </EtapeMEC>
         </#WHEN>
         <#WHEN VTEST=${AddZoom32}>
-              <EtapeMEC>
+	    <EtapeMEC>
+
+                <#IF VTEST=${ZRedrPx}>
+                <ZRedrPx > true     </ZRedrPx>
+                </#IF>
+                <#IF VTEST=${ZDeqRedr}>
+                <ZDeqRedr >  true    </ZDeqRedr>
+                </#IF>
+
                   <DeZoom >        32        </DeZoom>
                   <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
                   
@@ -589,7 +636,13 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
               </EtapeMEC>
         </#WHEN>
         <#WHEN VTEST=${AddZoom16}>
-            <EtapeMEC>
+	<EtapeMEC>
+	    <#IF VTEST=${ZRedrPx}>
+                <ZRedrPx > true     </ZRedrPx>
+            </#IF>
+            <#IF VTEST=${ZDeqRedr}>
+                <ZDeqRedr >  true    </ZDeqRedr>
+            </#IF>
                     <DeZoom >        16        </DeZoom>
                     
                     <#WHEN VTEST=${CorPonc}>
@@ -624,7 +677,14 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 
         <#WHEN VTEST=${AddZoom8}>
-            <EtapeMEC> 
+	<EtapeMEC> 
+	    <#IF VTEST=${ZRedrPx}>
+                <ZRedrPx > true     </ZRedrPx>
+            </#IF>
+            <#IF VTEST=${ZDeqRedr}>
+                <ZDeqRedr >  true    </ZDeqRedr>
+	    </#IF>
+
                  <ModeInterpolation Portee="Globale"> eInterpolSinCard </ModeInterpolation>
                  <#WHEN VTEST=${ForDeform}>
                        <SzSinCard Portee="Globale">  5.0 </SzSinCard>
@@ -738,15 +798,24 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
         </#WHEN>
 
         <#WHEN VTEST=${NotZoom8}>
-            <EtapeMEC> 
+	   <EtapeMEC>
+		<#IF VTEST=${ZRedrPx}>
+                <ZRedrPx > true     </ZRedrPx>
+                </#IF>
+	        <#IF VTEST=${ZDeqRedr}>
+                <ZDeqRedr >  true    </ZDeqRedr>
+                </#IF>
+
+
                 <DeZoom>        ${ZoomFinal}        </DeZoom> 
             </EtapeMEC>
-        </#WHEN>
+         </#WHEN>
 
         <IncludeFileLoc>  ${FileZ1Raff} </IncludeFileLoc>
 
 
-        <EtapeMEC> 
+	<EtapeMEC> 
+
                <DeZoom>        ${ZoomFinal}        </DeZoom> 
                <ZPas>          1.0       </ZPas>
                <AlgoRegul>  eAlgoDequant </AlgoRegul>

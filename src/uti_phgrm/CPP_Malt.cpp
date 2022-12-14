@@ -421,6 +421,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     std::string aEnvZInf;
     std::string aEnvZSup;
 
+    bool aZRedrPx=false;
+    bool aZDeqRedr=false;
+    bool aIsCorrelExp=false;
+
     std::string mTemplate="";
     ElInitArgMain
     (
@@ -504,6 +508,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
                     << EAM(aEnvZInf,"EnvZInf",true,"Envelop inf of Z/Px")
                     << EAM(aEnvZSup,"EnvZSup",true,"Envelop sup of Z/Px")
+                    << EAM(aZRedrPx,"ZRedrPx",true,"Rectify matching window using the approx surface")
+                    << EAM(aZDeqRedr,"ZDeqRedr",true,"Do dequantification when rectifying matching windows")
+                    << EAM(aIsCorrelExp,"CorrelExp",true,"Matching with \"exponential\" correlation")
 
      );
 
@@ -1370,6 +1377,21 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 	       +  std::string(" +EnvZSup=");
 	   }
       }
+
+      if (aZRedrPx)
+      {
+          mCom = mCom + BLANK + "+ZRedrPx=" + ToString(aZRedrPx);
+      }
+      if (aZDeqRedr)
+      {
+          mCom = mCom + BLANK + "+ZDeqRedr=" + ToString(aZDeqRedr);
+      }
+      if (aIsCorrelExp)
+      {
+          mCom = mCom + BLANK + "+IsCorrelExp=true" 
+		      + BLANK + "+ModeAgrCor=eAggregSymetrique";
+      }
+
 
       if (EAMIsInit(&aBoxTerrain))
       {
