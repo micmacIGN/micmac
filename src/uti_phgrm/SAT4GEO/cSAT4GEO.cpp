@@ -436,14 +436,17 @@ cAppliCreateEpi::cAppliCreateEpi(int argc, char** argv)
 	
 	std::list<std::string> aLCom;
 
+	int NbPair=0;
 	for (auto itP : aPairs.Cple())
 	{
 		std::string aComTmp = MMBinFile(MM3DStr) + "CreateEpip " 
 						      + itP.N1() + BLANK + itP.N2() + BLANK + mOri  
 					              + mCAS3D.ComParamEpip()
+						      + BLANK + "Out=" + mCAS3D.NameOfEpiImPrefix(NbPair,mOri) //necessary to avoid too long names 
 						      + BLANK + "@ExitOnBrkp";
 
 		aLCom.push_back(aComTmp);
+		NbPair++;
 	}
 
 
@@ -489,13 +492,21 @@ cAppliRecalRPC::cAppliRecalRPC(int argc, char** argv)
 
     std::list<std::string> aLCom;
 
+    int NbPair=0;
     for (auto itP : aPairs.Cple())
     {
-        std::string aNAppuisI1 = mCAS3D.mICNM->NameAppuiEpip(mOri,itP.N1(),itP.N2());
+	std::string aNI1 = mCAS3D.NameOfEpiIm1(NbPair,mOri);
+	std::string aNI2 = mCAS3D.NameOfEpiIm2(NbPair,mOri);
+
+        std::string aNAppuisI1 = mCAS3D.NameOfEpiAppPrefix(NbPair,mOri) + "_1.xml";
+        std::string aNAppuisI2 = mCAS3D.NameOfEpiAppPrefix(NbPair,mOri) + "_2.xml";
+
+
+        /*std::string aNAppuisI1 = mCAS3D.mICNM->NameAppuiEpip(mOri,itP.N1(),itP.N2());
         std::string aNAppuisI2 = mCAS3D.mICNM->NameAppuiEpip(mOri,itP.N2(),itP.N1());
 
         std::string aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
-        std::string aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
+        std::string aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());*/
 
 		
 
@@ -528,9 +539,10 @@ cAppliRecalRPC::cAppliRecalRPC(int argc, char** argv)
 
         aLCom.push_back(aComI1);
         aLCom.push_back(aComI2);
-		aLCom.push_back(aComConv1);
-		aLCom.push_back(aComConv2);
+	aLCom.push_back(aComConv1);
+	aLCom.push_back(aComConv2);
 
+	NbPair++;
 
     }
 
@@ -584,6 +596,7 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 
 	auto aDir_it = aLDirMec.Name().begin();
 
+    int NbPair=0;
     for (auto itP : aPairs.Cple())
     {
 		std::string aNI1;
@@ -591,8 +604,8 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 
 		if (EAMIsInit(&mOri))
 		{
-			aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
-			aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
+			aNI1 = mCAS3D.NameOfEpiIm1(NbPair,mOri);//mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
+			aNI2 = mCAS3D.NameOfEpiIm2(NbPair,mOri);//mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
 		}
 		else
 		{
@@ -640,6 +653,7 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
             aLCom.push_back(aComTmp);
 
 		}
+	NbPair++;
 
     }
 
@@ -825,8 +839,8 @@ void cAppliFusion::DoAll()
 	
 	 	if (EAMIsInit(&mOri))
 		{	
-			aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
-        	aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
+			aNI1 = mCAS3D.NameOfEpiIm1(aCpt,mOri);
+        	        aNI2 = mCAS3D.NameOfEpiIm2(aCpt,mOri);
 		}
 		else
 		{

@@ -80,6 +80,10 @@ class cCommonAppliSat3D
         std::string    ComParamMatch();
         std::string    ComParamFuse();
 
+        std::string NameOfEpiImPrefix(int id,std::string& aOri) {return "Epi"+ToString(id)+"_"+aOri;};
+        std::string NameOfEpiIm1(int id,std::string& aOri) {return NameOfEpiImPrefix(id,aOri) + "_1.tif";};//coherent with CPP_CreateEpip.cpp line 1322
+        std::string NameOfEpiIm2(int id,std::string& aOri) {return NameOfEpiImPrefix(id,aOri) + "_2.tif";};//coherent with CPP_CreateEpip.cpp line 1323
+        std::string NameOfEpiAppPrefix(int id,std::string& aOri) {return "Appuis_Epi"+ToString(id)+"_"+aOri;};
 
         cInterfChantierNameManipulateur * mICNM;
 

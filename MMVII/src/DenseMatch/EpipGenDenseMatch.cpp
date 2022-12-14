@@ -609,7 +609,7 @@ cAppli::cAppli
    mSzBasculeMM  (0.5),  // correspond to 2000x2000 pixel
    mRandPaded    (false),
    mSzTile     (900,900),
-   mSzOverL    (50,30),
+   mSzOverL    (100,100),
    mIncPxProp  (0.05),
    mIncPxCste  (50),  // (PxMax-PxMin)/2
    mIncPxMin   (100),
