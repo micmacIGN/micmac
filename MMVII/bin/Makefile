@@ -36,14 +36,17 @@ endif
 
 
 # ============ Targets
-.phony: all clean distclean
+.phony: all clean genclean distclean
 all: ${MMV2_EXE}
 
 clean:
 	rm -f ${OBJS} ${DEPS} ${MMV2_EXE} ${MMV2_LIB}
 
-distclean: clean
+genclean:
 	-rm -f ${MMV2_GENDIR}/*
+
+distclean: clean genclean
+
 
 # =========== Build Lib
 SRC_REGGEN=${MMV2_GENDIR}/cName2CalcRegisterAll.cpp
