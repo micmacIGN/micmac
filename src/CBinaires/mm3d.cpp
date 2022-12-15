@@ -844,6 +844,7 @@ int CPP_NewSolGolInit_main(int argc, char ** argv);
 int CPP_SolGlobInit_RandomDFS_main(int argc, char ** argv);
 int CPP_SolGlobInit_RandomForest_main(int argc, char ** argv);
 int CPP_GenOptTriplets(int argc, char ** argv);
+int CPP_ExportTriplets(int argc, char ** argv);
 int CPP_NewOriImage2G2O_main(int argc, char ** argv);
 int CPP_FictiveObsFin_main(int argc, char ** argv);
 int CPP_XmlOriRel2OriAbs_main(int argc, char ** argv);
@@ -1294,6 +1295,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("NO_SolInit_RndDFS",CPP_SolGlobInit_RandomDFS_main,"New Orientation : sol init by random DFS"));
         aRes.push_back(cMMCom("NO_SolInit_RndForest",CPP_SolGlobInit_RandomForest_main,"New Orientation : sol init by random forest"));
         aRes.push_back(cMMCom("NO_GenPerfTripl",CPP_GenOptTriplets,"New Orientation : generate perfect triplets from InOri"));
+        aRes.push_back(cMMCom("NO_ExportTripl",CPP_ExportTriplets,"New Orientation : export each triplet as an oriented block"));
         aRes.push_back(cMMCom("NO_ExportG2O",CPP_NewOriImage2G2O_main,"New Orientation : export triplets to g2o"));
 
         aRes.push_back(cMMCom("NO_GenTriOfCple",CPP_NewGenTriOfCple,"New Orientation : select triple of one edge"));
