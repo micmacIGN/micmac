@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#include "general/CMake_defines.h"
 #include <cstdint>
 #include <fstream>
+#include <ios>
 #include <locale>
 #include <map>
 #include <random>
@@ -142,6 +143,33 @@ class cNOSolIn_AttrArc {
     bool mOrASym;
 };
 
+template <class Container>
+double mean(const Container& v){
+    double sum = 0.;
+    for (auto a : v) {
+        sum += a;
+    }
+    return sum / v.size();
+}
+
+template <class Container>
+double sd(const Container& v) {
+    double sum = 0.0, mean, standardDeviation = 0.0;
+    size_t i;
+
+    for (i = 0; i < v.size(); ++i) {
+        sum += v[i];
+    }
+
+    mean = sum / v.size();
+
+    for (i = 0; i < v.size(); ++i) {
+        standardDeviation += pow(v[i] - mean, 2);
+    }
+
+    return sqrt(standardDeviation / v.size());
+}
+
 class cNOSolIn_Triplet {
    public:
     cNOSolIn_Triplet(RandomForest*, tSomNSI* aS1, tSomNSI* aS2, tSomNSI* aS3,
@@ -153,8 +181,12 @@ class cNOSolIn_Triplet {
     double ProjTest() const;
 
     void AddHomolPts(tTriPointList& pts) { mHomolPts = pts; }
+    void AddHomolAllPts(tTriPointList& pts) { mHomolAllPts = pts; }
+
     tTriPointList& getHomolPts() { return mHomolPts; }
     const tTriPointList& getHomolPts() const { return mHomolPts; }
+    tTriPointList& getHomolAllPts() { return mHomolAllPts; }
+    const tTriPointList& getHomolAllPts() const { return mHomolAllPts; }
 
     int Nb3() const { return mNb3; }
     ElTabFlag& Flag() { return mTabFlag; }
@@ -188,34 +220,39 @@ class cNOSolIn_Triplet {
         return ElRotation3D::Id;
     }
 
-    float CostArc() const { return mCostArc; }
-    float& CostArc() { return mCostArc; }
-
-    float CostArcMed() const { return mCostArcMed; }
-    float& CostArcMed() { return mCostArcMed; }
-
-    double Residue() const { return mResidue; }
+    /*double Residue() const { return mResidue; }
     double& Residue() { return mResidue; }
 
     double Dist() const { return mDistance; }
-    double& Dist() { return mDistance; }
+    double& Dist() { return mDistance; }*/
 
-    std::vector<double>& CostArcPerSample() { return mCostArcPerSample; };
-    std::vector<double>& CostPerSample() { return mCostPerSample; };
-    std::vector<double>& DistArcPerSample() { return mDistArcPerSample; };
-
-    double PdsSum() const { return mPdsSum; }
-    double& PdsSum() { return mPdsSum; }
-    double CostPdsSum() const { return mCostPdsSum; }
-    double& CostPdsSum() { return mCostPdsSum; }
+    /*
+     * 0: Residue
+     *
+     * 1: Distance
+     *
+     * 2: Score
+     */
+    std::array<std::vector<double>, 3>& Data() { return mData; };
+    static constexpr int indexSum = 2;
+    /*
+     * 0: Mean
+     *
+     * 1: Median
+     *
+     * 2: Mean Score
+     *
+     * 3: Median Score
+     */
+    std::array<double, 4>& Sum() { return mSum; };
 
     double CalcDistArc();
 
     int& HeapIndex() { return mHeapIndex; }
 
-    double residue;
-
     int category = -1;
+
+    double confiance;
 
    private:
     cNOSolIn_Triplet(const cNOSolIn_Triplet&);  // N.I.
@@ -225,21 +262,20 @@ class cNOSolIn_Triplet {
     tArcNSI* mArcs[3];
 
     tTriPointList mHomolPts;
+    tTriPointList mHomolAllPts;
     //Stats
     double mResidue;
     double mDistance;
 
-
     //End Stats
 
-    float mCostArc;
-    float mCostArcMed;
-    std::vector<double> mCostArcPerSample;
-    std::vector<double> mCostPerSample;
-    std::vector<double> mDistArcPerSample;
-    double mPdsSum;      // sum of Pds for the computation of the weighted mean
-    double mCostPdsSum;  // sum of cost times pds for the computation of the
-                         // weighted mean
+    std::array<std::vector<double>, 3> mData;
+    /*
+     * sum of Pds for the computation of the weighted mean
+     * sum of cost times pds for the computation of the
+     * weighted mean
+     */
+    std::array<double, 4> mSum;
 
     int mNb3;
     ElTabFlag mTabFlag;
@@ -266,6 +302,7 @@ class cLinkTripl {
         : m3(aTrip), mK1(aK1), mK2(aK2), mK3(aK3) {}
 
     int& HeapIndex() { return mHeapIndex; }
+    double& Pds() { return aPds; }
 
     bool operator<(cLinkTripl& other) const {
         return m3->NumId() < other.m3->NumId();
@@ -287,6 +324,7 @@ class cLinkTripl {
 
    private:
     int mHeapIndex;  // Heap index pour tirer le meilleur triplets
+    double aPds;  // Score de ponderation pour le tirage au sort de l'arbre
 };
 
 /*
@@ -310,7 +348,7 @@ struct cNO_HeapIndTri_NSI {
 
 struct cNO_CmpTriByCost {
     bool operator()(cLinkTripl* aL1, cLinkTripl* aL2) {
-        return (aL1->m3)->CostArcMed() < (aL2->m3)->CostArcMed();
+        return (aL1->m3)->Sum()[(aL1->m3)->indexSum] < (aL2->m3)->Sum()[(aL2->m3)->indexSum];
         //return (aL1->m3)->CostArc() < (aL2->m3)->CostArc();
     }
 };
@@ -323,7 +361,7 @@ class cNOSolIn_AttrASym {
 
     void AddTriplet(cNOSolIn_Triplet* aTrip, int aK1, int aK2, int aK3);
     std::vector<cLinkTripl>& Lnk3() { return mLnk3; }
-    std::vector<cLinkTripl*>& Lnk3Ptr() { return mLnk3Ptr; }
+    //std::vector<cLinkTripl*>& Lnk3Ptr() { return mLnk3Ptr; }
 
     cLinkTripl* GetBestTri();
     tHeapTriNSI mHeapTri;
@@ -332,7 +370,7 @@ class cNOSolIn_AttrASym {
 
    private:
     std::vector<cLinkTripl> mLnk3;      // Liste des triplets partageant cet arc
-    std::vector<cLinkTripl*> mLnk3Ptr;  // Dirty trick pour faire marcher heap
+    //std::vector<cLinkTripl*> mLnk3Ptr;  // Dirty trick pour faire marcher heap
 
     int mNumArc;
 };
@@ -346,7 +384,8 @@ class cNO_HeapIndTriSol_NSI {
 class cNO_CmpTriSolByCost {
    public:
     bool operator()(cNOSolIn_Triplet* aL1, cNOSolIn_Triplet* aL2) {
-        return aL1->CostArc() < aL2->CostArc();
+        return aL1->Sum()[aL1->indexSum] < aL2->Sum()[aL2->indexSum];
+        //return (aL1->Pds()) < (T2->Pds());
     }
 };
 
@@ -355,7 +394,9 @@ using tHeapTriSolNSI =
 
 struct CmpLnk {
     bool operator()(cLinkTripl* T1, cLinkTripl* T2) const {
-        return (T1->m3->NumId()) < (T2->m3->NumId());
+        //return (T1->m3->NumId()) < (T2->m3->NumId());
+        //std::cout << "Pds" << T1->Pds() << std::endl;
+        return (T1->Pds()) < (T2->Pds());
     }
 };
 
@@ -410,7 +451,7 @@ class Dataset {
  */
 class DataTravel {
    public:
-    DataTravel(Dataset& data) : data(data) {}
+    DataTravel(Dataset& data) : data(data), gen(rd()) {}
 
     // variable to keep the visited
     std::map<std::string, tSomNSI*> mVS;
@@ -430,7 +471,7 @@ class DataTravel {
 
     void resetFlags(cNO_CC_TripSom* aCC);
 
-    cLinkTripl* GetRandTri();
+    cLinkTripl* GetRandTri(bool Pond = false);
     /*
      * Get the next triplet from tree previously generated.
      * Undefined behavior if tree not generated before
@@ -439,6 +480,14 @@ class DataTravel {
      *
      */
     cLinkTripl* GetNextTri(int flag);
+    std::random_device rd;
+    //std::mt19937 gen;
+    std::knuth_b gen;
+
+    // if particles decay once per second on average,
+    // how much time, in seconds, until the next one?
+    std::exponential_distribution<> d{0.3};
+    //std::geometric_distribution<int> d{0.3};
 };
 
 class RandomForest : public cCommonMartiniAppli {
@@ -449,7 +498,8 @@ class RandomForest : public cCommonMartiniAppli {
 
     // Load the triplets
     void loadDataset(Dataset& data);
-    void loadHomol(cNOSolIn_Triplet* aTriplet, tTriPointList& aLst);
+    //void loadHomol(cNOSolIn_Triplet* aTriplet, tTriPointList& aLst);
+    void loadHomol(cNOSolIn_Triplet* aTriplet, tTriPointList& aLst, tTriPointList& aLstAll);
 
     // Entry point
     void DoNRandomSol(Dataset& data);
@@ -469,6 +519,7 @@ class RandomForest : public cCommonMartiniAppli {
     void AddTriOnHeap(Dataset& data, cLinkTripl*);
     //void EstimRt(cLinkTripl*);
 
+    void PreComputeTriplets(Dataset& data);
     void CoherTriplets(Dataset& data);
     void CoherTriplets(std::vector<cNOSolIn_Triplet*>& aV3);
     void CoherTripletsGraphBasedV2(Dataset& data,
@@ -495,6 +546,7 @@ std::vector<cNOSolIn_Triplet*>& aV3, int,
     std::string mFullPat;
     cElemAppliSetFile mEASF;
     cNewO_NameManager* mNM;
+    std::string mOutName;
 
     bool mDebug;
     int mNbSamples;
@@ -514,6 +566,7 @@ std::vector<cNOSolIn_Triplet*>& aV3, int,
     double mR0;
 
     bool aModeBin = true;
+    bool aPond = false;
 };
 
 template<typename... T>
@@ -663,7 +716,7 @@ class GraphViz {
         (void)te;
 
         for (int i = 0; i < 3; i++) {
-            agsafeset(e[i], (char*)"weight", (char*)std::to_string(node.CostArc()).c_str(), "");
+            agsafeset(e[i], (char*)"weight", (char*)std::to_string(node.Sum()[node.indexSum]).c_str(), "");
         }
     }
 

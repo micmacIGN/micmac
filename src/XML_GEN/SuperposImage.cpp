@@ -21814,8 +21814,8 @@ void BinaryUnDumpFromFile(cXml_Ori3ImInit & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.BSurH(),aFp);
     BinaryUnDumpFromFile(anObj.PMed(),aFp);
     BinaryUnDumpFromFile(anObj.Elips(),aFp);
-    BinaryUnDumpFromFile(anObj.IsGen(),aFp);
-    BinaryUnDumpFromFile(anObj.GenCat(),aFp);
+    //BinaryUnDumpFromFile(anObj.IsGen(),aFp);
+    //BinaryUnDumpFromFile(anObj.GenCat(),aFp);
     //BinaryUnDumpFromFile(anObj.Sigma().ValForcedForUnUmp(),aFp);
 }
 
