@@ -6,7 +6,7 @@ However we recommand to read before the short introduction given in~\ref{Compute
 have a better understanding of where we go.
 
 For devlopper that will only be users of these  automatic differentiation facilities in {\tt MMVVII} , probably
-~\ref{Compute:Deriv:SysNL} is sufficient.
+~\ref{Compute:Deriv:SysNL} or~\ref{Chap:NLO} is sufficient.
 
 
 %-----------------------------------------------------
@@ -306,6 +306,20 @@ $D_0$ can be interpreted as constant whose value will only be fixed at runtime.
 
       %-----------------------------------------------------
 \subsection{Unary formula}
+
+      %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Generatlities}
+
+Unary operator are defined in file {\tt SymbDer/SymbDer\_UnaryOp.h}. The unary operator
+will derive from class is {\tt cUnaryF}, which itself derive from {\tt cImplemF}.
+
+
+      %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Existing operators}
+
+      %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Defining new operators}
+
       %-----------------------------------------------------
 \subsection{Binary formula}
 
