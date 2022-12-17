@@ -122,7 +122,7 @@ Now we remmber that rotation and translation are isometric, so we have conservat
 distances between  word an local coordinates. We can then write :
 
 \begin{equation}
-     D_{kk'}	||\Vec{G}_{kk'}||   = || \Vec{L}_{kk'} || = || \lambda_k \Vec{u}_k -  \lambda_{k'} \Vec{u}_{k'}|| \label{SpResecEQ:ConsDist}
+  D_{kk'}=||\Vec{G}_{kk'}||   = || \Vec{L}_{kk'} || = || \lambda_k \Vec{u}_k -  \lambda_{k'} \Vec{u}_{k'}|| \label{SpResecEQ:ConsDist}
 \end{equation}
 
 
@@ -156,10 +156,10 @@ By doing quotient of equation~\ref{SpResecEQ:ABC} we have :
 	=	\frac{D^2_{CB}}{D^2_{CA}} 
 	= \frac{|| \frac{\lambda_{c}}{\lambda_{a}} \Vec{C} -  \frac{\lambda_{b}}{\lambda_{a}} \Vec{B} ||^2 }
 	       {||\Vec{A} -  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C}||^2}
-	       \label{SpResecEQ:ABC}
+	       \label{SpResecEQ:Lambda}
 \end{equation}
 
-Now we see that in equation~\ref{SpResecEQ:ABC}, only the ratio $\frac{\lambda_{b}}{\lambda_{a}}$ and $\frac{\lambda_{c}}{\lambda_{a}}$
+Now we see that in equation~\ref{SpResecEQ:Lambda}, only the ratio $\frac{\lambda_{b}}{\lambda_{a}}$ and $\frac{\lambda_{c}}{\lambda_{a}}$
 matters, so one can solve them a system of $2$ equation with $2$ unknwons. Once we will have computed these ratio the triangle
 $(\Vec{A} , \frac{\lambda_{b}}{\lambda_{a}} \Vec{B},  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C})$ will be propoprtionnal the
 triangle $(G_A,G_B,G_C)$ and it will be sufficientt compute this proportion.
@@ -177,7 +177,7 @@ We fix the notation for ratio :
 
 
 The $1$ in $1+b$, is to be coherent with {\tt C++} implementation where this make a more numerically stable system.
-Also to coherent with {\tt C++} implementation, we will make the hypothesis that bundles have been normalized :
+Also to be coherent with {\tt C++} implementation, we will make the hypothesis that bundles have been normalized :
 
 \begin{equation}
 	|| \Vec{A}|| = || \Vec{B}|| = || \Vec{C}|| = 1
@@ -204,7 +204,7 @@ Now we can write equation~\ref{SpResecEQ:EqFracABC} :
 	\label{SpResecEQ:Pol2B}
 \end{equation}
 
-Equation~\ref{SpResecEQ:Pol2B} can be see as $2d$ degree polynom in $b$, and can express $b$ as function of $c$:
+Equation~\ref{SpResecEQ:Pol2B} can be see as $2d$ degree polynom in $b$, and we can express $b$ as function of $c$:
 
 \begin{equation}
 	b = -\overrightarrow{AB}. \Vec{B} \pm \sqrt{Q(c)}  = -\overrightarrow{AB}. \Vec{B} + \epsilon \sqrt{Q(c)} 

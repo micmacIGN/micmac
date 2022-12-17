@@ -1,11 +1,12 @@
 \chapter{Symbolic Derivation}
 
 We give a detailled description of how automatic differentiation is handled in {\tt MMVII}.
-This description is for curious readers or possibly programmer who will have to maintain this part.
-For devlopper that will only use these  automatic differentiation facilities in {\tt MMVVII} , probably the 
-short introduction given in~\ref{Compute:Deriv:SysNL} is sufficient.
-However we recommand to read~\ref{Compute:Deriv:SysNL} (or better all chapter~\ref{Chap:NLO}) to
+This description is for programmer who will have to maintain this part or possibly also for curious readers .
+However we recommand to read before the short introduction given in~\ref{Compute:Deriv:SysNL} (or better all chapter~\ref{Chap:NLO}) to
 have a better understanding of where we go.
+
+For devlopper that will only be users of these  automatic differentiation facilities in {\tt MMVVII} , probably
+~\ref{Compute:Deriv:SysNL} or~\ref{Chap:NLO} is sufficient.
 
 
 %-----------------------------------------------------
@@ -18,36 +19,37 @@ have a better understanding of where we go.
 %-----------------------------------------------------
 \subsection{Motivations}
 
-The computation of derivatives of a given function are central point in metrology
+The computation of derivatives of a given function is a central point in metrology
 where it is used in Gauss-Newton-like iteration.  There is basically $4$ methods
-for computing derivative :
+for computing derivatives :
 
 \begin{itemize}
     \item  computing "by hand", i.e a human apply the rules of derivation as
-           learned at school;  this method is perfectly manageable with "small"
-           function, and, still for small formula, also probably the fastest ;
-           but with "complicated" function as colinearity equation with many distorsion parameters,
+           learned at school;  for small formula, this method is perfectly manageable 
+           and also probably the fastest when the code is optimized;
+           but with "complicated" function, as colinearity equation with many distorsion parameters,
            it is error prone, difficult to maintain, and potentially not so fast as there
-           are simplification that human may miss;
+           are simplifications that human may miss;
 
-    \item  numericall derivative, for example with a $2$ variable function use equation as~\ref{NumDer}
+    \item  numericall derivative: for example with a $2$ variables function, we use equation as~\ref{NumDer}
            where $\epsilon_x$ is a "small" value relative to variable $x$;
-           this method as the advantage of simplicity, if you know the function you know the derivative;
-           it has $2$ drawbacks :  first issue, it's not always easy to define a good small value,  too small
-           creates numericall problem, not enough is unacurate, and with heterogeneous variable the small
-            value must be defined for each variable;  second issue, it is relatively slow, with $N$  variable
-           we must have $2N$ evaluation of $F$;
+           this method has the advantage of simplicity, if you know the function you know its derivatives;
+           it has $2$ drawbacks :  first issue, it's not always easy to define a good small value, a too small value
+           creates numericall problem, not enough small is unacurate, all the more with heterogeneous variable the "small"
+            value must be re-defined for each variable;  second issue, it is relatively slow, with $N$  variables
+           we must have $2N$ evaluations of $F$;
 
      \item jet method as used in CERES, see~\cite{CERES} for detailled description, it's not error
            prone as "hand crafted", there is no problem of accuracy, they are faster than 
            numerical derivatives; however they are relatively slow compared to formal methods;
 
-     \item formal method, that "more or less" do the same thing than "human computation" but do
+   \item formal method, that "more or less" do the same thing than "human computation" (generate the
+	   analyticall formula) but do
            it automatically; they are separated between automatic differenciation that analyse the code of a programm
            and symbolic differenciation that construct a tree representation, but to our mind this separation
-           is a bit artificial and they conceptually close and 
-		their performance are similar;  {\tt MMVII} uses symbolic differenciation;
-           the use is a bit more complicated than jet but can be significatively faster  than jet on complicated
+           is a bit artificial : they are conceptually close and 
+           their performance are similar;  {\tt MMVII} uses symbolic differenciation;
+           the use is a bit more complicated than jet but can be significatively faster  on complicated
            formulas.
 \end{itemize}
 
@@ -79,29 +81,30 @@ folder  {\tt MMVII/src/SymbDerGen}.
 \label{fig:TreeFormula}
 \end{figure}
 
-The classic aproach is to represent mathematicall formulas as tree (or more precizely 
-as we will see "DAG"=  directly acyclic graph).
+A classic aproach in computer science is to represent mathematicall formulas 
+as trees (or more precizely as we will see as "DAG"=  directly acyclic graph).
 These trees can be described recursively :
 
 \begin{itemize}
-   \item  constant ($0,1,\pi \dots$)  and fonction corresponding to variables ($x_1,x_2,\dots ,x_{144} \dots$)
+   \item  constant ($0,1,\pi \dots$)  and fonctions corresponding to variables ($x_1,x_2,\dots ,x_{144} \dots$)
           are  atomic formulas, their tree has one node labeled by the contant or the variable;
 
    \item if $Op$ is a unary operator, like $\cos, \sin, \exp $ for example,  and $F$ is a formula then $Op(F)$ is a 
-         formula, its trees is a node labeled by $Op$ and has one son corresponding to the tree of $F$;
+         formula, its tree is a node labeled by $Op$ and has one son corresponding to the tree of $F$;
 
-   \item if $Op$ is a binary operator, like $+,* $ for example,  and $F_1$  and $F_2$ are  formulas then $Op(F_1,F_2)$ is a 
+   \item if $Op$ is a binary operator, like $+,*,pow $ for example,  and $F_1$  and $F_2$ are 
+	   formulas then $Op(F_1,F_2)$ (or $F_1 Op F_2$ in infix notation) is a 
          formula,  its trees is a node labeled by $Op$ and has two son corresponding to the trees of $F_1$ and $F_2$.
 \end{itemize}
 
 
 Figure~\ref{fig:TreeFormula} represent the tree for the formula $F(x,y) = (x+y)^2 +x - \cos(x+y)$. 
-In the formula, we see that the sub-formula $x+y$ appears twice in the $F$, then to optimize the computation,
+In the formula, we see that the sub-formula $x+y$ appears twice , then to optimize the computation,
 a directed acyclic graph (DAG) is prefered to tree;  a DAG  is still a hierarchy, but the difference
 if that a node can have several parents, which avoid duplication as the same formula can be shared.
-When we will generate the code, we will set a variable, for example $V_{577} = x+y$ , and then reuse
-this variable when we need it instead of redoing computation.
 The right part of figure~\ref{fig:TreeFormula} correspond to DAG for formula $F$.
+When we will generate the code, we will set a variable on the shared node, for example $V_{577} = x+y$ , and then reuse
+this variable when we need it instead of redoing computation.
 
 
 The difference in efficiency between a tree and a DAG can be very significant 
@@ -110,7 +113,7 @@ in differenciation we will compute $F$ but also all its derivatives and it often
 the same sub-formula appears in several partial derivatives.  In our example we
 have $\frac{\partial F}{\partial x} = 2*(x+y) -1 + \sin(x+y)$ and $\frac{\partial F}{\partial y} = 2*(x+y) + \sin(x+y)$ ,
 and figure~\ref{fig:DagMultiformula} represents the DAG for the multiple formula
-$F,\frac{\partial F}{\partial x},\frac{\partial F}{\partial y}$.
+$\{F,\frac{\partial F}{\partial x},\frac{\partial F}{\partial y}\}$.
 
 
 
@@ -134,10 +137,10 @@ The code is located in  {\tt MMVII/include/SymbDer/}.
 
 \subsection{formulas}
 
-The key-file is {\tt SymbolicDerivatives.h}  where is defined   the key-classes   {\tt cFormula/cImplemF},
-cFormula being simply pointer on cImplemF,  ({\tt cImplemF} is the real class containing the date, while
+The key-file is {\tt SymbolicDerivatives.h}  where is defined   the key-classes   {\tt cFormula and cImplemF},
+cFormula being simply pointer on cImplemF,  ({\tt cImplemF} is the real class containing the data, while
 {\tt cFormula} are the classes manipulated externally as we want a remanent objet  semantic).
-For now we will speak of formula to design these two linked classes.
+For now we will speak of formula to name undifferrently these two linked classes.
 
 
 A formula is the {\tt C++} equivalent of the tree/DAG, basically formula work this way :
@@ -148,9 +151,10 @@ A formula is the {\tt C++} equivalent of the tree/DAG, basically formula work th
        \item  for each kind of formula there is a derived class (i.e one derived class for each operator)
 
        \item  mathematical operator ($+,*\dots ,\cos,\tan,\dots$) have been overloaded on formula, 
-               for example consider a binary operator  $\otimes$ , with $F_1\otimes F_2$  the rule is to create a new formula
-               of the adequate derived class $c\otimes$ with  $\{F_1,F_2\}$ a set of sub-formula,
-		there is two (very frequent) exception :
+               for example consider a binary operator  $\otimes$ , each time we meet $F_1\otimes F_2$ 
+		the rule is to create a new formula of the adequate derived class $c\otimes$ with  
+		$\{F_1,F_2\}$ as set of sub-formula,
+		there is two (very frequent) exception to this creation of new formula:
 
                \begin{itemize}
                     \item if the formulla has already be encontered inside a computation, this formula is returned
@@ -171,6 +175,12 @@ A formula is the {\tt C++} equivalent of the tree/DAG, basically formula work th
 
 
 \begin{lstlisting}[language=c++]
+// method for computing values
+void ComputeBuf(int aK0,int aK1) override
+{
+    for (int aK=aK0 ; aK<aK1 ; aK++)
+        mDataBuf[aK] =  mDataF1[aK] * mDataF2[aK];
+}
 // === Extract of code in class cMulF (multiplication of formulas )
 
 // method for computing the derivative
@@ -185,12 +195,6 @@ std::string GenCodeDef() const override
     return "(" + mF1->GenCodeRef() + " " + this->NameOperator() +  " " + mF2->GenCodeRef() + ")";
 }
 
-// method for computing values
-void ComputeBuf(int aK0,int aK1) override
-{
-    for (int aK=aK0 ; aK<aK1 ; aK++)
-        mDataBuf[aK] =  mDataF1[aK] * mDataF2[aK];
-}
 \end{lstlisting}
 
 %-----------------------------------------------------
@@ -199,9 +203,9 @@ void ComputeBuf(int aK0,int aK1) override
 
 Generating the DAG, requires some coordination between the formulas created.
 As we want to create a DAG with  minimal number of node, we must keep track
-of all already existing formula created for a specific task.
-This is where the class {\tt cCoordinatorF} is usefull  it creates a dictionnary ({\tt std::map})
-that store the association "name->Formula created".  So the coordinator "knows" all the 
+of all already existing formulas created for a specific task.
+This is where the class {\tt cCoordinatorF} is usefull,  it creates a dictionnary ({\tt std::map})
+that store the association "name/Formula created".  So the coordinator "knows" all the 
 formula that belongs to it while each formula "knows" its coordinator. Also the coordinator
 associate to each new formula a unique number.
 
@@ -209,34 +213,34 @@ Let illustrate on an example how it works :
 
 \begin{itemize}
 	\item  suppose the code contains  $F_1\otimes F_2$  (or  $\otimes(F_1,F_2)$ );
-	\item  when this code is executed, $F_1$ and $F_2$ have been created and given as
-		paremater to the overloade  $\otimes $ on formulas, the coordinator has
-		attributed a unique number $N_1$ and $N_2$
-	\item  in the function {\tt cGenOperatorBinaire::Generate}, the name is computed $NAME="\otimes \; N_1 \; N_2" $,
-	\item  if there is a value associated to $NAME$, this value is returned, else a new formula is created 
-	       the association "Name/formula" is memorized in its coordinator, and this value is returned;
+	\item  when this code is executed, $F_1$ and $F_2$ have been created and are given as
+		parameter to $\otimes $ (overloaded on formulas), the coordinator has
+		attributed a unique number $N_1$ and $N_2$ to these formulas;
+	\item  in the function {\tt cGenOperatorBinaire::Generate}, an identifiant is computed $Id="\otimes \; N_1 \; N_2" $,
+	\item  if there is a value associated to $Id$, this value is returned, else a new formula is created 
+	       the association "Name/formula" is memorized in its coordinator dictionnary, and this new value is returned;
 \end{itemize}
 
 The coordinator  is the access point for generating the code. The user has first to select the curent formulas :
-it can be the formulas themselves or the formulas plus all their derivative.
-Note that we have the possibility to give several formula (in a {\tt std::vector}), as curent formulas,
-typically this because often, due to DAG reduction,  the  DAG of $N$ formulas will have less nodes
+it can be the formulas themselves or the formulas plus all their derivatives.
+Note that we have the possibility to give several formulas (in a {\tt std::vector}) as curent formulas,
+this is because, due to DAG reduction,  the  DAG of $N$ formulas will have less nodes
 than the $N$ independant DAG and consequently the code will be more efficient.
 
 Also why would a user generate code without derivatice while
 obiously these classes are interesting because we want to compute derivatives? 
-In fact  it can be interesting for a given formula to use it also for 
-computing  only the function : for example in weighted leasq square, we can whish to first compute the function
-only and, if certain condition are satisfied, compute the derivative (which is slower).
+In fact  it can be interesting for a given formula to use it both for  computing funcion+derivative and
+computing  only the function : for example in weighted least squares, we can whish to first compute the function
+only and, if certain conditions are satisfied, compute the derivative.
 
-Once the current formula has been settled, the code generation follow this pipeline :
+Once the current formula has been settled, the code generation follows this pipeline :
 
 \begin{itemize}
-     \item make a topologicall sort of the formulas that can be reached for the current formulas
-         (in topoligical sort a formula appears always afetr its son);
+     \item make a topologicall sort of the formulas that can be reached from the current formulas
+         (in topoligical sort a formula appears always after its sons);
 
-     \item generate the code by parsing the sorted formula,the code is pretty boring with 
-           a succession of lines like $ V_i = V_j \otimes V_k; $, due to topologicall sort, we are
+     \item generate the code by parsing the sorted formula, the code is pretty monotom with 
+           a succession of lines like $V_i = V_j \otimes V_k; $, due to topologicall sort, we are
            sure when this line is generated that $V_j$ and $V_k$ have been initialized;
 \end{itemize}
 
@@ -245,25 +249,23 @@ Once the current formula has been settled, the code generation follow this pipel
 
 \subsection{class calculator}
 
-Once we have generated the code, we generally want to use it ;-)  thats where 
-the class {\tt cCalculator} arrive.  The class {\tt cCalculator} is an interface
-class that offers these calculation.
+Once we have generated the code, we generally want to use it ;-)  that is where 
+the class {\tt cCalculator} step in.  The class {\tt cCalculator} is an interface
+class that gives access to calculation of generated code.
 
 Basically,  a {\tt cCalculator} is an abstraction of real function,
 if we have a formula with $n$ unkonwns that compute $m$ value and their partial derivatives,
 the function will be $\RR^n \rightarrow \RR^{(n+1)*m}$. 
-The function {\tt DoOneEval} take as parameter two vector, one for variable and the other
-for observation and return the vector value (of size $(n+1)*m$).
+The function {\tt DoOneEval} take as parameter two vectors, one for variable and the other
+for observations, and return the vector value (of size $(n+1)*m$).
 
-The {\tt cCoordinatorF} inherit of class {\tt cCalculator}, it can the compute the
+The {\tt cCoordinatorF} inherits of class {\tt cCalculator}, it can  compute the
 value of formulas, by the way it's an interpreted mode and is not very efficient.
-In the code generated, the class also inherit from {\tt cCalculator},  they
-use the generated code to compute the value of {\tt DoOneEval} which is quite efficient,
+In the code generated, the class generated also inherit from {\tt cCalculator},  they
+use the generated code to compute efficiently the value in {\tt DoOneEval} ,
 and they can be manipulated via the unique interface of a {\tt cCalculator}
-(in fact in {\tt MMVII}, the "devlopper/user" of this service do not load
-directly the file generated, he just get an object from its name).
-
-
+(in fact in {\tt MMVII}, the "devlopper/user" of this service do not need to load
+directly the file generated, he can just get an object from its name).
 
 %-----------------------------------------------------
 %-----------------------------------------------------
@@ -271,8 +273,8 @@ directly the file generated, he just get an object from its name).
 
 \section{Classes for  formula}
 
-There exist $3$ main class that derive from the class {\tt cImplemF}, these $3$ classes
-correspond to the case where the formula has $0,1$ or $2$ sub-formula.
+There exists $3$ main class that derive from the class {\tt cImplemF}, these $3$ classes
+correspond to the cases where the formula has $0,1$ or $2$ sub-formula.
 
       %-----------------------------------------------------
 \subsection{Atomic formula}
@@ -281,10 +283,10 @@ The atomic formula are the "final" (or "primitive" formula) .  The base
 class for them is {\tt cAtomicF}, there is now $3$ atomic derived class, and
 probably it will stay like that. The $3$ atomic formula are : 
 class for unknowns $x_1,x_2\dots$ ({\tt cUnknownF}), class for constants ({\tt cConstantF}),
-and class for observation ({\tt cObservationF}).
+and class for observations ({\tt cObservationF}).
 
 It should be pretty obvious what {\tt cUnknownF}  and {\tt cConstantF} represent.
-Class {\tt cObservationF} is a bit less intuitive , consider the equation of 
+Class {\tt cObservationF} is a less intuitive : consider the equation of 
 $2d$ network  where we want to enforce the euclidean distance between $P_1=(x_1,y_1)$ and $P_2=(x_2,y_2)$
 to be equal to $D_0$:
 
@@ -297,13 +299,27 @@ the partial derivative relative to them. In the partial derivative $\frac{\parti
 the $2$ is a contant we know it's value a time of code generation.
 
 The status of $D_0$ is different, we don't know its value at time of code generation, but a run time
-it has a value that will not change and it's not an unknown and for any variable $x_k$  we have $\frac{\partial D_0}{x_k} =0$.
+it has a value that will not change because it's not an unknown and for any variable $x_k$  we have $\frac{\partial D_0}{x_k} =0$.
 $D_0$ can be interpreted as constant whose value will only be fixed at runtime.
 
 
 
       %-----------------------------------------------------
 \subsection{Unary formula}
+
+      %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Generatlities}
+
+Unary operator are defined in file {\tt SymbDer/SymbDer\_UnaryOp.h}. The unary operator
+will derive from class is {\tt cUnaryF}, which itself derive from {\tt cImplemF}.
+
+
+      %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Existing operators}
+
+      %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Defining new operators}
+
       %-----------------------------------------------------
 \subsection{Binary formula}
 
@@ -312,10 +328,10 @@ $D_0$ can be interpreted as constant whose value will only be fixed at runtime.
 
 \subsection{Reduction rules}
 
-To accelerate the compiled code, several reduction rules are used when 
+To have a faster generated code, several reduction rules are used when 
 constructing the formulas. Also this may seems anecdotic,
 it has a non negligeable  impact on efficiency, as we can see with the equation~\ref{Form:Reduc}
-that gives a basic example using ,in first step, blindly the 
+that gives a basic example using, in a first step, blindly the 
 rule of automatic derivation and then applying reduction rule .
 We have two gains : first $x$ is obviously faster to compute than $0 * (y+2) + x * (1 + 0)$,
 and second it increase the likeliness to have code sharing . Note the time to do
@@ -323,7 +339,7 @@ these reductions themselve is taken in a "compilation/generation" step and not a
 (and by the way this compilation time it neglectible).
 
 \begin{equation}
-	\frac{\partial(x*(y+2))}{y}
+	\frac{\partial(x*(y+2))}{\partial y}
 	=  0 * (y+2) + x * (1 + 0)
 	\rightarrow x
 	\label{Form:Reduc}.
