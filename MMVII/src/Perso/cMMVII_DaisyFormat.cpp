@@ -410,7 +410,7 @@ cSpecMMVII_Appli  TheSpecDaisy
      "MediaDaisy",
       Alloc_Daisy,
       "This command is used to generate audio book to daisy format from mp3 files",
-      {eApF::Perso},
+      {eApF::Perso,eApF::NoGui},
       {eApDT::Xml},
       {eApDT::Xml},
       __FILE__

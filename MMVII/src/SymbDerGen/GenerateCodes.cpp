@@ -737,7 +737,7 @@ cSpecMMVII_Appli  TheSpecGenSymbDer
      "GenCodeSymDer",
       Alloc_GenCode,
       "Generation of code for symbolic derivatives",
-      {eApF::ManMMVII},
+      {eApF::ManMMVII,eApF::NoGui},
       {eApDT::ToDef},
       {eApDT::ToDef},
       __FILE__

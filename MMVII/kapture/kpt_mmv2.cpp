@@ -213,7 +213,7 @@ cSpecMMVII_Appli  TheSpecKapture
      "Kapture",
       Alloc_Kapture,
       "This command is used to test kapture API",
-      {eApF::Test},
+      {eApF::Test,eApF::NoGui},
       {eApDT::FileSys},
       {eApDT::None},
       __FILE__

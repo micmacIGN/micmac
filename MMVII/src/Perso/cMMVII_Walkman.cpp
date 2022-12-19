@@ -226,7 +226,7 @@ cSpecMMVII_Appli  TheSpecWalkman
      "MediaWalkman",
       Alloc_Walkman,
       "This command is used to make a random selection of music",
-      {eApF::Perso},
+      {eApF::Perso,eApF::NoGui},
       {eApDT::FileSys,eApDT::Media},
       {eApDT::Xml,eApDT::Media},
       __FILE__

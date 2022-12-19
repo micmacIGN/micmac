@@ -414,7 +414,7 @@ cSpecMMVII_Appli  TheSpecTestCpp11
      "Cpp11",
       Alloc_MMVII_Cpp11,
       "This command execute some test for to check my understanding of C++11",
-      {eApF::Test},
+      {eApF::Test,eApF::NoGui},
       {eApDT::None},
       {eApDT::Console},
       __FILE__
