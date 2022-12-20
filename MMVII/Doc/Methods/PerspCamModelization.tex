@@ -9,15 +9,15 @@
 
 In this chapter we introduce the mathematical model used in {\tt MMVII}
 for modelization of central perspective camera.  The majority (if not all)
-of images we manipulate in current life are central perspective camera, it includes
-smarthphone camera,  reflex camera,  most aerial camera \dots  In fact they are so common that
+of images we manipulate in current life are acquired by central perspective camera, it includes
+smarthphone cameras,  reflex cameras,  most aerial cameras \dots  In fact they are so common that
 it is easier to define camera that are not central  perspective :
 it include majority of satellite images and few aerial camera (like leica-ADS40).
 
 We start from the most basic model and introduce progressively different refinement,
-being cautious to justify by physic consideration all the parametric term we introduce.
-We also introduce the convention selected in {\tt MMVII} as there is several arbitrary choice
-that can be confusing.
+being cautious to justify by physic considerations all the parametric terms we introduce.
+We also introduce the convention selected in {\tt MMVII} as in photogrammetry/computer vision
+there are several arbitrary choices that may be confusing.
 
 %-----------------------------------------------------
 %-----------------------------------------------------
@@ -51,7 +51,7 @@ with the image plane.
 \subsection{Setting equations}
 
 To compute a mathematical relation between $x^c,y^c,z^c$ and $i,j$ we will introduce several hypothesis 
-and notation illustrated by figure~\ref{fig:Camera3DNote} :
+and notations illustrated by figure~\ref{fig:Camera3DNote} :
 
 \begin{figure}
 \centering
@@ -60,13 +60,13 @@ and notation illustrated by figure~\ref{fig:Camera3DNote} :
 \end{figure}
 
 \begin{itemize}
-	\item for $x,y,z$ we consider a local $3d$ repair $(O,\vec{i},\vec{j},\vec{k})$  where $O$ is the entrance hole,
+	\item for 3d coordinates, we consider a local $3d$ repair $(O,\vec{i},\vec{j},\vec{k})$  where $O$ is the entrance hole,
               $\vec{i},\vec{j}$ belongs to the image plane and $\vec{k}$ is orthogonal to  $\vec{i}$ and $\vec{j}$;
 
 	\item for $i,j$ we consider a image repair originated at one corner $c$ of the box;
 
 	\item we note $P^p$ (principal point)  the intersection of axe $O\vec{k}$  with the image plane,
-	      and $F$ (focal length) the distance between $PP$ and $O$.
+	      and $F$ (focal length) the distance between $P^p$ and $O$.
 
         \item we note $Q_3$  the $3d$ point corresponding to $q$.
 
@@ -83,7 +83,7 @@ To compute coordinates of $Q_3$ we can use chasles relation as indicated in equa
 	\label{PC:Chasles}
 \end{equation}
 
-Now remind that light having a straight walk, the $3$ point $Q_3$, $0$ and $P^c$ must be aligned,
+Now remind that light having a straight path, the $3$ point $Q_3$, $0$ and $P^c$ must be aligned,
 which can be wrotten by equation~\ref{PC:Alignment} :
 
 \begin{equation}
@@ -93,7 +93,7 @@ which can be wrotten by equation~\ref{PC:Alignment} :
 		\label{PC:Alignment}
 \end{equation}
 
-By a quotient  we can elimimnate $\lambda$ in~\ref{PC:Alignment} and obtain :
+By a simple quotient  we can elimimnate $\lambda$ in~\ref{PC:Alignment} and obtain :
 
 
 \begin{equation}
@@ -103,12 +103,12 @@ By a quotient  we can elimimnate $\lambda$ in~\ref{PC:Alignment} and obtain :
 \end{equation}
 
 %-----------------------------------------------------
-\subsection{Image formula, local}
+\subsection{Local image formula}
 
 The usage is to modiy the equation~\ref{PC:FormulaImaIntr1} by changing the sign of $F$;
 this comes to consider a camera model ,
  not physically feasible and slightly different from the camera obscura,  
-where the image plane is before the whole instead of behing, and that
+where the image plane is before the whole instead of behind, and that
 is illustrated by figure~\ref{fig:PcInvCam}.  
 
 \begin{figure}
@@ -127,10 +127,10 @@ local ground coordinates $P^c$  and image coordinate for this basic camera :
 	\label{PC:FormulaImaIntr2}
 \end{equation}
 
-Setting the canonical projection $\pi$:
+Setting the canonical projection $\pi_0$:
 
 \begin{equation}
-	  \pi \begin{pmatrix} x^c \\ y^c \\ z^c \end{pmatrix} 
+	  \pi_0 \begin{pmatrix} x^c \\ y^c \\ z^c \end{pmatrix} 
            =  \begin{pmatrix} \frac{x^c}{z^c} \\  \frac{x^c}{z^c}  \end{pmatrix} 
 \end{equation}
 
@@ -144,16 +144,16 @@ and the intrinsic calibration $ \mathcal{I}_0$ :
 we will write :
 
 \begin{equation}
-	q  =   \mathcal{I}_0 (\pi (P^c))
+	q  =   \mathcal{I}_0 (\pi_0 (P^c))
 \end{equation}
 
 
 %-----------------------------------------------------
-\subsection{Image formula, global}
+\subsection{Global image formula}
 
-Generally need to write the coordinate of $q$ as a function of the global coordinate $P$ or a point.
-For this we just have to write $P^c$ as a function of $P$, we use $C$ the center of the camera, and
-$R$ its orientation :
+Generally we need to write the coordinate of $q$ as a function of the global coordinate $P$ or a point.
+For this we just have to write the local coordinates $P^c$ as a function of global $P$, 
+we use $C$ the center of the camera, and $R$ its orientation :
 
 \begin{equation}
 	P =  C+ R *P_c
@@ -161,15 +161,26 @@ $R$ its orientation :
 
 Which give the image formula :
 \begin{equation}
-	q  =   \mathcal{I}_0 (\pi (^t R (P - C))) \label{FormImage0}
+	q  =   \mathcal{I}_0 (\pi_0 (^t R (P - C))) \label{FormImage0}
 \end{equation}
 
-This formula will follow us for a long time. The main thing that will evolve is $\mathcal{I}_0$
-that will become more complicated to take into account lenses used in real camera.
+This formula will follow us for a long time. The main thing that will evolve is $\mathcal{I}_0$,
+and later $\pi_0$,
+that will become more sophisticated to take into account lenses used in real camera.
 
 
 %-----------------------------------------------------
 \subsection{A remark on repair orientation}
+
+We have not discussed untill now which image repair is used for image coordnates $i,j$.
+The choice done in {\tt MMVII} is to use the coordinate system of majority of images
+processing solution; that is : $i$ is left to right and $j$ is up to bottom.
+
+As we aline  local repair $(O,\vec{i},\vec{j},\vec{k})$  on this coordinate system ,
+and we want a direct $3d$ repair with $\vec{k} = \vec{i} \wedge \vec{j} $, this
+has for consequences that the axe $O\vec{k})$ is in the viewewing direction of the
+camera.  The figure~\ref{fig:FormIm} illustrates this convention;
+
 
 \begin{figure}
 \centering
@@ -183,6 +194,21 @@ that will become more complicated to take into account lenses used in real camer
 %-----------------------------------------------------
 
 \section{Radial modelisation}
+
+\subsection{Introduction}
+
+With the camera obscura, to have a sharp image we must keep a small entrance hole;
+so to have enouh light we need very long exposure time. The devlopment of photography
+would not have been possible without the devlopment of optic. By puting a systeme
+of lenses at the entrance of the system, and being caution that the  scene focalise
+on the image plane, it was possible to have a sharp image whith a sufficiently big
+hole and make photography practicable.
+
+Nowday all the camera have more or less complicated system of lenses. In fact due the
+automatization of the computer added conception they tend to be more and more complex, the concepter
+using the possibility offered by multiple lenses to correct 
+
+
 
 
 %-----------------------------------------------------

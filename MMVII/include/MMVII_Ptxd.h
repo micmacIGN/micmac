@@ -35,6 +35,7 @@ template <class Type,const int Dim> class cPtxd
     public :
        typedef typename  tNumTrait<Type>::tBig               tBigNum ;
        typedef cPtxd<Type,Dim>                               tPt;
+       typedef Type                                          tEl;
        // To see later (C Meynard ?) why this create compile pb
        // typedef typename  tElemNumTrait<Type>::tFloatAssoc    tReal;
        //typedef cPtxd<tReal,Dim>                              tPtR;
@@ -332,7 +333,13 @@ template <class Type> inline cPtxd<Type,4> operator / (const cPtxd<Type,4> & aP,
 template <class T,const int Dim> double NormK(const cPtxd<T,Dim> & aP,double anExp) ;
 template <class T,const int Dim> T Norm1(const cPtxd<T,Dim> & aP);
 template <class T,const int Dim> T NormInf(const cPtxd<T,Dim> & aP);
-template <class T,const int Dim> double Norm2(const cPtxd<T,Dim> & aP);
+
+// template <class T,const int Dim> typename tNumTrait<T>::tFloatAssoc Norm2(const cPtxd<T,Dim> & aP);
+template <class T,const int Dim> typename tNumTrait<T>::tFloatAssoc Norm2(const cPtxd<T,Dim> & aP)
+{
+   return sqrt(SqN2(aP));
+}
+// template <class T,const int Dim> double Norm2(const cPtxd<T,Dim> & aP);
 
 template <class T,const int Dim> typename tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 template <class T,const int Dim> typename tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> & aP);

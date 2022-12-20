@@ -43,7 +43,8 @@ class cDist2DConservation
 	  const auto aCst1 = CreateCste(1.0,p1.x());  // create a symbolic formula for constant 1
 
 
-          return { sqrt(square(v.x())+square(v.y()))/ObsDist - aCst1 } ;
+          return { Norm2(v)/ObsDist - aCst1 } ;
+          // return { sqrt(square(v.x())+square(v.y()))/ObsDist - aCst1 } ;
      }
 };
 
@@ -79,9 +80,9 @@ class cRatioDist2DConservation
           const auto & Obs_d13  = aVObs[1];  
           const auto & Obs_d23  = aVObs[2];  
 
-          const auto r12 =  sqrt(square(v21.x()) + square(v21.y())) / Obs_d12 ;
-          const auto r13 =  sqrt(square(v31.x()) + square(v31.y())) / Obs_d13 ;
-          const auto r23 =  sqrt(square(v32.x()) + square(v32.y())) / Obs_d23 ;
+          const auto r12 =  Norm2(v21) / Obs_d12 ;
+          const auto r13 =  Norm2(v31) / Obs_d13 ;
+          const auto r23 =  Norm2(v32) / Obs_d23 ;
           return { r12-r13,r12-r23,r13-r23};
      }
 };

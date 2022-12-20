@@ -30,12 +30,14 @@ class cDist3D
                       const std::vector<tObs> & aVObs
                   ) // const
     {
-          auto p1 = VtoP3(aVUk,0);
-          auto p2 = VtoP3(aVUk,3);
-          auto v  = p1-p2;
+          typedef cPtxd<tUk,3> tPt;
+          tPt p1 = VtoP3(aVUk,0);
+          tPt p2 = VtoP3(aVUk,3);
+          tPt v  = p1-p2;
 
-          const auto & ObsDist  = aVObs[0];
-          return { sqrt(square(v.x())+square(v.y())+square(v.z())) - ObsDist } ;
+          const tUk & ObsDist  = aVObs[0];
+          // return { sqrt(square(v.x())+square(v.y())+square(v.z())) - ObsDist } ;
+          return {  Norm2(v) - ObsDist } ;
      }
 };
 
@@ -51,15 +53,18 @@ class cDist3DParam
              static std::vector<tUk> formula
                   (
                       const std::vector<tUk> & aVUk,
-                      [[maybe_unused]] const std::vector<tObs> & aVObs
+                      const std::vector<tObs> & 
+                      // [[maybe_unused]] const std::vector<tObs> & aVObs
                   ) // const
     {
-          const auto & d  = aVUk[0];
-          auto p1 = VtoP3(aVUk,1);
-          auto p2 = VtoP3(aVUk,4);
-          auto v  = p1-p2;
+          typedef cPtxd<tUk,3> tPt;
 
-          return { sqrt(square(v.x())+square(v.y())+square(v.z())) - d } ;
+          const tUk & d  = aVUk[0];
+          tPt p1 = VtoP3(aVUk,1);
+          tPt p2 = VtoP3(aVUk,4);
+          tPt v  = p1-p2;
+
+          return { Norm2(v) - d } ;
      }
 };
 
@@ -78,21 +83,23 @@ class cTopoSubFrame
                       const std::vector<tObs> & aVObs
                   ) // const
     {
+          typedef cPtxd<tUk,3> tPt;
+
           assert (aVUk.size() == 3+3+3) ;  // SD::UserSError("Bad size for unknown");
           assert (aVObs.size()== 9+3) ;// SD::UserSError("Bad size for observations");
-          auto dr = VtoP3(aVUk,0);
-          auto p1 = VtoP3(aVUk,3);
-          auto p2 = VtoP3(aVUk,6);
+          tPt dr = VtoP3(aVUk,0);
+          tPt p1 = VtoP3(aVUk,3);
+          tPt p2 = VtoP3(aVUk,6);
 
-          auto v   = VtoP3(aVObs,(9));
+          tPt v   = VtoP3(aVObs,(9));
 
           //M=target
           //S=Station
           //MS=M-S, compensated vector in global frame
-          auto  MS = p2-p1;
+          tPt  MS = p2-p1;
 
           //U=R*MS: compensated vector in sub frame (U0: without tiny rotation)
-          auto U0 = MulMat(aVObs,0,MS);  // multiply by a priori rotation
+          tPt U0 = MulMat(aVObs,0,MS);  // multiply by a priori rotation
 
            // Now "tiny" rotation
            //  Wx      X      Wy * Z - Wz * Y
@@ -100,12 +107,12 @@ class cTopoSubFrame
            //  Wz      Z      Wx * Y - Wy * X
 
             //  P =  P0 + W ^ P0
-           auto U = U0 + (dr ^ U0);
+           tPt U = U0 + (dr ^ U0);
            /*auto  Ux = Ux0 + b * Uz0 - c * Uy0;
            auto  Uy = Uy0 + c * Ux0 - a * Uz0;
            auto  Uz = Uz0 + a * Uy0 - b * Ux0;*/
 
-           auto err = U-v;
+           tPt err = U-v;
           return { err.x(), err.y(), err.z() } ;
      }
 };

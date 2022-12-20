@@ -22,6 +22,7 @@ template <> class tNumTrait<cFormula <tREAL8> >
         // static bool IsInt() {return true;}
         typedef cFormula<tREAL8>  tBase;
         typedef cFormula<tREAL8>  tBig;
+        typedef cFormula<tREAL8>  tFloatAssoc;
         static void AssertValueOk(const cFormula<double> & ) {}
 };
 

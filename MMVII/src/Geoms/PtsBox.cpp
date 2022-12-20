@@ -298,14 +298,6 @@ template <class Type,const int Dim> double NormK(const cPtxd<Type,Dim> & aPt,dou
    return pow(aRes,1/anExp);
 }
 
-template <class Type,const int Dim> double Norm2(const cPtxd<Type,Dim> & aPt)
-{
-   double aRes = Square(aPt[0]);
-   for (int aD=1 ; aD<Dim; aD++)
-      aRes += Square(aPt[aD]);
-   return sqrt(aRes);
-}
-
 template <class Type,const int Dim> Type Norm1(const cPtxd<Type,Dim> & aPt)
 {
    Type aRes = std::abs(aPt[0]);
@@ -1143,7 +1135,6 @@ template typename cPtxd<TYPE,DIM>::tBigNum cPtxd<TYPE,DIM>::MinSqN2(const std::v
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitNonAligned(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  double NormK(const cPtxd<TYPE,DIM> & aPt,double anExp);\
-template  double Norm2(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE Norm1(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE NormInf(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE MinAbsCoord(const cPtxd<TYPE,DIM> & aPt);\
