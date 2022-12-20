@@ -162,7 +162,7 @@ A formula is the {\tt C++} equivalent of the tree/DAG, basically formula work th
 		  \item if some simplication rule specific to the operator exist (like $F*1=F$) they are applied;
                \end{itemize}
 	       
-        \item  a formula contains several virtual method indicating how to 
+        \item  a formula contains several virtual methods indicating how to 
                \begin{itemize}
 		       \item  compute its value (used in interpreted mode, not usefull for code generation)
 		       \item  computes its derivative by return a new formula;
@@ -202,12 +202,12 @@ std::string GenCodeDef() const override
 \subsection{Coordinator}
 
 Generating the DAG, requires some coordination between the formulas created.
-As we want to create a DAG with  minimal number of node, we must keep track
+As we want to create a DAG with  minimal number of nodes, we must keep track
 of all already existing formulas created for a specific task.
 This is where the class {\tt cCoordinatorF} is usefull,  it creates a dictionnary ({\tt std::map})
-that store the association "name/Formula created".  So the coordinator "knows" all the 
+that stores the association "name/Formula created".  So the coordinator "knows" all the 
 formula that belongs to it while each formula "knows" its coordinator. Also the coordinator
-associate to each new formula a unique number.
+associates to each new formula a unique number.
 
 Let illustrate on an example how it works :
 
@@ -299,7 +299,8 @@ the partial derivative relative to them. In the partial derivative $\frac{\parti
 the $2$ is a contant we know it's value a time of code generation.
 
 The status of $D_0$ is different, we don't know its value at time of code generation, but a run time
-it has a value that will not change because it's not an unknown and for any variable $x_k$  we have $\frac{\partial D_0}{x_k} =0$.
+it has a value that will not change because it's not an unknown and for 
+any variable $x_k$  we have $\frac{\partial D_0}{\partial x_k} =0$.
 $D_0$ can be interpreted as constant whose value will only be fixed at runtime.
 
 
@@ -310,23 +311,152 @@ $D_0$ can be interpreted as constant whose value will only be fixed at runtime.
       %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Generatlities}
 
-Unary operator are defined in file {\tt SymbDer/SymbDer\_UnaryOp.h}. The unary operator
-will derive from class is {\tt cUnaryF}, which itself derive from {\tt cImplemF}.
+Unary operator are defined in file {\tt SymbDer/SymbDer\_UnaryOp.h}. Class for implementing unary operator
+will derive from class  {\tt cUnaryF}, which itself derive from {\tt cImplemF}.
 
+
+For definining a new unary operator we will take the example of the square operator   $square : x \rightarrow x^2$.
+We must indicate several information, most are located in class {\tt cSquareF}:
+
+\begin{itemize}
+	\item   the static method {\tt Operation} simply describes the function itself $x \rightarrow x^2$, it will be  used
+		in the reduction rule $ \alpha (C(a)) \rightarrow C(\alpha (a)) $ defined in~\ref{Reduc:Rule};
+	
+	\item  the static method {\tt StaticNameOperator} return the name of the  operator as a string {\tt "square"}, 
+		it is used in code generation and to associate a unique identier to the formula (create an
+		identifier like {\tt "square F70"}, where  {\tt "F70"} is the formula with number $70$);
+
+	\item  the method {\tt ComputeBuf} does conceptually same thing as {\tt Operation} , but is used when
+		applied to a buffer of data containing several values, (it is used interpretade mode, 
+		not for code generation);
+
+	\item  the method {\tt  Derivate}  return \emph{as a formula} the derivate $\frac{\partial F^2}{\partial x_k}$
+		of the formula $F$ relatively to variable $x_k$;
+
+        \item note also method {\tt NameOperator} ,it's  a virtual interface to method {\tt StaticNameOperator}
+		(the code of this method which will be always the same).
+\end{itemize}
+
+Finaly we must also define a operator {\tt square} that work on formula and such that {\tt square(Formula F)} 
+return a pointer on a object of type {\tt cSquareF}.  It's a bit more complicated than just creating
+the pointer we must :
+
+\begin{itemize}
+    \item  check in the coordinator if there is already such formula, and if yes return it;
+    \item  else check if  {\tt F} if a constant and if yes apply reduction;
+    \item  else create the formula, and indicate to coordinator that it exist.
+\end{itemize}
+
+As all this action are systematcic, they can be done in  a generic way, this is done by the class 
+template {\tt cGenOperatorUnaire}. So the definition of {\tt square(Formula F)} using this class
+is pretty simple :
+
+\begin{lstlisting}[language=c++]
+template <class TypeElem> inline cFormula<TypeElem>  square(const cFormula<TypeElem> & aF)
+{
+    return cGenOperatorUnaire<cSquareF<TypeElem> >::Generate(aF);
+}
+\end{lstlisting}
 
       %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Existing operators}
 
+Also it is relatively easy to define new operators usign the scheme of {\tt  square}, a certain number have been
+pre-defined :
+
+\begin{itemize}
+    \item integer power {\tt square}, {\tt cube},{\tt pow4}, {\tt pow5},{\tt pow6},{\tt pow7},
+     \item unitary minus {\tt -};
+     \item trigonometric {\tt cos} and  {\tt sin};
+     \item {\tt exp} and  {\tt log};
+     \item {\tt sqrt}.
+\end{itemize}
+
+There is also {\tt pow8} and {\tt pow9}, that for now use the binary {\tt pow};
+and finally {\tt powI(Formula,int)} that return one of the following.
+
       %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-\subsubsection{Defining new operators}
+\subsubsection{New operator in one line with a Macro}
+
+If one takes a look at definition of class of operator, it's obvious that it's quite repetitive;
+it should be possible to define new unary operator with minimal additionnal of code.
+
+This is possible using the macro {\tt MACRO\_SD\_DEFINE\_STD\_UNARY\_FUNC\_OP\_DERIVABLE}
+defined in {\tt SymbDer\_MACRO.h}.
+Do have a differentiable operator on formula, we just need to indicate the name
+of the function computing the values, the name of the function computing the derivative,
+and the namespace where they are defined.
+
+The easiest is to take the example of sinus-cardinal defined in  {\tt SymbDer\_MACRO.h}.
+To define a new operator we need to have a functions on real values that compute $\sinc$ and a function
+that compute $\frac{\partial \sinc}{\partial x}$  this is {\tt DerSinC}.  In {\tt MMVII} these function have been
+defined in file  {\tt src/UtiMaths/uti\_fonc\_analytique.cpp}. 
+
+
+\begin{lstlisting}[language=c++]
+MACRO_SD_DEFINE_STD_UNARY_FUNC_OP_DERIVABLE(MMVII,sinC,DerSinC)
+\end{lstlisting}
+
+This macro does several things :
+
+\begin{itemize}
+	\item  declare the existence of operators {\tt sinC} and {\tt DerSinC} that works on formula;
+
+	\item  define the classes  {\tt csinC} and {\tt cDerDinC} that inherits of {\tt cUnaryF};
+		note that {\tt csinC}  will call the operator {\tt DerSinC} in method {\tt Derivate},
+		while for {\tt cDerDinC}  we make the choice of having no meaningfull derivate
+		(its {\tt Derivate} calls the method {\tt UndefinedOperUn};
+
+	\item  declare the operators {\tt sinC} and {\tt DerSinC} , this definition must occurs  after the class
+		definition.
+\end{itemize}
+
+The macro is pretty simple to use, the price it that it make choices that will not be always pertinent.
+For example the choice that {\tt DerSinC} is not itself derivable may not be acceptable.
+In this case it is possible to have a finer tuning usign piece by piece the $3$ macro
+
+\begin{lstlisting}[language=c++]
+MACRO_SD_DECLARE_STD_UNARY_FUNC_OP
+MACRO_SD_DEFINE_STD_cUnaryF
+MACRO_SD_DEFINE_STD_UNARY_FUNC_OP
+\end{lstlisting}
+
+An example is done in file {\tt src/SymbDerGen/Formulas\_CamStenope.h} with the function
+{\tt cosh} and {\tt sinh}  (hyperbolic trigonometric functions).
+
 
       %-----------------------------------------------------
 \subsection{Binary formula}
 
+The implemantation of binary formula is pretty much the same than the implementation for unary formula,
+the main difference being that binary formula contains 2 sub-formula $F_1$ and $F_2$ \dots
 
-\subsection{Macro for new operators}
+The code for is located in {\tt SymbDer\_BinaryOp.h}.  The base class of all binary formula is
+{\tt cBinaryF}.  Binary formula have some method that are used exclusively in the reduction process 
+as {\tt IsAssociatif},  {\tt IsDistribExt} and {\tt IsDistribExt}  (and probably usefull only
+for the $4$ operator $+-*/$, so default value should work for all new binary operator).
+
+There is $5$ binary operators defined in  {\tt SymbDer\_BinaryOp.h} : $+*/-$ and $pow$.
+
+Like with unary operators, {\tt MACRO\_SD\_DEFINE\_STD\_BINARY\_FUNC\_OP\_DERIVABLE}
+make possible to create a new binary operator with a single macro.
+This macro take one more parameters than unary one, becasuse  we must indicate the two
+derivative by each of the parameter to apply the rule :
+
+\begin{equation}
+        \frac{\partial (F_1 \otimes F_2)} {\partial x_k} 
+     =   \frac{\partial F_1 } {\partial x_k} * \frac{\partial (F_1 \otimes F_2)} {\partial F_1} 
+       + \frac{\partial F_2 } {\partial x_k} * \frac{\partial (F_1 \otimes F_2)} {\partial F_2} 
+\end{equation}
+
+Examples can be found in {\tt Formulas\_CamStenope.h}.
+
+
+      %-----------------------------------------------------
 
 \subsection{Reduction rules}
+
+\label{Reduc:Rule}
 
 To have a faster generated code, several reduction rules are used when 
 constructing the formulas. Also this may seems anecdotic,
@@ -372,5 +502,10 @@ We give a, non exhaustive, list of these rules, :
 \end{itemize}
 
 
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Code generation}
 
 

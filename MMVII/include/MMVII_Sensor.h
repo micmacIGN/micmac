@@ -281,9 +281,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPRadiom;
 	  cDirsPhProj     mDPMeshDev;
 
-
 	  std::list<cSensorCamPC*>  mLCam2Del; 
-
 };
 
 

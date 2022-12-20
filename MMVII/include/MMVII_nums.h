@@ -788,6 +788,10 @@ template <typename Type> Type DerX_ATan2(const Type & aX,const Type & aY);
 template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY);
 
 
+/// Sinus hyperbolic
+template <typename Type> Type sinH(const Type & aTeta);
+/// CoSinus hyperbolic
+template <typename Type> Type cosH(const Type & aTeta);
 
 
 
