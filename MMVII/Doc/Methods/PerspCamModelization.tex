@@ -138,7 +138,7 @@ and the intrinsic calibration $ \mathcal{I}_0$ :
 
 \begin{equation}
 	   \mathcal{I}_0  \begin{pmatrix} u \\  v  \end{pmatrix} 
-        =  P^p + F  \begin{pmatrix} u \\  v  \end{pmatrix}
+		   =  P^p + F  \begin{pmatrix} u \\  v  \end{pmatrix}  \label{EqIntNoDist}
 \end{equation}
 
 we will write :
@@ -193,9 +193,10 @@ camera.  The figure~\ref{fig:FormIm} illustrates this convention;
 %-----------------------------------------------------
 %-----------------------------------------------------
 
-\section{Radial modelisation}
+\section{Beyond camera obscura}
 
-\subsection{Introduction}
+%-----------------------------------------------------
+\subsection{Need of lenses}
 
 With the camera obscura, to have a sharp image we must keep a small entrance hole;
 so to have enouh light we need very long exposure time. The devlopment of photography
@@ -206,7 +207,86 @@ hole and make photography practicable.
 
 Nowday all the camera have more or less complicated system of lenses. In fact due the
 automatization of the computer added conception they tend to be more and more complex, the concepter
-using the possibility offered by multiple lenses to correct 
+using the possibility offered by multiple lenses to correct more and more optical default .
+
+For photogrammetry it change the game, because the lenses being not "infinitely thin", the gauss
+condition non longer apply and some non linearity will occur , we will no longer be able to use
+equation as simple as~\ref{EqIntNoDist} and will have to modelize accurately the effect of
+lenses. 
+
+
+%-----------------------------------------------------
+\subsection{A parametric estimation issue}
+
+A possible way to proceed would be to take into account the CAD plane of the optical
+system, use in conception and to deduce the correction.  Practically, we almots never proceed
+this way for two reason  :
+
+\begin{itemize}
+   \item firt this CAD plane are rarely avalaible (maybe due to industrial property ?);
+   \item second, and more important, the experience prove that when we proceed to the
+         modelization of two lenses from the same model, we have to modelize them with two
+         different parameter if we want to get the best accuracy, so no theoreticall model 
+         would fit our requirement.
+\end{itemize}
+
+So the approach currently used in photogrammetry is to select a parametric model
+for the effect of lenses and to estimate the paramaters from the measures we have  (tie-point,
+GCP, GNSS  \dots).
+
+
+%-----------------------------------------------------
+\subsection{Precaution to take}
+
+This empiricall approach does not prevent from being cautious
+to the selection of model, we will have the usual compromise in the selection
+of the parametric model, illustrated by figure ???  on a problem of curve interpolation:
+
+
+\begin{itemize}
+   \item if we don't have enough paramater we are not accurate  even on the data to fit,
+	   here if we fit with a parabol we are not close to the learning data;
+
+   \item if we  have too many parameter, we can have a very good match on the learning data, but have 
+	 poor result as soon as we test with new data; this illustrated with  figure ??? were
+         we use the "naive" lagrange interpolation to fit $N+1$ point with a $N$ degree polynomial,
+         we have a perfect fit and the learning data, but a very
+\end{itemize}
+
+The question of selecting the adequate model is a difficult one, and to our best knowledge
+still open in photogrammetry.  Is it preferable to have over or under paramatrization ? There
+is controvorsery arguments :
+
+
+\begin{itemize}
+   \item  on one hand, as illustrated by figure ???, on can argue that under parametrization is less dangerous
+         than over parametrization;
+
+   \item  on the other hand, in "modern" photogrammetry the measurement comes more and more from automatic system,
+          we can easily have several ten thousands of tie points, so one can argue that there is no real risk to have $100$ parameter
+          even if we only really need $10$.
+\end{itemize}
+
+Consequently, it was thought, that the best we can do in {\tt MMVII} is to offer a sufficient large set of model
+of camera, from the simple ones to the most universal one, and let the user select them according to
+the precise knowledge of his domain. 
+
+However, even is this choice of parameter is not easy, there is
+one universal rule : if can be good in interpolation, we are always bad in extrapolation. A 
+consequence when will estimate the model of a camera : if we have no measurement in the corners,
+we are almost sure that the model 
+
+In the next section we are going to introduce step by step, different model with a continuous
+refinement of the physical modelization.  At the end, the only hypothesis that we maintain from
+equation~\ref{EqIntNoDist} is that all the bundle issued from image plane go through the same 
+point $C$~\footnote{maybe at the end of {\tt MMVII} project we will test option to relax this hypothesis}.
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Radial modelisation}
 
 
 
