@@ -390,32 +390,29 @@ from this name with the functio {\tt  EqConsDist(bool WithDerive,int aSzBuf)}.
 
 The definition in {\tt GenerateCodes.cpp }  is pretty basic :
 
-
-\tiny
 \begin{lstlisting}
 cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf)
 {
     return cName2Calc<double>::CalcFromName(NameFormula(cDist2DConservation(),WithDerive),aSzBuf);
 }
 \end{lstlisting}
-\normalsize
+
 
 And the declaration in a header file (here {\tt MMVII\_PhgrDist.h} ) :
 
-\tiny
+
 \begin{lstlisting}
-NS\_SymbolicDerivative::cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf);
 \end{lstlisting}
-\normalsize
 
 Now from the user side, the only things we need to do is calling  {\tt EqConsDist}. This
 correspond in file {\tt BenchResolSysNonLinear.cpp}  to line :
 
-\tiny
+
 \begin{lstlisting}
      mCalcD =  EqConsDist(true,1);
 \end{lstlisting}
-\normalsize
+
 
 %---------------------------------------------
 %---------------------------------------------
@@ -512,11 +509,9 @@ one correspond to a value of enumeration {\bf \tt eModeSSR} :
 The basic constructor take as parameter an enum value for specifying
 the least square solver and an initial value :
 
-\tiny
 \begin{lstlisting}
        cResolSysNonLinear(eModeSSR,const tDVect & aInitSol);
 \end{lstlisting}
-\normalsize
 
 
 It is also possible to create a solver with  an explicit least square solver.
@@ -533,11 +528,9 @@ from the user.
 The tag  {\tt  BASIC:CALC} in {\tt BenchResolSysNonLinear.cpp} contain an example of such use.
 The method for adding an observation is named {\tt CalcAndAddObs} :
 
-\tiny
 \begin{lstlisting}
     void   CalcAndAddObs(tCalc * aCalc,const tVectInd & aVI,const tStdVect& aVObs,const tResidualW & aWeighter= tResidualW());
 \end{lstlisting}
-\normalsize
 
 The $4$ parameters are :
 
@@ -585,12 +578,10 @@ for adding the equation on unknowns after having done the elimination of tempora
 The structure is {\tt cSetIORSNL\_SameTmp<Type>}, the method for accumulating 
 equation has the signature :
 
-\tiny
 \begin{lstlisting}
-    void  AddEq2Subst (tSetIO\_ST & aSetIO,tCalc *,const tVectInd &,
+    void  AddEq2Subst (tSetIO_ST & aSetIO,tCalc *,const tVectInd &,
                        const tStdVect& aVObs,const tResidualW & aWeighter= tResidualW());
 \end{lstlisting}
-\normalsize
 
 In this method {\tt aVObs} and {\tt aWeighter} are identic to the equivalent in
 {\tt CalcAndAddObs}. For the others :
