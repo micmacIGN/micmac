@@ -238,16 +238,27 @@ GCP, GNSS  \dots).
 %-----------------------------------------------------
 \subsection{Precaution to take}
 
+\begin{figure}
+\centering
+\includegraphics[width=6cm]{Methods/Images/Courbe-Pts.jpg}
+\includegraphics[width=6cm]{Methods/Images/CourbeGoodParam.jpg}\\
+\includegraphics[width=6cm]{Methods/Images/Courbe-UndeParam.jpg}
+\includegraphics[width=6cm]{Methods/Images/CourbeOverParam.jpg}
+	\caption{(1)Curves to interpolate (2) "Good" parametrization (3) Under parametrization (4) Over parametrization}
+	\label{fig:CurvesParam}
+\end{figure}
+
+
 This empiricall approach does not prevent from being cautious
 to the selection of model, we will have the usual compromise in the selection
-of the parametric model, illustrated by figure ???  on a problem of curve interpolation:
+of the parametric model, illustrated by figure~\ref{fig:CurvesParam}  on a problem of curve interpolation:
 
 
 \begin{itemize}
-   \item if we don't have enough paramater we are not accurate  even on the data to fit,
-	   here if we fit with a parabol we are not close to the learning data;
+	\item if we don't have enough paramater (curve 3) we are not accurate  even on the data to fit,
+	   here if we fit with a parabol we are not close to the learning data ;
 
-   \item if we  have too many parameter, we can have a very good match on the learning data, but have 
+   \item if we  have too many parameter (curve 4), we can have a very good match on the learning data, but have 
 	 poor result as soon as we test with new data; this illustrated with  figure ??? were
          we use the "naive" lagrange interpolation to fit $N+1$ point with a $N$ degree polynomial,
          we have a perfect fit and the learning data, but a very
@@ -271,16 +282,86 @@ Consequently, it was thought, that the best we can do in {\tt MMVII} is to offer
 of camera, from the simple ones to the most universal one, and let the user select them according to
 the precise knowledge of his domain. 
 
+\begin{figure}
+\centering
+	\includegraphics[width=6cm]{Methods/Images/CourbeExrapol.jpg}
+	\caption{Extrapolation}
+	\label{fig:CurvesExtrpol}
+\end{figure}
+
 However, even is this choice of parameter is not easy, there is
-one universal rule : if can be good in interpolation, we are always bad in extrapolation. A 
+one universal rule : if can be good in interpolation, we are always bad in extrapolation
+as illustrated on figure~\ref{fig:CurvesExtrpol}. A 
 consequence when will estimate the model of a camera : if we have no measurement in the corners,
-we are almost sure that the model 
+we are almost sure that we have measurement in the corners.
+
+%-----------------------------------------------------
+\subsection{Still a central perspective, with a distorsion}
 
 In the next section we are going to introduce step by step, different model with a continuous
-refinement of the physical modelization.  At the end, the only hypothesis that we maintain from
-equation~\ref{EqIntNoDist} is that all the bundle issued from image plane go through the same 
-point $C$~\footnote{maybe at the end of {\tt MMVII} project we will test option to relax this hypothesis}.
+refinement of the physical modelization.  
 
+\begin{figure}
+\centering
+	\includegraphics[width=8cm]{Methods/Images/CamPersp.jpg}
+	\caption{Ligth path, all outing bundle converge to $C$}
+	\label{fig:CamPerspScheme}
+\end{figure}
+
+The only hypothesis that we will maintain all allong these pages is that all the bundle issued from image
+plane go through the same point $C$. This is schematised by figure~\ref{fig:CamPerspScheme} :
+how complicated may be the ligth path inside the camera, we still have the property that
+it exist a virtual point $C$, such that for any image point $q_i$, the bundle $B_i$ that lead to $q_i$
+all go trough $C$.
+
+This hypothesis is universally adopted, and justified because we still have a diaphragam that physicall contraint
+the light to go trough it centers; of course the light will cross lenses before converning to this diaphragm but, 
+, under gaussian approximation the reciproc image of converging bundle are converging bundles.
+To our knowledge, the only practicle cases where this hypothesis may be questionned are macro-photogrammetry and
+sub-marine photogrammetry. We will discuss that ???. And maybe in the furture of {\tt MMVII} project we will 
+test option to relax this hypothesis.
+
+With this hypothesis, the image formation equation~\ref{FormImage0} still holds if
+we add a supplentary $2d$ image deformation. Suppose in the initial simplistic camera
+obscura, or even in a camera lenses satisfying gaussian approximation, 
+the bundle $B_i$ would have arrived in $q^0_i$, now with the not thin lenses ,
+it really arrive in $q_i$, we call $\phi$ the $2d$ mapping such that $\phi : q^0 \rightarrow q$.
+With $ \mathcal{I}(q) = \phi (\mathcal{I}_0(q))  $, we have now :
+
+
+\begin{equation}
+	q  =   \mathcal{I} (\pi_0 (^t R (P - C)))
+\end{equation}
+
+By the way, for technicall reason we prefer to write : $ \mathcal{I}(q) = \mathcal{I}_0(D(q)) $ ; 
+the reason being numericall stability of least square system, we prefer to have $D$ operate on adimentionnal numbers
+(i.e as $\frac{x}{z}$).  The two modelization being obvioulsy equivalent from the pure mathematicall point of view :
+as $D= \mathcal{I}_0^{-1} \circ \phi \circ  \mathcal{I}_0$.
+
+
+%-----------------------------------------------------
+\subsection{Summary : new image formula}
+
+We note $D$ the additional term, classically named as distorsion. We assume for now that the gaussian approximation
+globally holds,  this is the case with standard lenses, and then $D$ can be assumed to be close to identity.
+This will not be the case with fish-eye, and we will see that we will proceed by replacing $\pi_0$ by other
+projection.
+
+The following three equation summarize where we are :
+
+
+
+\begin{equation}
+	q  =   \mathcal{I} (\pi_0 (^t R (P - C))) ; \label{FormImage1}
+\end{equation}
+
+\begin{equation}
+	 \mathcal{I} = \mathcal{I}_0  \circ D
+\end{equation}
+
+\begin{equation}
+	  D \approx Id
+\end{equation}
 
 %-----------------------------------------------------
 %-----------------------------------------------------
@@ -288,6 +369,27 @@ point $C$~\footnote{maybe at the end of {\tt MMVII} project we will test option 
 
 \section{Radial modelisation}
 
+We start the modelization with two observation that are satisfied with a
+high accurracy :
+
+\begin{itemize}
+    \item  each individual lense has a radial symetry arround it opticall axe;:
+    \item  the mechaninal building is made so that all the lenses are aligned on
+	    their common optical axe.
+\end{itemize}
+
+
+These elementary remarks have for consequence that, how sophisticated may be the combinaison
+of many lenses, each having a complicated non spherical shape, we still have a global cylindrical
+symetry on our system. This illustrated by schemes of figure~\ref{fig:Lenses}.
+
+\begin{figure}
+\centering
+	\includegraphics[width=12cm]{Methods/Images/Lenses.jpg} \\
+	\includegraphics[width=8cm]{Methods/Images/LensesCyl.jpg}
+	\caption{A single lense , and modern }
+	\label{fig:Lenses}
+\end{figure}
 
 
 

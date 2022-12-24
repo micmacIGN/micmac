@@ -957,11 +957,16 @@ void ShowAdr(double & anAdr)
        StdOut () <<  "ADDDDDr " << &(anAdr) << "\n";
 }
 void TTT();
+void TestDNA();
 
 
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   if (1)
+   {
+       TestDNA();
+   }
    if (1)
    {
        StdOut()  <<   " ================  TEST INIT & SPEC ===================\n";
