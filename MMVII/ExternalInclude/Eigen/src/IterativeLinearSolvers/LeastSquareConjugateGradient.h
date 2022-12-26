@@ -43,7 +43,12 @@ void least_square_conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest
   VectorType residual        = rhs - mat * x;
   VectorType normal_residual = mat.adjoint() * residual;
 
+  //std::cout<<"mat: \n"<<mat<<"\n";
+  //std::cout<<"rhs: \n"<<rhs<<"\n";
+  //std::cout<<"(mat.adjoint()*rhs): \n"<<(mat.adjoint()*rhs)<<"\n";
+
   RealScalar rhsNorm2 = (mat.adjoint()*rhs).squaredNorm();
+  std::cout<<"rhsNorm2: "<<rhsNorm2<<"\n";
   if(rhsNorm2 == 0) 
   {
     x.setZero();
@@ -66,6 +71,7 @@ void least_square_conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest
   VectorType z(n), tmp(m);
   RealScalar absNew = numext::real(normal_residual.dot(p));  // the square of the absolute value of r scaled by invM
   Index i = 0;
+  std::cout<<"begin  least_square_conjugate_gradient iterations: ";
   while(i < maxIters)
   {
     tmp.noalias() = mat * p;
@@ -76,6 +82,7 @@ void least_square_conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest
     normal_residual = mat.adjoint() * residual;     // update residual of the normal equation
     
     residualNorm2 = normal_residual.squaredNorm();
+    std::cout<<residualNorm2<<"<"<<threshold<<"? "<<sqrt(residualNorm2 / rhsNorm2)<<" ";
     if(residualNorm2 < threshold)
       break;
     
@@ -87,6 +94,7 @@ void least_square_conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest
     p = z + beta * p;                               // update search direction
     i++;
   }
+  std::cout<<std::endl;
   tol_error = sqrt(residualNorm2 / rhsNorm2);
   iters = i;
 }
@@ -188,6 +196,7 @@ public:
     m_error = Base::m_tolerance;
 
     internal::least_square_conjugate_gradient(matrix(), b, x, Base::m_preconditioner, m_iterations, m_error);
+    std::cout<<"_solve_vector_with_guess_impl "<<m_error<<" "<<Base::m_tolerance<<std::endl;
     m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
   }
 

@@ -24,7 +24,7 @@ bool EigenDoTestSuccess()
 }
 void OnEigenNoSucc(const  char * aMesg,int aLine,const char * aFile)
 {
-    StdOut() << "EIGEN operation didnot reached success : " << aMesg 
+    StdOut() << "EIGEN operation did not reach success: " << aMesg
              << " at line "<< aLine << " of "<< aFile<<"\n";
     if (VEigenDoTestSucces.back() == eLevelCheck::Error)
     {

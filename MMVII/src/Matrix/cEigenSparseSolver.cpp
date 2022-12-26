@@ -38,6 +38,29 @@ template<class Type> cDenseVect<Type> EigenSolveLsqGC
    Eigen::SparseMatrix<Type> aSpMat(aNbEq,aNbVar);
    aSpMat.setFromTriplets(aV3.begin(), aV3.end());
    LeastSquaresConjugateGradient< Eigen::SparseMatrix<Type> >  aLSCG;
+
+   cDenseVect<Type> aRes(aNbVar);
+   cNC_EigenColVectWrap<Type> aWRes(aRes);
+
+   cConst_EigenColVectWrap  aWVec(aVec);
+   Type rhsNorm2 = (aSpMat.adjoint()*aWVec.EW()).squaredNorm();
+   std::cout<<"rhsNorm2 JM: "<<rhsNorm2<<std::endl;
+   /* before convergence, rhsNorm2 is 9.14     => threshold 4.50939e-31
+    *                then rhsNorm2 is 0.0097   => threshold 4.80211e-34
+    *  after convergence, rhsNorm2 is 4.44e-08 => threshold 2.18926e-39, but minimal achived is 3.08152e-33
+    *
+    * fix tol to cap at 1e-4 ? threshold 4.9e-36
+    * not sufficient since we reached 1.88079e-37 on previous iteration, and only 3.08152e-33 now... and after it diverges
+    *
+    * https://en.wikipedia.org/wiki/Conjugate_gradient_method : or the method may even start diverging
+    * Limit iterations to 3? but the final success test is still false...
+    */
+   Type tol = std::numeric_limits<Type>::epsilon();
+   if (rhsNorm2 < 1e-4)
+       tol *= sqrt(1e-4/rhsNorm2);
+
+   aLSCG.setTolerance(tol);
+   aLSCG.setMaxIterations(3);
    aLSCG.compute(aSpMat);
 
    if (EigenDoTestSuccess())
@@ -48,11 +71,13 @@ template<class Type> cDenseVect<Type> EigenSolveLsqGC
       }
    }
 
-   cConst_EigenColVectWrap  aWVec(aVec);
 
-   cDenseVect<Type> aRes(aNbVar);
-   cNC_EigenColVectWrap<Type> aWRes(aRes);
    aWRes.EW() = aLSCG.solve(aWVec.EW());
+
+
+
+   //std::cout<<"EigenSolveLsqGC with matrix:\n"<<Eigen::Matrix<Type, Dynamic, Dynamic>(aSpMat)<<std::endl;
+   //std::cout<<"and vector:\n"<<aWVec.EW().transpose()<<std::endl;
 
    if (EigenDoTestSuccess())
    {
@@ -86,6 +111,9 @@ template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
    cNC_EigenColVectWrap<Type> aWRes(aRes);
 
    aWRes.EW() = aChol.solve(aWVec.EW());
+
+   //std::cout<<"EigenSolveCholeskyarseFromV3 with matrix:\n"<<Eigen::Matrix<Type, Dynamic, Dynamic>(aSpMat)<<std::endl;
+   //std::cout<<"and vector:\n"<<aWVec.EW().transpose()<<std::endl;
 
    if (EigenDoTestSuccess())
    {
