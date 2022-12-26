@@ -9,12 +9,12 @@ namespace MMVII
 
 /* *********************************** */
 /*                                     */
-/*            cBufSchurrSubst          */
+/*            cBufSchurSubst          */
 /*                                     */
 /* *********************************** */
 
 template <class Type> 
-    cBufSchurrSubst<Type>::cBufSchurrSubst(size_t aNbVar) :
+    cBufSchurSubst<Type>::cBufSchurSubst(size_t aNbVar) :
          mNbVar     (aNbVar),
          mSetInd    (aNbVar),
 	 mSysRed    (1),
@@ -31,24 +31,24 @@ template <class Type>
 {
 }
 
-template <class Type> const  std::vector<size_t> & cBufSchurrSubst<Type>::VIndexUsed() const
+template <class Type> const  std::vector<size_t> & cBufSchurSubst<Type>::VIndexUsed() const
 {
    return mSetInd.mVIndOcc;
 }
 
 
-template <class Type> const cDenseMatrix<Type> & cBufSchurrSubst<Type>::tAASubst() const
+template <class Type> const cDenseMatrix<Type> & cBufSchurSubst<Type>::tAASubst() const
 {
      return mM11;
 }
 
-template <class Type> const cDenseVect<Type> & cBufSchurrSubst<Type>::tARhsSubst() const
+template <class Type> const cDenseVect<Type> & cBufSchurSubst<Type>::tARhsSubst() const
 {
      return mC1;
 }
 
 template <class Type> 
-    void cBufSchurrSubst<Type>::CompileSubst(const tSetEq & aSetSetEq)
+    void cBufSchurSubst<Type>::CompileSubst(const tSetEq & aSetSetEq)
 {
      aSetSetEq.AssertOk();
 
@@ -209,7 +209,7 @@ template<class Type> void  cLeasSqtAA<Type>::Reset()
 template<class Type> void  cLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
     if (mBSC==nullptr)
-         mBSC = new cBufSchurrSubst<Type>(this->NbVar());
+         mBSC = new cBufSchurSubst<Type>(this->NbVar());
     mBSC->CompileSubst(aSetSetEq);
 
     const std::vector<size_t> &  aVI = mBSC->VIndexUsed();
@@ -422,7 +422,7 @@ template<class Type> bool cLinearOverCstrSys<Type>::Acces2NormalEq() const
 /* ===================================================== */
 
 #define INSTANTIATE_LEASTSQ_TAA(Type)\
-template class cBufSchurrSubst<Type>;\
+template class cBufSchurSubst<Type>;\
 template  class  cLeasSqtAA<Type>;\
 template  class  cLeasSq<Type>;\
 template  class  cLinearOverCstrSys<Type>;

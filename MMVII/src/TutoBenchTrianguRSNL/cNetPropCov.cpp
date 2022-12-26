@@ -152,7 +152,7 @@ With Set Pts, fix rotation we get :
     12000 RResiduals :   3.58846e-15
 
 We have a convergence but very slow. This experiment, if transferable to bundle adjustment,
-show that we MUST consider the tranfer mapping as an unknown (using, for example, schurr complement).
+show that we MUST consider the tranfer mapping as an unknown (using, for example, schur complement).
 
            -----------------------------------------------
 
@@ -885,12 +885,12 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
              aVObs.at(aNbObsRot+aPNet.mNumX) = aPt.x(); 
              aVObs.at(aNbObsRot+aPNet.mNumY) = aPt.y();
         }
-        if (mRotUk) // if rotation unknown use schurr complement or equivalent
+        if (mRotUk) // if rotation unknown use schur complement or equivalent
         {
             cSetIORSNL_SameTmp<Type> aSetIO(aVTmpRot);
             // compute all the observations 
             this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVObs);
-            // add it to system with schurr substitution
+            // add it to system with schur substitution
             this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
         }
         else // just add observation if rotation is fix

@@ -15,7 +15,7 @@ template <class Type> class  cSetIORSNL_SameTmp;
 template <class Type> class  cLinearOverCstrSys  ;
 template <class Type> class  cLeasSq ;
 template <class Type> class  cLeasSqtAA ;
-template <class Type> class  cBufSchurrSubst; 
+template <class Type> class  cBufSchurSubst;
 template <class Type> class  cSetIORSNL_SameTmp;
 template <class Type> class cResidualWeighter;
 template <class Type> class cObjWithUnkowns;
@@ -82,7 +82,7 @@ template <class Type> class cResolSysNonLinear
           void  AddEq2Subst (tSetIO_ST & aSetIO,tCalc *,const tVectInd &,
                              const tStdVect& aVObs,const tResidualW & = tResidualW());
 
-	  /** Once "aSetIO" has been filled by multiple calls to  "AddEq2Subst",  do it using for exemple schurr complement
+	  /** Once "aSetIO" has been filled by multiple calls to  "AddEq2Subst",  do it using for exemple schur complement
 	   */
           void  AddObsWithTmpUK (const tSetIO_ST & aSetIO);
 
@@ -180,7 +180,7 @@ template <class Type> class cInputOutputRSNL
 };
 
 /**  class for grouping all the observation relative to a temporary variable,
-     this is necessary because all must be processed simultaneously in schurr elimination
+     this is necessary because all must be processed simultaneously in schur elimination
 
      Basically this only a set of "cInputOutputRSNL"
  */
@@ -369,7 +369,7 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
 
        void AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>&) override;
 
-       //  ================  Accessor used in Schurr elim ========  :
+       //  ================  Accessor used in Schur elim ========  :
        
        const cDenseMatrix<Type> & tAA   () const;   ///< Accessor 
        const cDenseVect<Type>   & tARhs () const;   ///< Accessor 
@@ -387,12 +387,12 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
     private :
        cDenseMatrix<Type>  mtAA;    /// Som(W tA A)
        cDenseVect<Type>    mtARhs;  /// Som(W tA Rhs)
-       cBufSchurrSubst<Type> * mBSC;
+       cBufSchurSubst<Type> * mBSC;
       
 };
 
 
-/**  Class for compute elimination of temporay equation using schurr complement.
+/**  Class for compute elimination of temporay equation using schur complement.
 
      For vector and matrix, We use notation of MMV1 documentation   L= Lamda
 
@@ -402,21 +402,21 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
 */
 
 
-template <class Type> class  cBufSchurrSubst
+template <class Type> class  cBufSchurSubst
 {
      public :
           typedef cSetIORSNL_SameTmp<Type>  tSetEq;
 
           /// constructor , just alloc the vector to compute subset of unknosn
-          cBufSchurrSubst(size_t aNbVar);
+          cBufSchurSubst(size_t aNbVar);
           /// Make the computation from the set of equations
           void CompileSubst(const tSetEq &);
 
           //  ==== 3 accessors to the result
 
-          /// return normal matrix after schurr substitution ie : M11- tB L-1 B  
+          /// return normal matrix after schur substitution ie : M11- tB L-1 B
           const cDenseMatrix<Type> & tAASubst() const;
-          ///  return normal vector after schurr subst  ie : C1 - tB L-1 A
+          ///  return normal vector after schur subst  ie : C1 - tB L-1 A
           const cDenseVect<Type> & tARhsSubst() const;
           ///  return list of indexes  used to put compress mat/vect in "big" matrixes/vect
           const std::vector<size_t> & VIndexUsed() const;

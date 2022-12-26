@@ -351,7 +351,7 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 	 int                       mNbDLTempo; 
 	 tCmpLine                  mCmpLine;
 	 tHeap                     mHeapDL;
-	 cBufSchurrSubst<Type>     mBufSchurr;
+	 cBufSchurSubst<Type>     mBufSchur;
 };
 
 /* ******************************************** */
@@ -568,7 +568,7 @@ template<class Type>
 	  mNbDLTempo          (aParam.mNbBufDense),
 	  mCmpLine            (),
 	  mHeapDL             (mCmpLine),
-	  mBufSchurr          (aNbVar)
+	  mBufSchur          (aNbVar)
 {
     mtAA.reserve(this->mNbVar);
     cSetIntDyn aSetDense(this->mNbVar,aParam.mVecIndDense);
@@ -684,13 +684,13 @@ template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIO
 {
 // StdOut() << "cSparseLeasSqtAA<Type>::AddObsWithTmpUK \n";
 
-    //  1 - Compute the reduce schurr matrix
-    mBufSchurr.CompileSubst(aSetSetEq);
-    const std::vector<size_t> & aVInd = mBufSchurr.VIndexUsed();
+    //  1 - Compute the reduce schur matrix
+    mBufSchur.CompileSubst(aSetSetEq);
+    const std::vector<size_t> & aVInd = mBufSchur.VIndexUsed();
 
 
         // 1.2 is mNbDLTempo was over dimensionned, make it grow,  no harm ...
-    mNbDLTempo = std::max(mNbDLTempo,(int)mBufSchurr.VIndexUsed().size());
+    mNbDLTempo = std::max(mNbDLTempo,(int)mBufSchur.VIndexUsed().size());
 
     // 2 - Uncompress the line used in this substitution, try to mininize work, often they would be already uncompress from 
     // previous jobs
@@ -723,8 +723,8 @@ template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIO
     // 3 - Update the heap, 
     //     const std::vector<size_t> &  aVI = mBSC->VIndexUsed();
 
-    const cDenseVect<Type> &   atARhsS = mBufSchurr.tARhsSubst() ;
-    const cDenseMatrix<Type> & atAAS =   mBufSchurr.tAASubst() ;
+    const cDenseVect<Type> &   atARhsS = mBufSchur.tARhsSubst() ;
+    const cDenseMatrix<Type> & atAAS =   mBufSchur.tAASubst() ;
 
     for (size_t aIndRed=0 ;  aIndRed<aVInd.size() ; aIndRed++)
     {
@@ -737,7 +737,7 @@ template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIO
 
 
     // 4 - Update the heap, 
-    for (const auto & anInd : mBufSchurr.VIndexUsed())
+    for (const auto & anInd : mBufSchur.VIndexUsed())
     {
         tLine * aLine = mtAA.at(anInd);
 	if (aLine->State() != eLineSLSqtAA::eLS_AlwaysDense)  // Nothing to dow for always dense lines

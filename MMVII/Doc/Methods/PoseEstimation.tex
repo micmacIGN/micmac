@@ -8,12 +8,12 @@
 
 This chapter present the "elementary" methods, that compute the pose of an image
 from observations that can, typically, be tie points (relative pose) or 
-ground control point (relative or absolute pose).
+ground control points (relative or absolute pose).
 
-By elementary we means algorithms that compute directly a solution for a limited
-(typically $2$ or $3$, a few with tomasi-kanade) number of images. These algorithms
-are the "tacticle" part, the result of these elementary algorithms will be used as
-elementary part of the puzzle by more global method that will try to have a "strategic"  view.
+By elementary we mean algorithms that compute directly a solution for a limited
+(typically $2$ or $3$, a few with Tomasi-Kanade) number of images. These algorithms
+are the "tactical" part. The result of these elementary algorithms will be used as
+elementary part of the puzzle by more global method that will try to have a "strategic" view.
 
 
 %-----------------------------------------------------
@@ -27,16 +27,15 @@ elementary part of the puzzle by more global method that will try to have a "str
     %-----------------------------------------------------
 \subsection{Introduction}
 
-We deal here with the following problem,  we have :
+We deal here with the following problem, we have:
 
 \begin{itemize}
-   \item a calibrated camera ;
-   \item a set of point for which we know the  $3d$ word coordinates $G_k$ and their 
-        $2d$ coordinate $p_k$ in a image acquired with this camera;
+   \item a calibrated camera;
+   \item a set of points for which we know the  $3d$ word coordinates $G_k$ and their 
+        $2d$ coordinates $p_k$ in a image acquired with this camera;
 \end{itemize}
 
-
-We want to extract the pose $R,C$ of the camera (Rotation,center) such that for every point
+We want to extract the pose $R,C$ of the camera (Rotation, Center) such that for every point
 we have the usual projection equation:
 
 \begin{equation}
@@ -78,6 +77,7 @@ This problem occurs in two case in photogrammetric pipeline :
 
 \end{itemize}
 
+
 The {\tt MMVII} code corresponding to this section can be found in 
 {\tt PoseEstim/CalibratedSpaceResection.cpp}.
 
@@ -90,8 +90,8 @@ The {\tt MMVII} code corresponding to this section can be found in
 
 \label{SpRes:EquivLocCoord}
 
-First, we remark that if we know the local coordinates $L_k$ of the points in the repair
-of the camera, the problem becomes easy . Let show it, we will have to find a translation-rotation such that  :
+First, we remark that if we know the local coordinates $L_k$ of the points in the
+camera frame, the problem becomes easy. Let show it, we will have to find a translation-rotation such that:
 
 \begin{equation}
        R*(G_k-C) = L_k  ; k\in{1,2,3} \label{SpResecEQ:WL}
@@ -119,8 +119,8 @@ once $R$ is known it can be injected in equation~\ref{SpResecEQ:WL} to compute $
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Equivalence to compute depth}
 
-We need to compute the local coordinates . For this, we know for each point the bundle its belongs
-to because we know internal calibration. Le $B_k$ be the bundle bearing the point $p_k$ We can write symbolicly :
+We need to compute the local coordinates. For this, we know for each point the bundle its belongs
+to because we know internal calibration. Let $B_k$ be the bundle bearing the point $p_k$. We can write:
 
 
 \begin{equation}
@@ -129,8 +129,8 @@ to because we know internal calibration. Le $B_k$ be the bundle bearing the poin
 
 
 
-Let write $B_k = (0,\Vec{u}_k)$,  we can compute $\Vec{u}_k$ with internal calibration and
-as we know that $L_k \in B_k$ we can write  :
+Let $B_k = (0,\Vec{u}_k)$,  we can compute $\Vec{u}_k$ with internal calibration.
+As we know that $L_k \in B_k$ we can write:
 
 
 \begin{equation}
@@ -145,6 +145,7 @@ So to solve our problem it is sufficent to estimate $\lambda_k$.
 Now we remember that rotation and translation are isometric, so we have conservation of
 distances between  word an local coordinates. We can then write :
 
+
 \begin{equation}
   D_{kk'}=||\Vec{G}_{kk'}||   = || \Vec{L}_{kk'} || = || \lambda_k \Vec{u}_k -  \lambda_{k'} \Vec{u}_{k'}|| \label{SpResecEQ:ConsDist}
 \end{equation}
@@ -154,7 +155,6 @@ In equation~\ref{SpResecEQ:ConsDist}, the $D_{kk'}$ and  $\Vec{u}_k$ are knowns,
 $3$ unkowns, so far so good \dots 
 
 
-
     %-----------------------------------------------------
 
 \subsection{Solving $3$  equations with $3$ unknowns}
@@ -162,14 +162,15 @@ $3$ unkowns, so far so good \dots
 \subsubsection{Fix notation an supress 1 unknown}
 
 We change notation to have lighter formula and to make them coherent with the {\tt C++} code of {\tt MMVII}
-impplemating this resolution. We call $\Vec{A} , \Vec{B}, \Vec{C}$  the bundles, $D_{AB}$ the distances, \dots
-equations become :
+implemating this resolution. We call $\Vec{A} , \Vec{B}, \Vec{C}$  the bundles, $D_{AB}$ the distances, \dots
+equations become:
+
 
 \begin{equation}
 	D_{AB} = || \lambda_a \Vec{A} -  \lambda_{b} \Vec{B} || \label{SpResecEQ:ABC}
 \end{equation}
 
-By doing quotient of equation~\ref{SpResecEQ:ABC} we have :
+By doing quotient of equations ~\ref{SpResecEQ:ABC} we have:
 
 \begin{equation}
 	\rho^A_{bc}  
@@ -200,14 +201,14 @@ We fix the notation for ratio :
 \end{equation}
 
 
-The $1$ in $1+b$, is to be coherent with {\tt C++} implementation where this make a more numerically stable system.
+The $1$ in $1+b$, is to be coherent with {\tt C++} implementation where this makes the system more stable numerically.
 Also to be coherent with {\tt C++} implementation, we will make the hypothesis that bundles have been normalized :
 
 \begin{equation}
 	|| \Vec{A}|| = || \Vec{B}|| = || \Vec{C}|| = 1
 \end{equation}
 
-So equations~\ref{SpResecEQ:ABC} rewrites :
+Equations ~\ref{SpResecEQ:Lambda} rewrites :
 
 \begin{equation}
 	\rho^A_{bc}  
@@ -243,7 +244,7 @@ With $Q(c)$ being a $2$ degree polynom in $c$:
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Resolving last unknown}
 
-We can now use equation~\ref{SpResecEQ:SolEqD2} to substituate $b$  in equation~\ref{SpResecEQ:SolEqD2}
+We can now use equation~\ref{SpResecEQ:SolEqD2} to substituate $b$  in equation~\ref{SpResecEQ:EqFracCBA}
 
 \begin{equation}
 	\rho^C_{ba}   ||\overrightarrow{AC}  + c \Vec{C}||^2
