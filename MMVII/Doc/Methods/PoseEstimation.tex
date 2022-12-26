@@ -10,12 +10,12 @@
 
 This chapter present the "elementary" methods, that compute the pose of an image
 from observations that can, typically, be tie points (relative pose) or 
-ground control point (relative or absolute pose).
+ground control points (relative or absolute pose).
 
-By elementary we means algorithms that compute directly a solution for a limited
-(typically $2$ or $3$, a few with tomasi-kanade) number of images. These algorithms
-are the "tacticle" part, the result of these elementary algorithms will be used as
-elementary part of the puzzle by more global method that will try to have a "strategic"  view.
+By elementary we mean algorithms that compute directly a solution for a limited
+(typically $2$ or $3$, a few with Tomasi-Kanade) number of images. These algorithms
+are the "tactical" part. The result of these elementary algorithms will be used as
+elementary part of the puzzle by more global method that will try to have a "strategic" view.
 
 
 %-----------------------------------------------------
@@ -28,15 +28,15 @@ elementary part of the puzzle by more global method that will try to have a "str
     %-----------------------------------------------------
 \subsection{Introduction}
 
-We deal here with the following problem,  we have :
+We deal here with the following problem, we have:
 
 \begin{itemize}
-   \item a calibrated camera ;
-   \item a set of point for which we know the  $3d$ word coordinates $G_k$ and their 
-        $2d$ coordinate $p_k$ in a image acquired with this camera;
+   \item a calibrated camera;
+   \item a set of points for which we know the  $3d$ word coordinates $G_k$ and their 
+        $2d$ coordinates $p_k$ in a image acquired with this camera;
 \end{itemize}
 
-We want to extract the pose $R,C$ of the camera (Rotation,center) such that for every point
+We want to extract the pose $R,C$ of the camera (Rotation, Center) such that for every point
 we have the usual projection equation:
 
 \begin{equation}
@@ -50,11 +50,11 @@ a finite number of solution when we have $3$ points (in general less than $3$ wi
 infinite number and more than $3$ no solution).
 
 So here we will deal specifically  with the computation of the $R,C$ satisfying
-exactly the equation~\ref{EQ:PROJ}  from a set of $3$ correspondance. Other
-chapter will discuss of how we use more (possibly many) correspondance for beign 
-robust to outlier (for
-example with Ransac) or beign more accurate in presence of "gaussian" noise (for 
-example with leas-square like) .
+exactly the equation~\ref{EQ:PROJ}  from a set of $3$ correspondances. Other
+chapter will discuss of how we use more (possibly many) correspondances to vbe
+robust to outliers (for
+example with Ransac) or to be more accurate in presence of "gaussian" noise (for 
+example with least-squares).
 
 
     %-----------------------------------------------------
@@ -66,8 +66,8 @@ example with leas-square like) .
 
 \label{SpRes:EquivLocCoord}
 
-First, we remark that if we know the local coordinates $L_k$ of the points in the repair
-of the camera, the problem becomes easy . Let show it, we will have to find a translation-rotation such that  :
+First, we remark that if we know the local coordinates $L_k$ of the points in the
+camera frame, the problem becomes easy. Let show it, we will have to find a translation-rotation such that:
 
 \begin{equation}
        R*(G_k-C) = L_k  ; k\in{1,2,3} \label{SpResecEQ:WL}
@@ -95,8 +95,8 @@ once $R$ is known it can be injected in equation~\ref{SpResecEQ:WL} to compute $
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Equivalence to compute depth}
 
-We need to compute the local coordinates . For this, we know for each point the bundle its belongs
-to because we know internal calibration. Le $B_k$ be the bundle bearing the point $p_k$ We can write symbolicly :
+We need to compute the local coordinates. For this, we know for each point the bundle its belongs
+to because we know internal calibration. Let $B_k$ be the bundle bearing the point $p_k$. We can write:
 
 
 \begin{equation}
@@ -105,8 +105,8 @@ to because we know internal calibration. Le $B_k$ be the bundle bearing the poin
 
 
 
-Let write $B_k = (0,\Vec{u}_k)$,  we can compute $\Vec{u}_k$ with internal calibration and
-as we know that $L_k \in B_k$ we can write  :
+Let $B_k = (0,\Vec{u}_k)$,  we can compute $\Vec{u}_k$ with internal calibration.
+As we know that $L_k \in B_k$ we can write:
 
 
 \begin{equation}
@@ -118,15 +118,15 @@ So to solve our problem it is sufficent to estimate $\lambda_k$.
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Setting equations}
 
-Now we remmber that rotation and translation are isometric, so we have conservation of
-distances between  word an local coordinates. We can then write :
+Since rotation and translation are isometric, we have conservation of
+distances between world and local coordinates. We can then write:
 
 \begin{equation}
   D_{kk'}=||\Vec{G}_{kk'}||   = || \Vec{L}_{kk'} || = || \lambda_k \Vec{u}_k -  \lambda_{k'} \Vec{u}_{k'}|| \label{SpResecEQ:ConsDist}
 \end{equation}
 
 
-In equation~\ref{SpResecEQ:ConsDist}, the $D_{kk'}$ and  $\Vec{u}_k$ are know, so we have $3$ equation 
+In equation~\ref{SpResecEQ:ConsDist}, $D_{kk'}$ and  $\Vec{u}_k$ are know, so we have $3$ equations 
 $3$ unkowns.
 
 
@@ -138,14 +138,14 @@ $3$ unkowns.
 \subsubsection{Fix notation an supress 1 unknown}
 
 We change notation to have lighter formula and to make them coherent with the {\tt C++} code of {\tt MMVII}
-impplemating this resolution. We call $\Vec{A} , \Vec{B}, \Vec{C}$  the bundles, $D_{AB}$ the distances \dots
-equations become :
+implemanting this resolution. We call $\Vec{A} , \Vec{B}, \Vec{C}$  the bundles, $D_{AB}$ the distances etc.
+The equations become:
 
 \begin{equation}
 	D_{AB} = || \lambda_a \Vec{A} -  \lambda_{b} \Vec{B} || \label{SpResecEQ:ABC}
 \end{equation}
 
-By doing quotient of equation~\ref{SpResecEQ:ABC} we have :
+By doing quotient of equations ~\ref{SpResecEQ:ABC} we have:
 
 \begin{equation}
 	\rho^A_{bc}  
@@ -159,10 +159,10 @@ By doing quotient of equation~\ref{SpResecEQ:ABC} we have :
 	       \label{SpResecEQ:Lambda}
 \end{equation}
 
-Now we see that in equation~\ref{SpResecEQ:Lambda}, only the ratio $\frac{\lambda_{b}}{\lambda_{a}}$ and $\frac{\lambda_{c}}{\lambda_{a}}$
-matters, so one can solve them a system of $2$ equation with $2$ unknwons. Once we will have computed these ratio the triangle
-$(\Vec{A} , \frac{\lambda_{b}}{\lambda_{a}} \Vec{B},  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C})$ will be propoprtionnal the
-triangle $(G_A,G_B,G_C)$ and it will be sufficientt compute this proportion.
+Now we see that in equation~\ref{SpResecEQ:Lambda}, only the ratios $\frac{\lambda_{b}}{\lambda_{a}}$ and $\frac{\lambda_{c}}{\lambda_{a}}$
+matter, so one can solve it as a system of $2$ equations with $2$ unknowns. Once we compute these ratios, the triangle
+$(\Vec{A} , \frac{\lambda_{b}}{\lambda_{a}} \Vec{B},  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C})$ will be proportional to the
+triangle $(G_A,G_B,G_C)$ and it will be sufficient to compute this proportion.
 
 
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -176,14 +176,14 @@ We fix the notation for ratio :
 \end{equation}
 
 
-The $1$ in $1+b$, is to be coherent with {\tt C++} implementation where this make a more numerically stable system.
+The $1$ in $1+b$, is to be coherent with {\tt C++} implementation where this makes the system more stable numerically.
 Also to be coherent with {\tt C++} implementation, we will make the hypothesis that bundles have been normalized :
 
 \begin{equation}
 	|| \Vec{A}|| = || \Vec{B}|| = || \Vec{C}|| = 1
 \end{equation}
 
-So equations~\ref{SpResecEQ:ABC} rewrites :
+Equations ~\ref{SpResecEQ:Lambda} rewrites :
 
 \begin{equation}
 	\rho^A_{bc}  
@@ -219,7 +219,7 @@ With :
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Resolving last unknown}
 
-We can now use equation~\ref{SpResecEQ:SolEqD2} to substituate $b$  in equation~\ref{SpResecEQ:SolEqD2}
+We can now use equation~\ref{SpResecEQ:SolEqD2} to substituate $b$  in equation~\ref{SpResecEQ:EqFracCBA}
 
 \begin{equation}
 	\rho^C_{ba}   ||\overrightarrow{AC}  + c \Vec{C}||^2

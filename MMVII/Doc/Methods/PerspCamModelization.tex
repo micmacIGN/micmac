@@ -26,7 +26,7 @@ there are several arbitrary choices that may be confusing.
 \section{Camera Obscura and  central perspective model}
 
 %-----------------------------------------------------
-\subsection{Physicall model}
+\subsection{Physical model}
 
 \begin{figure}
 \centering
@@ -226,7 +226,7 @@ this way for two reason  :
    \item firt this CAD plane are rarely avalaible (maybe due to industrial property ?);
    \item second, and more important, the experience prove that when we proceed to the
          modelization of two lenses from the same model, we have to modelize them with two
-         different parameter if we want to get the best accuracy, so no theoreticall model 
+         different parameter if we want to get the best accuracy, so no theoretical model 
          would fit our requirement.
 \end{itemize}
 
@@ -249,7 +249,7 @@ GCP, GNSS  \dots).
 \end{figure}
 
 
-This empiricall approach does not prevent from being cautious
+This empirical approach does not prevent from being cautious
 to the selection of model, we will have the usual compromise in the selection
 of the parametric model, illustrated by figure~\ref{fig:CurvesParam}  on a problem of curve interpolation:
 
@@ -308,15 +308,15 @@ refinement of the physical modelization.
 	\label{fig:CamPerspScheme}
 \end{figure}
 
-The only hypothesis that we will maintain all allong these pages is that all the bundle issued from image
+The only hypothesis that we will maintain all along these pages is that all the bundle issued from image
 plane go through the same point $C$. This is schematised by figure~\ref{fig:CamPerspScheme} :
 how complicated may be the ligth path inside the camera, we still have the property that
 it exist a virtual point $C$, such that for any image point $q_i$, the bundle $B_i$ that lead to $q_i$
 all go trough $C$.
 
-This hypothesis is universally adopted, and justified because we still have a diaphragam that physicall contraint
-the light to go trough it centers; of course the light will cross lenses before converning to this diaphragm but, 
-, under gaussian approximation the reciproc image of converging bundle are converging bundles.
+This hypothesis is universally adopted, and justified because we still have a diaphragam that physically constraints
+the light to go trough its center; of course the light will cross lenses before converning to this diaphragm but, 
+under gaussian approximation the reciproc image of converging bundle are converging bundles.
 To our knowledge, the only practicle cases where this hypothesis may be questionned are macro-photogrammetry and
 sub-marine photogrammetry. We will discuss that ???. And maybe in the furture of {\tt MMVII} project we will 
 test option to relax this hypothesis.
@@ -333,9 +333,9 @@ With $ \mathcal{I}(q) = \phi (\mathcal{I}_0(q))  $, we have now :
 	q  =   \mathcal{I} (\pi_0 (^t R (P - C)))
 \end{equation}
 
-By the way, for technicall reason we prefer to write : $ \mathcal{I}(q) = \mathcal{I}_0(D(q)) $ ; 
-the reason being numericall stability of least square system, we prefer to have $D$ operate on adimentionnal numbers
-(i.e as $\frac{x}{z}$).  The two modelization being obvioulsy equivalent from the pure mathematicall point of view :
+By the way, for technical reason we prefer to write : $ \mathcal{I}(q) = \mathcal{I}_0(D(q)) $ ; 
+the reason being numerical stability of least square system, we prefer to have $D$ operate on adimentional numbers
+(i.e as $\frac{x}{z}$).  The two modelization being obvioulsy equivalent from the pure mathematical point of view :
 as $D= \mathcal{I}_0^{-1} \circ \phi \circ  \mathcal{I}_0$.
 
 
@@ -373,9 +373,9 @@ We start the modelization with two observation that are satisfied with a
 high accurracy :
 
 \begin{itemize}
-    \item  each individual lense has a radial symetry arround it opticall axe;:
+    \item  each individual lense has a radial symetry arround it optical axis;
     \item  the mechaninal building is made so that all the lenses are aligned on
-	    their common optical axe.
+	    their common optical axis.
 \end{itemize}
 
 

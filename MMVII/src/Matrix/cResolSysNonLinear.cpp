@@ -451,20 +451,20 @@ template <class Type> void cResolSysNonLinear<Type>::SetCurSol(int aNumV,const T
 	                  *  used in case schur an
 			  *  it's a vector to allow later, a possible use in parallel
 
-       # Case Non Schurr :
+       # Case Non Schur :
 	      CalcAndAddObs ->   * calc CalcVal to compute derivative then AddObs
 				
 	      AddObs  ->         *  send cInputOutputRSNL this in linear system
 
-       # Case Schurr :
+       # Case Schur :
 
               AddEq2Subst   ->   *   CalcVal to compute derivative  then 
 	                             push the result in a structure cSetIORSNL_SameTmp
 
               AddObsWithTmpUK -> *  sens a structure cSetIORSNL_SameTmp to the linear system
-	                            to make the schurr elimination
+	                            to make the schur elimination
 
-       # Remark : using schurr and paralelizing formal derivatives will require additionnal methods.
+       # Remark : using schur and paralelizing formal derivatives will require additionnal methods.
                   (with probably more sophisticated/complex protocols)
 
      */
@@ -566,7 +566,7 @@ template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<
       {
 	  currNbObs += aIO.mVals.size();
 	  // check we dont use temporary value
-          MMVII_INTERNAL_ASSERT_tiny(aIO.mNbTmpUk==0,"Cannot use tmp uk w/o Schurr complement");
+          MMVII_INTERNAL_ASSERT_tiny(aIO.mNbTmpUk==0,"Cannot use tmp uk w/o Schur complement");
 	  // parse all values
 	  for (size_t aKVal=0 ; aKVal<aIO.mVals.size() ; aKVal++)
 	  {
