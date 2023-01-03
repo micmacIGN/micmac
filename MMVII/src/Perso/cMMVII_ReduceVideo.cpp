@@ -96,6 +96,7 @@ void  TestDNA()
     TestDNA_OneFunc(aVSz,aVTime,[](const double & aN){return (std::log(aN)) /aN;},"Log(N)/N");
     TestDNA_OneFunc(aVSz,aVTime,[](const double & aN){return (std::log(aN) +0.5) /aN;},"(Log(N)+0.5)/N");
     TestDNA_OneFunc(aVSz,aVTime,[](const double & aN){return (std::log(aN*2)) /aN;},"(Log(2*N))/N");
+    TestDNA_OneFunc(aVSz,aVTime,[](const double & aN){return (std::log(aN)) /(aN-1);},"(Log(N))/(N-1)");
 
     //  TestDNA_OneFunc(aVSz,aVTime,[](const double & aN){return (std::log(aN) +std::log(std::log(aN))) /aN;},"(Log(N)+LogLog(N))/N");
     /*
@@ -217,7 +218,7 @@ int cAppli_ReduceVideo::Exe()
 
 		 if (mSzReduc.x()>0)  //  x=-1 => convention for conserving size
 		 {
-                    aStrSz = " -vf scale=" + ToStr(mSzReduc.x()) + ":" + ToStr(mSzReduc.x())  ;
+                    aStrSz = " -vf scale=" + ToStr(mSzReduc.x()) + ":" + ToStr(mSzReduc.y())  ;
 		 }
 	         std::string aCom =    "ffmpeg -i " + Quote(aCurDir+aNameInit)
 		                     + aStrSz
@@ -229,6 +230,13 @@ int cAppli_ReduceVideo::Exe()
 		    {
 	                 std::string aNameReduc =  mPrefixRed + LastPrefix(aNameInit) + ".mp4";
 	                 std::string aNameDone  =     mPrefixRed + LastPrefix(aNameInit) + "-DONE."+ LastPostfix(aNameInit) ;
+
+			 // if reduction didnt work, maintain names
+			 if (SizeFile(aFullN0)<SizeFile(aCurDir+aNameTmp))
+			 {
+	                    aNameDone  =     mPrefixRed + LastPrefix(aNameInit) + "-DONE-00."+ LastPostfix(aNameInit) ;
+                            std::swap(aNameReduc,aNameReduc);
+			 }
 
 		         RenameFiles(aCurDir+aNameTmp,aCurDir+aNameReduc);
 		         RenameFiles(aFullN0         ,aCurDir+aNameDone);
