@@ -118,7 +118,7 @@ So to solve our problem it is sufficent to estimate $\lambda_k$.
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 \subsubsection{Setting equations}
 
-Now we remmber that rotation and translation are isometric, so we have conservation of
+Now we remember that rotation and translation are isometric, so we have conservation of
 distances between  word an local coordinates. We can then write :
 
 \begin{equation}
@@ -126,8 +126,8 @@ distances between  word an local coordinates. We can then write :
 \end{equation}
 
 
-In equation~\ref{SpResecEQ:ConsDist}, the $D_{kk'}$ and  $\Vec{u}_k$ are know, so we have $3$ equation 
-$3$ unkowns.
+In equation~\ref{SpResecEQ:ConsDist}, the $D_{kk'}$ and  $\Vec{u}_k$ are knowns, so we have $3$ equation  for
+$3$ unkowns, so far so good \dots 
 
 
 
@@ -138,7 +138,7 @@ $3$ unkowns.
 \subsubsection{Fix notation an supress 1 unknown}
 
 We change notation to have lighter formula and to make them coherent with the {\tt C++} code of {\tt MMVII}
-impplemating this resolution. We call $\Vec{A} , \Vec{B}, \Vec{C}$  the bundles, $D_{AB}$ the distances \dots
+impplemating this resolution. We call $\Vec{A} , \Vec{B}, \Vec{C}$  the bundles, $D_{AB}$ the distances, \dots
 equations become :
 
 \begin{equation}
@@ -160,9 +160,9 @@ By doing quotient of equation~\ref{SpResecEQ:ABC} we have :
 \end{equation}
 
 Now we see that in equation~\ref{SpResecEQ:Lambda}, only the ratio $\frac{\lambda_{b}}{\lambda_{a}}$ and $\frac{\lambda_{c}}{\lambda_{a}}$
-matters, so one can solve them a system of $2$ equation with $2$ unknwons. Once we will have computed these ratio the triangle
+matters, so one can solve them a system of $2$ equation with $2$ unknowns. Once we will have computed these ratio the triangle
 $(\Vec{A} , \frac{\lambda_{b}}{\lambda_{a}} \Vec{B},  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C})$ will be propoprtionnal the
-triangle $(G_A,G_B,G_C)$ and it will be sufficientt compute this proportion.
+triangle $(G_A,G_B,G_C)$ and it will be sufficient to compute this proportion.
 
 
            %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -211,7 +211,7 @@ Equation~\ref{SpResecEQ:Pol2B} can be see as $2d$ degree polynom in $b$, and we 
 	 \;\;\;  \epsilon \in \{-1,1\}  \label{SpResecEQ:SolEqD2}
 \end{equation}
 
-With :
+With $Q(c)$ being a $2$ degree polynom in $c$:
 \begin{equation}
 	Q(c) = (\overrightarrow{AB}. \Vec{B})^2 -  (||AB||^2 -   \rho^A_{bc} ||\overrightarrow{AC}  + c \Vec{C}||^2)
 \end{equation}

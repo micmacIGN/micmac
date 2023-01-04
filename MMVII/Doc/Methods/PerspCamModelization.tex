@@ -256,7 +256,7 @@ of the parametric model, illustrated by figure~\ref{fig:CurvesParam}  on a probl
 
 \begin{itemize}
 	\item if we don't have enough paramater (curve 3) we are not accurate  even on the data to fit,
-	   here if we fit with a parabol we are not close to the learning data ;
+	   here if we fit with a straight line, or even with a parabol, we are not close to the learning data ;
 
    \item if we  have too many parameter (curve 4), we can have a very good match on the learning data, but have 
 	 poor result as soon as we test with new data; this illustrated with  figure ??? were
@@ -270,7 +270,7 @@ is controvorsery arguments :
 
 
 \begin{itemize}
-   \item  on one hand, as illustrated by figure ???, on can argue that under parametrization is less dangerous
+   \item  on one hand, as illustrated by figure ~\ref{fig:CurvesParam}, on can argue that under parametrization is less dangerous
          than over parametrization;
 
    \item  on the other hand, in "modern" photogrammetry the measurement comes more and more from automatic system,
@@ -293,10 +293,11 @@ However, even is this choice of parameter is not easy, there is
 one universal rule : if can be good in interpolation, we are always bad in extrapolation
 as illustrated on figure~\ref{fig:CurvesExtrpol}. A 
 consequence when will estimate the model of a camera : if we have no measurement in the corners,
-we are almost sure that we have measurement in the corners.
+we are almost sure that we estimation will be poor in these corners.
 
 %-----------------------------------------------------
 \subsection{Still a central perspective, with a distorsion}
+\label{Still:Persp}
 
 In the next section we are going to introduce step by step, different model with a continuous
 refinement of the physical modelization.  
@@ -316,10 +317,10 @@ all go trough $C$.
 
 This hypothesis is universally adopted, and justified because we still have a diaphragam that physicall contraint
 the light to go trough it centers; of course the light will cross lenses before converning to this diaphragm but, 
-, under gaussian approximation the reciproc image of converging bundle are converging bundles.
+, under gaussian approximation the image and reciproc image of converging bundle are still converging bundles.
 To our knowledge, the only practicle cases where this hypothesis may be questionned are macro-photogrammetry and
-sub-marine photogrammetry. We will discuss that ???. And maybe in the furture of {\tt MMVII} project we will 
-test option to relax this hypothesis.
+sub-marine photogrammetry. We will discuss that ???. And maybe in the future of {\tt MMVII} project we will 
+test option to relax this hypothesis for these context.
 
 With this hypothesis, the image formation equation~\ref{FormImage0} still holds if
 we add a supplentary $2d$ image deformation. Suppose in the initial simplistic camera
@@ -347,7 +348,7 @@ globally holds,  this is the case with standard lenses, and then $D$ can be assu
 This will not be the case with fish-eye, and we will see that we will proceed by replacing $\pi_0$ by other
 projection.
 
-The following three equation summarize where we are :
+The following three equations summarize where we are :
 
 
 
@@ -375,13 +376,31 @@ high accurracy :
 \begin{itemize}
     \item  each individual lense has a radial symetry arround it opticall axe;:
     \item  the mechaninal building is made so that all the lenses are aligned on
-	    their common optical axe.
+	    their common optical axe $\mathcal{A}$.
 \end{itemize}
 
 
 These elementary remarks have for consequence that, how sophisticated may be the combinaison
 of many lenses, each having a complicated non spherical shape, we still have a global cylindrical
-symetry on our system. This illustrated by schemes of figure~\ref{fig:Lenses}.
+symetry on our system. This is illustrated by schemes of figure~\ref{fig:Lenses}.
+The perspective center $C$ defined in \ref{Still:Persp}, must belong to the axes of symetry,
+so we have $\mathcal{A}=(C,\vec{k})$.
+
+Let use spherical coordinate for coding  direction of bundles :
+
+\begin{equation}
+     \vec{R}(\theta,\phi)  =\begin{pmatrix}  \cos(\theta) \sin(\phi) \\ \sin(\theta) \sin(\phi)  \\ \cos(\phi) \end{pmatrix}
+\end{equation}
+
+Let $\vec{B_0}$ be a bundle entering the system, 
+
+
+We have a succession of bundles that cross interface different interface $\vec{B_k} = \vec{R}(\theta_k,\phi_k)$.
+Let show first that $\phi_0 = \phi_1 \dots = \phi_n$.
+$B_0$ cross the interface in
+
+due to the symetry of the system,
+
 
 \begin{figure}
 \centering

@@ -4265,7 +4265,7 @@ int Grid2RPC_main(int argc,char ** argv)
            aName + " " + aNameOrient + " " + 
            aDest + " ChSys=" + aChSysStr + 
            " Degre=0";   
-    std::cout << "aCom1 " << aCom1 << "\n";
+    std::cout << "Com1=[" << aCom1 << "]\n";
 
     TopSystem(aCom1.c_str());
     
@@ -4276,7 +4276,7 @@ int Grid2RPC_main(int argc,char ** argv)
     std::cout << "aGBName " << aGBName << " aSeulName "  << aSeulName << "\n";
 
     aCom2 = MM3dBinFile_quotes("SateLib RecalRPC") + " " + aGBName;
-    std::cout << "aCom2 " << aCom2 << "\n";
+    std::cout << "Com2[" << aCom2 << "]\n";
 
     TopSystem(aCom2.c_str());
             
