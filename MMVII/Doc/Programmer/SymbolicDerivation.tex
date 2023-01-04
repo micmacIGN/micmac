@@ -5,8 +5,8 @@ This description is for programmer who will have to maintain this part or possib
 However we recommand to read before the short introduction given in~\ref{Compute:Deriv:SysNL} (or better all chapter~\ref{Chap:NLO}) to
 have a better understanding of where we go.
 
-For devlopper that will only be users of these  automatic differentiation facilities in {\tt MMVVII} , probably
-~\ref{Compute:Deriv:SysNL} or~\ref{Chap:NLO} is sufficient.
+For devlopper that will "only" be users of these  automatic differentiation facilities in {\tt MMVVII}, 
+and are not curious, probably ~\ref{Compute:Deriv:SysNL} or~\ref{Chap:NLO} is sufficient.
 
 
 %-----------------------------------------------------
@@ -137,8 +137,8 @@ The code is located in  {\tt MMVII/include/SymbDer/}.
 
 \subsection{formulas}
 
-The key-file is {\tt SymbolicDerivatives.h}  where is defined   the key-classes   {\tt cFormula and cImplemF},
-cFormula being simply pointer on cImplemF,  ({\tt cImplemF} is the real class containing the data, while
+The key-file is {\tt SymbolicDerivatives.h}  where is defined   the key-classes   {\tt cFormula} and {\tt cImplemF},
+{\tt cFormula} being simply pointer on {\tt cImplemF},  ({\tt cImplemF} is the real class containing the data, while
 {\tt cFormula} are the classes manipulated externally as we want a remanent objet  semantic).
 For now we will speak of formula to name undifferrently these two linked classes.
 
@@ -146,9 +146,11 @@ For now we will speak of formula to name undifferrently these two linked classes
 A formula is the {\tt C++} equivalent of the tree/DAG, basically formula work this way :
 
 \begin{itemize}
-       \item  a formula contains a set of sub-formula (currently between $0$ en $2$);
+       \item  a formula contains a set of sub-formula (currently between $0$ en $2$, but potentially more
+	       if/when need of ternary, quaternary \dots operators arise);
 
-       \item  for each kind of formula there is a derived class (i.e one derived class for each operator)
+       \item  for each kind of formula there exist a specific derived class which inherits of  {\tt cImplemF},
+	       (i.e one derived class for each operator)
 
        \item  mathematical operator ($+,*\dots ,\cos,\tan,\dots$) have been overloaded on formula, 
                for example consider a binary operator  $\otimes$ , each time we meet $F_1\otimes F_2$ 
@@ -159,7 +161,7 @@ A formula is the {\tt C++} equivalent of the tree/DAG, basically formula work th
                \begin{itemize}
                     \item if the formulla has already be encontered inside a computation, this formula is returned
                           and nothing is created (that why it's a DAG);
-		  \item if some simplication rule specific to the operator exist (like $F*1=F$) they are applied;
+		  \item if some simplication rule specific to the operator exists (like $F*1=F$) they are applied instead;
                \end{itemize}
 	       
         \item  a formula contains several virtual methods indicating how to 
@@ -169,19 +171,20 @@ A formula is the {\tt C++} equivalent of the tree/DAG, basically formula work th
 		       \item  computes the generated code;
                \end{itemize}
 
-		the above listing extract these $3$ methods for the {\tt cMulF} correspondingto the multiplication
-		of functions;
+		the above listing extract these $3$ methods for the class {\tt cMulF} corresponding to the multiplication
+		operator;
 \end{itemize}
 
 
 \begin{lstlisting}[language=c++]
+// === Extract of code in class cMulF (multiplication of formulas )
+
 // method for computing values
 void ComputeBuf(int aK0,int aK1) override
 {
     for (int aK=aK0 ; aK<aK1 ; aK++)
         mDataBuf[aK] =  mDataF1[aK] * mDataF2[aK];
 }
-// === Extract of code in class cMulF (multiplication of formulas )
 
 // method for computing the derivative
 cFormula<TypeElem> Derivate(int aK) const override
@@ -204,7 +207,8 @@ std::string GenCodeDef() const override
 Generating the DAG, requires some coordination between the formulas created.
 As we want to create a DAG with  minimal number of nodes, we must keep track
 of all already existing formulas created for a specific task.
-This is where the class {\tt cCoordinatorF} is usefull,  it creates a dictionnary ({\tt std::map})
+This is where the class {\tt cCoordinatorF} is usefull,  it creates a dictionnary 
+(using class {\tt std::map} of the {\tt STL})
 that stores the association "name/Formula created".  So the coordinator "knows" all the 
 formula that belongs to it while each formula "knows" its coordinator. Also the coordinator
 associates to each new formula a unique number.
@@ -222,16 +226,18 @@ Let illustrate on an example how it works :
 \end{itemize}
 
 The coordinator  is the access point for generating the code. The user has first to select the curent formulas :
-it can be the formulas themselves or the formulas plus all their derivatives.
-Note that we have the possibility to give several formulas (in a {\tt std::vector}) as curent formulas,
-this is because, due to DAG reduction,  the  DAG of $N$ formulas will have less nodes
-than the $N$ independant DAG and consequently the code will be more efficient.
-
+it can be the formulas themselves or the formulas plus all their derivatives
+\footnote{
 Also why would a user generate code without derivatice while
 obiously these classes are interesting because we want to compute derivatives? 
 In fact  it can be interesting for a given formula to use it both for  computing funcion+derivative and
 computing  only the function : for example in weighted least squares, we can whish to first compute the function
-only and, if certain conditions are satisfied, compute the derivative.
+only and, if certain conditions are satisfied, compute the derivatives.
+}.
+Note that we have the possibility to give several formulas (in a {\tt std::vector}) as curent formulas,
+this is because, due to DAG reduction,  the  DAG of $N$ formulas will have less nodes
+than the $N$ independant DAG and consequently the code will be more efficient.
+
 
 Once the current formula has been settled, the code generation follows this pipeline :
 
@@ -273,15 +279,15 @@ directly the file generated, he can just get an object from its name).
 
 \section{Classes for  formula}
 
-There exists $3$ main class that derive from the class {\tt cImplemF}, these $3$ classes
+There exists $3$ main classes that derive from the class {\tt cImplemF}, these $3$ classes
 correspond to the cases where the formula has $0,1$ or $2$ sub-formula.
 
       %-----------------------------------------------------
 \subsection{Atomic formula}
 
 The atomic formula are the "final" (or "primitive" formula) .  The base
-class for them is {\tt cAtomicF}, there is now $3$ atomic derived class, and
-probably it will stay like that. The $3$ atomic formula are : 
+class for them is {\tt cAtomicF}, there is now $3$ atomic derived class, and,
+with the visbility we have,  it will stay like that. The $3$ atomic formula are : 
 class for unknowns $x_1,x_2\dots$ ({\tt cUnknownF}), class for constants ({\tt cConstantF}),
 and class for observations ({\tt cObservationF}).
 
@@ -301,7 +307,8 @@ the $2$ is a contant we know it's value a time of code generation.
 The status of $D_0$ is different, we don't know its value at time of code generation, but a run time
 it has a value that will not change because it's not an unknown and for 
 any variable $x_k$  we have $\frac{\partial D_0}{\partial x_k} =0$.
-$D_0$ can be interpreted as constant whose value will only be fixed at runtime.
+$D_0$ can be interpreted as constant whose value will only be fixed at runtime. 
+It will be named an observation in {\tt MMVII}'s jargon for symbolic derivation.
 
 
 
@@ -405,7 +412,7 @@ This macro does several things :
 	\item  define the classes  {\tt csinC} and {\tt cDerDinC} that inherits of {\tt cUnaryF};
 		note that {\tt csinC}  will call the operator {\tt DerSinC} in method {\tt Derivate},
 		while for {\tt cDerDinC}  we make the choice of having no meaningfull derivate
-		(its {\tt Derivate} calls the method {\tt UndefinedOperUn};
+		(its {\tt Derivate} calls the method {\tt UndefinedOperUn});
 
 	\item  declare the operators {\tt sinC} and {\tt DerSinC} , this definition must occurs  after the class
 		definition.
@@ -429,7 +436,7 @@ An example is done in file {\tt src/SymbDerGen/Formulas\_CamStenope.h} with the 
 \subsection{Binary formula}
 
 The implemantation of binary formula is pretty much the same than the implementation for unary formula,
-the main difference being that binary formula contains 2 sub-formula $F_1$ and $F_2$ \dots
+the main difference being that binary formula contains 2 sub-formulas $F_1$ and $F_2$ \dots
 
 The code for is located in {\tt SymbDer\_BinaryOp.h}.  The base class of all binary formula is
 {\tt cBinaryF}.  Binary formula have some method that are used exclusively in the reduction process 
@@ -440,7 +447,7 @@ There is $5$ binary operators defined in  {\tt SymbDer\_BinaryOp.h} : $+*/-$ and
 
 Like with unary operators, {\tt MACRO\_SD\_DEFINE\_STD\_BINARY\_FUNC\_OP\_DERIVABLE}
 make possible to create a new binary operator with a single macro.
-This macro take one more parameters than unary one, becasuse  we must indicate the two
+This macro take one more parameters than unary one, because  we must indicate the two
 derivative by each of the parameter to apply the rule :
 
 \begin{equation}
@@ -464,7 +471,7 @@ it has a non negligeable  impact on efficiency, as we can see with the equation~
 that gives a basic example using, in a first step, blindly the 
 rule of automatic derivation and then applying reduction rule .
 We have two gains : first $x$ is obviously faster to compute than $0 * (y+2) + x * (1 + 0)$,
-and second it increase the likeliness to have code sharing . Note the time to do
+and second it increase the likeliness to have code sharing . Note that the time to do
 these reductions themselve is taken in a "compilation/generation" step and not at execution
 (and by the way this compilation time it neglectible).
 
@@ -475,7 +482,7 @@ these reductions themselve is taken in a "compilation/generation" step and not a
 	\label{Form:Reduc}.
 \end{equation}
 
-We give a, non exhaustive, list of these rules, :
+We give a, non necessarily exhaustive, list of these rules, :
 
 \begin{itemize}
      \item  $0*F \rightarrow 0$ ,   $1*F  \rightarrow F$ , $-1*F \rightarrow -F$ (and idem $F*0\dots$);
