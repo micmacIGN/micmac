@@ -58,5 +58,6 @@ PYBIND11_MODULE(MMVII, m) {
     pyb_init_Geom(m);
     pyb_init_PerspCamIntrCalib(m);
     pyb_init_DenseMatrix(m);
+    pyb_init_Memory(m);
 }
 
