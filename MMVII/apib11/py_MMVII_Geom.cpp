@@ -7,7 +7,7 @@ using namespace MMVII;
 
 
 template<typename T, int Dim>
-void pyb_init_Geom_tpl(py::module_ &m, const std::string& name) {
+void pyb_init_cPtxd_tpl(py::module_ &m, const std::string& name) {
     using namespace std::literals;
     using namespace pybind11::literals;
 
@@ -24,23 +24,19 @@ void pyb_init_Geom_tpl(py::module_ &m, const std::string& name) {
 
 //            .def("toStdVector",&cPt::ToStdVector) // toStdVector undefined symbol au link ...
 
-            .def("__repr__",[name](const cPt& p) {
-                   std::ostringstream ss;
-
-                   ss.precision(17);
-                   ss << name << "(";
-                   if constexpr (Dim >= 1)
-                           ss << p.x();
-                   if constexpr (Dim >= 2)
-                           ss << "," << p.y();
-                   if constexpr (Dim >= 3)
-                           ss << "," << p.z();
-                   if constexpr (Dim >= 4)
-                           ss << "," << p.t();
-                   ss << ')';
-                   return ss.str();
+            .def("__repr__",[name](const cPt& p) { 
+                  std::ostringstream ss;
+    
+                  ss.precision(17);
+                  ss << name << "(";
+                  for (int i=0; i<Dim; i++) {
+                      if (i > 0)
+                          ss << ",";
+                      ss << p[i];
+                  }
+                  ss << ')';
+                  return ss.str();
              })
-
             .def(py::self + py::self)
             .def(py::self - py::self)
             .def(- py::self)
@@ -85,12 +81,56 @@ void pyb_init_Geom_tpl(py::module_ &m, const std::string& name) {
     m.def("norm2",&Norm2<T,Dim>);
 }
 
+template<typename T, int Dim>
+void pyb_init_cTplBox_tpl(py::module_ &m, const std::string& name) {
+    using namespace std::literals;
+    using namespace pybind11::literals;
+
+    typedef cTplBox<T,Dim> tBox;
+    typedef cPtxd<T,Dim> tPt;
+
+    auto tb = py::class_<tBox>(m, name.c_str())
+            .def(py::init<const tPt&, const tPt&,bool>(),"p0"_a,"p1"_a,"allowEmpty"_a = false)
+            .def(py::init<const tPt&, bool>(),"size"_a,"allowEmpty"_a = false)
+            
+            .def_static("empty",&tBox::Empty)
+            .def_static("boxCste",&tBox::BoxCste,"val"_a)
+            .def_static("bigBox",&tBox::BigBox)
+            
+            .def("toR",&tBox::ToR)
+            .def("toI",&tBox::ToI)
+            
+            .def("p0",&tBox::P0)
+            .def("p1",&tBox::P1)
+            .def("sz",&tBox::Sz)
+
+            .def("nbElem",&tBox::NbElem)
+            
+            .def("__repr__",[name](const tBox& tb) {
+                 std::ostringstream ss;
+                 ss.precision(17);
+                 ss << name << "((" 
+                    << tb.P0().x() << "," 
+                    << tb.P0().y() << "),(" 
+                    << tb.P1().x() << "," 
+                    << tb.P1().y() << "))" ;
+                 return ss.str();
+             })
+            ;
+}       
+
 void pyb_init_Geom(py::module_ &m)
 {
-    pyb_init_Geom_tpl<double,1>(m,"Pt1dr");
-    pyb_init_Geom_tpl<double,2>(m,"Pt2dr");
-    pyb_init_Geom_tpl<double,3>(m,"Pt3dr");
-    pyb_init_Geom_tpl<int,1>(m,"Pt1di");
-    pyb_init_Geom_tpl<int,2>(m,"Pt2di");
-    pyb_init_Geom_tpl<int,3>(m,"Pt3di");
+    pyb_init_cPtxd_tpl<double,1>(m,"Pt1dr");
+    pyb_init_cPtxd_tpl<double,2>(m,"Pt2dr");
+    pyb_init_cPtxd_tpl<double,3>(m,"Pt3dr");
+    pyb_init_cPtxd_tpl<int,1>(m,"Pt1di");
+    pyb_init_cPtxd_tpl<int,2>(m,"Pt2di");
+    pyb_init_cPtxd_tpl<int,3>(m,"Pt3di");
+
+    pyb_init_cTplBox_tpl<int,2>(m,"Box2di");
+    pyb_init_cTplBox_tpl<double,2>(m,"Box2dr");
+    pyb_init_cTplBox_tpl<int,3>(m,"Box3di");
+    pyb_init_cTplBox_tpl<double,3>(m,"Box3dr");
+
 }
