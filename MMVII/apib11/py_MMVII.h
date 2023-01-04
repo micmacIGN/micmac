@@ -13,6 +13,6 @@ void pyb_init_PerspCamIntrCalib(py::module_ &);
 void pyb_init_Geom(py::module_ &m);
 void pyb_init_DenseMatrix(py::module_ &m);
 void pyb_init_Memory(py::module_ &m);
-
+void pyb_init_Aime(py::module_ &m);
 
 #endif // PY_MMVII_H
