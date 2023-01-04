@@ -12,8 +12,8 @@ const char* pybindMMVIIDir = PYBIND_MMVII_DIR;
 
 static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
 {
-    MMVII::ErrOut() << "\n\n ######################################""\n\n";
-    MMVII::ErrOut() << "\n\n ###### Python API error handler ######""\n\n";
+    MMVII::ErrOut() << "\n\n######################################";
+    MMVII::ErrOut() << "###### Python API error handler ######\n\n";
     MMVII::ErrOut() << "Level=[" << aType << "]\n";
     MMVII::ErrOut() << "Mes=[" << aMes << "]\n";
     if (aFile)

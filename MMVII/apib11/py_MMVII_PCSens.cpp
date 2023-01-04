@@ -12,7 +12,7 @@ void pyb_init_PerspCamIntrCalib(py::module_ &m) {
 
     py::class_<cPerspCamIntrCalib>(m, "PerspCamIntrCalib", DOC(MMVII_cPerspCamIntrCalib))
             .def("toFile", &cPerspCamIntrCalib::ToFile)
-            .def_static("fromFile", &cPerspCamIntrCalib::FromFile)
+            .def_static("fromFile", &cPerspCamIntrCalib::FromFile,py::return_value_policy::reference)
 
             .def("degDir", &cPerspCamIntrCalib::DegDir)
             .def("f", &cPerspCamIntrCalib::F, DOC(MMVII_cPerspCamIntrCalib, F))

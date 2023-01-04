@@ -2,4 +2,5 @@
 *.XML
 *.so
 *.o
+core
 docstrings.h
