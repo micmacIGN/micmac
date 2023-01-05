@@ -113,8 +113,12 @@ class  cDCT
          double        mBin;        ///< Binary score (unused ?)
          double        mRad;        ///< Radiality core (unused ?)
 
-         float         mVBlack;  ///< estimate "black" value of the detected target
-         float         mVWhite;  ///< estimate "white" value of the detected target
+         float         mVBlack;     ///< estimate "black" value of the detected target
+         float         mVWhite;     ///< estimate "white" value of the detected target
+
+         cPt2dr mRefinedCenter;      ///< Coordinates of center after detection process
+         std::string mDecodedName;   ///< Name of target after detection process
+         bool mFinalState;
 
 };
 

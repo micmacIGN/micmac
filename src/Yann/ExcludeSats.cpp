@@ -49,6 +49,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define APPROX_HEIGHT_SAT_TARGETS            1000
 
 
+inline float SIGN(float x) { 
+	return (x >= 0.0f) ? +1.0f : -1.0f; 
+}
+
+inline float NORM(float a, float b, float c, float d) { 
+	return sqrt(a * a + b * b + c * c + d * d); 
+}
+
 
 // --------------------------------------------------------------------------------------
 // Classes permettant de convertir un fichier rtklib en format Micmac
@@ -142,6 +150,24 @@ class cAppli_YannSkyMask{
 
 
 // --------------------------------------------------------------------------------------
+// Classes permettant d'exporter un dossier d'orientation en format Colmap
+// --------------------------------------------------------------------------------------
+class cAppli_YannExport2Colmap{
+
+	public :
+
+		cAppli_YannExport2Colmap(int argc, char ** argv);
+
+		std::string ImPattern;                      // Images caméra
+		std::string mDirOri;                        // Fichier d'orientation
+		std::string mInv;							// Inverse mode
+
+	 	cInterfChantierNameManipulateur * mICNM;    // Name manipulateur
+
+};
+
+
+// --------------------------------------------------------------------------------------
 // Classes de test peremettant de stocker le code de type script
 // --------------------------------------------------------------------------------------
 class cAppli_YannScript{
@@ -209,6 +235,155 @@ std::string execCmdOutput(const char* cmd) {
 	#endif
 
 }
+
+
+
+// --------------------------------------------------------------------------------------
+// Rotation matrix to quaternion conversion
+// --------------------------------------------------------------------------------------
+std::vector<double> rot2Quat(double r11, double r12, double r13, double r21, double r22, double r23, double r31, double r32, double r33) {
+
+	double q0 = (r11 + r22 + r33 + 1.0f) / 4.0f;
+	double q1 = (r11 - r22 - r33 + 1.0f) / 4.0f;
+	double q2 = (-r11 + r22 - r33 + 1.0f) / 4.0f;
+	double q3 = (-r11 - r22 + r33 + 1.0f) / 4.0f;
+	
+	if (q0 < 0.0f) {
+		q0 = 0.0f;
+	}
+	if (q1 < 0.0f) {
+		q1 = 0.0f;
+	}
+	if (q2 < 0.0f) {
+		q2 = 0.0f;
+	}
+	if (q3 < 0.0f) {
+		q3 = 0.0f;
+	}
+	q0 = sqrt(q0);
+	q1 = sqrt(q1);
+	q2 = sqrt(q2);
+	q3 = sqrt(q3);
+	if (q0 >= q1 && q0 >= q2 && q0 >= q3) {
+		q0 *= +1.0f;
+		q1 *= SIGN(r32 - r23);
+		q2 *= SIGN(r13 - r31);
+		q3 *= SIGN(r21 - r12);
+	}
+	else if (q1 >= q0 && q1 >= q2 && q1 >= q3) {
+		q0 *= SIGN(r32 - r23);
+		q1 *= +1.0f;
+		q2 *= SIGN(r21 + r12);
+		q3 *= SIGN(r13 + r31);
+	}
+	else if (q2 >= q0 && q2 >= q1 && q2 >= q3) {
+		q0 *= SIGN(r13 - r31);
+		q1 *= SIGN(r21 + r12);
+		q2 *= +1.0f;
+		q3 *= SIGN(r32 + r23);
+	}
+	else if (q3 >= q0 && q3 >= q1 && q3 >= q2) {
+		q0 *= SIGN(r21 - r12);
+		q1 *= SIGN(r31 + r13);
+		q2 *= SIGN(r32 + r23);
+		q3 *= +1.0f;
+	}
+	else {
+		printf("coding error\n");
+	}
+	double r = NORM(q0, q1, q2, q3);
+	q0 /= r;
+	q1 /= r;
+	q2 /= r;
+	q3 /= r;
+
+	std::vector<double> res = {q0, q1, q2, q3};
+	return res;
+}
+
+
+// --------------------------------------------------------------------------------------
+// Fonction de conversion d'un dossier d'orientation en format Colmap
+// --------------------------------------------------------------------------------------
+// Inputs :
+//   - string: Pattern des images
+//   - string: dossier d'orientation
+// --------------------------------------------------------------------------------------
+cAppli_YannExport2Colmap::cAppli_YannExport2Colmap(int argc, char ** argv){
+
+	 ElInitArgMain(argc,argv,
+        LArgMain()  <<  EAMC(ImPattern,"Pattern of images")
+				  	<<  EAMC(mDirOri, "Orientation to convert"),
+        LArgMain()  <<  EAM(mInv,"Bidon", "NONE", "Bidon"));
+
+
+	cElemAppliSetFile mEASF;                       // Pour gerer un ensemble d'images
+	std::string aNameIn;					       // Nom d'image temporaire
+
+	// ---------------------------------------------------------------
+	// 
+	// ---------------------------------------------------------------
+	
+	std::string mDir;
+
+	StdCorrecNameOrient(mDirOri,mDir);
+	
+
+	
+	// ---------------------------------------------------------------
+	// Lecture des images
+	// ---------------------------------------------------------------
+	if (EAMIsInit(&ImPattern)){
+		mEASF.Init(ImPattern);
+        mICNM = mEASF.mICNM;
+        mDir = mEASF.mDir;
+	}
+	
+	size_t N = mEASF.SetIm()->size();
+	
+	
+	std::cout << "# Image list with two lines of data per image:\n";
+	std::cout << "# IMAGE_ID, QW, QX, QY, QZ, TX, TY, TZ, CAMERA_ID, NAME\n";
+	std::cout << "# POINTS2D[] as (X, Y, POINT3D_ID)\n";
+	std::cout << "# Number of images: " << N << "\n";
+
+	
+	for (unsigned i=0; i<N; i++){
+		aNameIn = mEASF.SetIm()[0][i];
+		cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+		StdCorrecNameOrient(mDirOri, anICNM->Dir());
+		//CamStenope * aCam = CamOrientGenFromFile("Ori-"+mDirOri+"/Orientation-"+aNameIn+".xml", anICNM);
+		//Pt3dr p1 = aCam->PseudoOpticalCenter();
+		
+		cOrientationConique aXMLRef = StdGetFromPCP("Ori-"+mDirOri+"/Orientation-"+aNameIn+".xml", OrientationConique);
+		
+		
+		// Quaternion conversion
+		double r11 = aXMLRef.Externe().ParamRotation().CodageMatr().Val().L1().x;
+		double r12 = aXMLRef.Externe().ParamRotation().CodageMatr().Val().L1().y;
+		double r13 = aXMLRef.Externe().ParamRotation().CodageMatr().Val().L1().z;
+		double r21 = aXMLRef.Externe().ParamRotation().CodageMatr().Val().L2().x;
+		double r22 = aXMLRef.Externe().ParamRotation().CodageMatr().Val().L2().y;
+		double r23 = aXMLRef.Externe().ParamRotation().CodageMatr().Val().L2().z;
+		double r31 = aXMLRef.Externe().ParamRotation().CodageMatr().Val().L3().x;
+		double r32 = aXMLRef.Externe().ParamRotation().CodageMatr().Val().L3().y;
+		double r33 = aXMLRef.Externe().ParamRotation().CodageMatr().Val().L3().z;
+		std::vector<double> q = rot2Quat(r11, r12, r13, r21, r22, r23, r31, r32, r33);
+	
+		
+		std::cout << i << " ";
+		std::cout << q.at(0) << " " << q.at(1) << " " << q.at(2) << " " << q.at(3);
+		std::cout << aXMLRef.Externe().Centre().x << " ";
+		std::cout << aXMLRef.Externe().Centre().y << " ";
+		std::cout << aXMLRef.Externe().Centre().z << " ";
+		std::cout <<  " 1 ";
+		std::cout << aNameIn+"\n";
+		std::cout << "\n";
+		
+	}
+	
+}
+
 
 
 // --------------------------------------------------------------------------------------
@@ -1473,7 +1648,11 @@ int CPP_YannScript(int argc,char ** argv){
    return EXIT_SUCCESS;
 }
 
-
+// (5) Conversion fichiers RTKlib
+int CPP_YannExport2Colmap(int argc,char ** argv){
+   cAppli_YannExport2Colmap(argc,argv);
+   return EXIT_SUCCESS;
+}
 
 
 

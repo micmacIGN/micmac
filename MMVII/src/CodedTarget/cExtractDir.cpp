@@ -127,7 +127,7 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, std::vector<
 
          int aCpt = 0;
 
-         double radius = 5*sqrt(aCircle.at(0).x()*aCircle.at(0).x() + aCircle.at(0).y()*aCircle.at(0).y());
+         double radius = 1*sqrt(aCircle.at(0).x()*aCircle.at(0).x() + aCircle.at(0).y()*aCircle.at(0).y());
 
          // parse the value to detect black/white transitions
          for (int  aKp=0 ; aKp<aNbInC ; aKp++){

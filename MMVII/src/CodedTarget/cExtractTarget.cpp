@@ -6,12 +6,13 @@
 #include <bitset>
 #include <time.h>
 #include <typeinfo>
-
+#include <iostream>
+#include <fstream>
 
 /*   Modularistion
- *   Code extern tel que ellipse 
+ *   Code extern tel que ellipse
  *   Ellipse => avec centre
- *   Pas de continue 
+ *   Pas de continue
  */
 #define PI 3.14159265
 
@@ -79,23 +80,46 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         void ShowStats(const std::string & aMes) ;
         void MarkDCT() ;
         void SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool MinCrown,double aThrS,eResDCT aModeSup);
-
-        int fitEllipse(std::vector<cPt2dr>, double*);                       ///< Least squares estimation of an ellipse from 2D points
-        int cartesianToNaturalEllipse(double*, double*);                    ///< Convert (A,B,C,D,E,F) ellipse parameters to (x0,y0,a,b,theta)
-        cPt2dr generatePointOnEllipse(double*, double, double);             ///< Generate point on ellipse from natural parameters
-        int decodeTarget(tDataImT &, double, double, std::string&, bool);   ///< Decode a potential target
-        bool markImage(tDataImT &, cPt2di, int, int);                       ///< Plot mark on gray level image
+        bool analyzeDCT(cDCT*, const cDataIm2D<float> &, int);                   ///< Analyze a potential target
+        int decodeTarget(tDataImT &, double, double, std::string&, bool);        ///< Decode a potential target
+        bool markImage(tDataImT &, cPt2di, int, int);                            ///< Plot mark on gray level image
         std::vector<cPt2dr> solveIntersections(cDCT*, double*);
-        std::vector<double> estimateAffinity(double, double, double, double, double, double, double, double, double);
+        std::vector<cPt2dr> extractButterflyEdge(const cDataIm2D<float> &, cDCT*);
+        void exportInXml(std::vector<cDCT*>);
+
+
+
+
+        // ---------------------------------------------------------------------------------
+        // Fonctions à déplacer dans un autre fichier
+        // ---------------------------------------------------------------------------------
         void printMatrix(MatrixXd);
         bool plotSafeRectangle(cRGBImage, cPt2di, double, cPt3di, int, int, double);
+
+        int cartesianToNaturalEllipse(double*, double*);                         ///< Convert (A,B,C,D,E,F) ellipse parameters to (x0,y0,a,b,theta)
+        cPt2dr generatePointOnEllipse(double*, double, double);                  ///< Generate point on ellipse from natural parameters
+        std::vector<cPt2dr> generatePointsOnEllipse(double*, unsigned, double);  ///< Generate points on ellipse from natural parameters
+        void translateEllipse(double*, cPt2dr);                                  ///< Ellipse translation in cartesian coordinates
+        void benchEllipse();                                                     ///< Bench test for ellipse fit
+        void benchEllipseR();                                                    ///< Bench test for ellipse fit
+        void benchAffinity();                                                    ///< Bench text for affinity fit
+        void plotCaseR(std::vector<cPt2dr>, double*);                            ///< Plot ellipse fit in R for debugging
+
+        int fitEllipse (std::vector<cPt2dr>, cPt2dr, bool, double*);             ///< Least squares estimation of an ellipse from 2D points
+        int fitFreeEllipse(std::vector<cPt2dr>, double*);                        ///< Least squares estimation of a floating ellipse from 2D points
+        int fitConstrainedEllipse(std::vector<cPt2dr>, cPt2dr, double*);         ///< Least squares estimation of a constrained ellipse from 2D points
+
+        std::vector<double> estimateRectification(std::vector<cPt2dr>, double);
+        std::vector<double> estimateAffinity(std::vector<cPt2dr>, std::vector<cPt2dr>);
 
 
 	std::string mNameTarget;
 
 	cParamCodedTarget        mPCT;
     double                   mDiamMinD;
+    bool                     mConstrainCenter;
 	cPt2dr                   mRaysTF;
+	cPt2di                   mTestCenter;
 
         std::vector<eDCTFilters> mTestedFilters;
 
@@ -122,12 +146,18 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
         bool mTest;               ///< Test option for debugging program
         bool mRecompute;          ///< Recompute affinity for size adaptation
-        bool mXml;                ///< Print xml output in console
+        std::string mXml;         ///< Print xml output in file
         int mDebugPlot;           ///< Debug plot code (binary)
+        double mMaxEcc;           ///< Max. eccentricity of detected ellispes
+        bool mSaddle;             ///< Prefiletring with Saddle test
+        double mMargin;           ///< Percent margin of butterfly edge used for fit
 
+        std::vector<cPt2di> vec2plot;
 
-	std::vector<double>  mParamBin;
-
+        std::vector<double>  mParamBin;
+        cParamCodedTarget spec;
+        std::string mOutput_folder;
+        std::vector<std::string> mToRestrict;
 
 };
 
@@ -141,22 +171,28 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
 cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
-   cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(5000,5000),cPt2di(300,300),false), // static_cast<cMMVII_Appli & >(*this))
-   mDiamMinD      (40.0),
-   mRaysTF        ({4,8}),
-   mImGrad        (cPt2di(1,1)),
-   mR0Sym         (3.0),
-   mR1Sym         (8.0),
-   mRExtreSym     (9.0),
-   mTHRS_Sym      (0.7),
-   mTHRS_Bin      (0.6),
-   mImVisu        (cPt2di(1,1)),
-   mPatExportF    ("XXXXXXXXX"),
-   mWithGT        (false),
-   mDMaxMatch     (2.0),
-   mTest          (false),
-   mRecompute     (false),
-   mXml           (false)
+   cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(10000,10000),cPt2di(300,300),false), // static_cast<cMMVII_Appli & >(*this))
+   mDiamMinD        (40.0),
+   mConstrainCenter (false),
+   mRaysTF          ({4,8}),
+   mTestCenter      (cPt2di(-1,-1)),
+   mImGrad          (cPt2di(1,1)),
+   mR0Sym           (3.0),
+   mR1Sym           (8.0),
+   mRExtreSym       (9.0),
+   mTHRS_Sym        (0.7),
+   mTHRS_Bin        (0.6),
+   mImVisu          (cPt2di(1,1)),
+   mPatExportF      ("XXXXXXXXX"),
+   mWithGT          (false),
+   mDMaxMatch       (2.0),
+   mTest            (false),
+   mRecompute       (false),
+   mXml             (""),
+   mMaxEcc          (1e9),
+   mSaddle          (false),
+   mMargin          (0.20),
+   mToRestrict      ({})
 {
 }
 
@@ -180,13 +216,19 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
 	  (
 	        anArgOpt
                     << AOpt2007(mDiamMinD, "DMD","Diam min for detect",{eTA2007::HDV})
+                    << AOpt2007(mConstrainCenter, "CC","Constrain centers for ellipse fit",{eTA2007::HDV})
                     << AOpt2007(mRaysTF, "RayTF","Rays Min/Max for testing filter",{eTA2007::HDV,eTA2007::Tuning})
+                    << AOpt2007(mTestCenter, "TestCenter","Test program only on a center +/- 2 px",{eTA2007::HDV,eTA2007::Tuning})
                     << AOpt2007(mPatExportF, "PatExpF","Pattern export filters" ,{AC_ListVal<eDCTFilters>(),eTA2007::HDV})
                     << AOpt2007(mTest, "Test", "Test for Ellipse Fit", {eTA2007::HDV})
                     << AOpt2007(mParamBin, "BinF", "Param for binary filter", {eTA2007::HDV})
                     << AOpt2007(mRecompute, "Recompute", "Recompute affinity if needed", {eTA2007::HDV})
-                    << AOpt2007(mXml, "Xml", "Print xml outout in console", {eTA2007::HDV})
+                    << AOpt2007(mXml, "Xml", "Print xml outout in file", {eTA2007::HDV})
                     << AOpt2007(mDebugPlot, "Debug", "Plot debug image with options", {eTA2007::HDV})
+                    << AOpt2007(mMaxEcc, "MaxEcc", "Max. eccentricity of targets", {eTA2007::HDV})
+                    << AOpt2007(mSaddle, "Saddle", "Prefiltering with saddle test", {eTA2007::HDV})
+                    << AOpt2007(mMargin, "Margin", "Margin on butterfly edge for fit", {eTA2007::HDV})
+                    << AOpt2007(mToRestrict, "Restrict", "List of codes to restrict on", {eTA2007::HDV})
 	  );
    ;
 }
@@ -215,8 +257,8 @@ void cAppliExtractCodeTarget::ShowStats(const std::string & aMes)
    if (aNbGTOk)
    {
        size_t aNbGtAll = mGTResSim.mVG.size();
-       StdOut()  <<  " PropGT=" << double(aNbGTOk)/  aNbGtAll 
-	       << " AvgDist=" << aSomDist/ aNbGTOk 
+       StdOut()  <<  " PropGT=" << double(aNbGTOk)/  aNbGtAll
+	       << " AvgDist=" << aSomDist/ aNbGTOk
 	       // << "     ** D50,75=" << NC_KthVal(aVDistGT,0.5) << " " << NC_KthVal(aVDistGT,0.75)
        ;
    }
@@ -310,7 +352,7 @@ void cAppliExtractCodeTarget::DoAllMatchOnGT()
 	{
              MatchOnGT(aGSD);
 	     if (aGSD.mResExtr )
-		aNbGTMatched++; 
+		aNbGTMatched++;
 	     else
 	     {
                  StdOut() << " UNMATCH000 at " << aGSD.mC << "\n";
@@ -323,10 +365,14 @@ void cAppliExtractCodeTarget::DoAllMatchOnGT()
 
 void  cAppliExtractCodeTarget::DoExtract(){
 
+    if (mToRestrict.size() > 0){
+        StdOut() << "List of target codes to keep: \n";
+        for (unsigned i=0; i<mToRestrict.size(); i++){
+            StdOut() << mToRestrict.at(i) << "\n";
+        }
+    }
 
-    cParamCodedTarget spec;
     spec.InitFromFile("Target_Spec.xml");
-
 
     // --------------------------------------------------------------------------------------------------------
     // Get debug plot options
@@ -362,34 +408,6 @@ void  cAppliExtractCodeTarget::DoExtract(){
     StdOut() << "------------------------------------------------------------------\n";
     }
 
-    // --------------------------------------------------------------------------------------------------------
-    // Build list of codes from specification file
-    // --------------------------------------------------------------------------------------------------------
-
-    std::string CODES[2*spec.NbCodeAvalaible()+1];
-    for (int i=0; i<2*spec.NbCodeAvalaible()+1; i++){
-        CODES[i] = "NA";
-    }
-
-    for (int aNum=0 ; aNum<spec.NbCodeAvalaible(); aNum++){
-        std::vector<int> code = spec.CodesOfNum(aNum).CodeOfNumC(0).ToVect();
-        std::vector<int> binary_code;
-        int sum = 0;
-        binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0);
-        binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0);
-        binary_code.push_back(0);
-        for (unsigned i=0; i<code.size(); i++){
-            binary_code.at(code.at(i)) = 1;
-            sum += pow(2, code.at(i));
-        }
-
-        if (spec.mModeFlight){
-            CODES[aNum] = spec.NameOfNum(aNum);
-        }else{
-             CODES[sum] = spec.NameOfNum(aNum);   // Attention : problème entre ces deux lignes !!!!!
-        }
-    }
-
 
     // --------------------------------------------------------------------------------------------------------
 
@@ -400,7 +418,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
 
 
-     if (0) //  Case prefiltring by symetry
+     if (!mSaddle) //  Case prefiltring by symetry
      {
           // [1]   Extract point that are extremum of symetricity
          //    [1.1]   extract integer pixel
@@ -428,7 +446,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
          DoAllMatchOnGT();
          ShowStats("Init ");
      }
-     else  // Case prefiltering by Saddle 
+     else  // Case prefiltering by Saddle
      {
          // Set for interior Maybe to adapt  DRONE
          double aRaySaddle = mDiamMinD / 4.0;
@@ -459,7 +477,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
 	     else
                 mVDCT.push_back(new cDCT(aPtR,aState));
          }
-         DoAllMatchOnGT();  // Match on GT 
+         DoAllMatchOnGT();  // Match on GT
          ShowStats("SadleDiffRel ");
 
 	 std::vector<double>  aVCPT_GT;  // cpt-sadle for ground-truh to check values
@@ -493,8 +511,8 @@ void  cAppliExtractCodeTarget::DoExtract(){
      }
 
      //   ====   Symetry filters ====
-     /*   Not sure this very usefull as symetry is done 
-           *   optionnaly at the begining for prefiltering  (it symetry or saddle) 
+     /*   Not sure this very usefull as symetry is done
+           *   optionnaly at the begining for prefiltering  (it symetry or saddle)
 	   *   always as a post fiter
      for (auto & aDCT : mVDCT){
         if (aDCT->mState == eResDCT::Ok){
@@ -525,18 +543,16 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
      mVDCTOk.clear();
 
-    std::vector<cPt2di> vec2plot;
-
-
 
     for (auto aPtrDCT : mVDCT){
 
         // -------------------------------------------
         // TEST CENTRAGE SUR UNE CIBLE
         // -------------------------------------------
-        // if (abs(aPtrDCT->Pix().x() - 1748) > 2) continue;
-        // if (abs(aPtrDCT->Pix().y() - 3407) > 2) continue;
-        // -------------------------------------------
+        if (mTestCenter.x() != -1){
+            if (abs(aPtrDCT->Pix().x() - mTestCenter.x()) > 2) continue;
+            if (abs(aPtrDCT->Pix().y() - mTestCenter.y()) > 2) continue;
+        }
 
         if (aPtrDCT->mState == eResDCT::Ok){
             if (!TestDirDCT(*aPtrDCT,APBI_Im(), mRayMinCB, 1.0, vec2plot)){
@@ -565,115 +581,197 @@ void  cAppliExtractCodeTarget::DoExtract(){
      // ----------------------------------------------------------------------------------------------
      // [512] 1000000000 plot rectified images with detected codes (RectifTargets directory)
      // ----------------------------------------------------------------------------------------------
-     std::string output_folder = "RectifTargets";
-     if (bitsPlotDebug[9]) CreateDirectories(output_folder, true);
+     mOutput_folder = "RectifTargets";
+     if (bitsPlotDebug[9]) CreateDirectories(mOutput_folder, true);
 
 
     int counter = 0;
 
     // String for xml output in console
-    std::string xml_output  = "    <MesureAppuiFlottant1Im>\n";
-    xml_output += std::string("        <NameIm>");
-    xml_output += std::string("Image_name.tif");
-    xml_output += std::string("</NameIm>\n");
+
+
 
     for (auto aDCT : mVDCTOk){
+        analyzeDCT(aDCT, aDIm, counter);
+        counter++;
+    }
 
-        cPt2di center = aDCT->Pix();
 
-        // -------------------------------------------
-        // Test on binarity of target
-        // -------------------------------------------
-        if (aDCT->mVWhite - aDCT->mVBlack < 25) continue;
+    // ------------------------------------------------
+    // Xml output (if needed)
+    // ------------------------------------------------
+    if (mXml != "") exportInXml(mVDCTOk);
 
-        // ----------------------------------------------------------------------------------------------
-        // [001] 0000000001 plot only candidates after filtering operations (magenta pixels)
-        // ----------------------------------------------------------------------------------------------
-        if(bitsPlotDebug[0]) mImVisu.SetRGBrectWithAlpha(center, 1, cRGBImage::Magenta, 0.0);
+    if (0)
+       MarkDCT() ;
 
-        // -----------------------------------------------------------------
-        // Testing borders
-        // -----------------------------------------------------------------
-        if (center.x() < 30) continue;
-        if (center.y() < 30) continue;
-        if (aDIm.Sz().x()-center.x() < 30) continue;
-        if (aDIm.Sz().y()-center.y() < 30) continue;
+    // Plot debug if needed
+    if (mDebugPlot) mImVisu.ToFile("VisuCodeTarget.tif");
 
-        double vx1 = aDCT->mDirC1.x(); double vy1 = aDCT->mDirC1.y();
-        double vx2 = aDCT->mDirC2.x(); double vy2 = aDCT->mDirC2.y();
-        double threshold = (aDCT->mVBlack + aDCT->mVWhite)/2.0;
+}
 
-        std::vector<cPt2dr> POINTS;
 
-        double z_prec = 0; cPt2dr pf_prec = cPt2dr(0,0);
-        double z_curr = 0; cPt2dr pf_curr = cPt2dr(0,0);
-
-        for (double t=0.20; t<0.8; t+=0.01){
-            for (int sign=-1; sign<=1; sign+=2){
-                for (int i=5; i<=300; i++){
-                    double vx = t*vx1 + (1-t)*vx2;
-                    double vy = t*vy1 + (1-t)*vy2;
-                    double x = center.x()+sign*vx*i;
-                    double y = center.y()+sign*vy*i;
-
-                    pf_prec = pf_curr;
-                    pf_curr = cPt2dr(x, y);
-
-                    if ((x < 0) || (y < 0) || (x >= aDIm.Sz().x()-1) || (y >= aDIm.Sz().y()-1)){
-                        continue;
-                    }
-
-                    z_prec = z_curr;
-                    z_curr = aDIm.GetVBL(pf_curr);
-
-                    if (z_curr > threshold){
-                        double w1 = +(z_prec-threshold)/(z_prec-z_curr);
-                        double w2 = -(z_curr-threshold)/(z_prec-z_curr);
-                        cPt2dr pf = cPt2dr(w1*pf_curr.x() + w2*pf_prec.x(), w1*pf_curr.y() + w2*pf_prec.y());
-                        POINTS.push_back(pf);
-                        break;
-                    }
-                }
+// ---------------------------------------------------------------------------
+// Function to export result in xml
+// ---------------------------------------------------------------------------
+void cAppliExtractCodeTarget::exportInXml(std::vector<cDCT*> mVDCTOk){
+     std::string xml_output  = "    <MesureAppuiFlottant1Im>\n";
+    xml_output += std::string("        <NameIm>");
+        xml_output += std::string(mNameIm);
+        xml_output += std::string("</NameIm>\n");
+        for (auto aDCT : mVDCTOk){
+            if (aDCT->mDecodedName != ""){
+                xml_output += "        <OneMesureAF1I>\n";
+                xml_output += "            <NamePt>" +  aDCT->mDecodedName + "</NamePt>\n";
+                xml_output += "            <PtIm>" + std::to_string(aDCT->mRefinedCenter.x());
+                xml_output += " " + std::to_string(aDCT->mRefinedCenter.y()) +"</PtIm>\n";
+                xml_output += "        </OneMesureAF1I>\n";
             }
         }
+        xml_output += "     </MesureAppuiFlottant1Im>\n";
+        std::ofstream xml_file;
+        xml_file.open (mXml, std::ios_base::app);
+        xml_file << xml_output;
+        xml_file.close();
 
-        if (POINTS.size() < 10) continue;
-
-
-        // -----------------------------------------------------------------
-        // Ellipse fit
-        // -----------------------------------------------------------------
-        double param[6];
-        if (fitEllipse(POINTS, param) < 0) continue;
-
-        double ellipse[5];
-        cartesianToNaturalEllipse(param, ellipse);
-        // -----------------------------------------------------------------
-
-        // Invalid ellipse fit
-        if (ellipse[0] != ellipse[0])  continue;
+}
 
 
-        std::vector<cPt2di> ELLIPSE_TO_PLOT;
-        for (double t=0; t<2*PI; t+=0.01){
-            cPt2dr aPoint = generatePointOnEllipse(ellipse, t, 0.0);
-            cPt2di pt = cPt2di(aPoint.x(), aPoint.y());
-            ELLIPSE_TO_PLOT.push_back(pt);
+
+// ---------------------------------------------------------------------------
+// Function to test if a predetected DCT candidate is valid
+// ---------------------------------------------------------------------------
+bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aDIm, int counter){
+
+    aDCT->mFinalState = false;
+
+    // -----------------------------------------------------------------------
+    // Functions parameters (to tune)
+    // -----------------------------------------------------------------------
+    int px_binarity = 25;      // Threshold on binarity
+    int limit_border = 30;     // Target not consider if that close to border
+    // -----------------------------------------------------------------------
+
+    std::bitset<10> bitsPlotDebug = std::bitset<10>(mDebugPlot);
+
+
+    // --------------------------------------------------------------------------------------------------------
+    // Build list of codes from specification file
+    // --------------------------------------------------------------------------------------------------------
+
+    std::string CODES[2*spec.NbCodeAvalaible()+1];
+    for (int i=0; i<2*spec.NbCodeAvalaible()+1; i++){
+        CODES[i] = "NA";
+    }
+
+    for (int aNum=0 ; aNum<spec.NbCodeAvalaible(); aNum++){
+        std::vector<int> code = spec.CodesOfNum(aNum).CodeOfNumC(0).ToVect();
+        std::vector<int> binary_code;
+        int sum = 0;
+        binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0);
+        binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0);
+        binary_code.push_back(0);
+        for (unsigned i=0; i<code.size(); i++){
+            binary_code.at(code.at(i)) = 1;
+            sum += pow(2, code.at(i));
         }
 
-
-         // Solve intersections
-        std::vector<cPt2dr> INTERSECTIONS = solveIntersections(aDCT, param);
-        if (INTERSECTIONS.size() == 0) continue;
-        double x1 = INTERSECTIONS.at(0).x(); double y1 = INTERSECTIONS.at(0).y(); cPt2di p1 = cPt2di(x1, y1);
-        double x2 = INTERSECTIONS.at(1).x(); double y2 = INTERSECTIONS.at(1).y(); cPt2di p2 = cPt2di(x2, y2);
-        double x3 = INTERSECTIONS.at(2).x(); double y3 = INTERSECTIONS.at(2).y(); cPt2di p3 = cPt2di(x3, y3);
-        double x4 = INTERSECTIONS.at(3).x(); double y4 = INTERSECTIONS.at(3).y(); cPt2di p4 = cPt2di(x4, y4);
+        if (spec.mModeFlight){
+            CODES[aNum] = spec.NameOfNum(aNum);
+        }else{
+             CODES[sum] = spec.NameOfNum(aNum);   // Attention : problème entre ces deux lignes !!!!!
+        }
+    }
 
 
-        // Affinity estimation
-        double theta = PI/4.0 - spec.mChessboardAng;
-        std::vector<double> transfo = estimateAffinity(x1, y1, x2, y2, x3, y3, x4, y4, theta);
+
+    cPt2di center = aDCT->Pix();
+
+    // -------------------------------------------
+    // Test on binarity of target
+    // -------------------------------------------
+    if (aDCT->mVWhite - aDCT->mVBlack < px_binarity) return false;
+
+    // ----------------------------------------------------------------------------------------------
+    // [001] 0000000001 plot only candidates after filtering operations (magenta pixels)
+    // ----------------------------------------------------------------------------------------------
+    if(bitsPlotDebug[0]) mImVisu.SetRGBrectWithAlpha(center, 1, cRGBImage::Magenta, 0.0);
+
+
+    // -----------------------------------------------------------------
+    // Testing borders
+    // -----------------------------------------------------------------
+    if (center.x() < limit_border) return false;
+    if (center.y() < limit_border) return false;
+    if (aDIm.Sz().x()-center.x() < limit_border) return false;
+    if (aDIm.Sz().y()-center.y() < limit_border) return false;
+
+    std::vector<cPt2dr> POINTS = extractButterflyEdge(aDIm, aDCT);
+
+    if (POINTS.size() < 10) return false;
+
+
+    // -----------------------------------------------------------------
+    // Ellipse fit
+    // -----------------------------------------------------------------
+    double param[6];
+    if (fitEllipse(POINTS, aDCT->mPt, mConstrainCenter, param) < 0) return false;
+
+    double ellipse[5];
+    cartesianToNaturalEllipse(param, ellipse);
+
+    // -----------------------------------------------------------------
+
+
+    // Invalid ellipse fit
+    if (ellipse[0] != ellipse[0])  return false;
+    if (ellipse[2]/ellipse[3] > mMaxEcc) return false;
+
+
+    std::vector<cPt2di> ELLIPSE_TO_PLOT;
+    for (double t=0; t<2*PI; t+=0.01){
+        cPt2dr aPoint = generatePointOnEllipse(ellipse, t, 0.0);
+        cPt2di pt = cPt2di(aPoint.x(), aPoint.y());
+        ELLIPSE_TO_PLOT.push_back(pt);
+    }
+
+
+    // Solve intersections
+    std::vector<cPt2dr> Y = solveIntersections(aDCT, param);
+    if (Y.size() == 0) return false;
+
+
+    // Affinity estimation
+    std::vector<double> transfo = estimateRectification(Y, spec.mChessboardAng);
+    double a11 = transfo[0]; double a12 = transfo[1]; double bx  = transfo[2];
+    double a21 = transfo[3]; double a22 = transfo[4]; double by  = transfo[5];
+
+    // StdOut() << "AFFINITY RMSE: " << transfo[6] << " PX\n";
+
+    if ((isnan(a11)) || (isnan(a12)) || (isnan(a21)) || (isnan(a22)) || (isnan(bx)) || (isnan(by))){
+        return false;
+    }
+
+    // ---------------------------------------------------
+    // Recomputing directions and intersections if needed
+    // ---------------------------------------------------
+    double size_target_ellipse = sqrt(ellipse[2]* ellipse[2] + ellipse[3]*ellipse[3]);
+
+
+
+    if ((size_target_ellipse > 30) && (mRecompute)){
+
+        // Recomputing directions if needed
+        double correction_factor = std::min(size_target_ellipse/15.0, 10.0);
+        StdOut() << "\nSIZE OF TARGET: " << size_target_ellipse << " - RECOMPUTING DIRECTIONS WITH FACTOR " << correction_factor << "\n";
+
+        TestDirDCT(*aDCT, APBI_Im(), mRayMinCB, correction_factor, vec2plot);
+
+        // Recomputing intersections if needed
+        Y = solveIntersections(aDCT, param);
+
+        // Recomputing affinity if needed
+        std::vector<double> transfo = estimateRectification(Y, spec.mChessboardAng);
         double a11 = transfo[0];
         double a12 = transfo[1];
         double a21 = transfo[2];
@@ -682,255 +780,220 @@ void  cAppliExtractCodeTarget::DoExtract(){
         double by  = transfo[5];
 
         if ((isnan(a11)) || (isnan(a12)) || (isnan(a21)) || (isnan(a22)) || (isnan(bx)) || (isnan(by))){
-            continue;
+            return false;
         }
-
-        // ---------------------------------------------------
-        // Recomputing directions and intersections if needed
-        // ---------------------------------------------------
-        double size_target_ellipse = sqrt(ellipse[2]* ellipse[2] + ellipse[3]*ellipse[3]);
-        if ((size_target_ellipse > 30) && (mRecompute)){
-
-            // Recomputing directions if needed
-            double correction_factor = std::min(size_target_ellipse/15.0, 10.0);
-            //  StdOut() << "\nSIZE OF TARGET: " << size_target_ellipse << " - RECOMPUTING DIRECTIONS WITH FACTOR " << correction_factor << "\n";
-
-            TestDirDCT(*aDCT, APBI_Im(), mRayMinCB, correction_factor, vec2plot);
-            vx1 = aDCT->mDirC1.x(); vy1 = aDCT->mDirC1.y();
-            vx2 = aDCT->mDirC2.x(); vy2 = aDCT->mDirC2.y();
-
-            // Recomputing intersections if needed
-            INTERSECTIONS = solveIntersections(aDCT, param);
-            x1 = INTERSECTIONS.at(0).x(); y1 = INTERSECTIONS.at(0).y(); p1 = cPt2di(x1, y1);
-            x2 = INTERSECTIONS.at(1).x(); y2 = INTERSECTIONS.at(1).y(); p2 = cPt2di(x2, y2);
-            x3 = INTERSECTIONS.at(2).x(); y3 = INTERSECTIONS.at(2).y(); p3 = cPt2di(x3, y3);
-            x4 = INTERSECTIONS.at(3).x(); y4 = INTERSECTIONS.at(3).y(); p4 = cPt2di(x4, y4);
-
-            // Recomputing affinity if needed
-            transfo = estimateAffinity(x1, y1, x2, y2, x3, y3, x4, y4, theta);
-            double a11 = transfo[0];
-            double a12 = transfo[1];
-            double a21 = transfo[2];
-            double a22 = transfo[3];
-            double bx  = transfo[4];
-            double by  = transfo[5];
-
-            if ((isnan(a11)) || (isnan(a12)) || (isnan(a21)) || (isnan(a22)) || (isnan(bx)) || (isnan(by))){
-                continue;
-            }
-
-        }
-
-
-        // ======================================================================
-        // Image generation
-        // ======================================================================
-
-        std::vector<cPt2di> FRAME_TO_PLOT;
-
-        int Ni = spec.mModeFlight?640:600;
-        int Nj = spec.mModeFlight?1280:600;
-        double irel, jrel, it, jt;
-        tImTarget aImT(cPt2di(Ni, Nj));
-        tDataImT  & aDImT = aImT.DIm();
-
-        if (!spec.mModeFlight){
-
-            // -------------------------------------------------------------
-            // Standard case
-            // -------------------------------------------------------------
-
-            for (int i=0; i<Ni; i++){
-                for (int j=0; j<Nj; j++){
-                    irel = +6*((double)i-Ni/2.0)/Ni;
-                    jrel = -6*((double)j-Nj/2.0)/Nj;
-                    it = a11*irel + a12*jrel + bx;
-                    jt = a21*irel + a22*jrel + by;
-                    if ((it < 0) || (jt < 0) || (it >= aDIm.Sz().x()-1) || (jt >= aDIm.Sz().y()-1)){
-                        continue;
-                    }
-                    aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(cPt2dr(it, jt)));
-                    if ((i == 0) || (j == 0) || (i == Ni-1) || (j == Nj-1)){
-                        FRAME_TO_PLOT.push_back(cPt2di(it, jt));
-                    }
-                }
-            }
-        }else{
-
-            // -------------------------------------------------------------
-            // Aerial case
-            // -------------------------------------------------------------
-
-            for (int i=0; i<Ni; i++){
-                for (int j=0; j<Nj; j++){
-                    irel = +3.2*((double)i-Ni/2.0)/Ni;
-                    jrel = -6.3*((double)j-Nj/2.0)/Nj;
-                    it = a11*irel + a12*jrel + bx;
-                    jt = a21*irel + a22*jrel + by;
-                    if ((it < 0) || (jt < 0) || (it >= aDIm.Sz().x()-1) || (jt >= aDIm.Sz().y()-1)){
-                        continue;
-                    }
-                    aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(cPt2dr(it, jt)));
-                    if ((i == 0) || (j == 0) || (i == Ni-1) || (j == Nj-1)){
-                        FRAME_TO_PLOT.push_back(cPt2di(it, jt));
-                    }
-                }
-            }
-        }
-
-
-        std::string code_binary;
-        int code = decodeTarget(aDImT, aDCT->mVWhite, aDCT->mVBlack, code_binary, spec.mModeFlight);
-
-
-        std::string chaine = "NA";
-        if (code != -1){
-            chaine = CODES[code];
-        }else{
-           // continue;
-        }
-
-        // Control on center position
-        if (abs(ellipse[0] - aDCT->mPt.x()) > 2.0) continue;
-        if (abs(ellipse[1] - aDCT->mPt.y()) > 2.0) continue;
-
-        // --------------------------------------------------------------------------------
-        // Begin print console
-        // --------------------------------------------------------------------------------
-        double x_centre_moy = (ellipse[0] + aDCT->mPt.x())/2.0;
-        double y_centre_moy = (ellipse[1] + aDCT->mPt.y())/2.0;
-
-        StdOut() << " [" << counter << "]" << " Centre: [";
-        StdOut() << x_centre_moy << "," << y_centre_moy << "]  -  ";
-        StdOut() << code_binary;
-
-
-
-
-        // --------------------------------------------------------------------------------
-        // End print console
-        // --------------------------------------------------------------------------------
-        std::string name_file = "target_" + chaine + ".tif";
-        if (chaine == "NA"){
-          //  continue; // To avoid printing failures
-            name_file = "failure_" + std::to_string(counter) + ".tif";
-        }else{
-            if (mXml){
-                xml_output += "        <OneMesureAF1I>\n";
-                xml_output += "            <NamePt>" + chaine + "</NamePt>\n";
-                xml_output += "            <PtIm>" + std::to_string(x_centre_moy);
-                xml_output += " " + std::to_string(y_centre_moy) +"</PtIm>\n";
-                xml_output += "        </OneMesureAF1I>\n";
-            }
-        }
-
-        StdOut() << "  ->  " << name_file << "\n";
-        // --------------------------------------------------------------------------------
-
-
-        // ==========================================================================================================
-        // Begin plot debug images
-        // ==========================================================================================================
-
-        // ----------------------------------------------------------------------------------------------------------
-        // [002] 0000000010 plot only center of detected targets (green pixels)
-        // ----------------------------------------------------------------------------------------------------------
-        if (bitsPlotDebug[1]){
-            plotSafeRectangle(mImVisu, center, 1, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-        }
-
-        // ----------------------------------------------------------------------------------------------------------
-        // [008] 0000001000 plot only axis lines of dected chessboard patterns (green lines)
-        // ----------------------------------------------------------------------------------------------------------
-        if (bitsPlotDebug[3]){
-            for (int sign=-1; sign<=1; sign+=2){
-                for (int i=1; i<=size_target_ellipse; i++){
-                    plotSafeRectangle(mImVisu, cPt2di(center.x()+sign*vx1*i, center.y()+sign*vy1*i), 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
-                    plotSafeRectangle(mImVisu, cPt2di(center.x()+sign*vx2*i, center.y()+sign*vy2*i), 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
-                }
-            }
-        }
-
-        // ----------------------------------------------------------------------------------------------------------
-        // [016] 0000010000 plot only data point for ellipse fit (cyan pixels)
-        // ----------------------------------------------------------------------------------------------------------
-        if (bitsPlotDebug[4]){
-            for (unsigned i=0; i<POINTS.size(); i++){
-                plotSafeRectangle(mImVisu, cPt2di(POINTS.at(i).x(), POINTS.at(i).y()), 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-            }
-        }
-
-        // ----------------------------------------------------------------------------------------------------------
-        // [032] 0000100000 plot only fitted ellipse (red lines)
-        // ----------------------------------------------------------------------------------------------------------
-        if (bitsPlotDebug[5]){
-            for (unsigned i=0; i<ELLIPSE_TO_PLOT.size(); i++){
-                plotSafeRectangle(mImVisu, ELLIPSE_TO_PLOT.at(i), 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-            }
-        }
-
-        // ----------------------------------------------------------------------------------------------------------
-        // [064] 0001000000 plot only intersections between ellipse and axes (blue pixels)
-        // ----------------------------------------------------------------------------------------------------------
-        if (bitsPlotDebug[6]){
-            plotSafeRectangle(mImVisu, p1, 0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-            plotSafeRectangle(mImVisu, p2, 0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-            plotSafeRectangle(mImVisu, p3, 0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-            plotSafeRectangle(mImVisu, p4, 0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-        }
-
-        // ----------------------------------------------------------------------------------------------------------
-        // [128] 0010000000 plot only detected target frames (blue lines)
-        // ----------------------------------------------------------------------------------------------------------
-        if (bitsPlotDebug[7]){
-            for (unsigned i=0; i<FRAME_TO_PLOT.size(); i++){
-                plotSafeRectangle(mImVisu, FRAME_TO_PLOT.at(i), 0.0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-            }
-        }
-
-        // ----------------------------------------------------------------------------------------------------------
-        // [256] 0100000000 plot detected target code name (cyan characters)
-        // ----------------------------------------------------------------------------------------------------------
-        if (bitsPlotDebug[8]){
-            it = 4*(a11 + a12) + bx; jt = 4*(a21 + a22) + by;
-            for (int lettre=0; lettre<2; lettre++){
-                std::string aStr; aStr.push_back(chaine[lettre]);
-                cIm2D<tU_INT1> aImStr = ImageOfString_10x8(aStr,1); cDataIm2D<tU_INT1>&  aDataImStr = aImStr.DIm();
-                for (int i=0; i<11; i++){
-                    for (int j=0; j<11; j++){
-                        if (aDataImStr.DefGetV(cPt2di(i,j),0)){
-                            plotSafeRectangle(mImVisu, cPt2di(it + i + lettre*10, jt + j), 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-                        }
-                    }
-                }
-            }
-        }
-
-        // ----------------------------------------------------------------------------------------------
-        // [512] 1000000000 plot rectified images with detected codes (RectifTargets directory)
-        // ----------------------------------------------------------------------------------------------
-        if (bitsPlotDebug[9]) aImT.DIm().ToFile(output_folder+ "/" + name_file);
-
-        // --------------------------------------------------------------------------------
-        // End plot image
-        // --------------------------------------------------------------------------------
-
-        counter++;
 
     }
 
 
-    if (0)
-       MarkDCT() ;
-    // APBI_DIm().ToFile("VisuWEIGHT.tif");
 
-    // Plot debug if needed
-    if (mDebugPlot) mImVisu.ToFile("VisuCodeTarget.tif");
+    // ======================================================================
+    // Image generation
+    // ======================================================================
 
-    // Print xml if needed
-    if (mXml) StdOut() << xml_output;
+    std::vector<cPt2di> FRAME_TO_PLOT;
+
+    int Ni = spec.mModeFlight?640:600;
+    int Nj = spec.mModeFlight?1280:600;
+    double irel, jrel, it, jt;
+    tImTarget aImT(cPt2di(Ni, Nj));
+    tDataImT  & aDImT = aImT.DIm();
+
+
+
+    if (!spec.mModeFlight){
+
+        // -------------------------------------------------------------
+        // Standard case
+        // -------------------------------------------------------------
+
+        for (int i=0; i<Ni; i++){
+            for (int j=0; j<Nj; j++){
+                irel = +6*((double)i-Ni/2.0)/Ni;
+                jrel = -6*((double)j-Nj/2.0)/Nj;
+                it = a11*irel + a12*jrel + bx;
+                jt = a21*irel + a22*jrel + by;
+                if ((it < 0) || (jt < 0) || (it >= aDIm.Sz().x()-1) || (jt >= aDIm.Sz().y()-1)){
+                    continue;
+                }
+                aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(cPt2dr(it, jt)));
+                if ((i == 0) || (j == 0) || (i == Ni-1) || (j == Nj-1)){
+                    FRAME_TO_PLOT.push_back(cPt2di(it, jt));
+                }
+            }
+        }
+
+        // Corners and center
+        markImage(aDImT, cPt2di(300, 300), 3, 0);
+        markImage(aDImT, cPt2di(300, 300), 2, 255);
+
+    }else{
+
+        // -------------------------------------------------------------
+        // Aerial case
+        // -------------------------------------------------------------
+
+        for (int i=0; i<Ni; i++){
+            for (int j=0; j<Nj; j++){
+                irel = +3.2*((double)i-Ni/2.0)/Ni;
+                jrel = -6.3*((double)j-Nj/2.0)/Nj;
+                it = a11*irel + a12*jrel + bx;
+                jt = a21*irel + a22*jrel + by;
+                if ((it < 0) || (jt < 0) || (it >= aDIm.Sz().x()-1) || (jt >= aDIm.Sz().y()-1)){
+                    continue;
+                }
+                aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(cPt2dr(it, jt)));
+                if ((i == 0) || (j == 0) || (i == Ni-1) || (j == Nj-1)){
+                    FRAME_TO_PLOT.push_back(cPt2di(it, jt));
+                }
+            }
+        }
+    }
+
+    std::string code_binary;
+    int code = decodeTarget(aDImT, aDCT->mVWhite, aDCT->mVBlack, code_binary, spec.mModeFlight);
+
+    std::string chaine = "NA";
+    if (code != -1){
+        chaine = CODES[code];
+        if (mToRestrict.size() > 0){
+            if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
+                return false;
+            }
+        }
+    }else{
+        return false;
+    }
+
+    // Control on center position
+    if (abs(ellipse[0] - aDCT->mPt.x()) > 2.0) return false;
+    if (abs(ellipse[1] - aDCT->mPt.y()) > 2.0) return false;
+
+    // --------------------------------------------------------------------------------
+    // Begin print console
+    // --------------------------------------------------------------------------------
+    double x_centre_moy = (ellipse[0] + aDCT->mPt.x())/2.0;
+    double y_centre_moy = (ellipse[1] + aDCT->mPt.y())/2.0;
+
+    StdOut() << " [" << counter << "]" << " Centre: [";
+    StdOut() << x_centre_moy << "," << y_centre_moy << "]  -  ";
+    StdOut() << code_binary;
+
+
+
+
+    // --------------------------------------------------------------------------------
+    // End print console
+    // --------------------------------------------------------------------------------
+    std::string name_file = "target_" + chaine + ".tif";
+    if (chaine == "NA"){
+    //  continue; // To avoid printing failures
+        name_file = "failure_" + std::to_string(counter) + ".tif";
+    }else{
+        aDCT->mDecodedName = chaine;
+        aDCT->mRefinedCenter = cPt2dr(x_centre_moy, y_centre_moy);
+    }
+
+    StdOut() << "  ->  " << name_file << "\n";
+    // --------------------------------------------------------------------------------
+
+
+    // ==========================================================================================================
+    // Begin plot debug images
+    // ==========================================================================================================
+
+    // ----------------------------------------------------------------------------------------------------------
+    // [002] 0000000010 plot only center of detected targets (green pixels)
+    // ----------------------------------------------------------------------------------------------------------
+    if (bitsPlotDebug[1]){
+        plotSafeRectangle(mImVisu, center, 1, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+    }
+
+    // ----------------------------------------------------------------------------------------------------------
+    // [008] 0000001000 plot only axis lines of dected chessboard patterns (green lines)
+    // ----------------------------------------------------------------------------------------------------------
+    if (bitsPlotDebug[3]){
+        for (int sign=-1; sign<=1; sign+=2){
+            for (int i=1; i<=size_target_ellipse; i++){
+                cPt2di center = aDCT->Pix();
+                cPt2di p1 = cPt2di(center.x()+sign*aDCT->mDirC1.x()*i, center.y()+sign*aDCT->mDirC1.y()*i);
+                cPt2di p2 = cPt2di(center.x()+sign*aDCT->mDirC2.x()*i, center.y()+sign*aDCT->mDirC2.y()*i);
+                plotSafeRectangle(mImVisu, p1, 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
+                plotSafeRectangle(mImVisu, p2, 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
+            }
+        }
+    }
+
+
+    // ----------------------------------------------------------------------------------------------------------
+    // [032] 0000100000 plot only fitted ellipse (red lines)
+    // ----------------------------------------------------------------------------------------------------------
+    if (bitsPlotDebug[5]){
+        for (unsigned i=0; i<ELLIPSE_TO_PLOT.size(); i++){
+            plotSafeRectangle(mImVisu, ELLIPSE_TO_PLOT.at(i), 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------
+    // [016] 0000010000 plot only data point for ellipse fit (cyan pixels)
+    // ----------------------------------------------------------------------------------------------------------
+    if (bitsPlotDebug[4]){
+        for (unsigned i=0; i<POINTS.size(); i++){
+            plotSafeRectangle(mImVisu, cPt2di(POINTS.at(i).x(), POINTS.at(i).y()), 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------
+    // [064] 0001000000 plot only intersections between ellipse and axes (blue pixels)
+    // ----------------------------------------------------------------------------------------------------------
+    if (bitsPlotDebug[6]){
+        for (unsigned i=0; i<Y.size(); i++){
+            cPt2di p = cPt2di((int)(Y.at(i).x()), (int)(Y.at(i).y()));
+            plotSafeRectangle(mImVisu, p, 0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------
+    // [128] 0010000000 plot only detected target frames (blue lines)
+    // ----------------------------------------------------------------------------------------------------------
+    if (bitsPlotDebug[7]){
+        for (unsigned i=0; i<FRAME_TO_PLOT.size(); i++){
+            plotSafeRectangle(mImVisu, FRAME_TO_PLOT.at(i), 0.0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------
+    // [256] 0100000000 plot detected target code name (cyan characters)
+    // ----------------------------------------------------------------------------------------------------------
+    if (bitsPlotDebug[8]){
+        it = 4*(a11 + a12) + bx; jt = 4*(a21 + a22) + by;
+        for (int lettre=0; lettre<2; lettre++){
+            std::string aStr; aStr.push_back(chaine[lettre]);
+            cIm2D<tU_INT1> aImStr = ImageOfString_10x8(aStr,1); cDataIm2D<tU_INT1>&  aDataImStr = aImStr.DIm();
+            for (int i=0; i<11; i++){
+                for (int j=0; j<11; j++){
+                    if (aDataImStr.DefGetV(cPt2di(i,j),0)){
+                        plotSafeRectangle(mImVisu, cPt2di(it + i + lettre*10, jt + j), 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+                    }
+                }
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------
+    // [512] 1000000000 plot rectified images with detected codes (RectifTargets directory)
+    // ----------------------------------------------------------------------------------------------
+    if (bitsPlotDebug[9]) aImT.DIm().ToFile(mOutput_folder+ "/" + name_file);
+
+    // --------------------------------------------------------------------------------
+    // End plot image
+    // --------------------------------------------------------------------------------
+
+    aDCT->mFinalState = true;
+    return true;
 
 }
+
 
 
 // ---------------------------------------------------------------------------
@@ -988,29 +1051,80 @@ void cAppliExtractCodeTarget::printMatrix(MatrixXd M){
     StdOut() << "================================================================\n";
 }
 
+
+
+
+// ---------------------------------------------------------------------------
+// Function to extract edge of butterfly pattern for ellipse fit data points
+// Inputs: the full image
+// Outputs:
+// ---------------------------------------------------------------------------
+std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdge(const cDataIm2D<float>& aDIm, cDCT* aDCT){
+    std::vector<cPt2dr> POINTS;
+    double threshold = (aDCT->mVBlack + aDCT->mVWhite)/2.0;
+    cPt2di center = aDCT->Pix();
+    double vx1 = aDCT->mDirC1.x(); double vy1 = aDCT->mDirC1.y();
+    double vx2 = aDCT->mDirC2.x(); double vy2 = aDCT->mDirC2.y();
+     for (double t=mMargin; t<1-mMargin; t+=0.01){
+        for (int sign=-1; sign<=1; sign+=2){
+            double z_prec = 0; cPt2dr pf_prec = cPt2dr(0,0);
+            double z_curr = 0; cPt2dr pf_curr = cPt2dr(0,0);
+            for (int i=5; i<=300; i++){
+                double vx = t*vx1 + (1-t)*vx2;
+                double vy = t*vy1 + (1-t)*vy2;
+                double x = center.x()+sign*vx*i;
+                double y = center.y()+sign*vy*i;
+                pf_prec = pf_curr;
+                pf_curr = cPt2dr(x, y);
+                if ((x < 0) || (y < 0) || (x >= aDIm.Sz().x()-1) || (y >= aDIm.Sz().y()-1)) continue;
+                z_prec = z_curr;
+                z_curr = aDIm.GetVBL(pf_curr);
+                if (z_curr > threshold){
+                    double w1 = +(z_prec-threshold)/(z_prec-z_curr);
+                    double w2 = -(z_curr-threshold)/(z_prec-z_curr);
+                    cPt2dr pf = cPt2dr(w1*pf_curr.x() + w2*pf_prec.x(), w1*pf_curr.y() + w2*pf_prec.y());
+                    POINTS.push_back(pf);
+                    break;
+                }
+            }
+        }
+    }
+    return POINTS;
+}
+
+
 // ---------------------------------------------------------------------------
 // Function to fit an ellipse on a set of 2D points
-// Inputs: a vector of 2D points
-// Output: a vector of parameters (A, B, C, D, E, F) of equation:
-// Ax2 + Bxy + Cy^2 + Dx+ Ey + F
+// Inputs:
+//      - a vector of 2D floating points (cPt2dr)
+//      - a floating point for optional constrain on center (cPt2dr)
+//      - a boolean to activate constrain on center (bool)
+//      - a pointer to array of parameters  (A, B, C, D, E, F) of equation:
+// Ax2 + Bxy + Cy^2 + Dx+ Ey + F. Adapted to handle center-constrained fit
+// of ellipse. All solutions are guaranteed to be proper ellipse: B^2-4AC < 0
 // ---------------------------------------------------------------------------
 // NUMERICALLY STABLE DIRECT LEAST SQUARES FITTING OF ELLIPSES
 // (Halir and Flusser, 1998)
 // ---------------------------------------------------------------------------
-int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* output){
+int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, cPt2dr center, bool constrained, double* output){
 
 	const unsigned N = points.size();
+	const unsigned M = (!constrained)*2 + 1;
     cDenseMatrix<double>  D1Wrap(3,N);
-    cDenseMatrix<double>  D2Wrap(3,N);
+    cDenseMatrix<double>  D2Wrap(M,N);
     cDenseMatrix<double>  MWrap(3,3);
 
-    double xmin = 1e300;
-    double ymin = 1e300;
 
-    for (unsigned i=0; i<N; i++){
-        if (points.at(i).x() < xmin) xmin = points.at(i).x();
-        if (points.at(i).y() < ymin) ymin = points.at(i).y();
+    double xmin = center.x();
+    double ymin = center.y();
 
+    if (!constrained){
+        xmin = 1e300;
+        ymin = 1e300;
+        for (unsigned i=0; i<N; i++){
+            if (points.at(i).x() < xmin) xmin = points.at(i).x();
+            if (points.at(i).y() < ymin) ymin = points.at(i).y();
+        }
     }
 
     for (unsigned i=0; i<N; i++){
@@ -1020,8 +1134,16 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
 
     for (unsigned i=0; i<N; i++){
         double x = points.at(i).x(); double y = points.at(i).y();
-        D1Wrap.SetElem(0,i,x*x);  D1Wrap.SetElem(1,i,x*y);  D1Wrap.SetElem(2,i,y*y);
-        D2Wrap.SetElem(0,i,x)  ;  D2Wrap.SetElem(1,i,y  );  D2Wrap.SetElem(2,i,1  );
+        D1Wrap.SetElem(0,i,x*x);
+        D1Wrap.SetElem(1,i,x*y);
+        D1Wrap.SetElem(2,i,y*y);
+        if (!constrained){
+            D2Wrap.SetElem(0,i,x);
+            D2Wrap.SetElem(1,i,y);
+            D2Wrap.SetElem(2,i,1);
+        }else{
+             D2Wrap.SetElem(0,i,1);
+        }
     }
 
     cDenseMatrix<double> S1Wrap = D1Wrap.Transpose() * D1Wrap;
@@ -1055,27 +1177,42 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, double* outp
 	double a2 = PWrap.GetElem(index, 1);
 	double a3 = PWrap.GetElem(index, 2);
 
-	double A, B, C, D, E, F;
-	A = a1;
-	B = a2;
-	C = a3;
-	D = TWrap.GetElem(0,0)*a1 + TWrap.GetElem(1,0)*a2 + TWrap.GetElem(2,0)*a3;
-	E = TWrap.GetElem(0,1)*a1 + TWrap.GetElem(1,1)*a2 + TWrap.GetElem(2,1)*a3;
-	F = TWrap.GetElem(0,2)*a1 + TWrap.GetElem(1,2)*a2 + TWrap.GetElem(2,2)*a3;
+	output[0] = a1;
+	output[1] = a2;
+	output[2] = a3;
+	if (!constrained){
+        output[3] = TWrap.GetElem(0,0)*a1 + TWrap.GetElem(1,0)*a2 + TWrap.GetElem(2,0)*a3;
+        output[4] = TWrap.GetElem(0,1)*a1 + TWrap.GetElem(1,1)*a2 + TWrap.GetElem(2,1)*a3;
+        output[5] = TWrap.GetElem(0,2)*a1 + TWrap.GetElem(1,2)*a2 + TWrap.GetElem(2,2)*a3;
+	}else{
+        output[3] = 0.0;
+        output[4] = 0.0;
+        output[5] = TWrap.GetElem(0,0)*a1 + TWrap.GetElem(1,0)*a2 + TWrap.GetElem(2,0)*a3;
+	}
 
-	double u = xmin;
-	double v = ymin;
-
-	// Translation
-    output[0] = A;
-    output[1] = B;
-    output[2] = C;
-    output[3] = D - B*v - 2*A*u;
-    output[4] = E - 2*C*v - B*u;
-    output[5] = F + A*u*u  + C*v*v + B*u*v  - D*u - E*v;
+    // Recenter ellipse
+    translateEllipse(output, cPt2dr(xmin, ymin));
 
     return 0;
 
+}
+
+
+
+// ---------------------------------------------------------------------------
+// Function to fit an ellipse on a set of 2D points
+// Short cut to fitEllipse without constraint on center
+// ---------------------------------------------------------------------------
+int cAppliExtractCodeTarget::fitFreeEllipse(std::vector<cPt2dr> points, double* output){
+    return fitEllipse(points, cPt2dr(0, 0), false, output);
+}
+
+// ---------------------------------------------------------------------------
+// Function to fit an ellipse on a set of 2D points
+// Short cut to fitEllipse with constraint on center
+// ---------------------------------------------------------------------------
+int cAppliExtractCodeTarget::fitConstrainedEllipse(std::vector<cPt2dr> points, cPt2dr center, double* output){
+    return fitEllipse(points, center, true, output);
 }
 
 
@@ -1193,51 +1330,75 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::solveIntersections(cDCT* target, do
     return INTERSECTIONS;
 }
 
+
+
 // ---------------------------------------------------------------------------
-// Function to estimate affinity on 4 points
+// Function to estimate affinity on n points
 // ---------------------------------------------------------------------------
 // Inputs:
-//  - Corner coordinates in pixels x1, y1, x2, y2, x3, y3, x4, y4
-//  - Chessboard rotation angle theta
+//  - Coordinates X of points in input (rectified) image
+//  - Coordinates Y of points in output image
 // Outputs:
-//  - vector of parameters a11, a12, a21, a22,
+//  - vector of parameters a11, a12, bx, a21, a22, by + RMSE
 // ---------------------------------------------------------------------------
-std::vector<double> cAppliExtractCodeTarget::estimateAffinity(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, double theta){
+std::vector<double> cAppliExtractCodeTarget::estimateAffinity(std::vector<cPt2dr> X, std::vector<cPt2dr> Y){
 
-    std::vector<double> transfo = {0, 0, 0, 0, 0, 0};
+    std::vector<double> transfo = {0, 0, 0, 0, 0, 0, 0};
 
-    double a11 = (x1 + x2 - x3 - x4)/4.0;
-    double a12 = (x1 - x2 - x3 + x4)/4.0;
-    double a21 = (y1 + y2 - y3 - y4)/4.0;
-    double a22 = (y1 - y2 - y3 + y4)/4.0;
-    transfo[4]  = (x1 + x2 + x3 + x4)/4.0;
-    transfo[5]  = (y1 + y2 + y3 + y4)/4.0;
+    const unsigned N = X.size();
+    cDenseMatrix<double>  A(6,2*N); A = 0*A;
+    cDenseMatrix<double>  B(1,2*N); B = 0*B;
 
-    // Chessboard rotation
-    transfo[0] =  a11*cos(theta) + a12*sin(theta);
-    transfo[1] = -a11*sin(theta) + a12*cos(theta);
-    transfo[2] =  a21*cos(theta) + a22*sin(theta);
-    transfo[3] = -a21*sin(theta) + a22*cos(theta);
+    for (unsigned i=0; i<N; i++){
 
+        B.SetElem(0,2*i,Y.at(i).x());
+        A.SetElem(0,2*i,X.at(i).x());
+        A.SetElem(1,2*i,X.at(i).y());
+        A.SetElem(2,2*i,1          );
 
-    /*
-    double rmse = 0;
-    rmse += pow(a11*(+1) + a12*(+1) + transfo[4] - x1, 2);
-    rmse += pow(a21*(+1) + a22*(+1) + transfo[5] - y1, 2);
-    rmse += pow(a11*(+1) + a12*(-1) + transfo[4] - x2, 2);
-    rmse += pow(a21*(+1) + a22*(-1) + transfo[5] - y2, 2);
-    rmse += pow(a11*(-1) + a12*(-1) + transfo[4] - x3, 2);
-    rmse += pow(a21*(-1) + a22*(-1) + transfo[5] - y3, 2);
-    rmse += pow(a11*(-1) + a12*(+1) + transfo[4] - x4, 2);
-    rmse += pow(a21*(-1) + a22*(+1) + transfo[5] - y4, 2);
+        B.SetElem(0,2*i+1,Y.at(i).y());
+        A.SetElem(3,2*i+1,X.at(i).x());
+        A.SetElem(4,2*i+1,X.at(i).y());
+        A.SetElem(5,2*i+1,1          );
 
-    rmse = sqrt(rmse/8.0);
+    }
 
-    StdOut() << "AFFINITY RMSE: " << rmse << " PX\n";
-    */
+    cDenseMatrix<double> x = (A.Transpose()*A).Inverse()*A.Transpose()*B;
 
+    for (unsigned i=0; i<6; i++) transfo[i] = x.GetElem(0,i);
+    cDenseMatrix<double> V = A*x-B;
+
+    transfo[6] = sqrt((V.Transpose()*V).GetElem(0,0)/(2*N-6)) ;
 
     return transfo;
+
+}
+
+
+
+
+// ---------------------------------------------------------------------------
+// Function to estimate affinity on 4 points for image rectifying
+// ---------------------------------------------------------------------------
+// Inputs:
+//  - Coordinates X of points in output image
+//  - Chessboard rotation angle theta
+// Outputs:
+//  - vector of parameters a11, a12, bx, a21, a22, by + RMSE
+// ---------------------------------------------------------------------------
+std::vector<double> cAppliExtractCodeTarget::estimateRectification(std::vector<cPt2dr>Y, double theta){
+
+    theta = theta - PI/4.0;
+
+    cPt2dr c1 = cPt2dr(cos(theta)*(+1) - sin(theta)*(+1), sin(theta)*(+1) + cos(theta)*(+1));
+    cPt2dr c2 = cPt2dr(cos(theta)*(+1) - sin(theta)*(-1), sin(theta)*(+1) + cos(theta)*(-1));
+    cPt2dr c3 = cPt2dr(cos(theta)*(-1) - sin(theta)*(-1), sin(theta)*(-1) + cos(theta)*(-1));
+    cPt2dr c4 = cPt2dr(cos(theta)*(-1) - sin(theta)*(+1), sin(theta)*(-1) + cos(theta)*(+1));
+
+    std::vector<cPt2dr> X = {c1, c2, c3, c4};
+
+    return estimateAffinity(X, Y);
+
 }
 
 
@@ -1257,6 +1418,52 @@ cPt2dr cAppliExtractCodeTarget::generatePointOnEllipse(double* parameters, doubl
     x = x0 + a*cos(t)*cos(theta) - b*sin(t)*sin(theta) + distribution(generator);
     y = y0 + a*cos(t)*sin(theta) + b*sin(t)*cos(theta) + distribution(generator);
     return cPt2dr(x,y);
+}
+
+
+
+// ---------------------------------------------------------------------------
+// Function to generate a set of points on an ellipse
+// Inputs: an array of 5 floating point parameters, an integer N giving the
+// number of points to generate and a noise level (std)
+// Output: a vector of cPt2dr object
+// ---------------------------------------------------------------------------
+std::vector<cPt2dr> cAppliExtractCodeTarget::generatePointsOnEllipse(double* parameters, unsigned N, double noise = 0.0){
+    std::vector<cPt2dr> POINTS;
+    for (unsigned i=0; i<N; i++){
+        POINTS.push_back(generatePointOnEllipse(parameters, RandInInterval(0,2*PI), noise));
+    }
+    return POINTS;
+}
+
+// ---------------------------------------------------------------------------
+// Function to translate an ellipse directly in cartesian coordinates
+// ---------------------------------------------------------------------------
+// Inputs:
+//      - A [6 x 1] array [A, B, C, D, E, F]
+//      - a translate (dx, dy) given as cPt2dr
+// Output: the array describing the ellipse translated by (dx, dy).
+// ---------------------------------------------------------------------------
+void cAppliExtractCodeTarget::translateEllipse(double* parameters, cPt2dr translation){
+
+	double u = translation.x();
+	double v = translation.y();
+
+	double A =  parameters[0];
+	double B =  parameters[1];
+	double C =  parameters[2];
+	double D =  parameters[3];
+	double E =  parameters[4];
+	double F =  parameters[5];
+
+	// Translation
+    parameters[0] = A;
+    parameters[1] = B;
+    parameters[2] = C;
+    parameters[3] = D - B*v - 2*A*u;
+    parameters[4] = E - 2*C*v - B*u;
+    parameters[5] = F + A*u*u  + C*v*v + B*u*v  - D*u - E*v;
+
 }
 
 
@@ -1436,11 +1643,236 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
 }
 
 
+// ---------------------------------------------------------------------------
+// Function to generate plot in R script for ellipse fit debugging
+// ---------------------------------------------------------------------------
+void cAppliExtractCodeTarget::benchEllipseR(){
+
+    // -------------------------------------------------
+    // Bench test for elliptical fit
+    // -------------------------------------------------
+
+    // Generating random ellipse
+
+    double parameter[5];
+    parameter[0] = RandInInterval(-1e4,+1e4);
+    parameter[1] = RandInInterval(-1e4,+1e4);
+    parameter[2] = RandInInterval(1e-3,1e3);
+    parameter[3] = RandInInterval(1e-1*parameter[2],parameter[2]);
+    parameter[4] = RandInInterval(0,PI);
+
+    double output[6];
+
+
+    std::vector<cPt2dr> POINTS = generatePointsOnEllipse(parameter, 100, 10.0);
+
+    // -------------------------------------------------
+    // Bench test for elliptical fit
+    // -------------------------------------------------
+    fitEllipse(POINTS, cPt2dr(parameter[0], parameter[1]), true, output);
+
+
+    double solution[5];
+    cartesianToNaturalEllipse(output, solution);
+
+
+    StdOut() << "pdf('test.pdf')\n";
+
+    // Data points generation
+    StdOut() << "A = matrix(c(\n";
+    for (unsigned i=0; i<POINTS.size(); i++){
+        StdOut() << POINTS.at(i).x() << "," << POINTS.at(i).y();
+        if (i < POINTS.size()-1)  StdOut() << ",";
+        StdOut() << "\n";
+    }
+    StdOut() << "), ncol=2, byrow=TRUE)\n";
+
+
+    POINTS = generatePointsOnEllipse(solution, 1000, 0.0);
+
+
+    StdOut() << "B = matrix(c(\n";
+    for (unsigned i=0; i<1000; i++){
+        StdOut() << POINTS.at(i).x() << "," << POINTS.at(i).y();
+        if (i < 999)  StdOut() << ",";
+        StdOut() << "\n";
+    }
+    StdOut() << "), ncol=2, byrow=TRUE)\n";
+    StdOut() << "plot(A[,1], A[,2], col='blue', pch=4)\n";
+    StdOut() << "points(B[,1], B[,2], col='red', cex=.1)\n";
+    StdOut() << "points(" << parameter[0] << "," << parameter[1] << ", pch=4)\n";
+    StdOut() << "points(" << solution[0]  << "," << solution[1]  << ", pch=5)\n";
+    StdOut() << "dev.off()\n";
+    StdOut() << "cat('-----------------------------------------\n')\n";
+    for (unsigned i=0; i<5; i++){
+        StdOut() << "cat('" << parameter[i] << " " << solution[i] << " " << parameter[i]-solution[i] <<  "\n')\n";
+    }
+    StdOut() << "cat('-----------------------------------------\n')\n";
+
+}
+
+
+// ---------------------------------------------------------------------------
+// Function to generate plot in R script for ellipse fit debugging
+// ---------------------------------------------------------------------------
+void cAppliExtractCodeTarget::plotCaseR(std::vector<cPt2dr> POINTS, double* solution){
+
+    StdOut() << "A = matrix(c(\n";
+    for (unsigned i=0; i<POINTS.size(); i++){
+        StdOut() << POINTS.at(i).x() << "," << POINTS.at(i).y();
+        if (i < POINTS.size()-1)  StdOut() << ",";
+        StdOut() << "\n";
+    }
+    StdOut() << "), ncol=2, byrow=TRUE)\n";
+
+    std::vector<cPt2dr> ELLIPSE = generatePointsOnEllipse(solution, 1000, 0.0);
+
+    StdOut() << "B = matrix(c(\n";
+    for (unsigned i=0; i<1000; i++){
+        StdOut() << ELLIPSE.at(i).x() << "," << ELLIPSE.at(i).y();
+        if (i < 999)  StdOut() << ",";
+        StdOut() << "\n";
+    }
+    StdOut() << "), ncol=2, byrow=TRUE)\n";
+    StdOut() << "plot(A[,1], A[,2], col='blue', pch=4)\n";
+    StdOut() << "points(B[,1], B[,2], col='red', cex=.1)\n";
+    StdOut() << "points(" << solution[0]  << "," << solution[1]  << ", pch=5)\n";
+
+}
+
+
+
+
+// ---------------------------------------------------------------------------
+// Function to generate bench tests for ellipse fit functions
+// Generates test for:
+//      - multiple values of ellipse parameters
+//      - constrained and unconstrained on center
+//      - different amplitude of noise (including perfect zero-noise data)
+//      - different data sample sizes
+// ---------------------------------------------------------------------------
+void cAppliExtractCodeTarget::benchEllipse(){
+
+    // -----------------------------------------------------------------------
+    // Parameters
+    // -----------------------------------------------------------------------
+    const unsigned N = 10000;      // Number of tests to perform
+    const unsigned m = 100;        // Min number of points in data
+    const unsigned M = 1000;       // Max number of points in data
+    const double cx_max = 1e4;     // Max absolute value for center x coords
+    const double cy_max = 1e4;     // Max absolute value for center y coords
+    const double a_min = 1e-3;     // Min value for a semi-minor-axis
+    const double a_max = 1e+3;     // Max value for a semi-major-axis
+    const double ecc_max = 1e-1;   // Min eccentricity of ellipse
+    const double noise_max = 5e-2; // Max level noise (w.r.t semi-minor axis)
+    // -----------------------------------------------------------------------
+
+    double param[5];
+
+    for (unsigned i=0; i<N; i++){
+
+        // Generate random ellipse
+        param[0] = RandInInterval(-cx_max, +cx_max);
+        param[1] = RandInInterval(-cy_max, +cy_max);
+        param[2] = RandInInterval(a_min, a_max);
+        param[3] = RandInInterval(param[2]*ecc_max, param[2]);
+        param[4] = RandInInterval(0,PI);
+
+        // Generate data
+        int nb = (int)(RandInInterval(m, M)); double flat = (param[2]-param[3])/param[2];
+        double noise = RandInInterval(0, noise_max)*param[3]*(RandInInterval(0,1) > 1e-1);
+        std::vector<cPt2dr> POINTS = generatePointsOnEllipse(param, nb, noise);
+        StdOut() << "Generating " << nb << " pts:  FLAT. = " << flat;
+        StdOut() << " ANG = " << param[4]*180/PI << " NOISE = " << noise << " ";
+
+        // Estimate ellipse
+        double fit[6]; double solution[5];
+        fitFreeEllipse(POINTS, fit);
+        cartesianToNaturalEllipse(fit, solution);
+
+        if (RandInInterval(0,1)<0.5){
+            StdOut() << " -  constrained fit:   ";
+            fitConstrainedEllipse(POINTS, cPt2dr(param[0], param[1]), fit);
+        }else{
+            StdOut() << " -  unconstrained fit:   ";
+            fitFreeEllipse(POINTS, fit);
+            cartesianToNaturalEllipse(fit, solution);
+        }
+
+        bool ok = true;
+        double dcx = std::abs(param[0]-solution[0]); ok = ok && (dcx < std::max(2*noise, 1e-6));
+        double dcy = std::abs(param[1]-solution[1]); ok = ok && (dcy < std::max(2*noise, 1e-6));
+        double da  = std::abs(param[2]-solution[2]); ok = ok && (da  < 2*noise+1e-6);
+        double db  = std::abs(param[3]-solution[3]); ok = ok && (db  < 2*noise+1e-6);
+
+        if ((flat > 0.25) && (nb > 100)){   // Skip this test if ellipse is too 'circular'
+            double dth1 = std::abs(param[4]-solution[4]);
+            double dth2 = std::abs(param[4]-solution[4] - PI);
+            ok = ok && ((dth1 < 0.05)||(dth2 < 0.05));
+        }
+
+        StdOut() << "[" << (ok?"PASSED":"FAILED") << "]";
+
+        if (!ok){
+            StdOut() << "\n--------------------------------------------\n";
+            StdOut() << "TEST FAILURE DETAILS: \n";
+            StdOut() << "--------------------------------------------\n";
+            for (int j=0; j<5; j++){
+                StdOut() << param[j] << " " << solution[j] << " " << param[j] - solution[j] << "\n";
+            }
+            StdOut() << "--------------------------------------------\n";
+
+        }
+
+        StdOut() << "\n";
+
+    }
+
+}
+
+
+// ---------------------------------------------------------------------------
+// Function to generate bench tests for affinity fit function
+// ---------------------------------------------------------------------------
+void cAppliExtractCodeTarget::benchAffinity(){
+
+    int N = 10;
+    double noise = 0.1;
+
+    double a11 = +5.1;   double a12 = +7.2;  double bx = -2.3;
+    double a21 = -1.2;   double a22 = +4.5;  double by = +3.7;
+
+    std::vector<cPt2dr> X;
+    std::vector<cPt2dr> Y;
+
+    for (int i=0; i<N; i++){
+        double x = RandInInterval(-100,100);
+        double y = RandInInterval(-100,100);
+        double xi = a11*x + a12*y + bx + noise*RandInInterval(-1,1);
+        double yi = a21*x + a22*y + by + noise*RandInInterval(-1,1);
+        X.push_back(cPt2dr(x , y ));
+        Y.push_back(cPt2dr(xi, yi));
+    }
+
+    std::vector<double> param = estimateAffinity(X, Y);
+
+    StdOut() << param[0]-a11 << " ";
+    StdOut() << param[1]-a12 << " ";
+    StdOut() << param[2]-bx  << " ";
+    StdOut() << param[3]-a21 << " ";
+    StdOut() << param[4]-a22 << " ";
+    StdOut() << param[5]-by  << " ";
+    StdOut() << param[6] << "\n";
+
+}
+
+
+
 
 int cAppliExtractCodeTarget::ExeOnParsedBox()
 {
    // TestSadl(APBI_Im());
-  //  std::pair<cIm2D<tREAL4>,cIm2D<tREAL4>>> 
+  //  std::pair<cIm2D<tREAL4>,cIm2D<tREAL4>>>
 
    mImGrad    =  Deriche(APBI_DIm(),2.0);
    DoExtract();
@@ -1449,47 +1881,13 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 }
 
 
-int  cAppliExtractCodeTarget::Exe()
-{
+int  cAppliExtractCodeTarget::Exe(){
 
 
-if (mTest){
-
-        // -------------------------------------------------
-        // Bench test for elliptical fit
-        // -------------------------------------------------
-
-        // Generating random ellipse
-
-        double parameter[5];
-        parameter[0] = RandInInterval(-1e4,+1e4);
-        parameter[1] = RandInInterval(-1e4,+1e4);
-        parameter[2] = RandInInterval(1e-3,1e3);
-        parameter[3] = RandInInterval(1e-1*parameter[2],parameter[2]);
-        parameter[4] = RandInInterval(0,PI);
-
-
-        // Data points generation
-         std::vector<cPt2dr> POINTS;
-        for (unsigned i=0; i<100; i++){
-            POINTS.push_back(generatePointOnEllipse(parameter, RandInInterval(0,2*PI), 0.0));
-        }
-
-        double output[6];
-        fitEllipse(POINTS, output);
-
-        double solution[5];
-        cartesianToNaturalEllipse(output, solution);
-
-        StdOut() <<  ((std::abs(parameter[0] - solution[0]) < std::abs(1e-6*parameter[0]))? "OK" : "NOT OK") << "\n";
-        StdOut() <<  ((std::abs(parameter[1] - solution[1]) < std::abs(1e-6*parameter[1]))? "OK" : "NOT OK") << "\n";
-        StdOut() <<  ((std::abs(parameter[2] - solution[2]) < std::abs(1e-6*parameter[2]))? "OK" : "NOT OK") << "\n";
-        StdOut() <<  ((std::abs(parameter[3] - solution[3]) < std::abs(1e-6*parameter[3]))? "OK" : "NOT OK") << "\n";
-        StdOut() <<  ((std::abs(parameter[4] - solution[4]) < std::abs(1e-6*parameter[4]))? "OK" : "NOT OK") << "\n";
-
-
+    if (mTest){
+        benchAffinity();
+        //benchEllipse();
         return 0;
-
     }
 
 

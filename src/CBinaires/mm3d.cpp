@@ -296,7 +296,7 @@ int CPP_YannInvHomolHomog(int argc,char ** argv);
 int CPP_YannExcludeSats(int argc,char ** argv);
 int CPP_YannSetTimestamps(int argc,char ** argv);
 int CPP_YannSkyMask(int argc,char ** argv);
-int CPP_YannSkyMask(int argc,char ** argv);
+int CPP_YannExport2Colmap(int argc,char ** argv);
 int CPP_YannScript(int argc,char ** argv);
 
 int CPP_GCP2MeasureLine2D(int argc,char ** argv);
@@ -1062,6 +1062,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("ExcludeSats",CPP_YannExcludeSats, "Excludes GNSS satellites from raw observations based on sky masks "));
 		aRes.push_back(cMMCom("SkyMask",CPP_YannSkyMask, "Sky mask estimation with neural network "));
 		aRes.push_back(cMMCom("SetTimestamps",CPP_YannSetTimestamps, "Add timestamps tag in image exif "));
+		aRes.push_back(cMMCom("Export2Colmap",CPP_YannExport2Colmap, "Exports a Micmac orientation directory to Colmap format "));
 		aRes.push_back(cMMCom("RTKlibConvert",CPP_ConvertRTKlib2Micmac, "RTKlib output file conversion to Micmac format "));
 
 
