@@ -348,7 +348,7 @@ globally holds,  this is the case with standard lenses, and then $D$ can be assu
 This will not be the case with fish-eye, and we will see that we will proceed by replacing $\pi_0$ by other
 projection.
 
-The following three equations summarize where we are :
+The following three equations summarize where we are in our modelization :
 
 
 
@@ -370,6 +370,16 @@ The following three equations summarize where we are :
 
 \section{Radial modelisation}
 
+\subsection{Radial symetry hypothesis}
+
+\begin{figure}
+\centering
+	\includegraphics[width=12cm]{Methods/Images/Lenses.jpg} \\
+	\includegraphics[width=8cm]{Methods/Images/LensesCyl.jpg}
+	\caption{A single lense , and modern }
+	\label{fig:Lenses}
+\end{figure}
+
 We start the modelization with two observation that are satisfied with a
 high accurracy :
 
@@ -384,13 +394,95 @@ These elementary remarks have for consequence that, how sophisticated may be the
 of many lenses, each having a complicated non spherical shape, we still have a global cylindrical
 symetry on our system. This is illustrated by schemes of figure~\ref{fig:Lenses}.
 The perspective center $C$ defined in \ref{Still:Persp}, must belong to the axes of symetry,
-so we have $\mathcal{A}=(C,\vec{k})$.
+so we have $\mathcal{A}=(C,\vec{k})$. 
+
+
+\subsection{Methodology}
+
+\begin{figure}
+\centering
+	\includegraphics[width=2cm]{Methods/Images/Lenses.jpg} \\
+	\label{fig:Dioptr}
+\end{figure}
+
+Let $B$ be an incoming ray, we want to establish the property of the outcoming ray $B'$
+that will intersect the sensor. The optical system is made of succession of diopters $D_1,\dots D_n$,
+that are have all a symetry arround $\mathcal{A}$; between to diopters $D_k$ and $D_{k+1}$, the light
+is following a straight line $B_k$,  so the path going from $B$ to $B'$ can be wroten as
+$B_0,B_1,\dots,B_n$ with = $B_0=B$ and $B_n=B'$ where each $B_k$ is a straigth
+line segment, this is illustrated by figure~\ref{fig:Dioptr}. 
+
+The ray $B_0$ cross $C$ and is completely caracterised by its direction $\vec{B_0}$ that
+we can write in spherical coordinates :
+
+\begin{equation}
+     \vec{B_0}   =\begin{pmatrix}  \cos(\theta_0) \sin(\phi_0) \\ \sin(\theta_0) \sin(\phi_0)  \\ \cos(\phi_0) \end{pmatrix}
+	     \label{PC:Spher:Coord}
+\end{equation}
+
+We want to prove the three following property :
+
+\begin{enumerate}
+    \item all $B_k$ instersect $\mathcal{A}$;
+           consequently $B_k$ can be caracterised by it direction $\vec{B_k}$ and 
+           the abscisse $x_k$ of its intersection with $\mathcal{A}$, we will note $\theta_k,\phi_k$
+          the spherical coordinates of $\vec{B_k}$ (as in~\ref{PC:Spher:Coord});
+
+  \item $\theta_k = \theta_0$   (i.e the path stay in the original plan containing $B_0$ and :
+    \item $\phi_k = \psi_k(\theta_0)$  ;
+\end{enumerate}
+
+
+This is right for $B_0$ because as seen in ~\ref{Still:Persp}  all incoming ray intersect $C$
+and $\mathcal{A}=(C,\vec{k})$.
+
+We wil establish properpty between $B_k$ and $B_{k+1}$ and,
+by recurence, this will establish the property for $B_n=B'$.
+
+
+
+
+
+We note $\rho, \varphi,z$ the cylindrical coordinates :
+
+\begin{equation}
+	\begin{pmatrix} \rho \cos(\varphi)  \\ \rho\sin(\varphi)  \\ z \end{pmatrix} \label{Cyl:Coord}
+\end{equation}
+
+
+
+
+
+\subsection{Property 1}
+
+We  want first to establish that all $B_k$ intersect the axe $\mathcal{A}$.
+This is right for $B_0$ because as seen in ~\ref{Still:Persp}  all incoming ray intersect $C$
+and $\mathcal{A}=(C,\vec{k})$.
+
+
+Now consider a the line $B_{k-1}$ that is deflected by dioptr $D_k$ to give $B_k$, let $p_k$
+be the point where $B_{k-1}$  and $B_k$ intersect $D_{k+1}$, and $\vec{n}_k$ be the normal to
+to $D_k$ in $p_k$.
+
+
 
 Let use spherical coordinate for coding  direction of bundles :
 
-\begin{equation}
-     \vec{R}(\theta,\phi)  =\begin{pmatrix}  \cos(\theta) \sin(\phi) \\ \sin(\theta) \sin(\phi)  \\ \cos(\phi) \end{pmatrix}
-\end{equation}
+
+
+Given a set  of incoming ray  $\vec{R}(\theta,\phi)$ which all intersect point $\mathcal{A}$, we want to show that the radial symetry
+implies that the outcoming $\vec{R}(\theta',\phi')$ follow the properties :
+
+\begin{enumerate}
+	\item  all the output ray belong to the axe $\mathcal{A}$ ; \label{L1}
+	\item  we have $\phi' = \phi$, this means that the $3$ vector $\vec{R}(\theta,\phi)$,$\vec{k}$ and $\vec{R}(\theta',\phi')$ belong
+		to the same plane; \label{L2}
+
+	\item  
+\end{enumerate}
+
+
+We want to show \ref{L1} and \ref{L2}
 
 Let $\vec{B_0}$ be a bundle entering the system, 
 
@@ -402,13 +494,6 @@ $B_0$ cross the interface in
 due to the symetry of the system,
 
 
-\begin{figure}
-\centering
-	\includegraphics[width=12cm]{Methods/Images/Lenses.jpg} \\
-	\includegraphics[width=8cm]{Methods/Images/LensesCyl.jpg}
-	\caption{A single lense , and modern }
-	\label{fig:Lenses}
-\end{figure}
 
 
 
