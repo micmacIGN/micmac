@@ -96,7 +96,7 @@ double TestDir(const cNS_CodedTarget::cGeomSimDCT & aGT,const cNS_CodedTarget::c
 }
 
 
-template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, std::vector<cPt2di> & vec2plot){
+template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT){
 
 
      mPDCT = & aDCT;  // memorize as internal variables
@@ -142,7 +142,7 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, std::vector<
                  double aV1 = aVVals[aKp];   // value befor trans
                  double aV2 = aVVals[aKp1];  // value after trans                                             // -----------------------------------------------------------------------------------
                  // make a weighted average of P1/P2 corresponding to linear interpolation with threshold     // REPRESENTATION TRANSITIONS
-                 cPt2dr aDir =   (aP1 *(aV2-mVThrs) + aP2 * (mVThrs-aV1)) / (aV2-aV1);                        vec2plot.push_back(cPt2di(aC.x()+radius*aDir.x(), aC.y()+radius*aDir.y()));
+                 cPt2dr aDir =   (aP1 *(aV2-mVThrs) + aP2 * (mVThrs-aV1)) / (aV2-aV1);                        aDCT.mDetectedVectors.push_back(cPt2di(aC.x()+radius*aDir.x(), aC.y()+radius*aDir.y()));
                  if (SqN2(aDir)==0) return false;  // not interesting case                                    // -----------------------------------------------------------------------------------
                  aDir = VUnit(aDir);  // reput to unitary
                  aDir = aDir * aDir;  // make a tensor of it => double its angle, complexe-point multiplication
@@ -278,7 +278,7 @@ bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, d
 
 
 
-    bool Ok = anED.CalcDir(aDCT, vec2plot);
+    bool Ok = anED.CalcDir(aDCT);
 
 
     if (!Ok) return false;

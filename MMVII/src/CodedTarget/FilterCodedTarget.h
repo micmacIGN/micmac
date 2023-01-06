@@ -200,7 +200,7 @@ template <class Type>  class cExtractDir
          cExtractDir(tIm anIm,double aRhoMin,double aRhoMax);
 
          /// try the computation of two directions of checkboard, mail fail , return true if sucess
-         bool  CalcDir(tDCT &, std::vector<cPt2di> &) ;
+         bool  CalcDir(tDCT &) ;
 
          /// computes scores once the direction have been computed
          double ScoreRadiom(tDCT & aDCT) ;
@@ -252,7 +252,7 @@ class cBasisFuncQuad : public cBasisFunc
 };
 
 
-/**  As typically we will use thousands of time the same neighbourhood, to be efficient 
+/**  As typically we will use thousands of time the same neighbourhood, to be efficient
  * we store as data the values of basis for all pixel of a neighb */
 
 class cCompiledNeighBasisFunc
@@ -309,7 +309,7 @@ class cCalcSaddle
 /**  Fast Computation of saddle point criteria, for preliminary computation, dont use
      linear decomp on a basis.  See the code for method description
      it returns two images :
- 
+
        - first one has a dynamic proportionnal to images, so it favorise high constast, which is of interest for
          neighbooring filtering
        - firts one is the number of point that complies with the saddle point criteria, it allow a filter

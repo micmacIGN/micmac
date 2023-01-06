@@ -80,12 +80,14 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         void ShowStats(const std::string & aMes) ;
         void MarkDCT() ;
         void SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool MinCrown,double aThrS,eResDCT aModeSup);
-        bool analyzeDCT(cDCT*, const cDataIm2D<float> &, int);                   ///< Analyze a potential target
+        bool analyzeDCT(cDCT*, const cDataIm2D<float> &);                        ///< Analyze a potential target
         int decodeTarget(tDataImT &, double, double, std::string&, bool);        ///< Decode a potential target
         bool markImage(tDataImT &, cPt2di, int, int);                            ///< Plot mark on gray level image
         std::vector<cPt2dr> solveIntersections(cDCT*, double*);
         std::vector<cPt2dr> extractButterflyEdge(const cDataIm2D<float> &, cDCT*);
         void exportInXml(std::vector<cDCT*>);
+        void plotDebugImage(cDCT*, const cDataIm2D<float>&);
+        tImTarget generateRectifiedImage(cDCT*, const cDataIm2D<float>&);
 
 
 
@@ -111,6 +113,8 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
         std::vector<double> estimateRectification(std::vector<cPt2dr>, double);
         std::vector<double> estimateAffinity(std::vector<cPt2dr>, std::vector<cPt2dr>);
+        bool isValidAffinity(std::vector<double>);
+        cPt2dr applyAffinity(cPt2dr, std::vector<double>);
 
 
 	std::string mNameTarget;
@@ -124,7 +128,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         std::vector<eDCTFilters> mTestedFilters;
 
         cImGrad<tREAL4>  mImGrad;  ///< Result of gradient
-        double   mRayMinCB;        ///<  Ray Min CheckBoard
+        double   mRayMinCB;        ///< Ray Min CheckBoard
         double   mR0Sym;           ///< R min for first very quick selection on symetry
         double   mR1Sym;           ///< R max for first very quick selection on symetry
         double   mRExtreSym;       ///< R to compute indice of local maximal of symetry
@@ -136,7 +140,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
         std::vector<cDCT*>  mVDCT; ///< vector of detected target
         std::vector<cDCT*>  mVDCTOk; ///< sub vector of detected target Ok,
-	cResSimul           mGTResSim; ///< result of simulation when exist
+        cResSimul           mGTResSim; ///< result of simulation when exist
 
 
         cRGBImage      mImVisu;
@@ -152,12 +156,18 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         bool mSaddle;             ///< Prefiletring with Saddle test
         double mMargin;           ///< Percent margin of butterfly edge used for fit
 
-        std::vector<cPt2di> vec2plot;
+
 
         std::vector<double>  mParamBin;
         cParamCodedTarget spec;
         std::string mOutput_folder;
+        int mTargetCounter;
+        std::vector<double> mTransfo;
         std::vector<std::string> mToRestrict;
+        bool mFailure;            ///< Plot also failures on rectified folder
+
+        std::vector<cPt2dr> mPoints;
+        std::bitset<10> mBitsPlotDebug;
 
 };
 
@@ -192,7 +202,8 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mMaxEcc          (1e9),
    mSaddle          (false),
    mMargin          (0.20),
-   mToRestrict      ({})
+   mToRestrict      ({}),
+   mFailure         (false)
 {
 }
 
@@ -222,13 +233,14 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mPatExportF, "PatExpF","Pattern export filters" ,{AC_ListVal<eDCTFilters>(),eTA2007::HDV})
                     << AOpt2007(mTest, "Test", "Test for Ellipse Fit", {eTA2007::HDV})
                     << AOpt2007(mParamBin, "BinF", "Param for binary filter", {eTA2007::HDV})
-                    << AOpt2007(mRecompute, "Recompute", "Recompute affinity if needed", {eTA2007::HDV})
+                    << AOpt2007(mRecompute, "Adjust", "Recompute directions with adjusted size", {eTA2007::HDV})
                     << AOpt2007(mXml, "Xml", "Print xml outout in file", {eTA2007::HDV})
                     << AOpt2007(mDebugPlot, "Debug", "Plot debug image with options", {eTA2007::HDV})
                     << AOpt2007(mMaxEcc, "MaxEcc", "Max. eccentricity of targets", {eTA2007::HDV})
                     << AOpt2007(mSaddle, "Saddle", "Prefiltering with saddle test", {eTA2007::HDV})
                     << AOpt2007(mMargin, "Margin", "Margin on butterfly edge for fit", {eTA2007::HDV})
                     << AOpt2007(mToRestrict, "Restrict", "List of codes to restrict on", {eTA2007::HDV})
+                    << AOpt2007(mFailure, "Failure", "Plot also failures in RectifTargets", {eTA2007::HDV})
 	  );
    ;
 }
@@ -390,22 +402,22 @@ void  cAppliExtractCodeTarget::DoExtract(){
     // [0512] 1000000000 plot rectified images with detected codes (RectifTargets directory)
     // [1023] 1111111111 plot all features above in debug images
     // --------------------------------------------------------------------------------------------------------
-    std::bitset<10> bitsPlotDebug = std::bitset<10>(mDebugPlot);
+    mBitsPlotDebug = std::bitset<10>(mDebugPlot);
     if (mDebugPlot){
-    StdOut() << "\n------------------------------------------------------------------\n";
-    StdOut() << "DEBUG PLOT:\n";
-    StdOut() << "------------------------------------------------------------------\n";
-    if (bitsPlotDebug[0]) StdOut() << "* CANDIDATES AFTER FILTERING\n";
-    if (bitsPlotDebug[1]) StdOut() << "* CENTER OF DETECTED TARGETS\n";
-    if (bitsPlotDebug[2]) StdOut() << "* TRANSITIONS ON CIRCLES AROUND TARGETS\n";
-    if (bitsPlotDebug[3]) StdOut() << "* AXIS LINES ON CHESSBOARDS\n";
-    if (bitsPlotDebug[4]) StdOut() << "* DATA POINTS TO FIT ELLIPSE\n";
-    if (bitsPlotDebug[5]) StdOut() << "* FITTED ELLIPSE ON CHESSBOARD\n";
-    if (bitsPlotDebug[6]) StdOut() << "* INTERSECTIONS BETWEEN ELLIPSE AND AXES\n";
-    if (bitsPlotDebug[7]) StdOut() << "* DETECTED TARGET FRAMES\n";
-    if (bitsPlotDebug[8]) StdOut() << "* DETECTED TARGET CODE NAMES\n";
-    if (bitsPlotDebug[9]) StdOut() << "* RECTIFIED IMAGES OF DETECTED TARGETS\n";
-    StdOut() << "------------------------------------------------------------------\n";
+        StdOut() << "\n------------------------------------------------------------------\n";
+        StdOut() << "DEBUG PLOT:\n";
+        StdOut() << "------------------------------------------------------------------\n";
+        if (mBitsPlotDebug[0]) StdOut() << "* CANDIDATES AFTER FILTERING\n";
+        if (mBitsPlotDebug[1]) StdOut() << "* CENTER OF DETECTED TARGETS\n";
+        if (mBitsPlotDebug[2]) StdOut() << "* TRANSITIONS ON CIRCLES AROUND TARGETS\n";
+        if (mBitsPlotDebug[3]) StdOut() << "* AXIS LINES ON CHESSBOARDS\n";
+        if (mBitsPlotDebug[4]) StdOut() << "* DATA POINTS TO FIT ELLIPSE\n";
+        if (mBitsPlotDebug[5]) StdOut() << "* FITTED ELLIPSE ON CHESSBOARD\n";
+        if (mBitsPlotDebug[6]) StdOut() << "* INTERSECTIONS BETWEEN ELLIPSE AND AXES\n";
+        if (mBitsPlotDebug[7]) StdOut() << "* DETECTED TARGET FRAMES\n";
+        if (mBitsPlotDebug[8]) StdOut() << "* DETECTED TARGET CODE NAMES\n";
+        if (mBitsPlotDebug[9]) StdOut() << "* RECTIFIED IMAGES OF DETECTED TARGETS\n";
+        StdOut() << "------------------------------------------------------------------\n";
     }
 
 
@@ -555,22 +567,12 @@ void  cAppliExtractCodeTarget::DoExtract(){
         }
 
         if (aPtrDCT->mState == eResDCT::Ok){
-            if (!TestDirDCT(*aPtrDCT,APBI_Im(), mRayMinCB, 1.0, vec2plot)){
+            if (!TestDirDCT(*aPtrDCT,APBI_Im(), mRayMinCB, 1.0, aPtrDCT->mDetectedVectors)){
                 aPtrDCT->mState = eResDCT::BadDir;
             }else{
                 mVDCTOk.push_back(aPtrDCT);
-
-                // ----------------------------------------------------------------------------------------------------------
-                // [004] 0000000100 plot only transitions on circles around candidate targets (yellow pixels)
-                // ----------------------------------------------------------------------------------------------------------
-                if (bitsPlotDebug[2]){
-                    for (unsigned i=0; i<vec2plot.size(); i++){
-                        plotSafeRectangle(mImVisu, vec2plot.at(i), 0, cRGBImage::Yellow, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-                    }
-                }
             }
         }
-        vec2plot.clear();
     }
 
 
@@ -582,30 +584,25 @@ void  cAppliExtractCodeTarget::DoExtract(){
      // [512] 1000000000 plot rectified images with detected codes (RectifTargets directory)
      // ----------------------------------------------------------------------------------------------
      mOutput_folder = "RectifTargets";
-     if (bitsPlotDebug[9]) CreateDirectories(mOutput_folder, true);
+     if (mBitsPlotDebug[9]) CreateDirectories(mOutput_folder, true);
 
 
-    int counter = 0;
-
-    // String for xml output in console
-
-
+    mTargetCounter = 0;
 
     for (auto aDCT : mVDCTOk){
-        analyzeDCT(aDCT, aDIm, counter);
-        counter++;
+        if (analyzeDCT(aDCT, aDIm)){
+            plotDebugImage(aDCT, aDIm);
+        }
     }
-
 
     // ------------------------------------------------
     // Xml output (if needed)
     // ------------------------------------------------
     if (mXml != "") exportInXml(mVDCTOk);
 
-    if (0)
-       MarkDCT() ;
-
+    // ------------------------------------------------
     // Plot debug if needed
+    // ------------------------------------------------
     if (mDebugPlot) mImVisu.ToFile("VisuCodeTarget.tif");
 
 }
@@ -641,7 +638,7 @@ void cAppliExtractCodeTarget::exportInXml(std::vector<cDCT*> mVDCTOk){
 // ---------------------------------------------------------------------------
 // Function to test if a predetected DCT candidate is valid
 // ---------------------------------------------------------------------------
-bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aDIm, int counter){
+bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aDIm){
 
     aDCT->mFinalState = false;
 
@@ -651,9 +648,6 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     int px_binarity = 25;      // Threshold on binarity
     int limit_border = 30;     // Target not consider if that close to border
     // -----------------------------------------------------------------------
-
-    std::bitset<10> bitsPlotDebug = std::bitset<10>(mDebugPlot);
-
 
     // --------------------------------------------------------------------------------------------------------
     // Build list of codes from specification file
@@ -695,7 +689,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // ----------------------------------------------------------------------------------------------
     // [001] 0000000001 plot only candidates after filtering operations (magenta pixels)
     // ----------------------------------------------------------------------------------------------
-    if(bitsPlotDebug[0]) mImVisu.SetRGBrectWithAlpha(center, 1, cRGBImage::Magenta, 0.0);
+    if(mBitsPlotDebug[0]) mImVisu.SetRGBrectWithAlpha(center, 1, cRGBImage::Magenta, 0.0);
 
 
     // -----------------------------------------------------------------
@@ -706,18 +700,16 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     if (aDIm.Sz().x()-center.x() < limit_border) return false;
     if (aDIm.Sz().y()-center.y() < limit_border) return false;
 
-    std::vector<cPt2dr> POINTS = extractButterflyEdge(aDIm, aDCT);
+    mPoints = extractButterflyEdge(aDIm, aDCT);
 
-    if (POINTS.size() < 10) return false;
+    if (mPoints.size() < 10) return false;
 
 
     // -----------------------------------------------------------------
     // Ellipse fit
     // -----------------------------------------------------------------
-    double param[6];
-    if (fitEllipse(POINTS, aDCT->mPt, mConstrainCenter, param) < 0) return false;
-
-    double ellipse[5];
+    double param[6]; double ellipse[5];
+    if (fitEllipse(mPoints, aDCT->mPt, mConstrainCenter, param) < 0) return false;
     cartesianToNaturalEllipse(param, ellipse);
 
     // -----------------------------------------------------------------
@@ -728,60 +720,45 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     if (ellipse[2]/ellipse[3] > mMaxEcc) return false;
 
 
-    std::vector<cPt2di> ELLIPSE_TO_PLOT;
     for (double t=0; t<2*PI; t+=0.01){
         cPt2dr aPoint = generatePointOnEllipse(ellipse, t, 0.0);
         cPt2di pt = cPt2di(aPoint.x(), aPoint.y());
-        ELLIPSE_TO_PLOT.push_back(pt);
+        aDCT->mDetectedEllipse.push_back(pt);
     }
 
 
     // Solve intersections
-    std::vector<cPt2dr> Y = solveIntersections(aDCT, param);
-    if (Y.size() == 0) return false;
+    aDCT->mDetectedCorners = solveIntersections(aDCT, param);
+    if (aDCT->mDetectedCorners.size() == 0) return false;
 
 
     // Affinity estimation
-    std::vector<double> transfo = estimateRectification(Y, spec.mChessboardAng);
-    double a11 = transfo[0]; double a12 = transfo[1]; double bx  = transfo[2];
-    double a21 = transfo[3]; double a22 = transfo[4]; double by  = transfo[5];
+    mTransfo = estimateRectification(aDCT->mDetectedCorners, spec.mChessboardAng);
+    if (!isValidAffinity(mTransfo)) return false;
 
-    // StdOut() << "AFFINITY RMSE: " << transfo[6] << " PX\n";
+    aDCT->mSizeTargetEllipse = sqrt(ellipse[2]* ellipse[2] + ellipse[3]*ellipse[3]);
 
-    if ((isnan(a11)) || (isnan(a12)) || (isnan(a21)) || (isnan(a22)) || (isnan(bx)) || (isnan(by))){
-        return false;
-    }
 
-    // ---------------------------------------------------
+    // ======================================================================
     // Recomputing directions and intersections if needed
-    // ---------------------------------------------------
-    double size_target_ellipse = sqrt(ellipse[2]* ellipse[2] + ellipse[3]*ellipse[3]);
+    // ======================================================================
 
-
-
-    if ((size_target_ellipse > 30) && (mRecompute)){
+    std::string message_recompute = "";
+    if ((aDCT->mSizeTargetEllipse > mRayMinCB) && (mRecompute)){
 
         // Recomputing directions if needed
-        double correction_factor = std::min(size_target_ellipse/15.0, 10.0);
-        StdOut() << "\nSIZE OF TARGET: " << size_target_ellipse << " - RECOMPUTING DIRECTIONS WITH FACTOR " << correction_factor << "\n";
+        double correction_factor = std::min(aDCT->mSizeTargetEllipse/mRayMinCB, 10.0);
+        message_recompute += "SIZE OF TARGET: " + std::to_string(aDCT->mSizeTargetEllipse);
+        message_recompute += " - RECOMPUTING DIRECTIONS WITH FACTOR " + std::to_string(correction_factor);
 
-        TestDirDCT(*aDCT, APBI_Im(), mRayMinCB, correction_factor, vec2plot);
+        TestDirDCT(*aDCT, APBI_Im(), mRayMinCB, correction_factor, aDCT->mDetectedVectors);
 
         // Recomputing intersections if needed
-        Y = solveIntersections(aDCT, param);
+        aDCT->mDetectedCorners = solveIntersections(aDCT, param);
 
         // Recomputing affinity if needed
-        std::vector<double> transfo = estimateRectification(Y, spec.mChessboardAng);
-        double a11 = transfo[0];
-        double a12 = transfo[1];
-        double a21 = transfo[2];
-        double a22 = transfo[3];
-        double bx  = transfo[4];
-        double by  = transfo[5];
-
-        if ((isnan(a11)) || (isnan(a12)) || (isnan(a21)) || (isnan(a22)) || (isnan(bx)) || (isnan(by))){
-            return false;
-        }
+        mTransfo = estimateRectification(aDCT->mDetectedCorners, spec.mChessboardAng);
+        if (!isValidAffinity(mTransfo)) return false;
 
     }
 
@@ -791,15 +768,82 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // Image generation
     // ======================================================================
 
-    std::vector<cPt2di> FRAME_TO_PLOT;
+    tImTarget aImT = generateRectifiedImage(aDCT, aDIm);
 
+
+
+    // ======================================================================
+    // Decoding
+    // ======================================================================
+
+    std::string code_binary;
+    int code = decodeTarget(aImT.DIm(), aDCT->mVWhite, aDCT->mVBlack, code_binary, spec.mModeFlight);
+
+    std::string chaine = "NA";
+    if (code != -1){
+        chaine = CODES[code];
+        if (mToRestrict.size() > 0){
+            if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
+                return false;
+            }
+        }
+    }else{
+        return false;
+    }
+
+    // Control on center position
+    double x_centre_moy = (ellipse[0] + aDCT->mPt.x())/2.0;
+    double y_centre_moy = (ellipse[1] + aDCT->mPt.y())/2.0;
+    double dx = std::round(100*std::abs(ellipse[0] - aDCT->mPt.x())/2.0)/100;
+    double dy = std::round(100*std::abs(ellipse[1] - aDCT->mPt.y())/2.0)/100;
+    if (dx > 2.0) return false;
+    if (dy > 2.0) return false;
+
+    std::string name_file = "target_" + chaine + ".tif";
+    aDCT->mDecodedName = chaine;
+    aDCT->mRefinedCenter = cPt2dr(x_centre_moy, y_centre_moy);
+    if (chaine == "NA"){
+        aDCT->mDecodedName = "NA_"+std::to_string(mTargetCounter);
+        name_file = "failure_" + std::to_string(mTargetCounter) + ".tif";
+        if (!mFailure)  return false;
+    }
+
+    // --------------------------------------------------------------------------------
+    // Begin print console
+    // --------------------------------------------------------------------------------
+    StdOut() << " [" << mTargetCounter << "]" << " Centre: [";
+    StdOut() << x_centre_moy << " +/- " << dx  << ", " << y_centre_moy << " +/- " << dy << "]  -  ";
+    StdOut() << code_binary;
+    StdOut() << "  ->  " << name_file << "\n";
+    if (message_recompute != "") StdOut() << message_recompute << "\n";
+    mTargetCounter ++;
+    // --------------------------------------------------------------------------------
+    // End print console
+    // --------------------------------------------------------------------------------
+
+
+    // ----------------------------------------------------------------------------------------------
+    // [512] 1000000000 plot rectified images with detected codes (RectifTargets directory)
+    // ----------------------------------------------------------------------------------------------
+    if (mBitsPlotDebug[9]) aImT.DIm().ToFile(mOutput_folder+ "/" + name_file);
+
+    aDCT->mFinalState = true;
+    return true;
+
+}
+
+
+
+// ---------------------------------------------------------------------------
+// Function to generate image of rectified targets
+// ---------------------------------------------------------------------------
+tImTarget cAppliExtractCodeTarget::generateRectifiedImage(cDCT* aDCT, const cDataIm2D<float>& aDIm){
+
+    double irel, jrel;
     int Ni = spec.mModeFlight?640:600;
     int Nj = spec.mModeFlight?1280:600;
-    double irel, jrel, it, jt;
     tImTarget aImT(cPt2di(Ni, Nj));
-    tDataImT  & aDImT = aImT.DIm();
-
-
+    tDataImT & aDImT = aImT.DIm();
 
     if (!spec.mModeFlight){
 
@@ -811,14 +855,13 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
             for (int j=0; j<Nj; j++){
                 irel = +6*((double)i-Ni/2.0)/Ni;
                 jrel = -6*((double)j-Nj/2.0)/Nj;
-                it = a11*irel + a12*jrel + bx;
-                jt = a21*irel + a22*jrel + by;
-                if ((it < 0) || (jt < 0) || (it >= aDIm.Sz().x()-1) || (jt >= aDIm.Sz().y()-1)){
+                cPt2dr p = applyAffinity(cPt2dr(irel, jrel), mTransfo);
+                if ((p.x() < 0) || (p.y() < 0) || (p.x() >= aDIm.Sz().x()-1) || (p.y() >= aDIm.Sz().y()-1)){
                     continue;
                 }
-                aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(cPt2dr(it, jt)));
+                aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(p));
                 if ((i == 0) || (j == 0) || (i == Ni-1) || (j == Nj-1)){
-                    FRAME_TO_PLOT.push_back(cPt2di(it, jt));
+                    aDCT->mDetectedFrame.push_back(cPt2di(p.x(), p.y()));
                 }
             }
         }
@@ -837,138 +880,124 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
             for (int j=0; j<Nj; j++){
                 irel = +3.2*((double)i-Ni/2.0)/Ni;
                 jrel = -6.3*((double)j-Nj/2.0)/Nj;
-                it = a11*irel + a12*jrel + bx;
-                jt = a21*irel + a22*jrel + by;
-                if ((it < 0) || (jt < 0) || (it >= aDIm.Sz().x()-1) || (jt >= aDIm.Sz().y()-1)){
+                cPt2dr p = applyAffinity(cPt2dr(irel, jrel), mTransfo);
+                if ((p.x() < 0) || (p.y() < 0) || (p.x() >= aDIm.Sz().x()-1) || (p.y() >= aDIm.Sz().y()-1)){
                     continue;
                 }
-                aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(cPt2dr(it, jt)));
+                aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(p));
                 if ((i == 0) || (j == 0) || (i == Ni-1) || (j == Nj-1)){
-                    FRAME_TO_PLOT.push_back(cPt2di(it, jt));
+                    aDCT->mDetectedFrame.push_back(cPt2di(p.x(), p.y()));
                 }
             }
         }
     }
 
-    std::string code_binary;
-    int code = decodeTarget(aDImT, aDCT->mVWhite, aDCT->mVBlack, code_binary, spec.mModeFlight);
+    return aImT;
 
-    std::string chaine = "NA";
-    if (code != -1){
-        chaine = CODES[code];
-        if (mToRestrict.size() > 0){
-            if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
-                return false;
-            }
+}
+
+// ---------------------------------------------------------------------------
+// Function to apply affinity
+// ---------------------------------------------------------------------------
+cPt2dr cAppliExtractCodeTarget::applyAffinity(cPt2dr p, std::vector<double> param){
+    double a11 = param[0]; double a12 = param[1]; double bx  = param[2];
+    double a21 = param[3]; double a22 = param[4]; double by  = param[5];
+    return cPt2dr(a11*p.x() + a12*p.y() + bx, a21*p.x() + a22*p.y() + by);
+}
+
+// ---------------------------------------------------------------------------
+// Function to test if affinity is valid
+// ---------------------------------------------------------------------------
+bool cAppliExtractCodeTarget::isValidAffinity(std::vector<double> param){
+    for (unsigned i=0; i<6; i++){
+        if (isnan(param[0])){
+            return false;
         }
-    }else{
-        return false;
     }
+    return true;
+}
 
-    // Control on center position
-    if (abs(ellipse[0] - aDCT->mPt.x()) > 2.0) return false;
-    if (abs(ellipse[1] - aDCT->mPt.y()) > 2.0) return false;
-
-    // --------------------------------------------------------------------------------
-    // Begin print console
-    // --------------------------------------------------------------------------------
-    double x_centre_moy = (ellipse[0] + aDCT->mPt.x())/2.0;
-    double y_centre_moy = (ellipse[1] + aDCT->mPt.y())/2.0;
-
-    StdOut() << " [" << counter << "]" << " Centre: [";
-    StdOut() << x_centre_moy << "," << y_centre_moy << "]  -  ";
-    StdOut() << code_binary;
-
-
-
-
-    // --------------------------------------------------------------------------------
-    // End print console
-    // --------------------------------------------------------------------------------
-    std::string name_file = "target_" + chaine + ".tif";
-    if (chaine == "NA"){
-    //  continue; // To avoid printing failures
-        name_file = "failure_" + std::to_string(counter) + ".tif";
-    }else{
-        aDCT->mDecodedName = chaine;
-        aDCT->mRefinedCenter = cPt2dr(x_centre_moy, y_centre_moy);
-    }
-
-    StdOut() << "  ->  " << name_file << "\n";
-    // --------------------------------------------------------------------------------
-
-
-    // ==========================================================================================================
-    // Begin plot debug images
-    // ==========================================================================================================
+// ---------------------------------------------------------------------------
+// Function to plot debug image
+// ---------------------------------------------------------------------------
+void cAppliExtractCodeTarget::plotDebugImage(cDCT* target, const cDataIm2D<float>& aDIm){
 
     // ----------------------------------------------------------------------------------------------------------
-    // [002] 0000000010 plot only center of detected targets (green pixels)
+    // [008] 0000001000 plot only axis lines of detected chessboard patterns (green lines)
     // ----------------------------------------------------------------------------------------------------------
-    if (bitsPlotDebug[1]){
-        plotSafeRectangle(mImVisu, center, 1, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-    }
-
-    // ----------------------------------------------------------------------------------------------------------
-    // [008] 0000001000 plot only axis lines of dected chessboard patterns (green lines)
-    // ----------------------------------------------------------------------------------------------------------
-    if (bitsPlotDebug[3]){
+    if (mBitsPlotDebug[3]){
         for (int sign=-1; sign<=1; sign+=2){
-            for (int i=1; i<=size_target_ellipse; i++){
-                cPt2di center = aDCT->Pix();
-                cPt2di p1 = cPt2di(center.x()+sign*aDCT->mDirC1.x()*i, center.y()+sign*aDCT->mDirC1.y()*i);
-                cPt2di p2 = cPt2di(center.x()+sign*aDCT->mDirC2.x()*i, center.y()+sign*aDCT->mDirC2.y()*i);
+            for (int i=1; i<=target->mSizeTargetEllipse; i++){
+                cPt2di center = target->Pix();
+                cPt2di p1 = cPt2di(center.x()+sign*target->mDirC1.x()*i, center.y()+sign*target->mDirC1.y()*i);
+                cPt2di p2 = cPt2di(center.x()+sign*target->mDirC2.x()*i, center.y()+sign*target->mDirC2.y()*i);
                 plotSafeRectangle(mImVisu, p1, 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
                 plotSafeRectangle(mImVisu, p2, 0, cRGBImage::Green, aDIm.Sz().x(), aDIm.Sz().y(), 0.5);
             }
         }
     }
 
+    // ----------------------------------------------------------------------------------------------------------
+    // [002] 0000000010 plot only center of detected targets (white pixels)
+    // ----------------------------------------------------------------------------------------------------------
+    if (mBitsPlotDebug[1]){
+        plotSafeRectangle(mImVisu, target->Pix(), 0, cRGBImage::White, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+    }
+
+    // ----------------------------------------------------------------------------------------------------------
+    // [004] 0000000100 plot only transitions on circles around candidate targets (yellow pixels)
+    // ----------------------------------------------------------------------------------------------------------
+    if (mBitsPlotDebug[2]){
+        for (unsigned i=0; i<target->mDetectedVectors.size(); i++){
+            plotSafeRectangle(mImVisu, target->mDetectedVectors.at(i), 0, cRGBImage::Yellow, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+        }
+    }
 
     // ----------------------------------------------------------------------------------------------------------
     // [032] 0000100000 plot only fitted ellipse (red lines)
     // ----------------------------------------------------------------------------------------------------------
-    if (bitsPlotDebug[5]){
-        for (unsigned i=0; i<ELLIPSE_TO_PLOT.size(); i++){
-            plotSafeRectangle(mImVisu, ELLIPSE_TO_PLOT.at(i), 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+    if (mBitsPlotDebug[5]){
+        for (unsigned i=0; i<target->mDetectedEllipse.size(); i++){
+            plotSafeRectangle(mImVisu, target->mDetectedEllipse.at(i), 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
         }
     }
 
     // ----------------------------------------------------------------------------------------------------------
     // [016] 0000010000 plot only data point for ellipse fit (cyan pixels)
     // ----------------------------------------------------------------------------------------------------------
-    if (bitsPlotDebug[4]){
-        for (unsigned i=0; i<POINTS.size(); i++){
-            plotSafeRectangle(mImVisu, cPt2di(POINTS.at(i).x(), POINTS.at(i).y()), 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+    if (mBitsPlotDebug[4]){
+        for (unsigned i=0; i<mPoints.size(); i++){
+            plotSafeRectangle(mImVisu, cPt2di(mPoints.at(i).x(), mPoints.at(i).y()), 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
         }
     }
 
     // ----------------------------------------------------------------------------------------------------------
-    // [064] 0001000000 plot only intersections between ellipse and axes (blue pixels)
+    // [064] 0001000000 plot only intersections between ellipse and axes (yellow pixels)
     // ----------------------------------------------------------------------------------------------------------
-    if (bitsPlotDebug[6]){
-        for (unsigned i=0; i<Y.size(); i++){
-            cPt2di p = cPt2di((int)(Y.at(i).x()), (int)(Y.at(i).y()));
-            plotSafeRectangle(mImVisu, p, 0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+    if (mBitsPlotDebug[6]){
+        for (unsigned i=0; i<target->mDetectedCorners.size(); i++){
+            cPt2di p = cPt2di((int)(target->mDetectedCorners.at(i).x()), (int)(target->mDetectedCorners.at(i).y()));
+            plotSafeRectangle(mImVisu, p, 0, cRGBImage::Yellow, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
         }
     }
 
     // ----------------------------------------------------------------------------------------------------------
     // [128] 0010000000 plot only detected target frames (blue lines)
     // ----------------------------------------------------------------------------------------------------------
-    if (bitsPlotDebug[7]){
-        for (unsigned i=0; i<FRAME_TO_PLOT.size(); i++){
-            plotSafeRectangle(mImVisu, FRAME_TO_PLOT.at(i), 0.0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+    if (mBitsPlotDebug[7]){
+        for (unsigned i=0; i<target->mDetectedFrame.size(); i++){
+            plotSafeRectangle(mImVisu, target->mDetectedFrame.at(i), 0.0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
         }
     }
 
     // ----------------------------------------------------------------------------------------------------------
     // [256] 0100000000 plot detected target code name (cyan characters)
     // ----------------------------------------------------------------------------------------------------------
-    if (bitsPlotDebug[8]){
-        it = 4*(a11 + a12) + bx; jt = 4*(a21 + a22) + by;
+    if (mBitsPlotDebug[8]){
+        cPt2dr p = applyAffinity(cPt2dr(4.0,4.0), mTransfo);
+        double it = p.x(); double jt = p.y();
         for (int lettre=0; lettre<2; lettre++){
-            std::string aStr; aStr.push_back(chaine[lettre]);
+            std::string aStr; aStr.push_back(target->mDecodedName[lettre]);
             cIm2D<tU_INT1> aImStr = ImageOfString_10x8(aStr,1); cDataIm2D<tU_INT1>&  aDataImStr = aImStr.DIm();
             for (int i=0; i<11; i++){
                 for (int j=0; j<11; j++){
@@ -979,22 +1008,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
             }
         }
     }
-
-    // ----------------------------------------------------------------------------------------------
-    // [512] 1000000000 plot rectified images with detected codes (RectifTargets directory)
-    // ----------------------------------------------------------------------------------------------
-    if (bitsPlotDebug[9]) aImT.DIm().ToFile(mOutput_folder+ "/" + name_file);
-
-    // --------------------------------------------------------------------------------
-    // End plot image
-    // --------------------------------------------------------------------------------
-
-    aDCT->mFinalState = true;
-    return true;
-
 }
-
-
 
 // ---------------------------------------------------------------------------
 // Function to plot "safe" rectangle in image

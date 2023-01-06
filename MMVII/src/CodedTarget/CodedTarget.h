@@ -119,6 +119,11 @@ class  cDCT
          cPt2dr mRefinedCenter;      ///< Coordinates of center after detection process
          std::string mDecodedName;   ///< Name of target after detection process
          bool mFinalState;
+         double mSizeTargetEllipse;
+         std::vector<cPt2dr> mDetectedCorners;
+         std::vector<cPt2di> mDetectedVectors;
+         std::vector<cPt2di> mDetectedEllipse;
+         std::vector<cPt2di> mDetectedFrame;
 
 };
 
