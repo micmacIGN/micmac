@@ -167,6 +167,9 @@ void pyb_init_Ptxd(py::module_ &m)
     pyb_init_cPtxd_tpl<int,1>(m,"Pt1di");
     pyb_init_cPtxd_tpl<int,2>(m,"Pt2di");
     pyb_init_cPtxd_tpl<int,3>(m,"Pt3di");
+    pyb_init_cPtxd_tpl<float,1>(m,"Pt1df");
+    pyb_init_cPtxd_tpl<float,2>(m,"Pt2df");
+    pyb_init_cPtxd_tpl<float,3>(m,"Pt3df");
     pyb_init_cPtxd_tpl<double,1>(m,"Pt1dr");
     pyb_init_cPtxd_tpl<double,2>(m,"Pt2dr");
     pyb_init_cPtxd_tpl<double,3>(m,"Pt3dr");
