@@ -55,9 +55,10 @@ PYBIND11_MODULE(MMVII, m) {
 
     m.doc() = "pybind11 MMVII plugin"; // optional module docstring
 
-    pyb_init_Geom(m);
-    pyb_init_PerspCamIntrCalib(m);
+    pyb_init_Ptxd(m);
+    pyb_init_Images(m);
     pyb_init_DenseMatrix(m);
+    pyb_init_PerspCamIntrCalib(m);
     pyb_init_Memory(m);
     pyb_init_Aime(m);
 }

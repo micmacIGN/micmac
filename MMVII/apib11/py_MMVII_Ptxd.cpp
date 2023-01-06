@@ -1,6 +1,6 @@
 #include "py_MMVII.h"
 
-#include "MMVII_Geom2D.h"
+#include "MMVII_Ptxd.h"
 
 
 using namespace MMVII;
@@ -11,9 +11,9 @@ void pyb_init_cPtxd_tpl(py::module_ &m, const std::string& name) {
     using namespace std::literals;
     using namespace pybind11::literals;
 
-    typedef cPtxd<T,Dim> cPt;
+    typedef cPtxd<T,Dim> tPt;
 
-    auto cd = py::class_<cPt>(m, name.c_str());
+    auto cd = py::class_<tPt>(m, name.c_str());
 
     if constexpr (Dim == 1)
             cd.def(py::init<T>(),"x"_a);
@@ -27,21 +27,21 @@ void pyb_init_cPtxd_tpl(py::module_ &m, const std::string& name) {
     cd.def(py::init([](py::tuple t) {
             if (t.size() != Dim)
                throw py::index_error();
-            auto pt = new cPt;
+            auto pt = new tPt;
             for (int i=0; i<Dim; i++)
                (*pt)[i] = t[i].cast<T>();
             return pt;
     }),"tuple"_a);
 
-    cd.def_static("pCste",&cPt::PCste)
-            .def_static("pRand",&cPt::PRand)
-            .def_static("pRandC",&cPt::PRandC)
-            .def_static("pRandUnit",&cPt::PRandUnit)
-            .def_static("pRandInSphere",&cPt::PRandInSphere)
-            .def_static("fromPtInt",&cPt::FromPtInt,"pt")
-            .def_static("fromPtR",&cPt::FromPtR,"pt")
+    cd.def_static("pCste",&tPt::PCste)
+            .def_static("pRand",&tPt::PRand)
+            .def_static("pRandC",&tPt::PRandC)
+            .def_static("pRandUnit",&tPt::PRandUnit)
+            .def_static("pRandInSphere",&tPt::PRandInSphere)
+            .def_static("fromPtInt",&tPt::FromPtInt,"pt")
+            .def_static("fromPtR",&tPt::FromPtR,"pt")
 
-            .def("__repr__",[name](const cPt& p) { 
+            .def("__repr__",[name](const tPt& p) {
                   std::ostringstream ss;
     
                   ss.precision(15);
@@ -56,20 +56,20 @@ void pyb_init_cPtxd_tpl(py::module_ &m, const std::string& name) {
              })
 
             .def("__getitem__",
-                       [](const cPt &pt, size_t i) {
+                       [](const tPt &pt, size_t i) {
                            if (i >= Dim)
                                throw py::index_error();
                            return pt[i];
                        })
             .def("__setitem__",
-                       [](cPt& pt, size_t i, T v) {
+                       [](tPt& pt, size_t i, T v) {
                            if (i >=Dim)
                                throw py::index_error();
                            pt[i] = v;
                        })
-            .def("__len__", [](const cPt& pt){ return Dim;})
+            .def("__len__", [](const tPt& pt){ return Dim;})
             .def("__iter__",
-                      [](const cPt& pt) { return py::make_iterator(pt.PtRawData(),pt.PtRawData()+Dim); },
+                      [](const tPt& pt) { return py::make_iterator(pt.PtRawData(),pt.PtRawData()+Dim); },
                       py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
             .def(py::self + py::self)
             .def(py::self - py::self)
@@ -84,21 +84,21 @@ void pyb_init_cPtxd_tpl(py::module_ &m, const std::string& name) {
     ;
 
     if constexpr (Dim >= 1)
-            cd.def_property("x",[](const cPt& p){return p.x();},[](cPt& p, T x){ p.x() = x;});
+            cd.def_property("x",[](const tPt& p){return p.x();},[](tPt& p, T x){ p.x() = x;});
     if constexpr (Dim >= 2)
-            cd.def_property("y",[](const cPt& p){return p.y();},[](cPt& p, T y){ p.y() = y;});
+            cd.def_property("y",[](const tPt& p){return p.y();},[](tPt& p, T y){ p.y() = y;});
     if constexpr (Dim >= 3)
-            cd.def_property("z",[](const cPt& p){return p.z();},[](cPt& p, T z){ p.z() = z;});
+            cd.def_property("z",[](const tPt& p){return p.z();},[](tPt& p, T z){ p.z() = z;});
     if constexpr (Dim >= 4)
-            cd.def_property("t",[](const cPt& p){return p.t();},[](cPt& p, T t){ p.t() = t;});
+            cd.def_property("t",[](const tPt& p){return p.t();},[](tPt& p, T t){ p.t() = t;});
 
-    m.def("supEq",static_cast<bool (*)(const cPt&, const cPt&)>(&SupEq),"pt1"_a,"pt2"_a);
-    m.def("infStr",static_cast<bool (*)(const cPt&, const cPt&)>(&InfStr),"pt1"_a,"pt2"_a);
-    m.def("infEq",static_cast<bool (*)(const cPt&, const cPt&)>(&InfEq),"pt1"_a,"pt2"_a);
+    m.def("supEq",static_cast<bool (*)(const tPt&, const tPt&)>(&SupEq),"pt1"_a,"pt2"_a);
+    m.def("infStr",static_cast<bool (*)(const tPt&, const tPt&)>(&InfStr),"pt1"_a,"pt2"_a);
+    m.def("infEq",static_cast<bool (*)(const tPt&, const tPt&)>(&InfEq),"pt1"_a,"pt2"_a);
 
-    m.def("ptSupEq",static_cast<cPt (*)(const cPt&, const cPt&)>(&PtSupEq),"pt1"_a,"pt2"_a);
-    m.def("ptInfEq",static_cast<cPt (*)(const cPt&, const cPt&)>(&PtInfEq),"pt1"_a,"pt2"_a);
-    m.def("ptInfStr",static_cast<cPt (*)(const cPt&, const cPt&)>(&PtInfStr),"pt1"_a,"pt2"_a);
+    m.def("ptSupEq",static_cast<tPt (*)(const tPt&, const tPt&)>(&PtSupEq),"pt1"_a,"pt2"_a);
+    m.def("ptInfEq",static_cast<tPt (*)(const tPt&, const tPt&)>(&PtInfEq),"pt1"_a,"pt2"_a);
+    m.def("ptInfStr",static_cast<tPt (*)(const tPt&, const tPt&)>(&PtInfStr),"pt1"_a,"pt2"_a);
 
 
     m.def("normK",&NormK<T,Dim>,"pt"_a,"exp"_a);
@@ -106,7 +106,7 @@ void pyb_init_cPtxd_tpl(py::module_ &m, const std::string& name) {
     m.def("normInf",&NormInf<T,Dim>,"pt"_a);
     m.def("norm2",&Norm2<T,Dim>,"pt"_a);
 
-    py::implicitly_convertible<py::tuple, cPt>();
+    py::implicitly_convertible<py::tuple, tPt>();
 }
 
 template<typename T, int Dim>
@@ -138,6 +138,8 @@ void pyb_init_cTplBox_tpl(py::module_ &m, const std::string& name) {
             .def("inter",&tBox::Inter,"box"_a)
             .def("dilate",py::overload_cast<const tPt&>(&tBox::Dilate,py::const_),"pt"_a)
             .def("dilate",py::overload_cast<const T&>(&tBox::Dilate,py::const_),"val"_a)
+            .def("inside",py::overload_cast<const tPt&>(&tBox::Inside,py::const_),"pt"_a)
+            .def("inside",py::overload_cast<const T&>(&tBox::Inside,py::const_),"val"_a)
 
             .def("__repr__",[name](const tBox& tb) {
                  std::ostringstream ss;
@@ -157,20 +159,10 @@ void pyb_init_cTplBox_tpl(py::module_ &m, const std::string& name) {
                  ss << "))" ;
                  return ss.str();
              })
-             .def("__getitem__",
-                  [](const tBox &box, size_t i) {
-                      if (i == 0)
-                          return box.P0();
-                      else if (i == 1)
-                          return box.P1();
-                      else
-                          throw py::index_error();
-              })
-              .def("__len__", [](const tBox& box){ return 2;})
             ;
 }       
 
-void pyb_init_Geom(py::module_ &m)
+void pyb_init_Ptxd(py::module_ &m)
 {
     pyb_init_cPtxd_tpl<int,1>(m,"Pt1di");
     pyb_init_cPtxd_tpl<int,2>(m,"Pt2di");
@@ -179,8 +171,10 @@ void pyb_init_Geom(py::module_ &m)
     pyb_init_cPtxd_tpl<double,2>(m,"Pt2dr");
     pyb_init_cPtxd_tpl<double,3>(m,"Pt3dr");
 
+    pyb_init_cTplBox_tpl<int,1>(m,"Box1di");
     pyb_init_cTplBox_tpl<int,2>(m,"Box2di");
     pyb_init_cTplBox_tpl<int,3>(m,"Box3di");
+    pyb_init_cTplBox_tpl<double,1>(m,"Box1dr");
     pyb_init_cTplBox_tpl<double,2>(m,"Box2dr");
     pyb_init_cTplBox_tpl<double,3>(m,"Box3dr");
 

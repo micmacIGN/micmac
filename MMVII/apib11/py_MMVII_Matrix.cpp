@@ -13,7 +13,7 @@ void pyb_init_Matrix_tpl(py::module_ &m, const std::string& name) {
 
     typedef cDenseMatrix<T> cDM;
 
-    auto dm=py::class_<cDM>(m, name.c_str());
+    auto dm=py::class_<cDM>(m, name.c_str(),py::buffer_protocol());
             dm.def(py::init<int,int,eModeInitImage>(),"x"_a,"y"_a,"modeInitImage"_a = eModeInitImage::eMIA_NoInit);
             dm.def(py::init<int,eModeInitImage>(),"x"_a,"modeInitImage"_a = eModeInitImage::eMIA_NoInit);
             dm.def(py::init<typename cDM::tIm>(),"im2d"_a);
@@ -30,10 +30,20 @@ void pyb_init_Matrix_tpl(py::module_ &m, const std::string& name) {
             dm.def("setElem",&cDM::SetElem,"x"_a,"y"_a,"val"_a);
             dm.def("addElem",&cDM::AddElem,"x"_a,"y"_a,"val"_a);
 
-//            .def("getElem",[](const cDM &dm, int aX, int aY){return dm.GetElem(aX,aY);},"x"_a,"y"_a)
-//            .def("getElem",[](const cDM &dm, const cPt2di &aP){return dm.GetElem(aP);},"pt2di"_a)
             dm.def("getElem",py::overload_cast<int,int>(&cDM::GetElem, py::const_),"x"_a,"y"_a);
             dm.def("getElem",py::overload_cast<const cPt2di &>(&cDM::GetElem, py::const_),"pt2di"_a);
+
+            // TODO : a verifier le stride/offset !
+            dm.def_buffer([](cDM &m) -> py::buffer_info {
+                    return py::buffer_info(
+                        *m.DIm().ExtractRawData2D(),                               /* Pointer to buffer */
+                        sizeof(T),                          /* Size of one scalar */
+                        py::format_descriptor<T>::format(), /* Python struct-style format descriptor */
+                        2,                                      /* Number of dimensions */
+                        { m.Sz().x(), m.Sz().y() },                 /* Buffer dimensions */
+                        { sizeof(T) * m.Sz().x(),             /* Strides (in bytes) for each index */
+                          sizeof(T) }
+                    );})
             ;
             
 }
@@ -49,5 +59,6 @@ void pyb_init_DenseMatrix(py::module_ &m)
             .value("eMIA_NoInit", eModeInitImage::eMIA_NoInit)
             ;
     
-    pyb_init_Matrix_tpl<double>(m,"Md");
+    pyb_init_Matrix_tpl<double>(m,"Matrixd");
+    pyb_init_Matrix_tpl<float>(m,"Matrixf");
 }
