@@ -163,8 +163,10 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         std::string mOutput_folder;
         int mTargetCounter;
         std::vector<double> mTransfo;
+
         std::vector<std::string> mToRestrict;
         bool mFailure;            ///< Plot also failures on rectified folder
+        double mTolerance;        ///< Tolerance for decoding bits (in %)
 
         std::vector<cPt2dr> mPoints;
         std::bitset<10> mBitsPlotDebug;
@@ -203,7 +205,8 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mSaddle          (false),
    mMargin          (0.20),
    mToRestrict      ({}),
-   mFailure         (false)
+   mFailure         (false),
+   mTolerance       (0.0)
 {
 }
 
@@ -241,6 +244,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mMargin, "Margin", "Margin on butterfly edge for fit", {eTA2007::HDV})
                     << AOpt2007(mToRestrict, "Restrict", "List of codes to restrict on", {eTA2007::HDV})
                     << AOpt2007(mFailure, "Failure", "Plot also failures in RectifTargets", {eTA2007::HDV})
+                    << AOpt2007(mTolerance, "Tolerance", "Tolerance (in %) for reading bits", {eTA2007::HDV})
 	  );
    ;
 }
@@ -612,12 +616,12 @@ void  cAppliExtractCodeTarget::DoExtract(){
 // Function to export result in xml
 // ---------------------------------------------------------------------------
 void cAppliExtractCodeTarget::exportInXml(std::vector<cDCT*> mVDCTOk){
-     std::string xml_output  = "    <MesureAppuiFlottant1Im>\n";
+    std::string xml_output  = "    <MesureAppuiFlottant1Im>\n";
     xml_output += std::string("        <NameIm>");
         xml_output += std::string(mNameIm);
         xml_output += std::string("</NameIm>\n");
         for (auto aDCT : mVDCTOk){
-            if (aDCT->mDecodedName != ""){
+            if ((aDCT->mDecodedName != "") && (aDCT->mDecodedName.substr(0,2) != "NA")){
                 xml_output += "        <OneMesureAF1I>\n";
                 xml_output += "            <NamePt>" +  aDCT->mDecodedName + "</NamePt>\n";
                 xml_output += "            <PtIm>" + std::to_string(aDCT->mRefinedCenter.x());
@@ -703,7 +707,6 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     mPoints = extractButterflyEdge(aDIm, aDCT);
 
     if (mPoints.size() < 10) return false;
-
 
     // -----------------------------------------------------------------
     // Ellipse fit
@@ -1496,8 +1499,9 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
 
    // double int_circle_th = 0.25*thb + 0.75*thw;
 
-    double R1 = 137.5*(1+0.35/2);
-    double R2 = 137.5*(1+3*0.35/2);
+    double R1 = 140.1*(1+0.35/2);
+    double R2 = 140.1*(1+3*0.35/2);
+
 
     double cx = 300;
     double cy = 300;
@@ -1553,7 +1557,7 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
     // Code central symetry control and decoding
     // ====================================================================
 
-    int bits = 0; bool bit; double max_error = 0; debug = "";
+    int bits = 0; bool bit, bit1, bit2; double max_error = 0; debug = ""; bool consistent = true;
 
     // -------------------------------------------------------------
     // Standard case
@@ -1563,26 +1567,39 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
         for (int t=0; t<9; t++){
 
             double theta = (1.0/18.0 + t/9.0)*PI;
-            double xc_code = 300 + R2*cos(theta);
-            double yc_code = 300 + R2*sin(theta);
 
-            double xc_code_opp = 300 - R2*cos(theta);
-            double yc_code_opp = 300 - R2*sin(theta);
+            double xc_code = 300 + R2*cos(theta);    double xc_code_tol = 300 + (1+mTolerance/100.0)*R2*cos(theta);
+            double yc_code = 300 + R2*sin(theta);    double yc_code_tol = 300 + (1+mTolerance/100.0)*R2*sin(theta);
+
+            double xc_code_opp = 300 - R2*cos(theta);   double xc_code_opp_tol = 300 - (1+mTolerance/100.0)*R2*cos(theta);
+            double yc_code_opp = 300 - R2*sin(theta);   double yc_code_opp_tol = 300 - (1+mTolerance/100.0)*R2*sin(theta);
+
 
             // Code reading
-            double value1 = aDImT.GetVBL(cPt2dr(xc_code, yc_code));
-            double value2 = aDImT.GetVBL(cPt2dr(xc_code_opp, yc_code_opp));
+            double value1 = std::min(aDImT.GetVBL(cPt2dr(xc_code    , yc_code    )), aDImT.GetVBL(cPt2dr(xc_code_tol    , yc_code_tol    )));
+            double value2 = std::min(aDImT.GetVBL(cPt2dr(xc_code_opp, yc_code_opp)), aDImT.GetVBL(cPt2dr(xc_code_opp_tol, yc_code_opp_tol)));
 
+            bit1 = value1 > threshold;
+            bit2 = value2 > threshold;
             bit = (value1 + value2)/2.0 > threshold;
+            consistent = consistent && (bit1 == bit2);
             max_error = std::max(max_error, abs(value1-value2));
 
             bits += (bit ? 0:1)*pow(2,t);
             debug += (bit ? std::string("0 "):std::string("1 "));
 
             // Image modification (at the end!)
-            markImage(aDImT, cPt2di(xc_code    , yc_code)    , 5, bit?0:255);
-            markImage(aDImT, cPt2di(xc_code_opp, yc_code_opp), 5, bit?0:255);
-
+            if (bit1 == bit2){
+                markImage(aDImT, cPt2di(xc_code        , yc_code        ), 5, bit1?0:255);
+                markImage(aDImT, cPt2di(xc_code_opp    , yc_code_opp    ), 5, bit2?0:255);
+                markImage(aDImT, cPt2di(xc_code_tol    , yc_code_tol    ), 5, bit1?0:255);
+                markImage(aDImT, cPt2di(xc_code_opp_tol, yc_code_opp_tol), 5, bit2?0:255);
+            } else {
+                markImage(aDImT, cPt2di(xc_code        , yc_code        ), 5, 128);
+                markImage(aDImT, cPt2di(xc_code_opp    , yc_code_opp    ), 5, 128);
+                markImage(aDImT, cPt2di(xc_code_tol    , yc_code_tol    ), 5, 128);
+                markImage(aDImT, cPt2di(xc_code_opp_tol, yc_code_opp_tol), 5, 128);
+            }
         }
     }else {
 
@@ -1651,7 +1668,8 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
 
     }
 
-    if (bits == -1) return bits = 0;      // !!!!!!!!!!!!!!!!!!! PROVISOIRE !!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!! PROVISOIRE !!!!!!!!!!!!!!!!!!!
+    if ((bits == -1) || (max_error > 30) || (!consistent)) return bits = 0;
 
     return bits;
 }
