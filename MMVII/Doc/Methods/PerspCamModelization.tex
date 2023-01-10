@@ -347,8 +347,9 @@ as $D= \mathcal{I}_0^{-1} \circ \phi \circ  \mathcal{I}_0$.
 %-----------------------------------------------------
 \subsection{Summary : new image formula}
 
-We note $D$ the additional term, classically named as distorsion. We assume for now that the gaussian approximation
-globally holds,  this is the case with standard lenses, and then $D$ can be assumed to be close to identity.
+We note $D$ the additional term, classically named as distorsion. We assume for now that the 
+system "almost" satisfies gaussian approximation ,  this is the case with standard lenses, 
+and then $D$ can be assumed to be close to identity.
 This will not be the case with fish-eye, and we will see that we will proceed by replacing $\pi_0$ by other
 projection.
 
@@ -666,7 +667,8 @@ This formula require several comment :
 Also polar coordinate are convenient for modelization of phenomena with radial symetry, 
 they are not ideal for computation : they are relativelly slow and  the center point is
 a critical point that can complexify some equation.  Sometime we cannot avoid them
-easily, but here it happens that we can :
+easily, but here it happens that we can express w/o problem the distorsion
+with euclidean coordinates:
 
 \begin{equation}
 \begin{multlined}
@@ -682,8 +684,8 @@ easily, but here it happens that we can :
 
 \subsection{Variations on  conventions on radial distorsion}
 
-As often in photogrammetry, there are many convention and option for representing the same thing,
-or small variation on the same things, in different book, papers, software \dots
+As often in photogrammetry, there are many conventions and options for representing the same thing,
+or small variations on the same things, in different book, papers, software \dots
 We discuss here some of this option.
 
   % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -701,7 +703,7 @@ First we can remark that from the mathematicall point of view, the two conventio
 that they define the same space of function.  With first convention we have :
 
 \begin{equation}
-	mathcal{I}(q) = P^P + F (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
+	\mathcal{I}(q) = P^P + F (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
 \end{equation}
 
 With second convention , as we operate on pixel the center of radial symetry will  be $P^p$ 
@@ -710,7 +712,7 @@ we compute first  $  \mathcal{I}_0 : q \rightarrow  P^p + F*q$, then we substrac
 $P^p$  who is the center of distorsion, and obtain the formula :
 
 \begin{equation}
-	mathcal{J}(q) = P^P + (1 + K_1 F^2 (x^2+y^2) +  K_2  F^4 (x^2+y^2) ^2 \dots)  \begin{pmatrix} F*x \\ F*y \end{pmatrix}
+	\mathcal{J}(q) = P^P + (1 + K_1 F^2 (x^2+y^2) +  K_2  F^4 (x^2+y^2) ^2 \dots)  \begin{pmatrix} F*x \\ F*y \end{pmatrix}
 \end{equation}
 
 So we see that they are equivalent and the conversion is here relatively easy  $K_1 = \frac{k_1}{F^2} $,
@@ -759,37 +761,90 @@ In aerial photogrammetry, the "tradition" is to consider that the center of syme
 is different of principal point; they are named PPA (principal point of autocolimation) and
 PPS (principal point of symetry).
 
-We dont do it in {\tt MMVII} because it woul be redundant we other parameters as discussed in detail in \label{PPA:PPS:DEC}
-This is why in previous section we have used $P^p$ the center of symetry of the distorsion (in fact $0,0$ with our conventions).
-
-
+We dont do it in {\tt MMVII} because it woul be redundant we other parameters 
+selected as discussed in detail in \label{PPA:PPS:DEC}.
+This is why in previous section we have used $P^p$ the center of symetry of the distorsion 
+(in fact $0,0$ with our conventions).
 
 %-----------------------------------------------------
 %-----------------------------------------------------
 %-----------------------------------------------------
 
 \section{Decentric distorsion}
+
+\subsection{Introduction}
+The previous section has establish the radial distorsion, that would almost always
+be sufficient if the physical camera was a perfect realization of the designed camera.
+In the next section we will discuss the main "default" in the realisation of
+the camera and the additional parameters that are added to modelize them.
+
+The first hypothesis  that will be questionned is the fact that the axes of the different
+lenses are perfectly aligned.
+
+%-----------------------------------------------------
+\subsection{Mathematicall modelisation}
+
+First we must traduce in mathematicall term the physicall words
+" the lenses are slightly miss aligned".
+We will do it by  the following assumption :
+
+\begin{itemize}
+    \item  each of the $N$ elementary block of well alligned lenses can still be 
+           modelized by a central distorsion $D^k$ of centre $C^k$ and radial
+           disorsion $D^k_r$;
+
+    \item  the globall distorsion is the composition of the elementary distorsion
+           $ D = D^1 \circ D^2 \circ \dots \circ D^n$
+
+    \item  all the elementary distorsion are close to identidy, what we write :
+           $D^k = Id + \delta^k$  with $\delta^k \approx 0$;
+
+    \item  all the center of symetry are close to each others , and for simplicity
+           we will write $C_k \approx (0,0)$;
+\end{itemize}
+
+
+Consider now two function close to identity $D^1$ and $D^2$, we can write :
+
+\begin{equation}
+      (D^1 \circ D^2)(p)  
+    = (Id+\delta^1)((p+\delta^2(p)))
+    =  p + \delta^2(p)  +  \delta^1(p+\delta^2(p))
+    =  p + \delta^2(p)  +  \delta^1(p)  +  \nabla^1 (\delta^2(p))  (\delta^2(p))  + \epsilon^1(\delta^2(p)) (\delta^2(p))
+\end{equation}
+
+Where 
+
+%-----------------------------------------------------
+\subsection{Mathematicall modelisation}
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+
 \section{Planary inclinaison}
 
 
-\section{Fish eye model}
-\label{SecFE}
-
 
 %-----------------------------------------------------
 %-----------------------------------------------------
 %-----------------------------------------------------
 
-\section{General model}
+\section{"Universal" model}
 
 \subsection{Assemblage camera}
 \subsection{$360$ camera}
+
+\section{Fish eye model}
+\label{SecFE}
 
 \section{Note and PPA , PPS and decentric dist}
 \label{PPA:PPS:DEC}
 
 
-\section{Note on ordering of parameters}
+\section{Note work to do on non perspective camera}
+
 
 
 %-----------------------------------------------------
