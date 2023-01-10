@@ -172,13 +172,15 @@ that will become more sophisticated to take into account lenses used in real cam
 %-----------------------------------------------------
 \subsection{A remark on repair orientation}
 
-We have not discussed untill now which image repair is used for image coordnates $i,j$.
-The choice done in {\tt MMVII} is to use the coordinate system of majority of images
-processing solution; that is : $i$ is left to right and $j$ is up to bottom.
+We have not discussed untill now which image repair is used for image coordinates $i,j$.
+The choice done in {\tt MMVII} is to use the native coordinate system of the image format,
+knowing that majority of image format use a clockwise repair : 
+that is : $i$ is left to right and $j$ is up to bottom (this is purely conventionnal, but one the
+choice is made, is will have to be respected all along the process).
 
 As we aline  local repair $(O,\vec{i},\vec{j},\vec{k})$  on this coordinate system ,
 and we want a direct $3d$ repair with $\vec{k} = \vec{i} \wedge \vec{j} $, this
-has for consequences that the axe $O\vec{k})$ is in the viewewing direction of the
+has for consequences that with these convention the axe $O\vec{k}$ is in the viewewing direction of the
 camera.  The figure~\ref{fig:FormIm} illustrates this convention;
 
 
@@ -199,15 +201,16 @@ camera.  The figure~\ref{fig:FormIm} illustrates this convention;
 \subsection{Need of lenses}
 
 With the camera obscura, to have a sharp image we must keep a small entrance hole;
-so to have enouh light we need very long exposure time. The devlopment of photography
-would not have been possible without the devlopment of optic. By puting a systeme
+so to have enouh light we need very long exposure time (several hours). 
+This is not convenient and the devlopment of photography
+would not have been possible without the devlopment of optic. By puting a system
 of lenses at the entrance of the system, and being caution that the  scene focalise
 on the image plane, it was possible to have a sharp image whith a sufficiently big
 hole and make photography practicable.
 
 Nowday all the camera have more or less complicated system of lenses. In fact due the
 automatization of the computer added conception they tend to be more and more complex, the concepter
-using the possibility offered by multiple lenses to correct more and more optical default .
+using the possibility offered by multiple lenses with various materiel to correct more and more optical defaults .
 
 For photogrammetry it change the game, because the lenses being not "infinitely thin", the gauss
 condition non longer apply and some non linearity will occur , we will no longer be able to use
@@ -219,15 +222,15 @@ lenses.
 \subsection{A parametric estimation issue}
 
 A possible way to proceed would be to take into account the CAD plane of the optical
-system, use in conception and to deduce the correction.  Practically, we almots never proceed
-this way for two reason  :
+system, use in conception and to deduce the correction using the law of optic.  
+Practically, we almots never proceed this way for two reasons  :
 
 \begin{itemize}
    \item firt this CAD plane are rarely avalaible (maybe due to industrial property ?);
    \item second, and more important, the experience prove that when we proceed to the
          modelization of two lenses from the same model, we have to modelize them with two
          different parameter if we want to get the best accuracy, so no theoreticall model 
-         would fit our requirement.
+         would fit our requirement (also it could give a good first approximation);
 \end{itemize}
 
 So the approach currently used in photogrammetry is to select a parametric model
@@ -237,6 +240,7 @@ GCP, GNSS  \dots).
 
 %-----------------------------------------------------
 \subsection{Precaution to take}
+\label{ParamFit}
 
 \begin{figure}
 \centering
@@ -255,18 +259,18 @@ of the parametric model, illustrated by figure~\ref{fig:CurvesParam}  on a probl
 
 
 \begin{itemize}
-	\item if we don't have enough paramater (curve 3) we are not accurate  even on the data to fit,
+	\item if we don't have enough parameters (curve 3) we are not accurate  even on the data to fit,
 	   here if we fit with a straight line, or even with a parabol, we are not close to the learning data ;
 
    \item if we  have too many parameter (curve 4), we can have a very good match on the learning data, but have 
 	 poor result as soon as we test with new data; this illustrated with  figure ??? were
          we use the "naive" lagrange interpolation to fit $N+1$ point with a $N$ degree polynomial,
-         we have a perfect fit and the learning data, but a very
+         we have a perfect fit and the learning data, but due to high frequences a very poor fit outside;
 \end{itemize}
 
 The question of selecting the adequate model is a difficult one, and to our best knowledge
 still open in photogrammetry.  Is it preferable to have over or under paramatrization ? There
-is controvorsery arguments :
+exists controvorsery arguments :
 
 
 \begin{itemize}
@@ -275,7 +279,7 @@ is controvorsery arguments :
 
    \item  on the other hand, in "modern" photogrammetry the measurement comes more and more from automatic system,
           we can easily have several ten thousands of tie points, so one can argue that there is no real risk to have $100$ parameter
-          even if we only really need $10$.
+          even when we only really need $10$.
 \end{itemize}
 
 Consequently, it was thought, that the best we can do in {\tt MMVII} is to offer a sufficient large set of model
@@ -290,7 +294,7 @@ the precise knowledge of his domain.
 \end{figure}
 
 However, even is this choice of parameter is not easy, there is
-one universal rule : if can be good in interpolation, we are always bad in extrapolation
+one universal rule : if we can be stable in interpolation, we are always bad in extrapolation
 as illustrated on figure~\ref{fig:CurvesExtrpol}. A 
 consequence when will estimate the model of a camera : if we have no measurement in the corners,
 we are almost sure that we estimation will be poor in these corners.
@@ -357,11 +361,11 @@ The following three equations summarize where we are in our modelization :
 \end{equation}
 
 \begin{equation}
-	 \mathcal{I} = \mathcal{I}_0  \circ D
+	\mathcal{I} = \mathcal{I}_0  \circ D \label{FormImage2}
 \end{equation}
 
 \begin{equation}
-	  D \approx Id
+	  D \approx Id \label{FormImage3}
 \end{equation}
 
 %-----------------------------------------------------
@@ -369,6 +373,11 @@ The following three equations summarize where we are in our modelization :
 %-----------------------------------------------------
 
 \section{Radial modelisation}
+
+In this section we  show that the radial modelisation of distorsion is a consequence
+of the hypothesis of cylindric symetry of the optical system.
+
+%--------------------------------------------------------------------------------------------------------
 
 \subsection{Radial symetry hypothesis}
 
@@ -380,120 +389,378 @@ The following three equations summarize where we are in our modelization :
 	\label{fig:Lenses}
 \end{figure}
 
-We start the modelization with two observation that are satisfied with a
-high accurracy :
+We start the modelization with three observations on the theoreticall design of central perspective cameras:
 
 \begin{itemize}
     \item  each individual lense has a radial symetry arround it opticall axe;:
     \item  the mechaninal building is made so that all the lenses are aligned on
 	    their common optical axe $\mathcal{A}$.
+    \item  the plane of the sensor is orthognal to $\mathcal{A}$.
 \end{itemize}
 
+For real camera, these observation are satisfied with a high accurracy in the sense that it is
+rigourously satisfied in the theoreticall conception model of almost all central perspective
+camera~\footnote{to our knowledge the only notable exception if tilt lenses, for the orthogonality rule}.
+Consequently all the corrective terms that we will study in further sections,
+are due to the difference between theoreticall model and effective realization and are
+generally of an order of magnitude lower than the radial distorsion.
 
-These elementary remarks have for consequence that, how sophisticated may be the combinaison
+These elementary remarks have for consequence that, how sophisticated may be the combination
 of many lenses, each having a complicated non spherical shape, we still have a global cylindrical
 symetry on our system. This is illustrated by schemes of figure~\ref{fig:Lenses}.
 The perspective center $C$ defined in \ref{Still:Persp}, must belong to the axes of symetry,
 so we have $\mathcal{A}=(C,\vec{k})$. 
 
+%--------------------------------------------------------------------------------------------------------
 
-\subsection{Methodology}
+\subsection{Notation}
 
-\begin{figure}
-\centering
-	\includegraphics[width=2cm]{Methods/Images/Lenses.jpg} \\
-	\label{fig:Dioptr}
-\end{figure}
-
-Let $B$ be an incoming ray, we want to establish the property of the outcoming ray $B'$
-that will intersect the sensor. The optical system is made of succession of diopters $D_1,\dots D_n$,
-that are have all a symetry arround $\mathcal{A}$; between to diopters $D_k$ and $D_{k+1}$, the light
-is following a straight line $B_k$,  so the path going from $B$ to $B'$ can be wroten as
-$B_0,B_1,\dots,B_n$ with = $B_0=B$ and $B_n=B'$ where each $B_k$ is a straigth
-line segment, this is illustrated by figure~\ref{fig:Dioptr}. 
-
-The ray $B_0$ cross $C$ and is completely caracterised by its direction $\vec{B_0}$ that
-we can write in spherical coordinates :
+For a direction of vector we will use spherical coordinates in repair $\vec{i},\vec{j},\vec{k}$ :
 
 \begin{equation}
-     \vec{B_0}   =\begin{pmatrix}  \cos(\theta_0) \sin(\phi_0) \\ \sin(\theta_0) \sin(\phi_0)  \\ \cos(\phi_0) \end{pmatrix}
+	\vec{S_{ph}}(\theta,\phi)   =\begin{pmatrix}  \cos(\theta) \sin(\phi) \\ \sin(\theta) \sin(\phi)  \\ \cos(\phi) \end{pmatrix}
 	     \label{PC:Spher:Coord}
 \end{equation}
 
-We want to prove the three following property :
+We  note $\mathcal{P}_{\theta}$  the plane passing by $\mathcal{A}$ and containing the vector    $\vec{S_{ph}}(\theta,.)$
+(the $.$ enhances that whatever may be the value $\neq 0$ , it will define the same plane).
 
-\begin{enumerate}
-    \item all $B_k$ instersect $\mathcal{A}$;
-           consequently $B_k$ can be caracterised by it direction $\vec{B_k}$ and 
-           the abscisse $x_k$ of its intersection with $\mathcal{A}$, we will note $\theta_k,\phi_k$
-          the spherical coordinates of $\vec{B_k}$ (as in~\ref{PC:Spher:Coord});
-
-  \item $\theta_k = \theta_0$   (i.e the path stay in the original plan containing $B_0$ and :
-    \item $\phi_k = \psi_k(\theta_0)$  ;
-\end{enumerate}
-
-
-This is right for $B_0$ because as seen in ~\ref{Still:Persp}  all incoming ray intersect $C$
-and $\mathcal{A}=(C,\vec{k})$.
-
-We wil establish properpty between $B_k$ and $B_{k+1}$ and,
-by recurence, this will establish the property for $B_n=B'$.
-
-
-
-
-
-We note $\rho, \varphi,z$ the cylindrical coordinates :
+For any ray intersecting $\mathcal{A}$, we will note $R(z,\theta,\phi)$ the ray of direction $\vec{S_{ph}}(\theta,\phi)$  crossing $\mathcal{A}$
+at abscissa $z$  :
 
 \begin{equation}
-	\begin{pmatrix} \rho \cos(\varphi)  \\ \rho\sin(\varphi)  \\ z \end{pmatrix} \label{Cyl:Coord}
+	R(z,\theta,\phi) = \{C+ z \vec{k} + \lambda \vec{S_{ph}}(\theta,\phi), \lambda \in \RR\}
+	     \label{PC:RayParam}
+\end{equation}
+
+
+%--------------------------------------------------------------------------------------------------------
+
+\subsection{Intuitive formulation}
+
+Let $B$ be an incoming ray, noted $ R(0,\theta,\phi)$ , let $B'$ be the outcoming ray  that will intersect the sensor,
+we want to establish the property of the transformation  $ \Psi : B \rightarrow B'$.
+If we admit the \emph{intuitive} following proposals :
+
+
+\begin{proposal}[3D radial symetry-physicall modelization]  \;
+\label{PhysRadMod}
+\begin{enumerate}
+    \item  $\Psi$ is globally stable inside any plane  $\mathcal{P}_{\theta}$; \label{PhysRadModPlane}
+
+    \item  any  circular cone $\mathcal{C}$ of bundle  arround $\mathcal{A}$ is
+	    transformed by $\Psi$ in another circular cone arround $\mathcal{A}$  (but possibly with a different origin and angle);
+\end{enumerate}
+\end{proposal}
+
+This has for consequence that , noting  $B'=(z',\theta',\phi')$ \footnote{which is possible because $B'$ intersect  $\mathcal{A}$ due to first proposal},
+we have : (1) $\theta'=\theta$  (2)  $z'$ and $\phi'$ depends only of $\phi$. 
+Then $\Psi $ has the following parametric form, where $\zeta$ and $\Phi$ are mapping $\RR \rightarrow \RR$ :
+
+\begin{equation}
+	\Psi(B) = \Psi(R(0,\theta,\phi)) = R(\zeta(\phi) ,\theta,\Phi(\phi))
+\end{equation}
+
+Next section is a formal proof,  it can be omited by the reader in a hurry who is already conviced of the above proposal.
+
+
+%--------------------------------------------------------------------------------------------------------
+
+\subsection{Proof}
+
+\begin{figure}
+\centering
+	\includegraphics[width=12cm]{Methods/Images/Radial-PhiOmegaZ.jpg} \\
+	\caption{Notation for dioptr crossing}
+	\label{fig:RadPhiOmegZ}
+\end{figure}
+
+The optical system is made of succession of diopters $D_1,\dots D_n$,
+that are have all a symetry arround $\mathcal{A}$.  Noting $\Psi_k$
+the elementary transformation by a single dioptr  we will  proof ;
+
+\begin{proposal}[3d radial symetry of dioptr]  \;
+If  we have a set of ray $R(z,\theta,\phi)$ intersecting  $\mathcal{A}$ such that  z is function of $\phi$ :
+$z=\zeta(\phi)$, then  all the output ray satisfy the same property ; they intersect $\mathcal{A}$ and there exist 
+two mappings  $\RR \rightarrow \RR$ , $\zeta'$ and $\Phi'$  such:
+
+\begin{equation}
+	\Psi(B) = \Psi(R(\zeta{\phi},\theta,\phi)) =  B' = R(\zeta'(\Phi'(\phi)),\theta,\Phi'(\phi))
+\end{equation}
+\end{proposal}
+
+As the condition \emph{"x is function of $\phi$"} obviously applies for initial rays (i.e. $x=0$ for all as they cross $C$),
+we will have proven what we want as $\Psi = \Psi_n \circ  \Psi_{n-1} \circ \dots \circ \Psi_1$. Note also that the requirement
+for initial ray is a bit more general than imposing that all ray cross $C$, it is sufficient that they complies with requirement
+of proposal above (intersect $\mathcal{A}$ and abscissa of intersection depends only of $\phi$).
+
+
+We will use cylindric coordinate $\rho,\theta,z$ arround $\mathcal{A}$, where $\theta$ is the same than the spherical
+coordinate used in equation~\ref{PC:Spher:Coord}
+
+\begin{equation}
+	C_{yl}(\rho,\theta,z)   =\begin{pmatrix} \rho \cos(\theta)  \\ \rho \sin(\theta)   \\ z \end{pmatrix}
+	     \label{PC:Cyl:Coord}
+\end{equation}
+
+Consider a ray $B$ that is deflected in $B'$ when it meets the dioptr  $D$ in point $P$.
+The surface of the dioptr $D$, can be caraterized by the equation $z=Z(\rho,\theta)$, and due to cylindric symetry we have in fact :
+$z=Z(\rho)$.  We can then establish a parametric representation of the surface :
+
+\begin{equation}
+	Q(\rho,\theta) =  C_{yl}(\rho,\theta,Z(\rho,\theta)) = \begin{pmatrix} \rho \cos(\theta)  \\ \rho \sin(\theta)   \\ Z(\rho) \end{pmatrix}
+\end{equation}
+
+The normal $\vec{N}(\rho,\theta) $ to the surface can be computed as :
+
+
+\begin{equation}
+	\vec{N}(\rho,\theta) 
+	=  \frac{\partial Q}{\partial \rho} \wedge \frac{\partial Q}{\partial \theta}
+	=   \begin{pmatrix} \cos(\theta)  \\  \sin(\theta)   \\    \frac{\partial Z}{\partial \rho}   \end{pmatrix}
+            \wedge 
+	   \begin{pmatrix} -\rho \sin(\theta)  \\ \rho \cos(\theta)   \\ 0 \end{pmatrix}
+	=   \begin{pmatrix}  - \rho \frac{\partial Z}{\partial \rho}  \cos(\theta)  \\  -\rho \frac{\partial Z}{\partial \rho}  \sin(\theta)   \\  \rho     \end{pmatrix}
+	=   \begin{pmatrix}  0 \\  0 \\  \rho     \end{pmatrix}
+            - \rho \frac{\partial Z}{\partial \rho}   \begin{pmatrix}   \cos(\theta)  \\   \sin(\theta)   \\  0     \end{pmatrix}
+		    \label{PC:EqNorm}
+\end{equation}
+
+Equation~\ref{PC:EqNorm} shows that the normal  $\vec{N}(\rho,\theta)$ belongs to plane $\mathcal{P}_{\theta}$. 
+So as $\vec{N}(\rho,\theta)$ and $\vec{B}$  belongs to $\mathcal{P}_{\theta}$ , first Snell-Descartes law on refraction 
+implies that  $\vec{B'}$ belongs also to  $\mathcal{P}_{\theta}$.  This proves the first
+that $B' \subset  \mathcal{A}$ and $\theta'=\theta$.
+
+Let write $\vec{N} = S_{ph}(\theta,\omega)$ as illustrated on  figure ???;  due to radial symetry  ,
+$\omega$ does not  depends of $\theta$ (see also equation~\ref{PC:EqNorm} : $\tan(\omega)= \frac{\partial Z}{\partial \rho}$) :  $\omega$  depends only of $\phi$.
+So using Snell-Descartes law on refraction gives, noting $n$ the reflexion indice after $D_k$, we have :
+
+\begin{equation}
+	n'  \sin(\omega + \phi') = n  \sin(\omega + \phi)
+\end{equation}
+
+This proves that $\phi'$ is a function of $\phi$ :  $\phi' = \Phi(\phi)$.
+
+Also we have  :
+
+
+\begin{equation}
+	\sin(\phi) = \frac {z-Z(\rho) }{\rho}
+	\label{Eq:PhiZRhoIn}
+\end{equation}
+\begin{equation}
+	\sin(\phi') = \frac {z'-Z(\rho) }{\rho}
+	\label{Eq:PhiZRhoOut}
+\end{equation}
+
+Equation \ref{Eq:PhiZRhoIn} show that $\rho$ is a function of $\phi$  and $z$, then $\rho$ is a function of $\phi$ (as $z$ is function of $\phi$).
+Equation \ref{Eq:PhiZRhoOut} show $z'$ is a function of $\rho$ and $\phi'$, but $\rho$ is a function of  $\phi$ and
+then a function of $\phi'$  ($\phi = \Phi^{-1}(\phi')$).
+
+
+%--------------------------------------------------------------------------------------------------------
+
+\subsection{Radial distorsion in the plane}
+
+\begin{figure}
+\centering
+	\includegraphics[width=12cm]{Methods/Images/RadialInThePlane.jpg} \\
+	\caption{Notation radial distorsion}
+	\label{fig:RadInPlane}
+\end{figure}
+
+Untill now, we have computed the distorsion in $3d$ as a function $\Psi$ modifying the path of light. To use 
+equations~\ref{FormImage1} and~\ref{FormImage2} we need to convert the effect $\Psi$  in image plane.
+We use notation of figure~\ref{fig:RadInPlane}.
+
+
+Without distortion the ray will arrive at point $q$  given by :
+
+\begin{equation}
+	q =     \begin{pmatrix} P^p_x \\ P^p_y \end{pmatrix} +  F \tan(\phi)   \begin{pmatrix} \cos(\theta) \\ \sin(\theta) \end{pmatrix} 
+\end{equation}
+
+With distorsion, the ray will arrive at point $q' = D(q)$ given by :
+
+\begin{equation}
+	q' =     \begin{pmatrix} P^p_x \\ P^p_y \end{pmatrix} +  (F+z') \tan(\phi')   \begin{pmatrix} \cos(\theta) \\ \sin(\theta) \end{pmatrix} 
+		=     \begin{pmatrix} P^p_x \\ P^p_y \end{pmatrix} +  (F+\zeta(\Phi(\phi))) \tan(\Phi(\phi))   \begin{pmatrix} \cos(\theta) \\ \sin(\theta) \end{pmatrix} 
+\end{equation}
+
+Using polar coordinates arround $P^p$ we have :
+
+\begin{equation}
+	q = P^p + P_{ol}(\rho,\theta) =  P^p+  P_{ol} ( F \tan(\phi), \theta) \label{PolInit} 
+\end{equation}
+
+\begin{equation}
+	q' = P^p+   P_{ol}(\rho',\theta) =  P^p+  P_{ol}( (F+\zeta(\Phi(\phi))) * \tan(\Phi(\phi)), \theta) \label{PolDist}
+\end{equation}
+
+So : 
+
+\begin{equation}
+       \rho = F \tan(\phi)   \;\;\; , \;\;\;  \rho' = (F+\zeta(\Phi(\phi))) * \tan(\Phi(\phi))   \label{RhoPhi}
+\end{equation}
+
+We see that $\rho$ and $\rho'$ are both function of $\phi$, this show that $\rho'$ can be
+computed as a function of $\rho$ (just replace $\phi$ by $\tan^{-1}(\frac{\rho}{F})$ in  $\rho'= (F \tan(\phi) +\zeta(\Phi(\phi))) * \tan(\Phi(\phi))$,
+\footnote{but the exact formula istself is not important}).
+The distorsion $D : q \rightarrow q' $ can then be completely caracterized by the radial distorsion
+$D_r : \rho \rightarrow  \rho'$ :
+
+\begin{equation}
+	D(q)  =   D(P_{ol}(\rho,\theta))  =   P_{ol}(D_r(\rho),\theta)
+\end{equation}
+
+%--------------------------------------------------------------------------------------------------------
+
+\subsection{Polynomial radial distorsion in polar coordinate}
+
+The three point important in formula~\ref{RhoPhi} and the consequence for $D_r$  are :
+
+\begin{itemize}
+   \item $\rho$ and $\rho'$ can be computed as \emph{smooth} function of $\phi$; in fact we can 
+         consider that the lenses have $\mathcal{C}^{\infty}$ shape ,  then   $\rho$ and $\rho'$ 
+         are $\mathcal{C}^{\infty}$ are functions of $\phi$ , and finally $\rho'$ is a 
+         $\mathcal{C}^{\infty}$ function $\rho$;
+
+   \item for standard optics we have  $\zeta \approx 0$ and $\Phi \approx Id$,  then we have $D_r \approx Id$;
+         by standard standard optics we mean optics where lenses are relatively thin, then  we are not far from Gauss approximation,
+         this hypothesis do not hold for fish-eye lenses and we will rediscuss that in section~\ref{SecFE};
+
+   \item $\rho$ and $\rho'$ are  \emph{odd}  function of $\phi$ , and then $\rho'=D_r(\rho)$ is as an \emph{odd}  function of 
+        $\rho$;
+
+\end{itemize}
+
+As a synthesis :
+
+\begin{proposal} \;
+\label{DrHyp}
+       $D_r$ is $\mathcal{C}^{\infty}$, odd function close to identity.
+\end{proposal}
+
+For justifying the polynomial approximation of $D_r$, we can then use a classical result of function 
+approximation, the Stone-Weierstrass theorem (\cite{Weierstrass1885} and \cite{Stone1937})
+which say that the space of polynoms is dense in the space of continuous function on closed bounded set;
+so with a sufficient degree the function can be approximated as close as we want by a polynom.
+Which lead to the parametric formula for $D_r$ and $D$ :
+
+\begin{equation}
+	D_r(\rho)  =   \rho  * (k_0 + k_1 \rho^ 2 + k_2 \rho^4 \dots  + k_n \rho^{2n})
+\end{equation}
+
+This formula require several comment :
+
+\begin{itemize}
+    \item  as $D_r$ is an odd function, we have only odd degree for polynom ; 
+
+    \item  in the next we will set $k_0=1$, as the variation on scale are already handled by focal;
+\end{itemize}
+
+%--------------------------------------------------------------------------------------------------------
+
+\subsection{Polynomial radial distorsion in euclidean coordinates}
+
+Also polar coordinate are convenient for modelization of phenomena with radial symetry, 
+they are not ideal for computation : they are relativelly slow and  the center point is
+a critical point that can complexify some equation.  Sometime we cannot avoid them
+easily, but here it happens that we can :
+
+\begin{equation}
+\begin{multlined}
+	D(q)  =   P_{ol}(\rho  * (1 + k_1 \rho^ 2 + \dots) ,\theta)  \\
+	      =   (1 + k_1 \rho^ 2 +  k_2 \rho^ 4 \dots)  \begin{pmatrix} \rho\cos(\theta) \\ \rho \sin(\theta) \end{pmatrix} \\
+              =   (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
+\end{multlined}
 \end{equation}
 
 
 
+%--------------------------------------------------------------------------------------------------------
 
+\subsection{Variations on  conventions on radial distorsion}
 
-\subsection{Property 1}
+As often in photogrammetry, there are many convention and option for representing the same thing,
+or small variation on the same things, in different book, papers, software \dots
+We discuss here some of this option.
 
-We  want first to establish that all $B_k$ intersect the axe $\mathcal{A}$.
-This is right for $B_0$ because as seen in ~\ref{Still:Persp}  all incoming ray intersect $C$
-and $\mathcal{A}=(C,\vec{k})$.
+  % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
+\subsubsection{Order of combinaison}
 
-Now consider a the line $B_{k-1}$ that is deflected by dioptr $D_k$ to give $B_k$, let $p_k$
-be the point where $B_{k-1}$  and $B_k$ intersect $D_{k+1}$, and $\vec{n}_k$ be the normal to
-to $D_k$ in $p_k$.
+In previous section, in equation~\ref{FormImage2}, we have written  $ \mathcal{I} = \mathcal{I}_0  \circ D \label{FormImage2}$.
+In several software the order of combination is invert of this one and authors use instead:
 
+\begin{equation}
+	\mathcal{J} = D \circ  \mathcal{I}_0  
+\end{equation}
 
+First we can remark that from the mathematicall point of view, the two convention are equivalent in the sense
+that they define the same space of function.  With first convention we have :
 
-Let use spherical coordinate for coding  direction of bundles :
+\begin{equation}
+	mathcal{I}(q) = P^P + F (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
+\end{equation}
 
+With second convention , as we operate on pixel the center of radial symetry will  be $P^p$ 
+(althouh with "our" convention it is implicitely $0,0$). For the radial distorsion 
+we compute first  $  \mathcal{I}_0 : q \rightarrow  P^p + F*q$, then we substract 
+$P^p$  who is the center of distorsion, and obtain the formula :
 
+\begin{equation}
+	mathcal{J}(q) = P^P + (1 + K_1 F^2 (x^2+y^2) +  K_2  F^4 (x^2+y^2) ^2 \dots)  \begin{pmatrix} F*x \\ F*y \end{pmatrix}
+\end{equation}
 
-Given a set  of incoming ray  $\vec{R}(\theta,\phi)$ which all intersect point $\mathcal{A}$, we want to show that the radial symetry
-implies that the outcoming $\vec{R}(\theta',\phi')$ follow the properties :
+So we see that they are equivalent and the conversion is here relatively easy  $K_1 = \frac{k_1}{F^2} $,
+$K_2 = \frac{k_2}{F^4} $ \dots
 
-\begin{enumerate}
-	\item  all the output ray belong to the axe $\mathcal{A}$ ; \label{L1}
-	\item  we have $\phi' = \phi$, this means that the $3$ vector $\vec{R}(\theta,\phi)$,$\vec{k}$ and $\vec{R}(\theta',\phi')$ belong
-		to the same plane; \label{L2}
+This show  that there is no "hard" reason for selecting one convention to the other. The reason for
+prefering convention  $\mathcal{I}_0  \circ D$ was :
 
-	\item  
-\end{enumerate}
+\begin{itemize}
+    \item some \emph{a priori} preference for numbers without unity;
 
+    \item coefficient easier to interpret (typically, on realistic example, between $10^{-1}$ and $10^{-3}$ rather than between $10^{-8}$ and  $10^{-27}$)
 
-We want to show \ref{L1} and \ref{L2}
+    \item \emph{a priori} better for numerical stability.
+\end{itemize}
 
-Let $\vec{B_0}$ be a bundle entering the system, 
+  % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
+\subsubsection{Name of coefficients}
 
-We have a succession of bundles that cross interface different interface $\vec{B_k} = \vec{R}(\theta_k,\phi_k)$.
-Let show first that $\phi_0 = \phi_1 \dots = \phi_n$.
-$B_0$ cross the interface in
+In computer vision, the coefficient are name $k_1$, $k_2 \dots$ 
 
-due to the symetry of the system,
+In  "traditionnal" photogrammetry, they are often named $R_3,R_5,R_7\dots$.
 
+  % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
+\subsubsection{Degree of polynon}
+
+There is the question of what is the desirable degree of $n$, this is related to the general question issued in~\ref{ParamFit}
+and there is no universal answer;  the "tradition" of aerial photogrammetry is to restrict to $n=3$  (i.e. $R_3,R_5,R_7$),
+the "tradition" in computer vision is often to restrict to $n=2$, or even $1$;  also with modern lenses and modern
+process there is argument for having higer degree  :
+           
+\begin{itemize}
+         \item   with automatic tie point, we have currently several thousand measurement, the risk of over parametrisation
+                 with $n=5$ , or even $10$ is low;
+
+         \item   with automatic tie point, we have currently several thousand measurement, the risk of over parametrisation
+\end{itemize}
+
+  % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{PPA and PPS}
+
+In aerial photogrammetry, the "tradition" is to consider that the center of symetry of radial distortion
+is different of principal point; they are named PPA (principal point of autocolimation) and
+PPS (principal point of symetry).
+
+We dont do it in {\tt MMVII} because it woul be redundant we other parameters as discussed in detail in \label{PPA:PPS:DEC}
+This is why in previous section we have used $P^p$ the center of symetry of the distorsion (in fact $0,0$ with our conventions).
 
 
 
@@ -502,6 +769,11 @@ due to the symetry of the system,
 %-----------------------------------------------------
 
 \section{Decentric distorsion}
+\section{Planary inclinaison}
+
+
+\section{Fish eye model}
+\label{SecFE}
 
 
 %-----------------------------------------------------
@@ -510,15 +782,20 @@ due to the symetry of the system,
 
 \section{General model}
 
-\subsection{Fish eye model}
-\subsection{$360$ camera}
 \subsection{Assemblage camera}
+\subsection{$360$ camera}
+
+\section{Note and PPA , PPS and decentric dist}
+\label{PPA:PPS:DEC}
+
+
+\section{Note on ordering of parameters}
+
 
 %-----------------------------------------------------
 %-----------------------------------------------------
 %-----------------------------------------------------
 
-\section{Planary inclinaison}
 
 
 
