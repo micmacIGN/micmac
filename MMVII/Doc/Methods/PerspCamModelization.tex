@@ -672,9 +672,9 @@ with euclidean coordinates:
 
 \begin{equation}
 \begin{multlined}
-	D(q)  =   P_{ol}(\rho  * (1 + k_1 \rho^ 2 + \dots) ,\theta)  \\
-	      =   (1 + k_1 \rho^ 2 +  k_2 \rho^ 4 \dots)  \begin{pmatrix} \rho\cos(\theta) \\ \rho \sin(\theta) \end{pmatrix} \\
-              =   (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
+D(q)  =   P_{ol}(\rho  * (1 + k_1 \rho^ 2 + \dots) ,\theta)  \\
+=   (1 + k_1 \rho^ 2 +  k_2 \rho^ 4 \dots)  \begin{pmatrix} \rho\cos(\theta) \\ \rho \sin(\theta) \end{pmatrix} \\
+=   (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
 \end{multlined}
 \end{equation}
 
@@ -804,16 +804,59 @@ We will do it by  the following assumption :
 \end{itemize}
 
 
-Consider now two function close to identity $D^1$ and $D^2$, we can write :
+We want now to show that $D^1 \circ D^2  \approx Id + \delta_1 + \delta_2$ up to second order term.
+We will write $A\ll B$ for A is negligile with respect to B. We write $\nabla_F$
+the jacobian of $F$ and the taylor expansion :
 
 \begin{equation}
-      (D^1 \circ D^2)(p)  
-    = (Id+\delta^1)((p+\delta^2(p)))
-    =  p + \delta^2(p)  +  \delta^1(p+\delta^2(p))
-    =  p + \delta^2(p)  +  \delta^1(p)  +  \nabla^1 (\delta^2(p))  (\delta^2(p))  + \epsilon^1(\delta^2(p)) (\delta^2(p))
+	F(x+d_x) = F(x) + \nabla_F d_x + \epsilon(|d_x|) |d_x|  \;\; ; \;\;  \epsilon(|d_x|) \ll 1
 \end{equation}
 
-Where 
+
+Consider now two function close to identity $D^1$ and $D^2$, we can write :
+\begin{equation}
+\begin{multlined}
+(D^1 \circ D^2)(p)  \\
+=  (Id+\delta^1)(p+\delta^2(p))\\
+=  p +\delta^2(p) + \delta^1(p+\delta^2(p)) \\
+=  p +\delta^1(p) + \delta^2(p) + \nabla_{\delta^1} \delta^2   + \epsilon(\delta^2(p)) |\delta^2(p)|
+\end{multlined}
+\end{equation}
+
+For a firts order approximation of last line :
+
+\begin{itemize}
+   \item we have $\epsilon(\delta^2(p)) |\delta^2(p)|  \ll |\delta^2(p)|$ because $\epsilon\ll 1$,
+          and this term can be neglected at first order;
+
+   \item  for  $ \nabla_{\delta^1} \delta^2$ , it's less obvious, we admit here that
+          if $\delta^1 \ll 1$ then $ \nabla_{\delta^1} \ll 1$,  in fact say like w/o further hypothesis this
+          is wrong \footnote{consider for example $x^2 sin(\frac{1}{x})$}, but it becomes
+          true if we add the condition that $\delta^1$ is smooth, however this would take us too far  and we admit it;
+\end{itemize}
+
+We have "proved" that $D^1 \circ D^2  \approx Id + \delta_1 + \delta_2$ .  Now it's trivial by recurence to
+show that :
+
+\begin{equation}
+     D^1 \circ D^2   \dots D^n  \approx Id + \delta^1 + \delta^2 \dots + \delta^n
+\end{equation}
+
+%-----------------------------------------------------
+
+\subsection{$2$ distorsion case}
+
+Consider now $D_1$ and $D_2$ two  radial distorsion  :
+
+\begin{equation}
+	D^1 \circ D^2 (p)  \\
+	= p +\delta^1(p) +\delta^2(p) 
+	= p +   Pol_1(C_1-p) + Pol_2(C_2-p)
+	= p +   Pol_1(C_1-p) + Pol_2(C_1-p)  +  ( Pol_2(C_2-p) - Pol_2(C_1-p))
+	= p +   (Pol_1+ Pol_2)(C_1-p) +    ( Pol_2(C_2-p) - Pol_2(C_1-p))
+	\approx p +   (Pol_1+ Pol_2)(C_1-p) +     (C_2-C_1)  \nabla (C2-p)
+\end{equation}
+
 
 %-----------------------------------------------------
 \subsection{Mathematicall modelisation}
