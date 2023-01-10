@@ -8,6 +8,7 @@ using namespace MMVII;
 void pyb_init_Aime(py::module_ &m) {
     py::class_<cAimeDescriptor>(m, "AimeDescriptor", DOC(MMVII_cAimeDescriptor, cAimeDescriptor))
             .def(py::init<>())
+            .def("ILP", &cAimeDescriptor::ILP, DOC(MMVII_cAimeDescriptor, ILP))
             ;
 
     py::class_<cAimePCar>(m, "AimePCAR")
@@ -31,7 +32,6 @@ void pyb_init_Aime(py::module_ &m) {
             .def("Census", py::overload_cast<>(&cSetAimePCAR::Census, py::const_), DOC(MMVII_cSetAimePCAR, Census))
             
             .def("VPC", &cSetAimePCAR::VPC, DOC(MMVII_cSetAimePCAR, VPC))
-            .def("a",  [](cSetAimePCAR& s){ return &s.VPC()[0];})
             ;
 
 }
