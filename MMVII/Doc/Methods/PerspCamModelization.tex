@@ -804,9 +804,9 @@ We will do it by  the following assumption :
 \end{itemize}
 
 
-We want now to show that $D^1 \circ D^2  \approx Id + \delta_1 + \delta_2$ up to second order term.
+We first want to show that $D^1 \circ D^2  \approx Id + \delta_1 + \delta_2$ up to second order term.
 We will write $A\ll B$ for A is negligile with respect to B. We write $\nabla_F$
-the jacobian of $F$ and the taylor expansion :
+the jacobian of $F$, we have the taylor expansion :
 
 \begin{equation}
 	F(x+d_x) = F(x) + \nabla_F d_x + \epsilon(|d_x|) |d_x|  \;\; ; \;\;  \epsilon(|d_x|) \ll 1
@@ -844,18 +844,139 @@ show that :
 
 %-----------------------------------------------------
 
-\subsection{$2$ distorsion case}
+\subsection{$2$ block case}
 
-Consider now $D_1$ and $D_2$ two  radial distorsion  :
+Consider now $D_1$ and $D_2$ two  radial distorsion; using center $C_k$, let write :
+
+\begin{itemize}
+	\item $\vec{u}_k = \overrightarrow{C_k p} = ^t (x_k,y_k) $ the vector joining $C_k$ to $p$;
+   \item $R_k = ||\vec{u}_k||^2$  the square of the norm of $\vec{u}_k$ (i.e.  square of $\rho_k$ in radial coordinates ;
+\end{itemize}
+
+
+Using the odd polynom  of distorsion , we can write :
+\begin{equation}
+	\delta^k(p) =   D^k_r(R_k) \vec{u}_k 
+\end{equation}
+
+Then :
 
 \begin{equation}
+\begin{multlined}
 	D^1 \circ D^2 (p)  \\
-	= p +\delta^1(p) +\delta^2(p) 
-	= p +   Pol_1(C_1-p) + Pol_2(C_2-p)
-	= p +   Pol_1(C_1-p) + Pol_2(C_1-p)  +  ( Pol_2(C_2-p) - Pol_2(C_1-p))
-	= p +   (Pol_1+ Pol_2)(C_1-p) +    ( Pol_2(C_2-p) - Pol_2(C_1-p))
-	\approx p +   (Pol_1+ Pol_2)(C_1-p) +     (C_2-C_1)  \nabla (C2-p)
+	= p +\delta^1(p) +\delta^2(p) \\
+	= p +    D^1_r(R_1) \vec{u}_1  +  D^2_r(R_2) \vec{u}_2  \\
+\end{multlined}
 \end{equation}
+
+As the two distorsions have close centers, one is close to a radial distorsion
+on the center of the other (even if their distorsion funcion are very different).
+We take arbitray one of both as the "reference, here  $D_1$,
+and we devlopp $D_2$ as a distorsion around the $C_1$ with polynom of $D^2_r$  plus an corrective term :
+
+\begin{equation}
+	\delta^2(p) =   D^r_2(R_1) \vec{u}_1  + ( D^2_r(R_2) \vec{u}_2 - D^2_r(R_1) \vec{u}_1 )
+\end{equation}
+
+In this equation the first term is a radial distorsion of center $C_1$. For the second term,
+consider the function $\vec{\delta_2}$ defined by :
+
+\begin{equation}
+	\vec{\delta^2}(\vec{u}) =  D^r_2(||\vec{u}||^2) \vec{u}
+\end{equation}
+
+We can write the second term as :
+
+\begin{equation}
+	\vec{\delta^2}(\vec{u_2})  - \vec{\delta^2}(\vec{u_1})
+\end{equation}
+
+This term, can then be seen as the difference of the values of function $\vec{\delta^2}$, between $\vec{u_2}$
+and $\vec{u_1}$.  But $\vec{u_2}$ and $\vec{u_1}$ are close because
+$C_1$ and $C_2$ are. So we can approximate this term with  a Taylor expansion :
+
+\begin{equation}
+	\vec{\delta^2}(\vec{u_2})  - \vec{\delta^2}(\vec{u_1})
+	\approx
+	(C^2_x - C^1_x) \frac{\partial{\vec{\delta^2}}}{\partial x} (\vec{u_1})
+     + 	(C^2_y - C^1_y) \frac{\partial{\vec{\delta^2}}}{\partial y}  (\vec{u_1})
+\end{equation}
+
+Note that have used $\vec{u_1}$ as point where the devlopment is made, we could have used $\vec{u_2}$,
+it's arbitrary and they are close.
+So, merging previous equation, we can write :
+
+\begin{equation}
+	D^1 \circ D^2 (p) 
+	\approx
+	= p +    (D^1_r(R_1) + D^2_r(R_1))  \vec{u}_1  
+	  +  \delta_x \frac{\partial{\vec{\delta^2}}}{\partial x} (\vec{u_1})
+          +  \delta_y \frac{\partial{\vec{\delta^2}}}{\partial y}  (\vec{u_1})
+\end{equation}
+
+The term $(D^1_r(R_1) + D^2_r(R_1))  \vec{u}_1 $ is a pure radial term 
+(with center $C_1$).    The second term is the "decentric" term itself.
+To keep it simple, we will adopt the usual implicit convention for this term,
+we limit the radial distosion to the first term $k_1 \rho_1^2$.
+So we have
+
+\begin{equation}
+\begin{multlined}
+	\vec{\delta^2} (\vec{u_1}) = k_1(x_1^2+y_1^2)  \begin{pmatrix} x_1  \\ y_1 \end{pmatrix} \\
+%
+		\frac{\partial{\vec{\delta^2}}}{\partial x} 
+		=  k_1 \begin{pmatrix} 3 x_1^2 + y_1^2    \\ 2 x_1 y_1  \end{pmatrix}
+\end{multlined}
+\end{equation}
+
+
+Using standard convention, we name $\alpha = k_1  \delta_x $ abd $\beta = k_1  \delta_y$;
+
+\begin{equation}
+	D^1 \circ D^2 (p) 
+	\approx
+	= p +    (D^1_r(R_1) + D^2_r(R_1))  \vec{u}_1  
+	  +\begin{pmatrix} \alpha(3 x_1^2 + y_1^2 ) +2\beta x_1 y_1   \\ 2  \alpha x_1 y_1 +  \beta( x_1^2 + 3 y_1^2)  \end{pmatrix}
+\end{equation}
+
+%-----------------------------------------------------
+
+\subsection{N block case}
+
+We now analyse the case where have more than $2$ block.  
+
+
+\begin{equation}
+\begin{multlined}
+	D^1 \circ D^2 \circ D^3 \dots (p)  \\
+	= p +\delta^1(p) +\delta^2(p) + \delta^3(p) \dots 
+\end{multlined}
+\end{equation}
+
+We have :
+
+\begin{equation}
+\begin{multlined}
+        \delta^k(p)  
+	\approx  (D^k_r(R_1))  \vec{u}_1  
+          +\begin{pmatrix} \alpha_k(3 x_1^2 + y_1^2 ) +2\beta_k x_1 y_1   \\ 2  \alpha_k x_1 y_1 +  \beta_k( x_1^2 + 3 y_1^2)  \end{pmatrix} \\
+\end{multlined}
+\end{equation}
+
+Naming $\alpha =  \alpha_1+\alpha_2 + \dots$ and $\beta$ idem we then have again:
+
+
+\begin{equation}
+\begin{multlined}
+	D^1 \circ D^2 \circ D^3 \dots (p)  \\
+	\approx  p + (D^1_r(R_1) + D^2_r(R_1) +  D^3_r(R_1 \dots )  \vec{u}_1
+	  +\begin{pmatrix} \alpha(3 x_1^2 + y_1^2 ) +2\beta x_1 y_1   \\ 2  \alpha x_1 y_1 +  \beta( x_1^2 + 3 y_1^2)  \end{pmatrix}
+\end{multlined}
+\end{equation}
+
+So we have shown that, to the first order, any combination of radial distorsion with slightly different centers,
+can be approximated by a \emph{unique} radial distorsion plus a decentric distorsin parametrized by the two value $\alpha,\beta$.
+
 
 
 %-----------------------------------------------------
