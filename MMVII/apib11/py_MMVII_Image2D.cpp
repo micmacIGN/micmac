@@ -115,7 +115,7 @@ void pyb_init_cIm2D_tpl(py::module_ &m, const std::string& name) {
 void pyb_init_Image2D(py::module_ &m)
 {
     pyb_init_cIm2D_tpl<float>(m,"Im2Df");
-    pyb_init_cIm2D_tpl<double>(m,"Im2Dd");
+    pyb_init_cIm2D_tpl<double>(m,"Im2Dr");
     pyb_init_cIm2D_tpl<int>(m,"Im2Di");
     pyb_init_cIm2D_tpl<unsigned char>(m,"Im2Duc");
 }

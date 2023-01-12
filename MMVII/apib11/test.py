@@ -14,7 +14,7 @@ box3=Box3dr((-3,-3,-2.5),(3,3,2.5))
 r=Rect2(box2)
 
 
-m=Matrixd(10,10,ModeInitImage.eMIA_Rand)
+m=Matrixr(10,10,ModeInitImage.eMIA_Rand)
 mf=Matrixf(10,10,ModeInitImage.eMIA_Rand)
 
 a=np.array(m,copy=False)
@@ -27,3 +27,16 @@ p=(10,20,100)
 diff=scpc.ground2ImageAndDepth(scpc.imageAndDepth2Ground(p))-p
 print("diff = ",diff)
 
+
+k=Isometry3D((0,0,0),((1,0,0),(0,1,0),(0,0,1)))
+r=Rotation3D(((1,0,0),(0,1,0),(0,0,1)))
+
+array = k.rot.array()
+
+print(array)
+
+l = Isometry3D((0,0,0),array)
+
+print (k == l)
+print (k.rot == r)
+print (k.tr == Pt3dr(0,0,0))

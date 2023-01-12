@@ -58,6 +58,6 @@ void pyb_init_Matrix_tpl(py::module_ &m, const std::string& name) {
 void pyb_init_DenseMatrix(py::module_ &m)
 {
 
-    pyb_init_Matrix_tpl<double>(m,"Matrixd");
+    pyb_init_Matrix_tpl<double>(m,"Matrixr");
     pyb_init_Matrix_tpl<float>(m,"Matrixf");
 }
