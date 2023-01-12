@@ -347,8 +347,9 @@ as $D= \mathcal{I}_0^{-1} \circ \phi \circ  \mathcal{I}_0$.
 %-----------------------------------------------------
 \subsection{Summary : new image formula}
 
-We note $D$ the additional term, classically named as distorsion. We assume for now that the gaussian approximation
-globally holds,  this is the case with standard lenses, and then $D$ can be assumed to be close to identity.
+We note $D$ the additional term, classically named as distorsion. We assume for now that the 
+system "almost" satisfies gaussian approximation ,  this is the case with standard lenses, 
+and then $D$ can be assumed to be close to identity.
 This will not be the case with fish-eye, and we will see that we will proceed by replacing $\pi_0$ by other
 projection.
 
@@ -666,13 +667,14 @@ This formula require several comment :
 Also polar coordinate are convenient for modelization of phenomena with radial symetry, 
 they are not ideal for computation : they are relativelly slow and  the center point is
 a critical point that can complexify some equation.  Sometime we cannot avoid them
-easily, but here it happens that we can :
+easily, but here it happens that we can express w/o problem the distorsion
+with euclidean coordinates:
 
 \begin{equation}
 \begin{multlined}
-	D(q)  =   P_{ol}(\rho  * (1 + k_1 \rho^ 2 + \dots) ,\theta)  \\
-	      =   (1 + k_1 \rho^ 2 +  k_2 \rho^ 4 \dots)  \begin{pmatrix} \rho\cos(\theta) \\ \rho \sin(\theta) \end{pmatrix} \\
-              =   (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
+D(q)  =   P_{ol}(\rho  * (1 + k_1 \rho^ 2 + \dots) ,\theta)  \\
+=   (1 + k_1 \rho^ 2 +  k_2 \rho^ 4 \dots)  \begin{pmatrix} \rho\cos(\theta) \\ \rho \sin(\theta) \end{pmatrix} \\
+=   (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
 \end{multlined}
 \end{equation}
 
@@ -682,8 +684,8 @@ easily, but here it happens that we can :
 
 \subsection{Variations on  conventions on radial distorsion}
 
-As often in photogrammetry, there are many convention and option for representing the same thing,
-or small variation on the same things, in different book, papers, software \dots
+As often in photogrammetry, there are many conventions and options for representing the same thing,
+or small variations on the same things, in different book, papers, software \dots
 We discuss here some of this option.
 
   % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -701,7 +703,7 @@ First we can remark that from the mathematicall point of view, the two conventio
 that they define the same space of function.  With first convention we have :
 
 \begin{equation}
-	mathcal{I}(q) = P^P + F (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
+	\mathcal{I}(q) = P^P + F (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
 \end{equation}
 
 With second convention , as we operate on pixel the center of radial symetry will  be $P^p$ 
@@ -710,7 +712,7 @@ we compute first  $  \mathcal{I}_0 : q \rightarrow  P^p + F*q$, then we substrac
 $P^p$  who is the center of distorsion, and obtain the formula :
 
 \begin{equation}
-	mathcal{J}(q) = P^P + (1 + K_1 F^2 (x^2+y^2) +  K_2  F^4 (x^2+y^2) ^2 \dots)  \begin{pmatrix} F*x \\ F*y \end{pmatrix}
+	\mathcal{J}(q) = P^P + (1 + K_1 F^2 (x^2+y^2) +  K_2  F^4 (x^2+y^2) ^2 \dots)  \begin{pmatrix} F*x \\ F*y \end{pmatrix}
 \end{equation}
 
 So we see that they are equivalent and the conversion is here relatively easy  $K_1 = \frac{k_1}{F^2} $,
@@ -759,37 +761,255 @@ In aerial photogrammetry, the "tradition" is to consider that the center of syme
 is different of principal point; they are named PPA (principal point of autocolimation) and
 PPS (principal point of symetry).
 
-We dont do it in {\tt MMVII} because it woul be redundant we other parameters as discussed in detail in \label{PPA:PPS:DEC}
-This is why in previous section we have used $P^p$ the center of symetry of the distorsion (in fact $0,0$ with our conventions).
-
-
+We dont do it in {\tt MMVII} because it woul be redundant we other parameters 
+selected as discussed in detail in \label{PPA:PPS:DEC}.
+This is why in previous section we have used $P^p$ the center of symetry of the distorsion 
+(in fact $0,0$ with our conventions).
 
 %-----------------------------------------------------
 %-----------------------------------------------------
 %-----------------------------------------------------
 
 \section{Decentric distorsion}
-\section{Planary inclinaison}
+
+\subsection{Introduction}
+The previous section has establish the radial distorsion, that would almost always
+be sufficient if the physical camera was a perfect realization of the designed camera.
+In the next section we will discuss the main "default" in the realisation of
+the camera and the additional parameters that are added to modelize them.
+
+The first hypothesis  that will be questionned is the fact that the axes of the different
+lenses are perfectly aligned.
+
+%-----------------------------------------------------
+\subsection{Mathematicall modelisation}
+
+First we must traduce in mathematicall term the physicall words
+" the lenses are slightly miss aligned".
+We will do it by  the following assumption :
+
+\begin{itemize}
+    \item  each of the $N$ elementary block of well alligned lenses can still be 
+           modelized by a central distorsion $D^k$ of centre $C^k$ and radial
+           disorsion $D^k_r$;
+
+    \item  the globall distorsion is the composition of the elementary distorsion
+           $ D = D^1 \circ D^2 \circ \dots \circ D^n$
+
+    \item  all the elementary distorsion are close to identidy, what we write :
+           $D^k = Id + \delta^k$  with $\delta^k \approx 0$;
+
+    \item  all the center of symetry are close to each others , and for simplicity
+           we will write $C_k \approx (0,0)$;
+\end{itemize}
 
 
-\section{Fish eye model}
-\label{SecFE}
+We first want to show that $D^1 \circ D^2  \approx Id + \delta_1 + \delta_2$ up to second order term.
+We will write $A\ll B$ for A is negligible with respect to B. We write $\nabla_F$
+the jacobian of $F$, we have the taylor expansion :
+
+\begin{equation}
+	F(x+d_x) = F(x) + \nabla_F d_x + \epsilon(|d_x|) |d_x|  \;\; ; \;\;  \epsilon(|d_x|) \ll 1
+\end{equation}
+
+
+Consider now two function close to identity $D^1$ and $D^2$, we can write :
+\begin{equation}
+\begin{multlined}
+(D^1 \circ D^2)(p)  \\
+=  (Id+\delta^1)(p+\delta^2(p))\\
+=  p +\delta^2(p) + \delta^1(p+\delta^2(p)) \\
+=  p +\delta^1(p) + \delta^2(p) + \nabla_{\delta^1} \delta^2   + \epsilon(\delta^2(p)) |\delta^2(p)|
+\end{multlined}
+\end{equation}
+
+For a firts order approximation of last line :
+
+\begin{itemize}
+   \item we have $\epsilon(\delta^2(p)) |\delta^2(p)|  \ll |\delta^2(p)|$ because $\epsilon\ll 1$,
+          and this term can be neglected at first order;
+
+   \item  for  $ \nabla_{\delta^1} \delta^2$ , it's less obvious, we admit here that
+          if $\delta^1 \ll 1$ then $ \nabla_{\delta^1} \ll 1$,  in fact say like w/o further hypothesis this
+          is wrong \footnote{consider for example $x^2 sin(\frac{1}{x})$}, but it becomes
+          true if we add the condition that $\delta^1$ is smooth, however this would take us too far  and we admit it;
+\end{itemize}
+
+We have shown that $D^1 \circ D^2  \approx Id + \delta_1 + \delta_2$ .  Now it's trivial by recurence to
+show that :
+
+\begin{equation}
+     D^1 \circ D^2   \dots D^n  \approx Id + \delta^1 + \delta^2 \dots + \delta^n
+\end{equation}
+
+%-----------------------------------------------------
+
+\subsection{$2$ block case}
+
+Consider now $D_1$ and $D_2$ two  radial distorsion; using center $C_k$, let write :
+
+\begin{itemize}
+	\item $\vec{u}_k = \overrightarrow{C_k p} = ^t (x_k,y_k) $ the vector joining $C_k$ to $p$;
+	\item $R_k = ||\vec{u}_k||^2$  the square of the norm of $\vec{u}_k$ (i.e.  square of $\rho_k$ in radial coordinates) ;
+\end{itemize}
+
+
+Using the polynom  of distorsion , we can write :
+\begin{equation}
+	\delta^k(p) =   D^k_r(R_k) \vec{u}_k 
+\end{equation}
+
+Then :
+
+\begin{equation}
+\begin{multlined}
+	D^1 \circ D^2 (p)  \\
+	= p +\delta^1(p) +\delta^2(p) \\
+	= p +    D^1_r(R_1) \vec{u}_1  +  D^2_r(R_2) \vec{u}_2  \\
+\end{multlined}
+\end{equation}
+
+As the two distorsions have close centers, even if their polynom of distorsion funcion are very different,
+we can expect that each is close to a radial distorsion with the center of the other.
+So we take arbitray one of both as the "reference, here  $D_1$,
+and we write $D_2$ as a distorsion around the $C_1$ with polynom of $D^2_r$  plus an corrective term :
+
+\begin{equation}
+	\delta^2(p) =   D^r_2(R_1) \vec{u}_1  + ( D^2_r(R_2) \vec{u}_2 - D^2_r(R_1) \vec{u}_1 )
+\end{equation}
+
+In this equation the first term is a radial distorsion of center $C_1$. For the second term,
+consider the function $\vec{\delta_2}$ defined by :
+
+\begin{equation}
+	\vec{\delta^2}(\vec{u}) =  D^r_2(||\vec{u}||^2) \vec{u}
+\end{equation}
+
+We can write the second term as :
+
+\begin{equation}
+	\vec{\delta^2}(\vec{u_2})  - \vec{\delta^2}(\vec{u_1})
+\end{equation}
+
+This term, can then be seen as the difference of the values of function $\vec{\delta^2}$, between $\vec{u_2}$
+and $\vec{u_1}$.  But $\vec{u_2}$ and $\vec{u_1}$ are close because
+$C_1$ and $C_2$ are. So we can approximate this term with  a Taylor expansion :
+
+\begin{equation}
+	\vec{\delta^2}(\vec{u_2})  - \vec{\delta^2}(\vec{u_1})
+	\approx
+	(C^2_x - C^1_x) \frac{\partial{\vec{\delta^2}}}{\partial x} (\vec{u_1})
+     + 	(C^2_y - C^1_y) \frac{\partial{\vec{\delta^2}}}{\partial y}  (\vec{u_1})
+\end{equation}
+
+Note that we have used $\vec{u_1}$ as value where the devlopment is made, we could have used $\vec{u_2}$,
+it's arbitrary and they are close.
+So, merging previous equation, we can write :
+
+\begin{equation}
+	D^1 \circ D^2 (p) 
+	\approx
+	  p +    (D^1_r(R_1) + D^2_r(R_1))  \vec{u}_1  
+	  +  \Delta_x \frac{\partial{\vec{\delta^2}}}{\partial x} (\vec{u_1})
+          +  \Delta_y \frac{\partial{\vec{\delta^2}}}{\partial y}  (\vec{u_1})
+\end{equation}
+
+The term $(D^1_r(R_1) + D^2_r(R_1))  \vec{u}_1 $ is a pure radial term 
+(with center $C_1$).    The second term is the "decentric" term itself.
+To keep it simple, we will adopt the usual implicit convention for this term,
+we limit the radial distosion to the first term $k_1 \rho_1^2$; note that {\tt MMVII} allow to use 
+abitrary number of term .  So we have
+
+\begin{equation}
+\begin{multlined}
+	\vec{\delta^2} (\vec{u_1}) = k_1(x_1^2+y_1^2)  \begin{pmatrix} x_1  \\ y_1 \end{pmatrix} \\
+%
+		\frac{\partial{\vec{\delta^2}}}{\partial x} 
+		=  k_1 \begin{pmatrix} 3 x_1^2 + y_1^2    \\ 2 x_1 y_1  \end{pmatrix}
+\end{multlined}
+\end{equation}
+
+
+Using standard convention, we name $\alpha = k_1  \delta_x $ and $\beta = k_1  \delta_y$;
+
+\begin{equation}
+	D^1 \circ D^2 (p) 
+	\approx
+	= p +    (D^1_r(R_1) + D^2_r(R_1))  \vec{u}_1  
+	  +\begin{pmatrix} \alpha(3 x_1^2 + y_1^2 ) +2\beta x_1 y_1   \\ 2  \alpha x_1 y_1 +  \beta( x_1^2 + 3 y_1^2)  \end{pmatrix}
+\end{equation}
+
+%-----------------------------------------------------
+
+\subsection{N block case}
+
+We now analyse the case where have more than $2$ block.  
+
+
+\begin{equation}
+\begin{multlined}
+	D^1 \circ D^2 \circ D^3 \dots (p)  \\
+	= p +\delta^1(p) +\delta^2(p) + \delta^3(p) \dots 
+\end{multlined}
+\end{equation}
+
+We have :
+
+\begin{equation}
+\begin{multlined}
+        \delta^k(p)  
+	\approx  (D^k_r(R_1))  \vec{u}_1  
+          +\begin{pmatrix} \alpha_k(3 x_1^2 + y_1^2 ) +2\beta_k x_1 y_1   \\ 2  \alpha_k x_1 y_1 +  \beta_k( x_1^2 + 3 y_1^2)  \end{pmatrix} \\
+\end{multlined}
+\end{equation}
+
+Naming $\alpha =  \alpha_1+\alpha_2 + \dots$ and $\beta$ idem we then have again:
+
+
+\begin{equation}
+\begin{multlined}
+	D^1 \circ D^2 \circ D^3 \dots (p)  \\
+	\approx  p + (D^1_r(R_1) + D^2_r(R_1) +  D^3_r(R_1 \dots )  \vec{u}_1
+	  +\begin{pmatrix} \alpha(3 x_1^2 + y_1^2 ) +2\beta x_1 y_1   \\ 2  \alpha x_1 y_1 +  \beta( x_1^2 + 3 y_1^2)  \end{pmatrix}
+\end{multlined}
+\end{equation}
+
+So we see that, to the first order, any combination of radial distorsion with slightly different centers,
+can be approximated by a \emph{unique} radial distorsion plus a decentric distorsin parametrized by the two value $\alpha,\beta$.
 
 
 %-----------------------------------------------------
 %-----------------------------------------------------
 %-----------------------------------------------------
 
-\section{General model}
+
+\section{Sensor inclination}
+
+\begin{figure}
+\centering
+\includegraphics[width=12cm]{Methods/Images/PlanIncl.jpg}\caption{Notation for sensor inclination}
+	\label{fig:PlaneIncl}
+\end{figure}
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{"Universal" model}
 
 \subsection{Assemblage camera}
 \subsection{$360$ camera}
+
+\section{Fish eye model}
+\label{SecFE}
 
 \section{Note and PPA , PPS and decentric dist}
 \label{PPA:PPS:DEC}
 
 
-\section{Note on ordering of parameters}
+\section{Note work to do on non perspective camera}
+
 
 
 %-----------------------------------------------------
