@@ -254,6 +254,9 @@ class cNOSolIn_Triplet {
 
     double confiance;
 
+    double pondSum;
+    double pondN;
+
    private:
     cNOSolIn_Triplet(const cNOSolIn_Triplet&);  // N.I.
     RandomForest* mAppli;
@@ -396,7 +399,7 @@ struct CmpLnk {
     bool operator()(cLinkTripl* T1, cLinkTripl* T2) const {
         //return (T1->m3->NumId()) < (T2->m3->NumId());
         //std::cout << "Pds" << T1->Pds() << std::endl;
-        return (T1->Pds()) < (T2->Pds());
+        return (T1->m3->pondSum / T1->m3->pondN) < (T2->m3->pondSum / T2->m3->pondN);
     }
 };
 
@@ -451,7 +454,12 @@ class Dataset {
  */
 class DataTravel {
    public:
-    DataTravel(Dataset& data) : data(data), gen(rd()) {}
+    DataTravel(Dataset& data) : data(data), gen(rd()) {
+        auto r = rd();
+        std::seed_seq seed{r};
+        gen.seed(seed);
+        std::cout << "DataTravel Seed: " << r << std::endl;
+    }
 
     // variable to keep the visited
     std::map<std::string, tSomNSI*> mVS;
@@ -486,7 +494,7 @@ class DataTravel {
 
     // if particles decay once per second on average,
     // how much time, in seconds, until the next one?
-    std::exponential_distribution<> d{0.3};
+    //std::exponential_distribution<> d{0.3};
     //std::geometric_distribution<int> d{0.3};
 };
 

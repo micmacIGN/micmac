@@ -66,6 +66,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "general/ptxd.h"
 #include "general/util.h"
 
+#include <time.h>
+
 using namespace SolGlobInit::RandomForest;
 
 extern double DistBase(Pt3dr aB1, Pt3dr aB2);
@@ -195,11 +197,11 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
               << std::endl;*/
             // residues[i] += a;
             a = min(a, MaxDiag);
-            if (triplet->KSom(i)->attr().Im()->CS()->PIsVisibleInImage(aInt)) {
-            } else {
-            }
-                residu_pts += a;
-                n_residu++;
+            //if (triplet->KSom(i)->attr().Im()->CS()->PIsVisibleInImage(aInt)) {
+            //} else {
+            //}
+            residu_pts += a;
+            n_residu++;
         }
 
         double m = MaxDiag;
@@ -387,7 +389,6 @@ void Dataset::CreateArc(tSomNSI* aS1, tSomNSI* aS2, cNOSolIn_Triplet* aTripl,
 /*
  *   Add neighbouring/adjacent triplets of *anArc* to *mSCur3Adj*
  *
- *
  */
 void DataTravel::AddArcOrCur(cNOSolIn_AttrASym* anArc) {
     AddArcOrCur(anArc, data.mFlagS);
@@ -461,8 +462,8 @@ cLinkTripl* DataTravel::GetRandTri(bool Pond) {
     if (!mSCur3Adj.size()) {
         return 0;
     }
-    const double a = 0.040;
-    const double b = 1;
+    const double a = 5;
+    //const double b = 1;
     double s = mSCur3Adj.size();
     std::vector<double> i{0,
         s * 1. / 4.,
@@ -472,8 +473,8 @@ cLinkTripl* DataTravel::GetRandTri(bool Pond) {
     //std::vector<double> w{5, 3, 2, 1, 0};
     std::vector<double> w;
     for (auto x : i) {
-        //w.push_back(-a * (x - s));
-        w.push_back(-a*x*x - b*x+a*s*s+(b*s));
+        w.push_back(-a * (x - s));
+        //w.push_back(-a*x*x - b*x+a*s*s+(b*s));
     }
     std::piecewise_linear_distribution<> d{i.begin(), i.end(), w.begin()};
 
@@ -1043,9 +1044,12 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     aTri0->Flag().set_kth_true(data.mFlag3CC);
 
     ELISE_ASSERT(aTri0 != 0, "Cannot compute seed in RandomSolOneCC");
-
     // Build the initial solution in this CC
+    clock_t start1 = clock();
     RandomSolOneCC(data, aTri0, aCC->mSoms.size());
+    clock_t end1 = clock();
+    std::cout << "BuildTree " << double(end1 - start1)/CLOCKS_PER_SEC*1000 << std::endl;
+
 
     //static int n = 0;
     //GraphViz g;
@@ -1053,7 +1057,10 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     //g.write("graph/random_tree_" + std::to_string(n++) + ".dot");
 
     // Calculate coherence scores within this CC
+    clock_t start2 = clock();
     CoherTripletsGraphBasedV2(data, aCC->mTri, aCC->mSoms.size(), aTri0->NumId());
+    clock_t end2 = clock();
+    std::cout << "Score " << double(end2 - start2)/CLOCKS_PER_SEC*1000 << std::endl;
 
     travel.resetFlags(aCC);
 }
@@ -1061,7 +1068,7 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
 void RandomForest::RandomSolAllCC(Dataset& data, cNO_CC_TripSom* aCC) {
     return;
     DataTravel travel(data);
-    //NRrandom3InitOfTime();
+    NRrandom3InitOfTime();
     std::cout << "DFS per CC, Nb Som " << aCC->mSoms.size() << ", nb triplets "
               << aCC->mTri.size() << "\n";
 
@@ -1383,9 +1390,12 @@ void RandomForest::CoherTripletsGraphBasedV2(
 
             // Take into account the non-visited triplets
             // TODO verifier les triplets qui sont dans la solution
-            if (!ValFlag(*(aV3[aT]), data.mFlag3CC)) {
+            //if (!ValFlag(*(aV3[aT]), data.mFlag3CC)) {
                 // std::cout << "Flag0 OK " << aCntFlags++ << "\n";
+                //clock_t start1 = clock();
                 double aResidue = currentTriplet->ProjTest();
+                //clock_t end1 = clock();
+                //std::cout << "ProjTest " << double(end1 - start1)/CLOCKS_PER_SEC << std::endl;
                 log.add({currentTriplet->NumId(), aDist, aResidue});
 
                 double score = aResidue / (aResidue + mR0);
@@ -1398,7 +1408,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 // Plot coherence vs sample vs distance
                 //std::cout << "==PLOT== " << aCostCur * aPds << " " << aDist
                 //         << " " << aPds << "\n";
-            }
+            //}
         }
     }
     static int n = 0;
@@ -1496,9 +1506,8 @@ static double computeAsymResidue(const tTriPointList& pts,
             auto a = euclid(p[i], pts_proj);
 
             if (!v->attr().Im()->CS()->PIsVisibleInImage(aPts)) {
-                a = MaxDiag;
+                a = min(a, MaxDiag);
             }
-
             residu_pts += a;
             n_residu++;
         }
@@ -1544,7 +1553,7 @@ static double computeDoubleResidue(const cNOSolIn_Triplet* tA,
         computeAsymResidue(tB->getHomolPts(), tB, oriB, tA, indexA, oriA);
 
     return (residuA + residuB)/2.;
-    //return residuA;
+    //return residuB;
 }
 
 
@@ -1588,6 +1597,8 @@ void RandomForest::PreComputeTriplets(Dataset& data) {
                               << std::endl;*/
                     //t1.Pds() = aResidue;
                     t1.Pds() = aResidue;
+                    t1.m3->pondSum += aResidue;
+                    t1.m3->pondN += 1;
                 }
             }
             //t->confiance = aResidue;
@@ -1757,8 +1768,10 @@ void RandomForest::ShowTripletCost(Dataset& data) {
 // Entry point
 void RandomForest::DoNRandomSol(Dataset& data) {
     // Create connected components
+    clock_t start1 = clock();
     NumeroteCC(data);
-
+    clock_t end1 = clock();
+    std::cout << "NumeroteCC " << double(end1 - start1)/CLOCKS_PER_SEC << std::endl;
     {
         DataLog<std::string, std::string, std::string, std::string> log(
             {"Id", "Image1", "Image2", "Image3"});
@@ -1773,12 +1786,19 @@ void RandomForest::DoNRandomSol(Dataset& data) {
 
     std::cout << "CREATE CC" << std::endl;
 
+    clock_t start2 = clock();
     PreComputeTriplets(data);
+    clock_t end2 = clock();
+    std::cout << "Precompute " << double(end2 - start2)/CLOCKS_PER_SEC << std::endl;
+
 
     // Build random inital solutions default 1000 ?
     for (int aIterCur = 0; aIterCur < mNbSamples; aIterCur++) {
         std::cout << "Iter=" << aIterCur << "\n";
+        clock_t start3 = clock();
         RandomSolAllCC(data);
+        clock_t end3 = clock();
+        std::cout << "Iter " << double(end3 - start3)/CLOCKS_PER_SEC*1000 << std::endl;
     }
 
     std::cout << "GENERATED Trees" << std::endl;
