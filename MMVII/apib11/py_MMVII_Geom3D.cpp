@@ -53,7 +53,7 @@ void pyb_init_cRotation3D_tpl(py::module_ &m, const std::string& name)
                              m.SetElem(x,y,array.at(y,x));
                      return new tR3D(m,refineIt);
                  })
-                 ,"matrix"_a,"refineIt"_a = false)
+                 ,"array"_a,"refineIt"_a = false)
 
             .def("mat",&tR3D::Mat,DOC(MMVII_cRotation3D,Mat))
             .def("array",[](const tR3D& r) {

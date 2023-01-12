@@ -1,4 +1,5 @@
 #include "py_MMVII.h"
+#include "pybind11/numpy.h"
 
 #include "MMVII_Ptxd.h"
 
@@ -32,6 +33,17 @@ void pyb_init_cPtxd_tpl(py::module_ &m, const std::string& name) {
                (*pt)[i] = t[i].cast<T>();
             return pt;
     }),"tuple"_a);
+    cd.def(py::init([](py::array_t<T, py::array::c_style | py::array::forcecast> array)
+         {
+             if (array.ndim() != 1 || array.shape(0) != Dim)
+                 throw std::runtime_error("array has bad shape");
+             tPt *p = new tPt;
+             for (int i=0; i<Dim; i++)
+               (*p)[i] = array.at(i);
+             return p;
+         })
+         ,"array"_a);
+
 
     cd.def_static("pCste",&tPt::PCste)
             .def_static("pRand",&tPt::PRand)
@@ -107,6 +119,7 @@ void pyb_init_cPtxd_tpl(py::module_ &m, const std::string& name) {
     m.def("norm2",&Norm2<T,Dim>,"pt"_a);
 
     py::implicitly_convertible<py::tuple, tPt>();
+    py::implicitly_convertible<py::array, tPt>();
 }
 
 template<typename T, int Dim>
