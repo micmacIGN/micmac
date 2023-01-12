@@ -686,7 +686,7 @@ D(q)  =   P_{ol}(\rho  * (1 + k_1 \rho^ 2 + \dots) ,\theta)  \\
 
 As often in photogrammetry, there are many conventions and options for representing the same thing,
 or small variations on the same things, in different book, papers, software \dots
-We discuss here some of this option.
+We discuss here some of this options.
 
   % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
@@ -731,10 +731,9 @@ prefering convention  $\mathcal{I}_0  \circ D$ was :
 
   % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-\subsubsection{Name of coefficients}
+\subsubsection{Names of coefficients}
 
 In computer vision, the coefficient are name $k_1$, $k_2 \dots$ 
-
 In  "traditionnal" photogrammetry, they are often named $R_3,R_5,R_7\dots$.
 
   % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -784,8 +783,8 @@ lenses are perfectly aligned.
 %-----------------------------------------------------
 \subsection{Mathematicall modelisation}
 
-First we must traduce in mathematicall term the physicall words
-" the lenses are slightly miss aligned".
+First we must translate in mathematicall terms the physicall words
+"the lenses are slightly miss aligned".
 We will do it by  the following assumption :
 
 \begin{itemize}
@@ -804,7 +803,7 @@ We will do it by  the following assumption :
 \end{itemize}
 
 
-We first want to show that $D^1 \circ D^2  \approx Id + \delta_1 + \delta_2$ up to second order term.
+We first need to show that $D^1 \circ D^2  \approx Id + \delta_1 + \delta_2$ up to second order term.
 We will write $A\ll B$ for A is negligible with respect to B. We write $\nabla_F$
 the jacobian of $F$, we have the taylor expansion :
 
@@ -831,7 +830,7 @@ For a firts order approximation of last line :
 
    \item  for  $ \nabla_{\delta^1} \delta^2$ , it's less obvious, we admit here that
           if $\delta^1 \ll 1$ then $ \nabla_{\delta^1} \ll 1$,  in fact say like w/o further hypothesis this
-          is wrong \footnote{consider for example $x^2 sin(\frac{1}{x})$}, but it becomes
+		is wrong \footnote{consider for example $x^2 sin(\frac{1}{x})$, but its not $\mathcal{C}^\infty$}, but it becomes
           true if we add the condition that $\delta^1$ is smooth, however this would take us too far  and we admit it;
 \end{itemize}
 
@@ -854,7 +853,7 @@ Consider now $D_1$ and $D_2$ two  radial distorsion; using center $C_k$, let wri
 \end{itemize}
 
 
-Using the polynom  of distorsion , we can write :
+Using the polynom  of distorsion $D^k_r(R) = k^k_1 R + k^k_2 R^2  \dots$  , we can write :
 \begin{equation}
 	\delta^k(p) =   D^k_r(R_k) \vec{u}_k 
 \end{equation}
@@ -926,11 +925,15 @@ abitrary number of term .  So we have
 %
 		\frac{\partial{\vec{\delta^2}}}{\partial x} 
 		=  k_1 \begin{pmatrix} 3 x_1^2 + y_1^2    \\ 2 x_1 y_1  \end{pmatrix}
+%
+			\;\;\;\;   ; \;\;\;\;   
+		\frac{\partial{\vec{\delta^2}}}{\partial y} 
+		=  k_1 \begin{pmatrix} 2 x_1 y_1 \\ x_1^2 + 3 y_1^2  \end{pmatrix}
 \end{multlined}
 \end{equation}
 
 
-Using standard convention, we name $\alpha = k_1  \delta_x $ and $\beta = k_1  \delta_y$;
+Using standard convention, we name $\alpha = k_1  \Delta_x $ and $\beta = k_1  \Delta_y$;
 
 \begin{equation}
 	D^1 \circ D^2 (p) 
@@ -977,7 +980,6 @@ Naming $\alpha =  \alpha_1+\alpha_2 + \dots$ and $\beta$ idem we then have again
 So we see that, to the first order, any combination of radial distorsion with slightly different centers,
 can be approximated by a \emph{unique} radial distorsion plus a decentric distorsin parametrized by the two value $\alpha,\beta$.
 
-
 %-----------------------------------------------------
 %-----------------------------------------------------
 %-----------------------------------------------------
@@ -985,12 +987,74 @@ can be approximated by a \emph{unique} radial distorsion plus a decentric distor
 
 \section{Sensor inclination}
 
+%-----------------------------------------------------
+
+\subsection{physicall modelisation}
+
 \begin{figure}
 \centering
 \includegraphics[width=12cm]{Methods/Images/PlanIncl.jpg}\caption{Notation for sensor inclination}
 	\label{fig:PlaneIncl}
 \end{figure}
 
+The secons hypothesis  that will be questionned is the fact that the sensor is 
+orthogonal to axes $\mathcal{A}$.  Using the notation illustatred by 
+figure \ref{fig:PlaneIncl}, we will proceed this way :
+
+\begin{itemize}
+    \item consider a "theoricall" camera with a sensor orthognal to $\mathcal{A}$ (blue on figure \ref{fig:PlaneIncl});
+
+    \item consider a "real" camera with a sensor tilted (in red);
+
+    \item with consider that rotation is done arround $P^p$, because any global translation of the sensor
+         would lead to variation of focal that are already modelized;
+
+    \item  for a given ray, let $q$  be the point that intersect the  orthogonal plane,
+	    and $q'$ the point that intersect the tilded  plane, we note
+           $\mathcal{T}$  the mapping $\mathcal{T} : q \rightarrow q'$.
+
+\end{itemize}
+
+We will assume that the distorsion $D^t$ of the tilted camera is the combination
+of the distorsion of untilted camera and $\mathcal{T}$ :
+
+\begin{equation}
+	D^t = \mathcal{T} \circ D 
+\end{equation}
+
+%-----------------------------------------------------
+
+\subsection{mathematicall modelisation}
+
+For now we make the hypothesis that the tilt is made by a rotation of angle $\alpha$ arround axe $(O\vec{i})$.
+Let $\mathcal{P}_\alpha$ the plane we obtain.  We can compute a basis  of $\mathcal{P}_\alpha$ defines
+by  $\vec{i} $ and  $\vec{j}_\alpha $
+
+
+\begin{equation}
+	\vec{j}_\alpha = \begin{pmatrix} 0 \\ \cos(\alpha) \\ \sin(\alpha)  \end{pmatrix}
+\end{equation}
+
+To compute the coordinate of $q'$, we use the fact that $q,q',C$ are aligned and $q' \in \mathcal{P}_\alpha$ :
+
+\begin{equation}
+        \lambda \begin{pmatrix} x \\ y  \\ 1  \end{pmatrix}
+      = x'  \vec{i} + y' \vec{j}_\alpha  + \vec{k}
+      =	\begin{pmatrix} x' \\ y'\cos((\alpha)  \\ 1+y'\cos((\alpha)  \end{pmatrix}
+\end{equation}
+
+\begin{equation}
+	\begin{pmatrix} x' \\ y'\cos((\alpha)  \\ 1+y'\cos((\alpha)  \end{pmatrix}
+        = \lambda \begin{pmatrix} x \\ y  \\ 1  \end{pmatrix}
+\end{equation}
+
+\begin{equation}
+\begin{multlined}
+	\frac{x'}{y'\cos(\alpha)} =  \frac{x}{y} 
+\end{multlined}
+\end{equation}
+\COM{
+}
 
 %-----------------------------------------------------
 %-----------------------------------------------------
