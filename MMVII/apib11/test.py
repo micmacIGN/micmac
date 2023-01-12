@@ -20,18 +20,10 @@ mf=Matrixf(10,10,ModeInitImage.eMIA_Rand)
 a=np.array(m,copy=False)
 
 im=Im2Di.fromFile("../MMVII-TestDir/Input/EPIP/Tiny/ImL.tif")
-
-for i in r:
-    print(i,end=' ')
-print("")
-
-print(a)
-m.show()
-
 im_np=np.array(im,copy=False)
 
-from matplotlib import pyplot as plt
-plt.imshow(im_np, interpolation='nearest')
-plt.show()
+scpc=SensorCamPC.fromFile("../MMVII-TestDir/Input/Ply/MMVII-PhgrProj/Ori/TestProjMesh/Ori-PerspCentral-P1056160.JPG.xml")
+p=(10,20,100)
+diff=scpc.ground2ImageAndDepth(scpc.imageAndDepth2Ground(p))-p
+print("diff = ",diff)
 
-im.dIm().toFile("joe.tif",TyNums.TN_INT1)

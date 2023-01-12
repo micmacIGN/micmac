@@ -9,7 +9,7 @@
 
 namespace py = pybind11;
 
-void pyb_init_PerspCamIntrCalib(py::module_ &);
+void pyb_init_PCSens(py::module_ &);
 void pyb_init_Ptxd(py::module_ &m);
 void pyb_init_Images(py::module_ &m);
 void pyb_init_Image2D(py::module_ &m);
