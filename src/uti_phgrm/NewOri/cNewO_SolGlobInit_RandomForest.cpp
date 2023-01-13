@@ -1557,6 +1557,7 @@ static double computeDoubleResidue(const cNOSolIn_Triplet* tA,
 }
 
 
+//Complexity N * edge
 void RandomForest::PreComputeTriplets(Dataset& data) {
 
     for (int aKC = 0; aKC < int(data.mVCC.size()); aKC++) {
@@ -1786,11 +1787,12 @@ void RandomForest::DoNRandomSol(Dataset& data) {
 
     std::cout << "CREATE CC" << std::endl;
 
-    clock_t start2 = clock();
-    PreComputeTriplets(data);
-    clock_t end2 = clock();
-    std::cout << "Precompute " << double(end2 - start2)/CLOCKS_PER_SEC << std::endl;
-
+    if (aPond) {
+        clock_t start2 = clock();
+        PreComputeTriplets(data);
+        clock_t end2 = clock();
+        std::cout << "Precompute " << double(end2 - start2)/CLOCKS_PER_SEC << std::endl;
+    }
 
     // Build random inital solutions default 1000 ?
     for (int aIterCur = 0; aIterCur < mNbSamples; aIterCur++) {
