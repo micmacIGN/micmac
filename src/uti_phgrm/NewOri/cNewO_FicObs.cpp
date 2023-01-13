@@ -71,7 +71,7 @@ typedef cStructMergeTieP<cFixedSizeMergeTieP<3, Pt2dr, cCMT_NoVal>> tMapM;
 typedef std::list<tElM*> tListM;
 
 #define MinNbPtTri 5
-#define MaxReprojErr 10
+#define MaxReprojErr (mMaxTripRes)
 
 class cAppliFictObs : public cCommonMartiniAppli {
    public:
@@ -170,6 +170,9 @@ class cAppliFictObs : public cCommonMartiniAppli {
     bool mCorrGlob;
     bool mCorrIma;
 
+
+    double mMaxTripRes;
+
     Pt2di mSz;
     int mResPoly;
     int mRedFacSup;
@@ -202,6 +205,7 @@ cAppliFictObs::cAppliFictObs(int argc, char** argv)
       mCorrCalib(false),
       mCorrGlob(mCorrCalib ? true : false),
       mCorrIma(mCorrCalib ? !mCorrGlob : false),
+      mMaxTripRes(10),
       mResPoly(2),
       mRedFacSup(20),
       mResMax(5),
@@ -235,6 +239,9 @@ cAppliFictObs::cAppliFictObs(int argc, char** argv)
             << EAM(mResMax, "RMax", true,
                    "Maximum residual, everything above will be filtered out, "
                    "Def=5")
+            << EAM(mMaxTripRes, "RTriMax", true,
+                   "Maximum residual of triplet, if above will use origin homol point, "
+                   "Def=10")
             << EAM(NFHom, "NF", true, "Save homol to new format?, Def=true")
             << EAM(aExpTxtIn, "ExpTxtIn", true,
                    "ASCII homol old format?, Def=false")
