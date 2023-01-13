@@ -128,6 +128,8 @@ class cDataPerspCamIntrCalib
       void PushInformation(const std::string &);
       std::vector<std::string> & VecInfo() ;
 
+      const cCalibStenPerfect& CalibStenPerfect() const { return mCSPerfect;}
+
    protected :
       std::string                    mName;
       eProjPC                        mTypeProj;           ///< type of projection
@@ -232,8 +234,13 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     double Visibility(const cPt3dr &) const ;
 
 	     double VisibilityOnImFrame(const cPt2dr &) const;
+
+
+         const cDataMapping<tREAL8,3,2>* Dir_Proj() const { return mDir_Proj;}
+         const cDataMapping<tREAL8,2,2>* Dir_Dist() const { return mDir_Dist;}
 	    ///  real constructor (accessible directly because RemanentObjectFromFile)
             cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
+
        private :
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;

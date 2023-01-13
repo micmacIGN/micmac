@@ -6,7 +6,7 @@ MMV2_BINDIR=${MMV2_DIR}/bin
 MMV2_INCDIR=${MMV2_DIR}/include
 MODULE=MMVII$(shell python3-config --extension-suffix)
 
-DOC_INCLUDES=../include/MMVII_PCSens.h ../include/MMVII_memory.h ../include/MMVII_AimeTieP.h ../include/MMVII_Geom3D.h
+DOC_INCLUDES=../include/MMVII_PCSens.h ../include/MMVII_memory.h ../include/MMVII_AimeTieP.h ../include/MMVII_Geom3D.h ../include/MMVII_Mappings.h
 
 
 
@@ -37,13 +37,13 @@ endif
 
 
 # ============ Targets
-.phony: all clean distclean docstr
+.phony: all clean distclean 
 all: ${MODULE}
 
 clean:
 	rm -f ${OBJS} ${DEPS} ${MODULE} docstrings.h
 
-docstrings.h: ${DOC_INCLUDES}
+docstrings.h: ${DOC_INCLUDES} Makefile
 	pybind11-mkdoc -o $@ $^ ${CXXFLAGS}
 
 # =========== Build Objs
