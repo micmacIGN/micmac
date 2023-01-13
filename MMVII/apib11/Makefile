@@ -25,7 +25,7 @@ EXT_LIBS=-lpthread -lX11 -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC ${MMV2_INCLUDES} ${MMV1_INCLUDES}  ${PYBIND_INCLUDES} '-DPYBIND_MMVII_DIR="${MMV2_DIR}"'
+CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC ${MMV2_INCLUDES} ${MMV1_INCLUDES}  ${PYBIND_INCLUDES} '-DPYBIND_MMVII_DIR="$(abspath ${MMV2_DIR})"'
 LDFLAGS=-fopenmp -shared
 
 

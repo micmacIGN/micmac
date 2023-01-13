@@ -55,7 +55,7 @@ void pyb_init_cRotation3D_tpl(py::module_ &m, const std::string& name)
                  })
                  ,"array"_a,"refineIt"_a = false)
 
-            .def("mat",&tR3D::Mat,DOC(MMVII_cRotation3D,Mat))
+            .def_property_readonly("mat",&tR3D::Mat,DOC(MMVII_cRotation3D,Mat))
             .def("array",[](const tR3D& r) {
                  py::array_t<T>  a(std::vector<ptrdiff_t>{r.Mat().Sz().y(), r.Mat().Sz().x()});
                  auto m = a.template mutable_unchecked<2>();
@@ -73,9 +73,9 @@ void pyb_init_cRotation3D_tpl(py::module_ &m, const std::string& name)
             .def(py::self * py::self)
             .def_static("identity",&tR3D::Identity,DOC(MMVII_cRotation3D,Identity))
 
-            .def("axeI",&tR3D::AxeI,DOC(MMVII_cRotation3D,AxeI))
-            .def("axeJ",&tR3D::AxeJ,DOC(MMVII_cRotation3D,AxeJ))
-            .def("axeK",&tR3D::AxeK,DOC(MMVII_cRotation3D,AxeK))
+            .def_property_readonly("axeI",&tR3D::AxeI,DOC(MMVII_cRotation3D,AxeI))
+            .def_property_readonly("axeJ",&tR3D::AxeJ,DOC(MMVII_cRotation3D,AxeJ))
+            .def_property_readonly("axeK",&tR3D::AxeK,DOC(MMVII_cRotation3D,AxeK))
 
             .def_static("completeRON",py::overload_cast<const tPt&>(&tR3D::CompleteRON),"pt"_a,DOC(MMVII_cRotation3D,CompleteRON))
             .def_static("completeRON",py::overload_cast<const tPt&, const tPt&>(&tR3D::CompleteRON),"p0"_a,"p1"_a,DOC(MMVII_cRotation3D,CompleteRON))

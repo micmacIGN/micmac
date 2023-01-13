@@ -56,10 +56,10 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
             .def_static("fromFile", &tPCIC::FromFile,"filename"_a,py::return_value_policy::reference, DOC(MMVII_cPerspCamIntrCalib, FromFile))
             .def_static("prefixName", &tPCIC::PrefixName, DOC(MMVII_cPerspCamIntrCalib, PrefixName))
 
-            .def("degDir", &tPCIC::DegDir, DOC(MMVII_cPerspCamIntrCalib, DegDir))
-            .def("f", &tPCIC::F, DOC(MMVII_cPerspCamIntrCalib, F))
-            .def("pp", &tPCIC::PP, DOC(MMVII_cPerspCamIntrCalib, PP))
-            .def("name", &tPCIC::Name,DOC(MMVII_cPerspCamIntrCalib, Name))
+            .def_property_readonly("degDir", &tPCIC::DegDir, DOC(MMVII_cPerspCamIntrCalib, DegDir))
+            .def_property_readonly("f", &tPCIC::F, DOC(MMVII_cPerspCamIntrCalib, F))
+            .def_property_readonly("pp", &tPCIC::PP, DOC(MMVII_cPerspCamIntrCalib, PP))
+            .def_property_readonly("name", &tPCIC::Name,DOC(MMVII_cPerspCamIntrCalib, Name))
 
             .def("values", [](const tPCIC &c, const tVecIn &vi) {tVecOut vo; return c.Values(vo, vi);},"pt3dr_list"_a, DOC(MMVII_cPerspCamIntrCalib, Values))
             .def("inverses", [](const tPCIC &c, const tVecOut &vo) {tVecIn vi; return c.Inverses(vi, vo);},"pt2dr_list"_a, DOC(MMVII_cPerspCamIntrCalib, Inverses))
@@ -73,11 +73,12 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
 
             .def("initRandom", &tPCIC::InitRandom,DOC(MMVII_cPerspCamIntrCalib, InitRandom), DOC(MMVII_cPerspCamIntrCalib, InitRandom))
 
-            .def("szPix", &tPCIC::SzPix,DOC(MMVII_cPerspCamIntrCalib, SzPix))
+            .def_property_readonly("szPix", &tPCIC::SzPix,DOC(MMVII_cPerspCamIntrCalib, SzPix))
 
             .def("visibility", &tPCIC::Visibility,"pt3dr"_a, DOC(MMVII_cPerspCamIntrCalib, Visibility))
             .def("visibilityOnImFrame", &tPCIC::VisibilityOnImFrame,"pt2dr"_a, DOC(MMVII_cPerspCamIntrCalib, VisibilityOnImFrame))
 
+            .def("vecInfo", &tPCIC::VecInfo, DOC(MMVII_cDataPerspCamIntrCalib, VecInfo))
             .def("__repr__",[](const tPCIC&){return "MMVII.PerspCamIntrCalib";})
 
             ;
@@ -99,14 +100,13 @@ static void pyb_init_SensorCamPC(py::module_ &m)
             .def("ground2ImageAndDepth",&tSCPC::Ground2ImageAndDepth,"pt3dr", DOC(MMVII_cSensorCamPC,Ground2ImageAndDepth) )
             .def("imageAndDepth2Ground",&tSCPC::ImageAndDepth2Ground,"pt3dr", DOC(MMVII_cSensorCamPC,ImageAndDepth2Ground) )
 
+            .def_property_readonly("pose",&tSCPC::Pose,DOC(MMVII_cSensorCamPC,Pose) )
+            .def_property_readonly("center",&tSCPC::Center,DOC(MMVII_cSensorCamPC,Center) )
+            .def_property_readonly("axeI",&tSCPC::AxeI,DOC(MMVII_cSensorCamPC,AxeI) )
+            .def_property_readonly("axeJ",&tSCPC::AxeI,DOC(MMVII_cSensorCamPC,AxeI) )
+            .def_property_readonly("axeK",&tSCPC::AxeI,DOC(MMVII_cSensorCamPC,AxeI) )
 
-            .def("pose",&tSCPC::Pose,DOC(MMVII_cSensorCamPC,Pose) )
-            .def("center",&tSCPC::Center,DOC(MMVII_cSensorCamPC,Center) )
-            .def("axeI",&tSCPC::AxeI,DOC(MMVII_cSensorCamPC,AxeI) )
-            .def("axeJ",&tSCPC::AxeI,DOC(MMVII_cSensorCamPC,AxeI) )
-            .def("axeK",&tSCPC::AxeI,DOC(MMVII_cSensorCamPC,AxeI) )
-
-            .def("internalCalib",&tSCPC::InternalCalib,py::return_value_policy::reference_internal ,DOC(MMVII_cSensorCamPC,InternalCalib) )
+            .def_property_readonly("internalCalib",&tSCPC::InternalCalib,py::return_value_policy::reference_internal ,DOC(MMVII_cSensorCamPC,InternalCalib) )
 
             .def("omega",&tSCPC::Omega,DOC(MMVII_cSensorCamPC,Omega) )
 
@@ -114,7 +114,7 @@ static void pyb_init_SensorCamPC(py::module_ &m)
             .def_static("fromFile",&tSCPC::FromFile,"filename"_a,DOC(MMVII_cSensorCamPC,FromFile) )
             .def_static("nameOri_From_Image",&tSCPC::NameOri_From_Image,"imagename"_a,DOC(MMVII_cSensorCamPC,NameOri_From_Image) )
 
-            .def("szPix",&tSCPC::SzPix,DOC(MMVII_cSensorCamPC,SzPix) )
+            .def_property_readonly("szPix",&tSCPC::SzPix,DOC(MMVII_cSensorCamPC,SzPix) )
 
             .def_static("prefixName",&tSCPC::PrefixName,DOC(MMVII_cSensorCamPC,PrefixName) )
 
