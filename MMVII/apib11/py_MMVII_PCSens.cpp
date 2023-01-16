@@ -2,7 +2,6 @@
 
 #include "MMVII_PCSens.h"
 
-using namespace std::literals;
 using namespace pybind11::literals;
 
 using namespace MMVII;
@@ -83,6 +82,9 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
             .def("calibStenPerfect", &tPCIC::CalibStenPerfect, py::return_value_policy::reference_internal, DOC(MMVII_cDataPerspCamIntrCalib, CalibStenPerfect))
             .def("dir_Proj",&tPCIC::Dir_Proj,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Dir_Proj) )
             .def("dir_Dist",&tPCIC::Dir_Dist,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Dir_Dist) )
+            .def("inv_Proj",&tPCIC::Inv_Proj,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Inv_Proj) )
+            .def("dir_DistInvertible",&tPCIC::Dir_DistInvertible,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Dir_DistInvertible) )
+
 
             .def("__repr__",[](const tPCIC&){return "MMVII.PerspCamIntrCalib";})
 
@@ -129,24 +131,10 @@ static void pyb_init_SensorCamPC(py::module_ &m)
 }
 
 
-template<typename T, int DimIn, int DimOut>
-void pyb_init_cDataMapping_tpl(py::module_ &m, const std::string& name)
-{
-    typedef cDataMapping<T,DimIn,DimOut> tDM;
-    typedef typename tDM::tVecIn tVecIn;
-
-    py::class_<tDM>(m, name.c_str() , DOC(MMVII_cDataMapping))
-            .def("value",&tDM::Value,  DOC(MMVII_cDataMapping,Value))
-            .def("values",py::overload_cast<const tVecIn &>(&tDM::Values,py::const_),  DOC(MMVII_cDataMapping,Values))
-            ;
-}
 
 void pyb_init_PCSens(py::module_ &m)
 {
     pyb_init_CalibStenPerfect(m);
     pyb_init_PerspCamIntrCalib(m);
     pyb_init_SensorCamPC(m);
-
-    pyb_init_cDataMapping_tpl<tREAL8,2,2>(m,"DataMapping2D2D");
-    pyb_init_cDataMapping_tpl<tREAL8,3,2>(m,"DataMapping3D2D");
 }

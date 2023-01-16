@@ -83,6 +83,7 @@ PYBIND11_MODULE(MMVII, m) {
 
 
     pyb_init_Ptxd(m);
+    pyb_init_DataMappings(m);
     pyb_init_Geom3D(m);
     pyb_init_Images(m);
     pyb_init_Image2D(m);
