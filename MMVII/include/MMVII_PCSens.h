@@ -211,6 +211,11 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             void SetThresholdPhgrAccInv(double); ///< modifier of threshold for accuracy inversion, photogrametric unit
             void SetThresholdPixAccInv(double);  ///< modifier of threshold for accuracy inversion, pixel  unit
 
+            const cDataMapping<tREAL8,3,2>* Dir_Proj() const; ///< access to direct projection as a cDataMapping FOR_PYTHON
+            const cDataMapping<tREAL8,2,2>* Dir_Dist() const; ///< access to direct distorsion as a cDataMapping FOR_PYTHON
+            const cDataMapping<tREAL8,2,3>* Inv_Proj() const; ///< access to inverse projection as a cDataMapping FOR_PYTHON
+            const cDataInvertibleMapping<tREAL8,2>* Dir_DistInvertible() const; ///< access to inverse distorsion as a cDataMapping FOR_PYTHON
+
     // ==================   Test & Bench ===================
 
             ///  For test, put random param while take care of being invertible
@@ -236,8 +241,6 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     double VisibilityOnImFrame(const cPt2dr &) const;
 
 
-         const cDataMapping<tREAL8,3,2>* Dir_Proj() const { return mDir_Proj;}
-         const cDataMapping<tREAL8,2,2>* Dir_Dist() const { return mDir_Dist;}
 	    ///  real constructor (accessible directly because RemanentObjectFromFile)
             cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
 
