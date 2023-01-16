@@ -602,7 +602,7 @@ template<class TypeEl> cIm2D<TypeEl> ImSymMin(cIm2D<TypeEl>  aImIn,double aR0,do
 }
 
 
-template<class TypeEl> void CheckSymetricity
+template<class TypeEl> void CheckSymmetricity
                            (
                                 cDataIm2D<TypeEl> & aDIm2Check,
                                 cIm2D<TypeEl>  aImIn,
@@ -635,7 +635,7 @@ template<class TypeEl> void CheckSymetricity
     StdOut() << "end computation sym\n";
 }
 
-template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool doCheck,cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon)
+template<class TypeEl> cIm2D<TypeEl> ImSymmetricity(bool doCheck,cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon)
 {
     cDataIm2D<TypeEl> & aDImIn = aImIn.DIm();
     const TypeEl* aData = aDImIn.RawDataLin();
@@ -659,17 +659,17 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool doCheck,cIm2D<TypeEl>  a
           int aInd = aDImIn.IndexeLinear(aPix);
 
           for (const auto & aNI  : aVNeighLine)
-	  {
-		  aSM.Add(aData[aInd+aNI],aData[aInd-aNI]);
+          {
+              aSM.Add(aData[aInd+aNI],aData[aInd-aNI]);
           }
 
           double aVal = aSM.Sym(Epsilon);
-	  aDImOut.SetV(aPix,aVal);
+          aDImOut.SetV(aPix,aVal);
     }
     StdOut() << "End computation sym low level\n";
     if (doCheck)
     {
-       CheckSymetricity(aDImOut,aImIn,aR0,aR1,Epsilon);
+       CheckSymmetricity(aDImOut,aImIn,aR0,aR1,Epsilon);
     }
 
     return aImOut;
@@ -703,7 +703,7 @@ template <class Type>
 // template cIm2D<TYPE> ImBinarity(cIm2D<TYPE>  aDIm,double aR0,double aR1);
 
 #define INSTANTIATE_FILTER_TARGET(TYPE)\
-template cIm2D<TYPE> ImSymetricity(bool doCheck,cIm2D<TYPE>  aDImIn,double aR0,double aR1,double Epsilon);\
+template cIm2D<TYPE> ImSymmetricity(bool doCheck,cIm2D<TYPE>  aDImIn,double aR0,double aR1,double Epsilon);\
 template cIm2D<TYPE> ImSymMin(cIm2D<TYPE>  aImIn,double aR0,double aR1,double Epsilon);
 
 INSTANTIATE_FILTER_TARGET(tREAL4)

@@ -185,7 +185,7 @@ template <class Type>  class  cFilterDCT : public cMemCheck
 
            std::vector<cPt2di>  mVK0K1;
 };
-template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool DoCheck,cIm2D<TypeEl> anImIn,double aR0,double aR1,double Epsilon);
+template<class TypeEl> cIm2D<TypeEl> ImSymmetricity(bool DoCheck,cIm2D<TypeEl> anImIn,double aR0,double aR1,double Epsilon);
 
 
 /** Class for fine extraction of parameters of target, begins by direction */
