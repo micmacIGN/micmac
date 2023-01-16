@@ -276,8 +276,8 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mTest, "Test", "Test for Ellipse Fit", {eTA2007::HDV})
                     << AOpt2007(mParamBin, "BinF", "Param for binary filter", {eTA2007::HDV})
                     << AOpt2007(mRecompute, "Adjust", "Recompute directions with adjusted size", {eTA2007::HDV})
-                    << AOpt2007(mXml, "Xml", "Print xml outout in file", {eTA2007::HDV})
-                    << AOpt2007(mDebugPlot, "Debug", "Plot debug image with options", {eTA2007::HDV})
+                    << AOpt2007(mXml, "Xml", "Export to xml filename (empty=no xml output)", {eTA2007::HDV})
+                    << AOpt2007(mDebugPlot, "Debug", "Options mask for debug image", {eTA2007::HDV})
                     << AOpt2007(mMaxEcc, "MaxEcc", "Max. eccentricity of targets", {eTA2007::HDV})
                     << AOpt2007(mSaddle, "Saddle", "Prefiltering with saddle test", {eTA2007::HDV})
                     << AOpt2007(mMargin, "Margin", "Margin on butterfly edge for fit", {eTA2007::HDV})
@@ -453,7 +453,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
      {
           // [1]   Extract point that are extremum of symetricity
          //    [1.1]   extract integer pixel
-         cIm2D<tREAL4>  aImSym = ImSymetricity(false,aIm,mRayMinCB*0.4,mRayMinCB*0.8,0);  // compute fast symetry
+         cIm2D<tREAL4>  aImSym = ImSymmetricity(false,aIm,mRayMinCB*0.4,mRayMinCB*0.8,0);  // compute fast symetry
 
          if (1)
          {
