@@ -586,6 +586,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
      mVDCTOk.clear();
 
 
+
     for (auto aPtrDCT : mVDCT){
 
         // -------------------------------------------
@@ -609,13 +610,36 @@ void  cAppliExtractCodeTarget::DoExtract(){
      ShowStats("ExtractDir");
      StdOut()  << "MAINTAINED " << mVDCTOk.size() << "\n";
 
+     for (unsigned i=0;i<mVDCTOk.size();++i)
+     {
+         //auto i=220;
+             auto &aPtrDCT = mVDCTOk[i];
 
+             auto mPoints = extractButterflyEdge(aDIm, aPtrDCT);
+
+             if (mPoints.size() < 10) continue;
+
+             double param[6]; double ellipse[5];
+             if (fitEllipse(mPoints, aPtrDCT->mPt, mConstrainCenter, param) < 0) continue;
+             cartesianToNaturalEllipse(param, ellipse);
+             if ((ellipse[2]<0)||(ellipse[3]<0))
+                 continue;
+             if ((fabs(ellipse[0]-aPtrDCT->mPt.x())>10)||(fabs(ellipse[1]-aPtrDCT->mPt.y())>10))
+                 continue;
+
+             StdOut()  << "Selection: " << aPtrDCT->mPt << " ";
+             StdOut()  << ellipse[0] << " " << ellipse[1] << " " << ellipse[2] << " " << ellipse[3] << " " << ellipse[4] << " " << "\n";
+             mImVisu.SetRGBrectWithAlpha(aPtrDCT->Pix(), 1, cRGBImage::Magenta, 0.0);
+             for (auto& pt:mPoints)
+                 mImVisu.SetRGBrectWithAlpha(cPt2di(pt.x(),pt.y()), 1, cRGBImage::Green, 0.0);
+
+     }
+/*
      // ----------------------------------------------------------------------------------------------
      // [512] 1000000000 plot rectified images with detected codes (RectifTargets directory)
      // ----------------------------------------------------------------------------------------------
      mOutput_folder = "RectifTargets";
      if (mBitsPlotDebug[9]) CreateDirectories(mOutput_folder, true);
-
 
     mTargetCounter = 0;
 
@@ -625,7 +649,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
             plotDebugImage(aDCT, aDIm);
         }
     }
-
+*/
     // ------------------------------------------------
     // Control with ground truth (if any)
     // ------------------------------------------------
@@ -754,6 +778,9 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     double min_imposed = 0.8*2*(1-2*mMargin)/mStepButterfly;
     printDebug("Butterfly edge extraction size", mPoints.size(), min_imposed);
     if (mPoints.size() < min_imposed) return false;
+
+    for (auto& pt:mPoints)
+        mImVisu.SetRGBrectWithAlpha(cPt2di(pt.x(),pt.y()), 1, cRGBImage::Green, 0.0);
 
     // -----------------------------------------------------------------
     // Ellipse fit
@@ -1355,7 +1382,7 @@ int cAppliExtractCodeTarget::fitEllipse(std::vector<cPt2dr> points, cPt2dr cente
 
     // Recenter ellipse
     translateEllipse(output, cPt2dr(xmin, ymin));
-
+//TODO compute residuals!
     return 0;
 
 }
