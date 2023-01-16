@@ -572,7 +572,7 @@ template <class TypeElem> class cImplemF  : public SYMBDER_cMemCheck
        int RecursiveRec() const;
 
      // Every where a reference name is needed
-       std::string NameGlob() const { return "F" + std::to_string(NumGlob());}
+       std::string NameGlob() const { return "F" + std::to_string(NumGlob()) + "_";}
 
        /// Access at global level is 4 reducing, also it is used 4 implemant in Unary & Binary
        virtual const std::string &  NameOperator() const = 0;
