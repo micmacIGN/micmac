@@ -373,7 +373,76 @@ The following three equations summarize where we are in our modelization :
 %-----------------------------------------------------
 %-----------------------------------------------------
 
+\section{Calibration as mapping "up to a rotation"}
+
+\subsection{Introduction}
+
+Before analysing the progressive refinement in modelisation of
+distorsion, we  make a preliminary remark that is important
+to avoid over parametrization (in fact , this over parametrisation
+does not occurs this basic model described in~\ref{RadMod} or~\ref{DecMod}).
+
+
+The function $\mathcal{I} \circ \pi_0$  of equation~\ref{FormImage1} can be seen as a function that
+goes from the sphere of direction to the sensor.  In a first
+step we will show that this determination of this function is intrinsequely ambiguous
+\emph{up to a rotation} and then we will see the consequences.
+
+
+\subsection{oo}
+
+In equation ~\ref{FormImage1} , we note :
+
+\begin{equation}
+	P-C =  \overrightarrow{CP}  = \begin{pmatrix} x_c \\ y_c \\ z_c \end{pmatrix} 
+\;\;\;  ;  \;\;\;
+        ^t R =  \begin{pmatrix}  A & B & C \\ D & E & F \\ G & H & I \end{pmatrix} 
+\end{equation}
+
+Now we have in equation~\ref{DecMod} :
+
+\begin{equation}
+	\pi_0(^t R(\overrightarrow{CP})) 
+	=  \frac{\begin{pmatrix} Ax_c+By_c+Cz_c \\ Dx_c+Ey_c+Fz_c  \end{pmatrix}}{Gx_c+Hy_c+Iz_c}
+		=  \frac{\begin{pmatrix} A\frac{x_c}{z_c}+B\frac{y_c}{z_c}+C \\  D\frac{x_c}{z_c}+E\frac{y_c}{z_c}+F  \end{pmatrix}}
+			{G\frac{x_c}{z_c}+H\frac{y_c}{z_c}+I}
+\end{equation}
+
+Let note $H_R$ the $2D$  homography defined by :
+
+\begin{equation}
+  \mathcal{H}_R(u,v) =  \frac{\begin{pmatrix} Au+Bv+C \\  Du+Ev+F  \end{pmatrix}} {Gu+Hv+I}
+\end{equation}
+
+We then have :
+
+\begin{equation}
+	\pi_0(^t R(\overrightarrow{CP}))  = \mathcal{H}_R  (\pi_0 (\overrightarrow{CP}))
+\;\;\;  ;  \;\;\;
+        \pi_0  \tran  R = \mathcal{H}_R  \pi_0
+\end{equation}
+
+We now go back to equation~\ref{FormImage1}, and for any rotation $R'$, we insert it using $^t R'R'=Id$ :
+
+\begin{equation}
+	   \mathcal{I} \pi_0   \tran R = \mathcal{I}  \pi_0   \tran R' R' \circ \tran R
+\end{equation}
+
+Or :
+
+\begin{equation}
+	   \mathcal{I} \pi_0   \tran R 
+	   = (\mathcal{I} \mathcal{H}_R)   \pi_0   \tran (R \tran R')  \label{FormRotCalib}
+\end{equation}
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
 \section{Radial modelisation}
+
+\label{RadMod}
 
 In this section we  show that the radial modelisation of distorsion is a consequence
 of the hypothesis of cylindric symetry of the optical system.
@@ -770,6 +839,7 @@ This is why in previous section we have used $P^p$ the center of symetry of the 
 %-----------------------------------------------------
 
 \section{Decentric distorsion}
+\label{DecMod}
 
 \subsection{Introduction}
 The previous section has establish the radial distorsion, that would almost always
@@ -980,10 +1050,11 @@ Naming $\alpha =  \alpha_1+\alpha_2 + \dots$ and $\beta$ idem we then have again
 So we see that, to the first order, any combination of radial distorsion with slightly different centers,
 can be approximated by a \emph{unique} radial distorsion plus a decentric distorsin parametrized by the two value $\alpha,\beta$.
 
-%-----------------------------------------------------
-%-----------------------------------------------------
-%-----------------------------------------------------
 
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
 
 \section{Sensor inclination}
 
@@ -1040,21 +1111,25 @@ To compute the coordinate of $q'$, we use the fact that $q,q',C$ are aligned and
 \begin{equation}
         \lambda \begin{pmatrix} x \\ y  \\ 1  \end{pmatrix}
       = x'  \vec{i} + y' \vec{j}_\alpha  + \vec{k}
-      =	\begin{pmatrix} x' \\ y'\cos((\alpha)  \\ 1+y'\cos((\alpha)  \end{pmatrix}
+      =	\begin{pmatrix} x' \\ y'\cos((\alpha)  \\ 1+y'\sin((\alpha)  \end{pmatrix}
 \end{equation}
 
-\begin{equation}
-	\begin{pmatrix} x' \\ y'\cos((\alpha)  \\ 1+y'\cos((\alpha)  \end{pmatrix}
-        = \lambda \begin{pmatrix} x \\ y  \\ 1  \end{pmatrix}
-\end{equation}
+
+The we compute ratio :
 
 \begin{equation}
-\begin{multlined}
+	\frac{y'\cos(\alpha)}{1+y'\sin(\alpha)} =  y \;\;\; ; \;\;\;  
 	\frac{x'}{y'\cos(\alpha)} =  \frac{x}{y} 
-\end{multlined}
 \end{equation}
-\COM{
-}
+
+And solve the equation :
+
+\begin{equation}
+	y' = \frac{y}{\cos(\alpha) -y \sin(\alpha)} =  y \;\;\; ; \;\;\;
+	x' = \frac{x}{1-y \tan(\alpha)}
+\end{equation}
+
+
 
 %-----------------------------------------------------
 %-----------------------------------------------------
