@@ -378,6 +378,10 @@ cAppli_YannExport2Colmap::cAppli_YannExport2Colmap(int argc, char ** argv){
 		std::cout << aXMLRef.Externe().Centre().z << " ";
 		std::cout <<  " 1 ";
 		std::cout << aNameIn+"\n";
+		
+		// Fake line to simulate SIFT
+		std::cout << "100 200 300 400";
+		
 		std::cout << "\n";
 		
 	}
