@@ -513,34 +513,27 @@ void show_mask(char * mes,INT mask,INT nb)
 
 XImage *  Data_Elise_Video_Win::AllocXim(Pt2di sz)
 {
-    
     //std::cout << "On passe ici"<<std::endl;
-       return  XGetImage
-               (
-                   _devd->_disp,
-                /*_w*/XDefaultRootWindow(_devd->_disp),
-                   0,0,
-                   sz.x,sz.y,
-                   AllPlanes,ZPixmap
-               );            
-/*
-	INT Lx = (_sz.x *_devd->_depth + 7) / 8;
-	Lx = ((Lx+3) /4) * 4;
+ // malloc'd data should be destroyed automatically by XDestroyImage
+    int pixBytes=4;
+    switch(_devd->_xvi.depth) {
+        case  8: pixBytes = 1; break;
+        case 16: pixBytes = 2; break;
+	case 24:
+        case 32: pixBytes = 4; break;
+    }
 
- 	return  XCreateImage
-		(
-                     _devd->_disp,
-                     _devd->_visual,
-                     _devd->_depth,
-                     ZPixmap,
-                     0,
-		     new char [ty*Lx],
-		     _sz.x,
-		     ty,
-		     32,
-		     Lx
-		);
-*/
+    return XCreateImage (
+        _devd->_disp,
+        _devd->_visual,
+        _devd->_xvi.depth,
+        ZPixmap,
+        0,
+        (char*)malloc(pixBytes*sz.x*sz.y),
+        sz.x,sz.y,
+        8*pixBytes,0
+    );
+
 }
 
 void  * DataElXim::operator new(size_t sz)
@@ -1156,26 +1149,26 @@ Data_Elise_Video_Win::Data_Elise_Video_Win
 
 //-OK-   std::cout << "xazerty   10 \n"; getchar();
 
-    // Modif GM: je n'ai rien compris au code, mais je constate sous MacOS
-    // une erreur :
-    /*
-     X Error of failed request:  BadMatch (invalid parameter attributes)
-     Major opcode of failed request:  73 (X_GetImage)
-     Serial number of failed request:  20
-     Current serial number in output stream:  20
-     */ 
-    // lorsque l'on passe dans le if(1) ci-dessus
-    // empiriquement, l'erreur ne se produit pas si on utilise
-    // XDefaultRootWindow(_devd->_disp) plutot que _w
-    //std::cout << "On passe la"<<std::endl; // getchar();
-    _xi = XGetImage
-    (
-     _devd->_disp,
-     /*_w ,*/ XDefaultRootWindow(_devd->_disp),
-     0,0,
-     sz.x,1,
-     AllPlanes,ZPixmap
-     );
+// malloc'd data should be destroyed automatically by XDestroyImage
+    int pixBytes=4;
+    switch(_devd->_xvi.depth) {
+        case  8: pixBytes = 1; break;
+        case 16: pixBytes = 2; break;
+	case 24:
+        case 32: pixBytes = 4; break;
+    }
+
+    _xi = XCreateImage (
+        _devd->_disp,
+        _devd->_visual,
+        _devd->_xvi.depth,
+        ZPixmap,
+        0,
+        (char*)malloc(pixBytes*sz.x),
+        sz.x,1,
+        8*pixBytes,0
+    );
+
     //std::cout << "On passe ici"<<std::endl;
     
 //-OK-  std::cout << "xazerty   11 \n"; getchar();
