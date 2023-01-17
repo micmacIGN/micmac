@@ -35,9 +35,9 @@ class cDist3D
           tPt p2 = VtoP3(aVUk,3);
           tPt v  = p1-p2;
 
-          const tUk & ObsDist  = aVObs[0];
-          // return { sqrt(square(v.x())+square(v.y())+square(v.z())) - ObsDist } ;
-          return {  Norm2(v) - ObsDist } ;
+          const tUk & D  = aVObs[0];
+          // return { sqrt(square(v.x())+square(v.y())+square(v.z())) - D } ;
+          return {  Norm2(v) - D } ;
      }
 };
 

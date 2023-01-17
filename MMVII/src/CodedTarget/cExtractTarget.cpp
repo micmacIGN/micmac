@@ -615,23 +615,43 @@ void  cAppliExtractCodeTarget::DoExtract(){
          //auto i=220;
              auto &aPtrDCT = mVDCTOk[i];
 
+             if ((fabs(aPtrDCT->mPt.x()-3356)<10)&&(fabs(aPtrDCT->mPt.y()-2704)<10))
+                 std::cout<<"!";
              auto mPoints = extractButterflyEdge(aDIm, aPtrDCT);
 
              if (mPoints.size() < 10) continue;
 
              double param[6]; double ellipse[5];
              if (fitEllipse(mPoints, aPtrDCT->mPt, mConstrainCenter, param) < 0) continue;
+
+             // Test ellipse mean residual
+             // Ax2 + Bxy + Cy^2 + Dx+ Ey + F
+             double sigma0 = 0.0;
+             for (auto & pt : mPoints)
+             {
+                 double res = param[0]*pt.x()*pt.x() + param[1]*pt.x()*pt.y()
+                            + param[2]*pt.y()*pt.y() + param[3]*pt.x()
+                            + param[4]*pt.y() + param[5];
+                 sigma0 += res*res;
+             }
+             sigma0 = sqrt( sigma0 / (mPoints.size()*2-6) );
+
              cartesianToNaturalEllipse(param, ellipse);
-             if ((ellipse[2]<0)||(ellipse[3]<0))
+             if (sigma0>ellipse[3]/4.0) continue;
+
+             if ((ellipse[2]<3)||(ellipse[3]<3))
+                 continue;
+             if (ellipse[2]/ellipse[3]>4)
                  continue;
              if ((fabs(ellipse[0]-aPtrDCT->mPt.x())>10)||(fabs(ellipse[1]-aPtrDCT->mPt.y())>10))
                  continue;
 
              StdOut()  << "Selection: " << aPtrDCT->mPt << " ";
-             StdOut()  << ellipse[0] << " " << ellipse[1] << " " << ellipse[2] << " " << ellipse[3] << " " << ellipse[4] << " " << "\n";
-             mImVisu.SetRGBrectWithAlpha(aPtrDCT->Pix(), 1, cRGBImage::Magenta, 0.0);
+             StdOut()  << ellipse[0] << " " << ellipse[1] << " " << ellipse[2] << " " << ellipse[3] << " " << ellipse[4]
+                       << " " << ellipse[2]/ellipse[3] << " " << sigma0 << "\n";
+             mImVisu.SetRGBrectWithAlpha(aPtrDCT->Pix(), 0, cRGBImage::Magenta, 0.0);
              for (auto& pt:mPoints)
-                 mImVisu.SetRGBrectWithAlpha(cPt2di(pt.x(),pt.y()), 1, cRGBImage::Green, 0.0);
+                 mImVisu.SetRGBrectWithAlpha(cPt2di(pt.x(),pt.y()), 0, cRGBImage::Green, 0.0);
 
      }
 /*
