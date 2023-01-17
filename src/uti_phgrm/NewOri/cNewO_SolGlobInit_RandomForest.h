@@ -110,6 +110,7 @@ class cNOSolIn_AttrSom {
     void AddTriplet(cNOSolIn_Triplet*, int aK0, int aK1, int aK2);
     cNewO_OneIm* Im() { return mIm; }
     ElRotation3D& CurRot() { return mCurRot; }
+    const ElRotation3D& CurRot() const { return mCurRot; }
     ElRotation3D& TestRot() { return mTestRot; }
 
     std::vector<cLinkTripl>& Lnk3() { return mLnk3; }
@@ -199,7 +200,7 @@ class cNOSolIn_Triplet {
     // The number order in the tree
     int& NumTT() { return mNumTT; }
 
-    const ElRotation3D& RotOfSom(tSomNSI* aS) const {
+    const ElRotation3D& RotOfSom(const tSomNSI* aS) const {
         if (aS == mSoms[0]) return ElRotation3D::Id;
         if (aS == mSoms[1]) return mR2on1;
         if (aS == mSoms[2]) return mR3on1;

@@ -867,15 +867,15 @@ void RandomForest::NumeroteCC(Dataset& data) {
     std::cout << "Nb of CCs " << aNumCC << "\n";
 }
 
-static std::array<ElRotation3D, 3> EstimAllRt(cLinkTripl* aLnk) {
+static std::array<ElRotation3D, 3> EstimAllRt(const cLinkTripl* aLnk) {
     // Get sommets
-    tSomNSI* aS1 = aLnk->S1();
-    tSomNSI* aS2 = aLnk->S2();
-    tSomNSI* aS3 = aLnk->S3();
+    const tSomNSI* aS1 = aLnk->S1();
+    const tSomNSI* aS2 = aLnk->S2();
+    const tSomNSI* aS3 = aLnk->S3();
 
     // Get current R,t of the mother pair
-    ElRotation3D aC1ToM = aS1->attr().CurRot();
-    ElRotation3D aC2ToM = aS2->attr().CurRot();
+    const ElRotation3D aC1ToM = aS1->attr().CurRot();
+    const ElRotation3D aC2ToM = aS2->attr().CurRot();
 
     // Get rij,tij of the triplet sommets
     const ElRotation3D aC1ToL = aLnk->m3->RotOfSom(aS1);
@@ -1051,10 +1051,10 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     std::cout << "BuildTree " << double(end1 - start1)/CLOCKS_PER_SEC*1000 << std::endl;
 
 
-    //static int n = 0;
-    //GraphViz g;
-    //g.travelGraph(data, *aCC, aTri0);
-    //g.write("graph/random_tree_" + std::to_string(n++) + ".dot");
+    static int n = 0;
+    GraphViz g;
+    g.travelGraph(data, *aCC, aTri0);
+    g.write("graph/random_tree_" + std::to_string(n++) + ".dot");
 
     // Calculate coherence scores within this CC
     clock_t start2 = clock();
@@ -1390,7 +1390,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
 
             // Take into account the non-visited triplets
             // TODO verifier les triplets qui sont dans la solution
-            //if (!ValFlag(*(aV3[aT]), data.mFlag3CC)) {
+            if (!ValFlag(*(aV3[aT]), data.mFlag3CC)) {
                 // std::cout << "Flag0 OK " << aCntFlags++ << "\n";
                 //clock_t start1 = clock();
                 double aResidue = currentTriplet->ProjTest();
@@ -1408,7 +1408,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 // Plot coherence vs sample vs distance
                 //std::cout << "==PLOT== " << aCostCur * aPds << " " << aDist
                 //         << " " << aPds << "\n";
-            //}
+            }
         }
     }
     static int n = 0;
@@ -1576,27 +1576,27 @@ void RandomForest::PreComputeTriplets(Dataset& data) {
                         continue;
                     }
                     auto oriB = EstimAllRt(&t1);
+
                     std::array<ElRotation3D, 3> oriA {
                         t->KSom(0)->attr().CurRot(),
-                            t->KSom(1)->attr().CurRot(),
-                            t->KSom(2)->attr().CurRot()
+                        t->KSom(1)->attr().CurRot(),
+                        t->KSom(2)->attr().CurRot()
                     };
 
                     double aResidue = computeDoubleResidue(t, oriA, t1.m3, oriB);
-                   // double aResidueold = t1.m3->ProjTest();
-                    //double aResidueold = 0;
-                    /*std::cout << aResidue << " - " << aResidueold << std::endl;
-                    std::cout << "["
-                              << t->KSom(0)->attr().Im()->Name() << ","
-                              << t->KSom(1)->attr().Im()->Name() << ","
-                              << t->KSom(2)->attr().Im()->Name() << "]"
-                              << std::endl;
-                    std::cout << "["
-                              << t1.m3->KSom(0)->attr().Im()->Name() << ","
-                              << t1.m3->KSom(1)->attr().Im()->Name() << ","
-                              << t1.m3->KSom(2)->attr().Im()->Name() << "]"
-                              << std::endl;*/
-                    //t1.Pds() = aResidue;
+                    // double aResidueold = t1.m3->ProjTest();
+                    // double aResidueold = 0;
+                    /*std::cout << aResidue << " - " << aResidueold << std::endl; std::cout << "["
+                                            << t->KSom(0)->attr().Im()->Name() << ","
+                                            << t->KSom(1)->attr().Im()->Name() << ","
+                                            << t->KSom(2)->attr().Im()->Name() << "]"
+                                            << std::endl;
+                      std::cout << "["
+                                << t1.m3->KSom(0)->attr().Im()->Name() << ","
+                                << t1.m3->KSom(1)->attr().Im()->Name() << ","
+                                << t1.m3->KSom(2)->attr().Im()->Name() << "]"
+                                << std::endl;*/
+                    // t1.Pds() = aResidue;
                     t1.Pds() = aResidue;
                     t1.m3->pondSum += aResidue;
                     t1.m3->pondN += 1;
