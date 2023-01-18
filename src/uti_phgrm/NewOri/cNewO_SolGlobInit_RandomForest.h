@@ -752,8 +752,8 @@ class GraphViz {
         cLinkTripl* aTri = 0;
         while ((aTri = travel.GetNextTri(travelFlagSom)) &&
                ((Cpt + 3) < aCC.mTri.size())) {
-            std::cout << "GRAPH Size: "
-                      << std::to_string(travel.mSCur3Adj.size()) << std::endl;
+            //std::cout << "GRAPH Size: "
+             //         << std::to_string(travel.mSCur3Adj.size()) << std::endl;
             // Flag as visted
             aTri->m3->Flag().set_kth_true(travelFlagTri);
             // Mark sommit as vistied
