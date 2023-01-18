@@ -375,6 +375,8 @@ The following three equations summarize where we are in our modelization :
 
 \section{Radial modelisation}
 
+\label{RadMod}
+
 In this section we  show that the radial modelisation of distorsion is a consequence
 of the hypothesis of cylindric symetry of the optical system.
 
@@ -686,7 +688,7 @@ D(q)  =   P_{ol}(\rho  * (1 + k_1 \rho^ 2 + \dots) ,\theta)  \\
 
 As often in photogrammetry, there are many conventions and options for representing the same thing,
 or small variations on the same things, in different book, papers, software \dots
-We discuss here some of this option.
+We discuss here some of this options.
 
   % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
@@ -731,10 +733,9 @@ prefering convention  $\mathcal{I}_0  \circ D$ was :
 
   % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-\subsubsection{Name of coefficients}
+\subsubsection{Names of coefficients}
 
 In computer vision, the coefficient are name $k_1$, $k_2 \dots$ 
-
 In  "traditionnal" photogrammetry, they are often named $R_3,R_5,R_7\dots$.
 
   % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -771,6 +772,7 @@ This is why in previous section we have used $P^p$ the center of symetry of the 
 %-----------------------------------------------------
 
 \section{Decentric distorsion}
+\label{DecMod}
 
 \subsection{Introduction}
 The previous section has establish the radial distorsion, that would almost always
@@ -784,8 +786,8 @@ lenses are perfectly aligned.
 %-----------------------------------------------------
 \subsection{Mathematicall modelisation}
 
-First we must traduce in mathematicall term the physicall words
-" the lenses are slightly miss aligned".
+First we must translate in mathematicall terms the physicall words
+"the lenses are slightly miss aligned".
 We will do it by  the following assumption :
 
 \begin{itemize}
@@ -804,7 +806,7 @@ We will do it by  the following assumption :
 \end{itemize}
 
 
-We first want to show that $D^1 \circ D^2  \approx Id + \delta_1 + \delta_2$ up to second order term.
+We first need to show that $D^1 \circ D^2  \approx Id + \delta_1 + \delta_2$ up to second order term.
 We will write $A\ll B$ for A is negligible with respect to B. We write $\nabla_F$
 the jacobian of $F$, we have the taylor expansion :
 
@@ -831,7 +833,7 @@ For a firts order approximation of last line :
 
    \item  for  $ \nabla_{\delta^1} \delta^2$ , it's less obvious, we admit here that
           if $\delta^1 \ll 1$ then $ \nabla_{\delta^1} \ll 1$,  in fact say like w/o further hypothesis this
-          is wrong \footnote{consider for example $x^2 sin(\frac{1}{x})$}, but it becomes
+		is wrong \footnote{consider for example $x^2 sin(\frac{1}{x})$, but its not $\mathcal{C}^\infty$}, but it becomes
           true if we add the condition that $\delta^1$ is smooth, however this would take us too far  and we admit it;
 \end{itemize}
 
@@ -854,7 +856,7 @@ Consider now $D_1$ and $D_2$ two  radial distorsion; using center $C_k$, let wri
 \end{itemize}
 
 
-Using the polynom  of distorsion , we can write :
+Using the polynom  of distorsion $D^k_r(R) = k^k_1 R + k^k_2 R^2  \dots$  , we can write :
 \begin{equation}
 	\delta^k(p) =   D^k_r(R_k) \vec{u}_k 
 \end{equation}
@@ -926,11 +928,15 @@ abitrary number of term .  So we have
 %
 		\frac{\partial{\vec{\delta^2}}}{\partial x} 
 		=  k_1 \begin{pmatrix} 3 x_1^2 + y_1^2    \\ 2 x_1 y_1  \end{pmatrix}
+%
+			\;\;\;\;   ; \;\;\;\;   
+		\frac{\partial{\vec{\delta^2}}}{\partial y} 
+		=  k_1 \begin{pmatrix} 2 x_1 y_1 \\ x_1^2 + 3 y_1^2  \end{pmatrix}
 \end{multlined}
 \end{equation}
 
 
-Using standard convention, we name $\alpha = k_1  \delta_x $ and $\beta = k_1  \delta_y$;
+Using standard convention, we name $\alpha = k_1  \Delta_x $ and $\beta = k_1  \Delta_y$;
 
 \begin{equation}
 	D^1 \circ D^2 (p) 
@@ -977,19 +983,215 @@ Naming $\alpha =  \alpha_1+\alpha_2 + \dots$ and $\beta$ idem we then have again
 So we see that, to the first order, any combination of radial distorsion with slightly different centers,
 can be approximated by a \emph{unique} radial distorsion plus a decentric distorsin parametrized by the two value $\alpha,\beta$.
 
-
 %-----------------------------------------------------
 %-----------------------------------------------------
 %-----------------------------------------------------
 
+\section{Calibration as mapping "up to a rotation"}
+
+\subsection{Introduction}
+
+Before going deeper in the progressive refinement in modelisation of
+distorsion, we  make a preliminary remark that is important
+to avoid over parametrization (we do it now because, this over parametrisation
+does not occurs this model previously described in~\ref{RadMod} or~\ref{DecMod}).
+
+
+The function $\mathcal{I} \circ \pi_0$  of equation~\ref{FormImage1} can be seen as a function that
+goes from the sphere of direction to the sensor.  In a first
+step we will show that this determination of this function is intrinsequely ambiguous
+\emph{up to a rotation} and then we will see the consequences.
+
+
+\subsection{Setting equations}
+
+In equation ~\ref{FormImage1} , we note :
+
+\begin{equation}
+	P-C =  \overrightarrow{CP}  = \begin{pmatrix} x_c \\ y_c \\ z_c \end{pmatrix} 
+\;\;\;  ;  \;\;\;
+        ^t R =  \begin{pmatrix}  A & B & C \\ D & E & F \\ G & H & I \end{pmatrix} 
+\end{equation}
+
+Now we have in equation~\ref{DecMod} :
+
+\begin{equation}
+	\pi_0(^t R(\overrightarrow{CP})) 
+	=  \frac{\begin{pmatrix} Ax_c+By_c+Cz_c \\ Dx_c+Ey_c+Fz_c  \end{pmatrix}}{Gx_c+Hy_c+Iz_c}
+		=  \frac{\begin{pmatrix} A\frac{x_c}{z_c}+B\frac{y_c}{z_c}+C \\  D\frac{x_c}{z_c}+E\frac{y_c}{z_c}+F  \end{pmatrix}}
+			{G\frac{x_c}{z_c}+H\frac{y_c}{z_c}+I}
+\end{equation}
+
+Let note $H_R$ the $2D$  homography defined by :
+
+\begin{equation}
+ H_R(u,v) =  \frac{\begin{pmatrix} Au+Bv+C \\  Du+Ev+F  \end{pmatrix}} {Gu+Hv+I}
+\end{equation}
+
+We then have :
+
+\begin{equation}
+	\pi_0(^t R(\overrightarrow{CP}))  = H_R  (\pi_0 (\overrightarrow{CP}))
+\;\;\;  ;  \;\;\;
+        \pi_0  \trans  R = H_R  \pi_0
+\end{equation}
+
+We now go back to equation~\ref{FormImage1}, and for any rotation $R'$, we insert it using $^t R'R'=Id$ :
+
+\begin{equation}
+	\mathcal{I} \pi_0   \trans R = \mathcal{I}  \pi_0   (\trans R' R')  \trans R = ( \mathcal{I}  \pi_0   \trans R')  (R' \trans R )
+\end{equation}
+
+We finally have :
+
+\begin{equation}
+	   \mathcal{I} \pi_0   \trans R 
+	   = (\mathcal{I} H_{R'})   \pi_0   \trans (R \trans R')  \label{FormRotCalib}
+\end{equation}
+
+
+%-----------------------------------------------------
+
+\subsection{Interpretation}
+
+The interpretation of equation~\ref{FormRotCalib} is the following : 
+
+\begin{proposal}[Pose/calibration mixing]  \;
+A camera with
+a calibration $\mathcal{I}$ and pose $(R,C)$ has exactly the same projection
+function that a camera with calibration $\mathcal{I} H_{R'}$ and pose $(R \trans R',C)$ where $R'$
+is an arbitrary rotation.
+\end{proposal}
+
+The consequence of this proposal is that if $\mathcal{I}$ is a "valid" calibration of the
+camera, then for any rotation $R$,  $\mathcal{I} H_{R}$ is also a valid calibration.
+Intuitively, we see that this may create difficulties and over parametrization when
+ $\mathcal{I} H_{R}$ belongs to the model we try to compute.
+
+The importance of this remarks depends of the model of distorsion we have selected.
+We some model if $\mathcal{I}$ is a valid distorsion,  $\mathcal{I} H_{R}$ will
+never be a valid distorsion (except with trivial case $R=Id$) and we dont need
+to take precaution.
+
+%-----------------------------------------------------
+
+\subsection{Intuitive analyse of dangerous case}
+
+\begin{figure}
+\centering
+\includegraphics[width=12cm]{Methods/Images/TangentSpace.jpg}\caption{Possible relations between $\mathcal{S}^h$ and $\mathcal{S}^i$}
+	\label{fig:TanSpace}
+\end{figure}
+
+
+Let notes  $\mathcal{S}^i$ the space of parametric function  that are selected
+for coding functions $\mathcal{I}$, and $\mathcal{S}^h$ the space of all $H_R$ for
+$R$ parsing the space of rotation.
+The figure~\ref{fig:TanSpace} represent symbolicly the relation between
+$\mathcal{I}$, and $\mathcal{S}^h$.  Note that this figure is just an
+abstraction because in general $\mathcal{S}^i$ will be a high dimensionnal
+vectorial space \footnote{for example, $8$ with $PP,F,k_1,\dots\alpha$} 
+and  $\mathcal{S}^h$  is a $3$ dimensionnal manifold.
+
+$\mathcal{S}^h$ and $ \mathcal{S}^i$  both contain identity  : $Id \in \mathcal{S}^h \cap \mathcal{S}^i$. 
+
+An obvious dangerous case, symbolized by left image of
+figure~\ref{fig:TanSpace},  is when $\mathcal{S}^h \subset \mathcal{S}^i$ .
+An almost identicall dangerous case is a non trivial subset of $\mathcal{S}^h$
+is included in  $\mathcal{S}^i$.
+
+is obviously a dangerous case for computing 
+calibration because we will have an infinite number of solution. This would be the case
+with universal model where distorsion are considered to be any smooth function.
+
+
+
+Generally we will solve this difficulty by restrincting to an "adequate" subset of  $\mathcal{S}^i$ .
+
+
+Another obvious case occurs when  $\mathcal{S}^h \cap \mathcal{S}^i \neq \{Id\}$
+
+The case where  $\mathcal{S}^h \cap \mathcal{S}^i =\{Id\}$
+
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
 
 \section{Sensor inclination}
+
+%-----------------------------------------------------
+
+\subsection{physicall modelisation}
 
 \begin{figure}
 \centering
 \includegraphics[width=12cm]{Methods/Images/PlanIncl.jpg}\caption{Notation for sensor inclination}
 	\label{fig:PlaneIncl}
 \end{figure}
+
+The secons hypothesis  that will be questionned is the fact that the sensor is 
+orthogonal to axes $\mathcal{A}$.  Using the notation illustatred by 
+figure \ref{fig:PlaneIncl}, we will proceed this way :
+
+\begin{itemize}
+    \item consider a "theoricall" camera with a sensor orthognal to $\mathcal{A}$ (blue on figure \ref{fig:PlaneIncl});
+
+    \item consider a "real" camera with a sensor tilted (in red);
+
+    \item with consider that rotation is done arround $P^p$, because any global translation of the sensor
+         would lead to variation of focal that are already modelized;
+
+    \item  for a given ray, let $q$  be the point that intersect the  orthogonal plane,
+	    and $q'$ the point that intersect the tilded  plane, we note
+           $\mathcal{T}$  the mapping $\mathcal{T} : q \rightarrow q'$.
+
+\end{itemize}
+
+We will assume that the distorsion $D^t$ of the tilted camera is the combination
+of the distorsion of untilted camera and $\mathcal{T}$ :
+
+\begin{equation}
+	D^t = \mathcal{T} \circ D 
+\end{equation}
+
+%-----------------------------------------------------
+
+\subsection{mathematicall modelisation}
+
+For now we make the hypothesis that the tilt is made by a rotation of angle $\alpha$ arround axe $(O\vec{i})$.
+Let $\mathcal{P}_\alpha$ the plane we obtain.  We can compute a basis  of $\mathcal{P}_\alpha$ defines
+by  $\vec{i} $ and  $\vec{j}_\alpha $
+
+
+\begin{equation}
+	\vec{j}_\alpha = \begin{pmatrix} 0 \\ \cos(\alpha) \\ \sin(\alpha)  \end{pmatrix}
+\end{equation}
+
+To compute the coordinate of $q'$, we use the fact that $q,q',C$ are aligned and $q' \in \mathcal{P}_\alpha$ :
+
+\begin{equation}
+        \lambda \begin{pmatrix} x \\ y  \\ 1  \end{pmatrix}
+      = x'  \vec{i} + y' \vec{j}_\alpha  + \vec{k}
+      =	\begin{pmatrix} x' \\ y'\cos((\alpha)  \\ 1+y'\sin((\alpha)  \end{pmatrix}
+\end{equation}
+
+
+The we compute ratio :
+
+\begin{equation}
+	\frac{y'\cos(\alpha)}{1+y'\sin(\alpha)} =  y \;\;\; ; \;\;\;  
+	\frac{x'}{y'\cos(\alpha)} =  \frac{x}{y} 
+\end{equation}
+
+And solve the equation :
+
+\begin{equation}
+	y' = \frac{y}{\cos(\alpha) -y \sin(\alpha)} =  y \;\;\; ; \;\;\;
+	x' = \frac{x}{1-y \tan(\alpha)}
+\end{equation}
+
 
 
 %-----------------------------------------------------
