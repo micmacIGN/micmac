@@ -206,8 +206,7 @@ void SaisieQtWindow::activateLoadImageProgressDialog(int aMin, int aMax)
 	float szFactor = 1.f;
 	if (_params->getFullScreen())
 	{
-		QRect screen = QApplication::desktop()->screenGeometry ( -1 );
-
+		QRect screen = qApp->primaryScreen()->availableGeometry();
 		szFactor = (float) screen.width() / size().width();
 	}
 
@@ -582,7 +581,7 @@ void fillStringList(QStringList & actions, int appMode)
 
 void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 {
-    const QPoint global = qApp->desktop()->availableGeometry().center();
+    const QPoint global = qApp->primaryScreen()->availableGeometry().center();
     _helpDialog->move(global.x() - _helpDialog->width() / 2, global.y() - _helpDialog->height() / 2);
 
     _helpDialog->show();
@@ -1128,7 +1127,7 @@ void SaisieQtWindow::on_actionSettings_triggered()
         //connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
     }
 
-    const QPoint global = qApp->desktop()->availableGeometry().center();
+    const QPoint global = qApp->primaryScreen()->availableGeometry().center();
     _settingsDialog.move(global.x() - _settingsDialog.width() / 2, global.y() - _settingsDialog.height() / 2);
 
     //_settingsDialog.setFixedSize(uiSettings.size());
@@ -1853,7 +1852,7 @@ void SaisieQtWindow::applyParams()
     {
         showFullScreen();
 
-        QRect screen = QApplication::desktop()->screenGeometry ( -1 );
+        QRect screen = qApp->primaryScreen()->availableGeometry();
 
         _params->setSzFen(screen.size());
         _params->setPosition(QPoint(0,0));
