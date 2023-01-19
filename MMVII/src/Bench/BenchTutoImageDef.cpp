@@ -116,18 +116,19 @@ cTestDeformIm::cTestDeformIm(int aSzGlob,double aEps,bool Show) :
     //  -1 - parse all the pixel to inialize
     for (const auto & aPixIm :  mDIm)
     {
-         cPt2dr aPMod = mGT_I2Mod.Value(ToR(aPixIm));
+         cPt2dr aPMod = mGT_I2Mod.Value(ToR(aPixIm)); // corresponding point in the model
 	 double aVModele = mGaussModel.Val(aPMod)*mAmplRad;
-
-	 if (mDIm.Interiority(aPixIm)>3)
+         
+	 if (mDIm.Interiority(aPixIm)>3) // maybe too strict , but to be sure to be inside ...
 	 {
-            mVPtsMod.push_back(aPMod);
-            mValueMod.push_back(aVModele);
+            mVPtsMod.push_back(aPMod); // add point in the grid of model
+            mValueMod.push_back(aVModele); // add value of model
 	 }
 
+         // set "perfect" value of image
          mDIm.SetV(aPixIm, mTrRad + mScRad*aVModele);
 
-      // little check on gaussian composed with homotethy
+      //  check validity on gaussian composed with homotethy
          double aV1 = mGaussModel.Val(aPMod);
          double aV2 = mGaussIm.Val(mGT_Mod2Im.Value(aPMod));
          MMVII_INTERNAL_ASSERT_bench(std::abs(aV1-aV2)<1e-6,"Gauss compos");
@@ -146,7 +147,7 @@ cTestDeformIm::cTestDeformIm(int aSzGlob,double aEps,bool Show) :
 
     //  -3 - allocate system and calculator
     mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense,aVInit);
-    mEqHomIm = EqDeformImHomotethy(true,1);
+    mEqHomIm = EqDeformImHomotethy(true,1); // true-> with derivative,  1=sz of buffer
 
 }
 
@@ -194,7 +195,7 @@ void cTestDeformIm::OneIterationFitModele(bool IsLast)
 	     mSys->CalcAndAddObs(mEqHomIm,aVecInd,aVObs);
 
 	      // compute indicator
-	     double aDif = mDIm.GetVBL(aPIm) - (aCurTrR+aCurScR*mValueMod[aKPt]);
+	     double aDif = mDIm.GetVBL(aPIm) - (aCurTrR+aCurScR*mValueMod[aKPt]); // residual
 	     aSomMod += mValueMod[aKPt];
 	     aSomDif += std::abs(aDif);
 	 }

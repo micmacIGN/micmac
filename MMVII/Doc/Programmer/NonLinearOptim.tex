@@ -760,7 +760,7 @@ A typicall example is :
 \begin{itemize}
       \item we have an image $I$, we note $I[i,k]$ its value for integer points;
       \item we extend  $I$ to a function $\RR^2 \rightarrow \RR$ via the interpolation;
-      \item we have a mapping of  $\RR^2$ ,  $\phi : \RR^2 \rightarrow \RR$.
+      \item we have a mapping of  $\RR^2$ ,  $\phi : \RR^2 \rightarrow \RR^2$.
       \item we want to use the composed function $I \circ \phi$;
 \end{itemize}
 
@@ -792,7 +792,7 @@ formula~\ref{Eq:Bilinear}  easier.
 \subsubsection{For code generation}
 
 The facility functions are defined in the file {\tt "include/MMVII\_TplSymbImage.h"}. Note that this file 
-muste be explicitely included as it is not included by default in the library.
+must be explicitely included as it is not included by default in the library.
 
 The template function {\tt FormalBilinIm2D\_Formula} is a direct implementation of equation~\ref{Eq:Bilinear}.
 It will be used in the function generating code when we need things like $I \circ \phi$.
@@ -846,7 +846,7 @@ We have :
 
     \item a parametric transformation of the model, here it is both geometric and radiometric;
 
-    \item a ground truth for the parameters;
+    \item a ground truth for the parameters (used for generation and testing, ignored in computation);
 
     \item an image that contain the transformation of the model with the ground truth parameter;
 
@@ -889,10 +889,10 @@ So what we will estimate is $\{A,B,\tilde{S},\tilde{T}_x,\tilde{T}_y\}$,
 
 \subsection{Generating the code}
 
-The code for generating the automatic derivation applied to the example are localed in the two files.
+The code for generating the automatic derivation applied to the example are located in the two files.
 
 \begin{itemize}
-    \item {\tt src/SymbDerGen/Formulas\_ImagesDeform.h } contain the definition of  class 
+    \item {\tt src/SymbDerGen/FormulasImagesDeform.h } contain the definition of  class 
               {\tt cDeformImHomotethy} that will be used for generating the code, it is the homologous
               of class  {\tt cDist2DConservation} seen bellow;
 

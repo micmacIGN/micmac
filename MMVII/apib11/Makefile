@@ -6,6 +6,8 @@ MMV2_BINDIR=${MMV2_DIR}/bin
 MMV2_INCDIR=${MMV2_DIR}/include
 MODULE=MMVII$(shell python3-config --extension-suffix)
 
+DOC_INCLUDES=../include/MMVII_PCSens.h ../include/MMVII_memory.h ../include/MMVII_AimeTieP.h ../include/MMVII_Geom3D.h ../include/MMVII_Mappings.h
+
 
 
 # =========== Includes & Libraries
@@ -23,7 +25,7 @@ EXT_LIBS=-lpthread -lX11 -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC ${MMV2_INCLUDES} ${MMV1_INCLUDES}  ${PYBIND_INCLUDES} '-DPYBIND_MMVII_DIR="${MMV2_DIR}"'
+CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC ${MMV2_INCLUDES} ${MMV1_INCLUDES}  ${PYBIND_INCLUDES} '-DPYBIND_MMVII_DIR="$(abspath ${MMV2_DIR})"'
 LDFLAGS=-fopenmp -shared
 
 
@@ -35,17 +37,14 @@ endif
 
 
 # ============ Targets
-.phony: all clean distclean docstr
-all: docstr ${MODULE}
+.phony: all clean
+all: ${MODULE}
 
 clean:
-	rm -f ${OBJS} ${DEPS} ${MMV2_EXE} ${MMV2_LIB}
+	rm -f ${OBJS} ${DEPS} ${MODULE} docstrings.h
 
-distclean: clean
-	-rm -f ${MMV2_GENDIR}/*
-
-docstr:
-	pybind11-mkdoc -o docstrings.h ../include/MMVII_PCSens.h ${CXXFLAGS}
+docstrings.h: ${DOC_INCLUDES} Makefile
+	pybind11-mkdoc -o $@ ${DOC_INCLUDES} ${CXXFLAGS} >/dev/null
 
 # =========== Build Objs
 
@@ -53,7 +52,7 @@ SRCS:=${wildcard *.cpp}
 OBJS:=${SRCS:.cpp=.o}
 
 
-%.o: %.cpp Makefile
+%.o: %.cpp Makefile docstrings.h
 	${CXX} -c  ${CXXFLAGS} $(python3 -m pybind11 --includes) $< -o $@
 
 
@@ -70,7 +69,5 @@ DEPS=${join ${addsuffix ., ${dir ${OBJS}}}, ${notdir ${OBJS:.o=.d}}}
 	${CXX} -MM -MP -MT '${patsubst %.cpp,%.o,$<} $@' -MF $@ ${CXXFLAGS} $<   2>/dev/null
 
 ifneq (${MAKECMDGOALS},clean)
-ifneq (${MAKECMDGOALS},distclean)
 -include ${DEPS}
-endif
 endif

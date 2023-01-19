@@ -421,6 +421,27 @@ const cPt2dr & cPerspCamIntrCalib::PP()     const {return mCSPerfect.PP();}
 
 const cPt2di & cPerspCamIntrCalib::SzPix() const {return mPixDomain.Sz();}
 
+const cDataMapping<tREAL8,3,2>* cPerspCamIntrCalib::Dir_Proj() const { return mDir_Proj;}
+const cDataMapping<tREAL8,2,2>* cPerspCamIntrCalib::Dir_Dist() const { return mDir_Dist;}
+
+const cDataMapping<tREAL8,2,3>* cPerspCamIntrCalib::Inv_Proj() const
+{
+    if (mInvApproxLSQ_Dist==nullptr)
+    {
+        const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
+    }
+    return mInv_Proj;
+}
+
+const cDataInvertibleMapping<tREAL8,2>* cPerspCamIntrCalib::Dir_DistInvertible() const
+{
+    if (mInvApproxLSQ_Dist==nullptr)
+    {
+        const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
+    }
+    return mDist_DirInvertible;
+}
+
 
 
        /* ================================================================== */

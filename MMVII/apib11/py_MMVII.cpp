@@ -1,6 +1,7 @@
 #include "py_MMVII.h"
 
 #include "cMMVII_Appli.h"
+#include "MMVII_enums.h"
 
 
 namespace MMVII {
@@ -12,8 +13,8 @@ const char* pybindMMVIIDir = PYBIND_MMVII_DIR;
 
 static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
 {
-    MMVII::ErrOut() << "\n\n ######################################""\n\n";
-    MMVII::ErrOut() << "\n\n ###### Python API error handler ######""\n\n";
+    MMVII::ErrOut() << "\n\n######################################";
+    MMVII::ErrOut() << "###### Python API error handler ######\n\n";
     MMVII::ErrOut() << "Level=[" << aType << "]\n";
     MMVII::ErrOut() << "Mes=[" << aMes << "]\n";
     if (aFile)
@@ -52,11 +53,43 @@ class TheModule
 
 PYBIND11_MODULE(MMVII, m) {
     static TheModule theModule;     // Force initialisation after all MMVII initialisation
+    using namespace MMVII;
 
     m.doc() = "pybind11 MMVII plugin"; // optional module docstring
 
-    pyb_init_Geom(m);
-    pyb_init_PerspCamIntrCalib(m);
+    py::enum_<eModeInitImage>(m,"ModeInitImage")
+            .value("eMIA_Rand", eModeInitImage::eMIA_Rand)
+            .value("eMIA_RandCenter", eModeInitImage::eMIA_RandCenter)
+            .value("eMIA_Null", eModeInitImage::eMIA_Null)
+            .value("eMIA_V1", eModeInitImage::eMIA_V1)
+            .value("eMIA_MatrixId", eModeInitImage::eMIA_MatrixId)
+            .value("eMIA_NoInit", eModeInitImage::eMIA_NoInit)
+            ;
+
+    py::enum_<eTyNums>(m,"TyNums")
+            .value("TN_INT1",eTyNums::eTN_INT1)
+            .value("TN_U_INT1",eTyNums::eTN_U_INT1)
+            .value("TN_INT2",eTyNums::eTN_INT2)
+            .value("TN_U_INT2",eTyNums::eTN_U_INT2)
+            .value("TN_INT4",eTyNums::eTN_INT4)
+            .value("TN_U_INT4",eTyNums::eTN_U_INT4)
+            .value("TN_INT8",eTyNums::eTN_INT8)
+            .value("TN_REAL4",eTyNums::eTN_REAL4)
+            .value("TN_REAL8",eTyNums::eTN_REAL8)
+            .value("TN_REAL16",eTyNums::eTN_REAL16)
+            ;
+
+
+
+
+    pyb_init_Ptxd(m);
+    pyb_init_DataMappings(m);
+    pyb_init_Geom3D(m);
+    pyb_init_Images(m);
+    pyb_init_Image2D(m);
     pyb_init_DenseMatrix(m);
+    pyb_init_PCSens(m);
+    pyb_init_Memory(m);
+    pyb_init_Aime(m);
 }
 
