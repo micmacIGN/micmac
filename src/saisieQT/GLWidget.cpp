@@ -797,7 +797,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
         return;
     }
 
-    m_lastClickZoom = (event->position() * PixelRatio()).toPoint();
+    m_lastClickZoom = event->pos() * PixelRatio();
     setZoom(getZoom()*pow(1.1f,event->angleDelta().y() / 70.0f ));
 }
 
@@ -1270,7 +1270,7 @@ void GLWidget::dropEvent(QDropEvent *event)
     if (mimeData->hasFormat("text/uri-list")) // TODO peut etre deplacer
     {
         QByteArray data = mimeData->data("text/uri-list");
-        QStringList fileNames = QUrl::fromPercentEncoding(data).split(QRegularExpression("\\n+"),Qt::SkipEmptyParts);
+        QStringList fileNames = QUrl::fromPercentEncoding(data).split(QRegExp("\\n+"),QString::SkipEmptyParts);
 
         for (int i=0;i<fileNames.size();++i)
         {

@@ -988,7 +988,8 @@ void visual_MainWindow::set_argv_recup(string argv)
 
 void visual_MainWindow::resizeEvent(QResizeEvent *)
 {
-    QRect desk_rect = qApp->screenAt(QCursor::pos())->availableGeometry();
+    QDesktopWidget* m = qApp->desktop();
+    QRect desk_rect = m->screenGeometry(m->screenNumber(QCursor::pos()));
 
     int desk_x = desk_rect.width();
     int desk_y = desk_rect.height();
