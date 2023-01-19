@@ -1104,12 +1104,8 @@ std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const 
 {
     std::string aName = this->Name();
 
-    if (aName.size() == 0)
-        UserSError("Formula name is empty.",this->Name());
-    for (auto &c : aName) {
-        if (!std::isalnum(c) && c != '_')
-            UserSError("Formula name is not a valid C++ identifier: '_,a..z,A..Z,0..9' only.",this->Name());
-    }
+    if (!this->IsValidCIdentifier(this->Name()))
+        UserSError("Formula name is not a valid C++ identifier: '_,a..z,A..Z,0..9' only.",this->Name());
     std::string aClassName  = "c" + aName;
     if (aTypeName.size()==0)
         aTypeName = this->TypeElemName();
