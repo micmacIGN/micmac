@@ -473,10 +473,10 @@ void outMatrix4X4(GLdouble *mvMatrix)
 {
 
     QString esp = "       ";
-    qDebug() << mvMatrix[0] << esp << mvMatrix[1] << esp << mvMatrix[2] << esp <<  mvMatrix[3] << Qt::endl;
-    qDebug() << mvMatrix[4] << esp << mvMatrix[5] << esp << mvMatrix[6] << esp <<  mvMatrix[7] << Qt::endl;
-    qDebug() << mvMatrix[8] << esp << mvMatrix[9] << esp << mvMatrix[10] << esp <<  mvMatrix[11] << Qt::endl;
-    qDebug() << mvMatrix[12] << esp << mvMatrix[13] << esp << mvMatrix[14] << esp <<  mvMatrix[15] << Qt::endl;
+    qDebug() << mvMatrix[0] << esp << mvMatrix[1] << esp << mvMatrix[2] << esp <<  mvMatrix[3] << endl;
+    qDebug() << mvMatrix[4] << esp << mvMatrix[5] << esp << mvMatrix[6] << esp <<  mvMatrix[7] << endl;
+    qDebug() << mvMatrix[8] << esp << mvMatrix[9] << esp << mvMatrix[10] << esp <<  mvMatrix[11] << endl;
+    qDebug() << mvMatrix[12] << esp << mvMatrix[13] << esp << mvMatrix[14] << esp <<  mvMatrix[15] << endl;
 }
 
 void cGLData::draw()

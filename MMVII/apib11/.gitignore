@@ -1,5 +1,9 @@
-*.xml
-*.XML
 *.so
 *.o
+core
 docstrings.h
+Tmp-MM-Dir
+*.JPG
+*.jpg
+*.TIF
+*.tif

@@ -220,7 +220,7 @@ private:
 
     int         _currentTime;
 
-    QElapsedTimer   _time;
+    QTime       _time;
 
     MatrixManager   _matrixManager;
 

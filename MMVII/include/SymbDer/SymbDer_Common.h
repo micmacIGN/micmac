@@ -29,6 +29,7 @@ class SYMBDER_cMemCheck
 #include <vector>
 #include <string>
 #include <map>
+#include <algorithm>
 // ===================== MPD  error: call of overloaded ‘abs(const double&)’ is ambiguous ===============
 #include <math.h>
 #include <cmath>
@@ -119,7 +120,7 @@ public:
     virtual ~cCalculator() {}
 
     const std::string& Name() const { return mName;}
-    void SetName(const std::string& aName) const { this->mName = aName;}
+    void SetName(const std::string& aName) { this->mName = aName;}
 
     bool BufIsFull() const {return mNbInBuf == mSzBuf;} ///< Can we push more value ?
     size_t SzBuf() const  {return mSzBuf;}  ///< Total Number of value we can push
@@ -188,6 +189,22 @@ protected:
         mBufLineRes   (mSzBuf),
         mBufRes       ()
     {
+        for (size_t i=0; i< aVNUk.size(); i++) {
+            if (!IsValidCIdentifier(aVNUk[i])) {
+                UserSError("Name for Unknown #" + std::to_string(i) +
+                           " is not a valid C++ identifier ('"
+                           + aVNUk[i] + "')",
+                           mName);
+            }
+        }
+        for (size_t i=0; i< aVNObs.size(); i++) {
+            if (!IsValidCIdentifier(aVNObs[i])) {
+                UserSError("Name for Observation #" + std::to_string(i) +
+                           " is not a valid C++ identifier ('"
+                           + aVNObs[i] + "')",
+                           mName);
+            }
+        }
         mBufRes.reserve(mSzBuf);
     }
 
@@ -197,6 +214,9 @@ protected:
 
     // Do actual caluculus. Just store resulst in mBurLineRes. This class manages mBufRes
     virtual void DoEval() = 0;
+
+    // Utility function that checks if string s is a valid C/C++ identifier
+    bool IsValidCIdentifier(const std::string& s) const;
 
     std::string                    mName;
     size_t                         mSzBuf;       ///< Capacity of bufferirsation
@@ -257,6 +277,18 @@ std::vector<T> & cCalculator<T>::DoOneEval(const std::vector<TypeElem> & aVUK,co
    this->PushNewEvals(aVUK,aVObs);
    return *(this->EvalAndClear()[0]);
 }
+
+template<typename T>
+bool cCalculator<T>::IsValidCIdentifier(const std::string& s) const
+{
+    if (s.size() == 0)
+        return false;
+    if (! (std::isalpha(s[0]) || s[0] == '_'))
+        return false;
+    return std::all_of(s.cbegin()+1, s.cend(),[](char c) { return std::isalnum(c) || c == '_';});
+}
+
+
 
 /** Specilisation for calculator opering generated code  (v.s dynamic just after formula)
 */

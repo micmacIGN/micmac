@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<MMVII_Serialization>
+   <Name>"Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5"</Name>
+   <PixelFrame>
+      <NbPix>1728 1152</NbPix>
+   </PixelFrame>
+   <Projection>"Stenope"</Projection>
+   <Auxiliary>
+      <SzBuffer>-1</SzBuffer>
+      <Degree>3 1 1</Degree>
+      <DegreeApproxInv>3 1 1</DegreeApproxInv>
+   </Auxiliary>
+   <PerfectProj>
+      <F>2113.26900143641</F>
+      <PP>857.203461218707 577.076198246255</PP>
+   </PerfectProj>
+   <Distorsion>
+      <Radial>
+         <K1>-0.0992818343588939</K1>  <!--(X,Y) * (X^2+Y^2)-->
+         <K2>0.105926341210555</K2>  <!--(X,Y) * (X^2+Y^2)^2-->
+         <K3>0.0365920357111148</K3>  <!--(X,Y) * (X^2+Y^2)^3-->
+      </Radial>
+      <Decentric>
+         <p1>6.32129028493475e-05</p1>  <!--(3X2+Y2,2XY)-->
+         <p2>-7.41880900367172e-05</p2>  <!--(2XY,X2+3Y2)-->
+      </Decentric>
+      <Polynomial>
+         <b1>-1.24734259119908e-08</b1>  <!--(X,0)-->
+         <b2>4.79395702261653e-07</b2>  <!--(Y,0)-->
+      </Polynomial>
+   </Distorsion>
+   <Informations>
+      <Nb>1</Nb>
+      <el>"Converted from MMV1"</el>
+   </Informations>
+</MMVII_Serialization>
