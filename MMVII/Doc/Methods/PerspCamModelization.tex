@@ -1110,11 +1110,90 @@ a single solutions to  the projection equation, the system will be badly conditi
 
 Finally the ideal safe case is symbolized by middle image if figure~\ref{fig:TanSpace}, here
 the space intersec orthogonally and there is no mixing possible between $\mathcal{S}^h$ and $\mathcal{S}^i$
+For describing this "ideal" case, we have used the term of orthognality, this means that
+we  now need an euclidean structure on functions \footnote{with in left image set structure was sufficient
+and with right image diffentiable geometry was sufficient}.
+
+We will use the classical scalar product on function :
+
+\begin{equation}
+	<f_1,f_2> = \iint_D  f_1 \cdot f_2 d_x d_y  = \iint_D  (x_1 x_2 + y_1 y_2) d_x d_y \label{ProdScalFunc}
+\end{equation}
+
+The domain $D$ of integration being the sensor, we will make the hypothesis that $D$ is center rectangle 
+$D = [-\Delta_x,\Delta_x] \times [-\Delta_y,\Delta_y] $.
+
 
 %-----------------------------------------------------
 
-\subsection{Tangent analysis of small rotation}
+\subsection{Tangent space to small homography-rotation}
 
+Now we compute a basis of the tangent space to $\mathcal{S}^h$ at point $Id$.
+The dimension of manifold $\mathcal{S}^h$ is $3$, and we can compute this basis
+by taking the $3$ rotation arround the $3$ axes $\vec{i},\vec{j},\vec{k}$.
+Let note $\Theta= \theta_x,\theta_y,\theta_z$  and $H_\Theta$ the
+combation of $3$ rotation : $\theta_x$ around $\vec{i}$ \dots
+\footnote{note that order does not really matters as we are dealing with small rotation}
+
+
+For $\vec{k}$ it's trivial, as a rotation of angle $\theta_k$ arround 
+$\vec{k}$ correspond to a rotation of angle $\theta_k$ :
+
+\begin{equation}
+	\frac{\partial H_\Theta(x,y)}{\partial \theta_z} (0,0,0) 
+	= \frac{\begin{pmatrix} \cos(\theta_z) x - \sin(\theta_z)y \\ \sin(\theta_z)x + \cos(\theta_z)y \end{pmatrix}}{\partial \theta_z}  (0,0,0)
+	= \begin{pmatrix} -y \\  x \end{pmatrix}
+\end{equation}
+
+Now consider  rotations of angle $\theta_x$ and $\theta_y$ arround $\vec{i}$ and $\vec{j}$. We have :
+
+\begin{equation}
+	R_x = \begin{pmatrix}  1 & 0 & 0 \\ 0 & \cos(\theta_x) & - \sin(\theta_x) \\ 0 & \sin(\theta_x) &  \cos(\theta_x) \end{pmatrix}
+\;\;\;  ; \;\;\;  
+	R_y = \begin{pmatrix}  \cos(\theta_y) & 0 &  \sin(\theta_y) \\ 0 & 1 & 0 \\  -\sin(\theta_y) & 0 &  \cos(\theta_y) \end{pmatrix}
+\end{equation}
+
+Then :
+
+\begin{equation}
+	\frac{\partial H_\Theta(x,y)}{\partial \theta_x} (0,0,0) 
+		= \frac{\partial \frac{\begin{pmatrix} x \\  \cos(\theta_x) y-  \sin(\theta_x)  \end{pmatrix}}
+			{\sin(\theta_x) y+\cos(\theta_x)}}{\partial \theta_x} (0,0,0)
+		=  \begin{pmatrix} -xy \\ -1 -y^2 \end{pmatrix} 
+      \label{EqDerTetax}
+\end{equation}
+
+and :
+
+\begin{equation}
+	\frac{\partial H_\Theta(x,y)}{\partial \theta_y} (0,0,0) 
+		= \frac{\partial \frac{\begin{pmatrix}   \cos(\theta_y) x+  \sin(\theta_y)  \\ y \end{pmatrix}}
+			{-\sin(\theta_y) x+\cos(\theta_y)}}{\partial \theta_y} (0,0,0)
+		=  \begin{pmatrix} 1+x^2 \\ xy  \end{pmatrix} 
+      \label{EqDerTetay}
+\end{equation}
+
+We can omit the constant term $1$ in results of equation \ref{EqDerTetax} and \ref{EqDerTetay} and obtain a base
+for tangent space to  $\mathcal{S}^h$  at "point"  $Id$ :
+
+
+\begin{equation}
+	T_x= \begin{pmatrix}   xy  \\  y^2  \end{pmatrix}
+\;\;\;  ; \;\;\;  
+	T_y =\begin{pmatrix}   x^2 \\  xy   \end{pmatrix}
+\;\;\;  ; \;\;\;  
+	T_z = \begin{pmatrix}   y   \\  x \end{pmatrix}
+\end{equation}
+
+Note that this $3$ function are orthogonal $2$ by $2$ (it suffice to remark
+that in each monom like $xy * y= xy^2$ there is at least an exposant odd for $x$ or $y$ and that
+the domain $D$ in equation \ref{ProdScalFunc} is centered).
+
+%-----------------------------------------------------
+
+\subsection{Consequence for basic models}
+
+The question
 
 %-----------------------------------------------------
 %-----------------------------------------------------
