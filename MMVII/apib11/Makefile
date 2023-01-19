@@ -37,14 +37,14 @@ endif
 
 
 # ============ Targets
-.phony: all clean distclean 
+.phony: all clean
 all: ${MODULE}
 
 clean:
 	rm -f ${OBJS} ${DEPS} ${MODULE} docstrings.h
 
 docstrings.h: ${DOC_INCLUDES} Makefile
-	pybind11-mkdoc -o $@ $^ ${CXXFLAGS}
+	pybind11-mkdoc -o $@ ${DOC_INCLUDES} ${CXXFLAGS} >/dev/null
 
 # =========== Build Objs
 
@@ -69,7 +69,5 @@ DEPS=${join ${addsuffix ., ${dir ${OBJS}}}, ${notdir ${OBJS:.o=.d}}}
 	${CXX} -MM -MP -MT '${patsubst %.cpp,%.o,$<} $@' -MF $@ ${CXXFLAGS} $<   2>/dev/null
 
 ifneq (${MAKECMDGOALS},clean)
-ifneq (${MAKECMDGOALS},distclean)
 -include ${DEPS}
-endif
 endif
