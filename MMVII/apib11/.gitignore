@@ -3,3 +3,7 @@
 core
 docstrings.h
 Tmp-MM-Dir
+*.JPG
+*.jpg
+*.TIF
+*.tif
