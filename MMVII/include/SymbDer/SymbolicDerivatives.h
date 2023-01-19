@@ -11,18 +11,6 @@
 #endif
 
 
-// #define SYMBDER_WITH_MMVII true
-#define SYMBDER_WITH_EIGEN true
-
-
-#if SYMBDER_WITH_EIGEN
-#include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
-#define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-#else
-#define EIGEN_ALLIGNMENT_IN_MMVII 
-#endif
-/*
-*/
 
 /** \file SymbolicDerivates.h
     \brief File for generating symbolic derivate
@@ -91,17 +79,17 @@
 
 #include "SymbDer_Common.h"
 
-/*
-#if (SYMBDER_WITH_MMVII)
-#include "MMVII_Derivatives.h"
-#define SYMBDER_cMemCheck  MMVII::cMemCheck
-#else             //========================================================== WITH_MMVI
-class SYMBDER_cMemCheck
-{
-};
+#if SYMBDER_WITH_MMVII
+#define SYMBDER_WITH_EIGEN true
 #endif
-*/
 
+
+#if SYMBDER_WITH_EIGEN
+#include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
+#define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#else
+#define EIGEN_ALLIGNMENT_IN_MMVII
+#endif
 
 
 #if (SYMBDER_WITH_MMVII)
