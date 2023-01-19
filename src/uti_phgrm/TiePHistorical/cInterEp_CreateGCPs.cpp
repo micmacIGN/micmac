@@ -344,7 +344,107 @@ int CreateGCPs_main(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 
+void CreateGCPs4Init11p(std::string aDir, std::string aImgList, std::string aOri, int aGridX, int aGridY, int aGridZ, std::string aOut2DXml, std::string aOut3DXml)
+{
+    cCommonAppliTiepHistorical aCAS3D;
 
+    std::vector<string> vImgList;
+    GetImgListVec(aImgList, vImgList);
+
+    StdCorrecNameOrient(aOri,"./",true);
+
+    std::vector<Pt3dr> vPt3D;
+
+    cSetOfMesureAppuisFlottants aSOMAFout;
+    for(unsigned int i=0; i<vImgList.size(); i++)
+    {
+        std::string aImg1 = vImgList[i];
+        std::string aIm1OriFile = aCAS3D.mICNM->StdNameCamGenOfNames(aOri, aImg1);
+
+        int aType = eTIGB_Unknown;
+        cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
+
+        double dZSol = aCamL->GetAltiSol();
+        //Pt2dr aMinMax = Pt2dr(dZSol, dZSol); //aCamL->GetAltiSolMinMax();
+        Pt2dr aMinMax = aCamL->GetAltiSolMinMax();
+        printf("aMinMax, dZSol: %lf, %lf, %lf\n", aMinMax.x, aMinMax.y, dZSol);
+
+        cMesureAppuiFlottant1Im aMAF;
+        aMAF.NameIm() = aImg1;
+        Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
+        Pt2di ImgSz = aRGBIm1.sz();
+
+        int nBorder = 5; //in case backprojected point is out of frame
+        double dIntervalX = (ImgSz.x-nBorder*2)/aGridX;
+        double dIntervalY = (ImgSz.y-nBorder*2)/aGridY;
+        double dIntervalZ = (aMinMax.x-aMinMax.y)/aGridZ;
+
+        int nImgX, nImgY;
+        double dZ;
+        for(int i=0; i<aGridX; i++)
+        {
+            nImgX = int(dIntervalX*i) + nBorder;
+            for(int j=0; j<aGridY; j++)
+            {
+                nImgY = int(dIntervalY*j) + nBorder;
+                for(int k=0; k<aGridZ; k++)
+                {
+                    dZ = aMinMax.x + dIntervalZ*k;
+                    printf("i, j, k, dZ: %d, %d, %d, %lf\n", i, j, k, dZ);
+                    Pt3dr aVGCP = aCamL->ImEtZ2Terrain(Pt2dr(nImgX, nImgY), dZ);
+                    vPt3D.push_back(aVGCP);
+
+                    Pt2dr aPproj = aCamL->Ter2Capteur(aVGCP);
+
+                    cOneMesureAF1I anOM;
+                    anOM.NamePt() = std::to_string(i*aGridY*aGridZ + j*aGridZ + k);
+                    anOM.PtIm() = aPproj;
+                    aMAF.OneMesureAF1I().push_back(anOM);
+                }
+            }
+        }
+        aSOMAFout.MesureAppuiFlottant1Im().push_back(aMAF);
+    }
+    MakeFileXML(aSOMAFout, aOut2DXml);
+    Save3DXml(vPt3D, aOut3DXml);
+}
+
+/******************************CreateGCPs4Init11p********************************/
+int CreateGCPs4Init11p_main(int argc,char ** argv)
+{
+//    cCommonAppliTiepHistorical aCAS3D;
+
+    std::string aImgList;
+    std::string aOri;
+
+    int aGridX = 10;
+    int aGridY = 10;
+    int aGridZ = 3;
+
+    std::string aOut2DXml = "GCPs4Init11p_2D.xml";
+    std::string aOut3DXml = "GCPs4Init11p_3D.xml";
+
+    std::string aDir = "./";
+
+    ElInitArgMain
+    (
+        argc,argv,
+               LArgMain()
+                << EAMC(aImgList,"Input images (Dir+Pattern, or txt file of image list)")
+                << EAMC(aOri,"Orientation of input images"),
+        LArgMain()
+                << EAM(aDir,"Dir",true,"Work directory, Def=./")
+                << EAM(aGridX,"GridX",true,"How many grids do you want in the direction of width in image frame to generate virtual GCPs.")
+                << EAM(aGridY,"GridY",true,"How many grids do you want in the direction of height in image frame to generate virtual GCPs.")
+                << EAM(aGridZ,"GridZ",true,"How many grids do you want in the direction of altitude in 3D to generate virtual GCPs.")
+                << EAM(aOut2DXml,"Out2DXml",true,"Output xml files of 2D obersevations of the virtual GCPs, Def=GCPs4Init11p_2D.xml")
+                << EAM(aOut3DXml,"Out3DXml",true,"Output xml files of 3D obersevations of the virtual GCPs, Def=GCPs4Init11p_3D.xml")
+    );
+
+    CreateGCPs4Init11p(aDir, aImgList, aOri, aGridX, aGridY, aGridZ, aOut2DXml, aOut3DXml);
+
+    return EXIT_SUCCESS;
+}
 
 
 /******************************InlierRatio********************************/
