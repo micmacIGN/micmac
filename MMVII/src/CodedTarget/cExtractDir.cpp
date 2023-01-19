@@ -14,14 +14,12 @@ template <class Type>  cExtractDir<Type>::cExtractDir(tIm anIm,double aRhoMin,do
      mPtsCrown  (SortedVectOfRadius(0.0,mRhoMax))  // compute vectot of neighboord sorted by norm
 {
     // compute list of circles with a step of 1 pixel, and their direction
-    for (double aRho = aRhoMin ; aRho<aRhoMax ; aRho++)
-    {
+    for (double aRho = aRhoMin ; aRho<aRhoMax ; aRho++){
          mVCircles.push_back(GetPts_Circle(cPt2dr(0,0),aRho,true));  // true=> 8 connexity
          mVDIrC.push_back(tVDir());
 
          // compute direction real that will be used for extracting axes of checkboard
-         for (const auto& aPix :  mVCircles.back())
-         {
+         for (const auto& aPix :  mVCircles.back()){
                mVDIrC.back().push_back(VUnit(ToR(aPix)));
          }
     }
@@ -135,19 +133,19 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT){
              int aKp1 = (aKp+1)%aNbInC;  // next index, circulary speaking
              if (aVIsW[aKp] != aVIsW[aKp1]){  // if we have a transition
 
-                 aCpt++;   // one more transition
-                 cPt2dr aP1  = aVDir[aKp];  // unitary direction before transition
-                 cPt2dr aP2  = aVDir[aKp1];  // unitary direction after transition
-                 double aV1 = aVVals[aKp];   // value befor trans
-                 double aV2 = aVVals[aKp1];  // value after trans
-                 // make a weighted average of P1/P2 corresponding to linear interpolation with threshold
-                 cPt2dr aDir =   (aP1 *(aV2-mVThrs) + aP2 * (mVThrs-aV1)) / (aV2-aV1);
+                aCpt++;   // one more transition
+                cPt2dr aP1  = aVDir[aKp];  // unitary direction before transition
+                cPt2dr aP2  = aVDir[aKp1];  // unitary direction after transition
+                double aV1 = aVVals[aKp];   // value befor trans
+                double aV2 = aVVals[aKp1];  // value after trans
+                // make a weighted average of P1/P2 corresponding to linear interpolation with threshold
+                cPt2dr aDir =   (aP1 *(aV2-mVThrs) + aP2 * (mVThrs-aV1)) / (aV2-aV1);
 
-                 if (SqN2(aDir)==0) return false;  // not interesting case
-                 aDir = VUnit(aDir);  // reput to unitary
+                if (SqN2(aDir)==0) return false;  // not interesting case
+                aDir = VUnit(aDir);  // reput to unitary
 
                 // -----------------------------------------------------------------------------------
-                // REPRESENTATION TRANSITIONS
+                // REPRESENTATION OF TRANSITIONS
                 aDCT.mDetectedVectors.push_back(cPt2di(aC.x()+radius*aDir.x(), aC.y()+radius*aDir.y()));
                 // -----------------------------------------------------------------------------------
 
@@ -270,19 +268,19 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
 
 template class cExtractDir<tREAL4>;
 
-bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor, std::vector<cPt2di>& vec2plot){
+bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT, cIm2D<tREAL4> anIm, double ray_min, double ray_max, std::vector<cPt2di>& vec2plot){
 
 
+/*
     double max_possible_x = std::min(aDCT.Pix().x(), anIm.DIm().Sz().x()-aDCT.Pix().x());
     double max_possible_y = std::min(aDCT.Pix().y(), anIm.DIm().Sz().y()-aDCT.Pix().y());
     double max_possible   = std::min(max_possible_x, max_possible_y);
     double max_ray        = std::min(aRayCB*0.8*size_factor, max_possible-1);
+*/
 
     // StdOut() << max_possible_x << " " << max_possible_y << " " << max_possible << " " << max_ray << "\n";
 
-    cExtractDir<tREAL4>  anED(anIm,aRayCB*0.4, max_ray);
-
-
+    cExtractDir<tREAL4>  anED(anIm, ray_min, ray_max);
 
     bool Ok = anED.CalcDir(aDCT);
 
