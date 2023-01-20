@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<DicoAppuisFlottant>
+     <OneAppuisDAF>
+          <Pt>0.182895665614618341 -3.78002060469805157 2.56022810571964277</Pt>
+          <NamePt>Stone-1</NamePt>
+          <Incertitude>1 1 1</Incertitude>
+     </OneAppuisDAF>
+     <OneAppuisDAF>
+          <Pt>0.234792215591026754 -5.36333800580974884 2.42659720440635063</Pt>
+          <NamePt>Stone-2</NamePt>
+          <Incertitude>1 1 1</Incertitude>
+     </OneAppuisDAF>
+     <OneAppuisDAF>
+          <Pt>0.194213046998492761 -4.82293063921051068 1.75377255914109642</Pt>
+          <NamePt>Stone-3</NamePt>
+          <Incertitude>1 1 1</Incertitude>
+     </OneAppuisDAF>
+     <OneAppuisDAF>
+          <Pt>0.754045221758523621 0.496427193197002514 0.431416432371162006</Pt>
+          <NamePt>I-of-I</NamePt>
+          <Incertitude>1 1 1</Incertitude>
+     </OneAppuisDAF>
+     <OneAppuisDAF>
+          <Pt>0.898750585424819226 1.10409507249266081 0.444680581722013746</Pt>
+          <NamePt>Acute</NamePt>
+          <Incertitude>1 1 1</Incertitude>
+     </OneAppuisDAF>
+     <OneAppuisDAF>
+          <Pt>1.31771333753878528 0.989188464947304724 0.370627429238321537</Pt>
+          <NamePt>Finger-1</NamePt>
+          <Incertitude>1 1 1</Incertitude>
+     </OneAppuisDAF>
+     <OneAppuisDAF>
+          <Pt>0.150697933447584281 1.10818337179321613 0.773464897817899177</Pt>
+          <NamePt>Stone-6</NamePt>
+          <Incertitude>1 1 1</Incertitude>
+     </OneAppuisDAF>
+     <OneAppuisDAF>
+          <Pt>0.256396378205514475 2.35318759021626445 2.23887785258234207</Pt>
+          <NamePt>Stone-7</NamePt>
+          <Incertitude>1 1 1</Incertitude>
+     </OneAppuisDAF>
+     <OneAppuisDAF>
+          <Pt>1.40207519252831658 2.1945458898399548 0.40382985984277503</Pt>
+          <NamePt>Grille</NamePt>
+          <Incertitude>1 1 1</Incertitude>
+     </OneAppuisDAF>
+</DicoAppuisFlottant>
