@@ -47,8 +47,7 @@ pts2d = {
 imName1 = 'IMGP4168.JPG'
 
 # Show 2d points
-allX = [p[0] for p in pts2d[imName1].values()]
-allY = [p[1] for p in pts2d[imName1].values()]
+allX, allY = zip(*pts2d[imName1].values())
 img = mpimg.imread(dirData + imName1)
 plt.imshow(img)
 plt.scatter(allX, allY, 30)
@@ -59,8 +58,8 @@ calib = PerspCamIntrCalib.fromFile(dirData + 'Ori-Ground-MMVII/Calib-PerspCentra
 
 dist = calib.dir_Dist()
 sten = calib.calibStenPerfect()
-inv_sten=sten.mapInverse()
-inv_dist=DataInvertOfMapping2D(calib.dir_DistInvertible())
+inv_sten = sten.mapInverse()
+inv_dist = DataInvertOfMapping2D(calib.dir_DistInvertible())
 
 for name, pt in pts2d[imName1].items():
     print('Pt im: ', pt)
@@ -101,12 +100,7 @@ for name, pt in pts2d[imName1].items():
 cam1= SensorCamPC.fromFile(dirData + 'Ori-Ground-MMVII/Ori-PerspCentral-'+imName1+'.xml')
 
 # project ground points on image
-allX = []
-allY = []
-for name, pt in pts3d.items():
-    projPt = cam1.ground2ImageAndDepth(pt)
-    allX.append(projPt.x)
-    allY.append(projPt.y)
+allX, allY,_ = zip(*map(cam1.ground2ImageAndDepth,pts3d.values()))
 
 img = mpimg.imread(dirData + imName1)
 plt.imshow(img)
