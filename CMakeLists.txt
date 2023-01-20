@@ -191,6 +191,7 @@ set(QT_ENABLED 0) #TODO: not sure we should keep running if WITH_QT5=1 and OpenG
 set(GIMMI_ENABLED 0)
 
 if(${WITH_QT5})
+	set(OpenGL_GL_PREFERENCE LEGACY)
 	find_package(OpenGL REQUIRED)
 
 	if(OPENGL_FOUND)
