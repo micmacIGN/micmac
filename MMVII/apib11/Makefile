@@ -24,7 +24,7 @@ EXT_LIBS=-lpthread -lX11 -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC ${MMV2_INCLUDES} ${MMV1_INCLUDES}  ${PYBIND_INCLUDES} '-DPYBIND_MMVII_DIR="$(abspath ${MMV2_DIR})"'
+CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC ${MMV2_INCLUDES} ${MMV1_INCLUDES}  ${PYBIND_INCLUDES}
 
 PYTHON = python3
 PIP = pip3
@@ -35,6 +35,7 @@ ifneq (,${CCACHE})
   override CXX:=${CCACHE} ${CXX}
 endif
 
+SRCS:=${wildcard *.cpp}
 
 # ============ Targets
 .phony: all module clean
@@ -49,10 +50,8 @@ clean:
 docstrings.h: ${DOC_INCLUDES} Makefile
 	pybind11-mkdoc -o $@ ${DOC_INCLUDES} ${CXXFLAGS} >/dev/null
 
-module: docstrings.h
-	$(PYTHON) setup.py build
-	$(PYTHON) setup.py bdist_wheel
+module: docstrings.h ${SRCS}
+	CC="${CXX}" $(PYTHON) setup.py build
+	CC="${CXX}" $(PYTHON) setup.py bdist_wheel
 	$(PIP) install --user dist/*.whl
-	#$(PYTHON) setup.py install --user
-	@if $(PYTHON) -c "import MMVII" ; then echo "APIB11 OK" ; else echo "APIB11 error!" ; fi
 

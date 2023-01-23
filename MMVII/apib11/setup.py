@@ -10,18 +10,17 @@ from setuptools import setup
 from pybind11.setup_helpers import ParallelCompile
 ParallelCompile("NPY_NUM_BUILD_JOBS").install()
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 module_name = 'MMVII'
 
 all_cpp_api_files =  glob.glob('./*.cpp')
 
-#cxxflags = ['-fopenmp', '-std=c++17', '-Wall', '-Werror', '-O3', '-fPIC', '-DPYBIND_MMVII_DIR="'+os.path.abspath("..")+'"']
-cxxflags = ['-fopenmp', '-std=c++17', '-Wall', '-Werror', '-O3', '-fPIC', '-DPYBIND_MMVII_DIR=".local/'+module_name+'/MMVII/"']
+cxxflags = ['-fopenmp', '-std=c++17', '-Wall', '-Werror', '-O3', '-fPIC']
 
 
 ext_modules = [
-    Pybind11Extension("MMVII",
+    Pybind11Extension("_MMVII",
         all_cpp_api_files,
         libraries = ['X11', 'Xext', 'm', 'dl', 'pthread', 'stdc++fs', 'gomp'],
         library_dirs = [],
@@ -45,7 +44,9 @@ setup(
     description="MicMac v2 Python API",
     long_description="",
     ext_modules=ext_modules,
-    data_files = [(module_name+"/MMVII/bin", ['../bin/MMVII']),
+    py_modules=['MMVII'],
+    data_files = [
+                  (module_name+"/MMVII/bin", ['../bin/MMVII']),
                   (module_name+"/include/XML_MicMac", xml_micmac_files),
                   (module_name+"/include/XML_GEN", xml_gen_files)
                  ],

@@ -7,3 +7,7 @@ Tmp-MM-Dir
 *.jpg
 *.TIF
 *.tif
+Dist/
+build/
+MMVII.egg-info/
+Tmmmp-MM-Dir/

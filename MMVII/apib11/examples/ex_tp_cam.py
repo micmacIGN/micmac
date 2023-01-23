@@ -7,7 +7,7 @@ import matplotlib.image as mpimg
     Data from MurSaintMartin
 """
 
-dirData = '../MMVII-TestDir/Input/Saisies-MMV1/'
+dirData = '../../MMVII-TestDir/Input/Saisies-MMV1/'
 
 # from Ground-Pts3D.xml
 pts3d = {
@@ -47,6 +47,7 @@ pts2d = {
 imName1 = 'IMGP4168.JPG'
 
 # Show 2d points
+plt.title('Read 2d points')
 allX, allY = zip(*pts2d[imName1].values())
 img = mpimg.imread(dirData + imName1)
 plt.imshow(img)
@@ -102,6 +103,7 @@ cam1= SensorCamPC.fromFile(dirData + 'Ori-Ground-MMVII/Ori-PerspCentral-'+imName
 # project ground points on image
 allX, allY,_ = zip(*map(cam1.ground2ImageAndDepth,pts3d.values()))
 
+plt.title('Projected 3d points')
 img = mpimg.imread(dirData + imName1)
 plt.imshow(img)
 plt.scatter(allX, allY, 30)

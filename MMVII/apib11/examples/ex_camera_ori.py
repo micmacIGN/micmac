@@ -1,6 +1,6 @@
 from MMVII import *
 
-dirData = '../MMVII-TestDir/Input/Saisies-MMV1/'
+dirData = '../../MMVII-TestDir/Input/Saisies-MMV1/'
 cam = SensorCamPC.fromFile(dirData + 'Ori-Ground-MMVII/Ori-PerspCentral-IMGP4168.JPG.xml')
 
 pose = cam.pose
