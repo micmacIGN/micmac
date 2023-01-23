@@ -59,6 +59,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define TREEDIST_WITH_MMVII false
 #include "../../../MMVII/include/TreeDist.h"
 
+
 namespace SolGlobInit {
 
 namespace RandomForest {
@@ -546,7 +547,7 @@ std::vector<cNOSolIn_Triplet*>& aV3, int,
     cNOSolIn_Triplet* GetBestTri(Dataset& data);
     cLinkTripl* GetBestTriDyn();
 
-    void logTotalGraph(Dataset& data, std::string filename);
+    void logTotalGraph(Dataset& data, std::string dir, std::string filename);
 
     void Save(Dataset& data, std::string& OriOut, bool SaveListOfName = false);
 
@@ -593,9 +594,10 @@ class DataLog {
         data.push_back(e);
     }
 
-    void write(std::string filename)
+    void write(std::string directory, std::string filename)
     {
-        std::ofstream f(filename, std::ios::out);
+        ELISE_fp::MkDirRec(directory);
+        std::ofstream f(directory + "/" + filename, std::ios::out);
         if (hasHeader) {
             for (auto a : header) {
                 f << a << ",";
@@ -655,8 +657,10 @@ class GraphViz {
     }
     ~GraphViz() { agclose(g); }
 
-    void write(const std::string aFName) {
-        FILE* fp = fopen((char*)aFName.c_str(), "w");
+    void write(const std::string dir, const std::string aFName) {
+        ELISE_fp::MkDirRec(dir);
+        std::string path = dir + "/" + aFName;
+        FILE* fp = fopen((char*)path.c_str(), "w");
         agwrite(g, fp);
         fclose(fp);
     }
@@ -849,7 +853,7 @@ class GraphViz {
     GraphViz() {}
     ~GraphViz() {}
 
-    void write(const std::string aFName) {}
+    void write(const std::string dir, const std::string aFName) {}
 
     void addTriplet(cNOSolIn_Triplet& node) {}
 

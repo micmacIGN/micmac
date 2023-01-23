@@ -1062,7 +1062,7 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     static int n = 0;
     GraphViz g;
     g.travelGraph(data, *aCC, aTri0);
-    g.write("graph/random_tree_" + std::to_string(n++) + ".dot");
+    g.write(mOutName + "/graph/", "random_tree_" + std::to_string(n++) + ".dot");
 
     // Calculate coherence scores within this CC
     clock_t start2 = clock();
@@ -1231,8 +1231,8 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
         }
     }
 
-    g.write("graph/final.dot");
-    log.write("graph/logs/final.csv");
+    g.write(mOutName + "/graph/", "final.dot");
+    log.write(mOutName + "/graph/logs/", "final.csv");
     std::cout << "Nb final sommets=" << Cpt + 3 << ", out of " << NbSomCC
               << "\n";
 }
@@ -1420,7 +1420,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
         }
     }
     static int n = 0;
-    log.write("graph/logs/runs/run_"+ std::to_string(n++) + ".csv");
+    log.write(mOutName + "/graph/logs/runs/", "run_"+ std::to_string(n++) + ".csv");
 }
 
 /* obsolete
@@ -1790,7 +1790,7 @@ void RandomForest::DoNRandomSol(Dataset& data) {
                      trip->KSom(1)->attr().Im()->Name(),
                      trip->KSom(2)->attr().Im()->Name()});
         }
-        log.write("graph/logs/all.csv");
+        log.write(mOutName + "/graph/logs/", "all.csv");
     }
 
     std::cout << "CREATE CC" << std::endl;
@@ -1818,7 +1818,7 @@ void RandomForest::DoNRandomSol(Dataset& data) {
         for (size_t i = 0; i < t->Data()[0].size(); i++) {
             log.add({i, t->Data()[1][i], t->Data()[0][i], t->Data()[2][i]});
         }
-        log.write("graph/logs/triplets/" + std::to_string(t->NumId()) + ".csv");
+        log.write(mOutName + "/graph/logs/triplets/", std::to_string(t->NumId()) + ".csv");
     }
 
     // Calculate median/mean incoherence scores of mNbSamples
@@ -1835,10 +1835,10 @@ void RandomForest::DoNRandomSol(Dataset& data) {
 
     GraphViz g;
     g.loadTotalGraph(data);
-    g.write("graph/total.dot");
-    logTotalGraph(data, "graph/logs/total.csv");
+    g.write(mOutName + "/graph/", "total.dot");
+    logTotalGraph(data, mOutName + "/graph/logs/", "total.csv");
 }
-void RandomForest::logTotalGraph(Dataset& data, std::string filename) {
+void RandomForest::logTotalGraph(Dataset& data, std::string dir, std::string filename) {
     DataTravel travel(data);
     DataLog<int, int, double, double, double, double, double> log(
         {"Id", "Category", "Distance", "Residue", "ResidueMedian", "Score",
@@ -1899,7 +1899,7 @@ void RandomForest::logTotalGraph(Dataset& data, std::string filename) {
     }
 
     data.mAllocFlag3.flag_free(flag);
-    log.write(filename);
+    log.write(dir, filename);
 }
 
 /******************************
