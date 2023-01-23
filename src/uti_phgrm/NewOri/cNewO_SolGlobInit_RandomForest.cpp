@@ -49,6 +49,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <iostream>
 #include <iterator>
 #include <list>
+#include <locale>
 #include <map>
 #include <memory>
 #include <ostream>
@@ -147,6 +148,12 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
     //double number = 0;
     //double MaxDiag = 6400; //Cam light
     double MaxDiag = 2202; //1920
+    {
+        double x = triplet->KSom(0)->attr().Im()->CS()->Sz().x;
+        double y = triplet->KSom(0)->attr().Im()->CS()->Sz().y;
+        MaxDiag = sqrt(x*x + y*y);
+        //std::cout << "Diag: " << MaxDiag << std::endl;
+    }
     std::vector<double> res;
     //std::cout << triplet->getHomolPts().size() << std::endl;
     //double residues[3] = {};
