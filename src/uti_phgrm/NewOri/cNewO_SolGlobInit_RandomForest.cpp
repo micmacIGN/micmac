@@ -145,7 +145,8 @@ double median(vector<double> vec)
 static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
     //double value = 0;
     //double number = 0;
-    double MaxDiag = 6400;
+    //double MaxDiag = 6400; //Cam light
+    double MaxDiag = 2202; //1920
     std::vector<double> res;
     //std::cout << triplet->getHomolPts().size() << std::endl;
     //double residues[3] = {};
