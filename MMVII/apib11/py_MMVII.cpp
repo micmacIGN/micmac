@@ -36,7 +36,7 @@ class TheModule
     public:
     TheModule()
     {
-        MMVII::cMMVII_Appli::InitMMVIIDirs(pybindMMVIIDir);
+        MMVII::cMMVII_Appli::InitMMVIIDirs(std::string(getenv("HOME"))+"/"+pybindMMVIIDir);
         MMVII::MMVII_SetErrorHandler(ErrHanlderPy);
         MMVII::InitStandAloneAppli("apipy");
         MMVII::OpenRandom();
