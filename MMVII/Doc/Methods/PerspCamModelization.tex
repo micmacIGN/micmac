@@ -678,6 +678,7 @@ D(q)  =   P_{ol}(\rho  * (1 + k_1 \rho^ 2 + \dots) ,\theta)  \\
 =   (1 + k_1 \rho^ 2 +  k_2 \rho^ 4 \dots)  \begin{pmatrix} \rho\cos(\theta) \\ \rho \sin(\theta) \end{pmatrix} \\
 =   (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
 \end{multlined}
+	\label{PolDistEucl}
 \end{equation}
 
 
@@ -1137,7 +1138,7 @@ combation of $3$ rotation : $\theta_x$ around $\vec{i}$ \dots
 
 
 For $\vec{k}$ it's trivial, as a rotation of angle $\theta_k$ arround 
-$\vec{k}$ correspond to a rotation of angle $\theta_k$ :
+$\vec{k}$ correspond to a rotation of angle $\theta_k$ in the plane:
 
 \begin{equation}
 	\frac{\partial H_\Theta(x,y)}{\partial \theta_z} (0,0,0) 
@@ -1173,7 +1174,8 @@ and :
       \label{EqDerTetay}
 \end{equation}
 
-We can omit the constant term $1$ in results of equation \ref{EqDerTetax} and \ref{EqDerTetay} and obtain a base
+We can omit the constant term $1$ in results of equation \ref{EqDerTetax} and  \ref{EqDerTetay} (this
+term is the same as $Pp$)  and obtain a base
 for tangent space to  $\mathcal{S}^h$  at "point"  $Id$ :
 
 
@@ -1183,6 +1185,7 @@ for tangent space to  $\mathcal{S}^h$  at "point"  $Id$ :
 	T_y =\begin{pmatrix}   x^2 \\  xy   \end{pmatrix}
 \;\;\;  ; \;\;\;  
 	T_z = \begin{pmatrix}   y   \\  x \end{pmatrix}
+		\label{Basis:Rot2D}
 \end{equation}
 
 Note that this $3$ function are orthogonal $2$ by $2$ (it suffice to remark
@@ -1193,7 +1196,74 @@ the domain $D$ in equation \ref{ProdScalFunc} is centered).
 
 \subsection{Consequence for basic models}
 
-The question
+\subsubsection{Radial distorsion}
+
+Now the question when we analyse a model of calibration, generaly parametrized by a
+a basis of function, is \emph{is the familly independant of the basis ~\ref{Basis:Rot2D}}.:w
+
+For radial model, the answer is easy. Starting from formulation of ~\ref{PolDistEucl}
+and~\ref{Basis:Rot2D}, consider for example the term in $x$. For the radial part
+we have $x (x^2+y^2)^k$, the scalar product all include odd exponent in $x$ or $y$ :
+
+\begin{itemize}
+	\item for $T_x$ ,  $x y * x (x^2+y^2)^k$  : odd in $y$;
+	\item for $T_y$ ,  $x^2 * x (x^2+y^2)^k$  : odd in $x$;
+	\item for $T_z$ ,  $y  * x  (x^2+y^2)^k$  : odd in $x$ and $y$;
+\end{itemize}
+
+So the scalar product of \ref{ProdScalFunc} is $0$, this is the ideal case 
+
+
+\subsubsection{Decentric distorsion}
+
+We remind the basis of function used for decentric distorsion :
+
+\begin{equation}
+	  Dec_x = \begin{pmatrix} 3 x^2 + y^2 \\ 2  x y  \end{pmatrix}
+\;\;\;  ; \;\;\;  
+	  Dec_y = \begin{pmatrix}  x y   \\  x^2 + 3 y^2  \end{pmatrix}
+\end{equation}
+
+Take for example the function $Dec_x$,  we have ideal configuration for $T_x$ and $T_z$.
+Still using the odd exponent argument we see that :
+
+\begin{itemize}
+	\item $Dec_x  \bot T_x$
+	\item $Dec_x  \bot T_z$
+\end{itemize}
+
+For $Dec_x$ and $T_y$, the situation is no longer ideal, and there is a relatively
+high coorelation. At least we can check that they are not colinear and make qualitative analyse
+of their correlation by doing the following computation :
+
+
+\begin{equation}
+	Dec_x   - 3 T_y = \begin{pmatrix}  y^2   \\ -xy  \end{pmatrix}
+\;\;\;  ; \;\;\;  
+	<Dec_x   - 3 T_y ,T_y> = \iint_D (x^2y^2 -(xy)^2)   d_x d_y   =0
+\end{equation}
+
+Also assuming the domain of integration is square, we have :
+
+\begin{equation}
+	||Dec_x   - 3 T_y || ^2  = \iint_D \begin{Vmatrix}  y^2   \\ -xy  \end{Vmatrix} ^2
+	                         = \iint_D \begin{Vmatrix}  x^2   \\ xy  \end{Vmatrix} ^2
+	                         = || T_y || ^2  
+\end{equation}
+
+Let's name $\omega$ the angle between the $2$ functions  $Dec_x$ and $T_y$,  as a measurement of correlation, the ideal case being
+$\omega=\frac{\pi}{2}$, and the degenerate case $\omega=0$.  Here, as illustrated by
+figure~\ref{fig:DecTy}, we see that $\omega=\tan^{-1}({\frac13})$. Also not ideal basis relatively to
+the rotation ambiguity problem, it's still acceptable for conditionning of the system.
+
+\begin{figure}
+\centering
+	\includegraphics[width=12cm]{Methods/Images/DecxTy.jpg}\caption{Relation between functions $Dec_x$ and $T_y$}
+	\label{fig:DecTy}
+\end{figure}
+
+
+
 
 %-----------------------------------------------------
 %-----------------------------------------------------
@@ -1207,11 +1277,55 @@ The question
 
 \begin{figure}
 \centering
-\includegraphics[width=12cm]{Methods/Images/PlanIncl.jpg}\caption{Notation for sensor inclination}
+\includegraphics[width=12cm]{Methods/Images/Plan_Incl_PPaPPs.jpg}\caption{Notation for sensor inclination}
 	\label{fig:PlaneIncl}
 \end{figure}
 
-The secons hypothesis  that will be questionned is the fact that the sensor is 
+The next  hypothesis  that will be questionned is the fact that the sensor is 
+orthogonal to axes $\mathcal{A}$.  Using the notation illustatred by 
+figure \ref{fig:PlaneIncl}, we will proceed this way :
+
+\begin{itemize}
+     \item  we will illustrate on the case where the inclination of sensor relatively
+	     to optical axes is done by a rotation of angle $\alpha$ arround axe $\vec{j}$;
+\end{itemize}
+
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{"Universal" model}
+
+\subsection{Assemblage camera}
+\subsection{$360$ camera}
+
+\section{Fish eye model}
+\label{SecFE}
+
+\section{Note and PPA , PPS and decentric dist}
+\label{PPA:PPS:DEC}
+
+
+\section{Note work to do on non perspective camera}
+
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+%   --------------------------------------------------------------------------------------
+%   Previous text on sensor modeliztion;  wrong as it ignored redundance with rotation
+%
+%   Maintain it in commentary as the equation  may be usefull ...
+%
+%
+
+
+\COM{
+The next  hypothesis  that will be questionned is the fact that the sensor is 
 orthogonal to axes $\mathcal{A}$.  Using the notation illustatred by 
 figure \ref{fig:PlaneIncl}, we will proceed this way :
 
@@ -1271,34 +1385,6 @@ And solve the equation :
 	y' = \frac{y}{\cos(\alpha) -y \sin(\alpha)} =  y \;\;\; ; \;\;\;
 	x' = \frac{x}{1-y \tan(\alpha)}
 \end{equation}
-
-
-
-%-----------------------------------------------------
-%-----------------------------------------------------
-%-----------------------------------------------------
-
-\section{"Universal" model}
-
-\subsection{Assemblage camera}
-\subsection{$360$ camera}
-
-\section{Fish eye model}
-\label{SecFE}
-
-\section{Note and PPA , PPS and decentric dist}
-\label{PPA:PPS:DEC}
-
-
-\section{Note work to do on non perspective camera}
-
-
-
-%-----------------------------------------------------
-%-----------------------------------------------------
-%-----------------------------------------------------
-
-
-
+}
 
 
