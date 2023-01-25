@@ -1644,7 +1644,8 @@ double median(std::vector<double> &v)
 
 void RandomForest::CoherTripletsAllSamples(Dataset& data) {
     for (int aT = 0; aT < int(data.mV3.size()); aT++) {
-        if (data.mV3[aT]->Data()[0].size() == 0){
+        if (data.mV3[aT]->Data()[0].size() == 0
+            || data.mV3[aT]->Data()[2].size() == 0) {
             for (uint8_t i = 0; i<4; i++)
                 data.mV3[aT]->Sum()[i] = 1000000;
             continue;
