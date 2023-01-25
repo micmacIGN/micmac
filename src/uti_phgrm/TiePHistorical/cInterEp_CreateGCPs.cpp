@@ -344,7 +344,7 @@ int CreateGCPs_main(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 
-void CreateGCPs4Init11p(std::string aDir, std::string aImgList, std::string aOri, int aGridX, int aGridY, int aGridZ, std::string aOut2DXml, std::string aOut3DXml)
+void CreateGCPs4Init11p(std::string aDir, std::string aImgList, std::string aOri, int aGridX, int aGridY, int aGridZ, std::string aOut2DXml, std::string aOut3DXml, double aZmin, double aZmax)
 {
     cCommonAppliTiepHistorical aCAS3D;
 
@@ -366,8 +366,22 @@ void CreateGCPs4Init11p(std::string aDir, std::string aImgList, std::string aOri
 
         double dZSol = aCamL->GetAltiSol();
         //Pt2dr aMinMax = Pt2dr(dZSol, dZSol); //aCamL->GetAltiSolMinMax();
-        Pt2dr aMinMax = aCamL->GetAltiSolMinMax();
-        printf("aMinMax, dZSol: %lf, %lf, %lf\n", aMinMax.x, aMinMax.y, dZSol);
+        if(aZmin > 99999 && aZmax < -99999)
+        {
+            //if(ELISE_ASSERT(false,"cBasicGeomCap3D::GetAltiSolMinMax");)
+            if(aCamL->AltisSolMinMaxIsDef() == false)
+            {
+                printf("\n****************************************Command Failed***************************************\n");
+                printf("Please input Minimal and Maximal altitude value of the scene by setting the Named args Zmin and Zmax.\n");
+                printf("The average altitude of the scene is %.2f.\n", aCamL->GetAltiSol());
+                printf("*********************************************************************************************\n");
+                return;
+            }
+            Pt2dr aMinMax = aCamL->GetAltiSolMinMax();
+            aZmin = aMinMax.x;
+            aZmax = aMinMax.y;
+        }
+        printf("Minimal, Maximal and Average altitude value of the scene:\n    %.2lf, %.2lf, %.2lf\n", aZmin, aZmax, dZSol);
 
         cMesureAppuiFlottant1Im aMAF;
         aMAF.NameIm() = aImg1;
@@ -377,7 +391,7 @@ void CreateGCPs4Init11p(std::string aDir, std::string aImgList, std::string aOri
         int nBorder = 5; //in case backprojected point is out of frame
         double dIntervalX = (ImgSz.x-nBorder*2)/aGridX;
         double dIntervalY = (ImgSz.y-nBorder*2)/aGridY;
-        double dIntervalZ = (aMinMax.x-aMinMax.y)/aGridZ;
+        double dIntervalZ = (aZmax-aZmin)/aGridZ;
 
         int nImgX, nImgY;
         double dZ;
@@ -389,8 +403,8 @@ void CreateGCPs4Init11p(std::string aDir, std::string aImgList, std::string aOri
                 nImgY = int(dIntervalY*j) + nBorder;
                 for(int k=0; k<aGridZ; k++)
                 {
-                    dZ = aMinMax.x + dIntervalZ*k;
-                    printf("i, j, k, dZ: %d, %d, %d, %lf\n", i, j, k, dZ);
+                    dZ = aZmin + dIntervalZ*k;
+                    //printf("i, j, k, dZ: %d, %d, %d, %lf\n", i, j, k, dZ);
                     Pt3dr aVGCP = aCamL->ImEtZ2Terrain(Pt2dr(nImgX, nImgY), dZ);
                     vPt3D.push_back(aVGCP);
 
@@ -407,6 +421,8 @@ void CreateGCPs4Init11p(std::string aDir, std::string aImgList, std::string aOri
     }
     MakeFileXML(aSOMAFout, aOut2DXml);
     Save3DXml(vPt3D, aOut3DXml);
+    printf("\n****************************************Command Succeeded***************************************\n");
+    printf("The results are saved in %s and %s.\n", aOut2DXml.c_str(), aOut3DXml.c_str());
 }
 
 /******************************CreateGCPs4Init11p********************************/
@@ -421,6 +437,9 @@ int CreateGCPs4Init11p_main(int argc,char ** argv)
     int aGridY = 10;
     int aGridZ = 3;
 
+    double aZmin = 9999999999;
+    double aZmax = -9999999999;
+
     std::string aOut2DXml = "GCPs4Init11p_2D.xml";
     std::string aOut3DXml = "GCPs4Init11p_3D.xml";
 
@@ -434,14 +453,16 @@ int CreateGCPs4Init11p_main(int argc,char ** argv)
                 << EAMC(aOri,"Orientation of input images"),
         LArgMain()
                 << EAM(aDir,"Dir",true,"Work directory, Def=./")
-                << EAM(aGridX,"GridX",true,"How many grids do you want in the direction of width in image frame to generate virtual GCPs.")
-                << EAM(aGridY,"GridY",true,"How many grids do you want in the direction of height in image frame to generate virtual GCPs.")
-                << EAM(aGridZ,"GridZ",true,"How many grids do you want in the direction of altitude in 3D to generate virtual GCPs.")
+                << EAM(aGridX,"GridX",true,"How many grids do you want in the direction of width in image frame to generate virtual GCPs, Def=10.")
+                << EAM(aGridY,"GridY",true,"How many grids do you want in the direction of height in image frame to generate virtual GCPs, Def=10.")
+                << EAM(aGridZ,"GridZ",true,"How many grids do you want in the direction of altitude in 3D to generate virtual GCPs, Def=3.")
                 << EAM(aOut2DXml,"Out2DXml",true,"Output xml files of 2D obersevations of the virtual GCPs, Def=GCPs4Init11p_2D.xml")
                 << EAM(aOut3DXml,"Out3DXml",true,"Output xml files of 3D obersevations of the virtual GCPs, Def=GCPs4Init11p_3D.xml")
+                << EAM(aZmin,"Zmin",true,"Minimal altitude value of the scene, Def=none.")
+                << EAM(aZmax,"Zmax",true,"Maximal altitude value of the scene, Def=none.")
     );
 
-    CreateGCPs4Init11p(aDir, aImgList, aOri, aGridX, aGridY, aGridZ, aOut2DXml, aOut3DXml);
+    CreateGCPs4Init11p(aDir, aImgList, aOri, aGridX, aGridY, aGridZ, aOut2DXml, aOut3DXml, aZmin, aZmax);
 
     return EXIT_SUCCESS;
 }
