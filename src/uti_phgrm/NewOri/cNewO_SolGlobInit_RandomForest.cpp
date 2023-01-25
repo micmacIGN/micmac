@@ -1163,6 +1163,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     for (int aK = 0; aK < 3; aK++) {
         // Flag sommets as explored
         aTri0->KSom(aK)->flag_set_kth_true(data.mFlagS);
+        aTri0->KSom(aK)->attr().treeCost = aTri0->Cost();
 
         // Set the current R,t of the seed
         aTri0->KSom(aK)->attr().CurRot() = aTri0->RotOfSom(aTri0->KSom(aK));
@@ -1181,9 +1182,28 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     // Iterate to build the solution while updating the heap
     int Cpt = 0;
     cLinkTripl* aTriNext = 0;
-    while ((aTriNext = GetBestTriDyn()) && ((Cpt + 3) < NbSomCC)) {
+    //TODO remove cpt+3
+    while ((aTriNext = GetBestTriDyn())) {
         // Check that the node has not been added in the meantime
-        if (!aTriNext->S3()->flag_kth(data.mFlagS)) {
+        if (aTriNext->S3()->flag_kth(data.mFlagS)) {
+
+            // Add to heap
+            AddTriOnHeap(data, aTriNext);
+            if (aTriNext->m3->Cost() < aTriNext->S3()->attr().treeCost) {
+                std::cout << "Better triplet for point: " << std::endl
+                          << aTriNext->S3()->attr().treeCost
+                          << " -> "
+                          << aTriNext->m3->Cost()
+                          << std::endl
+                          << aTriNext->S1()->attr().Im()->Name() << " "
+                          << aTriNext->S2()->attr().Im()->Name() << " "
+                          << aTriNext->S3()->attr().Im()->Name() << " "
+                          << std::endl;
+
+                EstimRt(aTriNext);
+                aTriNext->S3()->attr().treeCost = aTriNext->m3->Cost();
+            }
+        } else {  // however, try to adjacent triplets of that triplet
             std::cout << "=== Add new node " << Cpt << " "
                       << aTriNext->S1()->attr().Im()->Name() << " "
                       << aTriNext->S2()->attr().Im()->Name() << " "
@@ -1203,6 +1223,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
             // Id per sommet to know from which triplet it was generated => Fast
             // Tree Dist util
             aTriNext->S3()->attr().NumId() = aTriNext->m3->NumId();
+            aTriNext->S3()->attr().treeCost = aTriNext->m3->Cost();
 
             log.add({aTriNext->m3->NumId(), aTriNext->m3->category, aTriNext->m3->NumTT(), aTriNext->m3->Sum()[0], aTriNext->m3->Sum()[1], aTriNext->m3->Sum()[2], aTriNext->m3->Sum()[3]});
 
@@ -1224,10 +1245,6 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
 
             Cpt++;
 
-        } else {  // however, try to adjacent triplets of that triplet
-
-            // Add to heap
-            AddTriOnHeap(data, aTriNext);
         }
     }
 

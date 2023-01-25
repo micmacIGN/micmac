@@ -118,6 +118,8 @@ class cNOSolIn_AttrSom {
     int& NumCC() { return mNumCC; }
     int& NumId() { return mNumId; }
 
+    double treeCost;
+
    private:
     std::string mName;
     RandomForest* mAppli;
@@ -201,6 +203,10 @@ class cNOSolIn_Triplet {
     // The number order in the tree
     int& NumTT() { return mNumTT; }
 
+    double Cost() const {
+        return Sum()[indexSum];
+    }
+
     const ElRotation3D& RotOfSom(const tSomNSI* aS) const {
         if (aS == mSoms[0]) return ElRotation3D::Id;
         if (aS == mSoms[1]) return mR2on1;
@@ -247,6 +253,7 @@ class cNOSolIn_Triplet {
      * 3: Median Score
      */
     std::array<double, 4>& Sum() { return mSum; };
+    const std::array<double, 4>& Sum() const { return mSum; };
 
     double CalcDistArc();
 
@@ -389,7 +396,8 @@ class cNO_HeapIndTriSol_NSI {
 class cNO_CmpTriSolByCost {
    public:
     bool operator()(cNOSolIn_Triplet* aL1, cNOSolIn_Triplet* aL2) {
-        return aL1->Sum()[aL1->indexSum] < aL2->Sum()[aL2->indexSum];
+        //return aL1->Sum()[aL1->indexSum] < aL2->Sum()[aL2->indexSum];
+        return (aL1->pondSum / aL1->pondN) < (aL2->pondSum / aL2->pondN);
         //return (aL1->Pds()) < (T2->Pds());
     }
 };
