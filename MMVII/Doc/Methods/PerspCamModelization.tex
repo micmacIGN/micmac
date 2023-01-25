@@ -989,6 +989,7 @@ can be approximated by a \emph{unique} radial distorsion plus a decentric distor
 %-----------------------------------------------------
 
 \section{Calibration as mapping "up to a rotation"}
+\label{UpToARot}
 
 \subsection{Introduction}
 
@@ -1036,6 +1037,7 @@ We then have :
 	\pi_0(^t R(\overrightarrow{CP}))  = H_R  (\pi_0 (\overrightarrow{CP}))
 \;\;\;  ;  \;\;\;
         \pi_0  \trans  R = H_R  \pi_0
+	\label{RotHomog}
 \end{equation}
 
 We now go back to equation~\ref{FormImage1}, and for any rotation $R'$, we insert it using $^t R'R'=Id$ :
@@ -1269,7 +1271,7 @@ the rotation ambiguity problem, it's still acceptable for conditionning of the s
 %-----------------------------------------------------
 %-----------------------------------------------------
 
-\section{Sensor inclination}
+\section{Sensor inclination, and $PP_a\neq PP_s$ }
 
 %-----------------------------------------------------
 
@@ -1277,7 +1279,7 @@ the rotation ambiguity problem, it's still acceptable for conditionning of the s
 
 \begin{figure}
 \centering
-\includegraphics[width=12cm]{Methods/Images/Plan_Incl_PPaPPs.jpg}\caption{Notation for sensor inclination}
+\includegraphics[width=12cm]{Methods/Images/Plan_Incl_PPaPPs.jpg} \caption{Notation for sensor inclination}
 	\label{fig:PlaneIncl}
 \end{figure}
 
@@ -1286,11 +1288,69 @@ orthogonal to axes $\mathcal{A}$.  Using the notation illustatred by
 figure \ref{fig:PlaneIncl}, we will proceed this way :
 
 \begin{itemize}
-     \item  we will illustrate on the case where the inclination of sensor relatively
+     \item  we will illustrate with the case where the inclination of sensor relatively
 	     to optical axes is done by a rotation of angle $\alpha$ arround axe $\vec{j}$;
+
+     \item  the axe of symetry of lenses is now different from normal to sensor;
+	     as the orientation of axe is arbitrary, as seen in~\ref{UpToARot},
+             we select a repair $\vec{i},\vec{j},\vec{k}$  which is still orthogonal to sensor (red repair),
+	     for computing image formula; this will maintain the usual formula
+             in case where there is no distorsion;
+
+     \item we name  $\vec{i'},\vec{j'},\vec{k'}$ the repair defined $\vec{i'}=\vec{i}$,
+	     $\vec{k'}$ the axes of symetry of the lenses, and  by completion $\vec{j'} = \vec{k'} \wedge  \vec{i'} $
 \end{itemize}
 
+Let note $R$ the rotation that transform $\vec{i},\vec{j},\vec{k}$ in $\vec{i'},\vec{j'},\vec{k'}$, we can decompose 
+the image formula this way :
 
+\begin{itemize}
+	\item  we start from  $P=(x,y,z)$  in $\vec{i},\vec{j},\vec{k}$ ;
+	\item  we apply the rotation $R$ to have its coordinates $P'=(x',y',z')$ in $\vec{i'},\vec{j'},\vec{k'}$;
+         \item we apply the radial  distorsion $D^r$ on $\pi_0(P') $
+	 \item we apply "in the plane" the inverse tranformation of $R$, this $H_{^tR}$ ;
+\end{itemize}
+
+%-----------------------------------------------------
+\subsection{mathematicall modelisation}
+
+So finaly we have the following image formula :
+
+\begin{equation}
+	q = H_{^tR} D^r \pi_0(R(p))
+\end{equation}
+
+And remembering~\ref{RotHomog} we finally have for the distorsion :
+
+\begin{equation}
+	D = H_{^tR} D^r  H_{R} \label{HDH}
+\end{equation}
+
+
+%-----------------------------------------------------
+\subsection{Parametric approximation}
+
+We now make an approximation which is questionnable, but generally admitted ....
+Starting from equation~\ref{EqDerTetax}, we decide the terms in $y^2$
+and $xy$ can be neglected in front of $1$.  This approximation is reasonnable
+with long focal (narrow angle) but more questionnable with short focal.  Never mind \dots
+So we have :
+
+
+\begin{equation}
+	H_{R}\begin{pmatrix} x \\ y \end{pmatrix}  \approx \begin{pmatrix} x \\ y  +\alpha \end{pmatrix}
+		= \begin{pmatrix} x \\ y  \end{pmatrix} + PP_s
+\end{equation}
+
+So with this approximation, and analyzing formula~\ref{HDH}, we see
+that the parametric model of sensor inclination can me made with
+a radial distorsion, where the center of distorsion ($PP_s$) is different from
+the projection of center on the plane ($PP_a$).
+
+
+%-----------------------------------------------------
+\subsection{Note and $PP_a$ , $PP_s$ and decentric distorsion}
+\label{PPA:PPS:DEC}
 
 %-----------------------------------------------------
 %-----------------------------------------------------
@@ -1304,8 +1364,6 @@ figure \ref{fig:PlaneIncl}, we will proceed this way :
 \section{Fish eye model}
 \label{SecFE}
 
-\section{Note and PPA , PPS and decentric dist}
-\label{PPA:PPS:DEC}
 
 
 \section{Note work to do on non perspective camera}
