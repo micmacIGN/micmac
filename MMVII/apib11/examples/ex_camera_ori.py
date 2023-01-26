@@ -1,6 +1,7 @@
 from MMVII import *
 
-cam = SensorCamPC.fromFile('Ori-PerspCentral-IMGP4168.JPG.xml')
+dirData = '../../MMVII-TestDir/Input/Saisies-MMV1/'
+cam = SensorCamPC.fromFile(dirData + 'Ori-Ground-MMVII/Ori-PerspCentral-IMGP4168.JPG.xml')
 
 pose = cam.pose
 icalib = cam.internalCalib

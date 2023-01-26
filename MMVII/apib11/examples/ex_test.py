@@ -2,7 +2,7 @@ from MMVII import *
 import numpy as np
 
 
-calib=PerspCamIntrCalib.fromFile("../MMVII-TestDir/Input/Ply/MMVII-PhgrProj/Ori/TestProjMesh/Calib-PerspCentral-Foc-14000_Cam-DCGX9.xml")
+calib=PerspCamIntrCalib.fromFile("../../MMVII-TestDir/Input/Ply/MMVII-PhgrProj/Ori/TestProjMesh/Calib-PerspCentral-Foc-14000_Cam-DCGX9.xml")
 pp0=Pt3di(1,2,3)
 p0=Pt2di(0,0)
 p1=Pt2di(5,6)
@@ -19,10 +19,10 @@ mf=Matrixf(10,10,ModeInitImage.eMIA_Rand)
 
 a=np.array(m,copy=False)
 
-im=Im2Di.fromFile("../MMVII-TestDir/Input/EPIP/Tiny/ImL.tif")
+im=Im2Di.fromFile("../../MMVII-TestDir/Input/EPIP/Tiny/ImL.tif")
 im_np=np.array(im,copy=False)
 
-scpc=SensorCamPC.fromFile("../MMVII-TestDir/Input/Ply/MMVII-PhgrProj/Ori/TestProjMesh/Ori-PerspCentral-P1056160.JPG.xml")
+scpc=SensorCamPC.fromFile("../../MMVII-TestDir/Input/Ply/MMVII-PhgrProj/Ori/TestProjMesh/Ori-PerspCentral-P1056160.JPG.xml")
 p=(10,20,100)
 diff=scpc.ground2ImageAndDepth(scpc.imageAndDepth2Ground(p))-p
 print("diff = ",diff)
