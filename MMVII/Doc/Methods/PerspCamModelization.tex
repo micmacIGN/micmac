@@ -1271,7 +1271,8 @@ the rotation ambiguity problem, it's still acceptable for conditionning of the s
 %-----------------------------------------------------
 %-----------------------------------------------------
 
-\section{Sensor inclination, and $PP_a\neq PP_s$ }
+\section{Sensor inclination, and  model $PP_a\neq PP_s$ }
+\label{SenIncl}
 
 %-----------------------------------------------------
 
@@ -1317,13 +1318,13 @@ the image formula this way :
 So finaly we have the following image formula :
 
 \begin{equation}
-	q = H_{^tR} D^r \pi_0(R(p))
+	q = H_{^tR} (D^r( \pi_0(R(p))))
 \end{equation}
 
 And remembering~\ref{RotHomog} we finally have for the distorsion :
 
 \begin{equation}
-	D = H_{^tR} D^r  H_{R} \label{HDH}
+	D = H_{^tR} \circ  D^r \circ   H_{R} \label{HDH}
 \end{equation}
 
 
@@ -1339,18 +1340,69 @@ So we have :
 
 \begin{equation}
 	H_{R}\begin{pmatrix} x \\ y \end{pmatrix}  \approx \begin{pmatrix} x \\ y  +\alpha \end{pmatrix}
-		= \begin{pmatrix} x \\ y  \end{pmatrix} + PP_s
+		= \begin{pmatrix} x \\ y  \end{pmatrix} - PP_s
 \end{equation}
 
-So with this approximation, and analyzing formula~\ref{HDH}, we see
-that the parametric model of sensor inclination can me made with
-a radial distorsion, where the center of distorsion ($PP_s$) is different from
-the projection of center on the plane ($PP_a$).
+So assuming this approximation,  $H_{R}$ is a tranlation of $ - PP_s$ :
+
+\begin{equation}
+	H_{R} = Tr_{PP_s}
+\end{equation}
+
+So the formula ~\ref{HDH} becomes :
+
+\begin{equation}
+	D =    T^r_{[PP_s]}  \circ  D^r \circ  T^r_{[-PP_s]} \label{TDT}
+\end{equation}
+
+Analyzing formula~\ref{TDT}, we see
+that the parametric model of sensor inclination  combined with radial distorsion
+is a central distorsion of center $PP_s$, different of the \emph{so named}
+center of auto colimation $PP_a$, which is the projection of central perspective on the sensor.
 
 
 %-----------------------------------------------------
 \subsection{Note and $PP_a$ , $PP_s$ and decentric distorsion}
 \label{PPA:PPS:DEC}
+
+In section~\ref{DecMod} we have introduced the decentric distorsion that
+modelized the lenses mis-alignment.  In  section~\ref{SenIncl}
+we have introduced the separation bewteen $PP_a$ and $PP_s$ that modelize
+the sensor inclination.  It may seem natural to combine this two
+parametrization that modelize to physicall phenomenas \emph{a priori}
+different. We are going to see why this is not a good idea, and why in
+{\tt MMVII} we privilegiate the decentric distorsion parametrization.
+
+"It is \emph{well known} that  $PP_a/PP_s$ separation turn to be highly
+correlated with decentric distorsion", but it's not always explain. In fact
+it quite obvious if go back to the origin of these formula.  On one hand, we have 
+the decentric distorsion that modelize, with a Taylor expansion, two radial distorsions
+with close center of symetry, with for example $0,0$ as reference;
+on the other hand we have the $PP_a/PP_s$ separation that modelize 
+a radial distorsion with with a center different of $0,0$; so the decentric model
+can be seen as a Taylor expansion of $PP_a/PP_s$  separation, and the two model
+are identic at first order.
+
+
+We have seen that the two parametrization are similar, consequently they are
+very correlated and we cannot use them simultaneously. From practicall point of view,
+the question "is there any reason to prefer one or the other ?".
+In fact the separation between $PP_a$ and $PP_s$ has the following drawback :
+
+\begin{itemize}
+   \item when the radial distorsion $D_r$ is null and $PP_s$ is independant of $PP_a$, the 
+         $PP_s$ is completely undertermined ("you" can put it where you want, it will have no 
+         effect because disrtorsion is null \dots);
+
+   \item  if no precaution is taken, specially in first step of bundle adjustment 
+          of a new camera where the initial guess is precisely to suppose that distorsion
+          is null.
+\end{itemize}
+
+Of course there is way to overcome this kind of of problem : 
+initially fix $PP_a$ and $PP_s$ with some constraints
+
+
 
 %-----------------------------------------------------
 %-----------------------------------------------------
