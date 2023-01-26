@@ -125,6 +125,8 @@ class  cDCT
          std::vector<cPt2di> mDetectedEllipse;
          std::vector<cPt2di> mDetectedFrame;
 
+         bool mRecomputed;
+
 };
 
 /*   ==============  Target spec  =============  */

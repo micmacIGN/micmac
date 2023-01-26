@@ -10,6 +10,7 @@ const cPt3di cRGBImage::Blue(0,0,255);
 const cPt3di cRGBImage::Yellow(255,255,0);
 const cPt3di cRGBImage::Magenta(255,0,255);
 const cPt3di cRGBImage::Cyan(0,255,255);
+const cPt3di cRGBImage::Orange(255,128,0);
 const cPt3di cRGBImage::White(255,255,255);
 
 //template <class Type> void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<Type> & aIm,const double & aMul=1.0);

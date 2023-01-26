@@ -35,13 +35,14 @@ namespace  cNS_CodedTarget
 
 
 cDCT::cDCT(const cPt2dr aPtR,eResDCT aState) :
-   mGT       (nullptr),
-   mPt       (aPtR),
-   mState    (aState),
-   mScRadDir (1e5),
-   mSym      (1e5),
-   mBin      (1e5),
-   mRad      (1e5)
+   mGT          (nullptr),
+   mPt          (aPtR),
+   mState       (aState),
+   mScRadDir    (1e5),
+   mSym         (1e5),
+   mBin         (1e5),
+   mRad         (1e5),
+   mRecomputed  (false)
 
 {
 }
@@ -85,6 +86,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         bool markImage(tDataImT &, cPt2di, int, int);                            ///< Plot mark on gray level image
         std::vector<cPt2dr> solveIntersections(cDCT*, double*);
         std::vector<cPt2dr> extractButterflyEdge(const cDataIm2D<float> &, cDCT*);
+        std::vector<cPt2dr> extractButterflyEdgeOld(const cDataIm2D<float> &, cDCT*);
         void exportInXml(std::vector<cDCT*>);
         void plotDebugImage(cDCT*, const cDataIm2D<float>&);
         tImTarget generateRectifiedImage(cDCT*, const cDataIm2D<float>&);
@@ -181,7 +183,8 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         double mErrMaxGT;
         double mCompGT;
         std::string mGroundTruthFile;
-
+        double mStepButterfly;
+        double mGradButterfly;
 };
 
 
@@ -224,7 +227,9 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mErrAvgGT        (0.0),
    mErrMaxGT        (0.0),
    mCompGT          (0.0),
-   mGroundTruthFile ("")
+   mGroundTruthFile (""),
+   mStepButterfly   (0.05),
+   mGradButterfly   (0)
 {
 }
 
@@ -592,7 +597,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
         }
 
         if (aPtrDCT->mState == eResDCT::Ok){
-            if (!TestDirDCT(*aPtrDCT,APBI_Im(), mRayMinCB, 1.0, aPtrDCT->mDetectedVectors)){
+            if (!TestDirDCT(*aPtrDCT,APBI_Im(), 0.4*mRayMinCB, 0.8*mRayMinCB, aPtrDCT->mDetectedVectors)){
                 aPtrDCT->mState = eResDCT::BadDir;
             }else{
                 mVDCTOk.push_back(aPtrDCT);
@@ -616,7 +621,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
 
     for (auto aDCT : mVDCTOk){
-        if (analyzeDCT(aDCT, aDIm)){
+        if ((analyzeDCT(aDCT, aDIm)) || (mTestCenter.x() != -1)){
             plotDebugImage(aDCT, aDIm);
         }
     }
@@ -746,8 +751,9 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 
     // Butterfly edge extraction
     mPoints = extractButterflyEdge(aDIm, aDCT);
-    printDebug("Butterfly edge extraction size", mPoints.size(), 10);
-    if (mPoints.size() < 10) return false;
+    double min_imposed = 0.8*2*(1-2*mMargin)/mStepButterfly;
+    printDebug("Butterfly edge extraction size", mPoints.size(), min_imposed);
+    if (mPoints.size() < min_imposed) return false;
 
     // -----------------------------------------------------------------
     // Ellipse fit
@@ -783,22 +789,19 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 
     // Affinity first estimation
     mTransfo = estimateRectification(aDCT->mDetectedCorners, spec.mChessboardAng);
-    aDCT->mSizeTargetEllipse = sqrt(ellipse[2]* ellipse[2] + ellipse[3]*ellipse[3]);
+    aDCT->mSizeTargetEllipse = std::min(ellipse[2], ellipse[3]);
 
     // ======================================================================
     // Recomputing directions and intersections if needed
     // ======================================================================
 
-    std::string message_recompute = "";
     if ((aDCT->mSizeTargetEllipse > mRayMinCB) && (mRecompute)){
 
         // Recomputing directions if needed
-        double correction_factor = std::min(0.7*aDCT->mSizeTargetEllipse/mRayMinCB, 10.0);
+        double min_ray_adjust = 0.4*mRayMinCB;
+        double max_ray_adjust = 0.8*aDCT->mSizeTargetEllipse;
 
-        message_recompute += "SIZE OF TARGET: " + std::to_string(aDCT->mSizeTargetEllipse);
-        message_recompute += " - RECOMPUTING DIRECTIONS WITH FACTOR " + std::to_string(correction_factor);
-
-        TestDirDCT(*aDCT, APBI_Im(), mRayMinCB, correction_factor, aDCT->mDetectedVectors);
+        TestDirDCT(*aDCT, APBI_Im(), min_ray_adjust, max_ray_adjust, aDCT->mDetectedVectors);
 
         // Recomputing intersections if needed
         aDCT->mDetectedCorners = solveIntersections(aDCT, param);
@@ -806,6 +809,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
         // Recomputing affinity if needed (and if possible)
         if (aDCT->mDetectedCorners.size() != 4) return false;
         mTransfo = estimateRectification(aDCT->mDetectedCorners, spec.mChessboardAng);
+        aDCT->mRecomputed = true;
     }
 
     // Affinity estimation test
@@ -874,7 +878,6 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     StdOut() << x_centre_moy << " +/- " << dx  << ", " << y_centre_moy << " +/- " << dy << "]  -  ";
     StdOut() << code_binary;
     StdOut() << "  ->  " << name_file;
-    //if (message_recompute != "") StdOut() << message_recompute << "\n";
     mTargetCounter ++;
     // --------------------------------------------------------------------------------
     // End print console
@@ -1049,8 +1052,9 @@ void cAppliExtractCodeTarget::plotDebugImage(cDCT* target, const cDataIm2D<float
     // [004] 0000000100 plot only transitions on circles around candidate targets (yellow pixels)
     // ----------------------------------------------------------------------------------------------------------
     if (mBitsPlotDebug[2]){
+        cPt3di color = (target->mRecomputed?cRGBImage::Orange:cRGBImage::Yellow);
         for (unsigned i=0; i<target->mDetectedVectors.size(); i++){
-            plotSafeRectangle(mImVisu, target->mDetectedVectors.at(i), 0, cRGBImage::Yellow, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+            plotSafeRectangle(mImVisu, target->mDetectedVectors.at(i), 0, color, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
         }
     }
 
@@ -1097,7 +1101,7 @@ void cAppliExtractCodeTarget::plotDebugImage(cDCT* target, const cDataIm2D<float
     if (mBitsPlotDebug[8]){
         cPt2dr p = applyAffinity(cPt2dr(4.0,4.0), mTransfo);
         double it = p.x(); double jt = p.y();
-        for (int lettre=0; lettre<2; lettre++){
+        for (unsigned lettre=0; lettre<target->mDecodedName.size(); lettre++){
             std::string aStr; aStr.push_back(target->mDecodedName[lettre]);
             cIm2D<tU_INT1> aImStr = ImageOfString_10x8(aStr,1); cDataIm2D<tU_INT1>&  aDataImStr = aImStr.DIm();
             for (int i=0; i<11*mLetter; i++){
@@ -1166,22 +1170,61 @@ void cAppliExtractCodeTarget::printMatrix(MatrixXd M){
     StdOut() << "================================================================\n";
 }
 
-
+// ---------------------------------------------------------------------------
+// Function to extract edge of butterfly pattern for ellipse fit data points
+// Inputs: the full image
+// Outputs: a set of boundary points (cPt2dr)
+// ---------------------------------------------------------------------------
+std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdge(const cDataIm2D<float>& aDIm, cDCT* aDCT){
+    std::vector<cPt2dr> POINTS;
+    double threshold = (aDCT->mVBlack + aDCT->mVWhite)/2.0;
+    cPt2di center = aDCT->Pix();
+    double x, y, vx, vy, z_prec, z_curr, w1, w2;
+    double vx1 = aDCT->mDirC1.x(); double vy1 = aDCT->mDirC1.y();
+    double vx2 = aDCT->mDirC2.x(); double vy2 = aDCT->mDirC2.y();
+    for (double t=mMargin; t<1-mMargin; t+=mStepButterfly){
+        vx = t*vx1 + (1-t)*vx2;
+        vy = t*vy1 + (1-t)*vy2;
+        for (int sign=-1; sign<=1; sign+=2){
+            z_prec = 0; cPt2dr pf_prec = cPt2dr(0,0);
+            z_curr = 0; cPt2dr pf_curr = cPt2dr(0,0);
+            for (int i=mDiamMinD/10; i<=300; i++){
+                x = center.x()+sign*vx*i;
+                y = center.y()+sign*vy*i;
+                pf_prec = pf_curr;
+                pf_curr = cPt2dr(x, y);
+                if ((x < 0) || (y < 0) || (x >= aDIm.Sz().x()-1) || (y >= aDIm.Sz().y()-1)) continue;
+                z_prec = z_curr; z_curr = aDIm.GetVBL(pf_curr);
+               // plotSafeRectangle(mImVisu, cPt2di(pf_curr.x(), pf_curr.y()), 0.0, cRGBImage::White, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+                if ((z_curr > threshold) && (z_curr-z_prec > mGradButterfly) && (pf_prec.x()*pf_prec.y() > 0)){
+                    w1 = +(z_prec-threshold)/(z_prec-z_curr);
+                    w2 = -(z_curr-threshold)/(z_prec-z_curr);
+                    cPt2dr pf = cPt2dr(w1*pf_curr.x() + w2*pf_prec.x(), w1*pf_curr.y() + w2*pf_prec.y());
+                    POINTS.push_back(pf);
+                   // plotSafeRectangle(mImVisu, cPt2di(pf.x(), pf.y()), 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+                    break;
+                }
+            }
+        }
+    }
+    //plotDebugImage(aDCT, aDIm);
+    return POINTS;
+}
 
 
 // ---------------------------------------------------------------------------
 // Function to extract edge of butterfly pattern for ellipse fit data points
 // Inputs: the full image
-// Outputs:
+// Outputs: a set of boundary points (cPt2dr)
 // ---------------------------------------------------------------------------
-std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdge(const cDataIm2D<float>& aDIm, cDCT* aDCT){
+std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdgeOld(const cDataIm2D<float>& aDIm, cDCT* aDCT){
     std::vector<cPt2dr> POINTS;
     double threshold = (aDCT->mVBlack + aDCT->mVWhite)/2.0;
     cPt2di center = aDCT->Pix();
     double vx1 = aDCT->mDirC1.x(); double vy1 = aDCT->mDirC1.y();
     double vx2 = aDCT->mDirC2.x(); double vy2 = aDCT->mDirC2.y();
     double lim_inf_apriori = 5;
-    for (double angle=0; angle<0.5-mMargin; angle+=0.01){
+    for (double angle=0; angle<0.5-mMargin; angle+=mStepButterfly){
         for (double side=-1; side<=+1; side+=2){
             double t = 0.5 + side*angle;
             for (int sign=-1; sign<=1; sign+=2){
