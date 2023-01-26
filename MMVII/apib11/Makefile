@@ -38,14 +38,13 @@ endif
 SRCS:=${wildcard *.cpp}
 
 # ============ Targets
-.phony: all module clean
+.phony: all module clean install uninstall
 all: module
 
-clean:
+clean: uninstall
 	rm -f docstrings.h
 	rm -Rf build/ dist/ $(MODULE_NAME).egg-info/ __pycache__/
 	$(PYTHON) setup.py clean
-	$(PIP) uninstall -y $(MODULE_NAME)
 
 docstrings.h: ${DOC_INCLUDES} Makefile
 	pybind11-mkdoc -o $@ ${DOC_INCLUDES} ${CXXFLAGS} >/dev/null
@@ -53,5 +52,10 @@ docstrings.h: ${DOC_INCLUDES} Makefile
 module: docstrings.h ${SRCS}
 	CC="${CXX}" $(PYTHON) setup.py build
 	CC="${CXX}" $(PYTHON) setup.py bdist_wheel
+
+install: module
 	$(PIP) install --user dist/*.whl
+
+uninstall:
+	$(PIP) uninstall -y $(MODULE_NAME)
 
