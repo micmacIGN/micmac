@@ -289,6 +289,8 @@ int Init11Param_Main(int argc,char ** argv)
                                 + std::string(" FocFree=1 PPFree=1 CPI2=1 GCP=[")
                                 +  aICA.aNameFile3D + aVirg + ToString(1e-3) + aVirg
                                 +  aICA.aNameFile2D + aVirg + ToString(1e3) + "]";
+
+	     std::cout << aCom << "\n"; getchar();
               System(aCom);
                               
         }

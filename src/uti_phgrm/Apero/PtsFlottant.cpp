@@ -182,9 +182,7 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
     cXmlSauvExportAperoOneAppuis  & aXmlAp =  mAppli.CurXmlE().OneAppui().back();
     aXmlAp.Name() = mName;
 
-
-
-    if (mAppli.SqueezeDOCOAC())
+    if (mAppli.SqueezeDOCOAC())  // if we squeez compens because  , in control for example, not required
     {
         if (mHasGround)
         {
@@ -204,6 +202,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
                         anErMax = aDist;
                         aKMax = aK;
                     }
+                    if  (anObs.DetShow3D().Val())
+		        std::cout << " EcReproj="  << aDist << " ,ForPt="  << mName << " ,ForCam=" << mCams[aK]->Name()  << "\n";
                 }
             }
             if (aNbCam==0) return 0;
@@ -673,6 +673,8 @@ void cBdAppuisFlottant::Compile()
 
 void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
 {
+    bool  aShowAllDet = false;
+
     double anErrMax = -10;
     double anErrMoy = 0;
     double aSomP = 0;
@@ -690,6 +692,13 @@ void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
         double anErr = it1->second->AddObs(anObs,aSO,aCam);
         if (aCam!="")
         {
+            if (aShowAllDet)
+	    {
+		std::cout <<  " ErReproj=" << anErr  
+			  << " ForPts=" << it1->second->Name() 
+			  <<  " ForCam=" << aCam   
+			  << "\n";
+	    }
             anErrMoy += anErr;
             aSomP ++;
             if (anErr >  anErrMax)
