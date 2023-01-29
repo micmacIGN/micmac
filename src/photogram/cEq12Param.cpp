@@ -43,6 +43,37 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+static bool    SHOW_11P =true;
+
+/*
+ class cQual12Param
+{
+     public :
+       cQual12Param();
+
+       void Show();
+
+       double mMoyReproj;
+       double mMoyBundleProj;
+       double mMoyBundleIm;
+       double mPropVis;
+};
+*/
+cQual12Param::cQual12Param() :
+   mMoyReproj (0.0),
+   mMoyBundleProj (0.0),
+   mMoyBundleIm (0.0),
+   mPropVis (0.0)
+{
+}
+void cQual12Param::Show()  const
+{
+    std::cout <<   " ErProj=" << mMoyReproj
+              <<   " BundP="  << mMoyBundleProj
+              <<   " BundI="  << mMoyBundleIm
+              <<   " PVis="  << mPropVis
+    ;
+}
 
 
 /*   
@@ -99,7 +130,7 @@ std::pair<ElMatrix<double>,ElRotation3D > cEq12Parametre::ComputeOrtho(bool *Ok)
         else
            aNbBadSide++;
    }
-    if (MPD_MM())
+    if (SHOW_11P)
     {
        std::cout << "        (11p-Sides : G=" <<aNbGoodSide   << " B=" << aNbBadSide  << ")\n";
     }
@@ -145,7 +176,7 @@ std::pair<ElMatrix<double>,ElRotation3D > cEq12Parametre::ComputeOrtho(bool *Ok)
 
    //return std::pair<ElMatrix<double>,ElRotation3D> (aR,ElRotation3D(aPair.second,aQ,true));
 
-   if (MPD_MM())
+   if (SHOW_11P)
    {
        // ShowMatr("Tri", aR)  ;
        // ShowMatr("Rot", aRotC2M.Mat())  ;
@@ -231,7 +262,7 @@ std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::ComputeNonOrtho()
     }
 
     //  Test correctness on homographie computation
-    if (MPD_MM())
+    if (SHOW_11P)
     {
          // std::cout << "NBPTS=" << mVPG.size()<< "\n" ;
 	 double aSomEc =0.0;
@@ -271,7 +302,7 @@ std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::ComputeNonOrtho()
     aC = gaussj(aMat) * aPInc + aMoyP;
    
     //  Test correctness on matrix computation
-    if (MPD_MM())
+    if (SHOW_11P)
     {
 	 double aSomEc =0.0;
          for (int aK=0 ; aK <int(mVPG.size()) ; aK++)
@@ -326,6 +357,7 @@ void cEq12Parametre::ComputeOneObs(const Pt3dr & aPG,const Pt2dr & aPPhgr,const 
 
 CamStenope * cEq12Parametre::Camera11Param
              (
+	         cQual12Param & aQual,
                  const Pt2di&               aSzCam,
                  bool                       isFraserModel,
                  const std::vector<Pt3dr> & aVCPCur,
@@ -355,12 +387,6 @@ CamStenope * cEq12Parametre::Camera11Param
     double aSkew =  aMat(1,0);
 
 
-    if (MPD_MM())
-    {
-         for (size_t aKPt=0 ; aKPt<aVCPCur.size() ; aKPt++)
-         {
-         }
-    }
 
     Pt3dr aCenter =  aR.ImAff(Pt3dr(0,0,0));
     Alti = aPMoy.z;
@@ -389,24 +415,34 @@ CamStenope * cEq12Parametre::Camera11Param
     {
         aCS->SetOrientation(aR.inv());
 
-	if (MPD_MM())
+	aQual = cQual12Param();
+        if (true)
 	{
              aCS->SetOrientation(aR.inv());
+	     aCS->SetSz(aSzCam);
              // ShowMatr("Tri", aMat)  ;
              // std::cout  <<  "FocalX=" << aFX   << " " << " FocalY=" << aFY << "\n";
              // std::cout  <<  "Skew=" <<  aSkew << "\n";
-	     double aSomEc =0.0;
+	     int aNbPts=aVCPCur.size();
              for (size_t aKPt=0 ; aKPt<aVCPCur.size() ; aKPt++)
              {
                  Pt3dr aP3 = aVCPCur[aKPt];
                  Pt2dr aPIm = aVImCur[aKPt];
                  Pt2dr aPProj = aCS->Ter2Capteur(aP3);
 
-                 //  std::cout << "CSSSS Pt3=" << aP3  << " PIm=" << aPIm  << " pp=" << aPProj   << "\n";
-	         aSomEc +=   euclid(aPIm-aPProj);
+		 cArgOptionalPIsVisibleInImage aArgV;
+
+                 // std::cout << "CSSSS Pt3=" << aP3  << " PIm=" << aPIm  << " pp=" << aPProj   << " D3=" << aDB << " Vis=" << isVis   <<  " Mes=" << aArgV.mWhy << "\n";
+	         aQual.mMoyReproj     +=  euclid(aPIm-aPProj);
+	         aQual.mMoyBundleProj +=  aCS->Capteur2RayTer(aPProj).DistDoite(aP3);
+	         aQual.mMoyBundleIm   +=  aCS->Capteur2RayTer(aPIm  ).DistDoite(aP3);
+	         aQual.mPropVis       +=  aCS->PIsVisibleInImage(aP3,&aArgV); 
              }
-	     std::cout << "  EcProjCam=" << aSomEc/aVCPCur.size()  << "\n";
-	    getchar();
+	     aQual.mMoyReproj     /= aNbPts;
+	     aQual.mMoyBundleProj /= aNbPts;
+	     aQual.mMoyBundleIm   /= aNbPts;
+	     aQual.mPropVis       /= aNbPts;
+	     // aQual.Show(); std::cout << "\n"; getchar();
 	}
     }
 
@@ -416,6 +452,7 @@ CamStenope * cEq12Parametre::Camera11Param
 
 CamStenope * cEq12Parametre::RansacCamera11Param
                             (
+	                        cQual12Param & aBestQual,
                                 const Pt2di&               aSzCam,
                                 bool                       isFraserModel,
                                 const std::vector<Pt3dr> & aVCPTot,
@@ -446,7 +483,8 @@ CamStenope * cEq12Parametre::RansacCamera11Param
               }
           }
           double AltiTest,ProfTest;
-          CamStenope * aSolTest = Camera11Param(aSzCam,isFraserModel,aVCPSel,aVImSel,AltiTest,ProfTest);
+          cQual12Param  aQual;
+          CamStenope * aSolTest = Camera11Param(aQual,aSzCam,isFraserModel,aVCPSel,aVImSel,AltiTest,ProfTest);
           if (aSolTest)
           {
               std::vector<double> aVDist;
@@ -466,6 +504,7 @@ CamStenope * cEq12Parametre::RansacCamera11Param
               double aScore = aVPerc * aSomP;
               if (aScore<aScoreMin)
               {
+                  aBestQual = aQual;
                   aScoreMin = aScore;
                   aBestSol = aSolTest;
                   Alti = AltiTest;

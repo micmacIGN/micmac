@@ -35,14 +35,25 @@ struct  cPair2D3D
           cPt2dr mP2;
           cPt3dr mP3;
 };
+ 
+struct  cWeightedPair2D3D : public cPair2D3D
+{
+     public :
+          cWeightedPair2D3D(const cPair2D3D&,double aWeight=1.0);
+
+	  double mWeight;
+};
+
+
 
 /**  class for representing  set of pairs 2-3  */
 struct cSet2D3D
 {
      public :
-         typedef std::vector<cPair2D3D>   tCont2D3D;
+         typedef cWeightedPair2D3D                tPair;
+         typedef std::vector<tPair>   tCont2D3D;
 
-         void AddPair(const cPair2D3D &);
+         void AddPair(const tPair &);
          const tCont2D3D &  Pairs() const;
          void  Clear() ;
 

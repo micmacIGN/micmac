@@ -176,6 +176,9 @@ Pt3dr cOneAppuisFlottant::PInter() const
     return InterFaisceaux(mPdsIm,mCams,*mNupl);
 }
 
+
+bool DEBUG11P=false;
+
 double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO,std::string & aCamMaxErr)
 {
     mAppli.CurXmlE(true).OneAppui().push_back(cXmlSauvExportAperoOneAppuis());
@@ -295,6 +298,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
 
 
     //
+    static int aCpt=0; aCpt++;
+    DEBUG11P=(aCpt==5);
 
     const cResiduP3Inc &  aRes = mMP3TI->UsePointLiaisonGen
             (
@@ -317,7 +322,7 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
     {
         if (ShowUnUsed)
         {
-            std::cout << "NOT OK (UPL) FOR " << mName ;
+            std::cout << "NOT OK (UPL) FOR " << mName  << " Cpt=" << aCpt ;
             if (aRes.mMesPb !="")
             {
                 std::cout << " , Reason  " << aRes.mMesPb ;

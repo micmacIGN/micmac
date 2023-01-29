@@ -12,62 +12,18 @@
 
 namespace MMVII
 {
-template <class Type>  class cElemSpaceResection
+
+template <class Type>  class cUncalibSpaceRessection
 {
       public :
-           typedef cPtxd<Type,3>     tP3;
-           typedef cPolynom<Type>    tPol;
-	   typedef cTriangle<Type,3> tTri;
-           typedef tP3               tResBC;
-
-           cElemSpaceResection
+           cUncalibSpaceRessection
            (
-	        const tTri & aTriBundles,
-	        const tTri & aTriGround
+	       const cSet2D3D &
 	   );
 
-	       // intermediar called used in test, or usable in tutorials
-
-	   std::list<tResBC>  ComputeBC() const;
-           cTriangle<Type,3>  BC2LocCoord(const tResBC &) const ;
-           cIsometry3D<Type>  BC2Pose(const tResBC &) const ;
-
-
-
-	   static void OneTestCorrectness();
        private :
-           Type nNormA;
-           Type nNormB;
-           Type nNormC;
-	   // copy bundles, are unitary
-	   tP3  A;
-	   tP3  B;
-	   tP3  C;
-
-	   tP3  AB;      ///<  Vector  A -> B
-	   tP3  AC;      ///<  Vector  A -> C
-	   tP3  BC;      ///<  Vector  A -> C
-	   Type abb;     ///<  (A->B).B
-
-	   // copy of ground point coordinates, local precision
-	   tTri mTriG;
-	   tP3  gA;
-	   tP3  gB;
-	   tP3  gC;
-
-
-	   //  Square Distance between  ground points 
-	   Type  gD2AB;
-	   Type  gD2AC;
-	   Type  gD2BC;
-
-           Type  mSqPerimG;  ///<  Square Ground perimeter 
-	   //  ratio of dist
-	   Type  rABC;  ///<   mD2AB / mD2AC
-	   Type  rCBA;  ///<   mD2CB / mD2CA
-
-	   // std::list<tPairBC>  mListPair;
 };
+#if (0)
 
 template <class Type> 
    cElemSpaceResection<Type>::cElemSpaceResection
@@ -286,7 +242,7 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
 template class cElemSpaceResection<tREAL8>;
 template class cElemSpaceResection<tREAL16>;
 
-void BenchCalibResection()
+void BenchUnCalibResection()
 {
    for (int aK=0 ; aK< 1000 ; aK++)
    {
@@ -300,13 +256,13 @@ void BenchPoseEstim(cParamExeBench & aParam)
 {
    if (! aParam.NewBench("PoseEstim")) return;
 
-   BenchCalibResection();
+   BenchUnCalibResection();
    aParam.EndBench();
 }
 
 
 
-
+#endif
 
 
 }; // MMVII
