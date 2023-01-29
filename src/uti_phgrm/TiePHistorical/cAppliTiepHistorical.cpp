@@ -2560,7 +2560,7 @@ cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1
     return aSBR;
 }
 
-void Save3DXml(std::vector<Pt3dr> vPt3D, std::string aOutXml)
+void Save3DXml(std::vector<Pt3dr> vPt3D, std::string aOutXml, std::string strPrefix)
 {
     cDicoAppuisFlottant aDAFout;
 
@@ -2569,7 +2569,7 @@ void Save3DXml(std::vector<Pt3dr> vPt3D, std::string aOutXml)
         cOneAppuisDAF anAp;
 
         anAp.Pt() = vPt3D[i];
-        anAp.NamePt() = std::to_string(i);
+        anAp.NamePt() = strPrefix + std::to_string(i);
         anAp.Incertitude() = Pt3dr(1,1,1);
         aDAFout.OneAppuisDAF().push_back(anAp);
     }

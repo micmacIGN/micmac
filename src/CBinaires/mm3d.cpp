@@ -966,6 +966,7 @@ extern int GetOrthoHom_main(int argc, char ** argv);
 extern int TransmitHelmert_main(int argc, char ** argv);
 extern int TiePtPrep_main(int argc, char ** argv);
 extern int CreateGCPs4Init11p_main(int argc, char ** argv);
+extern int CreateGCPs4Init11pSamePts_main(int argc, char ** argv);
 
 
 extern int ReechHomol_main(int argc, char ** argv);
@@ -1057,7 +1058,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("GetOrthoHom", GetOrthoHom_main, "project tie points on image pairs onto orthophotos"));
         aRes.push_back(cMMCom("TransmitHelmert", TransmitHelmert_main, "Input 2 sets of 3D Helmert transformation parameters (A->C and B->C), output transimtted 3D Helmert transformation parameters (A->B)"));
         aRes.push_back(cMMCom("TiePtPrep", TiePtPrep_main, "Explaination: Add weight to inter-epoch tie points, and merge them with intra-epoch tie points"));
-        aRes.push_back(cMMCom("CreateGCPs4Init11p", CreateGCPs4Init11p_main, "Create virtual GCPs for command Init11p"));
+        aRes.push_back(cMMCom("CreateGCPs4Init11p", CreateGCPs4Init11p_main, "Create virtual GCPs for command Init11p (Define grids in each image, which leads to different sets of points for each image)"));
+        aRes.push_back(cMMCom("CreateGCPs4Init11pSamePts", CreateGCPs4Init11pSamePts_main, "Create virtual GCPs for command Init11p (Define grids in ground, which leads to the same sets of points for each image)"));
+
 
 
 		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		
