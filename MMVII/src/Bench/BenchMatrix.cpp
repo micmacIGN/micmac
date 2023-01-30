@@ -251,6 +251,27 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
              // Check Q*R == M
              MMVII_INTERNAL_ASSERT_bench(aM1.DIm().L2Dist(aDec.OriMatr().DIm())<1e-5,"Bench QR  Matrixes");
         }
+	
+        // Test RQ decomp
+	if (0) // (aSzX==aSzY) // Not finished for rect matrix ...
+        {
+             cDenseMatrix<Type> aM1Bis = aM1.Dup();
+             cResulRQ_Decomp<Type>  aDec = aM1Bis.RQ_Decomposition();
+
+             // Check do not modify
+             MMVII_INTERNAL_ASSERT_bench(aM1.DIm().L2Dist(aM1Bis.DIm())<1e-5,"Bench QR  Matrixes");
+             // Check Q is Unitary
+             MMVII_INTERNAL_ASSERT_bench(aDec.Q_Matrix().Unitarity()<1e-5,"Bench QR  Matrixes");
+             // Check R is triangular
+             MMVII_INTERNAL_ASSERT_bench( aDec.R_Matrix().TriangSupicity() <1e-5,"Bench QR  Matrixes");
+             // Check Q*R == M
+             MMVII_INTERNAL_ASSERT_bench(aM1.DIm().L2Dist(aDec.OriMatr().DIm())<1e-5,"Bench QR  Matrixes");
+        }
+
+
+
+
+
         
         {  //  Test sur transp transp = Id
            double aDtt = aM1.DIm().L2Dist(aM1.Transpose().Transpose().DIm());
@@ -995,9 +1016,11 @@ void BenchDenseMatrix0(cParamExeBench & aParam)
       
     }
 
+    /*
     TQR(3,3);
     TQR(3,5);
     TQR(5,3);
+    */
 
     cDenseVect<double> aV0(2);
     cDenseVect<double> aV1(2);

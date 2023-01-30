@@ -25219,7 +25219,6 @@ void  BinaryUnDumpFromFile(eRANSAC_HistoP & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eRANSAC_HistoP *) {return "B8F97832255E9CE1FBBF";};
 
-
 eGetPatchPair_HistoP  Str2eGetPatchPair_HistoP(const std::string & aName)
 {
    if (aName=="eBruteForce")
