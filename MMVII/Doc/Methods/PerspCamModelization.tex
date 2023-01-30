@@ -678,6 +678,7 @@ D(q)  =   P_{ol}(\rho  * (1 + k_1 \rho^ 2 + \dots) ,\theta)  \\
 =   (1 + k_1 \rho^ 2 +  k_2 \rho^ 4 \dots)  \begin{pmatrix} \rho\cos(\theta) \\ \rho \sin(\theta) \end{pmatrix} \\
 =   (1 + k_1 (x^2+y^2) +  k_2 (x^2+y^2) ^2 \dots)  \begin{pmatrix} x \\ y \end{pmatrix}
 \end{multlined}
+	\label{PolDistEucl}
 \end{equation}
 
 
@@ -988,13 +989,15 @@ can be approximated by a \emph{unique} radial distorsion plus a decentric distor
 %-----------------------------------------------------
 
 \section{Calibration as mapping "up to a rotation"}
+\label{UpToARot}
 
 \subsection{Introduction}
 
 Before going deeper in the progressive refinement in modelisation of
 distorsion, we  make a preliminary remark that is important
 to avoid over parametrization (we do it now because, this over parametrisation
-does not occurs this model previously described in~\ref{RadMod} or~\ref{DecMod}).
+does not occurs this model previously described in~\ref{RadMod} or~\ref{DecMod} 
+as we will see at the end of section).
 
 
 The function $\mathcal{I} \circ \pi_0$  of equation~\ref{FormImage1} can be seen as a function that
@@ -1034,6 +1037,7 @@ We then have :
 	\pi_0(^t R(\overrightarrow{CP}))  = H_R  (\pi_0 (\overrightarrow{CP}))
 \;\;\;  ;  \;\;\;
         \pi_0  \trans  R = H_R  \pi_0
+	\label{RotHomog}
 \end{equation}
 
 We now go back to equation~\ref{FormImage1}, and for any rotation $R'$, we insert it using $^t R'R'=Id$ :
@@ -1095,23 +1099,171 @@ and  $\mathcal{S}^h$  is a $3$ dimensionnal manifold.
 
 $\mathcal{S}^h$ and $ \mathcal{S}^i$  both contain identity  : $Id \in \mathcal{S}^h \cap \mathcal{S}^i$. 
 
-An obvious dangerous case is symbolized by left image of
-figure~\ref{fig:TanSpace},  it is when $\mathcal{S}^h \subset \mathcal{S}^i$ .
-An almost identicall dangerous case is when a non trivial subset of $\mathcal{S}^h$
-is included in  $\mathcal{S}^i$.
-
-is obviously a dangerous case for computing 
-calibration because we will have an infinite number of solution. This would be the case
-with universal model where distorsion are considered to be any smooth function.
+An obvious dangerous case, symbolized by left image of
+figure~\ref{fig:TanSpace},  is when $\mathcal{S}^h \subset \mathcal{S}^i$ .
+An almost identicall dangerous case is a non trivial subset of $\mathcal{S}^h$
+is included in  $\mathcal{S}^i$. In both case we will have an infinite set of combination
+leading to the same projection function.
 
 
+A less obvious, but still dangerous, case is symbolized by right image of figure~\ref{fig:TanSpace},
+this is the cases where the intersection of $\mathcal{S}^i$ and $\mathcal{S}^h$   is reduced to 
+identity, but the spaces are tangent at this intersection. In this case, even if there is theoretically
+a single solutions to  the projection equation, the system will be badly conditionned.
 
-Generally we will solve this difficulty by restrincting to an "adequate" subset of  $\mathcal{S}^i$ .
+Finally the ideal safe case is symbolized by middle image if figure~\ref{fig:TanSpace}, here
+the space intersec orthogonally and there is no mixing possible between $\mathcal{S}^h$ and $\mathcal{S}^i$
+For describing this "ideal" case, we have used the term of orthognality, this means that
+we  now need an euclidean structure on functions \footnote{with in left image set structure was sufficient
+and with right image diffentiable geometry was sufficient}.
+
+We will use the classical scalar product on function :
+
+\begin{equation}
+	<f_1,f_2> = \iint_D  f_1 \cdot f_2 d_x d_y  = \iint_D  (x_1 x_2 + y_1 y_2) d_x d_y \label{ProdScalFunc}
+\end{equation}
+
+The domain $D$ of integration being the sensor, we will make the hypothesis that $D$ is center rectangle 
+$D = [-\Delta_x,\Delta_x] \times [-\Delta_y,\Delta_y] $.
 
 
-Another obvious case occurs when  $\mathcal{S}^h \cap \mathcal{S}^i \neq \{Id\}$
+%-----------------------------------------------------
 
-The case where  $\mathcal{S}^h \cap \mathcal{S}^i =\{Id\}$
+\subsection{Tangent space to small homography-rotation}
+
+Now we compute a basis of the tangent space to $\mathcal{S}^h$ at point $Id$.
+The dimension of manifold $\mathcal{S}^h$ is $3$, and we can compute this basis
+by taking the $3$ rotation arround the $3$ axes $\vec{i},\vec{j},\vec{k}$.
+Let note $\Theta= \theta_x,\theta_y,\theta_z$  and $H_\Theta$ the
+combation of $3$ rotation : $\theta_x$ around $\vec{i}$ \dots
+\footnote{note that order does not really matters as we are dealing with small rotation}
+
+
+For $\vec{k}$ it's trivial, as a rotation of angle $\theta_k$ arround 
+$\vec{k}$ correspond to a rotation of angle $\theta_k$ in the plane:
+
+\begin{equation}
+	\frac{\partial H_\Theta(x,y)}{\partial \theta_z} (0,0,0) 
+	= \frac{\begin{pmatrix} \cos(\theta_z) x - \sin(\theta_z)y \\ \sin(\theta_z)x + \cos(\theta_z)y \end{pmatrix}}{\partial \theta_z}  (0,0,0)
+	= \begin{pmatrix} -y \\  x \end{pmatrix}
+\end{equation}
+
+Now consider  rotations of angle $\theta_x$ and $\theta_y$ arround $\vec{i}$ and $\vec{j}$. We have :
+
+\begin{equation}
+	R_x = \begin{pmatrix}  1 & 0 & 0 \\ 0 & \cos(\theta_x) & - \sin(\theta_x) \\ 0 & \sin(\theta_x) &  \cos(\theta_x) \end{pmatrix}
+\;\;\;  ; \;\;\;  
+	R_y = \begin{pmatrix}  \cos(\theta_y) & 0 &  \sin(\theta_y) \\ 0 & 1 & 0 \\  -\sin(\theta_y) & 0 &  \cos(\theta_y) \end{pmatrix}
+\end{equation}
+
+Then :
+
+\begin{equation}
+	\frac{\partial H_\Theta(x,y)}{\partial \theta_x} (0,0,0) 
+		= \frac{\partial \frac{\begin{pmatrix} x \\  \cos(\theta_x) y-  \sin(\theta_x)  \end{pmatrix}}
+			{\sin(\theta_x) y+\cos(\theta_x)}}{\partial \theta_x} (0,0,0)
+		=  \begin{pmatrix} -xy \\ -1 -y^2 \end{pmatrix} 
+      \label{EqDerTetax}
+\end{equation}
+
+and :
+
+\begin{equation}
+	\frac{\partial H_\Theta(x,y)}{\partial \theta_y} (0,0,0) 
+		= \frac{\partial \frac{\begin{pmatrix}   \cos(\theta_y) x+  \sin(\theta_y)  \\ y \end{pmatrix}}
+			{-\sin(\theta_y) x+\cos(\theta_y)}}{\partial \theta_y} (0,0,0)
+		=  \begin{pmatrix} 1+x^2 \\ xy  \end{pmatrix} 
+      \label{EqDerTetay}
+\end{equation}
+
+We can omit the constant term $1$ in results of equation \ref{EqDerTetax} and  \ref{EqDerTetay} (this
+term is the same as $Pp$)  and obtain a base
+for tangent space to  $\mathcal{S}^h$  at "point"  $Id$ :
+
+
+\begin{equation}
+	T_x= \begin{pmatrix}   xy  \\  y^2  \end{pmatrix}
+\;\;\;  ; \;\;\;  
+	T_y =\begin{pmatrix}   x^2 \\  xy   \end{pmatrix}
+\;\;\;  ; \;\;\;  
+	T_z = \begin{pmatrix}   y   \\  x \end{pmatrix}
+		\label{Basis:Rot2D}
+\end{equation}
+
+Note that this $3$ function are orthogonal $2$ by $2$ (it suffice to remark
+that in each monom like $xy * y= xy^2$ there is at least an exposant odd for $x$ or $y$ and that
+the domain $D$ in equation \ref{ProdScalFunc} is centered).
+
+%-----------------------------------------------------
+
+\subsection{Consequence for basic models}
+
+\subsubsection{Radial distorsion}
+
+Now the question when we analyse a model of calibration, generaly parametrized by a
+a basis of function, is \emph{is the familly independant of the basis ~\ref{Basis:Rot2D}}.:w
+
+For radial model, the answer is easy. Starting from formulation of ~\ref{PolDistEucl}
+and~\ref{Basis:Rot2D}, consider for example the term in $x$. For the radial part
+we have $x (x^2+y^2)^k$, the scalar product all include odd exponent in $x$ or $y$ :
+
+\begin{itemize}
+	\item for $T_x$ ,  $x y * x (x^2+y^2)^k$  : odd in $y$;
+	\item for $T_y$ ,  $x^2 * x (x^2+y^2)^k$  : odd in $x$;
+	\item for $T_z$ ,  $y  * x  (x^2+y^2)^k$  : odd in $x$ and $y$;
+\end{itemize}
+
+So the scalar product of \ref{ProdScalFunc} is $0$, this is the ideal case 
+
+
+\subsubsection{Decentric distorsion}
+
+We remind the basis of function used for decentric distorsion :
+
+\begin{equation}
+	  Dec_x = \begin{pmatrix} 3 x^2 + y^2 \\ 2  x y  \end{pmatrix}
+\;\;\;  ; \;\;\;  
+	  Dec_y = \begin{pmatrix}  x y   \\  x^2 + 3 y^2  \end{pmatrix}
+\end{equation}
+
+Take for example the function $Dec_x$,  we have ideal configuration for $T_x$ and $T_z$.
+Still using the odd exponent argument we see that :
+
+\begin{itemize}
+	\item $Dec_x  \bot T_x$
+	\item $Dec_x  \bot T_z$
+\end{itemize}
+
+For $Dec_x$ and $T_y$, the situation is no longer ideal, and there is a relatively
+high coorelation. At least we can check that they are not colinear and make qualitative analyse
+of their correlation by doing the following computation :
+
+
+\begin{equation}
+	Dec_x   - 3 T_y = \begin{pmatrix}  y^2   \\ -xy  \end{pmatrix}
+\;\;\;  ; \;\;\;  
+	<Dec_x   - 3 T_y ,T_y> = \iint_D (x^2y^2 -(xy)^2)   d_x d_y   =0
+\end{equation}
+
+Also assuming the domain of integration is square, we have :
+
+\begin{equation}
+	||Dec_x   - 3 T_y || ^2  = \iint_D \begin{Vmatrix}  y^2   \\ -xy  \end{Vmatrix} ^2
+	                         = \iint_D \begin{Vmatrix}  x^2   \\ xy  \end{Vmatrix} ^2
+	                         = || T_y || ^2  
+\end{equation}
+
+Let's name $\omega$ the angle between the $2$ functions  $Dec_x$ and $T_y$,  as a measurement of correlation, the ideal case being
+$\omega=\frac{\pi}{2}$, and the degenerate case $\omega=0$.  Here, as illustrated by
+figure~\ref{fig:DecTy}, we see that $\omega=\tan^{-1}({\frac13})$. Also not ideal basis relatively to
+the rotation ambiguity problem, it's still acceptable for conditionning of the system.
+
+\begin{figure}
+\centering
+	\includegraphics[width=12cm]{Methods/Images/DecxTy.jpg}\caption{Relation between functions $Dec_x$ and $T_y$}
+	\label{fig:DecTy}
+\end{figure}
+
 
 
 
@@ -1119,7 +1271,8 @@ The case where  $\mathcal{S}^h \cap \mathcal{S}^i =\{Id\}$
 %-----------------------------------------------------
 %-----------------------------------------------------
 
-\section{Sensor inclination}
+\section{Sensor inclination, and  model $PP_a\neq PP_s$ }
+\label{SenIncl}
 
 %-----------------------------------------------------
 
@@ -1127,11 +1280,162 @@ The case where  $\mathcal{S}^h \cap \mathcal{S}^i =\{Id\}$
 
 \begin{figure}
 \centering
-\includegraphics[width=12cm]{Methods/Images/PlanIncl.jpg}\caption{Notation for sensor inclination}
+\includegraphics[width=12cm]{Methods/Images/Plan_Incl_PPaPPs.jpg} \caption{Notation for sensor inclination}
 	\label{fig:PlaneIncl}
 \end{figure}
 
-The secons hypothesis  that will be questionned is the fact that the sensor is 
+The next  hypothesis  that will be questionned is the fact that the sensor is 
+orthogonal to axes $\mathcal{A}$.  Using the notation illustatred by 
+figure \ref{fig:PlaneIncl}, we will proceed this way :
+
+\begin{itemize}
+     \item  we will illustrate with the case where the inclination of sensor relatively
+	     to optical axes is done by a rotation of angle $\alpha$ arround axe $\vec{j}$;
+
+     \item  the axe of symetry of lenses is now different from normal to sensor;
+	     as the orientation of axe is arbitrary, as seen in~\ref{UpToARot},
+             we select a repair $\vec{i},\vec{j},\vec{k}$  which is still orthogonal to sensor (red repair),
+	     for computing image formula; this will maintain the usual formula
+             in case where there is no distorsion;
+
+     \item we name  $\vec{i'},\vec{j'},\vec{k'}$ the repair defined $\vec{i'}=\vec{i}$,
+	     $\vec{k'}$ the axes of symetry of the lenses, and  by completion $\vec{j'} = \vec{k'} \wedge  \vec{i'} $
+\end{itemize}
+
+Let note $R$ the rotation that transform $\vec{i},\vec{j},\vec{k}$ in $\vec{i'},\vec{j'},\vec{k'}$, we can decompose 
+the image formula this way :
+
+\begin{itemize}
+	\item  we start from  $P=(x,y,z)$  in $\vec{i},\vec{j},\vec{k}$ ;
+	\item  we apply the rotation $R$ to have its coordinates $P'=(x',y',z')$ in $\vec{i'},\vec{j'},\vec{k'}$;
+         \item we apply the radial  distorsion $D^r$ on $\pi_0(P') $
+	 \item we apply "in the plane" the inverse tranformation of $R$, this $H_{^tR}$ ;
+\end{itemize}
+
+%-----------------------------------------------------
+\subsection{mathematicall modelisation}
+
+So finaly we have the following image formula :
+
+\begin{equation}
+	q = H_{^tR} (D^r( \pi_0(R(p))))
+\end{equation}
+
+And remembering~\ref{RotHomog} we finally have for the distorsion :
+
+\begin{equation}
+	D = H_{^tR} \circ  D^r \circ   H_{R} \label{HDH}
+\end{equation}
+
+
+%-----------------------------------------------------
+\subsection{Parametric approximation}
+
+We now make an approximation which is questionnable, but generally admitted ....
+Starting from equation~\ref{EqDerTetax}, we decide the terms in $y^2$
+and $xy$ can be neglected in front of $1$.  This approximation is reasonnable
+with long focal (narrow angle) but more questionnable with short focal.  Never mind \dots
+So we have :
+
+
+\begin{equation}
+	H_{R}\begin{pmatrix} x \\ y \end{pmatrix}  \approx \begin{pmatrix} x \\ y  +\alpha \end{pmatrix}
+		= \begin{pmatrix} x \\ y  \end{pmatrix} - PP_s
+\end{equation}
+
+So assuming this approximation,  $H_{R}$ is a tranlation of $ - PP_s$ :
+
+\begin{equation}
+	H_{R} = Tr_{PP_s}
+\end{equation}
+
+So the formula ~\ref{HDH} becomes :
+
+\begin{equation}
+	D =    T^r_{[PP_s]}  \circ  D^r \circ  T^r_{[-PP_s]} \label{TDT}
+\end{equation}
+
+Analyzing formula~\ref{TDT}, we see
+that the parametric model of sensor inclination  combined with radial distorsion
+is a central distorsion of center $PP_s$, different of the \emph{so named}
+center of auto colimation $PP_a$, which is the projection of central perspective on the sensor.
+
+
+%-----------------------------------------------------
+\subsection{Note and $PP_a$ , $PP_s$ and decentric distorsion}
+\label{PPA:PPS:DEC}
+
+In section~\ref{DecMod} we have introduced the decentric distorsion that
+modelized the lenses mis-alignment.  In  section~\ref{SenIncl}
+we have introduced the separation bewteen $PP_a$ and $PP_s$ that modelize
+the sensor inclination.  It may seem natural to combine this two
+parametrization that modelize to physicall phenomenas \emph{a priori}
+different. We are going to see why this is not a good idea, and why in
+{\tt MMVII} we privilegiate the decentric distorsion parametrization.
+
+"It is \emph{well known} that  $PP_a/PP_s$ separation turn to be highly
+correlated with decentric distorsion", but it's not always explain. In fact
+it quite obvious if go back to the origin of these formula.  On one hand, we have 
+the decentric distorsion that modelize, with a Taylor expansion, two radial distorsions
+with close center of symetry, with for example $0,0$ as reference;
+on the other hand we have the $PP_a/PP_s$ separation that modelize 
+a radial distorsion with with a center different of $0,0$; so the decentric model
+can be seen as a Taylor expansion of $PP_a/PP_s$  separation, and the two model
+are identic at first order.
+
+
+We have seen that the two parametrization are similar, consequently they are
+very correlated and we cannot use them simultaneously. From practicall point of view,
+the question "is there any reason to prefer one or the other ?".
+In fact the separation between $PP_a$ and $PP_s$ has the following drawback :
+
+\begin{itemize}
+   \item when the radial distorsion $D_r$ is null and $PP_s$ is independant of $PP_a$, the 
+         $PP_s$ is completely undertermined ("you" can put it where you want, it will have no 
+         effect because disrtorsion is null \dots);
+
+   \item  if no precaution is taken, specially in first step of bundle adjustment 
+          of a new camera where the initial guess is precisely to suppose that distorsion
+          is null.
+\end{itemize}
+
+Of course there is way to overcome this kind of of problem : 
+initially fix $PP_a$ and $PP_s$ with some constraints
+
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{"Universal" model}
+
+\subsection{Assemblage camera}
+\subsection{$360$ camera}
+
+\section{Fish eye model}
+\label{SecFE}
+
+
+
+\section{Note work to do on non perspective camera}
+
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+%   --------------------------------------------------------------------------------------
+%   Previous text on sensor modeliztion;  wrong as it ignored redundance with rotation
+%
+%   Maintain it in commentary as the equation  may be usefull ...
+%
+%
+
+
+\COM{
+The next  hypothesis  that will be questionned is the fact that the sensor is 
 orthogonal to axes $\mathcal{A}$.  Using the notation illustatred by 
 figure \ref{fig:PlaneIncl}, we will proceed this way :
 
@@ -1191,34 +1495,6 @@ And solve the equation :
 	y' = \frac{y}{\cos(\alpha) -y \sin(\alpha)} =  y \;\;\; ; \;\;\;
 	x' = \frac{x}{1-y \tan(\alpha)}
 \end{equation}
-
-
-
-%-----------------------------------------------------
-%-----------------------------------------------------
-%-----------------------------------------------------
-
-\section{"Universal" model}
-
-\subsection{Assemblage camera}
-\subsection{$360$ camera}
-
-\section{Fish eye model}
-\label{SecFE}
-
-\section{Note and PPA , PPS and decentric dist}
-\label{PPA:PPS:DEC}
-
-
-\section{Note work to do on non perspective camera}
-
-
-
-%-----------------------------------------------------
-%-----------------------------------------------------
-%-----------------------------------------------------
-
-
-
+}
 
 

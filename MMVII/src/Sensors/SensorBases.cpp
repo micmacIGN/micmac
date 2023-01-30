@@ -26,11 +26,22 @@ namespace MMVII
 
 /**********************************************/
 /*                                            */
+/*           cWeightedPair2D3D                */
+/*                                            */
+/**********************************************/
+
+ cWeightedPair2D3D::cWeightedPair2D3D(const cPair2D3D & aPair,double  aW) :
+    cPair2D3D (aPair),
+    mWeight   (aW)
+{
+}
+/**********************************************/
+/*                                            */
 /*           cSet2D3D                         */
 /*                                            */
 /**********************************************/
 
-void cSet2D3D::AddPair(const cPair2D3D & aP23)
+void cSet2D3D::AddPair(const tPair & aP23)
 {
      mPairs.push_back(aP23);
 }
