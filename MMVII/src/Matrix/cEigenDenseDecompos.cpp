@@ -154,13 +154,19 @@ template <class Type> cResulQR_Decomp<Type>  cDenseMatrix<Type>::QR_Decompositio
     // cDenseMatrix<Type> aM(2,2);
     HouseholderQR<typename tNC_EW::tEigenMat > qr(aWrap.EW());
 
-    tNC_EW aWrapQ(aRes.mQ_Matrix);
-    aWrapQ.EW() = qr.householderQ();
+    //  extract the Q matrix
+    {
+        tNC_EW aWrapQ(aRes.mQ_Matrix);
+        aWrapQ.EW() = qr.householderQ();
+    }
 
-    tNC_EW aWrapR(aRes.mR_Matrix);
-    aWrapR.EW() = qr.matrixQR();
+    //  extract the R matrix
+    {
+       tNC_EW aWrapR(aRes.mR_Matrix);
+       aWrapR.EW() = qr.matrixQR();
 
-    aRes.mR_Matrix.SelfTriangSup();
+       aRes.mR_Matrix.SelfTriangSup(); // make the image triangular sup (maybe exist  residual of eigen)
+    }
 
    return aRes;
 }

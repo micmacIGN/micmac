@@ -118,6 +118,14 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
             tPB::AssertInside(aP);
             return  Value(aP);
         }
+           /// Direcct access, dangerous as no more check on values, non short name
+        Type & GetReference_V(const cPt2di & aP)  
+        {
+            tPB::AssertInside(aP);
+            return  Value(aP);
+	}
+
+
         /* No  Type & GetV() or  Type & operator()   ... as it does not allow
            to check values
         */

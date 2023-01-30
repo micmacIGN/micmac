@@ -205,6 +205,24 @@ template <class Type>  cDenseMatrix<Type> cDenseMatrix<Type>::Transpose() const
    return aRes;
 }
 
+     // ========= line inversion ===== 
+
+template <class Type>  void cDenseMatrix<Type>::SelfLineInverse() 
+{
+    for (int aY=0 ; aY< (Sz().y()/2) ; aY++)
+    {
+        int aYCompl = Sz().y()-1-aY;
+        for (int aX=0 ; aX<Sz().x() ; aX++)
+	{
+             std::swap(GetReference_V(aX,aY),GetReference_V(aX,aYCompl));
+	}
+    }
+}
+
+// tDM  LineInverse() const;  ///< cont version of SelfLineInverse
+
+     
+
      // ========= Triangular =============
 
 template <class Type>  void cDenseMatrix<Type>::SelfTriangSup()

@@ -13,6 +13,10 @@
 namespace MMVII
 {
 
+/**
+ *
+ * Class for solving the "11 parameter" equation, AKA uncalibrated resection
+ */
 template <class Type>  class cUncalibSpaceRessection
 {
       public :
@@ -23,6 +27,9 @@ template <class Type>  class cUncalibSpaceRessection
 
        private :
 };
+
+
+
 #if (0)
 
 template <class Type> 
