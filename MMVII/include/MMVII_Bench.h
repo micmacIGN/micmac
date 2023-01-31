@@ -124,6 +124,9 @@ void BenchTri2D(cParamExeBench & aParam);
 void BenchPly(cParamExeBench & aParam);
 void BenchHamming(cParamExeBench & aParam);
 void BenchPolynome(cParamExeBench & aParam);
+
+
+void BenchUnCalibResection();
 void BenchPoseEstim(cParamExeBench & aParam);
 
 

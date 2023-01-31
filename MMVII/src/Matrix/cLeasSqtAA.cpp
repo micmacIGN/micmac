@@ -158,6 +158,18 @@ template<class Type>  cLeasSqtAA<Type>::cLeasSqtAA(int aNbVar):
 {
 }
 
+
+template<class Type>  cLeasSqtAA<Type>  cLeasSqtAA<Type>::Dup() const
+{
+     cLeasSqtAA<Type>  aRes(this->NbVar());
+
+     mtAA.DIm().DupIn(aRes.mtAA.DIm());
+     mtARhs.DIm().DupIn(aRes.mtARhs.DIm());
+
+     return aRes;
+}
+
+
 template<class Type>  cLeasSqtAA<Type>::~cLeasSqtAA()
 {
     delete mBSC;

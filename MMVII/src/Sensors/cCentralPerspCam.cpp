@@ -276,14 +276,14 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
     }
 
     // create structure for map inversion
-    cComputeMapInverse aCMI
+    cComputeMapInverse<double,2> aCMI
     (
        mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
        cPt2dr(0,0),          ///< Seed point, in input space
        mInv_VDesc.size(),    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
        (*mPhgrDomain),       ///< Set of validity, in output space
        (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
-       (* mInv_CalcLSQ),     ///< Structure for computing the invert on base of function using least square
+        mInv_CalcLSQ,     ///< Structure for computing the invert on base of function using least square
        false                 ///< Not in  Test
    );
    aCMI.DoAll(mInv_Params); // compute the parameters
@@ -291,6 +291,13 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
 }
 
 
+/*
+void cPerspCamIntrCalib::UpdateLSQDistInv()
+{
+            std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim);
+}
+
+*/
 
 
 	     // ==================  geometric manips =====================
@@ -397,6 +404,30 @@ cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSz
 {
     return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf);
 }
+      //   ----  Accessor  to distorsion ----------------
+
+const std::vector<double> & cPerspCamIntrCalib::VParamDist() const { return mDir_Dist->VObs(); }
+std::vector<double> & cPerspCamIntrCalib::VParamDist() { return mDir_Dist->VObs(); }
+
+const   std::vector<cDescOneFuncDist> &  cPerspCamIntrCalib::VDescDist() const { return this->mDir_VDesc; }
+
+int cPerspCamIntrCalib::IndParamDistFromName(const std::string& aName,bool SVP) const
+{
+    for (size_t aK=0 ; aK<this->mDir_VDesc.size() ; aK++)
+        if (this->mDir_VDesc[aK].mName == aName)
+		return aK;
+    if (! SVP)
+    {
+        MMVII_UnclasseUsEr("Invalid  distorsion param :"+aName);
+    }
+    return -1;
+}
+
+double  cPerspCamIntrCalib::ParamDist(const std::string & aName) const {return VParamDist().at(IndParamDistFromName(aName));}
+void  cPerspCamIntrCalib::SetParamDist(const std::string & aName,const double&aVal) {VParamDist().at(IndParamDistFromName(aName)) = aVal;}
+bool    cPerspCamIntrCalib::IsNameParamDist(const std::string & aName) const {return VParamDist().at(IndParamDistFromName(aName,true)) >=0;}
+
+
 
       //   ----  Accessor  -  modifier ----------------
 
@@ -413,8 +444,6 @@ void cPerspCamIntrCalib::SetThresholdPixAccInv(double aThr)
 
 const std::string & cPerspCamIntrCalib::Name()   const {return mName ;}
 const cPt3di & cPerspCamIntrCalib::DegDir() const {return mDir_Degr;}
-const std::vector<double> & cPerspCamIntrCalib::VParamDist() const { return mDir_Dist->VObs(); }
-std::vector<double> & cPerspCamIntrCalib::VParamDist() { return mDir_Dist->VObs(); }
 
 const double & cPerspCamIntrCalib::F()      const {return mCSPerfect.F() ;}
 const cPt2dr & cPerspCamIntrCalib::PP()     const {return mCSPerfect.PP();}

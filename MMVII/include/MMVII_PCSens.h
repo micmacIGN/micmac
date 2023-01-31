@@ -205,8 +205,14 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cPt3di & DegDir() const;  ///< acess to direct degrees
             const std::string & Name() const;   ///< Name of the file
 
-	    std::vector<double> & VParamDist();
-	    const std::vector<double> & VParamDist() const;
+	    const std::vector<double> & VParamDist() const;  ///< vector of dist param
+	    std::vector<double> & VParamDist();    ///< vector of dist param
+            const   std::vector<cDescOneFuncDist> &  VDescDist() const;  ///< desc of dist param
+	           //  ===  Acess to individuald dist values
+	    int IndParamDistFromName(const std::string&,bool SVP=false) const; ///< get index of param from its name, -1 if none & SVP
+	    double  ParamDist(const std::string &) const; ///< recover param of dist from its name
+	    void    SetParamDist(const std::string &,const double &) ; ///< set  value of dist from its name
+	    bool    IsNameParamDist(const std::string &) const;  ///< Is it a valuable name of distosion param
 
             void SetThresholdPhgrAccInv(double); ///< modifier of threshold for accuracy inversion, photogrametric unit
             void SetThresholdPixAccInv(double);  ///< modifier of threshold for accuracy inversion, pixel  unit
@@ -215,6 +221,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cDataMapping<tREAL8,2,2>* Dir_Dist() const; ///< access to direct distorsion as a cDataMapping FOR_PYTHON
             const cDataMapping<tREAL8,2,3>* Inv_Proj() const; ///< access to inverse projection as a cDataMapping FOR_PYTHON
             const cDataInvertibleMapping<tREAL8,2>* Dir_DistInvertible() const; ///< access to inverse distorsion as a cDataMapping FOR_PYTHON
+
+            /// return a set point regulary sampled (+/-) on sensor, take care of frontier
+	    std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim);
 
     // ==================   Test & Bench ===================
 
