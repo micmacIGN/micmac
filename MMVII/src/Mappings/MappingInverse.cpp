@@ -795,6 +795,8 @@ template <class Type,const int Dim> void
          // mIn_VPtsFr.push_back(aVFrontOut[aKp]);
          // mOut_VPtsFr.push_back(aVFrontOut[aKp]);
      }
+
+     // StdOut() << "MmmmMMM O: " << mOut_VPtsInt.size() << " "<< mOut_VPtsFr.size() << " I:" << mIn_VPtsInt.size() << " " << mOut_VPtsInt.size() << "\n";
 }
      
 template <class Type,const int Dim> void  

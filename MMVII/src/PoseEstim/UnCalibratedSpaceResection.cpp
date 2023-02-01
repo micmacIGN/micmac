@@ -200,7 +200,7 @@ void BenchUnCalibResection()
                                   (
                                          cDataPerspCamIntrCalib
                                          (
-                                               "BenchCam",
+                                               "Calib_BenchUncalibResection",
                                                 eProjPC::eStenope,
                                                  cPt3di(3,1,1),
                                                 std::vector<double>(),
@@ -229,8 +229,16 @@ void BenchUnCalibResection()
           }
       }
 
+      cSensorCamPC aCam("Calib_BenchUncalibResection",cIsometry3D<tREAL8>::RandomIsom3D(100.0),aCalib);
 
+      //std::vector<double> aVDepts({1,2,3});
+      std::vector<double> aVDepts({1});
+      auto aVC =  aCam.SyntheticsCorresp3D2D(10,aVDepts).Pairs() ;
+	      StdOut() <<  "SSzzzzz " << aVC.size() << "\n";
 
+      //for (const auto &  aCor :  aVC)
+	      //StdOut() << aCor.mP2 << aCor.mP3 << "\n";
+      //aCam.SyntheticsCorresp3D2D(20,aVDepts);
 
       delete aCalib;
 }

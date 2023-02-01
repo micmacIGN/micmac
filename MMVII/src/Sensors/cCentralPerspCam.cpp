@@ -291,13 +291,28 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
 }
 
 
-/*
-void cPerspCamIntrCalib::UpdateLSQDistInv()
+std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
 {
-            std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim);
+         //const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
+    cComputeMapInverse<double,2> aCMI
+    (
+       mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
+       cPt2dr(0,0),          ///< Seed point, in input space
+       aNbByDim,    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
+       (*mPhgrDomain),       ///< Set of validity, in output space
+       (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
+        nullptr,
+       false                 ///< Not in  Test
+   );
+   aCMI.DoPts();
+
+    std::vector<cPt2dr> aRes = aCMI.GetPtsOut();
+
+    StdOut() << "JJJJJJJjjjj " << aRes << "\n";
+
+    return static_cast<const cDataInvertibleMapping<tREAL8,2>&>(mCSPerfect).Values(aRes);
 }
 
-*/
 
 
 	     // ==================  geometric manips =====================

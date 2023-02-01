@@ -167,6 +167,9 @@ template <class Type> class cIsometry3D
        /// return a 2D triangle isometric to 3d, PK in 0,0  PK->PK1 // to Ox
        static tTri2d ToPlaneZ0(int aKOut,const tTri  & aTriOut,bool Direct=true);
 
+       /// return a random isometry, amplt fix size of randomization for tr
+       static cIsometry3D<Type> RandomIsom3D(const Type & AmplPt);
+
 
        void SetRotation(const cRotation3D<Type> &);
 

@@ -222,8 +222,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cDataMapping<tREAL8,2,3>* Inv_Proj() const; ///< access to inverse projection as a cDataMapping FOR_PYTHON
             const cDataInvertibleMapping<tREAL8,2>* Dir_DistInvertible() const; ///< access to inverse distorsion as a cDataMapping FOR_PYTHON
 
-            /// return a set point regulary sampled (+/-) on sensor, take care of frontier
-	    std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim);
+            /// point on grid
+	    std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const ;
+
 
     // ==================   Test & Bench ===================
 
@@ -316,6 +317,7 @@ class cSensorCamPC : public cSensorImage
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
 
+         std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
 
 	 // different accessor to the pose
          const tPose &   Pose()   const;
