@@ -180,8 +180,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
                 ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
             void UpdateLSQDistInv();
 
-            ///  call "UpdateLSQDistInv" if first time
-            void UpdateLSQDistInvIfFirst() const;
+            void UpdateLSQDistIfRequired() const;
 
                 /// manye delete in destructor ....
             ~cPerspCamIntrCalib();
@@ -298,6 +297,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 
             cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
             cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
+            bool                                 mInvIsUpToDate;        
 
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
