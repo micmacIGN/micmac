@@ -479,6 +479,7 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       // Accessors 
       const tDataMap *     RoughInv() const ;
       const Type & DTolInv() const;
+      void SetDTolInv(const Type &);
       /// Access to the structure, only needed in some bench to create artificial difficult situations
       tHelperInvertIter *  StrInvertIter() const;
 

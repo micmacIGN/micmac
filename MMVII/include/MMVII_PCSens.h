@@ -289,13 +289,16 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mInvApproxLSQ_Dist;   ///< approximate LSQ invert disorstion  R2->R2
             cCalculator<tREAL8> *                mInv_BaseFDist;  ///<  base of function for inverse distortion
             cLeastSqCompMapCalcSymb<tREAL8,2,2>* mInv_CalcLSQ;  ///< structure for least square estimation
-            cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
-            cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
-            tREAL8                               mThreshJacPI; ///< threshlod for jacobian in pseudo inversion
+
 
             double                               mThresholdPhgrAccInv; ///< threshold for accurracy in inversion (photogram units)
             double                               mThresholdPixAccInv;  ///< threshold for accurracy in inversion (pixels    units)
             int                                  mNbIterInv;           ///< maximal number of iteration in inversion
+            tREAL8                               mThreshJacPI; ///< threshlod for jacobian in pseudo inversion
+
+            cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
+            cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
+
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
 

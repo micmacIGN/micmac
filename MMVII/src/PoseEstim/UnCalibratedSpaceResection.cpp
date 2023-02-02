@@ -188,13 +188,14 @@ template <class Type>  void  cUncalibSpaceRessection<Type>::AddOneEquation(const
 
 void BenchUnCalibResection()
 {
+	return;
      cPt2di  aSz(3000,2000);
      tREAL8  aFoc(4000);
      cPt2dr  aPP(1250.0,1100.0);
      double  aB1 = 0.9;
      double  aB2 = -1.2;
 
-aB1=-0.8; aB2=0.3;
+// aB1=-0.8; aB2=0.3;
 
      StdOut() << "xxxxxxxxxxBenchUnCalibResection  \n";
 

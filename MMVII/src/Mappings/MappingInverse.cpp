@@ -442,6 +442,13 @@ template <class Type,const int Dim>
    return mDTolInv;
 }
 
+template <class Type,const int Dim>
+  void cDataIterInvertMapping<Type,Dim>::SetDTolInv( const Type & aTol)
+{
+    mDTolInv =aTol;
+}
+
+
 
 template <class Type,const int Dim>
     const typename cDataIterInvertMapping<Type,Dim>::tVecPt & 
