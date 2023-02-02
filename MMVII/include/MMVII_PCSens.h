@@ -180,6 +180,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
                 ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
             void UpdateLSQDistInv();
 
+            ///  call "UpdateLSQDistInv" if first time
+            void UpdateLSQDistInvIfFirst() const;
+
                 /// manye delete in destructor ....
             ~cPerspCamIntrCalib();
 

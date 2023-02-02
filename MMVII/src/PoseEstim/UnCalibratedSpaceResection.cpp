@@ -194,6 +194,8 @@ void BenchUnCalibResection()
      double  aB1 = 0.9;
      double  aB2 = -1.2;
 
+aB1=-0.8; aB2=0.3;
+
      StdOut() << "xxxxxxxxxxBenchUnCalibResection  \n";
 
       cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::Alloc

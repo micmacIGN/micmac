@@ -290,10 +290,19 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
    mInvApproxLSQ_Dist->SetObs(mInv_Params); // set these parameters in approx inverse
 }
 
+void cPerspCamIntrCalib::UpdateLSQDistInvIfFirst() const
+{
+     if (mInvApproxLSQ_Dist==nullptr)
+     {
+         const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
+     }
+}
+
 
 std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
 {
-         //const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
+    UpdateLSQDistInvIfFirst();
+
     cComputeMapInverse<double,2> aCMI
     (
        mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
@@ -307,10 +316,15 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
    aCMI.DoPts();
 
     std::vector<cPt2dr> aRes = aCMI.GetPtsOut();
+    aRes = static_cast<const cDataInvertibleMapping<tREAL8,2>&>(mCSPerfect).Values(aRes);
 
     StdOut() << "JJJJJJJjjjj " << aRes << "\n";
 
-    return static_cast<const cDataInvertibleMapping<tREAL8,2>&>(mCSPerfect).Values(aRes);
+    StdOut() <<  "Ccccccccccc " << mCSPerfect.Value(cPt2dr(0,0)) << "\n";
+    StdOut() <<  "Ccccccccccc " << mCSPerfect.Value(cPt2dr(1,1)) << "\n";
+getchar();
+
+    return aRes;
 }
 
 
@@ -338,10 +352,8 @@ double cPerspCamIntrCalib::Visibility(const cPt3dr & aP) const
 {
      double MaxCalc = 100.0;
 
-     if (mInvApproxLSQ_Dist==nullptr)
-     {
-         const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
-     }
+     UpdateLSQDistInvIfFirst();
+     
      cPt2dr aPphgr = mDir_Proj->Value(aP);
      cPt2dr aPDist  = mDir_Dist->Value(aPphgr);
 
@@ -367,10 +379,8 @@ double cPerspCamIntrCalib::Visibility(const cPt3dr & aP) const
 
 const  std::vector<cPt3dr> &  cPerspCamIntrCalib::Inverses(tVecIn & aV3 ,const tVecOut & aV0 ) const 
 {
-     if (mInvApproxLSQ_Dist==nullptr)
-     {
-         const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
-     }
+     UpdateLSQDistInvIfFirst();
+
      static tVecOut aV1,aV2;
      mInv_CSP.Values(aV1,aV0);
      mDist_DirInvertible->Inverses(aV2,aV1);
@@ -404,8 +414,7 @@ void cPerspCamIntrCalib::OnUpdate()
 {
    // The inverst for dist and csp must be recomputed
     mInv_CSP       = mCSPerfect.MapInverse();
-    if (mInvApproxLSQ_Dist!=nullptr)
-       UpdateLSQDistInv();
+    UpdateLSQDistInvIfFirst();
 }
 
 void cPerspCamIntrCalib::PutUknowsInSetInterval() 
@@ -470,19 +479,15 @@ const cDataMapping<tREAL8,2,2>* cPerspCamIntrCalib::Dir_Dist() const { return mD
 
 const cDataMapping<tREAL8,2,3>* cPerspCamIntrCalib::Inv_Proj() const
 {
-    if (mInvApproxLSQ_Dist==nullptr)
-    {
-        const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
-    }
+    UpdateLSQDistInvIfFirst();
+
     return mInv_Proj;
 }
 
 const cDataInvertibleMapping<tREAL8,2>* cPerspCamIntrCalib::Dir_DistInvertible() const
 {
-    if (mInvApproxLSQ_Dist==nullptr)
-    {
-        const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
-    }
+    UpdateLSQDistInvIfFirst();
+
     return mDist_DirInvertible;
 }
 
