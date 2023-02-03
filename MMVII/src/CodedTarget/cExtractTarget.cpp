@@ -20,6 +20,11 @@
 
 namespace MMVII
 {
+
+/// Calc for target shape, Uk={cx,cy,a,b,alpha,beta} Obs={x,y,v}
+NS_SymbolicDerivative::cCalculator<double> * EqTargetShape(bool WithDerive,int aSzBuf);
+
+
 void TestParamTarg();
 
 

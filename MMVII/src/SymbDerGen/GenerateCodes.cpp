@@ -6,6 +6,7 @@
 #include "Formulas_Geom2D.h"
 #include "Formulas_Radiom.h"
 #include "Formulas_Geom3D.h"
+#include "Formulas_Targets.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
 
@@ -209,6 +210,18 @@ cCalculator<double> * EqTopoSubFrame(bool WithDerive,int aSzBuf)
 {
     return TplEqTopoSubFrame<double>(WithDerive,aSzBuf);
 }
+
+// target shape
+template <class Type> cCalculator<Type> * TplTargetShape(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cTargetShape(),WithDerive),aSzBuf);
+}
+
+cCalculator<double> * EqTargetShape(bool WithDerive,int aSzBuf)
+{
+    return TplTargetShape<double>(WithDerive,aSzBuf);
+}
+
 
 /* **************************** */
 /*      BENCH  PART             */
@@ -523,6 +536,8 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cDist3D(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cDist3DParam(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cTopoSubFrame(),WithDer);
+
+       GenCodesFormula((tREAL8*)nullptr,cTargetShape(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
