@@ -2,6 +2,8 @@
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include "include/MMVII_Tpl_Images.h"
 #include "src/Matrix/MMVII_EigenWrap.h"
+#include "MMVII_PhgrDist.h"
+#include "SymbDer/SymbDer_Common.h"
 #include <random>
 #include <bitset>
 #include <time.h>
@@ -21,8 +23,97 @@
 namespace MMVII
 {
 
+using namespace NS_SymbolicDerivative;
+
 /// Calc for target shape, Uk={cx,cy,a,b,alpha,beta} Obs={x,y,v}
-NS_SymbolicDerivative::cCalculator<double> * EqTargetShape(bool WithDerive,int aSzBuf);
+cCalculator<double> * EqTargetShape(bool WithDerive,int aSzBuf);
+
+
+class cTargetShapeUnknowns : public cObjWithUnkowns<tREAL8>
+{
+public:
+    cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta);
+    void PutUknowsInSetInterval() override ;///< describes its unknowns
+    void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
+    std::string toString();
+    std::vector<int> getIndices();
+    std::vector<tREAL8> params;
+    tREAL8 & cx() {return params[0];}
+    tREAL8 & cy() {return params[1];}
+    tREAL8 & a() {return params[2];}
+    tREAL8 & b() {return params[3];}
+    tREAL8 & alpha() {return params[4];}
+    tREAL8 & beta() {return params[5];}
+};
+cTargetShapeUnknowns::cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta) :
+    params({cx, cy, a, b, alpha, beta}) { }
+void cTargetShapeUnknowns::PutUknowsInSetInterval()
+{
+    mSetInterv->AddOneInterv(params);
+}
+
+void cTargetShapeUnknowns::OnUpdate() { }
+
+std::vector<int> cTargetShapeUnknowns::getIndices()
+{
+    std::vector<int> indices;
+    std::transform(params.begin(), params.end(), std::back_inserter(indices),
+                           [&](tREAL8 p) { return (int)IndOfVal(&p); });
+    return indices;
+}
+
+
+class cShapeComp
+{
+public:
+    cShapeComp(cIm2D<tREAL4> * aIm, cTargetShapeUnknowns * aTarg);
+    ~cShapeComp();
+    bool OneIteration(); ///< returns true if has to continue iterations
+    cResolSysNonLinear<double>* getSys() const {return mSys;}
+private:
+    cIm2D<tREAL4> * mIm;
+    cTargetShapeUnknowns * mTarg;
+    cSetInterUK_MultipeObj<double> *mSetIntervMultObj;
+    cResolSysNonLinear<double>*  mSys;
+    cCalculator<double>* mCalc;
+};
+
+cShapeComp::cShapeComp(cIm2D<tREAL4> * aIm, cTargetShapeUnknowns * aTarg) :
+    mIm(aIm), mTarg(aTarg), mSetIntervMultObj(new cSetInterUK_MultipeObj<double>()),
+    mSys(nullptr), mCalc(EqTargetShape(true,1))
+{
+    mSetIntervMultObj->AddOneObj(mTarg);
+    cDenseVect<double> aVUk = mSetIntervMultObj->GetVUnKnowns();
+    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqNormSparse,aVUk);
+}
+
+cShapeComp::~cShapeComp()
+{
+    delete mCalc;
+    delete mSys;
+    delete mSetIntervMultObj;
+}
+
+bool cShapeComp::OneIteration()
+{
+    //add observations
+    for (int x = mTarg->cx()-mTarg->a(); x < mTarg->cx()+mTarg->a(); ++x)
+        for (int y = mTarg->cy()-mTarg->a(); y < mTarg->cy()+mTarg->a(); ++y)
+            mSys->CalcAndAddObs(mCalc, mTarg->getIndices(), {static_cast<tREAL8>(x), static_cast<tREAL8>(y), mIm->DIm().GetV({x, y}), 0.1});
+
+    //solve
+    try
+    {
+        const auto & aVectSol = mSys->SolveUpdateReset();
+        mSetIntervMultObj->SetVUnKnowns(aVectSol); //update params
+    } catch(...) {
+        StdOut()  <<  " Error solving system...\n";
+        return false;
+    }
+    StdOut()<<".";
+
+    return true;
+}
 
 
 void TestParamTarg();
@@ -642,13 +733,13 @@ void  cAppliExtractCodeTarget::DoExtract(){
              sigma0 = sqrt( sigma0 / (mPoints.size()*2-6) );
 
              cartesianToNaturalEllipse(param, ellipse);
-             if (sigma0>ellipse[3]/4.0) continue;
+             if (sigma0>ellipse[3]/5.0) continue;
 
              if ((ellipse[2]<3)||(ellipse[3]<3))
                  continue;
-             if (ellipse[2]/ellipse[3]>4)
+             if (ellipse[2]/ellipse[3]>3)
                  continue;
-             if ((fabs(ellipse[0]-aPtrDCT->mPt.x())>10)||(fabs(ellipse[1]-aPtrDCT->mPt.y())>10))
+             if ((fabs(ellipse[0]-aPtrDCT->mPt.x())>3)||(fabs(ellipse[1]-aPtrDCT->mPt.y())>3))
                  continue;
 
              StdOut()  << "Selection: " << aPtrDCT->mPt << " ";
@@ -657,6 +748,15 @@ void  cAppliExtractCodeTarget::DoExtract(){
              mImVisu.SetRGBrectWithAlpha(aPtrDCT->Pix(), 0, cRGBImage::Magenta, 0.0);
              for (auto& pt:mPoints)
                  mImVisu.SetRGBrectWithAlpha(cPt2di(pt.x(),pt.y()), 0, cRGBImage::Green, 0.0);
+
+             // target shape params
+             auto cx = ellipse[0];
+             auto cy = ellipse[1];
+             auto a =  ellipse[2];
+             auto b =  ellipse[3];
+             auto alpha = ellipse[4];
+             auto beta = alpha + PI/2;
+
 
      }
 /*
@@ -2159,8 +2259,6 @@ int  cAppliExtractCodeTarget::Exe(){
         StdOut() << "ok (" << mGTResSim.mVG.size() << " targets loaded)\n";
     }
     // -------------------------------------------------------------------------------------
-
-
 
    if (IsInit(&mPatExportF))
        mTestedFilters = SubOfPat<eDCTFilters>(mPatExportF,true);
