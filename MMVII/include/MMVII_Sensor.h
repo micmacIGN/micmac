@@ -60,6 +60,11 @@ struct cSet2D3D
          const tCont2D3D &  Pairs() const;
          void  Clear() ;
 
+	 /// compute  weighted centroid
+	 cWeightedPair2D3D  Centroid() const;
+
+	 /// subsract a pair to all
+	 void Substract(const cPair2D3D&);
      private :
         tCont2D3D  mPairs;
 };

@@ -67,6 +67,32 @@ void  cSet2D3D::Clear()
 	mPairs.clear();
 }
 
+cWeightedPair2D3D  cSet2D3D::Centroid() const
+{
+    cPt2dr aSP2(0,0);
+    cPt3dr aSP3(0,0,0);
+    double aSW=0;
+    for (const auto & aPair : mPairs)
+    {
+	    aSP2 += aPair.mP2 * aPair.mWeight;
+	    aSP3 += aPair.mP3 * aPair.mWeight;
+	    aSW += aPair.mWeight;
+    }
+    return cWeightedPair2D3D(aSP2/aSW,aSP3/aSW,aSW);
+}
+
+void cSet2D3D::Substract(const cPair2D3D& aSub)
+{
+    for (auto  & aPair : mPairs)
+    {
+        aPair.mP2 =  aPair.mP2-aSub.mP2;
+        aPair.mP3 =  aPair.mP3-aSub.mP3;
+    }
+}
+
+
+
+
 /* ******************************************************* */
 /*                                                         */
 /*                    cPixelDomain                         */

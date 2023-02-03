@@ -320,11 +320,12 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
     std::vector<cPt2dr> aRes = aCMI.GetPtsOut();
     aRes = static_cast<const cDataInvertibleMapping<tREAL8,2>&>(mCSPerfect).Values(aRes);
 
+    /*
     StdOut() << "JJJJJJJjjjj " << aRes << "\n";
-
     StdOut() <<  "Ccccccccccc " << mCSPerfect.Value(cPt2dr(0,0)) << "\n";
     StdOut() <<  "Ccccccccccc " << mCSPerfect.Value(cPt2dr(1,1)) << "\n";
 getchar();
+*/
 
     return aRes;
 }

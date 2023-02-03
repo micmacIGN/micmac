@@ -552,6 +552,7 @@ template <class Type,const int Dim>
     cInvertMappingFromElem<cBijAffMapElem<Type,Dim> > aMap(aDif.MapInverse()); // Compute inverse mapping
 
     cTplBox<Type,Dim> aRes=  aMap.BoxOfCorners(mSet.Box());  // compute recripoque image of box out
+
     return aRes;
 
 }
@@ -658,7 +659,8 @@ template <class Type,const int Dim>
        mLSQ           (aLSQ),
        mBoxByJac      (BoxInByJacobian()),
        mBoxMaj        (mBoxByJac.ScaleCentered(1/(1-mThresholdJac))),
-       mStep          (NormInf(mBoxByJac.Sz()) / aNbPts),
+       // mStep          (NormInf(mBoxByJac.Sz()) / aNbPts),
+       mStep          (MinAbsCoord(mBoxByJac.Sz()) / aNbPts),
        mBoxPix        (ToPix(mBoxMaj.P0()), ToPix(mBoxMaj.P1())),
        mMarker        (mBoxPix.P0(),mBoxPix.P1()),
        mJacInv0       (1,1),
@@ -725,6 +727,7 @@ template <class Type,const int Dim> void
      mMarker.InitInteriorAndBorder(Type(eLabelIm_CMI::eFree),Type(eLabelIm_CMI::eBorder));
 
      tPtI aPixSeed = ToPix(mPSeed);
+
      MMVII_INTERNAL_ASSERT_tiny( mMarker.Inside(aPixSeed),"Seed outside in Map Inverse");
      MMVII_INTERNAL_ASSERT_tiny( mMarker.VI_GetV(aPixSeed)==int(eLabelIm_CMI::eFree),"Seed bored Map Inverse");
 
