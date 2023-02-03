@@ -219,6 +219,27 @@ template <class Type>  void cDenseMatrix<Type>::SelfLineInverse()
     }
 }
 
+template <class Type>  cDenseMatrix<Type> cDenseMatrix<Type>::LineInverse() const
+{
+    cDenseMatrix<Type> aRes = Dup();
+    aRes.SelfLineInverse();
+
+    return aRes;
+}
+
+template <class Type>  void cDenseMatrix<Type>::SelfColInverse() 
+{
+    for (int aX=0 ; aX<Sz().x()/2 ; aX++)
+    {
+        int aXCompl = Sz().x()-1-aX;
+        for (int aY=0 ; aY< Sz().y() ; aY++)
+	{
+             std::swap(GetReference_V(aX,aY),GetReference_V(aXCompl,aY));
+	}
+    }
+}
+
+
 // tDM  LineInverse() const;  ///< cont version of SelfLineInverse
 
      

@@ -186,6 +186,10 @@ std::string  cSensorCamPC::NameOri_From_Image(const std::string & aNameImage)
    return cSensorImage::NameOri_From_PrefixAndImage(PrefixName(),aNameImage);
 }
 
+std::vector<cPt2dr>  cSensorCamPC::PtsSampledOnSensor(int aNbByDim) const 
+{
+     return  mInternalCalib->PtsSampledOnSensor(aNbByDim);
+}
 
 
 std::string  cSensorCamPC::V_PrefixName() const { return PrefixName() ; }

@@ -300,6 +300,8 @@ void BenchPoseEstim(cParamExeBench & aParam)
 {
    if (! aParam.NewBench("PoseEstim")) return;
 
+   BenchUnCalibResection();
+
    BenchCalibResection();
    aParam.EndBench();
 }

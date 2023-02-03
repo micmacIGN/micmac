@@ -3,6 +3,7 @@
 
 #include "MMVII_AllClassDeclare.h"
 #include "MMVII_nums.h"
+#include "MMVII_memory.h"
 
 namespace MMVII
 {

@@ -180,6 +180,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
                 ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
             void UpdateLSQDistInv();
 
+            void UpdateLSQDistIfRequired() const;
+
                 /// manye delete in destructor ....
             ~cPerspCamIntrCalib();
 
@@ -205,8 +207,14 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cPt3di & DegDir() const;  ///< acess to direct degrees
             const std::string & Name() const;   ///< Name of the file
 
-	    std::vector<double> & VParamDist();
-	    const std::vector<double> & VParamDist() const;
+	    const std::vector<double> & VParamDist() const;  ///< vector of dist param
+	    std::vector<double> & VParamDist();    ///< vector of dist param
+            const   std::vector<cDescOneFuncDist> &  VDescDist() const;  ///< desc of dist param
+	           //  ===  Acess to individuald dist values
+	    int IndParamDistFromName(const std::string&,bool SVP=false) const; ///< get index of param from its name, -1 if none & SVP
+	    double  ParamDist(const std::string &) const; ///< recover param of dist from its name
+	    void    SetParamDist(const std::string &,const double &) ; ///< set  value of dist from its name
+	    bool    IsNameParamDist(const std::string &) const;  ///< Is it a valuable name of distosion param
 
             void SetThresholdPhgrAccInv(double); ///< modifier of threshold for accuracy inversion, photogrametric unit
             void SetThresholdPixAccInv(double);  ///< modifier of threshold for accuracy inversion, pixel  unit
@@ -215,6 +223,10 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cDataMapping<tREAL8,2,2>* Dir_Dist() const; ///< access to direct distorsion as a cDataMapping FOR_PYTHON
             const cDataMapping<tREAL8,2,3>* Inv_Proj() const; ///< access to inverse projection as a cDataMapping FOR_PYTHON
             const cDataInvertibleMapping<tREAL8,2>* Dir_DistInvertible() const; ///< access to inverse distorsion as a cDataMapping FOR_PYTHON
+
+            /// point on grid
+	    std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const ;
+
 
     // ==================   Test & Bench ===================
 
@@ -276,13 +288,17 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mInvApproxLSQ_Dist;   ///< approximate LSQ invert disorstion  R2->R2
             cCalculator<tREAL8> *                mInv_BaseFDist;  ///<  base of function for inverse distortion
             cLeastSqCompMapCalcSymb<tREAL8,2,2>* mInv_CalcLSQ;  ///< structure for least square estimation
-            cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
-            cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
-            tREAL8                               mThreshJacPI; ///< threshlod for jacobian in pseudo inversion
+
 
             double                               mThresholdPhgrAccInv; ///< threshold for accurracy in inversion (photogram units)
             double                               mThresholdPixAccInv;  ///< threshold for accurracy in inversion (pixels    units)
             int                                  mNbIterInv;           ///< maximal number of iteration in inversion
+            tREAL8                               mThreshJacPI; ///< threshlod for jacobian in pseudo inversion
+
+            cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
+            cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
+            bool                                 mInvIsUpToDate;        
+
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
 
@@ -307,6 +323,7 @@ class cSensorCamPC : public cSensorImage
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
 
+         std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
 
 	 // different accessor to the pose
          const tPose &   Pose()   const;

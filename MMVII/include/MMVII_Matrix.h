@@ -412,7 +412,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tRSVD  SVD() const;
 
         cResulQR_Decomp<Type>    QR_Decomposition() const;
-        cResulQR_Decomp<Type>    RQ_Decomposition() const;
+        cResulRQ_Decomp<Type>    RQ_Decomposition() const;
         cResulEigenDecomp<Type>  Eigen_Decomposition() const;
 
 
@@ -437,6 +437,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 	  
         void SelfLineInverse() ;  ///< line inversion   (L1 L2 .. LN) =>   (LN ... L2 L1) ,  used for RQ decomposition (QR => RQ)
         tDM  LineInverse() const;  ///< cont version of SelfLineInverse
+        void SelfColInverse() ;  ///< colum inversion   ,  used for RQ decomposition (QR => RQ)
          
         double Diagonalicity() const; ///< how much close to a diagonal matrix, square only , 
         Type   Det() const;  ///< compute the determinant, not sur optimise
@@ -521,25 +522,36 @@ template <class Type> class cResulSVDDecomp
 template <class Type> class cResulQR_Decomp
 {
     public :
-        friend class cDenseMatrix<Type>;
+        typedef cDenseMatrix<Type> tDM;
+        // friend class tDM;
+        friend tDM;
 
-        cDenseMatrix<Type>  OriMatr() const;  // R * Q
+        cDenseMatrix<Type>  OriMatr() const;  // Q * R
 
-        const cDenseMatrix<Type> &  Q_Matrix() const; ///< Unitary
-        const cDenseMatrix<Type> &  R_Matrix() const; ///< Triang
+        const tDM &  Q_Matrix() const; ///< Unitary
+        const tDM &  R_Matrix() const; ///< Triang
 
-    protected :
+    private :
         cResulQR_Decomp(int aSzX,int aSzY);
-        cDenseMatrix<Type>  mQ_Matrix; ///< Unitary Matrix
-        cDenseMatrix<Type>  mR_Matrix; ///< Triangular superior
+    protected :
+        cResulQR_Decomp(const tDM&,const tDM &);
+
+        tDM  mQ_Matrix; ///< Unitary Matrix
+        tDM  mR_Matrix; ///< Triangular superior
 
 };
 
 template <class Type> class cResulRQ_Decomp : public cResulQR_Decomp<Type>
 {
     public :
-        friend class cDenseMatrix<Type>;
-        cDenseMatrix<Type>  OriMatr() const;  // Q * R
+        typedef cDenseMatrix<Type> tDM;
+        //friend class tDM;
+        friend tDM;
+
+        tDM  OriMatr() const;  // R * Q
+
+    private :
+        cResulRQ_Decomp(const tDM&,const tDM &);
 };
 
 
@@ -778,6 +790,7 @@ template<class Type> class cSymMeasure
 
 #define CHECK_SZPT_VECT(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz()==aPT.TheDim,"Bad size in Vec/Pt")
 
+template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L1,const cPtxd<Type,3> &L2,const cPtxd<Type,3> &L3);
 
 template <class Type,int Dim> void GetCol(cPtxd<Type,Dim> &,const cDenseMatrix<Type> &,int aCol);
 // template <class Type,int Dim> cPtxd<Type,Dim> GetCol(const cDenseMatrix<Type> &,int aCol);

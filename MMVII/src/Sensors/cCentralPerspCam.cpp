@@ -61,6 +61,12 @@ cDataPerspCamIntrCalib:: cDataPerspCamIntrCalib
     mInv_Degr        (aDegPseudoInv),
     mSzBuf           (aSzBuf)
 {
+    // correct vect param, when first use, parameter can be empty meaning all 0  
+    if (mVTmpCopyParams.size() != mDir_VDesc.size())
+    {
+       MMVII_INTERNAL_ASSERT_strong(mVTmpCopyParams.empty(),"cPerspCamIntrCalib Bad size for params");
+       mVTmpCopyParams.resize(mDir_VDesc.size(),0.0);
+    }
 }
 
 cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
@@ -165,53 +171,47 @@ cPerspCamIntrCalib::cPerspCamIntrCalib(const cDataPerspCamIntrCalib & aData) :
     mDefProj            (cDefProjPerspC::ProjOfType(mTypeProj)),
     mPixDomain          (&mDataPixDomain),
 	// ------------ direct -------------
-    mDir_Proj           (nullptr),
-    mDir_Dist           (nullptr),
+    mDir_Proj           ( new  cDataMapCalcSymbDer<tREAL8,3,2>
+                               (
+                                    EqCPProjDir(mTypeProj,false,mSzBuf),   // equatio, w/o derivative
+                                    EqCPProjDir(mTypeProj,true,mSzBuf),    // equation with derivatives
+			            std::vector<double>(),                 // parameters, empty here
+			            true                                   // equations are "adopted" (i.e will be deleted in destuctor)
+                               )
+                        ),
+    mDir_Dist           (NewMapOfDist(mDir_Degr,mVTmpCopyParams,mSzBuf)),
 	// ------------ inverse -------------
     mInv_CSP            (mCSPerfect.MapInverse()),
     mPhgrDomain         (new cDataMappedBoundedSet<tREAL8,2>(&mPixDomain,&mInv_CSP,false,false)),
     mInv_VDesc          (DescDist(mInv_Degr)),
     mInv_Params         (mInv_VDesc.size(),0.0),
-    mInvApproxLSQ_Dist  (nullptr),
-    mInv_BaseFDist      (nullptr),
-    mInv_CalcLSQ        (nullptr),
-    mDist_DirInvertible (nullptr),
-    mInv_Proj           (nullptr),
-    mThreshJacPI        (0.5),
-    mNbIterInv          (10)
+    mInvApproxLSQ_Dist  (NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf)),
+    mInv_BaseFDist      (EqBaseFuncDist(mInv_Degr,mSzBuf)),
+    mInv_CalcLSQ        (new cLeastSqCompMapCalcSymb<tREAL8,2,2>(mInv_BaseFDist)),
+    mThresholdPhgrAccInv (1e-9),
+    mThresholdPixAccInv  (mThresholdPhgrAccInv * F()),
+    mNbIterInv           (10),
+    mThreshJacPI         (0.5),
+    mDist_DirInvertible  (new cDataIIMFromMap<tREAL8,2> (mDir_Dist,mInvApproxLSQ_Dist,mThresholdPhgrAccInv,mNbIterInv,false,false)),
+    mInv_Proj            ( new  cDataMapCalcSymbDer<tREAL8,2,3>
+                               (
+                                    EqCPProjInv(mTypeProj,false,mSzBuf),   // equatio, w/o derivative
+                                    EqCPProjInv(mTypeProj,true,mSzBuf),    // equation with derivatives
+			            std::vector<double>(),                 // parameters, empty here
+			            true                                   // equations are "adopted" (i.e will be deleted in destuctor)
+                               )
+		         ),
+    mInvIsUpToDate       (false)
 {
-     SetThresholdPixAccInv(1e-3);
-
-        // 1 - construct direct parameters
-	
-    // correct vect param, when first use, parameter can be empty meaning all 0  
-    if (mVTmpCopyParams.size() != mDir_VDesc.size())
-    {
-       MMVII_INTERNAL_ASSERT_strong(mVTmpCopyParams.empty(),"cPerspCamIntrCalib Bad size for params");
-       mVTmpCopyParams.resize(mDir_VDesc.size(),0.0);
-    }
-    
-    mDir_Proj = new  cDataMapCalcSymbDer<tREAL8,3,2>
-                     (
-                          EqCPProjDir(mTypeProj,false,mSzBuf),   // equatio, w/o derivative
-                          EqCPProjDir(mTypeProj,true,mSzBuf),    // equation with derivatives
-			  std::vector<double>(),                 // parameters, empty here
-			  true                                   // equations are "adopted" (i.e will be deleted in destuctor)
-                     );
-
-    // TO CHANGE SUPRRESS DIR PARAM GET ACESS TO mDir_Dist
-    // MMVII_WARGING("TO CHANGE SUPRRESS DIR PARAM GET ACESS TO mDir_Dist");
-    mDir_Dist = NewMapOfDist(mDir_Degr,mVTmpCopyParams,mSzBuf);
     mVTmpCopyParams.clear();
-
-        // 2 - construct direct parameters
-
 }
 
 
 cPerspCamIntrCalib * cPerspCamIntrCalib::Alloc(const cDataPerspCamIntrCalib & aData)
 {
-	return new cPerspCamIntrCalib(aData);
+     cPerspCamIntrCalib * aRes =  new cPerspCamIntrCalib(aData);
+
+     return aRes;
 }
 
 	//  ==================  read/write 2 files  ====================
@@ -259,37 +259,76 @@ cPerspCamIntrCalib::~cPerspCamIntrCalib()
 void cPerspCamIntrCalib::UpdateLSQDistInv()
 {
     // allocate obect, just need to be done once
+    /*
     if (mInvApproxLSQ_Dist==nullptr)
     {
         mInvApproxLSQ_Dist  = NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf);
         mInv_BaseFDist = EqBaseFuncDist(mInv_Degr,mSzBuf);
         mInv_CalcLSQ   = new cLeastSqCompMapCalcSymb<tREAL8,2,2>(mInv_BaseFDist);
 	mDist_DirInvertible = new   cDataIIMFromMap<tREAL8,2> (mDir_Dist,mInvApproxLSQ_Dist,mThresholdPhgrAccInv,mNbIterInv,false,false);
-
-        mInv_Proj = new  cDataMapCalcSymbDer<tREAL8,2,3>
-                         (
-                              EqCPProjInv(mTypeProj,false,mSzBuf),   // equatio, w/o derivative
-                              EqCPProjInv(mTypeProj,true,mSzBuf),    // equation with derivatives
-			      std::vector<double>(),                 // parameters, empty here
-			      true                                   // equations are "adopted" (i.e will be deleted in destuctor)
-                         );
     }
+    */
+	/*
+    if (mDist_DirInvertible==nullptr)
+    {
+	 mDist_DirInvertible = new   cDataIIMFromMap<tREAL8,2> (mDir_Dist,mInvApproxLSQ_Dist,mThresholdPhgrAccInv,mNbIterInv,false,false);
+    }
+    */
 
     // create structure for map inversion
-    cComputeMapInverse aCMI
+    cComputeMapInverse<double,2> aCMI
     (
        mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
        cPt2dr(0,0),          ///< Seed point, in input space
        mInv_VDesc.size(),    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
        (*mPhgrDomain),       ///< Set of validity, in output space
        (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
-       (* mInv_CalcLSQ),     ///< Structure for computing the invert on base of function using least square
+        mInv_CalcLSQ,     ///< Structure for computing the invert on base of function using least square
        false                 ///< Not in  Test
    );
    aCMI.DoAll(mInv_Params); // compute the parameters
    mInvApproxLSQ_Dist->SetObs(mInv_Params); // set these parameters in approx inverse
+
+   mInvIsUpToDate = true;
 }
 
+void cPerspCamIntrCalib::UpdateLSQDistIfRequired() const
+{
+     if (! mInvIsUpToDate)
+     {
+         const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
+     }
+}
+
+
+std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
+{
+    UpdateLSQDistIfRequired();
+
+    cComputeMapInverse<double,2> aCMI
+    (
+       mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
+       cPt2dr(0,0),          ///< Seed point, in input space
+       aNbByDim,    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
+       (*mPhgrDomain),       ///< Set of validity, in output space
+       (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
+        nullptr,
+       false                 ///< Not in  Test
+   );
+   aCMI.DoPts();
+
+    std::vector<cPt2dr> aRes = aCMI.GetPtsOut();
+    aRes = static_cast<const cDataInvertibleMapping<tREAL8,2>&>(mCSPerfect).Values(aRes);
+
+    /*
+    StdOut() << "JJJJJJJjjjj " << aRes << "\n";
+    StdOut() <<  "Ccccccccccc " << mCSPerfect.Value(cPt2dr(0,0)) << "\n";
+    StdOut() <<  "Ccccccccccc " << mCSPerfect.Value(cPt2dr(1,1)) << "\n";
+getchar();
+*/
+
+    return aRes;
+}
 
 
 
@@ -316,10 +355,8 @@ double cPerspCamIntrCalib::Visibility(const cPt3dr & aP) const
 {
      double MaxCalc = 100.0;
 
-     if (mInvApproxLSQ_Dist==nullptr)
-     {
-         const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
-     }
+     UpdateLSQDistIfRequired();
+     
      cPt2dr aPphgr = mDir_Proj->Value(aP);
      cPt2dr aPDist  = mDir_Dist->Value(aPphgr);
 
@@ -345,10 +382,8 @@ double cPerspCamIntrCalib::Visibility(const cPt3dr & aP) const
 
 const  std::vector<cPt3dr> &  cPerspCamIntrCalib::Inverses(tVecIn & aV3 ,const tVecOut & aV0 ) const 
 {
-     if (mInvApproxLSQ_Dist==nullptr)
-     {
-         const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
-     }
+     UpdateLSQDistIfRequired();
+
      static tVecOut aV1,aV2;
      mInv_CSP.Values(aV1,aV0);
      mDist_DirInvertible->Inverses(aV2,aV1);
@@ -382,12 +417,16 @@ void cPerspCamIntrCalib::OnUpdate()
 {
    // The inverst for dist and csp must be recomputed
     mInv_CSP       = mCSPerfect.MapInverse();
-    if (mInvApproxLSQ_Dist!=nullptr)
-       UpdateLSQDistInv();
+
+    // if we are here, great proba modif has been done, so force Update
+    UpdateLSQDistInv  ();
 }
 
 void cPerspCamIntrCalib::PutUknowsInSetInterval() 
 {
+    // Unknown have escpaped and will probably be modified
+    mInvIsUpToDate = false;
+
     mSetInterv->AddOneInterv(mCSPerfect.F());
     mSetInterv->AddOneInterv(mCSPerfect.PP());
     mSetInterv->AddOneInterv(VParamDist());
@@ -397,6 +436,48 @@ cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSz
 {
     return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf);
 }
+      //   ----  Accessor  to distorsion ----------------
+
+const std::vector<double> & cPerspCamIntrCalib::VParamDist() const 
+{
+    return mDir_Dist->VObs(); 
+}
+
+std::vector<double> & cPerspCamIntrCalib::VParamDist() 
+{ 
+    mInvIsUpToDate = false;  // caution, but now param are exfiltred ..
+    return mDir_Dist->VObs(); 
+}
+
+const   std::vector<cDescOneFuncDist> &  cPerspCamIntrCalib::VDescDist() const { return this->mDir_VDesc; }
+
+int cPerspCamIntrCalib::IndParamDistFromName(const std::string& aName,bool SVP) const
+{
+    for (size_t aK=0 ; aK<this->mDir_VDesc.size() ; aK++)
+        if (this->mDir_VDesc[aK].mName == aName)
+		return aK;
+    if (! SVP)
+    {
+        MMVII_UnclasseUsEr("Invalid  distorsion param :"+aName);
+    }
+    return -1;
+}
+
+double  cPerspCamIntrCalib::ParamDist(const std::string & aName) const 
+{
+   return VParamDist().at(IndParamDistFromName(aName));
+}
+void  cPerspCamIntrCalib::SetParamDist(const std::string & aName,const double&aVal) 
+{
+   mInvIsUpToDate = false;
+   VParamDist().at(IndParamDistFromName(aName)) = aVal;
+}
+bool    cPerspCamIntrCalib::IsNameParamDist(const std::string & aName) const 
+{
+    return VParamDist().at(IndParamDistFromName(aName,true)) >=0;
+}
+
+
 
       //   ----  Accessor  -  modifier ----------------
 
@@ -404,6 +485,8 @@ void cPerspCamIntrCalib::SetThresholdPhgrAccInv(double aThr)
 {
     mThresholdPhgrAccInv = aThr;
     mThresholdPixAccInv = aThr * F();
+
+    mDist_DirInvertible->SetDTolInv(mThresholdPhgrAccInv);
 }
 
 void cPerspCamIntrCalib::SetThresholdPixAccInv(double aThr)
@@ -413,8 +496,6 @@ void cPerspCamIntrCalib::SetThresholdPixAccInv(double aThr)
 
 const std::string & cPerspCamIntrCalib::Name()   const {return mName ;}
 const cPt3di & cPerspCamIntrCalib::DegDir() const {return mDir_Degr;}
-const std::vector<double> & cPerspCamIntrCalib::VParamDist() const { return mDir_Dist->VObs(); }
-std::vector<double> & cPerspCamIntrCalib::VParamDist() { return mDir_Dist->VObs(); }
 
 const double & cPerspCamIntrCalib::F()      const {return mCSPerfect.F() ;}
 const cPt2dr & cPerspCamIntrCalib::PP()     const {return mCSPerfect.PP();}
@@ -426,19 +507,15 @@ const cDataMapping<tREAL8,2,2>* cPerspCamIntrCalib::Dir_Dist() const { return mD
 
 const cDataMapping<tREAL8,2,3>* cPerspCamIntrCalib::Inv_Proj() const
 {
-    if (mInvApproxLSQ_Dist==nullptr)
-    {
-        const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
-    }
+    // UpdateLSQDistIfRequired();
+
     return mInv_Proj;
 }
 
 const cDataInvertibleMapping<tREAL8,2>* cPerspCamIntrCalib::Dir_DistInvertible() const
 {
-    if (mInvApproxLSQ_Dist==nullptr)
-    {
-        const_cast<cPerspCamIntrCalib*>(this)->UpdateLSQDistInv();
-    }
+    UpdateLSQDistIfRequired();
+
     return mDist_DirInvertible;
 }
 
@@ -535,8 +612,8 @@ void cPerspCamIntrCalib::InitRandom(double aAmpl)
      double aRhoMax =  mPhgrDomain->Box().DistMax2Corners(cPt2dr(0,0));
 
      cRandInvertibleDist  aParamRID ( mDir_Degr, aRhoMax, RandUnif_0_1(), aAmpl);
-
      mDir_Dist->SetObs(aParamRID.VParam());
+     UpdateLSQDistInv ();
 }
  
 
@@ -566,7 +643,8 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
        aCam->SetThresholdPhgrAccInv(1e-9);
 
        aCam->InitRandom(0.1);
-       aCam->UpdateLSQDistInv();
+       /// aCam->UpdateLSQDistIfRequired();
+
        aCam->TestInvInit((aK==0) ? 1e-3 : 1e-2, 1e-4);
 
        delete aCam;

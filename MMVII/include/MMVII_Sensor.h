@@ -40,6 +40,7 @@ struct  cWeightedPair2D3D : public cPair2D3D
 {
      public :
           cWeightedPair2D3D(const cPair2D3D&,double aWeight=1.0);
+          cWeightedPair2D3D(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
 
 	  double mWeight;
 };
@@ -54,9 +55,16 @@ struct cSet2D3D
          typedef std::vector<tPair>   tCont2D3D;
 
          void AddPair(const tPair &);
+         void AddPair(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
+
          const tCont2D3D &  Pairs() const;
          void  Clear() ;
 
+	 /// compute  weighted centroid
+	 cWeightedPair2D3D  Centroid() const;
+
+	 /// subsract a pair to all
+	 void Substract(const cPair2D3D&);
      private :
         tCont2D3D  mPairs;
 };
@@ -84,6 +92,17 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
          virtual cPt3dr Ground2ImageAndDepth(const cPt3dr &) const = 0;
          /// Invert of Ground2ImageAndDepth
          virtual cPt3dr ImageAndDepth2Ground(const cPt3dr &) const = 0;
+	 /// Facility for calling ImageeAndDepth2Ground(const cPt3dr &)
+         cPt3dr ImageAndDepth2Ground(const cPt2dr &,const double & ) const;
+
+	 /// return a set point regulary sampled (+/-) on sensor, take care of frontier
+         virtual std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim)  const = 0;
+
+	 ///  return artificial/synthetic correspondance , with vector of depth
+	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const;
+	 ///  call variant with vector, depth regularly spaced
+	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const;
+
 
          double SqResidual(const cPair2D3D &) const;  ///< residual Proj(P3)-P2 , squared for efficiency
          double AvgResidual(const cSet2D3D &) const;  ///< avereage on all pairs, not squared

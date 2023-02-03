@@ -229,6 +229,7 @@ class  cZBuffer;
 // MMVII_Sensor.h
 
 struct cPair2D3D;
+struct cWeightedPair2D3D;
 struct cSet2D3D;
 class  cSensorImage;
 class  cDataPixelDomain ;

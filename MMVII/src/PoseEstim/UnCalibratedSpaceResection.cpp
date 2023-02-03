@@ -1,6 +1,10 @@
 #include "MMVII_Ptxd.h"
-#include "cMMVII_Appli.h"
-#include "MMVII_Geom3D.h"
+#include "MMVII_SysSurR.h"
+#include "MMVII_Sensor.h"
+#include "MMVII_PCSens.h"
+// #include "MMVII_nums.h"
+// #include "MMVII_Geom3D.h"
+// #include "cMMVII_Appli.h"
 
 
 /**
@@ -13,6 +17,89 @@
 namespace MMVII
 {
 
+template <class Type,const int Dim> class cAffineForm
+{
+    public :
+       typedef cPtxd<Type,Dim>      tPt;
+
+       Type Value(const tPt & aP) const {return Scal(mForm,aP) + mCste;}
+
+       cAffineForm(const Type * aV);
+
+       const tPt&  Form() {return mForm;}
+       const Type& Cste() {return mCste;}
+    private :
+       tPt  mForm;
+       Type mCste;
+};
+
+template <class Type,const int Dim> 
+   cAffineForm<Type,Dim>::cAffineForm(const Type * aV) :
+       mForm   (tPt(aV)),
+       mCste   (aV[Dim])
+{
+}
+
+template <class Type> class cHomog2D3D
+{
+    public :
+       static constexpr int       TheDim=3;
+
+       typedef cPtxd<Type,3>      tPtIn;
+       typedef cPtxd<Type,2>      tPtOut;
+
+       tPtOut  Value(const tPtIn & aP)  const  
+       {
+	       return tPtOut(mFx.Value(aP),mFy.Value(aP)) / mFz.Value(aP);
+       }
+       tPt2dr  RValue(const tPt3dr & aP)const  {return ToR(Value(tPtIn::FromPtR(aP)));}
+
+       cHomog2D3D(const Type *);
+       cHomog2D3D();
+
+       cDenseMatrix<Type>  Mat() const;
+
+    private :
+
+       cAffineForm<Type,3>  mFx;
+       cAffineForm<Type,3>  mFy;
+       cAffineForm<Type,3>  mFz;
+
+};
+
+template <class Type> 
+   cHomog2D3D<Type>::cHomog2D3D(const Type * aV) :
+	mFx  (aV+0),
+	mFy  (aV+4),
+	mFz  (aV+8)
+{
+}
+
+template <class Type> cHomog2D3D<Type>::cHomog2D3D() :
+	cHomog2D3D(std::vector<Type>({1,0,0,0,  0,1,0,0,  0,0,0,1}).data())
+{
+}
+
+template <class Type>  cDenseMatrix<Type> cHomog2D3D<Type>::Mat() const
+{
+     return  M3x3FromLines(mFx.Form(),mFy.Form(),mFz.Form());
+}
+
+// template <class TMap>  tREAL8  RValue(const TMap& aMap)
+
+template <class TMap>  tREAL8  AvgReProj(const cSet2D3D & aSet,const TMap& aMap)
+{
+    cWeightAv<tREAL8>  aWAvg;
+
+    for (const auto & aPair : aSet.Pairs())
+    {
+        aWAvg.Add(aPair.mWeight,SqN2(aPair.mP2-aMap.RValue(aPair.mP3)));
+    }
+
+    return aWAvg.Average();
+}
+
+
 /**
  *
  * Class for solving the "11 parameter" equation, AKA uncalibrated resection
@@ -22,254 +109,168 @@ template <class Type>  class cUncalibSpaceRessection
       public :
            cUncalibSpaceRessection
            (
-	       const cSet2D3D &
+	       const cSet2D3D &,
+	       bool  ForBench
 	   );
 
        private :
+	   static void SetVect(cDenseVect<Type> & aV,int anInd,const tPt3dr & aP,double aMul);
+
+	   void CalcSolOneVarFixed(int aK);
+
+	   void AddOneEquation(const cWeightedPair2D3D & aPair);
+
+	   cLeasSqtAA<Type>  mSys0;
+	   cSet2D3D          mSet;
+	   cPair2D3D         mCentroid;
+	   Type              mSumW;
+	   cDenseVect<Type>  mVecW;
+           cWhichMin<cHomog2D3D<Type>,Type>  mBestH;
+	   bool                              mForBench;
 };
 
 
 
-#if (0)
-
-template <class Type> 
-   cElemSpaceResection<Type>::cElemSpaceResection
-   (
-       const tTri & aTriB,
-       const tTri & aTriG
-   ) :
-        nNormA  (Norm2(aTriB.Pt(0))),
-        nNormB  (Norm2(aTriB.Pt(1))),
-        nNormC  (Norm2(aTriB.Pt(2))),
-        A       (aTriB.Pt(0) / nNormA),
-        B       (aTriB.Pt(1) / nNormB),
-        C       (aTriB.Pt(2) / nNormC),
-
-        AB      (B - A),
-        AC      (C - A),
-        BC      (C - B),
-	abb     (Scal(AB,B)),
-
-	mTriG   (aTriG),
-        gA (aTriG.Pt(0)),
-        gB (aTriG.Pt(1)),
-        gC (aTriG.Pt(2)),
-
-	gD2AB (SqN2(mTriG.KVect(0))),
-	gD2AC (SqN2(mTriG.KVect(2))),
-	gD2BC (SqN2(mTriG.KVect(1))),
-        mSqPerimG ( gD2AB + gD2AC + gD2BC),
-
-	rABC  (gD2AB/gD2AC),
-	rCBA  (gD2BC/gD2AC)
+template <class Type>  
+    cUncalibSpaceRessection<Type>::cUncalibSpaceRessection(const cSet2D3D & aSet,bool forBench) :
+        mSys0 (12),
+	mSet  (aSet),
+	mCentroid (mSet.Centroid()),
+	mSumW (0),
+        mVecW (12, eModeInitImage::eMIA_Null),
+	mBestH (cHomog2D3D<Type>(),1e30),
+	mForBench (forBench)
 {
-}
+    mSet.Substract(mCentroid);
+    for (const auto & aPair : mSet.Pairs())
+        AddOneEquation(aPair);
 
 
 
-template <class Type> std::list<cPtxd<Type,3>>  cElemSpaceResection<Type>::ComputeBC() const
-{
-/*
-      3 direction  of bundles  A,B,C   we have made ||A|| = ||B|| = ||C|| = 1
-      We parametrize 3 point on the bundle by 2 parameters b & c:
-           PA  = A  (arbitrarily we fix on this bundle)
-	   PB  = B(1+b)
-	   PC  = C(1+c)
-      This parametrization is made to be more numerically stable when 
-     the bundle are close to each others which is a current case (b & c small)
-*/
-
-
-/*  ===============  (1) eliminate b  =====================
-     We have a conservation of ratio of distance :
-
-     |PA-PB|^2    |GA-GB|^2
-      -----   =  ---------  = rABC
-     |PA-PC|^2    |GA-GC|^2
-
-
-    ((1+b)B-A)^2 = rABC ((1+c)C-A)^2
-     (bB + AB) ^2 = rABC (cC + AC) ^2
-
-     b^2 + 2AB.B b  + (AB^2 -rABC(cC + AC)^2  ) =0
-   # P(c) =  (AB^2 -rABC (cC + AC)^2)
-     b^2 + 2AB.B b + P(c) =0   =  (B+AB.B)^2 - (AB.B^2 -P(c))
-     2nd degre equation in b 
-     b =  - AB.B +E SQRT(AB.B^2  -P(c))   E in {-1,+1}
-   # Q(c) = AB.B^2 -P(c)
-     b =  - AB.B + E S(Q(c))
-*/
-
-
-     // P(c) =  (AB^2 -rABC (cC + AC)^2)
-    tPol  aPol_AC_C =  PolSqN(AC,C);
-    cPolynom<Type> aPc =  tPol::D0(SqN2(AB)) -  aPol_AC_C *rABC ;
-    // Q(c) = AB.B^2 -P(c)
-    cPolynom<Type> aQc =  tPol::D0(Square(abb)) - aPc;
-
-
-  //  Now we can eliminate b using :   b =  - AB.B + E S(Q(c))   E in {-1,1} 
-/* ======================== (2) resolve c =====================
-    2nd conservation  of ratio
-     |PC-PB|^2    |GC-GB|^2
-      -----   =  ---------  = rCBA
-     |PA-PC|^2    |GC-GA|^2
-
-
-     ((1+c)C - (1+b)B)^2 = ((1+c)C -A)^2 rCBA
-     (BC + cC -bB) ^2 = rCBA (AC + cC) ^2
-     rCBA (AC + cC) ^2 = (BC +cC - (-AB.B + E *  S(Q)) B)^2 =   ((BC + AB.B B +c C)  - E S(Q) B) ^2
-
-     rCBA (AC + cC) ^2 = (BC + AB.B B +c C)^2 -2 (BC + AB.B B +c C) .B E S(Q) + Q B^2
-     B^2 = 1
-     rCBA (AC + cC) ^2 - (BC + AB.B B +c C)^2  - Q  =  -2 (BC.B + AB.B  +c C.B) E S(Q)
-
-                      
-                       R(c) = -2E L(c) S(Q)
-		       R^2(c) = 4 L(c)^2 Q(c)
-
-*/
-       
-    tPol  aRc =   aPol_AC_C *rCBA  -  aQc  -  PolSqN(BC +  abb*B  ,C);
-    tPol  aLc ({Scal(BC,B)+abb,Scal(B,C)});
-    tPol aSolver = Square(aRc) - aQc * Square(aLc) * 4;
-    std::vector<Type> aVRoots = aSolver.RealRoots (1e-30,60);
-
-    std::list<tResBC> aRes;
-
-    for (Type c : aVRoots)
+    for (int aKV=0 ; aKV<12 ; aKV++)
     {
-        for (Type E : {-1.0,1.0})
-        {
-	    Type Q =  aQc.Value(c);
-	    if (Q>=0)
-	    {
-	        Type b =  -abb + E * std::sqrt(Q);
-
-		tP3 PA = A;
-		tP3 PB = (1+b)  * B;
-		tP3 PC = (1+c)  * C;
-
-                Type aD2AB =  SqN2(PA-PB);
-                Type aD2AC =  SqN2(PA-PC);
-                Type aD2BC =  SqN2(PB-PC);
-
-		// Due to squaring sign of E is not always consistant, so now we check if ratio are really found
-		Type aCheckABC =  aD2AB/aD2AC - rABC;
-		Type aCheckCBA =  aD2BC/aD2AC - rCBA;
-
-		//  test with 1e-5  generate bench problem ...
-		if (  (std::abs(aCheckABC)< 1e-3)  && (std::abs(aCheckCBA)< 1e-3) )
-		{
-                   Type aSqPerim = aD2AB + aD2AC + aD2BC;
-                   aRes.push_back(tResBC((1+b),(1+c),std::sqrt(mSqPerimG/aSqPerim)));
-		   // StdOut()  << " E " << E <<  " bc " << b << " " << c << " " << aCheckABC << " " << aCheckCBA << "\n";
-		}
-	    }
-        }
+        CalcSolOneVarFixed(aKV);
     }
-    return aRes;
+// StdOut()  <<  "SSsssssss " << mBestH.ValExtre() << "\n";
 }
 
-template <class Type> cTriangle<Type,3>  cElemSpaceResection<Type>::BC2LocCoord(const tResBC & aRBC) const 
+template <class Type>  void cUncalibSpaceRessection<Type>::CalcSolOneVarFixed(int aKV)
 {
-     const Type & b =  aRBC.x();
-     const Type & c =  aRBC.y();
-     const Type & aMul = aRBC.z();
+     cLeasSqtAA<Type>  aSys = mSys0.Dup();
+     double aW = mSumW * std::sqrt(mVecW(aKV)/mSumW);
+     aSys.AddObsFixVar(aW,aKV,1.0);
 
-     return  cTriangle<Type,3>(aMul*A,(aMul*b)*B,(aMul*c)*C);
+     cDenseVect<Type>  aSol = aSys.Solve();
+     cHomog2D3D<Type>  aHom(aSol.RawData());
+
+     tREAL8 aScore = AvgReProj(mSet,aHom);
+    // StdOut()  << " LLLxxxx " << aSys.tAA().DIm().L2Norm()  <<  " ww=" << aW << "\n";
+    // StdOut()  << " SSSS " << aSol(0)  << " " << aSol(1) << " " << aSol(11) << "\n";
+     mBestH.Add(aHom, aScore);
 }
 
-template <class Type> cIsometry3D<Type> cElemSpaceResection<Type>::BC2Pose(const tResBC & aRBC) const 
+template <class Type>  
+    void cUncalibSpaceRessection<Type>::SetVect
+         (
+            cDenseVect<Type> & aV,
+            int aInd,
+            const tPt3dr & aP,
+            double aMul
+	  )
 {
-     cTriangle<Type,3> aTri = BC2LocCoord(aRBC);
-
-     return cIsometry3D<Type>::FromTriInAndOut(0,aTri,0,mTriG);
+	aV(aInd+0) = aP.x() * aMul;
+	aV(aInd+1) = aP.y() * aMul;
+	aV(aInd+2) = aP.z() * aMul;
+	aV(aInd+3) =          aMul;
 }
 
+/*
+      I =  (v0 x + v1 y + v2 z + v3) /  (v8 x + v9 y + v10 z + v11)
+      J =  (v4 x + v5 y + v6 z + v7) /  (v8 x + v9 y + v10 z + v11)
 
-template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
+      0 =  (v0 x + v1 y + v2 z + v3)  - I *  (v8 x + v9 y + v10 z + v11)
+      0 =  (v4 x + v5 y + v6 z + v7)  - J *  (v8 x + v9 y + v10 z + v11)
+*/
+
+
+template <class Type>  void  cUncalibSpaceRessection<Type>::AddOneEquation(const cWeightedPair2D3D & aPair)
 {
-   static int aCpt=0; aCpt++;
-   {
-       // generate 3 bundle not too degenared => 0,P0,P1,P2 cot coplanar
-       cTriangle<Type,3> aTriBund = RandomTetraTriangRegul<Type>(1e-3,1e2);
+    for (const auto & IsX : {true,false})
+    {
+       double aW = aPair.mWeight;
+       cPt3dr aP3 = aPair.mP3 ;
 
-       //   Generate b &c ;  Too extrem value =>  unaccuracyy bench ; not : RandUnif_C_NotNull(1e-2) * 10
-       Type b = pow(2.0,RandUnif_C());
-       Type c = pow(2.0,RandUnif_C());
+       cDenseVect<Type>  aVect (12, eModeInitImage::eMIA_Null);
+       SetVect( aVect , (IsX ? 0 : 4) , aP3 ,  1.0                                   );
+       SetVect( aVect ,             8 , aP3 , - (IsX ?aPair.mP2.x() : aPair.mP2.y()) );
+       mSys0.AddObservation(aW,aVect,0.0);
 
-       // comput A,B,C  with  ratio given by b,c and A unitary
-       cPtxd<Type,3> A = VUnit(aTriBund.Pt(0));
-       cPtxd<Type,3> B = VUnit(aTriBund.Pt(1))*b;
-       cPtxd<Type,3> C = VUnit(aTriBund.Pt(2))*c;
-
-       //  put them anywhere and with any ratio using a random similitud
-       cSimilitud3D<Type> aSim(
-		               static_cast<Type>(RandUnif_C_NotNull(1e-2)*10.0),
-			       cPtxd<Type,3>::PRandC()*static_cast<Type>(100.0),
-			       cRotation3D<Type>::RandomRot()
-                         );
-       cTriangle<Type,3> aTriG(aSim.Value(A),aSim.Value(B),aSim.Value(C));
-
-       //  Now see that we can recover b & c
-       cElemSpaceResection<Type> anESR(aTriBund,aTriG);
-       auto aLBC = anESR.ComputeBC();  //list of b,c,Perimeter
-
-       cWhichMin<cPtxd<Type,3>,Type> aWMin(cPtxd<Type,3>(0,0,0),1e10);  // will extract b,c closest to ours
-       for (auto & aTripl : aLBC)
-       {
-           aWMin.Add(aTripl,std::abs(aTripl.x()-b)+std::abs(aTripl.y()-c));
-       }
-       MMVII_INTERNAL_ASSERT_bench(aWMin.ValExtre()<1e-4,"2 value in OneTestCorrectness");  // is it close enough
-
-
-       //  Now see that if can recover local coord from b,c
-       cTriangle<Type,3>  aTriComp = anESR.BC2LocCoord(aWMin.IndexExtre());
-       for (auto aK : {0,1,2})
-       {
-              //  Test the triangle Local and Ground are isometric
-             double aDif = RelativeSafeDifference(Norm2(aTriG.KVect(aK)),Norm2(aTriComp.KVect(aK))) ;
-             MMVII_INTERNAL_ASSERT_bench(aDif<1e-4,"Local coord in OneTestCorrectness");
-              //  Test the Local coordinate are aligned on bundles
-             double aAngle = AbsAngleTrnk(aTriBund.Pt(aK),aTriComp.Pt(aK))  ;
-             MMVII_INTERNAL_ASSERT_bench(aAngle<1e-4,"Local coord in OneTestCorrectness");
-       }
-       //  Now see that if can recover local pose from b,c
-       cIsometry3D<Type>  aPose = anESR.BC2Pose(aWMin.IndexExtre());
-       for (auto aK : {0,1,2})
-       {
-           // check that  Bundle is colinear to Pose^-1 (PGround)
-           cPtxd<Type,3>  aPLoc=  aPose.Inverse(aTriG.Pt(aK));
-           Type aAngle = AbsAngleTrnk(aPLoc,aTriBund.Pt(aK));
-           MMVII_INTERNAL_ASSERT_bench(aAngle<1e-4,"Pose in OneTestCorrectness");
-       }
-   }
+       mSumW += aW;
+       for (int aK=0 ; aK<12  ; aK++)
+           mVecW(aK) += aW * Square(aVect(aK));
+    }
 }
-template class cElemSpaceResection<tREAL8>;
-template class cElemSpaceResection<tREAL16>;
 
 void BenchUnCalibResection()
 {
-   for (int aK=0 ; aK< 1000 ; aK++)
-   {
-      cElemSpaceResection<tREAL8>::OneTestCorrectness();
-      cElemSpaceResection<tREAL16>::OneTestCorrectness();
-   }
+     cPt2di  aSz(3000,3000);
+     tREAL8  aFoc(4000);
+     cPt2dr  aPP(1250.0,1100.0);
+     double  aB1 = 0.3;
+     double  aB2 = -0.2;
+
+
+
+      cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::Alloc
+                                  (
+                                         cDataPerspCamIntrCalib
+                                         (
+                                               "Calib_BenchUncalibResection",
+                                                eProjPC::eStenope,
+                                                 cPt3di(3,1,1),
+                                                std::vector<double>(),
+                                                cCalibStenPerfect(aFoc,aPP),
+                                                cDataPixelDomain(aSz),
+                                                 cPt3di(3,1,1),
+                                                100
+                                         )
+                                  );
+
+
+      aCalib->SetParamDist("b1",aB1);
+      aCalib->SetParamDist("b2",aB2);
+      if (0)  // just in case we need to check params
+      {
+          for (const auto & aName : {"b1","b2","p1","toto"})
+          {
+              int aInd= aCalib->IndParamDistFromName(aName,true);
+              StdOut()  <<  aName << " I=" << aInd ;
+	      if (aInd>0)
+	      {
+                  const auto & aDesc = aCalib->VDescDist().at(aInd);
+                  StdOut()  << " LN=" << aDesc.mLongName  << " Deg=" << aDesc.mDegMon << " V=" <<aCalib->ParamDist(aName);
+	      }
+              StdOut()  << "\n";
+          }
+      }
+
+      cSensorCamPC aCam("Calib_BenchUncalibResection",cIsometry3D<tREAL8>::RandomIsom3D(100.0),aCalib);
+
+      //std::vector<double> aVDepts({1,2,3});
+      std::vector<double> aVDepts({1,2});
+      cSet2D3D  aSetCorresp  =  aCam.SyntheticsCorresp3D2D(10,aVDepts) ;
+
+      cUncalibSpaceRessection<tREAL4>  aResec4(aSetCorresp,true);
+//StdOut() << "----------------------------------------\n\n";
+      cUncalibSpaceRessection<tREAL8>  aResec8(aSetCorresp,true);
+//StdOut() << "----------------------------------------\n\n";
+      cUncalibSpaceRessection<tREAL16>  aResec16(aSetCorresp,true);
+
+
+      delete aCalib;
 }
 
 
-void BenchPoseEstim(cParamExeBench & aParam)
-{
-   if (! aParam.NewBench("PoseEstim")) return;
-
-   BenchUnCalibResection();
-   aParam.EndBench();
-}
-
-
-
-#endif
 
 
 }; // MMVII

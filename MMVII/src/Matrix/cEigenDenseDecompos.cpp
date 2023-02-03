@@ -118,11 +118,19 @@ template <class Type> Type  cResulSymEigenValue<Type>::Cond(Type aDef) const
 
 
 template <class Type> 
-   cResulQR_Decomp<Type>::cResulQR_Decomp(int aSzX,int aSzY) :
-        mQ_Matrix(aSzY,aSzY),
-        mR_Matrix(aSzX,aSzY)
+   cResulQR_Decomp<Type>::cResulQR_Decomp(const tDM & aQ,const tDM& aR) :
+        mQ_Matrix(aQ),
+        mR_Matrix(aR)
 {
 }
+
+template <class Type> 
+   cResulQR_Decomp<Type>::cResulQR_Decomp(int aSzX,int aSzY) :
+       cResulQR_Decomp<Type>(tDM(aSzY,aSzY),tDM(aSzX,aSzY))
+{
+}
+
+
 
 template <class Type> 
        const cDenseMatrix<Type> &  cResulQR_Decomp<Type>::Q_Matrix() const
@@ -140,6 +148,21 @@ template <class Type>
     cDenseMatrix<Type>  cResulQR_Decomp<Type>::OriMatr() const
 {
     return mQ_Matrix * mR_Matrix;
+}
+
+/* ============================================= */
+/*      cResulRQ_Decomp<Type>                    */
+/* ============================================= */
+
+template <class Type> 
+   cResulRQ_Decomp<Type>::cResulRQ_Decomp(const tDM& aR,const tDM & aQ) :
+     cResulQR_Decomp<Type>(aR,aQ)
+{
+}
+
+template <class Type>  cDenseMatrix<Type> cResulRQ_Decomp<Type>::OriMatr() const
+{
+    return this->mR_Matrix * this->mQ_Matrix;
 }
 
 
@@ -171,6 +194,29 @@ template <class Type> cResulQR_Decomp<Type>  cDenseMatrix<Type>::QR_Decompositio
    return aRes;
 }
 
+template <class Type> cResulRQ_Decomp<Type>  cDenseMatrix<Type>::RQ_Decomposition() const
+{
+    cMatrix<Type>::CheckSquare(*this);
+
+       // std::pair<ElMatrix<double>, ElMatrix<double> >  aQR = QRDecomp(InvertLine(aM0).transpose());
+    cDenseMatrix<Type> aM = LineInverse();
+    aM.SelfTransposeIn();
+
+    cResulQR_Decomp<Type> aRes = aM.QR_Decomposition();
+
+  // ElMatrix<double> aQ2 = InvertLine(aQ.transpose());
+    cDenseMatrix<Type> &aQ = aRes.mQ_Matrix;
+    aQ.SelfTransposeIn();
+    aQ.SelfLineInverse();
+
+  // ElMatrix<double> aR2 = InvertLine(InvertCol(aR.transpose()));
+    cDenseMatrix<Type> &aR = aRes.mR_Matrix;
+    aR.SelfTransposeIn();
+    aR.SelfColInverse();
+    aR.SelfLineInverse();
+
+    return cResulRQ_Decomp<Type>(aQ,aR);
+}
 
 
 template <class Type> cResulSymEigenValue<Type>  cDenseMatrix<Type>::SymEigenValue() const
@@ -540,7 +586,8 @@ template  class  cResulSVDDecomp<Type>;\
 template  class  cStrStat2<Type>;\
 template  class  cDenseMatrix<Type>;\
 template  class  cResulSymEigenValue<Type>;\
-template  class  cResulQR_Decomp<Type>;
+template  class  cResulQR_Decomp<Type>;\
+template  class  cResulRQ_Decomp<Type>;
 
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL4)
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL8)
