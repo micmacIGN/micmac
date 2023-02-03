@@ -151,7 +151,7 @@ template <class Type>
     {
         CalcSolOneVarFixed(aKV);
     }
-StdOut()  <<  "SSsssssss " << mBestH.ValExtre() << "\n";
+// StdOut()  <<  "SSsssssss " << mBestH.ValExtre() << "\n";
 }
 
 template <class Type>  void cUncalibSpaceRessection<Type>::CalcSolOneVarFixed(int aKV)
@@ -261,9 +261,9 @@ void BenchUnCalibResection()
       cSet2D3D  aSetCorresp  =  aCam.SyntheticsCorresp3D2D(10,aVDepts) ;
 
       cUncalibSpaceRessection<tREAL4>  aResec4(aSetCorresp,true);
-StdOut() << "----------------------------------------\n\n";
+//StdOut() << "----------------------------------------\n\n";
       cUncalibSpaceRessection<tREAL8>  aResec8(aSetCorresp,true);
-StdOut() << "----------------------------------------\n\n";
+//StdOut() << "----------------------------------------\n\n";
       cUncalibSpaceRessection<tREAL16>  aResec16(aSetCorresp,true);
 
 
