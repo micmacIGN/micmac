@@ -276,14 +276,19 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
     */
 
     // create structure for map inversion
+
+    //  Approximate number of point (in the biggest size), here +or- less square of minimum
+    //  but also take care of having always a minimum, else generate problem in pixelization during growing
+    size_t aNbMin = std::max(size_t(10),2+mInv_VDesc.size());
+
     cComputeMapInverse<double,2> aCMI
     (
        mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
-       cPt2dr(0,0),          ///< Seed point, in input space
-       mInv_VDesc.size(),    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
+       PtSeedInv(),          ///< Seed point, in input space
+       aNbMin,    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
        (*mPhgrDomain),       ///< Set of validity, in output space
        (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
-        mInv_CalcLSQ,     ///< Structure for computing the invert on base of function using least square
+        mInv_CalcLSQ,        ///< Structure for computing the invert on base of function using least square
        false                 ///< Not in  Test
    );
    aCMI.DoAll(mInv_Params); // compute the parameters
@@ -300,15 +305,46 @@ void cPerspCamIntrCalib::UpdateLSQDistIfRequired() const
      }
 }
 
+/*
+ *         Pi             Dist          Perf
+ *    P3  ----->  PProj ------> PDist   -----> Pixel = middle of sensor
+ */
+
+cPt2dr cPerspCamIntrCalib::PtSeedInv() const
+{
+     cPt2dr aPMiddle = ToR(SzPix()) / 2.0;
+     cPt2dr  aPDist = mInv_CSP.Value(aPMiddle);
+
+     cMappingIdentity<tREAL8,2> aMapId;
+     cDataIIMFromMap<tREAL8,2>  aDRI(mDir_Dist,&aMapId,1e-2/F(),100,false,false);
+
+     cPt2dr  aPProj = aDRI.Inverse(aPDist);
+     return aPProj;
+}
+
 
 std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
 {
-    UpdateLSQDistIfRequired();
+
+	/*
+     cPt2dr aPMil = ToR(SzPix()) / 2.0;
+     cPt2dr  aP1 = mInv_CSP.Value(aPMil);
+     cMappingIdentity<tREAL8,2> aMapId;
+     cDataIIMFromMap<tREAL8,2>  aDRI(mDir_Dist,&aMapId,1e-2/F(),100,false,false);
+
+     cPt2dr  aP2 = aDRI.Inverse(aP1);
+     cPt2dr  aP3 =  mDir_Dist->Value(aP2);
+     // cPt2dr aP2 = aP1;
+     StdOut() <<  "SSSSSS " << aPMil  << aP1<< aP2 <<  aP3 << "\n";
+     */
+
+
+    // UpdateLSQDistIfRequired();
 
     cComputeMapInverse<double,2> aCMI
     (
        mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
-       cPt2dr(0,0),          ///< Seed point, in input space
+       PtSeedInv(),          ///< Seed point, in input space
        aNbByDim,    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
        (*mPhgrDomain),       ///< Set of validity, in output space
        (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
@@ -319,13 +355,6 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
 
     std::vector<cPt2dr> aRes = aCMI.GetPtsOut();
     aRes = static_cast<const cDataInvertibleMapping<tREAL8,2>&>(mCSPerfect).Values(aRes);
-
-    /*
-    StdOut() << "JJJJJJJjjjj " << aRes << "\n";
-    StdOut() <<  "Ccccccccccc " << mCSPerfect.Value(cPt2dr(0,0)) << "\n";
-    StdOut() <<  "Ccccccccccc " << mCSPerfect.Value(cPt2dr(1,1)) << "\n";
-getchar();
-*/
 
     return aRes;
 }

@@ -10,6 +10,7 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
 /** \file MMVII_PCSens.h
     \brief Interface class for central perspective sensors
  *  
@@ -259,6 +260,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
        private :
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
+
+	    /// For inversion, or sampling point, we need seed that is +- corresponding of sensor midle, befor dist
+	    cPt2dr PtSeedInv() const;
 
 
          // ==================   DATA PART   ===================

@@ -26,6 +26,8 @@
 
 namespace MMVII
 {
+extern bool MMVII_IN_DEBUG;
+
 
 
 /** \file MMVII_AllClassDeclare.h

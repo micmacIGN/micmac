@@ -582,27 +582,6 @@ template <class Type,const int Dim> void  cComputeMapInverse<Type,Dim>::AddObsMa
          mLSQ->AddObs(aVOut[aK],aVIn[aK]-aVOut[aK]); // put is as as sample  Out => Map-Identity  = PIn-POut
 }
 
-#if (0)
-template <class Type,const int Dim> 
-   void  cComputeMapInverse<Type,Dim>::AddObsMapDirect(const tPtR & aPIn,const tPtR & aPOut,bool IsFront)
-{
-     /*  Carrefull we add aPIn-aPOut : 
-            * in distortion (see  PProjToImNorm in cMMVIIUnivDist) the code part is the additional part,
-	    * i.e the distortion identity is the code by {0,0,...} params
-     */
-     mLSQ.AddObs(aPOut,aPIn-aPOut); // put is as as sample  Out => Map-Identity  = PIn-POut
-     /*
-     if (true)
-     {
-        if (IsFront)
-           mVPtsFr.push_back(aPOut);
-        else
-           mVPtsInt.push_back(aPOut);
-     }
-     */
-}
-#endif
-
 
 template <class Type,const int Dim> 
         void  cComputeMapInverse<Type,Dim>::OneStepFront(const Type & aStepFront)
@@ -737,6 +716,7 @@ template <class Type,const int Dim> void
      // 0-  Init with the seed
      Add1PixelTopo(aPixSeed);   // init the  heap struct (nexgtgen , marker etc ... with the seed
      FilterAndAddPixelsGeom();  // create the geometry of the seed
+     
 
      MMVII_INTERNAL_ASSERT_tiny( mNextGen.size()==1,"Seed Geom pb");  // if filtering removed the seed, we are bad ...
 

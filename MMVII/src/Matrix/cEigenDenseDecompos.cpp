@@ -11,6 +11,8 @@ using namespace Eigen;
 
 namespace MMVII
 {
+template <class Type> void  NormalizeProdDiagPos(cDenseMatrix<Type> &aM1,cDenseMatrix<Type> & aM2 ,bool TestOn1);
+
 
 
 template <class Type> cResulSVDDecomp<Type> cDenseMatrix<Type>::SVD() const
@@ -137,12 +139,25 @@ template <class Type>
 {
    return mQ_Matrix;
 }
-
 template <class Type> 
         const cDenseMatrix<Type> &  cResulQR_Decomp<Type>::R_Matrix() const
 {
    return mR_Matrix;
 }
+template <class Type> 
+       cDenseMatrix<Type> &  cResulQR_Decomp<Type>::Q_Matrix() 
+{
+   return mQ_Matrix;
+}
+template <class Type> 
+        cDenseMatrix<Type> &  cResulQR_Decomp<Type>::R_Matrix() 
+{
+   return mR_Matrix;
+}
+
+
+
+
 
 template <class Type> 
     cDenseMatrix<Type>  cResulQR_Decomp<Type>::OriMatr() const
@@ -190,7 +205,6 @@ template <class Type> cResulQR_Decomp<Type>  cDenseMatrix<Type>::QR_Decompositio
 
        aRes.mR_Matrix.SelfTriangSup(); // make the image triangular sup (maybe exist  residual of eigen)
     }
-
    return aRes;
 }
 
@@ -214,6 +228,9 @@ template <class Type> cResulRQ_Decomp<Type>  cDenseMatrix<Type>::RQ_Decompositio
     aR.SelfTransposeIn();
     aR.SelfColInverse();
     aR.SelfLineInverse();
+
+    NormalizeProdDiagPos(aR,aQ,true);
+   // NormalizeProdDiagPos(aRes.mQ_Matrix,aRes.mR_Matrix,false);
 
     return cResulRQ_Decomp<Type>(aQ,aR);
 }

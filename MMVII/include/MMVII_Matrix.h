@@ -438,6 +438,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void SelfLineInverse() ;  ///< line inversion   (L1 L2 .. LN) =>   (LN ... L2 L1) ,  used for RQ decomposition (QR => RQ)
         tDM  LineInverse() const;  ///< cont version of SelfLineInverse
         void SelfColInverse() ;  ///< colum inversion   ,  used for RQ decomposition (QR => RQ)
+
+	void SelfLineChSign(int aNumL); ///<  chang signe of line aNumL, used in QR/RQ to normalize with diag>0 of R
+	void SelfColChSign(int aNumC);  ///<  chang signe of column aNumC, used in QR/RQ to normalize with diag>0 of R
          
         double Diagonalicity() const; ///< how much close to a diagonal matrix, square only , 
         Type   Det() const;  ///< compute the determinant, not sur optimise
@@ -530,6 +533,8 @@ template <class Type> class cResulQR_Decomp
 
         const tDM &  Q_Matrix() const; ///< Unitary
         const tDM &  R_Matrix() const; ///< Triang
+        tDM &  Q_Matrix() ; ///< Unitary
+        tDM &  R_Matrix() ; ///< Triang
 
     private :
         cResulQR_Decomp(int aSzX,int aSzY);
