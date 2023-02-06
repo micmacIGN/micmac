@@ -19,48 +19,107 @@
 
 /* We have the image formula w/o distorsion:
 
-   (u v)  = PI0   R (P-c)
+   (u v)  = PI0   R (P-C0)
+   Or
+   (u v 1) = Lambda  PI0   R (P-C0)
 
    we consider a  calibraytion with linear distorsion :
 
-   (I) =  (PPx + F (u  p1 u + p2 v))  =  (F(1+p1)   p2F  PPx) (u)  =  (a b c) (u) =  C (u)
-   (J)    (PPy + F v               )     (0         F    PPy) (v)     (d e f) (v)      (v)
+   (I)    (PPx + F (u  p1 u + p2 v))     (F(1+p1)   p2F  PPx) (u)     (a b c) (u)      (u)
+   (J) ~  (PPy + F v               )  =  (0         F    PPy) (v)  =  (0 e f) (v) =  C (v)
+   (1)    (                       1)     (0         0     1)  (1)     (0 0 1) (1)      (1)
+
+   (I)                                           (M00 M10 M20) (X) + (xm0)
+   (J)  ~  C R (P-C0)  = M (P-C0) =  MP -MC0 =   (M01 M11 M21) (Y) + (ym0)  = M +Tr
+   (1)                                           (M02 M12 M22) (Z) + (zm0)
+
+   I =  (M00 X + M10 Y + M20 Z + xm0) / (M02 X + M12 Y + M22 Z + zm0)   [EqHom]
+   J =  (M01 X + M11 Y + M21 Z + xm0) / (M02 X + M12 Y + M22 Z + zm0)
 
 
-   (u v) =  PI0 (u v 1)       C (u)  =  PI0 (a  b  c) (u)
-                                (v)         (d  e  f) (v)
-                                            (0  0  1) (1)
-   (I)  =  C PI0 R (P-c)
-   (J)
+   0  =  (M00 X + M10 Y + M20 Z + xm0) - I (M02 X + M12 Y + M22 Z + zm0)    [EqLin]
+   0  =  (M01 X + M11 Y + M21 Z + xm0) - J (M02 X + M12 Y + M22 Z + zm0)
+
+
+   In [EqLin]  we know X,Y,Z,I,F for each projection. We have a system of linear equation in M00,... M22, xm0, ym0 , zm0
+
+
+   We want to solve  [EqLin] by least square, but if do it directly we will get the null solution. So we
+   have to add an arbitray constraint as M11=1  or xm0=1..  but which one ? If we select one for which 0 is the
+   "natural" solution we will  not add any constraint and will get again the null vector, and even if not exactly void,
+   we can get a very noisi solution ...
+
+   => to turn over, we test all posible constraint (try M00=1 , then M11=1 ...), and select the solution that
+   give the best residual.  Note that this is fast as the normal matrix & vector is computed only once.
+
+   Once we have estimate M00,...,xm0 ...  we must recover the physicall parameters.  
+   
+   
+   For the center its easy, we have Tr = -MC0 and then  :
+   
+                    C0 = - M-1 Tr     [EqCenter]
+
+
+   For internal calib & orientaion, it's theoretically easy ..., but practically a bit tricky.
+   Knowing M, we can extract R & C, using a RQ decomposition : ie write M = R * Q where Q
+   id orthogonal and R is triangular sup, however :
+
+      *  eigen provide QR and not RQ, so there is a class that make basic permuation
+    
+      *  RQ decomposition is ambiguous on sign, let S be any sign-matrix (diag with +-1) we 
+         have  RQ = RSSQ = (RS) (SQ) , and stil RS is up-triangular ans SQ orthogobal,
+	 in our implemtatuion we fix the ambiguity by imposing that all diag elem of R
+	 are >=0
+
+     * M and Tr are  defined up to a scale factor, so are R and Q :
+
+         - for R  we solve that by imposing M22=1 (ie divide initial M by M22)
+
+	 - for Q , is we multiply Q by -1, its still orthogonal, we solve that by
+	   multiply Q by -1 if its initial determinant is <0
+
+
 */
 
 namespace MMVII
 {
-bool MMVII_IN_DEBUG = false;
 
+template <class Type> class cHomog2D3D; // class for homography 3D->2D as in [EqHom]
+template <class Type,const int Dim> class cAffineForm;  // H3D2 are made of 3 Affine forms 
+						
+template <class Type>  class cUncalibSpaceRessection; // class for computing the uncalibrated space resection
+
+
+
+
+/** Helper for cHomog2D3D, represent an affine form R3->R */
 template <class Type,const int Dim> class cAffineForm
 {
     public :
        typedef cPtxd<Type,Dim>      tPt;
 
-       Type Value(const tPt & aP) const {return Scal(mForm,aP) + mCste;}
+       /// compute value of the function
+       Type Value(const tPt & aP) const {return Scal(mLinear,aP) + mCste;}
 
+       /// constructor from 
        cAffineForm(const Type * aV);
 
-       const tPt&  Form() const {return mForm;}
-       const Type& Cste() const {return mCste;}
+       const tPt&  Linear() const {return mLinear;} /// Accessor
+       const Type& Cste() const {return mCste;} ///< Accessor
     private :
-       tPt  mForm;
-       Type mCste;
+       tPt  mLinear; ///< Linear part, a point (by "duality")
+       Type mCste;   ///< constant part, a scalar
 };
 
 template <class Type,const int Dim> 
    cAffineForm<Type,Dim>::cAffineForm(const Type * aV) :
-       mForm   (tPt(aV)),
+       mLinear   (tPt(aV)),
        mCste   (aV[Dim])
 {
 }
 
+
+/**  Class for represnting a 3D->2D homography */
 
 template <class Type> class cHomog2D3D
 {
@@ -70,28 +129,90 @@ template <class Type> class cHomog2D3D
        typedef cPtxd<Type,3>      tPtIn;
        typedef cPtxd<Type,2>      tPtOut;
 
+       /// Compute value of the function
        tPtOut  Value(const tPtIn & aP)  const  
        {
 	       return tPtOut(mFx.Value(aP),mFy.Value(aP)) / mFz.Value(aP);
        }
+
+       /// Adaptor to have with point operating on REAL8
        tPt2dr  RValue(const tPt3dr & aP)const  {return ToR(Value(tPtIn::FromPtR(aP)));}
 
+       /// Constructor from a raw data, used for creating from least sq sol
        cHomog2D3D(const Type *);
+       /// Default constuctor required by WhichMin
        cHomog2D3D();
 
+       /// extact matrix from the homography
        cDenseMatrix<Type>  Mat() const;
+       /// extract translation from the homography
        tPtIn               Tr()  const;
-       const cAffineForm<Type,3> & Fx() const;
-       const cAffineForm<Type,3> & Fy() const;
-       const cAffineForm<Type,3> & Fz() const;
+
+       const cAffineForm<Type,3> & Fx() const;  ///< Accessor
+       const cAffineForm<Type,3> & Fy() const;  ///< Accessor
+       const cAffineForm<Type,3> & Fz() const;  ///< Accessor
 
     private :
 
-       cAffineForm<Type,3>  mFx;
-       cAffineForm<Type,3>  mFy;
-       cAffineForm<Type,3>  mFz;
+       cAffineForm<Type,3>  mFx;  ///< X composant
+       cAffineForm<Type,3>  mFy;  ///< Y composant
+       cAffineForm<Type,3>  mFz;  ///< Z composant
 
 };
+
+/**
+ *
+ * Class for solving the "11 parameter" equation, AKA uncalibrated resection
+ */
+template <class Type>  class cUncalibSpaceRessection
+{
+      public :
+           cUncalibSpaceRessection
+           (
+	       const cPt2di & aSz,           // sz of the camera to generate at end
+	       const cSet2D3D & aSetProj,    // set of corresponsdance used for estimation
+	       const cSensorCamPC * aGTCam = nullptr // ground truth in bench mode
+	   );
+	   ///  Compute Parameters
+	   void  ComputeParameters();
+
+       private :
+
+	   /// Compute least square system w/o any constraint on sols
+	   void  CalcLeastSquare_WOConstr();
+
+	   /// Test all constraint on all possible variable and store the best
+	   void  Test_WithAllConstr();
+	   
+
+
+	   static void SetVect(cDenseVect<Type> & aV,int anInd,const tPt3dr & aP,double aMul);
+
+	   void CalcSolOneVarFixed(int aK);
+
+	   void AddOneEquation(const cWeightedPair2D3D & aPair);
+
+           cPt2di            mSz;
+	   cSet2D3D          mSet;
+	   cLeasSqtAA<Type>  mSys0;
+	   cPair2D3D         mCentroid;
+	   Type              mSumW;
+	   cDenseVect<Type>  mVecW;
+           cWhichMin<cHomog2D3D<Type>,Type>  mBestH;
+	   const cSensorCamPC * mGTCam;
+};
+
+
+
+
+
+
+/* ************************************************* */
+/*                                                   */
+/*         cHomog2D3D                                */
+/*                                                   */
+/* ************************************************* */
+
 
 template <class Type> 
    cHomog2D3D<Type>::cHomog2D3D(const Type * aV) :
@@ -108,7 +229,7 @@ template <class Type> cHomog2D3D<Type>::cHomog2D3D() :
 
 template <class Type>  cDenseMatrix<Type> cHomog2D3D<Type>::Mat() const
 {
-     return  M3x3FromLines(mFx.Form(),mFy.Form(),mFz.Form());
+     return  M3x3FromLines(mFx.Linear(),mFy.Linear(),mFz.Linear());
 }
 
 template <class Type> cPtxd<Type,3> cHomog2D3D<Type>::Tr() const
@@ -134,47 +255,6 @@ template <class TMap>  tREAL8  AvgReProj(const cSet2D3D & aSet,const TMap& aMap)
 }
 
 
-/**
- *
- * Class for solving the "11 parameter" equation, AKA uncalibrated resection
- */
-template <class Type>  class cUncalibSpaceRessection
-{
-      public :
-           cUncalibSpaceRessection
-           (
-	       const cPt2di & aSz,
-	       const cSet2D3D & aSetProj,
-	       const cSensorCamPC * aGTCam = nullptr
-	   );
-
-       private :
-
-	   /// Compute least square system w/o any constraint on sols
-	   void  CalcLeastSquare_WOConstr();
-
-	   /// Test all constraint on all possible variable and store the best
-	   void  Test_WithAllConstr();
-	   
-	   ///  Compute Parameters
-	   void  ComputeParameters();
-
-
-	   static void SetVect(cDenseVect<Type> & aV,int anInd,const tPt3dr & aP,double aMul);
-
-	   void CalcSolOneVarFixed(int aK);
-
-	   void AddOneEquation(const cWeightedPair2D3D & aPair);
-
-           cPt2di            mSz;
-	   cSet2D3D          mSet;
-	   cLeasSqtAA<Type>  mSys0;
-	   cPair2D3D         mCentroid;
-	   Type              mSumW;
-	   cDenseVect<Type>  mVecW;
-           cWhichMin<cHomog2D3D<Type>,Type>  mBestH;
-	   const cSensorCamPC * mGTCam;
-};
 
 
 template <class Type>  
@@ -197,7 +277,6 @@ template <class Type>
     //  Test all possible constraint to make the system well defined
     Test_WithAllConstr();
 
-    ComputeParameters();
 }
 
 /*   ========================================
@@ -339,8 +418,8 @@ template <class Type>  void    cUncalibSpaceRessection<Type>::ComputeParameters(
     double  aB2 = aR.GetElem(1,0)/aF;
     cPt2dr  aPP =  mCentroid.mP2 + cPt2dr(aR.GetElem(2,0),aR.GetElem(2,1)) ;
 
-    // StdOut() << "   F ,PP  "  << aF << " " << aPP << "\n";
-    // StdOut() << " B1B2  "  << aB1 << " " << aB2 << "\n";
+     //  StdOut() << "   F ,PP  "  << aF << " " << aPP << "\n";
+     //  StdOut() << " B1B2  "  << aB1 << " " << aB2 << "\n";
 
     cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::Alloc
                                  (
@@ -425,7 +504,7 @@ void OneBenchUnCalibResection(int aKTest)
 
       aCalib->SetParamDist("b1",aB1);
       aCalib->SetParamDist("b2",aB2);
-      if (MMVII_IN_DEBUG)  // just in case we need to check params
+      if (0)  // just in case we need to check params
       {
           for (const auto & aName : {"b1","b2","p1","toto"})
           {
@@ -448,6 +527,7 @@ void OneBenchUnCalibResection(int aKTest)
           cSet2D3D  aSetCorresp  =  aCam.SyntheticsCorresp3D2D(10,aVDepts) ;
 
           cUncalibSpaceRessection<tREAL8>  aResec8(aSz,aSetCorresp,&aCam);
+          aResec8.ComputeParameters();
       }
       delete aCalib;
 }
