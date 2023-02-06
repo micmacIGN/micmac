@@ -24,7 +24,7 @@ EXT_LIBS=-lpthread -lX11 -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O0 -g -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES}
+CXXFLAGS=-fopenmp -std=c++17 -Wall -O0 -g -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES}
 LDFLAGS=-fopenmp
 
 

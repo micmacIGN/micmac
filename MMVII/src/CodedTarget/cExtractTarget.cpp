@@ -45,6 +45,7 @@ public:
     tREAL8 & alpha() {return params[4];}
     tREAL8 & beta() {return params[5];}
 };
+
 cTargetShapeUnknowns::cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta) :
     params({cx, cy, a, b, alpha, beta}) { }
 void cTargetShapeUnknowns::PutUknowsInSetInterval()
@@ -58,8 +59,16 @@ std::vector<int> cTargetShapeUnknowns::getIndices()
 {
     std::vector<int> indices;
     std::transform(params.begin(), params.end(), std::back_inserter(indices),
-                           [&](tREAL8 p) { return (int)IndOfVal(&p); });
+                           [&](tREAL8 &p) { return (int)IndOfVal(&p); });
     return indices;
+}
+
+std::string cTargetShapeUnknowns::toString()
+{
+    std::ostringstream oss;
+    oss<<"target: ";
+    for (auto &v : params) oss<<v<<" ";
+    return oss.str();
 }
 
 
@@ -97,9 +106,20 @@ cShapeComp::~cShapeComp()
 bool cShapeComp::OneIteration()
 {
     //add observations
-    for (int x = mTarg->cx()-mTarg->a(); x < mTarg->cx()+mTarg->a(); ++x)
-        for (int y = mTarg->cy()-mTarg->a(); y < mTarg->cy()+mTarg->a(); ++y)
-            mSys->CalcAndAddObs(mCalc, mTarg->getIndices(), {static_cast<tREAL8>(x), static_cast<tREAL8>(y), mIm->DIm().GetV({x, y}), 0.1});
+    int xmin = std::max(mTarg->cx()-mTarg->a()*2, 0.0);
+    int xmax = std::min(mTarg->cx()+mTarg->a()*2+1.0, double(mIm->DIm().Sz().x()));
+    int ymin = std::max(mTarg->cy()-mTarg->a()*2, 0.0);
+    int ymax = std::min(mTarg->cy()+mTarg->a()*2+1.0, double(mIm->DIm().Sz().y()));
+    for (int y = ymin; y < ymax; ++y)
+        for (int x = xmin; x < xmax; ++x)
+        {
+            std::cout<<x<<" "<<y<<" ";
+            double v = mIm->DIm().GetV({x, y});
+            double res = mCalc->DoOneEval(mTarg->params,{static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 50.0, 180.0})[0];
+            std::cout<<res<<std::endl;
+            //std::cout<<v<<" "<<res<<std::endl;
+            mSys->CalcAndAddObs(mCalc, mTarg->getIndices(), {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 50.0, 180.0});
+        }
 
     //solve
     try
@@ -110,7 +130,6 @@ bool cShapeComp::OneIteration()
         StdOut()  <<  " Error solving system...\n";
         return false;
     }
-    StdOut()<<".";
 
     return true;
 }
@@ -757,7 +776,15 @@ void  cAppliExtractCodeTarget::DoExtract(){
              auto alpha = ellipse[4];
              auto beta = alpha + PI/2;
 
-
+             cTargetShapeUnknowns tar(cx, cy, a, b, alpha, beta);
+             cShapeComp comp(&mIm, &tar);
+             std::cout<<tar.toString()<<"\n";
+             comp.OneIteration();
+             std::cout<<tar.toString()<<"\n";
+             comp.OneIteration();
+             std::cout<<tar.toString()<<"\n";
+             comp.OneIteration();
+             std::cout<<tar.toString()<<"\n";
      }
 /*
      // ----------------------------------------------------------------------------------------------
@@ -2233,6 +2260,29 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 
 int  cAppliExtractCodeTarget::Exe(){
+
+    double cx = 12;
+    double cy = 20;
+    double a = 7.5;
+    double b = 4.5;
+    double alpha = 0.5;
+    double beta = 2.6;
+    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/prissma/simulation/targets/sabl_15.tif",true);
+    cIm2D<tREAL4> aImIn(aFileIn.Sz());
+    aImIn.Read(aFileIn,cPt2di(0,0));
+
+    cTargetShapeUnknowns tar(cx, cy, a, b, alpha, beta);
+    cShapeComp comp(&aImIn, &tar);
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    //std::cout<<tar.toString()<<"\n";
+    //comp.OneIteration();
+    //std::cout<<tar.toString()<<"\n";
+    //comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+
+    return 0;
+//-----------------------------
 
 
     if (mTest){

@@ -25,7 +25,7 @@ class cTargetShape
     }
 
     static const std::vector<std::string> VNamesUnknowns() { return Append(NamesP2("c"), {"a", "b", "alpha", "beta"}); }
-    static const std::vector<std::string> VNamesObs()      { return {"x", "y", "v", "s"}; }
+    static const std::vector<std::string> VNamesObs()      { return {"x", "y", "v", "s", "min_val", "max_val"}; }
 
     std::string FormulaName() const { return "TargetShape";}
 
@@ -47,6 +47,8 @@ class cTargetShape
           const auto & y  = aVObs[1];
           const auto & v  = aVObs[2]; //image pix value
           const auto & s  = aVObs[3]; //blur factor
+          const auto & min_val  = aVObs[4]; //min value in image
+          const auto & max_val  = aVObs[5]; //max value in image
 
           auto xx = (cos(alpha)*(x-c.x()) + sin(alpha)*(y-c.y()))/a;
           auto yy = (cos(beta)*(x-c.x()) + sin(beta)*(y-c.y()))/b;
@@ -54,9 +56,11 @@ class cTargetShape
           auto psin_yy = sin(yy)/sqrt(sin(yy)*sin(yy)+s*s);
           auto dist_xx_yy = sqrt(xx*xx+yy*yy);
           auto pcos_dist = cos(dist_xx_yy)/sqrt(cos(dist_xx_yy)*cos(dist_xx_yy)+s*s);
-          auto g = ((psin_xx*psin_yy)/2.0+0.5) * (pcos_dist/2.0+0.5);
+          auto g = 1.0 - ((psin_xx*psin_yy)/2.0+0.5) * (pcos_dist/2.0+0.5);
+          auto g_scaled = (max_val - min_val) * g + min_val;
 
-          return { v - g } ;
+          return { g_scaled - v } ;
+          //return { g_scaled } ;
      }
 };
 
