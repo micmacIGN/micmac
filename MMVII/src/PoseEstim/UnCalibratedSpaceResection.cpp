@@ -11,11 +11,28 @@
 
 
 /**
-   \file CalibratedSpaceResection.cpp
+   \file UnCalibratedSpaceResection.cpp
 
-   \brief file for implementing the space resection algorithm in calibrated case
+   \brief file for implementing the space resection algorithm in uncalibrated case
 
  */
+
+/* We have the image formula w/o distorsion:
+
+   (u v)  = PI0   R (P-c)
+
+   we consider a  calibraytion with linear distorsion :
+
+   (I) =  (PPx + F (u  p1 u + p2 v))  =  (F(1+p1)   p2F  PPx) (u)  =  (a b c) (u) =  C (u)
+   (J)    (PPy + F v               )     (0         F    PPy) (v)     (d e f) (v)      (v)
+
+
+   (u v) =  PI0 (u v 1)       C (u)  =  PI0 (a  b  c) (u)
+                                (v)         (d  e  f) (v)
+                                            (0  0  1) (1)
+   (I)  =  C PI0 R (P-c)
+   (J)
+*/
 
 namespace MMVII
 {
