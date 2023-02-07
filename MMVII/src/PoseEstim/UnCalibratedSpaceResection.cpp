@@ -25,7 +25,7 @@
 
    we consider a  calibraytion with linear distorsion :
 
-   (I)    (PPx + F (u  p1 u + p2 v))     (F(1+p1)   p2F  PPx) (u)     (a b c) (u)      (u)
+   (I)    (PPx + F (u  p1 u + p2 v))     (F(1+p1)   p2F  PPx) (u)     (a b c) (u)      (u) [EqCal]
    (J) ~  (PPy + F v               )  =  (0         F    PPy) (v)  =  (0 e f) (v) =  C (v)
    (1)    (                       1)     (0         0     1)  (1)     (0 0 1) (1)      (1)
 
@@ -172,23 +172,21 @@ template <class Type>  class cUncalibSpaceRessection
 	       const cSensorCamPC * aGTCam = nullptr // ground truth in bench mode
 	   );
 	   ///  Compute Parameters
-	   void  ComputeParameters();
+	   cSensorCamPC *  ComputeParameters();
 
        private :
 
-	   /// Compute least square system w/o any constraint on sols
+	   /// Compute least square system w/o any constraint on sols (dont try to solve it)
 	   void  CalcLeastSquare_WOConstr();
-
-	   /// Test all constraint on all possible variable and store the best
-	   void  Test_WithAllConstr();
-	   
-
-
+           /// Add on equation corresponding to one correspondance
+	   void AddOneEquation(const cWeightedPair2D3D & aPair);
+           /// Put in dense vect [XEqL] or [YEqL], Mul can be 1,I or J
 	   static void SetOneAffineForm(cDenseVect<Type> & aV,int anInd,const tPt3dr & aP,double aMul);
 
+	   /// Test all constraint on all possible variable and store the best (call "CalcSolOneVarFixed")
+	   void  Test_WithAllConstr();
+           /// Add one constraint then solve least square
 	   void CalcSolOneVarFixed(int aK);
-
-	   void AddOneEquation(const cWeightedPair2D3D & aPair);
 
                 //==============  DATA ==================
 
@@ -315,6 +313,9 @@ template <class Type>
  *   Methods for computing Var/Cov
  *   ======================================== */
 
+//   Implemenr EqLin : for example
+//     (v0 x + v1 y + v2 z + v3)  =>   Ind=0, Mul =1
+//    - J *  (v8 x + v9 y + v10 z + v11)  => Ind=8  Mul=-J
 template <class Type>  
     void cUncalibSpaceRessection<Type>::SetOneAffineForm
          (
@@ -330,24 +331,24 @@ template <class Type>
 	aV(aInd+3) =          aMul;
 }
 
-/*
-      0 =  (v0 x + v1 y + v2 z + v3)  - I *  (v8 x + v9 y + v10 z + v11)
-      0 =  (v4 x + v5 y + v6 z + v7)  - J *  (v8 x + v9 y + v10 z + v11)
-*/
 
 
 template <class Type>  void  cUncalibSpaceRessection<Type>::AddOneEquation(const cWeightedPair2D3D & aPair)
 {
+    // IsX=true => XEqL   , IsX=false => YEqL
     for (const auto & IsX : {true,false})
     {
+       // Extract Params
        double aW = aPair.mWeight;
        cPt3dr aP3 = aPair.mP3 ;
 
+       // Put Equations in vect
        cDenseVect<Type>  aVect (TheNbVar, eModeInitImage::eMIA_Null);
        SetOneAffineForm( aVect , (IsX ? 0 : 4) , aP3 ,  1.0                                   );
        SetOneAffineForm( aVect ,             8 , aP3 , - (IsX ?aPair.mP2.x() : aPair.mP2.y()) );
        mSys0.AddObservation(aW,aVect,0.0);
 
+       // update weigthings
        mSumW += aW;
        for (int aK=0 ; aK<TheNbVar  ; aK++)
            mVecW(aK) += aW * Square(aVect(aK));
@@ -355,6 +356,7 @@ template <class Type>  void  cUncalibSpaceRessection<Type>::AddOneEquation(const
 }
 template <class Type>  void    cUncalibSpaceRessection<Type>::CalcLeastSquare_WOConstr()
 {
+    // Just add equations for all pairs
     for (const auto & aPair : mSet.Pairs())
         AddOneEquation(aPair);
 
@@ -366,55 +368,56 @@ template <class Type>  void    cUncalibSpaceRessection<Type>::CalcLeastSquare_WO
 
 template <class Type>  void cUncalibSpaceRessection<Type>::CalcSolOneVarFixed(int aKV)
 {
+     cLeasSqtAA<Type>  aSys = mSys0.Dup(); // Make a duplication of the system without constraints
 
-     cLeasSqtAA<Type>  aSys = mSys0.Dup();
-     double aW = mSumW * std::sqrt(mVecW(aKV)/mSumW);
-     aSys.AddObsFixVar(aW,aKV,1.0);
+     double aW =  std::sqrt(mVecW(aKV)/mSumW);  // weighted average of square coeff
+     aW *= mSumW ;  // now weithed summ
+     aSys.AddObsFixVar(aW,aKV,1.0);  // Add a constraint
 
-     cDenseVect<Type>  aSol = aSys.Solve();
-     cHomog2D3D<Type>  aHom(aSol.RawData());
+     cDenseVect<Type>  aSol = aSys.Solve();  // extract the least square sol with constraint
+     cHomog2D3D<Type>  aHom(aSol.RawData()); // make an homography of the sol
 
-     tREAL8 aScore = AvgReProj(mSet,aHom);
-    // StdOut()  << " LLLxxxx " << aSys.tAA().DIm().L2Norm()  <<  " ww=" << aW << "\n";
-    // StdOut()  << " SSSS " << aSol(0)  << " " << aSol(1) << " " << aSol(11) << "\n";
-     mBestH.Add(aHom, aScore);
+     tREAL8 aScore = AvgReProj(mSet,aHom); // compute the residual
+     mBestH.Add(aHom, aScore);  // update with a possibly better solution
 }
 
 template <class Type>  void    cUncalibSpaceRessection<Type>::Test_WithAllConstr()
 {
-
+    // Test the contsrained solution with all possible variable
     for (int aKV=0 ; aKV<TheNbVar ; aKV++)
     {
         CalcSolOneVarFixed(aKV);
     }
 
+    // If ground truth exist, make a firt check on linear solution
     if (mGTCam) 
     {
        double aResidual =  mBestH.ValExtre();
-       MMVII_INTERNAL_ASSERT_bench(aResidual < tElemNumTrait<Type>::Accuracy()*1e-2,"Residual homogr in cUncalibSpaceRessection");
+       // Low accurracy required, experimentally tREAL4 has numerical problem
+       MMVII_INTERNAL_ASSERT_bench
+       (
+             aResidual < tElemNumTrait<Type>::Accuracy()*1e-2,
+             "Residual homogr in cUncalibSpaceRessection"
+       );
     }
 }
 
-/*
-     (i)            (v0 v1 v2 )  (x)    (v3 )
-     (j)  =  Pi0 {  (v4 v5 v6 )  (y)  + (v7 ) }  = Pi0 ( M P + Q) = Pi0 (M (P-  (-M^(-1) Q)))
-                    (v8 v9 v10)  (z)    (v11)
-*/
+/*   ===================================================
+ *   Extract the "physicall" parameters from homography
+ *   =================================================== */
 
-template <class Type>  void    cUncalibSpaceRessection<Type>::ComputeParameters()
+template <class Type>  cSensorCamPC *    cUncalibSpaceRessection<Type>::ComputeParameters()
 {
-    cDenseMatrix<Type> aMat = mBestH.IndexExtre().Mat();
-    cPtxd<Type,3>      aTr  = mBestH.IndexExtre().Tr();
-    cPt3dr      aCLoc   =  ToR(SolveCol(aMat,aTr)) * -1.0 ;
-    cPt3dr      aCAbs   =  aCLoc+ mCentroid.mP3;
+    cDenseMatrix<Type> aMat = mBestH.IndexExtre().Mat(); // Matrix
+    cPtxd<Type,3>      aTr  = mBestH.IndexExtre().Tr();  // Translation
 
-    // cPt3dr aC =  mGTCam->Center() - mCentroid.mP3;
+    cPt3dr      aCLoc   =  ToR(SolveCol(aMat,aTr)) * -1.0 ;  // implementation of [EqCenter]
+    cPt3dr      aCAbs   =  aCLoc+ mCentroid.mP3;  // invert initial centering
 
-    // StdOut() << " CCC=" <<  aTr    << aMat*aC << "\n"; 
+    // optional test on center accuracy, 
     if (mGTCam)
     {
        double aD =  Norm2(mGTCam->Center() - aCAbs) ;
-       // StdOut() << " CCC=" <<  Norm2(mGTCam->Center() - aCAbs) << "\n"; 
        if (0) // (aD >= 1e-2)
        {
             StdOut() <<  "DIST CENTERS= " << aD << "\n";
@@ -422,34 +425,27 @@ template <class Type>  void    cUncalibSpaceRessection<Type>::ComputeParameters(
        }
     }
     
+    //  make a decompositio  M = R Q with, R Triangular sup, Q orthogonal
     cResulRQ_Decomp<tREAL8>  aRQ = Convert((tREAL8*)nullptr,aMat).RQ_Decomposition();
 
     cDenseMatrix<tREAL8>  aRot = aRQ.Q_Matrix().Transpose(); // transpose to change W->C into Cam->Word for pose
-    if (aRot.Det() <0) // remember  matrix are udefined up to scale
+
+    //  matrix are udefined up to scale, there is a sign ambiguity on aRot
+    if (aRot.Det() <0) 
        aRot = aRot * -1;
 
     // matrix beign defined up to a scale, fix R(2,2) = 1 
     aRQ.R_Matrix().DIm() *=  (1.0/aRQ.R_Matrix().GetElem(2,2));
 
-    /*
-    StdOut() << " LLLL " << aRot.L2Dist(mGTCam->Pose().Rot().Mat()) << "\n";
-    StdOut() << " QQQQQQQQQQ  \n";
-    aRot.Show();
-    StdOut() << " MMMMMMMMMM  \n";
-    mGTCam->Pose().Rot().Mat().Show();
-    StdOut() << " RRRR  "  << aRQ.R_Matrix().Det() << "\n";
-    aRQ.R_Matrix().Show();
-    */
-
+    // Extract physicall internal parameters usign [EqCal]
     const cDenseMatrix<tREAL8> & aR = aRQ.R_Matrix();
     double aF = aR.GetElem(1,1);
     double  aB1 = (aR.GetElem(0,0)- aF)/aF;
     double  aB2 = aR.GetElem(1,0)/aF;
-    cPt2dr  aPP =  mCentroid.mP2 + cPt2dr(aR.GetElem(2,0),aR.GetElem(2,1)) ;
+    cPt2dr  aPP =  mCentroid.mP2 + cPt2dr(aR.GetElem(2,0),aR.GetElem(2,1)) ; // Invert initial centering
 
-     //  StdOut() << "   F ,PP  "  << aF << " " << aPP << "\n";
-     //  StdOut() << " B1B2  "  << aB1 << " " << aB2 << "\n";
 
+    // Create camera with  2 linear parameters, initially no dist
     cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::Alloc
                                  (
                                          cDataPerspCamIntrCalib
@@ -464,20 +460,24 @@ template <class Type>  void    cUncalibSpaceRessection<Type>::ComputeParameters(
                                                 10
                                          )
                                  );
-      cMMVII_Appli::AddObj2DelAtEnd(aCalib);
 
-      aCalib->SetParamDist("b1",aB1);
+      cMMVII_Appli::AddObj2DelAtEnd(aCalib); // Not sure of this
+
+      // Now fix distorsion
+      aCalib->SetParamDist("b1",aB1);  
       aCalib->SetParamDist("b2",aB2);
 
-      cIsometry3D<tREAL8> aPose(aCAbs,cRotation3D<tREAL8>(aRot,false));
-      cSensorCamPC aCam("Camera_UncalibResection",aPose,aCalib);
+      // Compute pose & finally the camera
+      cIsometry3D<tREAL8> aPose(aCAbs,cRotation3D<tREAL8>(aRot,false)); 
+      cSensorCamPC* aCam = new cSensorCamPC("Camera_UncalibResection",aPose,aCalib);
 
+      // If grond truth camera, check accuracy
       if (mGTCam) 
       {
           cWeightAv<tREAL8>  aAvgDiff;
           for (const auto & aPair : mSet.Pairs())
 	  {
-              double aDif =  Norm2(aPair.mP2+ mCentroid.mP2 - aCam.Ground2Image(aPair.mP3+mCentroid.mP3) );
+              double aDif =  Norm2(aPair.mP2+ mCentroid.mP2 - aCam->Ground2Image(aPair.mP3+mCentroid.mP3) );
               aAvgDiff.Add(aPair.mWeight,aDif);
 	  }
 	  double aAvR = aAvgDiff.Average() ;
@@ -485,16 +485,8 @@ template <class Type>  void    cUncalibSpaceRessection<Type>::ComputeParameters(
           MMVII_INTERNAL_ASSERT_bench(aAvR < 1e-5,"Residual cam in cUncalibSpaceRessection");
           // StdOut()<< mGTCam->Center() << " " << aCam.Center() << "\n";
       }
-      //delete aCalib;
+      return aCam;
 }
-/*
-   (A  B C)  (x        A x/z + B y/z + C
-   (0  D E)  (y   = 
-   (0  0 1)  (z
- 
-   x = x+b1x+b2y  (1+b1    b2)
-                  (        1)
- */
 
 /* ************************************************* */
 /*                                                   */
@@ -561,7 +553,8 @@ void OneBenchUnCalibResection(int aKTest)
           cSet2D3D  aSetCorresp  =  aCam.SyntheticsCorresp3D2D(10,aVDepts) ;
 
           cUncalibSpaceRessection<tREAL8>  aResec8(aSz,aSetCorresp,&aCam);
-          aResec8.ComputeParameters();
+          cSensorCamPC * aCamCalc = aResec8.ComputeParameters();
+          delete aCamCalc;
       }
       delete aCalib;
 }

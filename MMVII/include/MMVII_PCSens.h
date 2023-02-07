@@ -318,6 +318,10 @@ class cSensorCamPC : public cSensorImage
          typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
 
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
+
+         /// Create form  Un-Calibrated-Space-Resection
+         static cSensorCamPC * CreateUCSR(const cSet2D3D&);
+
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
 	 double Visibility(const cPt3dr &) const override;
