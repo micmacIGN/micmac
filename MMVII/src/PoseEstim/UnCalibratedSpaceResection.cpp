@@ -37,8 +37,8 @@
    J =  (M01 X + M11 Y + M21 Z + xm0) / (M02 X + M12 Y + M22 Z + zm0)
 
 
-   0  =  (M00 X + M10 Y + M20 Z + xm0) - I (M02 X + M12 Y + M22 Z + zm0)    [EqLin]
-   0  =  (M01 X + M11 Y + M21 Z + xm0) - J (M02 X + M12 Y + M22 Z + zm0)
+   0  =  (M00 X + M10 Y + M20 Z + xm0) - I (M02 X + M12 Y + M22 Z + zm0)  [XEqL]  | [EqLin]  
+   0  =  (M01 X + M11 Y + M21 Z + xm0) - J (M02 X + M12 Y + M22 Z + zm0)  [YEqL]  |
 
 
    In [EqLin]  we know X,Y,Z,I,F for each projection. We have a system of linear equation in M00,... M22, xm0, ym0 , zm0
@@ -184,7 +184,7 @@ template <class Type>  class cUncalibSpaceRessection
 	   
 
 
-	   static void SetVect(cDenseVect<Type> & aV,int anInd,const tPt3dr & aP,double aMul);
+	   static void SetOneAffineForm(cDenseVect<Type> & aV,int anInd,const tPt3dr & aP,double aMul);
 
 	   void CalcSolOneVarFixed(int aK);
 
@@ -207,6 +207,13 @@ template <class Type>  class cUncalibSpaceRessection
            cWhichMin<cHomog2D3D<Type>,Type>  mBestH;  ///< memorize best homography of all possible var
 };
 
+/* ************************************************* */
+/*                                                   */
+/*                     MMVII                         */
+/*                                                   */
+/* ************************************************* */
+
+/// compute average reproj of a map
 template <class TMap>  tREAL8  AvgReProj(const cSet2D3D & aSet,const TMap& aMap)
 {
     cWeightAv<tREAL8>  aWAvg;
@@ -309,7 +316,7 @@ template <class Type>
  *   ======================================== */
 
 template <class Type>  
-    void cUncalibSpaceRessection<Type>::SetVect
+    void cUncalibSpaceRessection<Type>::SetOneAffineForm
          (
             cDenseVect<Type> & aV,
             int aInd,
@@ -324,9 +331,6 @@ template <class Type>
 }
 
 /*
-      I =  (v0 x + v1 y + v2 z + v3) /  (v8 x + v9 y + v10 z + v11)
-      J =  (v4 x + v5 y + v6 z + v7) /  (v8 x + v9 y + v10 z + v11)
-
       0 =  (v0 x + v1 y + v2 z + v3)  - I *  (v8 x + v9 y + v10 z + v11)
       0 =  (v4 x + v5 y + v6 z + v7)  - J *  (v8 x + v9 y + v10 z + v11)
 */
@@ -340,8 +344,8 @@ template <class Type>  void  cUncalibSpaceRessection<Type>::AddOneEquation(const
        cPt3dr aP3 = aPair.mP3 ;
 
        cDenseVect<Type>  aVect (TheNbVar, eModeInitImage::eMIA_Null);
-       SetVect( aVect , (IsX ? 0 : 4) , aP3 ,  1.0                                   );
-       SetVect( aVect ,             8 , aP3 , - (IsX ?aPair.mP2.x() : aPair.mP2.y()) );
+       SetOneAffineForm( aVect , (IsX ? 0 : 4) , aP3 ,  1.0                                   );
+       SetOneAffineForm( aVect ,             8 , aP3 , - (IsX ?aPair.mP2.x() : aPair.mP2.y()) );
        mSys0.AddObservation(aW,aVect,0.0);
 
        mSumW += aW;
