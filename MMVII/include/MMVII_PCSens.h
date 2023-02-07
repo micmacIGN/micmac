@@ -320,7 +320,7 @@ class cSensorCamPC : public cSensorImage
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
 
          /// Create form  Un-Calibrated-Space-Resection
-         static cSensorCamPC * CreateUCSR(const cSet2D3D&);
+         static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,bool Real16=true);
 
          cPt2dr Ground2Image(const cPt3dr &) const override;
 

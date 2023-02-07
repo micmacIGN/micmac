@@ -490,6 +490,30 @@ template <class Type>  cSensorCamPC *    cUncalibSpaceRessection<Type>::ComputeP
 
 /* ************************************************* */
 /*                                                   */
+/*                     cSensorCamPC                  */
+/*                                                   */
+/* ************************************************* */
+
+cSensorCamPC * cSensorCamPC::CreateUCSR(const cSet2D3D& aSetCorresp,const cPt2di & aSzCam,bool Real16)
+{
+   cSensorCamPC * aCamCalc = nullptr;
+   if (Real16)
+   {
+       cUncalibSpaceRessection<tREAL16>  aResec(aSzCam,aSetCorresp);
+       aCamCalc = aResec.ComputeParameters();
+   }
+   else
+   {
+       cUncalibSpaceRessection<tREAL8>  aResec(aSzCam,aSetCorresp);
+       aCamCalc = aResec.ComputeParameters();
+   }
+
+   return aCamCalc;
+}
+
+
+/* ************************************************* */
+/*                                                   */
 /*                     ::MMVII                       */
 /*                                                   */
 /* ************************************************* */

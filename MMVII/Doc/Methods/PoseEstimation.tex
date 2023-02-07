@@ -24,6 +24,7 @@ elementary part of the puzzle by more global method that will try to have a "str
 
 \section{Space resection, calibrated case}
 
+\label{SR_Cal}
 
     %-----------------------------------------------------
 \subsection{Introduction}
@@ -35,6 +36,7 @@ We deal here with the following problem,  we have :
    \item a set of point for which we know the  $3d$ word coordinates $G_k$ and their 
         $2d$ coordinate $p_k$ in a image acquired with this camera;
 \end{itemize}
+
 
 We want to extract the pose $R,C$ of the camera (Rotation,center) such that for every point
 we have the usual projection equation:
@@ -54,7 +56,29 @@ exactly the equation~\ref{EQ:PROJ}  from a set of $3$ correspondance. Other
 chapter will discuss of how we use more (possibly many) correspondance for beign 
 robust to outlier (for
 example with Ransac) or beign more accurate in presence of "gaussian" noise (for 
-example with leas-square like) .
+example with least-square like) .
+
+
+This problem occurs in two case in photogrammetric pipeline :
+
+\begin{itemize}
+   \item the first case is in fact rather rare, it's the case where we have "real" GCP
+         an approximate calibration, and want to compute the initial pose of a camera ;
+         it's rare because the requirement of having at least $3$ GCP visible is rather
+         high; by the way it can occurs in calibrating a camera on a calibration fields
+         with many GCP;
+
+ \item the second case is when we have a set of $N$ already oriented camera  ($N\geq 2 $),
+       we want to orientate a new camera \emph{relatively} to this set, we have a
+       set of $M \geq 3$ multiple tie point , each tie point being visible in the new
+       camera and least two of already oriented camera;  when it is the case,
+       we can compute for each tie point, by bundle intesection, an estimation of the
+       "ground" coodinate of the point in the current system, and then estimate a pose
+       for the new camera coherent with the existing one;
+       this case is extremely frequent in automatic photogrammetric
+       pipeline (at least will be in {\tt MMVII});
+
+\end{itemize}
 
 
     %-----------------------------------------------------
@@ -263,6 +287,49 @@ and~\ref{SpResecEQ:DefBundle}, and finally finally compute the pose $R,C$  going
 %-----------------------------------------------------
 
 \section{Space resection, uncalibrated case}
+
+    %-----------------------------------------------------
+
+\subsection{Introduction}
+
+We deal here with the following problem,  we have :
+
+\begin{itemize}
+   \item an \emph{un-calibrated} camera ;
+   \item a set of point for which we know the  $3d$ word coordinates $G_k$ and their 
+        $2d$ coordinate $p_k$ in a image acquired with this camera;
+\end{itemize}
+
+
+We want to extract \emph{simulatenously} the pose $R,C$ of the camera (Rotation,center)  and the calibration
+$\mathcal I$ such that for every point we have the usual projection equation:
+
+\begin{equation}
+       \mathcal I(\pi (R*(G_k-C))) = p_k \label{EQ:PROJ}
+\end{equation}
+
+Obviously this problem require more informations ~\ref{SR_Cal}, because we want to estimate more parameters.
+Also, due to correlation between internal and external parameters, the solution
+are frequently not so stable. It usage is far less current than calibrated case,
+to our knowledge, the two case where it appears practically are :
+
+
+\begin{itemize}
+   \item approximate  orientation of old images for wich we have no idea of focal length and/or principal
+        point; one advantage of the method, as it restimate the principal point, is that it can work
+        also with croped images (current case for historical images);
+
+   \item for forcing conversion of  non central perspetive sensor to a central perspective sensor
+        using  artficial $2d-3d$ correspondances; also theoretically not recommanded~\footnote{it's
+        always better to use rigourous modelization}, it can unlock situation where you need to
+        use a software that accept only central perspetive sensor; this is the case for example
+        with satellite images, if one use small patches, then the projection  function can be
+        approximate by a central perspetive on this patch ~\footnote{In fact, the accuracy of
+        the approximation is a difficult question, depend of the size of the patch, of relief, 
+        of the exact sensor \dots}.
+\end{itemize}
+
+
 
 
 %-----------------------------------------------------
