@@ -78,6 +78,8 @@
 	 - for Q , is we multiply Q by -1, its still orthogonal, we solve that by
 	   multiply Q by -1 if its initial determinant is <0
 
+         - for C0 it's not a problem as in [EqCenter] , the arbitrary scale of M and T is naturally
+           absorbed;
 
 */
 
@@ -111,12 +113,6 @@ template <class Type,const int Dim> class cAffineForm
        Type mCste;   ///< constant part, a scalar
 };
 
-template <class Type,const int Dim> 
-   cAffineForm<Type,Dim>::cAffineForm(const Type * aV) :
-       mLinear   (tPt(aV)),
-       mCste   (aV[Dim])
-{
-}
 
 
 /**  Class for represnting a 3D->2D homography */
@@ -167,6 +163,8 @@ template <class Type> class cHomog2D3D
 template <class Type>  class cUncalibSpaceRessection
 {
       public :
+           static constexpr int TheNbVar = 12;
+
            cUncalibSpaceRessection
            (
 	       const cPt2di & aSz,           // sz of the camera to generate at end
@@ -192,55 +190,22 @@ template <class Type>  class cUncalibSpaceRessection
 
 	   void AddOneEquation(const cWeightedPair2D3D & aPair);
 
-           cPt2di            mSz;
-	   cSet2D3D          mSet;
-	   cLeasSqtAA<Type>  mSys0;
-	   cPair2D3D         mCentroid;
-	   Type              mSumW;
-	   cDenseVect<Type>  mVecW;
-           cWhichMin<cHomog2D3D<Type>,Type>  mBestH;
-	   const cSensorCamPC * mGTCam;
+                //==============  DATA ==================
+
+                      //  --  Copy of constructor param -------------
+
+           cPt2di            mSz;  ///< Size of cam to generate
+	   cSet2D3D          mSet;  ///< Set of correspondances
+	   const cSensorCamPC * mGTCam;  ///< Ground truth cam
+
+                      //  --  Internal param -------------
+
+	   cLeasSqtAA<Type>  mSys0;      ///< Least Sq Syst for equation [EqLin]
+	   cPair2D3D         mCentroid;  ///< Centroid, for 2D/3D correspond
+	   Type              mSumW;      ///< Sum of weight  of all obs
+	   cDenseVect<Type>  mVecW;      ///< Weighted sum of  square coeff
+           cWhichMin<cHomog2D3D<Type>,Type>  mBestH;  ///< memorize best homography of all possible var
 };
-
-
-
-
-
-
-/* ************************************************* */
-/*                                                   */
-/*         cHomog2D3D                                */
-/*                                                   */
-/* ************************************************* */
-
-
-template <class Type> 
-   cHomog2D3D<Type>::cHomog2D3D(const Type * aV) :
-	mFx  (aV+0),
-	mFy  (aV+4),
-	mFz  (aV+8)
-{
-}
-
-template <class Type> cHomog2D3D<Type>::cHomog2D3D() :
-	cHomog2D3D(std::vector<Type>({1,0,0,0,  0,1,0,0,  0,0,0,1}).data())
-{
-}
-
-template <class Type>  cDenseMatrix<Type> cHomog2D3D<Type>::Mat() const
-{
-     return  M3x3FromLines(mFx.Linear(),mFy.Linear(),mFz.Linear());
-}
-
-template <class Type> cPtxd<Type,3> cHomog2D3D<Type>::Tr() const
-{
-    return cPtxd<Type,3> (mFx.Cste(),mFy.Cste(),mFz.Cste());
-}
-template <class Type>   const cAffineForm<Type,3> &  cHomog2D3D<Type>::Fx() const {return mFx;}
-template <class Type>   const cAffineForm<Type,3> &  cHomog2D3D<Type>::Fy() const {return mFy;}
-template <class Type>   const cAffineForm<Type,3> &  cHomog2D3D<Type>::Fz() const {return mFz;}
-
-// template <class TMap>  tREAL8  RValue(const TMap& aMap)
 
 template <class TMap>  tREAL8  AvgReProj(const cSet2D3D & aSet,const TMap& aMap)
 {
@@ -256,17 +221,77 @@ template <class TMap>  tREAL8  AvgReProj(const cSet2D3D & aSet,const TMap& aMap)
 
 
 
+/* ************************************************* */
+/*                                                   */
+/*         cAffineForm                               */
+/*                                                   */
+/* ************************************************* */
+
+template <class Type,const int Dim> 
+   cAffineForm<Type,Dim>::cAffineForm(const Type * aV) :
+       mLinear   (tPt(aV)),
+       mCste   (aV[Dim])
+{
+}
+
+/* ************************************************* */
+/*                                                   */
+/*         cHomog2D3D                                */
+/*                                                   */
+/* ************************************************* */
+
+
+// A bit trick, but default Cstr of  cWitchMin calls cHomog2D3D with 0 as param, 
+// which is interpreted as nullptr, so make it work with nullptr
+
+template <class Type> 
+   cHomog2D3D<Type>::cHomog2D3D(const Type * aV) :
+	mFx  ( aV ? (aV+0) : std::vector<Type>({1,0,0,0}).data()),
+	mFy  ( aV ? (aV+4) : std::vector<Type>({0,1,0,0}).data()),
+	mFz  ( aV ? (aV+8) : std::vector<Type>({0,0,0,1}).data())
+{
+}
+
+// calls nullptr => generate identity
+
+template <class Type> cHomog2D3D<Type>::cHomog2D3D() :
+	cHomog2D3D(nullptr)
+{
+}
+
+     /// extract linear part to form a matrix
+template <class Type>  cDenseMatrix<Type> cHomog2D3D<Type>::Mat() const
+{
+     return  M3x3FromLines(mFx.Linear(),mFy.Linear(),mFz.Linear());
+}
+
+     /// extract constant part to form the translation
+template <class Type> cPtxd<Type,3> cHomog2D3D<Type>::Tr() const
+{
+    return cPtxd<Type,3> (mFx.Cste(),mFy.Cste(),mFz.Cste());
+}
+template <class Type>   const cAffineForm<Type,3> &  cHomog2D3D<Type>::Fx() const {return mFx;}
+template <class Type>   const cAffineForm<Type,3> &  cHomog2D3D<Type>::Fy() const {return mFy;}
+template <class Type>   const cAffineForm<Type,3> &  cHomog2D3D<Type>::Fz() const {return mFz;}
+
+
+/* ************************************************* */
+/*                                                   */
+/*         cUncalibSpaceRessection                   */
+/*                                                   */
+/* ************************************************* */
+
 
 template <class Type>  
     cUncalibSpaceRessection<Type>::cUncalibSpaceRessection(const cPt2di& aSz,const cSet2D3D & aSet,const cSensorCamPC * aGTCam) :
         mSz   (aSz),
 	mSet  (aSet),
-        mSys0 (12),
+	mGTCam (aGTCam),
+
+        mSys0 (TheNbVar),
 	mCentroid (mSet.Centroid()),
 	mSumW (0),
-        mVecW (12, eModeInitImage::eMIA_Null),
-	mBestH (cHomog2D3D<Type>(),1e30),
-	mGTCam (aGTCam)
+        mVecW (TheNbVar, eModeInitImage::eMIA_Null)
 {
     // substract centroid to make more stable system with "big" coords
     mSet.Substract(mCentroid);
@@ -314,13 +339,13 @@ template <class Type>  void  cUncalibSpaceRessection<Type>::AddOneEquation(const
        double aW = aPair.mWeight;
        cPt3dr aP3 = aPair.mP3 ;
 
-       cDenseVect<Type>  aVect (12, eModeInitImage::eMIA_Null);
+       cDenseVect<Type>  aVect (TheNbVar, eModeInitImage::eMIA_Null);
        SetVect( aVect , (IsX ? 0 : 4) , aP3 ,  1.0                                   );
        SetVect( aVect ,             8 , aP3 , - (IsX ?aPair.mP2.x() : aPair.mP2.y()) );
        mSys0.AddObservation(aW,aVect,0.0);
 
        mSumW += aW;
-       for (int aK=0 ; aK<12  ; aK++)
+       for (int aK=0 ; aK<TheNbVar  ; aK++)
            mVecW(aK) += aW * Square(aVect(aK));
     }
 }
@@ -354,7 +379,7 @@ template <class Type>  void cUncalibSpaceRessection<Type>::CalcSolOneVarFixed(in
 template <class Type>  void    cUncalibSpaceRessection<Type>::Test_WithAllConstr()
 {
 
-    for (int aKV=0 ; aKV<12 ; aKV++)
+    for (int aKV=0 ; aKV<TheNbVar ; aKV++)
     {
         CalcSolOneVarFixed(aKV);
     }
@@ -467,6 +492,11 @@ template <class Type>  void    cUncalibSpaceRessection<Type>::ComputeParameters(
                   (        1)
  */
 
+/* ************************************************* */
+/*                                                   */
+/*                     ::MMVII                       */
+/*                                                   */
+/* ************************************************* */
 
 
 void OneBenchUnCalibResection(int aKTest)
