@@ -47,7 +47,7 @@ public:
 };
 
 cTargetShapeUnknowns::cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta) :
-    params({cx/*, cy, a, b, alpha, beta*/}) { }
+    params({cx, cy/*, a, b, alpha, beta*/}) { }
 void cTargetShapeUnknowns::PutUknowsInSetInterval()
 {
     mSetInterv->AddOneInterv(params);
@@ -121,16 +121,15 @@ bool cShapeComp::OneIteration()
     for (int y = ymin; y < ymax; ++y)
         for (int x = xmin; x < xmax; ++x)
         {
-            //std::cout<<x<<" "<<y<<" ";
             auto indices = mTarg->getIndices();
             double v = mIm->DIm().GetV({x, y});
             //auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 0.0, 255.0};
             auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v};
-            //double res = mCalc->DoOneEval(mTarg->params,{static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 0.0, 255.0})[0];
-            //auto der = mCalc->DerComp(mTarg->params,{static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 0.0, 255.0})[0];
+            double res = mCalc->DoOneEval(mTarg->params, vals)[0];
+            //auto der = mCalc->DerComp(mTarg->params,vals)[0];
 
             //std::cout<<res<<std::endl;
-            //std::cout<<v<<" "<<res+v<<" "<<res;//<<std::endl;
+            //std::cout<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<std::endl;
             /*std::cout<<" [";
             for (auto &v: indices) std::cout << v << ' ';
             std::cout<<"] [";
@@ -2280,13 +2279,13 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 int  cAppliExtractCodeTarget::Exe(){
 
-    double cx = 18;
-    double cy = 58;
+    double cx = 12;
+    double cy = 26;
     double a = 31;
     double b = 31;
     double alpha = -1.6;
     double beta = 0.025;
-    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/test_cibles/1d.png",true);
+    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/test_cibles/2d.tif",true);
     cIm2D<tREAL4> aImIn(aFileIn.Sz());
     aImIn.Read(aFileIn,cPt2di(0,0));
 
@@ -2310,7 +2309,7 @@ int  cAppliExtractCodeTarget::Exe(){
     comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
-    std::cout<<tar.toString()<<"\n";
+    std::cout<<tar.toString()<<"\n";/**/
 
     return 0;
 //-----------------------------

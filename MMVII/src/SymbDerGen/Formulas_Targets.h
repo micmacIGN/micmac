@@ -24,7 +24,7 @@ class cTargetShape
     {
     }
 
-    static const std::vector<std::string> VNamesUnknowns() { return {"c_x"}; }
+    static const std::vector<std::string> VNamesUnknowns() { return NamesP2("c"); }
     static const std::vector<std::string> VNamesObs()      { return {"x", "y", "v"}; }
 
     std::string FormulaName() const { return "TargetShape";}
@@ -36,12 +36,11 @@ class cTargetShape
                       const std::vector<tObs> & aVObs
                   ) // const
     {
-         assert (aVUk.size() == 1) ;
+         assert (aVUk.size() == 2) ;
          assert (aVObs.size()== 3) ;
-          //cPtxd<tUk,2>  c = VtoP2(aVUk,0); //target center in image coords
-          auto c_x   = aVUk[0];
-          auto a     = 31.0; //radius axe 1
-          auto b     = 31.0; //radius axe 2
+          cPtxd<tUk,2>  c = VtoP2(aVUk,0); //target center in image coords
+          auto a     = 20.0; //radius axe 1
+          auto b     = 20.0; //radius axe 2
           auto alpha = 0.025; //az axe 1
           auto beta  = -1.6; //az axe 2
 
@@ -64,7 +63,11 @@ class cTargetShape
 
           return { g_scaled - v } ;*/
 
-          auto g = 1.0 - (sin((x-c_x)/a)/2.0+0.5);
+          auto xx = (x-c.x())/a;
+          auto yy = (y-c.y())/b;
+          auto psin_xx = sin(xx)/sqrt(sin(xx)*sin(xx)+s*s);
+          auto psin_yy = sin(yy)/sqrt(sin(yy)*sin(yy)+s*s);
+          auto g = 1.0 - ((-psin_xx*psin_yy)/2.0+0.5);
           auto g_scaled = (max_val - min_val) * g + min_val;
           return { g_scaled - v };
      }
