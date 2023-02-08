@@ -32,7 +32,7 @@ cCalculator<double> * EqTargetShape(bool WithDerive,int aSzBuf);
 class cTargetShapeUnknowns : public cObjWithUnkowns<tREAL8>
 {
 public:
-    cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta);
+    cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta, double v_min, double v_max);
     void PutUknowsInSetInterval() override ;///< describes its unknowns
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
     std::string toString();
@@ -44,10 +44,13 @@ public:
     tREAL8 & b() {return params[3];}
     tREAL8 & alpha() {return params[4];}
     tREAL8 & beta() {return params[5];}
+    double v_min;
+    double v_max;
 };
 
-cTargetShapeUnknowns::cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta) :
-    params({cx, cy/*, a, b, alpha, beta*/}) { }
+cTargetShapeUnknowns::cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta, double v_min, double v_max) :
+    params({cx, cy, a, b, alpha, beta}), v_min(v_min), v_max(v_max) { }
+
 void cTargetShapeUnknowns::PutUknowsInSetInterval()
 {
     mSetInterv->AddOneInterv(params);
@@ -77,8 +80,9 @@ class cShapeComp
 public:
     cShapeComp(cIm2D<tREAL4> * aIm, cTargetShapeUnknowns * aTarg);
     ~cShapeComp();
-    bool OneIteration(); ///< returns true if has to continue iterations
+    bool OneIteration(bool verbose=false); ///< returns true if has to continue iterations
     cResolSysNonLinear<double>* getSys() const {return mSys;}
+    //TODO: add residual computation
 private:
     cIm2D<tREAL4> * mIm;
     cTargetShapeUnknowns * mTarg;
@@ -94,10 +98,6 @@ cShapeComp::cShapeComp(cIm2D<tREAL4> * aIm, cTargetShapeUnknowns * aTarg) :
     mSetIntervMultObj->AddOneObj(mTarg);
     cDenseVect<double> aVUk = mSetIntervMultObj->GetVUnKnowns();
     mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,aVUk);
-
-    //mSys->SetFrozenVar(*mTarg, mTarg->params);
-    StdOut()<<" nb free var: "<<mSys->CountFreeVariables()<<"\n";
-    StdOut()  <<  " init: " <<  mSys->CurGlobSol() << "\n";
 }
 
 cShapeComp::~cShapeComp()
@@ -107,34 +107,21 @@ cShapeComp::~cShapeComp()
     delete mSetIntervMultObj;
 }
 
-bool cShapeComp::OneIteration()
+bool cShapeComp::OneIteration(bool verbose)
 {
     //add observations
-    int xmin = std::max(mTarg->cx()-31*2, 0.0);
-    int xmax = std::min(mTarg->cx()+31*2+1.0, double(mIm->DIm().Sz().x()));
-    int ymin = std::max(mTarg->cy()-31*2, 0.0);
-    int ymax = std::min(mTarg->cy()+31*2+1.0, double(mIm->DIm().Sz().y()));
-    /*int xmin = std::max(mTarg->cx()-mTarg->a()*2, 0.0);
-    int xmax = std::min(mTarg->cx()+mTarg->a()*2+1.0, double(mIm->DIm().Sz().x()));
-    int ymin = std::max(mTarg->cy()-mTarg->a()*2, 0.0);
-    int ymax = std::min(mTarg->cy()+mTarg->a()*2+1.0, double(mIm->DIm().Sz().y()));*/
-    for (int y = ymin; y < ymax; ++y)
+    int xmin = std::max(mTarg->cx()-mTarg->a()*1.3, 0.0);
+    int xmax = std::min(mTarg->cx()+mTarg->a()*1.3+1.0, double(mIm->DIm().Sz().x()));
+    int ymin = std::max(mTarg->cy()-mTarg->a()*1.3, 0.0);
+    int ymax = std::min(mTarg->cy()+mTarg->a()*1.3+1.0, double(mIm->DIm().Sz().y()));
+    for (int y = ymin; y < ymax; ++y) //TODO : circular selection?
         for (int x = xmin; x < xmax; ++x)
         {
             auto indices = mTarg->getIndices();
             double v = mIm->DIm().GetV({x, y});
-            //auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 0.0, 255.0};
-            auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v};
+            auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.03, mTarg->v_min, mTarg->v_max};
             double res = mCalc->DoOneEval(mTarg->params, vals)[0];
-            //auto der = mCalc->DerComp(mTarg->params,vals)[0];
-
-            //std::cout<<res<<std::endl;
-            //std::cout<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<std::endl;
-            /*std::cout<<" [";
-            for (auto &v: indices) std::cout << v << ' ';
-            std::cout<<"] [";
-            for (auto &v: vals) std::cout << v << ' ';
-            std::cout<<"]"<<std::endl;*/
+            if (verbose) std::cout<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<std::endl;
             mSys->CalcAndAddObs(mCalc, indices, vals);
         }
 
@@ -791,18 +778,52 @@ void  cAppliExtractCodeTarget::DoExtract(){
              auto cy = ellipse[1];
              auto a =  ellipse[2];
              auto b =  ellipse[3];
-             auto alpha = ellipse[4];
+             auto alpha = ellipse[4] ;
              auto beta = alpha + PI/2;
 
-             cTargetShapeUnknowns tar(cx, cy, a, b, alpha, beta);
+             cTargetShapeUnknowns tar(cx, cy, a, b, alpha, beta, aPtrDCT->mVBlack, aPtrDCT->mVWhite);
              cShapeComp comp(&mIm, &tar);
              std::cout<<tar.toString()<<"\n";
+             //comp.OneIteration(true);
+             //std::cout<<"=======================================================================\n";
              comp.OneIteration();
-             std::cout<<tar.toString()<<"\n";
              comp.OneIteration();
-             std::cout<<tar.toString()<<"\n";
              comp.OneIteration();
+             comp.OneIteration();
+             comp.OneIteration();
+             comp.OneIteration();
+             comp.OneIteration();
+             //comp.OneIteration(true);
              std::cout<<tar.toString()<<"\n";
+             //std::cout<<tar.toString()<<"\n";
+
+             if ((fabs(tar.a()-a)>3) || (fabs(tar.b()-b)>3))
+                 StdOut()  << "Rejected.\n";
+
+             plotSafeRectangle(mImVisu, {tar.cx(), tar.cy()}, 1, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             //compute targets borders in image coords
+
+             //TODO....
+             //auto xx = (cos(alpha)*(x-c.x()) + sin(alpha)*(y-c.y()))/a*M_PI/2.0
+             /*cDenseMatrix<double> aM(2, 2);
+             aM.SetElem(0,0,tar.a()*cos(tar.alpha()));
+             aM.SetElem(1,0,tar.a()*sin(tar.alpha()));
+             aM.SetElem(0,1,tar.b()*cos(tar.beta()));
+             aM.SetElem(1,1,tar.b()*sin(tar.beta()));
+             cDenseMatrix<double> aMInv = aM.Inverse();
+             cDenseMatrix<double> aP(1, 2);
+             aP.SetElem(0,0,tar.a());
+             aP.SetElem(0,1,0);
+             cDenseMatrix<double> aPc(1, 2);
+             aPc.SetElem(0,0,tar.cx());
+             aPc.SetElem(0,1,tar.cy());
+             cDenseMatrix<double> pp = 2.0/M_PI * aMInv * (aP + M_PI/2.0*aM*aPc);
+
+             std::cout<<aM<<std::endl;
+             std::cout<<aMInv<<std::endl;
+             std::cout<<aPc<<" "<<pp<<std::endl;
+             plotSafeRectangle(mImVisu, {pp(0,0), pp(0,1)}, 1, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             */
      }
 /*
      // ----------------------------------------------------------------------------------------------
@@ -2279,20 +2300,20 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 int  cAppliExtractCodeTarget::Exe(){
 
-    double cx = 17+3;
-    double cy = 22-4;
-    double a = 31;
-    double b = 31;
-    double alpha = -1.6;
-    double beta = 0.025;
-    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/test_cibles/2d2.tif",true);
+    /*double cx = 57+4;
+    double cy = 55-6;
+    double a = 10+4;
+    double b = 10-3;
+    double alpha = PI/4;
+    double beta = 3*PI/4;
+    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/test_cibles/1.tif",true);
     cIm2D<tREAL4> aImIn(aFileIn.Sz());
     aImIn.Read(aFileIn,cPt2di(0,0));
 
     cTargetShapeUnknowns tar(cx, cy, a, b, alpha, beta);
     cShapeComp comp(&aImIn, &tar);
     std::cout<<tar.toString()<<"\n";
-    comp.OneIteration();
+    comp.OneIteration(true);
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
@@ -2318,10 +2339,10 @@ int  cAppliExtractCodeTarget::Exe(){
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
-    comp.OneIteration();
-    std::cout<<tar.toString()<<"\n";/**/
+    comp.OneIteration(true);
+    std::cout<<tar.toString()<<"\n";
 
-    return 0;
+    return 0;*/
 //-----------------------------
 
 
