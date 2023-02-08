@@ -65,12 +65,14 @@ class cTargetShape
 
           auto xx = (x-c.x())/a;
           auto yy = (y-c.y())/b;
-          auto psin_xx = sin(xx)/sqrt(sin(xx)*sin(xx)+s*s);
-          auto psin_yy = sin(yy)/sqrt(sin(yy)*sin(yy)+s*s);
-          auto dist_xx_yy = sqrt(xx*xx+yy*yy);
-          auto pcos_dist = cos(dist_xx_yy)/sqrt(cos(dist_xx_yy)*cos(dist_xx_yy)+s*s);
-          auto g = 1.0 - ((-psin_xx*psin_yy)/2.0+0.5) * (pcos_dist/2.0+0.5); //marche pas !!
-          //auto g = 1.0 - ((-psin_xx*psin_yy)/2.0+0.5);
+          auto psin_xx = sin(xx)/sqrt(Square(sin(xx))+s*s);
+          auto psin_yy = sin(yy)/sqrt(Square(sin(yy))+s*s);
+          //auto dist_xx_yy = sqrt(Square(xx)+Square(yy));
+          auto dist_xx_yy = sqrt(Square(xx)+Square(yy)+0.001);
+          auto pcos_dist = cos(dist_xx_yy)/sqrt(Square(cos(dist_xx_yy))+s*s);
+          //auto pcos_dist = cos(xx)/sqrt(Square(cos(xx))+s*s); //marche
+          //auto g = 1.0 - ((-psin_xx*psin_yy)/2.0+0.5);                       // V1: marche
+          auto g = 1.0 - ((-psin_xx*psin_yy)/2.0+0.5) * (pcos_dist/2.0+0.5); // V2: marche pas !!
           auto g_scaled = (max_val - min_val) * g + min_val;
           return { g_scaled - v };
      }

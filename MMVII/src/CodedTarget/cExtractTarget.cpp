@@ -129,7 +129,7 @@ bool cShapeComp::OneIteration()
             //auto der = mCalc->DerComp(mTarg->params,vals)[0];
 
             //std::cout<<res<<std::endl;
-            std::cout<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<std::endl;
+            //std::cout<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<std::endl;
             /*std::cout<<" [";
             for (auto &v: indices) std::cout << v << ' ';
             std::cout<<"] [";
@@ -2279,8 +2279,8 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 int  cAppliExtractCodeTarget::Exe(){
 
-    double cx = 17;
-    double cy = 22;
+    double cx = 17+3;
+    double cy = 22-4;
     double a = 31;
     double b = 31;
     double alpha = -1.6;
@@ -2294,7 +2294,17 @@ int  cAppliExtractCodeTarget::Exe(){
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
-    /*comp.OneIteration();
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
