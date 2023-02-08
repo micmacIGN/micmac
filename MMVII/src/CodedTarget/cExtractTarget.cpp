@@ -47,7 +47,7 @@ public:
 };
 
 cTargetShapeUnknowns::cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta) :
-    params({cx, cy/*, a, b, alpha, beta*/}) { }
+    params({cx/*, cy, a, b, alpha, beta*/}) { }
 void cTargetShapeUnknowns::PutUknowsInSetInterval()
 {
     mSetInterv->AddOneInterv(params);
@@ -143,7 +143,7 @@ bool cShapeComp::OneIteration()
     try
     {
         const auto & aVectSol = mSys->SolveUpdateReset();
-        std::cout<<aVectSol<<std::endl;
+        //std::cout<<aVectSol<<std::endl;
         mSetIntervMultObj->SetVUnKnowns(aVectSol); //update params
     } catch(...) {
         StdOut()  <<  " Error solving system...\n";
@@ -2280,13 +2280,13 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 int  cAppliExtractCodeTarget::Exe(){
 
-    double cx = 58;
+    double cx = 18;
     double cy = 58;
     double a = 31;
     double b = 31;
     double alpha = -1.6;
     double beta = 0.025;
-    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/test_cibles/sabl_120b.png",true);
+    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/test_cibles/1d.png",true);
     cIm2D<tREAL4> aImIn(aFileIn.Sz());
     aImIn.Read(aFileIn,cPt2di(0,0));
 
@@ -2295,8 +2295,6 @@ int  cAppliExtractCodeTarget::Exe(){
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
-    /*comp.OneIteration();
-    std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
@@ -2310,7 +2308,9 @@ int  cAppliExtractCodeTarget::Exe(){
     comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
-    std::cout<<tar.toString()<<"\n";*/
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
 
     return 0;
 //-----------------------------

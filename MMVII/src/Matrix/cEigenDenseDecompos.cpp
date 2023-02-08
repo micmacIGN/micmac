@@ -283,8 +283,11 @@ template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::SolveColumn(const tD
     {
        if (EigenDoTestSuccess())
        {
+           //std::cout<<"A: "<<aWThis.EW()<<std::endl;
           auto solver = aWThis.EW().ldlt();
+          //std::cout<<"B: "<<aWVect.EW()<<std::endl;
           aWRes.EW() = solver.solve(aWVect.EW());
+          //std::cout<<"dX: "<<aWRes.EW()<<std::endl;
           if (solver.info()!=Eigen::Success)
           {
               ON_EIGEN_NO_SUCC("SolveColVect(eTED_LLDT)");
