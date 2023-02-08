@@ -47,7 +47,7 @@ public:
 };
 
 cTargetShapeUnknowns::cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta) :
-    params({cx, cy, a, b, alpha, beta}) { }
+    params({cx, cy/*, a, b, alpha, beta*/}) { }
 void cTargetShapeUnknowns::PutUknowsInSetInterval()
 {
     mSetInterv->AddOneInterv(params);
@@ -93,7 +93,11 @@ cShapeComp::cShapeComp(cIm2D<tREAL4> * aIm, cTargetShapeUnknowns * aTarg) :
 {
     mSetIntervMultObj->AddOneObj(mTarg);
     cDenseVect<double> aVUk = mSetIntervMultObj->GetVUnKnowns();
-    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqNormSparse,aVUk);
+    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,aVUk);
+
+    //mSys->SetFrozenVar(*mTarg, mTarg->params);
+    StdOut()<<" nb free var: "<<mSys->CountFreeVariables()<<"\n";
+    StdOut()  <<  " init: " <<  mSys->CurGlobSol() << "\n";
 }
 
 cShapeComp::~cShapeComp()
@@ -106,25 +110,40 @@ cShapeComp::~cShapeComp()
 bool cShapeComp::OneIteration()
 {
     //add observations
-    int xmin = std::max(mTarg->cx()-mTarg->a()*2, 0.0);
+    int xmin = std::max(mTarg->cx()-31*2, 0.0);
+    int xmax = std::min(mTarg->cx()+31*2+1.0, double(mIm->DIm().Sz().x()));
+    int ymin = std::max(mTarg->cy()-31*2, 0.0);
+    int ymax = std::min(mTarg->cy()+31*2+1.0, double(mIm->DIm().Sz().y()));
+    /*int xmin = std::max(mTarg->cx()-mTarg->a()*2, 0.0);
     int xmax = std::min(mTarg->cx()+mTarg->a()*2+1.0, double(mIm->DIm().Sz().x()));
     int ymin = std::max(mTarg->cy()-mTarg->a()*2, 0.0);
-    int ymax = std::min(mTarg->cy()+mTarg->a()*2+1.0, double(mIm->DIm().Sz().y()));
+    int ymax = std::min(mTarg->cy()+mTarg->a()*2+1.0, double(mIm->DIm().Sz().y()));*/
     for (int y = ymin; y < ymax; ++y)
         for (int x = xmin; x < xmax; ++x)
         {
-            std::cout<<x<<" "<<y<<" ";
+            //std::cout<<x<<" "<<y<<" ";
+            auto indices = mTarg->getIndices();
             double v = mIm->DIm().GetV({x, y});
-            double res = mCalc->DoOneEval(mTarg->params,{static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 50.0, 180.0})[0];
-            std::cout<<res<<std::endl;
-            //std::cout<<v<<" "<<res<<std::endl;
-            mSys->CalcAndAddObs(mCalc, mTarg->getIndices(), {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 50.0, 180.0});
+            //auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 0.0, 255.0};
+            auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v};
+            //double res = mCalc->DoOneEval(mTarg->params,{static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 0.0, 255.0})[0];
+            //auto der = mCalc->DerComp(mTarg->params,{static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, 0.0, 255.0})[0];
+
+            //std::cout<<res<<std::endl;
+            //std::cout<<v<<" "<<res+v<<" "<<res;//<<std::endl;
+            /*std::cout<<" [";
+            for (auto &v: indices) std::cout << v << ' ';
+            std::cout<<"] [";
+            for (auto &v: vals) std::cout << v << ' ';
+            std::cout<<"]"<<std::endl;*/
+            mSys->CalcAndAddObs(mCalc, indices, vals);
         }
 
     //solve
     try
     {
         const auto & aVectSol = mSys->SolveUpdateReset();
+        std::cout<<aVectSol<<std::endl;
         mSetIntervMultObj->SetVUnKnowns(aVectSol); //update params
     } catch(...) {
         StdOut()  <<  " Error solving system...\n";
@@ -2261,13 +2280,13 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 int  cAppliExtractCodeTarget::Exe(){
 
-    double cx = 12;
-    double cy = 20;
-    double a = 7.5;
-    double b = 4.5;
-    double alpha = 0.5;
-    double beta = 2.6;
-    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/prissma/simulation/targets/sabl_15.tif",true);
+    double cx = 58;
+    double cy = 58;
+    double a = 31;
+    double b = 31;
+    double alpha = -1.6;
+    double beta = 0.025;
+    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/test_cibles/sabl_120b.png",true);
     cIm2D<tREAL4> aImIn(aFileIn.Sz());
     aImIn.Read(aFileIn,cPt2di(0,0));
 
@@ -2275,11 +2294,23 @@ int  cAppliExtractCodeTarget::Exe(){
     cShapeComp comp(&aImIn, &tar);
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
-    //std::cout<<tar.toString()<<"\n";
-    //comp.OneIteration();
-    //std::cout<<tar.toString()<<"\n";
-    //comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
+    /*comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";
+    comp.OneIteration();
+    std::cout<<tar.toString()<<"\n";*/
 
     return 0;
 //-----------------------------
