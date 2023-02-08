@@ -129,7 +129,7 @@ bool cShapeComp::OneIteration()
             //auto der = mCalc->DerComp(mTarg->params,vals)[0];
 
             //std::cout<<res<<std::endl;
-            //std::cout<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<std::endl;
+            std::cout<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<std::endl;
             /*std::cout<<" [";
             for (auto &v: indices) std::cout << v << ' ';
             std::cout<<"] [";
@@ -2279,13 +2279,13 @@ int cAppliExtractCodeTarget::ExeOnParsedBox()
 
 int  cAppliExtractCodeTarget::Exe(){
 
-    double cx = 12;
-    double cy = 26;
+    double cx = 17;
+    double cy = 22;
     double a = 31;
     double b = 31;
     double alpha = -1.6;
     double beta = 0.025;
-    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/test_cibles/2d.tif",true);
+    cDataFileIm2D aFileIn= cDataFileIm2D::Create("/data/2022/test_cibles/2d2.tif",true);
     cIm2D<tREAL4> aImIn(aFileIn.Sz());
     aImIn.Read(aFileIn,cPt2di(0,0));
 
@@ -2294,7 +2294,7 @@ int  cAppliExtractCodeTarget::Exe(){
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
-    comp.OneIteration();
+    /*comp.OneIteration();
     std::cout<<tar.toString()<<"\n";
     comp.OneIteration();
     std::cout<<tar.toString()<<"\n";

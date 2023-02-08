@@ -39,8 +39,8 @@ class cTargetShape
          assert (aVUk.size() == 2) ;
          assert (aVObs.size()== 3) ;
           cPtxd<tUk,2>  c = VtoP2(aVUk,0); //target center in image coords
-          auto a     = 20.0; //radius axe 1
-          auto b     = 20.0; //radius axe 2
+          auto a     = 8.0; //radius axe 1
+          auto b     = 8.0; //radius axe 2
           auto alpha = 0.025; //az axe 1
           auto beta  = -1.6; //az axe 2
 
@@ -67,7 +67,10 @@ class cTargetShape
           auto yy = (y-c.y())/b;
           auto psin_xx = sin(xx)/sqrt(sin(xx)*sin(xx)+s*s);
           auto psin_yy = sin(yy)/sqrt(sin(yy)*sin(yy)+s*s);
-          auto g = 1.0 - ((-psin_xx*psin_yy)/2.0+0.5);
+          auto dist_xx_yy = sqrt(xx*xx+yy*yy);
+          auto pcos_dist = cos(dist_xx_yy)/sqrt(cos(dist_xx_yy)*cos(dist_xx_yy)+s*s);
+          auto g = 1.0 - ((-psin_xx*psin_yy)/2.0+0.5) * (pcos_dist/2.0+0.5); //marche pas !!
+          //auto g = 1.0 - ((-psin_xx*psin_yy)/2.0+0.5);
           auto g_scaled = (max_val - min_val) * g + min_val;
           return { g_scaled - v };
      }
