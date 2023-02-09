@@ -32,45 +32,53 @@ cCalculator<double> * EqTargetShape(bool WithDerive,int aSzBuf);
 class cTargetShapeUnknowns : public cObjWithUnkowns<tREAL8>
 {
 public:
-    cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta, double v_min, double v_max);
+    cTargetShapeUnknowns(cPt2dr c_i, cDenseMatrix<tREAL8> m_ci, double v_min, double v_max);
     void PutUknowsInSetInterval() override ;///< describes its unknowns
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
     std::string toString();
     std::vector<int> getIndices();
-    std::vector<tREAL8> params;
-    tREAL8 & cx() {return params[0];}
-    tREAL8 & cy() {return params[1];}
-    tREAL8 & a() {return params[2];}
-    tREAL8 & b() {return params[3];}
-    tREAL8 & alpha() {return params[4];}
-    tREAL8 & beta() {return params[5];}
+    std::vector<tREAL8> getParamsVal();
+    cPt2dr c_i;                //param
+    cDenseMatrix<tREAL8> m_ic; //param
+    cDenseMatrix<tREAL8> m_ci;
     double v_min;
     double v_max;
 };
 
-cTargetShapeUnknowns::cTargetShapeUnknowns(double cx, double cy, double a, double b, double alpha, double beta, double v_min, double v_max) :
-    params({cx, cy, a, b, alpha, beta}), v_min(v_min), v_max(v_max) { }
+cTargetShapeUnknowns::cTargetShapeUnknowns(cPt2dr c_i, cDenseMatrix<tREAL8> m_ci, double v_min, double v_max) :
+    c_i(c_i), m_ic(m_ci.Inverse()), m_ci(m_ci), v_min(v_min), v_max(v_max) { }
 
 void cTargetShapeUnknowns::PutUknowsInSetInterval()
 {
-    mSetInterv->AddOneInterv(params);
+    mSetInterv->AddOneInterv(c_i);
+    mSetInterv->AddOneInterv(m_ic.DIm().RawDataLin(), 4);
 }
 
-void cTargetShapeUnknowns::OnUpdate() { }
+std::vector<tREAL8> cTargetShapeUnknowns::getParamsVal()
+{
+    return {
+        c_i.x(), c_i.y(),
+        m_ic.GetElem(0,0), m_ic.GetElem(1,0),
+        m_ic.GetElem(0,1), m_ic.GetElem(1,1),
+    };
+}
+
+void cTargetShapeUnknowns::OnUpdate()
+{
+    m_ci = m_ic.Inverse();
+}
 
 std::vector<int> cTargetShapeUnknowns::getIndices()
 {
-    std::vector<int> indices;
-    std::transform(params.begin(), params.end(), std::back_inserter(indices),
-                           [&](tREAL8 &p) { return (int)IndOfVal(&p); });
-    return indices;
+    std::vector<int> aVIndGlob = {};
+    PushIndexes(aVIndGlob);
+    return aVIndGlob;
 }
 
 std::string cTargetShapeUnknowns::toString()
 {
     std::ostringstream oss;
-    oss<<"target: ";
-    for (auto &v : params) oss<<v<<" ";
+    oss<<"target: "<<c_i<<m_ic;
     return oss.str();
 }
 
@@ -80,7 +88,7 @@ class cShapeComp
 public:
     cShapeComp(cIm2D<tREAL4> * aIm, cTargetShapeUnknowns * aTarg);
     ~cShapeComp();
-    bool OneIteration(bool verbose=false); ///< returns true if has to continue iterations
+    bool OneIteration(std::string outname="/tmp/out.txt"); ///< returns true if has to continue iterations
     cResolSysNonLinear<double>* getSys() const {return mSys;}
     //TODO: add residual computation
 private:
@@ -107,29 +115,33 @@ cShapeComp::~cShapeComp()
     delete mSetIntervMultObj;
 }
 
-bool cShapeComp::OneIteration(bool verbose)
+bool cShapeComp::OneIteration(std::string outname)
 {
+    cMMVII_Ofs outf(outname,false);
     //add observations
-    int xmin = std::max(mTarg->cx()-mTarg->a()*1.3, 0.0);
-    int xmax = std::min(mTarg->cx()+mTarg->a()*1.3+1.0, double(mIm->DIm().Sz().x()));
-    int ymin = std::max(mTarg->cy()-mTarg->a()*1.3, 0.0);
-    int ymax = std::min(mTarg->cy()+mTarg->a()*1.3+1.0, double(mIm->DIm().Sz().y()));
+    double radius = 1.3*M_PI/2*sqrt(std::max(
+                                    SqN2(cPt2dr(mTarg->m_ci.GetElem(0,0),mTarg->m_ci.GetElem(1,0))),
+                                    SqN2(cPt2dr(mTarg->m_ci.GetElem(0,1),mTarg->m_ci.GetElem(1,1)))));
+    int xmin = std::max(mTarg->c_i.x()-radius, 0.0);
+    int xmax = std::min(mTarg->c_i.x()+radius+1.0, double(mIm->DIm().Sz().x()));
+    int ymin = std::max(mTarg->c_i.y()-radius, 0.0);
+    int ymax = std::min(mTarg->c_i.y()+radius+1.0, double(mIm->DIm().Sz().y()));
     for (int y = ymin; y < ymax; ++y) //TODO : circular selection?
         for (int x = xmin; x < xmax; ++x)
         {
             auto indices = mTarg->getIndices();
             double v = mIm->DIm().GetV({x, y});
-            auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.03, mTarg->v_min, mTarg->v_max};
-            double res = mCalc->DoOneEval(mTarg->params, vals)[0];
-            if (verbose) std::cout<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<std::endl;
+            auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, mTarg->v_min, mTarg->v_max};
+            double res = mCalc->DoOneEval(mTarg->getParamsVal(), vals)[0];
+            outf.Ofs()<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<"\n";
             mSys->CalcAndAddObs(mCalc, indices, vals);
         }
-
+    outf.Ofs().close();
     //solve
     try
     {
         const auto & aVectSol = mSys->SolveUpdateReset();
-        //std::cout<<aVectSol<<std::endl;
+        std::cout<<aVectSol<<std::endl;
         mSetIntervMultObj->SetVUnKnowns(aVectSol); //update params
     } catch(...) {
         StdOut()  <<  " Error solving system...\n";
@@ -774,18 +786,22 @@ void  cAppliExtractCodeTarget::DoExtract(){
                  mImVisu.SetRGBrectWithAlpha(cPt2di(pt.x(),pt.y()), 0, cRGBImage::Green, 0.0);
 
              // target shape params
-             auto cx = ellipse[0];
-             auto cy = ellipse[1];
+             auto cx = ellipse[0]+4;
+             auto cy = ellipse[1]-3;
              auto a =  ellipse[2];
              auto b =  ellipse[3];
              auto alpha = ellipse[4] ;
              auto beta = alpha + PI/2;
 
-             cTargetShapeUnknowns tar(cx, cy, a, b, alpha, beta, aPtrDCT->mVBlack, aPtrDCT->mVWhite);
+             cDenseMatrix<tREAL8> m_ci(2,2,eModeInitImage::eMIA_Null);
+             m_ci.SetElem(0,0,a/(M_PI/2)/2);
+             m_ci.SetElem(1,0,10.0);
+             m_ci.SetElem(1,1,b/(M_PI/2));
+             cTargetShapeUnknowns tar({cx,cy}, m_ci, aPtrDCT->mVBlack, aPtrDCT->mVWhite);
              cShapeComp comp(&mIm, &tar);
              std::cout<<tar.toString()<<"\n";
-             //comp.OneIteration(true);
-             //std::cout<<"=======================================================================\n";
+             comp.OneIteration("/tmp/init.txt");
+             std::cout<<"**************************************\n";
              comp.OneIteration();
              comp.OneIteration();
              comp.OneIteration();
@@ -794,13 +810,20 @@ void  cAppliExtractCodeTarget::DoExtract(){
              comp.OneIteration();
              comp.OneIteration();
              //comp.OneIteration(true);
-             std::cout<<tar.toString()<<"\n";
              //std::cout<<tar.toString()<<"\n";
+             comp.OneIteration();
+             //std::cout<<tar.toString()<<"\n";
+             comp.OneIteration();
+             //std::cout<<tar.toString()<<"\n";
+             comp.OneIteration();
+             //std::cout<<tar.toString()<<"\n";
+             comp.OneIteration("/tmp/final.txt");
+             std::cout<<tar.toString()<<"\n";
 
-             if ((fabs(tar.a()-a)>3) || (fabs(tar.b()-b)>3))
-                 StdOut()  << "Rejected.\n";
+             //if ((fabs(tar.a()-a)>3) || (fabs(tar.b()-b)>3))
+             //    StdOut()  << "Rejected.\n";
 
-             plotSafeRectangle(mImVisu, {tar.cx(), tar.cy()}, 1, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             plotSafeRectangle(mImVisu, {tar.c_i.x(), tar.c_i.y()}, 1, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
              //compute targets borders in image coords
 
              //TODO....

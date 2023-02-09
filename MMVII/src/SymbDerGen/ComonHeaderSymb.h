@@ -68,6 +68,10 @@ template  <typename tScal> tScal PScal(const cPtxd<tScal,3> & aP1,const cPtxd<tS
 {
          return aP1.x()*aP2.x() + aP1.y() *aP2.y() + aP1.z() * aP2.z();
 }
+template  <typename tScal> tScal PScal2(const cPtxd<tScal,2> & aP1,const cPtxd<tScal,2> & aP2)
+{
+         return aP1.x()*aP2.x() + aP1.y() *aP2.y();
+}
 template  <typename tScal> cPtxd<tScal,3>  VtoP3(const  std::vector<tScal> & aV,size_t aInd=0)
 {
         return cPtxd<tScal,3>(aV.at(aInd),aV.at(aInd+1),aV.at(aInd+2));
@@ -83,6 +87,13 @@ template  <typename tScal> cPtxd<tScal,3>   MulMat(const std::vector<tScal> & aV
      cPtxd<tScal,3> aL3 =  VtoP3(aV,aInd+6);
 
      return cPtxd<tScal,3>(PScal(aP,aL1),PScal(aP,aL2),PScal(aP,aL3));
+}
+template  <typename tScal> cPtxd<tScal,2>   MulMat2(const std::vector<tScal> & aV,size_t aInd,const  cPtxd<tScal,2> & aP)
+{
+     cPtxd<tScal,2> aL1 =  VtoP2(aV,aInd);
+     cPtxd<tScal,2> aL2 =  VtoP2(aV,aInd+2);
+
+     return cPtxd<tScal,2>(PScal2(aP,aL1),PScal2(aP,aL2));
 }
 
 

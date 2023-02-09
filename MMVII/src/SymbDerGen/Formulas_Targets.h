@@ -24,8 +24,8 @@ class cTargetShape
     {
     }
 
-    static const std::vector<std::string> VNamesUnknowns() { return Append(NamesP2("c"), {"a", "b", "alpha", "beta"}); }
-    static const std::vector<std::string> VNamesObs()      { return {"x", "y", "v", "s", "min_val", "max_val"}; }
+    static const std::vector<std::string> VNamesUnknowns() { return Append(NamesP2("c_i"), NamesMatr("M_ic",{2,2})); }
+    static const std::vector<std::string> VNamesObs()      { return Append(NamesP2("p_i"),{"v", "s", "min_val", "max_val"}); }
 
     std::string FormulaName() const { return "TargetShape";}
 
@@ -36,29 +36,22 @@ class cTargetShape
                       const std::vector<tObs> & aVObs
                   ) // const
     {
-         assert (aVUk.size() == 6) ;
+         assert (aVUk.size() == 2+4) ;
          assert (aVObs.size()== 6) ;
 
          //Todo: use mapping to change coords, inversible
-          cPtxd<tUk,2>  c = VtoP2(aVUk,0); //target center in image coords
-          auto a     = aVUk[2]; //radius axe 1
-          auto b     = aVUk[3]; //radius axe 2
-          auto alpha = aVUk[4]; //az axe 1
-          auto beta  = aVUk[5]; //az axe 2
+          cPtxd<tUk,2>  c_i = VtoP2(aVUk,0); //target center in image coords
 
-
-          const auto & x  = aVObs[0]; //image coord
-          const auto & y  = aVObs[1];
+          cPtxd<tUk,2>  p_i = VtoP2(aVObs,0); //image coord
           const auto & v  = aVObs[2]; //image pix value
           const auto & s  = aVObs[3]; //blur factor
           const auto & min_val  = aVObs[4]; //min value in image
           const auto & max_val  = aVObs[5]; //max value in image
 
-          auto xx = (cos(alpha)*(x-c.x()) + sin(alpha)*(y-c.y()))/a*M_PI/2.0;
-          auto yy = (cos(beta)*(x-c.x()) + sin(beta)*(y-c.y()))/b*M_PI/2.0;
-          auto psin_xx = sin(xx)/sqrt(Square(sin(xx))+Square(s));
-          auto psin_yy = sin(yy)/sqrt(Square(sin(yy))+Square(s));
-          auto dist_xx_yy = sqrt(Square(xx)+Square(yy)+0.001); //+0.001 for stability around 0
+          auto p_t = MulMat2(aVUk,2,(p_i-c_i)); //point in target frame
+          auto psin_xx = sin(p_t.x())/sqrt(Square(sin(p_t.x()))+Square(s));
+          auto psin_yy = sin(p_t.y())/sqrt(Square(sin(p_t.y()))+Square(s));
+          auto dist_xx_yy = sqrt(Square(p_t.x())+Square(p_t.y())+0.001); //+0.001 for stability around 0
           auto pcos_dist = cos(dist_xx_yy)/sqrt(cos(dist_xx_yy)*cos(dist_xx_yy)+s*s);
           auto g = 1.0 - (-(psin_xx*psin_yy)/2.0+0.5) * (pcos_dist/2.0+0.5);
           auto g_scaled = (max_val - min_val) * g + min_val;
