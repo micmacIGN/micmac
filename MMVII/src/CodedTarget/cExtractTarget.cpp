@@ -32,40 +32,50 @@ cCalculator<double> * EqTargetShape(bool WithDerive,int aSzBuf);
 class cTargetShapeUnknowns : public cObjWithUnkowns<tREAL8>
 {
 public:
-    cTargetShapeUnknowns(cPt2dr c_i, cDenseMatrix<tREAL8> m_ci, double v_min, double v_max);
+    cTargetShapeUnknowns(cPt2dr c_i, cDenseMatrix<tREAL8> mat_targ2im, double v_min, double v_max);
     void PutUknowsInSetInterval() override ;///< describes its unknowns
     void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
     std::string toString();
     std::vector<int> getIndices();
     std::vector<tREAL8> getParamsVal();
+    double area_radius();
+    cPt2dr ptTarget2image(cPt2dr c_t);
+
     cPt2dr c_i;                //param
-    cDenseMatrix<tREAL8> m_ic; //param
-    cDenseMatrix<tREAL8> m_ci;
+    cDenseMatrix<tREAL8> mat_im2targ; //param
+    cDenseMatrix<tREAL8> mat_targ2im;
     double v_min;
     double v_max;
 };
 
-cTargetShapeUnknowns::cTargetShapeUnknowns(cPt2dr c_i, cDenseMatrix<tREAL8> m_ci, double v_min, double v_max) :
-    c_i(c_i), m_ic(m_ci.Inverse()), m_ci(m_ci), v_min(v_min), v_max(v_max) { }
+cTargetShapeUnknowns::cTargetShapeUnknowns(cPt2dr c_i, cDenseMatrix<tREAL8> mat_targ2im, double v_min, double v_max) :
+    c_i(c_i), mat_im2targ(mat_targ2im.Inverse()), mat_targ2im(mat_targ2im), v_min(v_min), v_max(v_max) { }
 
 void cTargetShapeUnknowns::PutUknowsInSetInterval()
 {
     mSetInterv->AddOneInterv(c_i);
-    mSetInterv->AddOneInterv(m_ic.DIm().RawDataLin(), 4);
+    mSetInterv->AddOneInterv(mat_im2targ.DIm().RawDataLin(), 4);
+}
+
+double cTargetShapeUnknowns::area_radius()
+{
+    return 1.3*M_PI/2*sqrt(std::max(
+                                SqN2(cPt2dr(mat_targ2im.GetElem(0,0),mat_targ2im.GetElem(1,0))),
+                                SqN2(cPt2dr(mat_targ2im.GetElem(0,1),mat_targ2im.GetElem(1,1)))));
 }
 
 std::vector<tREAL8> cTargetShapeUnknowns::getParamsVal()
 {
     return {
         c_i.x(), c_i.y(),
-        m_ic.GetElem(0,0), m_ic.GetElem(1,0),
-        m_ic.GetElem(0,1), m_ic.GetElem(1,1),
+        mat_im2targ.GetElem(0,0), mat_im2targ.GetElem(1,0),
+        mat_im2targ.GetElem(0,1), mat_im2targ.GetElem(1,1),
     };
 }
 
 void cTargetShapeUnknowns::OnUpdate()
 {
-    m_ci = m_ic.Inverse();
+    mat_targ2im = mat_im2targ.Inverse();
 }
 
 std::vector<int> cTargetShapeUnknowns::getIndices()
@@ -78,10 +88,14 @@ std::vector<int> cTargetShapeUnknowns::getIndices()
 std::string cTargetShapeUnknowns::toString()
 {
     std::ostringstream oss;
-    oss<<"target: "<<c_i<<m_ic;
+    oss<<"target: "<<c_i<<mat_im2targ;
     return oss.str();
 }
 
+cPt2dr cTargetShapeUnknowns::ptTarget2image(cPt2dr c_t)
+{
+    return c_i + mat_targ2im*c_t;
+}
 
 class cShapeComp
 {
@@ -90,6 +104,8 @@ public:
     ~cShapeComp();
     bool OneIteration(std::string outname="/tmp/out.txt"); ///< returns true if has to continue iterations
     cResolSysNonLinear<double>* getSys() const {return mSys;}
+    double get_residual() { return residual; }
+    double get_convergence() { return (prev_residual-residual)/residual; }
     //TODO: add residual computation
 private:
     cIm2D<tREAL4> * mIm;
@@ -97,11 +113,12 @@ private:
     cSetInterUK_MultipeObj<double> *mSetIntervMultObj;
     cResolSysNonLinear<double>*  mSys;
     cCalculator<double>* mCalc;
+    double residual, prev_residual;
 };
 
 cShapeComp::cShapeComp(cIm2D<tREAL4> * aIm, cTargetShapeUnknowns * aTarg) :
     mIm(aIm), mTarg(aTarg), mSetIntervMultObj(new cSetInterUK_MultipeObj<double>()),
-    mSys(nullptr), mCalc(EqTargetShape(true,1))
+    mSys(nullptr), mCalc(EqTargetShape(true,1)), residual(1000), prev_residual(Infinity)
 {
     mSetIntervMultObj->AddOneObj(mTarg);
     cDenseVect<double> aVUk = mSetIntervMultObj->GetVUnKnowns();
@@ -119,24 +136,28 @@ bool cShapeComp::OneIteration(std::string outname)
 {
     cMMVII_Ofs outf(outname,false);
     //add observations
-    double radius = 1.3*M_PI/2*sqrt(std::max(
-                                    SqN2(cPt2dr(mTarg->m_ci.GetElem(0,0),mTarg->m_ci.GetElem(1,0))),
-                                    SqN2(cPt2dr(mTarg->m_ci.GetElem(0,1),mTarg->m_ci.GetElem(1,1)))));
+    double radius = mTarg->area_radius();
     int xmin = std::max(mTarg->c_i.x()-radius, 0.0);
     int xmax = std::min(mTarg->c_i.x()+radius+1.0, double(mIm->DIm().Sz().x()));
     int ymin = std::max(mTarg->c_i.y()-radius, 0.0);
     int ymax = std::min(mTarg->c_i.y()+radius+1.0, double(mIm->DIm().Sz().y()));
+    int nbpx = (xmax-xmin)*(ymax-ymin);
+    prev_residual = residual;
+    residual = 0.0;
     for (int y = ymin; y < ymax; ++y) //TODO : circular selection?
         for (int x = xmin; x < xmax; ++x)
         {
             auto indices = mTarg->getIndices();
             double v = mIm->DIm().GetV({x, y});
-            auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1, mTarg->v_min, mTarg->v_max};
+            auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.05, mTarg->v_min, mTarg->v_max};
             double res = mCalc->DoOneEval(mTarg->getParamsVal(), vals)[0];
+            residual += fabs(res);
             outf.Ofs()<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<"\n";
             mSys->CalcAndAddObs(mCalc, indices, vals);
         }
+    residual = 100*residual/nbpx/(mTarg->v_max-mTarg->v_min); //precentage of points with error in 0-1 range
     outf.Ofs().close();
+    std::cout<<"res: "<<residual<<" "<<get_convergence()<<"   ";
     //solve
     try
     {
@@ -786,67 +807,64 @@ void  cAppliExtractCodeTarget::DoExtract(){
                  mImVisu.SetRGBrectWithAlpha(cPt2di(pt.x(),pt.y()), 0, cRGBImage::Green, 0.0);
 
              // target shape params
-             auto cx = ellipse[0]+4;
-             auto cy = ellipse[1]-3;
+             auto cx = ellipse[0];
+             auto cy = ellipse[1];
              auto a =  ellipse[2];
              auto b =  ellipse[3];
-             auto alpha = ellipse[4] ;
-             auto beta = alpha + PI/2;
 
              cDenseMatrix<tREAL8> m_ci(2,2,eModeInitImage::eMIA_Null);
-             m_ci.SetElem(0,0,a/(M_PI/2)/2);
-             m_ci.SetElem(1,0,10.0);
+             m_ci.SetElem(0,0,a/(M_PI/2)); //TODO: take butterfly orientation into account, sametimes swap a and b?
+             //m_ci.SetElem(1,0,0.0);
              m_ci.SetElem(1,1,b/(M_PI/2));
              cTargetShapeUnknowns tar({cx,cy}, m_ci, aPtrDCT->mVBlack, aPtrDCT->mVWhite);
              cShapeComp comp(&mIm, &tar);
-             std::cout<<tar.toString()<<"\n";
+             //std::cout<<tar.toString()<<"\n";
              comp.OneIteration("/tmp/init.txt");
-             std::cout<<"**************************************\n";
-             comp.OneIteration();
-             comp.OneIteration();
-             comp.OneIteration();
-             comp.OneIteration();
-             comp.OneIteration();
-             comp.OneIteration();
-             comp.OneIteration();
-             //comp.OneIteration(true);
-             //std::cout<<tar.toString()<<"\n";
-             comp.OneIteration();
-             //std::cout<<tar.toString()<<"\n";
-             comp.OneIteration();
-             //std::cout<<tar.toString()<<"\n";
-             comp.OneIteration();
-             //std::cout<<tar.toString()<<"\n";
+             int nb_iter = 0;
+             int max_iter = 25;
+             double max_residual_after_iter = 50.0;
+             while ((nb_iter<max_iter)&&(fabs(comp.get_convergence())>0.001))
+             {
+                 if ((nb_iter>2)&&(comp.get_residual()>max_residual_after_iter)) break;
+                 ++nb_iter;
+                comp.OneIteration();
+             }
              comp.OneIteration("/tmp/final.txt");
-             std::cout<<tar.toString()<<"\n";
+             //std::cout<<tar.toString()<<"\n";
 
-             //if ((fabs(tar.a()-a)>3) || (fabs(tar.b()-b)>3))
-             //    StdOut()  << "Rejected.\n";
+             if (nb_iter==max_iter)
+             {
+                 StdOut()  << "Rejected.\n";
+                 continue;
+             }
+             if (comp.get_residual()>max_residual_after_iter)
+             {
+                StdOut()  << "Rejected.\n";
+                continue;
+             }
+             if (SqN2(tar.c_i-cPt2dr(cx, cy))>5*5)
+             {
+                 StdOut()  << "Rejected.\n";
+                 continue;
+             }
+             auto pt1 = tar.ptTarget2image({2.15*M_PI/2,2.15*M_PI/2});
+             plotSafeRectangle(mImVisu, {pt1.x(), pt1.y()}, 1, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             pt1 = tar.ptTarget2image({-2.15*M_PI/2,2.15*M_PI/2});
+             plotSafeRectangle(mImVisu, {pt1.x(), pt1.y()}, 1, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             pt1 = tar.ptTarget2image({-2.15*M_PI/2,-2.15*M_PI/2});
+             plotSafeRectangle(mImVisu, {pt1.x(), pt1.y()}, 1, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             pt1 = tar.ptTarget2image({2.15*M_PI/2,-2.15*M_PI/2});
+             plotSafeRectangle(mImVisu, {pt1.x(), pt1.y()}, 1, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
 
-             plotSafeRectangle(mImVisu, {tar.c_i.x(), tar.c_i.y()}, 1, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-             //compute targets borders in image coords
+             pt1 = tar.ptTarget2image({M_PI/2,0});
+             plotSafeRectangle(mImVisu, {pt1.x(), pt1.y()}, 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             pt1 = tar.ptTarget2image({0,M_PI/2});
+             plotSafeRectangle(mImVisu, {pt1.x(), pt1.y()}, 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             pt1 = tar.ptTarget2image({-M_PI/2,0});
+             plotSafeRectangle(mImVisu, {pt1.x(), pt1.y()}, 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             pt1 = tar.ptTarget2image({0,-M_PI/2});
+             plotSafeRectangle(mImVisu, {pt1.x(), pt1.y()}, 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
 
-             //TODO....
-             //auto xx = (cos(alpha)*(x-c.x()) + sin(alpha)*(y-c.y()))/a*M_PI/2.0
-             /*cDenseMatrix<double> aM(2, 2);
-             aM.SetElem(0,0,tar.a()*cos(tar.alpha()));
-             aM.SetElem(1,0,tar.a()*sin(tar.alpha()));
-             aM.SetElem(0,1,tar.b()*cos(tar.beta()));
-             aM.SetElem(1,1,tar.b()*sin(tar.beta()));
-             cDenseMatrix<double> aMInv = aM.Inverse();
-             cDenseMatrix<double> aP(1, 2);
-             aP.SetElem(0,0,tar.a());
-             aP.SetElem(0,1,0);
-             cDenseMatrix<double> aPc(1, 2);
-             aPc.SetElem(0,0,tar.cx());
-             aPc.SetElem(0,1,tar.cy());
-             cDenseMatrix<double> pp = 2.0/M_PI * aMInv * (aP + M_PI/2.0*aM*aPc);
-
-             std::cout<<aM<<std::endl;
-             std::cout<<aMInv<<std::endl;
-             std::cout<<aPc<<" "<<pp<<std::endl;
-             plotSafeRectangle(mImVisu, {pp(0,0), pp(0,1)}, 1, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-             */
      }
 /*
      // ----------------------------------------------------------------------------------------------
