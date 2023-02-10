@@ -102,7 +102,7 @@ class cShapeComp
 public:
     cShapeComp(cIm2D<tREAL4> * aIm, cTargetShapeUnknowns * aTarg);
     ~cShapeComp();
-    bool OneIteration(std::string outname="/tmp/out.txt"); ///< returns true if has to continue iterations
+    bool OneIteration(std::string outname=""); ///< returns true if has to continue iterations
     cResolSysNonLinear<double>* getSys() const {return mSys;}
     double get_residual() { return residual; }
     double get_convergence() { return (prev_residual-residual)/residual; }
@@ -114,11 +114,13 @@ private:
     cResolSysNonLinear<double>*  mSys;
     cCalculator<double>* mCalc;
     double residual, prev_residual;
+    int nb_iter;
 };
 
 cShapeComp::cShapeComp(cIm2D<tREAL4> * aIm, cTargetShapeUnknowns * aTarg) :
     mIm(aIm), mTarg(aTarg), mSetIntervMultObj(new cSetInterUK_MultipeObj<double>()),
-    mSys(nullptr), mCalc(EqTargetShape(true,1)), residual(1000), prev_residual(Infinity)
+    mSys(nullptr), mCalc(EqTargetShape(true,1)), residual(1000), prev_residual(Infinity),
+    nb_iter(0)
 {
     mSetIntervMultObj->AddOneObj(mTarg);
     cDenseVect<double> aVUk = mSetIntervMultObj->GetVUnKnowns();
@@ -134,7 +136,9 @@ cShapeComp::~cShapeComp()
 
 bool cShapeComp::OneIteration(std::string outname)
 {
-    cMMVII_Ofs outf(outname,false);
+    ++nb_iter;
+    cMMVII_Ofs *outf = nullptr;
+    if (!outname.empty()) outf = new cMMVII_Ofs(outname,false);
     //add observations
     double radius = mTarg->area_radius();
     int xmin = std::max(mTarg->c_i.x()-radius, 0.0);
@@ -149,14 +153,15 @@ bool cShapeComp::OneIteration(std::string outname)
         {
             auto indices = mTarg->getIndices();
             double v = mIm->DIm().GetV({x, y});
-            auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.05, mTarg->v_min, mTarg->v_max};
+            //auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.1/nb_iter+0.01, mTarg->v_min, mTarg->v_max};
+            auto vals = {static_cast<tREAL8>(x), static_cast<tREAL8>(y), v, 0.03, mTarg->v_min, mTarg->v_max};
             double res = mCalc->DoOneEval(mTarg->getParamsVal(), vals)[0];
             residual += fabs(res);
-            outf.Ofs()<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<"\n";
+            if (outf) outf->Ofs()<<x<<" "<<y<<" "<<v<<" "<<res+v<<" "<<res<<"\n";
             mSys->CalcAndAddObs(mCalc, indices, vals);
         }
     residual = 100*residual/nbpx/(mTarg->v_max-mTarg->v_min); //precentage of points with error in 0-1 range
-    outf.Ofs().close();
+    if (outf) {outf->Ofs().close(); delete outf;}
     std::cout<<"res: "<<residual<<" "<<get_convergence()<<"   ";
     //solve
     try
@@ -741,7 +746,8 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
 
     for (auto aPtrDCT : mVDCT){
-
+        if ((fabs(aPtrDCT->mPt.x()-3969)<5)&&(fabs(aPtrDCT->mPt.y()-1585)<5))
+           std::cout<<"!";
         // -------------------------------------------
         // TEST CENTRAGE SUR UNE CIBLE
         // -------------------------------------------
@@ -768,7 +774,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
          //auto i=220;
              auto &aPtrDCT = mVDCTOk[i];
 
-             if ((fabs(aPtrDCT->mPt.x()-310)<10)&&(fabs(aPtrDCT->mPt.y()-2825)<10))
+             if ((fabs(aPtrDCT->mPt.x()-3969)<10)&&(fabs(aPtrDCT->mPt.y()-1585)<10))
                 std::cout<<"!";
              auto mPoints = extractButterflyEdge(aDIm, aPtrDCT);
 
@@ -840,9 +846,9 @@ void  cAppliExtractCodeTarget::DoExtract(){
              //std::cout<<tar.toString()<<"\n";
              comp.OneIteration("/tmp/init.txt");
              int nb_iter = 0;
-             int max_iter = 25;
-             double max_residual_after_iter = 50.0;
-             while ((nb_iter<max_iter)&&(fabs(comp.get_convergence())>0.001))
+             int max_iter = 10;
+             double max_residual_after_iter = 25.0;
+             while ((nb_iter<max_iter)&&(fabs(comp.get_convergence())>0.01))
              {
                  if ((nb_iter>2)&&(comp.get_residual()>max_residual_after_iter)) break;
                  ++nb_iter;
@@ -850,6 +856,10 @@ void  cAppliExtractCodeTarget::DoExtract(){
              }
              comp.OneIteration("/tmp/final.txt");
              //std::cout<<tar.toString()<<"\n";
+
+             if ((fabs(aPtrDCT->mPt.x()-1195)<10)&&(fabs(aPtrDCT->mPt.y()-1272)<10))
+            //     break;
+                 ;
 
              if (nb_iter==max_iter)
              {
@@ -885,9 +895,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
              plotSafeRectangle(mImVisu, {pt1.x(), pt1.y()}, 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
 
 
-             if ((fabs(aPtrDCT->mPt.x()-68)<10)&&(fabs(aPtrDCT->mPt.y()-1680)<10))
-             //    break;
-                 ;
+
      }
 /*
      // ----------------------------------------------------------------------------------------------
