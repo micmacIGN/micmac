@@ -53,7 +53,7 @@ class cTargetShape
           auto psin_yy = sin(p_t.y())/sqrt(Square(sin(p_t.y()))+Square(s));
           auto dist_xx_yy = sqrt(Square(p_t.x())+Square(p_t.y())+0.001); //+0.001 for stability around 0
           auto pcos_dist = cos(dist_xx_yy)/sqrt(cos(dist_xx_yy)*cos(dist_xx_yy)+s*s);
-          auto g = 1.0 - (-(psin_xx*psin_yy)/2.0+0.5) * (pcos_dist/2.0+0.5);
+          auto g = 1.0 - ((psin_xx*psin_yy)/2.0+0.5) * (pcos_dist/2.0+0.5);
           auto g_scaled = (max_val - min_val) * g + min_val;
 
           return { g_scaled - v } ;

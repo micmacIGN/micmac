@@ -768,8 +768,8 @@ void  cAppliExtractCodeTarget::DoExtract(){
          //auto i=220;
              auto &aPtrDCT = mVDCTOk[i];
 
-             if ((fabs(aPtrDCT->mPt.x()-3356)<10)&&(fabs(aPtrDCT->mPt.y()-2704)<10))
-                 std::cout<<"!";
+             if ((fabs(aPtrDCT->mPt.x()-310)<10)&&(fabs(aPtrDCT->mPt.y()-2825)<10))
+                std::cout<<"!";
              auto mPoints = extractButterflyEdge(aDIm, aPtrDCT);
 
              if (mPoints.size() < 10) continue;
@@ -800,6 +800,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
                  continue;
 
              StdOut()  << "Selection: " << aPtrDCT->mPt << " ";
+             StdOut()  << "mDirC: " << aPtrDCT->mDirC1 << " " <<  aPtrDCT->mDirC2 << " ";
              StdOut()  << ellipse[0] << " " << ellipse[1] << " " << ellipse[2] << " " << ellipse[3] << " " << ellipse[4]
                        << " " << ellipse[2]/ellipse[3] << " " << sigma0 << "\n";
              mImVisu.SetRGBrectWithAlpha(aPtrDCT->Pix(), 0, cRGBImage::Magenta, 0.0);
@@ -811,11 +812,29 @@ void  cAppliExtractCodeTarget::DoExtract(){
              auto cy = ellipse[1];
              auto a =  ellipse[2];
              auto b =  ellipse[3];
+             auto az =  ellipse[4];
+
+
+             double dir1ang = atan2(aPtrDCT->mDirC1.y(), aPtrDCT->mDirC1.x());
+             double dir1raduis = a*b/sqrt(b*b*cos(dir1ang-az)*cos(dir1ang-az)+a*a*sin(dir1ang-az)*sin(dir1ang-az));
+             double dir2ang = atan2(aPtrDCT->mDirC2.y(), aPtrDCT->mDirC2.x());
+             double dir2raduis = a*b/sqrt(b*b*cos(dir2ang-az)*cos(dir2ang-az)+a*a*sin(dir2ang-az)*sin(dir2ang-az));
+
+             for (int i=0;i<dir1raduis+0.5;++i)
+             {
+                 plotSafeRectangle(mImVisu, {cx + aPtrDCT->mDirC1.x()*i, cy + aPtrDCT->mDirC1.y()*i}, 0, cRGBImage::Blue, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             }
+             for (int i=0;i<dir2raduis+0.5;++i)
+             {
+                 plotSafeRectangle(mImVisu, {cx + aPtrDCT->mDirC2.x()*i, cy + aPtrDCT->mDirC2.y()*i}, 0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+             }
 
              cDenseMatrix<tREAL8> m_ci(2,2,eModeInitImage::eMIA_Null);
-             m_ci.SetElem(0,0,a/(M_PI/2)); //TODO: take butterfly orientation into account, sametimes swap a and b?
-             //m_ci.SetElem(1,0,0.0);
-             m_ci.SetElem(1,1,b/(M_PI/2));
+             m_ci.SetElem(0,0,dir1raduis/(M_PI/2)*aPtrDCT->mDirC1.x());
+             m_ci.SetElem(0,1,dir1raduis/(M_PI/2)*aPtrDCT->mDirC1.y());
+             m_ci.SetElem(1,0,dir2raduis/(M_PI/2)*aPtrDCT->mDirC2.x());
+             m_ci.SetElem(1,1,dir2raduis/(M_PI/2)*aPtrDCT->mDirC2.y());
+
              cTargetShapeUnknowns tar({cx,cy}, m_ci, aPtrDCT->mVBlack, aPtrDCT->mVWhite);
              cShapeComp comp(&mIm, &tar);
              //std::cout<<tar.toString()<<"\n";
@@ -865,6 +884,10 @@ void  cAppliExtractCodeTarget::DoExtract(){
              pt1 = tar.ptTarget2image({0,-M_PI/2});
              plotSafeRectangle(mImVisu, {pt1.x(), pt1.y()}, 0, cRGBImage::Red, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
 
+
+             if ((fabs(aPtrDCT->mPt.x()-68)<10)&&(fabs(aPtrDCT->mPt.y()-1680)<10))
+             //    break;
+                 ;
      }
 /*
      // ----------------------------------------------------------------------------------------------
@@ -1444,9 +1467,11 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdge(const cDataIm2
     for (double t=mMargin; t<1-mMargin; t+=mStepButterfly){
         vx = t*vx1 + (1-t)*vx2;
         vy = t*vy1 + (1-t)*vy2;
+        //std::cout<<"t="<<t<<std::endl;
         for (int sign=-1; sign<=1; sign+=2){
             z_prec = 0; cPt2dr pf_prec = cPt2dr(0,0);
             z_curr = 0; cPt2dr pf_curr = cPt2dr(0,0);
+            //std::cout<<"   sign="<<sign<<std::endl;
             for (int i=mDiamMinD/10; i<=300; i++){
                 x = center.x()+sign*vx*i;
                 y = center.y()+sign*vy*i;
@@ -1460,6 +1485,7 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdge(const cDataIm2
                     w2 = -(z_curr-threshold)/(z_prec-z_curr);
                     cPt2dr pf = cPt2dr(w1*pf_curr.x() + w2*pf_prec.x(), w1*pf_curr.y() + w2*pf_prec.y());
                     POINTS.push_back(pf);
+                    //std::cout<<"      ok"<<std::endl;
                    // plotSafeRectangle(mImVisu, cPt2di(pf.x(), pf.y()), 0.0, cRGBImage::Cyan, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
                     break;
                 }
