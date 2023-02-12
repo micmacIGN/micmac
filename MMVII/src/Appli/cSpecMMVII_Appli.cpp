@@ -178,6 +178,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecMatchMultipleOrtho);
         TheVecAll.push_back(&TheSpecDMEvalRef);
         TheVecAll.push_back(&TheSpecGenCodedTarget);
+        TheVecAll.push_back(&TheSpecExtractCircTarget);
         TheVecAll.push_back(&TheSpecExtractCodedTarget);
         TheVecAll.push_back(&TheSpecSimulCodedTarget);
         TheVecAll.push_back(&TheSpecDensifyRefMatch);

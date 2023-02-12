@@ -311,20 +311,20 @@ $\mathcal I$ such that for every point we have the usual projection equation:
 Obviously this problem require more informations ~\ref{SR_Cal}, because we want to estimate more parameters.
 Also, due to correlation between internal and external parameters, the solution
 are frequently not so stable. It usage is far less current than calibrated case,
-to our knowledge, the two case where it appears practically are :
+to our knowledge, the two cases where it appears practically are :
 
 
 \begin{itemize}
    \item approximate  orientation of old images for wich we have no idea of focal length and/or principal
-        point; one advantage of the method, as it restimate the principal point, is that it can work
+        point; one advantage of the method, as it reestimates the principal point, is that it can work
         also with croped images (current case for historical images);
 
-   \item for forcing conversion of  non central perspetive sensor to a central perspective sensor
+   \item for forcing conversion of  non central perspective sensor to a central perspective sensor
         using  artficial $2d-3d$ correspondances; also theoretically not recommanded~\footnote{it's
-        always better to use rigourous modelization}, it can unlock situation where you need to
-        use a software that accept only central perspetive sensor; this is the case for example
-        with satellite images, if one use small patches, then the projection  function can be
-        approximate by a central perspetive on this patch ~\footnote{In fact, the accuracy of
+        always better to use rigourous modelization when we can}, it can unlock situation where one needs to
+        use a software that accept only central perspective sensor; this is the case for example
+        with satellite images, if one use "small" patches, then the projection  function can be
+        approximate by a central perspetive on this "small" patch ~\footnote{In fact, the accuracy of
         the approximation is a difficult question, depend of the size of the patch, of relief, 
         of the exact sensor \dots}.
 \end{itemize}
@@ -336,22 +336,24 @@ The {\tt MMVII} code corresponding to this section can be found in
 \subsection{Hypothesis}
 
 As we want also to estimate the distorsion, we will have to make some hypothesis
-and select a model.  We will make that the distorsion is purely linear, so using
+and select a model.  We will make the hypothesis that the distorsion is purely linear, so using
 our current modelization we will set :
 
 \begin{equation}
-	\mathcal{I}  \begin{pmatrix} u \\ v \end{pmatrix}  = PP + F \begin{pmatrix} u + b_1 + b_2 v \\ v \end{pmatrix} 
+	\mathcal{I}  \begin{pmatrix} u \\ v \end{pmatrix}  = P^p + F \begin{pmatrix} u + b_1 + b_2 v \\ v \end{pmatrix} 
 \end{equation}
 
-We remind (see \RefFantome) that there is only $2$ parameters for linear distorsion as $1$ is already include in the focal
-and rotation in the plane is redundant with $3D$ rotation. 
+We remind (see \RefFantome) that we use  only $2$ parameters for linear distorsion 
+\footnote {from the $4$ possible linear term in a $2 \times 2$ mapping}
+ as $1$ is already include in the focal and another is include
+because rotation in the plane is redundant with $3D$ rotation. 
 
 This model is selected, not because it will be always appropriate (it will not !) but because
 it is the model  for wich we can have direct solution. Sometime we will need less parameters,
-for example we "know" that $b_1=0,b_2$ , or we know that $PP$ in the middle of image. Sometime
+for example we "know" that $b_1=b_2=0$ , or we can  know that $P^p$ in the middle of image. Sometime
 we will need more parameters, for example adding a radial distorsion. And also sometime
 "more and less" \dots When we require other calibration model, we still can use this method to compute
-an initial solution and then make a bundle adjustement to initialize the othe parameters.
+an initial solution and then make a bundle adjustement to refine the model.
 
     %-----------------------------------------------------
 
@@ -374,9 +376,10 @@ We have, noting $\mathcal{C}_{al}$ the calibration matrix :
 
 \begin{equation}
 	   \begin{pmatrix} i \\ j \\ 1\end{pmatrix}
-      =   \begin{pmatrix} PP_x + F(u+p_1u+p_2v) \\ PP_y + F v \\ 1\end{pmatrix}
-      =  \begin{pmatrix} F(1+p_1) & F p_2 & PP_x ) \\  0 &   F & PP_x \\  0 & 0 &1\end{pmatrix} * \begin{pmatrix} u \\  v \\ 1\end{pmatrix} 
+      =   \begin{pmatrix} P^p_x + F(u+p_1u+p_2v) \\ P^p_y + F v \\ 1\end{pmatrix}
+      =  \begin{pmatrix} F(1+p_1) & F p_2 & P^p_x ) \\  0 &   F & P^p_y \\  0 & 0 &1\end{pmatrix} * \begin{pmatrix} u \\  v \\ 1\end{pmatrix} 
 	      =  \mathcal{C}_{al} \begin{pmatrix} u \\  v \\ 1\end{pmatrix} 
+              \label{UCResecCalibM}
 \end{equation}
 
 We have also :
@@ -406,7 +409,7 @@ Noting :
 	 Tr  =  \begin{pmatrix} t_x \\ t_y \\ t_z \end{pmatrix} 
 \end{equation}
 
-We finnaly have ;
+We finaly have :
 
 \begin{equation}
 	i = \frac{ax+by+cz+t_x}{gx+hy+iz+t_z}
@@ -473,12 +476,66 @@ Sometime, it will be sufficient to know $\mathcal{M}$ and $Tr$, because
 with them we can project any point in the image using equation~\ref{EqHomSRU}.
 But in other case, we will need to recover the "physical" parameters.
 
-Considering the center, it is easy, from $Tr = -\mathcal{M} C$, we have
-obviously :
+Considering the center, it is easy to compute it, from $Tr = -\mathcal{M} C$, we have :
 
 \begin{equation}
      C= - \mathcal{M}^{-1} Tr
 \end{equation}
+
+Computing $\mathcal{C}_{al}$ and $R$ from $\mathcal{M}$, is a classical problem
+from matrix algebra, we want the decomposition :
+
+\begin{itemize}
+    \item   $\mathcal{M} = \mathcal{C}_{al} \trans R $
+    \item   $\mathcal{C}_{al} $  is a triangulas superior matrix;
+    \item   $R $  is a rotation matrix;
+\end{itemize}
+
+The decomposition of $\mathcal{M}$ is almost what is known to
+be the $QR$ decomposition, where $Q$ is orthogonal and $R$ triangular superior
+\footnote{we use this  denomination, as it is universal, be aware that it is
+error prone as $R$ is not the rotation !}
+The eigen library, and most current matrix library offer efficient implementaion
+of $QR$ decomposition as it is one of the central method for solving linear
+equation \footnote{solving a linear system becomes trivial if matrix are
+triangular or othogonal}
+So $QR$ decomposition almost save our problem \dots except many details :
+
+\begin{itemize}
+    \item what we need is $RQ$ decomposition and not $QR$; by the way it's easy
+          by transposition and some column/line symetry to use $QR$ method to make $RQ$,
+          interested reader can see the {\tt MMVII} method {\tt RQ\_Decomposition};
+
+    \item $QR$ decomposition is ambiguous up to sign-matrix \footnote{a diagonal
+          matrix with only $\pm 1$ on the diagonal}; let $S$ be any sign matrix, we have $SS=Id$,
+          then we have $QR=(QS)(SR)$, $QS$ is still orthogonal and $SR$ is still triangular;
+          in the {\tt MMVII} library , the $RQ$ decomposition method make a post processing
+          to have positive diagonal (it is easy as letf/right multiplying by a sign matrix is only 
+          a matter of changing the sign of line/column);
+          
+    \item let write $\mathcal{M} = T O $ the result of $RQ$ decomposition \footnote{$T$ triangular,
+          $O$ orthogonal},  $\mathcal{M} $ is defined up to a scaling factor, so are $T$ and $O$;  this has two
+          consequences
+
+          \begin{itemize}
+                \item for $\mathcal{C}_{al} $, we see in equation~\ref{UCResecCalibM} that
+                     $\mathcal{C}_{al}(2,2)=1$, so  we just have to do
+                     $\mathcal{C}_{al}(2,2) = \frac{T}{T(2,2)}$
+
+                \item for $R$, there can be a global sign ambiguity , so we test the determinant of
+                      $O$ and do something like $R=\frac{\trans O}{det(O)}$;
+          \end{itemize}
+
+\end{itemize}
+
+Recovering all the internal parameters using {\tt MMVII} convention  is now direct :
+
+\begin{itemize}
+    \item  $F=\mathcal{C}_{al}(1,1)$ , $P^p_x=\mathcal{C}_{al}(2,0)$,  $P^p_y=\mathcal{C}_{al}(2,1)$;
+    \item  $p_1=\frac{\mathcal{C}_{al}(0,0)}{F}-1$ ;
+    \item  $p_2=\frac{\mathcal{C}_{al}(1,0)}{F}$ ;
+\end{itemize}
+
 
 
 
