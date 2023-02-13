@@ -6,11 +6,11 @@
 
 This chapter is targeted for programmer that will increase MMVII, it mainly describe classes
 interfaces in headers and a detailled example of using this classes in a cpp file.
- It's not usefull for advanced users; on the other hand,for programmer who will maintain the core of MMVII, 
+ It's not useful for advanced users; on the other hand, for programmer who will maintain the core of MMVII, 
 more detailled documentation will have to be written.
 
-At this step, the chapter may no theoreticall presentation, it assume that reader is familliar
-with least square, linearization, Gauss-Newton, Schurr complements \dots
+At this step, the chapter has no theoretical presentation, it assumes that reader is familliar
+with least square, linearization, Gauss-Newton, Schur complement\dots
 
 
 %---------------------------------------------
@@ -23,8 +23,8 @@ with least square, linearization, Gauss-Newton, Schurr complements \dots
 
 \subsection{Quick formalization}
 
-This chapter present the classes used in MMVII for non linear optimisation using some Gauss-Newton methods. 
-By non linear optimisation, we means minimize $F(X)$ with :
+This chapter presents the classes used in MMVII for non linear optimisation using some Gauss-Newton methods. 
+By non linear optimisation, we mean minimize $F(X)$ with :
 
 \begin{equation}
       F(X) = \sum_{j=1,M} w_j f_j(X)^2  \;  X \in \RR^n  \label{EqNLOInit}
@@ -41,7 +41,7 @@ The assumpution on the problem are classical :
 \end{itemize}
 
 The service offered by MMVII are typically those a Gauss-Newton iterations : 
-use current estimation $\tilde X$ of $X_min$ for linearizing the $f_j$ and 
+use current estimation $\tilde X$ of $X_{min}$ for linearizing the $f_j$ and 
 solve equation $\ref{EqNLOInit}$ by least square methods.
 
 %---------------------------------------------
@@ -56,7 +56,7 @@ here is the following :
 \begin{itemize}
     \item we have a set of points $P_1 \dots P_n$ , each $P_k$ belongs to $\RR^2$;
 
-    \item we ignorate the exact values of $P_k$ but we have an initial estimation  $P^0_k$
+    \item we do not know the exact values of $P_k$ but we have an initial estimation  $P^0_k$
           which is not too bad, whatever it means;
 
     \item for a certain number of pair $P_i,P_j$ we have a measurement of the distance $d_{ij}$ between
@@ -122,20 +122,20 @@ The two first constraint freeze the solution in translation, while the last one 
 
 \subsection{Use of schurr complement}
 
-Schurr complement is an efficient way to treat the case where there is a subset of variable that 
+Schur complement is an efficient way to treat the case where there is a subset of variable that 
 occurs in \ref{EqNLOInit}, but for which we are not specially interested in exact values ,
  however but we want to take them into account rigourously in 
 the computation of the others. Once we know
 \emph{all} the equations where such  subset of variable is involved, schurr
 complement offer a way to eliminate them without altering the value of the minimum.
 
-A typicall case is in bundle adjsutment, when we are interested only to the value
+A typical case is in bundle adjsutment, when we are interested only to the value
 of camera parameters and not by the value of $3d$ points involved by the projection
 equation. In this case, suppose we will typically  have $1000$ camera and $1000000$ points,
 doing schurr elimination can reduce the system from $3000000$ unkwnon to $6000$.
 
 
-In our toy example, the schurr complement will be purely artificiall. When the
+In our toy example, the schurr complement will be purely artificial. When the
 {\tt WithSchurr}  option is activated, the network is modified in the following
 way , the figure~\ref{fig:NetSchurr} illustrates 
 
@@ -201,7 +201,7 @@ and to be honest  all have  pro and cons :
           a nightmare to maintain when a "small" change occurs in the formulas;
 
     \item jet derivative, like used it Ceres, are almost as simple to use as numericall, once
-          you have the library,  and much faster and accurate as numericall ones; they are much
+          you have the library,  and much faster and accurate as numerical ones; they are much
           easier to use and maintain as  hand crafted ones, but can be also slower than
           handcrafted;
 
@@ -262,7 +262,7 @@ all the information that are required for generating code. It must define $5$ me
          i/o vectors and of temporary variable, is not very important at this step,
          it's suffice to know that it is a type on which most current mathematicall
          operation are defined (and can be completed when missing), they represent
-         mathematicall formula as symbolic tree; see \RefFantome for detailled
+         mathematical formula as symbolic tree; see \RefFantome for detailled
          explanation on the type {\tt cFormula<Type>} defined in 
 
 \end{itemize}
@@ -744,9 +744,9 @@ linear optimisation with images. Typically example of such use are :
 \end{itemize}
 
           %  - - - - - - - - - - - - - - - - - - - 
-\subsection{Mathematicall modelization}
+\subsection{Mathematical modelization}
 
-The basic mathematicall modelization is simply  to consider the images as functions.
+The basic mathematical modelization is simply  to consider the images as functions.
 As we deal with  continuous optimization, we need to have an interpolation scheme that
 allow to consider them as function from $\RR^2 \rightarrow \RR$.
 Ideally (to be mathematically consistant with derivation) we should use an interpolation 
@@ -755,7 +755,7 @@ we will generally prefer a non rigourous model as bilinear;  however the redunda
 neglectable the difference with bicubic (probably, later, the bicubic option will be added for finer
 tests).
 
-A typicall example is :
+A typical example is :
 
 \begin{itemize}
       \item we have an image $I$, we note $I[i,k]$ its value for integer points;
@@ -859,7 +859,7 @@ We have :
 \end {itemize}
 
 For the model, we use  a smooth function to have an easy convergence (we dont want to 
-make a theoreticall analysis of robustness, just illustrate and test implementation).
+make a theoretical analysis of robustness, just illustrate and test implementation).
 More precisely we use a gaussian fonction :
 
 \begin{equation}
@@ -958,7 +958,7 @@ The general priniciple is :
 \begin{itemize}
      \item all the object that have unknowns must inherit from the class {\tt cObjWithUnkowns};
 
-     \item this object must describe their unknown as intervall of {\tt double*};
+     \item this object must describe their unknown as interval of {\tt double*};
 
      \item  all the object of a same solver must be accumulated in an object of the class
             {\tt cSetInterUK\_MultipeObj};

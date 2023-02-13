@@ -26,24 +26,24 @@ there are several arbitrary choices that may be confusing.
 \section{Camera Obscura and  central perspective model}
 
 %-----------------------------------------------------
-\subsection{Physicall model}
+\subsection{Physical model}
 
 \begin{figure}
 \centering
-\includegraphics[width=12cm]{Methods/Images/CameraObscura.jpg}\caption{Camera osbcura : schema and a real object}
+\includegraphics[width=12cm]{Methods/Images/CameraObscura.jpg}\caption{Camera osbcura: schema and a real object}
 	\label{fig:CameraObscura}
 \end{figure}
 
 
-We begin by the description of very simple object, but which is really a the origin of
-the photography and, in some way, is the simplest possible camera  :  the camera obscura.
-Basically it can be described as a box with a hole, at the entrance of the box we have
-a the hole that let the light in, and at the bottom of the box we have the film of
+We begin by the description of very simple object, but which is really at the origin of
+photography and, in some way, is the simplest possible camera:  the camera obscura.
+Basically it can be described as a box with a hole. At the entrance of the box we have
+a the hole that lets the light in, and at the bottom of the box we have the film of
 the camera. 
 
 Figure~\ref{fig:CameraObscura} presents a real camera and a basic schema showing
-the construction of the image :  to compute the image of a point $P^c=x^c,y^c,z^c$ of the real scene
-we juts have to trace the line starting from $P^c$, going throw the hole and take its intersection $q=i,j$
+the construction of the image:  to compute the image of a point $P^c=x^c,y^c,z^c$ of the real scene.
+We just have to trace the line starting from $P^c$, going throw the hole and take its intersection $q=i,j$
 with the image plane.
 
 
@@ -61,10 +61,10 @@ and notations illustrated by figure~\ref{fig:Camera3DNote} :
 \end{figure}
 
 \begin{itemize}
-	\item for 3d coordinates, we consider a local $3d$ repair $(O,\vec{i},\vec{j},\vec{k})$  where $O$ is the entrance hole,
+	\item for 3d coordinates, we consider a local $3d$ frame $(O,\vec{i},\vec{j},\vec{k})$  where $O$ is the entrance hole,
               $\vec{i},\vec{j}$ belongs to the image plane and $\vec{k}$ is orthogonal to  $\vec{i}$ and $\vec{j}$;
 
-	\item for $i,j$ we consider a image repair originated at one corner $c$ of the box;
+	\item for $i,j$ we consider an image frame originated at one corner $c$ of the box;
 
 	\item we note $P^p$ (principal point)  the intersection of axe $O\vec{k}$  with the image plane,
 	      and $F$ (focal length) the distance between $P^p$ and $O$.
@@ -106,10 +106,10 @@ By a simple quotient  we can elimimnate $\lambda$ in~\ref{PC:Alignment} and obta
 %-----------------------------------------------------
 \subsection{Local image formula}
 
-The usage is to modiy the equation~\ref{PC:FormulaImaIntr1} by changing the sign of $F$;
-this comes to consider a camera model ,
+The usage is to modify the equation~\ref{PC:FormulaImaIntr1} by changing the sign of $F$;
+this comes to consider a camera model,
  not physically feasible and slightly different from the camera obscura,  
-where the image plane is before the whole instead of behind, and that
+where the image plane is before the hole instead of behind, and that
 is illustrated by figure~\ref{fig:PcInvCam}.  
 
 \begin{figure}
@@ -171,24 +171,24 @@ that will become more sophisticated to take into account lenses used in real cam
 
 
 %-----------------------------------------------------
-\subsection{A remark on repair orientation}
+\subsection{A remark on frame orientation}
 
-We have not discussed untill now which image repair is used for image coordinates $i,j$.
+We have not discussed until now which image frame is used for image coordinates $i,j$.
 The choice done in {\tt MMVII} is to use the native coordinate system of the image format,
-knowing that majority of image format use a clockwise repair : 
-that is : $i$ is left to right and $j$ is up to bottom (this is purely conventionnal, but one the
+knowing that majority of image format use a clockwise frame: 
+that is : $i$ is left to right and $j$ is up to bottom (this is purely conventionnal, but once the
 choice is made, is will have to be respected all along the process).
 
-As we aline  local repair $(O,\vec{i},\vec{j},\vec{k})$  on this coordinate system ,
-and we want a direct $3d$ repair with $\vec{k} = \vec{i} \wedge \vec{j} $, this
-has for consequences that with these convention the axe $O\vec{k}$ is in the viewewing direction of the
+As we align local frame $(O,\vec{i},\vec{j},\vec{k})$  on this coordinate system ,
+and we want a direct $3d$ frame with $\vec{k} = \vec{i} \wedge \vec{j} $, this
+has for consequences that with these convention the axe $O\vec{k}$ is in the viewing direction of the
 camera.  The figure~\ref{fig:FormIm} illustrates this convention;
 
 
 \begin{figure}
 \centering
 	\includegraphics[width=12cm]{Methods/Images/RepairCam.jpg}
-	\caption{Camera model : physically based one (left) and used one (right)}
+	\caption{Camera and ground frames}
 	\label{fig:FormIm}
 \end{figure}
 
@@ -203,44 +203,44 @@ camera.  The figure~\ref{fig:FormIm} illustrates this convention;
 
 With the camera obscura, to have a sharp image we must keep a small entrance hole;
 so to have enouh light we need very long exposure time (several hours). 
-This is not convenient and the devlopment of photography
-would not have been possible without the devlopment of optic. By puting a system
-of lenses at the entrance of the system, and being caution that the  scene focalise
+This is not convenient and the development of photography
+would not have been possible without the development of optics. By puting a system
+of lenses at the entrance of the system, and being caution that the  scene focalises
 on the image plane, it was possible to have a sharp image whith a sufficiently big
 hole and make photography practicable.
 
-Nowday all the camera have more or less complicated system of lenses. In fact due the
-automatization of the computer added conception they tend to be more and more complex, the concepter
-using the possibility offered by multiple lenses with various materiel to correct more and more optical defaults .
+Nowadays every camera has more or less complicated system of lenses. In fact due to the
+automatization of the computer-aided conception they tend to be more and more complex, the designer
+using the possibility offered by multiple lenses with various materiel to correct more and more optical defaults.
 
-For photogrammetry it change the game, because the lenses being not "infinitely thin", the gauss
-condition non longer apply and some non linearity will occur , we will no longer be able to use
-equation as simple as~\ref{EqIntNoDist} and will have to modelize accurately the effect of
+For photogrammetry it changes the game, because the lenses being not "infinitely thin", the gauss
+condition non longer apply and some non linearity will occur. We will no longer be able to use
+equations as simple as~\ref{EqIntNoDist} and will have to modelize accurately the effect of
 lenses. 
 
 
 %-----------------------------------------------------
 \subsection{A parametric estimation issue}
 
-A possible way to proceed would be to take into account the CAD plane of the optical
-system, use in conception and to deduce the correction using the law of optic.  
-Practically, we almots never proceed this way for two reasons  :
+A possible way to proceed would be to take into account the CAD blueprints of the optical
+system used in conception and deduce the correction using the law of optics.  
+Practically, we almosts never proceed this way for two reasons:
 
 \begin{itemize}
-   \item firt this CAD plane are rarely avalaible (maybe due to industrial property ?);
+   \item first this CAD blueprints are rarely avalaible (maybe due to industrial property ?);
    \item second, and more important, the experience prove that when we proceed to the
          modelization of two lenses from the same model, we have to modelize them with two
-         different parameter if we want to get the best accuracy, so no theoreticall model 
-         would fit our requirement (also it could give a good first approximation);
+         different parameters if we want to get the best accuracy, so no theoretical model 
+         would fit our requirement (but it could give a good first approximation);
 \end{itemize}
 
 So the approach currently used in photogrammetry is to select a parametric model
-for the effect of lenses and to estimate the paramaters from the measures we have  (tie-point,
+for the effect of lenses and to estimate the paramaters from the measures we have  (tie points,
 GCP, GNSS  \dots).
 
 
 %-----------------------------------------------------
-\subsection{Precaution to take}
+\subsection{Precautions to take}
 \label{ParamFit}
 
 \begin{figure}
@@ -254,8 +254,8 @@ GCP, GNSS  \dots).
 \end{figure}
 
 
-This empiricall approach does not prevent from being cautious
-to the selection of model, we will have the usual compromise in the selection
+This empirical approach does not prevent from being cautious
+for the selection of the model, we will have the usual compromise in the selection
 of the parametric model, illustrated by figure~\ref{fig:CurvesParam}  on a problem of curve interpolation:
 
 
@@ -270,8 +270,8 @@ of the parametric model, illustrated by figure~\ref{fig:CurvesParam}  on a probl
 \end{itemize}
 
 The question of selecting the adequate model is a difficult one, and to our best knowledge
-still open in photogrammetry.  Is it preferable to have over or under paramatrization ? There
-exists controvorsery arguments :
+still open in photogrammetry.  Is it preferable to have over or under parametrization? There
+exists controvorsery arguments:
 
 
 \begin{itemize}
@@ -283,8 +283,8 @@ exists controvorsery arguments :
           even when we only really need $10$.
 \end{itemize}
 
-Consequently, it was thought, that the best we can do in {\tt MMVII} is to offer a sufficient large set of model
-of camera, from the simple ones to the most universal one, and let the user select them according to
+Consequently, it was thought, that the best we can do in {\tt MMVII} is to offer a sufficiently large set of models
+of cameras, from the simple ones to the most universal ones, and let the user select them according to
 the precise knowledge of his domain. 
 
 \begin{figure}
@@ -294,17 +294,17 @@ the precise knowledge of his domain.
 	\label{fig:CurvesExtrpol}
 \end{figure}
 
-However, even is this choice of parameter is not easy, there is
+However, even if this choice of parameter is not easy, there is
 one universal rule : if we can be stable in interpolation, we are always bad in extrapolation
 as illustrated on figure~\ref{fig:CurvesExtrpol}. A 
-consequence when will estimate the model of a camera : if we have no measurement in the corners,
+consequence when we ill estimate the model of a camera : if we have no measurement in the corners,
 we are almost sure that we estimation will be poor in these corners.
 
 %-----------------------------------------------------
 \subsection{Still a central perspective, with a distorsion}
 \label{Still:Persp}
 
-In the next section we are going to introduce step by step, different model with a continuous
+In the next section we are going to introduce step by step, different models with a continuous
 refinement of the physical modelization.  
 
 \begin{figure}
@@ -317,21 +317,21 @@ refinement of the physical modelization.
 The only hypothesis that we will maintain all allong these pages is that all the bundle issued from image
 plane go through the same point $C$. This is schematised by figure~\ref{fig:CamPerspScheme} :
 how complicated may be the ligth path inside the camera, we still have the property that
-it exist a virtual point $C$, such that for any image point $q_i$, the bundle $B_i$ that lead to $q_i$
+a virtual point $C$ exists, such that for any image point $q_i$, the bundle $B_i$ that lead to $q_i$
 all go trough $C$.
 
-This hypothesis is universally adopted, and justified because we still have a diaphragam that physicall contraint
-the light to go trough it centers; of course the light will cross lenses before converning to this diaphragm but, 
-, under gaussian approximation the image and reciproc image of converging bundle are still converging bundles.
-To our knowledge, the only practicle cases where this hypothesis may be questionned are macro-photogrammetry and
+This hypothesis is universally adopted, and justified because we still have a diaphragm that physically constraints
+the light to go trough its center; of course the light will cross lenses before converning to this diaphragm but,
+under gaussian approximation the image and reciproc image of converging bundle are still converging bundles.
+To our knowledge, the only practical cases where this hypothesis may be questionned are macro-photogrammetry and
 sub-marine photogrammetry. We will discuss that ???. And maybe in the future of {\tt MMVII} project we will 
-test option to relax this hypothesis for these context.
+test options to relax this hypothesis for these contexts.
 
 With this hypothesis, the image formation equation~\ref{FormImage0} still holds if
 we add a supplentary $2d$ image deformation. Suppose in the initial simplistic camera
 obscura, or even in a camera lenses satisfying gaussian approximation, 
-the bundle $B_i$ would have arrived in $q^0_i$, now with the not thin lenses ,
-it really arrive in $q_i$, we call $\phi$ the $2d$ mapping such that $\phi : q^0 \rightarrow q$.
+the bundle $B_i$ would have arrived in $q^0_i$, now with the not thin lenses,
+it really arrives in $q_i$, we call $\phi$ the $2d$ mapping such that $\phi : q^0 \rightarrow q$.
 With $ \mathcal{I}(q) = \phi (\mathcal{I}_0(q))  $, we have now :
 
 
@@ -339,9 +339,9 @@ With $ \mathcal{I}(q) = \phi (\mathcal{I}_0(q))  $, we have now :
 	q  =   \mathcal{I} (\pi_0 (^t R (P - C)))
 \end{equation}
 
-By the way, for technicall reason we prefer to write : $ \mathcal{I}(q) = \mathcal{I}_0(D(q)) $ ; 
-the reason being numericall stability of least square system, we prefer to have $D$ operate on adimentionnal numbers
-(i.e as $\frac{x}{z}$).  The two modelization being obvioulsy equivalent from the pure mathematicall point of view :
+By the way, for technical reason we prefer to write : $ \mathcal{I}(q) = \mathcal{I}_0(D(q)) $ ; 
+the reason being numericall stability of least square system, we prefer to have $D$ operate on adimentional numbers
+(i.e as $\frac{x}{z}$).  The two modelization being obvioulsy equivalent from the pure mathematical point of view :
 as $D= \mathcal{I}_0^{-1} \circ \phi \circ  \mathcal{I}_0$.
 
 
@@ -349,7 +349,7 @@ as $D= \mathcal{I}_0^{-1} \circ \phi \circ  \mathcal{I}_0$.
 \subsection{Summary : new image formula}
 
 We note $D$ the additional term, classically named as distorsion. We assume for now that the 
-system "almost" satisfies gaussian approximation ,  this is the case with standard lenses, 
+system "almost" satisfies gaussian approximation,  this is the case with standard lenses, 
 and then $D$ can be assumed to be close to identity.
 This will not be the case with fish-eye, and we will see that we will proceed by replacing $\pi_0$ by other
 projection.
@@ -393,20 +393,20 @@ of the hypothesis of cylindric symetry of the optical system.
 	\label{fig:Lenses}
 \end{figure}
 
-We start the modelization with three observations on the theoreticall design of central perspective cameras:
+We start the modelization with three observations on the theoretical design of central perspective cameras:
 
 \begin{itemize}
-    \item  each individual lense has a radial symetry arround it opticall axe;:
-    \item  the mechaninal building is made so that all the lenses are aligned on
-	    their common optical axe $\mathcal{A}$.
+    \item  each individual lense has a radial symetry arround it optical axis;
+    \item  the mechanical building is made so that all the lenses are aligned on
+	    their common optical axis $\mathcal{A}$.
     \item  the plane of the sensor is orthognal to $\mathcal{A}$.
 \end{itemize}
 
 For real camera, these observation are satisfied with a high accurracy in the sense that it is
-rigourously satisfied in the theoreticall conception model of almost all central perspective
+rigourously satisfied in the theoretical conception model of almost all central perspective
 camera~\footnote{to our knowledge the only notable exception if tilt lenses, for the orthogonality rule}.
-Consequently all the corrective terms that we will study in further sections,
-are due to the difference between theoreticall model and effective realization and are
+Consequently all the corrective terms that we will study in further sections
+are due to the difference between theoretical model and effective realization and are
 generally of an order of magnitude lower than the radial distorsion.
 
 These elementary remarks have for consequence that, how sophisticated may be the combination
@@ -419,7 +419,7 @@ so we have $\mathcal{A}=(C,\vec{k})$.
 
 \subsection{Notation}
 
-For a direction of vector we will use spherical coordinates in repair $\vec{i},\vec{j},\vec{k}$ :
+For a direction of vector we will use spherical coordinates in frame $\vec{i},\vec{j},\vec{k}$ :
 
 \begin{equation}
 	\vec{S_{ph}}(\theta,\phi)   =\begin{pmatrix}  \cos(\theta) \sin(\phi) \\ \sin(\theta) \sin(\phi)  \\ \cos(\phi) \end{pmatrix}
