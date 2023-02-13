@@ -1,6 +1,7 @@
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_SysSurR.h"
+#include "MMVII_Geom2D.h"
 
 /*   Modularistion
  *   Code extern tel que ellipse
@@ -494,12 +495,16 @@ cPt2dr cExtract_BW_Ellipse::ExtractFrontier(const cSeedCircTarg & aSeed,const cP
 void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed)
 {
 TEST = (
+             aSeed.mPixTop==(cPt2di(2666,586))   // 58
+          || aSeed.mPixTop==(cPt2di(2669,597))   // 58
+	  /*
              aSeed.mPixTop==(cPt2di(3510,3310))  // 44
           || aSeed.mPixTop==(cPt2di(1162,531))   // 15
           || aSeed.mPixTop==(cPt2di(2669,597))   // 58
           || aSeed.mPixTop==(cPt2di(2666,586))   // 58
           || aSeed.mPixTop==(cPt2di(3580,1906))  // 41
           || aSeed.mPixTop==(cPt2di(3581,1906))  // 41
+	  */
        );
 
      mCDG = cPt2dr(0,0);
@@ -616,12 +621,33 @@ TEST = (
 
 
 
+
      if (TEST)
      {
          StdOut() << "SOMDDd=" << aSomD << " " << aSeed.mPixTop 
 		 << " GRAY=" << aSomRad/ aVFront.size()
 		 << " NORM =" << anEl.Norm()
 		 << "\n";
+
+        std::vector<cPt3dr> aVF3;
+        for (const auto  & aP : aVFront)
+	{
+             aVF3.push_back(cPt3dr(aP.x(),aP.y(),ToPolar(aP-mCDG).y()));
+	}
+        std::sort
+        (
+	    aVF3.begin(),
+	    aVF3.end(),
+            [](const cPt3dr  aP1,const cPt3dr &  aP2) {return aP1.z() >aP2.z();}
+        );
+
+        for (const auto  & aP : aVF3)
+        {
+            cPt2dr aP2(aP.x(),aP.y());
+            StdOut()  <<  "Teta " << aP.z()   << " S="<< anEl.SignedD2(aP2) << " " << mDIm.GetVBL(aP2)  << "\n";
+	}
+	//
+        StdOut() << "PROP = " << aProp << "\n";
      }
 }
 
