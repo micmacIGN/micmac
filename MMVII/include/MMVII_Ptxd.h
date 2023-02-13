@@ -306,10 +306,19 @@ template <class Type> inline cPtxd<Type,2> operator * (const Type & aVal ,const 
 {return  cPtxd<Type,2>(aP.x()*aVal,aP.y()*aVal);}
 template <class Type> inline cPtxd<Type,2> operator * (const cPtxd<Type,2> & aP,const Type & aVal) 
 {return  cPtxd<Type,2>(aP.x()*aVal,aP.y()*aVal);}
+
 template <class Type> inline cPtxd<Type,3> operator * (const Type & aVal ,const cPtxd<Type,3> & aP) 
 {return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
 template <class Type> inline cPtxd<Type,3> operator * (const cPtxd<Type,3> & aP,const Type & aVal) 
 {return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
+
+
+template <class Type> inline cPtxd<Type,4> operator * (const Type & aVal ,const cPtxd<Type,4> & aP) 
+{return  cPtxd<Type,4>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal,aP.t()*aVal);}
+template <class Type> inline cPtxd<Type,4> operator * (const cPtxd<Type,4> & aP,const Type & aVal) 
+{return  cPtxd<Type,4>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal,aP.t()*aVal);}
+
+
 
 ///  operator /  points-scalar
 template <class Type> inline cPtxd<Type,1> operator / (const cPtxd<Type,1> & aP,const Type & aVal) 
@@ -499,7 +508,9 @@ template <class T> inline cPtxd<tREAL8,4> ToR(const cPtxd<T,4> & aP) {return cPt
 
 template <class T> inline cPtxd<tREAL4,2> ToF(const cPtxd<T,2> & aP) {return cPtxd<tREAL4,2>(aP.x(),aP.y());}
 
-template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts);
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts);
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,const cPtxd<T,Dim> & aP1);
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,T aW1,const cPtxd<T,Dim> & aP1);
 /*
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}

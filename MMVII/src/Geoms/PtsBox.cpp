@@ -167,7 +167,7 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVect
    return aRes;
 }
 
-template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts)
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts)
 {
    MMVII_INTERNAL_ASSERT_tiny((!aVPts.empty()),"Bad size in Vec/Pt");
 
@@ -178,6 +178,14 @@ template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd
    return aRes/ tREAL8(aVPts.size());
 }
 
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,const cPtxd<T,Dim> & aP1)
+{
+	return aP0 *aW0 + aP1 * (1-aW0);
+}
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,T aW1,const cPtxd<T,Dim> & aP1)
+{
+	return (aW0 * aP0 + aW1 * aP1) / (aW0+aW1);
+}
 
 
 int NbPixVign(const int & aVign){return 1+2*aVign;}
@@ -1118,12 +1126,15 @@ template  bool WindInside4BL(const cBox2di & aBox,const cPtxd<tREAL8,2> & aPt,co
 #define MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIMIN,DIMOUT)\
 template  cPtxd<TYPE,DIMOUT> CastDim<TYPE,DIMOUT,DIMIN>(const cPtxd<TYPE,DIMIN> & aPt);
 
+
 #define MACRO_INSTATIATE_PTXD(TYPE,DIM)\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,1);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,2);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,3);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,4);\
-template  cPtxd<tREAL8,DIM> Barry(const std::vector<cPtxd<TYPE,DIM> > & aVPts);\
+template  cPtxd<tREAL8,DIM> Centroid(const std::vector<cPtxd<TYPE,DIM> > & aVPts);\
+template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,TYPE aW1,const cPtxd<TYPE,DIM> & aP1);\
+template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,const cPtxd<TYPE,DIM> & aP1);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\
