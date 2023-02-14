@@ -113,8 +113,8 @@ tREAL8 cTopoObs::getResidual(const cTopoComp *comp) const
     std::vector<tREAL8> vals = getVals();
     std::vector<tREAL8> vUkVal;
     std::for_each(indices.begin(), indices.end(), [&](int i) { vUkVal.push_back(comp->getSys()->CurGlobSol()(i)); });
-    eq->PushNewEvals(vUkVal, vals);
-    return eq->EvalAndClear()[0][0][0];
+    double res = eq->DoOneEval(vUkVal, vals)[0];
+    return res;
 }
 
 };
