@@ -1,6 +1,13 @@
 MicMac v2 Python3 API
 =====================
 
+
+Dependencies
+------------
+
+    pip3 install pybind11 pybind11_mkdoc
+
+
 Compilation
 -----------
 
