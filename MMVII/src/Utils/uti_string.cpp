@@ -196,6 +196,14 @@ bool CaseSBegin(const char * aBegin,const char * aStr)
    return true;
 }
 
+bool UCaseMember(const std::vector<std::string> & aVec,const std::string & aName)
+{
+    for (const auto &  aTest : aVec)
+        if (UCaseEqual(aTest,aName))
+            return true;
+    return false;
+}
+
 
 
 

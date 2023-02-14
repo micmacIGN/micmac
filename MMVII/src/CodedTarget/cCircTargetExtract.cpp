@@ -686,7 +686,6 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
         cIm2D<tU_INT1>  mImMarq;
 
         std::vector<cSeedCircTarg> mVSeeds;
-
 };
 
 

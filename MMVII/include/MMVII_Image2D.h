@@ -43,6 +43,8 @@ class cDataFileIm2D : public cRect2
 
         virtual ~cDataFileIm2D();
         
+	static bool IsPostFixNameImage(const std::string & aPost);
+	static bool IsNameWith_PostFixImage(const std::string & aPost);
      private :
         cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel) ;
 
