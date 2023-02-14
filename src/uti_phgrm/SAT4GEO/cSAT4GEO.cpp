@@ -858,16 +858,15 @@ void cAppliFusion::DoAll()
 			aNI2 = itP.N2();
 		}
 
+
 		aLP.push_back(std::make_pair(aNI1,aNI2));
 		//aLP.push_back(std::make_pair(aNI2,aNI1));
-
 
 		if (!DicBoolFind(aMEp,aNI1))
 		{
 			aMEp[aNI1] = aCpt; 
     		aLON.Name().push_back(aNI1);
 		}
-		aCpt++;
 		
 		if (!DicBoolFind(aMEp,aNI2))
 		{
