@@ -8,6 +8,9 @@
 #include "SymbDer/SymbDer_MACRO.h"
 #include "ComonHeaderSymb.h"
 
+using namespace NS_SymbolicDerivative;
+
+
 
 namespace MMVII
 {
@@ -299,7 +302,7 @@ class cProjOrthoGraphic : public cDefProjPerspC
            const auto & aY = aXYZ.at(1);
            const auto & aZ = aXYZ.at(2);
 
-           auto aR = Sqrt(Square(aX)+Square(aY)+Square(aZ));
+           auto aR = sqrt(Square(aX)+Square(aY)+Square(aZ));
            return {aX/aR,aY/aR};
         }
 

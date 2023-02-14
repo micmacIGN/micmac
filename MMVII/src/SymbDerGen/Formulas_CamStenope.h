@@ -12,11 +12,23 @@ namespace NS_SymbolicDerivative
 //  add sinus cardinal and arc-sinus as operator on formulas
 MACRO_SD_DEFINE_STD_UNARY_FUNC_OP_DERIVABLE(MMVII,ASin,DerASin)
 MACRO_SD_DEFINE_STD_UNARY_FUNC_OP_DERIVABLE(MMVII,sinC,DerSinC)
+
 MACRO_SD_DEFINE_STD_UNARY_FUNC_OP_DERIVABLE(MMVII,Sqrt,DerSqrt)
 
 /// See bellow the needs of a differentiable operator AtanXsY_sX=atan(X/Y)/X C-infinite
 MACRO_SD_DEFINE_STD_BINARY_FUNC_OP_DERIVABLE(MMVII,AtanXsY_sX,DerXAtanXsY_sX,DerYAtanXsY_sX)
 MACRO_SD_DEFINE_STD_BINARY_FUNC_OP_DERIVABLE(MMVII,ATan2,DerX_ATan2,DerY_ATan2)
+
+
+/*   A test that it works also like that, btw not used for now ...  */
+MACRO_SD_DECLARE_STD_UNARY_FUNC_OP(cosH)
+MACRO_SD_DECLARE_STD_UNARY_FUNC_OP(sinH)
+MACRO_SD_DEFINE_STD_cUnaryF(MMVII,cosH,sinH)
+MACRO_SD_DEFINE_STD_cUnaryF(MMVII,sinH,cosH)
+MACRO_SD_DEFINE_STD_UNARY_FUNC_OP(sinH)
+MACRO_SD_DEFINE_STD_UNARY_FUNC_OP(cosH)
+
+
 
 }
 using namespace NS_SymbolicDerivative;

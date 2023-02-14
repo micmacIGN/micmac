@@ -356,6 +356,8 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
 {
     public :
        cLeasSqtAA(int aNbVar);
+       cLeasSqtAA<Type> Dup() const;
+
        virtual ~cLeasSqtAA();
        void AddObservation(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) override;
        void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;

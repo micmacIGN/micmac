@@ -138,8 +138,9 @@ template <class TypeElem> class cSumF : public cBinaryF <TypeElem>
 
             cImplemF<TypeElem> * ReducAssoc() override ;
 
+            static const std::string &  StaticNameOperator() {static std::string s("+"); return s;}
       private  :
-            const std::string &  NameOperator() const override {static std::string s("+"); return s;}
+            const std::string &  NameOperator() const override {return StaticNameOperator();}
 
             void ComputeBuf(int aK0,int aK1) override  
             {
@@ -295,8 +296,9 @@ template <class TypeElem> class cMulF : public cBinaryF<TypeElem>
             /// For distributivity
             virtual bool IsDistribInt() const override {return true;} 
             tFormula VOper2 (const tFormula & aV1,const tFormula & aV2) const override {return aV1*aV2;}
+            static const std::string &  StaticNameOperator() {static std::string s("*"); return s;}
       private  :
-            const std::string &  NameOperator() const override {static std::string s("*"); return s;}
+            const std::string &  NameOperator() const override {return StaticNameOperator();}
             void ComputeBuf(int aK0,int aK1) override  
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -329,8 +331,11 @@ template <class TypeElem> class cSubF : public cBinaryF<TypeElem>
             /// For distributivity
             static bool IsDistribExt() {return true;} 
             static tFormula FOperation(const tFormula & aV1,const tFormula & aV2) {return aV1-aV2;}
+            static const std::string &  StaticNameOperator() {static std::string s("-"); return s;}
       private  :
-            const std::string &  NameOperator() const override {static std::string s("-"); return s;}
+            const std::string &  NameOperator() const override {return StaticNameOperator();}
+      // private  :
+            // const std::string &  NameOperator() const override {static std::string s("-"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -358,8 +363,11 @@ template <class TypeElem> class cDivF : public cBinaryF<TypeElem>
             /// For distributivity
             virtual bool IsDistribInt() const override {return true;} 
             tFormula VOper2 (const tFormula & aV1,const tFormula & aV2) const override {return aV1/aV2;}
+            static const std::string &  StaticNameOperator() {static std::string s("/"); return s;}
       private  :
-            const std::string &  NameOperator() const override {static std::string s("/"); return s;}
+            const std::string &  NameOperator() const override {return StaticNameOperator();}
+      private  :
+            // const std::string &  NameOperator() const override {static std::string s("/"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -386,8 +394,11 @@ template <class TypeElem> class cPowF : public cBinaryF<TypeElem>
             inline cPowF(cFormula<TypeElem> aF1,cFormula<TypeElem> aF2,const std::string & aName) :
                    cBinaryF<TypeElem> (aF1,aF2,aName) 
             { }
+            static const std::string &  StaticNameOperator() {static std::string s("std::pow"); return s;}
       private  :
-            const std::string &  NameOperator() const override {static std::string s("^"); return s;}
+            const std::string &  NameOperator() const override {return StaticNameOperator();}
+      //private  :
+            //const std::string &  NameOperator() const override {static std::string s("^"); return s;}
             virtual std::string GenCodeShortExpr() const override {
                 return "std::pow(" + mF1->GenCodeFormName() + "," + mF2->GenCodeFormName() + ")";
             }
@@ -428,8 +439,9 @@ template <class TypeCompiled>  class cGenOperatorBinaire
          typedef typename TypeCompiled::tImplemF  tImplemF;
          typedef typename tImplemF::tFormula      tFormula;
 
-         static tFormula   Generate(tFormula aF1,tFormula aF2,const std::string & aNameOp)
+         static tFormula   Generate(tFormula aF1,tFormula aF2,const std::string & ="" )
          {
+             const std::string & aNameOp  = TypeCompiled::StaticNameOperator();
              // Extract context (take F1 ou F2, does not matter, they must be the same)
              tCoordF * aPCont = aF1->CoordF();  
              std::string aNameForm =  aF1.NameFormulaBin(aNameOp,aF2);
@@ -505,7 +517,7 @@ cFormula<TypeElem> operator +
          return aF1 * CreateCste(2.0,aF1);
      }
 
-     return cGenOperatorBinaire<cSumF<TypeElem> >::Generate(aF1,aF2,"+");
+     return cGenOperatorBinaire<cSumF<TypeElem> >::Generate(aF1,aF2);
 }
 
 template <class TypeElem>
@@ -526,7 +538,7 @@ cFormula<TypeElem> operator -
          return aF1 + aF2->Ref()[0];
      }
 
-     return cGenOperatorBinaire<cSubF<TypeElem> >::Generate(aF1,aF2,"-");
+     return cGenOperatorBinaire<cSubF<TypeElem> >::Generate(aF1,aF2);
 }
 
 template <class TypeElem>
@@ -552,7 +564,7 @@ cFormula<TypeElem> operator *
      if (aF1->Name() > aF2->Name()) 
         return aF2 * aF1;
 
-     return cGenOperatorBinaire<cMulF<TypeElem> >::Generate(aF1,aF2,"*");
+     return cGenOperatorBinaire<cMulF<TypeElem> >::Generate(aF1,aF2);
 }
 
 template <class TypeElem>
@@ -566,7 +578,7 @@ cFormula<TypeElem> operator /
      if (aF2->IsCste(1)) return aF1;  // F1/1 -> F1
 
      if (aF2->IsCste(-1)) return -aF1; // F1/-1 -> -F1
-     return cGenOperatorBinaire<cDivF<TypeElem> >::Generate(aF1,aF2,"/");
+     return cGenOperatorBinaire<cDivF<TypeElem> >::Generate(aF1,aF2);
 }
 
 template <class TypeElem>
@@ -585,7 +597,7 @@ cFormula<TypeElem>   pow
     if (aF2->IsCste(6)) return pow6(aF1);
     if (aF2->IsCste(7)) return pow7(aF1);
     // Don't use pow8 nor pow9: they are defined as pow(x,8/9) and then loop back here
-    return cGenOperatorBinaire<cPowF<TypeElem> >::Generate(aF1,aF2,"^");
+    return cGenOperatorBinaire<cPowF<TypeElem> >::Generate(aF1,aF2);
 }
 
       /* ----------------------------------------------------------*/

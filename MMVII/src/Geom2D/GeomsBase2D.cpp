@@ -474,8 +474,8 @@ template <class Type>  cRot2D<Type> cRot2D<Type>::QuickEstimate(tCRVPts aVIn,tCR
 {
      cMapEstimate<tTypeMap>::CheckInOut(aVIn,aVOut);
 
-     cPtxd<Type,2>  aCdgI =   cPtxd<Type,2>::FromPtR(Barry(aVIn));
-     cPtxd<Type,2>  aCdgO =   cPtxd<Type,2>::FromPtR(Barry(aVOut));
+     cPtxd<Type,2>  aCdgI =   cPtxd<Type,2>::FromPtR(Centroid(aVIn));
+     cPtxd<Type,2>  aCdgO =   cPtxd<Type,2>::FromPtR(Centroid(aVOut));
 
      // etimate rotation as weighted average  of  Rot * VIn = VOut
      cPtxd<Type,2> aVRot(0,0);

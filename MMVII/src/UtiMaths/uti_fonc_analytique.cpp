@@ -155,6 +155,8 @@ template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY)
 }
 
 
+template <typename Type> Type sinH(const Type & aX) {return std::exp(aX)-std::exp(-aX);}
+template <typename Type> Type cosH(const Type & aX) {return std::exp(aX)+std::exp(-aX);}
 
 
 #define INSTATIATE_FUNC_ANALYTIQUE(TYPE)\
@@ -172,7 +174,9 @@ template  TYPE AtanXsY_sX(const TYPE & X,const TYPE & Y,const TYPE & aEps);\
 template  TYPE AtanXsY_sX(const TYPE & X,const TYPE & Y);\
 template  TYPE DerXAtanXsY_sX(const TYPE & X,const TYPE & Y,const TYPE & aEps);\
 template  TYPE DerXAtanXsY_sX(const TYPE & X,const TYPE & Y);\
-template  TYPE DerYAtanXsY_sX(const TYPE & X,const TYPE & Y);
+template  TYPE DerYAtanXsY_sX(const TYPE & X,const TYPE & Y);\
+template  TYPE sinH(const TYPE & );\
+template  TYPE cosH(const TYPE & );
 
 INSTATIATE_FUNC_ANALYTIQUE(tREAL4)
 INSTATIATE_FUNC_ANALYTIQUE(tREAL8)

@@ -35,7 +35,7 @@ template <class TypeElem> cFormula <TypeElem> OPER(const cFormula <TypeElem> & a
 template <class TypeElem>\
 inline cFormula<TypeElem>  OPER(const cFormula<TypeElem> & aF)\
 {\
-    return cGenOperatorUnaire<c##OPER<TypeElem> >::Generate(aF,#OPER);\
+    return cGenOperatorUnaire<c##OPER<TypeElem> >::Generate(aF);\
 }
 
 #define  MACRO_SD_DEFINE_STD_cUnaryF(NSPACE,OPER,OPERd) \
@@ -50,8 +50,10 @@ template <class TypeElem> class c##OPER : public cUnaryF<TypeElem>\
                 cUnaryF <TypeElem> (aF,aName)\
             { }\
             static TypeElem Operation(const TypeElem & aV1) {return NSPACE::OPER(aV1);}\
+            static const std::string &  StaticNameOperator()\
+                         {static std::string s(#NSPACE +std::string("::")+ #OPER); return s;}\
       private :\
-            const std::string &  NameOperator() const override {static std::string s(#NSPACE +std::string("::")+ #OPER); return s;}\
+            const std::string &  NameOperator() const override { return StaticNameOperator();}\
             void ComputeBuf(int aK0,int aK1) override\
             {\
                 for (int aK=aK0 ; aK<aK1 ; aK++)\
@@ -124,8 +126,9 @@ template <class TypeElem> class c##OPER  : public cBinaryF<TypeElem>\
             inline c##OPER(cFormula<TypeElem> aF1,cFormula<TypeElem> aF2,const std::string & aName) :\
                    cBinaryF<TypeElem> (aF1,aF2,aName) \
             { }\
+          static const std::string& StaticNameOperator(){static std::string s(#NSPACE+std::string("::")+ #OPER);return s;}\
       private  :\
-            const std::string &  NameOperator() const override {static std::string s(#NSPACE +std::string("::")+ #OPER); return s;}\
+            const std::string &  NameOperator() const override {return StaticNameOperator();}\
             virtual std::string GenCodeShortExpr() const override {\
                 return #NSPACE + std::string("::") + #OPER+std::string("(") + mF1->GenCodeFormName() + "," + mF2->GenCodeFormName() + ")";\
             }\

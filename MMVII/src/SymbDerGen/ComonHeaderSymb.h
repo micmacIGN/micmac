@@ -22,6 +22,7 @@ template <> class tNumTrait<cFormula <tREAL8> >
         // static bool IsInt() {return true;}
         typedef cFormula<tREAL8>  tBase;
         typedef cFormula<tREAL8>  tBig;
+        typedef cFormula<tREAL8>  tFloatAssoc;
         static void AssertValueOk(const cFormula<double> & ) {}
 };
 
@@ -38,11 +39,11 @@ template <class Type> Type SqNormL2V3(const Type & aX,const Type & aY,const Type
 
 template <class Type> Type NormL2V2(const Type & aX,const Type & aY)
 {
-    return Sqrt(SqNormL2V2(aX,aY));
+    return sqrt(SqNormL2V2(aX,aY));
 }
 template <class Type> Type NormL2V3(const Type & aX,const Type & aY,const Type & aZ)
 {
-    return Sqrt(SqNormL2V3(aX,aY,aZ));
+    return sqrt(SqNormL2V3(aX,aY,aZ));
 }
 
 template <class Type> Type NormL2Vec2(const std::vector<Type> & aVec)

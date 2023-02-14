@@ -1498,6 +1498,11 @@ double cBasicGeomCap3D::GetVeryRoughInterProf() const
    return 1/600.0;
 }
 
+bool    cBasicGeomCap3D::DistBijective() const 
+{
+    return false;
+}
+
 std::string cBasicGeomCap3D::Save2XmlStdMMName
      (
            cInterfChantierNameManipulateur * anICNM,
@@ -2142,6 +2147,9 @@ cArgOptionalPIsVisibleInImage::cArgOptionalPIsVisibleInImage() :
 
 bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,cArgOptionalPIsVisibleInImage * anArg) const
 {
+
+
+
    if (anArg) anArg->mWhy ="";
 
    Pt3dr aPCam = R3toL3(aPTer);
@@ -2165,7 +2173,7 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,cArgOptionalPIsVisibl
    Pt2dr aPI0 = Proj().Proj(aPCam);
 
 
-   if (GetZoneUtilInPixel() )
+   if (GetZoneUtilInPixel() && (!DistBijective()))
    {
        Pt2dr aSz = SzPixel();
 
@@ -5161,6 +5169,31 @@ cCamStenopeModStdPhpgr::cCamStenopeModStdPhpgr
    else
       SetDistDirecte();
 */
+}
+
+bool    cCamStenopeModStdPhpgr::DistBijective() const 
+{
+
+    if(mDist.P1() !=0) return false;
+    if(mDist.P2() !=0) return false;
+
+    if (DRad().NbCoeffNN() !=0) return false;
+    return true;
+
+    /*
+
+    if (MPD_MM())
+    {
+        static double aCpt=0;
+	double aPow=0.2;
+
+	if (round_ni(pow(aCpt,aPow)) != round_ni(pow(aCpt+1,aPow)))
+           std::cout << "WWWWWWWWWw ElCamera::PIsVisibleInImage " << aCpt << "\n";
+	aCpt++;
+	return true;
+   }
+   return false;
+   */
 }
 
 cDistModStdPhpgr & cCamStenopeModStdPhpgr::DModPhgrStd()

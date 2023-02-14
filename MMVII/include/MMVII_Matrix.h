@@ -310,6 +310,7 @@ template <class Type> class cConst_EigenMatWrap;
 template <class Type> class cStrStat2;
 template <class Type> class cNC_EigenMatWrap;
 template <class Type> class cResulQR_Decomp;
+template <class Type> class cResulRQ_Decomp;
 template <class Type> class cResulSVDDecomp;
 template <class Type> class cResulEigenDecomp;
 
@@ -411,6 +412,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tRSVD  SVD() const;
 
         cResulQR_Decomp<Type>    QR_Decomposition() const;
+        cResulRQ_Decomp<Type>    RQ_Decomposition() const;
         cResulEigenDecomp<Type>  Eigen_Decomposition() const;
 
 
@@ -431,6 +433,14 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void TransposeIn(tDM & M2) const;  ///< Put transposate in M2
         void SelfTransposeIn() ;  ///< transposate in this, square only
         tDM  Transpose() const;  ///< Put transposate in M2
+
+	  
+        void SelfLineInverse() ;  ///< line inversion   (L1 L2 .. LN) =>   (LN ... L2 L1) ,  used for RQ decomposition (QR => RQ)
+        tDM  LineInverse() const;  ///< cont version of SelfLineInverse
+        void SelfColInverse() ;  ///< colum inversion   ,  used for RQ decomposition (QR => RQ)
+
+	void SelfLineChSign(int aNumL); ///<  chang signe of line aNumL, used in QR/RQ to normalize with diag>0 of R
+	void SelfColChSign(int aNumC);  ///<  chang signe of column aNumC, used in QR/RQ to normalize with diag>0 of R
          
         double Diagonalicity() const; ///< how much close to a diagonal matrix, square only , 
         Type   Det() const;  ///< compute the determinant, not sur optimise
@@ -452,6 +462,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         // === method implemente with DIm
         Type L2Dist(const cDenseMatrix<Type> & aV) const;
 	//  void operator -= (const cDenseMatrix<Type> &) ;  => see  "include/MMVII_Tpl_Images.h"
+
+   private :
+        Type & GetReference_V(int aX,int  aY) { return DIm().GetReference_V(cPt2di(aX,aY));}  // dont check vals
 
 };
 
@@ -493,7 +506,7 @@ template <class Type> class cResulSVDDecomp
     public :
         friend class cDenseMatrix<Type>;
 
-        cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix
+        cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix   
 
         const cDenseVect<Type>   &  SingularValues() const ; ///< Eigen values
         const cDenseMatrix<Type> &  MatU()const ; ///< Eigen vector
@@ -509,23 +522,41 @@ template <class Type> class cResulSVDDecomp
 
 };
 
-
-
 template <class Type> class cResulQR_Decomp
 {
     public :
-        friend class cDenseMatrix<Type>;
+        typedef cDenseMatrix<Type> tDM;
+        // friend class tDM;
+        friend tDM;
 
-        cDenseMatrix<Type>  OriMatr() const;
+        cDenseMatrix<Type>  OriMatr() const;  // Q * R
 
-        const cDenseMatrix<Type> &  Q_Matrix() const; ///< Unitary
-        const cDenseMatrix<Type> &  R_Matrix() const; ///< Triang
+        const tDM &  Q_Matrix() const; ///< Unitary
+        const tDM &  R_Matrix() const; ///< Triang
+        tDM &  Q_Matrix() ; ///< Unitary
+        tDM &  R_Matrix() ; ///< Triang
 
     private :
         cResulQR_Decomp(int aSzX,int aSzY);
-        cDenseMatrix<Type>  mQ_Matrix; ///< Unitary Matrix
-        cDenseMatrix<Type>  mR_Matrix; ///< Triangular superior
+    protected :
+        cResulQR_Decomp(const tDM&,const tDM &);
 
+        tDM  mQ_Matrix; ///< Unitary Matrix
+        tDM  mR_Matrix; ///< Triangular superior
+
+};
+
+template <class Type> class cResulRQ_Decomp : public cResulQR_Decomp<Type>
+{
+    public :
+        typedef cDenseMatrix<Type> tDM;
+        //friend class tDM;
+        friend tDM;
+
+        tDM  OriMatr() const;  // R * Q
+
+    private :
+        cResulRQ_Decomp(const tDM&,const tDM &);
 };
 
 
@@ -764,6 +795,7 @@ template<class Type> class cSymMeasure
 
 #define CHECK_SZPT_VECT(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz()==aPT.TheDim,"Bad size in Vec/Pt")
 
+template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L1,const cPtxd<Type,3> &L2,const cPtxd<Type,3> &L3);
 
 template <class Type,int Dim> void GetCol(cPtxd<Type,Dim> &,const cDenseMatrix<Type> &,int aCol);
 // template <class Type,int Dim> cPtxd<Type,Dim> GetCol(const cDenseMatrix<Type> &,int aCol);

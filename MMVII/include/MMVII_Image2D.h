@@ -118,6 +118,14 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
             tPB::AssertInside(aP);
             return  Value(aP);
         }
+           /// Direcct access, dangerous as no more check on values, non short name
+        Type & GetReference_V(const cPt2di & aP)  
+        {
+            tPB::AssertInside(aP);
+            return  Value(aP);
+	}
+
+
         /* No  Type & GetV() or  Type & operator()   ... as it does not allow
            to check values
         */
@@ -498,6 +506,8 @@ class cRGBImage
         static const  cPt3di  Yellow;
         static const  cPt3di  Magenta;
         static const  cPt3di  Cyan;
+        static const  cPt3di  Orange;
+		static const  cPt3di  White;
 
 	/// return a lut adapted to visalise label in one chanel (blue), an maximize constrat in 2 other
 	static  std::vector<cPt3di>  LutVisuLabRand(int aNbLab);

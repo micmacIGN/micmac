@@ -392,6 +392,7 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
          typedef tElemNumTrait<Type>  tETrait;
          typedef typename  tETrait::tBase tBase;
          typedef typename  tETrait::tBig  tBig ;
+         typedef typename  tETrait::tFloatAssoc  tFloatAssoc ;
          // typedef typename  tETrait::tFloatAssoc  tFloatAssoc ;
       // ===========================
          bool V_IsInt()  const override {return  tBaseNumTrait<tBase>::IsInt();}
@@ -788,6 +789,10 @@ template <typename Type> Type DerX_ATan2(const Type & aX,const Type & aY);
 template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY);
 
 
+/// Sinus hyperbolic
+template <typename Type> Type sinH(const Type & aTeta);
+/// CoSinus hyperbolic
+template <typename Type> Type cosH(const Type & aTeta);
 
 
 

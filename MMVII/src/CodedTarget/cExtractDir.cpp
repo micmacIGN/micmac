@@ -14,14 +14,12 @@ template <class Type>  cExtractDir<Type>::cExtractDir(tIm anIm,double aRhoMin,do
      mPtsCrown  (SortedVectOfRadius(0.0,mRhoMax))  // compute vectot of neighboord sorted by norm
 {
     // compute list of circles with a step of 1 pixel, and their direction
-    for (double aRho = aRhoMin ; aRho<aRhoMax ; aRho++)
-    {
+    for (double aRho = aRhoMin ; aRho<aRhoMax ; aRho++){
          mVCircles.push_back(GetPts_Circle(cPt2dr(0,0),aRho,true));  // true=> 8 connexity
          mVDIrC.push_back(tVDir());
 
          // compute direction real that will be used for extracting axes of checkboard
-         for (const auto& aPix :  mVCircles.back())
-         {
+         for (const auto& aPix :  mVCircles.back()){
                mVDIrC.back().push_back(VUnit(ToR(aPix)));
          }
     }
@@ -96,7 +94,7 @@ double TestDir(const cNS_CodedTarget::cGeomSimDCT & aGT,const cNS_CodedTarget::c
 }
 
 
-template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, std::vector<cPt2di> & vec2plot){
+template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT){
 
 
      mPDCT = & aDCT;  // memorize as internal variables
@@ -109,16 +107,18 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, std::vector<
      cPt2dr aSomDir[2] = {{0,0},{0,0}};  // accumulate for black and white average direction
 
      //  Parse all circles
-     for (int aKC=0 ; aKC<int(mVCircles.size()) ; aKC++)
-     {
+    for (int aKC=0 ; aKC<int(mVCircles.size()) ; aKC++){
+    //for (int aKC=0 ; aKC<2 ; aKC++){
          const auto & aCircle  = mVCircles[aKC];
+
+        double radius = sqrt(aCircle.at(0).x()*aCircle.at(0).x() + aCircle.at(0).y()*aCircle.at(0).y());
+
          const auto & aVDir    = mVDIrC[aKC];
          int aNbInC = aCircle.size();
          aVVals.clear();
          aVIsW.clear();
          //  parse the circle , for each pixel compute gray level and its thresholding
-         for (const auto & aPt : aCircle)
-         {
+         for (const auto & aPt : aCircle){
              float aVal  = mDIm.GetV(aC+aPt);
              aVVals.push_back(aVal);
              aVIsW.push_back(aVal>mVThrs);
@@ -127,28 +127,34 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, std::vector<
 
          int aCpt = 0;
 
-         double radius = 5*sqrt(aCircle.at(0).x()*aCircle.at(0).x() + aCircle.at(0).y()*aCircle.at(0).y());
-
          // parse the value to detect black/white transitions
          for (int  aKp=0 ; aKp<aNbInC ; aKp++){
 
              int aKp1 = (aKp+1)%aNbInC;  // next index, circulary speaking
-             if (aVIsW[aKp] != aVIsW[aKp1])  // if we have a transition
-             {
+             if (aVIsW[aKp] != aVIsW[aKp1]){  // if we have a transition
 
-                 aCpt++;   // one more transition
-                 cPt2dr aP1  = aVDir[aKp];  // unitary direction before transition
-                 cPt2dr aP2  = aVDir[aKp1];  // unitary direction after transition
-                 double aV1 = aVVals[aKp];   // value befor trans
-                 double aV2 = aVVals[aKp1];  // value after trans                                             // -----------------------------------------------------------------------------------
-                 // make a weighted average of P1/P2 corresponding to linear interpolation with threshold     // REPRESENTATION TRANSITIONS
-                 cPt2dr aDir =   (aP1 *(aV2-mVThrs) + aP2 * (mVThrs-aV1)) / (aV2-aV1);                        vec2plot.push_back(cPt2di(aC.x()+radius*aDir.x(), aC.y()+radius*aDir.y()));
-                 if (SqN2(aDir)==0) return false;  // not interesting case                                    // -----------------------------------------------------------------------------------
-                 aDir = VUnit(aDir);  // reput to unitary
-                 aDir = aDir * aDir;  // make a tensor of it => double its angle, complexe-point multiplication
-                 aSomDir[aVIsW[aKp]] += aDir;  // acculate the direction in black or whit transition
+                aCpt++;   // one more transition
+                cPt2dr aP1  = aVDir[aKp];  // unitary direction before transition
+                cPt2dr aP2  = aVDir[aKp1];  // unitary direction after transition
+                double aV1 = aVVals[aKp];   // value befor trans
+                double aV2 = aVVals[aKp1];  // value after trans
+                // make a weighted average of P1/P2 corresponding to linear interpolation with threshold
+                cPt2dr aDir =   (aP1 *(aV2-mVThrs) + aP2 * (mVThrs-aV1)) / (aV2-aV1);
+
+                if (SqN2(aDir)==0) return false;  // not interesting case
+                aDir = VUnit(aDir);  // reput to unitary
+
+                // -----------------------------------------------------------------------------------
+                // REPRESENTATION OF TRANSITIONS
+                aDCT.mDetectedVectors.push_back(cPt2di(aC.x()+radius*aDir.x(), aC.y()+radius*aDir.y()));
+                // -----------------------------------------------------------------------------------
+
+                aDir = aDir * aDir;  // make a tensor of it => double its angle, complexe-point multiplication
+                aSomDir[aVIsW[aKp]] += aDir;  // accumulate the direction in black or white transition
+
              }
          }
+
 
          // if we dont have exactly 4 transition, there is someting wrong ...
          if (aCpt!=4 )  {
@@ -170,13 +176,12 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, std::vector<
      // As each directio is up to Pi,  and this arbirtray Pi is indepensant we may have
      // an orientation problem  and Dir1,Dir2 being sometime a direct repair and sometime
      // an indirect one.
-     if ( (aDCT.mDirC1^aDCT.mDirC2) < 0)
-     {
+     if ( (aDCT.mDirC1^aDCT.mDirC2) < 0){
          aDCT.mDirC2 = -aDCT.mDirC2;
      }
      // Optimisation of direction, utility : uncertain
-     aDCT.mDirC1 =  OptimScore(aDCT.mDirC1,1e-3);
-     aDCT.mDirC2 =  OptimScore(aDCT.mDirC2,1e-3);
+     //aDCT.mDirC1 =  OptimScore(aDCT.mDirC1,1e-3);
+     //aDCT.mDirC2 =  OptimScore(aDCT.mDirC2,1e-3);
 
      return true;
 }
@@ -263,22 +268,21 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
 
 template class cExtractDir<tREAL4>;
 
-bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor, std::vector<cPt2di>& vec2plot){
+bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT, cIm2D<tREAL4> anIm, double ray_min, double ray_max, std::vector<cPt2di>& vec2plot){
+
 
 /*
-    bool test1 = abs(aDCT.Pix0().x() - 4493) < 2;
-    bool test2 = abs(aDCT.Pix0().y() - 163) < 2;
-    if (!test1 || !test2){
-        return false;
-    }
+    double max_possible_x = std::min(aDCT.Pix().x(), anIm.DIm().Sz().x()-aDCT.Pix().x());
+    double max_possible_y = std::min(aDCT.Pix().y(), anIm.DIm().Sz().y()-aDCT.Pix().y());
+    double max_possible   = std::min(max_possible_x, max_possible_y);
+    double max_ray        = std::min(aRayCB*0.8*size_factor, max_possible-1);
 */
 
+    // StdOut() << max_possible_x << " " << max_possible_y << " " << max_possible << " " << max_ray << "\n";
 
-    cExtractDir<tREAL4>  anED(anIm,aRayCB*0.4,aRayCB*0.8*size_factor);
+    cExtractDir<tREAL4>  anED(anIm, ray_min, ray_max);
 
-
-
-    bool Ok = anED.CalcDir(aDCT, vec2plot);
+    bool Ok = anED.CalcDir(aDCT);
 
 
     if (!Ok) return false;

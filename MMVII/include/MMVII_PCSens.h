@@ -10,6 +10,7 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
 /** \file MMVII_PCSens.h
     \brief Interface class for central perspective sensors
  *  
@@ -128,6 +129,8 @@ class cDataPerspCamIntrCalib
       void PushInformation(const std::string &);
       std::vector<std::string> & VecInfo() ;
 
+      const cCalibStenPerfect& CalibStenPerfect() const { return mCSPerfect;}
+
    protected :
       std::string                    mName;
       eProjPC                        mTypeProj;           ///< type of projection
@@ -178,6 +181,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
                 ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
             void UpdateLSQDistInv();
 
+            void UpdateLSQDistIfRequired() const;
+
                 /// manye delete in destructor ....
             ~cPerspCamIntrCalib();
 
@@ -203,11 +208,26 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cPt3di & DegDir() const;  ///< acess to direct degrees
             const std::string & Name() const;   ///< Name of the file
 
-	    std::vector<double> & VParamDist();
-	    const std::vector<double> & VParamDist() const;
+	    const std::vector<double> & VParamDist() const;  ///< vector of dist param
+	    std::vector<double> & VParamDist();    ///< vector of dist param
+            const   std::vector<cDescOneFuncDist> &  VDescDist() const;  ///< desc of dist param
+	           //  ===  Acess to individuald dist values
+	    int IndParamDistFromName(const std::string&,bool SVP=false) const; ///< get index of param from its name, -1 if none & SVP
+	    double  ParamDist(const std::string &) const; ///< recover param of dist from its name
+	    void    SetParamDist(const std::string &,const double &) ; ///< set  value of dist from its name
+	    bool    IsNameParamDist(const std::string &) const;  ///< Is it a valuable name of distosion param
 
             void SetThresholdPhgrAccInv(double); ///< modifier of threshold for accuracy inversion, photogrametric unit
             void SetThresholdPixAccInv(double);  ///< modifier of threshold for accuracy inversion, pixel  unit
+
+            const cDataMapping<tREAL8,3,2>* Dir_Proj() const; ///< access to direct projection as a cDataMapping FOR_PYTHON
+            const cDataMapping<tREAL8,2,2>* Dir_Dist() const; ///< access to direct distorsion as a cDataMapping FOR_PYTHON
+            const cDataMapping<tREAL8,2,3>* Inv_Proj() const; ///< access to inverse projection as a cDataMapping FOR_PYTHON
+            const cDataInvertibleMapping<tREAL8,2>* Dir_DistInvertible() const; ///< access to inverse distorsion as a cDataMapping FOR_PYTHON
+
+            /// point on grid
+	    std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const ;
+
 
     // ==================   Test & Bench ===================
 
@@ -232,11 +252,17 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     double Visibility(const cPt3dr &) const ;
 
 	     double VisibilityOnImFrame(const cPt2dr &) const;
+
+
 	    ///  real constructor (accessible directly because RemanentObjectFromFile)
             cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
+
        private :
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
+
+	    /// For inversion, or sampling point, we need seed that is +- corresponding of sensor midle, befor dist
+	    cPt2dr PtSeedInv() const;
 
 
          // ==================   DATA PART   ===================
@@ -266,13 +292,17 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mInvApproxLSQ_Dist;   ///< approximate LSQ invert disorstion  R2->R2
             cCalculator<tREAL8> *                mInv_BaseFDist;  ///<  base of function for inverse distortion
             cLeastSqCompMapCalcSymb<tREAL8,2,2>* mInv_CalcLSQ;  ///< structure for least square estimation
-            cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
-            cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
-            tREAL8                               mThreshJacPI; ///< threshlod for jacobian in pseudo inversion
+
 
             double                               mThresholdPhgrAccInv; ///< threshold for accurracy in inversion (photogram units)
             double                               mThresholdPixAccInv;  ///< threshold for accurracy in inversion (pixels    units)
             int                                  mNbIterInv;           ///< maximal number of iteration in inversion
+            tREAL8                               mThreshJacPI; ///< threshlod for jacobian in pseudo inversion
+
+            cDataIIMFromMap<tREAL8,2> *          mDist_DirInvertible; ///< accurate inverse, use approx + iterative
+            cDataMapCalcSymbDer<tREAL8,2,3>*     mInv_Proj;   ///< direct projection  R2->R3
+            bool                                 mInvIsUpToDate;        
+
             // cDataMapCalcSymbDer<tREAL8,3,2>   * mProjInv;
 };
 
@@ -288,6 +318,10 @@ class cSensorCamPC : public cSensorImage
          typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
 
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
+
+         /// Create form  Un-Calibrated-Space-Resection
+         static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,bool Real16=true);
+
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
 	 double Visibility(const cPt3dr &) const override;
@@ -297,6 +331,7 @@ class cSensorCamPC : public cSensorImage
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
 
+         std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
 
 	 // different accessor to the pose
          const tPose &   Pose()   const;

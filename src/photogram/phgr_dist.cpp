@@ -1135,6 +1135,13 @@ REAL & cDistModStdPhpgr::P1() {return mP1;}
 REAL & cDistModStdPhpgr::P2() {return mP2;}
 REAL & cDistModStdPhpgr::b1() {return mb1;}
 REAL & cDistModStdPhpgr::b2() {return mb2;}
+
+const REAL & cDistModStdPhpgr::P1() const {return mP1;}
+const REAL & cDistModStdPhpgr::P2() const {return mP2;}
+const REAL & cDistModStdPhpgr::b1() const {return mb1;}
+const REAL & cDistModStdPhpgr::b2() const {return mb2;}
+
+
 ElDistRadiale_PolynImpair & cDistModStdPhpgr::DRad() {return *this;}
 const ElDistRadiale_PolynImpair & cDistModStdPhpgr::DRad() const {return *this;}
 

@@ -1,5 +1,6 @@
 
 #include "MMVII_Image2D.h"
+#include "MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -10,6 +11,8 @@ const cPt3di cRGBImage::Blue(0,0,255);
 const cPt3di cRGBImage::Yellow(255,255,0);
 const cPt3di cRGBImage::Magenta(255,0,255);
 const cPt3di cRGBImage::Cyan(0,255,255);
+const cPt3di cRGBImage::Orange(255,128,0);
+const cPt3di cRGBImage::White(255,255,255);
 
 //template <class Type> void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<Type> & aIm,const double & aMul=1.0);
 /// Do it for all pix; 
@@ -129,7 +132,14 @@ cRGBImage cRGBImage::FromFile(const std::string& aName)
 
 void cRGBImage::Read(const cDataFileIm2D & aDFI,const cPt2di & aP0,double aDyn,const cRect2& aRect)
 {
-    mImR.DIm().Read(aDFI,mImG.DIm(),mImB.DIm(),aP0,aDyn,aRect);
+    if (aDFI.NbChannel()==3)
+        mImR.DIm().Read(aDFI,mImG.DIm(),mImB.DIm(),aP0,aDyn,aRect);
+    else
+    {
+        mImR.DIm().Read(aDFI,aP0,aDyn,aRect);
+        CopyIn(mImG.DIm(),mImR.DIm());
+        CopyIn(mImB.DIm(),mImR.DIm());
+    }
 }
 
 void cRGBImage::Read(const std::string & aName,const cPt2di & aP0,double aDyn,const cRect2& aRect) 

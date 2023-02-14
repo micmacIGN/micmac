@@ -258,7 +258,11 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
        {
            aWMin.Add(aTripl,std::abs(aTripl.x()-b)+std::abs(aTripl.y()-c));
        }
-       MMVII_INTERNAL_ASSERT_bench(aWMin.ValExtre()<1e-4,"2 value in OneTestCorrectness");  // is it close enough
+       if (aWMin.ValExtre()>=1e-4)
+       {
+	    StdOut() << "cElemSpaceResection::BC " << aWMin.ValExtre() << "\n";
+            MMVII_INTERNAL_ASSERT_bench(aWMin.ValExtre()<1e-4,"2 value in OneTestCorrectness");  // is it close enough
+       }
 
 
        //  Now see that if can recover local coord from b,c
@@ -286,7 +290,7 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
 template class cElemSpaceResection<tREAL8>;
 template class cElemSpaceResection<tREAL16>;
 
-void BenchUnCalibResection()
+void BenchCalibResection()
 {
    for (int aK=0 ; aK< 1000 ; aK++)
    {
@@ -301,6 +305,8 @@ void BenchPoseEstim(cParamExeBench & aParam)
    if (! aParam.NewBench("PoseEstim")) return;
 
    BenchUnCalibResection();
+
+   BenchCalibResection();
    aParam.EndBench();
 }
 

@@ -182,6 +182,12 @@ template <class Type> cIsometry3D<Type> cIsometry3D<Type>::FromTriInAndOut
      return aRefToOut * aInToRef;
 }
 
+template <class Type> 
+   cIsometry3D<Type> cIsometry3D<Type>::RandomIsom3D(const Type & AmplPt)
+{
+    return  cIsometry3D<Type> (tPt::PRandC()*AmplPt,cRotation3D<Type>::RandomRot());
+}
+
 
 
 /* ************************************************* */

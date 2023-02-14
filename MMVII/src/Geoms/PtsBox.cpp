@@ -167,7 +167,7 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVect
    return aRes;
 }
 
-template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts)
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts)
 {
    MMVII_INTERNAL_ASSERT_tiny((!aVPts.empty()),"Bad size in Vec/Pt");
 
@@ -178,6 +178,14 @@ template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd
    return aRes/ tREAL8(aVPts.size());
 }
 
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,const cPtxd<T,Dim> & aP1)
+{
+	return aP0 *aW0 + aP1 * (1-aW0);
+}
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,T aW1,const cPtxd<T,Dim> & aP1)
+{
+	return (aW0 * aP0 + aW1 * aP1) / (aW0+aW1);
+}
 
 
 int NbPixVign(const int & aVign){return 1+2*aVign;}
@@ -296,14 +304,6 @@ template <class Type,const int Dim> double NormK(const cPtxd<Type,Dim> & aPt,dou
    for (int aD=1 ; aD<Dim; aD++)
       aRes += pow(std::abs(aPt[aD]),anExp);
    return pow(aRes,1/anExp);
-}
-
-template <class Type,const int Dim> double Norm2(const cPtxd<Type,Dim> & aPt)
-{
-   double aRes = Square(aPt[0]);
-   for (int aD=1 ; aD<Dim; aD++)
-      aRes += Square(aPt[aD]);
-   return sqrt(aRes);
 }
 
 template <class Type,const int Dim> Type Norm1(const cPtxd<Type,Dim> & aPt)
@@ -1126,12 +1126,15 @@ template  bool WindInside4BL(const cBox2di & aBox,const cPtxd<tREAL8,2> & aPt,co
 #define MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIMIN,DIMOUT)\
 template  cPtxd<TYPE,DIMOUT> CastDim<TYPE,DIMOUT,DIMIN>(const cPtxd<TYPE,DIMIN> & aPt);
 
+
 #define MACRO_INSTATIATE_PTXD(TYPE,DIM)\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,1);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,2);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,3);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,4);\
-template  cPtxd<tREAL8,DIM> Barry(const std::vector<cPtxd<TYPE,DIM> > & aVPts);\
+template  cPtxd<tREAL8,DIM> Centroid(const std::vector<cPtxd<TYPE,DIM> > & aVPts);\
+template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,TYPE aW1,const cPtxd<TYPE,DIM> & aP1);\
+template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,const cPtxd<TYPE,DIM> & aP1);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\
@@ -1143,7 +1146,6 @@ template typename cPtxd<TYPE,DIM>::tBigNum cPtxd<TYPE,DIM>::MinSqN2(const std::v
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitNonAligned(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  double NormK(const cPtxd<TYPE,DIM> & aPt,double anExp);\
-template  double Norm2(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE Norm1(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE NormInf(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE MinAbsCoord(const cPtxd<TYPE,DIM> & aPt);\

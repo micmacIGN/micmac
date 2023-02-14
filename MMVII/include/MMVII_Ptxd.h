@@ -3,6 +3,7 @@
 
 #include "MMVII_AllClassDeclare.h"
 #include "MMVII_nums.h"
+#include "MMVII_memory.h"
 
 namespace MMVII
 {
@@ -35,6 +36,7 @@ template <class Type,const int Dim> class cPtxd
     public :
        typedef typename  tNumTrait<Type>::tBig               tBigNum ;
        typedef cPtxd<Type,Dim>                               tPt;
+       typedef Type                                          tEl;
        // To see later (C Meynard ?) why this create compile pb
        // typedef typename  tElemNumTrait<Type>::tFloatAssoc    tReal;
        //typedef cPtxd<tReal,Dim>                              tPtR;
@@ -227,27 +229,31 @@ template <class Type> inline cPtxd<Type,4> operator + (const cPtxd<Type,4> & aP1
 { return cPtxd<Type,4>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z(),aP1.t()+aP2.t()); }
 
 
-template <class Type> inline void operator += (cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+template <class Type> inline cPtxd<Type,1> operator += (cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2)
 { 
     aP1.x() += aP2.x(); 
+    return aP1;
 }
-template <class Type> inline void operator += (cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+template <class Type> inline cPtxd<Type,2> & operator += (cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2)
 { 
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
+    return aP1;
 }
-template <class Type> inline void operator += (cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+template <class Type> inline cPtxd<Type,3> operator += (cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2)
 { 
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
     aP1.z() += aP2.z(); 
+    return aP1;
 }
-template <class Type> inline void operator += (cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+template <class Type> inline cPtxd<Type,4> operator += (cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2)
 { 
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
     aP1.z() += aP2.z(); 
     aP1.t() += aP2.t(); 
+    return aP1;
 }
 
 
@@ -300,10 +306,19 @@ template <class Type> inline cPtxd<Type,2> operator * (const Type & aVal ,const 
 {return  cPtxd<Type,2>(aP.x()*aVal,aP.y()*aVal);}
 template <class Type> inline cPtxd<Type,2> operator * (const cPtxd<Type,2> & aP,const Type & aVal) 
 {return  cPtxd<Type,2>(aP.x()*aVal,aP.y()*aVal);}
+
 template <class Type> inline cPtxd<Type,3> operator * (const Type & aVal ,const cPtxd<Type,3> & aP) 
 {return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
 template <class Type> inline cPtxd<Type,3> operator * (const cPtxd<Type,3> & aP,const Type & aVal) 
 {return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
+
+
+template <class Type> inline cPtxd<Type,4> operator * (const Type & aVal ,const cPtxd<Type,4> & aP) 
+{return  cPtxd<Type,4>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal,aP.t()*aVal);}
+template <class Type> inline cPtxd<Type,4> operator * (const cPtxd<Type,4> & aP,const Type & aVal) 
+{return  cPtxd<Type,4>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal,aP.t()*aVal);}
+
+
 
 ///  operator /  points-scalar
 template <class Type> inline cPtxd<Type,1> operator / (const cPtxd<Type,1> & aP,const Type & aVal) 
@@ -332,7 +347,13 @@ template <class Type> inline cPtxd<Type,4> operator / (const cPtxd<Type,4> & aP,
 template <class T,const int Dim> double NormK(const cPtxd<T,Dim> & aP,double anExp) ;
 template <class T,const int Dim> T Norm1(const cPtxd<T,Dim> & aP);
 template <class T,const int Dim> T NormInf(const cPtxd<T,Dim> & aP);
-template <class T,const int Dim> double Norm2(const cPtxd<T,Dim> & aP);
+
+// template <class T,const int Dim> typename tNumTrait<T>::tFloatAssoc Norm2(const cPtxd<T,Dim> & aP);
+template <class T,const int Dim> typename tNumTrait<T>::tFloatAssoc Norm2(const cPtxd<T,Dim> & aP)
+{
+   return sqrt(SqN2(aP));
+}
+// template <class T,const int Dim> double Norm2(const cPtxd<T,Dim> & aP);
 
 template <class T,const int Dim> typename tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 template <class T,const int Dim> typename tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> & aP);
@@ -487,7 +508,9 @@ template <class T> inline cPtxd<tREAL8,4> ToR(const cPtxd<T,4> & aP) {return cPt
 
 template <class T> inline cPtxd<tREAL4,2> ToF(const cPtxd<T,2> & aP) {return cPtxd<tREAL4,2>(aP.x(),aP.y());}
 
-template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts);
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts);
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,const cPtxd<T,Dim> & aP1);
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,T aW1,const cPtxd<T,Dim> & aP1);
 /*
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}

@@ -479,6 +479,7 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       // Accessors 
       const tDataMap *     RoughInv() const ;
       const Type & DTolInv() const;
+      void SetDTolInv(const Type &);
       /// Access to the structure, only needed in some bench to create artificial difficult situations
       tHelperInvertIter *  StrInvertIter() const;
 
@@ -666,6 +667,7 @@ template <class Type,const int Dim> class  cComputeMapInverse
         typedef cDataBoundedSet<Type,Dim>         tSet;
         typedef cDataNxNMapping<Type,Dim>         tMap;
         typedef cPtxd<Type,Dim>                   tPtR;
+        typedef std::vector<tPtR>                 tVPtR;
         typedef cPtxd<int,Dim>                    tPtI;
         typedef cTplBox<Type,Dim>                 tBoxR;
         typedef cPtsExtendCMI<Type,Dim>           tExtent;
@@ -679,9 +681,12 @@ template <class Type,const int Dim> class  cComputeMapInverse
              const int & aNbPtsIn,    ///< Approximate number of point (in the biggest size)
              tSet &,  ///< Set of validity, in output space
              tMap&,   ///< Maping to invert : InputSpace -> OutputSpace
-             tLSQ&,  ///< Structure for computing the invert on base of function using least square   
+             tLSQ*,  ///< Structure for computing the invert on base of function using least square   
              bool Test=false
         );
+
+        void  DoPts();
+        tVPtR  GetPtsOut() const;
         void  DoAll(std::vector<Type> & aVSol);
 
         static int constexpr  TheNbIterByStep = 3;
@@ -710,14 +715,14 @@ template <class Type,const int Dim> class  cComputeMapInverse
         /// Validate (POut/Jac) if in domain and jacobian is OK
         bool ValidateK(const tCsteResVecJac & aVecPJ,int aKp);
         /// Add one observtion for computing inverse, IsFront used for memo in test mode
-        void AddObsMapDirect(const tPtR & aPIn,const tPtR & aPOut,bool IsFront);
+        void AddObsMapDirect(const tVPtR & aPIn,const tVPtR & aPOut);
 
 	         // Copy of parameters
         Type          mThresholdJac;
         tPtR          mPSeed; //  seed point that is waranteed to be inside the domain
         tSet &        mSet;   // Definition set of Output space
         tMap &        mMap;   // Map to invert
-        tLSQ &        mLSQ;   // systeme to compute the inverse as a linear composition of given base functions (using least square)
+        tLSQ *        mLSQ;   // systeme to compute the inverse as a linear composition of given base functions (using least square)
           // Created members
         tBoxR         mBoxByJac; ///< Box computed assuming that Map is equal to its jacobian in PSeed
         tBoxR         mBoxMaj;  ///< Majoration of box, taking into account possible  unstability and jacobian threshold
@@ -729,11 +734,14 @@ template <class Type,const int Dim> class  cComputeMapInverse
         cDenseMatrix<Type>        mMatId;   ///< Id Matrix, helper for computing Jacobian criteria
         const std::vector<tPtI> &       mNeigh; ///< Neighbourhood for image-morpho-operation
         std::vector<tExtent>      mVExt; ///< Vector of "extension" to the frontier
-        bool                      mTest; ///< Are we in test mode ?
+        //  bool                      mTest; ///< Are we in test mode ?
     public :
         Type                      mStepFrontLim; // TheStepFrontLim
-        std::vector<tPtR>         mVPtsInt; ///< For test, memo point interior
-        std::vector<tPtR>         mVPtsFr;  ///< For test, memo point frontier
+
+        tVPtR         mOut_VPtsInt; ///< For test, memo point interior
+        tVPtR         mIn_VPtsInt; ///< For test, memo point interior
+        tVPtR         mOut_VPtsFr;  ///< For test, memo point frontier
+        tVPtR         mIn_VPtsFr;  ///< For test, memo point frontier
 
 };
 

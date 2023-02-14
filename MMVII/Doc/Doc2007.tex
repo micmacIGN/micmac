@@ -1,9 +1,8 @@
-\documentclass[a4paper]{book}
-
 \usepackage[english]{babel}
 %\usepackage[english,french]{babel}
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{mathtools}
 \usepackage{rotating}
 \usepackage{multicol}
 \usepackage{color}
@@ -11,6 +10,13 @@
 \usepackage{hyperref}
 \usepackage{float}
 \usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  frame=single,
+  breaklines=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+}
 %\usepackage{cprotect}
 \usepackage{fancyvrb}
 \usepackage{color}
@@ -29,15 +35,6 @@
 \DeclareMathOperator*{\argmax}{arg\,max}
 
 %\usepackage{subfigure}
-
-
-\setlength{\oddsidemargin}{0.5 cm}
-\setlength{\evensidemargin}{-0.5 cm}
-\setlength{\textwidth}{16.0 cm}
-\setlength{\textheight}{23.7 cm}
-\setlength{\marginparwidth}{0.0 cm}
-\setlength{\topmargin}{-1.0 cm}
-
 
 %\usepackage{mathabx}
 %\usepackage{amstext}
@@ -75,9 +72,9 @@
 
 
 \newcommand{\tran}{\ensuremath {^{t} }}
-\newcommand{\trans}{\ensuremath {^{t} \!}}
-\newcommand{\transs}{\ensuremath {^{t} \!\!}}
-\newcommand{\transss}{\ensuremath {^{t} \!\!\!}}
+\newcommand{\trans}{\ensuremath {\; ^{t} \!}}
+\newcommand{\transs}{\ensuremath {\;\;  ^{t} \!\!}}
+\newcommand{\transss}{\ensuremath {\;\;\;   ^{t} \!\!\!}}
 
 
 \newcommand{\transL}{{\transs L}}
@@ -124,15 +121,19 @@
 \newcommand{\SUn}{\ensuremath{{\mathcal S}^1}}
 
 \newcommand{\DeltaI}{\ensuremath{\Delta^{\imath}}}
+\DeclareMathOperator{\sinc}{sinc}
 
 \newcommand{\DdSt}{\ensuremath{d^2}_{/\mathcal{S}^3}}
 \newcommand{\DeuxExtre}{\ensuremath{\unrhd}}
 %\newcommand{\DeuxExtre}{\ensuremath{\nabla}}
 \newcommand{\RefFantome}{{\bf ?2Def?}}
+\newcommand{\TOMODIF}[1]{\textcolor{red}{\textbf{#1}}}
 \newcommand{\PourLecteurAverti}{{\Large \bf \emph{Ce paragraphe peut
 facilement \^etre omis
 en premi\`ere lecture.}}}
 \newcommand{\COM}[1]
+
+\newtheorem{proposal}{Proposal}
 
 %  \verb|\|
 
@@ -176,6 +177,7 @@ en premi\`ere lecture.}}}
 
 \part{Methodologies}
 
+\include{Methods/PerspCamModelization}
 \include{Methods/PoseEstimation}
 \include{Methods/AimeDesc}
 \include{Methods/TiePoints}
@@ -193,7 +195,7 @@ en premi\`ere lecture.}}}
 
 \include{Programmer/Mapping}
 
-\include{Programmer/Sensor}
+\include{Programmer/PhgrOrganization}
 
 
 \COM
@@ -248,6 +250,15 @@ For now "bloc-note",
            "Reconstruction 3D automatique de façades de bâtiments en multi-vues.",
             RFIA (Reconnaissance des Formes et Intelligence Artificielle),
             Tours, France, January 2006.
+
+    \bibitem[Weierstrass,Karl 1885 ]{Weierstrass1885} Über die analytische Darstellbarkeit sogenannter willkürlicher Functionen
+           einer reellen Veränderlichen. Sitzungsberichte der Königlich Preußischen Akademie der Wissenschaften zu Berlin,
+           1885 (II).  Erste Mitteilung (part 1) pp. 633–639, Zweite Mitteilung (part 2) pp. 789–805.
+
+    \bibitem[Stone, M. H. 1937]{Stone1937} "Applications of the Theory of Boolean Rings to General Topology",
+          Transactions of the American Mathematical Society, Transactions of the American Mathematical Society,
+          Vol. 41, No. 3, 41 (3): 375–481
+
 \end{thebibliography}
 
 
