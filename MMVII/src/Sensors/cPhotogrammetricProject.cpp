@@ -296,7 +296,7 @@ cIm2D<tU_INT1>  cPhotogrammetricProject::MaskWithDef(const std::string & aNameIm
 {
     if (ImageHasMask( aNameImage))
     {
-        return cIm2D<tU_INT1>::FromFile(aNameImage,aBox);
+        return cIm2D<tU_INT1>::FromFile(NameMaskOfImage(aNameImage),aBox);
     }
 
     return cIm2D<tU_INT1> (aBox.Sz(),nullptr,  (DefVal ? eModeInitImage::eMIA_V1 : eModeInitImage::eMIA_Null)) ;

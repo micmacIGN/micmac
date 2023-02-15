@@ -293,7 +293,7 @@ class cExtract_BW_Ellipse
 	typedef cIm2D<tU_INT1>      tImMarq;
 	typedef cDataIm2D<tU_INT1>  tDImMarq;
 
-        cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT);
+        cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT,cIm2D<tU_INT1> aMasqTest);
 
         void ExtractAllSeed();
         void AnalyseAllConnectedComponents();
@@ -331,18 +331,22 @@ class cExtract_BW_Ellipse
 	std::vector<cPt2di>  mPtsCC;
 	int                  mCurPts;
 	cPt2dr               mCDG;
+        cIm2D<tU_INT1>       mMasqTest;
+        cDataIm2D<tU_INT1>&  mDMasqT;
 };
 
-cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT) :
-   mIm      (anIm),
-   mDIm     (mIm.DIm()),
-   mSz      (mDIm.Sz()),
-   mImMarq  (mSz),
-   mDImMarq (mImMarq.DIm()),
-   mPCT     (aPCT),
-   mImGrad  (Deriche( mDIm,mPCT.mFactDeriche)),
-   mDGx     (mImGrad.mGx.DIm()),
-   mDGy     (mImGrad.mGy.DIm())
+cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT,cIm2D<tU_INT1> aMasqTest) :
+   mIm        (anIm),
+   mDIm       (mIm.DIm()),
+   mSz        (mDIm.Sz()),
+   mImMarq    (mSz),
+   mDImMarq   (mImMarq.DIm()),
+   mPCT       (aPCT),
+   mImGrad    (Deriche( mDIm,mPCT.mFactDeriche)),
+   mDGx       (mImGrad.mGx.DIm()),
+   mDGy       (mImGrad.mGy.DIm()),
+   mMasqTest  (aMasqTest),
+   mDMasqT    (mMasqTest.DIm())
 {
    mDImMarq.InitInteriorAndBorder(tU_INT1(eEEBW_Lab::eFree),tU_INT1(eEEBW_Lab::eBorder));
 }
@@ -495,18 +499,7 @@ cPt2dr cExtract_BW_Ellipse::ExtractFrontier(const cSeedCircTarg & aSeed,const cP
 
 void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed)
 {
-TEST = (
-             aSeed.mPixTop==(cPt2di(2666,586))   // 58
-          || aSeed.mPixTop==(cPt2di(2669,597))   // 58
-	  /*
-             aSeed.mPixTop==(cPt2di(3510,3310))  // 44
-          || aSeed.mPixTop==(cPt2di(1162,531))   // 15
-          || aSeed.mPixTop==(cPt2di(2669,597))   // 58
-          || aSeed.mPixTop==(cPt2di(2666,586))   // 58
-          || aSeed.mPixTop==(cPt2di(3580,1906))  // 41
-          || aSeed.mPixTop==(cPt2di(3581,1906))  // 41
-	  */
-       );
+    TEST = false;
 
      mCDG = cPt2dr(0,0);
      mPtsCC.clear();
@@ -541,7 +534,11 @@ TEST = (
                {
                    tElemIm aValIm = mDIm.GetV(aPN);
 		   if ((aValIm>=aVMin)  && (aValIm<=aVMax))
+                   {
+                      if (mDMasqT.GetV(aPN))
+                         TEST = true;
                       AddPtInCC(aPN);
+                   }
                }
 	       else if (! MarqEq(aPN,eEEBW_Lab::eTmp))
                     touchOther = true;
@@ -740,7 +737,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 {
    double aT0 = SecFromT0();
 
-   mExtrEll = new cExtract_BW_Ellipse(APBI_Im(),mPCT);
+   mExtrEll = new cExtract_BW_Ellipse(APBI_Im(),mPCT,mPhProj.MaskWithDef(mNameIm,CurBoxIn(),false));
    if (mVisu)
       mImVisu =  cRGBImage::FromFile(mNameIm,CurBoxIn());
 
