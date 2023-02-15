@@ -35,6 +35,7 @@ enum class eTA2007
                 Orient,        ///< Orientation
                 Radiom,        ///< Radiometry
                 MeshDev,       ///< Mesh Devlopment
+                Mask,          ///< Mask of image
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")

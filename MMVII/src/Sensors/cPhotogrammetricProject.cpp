@@ -169,7 +169,8 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mAppli          (anAppli),
     mDPOrient       (eTA2007::Orient,*this),
     mDPRadiom       (eTA2007::Radiom,*this),
-    mDPMeshDev      (eTA2007::MeshDev,*this)
+    mDPMeshDev      (eTA2007::MeshDev,*this),
+    mDPMask         (eTA2007::Mask,*this)
 {
 }
 
@@ -181,6 +182,7 @@ void cPhotogrammetricProject::FinishInit()
     mDPOrient.Finish();
     mDPRadiom.Finish();
     mDPMeshDev.Finish();
+    mDPMask.Finish();
 }
 
 cPhotogrammetricProject::~cPhotogrammetricProject() 
@@ -193,10 +195,12 @@ cMMVII_Appli &  cPhotogrammetricProject::Appli()    {return mAppli;}
 cDirsPhProj &   cPhotogrammetricProject::DPOrient() {return mDPOrient;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiom() {return mDPRadiom;}
 cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
+cDirsPhProj &   cPhotogrammetricProject::DPMask() {return mDPMask;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiom() const {return mDPRadiom;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMeshDev;}
+const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
 
 
 
@@ -275,6 +279,30 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::AllocCalib(const std::string & aN
 
     return aCalib;
 }
+        //  =============  Masks =================
+
+std::string cPhotogrammetricProject::NameMaskOfImage(const std::string & aNameImage) const
+{
+    return mDPMask.FullDirIn() + aNameImage + ".tif";
+}
+
+bool  cPhotogrammetricProject::ImageHasMask(const std::string & aNameImage) const
+{
+   return    mDPMask.DirInIsInit()
+          && ExistFile(NameMaskOfImage(aNameImage)) ;
+}
+
+cIm2D<tU_INT1>  cPhotogrammetricProject::MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal) const
+{
+    if (ImageHasMask( aNameImage))
+    {
+        return cIm2D<tU_INT1>::FromFile(aNameImage,aBox);
+    }
+
+    return cIm2D<tU_INT1> (aBox.Sz(),nullptr,  (DefVal ? eModeInitImage::eMIA_V1 : eModeInitImage::eMIA_Null)) ;
+}
+
+
 
         //  =============  Meta Data =================
 

@@ -2,6 +2,7 @@
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_SysSurR.h"
 #include "MMVII_Geom2D.h"
+#include "MMVII_Sensor.h"
 
 /*   Modularistion
  *   Code extern tel que ellipse
@@ -686,6 +687,10 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
         cIm2D<tU_INT1>  mImMarq;
 
         std::vector<cSeedCircTarg> mVSeeds;
+	cPhotogrammetricProject     mPhProj;
+
+	bool                        mHasMask;
+	std::string                 mNameMask;
 };
 
 
@@ -701,7 +706,9 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    mExtrEll (nullptr),
    mImGrad  (cPt2di(1,1)),
    mImVisu  (cPt2di(1,1)),
-   mImMarq  (cPt2di(1,1))
+   mImMarq  (cPt2di(1,1)),
+   mPhProj  (*this)
+
 {
 }
 
@@ -718,11 +725,10 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgObl(cCollecSpecArg2007 & anArgO
 cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return APBI_ArgOpt
-	  (
-	        anArgOpt
-                   //  << AOpt2007(mDiamMinD, "DMD","Diam min for detect",{eTA2007::HDV})
-	  );
-   ;
+          (
+                anArgOpt
+             << mPhProj.DPMask().ArgDirInOpt()
+          );
 }
 
 
@@ -806,9 +812,16 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
 int  cAppliExtractCircTarget::Exe()
 {
+   mPhProj.FinishInit();
+
+   mHasMask =  mPhProj.ImageHasMask(APBI_NameIm()) ;
+   if (mHasMask)
+      mNameMask =  mPhProj.NameMaskOfImage(APBI_NameIm());
+
+
    APBI_ExecAll();  // run the parse file  SIMPL
 
-
+   StdOut() << "MAK=== " <<   mHasMask << " " << mNameMask  << "\n";
 
    return EXIT_SUCCESS;
 }

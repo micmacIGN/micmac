@@ -267,6 +267,7 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const
 /*                                                             */
 /* *********************************************************** */
 
+/*  TO LINK
 class cAppliWithMasqIma
 {
       public :
@@ -310,7 +311,6 @@ bool cAppliWithMasqIma::NameMasqIsInit() const
 	return mAppli.IsInit(&mNameMasq);
 }
 
-/*  TO LINK
 bool cAppliWithMasqIma::HasMasq() const
 {
      //  If masq was specief it exist, except if NONE (case where we want to 
