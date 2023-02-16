@@ -63,10 +63,10 @@ cParamCircTarg::cParamCircTarg() :
 /*                                                              */
 /*  *********************************************************** */
 
-//    (X-C) ^2 /R2 = 1
-//    R2 =  A^2 + 2B^2 + C^2
-//
-//   ( (X-C)^2/R2 -1) 
+//  Q(x) =   X2 /R2 -1 = (X+R) (X-R) /R2 
+//   
+//  (X-R) = Q(X) * R2 / (X+R)
+     
 
 class cEllipse
 {
@@ -96,7 +96,7 @@ double cEllipse::SignedD2(cPt2dr aP) const
      aP = aP-mC0;
      tREAL8 x = aP.x();
      tREAL8 y = aP.y();
-     tREAL8 aRes =   mV(0)*x*x  + mV(1)*x*y + mV(2)*y*y + mV(3)*x+mV(4)*y -1;
+     tREAL8 aRes =   mV(0)*x*x  + 2*mV(1)*x*y + mV(2)*y*y + mV(3)*x+mV(4)*y -1;
 
      return aRes / mNorm;
 }
@@ -131,7 +131,7 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
 
      cDenseVect<tREAL8> aDV(5);
      aDV(0) = Square(aP.x());
-     aDV(1) = aP.x() * aP.y();
+     aDV(1) = 2 * aP.x() * aP.y();
      aDV(2) = Square(aP.y());
      aDV(3) = aP.x();
      aDV(4) = aP.y();
