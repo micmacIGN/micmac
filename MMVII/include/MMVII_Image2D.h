@@ -230,6 +230,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         /// Raw image, lost all waranty is you use it...
         tVal ** ExtractRawData2D() {return mRawData2D;}
         const tPVal * ExtractRawData2D() const {return mRawData2D;}
+
+
     protected :
     private :
         void PostInit();
@@ -517,6 +519,9 @@ class cRGBImage
 
      private :
         void AssertZ1() const;
+	void ReplicateForZoom(const cRect2 & aRect1Z);  // P0=> zoomed, Sz=> unzoomed
+	// dont use zoom
+        cPt3di LikeZ1_RGBPix(const cPt2di & aPix) const;
 
         cPt2di mSz1;
         cRect2 mBoxZ1;

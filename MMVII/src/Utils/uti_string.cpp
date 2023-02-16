@@ -204,7 +204,10 @@ bool UCaseMember(const std::vector<std::string> & aVec,const std::string & aName
     return false;
 }
 
-
+const std::string & StrWDef(const std::string & aValue,const std::string & aDef)
+{
+        return  (aValue!="") ? aValue : aDef;
+}
 
 
     /* =========================================== */

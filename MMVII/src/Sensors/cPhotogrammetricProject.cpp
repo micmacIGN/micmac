@@ -89,19 +89,34 @@ void cDirsPhProj::Finish()
 
 tPtrArg2007    cDirsPhProj::ArgDirInMand(const std::string & aMesg) 
 { 
-    return  Arg2007 (mDirIn              ,(aMesg == "") ? ("Input "  + mPrefix) : aMesg ,{mMode,eTA2007::Input }); 
+    return  Arg2007 (mDirIn ,StrWDef(aMesg,"Input " +mPrefix) ,{mMode,eTA2007::Input }); 
 }
-tPtrArg2007    cDirsPhProj::ArgDirInOpt()  
+
+tPtrArg2007    cDirsPhProj::ArgDirInOpt(const std::string & aNameVar,const std::string & aMsg)  
 { 
-    return  AOpt2007(mDirIn,"In"+mPrefix ,"Input "  + mPrefix,{mMode,eTA2007::Input }); 
+    return  AOpt2007
+	    (
+               mDirIn,
+               StrWDef(aNameVar,"In"+mPrefix) ,
+               StrWDef(aMsg,"Input "  + mPrefix),
+               {mMode,eTA2007::Input }
+            ); 
 }
-tPtrArg2007    cDirsPhProj::ArgDirOutMand()
+
+tPtrArg2007    cDirsPhProj::ArgDirOutMand(const std::string & aMesg)
 { 
-	return  Arg2007 (mDirOut             ,"Output " + mPrefix,{mMode,eTA2007::Output}); 
+     return  Arg2007(mDirOut,StrWDef(aMesg,"Output " + mPrefix),{mMode,eTA2007::Output}); 
 }
-tPtrArg2007    cDirsPhProj::ArgDirOutOpt() 
+
+tPtrArg2007    cDirsPhProj::ArgDirOutOpt(const std::string & aNameVar,const std::string & aMsg)
 { 
-	return  AOpt2007(mDirOut,"Out"+mPrefix,"Output " + mPrefix,{mMode,eTA2007::Output}); 
+    return  AOpt2007
+            (
+                mDirOut,
+                StrWDef(aNameVar,"Out"+mPrefix),
+                StrWDef(aMsg,"Output " + mPrefix),
+                {mMode,eTA2007::Output}
+            ); 
 }
 
 

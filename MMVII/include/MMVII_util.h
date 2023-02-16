@@ -112,6 +112,8 @@ std::string AddAfter(const std::string & aPath,const std::string & ToAdd); // A/
 std::string ChgPostix(const std::string & aPath,const std::string & aPost); // A/B/C.png,tif  =>  A/B/C.tif
 std::string AddAfterAndChgPost(const std::string & aPath,const std::string & ToAdd,const std::string & aPost); // A/B/C.tif,@  =>  A/B/@C.tif
 
+const std::string & StrWDef(const std::string & aValue,const std::string & aDef); ///< Return value if !="", else default
+
 
 
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?

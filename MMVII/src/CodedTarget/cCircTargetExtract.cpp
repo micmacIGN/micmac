@@ -77,15 +77,17 @@ class cEllipse
        double   Norm() const  {return std::sqrt(1/ mNorm);}
 
      private :
-       cDenseVect<tREAL8> mV;
-       double             mNorm;
-       cPt2dr             mC0;
+       cDenseVect<tREAL8>     mV;
+       double                 mNorm;
+       cPt2dr                 mC0;
+       cDenseMatrix<tREAL8>   mQF;
 };
 
 cEllipse::cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0) :
     mV    (aDV.Dup()),
     mNorm (std::sqrt(Square(mV(0)) + 2 * Square(mV(1))  + Square(mV(2)))),
-    mC0   (aC0)
+    mC0   (aC0),
+    mQF   (M2x2FromLines(cPt2dr(mV(0),mV(1)),cPt2dr(mV(1),mV(2))))
 {
 }
 
@@ -296,7 +298,7 @@ class cExtract_BW_Ellipse
         cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT,cIm2D<tU_INT1> aMasqTest);
 
         void ExtractAllSeed();
-        void AnalyseAllConnectedComponents();
+        void AnalyseAllConnectedComponents(const std::string & aNameIm);
         const std::vector<cSeedCircTarg> & VSeeds() const;
 	const tDImMarq&    DImMarq() const;
 	const tDataIm &    DGx() const;
@@ -309,7 +311,7 @@ class cExtract_BW_Ellipse
    private :
 
         bool IsCandidateTopOfEllipse(const cPt2di &) ;
-        void AnalyseOneConnectedComponents(cSeedCircTarg &);
+        void AnalyseOneConnectedComponents(cSeedCircTarg &,const std::string & aNameIm);
 
 	void AddPtInCC(const cPt2di &);
 	// Prolongat on the vertical, untill its a max or a min
@@ -333,6 +335,9 @@ class cExtract_BW_Ellipse
 	cPt2dr               mCDG;
         cIm2D<tU_INT1>       mMasqTest;
         cDataIm2D<tU_INT1>&  mDMasqT;
+
+	cPt2di               mPSup;
+	cPt2di               mPInf;
 };
 
 cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT,cIm2D<tU_INT1> aMasqTest) :
@@ -461,17 +466,20 @@ const cExtract_BW_Ellipse::tDImMarq&    cExtract_BW_Ellipse::DImMarq() const {re
 const cExtract_BW_Ellipse::tDataIm&    cExtract_BW_Ellipse::DGx() const {return mDGx;}
 const cExtract_BW_Ellipse::tDataIm&    cExtract_BW_Ellipse::DGy() const {return mDGy;}
 
-void cExtract_BW_Ellipse::AddPtInCC(const cPt2di & aP0)
+void cExtract_BW_Ellipse::AddPtInCC(const cPt2di & aPt)
 {
-     mDImMarq.SetV(aP0,tU_INT1(eEEBW_Lab::eTmp) );
-     mPtsCC.push_back(aP0);
-     mCDG = mCDG + ToR(aP0);
+     mDImMarq.SetV(aPt,tU_INT1(eEEBW_Lab::eTmp) );
+     mPtsCC.push_back(aPt);
+     mCDG = mCDG + ToR(aPt);
+
+     SetInfEq(mPInf,aPt);
+     SetSupEq(mPSup,aPt);
 }
 
-void cExtract_BW_Ellipse::AnalyseAllConnectedComponents()
+void cExtract_BW_Ellipse::AnalyseAllConnectedComponents(const std::string & aNameIm)
 {
     for (auto & aSeed : mVSeeds)
-        AnalyseOneConnectedComponents(aSeed);
+        AnalyseOneConnectedComponents(aSeed,aNameIm);
 }
 
 
@@ -497,13 +505,15 @@ cPt2dr cExtract_BW_Ellipse::ExtractFrontier(const cSeedCircTarg & aSeed,const cP
     return cPt2dr(-1e10,1e20);
 }
 
-void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed)
+void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,const std::string & aNameIm)
 {
     TEST = false;
 
      mCDG = cPt2dr(0,0);
      mPtsCC.clear();
      cPt2di aP0 = aSeed.mPixW;
+     mPSup = aP0;
+     mPInf = aP0;
 
      if (! MarqFree(aP0)) 
      {
@@ -645,7 +655,14 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed)
             StdOut()  <<  "Teta " << aP.z()   << " S="<< anEl.SignedD2(aP2) << " " << mDIm.GetVBL(aP2)  << "\n";
 	}
 	//
-        StdOut() << "PROP = " << aProp << "\n";
+        StdOut() << "PROP = " << aProp << " BOX " << mPInf << " " << mPSup << "\n";
+
+	cPt2di  aPMargin(6,6);
+	cBox2di aBox(mPInf-aPMargin,mPSup+aPMargin);
+
+	cRGBImage aRGBIm = cRGBImage::FromFile(aNameIm,aBox,10);  ///< Allocate and init from file
+	aRGBIm.ToFile("TTC.tif");
+
      }
 }
 
@@ -724,7 +741,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
    return APBI_ArgOpt
           (
                 anArgOpt
-             << mPhProj.DPMask().ArgDirInOpt()
+             << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
           );
 }
 
@@ -744,7 +761,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    double aT1 = SecFromT0();
    mExtrEll->ExtractAllSeed();
    double aT2 = SecFromT0();
-   mExtrEll->AnalyseAllConnectedComponents();
+   mExtrEll->AnalyseAllConnectedComponents(mNameIm);
    double aT3 = SecFromT0();
 
    StdOut() << "TIME-INIT " << aT1-aT0 << "\n";

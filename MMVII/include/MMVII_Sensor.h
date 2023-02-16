@@ -201,9 +201,10 @@ class cDirsPhProj
           void Finish();
 
           tPtrArg2007     ArgDirInMand(const std::string & aMes="") ;  ///< Input Orientation as mandatory paramaters
-          tPtrArg2007     ArgDirInOpt() ;   ///< Input Orientation as optional paramaters
-          tPtrArg2007     ArgDirOutMand();  ///< Output Orientation as mandatory paramaters
-          tPtrArg2007     ArgDirOutOpt() ;   ///< Input Orientation as optional paramaters
+          tPtrArg2007     ArgDirInOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   ///< Input Orientation as optional paramaters
+									    //
+          tPtrArg2007     ArgDirOutMand(const std::string & aMes="");  ///< Output Orientation as mandatory paramaters
+          tPtrArg2007     ArgDirOutOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   ///< Input Orientation as optional paramaters
 
           void  SetDirIn(const std::string&) ; ///< Modifier, use in case many out params were saved in a xml,like with MeshImageDevlp
           const std::string & DirIn() const;   ///< Accessor
