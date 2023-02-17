@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
 #include "include/MMVII_util_tpl.h"
@@ -563,7 +563,7 @@ int  cAppliCalcHistoNDim::Exe()
    if (1)
    {
       cMultipleOfs  aMulOfs(NameReport(),false);
-      aMulOfs << "COM=[" << Command() << "]\n\n";
+      aMulOfs << "COM=[" << CommandOfMain() << "]\n\n";
       for (bool InReport : {false,true})
       {
           cMultipleOfs &  aOfs = InReport ? aMulOfs : StdOut() ;

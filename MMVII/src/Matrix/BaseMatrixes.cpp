@@ -1,8 +1,14 @@
-#include "include/MMVII_all.h"
+
 #include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
+
+/**  This class is just a copy of Eigen indexe, this allow to use eigen sparse
+      matrix w/o having to include eigen headers
+*/
+
+
 
 
 /*
@@ -17,16 +23,18 @@ namespace MMVII
 /*          cSParseVect        */
 /* ========================== */
 
-template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve,int aSzInit) :
+template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve) :
    mIV (new tCont)
 {
   if (aSzReserve>0) 
      IV().reserve(aSzReserve);
-  if (aSzInit>0)
-  {
-      for (int aK=0 ; aK<aSzInit ; aK++)
-          AddIV(aK,1.0);      // arbitrary values
-  }
+}
+
+template <class Type> cSparseVect<Type>::cSparseVect(const cDenseVect<Type> & aDV) :
+    cSparseVect<Type>  (aDV.Sz())
+{
+    for (int aK=0 ; aK<aDV.Sz() ; aK++)
+       AddIV(aK,aDV(aK));
 }
 
 template <class Type>  bool cSparseVect<Type>::IsInside(int aNb) const
@@ -39,6 +47,27 @@ template <class Type>  bool cSparseVect<Type>::IsInside(int aNb) const
     return true;
 }
 
+template <class Type> void cSparseVect<Type>::Reset()
+{
+    mIV->clear();
+}
+
+
+template <class Type> cSparseVect<Type>  cSparseVect<Type>::RanGenerate(int aNbVar,double aProba)
+{
+    cSparseVect<Type>  aRes;
+
+    for (int aK=0 ; aK<aNbVar ; aK++)
+    {
+        if(RandUnif_0_1() < aProba)
+	{
+            aRes.AddIV(aK,RandUnif_C());
+	}
+    }
+
+    return aRes;
+}
+
 /* ========================== */
 /*          cDenseVect        */
 /* ========================== */
@@ -48,14 +77,40 @@ template <class Type> cDenseVect<Type>::cDenseVect(tIM anIm) :
 {
 }
 
+template <class Type> cDenseVect<Type>::cDenseVect(const std::vector<Type> & aVect) :
+   cDenseVect<Type> (tIM(aVect))
+{
+}
+
 template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeInit) :
    cDenseVect<Type> (tIM  (aSz,nullptr,aModeInit))
 {
 }
 
+template <class Type> cDenseVect<Type>::cDenseVect(int aSz,const tSpV & aSpV) :
+       cDenseVect<Type>(aSz,eModeInitImage::eMIA_Null)
+{
+     for (const auto & aPair : aSpV)
+          mIm.DIm().SetV(aPair.mInd,aPair.mVal);
+}
+
+
 template <class Type> cDenseVect<Type> cDenseVect<Type>::Dup() const
 {
     return cDenseVect<Type>(mIm.Dup());
+}
+
+template <class Type>  void cDenseVect<Type>::ResizeAndCropIn(const int & aX0,const int & aX1,const cDenseVect<Type> & aV2)
+{
+    tDIM & aDIm = mIm.DIm();
+
+    aDIm.Resize(aX1-aX0);
+    aDIm.CropIn(aX0,aV2.DIm());
+}
+
+template <class Type>  void cDenseVect<Type>::Resize(const int & aSz)
+{
+     mIm.DIm().Resize(aSz);
 }
 
 template <class Type> cDenseVect<Type>   cDenseVect<Type>::Cste(int aSz,const Type & aVal)
@@ -67,6 +122,26 @@ template <class Type> cDenseVect<Type>   cDenseVect<Type>::Cste(int aSz,const Ty
         aRD[aK] = aVal;
 
     return aRes;
+}
+
+template <class Type> cDenseVect<Type>   cDenseVect<Type>::SubVect(int aK0,int aK1) const
+{
+      MMVII_INTERNAL_ASSERT_tiny
+      (
+         (aK0>=0) && (aK0<aK1) && (aK1<=Sz()),
+	 "Bad size in SubVect"
+      );
+      cDenseVect<Type> aRes(aK1-aK0);
+
+      for (int aK=aK0 ; aK<aK1 ; aK++)
+          aRes(aK-aK0) = (*this)(aK);
+
+      return aRes;
+}
+
+template <class Type> std::vector<Type>   cDenseVect<Type>::ToStdVect() const
+{
+    return std::vector<Type>(RawData(),RawData()+Sz());
 }
 
 
@@ -141,23 +216,39 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cDense
 
 template <class Type> Type  cDenseVect<Type>::ProdElem() const
 {
-   Type aRes = (*this)(0);
-   for (int aK=1 ; aK<Sz() ; aK++)
+   Type aRes = 1.0;
+   for (int aK=0 ; aK<Sz() ; aK++)
         aRes *= (*this)(aK);
 
    return aRes;
 }
 
+template <class Type> Type  cDenseVect<Type>::SumElem() const
+{
+   Type aRes = 0.0;
+   for (int aK=0 ; aK<Sz() ; aK++)
+        aRes += (*this)(aK);
+
+   return aRes;
+}
+
+template <class Type> Type  cDenseVect<Type>::AvgElem() const
+{
+    return SumElem() / Type(Sz());
+}
+
+template <class Type> void  cDenseVect<Type>::SetAvg(const Type & aTargAvg)
+{
+   Type  aMul = SafeDiv (aTargAvg,AvgElem());
+   for (int aK=0 ; aK<Sz() ; aK++)
+        (*this)(aK) *= aMul;
+}
 
 /* ========================== */
 /*          cMatrix       */
 /* ========================== */
 template <class Type> cMatrix<Type>::cMatrix(int aX,int aY) :
    cRect2(cPt2di(0,0),cPt2di(aX,aY))
-{
-}
-
-template <class Type> cMatrix<Type>::~cMatrix() 
 {
 }
 
@@ -419,7 +510,6 @@ template <class Type> cDenseVect<Type>  cMatrix<Type>::ReadLine(int aX) const
 template <class Type> void cMatrix<Type>::MatMulInPlace(const tMat & aM1,const tMat & aM2)
 {
    CheckSizeMulInPlace(aM1,aM2);
-   cDenseVect<tREAL16> aLine(this->Sz().x());
 
    for (int aY= 0 ; aY< this->Sz().y() ; aY++)
    {

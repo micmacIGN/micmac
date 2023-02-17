@@ -923,11 +923,13 @@ extern   double    AtanXY(double,double);
 extern Fonc_Num FoncNormalisee_S1S2 (Flux_Pts aFl,Fonc_Num aFPds,Fonc_Num aF);
 extern Fonc_Num FoncNormalisee_S1S2 (Flux_Pts aFl,Fonc_Num aF); // FPds=1.0
 
+#ifdef _MSC_VER
 #if ( ELISE_windows & !ELISE_MinGW & _MSC_VER < 1800 )
 inline double log2(const double & aD)
 {
        return log(aD) / log(2.0);
 }
+#endif
 #endif
 
 

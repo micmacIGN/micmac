@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+#include "MMVII_DeclareAllCmd.h"
 #include <algorithm>
 
 namespace MMVII
@@ -37,7 +37,7 @@ cSpecMMVII_Appli::cSpecMMVII_Appli
 int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVArgs) const
 {
    // A conserver, on le mettra dans les sauvegarde
-   if (0)
+#if 0
    {
       StdOut() << "===Com==[";
       for (int aK=0; aK<int(aVArgs.size()) ; aK++)
@@ -47,6 +47,7 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
       }
       StdOut() << "]\n";
    }
+#endif
    static int aCptCallIntern=0;
    aCptCallIntern++;
    if (TheCmdArgs.size() == 0)
@@ -155,6 +156,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecWalkman);
         TheVecAll.push_back(&TheSpecDaisy);
         TheVecAll.push_back(&TheSpecCatVideo);
+        TheVecAll.push_back(&TheSpecReduceVideo);
         TheVecAll.push_back(&TheSpec_TestEigen);
         TheVecAll.push_back(&TheSpec_ComputeParamIndexBinaire);
         TheVecAll.push_back(&TheSpecTestRecall);
@@ -163,6 +165,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecCalcDescPCar);
         TheVecAll.push_back(&TheSpecMatchTieP);
         TheVecAll.push_back(&TheSpecEpipGenDenseMatch);
+        TheVecAll.push_back(&TheSpecEpipDenseMatchEval);
         TheVecAll.push_back(&TheSpecGenSymbDer);
         TheVecAll.push_back(&TheSpecKapture);
         TheVecAll.push_back(&TheSpecFormatTDEDM_WT);
@@ -175,7 +178,20 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecMatchMultipleOrtho);
         TheVecAll.push_back(&TheSpecDMEvalRef);
         TheVecAll.push_back(&TheSpecGenCodedTarget);
+        TheVecAll.push_back(&TheSpecExtractCircTarget);
         TheVecAll.push_back(&TheSpecExtractCodedTarget);
+        TheVecAll.push_back(&TheSpecSimulCodedTarget);
+        TheVecAll.push_back(&TheSpecDensifyRefMatch);
+        TheVecAll.push_back(&TheSpecCloudClip);
+        TheVecAll.push_back(&TheSpecMeshDev);
+        TheVecAll.push_back(&TheSpecGenMeshDev);
+        TheVecAll.push_back(&TheSpecTestCovProp);
+        TheVecAll.push_back(&TheSpec_OriConvV1V2);
+        TheVecAll.push_back(&TheSpecMeshCheck);
+        TheVecAll.push_back(&TheSpecProMeshImage);
+        TheVecAll.push_back(&TheSpecMeshImageDevlp);
+        TheVecAll.push_back(&TheSpecRadiom2ImageSameMod);
+        //TheVecAll.push_back(&TheSpecTopoComp);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
@@ -203,7 +219,7 @@ cSpecMMVII_Appli*  cSpecMMVII_Appli::SpecOfName(const std::string & aNameCom,boo
       MMVII_INTERNAL_ASSERT_always(false,"Cannot find command of name ["+ aNameCom + "]");
    }
 
-   return 0;
+   return nullptr;
 }
 
 std::vector<std::string> cSpecMMVII_Appli::TheCmdArgs;

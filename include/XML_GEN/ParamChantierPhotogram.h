@@ -8377,10 +8377,6 @@ std::string  Mangling( eRANSAC_HistoP *);
 
 void  BinaryUnDumpFromFile(eRANSAC_HistoP &,ELISE_fp &);
 
-
-/******************************************************/
-/******************************************************/
-/******************************************************/
 typedef enum
 {
   eBruteForce,

@@ -9,7 +9,8 @@ MODELPATH=models/finetune_PSMnet.tar
 
 
 #dependances
-pip3 install virtualenv
+pip3 install virtualenv 
+pip3 install wget
 
 #clone PSMNet
 git clone https://github.com/erupnik/PSMNet.git

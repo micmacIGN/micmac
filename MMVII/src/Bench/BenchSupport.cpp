@@ -1,4 +1,6 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Bench.h"
+#include "MMVII_Error.h"
+
 #include <cmath>
 
 /** \file BenchSupport.cpp

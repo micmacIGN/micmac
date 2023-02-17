@@ -1,6 +1,8 @@
-#include "include/MMVII_all.h"
+
 #include "LearnDM.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_ImageInfoExtract.h"
+
 
 namespace MMVII
 {
@@ -252,7 +254,7 @@ if (BUG) StdOut() << "LIINNNEEE " << __LINE__ << "\n";
     // -------------- Compute  corners ----------------
           // Convolution
     int aIntTeta = (mNbTeta+1)/2;
-    cWhitchMin<int,tREAL4> aWMin(0,1e10);
+    cWhichMin<int,tREAL4> aWMin(0,1e10);
     for (int aKTeta1=0 ; aKTeta1<mNbTeta ; aKTeta1++)
     {
          tREAL4 aSom = 0;
@@ -266,7 +268,7 @@ if (BUG) StdOut() << "LIINNNEEE " << __LINE__ << "\n";
     }
 
           // Extract minima sub pixellar
-    int aITetaMin = aWMin.Index();
+    int aITetaMin = aWMin.IndexExtre();
     double aDTetaMin =  StableInterpoleExtr
                         (
                             mConvDSomCQ.CircGetV(aITetaMin-1),

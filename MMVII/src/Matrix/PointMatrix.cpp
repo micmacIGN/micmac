@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Matrix.h"
+
 
 namespace MMVII
 {
@@ -33,6 +34,8 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromVect(co
    return aRes;
 }
 
+/*
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>& aV);\
 template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVector(const std::vector<Type>& aV) 
 {
    cPtxd<Type,Dim> aRes;
@@ -42,6 +45,7 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVect
 
    return aRes;
 }
+*/
 
 template <class Type,const int Dim> cDenseVect<Type> cPtxd<Type,Dim>::ToVect() const
 {
@@ -89,6 +93,18 @@ template <class Type,const int Dim>
    CHECK_SZMAT_LINE(aMat,aPt);
    for (int aX=0 ; aX<aMat.Sz().x() ; aX++)
         aMat.SetElem(aX,aY,aPt[aX]);
+}
+
+
+template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L0,const cPtxd<Type,3> &L1,const cPtxd<Type,3> &L2)
+{
+      cDenseMatrix<Type> aRes(3,3);
+
+      SetLine(0,aRes,L0);
+      SetLine(1,aRes,L1);
+      SetLine(2,aRes,L2);
+
+      return aRes;
 }
 
 
@@ -143,7 +159,7 @@ template<class Type,const int Dim>
     cPtxd<Type,Dim> SolveCol(const cDenseMatrix<Type>& aMat,const cPtxd<Type,Dim>& aPCol)
 {
     cDenseVect<Type> aVCol = aPCol.ToVect();
-    cDenseVect<Type> aVRes = aMat.Solve(aVCol);
+    cDenseVect<Type> aVRes = aMat.SolveColumn(aVCol);
     return  cPtxd<Type,Dim>::FromVect(aVRes);
 }
 template<class Type,const int Dim>
@@ -176,7 +192,6 @@ template cPtxd<TYPE,DIM> SolveLine(const cPtxd<TYPE,DIM>&,const cDenseMatrix<TYP
 template  cDenseVect<TYPE> cPtxd<TYPE,DIM>::ToVect() const;\
 template  std::vector<TYPE> cPtxd<TYPE,DIM>::ToStdVector() const;\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromVect(const cDenseVect<TYPE>& aV);\
-template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>& aV);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Col(const cDenseMatrix<TYPE> &,int);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Line(int,const cDenseMatrix<TYPE> &);\
 INSTANT_MUL_MATVECT(TYPE,DIM,1);\
@@ -192,6 +207,7 @@ template  void SetLine(int,cDenseMatrix<TYPE> & ,const cPtxd<TYPE,DIM> & );
 
 
 #define INSTANT_PT_MAT_TYPE(TYPE)\
+template   cDenseMatrix<TYPE> M3x3FromLines(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3> &,const cPtxd<TYPE,3> &);\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,1)\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,2)\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,3)\

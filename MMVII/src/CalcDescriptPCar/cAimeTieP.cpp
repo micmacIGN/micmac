@@ -1,6 +1,8 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_AimeTieP.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_ImageInfoExtract.h"
 
 
 namespace MMVII
@@ -15,7 +17,9 @@ namespace MMVII
 class cConcavexMapP1M1 : public cFctrRR
 {
    public :
+      /// non virtual  F
       double NVF (double) const; 
+      ///  virtual for heriting cFctrRR , 
       virtual  double F (double) const override ;
       void Show() const;
       // static cFctrRR  TheOne;  ///< the object return always 1
@@ -167,10 +171,10 @@ double  cAimeDescriptor::DistanceFromIShift(const cAimeDescriptor & aAD2,int aSh
    tU_INT1 * const * aData1 = aDIm1.ExtractRawData2D();
 
    const cDataIm2D<tU_INT1>  & aDIm2(aAD2.mILP.DIm());
-   cPt2di aSz2= aDIm2.Sz();
+   // === cPt2di aSz2= aDIm2.Sz();
    tU_INT1 * const * aData2 = aDIm2.ExtractRawData2D();
 
-   MMVII_INTERNAL_ASSERT_tiny(aSz1==aSz2,"cAimeDescriptor::Distance");
+   MMVII_INTERNAL_ASSERT_tiny(aSz1==aDIm2.Sz(),"cAimeDescriptor::Distance");
    int aNbX = aSz1.x();
    aShift = mod(aShift,aNbX);
    int aIRes = 0;
@@ -203,9 +207,9 @@ double cAimeDescriptor::DistanceFromStdPeek(int aIPeek,const cAimeDescriptor & a
 }
 
 
-cWhitchMin<int,double>  cAimeDescriptor::DistanceFromBestPeek(const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const
+cWhichMin<int,double>  cAimeDescriptor::DistanceFromBestPeek(const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const
 {
-    cWhitchMin<int,double> aWMin(-1,1e60);
+    cWhichMin<int,double> aWMin(-1,1e60);
     for (int aK=0 ; aK<int(mDirPrinc.size()) ; aK++)
     {
         aWMin.Add(aK,DistanceFromStdPeek(aK,aAD2,aSet));
@@ -336,7 +340,7 @@ double CalcOrient(const cDataIm2D<tREAL4>&  aDIm,eModeNormOr aMode)
     }
 
     // Get integer max value
-    int aIRes = WhitchMax(aDHisto).x();
+    int aIRes = WhichMax(aDHisto).x();
     // refine it by parabol fitting
     double aDelta =  StableInterpoleExtr
                      (
@@ -543,12 +547,13 @@ void cSetAimePCAR::SaveInFile(const std::string & aName) const
  //  StdOut() << "MMPPPDD " << aName << " "  << (const_cast<cSetAimePCAR *>(this))->VPC().size()  << "\n";
      MMVII::SaveInFile(*this,aName);
 
-     if (0)
+#if 0
      {
           for (int aK=0; aK<100 ; aK++) 
               StdOut() << "MMv1_SaveInFile\n";
           MMv1_SaveInFile<cSetAimePCAR>(*this,aName);  // generate an error as "it should"
      }
+#endif
 }
 
 

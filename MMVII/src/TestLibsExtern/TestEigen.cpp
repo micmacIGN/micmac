@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+
+
 /** \file TestEigen.cpp
     \brief File to test eigen library
 
@@ -9,14 +10,17 @@ class  	Eigen::SimplicialLDLT< _MatrixType, _UpLo, _Ordering >
  
 class  	Eigen::SimplicialLLT< _Matri
 */
-#include "ExternalInclude/Eigen/Dense"
-#include "ExternalInclude/Eigen/Core"
-#include "ExternalInclude/Eigen/Eigenvalues" 
-#include "ExternalInclude/Eigen/SparseCholesky"
+#include "Eigen/Dense"
+#include "Eigen/Core"
+#include "Eigen/Eigenvalues"
+#include "Eigen/SparseCholesky"
 
 // #include "External/eigen-git-mirror-master/unsupported/Eigen/src/SparseExtra/MarketIO.h"
-#include "ExternalInclude/MarketIO.h"
-#include "ExternalInclude/Eigen/LU"
+#include "MarketIO.h"
+#include "Eigen/LU"
+
+#include "cMMVII_Appli.h"
+#include "MMVII_Matrix.h"
 
 
 using Eigen::MatrixXd;
@@ -140,6 +144,7 @@ void cAppli_MMVII_TestEigen::BenchCho()
 
 void cAppli_MMVII_TestEigen::TCho()
 {
+#if (GPP1)
     int aSzBrd = 3;
 
     Matrix<double,Dynamic,Dynamic>  m(mNbCho,mNbCho);
@@ -194,6 +199,7 @@ void cAppli_MMVII_TestEigen::TCho()
     VectorXd aSolCho = aDLT.solve(aB);
 
     StdOut() << "Check Sol " << (aSolCho - aSol).norm() << "\n";
+#endif
 }
     
 

@@ -1,5 +1,8 @@
 #ifndef  _MMVII_Tpl_Images_H_
 #define  _MMVII_Tpl_Images_H_
+
+#include "MMVII_Matrix.h"
+
 namespace MMVII
 {
 
@@ -33,6 +36,7 @@ template<class T1,class T2,class T3>  // return I2 + I3
    cIm2D<T1> AddImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3);
 template<class T2,class T3>   cIm2D<T2> operator + (const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)  ; // return I2 + I3
 template<class T2>   cDenseMatrix<T2> operator + (const cDenseMatrix<T2> & aI2,const cDenseMatrix<T2> & aI3) ; // return I2 + I3
+template<class T2>   cDenseVect<T2> operator + (const cDenseVect<T2> & aI2,const cDenseVect<T2> & aI3) ; // return I2-I3
 
     // -------------------------- Mul Cste -------------------------
 template<class T1,class T2,class T3,int Dim>     // I1 = I2 * V3 
@@ -83,6 +87,16 @@ template<class T1,class T2,class T3>
      return aI1;
 }
 
+template<class T1,class T2,int Dim>  
+   void DiffIn(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2)
+{
+    aI1.AssertSameArea(aI2); 
+
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) -= aI2.GetRDL(aK) ;
+}
+
+
 template<class T2,class T3>   cIm2D<T2> operator - (const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)  
 {
    return DiffImage((T2 *)nullptr,aI2,aI3);
@@ -91,6 +105,7 @@ template<class T2,class T3>   cIm1D<T2> operator - (const cIm1D<T2> & aI2,const 
 {
    return DiffImage((T2 *)nullptr,aI2,aI3);
 }
+
 
 template<class T2>   cDenseMatrix<T2> operator - (const cDenseMatrix<T2> & aI2,const cDenseMatrix<T2> & aI3)  
 {
@@ -101,6 +116,16 @@ template<class T2>   cDenseVect<T2> operator - (const cDenseVect<T2> & aI2,const
     return cDenseVect<T2>(aI2.Im()-aI3.Im());
 }
 
+template<class T2>   cDenseMatrix<T2> operator -= (cDenseMatrix<T2> & aI2,const cDenseMatrix<T2> & aI3) 
+{
+	DiffIn(aI2.DIm(),aI3.DIm());
+	return aI2;
+}
+template<class T2>   cDenseVect<T2> operator -= (cDenseVect<T2> & aI2,const cDenseVect<T2> & aI3) 
+{
+	DiffIn(aI2.DIm(),aI3.DIm());
+	return aI2;
+}
 
        //===========   Addition ===========
 
@@ -131,7 +156,19 @@ template<class T1,class T2,class T3>
      return aI1;
 }
 
+template<class T1,class T2,class T3>  
+   cIm1D<T1> AddImage(T1* /*Type specifier*/ ,const cIm1D<T2> & aI2,const cIm1D<T3> & aI3)
+{
+     cIm1D<T1>  aI1(aI2.DIm().X0(),aI2.DIm().X1());
+     AddImageInPlace(aI1.DIm(),aI2.DIm(),aI3.DIm());
+     return aI1;
+}
+
 template<class T2,class T3>   cIm2D<T2> operator + (const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)  
+{
+   return AddImage((T2 *)nullptr,aI2,aI3);
+}
+template<class T2,class T3>   cIm1D<T2> operator + (const cIm1D<T2> & aI2,const cIm1D<T3> & aI3)  
 {
    return AddImage((T2 *)nullptr,aI2,aI3);
 }
@@ -139,6 +176,16 @@ template<class T2,class T3>   cIm2D<T2> operator + (const cIm2D<T2> & aI2,const 
 template<class T2>   cDenseMatrix<T2> operator + (const cDenseMatrix<T2> & aI2,const cDenseMatrix<T2> & aI3)  
 {
     return cDenseMatrix<T2>(aI2.Im()+aI3.Im());
+}
+template<class T2>   cDenseVect<T2> operator + (const cDenseVect<T2> & aI2,const cDenseVect<T2> & aI3)  
+{
+    return cDenseVect<T2>(aI2.Im()+aI3.Im());
+}
+
+template<class T2>   cDenseVect<T2> & operator += (cDenseVect<T2> & aI2,const cDenseVect<T2> & aI3)  
+{
+      AddIn(aI2.DIm(),aI3.DIm());
+      return aI2;
 }
 
        //===========   MulCste ===========
@@ -215,6 +262,10 @@ template<class T1,class T2>  cIm2D<T1>  Convert(T1*,const cDataIm2D<T2>& aDIm2)
      return aIm1;
 }
 
+template<class T1,class T2>  cDenseMatrix<T1>  Convert(T1*,const cDenseMatrix<T2>& aM2)
+{
+	return cDenseMatrix<T1>(Convert((T1*)nullptr,aM2.DIm()));
+}
 
 template<class T1,class T2,int Dim>  
    void WeightedAddIn(cDataTypedIm<T1,Dim> & aI1,const T2 & aV,const cDataTypedIm<T2,Dim> & aI2)
@@ -256,7 +307,7 @@ template<class T1,int Dim>
 }
 
 template<class TOper,class T1,int Dim>
-   cPtxd<int,Dim> WhitchMinMax(const TOper & Op, const cDataTypedIm<T1,Dim> & aIm)
+   cPtxd<int,Dim> WhichMinMax(const TOper & Op, const cDataTypedIm<T1,Dim> & aIm)
 {
     int aKMax = 0;
     T1 aVMax = aIm.GetRDL(aKMax);
@@ -274,9 +325,9 @@ template<class TOper,class T1,int Dim>
 }
 
 template<class T1,int Dim>
-   cPtxd<int,Dim> WhitchMax(const cDataTypedIm<T1,Dim> & aIm)
+   cPtxd<int,Dim> WhichMax(const cDataTypedIm<T1,Dim> & aIm)
 {
-     return WhitchMinMax([](const T1&aV1,const T1&aV2){return aV1>aV2;},aIm);
+     return WhichMinMax([](const T1&aV1,const T1&aV2){return aV1>aV2;},aIm);
 }
 
 
@@ -324,6 +375,65 @@ template<class T>  cIm2D<T> NormalizedAvgDev(const cIm2D<T> & aIm,tREAL8 aEpsilo
     NormalizedAvgDev(aRes.DIm(),aEpsilon);
     return aRes;
 }
+
+
+template <class TFonc,class TMasq>
+         bool BornesFonc
+              (
+                   int & aPxMin,
+                   int & aPxMax,
+                   cIm2D<TFonc> aIFonc,
+                   cIm2D<TMasq> * aPtrIM,
+                   int aNbDecim,
+                   double aProp,
+                   double aRatio
+              )
+{
+      aIFonc =  aIFonc.Decimate(aNbDecim);
+      cIm2D<TMasq> *  aPtrIMR = nullptr;
+
+      cIm2D<TMasq>    aIMR(cPt2di(1,1));
+      if (aPtrIM)
+      {
+           aIMR = aPtrIM->Decimate(aNbDecim);
+           aPtrIM = & aIMR;
+      }
+
+      std::vector<double> aVPx;
+      for (const auto & aP : aIFonc.DIm())
+      {
+          if ((aPtrIMR ==nullptr) || (aPtrIMR->DIm().GetV(aP) != 0))
+          {
+             aVPx.push_back(aIFonc.DIm().GetV(aP));
+          }
+      }
+      if (aVPx.size() > 0)
+      {
+         aPxMin = round_ni(aRatio * NC_KthVal(aVPx,  aProp));
+         aPxMax = round_ni(aRatio * NC_KthVal(aVPx,1-aProp));
+         return true;
+      }
+      else
+      {
+         aPxMin = 0;
+         aPxMax = 0;
+         return false;
+      }
+}
+
+/*
+template <const int Dim> std::vector< cPtxd<tREAL8,Dim> > ToR(const std::vector< cPtxd<int,Dim> > &aVPtI)
+{
+	StdOut() << "KKKKKKKKKKKKKKKKKKKKKKk\n";
+    std::vector< cPtxd<tREAL8,Dim> > aRes;
+    std::transform(aVPtI.begin(),aVPtI.end(),aRes.begin(),[](auto aPtI){return ToR<int>(aPtI);});
+
+	StdOut() << "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
+    return aRes;
+}
+*/
+
+
 
 };
 

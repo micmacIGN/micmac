@@ -45,6 +45,7 @@ class Algorithms{
         static Trajectory estimateTrajectory(ObservationData, NavigationData);
 	
 		// Calcul de la position par la phase
+		static double solve_ambiguity_ref(ObservationData rov, ObservationData bas, NavigationData nav, GPSTime time, std::string sat1, std::string sat2);
         static Solution triple_difference_kalman(ObservationData, ObservationData, NavigationDataSet, ECEFCoords);
 		static ElMatrix<REAL> makeTripleDifferenceMatrix(int, int);
 

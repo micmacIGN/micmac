@@ -2,6 +2,8 @@
 #define  _MMVII_Util_TPL_H_
 
 #include <algorithm>
+#include "MMVII_enums.h"
+#include "MMVII_Error.h"
 
 namespace MMVII
 {
@@ -98,7 +100,7 @@ void BenchSet(const std::string & aDir);
 template <class Type> class cExtSet  : public  cSelector<Type>
 {
     public :
-         virtual ~cExtSet() ;
+         virtual ~cExtSet() = default;
          cExtSet<Type>   Dupl() const ; // return a duplicata
          cExtSet<Type>   EmptySet() const ; // return a set from same type
 
@@ -216,13 +218,26 @@ template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
    aVec.erase(std::remove_if(aVec.begin(),aVec.end(),aFonc),aVec.end());
 }
 
+/// return -1 0 or 1 , regarding < , == or >
 template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+/// return if aV1 < aV2 as LexicoCmp==-1
+template <class Type> bool operator < (const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+template <class Type> bool operator == (const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+template <class Type> bool operator != (const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+
+
+
+template <class Type> void AppendIn(std::vector<Type> & aRes, const std::vector<Type> & aVec)
+{
+   for (const auto & aVal : aVec)
+       aRes.push_back(aVal);
+}
 
 template <class Type> void Append(std::vector<Type> & aRes, const std::vector<Type> & aV1,const std::vector<Type> & aV2)
 {
    aRes = aV1;
-   for (const auto & aVal : aV2)
-       aRes.push_back(aVal);
+   AppendIn(aRes,aV2);
+   // for (const auto & aVal : aV2) aRes.push_back(aVal);
 }
 template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,const std::vector<Type> & aV2)
 {
@@ -231,17 +246,47 @@ template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,con
     return aRes;
 }
 
+template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,const std::vector<Type> & aV2,const std::vector<Type> & aV3)
+{
+    return Append(aV1,Append(aV2,aV3));
+}
 
+template <class Type> std::vector<Type> Append
+    (const std::vector<Type> & aV1,const std::vector<Type> & aV2,const std::vector<Type> & aV3,const std::vector<Type> & aV4)
+{
+     return Append(Append(aV1,aV2),Append(aV3,aV4));
+}
+
+///  set value or push at end, 
+template <class Type> void SetOrPush(std::vector<Type> & aVec,size_t aIndex,const Type & aVal)
+{
+     MMVII_INTERNAL_ASSERT_tiny(aIndex<=aVec.size(),"Bad size for SetOrPush");
+     if (aIndex==aVec.size())
+        aVec.push_back(aVal);
+     else
+        aVec.at(aIndex) = aVal;
+}
+
+
+//  resize only in increasing mode
+template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal)
+{
+   if (aSz>aV1.size())
+      aV1.resize(aSz,aVal);
+}
+
+
+///  compute the cartesian product of all seq {12,A,xyz} ->  {1Ax,2Ax,1Ay....} 
 template <class Type>  std::vector<std::vector<Type>>  ProdCart(const std::vector<std::vector<Type>>  aVV)
 {
      std::vector<std::vector<Type>> aVVRes;
-     aVVRes.push_back(std::vector<Type>());
-     for (const auto & aVNewV : aVV)
+     aVVRes.push_back(std::vector<Type>()); /// initialize with neutral elemnt for cart prod of setq {{}} 
+     for (const auto & aVNewV : aVV)  // for each input sequence
      {
           std::vector<std::vector<Type>>  aNewVVRes;
-          for (const auto & aVR : aVVRes)
+          for (const auto & aVR : aVVRes)  // for each sequence already compute
           {
-              for (const auto & aNewVal : aVNewV)
+              for (const auto & aNewVal : aVNewV)  // add each val to existing sequence
               {
                   std::vector<Type> aNewVect = aVR;
                   aNewVect.push_back(aNewVal);

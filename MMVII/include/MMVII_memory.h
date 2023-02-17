@@ -1,6 +1,8 @@
 #ifndef  _MMVII_MEMORY_H_
 #define  _MMVII_MEMORY_H_
 
+#include "MMVII_Error.h"
+
 namespace MMVII
 {
 
@@ -91,6 +93,11 @@ class cMemManager
            return  static_cast<Type *> (cMemManager::Calloc(nmemb,sizeof(Type)));
         }
 
+        template <class Type> static inline Type * Alloc(int aX0,int aX1)
+        {
+           return  Alloc<Type>(size_t(aX1-aX0)) - aX0;
+	}
+
         template <class Type> static inline Type ** AllocMat(int aTx,int aTy)
         {
            Type ** aRes = Alloc<Type*>(aTy);
@@ -131,7 +138,7 @@ class cMemManager
 
 
 /**
-    This classe redefine l'operetor new and delate to checker alloc / desalloc and (some) bad access.
+    This classe redefine operators new and delate to check alloc / desalloc and (some) bad access.
     Allocation and desallocation is delegated to  cMemManager
 */
 
@@ -165,6 +172,14 @@ class  cMemCheck
        // to avoid use 
 };
 
+/**  some object have to live untill the end of the process, just before the verif is done in main
+ *   appli destructor.
+ */
+class cObj2DelAtEnd
+{
+        public :
+                virtual ~cObj2DelAtEnd();
+};
 
 
 ///  Usefull, delete all object of the container

@@ -1,4 +1,6 @@
-#include "include/V1VII.h"
+#include "V1VII.h"
+#include "MMVII_Matrix.h"
+#include "MMVII_Linear2DFiltering.h"
 
 /** \file ImageFilterMMV1.cpp
     \brief file for using MMV1 filters
@@ -136,6 +138,17 @@ template <class Type> void SelfLabMaj(cIm2D<Type> aImIn,const cBox2di &  aBox)
 
 template cPt2dr ValExtre(cIm2D<tINT2> aImIn);
 template void SelfLabMaj(cIm2D<tINT2> aImIn,const cBox2di &  aBox);
+
+//==============================
+
+void MakeImageDist(cIm2D<tU_INT1> aImIn,const std::string & aNameChamfer)
+{
+     const Chamfer & aChamf = Chamfer::ChamferFromName(aNameChamfer);
+     aChamf.im_dist(cMMV1_Conv<tU_INT1>::ImToMMV1(aImIn.DIm())) ;
+}
+
+
+
 
 //==============================
 

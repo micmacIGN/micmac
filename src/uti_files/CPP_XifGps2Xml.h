@@ -1,7 +1,6 @@
 #ifndef CPP_XIFGPS2XML_H
 #define CPP_XIFGPS2XML_H
 
-#define _Pi 3.14159265359
 #include "StdAfx.h"
 // #include "XML_GEN/all_tpl.h"
 

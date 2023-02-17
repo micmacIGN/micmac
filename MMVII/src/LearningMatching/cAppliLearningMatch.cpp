@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "MMVII_DeclareCste.h"
+#include "MMVII_Sys.h"
 #include "LearnDM.h"
 
 namespace MMVII

@@ -48,9 +48,11 @@ ANNdist annDist(						// interpoint squared distance
 	ANNpoint			p,
 	ANNpoint			q)
 {
-	register int d;
-	register ANNcoord diff;
-	register ANNcoord dist;
+    /* register is obsolete with c++17 and causes an error on debian 10 / gnu++17 */
+
+	/*register*/ int d;
+	/*register*/ ANNcoord diff;
+	/*register*/ ANNcoord dist;
 
 	dist = 0;
 	for (d = 0; d < dim; d++) {

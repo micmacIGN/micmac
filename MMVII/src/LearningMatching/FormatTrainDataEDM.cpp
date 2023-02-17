@@ -1,6 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/V1VII.h"
+
+#include "V1VII.h"
 #include "LearnDM.h"
+#include "MMVII_Sys.h"
 
 //  MMVII  DMFormatTD_MDLB ".*JAX_022_004_002_.*" 100 DoRectif=1
 
@@ -351,6 +352,7 @@ class cWT_AppliFormatTDEDM : public cAppliLearningMatch
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+        std::vector<std::string>  Samples() const  override;
 
      private :
        // =========== Data ========
@@ -385,6 +387,17 @@ cCollecSpecArg2007 & cWT_AppliFormatTDEDM::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
    ;
+}
+
+std::vector<std::string>  cWT_AppliFormatTDEDM::Samples() const
+{
+   return std::vector<std::string>
+          (
+            {
+	        " MMVII  DM0FormatTD_WT \".*0002.png\" UmbraStereo"
+	    }
+
+          );
 }
 
 

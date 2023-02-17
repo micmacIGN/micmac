@@ -100,7 +100,7 @@ public:
 		PQKkey kv,						// key value
 		PQKinfo inf)					// item info
 		{
-			register int i;
+			/*register*/ int i;
 										// slide larger values up
 			for (i = n; i > 0; i--) {
 				if (mk[i-1].key > kv)

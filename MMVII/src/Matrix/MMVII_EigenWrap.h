@@ -1,8 +1,8 @@
 #ifndef  _MMVII_EigenWrap_H_
 #define  _MMVII_EigenWrap_H_
 
-#include "ExternalInclude/Eigen/Dense"
-// #include "ExternalInclude/Eigen/Core"
+#include "Eigen/Dense"
+#include "MMVII_Matrix.h"
 
 
 using namespace Eigen;
@@ -124,6 +124,11 @@ template <class Type> class cConst_EigenColVectWrap
           mVecC (aVecC.RawData(),aVecC.Sz())
        {
        }
+       cConst_EigenColVectWrap (const std::vector<Type> & aVecC) :
+          mVecC (aVecC.data(),aVecC.size())
+       {
+       }
+
        tEigenWrap & EW() {return mVecC;}
    private :
        tEigenWrap mVecC;

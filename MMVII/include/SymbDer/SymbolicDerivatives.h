@@ -4,24 +4,13 @@
 // If true, this directive require CERES installed, then it allows a comparison with CERES/Jet (for a potential publication) ..
 #define MMVII_WITH_CERES false
 
+#include <algorithm>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
 
-// #define SYMBDER_WITH_MMVII true
-#define SYMBDER_WITH_EIGEN false
-
-
-#if SYMBDER_WITH_EIGEN
-#include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
-#define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-#else
-#define EIGEN_ALLIGNMENT_IN_MMVII 
-#endif
-/*
-*/
 
 /** \file SymbolicDerivates.h
     \brief File for generating symbolic derivate
@@ -90,18 +79,17 @@
 
 #include "SymbDer_Common.h"
 
-/*
-#if (SYMBDER_WITH_MMVII)
-#include "include/MMVII_all.h"
-#include "include/MMVII_Derivatives.h"
-#define SYMBDER_cMemCheck  MMVII::cMemCheck
-#else             //========================================================== WITH_MMVI
-class SYMBDER_cMemCheck
-{
-};
+#if SYMBDER_WITH_MMVII
+#define SYMBDER_WITH_EIGEN true
 #endif
-*/
 
+
+#if SYMBDER_WITH_EIGEN
+#include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
+#define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#else
+#define EIGEN_ALLIGNMENT_IN_MMVII
+#endif
 
 
 #if (SYMBDER_WITH_MMVII)
@@ -131,7 +119,7 @@ class SYMBDER_cMemCheck
 
 // REDUCTION RULES
 // TODO => REPLACE BY METHOD ON COORDINATOR WHEN THEY IMPROVE THINGS ....
-#define  DOREDUCE      false
+#define  DOREDUCE      true
 
 #define  REDUCE_CSTE    true    //  Cste+Cste => cste
 #define  REDUCE_MM      DOREDUCE    //  - - x => x  ;  a-(-b) => a+b
@@ -572,7 +560,7 @@ template <class TypeElem> class cImplemF  : public SYMBDER_cMemCheck
        int RecursiveRec() const;
 
      // Every where a reference name is needed
-       std::string NameGlob() const { return "F" + std::to_string(NumGlob());}
+       std::string NameGlob() const { return "F" + std::to_string(NumGlob()) + "_";}
 
        /// Access at global level is 4 reducing, also it is used 4 implemant in Unary & Binary
        virtual const std::string &  NameOperator() const = 0;
@@ -653,6 +641,9 @@ template <class TypeElem> class cFormula
     private :
        tImplemF* mPtr;  ///< Faster than shared and deallocation is easy as object controlled by context
 };
+
+
+
 
 /* *************************************************** */
 /* *************************************************** */
@@ -1113,12 +1104,8 @@ std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const 
 {
     std::string aName = this->Name();
 
-    if (aName.size() == 0)
-        UserSError("Formula name is empty.",this->Name());
-    for (auto &c : aName) {
-        if (!std::isalnum(c) && c != '_')
-            UserSError("Formula name is not a valid C++ identifier: '_,a..z,A..Z,0..9' only.",this->Name());
-    }
+    if (!this->IsValidCIdentifier(this->Name()))
+        UserSError("Formula name is not a valid C++ identifier: '_,a..z,A..Z,0..9' only.",this->Name());
     std::string aClassName  = "c" + aName;
     if (aTypeName.size()==0)
         aTypeName = this->TypeElemName();
@@ -1245,7 +1232,38 @@ inline std::string cCoordinatorF<TypeElem>::TypeElemName() const
     return "";
 }
 
-} //   NS_Symbolic_Derivative
+} //  namespace NS_SymbolicDerivative
+
+
+
+/*
+#if SYMBDER_WITH_MMVII
+template <> class MMVII::tElemNumTrait<NS_SymbolicDerivative::cFormula<double> >
+{
+    public :
+         typedef NS_SymbolicDerivative::cFormula<double> tBase;
+         typedef NS_SymbolicDerivative::cFormula<double> tBig ;
+         typedef NS_SymbolicDerivative::cFormula<double> tFloatAssoc ;
+
+	 static void AssertValueOk(const NS_SymbolicDerivative::cFormula<double> & ) {}
+};
+#endif
+
+#if SYMBDER_WITH_MMVII
+/// requiredfor cPtxd<cFormula> ....  but dont solve the pb, so keep it minimal fornow
+template <class TypeElem>  class MMVII::tElemNumTrait<NS_SymbolicDerivative::cFormula<TypeElem> >
+{
+    public :
+         typedef NS_SymbolicDerivative::cFormula<TypeElem> tBase;
+         typedef NS_SymbolicDerivative::cFormula<TypeElem> tBig ;
+         typedef NS_SymbolicDerivative::cFormula<TypeElem> tFloatAssoc ;
+};
+namespace MMVII
+{
+}  // namespace MMVII
+
+#endif
+*/
 
 #include "SymbDer_UnaryOp.h"
 #include "SymbDer_BinaryOp.h"

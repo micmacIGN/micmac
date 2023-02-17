@@ -1,6 +1,8 @@
 #ifndef  _MMVII_MMError_H_
 #define  _MMVII_MMError_H_
 
+#include "MMVII_enums.h"
+
 namespace MMVII
 {
 
@@ -96,6 +98,7 @@ void MMVII_UnclasseUsEr(const std::string & aMes);
 {MMVII_INTERNAL_ERROR(aMes);}
 
 
+
 ////====================  SPECIFIC ASSERTION ON NUMERICAL VALUE ================
 
 #define  MMVII_ASSERT_INVERTIBLE_VALUE(VALUE)\
@@ -104,11 +107,45 @@ MMVII_INTERNAL_ASSERT_tiny(ValidInvertibleFloatValue(VALUE),"Non invertible valu
 #define  MMVII_ASSERT_STRICT_POS_VALUE(VALUE)\
 MMVII_INTERNAL_ASSERT_tiny(ValidStrictPosFloatValue(VALUE),"Non strict positive value")
 
+#define  MMVII_ASSERT_POS_VALUE(VALUE)\
+MMVII_INTERNAL_ASSERT_tiny(ValidPosFloatValue(VALUE),"Non positive value")
 
 template<class T> void IgnoreUnused( const T& ) { }; /// To avoid some warning on TEMPORARILY unused variable 
 void DoNothingWithIt(void *);  /// Used to avoid compiler optimization, make believe it can be used
 
 #define BREAK_POINT(MSG)  {StdOut() << MSG << "; BREAK POINT at " << __LINE__ << " of " << __FILE__ << "\n";getchar();}
+
+/* handling of eigen test on sucess of decomposition, by default it generate an error, btw this
+can be temporarily supress if the use know what he does. For example see BenchLsqDegenerate
+*/
+bool EigenDoTestSuccess();  ///< do we test result of eigen operation
+void OnEigenNoSucc(const  char * aMesg,int aLine,const char * aFile); ///< func to execute if not sucess
+#define ON_EIGEN_NO_SUCC(MESG)  OnEigenNoSucc(MESG,__LINE__,__FILE__);
+
+void PushErrorEigenErrorLevel(eLevelCheck aLevel);  ///< change behaving : no test, warning, error
+void PopErrorEigenErrorLevel(); ///< restore previous behaving
+
+
+class cMMVII_Warning
+{
+    int           mCpt;
+    std::string   mMes;
+    int           mLine;
+    std::string   mFile;
+  public :
+    cMMVII_Warning(const std::string & aMes,int aLine,const std::string &  aFile);
+    ~cMMVII_Warning();
+    void Activate();
+};
+
+#define MMVII_DEV_WARNING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
+
+
+/// A fake function, to stop momentarilly warnings about unused variable ...
+template <class Type> void FakeUseIt(const Type &) {}
+/** A function returning always false, use when we dont want to execute something want to compile it
+ even with too "clever" compiler who would skip if (0) */
+bool NeverHappens();
 
 
 };

@@ -218,6 +218,7 @@ int GCPCtrl_main(int argc,char ** argv)
 
     std::string OutJSON {"Res.geojson"};
     bool BoolOutJSON =false;
+    bool WDetProj = false;
 
 
     ElInitArgMain
@@ -232,6 +233,7 @@ int GCPCtrl_main(int argc,char ** argv)
                     <<  EAM(ShowUnused,"ShowU",true,"Show unused point (def=true)", eSAM_IsBool)
                     <<  EAM(OutTxt,"OutTxt",true,"Name TXT file for Ctrl result (def=false)")
                     <<  EAM(OutJSON,"OutJSON",true,"Name .geojson file for Ctrl result (def=false)")
+                    <<  EAM(WDetProj,"WithDetProj",true,"with detail on all proj (def=false)")
                 );
 
     if (!MMVisualMode)
@@ -251,6 +253,7 @@ int GCPCtrl_main(int argc,char ** argv)
                        + std::string(" +AeroIn=") + AeroIn
                        + std::string(" +DicoApp=") +  DicoPts
                        + std::string(" +SaisieIm=") +  MesureIm
+                       + std::string(" +WDetProj=") +  ToString(WDetProj)
                     ;
 
     if (EAMIsInit(&ShowUnused)) aCom = aCom + " +ShowUnused=" + ToString(ShowUnused);

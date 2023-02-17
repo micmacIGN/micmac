@@ -398,11 +398,12 @@ std::string     cStdTiffModuleImageLoader::CreateFileOfResol(int aDeZoom,bool Fo
         else 
         {
                 aType = GenIm::real4;
-                aDivIm = 1;
+                // aDivIm = 16;  // no longer understand why we should augment dyn if type is real
         }
    }
 
    int aResolSup =1;
+
 
    for
    (
@@ -443,6 +444,7 @@ std::string     cStdTiffModuleImageLoader::CreateFileOfResol(int aDeZoom,bool Fo
                           NameFileOfResol(aDeZoom/2)
                          ;
    std::cout << "<< Make Pyram for " << aNameIn  << " " << ForPrepare << " " << aGPAO<< "\n";
+
    if (aGPAO && ForPrepare)
    {
        CreateFileOfResol(aDeZoom/2,ForPrepare);

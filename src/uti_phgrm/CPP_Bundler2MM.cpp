@@ -36,6 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+#include "StdAfx.h"
 
 #include "../../MMVII/ExternalInclude/Eigen/Dense"
 
@@ -708,8 +709,8 @@ void cAppliBundler::FromBundler()
 
 
     //read camera sizes (pas top)
-    //ReadCoords();
-	IntCamSz(); //replacing ReadCoors
+    ReadCoords();
+//	IntCamSz(); //replacing ReadCoors
 
     if (ReadPoses())
         std::cout << "[Bundler2MM] Poses done!" << "\n";

@@ -479,6 +479,9 @@ class cSpecFitrageImage
         cTplValGesInit< int > & NbIteration();
         const cTplValGesInit< int > & NbIteration()const ;
 
+        cTplValGesInit< int > & NbItereIntern();
+        const cTplValGesInit< int > & NbItereIntern()const ;
+
         cTplValGesInit< double > & AmplitudeSignal();
         const cTplValGesInit< double > & AmplitudeSignal()const ;
 
@@ -491,6 +494,7 @@ class cSpecFitrageImage
         cTplValGesInit< ePxApply > mPxApply;
         cTplValGesInit< cElRegex_Ptr > mPatternSelFiltre;
         cTplValGesInit< int > mNbIteration;
+        cTplValGesInit< int > mNbItereIntern;
         cTplValGesInit< double > mAmplitudeSignal;
         cTplValGesInit< bool > mUseIt;
 };

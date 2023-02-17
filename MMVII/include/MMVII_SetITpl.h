@@ -1,12 +1,15 @@
 #ifndef  _MMVII_SET_I_TPL_H_
 #define  _MMVII_SET_I_TPL_H_
 
+#include "MMVII_nums.h"
+
 namespace MMVII
 {
 
 /** \file MMVII_SetITpl.h
     \brief classses fot sets of integers
 
+      cSetISingleFixed<tVal>  : fixed  size, contain a subset as flag of bit coded on a a single int
 
 */
 
@@ -44,9 +47,9 @@ template <typename tVal> class cSetISingleFixed
 
          void AddElem(const tElem & anElem) {mFlagBits |= FlagSingle(anElem);}
 
+         cSetISingleFixed(const tVal & aFlagBit) : mFlagBits (aFlagBit) {}
     private :
          static constexpr  size_t NbBits = 8 *sizeof(tVal);
-         cSetISingleFixed(const tVal & aFlagBit) : mFlagBits (aFlagBit) {}
          static tVal  FlagSingle(const tElem & anElem) {return (1<<anElem);}
 
          tVal    mFlagBits;
@@ -85,6 +88,8 @@ template  <typename tSet> tSet  SetI_Interv(int aK1, int aK2)
     }
     return aResult;
 }
+
+
 
 // Subset of K element among N, using "Pascal Triangle"  C(K,N) = C(K-1,N-1) + C(K,N-1)
 template  <typename tSet> std::vector<tSet>  SubKAmongN(int aK, int aN)

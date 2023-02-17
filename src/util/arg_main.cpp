@@ -1083,7 +1083,8 @@ void __attribute__((weak)) ElExit(int aLine,const char * aFile,int aCode,const s
    }
 
 // std::cout << "ELExit " << __FILE__ << __LINE__ << " " << aCode << " " << GlobArcArgv << "\n";
-   StdEXIT(aCode);
+   fflush(nullptr);   // flush all open files
+   abort();
 }
 
 

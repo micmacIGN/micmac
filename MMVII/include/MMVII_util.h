@@ -1,6 +1,14 @@
 #ifndef  _MMVII_Util_H_
 #define  _MMVII_Util_H_
 
+#include <numeric>
+#include <sstream>
+
+#include "MMVII_Sys.h"
+#include "MMVII_nums.h"
+#include "MMVII_memory.h"
+
+
 namespace MMVII
 {
 
@@ -65,10 +73,13 @@ std::vector<std::string> SplitString(const std::string & aStr,const std::string 
 // Si PrivPref  "a" => (aaa,)  (a.b.c)  => (a.b,c)
 void  SplitStringArround(std::string & aBefore,std::string & aAfter,const std::string & aStr,char aSep,bool SVP=false,bool PrivPref=true);
 std::string Prefix(const std::string & aStr,char aSep='.',bool SVP=false,bool PrivPref=true);
-std::string LastPrefix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "c"
+std::string LastPrefix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "a.b"
 std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool PrivPref=true);
-std::string LastPostfix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "a.b"
+std::string LastPostfix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "c"
 
+bool starts_with(const std::string & aFullStr,const std::string & aBegining); /// as c++20  std::string.starts_with
+bool ends_with(const std::string & aFullStr,const std::string & aEnding); /// as c++20  std::string.starts_with TO IMPLEMENT
+bool contains(const std::string & aFullStr,const std::string & aEnding); /// as c++23  std::string.contains TO IMPLEMENT
 
 // Direcytory and files names, Rely on boost
 void MakeNameDir(std::string & aDir); ///< Add a '/', or equiv, to make a name of directory
@@ -110,6 +121,12 @@ bool IsDirectory(const std::string & aName);
 
 /// Create a selector associated to a regular expression, by convention return Cste-true selector if string=""
 tNameSelector  AllocRegex(const std::string& aRegEx);
+/// Indicate if name match patter, uses AllocRegex
+bool  MatchRegex(const std::string& aName,const std::string& aPat);
+/// replace a pattern  yy(.*)zz , A$1 , yytotozz  => Atoto
+std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString);
+
+
 
 /// Exract name of files located in the directory, by return value
 std::vector<std::string>  GetFilesFromDir(const std::string & aDir,const tNameSelector& ,bool OnlyRegular=true);
@@ -194,7 +211,7 @@ class cMMVII_Ifs : public cMemCheck
          std::string   mName;
 };
 
-class cMultipleOfs  : public  std::ostream
+class cMultipleOfs
 {
     public :
         cMultipleOfs(std::ostream & aOfs) :
@@ -214,6 +231,12 @@ class cMultipleOfs  : public  std::ostream
 
         void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
         void Clear() {mVOfs.clear();}
+
+        cMultipleOfs& flush() {
+            for (const auto & Ofs :  mVOfs)
+                Ofs->flush();
+            return *this;
+        }
 
         // template <class Type> cMultipleOfs & operator << (Type & aVal);
         template <class Type> cMultipleOfs & ShowCont (const Type & aCont,const std::string & aGram)
@@ -264,7 +287,7 @@ class cMMVII_Duration
         static cMMVII_Duration FromSecond(double aNbSec,eTyUnitTime=eTyUnitTime::eNbVals);
         void Normalise(eTyUnitTime);
 
-        std::string ToDaisyStr(std::string * aFormat=0,bool Full=false) const;
+        std::string ToDaisyStr(std::string * aFormat=nullptr,bool Full=false) const;
 
      public :
         std::string  ToString(char aSep,int aNbDigFrac,std::string * aFormat,bool Full) const;
@@ -275,6 +298,68 @@ class cMMVII_Duration
         tINT8 mNbSec;
         tREAL8 mFrac;   // in second
 };
+
+/** Class for storing set of int , can be use econmically for sparse
+    big set, if recycledwith Clear() */
+ 
+class cSetIntDyn
+{
+     public :
+          cSetIntDyn(size_t aNb);  ///< Create empty set
+          cSetIntDyn(size_t aNb,const std::vector<size_t> & AddInit);  ///< Add initial values
+          void AddInd(size_t aK);  ///< Add an element, adpat sizeof vector
+          void Clear();
+          void AddIndFixe(size_t aK)  ///< Add an element, assume sizeof vector of
+          {
+               if (!mOccupied[aK])
+               {
+                   mOccupied[aK] = true;
+                   mVIndOcc.push_back(aK);
+               }
+          }
+          size_t NbElem() const {return mVIndOcc.size();}
+	  /// Generally order is of no importance, but if it has, can sort it in increasing order
+	  void SortInd();
+	  ///   Actualize  mVInvertInd, do the SortInd() that is required
+	  void MakeInvertIndex();
+
+          std::vector<bool>    mOccupied;     ///< direct acces to the belonging  [0 1 0 0 1 0 1 0]
+          std::vector<size_t>  mVIndOcc;      ///< list  of element               [1 4 6]
+          std::vector<int   >  mVInvertInd;   ///< if created, give for an index its rank [ _ 0 _ _  1 _ 2 _]
+};
+
+/** Class for representing a set of int simply as a vector of int,
+    usefull for K among N when N is big 
+    make no control of duplicate,  just an interface to vector<int> as a set
+*/
+
+class cSetIExtension
+{
+    public :
+         cSetIExtension();
+         cSetIExtension(const std::vector<size_t>&);
+         static cSetIExtension EmptySet();
+         void AddElem(size_t);
+
+         std::vector<size_t>  mElems;
+};
+
+/** Generate Q subset of cardinal K [0,N], all different,  if Q too big, truncated */
+void GenRanQsubCardKAmongN(std::vector<cSetIExtension> & aRes,int aQ,int aK,int aN);
+
+class cParamRansac
+{   
+    public :
+
+        int  NbTestOfErrAdm(int aNbSample) const;
+        cParamRansac(double  aProba1Err,double anErrAdm);
+    private :
+        double mProba1Err;
+        double mErrAdm;
+};
+
+
+
 
 
 };

@@ -1,6 +1,11 @@
-#include "include/MMVII_all.h"
-#include <boost/functional/hash.hpp>
+#include "cMMVII_Appli.h"
 
+#include <boost/version.hpp>
+#if BOOST_VERSION > 106700
+#include <boost/container_hash/hash.hpp>
+#else
+#include <boost/functional/hash.hpp>
+#endif
 
 /** \file Serial.cpp
     \brief Implementation of serialisation servive
@@ -16,6 +21,8 @@
 
 */
 
+#include "MMVII_Stringifier.h"
+#include "MMVII_DeclareCste.h"
 
 namespace MMVII
 {
@@ -56,10 +63,25 @@ class cAr2007 : public cMemCheck
     public  :
          friend class cAuxAr2007;
 
-         template <class Type> void TplAddDataTerm (const cAuxAr2007& anOT, Type  &    aVal)
+         template <class Type,class TypeCast> inline void TplAddDataTermByCast (const cAuxAr2007& anOT,Type&  aValInit,TypeCast* UnUsed)
          {
-                RawAddDataTerm(aVal);
+// StdOut() << "TplAddDataTermByCast " << (int) aValInit << "BINAY" << mBinary << "\n";
+              if (mBinary)
+	      {
+                  cRawData4Serial aRDS = cRawData4Serial::Tpl(&aValInit,1);
+		  RawAddDataTerm(aRDS);
+	      }
+	      else
+	      {
+                   TypeCast aCast = aValInit;
+                   RawAddDataTerm(aCast);
+		   if (mInput)
+                      aValInit = aCast;
+	      }
          }
+
+         /// default do nothing)
+	 virtual void AddComment(const std::string &);
          ///  Tagged File = xml Like, important for handling optionnal parameter
          bool  Tagged() const; 
          ///  May optimize the action
@@ -72,11 +94,19 @@ class cAr2007 : public cMemCheck
                                         for ex with Pt : in text separate x,y, in bin do nothing */
          virtual size_t HashKey() const;
 
+      // Final atomic type for serialization
+         virtual void RawAddDataTerm(int &    anI) =  0; ///< Heriting class descrine how they serialze int
+         virtual void RawAddDataTerm(size_t &    anI) =  0; ///< Heriting class descrine how they serialze int
+         virtual void RawAddDataTerm(double &    anI) =  0; ///< Heriting class descrine how they serialze double
+         virtual void RawAddDataTerm(std::string &    anI) =  0; ///< Heriting class descrine how they serialze string
+         virtual void RawAddDataTerm(cRawData4Serial  &    aRDS) =  0; ///< Heriting class descrine how they serialze string
+
     protected  :
-         cAr2007(bool InPut,bool Tagged);
+         cAr2007(bool InPut,bool Tagged,bool Binary);
          int   mLevel;
          bool  mInput;
          bool  mTagged; 
+         bool  mBinary;   //  != from tagged iw we implemant a pure txt format
      private  :
 
          /// By default error, to redefine in hashing class
@@ -86,42 +116,32 @@ class cAr2007 : public cMemCheck
          virtual void RawEndName(const cAuxAr2007& anOT);
 
 
-      // Final atomic type for serialization
-         virtual void RawAddDataTerm(int &    anI) =  0; ///< Heriting class descrine how they serialze int
-         virtual void RawAddDataTerm(double &    anI) =  0; ///< Heriting class descrine how they serialze double
-         virtual void RawAddDataTerm(std::string &    anI) =  0; ///< Heriting class descrine how they serialze string
-         virtual void RawAddDataTerm(cRawData4Serial  &    aRDS) =  0; ///< Heriting class descrine how they serialze string
-         void RawAddDataTerm(bool &    anI) ; ///< use int to do it
-         virtual void RawAddDataTerm(tU_INT2 &    anI) ; ///< use int to do it
+
+
       // Final non atomic type for serialization
 };
 
+
+void cAr2007::AddComment(const std::string &){}
+
+
+void AddComment(cAr2007 & anAr, const std::string & aString)
+{
+	anAr.AddComment(aString);
+}
 
 void cAr2007::RawBeginName(const cAuxAr2007& anOT) {}
 void cAr2007::RawEndName(const cAuxAr2007& anOT) {}
 bool cAr2007::Tagged() const {return mTagged;}
 bool cAr2007::Input() const  {return mInput;}
 
-cAr2007::cAr2007(bool Input,bool isTagged) :
-   mLevel  (0),
-   mInput  (Input),
-   mTagged (isTagged)
+cAr2007::cAr2007(bool Input,bool isTagged,bool isBinary) :
+   mLevel   (0),
+   mInput   (Input),
+   mTagged  (isTagged),
+   mBinary  (isBinary)
 {
 }
-
-void cAr2007::RawAddDataTerm(bool &    aBool)
-{
-    int aI = aBool;
-    RawAddDataTerm(aI);
-    aBool = aI;
-}
-void cAr2007::RawAddDataTerm(tU_INT2 &    aUI2)
-{
-    int aI = aUI2;
-    RawAddDataTerm(aI);
-    aUI2 = aI;
-}
-
 
 
 void cAr2007::Separator()
@@ -151,11 +171,28 @@ int cAr2007::NbNextOptionnal(const std::string &)
    return -1;
 }
 
-void AddData(const  cAuxAr2007 & anAux, int  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
-void AddData(const  cAuxAr2007 & anAux, double  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
-void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
-void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
-void AddData(const  cAuxAr2007 & anAux, bool  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
+void AddData(const  cAuxAr2007 & anAux, size_t  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
+void AddData(const  cAuxAr2007 & anAux, int  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
+void AddData(const  cAuxAr2007 & anAux, double  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
+void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
+void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
+
+
+void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
+
+void AddData(const  cAuxAr2007 & anAux, tINT1  &  aVal) 
+{ 
+     anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); 
+}
+void AddData(const  cAuxAr2007 & anAux, tINT2  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
+void AddData(const  cAuxAr2007 & anAux, tU_INT1  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
+void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
+void AddData(const  cAuxAr2007 & anAux, bool     &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
+
+
+
+
+// void AddData(const  cAuxAr2007 & anAux, bool  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
 
 template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal)
 {
@@ -186,8 +223,10 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cTplBox<Ty
 }
 
 
+template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,4>  &  aVal) ;
 
 #define MACRO_INSTANTIATE_AddDataPtxD(DIM)\
+template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL4,DIM>  &  aVal) ;\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,DIM>  &  aVal) ;\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tINT4,DIM>  &  aVal) ;\
 template  void AddData(const  cAuxAr2007 & anAux, cTplBox<tINT4,DIM>  &  aVal) ;\
@@ -274,7 +313,7 @@ class cIXml_Ar2007 : public cAr2007
 {
      public :
           cIXml_Ar2007(std::string const  & aName) : 
-                cAr2007     (true,true), // Input, Tagged
+                cAr2007     (true,true,false), // Input, Tagged,Binary
                 mMMIs       (aName),
                 mExcepOnEOF (false)
            {
@@ -290,6 +329,7 @@ class cIXml_Ar2007 : public cAr2007
            /// put </Tag>
            void RawEndName(const cAuxAr2007& anOT) override;
            void RawAddDataTerm(int &    anI) override;
+           void RawAddDataTerm(size_t &    anI) override;
            void RawAddDataTerm(double &    anI) override;
            void RawAddDataTerm(std::string &    anI) override;
            void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
@@ -345,6 +385,10 @@ bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string
 }
 
 
+void cIXml_Ar2007::RawAddDataTerm(size_t &    aSz) 
+{
+    FromS(GetNextString(),aSz);
+}
 
 void cIXml_Ar2007::RawAddDataTerm(int &    anI) 
 {
@@ -369,7 +413,6 @@ void cIXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS)
        aPtr[aK] = aC1 * 16 + aC2;
    }
 }
-
 
 
 void  cIXml_Ar2007::RawBeginName(const cAuxAr2007& anOT) 
@@ -535,7 +578,7 @@ int cIXml_Ar2007::SkeepWhite()
 
 /// Xml write archive
 /**
-    An archive for reading XML file saved by MMVII with cOXml_Ar2007
+    An archive for writing XML file 
     Much easier than reading ...
 */
 class cOXml_Ar2007 : public cAr2007
@@ -545,12 +588,14 @@ class cOXml_Ar2007 : public cAr2007
           inline std::ostream  & Ofs() {return mMMOs.Ofs();}
           ~cOXml_Ar2007();
 
-     private :
+	 virtual void AddComment(const std::string &) override;
+     protected :
          void Indent(); ///< add white correspond to xml level
 
          void RawBeginName(const cAuxAr2007& anOT)  override; ///< Put opening tag
          void RawEndName(const cAuxAr2007& anOT)  override;  ///< Put closing tag
          void RawAddDataTerm(int &    anI)  override;  ///< write int in text
+         void RawAddDataTerm(size_t &    anI) override;
          void RawAddDataTerm(double &    anI)  override;  ///< write double in text
          void RawAddDataTerm(std::string &    anI)  override; // write string
          void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
@@ -561,9 +606,13 @@ class cOXml_Ar2007 : public cAr2007
          bool mFirst;  ///< new line is done before <tag> or </tag>, mFirst is used to avoid at first one
 };
 
+void cOXml_Ar2007::AddComment(const std::string & aString) 
+{
+    mMMOs.Ofs() << "  " <<aXMLBeginCom  << aString << aXMLEndCom;
+}
 
 cOXml_Ar2007::cOXml_Ar2007(const std::string & aName) : 
-   cAr2007(false,true),  // Output, Tagged
+   cAr2007(false,true,false),  // Output, Tagged, Binary
    mMMOs(aName,false), 
    mXTerm (false), 
    mFirst(true) 
@@ -583,6 +632,7 @@ cOXml_Ar2007::~cOXml_Ar2007()
    Ofs()  << std::endl;
 }
 
+void cOXml_Ar2007::RawAddDataTerm(size_t &    aSz) {Ofs() <<aSz; mXTerm=true;}
 void cOXml_Ar2007::RawAddDataTerm(int &    anI) {Ofs() <<anI; mXTerm=true;}
 void cOXml_Ar2007::RawAddDataTerm(double &  aD) {Ofs() <<aD; mXTerm=true;}
 void cOXml_Ar2007::RawAddDataTerm(std::string &  anS) 
@@ -625,6 +675,40 @@ void cOXml_Ar2007::RawEndName(const cAuxAr2007& anOT)
     Ofs()  << "</" << anOT.Name() << ">";
     mXTerm = false;
 }
+
+/*============================================================*/
+/*                                                            */
+/*          cOXmlSpecif_Ar2007                                */
+/*                                                            */
+/*============================================================*/
+
+class cOXmlSpecif_Ar2007 : public cOXml_Ar2007
+{
+     public :
+          cOXmlSpecif_Ar2007(const std::string & aName) ;
+          // inline std::ostream  & Ofs() {return mMMOs.Ofs();}
+          ~cOXmlSpecif_Ar2007();
+     private :
+         void RawAddDataTerm(int &    anI)  override;  ///< write int in text
+         void RawAddDataTerm(size_t &    anI) override;
+         void RawAddDataTerm(double &    anI)  override;  ///< write double in text
+         void RawAddDataTerm(std::string &    anI)  override; // write string
+         void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
+};
+
+void cOXmlSpecif_Ar2007::RawAddDataTerm(int &    anI)          { Ofs() <<"int"   ; mXTerm=true;}
+void cOXmlSpecif_Ar2007::RawAddDataTerm(size_t &    anI)       { Ofs() <<"size_t"; mXTerm=true;}
+void cOXmlSpecif_Ar2007::RawAddDataTerm(double &    anI)       { Ofs() <<"real"  ; mXTerm=true;}
+void cOXmlSpecif_Ar2007::RawAddDataTerm(std::string &    anI)  { Ofs() <<"string"; mXTerm=true;}
+void cOXmlSpecif_Ar2007::RawAddDataTerm(cRawData4Serial & anI) { Ofs() <<"data"  ; mXTerm=true;}
+
+cOXmlSpecif_Ar2007::~cOXmlSpecif_Ar2007(){}
+
+cOXmlSpecif_Ar2007::cOXmlSpecif_Ar2007(const std::string & aName)  :
+   cOXml_Ar2007(aName)
+{
+}	
+
 /*============================================================*/
 /*                                                            */
 /*          cHashValue_Ar2007                                 */
@@ -639,12 +723,13 @@ class  cHashValue_Ar2007 : public cAr2007
 {
     public :
         cHashValue_Ar2007 (bool Ordered) :
-            cAr2007   (false,false),  // Is Not Input, Tagged
+            cAr2007   (false,false,true),  // Is Not Input, Tagged, Binary
             mHashKey  (0),
             mOrdered  (Ordered)
         {
         }
         void RawAddDataTerm(int &    anI)  override;
+        void RawAddDataTerm(size_t &    anI) override;
         void RawAddDataTerm(double &    anI)  override;
         void RawAddDataTerm(std::string &    anI)  override;
         void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
@@ -663,6 +748,14 @@ void cHashValue_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS)
        int aICar = aPtr[aK];
        RawAddDataTerm(aICar);
    }
+}
+
+void cHashValue_Ar2007::RawAddDataTerm(size_t &  aSz) 
+{
+    if (mOrdered)
+       boost::hash_combine(mHashKey, aSz);
+    else
+       mHashKey ^= std::hash<size_t>()(aSz);
 }
 
 void cHashValue_Ar2007::RawAddDataTerm(int &    anI) 
@@ -707,11 +800,12 @@ class  cOBin_Ar2007 : public cAr2007
 {
     public :
         cOBin_Ar2007 (const std::string & aName) :
-            cAr2007(false,false),  // Is Not Input, Tagged
+            cAr2007(false,false,true),  // Is Not Input, Tagged,Binary
             mMMOs  (aName,false)
         {
         }
-        void RawAddDataTerm(tU_INT2 &    anI) override ; 
+        // void RawAddDataTerm(tU_INT2 &    anI) override ; 
+        void RawAddDataTerm(size_t &    anI) override;
         void RawAddDataTerm(int &    anI)  override;
         void RawAddDataTerm(double &    anI)  override;
         void RawAddDataTerm(std::string &    anI)  override;
@@ -721,7 +815,8 @@ class  cOBin_Ar2007 : public cAr2007
          cMMVII_Ofs     mMMOs;
 };
 
-void cOBin_Ar2007::RawAddDataTerm(tU_INT2 &    anI) { mMMOs.Write(anI); }
+void cOBin_Ar2007::RawAddDataTerm(size_t &    aSz) { mMMOs.Write(aSz); }
+// void cOBin_Ar2007::RawAddDataTerm(tU_INT2 &    anI) { mMMOs.Write(anI); }
 void cOBin_Ar2007::RawAddDataTerm(int &    anI) { mMMOs.Write(anI); }
 void cOBin_Ar2007::RawAddDataTerm(double &    anI) { mMMOs.Write(anI); }
 void cOBin_Ar2007::RawAddDataTerm(std::string &    anI) { mMMOs.Write(anI); }
@@ -747,22 +842,24 @@ class  cIBin_Ar2007 : public cAr2007
 {
     public :
         cIBin_Ar2007 (const std::string & aName) :
-            cAr2007(true,false),  // Input, Tagged
+            cAr2007(true,false,true),  // Input, Tagged,Binary
             mMMIs  (aName)
         {
         }
         int NbNextOptionnal(const std::string &) override;
         void RawAddDataTerm(int &    anI)  override;
+        void RawAddDataTerm(size_t &    anI) override;
         void RawAddDataTerm(double &    anI)  override;
         void RawAddDataTerm(std::string &    anI)  override;
         void RawAddDataTerm(cRawData4Serial  &    anI) override;
-        void RawAddDataTerm(tU_INT2 &    anI) override ; 
+        // void RawAddDataTerm(tU_INT2 &    anI) override ; 
         
     private :
          cMMVII_Ifs     mMMIs;
 };
 
-void cIBin_Ar2007::RawAddDataTerm(tU_INT2 &    anI) { mMMIs.Read(anI); }
+void cIBin_Ar2007::RawAddDataTerm(size_t &    aSz) { mMMIs.Read(aSz); }
+// void cIBin_Ar2007::RawAddDataTerm(tU_INT2 &    anI) { mMMIs.Read(anI); }
 void cIBin_Ar2007::RawAddDataTerm(int &    anI) { mMMIs.Read(anI); }
 void cIBin_Ar2007::RawAddDataTerm(double &    anI) { mMMIs.Read(anI); }
 void cIBin_Ar2007::RawAddDataTerm(std::string &    anI) { mMMIs.Read(anI); }
@@ -800,9 +897,16 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    if (UCaseEqual(aPost,PostF_XmlFiles))
    {
        if (Input)
+       {
           aRes =  new cIXml_Ar2007(aName);
+       }
        else
-          aRes =  new cOXml_Ar2007(aName);
+       {
+          if (starts_with(FileOfPath(aName,false),PrefixSpecifXML))
+             aRes =  new cOXmlSpecif_Ar2007(aName);
+          else
+             aRes =  new cOXml_Ar2007(aName);
+       }
    }
    else if (UCaseEqual(aPost,PostF_DumpFiles) || UCaseEqual(aPost,"dat"))
    {

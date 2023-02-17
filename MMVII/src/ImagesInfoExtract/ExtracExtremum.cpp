@@ -1,5 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_ImageInfoExtract.h"
+#include "MMVII_Interpolators.h"
+#include "MMVII_NonLinear2DFiltering.h"
 
 
 namespace MMVII
@@ -69,6 +71,8 @@ template <class Type> cAffineExtremum<Type>::cAffineExtremum(const cDataIm2D<Typ
 {
 }
 
+template <class Type> const cDataIm2D<Type>  & cAffineExtremum<Type>::Im() const {return mIm;}
+
 template <class Type> cPt2dr cAffineExtremum<Type>::OneIter(const cPt2dr & aP0)
 {    
    mSysPol.Reset();
@@ -112,7 +116,7 @@ template <class Type> cPt2dr cAffineExtremum<Type>::OneIter(const cPt2dr & aP0)
    mVectPt(0) = -aSolPol(1)/2.0;
    mVectPt(1) = -aSolPol(2)/2.0;
 
-   cDenseVect<tREAL4> aSolPt = mMatPt.Solve(mVectPt);
+   cDenseVect<tREAL4> aSolPt = mMatPt.SolveColumn(mVectPt);
 
    // Solution was in "local" coordinates, put it in absolute
    return cPt2dr( aC.x()+aSolPt(0) , aC.y()+aSolPt(1));
@@ -157,11 +161,11 @@ template <class Type,class FDist>  std::vector<Type>  SparseOrder(const std::vec
 
 // std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1) // > R0 et <= R1
 
-std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym) // > R0 et <= R1
+std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSym) // > R0 et <= R1
 {
     std::vector<cPt2di> aRes;
 
-    double aR02 = Square(aR0);
+    double aR02 = aR0 * std::abs(aR0); // If Neg => no filtering
     double aR12 = Square(aR1);
     
     for (const auto & aP : cRect2::BoxWindow(round_up(aR1)))
@@ -169,7 +173,7 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym
         double aR2 = SqN2(aP);
         bool Ok = ((aR2>aR02) && (aR2<=aR12));
 
-	if (ASym)
+	if (IsSym)
 	{
            Ok =  Ok &&(  (aP.y() >0) || ((aP.y()==0)&&(aP.x()>=0))   );
 	}
@@ -182,9 +186,9 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool ASym
 }
 
 
-std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1) // > R0 et <= R1
+std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1,bool IsSym) // > R0 et <= R1
 {
-    std::vector<cPt2di> aRes = VectOfRadius(aR0,aR1,false);
+    std::vector<cPt2di> aRes = VectOfRadius(aR0,aR1,IsSym);
     std::sort(aRes.begin(),aRes.end(),CmpN2<int,2>);
     return aRes;
 }
@@ -292,6 +296,12 @@ void cResultExtremum::Clear()
     mPtsMax.clear();
 }
 
+cResultExtremum::cResultExtremum(bool DoMin,bool DoMax) :
+   mDoMin (DoMin),
+   mDoMax (DoMax)
+{
+}
+
 /*   ================================= */
 /*         cComputeExtrem1Im           */
 /*   ================================= */
@@ -301,6 +311,16 @@ template <class Type> void cComputeExtrem1Im<Type>::TestIsExtre1()
      mVCur = mDIM.GetV(mPCur);
      // Compare with left neighboor ,  after we know if it has to be a min or a max
      bool IsMin = IsImCSupCurP(cPt2di(-1,0));
+     if (IsMin)
+     {
+        if (!mRes.mDoMin)
+           return;
+     }
+     else
+     {
+        if (!mRes.mDoMax)
+           return;
+     }
 
      //   Now we know that if any comparison with a neighboor is not coherent with
      // the first one, it cannot be an extremum
@@ -683,7 +703,7 @@ void OneBenchAffineExtre()
     // Generate image 
     cIm2D<tREAL4> aIm(aSz);
     cDataIm2D<tREAL4> & aDIm = aIm.DIm();
-    for (const auto aPix : aDIm)
+    for (const auto & aPix : aDIm)
     {
          cPt2dr aDif = aCenter - ToR(aPix);
          tREAL4 aVal = aCste + aVA * Square(aDif.x()) + 2 * aVB * aDif.x()*aDif.y() + aVC * Square(aDif.y());

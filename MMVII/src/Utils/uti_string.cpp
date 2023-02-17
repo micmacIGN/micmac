@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 
 /** \file uti_string.cpp
     \brief Implementation of utilitary services
@@ -15,6 +15,8 @@
 
 #include <filesystem>
 
+#include "MMVII_util.h"
+#include "cMMVII_Appli.h"
 
 #include <boost/algorithm/string.hpp>
 
@@ -581,6 +583,22 @@ std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelect
     RecGetFilesFromDir(aRes,aDir,aNS,aLevMin,aLevMax);
  
     return aRes;
+}
+
+bool starts_with(const std::string & aFullStr,const std::string & aPrefix)
+{
+    auto anItFull  = aFullStr.begin();
+    auto anItPref = aPrefix.begin();
+
+    while ((anItFull!=aFullStr.end()) && (anItPref!=aPrefix.end()))
+    {
+         if (*anItFull!=*anItPref) 
+            return false;
+	 anItFull++;
+	 anItPref++;
+    }
+
+    return anItPref==aPrefix.end();
 }
 
 

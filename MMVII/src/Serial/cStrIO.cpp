@@ -1,4 +1,7 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Ptxd.h"
+#include "MMVII_Stringifier.h"
+
+#include "cMMVII_Appli.h"
 
 namespace MMVII
 {
@@ -178,10 +181,13 @@ template <>  std::string cStrIO<ETYPE>::ToStr(const ETYPE & anEnum) { return  E2
 template <>  ETYPE cStrIO<ETYPE>::FromStr(const std::string & aStr) { return Str2E<ETYPE>(aStr); }\
 template <>  const std::string cStrIO<ETYPE>::msNameType = ENAME;
 
+MACRO_INSTANTITATE_STRIO_ENUM(eProjPC,"ProjPC")
 MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeCaracMatch,"ModeCaracMatch")
+MACRO_INSTANTITATE_STRIO_ENUM(eDCTFilters,"DCTFilters")
+MACRO_INSTANTITATE_STRIO_ENUM(eModeTestPropCov,"TestPropCov")
 
 /* ==================================== */
 /*                                      */
@@ -207,6 +213,27 @@ template <>  bool cStrIO<bool>::FromStr(const std::string & aStr)
 }
 
 template <>  const std::string cStrIO<bool>::msNameType = "bool";
+
+   // ================  size_t ==============================================
+
+template <>  std::string cStrIO<size_t>::ToStr(const size_t & aSz)
+{
+   sprintf(BufStrIO,"%zu",aSz);
+   return BufStrIO;
+}
+template <>  size_t cStrIO<size_t>::FromStr(const std::string & aStr)
+{
+    // can be convenient that empty string correspond to zero
+    if (aStr.empty())
+       return 0;
+    size_t aSz;
+    int aNb= sscanf(aStr.c_str(),"%zu",&aSz);
+
+    MMVII_INTERNAL_ASSERT_User((aNb!=0),eTyUEr::eBadInt,"String is not a valid size_t")
+    return aSz;
+}
+template <>  const std::string cStrIO<size_t>::msNameType = "size_t";
+
 
    // ================  int ==============================================
 
@@ -237,6 +264,9 @@ std::string ToStr(int aVal,int aSzMin)
        aRes = "-" + aRes;
    return aRes;
 }
+
+
+
 /*
 std::string  ToS_NbDigit(int aNb,int aNbDig,bool AcceptOverFlow)
 {

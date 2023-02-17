@@ -147,7 +147,6 @@ typedef enum
 
 
 
-
 GenIm::type_el TypeIMIL2El(eIFImL_TypeNumerique);
 
 template <class TypeEl,class TypeBase> 

@@ -1,8 +1,32 @@
 #ifndef  _MMVII_nums_H_
 #define  _MMVII_nums_H_
 
+#include "MMVII_Error.h"
+//#include "MMVII_AllClassDeclare.h"
+
 namespace MMVII
 {
+
+// Call V1 Fast kth value extraction
+double NC_KthVal(std::vector<double> &, double aProportion);
+double Cst_KthVal(const std::vector<double> &, double aProportion);
+
+
+// some time needs a null val for any type with + (neutral for +)
+
+template <class T> class cNV
+{
+    public :
+        static T V0(){return T(0);}
+};
+template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >;
+
+/*
+template<class Type> inline Type NullVal() {return (Type)(0);}
+template<> cPtxd<double,2>   NullVal<cPtxd<double,2>  >();// {return cPt2dr::PCste(0);}
+template<> cPtxd<double,3>   NullVal<cPtxd<double,3>  >();// {return cPt3dr::PCste(0);}
+*/
+
 
 template <class Type> bool ValidFloatValue(const Type & aV)
 {
@@ -11,11 +35,15 @@ template <class Type> bool ValidFloatValue(const Type & aV)
 }
 template <class Type> bool ValidInvertibleFloatValue(const Type & aV)
 {
-    return ValidFloatValue(aV) && (aV!=0.0);
+    return ValidFloatValue(aV) && ( aV != static_cast<Type>(0.0));
 }
 template <class Type> bool ValidStrictPosFloatValue(const Type & aV)
 {
-    return ValidFloatValue(aV) && (aV > 0.0);
+    return ValidFloatValue(aV) && (aV > static_cast<Type>(0.0));
+}
+template <class Type> bool ValidPosFloatValue(const Type & aV)
+{
+    return ValidFloatValue(aV) && (aV >= static_cast<Type>(0.0));
 }
 
 
@@ -36,6 +64,7 @@ double RandUnif_C();   ///<  Uniform distribution in  -1 1
 bool   HeadOrTail();   ///< 1/2 , french 'Pile ou Face'
 double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[ 
 double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, but abs > aEps
+double RandUnif_NotNull(double aEps);   ///<  Uniform distribution in  0 1, but abs > aEps
 double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
 
 /** Class for mapping object R->R */
@@ -48,12 +77,38 @@ class cFctrRR
 };
 /// Random permutation , Higer Bias => Higer average rank
 std::vector<int> RandPerm(int aN,cFctrRR & aBias =cFctrRR::TheOne);
+/// Randomly order a vector , used in bench to multiply some test of possible order dependance
+template<class Type>  std::vector<Type>  RandomOrder(const std::vector<Type> & aV)
+{
+    std::vector<int> aPermut = RandPerm(aV.size());
+    std::vector<Type> aRes;
+    for (const auto & aI : aPermut)
+        aRes.push_back(aV.at(aI));
+    return aRes;
+}
+
 /// Random subset K among  N  !! Higher bias => lower proba of selection
 std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias =cFctrRR::TheOne);
 ///  Random modification of K Value in a set of N elem
 std::vector<int> RandNeighSet(int aK,int aN,const std::vector<int> & aSet);
 /// Complement of aSet in [0,1...., N[    ;  ]]
 std::vector<int> ComplemSet(int aN,const std::vector<int> & aSet);
+
+
+/** class to generate a random subset of  K among N, not veru efficent if K<<N because all [0,N] must be parsed
+    on the other hand efficient in memory */
+
+
+class cRandKAmongN
+{
+    public :
+      cRandKAmongN(int aK,int aN);
+
+      bool GetNext();
+    private :
+        int mK;
+        int mN;
+};
 
 /// K is the numbre to select, it will be selected regularly with a proportion aProp
 bool SelectWithProp(int aK,double aProp);
@@ -62,6 +117,7 @@ bool SelectQAmongN(int aK,int aQ,int aN);
 
 /* ============ Definition of numerical type ================*/
 
+/*
 typedef float       tREAL4;
 typedef double      tREAL8;
 typedef long double tREAL16;
@@ -82,13 +138,14 @@ typedef unsigned long int tU_INT8;
 typedef int    tStdInt;  ///< "natural" int
 typedef unsigned int    tStdUInt;  ///< "natural" int
 typedef double tStdDouble;  ///< "natural" int
+*/
 
 /* ================= rounding  ======================= */
 
 /// return the smallest integral value >= r
 template<class Type> inline Type Tpl_round_up(tREAL8 r)
 {
-       Type i = (Type) r;
+       Type i = static_cast<Type> (r);
        return i + (i < r);
 }
 inline tINT4 round_up(tREAL8 r)  { return Tpl_round_up<tINT4>(r); }
@@ -98,7 +155,7 @@ inline tINT8 lround_up(tREAL8 r) { return Tpl_round_up<tINT8>(r); }
 /// return the smallest integral value > r
 template<class Type> inline Type Tpl_round_Uup(tREAL8 r)
 {
-       Type i = (Type) r;
+       Type i = static_cast<Type> (r);
        return i + (i <= r);
 }
 inline tINT4 round_Uup(tREAL8 r) { return Tpl_round_Uup<int>(r); }
@@ -107,7 +164,7 @@ inline tINT4 round_Uup(tREAL8 r) { return Tpl_round_Uup<int>(r); }
 /// return the highest integral value <= r
 template<class Type> inline Type Tpl_round_down(tREAL8 r)
 {
-       Type i = (Type) r;
+       Type i = static_cast<Type> (r);
        return i - (i > r);
 }
 inline tINT4  round_down(tREAL8 r) { return Tpl_round_down<tINT4>(r); }
@@ -116,7 +173,7 @@ inline tINT8 lround_down(tREAL8 r) { return Tpl_round_down<tINT8>(r); }
 /// return the highest integral value < r
 template<class Type> inline Type Tpl_round_Ddown(tREAL8 r)
 {
-       Type i = (Type) r;
+       Type i = static_cast<Type> (r);
        return i - (i >= r);
 }
 inline tINT4 round_Ddown(tREAL8 r) { return Tpl_round_Ddown<tINT4>(r); }
@@ -124,7 +181,7 @@ inline tINT4 round_Ddown(tREAL8 r) { return Tpl_round_Ddown<tINT4>(r); }
 /// return the integral value closest to r , if r = i +0.5 (i integer) return i+1
 template<class Type> inline Type Tpl_round_ni(tREAL8 r)
 {
-       Type i = (Type) r;
+       Type i = static_cast<Type> (r);
        i -= (i > r);
        // return i+ ((i+0.5) <= r) ; =>  2i+1<2r  => i < 2*r-i-1
        return i+ ((i+0.5) <= r) ;
@@ -195,6 +252,18 @@ template <> class tBaseNumTrait<tREAL16>
         typedef tREAL16  tBase;
         typedef tREAL16  tBig;
 };
+/// Not sure usable by itself but required in some systematic template instantiatio
+template <> class tBaseNumTrait<tREAL4>
+{
+    public :
+        // By default rounding has no meaning
+        static tREAL4 RoundDownToType(const double & aV) {return aV;}
+        static tREAL4 RoundNearestToType(const double & aV) {return aV;}
+        static bool IsInt() {return false;}
+        typedef tREAL4      tBase;
+        typedef tStdDouble  tBig;
+};
+
 
     // ========================================================================
     //  tElemNumTrait : declare what must be specialized for each type
@@ -284,7 +353,7 @@ template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
 template <> class tElemNumTrait<tREAL16> : public tBaseNumTrait<tREAL16>
 {
     public :
-        static tREAL16 Accuracy() {return 1e-6;} 
+        static tREAL16 Accuracy() {return static_cast<tREAL16>(1e-6);} 
         static bool      Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL16;}
         typedef tREAL16  tFloatAssoc;
@@ -323,6 +392,8 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
          typedef tElemNumTrait<Type>  tETrait;
          typedef typename  tETrait::tBase tBase;
          typedef typename  tETrait::tBig  tBig ;
+         typedef typename  tETrait::tFloatAssoc  tFloatAssoc ;
+         // typedef typename  tETrait::tFloatAssoc  tFloatAssoc ;
       // ===========================
          bool V_IsInt()  const override {return  tBaseNumTrait<tBase>::IsInt();}
          bool V_Signed() const override {return  tETrait::Signed();}
@@ -342,6 +413,10 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
                   return (aV>=MinValue()) && (aV<=MaxValue());
                return ValidFloatValue(aV);
          }
+	 static void AssertValueOk(const tBase & aV)
+	 {
+              MMVII_INTERNAL_ASSERT_tiny(ValueOk(aV),"Bad value");
+	 }
          static Type Trunc(const tBase & aV)
          {
                if (tETrait::IsInt())
@@ -395,6 +470,12 @@ template <> class tMergeF<tREAL8,tREAL8> { public : typedef tREAL8  tMax; };
 /* ================= Modulo ======================= */
 
 /// work only when b > 0
+inline tINT4 round_to(tINT4 a,tINT4 b)
+{
+   return (a/b) * b;
+}
+
+/// work only when b > 0
 inline tINT4 mod(tINT4 a,tINT4 b)
 {
     tINT4 r = a%b;
@@ -424,6 +505,8 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
     MMVII_INTERNAL_ASSERT_tiny(b>0,"DivSup");
     return (a+b-1)/b; 
 }
+/// a/b but upper valuer  6/3=> 2 7/3 => 3
+#define DIV_SUP(a,b) ((a+b-1)/b)  // macro version usefull for constexpr
 
 /// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
 double NormalisedRatio(double aI1,double aI2);
@@ -431,7 +514,9 @@ double NormalisedRatioPos(double aI1,double aI2);
 
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
-int BinomialCoeff(int aK,int aN);
+tREAL8   rBinomialCoeff(int aK,int aN);
+tU_INT8  liBinomialCoeff(int aK,int aN);
+tU_INT4  iBinomialCoeff(int aK,int aN);
 /* ****************  cDecomposPAdikVar *************  */
 
 //  P-adik decomposition
@@ -462,6 +547,7 @@ class cDecomposPAdikVar
 };
 
 double  RelativeDifference(const double & aV1,const double & aV2,bool * Ok=nullptr);
+double RelativeSafeDifference(const double & aV1,const double & aV2);
 
 template <class Type> int SignSupEq0(const Type & aV) {return (aV>=0) ? 1 : -1;}
 
@@ -473,6 +559,11 @@ template <class Type> Type Cube(const Type & aV) {return aV*aV*aV;}
 template <class Type,class TCast> TCast TSquare(const Type & aV) {return aV* TCast(aV);}
 template <class Type> tREAL8  R8Square(const Type & aV) {return TSquare<Type,tREAL8>(aV);} ///< To avoid oveflow with int type
 
+template <class Type> Type Sqrt(const Type & aV) 
+{
+    MMVII_ASSERT_POS_VALUE(aV);
+    return std::sqrt(aV);
+}
 
 template <class Type> void OrderMinMax(Type & aV1,Type & aV2)
 {
@@ -516,75 +607,98 @@ class cCubAppGauss
 */
 
 /// If we dont need any kernel interface keep it simple 
-tREAL8 CubAppGaussVal(const tREAL8&);   
+// tREAL8 CubAppGaussVal(const tREAL8&);   
 
 /*  ********************************* */
 /*       Witch Min and Max            */
 /* ********************************** */
 
-template <class TypeIndex,class TypeVal> class cWhitchMin
+template <class TypeIndex,class TypeVal,const bool IsMin> class cWhichExtrem
 {
      public :
-         cWhitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
-             mIndexMin (anIndex),
-             mVMin     (aVal)
+         cWhichExtrem(const TypeIndex & anIndex,const TypeVal & aVal) :
+             mIsInit     (true),
+             mIndexExtre (anIndex),
+             mValExtre   (aVal)
          {
          }
-         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
+         cWhichExtrem() :
+             mIsInit   (false),
+             mIndexExtre (cNV<TypeIndex>::V0()),  // required else compiler complains for possible use of un-initialised
+             // mIndexExtre (NullVal<TypeIndex>()),  // required else compiler complains for possible use of un-initialised
+             mValExtre   (0)
+	 {
+	 }
+	 bool IsInit() const {return mIsInit;}
+
+         void Add(const TypeIndex & anIndex,const TypeVal & aNewVal)
          {
-              if (aVal<mVMin)
+              if ( (IsMin?(aNewVal<mValExtre):(aNewVal>=mValExtre)) || (!mIsInit))
               {     
-                    mVMin = aVal;
-                    mIndexMin = anIndex;
+                    mValExtre   = aNewVal;
+                    mIndexExtre = anIndex;
               }
+              mIsInit = true;
          }
-         const TypeIndex & Index() const {return mIndexMin;}
-         const TypeVal   & Val  () const {return mVMin;}
+         const TypeIndex & IndexExtre() const {AssertIsInit();return mIndexExtre;}
+         const TypeVal   & ValExtre  () const {AssertIsInit();return mValExtre;}
      private :
-         TypeIndex mIndexMin;
-         TypeVal   mVMin;
+	 void  AssertIsInit() const 
+	 {
+              MMVII_INTERNAL_ASSERT_tiny(mIsInit,"Exrem not init");
+	 }
+         bool      mIsInit;
+         TypeIndex mIndexExtre;
+         TypeVal   mValExtre;
 };
-template <class TypeIndex,class TypeVal> class cWhitchMax
+
+template <class TypeIndex,class TypeVal> class cWhichMin : public cWhichExtrem<TypeIndex,TypeVal,true>
 {
      public :
-         cWhitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
-             mIndexMax (anIndex),
-             mVMax     (aVal)
+         typedef  cWhichExtrem<TypeIndex,TypeVal,true> tExrem;
+
+         cWhichMin(const TypeIndex & anIndex,const TypeVal & aVal) :
+            tExrem (anIndex,aVal) 
          {
          }
-         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
-         {
-              if (aVal>mVMax)
-              {
-                    mVMax = aVal;
-                    mIndexMax = anIndex;
-              }
-         }
-         const TypeIndex & Index() const {return mIndexMax;}
-         const TypeVal   & Val  () const {return mVMax;}
+         cWhichMin() : tExrem () {}
      private :
-         TypeIndex mIndexMax;
-         TypeVal   mVMax;
 };
-template <class TypeIndex,class TypeVal> class cWhitchMinMax
+template <class TypeIndex,class TypeVal> class cWhichMax : public cWhichExtrem<TypeIndex,TypeVal,false>
+{
+     public :
+         typedef  cWhichExtrem<TypeIndex,TypeVal,false> tExrem;
+
+         cWhichMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+            tExrem (anIndex,aVal) 
+         {
+         }
+         cWhichMax() : tExrem () {}
+     private :
+};
+
+
+template <class TypeIndex,class TypeVal> class cWhichMinMax
 {
      public  :
-         cWhitchMinMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhichMinMax(const TypeIndex & anIndex,const TypeVal & aVal) :
              mMin(anIndex,aVal),
              mMax(anIndex,aVal)
          {
          }
+         cWhichMinMax() { }
+
          void Add(const TypeIndex & anIndex,const TypeVal & aVal)
          {
              mMin.Add(anIndex,aVal);
              mMax.Add(anIndex,aVal);
          }
-         const cWhitchMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
-         const cWhitchMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
+         const cWhichMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
+         const cWhichMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
 
      private :
-         cWhitchMin<TypeIndex,TypeVal> mMin;
-         cWhitchMax<TypeIndex,TypeVal> mMax;
+         cWhichMin<TypeIndex,TypeVal> mMin;
+         cWhichMax<TypeIndex,TypeVal> mMax;
 };
 
 template <class TypeVal> void UpdateMin(TypeVal & aVar,const TypeVal & aValue) {if (aValue<aVar) aVar = aValue;}
@@ -596,6 +710,49 @@ template <class TypeVal> void UpdateMinMax(TypeVal & aVarMin,TypeVal & aVarMax,c
     if (aValue<aVarMin) aVarMin = aValue;
     if (aValue>aVarMax) aVarMax = aValue;
 }
+
+/// Class to store min and max values
+template <class TypeVal> class cBoundVals
+{
+	public :
+            cBoundVals() :
+                   mVMin ( std::numeric_limits<TypeVal>::max()),
+		   mVMax (-std::numeric_limits<TypeVal>::max())
+	    {
+            }
+            void Add(const TypeVal & aVal)
+            {
+                 UpdateMinMax(mVMin,mVMax,aVal);
+            }
+
+	    const TypeVal  &  VMin () const {return mVMin;}
+	    const TypeVal  &  VMax () const {return mVMax;}
+	private :
+            TypeVal  mVMin;
+            TypeVal  mVMax;
+};
+/// Class to store min and max values AND average
+template <class TypeVal> class cAvgAndBoundVals  : public cBoundVals<TypeVal>
+{
+	public :
+		cAvgAndBoundVals() :
+			cBoundVals<TypeVal>(),
+			mSomVal  (0),
+			mNbVals  (0)
+	        {
+	        }
+                void Add(const TypeVal & aVal)
+		{
+			cBoundVals<TypeVal>::Add(aVal);
+			mSomVal += aVal;
+			mNbVals++;
+		}
+		TypeVal  Avg() const { SafeDiv(mSomVal,mNbVals); }
+	private :
+           TypeVal  mSomVal;
+           TypeVal  mNbVals;
+};
+
 // This rather "strange" function returns a value true at frequence  as close as possible
 // to aFreq, and with the warantee that it is true for last index
 
@@ -605,9 +762,40 @@ bool SignalAtFrequence(tREAL8 anIndex,tREAL8 aFreq,tREAL8  aCenterPhase);
 /*       Analytical function used with fisheye */
 /* ******************************************* */
 
-// Sinus cardinal with caution on tiny values
-template <typename Type> Type sinC(const Type & aTeta);
+/// Sinus cardinal with caution on tiny values < aEps
 template <typename Type> Type sinC(const Type & aTeta,const Type & aEps);
+/// Sinus cardinal default with epsilon of type, to have interface of unitary function
+template <typename Type> Type sinC(const Type & aTeta);
+/// Derivative Sinus cardinal with caution on tiny values < aEps
+template <typename Type> Type DerSinC(const Type & aTeta,const Type & aEps);
+/// Derivative Sinus cardinal with default epsilon of type, to have interface of unitary function
+template <typename Type> Type DerSinC(const Type & aTeta);
+
+/// to have it in good namespace in code gen
+template <typename Type> Type ASin(const Type & aSin);
+/// to have it as operator in code gen
+template <typename Type> Type DerASin(const Type & aSin);
+
+/// as sqrt but check value
+template <typename Type> Type Sqrt(const Type & aX);
+///  as 1/(2 sqrt) but check value
+template <typename Type> Type DerSqrt(const Type & aX);
+
+/// to have it in good namespace in code gen
+template <typename Type> Type ATan2(const Type & aX,const Type & aY);
+/// to have it d/dx in code gen
+template <typename Type> Type DerX_ATan2(const Type & aX,const Type & aY);
+/// to have it d/dy in code gen
+template <typename Type> Type DerY_ATan2(const Type & aX,const Type & aY);
+
+
+/// Sinus hyperbolic
+template <typename Type> Type sinH(const Type & aTeta);
+/// CoSinus hyperbolic
+template <typename Type> Type cosH(const Type & aTeta);
+
+
+
 
   //  ----- Function used for equilinear fisheye ----
 
@@ -623,8 +811,83 @@ template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Typ
    /// Same as DerXAtanXY_sX ...  ... bench
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
 
+  
 
 
+/*  ****************************************** */
+/*       BIT MANIPULATION FUNCTIONS            */
+/* ******************************************* */
+
+int HammingDist(tU_INT4 aV1,tU_INT4 aV2);
+
+class  cHamingCoder
+{
+    public :
+         /// Constructor , indicate the number of bit of information
+         cHamingCoder(int aNbBitsIn);
+
+         int NbBitsOut() const; ///< Number of bit of coded messages
+         int NbBitsIn() const;  ///< Number of bits of information
+         int NbBitsRed() const; ///< Number of bits of redundancy
+
+         tU_INT4  Coding(tU_INT4) const;  ///< From raw to encoded message
+         /// Return initial message IFF no alteration, else return -1
+         int  UnCodeWhenCorrect(tU_INT4);
+
+    private :
+        int mNbBitsIn;
+        int mNbBitsRed;
+        int mNbBitsOut;
+
+        std::vector<bool>  mIsBitRed;
+        std::vector<int>   mNumI2O;
+        std::vector<int>   mNumO2I;
+};
+
+
+template <class Type> class  cPolynom
+{
+        public :
+           typedef std::vector<Type>  tCoeffs;
+           cPolynom(const tCoeffs &);
+           cPolynom(const cPolynom &);
+           cPolynom(size_t aDegre);
+           size_t  Degree() const;
+
+           static cPolynom<Type>  D0(const Type &aCste);      ///< constant polynom degre 0
+           static cPolynom<Type>  D1FromRoot(const Type &aRoot);    ///< degre 1 polynom with aRoot
+           static cPolynom<Type>  D2NoRoot(const Type & aVMin,const Type &aArgmin);  ///< +- (|V| + (x-a) ^2) ,
+
+           static cPolynom<Type>  RandomPolyg(int aDegree,Type & anAmpl);
+           ///  Generate random polygo from its randomly generated roots => test for
+           static cPolynom<Type>  RandomPolyg(std::vector<Type> & aVRoots,int aNbRoot,int aNbNoRoot,Type Interv,Type MinDist);
+
+
+           Type  Value(const Type & aVal) const;
+
+           cPolynom<Type> operator * (const cPolynom<Type> & aP2) const;
+           cPolynom<Type> operator + (const cPolynom<Type> & aP2) const;
+           cPolynom<Type> operator - (const cPolynom<Type> & aP2) const;
+           cPolynom<Type> operator * (const  Type & aVal) const;
+           std::vector<Type> RealRoots(const Type & aTol,int ItMax);
+
+
+           Type&   operator [] (size_t aK) {return mVCoeffs[aK];}
+           const Type&   operator [] (size_t aK) const {return mVCoeffs[aK];}
+           Type  KthDef(size_t aK) const {return (aK<mVCoeffs.size()) ? mVCoeffs[aK] : static_cast<Type>(0.0) ;}
+
+           const tCoeffs &  VCoeffs() const;
+
+        private :
+           tCoeffs  mVCoeffs;
+};
+
+template <class Type,const int Dim>  cPolynom<Type> operator * (const  Type & aVal,const cPolynom<Type>  & aPol)  {return aPol*aVal;}
+/// return polynom of (Cste + X Lin)^2
+template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>& aVecCste,const cPtxd<Type,Dim>& aVecLin);
+
+// Rank of values
+template <class TCont,class TVal> double Rank(const TCont &, const TVal&);
 
 
 };

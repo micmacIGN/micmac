@@ -9,6 +9,12 @@
 
 */
 
+#include "MMVII_DeclareCste.h"
+#include "MMVII_Stringifier.h"
+#include "MMVII_Matrix.h"
+#include <set>
+#include <map>
+
 
 namespace MMVII
 {
@@ -209,7 +215,7 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet
     {
         std::vector<Type> aV; // read data in a vect
         AddData(aTagSet,aV);
-        for (const auto el: aV)  // put the vect in the set
+        for (const auto & el: aV)  // put the vect in the set G++11
             aSet.Add(el);
     }
     else
@@ -251,12 +257,26 @@ template<class Type> void  SaveInFile(const Type & aVal,const std::string & aNam
    }
 }
 
+/*
 template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
 {
     std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArHashVal(ordered),DeleteAr);
     cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
     AddData(aGLOB,const_cast<Type&>(aVal));
     return HashValFromAr(*anAr);
+}
+
+*/
+template<class Type> size_t  HashValue(cAr2007 * anAr,const Type & aVal,bool ordered)
+{
+    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+    AddData(aGLOB,const_cast<Type&>(aVal));
+    return HashValFromAr(*anAr);
+}
+template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
+{
+    std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArHashVal(ordered),DeleteAr);
+    return HashValue(anAr.get(),aVal,ordered);
 }
 
 
@@ -281,7 +301,30 @@ template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & a
       aVal = Type();
 }
 
+template<class Type> void  ToFileIfFirstime(const Type & anObj,const std::string & aNameFile)
+{
+   static std::set<std::string> aSetFilesAlreadySaved;
+   if (!BoolFind(aSetFilesAlreadySaved,aNameFile))
+   {
+        aSetFilesAlreadySaved.insert(aNameFile);
+        anObj.ToFile(aNameFile);
+   }
+}
 
+template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::string & aName)
+{
+     static std::map<std::string,Type *> TheMap;
+     Type * & anExistingRes = TheMap[aName];
+
+     if (anExistingRes == 0)
+     {
+        TypeTmp aDataCreate;
+        ReadFromFile(aDataCreate,aName);
+        anExistingRes = new Type(aDataCreate);
+        cMMVII_Appli::AddObj2DelAtEnd(anExistingRes);
+     }
+     return anExistingRes;
+}
 
 };
 

@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_MMV1Compat.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 #include <regex>
 #include <unordered_set>
 #include <unordered_map>
@@ -470,6 +471,15 @@ tNameSelector  AllocRegex(const std::string& aPat)
    return cSelector<std::string>(new cDataStdRegex(aPat));
 }
 
+bool  MatchRegex(const std::string& aName,const std::string& aPat)
+{
+	 return AllocRegex(aPat).Match(aName);
+}
+
+std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString)
+{
+   return std::regex_replace(aString,std::regex(aPattern),aSubst, std::regex_constants::format_no_copy);
+}
 
 
 
@@ -617,9 +627,6 @@ template <class Type> cExtSet<Type>::cExtSet(eTySC aKindOf) :
 {
 }
 
-template <class Type> cExtSet<Type>::~cExtSet() 
-{
-}
 
 template <class Type> bool cExtSet<Type>::IsInit() const
 {
@@ -1135,6 +1142,8 @@ void BenchSet(cParamExeBench & aParam,const std::string & aDir)
     }
     aParam.EndBench();
 }
+
+
 
 };
 

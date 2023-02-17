@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Stringifier.h"
 #include "kapture.h"
+#include "cMMVII_Appli.h"
 
 namespace MMVII
 {

@@ -1,4 +1,6 @@
-#include "include/MMVII_all.h"
+#include "MMVII_util.h"
+#include "MMVII_Matrix.h"
+#include "MMVII_Linear2DFiltering.h"
 
 namespace MMVII
 {
@@ -19,6 +21,94 @@ double FactExpFromSigma2(double aS2)
 
 /* *************************************** */
 /*                                         */
+/*            cParamRansac                 */
+/*                                         */
+/* *************************************** */
+
+cParamRansac::cParamRansac(double  aProba1Err,double anErrAdm) :
+    mProba1Err (aProba1Err),
+    mErrAdm    (anErrAdm)
+{
+}
+
+
+int  cParamRansac::NbTestOfErrAdm(int aNbSample) const
+{
+   double aProbaAllOk = pow(1-mProba1Err,aNbSample);
+
+   // (1- aProbaAllOk) ^ Nb < mErrAdm
+   return round_up(log(mErrAdm) / log(1-aProbaAllOk));
+}
+
+/* *************************************** */
+/*                                         */
+/*            cParamCtrNLsq                */
+/*                                         */
+/* *************************************** */
+
+cParamCtrNLsq::cParamCtrNLsq()
+{
+}
+
+double cParamCtrNLsq::ValBack(int aK) const
+{
+   return mVER.at(mVER.size()-1-aK);
+}
+
+
+double cParamCtrNLsq::GainRel(int aK1,int aK2) const
+{
+    return (ValBack(aK2)-ValBack(aK1))  / ValBack(aK2);
+}
+
+
+bool cParamCtrNLsq::StabilityAfterNextError(double anErr) 
+{
+    // Err can decrease, stop now to avoid / by 0
+    if (anErr<=0) 
+       return true;
+
+    mVER.push_back(anErr);
+
+    int aNb = mVER.size() ; // If less 2 value, cannot estimate variation
+    if (aNb>10)
+       return true;
+
+    if (aNb<2) 
+       return false;
+    
+    if (GainRel(0,1)<1e-4) // if err increase or almosr stable
+       return true;
+
+    return false;
+}
+
+/* *************************************** */
+/*                                         */
+/*        cParamCtrlOpt                    */
+/*                                         */
+/* *************************************** */
+
+
+cParamCtrlOpt::cParamCtrlOpt(const cParamRansac & aPRS,const cParamCtrNLsq & aPLS) :
+    mParamRS  (aPRS),
+    mParamLSQ (aPLS)
+{
+}
+const cParamRansac  & cParamCtrlOpt::ParamRS()  const {return mParamRS;}
+const cParamCtrNLsq & cParamCtrlOpt::ParamLSQ() const {return mParamLSQ;}
+
+cParamCtrlOpt  cParamCtrlOpt::Default()
+{
+   return cParamCtrlOpt
+          (
+              cParamRansac(0.5,1e-6),
+              cParamCtrNLsq()
+          );
+}
+
+/* *************************************** */
+/*                                         */
 /*        cComputeStdDev                   */
 /*                                         */
 /* *************************************** */
@@ -26,16 +116,19 @@ double FactExpFromSigma2(double aS2)
 template <class Type> cComputeStdDev<Type>::cComputeStdDev() :
    mSomW   (0.0),
    mSomWV  (0.0),
-   mSomWV2 (0.0)
+   mSomWV2 (0.0),
+   mStdDev (0.0) 
 {
 }
 
+/*
 template <class Type> void cComputeStdDev<Type>::Add(const Type & aW,const Type & aV)
 {
     mSomW   += aW;
     mSomWV  += aW *aV;
     mSomWV2 += aW * Square(aV);
 }
+*/
 
 
 template <class Type> void cComputeStdDev<Type>::SelfNormalize(const Type&  Epsilon)
@@ -195,25 +288,45 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
 /*          cWeightAv<Type>                        */
 /*                                                 */
 /* *********************************************** */
+/*
+template <class T> class cNV
+{
+    public :
+	static T V0(){return T(0);}
+};
+template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >
+{
+    public :
+	static  cPtxd<T,Dim>V0(){return  cPtxd<T,Dim>::PCste(0);}
+};
 
-template <class Type> cWeightAv<Type>::cWeightAv() :
+template<> cPt2dr NullVal<cPt2dr>() {return cPt2dr::PCste(0);}
+template<> cPt3dr NullVal<cPt3dr>() {return cPt3dr::PCste(0);}
+template<> cPt2df NullVal<cPt2df>() {return cPt2df::PCste(0);}
+template<> cPt3df NullVal<cPt3df>() {return cPt3df::PCste(0);}
+template<> cPt2dLR NullVal<cPt2dLR>() {return cPt2dLR::PCste(0);}
+template<> cPt3dLR NullVal<cPt3dLR>() {return cPt3dLR::PCste(0);}
+*/
+
+
+template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeightAv() :
    mSW(0),
-   mSVW(0)
+   // mSVW(NullVal<TypeVal>())
+   mSVW(cNV<TypeVal>::V0())
 {
 }
 
-template <class Type> void cWeightAv<Type>::Add(const Type & aWeight,const Type & aVal)
+template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Add(const TypeWeight & aWeight,const TypeVal & aVal)
 {
    mSW += aWeight;
    mSVW += aVal * aWeight;
 }
 
-template <class Type> Type cWeightAv<Type>::Average() const
+template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>::Average() const
 {
     MMVII_ASSERT_INVERTIBLE_VALUE(mSW);
     return mSVW / mSW;
 }
-
 
 
 
@@ -346,12 +459,12 @@ template<class Type> cSymMeasure<Type>::cSymMeasure() :
 {
 }
 
-template<class Type> void cSymMeasure<Type>::Add(Type aV1,Type aV2)
+template<class Type> const cComputeStdDev<Type > & cSymMeasure<Type>::Dev() const 
 {
-   mDif += Square(aV1-aV2);
-   mDev.Add(1.0,aV1);
-   mDev.Add(1.0,aV2);
+   return mDev;
 }
+
+
 
 template<class Type> Type  cSymMeasure<Type>::Sym(const Type & anEspilon) const
 {
@@ -450,17 +563,29 @@ void BenchStat(cParamExeBench & aParam)
 /*                                                 */
 /* *********************************************** */
 
+// template class cWeightAv<TYPE,TYPE >;
+
 #define INSTANTIATE_MAT_INER(TYPE)\
+template class cWeightAv<TYPE,cPtxd<TYPE,2> >;\
+template class cWeightAv<TYPE,cPtxd<TYPE,3> >;\
 template class cSymMeasure<TYPE>;\
 template class cMatIner2Var<TYPE>;\
 template  class cComputeStdDev<TYPE>;\
-template class cWeightAv<TYPE>;\
+template class cWeightAv<TYPE,TYPE>;\
 template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);
 
 
 INSTANTIATE_MAT_INER(tREAL4)
 INSTANTIATE_MAT_INER(tREAL8)
 INSTANTIATE_MAT_INER(tREAL16)
+
+/*
+#define INSTANTIATE_WA(TYPE,DIM)\
+template class cWeightAv<tREAL8,cPtxd<TYPE,DIM> >;
+
+INSTANTIATE_WA(tREAL4,2)
+*/
+
 
 };
 

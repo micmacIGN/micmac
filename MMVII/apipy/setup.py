@@ -37,7 +37,8 @@ setup (name = 'mmv2',
        data_files = [("mmv2/MMVII/bin", ['../bin/MMVII']),
                      ("mmv2/include/XML_MicMac", xml_micmac_files),
                      ("mmv2/include/XML_GEN", xml_gen_files)],
-       platforms  = ['x86_64']
+       platforms  = ['x86_64'],
+       install_requires=['numpy']
        )
 
 #https://docs.python.org/3/extending/building.html

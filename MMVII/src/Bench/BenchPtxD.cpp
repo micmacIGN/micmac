@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Bench.h"
 
 namespace MMVII
 {
@@ -50,10 +51,10 @@ void  Bench_cPt2dr()
    }
    // Bench Polar function is correct on some test values
    MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(1,1)-FromPolar(sqrt(2.0),M_PI/4.0))<1e-5,"cPt2r Bench");
-   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(-2,0)-FromPolar(2,-M_PI))<1e-5,"cPt2r Bench");
-   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,2)-FromPolar(2,M_PI/2.0))<1e-5,"cPt2r Bench");
-   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,-2)-FromPolar(2,3*M_PI/2.0))<1e-5,"cPt2r Bench");
-   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,-2)-FromPolar(2,7*M_PI/2.0))<1e-5,"cPt2r Bench");
+   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(-2,0)-FromPolar(2.0,-M_PI))<1e-5,"cPt2r Bench");
+   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,2)-FromPolar(2.0,M_PI/2.0))<1e-5,"cPt2r Bench");
+   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,-2)-FromPolar(2.0,3*M_PI/2.0))<1e-5,"cPt2r Bench");
+   MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(0,-2)-FromPolar(2.0,7*M_PI/2.0))<1e-5,"cPt2r Bench");
    for (int aK=0 ; aK< 100; aK++)
    {
 
@@ -87,9 +88,11 @@ void  Bench_cPt2dr()
 
 template <class TypePt> void  TestDist(TypePt aPt,double aN1,double aN2,double aNInf)
 {
+   double aAcc =   tElemNumTrait<typename TypePt::tEl>::Accuracy() ;
+
    MMVII_INTERNAL_ASSERT_bench(std::abs(Norm1(aPt)-aN1)<1e-10,"Norm2");
    MMVII_INTERNAL_ASSERT_bench(std::abs(NormK(aPt,1.0)-aN1)<1e-10,"Norm2");
-   MMVII_INTERNAL_ASSERT_bench(std::abs(Norm2(aPt)-aN2)<1e-10,"Norm2");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(Norm2(aPt)-aN2)<aAcc,"Norm2");
    MMVII_INTERNAL_ASSERT_bench(std::abs(NormK(aPt,2.0)-aN2)<1e-10,"Norm2");
    MMVII_INTERNAL_ASSERT_bench(std::abs(NormInf(aPt)-aNInf)<1e-10,"Norm2");
 

@@ -792,8 +792,7 @@ template <class TPds,class TVal> inline TVal barry(TPds pds1,const TVal & p1,con
 {
      return p1*pds1  + p2*(1-pds1);
 }
-
-#if (ELISE_ACTIVE_ASSER)
+#if defined (ELISE_ACTIVE_ASSER) && (ELISE_ACTIVE_ASSER > 0)
 template <class Type> void assert_not_nul(const Pt2d<Type> & pt)
 {
     ELISE_ASSERT((pt.x != 0) || (pt.y !=0),"Unexptected Nul point");
