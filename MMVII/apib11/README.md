@@ -6,6 +6,7 @@ Dependencies
 ------------
 
     pip3 install pybind11 pybind11_mkdoc
+    apt install libxext-dev
 
 
 Compilation
