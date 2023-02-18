@@ -306,6 +306,9 @@ int CPP_DebugAI4GeoMasq (int argc,char ** argv);
 int CPP_MMBasic4IGeo(int argc,char ** argv);
 int CPP_MMBasicTestDeep(int argc,char ** argv);
 
+int MMVII_SaisieMasq_main(int argc,char ** argv);
+
+
 const std::vector<cMMCom> & getAvailableCommands()
 {
 	static std::vector<cMMCom> aRes;
@@ -567,6 +570,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("SaisieBasc", SaisieBasc_main, " Interactive tool to capture information on the scene"));
 		aRes.push_back(cMMCom("SaisieCyl", SaisieCyl_main, " Interactive tool to capture information on the scene for cylinders"));
 		aRes.push_back(cMMCom("SaisieMasq", SaisieMasq_main, " Interactive tool to capture masq"));
+		aRes.push_back(cMMCom("MMVII_SaisieMasq", MMVII_SaisieMasq_main, " Saisie Masq with MMVII naming convention"));
 		aRes.push_back(cMMCom("SaisiePts", SaisiePts_main, " Tool to capture GCP (low level, not recommended)"));
 		aRes.push_back(cMMCom("SEL", SEL_main, " Tool to visualize tie points"));
 		aRes.push_back(cMMCom("MICMACSaisieLiaisons", MICMACSaisieLiaisons_main, " Low level version of SEL, not recommended"));

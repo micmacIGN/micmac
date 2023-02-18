@@ -184,6 +184,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::Orient,"Ori"},
                 {eTA2007::Radiom,"Rad"},
                 {eTA2007::MeshDev,"MeshDev"},
+                {eTA2007::Mask,"Mask"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
                 {eTA2007::OptionalExist,"OptEx"},

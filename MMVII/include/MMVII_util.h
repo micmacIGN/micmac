@@ -98,6 +98,7 @@ std::string UpDir(const std::string & aDir,int aNb);
 // std::string AbsoluteName(const std::string &); ///< Get absolute name of path; rather pwd than unalias, no good
 bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitive equality
 bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case UN-sensitive premisse of aStr ?
+bool UCaseMember(const std::vector<std::string> & aVec,const std::string & aName); ///< is Name meber of vec, insensitive way
 bool CreateDirectories(const std::string & aDir,bool SVP); ///< Create dir, recurs ?
 bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP); ///< Purge recursively the directory
 bool RemoveFile(const  std::string & aDir,bool SVP); ///< Remove file
@@ -107,7 +108,11 @@ bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all fil
 void ActionDir(const std::string &,eModeCreateDir);
 
 std::string AddBefore(const std::string & aPath,const std::string & ToAdd); // A/B/C.tif,@  =>  A/B/@C.tif
+std::string AddAfter(const std::string & aPath,const std::string & ToAdd); // A/B/C.tif,@  =>  A/B/@C.tif
 std::string ChgPostix(const std::string & aPath,const std::string & aPost); // A/B/C.png,tif  =>  A/B/C.tif
+std::string AddAfterAndChgPost(const std::string & aPath,const std::string & ToAdd,const std::string & aPost); // A/B/C.tif,@  =>  A/B/@C.tif
+
+const std::string & StrWDef(const std::string & aValue,const std::string & aDef); ///< Return value if !="", else default
 
 
 

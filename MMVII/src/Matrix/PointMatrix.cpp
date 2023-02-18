@@ -107,6 +107,20 @@ template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L0,c
       return aRes;
 }
 
+template <class Type>  cDenseMatrix<Type> M2x2FromLines(const cPtxd<Type,2>&L0,const cPtxd<Type,2> &L1)
+{
+      cDenseMatrix<Type> aRes(2,2);
+
+      SetLine(0,aRes,L0);
+      SetLine(1,aRes,L1);
+
+      return aRes;
+}
+
+
+
+
+
 
 template <class Type,const int DimOut,const int DimIn> 
 void MulCol(cPtxd<Type,DimOut>&aPOut,const cDenseMatrix<Type>&aMat,const cPtxd<Type,DimIn>&aPIn)
@@ -208,6 +222,7 @@ template  void SetLine(int,cDenseMatrix<TYPE> & ,const cPtxd<TYPE,DIM> & );
 
 #define INSTANT_PT_MAT_TYPE(TYPE)\
 template   cDenseMatrix<TYPE> M3x3FromLines(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3> &,const cPtxd<TYPE,3> &);\
+template   cDenseMatrix<TYPE> M2x2FromLines(const cPtxd<TYPE,2>&,const cPtxd<TYPE,2> &);\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,1)\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,2)\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,3)\

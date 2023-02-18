@@ -18,30 +18,49 @@ const cPt3di cRGBImage::White(255,255,255);
 /// Do it for all pix; 
 //template <class Type> void SetGrayPix(cRGBImage&,const cDataIm2D<Type> & aIm,const double & aMul=1.0);
 //template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aIm,const double & aMul=1.0);
+//
+//
+
+void cRGBImage::AssertZ1() const
+{
+    MMVII_INTERNAL_ASSERT_tiny(mZoom==1,"RGBImage:: AssertZ1");
+}
+
+const cRect2& cRGBImage::BoxZ1() const { return mBoxZ1;}
+
 
 typename cRGBImage::tIm1C cRGBImage::ImR() {return mImR;}
 typename cRGBImage::tIm1C cRGBImage::ImG() {return mImG;}
 typename cRGBImage::tIm1C cRGBImage::ImB() {return mImB;}
 
-cRGBImage::cRGBImage(const cPt2di & aSz) :
-    mImR (aSz),
-    mImG (aSz),
-    mImB (aSz)
+cRGBImage::cRGBImage(const cPt2di & aSz,int aZoom) :
+    mSz1    (aSz),
+    mBoxZ1  (cRect2(cPt2di(0,0),mSz1)),
+    mSzz    (aSz*aZoom),
+    mZoom   (aZoom),
+    mImR    (mSzz),
+    mImG    (mSzz),
+    mImB    (mSzz)
 {
 }
-cRGBImage::cRGBImage(const cPt2di & aSz,const cPt3di & aCoul) :
-   cRGBImage (aSz)
+cRGBImage::cRGBImage(const cPt2di & aSz,const cPt3di & aCoul,int aZoom) :
+   cRGBImage (aSz,aZoom)
 {
-    for (const auto & aPix : mImR.DIm())
+    for (const auto & aPix : mBoxZ1)
         SetRGBPix(aPix,aCoul);
 }
 
 
-void cRGBImage::SetRGBPix(const cPt2di & aPix,int aR,int aG,int aB)
+void cRGBImage::SetRGBPix(const cPt2di & aPix1,int aR,int aG,int aB)
 {
-    mImR.DIm().SetVTruncIfInside(aPix,aR);
-    mImG.DIm().SetVTruncIfInside(aPix,aG);
-    mImB.DIm().SetVTruncIfInside(aPix,aB);
+    cRect2 aBoxZ(aPix1*mZoom,(aPix1+cPt2di(1,1))*mZoom);
+
+    for (const auto & aPixz : aBoxZ)
+    {
+       mImR.DIm().SetVTruncIfInside(aPixz,aR);
+       mImG.DIm().SetVTruncIfInside(aPixz,aG);
+       mImB.DIm().SetVTruncIfInside(aPixz,aB);
+    }
 }
 
 void cRGBImage::SetRGBPix(const cPt2di & aPix,const cPt3di & aCoul)
@@ -51,17 +70,13 @@ void cRGBImage::SetRGBPix(const cPt2di & aPix,const cPt3di & aCoul)
 
 cPt3di cRGBImage::GetRGBPix(const cPt2di & aPix) const
 {
+    AssertZ1();
+    return LikeZ1_RGBPix(aPix);
+}
+
+cPt3di cRGBImage::LikeZ1_RGBPix(const cPt2di & aPix) const
+{
     return cPt3di(mImR.DIm().GetV(aPix),mImG.DIm().GetV(aPix),mImB.DIm().GetV(aPix));
-}
-
-cPt3di cRGBImage::GetRGBPixBL(const cPt2dr & aPix) const
-{
-    return cPt3di(mImR.DIm().GetVBL(aPix),mImG.DIm().GetVBL(aPix),mImB.DIm().GetVBL(aPix));
-}
-
-bool cRGBImage::InsideBL(const cPt2dr & aPix) const
-{
-    return mImR.DIm().InsideBL(aPix);
 }
 
 
@@ -70,9 +85,25 @@ void cRGBImage::SetGrayPix(const cPt2di & aPix,int aGray)
      SetRGBPix(aPix,aGray,aGray,aGray);
 }
 
+    // ========  Method requiring read of images, only work when zoom==1
+
+cPt3di cRGBImage::GetRGBPixBL(const cPt2dr & aPix) const
+{  
+    AssertZ1();
+    return cPt3di(mImR.DIm().GetVBL(aPix),mImG.DIm().GetVBL(aPix),mImB.DIm().GetVBL(aPix));
+}
+
+
+bool cRGBImage::InsideBL(const cPt2dr & aPix) const
+{
+    AssertZ1();
+    return mImR.DIm().InsideBL(aPix);
+}
+
 
 void cRGBImage::SetRGBPixWithAlpha(const cPt2di & aPix,const cPt3di &aCoul,const cPt3dr & aAlpha)
 {
+    AssertZ1();
       cPt3di aCurC = GetRGBPix(aPix); 
 
       cPt3di aMix
@@ -86,6 +117,7 @@ void cRGBImage::SetRGBPixWithAlpha(const cPt2di & aPix,const cPt3di &aCoul,const
 
 void cRGBImage::SetRGBrectWithAlpha(const cPt2di & aC,int aSzW,const cPt3di & aCoul,const double & aAlpha)
 {
+    AssertZ1();
     for (const auto & aPix  :  cRect2::BoxWindow(aC,aSzW))
         SetRGBPixWithAlpha(aPix,aCoul,cPt3dr(aAlpha,aAlpha,aAlpha));
 }
@@ -99,14 +131,14 @@ template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,cons
 
 template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & aGrayIm,const double & aMul)
 {
-    for (const auto & aPix : aRGBIm.ImR().DIm())
+    for (const auto & aPix : aRGBIm.BoxZ1())
         SetGrayPix(aRGBIm,aPix,aGrayIm,aMul);
 }
 
 
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul)
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul,int aZoom)
 {
-   cRGBImage aRes(aGrayIm.Sz());
+   cRGBImage aRes(aGrayIm.Sz(),aZoom);
 
    SetGrayPix(aRes,aGrayIm,aMul);
 
@@ -117,30 +149,68 @@ template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,c
     
                //  Creation/Read from file
 
-cRGBImage cRGBImage::FromFile(const std::string& aName,const cBox2di & aBox)
+cRGBImage cRGBImage::FromFile(const std::string& aName,const cBox2di & aBox,int aZoom)
 {
-     cRGBImage aRes(aBox.Sz());
+     cRGBImage aRes(aBox.Sz(),aZoom);
      aRes.Read(cDataFileIm2D::Create(aName,false),aBox.P0());
 
      return aRes;
 }
 
-cRGBImage cRGBImage::FromFile(const std::string& aName)
+cRGBImage cRGBImage::FromFile(const std::string& aName,int aZoom)
 {
-     return FromFile(aName,cDataFileIm2D::Create(aName,false));
+     cRect2 aRect = cDataFileIm2D::Create(aName,false);
+     return FromFile(aName,aRect,aZoom);
 }
 
-void cRGBImage::Read(const cDataFileIm2D & aDFI,const cPt2di & aP0,double aDyn,const cRect2& aRect)
+void cRGBImage::Read(const cDataFileIm2D & aDFI,const cPt2di & aP0File,double aDyn,const cRect2& aArgRect)
 {
+    // Default value for empty box will not work her
+    cRect2 aRect = aArgRect;
+    if (aRect.IsEmpty())
+       aRect = cRect2(cPt2di(0,0),mSz1);
+
+    cPt2di aP0Z = aRect.P0() * mZoom;
+    cRect2 aRect1Z (aP0Z,aP0Z+aRect.Sz());
+
+    // In a first step we transfere data at the good origine (P0Z) but not
+    // taking into account the zoom
     if (aDFI.NbChannel()==3)
-        mImR.DIm().Read(aDFI,mImG.DIm(),mImB.DIm(),aP0,aDyn,aRect);
+        mImR.DIm().Read(aDFI,mImG.DIm(),mImB.DIm(),aP0File,aDyn,aRect1Z);
     else
     {
-        mImR.DIm().Read(aDFI,aP0,aDyn,aRect);
-        CopyIn(mImG.DIm(),mImR.DIm());
-        CopyIn(mImB.DIm(),mImR.DIm());
+        mImR.DIm().Read(aDFI,aP0File,aDyn,aRect1Z);
+	cRect2 aRectZ(aP0Z,aRect.Sz());
+        RectCopyIn(mImG.DIm(),mImR.DIm(),aRect1Z);
+        RectCopyIn(mImB.DIm(),mImR.DIm(),aRect1Z);
+    }
+
+     ReplicateForZoom(aRect1Z);
+}
+
+
+void cRGBImage::ReplicateForZoom(const cRect2 & aRect1Z)
+{
+    // nothing to do
+    if (mZoom==1) return;
+
+    cPt2di aP0Z = aRect1Z.P0();
+    cPt2di aP0Z1 = aP0Z / mZoom;
+    cPt2di aSz1 = aRect1Z.Sz();
+
+    // Make a replication  of rectangle beging at P0Z, to avoid
+    // sides-effect begin by higher value
+    for (int aX=aSz1.x() -1 ; aX>=0; aX--)
+    {
+       for (int aY=aSz1.y() -1 ;  aY>=0 ; aY--)
+       {
+	   cPt2di aPLoc1(aX,aY);
+	   cPt3di aCol = LikeZ1_RGBPix(aP0Z+aPLoc1);
+	   SetRGBPix(aP0Z1+aPLoc1,aCol);
+       }
     }
 }
+
 
 void cRGBImage::Read(const std::string & aName,const cPt2di & aP0,double aDyn,const cRect2& aRect) 
 {
@@ -156,11 +226,13 @@ void cRGBImage::ToFile(const std::string & aName)
 
 void cRGBImage::Write(const cDataFileIm2D & aDFI,const cPt2di & aP0,double aDyn,const cRect2& aRect) const
 {
+    AssertZ1();
     mImR.DIm().Write(aDFI,mImG.DIm(),mImB.DIm(),aP0,aDyn,aRect);
 }
 
 void cRGBImage::Write(const std::string & aName,const cPt2di & aP0,double aDyn,const cRect2& aRect) const
 {
+    AssertZ1();
      Write(cDataFileIm2D::Create(aName,false),aP0,aDyn,aRect);
 }
 
@@ -185,9 +257,11 @@ std::vector<cPt3di>  cRGBImage::LutVisuLabRand(int aNbLab)
     return aRes;
 }
 
+#if (0)
 
 
+#endif
 template  void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<tREAL4> & aIm,const double &);
-template  void SetGrayPix(cRGBImage&,const cDataIm2D<tREAL4> & aIm,const double & aMul=1.0);
-template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const double & aMul =1.0);
+template  void SetGrayPix(cRGBImage&,const cDataIm2D<tREAL4> & aIm,const double & aMul);
+template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const double & aMul,int aZoom);
 };

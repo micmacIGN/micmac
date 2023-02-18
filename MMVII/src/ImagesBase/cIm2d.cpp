@@ -263,6 +263,71 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const
 
 /* *********************************************************** */
 /*                                                             */
+/*            cAppliWithMasqIma                                */
+/*                                                             */
+/* *********************************************************** */
+
+/*  TO LINK
+class cAppliWithMasqIma
+{
+      public :
+	 /// Muts be done once the appli know its image
+
+	 bool HasMasq() const;
+
+	cCollecSpecArg2007 & AWMI_ArgObl(cCollecSpecArg2007 & anArgObl) ; ///< If Masq is mandatory
+        cCollecSpecArg2007 & AWMI_ArgOpt(cCollecSpecArg2007 & anArgOpt); ///<  If Masq is optionnal
+									 
+      protected :
+         cAppliWithMasqIma(cMMVII_Appli & anAppli);
+	 void InitNameImage(const std::string & aNameImage);
+      private :
+         void AssertImIsInit();
+	 bool NameMasqIsInit() const;
+
+         cMMVII_Appli & mAppli;
+         bool           mImIsInit;	 
+
+	 std::string    mNameMasq;
+	 std::string    mNameImage;
+};
+
+cAppliWithMasqIma::cAppliWithMasqIma(cMMVII_Appli & anAppli) :
+   mAppli      (anAppli),
+   mImIsInit   (false)
+{
+}
+
+
+void cAppliWithMasqIma::InitNameImage(const std::string & aNameImage)
+{
+   mImIsInit = true;
+   mNameImage = aNameImage;
+}
+
+
+bool cAppliWithMasqIma::NameMasqIsInit() const
+{
+	return mAppli.IsInit(&mNameMasq);
+}
+
+bool cAppliWithMasqIma::HasMasq() const
+{
+     //  If masq was specief it exist, except if NONE (case where we want to 
+     //  supress the defaut behavior which is test the existence of IM_Masq.tif
+     if (NameMasqIsInit())
+        return mNameMasq != MMVII_NONE;
+
+    if (mImIsInit)
+       return   ExistFile(AddAfterAndChgPost(mNameImage,"_Masq","tif"));
+
+   return false;
+}
+*/
+
+
+/* *********************************************************** */
+/*                                                             */
 /*            cAppliParseBoxIm<TypeEl>                         */
 /*                                                             */
 /* *********************************************************** */

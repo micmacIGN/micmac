@@ -201,9 +201,10 @@ class cDirsPhProj
           void Finish();
 
           tPtrArg2007     ArgDirInMand(const std::string & aMes="") ;  ///< Input Orientation as mandatory paramaters
-          tPtrArg2007     ArgDirInOpt() ;   ///< Input Orientation as optional paramaters
-          tPtrArg2007     ArgDirOutMand();  ///< Output Orientation as mandatory paramaters
-          tPtrArg2007     ArgDirOutOpt() ;   ///< Input Orientation as optional paramaters
+          tPtrArg2007     ArgDirInOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   ///< Input Orientation as optional paramaters
+									    //
+          tPtrArg2007     ArgDirOutMand(const std::string & aMes="");  ///< Output Orientation as mandatory paramaters
+          tPtrArg2007     ArgDirOutOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   ///< Input Orientation as optional paramaters
 
           void  SetDirIn(const std::string&) ; ///< Modifier, use in case many out params were saved in a xml,like with MeshImageDevlp
           const std::string & DirIn() const;   ///< Accessor
@@ -253,7 +254,7 @@ class cPhotogrammetricProject
 
 	        /// constructor : will memorize application
           cPhotogrammetricProject(cMMVII_Appli &);
-                /// some initialisation can be done only once Appli is itself init, method must be calles in mAppli.Exe()
+                /// some initialisation can be done only once Appli is itself init, method must be called in mAppli.Exe()
           void FinishInit() ;
 	        /// destructor  ,  some object delegates their destruction to this
           ~cPhotogrammetricProject();
@@ -264,9 +265,12 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPOrient(); ///< Accessor
 	  cDirsPhProj &   DPRadiom(); ///< Accessor
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
+	  cDirsPhProj &   DPMask(); ///< Accessor
+				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiom() const; ///< Accessor
 	  const cDirsPhProj &   DPMeshDev() const; ///< Accessor
+	  const cDirsPhProj &   DPMask() const; ///< Accessor
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
@@ -296,6 +300,17 @@ class cPhotogrammetricProject
           std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMedaDataImage &) const;
 
 	 //===================================================================
+         //==================    MASKS           =============================
+	 //===================================================================
+
+	  /// return full name including sub dirs
+          std::string NameMaskOfImage(const std::string & aNameImage) const;
+	  /// Does the image has an existing mask : Dir is init + file exist
+          bool  ImageHasMask(const std::string & aNameImage) const;
+
+	  cIm2D<tU_INT1>  MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal) const;
+
+	 //===================================================================
          //==================   META-DATA       ==============================
 	 //===================================================================
           cMedaDataImage GetMetaData(const std::string &) const;
@@ -310,6 +325,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPOrient;
 	  cDirsPhProj     mDPRadiom;
 	  cDirsPhProj     mDPMeshDev;
+	  cDirsPhProj     mDPMask;
 
 	  std::list<cSensorCamPC*>  mLCam2Del; 
 };

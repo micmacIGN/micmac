@@ -43,6 +43,8 @@ class cDataFileIm2D : public cRect2
 
         virtual ~cDataFileIm2D();
         
+	static bool IsPostFixNameImage(const std::string & aPost);
+	static bool IsNameWith_PostFixImage(const std::string & aPost);
      private :
         cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel) ;
 
@@ -228,6 +230,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         /// Raw image, lost all waranty is you use it...
         tVal ** ExtractRawData2D() {return mRawData2D;}
         const tPVal * ExtractRawData2D() const {return mRawData2D;}
+
+
     protected :
     private :
         void PostInit();
@@ -463,12 +467,12 @@ class cRGBImage
      public :
         typedef cIm2D<tU_INT1>   tIm1C;  // Type of image for 1 chanel
 
-        cRGBImage(const cPt2di & aSz);
-        cRGBImage(const cPt2di & aSz,const cPt3di & aCoul);
+        cRGBImage(const cPt2di & aSz,int aZoom=1);
+        cRGBImage(const cPt2di & aSz,const cPt3di & aCoul,int aZoom=1);
         void ToFile(const std::string & aName);
 
-        static cRGBImage FromFile(const std::string& aName);  ///< Allocate and init from file
-        static cRGBImage FromFile(const std::string& aName,const cBox2di & );  ///< Allocate and init from file
+        static cRGBImage FromFile(const std::string& aName,int aZoom=1);  ///< Allocate and init from file
+        static cRGBImage FromFile(const std::string& aName,const cBox2di & ,int aZoom=1);  ///< Allocate and init from file
 
         void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
         void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
@@ -499,6 +503,7 @@ class cRGBImage
         tIm1C  ImR(); ///< Accessor
         tIm1C  ImG(); ///< Accessor
         tIm1C  ImB(); ///< Accessor
+        const cRect2& BoxZ1() const;
 
         static const  cPt3di  Red;
         static const  cPt3di  Green;
@@ -507,12 +512,21 @@ class cRGBImage
         static const  cPt3di  Magenta;
         static const  cPt3di  Cyan;
         static const  cPt3di  Orange;
-		static const  cPt3di  White;
+        static const  cPt3di  White;
 
 	/// return a lut adapted to visalise label in one chanel (blue), an maximize constrat in 2 other
 	static  std::vector<cPt3di>  LutVisuLabRand(int aNbLab);
 
      private :
+        void AssertZ1() const;
+	void ReplicateForZoom(const cRect2 & aRect1Z);  // P0=> zoomed, Sz=> unzoomed
+	// dont use zoom
+        cPt3di LikeZ1_RGBPix(const cPt2di & aPix) const;
+
+        cPt2di mSz1;
+        cRect2 mBoxZ1;
+        cPt2di mSzz;
+        int    mZoom;
         tIm1C  mImR;
         tIm1C  mImG;
         tIm1C  mImB;
@@ -520,7 +534,7 @@ class cRGBImage
 
 template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
 template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0,int aZoom=1);
 
 
 

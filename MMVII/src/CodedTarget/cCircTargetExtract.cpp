@@ -2,6 +2,7 @@
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_SysSurR.h"
 #include "MMVII_Geom2D.h"
+#include "MMVII_Sensor.h"
 
 /*   Modularistion
  *   Code extern tel que ellipse
@@ -62,10 +63,10 @@ cParamCircTarg::cParamCircTarg() :
 /*                                                              */
 /*  *********************************************************** */
 
-//    (X-C) ^2 /R2 = 1
-//    R2 =  A^2 + 2B^2 + C^2
-//
-//   ( (X-C)^2/R2 -1) 
+//  Q(x) =   X2 /R2 -1 = (X+R) (X-R) /R2 
+//   
+//  (X-R) = Q(X) * R2 / (X+R)
+     
 
 class cEllipse
 {
@@ -76,15 +77,17 @@ class cEllipse
        double   Norm() const  {return std::sqrt(1/ mNorm);}
 
      private :
-       cDenseVect<tREAL8> mV;
-       double             mNorm;
-       cPt2dr             mC0;
+       cDenseVect<tREAL8>     mV;
+       double                 mNorm;
+       cPt2dr                 mC0;
+       cDenseMatrix<tREAL8>   mQF;
 };
 
 cEllipse::cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0) :
     mV    (aDV.Dup()),
     mNorm (std::sqrt(Square(mV(0)) + 2 * Square(mV(1))  + Square(mV(2)))),
-    mC0   (aC0)
+    mC0   (aC0),
+    mQF   (M2x2FromLines(cPt2dr(mV(0),mV(1)),cPt2dr(mV(1),mV(2))))
 {
 }
 
@@ -93,7 +96,7 @@ double cEllipse::SignedD2(cPt2dr aP) const
      aP = aP-mC0;
      tREAL8 x = aP.x();
      tREAL8 y = aP.y();
-     tREAL8 aRes =   mV(0)*x*x  + mV(1)*x*y + mV(2)*y*y + mV(3)*x+mV(4)*y -1;
+     tREAL8 aRes =   mV(0)*x*x  + 2*mV(1)*x*y + mV(2)*y*y + mV(3)*x+mV(4)*y -1;
 
      return aRes / mNorm;
 }
@@ -128,7 +131,7 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
 
      cDenseVect<tREAL8> aDV(5);
      aDV(0) = Square(aP.x());
-     aDV(1) = aP.x() * aP.y();
+     aDV(1) = 2 * aP.x() * aP.y();
      aDV(2) = Square(aP.y());
      aDV(3) = aP.x();
      aDV(4) = aP.y();
@@ -292,10 +295,10 @@ class cExtract_BW_Ellipse
 	typedef cIm2D<tU_INT1>      tImMarq;
 	typedef cDataIm2D<tU_INT1>  tDImMarq;
 
-        cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT);
+        cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT,cIm2D<tU_INT1> aMasqTest);
 
         void ExtractAllSeed();
-        void AnalyseAllConnectedComponents();
+        void AnalyseAllConnectedComponents(const std::string & aNameIm);
         const std::vector<cSeedCircTarg> & VSeeds() const;
 	const tDImMarq&    DImMarq() const;
 	const tDataIm &    DGx() const;
@@ -308,7 +311,7 @@ class cExtract_BW_Ellipse
    private :
 
         bool IsCandidateTopOfEllipse(const cPt2di &) ;
-        void AnalyseOneConnectedComponents(cSeedCircTarg &);
+        void AnalyseOneConnectedComponents(cSeedCircTarg &,const std::string & aNameIm);
 
 	void AddPtInCC(const cPt2di &);
 	// Prolongat on the vertical, untill its a max or a min
@@ -330,18 +333,25 @@ class cExtract_BW_Ellipse
 	std::vector<cPt2di>  mPtsCC;
 	int                  mCurPts;
 	cPt2dr               mCDG;
+        cIm2D<tU_INT1>       mMasqTest;
+        cDataIm2D<tU_INT1>&  mDMasqT;
+
+	cPt2di               mPSup;
+	cPt2di               mPInf;
 };
 
-cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT) :
-   mIm      (anIm),
-   mDIm     (mIm.DIm()),
-   mSz      (mDIm.Sz()),
-   mImMarq  (mSz),
-   mDImMarq (mImMarq.DIm()),
-   mPCT     (aPCT),
-   mImGrad  (Deriche( mDIm,mPCT.mFactDeriche)),
-   mDGx     (mImGrad.mGx.DIm()),
-   mDGy     (mImGrad.mGy.DIm())
+cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT,cIm2D<tU_INT1> aMasqTest) :
+   mIm        (anIm),
+   mDIm       (mIm.DIm()),
+   mSz        (mDIm.Sz()),
+   mImMarq    (mSz),
+   mDImMarq   (mImMarq.DIm()),
+   mPCT       (aPCT),
+   mImGrad    (Deriche( mDIm,mPCT.mFactDeriche)),
+   mDGx       (mImGrad.mGx.DIm()),
+   mDGy       (mImGrad.mGy.DIm()),
+   mMasqTest  (aMasqTest),
+   mDMasqT    (mMasqTest.DIm())
 {
    mDImMarq.InitInteriorAndBorder(tU_INT1(eEEBW_Lab::eFree),tU_INT1(eEEBW_Lab::eBorder));
 }
@@ -456,17 +466,20 @@ const cExtract_BW_Ellipse::tDImMarq&    cExtract_BW_Ellipse::DImMarq() const {re
 const cExtract_BW_Ellipse::tDataIm&    cExtract_BW_Ellipse::DGx() const {return mDGx;}
 const cExtract_BW_Ellipse::tDataIm&    cExtract_BW_Ellipse::DGy() const {return mDGy;}
 
-void cExtract_BW_Ellipse::AddPtInCC(const cPt2di & aP0)
+void cExtract_BW_Ellipse::AddPtInCC(const cPt2di & aPt)
 {
-     mDImMarq.SetV(aP0,tU_INT1(eEEBW_Lab::eTmp) );
-     mPtsCC.push_back(aP0);
-     mCDG = mCDG + ToR(aP0);
+     mDImMarq.SetV(aPt,tU_INT1(eEEBW_Lab::eTmp) );
+     mPtsCC.push_back(aPt);
+     mCDG = mCDG + ToR(aPt);
+
+     SetInfEq(mPInf,aPt);
+     SetSupEq(mPSup,aPt);
 }
 
-void cExtract_BW_Ellipse::AnalyseAllConnectedComponents()
+void cExtract_BW_Ellipse::AnalyseAllConnectedComponents(const std::string & aNameIm)
 {
     for (auto & aSeed : mVSeeds)
-        AnalyseOneConnectedComponents(aSeed);
+        AnalyseOneConnectedComponents(aSeed,aNameIm);
 }
 
 
@@ -492,24 +505,15 @@ cPt2dr cExtract_BW_Ellipse::ExtractFrontier(const cSeedCircTarg & aSeed,const cP
     return cPt2dr(-1e10,1e20);
 }
 
-void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed)
+void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,const std::string & aNameIm)
 {
-TEST = (
-             aSeed.mPixTop==(cPt2di(2666,586))   // 58
-          || aSeed.mPixTop==(cPt2di(2669,597))   // 58
-	  /*
-             aSeed.mPixTop==(cPt2di(3510,3310))  // 44
-          || aSeed.mPixTop==(cPt2di(1162,531))   // 15
-          || aSeed.mPixTop==(cPt2di(2669,597))   // 58
-          || aSeed.mPixTop==(cPt2di(2666,586))   // 58
-          || aSeed.mPixTop==(cPt2di(3580,1906))  // 41
-          || aSeed.mPixTop==(cPt2di(3581,1906))  // 41
-	  */
-       );
+    TEST = false;
 
      mCDG = cPt2dr(0,0);
      mPtsCC.clear();
      cPt2di aP0 = aSeed.mPixW;
+     mPSup = aP0;
+     mPInf = aP0;
 
      if (! MarqFree(aP0)) 
      {
@@ -540,7 +544,11 @@ TEST = (
                {
                    tElemIm aValIm = mDIm.GetV(aPN);
 		   if ((aValIm>=aVMin)  && (aValIm<=aVMax))
+                   {
+                      if (mDMasqT.GetV(aPN))
+                         TEST = true;
                       AddPtInCC(aPN);
+                   }
                }
 	       else if (! MarqEq(aPN,eEEBW_Lab::eTmp))
                     touchOther = true;
@@ -647,7 +655,14 @@ TEST = (
             StdOut()  <<  "Teta " << aP.z()   << " S="<< anEl.SignedD2(aP2) << " " << mDIm.GetVBL(aP2)  << "\n";
 	}
 	//
-        StdOut() << "PROP = " << aProp << "\n";
+        StdOut() << "PROP = " << aProp << " BOX " << mPInf << " " << mPSup << "\n";
+
+	cPt2di  aPMargin(6,6);
+	cBox2di aBox(mPInf-aPMargin,mPSup+aPMargin);
+
+	cRGBImage aRGBIm = cRGBImage::FromFile(aNameIm,aBox,10);  ///< Allocate and init from file
+	aRGBIm.ToFile("TTC.tif");
+
      }
 }
 
@@ -686,7 +701,10 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
         cIm2D<tU_INT1>  mImMarq;
 
         std::vector<cSeedCircTarg> mVSeeds;
+	cPhotogrammetricProject     mPhProj;
 
+	bool                        mHasMask;
+	std::string                 mNameMask;
 };
 
 
@@ -702,7 +720,9 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    mExtrEll (nullptr),
    mImGrad  (cPt2di(1,1)),
    mImVisu  (cPt2di(1,1)),
-   mImMarq  (cPt2di(1,1))
+   mImMarq  (cPt2di(1,1)),
+   mPhProj  (*this)
+
 {
 }
 
@@ -719,11 +739,10 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgObl(cCollecSpecArg2007 & anArgO
 cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return APBI_ArgOpt
-	  (
-	        anArgOpt
-                   //  << AOpt2007(mDiamMinD, "DMD","Diam min for detect",{eTA2007::HDV})
-	  );
-   ;
+          (
+                anArgOpt
+             << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
+          );
 }
 
 
@@ -735,14 +754,14 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 {
    double aT0 = SecFromT0();
 
-   mExtrEll = new cExtract_BW_Ellipse(APBI_Im(),mPCT);
+   mExtrEll = new cExtract_BW_Ellipse(APBI_Im(),mPCT,mPhProj.MaskWithDef(mNameIm,CurBoxIn(),false));
    if (mVisu)
       mImVisu =  cRGBImage::FromFile(mNameIm,CurBoxIn());
 
    double aT1 = SecFromT0();
    mExtrEll->ExtractAllSeed();
    double aT2 = SecFromT0();
-   mExtrEll->AnalyseAllConnectedComponents();
+   mExtrEll->AnalyseAllConnectedComponents(mNameIm);
    double aT3 = SecFromT0();
 
    StdOut() << "TIME-INIT " << aT1-aT0 << "\n";
@@ -807,9 +826,16 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
 int  cAppliExtractCircTarget::Exe()
 {
+   mPhProj.FinishInit();
+
+   mHasMask =  mPhProj.ImageHasMask(APBI_NameIm()) ;
+   if (mHasMask)
+      mNameMask =  mPhProj.NameMaskOfImage(APBI_NameIm());
+
+
    APBI_ExecAll();  // run the parse file  SIMPL
 
-
+   StdOut() << "MAK=== " <<   mHasMask << " " << mNameMask  << "\n";
 
    return EXIT_SUCCESS;
 }
