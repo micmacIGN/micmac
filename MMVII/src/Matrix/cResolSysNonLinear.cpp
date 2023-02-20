@@ -282,6 +282,36 @@ template <class Type>  std::vector<Type>  cResidualWeighter<Type>::WeightOfResid
 
 /* ************************************************************ */
 /*                                                              */
+/*                cExplicitWeighter                             */
+/*                                                              */
+/* ************************************************************ */
+
+template <class Type>
+cResidualWeighterExplicit<Type>::cResidualWeighterExplicit(bool isSigmas, const tStdVect & aData) :
+    mSigmas{}, mWeights{}
+{
+    tStdVect aDataInv {};
+    std::for_each(aData.begin(), aData.end(), [&](Type s) { aDataInv.push_back(1/(s*s)); });
+    if (isSigmas)
+    {
+        mSigmas = aData;
+        mWeights = aDataInv;
+    } else {
+        mSigmas = aDataInv;
+        mWeights = aData;
+    }
+}
+
+template <class Type>
+std::vector<Type> cResidualWeighterExplicit<Type>::WeightOfResidual(const std::vector<Type> &aVResidual) const
+{
+    MMVII_INTERNAL_ASSERT_tiny(mWeights.size() == aVResidual.size(), "Number of weights does not correpond to number of residuals");
+    return mWeights;
+}
+
+
+/* ************************************************************ */
+/*                                                              */
 /*                cResolSysNonLinear                            */
 /*                                                              */
 /* ************************************************************ */
@@ -324,6 +354,7 @@ int cREAL8_RSNL::CountFreeVariables() const
 {
      return std::count(mVarIsFrozen.begin(), mVarIsFrozen.end(), false);
 }
+
 
 /* ************************************************************ */
 /*                                                              */
@@ -867,6 +898,7 @@ template <class Type> cDenseVect<tREAL8>  cResolSysNonLinear<Type>::R_SolveUpdat
 template class  cInputOutputRSNL<TYPE>;\
 template class  cSetIORSNL_SameTmp<TYPE>;\
 template class  cResidualWeighter<TYPE>;\
+template class  cResidualWeighterExplicit<TYPE>;\
 template class  cResolSysNonLinear<TYPE>;
 
 INSTANTIATE_RESOLSYSNL(tREAL4)

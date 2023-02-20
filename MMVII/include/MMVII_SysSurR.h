@@ -37,6 +37,23 @@ template <class Type> class cResidualWeighter
 
 };
 
+/**  Class for weighting residuals with explicit weight of each residual
+ */
+template <class Type> class cResidualWeighterExplicit: public cResidualWeighter<Type>
+{
+       public :
+            typedef std::vector<Type>     tStdVect;
+
+            cResidualWeighterExplicit(bool isSigmas, const tStdVect & aData);
+            virtual tStdVect WeightOfResidual(const tStdVect &) const override;
+            tStdVect & getSigmas() { return mSigmas; }
+            tStdVect & geWeights() { return mWeights; }
+            int size() const { return mWeights.size(); }
+       private :
+            tStdVect mSigmas;
+            tStdVect mWeights;
+};
+
 /// Index to use in vector of index indicating a variable to substituate
 static constexpr int RSL_INDEX_SUBST_TMP = -1;
 

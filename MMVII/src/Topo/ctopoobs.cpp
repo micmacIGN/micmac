@@ -6,8 +6,8 @@
 namespace MMVII
 {
 
-cTopoObs::cTopoObs(cTopoObsSet* set, TopoObsType type, std::vector<cTopoPoint*> pts, std::vector<tREAL8> vals):
-    mSet(set), mType(type), mPts(pts), mVals(vals)
+cTopoObs::cTopoObs(cTopoObsSet* set, TopoObsType type, const std::vector<cTopoPoint*> & pts, const std::vector<tREAL8> & vals, const cResidualWeighterExplicit<tREAL8> &aWeights):
+    mSet(set), mType(type), mPts(pts), mVals(vals), mWeights(aWeights)
 {
     MMVII_INTERNAL_ASSERT_strong(mSet, "Obs: no set given")
     switch (mType) {
@@ -15,16 +15,19 @@ cTopoObs::cTopoObs(cTopoObsSet* set, TopoObsType type, std::vector<cTopoPoint*> 
         MMVII_INTERNAL_ASSERT_strong(mSet->getType()==TopoObsSetType::simple, "Obs: incorrect set type")
         MMVII_INTERNAL_ASSERT_strong(pts.size()==2, "Obs: incorrect number of points")
         MMVII_INTERNAL_ASSERT_strong(vals.size()==1, "Obs: 1 value should be given")
+        MMVII_INTERNAL_ASSERT_strong(aWeights.size()==1, "Obs: 1 weight should be given")
         break;
     case TopoObsType::subFrame:
         MMVII_INTERNAL_ASSERT_strong(mSet->getType()==TopoObsSetType::subFrame, "Obs: incorrect set type")
         MMVII_INTERNAL_ASSERT_strong(pts.size()==2, "Obs: incorrect number of points")
         MMVII_INTERNAL_ASSERT_strong(vals.size()==3, "Obs: 3 values should be given")
+        MMVII_INTERNAL_ASSERT_strong(aWeights.size()==3, "Obs: 3 weights should be given")
         break;
     case TopoObsType::distParam:
         MMVII_INTERNAL_ASSERT_strong(mSet->getType()==TopoObsSetType::distParam, "Obs: incorrect set type")
         MMVII_INTERNAL_ASSERT_strong(pts.size()==2, "Obs: incorrect number of points")
         MMVII_INTERNAL_ASSERT_strong(vals.empty(), "Obs: value should not be given")
+        MMVII_INTERNAL_ASSERT_strong(aWeights.size()==1, "Obs: 1 weight should be given")
         break;
     default:
         MMVII_INTERNAL_ERROR("unknown obs set type")
@@ -106,15 +109,25 @@ std::vector<tREAL8> cTopoObs::getVals() const
     return vals;
 }
 
-tREAL8 cTopoObs::getResidual(const cTopoComp *comp) const
+cResidualWeighterExplicit<tREAL8> &cTopoObs::getWeights()
+{
+    return mWeights;
+}
+
+std::vector<tREAL8> cTopoObs::getResiduals(const cTopoComp *comp) const
 {
     auto eq = comp->getEquation(getType());
     std::vector<int> indices = getIndices();
     std::vector<tREAL8> vals = getVals();
     std::vector<tREAL8> vUkVal;
     std::for_each(indices.begin(), indices.end(), [&](int i) { vUkVal.push_back(comp->getSys()->CurGlobSol()(i)); });
-    double res = eq->DoOneEval(vUkVal, vals)[0];
-    return res;
+    std::vector<tREAL8> eval = eq->DoOneEval(vUkVal, vals);
+    // select only residuals from formula eval
+    std::vector<tREAL8> residuals;
+    int valPerSubObs = eval.size() / mWeights.size();
+    for (unsigned int i = 0; i < eval.size(); i += valPerSubObs)
+        residuals.push_back(eval[i]);
+    return residuals;
 }
 
 };
