@@ -4,6 +4,7 @@
 #include "MMVII_Matrix.h"
 #include "MMVII_Triangles.h"
 
+
 namespace MMVII
 {
 
@@ -423,6 +424,67 @@ template<class Type> class cTriangulation2D : public cTriangulation<Type,2>
 	public :
 };
 
+
+/**  Class for modelization of an ellipse */
+
+class cEllipse
+{
+     public :
+       /// Create from a vector of parameter ABCEF such elipse is definedby  :  Axx+2Bxy+Cyy+Dx+Fy=1
+       cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0);
+       double ApproxSigneDist(cPt2dr aP) const;
+
+       double SignedD2(cPt2dr aP) const;
+       double Dist(const cPt2dr & aP) const;
+       double   Norm() const  {return std::sqrt(1/ mNorm);}
+
+
+       bool Ok() const;  ///< Accessor
+       tREAL8 LGa() const;  ///< Accessor
+       tREAL8 LSa() const;  ///< Accessor
+       tREAL8 RayMoy() const;  ///< Accessor
+       const cPt2dr &  Center() const; ///< Accessor
+       double TetaGa() const; /// Teta great axe
+
+       cPt2dr  PtOfTeta(tREAL8 aTeta) const; /// return on ellipse with param A cos(T) + B sin(T)
+       cPt2dr  PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &) const;  /// return also the gradien of belong function
+
+    private :
+       cDenseVect<tREAL8>     mV;
+       double                 mNorm;
+       cPt2dr                 mC0;
+       cDenseMatrix<tREAL8>   mQF; // Matrix of quadratic form
+       cPt2dr                 mCenter;
+       double                 mCste;
+       double                 mRRR;
+       bool                   mOk;
+       tREAL8                 mLGa;  ///< Length Great Axe
+       cPt2dr                 mVGa;  ///< Vector Great Axe
+       tREAL8                 mLSa;  ///< Lenght Small Axe
+       cPt2dr                 mVSa;  ///< Vector Great Axe
+       tREAL8                 mRayMoy;
+       tREAL8                 mSqRatio;
+};
+
+class cEllipse_Estimate
+{
+//  A X2 + BXY + C Y2 + DX + EY = 1
+      public :
+        cLeasSqtAA<tREAL8> & Sys();
+
+        // indicate a rough center, for better numerical accuracy
+        cEllipse_Estimate(const cPt2dr & aC0);
+        void AddPt(cPt2dr aP) ;
+
+        cEllipse Compute() ;
+        ~cEllipse_Estimate();
+      private :
+         cLeasSqtAA<tREAL8> *mSys;
+         cPt2dr             mC0;
+};
+
+
+
 /// Return random point that are not degenerated, +or- pertubation of unity roots
 template <class Type> std::vector<cPtxd<Type,2> > RandomPtsOnCircle(int aNbPts);
 
@@ -432,6 +494,11 @@ typedef std::vector<cPt2di> tResFlux;
 
 void      GetPts_Circle(tResFlux & aRes,const cPt2dr & aC,double aRay,bool with8Neigh);
 tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh);
+void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh);
+
+
+
+
 
 
 

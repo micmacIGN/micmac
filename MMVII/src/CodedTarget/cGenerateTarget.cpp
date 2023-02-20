@@ -72,8 +72,21 @@ int cCodesOf1Target::Num() const {return mNum;}
 /*                                                */
 /**************************************************/
 
+/*
+template <class eType> void EnumAddData(const cAuxAr2007 & anAux,const std::string & aTag,eType & aType)
+{
+    std::string aName= E2Str(aType);
+    MMVII::AddData(cAuxAr2007(aTag,anAux),aName);
+    if (anAux.Input())
+       aType = Str2E<eProjPC>(aName);
+}
+*/
+
+
 void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
 {
+    //MMVII::AddData(cAuxAr2007("Type",anAux),mType);
+    MMVII::EnumAddData(anAux,mType,"Type");
     MMVII::AddData(cAuxAr2007("NbBits",anAux),mNbBit);
     MMVII::AddData(cAuxAr2007("SzF",anAux),mSzF);
     MMVII::AddData(cAuxAr2007("CenterF",anAux),mCenterF);
@@ -83,9 +96,12 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("ThickN_WhiteInt",anAux),mThickN_WInt);
     MMVII::AddData(cAuxAr2007("ThickN_Code",anAux),mThickN_Code);
     MMVII::AddData(cAuxAr2007("ThickN_WhiteExt",anAux),mThickN_WExt);
+    MMVII::AddData(cAuxAr2007("ThickN_BlackExt",anAux),mThickN_BExt);
     MMVII::AddData(cAuxAr2007("ThickN_Car",anAux),mThickN_Car);
     MMVII::AddData(cAuxAr2007("ChessBoardAngle",anAux),mChessboardAng);
     MMVII::AddData(cAuxAr2007("ModeFlight",anAux),mModeFlight);
+    MMVII::AddData(cAuxAr2007("WithChessBoard",anAux),mWithChessboard);
+    MMVII::AddData(cAuxAr2007("WhiteBackGround",anAux),mWhiteBackGround);
 
 
     /*
@@ -116,21 +132,59 @@ void cParamCodedTarget::InitFromFile(const std::string & aNameFile)
 }
 
 cParamCodedTarget::cParamCodedTarget() :
-   mNbBit         (9),
-   mWithParity    (true),
-   mNbRedond      (2),
-   mNbCircle      (1),
-   mNbPixelBin    (round_to(1800,2*SzGaussDeZoom)), // make size a multiple of 2 * zoom, to have final center at 1/2 pix
-   mSz_CCB        (1),
-   mThickN_WInt   (0.35),
-   mThickN_Code   (0.35),
-   mThickN_WExt   (0.2),
-   mThickN_Car    (0.8),
-   mThickN_BExt   (0.05),
-   mChessboardAng (M_PI/4.0),
-   mDecP          ({1,1})  // "Fake" init 4 now
+   mType             (eTyCodeTarget::eIGNIndoor),  // eNbVals create problem in reading  eIGNIndoor
+   mNbBit            (9),
+   mWithParity       (true),
+   mNbRedond         (2),
+   mNbCircle         (1),
+   mNbPixelBin       (round_to(1800,2*SzGaussDeZoom)), // make size a multiple of 2 * zoom, to have final center at 1/2 pix
+   mSz_CCB           (1),
+   mThickN_WInt      (0.35),
+   mThickN_Code      (0.35),
+   mThickN_WExt      (0.2),
+   mThickN_Car       (0.8),
+   mThickN_BExt      (0.05),
+   mChessboardAng    (M_PI/4.0),
+   mWithChessboard   (true),
+   mWhiteBackGround  (true),
+   mModeFlight       (false),  // MPD => def value was not initialized ?
+   mDecP             ({1,1})  // "Fake" init 4 now
 {
 }
+
+void cParamCodedTarget::FinishInitOfType(eTyCodeTarget aType)
+{
+   mType = aType;
+   cMMVII_Appli & anAppli = cMMVII_Appli::CurrentAppli();
+
+   if (aType==eTyCodeTarget::eIGNIndoor)
+   {
+         // Nothingto do all default value have been setled for this case
+   }
+   else if (aType==eTyCodeTarget::eIGNDrone)
+   {
+	   anAppli.SetIfNotInit(mModeFlight,true);
+   }
+   else if (aType==eTyCodeTarget::eCERN)
+   {
+       anAppli.SetIfNotInit(mNbBit,20);
+       anAppli.SetIfNotInit(mWithParity,false);
+       anAppli.SetIfNotInit(mNbRedond,1);
+       anAppli.SetIfNotInit(mThickN_WInt,1.0);
+       anAppli.SetIfNotInit(mThickN_Code,1.0);
+       anAppli.SetIfNotInit(mThickN_WExt,1.0);
+       anAppli.SetIfNotInit(mThickN_BExt,0.0);
+
+       anAppli.SetIfNotInit(mWithChessboard,false);
+       anAppli.SetIfNotInit(mWhiteBackGround,false);
+
+   // mThickN_WExt      (0.2),
+   // mThickN_Car       (0.8),
+   // mThickN_BExt      (0.05),
+   }
+}
+
+//	SetIfNotInit
 
 cPt2dr cParamCodedTarget::Pix2Norm(const cPt2di & aPix) const
 {
@@ -148,7 +202,8 @@ cPt2di cParamCodedTarget::Norm2PixI(const cPt2dr & aP) const
 int&    cParamCodedTarget::NbRedond() {return mNbRedond;}
 int&    cParamCodedTarget::NbCircle() {return mNbCircle;}
 
-void cParamCodedTarget::Finish(){
+void cParamCodedTarget::Finish()
+{
 
   MMVII_INTERNAL_ASSERT_strong(((mNbPixelBin%2)==0),"Require odd pixel 4 binary image");
 
@@ -242,7 +297,12 @@ int cParamCodedTarget::BaseForNum() const
     if (aNBC <= 256)
 	    return 16;  // hexadecimal on 2 dig
     if (aNBC < 1296)
-	    return 36;  // alpha num   on 2 dig
+       return 36;  // alpha num   on 2 dig
+
+    {
+        MMVII_DEV_WARNING("Too big number of code for current system");
+        return 36;
+    }
     MMVII_INTERNAL_ERROR("Too big number of code for current system");
     return -1;
 }
@@ -308,6 +368,8 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT,
 
             int aIndTeta = round_down((aTeta+OrigineTeta)/PIsur2);
             IsW = (aIndTeta%2)==0;
+	    if (!mWithChessboard)
+               IsW = false;
          }
          else if (aRho<mRho_1_BeginCode)
 	     {
@@ -325,7 +387,8 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT,
 	          IsW = false || mModeFlight;
          }
 
-
+         if (!mWhiteBackGround) 
+            IsW = ! IsW;
          int aVal = IsW ? 255 : 0;
          cPt2di aNewPx = cPt2di(aPix.x(), aPix.y()-250);
 
@@ -477,6 +540,7 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 
 	int                mPerGen;  // Pattern of numbers
 	cParamCodedTarget  mPCT;
+	eTyCodeTarget      mType;
 };
 
 
@@ -488,7 +552,8 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 
 
 cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli  (aVArgs,aSpec)
+   cMMVII_Appli  (aVArgs,aSpec),
+   mType         (eTyCodeTarget::eIGNIndoor)
 {
 }
 
@@ -503,9 +568,10 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
+          << AOpt2007(mType,"Type","Type of enumerated ",{eTA2007::HDV,AC_ListVal<eTyCodeTarget>()})
+
           << AOpt2007(mPCT.mNbBit,"NbBit","Nb Bit printed",{eTA2007::HDV})
           << AOpt2007(mPCT.mWithParity,"WPar","With parity bit",{eTA2007::HDV})
-
           << AOpt2007(mPCT.mThickN_WInt,"ThW0","Thickness of interior white circle",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_Code,"ThCod","Thickness of bin-coding black circle",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_WExt,"ThSepCar","Thickness of sep bin-code / ahpha code",{eTA2007::HDV})
@@ -526,6 +592,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 int  cAppliGenCodedTarget::Exe()
 {
 
+   mPCT.FinishInitOfType(mType);
    mPCT.Finish();
 
    for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen){

@@ -34,13 +34,15 @@ typename cRGBImage::tIm1C cRGBImage::ImG() {return mImG;}
 typename cRGBImage::tIm1C cRGBImage::ImB() {return mImB;}
 
 cRGBImage::cRGBImage(const cPt2di & aSz,int aZoom) :
-    mSz1    (aSz),
-    mBoxZ1  (cRect2(cPt2di(0,0),mSz1)),
-    mSzz    (aSz*aZoom),
-    mZoom   (aZoom),
-    mImR    (mSzz),
-    mImG    (mSzz),
-    mImB    (mSzz)
+    mSz1         (aSz),
+    mBoxZ1       (cRect2(cPt2di(0,0),mSz1)),
+    mSzz         (aSz*aZoom),
+    mZoom        (aZoom),
+    mRZoom       (aZoom),
+    mOffsetZoom  (cPt2dr(0.5,0.5) * (mRZoom-1)),
+    mImR         (mSzz),
+    mImG         (mSzz),
+    mImB         (mSzz)
 {
 }
 cRGBImage::cRGBImage(const cPt2di & aSz,const cPt3di & aCoul,int aZoom) :
@@ -50,6 +52,39 @@ cRGBImage::cRGBImage(const cPt2di & aSz,const cPt3di & aCoul,int aZoom) :
         SetRGBPix(aPix,aCoul);
 }
 
+cPt2dr cRGBImage::PointToRPix(const cPt2dr & aPt) const
+{
+    // if we want that [-0.5, 0.5[ is mapped to {-0.5,1,2 .. Zoom-0.5}
+    //
+    // if zoom =1  Ofst=0, so [-0.5,0.5]  correspond to Pix(0,0)
+    // if zoom =3  Ofst=1, so  [-0.5,0.5]  correspon to 0,1,2
+
+    return aPt * mRZoom + mOffsetZoom;
+}
+
+cPt2di cRGBImage::PointToPix(const cPt2dr & aPt) const
+{
+	return ToI(PointToRPix(aPt));
+}
+
+
+void cRGBImage::SetRGBPoint(const cPt2dr & aPoint,const cPt3di & aCoul)
+{
+       RawSetPoint(PointToPix(aPoint),aCoul.x(),aCoul.y(),aCoul.z());
+}
+
+void cRGBImage::RawSetPoint(const cPt2di & aPixZ,int aR,int aG,int aB)
+{
+       mImR.DIm().SetVTruncIfInside(aPixZ,aR);
+       mImG.DIm().SetVTruncIfInside(aPixZ,aG);
+       mImB.DIm().SetVTruncIfInside(aPixZ,aB);
+}
+
+void cRGBImage::RawSetPoint(const cPt2di & aPixZ,const cPt3di & aCoul)
+{
+    RawSetPoint(aPixZ,aCoul.x(),aCoul.y(),aCoul.z());
+}
+
 
 void cRGBImage::SetRGBPix(const cPt2di & aPix1,int aR,int aG,int aB)
 {
@@ -57,9 +92,12 @@ void cRGBImage::SetRGBPix(const cPt2di & aPix1,int aR,int aG,int aB)
 
     for (const auto & aPixz : aBoxZ)
     {
+        RawSetPoint(aPixz,aR,aG,aB);
+	    /*
        mImR.DIm().SetVTruncIfInside(aPixz,aR);
        mImG.DIm().SetVTruncIfInside(aPixz,aG);
        mImB.DIm().SetVTruncIfInside(aPixz,aB);
+       */
     }
 }
 

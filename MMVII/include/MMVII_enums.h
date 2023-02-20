@@ -435,9 +435,18 @@ enum class eProjPC
      eNbVals
 };
 
+enum class eTyCodeTarget
+{
+    eIGNIndoor,  ///<  checkboard , circular sym-code
+    eIGNDrone,   ///<  checkboard , code separate , hamming redundnace  
+    eCERN,       ///<  central circle, coding invariant (AICON, METASHAPE ...)
+    eNbVals
+};
+
 
 const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
+const std::string & E2Str(const eTyCodeTarget &);         
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
 const std::string & E2Str(const eTA2007 &);         

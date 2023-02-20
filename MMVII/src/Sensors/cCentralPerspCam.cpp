@@ -99,10 +99,13 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux)
     mDataPixDomain.AddData(cAuxAr2007("PixelFrame",anAux));
 
     {
+        MMVII::EnumAddData(anAux,mTypeProj,"Projection");
+	    /*  MODIF MPD, has "rediscover" the "EnumAddData"  function ...
         std::string aNameProj= E2Str(mTypeProj);
         MMVII::AddData(cAuxAr2007("Projection",anAux),aNameProj);
         if (anAux.Input())
 	   mTypeProj = Str2E<eProjPC>(aNameProj);
+	   */
     }
     {
            cAuxAr2007 aAuxAux("Auxiliary",anAux);

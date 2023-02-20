@@ -184,9 +184,18 @@ template<class Type,const int Dim>
     return  cPtxd<Type,Dim>::FromVect(aVRes);
 }
 
+template<class Type,const int DimOut,const int DimIn> Type
+     QScal(const cPtxd<Type,DimOut>& aP2,const cDenseMatrix<Type>& aMat,const cPtxd<Type,DimIn>& aP1)
+{
+	cPtxd<Type,DimOut> aTmp;
+	MulCol(aTmp,aMat,aP1);
+	return Scal(aP2,aTmp);
+}
+
 
 
 #define INSTANT_MUL_MATVECT(TYPE,DIMOUT,DIMIN)\
+template TYPE QScal(const cPtxd<TYPE,DIMOUT>& aP2,const cDenseMatrix<TYPE>& aMat,const cPtxd<TYPE,DIMIN>& aP1);\
 template void MulCol(cPtxd<TYPE,DIMOUT>&,const cDenseMatrix<TYPE>&,const cPtxd<TYPE,DIMIN>&);\
 template void MulLine(cPtxd<TYPE,DIMOUT>&,const cPtxd<TYPE,DIMIN>&,const cDenseMatrix<TYPE>&);
 

@@ -1,8 +1,8 @@
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_Linear2DFiltering.h"
-#include "MMVII_SysSurR.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_Sensor.h"
+#include "MMVII_TplImage_PtsFromValue.h"
 
 /*   Modularistion
  *   Code extern tel que ellipse
@@ -15,6 +15,12 @@ namespace MMVII
 
 static bool TEST = false;
 
+struct cParamCircTarg;  ///< Store pararameters for circular/elipse target
+struct cSeedCircTarg;   ///< Store data for seed point of circular extraction
+
+
+// ==  enum class eEEBW_Lab;   ///< label used in ellipse extraction
+class cExtract_BW_Ellipse;  ///< class for ellipse extraction
 
 /*  *********************************************************** */
 /*                                                              */
@@ -59,90 +65,6 @@ cParamCircTarg::cParamCircTarg() :
 
 /*  *********************************************************** */
 /*                                                              */
-/*               cEllipseEstimate                               */
-/*                                                              */
-/*  *********************************************************** */
-
-//  Q(x) =   X2 /R2 -1 = (X+R) (X-R) /R2 
-//   
-//  (X-R) = Q(X) * R2 / (X+R)
-     
-
-class cEllipse
-{
-     public :
-       cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0);
-       double SignedD2(cPt2dr aP) const;
-       double Dist(const cPt2dr & aP) const;
-       double   Norm() const  {return std::sqrt(1/ mNorm);}
-
-     private :
-       cDenseVect<tREAL8>     mV;
-       double                 mNorm;
-       cPt2dr                 mC0;
-       cDenseMatrix<tREAL8>   mQF;
-};
-
-cEllipse::cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0) :
-    mV    (aDV.Dup()),
-    mNorm (std::sqrt(Square(mV(0)) + 2 * Square(mV(1))  + Square(mV(2)))),
-    mC0   (aC0),
-    mQF   (M2x2FromLines(cPt2dr(mV(0),mV(1)),cPt2dr(mV(1),mV(2))))
-{
-}
-
-double cEllipse::SignedD2(cPt2dr aP) const
-{
-     aP = aP-mC0;
-     tREAL8 x = aP.x();
-     tREAL8 y = aP.y();
-     tREAL8 aRes =   mV(0)*x*x  + 2*mV(1)*x*y + mV(2)*y*y + mV(3)*x+mV(4)*y -1;
-
-     return aRes / mNorm;
-}
-double cEllipse::Dist(const cPt2dr & aP) const {return std::sqrt(std::abs(SignedD2(aP)));}
-
-
-class cEllipse_Estimate
-{
-//  A X2 + BXY + C Y2 + DX + EY = 1
-      public :
-        cLeasSqtAA<tREAL8> & Sys() {return mSys;}
-
-	// indicate a rough center, for better numerical accuracy
-	cEllipse_Estimate(const cPt2dr & aC0);
-	void AddPt(cPt2dr aP) ;
-
-	cEllipse Compute() ;
-      private :
-         cLeasSqtAA<tREAL8> mSys;
-	 cPt2dr             mC0;
-};
-
-cEllipse_Estimate::cEllipse_Estimate(const cPt2dr & aC0) :
-    mSys  (5),
-    mC0   (aC0)
-{
-}
-
-void cEllipse_Estimate::AddPt(cPt2dr aP) 
-{
-     aP = aP-mC0;
-
-     cDenseVect<tREAL8> aDV(5);
-     aDV(0) = Square(aP.x());
-     aDV(1) = 2 * aP.x() * aP.y();
-     aDV(2) = Square(aP.y());
-     aDV(3) = aP.x();
-     aDV(4) = aP.y();
-
-     mSys.AddObservation(1.0,aDV,1.0);
-}
-
-cEllipse cEllipse_Estimate::Compute() {return cEllipse(mSys.Solve(),mC0);}
-
-/*  *********************************************************** */
-/*                                                              */
 /*               cSeedCircTarg                                  */
 /*                                                              */
 /*  *********************************************************** */
@@ -169,102 +91,6 @@ cSeedCircTarg::cSeedCircTarg(const cPt2di & aPixW,const cPt2di & aPixTop,tREAL4 
 {
 }
 
-/*  *********************************************************** */
-/*                                                              */
-/*               cGetPts_ImInterp_FromValue                     */
-/*                                                              */
-/*  *********************************************************** */
-
-template <class Type> class cGetPts_ImInterp_FromValue
-{
-     public :
-       cGetPts_ImInterp_FromValue (const cDataIm2D<Type> & aDIm,tREAL8 aVal,tREAL8 aTol,cPt2dr aP0,const cPt2dr & aDir):
-	        mOk          (false),
-		mDIm         (aDIm),
-                mMaxIterInit (10),
-                mMaxIterEnd  (20)
-       {
-          tREAL8 aV0 = GetV(aP0);
-	  if (!CheckNoVal(aV0))  return; 
-	  mP0IsSup = (aV0>=aVal);
-
-          cPt2dr aP1 = aP0 + aDir;
-          double aV1 = GetV(aP1);
-	  if (!CheckNoVal(aV1))  return; 
-
-	  int aNbIter=0;
-          while ( (aV1>=aVal)==mP0IsSup )
-          {
-                aV0 = aV1;
-		aP0 = aP1;
-		aP1 += aDir;
-                aV1 = GetV(aP1);
-                if (!CheckNoVal(aV1))  return; 
-		aNbIter++;
-		if (aNbIter>mMaxIterInit) return;
-          }
-
-	  tREAL8 aTol0 = std::abs(aV0-aVal);
-	  tREAL8 aTol1 = std::abs(aV1-aVal);
-	  bool  InInterv = true;
-	  aNbIter=0;
-          while ((aTol0>aTol) && (aTol1>aTol) && InInterv  && (aNbIter<mMaxIterEnd))
-          {
-               aNbIter++;
-               cPt2dr aNewP =  Centroid(aTol1,aP0,aTol0,aP1);
-               tREAL8 aNewV = GetV(aNewP);
-               if (!CheckNoVal(aNewV))  return; 
-	       if (   ((aNewV<=aV0) != mP0IsSup) || ((aNewV>=aV1) != mP0IsSup) )
-	       {
-		    InInterv = false;
-	       }
-	       else
-	       {
-                    if (   (aNewV<aVal) == mP0IsSup)   //  V1  <  NewV  < Val  < V0  or  V0 < Val  aNewV  < V1
-		    {
-                        aV1 = aNewV;
-			aTol1 = std::abs(aV1-aVal);
-			aP1 = aNewP;
-		    }
-		    else
-		    {
-                        aV0 = aNewV;
-			aTol0 = std::abs(aV0-aVal);
-			aP0 = aNewP;
-		    }
-               }
-          }
-          mPRes = (aTol0<aTol1) ? aP0 : aP1;
-	  mOk = true;
-       }
-
-       bool Ok() const {return mOk;}
-       const cPt2dr & PRes() const 
-       {
-            MMVII_INTERNAL_ASSERT_tiny(mOk,"Try to get cGetPts_ImInterp_FromValue::PRes() w/o success");
-            return mPRes;
-       }
-
-     private :
-
-       inline tREAL8 GetV(const cPt2dr & aP) {return mDIm.DefGetVBL(aP,NoVal);}
-       inline bool CheckNoVal(const tREAL8 aV)
-       {
-           if (aV==NoVal)
-           {
-	       return false;
-           }
-	   return true;
-       }
-
-       bool  mP0IsSup;
-       static constexpr tREAL8 NoVal= -1e10;
-       bool   mOk;
-       const cDataIm2D<Type> & mDIm;
-       int    mMaxIterInit;
-       int    mMaxIterEnd;
-       cPt2dr mPRes;
-};
 
 /*  *********************************************************** */
 /*                                                              */
@@ -279,8 +105,10 @@ enum class eEEBW_Lab : tU_INT1
    eTmp,
    eBadZ,
    eBadFr,
+   eElNotOk,
    eBadEl,
-   eAverEl
+   eAverEl,
+   eBadTeta
 };
 
 
@@ -305,6 +133,11 @@ class cExtract_BW_Ellipse
 	const tDataIm &    DGy() const;
 
 	void SetMarq(const cPt2di & aP,eEEBW_Lab aLab) {mDImMarq.SetV(aP,tU_INT1(aLab));}
+
+	void CC_SetMarq(eEEBW_Lab aLab); ///< set marqer on all connected component
+
+
+	eEEBW_Lab  GetMarq(const cPt2di & aP) {return eEEBW_Lab(mDImMarq.GetV(aP));}
 	bool MarqEq(const cPt2di & aP,eEEBW_Lab aLab) const {return mDImMarq.GetV(aP) == tU_INT1(aLab);}
 	bool MarqFree(const cPt2di & aP) const {return MarqEq(aP,eEEBW_Lab::eFree);}
 
@@ -364,7 +197,6 @@ cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT,cI
        R => negative gradient on x
        L => positive gradient on x
 */
-
 
 ///cSeedCircTarg
 
@@ -482,6 +314,12 @@ void cExtract_BW_Ellipse::AnalyseAllConnectedComponents(const std::string & aNam
         AnalyseOneConnectedComponents(aSeed,aNameIm);
 }
 
+void cExtract_BW_Ellipse::CC_SetMarq(eEEBW_Lab aLab)
+{
+    for (const auto & aP : mPtsCC)
+        SetMarq(aP,aLab);
+}
+
 
 
 
@@ -508,6 +346,7 @@ cPt2dr cExtract_BW_Ellipse::ExtractFrontier(const cSeedCircTarg & aSeed,const cP
 void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,const std::string & aNameIm)
 {
     TEST = false;
+    cPt2di aPTest(-99999999,594);
 
      mCDG = cPt2dr(0,0);
      mPtsCC.clear();
@@ -548,6 +387,11 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
                       if (mDMasqT.GetV(aPN))
                          TEST = true;
                       AddPtInCC(aPN);
+		      if (aPN== aPTest)
+		      {
+			      StdOut() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa\n";
+			      TEST=true;
+		      }
                    }
                }
 	       else if (! MarqEq(aPN,eEEBW_Lab::eTmp))
@@ -557,9 +401,8 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
      }
 
      if ((mPtsCC.size() >= aMaxNbPts) || touchOther  || (int(mPtsCC.size()) < mPCT.NbMinPtsCC()))
-     {
-        for (const auto & aP : mPtsCC)
-            SetMarq(aP,eEEBW_Lab::eBadZ);
+     {            
+        CC_SetMarq(eEEBW_Lab::eBadZ); 
         return;
      }
 
@@ -592,9 +435,7 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
      double aProp = aNbOk / double(aNbFront);
      if ( aProp < mPCT.mPropFr)
      {
-        // StdOut() << "PROP = " << aProp << "\n";
-        for (const auto & aP : mPtsCC)
-            SetMarq(aP,eEEBW_Lab::eBadFr);
+        CC_SetMarq(eEEBW_Lab::eBadFr); 
 	return ;
      }
 
@@ -603,38 +444,75 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
          anEE.AddPt(aPFr);
 
      cEllipse anEl = anEE.Compute();
+     if (! anEl.Ok())
+     {
+        CC_SetMarq(eEEBW_Lab::eElNotOk); 
+        return;
+     }
      double aSomD = 0;
      double aSomRad = 0;
      tREAL8 aGrFr = (aSeed.mBlack+aSeed.mWhite)/2.0;
      for (const auto  & aPFr : aVFront)
      {
-         aSomD += anEl.Dist(aPFr);
+         aSomD += std::abs(anEl.ApproxSigneDist(aPFr));
 	 aSomRad += std::abs(mDIm.GetVBL(aPFr)-aGrFr);
      }
 
      aSomD /= aVFront.size();
 
-     aSomD /=  (1+anEl.Norm()/50.0);
+     tREAL8 aSomDPond =  aSomD / (1+anEl.RayMoy()/50.0);
 
-     if (aSomD>1.5)
+     int aNbPts = round_ni(4*(anEl.LGa()+anEl.LSa()));
+     tREAL8 aSomTeta = 0.0;
+     for (int aK=0 ; aK<aNbPts ; aK++)
      {
-        for (const auto & aP : mPtsCC)
-            SetMarq(aP,eEEBW_Lab::eBadEl);
+            double aTeta = (aK * 2.0 * M_PI) / aNbPts;
+	    cPt2dr aGradTh;
+	    cPt2dr aPt = anEl.PtAndGradOfTeta(aTeta,aGradTh);
+
+	    if (! mDGx.InsideBL(aPt))
+	    {
+                  CC_SetMarq(eEEBW_Lab::eElNotOk); 
+                  return;
+	    }
+            cPt2dr aGradIm (mDGx.GetVBL(aPt),mDGy.GetVBL(aPt));
+	    aSomTeta += std::abs(ToPolar(aGradIm/-aGradTh).y());
      }
-     else if (aSomD>1.0)
+     aSomTeta /= aNbPts;
+
+     if (aSomDPond>0.2)
      {
-        for (const auto & aP : mPtsCC)
-            SetMarq(aP,eEEBW_Lab::eAverEl);
+        CC_SetMarq(eEEBW_Lab::eBadEl); 
      }
-
-
+     else if (aSomDPond>0.1)
+     {
+        CC_SetMarq(eEEBW_Lab::eAverEl); 
+     }
+     else
+     {
+         if (aSomTeta>0.05)
+	 {
+             CC_SetMarq(eEEBW_Lab::eBadTeta); 
+	 }
+	 /*
+	     static int aCpt=0;aCpt++;
+	     StdOut() << "SOMTETA " << aSomTeta << "\n";
+	     StdOut() << " N=" << aCpt 
+		      << " SOMD = " << aSomD 
+                      << " AXES " << 2*anEl.LGa() << " " << 2*anEl.LSa() 
+		      << "\n";
+	*/
+     }
 
 
      if (TEST)
      {
-         StdOut() << "SOMDDd=" << aSomD << " " << aSeed.mPixTop 
+         static int aCptIm = 0;
+	 aCptIm++;
+
+         StdOut() << "SOMDDd=" << aSomD << " DP=" << aSomDPond << " " << aSeed.mPixTop 
 		 << " GRAY=" << aSomRad/ aVFront.size()
-		 << " NORM =" << anEl.Norm()
+		 << " NORM =" << anEl.Norm()  << " RayM=" << anEl.RayMoy()
 		 << "\n";
 
         std::vector<cPt3dr> aVF3;
@@ -652,7 +530,7 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
         for (const auto  & aP : aVF3)
         {
             cPt2dr aP2(aP.x(),aP.y());
-            StdOut()  <<  "Teta " << aP.z()   << " S="<< anEl.SignedD2(aP2) << " " << mDIm.GetVBL(aP2)  << "\n";
+            // StdOut()  <<  "Teta " << aP.z()   << " S="<< anEl.SignedD2(aP2) << " " << mDIm.GetVBL(aP2)  << "\n";
 	}
 	//
         StdOut() << "PROP = " << aProp << " BOX " << mPInf << " " << mPSup << "\n";
@@ -660,9 +538,46 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
 	cPt2di  aPMargin(6,6);
 	cBox2di aBox(mPInf-aPMargin,mPSup+aPMargin);
 
-	cRGBImage aRGBIm = cRGBImage::FromFile(aNameIm,aBox,10);  ///< Allocate and init from file
-	aRGBIm.ToFile("TTC.tif");
+	int aZoom = 21;
+	cRGBImage aRGBIm = cRGBImage::FromFile(aNameIm,aBox,aZoom);  ///< Allocate and init from file
 
+
+	cPt2dr aPOfs = ToR(aBox.P0());
+	/*
+	int aNbPts = 5000;
+	for (int aK=0 ; aK<aNbPts ; aK++)
+	{
+            double aTeta = (aK * 2.0 * M_PI) / aNbPts;
+	    cPt2dr aP1 = anEl.PtOfTeta(aTeta);
+	    tREAL8 aEps=1e-3;
+	    cPt2dr aP0 = anEl.PtOfTeta(aTeta - aEps );
+	    cPt2dr aP2 = anEl.PtOfTeta(aTeta + aEps );
+
+	    cPt2dr aGrad = VUnit((aP2-aP0) / aEps)/cPt2dr(0,1);
+            //  aRGBIm.SetRGBPoint(aPT-aPOfs,cRGBImage::Green);
+	    cPt2dr aG3;
+            cPt2dr aP3 =   anEl.PtAndGradOfTeta(aTeta,aG3);
+
+	    // StdOut() << " Pt" << Norm2(aP1-aP3)  << " Gd "<< Norm2(aGrad-aG3)  << aGrad << aG3<< "\n";
+	}
+	*/
+
+	cPt2dr aCenter = anEl.Center() - aPOfs;
+	aCenter = aRGBIm.PointToRPix(aCenter);
+	std::vector<cPt2di> aVPts;
+	GetPts_Ellipse(aVPts,aCenter,anEl.LGa()*aZoom,anEl.LSa()*aZoom,anEl.TetaGa(),true);
+	for (const auto & aPix : aVPts)
+	{
+            aRGBIm.RawSetPoint(aPix,cRGBImage::Blue);
+	}
+
+        for (const auto  & aPFr : aVFront)
+	{
+            aRGBIm.SetRGBPoint(aPFr-aPOfs,cRGBImage::Red);
+	    //StdOut() <<  "DDDD " <<  anEl.ApproxSigneDist(aPFr) << "\n";
+	}
+
+	aRGBIm.ToFile("VisuDetectCircle_"+ ToStr(aCptIm) + ".tif");
      }
 }
 
@@ -742,11 +657,10 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
           (
                 anArgOpt
              << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
+             << AOpt2007(mPCT.mMinDiam,"DiamMin","Minimum diameters for ellipse",{eTA2007::HDV})
+             << AOpt2007(mPCT.mMaxDiam,"DiamMax","Maximum diameters for ellipse",{eTA2007::HDV})
           );
 }
-
-
-
 
 
 
@@ -777,7 +691,9 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
             if (aDMarq.GetV(aPix)==tU_INT1(eEEBW_Lab::eTmp))
                mImVisu.SetRGBPix(aPix,cRGBImage::Green);
 
-            if (aDMarq.GetV(aPix)==tU_INT1(eEEBW_Lab::eBadZ))
+            if (     (aDMarq.GetV(aPix)==tU_INT1(eEEBW_Lab::eBadZ))
+                  || (aDMarq.GetV(aPix)==tU_INT1(eEEBW_Lab::eElNotOk))
+	       )
                mImVisu.SetRGBPix(aPix,cRGBImage::Blue);
             if (aDMarq.GetV(aPix)==tU_INT1(eEEBW_Lab::eBadFr))
                mImVisu.SetRGBPix(aPix,cRGBImage::Cyan);
@@ -785,6 +701,8 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
                mImVisu.SetRGBPix(aPix,cRGBImage::Red);
             if (aDMarq.GetV(aPix)==tU_INT1(eEEBW_Lab::eAverEl))
                mImVisu.SetRGBPix(aPix,cRGBImage::Orange);
+            if (aDMarq.GetV(aPix)==tU_INT1(eEEBW_Lab::eBadTeta))
+               mImVisu.SetRGBPix(aPix,cRGBImage::Yellow);
 	       /*
 	       */
 

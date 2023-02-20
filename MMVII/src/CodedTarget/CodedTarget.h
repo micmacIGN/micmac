@@ -1,5 +1,6 @@
 #ifndef _CODED_TARGET_H_
 #define _CODED_TARGET_H_
+// #include "MMVII_enums.h"
 #include "MMVII_ImageInfoExtract.h"
 #include "MMVII_SetITpl.h"
 #include "FilterCodedTarget.h"   // Contains image processing that may be not specific to coded target
@@ -173,7 +174,12 @@ class cParamCodedTarget
        int &     NbRedond();  // Redundancy = number of repetition of a pattern in a circle
        int &     NbCircle();  // Redundancy = number of repetition of a pattern in a circle
        double &  RatioBar();  // Ratio on codin bar
+
+       /// Set value that are computed from other like mRho_0... , mRho_1...
        void      Finish();
+       /// Set default value that depend from the type 
+       void      FinishInitOfType(eTyCodeTarget aType);
+
 
        int NbCodeAvalaible() const;                           // Number of different code we can generate
        int BaseForNum() const;                                // Base used for converting integer to string
@@ -202,6 +208,7 @@ class cParamCodedTarget
        cPt2di    Norm2PixI(const cPt2dr &) const;
 
 
+       eTyCodeTarget mType;  // type among enumerated value
        int       mNbBit;  // Do not include parity, so 5=> gives 16 if parity used
        bool      mWithParity;  // Do we use parirty check
        int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
@@ -216,6 +223,8 @@ class cParamCodedTarget
        double    mThickN_Car;  // thickness of black border (needed only on pannel)
        double    mThickN_BExt;  // thickness of black border (needed only on pannel)
        double    mChessboardAng;     // Origine angle of chessboard pattern
+       bool      mWithChessboard;     // do we have a cental chess board, true 4 IGN
+       bool      mWhiteBackGround;     // black on white, true 4 IGN
 
        bool mModeFlight;  // Special mode for Patricio
 
@@ -231,6 +240,7 @@ class cParamCodedTarget
        double    mScale;  // Sz of Pixel in normal coord
 
        std::vector<cSetCodeOf1Circle>     mVecSetOfCode;
+       /// if there is several circle (obsolete ?), must decompose the total number on the number/circle
        cDecomposPAdikVar                  mDecP;
 };
 

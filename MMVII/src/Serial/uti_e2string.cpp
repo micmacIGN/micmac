@@ -308,6 +308,17 @@ template<> cE2Str<eDCTFilters>::tMapE2Str cE2Str<eDCTFilters>::mE2S
            };
 TPL_ENUM_2_STRING(eDCTFilters);
 
+
+template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
+           {
+                {eTyCodeTarget::eIGNIndoor,"IGNIndoor"},
+                {eTyCodeTarget::eIGNDrone,"IGNDrone"},
+                {eTyCodeTarget::eCERN,"CERN"}
+           };
+TPL_ENUM_2_STRING(eTyCodeTarget);
+
+
+
 template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
            {
                 {eModeCaracMatch::eMS_CQ1,"MS_CQ1"},

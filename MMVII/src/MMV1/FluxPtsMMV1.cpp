@@ -47,6 +47,12 @@ tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh)
      return aRes;
 }
 
+// extern Flux_Pts ellipse(Pt2dr c,REAL A,REAL B,REAL teta,bool v8 = true);
+void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh)
+{
+     FluxToV2Points(aRes,ellipse(ToMMV1(aC),aRayA,aRayB,aTeta,with8Neigh));
+}
+
 
 
 

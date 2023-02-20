@@ -499,6 +499,10 @@ class cRGBImage
         void SetGrayPix(const cPt2di & aPix,int aGray);
 
 
+	/// draw only 1 pixel , use zoom for change geom
+	void SetRGBPoint(const cPt2dr & aPoint,const cPt3di & aCoul);  
+	// void SetRGBLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul);
+
 
         tIm1C  ImR(); ///< Accessor
         tIm1C  ImG(); ///< Accessor
@@ -517,16 +521,25 @@ class cRGBImage
 	/// return a lut adapted to visalise label in one chanel (blue), an maximize constrat in 2 other
 	static  std::vector<cPt3di>  LutVisuLabRand(int aNbLab);
 
+	cPt2dr PointToRPix(const cPt2dr & aPt) const;
+	cPt2di PointToPix(const cPt2dr & aPt) const;
+	///  draw pixel at exact value, dont reuse zoom
+	void RawSetPoint(const cPt2di & aPixZ,int aR,int aG,int aB);
+	void RawSetPoint(const cPt2di & aPixZ,const cPt3di & aCoul);
      private :
         void AssertZ1() const;
 	void ReplicateForZoom(const cRect2 & aRect1Z);  // P0=> zoomed, Sz=> unzoomed
+
 	// dont use zoom
         cPt3di LikeZ1_RGBPix(const cPt2di & aPix) const;
 
-        cPt2di mSz1;
-        cRect2 mBoxZ1;
-        cPt2di mSzz;
+
+        cPt2di mSz1;  ///< Sz w/o zoom  , "logical" pixel
+        cRect2 mBoxZ1; ///< box  w/o zoom
+        cPt2di mSzz;   ///< Sz with zoom, "physicall" pixel
         int    mZoom;
+        tREAL8 mRZoom;
+	cPt2dr mOffsetZoom;  ///< Offset for corresponding real pixel to physicall
         tIm1C  mImR;
         tIm1C  mImG;
         tIm1C  mImB;

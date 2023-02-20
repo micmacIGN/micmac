@@ -488,6 +488,8 @@ template <class Type> class cResulSymEigenValue
         friend class cStrStat2<Type>;
 
         cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix
+	  // =>  mEigenVectors * cDenseMatrix<Type>::Diag(mEigenValues) * mEigenVectors.Transpose();
+
 
         const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values
         const cDenseMatrix<Type> &  EigenVectors()const ; ///< Eigen vector
@@ -818,6 +820,9 @@ template<class Type,const int DimOut,const int DimIn>void MulLine(cPtxd<Type,Dim
 template<class Type,const int Dim> cPtxd<Type,Dim> SolveCol(const cDenseMatrix<Type>&,const cPtxd<Type,Dim>&);
 template<class Type,const int Dim> cPtxd<Type,Dim> SolveLine(const cPtxd<Type,Dim>&,const cDenseMatrix<Type>&);
 
+/// Considering matrix like a quadratic form, return the scalar product
+template<class Type,const int DimOut,const int DimIn> Type 
+     QScal(const cPtxd<Type,DimOut>&,const cDenseMatrix<Type>&,const cPtxd<Type,DimIn>&);
 
 /** Class for image of any dimension, relatively slow probably */
 
