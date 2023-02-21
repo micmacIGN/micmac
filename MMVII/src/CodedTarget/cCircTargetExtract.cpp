@@ -13,14 +13,13 @@
 namespace MMVII
 {
 
-static bool TEST = false;
 
 struct cParamBWTarget;  ///< Store pararameters for Black & White target
-struct cSeedCircTarg;   ///< Store data for seed point of circular extraction
+struct cSeedBWTarget;   ///< Store data for seed point of circular extraction
 
 
 // ==  enum class eEEBW_Lab;   ///< label used in ellipse extraction
-class cExtract_BW_Ellipse;  ///< class for ellipse extraction
+class cExtract_BW_Target;  ///< class for ellipse extraction
 
 /*  *********************************************************** */
 /*                                                              */
@@ -48,6 +47,8 @@ struct cParamBWTarget
 };
 
 
+
+
 int cParamBWTarget::NbMaxPtsCC() const { return M_PI * Square(mMaxDiam/2.0); }
 int cParamBWTarget::NbMinPtsCC() const { return M_PI * Square(mMinDiam/2.0); }
 
@@ -67,36 +68,41 @@ cParamBWTarget::cParamBWTarget() :
 
 /*  *********************************************************** */
 /*                                                              */
-/*               cSeedCircTarg                                  */
+/*               cSeedBWTarget                                  */
 /*                                                              */
 /*  *********************************************************** */
 
-struct cSeedCircTarg
+struct cSeedBWTarget
 {
     public :
        cPt2di mPixW;
        cPt2di mPixTop;
 
+       cPt2di mPInf;
+       cPt2di mPSup;
+
        tREAL4 mBlack;
        tREAL4 mWhite;
        bool   mOk;
+       bool   mMarked4Test;
 
-       cSeedCircTarg(const cPt2di & aPixW,const cPt2di & aPixTop,  tREAL4 mBlack,tREAL4 mWhite);
+       cSeedBWTarget(const cPt2di & aPixW,const cPt2di & aPixTop,  tREAL4 mBlack,tREAL4 mWhite);
 };
 
-cSeedCircTarg::cSeedCircTarg(const cPt2di & aPixW,const cPt2di & aPixTop,tREAL4 aBlack,tREAL4 aWhite):
-   mPixW    (aPixW),
-   mPixTop  (aPixTop),
-   mBlack   (aBlack),
-   mWhite   (aWhite),
-   mOk      (true)
+cSeedBWTarget::cSeedBWTarget(const cPt2di & aPixW,const cPt2di & aPixTop,tREAL4 aBlack,tREAL4 aWhite):
+   mPixW        (aPixW),
+   mPixTop      (aPixTop),
+   mBlack       (aBlack),
+   mWhite       (aWhite),
+   mOk          (true),
+   mMarked4Test (false)
 {
 }
 
 
 /*  *********************************************************** */
 /*                                                              */
-/*               cExtract_BW_Ellipse                            */
+/*               cExtract_BW_Target                             */
 /*                                                              */
 /*  *********************************************************** */
 
@@ -114,7 +120,7 @@ enum class eEEBW_Lab : tU_INT1
 };
 
 
-class cExtract_BW_Ellipse
+class cExtract_BW_Target
 {
    public :
         typedef tREAL4              tElemIm;
@@ -125,11 +131,10 @@ class cExtract_BW_Ellipse
 	typedef cIm2D<tU_INT1>      tImMarq;
 	typedef cDataIm2D<tU_INT1>  tDImMarq;
 
-        cExtract_BW_Ellipse(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest);
+        cExtract_BW_Target(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest);
 
         void ExtractAllSeed();
-        void AnalyseAllConnectedComponents(const std::string & aNameIm);
-        const std::vector<cSeedCircTarg> & VSeeds() const;
+        const std::vector<cSeedBWTarget> & VSeeds() const;
 	const tDImMarq&    DImMarq() const;
 	const tDataIm &    DGx() const;
 	const tDataIm &    DGy() const;
@@ -143,11 +148,10 @@ class cExtract_BW_Ellipse
 	bool MarqEq(const cPt2di & aP,eEEBW_Lab aLab) const {return mDImMarq.GetV(aP) == tU_INT1(aLab);}
 	bool MarqFree(const cPt2di & aP) const {return MarqEq(aP,eEEBW_Lab::eFree);}
 
-        bool AnalyseOneConnectedComponents(cSeedCircTarg &);
-        bool ComputeFrontier(cSeedCircTarg & aSeed);
-        void AnalyseEllipse(cSeedCircTarg & aSeed,const std::string & aNameIm);
+        bool AnalyseOneConnectedComponents(cSeedBWTarget &);
+        bool ComputeFrontier(cSeedBWTarget & aSeed);
 
-   private :
+   protected :
 
 	/// Is the point a candidate for seed (+- local maxima)
         bool IsExtremalPoint(const cPt2di &) ;
@@ -158,19 +162,19 @@ class cExtract_BW_Ellipse
         cPt2di Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) const;
 
 	/// Extract the accurate frontier point, essentially prepare data to call "cGetPts_ImInterp_FromValue"
-        cPt2dr RefineFrontierPoint(const cSeedCircTarg & aSeed,const cPt2di & aP0,bool & Ok);
+        cPt2dr RefineFrontierPoint(const cSeedBWTarget & aSeed,const cPt2di & aP0,bool & Ok);
 
         tIm              mIm;      ///< Image to analyse
         tDataIm &        mDIm;     ///<  Data of Image
 	cPt2di           mSz;      ///< Size of image
 	tImMarq          mImMarq;    ///< Marqer used in cc exploration
 	tDImMarq&        mDImMarq;   ///< Data of Marqer
-        cParamBWTarget   mPBWT;
-        tImGrad          mImGrad;
-	tDataIm &        mDGx;
-	tDataIm &        mDGy;
+        cParamBWTarget   mPBWT;      ///<  Copy of parameters
+        tImGrad          mImGrad;    ///<  Structure for computing gradient
+	tDataIm &        mDGx;       ///<  Access to x-grad
+	tDataIm &        mDGy;       ///<  Access to y-grad
 
-        std::vector<cSeedCircTarg> mVSeeds;
+        std::vector<cSeedBWTarget> mVSeeds;
 
 	std::vector<cPt2di>  mPtsCC;
 	int                  mIndCurPts;  ///< index of point explored in connected component
@@ -183,7 +187,8 @@ class cExtract_BW_Ellipse
         std::vector<cPt2dr>  mVFront;
 };
 
-cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest) :
+
+cExtract_BW_Target::cExtract_BW_Target(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest) :
    mIm        (anIm),
    mDIm       (mIm.DIm()),
    mSz        (mDIm.Sz()),
@@ -208,9 +213,9 @@ cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamBWTarget & aPBWT,c
        L => positive gradient on x
 */
 
-///cSeedCircTarg
+///cSeedBWTarget
 
-cPt2di cExtract_BW_Ellipse::Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) const
+cPt2di cExtract_BW_Target::Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) const
 {
     cPt2di aDir = cPt2di(0,IsW?1:-1);
 
@@ -227,7 +232,7 @@ cPt2di cExtract_BW_Ellipse::Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) co
     return aPix;
 }
          
-bool cExtract_BW_Ellipse::IsExtremalPoint(const cPt2di & aPix) 
+bool cExtract_BW_Target::IsExtremalPoint(const cPt2di & aPix) 
 {
    // is it a point where gradient cross vertical line
    if ( (mDGx.GetV(aPix)>0) ||  (mDGx.GetV(aPix+cPt2di(-1,0)) <=0) )
@@ -275,12 +280,12 @@ bool cExtract_BW_Ellipse::IsExtremalPoint(const cPt2di & aPix)
     if ((aVBlack/double(aVWhite)) > mPBWT.mRatioMaxBW)
       return false;
 
-   mVSeeds.push_back(cSeedCircTarg(aPixW,aPix,aVBlack,aVWhite));
+   mVSeeds.push_back(cSeedBWTarget(aPixW,aPix,aVBlack,aVWhite));
 
    return true;
 }
 
-void cExtract_BW_Ellipse::ExtractAllSeed()
+void cExtract_BW_Target::ExtractAllSeed()
 {
    const cBox2di &  aFullBox = mDIm;
    cRect2  aBoxInt (aFullBox.Dilate(-mPBWT.mD0BW));
@@ -298,17 +303,17 @@ void cExtract_BW_Ellipse::ExtractAllSeed()
    (
       mVSeeds.begin(),
       mVSeeds.end(),
-      [](const cSeedCircTarg &  aS1,const cSeedCircTarg &  aS2) {return aS1.mWhite>aS2.mWhite;}
+      [](const cSeedBWTarget &  aS1,const cSeedBWTarget &  aS2) {return aS1.mWhite>aS2.mWhite;}
    );
    StdOut() << " PPPP="  << aNbOk / double(aNb) << "\n";
 }
 
-const std::vector<cSeedCircTarg> &      cExtract_BW_Ellipse::VSeeds() const { return mVSeeds; }
-const cExtract_BW_Ellipse::tDImMarq&    cExtract_BW_Ellipse::DImMarq() const {return mDImMarq;}
-const cExtract_BW_Ellipse::tDataIm&    cExtract_BW_Ellipse::DGx() const {return mDGx;}
-const cExtract_BW_Ellipse::tDataIm&    cExtract_BW_Ellipse::DGy() const {return mDGy;}
+const std::vector<cSeedBWTarget> &      cExtract_BW_Target::VSeeds() const { return mVSeeds; }
+const cExtract_BW_Target::tDImMarq&    cExtract_BW_Target::DImMarq() const {return mDImMarq;}
+const cExtract_BW_Target::tDataIm&    cExtract_BW_Target::DGx() const {return mDGx;}
+const cExtract_BW_Target::tDataIm&    cExtract_BW_Target::DGy() const {return mDGy;}
 
-void cExtract_BW_Ellipse::AddPtInCC(const cPt2di & aPt)
+void cExtract_BW_Target::AddPtInCC(const cPt2di & aPt)
 {
      mDImMarq.SetV(aPt,tU_INT1(eEEBW_Lab::eTmp) );
      mPtsCC.push_back(aPt);
@@ -318,21 +323,8 @@ void cExtract_BW_Ellipse::AddPtInCC(const cPt2di & aPt)
      SetSupEq(mPSup,aPt);
 }
 
-void cExtract_BW_Ellipse::AnalyseAllConnectedComponents(const std::string & aNameIm)
-{
-    for (auto & aSeed : mVSeeds)
-    {
-        if (AnalyseOneConnectedComponents(aSeed))
-        {
-            if (ComputeFrontier(aSeed))
-	    {
-                AnalyseEllipse(aSeed,aNameIm);
-	    }
-        }
-    }
-}
 
-void cExtract_BW_Ellipse::CC_SetMarq(eEEBW_Lab aLab)
+void cExtract_BW_Target::CC_SetMarq(eEEBW_Lab aLab)
 {
     for (const auto & aP : mPtsCC)
         SetMarq(aP,aLab);
@@ -340,10 +332,7 @@ void cExtract_BW_Ellipse::CC_SetMarq(eEEBW_Lab aLab)
 
 
 
-
-
-
-cPt2dr cExtract_BW_Ellipse::RefineFrontierPoint(const cSeedCircTarg & aSeed,const cPt2di & aPt,bool & Ok)
+cPt2dr cExtract_BW_Target::RefineFrontierPoint(const cSeedBWTarget & aSeed,const cPt2di & aPt,bool & Ok)
 {
     Ok = false;
     cPt2dr aP0 = ToR(aPt);
@@ -361,10 +350,9 @@ cPt2dr cExtract_BW_Ellipse::RefineFrontierPoint(const cSeedCircTarg & aSeed,cons
     return cPt2dr(-1e10,1e20);
 }
 
-bool  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed)
+bool  cExtract_BW_Target::AnalyseOneConnectedComponents(cSeedBWTarget & aSeed)
 {
-    TEST = false;
-    cPt2di aPTest(-99999999,594);
+     cPt2di aPTest(-99999999,594);
 
      mCentroid = cPt2dr(0,0);
      mPtsCC.clear();
@@ -393,24 +381,24 @@ bool  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed)
      std::vector<cPt2di> aV4Neigh =  AllocNeighbourhood<2>(1); 
 
      bool touchOther = false;
+     // Classical  CC loop + stop condition on number of points
      while (   (mIndCurPts!=int(mPtsCC.size())) && (mPtsCC.size()<aMaxNbPts)   )
      {
-           cPt2di aPix = mPtsCC.at(mIndCurPts);
-           for (const auto & aNeigh : aV4Neigh)
+           cPt2di aPix = mPtsCC.at(mIndCurPts);  // extract last point in the heap
+           for (const auto & aNeigh : aV4Neigh)   // explorate its neighboord
            {
                cPt2di aPN = aPix + aNeigh;
-               if (MarqFree(aPN))
+               if (MarqFree(aPN))  // they have not been met
                {
                    tElemIm aValIm = mDIm.GetV(aPN);
-		   if ((aValIm>=aVMinW)  && (aValIm<=aVMaxW))
+		   if ((aValIm>=aVMinW)  && (aValIm<=aVMaxW))  // if their value is in the good interval
                    {
                       if (mDMasqT.GetV(aPN))
-                         TEST = true;
+                         aSeed.mMarked4Test = true;
                       AddPtInCC(aPN);
 		      if (aPN== aPTest)
 		      {
-			      StdOut() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa\n";
-			      TEST=true;
+                         aSeed.mMarked4Test = true;
 		      }
                    }
                }
@@ -427,10 +415,12 @@ bool  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed)
      }
 
      mCentroid = mCentroid / double(mIndCurPts);
+     aSeed.mPInf = mPInf;
+     aSeed.mPSup = mPSup;
      return true;
 }
 
-bool  cExtract_BW_Ellipse::ComputeFrontier(cSeedCircTarg & aSeed)
+bool  cExtract_BW_Target::ComputeFrontier(cSeedBWTarget & aSeed)
 {
      std::vector<cPt2di> aV8Neigh =  AllocNeighbourhood<2>(2);
      mVFront.clear();
@@ -471,18 +461,84 @@ bool  cExtract_BW_Ellipse::ComputeFrontier(cSeedCircTarg & aSeed)
      return true;
 }
 
+/*  *********************************************************** */
+/*                                                              */
+/*               cExtract_BW_Ellipse                            */
+/*                                                              */
+/*  *********************************************************** */
 
-void  cExtract_BW_Ellipse::AnalyseEllipse(cSeedCircTarg & aSeed,const std::string & aNameIm)
+struct cExtracteEllipse
 {
+     public :
+        cSeedBWTarget    mSeed;
+	cEllipse         mEllipse;
 
-     cEllipse_Estimate anEE(mCentroid);
+	cExtracteEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse);
+
+	tREAL8  mDist;
+	tREAL8  mDistPond;
+	tREAL8  mEcartAng;
+	bool    mValidated;
+};
+
+cExtracteEllipse::cExtracteEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse) :
+    mSeed      (aSeed),
+    mEllipse   (anEllipse),
+    mDist      (10.0),
+    mDistPond  (10.0),
+    mEcartAng  (10.0),
+    mValidated (false)
+{
+}
+
+
+/*  *********************************************************** */
+/*                                                              */
+/*               cExtract_BW_Ellipse                            */
+/*                                                              */
+/*  *********************************************************** */
+
+class cExtract_BW_Ellipse  : public cExtract_BW_Target
+{
+	public :
+             cExtract_BW_Ellipse(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest);
+
+             void AnalyseAllConnectedComponents(const std::string & aNameIm);
+             bool AnalyseEllipse(cSeedBWTarget & aSeed,const std::string & aNameIm);
+	private :
+
+	     std::list<cExtracteEllipse> mListExtEl;
+};
+
+cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest) :
+	cExtract_BW_Target(anIm,aPBWT,aMasqTest)
+{
+}
+
+void cExtract_BW_Ellipse::AnalyseAllConnectedComponents(const std::string & aNameIm)
+{
+    for (auto & aSeed : mVSeeds)
+    {
+        if (AnalyseOneConnectedComponents(aSeed))
+        {
+            if (ComputeFrontier(aSeed))
+	    {
+                AnalyseEllipse(aSeed,aNameIm);
+	    }
+        }
+    }
+}
+
+bool  cExtract_BW_Ellipse::AnalyseEllipse(cSeedBWTarget & aSeed,const std::string & aNameIm)
+{
+     cEllipse_Estimate anEEst(mCentroid);
      for (const auto  & aPFr : mVFront)
-         anEE.AddPt(aPFr);
-     cEllipse anEl = anEE.Compute();
+         anEEst.AddPt(aPFr);
+     cEllipse anEl = anEEst.Compute();
      if (! anEl.Ok())
      {
         CC_SetMarq(eEEBW_Lab::eElNotOk); 
-        return;
+        return false;
      }
      double aSomD = 0;
      double aSomRad = 0;
@@ -508,7 +564,7 @@ void  cExtract_BW_Ellipse::AnalyseEllipse(cSeedCircTarg & aSeed,const std::strin
 	    if (! mDGx.InsideBL(aPt))
 	    {
                   CC_SetMarq(eEEBW_Lab::eElNotOk); 
-                  return;
+                  return false;
 	    }
             cPt2dr aGradIm (mDGx.GetVBL(aPt),mDGy.GetVBL(aPt));
 	    aSomTeta += std::abs(ToPolar(aGradIm/-aGradTh).y());
@@ -518,38 +574,47 @@ void  cExtract_BW_Ellipse::AnalyseEllipse(cSeedCircTarg & aSeed,const std::strin
      if (aSomDPond>0.2)
      {
         CC_SetMarq(eEEBW_Lab::eBadEl); 
+	return false;
      }
-     else if (aSomDPond>0.1)
+     
+
+     cExtracteEllipse  anEE(aSeed,anEl);
+     anEE.mDist      = aSomD;
+     anEE.mDistPond  = aSomDPond;
+     anEE.mEcartAng  = aSomTeta;
+
+     if (aSomDPond>0.1)
      {
-        CC_SetMarq(eEEBW_Lab::eAverEl); 
+         CC_SetMarq(eEEBW_Lab::eAverEl); 
      }
      else
      {
          if (aSomTeta>0.05)
 	 {
-             CC_SetMarq(eEEBW_Lab::eBadTeta); 
+            CC_SetMarq(eEEBW_Lab::eBadTeta); 
 	 }
-	 /*
-	     static int aCpt=0;aCpt++;
-	     StdOut() << "SOMTETA " << aSomTeta << "\n";
-	     StdOut() << " N=" << aCpt 
-		      << " SOMD = " << aSomD 
-                      << " AXES " << 2*anEl.LGa() << " " << 2*anEl.LSa() 
-		      << "\n";
-	*/
+	 else
+	 {
+            anEE.mValidated = true;
+	 }
      }
 
+     mListExtEl.push_back(anEE);
+     return true;
+}
 
-     if (TEST)
-     {
-         static int aCptIm = 0;
-	 aCptIm++;
+void  ShowEllipse(const cExtracteEllipse & anEE,const std::string & aNameIm,const std::vector<cPt2dr> & aVFront)
+{
+    static int aCptIm = 0;
+    aCptIm++;
+    const cSeedBWTarget &  aSeed = anEE.mSeed;
+    const cEllipse &       anEl  = anEE.mEllipse;
 
-         StdOut() << "SOMDDd=" << aSomD << " DP=" << aSomDPond << " " << aSeed.mPixTop 
-		 << " GRAY=" << aSomRad/ mVFront.size()
+     StdOut() << "SOMDDd=" << anEE.mDist << " DP=" << anEE.mDistPond << " " << aSeed.mPixTop 
 		 << " NORM =" << anEl.Norm()  << " RayM=" << anEl.RayMoy()
 		 << "\n";
 
+     /*
         std::vector<cPt3dr> aVF3;
         for (const auto  & aP : mVFront)
 	{
@@ -561,22 +626,15 @@ void  cExtract_BW_Ellipse::AnalyseEllipse(cSeedCircTarg & aSeed,const std::strin
 	    aVF3.end(),
             [](const cPt3dr  aP1,const cPt3dr &  aP2) {return aP1.z() >aP2.z();}
         );
+	*/
 
-        for (const auto  & aP : aVF3)
-        {
-            cPt2dr aP2(aP.x(),aP.y());
-            // StdOut()  <<  "Teta " << aP.z()   << " S="<< anEl.SignedD2(aP2) << " " << mDIm.GetVBL(aP2)  << "\n";
-	}
-	//
-        StdOut() << " BOX " << mPInf << " " << mPSup << "\n";
+        StdOut() << " BOX " << aSeed.mPInf << " " << aSeed.mPSup << "\n";
 
 	cPt2di  aPMargin(6,6);
-	cBox2di aBox(mPInf-aPMargin,mPSup+aPMargin);
+	cBox2di aBox(aSeed.mPInf-aPMargin,aSeed.mPSup+aPMargin);
 
 	int aZoom = 21;
 	cRGBImage aRGBIm = cRGBImage::FromFile(aNameIm,aBox,aZoom);  ///< Allocate and init from file
-
-
 	cPt2dr aPOfs = ToR(aBox.P0());
 	/*
 	int aNbPts = 5000;
@@ -606,14 +664,15 @@ void  cExtract_BW_Ellipse::AnalyseEllipse(cSeedCircTarg & aSeed,const std::strin
             aRGBIm.RawSetPoint(aPix,cRGBImage::Blue);
 	}
 
-        for (const auto  & aPFr : mVFront)
+        for (const auto  & aPFr : aVFront)
 	{
             aRGBIm.SetRGBPoint(aPFr-aPOfs,cRGBImage::Red);
 	    //StdOut() <<  "DDDD " <<  anEl.ApproxSigneDist(aPFr) << "\n";
 	}
 
 	aRGBIm.ToFile("VisuDetectCircle_"+ ToStr(aCptIm) + ".tif");
-     }
+#if (0)
+#endif
 }
 
 /*  *********************************************************** */
@@ -648,7 +707,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
         cRGBImage       mImVisu;
         cIm2D<tU_INT1>  mImMarq;
 
-        std::vector<cSeedCircTarg> mVSeeds;
+        std::vector<cSeedBWTarget> mVSeeds;
 	cPhotogrammetricProject     mPhProj;
 
 	bool                        mHasMask;
@@ -674,7 +733,7 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
 {
 }
 
-        // cExtract_BW_Ellipse * 
+        // cExtract_BW_Target * 
 cCollecSpecArg2007 & cAppliExtractCircTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
    // Standard use, we put args of  cAppliParseBoxIm first
@@ -718,7 +777,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
    if (mVisu)
    {
-       const cExtract_BW_Ellipse::tDImMarq&     aDMarq =  mExtrEll->DImMarq();
+       const cExtract_BW_Target::tDImMarq&     aDMarq =  mExtrEll->DImMarq();
        for (const auto & aPix : aDMarq)
        {
             if (aDMarq.GetV(aPix)==tU_INT1(eEEBW_Lab::eTmp))
