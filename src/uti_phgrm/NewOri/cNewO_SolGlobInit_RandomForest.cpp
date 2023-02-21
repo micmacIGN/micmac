@@ -915,6 +915,7 @@ static std::array<ElRotation3D, 3> EstimAllRt(const cLinkTripl* aLnk) {
     Pt3dr aT2 = T0 + aRL2M * aC2ToL.tr() * Lambda;
     Pt3dr aT3 = T0 + aRL2M * aC3ToL.tr() * Lambda;
 
+
     // 4- return R{1,2,3}, t{1,2,3}
     return {ElRotation3D(aT1, aRL2M * aC1ToL.Mat(), true),
             ElRotation3D(aT2, aRL2M * aC2ToL.Mat(), true),
@@ -923,6 +924,9 @@ static std::array<ElRotation3D, 3> EstimAllRt(const cLinkTripl* aLnk) {
 
 static void EstimRt(cLinkTripl* aLnk) {
     auto oris = EstimAllRt(aLnk);
+    aLnk->S3()->attr().residue =
+        ((aLnk->S1()->attr().residue + aLnk->S2()->attr().residue) / 2.) +
+        aLnk->m3->Sum()[0];
 
     // Get sommets
     tSomNSI* aS3 = aLnk->S3();
@@ -1103,7 +1107,6 @@ void RandomForest::RandomSolAllCC(Dataset& data, cNO_CC_TripSom* aCC) {
     }
 }
 
-
 void RandomForest::AddTriOnHeap(Dataset& data, cLinkTripl* aLnk) {
     std::vector<cLinkTripl*> aVMaj;
 
@@ -1114,9 +1117,11 @@ void RandomForest::AddTriOnHeap(Dataset& data, cLinkTripl* aLnk) {
 
         for (int aT = 0; aT < int(aVT.size()); aT++) {
             // If triplet was visited continue
-            if (aVT[aT].m3->Flag().kth(data.mFlag3CC)) {
+            if (aVT[aT].m3->Flag().kth(data.mFlag3CC)
+                || aVT[aT].S3()->flag_kth(data.mFlagS)) {
                 continue;
             }
+            aVT[aT].prev = aLnk;
 
             // Add to heap
             mHeapTriDyn.push(&(aVT[aT]));
@@ -1143,9 +1148,9 @@ void RandomForest::AddTriOnHeap(Dataset& data, cLinkTripl* aLnk) {
 void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     int NbSomCC = int(aCC->mSoms.size());
     GraphViz g;
-    DataLog<int, int, double, double, double, double, double> log(
+    DataLog<int, int, double, double, double, double, double, double> log(
         {"Id", "Category", "Distance", "Residue", "ResidueMedian", "Score",
-         "ScoreMedian"});
+         "ScoreMedian", "Accumulated"});
 
     // Pick the  triplet
     cNOSolIn_Triplet* aTri0 = GetBestTri(data);
@@ -1154,8 +1159,11 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
               << aTri0->KSom(2)->attr().Im()->Name() << " " << aTri0->Sum()[aTri0->indexSum]
               << "\n";
 
+    aTri0->KSom(0)->attr().residue = aTri0->Sum()[0];
+    aTri0->KSom(1)->attr().residue = aTri0->Sum()[0];
+    aTri0->KSom(2)->attr().residue = aTri0->Sum()[0];
     log.add({aTri0->NumId(), aTri0->category, 0., aTri0->Sum()[0],
-             aTri0->Sum()[1], aTri0->Sum()[2], aTri0->Sum()[3]});
+             aTri0->Sum()[1], aTri0->Sum()[2], aTri0->Sum()[3], aTri0->Sum()[0]});
 
     // Flag triplet as marked
     aTri0->Flag().set_kth_true(data.mFlag3CC);
@@ -1189,7 +1197,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
 
             // Add to heap
             AddTriOnHeap(data, aTriNext);
-            if (aTriNext->m3->Cost() < aTriNext->S3()->attr().treeCost) {
+            /*if (aTriNext->m3->Cost() < aTriNext->S3()->attr().treeCost) {
                 std::cout << "Better triplet for point: " << std::endl
                           << aTriNext->S3()->attr().treeCost
                           << " -> "
@@ -1199,10 +1207,18 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
                           << aTriNext->S2()->attr().Im()->Name() << " "
                           << aTriNext->S3()->attr().Im()->Name() << " "
                           << std::endl;
-
                 EstimRt(aTriNext);
                 aTriNext->S3()->attr().treeCost = aTriNext->m3->Cost();
-            }
+
+                log.add({aTriNext->m3->NumId(), aTriNext->m3->category,
+                     aTriNext->m3->NumTT(), aTriNext->m3->Sum()[0],
+                     aTriNext->m3->Sum()[1], aTriNext->m3->Sum()[2],
+                     aTriNext->m3->Sum()[3],
+                     aTriNext->S3()->attr().residue,
+                     });
+
+                 g.addTriplet(*aTriNext->m3);
+            }*/
         } else {  // however, try to adjacent triplets of that triplet
             std::cout << "=== Add new node " << Cpt << " "
                       << aTriNext->S1()->attr().Im()->Name() << " "
@@ -1225,7 +1241,10 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
             aTriNext->S3()->attr().NumId() = aTriNext->m3->NumId();
             aTriNext->S3()->attr().treeCost = aTriNext->m3->Cost();
 
-            log.add({aTriNext->m3->NumId(), aTriNext->m3->category, aTriNext->m3->NumTT(), aTriNext->m3->Sum()[0], aTriNext->m3->Sum()[1], aTriNext->m3->Sum()[2], aTriNext->m3->Sum()[3]});
+            //Accumulate residue from each branch
+//            aTriNext->m3->Sum()[4] = aTriNext->m3->Sum()[0] + aTriNext->prev->m3->Sum()[4];
+
+
 
             /*PrintRotation(aTriNext->S1()->attr().CurRot().Mat(),"0");
               PrintRotation(aTriNext->S2()->attr().CurRot().Mat(),"1");
@@ -1233,6 +1252,13 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
 
             // Propagate R,t
             EstimRt(aTriNext);
+
+            log.add({aTriNext->m3->NumId(), aTriNext->m3->category,
+                     aTriNext->m3->NumTT(), aTriNext->m3->Sum()[0],
+                     aTriNext->m3->Sum()[1], aTriNext->m3->Sum()[2],
+                     aTriNext->m3->Sum()[3],
+                     aTriNext->S3()->attr().residue,
+                     });
 
             g.addTriplet(*aTriNext->m3);
 

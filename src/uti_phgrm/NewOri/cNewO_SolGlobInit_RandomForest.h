@@ -118,6 +118,8 @@ class cNOSolIn_AttrSom {
     int& NumCC() { return mNumCC; }
     int& NumId() { return mNumId; }
 
+    double residue;
+
     double treeCost;
 
    private:
@@ -252,8 +254,8 @@ class cNOSolIn_Triplet {
      *
      * 3: Median Score
      */
-    std::array<double, 4>& Sum() { return mSum; };
-    const std::array<double, 4>& Sum() const { return mSum; };
+    std::array<double, 5>& Sum() { return mSum; };
+    const std::array<double, 5>& Sum() const { return mSum; };
 
     double CalcDistArc();
 
@@ -287,7 +289,7 @@ class cNOSolIn_Triplet {
      * sum of cost times pds for the computation of the
      * weighted mean
      */
-    std::array<double, 4> mSum;
+    std::array<double, 5> mSum;
 
     int mNb3;
     ElTabFlag mTabFlag;
@@ -323,6 +325,8 @@ class cLinkTripl {
         std::cout << "###\n";
         return m3->NumId() == other.m3->NumId();
     }
+
+    cLinkTripl* prev;
 
     cNOSolIn_Triplet* m3;
 
@@ -360,6 +364,7 @@ struct cNO_HeapIndTri_NSI {
 
 struct cNO_CmpTriByCost {
     bool operator()(cLinkTripl* aL1, cLinkTripl* aL2) {
+        //return (aL1->m3)->Sum()[(aL1->m3)->indexSum] < (aL2->m3)->Sum()[(aL2->m3)->indexSum];
         return (aL1->m3)->Sum()[(aL1->m3)->indexSum] < (aL2->m3)->Sum()[(aL2->m3)->indexSum];
         //return (aL1->m3)->CostArc() < (aL2->m3)->CostArc();
     }
@@ -397,7 +402,8 @@ class cNO_CmpTriSolByCost {
    public:
     bool operator()(cNOSolIn_Triplet* aL1, cNOSolIn_Triplet* aL2) {
         //return aL1->Sum()[aL1->indexSum] < aL2->Sum()[aL2->indexSum];
-        return (aL1->pondSum / aL1->pondN) < (aL2->pondSum / aL2->pondN);
+        return aL1->Sum()[0] < aL2->Sum()[0];
+        //return (aL1->pondSum / aL1->pondN) < (aL2->pondSum / aL2->pondN);
         //return (aL1->Pds()) < (T2->Pds());
     }
 };
@@ -535,6 +541,7 @@ class RandomForest : public cCommonMartiniAppli {
     void NumeroteCC(Dataset& data);
 
     void AddTriOnHeap(Dataset& data, cLinkTripl*);
+    void RemoveTriOnHeap(Dataset& data, cLinkTripl*);
     //void EstimRt(cLinkTripl*);
 
     void PreComputeTriplets(Dataset& data);
