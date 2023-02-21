@@ -128,9 +128,18 @@ void cEllipse_Estimate::AddPt(cPt2dr aP)
      aDV(4) = aP.y();
 
      mSys->AddObservation(1.0,aDV,1.0);
+
+     mVObs.push_back(aP);
 }
 
-cEllipse cEllipse_Estimate::Compute() {return cEllipse(mSys->Solve(),mC0);}
+cEllipse cEllipse_Estimate::Compute()
+{
+     auto  aSol = mSys->Solve();
+
+     return cEllipse(aSol,mC0);
+     /// return  aRes;
+}
+
 
 
 };

@@ -15,7 +15,7 @@ namespace MMVII
 
 static bool TEST = false;
 
-struct cParamCircTarg;  ///< Store pararameters for circular/elipse target
+struct cParamBWTarget;  ///< Store pararameters for Black & White target
 struct cSeedCircTarg;   ///< Store data for seed point of circular extraction
 
 
@@ -24,34 +24,35 @@ class cExtract_BW_Ellipse;  ///< class for ellipse extraction
 
 /*  *********************************************************** */
 /*                                                              */
-/*                   cParamCircTarg                             */
+/*                   cParamBWTarget                             */
 /*                                                              */
 /*  *********************************************************** */
 
-struct cParamCircTarg
+struct cParamBWTarget
 {
     public :
-      cParamCircTarg();
+      cParamBWTarget();
 
-      int NbMaxPtsCC() const;
-      int NbMinPtsCC() const;
+      int NbMaxPtsCC() const; ///<Max number of point (computed from MaxDiam)
+      int NbMinPtsCC() const; ///<Min number of point (computed from MinDiam)
 
-      double    mFactDeriche;
-      int       mD0BW;
-      double    mValMinW;
-      double    mValMaxB;
-      double    mRatioMaxBW;
-      double    mMinDiam;
-      double    mMaxDiam;
-      double    mPropFr;
+      double    mFactDeriche;   ///< Factor for gradient with deriche-method
+      int       mD0BW;          ///< distance to border
+      double    mValMinW;       ///< Min Value for white
+      double    mValMaxB;       ///< Max value for black
+      double    mRatioMaxBW;    ///< Max Ratio   Black/White
+      double    mMinDiam;       ///< Minimal diameter
+      double    mMaxDiam;       ///< Maximal diameter
+      double    mPropFr;        ///< Minima prop of point wher frontier extraction suceeded
+      int       mNbMinFront;    ///< Minimal number of point
 };
 
 
-int cParamCircTarg::NbMaxPtsCC() const { return M_PI * Square(mMaxDiam/2.0); }
-int cParamCircTarg::NbMinPtsCC() const { return M_PI * Square(mMinDiam/2.0); }
+int cParamBWTarget::NbMaxPtsCC() const { return M_PI * Square(mMaxDiam/2.0); }
+int cParamBWTarget::NbMinPtsCC() const { return M_PI * Square(mMinDiam/2.0); }
 
 
-cParamCircTarg::cParamCircTarg() :
+cParamBWTarget::cParamBWTarget() :
     mFactDeriche (2.0),
     mD0BW        (2),
     mValMinW     (20), 
@@ -59,7 +60,8 @@ cParamCircTarg::cParamCircTarg() :
     mRatioMaxBW  (1/1.5),
     mMinDiam     (7.0),
     mMaxDiam     (60.0),
-    mPropFr      (0.95)
+    mPropFr      (0.95),
+    mNbMinFront  (10)
 {
 }
 
@@ -123,7 +125,7 @@ class cExtract_BW_Ellipse
 	typedef cIm2D<tU_INT1>      tImMarq;
 	typedef cDataIm2D<tU_INT1>  tDImMarq;
 
-        cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT,cIm2D<tU_INT1> aMasqTest);
+        cExtract_BW_Ellipse(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest);
 
         void ExtractAllSeed();
         void AnalyseAllConnectedComponents(const std::string & aNameIm);
@@ -141,22 +143,29 @@ class cExtract_BW_Ellipse
 	bool MarqEq(const cPt2di & aP,eEEBW_Lab aLab) const {return mDImMarq.GetV(aP) == tU_INT1(aLab);}
 	bool MarqFree(const cPt2di & aP) const {return MarqEq(aP,eEEBW_Lab::eFree);}
 
+        bool AnalyseOneConnectedComponents(cSeedCircTarg &);
+        bool ComputeFrontier(cSeedCircTarg & aSeed);
+        void AnalyseEllipse(cSeedCircTarg & aSeed,const std::string & aNameIm);
+
    private :
 
-        bool IsCandidateTopOfEllipse(const cPt2di &) ;
-        void AnalyseOneConnectedComponents(cSeedCircTarg &,const std::string & aNameIm);
+	/// Is the point a candidate for seed (+- local maxima)
+        bool IsExtremalPoint(const cPt2di &) ;
 
+	/// Update the data for connected component with a new point (centroid, bbox, heap...)
 	void AddPtInCC(const cPt2di &);
 	// Prolongat on the vertical, untill its a max or a min
         cPt2di Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) const;
-        cPt2dr ExtractFrontier(const cSeedCircTarg & aSeed,const cPt2di & aP0,bool & Ok);
 
-        tIm              mIm;
-        tDataIm &        mDIm;
-	cPt2di           mSz;
-	tImMarq          mImMarq;
-	tDImMarq&        mDImMarq;
-        cParamCircTarg   mPCT;
+	/// Extract the accurate frontier point, essentially prepare data to call "cGetPts_ImInterp_FromValue"
+        cPt2dr RefineFrontierPoint(const cSeedCircTarg & aSeed,const cPt2di & aP0,bool & Ok);
+
+        tIm              mIm;      ///< Image to analyse
+        tDataIm &        mDIm;     ///<  Data of Image
+	cPt2di           mSz;      ///< Size of image
+	tImMarq          mImMarq;    ///< Marqer used in cc exploration
+	tDImMarq&        mDImMarq;   ///< Data of Marqer
+        cParamBWTarget   mPBWT;
         tImGrad          mImGrad;
 	tDataIm &        mDGx;
 	tDataIm &        mDGy;
@@ -164,23 +173,24 @@ class cExtract_BW_Ellipse
         std::vector<cSeedCircTarg> mVSeeds;
 
 	std::vector<cPt2di>  mPtsCC;
-	int                  mCurPts;
-	cPt2dr               mCDG;
-        cIm2D<tU_INT1>       mMasqTest;
-        cDataIm2D<tU_INT1>&  mDMasqT;
+	int                  mIndCurPts;  ///< index of point explored in connected component
+	cPt2dr               mCentroid;   ///< Centroid of conected compoonent, used for direction & reduction of coordinates
+        cIm2D<tU_INT1>       mMasqTest;   ///< Mask for "special" point where we want to make test (debug/visu ...)
+        cDataIm2D<tU_INT1>&  mDMasqT;     ///< Data of Masq
 
-	cPt2di               mPSup;
-	cPt2di               mPInf;
+	cPt2di               mPSup;  ///< For bounding box, Sup corner
+	cPt2di               mPInf;  ///< For bounding box, Inf corner
+        std::vector<cPt2dr>  mVFront;
 };
 
-cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamCircTarg & aPCT,cIm2D<tU_INT1> aMasqTest) :
+cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest) :
    mIm        (anIm),
    mDIm       (mIm.DIm()),
    mSz        (mDIm.Sz()),
    mImMarq    (mSz),
    mDImMarq   (mImMarq.DIm()),
-   mPCT       (aPCT),
-   mImGrad    (Deriche( mDIm,mPCT.mFactDeriche)),
+   mPBWT       (aPBWT),
+   mImGrad    (Deriche( mDIm,mPBWT.mFactDeriche)),
    mDGx       (mImGrad.mGx.DIm()),
    mDGy       (mImGrad.mGy.DIm()),
    mMasqTest  (aMasqTest),
@@ -217,7 +227,7 @@ cPt2di cExtract_BW_Ellipse::Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) co
     return aPix;
 }
          
-bool cExtract_BW_Ellipse::IsCandidateTopOfEllipse(const cPt2di & aPix) 
+bool cExtract_BW_Ellipse::IsExtremalPoint(const cPt2di & aPix) 
 {
    // is it a point where gradient cross vertical line
    if ( (mDGx.GetV(aPix)>0) ||  (mDGx.GetV(aPix+cPt2di(-1,0)) <=0) )
@@ -242,7 +252,7 @@ bool cExtract_BW_Ellipse::IsCandidateTopOfEllipse(const cPt2di & aPix)
    // tElemIm aVBlack =  mDIm.GetV(aPix+cPt2di(0,-2));
    // tElemIm aVWhite =  mDIm.GetV(aPix+cPt2di(0,2));
    /*
-   if ((aVBlack/double(aVWhite)) > mPCT.mRatioP2)
+   if ((aVBlack/double(aVWhite)) > mPBWT.mRatioP2)
       return false;
       */
 
@@ -256,13 +266,13 @@ bool cExtract_BW_Ellipse::IsCandidateTopOfEllipse(const cPt2di & aPix)
    if (aMaxGy> aGy)
       return false;
    
-   if (aVWhite < mPCT.mValMinW)
+   if (aVWhite < mPBWT.mValMinW)
       return false;
 
-   if (aVBlack > mPCT.mValMaxB)
+   if (aVBlack > mPBWT.mValMaxB)
       return false;
 
-    if ((aVBlack/double(aVWhite)) > mPCT.mRatioMaxBW)
+    if ((aVBlack/double(aVWhite)) > mPBWT.mRatioMaxBW)
       return false;
 
    mVSeeds.push_back(cSeedCircTarg(aPixW,aPix,aVBlack,aVWhite));
@@ -273,13 +283,13 @@ bool cExtract_BW_Ellipse::IsCandidateTopOfEllipse(const cPt2di & aPix)
 void cExtract_BW_Ellipse::ExtractAllSeed()
 {
    const cBox2di &  aFullBox = mDIm;
-   cRect2  aBoxInt (aFullBox.Dilate(-mPCT.mD0BW));
+   cRect2  aBoxInt (aFullBox.Dilate(-mPBWT.mD0BW));
    int aNb=0;
    int aNbOk=0;
    for (const auto & aPix : aBoxInt)
    {
        aNb++;
-       if (IsCandidateTopOfEllipse(aPix))
+       if (IsExtremalPoint(aPix))
        {
            aNbOk++;
        }
@@ -302,7 +312,7 @@ void cExtract_BW_Ellipse::AddPtInCC(const cPt2di & aPt)
 {
      mDImMarq.SetV(aPt,tU_INT1(eEEBW_Lab::eTmp) );
      mPtsCC.push_back(aPt);
-     mCDG = mCDG + ToR(aPt);
+     mCentroid = mCentroid + ToR(aPt);
 
      SetInfEq(mPInf,aPt);
      SetSupEq(mPSup,aPt);
@@ -311,7 +321,15 @@ void cExtract_BW_Ellipse::AddPtInCC(const cPt2di & aPt)
 void cExtract_BW_Ellipse::AnalyseAllConnectedComponents(const std::string & aNameIm)
 {
     for (auto & aSeed : mVSeeds)
-        AnalyseOneConnectedComponents(aSeed,aNameIm);
+    {
+        if (AnalyseOneConnectedComponents(aSeed))
+        {
+            if (ComputeFrontier(aSeed))
+	    {
+                AnalyseEllipse(aSeed,aNameIm);
+	    }
+        }
+    }
 }
 
 void cExtract_BW_Ellipse::CC_SetMarq(eEEBW_Lab aLab)
@@ -325,14 +343,14 @@ void cExtract_BW_Ellipse::CC_SetMarq(eEEBW_Lab aLab)
 
 
 
-cPt2dr cExtract_BW_Ellipse::ExtractFrontier(const cSeedCircTarg & aSeed,const cPt2di & aPt,bool & Ok)
+cPt2dr cExtract_BW_Ellipse::RefineFrontierPoint(const cSeedCircTarg & aSeed,const cPt2di & aPt,bool & Ok)
 {
     Ok = false;
     cPt2dr aP0 = ToR(aPt);
 
-    double aDist =  Norm2(aP0-mCDG);
+    double aDist =  Norm2(aP0-mCentroid);
     if (aDist==0) return aP0;
-    cPt2dr aDir = (aP0-mCDG) /aDist;
+    cPt2dr aDir = (aP0-mCentroid) /aDist;
     tREAL8 aGrFr = (aSeed.mBlack+aSeed.mWhite)/2.0;
 
     cGetPts_ImInterp_FromValue<tREAL4> aGPV(mDIm,aGrFr,0.1,aP0,aDir);
@@ -343,46 +361,48 @@ cPt2dr cExtract_BW_Ellipse::ExtractFrontier(const cSeedCircTarg & aSeed,const cP
     return cPt2dr(-1e10,1e20);
 }
 
-void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,const std::string & aNameIm)
+bool  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed)
 {
     TEST = false;
     cPt2di aPTest(-99999999,594);
 
-     mCDG = cPt2dr(0,0);
+     mCentroid = cPt2dr(0,0);
      mPtsCC.clear();
      cPt2di aP0 = aSeed.mPixW;
      mPSup = aP0;
      mPInf = aP0;
 
+     // if the point has been explored or is in border 
      if (! MarqFree(aP0)) 
      {
         aSeed.mOk = false;
-        return ;
+        return false;
      }
 
-     mCurPts = 0;
+     mIndCurPts = 0;
      AddPtInCC(aP0);
 
      double aPdsW =  0.5;
 
-     tREAL4 aVMin =  (1-aPdsW)* aSeed.mBlack +  aPdsW*aSeed.mWhite;
-     tREAL4 aVMax =  (-aPdsW)* aSeed.mBlack +  (1+aPdsW)*aSeed.mWhite;
+     // Minimal value for being white, with P=0.5 => average
+     tREAL4 aVMinW =  (1-aPdsW)* aSeed.mBlack +  aPdsW*aSeed.mWhite; 
+     // Maximal value for being white, symetric formula
+     tREAL4 aVMaxW =  (-aPdsW)* aSeed.mBlack +  (1+aPdsW)*aSeed.mWhite;  
 
-     size_t aMaxNbPts = mPCT.NbMaxPtsCC();
-     std::vector<cPt2di> aV4Neigh =  AllocNeighbourhood<2>(1);
-
+     size_t aMaxNbPts = mPBWT.NbMaxPtsCC();  // if we want to avoid big area
+     std::vector<cPt2di> aV4Neigh =  AllocNeighbourhood<2>(1); 
 
      bool touchOther = false;
-     while (   (mCurPts!=int(mPtsCC.size())) && (mPtsCC.size()<aMaxNbPts)   )
+     while (   (mIndCurPts!=int(mPtsCC.size())) && (mPtsCC.size()<aMaxNbPts)   )
      {
-           cPt2di aPix = mPtsCC.at(mCurPts);
+           cPt2di aPix = mPtsCC.at(mIndCurPts);
            for (const auto & aNeigh : aV4Neigh)
            {
                cPt2di aPN = aPix + aNeigh;
                if (MarqFree(aPN))
                {
                    tElemIm aValIm = mDIm.GetV(aPN);
-		   if ((aValIm>=aVMin)  && (aValIm<=aVMax))
+		   if ((aValIm>=aVMinW)  && (aValIm<=aVMaxW))
                    {
                       if (mDMasqT.GetV(aPN))
                          TEST = true;
@@ -397,19 +417,23 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
 	       else if (! MarqEq(aPN,eEEBW_Lab::eTmp))
                     touchOther = true;
            }
-           mCurPts++;
+           mIndCurPts++;
      }
 
-     if ((mPtsCC.size() >= aMaxNbPts) || touchOther  || (int(mPtsCC.size()) < mPCT.NbMinPtsCC()))
+     if ((mPtsCC.size() >= aMaxNbPts) || touchOther  || (int(mPtsCC.size()) < mPBWT.NbMinPtsCC()))
      {            
         CC_SetMarq(eEEBW_Lab::eBadZ); 
-        return;
+        return false;
      }
 
-     mCDG = mCDG / double(mCurPts);
+     mCentroid = mCentroid / double(mIndCurPts);
+     return true;
+}
 
+bool  cExtract_BW_Ellipse::ComputeFrontier(cSeedCircTarg & aSeed)
+{
      std::vector<cPt2di> aV8Neigh =  AllocNeighbourhood<2>(2);
-     std::vector<cPt2dr> aVFront;
+     mVFront.clear();
      int aNbOk = 0;
      int aNbFront = 0;
      for (const auto & aPix : mPtsCC)
@@ -423,26 +447,37 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
 	  {
               aNbFront ++;
               bool Ok;
-              cPt2dr aPFr = ExtractFrontier(aSeed,aPix,Ok);
+              cPt2dr aPFr = RefineFrontierPoint(aSeed,aPix,Ok);
 	      if (Ok)
 	      {
                   aNbOk++;
-                  aVFront.push_back(aPFr);
+                  mVFront.push_back(aPFr);
 	      }
 	  }
      }
 
-     double aProp = aNbOk / double(aNbFront);
-     if ( aProp < mPCT.mPropFr)
+     if (aNbOk<mPBWT.mNbMinFront)
      {
         CC_SetMarq(eEEBW_Lab::eBadFr); 
-	return ;
+	return false;
+     }
+     double aProp = aNbOk / double(aNbFront);
+     if ( aProp < mPBWT.mPropFr)
+     {
+        CC_SetMarq(eEEBW_Lab::eBadFr); 
+	return false;
      }
 
-     cEllipse_Estimate anEE(mCDG);
-     for (const auto  & aPFr : aVFront)
-         anEE.AddPt(aPFr);
+     return true;
+}
 
+
+void  cExtract_BW_Ellipse::AnalyseEllipse(cSeedCircTarg & aSeed,const std::string & aNameIm)
+{
+
+     cEllipse_Estimate anEE(mCentroid);
+     for (const auto  & aPFr : mVFront)
+         anEE.AddPt(aPFr);
      cEllipse anEl = anEE.Compute();
      if (! anEl.Ok())
      {
@@ -452,13 +487,13 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
      double aSomD = 0;
      double aSomRad = 0;
      tREAL8 aGrFr = (aSeed.mBlack+aSeed.mWhite)/2.0;
-     for (const auto  & aPFr : aVFront)
+     for (const auto  & aPFr : mVFront)
      {
          aSomD += std::abs(anEl.ApproxSigneDist(aPFr));
 	 aSomRad += std::abs(mDIm.GetVBL(aPFr)-aGrFr);
      }
 
-     aSomD /= aVFront.size();
+     aSomD /= mVFront.size();
 
      tREAL8 aSomDPond =  aSomD / (1+anEl.RayMoy()/50.0);
 
@@ -511,14 +546,14 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
 	 aCptIm++;
 
          StdOut() << "SOMDDd=" << aSomD << " DP=" << aSomDPond << " " << aSeed.mPixTop 
-		 << " GRAY=" << aSomRad/ aVFront.size()
+		 << " GRAY=" << aSomRad/ mVFront.size()
 		 << " NORM =" << anEl.Norm()  << " RayM=" << anEl.RayMoy()
 		 << "\n";
 
         std::vector<cPt3dr> aVF3;
-        for (const auto  & aP : aVFront)
+        for (const auto  & aP : mVFront)
 	{
-             aVF3.push_back(cPt3dr(aP.x(),aP.y(),ToPolar(aP-mCDG).y()));
+             aVF3.push_back(cPt3dr(aP.x(),aP.y(),ToPolar(aP-mCentroid).y()));
 	}
         std::sort
         (
@@ -533,7 +568,7 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
             // StdOut()  <<  "Teta " << aP.z()   << " S="<< anEl.SignedD2(aP2) << " " << mDIm.GetVBL(aP2)  << "\n";
 	}
 	//
-        StdOut() << "PROP = " << aProp << " BOX " << mPInf << " " << mPSup << "\n";
+        StdOut() << " BOX " << mPInf << " " << mPSup << "\n";
 
 	cPt2di  aPMargin(6,6);
 	cBox2di aBox(mPInf-aPMargin,mPSup+aPMargin);
@@ -571,7 +606,7 @@ void  cExtract_BW_Ellipse::AnalyseOneConnectedComponents(cSeedCircTarg & aSeed,c
             aRGBIm.RawSetPoint(aPix,cRGBImage::Blue);
 	}
 
-        for (const auto  & aPFr : aVFront)
+        for (const auto  & aPFr : mVFront)
 	{
             aRGBIm.SetRGBPoint(aPFr-aPOfs,cRGBImage::Red);
 	    //StdOut() <<  "DDDD " <<  anEl.ApproxSigneDist(aPFr) << "\n";
@@ -605,11 +640,9 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 
         int ExeOnParsedBox() override;
 
-        bool IsCandidateTopOfEllipse(const cPt2di &) ;
-
         bool            mVisu;
         cExtract_BW_Ellipse * mExtrEll;
-        cParamCircTarg  mPCT;
+        cParamBWTarget  mPBWT;
 
         tImGrad         mImGrad;
         cRGBImage       mImVisu;
@@ -657,8 +690,8 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
           (
                 anArgOpt
              << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
-             << AOpt2007(mPCT.mMinDiam,"DiamMin","Minimum diameters for ellipse",{eTA2007::HDV})
-             << AOpt2007(mPCT.mMaxDiam,"DiamMax","Maximum diameters for ellipse",{eTA2007::HDV})
+             << AOpt2007(mPBWT.mMinDiam,"DiamMin","Minimum diameters for ellipse",{eTA2007::HDV})
+             << AOpt2007(mPBWT.mMaxDiam,"DiamMax","Maximum diameters for ellipse",{eTA2007::HDV})
           );
 }
 
@@ -668,7 +701,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 {
    double aT0 = SecFromT0();
 
-   mExtrEll = new cExtract_BW_Ellipse(APBI_Im(),mPCT,mPhProj.MaskWithDef(mNameIm,CurBoxIn(),false));
+   mExtrEll = new cExtract_BW_Ellipse(APBI_Im(),mPBWT,mPhProj.MaskWithDef(mNameIm,CurBoxIn(),false));
    if (mVisu)
       mImVisu =  cRGBImage::FromFile(mNameIm,CurBoxIn());
 

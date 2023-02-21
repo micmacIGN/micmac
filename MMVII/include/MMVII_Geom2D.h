@@ -481,6 +481,8 @@ class cEllipse_Estimate
       private :
          cLeasSqtAA<tREAL8> *mSys;
          cPt2dr             mC0;
+
+	 std::vector<cPt2dr>  mVObs;
 };
 
 
