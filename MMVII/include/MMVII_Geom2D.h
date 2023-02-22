@@ -3,6 +3,7 @@
 
 #include "MMVII_Matrix.h"
 #include "MMVII_Triangles.h"
+#include "MMVII_ImageInfoExtract.h"
 
 
 namespace MMVII
@@ -498,6 +499,54 @@ void      GetPts_Circle(tResFlux & aRes,const cPt2dr & aC,double aRay,bool with8
 tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh);
 void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh);
 
+/*
+struct cSeedBWTarget
+{
+    public :
+       cPt2di mPixW;
+       cPt2di mPixTop;
+
+       cPt2di mPInf;
+       cPt2di mPSup;
+
+       tREAL4 mBlack;
+       tREAL4 mWhite;
+       bool   mOk;
+       bool   mMarked4Test;
+
+       cSeedBWTarget(const cPt2di & aPixW,const cPt2di & aPixTop,  tREAL4 mBlack,tREAL4 mWhite);
+};
+*/
+
+
+struct cExtracteEllipse
+{
+     public :
+        cSeedBWTarget    mSeed;
+        cEllipse         mEllipse;
+
+        cExtracteEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse);
+
+        tREAL8               mDist;
+        tREAL8               mDistPond;
+        tREAL8               mEcartAng;
+        bool                 mValidated;
+        std::vector<cPt2dr>  mVFront;
+};
+
+class cExtract_BW_Ellipse  : public cExtract_BW_Target
+{
+        public :
+             cExtract_BW_Ellipse(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest);
+
+             void AnalyseAllConnectedComponents(const std::string & aNameIm);
+             bool AnalyseEllipse(cSeedBWTarget & aSeed,const std::string & aNameIm);
+
+             const std::list<cExtracteEllipse> & ListExtEl() const;  ///< Accessor
+        private :
+
+             std::list<cExtracteEllipse> mListExtEl;
+};
 
 
 

@@ -114,8 +114,6 @@ struct cParamBWTarget
       int       mNbMinFront;    ///< Minimal number of point
 };
 
-
-
 struct cSeedBWTarget
 {
     public :
@@ -132,7 +130,6 @@ struct cSeedBWTarget
 
        cSeedBWTarget(const cPt2di & aPixW,const cPt2di & aPixTop,  tREAL4 mBlack,tREAL4 mWhite);
 };
-
 enum class eEEBW_Lab : tU_INT1
 {
    eFree,

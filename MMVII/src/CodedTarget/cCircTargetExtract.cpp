@@ -21,6 +21,7 @@ namespace MMVII
 /*                                                              */
 /*  *********************************************************** */
 
+/*
 struct cExtracteEllipse
 {
      public :
@@ -35,6 +36,7 @@ struct cExtracteEllipse
 	bool                 mValidated;
 	std::vector<cPt2dr>  mVFront;
 };
+*/
 
 cExtracteEllipse::cExtracteEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse) :
     mSeed      (aSeed),
@@ -53,6 +55,7 @@ cExtracteEllipse::cExtracteEllipse(const cSeedBWTarget& aSeed,const cEllipse & a
 /*                                                              */
 /*  *********************************************************** */
 
+/*
 class cExtract_BW_Ellipse  : public cExtract_BW_Target
 {
 	public :
@@ -66,6 +69,7 @@ class cExtract_BW_Ellipse  : public cExtract_BW_Target
 
 	     std::list<cExtracteEllipse> mListExtEl;
 };
+*/
 
 cExtract_BW_Ellipse::cExtract_BW_Ellipse(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest) :
 	cExtract_BW_Target(anIm,aPBWT,aMasqTest)
