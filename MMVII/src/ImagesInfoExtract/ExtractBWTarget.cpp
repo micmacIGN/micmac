@@ -38,8 +38,8 @@ cParamBWTarget::cParamBWTarget() :
     mValMinW     (20), 
     mValMaxB     (100),
     mRatioMaxBW  (1/1.5),
-    mMinDiam     (7.0),
-    mMaxDiam     (60.0),
+    mMinDiam     (15.0),
+    mMaxDiam     (100.0),
     mPropFr      (0.95),
     mNbMinFront  (10)
 {

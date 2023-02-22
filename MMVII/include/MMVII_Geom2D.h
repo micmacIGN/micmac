@@ -447,7 +447,7 @@ class cEllipse
        const cPt2dr &  Center() const; ///< Accessor
        double TetaGa() const; /// Teta great axe
 
-       cPt2dr  PtOfTeta(tREAL8 aTeta) const; /// return on ellipse with param A cos(T) + B sin(T)
+       cPt2dr  PtOfTeta(tREAL8 aTeta,tREAL8 aMulRho=1.0) const; /// return on ellipse with param A cos(T) + B sin(T)
        cPt2dr  PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &) const;  /// return also the gradien of belong function
 
     private :
@@ -499,33 +499,14 @@ void      GetPts_Circle(tResFlux & aRes,const cPt2dr & aC,double aRay,bool with8
 tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh);
 void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh);
 
-/*
-struct cSeedBWTarget
-{
-    public :
-       cPt2di mPixW;
-       cPt2di mPixTop;
 
-       cPt2di mPInf;
-       cPt2di mPSup;
-
-       tREAL4 mBlack;
-       tREAL4 mWhite;
-       bool   mOk;
-       bool   mMarked4Test;
-
-       cSeedBWTarget(const cPt2di & aPixW,const cPt2di & aPixTop,  tREAL4 mBlack,tREAL4 mWhite);
-};
-*/
-
-
-struct cExtracteEllipse
+struct cExtractedEllipse
 {
      public :
         cSeedBWTarget    mSeed;
         cEllipse         mEllipse;
 
-        cExtracteEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse);
+        cExtractedEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse);
 
         tREAL8               mDist;
         tREAL8               mDistPond;
@@ -542,15 +523,13 @@ class cExtract_BW_Ellipse  : public cExtract_BW_Target
              void AnalyseAllConnectedComponents(const std::string & aNameIm);
              bool AnalyseEllipse(cSeedBWTarget & aSeed,const std::string & aNameIm);
 
-             const std::list<cExtracteEllipse> & ListExtEl() const;  ///< Accessor
+             const std::list<cExtractedEllipse> & ListExtEl() const;  ///< Accessor
         private :
 
-             std::list<cExtracteEllipse> mListExtEl;
+             std::list<cExtractedEllipse> mListExtEl;
 };
 
-
-
-
+void  ShowEllipse(const cExtractedEllipse & anEE,const std::string & aNameIm);
 
 
 };
