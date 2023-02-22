@@ -410,6 +410,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         static void InitMMVIIDirs(const std::string& aMMVIIDir);
 
+        static const std::string & DirRessourcesMMVII();       ///< Location of all ressources
     protected :
 
         /// Constructor, essenntially memorize command line and specifs
@@ -534,6 +535,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static std::string                        mDirTestMMVII;  ///< Directory for read/write bench files
         static std::string                        mTmpDirTestMMVII;  ///< Tmp files (not versionned)
         static std::string                        mInputDirTestMMVII;  ///< Input files (versionned on git)
+        static std::string                        mDirRessourcesMMVII;  ///< Directory for read/write bench files
 
 
     protected :

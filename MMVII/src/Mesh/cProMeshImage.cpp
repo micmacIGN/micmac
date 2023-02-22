@@ -213,7 +213,6 @@ int  cAppliProMeshImage::ExecuteBench(cParamExeBench & aParam)
 		  +   mSpecs.Name() + BLANK
 		  +  InputDirTestMMVII() + "Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh TestProjMesh BenchMode=1";
 
-   // MMVII  0_MeshProjImage ../MMVII-TestDir/Input/Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh BenchMode=1
    GlobSysCall(aCom);
 
     return EXIT_SUCCESS;
