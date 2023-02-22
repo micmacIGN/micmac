@@ -3,6 +3,7 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_Sensor.h"
 #include "MMVII_TplImage_PtsFromValue.h"
+#include "MMVII_ImageInfoExtract.h"
 
 /*   Modularistion
  *   Code extern tel que ellipse
@@ -13,453 +14,6 @@
 namespace MMVII
 {
 
-
-struct cParamBWTarget;  ///< Store pararameters for Black & White target
-struct cSeedBWTarget;   ///< Store data for seed point of circular extraction
-
-
-// ==  enum class eEEBW_Lab;   ///< label used in ellipse extraction
-class cExtract_BW_Target;  ///< class for ellipse extraction
-
-/*  *********************************************************** */
-/*                                                              */
-/*                   cParamBWTarget                             */
-/*                                                              */
-/*  *********************************************************** */
-
-struct cParamBWTarget
-{
-    public :
-      cParamBWTarget();
-
-      int NbMaxPtsCC() const; ///<Max number of point (computed from MaxDiam)
-      int NbMinPtsCC() const; ///<Min number of point (computed from MinDiam)
-
-      double    mFactDeriche;   ///< Factor for gradient with deriche-method
-      int       mD0BW;          ///< distance to border
-      double    mValMinW;       ///< Min Value for white
-      double    mValMaxB;       ///< Max value for black
-      double    mRatioMaxBW;    ///< Max Ratio   Black/White
-      double    mMinDiam;       ///< Minimal diameter
-      double    mMaxDiam;       ///< Maximal diameter
-      double    mPropFr;        ///< Minima prop of point wher frontier extraction suceeded
-      int       mNbMinFront;    ///< Minimal number of point
-};
-
-
-
-
-int cParamBWTarget::NbMaxPtsCC() const { return M_PI * Square(mMaxDiam/2.0); }
-int cParamBWTarget::NbMinPtsCC() const { return M_PI * Square(mMinDiam/2.0); }
-
-
-cParamBWTarget::cParamBWTarget() :
-    mFactDeriche (2.0),
-    mD0BW        (2),
-    mValMinW     (20), 
-    mValMaxB     (100),
-    mRatioMaxBW  (1/1.5),
-    mMinDiam     (7.0),
-    mMaxDiam     (60.0),
-    mPropFr      (0.95),
-    mNbMinFront  (10)
-{
-}
-
-/*  *********************************************************** */
-/*                                                              */
-/*               cSeedBWTarget                                  */
-/*                                                              */
-/*  *********************************************************** */
-
-struct cSeedBWTarget
-{
-    public :
-       cPt2di mPixW;
-       cPt2di mPixTop;
-
-       cPt2di mPInf;
-       cPt2di mPSup;
-
-       tREAL4 mBlack;
-       tREAL4 mWhite;
-       bool   mOk;
-       bool   mMarked4Test;
-
-       cSeedBWTarget(const cPt2di & aPixW,const cPt2di & aPixTop,  tREAL4 mBlack,tREAL4 mWhite);
-};
-
-cSeedBWTarget::cSeedBWTarget(const cPt2di & aPixW,const cPt2di & aPixTop,tREAL4 aBlack,tREAL4 aWhite):
-   mPixW        (aPixW),
-   mPixTop      (aPixTop),
-   mBlack       (aBlack),
-   mWhite       (aWhite),
-   mOk          (true),
-   mMarked4Test (false)
-{
-}
-
-
-/*  *********************************************************** */
-/*                                                              */
-/*               cExtract_BW_Target                             */
-/*                                                              */
-/*  *********************************************************** */
-
-enum class eEEBW_Lab : tU_INT1
-{
-   eFree,
-   eBorder,
-   eTmp,
-   eBadZ,
-   eBadFr,
-   eElNotOk,
-   eBadEl,
-   eAverEl,
-   eBadTeta
-};
-
-
-class cExtract_BW_Target
-{
-   public :
-        typedef tREAL4              tElemIm;
-        typedef cDataIm2D<tElemIm>  tDataIm;
-        typedef cIm2D<tElemIm>      tIm;
-        typedef cImGrad<tElemIm>    tImGrad;
-
-	typedef cIm2D<tU_INT1>      tImMarq;
-	typedef cDataIm2D<tU_INT1>  tDImMarq;
-
-        cExtract_BW_Target(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest);
-
-        void ExtractAllSeed();
-        const std::vector<cSeedBWTarget> & VSeeds() const;
-	const tDImMarq&    DImMarq() const;
-	const tDataIm &    DGx() const;
-	const tDataIm &    DGy() const;
-
-	void SetMarq(const cPt2di & aP,eEEBW_Lab aLab) {mDImMarq.SetV(aP,tU_INT1(aLab));}
-
-	void CC_SetMarq(eEEBW_Lab aLab); ///< set marqer on all connected component
-
-
-	eEEBW_Lab  GetMarq(const cPt2di & aP) {return eEEBW_Lab(mDImMarq.GetV(aP));}
-	bool MarqEq(const cPt2di & aP,eEEBW_Lab aLab) const {return mDImMarq.GetV(aP) == tU_INT1(aLab);}
-	bool MarqFree(const cPt2di & aP) const {return MarqEq(aP,eEEBW_Lab::eFree);}
-
-        bool AnalyseOneConnectedComponents(cSeedBWTarget &);
-        bool ComputeFrontier(cSeedBWTarget & aSeed);
-
-   protected :
-
-	/// Is the point a candidate for seed (+- local maxima)
-        bool IsExtremalPoint(const cPt2di &) ;
-
-	/// Update the data for connected component with a new point (centroid, bbox, heap...)
-	void AddPtInCC(const cPt2di &);
-	// Prolongat on the vertical, untill its a max or a min
-        cPt2di Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) const;
-
-	/// Extract the accurate frontier point, essentially prepare data to call "cGetPts_ImInterp_FromValue"
-        cPt2dr RefineFrontierPoint(const cSeedBWTarget & aSeed,const cPt2di & aP0,bool & Ok);
-
-        tIm              mIm;      ///< Image to analyse
-        tDataIm &        mDIm;     ///<  Data of Image
-	cPt2di           mSz;      ///< Size of image
-	tImMarq          mImMarq;    ///< Marqer used in cc exploration
-	tDImMarq&        mDImMarq;   ///< Data of Marqer
-        cParamBWTarget   mPBWT;      ///<  Copy of parameters
-        tImGrad          mImGrad;    ///<  Structure for computing gradient
-	tDataIm &        mDGx;       ///<  Access to x-grad
-	tDataIm &        mDGy;       ///<  Access to y-grad
-
-        std::vector<cSeedBWTarget> mVSeeds;
-
-	std::vector<cPt2di>  mPtsCC;
-	int                  mIndCurPts;  ///< index of point explored in connected component
-	cPt2dr               mCentroid;   ///< Centroid of conected compoonent, used for direction & reduction of coordinates
-        cIm2D<tU_INT1>       mMasqTest;   ///< Mask for "special" point where we want to make test (debug/visu ...)
-        cDataIm2D<tU_INT1>&  mDMasqT;     ///< Data of Masq
-
-	cPt2di               mPSup;  ///< For bounding box, Sup corner
-	cPt2di               mPInf;  ///< For bounding box, Inf corner
-        std::vector<cPt2dr>  mVFront;
-};
-
-
-cExtract_BW_Target::cExtract_BW_Target(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest) :
-   mIm        (anIm),
-   mDIm       (mIm.DIm()),
-   mSz        (mDIm.Sz()),
-   mImMarq    (mSz),
-   mDImMarq   (mImMarq.DIm()),
-   mPBWT       (aPBWT),
-   mImGrad    (Deriche( mDIm,mPBWT.mFactDeriche)),
-   mDGx       (mImGrad.mGx.DIm()),
-   mDGy       (mImGrad.mGy.DIm()),
-   mMasqTest  (aMasqTest),
-   mDMasqT    (mMasqTest.DIm())
-{
-   mDImMarq.InitInteriorAndBorder(tU_INT1(eEEBW_Lab::eFree),tU_INT1(eEEBW_Lab::eBorder));
-}
-
-/*
-        0 0 0 0 0
-      L 0 0 1 0 0  R 
-        0 1 1 1 0
-     
-       R => negative gradient on x
-       L => positive gradient on x
-*/
-
-///cSeedBWTarget
-
-cPt2di cExtract_BW_Target::Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) const
-{
-    cPt2di aDir = cPt2di(0,IsW?1:-1);
-
-    while
-    ( 
-            MarqFree(aPix+aDir) 
-	&&  (  IsW == (mDIm.GetV(aPix+aDir) >mDIm.GetV(aPix)))
-    )
-    {
-        aPix = aPix + aDir;
-	UpdateMax(aMaxGy ,mImGrad.mGy.DIm().GetV(aPix));
-    }
-
-    return aPix;
-}
-         
-bool cExtract_BW_Target::IsExtremalPoint(const cPt2di & aPix) 
-{
-   // is it a point where gradient cross vertical line
-   if ( (mDGx.GetV(aPix)>0) ||  (mDGx.GetV(aPix+cPt2di(-1,0)) <=0) )
-      return false;
-
-   // const tDataIm & aDGy = mImGrad.mGy.DIm();
-
-   tElemIm aGy =  mDGy.GetV(aPix);
-   // At top , grady must be positive
-   if (  aGy<=0) 
-      return false;
-
-   // Now test that grad is a local maxima
-
-   if (    (aGy  <   mDGy.GetV(aPix+cPt2di(0, 2)))
-        || (aGy  <   mDGy.GetV(aPix+cPt2di(0, 1)))
-        || (aGy  <=  mDGy.GetV(aPix+cPt2di(0,-1)))
-        || (aGy  <=  mDGy.GetV(aPix+cPt2di(0,-2)))
-      )
-      return false;
-
-   // tElemIm aVBlack =  mDIm.GetV(aPix+cPt2di(0,-2));
-   // tElemIm aVWhite =  mDIm.GetV(aPix+cPt2di(0,2));
-   /*
-   if ((aVBlack/double(aVWhite)) > mPBWT.mRatioP2)
-      return false;
-      */
-
-   tElemIm aMaxGy = aGy;
-   cPt2di aPixB =  Prolongate(aPix,false,aMaxGy);
-   tElemIm aVBlack =  mDIm.GetV(aPixB);
-
-   cPt2di aPixW =  Prolongate(aPix,true,aMaxGy);
-   tElemIm aVWhite =  mDIm.GetV(aPixW);
-
-   if (aMaxGy> aGy)
-      return false;
-   
-   if (aVWhite < mPBWT.mValMinW)
-      return false;
-
-   if (aVBlack > mPBWT.mValMaxB)
-      return false;
-
-    if ((aVBlack/double(aVWhite)) > mPBWT.mRatioMaxBW)
-      return false;
-
-   mVSeeds.push_back(cSeedBWTarget(aPixW,aPix,aVBlack,aVWhite));
-
-   return true;
-}
-
-void cExtract_BW_Target::ExtractAllSeed()
-{
-   const cBox2di &  aFullBox = mDIm;
-   cRect2  aBoxInt (aFullBox.Dilate(-mPBWT.mD0BW));
-   int aNb=0;
-   int aNbOk=0;
-   for (const auto & aPix : aBoxInt)
-   {
-       aNb++;
-       if (IsExtremalPoint(aPix))
-       {
-           aNbOk++;
-       }
-   }
-   std::sort
-   (
-      mVSeeds.begin(),
-      mVSeeds.end(),
-      [](const cSeedBWTarget &  aS1,const cSeedBWTarget &  aS2) {return aS1.mWhite>aS2.mWhite;}
-   );
-   StdOut() << " PPPP="  << aNbOk / double(aNb) << "\n";
-}
-
-const std::vector<cSeedBWTarget> &      cExtract_BW_Target::VSeeds() const { return mVSeeds; }
-const cExtract_BW_Target::tDImMarq&    cExtract_BW_Target::DImMarq() const {return mDImMarq;}
-const cExtract_BW_Target::tDataIm&    cExtract_BW_Target::DGx() const {return mDGx;}
-const cExtract_BW_Target::tDataIm&    cExtract_BW_Target::DGy() const {return mDGy;}
-
-void cExtract_BW_Target::AddPtInCC(const cPt2di & aPt)
-{
-     mDImMarq.SetV(aPt,tU_INT1(eEEBW_Lab::eTmp) );
-     mPtsCC.push_back(aPt);
-     mCentroid = mCentroid + ToR(aPt);
-
-     SetInfEq(mPInf,aPt);
-     SetSupEq(mPSup,aPt);
-}
-
-
-void cExtract_BW_Target::CC_SetMarq(eEEBW_Lab aLab)
-{
-    for (const auto & aP : mPtsCC)
-        SetMarq(aP,aLab);
-}
-
-
-
-cPt2dr cExtract_BW_Target::RefineFrontierPoint(const cSeedBWTarget & aSeed,const cPt2di & aPt,bool & Ok)
-{
-    Ok = false;
-    cPt2dr aP0 = ToR(aPt);
-
-    double aDist =  Norm2(aP0-mCentroid);
-    if (aDist==0) return aP0;
-    cPt2dr aDir = (aP0-mCentroid) /aDist;
-    tREAL8 aGrFr = (aSeed.mBlack+aSeed.mWhite)/2.0;
-
-    cGetPts_ImInterp_FromValue<tREAL4> aGPV(mDIm,aGrFr,0.1,aP0,aDir);
-
-    Ok = aGPV.Ok();
-    if (Ok) return aGPV.PRes();
-
-    return cPt2dr(-1e10,1e20);
-}
-
-bool  cExtract_BW_Target::AnalyseOneConnectedComponents(cSeedBWTarget & aSeed)
-{
-     cPt2di aPTest(-99999999,594);
-
-     mCentroid = cPt2dr(0,0);
-     mPtsCC.clear();
-     cPt2di aP0 = aSeed.mPixW;
-     mPSup = aP0;
-     mPInf = aP0;
-
-     // if the point has been explored or is in border 
-     if (! MarqFree(aP0)) 
-     {
-        aSeed.mOk = false;
-        return false;
-     }
-
-     mIndCurPts = 0;
-     AddPtInCC(aP0);
-
-     double aPdsW =  0.5;
-
-     // Minimal value for being white, with P=0.5 => average
-     tREAL4 aVMinW =  (1-aPdsW)* aSeed.mBlack +  aPdsW*aSeed.mWhite; 
-     // Maximal value for being white, symetric formula
-     tREAL4 aVMaxW =  (-aPdsW)* aSeed.mBlack +  (1+aPdsW)*aSeed.mWhite;  
-
-     size_t aMaxNbPts = mPBWT.NbMaxPtsCC();  // if we want to avoid big area
-     std::vector<cPt2di> aV4Neigh =  AllocNeighbourhood<2>(1); 
-
-     bool touchOther = false;
-     // Classical  CC loop + stop condition on number of points
-     while (   (mIndCurPts!=int(mPtsCC.size())) && (mPtsCC.size()<aMaxNbPts)   )
-     {
-           cPt2di aPix = mPtsCC.at(mIndCurPts);  // extract last point in the heap
-           for (const auto & aNeigh : aV4Neigh)   // explorate its neighboord
-           {
-               cPt2di aPN = aPix + aNeigh;
-               if (MarqFree(aPN))  // they have not been met
-               {
-                   tElemIm aValIm = mDIm.GetV(aPN);
-		   if ((aValIm>=aVMinW)  && (aValIm<=aVMaxW))  // if their value is in the good interval
-                   {
-                      if (mDMasqT.GetV(aPN))
-                         aSeed.mMarked4Test = true;
-                      AddPtInCC(aPN);
-		      if (aPN== aPTest)
-		      {
-                         aSeed.mMarked4Test = true;
-		      }
-                   }
-               }
-	       else if (! MarqEq(aPN,eEEBW_Lab::eTmp))
-                    touchOther = true;
-           }
-           mIndCurPts++;
-     }
-
-     if ((mPtsCC.size() >= aMaxNbPts) || touchOther  || (int(mPtsCC.size()) < mPBWT.NbMinPtsCC()))
-     {            
-        CC_SetMarq(eEEBW_Lab::eBadZ); 
-        return false;
-     }
-
-     mCentroid = mCentroid / double(mIndCurPts);
-     aSeed.mPInf = mPInf;
-     aSeed.mPSup = mPSup;
-     return true;
-}
-
-bool  cExtract_BW_Target::ComputeFrontier(cSeedBWTarget & aSeed)
-{
-     std::vector<cPt2di> aV8Neigh =  AllocNeighbourhood<2>(2);
-     mVFront.clear();
-     int aNbOk = 0;
-     int aNbFront = 0;
-     for (const auto & aPix : mPtsCC)
-     {
-          bool HasNeighFree=false;
-	  for (const auto & aN : aV8Neigh)
-              if (MarqFree(aPix+aN))
-		 HasNeighFree = true;
-
-	  if (HasNeighFree)
-	  {
-              aNbFront ++;
-              bool Ok;
-              cPt2dr aPFr = RefineFrontierPoint(aSeed,aPix,Ok);
-	      if (Ok)
-	      {
-                  aNbOk++;
-                  mVFront.push_back(aPFr);
-	      }
-	  }
-     }
-
-     if (aNbOk<mPBWT.mNbMinFront)
-     {
-        CC_SetMarq(eEEBW_Lab::eBadFr); 
-	return false;
-     }
-     double aProp = aNbOk / double(aNbFront);
-     if ( aProp < mPBWT.mPropFr)
-     {
-        CC_SetMarq(eEEBW_Lab::eBadFr); 
-	return false;
-     }
-
-     return true;
-}
 
 /*  *********************************************************** */
 /*                                                              */
@@ -475,10 +29,11 @@ struct cExtracteEllipse
 
 	cExtracteEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse);
 
-	tREAL8  mDist;
-	tREAL8  mDistPond;
-	tREAL8  mEcartAng;
-	bool    mValidated;
+	tREAL8               mDist;
+	tREAL8               mDistPond;
+	tREAL8               mEcartAng;
+	bool                 mValidated;
+	std::vector<cPt2dr>  mVFront;
 };
 
 cExtracteEllipse::cExtracteEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse) :
@@ -505,6 +60,8 @@ class cExtract_BW_Ellipse  : public cExtract_BW_Target
 
              void AnalyseAllConnectedComponents(const std::string & aNameIm);
              bool AnalyseEllipse(cSeedBWTarget & aSeed,const std::string & aNameIm);
+
+	     const std::list<cExtracteEllipse> & ListExtEl() const;  ///< Accessor
 	private :
 
 	     std::list<cExtracteEllipse> mListExtEl;
@@ -528,6 +85,7 @@ void cExtract_BW_Ellipse::AnalyseAllConnectedComponents(const std::string & aNam
         }
     }
 }
+
 
 bool  cExtract_BW_Ellipse::AnalyseEllipse(cSeedBWTarget & aSeed,const std::string & aNameIm)
 {
@@ -582,6 +140,7 @@ bool  cExtract_BW_Ellipse::AnalyseEllipse(cSeedBWTarget & aSeed,const std::strin
      anEE.mDist      = aSomD;
      anEE.mDistPond  = aSomDPond;
      anEE.mEcartAng  = aSomTeta;
+     anEE.mVFront    = mVFront;
 
      if (aSomDPond>0.1)
      {
@@ -603,8 +162,11 @@ bool  cExtract_BW_Ellipse::AnalyseEllipse(cSeedBWTarget & aSeed,const std::strin
      return true;
 }
 
-void  ShowEllipse(const cExtracteEllipse & anEE,const std::string & aNameIm,const std::vector<cPt2dr> & aVFront)
+const std::list<cExtracteEllipse> & cExtract_BW_Ellipse::ListExtEl() const {return mListExtEl;}
+
+void  ShowEllipse(const cExtracteEllipse & anEE,const std::string & aNameIm)
 {
+    
     static int aCptIm = 0;
     aCptIm++;
     const cSeedBWTarget &  aSeed = anEE.mSeed;
@@ -664,7 +226,7 @@ void  ShowEllipse(const cExtracteEllipse & anEE,const std::string & aNameIm,cons
             aRGBIm.RawSetPoint(aPix,cRGBImage::Blue);
 	}
 
-        for (const auto  & aPFr : aVFront)
+        for (const auto  & aPFr : anEE.mVFront)
 	{
             aRGBIm.SetRGBPoint(aPFr-aPOfs,cRGBImage::Red);
 	    //StdOut() <<  "DDDD " <<  anEl.ApproxSigneDist(aPFr) << "\n";
@@ -774,6 +336,11 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    StdOut() << "TIME-SEED " << aT2-aT1 << "\n";
    StdOut() << "TIME-CC   " << aT3-aT2 << "\n";
 
+   for (const auto & anEE : mExtrEll->ListExtEl() )
+   {
+       if (anEE.mSeed.mMarked4Test)
+          ShowEllipse(anEE,mNameIm);
+   }
 
    if (mVisu)
    {
