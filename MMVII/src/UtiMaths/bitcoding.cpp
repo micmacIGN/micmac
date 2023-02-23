@@ -7,6 +7,43 @@
 namespace MMVII
 {
 
+/// make a circular permutation of bits, assuming a size NbIt, with  aPow2= NbBit^2
+size_t  BitsCircPerm(size_t aSetFlag,size_t aPow2) 
+{
+     if (aSetFlag&1) aSetFlag |= aPow2;  // pre-transfer low bit, if exit, if high bit
+     return aSetFlag >> 1;            // now left shit
+}
+
+/// make a symetry bits, assuming a size NbIt, with  aPow2= NbBit^2
+size_t  BitsSym(size_t aSetFlag,size_t aPow2) 
+{
+    size_t aRes =0;
+    size_t aFlag = 1;
+    aPow2 >>= 1;
+
+    while (aPow2)
+    {
+       if (aPow2 & aSetFlag) 
+          aRes |= aFlag;
+       aPow2 >>= 1;
+       aFlag <<= 1;
+    }
+
+    return aRes;
+}
+
+/// make a visualisation of bit flag as  (5,256) -> "10100000"
+std::string  StrOfBitFlag(size_t aSetFlag,size_t aPow2) 
+{
+    std::string  aRes;
+    for (size_t aFlag=1 ; aFlag<aPow2 ; aFlag<<=1)
+    {
+        aRes.push_back((aFlag&aSetFlag) ? '1' : '0');
+    }
+    return aRes;
+}
+
+
 class cCelCC
 {
      public :
@@ -16,6 +53,8 @@ class cCelCC
 	int                  mRepresentant;
 
 	cCelCC(size_t aLowestCode);
+     public :
+	cCelCC(const cCelCC &) = delete;
 };
 
 cCelCC::cCelCC(size_t aLowestCode) :
@@ -25,45 +64,57 @@ cCelCC::cCelCC(size_t aLowestCode) :
 {
 }
 
+
+
+
+
+
 class cCircularCoding
 {
    public :
        static std::string NameCERNLookUpTable(size_t aNbBits);
 
-       cCircularCoding(size_t aNbBits,const std::vector<cPt2di>& aVCode);
+       cCircularCoding(size_t aNbBits);
    private :
-       size_t                   mNbBits;   ///< Number of bits
-       size_t                   mNbCodeUC; ///<  Number of code uncircullar i.e. 2 ^NbBits
+       void AddCodeWithPermCirc(size_t aCode,cCelCC *);
+
+
+       size_t                   mNbBits;      ///< Number of bits
+       size_t                   mNbCodeUC;    ///<  Number of code uncircullar i.e. 2 ^NbBits
        size_t                   mNbDiffCode;  ///< Number of possible coding different taking account circularity
-       std::vector<cCelCC*>     mVCodes;
+       std::vector<cCelCC*>     mVCodes2Cell; ///< Code->Cell  vector of all code for sharing equivalence
+       std::vector<cCelCC*>     mVecOfCells;  ///< vector of all different cells
 };
 
 
-cCircularCoding::cCircularCoding(size_t aNbBits,const std::vector<cPt2di> & aVSpec) :
-     mNbBits     (aNbBits),
-     mNbCodeUC   (1<<mNbBits),
-     mNbDiffCode (0),
-     mVCodes     (mNbCodeUC,nullptr)
+void cCircularCoding::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
+{
+   for (size_t aBit=0 ; aBit<mNbBits ; aBit++)
+   {
+       if (mVCodes2Cell[aCode] == nullptr) // Code may have already been processed because of circular invariant code  0101 on 4 bits
+       {
+            mVCodes2Cell[aCode] = aNewCel;
+            aNewCel->mEquivCode.push_back(aCode);
+       }
+       aCode = BitsCircPerm(aCode,mNbCodeUC);
+   }
+}
+
+cCircularCoding::cCircularCoding(size_t aNbBits) :
+     mNbBits       (aNbBits),
+     mNbCodeUC     (1<<mNbBits),
+     mNbDiffCode   (0),
+     mVCodes2Cell  (mNbCodeUC,nullptr)
 {
      for (size_t aCode=0 ; aCode < mNbCodeUC ; aCode++)
      {
-          if (mVCodes[aCode] == nullptr)
+          if (mVCodes2Cell[aCode] == nullptr)
 	  {
               mNbDiffCode++;
               cCelCC * aNewCel = new cCelCC(aCode);
+	      mVecOfCells.push_back(aNewCel);
 
-              for (size_t aBit=0 ; aBit<mNbBits ; aBit++)
-              {
-                  if (mVCodes[aCode] == nullptr) // Code may have already been processed because of circular invariant code  0101 on 4 bits
-		  {
-                      mVCodes[aCode] = aNewCel;
-		      aNewCel->mEquivCode.push_back(aCode);
-		  }
-		  // Make cicular permutation
-		  aCode = aCode * 2;  // shift right
-		  if (aCode & mNbCodeUC)  // eventualy push at begin last bit if exist
-                     aCode = (aCode%mNbCodeUC)+1;
-              }
+	      AddCodeWithPermCirc(aCode,aNewCel);
 	  }
 	  else
 	  {
@@ -71,9 +122,10 @@ cCircularCoding::cCircularCoding(size_t aNbBits,const std::vector<cPt2di> & aVSp
 	  }
      }
 
+     /*
      for (const auto & aSpec : aVSpec)
      {
-          cCelCC * aCel = mVCodes.at(aSpec.y());
+          cCelCC * aCel = mVCodes2Cell.at(aSpec.y());
 	  if (aCel->mNum != -1)
 	  {
               StdOut()  << "MULTIPLE CODE " 
@@ -88,6 +140,7 @@ cCircularCoding::cCircularCoding(size_t aNbBits,const std::vector<cPt2di> & aVSp
              aCel->mRepresentant  = aSpec.y();
 	  }
      }
+     */
 
      StdOut() << "NB DIFC=" << mNbDiffCode << "\n";
 }
@@ -99,6 +152,7 @@ std::string cCircularCoding::NameCERNLookUpTable(size_t aNbBits)
 		+ ToStr(aNbBits) + "bit_lookup.txt";
 }
             
+/// Low level function, read the pair Num->Code in a file
 void  ReadTarget(std::vector<cPt2di> & aVCode,const std::string & aNameFile)
 {
     std::ifstream infile(aNameFile);
@@ -118,14 +172,29 @@ void  ReadTarget(std::vector<cPt2di> & aVCode,const std::string & aNameFile)
 
 void BenchCircCoding()
 {
+	/*
+    for (auto aSetFlag : {3,128,254})
+    {
+        StdOut() <<  "BSSS " <<  aSetFlag << " -> " << BitsSym(aSetFlag,256)  << "\n";
+        StdOut() <<  StrOfBitFlag(aSetFlag,256) << "\n";
+        StdOut() <<  StrOfBitFlag(BitsSym(aSetFlag,256),256) << "\n";
+    }
+    size_t aFlag = 5;
+    for (int aK=0 ; aK<12 ; aK++)
+    {
+        StdOut() << "FFF=" << aFlag << "\n";
+	aFlag = BitsCircPerm(aFlag,256);
+    }
+    */
+
     for (auto aNbB : {12,14,20})
     {
-       std::vector<cPt2di>  aVCode;
-       ReadTarget(aVCode,cCircularCoding::NameCERNLookUpTable(aNbB));
-       cCircularCoding(aNbB,aVCode);
-    StdOut() << "HHHHH " << aVCode.size() << "\n";
-       getchar();
+       // std::vector<cPt2di>  aVCode;
+       // ReadTarget(aVCode,cCircularCoding::NameCERNLookUpTable(aNbB));
+       cCircularCoding aCC(aNbB);
+FakeUseIt(aCC);
     }
+       StdOut() << "WWWWWWWWW\n"; getchar();
 
 }
 

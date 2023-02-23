@@ -14,6 +14,19 @@
 namespace MMVII
 {
 
+
+	/*
+class cCCDecode
+{
+    public :
+         cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & anIm, int aNbBits);
+    private :
+};
+
+*/
+
+
+
 bool  ShowCode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & anIm, int aNbBits)
 {
     static int aCpt=0; aCpt++;
