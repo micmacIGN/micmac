@@ -230,13 +230,13 @@ int  cAppliGenerateEncoding::Exe()
    {
         SetIfNotInit(mSpec.mFreqCircEq,size_t(2));
         SetIfNotInit(mSpec.mMinHammingD,size_t(3));
-        SetIfNotInit(mSpec.mMaxRunL,cPt2di(3,2));
+        SetIfNotInit(mSpec.mMaxRunL,cPt2di(2,3));
    }
    else if (mSpec.mType==eTyCodeTarget::eIGNDrone)
    {
         SetIfNotInit(mSpec.mFreqCircEq,size_t(2));
         SetIfNotInit(mSpec.mMinHammingD,size_t(3));
-        SetIfNotInit(mSpec.mMaxRunL,cPt2di(3,2));
+        SetIfNotInit(mSpec.mMaxRunL,cPt2di(2,3));
    }
    else if (mSpec.mType==eTyCodeTarget::eCERN)
    {

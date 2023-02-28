@@ -146,6 +146,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mChessboardAng    (M_PI/4.0),
    mWithChessboard   (true),
    mWhiteBackGround  (true),
+   mZeroIsBackGround (true),
    mModeFlight       (false),  // MPD => def value was not initialized ?
    mDecP             ({1,1})  // "Fake" init 4 now
 {
@@ -554,89 +555,130 @@ eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
 /*                                                     */
 /* *************************************************** */
 
-typedef cParamCodedTarget cParamGeomTarget;
+typedef cParamCodedTarget cParamRenderingTarget;
 
 class cFullSpecifTarget
 {
       public :
-         cFullSpecifTarget(const cBitEncoding&,const cParamGeomTarget&);
+         cFullSpecifTarget(const cBitEncoding&,const cParamRenderingTarget&);
          const cBitEncoding     & mBE;
-         const cParamGeomTarget & mGeom;
+         const cParamRenderingTarget & mRender;
 };
+
+cFullSpecifTarget::cFullSpecifTarget(const cBitEncoding& aBE,const cParamRenderingTarget& aRender) :
+   mBE (aBE),
+   mRender  (aRender)
+{
+}
+
+/* *************************************************** */
+/*                                                     */
+/*             cNormPix2Bit                            */
+/*                                                     */
+/* *************************************************** */
 
 class cNormPix2Bit
 {
     public :
-
-	 virtual cPt2dr  Transfo(const cPt2dr & aPt) const = 0;
-	 virtual bool PNormIsCodin(const cPt2dr & aPt) const = 0;
-	 virtual int  BitsOfNorm    (const cPt2dr & aPt) const = 0;
+	 virtual cPt2dr  PreProcessCoord(const cPt2dr & aPt) const = 0;
+	 virtual bool    PNormIsCoding(const cPt2dr & aPt)   const = 0;
+	 virtual int     BitsOfNorm    (const cPt2dr & aPt)  const = 0;
     protected :
 };
 
+/* *************************************************** */
+/*                                                     */
+/*             cCircNP2B                               */
+/*                                                     */
+/* *************************************************** */
 
-	/*
-class cCircNP2B :  cNormPix2Bit
+enum class eLPT  // Label Pattern Target
+           {
+              eBackGround,
+              eForeGround,
+              eChar,
+              eNumB0   // num first bit
+           };
+
+
+class cCircNP2B : public  cNormPix2Bit
 {
      public :
          cCircNP2B(const cFullSpecifTarget & aSpecif);
+	 bool    PNormIsCoding(const cPt2dr & aPt)      const   override;
+	 int     BitsOfNorm    (const cPt2dr & aPt)     const   override;
 
-	 cPt2dr  Transfo(const cPt2dr & aPt)        const   override;
-	 bool    PNormIsCodin(const cPt2dr & aPt)   const   override;
-	 int     BitsOfNorm    (const cPt2dr & aPt) const   override;
      private :
+	 cPt2dr  PreProcessCoord(const cPt2dr & aPt)    const   override;
+
 	 tREAL8 mRho0;
 	 tREAL8 mRho1;
 	 tREAL8 mTeta0;
 	 int    mNbBits;
 };
 
+
+
 cCircNP2B::cCircNP2B(const cFullSpecifTarget & aSpecif) :
-   mRho0  (aSpecif.mGeom.mRho_1_BeginCode),
-   mRho1  (aSpecif.mGeom.mRho_2_EndCode)
+   mRho0   (aSpecif.mRender.mRho_1_BeginCode),
+   mRho1   (aSpecif.mRender.mRho_2_EndCode),
+   mTeta0  (aSpecif.mRender.mChessboardAng),
+   mNbBits (aSpecif.mBE.Specs().mNbBits)
 {
 }
 
-cPt2dr  cCircNP2B::Transfo(const cPt2dr & aPt)   const 
+cPt2dr  cCircNP2B::PreProcessCoord(const cPt2dr & aPt)   const 
 {
     return ToPolar(aPt);
 }
-bool  cCircNP2B::PNormIsCodin(const cPt2dr & aPt) const 
+bool  cCircNP2B::PNormIsCoding(const cPt2dr & aPt) const 
 {
-    tREAL8 aRho = aPt.x();
+    tREAL8 aRho = PreProcessCoord(aPt).x();
+    // StdOut() << " RRR " << aRho  << " "<< mRho0 << " " << mRho1 <<"\n";
     return   (aRho>=mRho0)  && (aRho<mRho1) ;
 }
 
 int cCircNP2B::BitsOfNorm(const cPt2dr & aPt) const 
 {
-     tREAL8mSpecif.mGeom.mRho_1_BeginCode aTeta = aPt.y() -mChessboardAng;
-     tREAL8 aIndex = (aTeta / (2*M_PI)) 
-     aIndex = mod_real
-     aTeta = (aTeta -mChessboardAng) / (2*M_PI)
-     return round_ni 
+     tREAL8 aTeta = PreProcessCoord(aPt).y() -mTeta0;
+     tREAL8 aIndex = mNbBits * (aTeta / (2*M_PI)) ;
+     aIndex = mod_real(aIndex,mNbBits);
+     return round_down (aIndex);
 }
-*/	
 
-class cCodedTargetPatternIm
+class cCodedTargetPatternIm 
 {
      public :
           typedef tU_INT1            tElem;
           typedef cIm2D<tElem>       tIm;
           typedef cDataIm2D<tElem>   tDataIm;
 
-          cCodedTargetPatternIm(const cBitEncoding & aBE,const cParamGeomTarget &);
+          cCodedTargetPatternIm(const cFullSpecifTarget &);
      private :
-	  cBitEncoding      mBE;
-          cParamGeomTarget  mPGeom;
-	  tIm               mIm;
+	  const cFullSpecifTarget & mSpec;
+	  tIm               mImCoding;
+	  tDataIm &         mDIC;
 };
 
-
-cCodedTargetPatternIm::cCodedTargetPatternIm(const cBitEncoding & aBE,const cParamGeomTarget & aParamGeom) :
-     mBE     (aBE),
-     mPGeom  (aParamGeom),
-     mIm     (mPGeom.mSzBin)
+cCodedTargetPatternIm::cCodedTargetPatternIm(const cFullSpecifTarget & aSpec) :
+     mSpec       (aSpec),
+     mImCoding   (aSpec.mRender.mSzBin),
+     mDIC        (mImCoding.DIm())
 {
+    mDIC.InitCste(tElem(eLPT::eBackGround));
+    std::unique_ptr<cNormPix2Bit>  aP2B (new cCircNP2B (mSpec));
+    for (const auto & aPix : mDIC)
+    {
+       cPt2dr aPN = mSpec.mRender.Pix2Norm(aPix);
+       if (aP2B->PNormIsCoding(aPN))
+       {
+           int aNumB =  aP2B->BitsOfNorm(aPN);
+	   mDIC.SetV(aPix,int(eLPT::eNumB0)+aNumB);
+// StdOut()  << "NNNN " << aNumB << "\n";
+       }
+    }
+
+    mDIC.ToFile("toto.tif");
 }
 
 
@@ -684,6 +726,14 @@ int  cAppliGenCodedTarget::Exe()
 
    mPCT.FinishInitOfType(Type());
    mPCT.Finish();
+
+
+
+   cFullSpecifTarget  aFullSpec(mBE,mPCT);
+   cCodedTargetPatternIm  aCTPI(aFullSpec);
+
+FakeUseIt(aCTPI);
+return EXIT_SUCCESS;
 
    for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen)
    {

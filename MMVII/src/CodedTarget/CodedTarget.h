@@ -226,6 +226,7 @@ class cParamCodedTarget
        double    mChessboardAng;     // Origine angle of chessboard pattern
        bool      mWithChessboard;     // do we have a cental chess board, true 4 IGN
        bool      mWhiteBackGround;     // black on white, true 4 IGN
+       bool      mZeroIsBackGround;
 
        bool mModeFlight;  // Special mode for Patricio
 
