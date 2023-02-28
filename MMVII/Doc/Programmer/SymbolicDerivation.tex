@@ -44,7 +44,7 @@ for computing derivatives :
            numerical derivatives; however they are relatively slow compared to formal methods;
 
    \item formal method, that "more or less" do the same thing than "human computation" (generate the
-	   analyticall formula) but do
+	   analytical formula) but do
            it automatically; they are separated between automatic differenciation that analyse the code of a programm
            and symbolic differenciation that construct a tree representation, but to our mind this separation
            is a bit artificial : they are conceptually close and 
@@ -81,7 +81,7 @@ folder  {\tt MMVII/src/SymbDerGen}.
 \label{fig:TreeFormula}
 \end{figure}
 
-A classic aproach in computer science is to represent mathematicall formulas 
+A classic aproach in computer science is to represent mathematical formulas 
 as trees (or more precizely as we will see as "DAG"=  directly acyclic graph).
 These trees can be described recursively :
 
@@ -242,11 +242,11 @@ than the $N$ independant DAG and consequently the code will be more efficient.
 Once the current formula has been settled, the code generation follows this pipeline :
 
 \begin{itemize}
-     \item make a topologicall sort of the formulas that can be reached from the current formulas
+     \item make a topological sort of the formulas that can be reached from the current formulas
          (in topoligical sort a formula appears always after its sons);
 
      \item generate the code by parsing the sorted formula, the code is pretty monotom with 
-           a succession of lines like $V_i = V_j \otimes V_k; $, due to topologicall sort, we are
+           a succession of lines like $V_i = V_j \otimes V_k; $, due to topological sort, we are
            sure when this line is generated that $V_j$ and $V_k$ have been initialized;
 \end{itemize}
 
@@ -440,7 +440,7 @@ the main difference being that binary formula contains 2 sub-formulas $F_1$ and 
 
 The code for is located in {\tt SymbDer\_BinaryOp.h}.  The base class of all binary formula is
 {\tt cBinaryF}.  Binary formula have some method that are used exclusively in the reduction process 
-as {\tt IsAssociatif},  {\tt IsDistribExt} and {\tt IsDistribExt}  (and probably usefull only
+as {\tt IsAssociatif},  {\tt IsDistribExt} and {\tt IsDistribExt}  (and probably useful only
 for the $4$ operator $+-*/$, so default value should work for all new binary operator).
 
 There is $5$ binary operators defined in  {\tt SymbDer\_BinaryOp.h} : $+*/-$ and $pow$.

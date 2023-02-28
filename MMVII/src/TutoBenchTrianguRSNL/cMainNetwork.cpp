@@ -44,7 +44,7 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
                       (
 		            eModeSSR aMode,
                             cRect2   aRect,
-			    bool WithSchurr,
+			    bool WithSchur,
                             const cParamMainNW & aParamNW,
 			    cParamSparseNormalLstSq * aParamLSQ,
 			    const std::vector<Type>  & aWeightSetSchur
@@ -54,7 +54,7 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
     mBoxInd    (aRect),
     mX_SzM     (mBoxInd.Sz().x()),
     mY_SzM     (mBoxInd.Sz().y()),
-    mWithSchur (WithSchurr),
+    mWithSchur (WithSchur),
     mParamNW   (aParamNW),
     mNum       (0),
     mMatrP     (cMemManager::AllocMat<tPNetPtr>(mX_SzM,mY_SzM)), // alloc a grid of pointers
@@ -86,7 +86,7 @@ template <class Type> void cMainNetwork <Type>::PostInit()
          aBox.Add(aPNet.TheorPt());
          aBox.Add(aPNet.PosInit());
 
-	 if (! aPNet.mSchurrPoint)
+	 if (! aPNet.mSchurPoint)
 	 {
              aVCoord0.push_back(aPNet.mPosInit.x());
              aVCoord0.push_back(aPNet.mPosInit.y());
@@ -124,7 +124,7 @@ template <class Type> void cMainNetwork <Type>::PostInit()
      for (auto& aPix: mBoxInd)
      {
 	  tPNet &  aPSch = PNetOfGrid(aPix);
-          if (aPSch.mSchurrPoint) 
+          if (aPSch.mSchurPoint)
           {
 	      const tPNet & aPL = PNetOfGrid(aPSch.mInd+cPt2di(-1,0));  // PLeft
 	      const tPNet & aPR = PNetOfGrid(aPSch.mInd+cPt2di( 1,0));  // PRight
@@ -163,9 +163,9 @@ template <class Type> void cMainNetwork <Type>::PostInit()
 		       // the logic of this lines of code take use the fact that K1 and K2 cannot be both 
                        // schur points (tested in Linked())
 		
-                       if (aPN1.mSchurrPoint)  // K1 is Tmp and not K2, save K1->K2
+                       if (aPN1.mSchurPoint)  // K1 is Tmp and not K2, save K1->K2
                           aPN1.mLinked.push_back(aPN2.mNumPt);
-		       else if (aPN2.mSchurrPoint) // K2 is Tmp and not K1, save K2->K2
+		       else if (aPN2.mSchurPoint) // K2 is Tmp and not K1, save K2->K2
                           aPN2.mLinked.push_back(aPN1.mNumPt);
 		       else // None Tmp, does not matters which way it is stored
                           aPN1.mLinked.push_back(aPN2.mNumPt);  
@@ -233,7 +233,7 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
      for (const auto & aPN : mVPts)
      {
         // Add distance between theoreticall value and curent to compute global residual
-        if (! aPN.mSchurrPoint)
+        if (! aPN.mSchurPoint)
         {
             aNbPairTested++;
             aVCur.push_back(aPN.PCur());
@@ -298,10 +298,10 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
 
      for (const auto & aPN1 : mVPts)
      {
-         // If PN1 is a temporary unknown we will use schurr complement
-         if (aPN1.mSchurrPoint)
+         // If PN1 is a temporary unknown we will use schur complement
+         if (aPN1.mSchurPoint)
 	 {
-            // SCHURR:CALC
+            // SCHUR:CALC
 	    cPtxd<Type,2> aP1= aPN1.PCur(); // current value, required for linearization
             cPtxd<Type,2> aPTh1= aPN1.TheorPt(); // theoreticall value, used for test on fix var (else it's cheating to use it)
             std::vector<Type> aVTmp{aP1.x(),aP1.y()};  // vectors of temporary
@@ -382,8 +382,8 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
      mInd      (anInd),
      mTheorPt  (aNet.ComputeInd2Geom(mInd)),
      mNetW     (&aNet),
-	//  Tricky ,for direction set cPt2di(-1,0)) to avoid interact with schurr points
-	//  but is there is no schurr point, set it to cPt2di(1,0) to allow network [0,1]x[0,1]
+	//  Tricky ,for direction set cPt2di(-1,0)) to avoid interact with schur points
+	//  but is there is no schur point, set it to cPt2di(1,0) to allow network [0,1]x[0,1]
      mFrozenX  (      ( mInd==cPt2di(0,0)) 
 		  ||  (   aNet.AxeXIsHoriz() ? 
 			  (mInd==cPt2di(0,1)) : 
@@ -391,7 +391,7 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
                        )
 	        ),
      mFrozenY  ( mInd==cPt2di(0,0)  ), // fix origin
-     mSchurrPoint    (aNet.WithSchur() && (mInd.x()==1)),  // If test schur complement, Line x=1 will be temporary
+     mSchurPoint    (aNet.WithSchur() && (mInd.x()==1)),  // If test schur complement, Line x=1 will be temporary
      mNumX     (-1),
      mNumY     (-1)
 {
@@ -419,7 +419,7 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
 */
 
 
-     if (!mSchurrPoint)
+     if (!mSchurPoint)
      {
         mNumX = aNet.Num()++;
         mNumY = aNet.Num()++;
@@ -446,7 +446,7 @@ template <class Type> void cPNetwork<Type>::MakePosInit(const double & aMulAmpl)
 template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PCur() const
 {
 	// For standard unknown, read the cur solution of the system
-    if (!mSchurrPoint)
+    if (!mSchurPoint)
 	return cPtxd<Type,2>(mNetW->CurSol(mNumX),mNetW->CurSol(mNumY));
 
     /*  For temporary unknown we must compute the "best guess" as we do by bundle intersection.
@@ -487,7 +487,7 @@ template <class Type> bool cPNetwork<Type>::AreLinked(const cPNetwork<Type> & aP
       return false;
 
    //  If two temporay point, they are not observable
-   if (mSchurrPoint && aP2.mSchurrPoint)
+   if (mSchurPoint && aP2.mSchurPoint)
       return false;
 
     //  else point are linked is they are same column, or neighbooring colums

@@ -181,7 +181,8 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
              <<   AOpt2007(mRS.mRayMinMax,"Rays","Min/Max ray for gen target",{eTA2007::HDV})
              <<   AOpt2007(mSzKernel,"SzK","Sz of Kernel for interpol",{eTA2007::HDV})
              <<   AOpt2007(mRS.mBorder,"Border","Border w/o target, prop to R Max",{eTA2007::HDV})
-
+             <<   AOpt2007(mAmplWhiteNoise,"NoiseAmpl","Amplitude White Noise",{eTA2007::HDV})
+             <<   AOpt2007(mPropSysLin,"PropLinBias","Amplitude Linear Bias",{eTA2007::HDV})
              <<   AOpt2007(mPerN,"PerN","Period for target, to doc quick in test",{eTA2007::HDV,eTA2007::Tuning})
    ;
 }

@@ -9,8 +9,6 @@ namespace MMVII {
     void CloseRandom();
 }
 
-const char* pybindMMVIIDir = PYBIND_MMVII_DIR;
-
 static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
 {
     MMVII::ErrOut() << "\n\n######################################";
@@ -31,28 +29,33 @@ void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
 }
 
 
-class TheModule
+class MM_Module
 {
     public:
-    TheModule()
+    MM_Module(const std::string &pybindMMVIIDir)
     {
+        if (init) //TODO: improve
+        {
+            ErrHanlderPy("python","MM_Module already initialized!",__FILE__,__LINE__);
+        }
         MMVII::cMMVII_Appli::InitMMVIIDirs(pybindMMVIIDir);
         MMVII::MMVII_SetErrorHandler(ErrHanlderPy);
         MMVII::InitStandAloneAppli("apipy");
         MMVII::OpenRandom();
         std::cout<<"MMVII initialized."<<std::endl;
+        init = true;
     }
-    ~TheModule()
+    ~MM_Module()
     {
         MMVII::CloseRandom();
         std::cout<<"MMVII exited."<<std::endl;
     }
+    static bool init;
 };
 
+bool MM_Module::init = false;
 
-
-PYBIND11_MODULE(MMVII, m) {
-    static TheModule theModule;     // Force initialisation after all MMVII initialisation
+PYBIND11_MODULE(_MMVII, m) {
     using namespace MMVII;
 
     m.doc() = "pybind11 MMVII plugin"; // optional module docstring
@@ -80,7 +83,9 @@ PYBIND11_MODULE(MMVII, m) {
             ;
 
 
-
+    py::class_<MM_Module>(m, "MM_Module")
+            .def(py::init<const std::string &>())
+            ;
 
     pyb_init_Ptxd(m);
     pyb_init_DataMappings(m);

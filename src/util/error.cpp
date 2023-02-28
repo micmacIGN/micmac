@@ -80,9 +80,7 @@ void throwError(std::string err)
 
     ncout() << err;
 
-    ncout() << "Bye  (press enter)" << endl;
-
-    EliseBRKP();
+    ncout() << "Bye" << endl;
 }
 
 int GetCharOnBrkp()
@@ -111,7 +109,6 @@ void Elise_Error_Exit()
 {
     BasicErrorHandler();
     message_copy_where_error();
-    for (int k=0; k<10; k++) EliseBRKP();
     ElEXIT(1,"");  // Le seul contexte peut venir de message_copy_where_error qui a rempli si necessaire
 }
 

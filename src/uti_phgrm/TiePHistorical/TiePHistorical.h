@@ -432,7 +432,7 @@ bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, st
 void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale);
 int Get3DTiePt(ElPackHomologue aPackFull, cGet3Dcoor a3DCoorL, cGet3Dcoor a3DCoorR, cDSMInfo aDSMInfoL, cDSMInfo aDSMInfoR, cTransform3DHelmert aTrans3DHL, std::vector<Pt3dr>& aV1, std::vector<Pt3dr>& aV2, std::vector<Pt2dr>& a2dV1, std::vector<Pt2dr>& a2dV2, bool bPrint, bool bInverse=0);
 cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1, std::vector<Pt3dr> aV2, std::vector<Pt2dr> a2dV1, std::vector<Pt2dr> a2dV2, std::vector<ElCplePtsHomologues>& inlierFinal);
-void Save3DXml(std::vector<Pt3dr> vPt3D, std::string aOutXml);
+void Save3DXml(std::vector<Pt3dr> vPt3D, std::string aOutXml, std::string strPrefix = "");
 void Get2DCoor(std::string aRGBImgDir, std::vector<string> vImgList1, std::vector<Pt3dr> vPt3DL, std::string aOri1, cInterfChantierNameManipulateur * aICNM, std::string aOut2DXml);
 bool GetImgBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3D * aCamL, Pt3dr& minPt, Pt3dr& maxPt);
 void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut);

@@ -260,6 +260,7 @@ void cMMVII_Appli::InitMMVIIDirs(const std::string& aMMVIIDir)
     mDirMicMacv1       = UpDir(mTopDirMMVII,1);
     mDirMicMacv2       = mTopDirMMVII;
     mDirTestMMVII      = mDirMicMacv2 + MMVIITestDir;
+    mDirRessourcesMMVII      = mDirMicMacv2 + MMVIIRessourcesDir;
     mTmpDirTestMMVII   = mDirTestMMVII + "Tmp/";
     mInputDirTestMMVII = mDirTestMMVII + "Input/";
 }
@@ -1173,6 +1174,7 @@ std::string cMMVII_Appli::mInputDirTestMMVII;
 std::string cMMVII_Appli::mTopDirMMVII;
 std::string cMMVII_Appli::mFullBin;
 std::string cMMVII_Appli::mDirTestMMVII;
+std::string cMMVII_Appli::mDirRessourcesMMVII;
 std::string cMMVII_Appli::mDirMicMacv1;
 std::string cMMVII_Appli::mDirMicMacv2;
 
@@ -1184,6 +1186,7 @@ const std::string & cMMVII_Appli::FullBin()           {return mFullBin;}
 const std::string & cMMVII_Appli::DirTestMMVII()      {return mDirTestMMVII;}
 const std::string & cMMVII_Appli::DirMicMacv1()       {return mDirMicMacv1;}
 
+const std::string & cMMVII_Appli::DirRessourcesMMVII()      {return mDirRessourcesMMVII;}
               // Accessors
 const std::string & cMMVII_Appli::DirProject() const  {return mDirProject;}
 int cMMVII_Appli::NbProcAllowed () const {return mNbProcAllowed;}

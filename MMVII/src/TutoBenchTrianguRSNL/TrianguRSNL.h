@@ -72,7 +72,7 @@ template <class Type>  class  cPNetwork
             tPt            mPosInit; ///< initial position : pertubation of theoretical one
 	    bool           mFrozenX; ///< is abscisse of this point frozen
 	    bool           mFrozenY;  ///< is this point frozen
-	    bool           mSchurrPoint;   ///< is it a temporay point (point not computed, for testing schur complement)
+	    bool           mSchurPoint;   ///< is it a temporay point (point not computed, for testing schur complement)
 	    int            mNumX;    ///< Num of x unknown
 	    int            mNumY;    ///< Num of y unknown
 
@@ -105,7 +105,7 @@ template <class Type>  class  cMainNetwork
           (
 	        eModeSSR aMode,
 	        cRect2,
-	        bool WithSchurr,
+	        bool WithSchur,
 	        const cParamMainNW &,
 	        cParamSparseNormalLstSq * = nullptr,
 	        const std::vector<Type>  & aWeightSetSchur = {0.0,0.0,0.0,0.0}  /// for testing AddFixVarTmp
@@ -174,7 +174,7 @@ template <class Type>  class  cMainNetwork
 	  cRect2 mBoxInd;                ///< rectangle of the network
           int   mX_SzM;                  ///<  1+2*aN  = Sz of Matrix of point
           int   mY_SzM;                  ///<  1+2*aN  = Sz of Matrix of point
-	  bool  mWithSchur;            ///< Do we test Schurr complement
+	  bool  mWithSchur;            ///< Do we test Schur complement
           cParamMainNW  mParamNW;
 	  int   mNum;                  ///< Current num of unknown
 	  std::vector<tPNet>  mVPts;   ///< Vector of point of unknowns coordinate

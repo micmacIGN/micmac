@@ -1942,7 +1942,9 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
 
                Pt3dr aCOpt = aBGC3d->OpticalCenterOfPixel(aNuple.PK(aK));
                if (euclid(mResidus.mPTer-aCOpt)<1e-5)
+	       {
                  aVPdsIm[aK] = 0;
+	       }
             }
 	    if (aVPdsIm[aK]>0) 
             {
@@ -1955,10 +1957,11 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
            )
         {
             mResidus.mOKRP3I = false;
-            mResidus.mMesPb = "Unknown";
+            mResidus.mMesPb = "NoNulPoint";
             return mResidus;
         }
     }
+ 
 
     mSubst.InitSsBlocSpecCond(&mSsBlocSpecCond);
     mResidus.mEcIm.clear();

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "MMVII_enums.h"
 #include "MMVII_Error.h"
+#include "MMVII_nums.h"
 
 namespace MMVII
 {
@@ -268,11 +269,32 @@ template <class Type> void SetOrPush(std::vector<Type> & aVec,size_t aIndex,cons
 }
 
 
-//  resize only in increasing mode
+///  resize only in increasing mode
 template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal)
 {
    if (aSz>aV1.size())
       aV1.resize(aSz,aVal);
+}
+
+
+/// Set value, before resize up if required
+template <class Type> void SetAndResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal,const Type &aValDef)
+{
+   ResizeUp(aV1,aSz+1,aValDef);
+   aV1.at(aSz) = aVal;
+}
+
+/// Add value, before resize up if required, typically for histogramme
+template <class Type> void AddAndResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal)
+{
+   ResizeUp(aV1,aSz+1,Type(0));
+   aV1.at(aSz) += aVal;
+}
+
+/// Get value of vector considered as circular  [0 1 2 3 4]  :  -2 ->3  , 6 ->1 ....
+template<class Type>  const Type & ValCirc(const std::vector<Type> & aVec,int aK)
+{
+    return aVec.at(mod(aK,aVec.size()));
 }
 
 
@@ -307,7 +329,25 @@ template <class TVal,class TFunc> void SortOnCriteria(std::vector<TVal> & aVec,c
     );
 }
 
+template <class TVal,class TFunc> void VecFilter(std::vector<TVal> & aVec,const TFunc & aCritSupr)
+{
+       aVec.erase ( std::remove_if ( aVec.begin(), aVec.end(), aCritSupr), aVec.end());
+}
 
+
+template <class TVal,class TFunc> TVal * WhitchMinVect(std::vector<TVal> & aVec,const TFunc & aFunc)
+{
+     cWhichMin <TVal*,tREAL8>  aWM(nullptr,1e60);
+     for (auto & aVal :  aVec)
+        aWM.Add(&aVal,aFunc(aVal));
+
+     return aWM.IndexExtre();
+}
+
+template <class TVal,class TFunc> TVal * WhitchMaxVect(std::vector<TVal> & aVec,const TFunc & aFunc)
+{
+    return WhitchMinVect(aVec,[&aFunc](auto & aV){return -aFunc(aV);});
+}
 
 };
 

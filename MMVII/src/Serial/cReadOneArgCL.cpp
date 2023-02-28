@@ -274,6 +274,7 @@ template <class Type> tPtrArg2007 AOpt2007(Type & aVal,const std::string & aName
 template tPtrArg2007 Arg2007<Type>(Type &, const std::string & aCom,const cSpecOneArg2007::tAllSemPL & aVSem);\
 template tPtrArg2007 AOpt2007<Type>(Type &,const std::string & aName, const std::string & aCom,const cSpecOneArg2007::tAllSemPL & aVSem);
 
+MACRO_INSTANTIATE_ARG2007(size_t)
 MACRO_INSTANTIATE_ARG2007(int)
 MACRO_INSTANTIATE_ARG2007(double)
 MACRO_INSTANTIATE_ARG2007(bool)
@@ -292,6 +293,7 @@ MACRO_INSTANTIATE_ARG2007(eModeTestPropCov)
 MACRO_INSTANTIATE_ARG2007(eModePaddingEpip)
 MACRO_INSTANTIATE_ARG2007(eModeCaracMatch)
 MACRO_INSTANTIATE_ARG2007(eDCTFilters)
+MACRO_INSTANTIATE_ARG2007(eTyCodeTarget)
 
 MACRO_INSTANTIATE_ARG2007(cBox2di)
 MACRO_INSTANTIATE_ARG2007(cBox2dr)

@@ -6,11 +6,11 @@
 
 This chapter is targeted for programmer that will increase MMVII, it mainly describe classes
 interfaces in headers and a detailled example of using this classes in a cpp file.
- It's not usefull for advanced users; on the other hand,for programmer who will maintain the core of MMVII, 
+ It's not useful for advanced users; on the other hand, for programmer who will maintain the core of MMVII, 
 more detailled documentation will have to be written.
 
-At this step, the chapter may no theoreticall presentation, it assume that reader is familliar
-with least square, linearization, Gauss-Newton, Schurr complements \dots
+At this step, the chapter has no theoretical presentation, it assumes that the reader is familliar
+with least square, linearization, Gauss-Newton, Schur complement\dots
 
 
 %---------------------------------------------
@@ -23,8 +23,8 @@ with least square, linearization, Gauss-Newton, Schurr complements \dots
 
 \subsection{Quick formalization}
 
-This chapter present the classes used in MMVII for non linear optimisation using some Gauss-Newton methods. 
-By non linear optimisation, we means minimize $F(X)$ with :
+This chapter presents the classes used in MMVII for non linear optimisation using some Gauss-Newton methods. 
+By non linear optimisation, we mean minimize $F(X)$ with :
 
 \begin{equation}
       F(X) = \sum_{j=1,M} w_j f_j(X)^2  \;  X \in \RR^n  \label{EqNLOInit}
@@ -41,7 +41,7 @@ The assumpution on the problem are classical :
 \end{itemize}
 
 The service offered by MMVII are typically those a Gauss-Newton iterations : 
-use current estimation $\tilde X$ of $X_min$ for linearizing the $f_j$ and 
+use current estimation $\tilde X$ of $X_{min}$ for linearizing the $f_j$ and 
 solve equation $\ref{EqNLOInit}$ by least square methods.
 
 %---------------------------------------------
@@ -56,7 +56,7 @@ here is the following :
 \begin{itemize}
     \item we have a set of points $P_1 \dots P_n$ , each $P_k$ belongs to $\RR^2$;
 
-    \item we ignorate the exact values of $P_k$ but we have an initial estimation  $P^0_k$
+    \item we do not know the exact values of $P_k$ but we have an initial estimation  $P^0_k$
           which is not too bad, whatever it means;
 
     \item for a certain number of pair $P_i,P_j$ we have a measurement of the distance $d_{ij}$ between
@@ -113,31 +113,32 @@ The two first constraint freeze the solution in translation, while the last one 
 
 \begin{figure}
 \centering
-\includegraphics[width=12cm]{Methods/Images/T90-NetFull.JPG}\caption{Network, case w/o schurr}\label{fig:NetFull}
+\includegraphics[width=12cm]{Methods/Images/T90-NetFull.JPG}\caption{Network, case w/o schur}\label{fig:NetFull}
 \end{figure}
 
 
 
 %---------------------------------------------
 
-\subsection{Use of schurr complement}
+\subsection{Use of schur complement}
 
-Schurr complement is an efficient way to treat the case where there is a subset of variable that 
+Schur complement is an efficient way to treat the case where there is a subset of variable that 
 occurs in \ref{EqNLOInit}, but for which we are not specially interested in exact values ,
  however but we want to take them into account rigourously in 
 the computation of the others. Once we know
-\emph{all} the equations where such  subset of variable is involved, schurr
+\emph{all} the equations where such  subset of variable is involved, schur
 complement offer a way to eliminate them without altering the value of the minimum.
 
-A typicall case is in bundle adjsutment, when we are interested only to the value
+A typical case is in bundle adjsutment, when we are interested only to the value
 of camera parameters and not by the value of $3d$ points involved by the projection
 equation. In this case, suppose we will typically  have $1000$ camera and $1000000$ points,
-doing schurr elimination can reduce the system from $3000000$ unkwnon to $6000$.
+doing schur elimination can reduce the system from $3000000$ unkwnon to $6000$.
 
 
-In our toy example, the schurr complement will be purely artificiall. When the
-{\tt WithSchurr}  option is activated, the network is modified in the following
-way , the figure~\ref{fig:NetSchurr} illustrates 
+
+In our toy example, the schur complement will be purely artificial. When the
+{\tt WithSchur}  option is activated, the network is modified in the following
+way, the figure~\ref{fig:NetSchur} illustrates 
 
 \begin{itemize}
     \item all the points on the line $x=1$ are considered as temporay variable,
@@ -150,7 +151,7 @@ way , the figure~\ref{fig:NetSchurr} illustrates
 
 \begin{figure}
 \centering
-\includegraphics[width=12cm]{Methods/Images/T90-NetSchurr.JPG}\caption{Network, case with schurr}\label{fig:NetSchurr}
+\includegraphics[width=12cm]{Methods/Images/T90-NetSchur.JPG}\caption{Network, case with schur}\label{fig:NetSchur}
 \end{figure}
 
 %---------------------------------------------
@@ -190,7 +191,7 @@ We make a quick enumeration of files of MMVII that are to access for understandi
 For Gauss Newton iteration, in equation \ref{EqNLOInit}, we will need to compute not only
 the $f_j$ but also all its partial derivative $\frac{\partial f_j}{\partial x_i}$
 relatively to all variable $x_i$ used in $f_j$.  There are many way to do it,
-and to be honest  all have  pro and cons :
+and to be honest  all have  pro and cons:
 
 \begin{itemize}
     \item numerical derivative are the most simple, but they are slow, and can be unacurrate
@@ -201,7 +202,7 @@ and to be honest  all have  pro and cons :
           a nightmare to maintain when a "small" change occurs in the formulas;
 
     \item jet derivative, like used it Ceres, are almost as simple to use as numericall, once
-          you have the library,  and much faster and accurate as numericall ones; they are much
+          you have the library,  and much faster and accurate as numerical ones; they are much
           easier to use and maintain as  hand crafted ones, but can be also slower than
           handcrafted;
 
@@ -262,7 +263,7 @@ all the information that are required for generating code. It must define $5$ me
          i/o vectors and of temporary variable, is not very important at this step,
          it's suffice to know that it is a type on which most current mathematicall
          operation are defined (and can be completed when missing), they represent
-         mathematicall formula as symbolic tree; see \RefFantome for detailled
+         mathematical formula as symbolic tree; see \RefFantome for detailled
          explanation on the type {\tt cFormula<Type>} defined in 
 
 \end{itemize}
@@ -271,7 +272,7 @@ Regarding the $3$ methods that  return names, as they are used as \CPP identifie
 its important that they contains only valid character (alpha numeric and {\tt\_} ,
 no {\tt + - ...}),  also it's important that  inside a vector they are unique.
 Apart of that, their exact name is unimportant, but giving names semantically
-meaningfull is usefull if a human want to read the generated code (something we
+meaningful is useful if a human want to read the generated code (something we
 generally dont do, but something we will do here).
 
 \begin{equation}
@@ -378,15 +379,15 @@ Lets make a quick comment on {\tt CodeGen\_cDist2DConsVDer.cpp} :
 
 \label{CreateCalc}
 
-For computig the value and derivative of {\tt cDist2DConservation} in our \CPP program
- a possible, and classical way, is to include the file declaring the class 
+For computig the value and derivative of {\tt cDist2DConservation} in our \CPP program,
+ a possible and classical way is to include the file declaring the class
 (i.e. {\tt CodeGen\_cDist2DConsVal.h}) and explicitely create a {\tt cDist2DConsVDer}.
 
 However the optimizer is done to work with any object deriving from the abstract mother
 class of all object resulting from code generation :  {\tt cCompiledCalculator<double>};
 so the optimizer only manipulate pointers on such class and the exact class is not used.
 There is a function for creating an object from its name, and we create an allocator
-from this name with the functio {\tt  EqConsDist(bool WithDerive,int aSzBuf)}.
+from this name with the function {\tt  EqConsDist(bool WithDerive,int aSzBuf)}.
 
 The definition in {\tt GenerateCodes.cpp }  is pretty basic :
 
@@ -405,8 +406,8 @@ And the declaration in a header file (here {\tt MMVII\_PhgrDist.h} ) :
 NS_SymbolicDerivative::cCalculator<double> * EqConsDist(bool WithDerive,int aSzBuf);
 \end{lstlisting}
 
-Now from the user side, the only things we need to do is calling  {\tt EqConsDist}. This
-correspond in file {\tt BenchResolSysNonLinear.cpp}  to line :
+Now from the user side, the only thing we need to do is calling  {\tt EqConsDist}. This
+correspond in file {\tt BenchResolSysNonLinear.cpp}  to line:
 
 
 \begin{lstlisting}
@@ -420,31 +421,31 @@ correspond in file {\tt BenchResolSysNonLinear.cpp}  to line :
 
 \section{Non linear system}
 
-This section was written supossing that the user explicitely control the numbering of all
-the variables  because this the way it was done at the begining. Meanwhile, a mecanism
+This section was written assuming that the user explicitely controls the numbering of all
+the variable because this was the way it was done at the begining. Meanwhile, a mecanism
 described in~\ref{SecAutoUkAlloc} has been added to facilitate this automatic numbering.
 By the way the explicit numbering is still accessible, because it is believed that the
-two mecanism are usefull.
+two mecanisms are useful.
 
 \subsection{Introduction}
 
 The class for solving  non linear system is the template class 
-{\tt  cResolSysNonLinear<Type>}.  This class furnish an easy interface
-for computing fonctions and their derivatives (via object resulting from code generation )
-ans weighted least  square in the aim of solving  non linear system.
+{\tt  cResolSysNonLinear<Type>}. This class provides an easy interface
+for computing fonctions and their derivatives (via object resulting from code generation)
+and weighted least squares in the aim of solving non linear systems.
 
 The template of the class refers to the way linearized equation are store and solved.
-Probably {\tt tREAL8=double}  would be a good default values, while {\tt tREAL16}
+Probably {\tt tREAL8=double}  would be a good default value, while {\tt tREAL16}
 could be used when high accuracy is required.
 
-The main operations that can be done with such solver are :
+The main operations that can be done with such solver are:
 
-
+\UNCLEAR
 \begin{itemize}
-   \item create a solver with an initial value of the unknown and parameter for
-          specifying the adjoint least square solver;
+   \item create a solver with initial values of the unknowns and parameters for
+          specifying the adjoint least square solver; 
 
-   \item add directly  an equation on subset of unkowns \emph{w/o} temporary unknowns  ;
+   \item add directly  an equation on subset of unkowns \emph{w/o} temporary unknowns;
 
    \item add  an equation with a subset of unkowns \emph{with} temporary unknowns  to
          a structure that accumulate them;  then  add this structure to the solver;
@@ -453,7 +454,7 @@ The main operations that can be done with such solver are :
 
    \item acces to current solution;
 
-   \item compute the next current solution and reinitialisze the solver.
+   \item compute the next current solution and reinitialize the solver.
 
 \end{itemize}
 
@@ -462,62 +463,62 @@ The main operations that can be done with such solver are :
 
 \subsection{Least square solving and constructor}
 
-In {\tt BenchResolSysNonLinear.cpp} the call to these constructors can be found
+In {\tt src/TutoBenchTrianguRSNL/cMainNetwork.cpp} the call to these constructors can be found
 after tags {\tt  BASIC:CONSTRUCTOR} and {\tt LEASTSQ:CONSTRUCTOR}.
-The dense vector is created from a standard vector.
+The dense vector is created from a standard vector.\UNCLEAR
 
 In {\tt MMVII} the core calculation of matrix algebra is realized
 by eigen library. The services offered by {\tt MMVII} is essentially
-an interface for storing the data and for a more homegeneous integration
+an interface for storing data and for a more homegeneous integration
 in {\tt MMVII} "philosophy".
 
-This said, in {\tt MMVII} there is  different way to handle least square system, each
+In {\tt MMVII} there is several ways to handle least squares systems, each
 one correspond to a value of enumeration {\bf \tt eModeSSR} :
 
 \begin{enumerate}
 
     \item{\bf \tt eSSR\_LsqDense :}
           uses dense matrix for storing the normal matrix; for system not so spare,
-          or for small system, this is most efficient  way; typically if you have
-          (many) thousands of limited size system, this is the mode you must use; the solving
+          or for small systems, this is the most efficient way; typically if you have
+          (many) thousands of limited size systems, this is the mode you must use; solving
           is made by calling \emph{"ldlt"} method of eigen (i.e. Robust Cholesky 
           decomposition of a matrix with pivoting); this classes use schur-complement
-          for handling temporay unknown;
+          for handling temporay unknowns;
 
     \item {\bf \tt eSSR\_LsqNormSparse :}
-          uses sparse matrix for storing the normal matrix; this is probably the more
-          general way and the more efficient in time and storage for most case in 
-          photogrammetry involving many pose estimation, the
-          draw-back is that using normal equation increase the conditionning of the
-          system, the potential problem increasing with number of unknown; 
+          uses sparse matrix for storing the normal matrix; this is probably the most
+          general way and the most efficient in time and storage for most cases in 
+          photogrammetry involving many pose estimations. Its
+          drawback is that using normal equations increase the conditionning of the
+          system, the potential problem increasing with number of unknowns; 
           solving is made calling  {\tt SimplicialCholesky} decomposition of eigen;
 
     \item {\bf \tt eSSR\_LsqSparseGC :}
-          uses sparse representation that memorize all the individual obsertion;
-          \emph{do  not} use normal equation, the solving is made using
+          uses sparse representation that memorize all the individual obsertions;
+          \emph{do not} use normal equations, the solving is made using
           {\tt LeastSquaresConjugateGradient} decomposition of eigen;
-          \emph{do  not} use Schurr-complement for temporary unknown , they
-          are processed like other unknowns; according to eigen documentation
-          this method is the more robust for poorly conditionned system; 
-          compared to {\bf \tt eSSR\_LsqNormSparse :}, for big
-          sparse system with a high proportion of temporary unknonws, 
-          it's certainly less memory  efficient and it's probaly
+          \emph{do not} use Schur complement for temporary unknowns, they
+          are processed like the other unknowns; according to eigen documentation
+          this method is the more robust for poorly conditionned systems 
+          compared to {\bf \tt eSSR\_LsqNormSparse}, for big
+          sparse system with a high proportion of temporary unknowns, 
+          it's certainly less memory  efficient and it's probably
           less CPU-efficient (but intensive test remain to be done);
 
 \end{enumerate}
 
-The basic constructor take as parameter an enum value for specifying
-the least square solver and an initial value :
+The basic constructor takes an enum value as parameter to specify
+the least square solver and an initial value:
 
 \begin{lstlisting}
        cResolSysNonLinear(eModeSSR,const tDVect & aInitSol);
 \end{lstlisting}
 
 
-It is also possible to create a solver with  an explicit least square solver.
+It is also possible to create a solver with an explicit least square solver.
 This is usefull especially with {\bf \tt eSSR\_LsqNormSparse} because the memory
 allocation (still in construction) is more complex and may require more parametrisation
-from the user.  
+from the user.  \UNCLEAR
 
 
 
@@ -564,9 +565,9 @@ What is done is what can be expected :
 
           %  - - - - - - - - - - - - - - - - - - - 
 
-\subsection{Adding with schurr complement}
+\subsection{Adding with schur complement}
 
-The tag  {\tt  SCHURR:CALC} in {\tt BenchResolSysNonLinear.cpp} contain an example of such use.
+The tag  {\tt  SCHUR:CALC} in {\tt BenchResolSysNonLinear.cpp} contain an example of such use.
 Adding equation with temporary variables, is slightly more complex, as the elimination
 can only be done once we have all the equations involving a given subset of unknowns.
 So the computation is done in $2$ steps : (1) create a structure, give at this initialisation
@@ -594,7 +595,7 @@ In this method {\tt aVObs} and {\tt aWeighter} are identic to the equivalent in
 	   conventionnaly the numbering of unknown is made with negative numbers starting from
            $-1$ to distinguish them from standard unknown, in this example they are $-1$ and $-2$,
            standard unknown are processed as before; 
-         s  ee {\tt aVIndMixt} after tag {\tt SCHURR:CALC}
+         s  ee {\tt aVIndMixt} after tag {\tt SCHUR:CALC}
 
    \item  the vector {\tt aVTmp} contains the  values of temporary unknowns;
 \end{enumerate}
@@ -678,13 +679,13 @@ For example, if we have some ground observation on $3-d$ points associated to a 
 
 This can be done, inside the {\tt cSetIORSNL\_SameTmp} with the method {\tt AddFixVarTmp}.
 
-Also it may be usefull to freeze the temporay if we want to reuse an existing calculator
+Also it may be useful to freeze the temporay if we want to reuse an existing calculator
 in a context where some value are completely known \footnote{of course we could rewrite the
 equation and set the unknown as observation, but this may be less convenient}.
 
 This can be done at the creation of {\tt cSetIORSNL\_SameTmp} by adding an optional parameter :
 the list of index that are frozen (it is also possible to change the value, but i really do see
-why it should be usefull !!!).
+why it should be useful !!!).
 
           %  - - - - - - - - - - - - - - - - - - - 
 
@@ -744,9 +745,9 @@ linear optimisation with images. Typically example of such use are :
 \end{itemize}
 
           %  - - - - - - - - - - - - - - - - - - - 
-\subsection{Mathematicall modelization}
+\subsection{Mathematical modelization}
 
-The basic mathematicall modelization is simply  to consider the images as functions.
+The basic mathematical modelization is simply  to consider the images as functions.
 As we deal with  continuous optimization, we need to have an interpolation scheme that
 allow to consider them as function from $\RR^2 \rightarrow \RR$.
 Ideally (to be mathematically consistant with derivation) we should use an interpolation 
@@ -755,7 +756,7 @@ we will generally prefer a non rigourous model as bilinear;  however the redunda
 neglectable the difference with bicubic (probably, later, the bicubic option will be added for finer
 tests).
 
-A typicall example is :
+A typical example is :
 
 \begin{itemize}
       \item we have an image $I$, we note $I[i,k]$ its value for integer points;
@@ -808,7 +809,7 @@ It takes two kind of parameters :
 \end{itemize}
 
 Fonction {\tt FormalBilinIm2D\_NameObs} just generate a vector of $6$ names, it use is recommande for standardizing generated code.
-Note that it takes a prefix added to  each name, it will be usefull in case we need to use several image in the same
+Note that it takes a prefix added to  each name, it will be useful in case we need to use several image in the same
 formula to avoid name clash in generated code.
 	
 
@@ -859,7 +860,7 @@ We have :
 \end {itemize}
 
 For the model, we use  a smooth function to have an easy convergence (we dont want to 
-make a theoreticall analysis of robustness, just illustrate and test implementation).
+make a theoretical analysis of robustness, just illustrate and test implementation).
 More precisely we use a gaussian fonction :
 
 \begin{equation}
@@ -958,7 +959,7 @@ The general priniciple is :
 \begin{itemize}
      \item all the object that have unknowns must inherit from the class {\tt cObjWithUnkowns};
 
-     \item this object must describe their unknown as intervall of {\tt double*};
+     \item this object must describe their unknown as interval of {\tt double*};
 
      \item  all the object of a same solver must be accumulated in an object of the class
             {\tt cSetInterUK\_MultipeObj};
@@ -982,7 +983,7 @@ The main method usable are :
            will make some initialization on  \emph{Obj} and then will call    the
            {\tt PutUknowsInSetInterval} on  \emph{Obj} 
 
-    \item  {\tt  AddOneInterv} where an \emph{Obj}  will indicate its unknowns intervall,
+    \item  {\tt  AddOneInterv} where an \emph{Obj}  will indicate its unknowns interval,
           this method will be  called by  \emph{Obj} inside its {\tt PutUknowsInSetInterval};
           the base methods take an adress {\tt double *} and a number, the other are
           just facility that recall this base method;
@@ -1010,7 +1011,7 @@ the pure virtual method {\tt PutUknowsInSetInterval}, when this method is called
    \item the object has just to call {\tt mSetInterv->AddOneInterv} with its unkonwn;
 \end{itemize}
 
-The other usefull methods defined in the classe are :
+The other useful methods defined in the classe are :
 
 \begin{itemize}
    \item    {\tt void PushIndexes(std::vector<int> \& VI);}  add the indexe of unknowns in  {\tt VI}

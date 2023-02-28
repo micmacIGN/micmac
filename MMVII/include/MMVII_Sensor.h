@@ -35,17 +35,36 @@ struct  cPair2D3D
           cPt2dr mP2;
           cPt3dr mP3;
 };
+ 
+struct  cWeightedPair2D3D : public cPair2D3D
+{
+     public :
+          cWeightedPair2D3D(const cPair2D3D&,double aWeight=1.0);
+          cWeightedPair2D3D(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
+
+	  double mWeight;
+};
+
+
 
 /**  class for representing  set of pairs 2-3  */
 struct cSet2D3D
 {
      public :
-         typedef std::vector<cPair2D3D>   tCont2D3D;
+         typedef cWeightedPair2D3D                tPair;
+         typedef std::vector<tPair>   tCont2D3D;
 
-         void AddPair(const cPair2D3D &);
+         void AddPair(const tPair &);
+         void AddPair(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
+
          const tCont2D3D &  Pairs() const;
          void  Clear() ;
 
+	 /// compute  weighted centroid
+	 cWeightedPair2D3D  Centroid() const;
+
+	 /// subsract a pair to all
+	 void Substract(const cPair2D3D&);
      private :
         tCont2D3D  mPairs;
 };
@@ -73,6 +92,17 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
          virtual cPt3dr Ground2ImageAndDepth(const cPt3dr &) const = 0;
          /// Invert of Ground2ImageAndDepth
          virtual cPt3dr ImageAndDepth2Ground(const cPt3dr &) const = 0;
+	 /// Facility for calling ImageeAndDepth2Ground(const cPt3dr &)
+         cPt3dr ImageAndDepth2Ground(const cPt2dr &,const double & ) const;
+
+	 /// return a set point regulary sampled (+/-) on sensor, take care of frontier
+         virtual std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim)  const = 0;
+
+	 ///  return artificial/synthetic correspondance , with vector of depth
+	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const;
+	 ///  call variant with vector, depth regularly spaced
+	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const;
+
 
          double SqResidual(const cPair2D3D &) const;  ///< residual Proj(P3)-P2 , squared for efficiency
          double AvgResidual(const cSet2D3D &) const;  ///< avereage on all pairs, not squared
@@ -171,9 +201,10 @@ class cDirsPhProj
           void Finish();
 
           tPtrArg2007     ArgDirInMand(const std::string & aMes="") ;  ///< Input Orientation as mandatory paramaters
-          tPtrArg2007     ArgDirInOpt() ;   ///< Input Orientation as optional paramaters
-          tPtrArg2007     ArgDirOutMand();  ///< Output Orientation as mandatory paramaters
-          tPtrArg2007     ArgDirOutOpt() ;   ///< Input Orientation as optional paramaters
+          tPtrArg2007     ArgDirInOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   ///< Input Orientation as optional paramaters
+									    //
+          tPtrArg2007     ArgDirOutMand(const std::string & aMes="");  ///< Output Orientation as mandatory paramaters
+          tPtrArg2007     ArgDirOutOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   ///< Input Orientation as optional paramaters
 
           void  SetDirIn(const std::string&) ; ///< Modifier, use in case many out params were saved in a xml,like with MeshImageDevlp
           const std::string & DirIn() const;   ///< Accessor
@@ -223,7 +254,7 @@ class cPhotogrammetricProject
 
 	        /// constructor : will memorize application
           cPhotogrammetricProject(cMMVII_Appli &);
-                /// some initialisation can be done only once Appli is itself init, method must be calles in mAppli.Exe()
+                /// some initialisation can be done only once Appli is itself init, method must be called in mAppli.Exe()
           void FinishInit() ;
 	        /// destructor  ,  some object delegates their destruction to this
           ~cPhotogrammetricProject();
@@ -234,9 +265,12 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPOrient(); ///< Accessor
 	  cDirsPhProj &   DPRadiom(); ///< Accessor
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
+	  cDirsPhProj &   DPMask(); ///< Accessor
+				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiom() const; ///< Accessor
 	  const cDirsPhProj &   DPMeshDev() const; ///< Accessor
+	  const cDirsPhProj &   DPMask() const; ///< Accessor
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
@@ -266,6 +300,17 @@ class cPhotogrammetricProject
           std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMedaDataImage &) const;
 
 	 //===================================================================
+         //==================    MASKS           =============================
+	 //===================================================================
+
+	  /// return full name including sub dirs
+          std::string NameMaskOfImage(const std::string & aNameImage) const;
+	  /// Does the image has an existing mask : Dir is init + file exist
+          bool  ImageHasMask(const std::string & aNameImage) const;
+
+	  cIm2D<tU_INT1>  MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal) const;
+
+	 //===================================================================
          //==================   META-DATA       ==============================
 	 //===================================================================
           cMedaDataImage GetMetaData(const std::string &) const;
@@ -280,6 +325,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPOrient;
 	  cDirsPhProj     mDPRadiom;
 	  cDirsPhProj     mDPMeshDev;
+	  cDirsPhProj     mDPMask;
 
 	  std::list<cSensorCamPC*>  mLCam2Del; 
 };

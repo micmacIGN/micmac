@@ -21,6 +21,7 @@ void Default_MMVII_Error(const std::string & aType,const std::string &  aMes,con
 
     cSpecMMVII_Appli::ShowCmdArgs();        // Writes to std::cout ..
     std::cout.flush();
+    std::fflush(nullptr);                   // flush all open files
 
     if (!cMMVII_Appli::ExistAppli())
     {

@@ -35,6 +35,7 @@ enum class eTA2007
                 Orient,        ///< Orientation
                 Radiom,        ///< Radiometry
                 MeshDev,       ///< Mesh Devlopment
+                Mask,          ///< Mask of image
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
@@ -434,9 +435,18 @@ enum class eProjPC
      eNbVals
 };
 
+enum class eTyCodeTarget
+{
+    eIGNIndoor,  ///<  checkboard , circular sym-code
+    eIGNDrone,   ///<  checkboard , code separate , hamming redundnace  
+    eCERN,       ///<  central circle, coding invariant (AICON, METASHAPE ...)
+    eNbVals
+};
+
 
 const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
+const std::string & E2Str(const eTyCodeTarget &);         
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
 const std::string & E2Str(const eTA2007 &);         

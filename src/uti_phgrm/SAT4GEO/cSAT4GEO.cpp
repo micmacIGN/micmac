@@ -858,16 +858,15 @@ void cAppliFusion::DoAll()
 			aNI2 = itP.N2();
 		}
 
+
 		aLP.push_back(std::make_pair(aNI1,aNI2));
 		//aLP.push_back(std::make_pair(aNI2,aNI1));
-
 
 		if (!DicBoolFind(aMEp,aNI1))
 		{
 			aMEp[aNI1] = aCpt; 
     		aLON.Name().push_back(aNI1);
 		}
-		aCpt++;
 		
 		if (!DicBoolFind(aMEp,aNI2))
 		{
@@ -1334,10 +1333,9 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 
 	    cDecoupageInterv2D aDecoup  = cDecoupageInterv2D::SimpleDec(aSz,aSzDecoup,0);
 
-		
 		// To avoid occupying too many cluster nodes
 		int aReduCPU=1;
-		while (aDecoup.NbInterv()>(aMaxNbProc))
+		while (aDecoup.NbInterv()>(aMaxNbProc) && ( (aMaxNbProc-aReduCPU+1)>1))
 		{
 			aSzDecoup = ceil(sqrt(double(aSz.x)*double(aSz.y)/(aMaxNbProc-(aReduCPU++))));
 
@@ -1365,19 +1363,25 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 
 
 
-
 		for (int aK=0; aK<aDecoup.NbInterv(); aK++)
 		{
 			std::string aCom = aComBase + " CalleByP=true " 
 					         + "BoxOut=" + ToString(aDecoup.KthIntervIn(aK))
 						 + BLANK + "@ExitOnBrkp";
 			aLCom.push_back(aCom);
+
 		}
 
 
 
+
 		if (aExe)
-        	cEl_GPAO::DoComInParal(aLCom);
+		{
+		    if (aMaxNbProc==1)
+	               cEl_GPAO::DoComInSerie(aLCom); 
+	            else
+        	       cEl_GPAO::DoComInParal(aLCom);
+		}
 	    else
     	{
         	for (auto iCmd : aLCom)

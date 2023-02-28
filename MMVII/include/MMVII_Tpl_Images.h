@@ -255,6 +255,16 @@ template<class T1,class T2,int Dim>
         aI1.GetRDL(aK) = aI2.GetRDL(aK) ;
 }
 
+template<class T1,class T2,int Dim>  
+   void RectCopyIn(T1 & aI1,const T2 & aI2,const cPixBox<Dim> & aBox)
+{
+
+    for (const auto & aPix : aBox)
+        aI1.SetV(aPix,aI2.GetV(aPix));
+}
+
+
+
 template<class T1,class T2>  cIm2D<T1>  Convert(T1*,const cDataIm2D<T2>& aDIm2)
 {
      cIm2D<T1> aIm1(aDIm2.Sz());
@@ -262,6 +272,10 @@ template<class T1,class T2>  cIm2D<T1>  Convert(T1*,const cDataIm2D<T2>& aDIm2)
      return aIm1;
 }
 
+template<class T1,class T2>  cDenseMatrix<T1>  Convert(T1*,const cDenseMatrix<T2>& aM2)
+{
+	return cDenseMatrix<T1>(Convert((T1*)nullptr,aM2.DIm()));
+}
 
 template<class T1,class T2,int Dim>  
    void WeightedAddIn(cDataTypedIm<T1,Dim> & aI1,const T2 & aV,const cDataTypedIm<T2,Dim> & aI2)

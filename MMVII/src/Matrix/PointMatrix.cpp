@@ -96,6 +96,32 @@ template <class Type,const int Dim>
 }
 
 
+template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L0,const cPtxd<Type,3> &L1,const cPtxd<Type,3> &L2)
+{
+      cDenseMatrix<Type> aRes(3,3);
+
+      SetLine(0,aRes,L0);
+      SetLine(1,aRes,L1);
+      SetLine(2,aRes,L2);
+
+      return aRes;
+}
+
+template <class Type>  cDenseMatrix<Type> M2x2FromLines(const cPtxd<Type,2>&L0,const cPtxd<Type,2> &L1)
+{
+      cDenseMatrix<Type> aRes(2,2);
+
+      SetLine(0,aRes,L0);
+      SetLine(1,aRes,L1);
+
+      return aRes;
+}
+
+
+
+
+
+
 template <class Type,const int DimOut,const int DimIn> 
 void MulCol(cPtxd<Type,DimOut>&aPOut,const cDenseMatrix<Type>&aMat,const cPtxd<Type,DimIn>&aPIn)
 {
@@ -158,9 +184,18 @@ template<class Type,const int Dim>
     return  cPtxd<Type,Dim>::FromVect(aVRes);
 }
 
+template<class Type,const int DimOut,const int DimIn> Type
+     QScal(const cPtxd<Type,DimOut>& aP2,const cDenseMatrix<Type>& aMat,const cPtxd<Type,DimIn>& aP1)
+{
+	cPtxd<Type,DimOut> aTmp;
+	MulCol(aTmp,aMat,aP1);
+	return Scal(aP2,aTmp);
+}
+
 
 
 #define INSTANT_MUL_MATVECT(TYPE,DIMOUT,DIMIN)\
+template TYPE QScal(const cPtxd<TYPE,DIMOUT>& aP2,const cDenseMatrix<TYPE>& aMat,const cPtxd<TYPE,DIMIN>& aP1);\
 template void MulCol(cPtxd<TYPE,DIMOUT>&,const cDenseMatrix<TYPE>&,const cPtxd<TYPE,DIMIN>&);\
 template void MulLine(cPtxd<TYPE,DIMOUT>&,const cPtxd<TYPE,DIMIN>&,const cDenseMatrix<TYPE>&);
 
@@ -195,6 +230,8 @@ template  void SetLine(int,cDenseMatrix<TYPE> & ,const cPtxd<TYPE,DIM> & );
 
 
 #define INSTANT_PT_MAT_TYPE(TYPE)\
+template   cDenseMatrix<TYPE> M3x3FromLines(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3> &,const cPtxd<TYPE,3> &);\
+template   cDenseMatrix<TYPE> M2x2FromLines(const cPtxd<TYPE,2>&,const cPtxd<TYPE,2> &);\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,1)\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,2)\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,3)\
