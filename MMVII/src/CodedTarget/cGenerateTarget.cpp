@@ -6,7 +6,6 @@
 namespace MMVII
 {
 
-static constexpr int SzGaussDeZoom =  3;  // De Zoom to have a gray value target
 
 namespace  cNS_CodedTarget
 {
@@ -136,7 +135,8 @@ cParamCodedTarget::cParamCodedTarget() :
    mWithParity       (true),
    mNbRedond         (2),
    mNbCircle         (1),
-   mNbPixelBin       (round_to(1800,2*SzGaussDeZoom)), // make size a multiple of 2 * zoom, to have final center at 1/2 pix
+   mSzGaussDeZoom    (3),
+   mNbPixelBin       (round_to(1800,2*mSzGaussDeZoom)), // make size a multiple of 2 * zoom, to have final center at 1/2 pix
    mSz_CCB           (1),
    mThickN_WInt      (0.35),
    mThickN_Code      (0.35),
@@ -235,7 +235,7 @@ void cParamCodedTarget::Finish()
 
 
   // mMidle = ToR(mSzBin-cPt2di(1,1)) / 2.0 - cPt2dr(1,1) ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
-  mMidle = ToR(mSzBin-cPt2di(SzGaussDeZoom,SzGaussDeZoom)) / 2.0  ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
+  mMidle = ToR(mSzBin-cPt2di(mSzGaussDeZoom,mSzGaussDeZoom)) / 2.0  ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
   mScale = mNbPixelBin / (2.0 * mRho_4_EndCar);
 
   std::vector<int> aVNbSub;
@@ -513,7 +513,7 @@ tImTarget  cParamCodedTarget::MakeImCircle(const cCodesOf1Target & aSetCodesOfT,
 
      // MMVII_INTERNAL_ASSERT_User(aN<256,"For
 
-     aImT = aImT.GaussDeZoom(SzGaussDeZoom);
+     aImT = aImT.GaussDeZoom(mSzGaussDeZoom);
      return aImT;
 }
 
@@ -553,6 +553,93 @@ eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
 /*              cAppliGenCodedTarget                   */
 /*                                                     */
 /* *************************************************** */
+
+typedef cParamCodedTarget cParamGeomTarget;
+
+class cFullSpecifTarget
+{
+      public :
+         cFullSpecifTarget(const cBitEncoding&,const cParamGeomTarget&);
+         const cBitEncoding     & mBE;
+         const cParamGeomTarget & mGeom;
+};
+
+class cNormPix2Bit
+{
+    public :
+
+	 virtual cPt2dr  Transfo(const cPt2dr & aPt) const = 0;
+	 virtual bool PNormIsCodin(const cPt2dr & aPt) const = 0;
+	 virtual int  BitsOfNorm    (const cPt2dr & aPt) const = 0;
+    protected :
+};
+
+
+	/*
+class cCircNP2B :  cNormPix2Bit
+{
+     public :
+         cCircNP2B(const cFullSpecifTarget & aSpecif);
+
+	 cPt2dr  Transfo(const cPt2dr & aPt)        const   override;
+	 bool    PNormIsCodin(const cPt2dr & aPt)   const   override;
+	 int     BitsOfNorm    (const cPt2dr & aPt) const   override;
+     private :
+	 tREAL8 mRho0;
+	 tREAL8 mRho1;
+	 tREAL8 mTeta0;
+	 int    mNbBits;
+};
+
+cCircNP2B::cCircNP2B(const cFullSpecifTarget & aSpecif) :
+   mRho0  (aSpecif.mGeom.mRho_1_BeginCode),
+   mRho1  (aSpecif.mGeom.mRho_2_EndCode)
+{
+}
+
+cPt2dr  cCircNP2B::Transfo(const cPt2dr & aPt)   const 
+{
+    return ToPolar(aPt);
+}
+bool  cCircNP2B::PNormIsCodin(const cPt2dr & aPt) const 
+{
+    tREAL8 aRho = aPt.x();
+    return   (aRho>=mRho0)  && (aRho<mRho1) ;
+}
+
+int cCircNP2B::BitsOfNorm(const cPt2dr & aPt) const 
+{
+     tREAL8mSpecif.mGeom.mRho_1_BeginCode aTeta = aPt.y() -mChessboardAng;
+     tREAL8 aIndex = (aTeta / (2*M_PI)) 
+     aIndex = mod_real
+     aTeta = (aTeta -mChessboardAng) / (2*M_PI)
+     return round_ni 
+}
+*/	
+
+class cCodedTargetPatternIm
+{
+     public :
+          typedef tU_INT1            tElem;
+          typedef cIm2D<tElem>       tIm;
+          typedef cDataIm2D<tElem>   tDataIm;
+
+          cCodedTargetPatternIm(const cBitEncoding & aBE,const cParamGeomTarget &);
+     private :
+	  cBitEncoding      mBE;
+          cParamGeomTarget  mPGeom;
+	  tIm               mIm;
+};
+
+
+cCodedTargetPatternIm::cCodedTargetPatternIm(const cBitEncoding & aBE,const cParamGeomTarget & aParamGeom) :
+     mBE     (aBE),
+     mPGeom  (aParamGeom),
+     mIm     (mPGeom.mSzBin)
+{
+}
+
+
 
 
 cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -598,7 +685,8 @@ int  cAppliGenCodedTarget::Exe()
    mPCT.FinishInitOfType(Type());
    mPCT.Finish();
 
-   for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen){
+   for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen)
+   {
 
       cCodesOf1Target aCodes = mPCT.CodesOfNum(aNum);
 
@@ -609,11 +697,11 @@ int  cAppliGenCodedTarget::Exe()
       // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
       // FakeUseIt(aCodes);
       mPCT.mSzF = aImT.DIm().Sz();
-      mPCT.mCenterF = mPCT.mMidle / double(SzGaussDeZoom);
+      mPCT.mCenterF = mPCT.mMidle / double(mPCT.mSzGaussDeZoom);
 
       //StdOut() << "mPCT.mCenterF  " << mPCT.mCenterF  << mPCT.mMidle << "\n";
 
-      double aRhoChB = ((mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar) * (mPCT.mNbPixelBin /2.0)  )/SzGaussDeZoom;
+      double aRhoChB = ((mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar) * (mPCT.mNbPixelBin /2.0)  )/mPCT.mSzGaussDeZoom;
       mPCT.mCornEl1 = mPCT.mCenterF+FromPolar(aRhoChB,M_PI/4.0);
       mPCT.mCornEl2 = mPCT.mCenterF+FromPolar(aRhoChB,3.0*(M_PI/4.0));
        

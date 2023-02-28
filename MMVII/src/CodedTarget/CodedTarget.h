@@ -213,6 +213,7 @@ class cParamCodedTarget
        bool      mWithParity;  // Do we use parirty check
        int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
        int       mNbCircle;  // Number of circles encoding information
+       int       mSzGaussDeZoom	;
        int       mNbPixelBin;        // Number of pixel  Binary image
        double    mSz_CCB;      // size of central chekcboard/target , everything prop to it, 1 by convention
 
