@@ -175,6 +175,9 @@ class cParamCodedTarget
        int &     NbCircle();  // Redundancy = number of repetition of a pattern in a circle
        double &  RatioBar();  // Ratio on codin bar
 
+       int ToMultiple_2DeZoom(int) const;
+       cPt2di ToMultiple_2DeZoom(const cPt2di&) const;
+
        /// Set value that are computed from other like mRho_0... , mRho_1...
        void      Finish();
        /// Set default value that depend from the type 
@@ -229,6 +232,7 @@ class cParamCodedTarget
        bool      mZeroIsBackGround;
 
        bool mModeFlight;  // Special mode for Patricio
+       // bool mCodeCirc;  // Special mode for Patricio
 
 
        double          mRho_0_EndCCB;// End of Central CB , here Rho=ThickN ...

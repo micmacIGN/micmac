@@ -129,6 +129,17 @@ void cParamCodedTarget::InitFromFile(const std::string & aNameFile)
     Finish();
 }
 
+int cParamCodedTarget::ToMultiple_2DeZoom(int aSz) const
+{
+    return round_to(aSz,2*mSzGaussDeZoom);
+}
+
+cPt2di cParamCodedTarget::ToMultiple_2DeZoom(const cPt2di &aSz) const
+{
+	return cPt2di(ToMultiple_2DeZoom(aSz.x()),ToMultiple_2DeZoom(aSz.y()));
+}
+
+
 cParamCodedTarget::cParamCodedTarget() :
    mType             (eTyCodeTarget::eIGNIndoor),  // eNbVals create problem in reading  eIGNIndoor
    mNbBit            (9),
@@ -136,7 +147,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mNbRedond         (2),
    mNbCircle         (1),
    mSzGaussDeZoom    (3),
-   mNbPixelBin       (round_to(1800,2*mSzGaussDeZoom)), // make size a multiple of 2 * zoom, to have final center at 1/2 pix
+   mNbPixelBin       (ToMultiple_2DeZoom(1800)), // make size a multiple of 2 * zoom, to have final center at 1/2 pix
    mSz_CCB           (1),
    mThickN_WInt      (0.35),
    mThickN_Code      (0.35),
@@ -163,7 +174,11 @@ void cParamCodedTarget::FinishInitOfType(eTyCodeTarget aType)
    }
    else if (aType==eTyCodeTarget::eIGNDrone)
    {
-	   anAppli.SetIfNotInit(mModeFlight,true);
+       anAppli.SetIfNotInit(mModeFlight,true);
+       anAppli.SetIfNotInit(mThickN_WInt,0.1);
+       anAppli.SetIfNotInit(mThickN_Code,0.0);
+       anAppli.SetIfNotInit(mThickN_WExt,0.0);
+       anAppli.SetIfNotInit(mThickN_Car,0.3);
    }
    else if (aType==eTyCodeTarget::eCERN)
    {
@@ -208,9 +223,10 @@ void cParamCodedTarget::Finish()
   MMVII_INTERNAL_ASSERT_strong(((mNbPixelBin%2)==0),"Require odd pixel 4 binary image");
 
   if (mModeFlight){
-    mSzBin = cPt2di(0.95*0.707*mNbPixelBin,0.95*mNbPixelBin);
-    mThickN_WInt = 0.1;
-    mThickN_Code = 0;
+    // mSzBin = cPt2di(0.95*0.707*mNbPixelBin,0.95*mNbPixelBin);
+
+    mSzBin = ToMultiple_2DeZoom(cPt2di(mNbPixelBin,mNbPixelBin*sqrt(2)));
+
   } else{
     mSzBin = cPt2di(mNbPixelBin,mNbPixelBin);
   }
@@ -577,12 +593,21 @@ cFullSpecifTarget::cFullSpecifTarget(const cBitEncoding& aBE,const cParamRenderi
 /*                                                     */
 /* *************************************************** */
 
+enum class eLPT  // Label Pattern Target
+           {
+              eBackGround,
+              eForeGround,
+              eChar,
+              eNumB0   // num first bit
+           };
+
 class cNormPix2Bit
 {
     public :
-	 virtual cPt2dr  PreProcessCoord(const cPt2dr & aPt) const = 0;
 	 virtual bool    PNormIsCoding(const cPt2dr & aPt)   const = 0;
 	 virtual int     BitsOfNorm    (const cPt2dr & aPt)  const = 0;
+
+	 cNormPix2Bit * Alloc(const cFullSpecifTarget & aSpecif);
     protected :
 };
 
@@ -591,14 +616,6 @@ class cNormPix2Bit
 /*             cCircNP2B                               */
 /*                                                     */
 /* *************************************************** */
-
-enum class eLPT  // Label Pattern Target
-           {
-              eBackGround,
-              eForeGround,
-              eChar,
-              eNumB0   // num first bit
-           };
 
 
 class cCircNP2B : public  cNormPix2Bit
@@ -609,7 +626,7 @@ class cCircNP2B : public  cNormPix2Bit
 	 int     BitsOfNorm    (const cPt2dr & aPt)     const   override;
 
      private :
-	 cPt2dr  PreProcessCoord(const cPt2dr & aPt)    const   override;
+	 cPt2dr  PreProcessCoord(const cPt2dr & aPt)    const;
 
 	 tREAL8 mRho0;
 	 tREAL8 mRho1;
@@ -640,10 +657,66 @@ bool  cCircNP2B::PNormIsCoding(const cPt2dr & aPt) const
 
 int cCircNP2B::BitsOfNorm(const cPt2dr & aPt) const 
 {
-     tREAL8 aTeta = PreProcessCoord(aPt).y() -mTeta0;
+     tREAL8 aTeta = PreProcessCoord(aPt).y() +mTeta0;
      tREAL8 aIndex = mNbBits * (aTeta / (2*M_PI)) ;
      aIndex = mod_real(aIndex,mNbBits);
      return round_down (aIndex);
+}
+
+/* *************************************************** */
+/*                                                     */
+/*             cStraightNP2B                           */
+/*                                                     */
+/* *************************************************** */
+
+class cStraightNP2B : public  cNormPix2Bit
+{
+     public :
+         cStraightNP2B(const cFullSpecifTarget & aSpecif);
+	 bool    PNormIsCoding(const cPt2dr & aPt)      const   override;
+	 int     BitsOfNorm    (const cPt2dr & aPt)     const   override;
+
+     private :
+	 tREAL8   mRho1;
+         int      mNbBits;
+         int      mNbBS2;
+};
+
+cStraightNP2B::cStraightNP2B(const cFullSpecifTarget & aSpecif) :
+   mRho1   (aSpecif.mRender.mRho_2_EndCode),
+   mNbBits (aSpecif.mBE.Specs().mNbBits),
+   mNbBS2  (mNbBits /2)
+{
+    MMVII_INTERNAL_ASSERT_tiny((mNbBS2*2)==mNbBits,"Odd nbbits in cStraightNP2B");
+}
+
+bool    cStraightNP2B::PNormIsCoding(const cPt2dr & aPt) const   
+{
+    return std::abs(aPt.y()) > mRho1;
+}
+
+int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
+{
+    return    round_down((aPt.x()+mRho1)/(2*mRho1) *mNbBS2)  
+	    + mNbBS2*(aPt.y()<0);
+}
+
+/* *************************************************** */
+/*                                                     */
+/*             cNormPix2Bit                            */
+/*                                                     */
+/* *************************************************** */
+
+cNormPix2Bit * cNormPix2Bit::Alloc(const cFullSpecifTarget & aSpecif)
+{
+   switch (aSpecif.mBE.Specs())
+   {
+       case IGNDrone:
+       case IGNIndoor:
+	       return new cCircNP2B;
+   }
+
+   return nullptr;
 }
 
 class cCodedTargetPatternIm 
@@ -658,27 +731,56 @@ class cCodedTargetPatternIm
 	  const cFullSpecifTarget & mSpec;
 	  tIm               mImCoding;
 	  tDataIm &         mDIC;
+	  tREAL8            mTeta0;
+	  tREAL8            mRhoC;
+	  tREAL8            mRho2C;
 };
 
 cCodedTargetPatternIm::cCodedTargetPatternIm(const cFullSpecifTarget & aSpec) :
      mSpec       (aSpec),
-     mImCoding   (aSpec.mRender.mSzBin),
-     mDIC        (mImCoding.DIm())
+     mImCoding   (mSpec.mRender.mSzBin),
+     mDIC        (mImCoding.DIm()),
+     mTeta0      (mSpec.mRender.mChessboardAng),
+     mRhoC       (mSpec.mRender.mRho_0_EndCCB),
+     mRho2C      (Square(mRhoC))
 {
     mDIC.InitCste(tElem(eLPT::eBackGround));
-    std::unique_ptr<cNormPix2Bit>  aP2B (new cCircNP2B (mSpec));
+
+    // std::unique_ptr<cNormPix2Bit>  aP2B (new cCircNP2B (mSpec));
+    std::unique_ptr<cNormPix2Bit>  aP2B (new cStraightNP2B (mSpec));
     for (const auto & aPix : mDIC)
     {
        cPt2dr aPN = mSpec.mRender.Pix2Norm(aPix);
+       //  ============  1  Generate the bit coding =======================
        if (aP2B->PNormIsCoding(aPN))
        {
            int aNumB =  aP2B->BitsOfNorm(aPN);
 	   mDIC.SetV(aPix,int(eLPT::eNumB0)+aNumB);
-// StdOut()  << "NNNN " << aNumB << "\n";
+       }
+       //  ============  2  Generate the central circle =======================
+       else if (SqN2(aPN) <mRho2C)
+       {
+           eLPT aLab = eLPT::eForeGround;
+           if (mSpec.mRender.mWithChessboard)
+	   {
+               double PIsur2 = M_PI/2.0;
+	       tREAL8 aTeta = ToPolar(aPN).y();
+               int aIndTeta = round_down((aTeta+mTeta0)/PIsur2);
+               if ((aIndTeta%2)==0)
+                   aLab = eLPT::eBackGround;
+	   }
+	   mDIC.SetV(aPix,int(aLab));
        }
     }
 
     mDIC.ToFile("toto.tif");
+
+    StdOut() << "SZB " << mSpec.mRender.mSzBin << "\n";
+    StdOut() << "r0 " << mSpec.mRender.mRho_0_EndCCB << "\n";
+    StdOut() << "r1 " << mSpec.mRender.mRho_1_BeginCode << "\n";
+    StdOut() << "r2 " << mSpec.mRender.mRho_2_EndCode << "\n";
+    StdOut() << "r3 " << mSpec.mRender.mRho_3_BeginCar << "\n";
+    StdOut() << "r4 " << mSpec.mRender.mRho_4_EndCar << "\n";
 }
 
 
