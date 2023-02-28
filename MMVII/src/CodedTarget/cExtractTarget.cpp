@@ -9,6 +9,10 @@
 #include <iostream>
 #include <fstream>
 
+
+#include "include/MMVII_PhgrDist.h"
+using namespace NS_SymbolicDerivative;
+
 /*   Modularistion
  *   Code extern tel que ellipse
  *   Ellipse => avec centre
@@ -108,8 +112,8 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         void benchEllipseR();                                                    ///< Bench test for ellipse fit
         void benchAffinity();                                                    ///< Bench text for affinity fit
         void plotCaseR(std::vector<cPt2dr>, double*);                            ///< Plot ellipse fit in R for debugging
-        void printDebug(std::string, bool);                                      ///< Print debug for focus on a center
-        void printDebug(std::string, double, double);                            ///< Print debug for focus on a center
+        bool printDebug(std::string, bool);                                      ///< Print debug for focus on a center
+        bool printDebug(std::string, double, double);                            ///< Print debug for focus on a center
 
         int fitEllipse (std::vector<cPt2dr>, cPt2dr, bool, double*);             ///< Least squares estimation of an ellipse from 2D points
         int fitFreeEllipse(std::vector<cPt2dr>, double*);                        ///< Least squares estimation of a floating ellipse from 2D points
@@ -410,11 +414,13 @@ void  cAppliExtractCodeTarget::DoExtract(){
     if (mToRestrict.size() > 0){
         StdOut() << "List of target codes to keep: \n";
         for (unsigned i=0; i<mToRestrict.size(); i++){
-            StdOut() << mToRestrict.at(i) << "\n";
+            StdOut() << mToRestrict.at(i) << " ";
         }
+        StdOut() << "\n";
     }
+    StdOut() << "------------------------------------------------------------------\n";
 
-    spec.InitFromFile("Target_Spec.xml");
+    spec.InitFromFile(mNameTarget);
 
     // --------------------------------------------------------------------------------------------------------
     // Get debug plot options
@@ -724,36 +730,31 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
         }
     }
 
-
     cPt2di center = aDCT->Pix();
 
     // -------------------------------------------
     // Test on binarity of target
     // -------------------------------------------
     double binarity = aDCT->mVWhite - aDCT->mVBlack;
-    printDebug("Binarity test", binarity, px_binarity);
-    if (binarity < px_binarity) return false;
+    if (!printDebug("Binarity test", binarity, px_binarity)) return false;
 
     // ----------------------------------------------------------------------------------------------
     // [001] 0000000001 plot only candidates after filtering operations (magenta pixels)
     // ----------------------------------------------------------------------------------------------
     if(mBitsPlotDebug[0]) mImVisu.SetRGBrectWithAlpha(center, 1, cRGBImage::Magenta, 0.0);
 
-
     // -----------------------------------------------------------------
     // Testing borders
     // -----------------------------------------------------------------
     bool lim =  (center.x() > limit_border) && (center.y() > limit_border);
     lim = lim && (aDIm.Sz().x()-center.x() > limit_border) && (aDIm.Sz().y()-center.y() > limit_border);
-    printDebug("Border limit", lim);
-    if (!lim) return false;
+    if (!printDebug("Border limit", lim)) return false;
 
 
     // Butterfly edge extraction
     mPoints = extractButterflyEdge(aDIm, aDCT);
     double min_imposed = 0.8*2*(1-2*mMargin)/mStepButterfly;
-    printDebug("Butterfly edge extraction size", mPoints.size(), min_imposed);
-    if (mPoints.size() < min_imposed) return false;
+    if (!printDebug("Butterfly edge extraction size", mPoints.size(), min_imposed)) return false;
 
     // -----------------------------------------------------------------
     // Ellipse fit
@@ -761,16 +762,13 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     double param[6]; double ellipse[5];
     bool ellipseOk = (fitEllipse(mPoints, aDCT->mPt, mConstrainCenter, param) >= 0);
 
-    printDebug("Ellipse fit", ellipseOk);
-    if (!ellipseOk)  return false;
+    if (!printDebug("Ellipse fit", ellipseOk)) return false;
     cartesianToNaturalEllipse(param, ellipse);
 
     // Invalid ellipse fit
-    bool ellipse_param = (ellipse[0] == ellipse[0]);
-    bool ellipse_ecc   = (ellipse[2]/ellipse[3] < mMaxEcc);
-    printDebug("Ellipse cartesian parameterization", ellipse_param);
-    printDebug("Ellipse eccentricity", mMaxEcc, ellipse[2]/ellipse[3]);
-    if (!ellipse_param || !ellipse_ecc) return false;
+    if (!printDebug("Ellipse cartesian parameterization", (ellipse[0] == ellipse[0])))  return false;
+    if (!printDebug("Ellipse eccentricity", mMaxEcc, ellipse[2]/ellipse[3]))            return false;
+
     // -----------------------------------------------------------------
 
     // Generate ellipse for plot
@@ -780,12 +778,9 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
         aDCT->mDetectedEllipse.push_back(pt);
     }
 
-
     // Solve intersections
     aDCT->mDetectedCorners = solveIntersections(aDCT, param);
-    bool intersections_ok = (aDCT->mDetectedCorners.size() == 4);
-    printDebug("Ellipse-cross intersections", aDCT->mDetectedCorners.size(), 0);
-    if (!intersections_ok) return false;
+    if (!printDebug("Ellipse-cross intersections", (aDCT->mDetectedCorners.size() == 4))) return false;
 
     // Affinity first estimation
     mTransfo = estimateRectification(aDCT->mDetectedCorners, spec.mChessboardAng);
@@ -814,13 +809,11 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 
     // Affinity estimation test
     bool validAff = isValidAffinity(mTransfo);
-    printDebug("Affinity estimation", validAff);
-    if (!validAff) return false;
+    if (!printDebug("Affinity estimation", validAff)) return false;
 
     // Ellipse fit residual test (requires affinity estimation);
-    double rmse_px = ellipseResidual(mPoints, mTransfo);
-    printDebug("Ellipse fit residual", 1, rmse_px);
-    if (rmse_px > 1) return false;
+    double rmse_px = ellipseResidual(mPoints, mTransfo)/600*mDiamMinD;
+    if (!printDebug("Ellipse fit residual", 1, rmse_px)) return false;
 
     // Control on center position
     double x_centre_moy = (ellipse[0] + aDCT->mPt.x())/2.0;
@@ -829,17 +822,13 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     double dy = std::round(100*std::abs(ellipse[1] - aDCT->mPt.y())/2.0)/100;
 
     double dxy = sqrt(dx*dx + dy*dy);
-    printDebug("Target center coincidence", 3.0, dxy);
-    if (dxy > 3.0) return false;
-
-
+    if (!printDebug("Target center coincidence", 5.0, dxy)) return false;
 
     // ======================================================================
     // Image generation
     // ======================================================================
 
     tImTarget aImT = generateRectifiedImage(aDCT, aDIm);
-
 
     // ======================================================================
     // Decoding
@@ -849,19 +838,21 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     int code = decodeTarget(aImT.DIm(), aDCT->mVWhite, aDCT->mVBlack, code_binary, spec.mModeFlight);
 
     std::string chaine = "NA";
+
     if (code != -1){
         chaine = CODES[code];
         if (mToRestrict.size() > 0){
-            if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
-                return false;
+            if (chaine != "NA"){
+                if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
+                    return false;
+                }
             }
         }
-    }else{
-        return false;
     }
 
     std::string name_file = "target_" + chaine + ".tif";
     aDCT->mDecodedName = chaine;
+
     aDCT->mRefinedCenter = cPt2dr(x_centre_moy, y_centre_moy);
     if (chaine == "NA"){
         aDCT->mDecodedName = "NA_"+std::to_string(mTargetCounter);
@@ -869,7 +860,6 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
         printDebug("Target decoding", false);
         if (!mFailure)  return false;
     }
-
 
     // --------------------------------------------------------------------------------
     // Begin print console
@@ -915,18 +905,18 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 // ---------------------------------------------------------------------------
 // Functions to print debug
 // ---------------------------------------------------------------------------
-void cAppliExtractCodeTarget::printDebug(std::string name, bool pass){
-    if (mFlagDebug != ""){
-        std::string pass_status = pass? "ok ":"failed ";
-        StdOut() << mFlagDebug << name << ": " << pass_status << "\n";
-    }
+bool cAppliExtractCodeTarget::printDebug(std::string name, bool pass){
+    std::string pass_status = pass? "ok ":"failed ";
+    if (mFlagDebug != "") StdOut() << mFlagDebug << name << ": " << pass_status << "\n";
+    return pass;
 }
-void cAppliExtractCodeTarget::printDebug(std::string name, double value, double threshold){
+bool cAppliExtractCodeTarget::printDebug(std::string name, double value, double threshold){
+    std::string pass_status = value > threshold? "ok ":"failed ";
     if (mFlagDebug != ""){
-        std::string pass_status = value > threshold? "ok ":"failed ";
         StdOut() << mFlagDebug << name << ": " << pass_status << " [";
         StdOut() << value << " >= " << threshold << "]\n";
     }
+    return (pass_status == "ok ");
 }
 
 
@@ -974,7 +964,7 @@ tImTarget cAppliExtractCodeTarget::generateRectifiedImage(cDCT* aDCT, const cDat
 
         for (int i=0; i<Ni; i++){
             for (int j=0; j<Nj; j++){
-                irel = +3.2*((double)i-Ni/2.0)/Ni;
+                irel =  1.00*3.2*((double)i-Ni/2.0)/Ni;              //  !!!!!!!!! WARNING: temp scale factor for Patricio * 1.35
                 jrel = -6.3*((double)j-Nj/2.0)/Nj;
                 cPt2dr p = applyAffinity(cPt2dr(irel, jrel), mTransfo);
                 if ((p.x() < 0) || (p.y() < 0) || (p.x() >= aDIm.Sz().x()-1) || (p.y() >= aDIm.Sz().y()-1)){
@@ -1052,7 +1042,7 @@ void cAppliExtractCodeTarget::plotDebugImage(cDCT* target, const cDataIm2D<float
     // [004] 0000000100 plot only transitions on circles around candidate targets (yellow pixels)
     // ----------------------------------------------------------------------------------------------------------
     if (mBitsPlotDebug[2]){
-        cPt3di color = (target->mRecomputed?cRGBImage::Orange:cRGBImage::Yellow);
+        cPt3di color = (target->mRecomputed?cRGBImage::Yellow:cRGBImage::Orange);
         for (unsigned i=0; i<target->mDetectedVectors.size(); i++){
             plotSafeRectangle(mImVisu, target->mDetectedVectors.at(i), 0, color, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
         }
@@ -1386,13 +1376,13 @@ double cAppliExtractCodeTarget::ellipseResidual(std::vector<cPt2dr> points, std:
     double m1r = 0;
     double m2r = 0;
     for (unsigned i=0; i<points.size(); i++){
-        cPt2dr p = applyAffinityInv(mPoints.at(i), transfo);
+        cPt2dr p = applyAffinityInv(points.at(i), transfo);
         double value = sqrt(p.x()*p.x() + p.y()*p.y());
         m1r += value;
         m2r += value*value;
     }
-    m1r /= mPoints.size();
-    m2r /= mPoints.size();
+    m1r /= points.size();
+    m2r /= points.size();
     return sqrt(m2r - m1r*m1r);
 }
 
@@ -1776,7 +1766,7 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
 
 
         // Prepare hamming decoder
-        cHamingCoder aHC(9-1);
+        cHamingCoder aHC(spec.mNbBit-1);
 
         aDImT.SetV(cPt2di(300,300), 255.0);
 
@@ -1787,13 +1777,19 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
         int sq_sz = 480/NbCols;
         int idl, idc;
         int px, py;
-        double val;
+        double val1, val2;
 
-        double mx = 98;
-        double my = 636;
-        val = aDImT.GetVBL(cPt2dr(mx, my));
-        bool hypo = val > threshold;
-        markImage(aDImT, cPt2di(mx, my), 10, hypo?0:255);
+        double mx1 = 98 ; double my1 = 636;
+        double mx2 = 550; double my2 = 636;
+
+        val1 = aDImT.GetVBL(cPt2dr(mx1, my1));
+        val2 = aDImT.GetVBL(cPt2dr(mx2, my2));
+        bool hypo1 = val1 > threshold;
+        bool hypo2 = val2 > threshold;
+        markImage(aDImT, cPt2di(mx1, my1), 10, hypo1?0:255);
+        markImage(aDImT, cPt2di(mx2, my2), 10, hypo2?0:255);
+
+        hypo1 = val1 > val2;
 
         StdOut() << "------------------------------------------------------------------------------------\n";
 
@@ -1805,11 +1801,11 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
             // Upper part hypothesis
             // ---------------------------------------------------
 
-            if (!hypo){
+            if (!hypo1){
                 px = 125+idc*sq_sz;
                 py = 150 + idl*sq_vt;
-                val = aDImT.GetVBL(cPt2dr(px, py));
-                bit = val > threshold;
+                val1 = aDImT.GetVBL(cPt2dr(px, py));
+                bit = val1 > threshold;
                 markImage(aDImT, cPt2di(px, py), 10, bit?0:255);
                 bits += (bit ? 0:1)*pow(2,aHC.NbBitsOut()-1-k);
                 debug = (bit ? std::string("0 "):std::string("1 ")) + debug;
@@ -1819,8 +1815,8 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
             // ---------------------------------------------------
                 px = 125+idc*sq_sz;
                 py = 1035 + idl*sq_vt;
-                val = aDImT.GetVBL(cPt2dr(px, py));
-                bit = val > threshold;
+                val1 = aDImT.GetVBL(cPt2dr(px, py));
+                bit = val1 > threshold;
                 markImage(aDImT, cPt2di(px, py), 10, bit?0:255);
                 bits += (bit ? 0:1)*pow(2,k);
                 debug = debug + (bit ? std::string("0 "):std::string("1 "));
@@ -2084,10 +2080,88 @@ int  cAppliExtractCodeTarget::Exe(){
 
 
     if (mTest){
-        benchAffinity();
-        //benchEllipse();
+
+
+
+        double a11 = 2;
+        double a12 = 2;
+        double a21 = 1;
+        double a22 = 3;
+        double tx = 10;
+        double ty = 12;
+        double a_col = 1.5;
+        double b_col = 38;
+
+
+
+        cDenseVect<double> aVInit(8);
+        aVInit(0) = a11 + RandUnif_C();
+        aVInit(1) = a12 + RandUnif_C();
+        aVInit(2) = a21 + RandUnif_C();
+        aVInit(3) = a22 + RandUnif_C();
+        aVInit(4) = tx + 3*RandUnif_C();
+        aVInit(5) = ty + 3*RandUnif_C();
+        aVInit(6) = a_col + RandUnif_C();
+        aVInit(7) = b_col + 3*RandUnif_C();
+
+
+        cIm2D<tREAL8> mIm = cIm2D<tREAL8>(cPt2di(100,100));
+        cDataIm2D<tREAL8>& mDIm =mIm.DIm();
+
+
+        std::vector<cPt2dr> mVPtsMod;
+        std::vector<double> mValueMod;
+        for (const auto & aPixIm : mDIm){
+            if (mDIm.Interiority(aPixIm)>3){
+                mVPtsMod.push_back(cPt2dr(aPixIm.x(), aPixIm.y()));
+                double value = (double)(128+128*RandUnif_C());
+                mValueMod.push_back(value);
+                StdOut() << cPt2dr(aPixIm.x(), aPixIm.y()) << " " << value << "\n";
+            }
+        }
+
+
+        /*
+        for (unsigned i=0; i<mVPtsMod.size(); i++){
+            StdOut() << mVPtsMod.at(i) << " " << mValueMod.at(i) << "\n";
+        }
+        */
+
+        mDIm.ToFile("testImage.tif");
+
+        cResolSysNonLinear<tREAL8>* mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense,aVInit);
+        cCalculator<double> *  mEqHomIm = EqDeformImHomotethy(true,1);
+
+
+        cDenseVect<double> aVCur = mSys->CurGlobSol();
+
+
+        StdOut() << "-----------------------\n";
+        StdOut() << "Valeurs initiales\n";
+        StdOut() << "-----------------------\n";
+        for (int i=0; i<aVCur.Sz(); i++) {
+            StdOut() << aVCur(i) << "\n";
+        }
+
+
+        FakeUseIt(mSys);
+        FakeUseIt(mEqHomIm);
+
+
+        // Free allocated memory
+        delete mSys;
+        delete mEqHomIm;
+
+
         return 0;
     }
+
+
+
+
+
+
+
 
     StdOut() << "============================================================\n";
     StdOut() << "CODED TARGET AUTOMATIC EXTRACTION \n";

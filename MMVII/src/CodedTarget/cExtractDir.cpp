@@ -157,7 +157,7 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT){
 
 
          // if we dont have exactly 4 transition, there is someting wrong ...
-         if (aCpt!=4 )  {
+         if (aCpt!=4)  {
             return false;
         }
 

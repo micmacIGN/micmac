@@ -174,6 +174,11 @@ cCalculator<double> * EqDeformImHomotethy(bool WithDerive,int aSzBuf)
      return StdAllocCalc(NameFormula(cDeformImHomotethy(),WithDerive),aSzBuf);
 }
 
+cCalculator<double> * EqDeformImAffinity(bool WithDerive,int aSzBuf)
+{
+     return StdAllocCalc(NameFormula(cDeformImAffinity(),WithDerive),aSzBuf);
+}
+
 // dist3d
 //    Cons distance
 template <class Type> cCalculator<Type> * TplEqDist3D(bool WithDerive,int aSzBuf)
@@ -526,6 +531,8 @@ int cAppliGenCode::Exe()
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
+       
+       GenCodesFormula((tREAL8*)nullptr,cDeformImAffinity()       ,WithDer);
    }
 
    GenerateCodeProjCentralPersp<cProjStenope>();
