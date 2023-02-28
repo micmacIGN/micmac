@@ -258,7 +258,7 @@ cSpecMMVII_Appli  TheSpecExtractCircTarget
      "CodedTargetCircExtract",
       Alloc_ExtractCircTarget,
       "Extract coded target from images",
-      {eApF::ImProc},
+      {eApF::ImProc,eApF::CodedTarget},
       {eApDT::Image,eApDT::Xml},
       {eApDT::Xml},
       __FILE__

@@ -64,12 +64,37 @@ double cMMVII_Ap_CPU::SecFromT0() const
 
 /***********************************/
 /*                                 */
+/*          cTimeSequencer         */
+/*                                 */
+/***********************************/
+
+cTimeSequencer::cTimeSequencer(double aPeriod):
+    mPeriod   (aPeriod),
+    mLastime  (cMMVII_Appli::CurrentAppli().SecFromT0())
+{
+}
+
+bool cTimeSequencer::ItsTime2Execute()
+{
+     double aTime = cMMVII_Appli::CurrentAppli().SecFromT0();
+
+     if (aTime < (mLastime+mPeriod))
+        return false;
+
+     mLastime += mPeriod;
+
+     return true;
+}
+
+
+/***********************************/
+/*                                 */
 /*          cAutoTimerSegm         */
 /*                                 */
 /***********************************/
 
 cAutoTimerSegm::cAutoTimerSegm(cTimerSegm & aTS,const tIndTS & anInd) :
-   mTS      (aTS),
+   mTS      (aTS), 
    mSaveInd (aTS.mLastIndex)
 {
    mTS.SetIndex(anInd);

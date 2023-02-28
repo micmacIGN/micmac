@@ -85,7 +85,6 @@ template <class eType> void EnumAddData(const cAuxAr2007 & anAux,const std::stri
 
 void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
 {
-    //MMVII::AddData(cAuxAr2007("Type",anAux),mType);
     MMVII::EnumAddData(anAux,mType,"Type");
     MMVII::AddData(cAuxAr2007("NbBits",anAux),mNbBit);
     MMVII::AddData(cAuxAr2007("SzF",anAux),mSzF);
@@ -529,6 +528,7 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 {
      public :
         cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+	eTyCodeTarget      Type();
 
      private :
 
@@ -539,9 +539,13 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 
 
 	int                mPerGen;  // Pattern of numbers
+	std::string        mNameBE;
+	cBitEncoding       mBE;
+
 	cParamCodedTarget  mPCT;
-	eTyCodeTarget      mType;
 };
+
+eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
 
 
 /* *************************************************** */
@@ -553,7 +557,7 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 
 cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
-   mType         (eTyCodeTarget::eIGNIndoor)
+   mPerGen       (10)
 {
 }
 
@@ -561,15 +565,13 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
  return
       anArgObl
-          <<   Arg2007(mPerGen,"Periode of generated, give 1 to generate all")
+          <<   Arg2007(mNameBE,"XML name for bit encoding struct")
    ;
 }
 
 cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
-          << AOpt2007(mType,"Type","Type of enumerated ",{eTA2007::HDV,AC_ListVal<eTyCodeTarget>()})
-
           << AOpt2007(mPCT.mNbBit,"NbBit","Nb Bit printed",{eTA2007::HDV})
           << AOpt2007(mPCT.mWithParity,"WPar","With parity bit",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_WInt,"ThW0","Thickness of interior white circle",{eTA2007::HDV})
@@ -591,8 +593,9 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int  cAppliGenCodedTarget::Exe()
 {
+   ReadFromFile(mBE,mNameBE);
 
-   mPCT.FinishInitOfType(mType);
+   mPCT.FinishInitOfType(Type());
    mPCT.Finish();
 
    for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen){

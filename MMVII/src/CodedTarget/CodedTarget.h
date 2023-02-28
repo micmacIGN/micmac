@@ -245,7 +245,57 @@ class cParamCodedTarget
 };
 
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT);
+class cSpecBitEncoding
+{
+      public :
+         cSpecBitEncoding();
+         // cCollecSpecArg2007 & SBE_ArgObl(cCollecSpecArg2007 & anArgObl) ;  ///< For sharing mandatory args
+         // cCollecSpecArg2007 & SBE_ArgOpt(cCollecSpecArg2007 & anArgOpt);   ///< For sharing optionnal args
+         void AddData(const  cAuxAr2007 & anAux);
+
+         eTyCodeTarget mType;          ///< Type amon allowed value
+         size_t        mNbBits;        ///< number of bits
+         size_t        mFreqCircEq;    ///< all code shift-circulary by mPerCircEq  will be merged together
+         size_t        mMinHammingD;
+         cPt2di        mMaxRunL;       ///< Minimal run lenght for 0 & 1
+         size_t        mParity;        ///<  1  odd , 2 even, 3 all
+         size_t        mMaxNb;         ///< max number of codes
 };
+
+class cOneEncoding
+{
+        public :
+           cOneEncoding();
+           cOneEncoding(size_t aNum,size_t aCode);
+           size_t Num()  const;
+           size_t Code() const;
+           void   SetNBB (size_t ) ; ///< used to vehicle info 4 AddComm
+
+           void AddData(const  cAuxAr2007 & anAux);
+
+        private :
+           size_t mNC[3];
+};
+
+class cBitEncoding
+{
+    public :
+        const cSpecBitEncoding & Specs() const;
+        const std::vector<cOneEncoding> &  Encodings() const;
+
+        void AddOneEncoding(size_t mNum,size_t mCode);
+        void AddData(const  cAuxAr2007 & anAux);
+        void SetSpec(const cSpecBitEncoding& );
+    private :
+        cSpecBitEncoding           mSpecs;
+        std::vector<cOneEncoding>  mEncodings;
+};
+void AddData(const  cAuxAr2007 & anAux,cBitEncoding & aBE);
+
+
+};
+
+
 };
 #endif // _CODED_TARGET_H_
 

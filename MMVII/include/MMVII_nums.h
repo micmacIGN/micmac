@@ -2,6 +2,7 @@
 #define  _MMVII_nums_H_
 
 #include "MMVII_Error.h"
+#include "MMVII_memory.h"
 //#include "MMVII_AllClassDeclare.h"
 
 namespace MMVII
@@ -818,7 +819,78 @@ template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const
 /*       BIT MANIPULATION FUNCTIONS            */
 /* ******************************************* */
 
-int HammingDist(tU_INT4 aV1,tU_INT4 aV2);
+
+///  Number of bits to 1
+size_t NbBits(tU_INT4 aVal);
+///  Hamming distance (number of bit different)
+size_t HammingDist(tU_INT4 aV1,tU_INT4 aV2);
+/// make a circular permutation of bits, assuming a size NbIt, with  aPow2= NbBit^2
+size_t  LeftBitsCircPerm(size_t aSetFlag,size_t aPow2);
+/// make a symetry bits, assuming a size NbIt, with  aPow2= NbBit^2
+size_t  BitMirror(size_t aSetFlag,size_t aPow2);
+/// make a visualisation of bit flag as  (5,256) -> "10100000"
+std::string  StrOfBitFlag(size_t aSetFlag,size_t aPow2);
+/// Transformate a string-Visu in flag bits "10100000" -> 5
+size_t  Str2BitFlag(const std::string & aStr);
+/// Transormate a bit flage in vect of int, for easier manip
+void  BitsToVect(std::vector<int> & aVBits,tU_INT4 aVal,size_t aPow2);
+///  return the maximal length of consecutive 0 & 1, interpreted circularly    (94="01111010", 256=2^8)  =>  (3,2)
+cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2);
+/// Max of both run (0 and 1)
+size_t MaxRun2Length(tU_INT4 aVal,size_t aPow2);
+
+/// Low level function, read the pair Num->Code in a file
+void  ReadCodesTarget(std::vector<cPt2di> & aVCode,const std::string & aNameFile);
+
+/**  Helper class for cCompEquiCodes, store on set of code equivalent */
+class cCelCC : public cMemCheck
+{
+     public :
+        std::vector<size_t>  mEquivCode;  /// all codes equivalent
+        size_t               mLowCode;    ///< lower representant
+        bool                 mTmp;        /// some marker to use when convenient
+
+	size_t HammingDist(const cCelCC &) const;
+
+        cCelCC(size_t aLowestCode);
+     public :
+        cCelCC(const cCelCC &) = delete;
+};
+
+/** Class for computing equivalent code, typicall code that are equal up to a circular permutation */
+
+class cCompEquiCodes : public cMemCheck
+{
+   public :
+       typedef std::pair<cCelCC*,std::vector<cPt2di> > tAmbigPair;  // to represent possible ambiguity
+
+       static std::string NameCERNLookUpTable(size_t aNbBits); ///< name of file where are stored CERN'S   LUT
+       ///  allocate & compute code , return the same adress if param eq
+       static cCompEquiCodes * Alloc(size_t aNbBits,size_t aPerAmbig=1,bool WithMirror=false);
+
+       /// For a set code (p.y()) return the cell containing them (or not contatining them)
+       std::vector<cCelCC*>  VecOfUsedCode(const std::vector<cPt2di> &,bool Used);
+       /// For a set of code return the ambiguity (code beloning to same class)
+       std::list<tAmbigPair>  AmbiguousCode(const std::vector<cPt2di> &);
+       const std::vector<cCelCC*>  & VecOfCells() const; ///< Accessor
+
+       ~cCompEquiCodes();
+   private :
+       cCompEquiCodes(size_t aNbBits,size_t aPerdAmbig,bool WithMirror);
+       /// put all the code identic, up to a circular permutation, in the same cellu
+       void AddCodeWithPermCirc(size_t aCode,cCelCC *);
+
+       size_t                   mNbBits;      ///< Number of bits
+       size_t                   mPeriod;      ///< Period for equiv circ,
+       size_t                   mNbCodeUC;    ///<  Number of code uncircullar i.e. 2 ^NbBits
+       std::vector<cCelCC*>     mVCodes2Cell; ///< Code->Cell  vector of all code for sharing equivalence
+       std::vector<cCelCC*>     mVecOfCells;  ///< vector of all different cells
+
+       std::vector<int>         mHistoNbBit;
+
+       // static std::map<std::string,cCompEquiCodes*> TheMapCodes;
+};
+
 
 class  cHamingCoder
 {
