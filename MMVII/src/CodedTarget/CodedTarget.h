@@ -186,6 +186,8 @@ class cParamCodedTarget
 
        int NbCodeAvalaible() const;                           // Number of different code we can generate
        int BaseForNum() const;                                // Base used for converting integer to string
+							      //
+       std::string  NameOfBinCode(int aNum) const; // -1 if bad code
        cCodesOf1Target CodesOfNum(int);                       // One combinaison of binary code
        tImTarget  MakeImDrone(const cCodesOf1Target &);       // Generate the image of 1 combinaison
        tImTarget  MakeImCircle(const cCodesOf1Target &, bool);

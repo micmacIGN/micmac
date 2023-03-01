@@ -1031,6 +1031,19 @@ void cMMVII_Appli::GenerateHelp()
    }
 }
 
+void cMMVII_Appli::ShowAllParams() 
+{
+    StdOut()  << "=================== PARAM AFTER FULL INIT ============== \n";
+    for (auto & Arg : mArgFac.Vec())
+    {
+        if (( IsInit(Arg->AdrParam()) ||  Arg->HasType(eTA2007::HDV)) &&  (!Arg->HasType(eTA2007::Global)) )
+        {
+            StdOut() << " * " <<  Arg->Name() << "=" <<  Arg->NameValue() << "\n";
+        }
+    }
+}
+
+
 bool cMMVII_Appli::ModeHelp() const
 {
    return mModeHelp;

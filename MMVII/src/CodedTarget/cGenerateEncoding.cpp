@@ -178,7 +178,7 @@ class cAppliGenerateEncoding : public cMMVII_Appli
 	cCompEquiCodes  *     mCEC;
 	std::vector<cCelCC*>  mVOC;
 	std::vector<cPrioCC>  mPrioCC;
-	bool                  mShow;
+	std::string           mNameOut;
 };
 
 cAppliGenerateEncoding::cAppliGenerateEncoding
@@ -188,8 +188,7 @@ cAppliGenerateEncoding::cAppliGenerateEncoding
 ) :
    cMMVII_Appli   (aVArgs,aSpec),
    mMiror         (false),
-   mCEC           (nullptr),
-   mShow          (false)
+   mCEC           (nullptr)
 {
 }
 
@@ -201,6 +200,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgObl(cCollecSpecArg2007 & anArgOb
    ;
 }
 
+
 cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return 
@@ -210,7 +210,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mFreqCircEq,"FreqCircEq","Freq for generating circular permuts (conventionnaly 0->highest) (def depend of type)")
                << AOpt2007(mSpec.mParity,"Parity","Parity check , 1 odd, 2 even, 3 all (def depend of type)")
                << AOpt2007(mSpec.mMaxNb,"MaxNb","Max number of codes",{eTA2007::HDV})
-               << AOpt2007(mShow,"Show","Show Res at end",{eTA2007::HDV})
+               << AOpt2007(mNameOut,CurOP_Out,"Output file (def constructed with input param)")
           ;
 }
 
@@ -244,14 +244,15 @@ int  cAppliGenerateEncoding::Exe()
         SetIfNotInit(mSpec.mParity,size_t(2));
    }
 
+   if (! IsInit(&mNameOut))
+   {
+        mNameOut  = "SpecEncoding_" + E2Str(mSpec.mType) + "_Nbb" + ToStr(mSpec.mNbBits) + ".xml";
+   }
+
    MMVII_INTERNAL_ASSERT_strong((mSpec.mNbBits%mSpec.mFreqCircEq)==0,"NbBits should be a multiple of Nb Bits");
    mPerCircPerm = mSpec.mNbBits / mSpec.mFreqCircEq;
 
-   StdOut() <<  " Freq=" <<   mSpec.mFreqCircEq
-	    <<  " HamD=" <<   mSpec.mMinHammingD
-	    <<  " MaxR=" <<   mSpec.mMaxRunL
-	    <<  " Parity=" << mSpec.mParity
-	    << "\n";
+   ShowAllParams();
 
 
    mP2 = (1<<mSpec.mNbBits);
@@ -348,11 +349,8 @@ int  cAppliGenerateEncoding::Exe()
        {
            aBE.AddOneEncoding(aK+1,mVOC[aK]->mLowCode);
        }
-       SaveInFile(aBE,"SpecEncoding.xml");
+       SaveInFile(aBE,mNameOut);
    }
-
-   if (mShow)
-      Show();
 
    delete mCEC;
 

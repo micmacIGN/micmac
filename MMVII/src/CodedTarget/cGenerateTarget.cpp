@@ -82,6 +82,14 @@ template <class eType> void EnumAddData(const cAuxAr2007 & anAux,const std::stri
 */
 
 
+std::string  cParamCodedTarget::NameOfBinCode(int aNum) const
+{
+    MMVII_INTERNAL_ASSERT_strong(false,"NameOfBinCode");
+
+    return "-1111111";
+}
+
+
 void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
 {
     MMVII::EnumAddData(anAux,mType,"Type");
@@ -154,7 +162,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mThickN_WExt      (0.2),
    mThickN_Car       (0.8),
    mThickN_BExt      (0.05),
-   mChessboardAng    (M_PI/4.0),
+   mChessboardAng    (0.0),
    mWithChessboard   (true),
    mWhiteBackGround  (true),
    mZeroIsBackGround (true),
@@ -179,6 +187,7 @@ void cParamCodedTarget::FinishInitOfType(eTyCodeTarget aType)
        anAppli.SetIfNotInit(mThickN_Code,0.0);
        anAppli.SetIfNotInit(mThickN_WExt,0.0);
        anAppli.SetIfNotInit(mThickN_Car,0.3);
+       anAppli.SetIfNotInit(mChessboardAng,M_PI/4.0);
    }
    else if (aType==eTyCodeTarget::eCERN)
    {
@@ -192,14 +201,8 @@ void cParamCodedTarget::FinishInitOfType(eTyCodeTarget aType)
 
        anAppli.SetIfNotInit(mWithChessboard,false);
        anAppli.SetIfNotInit(mWhiteBackGround,false);
-
-   // mThickN_WExt      (0.2),
-   // mThickN_Car       (0.8),
-   // mThickN_BExt      (0.05),
    }
 }
-
-//	SetIfNotInit
 
 cPt2dr cParamCodedTarget::Pix2Norm(const cPt2di & aPix) const
 {
@@ -255,38 +258,10 @@ void cParamCodedTarget::Finish()
   mMidle = ToR(mSzBin-cPt2di(mSzGaussDeZoom,mSzGaussDeZoom)) / 2.0  ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
   mScale = mNbPixelBin / (2.0 * mRho_4_EndCar);
 
-  std::vector<int> aVNbSub;
-  for (int aKCirc = 0 ; aKCirc< mNbCircle ; aKCirc++)
-  {
-      int  aNb =  mNbBit ;
-      int aStep = mWithParity ? 2 : 1;
-      int aN0 = mWithParity ? 1 : 0;
-
-      std::vector<int>  aVK;
-      for (int aK=aN0 ; aK<=aNb ; aK+= aStep)
-          aVK.push_back(aK);
-
-      mVecSetOfCode.push_back(cSetCodeOf1Circle(aVK,aNb));
-      aVNbSub.push_back( mVecSetOfCode.back().NbSub());
-      StdOut()  << " aK=" << aVK << " N=" << aNb  <<  " C(k,n)=" <<  aVNbSub.back() << "\n";
-  }
-  mDecP = cDecomposPAdikVar(aVNbSub);
-
-
-  cHamingCoder aHCTest(mNbBit-1*mWithParity);
-
-
-
-
-  StdOut() << "-------------------------------------------------------------------\n";
-  StdOut() << "Number of targets: "   << NbCodeAvalaible() << "\n";
-  if (mModeFlight){
-    StdOut() << "Code pattern: " << ceil(((double)aHCTest.NbBitsOut())/2.0) << " x 2 " << "\n";
-  }
-  StdOut() << "-------------------------------------------------------------------\n";
 
 }
 
+/*
 cCodesOf1Target cParamCodedTarget::CodesOfNum(int aNum)
 {
    cCodesOf1Target aRes(aNum);
@@ -299,6 +274,7 @@ cCodesOf1Target cParamCodedTarget::CodesOfNum(int aNum)
    }
    return aRes;
 }
+*/
 
 int cParamCodedTarget::NbCodeAvalaible() const
 {
@@ -607,7 +583,9 @@ class cNormPix2Bit
 	 virtual bool    PNormIsCoding(const cPt2dr & aPt)   const = 0;
 	 virtual int     BitsOfNorm    (const cPt2dr & aPt)  const = 0;
 
-	 cNormPix2Bit * Alloc(const cFullSpecifTarget & aSpecif);
+         static cNormPix2Bit * Alloc(const cFullSpecifTarget & aSpecif);
+
+	 virtual ~cNormPix2Bit() {}
     protected :
 };
 
@@ -709,11 +687,16 @@ int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
 
 cNormPix2Bit * cNormPix2Bit::Alloc(const cFullSpecifTarget & aSpecif)
 {
-   switch (aSpecif.mBE.Specs())
+   switch (aSpecif.mBE.Specs().mType)
    {
-       case IGNDrone:
-       case IGNIndoor:
-	       return new cCircNP2B;
+         case eTyCodeTarget::eCERN :
+         case eTyCodeTarget::eIGNIndoor:
+	       return new cCircNP2B(aSpecif);
+         case eTyCodeTarget::eIGNDrone:
+	       return new cStraightNP2B(aSpecif);
+
+         case eTyCodeTarget::eNbVals:
+              return nullptr;
    }
 
    return nullptr;
@@ -747,7 +730,7 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(const cFullSpecifTarget & aSpec) :
     mDIC.InitCste(tElem(eLPT::eBackGround));
 
     // std::unique_ptr<cNormPix2Bit>  aP2B (new cCircNP2B (mSpec));
-    std::unique_ptr<cNormPix2Bit>  aP2B (new cStraightNP2B (mSpec));
+    std::unique_ptr<cNormPix2Bit>  aP2B (cNormPix2Bit::Alloc(aSpec));
     for (const auto & aPix : mDIC)
     {
        cPt2dr aPN = mSpec.mRender.Pix2Norm(aPix);
@@ -775,12 +758,14 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(const cFullSpecifTarget & aSpec) :
 
     mDIC.ToFile("toto.tif");
 
+    /*
     StdOut() << "SZB " << mSpec.mRender.mSzBin << "\n";
     StdOut() << "r0 " << mSpec.mRender.mRho_0_EndCCB << "\n";
     StdOut() << "r1 " << mSpec.mRender.mRho_1_BeginCode << "\n";
     StdOut() << "r2 " << mSpec.mRender.mRho_2_EndCode << "\n";
     StdOut() << "r3 " << mSpec.mRender.mRho_3_BeginCar << "\n";
     StdOut() << "r4 " << mSpec.mRender.mRho_4_EndCar << "\n";
+    */
 }
 
 
@@ -812,12 +797,6 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mPCT.mThickN_BExt,"ThBExt","Thickness of black border ",{eTA2007::HDV})
           << AOpt2007(mPCT.mChessboardAng,"Theta","Origin angle of chessboard pattern ",{eTA2007::HDV})
           << AOpt2007(mPCT.mModeFlight,"ModeFlight","Special mode for Patricio ",{eTA2007::HDV})
-
-
-/*  For now dont confuse user with these values probably unused
-          << AOpt2007(mPCT.NbRedond(), "Redund","Number of repetition inside a circle",{eTA2007::HDV})
-          << AOpt2007(mPCT.NbCircle(), "NbC","Number of circles",{eTA2007::HDV})
-*/
    ;
 }
 
@@ -836,51 +815,7 @@ int  cAppliGenCodedTarget::Exe()
 
 FakeUseIt(aCTPI);
 return EXIT_SUCCESS;
-
-   for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen)
-   {
-
-      cCodesOf1Target aCodes = mPCT.CodesOfNum(aNum);
-
-      StdOut() << "[" << mPCT.NameOfNum(aNum) << "]  ";
-
-	  tImTarget aImT= mPCT.MakeImCircle(aCodes, mPCT.mModeFlight);
-
-      // std::string aName = "Target_" + mPCT.NameOfNum(aNum) + ".tif";
-      // FakeUseIt(aCodes);
-      mPCT.mSzF = aImT.DIm().Sz();
-      mPCT.mCenterF = mPCT.mMidle / double(mPCT.mSzGaussDeZoom);
-
-      //StdOut() << "mPCT.mCenterF  " << mPCT.mCenterF  << mPCT.mMidle << "\n";
-
-      double aRhoChB = ((mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar) * (mPCT.mNbPixelBin /2.0)  )/mPCT.mSzGaussDeZoom;
-      mPCT.mCornEl1 = mPCT.mCenterF+FromPolar(aRhoChB,M_PI/4.0);
-      mPCT.mCornEl2 = mPCT.mCenterF+FromPolar(aRhoChB,3.0*(M_PI/4.0));
-       
-#if 0  // Marking point specific, do it only for tuning
-      {
-         for (const auto & aDec : cRect2::BoxWindow(3))
-         {
-              aImT.DIm().SetV(ToI(mPCT.mCornEl1)+aDec,128);
-              aImT.DIm().SetV(ToI(mPCT.mCornEl2)+aDec,128);
-         }
-      }
-#endif
-       
-      StdOut() << mPCT.NameFileOfNum(aNum) << " created\n";
-      aImT.DIm().ToFile(mPCT.NameFileOfNum(aNum));
-   }
-
-   StdOut() << "-------------------------------------------------------------------\n";
-   SaveInFile(mPCT,"Target_Spec.xml");
-   StdOut() << "File " << "Target_Spec.xml" << " created\n";
-   StdOut() << "-------------------------------------------------------------------\n";
-
-
-   return EXIT_SUCCESS;
 }
-/*
-*/
 };
 
 
@@ -910,107 +845,4 @@ cSpecMMVII_Appli  TheSpecGenCodedTarget
 
 };
 
-
-/*  ===   Old target, was coding on all the stars, maybe it will be reused later ...
-
-*/
-/*
-tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
-{
-     if (mCodeExt)
-        return MakeImCodeExt(aSetCodesOfT);
-
-     cRect2 aRectHT = cRect2::BoxWindow(ToI(mMidle),mNbPixelBin/2);
-
-     tImTarget aImT(mSzBin);
-     tDataImT  & aDImT = aImT.DIm();
-
-     int aDW = (mRhoEndBrdWhiteExt-mRhoEndBrdBlack) * mScale;
-     int aDB = (mRhoEndBrdWhiteExt-mRhoEnBrdWhiteInt ) * mScale;
-
-
-     //  Parse all pixels of image
-     for (const auto & aPix : aDImT)
-     {
-         cPt2dr  aPixN =  Pix2Norm(aPix);     // "Nomalized" coordinate
-         cPt2dr  aRT  = ToPolar(aPixN,0.0);   // Polar then Rho teta
-	 double  aRho = aRT.x();
-         double  aTeta = aRT.y();
-
-	 bool IsW = true;  // Default is white
-
-         if (aRho < mRhoEndStar)
-         {
-             // Generate the stars
-	     if (aRho>=mRhoEndTargetC)
-	     {
-		if (aTeta < 0)
-                   aTeta += 2 *M_PI;
-                IsW = ! CodeBinOfPts(aRho,aTeta,aSetCodesOfT,mRhoEndTargetC,mThRing);
-	     }
-	     else
-	     {
-                  // Gennerate the intenal disks
-                  // double  mScaleTopo
-                  double aRatio = mRhoEndTargetC / std::max(1.0/mScale,aRho);  // 1/mScale => smallest pixel
-		  double aRInd = log(aRatio) / log(mScaleTopo);
-		  int aInd = round_down(aRInd+0.6666);
-		  IsW = ((aInd%2) != 0);
-	     }
-         }
-         else if (aRho<mRhoEndBlackCircle)
-	 {
-             IsW = false;
-	 }
-         else
-         {
-              // Outside => border and fid marks (done after)
-	      int aDInter = aRectHT.Interiority(aPix);
-	      IsW = (aDInter<aDW) || (aDInter>=aDB);
-         }
-
-         int aVal = IsW ? 255 : 0;
-         aDImT.SetV(aPix,aVal);
-     }
-
-     // Print th
-e string of number
-     {
-          std::string aStrCode = ToStr(aSetCodesOfT.Num(),2);
-          cIm2D<tU_INT1> aImStr = ImageOfString_10x8(aStrCode,mCodeExt ? 1 : -1);
-          cDataIm2D<tU_INT1> & aDImStr = aImStr.DIm();
-          cPt2di aNbPixStr = aDImStr.Sz();
-          // Ratio between pix of bin image and pix of string
-          double  aScaleStr =  (mThTxt/(mCodeExt ? aNbPixStr.y() : aNbPixStr.x())) * mScale;
-
-         // StdOut() << "STR=[" << aStr <<  "] ScSt " << aScaleStr << "\n";
-
-	 cPt2dr aSzStr = ToR(aNbPixStr) * aScaleStr;
-	 // cPt2di aP0 = ToI(aMidStr-aSzStr/2.0);
-	 // cPt2di aP0(aDB,aDB);
-	 cPt2di aP0 = Pt_round_up(cPt2dr(mThBrdWhiteExt,mThBrdWhiteExt)*mScale);
-	 cPt2di aP1 = aP0 + ToI(aSzStr);
-
-	 cRect2 aBox(aP0,aP1);
-
-	 for (const auto & aPix : aBox)
-	 {
-             cPt2di aPixSym = mSzBin-aPix-cPt2di(1,1);
-
-             cPt2di aPStr =  ToI(ToR(aPix-aP0)/aScaleStr);
-	     int IsCar = aDImStr.DefGetV(aPStr,0);
-             int aCoul = IsCar ? 255 : 0;
-             aDImT.SetV(aPix,aCoul);
-             aDImT.SetV(aPixSym,aCoul);
-	 }
-
-	 // StdOut() << " MMM " << aMidStr << aP0 << aP1 << "\n";
-
-
-     }
-
-     aImT = aImT.GaussDeZoom(SzGaussDeZoom);
-     return aImT;
-}
-*/
 

@@ -385,6 +385,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 	void    SetVarInit(void * aPtr);
 
+	//  Print the effective value of all params
+	//  In some case, init can be complicated, with many default case
+	void  ShowAllParams() ;
+
         template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
         {
             if (! IsInit(&aVar))

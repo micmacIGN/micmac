@@ -706,11 +706,13 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 
     if (mFlagDebug != "") StdOut() << mFlagDebug << "Focus on center: " << mTestCenter << "\n";
 
+    /*
     std::string CODES[2*spec.NbCodeAvalaible()+1];
     for (int i=0; i<2*spec.NbCodeAvalaible()+1; i++){
         CODES[i] = "NA";
     }
 
+    CODES = spec.Name
     for (int aNum=0 ; aNum<spec.NbCodeAvalaible(); aNum++){
         std::vector<int> code = spec.CodesOfNum(aNum).CodeOfNumC(0).ToVect();
         std::vector<int> binary_code;
@@ -729,6 +731,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
              CODES[sum] = spec.NameOfNum(aNum);   // Attention : problème entre ces deux lignes !!!!!
         }
     }
+    */
 
     cPt2di center = aDCT->Pix();
 
@@ -840,7 +843,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     std::string chaine = "NA";
 
     if (code != -1){
-        chaine = CODES[code];
+        chaine = spec.NameOfBinCode(code);
         if (mToRestrict.size() > 0){
             if (chaine != "NA"){
                 if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){

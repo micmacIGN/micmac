@@ -95,9 +95,11 @@ class cAppliMorito
         std::vector<Pt3dr>       mVP1;
         std::vector<Pt3dr>       mVP2;
 
+
         std::string       mOri1;
         std::string       mOri2;
         std::string       mOriOut;
+	int               mFlagUseOri;
         bool              mWithOutLayer;
         ElMatrix<double>  mRM2toM1;
         double            mSc2to1;
@@ -158,6 +160,7 @@ void cAppliMorito::InitOneDir(const std::string & aPat,bool aD1)
 
 
 cAppliMorito::cAppliMorito(int argc,char ** argv)  :
+    mFlagUseOri         (3),
     mWithOutLayer       (false),
     mRM2toM1            (3,3,0.0),
     mShow               (2),
@@ -175,6 +178,7 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
            LArgMain() << EAM(mWithOutLayer,"WithOutLayer",true,"If robust estimation required or simply L2 (Def=false, other not supported now)")
                       << EAM(mDir,"Dir",true,"Global directory, Def=./")
                       << EAM(aShowSol,"Show",true,"Show the transformation, Def=false")
+                      << EAM(mFlagUseOri,"FUO",true,"Flag Use for common orientation 3=Avg,2=only 2,1=only1 , def=3")
 
 
     );
@@ -506,9 +510,20 @@ void cAppliMorito::ComputNewRot2()
             // Pour les doublons on fait une moyenne, sachant que c'est M2 qui sera sauve en priorite
             if (aCam1)
             {
-                aC1 = (aC1+ aCam1->PseudoOpticalCenter()) / 2.0;
-                aRM1toCam = NearestRotation((aRM1toCam + aCam1->Orient().Mat())*0.5);
-            }
+	        if (mFlagUseOri==1)
+		{
+                   aC1 = aCam1->PseudoOpticalCenter();
+		   aRM1toCam = aCam1->Orient().Mat();
+		}
+		else if (mFlagUseOri==2)
+		{
+		}
+		else // (mFlagUseOri==3)
+	        {
+                     aC1 = (aC1+ aCam1->PseudoOpticalCenter()) / 2.0;
+                     aRM1toCam = NearestRotation((aRM1toCam + aCam1->Orient().Mat())*0.5);
+                }
+	    }
             ElRotation3D  aCamToM1 (aC1,aRM1toCam.transpose(),true);
 
 
