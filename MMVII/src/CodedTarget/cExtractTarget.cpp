@@ -706,33 +706,6 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 
     if (mFlagDebug != "") StdOut() << mFlagDebug << "Focus on center: " << mTestCenter << "\n";
 
-    /*
-    std::string CODES[2*spec.NbCodeAvalaible()+1];
-    for (int i=0; i<2*spec.NbCodeAvalaible()+1; i++){
-        CODES[i] = "NA";
-    }
-
-    CODES = spec.Name
-    for (int aNum=0 ; aNum<spec.NbCodeAvalaible(); aNum++){
-        std::vector<int> code = spec.CodesOfNum(aNum).CodeOfNumC(0).ToVect();
-        std::vector<int> binary_code;
-        int sum = 0;
-        binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0);
-        binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0);
-        binary_code.push_back(0);
-        for (unsigned i=0; i<code.size(); i++){
-            binary_code.at(code.at(i)) = 1;
-            sum += pow(2, code.at(i));
-        }
-
-        if (spec.mModeFlight){
-            CODES[aNum] = spec.NameOfNum(aNum);
-        }else{
-             CODES[sum] = spec.NameOfNum(aNum);   // Attention : problème entre ces deux lignes !!!!!
-        }
-    }
-    */
-
     cPt2di center = aDCT->Pix();
 
     // -------------------------------------------

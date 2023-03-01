@@ -12,10 +12,12 @@ namespace MMVII
 namespace  cNS_CodedTarget
 {
 
+class cSpecBitEncoding;
+class cOneEncoding;
+class cBitEncoding;
+
 class cGeomSimDCT;
 class cResSimul;
-class cSetCodeOf1Circle;
-class cCodesOf1Target;
 class cParamCodedTarget;
 class cDCT;
 
@@ -25,6 +27,78 @@ typedef std::vector<tBinCodeTarg> tVSetICT;
 typedef cIm2D<tU_INT1>     tImTarget;
 typedef cDataIm2D<tU_INT1> tDataImT;
 
+
+/* ************************************************** */
+/*                                                    */
+/*       Bits encoding                                */
+/*                                                    */
+/* ************************************************** */
+
+/**  Contain the specification for a bit encoding :
+ *     number of bits, redundancy (Haming distance), number max of code , accepted consecutive identic bits ...
+ */
+              
+class cSpecBitEncoding
+{
+      public :
+         cSpecBitEncoding();
+         void AddData(const  cAuxAr2007 & anAux); // serialization
+
+         eTyCodeTarget mType;           ///< Type amon allowed value
+         size_t        mNbBits;         ///< number of bits
+         size_t        mFreqCircEq;     ///< all code shift-circulary by mPerCircEq  will be merged together
+         size_t        mMinHammingD;
+         cPt2di        mMaxRunL;        ///< Minimal run lenght for 0 & 1
+         size_t        mParity;         ///<  1  odd , 2 even, 3 all
+         size_t        mMaxNb;          ///< max number of codes
+         size_t        mBase4Name;      ///< Base 4 computing names, default 10
+         size_t        mNumberOfDigit;  ///< Number of digit for names
+};
+
+/**  Helper  for an encoding :
+ *     essentially the Num + the code
+ *     for technical-tricky reason (to add comment in "xml") contain also the nb of bit 
+ */
+class cOneEncoding
+{
+        public :
+           cOneEncoding();
+           cOneEncoding(size_t aNum,size_t aCode);
+           size_t Num()  const;
+           size_t Code() const;
+           const std::string &  Name() const;
+
+           void   SetNBB (size_t ) ; ///< used to vehicle info 4 AddComm
+           void   SetName (const std::string & ) ; ///< fix name when known
+
+           void AddData(const  cAuxAr2007 & anAux); // serialization
+						    //
+
+        private :
+           size_t mNC[3];  // Num Code Number of bits
+           std::string mName;  // Name
+};
+
+/**  result of a bit encoding :  essential set of pair  Num/Code + also the specif used to generate it
+ */
+class cBitEncoding
+{
+    public :
+
+        void AddData(const  cAuxAr2007 & anAux); // serialization
+	    //  accessors 
+        const cSpecBitEncoding & Specs() const;
+        const std::vector<cOneEncoding> &  Encodings() const;
+
+	    //  modifiers
+        void AddOneEncoding(size_t mNum,size_t mCode);
+        void SetSpec(const cSpecBitEncoding& );
+
+    private :
+        cSpecBitEncoding           mSpecs;
+        std::vector<cOneEncoding>  mEncodings;
+};
+void AddData(const  cAuxAr2007 & anAux,cBitEncoding & aBE);
 
 /*   ==============  Simulation  =============  */
 
@@ -132,39 +206,6 @@ class  cDCT
 
 /*   ==============  Target spec  =============  */
 
-
-class cSetCodeOf1Circle
-{
-    public :
-      cSetCodeOf1Circle(const std::vector<int> & aCards,int aN);
-      int  NbSub() const;
-      const tBinCodeTarg & CodeOfNum(int aNum) const;
-      int N() const;
-    private :
-      std::vector<int>   mVCards;
-      int      mN;
-      tVSetICT mVSet ;  //   All the binary code of one target
-};
-
-
-class cCodesOf1Target
-{
-   public :
-      cCodesOf1Target(int aNum);
-
-      void AddOneCode(const tBinCodeTarg &);
-      void  Show();
-      const tBinCodeTarg & CodeOfNumC(int) const;
-      int  Num() const;
-      int getCodeLength() const;
-   private :
-      int                        mNum;
-      std::vector<tBinCodeTarg>  mCodes;
-};
-
-
-
-
 class cParamCodedTarget
 {
     public :
@@ -180,7 +221,7 @@ class cParamCodedTarget
 
        /// Set value that are computed from other like mRho_0... , mRho_1...
        void      Finish();
-       /// Set default value that depend from the type 
+       /// Set default value that depend from the type , used only in create target
        void      FinishInitOfType(eTyCodeTarget aType);
 
 
@@ -188,14 +229,8 @@ class cParamCodedTarget
        int BaseForNum() const;                                // Base used for converting integer to string
 							      //
        std::string  NameOfBinCode(int aNum) const; // -1 if bad code
-       cCodesOf1Target CodesOfNum(int);                       // One combinaison of binary code
-       tImTarget  MakeImDrone(const cCodesOf1Target &);       // Generate the image of 1 combinaison
-       tImTarget  MakeImCircle(const cCodesOf1Target &, bool);
-       tImTarget  MakeImCodeExt(const cCodesOf1Target &);
-
        void AddData(const cAuxAr2007 & anAux);
 
-       bool CodeBinOfPts(double aRho,double aTeta,const cCodesOf1Target & aSetCodesOfT,double aRho0,double aThRho);
 
        std::string NameOfNum(int) const; ///  Juste the apha num
        std::string NameFileOfNum(int) const; ///  Juste the apha num
@@ -235,70 +270,31 @@ class cParamCodedTarget
 
        bool mModeFlight;  // Special mode for Patricio
        // bool mCodeCirc;  // Special mode for Patricio
-
-
        double          mRho_0_EndCCB;// End of Central CB , here Rho=ThickN ...
        double          mRho_1_BeginCode;// ray where begins the coding stuff
        double          mRho_2_EndCode;// ray where begins the coding stuff
        double          mRho_3_BeginCar;// ray where begins the coding stuff
        double          mRho_4_EndCar;  // ray where begins the coding stuff
 
-
        cPt2di    mSzBin;
        double    mScale;  // Sz of Pixel in normal coord
 
-       std::vector<cSetCodeOf1Circle>     mVecSetOfCode;
-       /// if there is several circle (obsolete ?), must decompose the total number on the number/circle
        cDecomposPAdikVar                  mDecP;
 };
 
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT);
-class cSpecBitEncoding
+
+typedef cParamCodedTarget cParamRenderingTarget;
+
+class cFullSpecifTarget
 {
       public :
-         cSpecBitEncoding();
-         // cCollecSpecArg2007 & SBE_ArgObl(cCollecSpecArg2007 & anArgObl) ;  ///< For sharing mandatory args
-         // cCollecSpecArg2007 & SBE_ArgOpt(cCollecSpecArg2007 & anArgOpt);   ///< For sharing optionnal args
-         void AddData(const  cAuxAr2007 & anAux);
-
-         eTyCodeTarget mType;          ///< Type amon allowed value
-         size_t        mNbBits;        ///< number of bits
-         size_t        mFreqCircEq;    ///< all code shift-circulary by mPerCircEq  will be merged together
-         size_t        mMinHammingD;
-         cPt2di        mMaxRunL;       ///< Minimal run lenght for 0 & 1
-         size_t        mParity;        ///<  1  odd , 2 even, 3 all
-         size_t        mMaxNb;         ///< max number of codes
+         cFullSpecifTarget(const cBitEncoding&,const cParamRenderingTarget&);
+         cBitEncoding             mBE;
+         cParamRenderingTarget    mRender;
 };
 
-class cOneEncoding
-{
-        public :
-           cOneEncoding();
-           cOneEncoding(size_t aNum,size_t aCode);
-           size_t Num()  const;
-           size_t Code() const;
-           void   SetNBB (size_t ) ; ///< used to vehicle info 4 AddComm
 
-           void AddData(const  cAuxAr2007 & anAux);
-
-        private :
-           size_t mNC[3];
-};
-
-class cBitEncoding
-{
-    public :
-        const cSpecBitEncoding & Specs() const;
-        const std::vector<cOneEncoding> &  Encodings() const;
-
-        void AddOneEncoding(size_t mNum,size_t mCode);
-        void AddData(const  cAuxAr2007 & anAux);
-        void SetSpec(const cSpecBitEncoding& );
-    private :
-        cSpecBitEncoding           mSpecs;
-        std::vector<cOneEncoding>  mEncodings;
-};
-void AddData(const  cAuxAr2007 & anAux,cBitEncoding & aBE);
 
 
 };

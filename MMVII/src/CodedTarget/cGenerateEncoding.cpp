@@ -22,7 +22,8 @@ cSpecBitEncoding::cSpecBitEncoding() :
      mMinHammingD   (1), ///< No constraint
      mMaxRunL       (1000,1000), ///< No constraint
      mParity        (3), ///< No constraint
-     mMaxNb         (1000)
+     mMaxNb         (1000),
+     mBase4Name     (10)
 {
 }
 
@@ -35,6 +36,7 @@ void cSpecBitEncoding::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("MaxRunL",anAux),mMaxRunL);
     MMVII::AddData(cAuxAr2007("Parity",anAux),mParity);
     MMVII::AddData(cAuxAr2007("MaxNb",anAux),mMaxNb);
+    MMVII::AddData(cAuxAr2007("Base4N",anAux),mBase4Name);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cSpecBitEncoding & aSpec)
@@ -210,6 +212,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mFreqCircEq,"FreqCircEq","Freq for generating circular permuts (conventionnaly 0->highest) (def depend of type)")
                << AOpt2007(mSpec.mParity,"Parity","Parity check , 1 odd, 2 even, 3 all (def depend of type)")
                << AOpt2007(mSpec.mMaxNb,"MaxNb","Max number of codes",{eTA2007::HDV})
+               << AOpt2007(mSpec.mBase4Name,"Base4N","Base for name",{eTA2007::HDV})
                << AOpt2007(mNameOut,CurOP_Out,"Output file (def constructed with input param)")
           ;
 }
