@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <cstdint>
 #include <fstream>
 #include <ios>
+#include <iostream>
 #include <locale>
 #include <map>
 #include <random>
@@ -99,11 +100,14 @@ using tTriPointList = std::vector<tTriPoint>;
 class cNOSolIn_AttrSom {
    public:
     cNOSolIn_AttrSom()
-        : mIm(),
+        :           prev(nullptr),
+        oriented(false),
+        mIm(),
           mCurRot(ElRotation3D::Id),
           mTestRot(ElRotation3D::Id),
           mNumCC(IFLAG),
-          mNumId(IFLAG) {}
+          mNumId(IFLAG)
+    {}
     cNOSolIn_AttrSom(const std::string& aName, RandomForest* anAppli);
 
     //~cNOSolIn_AttrSom();
@@ -117,10 +121,16 @@ class cNOSolIn_AttrSom {
     std::vector<cLinkTripl>& Lnk3() { return mLnk3; }
     int& NumCC() { return mNumCC; }
     int& NumId() { return mNumId; }
+    std::set<int> triplets;
 
+    cLinkTripl* prev;
+    std::vector<cLinkTripl*> next1;
+    std::vector<cLinkTripl*> next2;
+    bool oriented;
     double residue;
 
     double treeCost;
+    int& HeapIndex() { return mHeapIndex; }
 
    private:
     std::string mName;
@@ -369,6 +379,13 @@ struct cNO_CmpTriByCost {
         //return (aL1->m3)->CostArc() < (aL2->m3)->CostArc();
     }
 };
+struct cNO_CmpTriByCostR {
+    bool operator()(cLinkTripl& aL1, cLinkTripl& aL2) {
+        //return (aL1->m3)->Sum()[(aL1->m3)->indexSum] < (aL2->m3)->Sum()[(aL2->m3)->indexSum];
+        return (aL1.m3)->Sum()[(aL1.m3)->indexSum] < (aL2.m3)->Sum()[(aL2.m3)->indexSum];
+        //return (aL1->m3)->CostArc() < (aL2->m3)->CostArc();
+    }
+};
 
 // typedef ElHeap<cLinkTripl*,cNO_CmpTriByCost,cNO_HeapIndTri_NSI> tHeapTriNSI;
 
@@ -536,11 +553,13 @@ class RandomForest : public cCommonMartiniAppli {
 
     void BestSolAllCC(Dataset& data);
     void BestSolOneCC(Dataset& data, cNO_CC_TripSom*);
+    void BestSolOneCCKurskal(Dataset& data, cNO_CC_TripSom*);
+    void BestSolOneCCPrim(Dataset& data, cNO_CC_TripSom* aCC);
 
    private:
     void NumeroteCC(Dataset& data);
 
-    void AddTriOnHeap(Dataset& data, cLinkTripl*);
+    void AddTriOnHeap(Dataset& data, cLinkTripl*, std::array<int, 3> lnks);
     void RemoveTriOnHeap(Dataset& data, cLinkTripl*);
     //void EstimRt(cLinkTripl*);
 
@@ -665,6 +684,7 @@ class GraphViz {
         tripG = agsubg(g, (char*)"triplets", 1);
         nG = agsubg(g, (char*)"views", 1);
         tnG = agsubg(g, (char*)"triplets_views", 1);
+        treeG = agsubg(g, (char*)"triplets_tree", 1);
         agsafeset(g, (char*)"component", (char*)"true", "");
         //agattr(g,AGNODE,(char*)"component", (char*)"True");
 
@@ -698,14 +718,14 @@ class GraphViz {
             if (!n[i]) { //Node don't exist so create and make it position
                 n[i] =
                     agnode(nG, (char*)names[i].c_str(), 1);
-                std::string pos = "" +
-                    std::to_string(tr.x) + "," +
-                    std::to_string(tr.y) + "," +
-                    std::to_string(tr.z);
-                agsafeset(n[i], (char*)"pos", (char*)pos.c_str(), "");
-                //agsafeset(n[i], (char*)"label", (char*)std::to_string(node.KSom(i)->attr().NumId()).c_str(), "");
-                agsafeset(n[i], (char*)"label", (char*)std::to_string(node.NumTT()).c_str(), "");
             }
+            std::string pos = "" +
+                std::to_string(tr.x) + "," +
+                std::to_string(tr.y) + "," +
+                std::to_string(tr.z);
+            agsafeset(n[i], (char*)"pos", (char*)pos.c_str(), "");
+            //agsafeset(n[i], (char*)"label", (char*)std::to_string(node.KSom(i)->attr().NumId()).c_str(), "");
+            agsafeset(n[i], (char*)"label", (char*)std::to_string(node.NumTT()).c_str(), "");
             center = center + tr;
         }
         center = center / 3;
@@ -746,6 +766,23 @@ class GraphViz {
         for (int i = 0; i < 3; i++) {
             agsafeset(e[i], (char*)"weight", (char*)std::to_string(node.Sum()[node.indexSum]).c_str(), "");
         }
+    }
+
+    void linkTriplets(cNOSolIn_Triplet* t1, cNOSolIn_Triplet* t2) {
+        std::string triplet_name = std::to_string(t1->NumId());
+        node_t* triplet = agnode(tripG, (char*)triplet_name.c_str(), 0);
+        if (!triplet) {  // Triplet Id don't exist
+            std::cout << "triplet dont exist GraphViz" << std::endl;
+            return;
+        }
+        std::string cname = std::to_string(t2->NumId());
+        node_t* ct = agnode(tripG, (char*)cname.c_str(), 0);
+        if (!ct) {  // Triplet Id don't exist
+            std::cout << "triplet dont exist GraphViz next" << t2->NumId()
+                      << std::endl;
+            return;
+        }
+        agedge(treeG, triplet, ct, 0, 1);
     }
 
     void travelGraph(Dataset& data, cNO_CC_TripSom& aCC,
@@ -861,6 +898,7 @@ class GraphViz {
     graph_t* tripG;
     graph_t* nG;
     graph_t* tnG;
+    graph_t* treeG;
 };
 #else
 class GraphViz {
