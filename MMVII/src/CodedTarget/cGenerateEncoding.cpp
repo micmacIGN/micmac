@@ -24,7 +24,11 @@ cSpecBitEncoding::cSpecBitEncoding() :
      mParity        (3), ///< No constraint
      mMaxNb         (1000),
      mBase4Name     (10),
-     mNbDigit       (0)
+     mNbDigit       (0),
+     mPostFix       ("XXXX"),
+     mMaxNum        (0),
+     mMaxLowCode    (0),
+     mMaxCodeEqui   (0)
 {
 }
 
@@ -36,8 +40,20 @@ void cSpecBitEncoding::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("MinHammingD",anAux),mMinHammingD);
     MMVII::AddData(cAuxAr2007("MaxRunL",anAux),mMaxRunL);
     MMVII::AddData(cAuxAr2007("Parity",anAux),mParity);
+
     MMVII::AddData(cAuxAr2007("MaxNb",anAux),mMaxNb);
     MMVII::AddData(cAuxAr2007("Base4N",anAux),mBase4Name);
+    {
+       cAuxAr2007 aV("Computed",anAux);
+       {
+          MMVII::AddData(cAuxAr2007("PostFix",anAux),mPostFix);
+          MMVII::AddData(cAuxAr2007("NbDigit",anAux),mNbDigit);
+          MMVII::AddData(cAuxAr2007("MaxNum",anAux),mMaxNum);
+          MMVII::AddData(cAuxAr2007("MaxLowCode",anAux),mMaxLowCode);
+          MMVII::AddData(cAuxAr2007("MaxCodeEqui",anAux),mMaxCodeEqui);
+       }
+       FakeUseIt(aV);
+    }
 }
 
 void AddData(const  cAuxAr2007 & anAux,cSpecBitEncoding & aSpec)
@@ -52,12 +68,17 @@ void AddData(const  cAuxAr2007 & anAux,cSpecBitEncoding & aSpec)
 
 cOneEncoding::cOneEncoding(size_t aNum,size_t aCode) 
 {
-	mName = "RRRR";
+	mName = "???";
 
 	mNC[0] = aNum;
 	mNC[1] = aCode;
 }
 cOneEncoding::cOneEncoding() : cOneEncoding(0,0) {}
+
+void cOneEncoding::SetName(const std::string & aName)
+{
+    mName = aName;
+}
 
 void cOneEncoding::AddData(const  cAuxAr2007 & anAux)
 {
@@ -67,10 +88,10 @@ void cOneEncoding::AddData(const  cAuxAr2007 & anAux)
    AddTabData(cAuxAr2007("NumCode",anAux),mNC,2);
    MMVII::AddData(cAuxAr2007("Name",anAux),mName);
 }
-           // void   SetNBB (size_t ) ; ///< used to vehicle info 4 AddComm
 
 size_t cOneEncoding::Num()  const {return mNC[0];}
 size_t cOneEncoding::Code() const {return mNC[1];}
+const std::string & cOneEncoding::Name() const {return mName;}
 
 void   cOneEncoding::SetNBB (size_t aNbB)
 {
@@ -116,8 +137,7 @@ void cBitEncoding::SetSpec(const cSpecBitEncoding& aSpecs)
 
 const cSpecBitEncoding & cBitEncoding::Specs() const {return mSpecs;}
 const std::vector<cOneEncoding> &  cBitEncoding::Encodings() const {return mEncodings;}
-
-
+std::vector<cOneEncoding> &  cBitEncoding::Encodings() {return mEncodings;}
 
 /*  *********************************************************** */
 /*                                                              */
@@ -219,7 +239,6 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mParity,"Parity","Parity check , 1 odd, 2 even, 3 all (def depend of type)")
                << AOpt2007(mSpec.mMaxNb,"MaxNb","Max number of codes",{eTA2007::HDV})
                << AOpt2007(mSpec.mBase4Name,"Base4N","Base for name",{eTA2007::HDV})
-               << AOpt2007(mNameOut,CurOP_Out,"Output file (def constructed with input param)")
           ;
 }
 
@@ -253,10 +272,15 @@ int  cAppliGenerateEncoding::Exe()
         SetIfNotInit(mSpec.mParity,size_t(2));
    }
 
-   if (! IsInit(&mNameOut))
+   if (! IsInit(&mSpec.mPostFix))
    {
-        mNameOut  = "SpecEncoding_" + E2Str(mSpec.mType) + "_Nbb" + ToStr(mSpec.mNbBits) + ".xml";
+      mSpec.mPostFix =     E2Str(mSpec.mType) 
+                       + "_Nbb"  + ToStr(mSpec.mNbBits)
+                       + "_Freq" + ToStr(mSpec.mFreqCircEq)
+                       + "_Hamm" + ToStr(mSpec.mMinHammingD)
+                       + "_Run" + ToStr(mSpec.mMaxRunL.x()) + "_" + ToStr(mSpec.mMaxRunL.y());
    }
+    mNameOut  =   mSpec.mPostFix + "_SpecEncoding"+ ".xml";
 
    MMVII_INTERNAL_ASSERT_strong((mSpec.mNbBits%mSpec.mFreqCircEq)==0,"NbBits should be a multiple of Nb Bits");
    mPerCircPerm = mSpec.mNbBits / mSpec.mFreqCircEq;
@@ -315,35 +339,40 @@ int  cAppliGenerateEncoding::Exe()
        StdOut() <<  "Size after max run lenght filter " << mVOC.size() << "\n";
    }
 
+   // initialize priority queue in mPrioCC
    for (auto aCC : mVOC)
    {
         tREAL8 aScore = - MaxRun2Length(aCC->mLowCode,mP2);
         mPrioCC.push_back(cPrioCC(aCC,aScore));
    }
 
-   bool GoOn = ! mVOC.empty();
+   bool GoOn = ! mVOC.empty(); // Precaution, else core dump when get null ptr
 
    std::vector<cCelCC*>  aNewVOC;
 
-   cTimeSequencer aTSeq(0.5);
+   cTimeSequencer aTSeq(0.5); // to make use patientate
+			     
+   // Now iteratively select one and update others
    while (GoOn)
    {
+       // Extract best solution
        cPrioCC * aNextP = WhitchMaxVect(mPrioCC,[](const auto & aPC){return aPC.Score();});
 
+       // if best one is under threshold end
        if (aNextP->HammingMinD() < mSpec.mMinHammingD)
        {
            GoOn = false;
        }
        else
        {
-           aNewVOC.push_back(aNextP->Cel());
-           for (auto & aPC : mPrioCC)
+           aNewVOC.push_back(aNextP->Cel());  // add new one
+           for (auto & aPC : mPrioCC) // update remaining
 	       aPC.UpdateHammingD(*aNextP);
 
-	   if (aNewVOC.size() >= mSpec.mMaxNb)
+	   if (aNewVOC.size() >= mSpec.mMaxNb)  // if enoug stop
               GoOn = false;
        }
-       if (aTSeq.ItsTime2Execute())
+       if (aTSeq.ItsTime2Execute())  // make user patient
        {
 	   StdOut() << "Hamming filter, still to do " << mSpec.mMaxNb-aNewVOC.size() << "\n";
        }
@@ -351,38 +380,39 @@ int  cAppliGenerateEncoding::Exe()
    mVOC = aNewVOC;
    StdOut() <<  "Size after after hamming " << mVOC.size() << "\n";
 
-   //  Compute range of code, code-equiv, num
+   //  Compute range (max val)  of code, code-equiv and num
    {
-       size_t aCodeMax     = 0;   // max of all code
-       size_t aCodeEquivMax = 0;  // max of all code AND their equivalent due to circ perm
-       size_t aNumMax      = 0;   // max of all nums
-
        cBitEncoding aBE;
-       aBE.SetSpec(mSpec);
        for (size_t aK=0 ; aK<mVOC.size(); aK++)  
        {
            size_t aNum = aK;
 	   size_t aCode = mVOC[aK]->mLowCode;
-	   UpdateMax(aNumMax,aNum);
-	   UpdateMax(aCodeMax,aCode);
+           aBE.AddOneEncoding(aNum,aCode);  // add a new encoding
 
-           aBE.AddOneEncoding(aNum,mVOC[aK]->mLowCode);
-
+	   // Update all ranges
+	   UpdateMax(mSpec.mMaxNum,aNum);
+	   UpdateMax(mSpec.mMaxLowCode,aCode);
 	   for (const auto & aCodeEqui : mCEC->CellOfCode(aCode).mEquivCode )
-	        UpdateMax(aCodeEquivMax,aCodeEqui);
+	        UpdateMax(mSpec.mMaxCodeEqui,aCodeEqui);
        }
 
-       size_t aNbD= GetNDigit_OfBase(aNumMax, mSpec.mBase4Name);
+       size_t aNbD= GetNDigit_OfBase(mSpec.mMaxNum, mSpec.mBase4Name);
        UpdateMax(mSpec.mNbDigit,aNbD);
 
-       StdOut() <<  "NMax=" << aNumMax << " NDig=" <<  mSpec.mNbDigit 
-	        << " "  << NameOfNum_InBase(aNumMax, mSpec.mBase4Name,mSpec.mNbDigit) 
+       StdOut() <<  "NMax=" << mSpec.mMaxNum << " NDig=" <<  mSpec.mNbDigit 
+	        << " "  << NameOfNum_InBase(mSpec.mMaxNum, mSpec.mBase4Name,mSpec.mNbDigit) 
 	        << " "  << NameOfNum_InBase(9, mSpec.mBase4Name,mSpec.mNbDigit) 
 		<< "\n";
 
+       for (auto & anEncode : aBE.Encodings())
+       {
+           anEncode.SetName(NameOfNum_InBase(anEncode.Num(),mSpec.mBase4Name,mSpec.mNbDigit));
+       }
 
+       aBE.SetSpec(mSpec);
        SaveInFile(aBE,mNameOut);
    }
+
 
    delete mCEC;
 

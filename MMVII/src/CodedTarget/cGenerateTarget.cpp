@@ -234,10 +234,35 @@ std::string cParamCodedTarget::NameFileOfNum(int aNum) const
 /* *************************************************** */
 
 cFullSpecifTarget::cFullSpecifTarget(const cBitEncoding& aBE,const cParamRenderingTarget& aRender) :
-   mBE (aBE),
-   mRender  (aRender)
+   mBE      (aBE),
+   mRender  (aRender),
+   mCEC     (nullptr)
 {
 }
+
+cFullSpecifTarget::~cFullSpecifTarget()
+{
+    delete mCEC;
+}
+
+const std::vector<cOneEncoding> &  cFullSpecifTarget::Encodings() const {return mBE.Encodings();}
+const  cSpecBitEncoding &          cFullSpecifTarget::Specs()     const {return mBE.Specs();}
+const  cParamRenderingTarget &     cFullSpecifTarget::Render()    const {return mRender;}
+const  std::string &               cFullSpecifTarget::PostFix()   const {return Specs().mPostFix;}
+
+
+std::string cFullSpecifTarget::NameOfImPattern() const
+{
+   return  PostFix() + "_Pattern"+ ".tif"; 
+}
+
+std::string cFullSpecifTarget::NameOfEncode(const cOneEncoding & anEncode) const
+{
+    return   PostFix()  +  "_Target_"+  anEncode.Name() +   ".tif";
+}
+
+
+
 
 /* *************************************************** */
 /*                                                     */
@@ -245,13 +270,6 @@ cFullSpecifTarget::cFullSpecifTarget(const cBitEncoding& aBE,const cParamRenderi
 /*                                                     */
 /* *************************************************** */
 
-enum class eLPT  // Label Pattern Target
-           {
-              eBackGround,
-              eForeGround,
-              eChar,
-              eNumB0   // num first bit
-           };
 
 class cNormPix2Bit
 {
@@ -291,10 +309,10 @@ class cCircNP2B : public  cNormPix2Bit
 
 
 cCircNP2B::cCircNP2B(const cFullSpecifTarget & aSpecif) :
-   mRho0   (aSpecif.mRender.mRho_1_BeginCode),
-   mRho1   (aSpecif.mRender.mRho_2_EndCode),
-   mTeta0  (aSpecif.mRender.mChessboardAng),
-   mNbBits (aSpecif.mBE.Specs().mNbBits)
+   mRho0   (aSpecif.Render().mRho_1_BeginCode),
+   mRho1   (aSpecif.Render().mRho_2_EndCode),
+   mTeta0  (aSpecif.Render().mChessboardAng),
+   mNbBits (aSpecif.Specs().mNbBits)
 {
 }
 
@@ -337,8 +355,8 @@ class cStraightNP2B : public  cNormPix2Bit
 };
 
 cStraightNP2B::cStraightNP2B(const cFullSpecifTarget & aSpecif) :
-   mRho1   (aSpecif.mRender.mRho_2_EndCode),
-   mNbBits (aSpecif.mBE.Specs().mNbBits),
+   mRho1   (aSpecif.Render().mRho_2_EndCode),
+   mNbBits (aSpecif.Specs().mNbBits),
    mNbBS2  (mNbBits /2)
 {
     MMVII_INTERNAL_ASSERT_tiny((mNbBS2*2)==mNbBits,"Odd nbbits in cStraightNP2B");
@@ -363,7 +381,7 @@ int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
 
 cNormPix2Bit * cNormPix2Bit::Alloc(const cFullSpecifTarget & aSpecif)
 {
-   switch (aSpecif.mBE.Specs().mType)
+   switch (aSpecif.Specs().mType)
    {
          case eTyCodeTarget::eCERN :
          case eTyCodeTarget::eIGNIndoor:
@@ -384,6 +402,14 @@ cNormPix2Bit * cNormPix2Bit::Alloc(const cFullSpecifTarget & aSpecif)
 /*                                                     */
 /* *************************************************** */
 
+enum class eLPT  // Label Pattern Target
+           {
+              eBackGround,
+              eForeGround,
+              eChar,
+              eNumB0   // num first bit
+           };
+
 class cCodedTargetPatternIm 
 {
      public :
@@ -392,10 +418,18 @@ class cCodedTargetPatternIm
           typedef cDataIm2D<tElem>   tDataIm;
 
           cCodedTargetPatternIm(const cFullSpecifTarget &);
+
+	  tIm  ImCoding() const;
+
+	  tIm MakeOneImTarget(const cOneEncoding & aCode);
      private :
 	  const cFullSpecifTarget & mSpec;
 	  tIm               mImCoding;
 	  tDataIm &         mDIC;
+
+	  tIm               mImTarget;
+	  tDataIm &         mDIT;
+
 	  tREAL8            mTeta0;
 	  tREAL8            mRhoC;
 	  tREAL8            mRho2C;
@@ -403,19 +437,24 @@ class cCodedTargetPatternIm
 
 cCodedTargetPatternIm::cCodedTargetPatternIm(const cFullSpecifTarget & aSpec) :
      mSpec       (aSpec),
-     mImCoding   (mSpec.mRender.mSzBin),
+     mImCoding   (mSpec.Render().mSzBin),
      mDIC        (mImCoding.DIm()),
-     mTeta0      (mSpec.mRender.mChessboardAng),
-     mRhoC       (mSpec.mRender.mRho_0_EndCCB),
+     mImTarget   (mSpec.Render().mSzBin),
+     mDIT        (mImTarget.DIm()),
+     mTeta0      (mSpec.Render().mChessboardAng),
+     mRhoC       (mSpec.Render().mRho_0_EndCCB),
      mRho2C      (Square(mRhoC))
 {
     mDIC.InitCste(tElem(eLPT::eBackGround));
+
+    // std::vector<cPt2dr> & aVBC = mSpec.Render().mBitsCenters;
+
 
     // std::unique_ptr<cNormPix2Bit>  aP2B (new cCircNP2B (mSpec));
     std::unique_ptr<cNormPix2Bit>  aP2B (cNormPix2Bit::Alloc(aSpec));
     for (const auto & aPix : mDIC)
     {
-       cPt2dr aPN = mSpec.mRender.Pix2Norm(aPix);
+       cPt2dr aPN = mSpec.Render().Pix2Norm(aPix);
        //  ============  1  Generate the bit coding =======================
        if (aP2B->PNormIsCoding(aPN))
        {
@@ -426,7 +465,7 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(const cFullSpecifTarget & aSpec) :
        else if (SqN2(aPN) <mRho2C)
        {
            eLPT aLab = eLPT::eForeGround;
-           if (mSpec.mRender.mWithChessboard)
+           if (mSpec.Render().mWithChessboard)
 	   {
                double PIsur2 = M_PI/2.0;
 	       tREAL8 aTeta = ToPolar(aPN).y();
@@ -437,17 +476,42 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(const cFullSpecifTarget & aSpec) :
 	   mDIC.SetV(aPix,int(aLab));
        }
     }
+}
 
-    mDIC.ToFile("toto.tif");
+cCodedTargetPatternIm::tIm cCodedTargetPatternIm::ImCoding() const {return mImCoding;}
 
-    /*
-    StdOut() << "SZB " << mSpec.mRender.mSzBin << "\n";
-    StdOut() << "r0 " << mSpec.mRender.mRho_0_EndCCB << "\n";
-    StdOut() << "r1 " << mSpec.mRender.mRho_1_BeginCode << "\n";
-    StdOut() << "r2 " << mSpec.mRender.mRho_2_EndCode << "\n";
-    StdOut() << "r3 " << mSpec.mRender.mRho_3_BeginCar << "\n";
-    StdOut() << "r4 " << mSpec.mRender.mRho_4_EndCar << "\n";
-    */
+cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEncoding & anEnCode)
+{
+   int aBG_Coul = mSpec.Render().mWhiteBackGround ? 255 : 0;
+   int aFG_Coul =  255-aBG_Coul;
+
+   mDIT.InitCste(aBG_Coul);
+   size_t aCode = anEnCode.Code();
+   bool  BGIs_0 = mSpec.Render().mZeroIsBackGround;
+   for (const auto & aPix : mDIC)
+   {
+       eLPT aLab =  eLPT(mDIC.GetV(aPix));
+       if (aLab!=eLPT::eBackGround)
+       {
+           bool isBG = true;
+           if (aLab==eLPT::eForeGround)
+           {
+               isBG = false;
+           }
+           else if (aLab>=eLPT::eNumB0)
+           {
+                bool BitIs_1 =  (aCode & (1<<(int(aLab)-int(eLPT::eNumB0)))) != 0;
+                isBG = BitIs_1 !=  BGIs_0;
+           }
+
+	   if (!isBG)
+	   {
+               mDIT.SetV(aPix,aFG_Coul);
+	   }
+       }
+   }
+
+   return mImTarget.GaussDeZoom(mSpec.Render().mSzGaussDeZoom);
 }
 
 /* *************************************************** */
@@ -520,9 +584,19 @@ int  cAppliGenCodedTarget::Exe()
    cFullSpecifTarget  aFullSpec(mBE,mPCT);
    cCodedTargetPatternIm  aCTPI(aFullSpec);
 
+   aCTPI.ImCoding().DIm().ToFile(aFullSpec.NameOfImPattern());
 
-FakeUseIt(aCTPI);
-return EXIT_SUCCESS;
+   for (const auto & anEncode : aFullSpec.Encodings())
+   {
+       cCodedTargetPatternIm::tIm anIm = aCTPI.MakeOneImTarget(anEncode);
+
+       std::string aName = aFullSpec.NameOfEncode(anEncode);
+       anIm.DIm().ToFile(aName);
+       StdOut() << aName << "\n";
+   }
+
+
+   return EXIT_SUCCESS;
 }
 };
 

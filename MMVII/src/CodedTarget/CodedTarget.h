@@ -44,15 +44,25 @@ class cSpecBitEncoding
          cSpecBitEncoding();
          void AddData(const  cAuxAr2007 & anAux); // serialization
 
+	 // ============   Value specified ==============
          eTyCodeTarget mType;           ///< Type amon allowed value
          size_t        mNbBits;         ///< number of bits
+              // ===  Specified but have type-dependant def values
          size_t        mFreqCircEq;     ///< all code shift-circulary by mPerCircEq  will be merged together
-         size_t        mMinHammingD;
+         size_t        mMinHammingD;    ///< Min Hamming distance acceptable
          cPt2di        mMaxRunL;        ///< Minimal run lenght for 0 & 1
          size_t        mParity;         ///<  1  odd , 2 even, 3 all
-         size_t        mMaxNb;          ///< max number of codes
+
+         size_t        mMaxNb;          ///< max number required
          size_t        mBase4Name;      ///< Base 4 computing names, default 10
-         size_t        mNbDigit;        ///< Number of digit for names
+					
+	 // ============   Value computed ==============
+         size_t        mNbDigit;        ///< Number of digit for names  Computed & Specified
+	 std::string   mPostFix;        ///< For all name generated
+				
+         size_t        mMaxNum;         ///< max num of codes
+         size_t        mMaxLowCode;     ///< max of all code (in fact max of the lowest representant)
+         size_t        mMaxCodeEqui;    ///< max of all equivalent code
 };
 
 /**  Helper  for an encoding :
@@ -89,6 +99,7 @@ class cBitEncoding
 	    //  accessors 
         const cSpecBitEncoding & Specs() const;
         const std::vector<cOneEncoding> &  Encodings() const;
+        std::vector<cOneEncoding> &  Encodings() ;
 
 	    //  modifiers
         void AddOneEncoding(size_t mNum,size_t mCode);
@@ -290,8 +301,25 @@ class cFullSpecifTarget
 {
       public :
          cFullSpecifTarget(const cBitEncoding&,const cParamRenderingTarget&);
+         cFullSpecifTarget();
+         ~cFullSpecifTarget();
+
+         const std::vector<cOneEncoding> &  Encodings() const;
+         const  cSpecBitEncoding &          Specs()     const;
+         const  cParamRenderingTarget &     Render()    const;
+         const  std::string &     PostFix()    const;
+
+	 std::string NameOfImPattern() const;
+	 std::string NameOfEncode(const cOneEncoding & anEnCode) const;
+
+      private :
+	 cFullSpecifTarget(const cFullSpecifTarget & ) = delete;
+
          cBitEncoding             mBE;
          cParamRenderingTarget    mRender;
+         std::vector<cPt2dr>      mBitsCenters;
+
+	 cCompEquiCodes *         mCEC;
 };
 
 
