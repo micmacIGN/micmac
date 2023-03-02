@@ -7,6 +7,41 @@
 namespace MMVII
 {
 
+size_t GetNDigit_OfBase(size_t aNum,size_t aBase)
+{
+   size_t aNbD=1;
+   size_t aVMax = aBase-1;
+
+   while (aVMax < aNum)
+   {
+       aVMax = aVMax*aBase + aBase-1;
+       aNbD++;
+   }
+   return aNbD;
+};
+
+std::string  NameOfNum_InBase(size_t aNum,size_t aBase,size_t aNbDigit)
+{
+    size_t aNbDigMin = GetNDigit_OfBase(aNum,aBase);
+    UpdateMax(aNbDigit,aNbDigMin);
+
+    std::string aRes(aNbDigit,'0');
+
+    for (int aK = aRes.size() -1 ; aK>=int(aRes.size()-aNbDigMin) ; aK--)
+    {
+        size_t aCar = aNum % aBase;
+        if (aCar < 10)
+           aCar = '0' +  aCar;
+        else
+           aCar = 'A' + (aCar-10);
+        aRes[aK] = aCar;
+        aNum /= aBase;
+    }
+
+    return aRes;
+}
+
+
 
 /* ************************************************* */
 /*                                                   */
@@ -252,6 +287,8 @@ void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
 }
 
 const std::vector<cCelCC*>  & cCompEquiCodes::VecOfCells() const {return mVecOfCells;}
+const cCelCC &  cCompEquiCodes::CellOfCode(size_t aCode) const {return *mVCodes2Cell.at(aCode);}
+
 
 std::vector<cCelCC*>  cCompEquiCodes::VecOfUsedCode(const std::vector<cPt2di> & aVXY,bool Used)
 {
@@ -363,8 +400,14 @@ void BenchCircCoding()
        TestComputeCoding(14,3,7);
     }
 
+	/* 1.0  make test on low-level bits manipulations */
 
-	/* 1  make test on low-level bits manipulations */
+    MMVII_INTERNAL_ASSERT_bench(NameOfNum_InBase(256,16)=="100","Base representation");
+    MMVII_INTERNAL_ASSERT_bench(NameOfNum_InBase(255,16)=="FF","Base representation");
+    MMVII_INTERNAL_ASSERT_bench(NameOfNum_InBase(255,16,4)=="00FF","Base representation");
+    MMVII_INTERNAL_ASSERT_bench(NameOfNum_InBase(71,36,3)=="01Z","Base representation");
+
+	/* 1.1  make test on low-level bits manipulations */
 
     MMVII_INTERNAL_ASSERT_bench(NbBits(256)==1,"Nb Bits");
     MMVII_INTERNAL_ASSERT_bench(NbBits(255)==8,"Nb Bits");

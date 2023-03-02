@@ -7,7 +7,7 @@
 
 namespace MMVII
 {
-using namespace cNS_CodedTarget;
+
 namespace  cNS_CodedTarget
 {
 /* ************************************************* */
@@ -23,7 +23,8 @@ cSpecBitEncoding::cSpecBitEncoding() :
      mMaxRunL       (1000,1000), ///< No constraint
      mParity        (3), ///< No constraint
      mMaxNb         (1000),
-     mBase4Name     (10)
+     mBase4Name     (10),
+     mNbDigit       (0)
 {
 }
 
@@ -51,6 +52,8 @@ void AddData(const  cAuxAr2007 & anAux,cSpecBitEncoding & aSpec)
 
 cOneEncoding::cOneEncoding(size_t aNum,size_t aCode) 
 {
+	mName = "RRRR";
+
 	mNC[0] = aNum;
 	mNC[1] = aCode;
 }
@@ -60,7 +63,9 @@ void cOneEncoding::AddData(const  cAuxAr2007 & anAux)
 {
    if (! anAux.Input())
        AddComment(anAux.Ar(),StrOfBitFlag(Code(),1<<mNC[2]));
-   AddTabData(anAux,mNC,2);
+   // AddTabData(anAux,mNC,2);
+   AddTabData(cAuxAr2007("NumCode",anAux),mNC,2);
+   MMVII::AddData(cAuxAr2007("Name",anAux),mName);
 }
            // void   SetNBB (size_t ) ; ///< used to vehicle info 4 AddComm
 
@@ -154,6 +159,7 @@ void cPrioCC::UpdateHammingD(const cPrioCC & aPC2)
 }
 
 };
+using namespace cNS_CodedTarget;
 
 
 class cAppliGenerateEncoding : public cMMVII_Appli
@@ -345,13 +351,36 @@ int  cAppliGenerateEncoding::Exe()
    mVOC = aNewVOC;
    StdOut() <<  "Size after after hamming " << mVOC.size() << "\n";
 
+   //  Compute range of code, code-equiv, num
    {
+       size_t aCodeMax     = 0;   // max of all code
+       size_t aCodeEquivMax = 0;  // max of all code AND their equivalent due to circ perm
+       size_t aNumMax      = 0;   // max of all nums
+
        cBitEncoding aBE;
        aBE.SetSpec(mSpec);
        for (size_t aK=0 ; aK<mVOC.size(); aK++)  
        {
-           aBE.AddOneEncoding(aK+1,mVOC[aK]->mLowCode);
+           size_t aNum = aK;
+	   size_t aCode = mVOC[aK]->mLowCode;
+	   UpdateMax(aNumMax,aNum);
+	   UpdateMax(aCodeMax,aCode);
+
+           aBE.AddOneEncoding(aNum,mVOC[aK]->mLowCode);
+
+	   for (const auto & aCodeEqui : mCEC->CellOfCode(aCode).mEquivCode )
+	        UpdateMax(aCodeEquivMax,aCodeEqui);
        }
+
+       size_t aNbD= GetNDigit_OfBase(aNumMax, mSpec.mBase4Name);
+       UpdateMax(mSpec.mNbDigit,aNbD);
+
+       StdOut() <<  "NMax=" << aNumMax << " NDig=" <<  mSpec.mNbDigit 
+	        << " "  << NameOfNum_InBase(aNumMax, mSpec.mBase4Name,mSpec.mNbDigit) 
+	        << " "  << NameOfNum_InBase(9, mSpec.mBase4Name,mSpec.mNbDigit) 
+		<< "\n";
+
+
        SaveInFile(aBE,mNameOut);
    }
 

@@ -52,7 +52,7 @@ class cSpecBitEncoding
          size_t        mParity;         ///<  1  odd , 2 even, 3 all
          size_t        mMaxNb;          ///< max number of codes
          size_t        mBase4Name;      ///< Base 4 computing names, default 10
-         size_t        mNumberOfDigit;  ///< Number of digit for names
+         size_t        mNbDigit;        ///< Number of digit for names
 };
 
 /**  Helper  for an encoding :

@@ -812,8 +812,14 @@ template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Typ
    /// Same as DerXAtanXY_sX ...  ... bench
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
 
+/*  ****************************************** */
+/*     REPRESENTATION of num on a base         */
+/* ******************************************* */
   
-
+///  Number minimal of digit for representing a number in a given base
+size_t GetNDigit_OfBase(size_t aNum,size_t aBase);
+///  Representation of number in a given base, can force minimal number of digit
+std::string  NameOfNum_InBase(size_t aNum,size_t aBase,size_t aNbDigit=0);
 
 /*  ****************************************** */
 /*       BIT MANIPULATION FUNCTIONS            */
@@ -873,6 +879,7 @@ class cCompEquiCodes : public cMemCheck
        /// For a set of code return the ambiguity (code beloning to same class)
        std::list<tAmbigPair>  AmbiguousCode(const std::vector<cPt2di> &);
        const std::vector<cCelCC*>  & VecOfCells() const; ///< Accessor
+       const cCelCC &  CellOfCode(size_t aCode) const;
 
        ~cCompEquiCodes();
    private :
