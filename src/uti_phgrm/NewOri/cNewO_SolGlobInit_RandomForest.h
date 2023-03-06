@@ -121,7 +121,6 @@ class cNOSolIn_AttrSom {
     std::vector<cLinkTripl>& Lnk3() { return mLnk3; }
     int& NumCC() { return mNumCC; }
     int& NumId() { return mNumId; }
-    std::set<int> triplets;
 
     cLinkTripl* prev;
     std::vector<cLinkTripl*> next1;
@@ -337,6 +336,7 @@ class cLinkTripl {
     }
 
     cLinkTripl* prev;
+    bool viewed = false;
 
     cNOSolIn_Triplet* m3;
 
@@ -559,7 +559,8 @@ class RandomForest : public cCommonMartiniAppli {
    private:
     void NumeroteCC(Dataset& data);
 
-    void AddTriOnHeap(Dataset& data, cLinkTripl*, std::array<int, 3> lnks);
+    void AddTriOnHeapAll(Dataset& data, cLinkTripl*, bool oriented = true);
+    void AddTriOnHeap(Dataset& data, cLinkTripl*, bool oriented = true);
     void RemoveTriOnHeap(Dataset& data, cLinkTripl*);
     //void EstimRt(cLinkTripl*);
 
