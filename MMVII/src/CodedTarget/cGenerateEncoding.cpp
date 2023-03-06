@@ -8,8 +8,13 @@
 namespace MMVII
 {
 
+class cAppliGenerateEncoding;
+
 namespace  cNS_CodedTarget
 {
+class cPrioCC;
+
+
 /* ************************************************* */
 /*                                                   */
 /*              cSpecBitEncoding                     */
@@ -17,6 +22,7 @@ namespace  cNS_CodedTarget
 /* ************************************************* */
 
 cSpecBitEncoding::cSpecBitEncoding() :
+     mType          (eTyCodeTarget::eIGNIndoor), // Fake init, 4 serialization
      mNbBits        (1<<30),  ///< Absurd val -> must be initialized
      mFreqCircEq    (0),
      mMinHammingD   (1), ///< No constraint
@@ -25,7 +31,7 @@ cSpecBitEncoding::cSpecBitEncoding() :
      mMaxNb         (1000),
      mBase4Name     (10),
      mNbDigit       (0),
-     mPostFix       ("XXXX"),
+     mPrefix        ("XXXX"),
      mMaxNum        (0),
      mMaxLowCode    (0),
      mMaxCodeEqui   (0)
@@ -46,7 +52,7 @@ void cSpecBitEncoding::AddData(const  cAuxAr2007 & anAux)
     {
        cAuxAr2007 aV("Computed",anAux);
        {
-          MMVII::AddData(cAuxAr2007("PostFix",anAux),mPostFix);
+          MMVII::AddData(cAuxAr2007("Prefix",anAux),mPrefix);
           MMVII::AddData(cAuxAr2007("NbDigit",anAux),mNbDigit);
           MMVII::AddData(cAuxAr2007("MaxNum",anAux),mMaxNum);
           MMVII::AddData(cAuxAr2007("MaxLowCode",anAux),mMaxLowCode);
@@ -141,20 +147,23 @@ std::vector<cOneEncoding> &  cBitEncoding::Encodings() {return mEncodings;}
 
 /*  *********************************************************** */
 /*                                                              */
-/*             cAppliGenerateEncoding                           */
+/*             cPrioCC                                          */
 /*                                                              */
 /*  *********************************************************** */
 
+/**  Class for processing the selection of cells, contains the cell itsel, an "a priori" score,
+ *   and a hamming distance (updated)
+ */
 class cPrioCC
 {
      public :
          cPrioCC(cCelCC * aCel,tREAL8 aScoreIntr) ; 
 
-	 tREAL8 Score() const;
-	 size_t HammingMinD() const;
-         cCelCC * Cel() const;
+	 tREAL8 Score() const;  ///< "Magic" formula, privilagiate Haming , and use intrinc score when equals
+         cCelCC * Cel() const; ///<  Accessor
+	 size_t HammingMinD() const;   ///< Accessor
 
-	 void UpdateHammingD(const cPrioCC &);
+	 void UpdateHammingD(const cPrioCC &);  ///< update distance taking a new selected
 
      private:
          cCelCC * mCel;
@@ -165,7 +174,7 @@ class cPrioCC
 cPrioCC::cPrioCC(cCelCC * aCel,tREAL8 aScoreIntr) :
      mCel          (aCel),
      mScoreIntr    (aScoreIntr),
-     mHammingMinD  (100)
+     mHammingMinD  (1000)  // Many 
 {
 }
 
@@ -179,6 +188,12 @@ void cPrioCC::UpdateHammingD(const cPrioCC & aPC2)
 }
 
 };
+
+/*  *********************************************************** */
+/*                                                              */
+/*             cAppliGenerateEncoding                           */
+/*                                                              */
+/*  *********************************************************** */
 using namespace cNS_CodedTarget;
 
 
@@ -208,6 +223,12 @@ class cAppliGenerateEncoding : public cMMVII_Appli
 	std::vector<cPrioCC>  mPrioCC;
 	std::string           mNameOut;
 };
+
+cPrioCC * cAppliGenerateEncoding::GetBest()
+{
+   return WhitchMaxVect(mPrioCC,[](const auto & aPC){return aPC.Score();});
+}
+
 
 cAppliGenerateEncoding::cAppliGenerateEncoding
 (
@@ -239,6 +260,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mParity,"Parity","Parity check , 1 odd, 2 even, 3 all (def depend of type)")
                << AOpt2007(mSpec.mMaxNb,"MaxNb","Max number of codes",{eTA2007::HDV})
                << AOpt2007(mSpec.mBase4Name,"Base4N","Base for name",{eTA2007::HDV})
+               << AOpt2007(mSpec.mNbDigit,"NbDig","Number of digit for name (default depend of max num & base)")
           ;
 }
 
@@ -250,10 +272,14 @@ void cAppliGenerateEncoding::Show()
 
 int  cAppliGenerateEncoding::Exe()
 {
+   //  [0]  ========  Finish initialization and checking ==================
+   
+   // By convention Freq=0 mean highest frequence 
    if (mSpec.mFreqCircEq==0) 
       mSpec.mFreqCircEq  = mSpec.mNbBits;
 
 
+   // make all default init that are type-dependant
    if (mSpec.mType==eTyCodeTarget::eIGNIndoor)
    {
         SetIfNotInit(mSpec.mFreqCircEq,size_t(2));
@@ -272,29 +298,42 @@ int  cAppliGenerateEncoding::Exe()
         SetIfNotInit(mSpec.mParity,size_t(2));
    }
 
-   if (! IsInit(&mSpec.mPostFix))
+   // for comodity, user specify a frequency, we need to convert it in a period
+   MMVII_INTERNAL_ASSERT_strong((mSpec.mNbBits%mSpec.mFreqCircEq)==0,"NbBits should be a multiple of Nb Bits");
+   mPerCircPerm = mSpec.mNbBits / mSpec.mFreqCircEq;
+
+   // check base is valide
+   MMVII_INTERNAL_ASSERT_User
+   (
+        (mSpec.mBase4Name>=2)&&(mSpec.mBase4Name<=36),
+	eTyUEr::eUnClassedError,
+	"Base shoulde be in [2 36]"
+   );
+
+   //  Set the prefix usigng complicated defaut rule
+   if (! IsInit(&mSpec.mPrefix))
    {
-      mSpec.mPostFix =     E2Str(mSpec.mType) 
+      mSpec.mPrefix =    E2Str(mSpec.mType) 
                        + "_Nbb"  + ToStr(mSpec.mNbBits)
                        + "_Freq" + ToStr(mSpec.mFreqCircEq)
                        + "_Hamm" + ToStr(mSpec.mMinHammingD)
                        + "_Run" + ToStr(mSpec.mMaxRunL.x()) + "_" + ToStr(mSpec.mMaxRunL.y());
    }
-    mNameOut  =   mSpec.mPostFix + "_SpecEncoding"+ ".xml";
+   mNameOut  =   mSpec.mPrefix + "_SpecEncoding"+ ".xml";
 
-   MMVII_INTERNAL_ASSERT_strong((mSpec.mNbBits%mSpec.mFreqCircEq)==0,"NbBits should be a multiple of Nb Bits");
-   mPerCircPerm = mSpec.mNbBits / mSpec.mFreqCircEq;
-
+   // calls method in cMMVII_Appli, to show current value of params, as many transformation have been made
    ShowAllParams();
 
 
    mP2 = (1<<mSpec.mNbBits);
-   //  read initial value of cells
+
+   //  [1] =============   read initial value of cells
    mCEC = cCompEquiCodes::Alloc(mSpec.mNbBits,mPerCircPerm,mMiror);
    mVOC = mCEC->VecOfCells();
    StdOut() <<  "Size Cells init " << mVOC.size() << "\n";
 
-   //  if there exist an external file of codes, use it to filter
+   //  [2]  ========  filter : if there exist an external file of codes, use it to filter ==========
+
    if (mUseAiconCode)
    {
        std::vector<cPt2di>  aVCode;
@@ -309,7 +348,9 @@ int  cAppliGenerateEncoding::Exe()
        mVOC = mCEC->VecOfUsedCode(aVCode,true);
        StdOut() <<  "Size after file filter " << mVOC.size() << "\n";
    }
-   // Id there is a parity check
+  
+   //  [3]  ========  filter : if there is a parity check  ====================
+
    if (mSpec.mParity !=3)
    {
        VecFilter
@@ -324,7 +365,8 @@ int  cAppliGenerateEncoding::Exe()
        StdOut() <<  "Size after parity filter " << mVOC.size()  <<  " PARITY=" << mSpec.mParity << "\n";
    }
 
-   // Id there is a mMaxRunL
+   //  [4]  ========  filter : if there is constraint on run lenght  ====================
+
    if (IsInit(&mSpec.mMaxRunL))
    {
        VecFilter
@@ -338,8 +380,10 @@ int  cAppliGenerateEncoding::Exe()
        );
        StdOut() <<  "Size after max run lenght filter " << mVOC.size() << "\n";
    }
+     
+   //  [5]  ========  make a selection of "maxmimal" subset respecting hamming criteria  ====================
 
-   // initialize priority queue in mPrioCC
+        // 5.1   initialize :   priority queue in mPrioCC
    for (auto aCC : mVOC)
    {
         tREAL8 aScore = - MaxRun2Length(aCC->mLowCode,mP2);
@@ -352,11 +396,11 @@ int  cAppliGenerateEncoding::Exe()
 
    cTimeSequencer aTSeq(0.5); // to make use patientate
 			     
-   // Now iteratively select one and update others
+         //  5.2 Now iteratively select one and update others
    while (GoOn)
    {
        // Extract best solution
-       cPrioCC * aNextP = WhitchMaxVect(mPrioCC,[](const auto & aPC){return aPC.Score();});
+       cPrioCC * aNextP = GetBest();
 
        // if best one is under threshold end
        if (aNextP->HammingMinD() < mSpec.mMinHammingD)
@@ -380,7 +424,12 @@ int  cAppliGenerateEncoding::Exe()
    mVOC = aNewVOC;
    StdOut() <<  "Size after after hamming " << mVOC.size() << "\n";
 
-   //  Compute range (max val)  of code, code-equiv and num
+   //  [6] ==================== Finalization : 
+   //        * Compute range (max val)  of code, code-equiv and num
+   //        * put the selected encoding in a cBitEncoding, 
+   //        * compute nb of digit,  names ..
+   //        * save in a file
+
    {
        cBitEncoding aBE;
        for (size_t aK=0 ; aK<mVOC.size(); aK++)  
@@ -392,7 +441,7 @@ int  cAppliGenerateEncoding::Exe()
 	   // Update all ranges
 	   UpdateMax(mSpec.mMaxNum,aNum);
 	   UpdateMax(mSpec.mMaxLowCode,aCode);
-	   for (const auto & aCodeEqui : mCEC->CellOfCode(aCode).mEquivCode )
+	   for (const auto & aCodeEqui : mCEC->CellOfCodeOK(aCode).mEquivCode )
 	        UpdateMax(mSpec.mMaxCodeEqui,aCodeEqui);
        }
 

@@ -507,6 +507,7 @@ struct cExtractedEllipse
         cEllipse         mEllipse;
 
         cExtractedEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse);
+        void  ShowOnFile(const std::string & aNameIm,int aZoom,const std::string& aPrefName) const; // make a accurate visu
 
         tREAL8               mDist;
         tREAL8               mDistPond;
@@ -524,12 +525,11 @@ class cExtract_BW_Ellipse  : public cExtract_BW_Target
              bool AnalyseEllipse(cSeedBWTarget & aSeed,const std::string & aNameIm);
 
              const std::list<cExtractedEllipse> & ListExtEl() const;  ///< Accessor
-        private :
 
+        private :
              std::list<cExtractedEllipse> mListExtEl;
 };
 
-void  ShowEllipse(const cExtractedEllipse & anEE,const std::string & aNameIm);
 
 
 };

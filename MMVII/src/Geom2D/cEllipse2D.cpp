@@ -261,15 +261,15 @@ bool  cExtract_BW_Ellipse::AnalyseEllipse(cSeedBWTarget & aSeed,const std::strin
 
 const std::list<cExtractedEllipse> & cExtract_BW_Ellipse::ListExtEl() const {return mListExtEl;}
 
-void  ShowEllipse(const cExtractedEllipse & anEE,const std::string & aNameIm)
+void  cExtractedEllipse::ShowOnFile(const std::string & aNameIm,int aZoom,const std::string& aPrefName) const
 {
 
     static int aCptIm = 0;
     aCptIm++;
-    const cSeedBWTarget &  aSeed = anEE.mSeed;
-    const cEllipse &       anEl  = anEE.mEllipse;
+    const cSeedBWTarget &  aSeed = mSeed;
+    const cEllipse &       anEl  = mEllipse;
 
-     StdOut() << "SOMDDd=" << anEE.mDist << " DP=" << anEE.mDistPond << " " << aSeed.mPixTop
+     StdOut() << "SOMDDd=" << mDist << " DP=" << mDistPond << " " << aSeed.mPixTop
 		 << " NORM =" << anEl.Norm()  << " RayM=" << anEl.RayMoy()
 		 << "\n";
 
@@ -292,7 +292,6 @@ void  ShowEllipse(const cExtractedEllipse & anEE,const std::string & aNameIm)
 	cPt2di  aPMargin(6,6);
 	cBox2di aBox(aSeed.mPInf-aPMargin,aSeed.mPSup+aPMargin);
 
-	int aZoom = 21;
 	cRGBImage aRGBIm = cRGBImage::FromFile(aNameIm,aBox,aZoom);  ///< Allocate and init from file
 	cPt2dr aPOfs = ToR(aBox.P0());
 	/*
@@ -314,22 +313,17 @@ void  ShowEllipse(const cExtractedEllipse & anEE,const std::string & aNameIm)
 	}
 	*/
 
-	cPt2dr aCenter = anEl.Center() - aPOfs;
-	aCenter = aRGBIm.PointToRPix(aCenter);
-	std::vector<cPt2di> aVPts;
-	GetPts_Ellipse(aVPts,aCenter,anEl.LGa()*aZoom,anEl.LSa()*aZoom,anEl.TetaGa(),true);
-	for (const auto & aPix : aVPts)
-	{
-            aRGBIm.RawSetPoint(aPix,cRGBImage::Blue);
-	}
+// MMVII_INTERNAL_ASSERT_tiny(false,"CHANGE TO DO IN ShowEllipse !!!");
 
-        for (const auto  & aPFr : anEE.mVFront)
+        aRGBIm.DrawEllipse(cRGBImage::Blue,anEl.Center() - aPOfs,anEl.LGa(),anEl.LSa(),anEl.TetaGa());
+
+        for (const auto  & aPFr : mVFront)
 	{
             aRGBIm.SetRGBPoint(aPFr-aPOfs,cRGBImage::Red);
 	    //StdOut() <<  "DDDD " <<  anEl.ApproxSigneDist(aPFr) << "\n";
 	}
 
-	aRGBIm.ToFile("VisuDetectCircle_"+ ToStr(aCptIm) + ".tif");
+	aRGBIm.ToFile(aPrefName + "_Ellipses_" + ToStr(aCptIm) + ".tif");
 }
 
 };

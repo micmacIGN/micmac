@@ -1,6 +1,6 @@
 #ifndef _CODED_TARGET_H_
 #define _CODED_TARGET_H_
-// #include "MMVII_enums.h"
+#include "MMVII_memory.h"
 #include "MMVII_ImageInfoExtract.h"
 #include "MMVII_SetITpl.h"
 #include "FilterCodedTarget.h"   // Contains image processing that may be not specific to coded target
@@ -12,7 +12,11 @@ namespace MMVII
 namespace  cNS_CodedTarget
 {
 
-class cSpecBitEncoding;
+
+class cFullSpecifTarget ;  // main class from user's side to create target, know their specification
+
+//  Bit encondinf
+class cSpecBitEncoding;  
 class cOneEncoding;
 class cBitEncoding;
 
@@ -38,7 +42,7 @@ typedef cDataIm2D<tU_INT1> tDataImT;
  *     number of bits, redundancy (Haming distance), number max of code , accepted consecutive identic bits ...
  */
               
-class cSpecBitEncoding
+class cSpecBitEncoding : public cMemCheck
 {
       public :
          cSpecBitEncoding();
@@ -58,7 +62,7 @@ class cSpecBitEncoding
 					
 	 // ============   Value computed ==============
          size_t        mNbDigit;        ///< Number of digit for names  Computed & Specified
-	 std::string   mPostFix;        ///< For all name generated
+	 std::string   mPrefix;        ///< For all name generated
 				
          size_t        mMaxNum;         ///< max num of codes
          size_t        mMaxLowCode;     ///< max of all code (in fact max of the lowest representant)
@@ -69,7 +73,7 @@ class cSpecBitEncoding
  *     essentially the Num + the code
  *     for technical-tricky reason (to add comment in "xml") contain also the nb of bit 
  */
-class cOneEncoding
+class cOneEncoding : public cMemCheck
 {
         public :
            cOneEncoding();
@@ -91,7 +95,7 @@ class cOneEncoding
 
 /**  result of a bit encoding :  essential set of pair  Num/Code + also the specif used to generate it
  */
-class cBitEncoding
+class cBitEncoding : public cMemCheck
 {
     public :
 
@@ -122,20 +126,21 @@ class cGeomSimDCT
        /// defaut constructor usefull for serialization
        cGeomSimDCT();
        /// constructor used afetr randoming generating parameters
-       cGeomSimDCT(int aNum,const  cPt2dr& aC,const double& aR1,const double& aR2);
+       cGeomSimDCT(const cOneEncoding & anEncod,const  cPt2dr& aC,const double& aR1,const double& aR2);
        /// Do to simulated target intersect, used to avoid overlapping target in images
        bool Intersect(const cGeomSimDCT &  aG2) const ;
 
        /// Usable when we use a clipped file
        void Translate(const cPt2dr &);
 
-       cDCT * mResExtr;   ///< contains the potentiel detected target extracted
-       int    mNum;       ///< numbering
-       cPt2dr mC;         ///< Theoreticall center
-       cPt2dr mCornEl1;   ///< Theoreticall corner 1 of ellipse
-       cPt2dr mCornEl2;   ///< Theoreticall corner 2 of ellipse
-       double mR1;        ///< "small" size of deformaed rectangle
-       double mR2;        ///<  "big " size ....
+       cDCT *       mResExtr;   ///< contains the potentiel detected target extracted
+       // int    mNum;       ///< numbering
+       cOneEncoding mEncod; 
+       cPt2dr       mC;         ///< Theoreticall center
+       cPt2dr       mCornEl1;   ///< Theoreticall corner 1 of ellipse
+       cPt2dr       mCornEl2;   ///< Theoreticall corner 2 of ellipse
+       double       mR1;        ///< "small" size of deformaed rectangle
+       double       mR2;        ///<  "big " size ....
        std::string name;
 };
 /// method for serializing cGeomSimDCT
@@ -215,9 +220,9 @@ class  cDCT
 
 };
 
-/*   ==============  Target spec  =============  */
+/*   ==============  Target geometric specification   =============  */
 
-class cParamCodedTarget
+class cParamCodedTarget : public cMemCheck
 {
     public :
        cParamCodedTarget();
@@ -233,7 +238,7 @@ class cParamCodedTarget
        /// Set value that are computed from other like mRho_0... , mRho_1...
        void      Finish();
        /// Set default value that depend from the type , used only in create target
-       void      FinishInitOfType(eTyCodeTarget aType);
+       void      FinishInitOfSpec(const cSpecBitEncoding & aSpec);
 
 
        int NbCodeAvalaible() const;                           // Number of different code we can generate
@@ -248,10 +253,10 @@ class cParamCodedTarget
 
 
        cPt2dr    mCenterF;   // symetry center at end
-       cPt2di    mSzF;       // sz at end
+       // cPt2di    mSzF;       // sz at end
        cPt2dr    mCornEl1;
        cPt2dr    mCornEl2;
-       cPt2dr    mMidle;
+       cPt2dr    mMidle;  // Middle 
     // private :
 
        cPt2dr    Pix2Norm(const cPt2di &) const;
@@ -272,8 +277,9 @@ class cParamCodedTarget
        double    mThickN_WInt;  // Thickness white circle separating code/
        double    mThickN_Code;  // Thickness of coding part
        double    mThickN_WExt;  // Thickness of white separatio,
-       double    mThickN_Car;  // thickness of black border (needed only on pannel)
-       double    mThickN_BExt;  // thickness of black border (needed only on pannel)
+       double    mThickN_Car;  // thickness of black border 
+       double    mThickN_BorderExt;  // thickness of border 
+
        double    mChessboardAng;     // Origine angle of chessboard pattern
        bool      mWithChessboard;     // do we have a cental chess board, true 4 IGN
        bool      mWhiteBackGround;     // black on white, true 4 IGN
@@ -286,6 +292,7 @@ class cParamCodedTarget
        double          mRho_2_EndCode;// ray where begins the coding stuff
        double          mRho_3_BeginCar;// ray where begins the coding stuff
        double          mRho_4_EndCar;  // ray where begins the coding stuff
+       double          mRho_EndIm;  // ray where begins the coding stuff
 
        cPt2di    mSzBin;
        double    mScale;  // Sz of Pixel in normal coord
@@ -297,29 +304,94 @@ void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT);
 
 typedef cParamCodedTarget cParamRenderingTarget;
 
-class cFullSpecifTarget
+class cCodedTargetPatternIm;
+class cAppliGenCodedTarget;
+class cCircNP2B;
+class cStraightNP2B;
+
+class cFullSpecifTarget : public cMemCheck
 {
       public :
-         cFullSpecifTarget(const cBitEncoding&,const cParamRenderingTarget&);
-         cFullSpecifTarget();
-         ~cFullSpecifTarget();
+         friend cCodedTargetPatternIm;
+         friend cAppliGenCodedTarget;
+         friend cCircNP2B;
+         friend cStraightNP2B;
 
+	 typedef tU_INT1            tElem;
+         typedef cIm2D<tElem>       tIm;
+         typedef cDataIm2D<tElem>   tDataIm;
+
+	 //  -----------   Construction/destruction -----------------
+
+	    ///  read from an existing file
+         static cFullSpecifTarget *  CreateFromFile(const std::string &);
+	    ///  destructor must be accessible
+         ~cFullSpecifTarget();
+	    /// serialization  : public because called by MMVII::AddData 
+         void AddData(const  cAuxAr2007 & anAux); 
+
+	 //  -----------   Access to encodings -----------------
+
+	     /// return all possible encodings  (Num+Name+Binary code)
          const std::vector<cOneEncoding> &  Encodings() const;
+	     ///  Get encoding from bit-code,  work with any of the circular permutation for this code, null if none
+	 const cOneEncoding * EncodingFromCode(size_t aBitFlag) const;
+	     ///  Get encoding from name, null ptr if none
+	 const cOneEncoding * EncodingFromName(const std::string &) const;
+
+
+	 //  -----------   Creation of images -----------------
+
+	     ///  Generate the image of one encoding
+	 tIm   OneImTarget(const cOneEncoding & aCode);
+	     /// get the pattern for generating all image 
+	 tIm   ImagePattern();
+
+	 //  -----------   Accessors to geometry & encoding  -----------------
+
+	            //   encoding
+         eTyCodeTarget Type() const;           ///< Type amon allowed value
+	 size_t NbBits() const; ///<  Number of bits
+         const  std::string &     Prefix()    const;  ///< Prefix used in name-generation
+	 size_t MinHammingD() const; ///<  Number of bits
+
+	            //   geometry 
+         const std::vector<cPt2dr>& BitsCenters() const; /// Access to all bits centers
+	 const cPt2dr & Center() const; ///<  Center of bits
+	 const cPt2dr & CornerlEl_BW() const; ///<  Corner of ellipse transition B->W ( trigonometric sense)
+	 const cPt2dr & CornerlEl_WB() const; ///<  Corner of ellipse transition W->B ( trigonometric sense)
+
+      private :
+	 ///  default constructor required for step by step buildin
+         cFullSpecifTarget();
+
+         cFullSpecifTarget(const cBitEncoding&,const cParamRenderingTarget&);
+         cFullSpecifTarget(const cFullSpecifTarget &) = delete;
+
+	 /// Make a zoom vision for test geom + test reload
+	 // static void TestReloadAndShow(const std::string & aName,int aZoom);
+
+
          const  cSpecBitEncoding &          Specs()     const;
+	 int    DeZoomIm() const;
          const  cParamRenderingTarget &     Render()    const;
-         const  std::string &     PostFix()    const;
 
 	 std::string NameOfImPattern() const;
 	 std::string NameOfEncode(const cOneEncoding & anEnCode) const;
 
-      private :
-	 cFullSpecifTarget(const cFullSpecifTarget & ) = delete;
+	 void SetBitCenter(size_t aBit,const cPt2dr&);
 
+
+	 cCodedTargetPatternIm * AllocCTPI();
+	 cCompEquiCodes *         CEC() const;
+
+	 cPt2di  PDiag(tREAL8) const;
+
+	 mutable cCompEquiCodes *         mCEC;
+	 cCodedTargetPatternIm*   mCTPI;
          cBitEncoding             mBE;
          cParamRenderingTarget    mRender;
          std::vector<cPt2dr>      mBitsCenters;
-
-	 cCompEquiCodes *         mCEC;
 };
 
 

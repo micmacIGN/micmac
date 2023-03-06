@@ -5,6 +5,78 @@
 
 namespace MMVII
 {
+using namespace cNS_CodedTarget;
+
+/**  Generate a visualistion of target, made an external-non-friend  function
+ * to test the usability.
+ *
+ */
+void TestReloadAndShow_cFullSpecifTarget(const std::string & aName,int aZoom)
+{
+    // -1- ----------- Create the object from file ------------------
+    std::unique_ptr<cFullSpecifTarget> aFullSpec (cFullSpecifTarget::CreateFromFile(aName));
+
+    // -2- ------------ generate a "standard" target image -----------
+        // -2.1- generate an encoding with maximum of transition
+    cOneEncoding aEnc(0,Str2BitFlag("010101010101010101010101010101"));
+    aEnc.SetName("xx");
+
+       // -2.2- generate a "standard" target image
+    cFullSpecifTarget::tIm anIm = aFullSpec->OneImTarget(aEnc);
+    anIm.DIm().ToFile("TestTarget_"+aFullSpec->Prefix()+".tif");
+
+    // -3-  ------------------generate a high resolution to visualize
+    cRGBImage aImZoom =   RGBImFromGray(anIm.DIm(),1.0,aZoom);
+
+         // -3.1- visualize centers and corners
+    aImZoom.DrawCircle(cRGBImage::Blue,aFullSpec->Center(),1.0);
+    aImZoom.DrawCircle(cRGBImage::Red,aFullSpec->CornerlEl_BW(),1.0);
+    aImZoom.DrawCircle(cRGBImage::Green,aFullSpec->CornerlEl_WB(),1.0);
+
+         // -3.2- visualize the bits
+    for (const auto & aC : aFullSpec->BitsCenters())
+    {
+        for (const auto & aR : {1.0,3.0,5.0})
+            aImZoom.DrawCircle(cRGBImage::Cyan,aC,aR);
+    }
+
+         // -3.3- write the file
+    aImZoom.ToFile("TestZoom_"+aFullSpec->Prefix()+".tif");
+}
+
+void Bench_Target_Encoding()
+{
+    // -1-  Create the spec
+    std::string aName =  cMMVII_Appli::InputDirTestMMVII()
+	                 + "Targets" +  StringDirSeparator()  + "IGNIndoor_Nbb12_Freq2_Hamm3_Run2_3_FullSpecif.xml";
+
+    std::unique_ptr<cFullSpecifTarget> aFullSpec (cFullSpecifTarget::CreateFromFile(aName));
+
+    // -2-   check some elementary values
+    MMVII_INTERNAL_ASSERT_bench(aFullSpec->NbBits()==12,"Bench_Target_Encoding");
+    MMVII_INTERNAL_ASSERT_bench(aFullSpec->MinHammingD()==3,"Bench_Target_Encoding");
+    MMVII_INTERNAL_ASSERT_bench(aFullSpec->EncodingFromName("toto")==nullptr,"Bench_Target_Encoding");
+    MMVII_INTERNAL_ASSERT_bench(aFullSpec->EncodingFromCode((1<<12))==nullptr,"Bench_Target_Encoding"); // too big
+
+    // -3-   check access to encoding from name/code 
+    for (const auto & aNameT : std::vector<std::string>({"14","26","03"}))
+    {
+        const cOneEncoding * anEncod = aFullSpec->EncodingFromName(aNameT);
+        MMVII_INTERNAL_ASSERT_bench(anEncod!=nullptr,"Bench_Target_Encoding");
+
+        size_t aBitFlag = anEncod->Code();
+        const cOneEncoding * anEncod2 = aFullSpec->EncodingFromCode(aBitFlag);
+        MMVII_INTERNAL_ASSERT_bench(anEncod==anEncod2,"Bench_Target_Encoding");
+
+        anEncod2 = aFullSpec->EncodingFromCode(aBitFlag+1);  // should ==0, due to hamming constraint
+        MMVII_INTERNAL_ASSERT_bench(anEncod2==nullptr,"Bench_Target_Encoding");
+
+        size_t anEquiCode  = N_LeftBitsCircPerm(aBitFlag,1<<12,6);
+        anEncod2 = aFullSpec->EncodingFromCode(anEquiCode);  // should ==0, due to hamming constraint
+
+        MMVII_INTERNAL_ASSERT_bench(anEncod==anEncod2,"Bench_Target_Encoding");
+    }
+}
 
 
 namespace  cNS_CodedTarget
@@ -29,7 +101,7 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
 {
     MMVII::EnumAddData(anAux,mType,"Type");
     MMVII::AddData(cAuxAr2007("NbBits",anAux),mNbBit);
-    MMVII::AddData(cAuxAr2007("SzF",anAux),mSzF);
+    //  MMVII::AddData(cAuxAr2007("SzF",anAux),mSzF);
     MMVII::AddData(cAuxAr2007("CenterF",anAux),mCenterF);
     MMVII::AddData(cAuxAr2007("CornEl1",anAux),mCornEl1);
     MMVII::AddData(cAuxAr2007("CornEl2",anAux),mCornEl2);
@@ -37,12 +109,15 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("ThickN_WhiteInt",anAux),mThickN_WInt);
     MMVII::AddData(cAuxAr2007("ThickN_Code",anAux),mThickN_Code);
     MMVII::AddData(cAuxAr2007("ThickN_WhiteExt",anAux),mThickN_WExt);
-    MMVII::AddData(cAuxAr2007("ThickN_BlackExt",anAux),mThickN_BExt);
+    MMVII::AddData(cAuxAr2007("ThickN_BorderExt",anAux),mThickN_BorderExt);
     MMVII::AddData(cAuxAr2007("ThickN_Car",anAux),mThickN_Car);
     MMVII::AddData(cAuxAr2007("ChessBoardAngle",anAux),mChessboardAng);
     MMVII::AddData(cAuxAr2007("ModeFlight",anAux),mModeFlight);
     MMVII::AddData(cAuxAr2007("WithChessBoard",anAux),mWithChessboard);
     MMVII::AddData(cAuxAr2007("WhiteBackGround",anAux),mWhiteBackGround);
+
+     if (anAux.Input())
+	Finish();
 }
 
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
@@ -53,7 +128,7 @@ void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
 void cParamCodedTarget::InitFromFile(const std::string & aNameFile)
 {
     ReadFromFile(*this,aNameFile);
-    Finish();
+    // Finish();
 }
 
 int cParamCodedTarget::ToMultiple_2DeZoom(int aSz) const
@@ -68,7 +143,7 @@ cPt2di cParamCodedTarget::ToMultiple_2DeZoom(const cPt2di &aSz) const
 
 
 cParamCodedTarget::cParamCodedTarget() :
-   mType             (eTyCodeTarget::eIGNIndoor),  // eNbVals create problem in reading  eIGNIndoor
+   mType             (eTyCodeTarget::eIGNIndoor),  // used to create problem in reading serial, solved, but maintain fake-init
    mNbBit            (9),
    mWithParity       (true),
    mNbRedond         (2),
@@ -79,8 +154,8 @@ cParamCodedTarget::cParamCodedTarget() :
    mThickN_WInt      (0.35),
    mThickN_Code      (0.35),
    mThickN_WExt      (0.2),
-   mThickN_Car       (0.8),
-   mThickN_BExt      (0.05),
+   mThickN_Car       (0.5),
+   mThickN_BorderExt (0.05),
    mChessboardAng    (0.0),
    mWithChessboard   (true),
    mWhiteBackGround  (true),
@@ -90,16 +165,16 @@ cParamCodedTarget::cParamCodedTarget() :
 {
 }
 
-void cParamCodedTarget::FinishInitOfType(eTyCodeTarget aType)
+void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
 {
-   mType = aType;
+   mType = aSpec.mType;
    cMMVII_Appli & anAppli = cMMVII_Appli::CurrentAppli();
 
-   if (aType==eTyCodeTarget::eIGNIndoor)
+   if (aSpec.mType==eTyCodeTarget::eIGNIndoor)
    {
          // Nothingto do all default value have been setled for this case
    }
-   else if (aType==eTyCodeTarget::eIGNDrone)
+   else if (aSpec.mType==eTyCodeTarget::eIGNDrone)
    {
        anAppli.SetIfNotInit(mModeFlight,true);
        anAppli.SetIfNotInit(mThickN_WInt,0.1);
@@ -108,19 +183,18 @@ void cParamCodedTarget::FinishInitOfType(eTyCodeTarget aType)
        anAppli.SetIfNotInit(mThickN_Car,0.3);
        anAppli.SetIfNotInit(mChessboardAng,M_PI/4.0);
    }
-   else if (aType==eTyCodeTarget::eCERN)
+   else if (aSpec.mType==eTyCodeTarget::eCERN)
    {
        anAppli.SetIfNotInit(mNbBit,20);
        anAppli.SetIfNotInit(mWithParity,false);
        anAppli.SetIfNotInit(mNbRedond,1);
        anAppli.SetIfNotInit(mThickN_WInt,1.0);
        anAppli.SetIfNotInit(mThickN_Code,1.0);
-       anAppli.SetIfNotInit(mThickN_WExt,1.0);
-       anAppli.SetIfNotInit(mThickN_BExt,0.0);
-
+       anAppli.SetIfNotInit(mThickN_WExt,0.0);
        anAppli.SetIfNotInit(mWithChessboard,false);
        anAppli.SetIfNotInit(mWhiteBackGround,false);
    }
+   mThickN_Car *= (aSpec.mNbDigit+1)/2;
 }
 
 cPt2dr cParamCodedTarget::Pix2Norm(const cPt2di & aPix) const
@@ -172,12 +246,38 @@ void cParamCodedTarget::Finish()
                   );
 
 
+  aCumulThick = mRho_4_EndCar;
+  aCumulThick += mThickN_BorderExt;
+  mRho_EndIm = mSz_CCB * aCumulThick; 
+
 
   // mMidle = ToR(mSzBin-cPt2di(1,1)) / 2.0 - cPt2dr(1,1) ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
   mMidle = ToR(mSzBin-cPt2di(mSzGaussDeZoom,mSzGaussDeZoom)) / 2.0  ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
-  mScale = mNbPixelBin / (2.0 * mRho_4_EndCar);
+  mScale = mNbPixelBin / (2.0 * mRho_EndIm);
 
 
+  // mCenterF = mMidle / double(mSzGaussDeZoom);
+  mCenterF = Norm2PixR(FromPolar(0.0,0.0))  / double(mSzGaussDeZoom);
+
+  mCornEl1 = Norm2PixR(FromPolar(mRho_0_EndCCB,mChessboardAng))  / double(mSzGaussDeZoom);
+  mCornEl2 = Norm2PixR(FromPolar(mRho_0_EndCCB,mChessboardAng+M_PI/2.0))  / double(mSzGaussDeZoom);
+
+  //mCornEl1 = mCenterF + FromPolar
+
+
+
+
+  if (false)
+  {
+      StdOut() <<  "r0 : " << mRho_0_EndCCB << "\n"
+               <<  "r1 : " << mRho_1_BeginCode << "\n"
+               <<  "r2 : " << mRho_2_EndCode << "\n"
+               <<  "r3 : " << mRho_3_BeginCar << "\n"
+               <<  "r4 : " << mRho_4_EndCar << "\n"
+	       <<  "r5 : " << mRho_EndIm << "\n";
+
+      getchar();
+  }
 }
 
 int cParamCodedTarget::NbCodeAvalaible() const
@@ -222,43 +322,6 @@ std::string cParamCodedTarget::NameOfNum(int aNum) const
 std::string cParamCodedTarget::NameFileOfNum(int aNum) const
 {
    return "Target_" + NameOfNum(aNum) + ".tif";
-}
-
-
-
-
-/* *************************************************** */
-/*                                                     */
-/*                cFullSpecifTarget                    */
-/*                                                     */
-/* *************************************************** */
-
-cFullSpecifTarget::cFullSpecifTarget(const cBitEncoding& aBE,const cParamRenderingTarget& aRender) :
-   mBE      (aBE),
-   mRender  (aRender),
-   mCEC     (nullptr)
-{
-}
-
-cFullSpecifTarget::~cFullSpecifTarget()
-{
-    delete mCEC;
-}
-
-const std::vector<cOneEncoding> &  cFullSpecifTarget::Encodings() const {return mBE.Encodings();}
-const  cSpecBitEncoding &          cFullSpecifTarget::Specs()     const {return mBE.Specs();}
-const  cParamRenderingTarget &     cFullSpecifTarget::Render()    const {return mRender;}
-const  std::string &               cFullSpecifTarget::PostFix()   const {return Specs().mPostFix;}
-
-
-std::string cFullSpecifTarget::NameOfImPattern() const
-{
-   return  PostFix() + "_Pattern"+ ".tif"; 
-}
-
-std::string cFullSpecifTarget::NameOfEncode(const cOneEncoding & anEncode) const
-{
-    return   PostFix()  +  "_Target_"+  anEncode.Name() +   ".tif";
 }
 
 
@@ -329,7 +392,7 @@ bool  cCircNP2B::PNormIsCoding(const cPt2dr & aPt) const
 
 int cCircNP2B::BitsOfNorm(const cPt2dr & aPt) const 
 {
-     tREAL8 aTeta = PreProcessCoord(aPt).y() +mTeta0;
+     tREAL8 aTeta = PreProcessCoord(aPt).y() -mTeta0;
      tREAL8 aIndex = mNbBits * (aTeta / (2*M_PI)) ;
      aIndex = mod_real(aIndex,mNbBits);
      return round_down (aIndex);
@@ -369,8 +432,11 @@ bool    cStraightNP2B::PNormIsCoding(const cPt2dr & aPt) const
 
 int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
 {
-    return    round_down((aPt.x()+mRho1)/(2*mRho1) *mNbBS2)  
-	    + mNbBS2*(aPt.y()<0);
+    int aRes =  
+	        mNbBS2*(aPt.y()<0) 
+	    +  round_down((aPt.x()+mRho1)/(2*mRho1) *mNbBS2)  ;
+
+     return std::min(aRes,mNbBits-1);
 }
 
 /* *************************************************** */
@@ -381,7 +447,7 @@ int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
 
 cNormPix2Bit * cNormPix2Bit::Alloc(const cFullSpecifTarget & aSpecif)
 {
-   switch (aSpecif.Specs().mType)
+   switch (aSpecif.Type())
    {
          case eTyCodeTarget::eCERN :
          case eTyCodeTarget::eIGNIndoor:
@@ -417,15 +483,21 @@ class cCodedTargetPatternIm
           typedef cIm2D<tElem>       tIm;
           typedef cDataIm2D<tElem>   tDataIm;
 
-          cCodedTargetPatternIm(const cFullSpecifTarget &);
+          cCodedTargetPatternIm(cFullSpecifTarget &);
 
 	  tIm  ImCoding() const;
 
-	  tIm MakeOneImTarget(const cOneEncoding & aCode);
+	  tIm MakeOneImTarget(const cOneEncoding & aCode,bool doMarkC = false);
      private :
-	  const cFullSpecifTarget & mSpec;
-	  tIm               mImCoding;
-	  tDataIm &         mDIC;
+	  cCodedTargetPatternIm(const cCodedTargetPatternIm &) = delete;
+	  cPt2di  PDiag(tREAL8 aRhoNorm) const;
+
+
+	  cFullSpecifTarget &     mSpec;
+	  const cParamRenderingTarget&  mRender;
+	  cPt2di                        mSzBin;
+	  tIm                     mImCoding;
+	  tDataIm &               mDIC;
 
 	  tIm               mImTarget;
 	  tDataIm &         mDIT;
@@ -435,59 +507,85 @@ class cCodedTargetPatternIm
 	  tREAL8            mRho2C;
 };
 
-cCodedTargetPatternIm::cCodedTargetPatternIm(const cFullSpecifTarget & aSpec) :
+cPt2di  cCodedTargetPatternIm::PDiag(tREAL8 aRhoNorm) const
+{
+       tREAL8 r =  aRhoNorm ;
+       cPt2dr aP3r(-r,-r);
+       cPt2di  aP3I = mRender.Norm2PixI(aP3r);
+
+       return  mDIC.Proj(aP3I);
+}
+
+
+cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
      mSpec       (aSpec),
-     mImCoding   (mSpec.Render().mSzBin),
+     mRender     (mSpec.Render()),
+     mSzBin      (mRender.mSzBin),
+     mImCoding   (mSzBin),
      mDIC        (mImCoding.DIm()),
-     mImTarget   (mSpec.Render().mSzBin),
+     mImTarget   (mSzBin),
      mDIT        (mImTarget.DIm()),
-     mTeta0      (mSpec.Render().mChessboardAng),
-     mRhoC       (mSpec.Render().mRho_0_EndCCB),
+     mTeta0      (mRender.mChessboardAng),
+     mRhoC       (mRender.mRho_0_EndCCB),
      mRho2C      (Square(mRhoC))
 {
     mDIC.InitCste(tElem(eLPT::eBackGround));
 
-    // std::vector<cPt2dr> & aVBC = mSpec.Render().mBitsCenters;
+    // Structures for computing center of bits
+    std::vector<cPt2dr>  aVCenters =  mSpec.BitsCenters();
+    std::vector<tREAL8>  aVWeight(mSpec.NbBits(),0.0);
 
-
-    // std::unique_ptr<cNormPix2Bit>  aP2B (new cCircNP2B (mSpec));
+    // structure specifying bits location
     std::unique_ptr<cNormPix2Bit>  aP2B (cNormPix2Bit::Alloc(aSpec));
     for (const auto & aPix : mDIC)
     {
        cPt2dr aPN = mSpec.Render().Pix2Norm(aPix);
        //  ============  1  Generate the bit coding =======================
-       if (aP2B->PNormIsCoding(aPN))
+       if (aP2B->PNormIsCoding(aPN))  // if point belong to bit-coding space
        {
-           int aNumB =  aP2B->BitsOfNorm(aPN);
-	   mDIC.SetV(aPix,int(eLPT::eNumB0)+aNumB);
+           int aNumB =  aP2B->BitsOfNorm(aPN);  // get value of bit
+	   mDIC.SetV(aPix,int(eLPT::eNumB0)+aNumB);  // marq the image with num
+
+	   aVWeight.at(aNumB) += 1 ;  // increment number of point for this bit
+	   aVCenters.at(aNumB) += ToR(aPix);  // accumulate for centroid
        }
        //  ============  2  Generate the central circle =======================
        else if (SqN2(aPN) <mRho2C)
        {
-           eLPT aLab = eLPT::eForeGround;
+           eLPT aLab = eLPT::eForeGround;  // a priori mar circle
            if (mSpec.Render().mWithChessboard)
 	   {
+               // computation to separate the plane in 4 quadrant
                double PIsur2 = M_PI/2.0;
 	       tREAL8 aTeta = ToPolar(aPN).y();
-               int aIndTeta = round_down((aTeta+mTeta0)/PIsur2);
+               int aIndTeta = round_down((aTeta-mTeta0)/PIsur2);
                if ((aIndTeta%2)==0)
                    aLab = eLPT::eBackGround;
 	   }
 	   mDIC.SetV(aPix,int(aLab));
        }
     }
+
+    // compute and memorize the center
+    for (size_t aB=0 ; aB< aVWeight.size() ; aB++)
+    {
+       mSpec.SetBitCenter(aB,aVCenters.at(aB) / tREAL8(aVWeight.at(aB) * mSpec.DeZoomIm() ));
+    }
 }
 
 cCodedTargetPatternIm::tIm cCodedTargetPatternIm::ImCoding() const {return mImCoding;}
 
-cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEncoding & anEnCode)
+cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEncoding & anEnCode,bool doMarkC)
 {
+   // compute gray level for background & foreground
    int aBG_Coul = mSpec.Render().mWhiteBackGround ? 255 : 0;
    int aFG_Coul =  255-aBG_Coul;
 
+   // by default all is backgrounf
    mDIT.InitCste(aBG_Coul);
+
    size_t aCode = anEnCode.Code();
-   bool  BGIs_0 = mSpec.Render().mZeroIsBackGround;
+   bool  BGIs_0 = mSpec.Render().mZeroIsBackGround;  // true mean bits 0 are considered background
    for (const auto & aPix : mDIC)
    {
        eLPT aLab =  eLPT(mDIC.GetV(aPix));
@@ -511,8 +609,221 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
        }
    }
 
-   return mImTarget.GaussDeZoom(mSpec.Render().mSzGaussDeZoom);
+   // ---------------  caracter insertion  --------------------
+
+   {
+        //cPt2di  aSzFt(10,10);
+        std::string aFullName = anEnCode.Name();
+	size_t aIndSplit = (aFullName.size() +1)/2;
+
+	// Corners of string, 
+        cPt2di  aP00 = PDiag(mRender.mRho_4_EndCar);
+	cPt2di  aP11 = PDiag(mRender.mRho_4_EndCar-mRender.mThickN_Car) ; // for a 1 length caracr
+
+	// udate highth of string, to adapt to length (aIndSplit is maximal legnt of 2 substrings)
+	int aHigth = (aP11.y()-aP00.y()) / aIndSplit;
+	aP11 =  cPt2di(aP11.x(),aP00.y() + aHigth);
+
+	// loop for processing the 2 subsrt string 
+	for (const auto & aLeftSS : {true,false} )
+	{
+             int aFG_StrCoul = aFG_Coul;
+             // extract one of the 2 substr
+             std::string aName = aFullName.substr((aLeftSS?0:aIndSplit) , (aLeftSS?aIndSplit:std::string::npos));
+	     // get image of string
+	     cIm2D<tU_INT1>  aImStr = ImageOfString_10x8(aName,1);
+	     cDataIm2D<tU_INT1>&  aDImStr =  aImStr.DIm();
+
+	     // compute the size of each pixel to fill the hights
+	     tREAL8 aSzPixStr = aHigth / tREAL8(aDImStr.Sz().y());
+
+	     cPt2di aPOri = aP00;
+	     if (! aLeftSS)
+	     {
+	          int aWitdhStr = round_ni(aDImStr.Sz().x())*aSzPixStr;  // Width of string
+	          //  Off + WidtStr/2 =  SzBin.x - P4.x
+	          int OffsX  = mSzBin.x()  - aP00.x() -  aWitdhStr;
+		  aPOri = cPt2di(OffsX,aP00.y());
+	     }
+
+	     cPt2di  aP4Sym =mSzBin - cPt2di(1,1);
+
+	     for (const auto & aPixStr : aDImStr)
+	     {
+                  if (aDImStr.GetV(aPixStr))
+	          {
+                       cPt2di aP0 = aPOri+ToI(ToR(aPixStr)*aSzPixStr);
+                       cPt2di aP1 = aPOri+ToI(ToR(aPixStr+cPt2di(1,1))*aSzPixStr);
+
+		       for (const auto& aPixIm : cRect2(aP0,aP1))
+		       {
+                           mDIT.SetV(aPixIm,aFG_StrCoul);
+                           mDIT.SetV(aP4Sym-aPixIm,aFG_StrCoul);
+		       }
+	          }
+	     }
+
+	}
+   }
+
+
+   tIm aRes = mImTarget.GaussDeZoom(mSpec.DeZoomIm());
+
+   // in debug mode, marq with one pixel the center
+   if (doMarkC)
+   {
+      for (const auto & aC : mSpec.BitsCenters())
+      {
+	      aRes.DIm().SetV(ToI(aC),128);
+      }
+   }
+
+   return aRes;
 }
+
+/* *************************************************** */
+/*                                                     */
+/*                cFullSpecifTarget                    */
+/*                                                     */
+/* *************************************************** */
+
+cFullSpecifTarget::cFullSpecifTarget() :
+   mCEC         (nullptr),
+   mCTPI        (nullptr)
+{
+}
+
+cFullSpecifTarget::cFullSpecifTarget(const cBitEncoding& aBE,const cParamRenderingTarget& aRender) :
+   //cFullSpecifTarget(),
+   mCEC         (nullptr),
+   mCTPI        (nullptr),
+   mBE          (aBE),
+   mRender      (aRender),
+   mBitsCenters (NbBits())
+{
+}
+
+cCodedTargetPatternIm * cFullSpecifTarget::AllocCTPI()
+{
+    if (mCTPI==nullptr)
+       mCTPI = new  cCodedTargetPatternIm(*this);
+
+    return mCTPI;
+}
+
+cCompEquiCodes *   cFullSpecifTarget::CEC() const
+{
+    if (mCEC==nullptr)
+    {
+       size_t aPer = NbBits()/Specs().mFreqCircEq;
+       mCEC = cCompEquiCodes::Alloc(NbBits(),aPer);
+    }
+
+    return mCEC;
+}
+
+
+cFullSpecifTarget::tIm   cFullSpecifTarget::ImagePattern()
+{
+	return AllocCTPI()->ImCoding();
+}
+cFullSpecifTarget::tIm   cFullSpecifTarget::OneImTarget(const cOneEncoding & aCode)
+{
+	return AllocCTPI()->MakeOneImTarget(aCode);
+}
+
+
+
+cFullSpecifTarget::~cFullSpecifTarget()
+{
+    delete mCTPI;
+    delete mCEC;
+}
+
+const std::vector<cOneEncoding> & cFullSpecifTarget::Encodings()   const {return mBE.Encodings();}
+const cSpecBitEncoding &          cFullSpecifTarget::Specs()       const {return mBE.Specs();}
+const cParamRenderingTarget &     cFullSpecifTarget::Render()      const {return mRender;}
+const std::string &               cFullSpecifTarget::Prefix()      const {return Specs().mPrefix;}
+const std::vector<cPt2dr>&        cFullSpecifTarget::BitsCenters() const {return mBitsCenters;}
+size_t                            cFullSpecifTarget::NbBits()      const {return Specs().mNbBits;}
+int                               cFullSpecifTarget::DeZoomIm()    const {return mRender.mSzGaussDeZoom;}
+eTyCodeTarget                     cFullSpecifTarget::Type()        const {return Specs().mType;}
+size_t                            cFullSpecifTarget::MinHammingD() const {return Specs().mMinHammingD;}
+
+const cPt2dr & cFullSpecifTarget::Center() const {return mRender.mCenterF;}
+const cPt2dr & cFullSpecifTarget::CornerlEl_BW() const {return mRender.mCornEl1;}
+const cPt2dr & cFullSpecifTarget::CornerlEl_WB() const {return mRender.mCornEl2;}
+
+
+
+void  cFullSpecifTarget::SetBitCenter(size_t aBit,const cPt2dr& aC)
+{
+      mBitsCenters.at(aBit) = aC;
+}
+
+
+std::string cFullSpecifTarget::NameOfImPattern() const
+{
+   return  Prefix() + "_Pattern"+ ".tif"; 
+}
+
+std::string cFullSpecifTarget::NameOfEncode(const cOneEncoding & anEncode) const
+{
+    return   Prefix()  +  "_Target_"+  anEncode.Name() +   ".tif";
+}
+
+void cFullSpecifTarget::AddData(const  cAuxAr2007 & anAux)
+{
+     mBE.AddData(cAuxAr2007("BitEncoding",anAux));
+     mRender.AddData(cAuxAr2007("Geometry",anAux));
+     StdContAddData(cAuxAr2007("Centers",anAux),mBitsCenters);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cFullSpecifTarget & aSpecif)
+{
+   aSpecif.AddData(anAux);
+}
+
+cFullSpecifTarget *  cFullSpecifTarget::CreateFromFile(const std::string & aName)
+{
+    cFullSpecifTarget * aRes = new cFullSpecifTarget;
+    ReadFromFile(*aRes,aName);
+
+    return aRes;
+}
+
+const cOneEncoding * cFullSpecifTarget::EncodingFromCode(size_t aBitFlag) const
+{
+   // 1 Extract the low-standard value, if it exist
+   const cCelCC * aCell = CEC()->CellOfCode(aBitFlag);
+   if (aCell==nullptr) return nullptr;
+
+   aBitFlag = aCell->mLowCode;
+
+   // 2 Extract the encoding with adequat code
+   for (const auto & anEncod : Encodings())
+   {
+       if (anEncod.Code() == aBitFlag)
+          return &anEncod;
+   }
+
+   //  none was found
+   return nullptr;
+}
+
+const cOneEncoding * cFullSpecifTarget::EncodingFromName(const std::string &aName) const
+{
+   //  Extract the encoding with adequate name
+   for (const auto & anEncod : Encodings())
+       if (anEncod.Name() == aName)
+          return &anEncod;
+
+   //  none was found
+   return nullptr;
+}
+
+
+
 
 /* *************************************************** */
 /*                                                     */
@@ -535,10 +846,13 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 
 
 	int                mPerGen;  // Pattern of numbers
+	int                mZoomShow;
 	std::string        mNameBE;
 	cBitEncoding       mBE;
 
 	cParamCodedTarget  mPCT;
+	bool               mDoMarkC;
+	std::string        mPatternDoImage;
 };
 
 eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
@@ -546,7 +860,8 @@ eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
 
 cAppliGenCodedTarget::cAppliGenCodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
-   mPerGen       (10)
+   mPerGen       (10),
+   mDoMarkC      (false)
 {
 }
 
@@ -558,42 +873,68 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
    ;
 }
 
+
 cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
+          << AOpt2007(mPatternDoImage,"PatIm","Pattern for generating image (def no generation)")
           << AOpt2007(mPCT.mNbBit,"NbBit","Nb Bit printed",{eTA2007::HDV})
           << AOpt2007(mPCT.mWithParity,"WPar","With parity bit",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_WInt,"ThW0","Thickness of interior white circle",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_Code,"ThCod","Thickness of bin-coding black circle",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_WExt,"ThSepCar","Thickness of sep bin-code / ahpha code",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_Car,"ThCar","Thickness of separation alpha ccode ",{eTA2007::HDV})
-          << AOpt2007(mPCT.mThickN_BExt,"ThBExt","Thickness of black border ",{eTA2007::HDV})
+          << AOpt2007(mPCT.mThickN_BorderExt,"ThBExt","Thickness of border exterior",{eTA2007::HDV})
           << AOpt2007(mPCT.mChessboardAng,"Theta","Origin angle of chessboard pattern ",{eTA2007::HDV})
           << AOpt2007(mPCT.mModeFlight,"ModeFlight","Special mode for Patricio ",{eTA2007::HDV})
+          << AOpt2007(mDoMarkC,"MarkC","Mark center of bits, just for verif ",{eTA2007::HDV,eTA2007::Tuning})
+          << AOpt2007(mZoomShow,"ZoomShow","Zoom to generate a high resolution check images",{eTA2007::Tuning})
    ;
 }
 
 
 int  cAppliGenCodedTarget::Exe()
 {
+    Bench_Target_Encoding();
+
+
    ReadFromFile(mBE,mNameBE);
 
-   mPCT.FinishInitOfType(Type());
+   mPCT.FinishInitOfSpec(mBE.Specs());
    mPCT.Finish();
 
    cFullSpecifTarget  aFullSpec(mBE,mPCT);
-   cCodedTargetPatternIm  aCTPI(aFullSpec);
 
-   aCTPI.ImCoding().DIm().ToFile(aFullSpec.NameOfImPattern());
+   // Activate the computaion of centers
+   aFullSpec.ImagePattern();
 
-   for (const auto & anEncode : aFullSpec.Encodings())
+   if (IsInit(&mPatternDoImage))
    {
-       cCodedTargetPatternIm::tIm anIm = aCTPI.MakeOneImTarget(anEncode);
+      //  generate the pattern image
+      aFullSpec.ImagePattern().DIm().ToFile(aFullSpec.NameOfImPattern());
 
-       std::string aName = aFullSpec.NameOfEncode(anEncode);
-       anIm.DIm().ToFile(aName);
-       StdOut() << aName << "\n";
+      // parse all encodings
+      for (const auto & anEncode : aFullSpec.Encodings())
+      {
+          if (MatchRegex(anEncode.Name(),mPatternDoImage))
+	  {
+             cCodedTargetPatternIm::tIm anIm = aFullSpec.OneImTarget(anEncode);
+
+             std::string aName = aFullSpec.NameOfEncode(anEncode);
+             anIm.DIm().ToFile(aName);
+             StdOut() << aName << "\n";
+	  }
+      }
    }
+
+   std::string aName = aFullSpec.Prefix()+"_FullSpecif.xml";
+   SaveInFile(aFullSpec, aName);
+
+   if (IsInit(&mZoomShow))
+   {
+      TestReloadAndShow_cFullSpecifTarget(aName,mZoomShow);
+   }
+
 
 
    return EXIT_SUCCESS;

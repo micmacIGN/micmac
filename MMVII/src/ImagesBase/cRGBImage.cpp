@@ -1,6 +1,7 @@
-
 #include "MMVII_Image2D.h"
 #include "MMVII_Tpl_Images.h"
+#include "MMVII_Geom2D.h"
+
 
 namespace MMVII
 {
@@ -274,6 +275,22 @@ void cRGBImage::Write(const std::string & aName,const cPt2di & aP0,double aDyn,c
      Write(cDataFileIm2D::Create(aName,false),aP0,aDyn,aRect);
 }
 
+void cRGBImage::DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta)
+{
+    cPt2dr aCenterLoc = PointToRPix(aCenter);
+
+    std::vector<cPt2di> aVPts;
+    GetPts_Ellipse(aVPts,aCenterLoc,aGA*mRZoom,aSA*mRZoom,aTeta,true);
+    for (const auto & aPix : aVPts)
+    {
+         RawSetPoint(aPix,aCoul);
+    }
+}
+
+void cRGBImage::DrawCircle(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8  aRay)
+{
+	DrawEllipse(aCoul,aCenter,aRay,aRay,0.0);
+}
 
 std::vector<cPt3di>  cRGBImage::LutVisuLabRand(int aNbLab)
 {
@@ -302,4 +319,5 @@ std::vector<cPt3di>  cRGBImage::LutVisuLabRand(int aNbLab)
 template  void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<tREAL4> & aIm,const double &);
 template  void SetGrayPix(cRGBImage&,const cDataIm2D<tREAL4> & aIm,const double & aMul);
 template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const double & aMul,int aZoom);
+template  cRGBImage  RGBImFromGray(const cDataIm2D<tU_INT1> & aGrayIm,const double & aMul,int aZoom);
 };

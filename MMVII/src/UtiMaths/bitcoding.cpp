@@ -99,6 +99,18 @@ size_t  LeftBitsCircPerm(size_t aSetFlag,size_t aPow2)
      return aSetFlag >> 1;            // now left shit
 }
 
+size_t  N_LeftBitsCircPerm(size_t aSetFlag,size_t aPow2,size_t N)
+{
+    while (N!=0)
+    {
+        N--;
+        aSetFlag= LeftBitsCircPerm(aSetFlag,aPow2);
+    }
+
+    return aSetFlag;
+}
+
+
 /// make a symetry bits, assuming a size NbIt, with  aPow2= NbBit^2
 
 size_t  BitMirror(size_t aSetFlag,size_t aPow2) 
@@ -250,6 +262,9 @@ cCompEquiCodes::cCompEquiCodes(size_t aNbBits,size_t aPer,bool WithMirror) :
               // Nothing to do, code has been processed by equivalent lower codes
 	  }
      }
+
+     //for (const auto & AC : mVecOfCells)
+         //StdOut()  << " AC " << AC->mEquivCode << "\n";
 }
 
 cCompEquiCodes::~cCompEquiCodes()
@@ -270,6 +285,23 @@ cCompEquiCodes * cCompEquiCodes::Alloc(size_t aNbBits,size_t aPer,bool WithMirro
      */
 }
 
+const cCelCC &  cCompEquiCodes::CellOfCodeOK(size_t aCode) const 
+{
+    const cCelCC * aRes = CellOfCode(aCode);
+    MMVII_INTERNAL_ASSERT_tiny(aRes!=nullptr,"cCompEquiCodes::CellOfCodeOK");
+
+    return *aRes;
+}
+
+
+const cCelCC *  cCompEquiCodes::CellOfCode(size_t aCode) const
+{
+   if (aCode>=mVCodes2Cell.size()) return nullptr;
+
+   return  mVCodes2Cell.at(aCode);
+}
+
+
 
 void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
 {
@@ -282,12 +314,11 @@ void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
             mVCodes2Cell[aCode] = aNewCel;
             aNewCel->mEquivCode.push_back(aCode);
        }
-       aCode = LeftBitsCircPerm(aCode,mNbCodeUC);
+       aCode = N_LeftBitsCircPerm(aCode,mNbCodeUC,mPeriod);
    }
 }
 
 const std::vector<cCelCC*>  & cCompEquiCodes::VecOfCells() const {return mVecOfCells;}
-const cCelCC &  cCompEquiCodes::CellOfCode(size_t aCode) const {return *mVCodes2Cell.at(aCode);}
 
 
 std::vector<cCelCC*>  cCompEquiCodes::VecOfUsedCode(const std::vector<cPt2di> & aVXY,bool Used)
@@ -391,8 +422,40 @@ void  TestComputeCoding(size_t aNBBCoding,int aParity,size_t aPer)
 }
 
 
+void cCompEquiCodes::Bench(size_t aNBB,size_t aPer,bool Miror)
+{
+     std::unique_ptr<cCompEquiCodes> aCEC (cCompEquiCodes::Alloc(aNBB,aPer,Miror));
+
+     int aNBC = 0;
+     for (const auto & aPC : aCEC->mVecOfCells)
+     {
+          aNBC += aPC->mEquivCode.size();
+     }
+     MMVII_INTERNAL_ASSERT_bench((aNBC==(1<<aNBB)),"Base representation");
+
+     /*
+     StdOut() << "Lllllllll " 
+	      <<  aPer << " " 
+	      << Miror << " " 
+	      <<   aCEC->mVecOfCells.size() * (aNBB/aPer) * (1+Miror) / (double) aNBC << "\n";
+	      */
+}
+
 void BenchCircCoding()
 {
+    for (auto aMir : {false,true})
+    {
+        for (auto aNbB : {10,11,12})
+	{
+             cCompEquiCodes::Bench(aNbB,aNbB,aMir);
+	     cCompEquiCodes::Bench(aNbB,   1,aMir);
+	}
+        for (auto aPer : {1,2,3})
+	{
+             cCompEquiCodes::Bench(aPer*4,aPer,aMir);
+             cCompEquiCodes::Bench(aPer*5,aPer,aMir);
+	}
+    }
     if (0)
     {
        TestComputeCoding(20,2,1);
@@ -612,6 +675,7 @@ void BenchHammingCode(int aNbB)
 
 void BenchHamming(cParamExeBench & aParam)
 {
+    Bench_Target_Encoding();
     BenchCircCoding();
     if (! aParam.NewBench("Hamming")) return;
 
