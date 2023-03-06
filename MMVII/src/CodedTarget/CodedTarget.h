@@ -353,7 +353,10 @@ class cFullSpecifTarget : public cMemCheck
          eTyCodeTarget Type() const;           ///< Type amon allowed value
 	 size_t NbBits() const; ///<  Number of bits
          const  std::string &     Prefix()    const;  ///< Prefix used in name-generation
-	 size_t MinHammingD() const; ///<  Number of bits
+	 size_t MinHammingD() const;       ///<  Number of bits
+         tREAL8 Rho_0_EndCCB() const;      /// End of Central Checkboard
+         tREAL8 Rho_1_BeginCode() const;   /// ray where begins the coding stuff
+         tREAL8 Rho_2_EndCode() const;     /// ray where ends the coding stuff
 
 	            //   geometry 
          const std::vector<cPt2dr>& BitsCenters() const; /// Access to all bits centers

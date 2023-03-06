@@ -23,60 +23,74 @@ class cCCDecode
          
          cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aDIm,const cFullSpecifTarget &);
 
-	 void Show();
+	 void Show(const std::string & aPrefix);
     private :
+	 cPt2dr  KTetaRho2Im(const cPt2di & aKTetaRho) const;
+
 	 const cExtractedEllipse & mEE;
          const cDataIm2D<tREAL4> & mDIm;
 	 const cFullSpecifTarget & mSpec;
 
+	 bool                      mOK;
 	 int                       mPixPerB; ///< number of pixel for each bit to decode
 	 int                       mNbB;     ///< number of bits in code
 	 int                       mNbTeta;  ///< number of pixel for each bit to decode
+	 int                       mNbRho;   ///< number of pixel for rho
+	 tREAL8                    mRho0;
+	 tREAL8                    mRho1;
+         cIm2D<tU_INT1>            mImPolar;
 };
 
-
-cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aDIm,const cFullSpecifTarget & aSpec) :
-	mEE     (anEE),
-	mDIm    (aDIm),
-	mSpec   (aSpec),
-	mPixPerB   (10)
+cPt2dr cCCDecode::KTetaRho2Im(const cPt2di & aKTetaRho) const
 {
+     tREAL8 aTeta = (2*M_PI*aKTetaRho.x())/mNbTeta;
+     tREAL8 aRho  = mRho0 + ((mRho1-mRho0) *aKTetaRho.y()) / mNbRho;
+     return mEE.mEllipse.PtOfTeta(aTeta,aRho);
 }
 
-/*
-
-void  cCCDecode::Show()
+cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aDIm,const cFullSpecifTarget & aSpec) :
+	mEE        (anEE),
+	mDIm       (aDIm),
+	mSpec      (aSpec),
+	mOK        (true),
+	mPixPerB   (10),
+	mNbB       (aSpec.NbBits()),
+	mNbTeta    (mPixPerB * mNbB),
+	mNbRho     (20),
+	mRho0      ((aSpec.Rho_0_EndCCB()+aSpec.Rho_1_BeginCode()) /2.0),
+	mRho1      (aSpec.Rho_2_EndCode() +0.2),
+	mImPolar   (cPt2di(mNbTeta,mNbRho))
 {
-    static int aCpt=0; aCpt++;
-
-    int aMulB   = 10;
-    int aNbTeta = aNbBits * aMulB;
-    int aNbRho  = 20;
-
-    double aRho0 = 1.5;
-    double aRho1 = 3.1;
-
-    cIm2D<tU_INT1> aImPolar(cPt2di(aNbTeta,aNbRho));
-
-    for (int aKTeta=0 ; aKTeta < aNbTeta; aKTeta++)
+    for (int aKTeta=0 ; aKTeta < mNbTeta; aKTeta++)
     {
-        for (int aKRho=0 ; aKRho < aNbRho; aKRho++)
+        for (int aKRho=0 ; aKRho < mNbRho; aKRho++)
         {
+		/*
 		tREAL8 aTeta = (2*M_PI*aKTeta)/aNbTeta;
 		tREAL8 aRho  = aRho0 + ((aRho1-aRho0) *aKRho) / aNbRho;
 		cPt2dr aPt = anEE.mEllipse.PtOfTeta(aTeta,aRho);
-		tREAL8 aVal = anIm.DefGetVBL(aPt,-1);
-		if (aVal<0) return false;
+		*/
+		cPt2dr aPt = KTetaRho2Im(cPt2di(aKTeta,aKRho));
+		tREAL8 aVal = mDIm.DefGetVBL(aPt,-1);
+		if (aVal<0)
+		{
+                   mOK=false;
+                   return;
+		}
 
-		aImPolar.DIm().SetV(cPt2di(aKTeta,aKRho),aVal);
+		mImPolar.DIm().SetV(cPt2di(aKTeta,aKRho),aVal);
         }
     }
 
-    aImPolar.DIm().ToFile("ImPolar_"+ToStr(aCpt)+".tif");
-
-    return true;
 }
-*/
+
+
+void  cCCDecode::Show(const std::string & aPrefix)
+{
+    static int aCpt=0; aCpt++;
+
+    mImPolar.DIm().ToFile(aPrefix + "_ImPolar_"+ToStr(aCpt)+".tif");
+}
 
 /*  *********************************************************** */
 /*                                                              */
@@ -230,6 +244,8 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
        {
           anEE.ShowOnFile(mNameIm,35,mPrefixOut);
 
+          cCCDecode aCCD(anEE,APBI_DIm(),*mSpec);
+	  aCCD.Show(mPrefixOut);
           // ShowCode(anEE,APBI_DIm(),14);
        }
    }

@@ -750,6 +750,11 @@ int                               cFullSpecifTarget::DeZoomIm()    const {return
 eTyCodeTarget                     cFullSpecifTarget::Type()        const {return Specs().mType;}
 size_t                            cFullSpecifTarget::MinHammingD() const {return Specs().mMinHammingD;}
 
+tREAL8 cFullSpecifTarget::Rho_0_EndCCB() const    {return mRender.mRho_0_EndCCB;}
+tREAL8 cFullSpecifTarget::Rho_1_BeginCode() const {return mRender.mRho_1_BeginCode;}
+tREAL8 cFullSpecifTarget::Rho_2_EndCode() const   {return mRender.mRho_2_EndCode;}
+
+
 const cPt2dr & cFullSpecifTarget::Center() const {return mRender.mCenterF;}
 const cPt2dr & cFullSpecifTarget::CornerlEl_BW() const {return mRender.mCornEl1;}
 const cPt2dr & cFullSpecifTarget::CornerlEl_WB() const {return mRender.mCornEl2;}
