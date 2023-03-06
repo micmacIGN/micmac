@@ -912,6 +912,9 @@ class  cHamingCoder
          /// Constructor , indicate the number of bit of information
          cHamingCoder(int aNbBitsIn);
 
+         /// Different of default, here we indicate the total number of bits, last indicate if require even number 
+         static cHamingCoder HCOfBitTot(int aNbBitsTot,bool WithParity=false);
+
          int NbBitsOut() const; ///< Number of bit of coded messages
          int NbBitsIn() const;  ///< Number of bits of information
          int NbBitsRed() const; ///< Number of bits of redundancy

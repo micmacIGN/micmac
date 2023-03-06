@@ -22,19 +22,20 @@ class cPrioCC;
 /* ************************************************* */
 
 cSpecBitEncoding::cSpecBitEncoding() :
-     mType          (eTyCodeTarget::eIGNIndoor), // Fake init, 4 serialization
-     mNbBits        (1<<30),  ///< Absurd val -> must be initialized
-     mFreqCircEq    (0),
-     mMinHammingD   (1), ///< No constraint
-     mMaxRunL       (1000,1000), ///< No constraint
-     mParity        (3), ///< No constraint
-     mMaxNb         (1000),
-     mBase4Name     (10),
-     mNbDigit       (0),
-     mPrefix        ("XXXX"),
-     mMaxNum        (0),
-     mMaxLowCode    (0),
-     mMaxCodeEqui   (0)
+     mType           (eTyCodeTarget::eIGNIndoor), // Fake init, 4 serialization
+     mNbBits         (1<<30),  ///< Absurd val -> must be initialized
+     mFreqCircEq     (0),
+     mMinHammingD    (1), ///< No constraint
+     mUseHammingCode (false),
+     mMaxRunL        (1000,1000), ///< No constraint
+     mParity         (3), ///< No constraint
+     mMaxNb          (1000),
+     mBase4Name      (10),
+     mNbDigit        (0),
+     mPrefix         ("XXXX"),
+     mMaxNum         (0),
+     mMaxLowCode     (0),
+     mMaxCodeEqui    (0)
 {
 }
 
@@ -44,6 +45,7 @@ void cSpecBitEncoding::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("NbBits",anAux),mNbBits);
     MMVII::AddData(cAuxAr2007("FreqCircEq",anAux),mFreqCircEq);
     MMVII::AddData(cAuxAr2007("MinHammingD",anAux),mMinHammingD);
+    MMVII::AddData(cAuxAr2007("UseHammingCode",anAux),mUseHammingCode);
     MMVII::AddData(cAuxAr2007("MaxRunL",anAux),mMaxRunL);
     MMVII::AddData(cAuxAr2007("Parity",anAux),mParity);
 
@@ -286,17 +288,30 @@ int  cAppliGenerateEncoding::Exe()
         SetIfNotInit(mSpec.mMinHammingD,size_t(3));
         SetIfNotInit(mSpec.mMaxRunL,cPt2di(2,3));
    }
-   else if (mSpec.mType==eTyCodeTarget::eIGNDrone)
+   else if (mSpec.mType==eTyCodeTarget::eIGNDroneSym)
    {
         SetIfNotInit(mSpec.mFreqCircEq,size_t(2));
         SetIfNotInit(mSpec.mMinHammingD,size_t(3));
         SetIfNotInit(mSpec.mMaxRunL,cPt2di(2,3));
+   }
+   else if (mSpec.mType==eTyCodeTarget::eIGNDroneTop)
+   {
+        SetIfNotInit(mSpec.mFreqCircEq,size_t(1));
+        SetIfNotInit(mSpec.mUseHammingCode,true);
    }
    else if (mSpec.mType==eTyCodeTarget::eCERN)
    {
         mUseAiconCode = true;
         SetIfNotInit(mSpec.mParity,size_t(2));
    }
+
+   cHamingCoder aHC(1);
+   if (mSpec.mUseHammingCode) // if we use hamming code, not all numbers of bits are possible
+   {
+      aHC = cHamingCoder::HCOfBitTot(mSpec.mNbBits,true); // true : at the end we  want even number of bit (?)
+      mSpec.mNbBits = aHC.NbBitsOut();
+   }
+
 
    // for comodity, user specify a frequency, we need to convert it in a period
    MMVII_INTERNAL_ASSERT_strong((mSpec.mNbBits%mSpec.mFreqCircEq)==0,"NbBits should be a multiple of Nb Bits");
@@ -349,6 +364,19 @@ int  cAppliGenerateEncoding::Exe()
        StdOut() <<  "Size after file filter " << mVOC.size() << "\n";
    }
   
+   // [3.0]  if we use hamming code, not all numbers are possible
+   if (mSpec.mUseHammingCode) 
+   {
+       VecFilter
+       (
+	     mVOC,
+             [&aHC](auto aPC) 
+             {
+                return aHC.UnCodeWhenCorrect(aPC->mLowCode) <0;
+             } 
+       );
+       StdOut() <<  "Size after hamming code " << mVOC.size()  << "\n";
+   }
    //  [3]  ========  filter : if there is a parity check  ====================
 
    if (mSpec.mParity !=3)

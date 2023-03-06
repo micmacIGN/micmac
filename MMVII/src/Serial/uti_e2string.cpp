@@ -312,7 +312,8 @@ TPL_ENUM_2_STRING(eDCTFilters);
 template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
            {
                 {eTyCodeTarget::eIGNIndoor,"IGNIndoor"},
-                {eTyCodeTarget::eIGNDrone,"IGNDrone"},
+                {eTyCodeTarget::eIGNDroneSym,"IGNDroneSym"},
+                {eTyCodeTarget::eIGNDroneTop,"IGNDroneTop"},
                 {eTyCodeTarget::eCERN,"CERN"}
            };
 TPL_ENUM_2_STRING(eTyCodeTarget);

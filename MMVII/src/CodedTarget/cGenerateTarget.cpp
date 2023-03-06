@@ -113,6 +113,7 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("ThickN_Car",anAux),mThickN_Car);
     MMVII::AddData(cAuxAr2007("ChessBoardAngle",anAux),mChessboardAng);
     MMVII::AddData(cAuxAr2007("ModeFlight",anAux),mModeFlight);
+    MMVII::AddData(cAuxAr2007("CBAtTop",anAux),mCBAtTop);
     MMVII::AddData(cAuxAr2007("WithChessBoard",anAux),mWithChessboard);
     MMVII::AddData(cAuxAr2007("WhiteBackGround",anAux),mWhiteBackGround);
 
@@ -161,6 +162,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mWhiteBackGround  (true),
    mZeroIsBackGround (true),
    mModeFlight       (false),  // MPD => def value was not initialized ?
+   mCBAtTop          (false),//
    mDecP             ({1,1})  // "Fake" init 4 now
 {
 }
@@ -174,9 +176,10 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
    {
          // Nothingto do all default value have been setled for this case
    }
-   else if (aSpec.mType==eTyCodeTarget::eIGNDrone)
+   else if ((aSpec.mType==eTyCodeTarget::eIGNDroneSym) || (aSpec.mType==eTyCodeTarget::eIGNDroneTop))
    {
        anAppli.SetIfNotInit(mModeFlight,true);
+       anAppli.SetIfNotInit(mCBAtTop,(aSpec.mType==eTyCodeTarget::eIGNDroneTop));
        anAppli.SetIfNotInit(mThickN_WInt,0.1);
        anAppli.SetIfNotInit(mThickN_Code,0.0);
        anAppli.SetIfNotInit(mThickN_WExt,0.0);
@@ -252,7 +255,9 @@ void cParamCodedTarget::Finish()
 
 
   // mMidle = ToR(mSzBin-cPt2di(1,1)) / 2.0 - cPt2dr(1,1) ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
-  mMidle = ToR(mSzBin-cPt2di(mSzGaussDeZoom,mSzGaussDeZoom)) / 2.0  ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
+  cPt2di aSz4Mid =  mCBAtTop ? cPt2di(mNbPixelBin,mNbPixelBin) : mSzBin ;
+  mMidle = ToR(aSz4Mid-cPt2di(mSzGaussDeZoom,mSzGaussDeZoom)) / 2.0  ; //  pixel center model,suppose sz=2,  pixel 0 and 1 => center is 0.5
+								     
   mScale = mNbPixelBin / (2.0 * mRho_EndIm);
 
 
@@ -407,36 +412,49 @@ int cCircNP2B::BitsOfNorm(const cPt2dr & aPt) const
 class cStraightNP2B : public  cNormPix2Bit
 {
      public :
-         cStraightNP2B(const cFullSpecifTarget & aSpecif);
+         cStraightNP2B(const cFullSpecifTarget & aSpecif,bool IsSym);
 	 bool    PNormIsCoding(const cPt2dr & aPt)      const   override;
 	 int     BitsOfNorm    (const cPt2dr & aPt)     const   override;
 
      private :
+         bool     mIsSym;
 	 tREAL8   mRho1;
          int      mNbBits;
          int      mNbBS2;
+	 tREAL8   mSep2L;
 };
 
-cStraightNP2B::cStraightNP2B(const cFullSpecifTarget & aSpecif) :
+cStraightNP2B::cStraightNP2B(const cFullSpecifTarget & aSpecif,bool IsSym) :
+   mIsSym  (IsSym),
    mRho1   (aSpecif.Render().mRho_2_EndCode),
    mNbBits (aSpecif.Specs().mNbBits),
-   mNbBS2  (mNbBits /2)
+   mNbBS2  (mNbBits /2),
+   mSep2L  ( IsSym ? 0 : (mRho1 * (2+sqrt(2)/2)))
+   
 {
     MMVII_INTERNAL_ASSERT_tiny((mNbBS2*2)==mNbBits,"Odd nbbits in cStraightNP2B");
 }
 
 bool    cStraightNP2B::PNormIsCoding(const cPt2dr & aPt) const   
 {
-    return std::abs(aPt.y()) > mRho1;
+    return  mIsSym                      ?
+	    (std::abs(aPt.y()) > mRho1) : 
+	    (aPt.y() > 2* mRho1)        ;
 }
 
 int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
 {
-    int aRes =  
-	        mNbBS2*(aPt.y()<0) 
-	    +  round_down((aPt.x()+mRho1)/(2*mRho1) *mNbBS2)  ;
 
-     return std::min(aRes,mNbBits-1);
+    int aRes = round_down((aPt.x()+mRho1)/(2*mRho1) *mNbBS2)  ;
+    aRes = std::min(aRes,mNbBits-1);
+
+
+    bool  isLine2 =   (aPt.y()>mSep2L)  ;
+
+   aRes =  aRes +  mNbBS2* isLine2;
+
+   StdOut() << "rrr = " << aRes << " " << (aPt.x()+mRho1)/(2*mRho1) << "\n";
+   return aRes;
 }
 
 /* *************************************************** */
@@ -452,9 +470,11 @@ cNormPix2Bit * cNormPix2Bit::Alloc(const cFullSpecifTarget & aSpecif)
          case eTyCodeTarget::eCERN :
          case eTyCodeTarget::eIGNIndoor:
 	       return new cCircNP2B(aSpecif);
-         case eTyCodeTarget::eIGNDrone:
-	       return new cStraightNP2B(aSpecif);
+         case eTyCodeTarget::eIGNDroneSym:
+	       return new cStraightNP2B(aSpecif,true);
 
+         case eTyCodeTarget::eIGNDroneTop:
+	       return new cStraightNP2B(aSpecif,false);
          case eTyCodeTarget::eNbVals:
               return nullptr;
    }
@@ -900,7 +920,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int  cAppliGenCodedTarget::Exe()
 {
-    Bench_Target_Encoding();
+    //  Bench_Target_Encoding();
 
 
    ReadFromFile(mBE,mNameBE);

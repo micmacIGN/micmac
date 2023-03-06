@@ -24,12 +24,21 @@ class cCCDecode
          cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aDIm,const cFullSpecifTarget &);
 
 	 void Show(const std::string & aPrefix);
+
+	 void ComputePhaseTeta() ;
     private :
+
+         tREAL8 K2Rho (int aK) const;
+         tREAL8 K2Teta(int aK) const;
+         int Rho2K (tREAL8 aR) const;
 	 cPt2dr  KTetaRho2Im(const cPt2di & aKTetaRho) const;
+
+	 tREAL8 RhoOfWeight(const tREAL8 &) const;
 
 	 const cExtractedEllipse & mEE;
          const cDataIm2D<tREAL4> & mDIm;
 	 const cFullSpecifTarget & mSpec;
+
 
 	 bool                      mOK;
 	 int                       mPixPerB; ///< number of pixel for each bit to decode
@@ -38,14 +47,28 @@ class cCCDecode
 	 int                       mNbRho;   ///< number of pixel for rho
 	 tREAL8                    mRho0;
 	 tREAL8                    mRho1;
-         cIm2D<tU_INT1>            mImPolar;
+         cIm2D<tREAL8>             mImPolar;
+         cIm1D<tREAL8>             mAvg;
+	 int                       mKR0;
+	 int                       mKR1;
 };
 
-cPt2dr cCCDecode::KTetaRho2Im(const cPt2di & aKTetaRho) const
+cPt2dr cCCDecode::KTetaRho2Im(const cPt2di & aKTR) const
 {
-     tREAL8 aTeta = (2*M_PI*aKTetaRho.x())/mNbTeta;
-     tREAL8 aRho  = mRho0 + ((mRho1-mRho0) *aKTetaRho.y()) / mNbRho;
-     return mEE.mEllipse.PtOfTeta(aTeta,aRho);
+     return mEE.mEllipse.PtOfTeta(K2Teta(aKTR.x()),K2Rho(aKTR.y()));
+}
+
+tREAL8 cCCDecode::K2Rho(const int aK)  const {return mRho0+ ((mRho1-mRho0)*aK) / mNbRho;}
+tREAL8 cCCDecode::K2Teta(const int aK) const {return  (2*M_PI*aK)/mNbTeta;}
+
+int  cCCDecode::Rho2K(const tREAL8 aR)  const 
+{
+     return round_ni( ((aR-mRho0)/(mRho1-mRho0)) * mNbRho );
+}
+
+tREAL8 cCCDecode::RhoOfWeight(const tREAL8 & aW) const
+{
+	return (1-aW) * mSpec.Rho_1_BeginCode() + aW * mSpec.Rho_2_EndCode();
 }
 
 cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aDIm,const cFullSpecifTarget & aSpec) :
@@ -54,22 +77,20 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
 	mSpec      (aSpec),
 	mOK        (true),
 	mPixPerB   (10),
-	mNbB       (aSpec.NbBits()),
+	mNbB       (mSpec.NbBits()),
 	mNbTeta    (mPixPerB * mNbB),
 	mNbRho     (20),
-	mRho0      ((aSpec.Rho_0_EndCCB()+aSpec.Rho_1_BeginCode()) /2.0),
-	mRho1      (aSpec.Rho_2_EndCode() +0.2),
-	mImPolar   (cPt2di(mNbTeta,mNbRho))
+	mRho0      ((mSpec.Rho_0_EndCCB()+mSpec.Rho_1_BeginCode()) /2.0),
+	mRho1      (mSpec.Rho_2_EndCode() +0.2),
+	mImPolar   (cPt2di(mNbTeta,mNbRho)),
+	mAvg       ( mNbTeta,nullptr,eModeInitImage::eMIA_Null ),
+	mKR0       ( Rho2K(RhoOfWeight(0.25)) ) ,
+	mKR1       ( Rho2K(RhoOfWeight(0.75)) ) 
 {
     for (int aKTeta=0 ; aKTeta < mNbTeta; aKTeta++)
     {
         for (int aKRho=0 ; aKRho < mNbRho; aKRho++)
         {
-		/*
-		tREAL8 aTeta = (2*M_PI*aKTeta)/aNbTeta;
-		tREAL8 aRho  = aRho0 + ((aRho1-aRho0) *aKRho) / aNbRho;
-		cPt2dr aPt = anEE.mEllipse.PtOfTeta(aTeta,aRho);
-		*/
 		cPt2dr aPt = KTetaRho2Im(cPt2di(aKTeta,aKRho));
 		tREAL8 aVal = mDIm.DefGetVBL(aPt,-1);
 		if (aVal<0)
@@ -83,6 +104,7 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
     }
 
 }
+
 
 
 void  cCCDecode::Show(const std::string & aPrefix)

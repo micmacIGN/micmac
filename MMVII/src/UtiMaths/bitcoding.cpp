@@ -589,6 +589,20 @@ tU_INT4 cHamingCoder::Coding(tU_INT4 aV) const
    return aRes/2;
 }
 
+
+// a basic implementation, but we don need to have it very efficient
+cHamingCoder cHamingCoder::HCOfBitTot(int aNbBitsTot,bool WithParity)
+{
+   int  aNBI = 1;
+   cHamingCoder aHC(aNBI);
+   while ((aHC.NbBitsOut() <aNbBitsTot) || (WithParity &&(aHC.NbBitsOut()%2 != 0)) )
+   {
+         aNBI++;
+         aHC = cHamingCoder(aNBI);
+   }
+   return aHC;
+}
+
 cHamingCoder::cHamingCoder(int aNbBitsIn) :
    mNbBitsIn  (aNbBitsIn),
    mNbBitsRed (1),

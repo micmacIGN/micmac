@@ -54,6 +54,7 @@ class cSpecBitEncoding : public cMemCheck
               // ===  Specified but have type-dependant def values
          size_t        mFreqCircEq;     ///< all code shift-circulary by mPerCircEq  will be merged together
          size_t        mMinHammingD;    ///< Min Hamming distance acceptable
+         bool          mUseHammingCode; ///< use pure Hamming coding, +- redundant with  mMinHammingD
          cPt2di        mMaxRunL;        ///< Minimal run lenght for 0 & 1
          size_t        mParity;         ///<  1  odd , 2 even, 3 all
 
@@ -286,6 +287,7 @@ class cParamCodedTarget : public cMemCheck
        bool      mZeroIsBackGround;
 
        bool mModeFlight;  // Special mode for Patricio
+       bool mCBAtTop;     // mean Check board at top (initial drone)			  
        // bool mCodeCirc;  // Special mode for Patricio
        double          mRho_0_EndCCB;// End of Central CB , here Rho=ThickN ...
        double          mRho_1_BeginCode;// ray where begins the coding stuff

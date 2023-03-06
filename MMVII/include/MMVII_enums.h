@@ -437,9 +437,10 @@ enum class eProjPC
 
 enum class eTyCodeTarget
 {
-    eIGNIndoor,  ///<  checkboard , circular sym-code
-    eIGNDrone,   ///<  checkboard , code separate , hamming redundnace  
-    eCERN,       ///<  central circle, coding invariant (AICON, METASHAPE ...)
+    eIGNIndoor,     ///<  checkboard , 
+    eIGNDroneSym,    ///<  checkboard , code separate Top/Down
+    eIGNDroneTop,   ///<  checkboard Top , code bottom,
+    eCERN,          ///<  central circle, coding invariant (AICON, METASHAPE ...)
     eNbVals
 };
 
