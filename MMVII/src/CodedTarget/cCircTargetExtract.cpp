@@ -27,6 +27,8 @@ class cCCDecode
 	 void ComputePhaseTeta() ;
     private :
 
+	 tREAL8 Dev(int aK1,int aK2);
+
          tREAL8 K2Rho (int aK) const;
          tREAL8 K2Teta(int aK) const;
          int Rho2K (tREAL8 aR) const;
@@ -47,6 +49,7 @@ class cCCDecode
 	 tREAL8                    mRho0;
 	 tREAL8                    mRho1;
          cIm2D<tREAL4>             mImPolar;
+         cDataIm2D<tREAL4> &       mDIP;
          cIm1D<tREAL4>             mAvg;
 	 int                       mKR0;
 	 int                       mKR1;
@@ -82,10 +85,13 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
 	mRho0      ((mSpec.Rho_0_EndCCB()+mSpec.Rho_1_BeginCode()) /2.0),
 	mRho1      (mSpec.Rho_2_EndCode() +0.2),
 	mImPolar   (cPt2di(mNbTeta,mNbRho)),
+        mDIP       (mImPolar.DIm()),
 	mAvg       ( mNbTeta,nullptr,eModeInitImage::eMIA_Null ),
 	mKR0       ( Rho2K(RhoOfWeight(0.25)) ) ,
 	mKR1       ( Rho2K(RhoOfWeight(0.75)) ) 
 {
+
+    //  compute a polar image
     for (int aKTeta=0 ; aKTeta < mNbTeta; aKTeta++)
     {
         for (int aKRho=0 ; aKRho < mNbRho; aKRho++)
@@ -98,18 +104,22 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
                    return;
 		}
 
-		mImPolar.DIm().SetV(cPt2di(aKTeta,aKRho),aVal);
+		mDIP.SetV(cPt2di(aKTeta,aKRho),aVal);
         }
     }
 
     if (!mOK)
        return;
 
+    // compute an image
     for (int aKTeta=0 ; aKTeta < mNbTeta; aKTeta++)
     {
+        std::vector<tREAL8> aVGray;
         for (int aKRho=mKR0 ; aKRho <= mKR1; aKRho++)
 	{
+            aVGray.push_back(mDIP.GetV(cPt2di(aKTeta,aKRho)));
 	}
+        mAvg.DIm().SetV(aKTeta,NonConstMediane(aVGray));
     }
 
 }
