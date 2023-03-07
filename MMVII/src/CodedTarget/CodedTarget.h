@@ -286,6 +286,11 @@ class cParamCodedTarget : public cMemCheck
        bool      mWhiteBackGround;     // black on white, true 4 IGN
        bool      mZeroIsBackGround;
 
+
+       double    mRayOrientTablet;    
+       tPt2dr    mCenterOrientTablet;
+       double    mRayCenterMiniTarget;
+
        bool mModeFlight;  // Special mode for Patricio
        bool mCBAtTop;     // mean Check board at top (initial drone)			  
        // bool mCodeCirc;  // Special mode for Patricio

@@ -117,6 +117,10 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("WithChessBoard",anAux),mWithChessboard);
     MMVII::AddData(cAuxAr2007("WhiteBackGround",anAux),mWhiteBackGround);
 
+    MMVII::AddData(cAuxAr2007("RayOrientTablet",anAux),mRayOrientTablet);
+    MMVII::AddData(cAuxAr2007("CenterOrientTablet",anAux),mCenterOrientTablet);
+    MMVII::AddData(cAuxAr2007("RayCenterMiniTarget",anAux),mRayCenterMiniTarget);
+
      if (anAux.Input())
 	Finish();
 }
@@ -161,6 +165,9 @@ cParamCodedTarget::cParamCodedTarget() :
    mWithChessboard   (true),
    mWhiteBackGround  (true),
    mZeroIsBackGround (true),
+   mRayOrientTablet     (-1),
+   mCenterOrientTablet  (0,0),
+   mRayCenterMiniTarget (-1),
    mModeFlight       (false),  // MPD => def value was not initialized ?
    mCBAtTop          (false),//
    mDecP             ({1,1})  // "Fake" init 4 now
@@ -184,7 +191,10 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
        anAppli.SetIfNotInit(mThickN_Code,0.0);
        anAppli.SetIfNotInit(mThickN_WExt,0.0);
        anAppli.SetIfNotInit(mThickN_Car,0.3);
-       anAppli.SetIfNotInit(mChessboardAng,M_PI/4.0);
+       anAppli.SetIfNotInit(mChessboardAng,-M_PI/4.0);
+
+       anAppli.SetIfNotInit(mRayOrientTablet,0.1);
+       anAppli.SetIfNotInit(mCenterOrientTablet,cPt2dr(0.7,0));
    }
    else if (aSpec.mType==eTyCodeTarget::eCERN)
    {
@@ -426,34 +436,35 @@ class cStraightNP2B : public  cNormPix2Bit
 
 cStraightNP2B::cStraightNP2B(const cFullSpecifTarget & aSpecif,bool IsSym) :
    mIsSym  (IsSym),
-   mRho1   (aSpecif.Render().mRho_2_EndCode),
+   mRho1   (aSpecif.Render().mRho_EndIm),
    mNbBits (aSpecif.Specs().mNbBits),
    mNbBS2  (mNbBits /2),
-   mSep2L  ( IsSym ? 0 : (mRho1 * (2+sqrt(2)/2)))
+   mSep2L  ( IsSym ? 0 : (mRho1 * (1+sqrt(2)/4)))
    
 {
     MMVII_INTERNAL_ASSERT_tiny((mNbBS2*2)==mNbBits,"Odd nbbits in cStraightNP2B");
+     // StdOut() << "r1=" << mRho1 << " I=" << aSpecif.Render().mRho_EndIm  << " p2n:" << aSpecif.Render().Pix2Norm(cPt2di(0,0)) << "\n";
 }
 
 bool    cStraightNP2B::PNormIsCoding(const cPt2dr & aPt) const   
 {
     return  mIsSym                      ?
 	    (std::abs(aPt.y()) > mRho1) : 
-	    (aPt.y() > 2* mRho1)        ;
+	    (aPt.y() >  mRho1)        ;
 }
 
 int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
 {
 
     int aRes = round_down((aPt.x()+mRho1)/(2*mRho1) *mNbBS2)  ;
-    aRes = std::min(aRes,mNbBits-1);
+    aRes = std::max(0,std::min(aRes,mNbBS2-1));
 
 
     bool  isLine2 =   (aPt.y()>mSep2L)  ;
 
    aRes =  aRes +  mNbBS2* isLine2;
 
-   StdOut() << "rrr = " << aRes << " " << (aPt.x()+mRho1)/(2*mRho1) << "\n";
+   // StdOut()  << "rrr = " << aRes << " " << (aPt.x()+mRho1)/(2*mRho1) << "\n";
    return aRes;
 }
 
@@ -525,6 +536,11 @@ class cCodedTargetPatternIm
 	  tREAL8            mTeta0;
 	  tREAL8            mRhoC;
 	  tREAL8            mRho2C;
+          bool              mWOriTab;
+          tREAL8            mRayOT;
+          tPt2dr            mCenterOT;
+          tREAL8            mRayCT;
+          tREAL8            mRay2CT;
 };
 
 cPt2di  cCodedTargetPatternIm::PDiag(tREAL8 aRhoNorm) const
@@ -547,7 +563,12 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
      mDIT        (mImTarget.DIm()),
      mTeta0      (mRender.mChessboardAng),
      mRhoC       (mRender.mRho_0_EndCCB),
-     mRho2C      (Square(mRhoC))
+     mRho2C      (Square(mRhoC)),
+     mWOriTab    (mRender.mRayOrientTablet >0),
+     mRayOT      (mRender.mRayOrientTablet),
+     mCenterOT   (mRender.mCenterOrientTablet),
+     mRayCT      (mRender.mRayCenterMiniTarget),
+     mRay2CT     (Square(mRayCT))
 {
     mDIC.InitCste(tElem(eLPT::eBackGround));
 
@@ -557,6 +578,7 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
 
     // structure specifying bits location
     std::unique_ptr<cNormPix2Bit>  aP2B (cNormPix2Bit::Alloc(aSpec));
+
     for (const auto & aPix : mDIC)
     {
        cPt2dr aPN = mSpec.Render().Pix2Norm(aPix);
@@ -581,6 +603,18 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
                int aIndTeta = round_down((aTeta-mTeta0)/PIsur2);
                if ((aIndTeta%2)==0)
                    aLab = eLPT::eBackGround;
+	   }
+           if (mWOriTab && (Norm1(aPN-mCenterOT) < mRayOT))
+           {
+		   // StdOut() <<  "RRRoot " << aPix << aPN  << mCenterOT<< " \n";
+              aLab = eLPT::eForeGround;
+           }
+
+	   if ((mRayCT>0) && (SqN2(aPN)<mRay2CT))
+	   {
+               tREAL8 aLogR = (std::log(std::max(1.0/mRender.mScale,Norm2(aPN))/mRayCT))/std::log(2) ;
+	       int aILogR = round_down(aLogR);
+               aLab = ((aILogR % 2)!=0) ?  eLPT::eBackGround : eLPT::eForeGround;
 	   }
 	   mDIC.SetV(aPix,int(aLab));
        }
@@ -666,7 +700,7 @@ cCodedTargetPatternIm::tIm cCodedTargetPatternIm::MakeOneImTarget(const cOneEnco
 		  aPOri = cPt2di(OffsX,aP00.y());
 	     }
 
-	     cPt2di  aP4Sym =mSzBin - cPt2di(1,1);
+	     cPt2di  aP4Sym = ToI(mSpec.Render().mMidle * 2.0) - cPt2di(1,1);
 
 	     for (const auto & aPixStr : aDImStr)
 	     {
@@ -903,6 +937,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
           << AOpt2007(mPatternDoImage,"PatIm","Pattern for generating image (def no generation)")
+          << AOpt2007(mPCT.mRayCenterMiniTarget,"RayMCT","Rayon \"mini\" center target (for topo)",{eTA2007::HDV})
           << AOpt2007(mPCT.mNbBit,"NbBit","Nb Bit printed",{eTA2007::HDV})
           << AOpt2007(mPCT.mWithParity,"WPar","With parity bit",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_WInt,"ThW0","Thickness of interior white circle",{eTA2007::HDV})
