@@ -20,7 +20,6 @@ using namespace cNS_CodedTarget;
 class cCCDecode
 {
     public :
-         
          cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aDIm,const cFullSpecifTarget &);
 
 	 void Show(const std::string & aPrefix);
@@ -41,14 +40,14 @@ class cCCDecode
 
 
 	 bool                      mOK;
-	 int                       mPixPerB; ///< number of pixel for each bit to decode
+	 const int                 mPixPerB; ///< number of pixel for each bit to decode
+	 const int                 mNbRho;   ///< number of pixel for rho
 	 int                       mNbB;     ///< number of bits in code
 	 int                       mNbTeta;  ///< number of pixel for each bit to decode
-	 int                       mNbRho;   ///< number of pixel for rho
 	 tREAL8                    mRho0;
 	 tREAL8                    mRho1;
-         cIm2D<tREAL8>             mImPolar;
-         cIm1D<tREAL8>             mAvg;
+         cIm2D<tREAL4>             mImPolar;
+         cIm1D<tREAL4>             mAvg;
 	 int                       mKR0;
 	 int                       mKR1;
 };
@@ -77,9 +76,9 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
 	mSpec      (aSpec),
 	mOK        (true),
 	mPixPerB   (10),
+	mNbRho     (20),
 	mNbB       (mSpec.NbBits()),
 	mNbTeta    (mPixPerB * mNbB),
-	mNbRho     (20),
 	mRho0      ((mSpec.Rho_0_EndCCB()+mSpec.Rho_1_BeginCode()) /2.0),
 	mRho1      (mSpec.Rho_2_EndCode() +0.2),
 	mImPolar   (cPt2di(mNbTeta,mNbRho)),
@@ -101,6 +100,16 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
 
 		mImPolar.DIm().SetV(cPt2di(aKTeta,aKRho),aVal);
         }
+    }
+
+    if (!mOK)
+       return;
+
+    for (int aKTeta=0 ; aKTeta < mNbTeta; aKTeta++)
+    {
+        for (int aKRho=mKR0 ; aKRho <= mKR1; aKRho++)
+	{
+	}
     }
 
 }

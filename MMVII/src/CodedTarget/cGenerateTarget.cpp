@@ -753,7 +753,7 @@ cFullSpecifTarget::cFullSpecifTarget(const cBitEncoding& aBE,const cParamRenderi
    mCTPI        (nullptr),
    mBE          (aBE),
    mRender      (aRender),
-   mBitsCenters (NbBits())
+   mBitsCenters (NbBits(),cPt2dr(0,0))
 {
 }
 

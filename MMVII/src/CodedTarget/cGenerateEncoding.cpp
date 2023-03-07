@@ -263,6 +263,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mMaxNb,"MaxNb","Max number of codes",{eTA2007::HDV})
                << AOpt2007(mSpec.mBase4Name,"Base4N","Base for name",{eTA2007::HDV})
                << AOpt2007(mSpec.mNbDigit,"NbDig","Number of digit for name (default depend of max num & base)")
+               << AOpt2007(mSpec.mUseHammingCode,"UHC","Use Hamming code")
           ;
 }
 
@@ -314,7 +315,7 @@ int  cAppliGenerateEncoding::Exe()
 
 
    // for comodity, user specify a frequency, we need to convert it in a period
-   MMVII_INTERNAL_ASSERT_strong((mSpec.mNbBits%mSpec.mFreqCircEq)==0,"NbBits should be a multiple of Nb Bits");
+   MMVII_INTERNAL_ASSERT_strong((mSpec.mNbBits%mSpec.mFreqCircEq)==0,"NbBits should be a multiple of frequency");
    mPerCircPerm = mSpec.mNbBits / mSpec.mFreqCircEq;
 
    // check base is valide
@@ -450,7 +451,7 @@ int  cAppliGenerateEncoding::Exe()
        }
    }
    mVOC = aNewVOC;
-   StdOut() <<  "Size after after hamming " << mVOC.size() << "\n";
+   StdOut() <<  "Size after hamming  distance selection" << mVOC.size() << "\n";
 
    //  [6] ==================== Finalization : 
    //        * Compute range (max val)  of code, code-equiv and num

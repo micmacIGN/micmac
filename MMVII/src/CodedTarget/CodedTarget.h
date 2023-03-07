@@ -83,6 +83,7 @@ class cOneEncoding : public cMemCheck
            size_t Code() const;
            const std::string &  Name() const;
 
+	   //  ==== used in construction only ===============================
            void   SetNBB (size_t ) ; ///< used to vehicle info 4 AddComm
            void   SetName (const std::string & ) ; ///< fix name when known
 

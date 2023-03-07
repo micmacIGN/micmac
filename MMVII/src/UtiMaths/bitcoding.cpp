@@ -599,6 +599,8 @@ cHamingCoder cHamingCoder::HCOfBitTot(int aNbBitsTot,bool WithParity)
    {
          aNBI++;
          aHC = cHamingCoder(aNBI);
+
+	 StdOut() << "HHHH " << aHC.NbBitsOut() << " " << aHC.NbBitsIn() << "\n";
    }
    return aHC;
 }
