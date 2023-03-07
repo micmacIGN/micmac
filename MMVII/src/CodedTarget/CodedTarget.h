@@ -366,6 +366,8 @@ class cFullSpecifTarget : public cMemCheck
          tREAL8 Rho_1_BeginCode() const;   /// ray where begins the coding stuff
          tREAL8 Rho_2_EndCode() const;     /// ray where ends the coding stuff
 
+
+	 bool BlackIs1() const;
 	            //   geometry 
          const std::vector<cPt2dr>& BitsCenters() const; /// Access to all bits centers
 	 const cPt2dr & Center() const; ///<  Center of bits

@@ -25,9 +25,11 @@ class cCCDecode
 	 void Show(const std::string & aPrefix);
 
 	 void ComputePhaseTeta() ;
+	 void ComputeCode() ;
     private :
 
 	 tREAL8 Dev(int aK1,int aK2) const;
+	 tREAL8 Avg(int aK1,int aK2) const;
 	 tREAL8 DevOfPhase(int aK0) const;
 
          tREAL8 K2Rho (int aK) const;
@@ -55,6 +57,7 @@ class cCCDecode
          cDataIm1D<tREAL4> &       mDAvg;
 	 int                       mKR0;
 	 int                       mKR1;
+	 int                       mPhase0;
 };
 
 tREAL8 cCCDecode::Dev(int aK1,int aK2) const
@@ -67,17 +70,60 @@ tREAL8 cCCDecode::Dev(int aK1,int aK2) const
     return aCS.StdDev(0);
 }
 
+tREAL8 cCCDecode::Avg(int aK1,int aK2) const
+{
+    tREAL8 aSom =0 ;
+    for (int aK=aK1 ; aK<aK2 ; aK++)
+    {
+          aSom += mDAvg.GetV(aK%mNbTeta);
+    }
+    return aSom / (aK2-aK1);
+}
+
 tREAL8 cCCDecode::DevOfPhase(int aK0) const
 {
     tREAL8 aSum=0;
     for (int aKBit=0 ; aKBit<mNbB ; aKBit++)
     {
         int aK1 = aK0+aKBit*mPixPerB;
-        aSum +=  Dev(aK1,aK1+mPixPerB-2);
+        aSum +=  Dev(aK1+1,aK1+mPixPerB-1);
     }
 
-    return aSum;
+    return aSum / mNbB;
 }
+
+void cCCDecode::ComputePhaseTeta() 
+{
+    cWhichMin<int,tREAL8> aMinDev;
+
+    for (int aK0=0 ;aK0< mPixPerB ; aK0++)
+	    aMinDev.Add(aK0,DevOfPhase(aK0));
+
+    mPhase0 = aMinDev.IndexExtre();
+
+    if (     (aMinDev.ValExtre() > 0.1 * Dev(0,mNbTeta))
+          || (aMinDev.ValExtre() > 0.05 *  (mEE.mSeed.mWhite-mEE.mSeed.mBlack))
+       )
+    {
+        mOK = false;
+	return;
+    }
+}
+
+void cCCDecode::ComputeCode()
+{
+    size_t aFlag=0;
+    for (int aKBit=0 ; aKBit<mNbB ; aKBit++)
+    {
+        int aK1 = mPhase0+aKBit*mPixPerB;
+        tREAL8 aMoy =  Avg(aK1+1,aK1+mPixPerB-1);
+
+	FakeUseIt(aMoy);
+	FakeUseIt(aFlag);
+	// bool isBit1 = 
+    }
+}
+
 
 
 cPt2dr cCCDecode::KTetaRho2Im(const cPt2di & aKTR) const
@@ -147,7 +193,10 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
 	}
         mDAvg.SetV(aKTeta,NonConstMediane(aVGray));
     }
+    ComputePhaseTeta() ;
 
+    if (!mOK)
+       return;
 }
 
 
@@ -309,10 +358,10 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    {
        if (anEE.mSeed.mMarked4Test)
        {
-          anEE.ShowOnFile(mNameIm,35,mPrefixOut);
+          // anEE.ShowOnFile(mNameIm,35,mPrefixOut);
 
           cCCDecode aCCD(anEE,APBI_DIm(),*mSpec);
-	  aCCD.Show(mPrefixOut);
+	  // aCCD.Show(mPrefixOut);
           // ShowCode(anEE,APBI_DIm(),14);
        }
    }

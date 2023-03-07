@@ -116,6 +116,7 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("CBAtTop",anAux),mCBAtTop);
     MMVII::AddData(cAuxAr2007("WithChessBoard",anAux),mWithChessboard);
     MMVII::AddData(cAuxAr2007("WhiteBackGround",anAux),mWhiteBackGround);
+    MMVII::AddData(cAuxAr2007("ZeroIsBackGround",anAux),mZeroIsBackGround);
 
     MMVII::AddData(cAuxAr2007("RayOrientTablet",anAux),mRayOrientTablet);
     MMVII::AddData(cAuxAr2007("CenterOrientTablet",anAux),mCenterOrientTablet);
@@ -812,6 +813,11 @@ tREAL8 cFullSpecifTarget::Rho_2_EndCode() const   {return mRender.mRho_2_EndCode
 const cPt2dr & cFullSpecifTarget::Center() const {return mRender.mCenterF;}
 const cPt2dr & cFullSpecifTarget::CornerlEl_BW() const {return mRender.mCornEl1;}
 const cPt2dr & cFullSpecifTarget::CornerlEl_WB() const {return mRender.mCornEl2;}
+
+bool cFullSpecifTarget::BlackIs1() const
+{
+    return mRender.mZeroIsBackGround ^ mRender.mWhiteBackGround;
+}
 
 
 
