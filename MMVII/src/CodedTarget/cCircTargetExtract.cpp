@@ -27,7 +27,8 @@ class cCCDecode
 	 void ComputePhaseTeta() ;
     private :
 
-	 tREAL8 Dev(int aK1,int aK2);
+	 tREAL8 Dev(int aK1,int aK2) const;
+	 tREAL8 DevOfPhase(int aK0) const;
 
          tREAL8 K2Rho (int aK) const;
          tREAL8 K2Teta(int aK) const;
@@ -51,9 +52,33 @@ class cCCDecode
          cIm2D<tREAL4>             mImPolar;
          cDataIm2D<tREAL4> &       mDIP;
          cIm1D<tREAL4>             mAvg;
+         cDataIm1D<tREAL4> &       mDAvg;
 	 int                       mKR0;
 	 int                       mKR1;
 };
+
+tREAL8 cCCDecode::Dev(int aK1,int aK2) const
+{
+    cComputeStdDev<tREAL8> aCS;
+    for (int aK=aK1 ; aK<aK2 ; aK++)
+    {
+         aCS.Add(mDAvg.GetV(aK%mNbTeta));
+    }
+    return aCS.StdDev(0);
+}
+
+tREAL8 cCCDecode::DevOfPhase(int aK0) const
+{
+    tREAL8 aSum=0;
+    for (int aKBit=0 ; aKBit<mNbB ; aKBit++)
+    {
+        int aK1 = aK0+aKBit*mPixPerB;
+        aSum +=  Dev(aK1,aK1+mPixPerB-2);
+    }
+
+    return aSum;
+}
+
 
 cPt2dr cCCDecode::KTetaRho2Im(const cPt2di & aKTR) const
 {
@@ -87,6 +112,7 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
 	mImPolar   (cPt2di(mNbTeta,mNbRho)),
         mDIP       (mImPolar.DIm()),
 	mAvg       ( mNbTeta,nullptr,eModeInitImage::eMIA_Null ),
+	mDAvg      ( mAvg.DIm()),
 	mKR0       ( Rho2K(RhoOfWeight(0.25)) ) ,
 	mKR1       ( Rho2K(RhoOfWeight(0.75)) ) 
 {
@@ -119,7 +145,7 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
 	{
             aVGray.push_back(mDIP.GetV(cPt2di(aKTeta,aKRho)));
 	}
-        mAvg.DIm().SetV(aKTeta,NonConstMediane(aVGray));
+        mDAvg.SetV(aKTeta,NonConstMediane(aVGray));
     }
 
 }
