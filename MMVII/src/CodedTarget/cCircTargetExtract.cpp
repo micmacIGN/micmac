@@ -128,24 +128,21 @@ void cCCDecode::ComputeCode(bool Show)
     }
 
 
-    for (bool doMirror : {false,true})
+    if (! mSpec.AntiClockWiseBit())
+       aFlag = BitMirror(aFlag,1<<mSpec.NbBits());
+
+    mEnCode = mSpec.EncodingFromCode(aFlag);
+
+
+    if (Show)
     {
-    // if (! mSpec.AntiClockWiseBit())
-        if (doMirror)
-            aFlag = BitMirror(aFlag,1<<mSpec.NbBits());
-         mEnCode = mSpec.EncodingFromCode(aFlag);
-
-
-       if (Show)
-       {
-            if (mEnCode) 
-            StdOut() << "  * Name=" << mEnCode->Name()  
+       StdOut() << "Adr=" << mEnCode << " ";
+       if (mEnCode) 
+            StdOut() << " Name=" << mEnCode->Name()  
 		     << " Code=" <<  mEnCode->Code() 
-		     << " BF=" << StrOfBitFlag(mEnCode->Code(), 1<<mNbB)
-                     << "\n";
-        }
+		     << " BF=" << StrOfBitFlag(mEnCode->Code(), 1<<mNbB);
+       StdOut() << "\n";
     }
-    if (Show)  StdOut() << "\n";
 }
 
 

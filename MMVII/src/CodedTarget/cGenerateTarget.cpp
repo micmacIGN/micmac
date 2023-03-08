@@ -214,7 +214,7 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
        anAppli.SetIfNotInit(mThickN_WExt,0.0);
        anAppli.SetIfNotInit(mWithChessboard,false);
        anAppli.SetIfNotInit(mWhiteBackGround,false);
-       anAppli.SetIfNotInit(mAntiClockWiseBit,true);
+       anAppli.SetIfNotInit(mAntiClockWiseBit,false);
    }
    mThickN_Car *= (aSpec.mNbDigit+1)/2;
 }

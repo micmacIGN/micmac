@@ -35,6 +35,10 @@ cEllipse::cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0) :
      GetCol(mVGa,aRSEV.EigenVectors(),0);
      GetCol(mVSa,aRSEV.EigenVectors(),1);
 
+     // There is no warantee on orientaion  from jacobi !!
+     if ((mVGa ^ mVSa) < 0)
+        mVSa = - mVSa;
+
      mRayMoy = std::sqrt(mLGa*mLSa);
      mSqRatio = std::sqrt(mLGa/mLSa);
 }
