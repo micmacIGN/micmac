@@ -3663,9 +3663,13 @@ class cBascOnCentre
 
         cTplValGesInit< bool > & EstimateSpeed();
         const cTplValGesInit< bool > & EstimateSpeed()const ;
+
+        cTplValGesInit< double > & ForceVertical();
+        const cTplValGesInit< double > & ForceVertical()const ;
     private:
         cTplValGesInit< std::string > mPoseCentrale;
         cTplValGesInit< bool > mEstimateSpeed;
+        cTplValGesInit< double > mForceVertical;
 };
 cElXMLTree * ToXMLTree(const cBascOnCentre &);
 
@@ -3753,6 +3757,9 @@ class cBasculeOnPoints
 
         cTplValGesInit< bool > & EstimateSpeed();
         const cTplValGesInit< bool > & EstimateSpeed()const ;
+
+        cTplValGesInit< double > & ForceVertical();
+        const cTplValGesInit< double > & ForceVertical()const ;
 
         cTplValGesInit< cBascOnCentre > & BascOnCentre();
         const cTplValGesInit< cBascOnCentre > & BascOnCentre()const ;
@@ -3867,6 +3874,9 @@ class cModeBascule
         cTplValGesInit< bool > & EstimateSpeed();
         const cTplValGesInit< bool > & EstimateSpeed()const ;
 
+        cTplValGesInit< double > & ForceVertical();
+        const cTplValGesInit< double > & ForceVertical()const ;
+
         cTplValGesInit< cBascOnCentre > & BascOnCentre();
         const cTplValGesInit< cBascOnCentre > & BascOnCentre()const ;
 
@@ -3948,6 +3958,9 @@ class cBasculeOrientation
 
         cTplValGesInit< bool > & EstimateSpeed();
         const cTplValGesInit< bool > & EstimateSpeed()const ;
+
+        cTplValGesInit< double > & ForceVertical();
+        const cTplValGesInit< double > & ForceVertical()const ;
 
         cTplValGesInit< cBascOnCentre > & BascOnCentre();
         const cTplValGesInit< cBascOnCentre > & BascOnCentre()const ;
@@ -4779,6 +4792,9 @@ class cIterationsCompensation
 
         cTplValGesInit< bool > & EstimateSpeed();
         const cTplValGesInit< bool > & EstimateSpeed()const ;
+
+        cTplValGesInit< double > & ForceVertical();
+        const cTplValGesInit< double > & ForceVertical()const ;
 
         cTplValGesInit< cBascOnCentre > & BascOnCentre();
         const cTplValGesInit< cBascOnCentre > & BascOnCentre()const ;
