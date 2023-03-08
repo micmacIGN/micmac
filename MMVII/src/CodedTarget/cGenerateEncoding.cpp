@@ -264,6 +264,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mBase4Name,"Base4N","Base for name",{eTA2007::HDV})
                << AOpt2007(mSpec.mNbDigit,"NbDig","Number of digit for name (default depend of max num & base)")
                << AOpt2007(mSpec.mUseHammingCode,"UHC","Use Hamming code")
+               << AOpt2007(mMiror,"Mir","Unify mirro codes")
           ;
 }
 
