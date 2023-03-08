@@ -292,6 +292,16 @@ void cRGBImage::DrawCircle(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8  aR
 	DrawEllipse(aCoul,aCenter,aRay,aRay,0.0);
 }
 
+void cRGBImage:: DrawLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul)
+{
+    std::vector<cPt2di> aVPts;
+    GetPts_Line(aVPts,PointToRPix(aP1),PointToRPix(aP2));
+    for (const auto & aPix : aVPts)
+    {
+         RawSetPoint(aPix,aCoul);
+    }
+}
+
 std::vector<cPt3di>  cRGBImage::LutVisuLabRand(int aNbLab)
 {
     int aNbByC = round_up(std::sqrt(aNbLab));

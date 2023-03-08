@@ -2,6 +2,11 @@
 #include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 
+//  49 : 387 =  256 + 128 + 2 +1
+//              00000110000011
+//
+//  50 : 389 = 256 + 128 + 4 +1
+//              00000110000101
 
 namespace MMVII
 {
@@ -117,6 +122,7 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("WithChessBoard",anAux),mWithChessboard);
     MMVII::AddData(cAuxAr2007("WhiteBackGround",anAux),mWhiteBackGround);
     MMVII::AddData(cAuxAr2007("ZeroIsBackGround",anAux),mZeroIsBackGround);
+    MMVII::AddData(cAuxAr2007("AntiClockWiseBit,",anAux),mAntiClockWiseBit);
 
     MMVII::AddData(cAuxAr2007("RayOrientTablet",anAux),mRayOrientTablet);
     MMVII::AddData(cAuxAr2007("CenterOrientTablet",anAux),mCenterOrientTablet);
@@ -166,6 +172,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mWithChessboard   (true),
    mWhiteBackGround  (true),
    mZeroIsBackGround (true),
+   mAntiClockWiseBit (true),
    mRayOrientTablet     (-1),
    mCenterOrientTablet  (0,0),
    mRayCenterMiniTarget (-1),
@@ -207,6 +214,7 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
        anAppli.SetIfNotInit(mThickN_WExt,0.0);
        anAppli.SetIfNotInit(mWithChessboard,false);
        anAppli.SetIfNotInit(mWhiteBackGround,false);
+       anAppli.SetIfNotInit(mAntiClockWiseBit,true);
    }
    mThickN_Car *= (aSpec.mNbDigit+1)/2;
 }
@@ -274,6 +282,7 @@ void cParamCodedTarget::Finish()
 
   // mCenterF = mMidle / double(mSzGaussDeZoom);
   mCenterF = Norm2PixR(FromPolar(0.0,0.0))  / double(mSzGaussDeZoom);
+  mSignAngle = (mAntiClockWiseBit ? 1 :-1);
 
   mCornEl1 = Norm2PixR(FromPolar(mRho_0_EndCCB,mChessboardAng))  / double(mSzGaussDeZoom);
   mCornEl2 = Norm2PixR(FromPolar(mRho_0_EndCCB,mChessboardAng+M_PI/2.0))  / double(mSzGaussDeZoom);
@@ -383,6 +392,7 @@ class cCircNP2B : public  cNormPix2Bit
 	 tREAL8 mRho1;
 	 tREAL8 mTeta0;
 	 int    mNbBits;
+	 tREAL8 mSignT;
 };
 
 
@@ -391,7 +401,8 @@ cCircNP2B::cCircNP2B(const cFullSpecifTarget & aSpecif) :
    mRho0   (aSpecif.Render().mRho_1_BeginCode),
    mRho1   (aSpecif.Render().mRho_2_EndCode),
    mTeta0  (aSpecif.Render().mChessboardAng),
-   mNbBits (aSpecif.Specs().mNbBits)
+   mNbBits (aSpecif.Specs().mNbBits),
+   mSignT  (aSpecif.Render().mSignAngle)
 {
 }
 
@@ -408,7 +419,7 @@ bool  cCircNP2B::PNormIsCoding(const cPt2dr & aPt) const
 
 int cCircNP2B::BitsOfNorm(const cPt2dr & aPt) const 
 {
-     tREAL8 aTeta = PreProcessCoord(aPt).y() -mTeta0;
+     tREAL8 aTeta = (PreProcessCoord(aPt).y() -mTeta0) * mSignT;
      tREAL8 aIndex = mNbBits * (aTeta / (2*M_PI)) ;
      aIndex = mod_real(aIndex,mNbBits);
      return round_down (aIndex);
@@ -813,11 +824,16 @@ tREAL8 cFullSpecifTarget::Rho_2_EndCode() const   {return mRender.mRho_2_EndCode
 const cPt2dr & cFullSpecifTarget::Center() const {return mRender.mCenterF;}
 const cPt2dr & cFullSpecifTarget::CornerlEl_BW() const {return mRender.mCornEl1;}
 const cPt2dr & cFullSpecifTarget::CornerlEl_WB() const {return mRender.mCornEl2;}
+bool  cFullSpecifTarget::AntiClockWiseBit() const { return mRender.mAntiClockWiseBit; }
 
-bool cFullSpecifTarget::BlackIs1() const
+bool cFullSpecifTarget::BitIs1(bool IsWhite) const
 {
-    return mRender.mZeroIsBackGround ^ mRender.mWhiteBackGround;
+            //  For example 3D ICON with white pixel
+	    //     true          false                     true       
+	    //      !(T^ F ^T)  => 1   and that 's the case, Youpi !!
+    return  !(   (IsWhite ^  mRender.mWhiteBackGround)  ^ mRender.mZeroIsBackGround );
 }
+
 
 
 

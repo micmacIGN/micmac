@@ -25,7 +25,7 @@ class cCCDecode
 	 void Show(const std::string & aPrefix);
 
 	 void ComputePhaseTeta() ;
-	 void ComputeCode() ;
+	 void ComputeCode(bool Show) ;
     private :
 
 	 tREAL8 Dev(int aK1,int aK2) const;
@@ -58,6 +58,11 @@ class cCCDecode
 	 int                       mKR0;
 	 int                       mKR1;
 	 int                       mPhase0;
+	 tREAL8                    mBlack;
+	 tREAL8                    mWhite;
+	 tREAL8                    mBWAmpl;
+	 tREAL8                    mBWAvg;
+	 const cOneEncoding *      mEnCode;
 };
 
 tREAL8 cCCDecode::Dev(int aK1,int aK2) const
@@ -102,7 +107,7 @@ void cCCDecode::ComputePhaseTeta()
     mPhase0 = aMinDev.IndexExtre();
 
     if (     (aMinDev.ValExtre() > 0.1 * Dev(0,mNbTeta))
-          || (aMinDev.ValExtre() > 0.05 *  (mEE.mSeed.mWhite-mEE.mSeed.mBlack))
+          || (aMinDev.ValExtre() > 0.05 *  mBWAmpl)
        )
     {
         mOK = false;
@@ -110,7 +115,7 @@ void cCCDecode::ComputePhaseTeta()
     }
 }
 
-void cCCDecode::ComputeCode()
+void cCCDecode::ComputeCode(bool Show)
 {
     size_t aFlag=0;
     for (int aKBit=0 ; aKBit<mNbB ; aKBit++)
@@ -118,9 +123,23 @@ void cCCDecode::ComputeCode()
         int aK1 = mPhase0+aKBit*mPixPerB;
         tREAL8 aMoy =  Avg(aK1+1,aK1+mPixPerB-1);
 
-	FakeUseIt(aMoy);
-	FakeUseIt(aFlag);
-	// bool isBit1 = 
+	if (mSpec.BitIs1(aMoy>mBWAvg))
+           aFlag |= (1<<aKBit);
+    }
+    if (! mSpec.AntiClockWiseBit())
+       aFlag = BitMirror(aFlag,1<<mSpec.NbBits());
+
+    mEnCode = mSpec.EncodingFromCode(aFlag);
+
+    if (Show)
+    {
+        StdOut() << "anEncod= " << mEnCode;
+        if (mEnCode)
+            StdOut() << " Name=" << mEnCode->Name()  
+		     << " Code=" <<  mEnCode->Code() 
+		     << " BF=" << StrOfBitFlag(mEnCode->Code(), 1<<mNbB)
+                     << "\n";
+        StdOut() << "\n";
     }
 }
 
@@ -160,7 +179,13 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
 	mAvg       ( mNbTeta,nullptr,eModeInitImage::eMIA_Null ),
 	mDAvg      ( mAvg.DIm()),
 	mKR0       ( Rho2K(RhoOfWeight(0.25)) ) ,
-	mKR1       ( Rho2K(RhoOfWeight(0.75)) ) 
+	mKR1       ( Rho2K(RhoOfWeight(0.75)) ) ,
+	mPhase0    (-1),
+	mBlack     (mEE.mSeed.mBlack),
+	mWhite     (mEE.mSeed.mWhite),
+	mBWAmpl    (mWhite-mBlack),
+	mBWAvg     ((mBlack+mWhite)/2.0),
+	mEnCode    (nullptr)
 {
 
     //  compute a polar image
@@ -193,10 +218,12 @@ cCCDecode::cCCDecode(const cExtractedEllipse & anEE,const cDataIm2D<tREAL4> & aD
 	}
         mDAvg.SetV(aKTeta,NonConstMediane(aVGray));
     }
-    ComputePhaseTeta() ;
 
-    if (!mOK)
-       return;
+    ComputePhaseTeta() ;
+    if (!mOK) return;
+
+    ComputeCode(false);
+    if (!mOK) return;
 }
 
 
@@ -205,7 +232,22 @@ void  cCCDecode::Show(const std::string & aPrefix)
 {
     static int aCpt=0; aCpt++;
 
-    mImPolar.DIm().ToFile(aPrefix + "_ImPolar_"+ToStr(aCpt)+".tif");
+    cRGBImage  aIm = RGBImFromGray(mImPolar.DIm(),1.0,9);
+
+    if (mPhase0>=0)
+    {
+       for (int aKBit=0 ; aKBit<mNbB ; aKBit++)
+       {
+           tREAL8 aK1 = mPhase0+aKBit*mPixPerB -0.5;
+
+	   aIm.DrawLine(cPt2dr(aK1,0),cPt2dr(aK1,mNbTeta),cRGBImage::Red);
+
+       }
+    }
+    ComputeCode(true);
+
+
+    aIm.ToFile(aPrefix + "_ImPolar_"+ToStr(aCpt)+".tif");
 }
 
 /*  *********************************************************** */
@@ -361,7 +403,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
           // anEE.ShowOnFile(mNameIm,35,mPrefixOut);
 
           cCCDecode aCCD(anEE,APBI_DIm(),*mSpec);
-	  // aCCD.Show(mPrefixOut);
+	  aCCD.Show(mPrefixOut);
           // ShowCode(anEE,APBI_DIm(),14);
        }
    }

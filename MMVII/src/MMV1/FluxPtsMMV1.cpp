@@ -53,6 +53,10 @@ void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB
      FluxToV2Points(aRes,ellipse(ToMMV1(aC),aRayA,aRayB,aTeta,with8Neigh));
 }
 
+void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2)
+{
+     FluxToV2Points(aRes,line(ToMMV1(ToI(aP1)),ToMMV1(ToI(aP2))));
+}
 
 
 

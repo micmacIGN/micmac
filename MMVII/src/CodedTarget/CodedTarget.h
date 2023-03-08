@@ -276,16 +276,19 @@ class cParamCodedTarget : public cMemCheck
        double    mSz_CCB;      // size of central chekcboard/target , everything prop to it, 1 by convention
 
 
-       double    mThickN_WInt;  // Thickness white circle separating code/
-       double    mThickN_Code;  // Thickness of coding part
-       double    mThickN_WExt;  // Thickness of white separatio,
-       double    mThickN_Car;  // thickness of black border 
-       double    mThickN_BorderExt;  // thickness of border 
 
-       double    mChessboardAng;     // Origine angle of chessboard pattern
-       bool      mWithChessboard;     // do we have a cental chess board, true 4 IGN
-       bool      mWhiteBackGround;     // black on white, true 4 IGN
+
+       double    mThickN_WInt;  ///< Thickness white circle separating code/
+       double    mThickN_Code;  ///< Thickness of coding part
+       double    mThickN_WExt;  ///< Thickness of white separatio,
+       double    mThickN_Car;  ///< thickness of black border 
+       double    mThickN_BorderExt;  ///< thickness of border 
+
+       double    mChessboardAng;     ///< Origine angle of chessboard pattern
+       bool      mWithChessboard;     ///< do we have a cental chess board, true 4 IGN
+       bool      mWhiteBackGround;     ///< black on white, true 4 IGN
        bool      mZeroIsBackGround;
+       bool      mAntiClockWiseBit;        ///< Do  growin bits go in trigonometric sens (!  visuel repair is clokwise)
 
 
        double    mRayOrientTablet;    
@@ -301,6 +304,7 @@ class cParamCodedTarget : public cMemCheck
        double          mRho_3_BeginCar;// ray where begins the coding stuff
        double          mRho_4_EndCar;  // ray where begins the coding stuff
        double          mRho_EndIm;  // ray where begins the coding stuff
+       double          mSignAngle;
 
        cPt2di    mSzBin;
        double    mScale;  // Sz of Pixel in normal coord
@@ -367,7 +371,8 @@ class cFullSpecifTarget : public cMemCheck
          tREAL8 Rho_2_EndCode() const;     /// ray where ends the coding stuff
 
 
-	 bool BlackIs1() const;
+	 bool BitIs1(bool IsWhite) const;
+	 bool AntiClockWiseBit() const;
 	            //   geometry 
          const std::vector<cPt2dr>& BitsCenters() const; /// Access to all bits centers
 	 const cPt2dr & Center() const; ///<  Center of bits
