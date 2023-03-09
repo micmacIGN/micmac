@@ -14,6 +14,8 @@ const cPt3di cRGBImage::Magenta(255,0,255);
 const cPt3di cRGBImage::Cyan(0,255,255);
 const cPt3di cRGBImage::Orange(255,128,0);
 const cPt3di cRGBImage::White(255,255,255);
+const cPt3di cRGBImage::Gray128(128,128,128);
+// const cPt3di cRGBImage::Black(0,0,0);
 
 //template <class Type> void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<Type> & aIm,const double & aMul=1.0);
 /// Do it for all pix; 
@@ -286,6 +288,36 @@ void cRGBImage::DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aG
          RawSetPoint(aPix,aCoul);
     }
 }
+
+void cRGBImage::DrawString
+     (
+                  const std::string & aName,const cPt3di& aCoul,
+                  const cPt2dr & aP00,const cPt2dr & anAlignment,
+                  tREAL8 aZoom, tREAL8 AlphaBackGround , const cPt3di& aCoulBackGround ,int aSpace
+     )
+{
+   cIm2D<tU_INT1>  aImStr  = ImageOfString_10x8(aName,aSpace);
+   cDataIm2D<tU_INT1>& aDImStr  = aImStr.DIm();
+
+
+   cPt2dr aP0 = aP00 -  MulCByC(anAlignment,ToR(aDImStr.Sz()) * aZoom);
+
+   for (const auto & aPixStr : aDImStr)
+   {
+	   // PointToRPix
+        bool ForeGround =   (aDImStr.GetV(aPixStr) != 0);
+	cPt2di aP0Pix = PointToPix(aP0+ToR(aPixStr)*aZoom);
+	cPt2di aP1Pix = PointToPix(aP0+ToR(aPixStr+cPt2di(1,1))*aZoom);
+
+	for (const auto & aPixIm : cRect2(aP0Pix,aP1Pix))
+	{
+            if (ForeGround)
+               RawSetPoint(aPixIm,aCoul);
+	}
+   }
+
+}
+
 
 void cRGBImage::DrawCircle(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8  aRay)
 {

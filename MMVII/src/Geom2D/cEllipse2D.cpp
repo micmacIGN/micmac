@@ -277,19 +277,6 @@ void  cExtractedEllipse::ShowOnFile(const std::string & aNameIm,int aZoom,const 
 		 << " NORM =" << anEl.Norm()  << " RayM=" << anEl.RayMoy()
 		 << "\n";
 
-     /*
-        std::vector<cPt3dr> aVF3;
-        for (const auto  & aP : mVFront)
-	{
-             aVF3.push_back(cPt3dr(aP.x(),aP.y(),ToPolar(aP-mCentroid).y()));
-	}
-        std::sort
-        (
-	    aVF3.begin(),
-	    aVF3.end(),
-            [](const cPt3dr  aP1,const cPt3dr &  aP2) {return aP1.z() >aP2.z();}
-        );
-	*/
 
         StdOut() << " BOX " << aSeed.mPInf << " " << aSeed.mPSup << "\n";
 
@@ -298,24 +285,6 @@ void  cExtractedEllipse::ShowOnFile(const std::string & aNameIm,int aZoom,const 
 
 	cRGBImage aRGBIm = cRGBImage::FromFile(aNameIm,aBox,aZoom);  ///< Allocate and init from file
 	cPt2dr aPOfs = ToR(aBox.P0());
-	/*
-	int aNbPts = 5000;
-	for (int aK=0 ; aK<aNbPts ; aK++)
-	{
-            double aTeta = (aK * 2.0 * M_PI) / aNbPts;
-	    cPt2dr aP1 = anEl.PtOfTeta(aTeta);
-	    tREAL8 aEps=1e-3;
-	    cPt2dr aP0 = anEl.PtOfTeta(aTeta - aEps );
-	    cPt2dr aP2 = anEl.PtOfTeta(aTeta + aEps );
-
-	    cPt2dr aGrad = VUnit((aP2-aP0) / aEps)/cPt2dr(0,1);
-            //  aRGBIm.SetRGBPoint(aPT-aPOfs,cRGBImage::Green);
-	    cPt2dr aG3;
-            cPt2dr aP3 =   anEl.PtAndGradOfTeta(aTeta,aG3);
-
-	    // StdOut() << " Pt" << Norm2(aP1-aP3)  << " Gd "<< Norm2(aGrad-aG3)  << aGrad << aG3<< "\n";
-	}
-	*/
 
 // MMVII_INTERNAL_ASSERT_tiny(false,"CHANGE TO DO IN ShowEllipse !!!");
 

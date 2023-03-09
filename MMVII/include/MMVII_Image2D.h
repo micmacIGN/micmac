@@ -505,6 +505,15 @@ class cRGBImage
 	void DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta);
 	void DrawCircle (const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aRay);
 
+	static const  cPt2dr AlignCentr;
+
+	void DrawString 
+             (
+                  const std::string &,const cPt3di& aCoul,
+                  const cPt2dr & aP0,const cPt2dr & aLignm,
+                  tREAL8 aZoom=1, tREAL8 AlphaBackGround =0 , const cPt3di& aCoulBackGround = Gray128,int aSpace=1
+             );
+
 
 
 
@@ -521,6 +530,7 @@ class cRGBImage
         static const  cPt3di  Cyan;
         static const  cPt3di  Orange;
         static const  cPt3di  White;
+        static const  cPt3di  Gray128;
 
 	/// return a lut adapted to visalise label in one chanel (blue), an maximize constrat in 2 other
 	static  std::vector<cPt3di>  LutVisuLabRand(int aNbLab);

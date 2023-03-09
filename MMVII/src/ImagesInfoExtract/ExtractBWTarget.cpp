@@ -62,12 +62,17 @@ cSeedBWTarget::cSeedBWTarget(const cPt2di & aPixW,const cPt2di & aPixTop,tREAL4 
 {
 }
 
+tREAL4  cSeedBWTarget::Contrast() const {return  mWhite - mBlack;}
+tREAL4  cSeedBWTarget::Avg()      const {return (mWhite + mBlack)/2.0;}
+
 
 /*  *********************************************************** */
 /*                                                              */
 /*               cExtract_BW_Target                             */
 /*                                                              */
 /*  *********************************************************** */
+
+
 
 
 cExtract_BW_Target::cExtract_BW_Target(tIm anIm,const cParamBWTarget & aPBWT,cIm2D<tU_INT1> aMasqTest) :
@@ -97,7 +102,7 @@ cExtract_BW_Target::cExtract_BW_Target(tIm anIm,const cParamBWTarget & aPBWT,cIm
 
 ///cSeedBWTarget
 
-cPt2di cExtract_BW_Target::Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) const
+cPt2di cExtract_BW_Target::Prolongate(cPt2di aPix,bool IsW) const
 {
     cPt2di aDir = cPt2di(0,IsW?1:-1);
 
@@ -108,7 +113,6 @@ cPt2di cExtract_BW_Target::Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) con
     )
     {
         aPix = aPix + aDir;
-	UpdateMax(aMaxGy ,mImGrad.mGy.DIm().GetV(aPix));
     }
 
     return aPix;
@@ -116,43 +120,12 @@ cPt2di cExtract_BW_Target::Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) con
          
 bool cExtract_BW_Target::IsExtremalPoint(const cPt2di & aPix) 
 {
-   // is it a point where gradient cross vertical line
-   if ( (mDGx.GetV(aPix)>0) ||  (mDGx.GetV(aPix+cPt2di(-1,0)) <=0) )
-      return false;
-
-   // const tDataIm & aDGy = mImGrad.mGy.DIm();
-
-   tElemIm aGy =  mDGy.GetV(aPix);
-   // At top , grady must be positive
-   if (  aGy<=0) 
-      return false;
-
-   // Now test that grad is a local maxima
-
-   if (    (aGy  <   mDGy.GetV(aPix+cPt2di(0, 2)))
-        || (aGy  <   mDGy.GetV(aPix+cPt2di(0, 1)))
-        || (aGy  <=  mDGy.GetV(aPix+cPt2di(0,-1)))
-        || (aGy  <=  mDGy.GetV(aPix+cPt2di(0,-2)))
-      )
-      return false;
-
-   // tElemIm aVBlack =  mDIm.GetV(aPix+cPt2di(0,-2));
-   // tElemIm aVWhite =  mDIm.GetV(aPix+cPt2di(0,2));
-   /*
-   if ((aVBlack/double(aVWhite)) > mPBWT.mRatioP2)
-      return false;
-      */
-
-   tElemIm aMaxGy = aGy;
-   cPt2di aPixB =  Prolongate(aPix,false,aMaxGy);
+   cPt2di aPixB =  Prolongate(aPix,false);
    tElemIm aVBlack =  mDIm.GetV(aPixB);
 
-   cPt2di aPixW =  Prolongate(aPix,true,aMaxGy);
+   cPt2di aPixW =  Prolongate(aPix,true);
    tElemIm aVWhite =  mDIm.GetV(aPixW);
 
-   if (aMaxGy> aGy)
-      return false;
-   
    if (aVWhite < mPBWT.mValMinW)
       return false;
 
@@ -169,25 +142,46 @@ bool cExtract_BW_Target::IsExtremalPoint(const cPt2di & aPix)
 
 void cExtract_BW_Target::ExtractAllSeed()
 {
-   const cBox2di &  aFullBox = mDIm;
-   cRect2  aBoxInt (aFullBox.Dilate(-mPBWT.mD0BW));
-   int aNb=0;
-   int aNbOk=0;
-   for (const auto & aPix : aBoxInt)
-   {
-       aNb++;
-       if (IsExtremalPoint(aPix))
+    /* 1 : Extract "pre-seed" point = a point where x-grad change sign
+     *     and for which y-grad is maximal among them
+     */
+    cResultExtremum  aRExtr(false,true);
+    {
+       // 1.0 prepare data
+       tIm       aIExtre(mSz,nullptr,eModeInitImage::eMIA_Null);
+       tDataIm&  aDExtr (aIExtre.DIm());
+
+       const cBox2di &  aFullBox = mDIm;
+       cRect2  aBoxInt (aFullBox.Dilate(-mPBWT.mD0BW));
+
+       // 1.1  make the image of y-grad for changing sign pixel
+       for (const auto & aPix : aBoxInt)
        {
-           aNbOk++;
+          if ( (mDGx.GetV(aPix)<=0) &&  (mDGx.GetV(aPix+cPt2di(-1,0)) >0) )
+	  {
+              tREAL4 aGy = mDGy.GetV(aPix);
+	      if (aGy >0)  // we wan to point so gradient must be positive
+	      {
+		  aDExtr.SetV(aPix,aGy);
+              }
+	  }
        }
-   }
-   std::sort
-   (
-      mVSeeds.begin(),
-      mVSeeds.end(),
-      [](const cSeedBWTarget &  aS1,const cSeedBWTarget &  aS2) {return aS1.mWhite>aS2.mWhite;}
-   );
-   StdOut() << " PPPP="  << aNbOk / double(aNb) << "\n";
+ 
+       // 1.2 extract extremum
+       ExtractExtremum1(aDExtr,aRExtr,15.0);
+    }
+
+    /*  2 extract Extremal point */
+
+    for (const auto & aPix : aRExtr.mPtsMax)
+    {
+          if (IsExtremalPoint(aPix))  // by border-effect point are added in mVSeeds
+          {
+          }
+    }
+
+    /* 3 now sort the point, privilegiate the max contrast, the idea is that "real" target are pure white a black */ 
+   SortOnCriteria(mVSeeds, [](const cSeedBWTarget &  aSeed) {return - aSeed.Contrast();});
 }
 
 const std::vector<cSeedBWTarget> &      cExtract_BW_Target::VSeeds() const { return mVSeeds; }

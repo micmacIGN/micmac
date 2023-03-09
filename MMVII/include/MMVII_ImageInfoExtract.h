@@ -125,6 +125,9 @@ struct cSeedBWTarget
 
        tREAL4 mBlack;
        tREAL4 mWhite;
+
+       tREAL4  Contrast() const;
+       tREAL4  Avg() const;
        bool   mOk;
        bool   mMarked4Test;
 
@@ -175,6 +178,8 @@ class cExtract_BW_Target
         bool AnalyseOneConnectedComponents(cSeedBWTarget &);
         bool ComputeFrontier(cSeedBWTarget & aSeed);
 
+	void TestNewSeed();
+
   protected :
 
         /// Is the point a candidate for seed (+- local maxima)
@@ -183,7 +188,7 @@ class cExtract_BW_Target
         /// Update the data for connected component with a new point (centroid, bbox, heap...)
         void AddPtInCC(const cPt2di &);
         // Prolongat on the vertical, untill its a max or a min
-        cPt2di Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) const;
+        cPt2di Prolongate(cPt2di aPix,bool IsW) const;
 
         /// Extract the accurate frontier point, essentially prepare data to call "cGetPts_ImInterp_FromValue"
         cPt2dr RefineFrontierPoint(const cSeedBWTarget & aSeed,const cPt2di & aP0,bool & Ok);

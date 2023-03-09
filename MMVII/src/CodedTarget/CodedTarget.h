@@ -78,7 +78,7 @@ class cOneEncoding : public cMemCheck
 {
         public :
            cOneEncoding();
-           cOneEncoding(size_t aNum,size_t aCode);
+           cOneEncoding(size_t aNum,size_t aCode,const std::string & aName="???");
            size_t Num()  const;
            size_t Code() const;
            const std::string &  Name() const;

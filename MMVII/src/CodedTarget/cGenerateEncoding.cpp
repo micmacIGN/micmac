@@ -74,9 +74,9 @@ void AddData(const  cAuxAr2007 & anAux,cSpecBitEncoding & aSpec)
 /*                                                   */
 /* ************************************************* */
 
-cOneEncoding::cOneEncoding(size_t aNum,size_t aCode) 
+cOneEncoding::cOneEncoding(size_t aNum,size_t aCode,const std::string & aName) 
 {
-	mName = "???";
+	mName = aName;
 
 	mNC[0] = aNum;
 	mNC[1] = aCode;
