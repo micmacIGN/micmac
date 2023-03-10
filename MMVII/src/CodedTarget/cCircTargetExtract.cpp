@@ -23,10 +23,14 @@ using namespace cNS_CodedTarget;
 /*                                               */
 /* ********************************************* */
 
+/**    Store the result of a validated extracted circular target
+ */
+
 class cCircTargExtr
 {
      public :
          cCircTargExtr(const cExtractedEllipse &);
+
          cEllipse         mEllipse;
 	 tREAL8           mBlack;
 	 tREAL8           mWhite;
@@ -51,6 +55,11 @@ cCircTargExtr::cCircTargExtr(const cExtractedEllipse & anEE)  :
 /*                                               */
 /* ********************************************* */
 
+/**  Class for computing the circular code: make a polar representation , offers mapping polar/cart
+ *
+ *
+ * */
+
 class cCCDecode
 {
     public :
@@ -63,16 +72,18 @@ class cCCDecode
 	 const cOneEncoding *    EnCode() const;
     private :
 
-	 tREAL8 Dev(int aK1,int aK2) const;
-	 tREAL8 Avg(int aK1,int aK2) const;
-	 tREAL8 DevOfPhase(int aK0) const;
+	      //  Aggregation
+	 tREAL8 StdDev(int aK1,int aK2) const;      ///< standard deviation of the interval
+	 tREAL8 Avg(int aK1,int aK2) const;         ///< average  of the interval
+	 tREAL8 TotalStdDevOfPhase(int aK0) const;  ///< Sum of standard dev, on all interval, for a given stard
 
-         tREAL8 K2Rho (int aK) const;
-         tREAL8 K2Teta(int aK) const;
-         int Rho2K (tREAL8 aR) const;
-	 cPt2dr  KTetaRho2Im(const cPt2di & aKTetaRho) const;
-
+	     // Geometric correspondances 
+         tREAL8 K2Rho (int aK) const;   /// index of rho  2 real rho
+         tREAL8 K2Teta(int aK) const;   /// index of teta  2 real teta
+         int Rho2K (tREAL8 aR) const;   ///  real rho 2 index of rho
+	 cPt2dr  KTetaRho2Im(const cPt2di & aKTetaRho) const;   /// index rho-teta  2   cartesian coordinates 
 	 tREAL8 RhoOfWeight(const tREAL8 &) const;
+
 
          cCircTargExtr &           mEE;
          const cDataIm2D<tREAL4> & mDIm;
@@ -100,111 +111,7 @@ class cCCDecode
 	 const cOneEncoding *      mEnCode;
 };
 
-
-tREAL8 cCCDecode::Dev(int aK1,int aK2) const
-{
-    cComputeStdDev<tREAL8> aCS;
-    for (int aK=aK1 ; aK<aK2 ; aK++)
-    {
-         aCS.Add(mDAvg.GetV(aK%mNbTeta));
-    }
-    return aCS.StdDev(0);
-}
-
-tREAL8 cCCDecode::Avg(int aK1,int aK2) const
-{
-    tREAL8 aSom =0 ;
-    for (int aK=aK1 ; aK<aK2 ; aK++)
-    {
-          aSom += mDAvg.GetV(aK%mNbTeta);
-    }
-    return aSom / (aK2-aK1);
-}
-
-tREAL8 cCCDecode::DevOfPhase(int aK0) const
-{
-    tREAL8 aSum=0;
-    for (int aKBit=0 ; aKBit<mNbB ; aKBit++)
-    {
-        int aK1 = aK0+aKBit*mPixPerB;
-        aSum +=  Dev(aK1+1,aK1+mPixPerB-1);
-    }
-
-    return aSum / mNbB;
-}
-
-void cCCDecode::ComputePhaseTeta() 
-{
-    cWhichMin<int,tREAL8> aMinDev;
-
-    for (int aK0=0 ;aK0< mPixPerB ; aK0++)
-	    aMinDev.Add(aK0,DevOfPhase(aK0));
-
-    mPhase0 = aMinDev.IndexExtre();
-
-    if (     (aMinDev.ValExtre() > 0.1 * Dev(0,mNbTeta))
-          || (aMinDev.ValExtre() > 0.05 *  mBWAmpl)
-       )
-    {
-        mOK = false;
-	return;
-    }
-}
-
-void cCCDecode::ComputeCode(bool Show)
-{
-    size_t aFlag=0;
-    for (int aKBit=0 ; aKBit<mNbB ; aKBit++)
-    {
-        int aK1 = mPhase0+aKBit*mPixPerB;
-        tREAL8 aMoy =  Avg(aK1+1,aK1+mPixPerB-1);
-
-	if (mSpec.BitIs1(aMoy>mBWAvg))
-           aFlag |= (1<<aKBit);
-    }
-
-
-    if (! mSpec.AntiClockWiseBit())
-       aFlag = BitMirror(aFlag,1<<mSpec.NbBits());
-
-    mEnCode = mSpec.EncodingFromCode(aFlag);
-
-    if (! mEnCode) return;
-
-    mEE.mWithCode = true;
-    mEE.mEncode = cOneEncoding(mEnCode->Num(),mEnCode->Code(),mEnCode->Name());
-    if (false)
-    {
-	 // bool             mWithCode;
-	 // cOneEncoding     mEncode;
-       StdOut() << "Adr=" << mEnCode << " ";
-       if (mEnCode) 
-            StdOut() << " Name=" << mEnCode->Name()  
-		     << " Code=" <<  mEnCode->Code() 
-		     << " BF=" << StrOfBitFlag(mEnCode->Code(), 1<<mNbB);
-       StdOut() << "\n";
-    }
-}
-
-
-
-cPt2dr cCCDecode::KTetaRho2Im(const cPt2di & aKTR) const
-{
-     return mEE.mEllipse.PtOfTeta(K2Teta(aKTR.x()),K2Rho(aKTR.y()));
-}
-
-tREAL8 cCCDecode::K2Rho(const int aK)  const {return mRho0+ ((mRho1-mRho0)*aK) / mNbRho;}
-tREAL8 cCCDecode::K2Teta(const int aK) const {return  (2*M_PI*aK)/mNbTeta;}
-
-int  cCCDecode::Rho2K(const tREAL8 aR)  const 
-{
-     return round_ni( ((aR-mRho0)/(mRho1-mRho0)) * mNbRho );
-}
-
-tREAL8 cCCDecode::RhoOfWeight(const tREAL8 & aW) const
-{
-	return (1-aW) * mSpec.Rho_1_BeginCode() + aW * mSpec.Rho_2_EndCode();
-}
+    // ==============   constructor ============================
 
 cCCDecode::cCCDecode(cCircTargExtr & anEE,const cDataIm2D<tREAL4> & aDIm,const cFullSpecifTarget & aSpec) :
 	mEE        (anEE),
@@ -267,6 +174,117 @@ cCCDecode::cCCDecode(cCircTargExtr & anEE,const cDataIm2D<tREAL4> & aDIm,const c
 
     ComputeCode(true);
     if (!mOK) return;
+}
+
+//  =============   Agregation on interval : StdDev , Avg, TotalStdDevOfPhase ====
+
+
+tREAL8 cCCDecode::StdDev(int aK1,int aK2) const
+{
+    cComputeStdDev<tREAL8> aCS;
+    for (int aK=aK1 ; aK<aK2 ; aK++)
+    {
+         aCS.Add(mDAvg.GetV(aK%mNbTeta));
+    }
+    return aCS.StdDev(0);
+}
+
+tREAL8 cCCDecode::Avg(int aK1,int aK2) const
+{
+    tREAL8 aSom =0 ;
+    for (int aK=aK1 ; aK<aK2 ; aK++)
+    {
+          aSom += mDAvg.GetV(aK%mNbTeta);
+    }
+    return aSom / (aK2-aK1);
+}
+
+tREAL8 cCCDecode::TotalStdDevOfPhase(int aK0) const
+{
+    tREAL8 aSum=0;
+    for (int aKBit=0 ; aKBit<mNbB ; aKBit++)
+    {
+        int aK1 = aK0+aKBit*mPixPerB;
+        aSum +=  StdDev(aK1+1,aK1+mPixPerB-1);
+    }
+
+    return aSum / mNbB;
+}
+
+
+//=================
+
+void cCCDecode::ComputePhaseTeta() 
+{
+    cWhichMin<int,tREAL8> aMinDev;
+
+    for (int aK0=0 ;aK0< mPixPerB ; aK0++)
+	    aMinDev.Add(aK0,TotalStdDevOfPhase(aK0));
+
+    mPhase0 = aMinDev.IndexExtre();
+
+    if (     (aMinDev.ValExtre() > 0.1 * StdDev(0,mNbTeta))
+          || (aMinDev.ValExtre() > 0.05 *  mBWAmpl)
+       )
+    {
+        mOK = false;
+	return;
+    }
+}
+
+void cCCDecode::ComputeCode(bool Show)
+{
+    size_t aFlag=0;
+    for (int aKBit=0 ; aKBit<mNbB ; aKBit++)
+    {
+        int aK1 = mPhase0+aKBit*mPixPerB;
+        tREAL8 aMoy =  Avg(aK1+1,aK1+mPixPerB-1);
+
+	if (mSpec.BitIs1(aMoy>mBWAvg))
+           aFlag |= (1<<aKBit);
+    }
+
+
+    if (! mSpec.AntiClockWiseBit())
+       aFlag = BitMirror(aFlag,1<<mSpec.NbBits());
+
+    mEnCode = mSpec.EncodingFromCode(aFlag);
+
+    if (! mEnCode) return;
+
+    mEE.mWithCode = true;
+    mEE.mEncode = cOneEncoding(mEnCode->Num(),mEnCode->Code(),mEnCode->Name());
+    if (false)
+    {
+	 // bool             mWithCode;
+	 // cOneEncoding     mEncode;
+       StdOut() << "Adr=" << mEnCode << " ";
+       if (mEnCode) 
+            StdOut() << " Name=" << mEnCode->Name()  
+		     << " Code=" <<  mEnCode->Code() 
+		     << " BF=" << StrOfBitFlag(mEnCode->Code(), 1<<mNbB);
+       StdOut() << "\n";
+    }
+}
+
+
+
+cPt2dr cCCDecode::KTetaRho2Im(const cPt2di & aKTR) const
+{
+     return mEE.mEllipse.PtOfTeta(K2Teta(aKTR.x()),K2Rho(aKTR.y()));
+}
+
+tREAL8 cCCDecode::K2Rho(const int aK)  const {return mRho0+ ((mRho1-mRho0)*aK) / mNbRho;}
+tREAL8 cCCDecode::K2Teta(const int aK) const {return  (2*M_PI*aK)/mNbTeta;}
+
+int  cCCDecode::Rho2K(const tREAL8 aR)  const 
+{
+     return round_ni( ((aR-mRho0)/(mRho1-mRho0)) * mNbRho );
+}
+
+tREAL8 cCCDecode::RhoOfWeight(const tREAL8 & aW) const
+{
+	return (1-aW) * mSpec.Rho_1_BeginCode() + aW * mSpec.Rho_2_EndCode();
 }
 
 
