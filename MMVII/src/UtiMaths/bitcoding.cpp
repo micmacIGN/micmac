@@ -163,8 +163,13 @@ void  BitsToVect(std::vector<int> & aVBits,tU_INT4 aVal,size_t aPow2)
 }
 
 ///  return the maximal length of consecutive 0 & 1, interpreted circularly    (94="01111010", 256=2^8)  =>  (3,2)
-cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2)
+///  fill vector will all interval
+cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2,std::vector<cPt2di> & aVInterv0,std::vector<cPt2di> & aVInterv1)
 {
+
+   aVInterv0.clear();
+   aVInterv1.clear();
+   
    std::vector<int> aVBits;
    BitsToVect(aVBits,aVal,aPow2);
 
@@ -182,9 +187,15 @@ cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2)
 	   while ( ValCirc(aVBits,aK1)==ValCirc(aVBits,aK2) ) // reach next diff
                  aK2++;
            if (ValCirc(aVBits,aK1))  // update count for 0 or 1
+           {
+              aVInterv1.push_back(cPt2di(aK1,aK2));
               UpdateMax(aMaxR1,aK2-aK1);
+           }
            else
+           {
+              aVInterv0.push_back(cPt2di(aK1,aK2));
               UpdateMax(aMaxR0,aK2-aK1);
+           }
 	}
    }
 
@@ -197,6 +208,13 @@ cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2)
    }
 
    return cPt2di(aMaxR0,aMaxR1);
+}
+
+cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2)
+{
+     std::vector<cPt2di> aVInterv0;
+     std::vector<cPt2di> aVInterv1;
+     return MaxRunLength(aVal,aPow2,aVInterv0,aVInterv1);
 }
 
 /// Max of both run (0 and 1)
