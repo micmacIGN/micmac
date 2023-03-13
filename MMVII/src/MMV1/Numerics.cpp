@@ -4,6 +4,16 @@
 namespace MMVII
 {
 
+double Average(const std::vector<double> &aVec)
+{
+    cWeightAv<tREAL8>  aWA;
+
+    for (const auto & aVal : aVec)
+       aWA.Add(1.0,aVal);
+
+    return aWA.Average();
+}
+
 double NC_KthVal(std::vector<double> & aV, double aProportion)
 {
    return ::KthValProp(aV,aProportion);

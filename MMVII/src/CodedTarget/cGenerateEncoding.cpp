@@ -80,6 +80,7 @@ cOneEncoding::cOneEncoding(size_t aNum,size_t aCode,const std::string & aName)
 
 	mNC[0] = aNum;
 	mNC[1] = aCode;
+	mNC[2] = 0;
 }
 cOneEncoding::cOneEncoding() : cOneEncoding(0,0) {}
 
@@ -90,7 +91,7 @@ void cOneEncoding::SetName(const std::string & aName)
 
 void cOneEncoding::AddData(const  cAuxAr2007 & anAux)
 {
-   if (! anAux.Input())
+   if ((! anAux.Input()) && (mNC[2]!=0))
        AddComment(anAux.Ar(),StrOfBitFlag(Code(),1<<mNC[2]));
    // AddTabData(anAux,mNC,2);
    AddTabData(cAuxAr2007("NumCode",anAux),mNC,2);
@@ -264,6 +265,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mBase4Name,"Base4N","Base for name",{eTA2007::HDV})
                << AOpt2007(mSpec.mNbDigit,"NbDig","Number of digit for name (default depend of max num & base)")
                << AOpt2007(mSpec.mUseHammingCode,"UHC","Use Hamming code")
+               << AOpt2007(mSpec.mPrefix,"Prefix","Prefix for output files")
                << AOpt2007(mMiror,"Mir","Unify mirro codes")
           ;
 }

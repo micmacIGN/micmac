@@ -448,7 +448,7 @@ class cEllipse
        double TetaGa() const; /// Teta great axe
 
        cPt2dr  PtOfTeta(tREAL8 aTeta,tREAL8 aMulRho=1.0) const; /// return on ellipse with param A cos(T) + B sin(T)
-       cPt2dr  PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &) const;  /// return also the gradien of belong function
+       cPt2dr  PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &,tREAL8 aMulRho=1.0) const;  /// return also the gradien of belong function
 
     private :
        cDenseVect<tREAL8>     mV;

@@ -472,6 +472,22 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         const int    &  X0()  const {return tPB::P0().x();}
         const int    &  X1()  const {return tPB::P1().x();}
 
+           /// Get Value  Circular
+        const Type & GetVCirc(const int & aP)  const { return  Value(mod(aP,Sz())); }
+           /// Get Value  Bilinear Circular
+        cPt2dr  GetVAndGradCircBL(const tREAL8 & aX)  
+        {
+            int aX0 = round_down(aX);  ///<  "Left" limit of  pixel
+            double aWeigthX1 = aX - aX0;
+            double aWeightX0 = 1-aWeigthX1;
+
+	    double aV0 = GetVCirc(aX0);
+	    double aV1 = GetVCirc(aX0+1);
+
+            return   cPt2dr(aWeightX0*aV0  + aWeigthX1*aV1,aV1-aV0);
+	}
+
+
           // Interface as generic image
 
         int     VI_GetV(const cPt1di& aP)  const override;

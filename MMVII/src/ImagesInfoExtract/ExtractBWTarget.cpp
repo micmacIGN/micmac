@@ -41,9 +41,30 @@ cParamBWTarget::cParamBWTarget() :
     mMinDiam     (15.0),
     mMaxDiam     (100.0),
     mPropFr      (0.95),
-    mNbMinFront  (10)
+    mNbMinFront  (10),
+    mInvGray     (false)
 {
 }
+
+void cParamBWTarget::SetMax4Inv(tREAL4 aMaxGray)
+{
+   mInvGray = true;
+   mMaxGray = aMaxGray;
+}
+
+tREAL8    cParamBWTarget::CorrecRad(tREAL8 aGray) const
+{
+	return mInvGray ? (mMaxGray-aGray) : aGray;
+}
+
+tREAL8    cParamBWTarget::RatioBW(tREAL8 aBlack,tREAL8 aWhite) const
+{
+    if (mInvGray)  return CorrecRad(aWhite) / std::max(1.0,CorrecRad(aBlack));
+
+    return aBlack / std::max(1.0,aWhite);
+}
+
+
 
 /*  *********************************************************** */
 /*                                                              */
@@ -126,13 +147,17 @@ bool cExtract_BW_Target::IsExtremalPoint(const cPt2di & aPix)
    cPt2di aPixW =  Prolongate(aPix,true);
    tElemIm aVWhite =  mDIm.GetV(aPixW);
 
-   if (aVWhite < mPBWT.mValMinW)
+   tElemIm aBlackInit = mPBWT.mInvGray ?  mPBWT.CorrecRad(aVWhite) : aVBlack;
+   tElemIm aWhiteInit = mPBWT.mInvGray ?  mPBWT.CorrecRad(aVBlack) : aVWhite;
+
+
+   if (aWhiteInit < mPBWT.mValMinW)
       return false;
 
-   if (aVBlack > mPBWT.mValMaxB)
+   if (aBlackInit > mPBWT.mValMaxB)
       return false;
 
-    if ((aVBlack/double(aVWhite)) > mPBWT.mRatioMaxBW)
+    if (aBlackInit > (mPBWT.mRatioMaxBW * aWhiteInit))
       return false;
 
    mVSeeds.push_back(cSeedBWTarget(aPixW,aPix,aVBlack,aVWhite));

@@ -12,6 +12,8 @@ namespace MMVII
 namespace  cNS_CodedTarget
 {
 
+extern const std::string ThePrefixSimulTarget;
+extern const std::string ThePostfixGTSimulTarget;
 
 class cFullSpecifTarget ;  // main class from user's side to create target, know their specification
 
@@ -23,6 +25,7 @@ class cBitEncoding;
 class cGeomSimDCT;
 class cResSimul;
 class cParamCodedTarget;
+class cBaseTE;
 class cDCT;
 
 
@@ -30,6 +33,7 @@ typedef cSetISingleFixed<tU_INT4>  tBinCodeTarg;
 typedef std::vector<tBinCodeTarg> tVSetICT;
 typedef cIm2D<tU_INT1>     tImTarget;
 typedef cDataIm2D<tU_INT1> tDataImT;
+
 
 
 /* ************************************************** */
@@ -135,7 +139,7 @@ class cGeomSimDCT
        /// Usable when we use a clipped file
        void Translate(const cPt2dr &);
 
-       cDCT *       mResExtr;   ///< contains the potentiel detected target extracted
+       cBaseTE *       mResExtr;   ///< contains the potentiel detected target extracted
        // int    mNum;       ///< numbering
        cOneEncoding mEncod; 
        cPt2dr       mC;         ///< Theoreticall center
@@ -143,7 +147,7 @@ class cGeomSimDCT
        cPt2dr       mCornEl2;   ///< Theoreticall corner 2 of ellipse
        double       mR1;        ///< "small" size of deformaed rectangle
        double       mR2;        ///<  "big " size ....
-       std::string name;
+       // std::string  mName;
 };
 /// method for serializing cGeomSimDCT
 void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD);
@@ -185,17 +189,30 @@ enum class eResDCT
      BadDir
 };
 
+/**  Base class for target extracted */
+
+class cBaseTE
+{
+   public :
+         cBaseTE(const cPt2dr & aPt);
+         cBaseTE(const cPt2dr & aPt,tREAL4 aBlack,tREAL4 aWhite);
+
+         cPt2dr        mPt;
+         cGeomSimDCT * mGT;        ///< possible ground truth
+         tREAL4         mVBlack;     ///< estimate "black" value of the detected target
+         tREAL4         mVWhite;     ///< estimate "white" value of the detected target
+};
+
 /**  Classe for storing  Detected Target */
 
-class  cDCT
+class  cDCT : public cBaseTE
 {
      public  :
          cDCT(const cPt2dr aPtR,eResDCT aState);
 
          cPt2di  Pix()  const {return ToI(mPt);} /// convert to integer coordinates
 
-         cGeomSimDCT * mGT;        ///< possible ground truth
-         cPt2dr        mPt;        ///< refined position sub-pixel
+         // cPt2dr        mPt;        ///< refined position sub-pixel
          cPt2dr        mDirC1;     ///< Direction of corner 1 (detected axe of chekboard)
          cPt2dr        mDirC2;     ///< Direction of corner 2 (detected axe of check board)
          eResDCT       mState;     ///< state of detection
@@ -206,8 +223,6 @@ class  cDCT
          double        mBin;        ///< Binary score (unused ?)
          double        mRad;        ///< Radiality core (unused ?)
 
-         float         mVBlack;     ///< estimate "black" value of the detected target
-         float         mVWhite;     ///< estimate "white" value of the detected target
 
          cPt2dr mRefinedCenter;      ///< Coordinates of center after detection process
          std::string mDecodedName;   ///< Name of target after detection process
@@ -372,6 +387,10 @@ class cFullSpecifTarget : public cMemCheck
 
 
 	 bool BitIs1(bool IsWhite) const;
+	 bool ZeroIsBackGround() const;
+	 bool WhiteBackGround() const;
+	 /** To handle white backcground we make an inversion */
+	 void SetWhiteBackGround(bool) ;  
 	 bool AntiClockWiseBit() const;
 	            //   geometry 
          const std::vector<cPt2dr>& BitsCenters() const; /// Access to all bits centers

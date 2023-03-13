@@ -6,6 +6,7 @@
          <NbBits>12</NbBits>
          <FreqCircEq>2</FreqCircEq>
          <MinHammingD>3</MinHammingD>
+         <UseHammingCode>0</UseHammingCode>
          <MaxRunL>2 3</MaxRunL>
          <Parity>3</Parity>
          <MaxNb>1000</MaxNb>
@@ -24,144 +25,144 @@
             <NumCode>0 585</NumCode>
             <Name>"00"</Name>
          </el>
-         <el>  <!--011011011011-->
-            <NumCode>1 3510</NumCode>
+         <el>  <!--110011100100-->
+            <NumCode>1 627</NumCode>
             <Name>"01"</Name>
          </el>
          <el>  <!--111010010100-->
             <NumCode>2 663</NumCode>
             <Name>"02"</Name>
          </el>
-         <el>  <!--101101010010-->
-            <NumCode>3 1197</NumCode>
+         <el>  <!--100111010100-->
+            <NumCode>3 697</NumCode>
             <Name>"03"</Name>
          </el>
-         <el>  <!--101010101010-->
-            <NumCode>4 1365</NumCode>
+         <el>  <!--101110110100-->
+            <NumCode>4 733</NumCode>
             <Name>"04"</Name>
          </el>
-         <el>  <!--011001100110-->
-            <NumCode>5 1638</NumCode>
+         <el>  <!--101001110100-->
+            <NumCode>5 741</NumCode>
             <Name>"05"</Name>
          </el>
-         <el>  <!--110111001110-->
-            <NumCode>6 1851</NumCode>
+         <el>  <!--110101110100-->
+            <NumCode>6 747</NumCode>
             <Name>"06"</Name>
          </el>
-         <el>  <!--001101101001-->
-            <NumCode>7 2412</NumCode>
+         <el>  <!--100101001100-->
+            <NumCode>7 809</NumCode>
             <Name>"07"</Name>
          </el>
-         <el>  <!--010101010101-->
-            <NumCode>8 2730</NumCode>
+         <el>  <!--111011001100-->
+            <NumCode>8 823</NumCode>
             <Name>"08"</Name>
          </el>
-         <el>  <!--110011100100-->
-            <NumCode>9 627</NumCode>
+         <el>  <!--110110011100-->
+            <NumCode>9 923</NumCode>
             <Name>"09"</Name>
          </el>
-         <el>  <!--100111010100-->
-            <NumCode>10 697</NumCode>
+         <el>  <!--010010010010-->
+            <NumCode>10 1170</NumCode>
             <Name>"10"</Name>
          </el>
-         <el>  <!--101001110100-->
-            <NumCode>11 741</NumCode>
+         <el>  <!--100110010010-->
+            <NumCode>11 1177</NumCode>
             <Name>"11"</Name>
          </el>
-         <el>  <!--010010010010-->
-            <NumCode>12 1170</NumCode>
+         <el>  <!--011001010010-->
+            <NumCode>12 1190</NumCode>
             <Name>"12"</Name>
          </el>
-         <el>  <!--111001001010-->
-            <NumCode>13 1319</NumCode>
+         <el>  <!--101101010010-->
+            <NumCode>13 1197</NumCode>
             <Name>"13"</Name>
          </el>
-         <el>  <!--100101101010-->
-            <NumCode>14 1385</NumCode>
+         <el>  <!--111010110010-->
+            <NumCode>14 1239</NumCode>
             <Name>"14"</Name>
          </el>
-         <el>  <!--010011101010-->
-            <NumCode>15 1394</NumCode>
+         <el>  <!--111001001010-->
+            <NumCode>15 1319</NumCode>
             <Name>"15"</Name>
          </el>
-         <el>  <!--110110110110-->
-            <NumCode>16 1755</NumCode>
+         <el>  <!--101010101010-->
+            <NumCode>16 1365</NumCode>
             <Name>"16"</Name>
          </el>
-         <el>  <!--110011001001-->
-            <NumCode>17 2355</NumCode>
+         <el>  <!--100101101010-->
+            <NumCode>17 1385</NumCode>
             <Name>"17"</Name>
          </el>
-         <el>  <!--001011010101-->
-            <NumCode>18 2740</NumCode>
+         <el>  <!--011101101010-->
+            <NumCode>18 1390</NumCode>
             <Name>"18"</Name>
          </el>
-         <el>  <!--101110110100-->
-            <NumCode>19 733</NumCode>
+         <el>  <!--010011101010-->
+            <NumCode>19 1394</NumCode>
             <Name>"19"</Name>
          </el>
-         <el>  <!--110101110100-->
-            <NumCode>20 747</NumCode>
+         <el>  <!--110101011010-->
+            <NumCode>20 1451</NumCode>
             <Name>"20"</Name>
          </el>
-         <el>  <!--100101001100-->
-            <NumCode>21 809</NumCode>
+         <el>  <!--101011011010-->
+            <NumCode>21 1461</NumCode>
             <Name>"21"</Name>
          </el>
-         <el>  <!--111011001100-->
-            <NumCode>22 823</NumCode>
+         <el>  <!--011001100110-->
+            <NumCode>22 1638</NumCode>
             <Name>"22"</Name>
          </el>
-         <el>  <!--110110011100-->
-            <NumCode>23 923</NumCode>
+         <el>  <!--101101100110-->
+            <NumCode>23 1645</NumCode>
             <Name>"23"</Name>
          </el>
-         <el>  <!--100110010010-->
-            <NumCode>24 1177</NumCode>
+         <el>  <!--110011010110-->
+            <NumCode>24 1715</NumCode>
             <Name>"24"</Name>
          </el>
-         <el>  <!--011001010010-->
-            <NumCode>25 1190</NumCode>
+         <el>  <!--110110110110-->
+            <NumCode>25 1755</NumCode>
             <Name>"25"</Name>
          </el>
-         <el>  <!--111010110010-->
-            <NumCode>26 1239</NumCode>
+         <el>  <!--110111001110-->
+            <NumCode>26 1851</NumCode>
             <Name>"26"</Name>
          </el>
-         <el>  <!--011101101010-->
-            <NumCode>27 1390</NumCode>
+         <el>  <!--011001001001-->
+            <NumCode>27 2342</NumCode>
             <Name>"27"</Name>
          </el>
-         <el>  <!--110101011010-->
-            <NumCode>28 1451</NumCode>
+         <el>  <!--110011001001-->
+            <NumCode>28 2355</NumCode>
             <Name>"28"</Name>
          </el>
-         <el>  <!--101011011010-->
-            <NumCode>29 1461</NumCode>
+         <el>  <!--001101101001-->
+            <NumCode>29 2412</NumCode>
             <Name>"29"</Name>
          </el>
-         <el>  <!--101101100110-->
-            <NumCode>30 1645</NumCode>
+         <el>  <!--101011101001-->
+            <NumCode>30 2421</NumCode>
             <Name>"30"</Name>
          </el>
-         <el>  <!--110011010110-->
-            <NumCode>31 1715</NumCode>
+         <el>  <!--010101010101-->
+            <NumCode>31 2730</NumCode>
             <Name>"31"</Name>
          </el>
-         <el>  <!--011001001001-->
-            <NumCode>32 2342</NumCode>
+         <el>  <!--101101010101-->
+            <NumCode>32 2733</NumCode>
             <Name>"32"</Name>
          </el>
-         <el>  <!--101011101001-->
-            <NumCode>33 2421</NumCode>
+         <el>  <!--001011010101-->
+            <NumCode>33 2740</NumCode>
             <Name>"33"</Name>
          </el>
-         <el>  <!--101101010101-->
-            <NumCode>34 2733</NumCode>
+         <el>  <!--100111001011-->
+            <NumCode>34 3385</NumCode>
             <Name>"34"</Name>
          </el>
-         <el>  <!--100111001011-->
-            <NumCode>35 3385</NumCode>
+         <el>  <!--011011011011-->
+            <NumCode>35 3510</NumCode>
             <Name>"35"</Name>
          </el>
       </Encoding>
@@ -180,8 +181,14 @@
       <ThickN_Car>0.5</ThickN_Car>
       <ChessBoardAngle>0</ChessBoardAngle>
       <ModeFlight>0</ModeFlight>
+      <CBAtTop>0</CBAtTop>
       <WithChessBoard>1</WithChessBoard>
       <WhiteBackGround>1</WhiteBackGround>
+      <ZeroIsBackGround>1</ZeroIsBackGround>
+      <AntiClockWiseBit,>1</AntiClockWiseBit,>
+      <RayOrientTablet>-1</RayOrientTablet>
+      <CenterOrientTablet>0 0</CenterOrientTablet>
+      <RayCenterMiniTarget>-1</RayCenterMiniTarget>
    </Geometry>
    <Centers>
       <Nb>12</Nb>

@@ -825,6 +825,10 @@ const cPt2dr & cFullSpecifTarget::Center() const {return mRender.mCenterF;}
 const cPt2dr & cFullSpecifTarget::CornerlEl_BW() const {return mRender.mCornEl1;}
 const cPt2dr & cFullSpecifTarget::CornerlEl_WB() const {return mRender.mCornEl2;}
 bool  cFullSpecifTarget::AntiClockWiseBit() const { return mRender.mAntiClockWiseBit; }
+bool  cFullSpecifTarget::ZeroIsBackGround() const { return mRender.mZeroIsBackGround; }
+bool  cFullSpecifTarget::WhiteBackGround() const  { return mRender.mWhiteBackGround; }
+void  cFullSpecifTarget::SetWhiteBackGround(bool aWB) {mRender.mWhiteBackGround = aWB;}
+
 
 bool cFullSpecifTarget::BitIs1(bool IsWhite) const
 {
@@ -869,6 +873,12 @@ cFullSpecifTarget *  cFullSpecifTarget::CreateFromFile(const std::string & aName
 {
     cFullSpecifTarget * aRes = new cFullSpecifTarget;
     ReadFromFile(*aRes,aName);
+
+    if (0)  // we dont reset nb of bit, because don want do generate comments as 100100111
+    {
+        for (auto & anEncod : aRes->mBE.Encodings())
+            anEncod.SetNBB(aRes->NbBits());
+    }
 
     return aRes;
 }
@@ -968,6 +978,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mPCT.mThickN_Car,"ThCar","Thickness of separation alpha ccode ",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_BorderExt,"ThBExt","Thickness of border exterior",{eTA2007::HDV})
           << AOpt2007(mPCT.mChessboardAng,"Theta","Origin angle of chessboard pattern ",{eTA2007::HDV})
+          << AOpt2007(mPCT.mWhiteBackGround,"WhiteBG","White back ground")
           << AOpt2007(mPCT.mModeFlight,"ModeFlight","Special mode for Patricio ",{eTA2007::HDV})
           << AOpt2007(mDoMarkC,"MarkC","Mark center of bits, just for verif ",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mZoomShow,"ZoomShow","Zoom to generate a high resolution check images",{eTA2007::Tuning})

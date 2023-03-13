@@ -48,7 +48,7 @@ cGeomSimDCT::cGeomSimDCT(const cOneEncoding & anEncod,const  cPt2dr& aC,const do
 void AddData(const  cAuxAr2007 & anAux,cGeomSimDCT & aGSD)
 {
    aGSD.mEncod.AddData(cAuxAr2007("Encod",anAux));
-   MMVII::AddData(cAuxAr2007("Name",anAux),aGSD.name);
+   //  ========   MMVII::AddData(cAuxAr2007("Name",anAux),aGSD.mName);
    MMVII::AddData(cAuxAr2007("Center",anAux),aGSD.mC);
    MMVII::AddData(cAuxAr2007("CornEl1",anAux),aGSD.mCornEl1);
    MMVII::AddData(cAuxAr2007("CornEl2",anAux),aGSD.mCornEl2);
@@ -137,16 +137,19 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
         // =========== Optionnal args ============
 	cResSimul           mRS;        /// List of result
         double              mSzKernel;  /// Sz of interpolation kernel 
+	std::string         mPatternNames;
 
                 //  --
 	double              mDownScale;       ///< initial downscale of target
-	double              mAttenBW;         ///< amplitude of (random) gray attenuatio,
+	double              mAttenContrast;         ///< amplitude of (random) gray attenuatio,
+	double              mAttenMul;         ///< Multiplicative attenuation
 	double              mPropSysLin;      ///< amplitude of (random) linear bias
 	double              mAmplWhiteNoise;  ///< amplitud of random white noise
 
         // =========== Internal param ============
         tIm                        mImIn;        ///< Input global image
 	cFullSpecifTarget *        mSpec;        ///< Specification of target creation
+	std::string                mSuplPref;   ///< Supplementary prefix
 	std::string                mPrefixOut;   ///< Prefix for generating image & ground truth
 };
 
@@ -160,12 +163,15 @@ class cAppliSimulCodeTarget : public cMMVII_Appli
 cAppliSimulCodeTarget::cAppliSimulCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
    mSzKernel        (2.0),
+   mPatternNames    (".*"),
    mDownScale       (3.0),
-   mAttenBW         (0.2),
+   mAttenContrast   (0.2),
+   mAttenMul        (0.4),
    mPropSysLin      (0.2),
    mAmplWhiteNoise  (0.1),
    mImIn            (cPt2di(1,1)),
-   mSpec            (nullptr)
+   mSpec            (nullptr),
+   mSuplPref        ("")
 {
 }
 
@@ -183,11 +189,14 @@ cCollecSpecArg2007 & cAppliSimulCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt
    return
 	        anArgOpt
              <<   AOpt2007(mRS.mRayMinMax,"Rays","Min/Max ray for gen target",{eTA2007::HDV})
+             <<   AOpt2007(mPatternNames,"PatNames","Pattern for selection of names",{eTA2007::HDV})
              <<   AOpt2007(mSzKernel,"SzK","Sz of Kernel for interpol",{eTA2007::HDV})
              <<   AOpt2007(mRS.mBorder,"Border","Border w/o target, prop to R Max",{eTA2007::HDV})
              <<   AOpt2007(mAmplWhiteNoise,"NoiseAmpl","Amplitude White Noise",{eTA2007::HDV})
              <<   AOpt2007(mPropSysLin,"PropLinBias","Amplitude Linear Bias",{eTA2007::HDV})
-             <<   AOpt2007(mAttenBW,"BWAttend","Attenution of B/W extrem vaues",{eTA2007::HDV})
+             <<   AOpt2007(mAttenContrast,"ContrastAtten","Attenution of B/W contrast",{eTA2007::HDV})
+             <<   AOpt2007(mAttenMul,"MulAtten","Attenution multiplicatives",{eTA2007::HDV})
+             <<   AOpt2007(mSuplPref,"SuplPref","Suplementary prefix for outputs")
    ;
 }
 
@@ -244,14 +253,16 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
 
     cPt2dr aDirModif = FromPolar(1.0,M_PI*RandUnif_C());
     double aDiag = Norm2(aC0);
-    double aAtten = mAttenBW * RandUnif_0_1();
+    double aAttenContrast = mAttenContrast * RandUnif_0_1();
+    double aAttenMul = (1-mAttenMul) + mAttenMul * RandUnif_0_1();
     double aAttenLin  = mPropSysLin * RandUnif_0_1();
     for (const auto & aPix : aDImT)
     {
          double aVal = aDImT.GetV(aPix);
-	 aVal =  128  + (aVal-128) * (1-aAtten)   ;              //  attenuate, to have grey-level
+	 aVal =  128  + (aVal-128) * (1-aAttenContrast)   ;              //  attenuate, to have grey-level
          double aScal = Scal(ToR(aPix)-aC0,aDirModif) / aDiag;   // compute amplitude of linear bias
 	 aVal =  128  + (aVal-128) * (1-aAttenLin)  + aAttenLin * aScal * 128;
+	 aVal = aVal * aAttenMul;
 	 //
 	 aDImT.SetV(aPix,aVal);
     }
@@ -308,9 +319,12 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
     StdOut() << "NNN= " << aGSD.mEncod.Name() << " C0=" << aC0 <<  aBoxIm.Sz() <<  " " << aGSD.mR2/aGSD.mR1 << "\n";
 }
 
+const std::string ThePrefixSimulTarget = "SimulTarget_";
+const std::string ThePostfixGTSimulTarget = "_GroundTruth.xml";
+
 int  cAppliSimulCodeTarget::Exe()
 {
-   mPrefixOut =  "SimulTarget_" + LastPrefix(mNameIm);
+   mPrefixOut =  ThePrefixSimulTarget +  mSuplPref + LastPrefix(mNameIm);
    mRS.mCom = CommandOfMain();
    // mPCT.InitFromFile(mNameSpecif);
    mSpec =  cFullSpecifTarget::CreateFromFile(mNameSpecif);
@@ -319,15 +333,18 @@ int  cAppliSimulCodeTarget::Exe()
 
    for (const auto & anEncod : mSpec->Encodings())
    {
-        AddPosTarget(anEncod);
-        StdOut() <<  "Ccc=" << mRS.mVG.back().mC << "\n";
+        if (MatchRegex(anEncod.Name(),mPatternNames))
+	{
+            AddPosTarget(anEncod);
+            StdOut() <<  "Target " << anEncod.Name() << " " << mRS.mVG.back().mC << "\n";
+	}
    }
 
    for (auto  & aG : mRS.mVG)
    {
        IncrustTarget(aG);
    }
-   SaveInFile(mRS,mPrefixOut +"_GroundTruth.xml");
+   SaveInFile(mRS,mPrefixOut + ThePostfixGTSimulTarget);
 
    mImIn.DIm().ToFile(mPrefixOut+".tif",eTyNums::eTN_U_INT1);
 

@@ -1,4 +1,5 @@
 #include "CodedTarget.h"
+#include "CodedTarget_Tpl.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include "include/MMVII_Tpl_Images.h"
 #include "src/Matrix/MMVII_EigenWrap.h"
@@ -31,6 +32,19 @@ void TestParamTarg();
 namespace  cNS_CodedTarget
 {
 
+cBaseTE::cBaseTE(const cPt2dr & aPt,tREAL4 aBlack,tREAL4 aWhite) :
+   mPt      (aPt),
+   mGT      (nullptr),
+   mVBlack  (aBlack),
+   mVWhite  (aWhite)
+{
+}
+
+cBaseTE::cBaseTE(const cPt2dr & aPt) :
+     cBaseTE(aPt,-1,-1)
+{
+}
+
 /*  *********************************************************** */
 /*                                                              */
 /*                       cDCT                                   */
@@ -39,8 +53,8 @@ namespace  cNS_CodedTarget
 
 
 cDCT::cDCT(const cPt2dr aPtR,eResDCT aState) :
-   mGT          (nullptr),
-   mPt          (aPtR),
+   cBaseTE      (aPtR),
+   //   mPt          (aPtR),
    mState       (aState),
    mScRadDir    (1e5),
    mSym         (1e5),
@@ -71,8 +85,6 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-	///  Create the matching between GT and extracted
-        void MatchOnGT(cGeomSimDCT & aGSD);
 
 	void DoAllMatchOnGT();
 	/// compute direction of ellipses
@@ -371,41 +383,12 @@ void cAppliExtractCodeTarget::SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool M
   delete aFilter;
 }
 
-void cAppliExtractCodeTarget::MatchOnGT(cGeomSimDCT & aGSD)
-{
-     // strtucture for extracting min
-     cWhichMin<cDCT*,double>  aWMin(nullptr,1e10);
-
-     for (auto aPtrDCT : mVDCT)
-         aWMin.Add(aPtrDCT,SqN2(aPtrDCT->mPt-aGSD.mC));
-
-     if (aWMin.ValExtre() < Square(mDMaxMatch))
-     {
-     	aGSD.mResExtr = aWMin.IndexExtre(); // the simul memorize its detected
-        aGSD.mResExtr->mGT =& aGSD;         // the detected memorize its ground truth
-     }
-     else
-     {
-     }
-}
 
 void cAppliExtractCodeTarget::DoAllMatchOnGT()
 {
      if (mWithGT)
      {
-        int aNbGTMatched = 0;
-        for (auto & aGSD : mGTResSim.mVG)
-	{
-             MatchOnGT(aGSD);
-	     if (aGSD.mResExtr )
-		aNbGTMatched++;
-	     else
-	     {
-                 StdOut() << " UNMATCH000 at " << aGSD.mC << "\n";
-	     }
-	}
-
-	StdOut()  << "GT-MATCHED : %:" << (100.0*aNbGTMatched) /mGTResSim.mVG.size() << " on " << mGTResSim.mVG.size() << " total-GT\n";
+         AllMatchOnGT(mGTResSim,mVDCT,mDMaxMatch,true,[](const auto&){return true;});
      }
 }
 
@@ -860,7 +843,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // Comparison with ground truth (if any)
     // ----------------------------------------------------------------------------------------------
     for (auto & aGSD : mGTResSim.mVG){
-        if (aGSD.name == chaine){
+        if (aGSD.mEncod.Name() == chaine){
             double error = sqrt(pow(aGSD.mC.x()-x_centre_moy, 2) + pow(aGSD.mC.x()-x_centre_moy, 2));
             if (error < 10){
                 mErrAvgGT += error*error;

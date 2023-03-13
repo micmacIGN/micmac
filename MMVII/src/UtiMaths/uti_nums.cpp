@@ -501,7 +501,10 @@ void Bench_Nums(cParamExeBench & aParam)
 template <class Type> Type  NonConstMediane(std::vector<Type> & aV)
 {
    std::sort(aV.begin(),aV.end());
-   return aV.at(aV.size()/2);
+   size_t aSz = aV.size();
+   if ( aSz % 2)
+       return aV.at(aSz/2);
+   return (aV.at(aSz/2-1) + aV.at(aSz/2)) / 2.0;
 }
 
 template <class Type> Type  ConstMediane(const std::vector<Type> & aV)

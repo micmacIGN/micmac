@@ -289,6 +289,13 @@ void cRGBImage::DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aG
     }
 }
 
+void  cRGBImage::FillRectangle (const cPt3di& aCoul,const cPt2di & aP1,const cPt2di & aP2,const cPt3dr & aAlpha)
+{
+     for (const auto & aPix : cRect2(aP1,aP2))
+         SetRGBPixWithAlpha(aPix,aCoul,aAlpha);
+}
+
+
 void cRGBImage::DrawString
      (
                   const std::string & aName,const cPt3di& aCoul,

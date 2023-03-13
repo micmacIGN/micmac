@@ -102,6 +102,9 @@ struct cParamBWTarget
 
       int NbMaxPtsCC() const; ///<Max number of point (computed from MaxDiam)
       int NbMinPtsCC() const; ///<Min number of point (computed from MinDiam)
+      void SetMax4Inv(tREAL4 aMaxGray);
+      tREAL8    CorrecRad(tREAL8 aBlack) const;
+      tREAL8    RatioBW(tREAL8 aBlack,tREAL8 aWhite) const;
 
       double    mFactDeriche;   ///< Factor for gradient with deriche-method
       int       mD0BW;          ///< distance to border
@@ -112,6 +115,9 @@ struct cParamBWTarget
       double    mMaxDiam;       ///< Maximal diameter
       double    mPropFr;        ///< Minima prop of point wher frontier extraction suceeded
       int       mNbMinFront;    ///< Minimal number of point
+
+      bool      mInvGray;
+      tREAL4    mMaxGray;
 };
 
 struct cSeedBWTarget
