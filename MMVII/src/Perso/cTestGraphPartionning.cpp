@@ -1,5 +1,6 @@
 
 #include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Tpl_Images.h"
 #include<map>
 
 /** \file 
@@ -28,18 +29,16 @@ class cAppli_TestGraphPart : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
      private :
-         bool        mExec;
-         bool        mAppend;
-         std::string mNameFoF;     ///< name of file of files
-         std::string mNameResult;  ///< name of Resulting media
-         bool        mVideoMode;       ///< is it video, change def options
-
-         std::string mOptions;     ///< is it video, change options
+	 typedef cDenseMatrix<tREAL8> tMat;
+	 typedef cDataIm2D<tREAL8>    tDIm;
 
          size_t  mNbVertex;
          size_t  mNbClass;
          cIm1D<tINT4>       mGTClass;
          cDataIm1D<tINT4>*  mDGTC;
+
+	 tMat  mMat0;
+
 };
 
 
@@ -69,7 +68,8 @@ cAppli_TestGraphPart::cAppli_TestGraphPart
 ) :
   cMMVII_Appli    (aVArgs,aSpec),
   mNbClass        (5),
-  mGTClass        (1)
+  mGTClass        (1),
+  mMat0           (1,1)
 {
 }
 
@@ -80,11 +80,42 @@ int cAppli_TestGraphPart::Exe()
 
    for (size_t aKv = 0 ; aKv < mNbVertex ; aKv++)
    {
-       size_t  aClass = aKv % mNbClass;
+       size_t  aClass = (aKv * mNbClass) / mNbVertex;
 
-        mDGTC->SetVa(aKv,aClass);
+       mDGTC->SetV(aKv,aClass);
    }
 
+   mMat0  = tMat(mNbVertex,mNbVertex);
+   tDIm & aDIm = mMat0.DIm();
+
+
+   tREAL8 aPertEqui = 0.2;
+   tREAL8 aPertNonEqui = 0.3;
+
+   for (const auto & aPix : aDIm)
+   {
+       if (aPix.x() >= aPix.y())
+       {
+            size_t aCx = mDGTC->GetV(aPix.x());
+            size_t aCy = mDGTC->GetV(aPix.y());
+
+	    bool Value = (aCx==aCy);
+	    double aProbaFalse = Value ? aPertEqui : aPertNonEqui;
+
+	    if (RandUnif_0_1() < aProbaFalse)
+		    Value = !Value;
+
+	    aDIm.SetV(aPix,Value);
+       }
+   }
+   mMat0.SelfSymetrizeBottom();
+   mMat0.DIm().ToFile("MatrInit.tif");
+
+   mMat0 = mMat0 * mMat0 * (1.0/ tREAL8(mNbVertex)) ;
+   mMat0.DIm().ToFile("Mat2.tif");
+
+   mMat0 = mMat0 * mMat0 * (1.0/ tREAL8(mNbVertex));
+   mMat0.DIm().ToFile("Mat4.tif");
    return EXIT_SUCCESS;
 }
 
@@ -100,8 +131,8 @@ cSpecMMVII_Appli  TheSpecTestGraphPart
       Alloc_TestGraphPart,
       "This command is to make some test on graph partionning",
       {eApF::Perso},
-      {eApDT::Media},
-      {eApDT::Media},
+      {eApDT::Console},
+      {eApDT::Image},
       __FILE__
 );
 

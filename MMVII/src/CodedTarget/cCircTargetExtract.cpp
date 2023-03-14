@@ -19,34 +19,34 @@ namespace MMVII
 
 /* ********************************************* */
 /*                                               */
-/*             cCGPOneMeasureIm                  */
+/*             cMesIm1Pt                         */
 /*                                               */
 /* ********************************************* */
 
-class cCGPOneMeasureIm
+class cMesIm1Pt
 {
      public :
-        cCGPOneMeasureIm(const cPt2dr & aPt,const std::string & aNameIm,tREAL8 aSigma);
-        cCGPOneMeasureIm();
+        cMesIm1Pt(const cPt2dr & aPt,const std::string & aNameIm,tREAL8 aSigma);
+        cMesIm1Pt();
 
         cPt2dr         mPt;
 	std::string    mNamePt;
 	tREAL8         mSigma2[3];
 };
 
-cCGPOneMeasureIm::cCGPOneMeasureIm(const cPt2dr & aPt,const std::string & aNamePt,tREAL8 aS) :
+cMesIm1Pt::cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL8 aS) :
      mPt      (aPt),
      mNamePt  (aNamePt),
      mSigma2   {aS,0,aS}
 {
 }
 
-cCGPOneMeasureIm::cCGPOneMeasureIm() :
-    cCGPOneMeasureIm(cPt2dr(0,0),"???",-1)
+cMesIm1Pt::cMesIm1Pt() :
+    cMesIm1Pt(cPt2dr(0,0),"???",-1)
 {
 }
 
-void AddData(const  cAuxAr2007 & anAux,cCGPOneMeasureIm & aMes)
+void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aMes)
 {
    MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
    MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
@@ -55,38 +55,38 @@ void AddData(const  cAuxAr2007 & anAux,cCGPOneMeasureIm & aMes)
 
 /* ********************************************* */
 /*                                               */
-/*             cCGPMeasureIm                     */
+/*             cSetMesPtOf1Im                    */
 /*                                               */
 /* ********************************************* */
 
-class cCGPMeasureIm
+class cSetMesPtOf1Im
 {
      public :
-          cCGPMeasureIm(const std::string & aNameIm);
-	  void AddMeasure(const cCGPOneMeasureIm &);
+          cSetMesPtOf1Im(const std::string & aNameIm);
+	  void AddMeasure(const cMesIm1Pt &);
           void AddData(const  cAuxAr2007 & anAux);
      private :
           std::string                    mNameIm;
-          std::vector<cCGPOneMeasureIm>  mMeasures;
+          std::vector<cMesIm1Pt>  mMeasures;
 };
 
-cCGPMeasureIm::cCGPMeasureIm(const std::string & aNameIm) :
+cSetMesPtOf1Im::cSetMesPtOf1Im(const std::string & aNameIm) :
     mNameIm  (aNameIm)
 {
 }
 
-void cCGPMeasureIm::AddMeasure(const cCGPOneMeasureIm & aMeasure)
+void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
 {
      mMeasures.push_back(aMeasure);
 }
 
 
-void cCGPMeasureIm::AddData(const  cAuxAr2007 & anAux)
+void cSetMesPtOf1Im::AddData(const  cAuxAr2007 & anAux)
 {
 	MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
 }
 
-void AddData(const  cAuxAr2007 & anAux,cCGPMeasureIm & aGCPMI)
+void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI)
 {
     aGCPMI.AddData(anAux);
 }
@@ -672,6 +672,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 	void MakeImageFinalEllispe();
 
 	void TestOnSimul();
+	void DoExport();
 
 	std::string         mNameSpec;
 	cFullSpecifTarget * mSpec;
@@ -696,6 +697,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 
 	std::vector<const cGeomSimDCT*>     mGTMissed;
 	std::vector<const cCircTargExtr*>   mFalseExtr;
+
 };
 
 
@@ -743,6 +745,20 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mVisuLabel,"VisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
           );
+}
+
+void cAppliExtractCircTarget::DoExport()
+{
+     cSetMesPtOf1Im  aSetM(mNameIm);
+     for (const auto & anEE : mVCTE)
+     {
+         if (anEE->mWithCode)  
+         {
+             aSetM.AddMeasure(cMesIm1Pt(anEE->mPt,anEE->mEncode.Name(),1.0));
+         }
+     }
+
+
 }
 
 void cAppliExtractCircTarget::MakeImageFinalEllispe()
@@ -939,7 +955,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
    if (mUseSimul)
    {
-        TestOnSimul();
+      TestOnSimul();
    }
 
    if (mVisuLabel)
@@ -951,6 +967,8 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    {
       MakeImageFinalEllispe();
    }
+
+   DoExport();
 
 
    delete mExtrEll;
