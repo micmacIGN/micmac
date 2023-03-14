@@ -6,6 +6,7 @@
 #include "MMVII_ImageInfoExtract.h"
 #include "CodedTarget.h"
 #include "CodedTarget_Tpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 /*   Modularistion
  *   Code extern tel que ellipse
@@ -16,19 +17,32 @@
 namespace MMVII
 {
 
+/* ********************************************* */
+/*                                               */
+/*             cCGPOneMeasureIm                  */
+/*                                               */
+/* ********************************************* */
+
 class cCGPOneMeasureIm
 {
      public :
         cCGPOneMeasureIm(const cPt2dr & aPt,const std::string & aNameIm,tREAL8 aSigma);
+        cCGPOneMeasureIm();
+
         cPt2dr         mPt;
 	std::string    mNamePt;
-	tREAL8         mSigma[3];
+	tREAL8         mSigma2[3];
 };
 
 cCGPOneMeasureIm::cCGPOneMeasureIm(const cPt2dr & aPt,const std::string & aNamePt,tREAL8 aS) :
      mPt      (aPt),
      mNamePt  (aNamePt),
-     mSigma   {aS,0,aS}
+     mSigma2   {aS,0,aS}
+{
+}
+
+cCGPOneMeasureIm::cCGPOneMeasureIm() :
+    cCGPOneMeasureIm(cPt2dr(0,0),"???",-1)
 {
 }
 
@@ -36,18 +50,46 @@ void AddData(const  cAuxAr2007 & anAux,cCGPOneMeasureIm & aMes)
 {
    MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
    MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
-   AddTabData(cAuxAr2007("Sigma",anAux),aMes.mSigma,3);
+   AddTabData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2,3);
 }
 
+/* ********************************************* */
+/*                                               */
+/*             cCGPMeasureIm                     */
+/*                                               */
+/* ********************************************* */
 
 class cCGPMeasureIm
 {
      public :
+          cCGPMeasureIm(const std::string & aNameIm);
+	  void AddMeasure(const cCGPOneMeasureIm &);
+          void AddData(const  cAuxAr2007 & anAux);
      private :
+          std::string                    mNameIm;
           std::vector<cCGPOneMeasureIm>  mMeasures;
 };
 
+cCGPMeasureIm::cCGPMeasureIm(const std::string & aNameIm) :
+    mNameIm  (aNameIm)
+{
+}
 
+void cCGPMeasureIm::AddMeasure(const cCGPOneMeasureIm & aMeasure)
+{
+     mMeasures.push_back(aMeasure);
+}
+
+
+void cCGPMeasureIm::AddData(const  cAuxAr2007 & anAux)
+{
+	MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cCGPMeasureIm & aGCPMI)
+{
+    aGCPMI.AddData(anAux);
+}
 
 /**   Class for vehiculing all the threshold parameters relative to circ target extraction
  */
@@ -649,6 +691,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 	std::string                 mPatHihlight;
 	bool                        mUseSimul; 
         cResSimul                   mResSimul;
+	double                      mRatioDMML;
         cThresholdCircTarget        mThresh;
 
 	std::vector<const cGeomSimDCT*>     mGTMissed;
@@ -671,7 +714,8 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    mImMarq       (cPt2di(1,1)),
    mPhProj       (*this),
    mPatHihlight  ("XXXXX"),
-   mUseSimul     (false)
+   mUseSimul     (false),
+   mRatioDMML    (1.5)
 {
 }
 
@@ -695,6 +739,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
              << AOpt2007(mPBWT.mMinDiam,"DiamMin","Minimum diameters for ellipse",{eTA2007::HDV})
              << AOpt2007(mPBWT.mMaxDiam,"DiamMax","Maximum diameters for ellipse",{eTA2007::HDV})
+             << AOpt2007(mRatioDMML,"RDMML","Ratio Distance minimal bewteen local max /Diam min ",{eTA2007::HDV})
              << AOpt2007(mVisuLabel,"VisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
           );
@@ -707,17 +752,20 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
    cPt2dr  aSz(50,50);
    cPt3dr aAlpha(0.7,0.7,0.7);
 
-   for (const auto & aGT :  mGTMissed)
+   if (mUseSimul)
    {
-        if (aGT->mResExtr ==nullptr)
-           aImVisu.FillRectangle(cRGBImage::Red,ToI(aGT->mC-aSz),ToI(aGT->mC+aSz),aAlpha);
-   }
-   for (const auto & anEE : mVCTE)
-   {
-       if ((anEE->mWithCode)  && (anEE->mGT ==nullptr))
-       {
-           aImVisu.FillRectangle(cRGBImage::Green,ToI(anEE->mPt-aSz),ToI(anEE->mPt+aSz),aAlpha);
-       }
+      for (const auto & aGT :  mGTMissed)
+      {
+          if (aGT->mResExtr ==nullptr)
+             aImVisu.FillRectangle(cRGBImage::Red,ToI(aGT->mC-aSz),ToI(aGT->mC+aSz),aAlpha);
+      }
+      for (const auto & anEE : mVCTE)
+      {
+          if ((anEE->mWithCode)  && (anEE->mGT ==nullptr))
+          {
+              aImVisu.FillRectangle(cRGBImage::Green,ToI(anEE->mPt-aSz),ToI(anEE->mPt+aSz),aAlpha);
+          }
+      }
    }
 
    for (const auto & anEE : mVCTE)
@@ -837,6 +885,7 @@ void cAppliExtractCircTarget::TestOnSimul()
 
 int cAppliExtractCircTarget::ExeOnParsedBox()
 {
+   mPBWT.mDistMinMaxLoc =  mPBWT.mMinDiam * mRatioDMML;
    // All the process has been devloppe/tested using target with black background, rather than revisiting
    // all the process to see where the varaiant black/white has to be adressed, I do it "quick and (not so) dirty",
    // by inverting the image at the beging of process if necessary

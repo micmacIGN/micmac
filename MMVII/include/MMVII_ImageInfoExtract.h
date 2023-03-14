@@ -106,15 +106,16 @@ struct cParamBWTarget
       tREAL8    CorrecRad(tREAL8 aBlack) const;
       tREAL8    RatioBW(tREAL8 aBlack,tREAL8 aWhite) const;
 
-      double    mFactDeriche;   ///< Factor for gradient with deriche-method
-      int       mD0BW;          ///< distance to border
-      double    mValMinW;       ///< Min Value for white
-      double    mValMaxB;       ///< Max value for black
-      double    mRatioMaxBW;    ///< Max Ratio   Black/White
-      double    mMinDiam;       ///< Minimal diameter
-      double    mMaxDiam;       ///< Maximal diameter
-      double    mPropFr;        ///< Minima prop of point wher frontier extraction suceeded
-      int       mNbMinFront;    ///< Minimal number of point
+      double    mFactDeriche;     ///< Factor for gradient with deriche-method
+      int       mD0BW;            ///< distance to border
+      double    mValMinW;         ///< Min Value for white
+      double    mValMaxB;         ///< Max value for black
+      double    mRatioMaxBW;      ///< Max Ratio   Black/White
+      double    mMinDiam;         ///< Minimal diameter
+      double    mMaxDiam;         ///< Maximal diameter
+      double    mPropFr;          ///< Minima prop of point wher frontier extraction suceeded
+      int       mNbMinFront;      ///< Minimal number of point
+      double    mDistMinMaxLoc;   ///< Maximal distance between Max Loc
 
       bool      mInvGray;
       tREAL4    mMaxGray;
