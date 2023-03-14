@@ -1,4 +1,6 @@
-#include "include/MMVII_all.h"
+
+#include "MMVII_Sys.h"
+#include "MMVII_Geom2D.h"
 
 namespace MMVII
 {
@@ -99,7 +101,8 @@ template <class Type>  bool   cTriangle2DCompiled<Type>::Insides(const tPt & aPt
     return Insideness(aPt) < aTol;
 }
 
-template <class Type> void cTriangle2DCompiled<Type>::PixelsInside(std::vector<cPt2di> & aRes,double aTol) const
+template <class Type> 
+   void cTriangle2DCompiled<Type>::PixelsInside(std::vector<cPt2di> & aRes,double aTol,std::vector<t3Val> * aVW) const
 {
    aRes.clear();
    cBox2di  aBPE = this->BoxPixEngl() ;
@@ -117,9 +120,11 @@ template <class Type> void cTriangle2DCompiled<Type>::PixelsInside(std::vector<c
 	{
             if ((aCXY.x()>=aTol)&&(aCXY.y()>=aTol)&&(aCXY.z()>=aTol))
 	    {
-		    aRes.push_back(aPix);
+                aRes.push_back(aPix);
+		if (aVW)
+                   aVW->push_back(aCXY);
 	    }
-	     aCXY += aDxC;
+	    aCXY += aDxC;
 	}
 	aC0Y += aDyC;
    }

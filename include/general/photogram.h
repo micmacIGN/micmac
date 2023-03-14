@@ -1551,6 +1551,10 @@ class cBasicGeomCap3D
       //  Def return true, mean that the geometry is ok independently of the image data
       virtual bool  CaptHasDataGeom(const Pt2dr &) const ;
       virtual bool     PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage * =0) const =0;
+
+      // is true, facilitate visibility, dont need heurist
+      virtual bool     DistBijective   () const;
+
       // Can be very approximate, using average depth or Z
       virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const =0;
 
@@ -2516,7 +2520,13 @@ class cDistModStdPhpgr : public ElDistRadiale_PolynImpair
                 REAL & P1();
                 REAL & P2();
                 REAL & b1();
-        REAL & b2();
+                REAL & b2();
+
+                const REAL & P1() const;
+                const REAL & P2() const;
+                const REAL & b1() const;
+                const REAL & b2() const;
+
                 ElDistRadiale_PolynImpair & DRad();
                 const ElDistRadiale_PolynImpair & DRad() const;
             virtual ElDistRadiale_PolynImpair * DRADPol(bool strict = false);
@@ -2547,6 +2557,8 @@ class cCamStenopeModStdPhpgr : public cCamStenopeDistRadPol
            cDistModStdPhpgr,
                const std::vector<double> & ParamAF
        );
+       //  true if only linear param are !=0
+       bool     DistBijective   () const override;
        cDistModStdPhpgr & DModPhgrStd();
        const cDistModStdPhpgr & DModPhgrStd() const;
         // [1]  DistIsC2M:

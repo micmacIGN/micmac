@@ -1,5 +1,10 @@
-#include "include/MMVII_all.h"
+
 #include <map>
+#include "MMVII_util.h"
+#include "MMVII_enums.h"
+#include "MMVII_Stringifier.h"
+#include "cMMVII_Appli.h"
+#include "MMVII_DeclareCste.h"
 
 /** \file uti_e2string.cpp
     \brief Implementation enum <=> string conversion
@@ -88,6 +93,16 @@ template <class TypeEnum> class cE2Str
           return aRes;
      }
 
+     static std::vector<bool> VecBoolOfPat(const std::string & aPat,bool AcceptEmpy)
+     {
+         std::vector<TypeEnum>  aVEnum = VecOfPat(aPat,AcceptEmpy);
+	 std::vector<bool> aResult(size_t(TypeEnum::eNbVals)+1,false);
+
+	 for (const auto & aLab : aVEnum)
+		 aResult.at(size_t(aLab)) = true;
+	 return aResult;
+     }
+
    private :
      typedef std::map<TypeEnum,std::string> tMapE2Str;
      typedef std::map<std::string,TypeEnum> tMapStr2E;
@@ -118,7 +133,10 @@ template <> tSemA2007  AC_ListVal<TypeEnum>()\
 {\
    return {eTA2007::AddCom,"Allowed values for this enum:{"+StrAllVall<TypeEnum>()+"}"};\
 }\
-
+template <> std::vector<bool> VBoolOfPat<TypeEnum>(const std::string & aPat,bool AcceptEmpty)\
+{\
+   return cE2Str<TypeEnum>::VecBoolOfPat(aPat,AcceptEmpty);\
+}\
 
 
 // This part must be redefined for each
@@ -131,6 +149,21 @@ template<> cE2Str<eOpAff>::tMapE2Str cE2Str<eOpAff>::mE2S
                            {eOpAff::eReset,"=0"}
            };
 TPL_ENUM_2_STRING(eOpAff);
+
+
+template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
+           {
+               {eProjPC::eStenope,"Stenope"},
+               {eProjPC::eFE_EquiDist,"FE_EquiDist"},
+               {eProjPC::eFE_EquiSolid,"FE_EquiSolid"},
+               {eProjPC::eStereroGraphik,"StereroGraphik"},
+               {eProjPC::eOrthoGraphik,"OrthoGraphik"},
+               {eProjPC::eEquiRect,"eEquiRect"}
+           };
+TPL_ENUM_2_STRING(eProjPC);
+
+
+
 
 template<> cE2Str<eTySC>::tMapE2Str cE2Str<eTySC>::mE2S
            {
@@ -148,6 +181,13 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::FileCloud,"Cloud"},
                 {eTA2007::File3DRegion,"3DReg"},
                 {eTA2007::MPatFile,"MPF"},
+                {eTA2007::Orient,"Ori"},
+                {eTA2007::Radiom,"Rad"},
+                {eTA2007::MeshDev,"MeshDev"},
+                {eTA2007::Mask,"Mask"},
+                {eTA2007::Input,"In"},
+                {eTA2007::Output,"Out"},
+                {eTA2007::OptionalExist,"OptEx"},
                 {eTA2007::AddCom,"AddCom"},
                 {eTA2007::Internal,"##Intern"},
                 {eTA2007::Tuning,"##Tune"},
@@ -205,8 +245,12 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eBadSize4Vect,"BadSize4Vector"},
                 {eTyUEr::eMultiplePostifx,"MultiplePostifx"},
                 {eTyUEr::eBadPostfix,"BadPostifx"},
+                {eTyUEr::eNoAperture,"NoAperture"},
+                {eTyUEr::eNoFocale,"NoFocale"},
+                {eTyUEr::eNoFocaleEqui35,"NoFocaleEqui35"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
+
 TPL_ENUM_2_STRING(eTyUEr);
 
 template<> cE2Str<eTyInvRad>::tMapE2Str cE2Str<eTyInvRad>::mE2S
@@ -235,6 +279,17 @@ template<> cE2Str<eModeEpipMatch>::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
            };
 TPL_ENUM_2_STRING(eModeEpipMatch);
 
+template<> cE2Str<eModeTestPropCov>::tMapE2Str cE2Str<eModeTestPropCov>::mE2S
+           {
+                {eModeTestPropCov::eMTPC_MatCovRFix  ,"MatCovRFix"},
+                {eModeTestPropCov::eMTPC_SomL2RUk    ,"SomL2RUk"},
+                {eModeTestPropCov::eMTPC_PtsRFix     ,"PtsRFix"},
+                {eModeTestPropCov::eMTPC_PtsRUk      ,"PtsRUk"}
+           };
+TPL_ENUM_2_STRING(eModeTestPropCov);
+
+
+
 template<> cE2Str<eModePaddingEpip>::tMapE2Str cE2Str<eModePaddingEpip>::mE2S
            {
                 {eModePaddingEpip::eMPE_NoPad,"NoPad"},
@@ -243,6 +298,26 @@ template<> cE2Str<eModePaddingEpip>::tMapE2Str cE2Str<eModePaddingEpip>::mE2S
                 {eModePaddingEpip::eMPE_SzEq,"SzEq"}
            };
 TPL_ENUM_2_STRING(eModePaddingEpip);
+
+template<> cE2Str<eDCTFilters>::tMapE2Str cE2Str<eDCTFilters>::mE2S
+           {
+                {eDCTFilters::eSym,"Sym"},
+                {eDCTFilters::eBin,"Bin"},
+                {eDCTFilters::eRad,"Rad"},
+                {eDCTFilters::eGrad,"Grad"}
+           };
+TPL_ENUM_2_STRING(eDCTFilters);
+
+
+template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
+           {
+                {eTyCodeTarget::eIGNIndoor,"IGNIndoor"},
+                {eTyCodeTarget::eIGNDroneSym,"IGNDroneSym"},
+                {eTyCodeTarget::eIGNDroneTop,"IGNDroneTop"},
+                {eTyCodeTarget::eCERN,"CERN"}
+           };
+TPL_ENUM_2_STRING(eTyCodeTarget);
+
 
 
 template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
@@ -359,6 +434,7 @@ void BenchEnum(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Enum")) return;
 
+    TplBenchEnum<eProjPC>();
     TplBenchEnum<eOpAff>();
     TplBenchEnum<eTySC>();
     TplBenchEnum<eTA2007>();
@@ -367,8 +443,10 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eTyInvRad>();
     TplBenchEnum<eTyPyrTieP>();
     TplBenchEnum<eModeEpipMatch>();
+    TplBenchEnum<eModeTestPropCov>();
     TplBenchEnum<eModePaddingEpip>();
     TplBenchEnum<eModeCaracMatch>();
+    TplBenchEnum<eDCTFilters>();
 
     aParam.EndBench();
 }

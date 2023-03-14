@@ -254,7 +254,7 @@ std::string cArboArch_Appli::GenPsxName(std::string aName)
 	if(aIndic1 != -1)
 	{
 	
-		std::string aNamepfolder = aName.substr(aIndic1+1,aNamepfolder.size()-aIndic1);
+		std::string aNamepfolder = aName.substr(aIndic1+1,aName.size()-aIndic1);
 		//~ std::replace(aNamepfolder.begin(), aNamepfolder.end(), '/', '\0');
 		aNamepfolder = aNamepfolder.substr(0,aNamepfolder.size()-1);
 		std::cout << "aNamepfolder = " << aNamepfolder << std::endl;

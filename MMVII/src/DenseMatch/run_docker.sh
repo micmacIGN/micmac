@@ -17,4 +17,4 @@ python3 ${CodeDir}Test_img.py --loadmodel ${MODELPATH} "$@"
 
 # de-normalise disparities
 mv ${6} ${6}_unnorm.tif
-mm3d Nikrup "/ ${6}_unnorm.tif ${DISPSCALE}" ${6}
+mm3d Nikrup "/ ${6}_unnorm.tif ${DISPSCALE}" ${6} "@ExitOnBrkp"

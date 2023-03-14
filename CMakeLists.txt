@@ -191,6 +191,7 @@ set(QT_ENABLED 0) #TODO: not sure we should keep running if WITH_QT5=1 and OpenG
 set(GIMMI_ENABLED 0)
 
 if(${WITH_QT5})
+	set(OpenGL_GL_PREFERENCE LEGACY)
 	find_package(OpenGL REQUIRED)
 
 	if(OPENGL_FOUND)
@@ -206,6 +207,7 @@ if(${WITH_QT5})
 			message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
 		endif()
 
+		add_compile_definitions(QT_NO_DEPRECATED_WARNINGS=1) # to work with both ubuntu 20.04 and 22.04...
 		find_package(Qt5Widgets REQUIRED)
 		find_package(Qt5Xml REQUIRED)
 		find_package(Qt5Concurrent REQUIRED)

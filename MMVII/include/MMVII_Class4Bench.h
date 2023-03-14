@@ -1,5 +1,7 @@
 #ifndef  _MMVII_Class4Dench_H_
 #define  _MMVII_Class4Dench_H_
+#include "MMVII_memory.h"
+#include "MMVII_Ptxd.h"
 
 namespace MMVII
 {
@@ -18,6 +20,10 @@ class cTestSerial0
         cTestSerial0();
         bool operator ==   (const cTestSerial0 & aT0) const ;
         cPt2dr mP1;
+
+	tINT1   mI1;
+	tREAL4  mR4;
+
         cPt2dr mP2;
 };
 

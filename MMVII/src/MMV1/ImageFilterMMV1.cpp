@@ -1,4 +1,6 @@
-#include "include/V1VII.h"
+#include "V1VII.h"
+#include "MMVII_Matrix.h"
+#include "MMVII_Linear2DFiltering.h"
 
 /** \file ImageFilterMMV1.cpp
     \brief file for using MMV1 filters

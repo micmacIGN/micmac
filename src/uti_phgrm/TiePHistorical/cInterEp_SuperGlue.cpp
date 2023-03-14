@@ -170,12 +170,6 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
             //load the entire npz file
             std::string aFileName = StdPrefix(aImg1)+"_"+StdPrefix(aImg2)+aRot+"_matches.npz";
             std::string aFullFileName = input_dir+aFileName;
-            if(bViz == true){
-                std::string aPngName = StdPrefix(aFileName) + ".png";
-                std::string aCom = "mv " + input_dir+aPngName + " " + aVizDir+aPngName;
-                //cout<<aCom<<endl;
-                System(aCom);
-            }
 
             //Tiff_Im aRGBIm2Rot((input_dir+StdPrefix(aImg2)+aRot+"."+StdPostfix(aImg2)).c_str());
             Tiff_Im aRGBIm2Rot = Tiff_Im::StdConvGen((input_dir+StdPrefix(aImg2)+aRot+"."+StdPostfix(aImg2)).c_str(), -1, true ,true);
@@ -187,6 +181,13 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
             {
                 cout<<aFullFileName<<" didn't exist, hence skipped.\n";
                 continue;
+            }
+
+            if(bViz == true){
+                std::string aPngName = StdPrefix(aFileName) + ".png";
+                std::string aCom = "mv " + input_dir+aPngName + " " + aVizDir+aPngName;
+                //cout<<aCom<<endl;
+                System(aCom);
             }
 
             cnpy::npz_t my_npz = cnpy::npz_load(aFullFileName);

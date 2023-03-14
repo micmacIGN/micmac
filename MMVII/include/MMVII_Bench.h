@@ -1,6 +1,8 @@
 #ifndef  _MMVII_Bench_H_
 #define  _MMVII_Bench_H_
 
+#include "MMVII_util_tpl.h"
+
 namespace MMVII
 {
 
@@ -87,9 +89,15 @@ void Bench_Duration(cParamExeBench & aParam);
 
 // To inspect in detail, apparenly some bench dont work completely, after many iter=> numerical problem
 void BenchDenseMatrix0(cParamExeBench & aParam); ///< Basic Vector 
+void Bench_EigenDecompos(cParamExeBench & aParam);
+
+void BenchTopoComp(cParamExeBench & aParam); ///< Topometric compensation
 
 // void cAppli_MMVII_Bench::Bench_0000_String(); => Bench on string-split
 void BenchSerialization(cParamExeBench & aParam,const std::string & aDirOut,const std::string & aDirIn); ///< Bench on seriaization function
+
+// Test generation of random subet for ransac
+void BenchRansSubset(cParamExeBench & aParam);
 
 
 //  void BenchGlob();      ///< All Bench
@@ -114,8 +122,21 @@ void BenchLeastSqMap(cParamExeBench & aParam);
 void BenchDelaunay(cParamExeBench & aParam);
 void BenchTri2D(cParamExeBench & aParam);
 void BenchPly(cParamExeBench & aParam);
+void Bench_Target_Encoding();
+void BenchHamming(cParamExeBench & aParam);
+void BenchPolynome(cParamExeBench & aParam);
+
+
+void BenchUnCalibResection();
+void BenchPoseEstim(cParamExeBench & aParam);
+
 
 void BenchSSRNL(cParamExeBench & aParam);  // Syst Sur Resol Non Linear
+void BenchDeformIm(cParamExeBench & aParam); // using image in non-linear least square system
+void BenchMeshDev(cParamExeBench & aParam);  // bench  devlopment  (on devlopable surface)
+void BenchCentralePerspective(cParamExeBench & aParam); // test on implementation of central perstective model
+void BenchCentralePerspective_ImportV1(cParamExeBench & aParam); // test on importation cam-V1
+
 
 
 

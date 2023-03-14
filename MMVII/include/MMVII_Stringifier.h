@@ -1,6 +1,9 @@
 #ifndef  _MMVII_Stringifier_H_
 #define  _MMVII_Stringifier_H_
 
+#include "MMVII_memory.h"
+#include "MMVII_Ptxd.h"
+
 namespace MMVII
 {
 
@@ -53,6 +56,7 @@ std::string FixDigToStr(double aSignedVal,int aNbDigBefore,int aNbDigAfter); // 
 
 template <>  std::string cStrIO<bool>::ToStr(const bool & anI);
 template <>  bool cStrIO<bool>::FromStr(const std::string & aStr);
+template <>  size_t cStrIO<size_t>::FromStr(const std::string & aStr);
 template <>  std::string cStrIO<int>::ToStr(const int & anI);
 template <>  int cStrIO<int>::FromStr(const std::string & aStr);
 template <>  std::string cStrIO<double>::ToStr(const double & anI);
@@ -102,6 +106,10 @@ template <>  const std::string cStrIO<eOpAff>::msNameType;
 template <>  const std::string cStrIO<eModeEpipMatch>::msNameType;
 template <>  const std::string cStrIO<eModePaddingEpip>::msNameType;
 template <>  const std::string cStrIO<eModeCaracMatch>::msNameType;
+
+template <>  const std::string cStrIO<eProjPC>::msNameType;
+template <>  const std::string cStrIO<eModeTestPropCov>::msNameType;
+template <>  const std::string cStrIO<eDCTFilters>::msNameType;
 
 /** These functions offer an"easy" interface to cStrIO, however I think
 *    cStrIO is still usefull when type inference becomes too compliicated
@@ -187,7 +195,7 @@ class  cSpecOneArg2007 : public cMemCheck
         virtual void  CheckSize(const std::string &) const = 0;  ///< Used to check size of vect from a parameter like "[4,6]"
 
         /// Does any of  mVSem contains aType
-        bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
+        bool HasType(const eTA2007 & aType,std::string * aValue=nullptr)            const;
 
         const tAllSemPL & SemPL() const;         ///< Accessor
         const std::string  & Name() const;  ///< Accessor
@@ -233,7 +241,6 @@ class cCollecSpecArg2007
       void clear() ;
       cCollecSpecArg2007 & operator << (tPtrArg2007 aVal);
    private :
-      friend class cMMVII_Appli;
       tVecArg2007 & Vec();
       cCollecSpecArg2007(const cCollecSpecArg2007&) = delete;
       tVecArg2007  mV;
@@ -299,16 +306,26 @@ class cAuxAr2007
 /// Create an archive for hashing value
 cAr2007* AllocArHashVal(bool ordered);
 size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
+				 
+void AddComment(cAr2007 & anAr, const std::string & aString);
+
 
 /** Here are the atomic serialization function */
 
 void AddData(const  cAuxAr2007 & anAux, bool  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
+void AddData(const  cAuxAr2007 & anAux, tINT1  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, tU_INT1  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, tINT2  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal); ///< for unsigned short
+							   
+void AddData(const  cAuxAr2007 & anAux, size_t  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
 void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Pair of string
 void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered Cple of string
+void AddData(const  cAuxAr2007 & anAux, std::map<std::string,int>&  aVal) ;  ///< 
 
 template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) ;  ///<for cPt2dr
 template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal);

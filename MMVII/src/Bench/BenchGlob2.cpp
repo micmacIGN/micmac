@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_TplHeap.h"
+#include "MMVII_Ptxd.h"
+#include "MMVII_Bench.h"
+#include "MMVII_TplHeap.h"
 
 namespace MMVII
 {

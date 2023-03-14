@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_addon_ParamChantierPhotogram[65]) = {
+const char * theNameVar_addon_ParamChantierPhotogram[65] = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",

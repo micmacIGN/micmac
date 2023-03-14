@@ -7,13 +7,12 @@ MMV2_BINDIR=${MMV2_DIR}/bin
 MMV2_SRCDIR=${MMV2_DIR}/src
 MMV2_INCDIR=${MMV2_DIR}/include
 MMV2_EXE=${MMV2_BINDIR}/MMVII
-MMV2_INSTALL_PATH=${dir ${abspath ${MMV2_EXE}}}
 
 MMV2_GENDIR=${MMV2_SRCDIR}/GeneratedCodes
 
 # =========== Includes & Libraries
 MMV1_INCLUDES=-I ${MMV1_DIR}/include -I${MMV1_DIR}
-MMV2_INCLUDES=-I ${MMV2_DIR} -I ${MMV2_DIR}/ExternalInclude
+MMV2_INCLUDES=-I ${MMV2_DIR} -I ${MMV2_INCDIR} -I ${MMV2_DIR}/ExternalInclude
 
 MMV2_LIBNAME=P2007
 MMV2_LIB=${MMV2_BINDIR}/lib${MMV2_LIBNAME}.a
@@ -25,7 +24,7 @@ EXT_LIBS=-lpthread -lX11 -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
+CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES}
 LDFLAGS=-fopenmp
 
 
@@ -37,14 +36,17 @@ endif
 
 
 # ============ Targets
-.phony: all clean distclean
+.phony: all clean genclean distclean
 all: ${MMV2_EXE}
 
 clean:
 	rm -f ${OBJS} ${DEPS} ${MMV2_EXE} ${MMV2_LIB}
 
-distclean: clean
+genclean:
 	-rm -f ${MMV2_GENDIR}/*
+
+distclean: clean genclean
+
 
 # =========== Build Lib
 SRC_REGGEN=${MMV2_GENDIR}/cName2CalcRegisterAll.cpp

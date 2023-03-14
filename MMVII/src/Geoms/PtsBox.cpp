@@ -1,6 +1,6 @@
-#include "include/MMVII_all.h"
-
-// #include <Eigen/Dense>
+#include "MMVII_Images.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_MMV1Compat.h"
 
 namespace MMVII
 {
@@ -36,18 +36,15 @@ template <class Type,const int Dim> cSegmentCompiled<Type,Dim>::cSegmentCompiled
 {
 }
 
-/* ========================== */
-/*    cSegment2DCompiled      */
-/* ========================== */
-
-/*
-template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const tPt& aP1,const tPt& aP2) :
-    cSegment<Type,2> (aP1,aP2),
-    mNorm            (Rot90(this->mTgt))
+template <class Type,const int Dim> cPtxd<Type,Dim>  cSegmentCompiled<Type,Dim>::Proj(const tPt & aPt) const
 {
+     return this->mP1 + mTgt * Type(Scal(mTgt,aPt-this->mP1)) ;
 }
-*/
 
+template <class Type,const int Dim> Type  cSegmentCompiled<Type,Dim>::Dist(const tPt & aPt) const
+{
+	return Norm2(aPt-Proj(aPt));
+}
 /* ========================== */
 /*          ::                */
 /* ========================== */
@@ -159,6 +156,7 @@ template <class T>   cPtxd<T,2> Proj  (const cPtxd<T,3> & aPt)
     return cPtxd<T,2>(aPt.x(),aPt.y());
 }
 
+
 template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVector(const std::vector<Type>& aV)
 {
    cPtxd<Type,Dim> aRes;
@@ -169,6 +167,25 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVect
    return aRes;
 }
 
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts)
+{
+   MMVII_INTERNAL_ASSERT_tiny((!aVPts.empty()),"Bad size in Vec/Pt");
+
+   cPtxd<tREAL8,Dim> aRes = ToR(aVPts[0]);
+   for (int aK=1 ; aK<int(aVPts.size()) ; aK++)
+      aRes += ToR(aVPts[aK]);
+
+   return aRes/ tREAL8(aVPts.size());
+}
+
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,const cPtxd<T,Dim> & aP1)
+{
+	return aP0 *aW0 + aP1 * (1-aW0);
+}
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,T aW1,const cPtxd<T,Dim> & aP1)
+{
+	return (aW0 * aP0 + aW1 * aP1) / (aW0+aW1);
+}
 
 
 int NbPixVign(const int & aVign){return 1+2*aVign;}
@@ -204,12 +221,14 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::FromPtInt(
    return aRes;
 }
 
-/*
-void ff()
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::FromPtR(const cPtxd<tREAL8,Dim> & aPtR)
 {
-    cPtxd<double,3>::FromPtInt(cPt3di(0,0,0));
+   cPtxd<Type,Dim> aRes;
+   for (int aK=0 ; aK<Dim; aK++)
+       aRes.mCoords[aK]= aPtR[aK];
+   return aRes;
 }
-*/
+
 
 
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRand()
@@ -244,6 +263,14 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRandInSph
    return aRes;
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  
+      cPtxd<Type,Dim>::PRandUnitNonAligned(const cPtxd<Type,Dim>& aP0,const Type & aDist)
+{
+   cPtxd<Type,Dim> aRes = PRandUnit();
+   while ((NormInf(aRes-aP0)<aDist) || (NormInf(aRes+aP0)<aDist) )
+        aRes = PRandUnit();
+   return aRes;
+}
 
 
 template <class Type,const int Dim> cPtxd<Type,Dim>  
@@ -277,14 +304,6 @@ template <class Type,const int Dim> double NormK(const cPtxd<Type,Dim> & aPt,dou
    for (int aD=1 ; aD<Dim; aD++)
       aRes += pow(std::abs(aPt[aD]),anExp);
    return pow(aRes,1/anExp);
-}
-
-template <class Type,const int Dim> double Norm2(const cPtxd<Type,Dim> & aPt)
-{
-   double aRes = Square(aPt[0]);
-   for (int aD=1 ; aD<Dim; aD++)
-      aRes += Square(aPt[aD]);
-   return sqrt(aRes);
 }
 
 template <class Type,const int Dim> Type Norm1(const cPtxd<Type,Dim> & aPt)
@@ -321,14 +340,36 @@ template <class T,const int Dim>
    return aRes;
 }
 
+template <class T,const int Dim>  
+   typename  tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> &aPt)
+{
+   typename tNumTrait<T>::tBig  aRes = aPt[0];
+   for (int aD=1 ; aD<Dim; aD++)
+      aRes *=  aPt[aD];
+   return aRes;
+}
+
+
+
+
+
 template <class T,const int Dim>  T Cos(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
-   return T(Scal(aP1,aP2)) / (Norm2(aP1)*Norm2(aP2));
+   return SafeDiv(T(Scal(aP1,aP2)) , T(Norm2(aP1)*Norm2(aP2)));
 }
 template <class T,const int Dim>  T AbsAngle(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
-   return acos(Cos(aP1,aP2));
+   T aCos = Cos(aP1,aP2);
+   MMVII_INTERNAL_ASSERT_tiny((aCos>=1)&&(aCos<=-1),"AbsAngle cosinus out range");
+   return acos(aCos);
 }
+
+template <class T,const int Dim>  T AbsAngleTrnk(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
+{
+   T aCos = std::max(T(-1.0),std::min(T(1.0),Cos(aP1,aP2)));
+   return acos(aCos);
+}
+
 
 
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,Dim> &aP)
@@ -485,6 +526,15 @@ template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
       aRes += tINT8(aP[aK]-tBox::mP0[aK]) * tINT8(tBox::mSzCum[aK]);
    return aRes;
 }
+
+template <const int Dim> tINT8  cPixBox<Dim>::IndexeUnorderedPair(const tPt&aP1,const tPt&aP2) const
+{
+    tINT8 aI1 = IndexeLinear(aP1);  // num of P1 in Box
+    tINT8 aI2 = IndexeLinear(aP2);  // num of P2 in Box
+    OrderMinMax(aI1,aI2);           // to assure P1,P2 = P2,P1
+    return  aI1*this->NbElem() + aI2;     // make a unique index
+}
+
 
 template <const int Dim> bool  cPixBox<Dim>::SignalAtFrequence(const tPt & anIndex,double aFreq) const
 {
@@ -659,6 +709,18 @@ template <class Type,const int Dim>
 {
 }
 
+template <class Type,const int Dim>
+   cTplBox<Type,Dim>  cTplBox<Type,Dim>::BoxCste(Type aVal)
+{
+   return cTplBox<Type,Dim>(tPt::PCste(-aVal),tPt::PCste(aVal));
+}
+
+template <class Type,const int Dim>
+   cTplBox<Type,Dim>  cTplBox<Type,Dim>::BigBox()
+{
+     return  BoxCste(tNumTrait<Type>::MaxValue());
+}
+
 
 template <class Type,const int Dim> bool  cTplBox<Type,Dim>::IsEmpty() const
 {
@@ -697,6 +759,15 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Sup(co
   return tBox(PtInfEq(mP0,aB2.mP0),PtSupEq(mP1,aB2.mP1),true);
 }
 
+template <class Type,const int Dim> Type cTplBox<Type,Dim>::Insideness(const tPt & aP) const
+{
+     Type  aRes = std::min(aP[0]-mP0[0],mP1[0]-aP[0]);
+
+     for (int aD=1 ; aD<Dim ; aD++)
+         UpdateMin(aRes,std::min(aP[aD]-mP0[aD],mP1[aD]-aP[aD]));
+
+     return aRes;
+}
 
 
 
@@ -758,16 +829,50 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::FromNorm
     // return Proj(aRes);
 }
 
-template <class Type,const int Dim> void  cTplBox<Type,Dim>::Corners(tCorner & aRes) const
+template <class Type,const int Dim> size_t  cTplBox<Type,Dim>::NbFlagCorner() {return 1<<Dim;}
+
+template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::CornerOfFlag(size_t aFlag,const tPt &aP0,const tPt &aP1) 
 {
-    for (size_t aKpt=0; aKpt<(1<<Dim)  ; aKpt++)
+   tPt aRes;
+   for (size_t aD=0 ; aD<Dim ; aD++)
+   {
+       aRes[aD] = (aFlag & (1<<aD)) ? aP0[aD] : aP1[aD];
+   }
+   return aRes;
+}
+
+template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::CornerOfFlag(size_t aFlag) const
+{
+     return CornerOfFlag(aFlag,mP0,mP1);
+}
+
+template <class Type,const int Dim> void  cTplBox<Type,Dim>::Corners(tCorner & aRes,const tPt &aP0,const tPt &aP1) 
+{
+    for (size_t aFlag=0; aFlag<NbFlagCorner()  ; aFlag++)
     {
-        for (size_t aD=0 ; aD<Dim ; aD++)
-        {
-            aRes[aKpt][aD] = (aKpt & (1<<aD)) ? mP0[aD] : mP1[aD];
-        }
+        aRes[aFlag] = CornerOfFlag(aFlag,aP0,aP1);
     }
 }
+
+template <class Type,const int Dim> void  cTplBox<Type,Dim>::Corners(tCorner & aRes) const
+{
+     Corners(aRes,mP0,mP1);
+}
+
+
+
+template <class Type,const int Dim> Type  cTplBox<Type,Dim>::DistMax2Corners(const tPt& aPt) const
+{
+    Type aRes = SqN2(aPt-CornerOfFlag(0));
+    for (size_t aFlag=1; aFlag<NbFlagCorner()  ; aFlag++)
+    {
+        UpdateMax(aRes,(Type)SqN2(aPt-CornerOfFlag(aFlag)));
+    }
+    return std::sqrt(aRes);
+}
+
+
+
 
 template <class Type,const int Dim> cPtxd<double,Dim>  cTplBox<Type,Dim>::ToNormaliseCoord(const cPtxd<Type,Dim> & aP) const 
 {
@@ -871,6 +976,8 @@ template <class Type,const int Dim>   cTplBoxOfPts<Type,Dim>::cTplBoxOfPts() :
 {
 }
 
+
+
 template <class Type,const int Dim> 
    cTplBoxOfPts<Type,Dim>  cTplBoxOfPts<Type,Dim>::FromVect(const tPt * aBegin,const tPt * aEnd)
 {
@@ -944,17 +1051,45 @@ template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2
        &&  (aPt.y() <  aBox.P1().y() - aSzW.y()-1) ;
 }
 
+template <class Type> bool WindInside(const cBox2di & aBox,const cPt2di & aPt,const  cPt2di & aSzW)
+{
+   return
+	   (aPt.x() >= aBox.P0().x() + aSzW.x())
+       &&  (aPt.y() >= aBox.P0().y() + aSzW.y())
+       &&  (aPt.x() <  aBox.P1().x() - aSzW.x())
+       &&  (aPt.y() <  aBox.P1().y() - aSzW.y()) ;
+}
+
+template <class Type> bool WindInside(const cBox2di & aBox,const cPt2di & aPt,const int  & aSz)
+{
+    return WindInside(aBox,aPt,cPt2di(aSz,aSz));
+}
+
+/*
+template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & aBox)
+{
+	 return cTplBox<tREAL8,Dim>(ToR(aBox.P0()),ToR(aBox.P1()));
+}
+
+template <const int Dim>  cTplBox<int,Dim> ToI(const  cTplBox<tREAL8,Dim> & aBox)
+{
+	 return cTplBox<int,Dim>(ToI(aBox.P0()),ToI(aBox.P1()));
+}
+*/
 
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
 
-#define INSTANTIATE_GEOM_REAL(TYPE)\
-class cSegment2DCompiled<TYPE>;
 
-INSTANTIATE_GEOM_REAL(tREAL4)
-INSTANTIATE_GEOM_REAL(tREAL8)
-INSTANTIATE_GEOM_REAL(tREAL16)
+	/*
+template   cTplBox<tREAL8,2> ToR(const  cTplBox<int,2> & aBox);
+template   cTplBox<tREAL8,3> ToR(const  cTplBox<int,3> & aBox);
+template   cTplBox<int,2> ToI(const  cTplBox<tREAL8,2> & aBox);
+template   cTplBox<int,3> ToI(const  cTplBox<tREAL8,3> & aBox);
+*/
+
+
 
 
 #define INSTANTIATE_ABS_SURF(TYPE)\
@@ -962,6 +1097,7 @@ template  cPtxd<TYPE,3> TP3z0  (const cPtxd<TYPE,2> & aPt);\
 template  cPtxd<TYPE,2> Proj  (const cPtxd<TYPE,3> & aPt);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& aP2);\
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);
+
 
 INSTANTIATE_ABS_SURF(tINT4)
 INSTANTIATE_ABS_SURF(tREAL4)
@@ -990,11 +1126,15 @@ template  bool WindInside4BL(const cBox2di & aBox,const cPtxd<tREAL8,2> & aPt,co
 #define MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIMIN,DIMOUT)\
 template  cPtxd<TYPE,DIMOUT> CastDim<TYPE,DIMOUT,DIMIN>(const cPtxd<TYPE,DIMIN> & aPt);
 
+
 #define MACRO_INSTATIATE_PTXD(TYPE,DIM)\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,1);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,2);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,3);\
 MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,4);\
+template  cPtxd<tREAL8,DIM> Centroid(const std::vector<cPtxd<TYPE,DIM> > & aVPts);\
+template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,TYPE aW1,const cPtxd<TYPE,DIM> & aP1);\
+template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,const cPtxd<TYPE,DIM> & aP1);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\
@@ -1004,16 +1144,19 @@ template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandInSphere();\
 template typename cPtxd<TYPE,DIM>::tBigNum cPtxd<TYPE,DIM>::MinSqN2(const std::vector<tPt> &,bool SVP) const;\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitNonAligned(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  double NormK(const cPtxd<TYPE,DIM> & aPt,double anExp);\
-template  double Norm2(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE Norm1(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE NormInf(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE MinAbsCoord(const cPtxd<TYPE,DIM> & aPt);\
 template  typename  tNumTrait<TYPE>::tBig Scal(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+template  typename  tNumTrait<TYPE>::tBig MulCoord(const cPtxd<TYPE,DIM> &);\
 template  TYPE Cos(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE AbsAngle(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+template  TYPE AbsAngleTrnk(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);\
-template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtInt(const cPtxd<int,DIM> & aPInt);
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtInt(const cPtxd<int,DIM> & aPInt);\
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtR(const cPtxd<tREAL8,DIM> & aPInt);
 
 // template  cPtxd<TYPE,DIM>  PCste(const DIM & aVal);
 

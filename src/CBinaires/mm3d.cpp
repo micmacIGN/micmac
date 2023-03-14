@@ -296,7 +296,7 @@ int CPP_YannInvHomolHomog(int argc,char ** argv);
 int CPP_YannExcludeSats(int argc,char ** argv);
 int CPP_YannSetTimestamps(int argc,char ** argv);
 int CPP_YannSkyMask(int argc,char ** argv);
-int CPP_YannSkyMask(int argc,char ** argv);
+int CPP_YannExport2Colmap(int argc,char ** argv);
 int CPP_YannScript(int argc,char ** argv);
 
 int CPP_GCP2MeasureLine2D(int argc,char ** argv);
@@ -305,6 +305,9 @@ int CPP_L3D2Ply(int argc,char ** argv);
 int CPP_DebugAI4GeoMasq (int argc,char ** argv);
 int CPP_MMBasic4IGeo(int argc,char ** argv);
 int CPP_MMBasicTestDeep(int argc,char ** argv);
+
+int MMVII_SaisieMasq_main(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -567,6 +570,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("SaisieBasc", SaisieBasc_main, " Interactive tool to capture information on the scene"));
 		aRes.push_back(cMMCom("SaisieCyl", SaisieCyl_main, " Interactive tool to capture information on the scene for cylinders"));
 		aRes.push_back(cMMCom("SaisieMasq", SaisieMasq_main, " Interactive tool to capture masq"));
+		aRes.push_back(cMMCom("MMVII_SaisieMasq", MMVII_SaisieMasq_main, " Saisie Masq with MMVII naming convention"));
 		aRes.push_back(cMMCom("SaisiePts", SaisiePts_main, " Tool to capture GCP (low level, not recommended)"));
 		aRes.push_back(cMMCom("SEL", SEL_main, " Tool to visualize tie points"));
 		aRes.push_back(cMMCom("MICMACSaisieLiaisons", MICMACSaisieLiaisons_main, " Low level version of SEL, not recommended"));
@@ -964,6 +968,9 @@ extern int CoReg_GlobalR3D_main(int argc, char ** argv);
 extern int PileImgs_main(int argc, char ** argv);
 extern int GetOrthoHom_main(int argc, char ** argv);
 extern int TransmitHelmert_main(int argc, char ** argv);
+extern int TiePtPrep_main(int argc, char ** argv);
+extern int CreateGCPs4Init11p_main(int argc, char ** argv);
+extern int CreateGCPs4Init11pSamePts_main(int argc, char ** argv);
 
 
 extern int ReechHomol_main(int argc, char ** argv);
@@ -1054,12 +1061,17 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("PileImgs", PileImgs_main, "Pile images on an average plane in a pseudo orthophoto style"));
         aRes.push_back(cMMCom("GetOrthoHom", GetOrthoHom_main, "project tie points on image pairs onto orthophotos"));
         aRes.push_back(cMMCom("TransmitHelmert", TransmitHelmert_main, "Input 2 sets of 3D Helmert transformation parameters (A->C and B->C), output transimtted 3D Helmert transformation parameters (A->B)"));
+        aRes.push_back(cMMCom("TiePtPrep", TiePtPrep_main, "Explaination: Add weight to inter-epoch tie points, and merge them with intra-epoch tie points"));
+        aRes.push_back(cMMCom("CreateGCPs4Init11p", CreateGCPs4Init11p_main, "Create virtual GCPs for command Init11p (Define grids in each image, which leads to different sets of points for each image)"));
+        aRes.push_back(cMMCom("CreateGCPs4Init11pSamePts", CreateGCPs4Init11pSamePts_main, "Create virtual GCPs for command Init11p (Define grids in ground, which leads to the same sets of points for each image)"));
+
 
 
 		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		
 		aRes.push_back(cMMCom("ExcludeSats",CPP_YannExcludeSats, "Excludes GNSS satellites from raw observations based on sky masks "));
 		aRes.push_back(cMMCom("SkyMask",CPP_YannSkyMask, "Sky mask estimation with neural network "));
 		aRes.push_back(cMMCom("SetTimestamps",CPP_YannSetTimestamps, "Add timestamps tag in image exif "));
+		aRes.push_back(cMMCom("Export2Colmap",CPP_YannExport2Colmap, "Exports a Micmac orientation directory to Colmap format "));
 		aRes.push_back(cMMCom("RTKlibConvert",CPP_ConvertRTKlib2Micmac, "RTKlib output file conversion to Micmac format "));
 
 

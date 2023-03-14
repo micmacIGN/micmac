@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 #include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
@@ -28,6 +28,13 @@ template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve) :
 {
   if (aSzReserve>0) 
      IV().reserve(aSzReserve);
+}
+
+template <class Type> cSparseVect<Type>::cSparseVect(const cDenseVect<Type> & aDV) :
+    cSparseVect<Type>  (aDV.Sz())
+{
+    for (int aK=0 ; aK<aDV.Sz() ; aK++)
+       AddIV(aK,aDV(aK));
 }
 
 template <class Type>  bool cSparseVect<Type>::IsInside(int aNb) const
@@ -79,6 +86,14 @@ template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeI
    cDenseVect<Type> (tIM  (aSz,nullptr,aModeInit))
 {
 }
+
+template <class Type> cDenseVect<Type>::cDenseVect(int aSz,const tSpV & aSpV) :
+       cDenseVect<Type>(aSz,eModeInitImage::eMIA_Null)
+{
+     for (const auto & aPair : aSpV)
+          mIm.DIm().SetV(aPair.mInd,aPair.mVal);
+}
+
 
 template <class Type> cDenseVect<Type> cDenseVect<Type>::Dup() const
 {
@@ -201,23 +216,39 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cDense
 
 template <class Type> Type  cDenseVect<Type>::ProdElem() const
 {
-   Type aRes = (*this)(0);
-   for (int aK=1 ; aK<Sz() ; aK++)
+   Type aRes = 1.0;
+   for (int aK=0 ; aK<Sz() ; aK++)
         aRes *= (*this)(aK);
 
    return aRes;
 }
 
+template <class Type> Type  cDenseVect<Type>::SumElem() const
+{
+   Type aRes = 0.0;
+   for (int aK=0 ; aK<Sz() ; aK++)
+        aRes += (*this)(aK);
+
+   return aRes;
+}
+
+template <class Type> Type  cDenseVect<Type>::AvgElem() const
+{
+    return SumElem() / Type(Sz());
+}
+
+template <class Type> void  cDenseVect<Type>::SetAvg(const Type & aTargAvg)
+{
+   Type  aMul = SafeDiv (aTargAvg,AvgElem());
+   for (int aK=0 ; aK<Sz() ; aK++)
+        (*this)(aK) *= aMul;
+}
 
 /* ========================== */
 /*          cMatrix       */
 /* ========================== */
 template <class Type> cMatrix<Type>::cMatrix(int aX,int aY) :
    cRect2(cPt2di(0,0),cPt2di(aX,aY))
-{
-}
-
-template <class Type> cMatrix<Type>::~cMatrix() 
 {
 }
 

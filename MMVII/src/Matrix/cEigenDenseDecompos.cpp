@@ -1,15 +1,18 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_SysSurR.h"
 
 #include "MMVII_EigenWrap.h"
-#include "ExternalInclude/Eigen/Eigenvalues" 
-#include "ExternalInclude/Eigen/Householder"  // HouseholderQR.h"
-// #include "ExternalInclude/Eigen/Cholesky"  // HouseholderQR.h"
+#include "Eigen/Eigenvalues"
+#include "Eigen/Householder"  // HouseholderQR.h"
+// #include "Eigen/Cholesky"  // HouseholderQR.h"
 
 using namespace Eigen;
 
 namespace MMVII
 {
+template <class Type> void  NormalizeProdDiagPos(cDenseMatrix<Type> &aM1,cDenseMatrix<Type> & aM2 ,bool TestOn1);
+
 
 
 template <class Type> cResulSVDDecomp<Type> cDenseMatrix<Type>::SVD() const
@@ -95,7 +98,7 @@ template <class Type> void  cResulSymEigenValue<Type>::SetKthEigenValue(int aK,c
 
 template <class Type> Type  cResulSymEigenValue<Type>::Cond(Type aDef) const
 {
-   cWhitchMinMax<int,Type> aIMM(0,std::abs(mEigenValues(0)));
+   cWhichMinMax<int,Type> aIMM(0,std::abs(mEigenValues(0)));
    for (int aK=1 ; aK<mEigenValues.Sz()  ; aK++)
    {
           aIMM.Add(aK,std::abs(mEigenValues(aK)));
@@ -117,28 +120,64 @@ template <class Type> Type  cResulSymEigenValue<Type>::Cond(Type aDef) const
 
 
 template <class Type> 
-   cResulQR_Decomp<Type>::cResulQR_Decomp(int aSzX,int aSzY) :
-        mQ_Matrix(aSzY,aSzY),
-        mR_Matrix(aSzX,aSzY)
+   cResulQR_Decomp<Type>::cResulQR_Decomp(const tDM & aQ,const tDM& aR) :
+        mQ_Matrix(aQ),
+        mR_Matrix(aR)
 {
 }
+
+template <class Type> 
+   cResulQR_Decomp<Type>::cResulQR_Decomp(int aSzX,int aSzY) :
+       cResulQR_Decomp<Type>(tDM(aSzY,aSzY),tDM(aSzX,aSzY))
+{
+}
+
+
 
 template <class Type> 
        const cDenseMatrix<Type> &  cResulQR_Decomp<Type>::Q_Matrix() const
 {
    return mQ_Matrix;
 }
-
 template <class Type> 
         const cDenseMatrix<Type> &  cResulQR_Decomp<Type>::R_Matrix() const
 {
    return mR_Matrix;
 }
+template <class Type> 
+       cDenseMatrix<Type> &  cResulQR_Decomp<Type>::Q_Matrix() 
+{
+   return mQ_Matrix;
+}
+template <class Type> 
+        cDenseMatrix<Type> &  cResulQR_Decomp<Type>::R_Matrix() 
+{
+   return mR_Matrix;
+}
+
+
+
+
 
 template <class Type> 
     cDenseMatrix<Type>  cResulQR_Decomp<Type>::OriMatr() const
 {
     return mQ_Matrix * mR_Matrix;
+}
+
+/* ============================================= */
+/*      cResulRQ_Decomp<Type>                    */
+/* ============================================= */
+
+template <class Type> 
+   cResulRQ_Decomp<Type>::cResulRQ_Decomp(const tDM& aR,const tDM & aQ) :
+     cResulQR_Decomp<Type>(aR,aQ)
+{
+}
+
+template <class Type>  cDenseMatrix<Type> cResulRQ_Decomp<Type>::OriMatr() const
+{
+    return this->mR_Matrix * this->mQ_Matrix;
 }
 
 
@@ -153,17 +192,48 @@ template <class Type> cResulQR_Decomp<Type>  cDenseMatrix<Type>::QR_Decompositio
     // cDenseMatrix<Type> aM(2,2);
     HouseholderQR<typename tNC_EW::tEigenMat > qr(aWrap.EW());
 
-    tNC_EW aWrapQ(aRes.mQ_Matrix);
-    aWrapQ.EW() = qr.householderQ();
+    //  extract the Q matrix
+    {
+        tNC_EW aWrapQ(aRes.mQ_Matrix);
+        aWrapQ.EW() = qr.householderQ();
+    }
 
-    tNC_EW aWrapR(aRes.mR_Matrix);
-    aWrapR.EW() = qr.matrixQR();
+    //  extract the R matrix
+    {
+       tNC_EW aWrapR(aRes.mR_Matrix);
+       aWrapR.EW() = qr.matrixQR();
 
-    aRes.mR_Matrix.SelfTriangSup();
-
+       aRes.mR_Matrix.SelfTriangSup(); // make the image triangular sup (maybe exist  residual of eigen)
+    }
    return aRes;
 }
 
+template <class Type> cResulRQ_Decomp<Type>  cDenseMatrix<Type>::RQ_Decomposition() const
+{
+    cMatrix<Type>::CheckSquare(*this);
+
+       // std::pair<ElMatrix<double>, ElMatrix<double> >  aQR = QRDecomp(InvertLine(aM0).transpose());
+    cDenseMatrix<Type> aM = LineInverse();
+    aM.SelfTransposeIn();
+
+    cResulQR_Decomp<Type> aRes = aM.QR_Decomposition();
+
+  // ElMatrix<double> aQ2 = InvertLine(aQ.transpose());
+    cDenseMatrix<Type> &aQ = aRes.mQ_Matrix;
+    aQ.SelfTransposeIn();
+    aQ.SelfLineInverse();
+
+  // ElMatrix<double> aR2 = InvertLine(InvertCol(aR.transpose()));
+    cDenseMatrix<Type> &aR = aRes.mR_Matrix;
+    aR.SelfTransposeIn();
+    aR.SelfColInverse();
+    aR.SelfLineInverse();
+
+    NormalizeProdDiagPos(aR,aQ,true);
+   // NormalizeProdDiagPos(aRes.mQ_Matrix,aRes.mR_Matrix,false);
+
+    return cResulRQ_Decomp<Type>(aQ,aR);
+}
 
 
 template <class Type> cResulSymEigenValue<Type>  cDenseMatrix<Type>::SymEigenValue() const
@@ -184,12 +254,13 @@ template <class Type> cResulSymEigenValue<Type>  cDenseMatrix<Type>::SymEigenVal
     return aRes;
 }
 
-template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Solve(const tDM & aMat,eTyEigenDec aTED) const
+template <class Type>  void cDenseMatrix<Type>::SolveIn(tDM & aRes,const tDM & aMat,eTyEigenDec aTED) const
 {
     tMat::CheckSquare(*this);
     tMat::CheckSizeMul(*this,aMat);
 
-    tDM aRes(aMat.Sz().x(),aMat.Sz().y());
+    MMVII_INTERNAL_ASSERT_medium(aRes.Sz() == aMat.Sz(),"SolveIn : Bad Sz");
+    // tDM aRes(aMat.Sz().x(),aMat.Sz().y());
 
     tConst_EW aWThis(*this);
     tConst_EW aWMat(aMat);
@@ -198,21 +269,53 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Solve(const tDM & 
     // aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
     if (aTED == eTyEigenDec::eTED_PHQR)
     {
-       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+       // aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+// -       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+        if (EigenDoTestSuccess())
+        {
+           auto solver = aWThis.EW().colPivHouseholderQr();
+           aWRes.EW() = solver.solve(aWMat.EW());
+           if (solver.info()!=Eigen::Success)
+           {
+               ON_EIGEN_NO_SUCC("SolveIn(eTED_PHQR)");
+           }
+        }
+        else
+        {
+           aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+        }
     }
     else if (aTED == eTyEigenDec::eTED_LLDT)
     {
-       aWRes.EW() = aWThis.EW().ldlt().solve(aWMat.EW());
+       if (EigenDoTestSuccess())
+       {
+          auto solver = aWThis.EW().ldlt();
+          aWRes.EW() = solver.solve(aWMat.EW());
+          if (solver.info()!=Eigen::Success)
+          {
+              ON_EIGEN_NO_SUCC("SolveIn(eTED_LLDT)");
+          }
+       }
+       else
+       {
+          aWRes.EW() = aWThis.EW().ldlt().solve(aWMat.EW());
+       }
     }
     else
     {
         MMVII_INTERNAL_ASSERT_always(false,"Unkown type eigen decomposition");
     }
 
+    // return aRes;
+}
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Solve(const tDM & aMat,eTyEigenDec aTED) const
+{
+    tDM aRes(aMat.Sz().x(),aMat.Sz().y());
+    SolveIn(aRes,aMat,aTED);
     return aRes;
 }
 
-template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::Solve(const tDV & aVect,eTyEigenDec aTED) const
+template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::SolveColumn(const tDV & aVect,eTyEigenDec aTED) const
 {
     tMat::CheckSquare(*this);
     tMat::TplCheckSizeX(aVect.Sz());
@@ -225,11 +328,35 @@ template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::Solve(const tDV & aV
 
     if (aTED == eTyEigenDec::eTED_PHQR)
     {
-       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+       if (EigenDoTestSuccess())
+       {
+          auto solver = aWThis.EW().colPivHouseholderQr();
+          aWRes.EW() = solver.solve(aWVect.EW());
+          if (solver.info()!=Eigen::Success)
+          {
+             ON_EIGEN_NO_SUCC("SolveColVect(eTED_PHQR)");
+          }
+       }
+       else
+       {
+          aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+       }
     }
     else if (aTED == eTyEigenDec::eTED_LLDT)
     {
-       aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+       if (EigenDoTestSuccess())
+       {
+          auto solver = aWThis.EW().ldlt();
+          aWRes.EW() = solver.solve(aWVect.EW());
+          if (solver.info()!=Eigen::Success)
+          {
+              ON_EIGEN_NO_SUCC("SolveColVect(eTED_LLDT)");
+          }
+       }
+       else
+       {
+          aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+       }
     }
     else
     {
@@ -252,11 +379,35 @@ template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::SolveLine(const tDV 
 
     if (aTED == eTyEigenDec::eTED_PHQR)
     {
-       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+       if (EigenDoTestSuccess())
+       {
+          auto solver = aWThis.EW().colPivHouseholderQr();
+          aWRes.EW() = solver.solve(aWVect.EW());
+          if (solver.info()!=Eigen::Success)
+          {
+             ON_EIGEN_NO_SUCC("SolveLine(eTED_PHQR)");
+          }
+       }
+       else
+       {
+           aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+       }
     }
     else if (aTED == eTyEigenDec::eTED_LLDT)
     {
-       aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+       if (EigenDoTestSuccess())
+       {
+           auto solver = aWThis.EW().ldlt();
+           aWRes.EW() = solver.solve(aWVect.EW());
+           if (solver.info()!=Eigen::Success)
+           {
+               ON_EIGEN_NO_SUCC("SolveLine(eTED_LLDT)");
+           }
+       }
+       else
+       {
+              aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+       }
     }
     else
     {
@@ -332,7 +483,7 @@ template <class Type> cStrStat2<Type>::cStrStat2(int aSz) :
 {
 }
 
-template <class Type> const double              cStrStat2<Type>::Pds() const {return mPds;}
+template <class Type> double              cStrStat2<Type>::Pds() const {return mPds;}
 template <class Type> const cDenseVect<Type>  & cStrStat2<Type>::Moy() const {return mMoy;}
 template <class Type> const cDenseMatrix<Type>& cStrStat2<Type>::Cov() const {return mCov;}
 template <class Type> cDenseMatrix<Type>& cStrStat2<Type>::Cov() {return mCov;}
@@ -372,6 +523,72 @@ template <class Type>  double cStrStat2<Type>::KthNormalizedCoord(int aX,const c
   return mEigen.EigenVectors().MulLineElem(aX,aV2) -mMoyMulVE(aX);
 }
 
+/* =============================================== */
+/*       cElemDecompQuad / cDecSumSqLinear         */
+/* =============================================== */
+
+template <class Type>  cElemDecompQuad<Type>::cElemDecompQuad(const Type& aW,const cDenseVect<Type> & aV,const Type & aCste):
+    mW      (aW),
+    mCoeff  (aV),
+    mCste   (aCste)
+{
+}
+
+template <class Type>  cDecSumSqLinear<Type>::cDecSumSqLinear() :
+                         mNbVar (-1)
+{
+}
+
+template <class Type>  void cDecSumSqLinear<Type>::Set
+                         (const cDenseVect<Type> & aX0,const cDenseMatrix<Type> & aMat,const cDenseVect<Type> & aVecB) 
+
+{
+   cDenseVect<Type> aVect = aVecB + aMat * aX0;
+   mNbVar =aMat.Sz().x() ;
+   cMatrix<Type>::CheckSquare(aMat);
+  //       tXAX-2BX   
+  //     = t(X-S) A (X-S) 
+  //     = (X-S) tR D  R (X-S) 
+  //     = (X-S) tR L  L  R (X-S)     with L=sqrt(LD)
+  //      Som( ||li (RiX-RiS)
+
+    cDenseVect<Type> aSol =  aMat.SolveColumn(aVect,eTyEigenDec::eTED_LLDT);
+
+    cResulSymEigenValue<Type> aRSEV = aMat.SymEigenValue() ;
+    const cDenseVect<Type>   &  aVEVal = aRSEV.EigenValues() ;
+    cDenseMatrix<Type>   aMEVect = aRSEV.EigenVectors().Transpose();
+    cDenseVect<Type>     aVCste =  aMEVect * aSol;
+
+
+    int aDim = aSol.Sz();
+
+    for (int aK=0 ; aK<aDim ; aK++)
+    {
+          Type anEV = aVEVal(aK);
+          if (anEV>0)
+          {
+               tElem aEDQ(anEV,aMEVect.ReadLine(aK),aVCste(aK));
+               mVElems.push_back(aEDQ);
+          }
+    }
+}
+
+template <class Type> const std::vector<cElemDecompQuad<Type> > & cDecSumSqLinear<Type>::VElems() const
+{
+    return mVElems;
+}
+
+template <class Type> cLeasSqtAA<Type> cDecSumSqLinear<Type>::OriSys() const
+{
+    cLeasSqtAA<Type> aResult(mNbVar);
+
+    for (const auto & anEl : mVElems)
+        aResult.AddObservation(anEl.mW,anEl.mCoeff,anEl.mCste);
+
+    return aResult;
+}
+
+
 
 
 /* ===================================================== */
@@ -380,11 +597,14 @@ template <class Type>  double cStrStat2<Type>::KthNormalizedCoord(int aX,const c
 
 
 #define INSTANTIATE_ORTHOG_DENSE_MATRICES(Type)\
+template  class  cElemDecompQuad<Type>;\
+template  class  cDecSumSqLinear<Type>;\
 template  class  cResulSVDDecomp<Type>;\
 template  class  cStrStat2<Type>;\
 template  class  cDenseMatrix<Type>;\
 template  class  cResulSymEigenValue<Type>;\
-template  class  cResulQR_Decomp<Type>;
+template  class  cResulQR_Decomp<Type>;\
+template  class  cResulRQ_Decomp<Type>;
 
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL4)
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL8)

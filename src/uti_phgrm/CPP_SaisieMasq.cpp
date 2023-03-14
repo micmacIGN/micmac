@@ -61,7 +61,7 @@ class cAppliSM : public Grab_Untill_Realeased,
                  public cClikInterceptor
 {
     public :
-         cAppliSM(int argc,char ** argv);
+         cAppliSM(int argc,char ** argv,bool ForV2);
 
      void NoOp(){}
      void ExeClik(Clik aCl);
@@ -242,7 +242,23 @@ void cAppliSM::ExeClik(Clik aCl)
     }
 }
 
-cAppliSM::cAppliSM(int argc,char ** argv) :
+std::string  DirMMVII_AndCreate
+             (
+	          const std::string & aType, 
+	          const std::string & aValue 
+	     )
+{
+    static std::string 	DirMMVI = "MMVII-PhgrProj";
+
+    std::string aRes = DirMMVI + ELISE_STR_DIR + aType + ELISE_STR_DIR + aValue + ELISE_STR_DIR;
+    ELISE_fp::MkDirRec(aRes);
+	
+    return aRes;
+}
+
+
+
+cAppliSM::cAppliSM(int argc,char ** argv,bool ForV2) :
    // mTifExit  ("data/Exit.tif"),
    mTifExit  (MMIcone("Exit")),
    mSzCase   (mTifExit.sz()),
@@ -253,35 +269,52 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
     std::string aFullName;
     std::string aPost("Masq");
     std::string aNameMasq ="";
+    std::string aNTifIm;
     double aGama=1.0;
 
-    saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, mAttr, mSzWP, aGama,mForceTif);
-
-    aPost = aPost + mAttr;
-
-    SplitDirAndFile(mDir,mNIm,aFullName);
-    std::string aTifPost;
-    if (IsPostfixed(mNIm))
+    if (ForV2)
     {
-       aTifPost = StdPostfix(mNIm);
+         std::string aDirV2 = "Std";
+         ElInitArgMain
+         (
+                argc,argv,
+                LArgMain() << EAMC(aFullName,"Name of input image", eSAM_IsExistFile) ,
+                LArgMain() << EAM(mSzWP,"SzW",true)
+                           << EAM(aGama,"Gama",true)
+                           << EAM(aDirV2,"SubDir",true,"Sub Directory for MMVII, Defaut="+aDirV2)
+
+         );
+
+         aNTifIm = NameFileStd(aFullName,1,false);
+	 aNameMasq = DirMMVII_AndCreate("Mask",aDirV2) + aFullName + ".tif";
     }
-
-    if ((! IsKnownTifPost(aTifPost)) ||  mForceTif)
-    {
-      aTifPost = "tif";
-    }
-     
-
-    aTifPost = "." + aTifPost;
-
-    // std::string aNTifIm = mDir+mNIm;
-    std::string aNTifIm = NameFileStd(mDir+mNIm,1,false);
-
-    if (aNameMasq=="")
-       aNameMasq = mDir+StdPrefixGen(mNIm)+ "_" + aPost + aTifPost;
     else
     {
-       // aNameMasq = mDir+aNameMasq ;
+       saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, mAttr, mSzWP, aGama,mForceTif);
+       aPost = aPost + mAttr;
+
+       SplitDirAndFile(mDir,mNIm,aFullName);
+       std::string aTifPost;
+       if (IsPostfixed(mNIm))
+       {
+          aTifPost = StdPostfix(mNIm);
+       }
+
+       if ((! IsKnownTifPost(aTifPost)) ||  mForceTif)
+       {
+         aTifPost = "tif";
+       }
+     
+       aTifPost = "." + aTifPost;
+
+       aNTifIm = NameFileStd(mDir+mNIm,1,false);
+
+       if (aNameMasq=="")
+          aNameMasq = mDir+StdPrefixGen(mNIm)+ "_" + aPost + aTifPost;
+       else
+       {
+          // aNameMasq = mDir+aNameMasq ;
+       }
     }
 
     if (!ELISE_fp::exist_file(aNameMasq))
@@ -302,6 +335,7 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
     mT1  = new Tiff_Im(Tiff_Im::StdConvGen(aNTifIm,1,false));
 
 
+    if (!ForV2)
     {
         std::string aNameXML = StdPrefix(aNameMasq)+".xml";
         if (!ELISE_fp::exist_file(aNameXML))
@@ -384,13 +418,17 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
 
 }
 
+int MMVII_SaisieMasq_main(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv);
+    cAppliSM aAP(argc,argv,true);
+    return EXIT_SUCCESS;
+}
 
 int SaisieMasq_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv);
-
-    cAppliSM aAP(argc,argv);
-
+    cAppliSM aAP(argc,argv,false);
     return EXIT_SUCCESS;
 }
 

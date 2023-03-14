@@ -84,6 +84,7 @@ class cPicSize
     Pt2di getWinSz(){return mWinSz;}
     Pt2di getNbWin(){return mNbWin;}
     int getUsageBuffer(){return mUsageBuffer;}
+    void print();
 
     static int mTargetNumWindows;//the actual number of windows will depend on the picture ratio
   protected:
@@ -160,7 +161,7 @@ class cHomol
 class cPic
 {
   public:
-    cPic(std::string aDir, std::string aName);
+    cPic(std::string aDir, std::string aName, Pt2di fixedSz);
     cPic(cPic* aPic);
     std::string getName(){return mName;}
     cPicSize * getPicSize(){return mPicSize;}
@@ -177,7 +178,7 @@ class cPic
     std::map<cPic*, long> * getNbRawLinks(){return &nbRawLinks;}
     void selectHomols();
     void selectAllHomols();
-    void fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameManipulateur * aICNM,std::string & aKHOut);
+    void fillPackHomol(cPic* aPic2, string & aDirImages, cInterfChantierNameManipulateur * aICNM, std::string & aKHOut, bool append);
     std::vector<int> getStats(bool before=true);//computes repartition in homol-2, homol-3, homol-4 etc... export it as vector indexed by multiplicity
     long getId(){return mId;}
     static std::vector<cPicSize>* getAllSizes(){return &mAllSizes;}
@@ -215,6 +216,7 @@ class CompiledKey2
 void computeAllHomol(std::string aDirImages,
                      std::string aPatIm,
                      const std::vector<std::string> &aSetIm,
+                     Pt2di fixSz,
                      std::list<cHomol> &allHomolsIn,
                      CompiledKey2 &aCKin,
                      std::map<std::string,cPic*> &allPics,

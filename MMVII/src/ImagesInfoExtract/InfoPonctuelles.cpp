@@ -1,5 +1,5 @@
-#include "include/MMVII_all.h"
-
+#include "MMVII_Matrix.h"
+#include "MMVII_Interpolators.h"
 
 namespace MMVII
 {

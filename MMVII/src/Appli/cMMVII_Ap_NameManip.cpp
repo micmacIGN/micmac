@@ -1,30 +1,31 @@
-#include "include/MMVII_all.h"
+#include "cMMVII_Appli.h"
+
 
 namespace MMVII
 {
 
 cMMVII_Ap_NameManip::cMMVII_Ap_NameManip() :
-   mCurLut (0)
+   mCurLut (nullptr)
 {
 }
 
 cMMVII_Ap_NameManip::~cMMVII_Ap_NameManip()
 {
-     MMVII_INTERNAL_ASSERT_medium(mCurLut==0,"~cMMVII_Ap_NameManip => mCurLut");
+     MMVII_INTERNAL_ASSERT_medium(mCurLut==nullptr,"~cMMVII_Ap_NameManip => mCurLut");
 }
 
 void cMMVII_Ap_NameManip::GetCurLut()
 {
-     MMVII_INTERNAL_ASSERT_medium(mCurLut==0,"cMMVII_Ap_NameManip::GetCurLut");
+     MMVII_INTERNAL_ASSERT_medium(mCurLut==nullptr,"cMMVII_Ap_NameManip::GetCurLut");
      mCurLut = mGoClut.EmprunterOne();
 }
 
 void cMMVII_Ap_NameManip::RendreCurLut()
 {
-     MMVII_INTERNAL_ASSERT_medium(mCurLut!=0,"cMMVII_Ap_NameManip::RendreCurLut");
+     MMVII_INTERNAL_ASSERT_medium(mCurLut!=nullptr,"cMMVII_Ap_NameManip::RendreCurLut");
      mCurLut->UnInit();
      mGoClut.RendreOne(mCurLut);
-     mCurLut = 0;
+     mCurLut = nullptr;
 }
 
 

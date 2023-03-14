@@ -418,6 +418,13 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     std::string aDEMInitXML;
     std::string aDEMInitIMG;
 
+    std::string aEnvZInf;
+    std::string aEnvZSup;
+
+    bool aZRedrPx=false;
+    bool aZDeqRedr=false;
+    bool aIsCorrelExp=false;
+
     std::string mTemplate="";
     ElInitArgMain
     (
@@ -498,6 +505,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(aDEMInitIMG,"DEMInitIMG",true,"img of the DEM used to initialise the depth research", eSAM_NoInit)
                     << EAM(aDEMInitXML,"DEMInitXML",true,"xml of the DEM used to initialise the depth research", eSAM_NoInit)
                     << EAM(mExtenZ,"ExtIntZ",true,"Extension of Z Interval for elimination")
+
+                    << EAM(aEnvZInf,"EnvZInf",true,"Envelop inf of Z/Px")
+                    << EAM(aEnvZSup,"EnvZSup",true,"Envelop sup of Z/Px")
+                    << EAM(aZRedrPx,"ZRedrPx",true,"Rectify matching window using the approx surface")
+                    << EAM(aZDeqRedr,"ZDeqRedr",true,"Do dequantification when rectifying matching windows")
+                    << EAM(aIsCorrelExp,"CorrelExp",true,"Matching with \"exponential\" correlation")
 
      );
 
@@ -1345,6 +1358,38 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mCom  =    mCom + " +UseDEMInit=true"
                   +  std::string(" +DEMInitIMG=") + aDEMInitIMG
                   +  std::string(" +DEMInitXML=") + aDEMInitXML;
+      }
+
+      {
+      //Prise en compte d'un DEM initial si celui-ci a ete mis en entree
+           bool ZInfInit = EAMIsInit(&aEnvZInf);
+           bool ZSupInit = EAMIsInit(&aEnvZSup);
+           ELISE_ASSERT(ZInfInit==ZSupInit,"incohrence in ZInfInit/ZSupInit");
+
+           if (ZInfInit && ZSupInit)
+           {
+               mCom  =    mCom + " +UseEnvMNTInit=true"
+                               +  std::string(" +EnvZInf=") + aEnvZInf
+                               +  std::string(" +EnvZSup=") + aEnvZSup;
+           }else{
+	     mCom = mCom +" +UseEnvMNTInit=false"
+	       +  std::string(" +EnvZInf=")
+	       +  std::string(" +EnvZSup=");
+	   }
+      }
+
+      if (aZRedrPx)
+      {
+          mCom = mCom + BLANK + "+ZRedrPx=" + ToString(aZRedrPx);
+      }
+      if (aZDeqRedr)
+      {
+          mCom = mCom + BLANK + "+ZDeqRedr=" + ToString(aZDeqRedr);
+      }
+      if (aIsCorrelExp)
+      {
+          mCom = mCom + BLANK + "+IsCorrelExp=true" 
+		      + BLANK + "+ModeAgrCor=eAggregSymetrique";
       }
 
 

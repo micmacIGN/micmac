@@ -1,7 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
-//#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_Geom2D.h"
 
 
 
@@ -52,7 +52,7 @@ class cAppliDensifyRefMatch : public cAppliLearningMatch,
 
 cAppliDensifyRefMatch::cAppliDensifyRefMatch(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cAppliLearningMatch        (aVArgs,aSpec),
-   cAppliParseBoxIm<tREAL4>   (*this,true,cPt2di(2000,2000),cPt2di(50,50)),
+   cAppliParseBoxIm<tREAL4>   (*this,true,cPt2di(2000,2000),cPt2di(50,50),false),
    mThreshGrad                (0.3),
    mNoisePx                   (1.0),
    mMasq2Tri                  (0),
@@ -120,7 +120,7 @@ void cAppliDensifyRefMatch::MakeOneTri(const  tTriangle2DCompiled & aTri)
 	aPPx[aKp] = mDIPx->GetV(ToI(aTri.Pt(aKp)));
     }
     //  Tricky for WMM, but if used aWMM() => generate warning
-    cWhitchMinMax<int,double>  aWMM(0,aPPx[0]);
+    cWhichMinMax<int,double>  aWMM(0,aPPx[0]);
     for (int aKp=1 ; aKp<3 ; aKp++)
     {
         aWMM.Add(aKp,aPPx[aKp]);
@@ -209,7 +209,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
 
 
     // Initiate image of interpolated value
-    for (int aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
+    for (size_t aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
     {
          MakeOneTri(cTriangle2DCompiled(aTriangul.KthTri(aKTri)));
     }

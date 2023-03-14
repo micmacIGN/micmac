@@ -1,4 +1,5 @@
-#include "include/V1VII.h"
+#include "V1VII.h"
+#include "MMVII_Geom2D.h"
 
 /** \file  FluxPtsMMV1.cpp
     \brief file for using MMV1 flux; converting them a vect of point
@@ -12,7 +13,7 @@
 namespace MMVII
 {
 
-typedef std::vector<cPt2di> tResFlux;
+// typedef std::vector<cPt2di> tResFlux;
 
 
 void  FluxToV2Points(tResFlux & aRes,Flux_Pts aFlux)
@@ -46,6 +47,16 @@ tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh)
      return aRes;
 }
 
+// extern Flux_Pts ellipse(Pt2dr c,REAL A,REAL B,REAL teta,bool v8 = true);
+void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh)
+{
+     FluxToV2Points(aRes,ellipse(ToMMV1(aC),aRayA,aRayB,aTeta,with8Neigh));
+}
+
+void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2)
+{
+     FluxToV2Points(aRes,line(ToMMV1(ToI(aP1)),ToMMV1(ToI(aP2))));
+}
 
 
 

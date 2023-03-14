@@ -690,44 +690,67 @@ cSolBasculeRig cAppliApero::BasculePoints
    if (aBonC)
    {
       const cBascOnCentre aBC = aBOP.BascOnCentre().Val();
-      for (int aKPose=0 ; aKPose<int(mVecPose.size()) ; aKPose++)
-      {
+      double  ForceVert =  aBC.ForceVertical().ValWithDef(-1);
 
-          cPoseCam * aPC = mVecPose[aKPose];
-          if (
+std::cout << "ForceVertForceVertForceVert " << ForceVert << "\n";
+
+      int aNbIter = (ForceVert>0) ? 2 : 1;
+      double  aLambda=0;   // scale factor init
+
+      for (int aKIter =0 ; aKIter< aNbIter; aKIter ++)
+      {
+         bool  IterForLambda = (ForceVert>0) && (aKIter==0);
+         bool  IterForVert = (ForceVert>0) && (aKIter==1);
+
+         for (int aKPose=0 ; aKPose<int(mVecPose.size()) ; aKPose++)
+         {
+             cPoseCam * aPC = mVecPose[aKPose];
+             if (
                    aSelectorEstim.IsSetIn(aPC->Name())
                 && (aPC->RotIsInit())
                 && (aPC->HasObsOnCentre())
                 && ((! CalcV) || aPC->HasObsOnVitesse())
-             )
-          {
-              // std::cout << "BASCULE CENTRE DO " << aPC->Name() << "\n";
-              Pt3dr aC0 = aPC->CurRot().ImAff(Pt3dr(0,0,0));
+                )
+             {
+                 // std::cout << "BASCULE CENTRE DO " << aPC->Name() << "\n";
+                 Pt3dr aC0 = aPC->CurRot().ImAff(Pt3dr(0,0,0));
+                 Pt3dr aCObs = aPC->ObsCentre();
 
-              Pt3dr aCObs = aPC->ObsCentre();
+                 // const cObserv1Im<cTypeEnglob_Centre> & anOC = ObsCentre(aBC.IdBDC(),aPC->Name());
+                 //
+                   if (Test) aVName.push_back(aPC->Name());
 
-              // const cObserv1Im<cTypeEnglob_Centre> & anOC = ObsCentre(aBC.IdBDC(),aPC->Name());
-              //
-                if (Test) aVName.push_back(aPC->Name());
+                  if (CalcV)
+                  {
+                      Pt3dr aV = aPC->Vitesse();
+                      aBasc.AddExemple(aC0,aCObs,&aV,aPC->Name());
+                  }
+                  else
+                  {
+                      aBasc.AddExemple(aC0,aCObs,0,aPC->Name());
+		      if (IterForVert)
+		      {
+                           Pt3dr aAxeK =  aPC->CurRot().ImVect(Pt3dr(0,0,ForceVert/aLambda));
+                           aBasc.AddExemple(aC0 + aAxeK ,aCObs + Pt3dr(0,0,ForceVert),nullptr,aPC->Name()+"_Vertical");
+		      }
+                  }
 
-               if (CalcV)
-               {
-                   Pt3dr aV = aPC->Vitesse();
-                   aBasc.AddExemple(aC0,aCObs,&aV,aPC->Name());
-               }
-               else
-               {
-                   aBasc.AddExemple(aC0,aCObs,0,aPC->Name());
-               }
-
-               if (   aBOP.PoseCentrale().IsInit()
-                   && (! CalcV)
-                   && (aBOP.PoseCentrale().Val()==aPC->Name())
-                  )
-               {
-                  aKC = aBasc.CurK();
-               }
-          }
+                  if (   aBOP.PoseCentrale().IsInit()
+                      && (! CalcV)
+                      && (aBOP.PoseCentrale().Val()==aPC->Name())
+                     )
+                  {
+                     aKC = aBasc.CurK();
+                  }
+             }
+         }
+	 if (IterForLambda)
+	 {
+             bool OkBasc = aBasc.CloseWithTrGlob(true);
+             ELISE_ASSERT ( OkBasc, "Not enough samples (Min 3) in cRansacBasculementRigide");
+	     aLambda =  aBasc.EstimLambda();
+             aBasc = cRansacBasculementRigide(CalcV);
+	 }
       }
    }
 

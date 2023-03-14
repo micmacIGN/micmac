@@ -1,13 +1,16 @@
 #include "include/V1VII.h"
 
+#include "MMVII_Mappings.h"
+#include "MMVII_AimeTieP.h"
+
 
 #include "src/uti_image/NewRechPH/cParamNewRechPH.h"
 // #include "../CalcDescriptPCar/AimeTieP.h"
 
-#include "include/im_tpl/cPtOfCorrel.h"
-#include "include/algo_geom/qdt.h"
-#include "include/algo_geom/qdt_implem.h"
-#include "include/ext_stl/heap.h"
+#include "im_tpl/cPtOfCorrel.h"
+#include "algo_geom/qdt.h"
+#include "algo_geom/qdt_implem.h"
+#include "ext_stl/heap.h"
 
 
 namespace MMVII
@@ -24,7 +27,7 @@ class cMasq_MMV1asBoundeSet : public cDataBoundedSet<tREAL8,3>
 {
     public :
 	cMasq_MMV1asBoundeSet(const cBox3dr &,const std::string & aNameFile);
-	 bool Inside(const tPt &) const override;
+	 tREAL8 Insideness(const tPt &) const override;
 	 ~cMasq_MMV1asBoundeSet();
      private :
 	 cMasqBin3D * mV1Masq3D;
@@ -42,9 +45,9 @@ cMasq_MMV1asBoundeSet::~cMasq_MMV1asBoundeSet()
     delete mV1Masq3D;
 }
 
-bool cMasq_MMV1asBoundeSet::Inside(const tPt & aPt) const
+tREAL8 cMasq_MMV1asBoundeSet::Insideness(const tPt & aPt) const
 {
-	return mV1Masq3D->IsInMasq(ToMMV1(aPt));
+	return mV1Masq3D->IsInMasq(ToMMV1(aPt)) ? 1 : -1.0;
 }
 
 cDataBoundedSet<tREAL8,3> *  MMV1_Masq(const cBox3dr &aBox,const std::string & aNameFile)
@@ -583,8 +586,8 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
             if (aPATP.mOkAutoCor &&  aPATP.mSFSelected && aPATP.mStable && aPATP.mOKLP)
             {
                  cAimePCar aAPC;
-                 bool Ok = aPATP.FillAPC(mFPC,aAPC,false);
-                 MMVII_INTERNAL_ASSERT_tiny(Ok,"Incoherence in FillAPC");
+                 // bool Ok = aPATP.FillAPC(mFPC,aAPC,false);
+                 MMVII_INTERNAL_ASSERT_tiny(aPATP.FillAPC(mFPC,aAPC,false),"Incoherence in FillAPC");
                  aPATP.mNumAPC = mSetAPC.VPC().size();
                  mSetAPC.VPC().push_back(aAPC);
             }

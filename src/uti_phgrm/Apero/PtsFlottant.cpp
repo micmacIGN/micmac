@@ -176,15 +176,16 @@ Pt3dr cOneAppuisFlottant::PInter() const
     return InterFaisceaux(mPdsIm,mCams,*mNupl);
 }
 
+
+bool DEBUG11P=false;
+
 double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO,std::string & aCamMaxErr)
 {
     mAppli.CurXmlE(true).OneAppui().push_back(cXmlSauvExportAperoOneAppuis());
     cXmlSauvExportAperoOneAppuis  & aXmlAp =  mAppli.CurXmlE().OneAppui().back();
     aXmlAp.Name() = mName;
 
-
-
-    if (mAppli.SqueezeDOCOAC())
+    if (mAppli.SqueezeDOCOAC())  // if we squeez compens because  , in control for example, not required
     {
         if (mHasGround)
         {
@@ -204,6 +205,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
                         anErMax = aDist;
                         aKMax = aK;
                     }
+                    if  (anObs.DetShow3D().Val())
+		        std::cout << " EcReproj="  << aDist << " ,ForPt="  << mName << " ,ForCam=" << mCams[aK]->Name()  << "\n";
                 }
             }
             if (aNbCam==0) return 0;
@@ -295,6 +298,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
 
 
     //
+    static int aCpt=0; aCpt++;
+    DEBUG11P=(aCpt==5);
 
     const cResiduP3Inc &  aRes = mMP3TI->UsePointLiaisonGen
             (
@@ -317,7 +322,7 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
     {
         if (ShowUnUsed)
         {
-            std::cout << "NOT OK (UPL) FOR " << mName ;
+            std::cout << "NOT OK (UPL) FOR " << mName  << " Cpt=" << aCpt ;
             if (aRes.mMesPb !="")
             {
                 std::cout << " , Reason  " << aRes.mMesPb ;
@@ -673,6 +678,8 @@ void cBdAppuisFlottant::Compile()
 
 void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
 {
+    bool  aShowAllDet = false;
+
     double anErrMax = -10;
     double anErrMoy = 0;
     double aSomP = 0;
@@ -690,6 +697,13 @@ void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
         double anErr = it1->second->AddObs(anObs,aSO,aCam);
         if (aCam!="")
         {
+            if (aShowAllDet)
+	    {
+		std::cout <<  " ErReproj=" << anErr  
+			  << " ForPts=" << it1->second->Name() 
+			  <<  " ForCam=" << aCam   
+			  << "\n";
+	    }
             anErrMoy += anErr;
             aSomP ++;
             if (anErr >  anErrMax)

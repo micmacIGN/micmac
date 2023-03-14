@@ -1,5 +1,5 @@
-#include "include/MMVII_all.h"
-#include "ExternalInclude/Eigen/Dense"
+#include "cMMVII_Appli.h"
+#include "Eigen/Dense"
 
 #if (MMVII_WITH_CERES)
 #include "ceres/jet.h"

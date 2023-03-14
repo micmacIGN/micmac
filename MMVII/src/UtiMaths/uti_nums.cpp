@@ -1,7 +1,10 @@
-#include "include/MMVII_all.h"
+#include "MMVII_SetITpl.h"
+#include "MMVII_Sys.h"
+#include "cMMVII_Appli.h"
 
 namespace MMVII
 {
+
 
 /* ****************  cDecomposPAdikVar *************  */
 
@@ -104,15 +107,15 @@ void cDecomposPAdikVar::Bench()
 
    /* -------------------------------------------- */
 
-int BinomialCoeff(int aK,int aN)
+tREAL8 rBinomialCoeff(int aK,int aN)
 {
   if ((aK<0) || (aK>aN)) 
-     return aK;
+     return 0;
   if (aK> (aN/2)) 
      aK= aN-aK;
 
-  tINT8 aNum = 1;
-  tINT8 aDenom = 1;
+  tREAL8 aNum = 1;
+  tREAL8 aDenom = 1;
 
   for (int aP = 1 ; aP<=aK ; aP++)
   {
@@ -120,6 +123,22 @@ int BinomialCoeff(int aK,int aN)
       aNum *= (aN+1-aP);
   }
   return aNum / aDenom;
+}
+
+tU_INT4 iBinomialCoeff(int aK,int aN)
+{
+   tREAL8 aRR = rBinomialCoeff(aK,aN);
+   MMVII_INTERNAL_ASSERT_tiny(aRR< std::numeric_limits<tU_INT4>::max() , "Overflow on iBinomialCoeff");
+
+   return tU_INT4(aRR);
+}
+
+tU_INT8 liBinomialCoeff(int aK,int aN)
+{
+   tREAL8 aRR = rBinomialCoeff(aK,aN);
+   // clang reports a warning when implicitly converting tU_INT8::max to tREAL8 (value decremented by 1)
+   MMVII_INTERNAL_ASSERT_tiny(aRR < static_cast<tREAL8>(std::numeric_limits<tU_INT8>::max()) , "Overflow on iBinomialCoeff");
+   return tU_INT8(aRR);
 }
 
 double  RelativeDifference(const double & aV1,const double & aV2,bool * aResOk)
@@ -134,6 +153,11 @@ double  RelativeDifference(const double & aV1,const double & aV2,bool * aResOk)
         return std::nan("");
     }
     return std::abs(aV1-aV2) / aSom;
+}
+
+double RelativeSafeDifference(const double & aV1,const double & aV2)
+{
+    return std::abs(aV1-aV2) / (1+std::abs(aV1) +  std::abs(aV2));
 }
 
 template <class Type> Type diff_circ(const Type & a,const Type & b,const Type & aPer)
@@ -247,7 +271,6 @@ void BenchTraits()
        const cVirtualTypeNum & aVTN =  cVirtualTypeNum::FromEnum(eTyNums(aK));
        MMVII_INTERNAL_ASSERT_bench (int(aVTN.V_TyNum())==aK,"Bench cVirtualTypeNum::FromEnum");
    }
-   // getchar();
 }
 
 tINT4 EmbeddedIntVal(tREAL8 aRealVal)
@@ -307,7 +330,7 @@ template <class Type> void  TplBenchMinMax(int aNb)
 {
 
     std::vector<Type> aVVals;
-    cWhitchMinMax<int,Type> aWMM;
+    cWhichMinMax<int,Type> aWMM;
     for (int aK=0 ; aK<aNb ; aK++)
     {
        Type aVal = tNumTrait<Type>::RandomValueCenter();
@@ -367,7 +390,6 @@ template <class Type> void BenchFuncAnalytique(int aNb,double aEps,double EpsDer
        Type aDerY = DerYAtanXsY_sX(aX,aY);
        MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aDerDifY,aDerY) <EpsDer,"Der AtanXsY_SX");
    }
-   // getchar();
 }
 
 void Bench_Nums(cParamExeBench & aParam)
@@ -386,12 +408,12 @@ void Bench_Nums(cParamExeBench & aParam)
    BenchMinMax();
 
    //for (
-   MMVII_INTERNAL_ASSERT_bench (BinomialCoeff(2,10)==45,"Bench binom");
+   MMVII_INTERNAL_ASSERT_bench (iBinomialCoeff(2,10)==45,"Bench binom");
    {
       int aS=0;
       for (int aK=0 ; aK<=10 ; aK++)
       {
-         aS += BinomialCoeff(aK,10);
+         aS += iBinomialCoeff(aK,10);
       }
       MMVII_INTERNAL_ASSERT_bench (aS==(1<<10),"Bench binom");
    }
@@ -500,6 +522,22 @@ bool SignalAtFrequence(tREAL8 anIndex,tREAL8 aFreq,tREAL8  aCenterPhase)
    return lround_ni(aCoord0) != lround_ni(aCoord1);
 }
 
+
+template <class TCont,class TVal> double Rank(const TCont & aContainer, const TVal& aVTest)
+{
+     double  aNbInf = 0;
+     double  aNbTot = 0;
+
+     for (const auto & aV : aContainer)
+     {
+         aNbTot++;
+         if (aVTest<aV)       aNbInf++;
+         else if (aVTest==aV) aNbInf += 0.5;
+     }
+     return SafeDiv(aNbInf,aNbTot);
+}
+
+template  double Rank(const std::vector<double> & aContainer, const double& aVTest);
 
 };
 

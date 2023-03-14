@@ -1,6 +1,9 @@
 #ifndef  _MMVII_MMV1_Compat_H_
 #define  _MMVII_MMV1_Compat_H_
 
+#include "MMVII_Sensor.h"
+#include "MMVII_Geom3D.h"
+
 namespace MMVII
 {
 
@@ -11,6 +14,24 @@ namespace MMVII
 
 tNameSet  MMV1InitSet(const std::string & aName);
 tNameRel  MMV1InitRel(const std::string & aName);
+
+
+/** class for exporting internal calibration resulting of MMV1process, mainly exported as
+ */
+struct  cExportV1StenopeCalInterne
+{
+       public :
+             cExportV1StenopeCalInterne(bool isForCalib,const std::string& aFile,int aNbPointPerDim=30,int aNbLayer=2);
+
+	     cIsometry3D<tREAL8>   mPose;
+	     std::string           mNameCalib;
+             bool                  mIsForCalib;
+	     eProjPC               eProj;
+	     cPt2di                mSzCam;
+	     tREAL8                mFoc;
+	     cPt2dr                mPP;
+	     cSet2D3D              mCorresp;
+};
 
 
 //  Defined in MMVII_Stringifier.h for Serialization

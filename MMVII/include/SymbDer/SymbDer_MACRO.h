@@ -21,9 +21,65 @@ the same thing but change the name. It can hardly (if olny possible) be done wit
 
 namespace  NS_SymbolicDerivative
 {
+
 /*  *************************************************************** */
 /*                                                                  */
-/*          MACRO PART                                              */
+/*                  MACRO FOR UNARY OPERATORS                       */
+/*                                                                  */
+/*  *************************************************************** */
+
+#define MACRO_SD_DECLARE_STD_UNARY_FUNC_OP(OPER)\
+template <class TypeElem> cFormula <TypeElem> OPER(const cFormula <TypeElem> & aF1);
+
+#define MACRO_SD_DEFINE_STD_UNARY_FUNC_OP(OPER)\
+template <class TypeElem>\
+inline cFormula<TypeElem>  OPER(const cFormula<TypeElem> & aF)\
+{\
+    return cGenOperatorUnaire<c##OPER<TypeElem> >::Generate(aF);\
+}
+
+#define  MACRO_SD_DEFINE_STD_cUnaryF(NSPACE,OPER,OPERd) \
+template <class TypeElem> class c##OPER : public cUnaryF<TypeElem>\
+{\
+     public :\
+            using cUnaryF<TypeElem>::mF;\
+            using cUnaryF<TypeElem>::mDataF;\
+            using cImplemF<TypeElem>::mDataBuf;\
+\
+            c##OPER (cFormula<TypeElem> aF,const std::string & aName) :\
+                cUnaryF <TypeElem> (aF,aName)\
+            { }\
+            static TypeElem Operation(const TypeElem & aV1) {return NSPACE::OPER(aV1);}\
+            static const std::string &  StaticNameOperator()\
+                         {static std::string s(#NSPACE +std::string("::")+ #OPER); return s;}\
+      private :\
+            const std::string &  NameOperator() const override { return StaticNameOperator();}\
+            void ComputeBuf(int aK0,int aK1) override\
+            {\
+                for (int aK=aK0 ; aK<aK1 ; aK++)\
+                    mDataBuf[aK] =  NSPACE::OPER(mDataF[aK]);\
+            }\
+            cFormula<TypeElem> Derivate(int aK) const override\
+            {\
+                return  mF->Derivate(aK)  * OPERd(mF);\
+            }\
+};\
+
+
+#define  MACRO_SD_DEFINE_STD_UNARY_FUNC_OP_DERIVABLE(NSPACE,OPER,OPERDer)\
+MACRO_SD_DECLARE_STD_UNARY_FUNC_OP(OPER)\
+MACRO_SD_DECLARE_STD_UNARY_FUNC_OP(OPERDer)\
+MACRO_SD_DEFINE_STD_cUnaryF(NSPACE,OPER,OPERDer)\
+MACRO_SD_DEFINE_STD_cUnaryF(NSPACE,OPERDer,UndefinedOperUn)\
+MACRO_SD_DEFINE_STD_UNARY_FUNC_OP(OPER)\
+MACRO_SD_DEFINE_STD_UNARY_FUNC_OP(OPERDer)
+
+
+
+
+/*  *************************************************************** */
+/*                                                                  */
+/*                  MACRO FOR BINARY OPERATORS                      */
 /*                                                                  */
 /*  *************************************************************** */
 
@@ -70,8 +126,9 @@ template <class TypeElem> class c##OPER  : public cBinaryF<TypeElem>\
             inline c##OPER(cFormula<TypeElem> aF1,cFormula<TypeElem> aF2,const std::string & aName) :\
                    cBinaryF<TypeElem> (aF1,aF2,aName) \
             { }\
+          static const std::string& StaticNameOperator(){static std::string s(#NSPACE+std::string("::")+ #OPER);return s;}\
       private  :\
-            const std::string &  NameOperator() const override {static std::string s(#OPER); return s;}\
+            const std::string &  NameOperator() const override {return StaticNameOperator();}\
             virtual std::string GenCodeShortExpr() const override {\
                 return #NSPACE + std::string("::") + #OPER+std::string("(") + mF1->GenCodeFormName() + "," + mF2->GenCodeFormName() + ")";\
             }\

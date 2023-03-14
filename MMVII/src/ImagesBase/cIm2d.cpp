@@ -1,5 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_Linear2DFiltering.h"
+#include "MMVII_DeclareCste.h"
 
 namespace MMVII
 {
@@ -105,11 +107,15 @@ template <class Type> Type * cDataIm2D<Type>::GetLine(int aY)
    AssertYInside(aY);
    return mRawData2D[aY];
 }
+template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,eTyNums aType) const
+{
+    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,aType,Sz(),1);
+    Write(aDFI,P0());
+}
 
 template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName) const
 {
-    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),1);
-    Write(aDFI,P0());
+    ToFile(aName,tElemNumTrait<Type>::TyNum());
 }
 
 template <class Type>  void cDataIm2D<Type>::ClipToFile(const std::string & aName,const cRect2& aBox) const
@@ -142,10 +148,18 @@ const cPt2di & ShowPt(const cPt2di &aSz,const std::string & aMsg)
 }
 */
 
+/*
+template <class Type>  cIm2D<Type>::cIm2D(tDIM & anIm) :
+   mSPtr(& anIm),
+   mPIm (mSPtr.get())
+{
+}
+*/
 
 template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) :
    mSPtr(new cDataIm2D<Type>(aP0,aP1,aRawDataLin,aModeInit)),
    mPIm (mSPtr.get())
+   //  cIm2D<Type> (*(new cDataIm2D<Type>(aP0,aP1,aRawDataLin,aModeInit)))
 {
 }
 
@@ -249,26 +263,105 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const
 
 /* *********************************************************** */
 /*                                                             */
+/*            cAppliWithMasqIma                                */
+/*                                                             */
+/* *********************************************************** */
+
+/*  TO LINK
+class cAppliWithMasqIma
+{
+      public :
+	 /// Muts be done once the appli know its image
+
+	 bool HasMasq() const;
+
+	cCollecSpecArg2007 & AWMI_ArgObl(cCollecSpecArg2007 & anArgObl) ; ///< If Masq is mandatory
+        cCollecSpecArg2007 & AWMI_ArgOpt(cCollecSpecArg2007 & anArgOpt); ///<  If Masq is optionnal
+									 
+      protected :
+         cAppliWithMasqIma(cMMVII_Appli & anAppli);
+	 void InitNameImage(const std::string & aNameImage);
+      private :
+         void AssertImIsInit();
+	 bool NameMasqIsInit() const;
+
+         cMMVII_Appli & mAppli;
+         bool           mImIsInit;	 
+
+	 std::string    mNameMasq;
+	 std::string    mNameImage;
+};
+
+cAppliWithMasqIma::cAppliWithMasqIma(cMMVII_Appli & anAppli) :
+   mAppli      (anAppli),
+   mImIsInit   (false)
+{
+}
+
+
+void cAppliWithMasqIma::InitNameImage(const std::string & aNameImage)
+{
+   mImIsInit = true;
+   mNameImage = aNameImage;
+}
+
+
+bool cAppliWithMasqIma::NameMasqIsInit() const
+{
+	return mAppli.IsInit(&mNameMasq);
+}
+
+bool cAppliWithMasqIma::HasMasq() const
+{
+     //  If masq was specief it exist, except if NONE (case where we want to 
+     //  supress the defaut behavior which is test the existence of IM_Masq.tif
+     if (NameMasqIsInit())
+        return mNameMasq != MMVII_NONE;
+
+    if (mImIsInit)
+       return   ExistFile(AddAfterAndChgPost(mNameImage,"_Masq","tif"));
+
+   return false;
+}
+*/
+
+
+/* *********************************************************** */
+/*                                                             */
 /*            cAppliParseBoxIm<TypeEl>                         */
 /*                                                             */
 /* *********************************************************** */
+
+static std::string NameIndBoxRecal="INTERNAL_IndexBoxRecall";
 
 template<class TypeEl>  cAppliParseBoxIm<TypeEl>::cAppliParseBoxIm
                         (
 			      cMMVII_Appli & anAppli,
                               bool IsGray,
 			      const cPt2di & aSzTiles,
-			      const cPt2di & aSzOverlap
+			      const cPt2di & aSzOverlap,
+                              bool  doTilesInParal
                         ) :
-    mBoxTest  (cBox2di::Empty()),      // Fake Init, no def constructor
-    mParseBox (nullptr),               // No inside parsing
-    mDFI2d    (cDataFileIm2D::Empty()),   // Fake Init, no def constructor
-    mIsGray   (IsGray),
-    mAppli    (anAppli),
-    mSzTiles  (aSzTiles),
-    mSzOverlap(aSzOverlap),
-    mIm       (cPt2di(1,1))
+    mBoxTest    (cBox2di::Empty()),      // Fake Init, no def constructor
+    mSzTiles    (aSzTiles),
+    mSzOverlap  (aSzOverlap),
+    mParalTiles (doTilesInParal),
+    mAppli      (anAppli),
+    mIsGray     (IsGray),
+    mParseBox   (nullptr),               // No inside parsing
+    mDFI2d      (cDataFileIm2D::Empty()),   // Fake Init, no def constructor
+    mIm         (cPt2di(1,1))
 {
+}
+
+template<class TypeEl> bool  cAppliParseBoxIm<TypeEl>::InsideParalRecall() const
+{
+   return IsInit(&mIndBoxRecal);
+}
+
+template<class TypeEl> bool  cAppliParseBoxIm<TypeEl>::TopCallParallTile() const
+{
+   return  mParalTiles && (!InsideParalRecall());
 }
 
 template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
@@ -276,21 +369,37 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
      mDFI2d = cDataFileIm2D::Create(mNameIm,mIsGray);
      if (APBI_TestMode())
      {
-         LoadI(CurBoxIn());
-	 mAppli.ExeOnParsedBox();
-         return;
+        LoadI(CurBoxIn());
+	mAppli.ExeOnParsedBox();
+        return;
      }
      AssertNotInParsing();
      cParseBoxInOut<2> aPBIO =  cParseBoxInOut<2>::CreateFromSize(mDFI2d,mSzTiles);
      mParseBox = & aPBIO;
 
+     std::list<std::string>  aLComParal;
      for (const auto & aPixI : aPBIO.BoxIndex())
      {
-         mCurPixIndex = aPixI;
-         LoadI(CurBoxIn());
-	 mAppli.ExeOnParsedBox();
+         // if a the top level of paralelization, construct the string 
+         // For first box, run it classically so that files are created only once
+         if (TopCallParallTile() && (aPixI!=cPt2di(0,0)))
+         {
+            std::string aCom = mAppli.CommandOfMain() + " " +NameIndBoxRecal + "=" + ToStr(aPixI);
+             aLComParal.push_back(aCom);
+         }
+         else
+         {
+            // If not in paral do all box, else do only the box indicate by recall
+            if ((!mParalTiles) || (aPixI==mIndBoxRecal))
+            {
+                mCurPixIndex = aPixI;
+                LoadI(CurBoxIn());
+	        mAppli.ExeOnParsedBox();
+            }
+         }
      }
      mParseBox = nullptr ;   // No longer inside parsing
+     mAppli.ExeComParal(aLComParal);
 }
 
 template<class TypeEl> const std::string & cAppliParseBoxIm<TypeEl>::APBI_NameIm() const
@@ -330,6 +439,26 @@ template<class TypeEl> cBox2di  cAppliParseBoxIm<TypeEl>::CurBoxOutLoc() const
     return mParseBox->BoxOutLoc(mCurPixIndex,mSzOverlap);
 }
 
+template<class TypeEl> const cDataFileIm2D & cAppliParseBoxIm<TypeEl>::DFI2d() const
+{
+   return mDFI2d;
+}
+
+template<class TypeEl> cPt2di  cAppliParseBoxIm<TypeEl>::CurSzIn() const
+{
+    return CurBoxIn().Sz();
+}
+
+template<class TypeEl> cBox2di  cAppliParseBoxIm<TypeEl>::CurBoxInLoc() const
+{
+    AssertInParsing();
+    return cBox2di(cPt2di(0,0),CurSzIn());
+}
+
+template<class TypeEl> cPt2di  cAppliParseBoxIm<TypeEl>::CurP0() const
+{
+    return CurBoxIn().P0();
+}
 
 
 template<class TypeEl>  cAppliParseBoxIm<TypeEl>::~cAppliParseBoxIm()
@@ -339,9 +468,10 @@ template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOb
 {
    return
         anArgObl
-           <<   Arg2007(mNameIm,"Name of input file",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
+           <<   Arg2007(mNameIm,"Name of image (first one)",{{eTA2007::MPatFile,"0"},eTA2007::FileImage})
    ;
 }
+
 
 template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
@@ -349,6 +479,8 @@ template<class TypeEl> cCollecSpecArg2007 & cAppliParseBoxIm<TypeEl>::APBI_ArgOp
               << AOpt2007(mBoxTest,  "TestBox","Box for testing before runing all",{eTA2007::Tuning})
               << AOpt2007(mSzTiles,  "SzTiles","Size of tiles to parse big file",{eTA2007::HDV})
               << AOpt2007(mSzOverlap,"SzOverL","Size of overlap between tiles",{eTA2007::HDV})
+              << AOpt2007(mParalTiles,"ParalT","Parallelize  between tiles",{eTA2007::HDV})
+              << AOpt2007(mIndBoxRecal,NameIndBoxRecal,"Index of box when call in parall",{eTA2007::Internal})
     ;
 }
 
@@ -368,6 +500,33 @@ template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseB
 {
    return mIm.DIm();
 }
+template<class TypeEl> typename cAppliParseBoxIm<TypeEl>::tIm&  cAppliParseBoxIm<TypeEl>::APBI_Im()
+{
+   return mIm;
+}
+template<class TypeEl> const typename  cAppliParseBoxIm<TypeEl>::tDataIm&  cAppliParseBoxIm<TypeEl>::APBI_DIm() const
+{
+   return mIm.DIm();
+}
+template<class TypeEl> const typename  cAppliParseBoxIm<TypeEl>::tIm&  cAppliParseBoxIm<TypeEl>::APBI_Im() const
+{
+   return mIm;
+}
+
+
+cIm2D<tU_INT1>  ReadMasqWithDef(const cBox2di& aBox,const std::string & aName)
+{
+   if (IsInit(&aName))
+   {
+      return cIm2D<tU_INT1>::FromFile(aName,aBox);
+   }
+   else
+   {
+      return cIm2D<tU_INT1> (aBox.Sz(),nullptr,eModeInitImage::eMIA_V1);
+   }
+}
+
+
 
 /*  *********************************************************** */
 /*             INSTANTIATION                                    */

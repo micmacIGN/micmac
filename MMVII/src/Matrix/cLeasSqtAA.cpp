@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_SysSurR.h"
 
 // test git cred again again ... vi 
 
@@ -8,20 +9,19 @@ namespace MMVII
 
 /* *********************************** */
 /*                                     */
-/*            cBufSchurrSubst          */
+/*            cBufSchurSubst          */
 /*                                     */
 /* *********************************** */
 
 template <class Type> 
-    cBufSchurrSubst<Type>::cBufSchurrSubst(size_t aNbVar) :
+    cBufSchurSubst<Type>::cBufSchurSubst(size_t aNbVar) :
          mNbVar     (aNbVar),
-         mNumComp   (aNbVar,100000000),
          mSetInd    (aNbVar),
 	 mSysRed    (1),
 	 mL         (1,1),
-	 mLInv      (1,1),
 	 mtB        (1,1),
 	 mtB_LInv   (1,1),
+	 mLInv_B    (1,1),
 	 mB         (1,1),
 	 mtB_LInv_B (1,1),
          mM11       (1,1),
@@ -31,24 +31,24 @@ template <class Type>
 {
 }
 
-template <class Type> const  std::vector<size_t> & cBufSchurrSubst<Type>::VIndexUsed() const
+template <class Type> const  std::vector<size_t> & cBufSchurSubst<Type>::VIndexUsed() const
 {
    return mSetInd.mVIndOcc;
 }
 
 
-template <class Type> const cDenseMatrix<Type> & cBufSchurrSubst<Type>::tAASubst() const
+template <class Type> const cDenseMatrix<Type> & cBufSchurSubst<Type>::tAASubst() const
 {
      return mM11;
 }
 
-template <class Type> const cDenseVect<Type> & cBufSchurrSubst<Type>::tARhsSubst() const
+template <class Type> const cDenseVect<Type> & cBufSchurSubst<Type>::tARhsSubst() const
 {
      return mC1;
 }
 
 template <class Type> 
-    void cBufSchurrSubst<Type>::CompileSubst(const tSetEq & aSetSetEq)
+    void cBufSchurSubst<Type>::CompileSubst(const tSetEq & aSetSetEq)
 {
      aSetSetEq.AssertOk();
 
@@ -57,18 +57,19 @@ template <class Type>
      mNbTmp = aSetSetEq.NbTmpUk();
      for (const auto & anEq : aSetSetEq.AllEq())
      {
-         for (const auto & anInd : anEq.mVInd)
-             mSetInd.AddInd(anInd);
+         for (const auto & anInd : anEq.mGlobVInd)
+	 {
+             if (!cSetIORSNL_SameTmp<Type>::IsIndTmp(anInd))
+	     {
+                 mSetInd.AddInd(anInd);
+	     }
+	 }
      }
+     // mSetInd.SortInd();
+     mSetInd.MakeInvertIndex();
+
      mNbUk = mSetInd.mVIndOcc.size();
      mNbUkTot = mNbUk + mNbTmp;
-
-
-     // Compute invert index  [0 NbVar[ ->  [0,NbUk[
-     for (size_t aK=0; aK<mSetInd.mVIndOcc.size() ;aK++)
-     {
-          mNumComp.at(mSetInd.mVIndOcc[aK]) = aK;
-     }
 
      // Adjust size, initialize of mSysRed
      if (mSysRed.NbVar() != int(mNbUkTot))
@@ -83,25 +84,22 @@ template <class Type>
      //  Compute the reduced  least square system
      for (const auto & aSetEq : aSetSetEq.AllEq())
      {
-         const std::vector<int> & aVI =   aSetEq.mVInd;
-	 size_t aNbI = aVI.size();
          for (size_t aKEq=0 ; aKEq<aSetEq.mVals.size() ; aKEq++)
 	 {
               mSV.Reset();
 	      const std::vector<Type> & aVDer = aSetEq.mDers.at(aKEq);
 
-	      // fill sparse vector with  "real" unknown
-              for (size_t aKV=0 ; aKV< aNbI ; aKV++)
-	      {
-                  mSV.AddIV(mNbTmp+mNumComp.at(aVI[aKV]),aVDer.at(aKV));
-	      }
+              for (size_t aKGlob=0 ; aKGlob<aSetEq.mGlobVInd.size() ; aKGlob++)
+              {
+                   const Type  & aDer = aVDer.at(aKGlob);
+                   int aInd = aSetEq.mGlobVInd[aKGlob];
+                   if ( cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd))
+                       mSV.AddIV(cSetIORSNL_SameTmp<Type>::ToIndTmp(aInd),aDer);
+                   else
+                       mSV.AddIV(mNbTmp+mSetInd.mVInvertInd.at(aInd),aDer);
+                     
+              }
 
-	      // fill sparse vector with  temporary unknown
-              for (size_t  aKV=aNbI ; aKV<aVDer.size() ; aKV++)
-	      {
-                  mSV.AddIV((aKV-aNbI),aVDer.at(aKV));
-	      }
-	      // fill reduced normal equation
 	      mSysRed.AddObservation(aSetEq.WeightOfKthResisual(aKEq),mSV,-aSetEq.mVals.at(aKEq));
 	 }
       }
@@ -121,13 +119,13 @@ template <class Type>
       mC1.ResizeAndCropIn(mNbTmp,mNbUkTot,atARhs);
 
 
-      // compute L-1 in  mLInv
-      mLInv.Resize(aSzTmp);
-      mLInv.InverseInPlace(mL);  //  ============  TO OPTIM MATR SYM
 
-      // compute tB*L-1 in  mtB_mLInv
+      // compute tB*L-1 in  mtB_LInv
       mtB_LInv.Resize(cPt2di(mNbTmp,mNbUk));
-      mtB_LInv.MatMulInPlace(mtB,mLInv);
+      mLInv_B.Resize(cPt2di(mNbUk,mNbTmp));
+      mL.SolveIn(mLInv_B,mB,eTyEigenDec::eTED_LLDT);   // mLInv_B = L-1 B
+      mLInv_B.TransposeIn(mtB_LInv);                   // mtB_LInv = tB L-1 as L=tL
+  
 
       // compute tB*L-1*B  in  mtB_mLInv_B
       mtB_LInv_B.Resize(cPt2di(mNbUk,mNbUk)) ;
@@ -159,6 +157,18 @@ template<class Type>  cLeasSqtAA<Type>::cLeasSqtAA(int aNbVar):
    mBSC            (nullptr)
 {
 }
+
+
+template<class Type>  cLeasSqtAA<Type>  cLeasSqtAA<Type>::Dup() const
+{
+     cLeasSqtAA<Type>  aRes(this->NbVar());
+
+     mtAA.DIm().DupIn(aRes.mtAA.DIm());
+     mtARhs.DIm().DupIn(aRes.mtARhs.DIm());
+
+     return aRes;
+}
+
 
 template<class Type>  cLeasSqtAA<Type>::~cLeasSqtAA()
 {
@@ -199,7 +209,7 @@ template<class Type> void  cLeasSqtAA<Type>::Reset()
 template<class Type> void  cLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
     if (mBSC==nullptr)
-         mBSC = new cBufSchurrSubst<Type>(this->NbVar());
+         mBSC = new cBufSchurSubst<Type>(this->NbVar());
     mBSC->CompileSubst(aSetSetEq);
 
     const std::vector<size_t> &  aVI = mBSC->VIndexUsed();
@@ -221,7 +231,7 @@ template<class Type> void  cLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_Sa
 template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::Solve()
 {
    mtAA.SelfSymetrizeBottom();
-   return mtAA.Solve(mtARhs,eTyEigenDec::eTED_LLDT);
+   return mtAA.SolveColumn(mtARhs,eTyEigenDec::eTED_LLDT);
 }
 
 template<class Type> const cDenseMatrix<Type> & cLeasSqtAA<Type>::tAA () const {return mtAA;}
@@ -245,6 +255,39 @@ template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::SparseSolve()
 
    return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
 }
+
+template<class Type> cDenseMatrix<Type> cLeasSqtAA<Type>::V_tAA() const
+{
+     cDenseMatrix<Type> aRes = mtAA.Dup();
+     aRes.SelfSymetrizeBottom();
+     return aRes;
+}
+
+template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::V_tARhs() const
+{
+	return mtARhs;
+}
+template<class Type> bool cLeasSqtAA<Type>::Acces2NormalEq() const
+{
+	return true;
+}
+
+template<class Type> void cLeasSqtAA<Type>::AddCov
+                          (const cDenseMatrix<Type> & aMat,const cDenseVect<Type>& aVect,const std::vector<int> &aVInd)
+{
+    for (int aKx = 0 ; aKx<int(aVInd.size()) ; aKx++)
+    {
+        mtARhs(aVInd[aKx]) += aVect(aKx);
+        for (int aKy = 0 ; aKy<int(aVInd.size()) ; aKy++)
+        {
+             // Only triangular sup used
+	     if (aVInd[aKx] >= aVInd[aKy])
+	        mtAA.AddElem(aVInd[aKx],aVInd[aKy],aMat.GetElem(aKx,aKy));
+        }
+    }
+}
+
+
 
 /* *********************************** */
 /*                                     */
@@ -328,7 +371,7 @@ template<class Type> cLinearOverCstrSys<Type> * cLinearOverCstrSys<Type>::AllocS
      switch (aMode)
      {
 	     case eModeSSR::eSSR_LsqDense  :  return cLeasSq<Type>::AllocDenseLstSq (aNbVar);
-	     case eModeSSR::eSSR_LsqNormSparse :  return cLeasSq<Type>::AllocSparseNormalLstSq(aNbVar);
+	     case eModeSSR::eSSR_LsqNormSparse :  return cLeasSq<Type>::AllocSparseNormalLstSq(aNbVar,cParamSparseNormalLstSq());
 	     case eModeSSR::eSSR_LsqSparseGC :  return cLeasSq<Type>::AllocSparseGCLstSq(aNbVar);
              
              default :;
@@ -344,13 +387,42 @@ template<class Type> void cLinearOverCstrSys<Type>::AddObsWithTmpUK(const cSetIO
 }
 
 
+template<class Type> cDenseMatrix<Type> cLinearOverCstrSys<Type>::V_tAA() const
+{
+	MMVII_INTERNAL_ERROR("No acces to tAA for this class");
+    return cDenseMatrix<Type> (0);
+	//return *((cDenseMatrix<Type> *)nullptr);   // clang: binding dereferenced null pointer to reference has undefined behavior
+}
+
+template<class Type> cDenseVect<Type> cLinearOverCstrSys<Type>::V_tARhs() const
+{
+	MMVII_INTERNAL_ERROR("No acces to tARhs for this class");
+    return cDenseVect<Type> (0);
+	//return *((cDenseVect<Type> *)nullptr);   // clang: binding dereferenced null pointer to reference has undefined behavior
+}
+
+template <class Type> void cLinearOverCstrSys<Type>::AddCov
+                          (const cDenseMatrix<Type> &,const cDenseVect<Type>& ,const std::vector<int> &aVInd)
+{
+	MMVII_INTERNAL_ERROR("No AddCov for this class");
+}
+
+
+
+template<class Type> bool cLinearOverCstrSys<Type>::Acces2NormalEq() const
+{
+	return false;
+}
+
+
+
 
 /* ===================================================== */
 /* ===================================================== */
 /* ===================================================== */
 
 #define INSTANTIATE_LEASTSQ_TAA(Type)\
-template class cBufSchurrSubst<Type>;\
+template class cBufSchurSubst<Type>;\
 template  class  cLeasSqtAA<Type>;\
 template  class  cLeasSq<Type>;\
 template  class  cLinearOverCstrSys<Type>;

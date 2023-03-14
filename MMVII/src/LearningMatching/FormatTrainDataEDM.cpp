@@ -1,6 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/V1VII.h"
+
+#include "V1VII.h"
 #include "LearnDM.h"
+#include "MMVII_Sys.h"
 
 //  MMVII  DMFormatTD_MDLB ".*JAX_022_004_002_.*" 100 DoRectif=1
 

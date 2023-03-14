@@ -253,9 +253,13 @@ Clik  EliseStdImageInteractor::clik_press()
 	      if ((cl1._b== mButtonZoomIn) || (cl1._b== mButtonZoomOut))
 	      {
 	        double aFact = 1.2;
+
+// std::cout << "PPPPpppPp " << mP0Grab << "\n";
       	         mScr.SetScArroundPW
                  (
-                     mP0Grab,
+		      // MODIF MPD : else impossible to zoom-scrool  w/o a mousse
+		      // "courageous" to modify X11 stuff at this step !!
+                      cl1._pt,  //mP0Grab,
                       anI->mScr.sc() * ((cl1._b== mButtonZoomIn) ? aFact : 1/aFact),
                      false // mRasterQuickZoom
                  );

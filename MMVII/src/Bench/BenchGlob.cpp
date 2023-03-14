@@ -1,5 +1,37 @@
-#include "include/MMVII_all.h"
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_DeclareCste.h"
+#include "cMMVII_Appli.h"
+#include "MMVII_PhgrDist.h"
+#include "MMVII_Geom3D.h"
+#include "MMVII_Radiom.h"
+#include <unistd.h>
 #include <cmath>
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>
+#endif // _WIN32
+
+using namespace std;
+
+
+// Cross-platform sleep function
+// or use
+// #include <chrono>
+// #include <thread>
+// std::this_thread::sleep_for(std::chrono::milliseconds(x));
+
+void sleepcp(int milliseconds)
+{
+    #ifdef _WIN32
+        Sleep(milliseconds);
+    #else
+        usleep(milliseconds * 1000);
+    #endif // _WIN32
+}
+
+#include "MMVII_PCSens.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 using namespace NS_SymbolicDerivative ;
 /** \file BenchGlob.cpp
@@ -193,6 +225,18 @@ void Bench_0000_String(cParamExeBench & aParam)
     MMVII_INTERNAL_ASSERT_bench(Postfix("AA",'.',true,false)=="","Postfix in Bench_0000_String");
     MMVII_INTERNAL_ASSERT_bench(Prefix("AA",'.',true,false)=="AA","Postfix in Bench_0000_String");
 
+
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","")==true,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","AB")==true,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","ABC")==true,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("","")==true,"starts_with");
+
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","ABCD")==false,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("","A")==false,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","Ab")==false,"starts_with");
+    MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","a")==false,"starts_with");
+
+
     MMVII_INTERNAL_ASSERT_bench(OneUpStd("/a/bbb///c////")=="/a/bbb/","Up dir");
     MMVII_INTERNAL_ASSERT_bench(OneUpStd("/a/bbb///c")=="/a/bbb/","Up dir");
     MMVII_INTERNAL_ASSERT_bench(OneUpStd("ccc")=="","Up dir");
@@ -319,12 +363,20 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (const std::vector<std::string> & aVArgs,
   mNumBugRecall   (-1),
   mDoBUSD         (false)
 {
-  MMVII_INTERNAL_ASSERT_always
-  (
-        The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny,
-        "MMVII Bench requires highest level of debug"
-  );
-  // The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_weak;
+  if (The_MMVII_DebugLevel < The_MMVII_DebugLevel_InternalError_tiny)
+  {
+      StdOut() << "WARNN  MMVII Bench requires highest level of debug \n" ; getchar();
+  }
+  else
+  {
+/*
+      MMVII_INTERNAL_ASSERT_always
+      (
+            The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny,
+            "MMVII Bench requires highest level of debug"
+      );
+*/
+  }
 }
 
 
@@ -412,9 +464,13 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         BenchEnum(aParam); // Read/Write of enum for which it exist
         this->BenchFiles(aParam); // Creation deletion of file
         Bench_Nums(aParam); // Basic numericall services
+        BenchHamming(aParam);
+        BenchPolynome(aParam);
+        BenchPoseEstim(aParam);
+        BenchRansSubset(aParam);
         BenchRecall(aParam,mNumBugRecall); // Force MMVII to generate call to itself
-        BenchSet(aParam,mDirTestMMVII);  // Set (in extension)
-        BenchSelector(aParam,mDirTestMMVII);  // Set (in comprehension)
+        BenchSet(aParam,DirTestMMVII());  // Set (in extension)
+        BenchSelector(aParam,DirTestMMVII());  // Set (in comprehension)
 
         Bench_Heap(aParam); // Basic numericall services
 
@@ -423,10 +479,11 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 	Bench_SetI(aParam); // Bench manip on set of integers
 
            // Check read/write of object usign serialization
-        BenchSerialization(aParam,mDirTestMMVII+"Tmp/",mDirTestMMVII+"Input/");
+        BenchSerialization(aParam,DirTestMMVII()+"Tmp/",DirTestMMVII()+"Input/");
         //====  MORE CONSISTENT BENCH
 
         BenchPly(aParam);
+	BenchMeshDev(aParam);
         BenchTri2D(aParam);
         BenchDelaunay(aParam);
         // Test Fast Tree Dist
@@ -435,7 +492,6 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         // Test derivation with Jets
         BenchMyJets(aParam);
         BenchJetsCam(aParam);
-        BenchSSRNL(aParam);
 
         // Test extremum computation on images, or 3 images (case of multi scale),
         // seems easy  but rigourous handling of equality
@@ -443,6 +499,9 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 
         // Test some matrix op : QR, EigenSym ....
         BenchDenseMatrix0(aParam);
+
+        // Test topo compensation
+        BenchTopoComp(aParam);
 
         // Call several test on images : File, RectObj, Im1D, Im2D, BaseImage
         BenchGlobImage(aParam);
@@ -484,6 +543,12 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         {
            BenchUnbiasedStdDev();
         }
+
+        BenchSSRNL(aParam);
+        BenchDeformIm(aParam);
+
+	BenchCentralePerspective(aParam);
+	cImageRadiomData::Bench(aParam);
     }
 
     // Now call the bench of all application that define their own bench
@@ -493,7 +558,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
        if (aSpec->Name() != mSpecs.Name())
        {
           // Not really necessary to init, but no bad ...
-          std::vector<std::string> aVArgs = {Bin2007," "+ aSpec->Name()};
+          std::vector<std::string> aVArgs = {FullBin()," "+ aSpec->Name()};
           tMMVII_UnikPApli anAppli = aSpec->Alloc()(aVArgs,*aSpec);
           anAppli->SetNot4Exe();
 
@@ -767,17 +832,27 @@ class cAppli_MPDTest : public cMMVII_Appli
      public :
         cAppli_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
-        bool mMMV1_GenCodeTestCam;
+        std::string mMsg;
+        bool   mMMV1_GenCodeTestCam;
+        cPt3di mDegDistTest;
 };
 
+cCollecSpecArg2007 & cAppli_MPDTest::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+      return      anArgObl
+	      <<  Arg2007(mMsg ,"Message (for test)")
+      ;
+
+}
 cCollecSpecArg2007 & cAppli_MPDTest::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
 {
   return
       anArgOpt
          << AOpt2007(mMMV1_GenCodeTestCam,"V1_GCTC","Generate code for Test Cam")
+         << AOpt2007(mDegDistTest,"DDT","Degree Distorion Test")
   ;
 }
 
@@ -876,26 +951,52 @@ bool PrintAndTrue(const std::string & aMes)
     StdOut() <<"FFFFF=" << aMes << "\n"; 
     return true;
 }
-#define UN 1
-#define DEUX 2 
 
 void ShowAdr(double & anAdr)
 {
        StdOut () <<  "ADDDDDr " << &(anAdr) << "\n";
 }
 void TTT();
+void TestDNA();
+
 
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
-   TTT ();
-   if (true)
+   if (1)
    {
-     std::cout << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << "\n";
-     std::cout << "T1:" << cName2Calc<double>::CalcFromName("EqDist_Dist_Rad3_Dec1_XY1",10) << "\n";
+       TestDNA();
+   }
+   if (1)
+   {
+       StdOut()  <<   " ================  TEST INIT & SPEC ===================\n";
+       int aVExt;
+       StdOut() <<  "-VExt ## InSpec: " << IsInSpec(&aVExt)        << " SpecObl: " << IsInSpecObl(&aVExt)  
+	       << " SpecFac: " << IsInSpecFac(&aVExt) << " IsInit: " << IsInit(&aVExt) << "\n";
+       StdOut() <<  "- MSG ## InSpec: " << IsInSpec(&mMsg)        << " SpecObl: " << IsInSpecObl(&mMsg) 
+	       << " SpecFac: " << IsInSpecFac(&mMsg) << " IsInit: " << IsInit(&mMsg) << "\n";
+       StdOut() <<  "- Deg ## InSpec: " << IsInSpec(&mDegDistTest)<< " SpecObl: " << IsInSpecObl(&mDegDistTest) 
+	       << " SpecFac: " << IsInSpecFac(&mDegDistTest) << " IsInit: " << IsInit(&mDegDistTest) << "\n";
+
+       getchar();
+   }
+   if (IsInit(&mDegDistTest))
+   {
+      std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest);
+
+      for (const auto & aDesc : aVD)
+	      StdOut() << " "  << aDesc.mName <<  " " << aDesc.mLongName << "\n";
+
       return EXIT_SUCCESS;
    }
-
+   TTT ();
+#if 1
+   {
+     StdOut() << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << "\n";
+     StdOut() << "T1:" << cName2Calc<double>::CalcFromName("EqDist_Dist_Rad3_Dec1_XY1",10) << "\n";
+      return EXIT_SUCCESS;
+   }
+#else
    if (mMMV1_GenCodeTestCam)
    {
        //StdOut() << "kkk=[" << mTopDirMMVII <<"]\n";
@@ -905,7 +1006,8 @@ int cAppli_MPDTest::Exe()
    {
        // Si on le met a 10h => reveil a 6h20
        double t = 8.0;
-       sleep(3600.0 * t);
+       //sleep(3600.0 * t);
+       sleepcp(3600.0 * t * 1000);
        std::string aName= "/home/mpd/Bureau/Perso1/Musik/Bach/bach-goldberg-variations-bwv-988-glenn-gould-1981.mp3";
        aName = "cvlc " + aName;
        StdOut() << system(aName.c_str()) << "\n";;
@@ -929,7 +1031,6 @@ int cAppli_MPDTest::Exe()
     }
     PrintAndTrue("ccccc");
     cRotation3D<double>::RandomRot();
-
    
 /*
    cSparseVect<float>  aSV;
@@ -969,6 +1070,8 @@ int cAppli_MPDTest::Exe()
 */
 
    return EXIT_SUCCESS;
+    
+#endif
 }
 
 tMMVII_UnikPApli Alloc_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
@@ -978,7 +1081,7 @@ tMMVII_UnikPApli Alloc_MPDTest(const std::vector<std::string> & aVArgs,const cSp
 
 cSpecMMVII_Appli  TheSpecMPDTest
 (
-     "MPDTest",
+     "TestMPD",
       Alloc_MPDTest,
       "This used a an entry point to all quick and dirty test by MPD ...",
       {eApF::Test},

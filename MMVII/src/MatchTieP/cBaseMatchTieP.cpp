@@ -1,4 +1,3 @@
-#include "include/MMVII_all.h"
 #include "MatchTieP.h"
 
 namespace MMVII

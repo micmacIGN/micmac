@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 #include "IndexBinaire.h"
 #include "include/MMVII_Tpl_Images.h"
 

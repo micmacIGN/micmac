@@ -1,3 +1,5 @@
+#include "StdAfx.h"
+#include "general/CMake_defines.h"
 #if ELISE_QT
     #ifdef Int
         #undef Int
@@ -5,7 +7,10 @@
     #include "QCoreApplication"
     #include "QStringList"
     #include "QDir"
+    
+    #include "XML_GEN/all.h"
  
+    using namespace std;
 
     string MMQtLibraryPath()
     {

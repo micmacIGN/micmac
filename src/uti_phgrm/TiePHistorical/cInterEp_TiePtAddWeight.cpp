@@ -145,6 +145,10 @@ void TiePtAddWeight(std::string aDir, std::string aInSH, std::string aOutSH, int
         printf("%d tie points in %s\n", nTiePtNum, aFile.c_str());
         nTiePtNumTotal += nTiePtNum;
         nFileNum++;
+
+        std::string aImg1 = aFile.substr(pos2+7,pos1-pos2-7);
+        std::string aImg2 = aFile.substr(pos1+1,aFile.length()-pos1-5);
+        printf("mm3d SEL ./ %s %s KH=NT SH=%s SzW=[600,600]\n", aImg1.c_str(), aImg2.c_str(), aInSH.c_str());
     }
     printf("nTiePtNumTotal: %d; nTiePtNumHalf: %d;  nFileNum: %d\nResult saved in %s\n", nTiePtNumTotal, int(nTiePtNumTotal/2), nFileNum, aDir_outSH.c_str());
 }
@@ -177,3 +181,52 @@ int TiePtAddWeight_main(int argc,char ** argv)
 
    return EXIT_SUCCESS;
 }
+
+
+int TiePtPrep_main(int argc,char ** argv)
+{
+   std::string aImgList;
+
+   std::string aInterSH = "";
+   std::string aIntraSH = "";
+   std::string aOutSH = "";
+
+   int nWeight = 1;
+
+   bool aExe = false;
+
+   ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aImgList,"multi-epoch images(Dir+Pattern, or txt file of image list)"),
+        LArgMain()
+               << EAM(aInterSH,"InterSH",true,"Input inter-epoch homologue extenion for NB/NT mode, Def=none")
+               << EAM(nWeight,"W", true, "Weight to be added")
+               << EAM(aIntraSH,"IntraSH",true,"Input intra-epoch homologue extenion for NB/NT mode, Def=none")
+               << EAM(aOutSH,"OutSH",true,"Output Homologue extenion for NB/NT mode, Def=_Merged")
+               << EAM(aExe,"Exe",true,"Execute, Def=false")
+               );
+
+   std::string aComm;
+
+   std::string aWei = ToString(nWeight);
+
+   aComm = MMBinFile(MM3DStr) + "TestLib TiePtAddWeight " + aWei + " InSH="+aInterSH;
+   cout<<aComm<<endl;
+   if(aExe == true)
+       System(aComm);
+
+   aComm = MMBinFile(MM3DStr) + "HomolFilterMasq \"" + aImgList + "\" PostIn="+aInterSH+"-W"+aWei + " PostOut="+aInterSH+"-W"+aWei+"-dat ANM=1 ExpTxt=1 ExpTxtOut=0";
+   cout<<aComm<<endl;
+   if(aExe == true)
+       System(aComm);
+
+   aComm = MMBinFile(MM3DStr) + "MergeHomol \"Homol" + aIntraSH + "|Homol"+aInterSH+"-W"+aWei+"-dat\" Homol" + aOutSH;
+   cout<<aComm<<endl;
+   if(aExe == true)
+       System(aComm);
+
+   return EXIT_SUCCESS;
+}
+
+

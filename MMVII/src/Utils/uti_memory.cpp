@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "MMVII_memory.h"
+
 
 namespace MMVII
 {
@@ -12,6 +13,13 @@ void mem_raz(void * adr,int64_t nb)
 void DoNothingWithIt(void *)
 {
    // As expected ;-)
+}
+
+//================ cObj2DelAtEnd =======
+
+cObj2DelAtEnd::~cObj2DelAtEnd()
+{
+        // StdOut() << "DELO2DEAE " << this << "\n";
 }
 
 
@@ -208,6 +216,10 @@ void * cMemManager::Calloc(size_t nmemb, size_t size)
 void   cMemManager::Free(void * aPtr)
 {
    free(aPtr);
+}
+void cMemManager::SetActiveMemoryCount(bool aVal)
+{
+    // TheActiveMemoryCount = aVal;
 }
 #endif // (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_medium)
 
