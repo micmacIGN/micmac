@@ -70,6 +70,7 @@ int ScaleIm_main(int argc,char ** argv)
     bool aModeMasq   = false;
     bool Arg2IsWidth = false;
     
+    int Strip;
 
 
     ElInitArgMain
@@ -93,6 +94,7 @@ int ScaleIm_main(int argc,char ** argv)
                 << EAM(aModeMasq,"ModMasq",true,"Mode Masq => binarize at 0.9999 threshlod ")
                 << EAM(aNameDepl,"NameDepl",true,"Image of displacement ")
                 << EAM(Arg2IsWidth ,"Arg2IsW",true,"If 2nd Arg is Witdh")
+                << EAM(Strip ,"Strip",true,"Strip for image generated, def unused (use tilling), 0=> one big tile")
     );
     if (!MMVisualMode)
     {
@@ -147,6 +149,15 @@ int ScaleIm_main(int argc,char ** argv)
     if (aNameType!="")
        aType = type_im(aNameType);
 
+    L_Arg_Opt_Tiff  aLopt = ArgOpTiffMDP(aNameTif);
+
+    if (EAMIsInit(&Strip))
+    {
+        if (Strip>0) 
+           aLopt  =  aLopt + Arg_Tiff(Tiff_Im::AStrip(Strip));
+        else  
+           aLopt  =  aLopt +  Arg_Tiff(Tiff_Im::ANoStrip());
+    }
 
     Tiff_Im TiffOut  =     (tiff.phot_interp() == Tiff_Im::RGBPalette)  ?
                            Tiff_Im
@@ -156,7 +167,8 @@ int ScaleIm_main(int argc,char ** argv)
                               aType,
                               Tiff_Im::No_Compr,
                               tiff.pal(),
-                              ArgOpTiffMDP(aNameTif)
+                              aLopt
+                              // ArgOpTiffMDP(aNameTif)
                           )                    :
                            Tiff_Im
                            (
@@ -165,7 +177,8 @@ int ScaleIm_main(int argc,char ** argv)
                               aType,
                               Tiff_Im::No_Compr,
                               tiff.phot_interp(),
-                              ArgOpTiffMDP(aNameTif)
+                              aLopt
+                              // ArgOpTiffMDP(aNameTif)
                           );
 
     std::cout << "P0 " << aP0 << " Sc " << aScX << " " << aScY << "\n";
