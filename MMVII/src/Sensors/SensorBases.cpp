@@ -1,5 +1,6 @@
-
 #include "MMVII_Sensor.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 
 
 /**
@@ -11,6 +12,65 @@
 
 namespace MMVII
 {
+
+/* ********************************************* */
+/*                                               */
+/*             cMesIm1Pt                         */
+/*                                               */
+/* ********************************************* */
+        
+cMesIm1Pt::cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL8 aS) :
+     mPt      (aPt),
+     mNamePt  (aNamePt),
+     mSigma2   {aS,0,aS}
+{
+}
+
+cMesIm1Pt::cMesIm1Pt() :
+    cMesIm1Pt(cPt2dr(0,0),"???",-1)
+{
+}
+
+void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aMes)
+{
+   MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
+   MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
+   AddTabData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2,3);
+}
+
+/* ********************************************* */
+/*                                               */
+/*             cSetMesPtOf1Im                    */
+/*                                               */
+/* ********************************************* */
+
+cSetMesPtOf1Im::cSetMesPtOf1Im(const std::string & aNameIm) :
+    mNameIm  (aNameIm)
+{
+}
+
+void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
+{
+     mMeasures.push_back(aMeasure);
+}
+
+
+void cSetMesPtOf1Im::AddData(const  cAuxAr2007 & anAux)
+{
+        MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI)
+{
+    aGCPMI.AddData(anAux);
+}
+
+void cSetMesPtOf1Im::ToFile(const std::string & aName)
+{
+    SaveInFile(*this,aName);
+}
+
+
 
 /**********************************************/
 /*                                            */

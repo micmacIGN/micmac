@@ -181,11 +181,12 @@ void cDirsPhProj::SetDirIn(const std::string & aDirIn)
         //  =============  Construction & destuction =================
 
 cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
-    mAppli          (anAppli),
-    mDPOrient       (eTA2007::Orient,*this),
-    mDPRadiom       (eTA2007::Radiom,*this),
-    mDPMeshDev      (eTA2007::MeshDev,*this),
-    mDPMask         (eTA2007::Mask,*this)
+    mAppli            (anAppli),
+    mDPOrient         (eTA2007::Orient,*this),
+    mDPRadiom         (eTA2007::Radiom,*this),
+    mDPMeshDev        (eTA2007::MeshDev,*this),
+    mDPMask           (eTA2007::Mask,*this),
+    mDPPointsMeasures (eTA2007::PointsMeasure,*this)
 {
 }
 

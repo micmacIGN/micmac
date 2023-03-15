@@ -123,8 +123,9 @@ void cBitEncoding::AddOneEncoding(size_t aNum,size_t aCode)
      mEncodings.push_back(cOneEncoding(aNum,aCode));
 }
 
-void cBitEncoding::AddData(const  cAuxAr2007 & anAux)
+void cBitEncoding::AddData(const  cAuxAr2007 & anAuxParam)
 {
+    cAuxAr2007 anAux (cBitEncoding::TheMainTag,anAuxParam);
     mSpecs.AddData(cAuxAr2007("Specifs",anAux));
 
     // Used to add comments with string 01
@@ -147,6 +148,9 @@ void cBitEncoding::SetSpec(const cSpecBitEncoding& aSpecs)
 const cSpecBitEncoding & cBitEncoding::Specs() const {return mSpecs;}
 const std::vector<cOneEncoding> &  cBitEncoding::Encodings() const {return mEncodings;}
 std::vector<cOneEncoding> &  cBitEncoding::Encodings() {return mEncodings;}
+
+const std::string cBitEncoding::TheMainTag = "BitEncoding";
+
 
 /*  *********************************************************** */
 /*                                                              */

@@ -34,6 +34,7 @@ class cAppli_TestGraphPart : public cMMVII_Appli
 
          size_t  mNbVertex;
          size_t  mNbClass;
+         cPt2dr  mProbaEr;
          cIm1D<tINT4>       mGTClass;
          cDataIm1D<tINT4>*  mDGTC;
 
@@ -57,6 +58,7 @@ cCollecSpecArg2007 & cAppli_TestGraphPart::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return 
       anArgOpt
          << AOpt2007(mNbClass,"NbClass","Number of classes)",{eTA2007::HDV})
+         << AOpt2007(mProbaEr,"ProbEr","Probability of error for same/diff classes )",{eTA2007::HDV})
    ;
 }
 
@@ -68,6 +70,7 @@ cAppli_TestGraphPart::cAppli_TestGraphPart
 ) :
   cMMVII_Appli    (aVArgs,aSpec),
   mNbClass        (5),
+  mProbaEr        (0.1,0.1),
   mGTClass        (1),
   mMat0           (1,1)
 {
@@ -89,9 +92,6 @@ int cAppli_TestGraphPart::Exe()
    tDIm & aDIm = mMat0.DIm();
 
 
-   tREAL8 aPertEqui = 0.2;
-   tREAL8 aPertNonEqui = 0.3;
-
    for (const auto & aPix : aDIm)
    {
        if (aPix.x() >= aPix.y())
@@ -100,7 +100,7 @@ int cAppli_TestGraphPart::Exe()
             size_t aCy = mDGTC->GetV(aPix.y());
 
 	    bool Value = (aCx==aCy);
-	    double aProbaFalse = Value ? aPertEqui : aPertNonEqui;
+	    double aProbaFalse = Value ? mProbaEr.x() : mProbaEr.y() ;
 
 	    if (RandUnif_0_1() < aProbaFalse)
 		    Value = !Value;
@@ -114,8 +114,13 @@ int cAppli_TestGraphPart::Exe()
    mMat0 = mMat0 * mMat0 * (1.0/ tREAL8(mNbVertex)) ;
    mMat0.DIm().ToFile("Mat2.tif");
 
-   mMat0 = mMat0 * mMat0 * (1.0/ tREAL8(mNbVertex));
-   mMat0.DIm().ToFile("Mat4.tif");
+   cResulSymEigenValue<tREAL8> aRSE = mMat0.SymEigenValue();
+   for (int aK=0 ; aK<10 ; aK++)
+	   StdOut() << " * EV=" << aRSE.EigenValues()(mNbVertex-aK-1) << "\n";
+
+
+   // mMat0 = mMat0 * mMat0 * (1.0/ tREAL8(mNbVertex));
+   // mMat0.DIm().ToFile("Mat4.tif");
    return EXIT_SUCCESS;
 }
 

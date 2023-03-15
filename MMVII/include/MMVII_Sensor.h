@@ -18,6 +18,8 @@ namespace MMVII
 
 struct cPair2D3D;
 struct cSet2D3D;
+class cMesIm1Pt;
+class cSetMesPtOf1Im;
 class  cSensorImage;
 class  cDataPixelDomain ;
 class  cPixelDomain;
@@ -68,6 +70,33 @@ struct cSet2D3D
      private :
         tCont2D3D  mPairs;
 };
+
+/**  class for representing  the measure of a point in an image */
+class cMesIm1Pt
+{
+     public :
+        cMesIm1Pt(const cPt2dr & aPt,const std::string & aNameIm,tREAL8 aSigma);
+        cMesIm1Pt();
+
+        cPt2dr         mPt;
+        std::string    mNamePt;
+        tREAL8         mSigma2[3];
+};
+
+/** class for representing a set of measure in an image*/
+class cSetMesPtOf1Im
+{
+     public :
+          cSetMesPtOf1Im(const std::string & aNameIm);
+          void AddMeasure(const cMesIm1Pt &);
+          void AddData(const  cAuxAr2007 & anAux);
+
+	  void ToFile(const std::string &);
+     private :
+          std::string                    mNameIm;
+          std::vector<cMesIm1Pt>  mMeasures;
+};
+
 
 /*  base-class  4 all image sensor */
 
@@ -266,11 +295,13 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPRadiom(); ///< Accessor
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
 	  cDirsPhProj &   DPMask(); ///< Accessor
+	  cDirsPhProj &   DPPointsMeasures(); ///< Accessor
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiom() const; ///< Accessor
 	  const cDirsPhProj &   DPMeshDev() const; ///< Accessor
 	  const cDirsPhProj &   DPMask() const; ///< Accessor
+	  const cDirsPhProj &   DPPointsMeasures() const; ///< Accessor
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
@@ -326,6 +357,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPRadiom;
 	  cDirsPhProj     mDPMeshDev;
 	  cDirsPhProj     mDPMask;
+	  cDirsPhProj     mDPPointsMeasures;
 
 	  std::list<cSensorCamPC*>  mLCam2Del; 
 };

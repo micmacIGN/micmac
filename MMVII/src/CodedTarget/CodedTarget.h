@@ -110,6 +110,8 @@ class cBitEncoding : public cMemCheck
         const cSpecBitEncoding & Specs() const;
         const std::vector<cOneEncoding> &  Encodings() const;
         std::vector<cOneEncoding> &  Encodings() ;
+	static const std::string TheMainTag ;
+
 
 	    //  modifiers
         void AddOneEncoding(size_t mNum,size_t mCode);
@@ -245,6 +247,8 @@ class cParamCodedTarget : public cMemCheck
        cParamCodedTarget();
        void InitFromFile(const std::string & aNameFile);
 
+       static const std::string TheMainTag;
+
        int &     NbRedond();  // Redundancy = number of repetition of a pattern in a circle
        int &     NbCircle();  // Redundancy = number of repetition of a pattern in a circle
        double &  RatioBar();  // Ratio on codin bar
@@ -352,6 +356,7 @@ class cFullSpecifTarget : public cMemCheck
 
 	    ///  read from an existing file
          static cFullSpecifTarget *  CreateFromFile(const std::string &);
+	 static const std::string TheMainTag;  // Tag for XML in/out
 	    ///  destructor must be accessible
          ~cFullSpecifTarget();
 	    /// serialization  : public because called by MMVII::AddData 

@@ -17,80 +17,6 @@
 namespace MMVII
 {
 
-/* ********************************************* */
-/*                                               */
-/*             cMesIm1Pt                         */
-/*                                               */
-/* ********************************************* */
-
-class cMesIm1Pt
-{
-     public :
-        cMesIm1Pt(const cPt2dr & aPt,const std::string & aNameIm,tREAL8 aSigma);
-        cMesIm1Pt();
-
-        cPt2dr         mPt;
-	std::string    mNamePt;
-	tREAL8         mSigma2[3];
-};
-
-cMesIm1Pt::cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL8 aS) :
-     mPt      (aPt),
-     mNamePt  (aNamePt),
-     mSigma2   {aS,0,aS}
-{
-}
-
-cMesIm1Pt::cMesIm1Pt() :
-    cMesIm1Pt(cPt2dr(0,0),"???",-1)
-{
-}
-
-void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aMes)
-{
-   MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
-   MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
-   AddTabData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2,3);
-}
-
-/* ********************************************* */
-/*                                               */
-/*             cSetMesPtOf1Im                    */
-/*                                               */
-/* ********************************************* */
-
-class cSetMesPtOf1Im
-{
-     public :
-          cSetMesPtOf1Im(const std::string & aNameIm);
-	  void AddMeasure(const cMesIm1Pt &);
-          void AddData(const  cAuxAr2007 & anAux);
-     private :
-          std::string                    mNameIm;
-          std::vector<cMesIm1Pt>  mMeasures;
-};
-
-cSetMesPtOf1Im::cSetMesPtOf1Im(const std::string & aNameIm) :
-    mNameIm  (aNameIm)
-{
-}
-
-void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
-{
-     mMeasures.push_back(aMeasure);
-}
-
-
-void cSetMesPtOf1Im::AddData(const  cAuxAr2007 & anAux)
-{
-	MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
-}
-
-void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI)
-{
-    aGCPMI.AddData(anAux);
-}
-
 /**   Class for vehiculing all the threshold parameters relative to circ target extraction
  */
 struct cThresholdCircTarget
@@ -727,9 +653,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgObl(cCollecSpecArg2007 & anArgO
    // Standard use, we put args of  cAppliParseBoxIm first
    return
              APBI_ArgObl(anArgObl)
-        <<   Arg2007(mNameSpec,"XML name for bit encoding struct")
-
-                   //  << AOpt2007(mDiamMinD, "DMD","Diam min for detect",{eTA2007::HDV})
+        <<   Arg2007(mNameSpec,"XML name for bit encoding struct",{{eTA2007::XmlOfTopTag,cFullSpecifTarget::TheMainTag}})
    ;
 }
 
@@ -758,7 +682,7 @@ void cAppliExtractCircTarget::DoExport()
          }
      }
 
-
+     aSetM.ToFile("toto.xml");
 }
 
 void cAppliExtractCircTarget::MakeImageFinalEllispe()
