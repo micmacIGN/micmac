@@ -2,7 +2,6 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 
 
-
 /**
    \file SensorBases.cpp
 
@@ -57,6 +56,7 @@ void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
 
 void cSetMesPtOf1Im::AddData(const  cAuxAr2007 & anAux)
 {
+        MMVII::AddData(cAuxAr2007("NameIm",anAux),mNameIm);
         MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
 }
 
@@ -65,11 +65,20 @@ void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI)
     aGCPMI.AddData(anAux);
 }
 
-void cSetMesPtOf1Im::ToFile(const std::string & aName)
+void cSetMesPtOf1Im::ToFile(const std::string & aName) const
 {
     SaveInFile(*this,aName);
 }
 
+std::string cSetMesPtOf1Im::StdNameFileOfIm(const std::string & aName)
+{
+	return "MesIm-"+aName+ "."+PostF_XmlFiles;
+}
+
+std::string cSetMesPtOf1Im::StdNameFile() const
+{
+    return StdNameFileOfIm(mNameIm);
+}
 
 
 /**********************************************/

@@ -668,6 +668,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mRatioDMML,"RDMML","Ratio Distance minimal bewteen local max /Diam min ",{eTA2007::HDV})
              << AOpt2007(mVisuLabel,"VisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
+	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
           );
 }
 
@@ -682,7 +683,7 @@ void cAppliExtractCircTarget::DoExport()
          }
      }
 
-     aSetM.ToFile("toto.xml");
+     mPhProj.SaveMeasureIm(aSetM);
 }
 
 void cAppliExtractCircTarget::MakeImageFinalEllispe()
@@ -904,6 +905,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
 int  cAppliExtractCircTarget::Exe()
 {
+   mPhProj.FinishInit();
    mPrefixOut = "CircTarget_" +  Prefix(APBI_NameIm());
 
    if (! IsInit(&mUseSimul))
@@ -918,7 +920,7 @@ int  cAppliExtractCircTarget::Exe()
 
    mSpec = cFullSpecifTarget::CreateFromFile(mNameSpec);
 
-   mPhProj.FinishInit();
+   // mPhProj.FinishInit();
 
    mHasMask =  mPhProj.ImageHasMask(APBI_NameIm()) ;
    if (mHasMask)

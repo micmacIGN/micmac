@@ -2,6 +2,7 @@
 #define  _MMVII_SENSOR_H_
 
 #include "MMVII_Mappings.h"
+#include "MMVII_MeasuresIm.h"
 
 namespace MMVII
 {
@@ -16,86 +17,12 @@ namespace MMVII
 
 */
 
-struct cPair2D3D;
-struct cSet2D3D;
-class cMesIm1Pt;
-class cSetMesPtOf1Im;
 class  cSensorImage;
 class  cDataPixelDomain ;
 class  cPixelDomain;
 class  cSensorCamPC;
 class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
-
-
-/** class for representing  a 3D point paired with it 2d image projection */
- 
-struct  cPair2D3D
-{
-     public :
-          cPair2D3D(const cPt2dr &,const cPt3dr &);
-          cPt2dr mP2;
-          cPt3dr mP3;
-};
- 
-struct  cWeightedPair2D3D : public cPair2D3D
-{
-     public :
-          cWeightedPair2D3D(const cPair2D3D&,double aWeight=1.0);
-          cWeightedPair2D3D(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
-
-	  double mWeight;
-};
-
-
-
-/**  class for representing  set of pairs 2-3  */
-struct cSet2D3D
-{
-     public :
-         typedef cWeightedPair2D3D                tPair;
-         typedef std::vector<tPair>   tCont2D3D;
-
-         void AddPair(const tPair &);
-         void AddPair(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
-
-         const tCont2D3D &  Pairs() const;
-         void  Clear() ;
-
-	 /// compute  weighted centroid
-	 cWeightedPair2D3D  Centroid() const;
-
-	 /// subsract a pair to all
-	 void Substract(const cPair2D3D&);
-     private :
-        tCont2D3D  mPairs;
-};
-
-/**  class for representing  the measure of a point in an image */
-class cMesIm1Pt
-{
-     public :
-        cMesIm1Pt(const cPt2dr & aPt,const std::string & aNameIm,tREAL8 aSigma);
-        cMesIm1Pt();
-
-        cPt2dr         mPt;
-        std::string    mNamePt;
-        tREAL8         mSigma2[3];
-};
-
-/** class for representing a set of measure in an image*/
-class cSetMesPtOf1Im
-{
-     public :
-          cSetMesPtOf1Im(const std::string & aNameIm);
-          void AddMeasure(const cMesIm1Pt &);
-          void AddData(const  cAuxAr2007 & anAux);
-
-	  void ToFile(const std::string &);
-     private :
-          std::string                    mNameIm;
-          std::vector<cMesIm1Pt>  mMeasures;
-};
 
 
 /*  base-class  4 all image sensor */
@@ -229,11 +156,18 @@ class cDirsPhProj
           cDirsPhProj(eTA2007 aMode,cPhotogrammetricProject & aPhp);
           void Finish();
 
-          tPtrArg2007     ArgDirInMand(const std::string & aMes="") ;  ///< Input Orientation as mandatory paramaters
-          tPtrArg2007     ArgDirInOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   ///< Input Orientation as optional paramaters
+	  /// Input Orientation as mandatory paramaters
+          tPtrArg2007     ArgDirInMand(const std::string & aMes="") ;  
+	  /// Input Orientation as optional paramaters
+          tPtrArg2007     ArgDirInOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   
 									    //
-          tPtrArg2007     ArgDirOutMand(const std::string & aMes="");  ///< Output Orientation as mandatory paramaters
-          tPtrArg2007     ArgDirOutOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   ///< Input Orientation as optional paramaters
+	  /// Output Orientation as mandatory paramaters
+          tPtrArg2007     ArgDirOutMand(const std::string & aMes="");  
+	  /// Output Orientation as optional paramaters
+          tPtrArg2007     ArgDirOutOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   
+	  /// Output Orientation as optional paramaters  with DEF VALUE
+          tPtrArg2007  ArgDirOutOptWithDef(const std::string & aDef,const std::string & aNameVar="",const std::string & aMesg="") ;   
+
 
           void  SetDirIn(const std::string&) ; ///< Modifier, use in case many out params were saved in a xml,like with MeshImageDevlp
           const std::string & DirIn() const;   ///< Accessor
@@ -340,10 +274,18 @@ class cPhotogrammetricProject
           bool  ImageHasMask(const std::string & aNameImage) const;
 
 	  cIm2D<tU_INT1>  MaskWithDef(const std::string & aNameImage,const cBox2di & aBox,bool DefVal) const;
+	  
+	 //===================================================================
+         //==================    PointsMeasures  =============================
+	 //===================================================================
 
+	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
+	  
 	 //===================================================================
          //==================   META-DATA       ==============================
 	 //===================================================================
+
+	  /// Return metadata while maintaining a map for assuring that read only once for a given image
           cMedaDataImage GetMetaData(const std::string &) const;
 
 

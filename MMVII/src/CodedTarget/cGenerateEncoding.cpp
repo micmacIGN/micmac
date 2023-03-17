@@ -280,6 +280,32 @@ void cAppliGenerateEncoding::Show()
          StdOut() << StrOfBitFlag(aPC->mLowCode,mP2) << "\n";
 }
 
+/*
+void  Read
+NameCERNLookUpTable
+
+void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile)
+*/
+
+void MakeFile3DCern3DTargt(size_t aNBB)
+{
+    std::string aNameFile = cCompEquiCodes::NameCERNPannel(aNBB);
+
+    StdOut() << "NNNNNNNnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn  " << aNameFile << "\n";
+
+    if (!ExistFile(aNameFile))
+       return;
+
+    std::vector<std::vector<double>> aVV;
+    //  20  656.6123   90.8783    -0.0079    fix     fix     fix    115     0
+    //  "FFFFSSSFF"
+
+    ReadFilesNum("FFFFSSSFF",aVV,aNameFile);
+
+    StdOut()  << "AICON => " << aVV[0] << "......." << aVV.back() << "\n";
+}
+
+
 int  cAppliGenerateEncoding::Exe()
 {
    int Num000 = 0;
@@ -361,7 +387,8 @@ int  cAppliGenerateEncoding::Exe()
 
    if (mUseAiconCode)
    {
-       std::vector<cPt2di>  aVCode;
+       MakeFile3DCern3DTargt(mSpec.mNbBits);
+       std::vector<cPt2di>  aVCode ;
        ReadCodesTarget(aVCode,cCompEquiCodes::NameCERNLookUpTable(mSpec.mNbBits));
 
        std::list<cCompEquiCodes::tAmbigPair>  aLamb = mCEC->AmbiguousCode(aVCode);

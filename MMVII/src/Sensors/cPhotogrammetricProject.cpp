@@ -74,6 +74,9 @@ void cDirsPhProj::Finish()
     {
        mDirOut = mDirIn;
     }
+
+    if (mAppli.IsInit(&mDirOut))  // dont do it if mDirIn not used ...
+        mDirOut  = SuppressDirFromNameFile(mDirLocOfMode,mDirOut);   
     mFullDirOut = mAppli.DirProject() + mDirLocOfMode + mDirOut + StringDirSeparator();
 
     // Create output directory if needed
@@ -116,6 +119,19 @@ tPtrArg2007    cDirsPhProj::ArgDirOutOpt(const std::string & aNameVar,const std:
                 StrWDef(aNameVar,"Out"+mPrefix),
                 StrWDef(aMsg,"Output " + mPrefix),
                 {mMode,eTA2007::Output}
+            ); 
+}
+
+tPtrArg2007    cDirsPhProj::ArgDirOutOptWithDef(const std::string & aDef,const std::string & aNameVar,const std::string & aMsg)
+{ 
+    mDirOut = aDef;
+    mAppli.SetVarInit(&mDirOut);
+    return  AOpt2007
+            (
+                mDirOut,
+                StrWDef(aNameVar,"Out"+mPrefix),
+                StrWDef(aMsg,"Output " + mPrefix),
+                {mMode,eTA2007::Output,eTA2007::HDV}
             ); 
 }
 
@@ -199,6 +215,7 @@ void cPhotogrammetricProject::FinishInit()
     mDPRadiom.Finish();
     mDPMeshDev.Finish();
     mDPMask.Finish();
+    mDPPointsMeasures.Finish();
 }
 
 cPhotogrammetricProject::~cPhotogrammetricProject() 
@@ -212,11 +229,13 @@ cDirsPhProj &   cPhotogrammetricProject::DPOrient() {return mDPOrient;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiom() {return mDPRadiom;}
 cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
 cDirsPhProj &   cPhotogrammetricProject::DPMask() {return mDPMask;}
+cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() {return mDPPointsMeasures;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiom() const {return mDPRadiom;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMeshDev;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
+const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return mDPPointsMeasures;}
 
 
 
@@ -319,6 +338,12 @@ cIm2D<tU_INT1>  cPhotogrammetricProject::MaskWithDef(const std::string & aNameIm
 }
 
 
+        //  =============  PointsMeasures =================
+
+void cPhotogrammetricProject::SaveMeasureIm(const cSetMesPtOf1Im &  aSetM) const
+{
+     aSetM.ToFile(mDPPointsMeasures.FullDirOut() +aSetM.StdNameFile());
+}
 
         //  =============  Meta Data =================
 

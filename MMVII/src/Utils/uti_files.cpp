@@ -163,6 +163,44 @@ void cMMVII_Ifs::Read(std::string & aVal )
    VoidRead(const_cast<char *>(aVal.c_str()),aSz);
 }
 
+/** Lox level read of file containing nums in fixed format */
+
+void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile)
+{
+    aVRes.clear();
+    if (! ExistFile(aNameFile))
+    {
+       MMVII_UsersErrror(eTyUEr::eOpenFile,std::string("For file ") + aNameFile);
+    }
+    std::ifstream infile(aNameFile);
+
+    std::string line;
+    while (std::getline(infile, line))
+    {
+        std::istringstream iss(line);
+        std::vector<double> aLD;
+        for (const auto & aCar : aFormat)
+        {
+            if (aCar=='F')
+            {
+               tREAL8 aNum;
+               iss >> aNum;
+               aLD.push_back(aNum);
+            }
+            else if (aCar=='S')
+            {
+               std::string anAtom;
+               iss >> anAtom;
+            }
+            else
+            {
+                 MMVII_UsersErrror(eTyUEr::eUnClassedError,"Bad string format");
+            }
+        }
+        aVRes.push_back(aLD);
+    }
+}
+
 
 };
 
