@@ -4,6 +4,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "CodedTarget.h"
 #include "MMVII_Stringifier.h"
+#include "MMVII_MeasuresIm.h"
 
 namespace MMVII
 {
@@ -287,22 +288,34 @@ NameCERNLookUpTable
 void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile)
 */
 
-void MakeFile3DCern3DTargt(size_t aNBB)
+void MakeFile3DCern3DTargt(size_t aNBB,size_t aNbD)
 {
-    std::string aNameFile = cCompEquiCodes::NameCERNPannel(aNBB);
+    std::string aNameFileIn = cCompEquiCodes::NameCERNPannel(aNBB);
+    if (!ExistFile(aNameFileIn))
+       return;
 
-    StdOut() << "NNNNNNNnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn  " << aNameFile << "\n";
+    cSetMesGCP aSetM("AICON-CERN-Pannel");
+    std::string aNameFileOut  = DirOfPath(aNameFileIn) + aSetM.StdNameFile();
 
-    if (!ExistFile(aNameFile))
+    if (ExistFile(aNameFileOut))
        return;
 
     std::vector<std::vector<double>> aVV;
-    //  20  656.6123   90.8783    -0.0079    fix     fix     fix    115     0
-    //  "FFFFSSSFF"
 
-    ReadFilesNum("FFFFSSSFF",aVV,aNameFile);
+    ReadFilesNum("FFFFSSSFF",aVV,aNameFileIn);
 
-    StdOut()  << "AICON => " << aVV[0] << "......." << aVV.back() << "\n";
+
+    for (const auto & aV : aVV)
+    {
+         cPt3dr aPt(aV.at(1),aV.at(2),aV.at(3));
+	 std::string aName = ToStr(round_ni(aV.at(0)),aNbD);
+	 aSetM.AddMeasure(cMes1GCP(aPt,aName,1.0));
+	 // StdOut() << "N=" << aName << " P=" << aPt << "\n";
+    }
+
+    aSetM.ToFile(aNameFileOut);
+
+    // StdOut()  << "AICON => " << aVV[0] << "......." << aVV.back() << "\n";
 }
 
 
@@ -387,7 +400,6 @@ int  cAppliGenerateEncoding::Exe()
 
    if (mUseAiconCode)
    {
-       MakeFile3DCern3DTargt(mSpec.mNbBits);
        std::vector<cPt2di>  aVCode ;
        ReadCodesTarget(aVCode,cCompEquiCodes::NameCERNLookUpTable(mSpec.mNbBits));
 
@@ -550,6 +562,10 @@ int  cAppliGenerateEncoding::Exe()
        SaveInFile(aBE,mNameOut);
    }
 
+   if (mUseAiconCode)
+   {
+       MakeFile3DCern3DTargt(mSpec.mNbBits,mSpec.mNbDigit);
+   }
 
    delete mCEC;
 

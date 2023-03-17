@@ -12,6 +12,59 @@
 namespace MMVII
 {
 
+template <class Type>  class cBijectiveMapI2O
+{
+    public :
+
+        void Add(const Type & ,bool OkExist=false);
+
+	Type *   I2Obj(const int) ;
+	int      Obj2I(const Type & anOb);
+
+    private :
+        std::vector<Type>    mI2Obj;
+        std::map<Type,int>   mObj2I;
+};
+
+template <class Type> 
+   void cBijectiveMapI2O<Type>::Add(const Type & anObj,bool OkExist)
+{
+    if (mObj2I.find(anObj) != mObj2I.end())
+    {
+       MMVII_INTERNAL_ASSERT_tiny(OkExist,"cBijectiveMapI2O multiple add");
+       return;
+    }
+
+    mObj2I[anObj] = mI2Obj.size();
+    mI2Obj.push_back(anObj);
+}
+
+template <class Type> 
+   Type * cBijectiveMapI2O<Type>::I2Obj(int anInd) 
+{
+   if ( (anInd<0) || (anInd>=int(mObj2I.size())) )
+      return nullptr;
+
+   return & mI2Obj.at(anInd);
+}
+
+
+
+template class cBijectiveMapI2O<std::string>;
+
+
+
+/*
+class cSetMesImGCP
+{
+    public :
+    private :
+
+        std::vector<std::string>   mI2NamePt;
+        std::map<std::string>   mI2NamePt;
+};
+*/
+
 /* ********************************************* */
 /*                                               */
 /*             cMesIm1Pt                         */
@@ -54,10 +107,12 @@ void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
 }
 
 
-void cSetMesPtOf1Im::AddData(const  cAuxAr2007 & anAux)
+void cSetMesPtOf1Im::AddData(const  cAuxAr2007 & anAuxParam)
 {
-        MMVII::AddData(cAuxAr2007("NameIm",anAux),mNameIm);
-        MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
+    cAuxAr2007 anAux("SetMesIm",anAuxParam);
+
+    MMVII::AddData(cAuxAr2007("NameIm",anAux),mNameIm);
+    MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI)
@@ -80,6 +135,79 @@ std::string cSetMesPtOf1Im::StdNameFile() const
     return StdNameFileOfIm(mNameIm);
 }
 
+
+/* ********************************************* */
+/*                                               */
+/*             cMes1GCP                          */
+/*                                               */
+/* ********************************************* */
+
+cMes1GCP::cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL8 aSigma) :
+    mPt       (aPt),
+    mNamePt   (aNamePt),
+    mSigma2   {aSigma,0,0,aSigma,0,aSigma}
+{
+}
+
+cMes1GCP::cMes1GCP() :
+    cMes1GCP (cPt3dr(0,0,0),"??",-1)
+{
+}
+
+void AddData(const  cAuxAr2007 & anAux,cMes1GCP & aMes)
+{
+   MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
+   MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
+   AddTabData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2,6);
+}
+
+/* ********************************************* */
+/*                                               */
+/*             cSetMesGCP                        */
+/*                                               */
+/* ********************************************* */
+
+
+cSetMesGCP::cSetMesGCP(const std::string &aNameSet) :
+    mNameSet(aNameSet)
+{
+}
+
+void cSetMesGCP::AddMeasure(const cMes1GCP & aMeasure)
+{
+     mMeasures.push_back(aMeasure);
+}
+
+void cSetMesGCP::AddData(const  cAuxAr2007 & anAuxParam)
+{
+    cAuxAr2007 anAux("SetGCP",anAuxParam);
+
+    MMVII::AddData(cAuxAr2007("NameSet",anAux),mNameSet);
+    MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cSetMesGCP & aSet)
+{
+     aSet.AddData(anAux);
+}
+
+std::string cSetMesGCP::StdNameFileOfSet(const std::string & aName) 
+{
+     return "MesGCP-"+aName+ "."+PostF_XmlFiles;
+}
+std::string cSetMesGCP::StdNameFile() const {return StdNameFileOfSet(mNameSet);}
+
+void cSetMesGCP::ToFile(const std::string & aNameFile) const
+{
+    SaveInFile(*this,aNameFile);
+}
+
+
+/*
+
+          void ToFile(const std::string & aNameFile) const;
+          static std::string StdNameFileOfSet(const std::string &);
+*/
 
 /**********************************************/
 /*                                            */
