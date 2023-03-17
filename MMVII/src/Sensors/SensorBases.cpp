@@ -68,7 +68,7 @@ class cSetMesImGCP
     public :
     private :
 
-	    cBijectiveMapI2O<std::string>  m2MapPtInt;
+	    cBijectiveMapI2O<std::string>  m2MapPtInt; //
 };
 
 /* ********************************************* */
