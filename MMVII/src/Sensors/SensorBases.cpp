@@ -63,16 +63,13 @@ template class cBijectiveMapI2O<std::string>;
 
 
 
-/*
 class cSetMesImGCP
 {
     public :
     private :
 
-        std::vector<std::string>   mI2NamePt;
-        std::map<std::string>   mI2NamePt;
+	    cBijectiveMapI2O<std::string>  m2MapPtInt;
 };
-*/
 
 /* ********************************************* */
 /*                                               */
