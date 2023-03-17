@@ -48,6 +48,15 @@ template <class Type>
    return & mI2Obj.at(anInd);
 }
 
+template <class Type> 
+   int  cBijectiveMapI2O<Type>::Obj2I(const Type & anObj)
+{
+    const auto & anIt = mObj2I.find(anObj) ;
+
+    if (anIt== mObj2I.end())  return -1;
+
+    return anIt->second;
+}
 
 
 template class cBijectiveMapI2O<std::string>;
