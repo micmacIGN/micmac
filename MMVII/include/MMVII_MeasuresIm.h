@@ -91,13 +91,29 @@ class cSetMesPtOf1Im
 class cMes1GCP
 {
      public :
-        cMes1GCP(const cPt3dr & aPt,const std::string & aNameIm,tREAL8 aSigma);
+        cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL8 aSigma);
         cMes1GCP();
 
         cPt3dr         mPt;
         std::string    mNamePt;
         tREAL8         mSigma2[6];  //  xx xy xz yy yz zz
 };
+
+class cSetMesGCP
+{
+    public :
+          cSetMesGCP(const std::string &aNameSet);
+          void AddMeasure(const cMes1GCP &);
+          void AddData(const  cAuxAr2007 & anAux);
+
+	  void ToFile(const std::string & aNameFile) const;
+	  static std::string StdNameFileOfSet(const std::string &);
+	  std::string StdNameFile() const;
+    private :
+	  std::string              mNameSet;
+          std::vector<cMes1GCP>    mMeasures;
+};
+
 
 
 
