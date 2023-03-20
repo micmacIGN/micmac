@@ -51,10 +51,8 @@ void TestReloadAndShow_cFullSpecifTarget(const std::string & aName,int aZoom)
 
 void Bench_Target_Encoding()
 {
-	{
-	for(int aK=0; aK<10 ; aK++) StdOut() << "NO Bench_Target_Encoding\n"; 
-	return;
-	}
+    MMVII_DEV_WARNING("NO Bench_Target_Encoding");
+    return;
 
     // -1-  Create the spec
     std::string aName =  cMMVII_Appli::InputDirTestMMVII()

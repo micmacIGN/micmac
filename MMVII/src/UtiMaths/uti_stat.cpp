@@ -335,8 +335,8 @@ template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>:
 /* *************************************** */
 
 cRobustAvg::cRobustAvg(tREAL8 aSigma)  :
-	mSigma (aSigma),
-	mS2    (Square(mSigma))
+     mSigma (aSigma),
+     mS2    (Square(mSigma))
 {
 }
 
