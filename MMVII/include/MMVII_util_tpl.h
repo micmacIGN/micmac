@@ -349,6 +349,27 @@ template <class TVal,class TFunc> TVal * WhitchMaxVect(std::vector<TVal> & aVec,
     return WhitchMinVect(aVec,[&aFunc](auto & aV){return -aFunc(aV);});
 }
 
+
+/**   Class for maintaining a two way mapping Obj <--> Int */
+template <class Type>  class cBijectiveMapI2O
+{
+    public :
+
+        /// Add an object, if alredy exist create an error or do nothing, return value indicate if created
+        int Add(const Type & ,bool OkExist=false);
+
+        Type *   I2Obj(const int) ;  ///< Adr of object at index, 0 if none
+        int      Obj2I(const Type & anOb,bool SVP=false);  ///< Index of object , -1 if none
+
+    private :
+        std::vector<Type>    mI2Obj;   /// vector efficient for map int->obj
+        std::map<Type,int>   mObj2I;   /// dictionary in the other wat
+};
+
+typedef  cBijectiveMapI2O<std::string> t2MapStrInt;
+
+
+
 };
 
 #endif  //  _MMVII_Util_TPL_H_

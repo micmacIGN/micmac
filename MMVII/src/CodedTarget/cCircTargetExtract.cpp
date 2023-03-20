@@ -634,10 +634,10 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
     const cSpecMMVII_Appli & aSpec
 ) :
    cMMVII_Appli  (aVArgs,aSpec),
-   cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(10000,10000),cPt2di(300,300),false) ,
+   cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(20000,20000),cPt2di(300,300),false) ,
    mSpec         (nullptr),
    mVisuLabel    (false),
-   mVisuElFinal (true),
+   mVisuElFinal  (false),
    mExtrEll      (nullptr),
    mImMarq       (cPt2di(1,1)),
    mPhProj       (*this),
@@ -667,6 +667,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mPBWT.mMaxDiam,"DiamMax","Maximum diameters for ellipse",{eTA2007::HDV})
              << AOpt2007(mRatioDMML,"RDMML","Ratio Distance minimal bewteen local max /Diam min ",{eTA2007::HDV})
              << AOpt2007(mVisuLabel,"VisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
+             << AOpt2007(mVisuElFinal,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
           );
@@ -674,7 +675,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
 
 void cAppliExtractCircTarget::DoExport()
 {
-     cSetMesPtOf1Im  aSetM(mNameIm);
+     cSetMesPtOf1Im  aSetM(FileOfPath(mNameIm));
      for (const auto & anEE : mVCTE)
      {
          if (anEE->mWithCode)  
@@ -855,9 +856,12 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    mExtrEll->AnalyseAllConnectedComponents(mNameIm);
    double aT3 = SecFromT0();
 
-   StdOut() << "TIME-INIT " << aT1-aT0 << "\n";
-   StdOut() << "TIME-SEED " << aT2-aT1 << "\n";
-   StdOut() << "TIME-CC   " << aT3-aT2 << "\n";
+   if (mVisuElFinal)
+   {
+       StdOut() << "TIME-INIT " << aT1-aT0 << "\n";
+       StdOut() << "TIME-SEED " << aT2-aT1 << "\n";
+       StdOut() << "TIME-CC   " << aT3-aT2 << "\n";
+   }
 
    for (const auto & anEE : mExtrEll->ListExtEl() )
    {
@@ -905,8 +909,14 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
 int  cAppliExtractCircTarget::Exe()
 {
+
+   if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
+   {
+      return ResultMultiSet();
+   }
+
    mPhProj.FinishInit();
-   mPrefixOut = "CircTarget_" +  Prefix(APBI_NameIm());
+   mPrefixOut = "CircTarget_" +  LastPrefix(APBI_NameIm());
 
    if (! IsInit(&mUseSimul))
    {
@@ -924,12 +934,14 @@ int  cAppliExtractCircTarget::Exe()
 
    mHasMask =  mPhProj.ImageHasMask(APBI_NameIm()) ;
    if (mHasMask)
+   {
       mNameMask =  mPhProj.NameMaskOfImage(APBI_NameIm());
+      StdOut() << "MAK=== " <<   mHasMask << " " << mNameMask  << " UseSim=" << mUseSimul << "\n";
+   }
 
 
    APBI_ExecAll();  // run the parse file  SIMPL
 
-   StdOut() << "MAK=== " <<   mHasMask << " " << mNameMask  << " UseSim=" << mUseSimul << "\n";
 
    delete mSpec;
    DeleteAllAndClear(mVCTE);

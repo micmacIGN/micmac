@@ -13,7 +13,6 @@ double NC_KthVal(std::vector<double> &, double aProportion);
 double Cst_KthVal(const std::vector<double> &, double aProportion);
 double Average(const std::vector<double> &);
 
-
 // some time needs a null val for any type with + (neutral for +)
 
 template <class T> class cNV

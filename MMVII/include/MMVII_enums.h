@@ -79,6 +79,7 @@ enum class eApDT
               Ori,    ///< Orientation
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
+              GCP,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files
               Radiom,   ///< Orientations files

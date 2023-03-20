@@ -208,6 +208,7 @@ template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int
 }
 template void AddTabData(const  cAuxAr2007 & anAux, size_t *  aVD,int aNbVal);
 template void AddTabData(const  cAuxAr2007 & anAux, tREAL8 *  aVD,int aNbVal);
+template void AddTabData(const  cAuxAr2007 & anAux, tREAL4 *  aVD,int aNbVal);
 
 
 

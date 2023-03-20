@@ -596,8 +596,103 @@ void BenchUnCalibResection()
     PopErrorEigenErrorLevel();
 }
 
+/* ==================================================== */
+/*                                                      */
+/*          cAppli_TestGraphPart                        */
+/*                                                      */
+/* ==================================================== */
+
+class cAppli_UncalibSpaceResection : public cMMVII_Appli
+{
+     public :
+
+        cAppli_UncalibSpaceResection(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
+	int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+
+     private :
+	std::string              mSpecImIn;   ///  Pattern of xml file
+	cPhotogrammetricProject  mPhProj;
+        cSet2D3D                 mSet23 ;
+	bool                     mReal16;
+	cPt3di                   mDegDist;
+};
+
+cAppli_UncalibSpaceResection::cAppli_UncalibSpaceResection(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec):
+	cMMVII_Appli   (aVArgs,aSpec),
+        mPhProj        (*this),
+	mReal16        (false)
+{
+}
+
+cCollecSpecArg2007 & cAppli_UncalibSpaceResection::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+      return anArgObl
+              << Arg2007(mSpecImIn,"Pattern or Xml for modifying",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
+              <<  mPhProj.DPOrient().ArgDirOutMand()
+           ;
+}
+
+cCollecSpecArg2007 & cAppli_UncalibSpaceResection::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+
+    return anArgOpt
+	       << AOpt2007(mDegDist,"DegDist","Degree of distorsion, if model different of linear")
+           ;
+}
+
+int cAppli_UncalibSpaceResection::Exe()
+{
+    mPhProj.FinishInit();
+
+    if (RunMultiSet(0,0))  
+        return ResultMultiSet();
+
+    std::string aNameIm =FileOfPath(mSpecImIn);
+    mSet23 =mPhProj.LoadSet32(aNameIm);
+
+
+    cPt2di aSz =  cDataFileIm2D::Create(aNameIm,false).Sz();
+
+    cSensorCamPC *  aCam =  cSensorCamPC::CreateUCSR(mSet23,aSz,mReal16);
+    StdOut()  << "S2223333 " << mSet23.Pairs().size()   
+	      << " F=" << aCam->InternalCalib()->F() 
+	      << " PP=" << aCam->InternalCalib()->PP() 
+	      << "\n";
+
+    delete aCam;
+    return EXIT_SUCCESS;
+};
+
+/* ==================================================== */
+/*                                                      */
+/*                                                      */
+/*                                                      */
+/* ==================================================== */
+
+
+tMMVII_UnikPApli Alloc_UncalibSpaceResection(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_UncalibSpaceResection(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_OriUncalibSpaceResection
+(
+     "OriPoseEstim11P",
+      Alloc_UncalibSpaceResection,
+      "Pose estimation from GCP, uncalibrated case",
+      {eApF::Ori},
+      {eApDT::GCP},
+      {eApDT::Orient},
+      __FILE__
+);
 
 
 
 }; // MMVII
+
+
+
 

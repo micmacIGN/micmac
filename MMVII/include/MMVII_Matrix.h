@@ -687,6 +687,30 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
         TypeVal     mSVW;   ///< Som of    VW
 };
 
+/**  Class for robust average   avg weithgted by   sigma/(sigma+|aRes|) */
+class cRobustAvg
+{
+      public :
+         cRobustAvg(tREAL8 aSigma) ;
+         void Add(tREAL8 aVal);
+	 tREAL8 Average() const;
+      public :
+         tREAL8                    mSigma;
+         tREAL8                    mS2;
+	 cWeightAv<tREAL8,tREAL8>  mAvg;
+};
+
+/**  Class for robust average with a sigma computed  from proportion */
+class cRobustAvgOfProp
+{
+      public :
+         cRobustAvgOfProp();
+         void Add(tREAL8 aVal);
+	 tREAL8 Average(tREAL8 aProp) const;
+      public :
+	 std::vector<double>  mVals;
+};
+
 
 /// A function rather specific to bench, assimilate image to a distribution on var X,Y and compute it 0,1,2 moments
 template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);

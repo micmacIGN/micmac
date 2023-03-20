@@ -61,7 +61,9 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 
 
          double SqResidual(const cPair2D3D &) const;  ///< residual Proj(P3)-P2 , squared for efficiency
-         double AvgResidual(const cSet2D3D &) const;  ///< avereage on all pairs, not squared
+         double AvgSqResidual(const cSet2D3D &) const;  ///< avereage on all pairs, sqrt of square
+	 /// "robust" average using a weigt in sigma/(sigma+R)  , sigma being a prop of residual
+         double RobustAvResidualOfProp(const cSet2D3D &,double aProp) const;  
 
 	 const std::string & NameImage() const;   ///< accessor
 	 void SetNameImage(const std::string &);  ///< used when reading from file
@@ -280,6 +282,11 @@ class cPhotogrammetricProject
 	 //===================================================================
 
 	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
+	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
+	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm) const;
+
+	  /// For a givgen image, return 3D-2D corresp, using LoadGCP&LoadIm
+	  cSet2D3D  LoadSet32(const std::string & aNameIm) const;
 	  
 	 //===================================================================
          //==================   META-DATA       ==============================

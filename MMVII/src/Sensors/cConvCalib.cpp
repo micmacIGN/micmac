@@ -238,7 +238,7 @@ static int aCpt=0; aCpt++;
      for (int aK=0 ; aK<20 ; aK++)
      {
         aConv->OneIteration();
-        aResidual  = aCamPC.AvgResidual(aConv->SetCorresp());
+        aResidual  = aCamPC.AvgSqResidual(aConv->SetCorresp());
 
         if (aResidual<aAccuracy)
         {
@@ -248,7 +248,7 @@ static int aCpt=0; aCpt++;
 
 	    cPerspCamIntrCalib *  aCam2 = cPerspCamIntrCalib::FromFile(aNameTmp);
             cSensorCamPC          aSensor2 ("NONE",aConv->CamPC().Pose(),aCam2) ;
-	    double aR2 = aSensor2.AvgResidual(aConv->SetCorresp());
+	    double aR2 = aSensor2.AvgSqResidual(aConv->SetCorresp());
            
 	    //  Accuracy must be as good as initial camera, but small diff possible due to string conv
             MMVII_INTERNAL_ASSERT_bench(aR2< aAccuracy+1e-5  ,"Reload camera  xml");
@@ -275,7 +275,7 @@ void BenchPoseImportV1(const std::string & aNameOriV1,double anAccuracy)
 
      cExportV1StenopeCalInterne  aExp(false,aFullName,10); 
      cSensorCamPC  *aPC  =  cCentralPerspConversion::AllocSensorPCV1(V1NameOri2NameImage(aNameOriV1),aFullName);
-     double aResidual  =  aPC->AvgResidual(aExp.mCorresp);
+     double aResidual  =  aPC->AvgSqResidual(aExp.mCorresp);
 
 
      for (const auto & aCorresp : aExp.mCorresp.Pairs())
@@ -295,7 +295,7 @@ void BenchPoseImportV1(const std::string & aNameOriV1,double anAccuracy)
 
 
      cSensorCamPC  *aPC2  =  cSensorCamPC::FromFile(aNameTmp);
-     double aR2 = aPC2->AvgResidual(aExp.mCorresp) ;
+     double aR2 = aPC2->AvgSqResidual(aExp.mCorresp) ;
      MMVII_INTERNAL_ASSERT_bench(aR2<anAccuracy ,"No Conv in Reimport cam");
 
 

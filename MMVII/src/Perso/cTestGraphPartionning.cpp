@@ -207,12 +207,12 @@ void cGraphPartition::MakeOneIteration(tREAL8 aAlpha)
 
 /* ==================================================== */
 /*                                                      */
-/*          cAppli_TestGraphPart                             */
+/*          cAppli_TestGraphPart                        */
 /*                                                      */
 /* ==================================================== */
 
 
-/** Application for concatenating videos */
+/** Application for make some test on graph partitionning algorithms */
 
 class cAppli_TestGraphPart : public cMMVII_Appli
 {
@@ -348,6 +348,8 @@ int cAppli_TestGraphPart::Exe()
    {
        size_t  aClass = (aKv * mNbClass) / mNbVertex;
 
+       // aClass = aKv % mNbClass;
+
        mDGTC->SetV(aKv,aClass);
    }
 
@@ -391,14 +393,14 @@ int cAppli_TestGraphPart::Exe()
    aM4.DIm().ToFile("Mat4Cos.tif");
 
 
-   cGraphPartition aGP(mMat0.Im());
+   //cGraphPartition aGP(mMat0.Im());
 
-   /*
 
    cResulSymEigenValue<tREAL8> aRSE = mMat0.SymEigenValue();
    for (int aK=0 ; aK<10 ; aK++)
 	   StdOut() << " * EV=" << aRSE.EigenValues()(mNbVertex-aK-1) << "\n";
 
+   /*
    tMat mMat2 = mMat0 * mMat0 * (1.0/ tREAL8(mNbVertex)) ;
    mMat2.DIm().ToFile("Mat2.tif");
 

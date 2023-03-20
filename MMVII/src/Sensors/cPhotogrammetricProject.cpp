@@ -345,6 +345,41 @@ void cPhotogrammetricProject::SaveMeasureIm(const cSetMesPtOf1Im &  aSetM) const
      aSetM.ToFile(mDPPointsMeasures.FullDirOut() +aSetM.StdNameFile());
 }
 
+void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr) const
+{
+   std::string aPatFiltr = (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*.xml")  : aArgPatFiltr;
+
+   std::string aDir = mDPPointsMeasures.FullDirIn();
+   std::vector<std::string> aListFileGCP =  GetFilesFromDir(aDir,AllocRegex(aPatFiltr));
+   for (const auto  & aNameFile : aListFileGCP)
+   {
+       cSetMesGCP aMesGGP = cSetMesGCP::FromFile(aDir+aNameFile);
+       aSetMes.AddMes3D(aMesGGP);
+   }
+}
+
+void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & aNameIm) const
+{
+   std::string aDir = mDPPointsMeasures.FullDirIn();
+   cSetMesPtOf1Im  aSetIm = cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
+   aSetMes.AddMes2D(aSetIm);
+}
+
+cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
+{
+    cSetMesImGCP aSetMes;
+
+    LoadGCP(aSetMes);
+    LoadIm(aSetMes,aNameIm);
+
+    cSet2D3D aSet23;
+    aSetMes.ExtractMes1Im(aSet23,aNameIm);
+
+    return aSet23;
+}
+
+
+
         //  =============  Meta Data =================
 
 cMedaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm) const
