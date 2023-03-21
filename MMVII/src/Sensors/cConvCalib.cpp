@@ -1,6 +1,7 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_BundleAdj.h"
 
 /**
    \file cConvCalib.cpp  testgit
@@ -17,51 +18,14 @@ static const std::string ThePatOriV1 = "Orientation-(.*)\\.xml";
 static std::string V1NameOri2NameImage(const std::string & aNameOri) {return ReplacePattern(ThePatOriV1,"$1",aNameOri);}
 
 
-/**  Class for otimizing a model of camera  using 3d-2d correspondance and bundle adjustment.  Typically these
- *   corresponance will be synthetic ones coming from another camera. It can be used in, two scenario :
- *
- *    -(1) primary test/bench  on functionnality to do BA
- *    -(2)
- *        (2.a)   conversion between calibration (format/model ...)
- *        (2.b)   comparison of calibrations (to come)
- *    -(3)  Optimization after space resection
- *
- *    In first case we create artifcially difficult conditions (randomize the initial pose, let free the perspective center).
- *
- *    In the second case,  we use as much information we have : init with identity, and froze the position center
- *
- */
+/* ************************************************************* */
+/*                                                               */
+/*                       cCorresp32_BA                           */
+/*                                                               */
+/* ************************************************************* */
 
-class cCentralPerspEstimCorresp32
-{
-       public :
-         typedef cIsometry3D<tREAL8>   tPose;
 
-         cCentralPerspEstimCorresp32
-         (
-	      cSensorImage       *,
-              const cSet2D3D &
-	 );
-         ~cCentralPerspEstimCorresp32();
-         void OneIteration();
-         const cSet2D3D  & SetCorresp() const {return   mSetCorresp;}
-       protected :
-
-	 cSensorImage*                      mSensor;
-	 // When using conversion for real application, these two variable will be set to true, because we have no interest to hide
-	 // information. BTW in bench mode, we put the system in more difficult condition, to check that we all the same
-	 // get to the good solution (but a litlle slower)
-         bool                               mFGC; // HardConstrOnGCP if true the 3d point are frozen
-         bool                               mCFix; // Center Fix : if true center of rotation is frozen
-
-         cSet2D3D                           mSetCorresp;  ///<  Set of 2D-3D correspondance
-         int                                mSzBuf;   ///<  Sz Buf for calculator
-         cCalculator<double> *              mEqColinearity;  ///< Colinearity equation 
-         cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
-         cResolSysNonLinear<double> *       mSys;   ///< Solver
-};
-
-cCentralPerspEstimCorresp32::cCentralPerspEstimCorresp32
+cCorresp32_BA::cCorresp32_BA
 (
      cSensorImage       *    aSensor,
      const cSet2D3D &        aSetCorresp
@@ -83,7 +47,7 @@ cCentralPerspEstimCorresp32::cCentralPerspEstimCorresp32
     mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,aVUk);
 }
 
-cCentralPerspEstimCorresp32::~cCentralPerspEstimCorresp32()
+cCorresp32_BA::~cCorresp32_BA()
 {
     delete mEqColinearity;
     delete mSys;
@@ -91,7 +55,7 @@ cCentralPerspEstimCorresp32::~cCentralPerspEstimCorresp32()
 
      // ==============   Iteration to  ================
 
-void cCentralPerspEstimCorresp32::OneIteration()
+void cCorresp32_BA::OneIteration()
 {
      if (mCFix)
      {
@@ -141,8 +105,13 @@ void cCentralPerspEstimCorresp32::OneIteration()
 }
 
 
+/* ************************************************************* */
+/*                                                               */
+/*                       cV1PCConverter                          */
+/*                                                               */
+/* ************************************************************* */
 
-class cV1PCConverter : public cCentralPerspEstimCorresp32
+class cV1PCConverter : public cCorresp32_BA
 {
     public :
          typedef cIsometry3D<tREAL8>   tPose;
@@ -189,8 +158,8 @@ cV1PCConverter::cV1PCConverter
      bool                    HardConstrOnGCP,
      bool                    CenterFix
 ) :
-     cCentralPerspEstimCorresp32   (aCamPC,aSetCorresp),
-     mCamPC                        (aCamPC)
+     cCorresp32_BA   (aCamPC,aSetCorresp),
+     mCamPC          (aCamPC)
 {
 	mFGC = HardConstrOnGCP;
 	mCFix = CenterFix;

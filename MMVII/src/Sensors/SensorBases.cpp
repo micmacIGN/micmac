@@ -99,7 +99,11 @@ std::string  cSensorImage::NameOri_From_PrefixAndImage(const std::string & aPref
 { 
     return PrefixName() + "-" + aPrefix + "-" + aNameImage + ".xml"; 
 }
-std::string cSensorImage::NameOriStd() const { return  NameOri_From_PrefixAndImage(V_PrefixName(),mNameImage);}
+std::string cSensorImage::NameOriStd() const 
+{ 
+    std::string aRes =   NameOri_From_PrefixAndImage(V_PrefixName(),mNameImage);
+    return  aRes;
+}
 
 
 cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt2dr & aP2,const double & aDepth) const 

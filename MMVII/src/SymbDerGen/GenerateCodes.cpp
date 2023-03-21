@@ -509,6 +509,7 @@ int cAppliGenCode::Exe()
    mDirGenCode = TopDirMMVII() + "src/GeneratedCodes/";
 
    {
+       GenerateOneDist(cPt3di(0,0,0));
        GenerateOneDist(cPt3di(0,0,1));
        GenerateOneDist(cPt3di(3,1,1));
        GenerateOneDist(cPt3di(2,0,0));
@@ -544,6 +545,7 @@ int cAppliGenCode::Exe()
    GenerateCodeProjCentralPersp<cProj_EquiRect>(); //  ->  asin
 
 
+   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(0,0,0));
    GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(0,0,1));
    GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(3,1,1));
    GenerateCodeCamPerpCentrale<cProjFE_EquiDist>(cPt3di(3,1,1));

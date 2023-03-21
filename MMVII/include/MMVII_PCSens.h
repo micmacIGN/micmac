@@ -270,7 +270,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
                 // comon to dir & inverse
             // eProjPC                              mTypeProj;
             // int                                  mSzBuf;
-            const cDefProjPerspC &               mDefProj;
+	    bool                                 mVoidDist;  /// special behavior is requires with deg=[0,0,0] 
+            const cDefProjPerspC &               mDefProj;    ///  Prof function
             cPixelDomain                         mPixDomain;              ///< sz, domaine of validity in pixel
 
                 // ------------ parameters for direct projection  DirBundle -> pixel ------------
@@ -321,7 +322,7 @@ class cSensorCamPC : public cSensorImage
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
 
          /// Create form  Un-Calibrated-Space-Resection
-         static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,bool Real16=true);
+         static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,const std::string&,bool Real16=true);
 
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
