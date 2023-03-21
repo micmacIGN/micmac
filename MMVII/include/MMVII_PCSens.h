@@ -315,6 +315,7 @@ void AddData(const cAuxAr2007 & anAux,cPerspCamIntrCalib &);
 class cSensorCamPC : public cSensorImage
 {
      public :
+	 typedef cObjWithUnkowns<tREAL8> * tPtrOUK;
          typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
 
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
@@ -333,6 +334,15 @@ class cSensorCamPC : public cSensorImage
 
          std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
 
+
+	 const cPt3dr * CenterOfPC() override;
+         /// Return the calculator, adapted to the type, for computing colinearity equation
+         cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf) override;
+	 /// Push the current rotation, as equation are fixed using delta-rot
+	 void PushOwnObsColinearity( std::vector<double> &) override;
+
+
+
 	 // different accessor to the pose
          const tPose &   Pose()   const;
          const cPt3dr &  Center() const;
@@ -348,6 +358,9 @@ class cSensorCamPC : public cSensorImage
          // interaction in unknowns
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
          void OnUpdate() override;                 // "reaction" after linear update
+
+	 // contain itself + internal calib
+	 std::vector<tPtrOUK>  GetAllUK() override;
 
          size_t NumXCenter() const;  /// num of Center().x when used as cObjWithUnkowns (y and z follow)
          size_t NumXOmega() const;   /// num of mOmega().x when used as cObjWithUnkowns (y and z follow)

@@ -19,6 +19,13 @@ template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns()
    Reset();
 }
 
+
+template <class Type> 
+     std::vector<cObjWithUnkowns<Type> *> cObjWithUnkowns<Type>::GetAllUK()
+{
+  return std::vector<tPtrOUK> {this};
+}
+
 template <class Type> cObjWithUnkowns<Type>::~cObjWithUnkowns() 
 {
     // MMVII_WARGNING("cObjWithUnkowns mSetInterv==nullptr to reactivate");	
@@ -103,6 +110,13 @@ template <class Type> void  cSetInterUK_MultipeObj<Type>::AddOneObj(cObjWithUnko
      anObj->PutUknowsInSetInterval(); // call the object for it to communicate its intervall 
 
      anObj->mIndUk1 = mNbUk ; // initialise  en of interval
+}
+
+template <class Type> void  cSetInterUK_MultipeObj<Type>::AddOneObjIfRequired(cObjWithUnkowns<Type> * anObj)
+{
+      if (anObj->mSetInterv!=nullptr) 
+         return;
+      AddOneObj(anObj);
 }
 
         //  ================= method for adding interval of unknowns ======================

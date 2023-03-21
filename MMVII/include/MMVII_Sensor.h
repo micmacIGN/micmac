@@ -1,8 +1,11 @@
 #ifndef  _MMVII_SENSOR_H_
 #define  _MMVII_SENSOR_H_
 
+#include "SymbDer/SymbDer_Common.h"
 #include "MMVII_Mappings.h"
 #include "MMVII_MeasuresIm.h"
+
+using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
@@ -69,6 +72,7 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	 void SetNameImage(const std::string &);  ///< used when reading from file
 
 	 // --------------------   methods to compute names of an orientation --------------------
+
 	 static std::string  PrefixName() ;  ///<  Prefix to all file for ori of 1 images
 	 ///  Compute the name from the specific prefix of subtype and image name, need a static access in creation
 	 static  std::string  NameOri_From_PrefixAndImage(const std::string & aPrefix,const std::string & aNameImage);
@@ -76,6 +80,15 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	 std::string NameOriStd() const ;
 	 ///  Prefix of the subtype
 	 virtual std::string  V_PrefixName() const = 0  ;
+
+	 // --------------------   methods used in bundle adjustment  --------------------
+	
+	 ///  For stenope camera return center, for other nullptr
+	 virtual const cPt3dr * CenterOfPC() = 0;
+	 /// Return the calculator, adapted to the type, for computing colinearity equation
+         virtual cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf) = 0;
+	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
+	 virtual  void PushOwnObsColinearity( std::vector<double> &) = 0;
 
      private :
 	 std::string                                    mNameImage;

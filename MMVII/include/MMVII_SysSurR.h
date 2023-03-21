@@ -529,6 +529,8 @@ template <class Type> class cSetInterUK_MultipeObj
 
 	   /// This method is used to add the unknowns of one object
            void  AddOneObj(cObjWithUnkowns<Type> *);
+	   /// Test if object already added to avoid error
+           void  AddOneObjIfRequired(cObjWithUnkowns<Type> *);
 
 	   ///  return a DenseVect filled with all unknowns  as expected to create a cResolSysNonLinear
            cDenseVect<Type>  GetVUnKnowns() const;
@@ -543,9 +545,9 @@ template <class Type> class cSetInterUK_MultipeObj
            void AddOneInterv(std::vector<Type> & aV) ;  ///<  call previous with a vector
            void AddOneInterv(cPtxd<Type,2> &);          ///<  call previous wih a point
            void AddOneInterv(cPtxd<Type,3> &);          ///<  call previous wih a point
-        private :
 
 	   void Reset();  /// Maybe private later, now used for tricky destruction order
+        private :
 
 	   size_t IndOfVal(const cObjWithUnkowns<Type>&,const Type *) const;
 
@@ -557,11 +559,26 @@ template <class Type> class cSetInterUK_MultipeObj
            size_t                                    mNbUk;
 };
 
-template <class Type> class cObjWithUnkowns
+/** Some object can be made of several object with uknowns, like PC Cam that are made of Pose+IntrCal */
+
+template <class Type> class cObjWithMulipleUnkowns
+{
+     public :
+        typedef cObjWithUnkowns<Type> * tPtrOUK;
+
+        virtual  std::vector<tPtrOUK>  GetAllUK() =0;
+};
+
+
+
+template <class Type> class cObjWithUnkowns : public cObjWithMulipleUnkowns<Type>
 {
        public :
           friend class cSetInterUK_MultipeObj<Type>;
+          typedef cObjWithUnkowns<Type> * tPtrOUK;
 
+	  /// defautl behavior return the vector containing itself
+          std::vector<tPtrOUK>  GetAllUK() override;
 	  /// defautl constructor, put non init in all vars
           cObjWithUnkowns();
 	  ///  check that object is no longer referenced when destroyd
