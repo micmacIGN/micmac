@@ -3,7 +3,7 @@
 #include "MMVII_DeclareCste.h"
 
 /**
-   \file cConvCalib.cpp
+   \file cConvCalib.cpp  testgit
 
    \brief file for conversion between calibration (change format, change model) and tests
 */
