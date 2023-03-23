@@ -6,6 +6,13 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_Geom3D.h"
 
+/*   Cx Cy Cz  Wx Wy Wz   =>  external parameters
+*    F   PPx PPy          =>  Focal & Principal point
+*    K1 K2 K3  ....       =>  Radial
+*    b1 b2      x_0_2     =>  General
+*    p1 p2 (p3 p4  ..)    =>  Decentrique
+*/
+
 using namespace NS_SymbolicDerivative;
 
 namespace MMVII
@@ -207,12 +214,16 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cPt2dr & PP() const;  ///< acess to principal point
             const cPt3di & DegDir() const;  ///< acess to direct degrees
             const std::string & Name() const;   ///< Name of the file
+            void SetName(const std::string &) ; ///< Change the name
 
 	    const std::vector<double> & VParamDist() const;  ///< vector of dist param
 	    std::vector<double> & VParamDist();    ///< vector of dist param
             const   std::vector<cDescOneFuncDist> &  VDescDist() const;  ///< desc of dist param
 	           //  ===  Acess to individuald dist values
 	    int IndParamDistFromName(const std::string&,bool SVP=false) const; ///< get index of param from its name, -1 if none & SVP
+
+	    ///  List of adresses of parameters that contain
+	    void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 	    double  ParamDist(const std::string &) const; ///< recover param of dist from its name
 	    void    SetParamDist(const std::string &,const double &) ; ///< set  value of dist from its name
 	    bool    IsNameParamDist(const std::string &) const;  ///< Is it a valuable name of distosion param
@@ -360,8 +371,12 @@ class cSensorCamPC : public cSensorImage
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
          void OnUpdate() override;                 // "reaction" after linear update
 
-	 // contain itself + internal calib
+	 /// contain itself + internal calib
 	 std::vector<tPtrOUK>  GetAllUK() override;
+
+	 /// retur
+	 void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+
 
          size_t NumXCenter() const;  /// num of Center().x when used as cObjWithUnkowns (y and z follow)
          size_t NumXOmega() const;   /// num of mOmega().x when used as cObjWithUnkowns (y and z follow)

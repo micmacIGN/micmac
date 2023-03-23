@@ -96,6 +96,7 @@ std::string OneUpDir(const std::string & aDir);  ///< If OneUpStd fail add /../
 std::string UpDir(const std::string & aDir,int aNb);
 
 // std::string AbsoluteName(const std::string &); ///< Get absolute name of path; rather pwd than unalias, no good
+std::string ToLower(const std::string &  aStr);  ///< return lower case version
 bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitive equality
 bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case UN-sensitive premisse of aStr ?
 bool UCaseMember(const std::vector<std::string> & aVec,const std::string & aName); ///< is Name meber of vec, insensitive way
@@ -106,6 +107,8 @@ void RenameFiles(const std::string & anOldName, const std::string & aNewName); /
 void CopyFile(const std::string & aName,const std::string & aDest);
 bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all file corresponding to pattern
 void ActionDir(const std::string &,eModeCreateDir);
+
+
 
 std::string AddBefore(const std::string & aPath,const std::string & ToAdd); // A/B/C.tif,@  =>  A/B/@C.tif
 std::string AddAfter(const std::string & aPath,const std::string & ToAdd); // A/B/C.tif,@  =>  A/B/@C.tif

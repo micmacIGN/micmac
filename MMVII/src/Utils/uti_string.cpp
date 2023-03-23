@@ -17,8 +17,8 @@
 
 #include "MMVII_util.h"
 #include "cMMVII_Appli.h"
-
 #include <boost/algorithm/string.hpp>
+
 
 
 using namespace std::filesystem;
@@ -170,6 +170,11 @@ std::string ChgPostix(const std::string & aPath,const std::string & aPost)
 bool UCaseEqual(const std::string & aStr1 ,const std::string & aStr2)
 {
    return boost::iequals(aStr1,aStr2);
+}
+
+std::string ToLower(const std::string &  aStr)
+{
+   return boost::algorithm::to_lower_copy(aStr);
 }
 
 bool UCaseBegin(const char * aBegin,const char * aStr)

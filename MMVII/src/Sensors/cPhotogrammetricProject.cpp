@@ -287,6 +287,14 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
     aCamPC.ToFile(mDPOrient.FullDirOut() + aCamPC.NameOriStd());
 }
 
+
+void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const
+{
+    std::string aNameCalib = mDPOrient.FullDirOut() + aCalib.Name() + ".xml";
+    aCalib.ToFileIfFirstime(aNameCalib);
+}
+
+
 cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete)
 {
     mDPOrient.AssertDirInIsInit();

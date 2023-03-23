@@ -258,6 +258,8 @@ class cPhotogrammetricProject
 	 
                //  Read/Write
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
+	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
+
 	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Input orientation
 	  /// For now read PC and extract it (later use xif as in MMV1 in case PC does not exist)
           cPerspCamIntrCalib *  AllocCalib(const std::string &);

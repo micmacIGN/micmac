@@ -343,7 +343,6 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
      cPt2dr  aP2 = aDRI.Inverse(aP1);
      cPt2dr  aP3 =  mDir_Dist->Value(aP2);
      // cPt2dr aP2 = aP1;
-     StdOut() <<  "SSSSSS " << aPMil  << aP1<< aP2 <<  aP3 << "\n";
      */
 
 
@@ -469,6 +468,24 @@ void cPerspCamIntrCalib::PutUknowsInSetInterval()
     mSetInterv->AddOneInterv(VParamDist());
 }
 
+void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+   aGAIP.TestParam(this,&(mCSPerfect.F()),"F");
+   aGAIP.TestParam(this,&(mCSPerfect.PP().x()),"PPx");
+   aGAIP.TestParam(this,&(mCSPerfect.PP().y()),"PPy");
+
+   for (size_t aK=0 ; aK<this->mDir_VDesc.size() ; aK++)
+   {
+       aGAIP.TestParam
+       (
+	  this,
+          &( VParamDist().at(aK) )    , 
+	  this->mDir_VDesc[aK].mName
+       );
+   }
+}
+
+
 cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf)
 {
     return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf);
@@ -531,6 +548,7 @@ void cPerspCamIntrCalib::SetThresholdPixAccInv(double aThr)
      SetThresholdPhgrAccInv(aThr/F());
 }
 
+void cPerspCamIntrCalib::SetName(const std::string &  aNewName) {  mName= aNewName ;}
 const std::string & cPerspCamIntrCalib::Name()   const {return mName ;}
 const cPt3di & cPerspCamIntrCalib::DegDir() const {return mDir_Degr;}
 
@@ -605,8 +623,6 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
          aSD23 = std::sqrt(aSD23/aVPt1.size());
          aSD13 = std::sqrt(aSD13/aVPt1.size());
          aSD15 = std::sqrt(aSD15/aVPt1.size());
-
-	 // StdOut()  << aSD12 << " " << aSD23 << " " << aSD13 << " " << aSD15 << "\n";
 
          MMVII_INTERNAL_ASSERT_bench((aSD13==0) || (aSD13/aSD12<aTolApprox),"Test approx inv");
          MMVII_INTERNAL_ASSERT_bench((aSD15==0) || (aSD15/aSD12<aTolAccurate),"Test approx inv");

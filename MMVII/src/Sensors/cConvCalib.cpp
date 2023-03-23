@@ -47,6 +47,12 @@ cCorresp32_BA::cCorresp32_BA
     mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,aVUk);
 }
 
+void cCorresp32_BA::SetFrozenVar(const std::string & aPat)
+{
+    mSys->UnfrozeAll();
+    mSys->SetFrozenFromPat(*mSensor,aPat,true);
+}
+
 cCorresp32_BA::~cCorresp32_BA()
 {
     delete mEqColinearity;
@@ -57,6 +63,8 @@ cCorresp32_BA::~cCorresp32_BA()
 
 void cCorresp32_BA::OneIteration()
 {
+     //PushErrorEigenErrorLevel(eLevelCheck::Warning);  // still the same problem with eigen excessive error policy ...
+
      if (mCFix)
      {
         //The fix center will apply only with Perspective central camera
@@ -102,6 +110,8 @@ void cCorresp32_BA::OneIteration()
 
      const auto & aVectSol = mSys->SolveUpdateReset();
      mSetInterv.SetVUnKnowns(aVectSol);  // #DOC-SetUnknown
+
+     // PopErrorEigenErrorLevel();
 }
 
 

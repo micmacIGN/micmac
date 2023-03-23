@@ -36,6 +36,7 @@ class cCorresp32_BA
          ~cCorresp32_BA();
          void OneIteration();
          const cSet2D3D  & SetCorresp() const {return   mSetCorresp;}
+	 void SetFrozenVar(const std::string &);
        protected :
 
          cSensorImage*                      mSensor;

@@ -215,6 +215,17 @@ std::vector<cPt2dr>  cSensorCamPC::PtsSampledOnSensor(int aNbByDim) const
 std::string  cSensorCamPC::V_PrefixName() const { return PrefixName() ; }
 std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 
+void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+   aGAIP.TestParam(this, &( mPose.Tr().x()),"Cx");
+   aGAIP.TestParam(this, &( mPose.Tr().y()),"Cy");
+   aGAIP.TestParam(this, &( mPose.Tr().z()),"Cz");
+
+   aGAIP.TestParam(this, &( mOmega.x())    ,"Wx");
+   aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");
+   aGAIP.TestParam(this, &( mOmega.z())    ,"Wz");
+}
 
 }; // MMVII
+
 
