@@ -10,6 +10,7 @@
 // #include "MMVII_Geom3D.h"
 // #include "cMMVII_Appli.h"
 
+//  Test git
 
 /**
    \file UnCalibratedSpaceResection.cpp
