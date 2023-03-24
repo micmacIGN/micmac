@@ -68,7 +68,7 @@ int cAppli_StackIm::Exe()
 
     auto aVecIm = VectMainSet(0);
 
-     tIm aIm0 = FromFile(const std::string& aName);
+     tIm aIm0 = tIm::FromFile(aVecIm.at(0));
 
     return EXIT_SUCCESS;
 };
