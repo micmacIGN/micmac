@@ -29,6 +29,8 @@ class cAppli_StackIm : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
      private :
+
+	std::string mSpecImIn;
 };
 
 cAppli_StackIm::cAppli_StackIm(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec):
@@ -39,8 +41,8 @@ cAppli_StackIm::cAppli_StackIm(const std::vector<std::string> &  aVArgs,const cS
 cCollecSpecArg2007 & cAppli_StackIm::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
       return anArgObl
-/*
               << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+/*
               <<  mPhProj.DPPointsMeasures().ArgDirInMand()
               <<  mPhProj.DPOrient().ArgDirOutMand()
 */
@@ -68,10 +70,25 @@ int cAppli_StackIm::Exe()
 
     auto aVecIm = VectMainSet(0);
 
-     tIm aIm0 = tIm::FromFile(aVecIm.at(0));
+    tIm aIm0 = tIm::FromFile(aVecIm.at(0));
+    tDIm & aDIm0 = aIm0.DIm();
+    aDIm0.InitCste(0);
+
+    for (const auto & aNameIm : aVecIm)
+    {
+         tIm aImK = tIm::FromFile(aNameIm);
+
+	 AddIn(aDIm0,aImK.DIm());
+    }
+    DivCsteIn(aDIm0,tREAL4(aVecIm.size()));
+
+    aDIm0.ToFile("Stack.tif");
 
     return EXIT_SUCCESS;
 };
+
+
+
 
 /* ==================================================== */
 /*                                                      */

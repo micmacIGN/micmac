@@ -275,7 +275,7 @@ void cPhotogrammetricProject::SaveCalibRad(const cCalibRadiomIma & aCalRad) cons
      aCalRad.ToFile(mDPRadiom.FullDirOut() + PrefixCalRadRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
 }
 
-std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMedaDataImage & aMTD) const
+std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMetaDataImage & aMTD) const
 {
     return  PrefixCalRadRad  + "Sensor-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
 }
@@ -390,13 +390,13 @@ cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
 
         //  =============  Meta Data =================
 
-cMedaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm) const
+cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm) const
 {
-   static std::map<std::string,cMedaDataImage> aMap;
+   static std::map<std::string,cMetaDataImage> aMap;
    auto  anIt = aMap.find(aNameIm);
    if (anIt== aMap.end())
    {
-        aMap[aNameIm] = cMedaDataImage(aNameIm);
+        aMap[aNameIm] = cMetaDataImage(aNameIm);
    }
 
    return aMap[aNameIm];

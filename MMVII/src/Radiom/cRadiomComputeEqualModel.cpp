@@ -501,7 +501,7 @@ int cAppliRadiom2ImageSameMod::Exe()
             cPerspCamIntrCalib* aCalib = mPhProj.AllocCalib(aNameIm);
             UpdateMax(aLimitIndex,aIRD->LimitIndex());
 
-            cMedaDataImage aMetaData =  mPhProj.GetMetaData(aNameIm);
+            cMetaDataImage aMetaData =  mPhProj.GetMetaData(aNameIm);
 
 
             int aDelta= 0;

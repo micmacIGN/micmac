@@ -240,7 +240,7 @@ class  cSensorCamPC;
 class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
 class  cPerspCamIntrCalib;
-class  cMedaDataImage;
+class  cMetaDataImage;
 
 // MMVII_MeasuresIm.h
 

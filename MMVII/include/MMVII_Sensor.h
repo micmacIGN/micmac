@@ -143,14 +143,14 @@ class cSetVisibility : public cDataBoundedSet<tREAL8,3>
 };
 
 /**  class for storing meta-data as stored in xif part*/
-class cMedaDataImage
+class cMetaDataImage
 {
       public :
           tREAL8  Aperture() const;
           tREAL8  FocalMM() const;
           tREAL8  FocalMMEqui35() const;
-          cMedaDataImage(const std::string & aNameIm);
-          cMedaDataImage();
+          cMetaDataImage(const std::string & aNameIm);
+          cMetaDataImage();
       private :
 
           std::string    mCameraName;
@@ -279,7 +279,7 @@ class cPhotogrammetricProject
 
 	  ///  Name of radiometric calibration with a  radial model , hypothesis : depends of internal calibration
 	  ///  +  metadata (aperture)
-          std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMedaDataImage &) const;
+          std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMetaDataImage &) const;
 
 	 //===================================================================
          //==================    MASKS           =============================
@@ -308,7 +308,7 @@ class cPhotogrammetricProject
 	 //===================================================================
 
 	  /// Return metadata while maintaining a map for assuring that read only once for a given image
-          cMedaDataImage GetMetaData(const std::string &) const;
+          cMetaDataImage GetMetaData(const std::string &) const;
 
 
       private :
