@@ -171,6 +171,7 @@ std::vector<std::string> & cDataPerspCamIntrCalib::VecInfo() {return mVectInfo;}
 	
 cPerspCamIntrCalib::cPerspCamIntrCalib(const cDataPerspCamIntrCalib & aData) :
     cDataPerspCamIntrCalib (aData),
+    mVoidDist           (mDir_Degr==cPt3di(0,0,0)),
     mDefProj            (cDefProjPerspC::ProjOfType(mTypeProj)),
     mPixDomain          (&mDataPixDomain),
 	// ------------ direct -------------
@@ -190,7 +191,7 @@ cPerspCamIntrCalib::cPerspCamIntrCalib(const cDataPerspCamIntrCalib & aData) :
     mInv_Params         (mInv_VDesc.size(),0.0),
     mInvApproxLSQ_Dist  (NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf)),
     mInv_BaseFDist      (EqBaseFuncDist(mInv_Degr,mSzBuf)),
-    mInv_CalcLSQ        (new cLeastSqCompMapCalcSymb<tREAL8,2,2>(mInv_BaseFDist)),
+    mInv_CalcLSQ        (mVoidDist ? nullptr : new cLeastSqCompMapCalcSymb<tREAL8,2,2>(mInv_BaseFDist)),
     mThresholdPhgrAccInv (1e-9),
     mThresholdPixAccInv  (mThresholdPhgrAccInv * F()),
     mNbIterInv           (10),
@@ -282,22 +283,26 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
 
     //  Approximate number of point (in the biggest size), here +or- less square of minimum
     //  but also take care of having always a minimum, else generate problem in pixelization during growing
-    size_t aNbMin = std::max(size_t(10),2+mInv_VDesc.size());
 
-    cComputeMapInverse<double,2> aCMI
-    (
-       mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
-       PtSeedInv(),          ///< Seed point, in input space
-       aNbMin,    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
-       (*mPhgrDomain),       ///< Set of validity, in output space
-       (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
-        mInv_CalcLSQ,        ///< Structure for computing the invert on base of function using least square
-       false                 ///< Not in  Test
-   );
-   aCMI.DoAll(mInv_Params); // compute the parameters
-   mInvApproxLSQ_Dist->SetObs(mInv_Params); // set these parameters in approx inverse
+    if (!mVoidDist)
+    {
+         size_t aNbMin = std::max(size_t(10),2+mInv_VDesc.size());
 
-   mInvIsUpToDate = true;
+         cComputeMapInverse<double,2> aCMI
+         (
+            mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
+            PtSeedInv(),          ///< Seed point, in input space
+            aNbMin,    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
+            (*mPhgrDomain),       ///< Set of validity, in output space
+            (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
+             mInv_CalcLSQ,        ///< Structure for computing the invert on base of function using least square
+            false                 ///< Not in  Test
+        );
+        aCMI.DoAll(mInv_Params); // compute the parameters
+        mInvApproxLSQ_Dist->SetObs(mInv_Params); // set these parameters in approx inverse
+    }
+
+    mInvIsUpToDate = true;
 }
 
 void cPerspCamIntrCalib::UpdateLSQDistIfRequired() const
@@ -338,7 +343,6 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
      cPt2dr  aP2 = aDRI.Inverse(aP1);
      cPt2dr  aP3 =  mDir_Dist->Value(aP2);
      // cPt2dr aP2 = aP1;
-     StdOut() <<  "SSSSSS " << aPMil  << aP1<< aP2 <<  aP3 << "\n";
      */
 
 
@@ -464,6 +468,24 @@ void cPerspCamIntrCalib::PutUknowsInSetInterval()
     mSetInterv->AddOneInterv(VParamDist());
 }
 
+void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+   aGAIP.TestParam(this,&(mCSPerfect.F()),"F");
+   aGAIP.TestParam(this,&(mCSPerfect.PP().x()),"PPx");
+   aGAIP.TestParam(this,&(mCSPerfect.PP().y()),"PPy");
+
+   for (size_t aK=0 ; aK<this->mDir_VDesc.size() ; aK++)
+   {
+       aGAIP.TestParam
+       (
+	  this,
+          &( VParamDist().at(aK) )    , 
+	  this->mDir_VDesc[aK].mName
+       );
+   }
+}
+
+
 cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf)
 {
     return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf);
@@ -526,6 +548,7 @@ void cPerspCamIntrCalib::SetThresholdPixAccInv(double aThr)
      SetThresholdPhgrAccInv(aThr/F());
 }
 
+void cPerspCamIntrCalib::SetName(const std::string &  aNewName) {  mName= aNewName ;}
 const std::string & cPerspCamIntrCalib::Name()   const {return mName ;}
 const cPt3di & cPerspCamIntrCalib::DegDir() const {return mDir_Degr;}
 
@@ -601,8 +624,8 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
          aSD13 = std::sqrt(aSD13/aVPt1.size());
          aSD15 = std::sqrt(aSD15/aVPt1.size());
 
-         MMVII_INTERNAL_ASSERT_bench((aSD13/aSD12<aTolApprox),"Test approx inv");
-         MMVII_INTERNAL_ASSERT_bench((aSD15/aSD12<aTolAccurate),"Test approx inv");
+         MMVII_INTERNAL_ASSERT_bench((aSD13==0) || (aSD13/aSD12<aTolApprox),"Test approx inv");
+         MMVII_INTERNAL_ASSERT_bench((aSD15==0) || (aSD15/aSD12<aTolAccurate),"Test approx inv");
      }
 
      // test global inversion
@@ -656,7 +679,9 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
     cPt2dr aPP(   aSz.x()*(0.5+0.1*RandUnif_C())  , aSz.y()*(0.5+0.1*RandUnif_C())  );
     tREAL8  aFoc =  aDiag * (0.2 + 3.0*RandUnif_0_1());
 
-    for (int aK=0 ; aK<2 ; aK++)
+    std::vector<cPt3di>  aDegDir{{0,0,0},{2,0,0},{3,1,1}};
+    std::vector<cPt3di>  aDegInv{{0,0,0},{5,1,1},{7,2,5}};
+    for (size_t aK=0 ; aK<aDegDir.size() ; aK++)
     {
        cPerspCamIntrCalib* aCam = cPerspCamIntrCalib::Alloc
                                   (
@@ -664,14 +689,17 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 	                                 (
 	                                       "BenchCam",
                                                 aTypeProj,
-	                                        (aK==0) ? cPt3di(2,0,0) : cPt3di(3,1,1),
+	                                        // (aK==0) ? cPt3di(2,0,0) : cPt3di(3,1,1),
+						aDegDir.at(aK),
 	                                        std::vector<double>(),
 	                                        cCalibStenPerfect(aFoc,aPP),
 	                                        cDataPixelDomain(aSz),
-	                                        (aK==0) ? cPt3di(5,1,1) :cPt3di(7,2,5),
+	                                        // (aK==0) ? cPt3di(5,1,1) :cPt3di(7,2,5),
+						aDegInv.at(aK),
 	                                        100
 	                                 )
                                   );
+
        aCam->SetThresholdPhgrAccInv(1e-9);
 
        aCam->InitRandom(0.1);

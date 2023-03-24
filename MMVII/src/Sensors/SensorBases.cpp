@@ -1,5 +1,5 @@
-
 #include "MMVII_Sensor.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 
 /**
@@ -11,87 +11,6 @@
 
 namespace MMVII
 {
-
-/**********************************************/
-/*                                            */
-/*           cPair2D3D                        */
-/*                                            */
-/**********************************************/
-
- cPair2D3D::cPair2D3D(const cPt2dr & aP2,const cPt3dr & aP3) :
-    mP2  (aP2),
-    mP3  (aP3)
-{
-}
-
-
-
-/**********************************************/
-/*                                            */
-/*           cWeightedPair2D3D                */
-/*                                            */
-/**********************************************/
-
- cWeightedPair2D3D::cWeightedPair2D3D(const cPair2D3D & aPair,double  aW) :
-    cPair2D3D (aPair),
-    mWeight   (aW)
-{
-}
-
-cWeightedPair2D3D::cWeightedPair2D3D(const cPt2dr& aPIm,const cPt3dr& aPGround,double aWeight) :
-    cWeightedPair2D3D(cPair2D3D(aPIm,aPGround),aWeight)
-{
-}
-
-/**********************************************/
-/*                                            */
-/*           cSet2D3D                         */
-/*                                            */
-/**********************************************/
-
-void cSet2D3D::AddPair(const tPair & aP23)
-{
-     mPairs.push_back(aP23);
-}
-
-void cSet2D3D::AddPair(const cPt2dr& aPIm,const cPt3dr& aPGround,double aWeight)
-{
-    AddPair(tPair(aPIm,aPGround,aWeight));
-}
-
-
-const cSet2D3D::tCont2D3D &  cSet2D3D::Pairs() const { return mPairs;}
-
-void  cSet2D3D::Clear()
-{
-	mPairs.clear();
-}
-
-cWeightedPair2D3D  cSet2D3D::Centroid() const
-{
-    cPt2dr aSP2(0,0);
-    cPt3dr aSP3(0,0,0);
-    double aSW=0;
-    for (const auto & aPair : mPairs)
-    {
-	    aSP2 += aPair.mP2 * aPair.mWeight;
-	    aSP3 += aPair.mP3 * aPair.mWeight;
-	    aSW += aPair.mWeight;
-    }
-    return cWeightedPair2D3D(aSP2/aSW,aSP3/aSW,aSW);
-}
-
-void cSet2D3D::Substract(const cPair2D3D& aSub)
-{
-    for (auto  & aPair : mPairs)
-    {
-        aPair.mP2 =  aPair.mP2-aSub.mP2;
-        aPair.mP3 =  aPair.mP3-aSub.mP3;
-    }
-}
-
-
-
 
 /* ******************************************************* */
 /*                                                         */
@@ -147,7 +66,7 @@ double  cSensorImage::SqResidual(const cPair2D3D & aPair) const
      return SqN2(aPair.mP2-Ground2Image(aPair.mP3));
 }
 
-double  cSensorImage::AvgResidual(const cSet2D3D & aSet) const
+double  cSensorImage::AvgSqResidual(const cSet2D3D & aSet) const
 {
      double aSum = 0;
      for (const auto & aPair : aSet.Pairs() )
@@ -157,6 +76,21 @@ double  cSensorImage::AvgResidual(const cSet2D3D & aSet) const
      return std::sqrt(aSum/aSet.Pairs().size());
 }
 
+/*
+double cSensorImage::RobustAvResidualOfProp(const cSet2D3D &,double aProp) const
+{
+    cWeightAv<tREAL8>  aWAvg;
+    for (const auto & aPair : aSet.Pairs() )
+    {
+         tREAL8 aResidual = std::sqrt(SqResidual(aPair));
+         tREAL8 aWeight = aSigma/(aSigma+aResidual);
+	 aWAvg.Add(aWeight,aResidual);
+    }
+    return aWAvg.Average();
+}
+*/
+
+
 
 std::string cSensorImage::PrefixName() { return "Ori"; }
 
@@ -165,7 +99,11 @@ std::string  cSensorImage::NameOri_From_PrefixAndImage(const std::string & aPref
 { 
     return PrefixName() + "-" + aPrefix + "-" + aNameImage + ".xml"; 
 }
-std::string cSensorImage::NameOriStd() const { return  NameOri_From_PrefixAndImage(V_PrefixName(),mNameImage);}
+std::string cSensorImage::NameOriStd() const 
+{ 
+    std::string aRes =   NameOri_From_PrefixAndImage(V_PrefixName(),mNameImage);
+    return  aRes;
+}
 
 
 cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt2dr & aP2,const double & aDepth) const 

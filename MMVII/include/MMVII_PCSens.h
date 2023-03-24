@@ -6,6 +6,13 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_Geom3D.h"
 
+/*   Cx Cy Cz  Wx Wy Wz   =>  external parameters
+*    F   PPx PPy          =>  Focal & Principal point
+*    K1 K2 K3  ....       =>  Radial
+*    b1 b2      x_0_2     =>  General
+*    p1 p2 (p3 p4  ..)    =>  Decentrique
+*/
+
 using namespace NS_SymbolicDerivative;
 
 namespace MMVII
@@ -207,12 +214,16 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cPt2dr & PP() const;  ///< acess to principal point
             const cPt3di & DegDir() const;  ///< acess to direct degrees
             const std::string & Name() const;   ///< Name of the file
+            void SetName(const std::string &) ; ///< Change the name
 
 	    const std::vector<double> & VParamDist() const;  ///< vector of dist param
 	    std::vector<double> & VParamDist();    ///< vector of dist param
             const   std::vector<cDescOneFuncDist> &  VDescDist() const;  ///< desc of dist param
 	           //  ===  Acess to individuald dist values
 	    int IndParamDistFromName(const std::string&,bool SVP=false) const; ///< get index of param from its name, -1 if none & SVP
+
+	    ///  List of adresses of parameters that contain
+	    void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 	    double  ParamDist(const std::string &) const; ///< recover param of dist from its name
 	    void    SetParamDist(const std::string &,const double &) ; ///< set  value of dist from its name
 	    bool    IsNameParamDist(const std::string &) const;  ///< Is it a valuable name of distosion param
@@ -270,7 +281,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
                 // comon to dir & inverse
             // eProjPC                              mTypeProj;
             // int                                  mSzBuf;
-            const cDefProjPerspC &               mDefProj;
+	    bool                                 mVoidDist;  /// special behavior is requires with deg=[0,0,0] 
+            const cDefProjPerspC &               mDefProj;    ///  Prof function
             cPixelDomain                         mPixDomain;              ///< sz, domaine of validity in pixel
 
                 // ------------ parameters for direct projection  DirBundle -> pixel ------------
@@ -315,12 +327,13 @@ void AddData(const cAuxAr2007 & anAux,cPerspCamIntrCalib &);
 class cSensorCamPC : public cSensorImage
 {
      public :
+	 typedef cObjWithUnkowns<tREAL8> * tPtrOUK;
          typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
 
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
 
          /// Create form  Un-Calibrated-Space-Resection
-         static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,bool Real16=true);
+         static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,const std::string&,bool Real16=true);
 
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
@@ -332,6 +345,15 @@ class cSensorCamPC : public cSensorImage
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
 
          std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
+
+
+	 const cPt3dr * CenterOfPC() override;
+         /// Return the calculator, adapted to the type, for computing colinearity equation
+         cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf) override;
+	 /// Push the current rotation, as equation are fixed using delta-rot
+	 void PushOwnObsColinearity( std::vector<double> &) override;
+
+
 
 	 // different accessor to the pose
          const tPose &   Pose()   const;
@@ -348,6 +370,13 @@ class cSensorCamPC : public cSensorImage
          // interaction in unknowns
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
          void OnUpdate() override;                 // "reaction" after linear update
+
+	 /// contain itself + internal calib
+	 std::vector<tPtrOUK>  GetAllUK() override;
+
+	 /// retur
+	 void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+
 
          size_t NumXCenter() const;  /// num of Center().x when used as cObjWithUnkowns (y and z follow)
          size_t NumXOmega() const;   /// num of mOmega().x when used as cObjWithUnkowns (y and z follow)

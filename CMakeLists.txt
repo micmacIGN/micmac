@@ -207,7 +207,7 @@ if(${WITH_QT5})
 			message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
 		endif()
 
-		 #add_compile_definitions(QT_NO_DEPRECATED_WARNINGS=1) # to work with both ubuntu 20.04 and 22.04...
+		add_compile_definitions(QT_NO_DEPRECATED_WARNINGS=1) # to work with both ubuntu 20.04 and 22.04... MPD ->
 		find_package(Qt5Widgets REQUIRED)
 		find_package(Qt5Xml REQUIRED)
 		find_package(Qt5Concurrent REQUIRED)

@@ -27,6 +27,12 @@ cSensorCamPC::cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cP
 {
 }
 
+std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK() 
+{
+    return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib};
+}
+
+
 void cSensorCamPC::PutUknowsInSetInterval()
 {
     mSetInterv->AddOneInterv(mPose.Tr());
@@ -66,6 +72,20 @@ cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aP) const
     return mPose.Value(aPCam * (aP.z() / aPCam.z()));
 
 }
+
+const cPt3dr * cSensorCamPC::CenterOfPC() { return  & Center(); }
+         /// Return the calculator, adapted to the type, for computing colinearity equation
+cCalculator<double> * cSensorCamPC::EqColinearity(bool WithDerives,int aSzBuf) 
+{
+   return mInternalCalib->EqColinearity(WithDerives,aSzBuf);
+}
+
+void cSensorCamPC::PushOwnObsColinearity(std::vector<double> & aVObs)
+{
+     Pose().Rot().Mat().PushByCol(aVObs);
+}
+
+
 
 /*
 size_t  cSensorCamPC::NumXCenter() const
@@ -195,6 +215,17 @@ std::vector<cPt2dr>  cSensorCamPC::PtsSampledOnSensor(int aNbByDim) const
 std::string  cSensorCamPC::V_PrefixName() const { return PrefixName() ; }
 std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 
+void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+   aGAIP.TestParam(this, &( mPose.Tr().x()),"Cx");
+   aGAIP.TestParam(this, &( mPose.Tr().y()),"Cy");
+   aGAIP.TestParam(this, &( mPose.Tr().z()),"Cz");
+
+   aGAIP.TestParam(this, &( mOmega.x())    ,"Wx");
+   aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");
+   aGAIP.TestParam(this, &( mOmega.z())    ,"Wz");
+}
 
 }; // MMVII
+
 

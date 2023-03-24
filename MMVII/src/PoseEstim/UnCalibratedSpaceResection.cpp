@@ -3,12 +3,14 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_PCSens.h"
 #include "MMVII_Tpl_Images.h"
+#include "MMVII_BundleAdj.h"
 
 
 // #include "MMVII_nums.h"
 // #include "MMVII_Geom3D.h"
 // #include "cMMVII_Appli.h"
 
+//  Test git
 
 /**
    \file UnCalibratedSpaceResection.cpp
@@ -172,7 +174,7 @@ template <class Type>  class cUncalibSpaceRessection
 	       const cSensorCamPC * aGTCam = nullptr // ground truth in bench mode
 	   );
 	   ///  Compute Parameters
-	   cSensorCamPC *  ComputeParameters();
+	   cSensorCamPC *  ComputeParameters(const std::string & aNameCam);
 
        private :
 
@@ -406,7 +408,8 @@ template <class Type>  void    cUncalibSpaceRessection<Type>::Test_WithAllConstr
  *   Extract the "physicall" parameters from homography
  *   =================================================== */
 
-template <class Type>  cSensorCamPC *    cUncalibSpaceRessection<Type>::ComputeParameters()
+template <class Type>  
+   cSensorCamPC *    cUncalibSpaceRessection<Type>::ComputeParameters(const std::string & aNameIm)
 {
     cDenseMatrix<Type> aMat = mBestH.IndexExtre().Mat(); // Matrix
     cPtxd<Type,3>      aTr  = mBestH.IndexExtre().Tr();  // Translation
@@ -450,7 +453,7 @@ template <class Type>  cSensorCamPC *    cUncalibSpaceRessection<Type>::ComputeP
                                  (
                                          cDataPerspCamIntrCalib
                                          (
-                                               "UncalibSpaceRessection",
+                                                cPerspCamIntrCalib::PrefixName()  + aNameIm,
                                                 eProjPC::eStenope,
                                                 cPt3di(0,0,1),
                                                 std::vector<double>(),
@@ -469,7 +472,7 @@ template <class Type>  cSensorCamPC *    cUncalibSpaceRessection<Type>::ComputeP
 
       // Compute pose & finally the camera
       cIsometry3D<tREAL8> aPose(aCAbs,cRotation3D<tREAL8>(aRot,false)); 
-      cSensorCamPC* aCam = new cSensorCamPC("Camera_UncalibResection",aPose,aCalib);
+      cSensorCamPC* aCam = new cSensorCamPC(aNameIm,aPose,aCalib);
 
       // If grond truth camera, check accuracy
       if (mGTCam) 
@@ -494,18 +497,25 @@ template <class Type>  cSensorCamPC *    cUncalibSpaceRessection<Type>::ComputeP
 /*                                                   */
 /* ************************************************* */
 
-cSensorCamPC * cSensorCamPC::CreateUCSR(const cSet2D3D& aSetCorresp,const cPt2di & aSzCam,bool Real16)
+cSensorCamPC * 
+    cSensorCamPC::CreateUCSR
+    (
+         const cSet2D3D& aSetCorresp,
+         const cPt2di & aSzCam,
+         const std::string & aNameIm,
+         bool Real16
+    )
 {
    cSensorCamPC * aCamCalc = nullptr;
    if (Real16)
    {
        cUncalibSpaceRessection<tREAL16>  aResec(aSzCam,aSetCorresp);
-       aCamCalc = aResec.ComputeParameters();
+       aCamCalc = aResec.ComputeParameters(aNameIm);
    }
    else
    {
        cUncalibSpaceRessection<tREAL8>  aResec(aSzCam,aSetCorresp);
-       aCamCalc = aResec.ComputeParameters();
+       aCamCalc = aResec.ComputeParameters(aNameIm);
    }
 
    return aCamCalc;
@@ -577,7 +587,7 @@ void OneBenchUnCalibResection(int aKTest)
           cSet2D3D  aSetCorresp  =  aCam.SyntheticsCorresp3D2D(10,aVDepts) ;
 
           cUncalibSpaceRessection<tREAL8>  aResec8(aSz,aSetCorresp,&aCam);
-          cSensorCamPC * aCamCalc = aResec8.ComputeParameters();
+          cSensorCamPC * aCamCalc = aResec8.ComputeParameters("NoIm_UCSR");
           delete aCamCalc;
       }
       delete aCalib;
@@ -596,8 +606,239 @@ void BenchUnCalibResection()
     PopErrorEigenErrorLevel();
 }
 
+/* ==================================================== */
+/*                                                      */
+/*          cAppli_UncalibSpaceResection                */
+/*                                                      */
+/* ==================================================== */
+
+class cAppli_UncalibSpaceResection : public cMMVII_Appli
+{
+     public :
+
+        cAppli_UncalibSpaceResection(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
+	int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+
+     private :
+	///  compute a model of calibration different from linear one (more or less parameter)
+        cSensorCamPC * ChgModel(cSensorCamPC * aCam);
+
+	/// In case multiple pose for same camera try a robust compromise for each value
+        void  DoMedianCalib();
+
+	std::string              mSpecImIn;   ///  Pattern of xml file
+	cPhotogrammetricProject  mPhProj;
+        cSet2D3D                 mSet23 ;
+	bool                     mShow;
+	bool                     mReal16;
+	cPt3di                   mDegDist;
+        std::string              mPatParFrozen;
+        cPt2dr                   mValFixPP;
+	std::string              mMedianCalib;
+};
+
+cAppli_UncalibSpaceResection::cAppli_UncalibSpaceResection(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec):
+	cMMVII_Appli   (aVArgs,aSpec),
+        mPhProj        (*this),
+        mShow          (false),
+	mReal16        (false)
+{
+}
+
+cCollecSpecArg2007 & cAppli_UncalibSpaceResection::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+      return anArgObl
+              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
+              <<  mPhProj.DPOrient().ArgDirOutMand()
+           ;
+}
+
+cCollecSpecArg2007 & cAppli_UncalibSpaceResection::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+
+    return anArgOpt
+	       << AOpt2007(mDegDist,"DegDist","Degree of distorsion, if model different of linear one")
+	       << AOpt2007(mShow,"ShowNP","Show possible names of param for distorsion",{eTA2007::Tuning,eTA2007::HDV})
+	       << AOpt2007(mPatParFrozen,"PatFrozen","Pattern for frozen parameters",{eTA2007::PatParamCalib})
+	       << AOpt2007(mValFixPP,"ValPPRel","Fix value of PP in relative to image size ([0.5,0.5] for middle)")
+	       << AOpt2007(mMedianCalib,"MedianCalib","Export for a median calib for multiple images")
+           ;
+}
+
+cSensorCamPC * cAppli_UncalibSpaceResection::ChgModel(cSensorCamPC * aCam0)
+{
+    tREAL8 aR0 =  aCam0->AvgSqResidual(mSet23);
+    cPerspCamIntrCalib * aCal0 = aCam0->InternalCalib();
+
+    cPt2dr aPP = aCal0->PP();
+    cPt2di aSzPix = aCal0->SzPix();
+    if (IsInit(&mValFixPP))
+    {
+        aPP = MulCByC(mValFixPP,ToR(aSzPix));
+    }
+    
+    // Create a calibration with adequate degree, same paramater as is init, except dist=0
+    cDataPerspCamIntrCalib  aData
+                            (
+                                   aCal0->Name(),
+                                   eProjPC::eStenope,
+                                   mDegDist,
+                                   std::vector<double>(),
+                                   cCalibStenPerfect(aCal0->F(),aPP),
+                                   cDataPixelDomain(aSzPix),
+                                   mDegDist,
+                                   10
+			    );
+
+     cPerspCamIntrCalib * aCal1 = new cPerspCamIntrCalib(aData);
+
+     cMMVII_Appli::AddObj2DelAtEnd(aCal1); // Not sure of this
+
+     cSensorCamPC * aCam1 = new cSensorCamPC(aCam0->NameImage(),aCam0->Pose(),aCal1);
+     delete aCam0;
+
+     if (mShow)
+     {
+         cGetAdrInfoParam<tREAL8>::ShowAllParam(*aCam1);
+     }
+
+     tREAL8 aR1Init = aCam1->AvgSqResidual(mSet23);
+     cCorresp32_BA  aBA(aCam1,mSet23);
+
+
+     if (IsInit(&mPatParFrozen))
+     {
+        aBA.SetFrozenVar(mPatParFrozen);
+     }
+
+
+     for (int aK=0 ; aK<10 ; aK++)
+     {
+         aBA.OneIteration();
+     }
+     tREAL8 aR1Final = aCam1->AvgSqResidual(mSet23);
+
+     if (mShow)
+     {
+        StdOut() << "RESIDUAL, R0=" << aR0 << " R1Init=" << aR1Init << " R1Final=" << aR1Final << "\n";
+     }
+     return aCam1;
+}
+
+void cAppli_UncalibSpaceResection::DoMedianCalib()
+{
+     // [1]   Extract all the calibration
+     std::vector<cPerspCamIntrCalib *> aVCal;
+     for (const auto &  aNameIm : VectMainSet(0))
+     {
+         std::string aNameCal = mPhProj.DPOrient().FullDirOut() + cPerspCamIntrCalib::PrefixName()  + aNameIm  + ".xml";
+         cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCal);
+
+	 aVCal.push_back(aCalib);
+	 StdOut() << "NIIII  " << aNameIm << " F=" << aCalib->F()   << "\n";
+     }
+
+     // [2]  Extract a vector that for each param contains a vector of all its values in different calib
+     cPerspCamIntrCalib & aCal0 = *(aVCal.at(0));
+     cGetAdrInfoParam<tREAL8>  aGAIP0(".*",aCal0);
+     size_t aNbParam = aGAIP0.VAdrs().size();
+
+     std::vector<std::vector<double> > aVVParam(aNbParam);
+     for (const auto & aPCal : aVCal)
+     {
+           cGetAdrInfoParam<tREAL8>  aGAIPK(".*",*(aPCal));
+           for (size_t aKP=0 ; aKP<aNbParam ; aKP++)
+           {
+                aVVParam.at(aKP).push_back(*aGAIPK.VAdrs().at(aKP));
+           }
+     }
+
+     //std::vector<cPerspCamIntrCalib *> aVCal;
+
+     for (size_t aKP=0 ; aKP< aNbParam ; aKP++)
+     {
+          StdOut() << " " <<  aGAIP0.VNames()[aKP] ;
+	  tREAL8 aVMed = NonConstMediane(aVVParam.at(aKP));
+	  tREAL8 aV20 = NC_KthVal(aVVParam.at(aKP),0.2);
+	  tREAL8 aV80 = NC_KthVal(aVVParam.at(aKP),0.8);
+          StdOut() <<  ": V=" << aVMed;
+          StdOut() <<  ": DISP=" << (aV80-aV20);
+          StdOut() <<  "\n";
+
+	  *(aGAIP0.VAdrs()[aKP]) = aVMed;
+     }
+
+     aCal0.SetName(mMedianCalib);
+     mPhProj.SaveCalibPC(aCal0);
+}
+
+int cAppli_UncalibSpaceResection::Exe()
+{
+    mPhProj.FinishInit();
+
+    if (RunMultiSet(0,0))  
+    {
+        int aResult = ResultMultiSet();
+
+	if (aResult != EXIT_SUCCESS)
+           return aResult;
+
+	if (IsInit(&mMedianCalib))
+	{
+            DoMedianCalib();
+	}
+        return EXIT_SUCCESS;
+    }
+
+    std::string aNameIm =FileOfPath(mSpecImIn);
+
+    mSet23 =mPhProj.LoadSet32(aNameIm);
+
+    cPt2di aSz =  cDataFileIm2D::Create(aNameIm,false).Sz();
+    cSensorCamPC *  aCam0 =  cSensorCamPC::CreateUCSR(mSet23,aSz,aNameIm,mReal16);
+
+     
+    if (IsInit(& mDegDist))
+    {
+       aCam0 = ChgModel(aCam0);
+    }
+
+    mPhProj.SaveCamPC(*aCam0);
+
+    delete aCam0;
+    return EXIT_SUCCESS;
+};
+
+/* ==================================================== */
+/*                                                      */
+/*                                                      */
+/*                                                      */
+/* ==================================================== */
+
+
+tMMVII_UnikPApli Alloc_UncalibSpaceResection(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_UncalibSpaceResection(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_OriUncalibSpaceResection
+(
+     "OriPoseEstim11P",
+      Alloc_UncalibSpaceResection,
+      "Pose estimation from GCP, uncalibrated case",
+      {eApF::Ori},
+      {eApDT::GCP},
+      {eApDT::Orient},
+      __FILE__
+);
 
 
 
 }; // MMVII
+
+
+
 

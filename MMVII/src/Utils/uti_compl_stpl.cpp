@@ -1,8 +1,62 @@
 #include "MMVII_enums.h"
+#include "MMVII_util_tpl.h"
 
 
 namespace MMVII
 {
+/* ********************************************* */
+/*                                               */
+/*             cBijectiveMapI2O                  */
+/*                                               */
+/* ********************************************* */
+
+template <class Type>
+   int cBijectiveMapI2O<Type>::Add(const Type & anObj,bool OkExist)
+{
+    if (mObj2I.find(anObj) != mObj2I.end())
+    {
+       MMVII_INTERNAL_ASSERT_tiny(OkExist,"cBijectiveMapI2O multiple add");
+       return -1;
+    }
+
+    size_t aNum = mI2Obj.size();
+    mObj2I[anObj] = aNum;
+    mI2Obj.push_back(anObj);
+
+    return aNum;
+}
+
+template <class Type>
+   Type * cBijectiveMapI2O<Type>::I2Obj(int anInd)
+{
+   if ( (anInd<0) || (anInd>=int(mObj2I.size())) )
+      return nullptr;
+
+   return & mI2Obj.at(anInd);
+}
+
+
+template <class Type>
+   int  cBijectiveMapI2O<Type>::Obj2I(const Type & anObj,bool SVP)
+{
+    const auto & anIt = mObj2I.find(anObj) ;
+
+    if (anIt== mObj2I.end())
+    {
+        MMVII_INTERNAL_ASSERT_tiny(SVP,"Obj2I : object dont exist");
+        return -1;
+    }
+
+    return anIt->second;
+}
+
+template class cBijectiveMapI2O<std::string>;
+
+/****************************************************/
+/*                                                  */
+/*                                                  */
+/*                                                  */
+/****************************************************/
 
 template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2)
 {
@@ -30,11 +84,6 @@ template <class Type> bool operator != (const std::vector<Type> & aV1,const std:
 }
 
 
-/****************************************************/
-/*                                                  */
-/*                                                  */
-/*                                                  */
-/****************************************************/
 
 #define INSTANTIATE_LEXICO_COMP(TYPE)\
 template int LexicoCmp(const std::vector<TYPE> & aV1,const std::vector<TYPE> & aV2);\

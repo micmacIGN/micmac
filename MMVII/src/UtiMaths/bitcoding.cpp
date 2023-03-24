@@ -377,33 +377,24 @@ std::list<cCompEquiCodes::tAmbigPair>  cCompEquiCodes::AmbiguousCode(const std::
     return aRes;
 }
 
-std::string cCompEquiCodes::NameCERNLookUpTable(size_t aNbBits)
+std::string cCompEquiCodes::NameCERStuff(const std::string & aPrefix,size_t aNbBits)
 {
 	return     cMMVII_Appli::DirRessourcesMMVII() 
 		+ "CodeCircTaget"  + StringDirSeparator()
-		+ ToStr(aNbBits) + "bit_lookup.txt";
+		+ aPrefix + ToStr(aNbBits) + "bit_lookup.txt";
 }
-            
+std::string cCompEquiCodes::NameCERNLookUpTable(size_t aNbBits) {return NameCERStuff("",aNbBits);}
+std::string cCompEquiCodes::NameCERNPannel(size_t aNbBits) {return NameCERStuff("Positions-3D-",aNbBits);}
+
 /// Low level function, read the pair Num->Code in a file
 void  ReadCodesTarget(std::vector<cPt2di> & aVCode,const std::string & aNameFile)
 {
-    if (! ExistFile(aNameFile))
-    {
-       MMVII_UsersErrror(eTyUEr::eOpenFile,std::string("For file ") + aNameFile);
-    }
-    std::ifstream infile(aNameFile);
+     std::vector<std::vector<double>> aVV;
+     ReadFilesNum("FF",aVV,aNameFile);
+     aVCode.clear();
 
-    std::string line;
-    while (std::getline(infile, line))
-    {
-        std::istringstream iss(line);
-        int a, b;
-        if (!(iss >> a >> b)) 
-	{ 
-            MMVII_UnclasseUsEr(std::string("Bad target file for ") + aNameFile);
-	}
-	aVCode.push_back(cPt2di(a,b));
-    }
+     for (const auto & aV : aVV)
+         aVCode.push_back(cPt2di(round_ni(aV.at(0)),round_ni(aV.at(1))));
 }
 
 /** show some static of run lenght on certain codinf scheme */

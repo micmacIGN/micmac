@@ -10,6 +10,60 @@ namespace MMVII
 {
 
 /* ******************************** */
+/*       cGetAdrInfoParam           */
+/* ******************************** */
+
+
+	/*
+template <class Type> cGetAdrInfoParam<Type>::cGetAdrInfoParam(const std::string & aPattern) :
+	mPattern  (AllocRegex(aPattern))
+{
+}
+*/
+
+template <class Type> cGetAdrInfoParam<Type>::cGetAdrInfoParam(const std::string & aPattern,cObjWithUnkowns<Type> & aObj) :
+      // cGetAdrInfoParam<Type>(aPattern)
+	mPattern  (AllocRegex(aPattern))
+{
+     std::vector<cObjWithUnkowns<Type> *>  aVObj = aObj.RecursGetAllUK() ;
+
+     for (auto  aPtr : aVObj)
+     {
+          aPtr->GetAdrInfoParam(*this);
+     }
+}
+
+template <class Type> void cGetAdrInfoParam<Type>::TestParam(tObjWUK * anObj,Type * anAdr,const std::string & aName)
+{
+    if (mPattern.Match(aName))
+    {
+       mVObjs.push_back(anObj);
+       mVNames.push_back(aName);
+       mVAdrs.push_back(anAdr);
+    }
+}
+
+template <class Type> const std::vector<std::string>  &   cGetAdrInfoParam<Type>::VNames() const { return mVNames; }
+template <class Type> const std::vector<Type*> &        cGetAdrInfoParam<Type>::VAdrs()  const {return mVAdrs;}
+template <class Type> const std::vector<cObjWithUnkowns<Type>*>& cGetAdrInfoParam<Type>::VObjs()  const {return mVObjs;}
+
+template <class Type> void cGetAdrInfoParam<Type>::ShowAllParam(cObjWithUnkowns<Type> & anObj)
+{
+    cGetAdrInfoParam aGAIP(".*",anObj);
+
+    StdOut() << "===============  Avalaible names =================\n";
+    for (const auto & aName  : aGAIP.VNames())
+        StdOut()  << "  -[ " << aName << "]\n";
+}
+
+template <class Type> void cGetAdrInfoParam<Type>::PatternSetToVal(const std::string & aPattern,tObjWUK & aObj,const Type & aVal)
+{
+    cGetAdrInfoParam<Type> aGAIP(aPattern,aObj);
+    for (auto & anAdr : aGAIP.mVAdrs)
+        *anAdr = aVal;
+}
+
+/* ******************************** */
 /*       cSetInterUK_MultipeObj     */
 /* ******************************** */
 
@@ -17,6 +71,32 @@ namespace MMVII
 template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns() 
 {
    Reset();
+}
+
+
+template <class Type> 
+     std::vector<cObjWithUnkowns<Type> *> cObjWithUnkowns<Type>::GetAllUK()
+{
+  return std::vector<tPtrOUK> {this};
+}
+
+template <class Type>
+     std::vector<cObjWithUnkowns<Type> *> cObjWithUnkowns<Type>::RecursGetAllUK()
+{
+   std::vector<cObjWithUnkowns<Type> *>  aRes = {this};
+
+   for (size_t aK0 = 0;  aK0<aRes.size() ; aK0++)
+   {
+       cObjWithUnkowns<Type> * aCur = aRes[aK0];
+       std::vector<cObjWithUnkowns<Type> *> aVecNew = aCur->GetAllUK();
+       for (const auto & aPtr : aVecNew)
+       {
+           if (aPtr != aCur)
+              aRes.push_back(aPtr);
+       }
+   }
+
+   return aRes;
 }
 
 template <class Type> cObjWithUnkowns<Type>::~cObjWithUnkowns() 
@@ -54,6 +134,12 @@ template <class Type> void cObjWithUnkowns<Type>::PushIndexes(std::vector<int> &
 template <class Type> size_t cObjWithUnkowns<Type>::IndOfVal(const Type * aVal) const
 {
     return mSetInterv->IndOfVal(*this,aVal);
+}
+
+template <class Type> 
+    void  cObjWithUnkowns<Type>::GetAdrInfoParam(cGetAdrInfoParam<Type> &) 
+{
+    MMVII_INTERNAL_ERROR("No default AdrParamFromPattern");
 }
 
 
@@ -103,6 +189,13 @@ template <class Type> void  cSetInterUK_MultipeObj<Type>::AddOneObj(cObjWithUnko
      anObj->PutUknowsInSetInterval(); // call the object for it to communicate its intervall 
 
      anObj->mIndUk1 = mNbUk ; // initialise  en of interval
+}
+
+template <class Type> void  cSetInterUK_MultipeObj<Type>::AddOneObjIfRequired(cObjWithUnkowns<Type> * anObj)
+{
+      if (anObj->mSetInterv!=nullptr) 
+         return;
+      AddOneObj(anObj);
 }
 
         //  ================= method for adding interval of unknowns ======================
@@ -180,7 +273,7 @@ template <class Type> size_t  cSetInterUK_MultipeObj<Type>::IndOfVal(const cObjW
     size_t aRes = anObj.mIndUk0;
     for (const auto & anInterv : aSI.mVInterv)
     {
-        if ((aVal>=anInterv.mVUk) || (aVal <(anInterv.mVUk+anInterv.mNb)) )
+        if ((aVal>=anInterv.mVUk) && (aVal <(anInterv.mVUk+anInterv.mNb)) )
 		return  aRes + (aVal-anInterv.mVUk);
 	aRes += anInterv.mNb;
     }
@@ -191,6 +284,9 @@ template <class Type> size_t  cSetInterUK_MultipeObj<Type>::IndOfVal(const cObjW
 }
 
 
+template class cGetAdrInfoParam<tREAL4>;
+template class cGetAdrInfoParam<tREAL8>;
+template class cGetAdrInfoParam<tREAL16>;
 
 template class cObjWithUnkowns<tREAL4>;
 template class cSetInterUK_MultipeObj<tREAL4>;

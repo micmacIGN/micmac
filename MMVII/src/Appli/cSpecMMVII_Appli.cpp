@@ -157,10 +157,12 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecDaisy);
         TheVecAll.push_back(&TheSpecCatVideo);
         TheVecAll.push_back(&TheSpecReduceVideo);
+        TheVecAll.push_back(&TheSpecTestGraphPart);
         TheVecAll.push_back(&TheSpec_TestEigen);
         TheVecAll.push_back(&TheSpec_ComputeParamIndexBinaire);
         TheVecAll.push_back(&TheSpecTestRecall);
         TheVecAll.push_back(&TheSpecScaleImage);
+        TheVecAll.push_back(&TheSpec_StackIm);
         TheVecAll.push_back(&TheSpecCalcDiscIm);
         TheVecAll.push_back(&TheSpecCalcDescPCar);
         TheVecAll.push_back(&TheSpecMatchTieP);
@@ -188,6 +190,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecGenMeshDev);
         TheVecAll.push_back(&TheSpecTestCovProp);
         TheVecAll.push_back(&TheSpec_OriConvV1V2);
+        TheVecAll.push_back(&TheSpec_OriUncalibSpaceResection);
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);
         TheVecAll.push_back(&TheSpecMeshImageDevlp);

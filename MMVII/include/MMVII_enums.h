@@ -36,9 +36,11 @@ enum class eTA2007
                 Radiom,        ///< Radiometry
                 MeshDev,       ///< Mesh Devlopment
                 Mask,          ///< Mask of image
+                PointsMeasure, ///< Measure of point , 2D or 3D
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
+		PatParamCalib, ///< It's a pattern for parameter of calibration
             // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
                 AddCom,        ///< Not an attribute, used to embed additionnal comment in Help mode
             // ---------- Not Printed -----------
@@ -49,6 +51,7 @@ enum class eTA2007
                 Tuning,        ///< Used for testing/tuning command but not targeted for user
                 HDV,           ///< Has Default Value, will be printed on help
                 ISizeV,        ///< Interval size vect, print on help
+		XmlOfTopTag,   ///< Parameter must be a XML-file containing certain tag
                 eNbVals        ///< Tag for number of value
            };
 
@@ -77,6 +80,7 @@ enum class eApDT
               Ori,    ///< Orientation
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
+              GCP,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files
               Radiom,   ///< Orientations files
@@ -141,6 +145,7 @@ enum class eTyUEr
               eCreateDir,
               eRemoveFile,
               eEmptyPattern,
+              eBadXmlTopTag,
               eBadFileSetName,
               eBadFileRelName,
               eOpenFile,

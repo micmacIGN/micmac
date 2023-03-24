@@ -4,6 +4,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "CodedTarget.h"
 #include "MMVII_Stringifier.h"
+#include "MMVII_MeasuresIm.h"
 
 namespace MMVII
 {
@@ -123,8 +124,9 @@ void cBitEncoding::AddOneEncoding(size_t aNum,size_t aCode)
      mEncodings.push_back(cOneEncoding(aNum,aCode));
 }
 
-void cBitEncoding::AddData(const  cAuxAr2007 & anAux)
+void cBitEncoding::AddData(const  cAuxAr2007 & anAuxParam)
 {
+    cAuxAr2007 anAux (cBitEncoding::TheMainTag,anAuxParam);
     mSpecs.AddData(cAuxAr2007("Specifs",anAux));
 
     // Used to add comments with string 01
@@ -147,6 +149,9 @@ void cBitEncoding::SetSpec(const cSpecBitEncoding& aSpecs)
 const cSpecBitEncoding & cBitEncoding::Specs() const {return mSpecs;}
 const std::vector<cOneEncoding> &  cBitEncoding::Encodings() const {return mEncodings;}
 std::vector<cOneEncoding> &  cBitEncoding::Encodings() {return mEncodings;}
+
+const std::string cBitEncoding::TheMainTag = "BitEncoding";
+
 
 /*  *********************************************************** */
 /*                                                              */
@@ -276,6 +281,44 @@ void cAppliGenerateEncoding::Show()
          StdOut() << StrOfBitFlag(aPC->mLowCode,mP2) << "\n";
 }
 
+/*
+void  Read
+NameCERNLookUpTable
+
+void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile)
+*/
+
+void MakeFile3DCern3DTargt(size_t aNBB,size_t aNbD)
+{
+    std::string aNameFileIn = cCompEquiCodes::NameCERNPannel(aNBB);
+    if (!ExistFile(aNameFileIn))
+       return;
+
+    cSetMesGCP aSetM("AICON-CERN-Pannel");
+    std::string aNameFileOut  = DirOfPath(aNameFileIn) + aSetM.StdNameFile();
+
+    if (ExistFile(aNameFileOut))
+       return;
+
+    std::vector<std::vector<double>> aVV;
+
+    ReadFilesNum("FFFFSSSFF",aVV,aNameFileIn);
+
+
+    for (const auto & aV : aVV)
+    {
+         cPt3dr aPt(aV.at(1),aV.at(2),aV.at(3));
+	 std::string aName = ToStr(round_ni(aV.at(0)),aNbD);
+	 aSetM.AddMeasure(cMes1GCP(aPt,aName,1.0));
+	 // StdOut() << "N=" << aName << " P=" << aPt << "\n";
+    }
+
+    aSetM.ToFile(aNameFileOut);
+
+    // StdOut()  << "AICON => " << aVV[0] << "......." << aVV.back() << "\n";
+}
+
+
 int  cAppliGenerateEncoding::Exe()
 {
    int Num000 = 0;
@@ -357,7 +400,7 @@ int  cAppliGenerateEncoding::Exe()
 
    if (mUseAiconCode)
    {
-       std::vector<cPt2di>  aVCode;
+       std::vector<cPt2di>  aVCode ;
        ReadCodesTarget(aVCode,cCompEquiCodes::NameCERNLookUpTable(mSpec.mNbBits));
 
        std::list<cCompEquiCodes::tAmbigPair>  aLamb = mCEC->AmbiguousCode(aVCode);
@@ -519,6 +562,10 @@ int  cAppliGenerateEncoding::Exe()
        SaveInFile(aBE,mNameOut);
    }
 
+   if (mUseAiconCode)
+   {
+       MakeFile3DCern3DTargt(mSpec.mNbBits,mSpec.mNbDigit);
+   }
 
    delete mCEC;
 

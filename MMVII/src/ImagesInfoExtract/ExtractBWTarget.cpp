@@ -33,16 +33,17 @@ int cParamBWTarget::NbMinPtsCC() const { return M_PI * Square(mMinDiam/2.0); }
 
 
 cParamBWTarget::cParamBWTarget() :
-    mFactDeriche (2.0),
-    mD0BW        (2),
-    mValMinW     (20), 
-    mValMaxB     (100),
-    mRatioMaxBW  (1/1.5),
-    mMinDiam     (15.0),
-    mMaxDiam     (100.0),
-    mPropFr      (0.95),
-    mNbMinFront  (10),
-    mInvGray     (false)
+    mFactDeriche    (2.0),
+    mD0BW           (2),
+    mValMinW        (20), 
+    mValMaxB        (100),
+    mRatioMaxBW     (1/1.5),
+    mMinDiam        (15.0),
+    mMaxDiam        (100.0),
+    mPropFr         (0.95),
+    mNbMinFront     (10),
+    mDistMinMaxLoc  (15.0),
+    mInvGray        (false)
 {
 }
 
@@ -193,7 +194,7 @@ void cExtract_BW_Target::ExtractAllSeed()
        }
  
        // 1.2 extract extremum
-       ExtractExtremum1(aDExtr,aRExtr,15.0);
+       ExtractExtremum1(aDExtr,aRExtr,mPBWT.mDistMinMaxLoc);  
     }
 
     /*  2 extract Extremal point */

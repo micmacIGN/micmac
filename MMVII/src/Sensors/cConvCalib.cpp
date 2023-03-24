@@ -1,9 +1,10 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_BundleAdj.h"
 
 /**
-   \file cConvCalib.cpp
+   \file cConvCalib.cpp  testgit
 
    \brief file for conversion between calibration (change format, change model) and tests
 */
@@ -17,90 +18,42 @@ static const std::string ThePatOriV1 = "Orientation-(.*)\\.xml";
 static std::string V1NameOri2NameImage(const std::string & aNameOri) {return ReplacePattern(ThePatOriV1,"$1",aNameOri);}
 
 
-/**  Class for otimizing a model of camera  using 3d-2d correspondance and bundle adjustment.  Typically these
- *   corresponance will be synthetic ones coming from another camera. It can be used in, two scenario :
- *
- *    -(1) primary test/bench  on functionnality to do BA
- *    -(2)
- *        (2.a)   conversion between calibration (format/model ...)
- *        (2.b)   comparison of calibrations (to come)
- *
- *    In first case we create artifcially difficult conditions (randomize the initial pose, let free the perspective center).
- *
- *    In the second case,  we use as much information we have : init with identity, and froze the position center
- *
- */
-
-class cCentralPerspConversion
-{
-    public :
-         typedef cIsometry3D<tREAL8>   tPose;
-         cCentralPerspConversion
-         (
-              cPerspCamIntrCalib * ,
-              const cSet2D3D &,
-              const tPose & aPoseInit = tPose::Identity(),
-              bool    HardConstrOnGCP=true , // do we fix GCP,  false make sense in test mode
-              bool    CenterFix=true        // do we fix centre of projection,  false make sense in test mode
-         );
-         ~cCentralPerspConversion();
-
-         static cCentralPerspConversion *  AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix);
-         static cPerspCamIntrCalib *       AllocCalibV1(const std::string & aFullName);
-         static cSensorCamPC *             AllocSensorPCV1(const std::string& aNameIm,const std::string & aFullName);
-
-         void OneIteration();
+/* ************************************************************* */
+/*                                                               */
+/*                       cCorresp32_BA                           */
+/*                                                               */
+/* ************************************************************* */
 
 
-         const cSet2D3D  & SetCorresp() const {return   mSetCorresp;}
-
-         const cSensorCamPC  &       CamPC() const {return mCamPC;}
-         cPerspCamIntrCalib *    Calib() {return mCalib;}
-
-    private :
-         tPose                              mPoseInit; ///<  Initial value of pose
-	 // When using conversion for real application, these two variable will be set to true, because we have no interest to hide
-	 // information. BTW in bench mode, we put the system in more difficult condition, to check that we all the same
-	 // get to the good solution (but a litlle slower)
-         bool                               mFGC; // HardConstrOnGCP if true the 3d point are frozen
-         bool                               mCFix; // Center Fix : if true center of rotation is frozen
-
-         cPerspCamIntrCalib *               mCalib;  ///<  internal calibration we want to estimate
-         cSensorCamPC                       mCamPC;  ///<  Pose : rotation will be unknown (because link rotation/calib)
-         cSet2D3D                           mSetCorresp;  ///<  Set of 2D-3D correspondance
-         int                                mSzBuf;   ///<  Sz Buf for calculator
-         cCalculator<double> *              mEqColinearity;  ///< Colinearity equation 
-         cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
-         cResolSysNonLinear<double> *       mSys;   ///< Solver
-};
-
-     // ==============  constructor & destructor ================
-
-cCentralPerspConversion::cCentralPerspConversion
+cCorresp32_BA::cCorresp32_BA
 (
-     cPerspCamIntrCalib *    aCalib,
-     const cSet2D3D &        aSetCorresp,
-     const tPose &           aPoseInit ,
-     bool                    HardConstrOnGCP,
-     bool                    CenterFix
+     cSensorImage       *    aSensor,
+     const cSet2D3D &        aSetCorresp
 ) :
-    mPoseInit      (aPoseInit),
-    mFGC           (HardConstrOnGCP),
-    mCFix          (CenterFix),
-    mCalib         (aCalib),
-    mCamPC         ("NONE",mPoseInit,mCalib),
+    mSensor        (aSensor),
+    mFGC           (true),  // By default we dont optimize position
+    mCFix          (false), // By default we use fix point for GCP (contrary only interesting 4 bench)
     mSetCorresp    (aSetCorresp),
     mSzBuf         (100),
-    mEqColinearity (mCalib->EqColinearity(true,mSzBuf))
+    mEqColinearity (mSensor->EqColinearity(true,mSzBuf))
 {
-    mSetInterv.AddOneObj(&mCamPC); // #DOC-AddOneObj
-    mSetInterv.AddOneObj(mCalib);  // #DOC-AddOneObj
+
+    for (auto & anObj : mSensor->GetAllUK())
+        mSetInterv.AddOneObj(anObj); // #DOC-AddOneObj
+    //   mSetInterv.AddOneObj(m CamPC); // #DOC-AddOneObj
+    //   mSetInterv.AddOneObj(m Calib);  // #DOC-AddOneObj
 
     cDenseVect<double> aVUk = mSetInterv.GetVUnKnowns();  // #DOC-GetVUnKnowns
     mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,aVUk);
 }
 
-cCentralPerspConversion::~cCentralPerspConversion()
+void cCorresp32_BA::SetFrozenVar(const std::string & aPat)
+{
+    mSys->UnfrozeAll();
+    mSys->SetFrozenFromPat(*mSensor,aPat,true);
+}
+
+cCorresp32_BA::~cCorresp32_BA()
 {
     delete mEqColinearity;
     delete mSys;
@@ -108,23 +61,30 @@ cCentralPerspConversion::~cCentralPerspConversion()
 
      // ==============   Iteration to  ================
 
-void cCentralPerspConversion::OneIteration()
+void cCorresp32_BA::OneIteration()
 {
+     //PushErrorEigenErrorLevel(eLevelCheck::Warning);  // still the same problem with eigen excessive error policy ...
+
      if (mCFix)
      {
-        mSys->SetFrozenVar(mCamPC,mCamPC.Center()); //  #DOC-FixVar
+        //The fix center will apply only with Perspective central camera
+        const cPt3dr * aC = mSensor->CenterOfPC();
+	if (aC)
+           mSys->SetFrozenVar(*mSensor,*aC); //  #DOC-FixVar
      }
      //  Three temporary unknowns for x-y-z of the 3d point
      std::vector<int> aVIndGround{-1,-2,-3};
 
      // Fill indexe Glob in the same order as in cEqColinearityCamPPC::VNamesUnknowns()
      std::vector<int> aVIndGlob = aVIndGround;
-     mCamPC.PushIndexes(aVIndGlob);  // #DOC-PushIndex
-     mCalib->PushIndexes(aVIndGlob); // #DOC-PushIndex
+     // m CamPC->PushIndexes(aVIndGlob); // #DOC-PushIndex
+     // m Calib->PushIndexes(aVIndGlob); // #DOC-PushIndex
+     for (auto & anObj : mSensor->GetAllUK())
+        anObj->PushIndexes(aVIndGlob); // #DOC-PushIndex
 
      for (const auto & aCorresp : mSetCorresp.Pairs())
      {
-         // structure for points substistion, in mode test, 
+         // structure for points substistion, in mode test they are free
          cSetIORSNL_SameTmp<tREAL8>   aStrSubst
                                       (
                                          aCorresp.mP3.ToStdVector() , // we have 3 temporary unknowns with initial value
@@ -140,7 +100,9 @@ void cCentralPerspConversion::OneIteration()
 
          // "observation" of equation  : PTIm (real obs) + Cur-Rotation (Rot = Axiator*CurRot : to avoid guimbal-lock)
          std::vector<double> aVObs = aCorresp.mP2.ToStdVector(); //  Add X-Im, Y-Im in obs
-         mCamPC.Pose().Rot().Mat().PushByCol(aVObs);  // Add all matrix coeff og current rot
+
+
+	 mSensor->PushOwnObsColinearity(aVObs); // For PC cam dd all matrix coeff og current rot
 
          mSys->AddEq2Subst(aStrSubst,mEqColinearity,aVIndGlob,aVObs);
          mSys->AddObsWithTmpUK(aStrSubst);
@@ -148,18 +110,82 @@ void cCentralPerspConversion::OneIteration()
 
      const auto & aVectSol = mSys->SolveUpdateReset();
      mSetInterv.SetVUnKnowns(aVectSol);  // #DOC-SetUnknown
+
+     // PopErrorEigenErrorLevel();
+}
+
+
+/* ************************************************************* */
+/*                                                               */
+/*                       cV1PCConverter                          */
+/*                                                               */
+/* ************************************************************* */
+
+class cV1PCConverter : public cCorresp32_BA
+{
+    public :
+         typedef cIsometry3D<tREAL8>   tPose;
+	 /** Take as input the name xml-v1 internal calib and create Calib+Pos+Set , return then 
+	    the cV1PCConverter  used in bench & command 4 convert */
+         static cV1PCConverter *  AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix);
+
+	 /** Alloc a calib from name : create  the converter ,do the iteration, if already created return same object */
+         static cPerspCamIntrCalib *       AllocCalibV1(const std::string & aFullName);
+
+	 /** */
+         static cSensorCamPC *             AllocSensorPCV1(const std::string& aNameIm,const std::string & aFullName);
+
+         const cSensorCamPC  &       CamPC() const {return *mCamPC;}
+         cPerspCamIntrCalib *    Calib() {return mCamPC->InternalCalib();}
+
+	 ~cV1PCConverter();
+    protected :
+         cV1PCConverter
+         (
+	      cSensorCamPC *,
+              const cSet2D3D &,
+              bool    HardConstrOnGCP=true , // do we fix GCP,  false make sense in test mode
+              bool    CenterFix=true        // do we fix centre of projection,  false make sense in test mode
+         );
+	 cSensorCamPC       *               mCamPC;
+
+};
+
+
+cV1PCConverter::~cV1PCConverter()
+{
+      mSetInterv.Reset();
+      delete mCamPC;
+}
+
+
+     // ==============  constructor & destructor ================
+
+cV1PCConverter::cV1PCConverter
+(
+     cSensorCamPC *          aCamPC,
+     const cSet2D3D &        aSetCorresp,
+     bool                    HardConstrOnGCP,
+     bool                    CenterFix
+) :
+     cCorresp32_BA   (aCamPC,aSetCorresp),
+     mCamPC          (aCamPC)
+{
+	mFGC = HardConstrOnGCP;
+	mCFix = CenterFix;
 }
 
 
      // ==============  conversion for V1 ================
 
-cCentralPerspConversion *  cCentralPerspConversion::AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix)
+cV1PCConverter *  cV1PCConverter::AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix)
 {
+     //  [1]   ==========   Raw-read the parameters from V1 ================
      bool  isForTest = (!HCG) ||  (! CenterFix);
      cExportV1StenopeCalInterne  aExp(true,aFullName,15);
-
      cIsometry3D<tREAL8>   aPose0 = cIsometry3D<tREAL8>::Identity();
-     // in mode test perturbate internal et external parameters
+
+     // [2] ============  in mode test perturbate internal et external parameters =================
      if (isForTest)
      {
          aExp.mFoc *=  (1.0 + 0.05*RandUnif_C());
@@ -171,43 +197,51 @@ cCentralPerspConversion *  cCentralPerspConversion::AllocV1Converter(const std::
                          );
      }
 
+     // [3]   ============= 
+        // aFullName = ".../Ori-MMV1/AutoCal_Foc-60000_Cam-NIKON_D810.xml"   =>  "Foc-60000_Cam-NIKON_D810" = aNameCam
      std::string aNameCam = LastPrefix(FileOfPath(aFullName,false));
      aNameCam =  ReplacePattern("AutoCal_(.*)","$1",aNameCam);
+     
+        //  Data part for  internal calibration w/o distorsion
      cDataPerspCamIntrCalib aDataCalib(cPerspCamIntrCalib::PrefixName() +aNameCam,aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
-     aDataCalib.PushInformation("Converted from MMV1");
-     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::Alloc(aDataCalib);
+     aDataCalib.PushInformation("Converted from MMV1");  // just for info
+     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::Alloc(aDataCalib); // the calib itself
 
-     return new cCentralPerspConversion(aCalib,aExp.mCorresp,aPose0,HCG,CenterFix);
+     cSensorCamPC * aCamPC = new cSensorCamPC("NONE",aPose0,aCalib);
+     return new cV1PCConverter(aCamPC,aExp.mCorresp,HCG,CenterFix); // We have Calib+Pose+corresp : go
 }
 
-cPerspCamIntrCalib * cCentralPerspConversion::AllocCalibV1(const std::string & aFullName)
+cPerspCamIntrCalib * cV1PCConverter::AllocCalibV1(const std::string & aFullName)
 { 
+     // If object already created
      static std::map<std::string,cPerspCamIntrCalib *> TheMap;
      cPerspCamIntrCalib * & aPersp = TheMap[aFullName];
 
      if (aPersp==0)
      {
-         cCentralPerspConversion * aConvertor = cCentralPerspConversion::AllocV1Converter(aFullName,true,true);
-
+         // Create the converter
+         cV1PCConverter * aConvertor = cV1PCConverter::AllocV1Converter(aFullName,true,true);
+	 // make the bundle adjustment
          for (int aK=0 ; aK<10 ; aK++)
          {
             aConvertor->OneIteration();
          }
 
          aPersp = aConvertor->Calib();
-	 cMMVII_Appli::AddObj2DelAtEnd(aPersp);
-	 delete aConvertor;
+	 cMMVII_Appli::AddObj2DelAtEnd(aPersp); // deletion will be done at end
+	 delete aConvertor;  // delete the convertor that was created for this task
      }
 
      return aPersp;
 }
 
-cSensorCamPC * cCentralPerspConversion::AllocSensorPCV1(const std::string & aNameIm,const std::string & aFullName)
+
+cSensorCamPC * cV1PCConverter::AllocSensorPCV1(const std::string & aNameIm,const std::string & aFullName)
 {
      cExportV1StenopeCalInterne  aExp(false,aFullName,0); // Alloc w/o  3d-2d correspondance
 
      std::string aNameCal = DirOfPath(aFullName,false) + FileOfPath(aExp.mNameCalib,false);
-     cPerspCamIntrCalib * aCalib =  cCentralPerspConversion::AllocCalibV1(aNameCal);
+     cPerspCamIntrCalib * aCalib =  cV1PCConverter::AllocCalibV1(aNameCal);
 
      return new cSensorCamPC(aNameIm,aExp.mPose,aCalib);
 }
@@ -229,7 +263,7 @@ static int aCpt=0; aCpt++;
      std::string aFullName = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ori-MMV1" +  StringDirSeparator() + aName;
 
 
-     cCentralPerspConversion * aConv =   cCentralPerspConversion::AllocV1Converter(aFullName,HCG,CenterFix);
+     cV1PCConverter * aConv =   cV1PCConverter::AllocV1Converter(aFullName,HCG,CenterFix);
 
      const cSensorCamPC  &       aCamPC =  aConv->CamPC() ;
      cPerspCamIntrCalib *        aCalib =  aConv->Calib() ;
@@ -238,7 +272,7 @@ static int aCpt=0; aCpt++;
      for (int aK=0 ; aK<20 ; aK++)
      {
         aConv->OneIteration();
-        aResidual  = aCamPC.AvgResidual(aConv->SetCorresp());
+        aResidual  = aCamPC.AvgSqResidual(aConv->SetCorresp());
 
         if (aResidual<aAccuracy)
         {
@@ -248,7 +282,7 @@ static int aCpt=0; aCpt++;
 
 	    cPerspCamIntrCalib *  aCam2 = cPerspCamIntrCalib::FromFile(aNameTmp);
             cSensorCamPC          aSensor2 ("NONE",aConv->CamPC().Pose(),aCam2) ;
-	    double aR2 = aSensor2.AvgResidual(aConv->SetCorresp());
+	    double aR2 = aSensor2.AvgSqResidual(aConv->SetCorresp());
            
 	    //  Accuracy must be as good as initial camera, but small diff possible due to string conv
             MMVII_INTERNAL_ASSERT_bench(aR2< aAccuracy+1e-5  ,"Reload camera  xml");
@@ -274,8 +308,8 @@ void BenchPoseImportV1(const std::string & aNameOriV1,double anAccuracy)
      // AllocSensorPCV1
 
      cExportV1StenopeCalInterne  aExp(false,aFullName,10); 
-     cSensorCamPC  *aPC  =  cCentralPerspConversion::AllocSensorPCV1(V1NameOri2NameImage(aNameOriV1),aFullName);
-     double aResidual  =  aPC->AvgResidual(aExp.mCorresp);
+     cSensorCamPC  *aPC  =  cV1PCConverter::AllocSensorPCV1(V1NameOri2NameImage(aNameOriV1),aFullName);
+     double aResidual  =  aPC->AvgSqResidual(aExp.mCorresp);
 
 
      for (const auto & aCorresp : aExp.mCorresp.Pairs())
@@ -295,7 +329,7 @@ void BenchPoseImportV1(const std::string & aNameOriV1,double anAccuracy)
 
 
      cSensorCamPC  *aPC2  =  cSensorCamPC::FromFile(aNameTmp);
-     double aR2 = aPC2->AvgResidual(aExp.mCorresp) ;
+     double aR2 = aPC2->AvgSqResidual(aExp.mCorresp) ;
      MMVII_INTERNAL_ASSERT_bench(aR2<anAccuracy ,"No Conv in Reimport cam");
 
 
@@ -375,7 +409,7 @@ int cAppli_OriConvV1V2::Exe()
     for (const auto & aNameOri : aListOriV1)
     {
         std::string aNameIm = V1NameOri2NameImage(aNameOri); // ReplacePattern(ThePatOriV1,"$1",aName);
-        cSensorCamPC * aPC =  cCentralPerspConversion::AllocSensorPCV1(aNameIm,mDirMMV1+aNameOri);
+        cSensorCamPC * aPC =  cV1PCConverter::AllocSensorPCV1(aNameIm,mDirMMV1+aNameOri);
 
 	mPhProj.SaveCamPC(*aPC);
 

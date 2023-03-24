@@ -240,7 +240,23 @@ class  cSensorCamPC;
 class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
 class  cPerspCamIntrCalib;
-class  cMedaDataImage;
+class  cMetaDataImage;
+
+// MMVII_MeasuresIm.h
+
+struct cPair2D3D;
+struct cSet2D3D;
+class cMesIm1Pt;
+class cSetMesPtOf1Im;
+
+class cMesIm1Pt;
+class cSetMesPtOf1Im;
+class cMes1GCP;
+class cSetMesGCP;
+
+class cMultipleImPt;
+class cSetMesImGCP;
+
 
 // MMVII_Radiom.h
 class cImageRadiomData;  ///< store data used for radiometric equalisation

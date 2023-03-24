@@ -24,6 +24,7 @@ extern cSpecMMVII_Appli  TheSpec_TestEigen;
 extern cSpecMMVII_Appli  TheSpec_ComputeParamIndexBinaire;
 extern cSpecMMVII_Appli  TheSpecTestRecall;
 extern cSpecMMVII_Appli  TheSpecScaleImage;
+extern cSpecMMVII_Appli  TheSpec_StackIm;
 extern cSpecMMVII_Appli  TheSpecCalcDiscIm;
 extern cSpecMMVII_Appli  TheSpecCalcDescPCar;
 extern cSpecMMVII_Appli  TheSpecMatchTieP;
@@ -50,12 +51,14 @@ extern cSpecMMVII_Appli  TheSpecMeshDev;
 extern cSpecMMVII_Appli  TheSpecGenMeshDev; 
 extern cSpecMMVII_Appli  TheSpecTestCovProp; 
 extern cSpecMMVII_Appli  TheSpec_OriConvV1V2; 
+extern cSpecMMVII_Appli  TheSpec_OriUncalibSpaceResection; 
 extern cSpecMMVII_Appli  TheSpecMeshCheck; 
 extern cSpecMMVII_Appli  TheSpecProMeshImage; 
 extern cSpecMMVII_Appli  TheSpecMeshImageDevlp; 
 extern cSpecMMVII_Appli  TheSpecRadiom2ImageSameMod; 
 extern cSpecMMVII_Appli  TheSpecTopoComp;
 extern cSpecMMVII_Appli  TheSpecGenerateEncoding;
+extern cSpecMMVII_Appli  TheSpecTestGraphPart;
 
 
 };

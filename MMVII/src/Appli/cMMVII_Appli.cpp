@@ -652,6 +652,20 @@ void cMMVII_Appli::InitParam()
       {
          aVSpec[aK]->CheckSize(aSpecSize);  // Then test it
       }
+
+
+      std::string aNameTag;
+      if (aVSpec[aK]->HasType(eTA2007::XmlOfTopTag,&aNameTag))
+      {
+         if (!IsFileXmlOfGivenTag(true,aVValues[aK],aNameTag))
+	 {
+	       MMVII_UsersErrror(eTyUEr::eBadXmlTopTag,"[" + aVValues[aK] + "] is not an existing xml file of main tag <" + aNameTag + ">");
+			      // IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
+	 }
+	 //        MMVII_UsersErrror(eTyUEr::eBadSize4Vect,"IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
+         // aVSpec[aK]->CheckSize(aSpecSize);  // Then test it
+      }
+      // XmlOfTag,
   }
 
   // Analyse the possible main patterns

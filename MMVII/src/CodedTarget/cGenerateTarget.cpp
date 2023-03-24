@@ -51,6 +51,9 @@ void TestReloadAndShow_cFullSpecifTarget(const std::string & aName,int aZoom)
 
 void Bench_Target_Encoding()
 {
+    MMVII_DEV_WARNING("NO Bench_Target_Encoding");
+    return;
+
     // -1-  Create the spec
     std::string aName =  cMMVII_Appli::InputDirTestMMVII()
 	                 + "Targets" +  StringDirSeparator()  + "IGNIndoor_Nbb12_Freq2_Hamm3_Run2_3_FullSpecif.xml";
@@ -102,8 +105,10 @@ std::string  cParamCodedTarget::NameOfBinCode(int aNum) const
 }
 
 
-void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
+void cParamCodedTarget::AddData(const cAuxAr2007 & anAuxParam)
 {
+    cAuxAr2007  anAux(TheMainTag,anAuxParam);
+
     MMVII::EnumAddData(anAux,mType,"Type");
     MMVII::AddData(cAuxAr2007("NbBits",anAux),mNbBit);
     //  MMVII::AddData(cAuxAr2007("SzF",anAux),mSzF);
@@ -131,6 +136,8 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
      if (anAux.Input())
 	Finish();
 }
+
+const std::string cParamCodedTarget::TheMainTag = "GeometryCodedTarget";
 
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
 {
@@ -857,10 +864,15 @@ std::string cFullSpecifTarget::NameOfEncode(const cOneEncoding & anEncode) const
     return   Prefix()  +  "_Target_"+  anEncode.Name() +   ".tif";
 }
 
-void cFullSpecifTarget::AddData(const  cAuxAr2007 & anAux)
+
+const std::string cFullSpecifTarget::TheMainTag = "FullSpecifTarget";
+
+void cFullSpecifTarget::AddData(const  cAuxAr2007 & anAuxParam)
 {
-     mBE.AddData(cAuxAr2007("BitEncoding",anAux));
-     mRender.AddData(cAuxAr2007("Geometry",anAux));
+     cAuxAr2007 anAux(TheMainTag,anAuxParam);
+
+     mBE.AddData(anAux);
+     mRender.AddData(anAux);
      StdContAddData(cAuxAr2007("Centers",anAux),mBitsCenters);
 }
 
@@ -960,7 +972,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
  return
       anArgObl
-          <<   Arg2007(mNameBE,"XML name for bit encoding struct")
+          <<   Arg2007(mNameBE,"XML name for bit encoding struct",{{eTA2007::XmlOfTopTag,cBitEncoding::TheMainTag}})
    ;
 }
 

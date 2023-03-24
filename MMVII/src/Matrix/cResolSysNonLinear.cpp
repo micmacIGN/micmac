@@ -291,6 +291,26 @@ template <class Type> void  cResolSysNonLinear<Type>::SetFrozenAllCurrentValues(
          SetFrozenVarCurVal(aK);
 }
 
+template <class Type> 
+    void  cResolSysNonLinear<Type>::SetFrozenFromPat(tObjWUk & anObjGlob,const std::string& aPat, bool Frozen)
+{
+      cGetAdrInfoParam<Type> aGIAP(aPat,anObjGlob);
+      for (size_t aK=0 ;aK<aGIAP.VAdrs().size() ; aK++)
+      {
+          Type * anAdr =aGIAP.VAdrs()[aK];
+	  tObjWUk * anObjPtr  = aGIAP.VObjs()[aK];
+	  //  StdOut() << "Aaaa " << *anAdr << " NN=" << aGIAP.VNames() [aK] << " " << anObjPtr->IndOfVal(anAdr) << "\n";
+          if (Frozen)
+	  {
+             SetFrozenVar(*anObjPtr,*anAdr);
+	  }
+	  else
+	  {
+             SetUnFrozenVar(*anObjPtr,*anAdr);
+	  }
+      }
+}
+
 /*
            void  SetFrozenVar(tObjWUk & anObj,tStdVect &);  ///< indicate it var must be frozen /unfrozen
            void  SetFrozenVar(tObjWUk & anObj,cPtxd<Type,3> &);  ///< indicate it var must be frozen /unfrozen
@@ -301,6 +321,11 @@ template <class Type> void cResolSysNonLinear<Type>::SetUnFrozen(int aK)
 {
     AssertNotInEquation();
     mVarIsFrozen.at(aK) = false;
+}
+
+template <class Type> void cResolSysNonLinear<Type>::SetUnFrozenVar(tObjWUk & anObj,const  Type & aVal)
+{
+       SetUnFrozen(anObj.IndOfVal(&aVal));
 }
 
 template <class Type> void cResolSysNonLinear<Type>::UnfrozeAll()

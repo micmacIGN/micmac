@@ -18,6 +18,7 @@ template <class Type> class  cLeasSqtAA ;
 template <class Type> class  cBufSchurSubst;
 template <class Type> class  cSetIORSNL_SameTmp;
 template <class Type> class cResidualWeighter;
+// template <class Type> class cObjOfMultipleObjUk;
 template <class Type> class cObjWithUnkowns;
 template <class Type> class cSetInterUK_MultipeObj;
 
@@ -98,11 +99,15 @@ template <class Type> class cResolSysNonLinear
 	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,2> & aPt);  ///< Froze aPt that must belong to anObj
 	   void  SetFrozenAllCurrentValues(tObjWUk & anObj);  ///< Froze all the value beloning to an anObj
 
+	   void  SetFrozenFromPat(tObjWUk & anObj,const std::string& , bool Frozen);  ///< Froze all the value beloning to an anObj
+
            void AddObservationLinear(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)  ;
            void AddObservationLinear(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) ;
 
 
 	   void  SetUnFrozen(int aK);  ///< indicate it var must be frozen /unfrozen
+	   void  SetUnFrozenVar(tObjWUk & anObj,const  Type & aVal); ///< Unfreeze the value, that must belong to anObj
+
 	   void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
 	   bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
 	   int   CountFreeVariables() const;          ///< number of free variables
@@ -462,7 +467,7 @@ template <class Type> class cObjWithUnkowns;
 
 /*  Typical scenario
  
-     //  for object having unknowns, make them inherit of cObjWithUnkowns, describe behaviour with PutUknowsInSetInterval
+     //  for object having unknowns, make them inherit of cObjWithUnkowns, describe behaviour with P-utUknowsInSetInterval
      class  cObj: public cObjWithUnkowns
      {
 	  double mUK1[4];  // first set of unknowns
@@ -471,7 +476,7 @@ template <class Type> class cObjWithUnkowns;
        
 	   ...  do stuff specific to cObj ...
 
-          void PutUknowsInSetInterval() override 
+          void P-utUknowsInSetInterval() override 
 	  {
 	       mSetInterv->AddOneInterv(mUK1,4);
 	       mSetInterv->AddOneInterv(mUK2,7);
@@ -481,7 +486,7 @@ template <class Type> class cObjWithUnkowns;
      {
         cObj aO1,aO2;
         cSetInterUK_MultipeObj<Type>  aSet;    //  create the object
-        aSet.AddOneObj(aO1); // in this call aSet will call O1->PutUknowsInSetInterval()
+        aSet.AddOneObj(aO1); // in this call aSet will call O1->P-utUknowsInSetInterval()
         aSet.AddOneObj(aO2);
 
 	// create a sys with the vector of all unkwnon
@@ -529,6 +534,8 @@ template <class Type> class cSetInterUK_MultipeObj
 
 	   /// This method is used to add the unknowns of one object
            void  AddOneObj(cObjWithUnkowns<Type> *);
+	   /// Test if object already added to avoid error
+           void  AddOneObjIfRequired(cObjWithUnkowns<Type> *);
 
 	   ///  return a DenseVect filled with all unknowns  as expected to create a cResolSysNonLinear
            cDenseVect<Type>  GetVUnKnowns() const;
@@ -543,9 +550,9 @@ template <class Type> class cSetInterUK_MultipeObj
            void AddOneInterv(std::vector<Type> & aV) ;  ///<  call previous with a vector
            void AddOneInterv(cPtxd<Type,2> &);          ///<  call previous wih a point
            void AddOneInterv(cPtxd<Type,3> &);          ///<  call previous wih a point
-        private :
 
 	   void Reset();  /// Maybe private later, now used for tricky destruction order
+        private :
 
 	   size_t IndOfVal(const cObjWithUnkowns<Type>&,const Type *) const;
 
@@ -557,11 +564,53 @@ template <class Type> class cSetInterUK_MultipeObj
            size_t                                    mNbUk;
 };
 
-template <class Type> class cObjWithUnkowns
+/** Some object can be made of several object with uknowns, like PC Cam that are made of Pose+IntrCal */
+
+/*
+template <class Type> class cObjOfMultipleObjUk
+{
+     public :
+        typedef cObjWithUnkowns<Type> * tPtrOUK;
+
+        virtual  std::vector<tPtrOUK>  GetAllUK() =0;
+};
+*/
+
+template <class Type> class cGetAdrInfoParam
+{
+    public :
+	typedef cObjWithUnkowns<Type> tObjWUK;
+
+        //  cGetAdrInfoParam(const std::string & aPattern);
+	cGetAdrInfoParam(const std::string & aPattern,tObjWUK & aObj);
+
+	static void PatternSetToVal(const std::string & aPattern,tObjWUK & aObj,const Type & aVal);
+
+        void TestParam(tObjWUK*,Type *,const std::string &);
+
+	const std::vector<Type*>  &      VAdrs()  const;
+	const std::vector<std::string> & VNames() const;
+	const std::vector<tObjWUK*> &    VObjs() const;
+
+	static void ShowAllParam(tObjWUK &);
+     private :
+
+	tNameSelector  mPattern;
+	std::vector<tObjWUK*>      mVObjs;
+	std::vector<Type*>         mVAdrs;
+	std::vector<std::string>   mVNames;
+};
+
+template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Type>
 {
        public :
           friend class cSetInterUK_MultipeObj<Type>;
+          typedef cObjWithUnkowns<Type> * tPtrOUK;
 
+	  /// Un object may contain other object, defautl behavior return the vector containing itself
+          virtual std::vector<tPtrOUK>  GetAllUK() ;
+	  /// Rare case where there is a chain
+          std::vector<tPtrOUK>  RecursGetAllUK() ;
 	  /// defautl constructor, put non init in all vars
           cObjWithUnkowns();
 	  ///  check that object is no longer referenced when destroyd
@@ -569,6 +618,10 @@ template <class Type> class cObjWithUnkowns
 	  
           /// Fundamental methos :  the object put it sets on unknowns intervals  in the glob struct
           virtual void PutUknowsInSetInterval() = 0;
+
+	  ///  Default generate error 4 now
+	  virtual  void  GetAdrInfoParam(cGetAdrInfoParam<Type> &);
+
 
           /// This callbak method is called after update, used when modification of linear var is not enough (see cSensorCamPC)
           virtual void OnUpdate();

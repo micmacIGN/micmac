@@ -328,6 +328,55 @@ template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>:
     return mSVW / mSW;
 }
 
+/* *************************************** */
+/*                                         */
+/*        cRobustAvg                       */
+/*                                         */
+/* *************************************** */
+
+cRobustAvg::cRobustAvg(tREAL8 aSigma)  :
+     mSigma (aSigma),
+     mS2    (Square(mSigma))
+{
+}
+
+void  cRobustAvg::Add(tREAL8 aVal) 
+{
+     tREAL8 aWeight =  mS2  / std::sqrt(mS2+Square(aVal));
+     mAvg.Add(   aWeight   , aVal);
+}
+
+tREAL8 cRobustAvg::Average() const {return mAvg.Average();}
+
+
+/* *************************************** */
+/*                                         */
+/*        cRobustAvgOfProp                 */
+/*                                         */
+/* *************************************** */
+
+cRobustAvgOfProp::cRobustAvgOfProp() { }
+
+void cRobustAvgOfProp::Add(tREAL8 aVal)
+{
+	mVals.push_back(aVal);
+}
+
+tREAL8 cRobustAvgOfProp::Average(tREAL8 aProp) const
+{
+      std::vector<double> aVAbs;
+      for (const auto  & aV : mVals)
+          aVAbs.push_back(std::abs(aV));
+
+      tREAL8 aSigma = NC_KthVal(aVAbs,aProp);
+
+      cRobustAvg  aAvg(aSigma);
+      for (const auto  & aV : mVals)
+	      aAvg.Add(aV);
+
+      return aAvg.Average();
+}
+
 
 
 /* *********************************************** */

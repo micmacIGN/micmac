@@ -13,7 +13,6 @@ double NC_KthVal(std::vector<double> &, double aProportion);
 double Cst_KthVal(const std::vector<double> &, double aProportion);
 double Average(const std::vector<double> &);
 
-
 // some time needs a null val for any type with + (neutral for +)
 
 template <class T> class cNV
@@ -877,6 +876,7 @@ class cCompEquiCodes : public cMemCheck
        typedef std::pair<cCelCC*,std::vector<cPt2di> > tAmbigPair;  // to represent possible ambiguity
 
        static std::string NameCERNLookUpTable(size_t aNbBits); ///< name of file where are stored CERN'S   LUT
+       static std::string NameCERNPannel(size_t aNbBits); ///< name of file where are stored CERN'S   3D target
        ///  allocate & compute code , return the same adress if param eq
        static cCompEquiCodes * Alloc(size_t aNbBits,size_t aPerAmbig=1,bool WithMirror=false);
 
@@ -892,6 +892,7 @@ class cCompEquiCodes : public cMemCheck
        static void Bench(size_t aNBB,size_t aPer,bool Miror);
 
    private :
+       static std::string NameCERStuff(const std::string & aPrefix,size_t aNbBits); ///< name of file where are stored CERN'S   3D target
 
        cCompEquiCodes(size_t aNbBits,size_t aPerdAmbig,bool WithMirror);
        /// put all the code identic, up to a circular permutation, in the same cellu
@@ -980,6 +981,9 @@ template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>&
 
 // Rank of values
 template <class TCont,class TVal> double Rank(const TCont &, const TVal&);
+
+/// Lox level read of file containing nums in fixed format   F->double   S->string (skipped)
+void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile);
 
 
 };
