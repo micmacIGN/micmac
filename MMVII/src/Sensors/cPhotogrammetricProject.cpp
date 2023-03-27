@@ -80,7 +80,7 @@ void cDirsPhProj::Finish()
     mFullDirOut = mAppli.DirProject() + mDirLocOfMode + mDirOut + StringDirSeparator();
 
     // Create output directory if needed
-    if (mAppli.IsInSpec(&mDirOut))
+    if ((mAppli.IsInSpec(&mDirOut)) || (mAppli.IsInit(&mDirOut)))
     {
         CreateDirectories(mFullDirOut,true);
 	if (mPurgeOut)
@@ -202,7 +202,9 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPRadiom         (eTA2007::Radiom,*this),
     mDPMeshDev        (eTA2007::MeshDev,*this),
     mDPMask           (eTA2007::Mask,*this),
-    mDPPointsMeasures (eTA2007::PointsMeasure,*this)
+    mDPPointsMeasures (eTA2007::PointsMeasure,*this),
+    mDPMetaData       (eTA2007::MetaData,*this),
+    mGlobCalcMTD      (nullptr)
 {
 }
 
@@ -216,12 +218,30 @@ void cPhotogrammetricProject::FinishInit()
     mDPMeshDev.Finish();
     mDPMask.Finish();
     mDPPointsMeasures.Finish();
+
+    // Force the creation of directory for metadata spec, make 
+    if (! mDPMetaData.DirOutIsInit())
+    {
+        mDPMetaData.ArgDirOutOptWithDef("Std","","");
+    }
+    //  Make Std as default value for input 
+    if (! mDPMetaData.DirInIsInit())
+	mDPMetaData.SetDirIn("Std");
+
+    mDPMetaData.Finish();
+    // Create an example file  if none exist
+    GenerateSampleCalcMTD();
+
+    // StdOut() << "MTD=" <<   mDPMetaData.FullDirOut() << "\n"; 
+    // StdOut() << "MTD=" <<   mDPMetaData.FullDirOut() << "\n"; getchar();
 }
 
 cPhotogrammetricProject::~cPhotogrammetricProject() 
 {
+    DeleteMTD();
     DeleteAllAndClear(mLCam2Del);
 }
+
 
 cMMVII_Appli &  cPhotogrammetricProject::Appli()    {return mAppli;}
 
@@ -230,12 +250,14 @@ cDirsPhProj &   cPhotogrammetricProject::DPRadiom() {return mDPRadiom;}
 cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
 cDirsPhProj &   cPhotogrammetricProject::DPMask() {return mDPMask;}
 cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() {return mDPPointsMeasures;}
+// cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiom() const {return mDPRadiom;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMeshDev;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
 const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return mDPPointsMeasures;}
+// const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
 
 
 
@@ -386,21 +408,9 @@ cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
     return aSet23;
 }
 
-
-
         //  =============  Meta Data =================
 
-cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm) const
-{
-   static std::map<std::string,cMetaDataImage> aMap;
-   auto  anIt = aMap.find(aNameIm);
-   if (anIt== aMap.end())
-   {
-        aMap[aNameIm] = cMetaDataImage(aNameIm);
-   }
-
-   return aMap[aNameIm];
-}
+//  see cMetaDataImages.cpp
 
 
 }; // MMVII

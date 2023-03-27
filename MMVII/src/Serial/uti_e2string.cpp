@@ -185,6 +185,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::Radiom,"Rad"},
                 {eTA2007::MeshDev,"MeshDev"},
                 {eTA2007::Mask,"Mask"},
+                {eTA2007::MetaData,"MetaData"},
                 {eTA2007::PointsMeasure,"PointsMeasure"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
@@ -322,6 +323,13 @@ template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
            };
 TPL_ENUM_2_STRING(eTyCodeTarget);
 
+template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
+           {
+                {eMTDIm::eFocalmm,"Focalmm"},
+                {eMTDIm::eAperture,"Aperture"},
+                {eMTDIm::eModeleCam,"ModeleCam"},
+           };
+TPL_ENUM_2_STRING(eMTDIm);
 
 
 template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
@@ -451,6 +459,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eModePaddingEpip>();
     TplBenchEnum<eModeCaracMatch>();
     TplBenchEnum<eDCTFilters>();
+    TplBenchEnum<eTyCodeTarget>();
 
     aParam.EndBench();
 }

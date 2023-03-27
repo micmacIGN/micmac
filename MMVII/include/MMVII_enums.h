@@ -36,6 +36,7 @@ enum class eTA2007
                 Radiom,        ///< Radiometry
                 MeshDev,       ///< Mesh Devlopment
                 Mask,          ///< Mask of image
+                MetaData,      ///< Meta data images
                 PointsMeasure, ///< Measure of point , 2D or 3D
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
@@ -449,7 +450,16 @@ enum class eTyCodeTarget
     eNbVals
 };
 
+enum class eMTDIm
+           {
+              eFocalmm,
+              eAperture,
+              eModeleCam,
+              eNbVals
+           };
 
+
+const std::string & E2Str(const eMTDIm &);
 const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTyCodeTarget &);         

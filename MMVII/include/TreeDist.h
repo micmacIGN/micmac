@@ -34,7 +34,8 @@
 #include "SymbDer/SymbDer_Common.h"
 
 #define TREEDIST_cMemCheck MMVII::cMemCheck
-template <class Type> void TREEDIST_FakeUseIt MMVII::FakeUseIt
+#define TREEDIST_FakeUseIt MMVII::FakeUseIt
+// template <class Type> void TREEDIST_FakeUseIt MMVII::FakeUseIt  ?????  CECCI NE PEUT PAS COMPILER ????
 #else             //========================================================== WITH_MMVI
 class TREEDIST_cMemCheck
 {

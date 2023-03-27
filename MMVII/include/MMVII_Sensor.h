@@ -26,6 +26,7 @@ class  cPixelDomain;
 class  cSensorCamPC;
 class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
+class cGlobCalculMetaDataProject;
 
 
 /*  base-class  4 all image sensor */
@@ -149,7 +150,7 @@ class cMetaDataImage
           tREAL8  Aperture() const;
           tREAL8  FocalMM() const;
           tREAL8  FocalMMEqui35() const;
-          cMetaDataImage(const std::string & aNameIm);
+          cMetaDataImage(const std::string & aNameIm,const cGlobCalculMetaDataProject * aCalc);
           cMetaDataImage();
       private :
 
@@ -314,6 +315,10 @@ class cPhotogrammetricProject
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
 
+	  /// Void generate an empty file for computing MTD that can be uses as pattern
+	  void GenerateSampleCalcMTD();
+	  void DeleteMTD();
+
           cMMVII_Appli &  mAppli;
           std::string     mFolderProject;
 
@@ -322,8 +327,11 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMeshDev;
 	  cDirsPhProj     mDPMask;
 	  cDirsPhProj     mDPPointsMeasures;
+	  cDirsPhProj     mDPMetaData;
 
-	  std::list<cSensorCamPC*>  mLCam2Del; 
+	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;
+	  std::list<cSensorCamPC*>          mLCam2Del; 
+
 };
 
 
