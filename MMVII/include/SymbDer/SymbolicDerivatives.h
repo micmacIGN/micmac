@@ -1144,11 +1144,14 @@ std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const 
            "#endif\n"
            "  for (size_t aK=0; aK < this->mNbInBuf; aK++) {\n"
            "// Declare local vars in loop to make them per thread\n";
-    for (auto & aForm : mVFormUnknowns)
-        aOs << "    " << aTypeName << " &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
-    for (const auto & aForm : mVFormObservations)
-        aOs << "    " << aTypeName << " &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
-
+    for (auto & aForm : mVFormUnknowns) {
+        if (aForm->Depth() >= 0)          // Unknown is used
+            aOs << "    " << aTypeName << " &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
+    }
+    for (const auto & aForm : mVFormObservations) {
+        if (aForm->Depth() >= 0)          // Observation is used
+            aOs << "    " << aTypeName << " &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
+    }
     for (const auto & aForm : mVReachedF) {
         if (!aForm->isAtomic())
             aOs << "    " << aTypeName << " " << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
