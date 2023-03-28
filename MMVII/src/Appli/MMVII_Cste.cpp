@@ -46,6 +46,7 @@ const std::string MMVIIDirMeshDev      =  MMVII_ComonPrefix +"-MeshDev" + String
 const std::string MMVIITestDir       = "MMVII-TestDir" +StringDirSeparator();
 const std::string TmpMMVIIProcSubDir = "Process" + StringDirSeparator();
 const std::string MMVIIRessourcesDir       = "MMVII-RessourceDir" +StringDirSeparator();
+const std::string MMVIILocalParametersDir       = "MMVII-LocalParameters" +StringDirSeparator();
 
 
 const std::string BLANK = " ";

@@ -328,6 +328,14 @@ cMultipleOfs& ErrOut();
 
 typedef const char * tConstCharPtr;
 
+struct cParamProfile
+{
+       public :
+           std::string   mUserName;
+	   int           mNbProcMax;
+};
+
+bool UserIsMPD();
 
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
@@ -437,6 +445,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static void InitMMVIIDirs(const std::string& aMMVIIDir);
 
         static const std::string & DirRessourcesMMVII();       ///< Location of all ressources
+
+	static const std::string & UserName();
+	static const std::string & DirProfileUsage();
     protected :
 
         /// Constructor, essenntially memorize command line and specifs
@@ -562,6 +573,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static std::string                        mTmpDirTestMMVII;  ///< Tmp files (not versionned)
         static std::string                        mInputDirTestMMVII;  ///< Input files (versionned on git)
         static std::string                        mDirRessourcesMMVII;  ///< Directory for read/write bench files
+	static std::string                        mDirLocalParameters;  ///< Directory for parameters local to an install
+	static std::string                        mProfileUsage;        ///< The "usage" profile stored in "MMVII-CurentPofile.xml"
+	static std::string                        mDirProfileUsage;     ///< The full dir containing the information of a profile
+
+	static cParamProfile                      mParamProfile;   ///< Parameters of the profile (as user name)
 
 
     protected :
@@ -588,6 +604,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         static std::vector<cObj2DelAtEnd *>       mVectObj2DelAtEnd; ///< for object which deletion is delegated to appli
         bool                                      mIsInBenchMode;   ///< is the command executed for bench (will probably make specific test)
+
 };
 
 
