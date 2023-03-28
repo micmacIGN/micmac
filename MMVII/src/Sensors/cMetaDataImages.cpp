@@ -39,9 +39,11 @@ class cOneTryCAI
 
         cOneTryCAI(const std::string & aPat,const std::string & aValue);
 
-        std::string   mPat;
-	tNameSelector mSel;
-        std::string   mValue;
+        std::string                  mPat;
+	tNameSelector                mSel;
+        std::string                  mValue;
+	std::optional<std::string>   mPatDir;
+
 };
 
 /**    Define the rule for associting a value to name :
