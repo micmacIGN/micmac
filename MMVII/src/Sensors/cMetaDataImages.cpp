@@ -282,7 +282,7 @@ cMetaDataImage::cMetaDataImage(const std::string & aNameIm,const cGlobCalculMeta
     aGlobCalc->SetReal(mFocalMM,aNameIm,eMTDIm::eFocalmm);
 
 
-     MMVII_DEV_WARNING("cMetaDataImage : quick and (VERY) dirty implementation, most probably wrong");
+    MMVII_DEV_WARNING("cMetaDataImage : quick and (VERY) dirty implementation, most probably wrong");
 }
 
 cMetaDataImage::cMetaDataImage() :
