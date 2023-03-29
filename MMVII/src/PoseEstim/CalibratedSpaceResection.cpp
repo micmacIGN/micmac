@@ -1,6 +1,7 @@
 #include "MMVII_Ptxd.h"
 #include "cMMVII_Appli.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_PCSens.h"
 
 
 /**
@@ -310,8 +311,57 @@ void BenchPoseEstim(cParamExeBench & aParam)
    aParam.EndBench();
 }
 
+/* ==================================================== */
+/*                                                      */
+/*          cAppli_CalibratedSpaceResection             */
+/*                                                      */
+/* ==================================================== */
+
+class cAppli_CalibratedSpaceResection : public cMMVII_Appli
+{
+     public :
+        typedef std::vector<cPerspCamIntrCalib *> tVCal;
+
+        cAppli_CalibratedSpaceResection(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+
+     private :
+        ///  compute a model of calibration different from linear one (more or less parameter)
+        cSensorCamPC * ChgModel(cSensorCamPC * aCam);
+
+        /// In case multiple pose for same camera try a robust compromise for each value
+        void  DoMedianCalib();
+
+        std::string              mSpecImIn;   ///  Pattern of xml file
+        cPhotogrammetricProject  mPhProj;
+        cSet2D3D                 mSet23 ;
+        bool                     mShow;
+        bool                     mReal16;
+        cPt3di                   mDegDist;
+        std::string              mPatParFrozen;
+        cPt2dr                   mValFixPP;
+        bool                     mDoMedianCalib;
+};
 
 
+cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+      return anArgObl
+              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
+              <<  mPhProj.DPOrient().ArgDirInMand()
+              <<  mPhProj.DPOrient().ArgDirOutMand()
+           ;
+}
+
+cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+
+    return anArgOpt
+    ;
+}
 
 
 

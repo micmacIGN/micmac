@@ -637,14 +637,15 @@ class cAppli_UncalibSpaceResection : public cMMVII_Appli
 	cPt3di                   mDegDist;
         std::string              mPatParFrozen;
         cPt2dr                   mValFixPP;
-	std::string              mMedianCalib;
+	bool                     mDoMedianCalib;
 };
 
 cAppli_UncalibSpaceResection::cAppli_UncalibSpaceResection(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec):
 	cMMVII_Appli   (aVArgs,aSpec),
         mPhProj        (*this),
         mShow          (false),
-	mReal16        (false)
+	mReal16        (false),
+	mDoMedianCalib (true)
 {
 }
 
@@ -665,7 +666,7 @@ cCollecSpecArg2007 & cAppli_UncalibSpaceResection::ArgOpt(cCollecSpecArg2007 & a
 	       << AOpt2007(mShow,"ShowNP","Show possible names of param for distorsion",{eTA2007::Tuning,eTA2007::HDV})
 	       << AOpt2007(mPatParFrozen,"PatFrozen","Pattern for frozen parameters",{eTA2007::PatParamCalib})
 	       << AOpt2007(mValFixPP,"ValPPRel","Fix value of PP in relative to image size ([0.5,0.5] for middle)")
-	       << AOpt2007(mMedianCalib,"MedianCalib","Export for a median calib for multiple images")
+	       << AOpt2007(mDoMedianCalib,"DoMedianCalib","Export for a median calib for multiple images",{eTA2007::HDV})
            ;
 }
 
@@ -777,12 +778,10 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
 
 	       *(aGAIP0.VAdrs()[aKP]) = aVMed;
           }
-     }
 
-#if (0)     
-     aCal0.SetName(mMedianCalib);
-     mPhProj.SaveCalibPC(aCal0);
-#endif
+          aCal0.SetName(aName);
+          mPhProj.SaveCalibPC(aCal0);
+     }
 }
 
 int cAppli_UncalibSpaceResection::Exe()
@@ -796,7 +795,7 @@ int cAppli_UncalibSpaceResection::Exe()
 	if (aResult != EXIT_SUCCESS)
            return aResult;
 
-	if (IsInit(&mMedianCalib))
+	if (mDoMedianCalib)
 	{
             DoMedianCalib();
 	}

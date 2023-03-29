@@ -329,8 +329,9 @@ std::string  cMetaDataImage::CalibGeomIdent() const
 /*                                             */
 /* ******************************************* */
 
-cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm) const
+cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aFullNameIm) const
 {
+   std::string aNameIm = FileOfPath(aFullNameIm);
    static std::map<std::string,cMetaDataImage> aMap;
    auto  anIt = aMap.find(aNameIm);
    if (anIt== aMap.end())

@@ -510,6 +510,7 @@ int cAppliGenCode::Exe()
 
    {
        GenerateOneDist(cPt3di(0,0,0));
+       GenerateOneDist(cPt3di(3,0,0));
        GenerateOneDist(cPt3di(0,0,1));
        GenerateOneDist(cPt3di(3,1,1));
        GenerateOneDist(cPt3di(2,0,0));
@@ -549,6 +550,7 @@ int cAppliGenCode::Exe()
    GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(0,0,0));
    GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(0,0,1));
    GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(3,1,1));
+   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(3,0,0));
    GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(5,2,2));
 
    GenerateCodeCamPerpCentrale<cProjFE_EquiDist>(cPt3di(3,1,1));
