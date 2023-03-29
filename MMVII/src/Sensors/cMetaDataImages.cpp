@@ -85,6 +85,7 @@ class cGlobCalculMetaDataProject
          std::string Translate(const std::string &,eMTDIm ) const;
          void AddDir(const std::string& aDir);
          void      SetReal(tREAL8 & aVal,const std::string &,eMTDIm ) const;
+         void      SetName(std::string & aVal,const std::string &,eMTDIm ) const;
      private :
 	 std::vector<cCalculMetaDataProject>  mTranslators;
 };
@@ -127,8 +128,20 @@ void     cGlobCalculMetaDataProject::SetReal(tREAL8 & aVal,const std::string & a
     std::string aTr = Translate(aNameIm,aMode);
 
     if (aTr !=MMVII_NONE)  
-    aVal =  cStrIO<double>::FromStr(aTr);
+        aVal =  cStrIO<double>::FromStr(aTr);
 }
+
+void  cGlobCalculMetaDataProject::SetName(std::string & aVal,const std::string & aNameIm,eMTDIm aMode) const
+{
+    // already set by a more important rule
+    if (aVal !="") return;
+
+    std::string aTr = Translate(aNameIm,aMode);
+
+    if (aTr !=MMVII_NONE)  
+        aVal =  aTr;
+}
+
 /* ******************************************* */
 /*                                             */
 /*                cOneTryCAI                   */
@@ -274,6 +287,13 @@ tREAL8  cMetaDataImage::FocalMMEqui35() const
    return mFocalMMEqui35;
 }
 
+const std::string&  cMetaDataImage::CameraName() const
+{
+    MMVII_INTERNAL_ASSERT_User(mCameraName!="",eTyUEr::eNoCameraName,"Camera Name is not init for " + mNameImage);
+    return mCameraName;
+}
+
+
 
 cMetaDataImage::cMetaDataImage(const std::string & aNameIm,const cGlobCalculMetaDataProject * aGlobCalc) :
    cMetaDataImage()
@@ -282,9 +302,7 @@ cMetaDataImage::cMetaDataImage(const std::string & aNameIm,const cGlobCalculMeta
 
     aGlobCalc->SetReal(mAperture,aNameIm,eMTDIm::eAperture);
     aGlobCalc->SetReal(mFocalMM,aNameIm,eMTDIm::eFocalmm);
-
-
-    MMVII_DEV_WARNING("cMetaDataImage : quick and (VERY) dirty implementation, most probably wrong");
+    aGlobCalc->SetName(mCameraName,aNameIm,eMTDIm::eModeleCam);
 }
 
 cMetaDataImage::cMetaDataImage() :
@@ -294,6 +312,16 @@ cMetaDataImage::cMetaDataImage() :
     mFocalMMEqui35    (-1)
 {
 }
+
+std::string  cMetaDataImage::CalibGeomIdent() const
+{
+    std::string  aRes = "CalibIntr";
+    aRes = aRes + "_Cam"+ ToStandardStringIdent(CameraName());
+    aRes = aRes + "_Foc"+ToStr(FocalMM());
+
+    return aRes;
+}
+
 
 /* ******************************************* */
 /*                                             */

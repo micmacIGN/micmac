@@ -253,6 +253,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eNoAperture,"NoAperture"},
                 {eTyUEr::eNoFocale,"NoFocale"},
                 {eTyUEr::eNoFocaleEqui35,"NoFocaleEqui35"},
+                {eTyUEr::eNoCameraName,"NoCameraName"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 

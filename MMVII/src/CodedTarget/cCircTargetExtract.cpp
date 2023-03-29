@@ -912,13 +912,13 @@ int  cAppliExtractCircTarget::Exe()
    mPhProj.FinishInit();
 
 
-    mPhProj.GetMetaData(mNameIm);
 
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
       return ResultMultiSet();
    }
+
 
    mPrefixOut = "CircTarget_" +  LastPrefix(APBI_NameIm());
 

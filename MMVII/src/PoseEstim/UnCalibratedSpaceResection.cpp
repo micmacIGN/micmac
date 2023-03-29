@@ -615,6 +615,7 @@ void BenchUnCalibResection()
 class cAppli_UncalibSpaceResection : public cMMVII_Appli
 {
      public :
+        typedef std::vector<cPerspCamIntrCalib *> tVCal;
 
         cAppli_UncalibSpaceResection(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
 	int Exe() override;
@@ -730,49 +731,58 @@ cSensorCamPC * cAppli_UncalibSpaceResection::ChgModel(cSensorCamPC * aCam0)
 
 void cAppli_UncalibSpaceResection::DoMedianCalib()
 {
-     // [1]   Extract all the calibration
-     std::vector<cPerspCamIntrCalib *> aVCal;
+     // [1]   Extract all the calibration, group the one having same NameCalib
+     std::map<std::string,tVCal> aMapCal;
      for (const auto &  aNameIm : VectMainSet(0))
      {
          std::string aNameCal = mPhProj.DPOrient().FullDirOut() + cPerspCamIntrCalib::PrefixName()  + aNameIm  + ".xml";
          cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCal);
 
-	 aVCal.push_back(aCalib);
+	 cMetaDataImage  aMDI = mPhProj.GetMetaData(DirProject()+aNameIm);
+	 aMapCal[aMDI.CalibGeomIdent()].push_back(aCalib);
 	 StdOut() << "NIIII  " << aNameIm << " F=" << aCalib->F()   << "\n";
      }
 
-     // [2]  Extract a vector that for each param contains a vector of all its values in different calib
-     cPerspCamIntrCalib & aCal0 = *(aVCal.at(0));
-     cGetAdrInfoParam<tREAL8>  aGAIP0(".*",aCal0);
-     size_t aNbParam = aGAIP0.VAdrs().size();
-
-     std::vector<std::vector<double> > aVVParam(aNbParam);
-     for (const auto & aPCal : aVCal)
+     for (const auto & aNameCal : aMapCal)
      {
-           cGetAdrInfoParam<tREAL8>  aGAIPK(".*",*(aPCal));
-           for (size_t aKP=0 ; aKP<aNbParam ; aKP++)
-           {
-                aVVParam.at(aKP).push_back(*aGAIPK.VAdrs().at(aKP));
-           }
-     }
+          // [2]  Extract a vector that for each param contains a vector of all its values in different calib
+          std::string  aName = aNameCal.first;
+	  const tVCal &  aVCal = aNameCal.second;
+          cPerspCamIntrCalib & aCal0 = *(aVCal.at(0));
+          cGetAdrInfoParam<tREAL8>  aGAIP0(".*",aCal0); // Structure for extract param by names, all here
+          size_t aNbParam = aGAIP0.VAdrs().size();
+
+          std::vector<std::vector<double> > aVVParam(aNbParam); // will store all the value of a given param
+          for (const auto & aPCal : aVCal)
+          {
+                cGetAdrInfoParam<tREAL8>  aGAIPK(".*",*(aPCal));
+                for (size_t aKP=0 ; aKP<aNbParam ; aKP++)
+                {
+                     aVVParam.at(aKP).push_back(*aGAIPK.VAdrs().at(aKP));
+                }
+          }
 
      //std::vector<cPerspCamIntrCalib *> aVCal;
 
-     for (size_t aKP=0 ; aKP< aNbParam ; aKP++)
-     {
-          StdOut() << " " <<  aGAIP0.VNames()[aKP] ;
-	  tREAL8 aVMed = NonConstMediane(aVVParam.at(aKP));
-	  tREAL8 aV20 = NC_KthVal(aVVParam.at(aKP),0.2);
-	  tREAL8 aV80 = NC_KthVal(aVVParam.at(aKP),0.8);
-          StdOut() <<  ": V=" << aVMed;
-          StdOut() <<  ": DISP=" << (aV80-aV20);
-          StdOut() <<  "\n";
+          StdOut() << " ####  " <<  aName   << " ####\n";
+          for (size_t aKP=0 ; aKP< aNbParam ; aKP++)
+          {
+               StdOut() << " " <<  aGAIP0.VNames()[aKP] ;
+	       tREAL8 aVMed = NonConstMediane(aVVParam.at(aKP));
+	       tREAL8 aV20 = NC_KthVal(aVVParam.at(aKP),0.2);
+	       tREAL8 aV80 = NC_KthVal(aVVParam.at(aKP),0.8);
+               StdOut() <<  ": V=" << aVMed;
+               StdOut() <<  ": DISP=" << (aV80-aV20);
+               StdOut() <<  "\n";
 
-	  *(aGAIP0.VAdrs()[aKP]) = aVMed;
+	       *(aGAIP0.VAdrs()[aKP]) = aVMed;
+          }
      }
 
+#if (0)     
      aCal0.SetName(mMedianCalib);
      mPhProj.SaveCalibPC(aCal0);
+#endif
 }
 
 int cAppli_UncalibSpaceResection::Exe()

@@ -150,6 +150,9 @@ class cMetaDataImage
           tREAL8  Aperture() const;
           tREAL8  FocalMM() const;
           tREAL8  FocalMMEqui35() const;
+	  const std::string&  CameraName() const;
+	  std::string  CalibGeomIdent() const;
+
           cMetaDataImage(const std::string & aNameIm,const cGlobCalculMetaDataProject * aCalc);
           cMetaDataImage();
       private :
