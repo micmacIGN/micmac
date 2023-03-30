@@ -67,9 +67,26 @@ const cPt2di & cSensorCamPC::SzPix() const {return  mInternalCalib->SzPix();}
 
 cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aP) const
 {
-    cPt3dr aPCam = mInternalCalib->Inverse(Proj(aP));
+static int aCpt=0 ; aCpt++;
+bool aBug = (aCpt==86432);
 
-    return mPose.Value(aPCam * (aP.z() / aPCam.z()));
+if (aBug)
+{
+StdOut() << "iiiinnn " << aCpt << "\n";
+}
+
+    cPt3dr aPCam = mInternalCalib->Inverse(Proj(aP));
+if (aBug)
+{
+StdOut() << "mmmmm " << aP << " " << aPCam <<  " Proj=" << E2Str(mInternalCalib->TypeProj()) << "\n";
+}
+
+    cPt3dr aRes =  mPose.Value(aPCam * (aP.z() / aPCam.z()));
+if (aBug)
+{
+StdOut() << "Oooout " << aCpt << "\n";
+}
+    return aRes;
 
 }
 
@@ -128,6 +145,28 @@ void cSensorCamPC::OnUpdate()
      mPose.SetRotation(mPose.Rot() * cRotation3D<tREAL8>::RotFromAxiator(-mOmega));
         // now this have modify rotation, the "delta" is void :
      mOmega = cPt3dr(0,0,0);
+}
+
+
+//
+tREAL8 cSensorCamPC::AngularProjResiudal(const cPair2D3D& aPair) const
+{
+    cPt3dr aDirCam = mInternalCalib->Inverse(aPair.mP2);  // direction in camera system
+    cPt3dr aDirAbs =  mPose.Rot().Value(aDirCam );         //  "absolute" direction
+    cPt3dr aDirProj =  aPair.mP3 - Center();              // direction of projection
+
+    return Norm2(VUnit(aDirAbs)-VUnit(aDirProj));  // equivalent to angular distance
+}
+
+tREAL8  cSensorCamPC::AvgAngularProjResiudal(const cSet2D3D& aSet) const
+{
+   cWeightAv<tREAL8> aWA;
+
+   for (const auto & aPair : aSet.Pairs())
+       aWA.Add(1.0,AngularProjResiudal(aPair));
+
+   return aWA.Average();
+
 }
 
 
@@ -225,6 +264,25 @@ void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
    aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");
    aGAIP.TestParam(this, &( mOmega.z())    ,"Wz");
 }
+     // =================  becnh ===================
+
+void cSensorCamPC::Bench()
+{
+   cSet2D3D  aSet32 =  SyntheticsCorresp3D2D(20,3,1.0,10.0) ;
+   tREAL8 aRes = AvgAngularProjResiudal(aSet32);
+
+   // StdOut()  << "LLLL " << __LINE__  <<  " Res=" << aRes << "\n";
+   MMVII_INTERNAL_ASSERT_bench(aRes<1e-8,"Avg res ang");
+}
+
+void cSensorCamPC::BenchOneCalib(cPerspCamIntrCalib * aCalib)
+{
+   cIsometry3D<tREAL8> aPose = cIsometry3D<tREAL8>::RandomIsom3D(10.0);
+
+    cSensorCamPC aCam("BenchCam",aPose,aCalib);
+    aCam.Bench();
+}
+
 
 }; // MMVII
 

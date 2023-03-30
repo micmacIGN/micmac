@@ -299,6 +299,9 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
             false                 ///< Not in  Test
         );
         aCMI.DoAll(mInv_Params); // compute the parameters
+{
+   // StdOut() << "CMI_HHHHHHH done inverse \n";
+}
         mInvApproxLSQ_Dist->SetObs(mInv_Params); // set these parameters in approx inverse
     }
 
@@ -330,6 +333,8 @@ cPt2dr cPerspCamIntrCalib::PtSeedInv() const
      return aPProj;
 }
 
+static cPt2dr  PBug(233.2,2576.5);
+
 
 std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
 {
@@ -360,6 +365,15 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
    );
    aCMI.DoPts();
 
+{
+ std::vector<cPt2dr> aRes = aCMI.GetPtsOut();
+  tREAL8 aVis = VisibilityOnImFrame(PBug) ;
+  StdOut() << "KKKinn_Vis=" << aVis << "\n";
+  for (auto aPt : aRes)
+      StdOut() << "jjj " << aPt << "\n";
+getchar();
+}
+
     std::vector<cPt2dr> aRes = aCMI.GetPtsOut();
     aRes = static_cast<const cDataInvertibleMapping<tREAL8,2>&>(mCSPerfect).Values(aRes);
 
@@ -383,6 +397,7 @@ const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tV
 
 double cPerspCamIntrCalib::VisibilityOnImFrame(const cPt2dr & aP) const
 {
+   StdOut() << "VOBF " << aP << " " << mPixDomain.Insideness(aP) << "\n";
    return mPixDomain.Insideness(aP);
 }
 
@@ -560,6 +575,8 @@ const cPt2di & cPerspCamIntrCalib::SzPix() const {return mPixDomain.Sz();}
 const cDataMapping<tREAL8,3,2>* cPerspCamIntrCalib::Dir_Proj() const { return mDir_Proj;}
 const cDataMapping<tREAL8,2,2>* cPerspCamIntrCalib::Dir_Dist() const { return mDir_Dist;}
 
+eProjPC cPerspCamIntrCalib::TypeProj() const {return mTypeProj;}
+
 const cDataMapping<tREAL8,2,3>* cPerspCamIntrCalib::Inv_Proj() const
 {
     // UpdateLSQDistIfRequired();
@@ -707,6 +724,9 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 
        aCam->TestInvInit((aK==0) ? 1e-3 : 1e-2, 1e-4);
 
+       cSensorCamPC::BenchOneCalib(aCam);
+
+
        delete aCam;
     }
 }
@@ -714,6 +734,12 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
+{
+StdOut() << "AaaAAAAAAAAAa\n"; getchar();
+    BenchCentralePerspective(aParam,eProjPC::eOrthoGraphik);
+StdOut() << "bbBbbbbbbbbbbB\n"; getchar();
+}
+
     if (! aParam.NewBench("CentralPersp")) return;
 
     cCalibStenPerfect aCS(1,cPt2dr(0,0));
@@ -725,6 +751,9 @@ void BenchCentralePerspective(cParamExeBench & aParam)
 
 
     int aNbTime = std::min(20,3+aParam.Level());
+
+
+
     for (int aTime=0 ; aTime<aNbTime ; aTime++)
     {
         for (int aKEnum=0 ; aKEnum<int(eProjPC::eNbVals) ; aKEnum++)

@@ -215,6 +215,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cPt3di & DegDir() const;  ///< acess to direct degrees
             const std::string & Name() const;   ///< Name of the file
             void SetName(const std::string &) ; ///< Change the name
+ 
+            eProjPC TypeProj() const;           ///< type of projection
 
 	    const std::vector<double> & VParamDist() const;  ///< vector of dist param
 	    std::vector<double> & VParamDist();    ///< vector of dist param
@@ -346,6 +348,10 @@ class cSensorCamPC : public cSensorImage
 
          std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
 
+         ///  residual of projection as angle between directions, work with any lenses
+         tREAL8  AngularProjResiudal(const cPair2D3D&) const;
+         ///  average of AngularProjResiudal
+         tREAL8  AvgAngularProjResiudal(const cSet2D3D&) const;
 
 	 const cPt3dr * CenterOfPC() override;
          /// Return the calculator, adapted to the type, for computing colinearity equation
@@ -392,8 +398,10 @@ class cSensorCamPC : public cSensorImage
          static std::string  PrefixName() ;
          std::string  V_PrefixName() const override;
 
+         static void BenchOneCalib(cPerspCamIntrCalib * aCalib);
 
      private :
+        void Bench();
         cSensorCamPC(const cSensorCamPC&) = delete;
 
         cIsometry3D<tREAL8>  mPose;   ///< transformation Cam to Word

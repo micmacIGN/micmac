@@ -114,12 +114,15 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt2dr & aP2,const double & aDep
 
 cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const
 {
+static int aCpt=0 ; aCpt++;
+
     cSet2D3D aResult;
 
     std::vector<cPt2dr>  aVPts =  PtsSampledOnSensor(aNbByDim);
 
     for (const auto & aPIm : aVPts)
     {
+// StdOut() << "Cptsynth " << aCpt << " P="<< aPIm << "\n";
         for (const auto & aDepth : aVecDepth)
         {
 	     aResult.AddPair(aPIm,ImageAndDepth2Ground(aPIm,aDepth));
@@ -129,7 +132,18 @@ cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> 
     return aResult;
 }
          ///  call variant with vector, depth regularly spaced
-         // cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const;
+cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const
+{
+   std::vector<tREAL8> aVDepth;
+
+   for (int aKD=0 ; aKD < aNbDepts; aKD++)
+   {
+        tREAL8 aW = SafeDiv(aKD,aNbDepts);
+        aVDepth.push_back(aD0 * pow(aD1/aD0,aW));
+   }
+
+   return SyntheticsCorresp3D2D(aNbByDim,aVDepth);
+}
 
 
 /* ******************************************************* */
@@ -165,7 +179,7 @@ cSetVisibility::cSetVisibility(cSensorImage * aSens,double aBorder) :
 	    mBorder                   (aBorder)
 {}
 
-tREAL8 cSetVisibility::Insideness(const tPt & aP) const 
+tREAL8 cSetVisibility::Insideness(const cPt3dr & aP) const 
 {
     return mSens->Visibility(aP) - mBorder;
 }

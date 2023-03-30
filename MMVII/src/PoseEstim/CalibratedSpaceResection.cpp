@@ -34,6 +34,16 @@ template <class Type>  class cElemSpaceResection
            cIsometry3D<Type>  BC2Pose(const tResBC &) const ;
 
 
+           static cIsometry3D<Type>  PoseBySR
+                                     (
+                                          tREAL8 &  aResidual,
+                                          const cPerspCamIntrCalib&,
+                                          const cPair2D3D&,
+                                          const cPair2D3D&,
+                                          const cPair2D3D&,
+                                          const cSet2D3D &
+                                     );
+            
 
 	   static void OneTestCorrectness();
        private :
@@ -343,6 +353,7 @@ class cAppli_CalibratedSpaceResection : public cMMVII_Appli
         std::string              mPatParFrozen;
         cPt2dr                   mValFixPP;
         bool                     mDoMedianCalib;
+
 };
 
 
@@ -362,6 +373,31 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
     return anArgOpt
     ;
 }
+
+int cAppli_CalibratedSpaceResection::Exe()
+{
+    mPhProj.FinishInit();
+
+    if (RunMultiSet(0,0))
+    {
+        int aResult = ResultMultiSet();
+
+        if (aResult != EXIT_SUCCESS)
+           return aResult;
+
+        return EXIT_SUCCESS;
+    }
+
+
+    std::string aNameIm =FileOfPath(mSpecImIn);
+    mSet23 =mPhProj.LoadSet32(aNameIm);
+
+
+
+
+    return EXIT_SUCCESS;
+}                                       
+
 
 
 
