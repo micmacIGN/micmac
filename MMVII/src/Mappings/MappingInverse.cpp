@@ -551,7 +551,7 @@ template <class Type,const int Dim>
 
     cInvertMappingFromElem<cBijAffMapElem<Type,Dim> > aMap(aDif.MapInverse()); // Compute inverse mapping
 
-    cTplBox<Type,Dim> aRes=  aMap.BoxOfCorners(mSet.Box());  // compute recripoque image of box out
+    cTplBox<Type,Dim> aRes=  aMap.BoxOfCorners(mSetOut.Box());  // compute recripoque image of box out
 
     return aRes;
 
@@ -571,9 +571,13 @@ template <class Type,const int Dim>
 }
 
 template <class Type,const int Dim> 
-   bool cComputeMapInverse<Type,Dim>::ValidateK(const tCsteResVecJac & aVecPJ,int aKp)
+   bool cComputeMapInverse<Type,Dim>::ValidateK(const tPtR & aPtIn,const tCsteResVecJac & aVecPJ,int aKp)
 {
-            return mSet.InsideWithBox((*aVecPJ.first)[aKp]) && ValideJac((*aVecPJ.second)[aKp]);
+            return 
+		   ((mSetIn==nullptr) || (mSetIn->InsideWithBox(aPtIn)) )
+		&& mSetOut.InsideWithBox((*aVecPJ.first)[aKp]) 
+                && ValideJac((*aVecPJ.second)[aKp])
+            ;
 }
 
 template <class Type,const int Dim> void  cComputeMapInverse<Type,Dim>::AddObsMapDirect(const tVPtR & aVIn,const tVPtR & aVOut)
@@ -603,11 +607,13 @@ template <class Type,const int Dim>
 	// compute their coordinates and jacobians
         tCsteResVecJac  aVecPJ = mMap.Jacobian(aVPt);
 
+        // small check as PtIn as been added recently in ValidateK
+	MMVII_INTERNAL_ASSERT_tiny(aVecPJ.first->size()== aVPt.size(),"Size pb in OneStepFront");
 	// select those who are valid
         std::vector<int> aNextVSel; // prepare for next iter
         for (int aKSel=0 ; aKSel<int(aVSel.size()) ; aKSel++)
         {
-            if (ValidateK(aVecPJ,aKSel))  // inside and jacobian still ok
+            if (ValidateK(aVPt.at(aKSel),aVecPJ,aKSel))  // inside and jacobian still ok
             {
                 int aIndGlob = aVSel[aKSel];   // Ind in full point of frontier
                 tExtent & anExt = mVExt[aIndGlob];
@@ -623,17 +629,19 @@ template <class Type,const int Dim>
 template <class Type,const int Dim> 
    cComputeMapInverse<Type,Dim>::cComputeMapInverse
    (
-        const Type& aThresholdJac,
-        const tPtR& aPSeed,
-        const int & aNbPts,
-        tSet &      aSet,
-        tMap&       aMap,
-        tLSQ*       aLSQ,
-        bool        aTest
+        const Type&  aThresholdJac,
+        const tPtR&  aPSeed,
+        const int &  aNbPts,
+        const tSet * aSetIn,
+        const tSet & aSetOut,
+        tMap&        aMap,
+        tLSQ*        aLSQ,
+        bool         aTest
     ) :
        mThresholdJac  (aThresholdJac),
        mPSeed         (aPSeed),
-       mSet           (aSet),
+       mSetIn         (aSetIn),
+       mSetOut        (aSetOut),
        mMap           (aMap),
        mLSQ           (aLSQ),
        mBoxByJac      (BoxInByJacobian()),
@@ -680,9 +688,11 @@ template <class Type,const int Dim> void  cComputeMapInverse<Type,Dim>::FilterAn
     tCsteResVecJac  aVecPJ = mMap.Jacobian(aNextGenReal);
     std::vector<tPtI>   aNexGenFiltered;  // Will contain geometrically filtered
     
+    // small check as PtIn as been added recently in ValidateK
+    MMVII_INTERNAL_ASSERT_tiny(aVecPJ.first->size()== aNextGenReal.size(),"Size pb in OneStepFront");
     for (size_t aKp=0 ; aKp<mNextGen.size() ; aKp++)
     {
-        if (ValidateK(aVecPJ,aKp))
+        if (ValidateK(aNextGenReal.at(aKp),aVecPJ,aKp))
         {
              aNexGenFiltered.push_back(mNextGen[aKp]);  // select it for next
              //   AddObsMapDirect(aNextGenReal[aKp],(*aVecPJ.first)[aKp],false); 
@@ -829,6 +839,7 @@ void  OneBench_CMI(double aCMaxRel)
                                     0.5,
                                     cPt2dr(0.0,0.0),
                                     20,
+				    nullptr,
                                     aSBS,
                                     *aTargetFunc,
                                     &aLsqSymb,

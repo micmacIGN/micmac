@@ -249,6 +249,7 @@ std::string cPerspCamIntrCalib::PrefixName() {return "Calib-" + cSensorCamPC::Pr
 
 cPerspCamIntrCalib::~cPerspCamIntrCalib()
 {
+     delete mDefProj;
      delete mPhgrDomain;	
      delete mDir_Dist;
      delete mDir_Proj;
@@ -293,6 +294,7 @@ void cPerspCamIntrCalib::UpdateLSQDistInv()
             mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
             PtSeedInv(),          ///< Seed point, in input space
             aNbMin,    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
+            mDefProj,
             (*mPhgrDomain),       ///< Set of validity, in output space
             (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
              mInv_CalcLSQ,        ///< Structure for computing the invert on base of function using least square
@@ -358,6 +360,7 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
        mThreshJacPI,         ///< Threshold on jacobian to ensure inversability
        PtSeedInv(),          ///< Seed point, in input space
        aNbByDim,    ///< Approximate number of point (in the biggest size), here +or- less square of minimum
+       mDefProj,
        (*mPhgrDomain),       ///< Set of validity, in output space
        (*mDir_Dist),         ///< Maping to invert : InputSpace -> OutputSpace
         nullptr,
@@ -365,12 +368,15 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim) const
    );
    aCMI.DoPts();
 
+
+if (1)
 {
- std::vector<cPt2dr> aRes = aCMI.GetPtsOut();
-  tREAL8 aVis = VisibilityOnImFrame(PBug) ;
-  StdOut() << "KKKinn_Vis=" << aVis << "\n";
+  std::vector<cPt2dr> aRes = aCMI.GetPtsOut();
   for (auto aPt : aRes)
+  {
       StdOut() << "jjj " << aPt << "\n";
+  }
+        StdOut() <<  E2Str(mTypeProj)  << "\n";
 getchar();
 }
 
@@ -455,7 +461,7 @@ cPt3dr  cPerspCamIntrCalib::Inverse(const tPtOut & aPt) const
 
 tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
 {
-    return mDefProj.P2DIsDef(mDist_DirInvertible->Inverse(mInv_CSP.Value(aPix)));
+    return mDefProj->P2DIsDef(mDist_DirInvertible->Inverse(mInv_CSP.Value(aPix)));
 }
 
       //   ----  object in unknown system (bundle adj ...) ----------------
@@ -603,8 +609,27 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
      {
          // generate 2d-point ine photogram coordinate , after distorsion
          double aRhoMax =  mPhgrDomain->Box().DistMax2Corners(cPt2dr(0,0));
+         std::vector<cPt2dr>  aVPt0;
+         mPhgrDomain->GridPointInsideAtStep(aVPt0,aRhoMax/10.0);
+
+	 //   Filters them because due to mDefProj , not all belong to fiting domain
          std::vector<cPt2dr>  aVPt1;
-         mPhgrDomain->GridPointInsideAtStep(aVPt1,aRhoMax/10.0);
+	 for (const auto & aP0 : aVPt0)
+	 {
+             cPt2dr aP0Ud = mDist_DirInvertible->Inverse(aP0);
+             cPt2dr aP0Rd = mDir_Dist->Value(aP0Ud);
+
+             if (mDefProj->InsideWithBox(aP0Ud))
+	     {
+                aVPt1.push_back(aP0);
+		StdOut() << "P000 =" << aP0 << " " << aP0Ud << "\n";
+	     }
+	 }
+
+        StdOut() << "TestInvInitTestInvInit " <<  E2Str(mTypeProj)  
+		 << "SZZZZ " << aVPt0.size() <<  " " << aVPt1.size() 
+		  << " RM " << mDefProj->mRhoMax<< "\n";
+
 
 	 //  undist them by approx-lsq invers
          std::vector<cPt2dr>  aVPt2; // undist
@@ -640,6 +665,8 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
          aSD23 = std::sqrt(aSD23/aVPt1.size());
          aSD13 = std::sqrt(aSD13/aVPt1.size());
          aSD15 = std::sqrt(aSD15/aVPt1.size());
+
+	 StdOut() << "SDDDDD " << aSD12 << " " << aSD23 << " " << aSD13 <<  " " << aSD15 << "\n";
 
          MMVII_INTERNAL_ASSERT_bench((aSD13==0) || (aSD13/aSD12<aTolApprox),"Test approx inv");
          MMVII_INTERNAL_ASSERT_bench((aSD15==0) || (aSD15/aSD12<aTolAccurate),"Test approx inv");
@@ -724,7 +751,8 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 
        aCam->TestInvInit((aK==0) ? 1e-3 : 1e-2, 1e-4);
 
-       cSensorCamPC::BenchOneCalib(aCam);
+       StdOut() << "NOOoooooooooooo BenchOneCalib\n";
+       //  cSensorCamPC::BenchOneCalib(aCam);
 
 
        delete aCam;
@@ -734,11 +762,7 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
-{
-StdOut() << "AaaAAAAAAAAAa\n"; getchar();
     BenchCentralePerspective(aParam,eProjPC::eOrthoGraphik);
-StdOut() << "bbBbbbbbbbbbbB\n"; getchar();
-}
 
     if (! aParam.NewBench("CentralPersp")) return;
 

@@ -64,18 +64,30 @@ class cSensorCamPC ; // Sensor for one image = Pose + pointer to cPerspCamIntrCa
  *     - 3D is def if Z>0  => P3DIsDef = Z
  *     - 2D if Def if ||P|| <1  => P2DIsDef = 1 - sqrt(X^2+Y^2) 
  * */
-class cDefProjPerspC
+class cDefProjPerspC : public cDataBoundedSet<tREAL8,2> 
 {
        public :
+          static constexpr tREAL8 DefRhoMax = -1.0;
+
           /// signed belonging function for 3-d points
           virtual tREAL8  P3DIsDef(const cPt3dr &) const = 0 ;
           /// signed belonging function for 2-d points
           virtual tREAL8  P2DIsDef(const cPt2dr &) const =0 ;
 
+	  virtual tREAL8 Insideness(const tPt &) const override;
+
+
           /// Radial symetry, true for physcicall based model, false for ex with equirect
           virtual bool  HasRadialSym() const ;
-	  /// return an object from its enum (for a given enum, will be always the same)
-          static const cDefProjPerspC & ProjOfType(eProjPC);
+	  /// return an object from its enum (for a given enum), it teta max has, if value is default each type will adapt it to its means 
+          static const cDefProjPerspC * ProjOfType(eProjPC,tREAL8 aTetaMax=DefRhoMax);
+
+          virtual ~ cDefProjPerspC();
+
+	  cDefProjPerspC(tREAL8 aRhoMax);
+	  cDefProjPerspC(cPt2dr aRhoMax);
+	  tREAL8  mRhoMax;
+
 };
 
 /**  Class for modelisation of intrisic calibration w/o distorsion : essentially the mapping
@@ -284,7 +296,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             // eProjPC                              mTypeProj;
             // int                                  mSzBuf;
 	    bool                                 mVoidDist;  /// special behavior is requires with deg=[0,0,0] 
-            const cDefProjPerspC &               mDefProj;    ///  Prof function
+            const cDefProjPerspC *               mDefProj;    ///  Prof function
             cPixelDomain                         mPixDomain;              ///< sz, domaine of validity in pixel
 
                 // ------------ parameters for direct projection  DirBundle -> pixel ------------
