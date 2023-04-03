@@ -740,7 +740,7 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
          cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCal);
 
 	 cMetaDataImage  aMDI = mPhProj.GetMetaData(DirProject()+aNameIm);
-	 aMapCal[aMDI.CalibGeomIdent()].push_back(aCalib);
+	 aMapCal[aMDI.InternalCalibGeomIdent()].push_back(aCalib);
 	 StdOut() << "NIIII  " << aNameIm << " F=" << aCalib->F()   << "\n";
      }
 

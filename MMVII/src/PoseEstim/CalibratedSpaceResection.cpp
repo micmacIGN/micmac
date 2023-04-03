@@ -21,6 +21,8 @@ template <class Type>  class cElemSpaceResection
 	   typedef cTriangle<Type,3> tTri;
            typedef tP3               tResBC;
 
+	   static tP3 ToPt(const cPt3dr & aP) {return tP3::FromPtR(aP);}
+
            cElemSpaceResection
            (
 	        const tTri & aTriBundles,
@@ -33,7 +35,28 @@ template <class Type>  class cElemSpaceResection
            cTriangle<Type,3>  BC2LocCoord(const tResBC &) const ;
            cIsometry3D<Type>  BC2Pose(const tResBC &) const ;
 
+           static std::list<cIsometry3D<Type> > ListPoseBySR
+                                     (
+                                          cPerspCamIntrCalib&,
+                                          const cPair2D3D&,
+                                          const cPair2D3D&,
+                                          const cPair2D3D&
+                                     );
 
+	   /** For final result we ewport to the desored type for camera, theimportan is thae
+	       eventualy the computation has been made with REAL16 is high accuracy was required */
+
+           static cIsometry3D<tREAL8>  RansacPoseBySR
+                                     (
+                                          cPerspCamIntrCalib&,
+                                          const cSet2D3D &,
+					  size_t aNbTest,
+					  int    aNbPtsMeasures = -1,
+	                                  cTimerSegm * aTS = nullptr
+                                     );
+
+
+	   /*
            static cIsometry3D<Type>  PoseBySR
                                      (
                                           tREAL8 &  aResidual,
@@ -43,6 +66,7 @@ template <class Type>  class cElemSpaceResection
                                           const cPair2D3D&,
                                           const cSet2D3D &
                                      );
+				     */
             
 
 	   static void OneTestCorrectness();
@@ -241,7 +265,7 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
    static int aCpt=0; aCpt++;
    {
        // generate 3 bundle not too degenared => 0,P0,P1,P2 cot coplanar
-       cTriangle<Type,3> aTriBund = RandomTetraTriangRegul<Type>(1e-3,1e2);
+       cTriangle<Type,3> aTriBund = RandomTetraTriangRegul<Type>(1e-2,1e2);
 
        //   Generate b &c ;  Too extrem value =>  unaccuracyy bench ; not : RandUnif_C_NotNull(1e-2) * 10
        Type b = pow(2.0,RandUnif_C());
@@ -298,26 +322,221 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
        }
    }
 }
+
+template <class Type>  
+   std::list<cIsometry3D<Type> > cElemSpaceResection<Type>::ListPoseBySR
+                                 (
+                                       cPerspCamIntrCalib& aCalib,
+                                       const cPair2D3D&          aPair1,
+                                       const cPair2D3D&          aPair2,
+                                       const cPair2D3D&          aPair3
+                                 )
+{
+   tTri aTriB
+        (
+	     ToPt(aCalib.DirBundle(aPair1.mP2)),
+	     ToPt(aCalib.DirBundle(aPair2.mP2)),
+	     ToPt(aCalib.DirBundle(aPair3.mP2))
+	);
+
+   tTri aTriG(ToPt(aPair1.mP3),ToPt(aPair2.mP3),ToPt(aPair3.mP3));
+   cElemSpaceResection<Type> anESR(aTriB,aTriG);
+
+
+   std::list<cIsometry3D<Type> > aLPose;
+
+   for (const auto & aBC : anESR.ComputeBC())
+       aLPose.push_back(anESR.BC2Pose(aBC));
+
+   return aLPose;
+}
+
+template <class Type>  
+   cIsometry3D<tREAL8>  cElemSpaceResection<Type>::RansacPoseBySR
+                      (
+                          cPerspCamIntrCalib& aCalib,
+                          const  cSet2D3D & aSet0,
+                          size_t aNbTriplet,
+                          int    aNbPtsMeasures,
+	                  cTimerSegm * aTS
+                      )
+{
+   cAutoTimerSegm  anATS2 (aTS,"CreateTriplet");
+   cWhichMin<cIsometry3D<tREAL8>,tREAL8>  aWMin(cIsometry3D<tREAL8>::Identity(),1e10);
+
+   const cSet2D3D * aSetTest = & aSet0;
+   cSet2D3D aBufSetTest;  // will have the space to store locally the test set
+   int aNbTot = aSet0.NbPair();
+
+   //  is we require less test that total of point we must create the subset
+   if ( (aNbPtsMeasures>0)  && (aNbPtsMeasures<aNbTot)  )  
+   {
+      aSetTest = & aBufSetTest;
+
+      // class for selection aNbPtsMeasures  among total
+      cRandKAmongN aSub(aNbPtsMeasures,aNbTot);
+      for (int aKPair=0 ; aKPair<aNbTot ; aKPair++)
+          if (aSub.GetNext())
+             aBufSetTest.AddPair(aSet0.KthPair(aKPair));
+   }
+   FakeUseIt(aSetTest);
+
+   std::vector<cSetIExtension>  aVecTriplet;
+   GenRanQsubCardKAmongN(aVecTriplet,aNbTriplet,3,aNbTot);
+
+   cAutoTimerSegm  anATS3 (aTS,"ResolveEqResec");
+   for (const auto &aTriplet : aVecTriplet)
+   {
+       size_t aK1 = aTriplet.mElems.at(0);
+       size_t aK2 = aTriplet.mElems.at(1);
+       size_t aK3 = aTriplet.mElems.at(2);
+
+       std::list<cIsometry3D<Type> >  aLIsom 
+	       = cElemSpaceResection<Type>::ListPoseBySR
+                 (
+                    aCalib,
+		    aSet0.KthPair(aK1),
+		    aSet0.KthPair(aK2),
+		    aSet0.KthPair(aK3)
+		 );
+
+       for (const auto & anIsom : aLIsom)
+       {
+           cIsometry3D<tREAL8>  aIsomR8 = ToReal8(anIsom);
+           cSensorCamPC aCam("RansacSpaceResection",aIsomR8,&aCalib);
+
+           aWMin.Add(aIsomR8,aCam.AvgAngularProjResiudal(*aSetTest));
+       }
+   }
+
+   return aWMin.IndexExtre();
+}
+
+cIsometry3D<tREAL8>  
+    cPerspCamIntrCalib::PoseEstimSpaceResection
+    (
+         const cSet2D3D & aSet0,
+         size_t aNbTriplet,
+         bool Real8,
+         int aNbPtsMeasures,
+	 cTimerSegm * aTS
+     )
+{
+    if (Real8)
+       return cElemSpaceResection<tREAL8>::RansacPoseBySR(*this,aSet0,aNbTriplet,aNbPtsMeasures,aTS);
+    else 
+       return cElemSpaceResection<tREAL16>::RansacPoseBySR(*this,aSet0,aNbTriplet,aNbPtsMeasures,aTS);
+
+}
+
+
 template class cElemSpaceResection<tREAL8>;
 template class cElemSpaceResection<tREAL16>;
 
-void BenchCalibResection()
+/* ==================================================== */
+/*                                                      */
+/*                 MMVII                                */
+/*                                                      */
+/* ==================================================== */
+
+void BenchCalibResection(cSensorCamPC & aCam,cTimerSegm * aTimeSeg)
+{
+    cAutoTimerSegm  anATS (aTimeSeg,"CreateSetResec");
+    cSet2D3D aSet;
+
+    double aPropOk = 0.7;
+    int aNbPts = 50;
+    std::vector<bool> IsOk;
+
+    cRandKAmongN aSelOk(round_ni(aNbPts*aPropOk),aNbPts);
+
+    for (int aK=0 ; aK<aNbPts ; aK++)
+    {
+        bool Ok = aSelOk.GetNext();
+        IsOk.push_back(Ok);
+	cPt2dr aPIm = aCam.RandomVisiblePIm();
+
+	cPt3dr aPGround = aCam.ImageAndDepth2Ground(cPt3dr(aPIm.x(),aPIm.y(),RandInInterval(1,2)));
+
+	if (!Ok)
+            aPGround = aPGround + cPt3dr::PRandC() * 0.1;
+
+	aSet.AddPair(aPIm,aPGround,1.0);
+    }
+    cPerspCamIntrCalib * aCal = aCam.InternalCalib();
+    cIsometry3D<tREAL8> aPose = aCal->PoseEstimSpaceResection(aSet,100,true,-1,aTimeSeg);
+
+    // StdOut() << "TTT=" << Norm2(aPose.Tr() - aCam.Pose().Tr()) << " " <<  aPose.Rot().Mat().L2Dist(aCam.Pose().Rot().Mat()) << "\n";
+    MMVII_INTERNAL_ASSERT_bench(Norm2(aPose.Tr() - aCam.Pose().Tr())<1e-4,"Translation in space resection");
+    MMVII_INTERNAL_ASSERT_bench(aPose.Rot().Mat().L2Dist(aCam.Pose().Rot().Mat())<1e-4,"Matrix in space resection");
+}
+
+void BenchCalibResection(cParamExeBench & aParam)
 {
    for (int aK=0 ; aK< 1000 ; aK++)
    {
       cElemSpaceResection<tREAL8>::OneTestCorrectness();
       cElemSpaceResection<tREAL16>::OneTestCorrectness();
+
    }
+
+   cTimerSegm* aTimeSeg = aParam.Show()                                       ?
+	                  new cTimerSegm  (&(cMMVII_Appli::CurrentAppli()))   :
+	  		  nullptr                                             ;
+
+   for (int aK=0 ; aK<3 ; aK++)
+   {
+       for (int aKEnum=0 ; aKEnum<int(eProjPC::eNbVals) ; aKEnum++)
+       {
+            cAutoTimerSegm * anATS = new cAutoTimerSegm(aTimeSeg,"CreateCalib");
+            eProjPC aTypeProj = eProjPC(aKEnum);
+            cPerspCamIntrCalib *  aCalib = cPerspCamIntrCalib::RandomCalib(aTypeProj,aK%3);
+
+	    delete anATS;
+
+	    for (int aKPose=0 ; aKPose<3 ; aKPose++)
+	    {
+                cIsometry3D<tREAL8> aPose =  cIsometry3D<tREAL8>::RandomIsom3D(10.0);
+                cSensorCamPC aCam("TestSR",aPose,aCalib);
+		BenchCalibResection(aCam,aTimeSeg);
+	    }
+            delete aCalib;
+       }
+
+   }
+
+   delete aTimeSeg;
 }
 
+bool BUGCAL = false;
 
 void BenchPoseEstim(cParamExeBench & aParam)
 {
    if (! aParam.NewBench("PoseEstim")) return;
 
+
+   /*
+   for (int aK=0 ; aK<1000000000 ; aK++)
+   {
+       StdOut() << "KKK " << aK << "\n";
+       BUGCAL = (aK==652);
+       for (int aKEnum=0 ; aKEnum<int(eProjPC::eNbVals) ; aKEnum++)
+       {
+            eProjPC aTypeProj = eProjPC(aKEnum);
+	    if (BUGCAL)  
+		    StdOut() << " KE=" << E2Str(aTypeProj) << "\n";
+
+            cPerspCamIntrCalib *  aCalib = cPerspCamIntrCalib::RandomCalib(aTypeProj,aK%3);
+	    aCalib->PtSeedInv();
+            delete aCalib;
+       }
+   }
+   */
+
+
    BenchUnCalibResection();
 
-   BenchCalibResection();
+   BenchCalibResection(aParam);
    aParam.EndBench();
 }
 
@@ -388,12 +607,11 @@ int cAppli_CalibratedSpaceResection::Exe()
         return EXIT_SUCCESS;
     }
 
-
     std::string aNameIm =FileOfPath(mSpecImIn);
     mSet23 =mPhProj.LoadSet32(aNameIm);
 
-
-
+    cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(aNameIm);
+    StdOut() << "FFFFF " << aCal->F() << "\n";
 
     return EXIT_SUCCESS;
 }                                       

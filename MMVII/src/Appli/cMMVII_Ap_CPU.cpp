@@ -94,10 +94,10 @@ bool cTimeSequencer::ItsTime2Execute()
 /***********************************/
 
 cAutoTimerSegm::cAutoTimerSegm(cTimerSegm & aTS,const tIndTS & anInd) :
-   mTS      (aTS), 
-   mSaveInd (aTS.mLastIndex)
+   mTS      (&aTS), 
+   mSaveInd (mTS->mLastIndex)
 {
-   mTS.SetIndex(anInd);
+   mTS->SetIndex(anInd);
 }
 
 cAutoTimerSegm::cAutoTimerSegm(const tIndTS & anInd) :
@@ -105,9 +105,20 @@ cAutoTimerSegm::cAutoTimerSegm(const tIndTS & anInd) :
 {
 }
 
+cAutoTimerSegm::cAutoTimerSegm(cTimerSegm * aTS,const tIndTS & anInd) :
+	mTS (aTS)
+{
+   if (aTS)
+   {
+      mSaveInd =  aTS->mLastIndex;
+      mTS->SetIndex(anInd);
+   }
+}
+
 cAutoTimerSegm::~cAutoTimerSegm()
 {
-   mTS.SetIndex(mSaveInd);
+   if (mTS)
+      mTS->SetIndex(mSaveInd);
 }
 
 /***********************************/
@@ -121,13 +132,19 @@ static const std::string DefTime(" OTHERS");
 cTimerSegm::cTimerSegm(cMMVII_Ap_CPU * anAppli) :
    mLastIndex     (DefTime),
    mAppli         (anAppli),
-   mCurBeginTime  (mAppli->SecFromT0())
+   mCurBeginTime  (mAppli->SecFromT0()),
+   mShowAtDel     (true)
 {
+}
+
+void  cTimerSegm::SetNoShowAtDel()
+{
+    mShowAtDel = false;
 }
 
 cTimerSegm::~cTimerSegm()
 {
-   if (mTimers.size() >=2) // is something was added
+   if (mShowAtDel && (mTimers.size() >=2)) // is something was added
      Show();
 }
 

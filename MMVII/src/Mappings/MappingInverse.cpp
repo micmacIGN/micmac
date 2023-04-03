@@ -627,11 +627,59 @@ template <class Type,const int Dim>
 }
 
 template <class Type,const int Dim> 
+   cComputeMapInverse<Type,Dim> *
+   cComputeMapInverse<Type,Dim>::Alloc
+   (
+        const Type&  aThresholdJac,
+        const tPtR&  aPSeed,
+        tREAL8   aNbPts,
+        const tSet * aSetIn,
+        const tSet & aSetOut,
+        tMap&        aMap,
+        tLSQ*        aLSQ,
+        bool         aTest
+   )
+{
+   cComputeMapInverse<Type,Dim> *  aRes = nullptr;
+
+   int aNbPtsTarget = pow(aNbPts,Dim);
+   int aNbGot = aNbPtsTarget-1;
+
+   int aNbIter=0;
+   while (aNbGot< aNbPtsTarget)
+   {
+         // dont increase firt time
+         if (aNbIter!=0)
+	 {
+	    tREAL8 aMul =  pow((1.5*aNbPtsTarget)/double(aNbGot),1/double(Dim));
+	    aNbPts = std::max(1.0+aNbPts,aMul*aNbPts);
+	 }
+         delete aRes;
+
+         aRes =  new cComputeMapInverse<Type,Dim>
+                     (
+                          aThresholdJac, aPSeed,
+                          aNbPts,
+                          aSetIn,aSetOut,
+                          aMap,aLSQ,aTest
+		     );
+	 aRes->DoPtsInt();
+	 aNbGot = aRes->mIn_VPtsInt.size();
+	 aNbIter++;
+   }
+
+   return aRes;
+
+}
+
+
+
+template <class Type,const int Dim> 
    cComputeMapInverse<Type,Dim>::cComputeMapInverse
    (
         const Type&  aThresholdJac,
         const tPtR&  aPSeed,
-        const int &  aNbPts,
+        tREAL8  aNbPts,
         const tSet * aSetIn,
         const tSet & aSetOut,
         tMap&        aMap,
@@ -708,10 +756,23 @@ template <class Type,const int Dim> void  cComputeMapInverse<Type,Dim>::FilterAn
     mNextGen = aNexGenFiltered;
 }
 
-        // void OneStepFront(const Type & Front);
 template <class Type,const int Dim> void  
      cComputeMapInverse<Type,Dim>::DoPts()
 {
+     DoPtsInt();
+     DoPtsFront();
+}
+
+
+
+        // void OneStepFront(const Type & Front);
+template <class Type,const int Dim> void  
+     cComputeMapInverse<Type,Dim>::DoPtsInt()
+{
+	// If point where already done like in Alloc
+     if (!mIn_VPtsInt.empty())
+        return;
+
      // Initialize label : Interior and border
      mMarker.InitInteriorAndBorder(Type(eLabelIm_CMI::eFree),Type(eLabelIm_CMI::eBorder));
 
@@ -745,7 +806,11 @@ template <class Type,const int Dim> void
         }
         FilterAndAddPixelsGeom(); // select those who are OK
      }
+}
 
+template <class Type,const int Dim> void  
+     cComputeMapInverse<Type,Dim>::DoPtsFront()
+{
      // 2- Make the extension to have point close to the frontier 
 
          // 2-1 Compute in grid pixel frontier :  reached pixel neighbor of unreached

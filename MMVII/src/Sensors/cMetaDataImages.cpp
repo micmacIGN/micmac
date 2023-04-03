@@ -295,7 +295,7 @@ const std::string&  cMetaDataImage::CameraName() const
 
 
 
-cMetaDataImage::cMetaDataImage(const std::string & aNameIm,const cGlobCalculMetaDataProject * aGlobCalc) :
+cMetaDataImage::cMetaDataImage(const std::string & aDir,const std::string & aNameIm,const cGlobCalculMetaDataProject * aGlobCalc) :
    cMetaDataImage()
 {
     mNameImage    = aNameIm;
@@ -313,7 +313,7 @@ cMetaDataImage::cMetaDataImage() :
 {
 }
 
-std::string  cMetaDataImage::CalibGeomIdent() const
+std::string  cMetaDataImage::InternalCalibGeomIdent() const
 {
     std::string  aRes = "CalibIntr";
     aRes = aRes + "_Cam"+ ToStandardStringIdent(CameraName());
@@ -331,7 +331,8 @@ std::string  cMetaDataImage::CalibGeomIdent() const
 
 cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aFullNameIm) const
 {
-   std::string aNameIm = FileOfPath(aFullNameIm);
+   std::string aDir,aNameIm;
+   SplitDirAndFile(aDir,aNameIm,aFullNameIm,false);
    static std::map<std::string,cMetaDataImage> aMap;
    auto  anIt = aMap.find(aNameIm);
    if (anIt== aMap.end())
@@ -344,7 +345,7 @@ cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aFullNam
 	}
 
 	// mDPMetaData.FullDirOut()
-        aMap[aNameIm] = cMetaDataImage(aNameIm,mGlobCalcMTD);
+        aMap[aNameIm] = cMetaDataImage(aDir,aNameIm,mGlobCalcMTD);
    }
 
    return aMap[aNameIm];

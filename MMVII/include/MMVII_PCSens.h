@@ -17,6 +17,8 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+extern bool BUGCAL ;
+
 
 /** \file MMVII_PCSens.h
     \brief Interface class for central perspective sensors
@@ -195,6 +197,13 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
     // ================== construction of object ===============
             static cPerspCamIntrCalib * Alloc(const cDataPerspCamIntrCalib &);
 
+	    /**  Generate random calib, with assurance that distorsion will be inverible, 
+	       the KDeg (in 0,1,2)  pick one of the pre-defined degree */
+            static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg);
+
+
+            cIsometry3D<tREAL8>  PoseEstimSpaceResection
+		    (const cSet2D3D & aSet0,size_t aNbTriplet,bool Real8=true, int aNbPtsMeasures=-1,cTimerSegm * =nullptr);
 
 
                 ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
@@ -214,8 +223,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 
     // ==================   geometric points computation ===================
             const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
-            const  tVecIn  &  Inverses(tVecIn &,const tVecOut & ) const;
-	    tPtIn  Inverse(const tPtOut &) const;
+            const  tVecIn  &  DirBundles(tVecIn &,const tVecOut & ) const;
+	    tPtIn  DirBundle(const tPtOut &) const;
 
             // for a point in pixel coordinates, indicate how much its invert projection is defined, not parallized !
             tREAL8  InvProjIsDef(const tPtOut & aPix ) const;
@@ -250,9 +259,10 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cDataMapping<tREAL8,2,3>* Inv_Proj() const; ///< access to inverse projection as a cDataMapping FOR_PYTHON
             const cDataInvertibleMapping<tREAL8,2>* Dir_DistInvertible() const; ///< access to inverse distorsion as a cDataMapping FOR_PYTHON
 
-            /// point on grid
-	    std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const ;
+            /// point on grid  InPixel -> apply or not F/PP
+	    std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim,bool InPixel) const ;
 
+	    const cPixelDomain & PixelDomain() const ;
 
     // ==================   Test & Bench ===================
 
@@ -281,13 +291,14 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 
 	    ///  real constructor (accessible directly because RemanentObjectFromFile)
             cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
+	    
+	    /// For inversion, or sampling point, we need seed that is +- corresponding of sensor midle, befor dist
+	    cPt2dr PtSeedInv() const;
 
        private :
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
 
-	    /// For inversion, or sampling point, we need seed that is +- corresponding of sensor midle, befor dist
-	    cPt2dr PtSeedInv() const;
 
 
          // ==================   DATA PART   ===================
@@ -353,6 +364,8 @@ class cSensorCamPC : public cSensorImage
 
 	 double Visibility(const cPt3dr &) const override;
 	 double VisibilityOnImFrame(const cPt2dr &) const override;
+
+	 const cPixelDomain & PixelDomain() const override;
 
 
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;

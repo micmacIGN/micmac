@@ -57,6 +57,8 @@ struct cSet2D3D
          void AddPair(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
 
          const tCont2D3D &  Pairs() const;
+	 const tPair &  KthPair(int aK) const;
+	 size_t NbPair() const;
          void  Clear() ;
 
 	 /// compute  weighted centroid

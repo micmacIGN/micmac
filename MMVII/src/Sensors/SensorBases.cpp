@@ -112,17 +112,39 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt2dr & aP2,const double & aDep
 }
 
 
+
+const cPt2di & cSensorImage::Sz() const {return PixelDomain().Sz();}
+
+tPt2dr cSensorImage::RandomVisiblePIm() const 
+{
+      bool IsOk=false;
+      tPt2dr aRes;
+      while (! IsOk)
+      {
+           aRes = MulCByC(  tPt2dr::PRand()  , ToR(Sz())  );
+	   IsOk = ( VisibilityOnImFrame(aRes) > 0);
+      }
+       
+      return aRes;
+}
+
+cPt3dr cSensorImage::RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax)
+{
+     cPt2dr aPIm   = RandomVisiblePIm();
+     tREAL8 aDepth = RandInInterval(aDepMin,aDepMax);
+     return  Ground2ImageAndDepth(cPt3dr(aPIm.x(),aPIm.y(),aDepth));
+}
+
+
+
 cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const
 {
-static int aCpt=0 ; aCpt++;
-
     cSet2D3D aResult;
 
     std::vector<cPt2dr>  aVPts =  PtsSampledOnSensor(aNbByDim);
 
     for (const auto & aPIm : aVPts)
     {
-// StdOut() << "Cptsynth " << aCpt << " P="<< aPIm << "\n";
         for (const auto & aDepth : aVecDepth)
         {
 	     aResult.AddPair(aPIm,ImageAndDepth2Ground(aPIm,aDepth));
