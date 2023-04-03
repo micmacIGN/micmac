@@ -557,8 +557,6 @@ class cAppli_CalibratedSpaceResection : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
      private :
-        ///  compute a model of calibration different from linear one (more or less parameter)
-        cSensorCamPC * ChgModel(cSensorCamPC * aCam);
 
         /// In case multiple pose for same camera try a robust compromise for each value
         void  DoMedianCalib();
@@ -566,14 +564,24 @@ class cAppli_CalibratedSpaceResection : public cMMVII_Appli
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
         cSet2D3D                 mSet23 ;
-        bool                     mShow;
-        bool                     mReal16;
-        cPt3di                   mDegDist;
-        std::string              mPatParFrozen;
-        cPt2dr                   mValFixPP;
-        bool                     mDoMedianCalib;
+
+	int                      mNbTriplets;
+        // bool                     mShow;
+        // bool                     mReal16;
 
 };
+
+cAppli_CalibratedSpaceResection::cAppli_CalibratedSpaceResection
+(
+     const std::vector<std::string> &  aVArgs,
+     const cSpecMMVII_Appli & aSpec
+) :
+     cMMVII_Appli  (aVArgs,aSpec),
+     mPhProj       (*this),
+     mNbTriplets   (500)
+{
+}
+
 
 
 cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgObl(cCollecSpecArg2007 & anArgObl)
@@ -589,7 +597,8 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgObl(cCollecSpecArg2007 
 cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
-    return anArgOpt
+    return    anArgOpt
+	   << AOpt2007(mNbTriplets,"NbTriplets","Number max of triplet tested in Ransac",{eTA2007::HDV})
     ;
 }
 
@@ -609,12 +618,38 @@ int cAppli_CalibratedSpaceResection::Exe()
 
     std::string aNameIm =FileOfPath(mSpecImIn);
     mSet23 =mPhProj.LoadSet32(aNameIm);
-
     cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(aNameIm);
-    StdOut() << "FFFFF " << aCal->F() << "\n";
+
+    cIsometry3D<tREAL8>   aPose = aCal->PoseEstimSpaceResection(mSet23,mNbTriplets);
+    cSensorCamPC  aCam(FileOfPath(aNameIm,false),aPose,aCal);
+    mPhProj.SaveCamPC(aCam);
 
     return EXIT_SUCCESS;
 }                                       
+
+/* ==================================================== */
+/*                                                      */
+/*               MMVII                                  */
+/*                                                      */
+/* ==================================================== */
+
+
+tMMVII_UnikPApli Alloc_CalibratedSpaceResection(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_CalibratedSpaceResection(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_OriCalibratedSpaceResection
+(
+     "OriPoseEstimSpaceResection",
+      Alloc_CalibratedSpaceResection,
+      "Pose estimation from GCP, calibrated case",
+      {eApF::Ori},
+      {eApDT::GCP},
+      {eApDT::Orient},
+      __FILE__
+);
+
 
 
 
