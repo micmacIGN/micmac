@@ -27,6 +27,7 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+	/*
 class cMapPProj2Im;
 class cMapIm2PProj;
 
@@ -49,6 +50,7 @@ class cMapIm2PProj :  public cInvertMappingFromElem<cHomot2D<tREAL8> >
     public :
          cMapIm2PProj(const cHomot2D<tREAL8> &);
 };
+*/
 
 /* *********************************** */
 /*                                     */
@@ -56,10 +58,12 @@ class cMapIm2PProj :  public cInvertMappingFromElem<cHomot2D<tREAL8> >
 /*                                     */
 /* *********************************** */
 
+/*
 cMapIm2PProj::cMapIm2PProj(const cHomot2D<tREAL8> & aH) :
     cInvertMappingFromElem<cHomot2D<tREAL8> >(aH)
 {
 }
+*/
 
 /* *********************************** */
 /*                                     */
@@ -67,6 +71,7 @@ cMapIm2PProj::cMapIm2PProj(const cHomot2D<tREAL8> & aH) :
 /*                                     */
 /* *********************************** */
 
+/*
 cMapPProj2Im::cMapPProj2Im(const cMapPProj2Im & aPS) :
 	cMapPProj2Im(F(),PP())
 {
@@ -106,6 +111,7 @@ void TtTTt()
 
    aMI.Values(aVpt,aVpt);
 }
+*/
 
 
 
@@ -204,6 +210,10 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux)
            cAuxAr2007 aAuxSten("PerfectProj",anAux);
            MMVII::AddData(cAuxAr2007("F",aAuxSten),mCSPerfect.F());
            MMVII::AddData(cAuxAr2007("PP",aAuxSten),mCSPerfect.PP());
+
+	   // Just in case redo a coherent object
+	   if (anAux.Input())
+              mCSPerfect = cCalibStenPerfect(mCSPerfect.F(),mCSPerfect.PP());
     }
 
     std::vector<std::string>  aTypeDist={"Radial","Decentric","Polynomial"};
@@ -908,13 +918,12 @@ void BenchCentralePerspective(cParamExeBench & aParam)
 /*                                                         */
 /* ******************************************************* */
 
-cCalibStenPerfect::cCalibStenPerfect(tScal aFoc,const tPt & aPP) :
-    mF   (aFoc),
-    mPP  (aPP)
+cCalibStenPerfect::cCalibStenPerfect(tREAL8 aFoc,const tPt & aPP) :
+    cInvertMappingFromElem<cHomot2D<tREAL8> > (cHomot2D<tREAL8>(aPP,aFoc))
 {
 }
 cCalibStenPerfect::cCalibStenPerfect(const cCalibStenPerfect & aCS) :
-    cCalibStenPerfect(aCS.mF,aCS.mPP)
+    cCalibStenPerfect(aCS.F(),aCS.PP())
 {
 }
 
@@ -922,30 +931,19 @@ cCalibStenPerfect::cCalibStenPerfect(const cCalibStenPerfect & aCS) :
 cCalibStenPerfect cCalibStenPerfect::MapInverse() const
 {
     //  aQ= PP+ aP * F  ;  aP = (aQ-PP) /aF
-    return  cCalibStenPerfect(  1.0/mF  ,  -mPP/mF  );
+    return  cCalibStenPerfect(  1.0/F()  ,  -PP()/F()  );
 }
 
-const double & cCalibStenPerfect::F()  const {return mF ;}
-const cPt2dr & cCalibStenPerfect::PP() const {return mPP;}
-double & cCalibStenPerfect::F()  {return mF ;}
-cPt2dr & cCalibStenPerfect::PP() {return mPP;}
+const double & cCalibStenPerfect::F()  const {return Map().Sc();}
+const cPt2dr & cCalibStenPerfect::PP() const {return Map().Tr();}
+double & cCalibStenPerfect::F()  {return Map().Sc();}
+cPt2dr & cCalibStenPerfect::PP() {return Map().Tr();}
 
 
-const  typename cCalibStenPerfect::tVecPt &  cCalibStenPerfect::Values(tVecPt & aVOut,const tVecPt & aVIn) const
-{
-     const size_t aNbIn = aVIn.size();
-     aVOut.resize(aNbIn);
-
-#ifdef _OPENMP
-#pragma omp parallel for
+#if (0)
 #endif
-     for (size_t aK=0; aK < aNbIn; aK++) 
-     {
-	     aVOut[aK] = mPP + aVIn[aK] * mF;
-     }
-     return aVOut;
-}
 
+/*
 const  typename cCalibStenPerfect::tVecPt &  cCalibStenPerfect::Inverses(tVecPt & aVOut,const tVecPt & aVIn) const
 {
      const size_t aNbIn = aVIn.size();
@@ -956,10 +954,11 @@ const  typename cCalibStenPerfect::tVecPt &  cCalibStenPerfect::Inverses(tVecPt 
 #endif
      for (size_t aK=0; aK < aNbIn; aK++) 
      {
-	     aVOut[aK] = (aVIn[aK] - mPP) / mF;
+	     aVOut[aK] = (aVIn[aK] - PP()) / F();
      }
      return aVOut;
 }
+*/
 
 
 

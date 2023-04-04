@@ -99,31 +99,20 @@ class cDefProjPerspC : public cDataBoundedSet<tREAL8,2>
  *
  */
 
-
-class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
+class cCalibStenPerfect : public cInvertMappingFromElem<cHomot2D<tREAL8> >
 {
      public :
-         typedef tREAL8               tScal;
-         typedef cPtxd<tScal,2>       tPt;
-         typedef std::vector<tPt>     tVecPt;
+         // typedef tREAL8               tScal;
 
-         cCalibStenPerfect(tScal aFoc,const tPt & aPP);
+         cCalibStenPerfect(tREAL8 aFoc,const tPt & aPP);
          cCalibStenPerfect(const cCalibStenPerfect & aPS);  ///< default wouldnt work because deleted in mother class
          cCalibStenPerfect MapInverse() const;
 
-         tPt    Value(const tPt& aPt) const override {return mPP + aPt*mF;}
-         tPt    Inverse(const tPt& aPt) const override {return (aPt-mPP) / mF;}
-         const  tVecPt &  Inverses(tVecPt &,const tVecPt & ) const override;
-         const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;
-
-         const tScal& F()  const;   ///<  Focal
+         const tREAL8& F()  const;   ///<  Focal
          const tPt  & PP() const;  ///<  Principal point
-         tScal& F()  ;   ///<  Focal
+         tREAL8& F()  ;   ///<  Focal
          tPt  & PP() ;  ///<  Principal point
      private :
-         tScal  mF;   ///<  Focal
-         // std::string  mUnused; ///< To check if PP & F need to be consecutive; OK it works
-         tPt    mPP;  ///<  Principal point
 };
 
 

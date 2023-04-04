@@ -58,6 +58,7 @@ template <class cMapElem>
   const typename  cInvertMappingFromElem<cMapElem>::tVecPt &
                   cInvertMappingFromElem<cMapElem>::Values(tVecPt & aRes,const tVecPt & aVIn ) const 
 {
+   aRes.clear();
    for (const auto & aPtIn : aVIn)
        aRes.push_back(mMap.Value(aPtIn));
    return aRes;
@@ -74,6 +75,7 @@ template <class cMapElem>
   const typename  cInvertMappingFromElem<cMapElem>::tVecPt &
                   cInvertMappingFromElem<cMapElem>::Inverses(tVecPt & aRes,const tVecPt & aVIn ) const 
 {
+   aRes.clear();
    for (const auto & aPtIn : aVIn)
        aRes.push_back(mIMap.Value(aPtIn));
    return aRes;
