@@ -153,7 +153,13 @@ class cNOSolIn_AttrArc {
     cNOSolIn_AttrASym* ASym() { return mASym; }
     bool IsOrASym() const { return mOrASym; }
 
+    int& HeapIndex() { return mHeapIndex; }
+
+    double treecost;
+
    private:
+    int mHeapIndex = 0;
+
     cNOSolIn_AttrASym* mASym;
     bool mOrASym;
 };
@@ -239,6 +245,8 @@ class cNOSolIn_Triplet {
         return ElRotation3D::Id;
     }
 
+    double treecost;
+
     /*double Residue() const { return mResidue; }
     double& Residue() { return mResidue; }
 
@@ -309,7 +317,7 @@ class cNOSolIn_Triplet {
     ElRotation3D mR3on1;
     float mBOnH;
 
-    int mHeapIndex;
+    int mHeapIndex = 0;
 };
 
 inline bool ValFlag(cNOSolIn_Triplet& aTrip, int aFlagSom) {
@@ -349,7 +357,7 @@ class cLinkTripl {
     tSomNSI* S3() const;
 
    private:
-    int mHeapIndex;  // Heap index pour tirer le meilleur triplets
+    int mHeapIndex = 0;  // Heap index pour tirer le meilleur triplets
     double aPds;  // Score de ponderation pour le tirage au sort de l'arbre
 };
 
@@ -414,6 +422,13 @@ class cNO_HeapIndTriSol_NSI {
     static void SetIndex(cNOSolIn_Triplet* aV, int i) { aV->HeapIndex() = i; }
     static int Index(cNOSolIn_Triplet* aV) { return aV->HeapIndex(); }
 };
+
+class cNO_HeapIndSom_NSI {
+   public:
+    static void SetIndex(tSomNSI* aV, int i) { aV->attr().HeapIndex() = i; }
+    static int Index(tSomNSI* aV) { return aV->attr().HeapIndex(); }
+};
+
 
 class cNO_CmpTriSolByCost {
    public:
@@ -531,6 +546,25 @@ class DataTravel {
     //std::geometric_distribution<int> d{0.3};
 };
 
+struct ffinalTree {
+    std::map<cNOSolIn_Triplet*, cLinkTripl*> links;
+    std::map<cNOSolIn_Triplet*, std::set<cNOSolIn_Triplet*>> childs;
+    std::map<tSomNSI*, std::set<tSomNSI*>> g;
+    std::map<tSomNSI*, tSomNSI*> pred;
+    std::map<tSomNSI*, std::set<tSomNSI*>> next;
+    std::map<tSomNSI*, cLinkTripl*> ori;
+
+    std::map<tSomNSI*, std::set<cNOSolIn_Triplet*>> triplets;
+//    std::map<tSomNSI*, cNOSolIn_Triplet*> ori;
+
+    cNOSolIn_Triplet* root;
+};
+
+struct finalScene {
+    std::set<cNOSolIn_Triplet*> ts;
+    std::set<tSomNSI*> ss;
+};
+
 class RandomForest : public cCommonMartiniAppli {
    public:
     RandomForest(int argc, char** argv);
@@ -545,6 +579,9 @@ class RandomForest : public cCommonMartiniAppli {
     // Entry point
     void DoNRandomSol(Dataset& data);
 
+    void hierarchique(Dataset& data, ffinalTree& tree);
+    finalScene dfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
+
     void RandomSolAllCC(Dataset& data);
     void RandomSolOneCC(Dataset& data, cNO_CC_TripSom*);
 
@@ -552,14 +589,15 @@ class RandomForest : public cCommonMartiniAppli {
     void RandomSolOneCC(Dataset& data, cNOSolIn_Triplet* seed, int NbSomCC);
 
     void BestSolAllCC(Dataset& data);
-    void BestSolOneCC(Dataset& data, cNO_CC_TripSom*);
+
+    void BestSolOneCC(Dataset& data, cNO_CC_TripSom*, ffinalTree& );
     void BestSolOneCCKurskal(Dataset& data, cNO_CC_TripSom*);
+    void BestSolOneCCPrim2(Dataset& data, cNO_CC_TripSom* aCC);
     void BestSolOneCCPrim(Dataset& data, cNO_CC_TripSom* aCC);
 
    private:
     void NumeroteCC(Dataset& data);
 
-    void AddTriOnHeapAll(Dataset& data, cLinkTripl*, bool oriented = true);
     void AddTriOnHeap(Dataset& data, cLinkTripl*, bool oriented = true);
     void RemoveTriOnHeap(Dataset& data, cLinkTripl*);
     //void EstimRt(cLinkTripl*);
@@ -584,7 +622,7 @@ std::vector<cNOSolIn_Triplet*>& aV3, int,
 
     void logTotalGraph(Dataset& data, std::string dir, std::string filename);
 
-    void Save(Dataset& data, std::string& OriOut, bool SaveListOfName = false);
+    void Save(Dataset& data, const std::string& OriOut, bool SaveListOfName = false);
 
 
     // MicMac managements variables
@@ -769,7 +807,7 @@ class GraphViz {
         }
     }
 
-    void linkTriplets(cNOSolIn_Triplet* t1, cNOSolIn_Triplet* t2) {
+    void linkTree(cNOSolIn_Triplet* t1, cNOSolIn_Triplet* t2) {
         std::string triplet_name = std::to_string(t1->NumId());
         node_t* triplet = agnode(tripG, (char*)triplet_name.c_str(), 0);
         if (!triplet) {  // Triplet Id don't exist
@@ -784,6 +822,23 @@ class GraphViz {
             return;
         }
         agedge(treeG, triplet, ct, 0, 1);
+    }
+
+    void linkTree(tSomNSI* t1, tSomNSI* t2) {
+        std::string name1 = t1->attr().Im()->Name();
+        node_t* i1 = agnode(nG, (char*)name1.c_str(), 0);
+        if (!i1) {  // Triplet Id don't exist
+            std::cout << "triplet dont exist GraphViz" << std::endl;
+            return;
+        }
+        std::string name2 = t2->attr().Im()->Name();
+        node_t* i2 = agnode(nG, (char*)name2.c_str(), 0);
+        if (!i2) {  // Triplet Id don't exist
+            std::cout << "image dont exist GraphViz next" << t2->attr().Im()->Name()
+                      << std::endl;
+            return;
+        }
+        agedge(treeG, i1, i2, 0, 1);
     }
 
     void travelGraph(Dataset& data, cNO_CC_TripSom& aCC,
