@@ -457,7 +457,7 @@ template <class Type>
                                                 eProjPC::eStenope,
                                                 cPt3di(0,0,1),
                                                 std::vector<double>(),
-                                                cCalibStenPerfect(aF,aPP),
+                                                cMapPProj2Im(aF,aPP),
                                                 cDataPixelDomain(mSz),
                                                 cPt3di(0,0,1),
                                                 10
@@ -553,7 +553,7 @@ void OneBenchUnCalibResection(int aKTest)
                                                 eProjPC::eStenope,
                                                  cPt3di(0,0,1),
                                                 std::vector<double>(),
-                                                cCalibStenPerfect(aFoc,aPP),
+                                                cMapPProj2Im(aFoc,aPP),
                                                 cDataPixelDomain(aSz),
                                                  cPt3di(0,0,1),
                                                 10
@@ -689,7 +689,7 @@ cSensorCamPC * cAppli_UncalibSpaceResection::ChgModel(cSensorCamPC * aCam0)
                                    eProjPC::eStenope,
                                    mDegDist,
                                    std::vector<double>(),
-                                   cCalibStenPerfect(aCal0->F(),aPP),
+                                   cMapPProj2Im(aCal0->F(),aPP),
                                    cDataPixelDomain(aSzPix),
                                    mDegDist,
                                    10

@@ -55,7 +55,7 @@ extern bool BUGCAL ;
 */
 
 class cDefProjPerspC;  // interface for nowing if where a proj is def
-class cCalibStenPerfect ;  // pure intrinsic calib (only PP + F)
+class cMapPProj2Im ;  // pure intrinsic calib (only PP + F)
 class cDataPerspCamIntrCalib;  // primary data part of a cPerspCamIntrCalib -> minimal data to save in a file to be able to reconstruct a cal
 class cPerspCamIntrCalib ; // object allowing computation of internal calib = cDataPerspCamIntrCalib + many calculators computed from data
 class cSensorCamPC ; // Sensor for one image = Pose + pointer to cPerspCamIntrCalib
@@ -99,14 +99,12 @@ class cDefProjPerspC : public cDataBoundedSet<tREAL8,2>
  *
  */
 
-class cCalibStenPerfect : public cInvertMappingFromElem<cHomot2D<tREAL8> >
+class cMapPProj2Im : public cInvertMappingFromElem<cHomot2D<tREAL8> >
 {
      public :
-         // typedef tREAL8               tScal;
-
-         cCalibStenPerfect(tREAL8 aFoc,const tPt & aPP);
-         cCalibStenPerfect(const cCalibStenPerfect & aPS);  ///< default wouldnt work because deleted in mother class
-         cCalibStenPerfect MapInverse() const;
+         cMapPProj2Im(tREAL8 aFoc,const tPt & aPP);
+         cMapPProj2Im(const cMapPProj2Im & aPS);  ///< default wouldnt work because deleted in mother class
+         cMapPProj2Im MapInverse() const;
 
          const tREAL8& F()  const;   ///<  Focal
          const tPt  & PP() const;  ///<  Principal point
@@ -133,7 +131,7 @@ class cDataPerspCamIntrCalib
             eProjPC        aTypeProj,           ///< type of projection
             const cPt3di & aDegDir,             ///< degrees of distorstion  Rad/Dec/Univ
             const  std::vector<double> & aVParams,  ///< vector of distorsion
-            const cCalibStenPerfect & aCSP,           ///< Calib w/o dist
+            const cMapPProj2Im & aMapP2I,           ///< Calib w/o dist
             const  cDataPixelDomain  & aPixDomain,              ///< sz, domaine of validity in pixel
             const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
             int aSzBuf                         ///< sz of buffers in computation
@@ -143,7 +141,7 @@ class cDataPerspCamIntrCalib
       void PushInformation(const std::string &);
       std::vector<std::string> & VecInfo() ;
 
-      const cCalibStenPerfect& CalibStenPerfect() const { return mCSPerfect;}
+      const cMapPProj2Im& MapPProj2Im() const { return mMapPProj2Im;}
 
    protected :
       std::string                    mName;
@@ -151,7 +149,7 @@ class cDataPerspCamIntrCalib
       cPt3di                         mDir_Degr;             ///< degrees of distorstion  Rad/Dec/Univ
       std::vector<cDescOneFuncDist>  mDir_VDesc;
       mutable std::vector<double>    mVTmpCopyParams;     ///< tempo copy of param, used 4 serialization
-      cCalibStenPerfect              mCSPerfect;                ///< Calib w/o dist
+      cMapPProj2Im                   mMapPProj2Im;                ///< Calib w/o dist
       cDataPixelDomain               mDataPixDomain;              ///< sz, domaine of validity in pixel
       cPt3di                         mInv_Degr;       ///< degree of inverse approx by least square
       int                            mSzBuf;                         ///< sz of buffers in computation
@@ -171,7 +169,7 @@ class cDataPerspCamIntrCalib
 
          * dirtortion  R2->R2 , its a function close to identity (at least ideally)
 	 
-	 * cCalibStenPerfect  R2->R2  transformat additmentional unit in pixels
+	 * cMapPProj2Im  R2->R2  transformat additmentional unit in pixels
 
  */
 
@@ -319,11 +317,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
            //  std::vector<tREAL8>                  mDir_Params;    ///< Parameters of distorsion -> deprecated, redundant
             cDataMapCalcSymbDer<tREAL8,3,2>*     mDir_Proj;   ///< direct projection  R3->R2
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist;   ///< direct disorstion  R2->R2
-            // cCalibStenPerfect                    mCSPerfect;  ///< R2-phgr -> pixels
-            // cPixelDomain *                       mPixDomain;  ///< validity domain in pixel
                //  -------------  now for "inversion"  pix->DirBundle --------------------
                 //
-            cCalibStenPerfect                    mInv_CSP;
+            cMapPProj2Im                         mInv_CSP;
             cDataMappedBoundedSet<tREAL8,2>*     mPhgrDomain;  ///<  validity in F/PP corected space, initialization use mInv_CSP
             // cPt3di                               mInv_Degr;
             std::vector<cDescOneFuncDist>        mInv_VDesc;  ///< contain a "high" level description of dist params
