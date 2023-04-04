@@ -13,6 +13,8 @@
 
 namespace MMVII
 {
+   // cWhichMin<cIsometry3D<tREAL8>,tREAL8>  aWMin(cIsometry3D<tREAL8>::Identity(),1e10);
+
 template <class Type>  class cElemSpaceResection
 {
       public :
@@ -46,28 +48,16 @@ template <class Type>  class cElemSpaceResection
 	   /** For final result we ewport to the desored type for camera, theimportan is thae
 	       eventualy the computation has been made with REAL16 is high accuracy was required */
 
-           static cIsometry3D<tREAL8>  RansacPoseBySR
-                                     (
-                                          cPerspCamIntrCalib&,
-                                          const cSet2D3D &,
-					  size_t aNbTest,
-					  int    aNbPtsMeasures = -1,
-	                                  cTimerSegm * aTS = nullptr
-                                     );
+           static  cWhichMin<tPoseR,tREAL8>  RansacPoseBySR
+                                             (
+                                                  cPerspCamIntrCalib&,
+                                                  const cSet2D3D &,
+					          size_t aNbTest,
+					          int    aNbPtsMeasures = -1,
+	                                          cTimerSegm * aTS = nullptr
+                                             );
 
 
-	   /*
-           static cIsometry3D<Type>  PoseBySR
-                                     (
-                                          tREAL8 &  aResidual,
-                                          const cPerspCamIntrCalib&,
-                                          const cPair2D3D&,
-                                          const cPair2D3D&,
-                                          const cPair2D3D&,
-                                          const cSet2D3D &
-                                     );
-				     */
-            
 
 	   static void OneTestCorrectness();
        private :
@@ -324,7 +314,7 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
 }
 
 template <class Type>  
-   std::list<cIsometry3D<Type> > cElemSpaceResection<Type>::ListPoseBySR
+   std::list<cIsometry3D<Type>> cElemSpaceResection<Type>::ListPoseBySR
                                  (
                                        cPerspCamIntrCalib& aCalib,
                                        const cPair2D3D&          aPair1,
@@ -352,7 +342,7 @@ template <class Type>
 }
 
 template <class Type>  
-   cIsometry3D<tREAL8>  cElemSpaceResection<Type>::RansacPoseBySR
+   cWhichMin<tPoseR,tREAL8>  cElemSpaceResection<Type>::RansacPoseBySR
                       (
                           cPerspCamIntrCalib& aCalib,
                           const  cSet2D3D & aSet0,
@@ -362,7 +352,7 @@ template <class Type>
                       )
 {
    cAutoTimerSegm  anATS2 (aTS,"CreateTriplet");
-   cWhichMin<cIsometry3D<tREAL8>,tREAL8>  aWMin(cIsometry3D<tREAL8>::Identity(),1e10);
+   cWhichMin<tPoseR,tREAL8>  aWMin(cIsometry3D<tREAL8>::Identity(),1e10);
 
    const cSet2D3D * aSetTest = & aSet0;
    cSet2D3D aBufSetTest;  // will have the space to store locally the test set
@@ -409,18 +399,28 @@ template <class Type>
        }
    }
 
-   return aWMin.IndexExtre();
+   return aWMin;
 }
 
-cIsometry3D<tREAL8>  
-    cPerspCamIntrCalib::PoseEstimSpaceResection
-    (
-         const cSet2D3D & aSet0,
-         size_t aNbTriplet,
-         bool Real8,
-         int aNbPtsMeasures,
-	 cTimerSegm * aTS
-     )
+template class cElemSpaceResection<tREAL8>;
+template class cElemSpaceResection<tREAL16>;
+
+
+/* ==================================================== */
+/*                                                      */
+/*                 cPerspCamIntrCalib                   */
+/*                                                      */
+/* ==================================================== */
+
+
+cWhichMin<tPoseR,tREAL8> cPerspCamIntrCalib::RansacPoseEstimSpaceResection
+       (
+            const cSet2D3D & aSet0,
+            size_t aNbTriplet,
+            bool Real8,
+            int aNbPtsMeasures,
+	    cTimerSegm * aTS
+        )
 {
     if (Real8)
        return cElemSpaceResection<tREAL8>::RansacPoseBySR(*this,aSet0,aNbTriplet,aNbPtsMeasures,aTS);
@@ -429,9 +429,12 @@ cIsometry3D<tREAL8>
 
 }
 
+std::list<tPoseR >  cPerspCamIntrCalib::ElemPoseEstimSpaceResection(const cPair2D3D& aP1,const cPair2D3D& aP2,const cPair2D3D& aP3)
+{
+	return cElemSpaceResection<tREAL8>::ListPoseBySR(*this,aP1,aP2,aP3);
+}
 
-template class cElemSpaceResection<tREAL8>;
-template class cElemSpaceResection<tREAL16>;
+
 
 /* ==================================================== */
 /*                                                      */
@@ -464,7 +467,7 @@ void BenchCalibResection(cSensorCamPC & aCam,cTimerSegm * aTimeSeg)
 	aSet.AddPair(aPIm,aPGround,1.0);
     }
     cPerspCamIntrCalib * aCal = aCam.InternalCalib();
-    cIsometry3D<tREAL8> aPose = aCal->PoseEstimSpaceResection(aSet,100,true,-1,aTimeSeg);
+    cIsometry3D<tREAL8> aPose = aCal->RansacPoseEstimSpaceResection(aSet,100,true,-1,aTimeSeg).IndexExtre();
 
     // StdOut() << "TTT=" << Norm2(aPose.Tr() - aCam.Pose().Tr()) << " " <<  aPose.Rot().Mat().L2Dist(aCam.Pose().Rot().Mat()) << "\n";
     MMVII_INTERNAL_ASSERT_bench(Norm2(aPose.Tr() - aCam.Pose().Tr())<1e-4,"Translation in space resection");
@@ -620,9 +623,15 @@ int cAppli_CalibratedSpaceResection::Exe()
     mSet23 =mPhProj.LoadSet32(aNameIm);
     cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(aNameIm);
 
-    cIsometry3D<tREAL8>   aPose = aCal->PoseEstimSpaceResection(mSet23,mNbTriplets);
+    cWhichMin<tPoseR,tREAL8>  aWMin = aCal->RansacPoseEstimSpaceResection(mSet23,mNbTriplets);
+    tPoseR   aPose = aWMin.IndexExtre();
     cSensorCamPC  aCam(FileOfPath(aNameIm,false),aPose,aCal);
     mPhProj.SaveCamPC(aCam);
+
+    {
+       tREAL8 aRes = aWMin.ValExtre();
+       StdOut()  << "Residual, Ang=" << aRes  << " Pix=" << aRes * aCal->F() << "\n";
+    }
 
     return EXIT_SUCCESS;
 }                                       

@@ -4,6 +4,7 @@
 #include "SymbDer/SymbDer_Common.h"
 #include "MMVII_PhgrDist.h"
 #include "MMVII_Sensor.h"
+#include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 
 /*   Cx Cy Cz  Wx Wy Wz   =>  external parameters
@@ -98,6 +99,7 @@ class cDefProjPerspC : public cDataBoundedSet<tREAL8,2>
  *
  */
 
+
 class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
 {
      public :
@@ -123,6 +125,8 @@ class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
          // std::string  mUnused; ///< To check if PP & F need to be consecutive; OK it works
          tPt    mPP;  ///<  Principal point
 };
+
+
 
 /**  helper for cPerspCamIntrCalib, as the cPerspCamIntrCalib must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
@@ -202,9 +206,18 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg);
 
 
-            cIsometry3D<tREAL8>  PoseEstimSpaceResection
+	    /** Given a set of 2D-3D correspondance, make a pose estimation using space resection,  
+                   NbTriplet :  number of triplet tested in ransac
+                   Real8     :  is the internal computation done on 8/16 byte floating point (theorically more accuracy)
+                   aNbPtsMeasures : possibly reduce the number of point for measuring accuracy (not for triplet selection)
+
+		   return "best" pose + score as Avg Residual (angular not pixel)
+            */
+             cWhichMin<tPoseR,tREAL8>  RansacPoseEstimSpaceResection
 		    (const cSet2D3D & aSet0,size_t aNbTriplet,bool Real8=true, int aNbPtsMeasures=-1,cTimerSegm * =nullptr);
 
+	    /**  Acces to the elementay space resection method : get a list of pose corresponding to a triplet of 2D-3D corresp*/
+	    std::list<tPoseR >  ElemPoseEstimSpaceResection(const cPair2D3D&,const cPair2D3D&,const cPair2D3D&);
 
                 ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
             void UpdateLSQDistInv();

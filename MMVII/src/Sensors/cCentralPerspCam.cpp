@@ -27,6 +27,87 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+class cMapPProj2Im;
+class cMapIm2PProj;
+
+class cMapPProj2Im :  public cInvertMappingFromElem<cHomot2D<tREAL8> >
+{
+     public :
+         cMapPProj2Im(tREAL8 aFoc,const tPt & aPP);
+         cMapPProj2Im(const cMapPProj2Im & aPS);  ///< default wouldnt work because deleted in mother class
+         cMapIm2PProj MapInverse() const;
+
+         const tREAL8& F()  const;   ///<  Focal
+         const tPt  & PP() const;  ///<  Principal point
+         tREAL8& F()  ;   ///<  Focal
+         tPt  & PP() ;  ///<  Principal point
+     private :
+};
+
+class cMapIm2PProj :  public cInvertMappingFromElem<cHomot2D<tREAL8> >
+{
+    public :
+         cMapIm2PProj(const cHomot2D<tREAL8> &);
+};
+
+/* *********************************** */
+/*                                     */
+/*           cMapIm2PProj              */
+/*                                     */
+/* *********************************** */
+
+cMapIm2PProj::cMapIm2PProj(const cHomot2D<tREAL8> & aH) :
+    cInvertMappingFromElem<cHomot2D<tREAL8> >(aH)
+{
+}
+
+/* *********************************** */
+/*                                     */
+/*           cMapPProj2Im              */
+/*                                     */
+/* *********************************** */
+
+cMapPProj2Im::cMapPProj2Im(const cMapPProj2Im & aPS) :
+	cMapPProj2Im(F(),PP())
+{
+}
+
+cMapIm2PProj cMapPProj2Im::MapInverse() const
+{
+   return cMapIm2PProj(Map().MapInverse());
+}
+
+cMapPProj2Im::cMapPProj2Im(tREAL8 aFoc,const tPt & aPP) :
+	cInvertMappingFromElem<cHomot2D<tREAL8> >(cHomot2D<tREAL8>(aPP,aFoc))
+{
+}
+
+const tREAL8 & cMapPProj2Im::F() const {return Map().Sc();}
+const cPt2dr & cMapPProj2Im::PP() const {return Map().Tr();}
+tREAL8 & cMapPProj2Im::F() {return Map().Sc();}
+cPt2dr & cMapPProj2Im::PP() {return Map().Tr();}
+
+
+void TtTTt()
+{
+   cMapPProj2Im aM(2.0,cPt2dr(0,0));
+
+   cMapPProj2Im aM2 = aM;
+
+
+   cMapIm2PProj  aMI = aM.MapInverse();
+
+   std::vector<cPt2dr> aVpt;
+
+   aM.Value(cPt2dr(1,1));
+   aM.Inverse(cPt2dr(1,1));
+   aMI.Value(cPt2dr(1,1));
+   aMI.Inverse(cPt2dr(1,1));
+
+   aMI.Values(aVpt,aVpt);
+}
+
+
 
 /* ******************************************************* */
 /*                                                         */

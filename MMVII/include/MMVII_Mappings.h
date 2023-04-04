@@ -807,6 +807,9 @@ template <class cMapElem> class cInvertMappingFromElem :  public
 
          cInvertMappingFromElem(const cMapElem & aMap,const tMapInv & aIMap); 
          cInvertMappingFromElem(const cMapElem & aMap);  // requires that aMap can compute its inverse
+							 //
+         tMap & Map();							
+         const tMap & Map() const;							
     private :
          cMapElem   mMap;  // Map
          tMapInv  mIMap; // Map inverse

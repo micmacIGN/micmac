@@ -86,6 +86,8 @@ template <class cMapElem>
    return mIMap.Value(aPt);
 }
 
+template <class cMapElem> cMapElem &  cInvertMappingFromElem<cMapElem>::Map() {return mMap;}
+template <class cMapElem> const cMapElem &  cInvertMappingFromElem<cMapElem>::Map() const {return mMap;}
 
 template <class tMapElem> class  cMapOfBox
 {
