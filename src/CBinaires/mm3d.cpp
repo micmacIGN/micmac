@@ -621,6 +621,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Liquor", Liquor_main, "Orientation specialized for linear acquisition"));
 		aRes.push_back(cMMCom("Luxor", Luxor_main, "Orientation specialized for linear acquisition using a sliding window",cArgLogCom(2)));
 		aRes.push_back(cMMCom("Morito", Morito_main, "Merge set of Orientations with common values"));
+
+		aRes.push_back(cMMCom("BasculeTriplet", BasculeTriplet_main, "Merge set of Orientations with robust common triplets"));
 		aRes.push_back(cMMCom("Donuts", Donuts_main, "Cyl to Torus (Donuts like)"));
 		aRes.push_back(cMMCom("C3DC", C3DC_main, "Automatic Matching from Culture 3D Cloud project"));
 		aRes.push_back(cMMCom("PIMs", MPI_main, "Per Image Matchings"));
