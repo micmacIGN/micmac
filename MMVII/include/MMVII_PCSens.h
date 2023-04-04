@@ -56,6 +56,7 @@ extern bool BUGCAL ;
 
 class cDefProjPerspC;  // interface for nowing if where a proj is def
 class cMapPProj2Im ;  // pure intrinsic calib (only PP + F)
+class cMapIm2PProj ;  // pure intrinsic calib (only PP + F)
 class cDataPerspCamIntrCalib;  // primary data part of a cPerspCamIntrCalib -> minimal data to save in a file to be able to reconstruct a cal
 class cPerspCamIntrCalib ; // object allowing computation of internal calib = cDataPerspCamIntrCalib + many calculators computed from data
 class cSensorCamPC ; // Sensor for one image = Pose + pointer to cPerspCamIntrCalib
@@ -104,13 +105,20 @@ class cMapPProj2Im : public cInvertMappingFromElem<cHomot2D<tREAL8> >
      public :
          cMapPProj2Im(tREAL8 aFoc,const tPt & aPP);
          cMapPProj2Im(const cMapPProj2Im & aPS);  ///< default wouldnt work because deleted in mother class
-         cMapPProj2Im MapInverse() const;
+         cMapIm2PProj MapInverse() const;
 
          const tREAL8& F()  const;   ///<  Focal
          const tPt  & PP() const;  ///<  Principal point
          tREAL8& F()  ;   ///<  Focal
          tPt  & PP() ;  ///<  Principal point
      private :
+};
+
+
+class cMapIm2PProj :  public cInvertMappingFromElem<cHomot2D<tREAL8> >
+{
+    public :
+         cMapIm2PProj(const cHomot2D<tREAL8> &);
 };
 
 
@@ -279,7 +287,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     /// return calculator adapted to model of camera (degree, projection)
              cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf);
 
-	     void UpdateCSP();  ///< when PP/F modified
+	     void UpdateMapProj2Im();  ///< when PP/F modified
 
 	     const cPt2di & SzPix() const;
 
@@ -319,7 +327,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist;   ///< direct disorstion  R2->R2
                //  -------------  now for "inversion"  pix->DirBundle --------------------
                 //
-            cMapPProj2Im                         mInv_CSP;
+            cMapIm2PProj                         mMapIm2PProj;
             cDataMappedBoundedSet<tREAL8,2>*     mPhgrDomain;  ///<  validity in F/PP corected space, initialization use mInv_CSP
             // cPt3di                               mInv_Degr;
             std::vector<cDescOneFuncDist>        mInv_VDesc;  ///< contain a "high" level description of dist params

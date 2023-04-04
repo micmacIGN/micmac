@@ -8,13 +8,6 @@
 #include <omp.h>
 #endif
 
-/*
- CamStenope * Std_Cal_From_File
-             (
-                 const std::string & aNameFile,
-                 const std::string &  aNameTag = "CalibrationInternConique"
-             );
-*/
 
 /**
    \file cCentralPerspCam.cpp
@@ -26,94 +19,6 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
-
-	/*
-class cMapPProj2Im;
-class cMapIm2PProj;
-
-class cMapPProj2Im :  public cInvertMappingFromElem<cHomot2D<tREAL8> >
-{
-     public :
-         cMapPProj2Im(tREAL8 aFoc,const tPt & aPP);
-         cMapPProj2Im(const cMapPProj2Im & aPS);  ///< default wouldnt work because deleted in mother class
-         cMapIm2PProj MapInverse() const;
-
-         const tREAL8& F()  const;   ///<  Focal
-         const tPt  & PP() const;  ///<  Principal point
-         tREAL8& F()  ;   ///<  Focal
-         tPt  & PP() ;  ///<  Principal point
-     private :
-};
-
-class cMapIm2PProj :  public cInvertMappingFromElem<cHomot2D<tREAL8> >
-{
-    public :
-         cMapIm2PProj(const cHomot2D<tREAL8> &);
-};
-*/
-
-/* *********************************** */
-/*                                     */
-/*           cMapIm2PProj              */
-/*                                     */
-/* *********************************** */
-
-/*
-cMapIm2PProj::cMapIm2PProj(const cHomot2D<tREAL8> & aH) :
-    cInvertMappingFromElem<cHomot2D<tREAL8> >(aH)
-{
-}
-*/
-
-/* *********************************** */
-/*                                     */
-/*           cMapPProj2Im              */
-/*                                     */
-/* *********************************** */
-
-/*
-cMapPProj2Im::cMapPProj2Im(const cMapPProj2Im & aPS) :
-	cMapPProj2Im(F(),PP())
-{
-}
-
-cMapIm2PProj cMapPProj2Im::MapInverse() const
-{
-   return cMapIm2PProj(Map().MapInverse());
-}
-
-cMapPProj2Im::cMapPProj2Im(tREAL8 aFoc,const tPt & aPP) :
-	cInvertMappingFromElem<cHomot2D<tREAL8> >(cHomot2D<tREAL8>(aPP,aFoc))
-{
-}
-
-const tREAL8 & cMapPProj2Im::F() const {return Map().Sc();}
-const cPt2dr & cMapPProj2Im::PP() const {return Map().Tr();}
-tREAL8 & cMapPProj2Im::F() {return Map().Sc();}
-cPt2dr & cMapPProj2Im::PP() {return Map().Tr();}
-
-
-void TtTTt()
-{
-   cMapPProj2Im aM(2.0,cPt2dr(0,0));
-
-   cMapPProj2Im aM2 = aM;
-
-
-   cMapIm2PProj  aMI = aM.MapInverse();
-
-   std::vector<cPt2dr> aVpt;
-
-   aM.Value(cPt2dr(1,1));
-   aM.Inverse(cPt2dr(1,1));
-   aMI.Value(cPt2dr(1,1));
-   aMI.Inverse(cPt2dr(1,1));
-
-   aMI.Values(aVpt,aVpt);
-}
-*/
-
-
 
 /* ******************************************************* */
 /*                                                         */
@@ -276,8 +181,8 @@ cPerspCamIntrCalib::cPerspCamIntrCalib(const cDataPerspCamIntrCalib & aData) :
                         ),
     mDir_Dist           (NewMapOfDist(mDir_Degr,mVTmpCopyParams,mSzBuf)),
 	// ------------ inverse -------------
-    mInv_CSP            (mMapPProj2Im.MapInverse()),
-    mPhgrDomain         (new cDataMappedBoundedSet<tREAL8,2>(&mPixDomain,&mInv_CSP,false,false)),
+    mMapIm2PProj            (mMapPProj2Im.MapInverse()),
+    mPhgrDomain         (new cDataMappedBoundedSet<tREAL8,2>(&mPixDomain,&mMapIm2PProj,false,false)),
     mInv_VDesc          (DescDist(mInv_Degr)),
     mInv_Params         (mInv_VDesc.size(),0.0),
     mInvApproxLSQ_Dist  (NewMapOfDist(mInv_Degr,mInv_Params,mSzBuf)),
@@ -427,7 +332,7 @@ cPt2dr cPerspCamIntrCalib::PtSeedInv() const
 
      // cPt2dr aSeedPix = PP();
      cPt2dr aSeedPix = ToR(SzPix()) / 2.0;
-     cPt2dr  aPDist = mInv_CSP.Value(aSeedPix);
+     cPt2dr  aPDist = mMapIm2PProj.Value(aSeedPix);
 
 
      cMappingIdentity<tREAL8,2> aMapId;
@@ -497,7 +402,7 @@ double cPerspCamIntrCalib::VisibilityOnImFrame(const cPt2dr & aPIm) const
 
      UpdateLSQDistIfRequired();
 
-     cPt2dr  aPDist   =  mInv_CSP.Value(aPIm);  //  point with dist
+     cPt2dr  aPDist   =  mMapIm2PProj.Value(aPIm);  //  point with dist
      cPt2dr  aPUndist =  mDist_DirInvertible->Inverse(aPDist);   //  point w/o dist
      cPt2dr aPDistBack  = mDir_Dist->Value(aPUndist);   // dist again, should go back to aPDist is we are invertible
 
@@ -552,7 +457,7 @@ const  std::vector<cPt3dr> &  cPerspCamIntrCalib::DirBundles(tVecIn & aV3 ,const
      UpdateLSQDistIfRequired();
 
      static tVecOut aV1,aV2;
-     mInv_CSP.Values(aV1,aV0);
+     mMapIm2PProj.Values(aV1,aV0);
      mDist_DirInvertible->Inverses(aV2,aV1);
      mInv_Proj->Values(aV3,aV2);
      
@@ -571,19 +476,19 @@ cPt3dr  cPerspCamIntrCalib::DirBundle(const tPtOut & aPt) const
 
 tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
 {
-    return mDefProj->P2DIsDef(mDist_DirInvertible->Inverse(mInv_CSP.Value(aPix)));
+    return mDefProj->P2DIsDef(mDist_DirInvertible->Inverse(mMapIm2PProj.Value(aPix)));
 }
 
       //   ----  object in unknown system (bundle adj ...) ----------------
      
-void cPerspCamIntrCalib::UpdateCSP() 
+void cPerspCamIntrCalib::UpdateMapProj2Im() 
 {
-    mInv_CSP       = mMapPProj2Im.MapInverse();
+    mMapIm2PProj       = mMapPProj2Im.MapInverse();
 }
 void cPerspCamIntrCalib::OnUpdate() 
 {
    // The inverst for dist and csp must be recomputed
-    mInv_CSP       = mMapPProj2Im.MapInverse();
+    mMapIm2PProj       = mMapPProj2Im.MapInverse();
 
     // if we are here, great proba modif has been done, so force Update
     UpdateLSQDistInv  ();
@@ -927,40 +832,27 @@ cMapPProj2Im::cMapPProj2Im(const cMapPProj2Im & aCS) :
 {
 }
 
-
-cMapPProj2Im cMapPProj2Im::MapInverse() const
+cMapIm2PProj cMapPProj2Im::MapInverse() const
 {
-    //  aQ= PP+ aP * F  ;  aP = (aQ-PP) /aF
-    return  cMapPProj2Im(  1.0/F()  ,  -PP()/F()  );
+   return cMapIm2PProj(Map().MapInverse());
 }
+
 
 const double & cMapPProj2Im::F()  const {return Map().Sc();}
 const cPt2dr & cMapPProj2Im::PP() const {return Map().Tr();}
 double & cMapPProj2Im::F()  {return Map().Sc();}
 cPt2dr & cMapPProj2Im::PP() {return Map().Tr();}
 
+/* *********************************** */
+/*                                     */
+/*           cMapIm2PProj              */
+/*                                     */
+/* *********************************** */
 
-#if (0)
-#endif
-
-/*
-const  typename cCalibStenPerfect::tVecPt &  cCalibStenPerfect::Inverses(tVecPt & aVOut,const tVecPt & aVIn) const
+cMapIm2PProj::cMapIm2PProj(const cHomot2D<tREAL8> & aH) :
+    cInvertMappingFromElem<cHomot2D<tREAL8> >(aH)
 {
-     const size_t aNbIn = aVIn.size();
-     aVOut.resize(aNbIn);
-
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-     for (size_t aK=0; aK < aNbIn; aK++) 
-     {
-	     aVOut[aK] = (aVIn[aK] - PP()) / F();
-     }
-     return aVOut;
 }
-*/
-
-
 
 
 }; // MMVII
