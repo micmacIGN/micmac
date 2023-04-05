@@ -224,11 +224,14 @@ class cTimerSegm
        const tTableIndTS &  Times() const;
        void Show();
        ~cTimerSegm();
+       /// Force to have no show at del, usefull for handling parameter in bench
+       void SetNoShowAtDel();
    private :
        tTableIndTS          mTimers;
        tIndTS               mLastIndex;
        cMMVII_Ap_CPU *      mAppli;
        double               mCurBeginTime;
+       bool                 mShowAtDel;
 };
 
 
@@ -240,9 +243,12 @@ class cAutoTimerSegm
           cAutoTimerSegm(cTimerSegm & ,const tIndTS& anInd);  // push index in Timer while saving its state
           cAutoTimerSegm(const tIndTS& anInd);  // calls previous with GlobAppTS
           ~cAutoTimerSegm(); // restore the state of timer
+
+	  /// Allow to dow noting if TimeSeg=0
+          cAutoTimerSegm(cTimerSegm * ,const tIndTS& anInd);  
      private :
 	  cAutoTimerSegm(const cAutoTimerSegm&) = delete;
-          cTimerSegm & mTS;  // save the global timer
+          cTimerSegm * mTS;  // save the global timer
           tIndTS  mSaveInd;  // save the curent index in TS to restore it at end
 };
 

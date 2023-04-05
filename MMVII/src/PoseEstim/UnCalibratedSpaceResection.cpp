@@ -457,7 +457,7 @@ template <class Type>
                                                 eProjPC::eStenope,
                                                 cPt3di(0,0,1),
                                                 std::vector<double>(),
-                                                cCalibStenPerfect(aF,aPP),
+                                                cMapPProj2Im(aF,aPP),
                                                 cDataPixelDomain(mSz),
                                                 cPt3di(0,0,1),
                                                 10
@@ -553,7 +553,7 @@ void OneBenchUnCalibResection(int aKTest)
                                                 eProjPC::eStenope,
                                                  cPt3di(0,0,1),
                                                 std::vector<double>(),
-                                                cCalibStenPerfect(aFoc,aPP),
+                                                cMapPProj2Im(aFoc,aPP),
                                                 cDataPixelDomain(aSz),
                                                  cPt3di(0,0,1),
                                                 10
@@ -615,6 +615,7 @@ void BenchUnCalibResection()
 class cAppli_UncalibSpaceResection : public cMMVII_Appli
 {
      public :
+        typedef std::vector<cPerspCamIntrCalib *> tVCal;
 
         cAppli_UncalibSpaceResection(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
 	int Exe() override;
@@ -636,14 +637,15 @@ class cAppli_UncalibSpaceResection : public cMMVII_Appli
 	cPt3di                   mDegDist;
         std::string              mPatParFrozen;
         cPt2dr                   mValFixPP;
-	std::string              mMedianCalib;
+	bool                     mDoMedianCalib;
 };
 
 cAppli_UncalibSpaceResection::cAppli_UncalibSpaceResection(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec):
 	cMMVII_Appli   (aVArgs,aSpec),
         mPhProj        (*this),
         mShow          (false),
-	mReal16        (false)
+	mReal16        (false),
+	mDoMedianCalib (true)
 {
 }
 
@@ -664,7 +666,7 @@ cCollecSpecArg2007 & cAppli_UncalibSpaceResection::ArgOpt(cCollecSpecArg2007 & a
 	       << AOpt2007(mShow,"ShowNP","Show possible names of param for distorsion",{eTA2007::Tuning,eTA2007::HDV})
 	       << AOpt2007(mPatParFrozen,"PatFrozen","Pattern for frozen parameters",{eTA2007::PatParamCalib})
 	       << AOpt2007(mValFixPP,"ValPPRel","Fix value of PP in relative to image size ([0.5,0.5] for middle)")
-	       << AOpt2007(mMedianCalib,"MedianCalib","Export for a median calib for multiple images")
+	       << AOpt2007(mDoMedianCalib,"DoMedianCalib","Export for a median calib for multiple images",{eTA2007::HDV})
            ;
 }
 
@@ -687,7 +689,7 @@ cSensorCamPC * cAppli_UncalibSpaceResection::ChgModel(cSensorCamPC * aCam0)
                                    eProjPC::eStenope,
                                    mDegDist,
                                    std::vector<double>(),
-                                   cCalibStenPerfect(aCal0->F(),aPP),
+                                   cMapPProj2Im(aCal0->F(),aPP),
                                    cDataPixelDomain(aSzPix),
                                    mDegDist,
                                    10
@@ -730,49 +732,56 @@ cSensorCamPC * cAppli_UncalibSpaceResection::ChgModel(cSensorCamPC * aCam0)
 
 void cAppli_UncalibSpaceResection::DoMedianCalib()
 {
-     // [1]   Extract all the calibration
-     std::vector<cPerspCamIntrCalib *> aVCal;
+     // [1]   Extract all the calibration, group the one having same NameCalib
+     std::map<std::string,tVCal> aMapCal;
      for (const auto &  aNameIm : VectMainSet(0))
      {
          std::string aNameCal = mPhProj.DPOrient().FullDirOut() + cPerspCamIntrCalib::PrefixName()  + aNameIm  + ".xml";
          cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCal);
 
-	 aVCal.push_back(aCalib);
+	 cMetaDataImage  aMDI = mPhProj.GetMetaData(DirProject()+aNameIm);
+	 aMapCal[aMDI.InternalCalibGeomIdent()].push_back(aCalib);
 	 StdOut() << "NIIII  " << aNameIm << " F=" << aCalib->F()   << "\n";
      }
 
-     // [2]  Extract a vector that for each param contains a vector of all its values in different calib
-     cPerspCamIntrCalib & aCal0 = *(aVCal.at(0));
-     cGetAdrInfoParam<tREAL8>  aGAIP0(".*",aCal0);
-     size_t aNbParam = aGAIP0.VAdrs().size();
-
-     std::vector<std::vector<double> > aVVParam(aNbParam);
-     for (const auto & aPCal : aVCal)
+     for (const auto & aNameCal : aMapCal)
      {
-           cGetAdrInfoParam<tREAL8>  aGAIPK(".*",*(aPCal));
-           for (size_t aKP=0 ; aKP<aNbParam ; aKP++)
-           {
-                aVVParam.at(aKP).push_back(*aGAIPK.VAdrs().at(aKP));
-           }
-     }
+          // [2]  Extract a vector that for each param contains a vector of all its values in different calib
+          std::string  aName = aNameCal.first;
+	  const tVCal &  aVCal = aNameCal.second;
+          cPerspCamIntrCalib & aCal0 = *(aVCal.at(0));
+          cGetAdrInfoParam<tREAL8>  aGAIP0(".*",aCal0); // Structure for extract param by names, all here
+          size_t aNbParam = aGAIP0.VAdrs().size();
+
+          std::vector<std::vector<double> > aVVParam(aNbParam); // will store all the value of a given param
+          for (const auto & aPCal : aVCal)
+          {
+                cGetAdrInfoParam<tREAL8>  aGAIPK(".*",*(aPCal));
+                for (size_t aKP=0 ; aKP<aNbParam ; aKP++)
+                {
+                     aVVParam.at(aKP).push_back(*aGAIPK.VAdrs().at(aKP));
+                }
+          }
 
      //std::vector<cPerspCamIntrCalib *> aVCal;
 
-     for (size_t aKP=0 ; aKP< aNbParam ; aKP++)
-     {
-          StdOut() << " " <<  aGAIP0.VNames()[aKP] ;
-	  tREAL8 aVMed = NonConstMediane(aVVParam.at(aKP));
-	  tREAL8 aV20 = NC_KthVal(aVVParam.at(aKP),0.2);
-	  tREAL8 aV80 = NC_KthVal(aVVParam.at(aKP),0.8);
-          StdOut() <<  ": V=" << aVMed;
-          StdOut() <<  ": DISP=" << (aV80-aV20);
-          StdOut() <<  "\n";
+          StdOut() << " ####  " <<  aName   << " ####\n";
+          for (size_t aKP=0 ; aKP< aNbParam ; aKP++)
+          {
+               StdOut() << " " <<  aGAIP0.VNames()[aKP] ;
+	       tREAL8 aVMed = NonConstMediane(aVVParam.at(aKP));
+	       tREAL8 aV20 = NC_KthVal(aVVParam.at(aKP),0.2);
+	       tREAL8 aV80 = NC_KthVal(aVVParam.at(aKP),0.8);
+               StdOut() <<  ": V=" << aVMed;
+               StdOut() <<  ": DISP=" << (aV80-aV20);
+               StdOut() <<  "\n";
 
-	  *(aGAIP0.VAdrs()[aKP]) = aVMed;
+	       *(aGAIP0.VAdrs()[aKP]) = aVMed;
+          }
+
+          aCal0.SetName(aName);
+          mPhProj.SaveCalibPC(aCal0);
      }
-
-     aCal0.SetName(mMedianCalib);
-     mPhProj.SaveCalibPC(aCal0);
 }
 
 int cAppli_UncalibSpaceResection::Exe()
@@ -786,7 +795,7 @@ int cAppli_UncalibSpaceResection::Exe()
 	if (aResult != EXIT_SUCCESS)
            return aResult;
 
-	if (IsInit(&mMedianCalib))
+	if (mDoMedianCalib)
 	{
             DoMedianCalib();
 	}

@@ -172,6 +172,7 @@ enum class eTyUEr
               eNoAperture,
               eNoFocale,
               eNoFocaleEqui35,
+              eNoCameraName,
               eUnClassedError,
               eNbVals
            };

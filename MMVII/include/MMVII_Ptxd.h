@@ -620,7 +620,7 @@ template <class Type,const int Dim>  class cTplBox
         static tBox Empty();
         static tBox FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty=false);
         static tBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
-        static tBox BoxCste(Type);
+        static tBox CenteredBoxCste(Type);
         static tBox BigBox();
 
 	cTplBox<tREAL8,Dim> ToR() const;

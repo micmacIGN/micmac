@@ -54,11 +54,6 @@ cCollecSpecArg2007 & cAppli_StackIm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
     return anArgOpt
 /*
-	       << AOpt2007(mDegDist,"DegDist","Degree of distorsion, if model different of linear one")
-	       << AOpt2007(mShow,"ShowNP","Show possible names of param for distorsion",{eTA2007::Tuning,eTA2007::HDV})
-	       << AOpt2007(mPatParFrozen,"PatFrozen","Pattern for frozen parameters",{eTA2007::PatParamCalib})
-	       << AOpt2007(mValFixPP,"ValPPRel","Fix value of PP in relative to image size ([0.5,0.5] for middle)")
-	       << AOpt2007(mMedianCalib,"MedianCalib","Export for a median calib for multiple images")
 */
            ;
 }

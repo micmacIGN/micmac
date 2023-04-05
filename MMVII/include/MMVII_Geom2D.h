@@ -130,8 +130,8 @@ template <class Type>  class cHomot2D
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
 
           cHomot2D(const tPt & aTr,const Type & aSc)  :
-              mTr (aTr),
-              mSc (aSc)
+              mSc (aSc),
+              mTr (aTr)
           {
           }
           cHomot2D() :  cHomot2D<Type>(tPt(0.0,0.0),1.0) {};
@@ -140,11 +140,13 @@ template <class Type>  class cHomot2D
           tTypeMapInv MapInverse() const {return cHomot2D<Type>(-mTr/mSc,1.0/mSc);}
 	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+mSc*aS2.mTr,mSc*aS2.mSc);}
 
-          inline const tPt&  Tr() const   {return mTr;}
-          inline Type        Sc() const   {return mSc;}
+          inline const tPt&     Tr() const   {return mTr;}
+          inline const Type &   Sc() const   {return mSc;}
+          inline tPt&     Tr() {return mTr;}
+          inline Type &   Sc() {return mSc;}
       private :
-          tPt mTr;
           Type mSc;
+          tPt mTr;
 };
 
 /** Usefull when we want to visualize objects : compute box of visu + Mapping Visu/Init */

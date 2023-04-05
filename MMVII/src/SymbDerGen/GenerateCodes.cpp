@@ -225,13 +225,15 @@ typedef std::pair<cPt2dr,cPt3dr>  tPair23;
 /** Generate a pair P2/P3 mutually homologous and in validity domain for proj */
 template<class TyProj> tPair23  GenerateRandPair4Proj()
 {
-   TyProj aProj;
+   const cDefProjPerspC * aProj = cDefProjPerspC::ProjOfType(TyProj::TypeProj());
    tPair23 aRes(cPt2dr(0,0), cPt3dr::PRandUnitDiff(cPt3dr(0,0,0),1e-3));
-   while (aProj.P3DIsDef(aRes.second)<1e-5)
+   while (aProj->P3DIsDef(aRes.second)<1e-5)
        aRes.second =  cPt3dr::PRandUnitDiff(cPt3dr(0,0,0),1e-3);
    cHelperProj<TyProj> aPropPt;
    aRes.first =  aPropPt.Proj(aRes.second);
    aRes.second =  aPropPt.ToDirBundle(aRes.first);
+
+   delete aProj;
 
    return aRes;
 }
@@ -239,7 +241,7 @@ template<class TyProj> tPair23  GenerateRandPair4Proj()
 template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
 {
    cHelperProj<TyProj> aPropPt;
-   const cDefProjPerspC &    aDefProf = cDefProjPerspC::ProjOfType(TyProj::TypeProj());
+   const cDefProjPerspC *    aDefProf = cDefProjPerspC::ProjOfType(TyProj::TypeProj());
    // Just to force compile with these tricky classes
    if (NeverHappens())
    {
@@ -267,7 +269,7 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
    
           MMVII_INTERNAL_ASSERT_bench(Norm2(aP23.second-aRay3d)<1e-8,"Inversion Proj/ToDirBundle");
 
-	  if ( aDefProf.HasRadialSym()) // 2- test radiality  => to skeep for non physical proj like 360 synthetic image
+	  if ( aDefProf->HasRadialSym()) // 2- test radiality  => to skeep for non physical proj like 360 synthetic image
 	  {
           // 2.1  , conservation of angles :  aRay2, aRay3d, AxeK  must be coplanar
               cPt3dr aRay2(aProj2.x(),aProj2.y(),1.0);
@@ -339,6 +341,8 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
      
    // std::string NameEqProjCam(eProjPC  aType,const cPt3di & aDeg,bool WithDerive)
    }
+
+   delete aDefProf;
 }
 
 void BenchProjToDirBundle(cParamExeBench & aParam)
@@ -510,6 +514,7 @@ int cAppliGenCode::Exe()
 
    {
        GenerateOneDist(cPt3di(0,0,0));
+       GenerateOneDist(cPt3di(3,0,0));
        GenerateOneDist(cPt3di(0,0,1));
        GenerateOneDist(cPt3di(3,1,1));
        GenerateOneDist(cPt3di(2,0,0));
@@ -549,6 +554,7 @@ int cAppliGenCode::Exe()
    GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(0,0,0));
    GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(0,0,1));
    GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(3,1,1));
+   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(3,0,0));
    GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(5,2,2));
 
    GenerateCodeCamPerpCentrale<cProjFE_EquiDist>(cPt3di(3,1,1));

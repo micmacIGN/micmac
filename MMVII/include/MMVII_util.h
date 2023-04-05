@@ -45,12 +45,19 @@ class cCarLookUpTable
          void Init(const std::string&,char aC);
          void UnInit(); 
          cCarLookUpTable ();  
+	 void InitId(char aC1,char aC2);
+	 void Chg1C(char aC1,char aC2);
+
+
 
          inline char Val(const int & aV) const
          {
              MMVII_INTERNAL_ASSERT_tiny(IsChar(aV),"cCarLookUpTable::Val()");
              return mUTable[aV];
          }
+
+	 /// make a translation using lut, dont maintain null char
+	 std::string  Translate(const std::string &) const;
      private :
          // static cGestObjetEmpruntable<cCarLookUpTable>   msGOE;
 
@@ -58,12 +65,16 @@ class cCarLookUpTable
          char *        mUTable;      ///< To handle that sometimes char are signed
          std::string   mIns;         ///< Memorize char !=0 to  reset
          bool          mInit;        ///< Is it initialize
+         bool          mReUsable;    ///< If InitId of Chg1C used -> no longer reusable
 };
 
 // Indicate if all "word" of list are in KeyList, use aSpace to separate word
 // Si aMes=="SVP"=> No Error just return false, else aMes is error message
 bool  CheckIntersect(const std::string & aMes,const std::string & aKeyList,const std::string & aList,const std::string & aSpace);
 std::string  Quote(const std::string &);  ///<  Assure a string is between quote, do nothing when begins by "
+///   Transformate a string to make it a standard identifier (+- a C++ accpetable symbol) , rather conservative & basic
+///  " " -> "_"  , accept letter digit "-", refuse all other
+std::string  ToStandardStringIdent(const std::string &);  
 
 
 //  String spliting, post fix, prefix etc ...

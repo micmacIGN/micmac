@@ -134,6 +134,7 @@ template <class Type> class cRotation3D
        cDenseMatrix<Type>  mMat;
 };
 
+
 /**  Class for 3D "affine" rotation of vector
 
 */
@@ -186,6 +187,10 @@ template <class Type> class cIsometry3D
        tPt                mTr;
        cRotation3D<Type>  mRot;
 };
+typedef cIsometry3D<tREAL8> tPoseR; 
+
+template <class Type> cRotation3D<tREAL8>  ToReal8(const cRotation3D<Type>  &);
+template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  &);
 
 template <class Type> class cSimilitud3D
 {

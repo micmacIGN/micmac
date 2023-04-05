@@ -332,7 +332,7 @@ cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,b
     return aCamPC;
 }
 
-cPerspCamIntrCalib *  cPhotogrammetricProject::AllocCalib(const std::string & aNameIm)
+cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImCal(const std::string & aNameIm)
 {
     // 4 now, pretty basic allox sensor, extract internal, destroy
     // later will have to handle :
@@ -346,6 +346,34 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::AllocCalib(const std::string & aN
 
     return aCalib;
 }
+        //  =============  Calibration =================
+
+std::string  cPhotogrammetricProject::StdNameCalibOfImage(const std::string aNameIm) const
+{
+     cMetaDataImage aMTD = GetMetaData(mFolderProject+FileOfPath(aNameIm,false));
+     return aMTD.InternalCalibGeomIdent();
+}
+
+std::string  cPhotogrammetricProject::FullDirCalibIn() const
+{
+   mDPOrient.AssertDirInIsInit();
+   return mDPOrient.FullDirIn();
+}
+std::string  cPhotogrammetricProject::FullDirCalibOut() const
+{
+   return mDPOrient.FullDirOut();
+}
+
+cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm) const
+{
+    std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + ".xml";
+    cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib);
+    return aCalib;
+}
+
+
+
+
         //  =============  Masks =================
 
 std::string cPhotogrammetricProject::NameMaskOfImage(const std::string & aNameImage) const

@@ -710,7 +710,7 @@ template <class Type,const int Dim>
 }
 
 template <class Type,const int Dim>
-   cTplBox<Type,Dim>  cTplBox<Type,Dim>::BoxCste(Type aVal)
+   cTplBox<Type,Dim>  cTplBox<Type,Dim>::CenteredBoxCste(Type aVal)
 {
    return cTplBox<Type,Dim>(tPt::PCste(-aVal),tPt::PCste(aVal));
 }
@@ -718,7 +718,7 @@ template <class Type,const int Dim>
 template <class Type,const int Dim>
    cTplBox<Type,Dim>  cTplBox<Type,Dim>::BigBox()
 {
-     return  BoxCste(tNumTrait<Type>::MaxValue());
+     return  CenteredBoxCste(tNumTrait<Type>::MaxValue());
 }
 
 

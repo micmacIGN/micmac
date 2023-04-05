@@ -498,7 +498,7 @@ int cAppliRadiom2ImageSameMod::Exe()
         cImageRadiomData* aIRD = mPhProj.AllocRadiomData(aNameIm);
         if (aIRD->VIndex().size() >10)
         {
-            cPerspCamIntrCalib* aCalib = mPhProj.AllocCalib(aNameIm);
+            cPerspCamIntrCalib* aCalib = mPhProj.InternalCalibFromImCal(aNameIm);
             UpdateMax(aLimitIndex,aIRD->LimitIndex());
 
             cMetaDataImage aMetaData =  mPhProj.GetMetaData(aNameIm);

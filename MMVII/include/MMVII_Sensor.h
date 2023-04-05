@@ -23,10 +23,35 @@ namespace MMVII
 class  cSensorImage;
 class  cDataPixelDomain ;
 class  cPixelDomain;
+class  cPerspCamIntrCalib;
 class  cSensorCamPC;
 class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
 class cGlobCalculMetaDataProject;
+
+/**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
+ * minimal data for description, with def contructor from the more "sophisticated" object  */
+class cDataPixelDomain 
+{
+      public :
+           cDataPixelDomain(const cPt2di &aSz);
+
+           const cPt2di & Sz() const;
+	   virtual void AddData(const cAuxAr2007 & anAux);
+      protected :
+           cPt2di     mSz;
+};
+
+
+/**  base-class  4 definition of validity domaine in image space  */
+class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
+{
+	public :
+		cPixelDomain(cDataPixelDomain *);
+                const cPt2di & Sz() const;
+	private :
+		cDataPixelDomain * mDPD;
+};
 
 
 /*  base-class  4 all image sensor */
@@ -37,17 +62,18 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 
          cSensorImage(const std::string & aNameImage);
 
+          virtual const cPixelDomain & PixelDomain() const = 0;
+          const cPt2di & Sz() const;
+	  ///  Generate a point ground visible by sensor
+          cPt3dr RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax);
+	  ///  Generate a point on sensor
+          cPt2dr RandomVisiblePIm() const ;
+
+
+	 // =================   Image <-->  Ground  mappings  ===========================
+	 
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
-	 /// Indicate if a point belongs to sensor visibilty domain
-         virtual double Visibility(const cPt3dr &) const =0 ;
-
-	 /// Indicacte how a 2 D points belongs to definition of image frame
-         virtual double VisibilityOnImFrame(const cPt2dr &) const =0 ;
-
-	 ///  add the distance to bundle,to see if have a default with bundle+Gr2Ima
-         //virtual cPt3dr Ground2ImageAndDist(const cPt3dr &) const = 0;
-	 
 	 ///  add the the depth (to see if have a default with bundle+Gr2Ima)
          virtual cPt3dr Ground2ImageAndDepth(const cPt3dr &) const = 0;
          /// Invert of Ground2ImageAndDepth
@@ -55,24 +81,35 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	 /// Facility for calling ImageeAndDepth2Ground(const cPt3dr &)
          cPt3dr ImageAndDepth2Ground(const cPt2dr &,const double & ) const;
 
+
+	 // =================   Visibility/validity   ===========================
+
+	 /// Indicate if a point belongs to sensor visibilty domain
+         virtual double Visibility(const cPt3dr &) const =0 ;
+	 /// Indicacte how a 2 D points belongs to definition of image frame
+         virtual double VisibilityOnImFrame(const cPt2dr &) const =0 ;
+
+	 // =================   Generation of points & correspondance   ===========================
+
 	 /// return a set point regulary sampled (+/-) on sensor, take care of frontier
          virtual std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim)  const = 0;
-
 	 ///  return artificial/synthetic correspondance , with vector of depth
 	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const;
 	 ///  call variant with vector, depth regularly spaced
 	 cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const;
 
 
+	 // =================   Residual   ===========================
          double SqResidual(const cPair2D3D &) const;  ///< residual Proj(P3)-P2 , squared for efficiency
          double AvgSqResidual(const cSet2D3D &) const;  ///< avereage on all pairs, sqrt of square
 	 /// "robust" average using a weigt in sigma/(sigma+R)  , sigma being a prop of residual
          double RobustAvResidualOfProp(const cSet2D3D &,double aProp) const;  
 
-	 const std::string & NameImage() const;   ///< accessor
-	 void SetNameImage(const std::string &);  ///< used when reading from file
 
 	 // --------------------   methods to compute names of an orientation --------------------
+
+	 const std::string & NameImage() const;   ///< accessor
+	 void SetNameImage(const std::string &);  ///< used when reading from file
 
 	 static std::string  PrefixName() ;  ///<  Prefix to all file for ori of 1 images
 	 ///  Compute the name from the specific prefix of subtype and image name, need a static access in creation
@@ -108,30 +145,6 @@ class cSIMap_Ground2ImageAndProf : public cDataInvertibleMapping<tREAL8,3>
            cSensorImage * mSI;
 };
 
-/**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
- * minimal data for description, with def contructor from the more "sophisticated" object  */
-class cDataPixelDomain 
-{
-      public :
-           cDataPixelDomain(const cPt2di &aSz);
-
-           const cPt2di & Sz() const;
-	   virtual void AddData(const cAuxAr2007 & anAux);
-      protected :
-           cPt2di     mSz;
-};
-
-
-/**  base-class  4 definition of validity domaine in image space  */
-class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
-{
-	public :
-		cPixelDomain(cDataPixelDomain *);
-                const cPt2di & Sz() const;
-	private :
-		cDataPixelDomain * mDPD;
-};
-
 /** represent the set of visible point of the camera */
 class cSetVisibility : public cDataBoundedSet<tREAL8,3>
 {
@@ -150,7 +163,10 @@ class cMetaDataImage
           tREAL8  Aperture() const;
           tREAL8  FocalMM() const;
           tREAL8  FocalMMEqui35() const;
-          cMetaDataImage(const std::string & aNameIm,const cGlobCalculMetaDataProject * aCalc);
+	  const std::string&  CameraName() const;
+	  std::string InternalCalibGeomIdent() const;
+
+          cMetaDataImage(const std::string & aDir,const std::string & aNameIm,const cGlobCalculMetaDataProject * aCalc);
           cMetaDataImage();
       private :
 
@@ -262,9 +278,17 @@ class cPhotogrammetricProject
 	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
 
 	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Input orientation
-	  /// For now read PC and extract it (later use xif as in MMV1 in case PC does not exist)
-          cPerspCamIntrCalib *  AllocCalib(const std::string &);
 
+	      // Internal Calibration  
+
+	  std::string  StdNameCalibOfImage(const std::string aNameIm) const;
+	  std::string  FullDirCalibIn() const;
+	  std::string  FullDirCalibOut() const;
+	  
+	  /// read Pose file  and extract the name of internal  calibration
+          cPerspCamIntrCalib *  InternalCalibFromImCal(const std::string &aNameIm);
+	  ///  compute the standard name of calibration before reading it
+	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm) const;
 
 	 //===================================================================
          //==================   RADIOMETRY       =============================

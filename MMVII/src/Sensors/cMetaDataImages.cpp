@@ -39,9 +39,11 @@ class cOneTryCAI
 
         cOneTryCAI(const std::string & aPat,const std::string & aValue);
 
-        std::string   mPat;
-	tNameSelector mSel;
-        std::string   mValue;
+        std::string                  mPat;
+	tNameSelector                mSel;
+        std::string                  mValue;
+	std::optional<std::string>   mPatDir;
+
 };
 
 /**    Define the rule for associting a value to name :
@@ -83,6 +85,7 @@ class cGlobCalculMetaDataProject
          std::string Translate(const std::string &,eMTDIm ) const;
          void AddDir(const std::string& aDir);
          void      SetReal(tREAL8 & aVal,const std::string &,eMTDIm ) const;
+         void      SetName(std::string & aVal,const std::string &,eMTDIm ) const;
      private :
 	 std::vector<cCalculMetaDataProject>  mTranslators;
 };
@@ -125,8 +128,20 @@ void     cGlobCalculMetaDataProject::SetReal(tREAL8 & aVal,const std::string & a
     std::string aTr = Translate(aNameIm,aMode);
 
     if (aTr !=MMVII_NONE)  
-    aVal =  cStrIO<double>::FromStr(aTr);
+        aVal =  cStrIO<double>::FromStr(aTr);
 }
+
+void  cGlobCalculMetaDataProject::SetName(std::string & aVal,const std::string & aNameIm,eMTDIm aMode) const
+{
+    // already set by a more important rule
+    if (aVal !="") return;
+
+    std::string aTr = Translate(aNameIm,aMode);
+
+    if (aTr !=MMVII_NONE)  
+        aVal =  aTr;
+}
+
 /* ******************************************* */
 /*                                             */
 /*                cOneTryCAI                   */
@@ -272,17 +287,22 @@ tREAL8  cMetaDataImage::FocalMMEqui35() const
    return mFocalMMEqui35;
 }
 
+const std::string&  cMetaDataImage::CameraName() const
+{
+    MMVII_INTERNAL_ASSERT_User(mCameraName!="",eTyUEr::eNoCameraName,"Camera Name is not init for " + mNameImage);
+    return mCameraName;
+}
 
-cMetaDataImage::cMetaDataImage(const std::string & aNameIm,const cGlobCalculMetaDataProject * aGlobCalc) :
+
+
+cMetaDataImage::cMetaDataImage(const std::string & aDir,const std::string & aNameIm,const cGlobCalculMetaDataProject * aGlobCalc) :
    cMetaDataImage()
 {
     mNameImage    = aNameIm;
 
     aGlobCalc->SetReal(mAperture,aNameIm,eMTDIm::eAperture);
     aGlobCalc->SetReal(mFocalMM,aNameIm,eMTDIm::eFocalmm);
-
-
-    MMVII_DEV_WARNING("cMetaDataImage : quick and (VERY) dirty implementation, most probably wrong");
+    aGlobCalc->SetName(mCameraName,aNameIm,eMTDIm::eModeleCam);
 }
 
 cMetaDataImage::cMetaDataImage() :
@@ -293,14 +313,26 @@ cMetaDataImage::cMetaDataImage() :
 {
 }
 
+std::string  cMetaDataImage::InternalCalibGeomIdent() const
+{
+    std::string  aRes = "CalibIntr";
+    aRes = aRes + "_Cam"+ ToStandardStringIdent(CameraName());
+    aRes = aRes + "_Foc"+ToStr(FocalMM());
+
+    return aRes;
+}
+
+
 /* ******************************************* */
 /*                                             */
 /*         cMetaDataImage                      */
 /*                                             */
 /* ******************************************* */
 
-cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm) const
+cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aFullNameIm) const
 {
+   std::string aDir,aNameIm;
+   SplitDirAndFile(aDir,aNameIm,aFullNameIm,false);
    static std::map<std::string,cMetaDataImage> aMap;
    auto  anIt = aMap.find(aNameIm);
    if (anIt== aMap.end())
@@ -313,7 +345,7 @@ cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm)
 	}
 
 	// mDPMetaData.FullDirOut()
-        aMap[aNameIm] = cMetaDataImage(aNameIm,mGlobCalcMTD);
+        aMap[aNameIm] = cMetaDataImage(aDir,aNameIm,mGlobCalcMTD);
    }
 
    return aMap[aNameIm];

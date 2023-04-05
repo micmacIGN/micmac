@@ -65,12 +65,12 @@ cPt3dr cSensorCamPC::Ground2ImageAndDepth(const cPt3dr & aP) const
 
 const cPt2di & cSensorCamPC::SzPix() const {return  mInternalCalib->SzPix();}
 
-cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aP) const
+cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aPImAndD) const
 {
-    cPt3dr aPCam = mInternalCalib->Inverse(Proj(aP));
-
-    return mPose.Value(aPCam * (aP.z() / aPCam.z()));
-
+    cPt2dr aPIm = Proj(aPImAndD);
+    cPt3dr aPCam = mInternalCalib->DirBundle(aPIm);
+    cPt3dr aRes =  mPose.Value(aPCam * (aPImAndD.z() / aPCam.z()));
+    return aRes;
 }
 
 const cPt3dr * cSensorCamPC::CenterOfPC() { return  & Center(); }
@@ -83,6 +83,11 @@ cCalculator<double> * cSensorCamPC::EqColinearity(bool WithDerives,int aSzBuf)
 void cSensorCamPC::PushOwnObsColinearity(std::vector<double> & aVObs)
 {
      Pose().Rot().Mat().PushByCol(aVObs);
+}
+
+const cPixelDomain & cSensorCamPC::PixelDomain() const 
+{
+	return mInternalCalib->PixelDomain();
 }
 
 
@@ -128,6 +133,32 @@ void cSensorCamPC::OnUpdate()
      mPose.SetRotation(mPose.Rot() * cRotation3D<tREAL8>::RotFromAxiator(-mOmega));
         // now this have modify rotation, the "delta" is void :
      mOmega = cPt3dr(0,0,0);
+}
+
+
+//
+tREAL8 cSensorCamPC::AngularProjResiudal(const cPair2D3D& aPair) const
+{
+    cPt2dr aPIm =  aPair.mP2;
+    cPt3dr aDirBundleIm = ImageAndDepth2Ground(cPt3dr(aPIm.x(),aPIm.y(),1.0)) - Center();
+    cPt3dr aDirProj =  aPair.mP3 - Center();              // direction of projection
+
+    tREAL8 aRes = Norm2(VUnit(aDirBundleIm)-VUnit(aDirProj));  // equivalent to angular distance
+
+    return aRes;
+}
+
+tREAL8  cSensorCamPC::AvgAngularProjResiudal(const cSet2D3D& aSet) const
+{
+   cWeightAv<tREAL8> aWA;
+
+   for (const auto & aPair : aSet.Pairs())
+   {
+       aWA.Add(1.0,AngularProjResiudal(aPair));
+   }
+
+   return aWA.Average();
+
 }
 
 
@@ -208,7 +239,7 @@ std::string  cSensorCamPC::NameOri_From_Image(const std::string & aNameImage)
 
 std::vector<cPt2dr>  cSensorCamPC::PtsSampledOnSensor(int aNbByDim) const 
 {
-     return  mInternalCalib->PtsSampledOnSensor(aNbByDim);
+     return  mInternalCalib->PtsSampledOnSensor(aNbByDim,true);
 }
 
 
@@ -225,6 +256,24 @@ void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
    aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");
    aGAIP.TestParam(this, &( mOmega.z())    ,"Wz");
 }
+     // =================  becnh ===================
+
+void cSensorCamPC::Bench()
+{
+   cSet2D3D  aSet32 =  SyntheticsCorresp3D2D(20,3,1.0,10.0) ;
+   tREAL8 aRes = AvgAngularProjResiudal(aSet32);
+
+   MMVII_INTERNAL_ASSERT_bench(aRes<1e-8,"Avg res ang");
+}
+
+void cSensorCamPC::BenchOneCalib(cPerspCamIntrCalib * aCalib)
+{
+   cIsometry3D<tREAL8> aPose = cIsometry3D<tREAL8>::RandomIsom3D(10.0);
+
+    cSensorCamPC aCam("BenchCam",aPose,aCalib);
+    aCam.Bench();
+}
+
 
 }; // MMVII
 

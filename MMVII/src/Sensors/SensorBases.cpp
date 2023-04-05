@@ -112,6 +112,31 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt2dr & aP2,const double & aDep
 }
 
 
+
+const cPt2di & cSensorImage::Sz() const {return PixelDomain().Sz();}
+
+tPt2dr cSensorImage::RandomVisiblePIm() const 
+{
+      bool IsOk=false;
+      tPt2dr aRes;
+      while (! IsOk)
+      {
+           aRes = MulCByC(  tPt2dr::PRand()  , ToR(Sz())  );
+	   IsOk = ( VisibilityOnImFrame(aRes) > 0);
+      }
+       
+      return aRes;
+}
+
+cPt3dr cSensorImage::RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax)
+{
+     cPt2dr aPIm   = RandomVisiblePIm();
+     tREAL8 aDepth = RandInInterval(aDepMin,aDepMax);
+     return  Ground2ImageAndDepth(cPt3dr(aPIm.x(),aPIm.y(),aDepth));
+}
+
+
+
 cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const
 {
     cSet2D3D aResult;
@@ -129,7 +154,18 @@ cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> 
     return aResult;
 }
          ///  call variant with vector, depth regularly spaced
-         // cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const;
+cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const
+{
+   std::vector<tREAL8> aVDepth;
+
+   for (int aKD=0 ; aKD < aNbDepts; aKD++)
+   {
+        tREAL8 aW = SafeDiv(aKD,aNbDepts);
+        aVDepth.push_back(aD0 * pow(aD1/aD0,aW));
+   }
+
+   return SyntheticsCorresp3D2D(aNbByDim,aVDepth);
+}
 
 
 /* ******************************************************* */
@@ -165,7 +201,7 @@ cSetVisibility::cSetVisibility(cSensorImage * aSens,double aBorder) :
 	    mBorder                   (aBorder)
 {}
 
-tREAL8 cSetVisibility::Insideness(const tPt & aP) const 
+tREAL8 cSetVisibility::Insideness(const cPt3dr & aP) const 
 {
     return mSens->Visibility(aP) - mBorder;
 }
