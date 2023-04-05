@@ -156,8 +156,8 @@ int  cAppliComputeStatsCorrel::Exe()
                   tREAL4 offpos_=aValDisp+dpos;
                   tREAL4 offneg_=aValDisp+dneg;
                   cPt2di aPC1(aX,aY);
-                  cPt2dr aPC2P(aX-offpos_,aY);
-                  cPt2dr aPC2N(aX-offneg_,aY);
+                  cPt2dr aPC2P(aX+offpos_,aY);
+                  cPt2dr aPC2N(aX+offneg_,aY);
                   if(WindInside4BL(this->BoxFile1(),aPC1,aSzW) && WindInside4BL(this->BoxFile2(),aPC2P,aSzW) && WindInside4BL(this->BoxFile2(),aPC2N,aSzW))
                     {
                       // COMPUTE CORREL POSITIVE AND NEGATIVE 

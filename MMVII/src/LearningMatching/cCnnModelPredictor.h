@@ -59,7 +59,7 @@ class aCnnModelPredictor
        torch::Tensor PredictMSNet4(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNetTileFeatures(torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz);
        torch::Tensor PredictDecisionNet(torch::jit::script::Module mNet, torch::Tensor Left, torch::Tensor Right);
-       torch::Tensor PredictONCUBE(torch::jit::script::Module mMlp,torch::jit::script::Module mMatcher, torch::Tensor aCube);
+       torch::Tensor PredictONCUBE(torch::jit::script::Module mMlp,/*torch::jit::script::Module mMatcher,*/ torch::Tensor &aCube);
        torch::Tensor PredictMSNetCommon(MSNet Net,tTImV2 aTilL,cPt2di aPSz);
        
        

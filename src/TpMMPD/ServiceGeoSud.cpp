@@ -76,7 +76,7 @@ void getImageInfo(std::string const &aName,Pt2di &Size,int &NbCanaux)
 {
     Size.x = 0;
     Size.y = 0;
-    NbCanaux = 0;
+    NbCanaux = 1;
     //on recupere l'extension
     int placePoint = -1;
     for(int l=(int)(aName.size()-1);(l>=0)&&(placePoint==-1);--l)
@@ -825,7 +825,7 @@ int Ortho(std::string const &aNameFileMNT,
     
     // Chargement de la grille et de l'image
     Pt2di ImgSz;
-    int ImgNbC;
+    int ImgNbC=1;
     getImageInfo(aNameFileImage,ImgSz,ImgNbC);
 
     
@@ -1072,7 +1072,7 @@ int Ortho(std::string const &aNameFileMNT,
                                 }
                                 vBuffer.clear();
                                 vBuffer = createVTIm2DFromFile<U_INT2,INT4>(aNameFileImage,bufferMin,bufferMax-bufferMin);
-                                std::cout << ".";
+                                //std::cout << ".";
                             }
                         }
                         if ((vBuffer.size()!=0)&&
@@ -1082,6 +1082,7 @@ int Ortho(std::string const &aNameFileMNT,
                             for(size_t i=0;i<vBuffer.size();++i)
                             {
                                 double radio = vBuffer[i]->getr(Pt2dr(Pimg.x-bufferMin.x,Pimg.y-bufferMin.y),NoData);
+                                std::cout<<"Image to put in Ortho "<<radio<<std::endl;
                                 vPtrOrtho[i]->oset(Portho,(int)radio);
                             }
                         }

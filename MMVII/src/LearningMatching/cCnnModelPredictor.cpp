@@ -361,9 +361,10 @@ void aCnnModelPredictor::PopulateModelFeatures(torch::jit::script::Module & Netw
             break;
         }
     }
-    Network=torch::jit::load(aModel);
     auto cuda_available = torch::cuda::is_available();
-    torch::Device device(cuda_available ? torch::kCPU : torch::kCPU);
+    //auto cuda_available=false;
+    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    Network=torch::jit::load(aModel);
     Network.to(device);
     StdOut()<<"MODEL FEATURES LOADED !!!!!! "<<"\n";
 }
@@ -382,9 +383,10 @@ void aCnnModelPredictor::PopulateModelDecision(torch::jit::script::Module & Netw
             break;
         }
     }
-    Network=torch::jit::load(aModel);
     auto cuda_available = torch::cuda::is_available();
-    torch::Device device(cuda_available ? torch::kCPU : torch::kCPU);
+    //auto cuda_available=false;
+    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    Network=torch::jit::load(aModel);
     Network.to(device);
     StdOut()<<"MODEL DECISION LOADED !!  "<<"\n";
 }
@@ -403,9 +405,9 @@ void aCnnModelPredictor::PopulateModelMatcher(torch::jit::script::Module & Netwo
             break;
         }
     }
-    Network=torch::jit::load(aModel);
     auto cuda_available = torch::cuda::is_available();
-    torch::Device device(cuda_available ? torch::kCPU   : torch::kCPU);
+    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    Network=torch::jit::load(aModel);
     Network.to(device);
     StdOut()<<"MODEL MATCHER LOADED !!  "<<"\n";
 }
@@ -877,8 +879,9 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTile(torch::jit::script::Module mN
 torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz)
 {
     auto cuda_available = torch::cuda::is_available();
-    std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
-    torch::Device device(cuda_available ? torch::kCPU : torch::kCPU);
+    //auto cuda_available = false;
+    //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
+    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
     torch::NoGradGuard no_grad;
     mNet.eval();
     tREAL4 ** mPatchLData=aPatchLV.DIm().ExtractRawData2D();
@@ -887,7 +890,7 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::M
     // print image content
     //std::cout<<"TILE CONTENT  ========= >  "<<aPL<<std::endl;
     aPL=(aPL.div(255.0));
-    aPL=(aPL.sub(0.4353755468)).div(0.19367880);
+    aPL=(aPL.sub(0.4357159999)).div(0.1951853861); //0.4357159999,0.1951853861
     //aPL=(aPL.sub(aPL.mean())).div(aPL.std()+1e-8);
     torch::jit::IValue inp(aPL);
     std::vector<torch::jit::IValue> allinp={inp};
@@ -900,7 +903,11 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::M
 /*********************************************************************************************************************/
 torch::Tensor aCnnModelPredictor::PredictDecisionNet(torch::jit::script::Module mNet, torch::Tensor Left, torch::Tensor Right)
 {
-    //torch::Device device(torch::kCUDA);
+    auto cuda_available = torch::cuda::is_available();
+    //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
+    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    //Left=Left.to(device);
+    //Right=Right.to(device);
     torch::NoGradGuard no_grad;
     mNet.eval();
     auto CatTensor=torch::cat({Left,Right},1); // to get a size of {1,FeatsSIZE}
@@ -912,7 +919,7 @@ torch::Tensor aCnnModelPredictor::PredictDecisionNet(torch::jit::script::Module 
 }
 
 /*********************************************************************************************************************/
-torch::Tensor aCnnModelPredictor::PredictONCUBE(torch::jit::script::Module mMlp,torch::jit::script::Module mMatcher, torch::Tensor aCube)
+torch::Tensor aCnnModelPredictor::PredictONCUBE(torch::jit::script::Module mMlp,/*torch::jit::script::Module mMatcher,*/ torch::Tensor & aCube)
 {
     //torch::Device device(torch::kCUDA);
     torch::NoGradGuard no_grad;
@@ -921,7 +928,7 @@ torch::Tensor aCnnModelPredictor::PredictONCUBE(torch::jit::script::Module mMlp,
     std::vector<torch::jit::IValue> allinp={inp};
     torch::Tensor OutSimBrut=mMlp.forward(allinp).toTensor().sigmoid();
     // construct CONCAT CUBE AND SIMIL
-    auto ConcatCube=torch::cat({aCube.unsqueeze(0),OutSimBrut.unsqueeze(0).unsqueeze(0)},1);
+    /*auto ConcatCube=torch::cat({aCube.unsqueeze(0),OutSimBrut.unsqueeze(0).unsqueeze(0)},1);
     std::cout<<"THE AGGREGATED CUBE OF DATA "<<ConcatCube.sizes()<<std::endl;
     // Second Forward
     //torch::jit::IValue inp2(OutSimBrut.unsqueeze(0).unsqueeze(0));
@@ -931,8 +938,8 @@ torch::Tensor aCnnModelPredictor::PredictONCUBE(torch::jit::script::Module mMlp,
     allinp.push_back(inp2);
     mMatcher.eval();
     torch::Tensor OutSim=mMatcher.forward(allinp).toTensor().sigmoid().squeeze();
-    allinp.clear();
-    return OutSimBrut;
+    allinp.clear();*/
+    return OutSimBrut.to(torch::kCPU);
 }
 /**********************************************************************************************************************/
 torch::Tensor aCnnModelPredictor::PredictMSNetAtt(MSNet_Attention mNet, std::vector<tTImV2> aPatchLV, cPt2di aPSz)
@@ -944,12 +951,14 @@ torch::Tensor aCnnModelPredictor::PredictMSNetAtt(MSNet_Attention mNet, std::vec
     //std::cout<<"SIZE OF MSCALE TILES "<<aPatchLV.size()<<std::endl;
     for (int cc=0;cc<(int) aPatchLV.size();cc++)
     {
-        //StdOut()<<"Size of tile Mul Scale is "<<aPatchLV.at(cc).DIm().Sz()<<"\n";
+        StdOut()<<"Size of tile Mul Scale is "<<aPatchLV.at(cc).DIm().Sz()<<"\n";
         tREAL4 ** mPatchLData=aPatchLV.at(cc).DIm().ExtractRawData2D();
         torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
         aPAllScales.index_put_({cc},aPL);
     }
-    
+    //downscale and upscale
+
+
     aPAllScales=aPAllScales.unsqueeze(0);
     // 4 scale tensor is needed for now test by passing the same tensor at each stage of the network 
     /*torch::Tensor a4ScaleTens=aPL.repeat_interleave(4,1);

@@ -547,15 +547,15 @@ class MSNet_AttentionImpl:public torch::nn::Module
             
             // COMMON ARCHITRECTURE TO REDUCE THE SPATILA DIMENSION OF FEATURES
             torch::nn::Sequential acommon; // start reducing dimension of W x H  if 7x7 then 3 conv layers 
-            acommon->push_back(conv3x3(64,64,1,0));
+            acommon->push_back(conv3x3(64,64,1,1));
             acommon->push_back(torch::nn::BatchNorm2d(torch::nn::BatchNormOptions(64).track_running_stats(true)));
             acommon->push_back(torch::nn::ReLU(torch::nn::ReLUOptions().inplace(true)));
             
-            acommon->push_back(conv3x3(64,64,1,0));   
+            acommon->push_back(conv3x3(64,64,1,1));
             acommon->push_back(torch::nn::BatchNorm2d(torch::nn::BatchNormOptions(64).track_running_stats(true)));
             acommon->push_back(torch::nn::ReLU(torch::nn::ReLUOptions().inplace(true)));
             
-            acommon->push_back(conv3x3(64,64,1,0));    // 1x1 
+            acommon->push_back(conv3x3(64,64,1,1));    // 1x1
             
             common=torch::nn::Sequential(acommon);
             
@@ -594,6 +594,7 @@ class MSNet_AttentionImpl:public torch::nn::Module
         torch::Tensor forward(torch::Tensor x)
         {
             // shape of X {BS,4,7x7} or {BS,4,5x5}
+            std::cout<<"XX SZZZZ "<<x.sizes()<<std::endl;
             auto grps=x.chunk(4,1);
             auto x1=firstconv->forward(grps[0]);
             //std::cout<<" x1 shape "<<x1.sizes()<<std::endl;

@@ -717,7 +717,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
 	void ComputeSimilByCorrelMaster();
     void ComputeSimilByLearnedCorrelMaster(std::vector<torch::Tensor> * AllEmbeddings);
     void ComputeSimilByLearnedCorrelMasterEnhanced(std::vector<torch::Tensor> * AllOrthosEmbeddings);
-    void ComputeSimilByLearnedCorrelMasterDecision();
+    //void ComputeSimilByLearnedCorrelMasterDecision();
     void ComputeSimilByLearnedCorrelMasterMaxMoy(std::vector<torch::Tensor> * AllOrthosEmbeddings);
     void ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(std::vector<torch::Tensor> * AllOrthosEmbeddings);
     void ComputeSimilByLearnedCorrelMasterDempsterShafer(std::vector<torch::Tensor> * AllOrthosEmbeddings);
@@ -743,7 +743,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     aCnnModelPredictor *  mCNNPredictor=nullptr;
     bool                  mWithIntCorr=true;  // initialized in the begining 
     bool                  mWithExtCorr=false;  // initialized in the begining 
-    bool                  mWithDecisionNet=true;
+    bool                  mWithDecisionNet=false;
     std::string           mArchitecture;
     std::string           mResol;
     std::string           mModelBinDir;
@@ -756,7 +756,8 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     Fast_ProjectionHead mNetFastPrjHead=Fast_ProjectionHead(3,5,1,1,112,112,64,torch::kCPU);
     //MSNet_Attention mMSNet=MSNet_Attention(32);
     //MSNetHead mMSNet=MSNetHead(32);
-    torch::jit::script::Module mMSNet /* MSNet_AttentionCustom mMSNet=MSNet_AttentionCustom(32)*/;
+    //torch::jit::script::Module mMSNet;<<<<<<<here>>>>>>>
+    MSNet_Attention mMSNet=MSNet_Attention(32);
     FastandHead mNetFastMVCNNMLP=FastandHead(3,5,4,1,184,184,9,64,torch::kCPU);
     SimilarityNet mNetFastMVCNNDirectSIM=SimilarityNet(3,5,4,1,184,184,64,torch::kCPU);
     //FastandHead mNetFastMVCNNMLP; // Fast MVCNN + MLP for Multiview Features Aggregation
@@ -903,7 +904,9 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
         if(mArchitecture==TheMSNet)
         { 
             mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir);
-            mCNNPredictor->PopulateModelMSNetHead(mMSNet);
+            //mCNNPredictor->PopulateModelMSNetHead(mMSNet);<<<<<<<here>>>>>>>>
+            mCNNPredictor->PopulateModelMSNetAtt(mMSNet);
+
     
             mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
         }
@@ -1232,7 +1235,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::ve
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
+/*void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
 {
    MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
 
@@ -1265,7 +1268,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
         //CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
         // Compute cosine simialrity with respect to master ortho embeddings 
         
-        /**************************************************************************************/
+
         AllOk = true;
         aWeight = 0;
         const tDImMasq & aDIM2  =  mVMasq.at(aKIm).at(0   ).DIm();
@@ -1286,7 +1289,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
         auto aSim=AllSimilarities->at(aKIm-1).slice(0,aP.y(),aP.y()+1,1).slice(1,aP.x(),aP.x()+1,1);
         //std::cout<<" slave vector "<<aSim<<std::endl;
         aCorrel=(float)aSim.item<float>();
-        /**************************************************************************************/  
+
 	    if (AllOk)
 	    {
                 aSumCorAllOk     += aCorrel;
@@ -1309,7 +1312,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
    }
    // delete All Similarities 
    delete AllSimilarities;
-}
+}*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1773,7 +1776,8 @@ int  cAppliMatchMultipleOrtho::Exe()
                                     break;
                             }*/
                     
-                            OneOrthoEmbeding=mCNNPredictor->PredictMSNetHead(mMSNet,mVOrtho.at(i),aSzOrtho);
+                            //OneOrthoEmbeding=mCNNPredictor->PredictMSNetHead(mMSNet,mVOrtho.at(i),aSzOrtho);<<<<<<here>>>>>>
+                            OneOrthoEmbeding=mCNNPredictor->PredictMSNetAtt(mMSNet,mVOrtho.at(i),aSzOrtho);
                         }
                     else if (mArchitecture==TheFastArchWithMLP)
                         {
@@ -1796,8 +1800,8 @@ int  cAppliMatchMultipleOrtho::Exe()
             if (mArchitecture==TheMSNet)
             {
                 //ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(OrthosEmbeddings); // Size 4*numberofOrthos
-                //ComputeSimilByLearnedCorrelMasterEnhanced(OrthosEmbeddings);
-                ComputeSimilByLearnedCorrelMasterDecision();
+                ComputeSimilByLearnedCorrelMasterEnhanced(OrthosEmbeddings);
+                //ComputeSimilByLearnedCorrelMasterDecision(); <<<<<<here>>>>>>
             }
             else
             {
