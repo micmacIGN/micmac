@@ -971,6 +971,7 @@ extern int TransmitHelmert_main(int argc, char ** argv);
 extern int TiePtPrep_main(int argc, char ** argv);
 extern int CreateGCPs4Init11p_main(int argc, char ** argv);
 extern int CreateGCPs4Init11pSamePts_main(int argc, char ** argv);
+extern int GeoreferencedDepthMap_main(int argc, char ** argv);
 
 
 extern int ReechHomol_main(int argc, char ** argv);
@@ -1064,6 +1065,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TiePtPrep", TiePtPrep_main, "Explaination: Add weight to inter-epoch tie points, and merge them with intra-epoch tie points"));
         aRes.push_back(cMMCom("CreateGCPs4Init11p", CreateGCPs4Init11p_main, "Create virtual GCPs for command Init11p (Define grids in each image, which leads to different sets of points for each image)"));
         aRes.push_back(cMMCom("CreateGCPs4Init11pSamePts", CreateGCPs4Init11pSamePts_main, "Create virtual GCPs for command Init11p (Define grids in ground, which leads to the same sets of points for each image)"));
+        aRes.push_back(cMMCom("GeoreferencedDepthMap", GeoreferencedDepthMap_main, "Get georeferenced coordinate for the depth map generated from Malt GeomImage"));
 
 
 
