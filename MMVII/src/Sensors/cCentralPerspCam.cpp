@@ -391,7 +391,7 @@ const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tV
 }
 
 
-double cPerspCamIntrCalib::VisibilityOnImFrame(const cPt2dr & aPIm) const
+double cPerspCamIntrCalib::DegreeVisibilityOnImFrame(const cPt2dr & aPIm) const
 {
      double MaxCalc = 10.0;
      //  For domain where dist is inversible this should be sufficient
@@ -417,7 +417,7 @@ double cPerspCamIntrCalib::VisibilityOnImFrame(const cPt2dr & aPIm) const
 }
 
 
-double cPerspCamIntrCalib::Visibility(const cPt3dr & aP) const
+double cPerspCamIntrCalib::DegreeVisibility(const cPt3dr & aP) const
 {
      // if the point is not OK for projector dont try any more ...
      tREAL8 aRes3 =  mDefProj->P3DIsDef(aP) *F();

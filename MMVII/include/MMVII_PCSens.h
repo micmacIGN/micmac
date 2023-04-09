@@ -292,9 +292,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     const cPt2di & SzPix() const;
 
 	     /// Used by CamPC
-	     double Visibility(const cPt3dr &) const ;
+	     double DegreeVisibility(const cPt3dr &) const ;
 
-	     double VisibilityOnImFrame(const cPt2dr &) const;
+	     double DegreeVisibilityOnImFrame(const cPt2dr &) const;
 
 
 	    ///  real constructor (accessible directly because RemanentObjectFromFile)
@@ -368,8 +368,8 @@ class cSensorCamPC : public cSensorImage
 
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
-	 double Visibility(const cPt3dr &) const override;
-	 double VisibilityOnImFrame(const cPt2dr &) const override;
+	 double DegreeVisibility(const cPt3dr &) const override;
+	 double DegreeVisibilityOnImFrame(const cPt2dr &) const override;
 
 	 const cPixelDomain & PixelDomain() const override;
 

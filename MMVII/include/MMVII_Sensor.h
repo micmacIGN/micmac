@@ -84,10 +84,16 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 
 	 // =================   Visibility/validity   ===========================
 
-	 /// Indicate if a point belongs to sensor visibilty domain
-         virtual double Visibility(const cPt3dr &) const =0 ;
-	 /// Indicacte how a 2 D points belongs to definition of image frame
-         virtual double VisibilityOnImFrame(const cPt2dr &) const =0 ;
+	 /// Indicate how much a point belongs to sensor visibilty domain
+         virtual double DegreeVisibility(const cPt3dr &) const =0 ;
+	 /// Indicacte how much a 2 D points belongs to definition of image frame
+         virtual double DegreeVisibilityOnImFrame(const cPt2dr &) const =0 ;
+	 /// Indicate if a point belongs to sensor visibilty domain (threshold DegreeVisibility)
+         bool IsVisible(const cPt3dr &) const  ;
+	 /// Indicacte how a 2 D points belongs to definition of image frame (threshold DegreeVisibilityOnImFrame)
+         bool IsVisibleOnImFrame(const cPt2dr &) const  ;
+	 /// 2d & 3d are visible
+         bool PairIsVisible(const cPair2D3D &) const  ;
 
 	 // =================   Generation of points & correspondance   ===========================
 

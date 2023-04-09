@@ -122,7 +122,7 @@ tPt2dr cSensorImage::RandomVisiblePIm() const
       while (! IsOk)
       {
            aRes = MulCByC(  tPt2dr::PRand()  , ToR(Sz())  );
-	   IsOk = ( VisibilityOnImFrame(aRes) > 0);
+	   IsOk = IsVisibleOnImFrame(aRes) ;
       }
        
       return aRes;
@@ -167,6 +167,13 @@ cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double 
    return SyntheticsCorresp3D2D(aNbByDim,aVDepth);
 }
 
+bool cSensorImage::IsVisible(const cPt3dr & aP3) const  { return DegreeVisibility(aP3) > 0; }
+bool cSensorImage::IsVisibleOnImFrame(const cPt2dr & aP2) const  { return DegreeVisibilityOnImFrame(aP2) > 0;}
+bool cSensorImage:: PairIsVisible(const cPair2D3D & aPair) const
+{
+	return IsVisible(aPair.mP3) && IsVisibleOnImFrame(aPair.mP2) ;
+}
+
 
 /* ******************************************************* */
 /*                                                         */
@@ -203,7 +210,7 @@ cSetVisibility::cSetVisibility(cSensorImage * aSens,double aBorder) :
 
 tREAL8 cSetVisibility::Insideness(const cPt3dr & aP) const 
 {
-    return mSens->Visibility(aP) - mBorder;
+    return mSens->DegreeVisibility(aP) - mBorder;
 }
 
 
