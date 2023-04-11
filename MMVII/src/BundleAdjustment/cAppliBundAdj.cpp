@@ -2,6 +2,7 @@
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
+#include <set>
 
 /**
    \file cAppliBundAdj.cpp
@@ -18,7 +19,7 @@ namespace MMVII
 /*                                                               */
 /* ************************************************************* */
 
-class cMMVII_BundleAdj
+template <class Type> class cMMVII_BundleAdj
 {
      public :
           cMMVII_BundleAdj(cPhotogrammetricProject &);
@@ -47,7 +48,24 @@ class cMMVII_BundleAdj
 	  std::vector<cSensorCamPC *>        mSCPC;      ///< vector of perspectiv  cameras
 	  std::vector<cSensorImage *>        mSIm;       ///< vector of sensor image (PC+RPC ...)
 
+
+	  cSetInterUK_MultipeObj<tREAL8>    mSetIntervUK;
+
 };
+
+template <class Type> void cMMVII_BundleAdj<Type>::AddCalib(cPerspCamIntrCalib * aCalib)  
+{
+    if (mSetPCIC.find(aCalib) == mSetPCIC.end())
+    {
+          mSetPCIC.insert(aCalib);
+	  mVPCIC.push_back(aCalib);
+	  mSetIntervUK.mSetIntervUK(aCalib);
+    }
+}
+
+template class cMMVII_BundleAdj<tREAL8>;
+template class cMMVII_BundleAdj<tREAL16>;
+
 
    /* ********************************************************** */
    /*                                                            */
@@ -55,7 +73,7 @@ class cMMVII_BundleAdj
    /*                                                            */
    /* ********************************************************** */
 
-class cAppliBundlAdj : public cMMVII_Appli
+template <class Type>  class cAppliBundlAdj : public cMMVII_Appli
 {
      public :
         cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
@@ -66,20 +84,20 @@ class cAppliBundlAdj : public cMMVII_Appli
 	cPhotogrammetricProject  mPhProj;
 };
 
-cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+template <class Type> cAppliBundlAdj<Type>::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli(aVArgs,aSpec),
    mPhProj (*this)
 {
 }
 
-cCollecSpecArg2007 & cAppliBundlAdj::ArgObl(cCollecSpecArg2007 & anArgObl) 
+template <class Type> cCollecSpecArg2007 & cAppliBundlAdj<Type>::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
 	      <<  mPhProj.DPOrient().ArgDirOutMand()
            ;
 }
 
-cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgObl) 
+template <class Type> cCollecSpecArg2007 & cAppliBundlAdj<Type>::ArgOpt(cCollecSpecArg2007 & anArgObl) 
 {
     
     return anArgObl
@@ -87,7 +105,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgObl)
 }
 
 
-int cAppliBundlAdj::Exe()
+template <class Type> int cAppliBundlAdj<Type>::Exe()
 {
     mPhProj.FinishInit();
 
@@ -97,14 +115,14 @@ int cAppliBundlAdj::Exe()
 
 tMMVII_UnikPApli Alloc_BundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppliBundlAdj(aVArgs,aSpec));
+   return tMMVII_UnikPApli(new cAppliBundlAdj<tREAL8>(aVArgs,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpec_BundlAdj
 (
-     "OriConvV1V2",
+     "BundleAdj",
       Alloc_BundlAdj,
-      "Convert orientation of MMV1  to MMVII",
+      "Bundle adjusment",
       {eApF::Ori},
       {eApDT::Orient},
       {eApDT::Orient},
