@@ -60,6 +60,7 @@ extern cSpecMMVII_Appli  TheSpecRadiom2ImageSameMod;
 extern cSpecMMVII_Appli  TheSpecTopoComp;
 extern cSpecMMVII_Appli  TheSpecGenerateEncoding;
 extern cSpecMMVII_Appli  TheSpecTestGraphPart;
+extern cSpecMMVII_Appli  TheSpec_OriBundlAdj;
 
 
 };

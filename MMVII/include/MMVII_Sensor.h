@@ -283,7 +283,7 @@ class cPhotogrammetricProject
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
 	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
 
-	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete); ///< Create Camera using Input orientation
+	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete,bool SVP=false); ///< Create Camera using Input orientation
 
 	      // Internal Calibration  
 

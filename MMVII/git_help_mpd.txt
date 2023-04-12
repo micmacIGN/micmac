@@ -1,5 +1,3 @@
-ghp_DBw68j2VnYn8DX3C
-JkOTDMR6LJYNwm3kCfIO
 git config core.editor vim
 
 git fetch origin

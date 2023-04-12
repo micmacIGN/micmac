@@ -69,6 +69,7 @@ int ScaleIm_main(int argc,char ** argv)
 
     bool aModeMasq   = false;
     bool Arg2IsWidth = false;
+    bool useLZW = false;
     
     int Strip;
 
@@ -95,6 +96,7 @@ int ScaleIm_main(int argc,char ** argv)
                 << EAM(aNameDepl,"NameDepl",true,"Image of displacement ")
                 << EAM(Arg2IsWidth ,"Arg2IsW",true,"If 2nd Arg is Witdh")
                 << EAM(Strip ,"Strip",true,"Strip for image generated, def unused (use tilling), 0=> one big tile")
+                << EAM(useLZW ,"LZW",true,"Use LZW for compression")
     );
     if (!MMVisualMode)
     {
@@ -159,13 +161,15 @@ int ScaleIm_main(int argc,char ** argv)
            aLopt  =  aLopt +  Arg_Tiff(Tiff_Im::ANoStrip());
     }
 
+    Tiff_Im::COMPR_TYPE aModeCompr = useLZW ? Tiff_Im::LZW_Compr : Tiff_Im::No_Compr;
+
     Tiff_Im TiffOut  =     (tiff.phot_interp() == Tiff_Im::RGBPalette)  ?
                            Tiff_Im
                            (
                               aNameOut.c_str(),
                               Pt2di(aSz),
                               aType,
-                              Tiff_Im::No_Compr,
+                              aModeCompr,
                               tiff.pal(),
                               aLopt
                               // ArgOpTiffMDP(aNameTif)
@@ -175,8 +179,8 @@ int ScaleIm_main(int argc,char ** argv)
                               aNameOut.c_str(),
                               Pt2di(aSz),
                               aType,
-                              Tiff_Im::No_Compr,
-                              tiff.phot_interp(),
+                              aModeCompr,
+                              aForceGray? Tiff_Im::BlackIsZero : tiff.phot_interp(),
                               aLopt
                               // ArgOpTiffMDP(aNameTif)
                           );

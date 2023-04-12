@@ -25,8 +25,10 @@ class cMMVII_BundleAdj
           cMMVII_BundleAdj(cPhotogrammetricProject *);
 
 
-	  void  AddCalib(cPerspCamIntrCalib *);  /// check if not exist and add
-	  void  AddCamPC(cSensorCamPC *);
+	  void  AddCalib(cPerspCamIntrCalib *);  /// add  if not exist 
+	  void  AddCamPC(cSensorCamPC *);  /// add, error id already exist
+	  void  AddCam(const std::string & aNameIm);  /// add from name, require PhP exist
+					   
 
      private :
 
@@ -35,6 +37,8 @@ class cMMVII_BundleAdj
           void AssertPhaseAdd() ;
           void AssertPhp() ;
           void AssertPhpAndPhaseAdd() ;
+
+
 
 
 	  //============== Data =============================
@@ -47,11 +51,8 @@ class cMMVII_BundleAdj
 	  // ===================  Object to be adjusted ==================
 	 
 	  std::vector<cPerspCamIntrCalib *>  mVPCIC;     ///< vector of all internal calibration 4 easy parse
-	  // std::set<cPerspCamIntrCalib *>     mSetPCIC;   ///< Internal calib a set to avoid multipl add
-
 	  std::vector<cSensorCamPC *>        mSCPC;      ///< vector of perspectiv  cameras
 	  std::vector<cSensorImage *>        mSIm;       ///< vector of sensor image (PC+RPC ...)
-
 
 	  cSetInterUK_MultipeObj<tREAL8>    mSetIntervUK;
 
@@ -75,23 +76,32 @@ void cMMVII_BundleAdj::AddCalib(cPerspCamIntrCalib * aCalib)
 void cMMVII_BundleAdj::AddCamPC(cSensorCamPC * aCamPC)
 {
     AssertPhaseAdd();
-    // MMVII_INTERNAL_ASSERT_tiny (!aCamPC->UkIsInit(),"Multiple add of cam : " + aCamPC->Name());
-    {
-    }
+    MMVII_INTERNAL_ASSERT_tiny (!aCamPC->UkIsInit(),"Multiple add of cam : " + aCamPC->NameImage());
 
-
-	/*
-    AssertPhaseAdd();
+    mSetIntervUK.AddOneObj(aCamPC);
     mSCPC.push_back(aCamPC);
-    if (mSetPCIC.find(aCalib) == mSetPCIC.end())
-    {
-          mSetPCIC.insert(aCalib);
-	  mVPCIC.push_back(aCalib);
-	  mSetIntervUK.AddOneObj(aCalib);
-    }
-    */
+    mSIm.push_back(aCamPC);
+
+    AddCalib(aCamPC->InternalCalib());
 }
 
+void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
+{
+    AssertPhpAndPhaseAdd();
+
+    // Try extract a PC Cam
+    {
+       cSensorCamPC * aCamPC = mPhProj->AllocCamPC(aNameIm,true,true);  // true 2 Delet,  true =SVP
+       if (aCamPC)
+       {
+           AddCamPC(aCamPC);
+           return; 
+       }
+    }
+
+    // No camera succed
+    MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot get a valid camera for image" +  aNameIm);
+}
 
 
 
@@ -119,7 +129,7 @@ void cMMVII_BundleAdj::AssertPhpAndPhaseAdd()
    /*                                                            */
    /* ********************************************************** */
 
-template <class Type>  class cAppliBundlAdj : public cMMVII_Appli
+class cAppliBundlAdj : public cMMVII_Appli
 {
      public :
         cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
@@ -127,33 +137,57 @@ template <class Type>  class cAppliBundlAdj : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
-	cPhotogrammetricProject  mPhProj;
+
+	std::string               mSpecImIn;
+
+	std::string               mDataDir;
+
+	cPhotogrammetricProject   mPhProj;
+	cMMVII_BundleAdj          mBA;
+	std::vector<double>       mGCPW;
 };
 
-template <class Type> cAppliBundlAdj<Type>::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli(aVArgs,aSpec),
-   mPhProj (*this)
+cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+   cMMVII_Appli  (aVArgs,aSpec),
+   mDataDir      ("Std"),
+   mPhProj       (*this),
+   mBA           (&mPhProj)
 {
 }
 
-template <class Type> cCollecSpecArg2007 & cAppliBundlAdj<Type>::ArgObl(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppliBundlAdj::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
+              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+              <<  mPhProj.DPOrient().ArgDirInMand()
 	      <<  mPhProj.DPOrient().ArgDirOutMand()
            ;
 }
 
-template <class Type> cCollecSpecArg2007 & cAppliBundlAdj<Type>::ArgOpt(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
 {
     
-    return anArgObl
+    return anArgOpt
+               << AOpt2007(mDataDir,"DataDir","Defautl data directories ",{eTA2007::HDV})
+               << AOpt2007(mGCPW,"GCPW","Weithing of GCP if any [SigmaG,SigmaI], SG=0 fix, SG<0 schurr elim, SG>0",{{eTA2007::ISizeV,"[2,2]"}})
            ;
 }
 
 
-template <class Type> int cAppliBundlAdj<Type>::Exe()
+int cAppliBundlAdj::Exe()
 {
     mPhProj.FinishInit();
+
+    for (const auto &  aNameIm : VectMainSet(0))
+    {
+         mBA.AddCam(aNameIm);
+    }
+
+    if (IsInit(&mGCPW))
+    {
+	          // void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
+          // void LoadIm(cSetMesImGCP&,const std::string & aNameIm) const;
+    }
 
     return EXIT_SUCCESS;
 }
@@ -161,20 +195,22 @@ template <class Type> int cAppliBundlAdj<Type>::Exe()
 
 tMMVII_UnikPApli Alloc_BundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppliBundlAdj<tREAL8>(aVArgs,aSpec));
+   return tMMVII_UnikPApli(new cAppliBundlAdj(aVArgs,aSpec));
 }
 
-cSpecMMVII_Appli  TheSpec_BundlAdj
+cSpecMMVII_Appli  TheSpec_OriBundlAdj
 (
-     "BundleAdj",
+     "OriBundleAdj",
       Alloc_BundlAdj,
-      "Bundle adjusment",
+      "Bundle adjusment between images, using several observations/constraint",
       {eApF::Ori},
       {eApDT::Orient},
       {eApDT::Orient},
       __FILE__
 );
 
+/*
+*/
 
 }; // MMVII
 

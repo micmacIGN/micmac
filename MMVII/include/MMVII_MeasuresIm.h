@@ -162,6 +162,8 @@ class cMultipleImPt
 
 /**  Class for storing a data base of GCP :  3D measures + 2D image measure
  *   The link between different measures is done using name of points.
+ *
+ *   The mMesGCP  and mMesIm are corresponinf i.e  mMesGCP[k] <-> mMesIm[k] 
  */
 class cSetMesImGCP
 {
@@ -172,13 +174,17 @@ class cSetMesImGCP
             void AddMes3D(const cSetMesGCP &);
             void AddMes2D(const cSetMesPtOf1Im &);
 
+	    /// return a set of 3D mesure as
             void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm);
+
+            const std::vector<cMes1GCP> &        MesGCP() const ; ///< Accessor
+            const std::vector<cMultipleImPt> &   MesIm() const ;  ///< Accessor
     private :
 
             cSetMesImGCP(const  cSetMesImGCP & ) = delete;
 
-            bool                                 mPhaseGCPFinished;
-            std::vector<cMes1GCP>                mMesGCP;
+            bool                        mPhaseGCPFinished;
+            std::vector<cMes1GCP>       mMesGCP;
             std::vector<cMultipleImPt>  mMesIm;
 
             t2MapStrInt  m2MapPtInt; //

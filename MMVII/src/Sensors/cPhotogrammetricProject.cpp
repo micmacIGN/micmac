@@ -319,11 +319,16 @@ void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) co
 }
 
 
-cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete)
+cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete,bool SVP)
 {
     mDPOrient.AssertDirInIsInit();
 
     std::string aNameCam  =  mDPOrient.FullDirIn() + cSensorCamPC::NameOri_From_Image(aNameIm);
+    // if kindly asked and dont exist return
+    if ( SVP && (!ExistFile(aNameCam)) )
+    {
+       return nullptr;
+    }
     cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam);
 
     if (ToDelete)

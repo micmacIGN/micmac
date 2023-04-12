@@ -79,9 +79,19 @@ void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm)
     for (const auto & aMes : aSetMesIm.Measures())
     {
         int aNumPt = m2MapPtInt.Obj2I(aMes.mNamePt);
-	mMesIm.at(aNumPt).Add(aMes,aNumIm,false);
+	if (aNumPt>=0)
+	{
+	    mMesIm.at(aNumPt).Add(aMes,aNumIm,false);
+	}
+	else
+	{
+             MMVII_DEV_WARNING("Measure Im w/o Ground, first occur Im=" + aSetMesIm.NameIm() + " Pt="  + aMes.mNamePt);
+	}
     }
 }
+
+const std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP() const {return mMesGCP; }
+const std::vector<cMultipleImPt> &   cSetMesImGCP::MesIm() const  {return mMesIm;  }
 
 
 void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm)
