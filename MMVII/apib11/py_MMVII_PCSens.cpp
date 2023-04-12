@@ -6,35 +6,44 @@ using namespace pybind11::literals;
 
 using namespace MMVII;
 
-static void pyb_init_CalibStenPerfect(py::module_ &m)
+static void pyb_init_MapPProj2Im(py::module_ &m)
 {
-    typedef cCalibStenPerfect tCSP;
-    typedef tCSP::tScal tScal;
-    typedef tCSP::tPt tPt;
-    typedef tCSP::tVecPt tVecPt;
+    typedef cMapPProj2Im tMPP2I;
+    typedef tMPP2I::tPt tPt;
 
-    py::class_<cCalibStenPerfect>(m, "CalibStenPerfect", DOC(MMVII_cCalibStenPerfect))
-            .def(py::init([](){return new tCSP(1,tPt(0,0));}))
-            .def(py::init<tScal,const cPt2dr&>())
-            .def("__copy__",  [](const tCSP &self) {
-                   return tCSP(self);
+    py::class_<cMapPProj2Im, cInvertMappingFromElem<cHomot2D<tREAL8> > >(m, "MapPProj2Im", DOC(MMVII_cMapPProj2Im))
+            .def(py::init([](){return new tMPP2I(1,tPt(0,0));}))
+            .def(py::init<tREAL8,const cPt2dr&>())
+            .def("__copy__",  [](const tMPP2I &self) {
+                   return tMPP2I(self);
                })
-            .def("mapInverse", &tCSP::MapInverse)
+            //.def("mapInverse", &tMPP2I::MapInverse) // TODO: fix RuntimeError: return_value_policy = move, but type MMVII::cMapIm2PProj is neither movable nor copyable!
 
-
-            .def("value", &tCSP::Value,"pt2dr"_a)
-            .def("inverse", &tCSP::Inverse,"pt2dr"_a)
-            .def("values", [](const tCSP &c, const tVecPt &vi) {tVecPt vo; return c.Values(vo, vi);},"pt2dr_list"_a)
-            .def("inverses", [](const tCSP &c, const tVecPt &vi) {tVecPt vo; return c.Inverses(vo, vi);},"pt2dr_list"_a)
-
-            .def_property("f",[](const tCSP& c){return c.F();},[](cCalibStenPerfect& c, tScal f){ c.F() = f;})
-            .def_property("pp",[](const tCSP& c){return c.PP();},[](cCalibStenPerfect& c, const tPt& pp){ c.PP() = pp;})
+            .def_property("f",[](const tMPP2I& c){return c.F();},[](tMPP2I& m, tREAL8 f){ m.F() = f;})
+            .def_property("pp",[](const tMPP2I& c){return c.PP();},[](tMPP2I& m, const tPt& pp){ m.PP() = pp;})
 
             .def("__repr__",
-                 [](const tCSP &c) {
+                 [](const tMPP2I &m) {
                    std::ostringstream ss;
                    ss.precision(15);
-                   ss << "CalibStenPerfect(" << c.F() << ",(" << c.PP().x() << "," << c.PP().y() << "))";
+                   ss << "MapPProj2Im(" << m.F() << ",(" << m.PP().x() << "," << m.PP().y() << "))";
+                   return ss.str();
+             })
+            ;
+}
+
+static void pyb_init_MapIm2PProj(py::module_ &m)
+{
+    typedef cMapIm2PProj tMI2PP;
+
+    py::class_<cMapIm2PProj, cInvertMappingFromElem<cHomot2D<tREAL8> > >(m, "MapIm2PProj", DOC(MMVII_cMapIm2PProj))
+            .def(py::init<const cHomot2D<tREAL8>&>(), "aH"_a)
+
+            .def("__repr__",
+                 [](const tMI2PP &m) {
+                   std::ostringstream ss;
+                   ss.precision(15);
+                   ss << "MapIm2PProj()";
                    return ss.str();
              })
             ;
@@ -61,8 +70,8 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
             .def_property_readonly("name", &tPCIC::Name,DOC(MMVII_cPerspCamIntrCalib, Name))
 
             .def("values", [](const tPCIC &c, const tVecIn &vi) {tVecOut vo; return c.Values(vo, vi);},"pt3dr_list"_a, DOC(MMVII_cPerspCamIntrCalib, Values))
-            .def("inverses", [](const tPCIC &c, const tVecOut &vo) {tVecIn vi; return c.Inverses(vi, vo);},"pt2dr_list"_a, DOC(MMVII_cPerspCamIntrCalib, Inverses))
-            .def("inverse", &tPCIC::Inverse,"ptr2dr"_a, DOC(MMVII_cPerspCamIntrCalib, Inverse))
+            .def("dirBundles", [](const tPCIC &c, const tVecOut &vo) {tVecIn vi; return c.DirBundles(vi, vo);},"pt2dr_list"_a, DOC(MMVII_cPerspCamIntrCalib, DirBundles))
+            .def("dirBundle", &tPCIC::DirBundle,"ptr2dr"_a, DOC(MMVII_cPerspCamIntrCalib, DirBundle))
             .def("value", &tPCIC::Value,"pt3dr"_a)
             .def("invProjIsDef", &tPCIC::InvProjIsDef,"pt2dr"_a, DOC(MMVII_cPerspCamIntrCalib, InvProjIsDef))
 
@@ -74,12 +83,11 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
 
             .def_property_readonly("szPix", &tPCIC::SzPix,DOC(MMVII_cPerspCamIntrCalib, SzPix))
 
-            .def("visibility", &tPCIC::Visibility,"pt3dr"_a, DOC(MMVII_cPerspCamIntrCalib, Visibility))
-            .def("visibilityOnImFrame", &tPCIC::VisibilityOnImFrame,"pt2dr"_a, DOC(MMVII_cPerspCamIntrCalib, VisibilityOnImFrame))
+            .def("degreevisibility", &tPCIC::DegreeVisibility,"pt3dr"_a, DOC(MMVII_cPerspCamIntrCalib, DegreeVisibility))
+            .def("degreeVisibilityOnImFrame", &tPCIC::DegreeVisibilityOnImFrame,"pt2dr"_a, DOC(MMVII_cPerspCamIntrCalib, DegreeVisibilityOnImFrame))
 
-            .def("vecInfo", &tPCIC::VecInfo, DOC(MMVII_cDataPerspCamIntrCalib, VecInfo))
+            .def("mapPProj2Im", &tPCIC::MapPProj2Im, DOC(MMVII_cDataPerspCamIntrCalib, MapPProj2Im))
 
-            .def("calibStenPerfect", &tPCIC::CalibStenPerfect, py::return_value_policy::reference_internal, DOC(MMVII_cDataPerspCamIntrCalib, CalibStenPerfect))
             .def("dir_Proj",&tPCIC::Dir_Proj,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Dir_Proj) )
             .def("dir_Dist",&tPCIC::Dir_Dist,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Dir_Dist) )
             .def("inv_Proj",&tPCIC::Inv_Proj,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Inv_Proj) )
@@ -101,8 +109,8 @@ static void pyb_init_SensorCamPC(py::module_ &m)
 
             .def("ground2Image",&tSCPC::Ground2Image,"pt3dr", DOC(MMVII_cSensorCamPC,Ground2Image) )
 
-            .def("visibility",&tSCPC::Visibility,"pt3dr", DOC(MMVII_cSensorCamPC,Visibility) )
-            .def("visibilityOnImFrame",&tSCPC::VisibilityOnImFrame,"pt2dr", DOC(MMVII_cSensorCamPC,VisibilityOnImFrame) )
+            .def("degreeVisibility",&tSCPC::DegreeVisibility,"pt3dr", DOC(MMVII_cSensorCamPC,DegreeVisibility) )
+            .def("degreeVisibilityOnImFrame",&tSCPC::DegreeVisibilityOnImFrame,"pt2dr", DOC(MMVII_cSensorCamPC,DegreeVisibilityOnImFrame) )
 
             .def("ground2ImageAndDepth",&tSCPC::Ground2ImageAndDepth,"pt3dr", DOC(MMVII_cSensorCamPC,Ground2ImageAndDepth) )
             .def("imageAndDepth2Ground",&tSCPC::ImageAndDepth2Ground,"pt3dr", DOC(MMVII_cSensorCamPC,ImageAndDepth2Ground) )
@@ -134,7 +142,9 @@ static void pyb_init_SensorCamPC(py::module_ &m)
 
 void pyb_init_PCSens(py::module_ &m)
 {
-    pyb_init_CalibStenPerfect(m);
+    pyb_init_MapPProj2Im(m);
+    pyb_init_MapIm2PProj(m);
     pyb_init_PerspCamIntrCalib(m);
     pyb_init_SensorCamPC(m);
 }
+

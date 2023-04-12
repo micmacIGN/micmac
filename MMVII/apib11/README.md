@@ -5,8 +5,15 @@ MicMac v2 Python3 API
 Dependencies
 ------------
 
-    pip3 install pybind11 pybind11_mkdoc
-    apt install libxext-dev
+As admin:
+
+    apt install python3-pip libxext-dev libclang-dev
+
+As user:
+
+    pip3 install pybind11 pybind11_mkdoc
+
+And make sure `$HOME/.local/bin` is in PATH.
 
 
 Compilation
