@@ -423,11 +423,16 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
    }
 }
 
-void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & aNameIm) const
+void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & aNameIm,cSensorImage * aSIm) const
 {
    std::string aDir = mDPPointsMeasures.FullDirIn();
    cSetMesPtOf1Im  aSetIm = cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
-   aSetMes.AddMes2D(aSetIm);
+   aSetMes.AddMes2D(aSetIm,aSIm);
+}
+
+void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,cSensorImage & aSIm) const
+{
+     LoadIm(aSetMes,aSIm.NameImage(),&aSIm);
 }
 
 cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const

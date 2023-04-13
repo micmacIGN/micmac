@@ -1,5 +1,6 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_util_tpl.h"
 
 
 /**
@@ -61,7 +62,7 @@ void cSetMesImGCP::AddMes3D(const cSetMesGCP &  aSet)
      }
 }
 
-void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm)
+void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens)
 {
     //  Are we beginning  the  image measurement phase
     {
@@ -88,6 +89,8 @@ void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm)
              MMVII_DEV_WARNING("Measure Im w/o Ground, first occur Im=" + aSetMesIm.NameIm() + " Pt="  + aMes.mNamePt);
 	}
     }
+
+    SetAndResize(mVSens,aNumIm,aSens,(cSensorImage*)nullptr);
 }
 
 const std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP() const {return mMesGCP; }

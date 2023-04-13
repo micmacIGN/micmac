@@ -276,6 +276,13 @@ template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Typ
       aV1.resize(aSz,aVal);
 }
 
+template <class Type> void SetAndResize(std::vector<Type> & aVec,size_t aSz,const Type &aVal,const Type & aDef)
+{
+      ResizeUp(aVec,aSz,aDef);
+      SetOrPush(aVec,aSz,aVal);
+}
+
+
 template <class T1,class T2> std::vector<T1> &  Convert(std::vector<T1> & aV1,const std::vector<T2> & aV2)
 {
 	aV1.resize(aV2.size());

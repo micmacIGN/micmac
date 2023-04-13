@@ -23,14 +23,19 @@ class cMMVII_BundleAdj
 {
      public :
           cMMVII_BundleAdj(cPhotogrammetricProject *);
+          ~cMMVII_BundleAdj();
 
-
+           // ======================== Add object ========================
 	  void  AddCalib(cPerspCamIntrCalib *);  /// add  if not exist 
 	  void  AddCamPC(cSensorCamPC *);  /// add, error id already exist
 	  void  AddCam(const std::string & aNameIm);  /// add from name, require PhP exist
-					   
+	  void AddGCP(const  std::vector<double>&, cSetMesImGCP *);
+	  const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
 
+	  void OneIteration();
      private :
+
+	  void AddGCP();
 
 	  //============== Methods =============================
           cMMVII_BundleAdj(const cMMVII_BundleAdj &) = delete;
@@ -52,17 +57,55 @@ class cMMVII_BundleAdj
 	 
 	  std::vector<cPerspCamIntrCalib *>  mVPCIC;     ///< vector of all internal calibration 4 easy parse
 	  std::vector<cSensorCamPC *>        mSCPC;      ///< vector of perspectiv  cameras
-	  std::vector<cSensorImage *>        mSIm;       ///< vector of sensor image (PC+RPC ...)
+	  std::vector<cSensorImage *>        mVSIm;       ///< vector of sensor image (PC+RPC ...)
 
 	  cSetInterUK_MultipeObj<tREAL8>    mSetIntervUK;
 
+
+	  // ===================  Object to be adjusted ==================
+	  cSetMesImGCP *       mMesGCP;
+	  std::vector<double>  mWeightGCP;
 };
+
+//================================================================
 
 cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mPhProj    (aPhp),
-    mPhaseAdd  (true)
+    mPhaseAdd  (true),
+    mMesGCP    (nullptr)
 {
 }
+
+cMMVII_BundleAdj::~cMMVII_BundleAdj() 
+{
+    delete mMesGCP;
+}
+
+void cMMVII_BundleAdj::AssertPhaseAdd() 
+{
+    MMVII_INTERNAL_ASSERT_tiny(mPhaseAdd,"Mix Add and Use of unknown in cMMVII_BundleAdj");
+}
+void cMMVII_BundleAdj::AssertPhp() 
+{
+    MMVII_INTERNAL_ASSERT_tiny(mPhProj,"No cPhotogrammetricProject");
+}
+
+void cMMVII_BundleAdj::AssertPhpAndPhaseAdd() 
+{
+	AssertPhaseAdd();
+	AssertPhp();
+}
+
+void cMMVII_BundleAdj::OneIteration()
+{
+    if (mPhaseAdd)
+    {
+        mPhaseAdd = false;
+
+    }
+}
+
+//================================================================
 
 void cMMVII_BundleAdj::AddCalib(cPerspCamIntrCalib * aCalib)  
 {
@@ -80,7 +123,7 @@ void cMMVII_BundleAdj::AddCamPC(cSensorCamPC * aCamPC)
 
     mSetIntervUK.AddOneObj(aCamPC);
     mSCPC.push_back(aCamPC);
-    mSIm.push_back(aCamPC);
+    mVSIm.push_back(aCamPC);
 
     AddCalib(aCamPC->InternalCalib());
 }
@@ -102,24 +145,14 @@ void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
     // No camera succed
     MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot get a valid camera for image" +  aNameIm);
 }
+const std::vector<cSensorImage *> &  cMMVII_BundleAdj::VSIm() const {return mVSIm;}
 
 
-
-
-
-void cMMVII_BundleAdj::AssertPhaseAdd() 
+//================================================================
+void cMMVII_BundleAdj::AddGCP(const  std::vector<double>& aWeightGCP, cSetMesImGCP *  aMesGCP)
 {
-    MMVII_INTERNAL_ASSERT_tiny(mPhaseAdd,"Mix Add and Use of unknown in cMMVII_BundleAdj");
-}
-void cMMVII_BundleAdj::AssertPhp() 
-{
-    MMVII_INTERNAL_ASSERT_tiny(mPhProj,"No cPhotogrammetricProject");
-}
-
-void cMMVII_BundleAdj::AssertPhpAndPhaseAdd() 
-{
-	AssertPhaseAdd();
-	AssertPhp();
+    mMesGCP = aMesGCP;
+    mWeightGCP = aWeightGCP;
 }
 
 
@@ -185,8 +218,14 @@ int cAppliBundlAdj::Exe()
 
     if (IsInit(&mGCPW))
     {
-	          // void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
-          // void LoadIm(cSetMesImGCP&,const std::string & aNameIm) const;
+        cSetMesImGCP * aMesGCP = new cSetMesImGCP;
+	mPhProj.LoadGCP(*aMesGCP);
+
+        for (const auto  & aSens : mBA.VSIm())
+        {
+             mPhProj.LoadIm(*aMesGCP,*aSens);
+        }
+	mBA.AddGCP(mGCPW,aMesGCP);
     }
 
     return EXIT_SUCCESS;

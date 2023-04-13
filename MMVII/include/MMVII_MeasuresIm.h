@@ -172,13 +172,14 @@ class cSetMesImGCP
 
             ///  Add one set of 3D measures (often called only once), all calls must occur before AddMes2D
             void AddMes3D(const cSetMesGCP &);
-            void AddMes2D(const cSetMesPtOf1Im &);
+            void AddMes2D(const cSetMesPtOf1Im &,cSensorImage* =nullptr);
 
 	    /// return a set of 3D mesure as
             void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm);
 
             const std::vector<cMes1GCP> &        MesGCP() const ; ///< Accessor
             const std::vector<cMultipleImPt> &   MesIm() const ;  ///< Accessor
+	    const std::vector<cSensorImage*> &   VSens() const ;  ///< Accessor
     private :
 
             cSetMesImGCP(const  cSetMesImGCP & ) = delete;
@@ -189,6 +190,8 @@ class cSetMesImGCP
 
             t2MapStrInt  m2MapPtInt; //
             t2MapStrInt  m2MapImInt; //
+
+	    std::vector<cSensorImage*> mVSens;
 };
 
 
