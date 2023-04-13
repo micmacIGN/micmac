@@ -153,6 +153,9 @@ class cMultipleImPt
 
               ///  Return if any the point of one image
               const cPt2dr * PtOfIm(int) const;
+
+	      const std::vector<cPt2dr> & VMeasures() const;  ///< Accessor
+              const std::vector<int>    & VImages()   const;  ///< Accessor
       private :
               int                             mNumPt;
               std::vector<cPt2dr>             mVMeasures;
@@ -172,21 +175,30 @@ class cSetMesImGCP
 
             ///  Add one set of 3D measures (often called only once), all calls must occur before AddMes2D
             void AddMes3D(const cSetMesGCP &);
+	    /// For a single GCP (called by AddMes3D)
+	    void Add1GCP(const cMes1GCP &);
+	    ///  Add mesure on 1 images, close the possibility for further call to AddMes3D
             void AddMes2D(const cSetMesPtOf1Im &,cSensorImage* =nullptr);
 
-	    /// return a set of 3D mesure as
+	    /// return a set of mesure as 2d/3d corresp
             void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm);
 
             const std::vector<cMes1GCP> &        MesGCP() const ; ///< Accessor
-            const std::vector<cMultipleImPt> &   MesIm() const ;  ///< Accessor
+            const std::vector<cMultipleImPt> &   MesImOfPt() const ;  ///< Accessor
 	    const std::vector<cSensorImage*> &   VSens() const ;  ///< Accessor
+								
+								  
+	    /// suppress mMesGCP & mMesIm with no images measure (eventually can give higher threshold) 
+	    cSetMesImGCP * FilterNonEmptyMeasure(int NbMeasureMin=1) const;
     private :
+
 
             cSetMesImGCP(const  cSetMesImGCP & ) = delete;
 
-            bool                        mPhaseGCPFinished;
-            std::vector<cMes1GCP>       mMesGCP;
-            std::vector<cMultipleImPt>  mMesIm;
+            bool                         mPhaseGCPFinished;
+            std::vector<cMes1GCP>        mMesGCP;      
+            std::vector<cMultipleImPt>   mMesImOfPt;  ///< after compilation, sorted by point
+            std::vector<cSetMesPtOf1Im>  mMesImInit;  ///< initial structuration, sorted by image
 
             t2MapStrInt  m2MapPtInt; //
             t2MapStrInt  m2MapImInt; //

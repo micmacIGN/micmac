@@ -29,6 +29,9 @@ class cMMVII_BundleAdj
 	  void  AddCalib(cPerspCamIntrCalib *);  /// add  if not exist 
 	  void  AddCamPC(cSensorCamPC *);  /// add, error id already exist
 	  void  AddCam(const std::string & aNameIm);  /// add from name, require PhP exist
+						      
+
+	  //  =======  Add GCP, can be measure or measure & object
 	  void AddGCP(const  std::vector<double>&, cSetMesImGCP *);
 	  const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
 
@@ -153,6 +156,11 @@ void cMMVII_BundleAdj::AddGCP(const  std::vector<double>& aWeightGCP, cSetMesImG
 {
     mMesGCP = aMesGCP;
     mWeightGCP = aWeightGCP;
+
+    if (1)
+    {
+        StdOut()<<  "MESIM=" << mMesGCP->MesImOfPt().size() << " MesGCP=" << mMesGCP->MesGCP().size()  << "\n";
+    }
 }
 
 
@@ -173,10 +181,12 @@ class cAppliBundlAdj : public cMMVII_Appli
 
 	std::string               mSpecImIn;
 
-	std::string               mDataDir;
+	std::string               mDataDir;  /// Default Data dir for all
 
 	cPhotogrammetricProject   mPhProj;
 	cMMVII_BundleAdj          mBA;
+
+	std::string               mGCPDir;  ///  GCP Data Dir if != mDataDir
 	std::vector<double>       mGCPW;
 };
 
@@ -202,6 +212,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     
     return anArgOpt
                << AOpt2007(mDataDir,"DataDir","Defautl data directories ",{eTA2007::HDV})
+
+               << AOpt2007(mGCPDir,"GCPDir","Dir for GCP if != DataDir")
                << AOpt2007(mGCPW,"GCPW","Weithing of GCP if any [SigmaG,SigmaI], SG=0 fix, SG<0 schurr elim, SG>0",{{eTA2007::ISizeV,"[2,2]"}})
            ;
 }
@@ -209,6 +221,9 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int cAppliBundlAdj::Exe()
 {
+    SetIfNotInit(mGCPDir,mDataDir);
+    mPhProj.DPPointsMeasures().SetDirIn(mGCPDir);
+
     mPhProj.FinishInit();
 
     for (const auto &  aNameIm : VectMainSet(0))
@@ -218,14 +233,19 @@ int cAppliBundlAdj::Exe()
 
     if (IsInit(&mGCPW))
     {
-        cSetMesImGCP * aMesGCP = new cSetMesImGCP;
-	mPhProj.LoadGCP(*aMesGCP);
+        cSetMesImGCP * aFullMesGCP = new cSetMesImGCP;
+	mPhProj.LoadGCP(*aFullMesGCP);
+	/*
+	*/
 
         for (const auto  & aSens : mBA.VSIm())
         {
-             mPhProj.LoadIm(*aMesGCP,*aSens);
+             mPhProj.LoadIm(*aFullMesGCP,*aSens);
         }
+	cSetMesImGCP * aMesGCP = aFullMesGCP->FilterNonEmptyMeasure();
+	// FakeUseIt(aMesGCP);
 	mBA.AddGCP(mGCPW,aMesGCP);
+	delete aFullMesGCP;
     }
 
     return EXIT_SUCCESS;
