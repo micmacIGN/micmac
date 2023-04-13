@@ -22,15 +22,107 @@ template <class Type> class cResidualWeighter;
 template <class Type> class cObjWithUnkowns;
 template <class Type> class cSetInterUK_MultipeObj;
 
+/**  Class for weighting residuals : compute the vector of weight from a 
+     vector of residual; default return {1.0,1.0,...}
+ */
+template <class Type> class cResidualWeighter
+{
+       public :
+            typedef std::vector<Type>     tStdVect;
+
+            cResidualWeighter(const Type & aVal=1.0);
+            virtual tStdVect WeightOfResidual(const tStdVect &) const;
+       private :
+             Type mVal;
+
+};
+
 /// Index to use in vector of index indicating a variable to substituate
 static constexpr int RSL_INDEX_SUBST_TMP = -1;
+
+/**    cREAL8_RSNL   :  For now  deprecated , 
+ *
+ *       The idea was to have a non template interface with REAL8 object for  cResolSysNonLinear
+ *       while having object in herited class with 8 or 16 byte for higher accuracy
+ *
+ *       For each method we need an access with REAL8 object , we habe
+ *
+ *            Method(Type ...)  in cResolSysNonLinear
+ *            R_Method(tREAL8 ...) declared in cREAL8_RSNL and implemanted in cResolSysNonLinear
+ *            as far as possible R_Method just call Method, but the type conversion is not always easy ...
+ *
+ *
+ *       At the end it seems difficult to avoid some code duplication,  so for now I (MPD) take rather
+ *       the direction of maintaining a template bundle adj
+ *
+ *       BTW, I maintain the transformation that has already be done, because not sure I will change again my mind
+ *
+ *       Also maybe if will usefull even for template case ....
+*/
+
+class cREAL8_RSNL
+{
+	public :
+
+          cREAL8_RSNL(int aNbVar);
+
+          typedef cDenseVect<tREAL8>                              tDVect;
+          typedef cSparseVect<tREAL8>                             tSVect;
+          typedef std::vector<int>                                tVectInd;
+          typedef std::vector<tREAL8>                             tStdVect;
+          typedef cResidualWeighter<tREAL8>                       tResidualW;
+          typedef NS_SymbolicDerivative::cCalculator<tREAL8>      tCalc;
+          typedef cSetIORSNL_SameTmp<tREAL8>                      tSetIO_ST;
+          typedef cObjWithUnkowns<tREAL8>                         tObjWUk;
+
+          virtual  ~cREAL8_RSNL();
+	 /// basic allocator, using a mode of matrix + a solution  init
+          static  cREAL8_RSNL * Alloc(eModeSSR,const tDVect & aInitSol);
+
+          /// Accessor
+          virtual tDVect    R_CurGlobSol() const = 0;
+   
+          /// Accessor
+          virtual int R_NbVar() const = 0;  
+          /// Value of a given num var
+          virtual tREAL8    R_CurSol(int aNumV) const = 0;
+          /// Set value, usefull for ex in dev-mesh because variable are activated stepby step
+          virtual void R_SetCurSol(int aNumV,const tREAL8&) =0 ;
+	  /// 
+          virtual  tDVect    R_SolveUpdateReset() = 0 ;
+
+          virtual void   R_AddEqFixVar(const int & aNumV,const tREAL8 & aVal,const tREAL8& aWeight) =0;
+          virtual void   R_AddEqFixCurVar(const int & aNumV,const tREAL8 & aWeight) =0;
+
+          virtual void   R_CalcAndAddObs(tCalc *,const tVectInd &,const tStdVect& aVObs,const tResidualW & = tResidualW()) = 0;
+
+          virtual void  R_AddEq2Subst (tSetIO_ST & aSetIO,tCalc *,const tVectInd &,
+                                       const tStdVect& aVObs,const tResidualW & = tResidualW()) = 0;
+          virtual void  R_AddObsWithTmpUK (const tSetIO_ST & aSetIO) =0;
+
+	   virtual void  R_SetFrozenVar(int aK,const  tREAL8 &) = 0;  ///< seti var var frozen /unfrozen
+
+
+	  void  SetUnFrozen(int aK);  ///< indicate it var must be frozen /unfrozen
+	  void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
+	  bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
+	  void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
+	  int   CountFreeVariables() const;          ///< number of free variables
+	protected :
+
+	  int                  mNbVar;
+	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
+	  std::vector<bool>    mVarIsFrozen;       ///< indicate for each var is it is frozen
+};
+
 
 
 /**  Class for solving non linear system of equations
  */
-template <class Type> class cResolSysNonLinear
+template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 {
       public :
+          typedef cREAL8_RSNL                                   tR_Up;
           typedef tREAL8                                        tNumCalc;
           typedef NS_SymbolicDerivative::cCalculator<tNumCalc>  tCalc;
           typedef std::vector<tNumCalc>                         tStdCalcVect;
@@ -56,26 +148,35 @@ template <class Type> class cResolSysNonLinear
 
           /// Accessor
           const tDVect  &    CurGlobSol() const;
+	  cREAL8_RSNL::tDVect    R_CurGlobSol() const override;  ///<  tREAL8 Equivalent
    
           /// Accessor
           int NbVar() const;  
+          int R_NbVar() const override;  ///< tREAL8 Equivalent
+
           /// Value of a given num var
           const Type  &    CurSol(int aNumV) const;
+          tREAL8    R_CurSol(int aNumV) const override; ///< tREAL8 Equivalent
           /// Set value, usefull for ex in dev-mesh because variable are activated stepby step
           void SetCurSol(int aNumV,const Type&) ;
+          void R_SetCurSol(int aNumV,const tREAL8&) override; ///< tREAL8 Equivalent
 
           tLinearSysSR *  SysLinear() ;
 
           /// Solve solution,  update the current solution, Reset the least square system
           const tDVect  &    SolveUpdateReset() ;
+	  cREAL8_RSNL::tDVect      R_SolveUpdateReset() override ;
 
           /// Add 1 equation fixing variable
           void   AddEqFixVar(const int & aNumV,const Type & aVal,const Type& aWeight);
+          void   R_AddEqFixVar(const int & aNumV,const tREAL8 & aVal,const tREAL8& aWeight) override;
           /// Add equation to fix variable to current value
           void   AddEqFixCurVar(const int & aNumV,const Type& aWeight);
+          void   R_AddEqFixCurVar(const int & aNumV,const tREAL8 & aWeight) override;
 
           /// Basic Add 1 equation , no bufferistion, no schur complement
           void   CalcAndAddObs(tCalc *,const tVectInd &,const tStdVect& aVObs,const tResidualW & = tResidualW());
+          void   R_CalcAndAddObs(tCalc *,const tVectInd &,const  tR_Up::tStdVect& aVObs,const tR_Up::tResidualW & ) override;
 
           /**  Add 1 equation in structure aSetIO ,  who will accumulate all equation of a given temporary set of unknowns
 	       relatively basic 4 now because don't use parallelism of tCalc
@@ -83,13 +184,18 @@ template <class Type> class cResolSysNonLinear
           void  AddEq2Subst (tSetIO_ST & aSetIO,tCalc *,const tVectInd &,
                              const tStdVect& aVObs,const tResidualW & = tResidualW());
 
+          void  R_AddEq2Subst (tR_Up::tSetIO_ST  & aSetIO,tCalc *,const tVectInd &,
+                             const tR_Up::tStdVect& aVObs,const tR_Up::tResidualW &) override;
+
 	  /** Once "aSetIO" has been filled by multiple calls to  "AddEq2Subst",  do it using for exemple schur complement
 	   */
           void  AddObsWithTmpUK (const tSetIO_ST & aSetIO);
+          void  R_AddObsWithTmpUK (const tR_Up::tSetIO_ST & aSetIO) override;
 
 	       //    frozen  checking
 
 	   void  SetFrozenVar(int aK,const  Type &);  ///< seti var var frozen /unfrozen
+	   void  R_SetFrozenVar(int aK,const  tREAL8 &) override;  ///< seti var var frozen /unfrozen
 	   void  SetFrozenVarCurVal(int aK);  ///< idem to current val
 	       // frozen for  cObjWithUnkowns
 	   void  SetFrozenVar(tObjWUk & anObj,const  Type & aVal);  ///< Froze the value aVal, that must belong to anObj
@@ -105,13 +211,8 @@ template <class Type> class cResolSysNonLinear
            void AddObservationLinear(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) ;
 
 
-	   void  SetUnFrozen(int aK);  ///< indicate it var must be frozen /unfrozen
 	   void  SetUnFrozenVar(tObjWUk & anObj,const  Type & aVal); ///< Unfreeze the value, that must belong to anObj
 
-	   void  UnfrozeAll() ;                       ///< indicate it var must be frozen /unfrozen
-	   bool  VarIsFrozen(int aK) const;           ///< indicate it var must be frozen /unfrozen
-	   int   CountFreeVariables() const;          ///< number of free variables
-	   void  AssertNotInEquation() const;         ///< verify that we are notin equation step (to allow froze modification)
 	   int   GetNbObs() const;                    ///< get number of observations (last iteration if after reset, or current number if after AddObs)
 
      private :
@@ -127,30 +228,12 @@ template <class Type> class cResolSysNonLinear
               to avoid in case  of schur complement */
           void   CalcVal(tCalc *,std::vector<tIO_RSNL>&,const tStdVect & aVTmp,bool WithDer,const tResidualW & );
 
-          int        mNbVar;       ///< Number of variable, facility
           tDVect     mCurGlobSol;  ///< Curent solution
           tLinearSysSR*    mSysLinear;         ///< Sys to solve equations, equation are concerning the differences with current solution
 
-	  bool                 mInPhaseAddEq;      ///< check that dont modify val fixed after adding  equations
-	  std::vector<bool>    mVarIsFrozen;       ///< indicate for each var is it is frozen
 	  std::vector<Type>    mValueFrozenVar;    ///< indicate for each var the possible value where it is frozen
 	  int lastNbObs;                           ///< number of observations of last solving
 	  int currNbObs;                           ///< number of observations currently added
-};
-
-/**  Class for weighting residuals : compute the vector of weight from a 
-     vector of residual; default return {1.0,1.0,...}
- */
-template <class Type> class cResidualWeighter
-{
-       public :
-            typedef std::vector<Type>     tStdVect;
-
-            cResidualWeighter(const Type & aVal=1.0);
-            virtual tStdVect WeightOfResidual(const tStdVect &) const;
-       private :
-             Type mVal;
-
 };
 
 
@@ -182,6 +265,10 @@ template <class Type> class cInputOutputRSNL
           std::vector<tStdVect>   mDers;     ///< derivate of fctr
 	  size_t                  mNbTmpUk;
 
+	  cInputOutputRSNL(bool Fake,const cInputOutputRSNL<tREAL8> &);
+     private :
+	  // cInputOutputRSNL(const cInputOutputRSNL<Type> &) = delete;
+
 };
 
 /**  class for grouping all the observation relative to a temporary variable,
@@ -192,6 +279,12 @@ template <class Type> class cInputOutputRSNL
 template <class Type> class cSetIORSNL_SameTmp
 {
 	public :
+
+            friend class cSetIORSNL_SameTmp<tREAL4>;
+            friend class cSetIORSNL_SameTmp<tREAL8>;
+            friend class cSetIORSNL_SameTmp<tREAL16>;
+
+
             typedef cInputOutputRSNL<Type>  tIO_OneEq;
 	    typedef std::vector<tIO_OneEq>  tIO_AllEq;
             typedef std::vector<Type>  tStdVect;
@@ -225,10 +318,13 @@ template <class Type> class cSetIORSNL_SameTmp
 	    static size_t ToIndTmp(int ) ;
 	    static bool   IsIndTmp(int ) ;
 
+	    cSetIORSNL_SameTmp(bool Fake,const cSetIORSNL_SameTmp<tREAL8> &) ;
 	private :
 	    cSetIORSNL_SameTmp(const cSetIORSNL_SameTmp&) = delete;
-	    tIO_AllEq        mVEq;
 
+	    tIO_AllEq          mVEq;
+	    tVectInd           mVFix;
+	    tStdVect           mValFix;
 	    bool               mOk;
 	    size_t             mNbTmpUk;
 	    tStdVect           mValTmpUk;

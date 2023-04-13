@@ -1,5 +1,6 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_util_tpl.h"
 
 
 /**
@@ -39,6 +40,10 @@ const cPt2dr * cMultipleImPt::PtOfIm(int aIndIm) const
      return nullptr;
 }
 
+const std::vector<cPt2dr> & cMultipleImPt::VMeasures() const  {return mVMeasures;}
+const std::vector<int>    & cMultipleImPt::VImages()   const  {return mVImages  ;}
+
+
 /* ********************************************* */
 /*                                               */
 /*             cSetMesImGCP                      */
@@ -51,37 +56,64 @@ cSetMesImGCP::cSetMesImGCP() :
 {
 }
 
-void cSetMesImGCP::AddMes3D(const cSetMesGCP &  aSet)
+void cSetMesImGCP::Add1GCP(const cMes1GCP & aMes)
 {
      MMVII_INTERNAL_ASSERT_medium(!mPhaseGCPFinished,"cSetMesImGCP cannot add GCP after image");
-     for (const auto & aMes  : aSet.Measures())
-     {
-         mMesGCP.push_back(aMes);
-	 m2MapPtInt.Add(aMes.mNamePt);
-     }
+     mMesGCP.push_back(aMes);
+     m2MapPtInt.Add(aMes.mNamePt);
 }
 
-void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm)
+void cSetMesImGCP::AddMes3D(const cSetMesGCP &  aSet)
+{
+     for (const auto & aMes  : aSet.Measures())
+	 Add1GCP(aMes);
+}
+
+void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens)
 {
     //  Are we beginning  the  image measurement phase
     {
         if (! mPhaseGCPFinished)
         {
-            mMesIm.reserve(mMesGCP.size());
+            mMesImOfPt.reserve(mMesGCP.size());
 
 	    for (size_t aKp=0 ;  aKp<mMesGCP.size() ; aKp++)
-                mMesIm.push_back( cMultipleImPt(aKp));
+                mMesImOfPt.push_back( cMultipleImPt(aKp));
         }
         mPhaseGCPFinished = true;
     }
 
     int aNumIm = m2MapImInt.Add(aSetMesIm.NameIm());
+    if (aNumIm==(int)mMesImInit.size())
+    {
+       mMesImInit.push_back(cSetMesPtOf1Im(aSetMesIm.NameIm()));
+       mVSens.push_back(aSens);
+    }
+    else
+    {
+        MMVII_INTERNAL_ASSERT_tiny(aNumIm<int(mMesImInit.size()),"Incoherence in cSetMesImGCP::AddMes2D");
+        MMVII_INTERNAL_ASSERT_tiny(mVSens.at(aNumIm) == aSens,"Variable sensor in cSetMesImGCP::AddMes2D");
+    }
+
     for (const auto & aMes : aSetMesIm.Measures())
     {
         int aNumPt = m2MapPtInt.Obj2I(aMes.mNamePt);
-	mMesIm.at(aNumPt).Add(aMes,aNumIm,false);
+	if (aNumPt>=0)
+	{
+	    mMesImOfPt.at(aNumPt).Add(aMes,aNumIm,false);
+            mMesImInit.at(aNumIm).AddMeasure(aMes);
+	}
+	else
+	{
+             MMVII_DEV_WARNING("Measure Im w/o Ground, first occur Im=" + aSetMesIm.NameIm() + " Pt="  + aMes.mNamePt);
+	}
     }
+
+
 }
+
+const std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()    const  {return mMesGCP; }
+const std::vector<cMultipleImPt> &   cSetMesImGCP::MesImOfPt() const  {return mMesImOfPt;  }
 
 
 void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm)
@@ -92,10 +124,36 @@ void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm)
 
     for (size_t aKp=0 ;  aKp<mMesGCP.size() ; aKp++)
     {
-         const cPt2dr * aP2 = mMesIm[aKp].PtOfIm(aNumIm);
+         const cPt2dr * aP2 = mMesImOfPt[aKp].PtOfIm(aNumIm);
 	 if (aP2)
             aS23.AddPair(*aP2,mMesGCP[aKp].mPt);
     }
+}
+
+cSetMesImGCP *  cSetMesImGCP::FilterNonEmptyMeasure(int aNbMeasureMin) const
+{
+  cSetMesImGCP * aRes = new cSetMesImGCP;
+
+  for (size_t aKGCP=0 ; aKGCP<mMesGCP.size() ; aKGCP++)
+  {
+       if ( int(mMesImOfPt[aKGCP].VImages().size()) >= aNbMeasureMin)
+       {
+             aRes->Add1GCP(mMesGCP[aKGCP]);
+       }
+   }
+
+  for (size_t aKIm=0 ; aKIm<mMesImInit.size() ; aKIm++)
+  {
+     aRes->AddMes2D(mMesImInit.at(aKIm),mVSens.at(aKIm));
+  }
+
+  /*
+   //  mMesImOfPt.resize(aNbF);
+   mMesGCP.resize(aNbF);
+   mMesImOfPt.pop_back();
+   */
+
+   return aRes;
 }
 
 /* ********************************************* */

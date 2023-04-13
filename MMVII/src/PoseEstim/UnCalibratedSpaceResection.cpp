@@ -713,7 +713,7 @@ cSensorCamPC * cAppli_UncalibSpaceResection::ChgModel(cSensorCamPC * aCam0)
 
      if (IsInit(&mPatParFrozen))
      {
-        aBA.SetFrozenVar(mPatParFrozen);
+        aBA.SetFrozenVarOfPattern(mPatParFrozen);
      }
 
 

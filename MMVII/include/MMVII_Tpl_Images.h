@@ -286,6 +286,13 @@ template<class T1,class T2,int Dim>
         aI1.GetRDL(aK) += aV*aI2.GetRDL(aK) ;
 }
 
+template<class T1,class T2>  cDenseVect<T1>  Convert(T1*,const cDenseVect<T2>& aDV2)
+{
+     cDenseVect<T1> aDV1(aDV2.Sz());
+     ConvertData(aDV1.RawData(),aDV2.RawData(),aDV2.Sz());
+
+     return aDV1;
+}
 
 /*****************************************************/
 /*                                                   */
