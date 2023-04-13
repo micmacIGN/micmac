@@ -54,7 +54,7 @@ module: docstrings.h ${SRCS}
 	CC="${CXX}" $(PYTHON) setup.py bdist_wheel
 
 install: module
-	$(PIP) install --user dist/*.whl
+	$(PIP) install --force-reinstall --user dist/*.whl
 
 uninstall:
 	$(PIP) uninstall -y $(MODULE_NAME)
