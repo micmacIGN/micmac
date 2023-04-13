@@ -38,14 +38,13 @@ class cMMVII_BundleAdj
 	  void OneIteration();
      private :
 
-	  void AddGCP();
-
 	  //============== Methods =============================
           cMMVII_BundleAdj(const cMMVII_BundleAdj &) = delete;
           void AssertPhaseAdd() ;
           void AssertPhp() ;
           void AssertPhpAndPhaseAdd() ;
-
+	  void InitIteration();
+          void OneItere_GCP();
 
 
 
@@ -55,6 +54,9 @@ class cMMVII_BundleAdj
 
 
 	  bool  mPhaseAdd;  ///< check that we dont mix add & use of unknowns
+
+	  cREAL8_RSNL *                 mSys;
+	  cResolSysNonLinear<tREAL8> *  mR8_Sys;
 
 	  // ===================  Object to be adjusted ==================
 	 
@@ -75,14 +77,18 @@ class cMMVII_BundleAdj
 cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mPhProj    (aPhp),
     mPhaseAdd  (true),
+    mSys       (nullptr),
+    mR8_Sys    (nullptr),
     mMesGCP    (nullptr)
 {
 }
 
 cMMVII_BundleAdj::~cMMVII_BundleAdj() 
 {
+    delete mSys;
     delete mMesGCP;
 }
+
 
 void cMMVII_BundleAdj::AssertPhaseAdd() 
 {
@@ -99,13 +105,24 @@ void cMMVII_BundleAdj::AssertPhpAndPhaseAdd()
 	AssertPhp();
 }
 
+
+void cMMVII_BundleAdj::InitIteration()
+{
+    mPhaseAdd = false;
+    mR8_Sys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqDense,mSetIntervUK.GetVUnKnowns());
+
+    mSys = mR8_Sys;
+}
+
+
 void cMMVII_BundleAdj::OneIteration()
 {
     if (mPhaseAdd)
     {
-        mPhaseAdd = false;
-
+        InitIteration();
     }
+
+    OneItere_GCP();
 }
 
 //================================================================
@@ -134,24 +151,35 @@ void cMMVII_BundleAdj::AddCamPC(cSensorCamPC * aCamPC)
 void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
 {
     AssertPhpAndPhaseAdd();
+    cSensorImage * aNewS = nullptr;
 
     // Try extract a PC Cam
     {
        cSensorCamPC * aCamPC = mPhProj->AllocCamPC(aNameIm,true,true);  // true 2 Delet,  true =SVP
        if (aCamPC)
        {
+           aNewS = aCamPC;
            AddCamPC(aCamPC);
-           return; 
        }
     }
 
     // No camera succed
-    MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot get a valid camera for image" +  aNameIm);
+    if (aNewS== nullptr)
+    {
+       MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot get a valid camera for image" +  aNameIm);
+    }
+
+    auto anEq = aNewS->EqColinearity(true,10,true);  // WithDer, SzBuf, ReUse
+    StdOut() << "EQQQ= " << (void *) anEq << "\n";
+    // cMMVII_Appli::AddObj2DelAtEnd(anEq);
 }
 const std::vector<cSensorImage *> &  cMMVII_BundleAdj::VSIm() const {return mVSIm;}
 
 
-//================================================================
+/* -------------------------------------------------------------- */
+/*                cMMVII_BundleAdj::GCP                           */
+/* -------------------------------------------------------------- */
+
 void cMMVII_BundleAdj::AddGCP(const  std::vector<double>& aWeightGCP, cSetMesImGCP *  aMesGCP)
 {
     mMesGCP = aMesGCP;
@@ -161,6 +189,10 @@ void cMMVII_BundleAdj::AddGCP(const  std::vector<double>& aWeightGCP, cSetMesImG
     {
         StdOut()<<  "MESIM=" << mMesGCP->MesImOfPt().size() << " MesGCP=" << mMesGCP->MesGCP().size()  << "\n";
     }
+}
+
+void cMMVII_BundleAdj::OneItere_GCP()
+{
 }
 
 
@@ -218,7 +250,6 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            ;
 }
 
-
 int cAppliBundlAdj::Exe()
 {
     SetIfNotInit(mGCPDir,mDataDir);
@@ -235,18 +266,20 @@ int cAppliBundlAdj::Exe()
     {
         cSetMesImGCP * aFullMesGCP = new cSetMesImGCP;
 	mPhProj.LoadGCP(*aFullMesGCP);
-	/*
-	*/
 
         for (const auto  & aSens : mBA.VSIm())
         {
              mPhProj.LoadIm(*aFullMesGCP,*aSens);
         }
 	cSetMesImGCP * aMesGCP = aFullMesGCP->FilterNonEmptyMeasure();
-	// FakeUseIt(aMesGCP);
-	mBA.AddGCP(mGCPW,aMesGCP);
 	delete aFullMesGCP;
+
+	mBA.AddGCP(mGCPW,aMesGCP);
     }
+
+    mBA.OneIteration();
+    // mBA.OneIteration();
+    // mBA.OneIteration();
 
     return EXIT_SUCCESS;
 }

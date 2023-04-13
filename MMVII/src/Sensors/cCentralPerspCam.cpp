@@ -522,9 +522,9 @@ void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 }
 
 
-cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf)
+cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {
-    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf);
+    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse);
 }
       //   ----  Accessor  to distorsion ----------------
 

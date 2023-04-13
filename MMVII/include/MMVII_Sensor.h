@@ -130,7 +130,7 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	 ///  For stenope camera return center, for other nullptr
 	 virtual const cPt3dr * CenterOfPC() = 0;
 	 /// Return the calculator, adapted to the type, for computing colinearity equation
-         virtual cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf) = 0;
+         virtual cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) = 0;
 	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
 	 virtual  void PushOwnObsColinearity( std::vector<double> &) = 0;
 

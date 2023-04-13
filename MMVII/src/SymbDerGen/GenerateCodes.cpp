@@ -91,11 +91,24 @@ std::string NameEqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool With
 /*       ALLOCATION                               */
 /*  ============================================= */
 
-cCalculator<double> *  StdAllocCalc(const std::string & aName,int aSzBuf,bool SVP=false)
+cCalculator<double> *  StdAllocCalc(const std::string & aName,int aSzBuf,bool SVP=false,bool ReUse=false)
 {
     if (aSzBuf<=0)
        aSzBuf =  cMMVII_Appli::CurrentAppli().NbProcAllowed();
-    return cName2Calc<double>::CalcFromName(aName,aSzBuf,SVP);
+
+    if (ReUse)
+    {
+        static std::map<std::string,cCalculator<double> * >  TheMapS2C;
+        if (TheMapS2C.find(aName) == TheMapS2C.end())
+        {
+            cCalculator<double> * aResult =  cName2Calc<double>::CalcFromName(aName,aSzBuf,SVP);
+            TheMapS2C[aName] = aResult;
+            cMMVII_Appli::AddObj2DelAtEnd(aResult);
+        }
+	return TheMapS2C[aName];
+    }
+
+    return  cName2Calc<double>::CalcFromName(aName,aSzBuf,SVP);
 }
 
 
@@ -124,9 +137,9 @@ cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf)
 
      //  Projection+distorsion+ Foc/PP
 
-cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf)
+cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse)
 {
-    return StdAllocCalc(NameEqColinearityCamPPC(aType,aDeg,WithDerive),aSzBuf);
+    return StdAllocCalc(NameEqColinearityCamPPC(aType,aDeg,WithDerive),aSzBuf,false,ReUse);
 }
      //    Radiometry
 cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf)

@@ -69,7 +69,7 @@ void cSetMesImGCP::AddMes3D(const cSetMesGCP &  aSet)
 	 Add1GCP(aMes);
 }
 
-void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens)
+void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens,eLevelCheck aOnNonExistGCP)
 {
     //  Are we beginning  the  image measurement phase
     {
@@ -105,7 +105,7 @@ void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens
 	}
 	else
 	{
-             MMVII_DEV_WARNING("Measure Im w/o Ground, first occur Im=" + aSetMesIm.NameIm() + " Pt="  + aMes.mNamePt);
+             ErrorWarnNone(aOnNonExistGCP,"Measure Im w/o Ground, first occur Im=" + aSetMesIm.NameIm() + " Pt="  + aMes.mNamePt);
 	}
     }
 
@@ -146,12 +146,6 @@ cSetMesImGCP *  cSetMesImGCP::FilterNonEmptyMeasure(int aNbMeasureMin) const
   {
      aRes->AddMes2D(mMesImInit.at(aKIm),mVSens.at(aKIm));
   }
-
-  /*
-   //  mMesImOfPt.resize(aNbF);
-   mMesGCP.resize(aNbF);
-   mMesImOfPt.pop_back();
-   */
 
    return aRes;
 }

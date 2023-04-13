@@ -75,9 +75,9 @@ cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aPImAndD) const
 
 const cPt3dr * cSensorCamPC::CenterOfPC() { return  & Center(); }
          /// Return the calculator, adapted to the type, for computing colinearity equation
-cCalculator<double> * cSensorCamPC::EqColinearity(bool WithDerives,int aSzBuf) 
+cCalculator<double> * cSensorCamPC::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) 
 {
-   return mInternalCalib->EqColinearity(WithDerives,aSzBuf);
+   return mInternalCalib->EqColinearity(WithDerives,aSzBuf,ReUse);
 }
 
 void cSensorCamPC::PushOwnObsColinearity(std::vector<double> & aVObs)
