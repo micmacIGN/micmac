@@ -35,7 +35,10 @@ Installation
 Distribution
 ------------
 
-The file dist/MMVII-*.whl, created at compilation, can be distributed to machines with same OS, arch and python version.
+The file dist/MMVII-*.whl, created at compilation, can be distributed to machines with same OS, architecture and python version.
+
+This file contains all the necessary files to run the module:
+MMVII does not have to be installed on the machine to use the python module.
 
 It can be installed with:
 
@@ -45,6 +48,8 @@ Upgrade pip if needed:
 
     python3 -m pip install --upgrade pip
 
+
+
 Usage
 -----
 
@@ -52,4 +57,7 @@ Usage
     import MMVII
 ```
 
+The built-in Python help system can be used to have information about the API.
+
 See 'examples' directory for use cases.
+

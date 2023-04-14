@@ -1,0 +1,98 @@
+
+
+\chapter{Python API}
+
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+\section{Using Python API}
+
+Some of MicMac V2 internal features are usable in python via a python module generated
+with \textbf{pybind11} (\url{https://github.com/pybind/pybind11}).
+
+Only a selection of MMVII classes, adapted to python usage, is made available.
+
+For compilation and usage, see \texttt{MMVII/apib11/README.md}.
+
+Most of the classes in the module are illustrated in \texttt{MMVII/apib11/examples}. 
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+\section{Extending Python API}
+\label{Prog:Py:Extending}
+%---------------------------------------------
+\subsection{Introduction}
+
+The sources files describing the classes to export to the python module are \texttt{MMVII/apib11/py\_MMVII*.cpp}.
+
+To start using \textbf{pybind11}, the minimal documentation is:
+\begin{itemize}
+  \item \url{https://pybind11.readthedocs.io/en/stable/basics.html}
+  \item \url{https://pybind11.readthedocs.io/en/stable/classes.html}
+\end{itemize}
+
+%---------------------------------------------
+\subsection{Example}
+
+
+An illustration on how to add a new class to the module can be found in \texttt{MMVII/apib11/py\_MMVII\_Aime.cpp}.
+
+Its main function
+\begin{lstlisting}
+    void pyb_init_Aime(py::module_ &m) {
+\end{lstlisting}
+will add classes, methods and attibutes to the module.
+
+This function is declared in \texttt{MMVII/apib11/py\_MMVII.h} and called in \texttt{MMVII/apib11/py\_MMVII.cpp}.
+
+A minimal class export is:
+\begin{lstlisting}
+py::class_<cAimeDescriptor>(m,"AimeDescriptor",DOC(MMVII_cAimeDescriptor,cAimeDescriptor))
+        .def(py::init<>())
+        .def("ILP", &cAimeDescriptor::ILP, DOC(MMVII_cAimeDescriptor, ILP))
+        ;
+\end{lstlisting}
+
+It creates a python class \texttt{AimeDescriptor} from the c++ class \texttt{cAimeDescriptor}.
+The doxygen comment for the class is inserted in the module with the \texttt{DOC(namespace, part)} syntax
+(see \url{https://github.com/pybind/pybind11_mkdoc} for more information).
+
+It then adds a constructor and a method \texttt{ILP}, corresponding to \texttt{cAimeDescriptor::ILP}, with its documentation.
+
+%---------------------------------------------
+\subsection{Getting further}
+
+See \textbf{pybind11} documentation, as it shows many more features.
+
+Some hints to get further:
+\begin{itemize}
+  \item \textbf{pybind11\_mkdoc} is very sensible to doxygen syntax. If two kinds of comments are used for the same thing,
+ it may refuse to use any. Please check that the python documentation is equivalent its c++ counterpart.
+  \item if class \texttt{Bar} extends \texttt{Foo}, use
+\begin{lstlisting}
+    py::class_<Bar, Foo>(m,"Bar",...
+\end{lstlisting}
+syntax to give access to \texttt{Foo} methods from \texttt{Bar} python objects (if \texttt{Foo} is accessible in python).
+  \item to name functions parameters, use \texttt{"name"\_a} syntax :
+\begin{lstlisting}
+    .def("toFile", &tPCIC::ToFile,"filename"_a,DOC(MMVII_cPerspCamIntrCalib, ToFile))
+\end{lstlisting}
+  \item \textbf{return\_value\_policy} is a fundamental concept to avoid crashes and memory corruption (see \url{https://pybind11.readthedocs.io/en/stable/advanced/functions.html})
+  \item try to make pythonic classes (e.g. initialization from \texttt{py::tuple}, see \texttt{MMVII/apib11/py\_MMVII\_Ptxd.cpp})
+  \item add \texttt{\_\_repr\_\_} and other useful methods to python classes to make them more pythonic:
+\begin{lstlisting}
+    .def("__repr__",
+         [](const tMPP2I &m) {
+           std::ostringstream ss;
+           ss.precision(15);
+           ss << "MapPProj2Im(" << m.F() << ",(" << m.PP().x() << "," << m.PP().y() << "))";
+           return ss.str();
+     })
+\end{lstlisting}
+  \item add numpy direct compatibility if needed (see \url{https://pybind11.readthedocs.io/en/stable/advanced/pycpp/numpy.html})
+  \item template methods can be used to export c++ templates classes (with a unique name for each type in python, see \texttt{MMVII/apib11/py\_MMVII\_Mappings.cpp})
+\end{itemize}
+
+
