@@ -65,7 +65,9 @@ struct cOriBascule {
 
     std::string mName;
     std::string mXmlFile;
+    std::string mNameFull;
     std::vector<cTriplet*> ts;
+    CamStenope * mCam;
 
 };
 
@@ -77,10 +79,12 @@ struct cOriTraversal {
 
 struct cTriplet {
     cTriplet(cOriBascule* s1, cOriBascule* s2, cOriBascule* s3,
-             cXml_Ori3ImInit& xml, std::array<short, 3>& mask);
+             cXml_Ori3ImInit& xml, std::array<short, 3>& mask, bool inv);
 
     cXml_Ori3ImInit t;
     std::array<short, 3> masks; // true = first block
+    bool inverted; // Precise if S3 give prediction in source or target
+                   // orientation
 
     const ElRotation3D& RotOfSom(const cOriBascule* aS) const {
         if (aS == mSoms[0]) return ElRotation3D::Id;
@@ -148,19 +152,6 @@ struct cTriplet {
     cOriBascule* mSoms[3];
 };
 
-class cOriTriplets
-{
-    public :
-        cOriTriplets();
-        CamStenope * mCam1;
-        CamStenope * mCam2;
-        std::string mNameFull;
-        std::string mName;
-        std::string mIm;
-        std::vector<cTriplet*> triplets;
-};
-
-
 class cAppliBasculeTriplets : public cCommonMartiniAppli
 {
 	public:
@@ -168,9 +159,12 @@ class cAppliBasculeTriplets : public cCommonMartiniAppli
 
         void InitOneDir(const std::string & aPat, bool aD1);
 
-        void InitTriplets(bool aModeBin);
+        size_t InitTriplets(bool aModeBin);
+        void ComputeBascule();
 
         void IsolateRotTr();
+        void Sauv();
+        void SauvCalib(const std::string & anOri);
 
         const std::string & Dir() {return  mDir ;}
 
@@ -188,7 +182,7 @@ class cAppliBasculeTriplets : public cCommonMartiniAppli
         std::map<std::string, std::string> mapping;
 
         std::map<std::string, cOriBascule> mAllOris;
-        std::map<std::string, cOriTriplets> mOrients;
+        std::map<std::string, cTriplet> mOrients;
         std::vector<cTriplet> ts;
 
 		ElMatrix<double> RandPeturbR();
