@@ -580,7 +580,11 @@ class RandomForest : public cCommonMartiniAppli {
     void DoNRandomSol(Dataset& data);
 
     void hierarchique(Dataset& data, ffinalTree& tree);
+    finalScene bfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
+
     finalScene dfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
+
+    finalScene processNode(Dataset& data, ffinalTree& tree, const std::map<tSomNSI*, finalScene>& r, tSomNSI* node);
 
     void RandomSolAllCC(Dataset& data);
     void RandomSolOneCC(Dataset& data, cNO_CC_TripSom*);

@@ -2092,6 +2092,134 @@ std::string exec(const std::string& cmd) {
     return result;
 }
 
+finalScene RandomForest::processNode(Dataset& data, ffinalTree& tree,
+                                     const std::map<tSomNSI*, finalScene>& rs,
+                                     tSomNSI* node) {
+    finalScene result;
+
+    auto node_ori = tree.ori[node];
+    result.ts.insert(node_ori->m3);
+    result.ss.insert(node);
+
+    std::string curNodeName = node->attr().Im()->Name();
+
+    std::cout << curNodeName << std::endl;
+    std::cout << node_ori->S1()->attr().Im()->Name() << " / "
+              << node_ori->S2()->attr().Im()->Name() << " / "
+              << node_ori->S3()->attr().Im()->Name() << " / "
+              << std::endl;
+
+    std::cout << "Parent: "<<node->attr().Im()->Name() << ":";
+    for (auto& child : tree.next[node]) {
+        std::cout << " " << child->attr().Im()->Name();
+    }
+    std::cout << std::endl;
+    if (tree.next[node].size() == 1) {
+        auto child = *tree.next[node].begin();
+        const finalScene& r = rs.at(child);
+
+        //auto i = curNodeName + std::to_string(n++);
+        auto i = child->attr().Im()->Name();
+        for (auto e : r.ts) result.ts.insert(e);
+        for (auto e : r.ss) result.ss.insert(e);
+        return result;
+    }
+
+    node->flag_set_kth_true(data.mFlagS);
+    //size_t n = 0;
+    for (auto& child : tree.next[node]) {
+        const finalScene& r = rs.at(child);
+
+        //auto i = curNodeName + std::to_string(n++);
+        auto i = child->attr().Im()->Name();
+        for (auto e : r.ts) result.ts.insert(e);
+        for (auto e : r.ss) result.ss.insert(e);
+
+        std::set<tSomNSI*> out;
+
+        //SAVE orientation
+        for (auto e : r.ss) {
+            e->flag_set_kth_true(data.mFlagS);
+            out.insert(e);
+        }
+        std::string pattern = "(" + node->attr().Im()->Name() + "|" +
+            child->attr().Im()->Name() + ")";
+
+        Save(data, i, false);
+
+        exec("mm3d BasculeTriplet \"image_002_00.*.tif\" ""/Orientation-.*.xml\" \"Ori-image_002_00112.tif/Orientation-.*.xml\" Merging OriCalib=CalibPerf SH=5Pts");
+
+        //TODO BAR -> robuste bascule for adding new triplet
+        //std::cout <<
+        //    exec("mm3d BAR \"" + pattern + "\" Ori-" + i + " " + m3d + " " + m2d + " Out=" + i + "-Bar");
+
+        for (auto e : r.ss) {
+            e->flag_set_kth_false(data.mFlagS);
+        }
+
+        std::string inOri = "" + i + "";
+        std::cout << "Reading output ori from: " << inOri << std::endl;
+        for (auto e : out) {
+            std::string imgName = e->attr().Im()->Name();
+            auto aCam = mNM->ICNM()->StdCamStenOfNames(imgName, inOri);
+            e->attr().CurRot() = aCam->Orient();
+        }
+    }
+    node->flag_set_kth_false(data.mFlagS);
+
+    return result;
+}
+
+finalScene RandomForest::bfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
+    std::deque<std::deque<tSomNSI*>> s;
+    { //Init first level
+        std::deque<tSomNSI*> firstlevel;
+        firstlevel.push_back(node);
+        s.emplace_back(firstlevel);
+    }
+
+
+    bool emptyLevel = false;
+    while (!emptyLevel) {
+        auto& lastlevel = s.back();
+        std::deque<tSomNSI*> nextlevel;
+        //Down
+        for (tSomNSI* n : lastlevel) {
+            for (auto child : tree.next[n]) {
+                nextlevel.push_back(child);
+            }
+        }
+        if (!nextlevel.empty()) {
+            s.emplace_back(nextlevel);
+        } else {
+            emptyLevel = true;
+        }
+    }
+
+    std::cout << "Print tree:" << std::endl;
+
+    for (auto& lvl : s) {
+        for (auto n : lvl) {
+            std::cout << n->attr().Im()->Name() << "|";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "Down the tree" << std::endl;
+
+    //Up
+    std::map<tSomNSI*, finalScene> results;
+    while (!s.empty()) {
+        auto& lastlevel = s.back();
+        for (tSomNSI* n : lastlevel) {
+            results[n] = processNode(data, tree, results, n);
+        }
+        s.pop_back();
+    }
+
+    return results[node];
+}
+
 finalScene RandomForest::dfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
     if (!node) //Nothing get out
         return {};
@@ -2162,7 +2290,7 @@ finalScene RandomForest::dfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
 }
 
 void RandomForest::hierarchique(Dataset& data, ffinalTree& tree) {
-    auto all = dfs(data, tree, tree.root->KSom(0));
+    auto all = bfs(data, tree, tree.root->KSom(0));
     //TODO global campari on all data
 }
 
