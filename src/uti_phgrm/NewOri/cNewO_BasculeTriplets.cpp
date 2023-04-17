@@ -123,8 +123,8 @@ size_t cAppliBasculeTriplets::InitTriplets(bool aModeBin)
 
         std::array<cOriBascule*, 2> origin;
         cOriBascule* dest = nullptr;
-        bool inverted = in1 == 2;
-        short selector = (in1 == 2) ? 1 : 2;
+        bool inverted = in2 == 2;
+        short selector = (inverted) ? 2 : 1;
         short j = 0;
         for (int i : {0, 1, 2}) {
             if (mask[i] == selector)
@@ -303,15 +303,14 @@ void cAppliBasculeTriplets::ComputeBascule() {
 
     for (auto t : ts) {
        auto r = EstimAllRt(&t);
-       ElRotation3D position = r[2];
-       Pt3dr bascule;
-
+       ElRotation3D position = r[2].inv();
         if (!t.inverted) {
             mOVR1.push_back(t.mSoms[2]->mCam->Orient());
             mOVR2.push_back(position);
 
             mVR1.push_back(t.mSoms[2]->mCam->Orient().inv());
             mVR2.push_back(position.inv());
+
         } else {
             mOVR1.push_back(position);
             mOVR2.push_back(t.mSoms[2]->mCam->Orient());
@@ -484,6 +483,14 @@ cAppliBasculeTriplets::cAppliBasculeTriplets(int argc,char ** argv) :
 
     ComputeBascule();
     Sauv();
+    std::cout << "(";
+    for (auto i : block1) {
+        std::cout << i << "|";
+    }
+    for (auto i : block2) {
+        std::cout << i << "|";
+    }
+    std::cout << ")"<<std::endl;
 
     /*
             std::pair<ElRotation3D, ElRotation3D> aPair =
