@@ -2185,7 +2185,7 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
         for (auto v : result.ss) pattern += v->attr().Im()->Name() + "|";
         pattern += ")";
 
-        std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+        //std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
 
     }
     std::string pattern = "(";
