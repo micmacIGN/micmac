@@ -97,30 +97,45 @@ tPtrArg2007    cDirsPhProj::ArgDirInMand(const std::string & aMesg)
     return  Arg2007 (mDirIn ,StrWDef(aMesg,"Input " +mPrefix) ,{mMode,eTA2007::Input }); 
 }
 
-tPtrArg2007    cDirsPhProj::ArgDirInOpt(const std::string & aNameVar,const std::string & aMsg)  
+tPtrArg2007    cDirsPhProj::ArgDirInOpt(const std::string & aNameVar,const std::string & aMsg,bool WithHDV)  
 { 
+    std::vector<tSemA2007>   aVOpt{mMode,eTA2007::Input};
+    if (WithHDV) aVOpt.push_back(eTA2007::HDV);
     return  AOpt2007
 	    (
                mDirIn,
                StrWDef(aNameVar,"In"+mPrefix) ,
                StrWDef(aMsg,"Input "  + mPrefix),
-               {mMode,eTA2007::Input }
+               aVOpt
             ); 
 }
+
+tPtrArg2007    cDirsPhProj::ArgDirInputOptWithDef(const std::string & aDef,const std::string & aNameVar,const std::string & aMsg)
+{ 
+    mDirIn = aDef;
+    mAppli.SetVarInit(&mDirIn);
+    return ArgDirInOpt(aNameVar,aMsg,true);
+}
+
+
+
+
 
 tPtrArg2007    cDirsPhProj::ArgDirOutMand(const std::string & aMesg)
 { 
      return  Arg2007(mDirOut,StrWDef(aMesg,"Output " + mPrefix),{mMode,eTA2007::Output}); 
 }
 
-tPtrArg2007    cDirsPhProj::ArgDirOutOpt(const std::string & aNameVar,const std::string & aMsg)
+tPtrArg2007    cDirsPhProj::ArgDirOutOpt(const std::string & aNameVar,const std::string & aMsg,bool WithDV)
 { 
+    std::vector<tSemA2007>   aVOpt{mMode,eTA2007::Output};
+    if (WithDV) aVOpt.push_back(eTA2007::HDV);
     return  AOpt2007
             (
                 mDirOut,
                 StrWDef(aNameVar,"Out"+mPrefix),
                 StrWDef(aMsg,"Output " + mPrefix),
-                {mMode,eTA2007::Output}
+                aVOpt
             ); 
 }
 
@@ -128,13 +143,7 @@ tPtrArg2007    cDirsPhProj::ArgDirOutOptWithDef(const std::string & aDef,const s
 { 
     mDirOut = aDef;
     mAppli.SetVarInit(&mDirOut);
-    return  AOpt2007
-            (
-                mDirOut,
-                StrWDef(aNameVar,"Out"+mPrefix),
-                StrWDef(aMsg,"Output " + mPrefix),
-                {mMode,eTA2007::Output,eTA2007::HDV}
-            ); 
+    return ArgDirOutOpt(aNameVar,aMsg,true);
 }
 
 
@@ -337,6 +346,28 @@ cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,b
     return aCamPC;
 }
 
+void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool SVP)
+{
+     aSI = nullptr;
+     aSPC =nullptr;
+
+     aSPC = AllocCamPC(aNameIm,true,true);
+     if (aSPC !=nullptr)
+     {
+        aSI = aSPC;
+        return;
+     }
+
+     if (!SVP)
+     {
+         MMVII_UsersErrror
+         (
+             eTyUEr::eUnClassedError,
+             "Cannot get sensor for image " + aNameIm
+         );
+     }
+}
+
 cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImCal(const std::string & aNameIm)
 {
     // 4 now, pretty basic allox sensor, extract internal, destroy
@@ -416,6 +447,8 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
 
    std::string aDir = mDPPointsMeasures.FullDirIn();
    std::vector<std::string> aListFileGCP =  GetFilesFromDir(aDir,AllocRegex(aPatFiltr));
+   MMVII_INTERNAL_ASSERT_User(!aListFileGCP.empty(),eTyUEr::eUnClassedError,"No file found in LoadGCP");
+
    for (const auto  & aNameFile : aListFileGCP)
    {
        cSetMesGCP aMesGGP = cSetMesGCP::FromFile(aDir+aNameFile);

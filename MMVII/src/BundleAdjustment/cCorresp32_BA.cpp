@@ -68,7 +68,7 @@ void cCorresp32_BA::OneIteration()
         //The fix center will apply only with Perspective central camera
         const cPt3dr * aC = mSensor->CenterOfPC();
 	if (aC)
-           mSys->SetFrozenVar(*mSensor,*aC); //  #DOC-FixVar
+           mSys->SetFrozenVarCurVal(*mSensor,*aC); //  #DOC-FixVar
      }
      //  Three temporary unknowns for x-y-z of the 3d point
      std::vector<int> aVIndGround{-1,-2,-3};

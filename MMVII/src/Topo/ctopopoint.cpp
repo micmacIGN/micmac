@@ -41,7 +41,7 @@ void cTopoPoint::addConstraints(cTopoComp *comp)
         /*comp->getSys()->AddEqFixVar(IndOfVal(&coord.x()),coord.x(), 1.0); //if constrained
         comp->getSys()->AddEqFixVar(IndOfVal(&coord.y()),coord.y(), 1.0);
         comp->getSys()->AddEqFixVar(IndOfVal(&coord.z()),coord.z(), 1.0);*/
-        comp->getSys()->SetFrozenVar(*this,coord); //if fixed
+        comp->getSys()->SetFrozenVarCurVal(*this,coord); //if fixed
     }
 }
 

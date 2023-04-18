@@ -13,6 +13,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 
 
+      //  cPt3di  Deg.x=Rad  Deg.y=Dec  Deg.z=Gen
 /*
 La compil:
 
@@ -29,6 +30,7 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+extern const std::vector<cPt3di>  TheVectDegree;
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
 {
@@ -114,10 +116,25 @@ cCalculator<double> *  StdAllocCalc(const std::string & aName,int aSzBuf,bool SV
 
      //=============   Photogrammetry ============
 
+void TestResDegree(cCalculator<double> * aCalc,const cPt3di & aDeg,const std::string & aFonc)
+{
+     if (aCalc==nullptr)
+     {
+         StdOut() << " *  Generated Degree Are " <<   TheVectDegree << "\n";
+	 MMVII_UsersErrror
+         (
+	      eTyUEr::eBadDegreeDist,
+	      "Required degree " + ToStr(aDeg) + " for distorsion  in "+aFonc+" has not been generated"
+         );
+     }
+}
+
      //  distorion
 cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
 { 
-    return StdAllocCalc(NameEqDist(aDeg,WithDerive,false),aSzBuf);
+    cCalculator<double> * aRes =  StdAllocCalc(NameEqDist(aDeg,WithDerive,false),aSzBuf,true);
+    TestResDegree(aRes,aDeg,"EqDist");
+    return aRes;
 }
 cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf)
 { 
@@ -139,8 +156,25 @@ cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf)
 
 cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse)
 {
-    return StdAllocCalc(NameEqColinearityCamPPC(aType,aDeg,WithDerive),aSzBuf,false,ReUse);
+	//  true->  SVP
+     cCalculator<double> * aRes = StdAllocCalc(NameEqColinearityCamPPC(aType,aDeg,WithDerive),aSzBuf,true,ReUse);
+
+    TestResDegree(aRes,aDeg,"EqColinearityCamPPC");
+    /*
+     if (aRes==nullptr)
+     {
+         StdOut() << " *  Generated Degree Are " <<   TheVectDegree << "\n";
+	 MMVII_UsersErrror
+         (
+	      eTyUEr::eBadDegreeDist,
+	      "Required degree for distorsion  EqColinearityCamPPC has not been generated"
+         );
+     }
+     */
+
+     return aRes;
 }
+
      //    Radiometry
 cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf)
 { 
@@ -514,6 +548,19 @@ void GenerateXMLSpec()
    }
 }
 
+const std::vector<cPt3di>  
+      TheVectDegree
+      {
+			   {0,0,0},  // no dist at all
+			   {0,0,1},  // pure linear as used in 11 Param
+			   {2,0,0},
+			   {3,0,0},
+			   {3,1,1},
+			   {5,1,1},
+			   {5,1,2},
+			   {5,2,2},
+			   {7,2,5}
+      };
 
 int cAppliGenCode::Exe()
 {
@@ -525,7 +572,11 @@ int cAppliGenCode::Exe()
    cGenNameAlloc::Reset();
    mDirGenCode = TopDirMMVII() + "src/GeneratedCodes/";
 
+   for (const auto & aDeg :  TheVectDegree)
    {
+       GenerateOneDist(aDeg);
+       GenerateCodeCamPerpCentrale<cProjStenope>(aDeg);
+       /*
        GenerateOneDist(cPt3di(0,0,0));
        GenerateOneDist(cPt3di(3,0,0));
        GenerateOneDist(cPt3di(0,0,1));
@@ -534,7 +585,16 @@ int cAppliGenCode::Exe()
        GenerateOneDist(cPt3di(5,1,1));
        GenerateOneDist(cPt3di(5,2,2));
        GenerateOneDist(cPt3di(7,2,5));
+       */
    }
+   /*
+   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(0,0,0));
+   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(0,0,1));
+   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(3,1,1));
+   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(3,0,0));
+   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(5,2,2));
+   */
+   GenerateCodeCamPerpCentrale<cProjFE_EquiDist>(cPt3di(3,1,1));
 
    for (const auto WithDer : {true,false})
    {
@@ -564,13 +624,6 @@ int cAppliGenCode::Exe()
    GenerateCodeProjCentralPersp<cProj_EquiRect>(); //  ->  asin
 
 
-   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(0,0,0));
-   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(0,0,1));
-   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(3,1,1));
-   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(3,0,0));
-   GenerateCodeCamPerpCentrale<cProjStenope>(cPt3di(5,2,2));
-
-   GenerateCodeCamPerpCentrale<cProjFE_EquiDist>(cPt3di(3,1,1));
 /*
    {
    }

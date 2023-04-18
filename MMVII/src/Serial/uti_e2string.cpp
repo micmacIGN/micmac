@@ -235,6 +235,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eReadFile,"ReadFile"},
                 {eTyUEr::eBadBool,"BadBool"},
                 {eTyUEr::eBadInt,"BadInt"},
+                {eTyUEr::eBadDegreeDist,"BadDegreeDist"},
                 {eTyUEr::eBadEnum,"BadEnum"},
                 {eTyUEr::eMulOptParam,"MultOptP"},
                 {eTyUEr::eBadOptParam,"BadOptP"},
@@ -329,6 +330,7 @@ template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
                 {eMTDIm::eFocalmm,"Focalmm"},
                 {eMTDIm::eAperture,"Aperture"},
                 {eMTDIm::eModeleCam,"ModeleCam"},
+                {eMTDIm::eAdditionalName,"AdditionalName"}
            };
 TPL_ENUM_2_STRING(eMTDIm);
 

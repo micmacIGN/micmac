@@ -393,7 +393,7 @@ template <class Type>  class cBijectiveMapI2O
         int Add(const Type & ,bool OkExist=false);
 
         Type *   I2Obj(const int) ;  ///< Adr of object at index, 0 if none
-        int      Obj2I(const Type & anOb,bool SVP=false);  ///< Index of object , -1 if none
+        int      Obj2I(const Type & anOb,bool SVP=false) const;  ///< Index of object , -1 if none
 
     private :
         std::vector<Type>    mI2Obj;   /// vector efficient for map int->obj

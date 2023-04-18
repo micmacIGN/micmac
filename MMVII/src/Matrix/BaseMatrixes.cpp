@@ -1,4 +1,3 @@
-
 #include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
@@ -243,6 +242,19 @@ template <class Type> void  cDenseVect<Type>::SetAvg(const Type & aTargAvg)
    for (int aK=0 ; aK<Sz() ; aK++)
         (*this)(aK) *= aMul;
 }
+
+
+/*
+template <class Type> void AddData(const  cAuxAr2007 & anAux, cDenseVect<Type> & aDV)
+{
+    int aNbEl = aDV.Sz();
+    AddData(cAuxAr2007("NbEl",anAux),aNbEl);
+    if (anAux.Input())
+       aDV = cDenseVect<Type>(aNbEl);
+
+    TplAddRawData(anAux,aDV.RawData(),aNbEl);
+}
+*/
 
 /* ========================== */
 /*          cMatrix       */
@@ -594,6 +606,7 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cMatri
 }
 
 
+// template void AddData(const  cAuxAr2007 & anAux, cDenseVect<Type> &);
 
 /* ===================================================== */
 /* ===================================================== */

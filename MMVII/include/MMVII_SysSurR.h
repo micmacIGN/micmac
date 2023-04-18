@@ -174,6 +174,10 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           void   AddEqFixCurVar(const int & aNumV,const Type& aWeight);
           void   R_AddEqFixCurVar(const int & aNumV,const tREAL8 & aWeight) override;
 
+          void   AddEqFixCurVar(const tObjWUk & anObj,const  Type & aVal,const Type& aWeight);
+          void   AddEqFixCurVar(const tObjWUk & anObj,const  Type * aVal,size_t aNb,const Type& aWeight);
+          void   AddEqFixCurVar(const tObjWUk & anObj,const  cPtxd<Type,3> &,const Type& aWeight);
+
           /// Basic Add 1 equation , no bufferistion, no schur complement
           void   CalcAndAddObs(tCalc *,const tVectInd &,const tStdVect& aVObs,const tResidualW & = tResidualW());
           void   R_CalcAndAddObs(tCalc *,const tVectInd &,const  tR_Up::tStdVect& aVObs,const tR_Up::tResidualW & ) override;
@@ -198,11 +202,11 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	   void  R_SetFrozenVar(int aK,const  tREAL8 &) override;  ///< seti var var frozen /unfrozen
 	   void  SetFrozenVarCurVal(int aK);  ///< idem to current val
 	       // frozen for  cObjWithUnkowns
-	   void  SetFrozenVar(tObjWUk & anObj,const  Type & aVal);  ///< Froze the value aVal, that must belong to anObj
-	   void  SetFrozenVar(tObjWUk & anObj,const  Type * Vals,size_t aNb);  ///< Froze Nb values aVal, that must belong to anObj
-	   void  SetFrozenVar(tObjWUk & anObj,const tStdVect & aVect);  ///< Froze aVect, that must belong to anObj
-	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,3> & aPt);  ///< Froze aPt that must belong to anObj
-	   void  SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,2> & aPt);  ///< Froze aPt that must belong to anObj
+	   void  SetFrozenVarCurVal(tObjWUk & anObj,const  Type & aVal);  ///< Froze the value aVal, that must belong to anObj
+	   void  SetFrozenVarCurVal(tObjWUk & anObj,const  Type * Vals,size_t aNb);  ///< Froze Nb values aVal, that must belong to anObj
+	   void  SetFrozenVarCurVal(tObjWUk & anObj,const tStdVect & aVect);  ///< Froze aVect, that must belong to anObj
+	   void  SetFrozenVarCurVal(tObjWUk & anObj,const cPtxd<Type,3> & aPt);  ///< Froze aPt that must belong to anObj
+	   void  SetFrozenVarCurVal(tObjWUk & anObj,const cPtxd<Type,2> & aPt);  ///< Froze aPt that must belong to anObj
 	   void  SetFrozenAllCurrentValues(tObjWUk & anObj);  ///< Froze all the value beloning to an anObj
 
 	   void  SetFrozenFromPat(tObjWUk & anObj,const std::string& , bool Frozen);  ///< Froze all the value beloning to an anObj
@@ -319,6 +323,8 @@ template <class Type> class cSetIORSNL_SameTmp
 	    static bool   IsIndTmp(int ) ;
 
 	    cSetIORSNL_SameTmp(bool Fake,const cSetIORSNL_SameTmp<tREAL8> &) ;
+
+	    int  NbRedundacy() const;
 	private :
 	    cSetIORSNL_SameTmp(const cSetIORSNL_SameTmp&) = delete;
 

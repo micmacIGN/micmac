@@ -4,6 +4,97 @@
 namespace MMVII
 {
 
+/*  *********************************************************** */
+/*                                                              */
+/*                  cPlan3D                                     */
+/*                                                              */
+/*  *********************************************************** */
+
+
+cPlane3D::cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ) :
+     mP0(aP0)
+{
+    cRotation3D<tREAL8> aRot = cRotation3D<tREAL8>::CompleteRON(aAxeI,aAxeJ);
+
+    mAxeI = aRot.AxeI();
+    mAxeJ = aRot.AxeJ();
+    mAxeK = aRot.AxeK();
+}
+
+
+cPlane3D cPlane3D::FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aAxeK)
+{
+   cRotation3D<tREAL8> aRep = cRotation3D<tREAL8>::CompleteRON(aAxeK);
+
+   return cPlane3D(aP0,aRep.AxeJ(),aRep.AxeK());
+}
+
+const cPt3dr& cPlane3D::AxeI() const {return mAxeI;}
+const cPt3dr& cPlane3D::AxeJ() const {return mAxeJ;}
+const cPt3dr& cPlane3D::AxeK() const {return mAxeK;}
+
+cPt3dr  cPlane3D::ToLocCoord(const cPt3dr & aPGlob) const
+{
+     cPt3dr aVect = aPGlob-mP0;
+     return cPt3dr (Scal(mAxeI,aVect), Scal(mAxeJ,aVect), Scal(mAxeK,aVect));
+}
+
+cPt3dr  cPlane3D::FromCoordLoc(const cPt3dr & aP) const
+{
+    return mP0 + mAxeI*aP.x() + mAxeJ*aP.y() + mAxeK*aP.z();
+}
+
+cPt3dr  cPlane3D::Inter(const cPt3dr&aP0,const cPt3dr&aP1) const
+{
+     cPt3dr aVect = aP1-aP0;
+     tREAL8 aS1  = Scal(mAxeK,aP1-mP0);
+     tREAL8 aS01 = Scal(mAxeK,aVect);
+    
+     //  Scal(mAxeK,aP1+t*aVect -mP0) = 0
+     //  t = - Scal(aP1-mP0,aK)  / Scal (aVect,aK)
+
+     return  aP1 -  aVect*(aS1/aS01);
+}
+
+
+std::vector<cPt3dr>  cPlane3D::RandParam()
+{
+    cPt3dr aP0 = cPt3dr::PRandC() * 100.0;
+
+    cPt3dr  aI =  cPt3dr::PRandUnit() ;
+    cPt3dr  aJ =  cPt3dr::PRandUnitDiff(aI) ;
+
+    return std::vector<cPt3dr>{aP0,aI*RandInInterval(0.1,2.0),aJ*RandInInterval(0.1,2.0)};
+}
+
+void BenchPlane3D()
+{
+    for  (int aK=0 ;aK<100 ;aK++)
+    {
+         std::vector<cPt3dr>  aVP = cPlane3D::RandParam();
+         cPlane3D aPlane(aVP[0],aVP[1],aVP[2]);
+	 MMVII_INTERNAL_ASSERT_bench(Norm2(aPlane.ToLocCoord(aVP[0])) < 1e-9,"BenchPlane3D");
+	 MMVII_INTERNAL_ASSERT_bench(std::abs(aPlane.ToLocCoord(aVP[0]+aVP[1]).z())<1e-5,"BenchPlane3D");
+	 MMVII_INTERNAL_ASSERT_bench(std::abs(aPlane.ToLocCoord(aVP[0]+aVP[2]).z())<1e-5,"BenchPlane3D");
+
+         cPt3dr aP0 = cPt3dr::PRandC() * 100.0;
+         cPt3dr aP1 = aP0 +  aPlane.AxeI() * RandUnif_C() + aPlane.AxeJ() * RandUnif_C() +  aPlane.AxeK()  * RandUnif_C_NotNull(0.1);
+
+	 cPt3dr aPI = aPlane.Inter(aP0,aP1);
+	 MMVII_INTERNAL_ASSERT_bench(std::abs(aPlane.ToLocCoord(aPI).z())<1e-5,"BenchPlane3D");
+
+	 cSegmentCompiled<tREAL8,3> aSeg(aP0,aP1);
+	 MMVII_INTERNAL_ASSERT_bench(aSeg.Dist(aPI)<1e-5,"BenchPlane3D");
+
+	 MMVII_INTERNAL_ASSERT_bench(Norm2(aP0 -aPlane.ToLocCoord(aPlane.FromCoordLoc(aP0)))<1e-5,"BenchPlane3D");
+	 MMVII_INTERNAL_ASSERT_bench(Norm2(aP0 -aPlane.FromCoordLoc(aPlane.ToLocCoord(aP0)))<1e-5,"BenchPlane3D");
+    }
+}
+
+/*  *********************************************************** */
+/*                                                              */
+/*  *********************************************************** */
+
 template<class T> cPtxd<T,3>  PFromNumAxe(int aNum)
 {
    static const cDenseMatrix<T> anId3x3(3,3,eModeInitImage::eMIA_MatrixId);

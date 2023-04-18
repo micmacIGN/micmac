@@ -184,16 +184,21 @@ class cSetMesImGCP : public cMemCheck
             void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm);
 
             const std::vector<cMes1GCP> &        MesGCP() const ; ///< Accessor
+            std::vector<cMes1GCP> &        MesGCP() ; ///< Accessor
             const std::vector<cMultipleImPt> &   MesImOfPt() const ;  ///< Accessor
 	    const std::vector<cSensorImage*> &   VSens() const ;  ///< Accessor
 								
+	    tREAL8 AvgSqResidual() const;
 								  
 	    /// suppress mMesGCP & mMesIm with no images measure (eventually can give higher threshold) 
 	    cSetMesImGCP * FilterNonEmptyMeasure(int NbMeasureMin=1) const;
+
+            const cSetMesPtOf1Im  & MesImInitOfName(const std::string &) const;
+	    const cMes1GCP &        MesGCPOfName(const std::string &) const;
     private :
 
 
-            cSetMesImGCP(const  cSetMesImGCP & ) = delete;
+            // cSetMesImGCP(const  cSetMesImGCP & ) = delete;
 
             bool                         mPhaseGCPFinished;
             std::vector<cMes1GCP>        mMesGCP;      

@@ -435,6 +435,8 @@ class cEllipse
      public :
        /// Create from a vector of parameter ABCEF such elipse is definedby  :  Axx+2Bxy+Cyy+Dx+Fy=1
        cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0);
+
+       void AddData(const  cAuxAr2007 & anAux);
        double ApproxSigneDist(cPt2dr aP) const;
 
        double SignedD2(cPt2dr aP) const;
@@ -468,6 +470,7 @@ class cEllipse
        tREAL8                 mRayMoy;
        tREAL8                 mSqRatio;
 };
+void AddData(const  cAuxAr2007 & anAux,cEllipse &);
 
 class cEllipse_Estimate
 {

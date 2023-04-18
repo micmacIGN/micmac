@@ -154,6 +154,7 @@ enum class eTyUEr
               eReadFile,
               eBadBool,
               eBadInt,
+              eBadDegreeDist,
               eBadEnum,
               eMulOptParam,
               eBadOptParam,
@@ -456,6 +457,7 @@ enum class eMTDIm
               eFocalmm,
               eAperture,
               eModeleCam,
+              eAdditionalName,
               eNbVals
            };
 

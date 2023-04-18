@@ -288,6 +288,29 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            void PlyWrite(const std::string &,bool isBinary) const;
 };
 
+class cPlane3D
+{
+     public :
+         cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
+         static cPlane3D FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aAxeK);
+
+         cPt3dr  ToLocCoord(const cPt3dr &) const;
+         cPt3dr  FromCoordLoc(const cPt3dr &) const;
+         cPt3dr  Inter(const cPt3dr&aP0,const cPt3dr&aP1) const;
+
+         // return 3 point for random plane
+         static std::vector<cPt3dr>  RandParam();
+         const cPt3dr& AxeI() const;
+         const cPt3dr& AxeJ() const;
+         const cPt3dr& AxeK() const;
+
+     private :
+         cPt3dr mP0;
+         cPt3dr mAxeI;
+         cPt3dr mAxeJ;
+         cPt3dr mAxeK;
+};
+
 
 };
 

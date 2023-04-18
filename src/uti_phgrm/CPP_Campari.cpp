@@ -679,15 +679,15 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         }
         if (EAMIsInit(&PatPoseFigee))
         {
-            mCom    += " +WithPatPoseFigee=true +PatPoseFigee=" + PatPoseFigee + " ";
+            mCom    += " +WithPatPoseFigee=true +PatPoseFigee=" + QUOTE(PatPoseFigee) + " ";
         }
         if (EAMIsInit(&PatCentreFigee))
         {
-            mCom    += " +WithPatCentreFigee=true +PatCentreFigee=" + PatCentreFigee + " ";
+            mCom    += " +WithPatCentreFigee=true +PatCentreFigee=" + QUOTE(PatCentreFigee) + " ";
         }
         if (EAMIsInit(&PatAngleFigee))
         {
-            mCom    += " +WithPatOrientFigee=true +PatOrientFigee=" + PatAngleFigee + " ";
+            mCom    += " +WithPatOrientFigee=true +PatOrientFigee=" + QUOTE(PatAngleFigee) + " ";
         }
 
         if (EAMIsInit(&aFactResElimTieP))

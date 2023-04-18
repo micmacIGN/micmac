@@ -46,6 +46,7 @@ extern cSpecMMVII_Appli  TheSpecExtractCircTarget;
 extern cSpecMMVII_Appli  TheSpecExtractCodedTarget; 
 extern cSpecMMVII_Appli  TheSpecSimulCodedTarget; 
 extern cSpecMMVII_Appli  TheSpecDensifyRefMatch; 
+extern cSpecMMVII_Appli  TheSpecCompletUncodedTarget; 
 extern cSpecMMVII_Appli  TheSpecCloudClip; 
 extern cSpecMMVII_Appli  TheSpecMeshDev; 
 extern cSpecMMVII_Appli  TheSpecGenMeshDev; 
@@ -61,6 +62,7 @@ extern cSpecMMVII_Appli  TheSpecTopoComp;
 extern cSpecMMVII_Appli  TheSpecGenerateEncoding;
 extern cSpecMMVII_Appli  TheSpecTestGraphPart;
 extern cSpecMMVII_Appli  TheSpec_OriBundlAdj;
+extern cSpecMMVII_Appli  TheSpecDistCorrectCirgTarget;
 
 
 };

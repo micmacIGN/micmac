@@ -1,5 +1,7 @@
 #include "MMVII_Geom2D.h"
 #include "MMVII_SysSurR.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
+
 
 
 namespace MMVII
@@ -101,6 +103,23 @@ double cEllipse::ApproxSigneDist(cPt2dr aP) const
 
 
 double cEllipse::Dist(const cPt2dr & aP) const {return std::sqrt(std::abs(SignedD2(aP)));}
+
+
+
+void cEllipse::AddData(const  cAuxAr2007 & anAux)
+{
+     MMVII::AddData(cAuxAr2007("Vect",anAux),mV);
+     MMVII::AddData(cAuxAr2007("C0",anAux),mC0);
+     if (anAux.Input())
+     {
+          *this = cEllipse(mV,mC0);
+     }
+}
+
+void AddData(const  cAuxAr2007 & anAux,cEllipse & anEl)
+{
+     anEl.AddData(anAux);
+}
 
 /*  *********************************************************** */
 /*                                                              */

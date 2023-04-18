@@ -177,6 +177,7 @@ class cMetaDataImage
       private :
 
           std::string    mCameraName;
+          std::string    mAdditionalName;
           tREAL8         mAperture;
           tREAL8         mFocalMM;
           tREAL8         mFocalMMEqui35;
@@ -197,12 +198,14 @@ class cDirsPhProj
 	  /// Input Orientation as mandatory paramaters
           tPtrArg2007     ArgDirInMand(const std::string & aMes="") ;  
 	  /// Input Orientation as optional paramaters
-          tPtrArg2007     ArgDirInOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   
+          tPtrArg2007     ArgDirInOpt(const std::string & aNameVar="",const std::string & aMesg="",bool WithHDV=false) ;   
+
+          tPtrArg2007  ArgDirInputOptWithDef(const std::string & aDef,const std::string & aNameVar="",const std::string & aMesg="") ;   
 									    //
 	  /// Output Orientation as mandatory paramaters
           tPtrArg2007     ArgDirOutMand(const std::string & aMes="");  
 	  /// Output Orientation as optional paramaters
-          tPtrArg2007     ArgDirOutOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   
+          tPtrArg2007     ArgDirOutOpt(const std::string & aNameVar="",const std::string & aMesg="",bool WithHDV=false) ;   
 	  /// Output Orientation as optional paramaters  with DEF VALUE
           tPtrArg2007  ArgDirOutOptWithDef(const std::string & aDef,const std::string & aNameVar="",const std::string & aMesg="") ;   
 
@@ -284,6 +287,10 @@ class cPhotogrammetricProject
 	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
 
 	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete,bool SVP=false); ///< Create Camera using Input orientation
+
+
+	  /// Load a sensor, try different type (will add RPC , and others ?)
+	  void LoadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool SVP);
 
 	      // Internal Calibration  
 

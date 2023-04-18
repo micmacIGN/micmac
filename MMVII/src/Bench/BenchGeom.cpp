@@ -504,6 +504,7 @@ void  BenchMap2D()
 /* ========================== */
 /*          BenchGlobImage    */
 /* ========================== */
+void BenchPlane3D();
 
 
 void BenchGeom(cParamExeBench & aParam)
@@ -513,6 +514,7 @@ void BenchGeom(cParamExeBench & aParam)
     BenchIsometrie(aParam);
     BenchRotation3D(aParam);
     BenchMap2D();
+    BenchPlane3D();
 
     aParam.EndBench();
 }

@@ -136,7 +136,6 @@ template <class Type> class  cDenseVect
 
         tIM mIm;
 };
-
 /* To come, sparse vector, will be vect<int> + vect<double> */
 
 /** a Interface class , derived class will be :
