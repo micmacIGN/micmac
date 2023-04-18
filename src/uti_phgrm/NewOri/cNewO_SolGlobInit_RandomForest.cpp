@@ -2116,7 +2116,7 @@ finalScene RandomForest::processNode(Dataset& data, ffinalTree& tree,
               << node_ori->S3()->attr().Im()->Name() << " / "
               << std::endl;
 
-    std::cout << "Parent: "<<node->attr().Im()->Name() << ":";
+    std::cout << "Parent: " << node->attr().Im()->Name() << ":";
     size_t nsummit = 0;
     for (auto& child : childs) {
         std::cout << " " << child->attr().Im()->Name() << std::to_string(rs.at(child).ss.size()) ;
@@ -2137,7 +2137,7 @@ finalScene RandomForest::processNode(Dataset& data, ffinalTree& tree,
 
     //Output first child orientation
     auto child0 = childs[0];
-    std::string ori0name = child0->attr().Im()->Name();
+    std::string ori0name = "tree_" + child0->attr().Im()->Name();
     const finalScene& r = rs.at(child0);
     result.merge(r);
 
@@ -2169,7 +2169,7 @@ finalScene RandomForest::processNode(Dataset& data, ffinalTree& tree,
     for (size_t n = 1; n < childs.size(); n++) {
         auto child = childs[n];
         const finalScene& r = rs.at(child);
-        auto i = child->attr().Im()->Name();
+        auto i = "tree_" + child->attr().Im()->Name();
 
         result.merge(r);
 
@@ -2180,12 +2180,12 @@ finalScene RandomForest::processNode(Dataset& data, ffinalTree& tree,
         for (auto e : r.ss) { e->flag_set_kth_true(data.mFlagS); }
         Save(data, i, false);
         for (auto e : r.ss) { e->flag_set_kth_false(data.mFlagS); }
-        std::cout << exec("mm3d BasculeTriplet \"image_002_00.*.tif\" \"Ori-"+ ori0name + "/Orientation-.*.xml\" \"Ori-" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=CalibPerf SH=5Pts");
+        std::cout << exec("mm3d BasculeTriplet \"" + mFullPat + "\" \"Ori-"+ ori0name + "/Orientation-.*.xml\" \"Ori-" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=" + mNameOriCalib +" SH=" + mPrefHom);
         std::string pattern = "(";
         for (auto v : result.ss) pattern += v->attr().Im()->Name() + "|";
         pattern += ")";
 
-        std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=5Pts");
+        std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
 
     }
     std::string pattern = "(";
@@ -2195,7 +2195,7 @@ finalScene RandomForest::processNode(Dataset& data, ffinalTree& tree,
     Save(data, ori0name, false);
     for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
     //exec("mm3d riplet \"image_002_00.*.tif\" "+ ori0name + "/Orientation-.*.xml\" \"" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=CalibPerf SH=5Pts");
-    std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=5Pts");
+    std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
 
     updateViewFrom(ori0name, result.ss);
 
@@ -2220,7 +2220,6 @@ finalScene RandomForest::bfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
         firstlevel.push_back(node);
         s.emplace_back(firstlevel);
     }
-
 
     bool emptyLevel = false;
     while (!emptyLevel) {
@@ -2334,7 +2333,7 @@ finalScene RandomForest::dfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
 
 void RandomForest::hierarchique(Dataset& data, ffinalTree& tree) {
     //Clean old ori images
-    std::cout << exec("rm -rf Ori-image_002_00*");
+    std::cout << exec("rm -rf Ori-tree_*");
     auto all = bfs(data, tree, tree.root->KSom(0));
     //TODO global campari on all data
     std::string pattern = "(";
@@ -2345,8 +2344,7 @@ void RandomForest::hierarchique(Dataset& data, ffinalTree& tree) {
     for (auto e : all.ss) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, aOutOri, false);
     for (auto e : all.ss) { e->flag_set_kth_false(data.mFlagS); }
-    //exec("mm3d riplet \"image_002_00.*.tif\" "+ ori0name + "/Orientation-.*.xml\" \"" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=CalibPerf SH=5Pts");
-    std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + aOutOri + " " + aOutOri +" SH=5Pts");
+    std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + aOutOri + " " + aOutOri +" SH=" + mPrefHom);
 
     //updateViewFrom(ori0name, result.ss);
 }
