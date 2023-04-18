@@ -2093,18 +2093,18 @@ std::string exec(const std::string& cmd) {
     return result;
 }
 
-finalScene RandomForest::processNode(Dataset& data, ffinalTree& tree,
+finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
                                      const std::map<tSomNSI*, finalScene>& rs,
                                      tSomNSI* node) {
     finalScene result;
     std::vector<tSomNSI*> childs;
-    for (auto c : tree.next[node]) { childs.push_back(c); }
+    for (auto c : tree.next.at(node)) { childs.push_back(c); }
 
     std::sort(childs.begin(), childs.end(), [&rs](tSomNSI* a, tSomNSI* b) {
         return rs.at(a).ss.size() > rs.at(b).ss.size();
     });
 
-    auto node_ori = tree.ori[node];
+    auto node_ori = tree.ori.at(node);
     result.ts.insert(node_ori->m3);
     result.ss.insert(node);
 
@@ -2254,6 +2254,7 @@ finalScene RandomForest::bfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
     while (!s.empty()) {
         auto& lastlevel = s.back();
         for (tSomNSI* n : lastlevel) {
+            std::cout << "Working on level: " << std::to_string(s.size()) << std::endl;
             results[n] = processNode(data, tree, results, n);
         }
         s.pop_back();
