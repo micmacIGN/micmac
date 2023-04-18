@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "cNewO_SolGlobInit_RandomForest.h"
+#include <bits/utility.h>
 #include <fcntl.h>
 #include <graphviz/types.h>
 #include <math.h>
@@ -1066,8 +1067,8 @@ void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
     GraphViz g;
     g.travelGraph(data, *aCC, aTri0);
     g.write(mOutName + "/graph/", "random_tree_" + std::to_string(n++) + ".dot");
-    std::string aOutOri = "tempori" + std::to_string(n);
-    Save(data, aOutOri, false);
+    //std::string aOutOri = "tempori" + std::to_string(n);
+    //Save(data, aOutOri, false);
 
     // Calculate coherence scores within this CC
     clock_t start2 = clock();
@@ -2096,6 +2097,12 @@ finalScene RandomForest::processNode(Dataset& data, ffinalTree& tree,
                                      const std::map<tSomNSI*, finalScene>& rs,
                                      tSomNSI* node) {
     finalScene result;
+    std::vector<tSomNSI*> childs;
+    for (auto c : tree.next[node]) { childs.push_back(c); }
+
+    std::sort(childs.begin(), childs.end(), [&rs](tSomNSI* a, tSomNSI* b) {
+        return rs.at(a).ss.size() > rs.at(b).ss.size();
+    });
 
     auto node_ori = tree.ori[node];
     result.ts.insert(node_ori->m3);
@@ -2110,64 +2117,100 @@ finalScene RandomForest::processNode(Dataset& data, ffinalTree& tree,
               << std::endl;
 
     std::cout << "Parent: "<<node->attr().Im()->Name() << ":";
-    for (auto& child : tree.next[node]) {
-        std::cout << " " << child->attr().Im()->Name();
+    size_t nsummit = 0;
+    for (auto& child : childs) {
+        std::cout << " " << child->attr().Im()->Name() << std::to_string(rs.at(child).ss.size()) ;
+        nsummit += rs.at(child).ss.size();
     }
-    std::cout << std::endl;
-    if (tree.next[node].size() == 1) {
-        auto child = *tree.next[node].begin();
-        const finalScene& r = rs.at(child);
 
-        //auto i = curNodeName + std::to_string(n++);
-        auto i = child->attr().Im()->Name();
-        for (auto e : r.ts) result.ts.insert(e);
-        for (auto e : r.ss) result.ss.insert(e);
+    if (childs.size() == 0) {
         return result;
     }
 
-    node->flag_set_kth_true(data.mFlagS);
-    //size_t n = 0;
-    for (auto& child : tree.next[node]) {
+    //Create only seed orientation
+    //std::string oriseedname = node->attr().Im()->Name() + "seed";
+    /*{
+        node->flag_set_kth_true(data.mFlagS);
+        Save(data, oriseedname , false);
+        node->flag_set_kth_false(data.mFlagS);
+    }*/
+
+    //Output first child orientation
+    auto child0 = childs[0];
+    std::string ori0name = child0->attr().Im()->Name();
+    const finalScene& r = rs.at(child0);
+    result.merge(r);
+
+    /*if (nsummit < 3)
+        return result;*/
+
+
+    for (auto e : result.ss) { e->flag_set_kth_true(data.mFlagS); }
+    Save(data, ori0name, false);
+    for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
+    //exec("mm3d BasculeTriplet \"image_002_00.*.tif\" \"Ori-"+ ori0name + "/Orientation-.*.xml\" \"Ori-" + oriseedname + "/Orientation-.*.xml\" " + ori0name + " OriCalib=CalibPerf SH=5Pts");
+
+
+    if (childs.size() == 1) {
+        //updateViewFrom(ori0name, result.ss);
+        return result;
+    }
+    if (result.ss.size() < 9) {
+
+        for (size_t n = 1; n < childs.size(); n++) {
+            auto child = childs[n];
+            const finalScene& r = rs.at(child);
+            result.merge(r);
+        }
+
+        return result;
+    }
+
+    for (size_t n = 1; n < childs.size(); n++) {
+        auto child = childs[n];
         const finalScene& r = rs.at(child);
-
-        //auto i = curNodeName + std::to_string(n++);
         auto i = child->attr().Im()->Name();
-        for (auto e : r.ts) result.ts.insert(e);
-        for (auto e : r.ss) result.ss.insert(e);
 
-        std::set<tSomNSI*> out;
+        result.merge(r);
 
         //SAVE orientation
-        for (auto e : r.ss) {
-            e->flag_set_kth_true(data.mFlagS);
-            out.insert(e);
-        }
-        std::string pattern = "(" + node->attr().Im()->Name() + "|" +
-            child->attr().Im()->Name() + ")";
+        //std::string pattern = "(" + node->attr().Im()->Name() + "|" +
+        //    child->attr().Im()->Name() + ")";
 
+        for (auto e : r.ss) { e->flag_set_kth_true(data.mFlagS); }
         Save(data, i, false);
+        for (auto e : r.ss) { e->flag_set_kth_false(data.mFlagS); }
+        std::cout << exec("mm3d BasculeTriplet \"image_002_00.*.tif\" \"Ori-"+ ori0name + "/Orientation-.*.xml\" \"Ori-" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=CalibPerf SH=5Pts");
+        std::string pattern = "(";
+        for (auto v : result.ss) pattern += v->attr().Im()->Name() + "|";
+        pattern += ")";
 
-        exec("mm3d BasculeTriplet \"image_002_00.*.tif\" ""/Orientation-.*.xml\" \"Ori-image_002_00112.tif/Orientation-.*.xml\" Merging OriCalib=CalibPerf SH=5Pts");
+        std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=5Pts");
 
-        //TODO BAR -> robuste bascule for adding new triplet
-        //std::cout <<
-        //    exec("mm3d BAR \"" + pattern + "\" Ori-" + i + " " + m3d + " " + m2d + " Out=" + i + "-Bar");
-
-        for (auto e : r.ss) {
-            e->flag_set_kth_false(data.mFlagS);
-        }
-
-        std::string inOri = "" + i + "";
-        std::cout << "Reading output ori from: " << inOri << std::endl;
-        for (auto e : out) {
-            std::string imgName = e->attr().Im()->Name();
-            auto aCam = mNM->ICNM()->StdCamStenOfNames(imgName, inOri);
-            e->attr().CurRot() = aCam->Orient();
-        }
     }
-    node->flag_set_kth_false(data.mFlagS);
+    std::string pattern = "(";
+    for (auto v : result.ss) pattern += v->attr().Im()->Name() + "|";
+    pattern += ")";
+    for (auto e : result.ss) { e->flag_set_kth_true(data.mFlagS); }
+    Save(data, ori0name, false);
+    for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
+    //exec("mm3d riplet \"image_002_00.*.tif\" "+ ori0name + "/Orientation-.*.xml\" \"" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=CalibPerf SH=5Pts");
+    std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=5Pts");
+
+    updateViewFrom(ori0name, result.ss);
 
     return result;
+}
+
+void RandomForest::updateViewFrom(std::string name, std::set<tSomNSI*> views)
+{
+    std::string inOri = name;
+    std::cout << "Reading output ori from: " << inOri << std::endl;
+    for (auto e : views) {
+        std::string imgName = e->attr().Im()->Name();
+        auto aCam = mNM->ICNM()->StdCamStenOfNames(imgName, inOri);
+        e->attr().CurRot() = aCam->Orient().inv();
+    }
 }
 
 finalScene RandomForest::bfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
@@ -2290,8 +2333,22 @@ finalScene RandomForest::dfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
 }
 
 void RandomForest::hierarchique(Dataset& data, ffinalTree& tree) {
+    //Clean old ori images
+    std::cout << exec("rm -rf Ori-image_002_00*");
     auto all = bfs(data, tree, tree.root->KSom(0));
     //TODO global campari on all data
+    std::string pattern = "(";
+    for (auto v : all.ss) pattern += v->attr().Im()->Name() + "|";
+    pattern += ")";
+
+    std::string aOutOri = mOutName + "Hierarchique";
+    for (auto e : all.ss) { e->flag_set_kth_true(data.mFlagS); }
+    Save(data, aOutOri, false);
+    for (auto e : all.ss) { e->flag_set_kth_false(data.mFlagS); }
+    //exec("mm3d riplet \"image_002_00.*.tif\" "+ ori0name + "/Orientation-.*.xml\" \"" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=CalibPerf SH=5Pts");
+    std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + aOutOri + " " + aOutOri +" SH=5Pts");
+
+    //updateViewFrom(ori0name, result.ss);
 }
 
 void RandomForest::BestSolAllCC(Dataset& data) {

@@ -563,6 +563,11 @@ struct ffinalTree {
 struct finalScene {
     std::set<cNOSolIn_Triplet*> ts;
     std::set<tSomNSI*> ss;
+
+    void merge(const finalScene& other) {
+        for (auto e : other.ts) ts.insert(e);
+        for (auto e : other.ss) ss.insert(e);
+    }
 };
 
 class RandomForest : public cCommonMartiniAppli {
@@ -575,6 +580,8 @@ class RandomForest : public cCommonMartiniAppli {
     void loadDataset(Dataset& data);
     //void loadHomol(cNOSolIn_Triplet* aTriplet, tTriPointList& aLst);
     void loadHomol(cNOSolIn_Triplet* aTriplet, tTriPointList& aLst, tTriPointList& aLstAll);
+
+    void updateViewFrom(std::string name, std::set<tSomNSI*> views);
 
     // Entry point
     void DoNRandomSol(Dataset& data);
