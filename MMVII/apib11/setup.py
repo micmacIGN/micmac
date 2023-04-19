@@ -51,7 +51,7 @@ setup(
                   (module_name+"/include/XML_GEN", xml_gen_files)
                  ],
     platforms  = ['x86_64'],
-    install_requires=['numpy'],
+    install_requires=[],
     zip_safe=False,
     python_requires=">=3.7",
 )
