@@ -376,6 +376,8 @@ class cSensorCamPC : public cSensorImage
 
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
+         tSeg3dr  Image2Bundle(const cPt2dr &) const override;
+
 
          std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
 

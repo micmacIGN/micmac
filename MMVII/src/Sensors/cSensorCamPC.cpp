@@ -73,6 +73,12 @@ cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aPImAndD) const
     return aRes;
 }
 
+tSeg3dr  cSensorCamPC::Image2Bundle(const cPt2dr & aPIm) const 
+{
+   return  tSeg3dr(Center(),static_cast<const cSensorImage*>(this)->ImageAndDepth2Ground(aPIm,1.0));
+}
+
+
 const cPt3dr * cSensorCamPC::CenterOfPC() { return  & Center(); }
          /// Return the calculator, adapted to the type, for computing colinearity equation
 cCalculator<double> * cSensorCamPC::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) 

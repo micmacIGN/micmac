@@ -17,6 +17,8 @@ namespace MMVII
 {
 using namespace  cNS_CodedTarget;
 
+
+
 /*  *********************************************************** */
 /*                                                              */
 /*           cAppliCompletUncodedTarget                         */
@@ -48,6 +50,7 @@ class cAppliCompletUncodedTarget : public cMMVII_Appli
         cSensorImage *              mSensor;
         cSensorCamPC *              mCamPC;
         cSetMesImGCP                mMesImGCP;
+        cSetMesPtOf1Im              mImageM;
 };
 
 cAppliCompletUncodedTarget::cAppliCompletUncodedTarget
@@ -91,9 +94,28 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
           ;
 }
 
+// 5371 66
 
 void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
 {
+    if (mImageM.NameHasMeasure(aGCP.mNamePt))
+       return;
+
+    if (! mSensor->IsVisible(aGCP.mPt))
+       return;
+
+    cPt2dr aProjIm = mSensor->Ground2Image(aGCP.mPt);
+    
+    cMesIm1Pt * aMes = mImageM.NearestMeasure(aProjIm);
+/*
+
+    template <class TVal,class TFunc> TVal * WhitchMinVect(std::vector<TVal> & aVec,const TFunc & aFunc)
+*/
+
+    StdOut() << "NNN=" << aGCP.mNamePt  << " " << Norm2(aProjIm-aMes->mPt) << aProjIm 
+             <<  aMes->mPt << aMes->mNamePt << "\n";
+
+    if ( aGCP.mNamePt== "064") getchar();
 }
 
 void cAppliCompletUncodedTarget::CompleteAll()
@@ -115,11 +137,13 @@ int  cAppliCompletUncodedTarget::Exe()
    }
 
    mNameIm = FileOfPath(mSpecImIn);
-   mPhProj.LoadSensor(mNameIm,mSensor,mCamPC,true);
+   mPhProj.LoadSensor(mNameIm,mSensor,mCamPC,false);
 
    mPhProj.LoadGCP(mMesImGCP);
    mPhProj.LoadIm(mMesImGCP,*mSensor);
+   mImageM = mMesImGCP.MesImInitOfName(mNameIm);
 
+   CompleteAll();
    // mCamPC = mPhProj.AllocCamPC(FileOfPath(mSpecImIn),true);
 
    StdOut()  << mNameIm << " Fff=" << mCamPC->InternalCalib()->F()  << " "<<  mCamPC->NameImage() << "\n";

@@ -441,6 +441,13 @@ void cPhotogrammetricProject::SaveMeasureIm(const cSetMesPtOf1Im &  aSetM) const
      aSetM.ToFile(mDPPointsMeasures.FullDirOut() +aSetM.StdNameFile());
 }
 
+/*
+cSetMesPtOf1Im cPhotogrammetricProject::SaveMeasureIm(const cSetMesPtOf1Im &  aSetM) const
+{
+     aSetM.ToFile(mDPPointsMeasures.FullDirOut() +aSetM.StdNameFile());
+}
+*/
+
 void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr) const
 {
    std::string aPatFiltr = (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*.xml")  : aArgPatFiltr;

@@ -98,9 +98,16 @@ class cSetMesPtOf1Im : public cMemCheck
 
 	  const std::string & NameIm() const;  ///<  Accessor
           const std::vector<cMesIm1Pt> &  Measures() const;
+          std::vector<cMesIm1Pt> &  Measures() ;
 	  static  const std::string ThePrefixFiles;
 
+          const cMesIm1Pt &  MeasuresOfName(const std::string & aNamePt) const;
+          cMesIm1Pt &  MeasuresOfName(const std::string & aNamePt) ;
+          bool  NameHasMeasure(const std::string & aNamePt) const;
+          cMesIm1Pt *  NearestMeasure(const cPt2dr &) ;
      private :
+          cMesIm1Pt *  PrivateMeasuresOfName(const std::string & aNamePt,bool SVP) const;
+
           std::string             mNameIm;
           std::vector<cMesIm1Pt>  mMeasures;
 };
@@ -195,6 +202,7 @@ class cSetMesImGCP : public cMemCheck
 
             const cSetMesPtOf1Im  & MesImInitOfName(const std::string &) const;
 	    const cMes1GCP &        MesGCPOfName(const std::string &) const;
+	    bool  NameIsGCP(const std::string &) const;
     private :
 
 

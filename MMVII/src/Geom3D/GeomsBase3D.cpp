@@ -55,6 +55,7 @@ cPt3dr  cPlane3D::Inter(const cPt3dr&aP0,const cPt3dr&aP1) const
 
      return  aP1 -  aVect*(aS1/aS01);
 }
+cPt3dr  cPlane3D::Inter(const tSeg3dr&aSeg) const {return Inter(aSeg.P1(),aSeg.P2());}
 
 
 std::vector<cPt3dr>  cPlane3D::RandParam()
@@ -81,6 +82,8 @@ void BenchPlane3D()
          cPt3dr aP1 = aP0 +  aPlane.AxeI() * RandUnif_C() + aPlane.AxeJ() * RandUnif_C() +  aPlane.AxeK()  * RandUnif_C_NotNull(0.1);
 
 	 cPt3dr aPI = aPlane.Inter(aP0,aP1);
+	 cPt3dr aPI2 = aPlane.Inter(tSeg3dr(aP0,aP1));
+	 MMVII_INTERNAL_ASSERT_bench(Norm2(aPI-aPI2)<1e-9,"BenchPlane3D");
 	 MMVII_INTERNAL_ASSERT_bench(std::abs(aPlane.ToLocCoord(aPI).z())<1e-5,"BenchPlane3D");
 
 	 cSegmentCompiled<tREAL8,3> aSeg(aP0,aP1);

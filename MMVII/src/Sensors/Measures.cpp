@@ -79,6 +79,13 @@ const cMes1GCP &  cSetMesImGCP::MesGCPOfName(const std::string & aNamePt) const
     return mMesGCP.at(m2MapPtInt.Obj2I(aNamePt));
 }
 
+bool  cSetMesImGCP::NameIsGCP(const std::string & aNamePt) const
+{
+  return m2MapPtInt.Obj2I(aNamePt,true) >= 0;
+}
+
+
+
 
 
 void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens,eLevelCheck aOnNonExistGCP)
@@ -239,11 +246,22 @@ cSetMesPtOf1Im  cSetMesPtOf1Im::FromFile(const std::string & aNameFile)
 
 const std::string &              cSetMesPtOf1Im::NameIm()   const {return mNameIm;}
 const std::vector<cMesIm1Pt> &   cSetMesPtOf1Im::Measures() const {return mMeasures;}
+std::vector<cMesIm1Pt> &   cSetMesPtOf1Im::Measures() {return mMeasures;}
 
 void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
 {
      mMeasures.push_back(aMeasure);
 }
+
+cMesIm1Pt *  cSetMesPtOf1Im::NearestMeasure(const cPt2dr & aPt) 
+{
+   return WhitchMinVect
+          (
+               mMeasures,
+               [aPt](const auto & aMes) {return SqN2(aPt-aMes.mPt);}
+          );
+}
+
 
 
 void cSetMesPtOf1Im::AddData(const  cAuxAr2007 & anAuxParam)
@@ -276,7 +294,26 @@ std::string cSetMesPtOf1Im::StdNameFile() const
     return StdNameFileOfIm(mNameIm);
 }
 
+cMesIm1Pt *  cSetMesPtOf1Im::PrivateMeasuresOfName(const std::string & aNamePt,bool SVP) const
+{
+   const auto & anIt = find_if(mMeasures.begin(),mMeasures.end(),[aNamePt](const auto& aM){return aM.mNamePt==aNamePt;});
 
+   if (anIt != mMeasures.end())
+   {
+       return  const_cast<cMesIm1Pt *>(&(*anIt));
+   }
+
+   if (! SVP)
+   {
+      MMVII_INTERNAL_ERROR("PrivateMeasuresOfName for "+ aNamePt);
+   }
+
+   return nullptr;
+}
+
+const cMesIm1Pt& cSetMesPtOf1Im::MeasuresOfName(const std::string & aN)const {return *(PrivateMeasuresOfName(aN,false));}
+cMesIm1Pt& cSetMesPtOf1Im::MeasuresOfName(const std::string & aN){return *(PrivateMeasuresOfName(aN,false));}
+bool cSetMesPtOf1Im::NameHasMeasure(const std::string & aN) const {return PrivateMeasuresOfName(aN,true)!=nullptr;}
 
 
 /* ********************************************* */

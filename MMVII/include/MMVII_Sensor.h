@@ -4,6 +4,8 @@
 #include "SymbDer/SymbDer_Common.h"
 #include "MMVII_Mappings.h"
 #include "MMVII_MeasuresIm.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
 
 using namespace NS_SymbolicDerivative;
 
@@ -72,6 +74,8 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 
 	 // =================   Image <-->  Ground  mappings  ===========================
 	 
+         ///  The most fundamental method, theoretically should be sufficient
+         virtual tSeg3dr  Image2Bundle(const cPt2dr &) const =0;
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
 	 ///  add the the depth (to see if have a default with bundle+Gr2Ima)
@@ -111,6 +115,10 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	 /// "robust" average using a weigt in sigma/(sigma+R)  , sigma being a prop of residual
          double RobustAvResidualOfProp(const cSet2D3D &,double aProp) const;  
 
+
+         cPt3dr Image2PlaneInter(const cPlane3D & aPlane,const cPt2dr &) const;
+         cPt2dr Image2LocalPlaneInter(const cPlane3D & aPlane,const cPt2dr &) const;
+         cEllipse EllipseIm2Plane(const cPlane3D & aPlane,const cEllipse & aEllipseIm,int aNbTeta) const;
 
 	 // --------------------   methods to compute names of an orientation --------------------
 

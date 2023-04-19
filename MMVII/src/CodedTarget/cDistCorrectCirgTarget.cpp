@@ -102,35 +102,12 @@ cCollecSpecArg2007 & cAppliCorrecDistCircTarget::ArgOpt(cCollecSpecArg2007 & anA
 }
 
 
-/**  Estimate the ray in ground of a given detected target
- *      - parse the detected ellipse in image plane
- *      - for each point compute the bundle and intersect the plane
- *      - convert in 2 local coord
- *      - estimate an ellipse in this local plane
- */
-
 tREAL8  cAppliCorrecDistCircTarget::EstimateOneRay(const cSaveExtrEllipe & aSEE)
 {
      const cMes1GCP &  aGCP =   mMesImGCP.MesGCPOfName(aSEE.mNameCode);
-     cPlane3D aPlaneTarget = cPlane3D::FromPtAndNormal(aGCP.mPt,mNormal);  // plane of the 3D ground target
-     int aNbTeta = 50;
+     cPlane3D aPlaneT  = cPlane3D::FromPtAndNormal(aGCP.mPt,mNormal);  // plane of the 3D ground target
 
-     cEllipse_Estimate aEEst(cPt2dr(0,0));
-
-     //  parse angles of ellipse
-     for (int aKTeta =0 ; aKTeta < aNbTeta ; aKTeta++)
-     {
-          cPt2dr  aPIm = aSEE.mEllipse.PtOfTeta(aKTeta* ((2*M_PI)/aNbTeta));  // pt on image ellipse
-	  cPt3dr  aPB1 =  mSensor->ImageAndDepth2Ground(aPIm,1.0);  // 1 pt of bundle
-	  cPt3dr  aPB2 =  mSensor->ImageAndDepth2Ground(aPIm,2.0);  // 2 pt of bundle
-
-	  cPt3dr aPGr = aPlaneTarget.Inter(aPB1,aPB2);  // 3-d ground coord
-	  cPt3dr aPPl3 = aPlaneTarget.ToLocCoord(aPGr); // 3-d in plane coord
-	  cPt2dr aPPl2 = Proj(aPPl3);  // 2-d plane coord
-	  aEEst.AddPt(aPPl2);          // add it to ellipse estimate
-     }
-
-     cEllipse aEl = aEEst.Compute() ;
+     cEllipse aEl = mSensor->EllipseIm2Plane(aPlaneT,aSEE.mEllipse,50);
      return std::sqrt(aEl.LSa()*aEl.LGa());
 }
 
@@ -146,11 +123,12 @@ void cAppliCorrecDistCircTarget::EstimateRay()
 
    for (const auto & aSEE : aVSEE)
    {
-       aVRay.push_back(EstimateOneRay(aSEE));
+       // if (!starts_with(aSEE.mNameCode,MMVII_NONE))
+       if ( mMesImGCP.NameIsGCP(aSEE.mNameCode))
+          aVRay.push_back(EstimateOneRay(aSEE));
    }
    mRayTarget = NonConstMediane(aVRay);
 
-   StdOut() << "RAY=" <<  mRayTarget << "\n";
 }
 
 
@@ -223,6 +201,8 @@ int  cAppliCorrecDistCircTarget::Exe()
    }
 
    EstimateRealCenter();
+
+   StdOut() << "RAY=" <<  mRayTarget << "\n";
 
    return EXIT_SUCCESS;
 }
