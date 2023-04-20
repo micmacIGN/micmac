@@ -2083,13 +2083,20 @@ std::string exec(const std::string& cmd) {
     std::array<char, 1024> buffer;
     std::cout << cmd << std::endl;
     std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+    int error=0;
+    auto deleter = [&error](FILE* ptr)
+    {
+        error = WEXITSTATUS(pclose(ptr));
+    };
+
+    std::unique_ptr<FILE, decltype(deleter)> pipe(popen(cmd.c_str(), "r"), deleter);
     if (!pipe) {
         throw std::runtime_error("popen() failed!");
     }
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
         result += buffer.data();
     }
+    std::cout << "Exit code: " << std::to_string(error) << std::endl;
     return result;
 }
 
@@ -2185,7 +2192,7 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
         for (auto v : result.ss) pattern += v->attr().Im()->Name() + "|";
         pattern += ")";
 
-        //std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+        std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
 
     }
     std::string pattern = "(";

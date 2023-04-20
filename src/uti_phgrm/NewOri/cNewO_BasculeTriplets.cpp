@@ -47,6 +47,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "algo_geom/cMesh3D.h"
 #include "general/bitm.h"
 #include "general/ptxd.h"
+#include <cmath>
+#include <cfloat>
 
 cTriplet::cTriplet(cOriBascule* s1, cOriBascule* s2, cOriBascule* s3,
                    cXml_Ori3ImInit& xml, std::array<short, 3>& mask, bool inv)
@@ -193,6 +195,46 @@ static std::array<ElRotation3D, 3> EstimAllRt(cTriplet* aLnk) {
             ElRotation3D(aT3, aRL2M * aC3ToL.Mat(), true)};
 }
 
+/*
+static std::array<ElRotation3D, 2> EstimBadAllRt(cTriplet* aLnk) {
+    const cOriBascule* aS1 = aLnk->mSoms[0];
+    const cOriBascule* aS3 = aLnk->mSoms[2];
+
+    // Get current R,t of the mother pair
+    const ElRotation3D aC1ToM = aS1->mCam->Orient();//TODO get current rot
+
+    // Get rij,tij of the triplet sommets
+    const ElRotation3D aC1ToL = aLnk->RotOfSom(aS1);
+    const ElRotation3D aC3ToL = aLnk->RotOfSom(aS3);
+
+    // Propagate R,t according to:
+    // aC1ToM.tr() = T0 + aRL2M * aC1ToL.tr() * Lambda
+    //
+    // 1-R
+    ElMatrix<double> aRL2Mprim = aC1ToM.Mat() * aC1ToL.Mat().transpose();
+    ElMatrix<double> aRL2M = NearestRotation(aRL2Mprim);
+
+    // 2-Lambda
+    double d12L = euclid(aC1ToL.tr());
+    double d12M = euclid(aC1ToM.tr());
+    double Lambda = d12M / ElMax(d12L, 1e-20);
+
+    // 3-t
+    Pt3dr aC1ToLRot = aRL2M * aC1ToL.tr();
+
+    Pt3dr T0prim = aC1ToM.tr() - aC1ToLRot * Lambda;
+    Pt3dr T0 = T0prim;
+
+    Pt3dr aT1 = T0 + aRL2M * aC1ToL.tr() * Lambda;
+    Pt3dr aT3 = T0 + aRL2M * aC3ToL.tr() * Lambda;
+
+
+    // 4- return R{1,2,3}, t{1,2,3}
+    return {ElRotation3D(aT1, aRL2M * aC1ToL.Mat(), true),
+            ElRotation3D(aT3, aRL2M * aC3ToL.Mat(), true)};
+}
+*/
+
 static void  ScTr2to1
       (
              const std::vector<ElRotation3D> & aVR1 ,
@@ -323,6 +365,10 @@ void cAppliBasculeTriplets::ComputeBascule() {
     ElMatrix<double> mRM2toM1 = aSol.Rot();
     double mSc2to1 = aSol.Lambda();
     Pt3dr mTr2to1 = aSol.Tr();
+
+    if (std::isnan(mSc2to1)) {
+        return;
+    }
 
     for (int aK = 0; aK < int(mOVR1.size()); aK++) {
         ElRotation3D aRM1toCam = mOVR1[aK];
@@ -478,8 +524,10 @@ cAppliBasculeTriplets::cAppliBasculeTriplets(int argc,char ** argv) :
     StdCorrecNameOrient(mNameOriCalib, aDir);
     // std::cout << mNM->Dir3P() << std::endl;
     size_t n = InitTriplets(aModeBin);
-    if (n == 0)
+    if (n == 0) {
+        exit(1);
         return;
+    }
 
     ComputeBascule();
     Sauv();
