@@ -17,7 +17,7 @@ static void pyb_init_MapPProj2Im(py::module_ &m)
             .def("__copy__",  [](const tMPP2I &self) {
                    return tMPP2I(self);
                })
-            //.def("mapInverse", &tMPP2I::MapInverse) // TODO: fix RuntimeError: return_value_policy = move, but type MMVII::cMapIm2PProj is neither movable nor copyable!
+            .def("mapInverse",[](const tMPP2I& c){return std::unique_ptr<cMapIm2PProj>(new cMapIm2PProj(c.Map().MapInverse()));}) //lambda necessary, cMapIm2PProj is neither movable nor copyable
 
             .def_property("f",[](const tMPP2I& c){return c.F();},[](tMPP2I& m, tREAL8 f){ m.F() = f;})
             .def_property("pp",[](const tMPP2I& c){return c.PP();},[](tMPP2I& m, const tPt& pp){ m.PP() = pp;})

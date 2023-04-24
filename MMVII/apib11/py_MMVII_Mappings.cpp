@@ -58,9 +58,9 @@ void pyb_init_cInvertMappingFromElem_tpl(py::module_ &m,
 
      py::class_<tIDMFE>(m, name.c_str() , DOC(MMVII_cInvertMappingFromElem))
             .def("value",&tIDMFE::Value,"pt"_a, DOC(MMVII_cInvertMappingFromElem,Value))
-            .def("values",py::overload_cast<tVecPt &, const tVecPt &>(&tIDMFE::Values,py::const_),"pt_list_res"_a,"pt_list"_a, DOC(MMVII_cInvertMappingFromElem,Values))
+            .def("values", [](const tIDMFE &c, const tVecPt &vi) {tVecPt vo; return c.Values(vo, vi);},"pt_list"_a, DOC(MMVII_cInvertMappingFromElem, Values))
             .def("inverse",&tIDMFE::Inverse,"pt"_a, DOC(MMVII_cInvertMappingFromElem,Inverse))
-            .def("inverses",py::overload_cast<tVecPt &, const tVecPt &>(&tIDMFE::Inverses,py::const_),"pt_list_res"_a,"pt_list"_a, DOC(MMVII_cInvertMappingFromElem,Inverses))
+            .def("inverses",[](const tIDMFE &c, const tVecPt &vi) {tVecPt vo; return c.Inverses(vo, vi);},"pt_list"_a, DOC(MMVII_cInvertMappingFromElem, Inverses))
             ;
 }
 
