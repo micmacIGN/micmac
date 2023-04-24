@@ -822,6 +822,12 @@ template<class Type> class cSymMeasure
 
 template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L1,const cPtxd<Type,3> &L2,const cPtxd<Type,3> &L3);
 template <class Type>  cDenseMatrix<Type> M2x2FromLines(const cPtxd<Type,2>&L1,const cPtxd<Type,2> &L2);
+template <class Type>  cDenseMatrix<Type> M2x2FromCol(const cPtxd<Type,2>&L1,const cPtxd<Type,2> &L2);
+template <class Type>  cDenseMatrix<Type> MatDiag(const cPtxd<Type,2>&aPt); /// return a 2x2 diagonal matrix
+template <class Type>  cDenseMatrix<Type> MatrSim(const cPtxd<Type,2>& aIm_Ox);  /// return the 2x2 similitude given image of Ox
+template <class Type>  cDenseMatrix<Type> MatrRot(const Type&);  /// return the 2x2  rotation
+
+
 
 template <class Type,int Dim> void GetCol(cPtxd<Type,Dim> &,const cDenseMatrix<Type> &,int aCol);
 // template <class Type,int Dim> cPtxd<Type,Dim> GetCol(const cDenseMatrix<Type> &,int aCol);

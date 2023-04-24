@@ -41,16 +41,20 @@ class cAppliCompletUncodedTarget : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-	cPhotogrammetricProject     mPhProj;
-        cPt3dr                      mNormal;
-	tREAL8                      mRayTarget;
+	cPhotogrammetricProject        mPhProj;
+        std::string                    mSpecImIn;
 
-        std::string                 mSpecImIn;
-        std::string                 mNameIm;
-        cSensorImage *              mSensor;
-        cSensorCamPC *              mCamPC;
-        cSetMesImGCP                mMesImGCP;
-        cSetMesPtOf1Im              mImageM;
+	tREAL8                         mThresholdDist;
+
+        cPt3dr                         mNormal;
+	std::vector<tREAL8>            mThreshRay;  // Ratio Max Min
+
+        std::string                    mNameIm;
+        cSensorImage *                 mSensor;
+        cSensorCamPC *                 mCamPC;
+        cSetMesImGCP                   mMesImGCP;
+        cSetMesPtOf1Im                 mImageM;
+        std::vector<cSaveExtrEllipe>   mVSEE;
 };
 
 cAppliCompletUncodedTarget::cAppliCompletUncodedTarget
@@ -60,7 +64,8 @@ cAppliCompletUncodedTarget::cAppliCompletUncodedTarget
 ) :
    cMMVII_Appli  (aVArgs,aSpec),
    mPhProj       (*this),
-   mNormal       (0,0,1)
+   mNormal       (0,0,1),
+   mThreshRay    {1.03,4.85,5.05}
 {
 }
 
@@ -71,6 +76,7 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgObl(cCollecSpecArg2007 & anA
             anArgObl
          << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
 	 << mPhProj.DPOrient().ArgDirInMand()
+         << Arg2007(mThresholdDist,"Threshold on distance for ")
 
    ;
 }
@@ -80,7 +86,8 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
    return 
                   anArgOpt
 	     <<   mPhProj.DPPointsMeasures().ArgDirInputOptWithDef("Std")
-             << AOpt2007(mRayTarget,"RayTarget","Ray for target (else estimate automatically)")
+	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Completed")
+             // << AOpt2007(mRayTarget,"RayTarget","Ray for target (else estimate automatically)")
 		/*
              << AOpt2007(mB,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
@@ -94,28 +101,55 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
           ;
 }
 
-// 5371 66
-
 void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
 {
+    // if has already been selected, nothing to do
     if (mImageM.NameHasMeasure(aGCP.mNamePt))
        return;
 
+    // if 3D point not visible , reject
     if (! mSensor->IsVisible(aGCP.mPt))
        return;
 
     cPt2dr aProjIm = mSensor->Ground2Image(aGCP.mPt);
-    
     cMesIm1Pt * aMes = mImageM.NearestMeasure(aProjIm);
-/*
 
-    template <class TVal,class TFunc> TVal * WhitchMinVect(std::vector<TVal> & aVec,const TFunc & aFunc)
-*/
+    // if projection too far reject
+    if (Norm2(aProjIm-aMes->mPt)>mThresholdDist)
+       return;
 
-    StdOut() << "NNN=" << aGCP.mNamePt  << " " << Norm2(aProjIm-aMes->mPt) << aProjIm 
-             <<  aMes->mPt << aMes->mNamePt << "\n";
+    // get the ellipse that has the same (temporary) code than the point
+    const auto & anIt = find_if(mVSEE.begin(),mVSEE.end(),[aMes](const auto& aM){return aM.mNameCode==aMes->mNamePt;});
+    if (anIt==mVSEE.end())   // should not happen
+    {
+       MMVII_INTERNAL_ERROR("Could not find ellipse");
+       return;
+    }
 
-    if ( aGCP.mNamePt== "064") getchar();
+    // Now test shape of ellispe compared to theoreticall ground pose
+ 
+    cPlane3D aPlaneT  = cPlane3D::FromPtAndNormal(aGCP.mPt,mNormal);     // 3D plane of the ellispe
+    cEllipse aEl = mSensor->EllipseIm2Plane(aPlaneT,anIt->mEllipse,50);  // ellipse in ground coordinate
+
+    tREAL8 aL1 = aEl.LSa();   // gread axe
+    tREAL8 aL2 = aEl.LGa();   // small axe
+    tREAL8 aRatio = aL2/aL1;  // ratio (should be  equal to 1)
+    tREAL8 aRMoy = std::sqrt(aL1*aL2);  // ray, to compare to theoretical (for ex 5 mm for3D AICON)
+
+    if (  // check ratio and Ray
+               (aRatio > mThreshRay[0])
+           ||  (aRMoy  < mThreshRay[1])
+           ||  (aRMoy  > mThreshRay[2])
+       )
+       return;
+
+    if (LevelCall()==0)  // print info if was done whith only one image
+    {
+        StdOut() << "NNN=" << aGCP.mNamePt  << " " << Norm2(aProjIm-aMes->mPt) << aProjIm 
+                 <<  aMes->mPt << aMes->mNamePt 
+	         <<  " Axes={" << (1-aL2/aL1) *1000 << " " << std::sqrt(aL1*aL2) << "}\n";
+    }
+    aMes->mNamePt = aGCP.mNamePt; // match suceed, give the right name
 }
 
 void cAppliCompletUncodedTarget::CompleteAll()
@@ -139,14 +173,22 @@ int  cAppliCompletUncodedTarget::Exe()
    mNameIm = FileOfPath(mSpecImIn);
    mPhProj.LoadSensor(mNameIm,mSensor,mCamPC,false);
 
+   //   load CGP
    mPhProj.LoadGCP(mMesImGCP);
    mPhProj.LoadIm(mMesImGCP,*mSensor);
-   mImageM = mMesImGCP.MesImInitOfName(mNameIm);
+   mImageM = mPhProj.LoadMeasureIm(mNameIm);
+
+   std::string  aNameE = cSaveExtrEllipe::NameFile(mPhProj,mMesImGCP.MesImInitOfName(mNameIm),true);
+   ReadFromFile(mVSEE,aNameE);
 
    CompleteAll();
    // mCamPC = mPhProj.AllocCamPC(FileOfPath(mSpecImIn),true);
 
    StdOut()  << mNameIm << " Fff=" << mCamPC->InternalCalib()->F()  << " "<<  mCamPC->NameImage() << "\n";
+
+
+    mPhProj.SaveMeasureIm(mImageM);
+
 
 
    return EXIT_SUCCESS;

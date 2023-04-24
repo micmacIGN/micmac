@@ -511,6 +511,8 @@ void BenchGeom(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Geom")) return;
 
+    cEllipse::BenchEllispe();
+
     BenchIsometrie(aParam);
     BenchRotation3D(aParam);
     BenchMap2D();

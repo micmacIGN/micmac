@@ -276,7 +276,7 @@ cCCDecode::cCCDecode
     if (!mOK)
        return;
 
-    // compute an image
+    // compute a gray-level as a function of teta, using a median for different rho
     for (int aKTeta=0 ; aKTeta < mNbTeta; aKTeta++)
     {
         std::vector<tREAL8> aVGray;
