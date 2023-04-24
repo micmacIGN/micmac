@@ -2,8 +2,6 @@
 #include "MMVII_DeclareCste.h"
 #include <clocale>
 #include "MMVII_Sys.h"
-
-#include "SymbDer/SymbDer_Common.h"
 /*
 
 Delaunay/delaunator : Copyright (c) 2018 Volodymyr Bilonenko  (MIT Licence)
@@ -16,14 +14,6 @@ eigen ...
 using namespace MMVII;
 
 
-static void JoeError(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
-{
-    std::cerr << "JOE : " << aMes << "\n";
-    std::cerr << "JOE : " << aExplanation << "\n";
-    std::cerr << "JOE : " << aContext << "\n";
-    throw std::bad_exception();
-}
-
 
 int main(int argc, char ** argv)
 {
@@ -32,10 +22,6 @@ int main(int argc, char ** argv)
 
    cMMVII_Appli::InitMMVIIDirs(UpDir(DirOfPath(MMVII_CanonicalSelfExecName()),1));
    // Debug, print command
-
-   NS_SymbolicDerivative::ErrorMgr::SetHandler(JoeError);
-
-
 #if 0
    {
        StdOut() << "==========COMM=====   \n";
