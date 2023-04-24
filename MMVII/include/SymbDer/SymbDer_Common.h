@@ -50,7 +50,8 @@ template <class Type> inline Type pow7(const Type & aV)    {return aV *pow6(aV);
 template <class Type> inline Type pow8(const Type & aV)    {return square(pow4(aV));}
 template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);}
 
-static inline void Error(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
+
+static inline void DefaultErrorHandler(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
 {
     std::cerr << "In SymbolicDerivative a fatal error" << "\n";
     std::cerr << "  Likely Source   ["<< aExplanation << "]\n";
@@ -60,15 +61,49 @@ static inline void Error(const std::string & aMes,const std::string & aExplanati
     std::cerr << std::flush;
     abort();
 }
+
+class ErrorMgr {
+public:
+    typedef void (*ErrorHandler) (const std::string & aMes,const std::string & aExplanation, const std::string& aContext);
+
+    static void Error(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
+    {
+        GetHandler()(aMes, aExplanation, aContext);
+    }
+
+    static ErrorHandler GetHandler()
+    {
+        return GetSetHandler(nullptr) ;
+    }
+    static ErrorHandler SetHandler(ErrorHandler handler)
+    {
+        if (handler == nullptr)
+            handler = DefaultErrorHandler;
+        return GetSetHandler(handler) ;
+    }
+
+private:
+    ErrorMgr() = delete;
+    ~ErrorMgr() = delete;
+    static ErrorHandler GetSetHandler(ErrorHandler handler)
+    {
+        static ErrorHandler theErrorHandler = DefaultErrorHandler;
+
+        if (handler != nullptr)
+            theErrorHandler = handler;
+        return theErrorHandler;
+    }
+};
+
      ///    Error due probably to internal mistake
 static inline void InternalError(const std::string & aMes, const std::string& aContext)
 {
-   Error(aMes,"Internal Error of the Library",aContext);
+    ErrorMgr::Error(aMes,"Internal Error of the Library",aContext);
 }
      /// Error probably due to bad usage of the library (typically out limit vector access)
 static inline void UserSError(const std::string & aMes, const std::string& aContext)
 {
-   Error(aMes,"Probable error on user's side due to unapropriate usage of the library",aContext);
+    ErrorMgr::Error(aMes,"Probable error on user's side due to unapropriate usage of the library",aContext);
 }
 
 
