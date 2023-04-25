@@ -136,7 +136,7 @@ class cDevTriangu3d
           ~cDevTriangu3d();
 
           /// Export devloped surface as ply file
-	  void ExportDev(const std::string &aName,bool Bin) const;
+	  void ExportDev(const std::string &aName,const std::string &aNameIn,bool Bin) const;
 	  
           /// Show statistics on geometry preservation : distance & angles
 	  tCoordDevTri GlobDistortiontDist() const;
@@ -694,7 +694,7 @@ void  cDevTriangu3d::OneIterationCompens(bool IsLast)
 }
 
 
-void  cDevTriangu3d::ExportDev(const std::string &aName,bool Bin) const
+void  cDevTriangu3d::ExportDev(const std::string &aName,const std::string &aNameIn,bool Bin) const
 {
 
      bool  FilterDone = false;
@@ -752,7 +752,8 @@ void  cDevTriangu3d::ExportDev(const std::string &aName,bool Bin) const
      if (FilterDone)
      {
          tTriangulation3D aTriFilter(aVPNewP3,aVNewFace);
-         aTriFilter.WriteFile(aName,Bin);
+         aTriFilter.WriteFile(AddBefore(aNameIn,"Reached_"),Bin);
+         aTriPlane.WriteFile (AddBefore(aNameIn,"Dev_Reached_"),Bin);
      }
      else 
      {
@@ -871,7 +872,7 @@ int  cAppliMeshDev::Exe()
 
    tTriangulation3D  aTri(mNameCloudIn);
    cDevTriangu3d aDev(aTri,mParam);
-   aDev.ExportDev(mNameCloudOut,mBinOut);
+   aDev.ExportDev(mNameCloudOut,mNameCloudIn,mBinOut);
 
    return EXIT_SUCCESS;
 }

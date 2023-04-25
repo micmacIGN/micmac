@@ -583,7 +583,7 @@ cRadialBlurrCompute::cRadialBlurrCompute
    mDGrayOfD  (mGrayOfD.DIm()),
    mDensity   (mNbInCurv,nullptr,eModeInitImage::eMIA_Null),
    mDDensity  (mDensity.DIm()),
-   mSigmaFNN  (1.0),
+   mSigmaFNN  (0.25),
    mAvg       (0.0),
    mStdDev    (1.0)
 {
@@ -618,8 +618,8 @@ void cRadialBlurrCompute::Add(tREAL8 aDist,tREAL8 aGray)
 
 void cRadialBlurrCompute::Compute()
 {
-   ExpFilterOfStdDev(mDGrayOfD,3,mSigmaFNN);
-   ExpFilterOfStdDev(mDPopOfD ,3,mSigmaFNN);
+   ExpFilterOfStdDev(mDGrayOfD,3,mSigmaFNN*mNbInit);
+   ExpFilterOfStdDev(mDPopOfD ,3,mSigmaFNN*mNbInit);
 
    //  Put in "GrayOfD" the  average (by divide by population)
    for (size_t aD=0 ; aD<mNbInCurv ; aD++)
@@ -647,9 +647,9 @@ void cRadialBlurrCompute::Compute()
    mAvg    = mComputeSD.SomWV()  / mComputeSD.SomW();
    mStdDev = mComputeSD.StdDev(1e-10);
    // Convulation by mSigmaFNN has artificially increased the blurring, we correct it
-   mStdDev  = std::sqrt(std::max(0.0,Square(mStdDev)-Square(mSigmaFNN/mNbInit)));
+   mStdDev  = std::sqrt(std::max(0.0,Square(mStdDev)-Square(mSigmaFNN)));
+   // StdOut() << " * C0 => AVG=" <<  mAvg  <<  " DEV=" << mStdDev  << "\n";
 
-   StdOut() << " * C0 => AVG=" <<  mAvg  <<  " DEV=" << mStdDev  << "\n";
 }
 
 cRadialBlurrCompute cRadialBlurrCompute::MakeNormalized(tREAL8 aNbSigma,size_t aNbInit)
@@ -766,9 +766,10 @@ bool  cExtract_BW_Ellipse::AnalyseEllipse(cSeedBWTarget & aSeed,const std::strin
 
 if (true)
 {
+#if (0)
    // si on veut afficher la fonion bicub
    {
-      static bool First = true;
+      static bool First = false;
       if (First)
       {
            aSeed.mBlack = 0.0;
@@ -797,18 +798,17 @@ if (true)
           tREAL8 aDS = anEl.SignedEuclidDist(aPR)   ;
 
 	  tREAL8 aGray = mDIm.GetV(aPix);
-	  aGray = GraySimul(aDS,aSeed);
+	  // aGray = GraySimul(aDS,aSeed);
 
 	  // aRBC.Add(aDS*0.5+0.2,aGray);
-	  aRBC.Add(aDS+0.2,aGray);
+	  aRBC.Add(aDS,aGray);
        }
    }
 
    aRBC.Compute();
-   aRBC.MakeNormalized(3.0,10);
+   aRBC.MakeNormalized(3.0,aNbDig);
    getchar();
 
-#if (0)
 
    // tREAL8   aDMax = 4.0;
    // size_t   aNbDig = 5;

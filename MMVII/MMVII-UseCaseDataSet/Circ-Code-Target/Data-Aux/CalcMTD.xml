@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<MMVII_Serialization>
+   <MetaData>
+      <Nb>4</Nb>
+      <el>
+         <Mode>"Focalmm"</Mode>
+         <Nb>1</Nb>
+         <el>
+            <Pat> [0-9]{3}_[0-9]{4}_Scaled\.tif</Pat>
+            <Val> 24.0  </Val>
+         </el>
+      </el>
+      <el>
+         <Mode>"Aperture"</Mode>
+         <Nb>0</Nb>
+      </el>
+      <el>
+         <Mode>"ModeleCam"</Mode>
+         <Nb>1</Nb>
+         <el>
+            <Pat> [0-9]{3}_[0-9]{4}_Scaled\.tif</Pat>
+            <Val> "NIKON D5600"  </Val>
+         </el>
+      </el>
+      <el>
+         <Mode>AdditionalName</Mode>
+         <Nb>1</Nb>
+         <el>
+            <Pat> "([0-9]{3})_[0-9]{4}_Scaled\.tif" </Pat>
+            <Val> "$1"  </Val>
+         </el>
+      </el>
+   </MetaData>
+</MMVII_Serialization>
