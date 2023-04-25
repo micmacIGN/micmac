@@ -169,6 +169,13 @@ template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aSz,Type * aRawDataLin,
 }
 
 
+template <class Type>  cIm2D<Type>::cIm2D(cDataIm1D<Type>&  aI1) :
+      cIm2D<Type>(cPt2di(aI1.Sz(),1),aI1.RawDataLin())
+
+{
+}
+
+
 template <class Type>  cIm2D<Type>::cIm2D(const cBox2di & aBox,const cDataFileIm2D & aDataF) :
    cIm2D<Type> (aBox.Sz())
 {

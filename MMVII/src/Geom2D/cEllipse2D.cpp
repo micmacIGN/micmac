@@ -535,6 +535,7 @@ class cRadialBlurrCompute
 	   void Compute();
 
 	   cRadialBlurrCompute MakeNormalized(tREAL8 aNbSigma,size_t aNbInit);
+	   void Show();
 
         private :
 	   inline tREAL8 Dist2RIndex(tREAL8 aDist) const;
@@ -550,7 +551,10 @@ class cRadialBlurrCompute
 	   tDHist&  mDPopOfD;
 	   tHist    mGrayOfD;
 	   tDHist&  mDGrayOfD;
+	   tHist    mDensity;
+	   tDHist&  mDDensity;
 	   int      mSignGrow;     /// 1 if growing, else -1
+	   tREAL8   mSigmaFNN;
            tREAL8   mAvg ;         /// Avg but also normalization
            tREAL8   mStdDev;       /// Standard Dev  but also normalization
            cComputeStdDev<tREAL8>  mComputeSD;
@@ -577,10 +581,18 @@ cRadialBlurrCompute::cRadialBlurrCompute
    mDPopOfD   (mPopOfD.DIm()),
    mGrayOfD   (mNbInCurv,nullptr,eModeInitImage::eMIA_Null),
    mDGrayOfD  (mGrayOfD.DIm()),
+   mDensity   (mNbInCurv,nullptr,eModeInitImage::eMIA_Null),
+   mDDensity  (mDensity.DIm()),
+   mSigmaFNN  (1.0),
    mAvg       (0.0),
    mStdDev    (1.0)
 {
 }
+
+//  0.1 1  => 0.45726
+//  1   1  => 0.500075
+//  2   1  => 0.606591
+
 
 cRadialBlurrCompute::cRadialBlurrCompute
 (
@@ -606,10 +618,13 @@ void cRadialBlurrCompute::Add(tREAL8 aDist,tREAL8 aGray)
 
 void cRadialBlurrCompute::Compute()
 {
+   ExpFilterOfStdDev(mDGrayOfD,3,mSigmaFNN);
+   ExpFilterOfStdDev(mDPopOfD ,3,mSigmaFNN);
+
    //  Put in "GrayOfD" the  average (by divide by population)
    for (size_t aD=0 ; aD<mNbInCurv ; aD++)
    {
-       if (mDPopOfD.GetV(aD)>0)
+       // if (mDPopOfD.GetV(aD)>0)
        {
            tREAL8  aAvg = SafeDiv(mDGrayOfD.GetV(aD), mDPopOfD.GetV(aD));
            mDGrayOfD.SetV(aD,aAvg);
@@ -619,10 +634,11 @@ void cRadialBlurrCompute::Compute()
    
    for (size_t aD=1 ; aD<mNbInCurv ; aD++)
    {
-       if ( (mDPopOfD.GetV(aD)>0) && (mDPopOfD.GetV(aD-1)>0) )
+       // if ( (mDPopOfD.GetV(aD)>0) && (mDPopOfD.GetV(aD-1)>0) )
        {
             tREAL8 aGrad = mSignGrow * (mDGrayOfD.GetV(aD)- mDGrayOfD.GetV(aD-1)) ;
             aGrad = std::max(0.0,aGrad);
+            mDDensity.SetV(aD-1,aGrad);
             // mDGrayOfD.SetV(aD-1,aGrad);
             mComputeSD.Add(aGrad,GradIndex2Dist(aD-1));
        }
@@ -630,8 +646,10 @@ void cRadialBlurrCompute::Compute()
 
    mAvg    = mComputeSD.SomWV()  / mComputeSD.SomW();
    mStdDev = mComputeSD.StdDev(1e-10);
+   // Convulation by mSigmaFNN has artificially increased the blurring, we correct it
+   mStdDev  = std::sqrt(std::max(0.0,Square(mStdDev)-Square(mSigmaFNN/mNbInit)));
 
-   StdOut() << " * C0 => " <<  mAvg  <<  " " << mStdDev  << "\n";
+   StdOut() << " * C0 => AVG=" <<  mAvg  <<  " DEV=" << mStdDev  << "\n";
 }
 
 cRadialBlurrCompute cRadialBlurrCompute::MakeNormalized(tREAL8 aNbSigma,size_t aNbInit)
@@ -748,30 +766,7 @@ bool  cExtract_BW_Ellipse::AnalyseEllipse(cSeedBWTarget & aSeed,const std::strin
 
 if (true)
 {
-    tREAL8   aDMax = 4.0;
-    size_t   aNbDig = 5;
-    cRadialBlurrCompute aRBC(aSeed,aDMax,aNbDig);
-
-   cPt2di  aPMargin(10,10);
-   cBox2di aBox(aSeed.mPInf-aPMargin,aSeed.mPSup+aPMargin);
-   aBox = aBox.Inter(mDIm);
-
-   tREAL8 aMajD = aDMax * (anEl.LGa()/anEl.LSa());
-   for (const auto & aPix : cRect2(aBox))
-   {
-       cPt2dr aPR = ToR(aPix);
-       if (anEl.ApproxDist(aPR)< aMajD)
-       {
-          tREAL8 aDS = anEl.SignedEuclidDist(aPR)   ;
-
-	  tREAL8 aGray = mDIm.GetV(aPix);
-	  aGray = GraySimul(aDS,aSeed);
-
-	  aRBC.Add(aDS*0.5+0.2,aGray);
-       }
-   }
-
-   aRBC.Compute();
+   // si on veut afficher la fonion bicub
    {
       static bool First = true;
       if (First)
@@ -783,10 +778,37 @@ if (true)
       }
       First = false;
    }
+
+    tREAL8   aDMax = 4.0;
+    size_t   aNbDig = 5;
+    cRadialBlurrCompute aRBC(aSeed,aDMax,aNbDig);
+
+   cPt2di  aPMargin(10,10);
+   cBox2di aBox(aSeed.mPInf-aPMargin,aSeed.mPSup+aPMargin);
+   aBox = aBox.Inter(mDIm);
+
+   tREAL8 aMajD = aDMax * (anEl.LGa()/anEl.LSa());
+
+   for (const auto & aPix : cRect2(aBox))
+   {
+       cPt2dr aPR = ToR(aPix);
+       if (anEl.ApproxDist(aPR)< aMajD)
+       {
+          tREAL8 aDS = anEl.SignedEuclidDist(aPR)   ;
+
+	  tREAL8 aGray = mDIm.GetV(aPix);
+	  aGray = GraySimul(aDS,aSeed);
+
+	  // aRBC.Add(aDS*0.5+0.2,aGray);
+	  aRBC.Add(aDS+0.2,aGray);
+       }
+   }
+
+   aRBC.Compute();
+   aRBC.MakeNormalized(3.0,10);
    getchar();
 
 #if (0)
-   // aRBC.MakeNormalized(4.0,10);
 
    // tREAL8   aDMax = 4.0;
    // size_t   aNbDig = 5;

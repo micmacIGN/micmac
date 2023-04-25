@@ -48,6 +48,14 @@ void  ExpFilterOfStdDev(cDataIm2D<Type> & aIOut,const cDataIm2D<Type> & aImIn,in
 
 
 /**************************************/
+/*           Use en 1D Images         */
+/**************************************/
+
+template <class Type> void  ExponentialFilter(cDataIm1D<Type> & aDI1,int  aNbIt,double aFact);
+template <class Type> void  ExpFilterOfStdDev(cDataIm1D<Type> & aDI1,int  aNbIt,double aStdDev);
+
+
+/**************************************/
 /*           Gaussian  Pyramid        */
 /**************************************/
 
