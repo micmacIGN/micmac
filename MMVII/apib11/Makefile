@@ -4,7 +4,7 @@ MMV1_LIBDIR=${MMV1_DIR}/lib
 MMV2_DIR=${MMV1_DIR}/MMVII
 MMV2_BINDIR=${MMV2_DIR}/bin
 MMV2_INCDIR=${MMV2_DIR}/include
-MODULE_NAME = MMVII
+export MODULE_NAME = MMVII
 
 DOC_INCLUDES=../include/MMVII_PCSens.h ../include/MMVII_memory.h ../include/MMVII_AimeTieP.h ../include/MMVII_Geom3D.h ../include/MMVII_Mappings.h
 
@@ -24,7 +24,8 @@ EXT_LIBS=-lpthread -lX11 -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC ${MMV2_INCLUDES} ${MMV1_INCLUDES}  ${PYBIND_INCLUDES}
+export CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC 
+ALL_INC=${MMV2_INCLUDES} ${MMV1_INCLUDES}  ${PYBIND_INCLUDES}
 
 PYTHON = python3
 PIP = pip3
@@ -35,25 +36,39 @@ ifneq (,${CCACHE})
   override CXX:=${CCACHE} ${CXX}
 endif
 
-SRCS:=${wildcard *.cpp}
+export SRCS:=${wildcard *.cpp}
 
 # ============ Targets
-.phony: all module clean install uninstall
-all: module
+export XML_MICMAC_FILES=$(wildcard ../../include/XML_MicMac/*.xml)
+export XML_GEN_FILES=$(wildcard ../../include/XML_GEN/*.xml)
+export EXTRA_OBJECTS=../bin/libP2007.a ../../lib/libelise.a ../../lib/libANN.a
+export MMVII_BIN=../bin/MMVII
 
-clean: uninstall
+MODULE=$(shell export CC="$$CXX" SRCS="$$SRCS"  CXXFLAGS="$$CXXFLAGS" XML_MICMAC_FILES="$$XML_MICMAC_FILES" XML_GEN_FILES="$$XML_GEN_FILES" EXTRA_OBJECTS="$$EXTRA_OBJECTS" MMVII_BIN="$$MMVII_BIN" ; $(PYTHON) setup.py module_name)
+
+.phony: all clean clean_python install uninstall
+
+all: $(MODULE)
+
+clean: uninstall clean_python
 	rm -f docstrings.h
+
+clean_python:
 	rm -Rf build/ dist/ $(MODULE_NAME).egg-info/ __pycache__/
 	$(PYTHON) setup.py clean
 
 docstrings.h: ${DOC_INCLUDES} Makefile
-	pybind11-mkdoc -o $@ ${DOC_INCLUDES} ${CXXFLAGS} >/dev/null
+	pybind11-mkdoc -o $@ ${DOC_INCLUDES} ${CXXFLAGS} ${ALL_INC} >/dev/null
 
-module: docstrings.h ${SRCS}
-	CC="${CXX}" $(PYTHON) setup.py build
-	CC="${CXX}" $(PYTHON) setup.py bdist_wheel
 
-install: module
+$(MODULE): export CC=${CXX} 
+
+$(MODULE): docstrings.h ${SRCS} $(MMVII_BIN) $(EXTRA_OBJECTS) $(XML_MICMAC_FILES) $(XML_GEN_FILES)
+	$(MAKE) clean_python
+	$(PYTHON) setup.py build
+	$(PYTHON) setup.py bdist_wheel
+
+install: $(MODULE)
 	$(PIP) install --force-reinstall --user dist/*.whl
 
 uninstall:
