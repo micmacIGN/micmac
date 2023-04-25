@@ -15,9 +15,13 @@ template<typename T> class cCompiledCalculator;
 #if (SYMBDER_WITH_MMVII)
 #include "MMVII_util.h"
 #include "MMVII_Derivatives.h"
-#define SYMBDER_cMemCheck  MMVII::cMemCheck
+#define SYMBDER_cMemCheck MMVII::cMemCheck
+#define SYMBDER_DelAtEnd  MMVII::cObj2DelAtEnd
 #else             //========================================================== WITH_MMVI
 class SYMBDER_cMemCheck
+{
+};
+class SYMBDER_DelAtEnd
 {
 };
 #endif
@@ -144,7 +148,8 @@ class cConvStrRank
 };
 
 template<typename T>
-class cCalculator  : public SYMBDER_cMemCheck
+class cCalculator  : public SYMBDER_cMemCheck,
+	             public SYMBDER_DelAtEnd
 {
 public:
     typedef T                      TypeElem;

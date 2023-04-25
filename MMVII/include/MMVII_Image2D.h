@@ -338,6 +338,9 @@ template <class Type>  class cIm2D
        /// Image with origin on (0,0)
        cIm2D(const cPt2di & aSz,Type * DataLin=0,eModeInitImage=eModeInitImage::eMIA_NoInit);
 
+       /// Create a 1-Line image (used for filter like exp that were initially implemented on 2D)
+       cIm2D(cDataIm1D<Type>& ); 
+
        /// Create an image and initialize it with the file
        cIm2D(const cBox2di & aSz,const cDataFileIm2D & aDataF);
 

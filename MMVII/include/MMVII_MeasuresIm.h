@@ -47,7 +47,7 @@ struct  cWeightedPair2D3D : public cPair2D3D
 
 
 /**  class for representing  set of pairs 2-3  */
-struct cSet2D3D
+struct cSet2D3D : public cMemCheck
 {
      public :
          typedef cWeightedPair2D3D                tPair;
@@ -83,7 +83,7 @@ class cMesIm1Pt
 };
 
 /** class for representing a set of measure in an image*/
-class cSetMesPtOf1Im
+class cSetMesPtOf1Im : public cMemCheck
 {
      public :
           cSetMesPtOf1Im(const std::string & aNameIm);
@@ -98,9 +98,16 @@ class cSetMesPtOf1Im
 
 	  const std::string & NameIm() const;  ///<  Accessor
           const std::vector<cMesIm1Pt> &  Measures() const;
+          std::vector<cMesIm1Pt> &  Measures() ;
 	  static  const std::string ThePrefixFiles;
 
+          const cMesIm1Pt &  MeasuresOfName(const std::string & aNamePt) const;
+          cMesIm1Pt &  MeasuresOfName(const std::string & aNamePt) ;
+          bool  NameHasMeasure(const std::string & aNamePt) const;
+          cMesIm1Pt *  NearestMeasure(const cPt2dr &) ;
      private :
+          cMesIm1Pt *  PrivateMeasuresOfName(const std::string & aNamePt,bool SVP) const;
+
           std::string             mNameIm;
           std::vector<cMesIm1Pt>  mMeasures;
 };
@@ -118,7 +125,7 @@ class cMes1GCP
 };
 
 /**  A set of cMes1GCP */
-class cSetMesGCP
+class cSetMesGCP : public cMemCheck
 {
     public :
           cSetMesGCP();
@@ -143,7 +150,7 @@ class cSetMesGCP
 /**  Class for reprenting the same point in different image, maybe same class
  * used for GCP and tie points */
 
-class cMultipleImPt
+class cMultipleImPt 
 {
       public :
               cMultipleImPt(int aNum3DP);   ///< Cstr, num of GCP of -1 for tie point
@@ -168,7 +175,7 @@ class cMultipleImPt
  *
  *   The mMesGCP  and mMesIm are corresponinf i.e  mMesGCP[k] <-> mMesIm[k] 
  */
-class cSetMesImGCP
+class cSetMesImGCP : public cMemCheck
 {
     public :
             cSetMesImGCP();
@@ -178,22 +185,28 @@ class cSetMesImGCP
 	    /// For a single GCP (called by AddMes3D)
 	    void Add1GCP(const cMes1GCP &);
 	    ///  Add mesure on 1 images, close the possibility for further call to AddMes3D
-            void AddMes2D(const cSetMesPtOf1Im &,cSensorImage* =nullptr);
+            void AddMes2D(const cSetMesPtOf1Im &,cSensorImage* =nullptr,eLevelCheck OnNonExistP=eLevelCheck::Warning);
 
 	    /// return a set of mesure as 2d/3d corresp
             void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm);
 
             const std::vector<cMes1GCP> &        MesGCP() const ; ///< Accessor
+            std::vector<cMes1GCP> &        MesGCP() ; ///< Accessor
             const std::vector<cMultipleImPt> &   MesImOfPt() const ;  ///< Accessor
 	    const std::vector<cSensorImage*> &   VSens() const ;  ///< Accessor
 								
+	    tREAL8 AvgSqResidual() const;
 								  
 	    /// suppress mMesGCP & mMesIm with no images measure (eventually can give higher threshold) 
 	    cSetMesImGCP * FilterNonEmptyMeasure(int NbMeasureMin=1) const;
+
+            const cSetMesPtOf1Im  & MesImInitOfName(const std::string &) const;
+	    const cMes1GCP &        MesGCPOfName(const std::string &) const;
+	    bool  NameIsGCP(const std::string &) const;
     private :
 
 
-            cSetMesImGCP(const  cSetMesImGCP & ) = delete;
+            // cSetMesImGCP(const  cSetMesImGCP & ) = delete;
 
             bool                         mPhaseGCPFinished;
             std::vector<cMes1GCP>        mMesGCP;      

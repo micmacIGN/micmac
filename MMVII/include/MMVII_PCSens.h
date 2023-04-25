@@ -285,7 +285,7 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
              void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
 
 	     /// return calculator adapted to model of camera (degree, projection)
-             cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf);
+             cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
 
 	     void UpdateMapProj2Im();  ///< when PP/F modified
 
@@ -376,6 +376,8 @@ class cSensorCamPC : public cSensorImage
 
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
+         tSeg3dr  Image2Bundle(const cPt2dr &) const override;
+
 
          std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
 
@@ -386,7 +388,7 @@ class cSensorCamPC : public cSensorImage
 
 	 const cPt3dr * CenterOfPC() override;
          /// Return the calculator, adapted to the type, for computing colinearity equation
-         cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf) override;
+         cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
 	 /// Push the current rotation, as equation are fixed using delta-rot
 	 void PushOwnObsColinearity( std::vector<double> &) override;
 

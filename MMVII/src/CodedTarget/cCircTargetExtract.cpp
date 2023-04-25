@@ -68,6 +68,7 @@ class cCircTargExtr : public cBaseTE
 	 cOneEncoding     mEncode;
 };
 
+
 cCircTargExtr::cCircTargExtr(const cExtractedEllipse & anEE)  :
 	cBaseTE      (anEE.mEllipse.Center(),anEE.mSeed.mBlack,anEE.mSeed.mWhite),
 	mEllipse     (anEE.mEllipse),
@@ -78,6 +79,43 @@ cCircTargExtr::cCircTargExtr(const cExtractedEllipse & anEE)  :
 {
 }
 
+
+/* ********************************************* */
+/*                                               */
+/*             cSaveExtrEllipe                   */
+/*                                               */
+/* ********************************************* */
+
+cSaveExtrEllipe::cSaveExtrEllipe(const cCircTargExtr & aCTE,const std::string & aCode) :
+    mEllipse  (aCTE.mEllipse),
+    mNameCode (aCode),
+    mBlack    (aCTE.mVBlack),
+    mWhite    (aCTE.mVWhite)
+{
+}
+
+
+cSaveExtrEllipe::cSaveExtrEllipe()  :
+    mEllipse (cEllipse(cDenseVect<tREAL8>(std::vector<tREAL8>{1,0,1,0,0}) ,cPt2dr(0,0)))
+{
+}
+
+
+void AddData(const  cAuxAr2007 & anAux, cSaveExtrEllipe & aCTE)
+{
+     AddData(cAuxAr2007("Ellipse",anAux)  , aCTE.mEllipse);
+     AddData(cAuxAr2007("NameCode",anAux) , aCTE.mNameCode);
+     AddData(cAuxAr2007("Black",anAux)    , aCTE.mBlack);
+     AddData(cAuxAr2007("White",anAux)    , aCTE.mWhite);
+}
+
+std::string cSaveExtrEllipe::NameFile(const cPhotogrammetricProject & aPhp,const cSetMesPtOf1Im &  aSetM,bool Input)
+{
+    return  (Input ? aPhp.DPPointsMeasures().FullDirIn() :   aPhp.DPPointsMeasures().FullDirOut() )
+	    + "Attribute-"
+	    +  aSetM.StdNameFile()
+    ;
+}
 
 /* ********************************************* */
 /*                                               */
@@ -238,7 +276,7 @@ cCCDecode::cCCDecode
     if (!mOK)
        return;
 
-    // compute an image
+    // compute a gray-level as a function of teta, using a median for different rho
     for (int aKTeta=0 ; aKTeta < mNbTeta; aKTeta++)
     {
         std::vector<tREAL8> aVGray;
@@ -675,16 +713,23 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
 
 void cAppliExtractCircTarget::DoExport()
 {
+     int aCptUnCoded=0;
+
      cSetMesPtOf1Im  aSetM(FileOfPath(mNameIm));
+     std::vector<cSaveExtrEllipe>  mVSavE;
      for (const auto & anEE : mVCTE)
      {
-         if (anEE->mWithCode)  
-         {
-             aSetM.AddMeasure(cMesIm1Pt(anEE->mPt,anEE->mEncode.Name(),1.0));
-         }
+         std::string aCode = anEE->mWithCode ?  anEE->mEncode.Name() : (MMVII_NONE +"_" + ToStr(aCptUnCoded,3));
+         aSetM.AddMeasure(cMesIm1Pt(anEE->mPt,aCode,1.0));
+         mVSavE.push_back(cSaveExtrEllipe(*anEE,aCode));
+
+	 if (! anEE->mWithCode) aCptUnCoded++;
      }
 
      mPhProj.SaveMeasureIm(aSetM);
+
+     //SaveInFile(mVSavE,mPhProj.DPPointsMeasures().FullDirOut()+ "Attribute-"+  aSetM.StdNameFile());
+     SaveInFile(mVSavE,cSaveExtrEllipe::NameFile(mPhProj,aSetM,false));
 }
 
 void cAppliExtractCircTarget::MakeImageFinalEllispe()

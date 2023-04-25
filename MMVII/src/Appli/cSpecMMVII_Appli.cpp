@@ -184,6 +184,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecExtractCodedTarget);
         TheVecAll.push_back(&TheSpecGenerateEncoding);
         TheVecAll.push_back(&TheSpecSimulCodedTarget);
+        TheVecAll.push_back(&TheSpecCompletUncodedTarget);
         TheVecAll.push_back(&TheSpecDensifyRefMatch);
         TheVecAll.push_back(&TheSpecCloudClip);
         TheVecAll.push_back(&TheSpecMeshDev);
@@ -197,6 +198,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecProMeshImage);
         TheVecAll.push_back(&TheSpecMeshImageDevlp);
         TheVecAll.push_back(&TheSpecRadiom2ImageSameMod);
+        TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
         //TheVecAll.push_back(&TheSpecTopoComp);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);

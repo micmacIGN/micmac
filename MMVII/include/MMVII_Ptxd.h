@@ -775,6 +775,8 @@ template <class Type,const int Dim> class cSegment
        cSegment(const tPt& aP1,const tPt& aP2);
        /// Estimate fonc linear, with gradient paral to tangent,  given value in P1 and P2, will be F(Q) =  R.first + R.second Q
        void CompileFoncLinear(Type & aVal,tPt & aVec,const Type  &aV1,const Type  & aV2) const;
+       const tPt&  P1() const;
+       const tPt&  P2() const;
     protected :
        tPt  mP1;
        tPt  mP2;

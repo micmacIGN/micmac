@@ -7,6 +7,8 @@
 namespace MMVII
 {
 
+typedef cSegment<tREAL8,3> tSeg3dr;
+
 template<class T> cPtxd<T,3>  PFromNumAxe(int aNum); ///< return I,J or K according to 0,1 or 2
 /// use the 3 "colum vector" to compute the matrix
 template<class T> cDenseMatrix<T> MatFromCols(const cPtxd<T,3>&aP0,const cPtxd<T,3>&aP1,const cPtxd<T,3>&aP2);
@@ -286,6 +288,30 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            /// Read/Write in ply format using
            void PlyInit(const std::string &);
            void PlyWrite(const std::string &,bool isBinary) const;
+};
+
+class cPlane3D
+{
+     public :
+         cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
+         static cPlane3D FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aAxeK);
+
+         cPt3dr  ToLocCoord(const cPt3dr &) const;
+         cPt3dr  FromCoordLoc(const cPt3dr &) const;
+         cPt3dr  Inter(const cPt3dr&aP0,const cPt3dr&aP1) const;
+         cPt3dr  Inter(const tSeg3dr& ) const;
+
+         // return 3 point for random plane
+         static std::vector<cPt3dr>  RandParam();
+         const cPt3dr& AxeI() const;
+         const cPt3dr& AxeJ() const;
+         const cPt3dr& AxeK() const;
+
+     private :
+         cPt3dr mP0;
+         cPt3dr mAxeI;
+         cPt3dr mAxeJ;
+         cPt3dr mAxeK;
 };
 
 

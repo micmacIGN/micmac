@@ -4,6 +4,8 @@
 #include "SymbDer/SymbDer_Common.h"
 #include "MMVII_Mappings.h"
 #include "MMVII_MeasuresIm.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
 
 using namespace NS_SymbolicDerivative;
 
@@ -72,6 +74,8 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 
 	 // =================   Image <-->  Ground  mappings  ===========================
 	 
+         ///  The most fundamental method, theoretically should be sufficient
+         virtual tSeg3dr  Image2Bundle(const cPt2dr &) const =0;
 	 /// Basic method  GroundCoordinate ->  image coordinate of projection
          virtual cPt2dr Ground2Image(const cPt3dr &) const = 0;
 	 ///  add the the depth (to see if have a default with bundle+Gr2Ima)
@@ -112,6 +116,10 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
          double RobustAvResidualOfProp(const cSet2D3D &,double aProp) const;  
 
 
+         cPt3dr Image2PlaneInter(const cPlane3D & aPlane,const cPt2dr &) const;
+         cPt2dr Image2LocalPlaneInter(const cPlane3D & aPlane,const cPt2dr &) const;
+         cEllipse EllipseIm2Plane(const cPlane3D & aPlane,const cEllipse & aEllipseIm,int aNbTeta) const;
+
 	 // --------------------   methods to compute names of an orientation --------------------
 
 	 const std::string & NameImage() const;   ///< accessor
@@ -130,7 +138,7 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	 ///  For stenope camera return center, for other nullptr
 	 virtual const cPt3dr * CenterOfPC() = 0;
 	 /// Return the calculator, adapted to the type, for computing colinearity equation
-         virtual cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf) = 0;
+         virtual cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) = 0;
 	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
 	 virtual  void PushOwnObsColinearity( std::vector<double> &) = 0;
 
@@ -177,6 +185,7 @@ class cMetaDataImage
       private :
 
           std::string    mCameraName;
+          std::string    mAdditionalName;
           tREAL8         mAperture;
           tREAL8         mFocalMM;
           tREAL8         mFocalMMEqui35;
@@ -197,12 +206,14 @@ class cDirsPhProj
 	  /// Input Orientation as mandatory paramaters
           tPtrArg2007     ArgDirInMand(const std::string & aMes="") ;  
 	  /// Input Orientation as optional paramaters
-          tPtrArg2007     ArgDirInOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   
+          tPtrArg2007     ArgDirInOpt(const std::string & aNameVar="",const std::string & aMesg="",bool WithHDV=false) ;   
+
+          tPtrArg2007  ArgDirInputOptWithDef(const std::string & aDef,const std::string & aNameVar="",const std::string & aMesg="") ;   
 									    //
 	  /// Output Orientation as mandatory paramaters
           tPtrArg2007     ArgDirOutMand(const std::string & aMes="");  
 	  /// Output Orientation as optional paramaters
-          tPtrArg2007     ArgDirOutOpt(const std::string & aNameVar="",const std::string & aMesg="") ;   
+          tPtrArg2007     ArgDirOutOpt(const std::string & aNameVar="",const std::string & aMesg="",bool WithHDV=false) ;   
 	  /// Output Orientation as optional paramaters  with DEF VALUE
           tPtrArg2007  ArgDirOutOptWithDef(const std::string & aDef,const std::string & aNameVar="",const std::string & aMesg="") ;   
 
@@ -285,6 +296,10 @@ class cPhotogrammetricProject
 
 	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete,bool SVP=false); ///< Create Camera using Input orientation
 
+
+	  /// Load a sensor, try different type (will add RPC , and others ?)
+	  void LoadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool SVP);
+
 	      // Internal Calibration  
 
 	  std::string  StdNameCalibOfImage(const std::string aNameIm) const;
@@ -328,6 +343,7 @@ class cPhotogrammetricProject
 	 //===================================================================
 
 	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
+	  cSetMesPtOf1Im LoadMeasureIm(const std::string &) const;
 	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;

@@ -433,26 +433,51 @@ template<class Type> class cTriangulation2D : public cTriangulation<Type,2>
 class cEllipse
 {
      public :
+       static void BenchEllispe();
+
        /// Create from a vector of parameter ABCEF such elipse is definedby  :  Axx+2Bxy+Cyy+Dx+Fy=1
        cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0);
-       double ApproxSigneDist(cPt2dr aP) const;
+       ///  A more physicall creation
+       cEllipse(const cPt2dr & aCenter,tREAL8 aTeta,tREAL8 aLGa,tREAL8 aLSa);
 
-       double SignedD2(cPt2dr aP) const;
-       double Dist(const cPt2dr & aP) const;
+       void AddData(const  cAuxAr2007 & anAux);
+
+
+       double EuclidDist(const cPt2dr& aP) const;  /// rigourous  distance, use projection (long ?)
+       double SignedEuclidDist(const cPt2dr& aP) const;  /// rigourous signed distance
+
+       double ApproxSigneDist(const cPt2dr& aP) const;
+       double ApproxDist(const cPt2dr& aP) const;
+
+       double SignedQF_D2(const cPt2dr& aP) const;  ///  computed frm quadratic form , in D2 at infty
+       double QF_Dist(const cPt2dr & aP) const;     ///  computed frm quadratic form ,  in sqrt(D) at 0
+
        double   Norm() const  {return std::sqrt(1/ mNorm);}
-
-
        bool Ok() const;  ///< Accessor
        tREAL8 LGa() const;  ///< Accessor
        tREAL8 LSa() const;  ///< Accessor
        tREAL8 RayMoy() const;  ///< Accessor
        const cPt2dr &  Center() const; ///< Accessor
+       const cPt2dr &  VGa() const; ///< Accessor
+       const cPt2dr &  VSa() const; ///< Accessor
        double TetaGa() const; /// Teta great axe
 
        cPt2dr  PtOfTeta(tREAL8 aTeta,tREAL8 aMulRho=1.0) const; /// return on ellipse with param A cos(T) + B sin(T)
        cPt2dr  PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &,tREAL8 aMulRho=1.0) const;  /// return also the gradien of belong function
 
+       cPt2dr  ToCoordLoc(const cPt2dr &) const; /// in a sys when ellipse is unity circle
+       cPt2dr  FromCoordLoc(const cPt2dr &) const; /// in a sys when ellipse is unity circle
+       cPt2dr  VectFromCoordLoc(const cPt2dr &) const; /// for vector (dont use center)in a sys when ellipse is unity circle
+       cPt2dr  ToRhoTeta(const cPt2dr &) const; /// Invert function of PtOfTeta
+
+       cPt2dr  ProjOnEllipse(const cPt2dr &) const;
+       cPt2dr  ProjNonEuclOnEllipse(const cPt2dr &) const;   // project with ellispe norm
+
+       cPt2dr  Tgt(const cPt2dr &) const;
+       cPt2dr  NormalInt(const cPt2dr &) const;
+
     private :
+       void OneBenchEllispe();
        cDenseVect<tREAL8>     mV;
        double                 mNorm;
        cPt2dr                 mC0;
@@ -468,6 +493,7 @@ class cEllipse
        tREAL8                 mRayMoy;
        tREAL8                 mSqRatio;
 };
+void AddData(const  cAuxAr2007 & anAux,cEllipse &);
 
 class cEllipse_Estimate
 {
@@ -530,6 +556,7 @@ class cExtract_BW_Ellipse  : public cExtract_BW_Target
 
              const std::list<cExtractedEllipse> & ListExtEl() const;  ///< Accessor
 
+             void   ComputeBlurr();
         private :
              std::list<cExtractedEllipse> mListExtEl;
 };

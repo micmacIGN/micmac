@@ -174,6 +174,31 @@ bool cSensorImage:: PairIsVisible(const cPair2D3D & aPair) const
 	return IsVisible(aPair.mP3) && IsVisibleOnImFrame(aPair.mP2) ;
 }
 
+cPt3dr cSensorImage::Image2PlaneInter(const cPlane3D & aPlane,const cPt2dr & aPIm) const
+{
+    return aPlane.Inter(Image2Bundle(aPIm));
+}
+
+cPt2dr cSensorImage::Image2LocalPlaneInter(const cPlane3D & aPlane,const cPt2dr &aPIm) const
+{
+  return Proj(aPlane.ToLocCoord(Image2PlaneInter(aPlane,aPIm)));
+}
+
+cEllipse cSensorImage::EllipseIm2Plane(const cPlane3D & aPlane,const cEllipse & anElIm,int aNbTeta) const
+{
+   cEllipse_Estimate aEEst(Image2LocalPlaneInter(aPlane,anElIm.Center()));
+   for (int aKTeta =0 ; aKTeta < aNbTeta ; aKTeta++)
+   {
+       cPt2dr  aPIm    = anElIm.PtOfTeta(aKTeta* ((2*M_PI)/aNbTeta));  // pt on image ellipse
+       cPt2dr  aPPlane = Image2LocalPlaneInter(aPlane,aPIm);
+
+       aEEst.AddPt(aPPlane);
+    }
+    return aEEst.Compute() ;
+}
+
+
+
 
 /* ******************************************************* */
 /*                                                         */

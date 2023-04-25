@@ -174,6 +174,21 @@ void  ExpFilterOfStdDev(cDataIm2D<Type> & aImOut,const cDataIm2D<Type> & aImIn,i
      ExponentialFilter(aImOut,aNbIter,FactExpFromSigma2(Square(aStdDev)/aNbIter));
 }
 
+
+template <class Type>
+void  ExponentialFilter(cDataIm1D<Type> & aDI1,int  aNbIt,double aFact)
+{
+   cIm2D<Type> aI2(aDI1);
+   cRect2 aR2(aI2.DIm());
+   cLinearFilter<Type>::FilterExp(true,aI2.DIm(),aNbIt,aR2,aFact,0.0);
+}
+
+template <class Type>
+void  ExpFilterOfStdDev(cDataIm1D<Type> & aDI1,int  aNbIt,double aStdDev)
+{
+    ExponentialFilter(aDI1,aNbIt,FactExpFromSigma2(Square(aStdDev)/aNbIt));
+}
+
 /* ========================== */
 /*       cImGrad              */
 /* ========================== */
@@ -207,6 +222,8 @@ template void ExponentialFilter(bool,cDataIm2D<Type> &,int,const cRect2 &,double
 template void  ExponentialFilter(cDataIm2D<Type> & aIm,int   aNbIter,double aFact);\
 template void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,int   aNbIter,double aStdDev);\
 template void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,const cDataIm2D<Type> & aImIn,int   aNbIter,double aStdDev);\
+template void  ExponentialFilter(cDataIm1D<Type> & aDI1,int  aNbIt,double aFact);\
+template void  ExpFilterOfStdDev(cDataIm1D<Type> & aDI1,int  aNbIt,double aStdDev);\
 
 MACRO_INSTANTIATE_ExpoFilter(tREAL4);
 MACRO_INSTANTIATE_ExpoFilter(tREAL8);

@@ -457,7 +457,11 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
             aVP += aV2Add;
         }
         
-
+        void  AddVBL(const tREAL8 & aX,const double & aVal)
+        {
+           tPB::AssertInsideBL(cPt1dr(aX));
+           AddValueBL(aX,aVal);
+        }
 
         void SetV(const  cPt1di & aP,const tBase & aV) {SetV(aP.x(),aV);}
 
@@ -530,6 +534,19 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
             return   (aWeightX0*aL[0]  + aWeigthX1*aL[1]);
         } 
 
+	  /** Bilinear interpolation */
+        void  AddValueBL(const double & aX,const double & aVal)
+        {
+            int aX0 = round_down(aX);  ///<  "Left" limit of  pixel
+
+            double aWeigthX1 = aX - aX0;
+            double aWeightX0 = 1-aWeigthX1;
+
+            Type  * aL = mRawData1D  + aX0;
+
+            aL[0] +=  aWeightX0 *  aVal;
+            aL[1] +=  aWeigthX1 *  aVal;
+        }
 
         Type * mRawData1D;  ///< Offset vs DataLin
 };

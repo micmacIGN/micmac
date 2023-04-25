@@ -303,10 +303,12 @@ cMetaDataImage::cMetaDataImage(const std::string & aDir,const std::string & aNam
     aGlobCalc->SetReal(mAperture,aNameIm,eMTDIm::eAperture);
     aGlobCalc->SetReal(mFocalMM,aNameIm,eMTDIm::eFocalmm);
     aGlobCalc->SetName(mCameraName,aNameIm,eMTDIm::eModeleCam);
+    aGlobCalc->SetName(mAdditionalName,aNameIm,eMTDIm::eAdditionalName);
 }
 
 cMetaDataImage::cMetaDataImage() :
     mCameraName       (""),
+    mAdditionalName   (""),
     mAperture         (-1),
     mFocalMM          (-1),
     mFocalMMEqui35    (-1)
@@ -316,8 +318,13 @@ cMetaDataImage::cMetaDataImage() :
 std::string  cMetaDataImage::InternalCalibGeomIdent() const
 {
     std::string  aRes = "CalibIntr";
-    aRes = aRes + "_Cam"+ ToStandardStringIdent(CameraName());
+    aRes = aRes + "_Cam"+ ToStandardStringIdent(CameraName());  // replace " " by "_" , refuse special characters
+    if (mAdditionalName!="")
+    {
+        aRes = aRes + "_Add"+ mAdditionalName;  // replace " " by "_" , refuse special characters
+    }
     aRes = aRes + "_Foc"+ToStr(FocalMM());
+
 
     return aRes;
 }

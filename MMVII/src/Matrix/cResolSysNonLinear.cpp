@@ -161,6 +161,10 @@ template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp
     }
 }
 
+template <class Type> int cSetIORSNL_SameTmp<Type>::NbRedundacy() const
+{
+   return mNbEq -mNbTmpUk;
+}
 
 template <class Type> cSetIORSNL_SameTmp<Type>::cSetIORSNL_SameTmp(bool Fake,const cSetIORSNL_SameTmp<tREAL8> & aR_Set)  :
 	cSetIORSNL_SameTmp<Type> 
@@ -418,28 +422,29 @@ template <class Type> void cResolSysNonLinear<Type>::SetFrozenVarCurVal(int aK)
 	SetFrozenVar(aK,CurSol(aK));
 }
 
-template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const  Type & aVal)
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVarCurVal(tObjWUk & anObj,const  Type & aVal)
 {
-	SetFrozenVar(anObj.IndOfVal(&aVal),aVal);
+	// SetFrozenVar(anObj.IndOfVal(&aVal),aVal);
+	SetFrozenVarCurVal(anObj.IndOfVal(&aVal));
 }
 
 
-template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const  Type * anAdr,size_t aNb)
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVarCurVal(tObjWUk & anObj,const  Type * anAdr,size_t aNb)
 {
 	for (size_t aK=0 ; aK<aNb ; aK++)
-            SetFrozenVar(anObj,*(anAdr+aK));
+            SetFrozenVarCurVal(anObj,*(anAdr+aK));
 }
-template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const tStdVect &  aVect)
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVarCurVal(tObjWUk & anObj,const tStdVect &  aVect)
 {
-            SetFrozenVar(anObj,aVect.data(),aVect.size());
+            SetFrozenVarCurVal(anObj,aVect.data(),aVect.size());
 }
-template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,3> &  aPt)
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVarCurVal(tObjWUk & anObj,const cPtxd<Type,3> &  aPt)
 {
-            SetFrozenVar(anObj,aPt.PtRawData(),3);
+            SetFrozenVarCurVal(anObj,aPt.PtRawData(),3);
 }
-template <class Type> void cResolSysNonLinear<Type>::SetFrozenVar(tObjWUk & anObj,const cPtxd<Type,2> &  aPt)
+template <class Type> void cResolSysNonLinear<Type>::SetFrozenVarCurVal(tObjWUk & anObj,const cPtxd<Type,2> &  aPt)
 {
-            SetFrozenVar(anObj,aPt.PtRawData(),2);
+            SetFrozenVarCurVal(anObj,aPt.PtRawData(),2);
 }
 
 template <class Type> void  cResolSysNonLinear<Type>::SetFrozenAllCurrentValues(tObjWUk & anObj)
@@ -459,7 +464,7 @@ template <class Type>
 	  //  StdOut() << "Aaaa " << *anAdr << " NN=" << aGIAP.VNames() [aK] << " " << anObjPtr->IndOfVal(anAdr) << "\n";
           if (Frozen)
 	  {
-             SetFrozenVar(*anObjPtr,*anAdr);
+             SetFrozenVarCurVal(*anObjPtr,*anAdr);
 	  }
 	  else
 	  {
@@ -498,6 +503,7 @@ template <class Type> int  cResolSysNonLinear<Type>::GetNbObs() const
     return currNbObs?currNbObs:lastNbObs;
 }
 
+//   ==================================  Fix var with a given weight =====================================
 
 template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const int & aNumV,const Type& aWeight)
 {
@@ -508,6 +514,25 @@ template <class Type> void   cResolSysNonLinear<Type>::R_AddEqFixCurVar(const in
 {
 	AddEqFixCurVar(aNumV,aWeight);
 }
+
+template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const tObjWUk & anObj,const  Type & aVal,const Type& aWeight)
+{
+     size_t aNumV = anObj.IndOfVal(&aVal);
+     AddEqFixVar(aNumV,mCurGlobSol(aNumV),aWeight);
+}
+
+
+template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const tObjWUk & anObj,const  Type * aVal,size_t aNb,const Type& aWeight)
+{
+     for (size_t aK=0 ; aK<aNb ; aK++)
+         AddEqFixCurVar(anObj,*(aVal+aK),aWeight);
+}
+
+template <class Type> void   cResolSysNonLinear<Type>::AddEqFixCurVar(const tObjWUk & anObj,const  cPtxd<Type,3> & aPt,const Type& aWeight)
+{
+     AddEqFixCurVar(anObj,aPt.PtRawData(),3,aWeight);
+}
+
 
 
 
@@ -814,6 +839,7 @@ template <class Type> void   cResolSysNonLinear<Type>::AddEq2Subst
     std::vector<tIO_RSNL> aVIO(1,tIO_RSNL(aVInd,aVObs));
     CalcVal(aCalc,aVIO,aSetIO.ValTmpUk(),true,aWeighter);
 
+
     aSetIO.AddOneEq(aVIO.at(0));
 }
 
@@ -846,6 +872,7 @@ template <> void   cResolSysNonLinear<tREAL8>::R_AddEq2Subst
 			     
 template <class Type> void cResolSysNonLinear<Type>::AddObsWithTmpUK (const tSetIO_ST & aSetIO)
 {
+    currNbObs += aSetIO.NbRedundacy();
     mSysLinear->AddObsWithTmpUK(aSetIO);
 }
 
@@ -867,6 +894,11 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
 template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUpdateReset() 
 {
+    if (mNbVar>currNbObs)
+    {
+           //StdOut()  << "currNbObscurrNbObs " << currNbObs  << " RRRRR=" << currNbObs - mNbVar << "\n";
+        MMVII_DEV_WARNING("Not enough obs for var ");
+    }
     lastNbObs = currNbObs;
     mInPhaseAddEq = false;
     // for var frozen, they are not involved in any equation, we must fix their value other way

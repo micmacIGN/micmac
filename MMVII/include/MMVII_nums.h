@@ -986,6 +986,32 @@ template <class TCont,class TVal> double Rank(const TCont &, const TVal&);
 void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile);
 
 
+/**  Class for implementing proba law whith given average & standard deviation*/
+
+class cAvgDevLaw : public cMemCheck
+{
+    public  :
+	    /// Value of the law
+            tREAL8  NormalizedValue(tREAL8 aVal) const ;
+            /// Allocator of a cubic law approx gaussian
+            static cAvgDevLaw * CubAppGaussLaw(const tREAL8& aAvg,const  tREAL8& aStdDev);  
+            /// Allocator of a gaussian law
+            static cAvgDevLaw * GaussLaw(const tREAL8& aAvg,const  tREAL8& aStdDev);
+            virtual ~cAvgDevLaw();  ///< virtual destructor because virtual method
+
+            static void Bench();  ///<  Test of Integral/Average/Deviation for diff law
+    protected :
+            static void BenchOneLow(cAvgDevLaw *);  ///< Test of Integral/Average/Deviation for a given law
+
+            cAvgDevLaw(const tREAL8& aAvg,const  tREAL8& aStdDev);
+            virtual tREAL8  RawValue(tREAL8 aVal) const =0 ; ///< fundamental method to override
+
+            tREAL8 mAvg;     ///<  Average of the law
+            tREAL8 mStdDev;  ///<  Standard deviation of the law
+};
+
+
+
 };
 
 #endif  //  _MMVII_nums_H_

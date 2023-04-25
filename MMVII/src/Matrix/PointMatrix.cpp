@@ -1,4 +1,5 @@
 #include "MMVII_Matrix.h"
+#include "MMVII_Geom2D.h"
 
 
 namespace MMVII
@@ -116,8 +117,35 @@ template <class Type>  cDenseMatrix<Type> M2x2FromLines(const cPtxd<Type,2>&L0,c
 
       return aRes;
 }
+template <class Type>  cDenseMatrix<Type> M2x2FromCol(const cPtxd<Type,2>&C0,const cPtxd<Type,2> &C1)
+{
+      cDenseMatrix<Type> aRes(2,2);
 
+      SetCol(aRes,0,C0);
+      SetCol(aRes,1,C1);
 
+      return aRes;
+}
+
+template <class Type>  cDenseMatrix<Type> MatDiag(const cPtxd<Type,2>&aPt)
+{
+     cDenseMatrix<Type>  aDM(2,eModeInitImage::eMIA_Null);
+
+     aDM.SetElem(0,0,aPt.x());
+     aDM.SetElem(1,1,aPt.y());
+
+     return aDM;
+}
+
+template <class Type>  cDenseMatrix<Type> MatrSim(const cPtxd<Type,2>& aIm_Ox)
+{
+	return M2x2FromCol(aIm_Ox,Rot90(aIm_Ox));
+}
+
+template <class Type>  cDenseMatrix<Type> MatrRot(const Type & aTeta)
+{
+	return MatrSim(FromPolar(Type(1.0),aTeta));
+}
 
 
 
@@ -229,9 +257,15 @@ template  void GetLine(cPtxd<TYPE,DIM> & ,int,const cDenseMatrix<TYPE> & aMat);\
 template  void SetLine(int,cDenseMatrix<TYPE> & ,const cPtxd<TYPE,DIM> & );
 
 
+// template   cDenseMatrix<TYPE> MatrRot(const TYPE&);
+
 #define INSTANT_PT_MAT_TYPE(TYPE)\
 template   cDenseMatrix<TYPE> M3x3FromLines(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3> &,const cPtxd<TYPE,3> &);\
 template   cDenseMatrix<TYPE> M2x2FromLines(const cPtxd<TYPE,2>&,const cPtxd<TYPE,2> &);\
+template   cDenseMatrix<TYPE> M2x2FromCol(const cPtxd<TYPE,2>&,const cPtxd<TYPE,2> &);\
+template   cDenseMatrix<TYPE> MatDiag(const cPtxd<TYPE,2>&);\
+template   cDenseMatrix<TYPE> MatrSim(const cPtxd<TYPE,2>&);\
+template   cDenseMatrix<TYPE> MatrRot(const TYPE&);\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,1)\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,2)\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,3)\

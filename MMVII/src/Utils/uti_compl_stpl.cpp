@@ -37,7 +37,7 @@ template <class Type>
 
 
 template <class Type>
-   int  cBijectiveMapI2O<Type>::Obj2I(const Type & anObj,bool SVP)
+   int  cBijectiveMapI2O<Type>::Obj2I(const Type & anObj,bool SVP) const
 {
     const auto & anIt = mObj2I.find(anObj) ;
 

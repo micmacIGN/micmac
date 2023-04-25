@@ -140,6 +140,23 @@ class cMMVII_Warning
 
 #define MMVII_DEV_WARNING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
 
+void  ErrorWarnNone(eLevelCheck aLevel,const std::string & aMes);
+/*
+{
+      switch(aLevel)
+      {
+	      case eLevelCheck::NoCheck : break;
+
+	      case eLevelCheck::Warning : 
+                   MMVII_DEV_WARNING(aMes);
+              break;
+
+	      case eLevelCheck:: : 
+                   MMVII_INTERNAL_ERROR(aMes);
+              break;
+      }
+}
+*/
 
 /// A fake function, to stop momentarilly warnings about unused variable ...
 template <class Type> void FakeUseIt(const Type &) {}
