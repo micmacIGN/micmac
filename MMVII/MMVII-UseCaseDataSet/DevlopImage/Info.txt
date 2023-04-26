@@ -1,0 +1,46 @@
+"mm3d" "Tapioca" "MulScale" ".*jpg" "400" "1500" "@SFS"
+
+Tapas FraserBasic "P.*jpg" Out=AllRel
+mm3d SaisieBasc "P105620[0-2].jpg" Ori-AllRel/ MesBasc.xml SzW=[500,500] ForceGray=false
+
+mm3d SaisieMasqQT P1056154.jpg Attr=Plan 
+mm3d SaisieMasqQT P1056194.jpg Attr=Plan 
+
+mm3d SBGlobBascule P.*jpg Ori-AllRel/ MesBasc-S2D.xml Basc  PostPlan=Plan DistFS=10
+
+AperiCloud "P.*jpg" Ori-Basc/
+
+mm3d SaisieMasqQT AperiCloud_Basc.ply
+
+mm3d C3DC BigMac P.*jpg Ori-Basc/ Masq3D=AperiCloud_Basc_selectionInfo.xml 
+
+mm3d TiPunch C3DC_BigMac.ply Filter=0 
+
+ ===================================================
+
+MVII OriConvV1V2 Ori-Basc/ Basc
+
+
+MMVII  MeshCheck C3DC_BigMac_mesh.ply Out=Correc-C3DC_BigMac_mesh.ply Bin=1
+
+MMVII  MeshCloudClip Correc-C3DC_BigMac_mesh.ply  AperiCloud_Basc_polyg3d.xml  CheckReach=false
+
+MMVII MeshProjImage "P.*jpg"  Reached_Clip_Correc-C3DC_BigMac_mesh.ply Basc DEV OutRad=R0
+
+
+=>  EDIT MTD
+         <Mode>"Aperture"</Mode>
+
+
+MMVII RadiomComputeEqual "P.*jpg" R0 Basc OutRad=R0
+=> 
+Level=[UserEr:UnClassedError]
+Mes=[Output-Dir Rad required non init]
+========= ARGS OF COMMAND ==========
+
+
+
+MMVII MeshImageDevlp Dev_Reached_Clip_Correc-C3DC_BigMac_mesh.ply  DEV InRad=R0
+
+
+
