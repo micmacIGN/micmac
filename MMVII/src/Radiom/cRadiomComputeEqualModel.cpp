@@ -483,10 +483,7 @@ void   cAppliRadiom2ImageSameMod::MakeMixtModel()
 
 int cAppliRadiom2ImageSameMod::Exe()
 {
-    if (! mPhProj.DPRadiom().DirOutIsInit())
-    {
-        mPhProj.DPRadiom().SetDirOut(mPhProj.DPRadiom().DirIn());
-    }
+    mPhProj.DPRadiom().SetDirOutInIfNotInit();
 		    
     mPhProj.FinishInit();
 

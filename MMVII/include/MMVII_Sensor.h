@@ -29,7 +29,8 @@ class  cPerspCamIntrCalib;
 class  cSensorCamPC;
 class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
-class cGlobCalculMetaDataProject;
+class  cCalculMetaDataProject;
+class  cGlobCalculMetaDataProject;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
@@ -230,6 +231,7 @@ class cDirsPhProj
           void  AssertDirInIsInit() const;
           void  AssertDirOutIsInit() const;
 
+	  void SetDirOutInIfNotInit(); ///< If Dir Out is not init, set it to same value than In
      private :
           cDirsPhProj(const cDirsPhProj &) = delete;
 
@@ -361,6 +363,8 @@ class cPhotogrammetricProject
 	  /// Return metadata while maintaining a map for assuring that read only once for a given image
           cMetaDataImage GetMetaData(const std::string &) const;
 
+	  cGlobCalculMetaDataProject*  InitGlobCalcMTD() const;
+	  cCalculMetaDataProject * CMDPOfName(const std::string &);
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;

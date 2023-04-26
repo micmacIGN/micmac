@@ -329,7 +329,7 @@ template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
            {
                 {eMTDIm::eFocalmm,"Focalmm"},
                 {eMTDIm::eAperture,"Aperture"},
-                {eMTDIm::eModeleCam,"ModeleCam"},
+                {eMTDIm::eModelCam,"ModelCam"},
                 {eMTDIm::eAdditionalName,"AdditionalName"}
            };
 TPL_ENUM_2_STRING(eMTDIm);

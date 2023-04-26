@@ -456,7 +456,7 @@ enum class eMTDIm
            {
               eFocalmm,
               eAperture,
-              eModeleCam,
+              eModelCam,
               eAdditionalName,
               eNbVals
            };

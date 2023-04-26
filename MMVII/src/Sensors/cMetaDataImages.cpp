@@ -83,13 +83,25 @@ class cGlobCalculMetaDataProject
 {
      public :
          std::string Translate(const std::string &,eMTDIm ) const;
-         void AddDir(const std::string& aDir);
-         void      SetReal(tREAL8 & aVal,const std::string &,eMTDIm ) const;
-         void      SetName(std::string & aVal,const std::string &,eMTDIm ) const;
+         void   AddDir(const std::string& aDir);
+         void   SetReal(tREAL8 & aVal,const std::string &,eMTDIm ) const;
+         void   SetName(std::string & aVal,const std::string &,eMTDIm ) const;
+
+	 cCalculMetaDataProject * CMDPOfName(const std::string &);
+
      private :
-	 std::vector<cCalculMetaDataProject>  mTranslators;
+	 std::list<cCalculMetaDataProject>               mTranslators;
+	 std::map<std::string,cCalculMetaDataProject *>  mMapDir2T;
+
 };
 
+cCalculMetaDataProject * cGlobCalculMetaDataProject::CMDPOfName(const std::string & aName)
+{
+   cCalculMetaDataProject * aRes = mMapDir2T[aName];
+   MMVII_INTERNAL_ASSERT_tiny(aRes,"cGlobCalculMetaDataProject CMDPOfName");
+
+   return aRes;
+}
 /* ******************************************* */
 /*                                             */
 /*          cGlobCalculMetaDataProject         */
@@ -100,12 +112,12 @@ void cGlobCalculMetaDataProject::AddDir(const std::string& aDir)
 {
      std::string aNameF = aDir + cCalculMetaDataProject::NameStdFile;
 
-
      if (ExistFile(aNameF))
      {
          cCalculMetaDataProject aCalc;
          ReadFromFile(aCalc,aNameF);
 	 mTranslators.push_back(aCalc);
+	 mMapDir2T[aNameF] = &(mTranslators.back()) ;
      }
 }
 
@@ -302,7 +314,7 @@ cMetaDataImage::cMetaDataImage(const std::string & aDir,const std::string & aNam
 
     aGlobCalc->SetReal(mAperture,aNameIm,eMTDIm::eAperture);
     aGlobCalc->SetReal(mFocalMM,aNameIm,eMTDIm::eFocalmm);
-    aGlobCalc->SetName(mCameraName,aNameIm,eMTDIm::eModeleCam);
+    aGlobCalc->SetName(mCameraName,aNameIm,eMTDIm::eModelCam);
     aGlobCalc->SetName(mAdditionalName,aNameIm,eMTDIm::eAdditionalName);
 }
 
@@ -336,6 +348,23 @@ std::string  cMetaDataImage::InternalCalibGeomIdent() const
 /*                                             */
 /* ******************************************* */
 
+cGlobCalculMetaDataProject * cPhotogrammetricProject::InitGlobCalcMTD() const
+{
+    if (mGlobCalcMTD==nullptr)
+    {
+           mGlobCalcMTD = new cGlobCalculMetaDataProject;
+	   mGlobCalcMTD->AddDir(mDPMetaData.FullDirIn());
+	   mGlobCalcMTD->AddDir(mAppli.DirProfileUsage());
+    }
+    return mGlobCalcMTD;
+}
+
+cCalculMetaDataProject * cPhotogrammetricProject::CMDPOfName(const std::string & aName)
+{
+    InitGlobCalcMTD();
+    return mGlobCalcMTD->CMDPOfName(aName);
+}
+
 cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aFullNameIm) const
 {
    std::string aDir,aNameIm;
@@ -344,14 +373,7 @@ cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aFullNam
    auto  anIt = aMap.find(aNameIm);
    if (anIt== aMap.end())
    {
-        if (mGlobCalcMTD==nullptr)
-	{
-           mGlobCalcMTD = new cGlobCalculMetaDataProject;
-	   mGlobCalcMTD->AddDir(mDPMetaData.FullDirIn());
-	   mGlobCalcMTD->AddDir(mAppli.DirProfileUsage());
-	}
-
-	// mDPMetaData.FullDirOut()
+        InitGlobCalcMTD();
         aMap[aNameIm] = cMetaDataImage(aDir,aNameIm,mGlobCalcMTD);
    }
 
@@ -398,16 +420,16 @@ cAppli_EditCalcMetaDataImage::cAppli_EditCalcMetaDataImage(const std::vector<std
 
 cCollecSpecArg2007 & cAppli_EditCalcMetaDataImage::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
-  return      anArgObl
+   return     anArgObl
           <<  mPhProj.DPMetaData().ArgDirInMand()
 	  <<  Arg2007(mTypeMTDIM ,"Type of meta-data",{AC_ListVal<eMTDIm>()})
-
    ;
 }
 
 cCollecSpecArg2007 & cAppli_EditCalcMetaDataImage::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return    anArgOpt
+          <<  mPhProj.DPMetaData().ArgDirOutOpt()
 	    /*
            << AOpt2007(mNbTriplets,"NbTriplets","Number max of triplet tested in Ransac",{eTA2007::HDV})
            << AOpt2007(mNbIterBundle,"NbIterBund","Number of bundle iteration, after ransac init",{eTA2007::HDV})
@@ -418,7 +440,13 @@ cCollecSpecArg2007 & cAppli_EditCalcMetaDataImage::ArgOpt(cCollecSpecArg2007 & a
 
 int cAppli_EditCalcMetaDataImage::Exe() 
 {
+    mPhProj.DPMetaData().SetDirOutInIfNotInit();
+
     mPhProj.FinishInit();
+    mPhProj.InitGlobCalcMTD();
+
+	   // mGlobCalcMTD->AddDir(mDPMetaData.FullDirIn());
+
 
     return EXIT_SUCCESS;
 }
@@ -446,10 +474,6 @@ cSpecMMVII_Appli  TheSpec_EditCalcMetaDataImage
       {eApDT::Xml},
       __FILE__
 );
-/*
-*/
-
-
 
 }; // MMVII
 

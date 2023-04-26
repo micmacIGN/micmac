@@ -16,6 +16,7 @@ extern cSpecMMVII_Appli  TheSpecTestCpp11;
 extern cSpecMMVII_Appli  TheSpecMPDTest;
 extern cSpecMMVII_Appli  TheSpecEditSet;
 extern cSpecMMVII_Appli  TheSpecEditRel;
+extern cSpecMMVII_Appli  TheSpec_EditCalcMetaDataImage;
 extern cSpecMMVII_Appli  TheSpecWalkman;
 extern cSpecMMVII_Appli  TheSpecDaisy;
 extern cSpecMMVII_Appli  TheSpecCatVideo;
