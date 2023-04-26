@@ -1,0 +1,58 @@
+#   =====================  1  GENERATE SPECIFICATION OF TARGETS ===============================================
+
+# Generate a Set of bit encoding
+MMVII  CodedTargetGenerateEncoding CERN 14
+
+#  Generate the geometry associated to these codes
+MMVII  CodedTargetGenerate  CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.xml 
+
+#  Optionnaly can generate the images of target
+#  MMVII  CodedTargetGenerate  CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.xml  PatIm=001
+#  MMVII  CodedTargetGenerate  CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.xml  PatIm=001
+
+ 
+#   =====================  2  EXTARCT  TARGETS ==================================================================
+
+# extract coded cirtcualr target of one image
+MMVII  CodedTargetCircExtract 043_0005_Scaled.tif CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 
+
+# Optionally genarate visualisation of extracted target
+# MMVII  CodedTargetCircExtract 043_0005_Scaled.tif CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml  DiamMin=8 VisuEllipse=1
+
+# extract coded cirtcualr target of all images
+MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 
+
+
+#   =====================  3  ESTIMATE VALUE INIT OF POSE + CALIB with 11 PARAMETER METHOD ======================
+
+#       ===========  3.1  FOR ONE CAMERA With linear model ===========================
+     
+#  Try to estimate pose + calib y 
+MMVII  OriPoseEstim11P 043_0005_Scaled.tif Std 11P
+#  => Fail because no GCP found in PointsMeasure/Std
+
+
+# make a copy a GCP at write place
+cp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/PointsMeasure/Std/
+
+#  Now it works
+MMVII  OriPoseEstim11P 043_0005_Scaled.tif Std 11P
+
+#       ===========  3.2  FOR SEVERAL CAMERA With linear model ===========================
+
+#estimate for all images independantly
+MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P DoMedianCalib=false
+
+# If ommit DoMedianCalib -> try to make an  average camere
+MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P 
+# => fail because cannot compute common calibration name (need at least focal + camera model)
+
+# put file for computing missing meta-data at the write place
+cp Data-Aux/CalcMTD.xml  MMVII-PhgrProj/MetaData/Std
+
+# now it works
+MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P 
+
+
+
+
