@@ -222,9 +222,6 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgOpt(cCollecSpecArg2007 & anAr
    return anArgOpt
            << AOpt2007(mShow,"Show","Show messages",{eTA2007::HDV})
 	   << mPhProj.DPRadiom().ArgDirOutOpt()
-	   /*
-           << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
-	   */
    ;
 }
 
@@ -486,7 +483,13 @@ void   cAppliRadiom2ImageSameMod::MakeMixtModel()
 
 int cAppliRadiom2ImageSameMod::Exe()
 {
+    if (! mPhProj.DPRadiom().DirOutIsInit())
+    {
+        mPhProj.DPRadiom().SetDirOut(mPhProj.DPRadiom().DirIn());
+    }
+		    
     mPhProj.FinishInit();
+
 
     size_t aLimitIndex =0;
     mNbIm = VectMainSet(0).size();

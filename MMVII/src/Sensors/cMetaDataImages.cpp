@@ -368,6 +368,88 @@ void cPhotogrammetricProject::GenerateSampleCalcMTD()
      cCalculMetaDataProject::GenerateSample( mDPMetaData.FullDirIn()+cCalculMetaDataProject::NameStdFile);
 }
 
+/* ******************************************* */
+/*                                             */
+/*         cAppli_EditCalcMetaDataImage        */
+/*                                             */
+/* ******************************************* */
+
+class cAppli_EditCalcMetaDataImage : public cMMVII_Appli
+{
+     public :
+
+        cAppli_EditCalcMetaDataImage(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+	
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+
+        cPhotogrammetricProject  mPhProj;
+	eMTDIm                   mTypeMTDIM;
+};
+
+cAppli_EditCalcMetaDataImage::cAppli_EditCalcMetaDataImage(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+     cMMVII_Appli (aVArgs,aSpec),
+     mPhProj      (*this)
+{
+}     
+
+cCollecSpecArg2007 & cAppli_EditCalcMetaDataImage::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+  return      anArgObl
+          <<  mPhProj.DPMetaData().ArgDirInMand()
+	  <<  Arg2007(mTypeMTDIM ,"Type of meta-data",{AC_ListVal<eMTDIm>()})
+
+   ;
+}
+
+cCollecSpecArg2007 & cAppli_EditCalcMetaDataImage::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+    return    anArgOpt
+	    /*
+           << AOpt2007(mNbTriplets,"NbTriplets","Number max of triplet tested in Ransac",{eTA2007::HDV})
+           << AOpt2007(mNbIterBundle,"NbIterBund","Number of bundle iteration, after ransac init",{eTA2007::HDV})
+           << AOpt2007(mShowBundle,"ShowBundle","Show detail of bundle results",{eTA2007::HDV})
+	   */
+    ;
+}
+
+int cAppli_EditCalcMetaDataImage::Exe() 
+{
+    mPhProj.FinishInit();
+
+    return EXIT_SUCCESS;
+}
+
+
+    /* ==================================================== */
+    /*                                                      */
+    /*               MMVII                                  */
+    /*                                                      */
+    /* ==================================================== */
+
+
+tMMVII_UnikPApli Alloc_EditCalcMetaDataImage(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_EditCalcMetaDataImage(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_EditCalcMetaDataImage
+(
+     "EditCalcMTDI",
+      Alloc_EditCalcMetaDataImage,
+      "Edit the calculator of Meta-Data images",
+      {eApF::Project},
+      {eApDT::Xml},
+      {eApDT::Xml},
+      __FILE__
+);
+/*
+*/
+
+
 
 }; // MMVII
 

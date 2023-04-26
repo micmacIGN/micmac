@@ -189,6 +189,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eModeCaracMatch,"ModeCaracMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eDCTFilters,"DCTFilters")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyCodeTarget,"TypeCodedTarget")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeTestPropCov,"TestPropCov")
+MACRO_INSTANTITATE_STRIO_ENUM(eMTDIm,"TypeMTDIm")
 
 /* ==================================== */
 /*                                      */

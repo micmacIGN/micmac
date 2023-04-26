@@ -197,6 +197,11 @@ void cDirsPhProj::SetDirIn(const std::string & aDirIn)
      mAppli.SetVarInit(&mDirIn); // required becaus of AssertOriInIsInit
 }
 
+void cDirsPhProj::SetDirOut(const std::string & aDirOut)
+{
+     mDirOut = aDirOut;
+     mAppli.SetVarInit(&mDirOut); // required becaus of AssertOriInIsInit
+}
 
 
    /* ********************************************************** */
@@ -261,14 +266,14 @@ cDirsPhProj &   cPhotogrammetricProject::DPRadiom() {return mDPRadiom;}
 cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
 cDirsPhProj &   cPhotogrammetricProject::DPMask() {return mDPMask;}
 cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() {return mDPPointsMeasures;}
-// cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
+cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiom() const {return mDPRadiom;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMeshDev;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
 const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return mDPPointsMeasures;}
-// const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
+const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
 
 
 

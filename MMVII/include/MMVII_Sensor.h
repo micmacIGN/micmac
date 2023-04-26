@@ -224,6 +224,7 @@ class cDirsPhProj
           const std::string & FullDirIn() const;   ///< Accessor
           const std::string & FullDirOut() const;   ///< Accessor
 
+	  void SetDirOut(const std::string & aDirOut); ///< Modifier, for example to have defaut value to input
 	  bool  DirInIsInit() const;
 	  bool  DirOutIsInit() const;
           void  AssertDirInIsInit() const;
@@ -279,12 +280,14 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
 	  cDirsPhProj &   DPMask(); ///< Accessor
 	  cDirsPhProj &   DPPointsMeasures(); ///< Accessor
+	  cDirsPhProj &   DPMetaData();    ///<  Accessor
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiom() const; ///< Accessor
 	  const cDirsPhProj &   DPMeshDev() const; ///< Accessor
 	  const cDirsPhProj &   DPMask() const; ///< Accessor
 	  const cDirsPhProj &   DPPointsMeasures() const; ///< Accessor
+	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
