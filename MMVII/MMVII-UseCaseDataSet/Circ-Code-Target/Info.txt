@@ -47,7 +47,7 @@ MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P DoMedianCalib=false
 MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P 
 # => fail because cannot compute common calibration name (need at least focal + camera model)
 
-# put file for computing missing meta-data at the write place
+# put file for computing missing meta-data at the right place
 cp Data-Aux/CalcMTD.xml  MMVII-PhgrProj/MetaData/Std
 
 # now it works

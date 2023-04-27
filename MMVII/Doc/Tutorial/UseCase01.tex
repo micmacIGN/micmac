@@ -55,7 +55,7 @@ pose estimation of camera in the same repair.
 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-\subsection{Camera pose and calibration}
+\subsubsection{Camera pose and calibration}
 
 As the reduction has supressed the {\tt xif} meta-data, we indicate it
 for {\tt mmv1}, the folder contains a file :
@@ -87,7 +87,7 @@ Once done we use :
 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-\subsection{Computation of $3d$ model}
+\subsubsection{Computation of $3d$ model}
 
 We must first create a $3d$ masq of the zone that will be used at different step .
 We first create a sparse cloud for seizing :
@@ -116,7 +116,7 @@ Finaly, we transform it in a $3d$ mesh :
 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-\subsection{Inporting the data}
+\subsubsection{Inporting the data}
 
 In the {\tt MMVII} part we need the pose of camera and the $3D$ mesh. The $3d$ mesh is 
 in the standard  {\tt ply} format that is supported by  {\tt MMVII}, so there is nothing
@@ -130,7 +130,7 @@ Curious reader, can inspect the folder {\tt MMVII-PhgrProj/Ori/Basc/}.
 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-\subsection{Correcting and filtering the mesh}
+\subsubsection{Correcting and filtering the mesh}
 
 We use the command {\tt MeshCheck} and {\tt MeshCloudClip}, the first one
 correct some topologicall probleme in the mesh, the second one restric
@@ -145,7 +145,7 @@ create undesirable extensions) :
 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-\subsection{Devlopment of the mesh}
+\subsubsection{Devlopment of the mesh}
 
 Now we run the "kernel" algorithm to create the $2d$ development of the mesh :
 
@@ -158,7 +158,7 @@ the surface is not connex .
 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-\subsection{Computing visibility, quality , radiometry of triangles}
+\subsubsection{Computing visibility, quality , radiometry of triangles}
 
 We now run the command  {\tt MeshProjImage} to prepare the texture mapping : this command
 compute the visibility of each triangle in each image, it also computes tie points with 
@@ -174,7 +174,7 @@ must be compute, and fix the folder where these data must be stored.
 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-\subsection{Equalizing the radiometry}
+\subsubsection{Equalizing the radiometry}
 
 For radiometric equalization, we must know the aperture used for each image,
 as the vignettage is dependand of aperture. As these images contains no metadata,
@@ -200,7 +200,7 @@ Now we can compute the radometric equalization model :
 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-\subsection{Map the texture}
+\subsubsection{Map the texture}
 
 And finnaly, we can create the devloped surface :
 
