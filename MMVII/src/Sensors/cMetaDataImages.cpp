@@ -96,71 +96,6 @@ class cGlobCalculMetaDataProject
 
 };
 
-cCalculMetaDataProject * cGlobCalculMetaDataProject::CMDPOfName(const std::string & aName)
-{
-   const cCalculMetaDataProject * aRes = mMapDir2T[aName];
-   MMVII_INTERNAL_ASSERT_tiny(aRes!=nullptr,"cGlobCalculMetaDataProject CMDPOfName");
-
-   return const_cast<cCalculMetaDataProject *>(aRes);
-}
-/* ******************************************* */
-/*                                             */
-/*          cGlobCalculMetaDataProject         */
-/*                                             */
-/* ******************************************* */
-
-void cGlobCalculMetaDataProject::AddDir(const std::string& aDir)
-{
-     std::string aNameF = aDir + cCalculMetaDataProject::NameStdFile;
-
-     if (ExistFile(aNameF))
-     {
-         cCalculMetaDataProject aCalc;
-         ReadFromFile(aCalc,aNameF);
-	 mTranslators.push_back(aCalc);
-	 mMapDir2T[aDir] = &(mTranslators.back()) ;
-     }
-}
-
-std::string cGlobCalculMetaDataProject::Translate(const std::string & aName,eMTDIm aMode,bool ForTest) const
-{
-    for (const auto & aTr : mTranslators)
-    {
-        if (ForTest)
-	{
-
-             const std::string * aV = FindByVal(mMapDir2T,&aTr,false);
-	     StdOut() << "============= Try with dir " << *aV << " =================\n";
-	}
-        std::string aRes = aTr.Translate(aName,aMode,ForTest);
-	if (aRes != MMVII_NONE)
-           return aRes;
-    }
-    return MMVII_NONE;
-}
-
-void     cGlobCalculMetaDataProject::SetReal(tREAL8 & aVal,const std::string & aNameIm,eMTDIm aMode) const
-{
-    // already set by a more important rule
-    if (aVal !=-1) return;
-
-    std::string aTr = Translate(aNameIm,aMode);
-
-    if (aTr !=MMVII_NONE)  
-        aVal =  cStrIO<double>::FromStr(aTr);
-}
-
-void  cGlobCalculMetaDataProject::SetName(std::string & aVal,const std::string & aNameIm,eMTDIm aMode) const
-{
-    // already set by a more important rule
-    if (aVal !="") return;
-
-    std::string aTr = Translate(aNameIm,aMode);
-
-    if (aTr !=MMVII_NONE)  
-        aVal =  aTr;
-}
-
 /* ******************************************* */
 /*                                             */
 /*                cOneTryCAI                   */
@@ -300,6 +235,72 @@ void cCalculMetaDataProject::GenerateSample(const std::string & aNameFile)
 }
 
 const std::string  cCalculMetaDataProject::NameStdFile = "CalcMTD.xml";
+
+/* ******************************************* */
+/*                                             */
+/*          cGlobCalculMetaDataProject         */
+/*                                             */
+/* ******************************************* */
+
+void cGlobCalculMetaDataProject::AddDir(const std::string& aDir)
+{
+     std::string aNameF = aDir + cCalculMetaDataProject::NameStdFile;
+
+     if (ExistFile(aNameF))
+     {
+         cCalculMetaDataProject aCalc;
+         ReadFromFile(aCalc,aNameF);
+	 mTranslators.push_back(aCalc);
+	 mMapDir2T[aDir] = &(mTranslators.back()) ;
+     }
+}
+
+std::string cGlobCalculMetaDataProject::Translate(const std::string & aName,eMTDIm aMode,bool ForTest) const
+{
+    for (const auto & aTr : mTranslators)
+    {
+        if (ForTest)
+	{
+
+             const std::string * aV = FindByVal(mMapDir2T,&aTr,false);
+	     StdOut() << "============= Try with dir " << *aV << " =================\n";
+	}
+        std::string aRes = aTr.Translate(aName,aMode,ForTest);
+	if (aRes != MMVII_NONE)
+           return aRes;
+    }
+    return MMVII_NONE;
+}
+
+void     cGlobCalculMetaDataProject::SetReal(tREAL8 & aVal,const std::string & aNameIm,eMTDIm aMode) const
+{
+    // already set by a more important rule
+    if (aVal !=-1) return;
+
+    std::string aTr = Translate(aNameIm,aMode);
+
+    if (aTr !=MMVII_NONE)  
+        aVal =  cStrIO<double>::FromStr(aTr);
+}
+
+void  cGlobCalculMetaDataProject::SetName(std::string & aVal,const std::string & aNameIm,eMTDIm aMode) const
+{
+    // already set by a more important rule
+    if (aVal !="") return;
+
+    std::string aTr = Translate(aNameIm,aMode);
+
+    if (aTr !=MMVII_NONE)  
+        aVal =  aTr;
+}
+
+cCalculMetaDataProject * cGlobCalculMetaDataProject::CMDPOfName(const std::string & aName)
+{
+   const cCalculMetaDataProject * aRes = mMapDir2T[aName];
+   MMVII_INTERNAL_ASSERT_tiny(aRes!=nullptr,"cGlobCalculMetaDataProject CMDPOfName");
+
+   return const_cast<cCalculMetaDataProject *>(aRes);
+}
 
 
 /* ******************************************* */
