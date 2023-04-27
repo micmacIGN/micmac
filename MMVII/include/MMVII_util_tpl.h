@@ -402,6 +402,15 @@ template <class Type>  class cBijectiveMapI2O
 
 typedef  cBijectiveMapI2O<std::string> t2MapStrInt;
 
+template <class Key,class Val> const Key * FindByVal(const std::map<Key,Val> & aMap,const Val & aVal,bool SVP=false)
+{
+    for (const auto & It : aMap)
+       if (It.second == aVal)
+          return  & It.first;
+    MMVII_INTERNAL_ASSERT_tiny(SVP,"FindByVal");
+    return nullptr;
+}
+
 
 
 };

@@ -2,6 +2,7 @@
 #include "MMVII_Error.h"
 #include "MMVII_Sensor.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_util_tpl.h"
 
 /**
    \file cMetaDataImages.cpp
@@ -42,7 +43,7 @@ class cOneTryCAI
         std::string                  mPat;
 	tNameSelector                mSel;
         std::string                  mValue;
-	std::optional<std::string>   mPatDir;
+	// std::optional<std::string>   mPatDir;
 
 };
 
@@ -57,10 +58,10 @@ class cOneTranslAttrIm
      public :
 	  cOneTranslAttrIm();
 
-          std::string Translate(const std::string & aName) const;
+          std::string Translate(const std::string & aName,bool ForTest) const;
 
 	  eMTDIm                   mMode;
-          std::vector<cOneTryCAI>  mVTries;
+          std::list<cOneTryCAI>  mVTries;
 };
 
 /**   Define the value computed for all possible  enums
@@ -69,7 +70,7 @@ class cCalculMetaDataProject
 {
      public :
 	 cCalculMetaDataProject();
-         std::string Translate(const std::string &,eMTDIm ) const;
+         std::string Translate(const std::string &,eMTDIm,bool ForTest ) const;
 
          std::vector<cOneTranslAttrIm>  mTranslators;
 
@@ -82,7 +83,7 @@ class cCalculMetaDataProject
 class cGlobCalculMetaDataProject
 {
      public :
-         std::string Translate(const std::string &,eMTDIm ) const;
+         std::string Translate(const std::string &,eMTDIm,bool ForTest = false ) const;
          void   AddDir(const std::string& aDir);
          void   SetReal(tREAL8 & aVal,const std::string &,eMTDIm ) const;
          void   SetName(std::string & aVal,const std::string &,eMTDIm ) const;
@@ -91,16 +92,16 @@ class cGlobCalculMetaDataProject
 
      private :
 	 std::list<cCalculMetaDataProject>               mTranslators;
-	 std::map<std::string,cCalculMetaDataProject *>  mMapDir2T;
+	 std::map<std::string,const cCalculMetaDataProject *>  mMapDir2T;
 
 };
 
 cCalculMetaDataProject * cGlobCalculMetaDataProject::CMDPOfName(const std::string & aName)
 {
-   cCalculMetaDataProject * aRes = mMapDir2T[aName];
-   MMVII_INTERNAL_ASSERT_tiny(aRes,"cGlobCalculMetaDataProject CMDPOfName");
+   const cCalculMetaDataProject * aRes = mMapDir2T[aName];
+   MMVII_INTERNAL_ASSERT_tiny(aRes!=nullptr,"cGlobCalculMetaDataProject CMDPOfName");
 
-   return aRes;
+   return const_cast<cCalculMetaDataProject *>(aRes);
 }
 /* ******************************************* */
 /*                                             */
@@ -117,15 +118,21 @@ void cGlobCalculMetaDataProject::AddDir(const std::string& aDir)
          cCalculMetaDataProject aCalc;
          ReadFromFile(aCalc,aNameF);
 	 mTranslators.push_back(aCalc);
-	 mMapDir2T[aNameF] = &(mTranslators.back()) ;
+	 mMapDir2T[aDir] = &(mTranslators.back()) ;
      }
 }
 
-std::string cGlobCalculMetaDataProject::Translate(const std::string & aName,eMTDIm aMode) const
+std::string cGlobCalculMetaDataProject::Translate(const std::string & aName,eMTDIm aMode,bool ForTest) const
 {
     for (const auto & aTr : mTranslators)
     {
-        std::string aRes = aTr.Translate(aName,aMode);
+        if (ForTest)
+	{
+
+             const std::string * aV = FindByVal(mMapDir2T,&aTr,false);
+	     StdOut() << "============= Try with dir " << *aV << " =================\n";
+	}
+        std::string aRes = aTr.Translate(aName,aMode,ForTest);
 	if (aRes != MMVII_NONE)
            return aRes;
     }
@@ -194,16 +201,30 @@ cOneTranslAttrIm::cOneTranslAttrIm():
 {
 }
 
-std::string cOneTranslAttrIm::Translate(const std::string & aName) const
+std::string cOneTranslAttrIm::Translate(const std::string & aName,bool ForTest) const
 {
+
     for (const auto & aTry : mVTries)
     {
+        if (ForTest)
+            StdOut()  <<  "     *  with with pattern [" << aTry.mPat <<"] ,";
         if (aTry.mSel.Match(aName))
 	{
             std::string aTransfo = ReplacePattern(aTry.mPat,aTry.mValue,aName);
 	    if (aTransfo != MMVII_NONE)
+	    {
+               if (ForTest)
+                 StdOut()  <<  " match and got : [" << aTransfo  << "]\n" ;
                return aTransfo;
+	    }
+	    else
+	    {
+                if (ForTest)
+                   StdOut()  <<  " match but got " << MMVII_NONE << "\n";
+	    }
 	}
+        if (ForTest)
+           StdOut()  <<  "    no match\n";
     }
     return MMVII_NONE;
 }
@@ -233,13 +254,19 @@ void AddData(const cAuxAr2007 & anAuxParam,cCalculMetaDataProject & aCalc)
 	AddData(anAux,aCalc.mTranslators);
 }
 
-std::string cCalculMetaDataProject::Translate(const std::string & aName,eMTDIm  aMode) const
+std::string cCalculMetaDataProject::Translate(const std::string & aName,eMTDIm  aMode,bool ForTest) const
 {
     for (const auto & aTransl : mTranslators)
     {
          if (aTransl.mMode==aMode)
-            return aTransl.Translate(aName);
+         {
+            if (ForTest)
+                StdOut()  <<  "   -> found section for : " << E2Str(aMode) << "\n";
+            return aTransl.Translate(aName,ForTest);
+         }
     }
+    if (ForTest)
+       StdOut()  <<  "   -> Did not find section for : " << E2Str(aMode) << "\n";
     return MMVII_NONE;
 }
 
@@ -408,8 +435,12 @@ class cAppli_EditCalcMetaDataImage : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
-        cPhotogrammetricProject  mPhProj;
-	eMTDIm                   mTypeMTDIM;
+        cPhotogrammetricProject     mPhProj;
+	eMTDIm                      mTypeMTDIM;
+	cCalculMetaDataProject*     mCalcProj;
+	cGlobCalculMetaDataProject* mCalcGlob;
+	std::string                 mNameImTest;
+	std::vector<std::string>    mModif;
 };
 
 cAppli_EditCalcMetaDataImage::cAppli_EditCalcMetaDataImage(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -430,6 +461,9 @@ cCollecSpecArg2007 & cAppli_EditCalcMetaDataImage::ArgOpt(cCollecSpecArg2007 & a
 {
     return    anArgOpt
           <<  mPhProj.DPMetaData().ArgDirOutOpt()
+          << AOpt2007(mNameImTest,"ImTest","Im for testing rules")
+          << AOpt2007(mModif,"Modif","Modification [Pat,Subst,Rank], Rank: {at(0)... ,-1 front,High back,at(0),-2 replace }",
+			  {{eTA2007::ISizeV,"[3,3]"}})
 	    /*
            << AOpt2007(mNbTriplets,"NbTriplets","Number max of triplet tested in Ransac",{eTA2007::HDV})
            << AOpt2007(mNbIterBundle,"NbIterBund","Number of bundle iteration, after ransac init",{eTA2007::HDV})
@@ -443,7 +477,33 @@ int cAppli_EditCalcMetaDataImage::Exe()
     mPhProj.DPMetaData().SetDirOutInIfNotInit();
 
     mPhProj.FinishInit();
-    mPhProj.InitGlobCalcMTD();
+    mCalcGlob = mPhProj.InitGlobCalcMTD();
+    mCalcProj = mCalcGlob->CMDPOfName(mPhProj.DPMetaData().FullDirIn());
+
+    if (IsInit(&mModif))
+    {
+         cOneTryCAI aTry(mModif[0],mModif[1]);
+	 int  aRank = cStrIO<int>::FromStr(mModif[2]);
+
+	 if (aRank>=0)
+	 {
+	 }
+	 else if (aRank==-1)
+	 {
+             //mVTries.push_front(aTry);
+	 }
+	 else if (aRank==-2)
+	 {
+
+             //mVTries.push_front(aTry);
+	 }
+    }
+
+    if (IsInit(&mNameImTest))
+    {
+         mCalcGlob->Translate(mNameImTest,mTypeMTDIM,true);
+    }
+
 
 	   // mGlobCalcMTD->AddDir(mDPMetaData.FullDirIn());
 
