@@ -588,6 +588,25 @@ void ActionDir(const std::string & aName,eModeCreateDir aMode)
 }
 
 
+void  MakeBckUp(const std::string & aDir,const std::string & aNameFile,int aNbDig)
+{
+    std::string aPattern = "BckUp_([0-9]*)_" + aNameFile;
+    tNameSelector aSel =  AllocRegex(aPattern);
+
+    std::vector<std::string> aVS = GetFilesFromDir(aDir,aSel);
+
+    int aIMax = -1;
+    for (const auto & aNameFile : aVS)
+    {
+        std::string  aStrNum = ReplacePattern(aPattern,"$1",aNameFile);
+        UpdateMax(aIMax,cStrIO<int>::FromStr(aStrNum));
+    }
+    std::string aNewName = "BckUp_" + ToStr(aIMax+1,aNbDig) + "_" + aNameFile;
+
+    CopyFile( aDir+aNameFile , aDir+aNewName);
+}
+
+
 
     /* =========================================== */
     /*                                             */

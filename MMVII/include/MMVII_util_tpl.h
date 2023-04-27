@@ -411,7 +411,17 @@ template <class Key,class Val> const Key * FindByVal(const std::map<Key,Val> & a
     return nullptr;
 }
 
+template <class tCont>  typename tCont::value_type *  KthElem(tCont & aCont,int aNb,bool SVP=false)
+{
+    for (typename tCont::iterator anIt = aCont.begin() ; anIt!=aCont.end() ; anIt++)
+    {
+       if (aNb==0) return &(*anIt);
+       aNb--;
+    }
+    MMVII_INTERNAL_ASSERT_tiny(SVP,"KthElem");
 
+    return nullptr;
+}
 
 };
 

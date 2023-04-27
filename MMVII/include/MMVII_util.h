@@ -118,6 +118,9 @@ void RenameFiles(const std::string & anOldName, const std::string & aNewName); /
 void CopyFile(const std::string & aName,const std::string & aDest);
 bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all file corresponding to pattern
 void ActionDir(const std::string &,eModeCreateDir);
+/// Generate a Back-Up by creating a copy with a new num
+void  MakeBckUp(const std::string & aDir,const std::string & aNameFile,int aNbDig);
+
 
 
 

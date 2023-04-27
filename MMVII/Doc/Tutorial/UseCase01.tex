@@ -1,0 +1,216 @@
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%                 Chapter set editing
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\chapter{Use cases}
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\section{Image devlopment}
+
+
+%   ------------------------------------------------------------------
+\subsection{Introduction/presentation}
+
+This data set present a use-case for creation a devloped surface.  A detailled
+description of the MMVII-command can be found in chapter~\ref{Chap:Mesh}.
+The data  is made of $74$ images that correspond to a stereoscopic
+acquisition of a map that present high, but smooth, deformation.
+
+For the purpose of limitating the size in github, the images have been articifially
+reduced of a factor $4$. Also the image have been made in non professional
+condition with natural ligthing. Globally, the quality of the result is
+not representative of what can be obtained by such tools.
+
+A file {\tt Info.txt} contains the list of all command used, somes are in
+comment.
+At several step of the process, the pipeline requires some input of the user
+(for example $2d$ and $3d$ masq).  To assure the reproductability, the 
+data set provide a copy of the input that was made in floder {\tt DataAux}. 
+In this case, in the file {\tt Info.txt}  the interactive command id commented, and subsitued
+by a shell command that copy the data, for example :
+
+\begin{itemize}
+    \item for seizing the $3d$ masq, the command {\tt"mm3d SaisieMasqQT AperiCloud\_Basc.ply"}
+	    is indicated but commented;
+    \item to execute the process, the command {\tt "cp DataAux/AperiCloud\_Basc\_* ."} is indicated.
+\end{itemize}
+
+At this step, the pipeline is a mix of {\tt mmv1} and {\tt MMVII}. We give a fast description
+of the {\tt mmv1} part as it is a classical pipeline and let the reader find more details
+in the $500$ pages of the  {\tt mmv1} documentation.
+
+
+%   ------------------------------------------------------------------
+
+\subsection{The  {\tt mmv1} part}
+
+The  {\tt mmv1} goes until the obtention of $3d$ mesh that describe the surfaces and
+pose estimation of camera in the same repair.
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsection{Camera pose and calibration}
+
+As the reduction has supressed the {\tt xif} meta-data, we indicate it
+for {\tt mmv1}, the folder contains a file :
+
+\begin{itemize}
+    \item {\tt MicMac-LocalChantierDescripteur.xml}
+\end{itemize}
+
+We compute tie-point using {\tt @SFS} because of low contrast :
+
+\begin{itemize}
+    \item {\tt mm3d Tapioca MulScale ".*jpg" 400 1500 @SFS}
+\end{itemize}
+
+We compute orientation and calibration : 
+
+\begin{itemize}
+   \item {\tt Tapas FraserBasic "P.*jpg" Out=AllRel}
+\end{itemize}
+
+For  this pipeline, it's not absolutely necessary to be in a physicall repair,
+but that's a good use to have ... We can seize the information with
+{\tt SaisieBasc} and {\tt SaisieMasqQT}, replaced here by {\tt cp} from {\tt DataAux} . 
+Once done we use :
+
+\begin{itemize}
+    \item {\tt mm3d SBGlobBascule P.*jpg Ori-AllRel/ MesBasc-S2D.xml Basc  PostPlan=Plan DistFS=10}
+\end{itemize}
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsection{Computation of $3d$ model}
+
+We must first create a $3d$ masq of the zone that will be used at different step .
+We first create a sparse cloud for seizing :
+
+\begin{itemize}
+	\item {\tt AperiCloud "P.*jpg" Ori-Basc/}
+\end{itemize}
+
+After we can use {\tt mm3d SaisieMasqQT AperiCloud\_Basc.ply}, 
+replaced here by a {\tt cp} from {\tt DataAux}.
+Then we compute the $3D$ dense cloud :
+
+\begin{itemize}
+	\item {\tt mm3d C3DC BigMac P.*jpg Ori-Basc/ Masq3D=AperiCloud\_Basc\_selectionInfo.xml}
+\end{itemize}
+
+Finaly, we transform it in a $3d$ mesh :
+
+\begin{itemize}
+	\item {\tt TiPunch C3DC\_BigMac.ply Filter=0}
+\end{itemize}
+
+%   ------------------------------------------------------------------
+
+\subsection{The  {\tt MMVII} part}
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsection{Inporting the data}
+
+In the {\tt MMVII} part we need the pose of camera and the $3D$ mesh. The $3d$ mesh is 
+in the standard  {\tt ply} format that is supported by  {\tt MMVII}, so there is nothing
+to do. For the importing the orientation  we can use :
+
+\begin{itemize}
+	\item {\tt MVII OriConvV1V2 Ori-Basc/ Basc}
+\end{itemize}
+
+Curious reader, can inspect the folder {\tt MMVII-PhgrProj/Ori/Basc/}.
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsection{Correcting and filtering the mesh}
+
+We use the command {\tt MeshCheck} and {\tt MeshCloudClip}, the first one
+correct some topologicall probleme in the mesh, the second one restric
+the mesh to our usefull zone  (because the poisson algorithm used in {\tt TiPunch}
+create undesirable extensions) :
+
+\begin{itemize}
+	\item {\tt MMVII  MeshCheck C3DC\_BigMac\_mesh.ply Out=Correc-C3DC\_BigMac\_mesh.ply Bin=1}
+
+	\item {\tt MMVII  MeshCloudClip Correc-C3DC\_BigMac\_mesh.ply  AperiCloud\_Basc\_polyg3d.xml}
+\end{itemize}
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsection{Devlopment of the mesh}
+
+Now we run the "kernel" algorithm to create the $2d$ development of the mesh :
+
+\begin{itemize}
+    \item {MMVII MeshDev Clip\_Correc-C3DC\_BigMac\_mesh.ply CheckReach=false}
+\end{itemize}
+
+Note the parameter {\tt CheckReach=false}, because we dont want the process to stop when 
+the surface is not connex .
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsection{Computing visibility, quality , radiometry of triangles}
+
+We now run the command  {\tt MeshProjImage} to prepare the texture mapping : this command
+compute the visibility of each triangle in each image, it also computes tie points with 
+radiometry to compute radiometric equalisation 
+
+\begin{itemize}
+    \item {MMVII MeshProjImage "P.*jpg"  Reached\_Clip\_Correc-C3DC\_BigMac\_mesh.ply Basc DEV OutRad=R0}
+\end{itemize}
+
+The parameter {\tt DEV} indicates where the data must be stored.
+The parameter {\tt OutRad=R0} indicate that data for radiometry 
+must be compute, and fix the folder where these data must be stored.
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsection{Equalizing the radiometry}
+
+For radiometric equalization, we must know the aperture used for each image,
+as the vignettage is dependand of aperture. As these images contains no metadata,
+we must indicate it . This has to be indicated in the file :
+
+\begin{itemize}
+    \item {MMVII-PhgrProj/MetaData/Std/CalcMTD.xml}
+\end{itemize}
+
+We can do it by copying the file {\tt DataAux/CalcMTD.xml}. We can also
+do it using the command {\tt EditCalcMTDI} :
+
+\begin{itemize}
+      \item {MMVII  EditCalcMTDI Std Aperture "Modif=[P.*.jpg,11,0]"  Save=1}
+\end{itemize}
+
+Now we can compute the radometric equalization model :
+
+\begin{itemize}
+     \item {MMVII RadiomComputeEqual "P.*jpg" R0 Basc}
+\end{itemize}
+
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsection{Map the texture}
+
+And finnaly, we can create the devloped surface :
+
+
+\begin{itemize}
+	\item {MMVII MeshImageDevlp Dev\_Reached\_Clip\_Correc-C3DC\_BigMac\_mesh.ply  DEV InRad=R0}
+\end{itemize}
+
+
+
+
+
+
