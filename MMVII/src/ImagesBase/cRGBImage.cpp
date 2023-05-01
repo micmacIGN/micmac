@@ -277,12 +277,12 @@ void cRGBImage::Write(const std::string & aName,const cPt2di & aP0,double aDyn,c
      Write(cDataFileIm2D::Create(aName,false),aP0,aDyn,aRect);
 }
 
-void cRGBImage::DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta)
+void cRGBImage::DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta,tREAL8 aWitdh)
 {
     cPt2dr aCenterLoc = PointToRPix(aCenter);
 
     std::vector<cPt2di> aVPts;
-    GetPts_Ellipse(aVPts,aCenterLoc,aGA*mRZoom,aSA*mRZoom,aTeta,true);
+    GetPts_Ellipse(aVPts,aCenterLoc,aGA*mRZoom,aSA*mRZoom,aTeta,true,aWitdh);
     for (const auto & aPix : aVPts)
     {
          RawSetPoint(aPix,aCoul);
@@ -331,10 +331,10 @@ void cRGBImage::DrawCircle(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8  aR
 	DrawEllipse(aCoul,aCenter,aRay,aRay,0.0);
 }
 
-void cRGBImage:: DrawLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul)
+void cRGBImage:: DrawLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul,tREAL8 aWidth)
 {
     std::vector<cPt2di> aVPts;
-    GetPts_Line(aVPts,PointToRPix(aP1),PointToRPix(aP2));
+    GetPts_Line(aVPts,PointToRPix(aP1),PointToRPix(aP2),aWidth);
     for (const auto & aPix : aVPts)
     {
          RawSetPoint(aPix,aCoul);

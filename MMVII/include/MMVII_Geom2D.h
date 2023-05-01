@@ -525,9 +525,12 @@ typedef std::vector<cPt2di> tResFlux;
 
 void      GetPts_Circle(tResFlux & aRes,const cPt2dr & aC,double aRay,bool with8Neigh);
 tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh);
-void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh);
-void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2);
 
+void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2);
+void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2,tREAL8 Width);
+
+void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh,tREAL8 aDilate);
+void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh);
 
 
 struct cExtractedEllipse

@@ -7,20 +7,23 @@
 
 \chapter{Use cases}
 
+In all this use cases, the folder contains a file {\tt Info.txt} tha contains a list of
+all commands plus some brief commentary.
+
 %   ------------------------------------------------------------------
 %   ------------------------------------------------------------------
 %   ------------------------------------------------------------------
 
 \section{Image devlopment}
 
-
 %   ------------------------------------------------------------------
 \subsection{Introduction/presentation}
 
 This data set present a use-case for creation a devloped surface.  A detailled
 description of the MMVII-command can be found in chapter~\ref{Chap:Mesh}.
-The data  is made of $74$ images that correspond to a stereoscopic
+The data, located in folder {\tt DevlopImage}  is made of $74$ images that correspond to a stereoscopic
 acquisition of a map that present high, but smooth, deformation.
+
 
 For the purpose of limitating the size in github, the images have been articifially
 reduced of a factor $4$. Also the image have been made in non professional
@@ -210,7 +213,51 @@ And finnaly, we can create the devloped surface :
 \end{itemize}
 
 
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\section{Coded target processing}
+
+%   ------------------------------------------------------------------
+
+\subsection{Introduction/presentation}
+
+This data set, located on {\tt Circ-Code-Target} is representative of an acquisition specially made for close 
+range calibration of a camera, or block rigid camera.  The images have been
+acquired on specially build camera panel ; the caracteristics of this panel
+is the following :
+ 
+
+\begin{itemize}
+     \item it contain arround $234$ targets, which $3d$ position has been accurately measured;
+
+     \item arround $\frac{1}{4}$ of these targets are coded target that allow a firt full automatic pipeline,
+           while the non coded target can  be automatically matched in a second iteration;
+
+     \item for easiness of conception,  the majority of the points are in a plane, by the way $3$ target
+           are outside the plane  to offer a better calibration of the focal length;
+\end{itemize}
 
 
+\begin{figure}
+\centering
+	\includegraphics[width=5cm]{Tutorial/Images/Perche.jpg}
+	\caption{An extract of panel including the $3$ foreground target.}
+\label{fig:CodeT:Panel}
+\end{figure}
 
+
+The acquisition system initially contain $4$ camera in a rigid block position, each camera acquired
+$40$ images of $6000 \times  4000$ pixels. For limiting the size of data on github, the following reduction
+where applied : limitation to $2$ camera, $20$ images per camera and downsizing the image to $2000 \times  1333$ pixels
+
+
+%   ------------------------------------------------------------------
+
+\subsection{Extract the target in image}
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Create specification}
 

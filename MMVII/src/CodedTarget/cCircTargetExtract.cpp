@@ -588,7 +588,7 @@ void  cCCDecode::Show(const std::string & aPrefix)
        {
            tREAL8 aK1 = mIPhase0+aKBit*mPixPerB -0.5;
 
-	   aIm.DrawLine(cPt2dr(aK1,0),cPt2dr(aK1,mNbTeta),cRGBImage::Red);
+	   aIm.DrawLine(cPt2dr(aK1,0),cPt2dr(aK1,mNbTeta),cRGBImage::Red,3.0);
 
        }
     }
@@ -633,6 +633,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
         int ExeOnParsedBox() override;
 
 	void MakeImageLabel();
+	void MakeImageSeed();
 	void MakeImageFinalEllispe();
 
 	void TestOnSimul();
@@ -641,6 +642,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 	std::string         mNameSpec;
 	cFullSpecifTarget * mSpec;
         bool                  mVisuLabel;
+        bool                  mVisuSeed;
         bool                  mVisuElFinal;
         cExtract_BW_Ellipse * mExtrEll;
         cParamBWTarget  mPBWT;
@@ -675,6 +677,7 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(20000,20000),cPt2di(300,300),false) ,
    mSpec         (nullptr),
    mVisuLabel    (false),
+   mVisuSeed    (false),
    mVisuElFinal  (false),
    mExtrEll      (nullptr),
    mImMarq       (cPt2di(1,1)),
@@ -705,6 +708,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mPBWT.mMaxDiam,"DiamMax","Maximum diameters for ellipse",{eTA2007::HDV})
              << AOpt2007(mRatioDMML,"RDMML","Ratio Distance minimal bewteen local max /Diam min ",{eTA2007::HDV})
              << AOpt2007(mVisuLabel,"VisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
+             << AOpt2007(mVisuSeed,"VisuSeed","Make a visualisation of seed point",{eTA2007::HDV})
              << AOpt2007(mVisuElFinal,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
@@ -730,6 +734,23 @@ void cAppliExtractCircTarget::DoExport()
 
      //SaveInFile(mVSavE,mPhProj.DPPointsMeasures().FullDirOut()+ "Attribute-"+  aSetM.StdNameFile());
      SaveInFile(mVSavE,cSaveExtrEllipe::NameFile(mPhProj,aSetM,false));
+}
+
+void cAppliExtractCircTarget::MakeImageSeed()
+{
+   cRGBImage   aImVisu=  cRGBImage::FromFile(mNameIm,CurBoxIn());
+   
+   for (const auto & aSeed : mExtrEll->VSeeds())
+   {
+  
+            aImVisu.DrawEllipse
+            (
+               cRGBImage::Red ,  // anEE.mWithCode ? cRGBImage::Blue : cRGBImage::Red,
+               ToR(aSeed.mPixTop),
+               5.0,5.0,0.0
+            );
+   }
+    aImVisu.ToFile(mPrefixOut + "_VisuSeed.tif");
 }
 
 void cAppliExtractCircTarget::MakeImageFinalEllispe()
@@ -897,6 +918,10 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
    double aT1 = SecFromT0();
    mExtrEll->ExtractAllSeed();
+   if (mVisuSeed)
+   {
+	   StdOut()  << "\%seed-selec=" << (100.0 * mExtrEll->VSeeds().size()) / double(APBI_DIm().NbElem()) << "\n";
+   }
    double aT2 = SecFromT0();
    mExtrEll->AnalyseAllConnectedComponents(mNameIm);
    double aT3 = SecFromT0();
@@ -935,6 +960,10 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    if (mVisuLabel)
    {
       MakeImageLabel();
+   }
+   if (mVisuSeed)
+   {
+      MakeImageSeed();
    }
 
    if (mVisuElFinal)
