@@ -226,7 +226,7 @@ And finnaly, we can create the devloped surface :
 This data set, located on {\tt Circ-Code-Target} is representative of an acquisition specially made for close 
 range calibration of a camera, or block rigid camera.  The images have been
 acquired on specially build camera panel ; the caracteristics of this panel
-is the following :
+is the following (see an example on figure~\ref{fig:CodeT:Panel}) :
  
 
 \begin{itemize}
@@ -260,4 +260,33 @@ where applied : limitation to $2$ camera, $20$ images per camera and downsizing 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
 \subsubsection{Create specification}
+
+{\tt MMVII} offers a flexible way to specify coding system (see \ref{GenEncodS}) :
+number of bits, redundancy,  maximal run, geometry ... By the way, here we use
+an existing system, so just have to specify the reference of this system.
+Using the general formalism, we do it in two steps, first generate
+the encoding, i.e. the set of bit-vector :
+
+
+\begin{lstlisting}
+MMVII  CodedTargetGenerateEncoding CERN 14
+\end{lstlisting}
+
+\begin{lstlisting}
+MMVII  CodedTargetGenerate  CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.xml
+\end{lstlisting}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
