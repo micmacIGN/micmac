@@ -1,9 +1,8 @@
 #include "TiePHistorical.h"
 
-void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSMDir, std::string aDSMFile, std::string aOri1, std::string aPrefix, int aScale, bool bPrint)
+void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSMDir, std::string aDSMFile, std::string aOri1, std::string aPrefix, int aScale, bool bPrint, std::string aOutDir, bool aMask)
 {
     bool bMasq = false;
-    std::string aOutDir = "";
     std::string aImName = "";
     std::string aMasqName = "";
     std::string aCorrelName = "";
@@ -11,7 +10,6 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
     Pt2di aDSMSz = Pt2di(0,0);
 
     if(1){
-        std::string aOutDir = aDSMDir;
         aDSMDir += '/';
         cout<<aDSMDir + aDSMFile<<endl;
         cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
@@ -93,38 +91,57 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
     cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
 
     //double prof_d = aCamL->GetProfondeur();
+    if (ELISE_fp::exist_file(aOutDir) == false)
+        ELISE_fp::MkDir(aOutDir);
 
-    //std::string aOutIdx = aDSMDir + "/"+aPrefix+"_Idx.txt";
-    std::string aOut2DPts = aDSMDir + "/"+aPrefix+"_2DPts.txt";
-    std::string aOut3DPts = aDSMDir + "/"+aPrefix+"_3DPts.txt";
-    std::string aOutCorrel = aDSMDir + "/"+aPrefix+"_Correl.txt";
+    //std::string aOutIdx = aOutDir + "/"+aPrefix+"_Idx.txt";
+    std::string aOut2DPts = aOutDir + "/"+aPrefix+"_2DPts.txt";
+    std::string aOut3DPts = aOutDir + "/"+aPrefix+"_3DPts.txt";
+    std::string aOutCorrel = aOutDir + "/"+aPrefix+"_Correl.txt";
     //FILE * fpOutIdx = fopen((aOutIdx).c_str(), "w");
     FILE * fpOut2DPts = fopen((aOut2DPts).c_str(), "w");
     FILE * fpOut3DPts = fopen((aOut3DPts).c_str(), "w");
     FILE * fpOutCorrel = fopen((aOutCorrel).c_str(), "w");
 
+    cout<<"Files are saved here: "<<aOutDir<<endl;
     //cout<<"aOutIdx file name: "<<aOutIdx<<endl;
     cout<<"aOut2DPts file name: "<<aOut2DPts<<endl;
     cout<<"aOut3DPts file name: "<<aOut3DPts<<endl;
     cout<<"aOutCorrel file name: "<<aOutCorrel<<endl;
 
     int i, j;
-    //int nIdx = 0;
+    int nIdx = 0;
+    int nOutOfBorder = 0;
+    int nMasked = 0;
     double aCorrelMax = -100000;
     double aCorrelMin = 100000;
-    for(i=0; i<ImgSzL.x; i++){
-        for(j=0; j<ImgSzL.y; j++){
+    for(j=0; j<ImgSzL.y; j++){      //first row first, the row/height is the y in MicMac
+        for(i=0; i<ImgSzL.x; i++){
             Pt2di aP1_img = Pt2di(i, j);
             Pt2di aP1_dsm = Pt2di(int(i/aScale), int(j/aScale));
-            int nVal =  1;
-            if(bMasq == true)
-                nVal = aTImMasq.get(aP1_dsm);
-            if(nVal > 0){
+            int nVal = 0;
+            if(bMasq == true){
+                if(aP1_dsm.x < aDSMSz.x && aP1_dsm.y < aDSMSz.y){
+                    nVal = aTImMasq.get(aP1_dsm);
+                    if(nVal == 0)
+                        nMasked++;
+                }
+                else{
+                    nOutOfBorder++;
+                    //printf("Pt [%d, %d] in RGB correspond to Pt [%d, %d] in DSM, which is out of border of DSM, hence skipped\n", i, j, aP1_dsm.x, aP1_dsm.y);
+                    continue;
+                }
+            }
+
+            if(nVal > 0 || aMask==false)
+            {
+                //cout<<i<<", "<<j<<endl;
                 double prof_d = aTImDSM.get(aP1_dsm);
                 Pt3dr aPTer1 = aCamL->ImEtZ2Terrain(Pt2dr(aP1_img.x, aP1_img.y), prof_d);
                 //Pt3dr aPTer2 = aCamL->ImEtProf2Terrain(Pt2dr(aP1_img.x, aP1_img.y), prof_d);
 
                 double aCorrel = aTImCorrel.get(aP1_dsm);
+
                 if(aCorrel > aCorrelMax)
                     aCorrelMax = aCorrel;
                 if(aCorrel < aCorrelMin)
@@ -132,24 +149,27 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
                 //fprintf(fpOutIdx, "%d\n", nIdx);
                 //for(int p=0; p<aScale; p++){
                 //    for(int q=0; q<aScale; q++){
-                        //fprintf(fpOut2DPts, "%d %d\n", i*aScale+p, j*aScale+q);
-                        fprintf(fpOut2DPts, "%d %d\n", i, j);   //here we don't divide by aScale because we want the grid with the same size as RGB images
-                        fprintf(fpOutCorrel, "%lf\n", aCorrel);
-                        fprintf(fpOut3DPts, "%lf %lf %lf\n", aPTer1.x, aPTer1.y, aPTer1.z);
+                //fprintf(fpOut2DPts, "%d %d\n", i*aScale+p, j*aScale+q);
+                fprintf(fpOut2DPts, "%d %d\n", i, j);   //here we don't divide by aScale because we want the grid with the same size as RGB images
+                fprintf(fpOutCorrel, "%lf\n", aCorrel);
+                fprintf(fpOut3DPts, "%lf %lf %lf\n", aPTer1.x, aPTer1.y, aPTer1.z);
 
-                        if(bPrint == true){
-                            //if(i == 385 && j == 475)
-                            printf("pt2d_img: [%d, %d], pt2d_dsm: [%d, %d], prof_d: %.2lf, Coorel: %.2lf, pt3d: [%.2lf, %.2lf, %.2lf]\n", aP1_img.x, aP1_img.y, aP1_dsm.x, aP1_dsm.y, prof_d, aCorrel, aPTer1.x, aPTer1.y, aPTer1.z);
-                        }
+                if(bPrint == true){
+                    //if(i == 385 && j == 475)
+                    printf("pt2d_img: [%d, %d], pt2d_dsm: [%d, %d], prof_d: %.2lf, Coorel: %.2lf, pt3d: [%.2lf, %.2lf, %.2lf]\n", aP1_img.x, aP1_img.y, aP1_dsm.x, aP1_dsm.y, prof_d, aCorrel, aPTer1.x, aPTer1.y, aPTer1.z);
+                }
                 //    }
                 //}
-                //nIdx++;
+                nIdx++;
             }
             //else
             //    fprintf(fpOutIdx, "%d\n", -1);  //-1 means the point is masked out
         }
     }
     cout<<"aCorrelMin: "<<aCorrelMin<<", aCorrelMax: "<<aCorrelMax<<endl;
+    printf("Valid pts number: %d, (%.2lf percent)\n", nIdx, nIdx*100.0/ImgSzL.x/ImgSzL.y);
+    printf("OutOfBorder pts number: %d, (%.2lf percent)\n", nOutOfBorder, nOutOfBorder*100.0/ImgSzL.x/ImgSzL.y);
+    printf("nMasked pts number: %d, (%.2lf percent)\n", nMasked, nMasked*100.0/ImgSzL.x/ImgSzL.y);
     //fclose(fpOutIdx);
     fclose(fpOut2DPts);
     fclose(fpOut3DPts);
@@ -175,11 +195,15 @@ int GeoreferencedDepthMap_main(int argc,char ** argv)
 
     bool bPrint = false;
 
+    std::string aOutDir = "";
+
+    bool aMask = true;
+
    ElInitArgMain
     (
         argc,argv,
         LArgMain()
-               << EAMC(aDSMDir, "DSM directory")
+               << EAMC(aDSMDir, "DSMDir: DSM directory")
                << EAMC(aImg1, "Img: Master image")
                << EAMC(aOri1,"Orientation of master image"),
         LArgMain()
@@ -189,15 +213,19 @@ int GeoreferencedDepthMap_main(int argc,char ** argv)
                << EAM(aScale, "Scale", true, "Scale up the resolution of the dense depth grid, Def=1")
                << EAM(aPrefix, "Prefix", true, "Prefix of output file, Def=Img")
                << EAM(bPrint, "Print", true, "Print debug information, Def=false")
-
+               << EAM(aOutDir, "OutDir", true, "Output directory, Def=DSMDir")
+               << EAM(aMask, "Mask", true, "Mask out the invalide regions indicated by the automatique mask file, Def=true")
     );
 
    if(aPrefix.length() == 0)
        aPrefix = StdPrefix(aImg1);
 
+   if(aOutDir.length() == 0)
+       aOutDir = aDSMDir;
+
    StdCorrecNameOrient(aOri1,"./",true);
 
-   GeoreferencedDepthMap(aImg1, aDir, aDSMDir, aDSMFile, aOri1, aPrefix, aScale, bPrint);
+   GeoreferencedDepthMap(aImg1, aDir, aDSMDir, aDSMFile, aOri1, aPrefix, aScale, bPrint, aOutDir, aMask);
 
    return EXIT_SUCCESS;
 }
