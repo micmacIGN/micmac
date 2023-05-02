@@ -15,7 +15,7 @@
          <Nb>0</Nb>
       </el>
       <el>
-         <Mode>"ModeleCam"</Mode>
+         <Mode>"ModelCam"</Mode>
          <Nb>1</Nb>
          <el>
             <Pat> [0-9]{3}_[0-9]{4}_Scaled\.tif</Pat>

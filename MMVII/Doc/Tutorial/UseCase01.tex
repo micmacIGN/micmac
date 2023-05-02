@@ -35,7 +35,7 @@ comment.
 At several step of the process, the pipeline requires some input of the user
 (for example $2d$ and $3d$ masq).  To assure the reproductability, the 
 data set provide a copy of the input that was made in floder {\tt DataAux}. 
-In this case, in the file {\tt Info.txt}  the interactive command id commented, and subsitued
+In this case, in the file {\tt Info.txt}  the interactive command is commented, and subsitued
 by a shell command that copy the data, for example :
 
 \begin{itemize}
@@ -263,29 +263,234 @@ where applied : limitation to $2$ camera, $20$ images per camera and downsizing 
 
 {\tt MMVII} offers a flexible way to specify coding system (see \ref{GenEncodS}) :
 number of bits, redundancy,  maximal run, geometry ... By the way, here we use
-an existing system, so just have to specify the reference of this system.
-Using the general formalism, we do it in two steps, first generate
+an existing system, so we have no flexibility and just have to specify the reference 
+of this system.  Using the general formalism, we do it in two steps, first generate
 the encoding, i.e. the set of bit-vector :
-
 
 \begin{lstlisting}
 MMVII  CodedTargetGenerateEncoding CERN 14
 \end{lstlisting}
 
+The command generate a file {\tt CERN\_Nbb14\_Freq14\_Hamm1\_Run1000\_1000\_SpecEncoding.xml}
+that contains the list of code used. An extract :
+
+\begin{lstlisting}
+...
+     <el>  <!--10110001000000-->
+            <NumCode>4 141</NumCode>
+            <Name>"004"</Name>
+     </el>
+...
+\end{lstlisting}
+
+A quick command on the file :
+
+\begin{itemize}
+	\item the vector of bit, on $14$ bits  {\tt "10110001000000"} is indicated
+		as  commentary (only for ;
+        \item it correspond to$128+8+4+1=141$, this is $141$ which is saved
+		and used by {\tt MMVII} to compute the bit vvect
+	\item  the  number $4$ will be used as identifier  (it's the number printed on the targets);
+	\item  the  name {\tt "004"} is the string version.
+\end{itemize}
+
+After we generate a file that contains the complete specification : the coding itself
+\emph{and} the aspect of the target : geometry and radiometry .  Here again
+as we use an existing external system, we dont change anything to default parameters.
+
 \begin{lstlisting}
 MMVII  CodedTargetGenerate  CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.xml
 \end{lstlisting}
 
+In case we want to generate an image of the targets (for printing them) we can
+use the optionnal parameter {\tt PatIm}.
+
+\begin{lstlisting}
+MMVII  CodedTargetGenerate  CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.xml  PatIm=001
+\end{lstlisting}
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Extract the target}
+
+We can now run the extraction of target in image :
+
+\begin{lstlisting}
+MMVII  CodedTargetCircExtract 043_0005_Scaled.tif CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8
+\end{lstlisting}
+
+Note the parameter {\tt DiamMin=8} necessary here because downscaling has created relatively small targets. 
+The result are written in a subfolder of {\tt MMVII-PhgrProj/PointsMeasure/}, by default it's the subfolder
+{\tt Std/}, that contains now $2$ files :
+
+\begin{itemize}
+	\item {\tt MesIm-043\_0005\_Scaled.tif.xml} that contains the position of the targets, used in standard process;
+	\item {\tt Attribute-MesIm-043\_0005\_Scaled.tif.xml} that contains the geometry of ellipses (used in completion/refinement);
+\end{itemize}
 
 
+If we want to check the result we can add the parameter {\tt VisuEllipse=1} to generate an image
+including the exracted coded and uncoded targets :
 
 
+\begin{lstlisting}
+MMVII  CodedTargetCircExtract 043_0005_Scaled.tif CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml  DiamMin=8 VisuEllipse=1
+\end{lstlisting}
+
+An example of result is shown on figure~\ref{fig:CodeT:Panel}.
+
+\begin{figure}
+\centering
+	\includegraphics[width=12 cm]{Tutorial/Images/VisuEllips.jpg}
+	\caption{An example of the visualization generated}
+\label{fig:CodeT:Panel}
+\end{figure}
+
+It's possible, to change the destination of result using parameter {\tt OutPointsMeasure}.
+Using pattern, its possible to run the research on all the image of the dataset, computation will be parelized .
+Like every command {\tt MMVII}, it's possible to restrict the number of processor using the optionnal parameter
+{\tt NbProc} :
+
+\begin{lstlisting}
+MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 NbProc=2 OutPointsMeasure=Test
+\end{lstlisting}
 
 
+%   ------------------------------------------------------------------
+
+\subsection{Estimate pose and calibration simultenaously}
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{For one camera}
+
+We can use the command {\tt OriPoseEstim11P} to estimate simultaneously internal and external
+calibration:
+
+\begin{lstlisting}
+MMVII  OriPoseEstim11P 043_0005_Scaled.tif Test 11P
+\end{lstlisting}
+
+It will fail because {\tt MMVII} cannot find the $3d$ measurement of points. They 
+have to be located in the same folder than $2d$ measurement of images.
+These measures are stored in folder {\tt DataAux}, so we have first to do
+something like :
+
+\begin{lstlisting}
+cp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/PointsMeasure/Test/
+\end{lstlisting}
+
+And now we can write again:
+
+\begin{lstlisting}
+MMVII  OriPoseEstim11P 043_0005_Scaled.tif Test 11P
+\end{lstlisting}
+
+We obtain the result in folder {\tt MMVII-PhgrProj/Ori/11P/} :
+
+\begin{itemize}
+	\item {\tt Calib-PerspCentral-043\_0005\_Scaled.tif.xml} contains the internal calibration estimated;
+	\item {\tt Ori-PerspCentral-043\_0005\_Scaled.tif.xml} contains the pose estimated, plus a reference to internal calibration.
+\end{itemize}
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{For several camera (with linear model)}
+
+We can naturally run with several images :
+
+\begin{lstlisting}
+MMVII  OriPoseEstim11P .*\_Scaled.tif Tes 11P DoMedianCalib=false
+\end{lstlisting}
+
+Note the parameter {\tt DoMedianCalib=false}. By default, if we run  {\tt OriPoseEstim11P}
+with several camera, {\tt MMVII} try to compile an internal camera that is some median of 
+all the parameter extracted on different camera.  If we do this, to save the result, {\tt MMVII}
+will try to compute the standard naming convention that use the focal length and
+the name of the camera, if these information are not present we will have an error.
+
+\begin{lstlisting}
+MMVII  OriPoseEstim11P .*_Scaled.tif Test 11P
+
+...
+=>  Mes=[Camera Name is not init for 043_0005_Scaled.tif]
+...
+\end{lstlisting}
 
 
+The problem here is that there is no meta-data {\tt xif} information in the images , so we have to
+create a {\tt CalcMTD.xml} to indicate the missing information.
+Here we give a easy way to do it because we provide an example file : 
+
+\begin{lstlisting}
+cp Data-Aux/CalcMTD.xml  MMVII-PhgrProj/MetaData/Std
+\end{lstlisting}
+
+In the case, where there is no data provided, it's also possible t create the file
+using the command {\tt EditCalcMTDI}
+
+\begin{lstlisting}
+MMVII EditCalcMTDI Std ModelCam ImTest=043_0005_Scaled.tif  Modif=[.*_Scaled.tif,"NIKON D5600",0] Save=1
+MMVII EditCalcMTDI Std Focalmm ImTest=043_0005_Scaled.tif  Modif=[.*_Scaled.tif,24,0] Save=1
+\end{lstlisting}
+
+Now it works :
+
+\begin{lstlisting}
+MMVII  OriPoseEstim11P .*_Scaled.tif Test 11P
+\end{lstlisting}
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Restricting the data-set}
+
+If we look at messages printed, we see that the majority
+of images have a focal arround $2700$ , but there are several
+outliers :
+
+\begin{lstlisting}
+...
+NIIII  043_0031_Scaled.tif F=32.1533
+...
+NIIII  671_0013_Scaled.tif F=124.753
+NIIII  671_0025_Scaled.tif F=141.9
+NIIII  671_0031_Scaled.tif F=20.6496
+\end{lstlisting}
 
 
+This false estimation are easy to explain , these image contains none of the target that are outside
+the plane, and the plane, and are degenerate case for the $11$ parameter algorithm,
+as illustrated on figure~\ref{fig:CodeT:DegenCase}.
+
+\begin{figure}
+\centering
+	\includegraphics[width=12 cm]{Tutorial/Images/ImageBug.jpg}
+	\caption{An image with no 3d target, leading to a degenerate estimation}
+\label{fig:CodeT:DegenCase}
+\end{figure}
+
+To have a better statibility it's probably a good idea to use only a subset of images
+excluding these images. This can be done whith the help of the edit command.  First
+we create a file containing all the images 
+
+\begin{lstlisting}
+MMVII EditSet  ImOk.xml = ".*Scaled.tif"
+\end{lstlisting}
+
+Then we subsract the images potentially dangerous :
+
+\begin{lstlisting}
+MMVII EditSet ImOk.xml -=  043_0031_Scaled.tif
+MMVII EditSet ImOk.xml -=  671_0013_Scaled.tif
+MMVII EditSet ImOk.xml -=  671_0025_Scaled.tif
+MMVII EditSet ImOk.xml -=  671_0031_Scaled.tif
+\end{lstlisting}
+
+We can now use {\tt ImOk.xml} instead of a pattern :
+
+\begin{lstlisting}
+MMVII  OriPoseEstim11P ImOk.xml Test 11P
+\end{lstlisting}
 
 
 
