@@ -114,7 +114,7 @@ class cParamDevTri3D
           double mFactRand;
 	  int    mNbCmpByStep;
 	  bool   mShowAv;
-	  bool   mCheckReached;
+	  bool   mErrorUnReached;
 	  double mWeightEdgeTriDist;
 	  double mWeightTriRot;
 	  int    mNbIterEnd;
@@ -275,7 +275,7 @@ cParamDevTri3D::cParamDevTri3D() :
    mFactRand           (0.0),
    mNbCmpByStep        (3),
    mShowAv             (true),
-   mCheckReached       (true),
+   mErrorUnReached     (false),
    mWeightEdgeTriDist  (0.0),
    mWeightTriRot       (1.0),
    mNbIterEnd          (-1)
@@ -396,7 +396,7 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,cParamDevTri3D & aParam) :
    if (mParam.mShowAv)
       StdOut() << " NbDeg=" << aNbFDegen  <<  " NbReach=" << mVReachedFaces.size() << " NbF=" << mTri.NbFace() << "\n";
 
-   if (mParam.mCheckReached)
+   if (mParam.mErrorUnReached)
    {
       MMVII_INTERNAL_ASSERT_tiny((mVReachedFaces.size()+aNbFDegen)==mTri.NbFace(),"in Dev : Pb in reached face");  // Check firt point is 0
       MMVII_INTERNAL_ASSERT_tiny(mVReachedSoms.size() ==mTri.NbPts (),"in Dev : Pb in reached face");  // Check firt point is 0
@@ -749,6 +749,14 @@ void  cDevTriangu3d::ExportDev(const std::string &aName,const std::string &aName
      tTriangulation3D aTriPlane(aVPlan3,aVNewFace);
 
 
+     tTriangulation3D aTriFilter(aVPNewP3,aVNewFace);
+     aTriFilter.WriteFile(AddBefore(aNameIn,"Dev3D_"),Bin);
+     aTriPlane.WriteFile (AddBefore(aNameIn,"Dev2D_"),Bin);
+     if (FilterDone)
+     {
+         MMVII_DEV_WARNING("Not all face/som reached in devlopment");
+     }
+     /*
      if (FilterDone)
      {
          tTriangulation3D aTriFilter(aVPNewP3,aVNewFace);
@@ -759,6 +767,7 @@ void  cDevTriangu3d::ExportDev(const std::string &aName,const std::string &aName
      {
         aTriPlane.WriteFile(aName,Bin);
      }
+     */
 }
 
 tCoordDevTri cDevTriangu3d::GlobDistortiontDist() const
@@ -858,7 +867,7 @@ cCollecSpecArg2007 & cAppliMeshDev::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            << AOpt2007(mParam.mNbCmpByStep,"NbCByS","Number of compensation by step",{eTA2007::HDV})
            << AOpt2007(mParam.mFactRand,"FactRand","Factor of randomization (for bench)",{eTA2007::HDV,eTA2007::Tuning})
            << AOpt2007(mParam.mShowAv,"ShowAv","Show advancement of computation",{eTA2007::HDV})
-           << AOpt2007(mParam.mCheckReached,"CheckReach","Check reached face&som at end",{eTA2007::HDV})
+           << AOpt2007(mParam.mErrorUnReached,"ErrorUnReached","Generate error when not connected mesh",{eTA2007::HDV})
            << AOpt2007(mParam.mWeightEdgeTriDist,"WDistE","Weight on edge dist",{eTA2007::HDV})
            << AOpt2007(mParam.mWeightTriRot,"WRot","Weight on rot on 2d triangles",{eTA2007::HDV})
            << AOpt2007(mParam.mNbIterEnd,"NbIE","Number of iteration at end")

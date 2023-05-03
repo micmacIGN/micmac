@@ -152,12 +152,19 @@ create undesirable extensions) :
 
 Now we run the "kernel" algorithm to create the $2d$ development of the mesh :
 
-\begin{itemize}
-    \item {MMVII MeshDev Clip\_Correc-C3DC\_BigMac\_mesh.ply CheckReach=false}
-\end{itemize}
+\begin{lstlisting}
+MMVII MeshDev Clip\_Correc-C3DC\_BigMac\_mesh.ply 
+\end{lstlisting}
 
-Note the parameter {\tt CheckReach=false}, because we dont want the process to stop when 
-the surface is not connex .
+This command generate $2$ mesh :
+
+\begin{itemize}
+	\item {\tt Dev2D\_Clip\_Correc-C3DC\_BigMac\_mesh.ply} which is the devlopped surface itself,
+              if may contain less triangle/point that the $3d$ intial mesh when this one is badly connected 
+		
+	\item {\tt Dev3D\_Clip\_Correc-C3DC\_BigMac\_mesh.ply} which is a subset of the $3D$ initial mesh
+		that correpond to the $2D$ devlopped mesh (it will be equal to initial when there is no connectivity problem);
+\end{itemize}
 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
@@ -168,7 +175,7 @@ compute the visibility of each triangle in each image, it also computes tie poin
 radiometry to compute radiometric equalisation 
 
 \begin{itemize}
-    \item {MMVII MeshProjImage "P.*jpg"  Reached\_Clip\_Correc-C3DC\_BigMac\_mesh.ply Basc DEV OutRad=R0}
+    \item {MMVII MeshProjImage "P.*jpg"  Dev3D\_Clip\_Correc-C3DC\_BigMac\_mesh.ply Basc DEV OutRad=R0}
 \end{itemize}
 
 The parameter {\tt DEV} indicates where the data must be stored.
@@ -205,12 +212,23 @@ Now we can compute the radometric equalization model :
 
 \subsubsection{Map the texture}
 
-And finnaly, we can create the devloped surface :
+And finally, we can create the devloped surface :
 
 
 \begin{itemize}
-	\item {MMVII MeshImageDevlp Dev\_Reached\_Clip\_Correc-C3DC\_BigMac\_mesh.ply  DEV InRad=R0}
+	\item {MMVII MeshImageDevlp Dev2D\_Clip\_Correc-C3DC\_BigMac\_mesh.ply  DEV InRad=R0}
 \end{itemize}
+
+The results can be found in {\tt MMVII-PhgrProj/MeshDev/DEV/DevIm.tif}, an illustration is shown on figure~\ref{fig:TutDI:DevIm}.
+
+
+\begin{figure}
+\centering
+	\includegraphics[width=12 cm]{Tutorial/Images/DevIm.jpg}
+	\caption{Example of devloped image}
+\label{fig:TutDI:DevIm}
+\end{figure}
+
 
 
 %   ------------------------------------------------------------------
@@ -491,7 +509,6 @@ We can now use {\tt ImOk.xml} instead of a pattern :
 \begin{lstlisting}
 MMVII  OriPoseEstim11P ImOk.xml Test 11P
 \end{lstlisting}
-
 
 
 
