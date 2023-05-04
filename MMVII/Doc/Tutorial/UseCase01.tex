@@ -445,12 +445,16 @@ cp Data-Aux/CalcMTD.xml  MMVII-PhgrProj/MetaData/Std
 \end{lstlisting}
 
 In the case, where there is no data provided, it's also possible t create the file
-using the command {\tt EditCalcMTDI}
+using the command {\tt EditCalcMTDI} :
 
 \begin{lstlisting}
 MMVII EditCalcMTDI Std ModelCam ImTest=043_0005_Scaled.tif  Modif=[.*_Scaled.tif,"NIKON D5600",0] Save=1
 MMVII EditCalcMTDI Std Focalmm ImTest=043_0005_Scaled.tif  Modif=[.*_Scaled.tif,24,0] Save=1
+MMVII EditCalcMTDI Std AdditionalName ImTest=043_0005_Scaled.tif  Modif=["(.*)_.*_.*","\$1",0] Save=1
 \end{lstlisting}
+
+Not the fiedl {\tt AdditionalName} that will allow to separate image "043.*" from "671.*" because
+they correspond to two different instances of the same camera.
 
 Now it works :
 
@@ -488,8 +492,8 @@ as illustrated on figure~\ref{fig:CodeT:DegenCase}.
 \end{figure}
 
 To have a better statibility it's probably a good idea to use only a subset of images
-excluding these images. This can be done whith the help of the edit command.  First
-we create a file containing all the images 
+excluding these images. This can be done whith the help of the {\tt EditSet} command.  First
+we create a file containing all the images :
 
 \begin{lstlisting}
 MMVII EditSet  ImOk.xml = ".*Scaled.tif"
@@ -509,6 +513,52 @@ We can now use {\tt ImOk.xml} instead of a pattern :
 \begin{lstlisting}
 MMVII  OriPoseEstim11P ImOk.xml Test 11P
 \end{lstlisting}
+
+     %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Estimate distorsion}
+
+It's also possible to estimate some non linear distorsion, they will be
+estimated by bundle adjsustment. We cannont expect it to be  very accurate,
+by the way as we make a median of all parameter we can hope to have 
+avoid "gross  error".
+
+With a standard phorogrammetric model :
+
+\begin{lstlisting}
+MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[3,1,1]
+\end{lstlisting}
+
+Or with no distorsion :
+
+\begin{lstlisting}
+MMVII  OriPoseEstim11P  ImOk.xml Test 11P DegDist=[0,0,0]
+\end{lstlisting}
+
+It's also possible to froze a subset of distorsion parameters 
+
+\begin{lstlisting}
+MMVII  OriPoseEstim11P  ImOk.xml Test 11P DegDist=[3,1,1] PatFrozen="(b|p).*|K3"
+\end{lstlisting}
+
+%   ------------------------------------------------------------------
+
+\subsection{Estimate pose with known calibration}
+
+Once we have estimated an acceptable initial value for internal 
+calibration, we can use it for estimating the pose of all images
+(now we can also use image with all target in a plane) :
+
+
+\begin{lstlisting}
+MMVII OriPoseEstimSpaceResection .*Scaled.tif Test 11P  Resec
+\end{lstlisting}
+
+
+
+
+
+
 
 
 

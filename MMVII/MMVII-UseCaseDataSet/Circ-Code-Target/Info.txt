@@ -43,10 +43,10 @@ MMVII  OriPoseEstim11P 043_0005_Scaled.tif Test 11P
 #       ===========  3.2  FOR SEVERAL CAMERA With linear model ===========================
 
 #estimate for all images independantly
-MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P DoMedianCalib=false
+MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P DoMedianCalib=false
 
 # If ommit DoMedianCalib -> try to make an  average camere
-MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P 
+MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P 
 # => fail because cannot compute common calibration name (need at least focal + camera model)
 
 # put file for computing missing meta-data at the right place
@@ -54,6 +54,8 @@ MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P
 
 MMVII EditCalcMTDI Std ModelCam ImTest=043_0005_Scaled.tif  Modif=[.*_Scaled.tif,"NIKON D5600",0] Save=1
 MMVII EditCalcMTDI Std Focalmm ImTest=043_0005_Scaled.tif  Modif=[.*_Scaled.tif,24,0] Save=1
+MMVII EditCalcMTDI Std AdditionalName ImTest=043_0005_Scaled.tif  Modif=["(.*)_.*_.*","\$1",0] Save=1
+
 
 # now it works
 MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P 
@@ -70,16 +72,22 @@ MMVII  OriPoseEstim11P ImOk.xml Test 11P
 
 
 #  Can use more degree
-MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P DegDist=[3,1,1]
+MMVII  OriPoseEstim11P  ImOk.xml Test 11P DegDist=[3,1,1]
 
-MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[3,1,1]
+
+#Can use model w/o distorsion
+MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[0,0,0]
+
+#Can fix some parameters
+MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[3,1,1] PatFrozen="(b|p).*|K3"
+
+
 
 
 MMVII OriPoseEstimSpaceResection .*Scaled.tif Test 11P  Resec
 
+MMVII OriBundleAdj ".*_Scaled.tif" Resec BA  GCPW=[1,1] DataDir=Test
 
-
-MMVII OriBundleAdj ".*_Scaled.tif" Resec BA  GCPW# =[1,1]
 
 
 
