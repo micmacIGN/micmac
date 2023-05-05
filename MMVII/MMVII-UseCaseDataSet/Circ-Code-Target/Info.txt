@@ -22,7 +22,8 @@ MMVII  CodedTargetCircExtract 043_0005_Scaled.tif CERN_Nbb14_Freq14_Hamm1_Run100
 # extract coded cirtcualr target of all images
 # Optionnaly restrict the number of process. Optionnaly change the destination
 
-MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 NbProc=2 OutPointsMeasure=Test
+MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8  OutPointsMeasure=Test
+# MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 NbProc=2 OutPointsMeasure=Test
 
 
 #   =====================  3  ESTIMATE VALUE INIT OF POSE + CALIB with 11 PARAMETER METHOD ======================
@@ -30,7 +31,7 @@ MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_10
 #       ===========  3.1  FOR ONE CAMERA With linear model ===========================
      
 #  Try to estimate pose + calib y 
-MMVII  OriPoseEstim11P 043_0005_Scaled.tif Test 11P
+# MMVII  OriPoseEstim11P 043_0005_Scaled.tif Test 11P
 #  => Fail because no GCP found in PointsMeasure/Test
 
 

@@ -411,6 +411,8 @@ We obtain the result in folder {\tt MMVII-PhgrProj/Ori/11P/} :
 	\item {\tt Ori-PerspCentral-043\_0005\_Scaled.tif.xml} contains the pose estimated, plus a reference to internal calibration.
 \end{itemize}
 
+\label{Resec1PPPerIm}
+
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
 \subsubsection{For several camera (with linear model)}
@@ -453,14 +455,34 @@ MMVII EditCalcMTDI Std Focalmm ImTest=043_0005_Scaled.tif  Modif=[.*_Scaled.tif,
 MMVII EditCalcMTDI Std AdditionalName ImTest=043_0005_Scaled.tif  Modif=["(.*)_.*_.*","\$1",0] Save=1
 \end{lstlisting}
 
-Not the fiedl {\tt AdditionalName} that will allow to separate image "043.*" from "671.*" because
-they correspond to two different instances of the same camera.
+Not the fiedl {\tt AdditionalName} that will allow to make a distinction between group of
+images "043.*" and group "671.*" ; this is because
+they correspond to two different instances of the same model of camera and focal, current meta data would
+not be sufficient to distinguish them.
 
 Now it works :
 
 \begin{lstlisting}
 MMVII  OriPoseEstim11P .*_Scaled.tif Test 11P
 \end{lstlisting}
+
+We obtain now three kind of result in folder {\tt 11P}:
+
+\begin{itemize}
+	\item files with names like  {\tt Calib-PerspCentral-043\_0009\_Scaled.tif.xml} :  internal calibration per images
+
+	\item files with  names like {\tt Ori-PerspCentral-043\_0009\_Scaled.tif.xml} they contain the pose and
+		a reference (name) of the internal calibration per images;
+
+	       these two file have already been seen in section~\ref{Resec1PPPerIm}, we have as many such files
+               than number of images;
+
+
+	\item files with  names like {\tt CalibIntr\_CamNIKON\_D5600\_Add043\_Foc24.xml}, these file  are calibration
+              per camera;  we see that their name contains the exact information that is required to distinguish between 
+              separate camera : focal, model of camera, additional name ({\tt Add043});
+
+\end{itemize}
 
      %   -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
@@ -546,19 +568,24 @@ MMVII  OriPoseEstim11P  ImOk.xml Test 11P DegDist=[3,1,1] PatFrozen="(b|p).*|K3"
 \subsection{Estimate pose with known calibration}
 
 Once we have estimated an acceptable initial value for internal 
-calibration, we can use it for estimating the pose of all images
-(now we can also use image with all target in a plane) :
-
+calibration, we can use it for estimating the pose of all images :
+we can also use image with all target in a plane, the result is stable
+because we dont re-estimate the calibration.
 
 \begin{lstlisting}
 MMVII OriPoseEstimSpaceResection .*Scaled.tif Test 11P  Resec
 \end{lstlisting}
 
+In folder {\tt Resec} we see that we have only the $2$ internal calibration
+that depend from camera and that the file for pose refers to these calibration.
+Now that we have a calibration shared by all images having the camera, and 
+pose that have been computed with these calibration, we are ready to do
+a real bundle adjustment :
 
 
-
-
-
+\begin{lstlisting}
+MMVII OriBundleAdj ".*_Scaled.tif" Resec BA  GCPW=[1,1] DataDir=Test
+\end{lstlisting}
 
 
 
