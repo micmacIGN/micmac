@@ -76,6 +76,12 @@ template <class Type> cDenseVect<Type>::cDenseVect(tIM anIm) :
 {
 }
 
+template <class Type> cDenseVect<Type>  cDenseVect<Type>::RanGenerate(int aSz)
+{
+    return cDenseVect<Type>(aSz,eModeInitImage::eMIA_RandCenter);
+}
+
+
 template <class Type> cDenseVect<Type>::cDenseVect(const std::vector<Type> & aVect) :
    cDenseVect<Type> (tIM(aVect))
 {

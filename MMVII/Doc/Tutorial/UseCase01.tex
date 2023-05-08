@@ -270,6 +270,17 @@ The acquisition system initially contain $4$ camera in a rigid block position, e
 $40$ images of $6000 \times  4000$ pixels. For limiting the size of data on github, the following reduction
 where applied : limitation to $2$ camera, $20$ images per camera and downsizing the image to $2000 \times  1333$ pixels
 
+The images contain no meta-data, but we "know" that :
+
+\begin{itemize}
+     \item the camera model is a Nikon D5600 ;
+     \item the focal lenght is a $24mm$, in equivalent $35mm$ (in fact a $16mm$);
+     \item different instance of the same camera have been used in the rigid
+           block, the $3$ first digit of image name can be used as identifier
+           (i.e. two images have been acquired with the same camera iff their name have the
+		same $3$ first digit);
+\end{itemize}
+
 
 %   ------------------------------------------------------------------
 
@@ -578,14 +589,33 @@ MMVII OriPoseEstimSpaceResection .*Scaled.tif Test 11P  Resec
 
 In folder {\tt Resec} we see that we have only the $2$ internal calibration
 that depend from camera and that the file for pose refers to these calibration.
-Now that we have a calibration shared by all images having the camera, and 
-pose that have been computed with these calibration, we are ready to do
+Now that we have a calibration shared by all images taken by the same camera, and 
+poses that have been computed with these calibration, we are ready to make
 a real bundle adjustment :
 
 
 \begin{lstlisting}
 MMVII OriBundleAdj ".*_Scaled.tif" Resec BA  GCPW=[1,1] DataDir=Test
 \end{lstlisting}
+
+%   ------------------------------------------------------------------
+
+\subsection{Complete the target}
+
+Now that we have computed reliable  orientation, we can use it to identify and
+validate the uncoded targets :
+
+\begin{lstlisting}
+MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InPointsMeasure=Test
+\end{lstlisting}
+
+All the measure are stored in the  folder {\tt Completed} (by default). We can make a
+bundle adjustment with these new measures :
+
+\begin{lstlisting}
+MMVII OriBundleAdj ".*_Scaled.tif"  BA BA2  GCPW=[1,1] DataDir=Completed
+\end{lstlisting}
+
 
 
 

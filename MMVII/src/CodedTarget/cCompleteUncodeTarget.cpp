@@ -145,9 +145,8 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
 
     if (LevelCall()==0)  // print info if was done whith only one image
     {
-        StdOut() << "NNN=" << aGCP.mNamePt  << " " << Norm2(aProjIm-aMes->mPt) << aProjIm 
-                 <<  aMes->mPt << aMes->mNamePt 
-	         <<  " Axes={" << (1-aL2/aL1) *1000 << " " << std::sqrt(aL1*aL2) << "}\n";
+        StdOut() << "NNN=" << aGCP.mNamePt  << " DistReproj: " << Norm2(aProjIm-aMes->mPt) 
+	         <<  " Excentricity*1000=" << (1-aL2/aL1) *1000 << " Ray=" << std::sqrt(aL1*aL2) << "\n";
     }
     aMes->mNamePt = aGCP.mNamePt; // match suceed, give the right name
 }
@@ -167,8 +166,14 @@ int  cAppliCompletUncodedTarget::Exe()
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
-      return ResultMultiSet();
+      int aRes =  ResultMultiSet();
+      if (aRes!=EXIT_SUCCESS) return aRes;
+
+      // DPPointsMeasures()
+
+      return EXIT_SUCCESS;
    }
+
 
    mNameIm = FileOfPath(mSpecImIn);
    mPhProj.LoadSensor(mNameIm,mSensor,mCamPC,false);
@@ -187,7 +192,12 @@ int  cAppliCompletUncodedTarget::Exe()
    StdOut()  << mNameIm << " Fff=" << mCamPC->InternalCalib()->F()  << " "<<  mCamPC->NameImage() << "\n";
 
 
-    mPhProj.SaveMeasureIm(mImageM);
+   mPhProj.SaveMeasureIm(mImageM);
+   // Save GCP because they will probaly be re-used, but do it only once at first call, else risk of simultaneaous writting
+   if (KthCall()==0)
+   {
+       mPhProj.SaveGCP(mMesImGCP,"");
+   }
 
 
 

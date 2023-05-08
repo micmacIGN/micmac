@@ -370,9 +370,10 @@ template<class Type> cLinearOverCstrSys<Type> * cLinearOverCstrSys<Type>::AllocS
 {
      switch (aMode)
      {
-	     case eModeSSR::eSSR_LsqDense  :  return cLeasSq<Type>::AllocDenseLstSq (aNbVar);
+	     case eModeSSR::eSSR_LsqDense  :      return cLeasSq<Type>::AllocDenseLstSq (aNbVar);
 	     case eModeSSR::eSSR_LsqNormSparse :  return cLeasSq<Type>::AllocSparseNormalLstSq(aNbVar,cParamSparseNormalLstSq());
-	     case eModeSSR::eSSR_LsqSparseGC :  return cLeasSq<Type>::AllocSparseGCLstSq(aNbVar);
+	     case eModeSSR::eSSR_LsqSparseGC :    return cLeasSq<Type>::AllocSparseGCLstSq(aNbVar);
+	     case eModeSSR::eSSR_L1Barrodale :    return AllocL1_Barrodale<Type>(aNbVar);
              
              default :;
      }

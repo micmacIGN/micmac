@@ -306,7 +306,8 @@ enum class eModeSSR
 {
       eSSR_LsqDense,        ///< Least square, normal equation, with dense implementation
       eSSR_LsqNormSparse,   ///< Least square, normal equation, with sparse implementation
-      eSSR_LsqSparseGC      ///< Least square, NO normal equation (Conjugate Gradient) , with sparse implementation
+      eSSR_LsqSparseGC,     ///< Least square, NO normal equation (Conjugate Gradient) , with sparse implementation
+      eSSR_L1Barrodale      ///< L1 minimization using Barrodale-Method
 };
 
 

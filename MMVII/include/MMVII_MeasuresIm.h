@@ -131,6 +131,7 @@ class cSetMesGCP : public cMemCheck
           cSetMesGCP();
           cSetMesGCP(const std::string &aNameSet);
 	  static cSetMesGCP  FromFile(const std::string & aNameFile);
+	  void    ToFile(const std::string & aNameFile);
 
           void AddMeasure(const cMes1GCP &);
           void AddData(const  cAuxAr2007 & anAux);
@@ -203,6 +204,7 @@ class cSetMesImGCP : public cMemCheck
             const cSetMesPtOf1Im  & MesImInitOfName(const std::string &) const;
 	    const cMes1GCP &        MesGCPOfName(const std::string &) const;
 	    bool  NameIsGCP(const std::string &) const;
+	    cSetMesGCP  ExtractSetGCP(const std::string & aName) const;
     private :
 
 

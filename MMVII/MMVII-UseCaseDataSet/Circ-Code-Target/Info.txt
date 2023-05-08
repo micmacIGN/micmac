@@ -91,6 +91,11 @@ MMVII OriBundleAdj ".*_Scaled.tif" Resec BA  GCPW=[1,1] DataDir=Test
 
 
 
+MMVII CodedTargetCompleteUncoded 043_0005_Scaled.tif BA 1.0 InPointsMeasure=Test 
+
+MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InPointsMeasure=Test 
+
+MMVII OriBundleAdj ".*_Scaled.tif"  BA BA2  GCPW=[1,1] DataDir=Completed
 
 
 

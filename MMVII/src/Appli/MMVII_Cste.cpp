@@ -69,6 +69,7 @@ const std::string GOP_StdOut   = "StdOut";
 const std::string GOP_SeedRand = "SeedRand";
 const std::string GOP_NbProc   = "NbProc";
       // -- Internal
+const std::string GIP_KthCall = "KthCall";
 const std::string GIP_LevCall = "LevCall";
 const std::string GIP_ShowAll = "ShowAll";
 const std::string GIP_PGMA = "PrefixGMA";

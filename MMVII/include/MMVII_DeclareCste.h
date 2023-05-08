@@ -44,6 +44,7 @@ extern const std::string GIP_ShowAll;     ///< Show a lot of intermediary steps
 extern const std::string GIP_PGMA;     ///< Prefix Global Main Appli
 extern const std::string GIP_DirProjGMA;     ///< Dir Proj of Global Main Application
 extern const std::string GIP_BenchMode;     ///< For command who have a bench mode
+extern const std::string GIP_KthCall;     ///< Order of call if mutltiple call
 
 
 // Folders

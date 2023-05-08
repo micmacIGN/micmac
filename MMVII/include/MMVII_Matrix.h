@@ -91,6 +91,7 @@ template <class Type> class  cDenseVect
         cDenseVect(int Sz,const tSpV &);
         static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
         cDenseVect<Type>  Dup() const;
+        static cDenseVect<Type>  RanGenerate(int aNbVar);
 	/// 
         void ResizeAndCropIn(const int & aX0,const int & aX1,const cDenseVect<Type> &);
         void Resize(const int & aSz);

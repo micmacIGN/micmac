@@ -352,6 +352,7 @@ class cPhotogrammetricProject
 	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
+	  void SaveGCP(const cSetMesImGCP&,const std::string & aExt);
 
 	  /// For a givgen image, return 3D-2D corresp, using LoadGCP&LoadIm
 	  cSet2D3D  LoadSet32(const std::string & aNameIm) const;
