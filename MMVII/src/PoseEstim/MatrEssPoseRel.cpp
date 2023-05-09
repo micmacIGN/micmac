@@ -68,11 +68,62 @@ class cMatEssential
 class cCamSimul
 {
    public :
-    void AddCam(cPerspCamIntrCalib *,tREAL8 BsHMin,tREAL8 BsHMax);
+      void AddCam(cPerspCamIntrCalib *);
+
+      cCamSimul();
+
+      cPt3dr mCenterGround;
+      tREAL8 mProfMin;
+      tREAL8 mProfMax;
+      tREAL8 mBsHMin;
+      tREAL8 mBsHMax;
+
    private :
-     std::list<cSensorCamPC *>  mListCam;
+      bool ValidateCenter(const cPt3dr & aP) const;
+
+      cPt3dr  GenValideCenter() const;
+      cPt3dr  GenAnyCenter() const;
+
+      std::list<cSensorCamPC *>  mListCam;
 };
 
+
+cCamSimul::cCamSimul() :
+   mCenterGround (10.0,5.0,20.0),
+   mProfMin      (10.0),
+   mProfMax      (20.0),
+   mBsHMin       (0.1),
+   mBsHMax       (0.5)
+{
+}
+
+bool cCamSimul::ValidateCenter(const cPt3dr & aP) const
+{ 
+    if (mListCam.empty()) return true;
+
+    tREAL8 aTetaMin = 1e10;
+    for (const auto & aPtr : mListCam)
+    {
+         cPt3dr aV10 = aPtr->Center() - mCenterGround;
+         cPt3dr aV20 = aP - mCenterGround;
+	 UpdateMin(aTetaMin,AbsAngleTrnk(aV10,aV20));
+    }
+    return  (aTetaMin>mBsHMin) && (aTetaMin<mBsHMax);
+}
+
+cPt3dr  cCamSimul::GenAnyCenter() const
+{
+    return mCenterGround + cPt3dr::PRandUnit() * RandInInterval(mProfMin,mProfMax);
+}
+
+
+cPt3dr  cCamSimul::GenValideCenter() const
+{
+   cPt3dr aRes = GenAnyCenter();
+   while (! ValidateCenter(aRes))
+          aRes = GenAnyCenter();
+   return aRes;
+}
 
 
 
