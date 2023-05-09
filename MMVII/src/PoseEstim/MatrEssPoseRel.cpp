@@ -4,6 +4,12 @@
 
 /* We have the image formula w/o distorsion:
 
+Wasserstein 
+knowing obly the min and not the vector , how usefull ?
+
+p 26 =< N2 log N  not so much ?
+p 30 => how many 
+
 
 */
 
