@@ -17,7 +17,7 @@ cp DataAux/MesBasc-S2D.xml .
 
 # mm3d SaisieMasqQT P1056154.jpg Attr=Plan 
 # mm3d SaisieMasqQT P1056194.jpg Attr=Plan 
-cp DataAux/Masq/* 
+cp DataAux/Masq/* .
 
 mm3d SBGlobBascule P.*jpg Ori-AllRel/ MesBasc-S2D.xml Basc  PostPlan=Plan DistFS=10
 
@@ -40,22 +40,22 @@ mm3d TiPunch C3DC_BigMac.ply Filter=0
  # ==========         MMVII part               =======
  # ===================================================
 
-MVII OriConvV1V2 Ori-Basc/ Basc
+MMVII OriConvV1V2 Ori-Basc/ Basc
 
 
 MMVII  MeshCheck C3DC_BigMac_mesh.ply Out=Correc-C3DC_BigMac_mesh.ply Bin=1
 MMVII  MeshCloudClip Correc-C3DC_BigMac_mesh.ply  AperiCloud_Basc_polyg3d.xml  
 
 
-MMVII MeshDev Clip_Correc-C3DC_BigMac_mesh.ply CheckReach=false
-MMVII MeshProjImage "P.*jpg"  Reached_Clip_Correc-C3DC_BigMac_mesh.ply Basc DEV OutRad=R0
+MMVII MeshDev Clip_Correc-C3DC_BigMac_mesh.ply
+MMVII MeshProjImage "P.*jpg"  Dev3D_Clip_Correc-C3DC_BigMac_mesh.ply Basc DEV OutRad=R0
 
 
 MMVII  EditCalcMTDI Std Aperture "Modif=[P.*.jpg,11,0]"  Save=1
 MMVII RadiomComputeEqual "P.*jpg" R0 Basc 
 
 
-MMVII MeshImageDevlp Dev_Reached_Clip_Correc-C3DC_BigMac_mesh.ply  DEV InRad=R0
+MMVII MeshImageDevlp Dev2D_Clip_Correc-C3DC_BigMac_mesh.ply  DEV InRad=R0
 
 
 

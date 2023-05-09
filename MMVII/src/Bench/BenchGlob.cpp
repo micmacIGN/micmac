@@ -552,6 +552,8 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 
 	BenchCentralePerspective(aParam);
 	cImageRadiomData::Bench(aParam);
+
+	BenchL1Solver(aParam);
     }
 
     // Now call the bench of all application that define their own bench

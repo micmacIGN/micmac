@@ -217,6 +217,7 @@ cMMVII_Appli::cMMVII_Appli
    mDoInternalHelp(false),
    mShowAll       (false),
    mLevelCall     (0),
+   mKthCall       (0),
    mSetInit       (cExtSet<const void *>(eTySC::US)),
    mSetVarsSpecObl (cExtSet<const void *>(eTySC::US)),
    mSetVarsSpecFac (cExtSet<const void *>(eTySC::US)),
@@ -412,6 +413,8 @@ void cMMVII_Appli::InitParam()
       <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Global})
       <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for add,"+ MMVII_NONE + "for no out)",aGlob)
       <<  AOpt2007(mLevelCall,GIP_LevCall," Level Of Call",aInternal)
+      <<  AOpt2007(mKthCall,GIP_KthCall," Ordre Of Call when multiple call",aInternal)
+
       <<  AOpt2007(mShowAll,GIP_ShowAll,"",aInternal)
       <<  AOpt2007(mPrefixGMA,GIP_PGMA," Prefix Global Main Appli",aInternal)
       <<  AOpt2007(mDirProjGMA,GIP_DirProjGMA," Folder Project Global Main Appli",aInternal)
@@ -1315,6 +1318,7 @@ std::string QuoteWUS(bool Separate,const std::string & aStr)
 
 cParamCallSys  cMMVII_Appli::StrCallMMVII
                (
+		  int   aKthCall,
                   const cSpecMMVII_Appli & aCom2007,
                   const cColStrAObl& anAObl,
                   const cColStrAOpt& anAOpt,
@@ -1370,7 +1374,13 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
    for (const auto & aPOpt : anAOpt.V())
    {
        // Special case, it may have be add by the auto recal process , but it will be handled separately
-       if ((aPOpt.first != GIP_LevCall) && (aPOpt.first !=GIP_PGMA) && (aPOpt.first !=GIP_DirProjGMA)&& (aPOpt.first!=GOP_WW))
+       if (
+	          (aPOpt.first != GIP_LevCall) 
+               && (aPOpt.first != GIP_PGMA) 
+	       && (aPOpt.first != GIP_DirProjGMA)
+	       && (aPOpt.first!=  GOP_WW)
+	       && (aPOpt.first!=  GIP_KthCall)
+          )
        {
           std::string aVal = aPOpt.second;
           int aKSubst=0;
@@ -1396,6 +1406,7 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
    aRes.AddArgs(GIP_PGMA + "=" + mPrefixGMA);
    aRes.AddArgs(GIP_DirProjGMA + "=" + mDirProjGMA);
    aRes.AddArgs(GOP_WW + "=" +  ToStr(WithWarnings()));
+   aRes.AddArgs(GIP_KthCall + "=" +  ToStr(aKthCall));
    // aRes.AddArgs(GIP_PGMA + "=" + mPrefixGMA);
 
    // If no substitution, it means it was to be added simply
@@ -1423,11 +1434,13 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrCallMMVII
 {
     std::list<cParamCallSys> aRes;
      
+    int aKthCall=0;
     for (const auto & aVal : aLVals)
     {
        cColStrAOpt  aNewSubst; 
        aNewSubst << t2S(aNameOpt,aVal);
-       aRes.push_back(StrCallMMVII(aCom2007,anAObl,anAOpt,Separate,aNewSubst));
+       aRes.push_back(StrCallMMVII(aKthCall,aCom2007,anAObl,anAOpt,Separate,aNewSubst));
+       aKthCall++;
     }
 
     return aRes;
@@ -1461,7 +1474,7 @@ int  cMMVII_Appli::ExeCallMMVII
          bool ByLineCom
       )
 {
-    cParamCallSys aComGlob = StrCallMMVII(aCom2007,anAObl,anAOpt,!ByLineCom);
+    cParamCallSys aComGlob = StrCallMMVII(0,aCom2007,anAObl,anAOpt,!ByLineCom);
     return  GlobSysCall(aComGlob.Com(),false);
 }
 
@@ -1569,13 +1582,15 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
 {
     std::list<cParamCallSys> aRes;
 
+    int aKthVal = 0;
     for (const auto & aVal : aLVals) // For each value to substitute/add
     {
          InitColFromVInit(); // mColStrAObl and mColStrAOpt contains copy  command line
 
          cColStrAOpt  aNewSubst(cExplicitCopy(),aLSubstInit);  // make copy of aLSubstInit as it is const
          aNewSubst << t2S(aNameOpt,aVal); // subsitute/add  aVal with "named" arg aVal
-         aRes.push_back(StrCallMMVII(mSpecs,mColStrAObl,mColStrAOpt,Separate,aNewSubst));
+         aRes.push_back(StrCallMMVII(aKthVal,mSpecs,mColStrAObl,mColStrAOpt,Separate,aNewSubst));
+	 aKthVal++;
     }
     return aRes;
 }
@@ -1636,6 +1651,7 @@ void   cMMVII_Appli::ExeMultiAutoRecallMMVII
 }
 
 int   cMMVII_Appli::LevelCall() const { return mLevelCall; }
+int   cMMVII_Appli::KthCall() const { return mKthCall; }
 
 std::string  cMMVII_Appli::CommandOfMain() const
 {

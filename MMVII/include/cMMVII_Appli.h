@@ -441,6 +441,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static int  SeedRandom();  ///< SeedRand if Appli init, else default
 
         int   LevelCall() const;     ///< Accessor to mLevelCall
+        int   KthCall() const;     ///< Accessor to KthCall
 
         virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
         virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
@@ -485,7 +486,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         // Subst  (aNameOpt,aVal)
         // aNameOpt :  si existe substitue, si "+" ajoute a mandatory, si "3"  => sub 3 mandatory, si MMVII_NONE
-        cParamCallSys  StrCallMMVII ( const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
+        cParamCallSys  StrCallMMVII (  int   aKthCall, // sometime when called in // it's necessary to know the order
+			              const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
                                       bool Separate, // Separate argv for call inside
                                       const cColStrAOpt &  aLSubst  = cColStrAOpt::Empty); ///< MMVII call itself
         std::list<cParamCallSys>  ListStrCallMMVII
@@ -532,6 +534,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mPatHelp;       ///< Possible filter on name of optionnal param shown
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
+	int                                       mKthCall;       ///< Number of call if in multiple call
         cExtSet<const void *>                     mSetInit;       ///< Adresses of all initialized variables
         cExtSet<const void *>                     mSetVarsSpecObl; ///< Adresses var in specif, obligatory
         cExtSet<const void *>                     mSetVarsSpecFac; ///< Adresses var in specif, faculative 

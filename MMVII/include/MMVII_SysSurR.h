@@ -428,6 +428,10 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
        int mNbVar;
 };
 
+template <class Type>  cLinearOverCstrSys<Type> *  AllocL1_Barrodale(size_t aNbVar);
+
+
+
 /** Class for fine parametrisation  allocation of normal sparse system */
 
 class cParamSparseNormalLstSq

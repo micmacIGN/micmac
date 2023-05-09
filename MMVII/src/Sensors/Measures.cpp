@@ -193,6 +193,15 @@ tREAL8 cSetMesImGCP::AvgSqResidual() const
      return std::sqrt(aWA.Average());
 }
 
+cSetMesGCP  cSetMesImGCP::ExtractSetGCP(const std::string & aName) const
+{
+    cSetMesGCP aRes(aName);
+    for (const auto &  aMesGCP : mMesGCP)
+        aRes.AddMeasure(aMesGCP);
+
+    return aRes;
+}
+
 
 /* ********************************************* */
 /*                                               */
@@ -384,6 +393,11 @@ cSetMesGCP  cSetMesGCP::FromFile(const std::string & aNameFile)
     ReadFromFile(aRes,aNameFile);
 
     return aRes;
+}
+
+void cSetMesGCP::ToFile(const std::string & aNameFile)
+{
+     SaveInFile(*this,aNameFile);
 }
 
 

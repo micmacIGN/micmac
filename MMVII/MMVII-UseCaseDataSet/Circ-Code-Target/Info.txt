@@ -20,7 +20,10 @@ MMVII  CodedTargetCircExtract 043_0005_Scaled.tif CERN_Nbb14_Freq14_Hamm1_Run100
 # MMVII  CodedTargetCircExtract 043_0005_Scaled.tif CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml  DiamMin=8 VisuEllipse=1
 
 # extract coded cirtcualr target of all images
-MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 
+# Optionnaly restrict the number of process. Optionnaly change the destination
+
+MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8  OutPointsMeasure=Test
+# MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_1000_FullSpecif.xml DiamMin=8 NbProc=2 OutPointsMeasure=Test
 
 
 #   =====================  3  ESTIMATE VALUE INIT OF POSE + CALIB with 11 PARAMETER METHOD ======================
@@ -28,23 +31,23 @@ MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_10
 #       ===========  3.1  FOR ONE CAMERA With linear model ===========================
      
 #  Try to estimate pose + calib y 
-MMVII  OriPoseEstim11P 043_0005_Scaled.tif Std 11P
-#  => Fail because no GCP found in PointsMeasure/Std
+# MMVII  OriPoseEstim11P 043_0005_Scaled.tif Test 11P
+#  => Fail because no GCP found in PointsMeasure/Test
 
 
 # make a copy a GCP at write place
-cp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/PointsMeasure/Std/
+cp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/PointsMeasure/Test/
 
 #  Now it works
-MMVII  OriPoseEstim11P 043_0005_Scaled.tif Std 11P
+MMVII  OriPoseEstim11P 043_0005_Scaled.tif Test 11P
 
 #       ===========  3.2  FOR SEVERAL CAMERA With linear model ===========================
 
 #estimate for all images independantly
-MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P DoMedianCalib=false
+MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P DoMedianCalib=false
 
 # If ommit DoMedianCalib -> try to make an  average camere
-MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P 
+MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P 
 # => fail because cannot compute common calibration name (need at least focal + camera model)
 
 # put file for computing missing meta-data at the right place
@@ -52,9 +55,11 @@ MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P
 
 MMVII EditCalcMTDI Std ModelCam ImTest=043_0005_Scaled.tif  Modif=[.*_Scaled.tif,"NIKON D5600",0] Save=1
 MMVII EditCalcMTDI Std Focalmm ImTest=043_0005_Scaled.tif  Modif=[.*_Scaled.tif,24,0] Save=1
+MMVII EditCalcMTDI Std AdditionalName ImTest=043_0005_Scaled.tif  Modif=["(.*)_.*_.*","\$1",0] Save=1
+
 
 # now it works
-MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P 
+MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P 
 
 #  NIIII  043_0031_Scaled.tif F=32.1533
 MMVII EditSet  ImOk.xml = ".*Scaled.tif"
@@ -64,21 +69,33 @@ MMVII EditSet ImOk.xml -=  671_0013_Scaled.tif
 MMVII EditSet ImOk.xml -=  671_0025_Scaled.tif
 MMVII EditSet ImOk.xml -=  671_0031_Scaled.tif
 
+MMVII  OriPoseEstim11P ImOk.xml Test 11P 
 
 
 #  Can use more degree
-MMVII  OriPoseEstim11P 0.*_Scaled.tif Std 11P DegDist=[3,1,1]
-
-MMVII  OriPoseEstim11P ImOk.xml Std 11P DegDist=[3,1,1]
+MMVII  OriPoseEstim11P  ImOk.xml Test 11P DegDist=[3,1,1]
 
 
-MMVII OriPoseEstimSpaceResection .*Scaled.tif Std 11P  Resec
+#Can use model w/o distorsion
+MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[0,0,0]
+
+#Can fix some parameters
+MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[3,1,1] PatFrozen="(b|p).*|K3"
 
 
 
-MMVII OriBundleAdj ".*_Scaled.tif" Resec BA  GCPW=[1,1]
+
+MMVII OriPoseEstimSpaceResection .*Scaled.tif Test 11P  Resec
+
+MMVII OriBundleAdj ".*_Scaled.tif" Resec BA  GCPW=[1,1] DataDir=Test
 
 
+
+MMVII CodedTargetCompleteUncoded 043_0005_Scaled.tif BA 1.0 InPointsMeasure=Test 
+
+MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InPointsMeasure=Test 
+
+MMVII OriBundleAdj ".*_Scaled.tif"  BA BA2  GCPW=[1,1] DataDir=Completed
 
 
 
