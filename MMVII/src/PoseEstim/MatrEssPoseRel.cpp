@@ -4,12 +4,6 @@
 
 /* We have the image formula w/o distorsion:
 
-Wasserstein 
-knowing obly the min and not the vector , how usefull ?
-
-p 26 =< N2 log N  not so much ?
-p 30 => how many 
-
 
 */
 
@@ -57,9 +51,30 @@ class cMatEssential
 {
     public :
         cMatEssential(const cSetHomogCpleDir &,cLinearOverCstrSys<tREAL8> & aSys);
+        ///  Sigma attenuates big error  E*S / (E+S)  => ~E in 0  , bound to S at infty
+	tREAL8  Cost(const  cHomogCpleDir &,const tREAL8 & aSigma) const;
+	tREAL8  AvgCost(const  cSetHomogCpleDir &,const tREAL8 & aSigma) const;
+
     private :
         cDenseMatrix<tREAL8> mMat;
 };
+
+/* ************************************** */
+/*                                        */
+/*            cCamSimul                   */
+/*                                        */
+/* ************************************** */
+
+class cCamSimul
+{
+   public :
+    void AddCam(cPerspCamIntrCalib *,tREAL8 BsHMin,tREAL8 BsHMax);
+   private :
+     std::list<cSensorCamPC *>  mListCam;
+};
+
+
+
 
 /* ************************************** */
 /*                                        */
@@ -68,8 +83,8 @@ class cMatEssential
 /* ************************************** */
 
 cHomogCpleDir::cHomogCpleDir(const cPt3dr & aP1,const cPt3dr & aP2) :
-   mP1  (aP1),
-   mP2  (aP2)
+   mP1  (VUnit(aP1)),
+   mP2  (VUnit(aP2))
 {
 }
 
@@ -131,6 +146,26 @@ cMatEssential::cMatEssential(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<t
      SetLine(0,mMat,cPt3dr(aSol(0),aSol(1),aSol(2)));
      SetLine(1,mMat,cPt3dr(aSol(3),aSol(4),aSol(5)));
      SetLine(2,mMat,cPt3dr(aSol(6),aSol(7),    1.0));
+}
+
+tREAL8  cMatEssential::Cost(const  cHomogCpleDir & aCple,const tREAL8 & aSigma) const
+{
+   //  tP1 Mat P2 =0  
+   cPt3dr aQ1 = VUnit(aCple.mP1 * mMat); // Q1 is orthognal to plane containing P2
+   cPt3dr aQ2 = VUnit(mMat * aCple.mP2); // Q1 is orthognal to plane containing P2
+					 //
+   tREAL8 aD = (std::abs(Scal(aQ1,aCple.mP2)) + std::abs(Scal(aCple.mP1,aQ2))  ) / 2.0;
+
+   return (aD*aSigma) / (aD+aSigma);
+}
+
+tREAL8  cMatEssential::AvgCost(const  cSetHomogCpleDir & aSetD,const tREAL8 & aSigma) const
+{
+   tREAL8 aSom = 0.0;
+   for (const auto & aCple : aSetD.mSetD)
+       aSom += Cost(aCple,aSigma);
+
+   return aSom / aSetD.mSetD.size();
 }
 
 
