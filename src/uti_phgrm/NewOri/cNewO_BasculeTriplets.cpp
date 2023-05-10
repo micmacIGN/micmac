@@ -142,8 +142,8 @@ size_t cAppliBasculeTriplets::InitTriplets(bool aModeBin)
         cTriplet b(&mAllOris[it3.Name1()],
                    &mAllOris[it3.Name2()],
                    &mAllOris[it3.Name3()], aXml3Ori, map, direct);
-        b.cost = 1. / aXml3Ori.ResiduTriplet();
-        std::cout << "Residue triplet: " << 1./ aXml3Ori.ResiduTriplet() << std::endl;
+        b.cost = 1. - aXml3Ori.ResiduTriplet();
+        std::cout << "Residue triplet: " << 1. - aXml3Ori.ResiduTriplet() << std::endl;
 
         ts.emplace_back(std::move(b));
         cTriplet* t = &ts.back();

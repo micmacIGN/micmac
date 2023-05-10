@@ -2172,13 +2172,6 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
     /*if (nsummit < 3)
         return result;*/
 
-
-    for (auto e : result.ss) { e->flag_set_kth_true(data.mFlagS); }
-    Save(data, ori0name, false);
-    for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
-    std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
-    updateViewFrom(ori0name, result.ss);
-
     if (result.ss.size() < 6) {
 
         for (size_t n = 1; n < childs.size(); n++) {
@@ -2188,6 +2181,12 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
         }
         return result;
     }
+
+    for (auto e : result.ss) { e->flag_set_kth_true(data.mFlagS); }
+    Save(data, ori0name, false);
+    for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
+    std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+    updateViewFrom(ori0name, result.ss);
 
     for (size_t n = 1; n < childs.size(); n++) {
         auto child = childs[n];
