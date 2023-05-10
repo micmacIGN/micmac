@@ -69,6 +69,7 @@ class cCamSimul
 {
    public :
       void AddCam(cPerspCamIntrCalib *);
+      ~cCamSimul();
 
       cCamSimul();
 
@@ -79,9 +80,12 @@ class cCamSimul
       tREAL8 mBsHMax;
 
    private :
+      ///  is the new center sufficiently far, but not too much
       bool ValidateCenter(const cPt3dr & aP) const;
 
+      ///  Generatea new valide point
       cPt3dr  GenValideCenter() const;
+      /// Generate a point w/o constraint
       cPt3dr  GenAnyCenter() const;
 
       std::list<cSensorCamPC *>  mListCam;
@@ -97,15 +101,15 @@ cCamSimul::cCamSimul() :
 {
 }
 
-bool cCamSimul::ValidateCenter(const cPt3dr & aP) const
+bool cCamSimul::ValidateCenter(const cPt3dr & aP2) const
 { 
     if (mListCam.empty()) return true;
 
     tREAL8 aTetaMin = 1e10;
+    cPt3dr aV20 = aP2 - mCenterGround;
     for (const auto & aPtr : mListCam)
     {
          cPt3dr aV10 = aPtr->Center() - mCenterGround;
-         cPt3dr aV20 = aP - mCenterGround;
 	 UpdateMin(aTetaMin,AbsAngleTrnk(aV10,aV20));
     }
     return  (aTetaMin>mBsHMin) && (aTetaMin<mBsHMax);
@@ -126,6 +130,19 @@ cPt3dr  cCamSimul::GenValideCenter() const
 }
 
 
+void cCamSimul::AddCam(cPerspCamIntrCalib * aPC)
+{
+      cPt3dr aNewC = GenValideCenter();
+
+      cPt3dr aK = VUnit(mCenterGround - aNewC);
+      cPt3dr aI = cPt3dr::PRandUnitNonAligned(aK,1e-2);
+      cRotation3D<tREAL8> aRot= cRotation3D<tREAL8>::CompleteRON(aK,aI);
+
+      cIsometry3D<tREAL8> aPose(aNewC,aRot);
+
+      mListCam.push_back(new cSensorCamPC("Test",aPose,aPC));
+
+}
 
 /* ************************************** */
 /*                                        */
