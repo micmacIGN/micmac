@@ -40,20 +40,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cNewO_BasculeTriplets.h"
 #include <array>
 #include <complex>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
 #include "XML_GEN/SuperposImage.h"
 #include "algo_geom/cMesh3D.h"
 #include "general/bitm.h"
+#include "general/exemple_basculement.h"
 #include "general/ptxd.h"
 #include <cmath>
 #include <cfloat>
 
 cTriplet::cTriplet(cOriBascule* s1, cOriBascule* s2, cOriBascule* s3,
-                   cXml_Ori3ImInit& xml, std::array<short, 3>& mask, bool inv)
-    : masks(mask),
-      inverted(inv),
+             cXml_Ori3ImInit& xml, std::array<int, 3>& m, bool dir)
+    : m(m),
+      direct(dir),
       mR2on1(Xml2El(xml.Ori2On1())),
       mR3on1(Xml2El(xml.Ori3On1())) {
     mSoms[0] = s1;
@@ -106,8 +108,6 @@ size_t cAppliBasculeTriplets::InitTriplets(bool aModeBin)
 
         std::string names[] = {it3.Name1(), it3.Name2(), it3.Name3()};
         int in1 = 0, in2 = 0;
-
-
         std::array<short, 3> mask;
         for (int i : {0, 1 , 2}) {
             if (block1.count(names[i])) {
@@ -123,22 +123,28 @@ size_t cAppliBasculeTriplets::InitTriplets(bool aModeBin)
             continue;
         }
 
-        std::array<cOriBascule*, 2> origin;
-        cOriBascule* dest = nullptr;
-        bool inverted = in2 == 2;
-        short selector = (inverted) ? 2 : 1;
-        short j = 0;
+        bool direct = in1 == 2;
+        short selector = (direct) ? 1 : 2;
+        std::array<int, 3> map;
         for (int i : {0, 1, 2}) {
-            if (mask[i] == selector)
-                origin[j++] = &mAllOris[names[i]];
-            else
-                dest = &mAllOris[names[i]];
+            if (mask[i] != selector)
+                map[2] = i;
         }
+         map[1] = (map[2] + 2) % 3;
+         map[0] = (map[2] + 1) % 3;
 
-        std::cout << in1 << " " << in2 << std::endl;
-        std::cout << origin[0]->mName << "+" << origin[1]->mName << "->"
-                  << dest->mName << " Inv:" << inverted <<std::endl;
-        cTriplet b(origin[0], origin[1], dest, aXml3Ori, mask, inverted);
+        //std::cout << in1 << " " << in2 << std::endl;
+        //std::cout << map[0] << " " << map[1] << " " << map[2] << " " << std::endl;
+        /*
+        cTriplet b(&mAllOris[names[(1 + destIndex) % 3]],
+                   &mAllOris[names[(2 + destIndex) % 3]],
+                   &mAllOris[names[destIndex]], aXml3Ori, mask, direct);*/
+        cTriplet b(&mAllOris[it3.Name1()],
+                   &mAllOris[it3.Name2()],
+                   &mAllOris[it3.Name3()], aXml3Ori, map, direct);
+        b.cost = 1. / aXml3Ori.ResiduTriplet();
+        std::cout << "Residue triplet: " << 1./ aXml3Ori.ResiduTriplet() << std::endl;
+
         ts.emplace_back(std::move(b));
         cTriplet* t = &ts.back();
         for (int i : {0, 1, 2}) {
@@ -149,14 +155,14 @@ size_t cAppliBasculeTriplets::InitTriplets(bool aModeBin)
     return ts.size();
 }
 
-static std::array<ElRotation3D, 3> EstimAllRt(cTriplet* aLnk) {
-    const cOriBascule* aS1 = aLnk->mSoms[0];
-    const cOriBascule* aS2 = aLnk->mSoms[1];
-    const cOriBascule* aS3 = aLnk->mSoms[2];
+static std::array<ElRotation3D, 3> EstimAllRt(cTriplet* aLnk, bool inv = false) {
+    const cOriBascule* aS1 = aLnk->of(0);
+    const cOriBascule* aS2 = aLnk->of(1);
+    const cOriBascule* aS3 = aLnk->of(2);
 
     // Get current R,t of the mother pair
-    const ElRotation3D aC1ToM = aS1->mCam->Orient();//TODO get current rot
-    const ElRotation3D aC2ToM = aS2->mCam->Orient();
+    const ElRotation3D aC1ToM = aS1->mCam->Orient().inv();//TODO get current rot
+    const ElRotation3D aC2ToM = aS2->mCam->Orient().inv();
 
     // Get rij,tij of the triplet sommets
     const ElRotation3D aC1ToL = aLnk->RotOfSom(aS1);
@@ -246,131 +252,140 @@ static void  ScTr2to1
              Pt3dr &                           aTr2to1
       )
 {
-   aVP1.clear();
-   aVP2.clear();
-   Pt3dr aCdg1(0,0,0);
-   Pt3dr aCdg2(0,0,0);
-   for (int aK = 0 ; aK<int(aVR1.size()) ; aK++)
-   {
-       Pt3dr aP1 =  aVR1[aK].ImAff(Pt3dr(0,0,0));
-       Pt3dr aP2 =  aRM2toM1 * aVR2[aK].ImAff(Pt3dr(0,0,0));
+    aVP1.clear();
+    aVP2.clear();
+    Pt3dr aCdg1(0,0,0);
+    Pt3dr aCdg2(0,0,0);
+    for (int aK = 0 ; aK<int(aVR1.size()) ; aK++)
+    {
+            Pt3dr aP1 =  aVR1[aK].ImAff(Pt3dr(0,0,0));
+            Pt3dr aP2 =  aRM2toM1 * aVR2[aK].ImAff(Pt3dr(0,0,0));
 
-       aVP1.push_back(aP1);
-       aVP2.push_back(aP2);
+            aVP1.push_back(aP1);
+            aVP2.push_back(aP2);
 
-       aCdg1 = aCdg1 + aP1;
-       aCdg2 = aCdg2 + aP2;
-   }
+            aCdg1 = aCdg1 + aP1;
+            aCdg2 = aCdg2 + aP2;
+    }
 
-   aCdg1  = aCdg1 / double(aVR1.size());
-   aCdg2  = aCdg2 / double(aVR1.size());
+    aCdg1  = aCdg1 / double(aVR1.size());
+    aCdg2  = aCdg2 / double(aVR1.size());
 
-   double aSomD1 = 0;
-   double aSomD2 = 0;
+    double aSomD1 = 0;
+    double aSomD2 = 0;
 
-   for (int aK = 0 ; aK<int(aVR1.size()) ; aK++)
-   {
-       double aD1 = euclid(aVP1[aK]-aCdg1);
-       double aD2 = euclid(aVP2[aK]-aCdg2);
-       //~ if (mShow>=2)
-       //~ {
-           //~ std::cout << "Ratio = " << aD1 / aD2 << " D1 " << aD1 << "\n";
-       //~ }
+    for (int aK = 0 ; aK<int(aVR1.size()) ; aK++)
+    {
+        double aD1 = euclid(aVP1[aK]-aCdg1);
+        double aD2 = euclid(aVP2[aK]-aCdg2);
 
-       aSomD1 += aD1;
-       aSomD2 += aD2;
-   }
-   aSomD1 /= aVR1.size();
-   aSomD2 /= aVR1.size();
+        aSomD1 += aD1;
+        aSomD2 += aD2;
+    }
+    aSomD1 /= aVR1.size();
+    aSomD2 /= aVR1.size();
 
-   aSc2to1 = aSomD1 / aSomD2;
-   //~ if (mShow>=2)
-   //~ {
-      //~ std::cout << "RGLOB " << mSc2to1 << "\n";
-      //~ std::cout << "RRGLOBBBb = " << aSomD1 << " " << aSomD2 << "\n";
-   //~ }
-   aTr2to1 = aCdg1  - aCdg2 * aSc2to1;
+    aSc2to1 = aSomD1 / aSomD2;
+    aTr2to1 = aCdg1  - aCdg2 * aSc2to1;
 }
 
-static ElMatrix<double>  RotM2toM1(const std::vector<ElRotation3D> & aVR1 ,const std::vector<ElRotation3D> & aVR2)
-{
-   ElMatrix<double>  aRes(3,3,0.0);
-   //  Cam -> Monde
-   for (int aK = 0 ; aK<int(aVR1.size()) ; aK++)
-   {
-       ElRotation3D aLocM2toM1 =  aVR1[aK] * aVR2[aK].inv();
-       aRes  = aRes + aLocM2toM1.Mat();
-
-       //~ if (mShow>=2)
-       //~ {
-          //~ std::cout << "TETA : " << aLocM2toM1.teta01() << " "
-                                 //~ << aLocM2toM1.teta02() << " "
-                                 //~ << aLocM2toM1.teta12()  << "\n";
-       //~ }
-   }
-   aRes = aRes * (1.0/double(aVR1.size()));
-   return NearestRotation(aRes);
+static ElMatrix<double> RotM2toM1(const std::vector<ElRotation3D>& aVR1,
+                                  const std::vector<ElRotation3D>& aVR2) {
+    ElMatrix<double> aRes(3, 3, 0.0);
+    //  Cam -> Monde
+    for (int aK = 0; aK < int(aVR1.size()); aK++) {
+        ElRotation3D aLocM2toM1 = aVR1[aK] * aVR2[aK].inv();
+        aRes = aRes + aLocM2toM1.Mat();
+        auto mRM2toM1 = aLocM2toM1.Mat();
+    }
+    aRes = aRes * (1.0 / double(aVR1.size()));
+    return NearestRotation(aRes);
 }
 
 static cSolBasculeRig  BascFromVRot
                 (
-                     const std::vector<ElRotation3D> & aVR1 ,
+                     const std::vector<ElRotation3D> & aVR1,
                      const std::vector<ElRotation3D> & aVR2,
+                     const std::vector<double> & aCosts,
                      std::vector<Pt3dr> &              aVP1,
                      std::vector<Pt3dr> &              aVP2
                 )
 {
-   ElMatrix<double>  aRM2toM1 = RotM2toM1(aVR1,aVR2);
 
-   double aSc2to1;
-   Pt3dr  aTr2to1;
-   ScTr2to1
-   (
-       aVR1,aVR2,
-       aVP1,aVP2,
-       aRM2toM1, aSc2to1,aTr2to1
-   );
-   return cSolBasculeRig::SBRFromElems(aTr2to1,aRM2toM1,aSc2to1);
+    ElMatrix<double>  aRM2toM1 = RotM2toM1(aVR1,aVR2);
+
+    double aSc2to1 = 1;
+    Pt3dr  aTr2to1(0,0,0);
+
+
+    ScTr2to1
+        (
+         aVR1,aVR2,
+         aVP1,aVP2,
+         aRM2toM1, aSc2to1,aTr2to1
+        );
+
+    return cSolBasculeRig::StdSolFromPts(aVP1, aVP2, &aCosts, 200, 5);
+    /*cRansacBasculementRigide basc(false);
+    for (size_t i = 0; i < aVP1.size(); i++) {
+        std::string name = std::to_string(i);
+        basc.AddExemple(aVP1[i], aVP2[i], 0, name);
+    }
+    basc.CloseWithTrGlob(true);
+    basc.EstimLambda();
+    basc.ExploreAllRansac();
+    //return basc.BestSol();*/
+    //return cSolBasculeRig::SBRFromElems(aTr2to1,aRM2toM1,aSc2to1);
 }
 
-void cAppliBasculeTriplets::ComputeBascule() {
+cSolBasculeRig cAppliBasculeTriplets::ComputeBascule() {
     std::vector<ElRotation3D> mVR1;
     std::vector<ElRotation3D> mVR2;
+    std::vector<double> mCosts;
 
     std::vector<ElRotation3D> mOVR1;
     std::vector<ElRotation3D> mOVR2;
 
+    //Load same orientations
+    for (auto t : ts) {
+        auto r = EstimAllRt(&t);
+        ElRotation3D pA = (t.direct) ? r[2].inv() : t.of(2)->mCam->Orient();
+        ElRotation3D pB = (t.direct) ? t.of(2)->mCam->Orient() : r[2].inv();
+
+        mOVR1.push_back(pA);
+        mOVR2.push_back(pB);
+
+        mVR1.push_back(pB.inv());
+        mVR2.push_back(pA.inv());
+        mCosts.push_back(t.cost);
+    }
+
     std::vector<Pt3dr> mVP1;
     std::vector<Pt3dr> mVP2;
 
-    for (auto t : ts) {
-       auto r = EstimAllRt(&t);
-       ElRotation3D position = r[2].inv();
-        if (!t.inverted) {
-            mOVR1.push_back(t.mSoms[2]->mCam->Orient());
-            mOVR2.push_back(position);
+    cSolBasculeRig aSol = BascFromVRot(mVR1, mVR2, mCosts, mVP1, mVP2);
 
-            mVR1.push_back(t.mSoms[2]->mCam->Orient().inv());
-            mVR2.push_back(position.inv());
-
-        } else {
-            mOVR1.push_back(position);
-            mOVR2.push_back(t.mSoms[2]->mCam->Orient());
-
-            mVR1.push_back(position.inv());
-            mVR2.push_back(t.mSoms[2]->mCam->Orient().inv());
-        }
-    }
-    cSolBasculeRig aSol = BascFromVRot(mVR1, mVR2, mVP1, mVP2);
     ElMatrix<double> mRM2toM1 = aSol.Rot();
     double mSc2to1 = aSol.Lambda();
     Pt3dr mTr2to1 = aSol.Tr();
 
-    if (std::isnan(mSc2to1)) {
-        return;
+    std::cout << "Lambda= " << mSc2to1 << "\n"
+              << "Tr    = " << mTr2to1 << "\n"
+              << "R     = " << mRM2toM1(0, 0) << "  " << mRM2toM1(0, 1) << " "
+              << mRM2toM1(0, 2) << "\n"
+              << "        " << mRM2toM1(1, 0) << "  " << mRM2toM1(1, 1) << " "
+              << mRM2toM1(1, 2) << "\n"
+              << "        " << mRM2toM1(2, 0) << "  " << mRM2toM1(2, 1) << " "
+              << mRM2toM1(2, 2) << "\n";
+
+
+
+    if (std::isnan(mSc2to1) || std::isnan(mTr2to1.x) || std::isnan(mTr2to1.y) || std::isnan(mTr2to1.z)) {
+        return cSolBasculeRig::Id();
     }
 
-    for (int aK = 0; aK < int(mOVR1.size()); aK++) {
+    std::vector<cTriplet*> mTrip;
+    for (int aK = 0; aK < int(mVP1.size()); aK++) {
         ElRotation3D aRM1toCam = mOVR1[aK];
         ElRotation3D aRM2toCam = mOVR2[aK];
         Pt3dr aC1 = mVP1[aK];
@@ -381,9 +396,36 @@ void cAppliBasculeTriplets::ComputeBascule() {
         ElMatrix<double> aDifM =
             aRM2toCam.Mat() * mRM2toM1.transpose() - aRM1toCam.Mat();
         Pt3dr aDifP = aC1 - (aC2 * mSc2to1 + mTr2to1);
+        auto r = aDifM.L2();
+        std::cout << "RESIDU R= " << r << " " << euclid(aDifP) << "\n";
 
-        std::cout << "RESIDU R= " << aDifM.L2() << " " << euclid(aDifP) << "\n";
+        if (maxR < 0 || r < maxR) {
+            mTrip.push_back(&ts[aK]);
+        }
     }
+    /*
+    mVR1.clear();
+    mVR2.clear();
+    mVP1.clear();
+    mVP2.clear();
+
+    for (auto t : mTrip) {
+        auto r = EstimAllRt(t);
+        ElRotation3D pA = (t->direct) ? r[2].inv() : t->of(2)->mCam->Orient();
+        ElRotation3D pB = (t->direct) ? t->of(2)->mCam->Orient() : r[2].inv();
+        mOVR1.push_back(pA);
+        mOVR2.push_back(pB);
+
+        mVR1.push_back(pB.inv());
+        mVR2.push_back(pA.inv());
+    }
+
+
+    aSol = BascFromVRot(mVR1, mVR2, mVP1, mVP2);
+
+    mRM2toM1 = aSol.Rot();
+    mSc2to1 = aSol.Lambda();
+    mTr2to1 = aSol.Tr();
 
     std::cout << "Lambda= " << mSc2to1 << "\n"
               << "Tr    = " << mTr2to1 << "\n"
@@ -393,6 +435,18 @@ void cAppliBasculeTriplets::ComputeBascule() {
               << mRM2toM1(1, 2) << "\n"
               << "        " << mRM2toM1(2, 0) << "  " << mRM2toM1(2, 1) << " "
               << mRM2toM1(2, 2) << "\n";
+
+              */
+
+    std::cout << "Basculed" << std::endl;
+    return aSol;
+}
+
+void cAppliBasculeTriplets::ApplyBascule(const cSolBasculeRig& aSol) {
+
+    ElMatrix<double> mRM2toM1 = aSol.Rot();
+    double mSc2to1 = aSol.Lambda();
+    Pt3dr mTr2to1 = aSol.Tr();
 
     for (auto name : block2) {
         CamStenope* aCam = mAllOris[name].mCam;
@@ -405,24 +459,6 @@ void cAppliBasculeTriplets::ComputeBascule() {
         ElRotation3D aCamToM1(aC1, aRM1toCam.transpose(), true);
 
         aCam->SetOrientation(aCamToM1.inv());
-    }
-
-    std::cout << "Basculed" << std::endl;
-}
-
-void cAppliBasculeTriplets::IsolateRotTr()
-{
-    std::vector<cOriTraversal> bTraversals;
-    for (auto t : ts) {
-        for (int i : {0, 1, 2}) {
-            if (t.masks[i] == 1) {
-                for (int j : {0, 1, 2}) {
-                    if (t.masks[j] == 2) {
-                        bTraversals.push_back({t.mSoms[i], t.mSoms[j], t.RotOfK(j)});
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -502,6 +538,7 @@ cAppliBasculeTriplets::cAppliBasculeTriplets(int argc,char ** argv) :
                     << EAMC(mOri2,"Second set of image", eSAM_IsPatFile)
                     << EAMC(mOriOut,"Orientation Dir"),
          LArgMain() << EAM(aModeBin,"Bin",true,"Binaries file, def = true",eSAM_IsBool)
+                    << EAM(maxR, "R", true, "Max Residue for selected triplet")
                     << ArgCMA()
         );
 
@@ -524,12 +561,15 @@ cAppliBasculeTriplets::cAppliBasculeTriplets(int argc,char ** argv) :
     StdCorrecNameOrient(mNameOriCalib, aDir);
     // std::cout << mNM->Dir3P() << std::endl;
     size_t n = InitTriplets(aModeBin);
-    if (n == 0) {
+    if (n < 3) {
         exit(1);
         return;
     }
 
-    ComputeBascule();
+    auto bascule = ComputeBascule();
+
+    ApplyBascule(bascule);
+
     Sauv();
     std::cout << "(";
     for (auto i : block1) {

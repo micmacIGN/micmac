@@ -635,6 +635,8 @@ std::vector<cNOSolIn_Triplet*>& aV3, int,
 
     void Save(Dataset& data, const std::string& OriOut, bool SaveListOfName = false);
 
+    void SaveTriplet(Dataset& data, const std::string& OriOut);
+
 
     // MicMac managements variables
     std::string mFullPat;

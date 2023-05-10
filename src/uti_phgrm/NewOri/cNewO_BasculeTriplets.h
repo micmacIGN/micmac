@@ -79,12 +79,15 @@ struct cOriTraversal {
 
 struct cTriplet {
     cTriplet(cOriBascule* s1, cOriBascule* s2, cOriBascule* s3,
-             cXml_Ori3ImInit& xml, std::array<short, 3>& mask, bool inv);
+             cXml_Ori3ImInit& xml, std::array<int, 3>& m, bool dir);
 
-    cXml_Ori3ImInit t;
+    std::array<int, 3> m;
     std::array<short, 3> masks; // true = first block
-    bool inverted; // Precise if S3 give prediction in source or target
+    bool direct; // Precise if S3 give prediction in source or target
                    // orientation
+    cXml_Ori3ImInit t;
+
+    double cost;
 
     const ElRotation3D& RotOfSom(const cOriBascule* aS) const {
         if (aS == mSoms[0]) return ElRotation3D::Id;
@@ -107,42 +110,8 @@ struct cTriplet {
         return ElRotation3D::Id;
     }
 
-    const ElRotation3D RotOfJToK(int aJ, int aK) const {
-        switch (aK) {
-            case 0:
-                switch (aJ) {
-                    case 0:
-                        return ElRotation3D::Id;
-                    case 1:
-                        return mR2on1;
-                    case 2:
-                        return mR3on1;
-                }
-                break;
-            case 1:
-                switch (aJ) {
-                    case 0:
-                        return mR2on1.inv();
-                    case 1:
-                        return ElRotation3D::Id;
-                    case 2:
-                        return mR2on1.inv() * mR3on1;
-                }
-                break;
-            case 2:
-                switch (aJ) {
-                    case 0:
-                        return mR3on1.inv();
-                    case 1:
-                        return mR3on1.inv() * mR2on1;
-                    case 2:
-                        return ElRotation3D::Id;
-                }
-                break;
-        }
-
-        ELISE_ASSERT(false, " RotOfSom");
-        return ElRotation3D::Id;
+    cOriBascule* of(int i) {
+        return mSoms[m[i]];
     }
 
     ElRotation3D mR2on1;
@@ -160,7 +129,8 @@ class cAppliBasculeTriplets : public cCommonMartiniAppli
         void InitOneDir(const std::string & aPat, bool aD1);
 
         size_t InitTriplets(bool aModeBin);
-        void ComputeBascule();
+        cSolBasculeRig ComputeBascule();
+        void ApplyBascule(const cSolBasculeRig& aSol);
 
         void IsolateRotTr();
         void Sauv();
@@ -172,6 +142,7 @@ class cAppliBasculeTriplets : public cCommonMartiniAppli
         std::string       mOri1;
         std::string       mOri2;
         std::string       mOriOut;
+        double maxR = -1;
 
         std::string       mDir;
         std::string       mDirOutLoc;

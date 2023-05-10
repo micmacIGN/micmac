@@ -6693,6 +6693,9 @@ class cXml_Ori3ImInit
         int & GenCat();
         const int & GenCat()const ;
 
+        double & Score();
+        const double & Score() const;
+
       //  cTplValGesInit< std::vector<double> > & Sigma();
        // const cTplValGesInit< std::vector<double> > & Sigma() const ;
 
@@ -6704,6 +6707,7 @@ class cXml_Ori3ImInit
         int genCategory;
         double mResiduTriplet;
         double mBSurH;
+        double score;
         Pt3dr mPMed;
         cXml_Elips3D mElips;
         //If generated, the section of random assigned

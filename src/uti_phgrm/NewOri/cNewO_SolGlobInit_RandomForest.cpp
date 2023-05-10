@@ -48,6 +48,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
+#include <exception>
 #include <ios>
 #include <iostream>
 #include <iterator>
@@ -61,11 +63,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <ratio>
 #include <set>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
 #include <stack>
 
+#include "XML_GEN/SuperposImage.h"
 #include "ext_stl/numeric.h"
 #include "general/PlyFile.h"
 #include "general/bitm.h"
@@ -84,6 +88,8 @@ extern double DistanceRot(const ElRotation3D& aR1, const ElRotation3D& aR2,
                           double aBSurH);
 
 extern double PropPond(std::vector<Pt2df>& aV, double aProp, int* aKMed = 0);
+
+const auto processor_count = std::thread::hardware_concurrency();
 
 /* //
 static void PrintRotation(const ElMatrix<double> Mat,const std::string Msg)
@@ -2079,7 +2085,7 @@ void create3Dpts(ffinalTree& tree, tSomNSI* oa, tSomNSI* ob, std::string mSauv2D
     MakeFileXML(aDico, mSauv3D);
 }
 
-std::string exec(const std::string& cmd) {
+std::string exec(const std::string& cmd, int* returncode = 0) {
     std::array<char, 1024> buffer;
     std::cout << cmd << std::endl;
     std::string result;
@@ -2089,15 +2095,28 @@ std::string exec(const std::string& cmd) {
         error = WEXITSTATUS(pclose(ptr));
     };
 
-    std::unique_ptr<FILE, decltype(deleter)> pipe(popen(cmd.c_str(), "r"), deleter);
-    if (!pipe) {
-        throw std::runtime_error("popen() failed!");
+    {
+        std::unique_ptr<FILE, decltype(deleter)> pipe(popen(cmd.c_str(), "r"), deleter);
+        if (!pipe) {
+            throw std::runtime_error("popen() failed!");
+        }
+        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+            result += buffer.data();
+        }
     }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        result += buffer.data();
-    }
+
+    if (returncode)
+        *returncode = error;
     std::cout << "Exit code: " << std::to_string(error) << std::endl;
     return result;
+}
+
+static std::string Pattern(const finalScene& result)
+{
+    std::string pattern = "(";
+    for (auto v : result.ss) pattern += v->attr().Im()->Name() + "|";
+    pattern += ")";
+    return pattern;
 }
 
 finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
@@ -2124,11 +2143,10 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
               << std::endl;
 
     std::cout << "Parent: " << node->attr().Im()->Name() << ":";
-    size_t nsummit = 0;
     for (auto& child : childs) {
         std::cout << " " << child->attr().Im()->Name() << std::to_string(rs.at(child).ss.size()) ;
-        nsummit += rs.at(child).ss.size();
     }
+    std::cout << std::endl;
 
     if (childs.size() == 0) {
         return result;
@@ -2155,21 +2173,16 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
     for (auto e : result.ss) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, ori0name, false);
     for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
-    //exec("mm3d BasculeTriplet \"image_002_00.*.tif\" \"Ori-"+ ori0name + "/Orientation-.*.xml\" \"Ori-" + oriseedname + "/Orientation-.*.xml\" " + ori0name + " OriCalib=CalibPerf SH=5Pts");
+    std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+    updateViewFrom(ori0name, result.ss);
 
-
-    if (childs.size() == 1) {
-        //updateViewFrom(ori0name, result.ss);
-        return result;
-    }
-    if (result.ss.size() < 9) {
+    if (result.ss.size() < 6) {
 
         for (size_t n = 1; n < childs.size(); n++) {
             auto child = childs[n];
             const finalScene& r = rs.at(child);
             result.merge(r);
         }
-
         return result;
     }
 
@@ -2177,32 +2190,31 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
         auto child = childs[n];
         const finalScene& r = rs.at(child);
         auto i = "tree_" + child->attr().Im()->Name();
-
         result.merge(r);
 
         //SAVE orientation
-        //std::string pattern = "(" + node->attr().Im()->Name() + "|" +
-        //    child->attr().Im()->Name() + ")";
-
         for (auto e : r.ss) { e->flag_set_kth_true(data.mFlagS); }
         Save(data, i, false);
         for (auto e : r.ss) { e->flag_set_kth_false(data.mFlagS); }
-        std::cout << exec("mm3d BasculeTriplet \"" + mFullPat + "\" \"Ori-"+ ori0name + "/Orientation-.*.xml\" \"Ori-" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=" + mNameOriCalib +" SH=" + mPrefHom);
-        std::string pattern = "(";
-        for (auto v : result.ss) pattern += v->attr().Im()->Name() + "|";
-        pattern += ")";
 
-        std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+        int err = 0;
+        std::cout << exec("mm3d BasculeTriplet \"" + mFullPat + "\" \"Ori-"+ ori0name + "/Orientation-.*.xml\" \"Ori-" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=" + mNameOriCalib +" SH=" + mPrefHom + " ", &err);
+        updateViewFrom(ori0name, result.ss);
 
+        //SAVE orientation
+        for (auto e : result.ss) { e->flag_set_kth_true(data.mFlagS); }
+        Save(data, ori0name, false);
+        for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
+
+        std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+        updateViewFrom(ori0name, result.ss);
     }
-    std::string pattern = "(";
-    for (auto v : result.ss) pattern += v->attr().Im()->Name() + "|";
-    pattern += ")";
+
     for (auto e : result.ss) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, ori0name, false);
     for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
     //exec("mm3d riplet \"image_002_00.*.tif\" "+ ori0name + "/Orientation-.*.xml\" \"" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=CalibPerf SH=5Pts");
-    std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+    std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
 
     updateViewFrom(ori0name, result.ss);
 
@@ -2215,8 +2227,11 @@ void RandomForest::updateViewFrom(std::string name, std::set<tSomNSI*> views)
     std::cout << "Reading output ori from: " << inOri << std::endl;
     for (auto e : views) {
         std::string imgName = e->attr().Im()->Name();
-        auto aCam = mNM->ICNM()->StdCamStenOfNames(imgName, inOri);
-        e->attr().CurRot() = aCam->Orient().inv();
+        std::string f = mNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+inOri,imgName,true);
+        if (ELISE_fp::exist_file(f)) {
+            auto aCam = mNM->ICNM()->StdCamStenOfNames(imgName, inOri);
+            e->attr().CurRot() = aCam->Orient().inv();
+        }
     }
 }
 
@@ -2255,15 +2270,31 @@ finalScene RandomForest::bfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
     }
 
     std::cout << "Down the tree" << std::endl;
+    std::cout << "Using N:" << processor_count << " processor." << std::endl;
 
     //Up
     std::map<tSomNSI*, finalScene> results;
     while (!s.empty()) {
         auto& lastlevel = s.back();
+        //std::vector<std::thread> tasks;
+        std::cout << "Parallel width: " << lastlevel.size() << std::endl;
         for (tSomNSI* n : lastlevel) {
             std::cout << "Working on level: " << std::to_string(s.size()) << std::endl;
-            results[n] = processNode(data, tree, results, n);
+            //tasks.emplace_back([&results, &data, tree, n, this]() {
+                results[n] = processNode(data, tree, results, n);
+         /*   });
+            if (tasks.size() >= processor_count) {
+                for (auto& t : tasks) {
+                    t.join();
+                }
+                tasks.clear();
+            }*/
         }
+        /*
+        for (auto& t : tasks) {
+            t.join();
+        }
+        */
         s.pop_back();
     }
 
@@ -2373,6 +2404,7 @@ void RandomForest::BestSolAllCC(Dataset& data) {
         std::string aOutOri = mOutName + ToString(aKC);
         //std::string aOutOri = "DSF_BestInit_CC" + ToString(aKC);
         Save(data, aOutOri, true);
+        SaveTriplet(data, aOutOri);
 
         FreeAllFlag(data.mVCC[aKC]->mSoms, data.mFlagS);
 
@@ -2822,6 +2854,30 @@ void RandomForest::HeapPerSol(Dataset& data) {
     // Order index
     for (auto aTri : data.mV3) {
         mHeapTriAll.MAJ(aTri);
+    }
+}
+
+void RandomForest::SaveTriplet(Dataset& data, const std::string& OriOut)
+{
+    for (auto c : data.mVCC) {
+        for (auto t : c->mTri) {
+            std::string names[3] = {
+                t->KSom(0)->attr().Im()->Name(),
+                t->KSom(1)->attr().Im()->Name(),
+                t->KSom(2)->attr().Im()->Name()
+            };
+            //std::string aNameSauveXml = mNM->NameOriOptimTriplet(
+            //    false, names[0], names[1], names[2]);
+            std::string aNameSauve = mNM->NameOriOptimTriplet(
+                aModeBin, names[0], names[1], names[2]);
+
+            cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aNameSauve, Xml_Ori3ImInit);
+            aXml3Ori.ResiduTriplet() = t->Cost();
+
+            //------------
+            //MakeFileXML(aXml3Ori, aNameSauveXml);
+            MakeFileXML(aXml3Ori, aNameSauve);
+        }
     }
 }
 
