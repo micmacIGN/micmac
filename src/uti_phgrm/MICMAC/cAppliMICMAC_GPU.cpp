@@ -1076,7 +1076,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                 {
                     ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
                     ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
-
+                    //std::cout<<"MODIFF  ZMIN NNN "<<mZMinGlob<<"   mTABZMIN   "<<mTabZMin[anY][anX]<<std::endl;
                 }
             }
 
@@ -1084,7 +1084,9 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
         mGpuSzD = 0;
         if (mCurEtape->UseGeomDerivable())
         {
+            //std::cout<<" SZ GEOM DERIVABLE "<<std::endl;
             mGpuSzD = mCurEtape->SzGeomDerivable();
+            //std::cout<<"   SZZZZZZZ  "<<mGpuSzD<<std::endl;
             Pt2di aSzOrtho = aBox.sz() + mCurSzVMax * 2;
             Pt2di aSzTab =  Pt2di(3,3) + aSzOrtho/mGpuSzD;
             mGeoX.Resize(aSzTab);
@@ -1205,7 +1207,7 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
           ELISE_ASSERT(aGLI_00!=0,"Incohe eModeMom_12_2_22 with no Im in cAppliMICMAC::InitZ");
     }
 
-
+    //int RandInd=std::rand();
     for (int aKIm= aKFirstIm ; aKIm<mNbIm ; aKIm++)
     {
         cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
@@ -1250,6 +1252,8 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
              Pt2di aSzV0 =   aGLI_K.SzV0();
              Pt2di aSzErod = mCurSzVMax;
 
+             //std::cout<<"  SZ000   "<<aGLI_0.getSizeImage()<<"   SZKKK    "<<aGLI_K.getSizeImage()<<"  EROD  "<<aSzErod<<std::endl;
+
              // Calcul de l'ortho image et de l'image OK Ortho
              double aStep = 1.0/ElMax(1,mGpuSzD); // Histoire de ne pas diviser par 0
              double anIndX = 0.0;
@@ -1260,7 +1264,30 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
                    {
                        aOkOr[anY][anX] = 0;
                        aDOrtho[anY][anX] = 0.0;
+                       Pt2dr aPIm;
+                       if (mGpuSzD)
+                       {
+                           Pt2dr anInd(anIndX,anIndY);
+                           aPIm = Pt2dr( mTGeoX.getr(anInd), mTGeoY.getr(anInd)) ;
+                       }
+                       else
+                       {
+                           Pt2dr aPTer  = DequantPlani(anX,anY);
+                           aPIm = aGeom->CurObj2Im(aPTer,&mZTerCur);
+                       }
+                       if (aGLI_0.IsOk(aPIm.x,aPIm.y))
+                           {
+                                aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
+                           }
                        if (aDLocOkTerDil[anY][anX])
+                           {
+                               if (aGLI_0.IsOk(aPIm.x,aPIm.y))
+                               {
+                                   //aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
+                                   aOkOr[anY][anX] =  1;
+                               }
+                           }
+                       /*if (aDLocOkTerDil[anY][anX])
                        {
                            Pt2dr aPIm;
                            if (mGpuSzD)
@@ -1281,12 +1308,19 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
                                aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
                                aOkOr[anY][anX] =  1;
                            }
-                       }
+                       }*/
                        anIndY += aStep;
 
                    }
                    anIndX += aStep;
              }
+
+             // Save mappings locations that are stored in mGeoX and mGeoY
+             /*std::string aPrefX   = FullDirMEC() + "MMV1Ortho_Pid" + ToString(mm_getpid()) + "_Z" + ToString(aZ-aZ0) ;
+             std::string aPrefixGeo = aPrefX + "_I" + ToString(aKIm) + "_S"+ ToString(aKScale);
+             Box2di  aBoxD(Pt2di(mX0UtiDilTer,mY0UtiDilTer),Pt2di(mX1UtiDilTer,mY1UtiDilTer));
+             SaveIm(aPrefixGeo+"_GEOX.tif",mGeoX.data(),aBoxD);
+             SaveIm(aPrefixGeo+"_GEOY.tif",mGeoY.data(),aBoxD);*/
 
              SelfErode(aGLI_K.ImOK_Ortho(), aSzErod ,aBoxUtiLocIm);
 
@@ -1361,6 +1395,308 @@ if (0)
 
     return true;
 }
+
+
+bool  cAppliMICMAC::InitZRef(int aZ,int aZRef, std::string aPrefX, eModeInitZ aMode)
+{
+    mZIntCur =aZ;
+    mZTerCur  = DequantZ(mZIntCur);
+
+    mImOkTerCur.raz();
+
+    // XY01-UtiTer => Box of image at Z level , init at empty box
+    mX0UtiTer = mX1Ter + 1;
+    mY0UtiTer = mY1Ter + 1;
+    mX1UtiTer = mX0Ter;
+    mY1UtiTer = mY0Ter;
+
+    // Compute Box &  Masq Terrain
+    for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+    {
+        for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+        {
+             // In ortho if in terrain and Z in intervall
+             mDOkTer[anY][anX] =
+                                   (mZIntCur >= mTabZMin[anY][anX])
+                                   && (mZIntCur <  mTabZMax[anY][anX])
+                                   && IsInTer(anX,anY)
+                                   ;
+
+             //  If Ok update the box
+              if ( mDOkTer[anY][anX])
+              {
+                     ElSetMin(mX0UtiTer,anX);
+                     ElSetMax(mX1UtiTer,anX);
+                     ElSetMin(mY0UtiTer,anY);
+                     ElSetMax(mY1UtiTer,anY);
+              }
+
+        }
+    }
+
+    mX1UtiTer ++;
+    mY1UtiTer ++;
+
+    // If box was not updated, then it is empty
+    if (mX0UtiTer >= mX1UtiTer)
+            return false;
+
+    int aKFirstIm = 0;
+    U_INT1 ** aDOkIm0TerDil = mDOkTerDil;
+    // Case mGIm1IsInPax : Im1 doesnt depend of pax (bundle geom of epip like geometry)
+    // generate some optimisation
+    if (mGIm1IsInPax)
+    {
+            // If we have already been here, we dont neet to reload first image
+            if (mFirstZIsInit)
+            {
+               aKFirstIm = 1;
+            }
+            else
+            {
+            // First time we must reload the whole first  images
+                mX0UtiTer = mX0Ter;
+                mX1UtiTer = mX1Ter;
+                mY0UtiTer = mY0Ter;
+                mY1UtiTer = mY1Ter;
+                aDOkIm0TerDil = mAll1DOkTerDil;
+            }
+    }
+
+    //
+    // XY01-UtiDilTer => dilatation of  XY01-UtiTer by  mCurSzVMax
+    mX0UtiDilTer = mX0UtiTer - mCurSzVMax.x;
+    mY0UtiDilTer = mY0UtiTer - mCurSzVMax.y;
+    mX1UtiDilTer = mX1UtiTer + mCurSzVMax.x;
+    mY1UtiDilTer = mY1UtiTer + mCurSzVMax.y;
+
+    //  XY01-UtiLocIm =>  Box  of image1 in referentiel of I1
+    mX0UtiLocIm = mX0UtiTer - mDilX0Ter;
+    mX1UtiLocIm = mX1UtiTer - mDilX0Ter;
+    mY0UtiLocIm = mY0UtiTer - mDilY0Ter;
+    mY1UtiLocIm = mY1UtiTer - mDilY0Ter;
+
+    // XY01-UtiDilLocIm => dilatation of XY01-UtiDilTer
+    mX0UtiDilLocIm = mX0UtiDilTer - mDilX0Ter;
+    mX1UtiDilLocIm = mX1UtiDilTer - mDilX0Ter;
+    mY0UtiDilLocIm = mY0UtiDilTer - mDilY0Ter;
+    mY1UtiDilLocIm = mY1UtiDilTer - mDilY0Ter;
+
+
+    Box2di aBoxUtiLocIm(Pt2di(mX0UtiLocIm,mY0UtiLocIm),Pt2di(mX1UtiLocIm,mY1UtiLocIm));
+    Box2di aBoxUtiDilLocIm(Pt2di(mX0UtiDilLocIm,mY0UtiDilLocIm),Pt2di(mX1UtiDilLocIm,mY1UtiDilLocIm));
+
+    Dilate(mImOkTerCur,mImOkTerDil,mCurSzVMax,aBoxUtiDilLocIm);
+
+    cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
+
+    cGPU_LoadedImGeom * aGLI_00 =  mNbIm ? mVLI[0] : 0 ;
+    if (aMode==eModeMom_12_2_22)
+    {
+          ELISE_ASSERT(aGLI_00!=0,"Incohe eModeMom_12_2_22 with no Im in cAppliMICMAC::InitZ");
+    }
+
+    //int RandInd=std::rand();
+    for (int aKIm= aKFirstIm ; aKIm<mNbIm ; aKIm++)
+    {
+        /*if (aKIm==0)
+        {
+                std::cout<<" WWWWWWWWWW E HAVE COMPUTED THE FIRST MASTER ORTHO =========>  "<<std::endl;
+        }*/
+        cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
+        const cGeomImage * aGeom=aGLI_0.Geom();
+
+
+        // Tabulation des projections image au pas de mGpuSzD
+        if (mGpuSzD)
+        {
+            int aNbX = (mX1UtiDilTer-mX0UtiDilTer +mGpuSzD) / mGpuSzD;
+            int aNbY = (mY1UtiDilTer-mY0UtiDilTer +mGpuSzD) / mGpuSzD;
+
+
+            for (int aKX = 0; aKX <= aNbX ; aKX++)
+            {
+                 for (int aKY = 0; aKY <= aNbY ; aKY++)
+                 {
+                      Pt2dr aPTer  = DequantPlani(mX0UtiDilTer+aKX*mGpuSzD,mY0UtiDilTer+aKY*mGpuSzD);
+                      Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&mZTerCur);
+                      Pt2di anI(aKX,aKY);
+                      mTGeoX.oset(anI,aPIm.x);
+                      mTGeoY.oset(anI,aPIm.y);
+                 }
+            }
+        }
+
+        const std::vector<cGPU_LoadedImGeom *> &  aVGLI = aGLI_0.MSGLI();
+
+        for (int aKScale = 0; aKScale<int(aVGLI.size()) ; aKScale++)
+        {
+             cGPU_LoadedImGeom & aGLI_K = *(aVGLI[aKScale]);
+
+             ELISE_ASSERT(aGLI_0.VDataIm()==aGLI_K.VDataIm(),"Internal incohe in MulScale correl");
+             float ** aDataIm =  aGLI_0.VDataIm()[aKScale];
+             tGpuF ** aDOrtho = aGLI_K.DataOrtho();
+             U_INT1 ** aOkOr =  aGLI_K.DataOKOrtho();
+
+             U_INT1 ** aDLocOkTerDil = (aKIm==0) ? aDOkIm0TerDil : mDOkTerDil;
+
+
+             // Pendant longtemps, il y a eu un bug quasi invisible, aSzV0=mCurSzV0 ....
+             Pt2di aSzV0 =   aGLI_K.SzV0();
+             Pt2di aSzErod = mCurSzVMax;
+
+             //std::cout<<"  SZ000   "<<aGLI_0.getSizeImage()<<"   SZKKK    "<<aGLI_K.getSizeImage()<<"  EROD  "<<aSzErod<<std::endl;
+             // Calcul de l'ortho image et de l'image OK Ortho
+             double aStep = 1.0/ElMax(1,mGpuSzD); // Histoire de ne pas diviser par 0
+             double anIndX = 0.0;
+             for (int anX = mX0UtiDilTer ; anX <  mX1UtiDilTer ; anX++)
+             {
+                   double anIndY = 0.0;
+                   for (int anY = mY0UtiDilTer ; anY < mY1UtiDilTer ; anY++)
+                   {
+                       aOkOr[anY][anX] = 0;
+                       aDOrtho[anY][anX] = 0.0;
+                       Pt2dr aPIm;
+                       if (mGpuSzD)
+                       {
+                           Pt2dr anInd(anIndX,anIndY);
+                           aPIm = Pt2dr( mTGeoX.getr(anInd), mTGeoY.getr(anInd)) ;
+                       }
+                       else
+                       {
+                           Pt2dr aPTer  = DequantPlani(anX,anY);
+                           aPIm = aGeom->CurObj2Im(aPTer,&mZTerCur);
+                       }
+                       aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
+                       if (aDLocOkTerDil[anY][anX])
+                           {
+                               if (aGLI_0.IsOk(aPIm.x,aPIm.y))
+                               {
+                                   //aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
+                                   aOkOr[anY][anX] =  1;
+                               }
+                           }
+
+
+
+
+                       /*if (aDLocOkTerDil[anY][anX])
+                       {
+                           Pt2dr aPIm;
+                           if (mGpuSzD)
+                           {
+                               Pt2dr anInd(anIndX,anIndY);
+                               aPIm = Pt2dr( mTGeoX.getr(anInd), mTGeoY.getr(anInd)) ;
+                           }
+                           else
+                           {
+                               Pt2dr aPTer  = DequantPlani(anX,anY);
+                               aPIm = aGeom->CurObj2Im(aPTer,&mZTerCur);
+                           }
+
+                            aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
+                           // Peu importe aGLI_0 ou aGLI_K
+                           if (aGLI_0.IsOk(aPIm.x,aPIm.y))
+                           {
+                               //aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
+                               aOkOr[anY][anX] =  1;
+                           }
+                       }
+                       */
+                       anIndY += aStep;
+
+                   }
+                   anIndX += aStep;
+             }
+
+             // Save mappings locations that are stored in mGeoX and mGeoY
+             if (mGpuSzD)
+                 {
+                     //std::cout<<" akimmmmmmmmmmmmmmmmmmmm   ===  "<<aKIm<<" PID "<<aPrefX<<std::endl;
+                     std::string aPrefixGeo = aPrefX+ "_Z" + ToString(aZ-aZRef)  + "_I" + ToString(aKIm) + "_S"+ ToString(aKScale);
+                     int NbX = (mX1UtiDilTer-mX0UtiDilTer +mGpuSzD) / mGpuSzD;
+                     int NbY = (mY1UtiDilTer-mY0UtiDilTer +mGpuSzD) / mGpuSzD;
+                     Box2di  aBoxD(Pt2di(0,0),Pt2di(NbX,NbY));
+                     //std::cout<<mGeoX.sz()<< "  "<<aBoxD.sz()<<std::endl;
+                     //std::cout<<mGeoY.sz()<< "  "<<aBoxD._p0<<std::endl;
+                     SaveIm(aPrefixGeo+"_GEOX.tif",mGeoX.data(),aBoxD);
+                     SaveIm(aPrefixGeo+"_GEOY.tif",mGeoY.data(),aBoxD);
+                 }
+
+             SelfErode(aGLI_K.ImOK_Ortho(), aSzErod ,aBoxUtiLocIm);
+
+             if (    (aMode==eModeMom_2_22)
+                  || ((aKIm==0) &&  (aMode==eModeMom_12_2_22))
+             )
+             {
+                   if (! mCMS_ModeEparse)
+                   {
+                      MomOrdre2(aGLI_K.ImOrtho(),aGLI_K.ImSomO(),aGLI_K.ImSomO2(),aSzV0 ,aBoxUtiLocIm);
+                   }
+                   else
+                   {
+                      MomOrdre2_Creux(aGLI_K.ImOrtho(),aGLI_K.ImSomO(),aGLI_K.ImSomO2(),aSzV0 ,aBoxUtiLocIm);
+
+if (0)
+{
+  double aSomO= 100;
+  double aSomO2= 100;
+   ELISE_COPY
+   (
+        rectangle(aBoxUtiLocIm._p0,aBoxUtiLocIm._p1),
+        Abs(aGLI_K.ImSomO().in()-SomVoisCreux(aGLI_K.ImOrtho().in(),aSzV0)),
+        sigma(aSomO)
+   );
+   ELISE_COPY
+   (
+        rectangle(aBoxUtiLocIm._p0,aBoxUtiLocIm._p1),
+        Abs(aGLI_K.ImSomO2().in()-SomVoisCreux(Square(aGLI_K.ImOrtho().in()),aSzV0)),
+        sigma(aSomO2)
+   );
+   // std::cout << "Verif SO " << aSomO  << " SO2 " << aSomO2<< "\n";
+   ELISE_ASSERT((aSomO<1e-5) && (aSomO2<1e-5),"Check in SO-SO2\n");
+}
+
+                   }
+             }
+             else if (aMode==eModeMom_12_2_22)
+             {
+                   // std::cout << "KIM " << aKIm << "\n";
+                   if (! mCMS_ModeEparse)
+                   {
+                       Mom12_22
+                       (
+                             aGLI_00->KiemeMSGLI(aKScale)->ImOrtho(),
+                             aGLI_K.ImOrtho(),
+                             aGLI_K.ImSom12(),
+                             aGLI_K.ImSomO(),
+                             aGLI_K.ImSomO2(),
+                             aSzV0 ,
+                             aBoxUtiLocIm
+                       );
+                   }
+                   else
+                   {
+                       Mom12_22_creux
+                       (
+                             aGLI_00->KiemeMSGLI(aKScale)->ImOrtho(),
+                             aGLI_K.ImOrtho(),
+                             aGLI_K.ImSom12(),
+                             aGLI_K.ImSomO(),
+                             aGLI_K.ImSomO2(),
+                             aSzV0 ,
+                             aBoxUtiLocIm
+                       );
+                   }
+            }
+        }
+    }
+
+    mFirstZIsInit = false; // recomputing master ortho although not necessary
+
+    return true;
+}
+
 
 void cAppliMICMAC::DoOneCorrelSym(int anX,int anY,int aNbScaleIm)
 {
@@ -2144,11 +2480,33 @@ void cAppliMICMAC::DoCorrelAdHoc
 	else if (aTC.MutiCorrelOrthoExt().IsInit())
 	//	MutiCorrelOrthoExt
 	{
+              std::string aPrefixGlobIm = FullDirMEC() + "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
              const cMutiCorrelOrthoExt aMCOE = aTC.MutiCorrelOrthoExt().Val();
              int mDeltaZ = aMCOE.DeltaZ().Val();
              std::string aPrefixGlob = FullDirMEC() + "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
              for (int aZ0=mZMinGlob ; aZ0<mZMaxGlob ; aZ0+=mDeltaZ)
              {
+
+                     /********************************************************************************/
+                     // Save Original oriented image tilesf
+                     for (int aKIm= 0 ; aKIm<mNbIm ; aKIm++)
+                     {
+                         cGPU_LoadedImGeom & aaGLI_0 = *(mVLI[aKIm]);
+                         const std::vector<cGPU_LoadedImGeom *> &  aaVGLI = aaGLI_0.MSGLI();
+
+                         for (int aKScale = 0; aKScale<int(aaVGLI.size()) ; aKScale++)
+                         {
+                              cGPU_LoadedImGeom & aaGLI_K = *(aaVGLI[aKScale]);
+                              ELISE_ASSERT(aaGLI_0.VDataIm()==aaGLI_K.VDataIm(),"Internal incohe in MulScale correl");
+                              float ** aaDataIm =  aaGLI_0.VDataIm()[aKScale];
+                              std::string aPrefiX= aPrefixGlobIm + "_I" + ToString(aKIm) + "_S"+ ToString(aKScale);
+                              Pt2di SzImage=aaGLI_0.getSizeImage();
+                              Box2di ABox(Pt2di(0,0),SzImage);
+                              SaveIm(aPrefiX+"_ORIG.tif",aaDataIm,ABox);
+                         }
+                     }
+                     /********************************************************************************/
+
                   int aZ1= ElMin(mZMaxGlob,aZ0+mDeltaZ);
 		  Box2di  aBoxEmpty(Pt2di(0,0),Pt2di(0,0));
 		  std::vector<Box2di>  aVecBoxDil;
@@ -2157,7 +2515,7 @@ void cAppliMICMAC::DoCorrelAdHoc
                   {
                         std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) ;
                         bool OkZ = InitZ(aZ,eModeNoMom);  // Generate orthos and mask at given Z
-			if (OkZ)
+                        if (OkZ)
                         {
                             Box2di  aBoxDil(Pt2di(mX0UtiDilTer,mY0UtiDilTer),Pt2di(mX1UtiDilTer,mY1UtiDilTer));
                             Box2di  aBoxUti(Pt2di(mX0UtiTer,mY0UtiTer),Pt2di(mX1UtiTer,mY1UtiTer));
@@ -2204,14 +2562,14 @@ void cAppliMICMAC::DoCorrelAdHoc
 		                 ;
 		  if (aMCOE.Options().IsInit())
                      aCom = aCom + " " + QUOTE(aMCOE.Options().Val());
-          //ADDED STATEMENT ON MODEL ARCHITECTURE AND MODELS PARAMETERES FOR INFERENCE 
+                  //ADDED STATEMENT ON MODEL ARCHITECTURE AND MODELS PARAMETERES FOR INFERENCE
 		  if (aMCOE.OrthFileModeleArch().IsInit())
                      aCom = aCom + " " +  "CNNArch=" + QUOTE(aMCOE.OrthFileModeleArch().Val());
 		  if (aMCOE.OrthFileModeleParams().IsInit())
                      aCom = aCom + " " +  "CNNParams=" + QUOTE(aMCOE.OrthFileModeleParams().Val());
 		  if (aMCOE.OrthoResol().IsInit())
                      aCom = aCom + " " +  "RESOL=" + QUOTE(aMCOE.OrthoResol().Val());          
-          std::cout<<"COMMAND 2 TEST "<<aCom<<std::endl;
+                  std::cout<<"COMMAND 2 TEST "<<aCom<<std::endl;
 		  System(aCom);
 
 		  // Fill cube with computed similarities
@@ -2223,7 +2581,7 @@ void cAppliMICMAC::DoCorrelAdHoc
 		      bool  CorDone = (aBoxU.sz() != Pt2di(0,0));
 		      if (CorDone)
 		      {
-			      // Read similarity
+                          // Read similarity
                           std::string aNameSim =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) + "_Sim.tif"  ;
 			  Im2D_REAL4  aImSim = Im2D_REAL4::FromFileStd(aNameSim);
 			  TIm2D<REAL4,REAL8> aTImSim(aImSim);

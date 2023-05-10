@@ -361,7 +361,10 @@ void aCnnModelPredictor::PopulateModelFeatures(torch::jit::script::Module & Netw
             break;
         }
     }
+    //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
     auto cuda_available = torch::cuda::is_available();
+    //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
+    StdOut()<<"Model Name "<<aModel<<"\n";
     //auto cuda_available=false;
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
     Network=torch::jit::load(aModel);
@@ -816,7 +819,10 @@ torch::Tensor aCnnModelPredictor::PredictMSNet(MSNet mNet, std::vector<tTImV2> a
 /**********************************************************************************************************************/
 torch::Tensor aCnnModelPredictor::PredictUNetWDecision(torch::jit::script::Module mNet, std::vector<tTImV2> aMasterP,std::vector<tTImV2> aPatchLV, cPt2di aPSz)
 {
-    auto cuda_available = torch::cuda::is_available();
+    //auto cuda_available = torch::cuda::is_available();
+    //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
+    auto cuda_available=false;
+    //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
     //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
     //std::cout<<"master vector sizes <<   "<<aMasterP.size()<<std::endl;
     //std::cout<<"slaves vector sizes <<   "<<aPatchLV.size()<<std::endl;
@@ -853,6 +859,33 @@ torch::Tensor aCnnModelPredictor::PredictUNetWDecision(torch::jit::script::Modul
     auto aPAll=torch::cat({aPAllMasters.unsqueeze(0),aPAllSlaves.unsqueeze(0)},0).to(device); // tensor of size 2,1,W,H
     //StdOut()<<"Patches "<<aPAll.sizes()<<"\n";
     torch::jit::IValue inp(aPAll);
+    std::vector<torch::jit::IValue> allinp={inp};
+    auto out=mNet.forward(allinp);
+    auto output=out.toTensor().squeeze();
+    return output.to(torch::kCPU);
+}
+
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictUnetFeaturesOnly(torch::jit::script::Module mNet,std::vector<tTImV2> aPatchLV, cPt2di aPSz)
+{
+    //auto cuda_available = torch::cuda::is_available();
+    //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
+    auto cuda_available=false;
+    //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
+    //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
+    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    torch::NoGradGuard no_grad;
+    mNet.eval();
+    torch::Tensor aPAllSlaves=torch::empty({(int) aPatchLV.size(),aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+    for (int cc=0;cc<(int) aPatchLV.size();cc++)
+    {
+        tREAL4 ** mPatchLData=aPatchLV.at(cc).DIm().ExtractRawData2D();
+        torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+        aPL=aPL.div(255.0);
+        aPL=(aPL.sub(0.4353755468)).div(0.19367880);
+        aPAllSlaves.index_put_({cc},aPL);
+    }
+    torch::jit::IValue inp(aPAllSlaves.unsqueeze(0));
     std::vector<torch::jit::IValue> allinp={inp};
     auto out=mNet.forward(allinp);
     auto output=out.toTensor().squeeze();

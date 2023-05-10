@@ -3572,6 +3572,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
            // Si pas FirstZ de la colone et Im1 maitresse, pas la peine
            // de reinitialiser 
            bool InitZ(int aZ,eModeInitZ aMode);
+           bool InitZRef(int aZ,int aZRef, std::string aPrefX,eModeInitZ aMode);
 
   // Permet entre autre d'optimiser pour geom image maitresse
            bool mFirstZIsInit;

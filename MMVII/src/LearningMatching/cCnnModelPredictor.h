@@ -53,6 +53,7 @@ class aCnnModelPredictor
        torch::Tensor PredictMSNetAtt(MSNet_Attention Net,std::vector<tTImV2> aTilL,cPt2di aPSz);
        torch::Tensor PredictMSNetHead(/*MSNetHead*/ torch::jit::script::Module mNet, std::vector<tTImV2> aPatchLV, cPt2di aPSz);
        torch::Tensor PredictUNetWDecision(torch::jit::script::Module mNet, std::vector<tTImV2> aMasterP,std::vector<tTImV2> aPatchLV, cPt2di aPSz);
+       torch::Tensor PredictUnetFeaturesOnly(torch::jit::script::Module mNet,std::vector<tTImV2> aPatchLV, cPt2di aPSz);
        torch::Tensor PredictMSNet1(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNet2(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNet3(MSNet Net,torch::Tensor X);
@@ -96,7 +97,7 @@ class aCnnModelPredictor
         
        std::string Architecture(){return mArchitecture;};  // it is not useful 
        
-		std::vector<std::string > mSetModelBinaries;
+                std::vector<std::string > mSetModelBinaries;
         std::string mArchitecture;
         std::string mDirModel;
         /*ConvNet_Fast mNetFastStd;
