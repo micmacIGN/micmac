@@ -65,30 +65,41 @@ class cMatEssential
 /*                                        */
 /* ************************************** */
 
-class cCamSimul
+class cCamSimul : public cMemCheck
 {
    public :
-      void AddCam(cPerspCamIntrCalib *);
+      static cCamSimul * Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool SubVert);
+
       ~cCamSimul();
 
-      cCamSimul();
-
       cPt3dr mCenterGround;
+     
+      //   Geometry of acquisition
       tREAL8 mProfMin;
       tREAL8 mProfMax;
       tREAL8 mBsHMin;
       tREAL8 mBsHMax;
 
+
+      static void BenchMatEss();
    private :
+      void AddCam(cPerspCamIntrCalib *,bool SubVert);
+      void AddCam(eProjPC aProj1,bool SubVert);
+
+      cCamSimul();
       ///  is the new center sufficiently far, but not too much
       bool ValidateCenter(const cPt3dr & aP) const;
 
       ///  Generatea new valide point
-      cPt3dr  GenValideCenter() const;
+      cPt3dr  GenValideCenter(bool SubVert) const;
       /// Generate a point w/o constraint
-      cPt3dr  GenAnyCenter() const;
+      cPt3dr  GenAnyCenter(bool SubVert) const;
 
-      std::list<cSensorCamPC *>  mListCam;
+      std::vector<cSensorCamPC *>         mListCam;
+      std::vector<cPerspCamIntrCalib *>   mListCalib;
+
+
+      // cSetHomogCpleIm
 };
 
 
@@ -99,6 +110,12 @@ cCamSimul::cCamSimul() :
    mBsHMin       (0.1),
    mBsHMax       (0.5)
 {
+}
+
+cCamSimul::~cCamSimul()
+{
+    DeleteAllAndClear(mListCam);
+    DeleteAllAndClear(mListCalib);
 }
 
 bool cCamSimul::ValidateCenter(const cPt3dr & aP2) const
@@ -115,24 +132,28 @@ bool cCamSimul::ValidateCenter(const cPt3dr & aP2) const
     return  (aTetaMin>mBsHMin) && (aTetaMin<mBsHMax);
 }
 
-cPt3dr  cCamSimul::GenAnyCenter() const
+cPt3dr  cCamSimul::GenAnyCenter(bool SubVert) const
 {
+    if (SubVert)
+       return    mCenterGround 
+	       + cPt3dr(RandUnif_C()/mProfMax,RandUnif_C()/mProfMax,1.0) * RandInInterval(mProfMin,mProfMax);
+
     return mCenterGround + cPt3dr::PRandUnit() * RandInInterval(mProfMin,mProfMax);
 }
 
 
-cPt3dr  cCamSimul::GenValideCenter() const
+cPt3dr  cCamSimul::GenValideCenter(bool SubVert) const
 {
-   cPt3dr aRes = GenAnyCenter();
+   cPt3dr aRes = GenAnyCenter(SubVert);
    while (! ValidateCenter(aRes))
-          aRes = GenAnyCenter();
+          aRes = GenAnyCenter(SubVert);
    return aRes;
 }
 
 
-void cCamSimul::AddCam(cPerspCamIntrCalib * aPC)
+void cCamSimul::AddCam(cPerspCamIntrCalib * aPC,bool SubVert)
 {
-      cPt3dr aNewC = GenValideCenter();
+      cPt3dr aNewC = GenValideCenter(SubVert);
 
       cPt3dr aK = VUnit(mCenterGround - aNewC);
       cPt3dr aI = cPt3dr::PRandUnitNonAligned(aK,1e-2);
@@ -142,6 +163,46 @@ void cCamSimul::AddCam(cPerspCamIntrCalib * aPC)
 
       mListCam.push_back(new cSensorCamPC("Test",aPose,aPC));
 
+}
+
+void cCamSimul::AddCam(eProjPC aProj,bool SubVert)
+{
+    cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::RandomCalib(aProj,1);
+
+    mListCalib.push_back(aCalib);
+    AddCam(aCalib,SubVert);
+}
+
+cCamSimul * cCamSimul::Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool SubVert)
+{
+   cCamSimul * aRes = new cCamSimul();
+
+   aRes->AddCam(aProj1,SubVert);
+   aRes->AddCam(aProj2,SubVert);
+
+   return aRes;
+}
+
+void cCamSimul::BenchMatEss()
+{
+    for (int aK1=0 ; aK1<(int)eProjPC::eNbVals ; aK1++)
+    {
+        for (int aK2=0 ; aK2<(int)eProjPC::eNbVals ; aK2++)
+        {
+            cCamSimul * aCamSim = cCamSimul::Alloc2VIewTerrestrial(eProjPC(aK1),eProjPC(aK2),false);
+
+            delete aCamSim;
+        }
+    }
+}
+
+void Bench_MatEss(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("MatEss")) return;
+
+    cCamSimul::BenchMatEss();
+
+    aParam.EndBench();
 }
 
 /* ************************************** */

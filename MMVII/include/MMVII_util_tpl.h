@@ -307,6 +307,14 @@ template <class T1> std::vector<T1> & Convert(std::vector<T1> & aV1,const std::v
 }
 
 
+///  Usefull, delete all object of the container
+template <class Type> inline void DeleteAllAndClear(Type & aVal)
+{
+    for (auto it=aVal.begin() ; it!=aVal.end() ; it++)
+        delete *it;
+    aVal.clear();
+}
+
 
 
 

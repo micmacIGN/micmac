@@ -138,6 +138,7 @@ void BenchCentralePerspective(cParamExeBench & aParam); // test on implementatio
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam); // test on importation cam-V1
 
 void BenchL1Solver(cParamExeBench & aParam); /// test that L1 solver is ok
+void Bench_MatEss(cParamExeBench & aParam); /// test that L1 solver is ok
 
 
 

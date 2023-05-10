@@ -554,6 +554,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 	cImageRadiomData::Bench(aParam);
 
 	BenchL1Solver(aParam);
+	Bench_MatEss(aParam);
     }
 
     // Now call the bench of all application that define their own bench

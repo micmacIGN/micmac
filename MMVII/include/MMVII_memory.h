@@ -193,13 +193,6 @@ class cObj2DelAtEnd
 };
 
 
-///  Usefull, delete all object of the container
-template <class Type> inline void DeleteAllAndClear(Type & aVal)
-{
-    for (auto it=aVal.begin() ; it!=aVal.end() ; it++)
-        delete *it;
-    aVal.clear();
-}
 
 template<class Type> class cGestObjetEmpruntable
 {

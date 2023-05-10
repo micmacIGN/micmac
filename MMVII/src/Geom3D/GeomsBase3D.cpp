@@ -6,6 +6,70 @@ namespace MMVII
 
 /*  *********************************************************** */
 /*                                                              */
+/*                  tSeg3dr                                     */
+/*                                                              */
+/*  *********************************************************** */
+
+/*
+ *   "ONR"= Orthognal Normalised Repair 
+ *
+ *    Algo 4 Bundle inter, for each seg Sk,  let 
+ *
+ *       *  uk be a normal vector, and Pk a point on SK
+ *
+ *    I we complete the base with vk,wk such that (uk,vk,wk) is a ONR, we can write the least square equations "Q in Sk " as :
+ *
+ *       (Pk-Q) . vk=0   ; (Pk-Q).wk = 0
+ *    
+ *    So the square resiual R2 is
+ *
+ *    R2  =   Sum  ( (Pk-Q) . vk ^2 + (Pk-Q).wk )
+ *        =   Sum  ( (Pk-Q) (tvk vk + twk wk) (Pk-Q) )
+ *
+ *    But as its a ONR  we have  tukuk +  tvk vk + twk wk = Id  , let call :
+ *
+ *      Ok = Id- tukuk = tvk vk + twk wk 
+ *
+ *   R2 = Sum(  tQ Ok Q  -2 Ok Pk + Cte)
+ *
+ *
+ *
+ */
+
+	/*
+cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8> * aVWeight = nullptr)
+{
+     cDenseMatrix<tREAL8>  aDM(3,eModeInitImage::eMIA_Null);
+     cPt3dr aRHS(0,0,0);
+
+     int aNbWNN = 0;
+
+     for (size_t aKSeg=0 ; aKSeg<aVSeg.size() ; aKSeg++)
+     {
+         tREAL8 aW = aVWeight ?  aVWeight->at(aKSeg)  : 1.0 ;
+
+	 cPt3dr aP1  =  aVSeg[aK].P1();
+	 cPt3dr aP2  =  aVSeg[aK].P2();
+
+	 cPt3dr aUk = VUnit(aP2-aP1);
+	 tREAL8 aXu = aUk.x();
+	 tREAL8 aYu = aUk.y();
+	 tREAL8 aZu = aUk.z();
+
+	 tREAL8 a00 = 1 - Square(aUk.x());
+
+         if (aW>0) aNbWNN++;
+     }
+     MMVII_INTERNAL_ASSERT_bench(aNbWNN>=2,"Not enough segs in BundleInters");
+
+     aDM.SelfSymetrizeBottom();
+     return SolveCol(aDM,aRHS);
+}
+*/
+
+
+/*  *********************************************************** */
+/*                                                              */
 /*                  cPlan3D                                     */
 /*                                                              */
 /*  *********************************************************** */

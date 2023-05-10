@@ -314,6 +314,10 @@ class cPlane3D
          cPt3dr mAxeK;
 };
 
+cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8> * aVWeight = nullptr);
+
+
+
 
 };
 
