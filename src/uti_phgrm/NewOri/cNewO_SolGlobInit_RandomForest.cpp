@@ -1042,6 +1042,9 @@ struct CmpTri {
 */
 
 void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC) {
+    if (aCC->mSoms.size() <= 3)
+        return;
+
     DataTravel travel(data);
     NRrandom3InitOfTime(); //TODO Activer pour debug
     std::cout << "DFS per CC, Nb Som " << aCC->mSoms.size() << ", nb triplets "
