@@ -2370,7 +2370,7 @@ finalScene RandomForest::dfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
     return merging;
 }
 
-void RandomForest::hierarchique(Dataset& data, ffinalTree& tree) {
+void RandomForest::hierarchique(Dataset& data, size_t cc, ffinalTree& tree) {
     //Clean old ori images
     std::cout << exec("rm -rf Ori-tree_*");
     auto all = bfs(data, tree, tree.root->KSom(0));
@@ -2379,7 +2379,7 @@ void RandomForest::hierarchique(Dataset& data, ffinalTree& tree) {
     for (auto v : all.ss) pattern += v->attr().Im()->Name() + "|";
     pattern += ")";
 
-    std::string aOutOri = mOutName + "Hierarchique";
+    std::string aOutOri = mOutName + std::to_string(cc) + "Hierarchique";
     for (auto e : all.ss) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, aOutOri, false);
     for (auto e : all.ss) { e->flag_set_kth_false(data.mFlagS); }
@@ -2408,7 +2408,7 @@ void RandomForest::BestSolAllCC(Dataset& data) {
 
         FreeAllFlag(data.mVCC[aKC]->mSoms, data.mFlagS);
 
-        hierarchique(data, tree);
+        hierarchique(data, aKC, tree);
     }
 
     // Free triplets

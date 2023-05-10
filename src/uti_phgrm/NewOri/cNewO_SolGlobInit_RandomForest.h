@@ -586,7 +586,7 @@ class RandomForest : public cCommonMartiniAppli {
     // Entry point
     void DoNRandomSol(Dataset& data);
 
-    void hierarchique(Dataset& data, ffinalTree& tree);
+    void hierarchique(Dataset& data, size_t cc, ffinalTree& tree);
     finalScene bfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
 
     finalScene dfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
