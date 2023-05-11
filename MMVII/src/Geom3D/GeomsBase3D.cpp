@@ -10,6 +10,34 @@ namespace MMVII
 /*                                                              */
 /*  *********************************************************** */
 
+/*   Seg = Mil,V     N = V1 ^ V2
+ *
+ *   Mil2 =  Mil1 + A V1 + B N + C V2
+ *
+ *                (       ) (A)
+ *   Mil2-Mil1 =  (V1 V2 N) (B)
+ *                (       ) (C)
+ *
+ *   I =  Mil1 + aV1 +  B/2 N
+ *
+ */
+
+cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
+{
+   cPt3dr  aV1   = aSeg1.V12();
+   cPt3dr  aMil1 = aSeg1.PMil();
+   cPt3dr  aV2   = aSeg2.V12();
+   cPt3dr  aMil2 = aSeg2.PMil();
+   cPt3dr  aNorm = aV1 ^ aV2;
+
+   cDenseMatrix<tREAL8> aMat =  M3x3FromCol(aV1,aV2,aNorm);
+
+   cPt3dr  ABC = SolveCol(aMat,aMil2-aMil1);
+
+   return aMil1 + aV1 * ABC.x() + aNorm * (ABC.z()/2.0);
+}
+
+
 /*
  *   "ONR"= Orthognal Normalised Repair 
  *
@@ -36,8 +64,8 @@ namespace MMVII
  *
  */
 
-	/*
-cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8> * aVWeight = nullptr)
+
+cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8> * aVWeight)
 {
      cDenseMatrix<tREAL8>  aDM(3,eModeInitImage::eMIA_Null);
      cPt3dr aRHS(0,0,0);
@@ -48,15 +76,44 @@ cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8
      {
          tREAL8 aW = aVWeight ?  aVWeight->at(aKSeg)  : 1.0 ;
 
-	 cPt3dr aP1  =  aVSeg[aK].P1();
-	 cPt3dr aP2  =  aVSeg[aK].P2();
-
+	 const cPt3dr& aP1  =  aVSeg[aKSeg].P1();
+	 tREAL8 x1 = aP1.x();
+	 tREAL8 y1 = aP1.y();
+	 tREAL8 z1 = aP1.z();
+	 const cPt3dr& aP2  =  aVSeg[aKSeg].P2();
 	 cPt3dr aUk = VUnit(aP2-aP1);
+
 	 tREAL8 aXu = aUk.x();
 	 tREAL8 aYu = aUk.y();
 	 tREAL8 aZu = aUk.z();
 
-	 tREAL8 a00 = 1 - Square(aUk.x());
+	 tREAL8 a00 = 1 - Square(aXu);
+	 tREAL8 a10 = - aXu*aYu;
+	 tREAL8 a20 = - aXu*aZu;
+	 tREAL8 a11 = 1 - Square(aYu);
+	 tREAL8 a12 = - aYu*aZu;
+	 tREAL8 a22 = 1 - Square(aZu);
+
+	 aDM.AddElem(0,0,aW*a00);
+	 aDM.AddElem(1,1,aW*a11);
+	 aDM.AddElem(2,2,aW*a22);
+
+	 aDM.AddElem(1,0,aW*a10);
+	 aDM.AddElem(2,0,aW*a20);
+	 aDM.AddElem(2,1,aW*a12);
+
+	 /*
+	 aDM.AddElem(0,1,aW*a10);
+	 aDM.AddElem(0,2,aW*a20);
+	 aDM.AddElem(1,2,aW*a12);
+	 */
+
+	 aRHS += cPt3dr
+		 (
+		      aW*(a00 * x1 + a10*y1 + a20 * z1),
+		      aW*(a10 * x1 + a11*y1 + a12 * z1),
+		      aW*(a20 * x1 + a12*y1 + a22 * z1)
+		 );
 
          if (aW>0) aNbWNN++;
      }
@@ -65,6 +122,7 @@ cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8
      aDM.SelfSymetrizeBottom();
      return SolveCol(aDM,aRHS);
 }
+	/*
 */
 
 
@@ -156,6 +214,36 @@ void BenchPlane3D()
 	 MMVII_INTERNAL_ASSERT_bench(Norm2(aP0 -aPlane.ToLocCoord(aPlane.FromCoordLoc(aP0)))<1e-5,"BenchPlane3D");
 	 MMVII_INTERNAL_ASSERT_bench(Norm2(aP0 -aPlane.FromCoordLoc(aPlane.ToLocCoord(aP0)))<1e-5,"BenchPlane3D");
     }
+
+    for  (int aK=0 ;aK<100 ;aK++)
+    {
+       cPt3dr  aV1 = cPt3dr::PRandUnit();
+       cPt3dr  aV2 = cPt3dr::PRandUnitNonAligned(aV1);
+       aV1 = aV1 * RandInInterval(0.1,2.0);
+       aV2 = aV2 * RandInInterval(0.1,2.0);
+
+       cPt3dr  aP1 = cPt3dr::PRandC() * 10.0;
+       cPt3dr  aP2 = cPt3dr::PRandC() * 10.0;
+
+       cSegmentCompiled<tREAL8,3> aSeg1(aP1,aP1+aV1);
+       cSegmentCompiled<tREAL8,3> aSeg2(aP2,aP2+aV2);
+
+       cPt3dr  aPI = BundleInters(aSeg1,aSeg2,0.5);
+
+       cPt3dr aProj1 = aSeg1.Proj(aPI);
+       cPt3dr aProj2 = aSeg2.Proj(aPI);
+
+       MMVII_INTERNAL_ASSERT_bench(std::abs(Cos(aSeg1.V12(),aProj1-aProj2)) <1e-5,"BundleInters");
+       MMVII_INTERNAL_ASSERT_bench(std::abs(Cos(aSeg2.V12(),aProj1-aProj2)) <1e-5,"BundleInters");
+       MMVII_INTERNAL_ASSERT_bench(Norm2(aPI-(aProj1+aProj2)/2.0)<1e-5,"BundleInters");
+
+       std::vector<tSeg3dr> aVSeg{aSeg1,aSeg2};
+       cPt3dr aPIVec =   BundleInters(aVSeg);
+
+       //  StdOut() << "NnnNnn " <<  Norm2(aPI - aPIVec) << "\n";
+       MMVII_INTERNAL_ASSERT_bench(Norm2(aPI - aPIVec) <1e-5,"BundleInters");
+    }
+    
 }
 
 /*  *********************************************************** */

@@ -28,6 +28,10 @@ template <class Type,const int Dim> void cSegment<Type,Dim>::CompileFoncLinear
 template <class Type,const int Dim>  const cPtxd<Type,Dim>& cSegment<Type,Dim>::P1() const {return mP1;}
 template <class Type,const int Dim>  const cPtxd<Type,Dim>& cSegment<Type,Dim>::P2() const {return mP2;}
 
+
+template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::V12() const  {return mP2-mP1;}
+template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::PMil() const {return (mP1+mP2)/Type(2);}
+
 /* ========================== */
 /*    cSegmentCompiled        */
 /* ========================== */

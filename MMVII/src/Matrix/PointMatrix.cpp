@@ -107,6 +107,17 @@ template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L0,c
 
       return aRes;
 }
+template <class Type>  cDenseMatrix<Type> M3x3FromCol(const cPtxd<Type,3>&C0,const cPtxd<Type,3> &C1,const cPtxd<Type,3> &C2)
+{
+      cDenseMatrix<Type> aRes(3,3);
+
+      SetCol(aRes,0,C0);
+      SetCol(aRes,1,C1);
+      SetCol(aRes,2,C2);
+
+      return aRes;
+}
+
 
 template <class Type>  cDenseMatrix<Type> M2x2FromLines(const cPtxd<Type,2>&L0,const cPtxd<Type,2> &L1)
 {
@@ -126,6 +137,9 @@ template <class Type>  cDenseMatrix<Type> M2x2FromCol(const cPtxd<Type,2>&C0,con
 
       return aRes;
 }
+
+
+
 
 template <class Type>  cDenseMatrix<Type> MatDiag(const cPtxd<Type,2>&aPt)
 {
@@ -261,6 +275,7 @@ template  void SetLine(int,cDenseMatrix<TYPE> & ,const cPtxd<TYPE,DIM> & );
 
 #define INSTANT_PT_MAT_TYPE(TYPE)\
 template   cDenseMatrix<TYPE> M3x3FromLines(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3> &,const cPtxd<TYPE,3> &);\
+template   cDenseMatrix<TYPE> M3x3FromCol(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3> &,const cPtxd<TYPE,3> &);\
 template   cDenseMatrix<TYPE> M2x2FromLines(const cPtxd<TYPE,2>&,const cPtxd<TYPE,2> &);\
 template   cDenseMatrix<TYPE> M2x2FromCol(const cPtxd<TYPE,2>&,const cPtxd<TYPE,2> &);\
 template   cDenseMatrix<TYPE> MatDiag(const cPtxd<TYPE,2>&);\

@@ -822,6 +822,7 @@ template<class Type> class cSymMeasure
 #define CHECK_SZPT_VECT(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz()==aPT.TheDim,"Bad size in Vec/Pt")
 
 template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L1,const cPtxd<Type,3> &L2,const cPtxd<Type,3> &L3);
+template <class Type>  cDenseMatrix<Type> M3x3FromCol(const cPtxd<Type,3>&C1,const cPtxd<Type,3> &C2,const cPtxd<Type,3> &C3);
 template <class Type>  cDenseMatrix<Type> M2x2FromLines(const cPtxd<Type,2>&L1,const cPtxd<Type,2> &L2);
 template <class Type>  cDenseMatrix<Type> M2x2FromCol(const cPtxd<Type,2>&L1,const cPtxd<Type,2> &L2);
 template <class Type>  cDenseMatrix<Type> MatDiag(const cPtxd<Type,2>&aPt); /// return a 2x2 diagonal matrix
