@@ -34,7 +34,7 @@ cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
 
    cPt3dr  ABC = SolveCol(aMat,aMil2-aMil1);
 
-   return aMil1 + aV1 * ABC.x() + aNorm * (ABC.z()/2.0);
+   return aMil1 + aV1 * ABC.x() + aNorm * (ABC.z() * (1.0-aW12));
 }
 
 

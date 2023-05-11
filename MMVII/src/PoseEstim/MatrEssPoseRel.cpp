@@ -10,36 +10,8 @@
 namespace MMVII
 {
 
-class cHomogCpleIm
-{
-      public :
-           cHomogCpleIm(const cPt2dr &,const cPt2dr &);
-           cPt2dr  mP1;
-           cPt2dr  mP2;
-};
+bool BUGME = false;
 
-class cSetHomogCpleIm
-{
-      public :
-        std::vector<cHomogCpleIm>  mSetH;
-};
-
-class cHomogCpleDir
-{
-      public :
-           cHomogCpleDir(const cPt3dr & aP1,const cPt3dr & aP2);
-           void SetVectMatEss(cDenseVect<tREAL8> &,tREAL8 & aRHS) const;
-           cPt3dr  mP1;
-           cPt3dr  mP2;
-};
-
-
-class cSetHomogCpleDir
-{
-      public :
-        std::vector<cHomogCpleDir>  mSetD;
-	cSetHomogCpleDir(const cSetHomogCpleIm &,const cPerspCamIntrCalib &,const cPerspCamIntrCalib &);
-};
 
 
 /*
@@ -82,6 +54,8 @@ class cCamSimul : public cMemCheck
 
 
       static void BenchMatEss();
+
+      void TestCam(cSensorCamPC * aCam) const;
    private :
       void AddCam(cPerspCamIntrCalib *,bool SubVert);
       void AddCam(eProjPC aProj1,bool SubVert);
@@ -157,7 +131,11 @@ void cCamSimul::AddCam(cPerspCamIntrCalib * aPC,bool SubVert)
 
       cPt3dr aK = VUnit(mCenterGround - aNewC);
       cPt3dr aI = cPt3dr::PRandUnitNonAligned(aK,1e-2);
-      cRotation3D<tREAL8> aRot= cRotation3D<tREAL8>::CompleteRON(aK,aI);
+      cPt3dr aJ = VUnit(aK ^aI);
+      aI = aJ ^aK;
+
+
+      cRotation3D<tREAL8> aRot(M3x3FromCol(aI,aJ,aK),false);
 
       cIsometry3D<tREAL8> aPose(aNewC,aRot);
 
@@ -183,17 +161,63 @@ cCamSimul * cCamSimul::Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool 
    return aRes;
 }
 
+void cCamSimul::TestCam(cSensorCamPC * aCam) const
+{
+	StdOut() << "CC " << aCam->Center()  << " CG=" << mCenterGround << "\n";
+
+cPt3dr aV = aCam->Center() - mCenterGround;
+
+StdOut()  << " I " << Cos(aV,aCam->AxeI())
+          << " J " << Cos(aV,aCam->AxeI())
+          << " K " << Cos(aV,aCam->AxeK())
+	  << " \n";
+
+	StdOut() << "Vis " <<  aCam->IsVisible(mCenterGround) << "\n";
+}
+
 void cCamSimul::BenchMatEss()
 {
+    static int aCpt=0;
+    cLinearOverCstrSys<tREAL8> *  aSysL1 = AllocL1_Barrodale<tREAL8>(8);
+    // cLinearOverCstrSys<tREAL8> *  aSysL1 = new cLeasSqtAA<tREAL8>(8);
+
     for (int aK1=0 ; aK1<(int)eProjPC::eNbVals ; aK1++)
     {
         for (int aK2=0 ; aK2<(int)eProjPC::eNbVals ; aK2++)
         {
-            cCamSimul * aCamSim = cCamSimul::Alloc2VIewTerrestrial(eProjPC(aK1),eProjPC(aK2),false);
+aCpt++;
+BUGME = (aCpt<=3);
+            // cCamSimul * aCamSim = cCamSimul::Alloc2VIewTerrestrial(eProjPC(aK1),eProjPC(aK2),false);
+            cCamSimul * aCamSim = cCamSimul::Alloc2VIewTerrestrial(eProjPC::eStenope,eProjPC::eStenope,false);
+
+	    cSensorCamPC * aCam1 = aCamSim->mListCam.at(0);
+	    cSensorCamPC * aCam2 = aCamSim->mListCam.at(1);
+
+
+	    // aCamSim->TestCam(aCam1);
+	    // aCamSim->TestCam(aCam2);
+	    // StdOut() <<  aCam1->IsVisible(aCamSim->mCenterGround)  << " " << aCam2->IsVisible(aCamSim->mCenterGround) << "\n";
+	    // StdOut() << aCam1->AxeK() << " " <<  aCam2->AxeK() << "\n";
+
+	    cSetHomogCpleIm aSetH;
+	    size_t aNbPts = 20;
+	    for (size_t aKP=0 ; aKP<aNbPts ; aKP++)
+	    {
+		 aSetH.mSetH.push_back(aCam1->RandomVisibleCple(*aCam2));
+	    }
+
+	    cSetHomogCpleDir aSetD (aSetH,*(aCam1->InternalCalib()),*(aCam2->InternalCalib()));
+
+            cMatEssential aMatE(aSetD,*aSysL1);
+	    
+	    StdOut() << aCpt << " BenchMatEssBenchMatEss "  << aMatE.AvgCost(aSetD,1.0)  << "\n"; 
+	    if (BUGME) {getchar();}
 
             delete aCamSim;
         }
     }
+
+    delete aSysL1;
 }
 
 void Bench_MatEss(cParamExeBench & aParam)
@@ -207,55 +231,7 @@ void Bench_MatEss(cParamExeBench & aParam)
 
 /* ************************************** */
 /*                                        */
-/*            cHomogCpleDir               */
-/*                                        */
-/* ************************************** */
-
-cHomogCpleDir::cHomogCpleDir(const cPt3dr & aP1,const cPt3dr & aP2) :
-   mP1  (VUnit(aP1)),
-   mP2  (VUnit(aP2))
-{
-}
-
-void cHomogCpleDir::SetVectMatEss(cDenseVect<tREAL8> &aVect,tREAL8 & aRHS) const
-{
-         aVect(0) = mP1.x() *  mP2.x();
-         aVect(1) = mP1.x() *  mP2.y();
-         aVect(2) = mP1.x() *  mP2.z();
-
-         aVect(3) = mP1.y() *  mP2.x();
-         aVect(4) = mP1.y() *  mP2.y();
-         aVect(5) = mP1.y() *  mP2.z();
-
-         aVect(6) = mP1.z() *  mP2.x();
-         aVect(7) = mP1.z() *  mP2.y();
-         aRHS    = -mP1.z() *  mP2.z();
-}
-
-/* ************************************** */
-/*                                        */
-/*         cSetHomogCpleDir               */
-/*                                        */
-/* ************************************** */
-
-cSetHomogCpleDir::cSetHomogCpleDir
-(
-     const cSetHomogCpleIm &    aSetH,
-     const cPerspCamIntrCalib & aCal1,
-     const cPerspCamIntrCalib & aCal2
-) 
-{
-     for (const auto & aCplH : aSetH.mSetH)
-     {
-         cPt3dr aP1 =  aCal1.DirBundle(aCplH.mP1);
-         cPt3dr aP2 =  aCal2.DirBundle(aCplH.mP2);
-	 mSetD.push_back(cHomogCpleDir(aP1,aP2));
-     }
-}
-
-/* ************************************** */
-/*                                        */
-/*         cSetHomogCpleDir               */
+/*         cMatEssential               */
 /*                                        */
 /* ************************************** */
 
@@ -285,6 +261,11 @@ tREAL8  cMatEssential::Cost(const  cHomogCpleDir & aCple,const tREAL8 & aSigma) 
 					 //
    tREAL8 aD = (std::abs(Scal(aQ1,aCple.mP2)) + std::abs(Scal(aCple.mP1,aQ2))  ) / 2.0;
 
+   if (BUGME)
+   {
+	   StdOut() << "DDd==" << aD  << aCple.mP1 << " " << aCple.mP2 << " p1Mp2=" <<   Scal(aCple.mP1,mMat * aCple.mP2)  
+	   << " ML2=" <<mMat.L2Dist(cDenseMatrix<tREAL8>(3, eModeInitImage::eMIA_Null))<< "\n";
+   }
    return (aD*aSigma) / (aD+aSigma);
 }
 

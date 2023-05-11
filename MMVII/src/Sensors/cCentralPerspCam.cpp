@@ -422,7 +422,7 @@ double cPerspCamIntrCalib::DegreeVisibility(const cPt3dr & aP) const
      // if the point is not OK for projector dont try any more ...
      tREAL8 aRes3 =  mDefProj->P3DIsDef(aP) *F();
 
-     if (aRes3<0)  
+     if (aRes3 <=0)
         return aRes3 ;
 
      double MaxCalc = 10.0;

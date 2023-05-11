@@ -128,6 +128,41 @@ tPt2dr cSensorImage::RandomVisiblePIm() const
       return aRes;
 }
 
+
+tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTestMax,bool * isOk ) const
+{
+
+    if (isOk!=nullptr ) *isOk= false;
+
+    for (int aKTest=0 ; aKTest< aNbTestMax ; aKTest++)
+    {
+       tPt2dr aPIm1 = this->RandomVisiblePIm();
+       tPt2dr aPIm2 = other.RandomVisiblePIm();
+
+       tPt3dr aResult = PInterBundle(cHomogCpleIm(aPIm1,aPIm2),other);
+
+// StdOut() << aPIm1 << aPIm2 << aResult << aResult << "\n";
+       if ( this->IsVisible(aResult)  && other.IsVisible(aResult))
+       {
+           if (isOk!=nullptr) *isOk= true;
+	   return aResult;
+       }
+    }
+
+    if (isOk==nullptr )
+    {
+        MMVII_INTERNAL_ERROR("Cannot compute RandomVisiblePGround");
+    }
+    return tPt3dr(0.0,0.0,0.0);
+}
+
+cHomogCpleIm cSensorImage::RandomVisibleCple(const cSensorImage & other,int aNbTestMax,bool * isOk) const
+{
+    tPt3dr aPGr = RandomVisiblePGround(other,aNbTestMax,isOk);
+    return cHomogCpleIm(this->Ground2Image(aPGr),other.Ground2Image(aPGr));
+}
+
+
 cPt3dr cSensorImage::RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax)
 {
      cPt2dr aPIm   = RandomVisiblePIm();
@@ -195,6 +230,14 @@ cEllipse cSensorImage::EllipseIm2Plane(const cPlane3D & aPlane,const cEllipse & 
        aEEst.AddPt(aPPlane);
     }
     return aEEst.Compute() ;
+}
+
+cPt3dr cSensorImage::PInterBundle(const cHomogCpleIm & aCple,const cSensorImage & other) const
+{
+     tSeg3dr aSeg1 = this->Image2Bundle(aCple.mP1);
+     tSeg3dr aSeg2 = other.Image2Bundle(aCple.mP2);
+
+     return BundleInters(aSeg1,aSeg2);
 }
 
 

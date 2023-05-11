@@ -72,6 +72,12 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	  ///  Generate a point on sensor
           cPt2dr RandomVisiblePIm() const ;
 
+	  /// Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
+	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
+
+	  /// reproject RandomVisiblePGround
+	  cHomogCpleIm RandomVisibleCple(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
+
 
 	 // =================   Image <-->  Ground  mappings  ===========================
 	 
@@ -86,6 +92,9 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
 	 /// Facility for calling ImageeAndDepth2Ground(const cPt3dr &)
          cPt3dr ImageAndDepth2Ground(const cPt2dr &,const double & ) const;
 
+
+	 /// Compute 3D point by bundle intersection
+	  cPt3dr PInterBundle(const cHomogCpleIm & aCple,const cSensorImage &) const;
 
 	 // =================   Visibility/validity   ===========================
 

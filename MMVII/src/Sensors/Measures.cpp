@@ -1,4 +1,4 @@
-#include "MMVII_Sensor.h"
+#include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_util_tpl.h"
 
@@ -12,6 +12,68 @@
 
 namespace MMVII
 {
+
+/* ********************************************* */
+/*                                               */
+/*             cHomogCpleIm                      */
+/*                                               */
+/* ********************************************* */
+
+cHomogCpleIm::cHomogCpleIm(const cPt2dr & aP1,const cPt2dr & aP2) :
+   mP1 (aP1),
+   mP2 (aP2)
+{
+}
+
+
+/* ************************************** */
+/*                                        */
+/*            cHomogCpleDir               */
+/*                                        */
+/* ************************************** */
+
+cHomogCpleDir::cHomogCpleDir(const cPt3dr & aP1,const cPt3dr & aP2) :
+   mP1  (VUnit(aP1)),
+   mP2  (VUnit(aP2))
+{
+}
+
+void cHomogCpleDir::SetVectMatEss(cDenseVect<tREAL8> &aVect,tREAL8 & aRHS) const
+{
+         aVect(0) = mP1.x() *  mP2.x();
+         aVect(1) = mP1.x() *  mP2.y();
+         aVect(2) = mP1.x() *  mP2.z();
+
+         aVect(3) = mP1.y() *  mP2.x();
+         aVect(4) = mP1.y() *  mP2.y();
+         aVect(5) = mP1.y() *  mP2.z();
+
+         aVect(6) = mP1.z() *  mP2.x();
+         aVect(7) = mP1.z() *  mP2.y();
+         aRHS    = -mP1.z() *  mP2.z();
+}
+
+
+/* ************************************** */
+/*                                        */
+/*         cSetHomogCpleDir               */
+/*                                        */
+/* ************************************** */
+
+cSetHomogCpleDir::cSetHomogCpleDir
+(
+     const cSetHomogCpleIm &    aSetH,
+     const cPerspCamIntrCalib & aCal1,
+     const cPerspCamIntrCalib & aCal2
+)
+{
+     for (const auto & aCplH : aSetH.mSetH)
+     {
+         cPt3dr aP1 =  aCal1.DirBundle(aCplH.mP1);
+         cPt3dr aP2 =  aCal2.DirBundle(aCplH.mP2);
+         mSetD.push_back(cHomogCpleDir(aP1,aP2));
+     }
+}
 
 
 /* ********************************************* */

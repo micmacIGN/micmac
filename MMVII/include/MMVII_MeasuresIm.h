@@ -222,6 +222,37 @@ class cSetMesImGCP : public cMemCheck
 };
 
 
+class cHomogCpleIm
+{
+      public :
+           cHomogCpleIm(const cPt2dr &,const cPt2dr &);
+           cPt2dr  mP1;
+           cPt2dr  mP2;
+};
+class cSetHomogCpleIm
+{
+      public :
+        std::vector<cHomogCpleIm>  mSetH;
+};
+
+class cHomogCpleDir
+{
+      public :
+           cHomogCpleDir(const cPt3dr & aP1,const cPt3dr & aP2);
+           void SetVectMatEss(cDenseVect<tREAL8> &,tREAL8 & aRHS) const;
+           cPt3dr  mP1;
+           cPt3dr  mP2;
+};
+
+
+class cSetHomogCpleDir
+{
+      public :
+        std::vector<cHomogCpleDir>  mSetD;
+        cSetHomogCpleDir(const cSetHomogCpleIm &,const cPerspCamIntrCalib &,const cPerspCamIntrCalib &);
+};
+
+
 
 
 };
