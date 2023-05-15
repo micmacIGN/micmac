@@ -235,6 +235,7 @@ class cSetHomogCpleIm
         std::vector<cHomogCpleIm>  mSetH;
 };
 
+/*
 class cHomogCpleDir
 {
       public :
@@ -249,8 +250,15 @@ class cSetHomogCpleDir
 {
       public :
         std::vector<cHomogCpleDir>  mSetD;
+
         cSetHomogCpleDir(const cSetHomogCpleIm &,const cPerspCamIntrCalib &,const cPerspCamIntrCalib &);
+        cSetHomogCpleDir();
+
+	// void GetPtsSep(std::vector<cPt3dr> &,std::vector<cPt3dr> &);
+
+	cPt2dr Disp() const;
 };
+*/
 
 
 

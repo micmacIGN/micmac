@@ -202,7 +202,16 @@ template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & an
 template <class Type> cRotation3D<Type>::cRotation3D(const cDenseMatrix<Type> & aMat,bool RefineIt) :
    mMat (aMat)
 {
-   MMVII_INTERNAL_ASSERT_always((! RefineIt),"Refine to write in Rotation ...");
+   if (RefineIt)
+   {
+      mMat = mMat.ClosestOrthog();
+   }
+   // MMVII_INTERNAL_ASSERT_always((! RefineIt),"Refine to write in Rotation ...");
+}
+
+template <class Type> cRotation3D<Type>::cRotation3D(const tPt &aI,const tPt & aJ,const tPt & aK,bool RefineIt) :
+	cRotation3D<Type>(M3x3FromCol(aI,aJ,aK),RefineIt)
+{
 }
 
 

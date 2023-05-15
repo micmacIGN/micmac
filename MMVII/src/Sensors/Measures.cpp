@@ -31,6 +31,7 @@ cHomogCpleIm::cHomogCpleIm(const cPt2dr & aP1,const cPt2dr & aP2) :
 /*            cHomogCpleDir               */
 /*                                        */
 /* ************************************** */
+/*
 
 cHomogCpleDir::cHomogCpleDir(const cPt3dr & aP1,const cPt3dr & aP2) :
    mP1  (VUnit(aP1)),
@@ -52,6 +53,7 @@ void cHomogCpleDir::SetVectMatEss(cDenseVect<tREAL8> &aVect,tREAL8 & aRHS) const
          aVect(7) = mP1.z() *  mP2.y();
          aRHS    = -mP1.z() *  mP2.z();
 }
+*/
 
 
 /* ************************************** */
@@ -60,6 +62,7 @@ void cHomogCpleDir::SetVectMatEss(cDenseVect<tREAL8> &aVect,tREAL8 & aRHS) const
 /*                                        */
 /* ************************************** */
 
+/*
 cSetHomogCpleDir::cSetHomogCpleDir
 (
      const cSetHomogCpleIm &    aSetH,
@@ -74,6 +77,35 @@ cSetHomogCpleDir::cSetHomogCpleDir
          mSetD.push_back(cHomogCpleDir(aP1,aP2));
      }
 }
+
+cSetHomogCpleDir::cSetHomogCpleDir() 
+{
+}
+
+
+cPt2dr cSetHomogCpleDir::Disp() const
+{
+    cPt3dr aS1(0,0,0);
+    cPt3dr aS2(0,0,0);
+
+    for (const auto & aPair : mSetD)
+    {
+        aS1 += aPair.mP1;
+        aS2 += aPair.mP2;
+    }
+    aS1 = aS1 / tREAL8(mSetD.size());
+    aS2 = aS2 / tREAL8(mSetD.size());
+
+    cPt2dr aRes(0,0);
+    for (const auto & aPair : mSetD)
+    {
+        aRes +=  cPt2dr(Norm2(aPair.mP1-aS1), Norm2(aPair.mP2-aS2));
+    }
+
+    return aRes / tREAL8(mSetD.size());
+}
+*/
+
 
 
 /* ********************************************* */

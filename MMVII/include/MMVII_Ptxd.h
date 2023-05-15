@@ -511,6 +511,20 @@ template <class T> inline cPtxd<tREAL4,2> ToF(const cPtxd<T,2> & aP) {return cPt
 template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts);
 template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,const cPtxd<T,Dim> & aP1);
 template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,T aW1,const cPtxd<T,Dim> & aP1);
+
+template <class tContPts>  class cComputeCentroids
+{
+    public :
+       typedef  typename tContPts::value_type tPts;
+       typedef  typename tPts::tEl            tEl;
+
+       static tPts   MedianCentroids(const tContPts &);
+       static tPts   LinearWeigtedCentroids(const tContPts &,const tPts & aP0,double aSigma);
+       static tREAL8 SigmaDist(const tContPts &,const tPts & aP0,double aProp);
+
+       static tPts  StdRobustCentroid(const tContPts &,double aProp,int aNbIter);
+};
+
 /*
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}

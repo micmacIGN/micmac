@@ -79,8 +79,14 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ClosestOrthog() co
 
     // OriMatr :  return mMatU * cDenseMatrix<Type>::Diag(mSingularValues) * mMatV.Transpose();
     cDenseVect<Type> aVP = aSVD.SingularValues().Dup(); 
+
+    Type aSignGlob = 1;
     for (int aK=0 ; aK<aVP.Sz(); aK++)
-        aVP(aK) = (aVP(aK)>=0)  ? 1 : - 1;
+    {
+        Type aSign = (aVP(aK)>=0)  ? 1 : - 1;
+        aVP(aK) = aSign;
+	aSignGlob *= aSign;
+    }
 
     return aSVD.MatU() * cDenseMatrix<Type>::Diag(aVP) * aSVD.MatV().Transpose();
 }

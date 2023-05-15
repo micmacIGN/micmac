@@ -6,6 +6,78 @@ namespace MMVII
 {
 
 /* ========================== */
+/*  cComputeCentroids         */
+/* ========================== */
+
+template <class tContPts>  typename cComputeCentroids<tContPts>::tPts  cComputeCentroids<tContPts>::MedianCentroids(const tContPts & aContPts)
+{
+     tPts aRes;
+     for (int aDim=0 ; aDim<tPts::TheDim ; aDim++)
+     {
+          std::vector<tREAL8> aVCoord;
+          for (const auto & aPts : aContPts)
+              aVCoord.push_back(aPts[aDim]);
+          aRes[aDim] =  tEl(NonConstMediane(aVCoord));
+     }
+
+     return aRes;
+}
+
+
+template <class tContPts>  
+   typename cComputeCentroids<tContPts>::tPts  
+                cComputeCentroids<tContPts>::LinearWeigtedCentroids(const tContPts & aContPts,const tPts & aP0,tREAL8 aSigma)
+{
+     tPts aRes = tPts::PCste(tEl(0));
+     tREAL8  aSomW = 0.0;
+     tREAL8  aS2 = Square(aSigma);
+
+     for (const auto & aPt : aContPts)
+     {
+         tREAL8 aW =  aS2 / (aS2+SqN2(aPt-aP0));
+
+	 aSomW += aW;
+	 aRes += aPt * aW;
+     }
+
+     return aRes/aSomW;
+}
+
+template <class tContPts>  
+   tREAL8 cComputeCentroids<tContPts>::SigmaDist(const tContPts & aContPts,const tPts & aP0,double aProp)
+{
+    std::vector<tREAL8> aVDist2;
+    for (const auto & aPt : aContPts)
+    {
+        aVDist2.push_back(SqN2(aPt-aP0));
+    }
+
+    return std::sqrt(NC_KthVal(aVDist2,aProp));
+}
+
+
+template <class tContPts>  
+   typename cComputeCentroids<tContPts>::tPts  
+                cComputeCentroids<tContPts>::StdRobustCentroid(const tContPts & aContPts,double aProp,int aNbIter)
+{
+     tPts aRes = MedianCentroids(aContPts);
+
+     for (int aK=0 ; aK<aNbIter ; aK++)
+     {
+          tREAL8 aSigma = SigmaDist(aContPts,aRes,aProp);
+	  aRes = LinearWeigtedCentroids(aContPts,aRes,aSigma);
+     }
+
+     return aRes;
+}
+
+
+
+template class cComputeCentroids<std::vector<cPt3dr> >;
+
+
+
+/* ========================== */
 /*        cSegment            */
 /* ========================== */
 

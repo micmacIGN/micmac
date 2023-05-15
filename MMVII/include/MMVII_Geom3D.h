@@ -93,8 +93,10 @@ template <class Type> class cRotation3D
        static int NbDOF()   {return 3;}
 
 
-       // RefineIt : if true, assume not fully orthog and compute closest one
+       /// RefineIt : if true, assume not fully orthog and compute closest one
        cRotation3D(const cDenseMatrix<Type> &,bool RefineIt);
+       /// Create rotation from 3 vector I,J,K
+       cRotation3D(const tPt &,const tPt &,const tPt &,bool RefineIt);
        const cDenseMatrix<Type> & Mat() const {return mMat;}
 
        tPt   Value(const tPt & aPt) const  {return mMat * aPt;}
@@ -108,18 +110,21 @@ template <class Type> class cRotation3D
        tPt   AxeJ() const ;
        tPt   AxeK() const ;
 
-       // Compute a normal repair, first vector being colinear to Pt
+       /// Compute a normal repair, first vector being colinear to Pt
        static cRotation3D<Type> CompleteRON(const tPt & aPt);
-       // Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
+       /// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
        static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
-       // Compute a rotation arround a given axe and with a given angle
+       /// Compute a rotation arround a given axe and with a given angle
        static cRotation3D<Type> RotFromAxe(const tPt & anAxe,Type aTeta);
-       //  Axiator close to Rot From but teta=Norm !!  exp(Mat(^Axe))
+       ///  Axiator close to Rot From but teta=Norm !!  exp(Mat(^Axe))
        static cRotation3D<Type> RotFromAxiator(const tPt & anAxe);
-       // Compute a random rotation for test/bench
+       /// Compute a random rotation for test/bench
        static cRotation3D<Type> RandomRot();
-       // Compute a "small" random rot controlled by ampl
+       /// Compute a "small" random rot controlled by ampl
        static cRotation3D<Type> RandomRot(const Type & aAmpl);
+       
+       //// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
+      // static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
 
        // Extract Axes of a rotation and compute its angle 
        void ExtractAxe(tPt & anAxe,Type & aTeta);
