@@ -150,7 +150,7 @@ class cApply_CreateEpip_main
       Box2dr              mBoxIm1;      // Full image 1 or image of Boxterain in any
       Box2dr              mBoxIm2;      // Full image 2 or image of Boxterain in any
       */
-
+      bool                mDoEpiAbs; //Do epipolaribility index
 
       double SignedComputeEpipolarability(const Pt3dr & aP1) const;
       double AbsComputeEpipolarability(const Pt3dr & aP1) const;
@@ -465,7 +465,7 @@ std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
        std::cout << "Number points for tensor " << aNbTens << "\n";
        ELISE_ASSERT(aNbTens!=0,"Cannot compute direction no valide point");
     }
-    if (DoCompEp)
+    if (mDoEpiAbs)
     {
        std::cout << "====================  Epipolarability ============================ \n";
        std::cout << " Avg=" << aStatEp.Avg() << " Med=" << aStatEp.Erreur(0.5) << " Ect=" << aStatEp.Ect() << "\n";
@@ -1429,6 +1429,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mIntervZIsDef (false),
    mZMin         (1e20),
    mZMax         (-1e20)
+   mDoEpiAbs     (true)
 {
     Tiff_Im::SetDefTileFile(50000);
     std::string aDir= ELISE_Current_DIR;
@@ -1484,6 +1485,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mNameOut,"Out",false,"To spcecify names of results")
 		    << EAM(mGenereImageDirEpip,"ImDir",false,"Generate image of direction of epipolar")
 		    << EAM(mBoxTerrain,"BoxTerrain",false,"Box ter to limit size of created epip")
+		    << EAM(mDoEpiAbs,"DoEpiAbs",false,"Create epipolaribility index image, Def=true")
 		    /*
 		    */
     );
