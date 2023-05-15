@@ -9,6 +9,8 @@
             <Symb>  L2Basc=true  </Symb>
             <Symb>  BDDC=XXX  </Symb>
             <Symb>  CalcV=false  </Symb>
+
+            <Symb>  ForceVert=-1  </Symb>
        </DicoLoc>
 
 
@@ -76,6 +78,7 @@
                                <BasculeOnPoints>
                                    <BascOnCentre>  
                                        <EstimateSpeed> ${CalcV} </EstimateSpeed>
+				       <ForceVertical> ${ForceVert} </ForceVertical>
                                    </BascOnCentre>
                                    <ModeL2> ${L2Basc} </ModeL2>
                                    <NameExport> Ori-${AeroOut}/Result-Center-Bascule.xml </NameExport>

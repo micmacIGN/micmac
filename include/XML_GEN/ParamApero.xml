@@ -1186,6 +1186,7 @@ normalises en echelle et/ou en translation -->
                                    <BascOnCentre Nb="?">
                                         <PoseCentrale Nb="?" Type="std::string"> </PoseCentrale>
                                         <EstimateSpeed Type="bool" Nb="?" Def="false"> </EstimateSpeed>
+                                        <ForceVertical Type="double" Nb="?"> </ForceVertical>
                                    </BascOnCentre>
                                    <BascOnAppuis Nb="?">
                                         <NameRef Nb="1" Type="std::string"> </NameRef>   

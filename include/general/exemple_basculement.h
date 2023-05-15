@@ -159,6 +159,7 @@ class cRansacBasculementRigide
         double   Delay() const;
 
           bool SolIsInit() const;
+         double EstimLambda() const;
 
     private :
 
@@ -167,7 +168,6 @@ class cRansacBasculementRigide
          void  TestNewSol(const cSolBasculeRig &) ;
 
          double CostSol(const cSolBasculeRig &) const;
-         double EstimLambda() const;
          //  Solution en rendant aussi exact que possible le "match" K1-K2
          //  en cas de degenerescence renvoie Id
          cSolBasculeRig   SolOfK1K2(int aK1,int aK2,bool & OkSol) const;

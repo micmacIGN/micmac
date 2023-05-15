@@ -24,18 +24,20 @@ class cTopoObs
 {
     friend class cTopoObsSet;
 public:
-    cTopoObs(cTopoObsSet* set, TopoObsType type, std::vector<cTopoPoint*> pts, std::vector<tREAL8> vals);
+    cTopoObs(cTopoObsSet* set, TopoObsType type, const std::vector<cTopoPoint*> & pts, const std::vector<tREAL8> & vals,  const cResidualWeighterExplicit<tREAL8> & aWeights);
     std::string toString() const;
     TopoObsType getType() const {return mType;}
     std::vector<int> getIndices() const;
     std::vector<tREAL8> getVals() const;
-    tREAL8 getResidual(const cTopoComp *comp) const;
+    cResidualWeighterExplicit<tREAL8>& getWeights();
+    std::vector<tREAL8> getResiduals(const cTopoComp *comp) const;
     std::string type2string() const;
 protected:
     cTopoObsSet* mSet;//the set containing the shared parameters
     TopoObsType mType;
     std::vector<cTopoPoint*> mPts;
     std::vector<tREAL8> mVals;
+    cResidualWeighterExplicit<tREAL8> mWeights;
 };
 
 

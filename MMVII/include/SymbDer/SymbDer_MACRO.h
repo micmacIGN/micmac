@@ -129,11 +129,8 @@ template <class TypeElem> class c##OPER  : public cBinaryF<TypeElem>\
           static const std::string& StaticNameOperator(){static std::string s(#NSPACE+std::string("::")+ #OPER);return s;}\
       private  :\
             const std::string &  NameOperator() const override {return StaticNameOperator();}\
-            virtual std::string GenCodeShortExpr() const override {\
+            virtual std::string GenCodeExpr() const override {\
                 return #NSPACE + std::string("::") + #OPER+std::string("(") + mF1->GenCodeFormName() + "," + mF2->GenCodeFormName() + ")";\
-            }\
-            virtual std::string GenCodeDef() const override {\
-                return  #NSPACE + std::string("::") + #OPER+std::string("(") + mF1->GenCodeRef() + ","  + mF2->GenCodeRef() + ")";\
             }\
             void ComputeBuf(int aK0,int aK1) override\
             {\

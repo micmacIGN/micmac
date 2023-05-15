@@ -74,7 +74,21 @@ void cMMVII_Appli::Warning(const std::string & aMes,eTyW,int line,const std::str
     ErrOut() << "WARNING : " << aMes << "\n";
 }
 
+void  ErrorWarnNone(eLevelCheck aLevel,const std::string & aMes)
+{
+      switch(aLevel)
+      {
+              case eLevelCheck::NoCheck : break;
 
+              case eLevelCheck::Warning :
+                   MMVII_DEV_WARNING(aMes);
+              break;
+
+              case eLevelCheck::Error :
+                   MMVII_INTERNAL_ERROR(aMes);
+              break;
+      }
+}
 
 };
 

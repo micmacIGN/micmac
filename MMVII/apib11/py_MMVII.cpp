@@ -2,7 +2,7 @@
 
 #include "cMMVII_Appli.h"
 #include "MMVII_enums.h"
-
+#include "SymbDer/SymbDer_Common.h"
 
 namespace MMVII {
     void OpenRandom();
@@ -18,6 +18,14 @@ static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,con
     if (aFile)
        MMVII::ErrOut() << "at line  " << aLine << " of file " << aFile  << "\n";
     throw std::runtime_error(aType + " " + aMes);
+}
+
+static void ErrHanlderSymbDerPy(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
+{
+    std::cerr << "SymbDer: " << aMes << "\n";
+    std::cerr << "         " << aExplanation << "\n";
+    std::cerr << "SymbDer context: " << aContext << "\n";
+    throw std::runtime_error(aMes);
 }
 
 //shadows classic ElExit to use throw(runtime_error) instead of exit(code)
@@ -40,6 +48,7 @@ class MM_Module
         }
         MMVII::cMMVII_Appli::InitMMVIIDirs(pybindMMVIIDir);
         MMVII::MMVII_SetErrorHandler(ErrHanlderPy);
+        NS_SymbolicDerivative::ErrorMgr::SetHandler(ErrHanlderSymbDerPy);
         MMVII::InitStandAloneAppli("apipy");
         MMVII::OpenRandom();
         std::cout<<"MMVII initialized."<<std::endl;

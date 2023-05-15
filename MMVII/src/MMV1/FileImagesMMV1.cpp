@@ -124,6 +124,19 @@ const int  & cDataFileIm2D::NbChannel ()  const { return mNbChannel; }
 const eTyNums &   cDataFileIm2D::Type ()  const {return mType;}
 
 
+bool cDataFileIm2D::IsPostFixNameImage(const std::string & aPost)
+{
+    static std::vector<std::string> aVNames({"jpg","jpeg","tif","tiff"});
+
+    return UCaseMember(aVNames,aPost);
+}
+
+bool cDataFileIm2D::IsNameWith_PostFixImage(const std::string & aName)
+{
+   return IsPostFixNameImage(LastPostfix(aName));
+}
+
+
 
 
 

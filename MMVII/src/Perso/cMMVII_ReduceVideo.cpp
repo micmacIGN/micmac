@@ -16,6 +16,7 @@ namespace MMVII
 {
 
 
+/**  Generate  aSz random point in [0,1]  , return the max of all consecutive intervall */
 double  TestDNA_1Sz1Event(size_t aSz)
 {
     std::vector<double>  aV;
@@ -33,6 +34,7 @@ double  TestDNA_1Sz1Event(size_t aSz)
     return aMax;
 }
 
+//  Generet Nb event of DNA,  return the median and averaged
 cPt2dr  TestDNA_1SzNEvent(size_t aSz,size_t aNbEvent)
 {
     std::vector<double>  aV;
@@ -45,7 +47,6 @@ cPt2dr  TestDNA_1SzNEvent(size_t aSz,size_t aNbEvent)
     }
     
     return cPt2dr(NonConstMediane(aV),aSom/aNbEvent);
-
 }
 
 template <typename tFunc> 
@@ -133,6 +134,7 @@ class cAppli_ReduceVideo : public cMMVII_Appli
          bool                      mExec;        ///< Execute cat and remove file (else just create file)
 	 cPt2di                    mSzReduc;
          std::string               mPrefixRed;
+         std::string               mPrefixUnRed;
          std::string               mPrefixRedDone;
          int                       mLevMin;
          int                       mLevMax;
@@ -171,6 +173,7 @@ cAppli_ReduceVideo::cAppli_ReduceVideo
   mExec           (false),
   mSzReduc        (1280,720),  // 854x480  640x360
   mPrefixRed      ("Reduced-"),
+  mPrefixUnRed    (mPrefixRed+ "UNRED-"),
   mPrefixRedDone  (mPrefixRed + "DONE-"),
   mLevMin         (0),
   mLevMax         (10)
@@ -234,12 +237,17 @@ int cAppli_ReduceVideo::Exe()
 			 // if reduction didnt work, maintain names
 			 if (SizeFile(aFullN0)<SizeFile(aCurDir+aNameTmp))
 			 {
-	                    aNameDone  =     mPrefixRed + LastPrefix(aNameInit) + "-DONE-00."+ LastPostfix(aNameInit) ;
-                            std::swap(aNameReduc,aNameReduc);
+	                    std::string aNameUnReduc =  mPrefixUnRed + LastPrefix(aNameInit) + ".mp4";
+                            RenameFiles(aFullN0         ,aCurDir+aNameUnReduc);
+			    RemoveFile(aCurDir+aNameTmp,false);
+	                    // aNameDone  =     mPrefixRed + LastPrefix(aNameInit) + "-DONE-00."+ LastPostfix(aNameInit) ;
+                           // std::swap(aNameReduc,aNameReduc);
 			 }
-
-		         RenameFiles(aCurDir+aNameTmp,aCurDir+aNameReduc);
-		         RenameFiles(aFullN0         ,aCurDir+aNameDone);
+			 else
+			 {
+		            RenameFiles(aCurDir+aNameTmp,aCurDir+aNameReduc);
+		            RenameFiles(aFullN0         ,aCurDir+aNameDone);
+			 }
 
 		    }
 		    else

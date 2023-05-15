@@ -45,6 +45,9 @@ const std::string MMVIIDirMeshDev      =  MMVII_ComonPrefix +"-MeshDev" + String
 
 const std::string MMVIITestDir       = "MMVII-TestDir" +StringDirSeparator();
 const std::string TmpMMVIIProcSubDir = "Process" + StringDirSeparator();
+const std::string MMVIIRessourcesDir       = "MMVII-RessourceDir" +StringDirSeparator();
+const std::string MMVIILocalParametersDir       = "MMVII-LocalParameters" +StringDirSeparator();
+
 
 const std::string BLANK = " ";
 const std::vector<std::string>  EMPTY_VSTR;
@@ -66,6 +69,7 @@ const std::string GOP_StdOut   = "StdOut";
 const std::string GOP_SeedRand = "SeedRand";
 const std::string GOP_NbProc   = "NbProc";
       // -- Internal
+const std::string GIP_KthCall = "KthCall";
 const std::string GIP_LevCall = "LevCall";
 const std::string GIP_ShowAll = "ShowAll";
 const std::string GIP_PGMA = "PrefixGMA";

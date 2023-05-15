@@ -83,46 +83,56 @@ void cTopoComp::createEx1()
     auto obsSet1 = allObsSets[0].get();
     allPts.push_back(new cTopoPoint("ptD", cPt3dr(14,14,14), true));
     auto ptD = allPts[3];
-    cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptA, ptD}, {10.0});
-    cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptB, ptD}, {10.0});
-    cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptC, ptD}, {10.0});
-    cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptC, ptD}, {11.0});
+#define WW 0.01
+    cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptA, ptD}, {10.0}, {true, {WW}});
+    cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptB, ptD}, {10.0}, {true, {WW}});
+    cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptC, ptD}, {10.0}, {true, {WW}});
+    cTopoObs(obsSet1, TopoObsType::dist, std::vector{ptC, ptD}, {10.1}, {true, {0.1}});
 
     //add point E to an unknown common dist
     allObsSets.push_back(make_TopoObsSet<cTopoObsSetDistParam>());
     auto obsSet2 = allObsSets[1].get();
     allPts.push_back(new cTopoPoint("ptE", cPt3dr(11,11,11), true));
     auto ptE = allPts[4];
-    cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptA}, {});
-    cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptB}, {});
-    cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptC}, {});
-    cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptD}, {});
+    cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptA}, {}, {true, {WW}});
+    cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptB}, {}, {true, {WW}});
+    cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptC}, {}, {true, {WW}});
+    cTopoObs(obsSet2, TopoObsType::distParam, std::vector{ptE, ptD}, {}, {true, {WW}});
 
     //add subframe obs
     allObsSets.push_back(make_TopoObsSet<cTopoObsSetSubFrame>());
     auto obsSet3 = allObsSets[2].get();
-    cTopoObs(obsSet3, TopoObsType::subFrame, std::vector{ptE, ptA}, {-5., -3.75, -1.4});
-    cTopoObs(obsSet3, TopoObsType::subFrame, std::vector{ptE, ptB}, { 5., -3.75, -1.4});
-    cTopoObs(obsSet3, TopoObsType::subFrame, std::vector{ptE, ptC}, { 0.,  6.25, -1.4});
-    cTopoObs(obsSet3, TopoObsType::subFrame, std::vector{ptE, ptD}, { 0.,  0.,    6.4});
+    cTopoObs(obsSet3, TopoObsType::subFrame, std::vector{ptE, ptA}, {-5., -3.75, -1.4}, {true, {WW,WW,WW}});
+    cTopoObs(obsSet3, TopoObsType::subFrame, std::vector{ptE, ptB}, { 5., -3.75, -1.4}, {true, {WW,WW,WW}});
+    cTopoObs(obsSet3, TopoObsType::subFrame, std::vector{ptE, ptC}, { 0.,  6.25, -1.4}, {true, {WW,WW,WW}});
+    cTopoObs(obsSet3, TopoObsType::subFrame, std::vector{ptE, ptD}, { 0.,  0.,    6.4}, {true, {WW,WW,WW}});
 }
 
 double cTopoComp::getSigma0() const
 {
-    float resid2 = 0.0;
+    if (verbose) StdOut()<<" res: [";
+    double resid2 = 0.0;
     for (auto &obsSet: allObsSets)
         for (size_t i=0;i<obsSet->nbObs();++i)
         {
             cTopoObs* obs = obsSet->getObs(i);
-            resid2 += obs->getResidual(this)*obs->getResidual(this);
+            auto res = obs->getResiduals(this);
+            auto sigmas = obs->getWeights().getSigmas();
+            for (size_t j=0;j<res.size();++j)
+            {
+                double obs_res = res[j]/sigmas[j];
+                resid2 += obs_res*obs_res;
+            }
+            if (verbose) for (size_t j=0;j<res.size();++j) StdOut()<<res[j]<<" ";
         }
+    if (verbose) StdOut()<<"]\n";
     return sqrt(resid2/(mSys->GetNbObs()-mSys->CountFreeVariables()));
 }
 
 bool cTopoComp::OneIteration()
 {
     if (!isInit) initializeLeastSquares();
-
+    if (verbose) StdOut()  << "iter\n";
     //add points constraints
     for (auto & pt: allPts)
         pt->addConstraints(this);
@@ -132,7 +142,7 @@ bool cTopoComp::OneIteration()
         for (size_t i=0;i<obsSet->nbObs();++i)
         {
             cTopoObs* obs = obsSet->getObs(i);
-            mSys->CalcAndAddObs(getEquation(obs->getType()), obs->getIndices(), obs->getVals());
+            mSys->CalcAndAddObs(getEquation(obs->getType()), obs->getIndices(), obs->getVals(), obs->getWeights());
         }
 
     //solve
@@ -149,7 +159,8 @@ bool cTopoComp::OneIteration()
     if (verbose)
     {
         StdOut()<<" nb obs: "<<mSys->GetNbObs()<<"\n";
-        StdOut()<<" sigma0: "<<getSigma0()<<"\n";
+        double sigma0 = getSigma0();
+        StdOut()<<" sigma0: "<<sigma0<<"\n";
     }
     return true;
 }
@@ -169,7 +180,7 @@ void BenchTopoComp(cParamExeBench & aParam)
         //mTopoComp.print();
         if (!aTopoComp.OneIteration()) break;
     }
-    auto targetSigma0 = 0.234259;
+    auto targetSigma0 = 0.35271;
     MMVII_INTERNAL_ASSERT_bench(std::abs(aTopoComp.getSigma0()-targetSigma0)<1e-5,"TopoComp sigma0 final");
 
     aParam.EndBench();

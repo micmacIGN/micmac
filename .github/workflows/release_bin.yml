@@ -1,0 +1,71 @@
+name: Build Bin
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build_linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Qt
+      run: sudo apt install qtbase5-dev
+
+    - name: Configure CMake
+      run: cmake -B build -DWITH_CCACHE=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_QT5=ON
+
+    - name: Build
+      run: make -C build install -j 4
+
+    - name: Create Archive
+      run: bash -c "cd build && ../script_create_bin_dist.sh linux"
+
+    - name: Upload binaries to release
+      uses: softprops/action-gh-release@v1
+      with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: build/micmac_linux.tgz
+
+  build_win:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with: 
+        cache: true
+
+    - name: Configure CMake
+      run: cmake -B build -DWITH_CCACHE=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_QT5=ON -DCMAKE_INSTALL_PREFIX=${{github.workspace}}
+
+    - name: Build
+      run: cmake --build build --config Release --target INSTALL -j 4
+    - name: Package
+      shell: bash
+      run: |
+        env
+        mkdir -p bin/platforms bin/imageformats
+        DEST=$(pwd)/bin
+        cd $Qt5_Dir/bin
+        cp Qt5Core.dll Qt5Gui.dll Qt5Xml.dll Qt5OpenGL.dll Qt5Widgets.dll $DEST/
+        cd $Qt5_Dir/plugins
+        cp  platforms/qwindows.dll $DEST/platforms/
+        cp imageformats/*.dll $DEST/imageformats/
+        cd $GITHUB_WORKSPACE
+        ls -lrt bin
+
+    - name: Create Zip
+      run: 7z a micmac_windows.zip bin\ binaire-aux\ include\XML_MicMac\ include\XML_GEN\ include\qt
+ 
+    - name: Upload binaries to release
+      uses: softprops/action-gh-release@v1
+      with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: micmac_windows.zip
+

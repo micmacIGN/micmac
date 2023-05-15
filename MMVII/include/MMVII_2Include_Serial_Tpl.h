@@ -30,7 +30,8 @@ template <class Type> void EnumAddData(const cAuxAr2007 & anAux,Type & anEnum,co
 {
    if (anAux.Tagged())
    {
-       std::string aName = E2Str(anEnum);
+       // modif MPD , if input enum is not init
+       std::string aName = anAux.Input() ? std::string("") :E2Str(anEnum);
        AddData(cAuxAr2007(aTag,anAux),aName);
        if (anAux.Input())
           anEnum = Str2E<Type>(aName);

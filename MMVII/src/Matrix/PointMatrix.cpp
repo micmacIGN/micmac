@@ -1,4 +1,5 @@
 #include "MMVII_Matrix.h"
+#include "MMVII_Geom2D.h"
 
 
 namespace MMVII
@@ -106,6 +107,61 @@ template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L0,c
 
       return aRes;
 }
+template <class Type>  cDenseMatrix<Type> M3x3FromCol(const cPtxd<Type,3>&C0,const cPtxd<Type,3> &C1,const cPtxd<Type,3> &C2)
+{
+      cDenseMatrix<Type> aRes(3,3);
+
+      SetCol(aRes,0,C0);
+      SetCol(aRes,1,C1);
+      SetCol(aRes,2,C2);
+
+      return aRes;
+}
+
+
+template <class Type>  cDenseMatrix<Type> M2x2FromLines(const cPtxd<Type,2>&L0,const cPtxd<Type,2> &L1)
+{
+      cDenseMatrix<Type> aRes(2,2);
+
+      SetLine(0,aRes,L0);
+      SetLine(1,aRes,L1);
+
+      return aRes;
+}
+template <class Type>  cDenseMatrix<Type> M2x2FromCol(const cPtxd<Type,2>&C0,const cPtxd<Type,2> &C1)
+{
+      cDenseMatrix<Type> aRes(2,2);
+
+      SetCol(aRes,0,C0);
+      SetCol(aRes,1,C1);
+
+      return aRes;
+}
+
+
+
+
+template <class Type>  cDenseMatrix<Type> MatDiag(const cPtxd<Type,2>&aPt)
+{
+     cDenseMatrix<Type>  aDM(2,eModeInitImage::eMIA_Null);
+
+     aDM.SetElem(0,0,aPt.x());
+     aDM.SetElem(1,1,aPt.y());
+
+     return aDM;
+}
+
+template <class Type>  cDenseMatrix<Type> MatrSim(const cPtxd<Type,2>& aIm_Ox)
+{
+	return M2x2FromCol(aIm_Ox,Rot90(aIm_Ox));
+}
+
+template <class Type>  cDenseMatrix<Type> MatrRot(const Type & aTeta)
+{
+	return MatrSim(FromPolar(Type(1.0),aTeta));
+}
+
+
 
 
 template <class Type,const int DimOut,const int DimIn> 
@@ -170,9 +226,18 @@ template<class Type,const int Dim>
     return  cPtxd<Type,Dim>::FromVect(aVRes);
 }
 
+template<class Type,const int DimOut,const int DimIn> Type
+     QScal(const cPtxd<Type,DimOut>& aP2,const cDenseMatrix<Type>& aMat,const cPtxd<Type,DimIn>& aP1)
+{
+	cPtxd<Type,DimOut> aTmp;
+	MulCol(aTmp,aMat,aP1);
+	return Scal(aP2,aTmp);
+}
+
 
 
 #define INSTANT_MUL_MATVECT(TYPE,DIMOUT,DIMIN)\
+template TYPE QScal(const cPtxd<TYPE,DIMOUT>& aP2,const cDenseMatrix<TYPE>& aMat,const cPtxd<TYPE,DIMIN>& aP1);\
 template void MulCol(cPtxd<TYPE,DIMOUT>&,const cDenseMatrix<TYPE>&,const cPtxd<TYPE,DIMIN>&);\
 template void MulLine(cPtxd<TYPE,DIMOUT>&,const cPtxd<TYPE,DIMIN>&,const cDenseMatrix<TYPE>&);
 
@@ -206,8 +271,16 @@ template  void GetLine(cPtxd<TYPE,DIM> & ,int,const cDenseMatrix<TYPE> & aMat);\
 template  void SetLine(int,cDenseMatrix<TYPE> & ,const cPtxd<TYPE,DIM> & );
 
 
+// template   cDenseMatrix<TYPE> MatrRot(const TYPE&);
+
 #define INSTANT_PT_MAT_TYPE(TYPE)\
 template   cDenseMatrix<TYPE> M3x3FromLines(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3> &,const cPtxd<TYPE,3> &);\
+template   cDenseMatrix<TYPE> M3x3FromCol(const cPtxd<TYPE,3>&,const cPtxd<TYPE,3> &,const cPtxd<TYPE,3> &);\
+template   cDenseMatrix<TYPE> M2x2FromLines(const cPtxd<TYPE,2>&,const cPtxd<TYPE,2> &);\
+template   cDenseMatrix<TYPE> M2x2FromCol(const cPtxd<TYPE,2>&,const cPtxd<TYPE,2> &);\
+template   cDenseMatrix<TYPE> MatDiag(const cPtxd<TYPE,2>&);\
+template   cDenseMatrix<TYPE> MatrSim(const cPtxd<TYPE,2>&);\
+template   cDenseMatrix<TYPE> MatrRot(const TYPE&);\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,1)\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,2)\
 INSTANT_PT_MAT_TYPE_DIM(TYPE,3)\

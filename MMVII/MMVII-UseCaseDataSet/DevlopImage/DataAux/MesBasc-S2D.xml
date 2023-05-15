@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<SetOfMesureAppuisFlottants>
+     <MesureAppuiFlottant1Im>
+          <NameIm>P1056200.jpg</NameIm>
+          <OneMesureAF1I>
+               <NamePt>Line1</NamePt>
+               <PtIm>167.439822913887951 64.1384231209689943</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Line2</NamePt>
+               <PtIm>163.950550931123928 212.308790403750208</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Ech1</NamePt>
+               <PtIm>162.114713785087986 64.2419915862620883</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Ech2</NamePt>
+               <PtIm>161.263523729192741 211.954040516549071</PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm>P1056201.jpg</NameIm>
+          <OneMesureAF1I>
+               <NamePt>Line1</NamePt>
+               <PtIm>79.5819607710651553 330.290506792054714</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Line2</NamePt>
+               <PtIm>89.6188602030552346 483.450817381591605</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Ech1</NamePt>
+               <PtIm>74.0422343075507001 330.48022496916451</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Ech2</NamePt>
+               <PtIm>86.8423949389887184 483.35742135479569</PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+     <MesureAppuiFlottant1Im>
+          <NameIm>P1056202.jpg</NameIm>
+          <OneMesureAF1I>
+               <NamePt>Line1</NamePt>
+               <PtIm>51.863883136133758 593.615840026472142</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Line2</NamePt>
+               <PtIm>67.5816343752368169 746.519695771368902</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Ech1</NamePt>
+               <PtIm>46.5465382530956902 593.607306255320509</PtIm>
+          </OneMesureAF1I>
+          <OneMesureAF1I>
+               <NamePt>Ech2</NamePt>
+               <PtIm>65.4249587910481267 746.453785354834281</PtIm>
+          </OneMesureAF1I>
+     </MesureAppuiFlottant1Im>
+</SetOfMesureAppuisFlottants>

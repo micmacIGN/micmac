@@ -227,7 +227,11 @@ template <class Type> Memory_ElImDest<Type>::Memory_ElImDest(INT NbChan,Pt2di Sz
 
 template <class Type> void Memory_ElImDest<Type>::VerifDim(INT DimOut)
 {
-    ELISE_ASSERT(DimOut==mNbChan,"Incompatibles Dims in Memory_ElImDest::VerifDim");
+   if (DimOut!=mNbChan)
+   {
+        std::cout << "DimOut= " << DimOut << " NBC=" << mNbChan << "\n";
+        ELISE_ASSERT(DimOut==mNbChan,"Incompatibles Dims in Memory_ElImDest::VerifDim");
+   }
 }
 
 template <class Type> void Memory_ElImDest<Type>::SetDec(Pt2di aDec) 

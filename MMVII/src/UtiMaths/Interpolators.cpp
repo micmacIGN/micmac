@@ -35,6 +35,7 @@ cRessampleWeigth  cRessampleWeigth::GaussBiCub(const cPt2dr & aCenterOut,const c
          }
      }
 
+     // if not empty  , som W = 1
      if (aSomW>0)
      {
         for (auto & aW : aRes.mVWeight)

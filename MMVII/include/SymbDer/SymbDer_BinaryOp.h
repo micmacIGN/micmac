@@ -53,13 +53,10 @@ template <class TypeElem> class cBinaryF : public cImplemF<TypeElem>
       protected  :
             void AssocSortedVect(std::vector<tFormula> & aV);
             void EmpileAssoc (const cFormula <TypeElem>& aF, std::vector<tFormula > & aV);
-            virtual std::string GenCodeShortExpr() const override {
+            virtual std::string GenCodeExpr() const override {
                 return "(" + mF1->GenCodeFormName() + " " + this->NameOperator() +  " " + mF2->GenCodeFormName() + ")";
             }
 
-            virtual std::string GenCodeDef() const override {
-                return "(" + mF1->GenCodeRef() + " " + this->NameOperator() +  " " + mF2->GenCodeRef() + ")";
-            }
             std::vector<tFormula> Ref() const override{return std::vector<tFormula>{mF1,mF2};}
             inline cBinaryF(tFormula aF1,tFormula aF2,const std::string & aName):
                  tImplemF (aF1->CoordF(),aName),
@@ -399,12 +396,8 @@ template <class TypeElem> class cPowF : public cBinaryF<TypeElem>
             const std::string &  NameOperator() const override {return StaticNameOperator();}
       //private  :
             //const std::string &  NameOperator() const override {static std::string s("^"); return s;}
-            virtual std::string GenCodeShortExpr() const override {
+            virtual std::string GenCodeExpr() const override {
                 return "std::pow(" + mF1->GenCodeFormName() + "," + mF2->GenCodeFormName() + ")";
-            }
-
-            virtual std::string GenCodeDef() const override {
-                return "std::pow(" + mF1->GenCodeRef() + ","  + mF2->GenCodeRef() + ")";
             }
             void ComputeBuf(int aK0,int aK1) override
             {

@@ -1,5 +1,5 @@
-
 #include "MMVII_Sensor.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 
 /**
@@ -11,87 +11,6 @@
 
 namespace MMVII
 {
-
-/**********************************************/
-/*                                            */
-/*           cPair2D3D                        */
-/*                                            */
-/**********************************************/
-
- cPair2D3D::cPair2D3D(const cPt2dr & aP2,const cPt3dr & aP3) :
-    mP2  (aP2),
-    mP3  (aP3)
-{
-}
-
-
-
-/**********************************************/
-/*                                            */
-/*           cWeightedPair2D3D                */
-/*                                            */
-/**********************************************/
-
- cWeightedPair2D3D::cWeightedPair2D3D(const cPair2D3D & aPair,double  aW) :
-    cPair2D3D (aPair),
-    mWeight   (aW)
-{
-}
-
-cWeightedPair2D3D::cWeightedPair2D3D(const cPt2dr& aPIm,const cPt3dr& aPGround,double aWeight) :
-    cWeightedPair2D3D(cPair2D3D(aPIm,aPGround),aWeight)
-{
-}
-
-/**********************************************/
-/*                                            */
-/*           cSet2D3D                         */
-/*                                            */
-/**********************************************/
-
-void cSet2D3D::AddPair(const tPair & aP23)
-{
-     mPairs.push_back(aP23);
-}
-
-void cSet2D3D::AddPair(const cPt2dr& aPIm,const cPt3dr& aPGround,double aWeight)
-{
-    AddPair(tPair(aPIm,aPGround,aWeight));
-}
-
-
-const cSet2D3D::tCont2D3D &  cSet2D3D::Pairs() const { return mPairs;}
-
-void  cSet2D3D::Clear()
-{
-	mPairs.clear();
-}
-
-cWeightedPair2D3D  cSet2D3D::Centroid() const
-{
-    cPt2dr aSP2(0,0);
-    cPt3dr aSP3(0,0,0);
-    double aSW=0;
-    for (const auto & aPair : mPairs)
-    {
-	    aSP2 += aPair.mP2 * aPair.mWeight;
-	    aSP3 += aPair.mP3 * aPair.mWeight;
-	    aSW += aPair.mWeight;
-    }
-    return cWeightedPair2D3D(aSP2/aSW,aSP3/aSW,aSW);
-}
-
-void cSet2D3D::Substract(const cPair2D3D& aSub)
-{
-    for (auto  & aPair : mPairs)
-    {
-        aPair.mP2 =  aPair.mP2-aSub.mP2;
-        aPair.mP3 =  aPair.mP3-aSub.mP3;
-    }
-}
-
-
-
 
 /* ******************************************************* */
 /*                                                         */
@@ -147,7 +66,7 @@ double  cSensorImage::SqResidual(const cPair2D3D & aPair) const
      return SqN2(aPair.mP2-Ground2Image(aPair.mP3));
 }
 
-double  cSensorImage::AvgResidual(const cSet2D3D & aSet) const
+double  cSensorImage::AvgSqResidual(const cSet2D3D & aSet) const
 {
      double aSum = 0;
      for (const auto & aPair : aSet.Pairs() )
@@ -157,6 +76,21 @@ double  cSensorImage::AvgResidual(const cSet2D3D & aSet) const
      return std::sqrt(aSum/aSet.Pairs().size());
 }
 
+/*
+double cSensorImage::RobustAvResidualOfProp(const cSet2D3D &,double aProp) const
+{
+    cWeightAv<tREAL8>  aWAvg;
+    for (const auto & aPair : aSet.Pairs() )
+    {
+         tREAL8 aResidual = std::sqrt(SqResidual(aPair));
+         tREAL8 aWeight = aSigma/(aSigma+aResidual);
+	 aWAvg.Add(aWeight,aResidual);
+    }
+    return aWAvg.Average();
+}
+*/
+
+
 
 std::string cSensorImage::PrefixName() { return "Ori"; }
 
@@ -165,13 +99,77 @@ std::string  cSensorImage::NameOri_From_PrefixAndImage(const std::string & aPref
 { 
     return PrefixName() + "-" + aPrefix + "-" + aNameImage + ".xml"; 
 }
-std::string cSensorImage::NameOriStd() const { return  NameOri_From_PrefixAndImage(V_PrefixName(),mNameImage);}
+std::string cSensorImage::NameOriStd() const 
+{ 
+    std::string aRes =   NameOri_From_PrefixAndImage(V_PrefixName(),mNameImage);
+    return  aRes;
+}
 
 
 cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt2dr & aP2,const double & aDepth) const 
 {
     return ImageAndDepth2Ground(cPt3dr(aP2.x(),aP2.y(),aDepth));
 }
+
+
+
+const cPt2di & cSensorImage::Sz() const {return PixelDomain().Sz();}
+
+tPt2dr cSensorImage::RandomVisiblePIm() const 
+{
+      bool IsOk=false;
+      tPt2dr aRes;
+      while (! IsOk)
+      {
+           aRes = MulCByC(  tPt2dr::PRand()  , ToR(Sz())  );
+	   IsOk = IsVisibleOnImFrame(aRes) ;
+      }
+       
+      return aRes;
+}
+
+
+tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTestMax,bool * isOk ) const
+{
+
+    if (isOk!=nullptr ) *isOk= false;
+
+    for (int aKTest=0 ; aKTest< aNbTestMax ; aKTest++)
+    {
+       tPt2dr aPIm1 = this->RandomVisiblePIm();
+       tPt2dr aPIm2 = other.RandomVisiblePIm();
+
+       tPt3dr aResult = PInterBundle(cHomogCpleIm(aPIm1,aPIm2),other);
+
+// StdOut() << aPIm1 << aPIm2 << aResult << aResult << "\n";
+       if ( this->IsVisible(aResult)  && other.IsVisible(aResult))
+       {
+           if (isOk!=nullptr) *isOk= true;
+	   return aResult;
+       }
+    }
+
+    if (isOk==nullptr )
+    {
+        MMVII_INTERNAL_ERROR("Cannot compute RandomVisiblePGround");
+    }
+    return tPt3dr(0.0,0.0,0.0);
+}
+
+cHomogCpleIm cSensorImage::RandomVisibleCple(const cSensorImage & other,int aNbTestMax,bool * isOk) const
+{
+    tPt3dr aPGr = RandomVisiblePGround(other,aNbTestMax,isOk);
+    return cHomogCpleIm(this->Ground2Image(aPGr),other.Ground2Image(aPGr));
+}
+
+
+cPt3dr cSensorImage::RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax)
+{
+     cPt2dr aPIm   = RandomVisiblePIm();
+     tREAL8 aDepth = RandInInterval(aDepMin,aDepMax);
+     return  Ground2ImageAndDepth(cPt3dr(aPIm.x(),aPIm.y(),aDepth));
+}
+
 
 
 cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> & aVecDepth) const
@@ -191,7 +189,58 @@ cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,std::vector<double> 
     return aResult;
 }
          ///  call variant with vector, depth regularly spaced
-         // cSet2D3D  SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const;
+cSet2D3D  cSensorImage::SyntheticsCorresp3D2D (int aNbByDim,int aNbDepts,double aD0,double aD1) const
+{
+   std::vector<tREAL8> aVDepth;
+
+   for (int aKD=0 ; aKD < aNbDepts; aKD++)
+   {
+        tREAL8 aW = SafeDiv(aKD,aNbDepts);
+        aVDepth.push_back(aD0 * pow(aD1/aD0,aW));
+   }
+
+   return SyntheticsCorresp3D2D(aNbByDim,aVDepth);
+}
+
+bool cSensorImage::IsVisible(const cPt3dr & aP3) const  { return DegreeVisibility(aP3) > 0; }
+bool cSensorImage::IsVisibleOnImFrame(const cPt2dr & aP2) const  { return DegreeVisibilityOnImFrame(aP2) > 0;}
+bool cSensorImage:: PairIsVisible(const cPair2D3D & aPair) const
+{
+	return IsVisible(aPair.mP3) && IsVisibleOnImFrame(aPair.mP2) ;
+}
+
+cPt3dr cSensorImage::Image2PlaneInter(const cPlane3D & aPlane,const cPt2dr & aPIm) const
+{
+    return aPlane.Inter(Image2Bundle(aPIm));
+}
+
+cPt2dr cSensorImage::Image2LocalPlaneInter(const cPlane3D & aPlane,const cPt2dr &aPIm) const
+{
+  return Proj(aPlane.ToLocCoord(Image2PlaneInter(aPlane,aPIm)));
+}
+
+cEllipse cSensorImage::EllipseIm2Plane(const cPlane3D & aPlane,const cEllipse & anElIm,int aNbTeta) const
+{
+   cEllipse_Estimate aEEst(Image2LocalPlaneInter(aPlane,anElIm.Center()));
+   for (int aKTeta =0 ; aKTeta < aNbTeta ; aKTeta++)
+   {
+       cPt2dr  aPIm    = anElIm.PtOfTeta(aKTeta* ((2*M_PI)/aNbTeta));  // pt on image ellipse
+       cPt2dr  aPPlane = Image2LocalPlaneInter(aPlane,aPIm);
+
+       aEEst.AddPt(aPPlane);
+    }
+    return aEEst.Compute() ;
+}
+
+cPt3dr cSensorImage::PInterBundle(const cHomogCpleIm & aCple,const cSensorImage & other) const
+{
+     tSeg3dr aSeg1 = this->Image2Bundle(aCple.mP1);
+     tSeg3dr aSeg2 = other.Image2Bundle(aCple.mP2);
+
+     return BundleInters(aSeg1,aSeg2);
+}
+
+
 
 
 /* ******************************************************* */
@@ -227,9 +276,9 @@ cSetVisibility::cSetVisibility(cSensorImage * aSens,double aBorder) :
 	    mBorder                   (aBorder)
 {}
 
-tREAL8 cSetVisibility::Insideness(const tPt & aP) const 
+tREAL8 cSetVisibility::Insideness(const cPt3dr & aP) const 
 {
-    return mSens->Visibility(aP) - mBorder;
+    return mSens->DegreeVisibility(aP) - mBorder;
 }
 
 

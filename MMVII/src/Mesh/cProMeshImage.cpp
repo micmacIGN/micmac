@@ -213,7 +213,6 @@ int  cAppliProMeshImage::ExecuteBench(cParamExeBench & aParam)
 		  +   mSpecs.Name() + BLANK
 		  +  InputDirTestMMVII() + "Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh TestProjMesh BenchMode=1";
 
-   // MMVII  0_MeshProjImage ../MMVII-TestDir/Input/Ply/FileTestMesh.xml Clip_C3DC_QuickMac_poisson_depth5.ply TestProjMesh BenchMode=1
    GlobSysCall(aCom);
 
     return EXIT_SUCCESS;
@@ -347,7 +346,7 @@ void cAppliProMeshImage::MakeRadiomData(cZBuffer &  aZB)
 		 {
                      tREAL8 aWy1 = (aKy1+0.5) / double (aNbSample) ;
 		     tPt3dr aGrid1 = aP0 + aWx1 * aVx + aWy1 * aVy;
-		     if (mCamPC->Visibility(aGrid1)>0)
+		     if (mCamPC->IsVisible(aGrid1))
 		     {
                          bool isAllOk = true;
 			 int aNbOk = 0;

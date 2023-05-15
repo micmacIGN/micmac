@@ -1,0 +1,603 @@
+#include "MMVII_PCSens.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_util_tpl.h"
+
+
+/**
+   \file Measures.cpp
+
+   \brief classes 4 handling measurement in image
+*/
+
+
+namespace MMVII
+{
+
+/* ********************************************* */
+/*                                               */
+/*             cHomogCpleIm                      */
+/*                                               */
+/* ********************************************* */
+
+cHomogCpleIm::cHomogCpleIm(const cPt2dr & aP1,const cPt2dr & aP2) :
+   mP1 (aP1),
+   mP2 (aP2)
+{
+}
+
+
+/* ************************************** */
+/*                                        */
+/*            cHomogCpleDir               */
+/*                                        */
+/* ************************************** */
+/*
+
+cHomogCpleDir::cHomogCpleDir(const cPt3dr & aP1,const cPt3dr & aP2) :
+   mP1  (VUnit(aP1)),
+   mP2  (VUnit(aP2))
+{
+}
+
+void cHomogCpleDir::SetVectMatEss(cDenseVect<tREAL8> &aVect,tREAL8 & aRHS) const
+{
+         aVect(0) = mP1.x() *  mP2.x();
+         aVect(1) = mP1.x() *  mP2.y();
+         aVect(2) = mP1.x() *  mP2.z();
+
+         aVect(3) = mP1.y() *  mP2.x();
+         aVect(4) = mP1.y() *  mP2.y();
+         aVect(5) = mP1.y() *  mP2.z();
+
+         aVect(6) = mP1.z() *  mP2.x();
+         aVect(7) = mP1.z() *  mP2.y();
+         aRHS    = -mP1.z() *  mP2.z();
+}
+*/
+
+
+/* ************************************** */
+/*                                        */
+/*         cSetHomogCpleDir               */
+/*                                        */
+/* ************************************** */
+
+/*
+cSetHomogCpleDir::cSetHomogCpleDir
+(
+     const cSetHomogCpleIm &    aSetH,
+     const cPerspCamIntrCalib & aCal1,
+     const cPerspCamIntrCalib & aCal2
+)
+{
+     for (const auto & aCplH : aSetH.mSetH)
+     {
+         cPt3dr aP1 =  aCal1.DirBundle(aCplH.mP1);
+         cPt3dr aP2 =  aCal2.DirBundle(aCplH.mP2);
+         mSetD.push_back(cHomogCpleDir(aP1,aP2));
+     }
+}
+
+cSetHomogCpleDir::cSetHomogCpleDir() 
+{
+}
+
+
+cPt2dr cSetHomogCpleDir::Disp() const
+{
+    cPt3dr aS1(0,0,0);
+    cPt3dr aS2(0,0,0);
+
+    for (const auto & aPair : mSetD)
+    {
+        aS1 += aPair.mP1;
+        aS2 += aPair.mP2;
+    }
+    aS1 = aS1 / tREAL8(mSetD.size());
+    aS2 = aS2 / tREAL8(mSetD.size());
+
+    cPt2dr aRes(0,0);
+    for (const auto & aPair : mSetD)
+    {
+        aRes +=  cPt2dr(Norm2(aPair.mP1-aS1), Norm2(aPair.mP2-aS2));
+    }
+
+    return aRes / tREAL8(mSetD.size());
+}
+*/
+
+
+
+/* ********************************************* */
+/*                                               */
+/*             cMultipleImPt                     */
+/*                                               */
+/* ********************************************* */
+
+cMultipleImPt::cMultipleImPt(int aNumPt) :
+    mNumPt  (aNumPt)
+{
+}
+
+void cMultipleImPt::Add(const cMesIm1Pt & aMes,int aNumIm,bool WithSigma)
+{
+    MMVII_INTERNAL_ASSERT_tiny(!WithSigma,"4 now dont handle sigma in cMultipleImPt");
+    mVMeasures.push_back(aMes.mPt);
+    mVImages.push_back(aNumIm);
+}
+
+const cPt2dr * cMultipleImPt::PtOfIm(int aIndIm) const
+{
+     for (size_t aK=0; aK<mVImages.size() ; aK++)
+        if (mVImages[aK] == aIndIm)
+           return &(mVMeasures[aK]);
+     return nullptr;
+}
+
+const std::vector<cPt2dr> & cMultipleImPt::VMeasures() const  {return mVMeasures;}
+const std::vector<int>    & cMultipleImPt::VImages()   const  {return mVImages  ;}
+
+
+/* ********************************************* */
+/*                                               */
+/*             cSetMesImGCP                      */
+/*                                               */
+/* ********************************************* */
+
+
+cSetMesImGCP::cSetMesImGCP() :
+	mPhaseGCPFinished (false)
+{
+}
+
+void cSetMesImGCP::Add1GCP(const cMes1GCP & aMes)
+{
+     MMVII_INTERNAL_ASSERT_medium(!mPhaseGCPFinished,"cSetMesImGCP cannot add GCP after image");
+     mMesGCP.push_back(aMes);
+     m2MapPtInt.Add(aMes.mNamePt);
+}
+
+void cSetMesImGCP::AddMes3D(const cSetMesGCP &  aSet)
+{
+     for (const auto & aMes  : aSet.Measures())
+	 Add1GCP(aMes);
+}
+
+const cSetMesPtOf1Im  & cSetMesImGCP::MesImInitOfName(const std::string & aNameIm) const
+{
+	return mMesImInit.at(m2MapImInt.Obj2I(aNameIm));
+}
+
+const cMes1GCP &  cSetMesImGCP::MesGCPOfName(const std::string & aNamePt) const
+{
+    return mMesGCP.at(m2MapPtInt.Obj2I(aNamePt));
+}
+
+bool  cSetMesImGCP::NameIsGCP(const std::string & aNamePt) const
+{
+  return m2MapPtInt.Obj2I(aNamePt,true) >= 0;
+}
+
+
+
+
+
+void cSetMesImGCP::AddMes2D(const cSetMesPtOf1Im & aSetMesIm,cSensorImage* aSens,eLevelCheck aOnNonExistGCP)
+{
+    //  Are we beginning  the  image measurement phase
+    {
+        if (! mPhaseGCPFinished)
+        {
+            mMesImOfPt.reserve(mMesGCP.size());
+
+	    for (size_t aKp=0 ;  aKp<mMesGCP.size() ; aKp++)
+                mMesImOfPt.push_back( cMultipleImPt(aKp));
+        }
+        mPhaseGCPFinished = true;
+    }
+
+    int aNumIm = m2MapImInt.Add(aSetMesIm.NameIm());
+    if (aNumIm==(int)mMesImInit.size())
+    {
+       mMesImInit.push_back(cSetMesPtOf1Im(aSetMesIm.NameIm()));
+       mVSens.push_back(aSens);
+    }
+    else
+    {
+        MMVII_INTERNAL_ASSERT_tiny(aNumIm<int(mMesImInit.size()),"Incoherence in cSetMesImGCP::AddMes2D");
+        MMVII_INTERNAL_ASSERT_tiny(mVSens.at(aNumIm) == aSens,"Variable sensor in cSetMesImGCP::AddMes2D");
+    }
+
+    for (const auto & aMes : aSetMesIm.Measures())
+    {
+        int aNumPt = m2MapPtInt.Obj2I(aMes.mNamePt,true);
+	if (aNumPt>=0)
+	{
+	    mMesImOfPt.at(aNumPt).Add(aMes,aNumIm,false);
+            mMesImInit.at(aNumIm).AddMeasure(aMes);
+	}
+	else
+	{
+             ErrorWarnNone(aOnNonExistGCP,"Measure Im w/o Ground, first occur Im=" + aSetMesIm.NameIm() + " Pt="  + aMes.mNamePt);
+	}
+    }
+}
+
+const std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()    const  {return mMesGCP; }
+const std::vector<cMultipleImPt> &   cSetMesImGCP::MesImOfPt() const  {return mMesImOfPt;  }
+const std::vector<cSensorImage*> &   cSetMesImGCP::VSens()     const  {return mVSens;}
+
+std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()   {return mMesGCP; }
+
+void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm)
+{
+    aS23.Clear();
+
+    int aNumIm = m2MapImInt.Obj2I(aNameIm);
+
+    for (size_t aKp=0 ;  aKp<mMesGCP.size() ; aKp++)
+    {
+         const cPt2dr * aP2 = mMesImOfPt[aKp].PtOfIm(aNumIm);
+	 if (aP2)
+            aS23.AddPair(*aP2,mMesGCP[aKp].mPt);
+    }
+}
+
+cSetMesImGCP *  cSetMesImGCP::FilterNonEmptyMeasure(int aNbMeasureMin) const
+{
+  cSetMesImGCP * aRes = new cSetMesImGCP;
+
+  for (size_t aKGCP=0 ; aKGCP<mMesGCP.size() ; aKGCP++)
+  {
+       if ( int(mMesImOfPt[aKGCP].VImages().size()) >= aNbMeasureMin)
+       {
+             aRes->Add1GCP(mMesGCP[aKGCP]);
+       }
+   }
+
+  for (size_t aKIm=0 ; aKIm<mMesImInit.size() ; aKIm++)
+  {
+     aRes->AddMes2D(mMesImInit.at(aKIm),mVSens.at(aKIm));
+  }
+
+   return aRes;
+}
+
+tREAL8 cSetMesImGCP::AvgSqResidual() const
+{
+     cWeightAv<tREAL8>  aWA;
+
+     for (size_t aKPt=0 ; aKPt<mMesGCP.size() ; aKPt++)
+     {
+         const cPt3dr & aPGr = mMesGCP.at(aKPt).mPt;
+         const  cMultipleImPt & aMMIm = mMesImOfPt.at(aKPt);
+         size_t aNbMes = aMMIm.VMeasures().size();
+         for (size_t aKMes=0 ; aKMes<aNbMes ; aKMes++)
+         {
+             const cPt2dr & aPIm =  aMMIm.VMeasures().at(aKMes);
+	     int aIndIm = aMMIm.VImages().at(aKMes);
+	     cSensorImage * aSens = mVSens.at(aIndIm);
+
+	     tREAL8 aD2 = SqN2(aPIm-aSens->Ground2Image(aPGr));
+
+	     aWA.Add(1.0,aD2);
+         }
+     }
+
+     return std::sqrt(aWA.Average());
+}
+
+cSetMesGCP  cSetMesImGCP::ExtractSetGCP(const std::string & aName) const
+{
+    cSetMesGCP aRes(aName);
+    for (const auto &  aMesGCP : mMesGCP)
+        aRes.AddMeasure(aMesGCP);
+
+    return aRes;
+}
+
+
+/* ********************************************* */
+/*                                               */
+/*             cMesIm1Pt                         */
+/*                                               */
+/* ********************************************* */
+        
+cMesIm1Pt::cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aS) :
+     mPt      (aPt),
+     mNamePt  (aNamePt),
+     mSigma2   {aS,0,aS}
+{
+}
+
+cMesIm1Pt::cMesIm1Pt() :
+    cMesIm1Pt(cPt2dr(0,0),"???",-1)
+{
+}
+
+void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aMes)
+{
+   MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
+   MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
+   AddTabData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2,3);
+}
+
+/* ********************************************* */
+/*                                               */
+/*             cSetMesPtOf1Im                    */
+/*                                               */
+/* ********************************************* */
+
+cSetMesPtOf1Im::cSetMesPtOf1Im(const std::string & aNameIm) :
+    mNameIm  (aNameIm)
+{
+}
+
+cSetMesPtOf1Im::cSetMesPtOf1Im() :
+    cSetMesPtOf1Im("???")
+{
+}
+
+
+cSetMesPtOf1Im  cSetMesPtOf1Im::FromFile(const std::string & aNameFile)
+{
+    cSetMesPtOf1Im aRes;
+    ReadFromFile(aRes,aNameFile);
+
+    return aRes;
+}
+
+const std::string &              cSetMesPtOf1Im::NameIm()   const {return mNameIm;}
+const std::vector<cMesIm1Pt> &   cSetMesPtOf1Im::Measures() const {return mMeasures;}
+std::vector<cMesIm1Pt> &   cSetMesPtOf1Im::Measures() {return mMeasures;}
+
+void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
+{
+     mMeasures.push_back(aMeasure);
+}
+
+cMesIm1Pt *  cSetMesPtOf1Im::NearestMeasure(const cPt2dr & aPt) 
+{
+   return WhitchMinVect
+          (
+               mMeasures,
+               [aPt](const auto & aMes) {return SqN2(aPt-aMes.mPt);}
+          );
+}
+
+
+
+void cSetMesPtOf1Im::AddData(const  cAuxAr2007 & anAuxParam)
+{
+    cAuxAr2007 anAux("SetMesIm",anAuxParam);
+
+    MMVII::AddData(cAuxAr2007("NameIm",anAux),mNameIm);
+    MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cSetMesPtOf1Im & aGCPMI)
+{
+    aGCPMI.AddData(anAux);
+}
+
+void cSetMesPtOf1Im::ToFile(const std::string & aName) const
+{
+    SaveInFile(*this,aName);
+}
+
+const std::string  cSetMesPtOf1Im::ThePrefixFiles = "MesIm-";
+
+std::string cSetMesPtOf1Im::StdNameFileOfIm(const std::string & aName)
+{
+	return ThePrefixFiles +aName+ "."+PostF_XmlFiles;
+}
+
+std::string cSetMesPtOf1Im::StdNameFile() const
+{
+    return StdNameFileOfIm(mNameIm);
+}
+
+cMesIm1Pt *  cSetMesPtOf1Im::PrivateMeasuresOfName(const std::string & aNamePt,bool SVP) const
+{
+   const auto & anIt = find_if(mMeasures.begin(),mMeasures.end(),[aNamePt](const auto& aM){return aM.mNamePt==aNamePt;});
+
+   if (anIt != mMeasures.end())
+   {
+       return  const_cast<cMesIm1Pt *>(&(*anIt));
+   }
+
+   if (! SVP)
+   {
+      MMVII_INTERNAL_ERROR("PrivateMeasuresOfName for "+ aNamePt);
+   }
+
+   return nullptr;
+}
+
+const cMesIm1Pt& cSetMesPtOf1Im::MeasuresOfName(const std::string & aN)const {return *(PrivateMeasuresOfName(aN,false));}
+cMesIm1Pt& cSetMesPtOf1Im::MeasuresOfName(const std::string & aN){return *(PrivateMeasuresOfName(aN,false));}
+bool cSetMesPtOf1Im::NameHasMeasure(const std::string & aN) const {return PrivateMeasuresOfName(aN,true)!=nullptr;}
+
+
+/* ********************************************* */
+/*                                               */
+/*             cMes1GCP                          */
+/*                                               */
+/* ********************************************* */
+
+cMes1GCP::cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma) :
+    mPt       (aPt),
+    mNamePt   (aNamePt),
+    mSigma2   {aSigma,0,0,aSigma,0,aSigma}
+{
+}
+
+cMes1GCP::cMes1GCP() :
+    cMes1GCP (cPt3dr(0,0,0),"??",-1)
+{
+}
+
+void AddData(const  cAuxAr2007 & anAux,cMes1GCP & aMes)
+{
+   MMVII::AddData(cAuxAr2007("Name",anAux),aMes.mNamePt);
+   MMVII::AddData(cAuxAr2007("Pt",anAux),aMes.mPt);
+   AddTabData(cAuxAr2007("Sigma2",anAux),aMes.mSigma2,6);
+}
+
+/* ********************************************* */
+/*                                               */
+/*             cSetMesGCP                        */
+/*                                               */
+/* ********************************************* */
+
+
+const std::string  cSetMesGCP::ThePrefixFiles = "MesGCP";
+
+cSetMesGCP::cSetMesGCP(const std::string &aNameSet) :
+    mNameSet(aNameSet)
+{
+}
+
+cSetMesGCP::cSetMesGCP() :
+    cSetMesGCP("???")
+{
+}
+
+void cSetMesGCP::AddMeasure(const cMes1GCP & aMeasure)
+{
+     mMeasures.push_back(aMeasure);
+}
+
+void cSetMesGCP::AddData(const  cAuxAr2007 & anAuxParam)
+{
+    cAuxAr2007 anAux("SetGCP",anAuxParam);
+
+    MMVII::AddData(cAuxAr2007("NameSet",anAux),mNameSet);
+    MMVII::AddData(cAuxAr2007("Measures",anAux),mMeasures);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cSetMesGCP & aSet)
+{
+     aSet.AddData(anAux);
+}
+
+cSetMesGCP  cSetMesGCP::FromFile(const std::string & aNameFile)
+{
+    cSetMesGCP aRes;
+    ReadFromFile(aRes,aNameFile);
+
+    return aRes;
+}
+
+void cSetMesGCP::ToFile(const std::string & aNameFile)
+{
+     SaveInFile(*this,aNameFile);
+}
+
+
+
+std::string cSetMesGCP::StdNameFileOfSet(const std::string & aName) 
+{
+     return ThePrefixFiles+"-"+ aName+ "."+PostF_XmlFiles;
+}
+std::string cSetMesGCP::StdNameFile() const {return StdNameFileOfSet(mNameSet);}
+
+void cSetMesGCP::ToFile(const std::string & aNameFile) const
+{
+    SaveInFile(*this,aNameFile);
+}
+
+
+const std::vector<cMes1GCP> &   cSetMesGCP::Measures() const {return mMeasures;}
+
+
+
+/**********************************************/
+/*                                            */
+/*           cPair2D3D                        */
+/*                                            */
+/**********************************************/
+
+ cPair2D3D::cPair2D3D(const cPt2dr & aP2,const cPt3dr & aP3) :
+    mP2  (aP2),
+    mP3  (aP3)
+{
+}
+
+/**********************************************/
+/*                                            */
+/*           cWeightedPair2D3D                */
+/*                                            */
+/**********************************************/
+
+ cWeightedPair2D3D::cWeightedPair2D3D(const cPair2D3D & aPair,double  aW) :
+    cPair2D3D (aPair),
+    mWeight   (aW)
+{
+}
+
+cWeightedPair2D3D::cWeightedPair2D3D(const cPt2dr& aPIm,const cPt3dr& aPGround,double aWeight) :
+    cWeightedPair2D3D(cPair2D3D(aPIm,aPGround),aWeight)
+{
+}
+
+/**********************************************/
+/*                                            */
+/*           cSet2D3D                         */
+/*                                            */
+/**********************************************/
+
+void cSet2D3D::AddPair(const tPair & aP23)
+{
+     mPairs.push_back(aP23);
+}
+
+void cSet2D3D::AddPair(const cPt2dr& aPIm,const cPt3dr& aPGround,double aWeight)
+{
+    AddPair(tPair(aPIm,aPGround,aWeight));
+}
+
+
+const cSet2D3D::tCont2D3D &  cSet2D3D::Pairs() const { return mPairs;}
+
+const cWeightedPair2D3D &  cSet2D3D::KthPair(int aK) const {return mPairs.at(aK);}
+size_t cSet2D3D::NbPair() const {return mPairs.size();}
+
+
+void  cSet2D3D::Clear()
+{
+	mPairs.clear();
+}
+
+cWeightedPair2D3D  cSet2D3D::Centroid() const
+{
+    cPt2dr aSP2(0,0);
+    cPt3dr aSP3(0,0,0);
+    double aSW=0;
+    for (const auto & aPair : mPairs)
+    {
+	    aSP2 += aPair.mP2 * aPair.mWeight;
+	    aSP3 += aPair.mP3 * aPair.mWeight;
+	    aSW += aPair.mWeight;
+    }
+    return cWeightedPair2D3D(aSP2/aSW,aSP3/aSW,aSW);
+}
+
+void cSet2D3D::Substract(const cPair2D3D& aSub)
+{
+    for (auto  & aPair : mPairs)
+    {
+        aPair.mP2 =  aPair.mP2-aSub.mP2;
+        aPair.mP3 =  aPair.mP3-aSub.mP3;
+    }
+}
+
+
+
+}; // MMVII
+
+
+
+
+
+

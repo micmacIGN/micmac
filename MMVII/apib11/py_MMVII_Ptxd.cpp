@@ -135,7 +135,7 @@ void pyb_init_cTplBox_tpl(py::module_ &m, const std::string& name) {
             .def(py::init<const tPt&, bool>(),"size"_a,"allowEmpty"_a = false)
             
             .def_static("empty",&tBox::Empty)
-            .def_static("boxCste",&tBox::BoxCste,"val"_a)
+            .def_static("CenteredBoxCste",&tBox::CenteredBoxCste,"val"_a)
             .def_static("bigBox",&tBox::BigBox)
             
             .def("toR",&tBox::ToR)

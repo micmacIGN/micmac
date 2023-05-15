@@ -1,0 +1,41 @@
+<Global>
+  <ChantierDescripteur >
+
+   <LocCamDataBase>
+            <CameraEntry>
+                <Name>  DC-GX9 </Name>
+                <SzCaptMm> 18 12   </SzCaptMm> <!-- plus ou moins -->
+                <ShortName>  DC-GX9 </ShortName>
+            </CameraEntry>
+   </LocCamDataBase>
+
+
+
+  <KeyedNamesAssociations>
+              <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                        <PatternTransform> P[0-9]{7}\.jpg </PatternTransform>
+                       <CalcName> DC-GX9 </CalcName>
+                 </Direct>
+              </Calcs>
+             <Key>   NKS-Assoc-STD-CAM </Key>
+
+    </KeyedNamesAssociations>
+        <KeyedNamesAssociations>
+            <Calcs>
+                <Arrite> 1 1 </Arrite>
+                <Direct>
+                    <PatternTransform> P[0-9]{7}\.jpg </PatternTransform>
+                    <CalcName> 14 </CalcName>
+                </Direct>
+            </Calcs>
+            <Key> NKS-Assoc-STD-FOC </Key>
+        </KeyedNamesAssociations>
+
+
+
+
+  </ChantierDescripteur>
+</Global>
+

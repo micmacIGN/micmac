@@ -39,14 +39,9 @@ template <class TypeElem> class cUnaryF : public cImplemF<TypeElem>
             }
 
       protected  :
-            virtual std::string GenCodeShortExpr() const override
+            virtual std::string GenCodeExpr() const override
             {
                 return this->NameOperator() + "(" + mF->GenCodeFormName() + ")";
-            }
-
-            virtual std::string GenCodeDef() const override
-            {
-                return this->NameOperator() + "(" + mF->GenCodeRef() + ")";
             }
 
             std::vector<tFormula> Ref() const override{return std::vector<tFormula>{mF};}

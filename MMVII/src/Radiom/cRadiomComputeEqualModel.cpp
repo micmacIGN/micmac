@@ -222,9 +222,6 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgOpt(cCollecSpecArg2007 & anAr
    return anArgOpt
            << AOpt2007(mShow,"Show","Show messages",{eTA2007::HDV})
 	   << mPhProj.DPRadiom().ArgDirOutOpt()
-	   /*
-           << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
-	   */
    ;
 }
 
@@ -486,7 +483,10 @@ void   cAppliRadiom2ImageSameMod::MakeMixtModel()
 
 int cAppliRadiom2ImageSameMod::Exe()
 {
+    mPhProj.DPRadiom().SetDirOutInIfNotInit();
+		    
     mPhProj.FinishInit();
+
 
     size_t aLimitIndex =0;
     mNbIm = VectMainSet(0).size();
@@ -498,10 +498,10 @@ int cAppliRadiom2ImageSameMod::Exe()
         cImageRadiomData* aIRD = mPhProj.AllocRadiomData(aNameIm);
         if (aIRD->VIndex().size() >10)
         {
-            cPerspCamIntrCalib* aCalib = mPhProj.AllocCalib(aNameIm);
+            cPerspCamIntrCalib* aCalib = mPhProj.InternalCalibFromImCal(aNameIm);
             UpdateMax(aLimitIndex,aIRD->LimitIndex());
 
-            cMedaDataImage aMetaData =  mPhProj.GetMetaData(aNameIm);
+            cMetaDataImage aMetaData =  mPhProj.GetMetaData(aNameIm);
 
 
             int aDelta= 0;

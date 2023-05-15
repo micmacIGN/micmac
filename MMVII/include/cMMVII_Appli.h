@@ -202,7 +202,13 @@ class cMMVII_Ap_NameManip
 
      // ========================== cMMVII_Ap_NameManip  ==================
 
-// =========  Classes for computing segmentation of times =====
+/**  Classes for computing segmentation of times
+ *      it maintain a map Name->Time that is updated
+ *     
+ *     Each time an cAutoTimerSegm is created on a cTimerSegm, the name is
+ *     changed (so accumulation is done on another name), when cAutoTimerSegm is
+ *     destroyed, the current state is destroyed
+ */
 
 class cAutoTimerSegm;
 typedef std::string tIndTS;
@@ -212,16 +218,20 @@ class cTimerSegm
    public :
         
        friend class cAutoTimerSegm;
+
        cTimerSegm(cMMVII_Ap_CPU *);
        void  SetIndex(const tIndTS &);
        const tTableIndTS &  Times() const;
        void Show();
        ~cTimerSegm();
+       /// Force to have no show at del, usefull for handling parameter in bench
+       void SetNoShowAtDel();
    private :
        tTableIndTS          mTimers;
        tIndTS               mLastIndex;
        cMMVII_Ap_CPU *      mAppli;
        double               mCurBeginTime;
+       bool                 mShowAtDel;
 };
 
 
@@ -230,12 +240,27 @@ cTimerSegm & GlobAppTS();
 class cAutoTimerSegm
 {
      public :
-          cAutoTimerSegm(cTimerSegm & ,const tIndTS& anInd);
-          cAutoTimerSegm(const tIndTS& anInd);
-          ~cAutoTimerSegm();
+          cAutoTimerSegm(cTimerSegm & ,const tIndTS& anInd);  // push index in Timer while saving its state
+          cAutoTimerSegm(const tIndTS& anInd);  // calls previous with GlobAppTS
+          ~cAutoTimerSegm(); // restore the state of timer
+
+	  /// Allow to dow noting if TimeSeg=0
+          cAutoTimerSegm(cTimerSegm * ,const tIndTS& anInd);  
      private :
-          cTimerSegm & mTS;
-          tIndTS  mSaveInd;
+	  cAutoTimerSegm(const cAutoTimerSegm&) = delete;
+          cTimerSegm * mTS;  // save the global timer
+          tIndTS  mSaveInd;  // save the curent index in TS to restore it at end
+};
+
+/**  Class for executing some acion at given period */
+class cTimeSequencer
+{
+    public :
+         cTimeSequencer(double aPeriod);
+	 bool ItsTime2Execute();
+    public :
+	 double mPeriod;
+	 double mLastime;
 };
 
 /**
@@ -309,6 +334,14 @@ cMultipleOfs& ErrOut();
 
 typedef const char * tConstCharPtr;
 
+struct cParamProfile
+{
+       public :
+           std::string   mUserName;
+	   int           mNbProcMax;
+};
+
+bool UserIsMPD();
 
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
@@ -366,10 +399,17 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 	void    SetVarInit(void * aPtr);
 
+	//  Print the effective value of all params
+	//  In some case, init can be complicated, with many default case
+	void  ShowAllParams() ;
+
         template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
         {
             if (! IsInit(&aVar))
+	    {
                aVar = aValue;
+	       SetVarInit(&aVar);  //MPD :add 27/02/23 , seems logical, hope no side effect ?
+	    }
         }
         static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
@@ -401,6 +441,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static int  SeedRandom();  ///< SeedRand if Appli init, else default
 
         int   LevelCall() const;     ///< Accessor to mLevelCall
+        int   KthCall() const;     ///< Accessor to KthCall
 
         virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
         virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
@@ -410,6 +451,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         static void InitMMVIIDirs(const std::string& aMMVIIDir);
 
+        static const std::string & DirRessourcesMMVII();       ///< Location of all ressources
+
+	static const std::string & UserName();
+	static const std::string & DirProfileUsage();
     protected :
 
         /// Constructor, essenntially memorize command line and specifs
@@ -441,7 +486,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         // Subst  (aNameOpt,aVal)
         // aNameOpt :  si existe substitue, si "+" ajoute a mandatory, si "3"  => sub 3 mandatory, si MMVII_NONE
-        cParamCallSys  StrCallMMVII ( const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
+        cParamCallSys  StrCallMMVII (  int   aKthCall, // sometime when called in // it's necessary to know the order
+			              const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
                                       bool Separate, // Separate argv for call inside
                                       const cColStrAOpt &  aLSubst  = cColStrAOpt::Empty); ///< MMVII call itself
         std::list<cParamCallSys>  ListStrCallMMVII
@@ -488,6 +534,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mPatHelp;       ///< Possible filter on name of optionnal param shown
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
+	int                                       mKthCall;       ///< Number of call if in multiple call
         cExtSet<const void *>                     mSetInit;       ///< Adresses of all initialized variables
         cExtSet<const void *>                     mSetVarsSpecObl; ///< Adresses var in specif, obligatory
         cExtSet<const void *>                     mSetVarsSpecFac; ///< Adresses var in specif, faculative 
@@ -534,6 +581,12 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static std::string                        mDirTestMMVII;  ///< Directory for read/write bench files
         static std::string                        mTmpDirTestMMVII;  ///< Tmp files (not versionned)
         static std::string                        mInputDirTestMMVII;  ///< Input files (versionned on git)
+        static std::string                        mDirRessourcesMMVII;  ///< Directory for read/write bench files
+	static std::string                        mDirLocalParameters;  ///< Directory for parameters local to an install
+	static std::string                        mProfileUsage;        ///< The "usage" profile stored in "MMVII-CurentPofile.xml"
+	static std::string                        mDirProfileUsage;     ///< The full dir containing the information of a profile
+
+	static cParamProfile                      mParamProfile;   ///< Parameters of the profile (as user name)
 
 
     protected :
@@ -560,6 +613,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         static std::vector<cObj2DelAtEnd *>       mVectObj2DelAtEnd; ///< for object which deletion is delegated to appli
         bool                                      mIsInBenchMode;   ///< is the command executed for bench (will probably make specific test)
+
 };
 
 

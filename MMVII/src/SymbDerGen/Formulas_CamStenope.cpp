@@ -176,30 +176,40 @@ double  MajNormJacOfRho
 /*                                  */
 /* ******************************** */
 
-bool  cDefProjPerspC::HasRadialSym() const { return false; }
+bool  cDefProjPerspC::HasRadialSym() const { return true; }
 
-const cDefProjPerspC & cDefProjPerspC::ProjOfType(eProjPC eProj)
+const cDefProjPerspC * cDefProjPerspC::ProjOfType(eProjPC aProj,tREAL8 aRhoMax)
 {
-    static cProjStenope        TheProjStenope;
-    static cProjFE_EquiDist    TheProjFE_EquiDist;
-    static cProjStereroGraphik TheProjFE_StereroGraphik;
-    static cProjOrthoGraphic   TheProjFE_OrthoGraphic;
-    static cProjFE_EquiSolid   TheProjFE_EquiSolid;
-    static cProj_EquiRect      TheProjFE_EquiRect;
-    static std::vector<const cDefProjPerspC *> TheVProj;
 
-    if (TheVProj.empty())
+    bool DefT =  (aRhoMax==DefRhoMax);
+    switch (aProj)
     {
-        TheVProj.resize(size_t(eProjPC::eNbVals),nullptr);
-	TheVProj.at(size_t(eProjPC::eStenope))        = & TheProjStenope;
-	TheVProj.at(size_t(eProjPC::eFE_EquiDist))    = & TheProjFE_EquiDist;
-	TheVProj.at(size_t(eProjPC::eStereroGraphik)) = & TheProjFE_StereroGraphik;
-	TheVProj.at(size_t(eProjPC::eOrthoGraphik))   = & TheProjFE_OrthoGraphic;
-	TheVProj.at(size_t(eProjPC::eFE_EquiSolid))   = & TheProjFE_EquiSolid;
-	TheVProj.at(size_t(eProjPC::eEquiRect))       = & TheProjFE_EquiRect;
-    }
+          case eProjPC::eStenope          :  return new cProjStenope           (DefT ? 10.0  : aRhoMax);
+          case eProjPC::eFE_EquiDist      :  return new cProjFE_EquiDist       (DefT ? (M_PI/2.0)  : aRhoMax);
+          case eProjPC::eStereroGraphik   :  return new cProjStereroGraphik    (DefT ?  10.0       : aRhoMax);
+          case eProjPC::eOrthoGraphik     :  return new cProjOrthoGraphic      (DefT ? 0.999 : aRhoMax);
+          case eProjPC::eFE_EquiSolid     :  return new cProjFE_EquiSolid      (DefT ? (M_PI/2.0) : aRhoMax);
+          case eProjPC::eEquiRect         :  return new cProj_EquiRect         (DefT ? (M_PI) : aRhoMax);
 
-    return *(TheVProj.at(size_t(eProj)));
+          default :
+              MMVII_INTERNAL_ERROR("cDefProjPerspC::ProjOfType");
+              return nullptr;
+    }
+}
+
+tREAL8 cDefProjPerspC::Insideness(const tPt & aPt) const
+{
+	return P2DIsDef(aPt);
+}
+
+cDefProjPerspC::cDefProjPerspC(tREAL8 aRhoMax) :
+    cDataBoundedSet<tREAL8,2> (cBox2dr::CenteredBoxCste(aRhoMax)),
+    mRhoMax (aRhoMax)
+{
+}
+
+cDefProjPerspC::~cDefProjPerspC() 
+{
 }
 
 

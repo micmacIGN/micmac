@@ -457,7 +457,11 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
             aVP += aV2Add;
         }
         
-
+        void  AddVBL(const tREAL8 & aX,const double & aVal)
+        {
+           tPB::AssertInsideBL(cPt1dr(aX));
+           AddValueBL(aX,aVal);
+        }
 
         void SetV(const  cPt1di & aP,const tBase & aV) {SetV(aP.x(),aV);}
 
@@ -471,6 +475,22 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         const int    &  Sz() const  {return tPB::Sz().x();}
         const int    &  X0()  const {return tPB::P0().x();}
         const int    &  X1()  const {return tPB::P1().x();}
+
+           /// Get Value  Circular
+        const Type & GetVCirc(const int & aP)  const { return  Value(mod(aP,Sz())); }
+           /// Get Value  Bilinear Circular
+        cPt2dr  GetVAndGradCircBL(const tREAL8 & aX)  
+        {
+            int aX0 = round_down(aX);  ///<  "Left" limit of  pixel
+            double aWeigthX1 = aX - aX0;
+            double aWeightX0 = 1-aWeigthX1;
+
+	    double aV0 = GetVCirc(aX0);
+	    double aV1 = GetVCirc(aX0+1);
+
+            return   cPt2dr(aWeightX0*aV0  + aWeigthX1*aV1,aV1-aV0);
+	}
+
 
           // Interface as generic image
 
@@ -514,6 +534,19 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
             return   (aWeightX0*aL[0]  + aWeigthX1*aL[1]);
         } 
 
+	  /** Bilinear interpolation */
+        void  AddValueBL(const double & aX,const double & aVal)
+        {
+            int aX0 = round_down(aX);  ///<  "Left" limit of  pixel
+
+            double aWeigthX1 = aX - aX0;
+            double aWeightX0 = 1-aWeigthX1;
+
+            Type  * aL = mRawData1D  + aX0;
+
+            aL[0] +=  aWeightX0 *  aVal;
+            aL[1] +=  aWeigthX1 *  aVal;
+        }
 
         Type * mRawData1D;  ///< Offset vs DataLin
 };

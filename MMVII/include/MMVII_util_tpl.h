@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "MMVII_enums.h"
 #include "MMVII_Error.h"
+#include "MMVII_nums.h"
 
 namespace MMVII
 {
@@ -268,11 +269,74 @@ template <class Type> void SetOrPush(std::vector<Type> & aVec,size_t aIndex,cons
 }
 
 
-//  resize only in increasing mode
+///  resize only in increasing mode
 template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal)
 {
    if (aSz>aV1.size())
       aV1.resize(aSz,aVal);
+}
+
+template <class Type> void SetAndResize(std::vector<Type> & aVec,size_t aSz,const Type &aVal,const Type & aDef)
+{
+      ResizeUp(aVec,aSz,aDef);
+      SetOrPush(aVec,aSz,aVal);
+}
+
+
+template <class T1,class T2> std::vector<T1> &  Convert(std::vector<T1> & aV1,const std::vector<T2> & aV2)
+{
+	aV1.resize(aV2.size());
+	for (size_t aK=0 ; aK<aV1.size() ; aK++)
+            aV1[aK] = aV2[aK];
+
+	return aV1;
+}
+
+template <class T1,class T2> std::vector<T1>   VecConvert(const std::vector<T2> & aV2)
+{
+    std::vector<T1> aRes;
+    Convert(aRes,aV2);
+    return  aRes;
+}
+
+
+template <class T1> std::vector<T1> & Convert(std::vector<T1> & aV1,const std::vector<T1> & aV2)
+{
+	aV1 = aV2;
+	return aV1;
+}
+
+
+///  Usefull, delete all object of the container
+template <class Type> inline void DeleteAllAndClear(Type & aVal)
+{
+    for (auto it=aVal.begin() ; it!=aVal.end() ; it++)
+        delete *it;
+    aVal.clear();
+}
+
+
+
+
+
+/// Set value, before resize up if required
+template <class Type> void SetAndResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal,const Type &aValDef)
+{
+   ResizeUp(aV1,aSz+1,aValDef);
+   aV1.at(aSz) = aVal;
+}
+
+/// Add value, before resize up if required, typically for histogramme
+template <class Type> void AddAndResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal)
+{
+   ResizeUp(aV1,aSz+1,Type(0));
+   aV1.at(aSz) += aVal;
+}
+
+/// Get value of vector considered as circular  [0 1 2 3 4]  :  -2 ->3  , 6 ->1 ....
+template<class Type>  const Type & ValCirc(const std::vector<Type> & aVec,int aK)
+{
+    return aVec.at(mod(aK,aVec.size()));
 }
 
 
@@ -307,7 +371,65 @@ template <class TVal,class TFunc> void SortOnCriteria(std::vector<TVal> & aVec,c
     );
 }
 
+template <class TVal,class TFunc> void VecFilter(std::vector<TVal> & aVec,const TFunc & aCritSupr)
+{
+       aVec.erase ( std::remove_if ( aVec.begin(), aVec.end(), aCritSupr), aVec.end());
+}
 
+
+template <class TVal,class TFunc> TVal * WhitchMinVect(std::vector<TVal> & aVec,const TFunc & aFunc)
+{
+     cWhichMin <TVal*,tREAL8>  aWM(nullptr,1e60);
+     for (auto & aVal :  aVec)
+        aWM.Add(&aVal,aFunc(aVal));
+
+     return aWM.IndexExtre();
+}
+
+template <class TVal,class TFunc> TVal * WhitchMaxVect(std::vector<TVal> & aVec,const TFunc & aFunc)
+{
+    return WhitchMinVect(aVec,[&aFunc](auto & aV){return -aFunc(aV);});
+}
+
+
+/**   Class for maintaining a two way mapping Obj <--> Int */
+template <class Type>  class cBijectiveMapI2O
+{
+    public :
+
+        /// Add an object, if alredy exist create an error or do nothing, return value indicate if created
+        int Add(const Type & ,bool OkExist=false);
+
+        Type *   I2Obj(const int) ;  ///< Adr of object at index, 0 if none
+        int      Obj2I(const Type & anOb,bool SVP=false) const;  ///< Index of object , -1 if none
+
+    private :
+        std::vector<Type>    mI2Obj;   /// vector efficient for map int->obj
+        std::map<Type,int>   mObj2I;   /// dictionary in the other wat
+};
+
+typedef  cBijectiveMapI2O<std::string> t2MapStrInt;
+
+template <class Key,class Val> const Key * FindByVal(const std::map<Key,Val> & aMap,const Val & aVal,bool SVP=false)
+{
+    for (const auto & It : aMap)
+       if (It.second == aVal)
+          return  & It.first;
+    MMVII_INTERNAL_ASSERT_tiny(SVP,"FindByVal");
+    return nullptr;
+}
+
+template <class tCont>  typename tCont::value_type *  KthElem(tCont & aCont,int aNb,bool SVP=false)
+{
+    for (typename tCont::iterator anIt = aCont.begin() ; anIt!=aCont.end() ; anIt++)
+    {
+       if (aNb==0) return &(*anIt);
+       aNb--;
+    }
+    MMVII_INTERNAL_ASSERT_tiny(SVP,"KthElem");
+
+    return nullptr;
+}
 
 };
 

@@ -43,6 +43,8 @@ class cDataFileIm2D : public cRect2
 
         virtual ~cDataFileIm2D();
         
+	static bool IsPostFixNameImage(const std::string & aPost);
+	static bool IsNameWith_PostFixImage(const std::string & aPost);
      private :
         cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel) ;
 
@@ -228,6 +230,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         /// Raw image, lost all waranty is you use it...
         tVal ** ExtractRawData2D() {return mRawData2D;}
         const tPVal * ExtractRawData2D() const {return mRawData2D;}
+
+
     protected :
     private :
         void PostInit();
@@ -333,6 +337,9 @@ template <class Type>  class cIm2D
        cIm2D(const cPt2di & aP0,const cPt2di & aP1, Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); 
        /// Image with origin on (0,0)
        cIm2D(const cPt2di & aSz,Type * DataLin=0,eModeInitImage=eModeInitImage::eMIA_NoInit);
+
+       /// Create a 1-Line image (used for filter like exp that were initially implemented on 2D)
+       cIm2D(cDataIm1D<Type>& ); 
 
        /// Create an image and initialize it with the file
        cIm2D(const cBox2di & aSz,const cDataFileIm2D & aDataF);
@@ -463,12 +470,12 @@ class cRGBImage
      public :
         typedef cIm2D<tU_INT1>   tIm1C;  // Type of image for 1 chanel
 
-        cRGBImage(const cPt2di & aSz);
-        cRGBImage(const cPt2di & aSz,const cPt3di & aCoul);
+        cRGBImage(const cPt2di & aSz,int aZoom=1);
+        cRGBImage(const cPt2di & aSz,const cPt3di & aCoul,int aZoom=1);
         void ToFile(const std::string & aName);
 
-        static cRGBImage FromFile(const std::string& aName);  ///< Allocate and init from file
-        static cRGBImage FromFile(const std::string& aName,const cBox2di & );  ///< Allocate and init from file
+        static cRGBImage FromFile(const std::string& aName,int aZoom=1);  ///< Allocate and init from file
+        static cRGBImage FromFile(const std::string& aName,const cBox2di & ,int aZoom=1);  ///< Allocate and init from file
 
         void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
         void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
@@ -495,10 +502,29 @@ class cRGBImage
         void SetGrayPix(const cPt2di & aPix,int aGray);
 
 
+	/// draw only 1 pixel , use zoom for change geom
+	void SetRGBPoint(const cPt2dr & aPoint,const cPt3di & aCoul);  
+	void DrawLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul,tREAL8 aWitdh=-1);
+	void DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta,tREAL8 aWitdh=-1);
+	void DrawCircle (const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aRay);
+	void FillRectangle (const cPt3di& aCoul,const cPt2di & aP1,const cPt2di & aP2,const cPt3dr & aAlpha);
+
+	static const  cPt2dr AlignCentr;
+
+	void DrawString 
+             (
+                  const std::string &,const cPt3di& aCoul,
+                  const cPt2dr & aP0,const cPt2dr & aLignm,
+                  tREAL8 aZoom=1, tREAL8 AlphaBackGround =0 , const cPt3di& aCoulBackGround = Gray128,int aSpace=1
+             );
+
+
+
 
         tIm1C  ImR(); ///< Accessor
         tIm1C  ImG(); ///< Accessor
         tIm1C  ImB(); ///< Accessor
+        const cRect2& BoxZ1() const;
 
         static const  cPt3di  Red;
         static const  cPt3di  Green;
@@ -507,12 +533,31 @@ class cRGBImage
         static const  cPt3di  Magenta;
         static const  cPt3di  Cyan;
         static const  cPt3di  Orange;
-		static const  cPt3di  White;
+        static const  cPt3di  White;
+        static const  cPt3di  Gray128;
 
 	/// return a lut adapted to visalise label in one chanel (blue), an maximize constrat in 2 other
 	static  std::vector<cPt3di>  LutVisuLabRand(int aNbLab);
 
+	cPt2dr PointToRPix(const cPt2dr & aPt) const;
+	cPt2di PointToPix(const cPt2dr & aPt) const;
+	///  draw pixel at exact value, dont reuse zoom
+	void RawSetPoint(const cPt2di & aPixZ,int aR,int aG,int aB);
+	void RawSetPoint(const cPt2di & aPixZ,const cPt3di & aCoul);
      private :
+        void AssertZ1() const;
+	void ReplicateForZoom(const cRect2 & aRect1Z);  // P0=> zoomed, Sz=> unzoomed
+
+	// dont use zoom
+        cPt3di LikeZ1_RGBPix(const cPt2di & aPix) const;
+
+
+        cPt2di mSz1;  ///< Sz w/o zoom  , "logical" pixel
+        cRect2 mBoxZ1; ///< box  w/o zoom
+        cPt2di mSzz;   ///< Sz with zoom, "physicall" pixel
+        int    mZoom;
+        tREAL8 mRZoom;
+	cPt2dr mOffsetZoom;  ///< Offset for corresponding real pixel to physicall
         tIm1C  mImR;
         tIm1C  mImG;
         tIm1C  mImB;
@@ -520,7 +565,7 @@ class cRGBImage
 
 template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
 template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0,int aZoom=1);
 
 
 

@@ -17,8 +17,8 @@
 
 #include "MMVII_util.h"
 #include "cMMVII_Appli.h"
-
 #include <boost/algorithm/string.hpp>
+
 
 
 using namespace std::filesystem;
@@ -27,19 +27,12 @@ using namespace std::filesystem;
 namespace MMVII
 {
 
+/* ************************************************* */
+/*                                                   */
+/*                cCarLookUpTable                    */
+/*                                                   */
+/* ************************************************* */
 
-char ToHexacode(int aK)
-{
-    MMVII_INTERNAL_ASSERT_tiny((aK>=0)&&(aK<16),"ToHexacode");
-    return (aK<10) ? ('0'+aK) : ('A'+(aK-10));
-}
-
-int  FromHexaCode(char aC)
-{
-   if ((aC>='0')&&(aC<='9')) return aC-'0';
-   MMVII_INTERNAL_ASSERT_tiny((aC>='A')&&(aC<='F'),"FromHexacode");
-   return 10 + (aC-'A');
-}
 
 // Prouve la pertinence du warning sur  mTable[*aPtr] = aC;
 
@@ -58,9 +51,38 @@ void  cCarLookUpTable::Init(const std::string& aStr,char aC)
     mIns = aStr;
 }
 
+std::string  cCarLookUpTable::Translate(const std::string & aStr) const
+{
+     std::string aRes;
+
+     for (char aC : aStr)
+     {	
+         char aTr = mUTable[int(aC)];
+	 if (aTr!=0)
+            aRes.push_back(aTr);
+     }
+
+     return aRes;
+}
+
+
+void cCarLookUpTable::InitId(char aC1,char aC2)
+{
+   mReUsable = false;
+   for (char aC = aC1 ;aC<=aC2 ; aC++)
+       mUTable[int(aC)] =aC;
+}
+
+void cCarLookUpTable::Chg1C(char aC1,char aC2)
+{
+   mReUsable = false;
+   mUTable[int(aC1)] =aC2;
+}
+
 void  cCarLookUpTable::UnInit()
 {
-    MMVII_INTERNAL_ASSERT_medium(mInit,"Multiple Uninit of  cCarLookUpTable");
+    MMVII_INTERNAL_ASSERT_medium(mInit,"Not init of  cCarLookUpTable");
+    MMVII_INTERNAL_ASSERT_medium(mReUsable,"Not ReUsable");
     mInit= false;
     for (const char * aPtr = mIns.c_str() ; *aPtr ; aPtr++)
         mUTable[int(*aPtr)] = 0;  // Laisse le warning, il faudra le regler !!!
@@ -69,9 +91,29 @@ void  cCarLookUpTable::UnInit()
 
 cCarLookUpTable::cCarLookUpTable() :
      mUTable (mDTable-  std::numeric_limits<char>::min()),
-     mInit(false)
+     mInit(false),
+     mReUsable  (true)
 {
     MEM_RAZ(&mDTable,1);
+}
+
+/* ************************************************* */
+/*                                                   */
+/*                     MMVII                         */
+/*                                                   */
+/* ************************************************* */
+
+char ToHexacode(int aK)
+{
+    MMVII_INTERNAL_ASSERT_tiny((aK>=0)&&(aK<16),"ToHexacode");
+    return (aK<10) ? ('0'+aK) : ('A'+(aK-10));
+}
+
+int  FromHexaCode(char aC)
+{
+   if ((aC>='0')&&(aC<='9')) return aC-'0';
+   MMVII_INTERNAL_ASSERT_tiny((aC>='A')&&(aC<='F'),"FromHexacode");
+   return 10 + (aC-'A');
 }
 
 std::vector<std::string>  SplitString(const std::string & aStr,const std::string & aSpace)
@@ -172,6 +214,11 @@ bool UCaseEqual(const std::string & aStr1 ,const std::string & aStr2)
    return boost::iequals(aStr1,aStr2);
 }
 
+std::string ToLower(const std::string &  aStr)
+{
+   return boost::algorithm::to_lower_copy(aStr);
+}
+
 bool UCaseBegin(const char * aBegin,const char * aStr)
 {
    while (*aBegin)
@@ -196,6 +243,35 @@ bool CaseSBegin(const char * aBegin,const char * aStr)
    return true;
 }
 
+bool UCaseMember(const std::vector<std::string> & aVec,const std::string & aName)
+{
+    for (const auto &  aTest : aVec)
+        if (UCaseEqual(aTest,aName))
+            return true;
+    return false;
+}
+
+const std::string & StrWDef(const std::string & aValue,const std::string & aDef)
+{
+        return  (aValue!="") ? aValue : aDef;
+}
+
+std::string  ToStandardStringIdent(const std::string & aStr)
+{
+    static cCarLookUpTable  aLUT;
+    bool isFirst= true;
+    if (isFirst)
+    {
+       isFirst = false;
+       aLUT.InitId('0','9');
+       aLUT.InitId('a','z');
+       aLUT.InitId('A','Z');
+       aLUT.Chg1C(' ','_');
+       aLUT.Chg1C('-','-');
+    }
+
+    return aLUT.Translate(aStr);
+}
 
 
 
@@ -509,6 +585,25 @@ void ActionDir(const std::string & aName,eModeCreateDir aMode)
 
       case eModeCreateDir::eNbVals : break;  // Because warning
    }
+}
+
+
+void  MakeBckUp(const std::string & aDir,const std::string & aNameFile,int aNbDig)
+{
+    std::string aPattern = "BckUp_([0-9]*)_" + aNameFile;
+    tNameSelector aSel =  AllocRegex(aPattern);
+
+    std::vector<std::string> aVS = GetFilesFromDir(aDir,aSel);
+
+    int aIMax = -1;
+    for (const auto & aNameFile : aVS)
+    {
+        std::string  aStrNum = ReplacePattern(aPattern,"$1",aNameFile);
+        UpdateMax(aIMax,cStrIO<int>::FromStr(aStrNum));
+    }
+    std::string aNewName = "BckUp_" + ToStr(aIMax+1,aNbDig) + "_" + aNameFile;
+
+    CopyFile( aDir+aNameFile , aDir+aNewName);
 }
 
 
