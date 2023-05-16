@@ -154,7 +154,15 @@ size_t cAppliBasculeTriplets::InitTriplets(bool aModeBin)
     std::cout << "Found " << ts.size() << " correlated triplets." << std::endl;
     return ts.size();
 }
+// Tester de comparer le meme nombre de campari que l'approche hierarchique
+//
+// Poser sur du papier les equations sur les triangles entre deux bloc avec N >
+// 2 triangles
+// Rotation avant -> puis translation et facteur d'echelle
 
+
+// Ajustement dans martini avant campari sur les 5 points au lieux des triangles
+//
 static std::array<ElRotation3D, 3> EstimAllRt(cTriplet* aLnk, bool inv = false) {
     const cOriBascule* aS1 = aLnk->of(0);
     const cOriBascule* aS2 = aLnk->of(1);
@@ -317,7 +325,6 @@ static cSolBasculeRig  BascFromVRot
     double aSc2to1 = 1;
     Pt3dr  aTr2to1(0,0,0);
 
-
     ScTr2to1
         (
          aVR1,aVR2,
@@ -325,7 +332,39 @@ static cSolBasculeRig  BascFromVRot
          aRM2toM1, aSc2to1,aTr2to1
         );
 
-    return cSolBasculeRig::StdSolFromPts(aVP1, aVP2, &aCosts, 200, 5);
+    cRansacBasculementRigide aBasc(false); // false  => Pas de vitesse
+    for (size_t aKP=0 ; aKP<aVP1.size(); aKP++)
+    {
+        aBasc.AddExemple(aVP1[aKP],aVP2[aKP],0,"");
+    }
+    aBasc.CloseWithTrGlob(false);
+
+    aBasc.ExploreAllRansac(100);
+    cSolBasculeRig aSBR = aBasc.BestSol();
+    return aSBR;
+
+    /*
+    if (aBasc.SolIsInit()) {
+
+        cSetEqFormelles aSetEq (cNameSpaceEqF::eSysPlein);
+        cL2EqObsBascult  * aL2Basc = aSetEq.NewEqObsBascult(aSBR,false);
+        aSetEq.SetClosed();
+
+        for (int aKEt=0 ; aKEt<5 ; aKEt++)
+        {
+            aSetEq.SetPhaseEquation();
+            for (int aKP = 0; aKP < int(aVP1.size()); aKP++) {
+                aL2Basc->AddObservation(aVP1[aKP], aVP2[aKP], aCosts[aKP]);
+            }
+            aSetEq.SolveResetUpdate();
+            aSBR=aL2Basc->CurSol();
+        }
+
+        return aSBR;
+    }
+    */
+
+    //return cSolBasculeRig::StdSolFromPts(aVP1, aVP2, &aCosts, 1000000000, 5);
     /*cRansacBasculementRigide basc(false);
     for (size_t i = 0; i < aVP1.size(); i++) {
         std::string name = std::to_string(i);
@@ -335,7 +374,7 @@ static cSolBasculeRig  BascFromVRot
     basc.EstimLambda();
     basc.ExploreAllRansac();
     //return basc.BestSol();*/
-    //return cSolBasculeRig::SBRFromElems(aTr2to1,aRM2toM1,aSc2to1);
+    return cSolBasculeRig::SBRFromElems(aTr2to1,aRM2toM1,aSc2to1);
 }
 
 cSolBasculeRig cAppliBasculeTriplets::ComputeBascule() {
@@ -403,7 +442,6 @@ cSolBasculeRig cAppliBasculeTriplets::ComputeBascule() {
             mTrip.push_back(&ts[aK]);
         }
     }
-    /*
     mVR1.clear();
     mVR2.clear();
     mVP1.clear();
@@ -435,8 +473,6 @@ cSolBasculeRig cAppliBasculeTriplets::ComputeBascule() {
               << mRM2toM1(1, 2) << "\n"
               << "        " << mRM2toM1(2, 0) << "  " << mRM2toM1(2, 1) << " "
               << mRM2toM1(2, 2) << "\n";
-
-              */
 
     std::cout << "Basculed" << std::endl;
     return aSol;
