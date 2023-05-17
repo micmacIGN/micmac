@@ -1428,7 +1428,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mGenereImageDirEpip (false),
    mIntervZIsDef (false),
    mZMin         (1e20),
-   mZMax         (-1e20)
+   mZMax         (-1e20),
    mDoEpiAbs     (true)
 {
     Tiff_Im::SetDefTileFile(50000);
