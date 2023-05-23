@@ -33,6 +33,28 @@ struct  cExportV1StenopeCalInterne
 	     cSet2D3D              mCorresp;
 };
 
+/**  Class for converting homolog point MMV1 to MMVII
+*/
+
+class cConvertHomV1
+{
+      public :
+          cConvertHomV1(const std::string & aDir,const std::string & aSubDir,const std::string & anExt);
+
+
+          std::string NameHom(const std::string & aNameIm1,const std::string & aNameIm2) const;
+      private :
+
+          std::string  mDir;
+          std::string  mSubDir;
+          std::string  mExt;
+          std::string  mKHIn;
+          // cElemAppliSetFile                 mEASF;
+          // cInterfChantierNameManipulateur * mICNM ;
+};
+
+
+
 
 //  Defined in MMVII_Stringifier.h for Serialization
 // template<class Type> void  MMv1_SaveInFile(const Type & aVal,const std::string & aName)
