@@ -479,7 +479,8 @@ vector<GrpVodka> Make_Grp(std::string aDir, std::string InCal, std::vector<std::
     //Creating a new list of images for each combination of Diaph & Foc, and recording their ExpTime and ISO for future normalisation
     for (int j=0;j<(int)aSetIm.size();j++){
         std::string aFullName=aSetIm[j];
-        const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(aDir + aFullName);
+        auto path = aDir + aFullName; // gcc 13: CreateExiv2 uses a const ref
+        const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(path);
         cout<<"Getting Diaph and Focal from "<<aFullName<<endl;
 
         if (aVectGrpVodka.size()==0){
