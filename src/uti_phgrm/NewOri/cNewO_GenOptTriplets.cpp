@@ -95,7 +95,7 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
     // std::cout << mNM->Dir3P() << std::endl;
 
     cXml_TopoTriplet aXml3 =
-        StdGetFromSI(mNM->NameTopoTriplet(true), Xml_TopoTriplet);
+        StdGetFromSI(mNM->NameTopoTriplet(aModeBin), Xml_TopoTriplet);
 
     std::vector<cXml_OneTriplet> triplets(aXml3.Triplets().begin(),
                                           aXml3.Triplets().end());

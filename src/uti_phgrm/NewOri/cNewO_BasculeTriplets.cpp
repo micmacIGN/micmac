@@ -459,7 +459,7 @@ cSolBasculeRig cAppliBasculeTriplets::ComputeBascule() {
     }
 
 
-    aSol = BascFromVRot(mVR1, mVR2, mVP1, mVP2);
+    //aSol = BascFromVRot(mVR1, mVR2, mVP1, mVP2);
 
     mRM2toM1 = aSol.Rot();
     mSc2to1 = aSol.Lambda();
