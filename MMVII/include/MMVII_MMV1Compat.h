@@ -33,22 +33,25 @@ struct  cExportV1StenopeCalInterne
 	     cSet2D3D              mCorresp;
 };
 
-/**  Class for converting homolog point MMV1 to MMVII
+/**  Interface class  for importing homolog point MMV1 to MMVII
 */
 
-class cConvertHomV1
+class cInterfImportHom : public cMemCheck
 {
       public :
-          cConvertHomV1(const std::string & aDir,const std::string & aSubDir,const std::string & anExt);
+          cInterfImportHom();
 
+          virtual void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const = 0;
+          virtual bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const = 0;
 
-          std::string NameHom(const std::string & aNameIm1,const std::string & aNameIm2) const;
+	  static cInterfImportHom *  CreateImportV1(const std::string & aDir,const std::string & aSubDir,const std::string & aExt="dat") ;
+
       private :
 
-          std::string  mDir;
-          std::string  mSubDir;
-          std::string  mExt;
-          std::string  mKHIn;
+          // std::string  mDirGlob;
+          // std::string  mExtIn;
+          // std::string  mExt;
+          // std::string  mKHIn;
           // cElemAppliSetFile                 mEASF;
           // cInterfChantierNameManipulateur * mICNM ;
 };

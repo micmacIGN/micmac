@@ -25,86 +25,66 @@ cHomogCpleIm::cHomogCpleIm(const cPt2dr & aP1,const cPt2dr & aP2) :
 {
 }
 
-
-/* ************************************** */
-/*                                        */
-/*            cHomogCpleDir               */
-/*                                        */
-/* ************************************** */
-/*
-
-cHomogCpleDir::cHomogCpleDir(const cPt3dr & aP1,const cPt3dr & aP2) :
-   mP1  (VUnit(aP1)),
-   mP2  (VUnit(aP2))
+cHomogCpleIm::cHomogCpleIm() :
+    mP1(),
+    mP2()
 {
 }
 
-void cHomogCpleDir::SetVectMatEss(cDenseVect<tREAL8> &aVect,tREAL8 & aRHS) const
+void cHomogCpleIm::AddData(const  cAuxAr2007 & anAux)
 {
-         aVect(0) = mP1.x() *  mP2.x();
-         aVect(1) = mP1.x() *  mP2.y();
-         aVect(2) = mP1.x() *  mP2.z();
-
-         aVect(3) = mP1.y() *  mP2.x();
-         aVect(4) = mP1.y() *  mP2.y();
-         aVect(5) = mP1.y() *  mP2.z();
-
-         aVect(6) = mP1.z() *  mP2.x();
-         aVect(7) = mP1.z() *  mP2.y();
-         aRHS    = -mP1.z() *  mP2.z();
+     MMVII::AddData(anAux,mP1.x());
+     MMVII::AddData(anAux,mP1.y());
+     MMVII::AddData(anAux,mP2.x());
+     MMVII::AddData(anAux,mP2.y());
 }
-*/
+void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm & aCple)  {aCple.AddData(anAux);}
+
+
 
 
 /* ************************************** */
 /*                                        */
-/*         cSetHomogCpleDir               */
+/*         cSetHomogCpleIm                */
 /*                                        */
 /* ************************************** */
 
-/*
-cSetHomogCpleDir::cSetHomogCpleDir
-(
-     const cSetHomogCpleIm &    aSetH,
-     const cPerspCamIntrCalib & aCal1,
-     const cPerspCamIntrCalib & aCal2
-)
-{
-     for (const auto & aCplH : aSetH.mSetH)
-     {
-         cPt3dr aP1 =  aCal1.DirBundle(aCplH.mP1);
-         cPt3dr aP2 =  aCal2.DirBundle(aCplH.mP2);
-         mSetD.push_back(cHomogCpleDir(aP1,aP2));
-     }
-}
-
-cSetHomogCpleDir::cSetHomogCpleDir() 
+cSetHomogCpleIm::cSetHomogCpleIm() 
 {
 }
 
+const std::vector<cHomogCpleIm> & cSetHomogCpleIm::SetH() const {return mSetH;}
 
-cPt2dr cSetHomogCpleDir::Disp() const
+void cSetHomogCpleIm::Add(const cHomogCpleIm & aCple)
 {
-    cPt3dr aS1(0,0,0);
-    cPt3dr aS2(0,0,0);
-
-    for (const auto & aPair : mSetD)
-    {
-        aS1 += aPair.mP1;
-        aS2 += aPair.mP2;
-    }
-    aS1 = aS1 / tREAL8(mSetD.size());
-    aS2 = aS2 / tREAL8(mSetD.size());
-
-    cPt2dr aRes(0,0);
-    for (const auto & aPair : mSetD)
-    {
-        aRes +=  cPt2dr(Norm2(aPair.mP1-aS1), Norm2(aPair.mP2-aS2));
-    }
-
-    return aRes / tREAL8(mSetD.size());
+	mSetH.push_back(aCple);
 }
-*/
+
+void cSetHomogCpleIm::AddData(const  cAuxAr2007 & anAux)
+{
+     MMVII::AddData(anAux,mSetH);
+}
+void AddData(const  cAuxAr2007 & anAux,cSetHomogCpleIm & aSet)
+{
+    aSet.AddData(anAux);
+}
+
+
+void cSetHomogCpleIm::Clear()
+{
+	mSetH.clear();
+}
+
+void cSetHomogCpleIm::ToFile(const std::string & aName) const
+{
+	SaveInFile(*this,aName);
+}
+
+void  cSetHomogCpleIm::InitFromFile(const std::string & aName) 
+{
+	Clear();
+	ReadFromFile(*this,aName);
+}
 
 
 

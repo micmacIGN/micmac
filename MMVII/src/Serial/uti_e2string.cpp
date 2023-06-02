@@ -187,6 +187,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::Mask,"Mask"},
                 {eTA2007::MetaData,"MetaData"},
                 {eTA2007::PointsMeasure,"PointsMeasure"},
+                {eTA2007::TieP,"TieP"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
                 {eTA2007::OptionalExist,"OptEx"},
@@ -334,6 +335,13 @@ template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
            };
 TPL_ENUM_2_STRING(eMTDIm);
 
+template<> cE2Str<eFormatExtern>::tMapE2Str cE2Str<eFormatExtern>::mE2S
+           {
+                {eFormatExtern::eMMV1,"Focalmm"},
+                {eFormatExtern::eMeshRoom,"MeshRoom"},
+                {eFormatExtern::eColMap,"ColMap"},
+           };
+TPL_ENUM_2_STRING(eFormatExtern);
 
 template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
            {

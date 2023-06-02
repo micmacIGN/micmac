@@ -227,6 +227,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPMeshDev        (eTA2007::MeshDev,*this),
     mDPMask           (eTA2007::Mask,*this),
     mDPPointsMeasures (eTA2007::PointsMeasure,*this),
+    mDPHomol          (eTA2007::TieP,*this),
     mDPMetaData       (eTA2007::MetaData,*this),
     mGlobCalcMTD      (nullptr)
 {
@@ -242,6 +243,8 @@ void cPhotogrammetricProject::FinishInit()
     mDPMeshDev.Finish();
     mDPMask.Finish();
     mDPPointsMeasures.Finish();
+    mDPHomol.Finish();
+    mDPMetaData.Finish();
 
     // Force the creation of directory for metadata spec, make 
     if (! mDPMetaData.DirOutIsInit())
@@ -275,6 +278,7 @@ cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
 cDirsPhProj &   cPhotogrammetricProject::DPMask() {return mDPMask;}
 cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() {return mDPPointsMeasures;}
 cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
+cDirsPhProj &   cPhotogrammetricProject::DPHomol() {return mDPHomol;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiom() const {return mDPRadiom;}
@@ -282,6 +286,7 @@ const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMesh
 const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
 const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return mDPPointsMeasures;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
+const cDirsPhProj &   cPhotogrammetricProject::DPHomol() const {return mDPHomol;}
 
 
 
@@ -420,9 +425,6 @@ cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const s
     return aCalib;
 }
 
-
-
-
         //  =============  Masks =================
 
 std::string cPhotogrammetricProject::NameMaskOfImage(const std::string & aNameImage) const
@@ -506,6 +508,19 @@ cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
 
     return aSet23;
 }
+
+        //  =============  Homologous point =================
+
+void  cPhotogrammetricProject::SaveHomol
+      (
+           const cSetHomogCpleIm &,
+           const std::string & aNameIm1 ,
+	   const std::string & aNameIm2,
+	   const std::string & anExt
+      ) const
+{
+}
+
 
         //  =============  Meta Data =================
 

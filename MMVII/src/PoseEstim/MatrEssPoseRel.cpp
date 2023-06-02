@@ -58,7 +58,7 @@ cSetHomogCpleDir::cSetHomogCpleDir(const cSetHomogCpleIm & aSetH,const cPerspCam
     mR1ToInit (tRot::Identity()),
     mR2ToInit (tRot::Identity())
 {
-     for (const auto & aCplH : aSetH.mSetH)
+     for (const auto & aCplH : aSetH.SetH() )
      {
          mVDir1.push_back(VUnit(aCal1.DirBundle(aCplH.mP1)));
          mVDir2.push_back(VUnit(aCal2.DirBundle(aCplH.mP2)));
@@ -570,7 +570,7 @@ void cCamSimul::BenchMatEss
 	    size_t aNbPts = 40;
 	    for (size_t aKP=0 ; aKP<aNbPts ; aKP++)
 	    {
-		 aSetH.mSetH.push_back(aCam1->RandomVisibleCple(*aCam2));
+		 aSetH.Add(aCam1->RandomVisibleCple(*aCam2));
 	    }
 
             // Make 3D direction of points
