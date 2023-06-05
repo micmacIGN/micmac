@@ -305,6 +305,7 @@ int CPP_L3D2Ply(int argc,char ** argv);
 int CPP_DebugAI4GeoMasq (int argc,char ** argv);
 int CPP_MMBasic4IGeo(int argc,char ** argv);
 int CPP_MMBasicTestDeep(int argc,char ** argv);
+int PersoALB_Main(int argc,char ** argv);
 
 int MMVII_SaisieMasq_main(int argc,char ** argv);
 
@@ -642,6 +643,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("PHom_ApBin", CPP_PHom_ApprentBinaire, "Test Binary "));
 		aRes.push_back(cMMCom("FitsMatch", CPP_FitsMatch1Im, "Test Match Images NewPHom "));
 		aRes.push_back(cMMCom("GenPrime", CPP_GenPrime, "Generate prime "));
+		aRes.push_back(cMMCom("PersoALB",PersoALB_Main,"Perso ALB"));
 
        aRes.push_back(cMMCom("DroneFootPrint",DroneFootPrint,"Draw footprint from image + orientation (drone) in PLY and QGIS format"));
    }
@@ -1395,6 +1397,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("SAT4GEO_EpiRPC",CPP_AppliRecalRPC_main,"Recalculate RPC for epipolar geometry images (case satellite)"));
         aRes.push_back(cMMCom("SAT4GEO_Fuse",CPP_AppliFusion_main,"Fusion of individual depth maps (case satellite)"));
 		aRes.push_back(cMMCom("TransGeom", CPP_TransformGeom_main, "Transform geometry of depth map to eGeomMNTFaisceauIm1ZTerrain_Px1D"));
+		aRes.push_back(cMMCom("PersoALB",PersoALB_Main,"Perso ALB"));
 
 
    }

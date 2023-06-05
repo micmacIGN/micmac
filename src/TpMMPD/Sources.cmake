@@ -130,6 +130,7 @@ set(Src_TD_PPMD
 
     ${TDPPMD_DIR}/MosaicTFWImg/mosaictfwimg.cpp
 	${TDPPMD_DIR}/cTD_PPMD_Appariement.cpp
+    ${TDPPMD_DIR}/PersoALB.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})
