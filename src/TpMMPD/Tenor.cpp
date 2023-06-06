@@ -64,19 +64,15 @@ extern void TestCamCHC(ElCamera & aCam);
 
 void ReprojPtsXYZDansCliche(int argc, char** argv){
   //Lire le fichier des points 3D 
-  //std::vector<T3D<double> > ptsXYZ;
-  //  if(!LecturePtsXYZ()
   //Lire l'orientation des images
   
   std::string adresse_orixmlmicmac;
   std::string aNameCam;
   std::string aNameDir;
   std::string aNameTag = "OrientationConique";
-  //  bool ExtP = false;
   Pt2dr TDINV;
   
-  //  double X,Y,Z;
-  //  X = Y = Z = 0;
+
   std::string adresse_fichier_ptsXYZ, adresse_export_fichier_ptsim;
   bool aModeGrid = false;
   std::string Out;
@@ -100,7 +96,6 @@ void ReprojPtsXYZDansCliche(int argc, char** argv){
   
   ElCamera * aCam  = Gen_Cam_Gen_From_File(aModeGrid,adresse_orixmlmicmac,aNameTag,anICNM);
   
-  //CamStenope * aCS = aCam->CS();
 
   TestCamCHC(*aCam);
   
@@ -109,35 +104,11 @@ void ReprojPtsXYZDansCliche(int argc, char** argv){
 
   //Connaitre la taille de la camera...
   Pt2di taillecamera=aCam->Sz();
-  //  std::cout<<taillecamera<<std::endl;
   int marge=0;
   int cmin=marge;
   int lmin=marge;
   int cmax=taillecamera.x-marge;
   int lmax=taillecamera.y-marge;
-
-
-  /*
-  //Premiere version, mais il est apparu que dans certains cas la correction de la distorsion faisait revenir dans l'image un point qui n'y etait pas
-  std::vector<Pt2dr> cl(XYZ.size());
-  for(size_t n=0;n<XYZ.size();n++){
-    //TestDirectbis(aCam,XYZ[n]);
-    Direct(aCam,XYZ[n],cl[n]);
-  }
-
- //Reste a exporter en ne conservant que les points qui sont dans l'image
-  std::ofstream fout(adresse_export_fichier_ptsim.c_str(),std::ios::out);
-  for(size_t n=0;n<cl.size();n++){
-    std::vector<Pt2dr>::const_iterator it=cl.begin()+n;
-    if((*it).x<cmin){continue;}
-    if((*it).y<lmin){continue;}
-    if((*it).x>cmax){continue;}
-    if((*it).y>lmax){continue;}
-
-    fout<<n<<" "<<std::fixed<<std::setprecision(5)<<(*it).x<<" "<<(*it).y<<std::endl;
-  }
-  */
-
 
   //Reste a exporter en ne conservant que les points qui sont dans l'image
   std::ofstream fout(adresse_export_fichier_ptsim.c_str(),std::ios::out);
@@ -145,7 +116,6 @@ void ReprojPtsXYZDansCliche(int argc, char** argv){
   for(size_t n=0;n<XYZ.size();n++){
 
     Direct(aCam,XYZ[n],coordim_avantcorrdist,coordim_aprescorrdist);
-    //std::cout<<coordim_avantcorrdist.x<<" "<<coordim_avantcorrdist.y<<" --> "<<coordim_aprescorrdist.x<<" "<<coordim_aprescorrdist.y<<std::endl;
 
     //il est apparu que dans certains cas la correction de la distorsion faisait revenir dans l'image un point qui n'y etait pas. Il faut donc faire un premier test sur les coordonnees avant la correction de la distorsion
     if(coordim_avantcorrdist.x<cmin){continue;}
@@ -163,80 +133,6 @@ void ReprojPtsXYZDansCliche(int argc, char** argv){
   }
 
 }
-
-/*
-int TestCam_main_bis(int argc,char ** argv)
-{
-    std::string aFullName;
-    std::string aNameCam;
-    std::string aNameDir;
-    std::string aNameTag = "OrientationConique";
-    bool ExtP = false;
-    Pt2dr TDINV;
-
-    double X,Y,Z;
-    X = Y = Z = 0;
-    bool aModeGrid = false;
-    std::string Out;
-
-    ElInitArgMain
-    (
-    argc,argv,
-    LArgMain()  << EAMC(aFullName,"File name", eSAM_IsPatFile)
-                << EAMC(X,"x")
-                << EAMC(Y,"y")
-                << EAMC(Z,"z"),
-    LArgMain()
-    << EAM(aNameTag,"Tag",true,"Tag to get cam")
-     << EAM(aModeGrid,"Grid",true,"Test Grid Mode", eSAM_IsBool)
-     << EAM(Out,"Out",true,"To Regenerate an orientation file",eSAM_NoInit)
-    );
-
-    if (MMVisualMode) return EXIT_SUCCESS;
-
-    SplitDirAndFile(aNameDir,aNameCam,aFullName);
-
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
-
-   ElCamera * aCam  = Gen_Cam_Gen_From_File(aModeGrid,aFullName,aNameTag,anICNM);
-
-   CamStenope * aCS = aCam->CS();
-
-   if (ExtP)
-   {
-       std::cout << "  ###########  EXTERNAL ##############\n";
-       if (aCS)
-       {
-           std::cout << "Center " << aCS->VraiOpticalCenter() << "\n";
-       }
-       std::cout <<  "  I : " << aCS->L3toR3(Pt3dr(1,0,0)) - aCS->L3toR3(Pt3dr(0,0,0)) << "\n";
-       std::cout <<  "  J : " << aCS->L3toR3(Pt3dr(0,1,0)) - aCS->L3toR3(Pt3dr(0,0,0))<< "\n";
-       std::cout <<  "  K : " << aCS->L3toR3(Pt3dr(0,0,1)) - aCS->L3toR3(Pt3dr(0,0,0))<< "\n";
-       std::cout << "\n";
-   }
-
-
-
-
-   if (aModeGrid)
-   {
-       std::cout << "Camera is grid " << aCam->IsGrid() << " " << aCam->Dist().Type() << "\n";
-   }
-
-
-   TestCamCHC(*aCam);
-
-   TestDirectbis(aCam,Pt3dr(X,Y,Z));
-
-   if (Out!="")
-   {
-         cOrientationConique aCO = aCam->StdExportCalibGlob();
-         MakeFileXML(aCO,Out);
-   }
-
-     return EXIT_SUCCESS;
-}
-*/
 
 
 #include "TpPPMD.h"
@@ -267,11 +163,9 @@ void MNSMICMAC(int argc, char** argv){
   }
   std::cout<<a<<" "<<b<<std::endl;
   
-  //std::cout<<"Lire image : "<<argv[2]<<std::endl;
   cTD_Im im=cTD_Im::FromString(std::string(argv[2]));
   
   Pt2di taille_image=im.Sz();
-  //std::cout<<taille_image.x<<" "<<taille_image.y<<std::endl;
   
   for(int i=0;i<taille_image.x;i++){
     for(int j=0;j<taille_image.y;j++){
@@ -279,7 +173,6 @@ void MNSMICMAC(int argc, char** argv){
     }
   }
 
-  //std::cout<<"Ecrire image : "<<argv[3]<<std::endl;
   im.Save(std::string(argv[3]));
   
 }
@@ -310,7 +203,7 @@ void TfwFinaux(int argc, char** argv){
   std::ifstream ftfw(adresse_tfw_ini.c_str(),std::ios::in);
   if(ftfw.fail()){std::cerr<<"Lecture impossible de '"<<adresse_tfw_ini<<"'"<<std::endl; return;}
   ftfw>>dE>>dtmp>>dtmp>>dN>>E0>>N0;
-  //  if(dtmp!=0){} 
+
   //dN doit (logiquement) etre negatif
   
   
@@ -356,112 +249,6 @@ void TfwFinaux(int argc, char** argv){
 void TestPTL(int argc, char ** argv){//essais de lecture ecriture de points de liaison...
   std::string adresse_result(argv[2]);
   std::cout<<adresse_result<<std::endl;
-  /*
-  cPackNupletsHom cPNH(2);
-  cPNH.read(aFile);
-  std::cout<<cPNH.size()<<" pts"<<std::endl;
-  */
-
-  /*
-  std::ifstream fresult(adresse_result.c_str(),std::ios::in | std::ios::binary);
-  int aDim;
-  fresult.read((char*)&(aDim),sizeof(int));
-  std::cout<<aDim<<std::endl;
-  int nbpts;//aFile.read_INT4();
-  fresult.read((char*)&(nbpts),sizeof(int));
-  std::cout<<nbpts<<std::endl;
-  std::list<cNupletPtsHomologues> cnu;
-  for(int n=0;n<nbpts;n++){
-    int aNb;
-    fresult.read((char*)&(aNb),sizeof(int)); //int aNb=aFile.read((int *) 0);
-    double aPds; //REAL  aPds =  aFile.read((REAL *) 0);
-    fresult.read((char*)&(aPds),sizeof(double));
-    cNupletPtsHomologues aRes(aNb,aPds);
-    for (int aK=0 ; aK< aNb ; aK++){
-      double x,y;
-      fresult.read((char*)&(x),sizeof(double));
-      fresult.read((char*)&(y),sizeof(double));
-      aRes.AddPts(Pt2dr(x,y));
-    }
-    cnu.push_back(aRes);
-  }
-  
-  for(std::list<cNupletPtsHomologues>::const_iterator it=cnu.begin();it!=cnu.end();it++){
-    std::cout<<"NbPts "<<(*it).NbPts()<<std::endl;
-    std::cout<<"mPds "<<(*it).Pds()<<std::endl;
-    for(int k=0;k<(*it).NbPts();k++){
-      std::cout<<(*it).PK(k);
-    }
-    std::cout<<std::endl;
-  }
-  */
-  /*//sys_dep.h
-#define U_INT4 unsigned  int
-#define INT4   int
-#define U_INT8 unsigned long long int
-#define _INT8   long long int // INT8 is already defined by windows.h and means "char"
-#define U_INT2 unsigned short
-#define INT2   signed short
-#define U_INT1 unsigned char
-#define INT1   signed char
-
-#define REAL4   float
-#define REAL8   double
-#define REAL16  long double
-
-#define INTByte8  long long int
-#ifndef INT
-#define INT    INT4
-#endif
-
-#ifndef U_INT
-#define U_INT  unsigned int
-#endif
-
-#ifndef REAL
-#define REAL   REAL8
-#endif
-
-   */
-
-
-  /*
-  //VERSION QUI MARCHE
-  ELISE_fp aFile(adresse_result.c_str(),ELISE_fp::READ);
-  int aDim = aFile.read((int*)0);
-  std::cout<<aDim<<std::endl;
-  int nbpts=aFile.read_INT4();
-  std::cout<<nbpts<<std::endl;
-  std::list<cNupletPtsHomologues> cnu;
-  while (nbpts>0){
-    cnu.push_back(aFile.read((std::list<cNupletPtsHomologues>::value_type *)0));
-    nbpts--;
-  }
-  for(std::list<cNupletPtsHomologues>::const_iterator it=cnu.begin();it!=cnu.end();it++){
-    std::cout<<"NbPts "<<(*it).NbPts()<<std::endl;
-    std::cout<<"mPds "<<(*it).Pds()<<std::endl;
-    for(int k=0;k<(*it).NbPts();k++){
-      std::cout<<(*it).PK(k);
-    }
-    std::cout<<std::endl;
-  }
-  
-
-  //Et maintenant on va tenter de reecrire...
-  
-  std::string adresse_export(argv[3]);
-  ELISE_fp aFileout(adresse_export.c_str(),ELISE_fp::WRITE);
-  aFileout.write_INT4(aDim);
-  aFileout.write_INT4((int)cnu.size());
-  for(std::list<cNupletPtsHomologues>::const_iterator it=cnu.begin();it!=cnu.end();it++){aFileout.write(*it);}
-  //*/
-
-  /*  cNupletPtsHomologues cNPH=cNupletPtsHomologues::read(aFP);
-  std::cout<<"NbPts "<<cNPH.NbPts()<<std::endl;
-  std::cout<<"mPds "<<cNPH.Pds()<<std::endl;
-  for(int n=0;n<cNPH.NbPts();n++){
-    std::cout<<cNPH.PK(n);
-    }*/
 
 }
 
@@ -472,7 +259,6 @@ const bool Result_binmicmac2txt(const std::string & adresse_micmac_dat, const st
   ELISE_fp aFile(adresse_micmac_dat.c_str(),ELISE_fp::READ);
   int aDim = aFile.read((int*)0);
   if(aDim!=2){std::cerr<<"Je ne sais pas gerer ce cas de figure..."<<std::endl; return false;}
-  //std::cout<<aDim<<std::endl;
   int nbpts=aFile.read_INT4();
   std::cout<<nbpts<<std::endl;
   std::list<cNupletPtsHomologues> cnu;
@@ -483,12 +269,9 @@ const bool Result_binmicmac2txt(const std::string & adresse_micmac_dat, const st
 
   std::ofstream fresult(adresse_export_txt_result.c_str(),std::ios::out);
   for(std::list<cNupletPtsHomologues>::const_iterator it=cnu.begin();it!=cnu.end();it++){
-    //std::cout<<"NbPts "<<(*it).NbPts()<<std::endl;
-    //std::cout<<"mPds "<<(*it).Pds()<<std::endl;
+
     if((*it).NbPts()!=2){std::cerr<<"Je ne sais pas gerer ce cas de figure..."<<std::endl; return false;}
-    //for(int k=0;k<(*it).NbPts();k++){std::cout<<(*it).PK(k);}
     fresult<<std::fixed<<std::setprecision(prec)<<(*it).PK(0).x<<"\t"<<(*it).PK(0).y<<"\t"<<(*it).PK(1).x<<"\t"<<(*it).PK(1).y<<std::endl;
-    //std::cout<<std::endl;
   }
 
   return true;
@@ -572,7 +355,6 @@ void CamDesactivAltiSol(int argc, char** argv){
     if(balises[n].UpCase()==std::string("PROFONDEUR")){partieaeffacer=true;}
     if(!partieaeffacer){
       fout<<"<"<<balises[n]<<">";
-      //if(PseudoXML::BaliseFin(balises[n])){std::cout<<std::endl;}
       fout<<contenus[n];
     }
     if(balises[n].UpCase()==std::string("/ALTISOL")){partieaeffacer=false;}
@@ -581,42 +363,13 @@ void CamDesactivAltiSol(int argc, char** argv){
   fout.close();
   return;
   
-  /*
-  //Tentative avortee --> recopie toutes les donnees cameras dans les orientations des cliches
-  std::string aNameCam;
-  std::string aNameDir;
-  std::string aNameTag = "OrientationConique";
-  //  bool ExtP = false;
-bool aModeGrid = false;
-  std::string Out;
   
-  SplitDirAndFile(aNameDir,aNameCam,adresse_orixmlmicmac);
-  
-  cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
-  
-  ElCamera * aCam  = Gen_Cam_Gen_From_File(aModeGrid,adresse_orixmlmicmac,aNameTag,anICNM);
-  
-  //CamStenope * aCS = aCam->CS();
-
-  //  TestCamCHC(*aCam);
-  
-  aCam->UndefAltisSol();
-
-  //Connaitre la taille de la camera...
-  //Pt2di taillecamera=aCam->Sz();
-  std::string aOriOut("toto");
-  std::string aNameImClip("OIS-Reech_IGNF_PVA_1-0__1997-08-01__CN97000054_1997_IFN67_IRC_0330.tif");
-  std::cout<< anICNM->Dir() + anICNM->NameOriStenope(aOriOut,aNameImClip)<<std::endl;
-  aCam->Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,ElAffin2D::Id());
-
-  */
 }
 
 
-int PersoALB_Main(int argc,char ** argv)
+int Tenor_main(int argc,char ** argv)
 {
   if(argc==1){std::cout<<"Actions possibles : MNSMICMAC / TfwFinaux / Homol:micmac2resulttxt / Homol:resulttxt2micmac / PbAltiSol / [rien] "<<std::endl;}
-  //for(int n=0;n<argc;n++){std::cout<<n<<" : "<<argv[n]<<std::endl; }
   if(std::string(argv[1])=="MNSMICMAC"){MNSMICMAC(argc,argv);return 0;}
   if(std::string(argv[1])=="TfwFinaux"){TfwFinaux(argc,argv);return 0;}
   if(std::string(argv[1])=="Homol:micmac2resulttxt"){Result_binmicmac2txt(argc,argv); return 0;}
@@ -630,19 +383,4 @@ int PersoALB_Main(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
-
-
-
-/*
-Mandatory unnamed args : 
-  * string :: {Adresse orixmlmicmac cliche}
-  * string :: {Adresse pts XYZ }
-  * string :: {Adresse export pts im}
-Named args : 
-  * [Name=Tag] string :: {inutile}
-  * [Name=Grid] bool :: {inutile}
-  * [Name=Out] string :: {inutile}
-  */
-//ElCamera  UndefAltisSol() --> Pour desactiver altisol
-//Save2XmlStdMMName
 
