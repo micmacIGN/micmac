@@ -16,6 +16,8 @@ template <const int Dim> class cTilingIndex
 
 	   cTilingIndex(const tRBox &,bool WithBoxOut, int aNbCase);
 
+        protected :
+	   tIPt  Index(const tRPt &) const;
         private :
 
 	   static tREAL8  ComputeStep(const tRBox &, int aNbCase);
@@ -59,7 +61,6 @@ template <const int Dim>  cTilingIndex<Dim>::cTilingIndex(const tRBox & aBox,boo
         mIBoxIn  (  tIBox(tIPt::PCste(0),mSzI+tIPt::PCste(2)))
 {
     StdOut()  <<  " -- SSSS=" << mStep << " " << mSzI << "\n";
-
     StdOut()  <<  mIBoxIn.P0()  << mIBoxIn.P1() << "\n";
     StdOut()  <<  mIBoxIn.Proj(cPt2di(1,1))   << mIBoxIn.Proj(cPt2di(-3,-3))  << mIBoxIn.Proj(cPt2di(10,10)) << "\n";
 }
@@ -67,21 +68,25 @@ template <const int Dim>  cTilingIndex<Dim>::cTilingIndex(const tRBox & aBox,boo
 
 /*
 class cTilingIndex<1>;
-class cTilingIndex<2>;
 class cTilingIndex<3>;
 */
+template  class cTilingIndex<2>;
 
 void Bench_SpatialIndex(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("SpatialIndex")) return;
-
 
      cTilingIndex<2>  aTI(cBox2dr(cPt2dr(0,0),cPt2dr(2,2)),true,5);
      FakeUseIt(aTI);
 
      aParam.EndBench();
 }
+/*
 
+void Bench_SpatialIndex(cParamExeBench & aParam)
+{
+}
+*/
 
 
 /*
