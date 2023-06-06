@@ -6,6 +6,7 @@
 #include "MMVII_MeasuresIm.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_DeclareCste.h"
 
 using namespace NS_SymbolicDerivative;
 
@@ -292,6 +293,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPMask(); ///< Accessor
 	  cDirsPhProj &   DPPointsMeasures(); ///< Accessor
 	  cDirsPhProj &   DPMetaData();    ///<  Accessor
+	  cDirsPhProj &   DPHomol();    ///<  Accessor
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiom() const; ///< Accessor
@@ -299,6 +301,7 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPMask() const; ///< Accessor
 	  const cDirsPhProj &   DPPointsMeasures() const; ///< Accessor
 	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
+	  const cDirsPhProj &   DPHomol() const;    ///<  Accessor
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
@@ -373,8 +376,19 @@ class cPhotogrammetricProject
 	  /// Return metadata while maintaining a map for assuring that read only once for a given image
           cMetaDataImage GetMetaData(const std::string &) const;
 
+	  /// Compute de Meta Data Calculator from FullDirIn & Usage, create only once
 	  cGlobCalculMetaDataProject*  InitGlobCalcMTD() const;
+	  /// Internal,  to document later ...
 	  cCalculMetaDataProject * CMDPOfName(const std::string &);
+
+	 //===================================================================
+         //==================   HOMOLOGOUS Points  ===========================
+	 //===================================================================
+	 
+	 void  SaveHomol(const cSetHomogCpleIm &,
+			 const std::string & aNameIm1 ,
+			 const std::string & aNameIm2,
+			 const std::string & Ext=PostF_DumpFiles) const;
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
@@ -390,7 +404,8 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPRadiom;
 	  cDirsPhProj     mDPMeshDev;
 	  cDirsPhProj     mDPMask;
-	  cDirsPhProj     mDPPointsMeasures;
+	  cDirsPhProj     mDPPointsMeasures;   ///<  For GCP measures  Image + Grounds
+	  cDirsPhProj     mDPHomol;            ///<  For Homologous point
 	  cDirsPhProj     mDPMetaData;
 
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;

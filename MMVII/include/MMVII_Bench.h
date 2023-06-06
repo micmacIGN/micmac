@@ -141,6 +141,7 @@ void BenchL1Solver(cParamExeBench & aParam); /// test that L1 solver is ok
 void Bench_MatEss(cParamExeBench & aParam); /// test that L1 solver is ok
 
 
+void Bench_SpatialIndex(cParamExeBench & aParam); /// test spatial index
 
 
 

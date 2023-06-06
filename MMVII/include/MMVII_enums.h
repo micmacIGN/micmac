@@ -38,6 +38,7 @@ enum class eTA2007
                 Mask,          ///< Mask of image
                 MetaData,      ///< Meta data images
                 PointsMeasure, ///< Measure of point , 2D or 3D
+                TieP,          ///< Tie Points
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
@@ -75,6 +76,14 @@ enum class eApF
                eNbVals     ///< Tag for number of value
            };
 
+/// Type of external format that are potentially imported/exported in MicMac
+enum class eFormatExtern
+           {
+              eMMV1,      ///< MicMac-V1 format, can import Orient/Calib/
+              eMeshRoom,  ///< For example, not suppoted for now
+              eColMap,    ///< For example, not suppoted for now
+              eNbVals     ///< Tag for number of value
+	   };
 /// Appli Data Type
 enum class eApDT
            {
@@ -464,6 +473,7 @@ enum class eMTDIm
 
 
 const std::string & E2Str(const eMTDIm &);
+const std::string & E2Str(const eFormatExtern &);
 const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTyCodeTarget &);         

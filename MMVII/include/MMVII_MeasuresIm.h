@@ -226,39 +226,35 @@ class cHomogCpleIm
 {
       public :
            cHomogCpleIm(const cPt2dr &,const cPt2dr &);
+           cHomogCpleIm();  ///< required 4 serialization of vect of Cple
+
            cPt2dr  mP1;
            cPt2dr  mP2;
+	   void AddData(const  cAuxAr2007 & anAux);
 };
+void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm &);
+
 class cSetHomogCpleIm
 {
       public :
+	cSetHomogCpleIm();
+	void AddData(const  cAuxAr2007 & anAux);
+	void ToFile(const std::string &) const;
+	static cSetHomogCpleIm FromFile(const std::string &) ;
+	void   InitFromFile(const std::string &) ;
+
+        const std::vector<cHomogCpleIm> & SetH() const;
+
+	void Add(const cHomogCpleIm &);
+	void Clear();
+
+
+      private :
         std::vector<cHomogCpleIm>  mSetH;
 };
 
-/*
-class cHomogCpleDir
-{
-      public :
-           cHomogCpleDir(const cPt3dr & aP1,const cPt3dr & aP2);
-           void SetVectMatEss(cDenseVect<tREAL8> &,tREAL8 & aRHS) const;
-           cPt3dr  mP1;
-           cPt3dr  mP2;
-};
+void AddData(const  cAuxAr2007 & anAux,cSetHomogCpleIm &);
 
-
-class cSetHomogCpleDir
-{
-      public :
-        std::vector<cHomogCpleDir>  mSetD;
-
-        cSetHomogCpleDir(const cSetHomogCpleIm &,const cPerspCamIntrCalib &,const cPerspCamIntrCalib &);
-        cSetHomogCpleDir();
-
-	// void GetPtsSep(std::vector<cPt3dr> &,std::vector<cPt3dr> &);
-
-	cPt2dr Disp() const;
-};
-*/
 
 
 
