@@ -226,7 +226,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
         cerr << "WARNING: exiftool not found" << endl;
     else
     {
-        std::string aCom ="exiftool -TagsFromFile " + aNameDir + aNameIm + " " + aNameOut;
+        std::string aCom ="exiftool -overwrite_original -TagsFromFile " + aNameDir + aNameIm + " " + aNameOut;
         std::cout << aCom<< "\n";
         System(aCom);
     }
