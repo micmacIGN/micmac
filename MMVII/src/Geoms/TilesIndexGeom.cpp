@@ -26,6 +26,7 @@ template <const int Dim> class cTilingIndex
 	   cTilingIndex(const tRBox &,bool WithBoxOut, int aNbCase);
 
 	   size_t  NbElem() const;
+           bool  OkOut() const;  ///<  Accessor 
 
         protected :
 	   tIPt  PtIndex(const tRPt &) const;
@@ -49,6 +50,7 @@ template <const int Dim> class cTilingIndex
 	   tIPt     mSzI;
 	   tIBox    mIBoxIn;
 };
+
 
 template <const int Dim> tREAL8  cTilingIndex<Dim>::ComputeStep(const tRBox & aBox, int aNbCase)
 {
@@ -107,6 +109,7 @@ template <const int Dim>  size_t  cTilingIndex<Dim>::NbElem() const
        return mIBoxIn.NbElem();
 }
 
+template <const int Dim> bool  cTilingIndex<Dim>::OkOut() const {return mOkOut;}
 
 // template <const int Dim> std::list<tIPt>  GetCrossingIndexes(const tRPt &) const;
 
@@ -139,7 +142,9 @@ template <const int Dim>  bool EqualPt(const cPtxd<tREAL8,Dim> & aP1,const cPtxd
       return (aP1==aP2);
 }
 
+// template <class Type,const int Dim,class TGEN> cTplBox<Type,Dim> GetBoxEnglob(const TGEN & aP1);
 
+/*
 template <class Type,const int Dim> cTplBox<Type,Dim> GetBoxEnglob(const cPtxd<tREAL8,Dim> & aP1)
 {
        return cTplBox<Type,Dim>(aP1,aP1,true);
@@ -149,7 +154,10 @@ template <class Type,const int Dim> cTplBox<Type,Dim> GetBoxEnglob(const cSegmen
 {
        return cTplBox<Type,Dim>(aSeg.P1(),aSeg.P2(),true);
 }
+*/
 
+cBox2dr GetBoxEnglob(const cPt2dr & aP1) {return cBox2dr(aP1,aP1);}
+cBox2dr GetBoxEnglob(const <tREAL8,Dim> & aP1) {return cBox2dr(aP1,aP1);}
 
 
 template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
@@ -183,6 +191,13 @@ template <class Type>
 
 template <class Type> void cTiling<Type>::Add(const Type & anObj)
 {
+     if (! this->OkOut())
+     {
+        tRBox aBox = GetBoxEnglob(cPt2dr(0,0));
+        // tRBox aBox = GetBoxEnglob(anObj.PrimGeom());
+FakeUseIt(aBox);
+     }
+
      for (const auto &  aInd :  tTI::GetCrossingIndexes(anObj.PrimGeom())  )
      {
          mVTiles.at(aInd).push_back(anObj);
