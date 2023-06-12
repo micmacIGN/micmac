@@ -230,6 +230,8 @@ class cHomogCpleIm
 
            cPt2dr  mP1;
            cPt2dr  mP2;
+	   const cPt2dr & Pt(bool First) const {return First ? mP1 : mP2;}
+
 	   void AddData(const  cAuxAr2007 & anAux);
 };
 void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm &);
@@ -237,7 +239,7 @@ void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm &);
 class cSetHomogCpleIm
 {
       public :
-	cSetHomogCpleIm();
+	cSetHomogCpleIm(size_t aReserve=10);
 	void AddData(const  cAuxAr2007 & anAux);
 	void ToFile(const std::string &) const;
 	static cSetHomogCpleIm FromFile(const std::string &) ;

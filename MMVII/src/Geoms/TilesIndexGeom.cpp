@@ -1,55 +1,15 @@
-/*
- */
-#include "MMVII_Geom2D.h"
-#include "MMVII_Geom3D.h"
+#include "MMVII_2Include_Tiling.h"
 
 namespace MMVII
 {
+
+
 
 /* **************************************** */
 /*                                          */
 /*              cTilingIndex                */
 /*                                          */
 /* **************************************** */
-
-template <const int Dim> class cTilingIndex
-{
-       public :
-           typedef cPtxd<int,Dim>        tIPt;
-           typedef cPtxd<tREAL8,Dim>     tRPt;
-           typedef cPixBox<Dim>          tIBox;
-           typedef cTplBox<tREAL8,Dim>   tRBox;
-           typedef cSegment<tREAL8,Dim>  tSeg;
-
-           typedef std::list<int>        tLIInd;
-
-	   cTilingIndex(const tRBox &,bool WithBoxOut, int aNbCase);
-
-	   size_t  NbElem() const;
-           bool  OkOut() const;  ///<  Accessor 
-
-        protected :
-	   tIPt  PtIndex(const tRPt &) const;
-	   int   IIndex(const tRPt &) const;
-
-	   tLIInd  GetCrossingIndexes(const tRPt &)  const;
-	   // tLInd  GetCrossingIndexes(const tRBox &) const;  2 define
-	   // tLInd  GetCrossingIndexes(const tSeg &) const;   2 define
-
-        private :
-
-	   static tREAL8  ComputeStep(const tRBox &, int aNbCase);
-	   void AssertInside(const tRPt &) const;
-	  
-	   // tIPt  Index(const tRPt &) const;
-	   tRBox    mRBoxIn;
-	   bool     mOkOut;
-	   int      mNbCase;
-
-	   tREAL8   mStep;
-	   tIPt     mSzI;
-	   tIBox    mIBoxIn;
-};
 
 
 template <const int Dim> tREAL8  cTilingIndex<Dim>::ComputeStep(const tRBox & aBox, int aNbCase)
@@ -75,8 +35,8 @@ template <const int Dim>  cTilingIndex<Dim>::cTilingIndex(const tRBox & aBox,boo
 	mSzI     (Pt_round_up(aBox.Sz()/mStep)),
         mIBoxIn  (  tIBox(tIPt::PCste(0),mSzI+tIPt::PCste(2)))
 {
-    StdOut()  <<  " -- SSSS=" << mStep << " " << mSzI << "\n";
-    StdOut()  <<  mIBoxIn.P0()  << mIBoxIn.P1() << "\n";
+    // StdOut()  <<  " -- SSSS=" << mStep << " " << mSzI << "\n";
+    // StdOut()  <<  mIBoxIn.P0()  << mIBoxIn.P1() << "\n";
     // StdOut()  <<  mIBoxIn.Proj(cPt2di(1,1))   << mIBoxIn.Proj(cPt2di(-3,-3))  << mIBoxIn.Proj(cPt2di(10,10)) << "\n";
 /*
 */
@@ -101,8 +61,23 @@ template <const int Dim> typename cTilingIndex<Dim>::tLIInd cTilingIndex<Dim>::G
 {
       return tLIInd({IIndex(aPt)});
 }
-/*
-*/
+
+template <const int Dim> typename cTilingIndex<Dim>::tLIInd cTilingIndex<Dim>::GetCrossingIndexes(const tRBox & aBox)  const
+{
+      tLIInd aRes;
+      tIPt  aPI0 = PtIndex(aBox.P0());
+      tIPt  aPI1 = PtIndex(aBox.P1()) + tIPt::PCste(1);
+
+      cPixBox<Dim> aBoxI(aPI0,aPI1);
+
+      for (const auto & aPInt : aBoxI)
+      {
+          aRes.push_back(mIBoxIn.IndexeLinear(aPInt));
+      }
+      return aRes;
+}
+
+
 
 template <const int Dim>  size_t  cTilingIndex<Dim>::NbElem() const
 {
@@ -111,7 +86,6 @@ template <const int Dim>  size_t  cTilingIndex<Dim>::NbElem() const
 
 template <const int Dim> bool  cTilingIndex<Dim>::OkOut() const {return mOkOut;}
 
-// template <const int Dim> std::list<tIPt>  GetCrossingIndexes(const tRPt &) const;
 
 template  class cTilingIndex<1>;
 template  class cTilingIndex<2>;
@@ -121,110 +95,105 @@ template  class cTilingIndex<3>;
 
 /* **************************************** */
 /*                                          */
-/*              cTilingIndex                */
+/*              cTestSpatialIndex           */
 /*                                          */
 /* **************************************** */
 
-/*  For fast retrieving of object in tiling at given point position we test equality with a
- *  point;  but this equality can be called between, for ex, point and segemnt, so we define this special
- *  equality function that behave as an equality for 2 points, and generate error else (because exact
- *  retrieving from a point cannot be uses)
- */
-template <class Type,const int Dim>  bool EqualPt(const Type &,const cPtxd<tREAL8,Dim> & aPt)
-{
-  MMVII_INTERNAL_ERROR("Called EqualPt with bad primitive");
-
-  return false;
-}
-
-template <const int Dim>  bool EqualPt(const cPtxd<tREAL8,Dim> & aP1,const cPtxd<tREAL8,Dim> & aP2)
-{
-      return (aP1==aP2);
-}
-
-// template <class Type,const int Dim,class TGEN> cTplBox<Type,Dim> GetBoxEnglob(const TGEN & aP1);
-
-/*
-template <class Type,const int Dim> cTplBox<Type,Dim> GetBoxEnglob(const cPtxd<tREAL8,Dim> & aP1)
-{
-       return cTplBox<Type,Dim>(aP1,aP1,true);
-}
-
-template <class Type,const int Dim> cTplBox<Type,Dim> GetBoxEnglob(const cSegment<tREAL8,Dim> & aSeg)
-{
-       return cTplBox<Type,Dim>(aSeg.P1(),aSeg.P2(),true);
-}
-*/
-
-cBox2dr GetBoxEnglob(const cPt2dr & aP1) {return cBox2dr(aP1,aP1);}
-cBox2dr GetBoxEnglob(const <tREAL8,Dim> & aP1) {return cBox2dr(aP1,aP1);}
-
-
-template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
-{
-     public :
-           typedef cTilingIndex<Type::Dim>  tTI;
-           typedef typename tTI::tRBox      tRBox;
-           typedef typename tTI::tRPt       tRPt;
-           typedef typename Type::tPrimGeom tPrimGeom;
-	   static constexpr int Dim = Type::Dim;
-
-           typedef std::list<Type>          tCont1Tile;
-           typedef std::vector<tCont1Tile>  tVectTiles;
-
-	   cTiling(const tRBox &,bool WithBoxOut, int aNbCase);
-	   void Add(const Type & anObj);
-
-	   /// this method can be used only when tPrimGeom is a point
-	   void GetObjAtPos(std::list<Type*>&,const tRPt &);
-
-     private :
-	   tVectTiles  mVTiles;
-};
-
-template <class Type> 
-    cTiling<Type>::cTiling(const tRBox & aBox,bool WithBoxOut, int aNbCase)  :
-	   tTI     (aBox,WithBoxOut,aNbCase),
-	   mVTiles (this->NbElem())
-{
-}
-
-template <class Type> void cTiling<Type>::Add(const Type & anObj)
-{
-     if (! this->OkOut())
-     {
-        tRBox aBox = GetBoxEnglob(cPt2dr(0,0));
-        // tRBox aBox = GetBoxEnglob(anObj.PrimGeom());
-FakeUseIt(aBox);
-     }
-
-     for (const auto &  aInd :  tTI::GetCrossingIndexes(anObj.PrimGeom())  )
-     {
-         mVTiles.at(aInd).push_back(anObj);
-     }
-}
-
-/*
-template <class Type> void cTiling<Type>::GetObjAtPos(std::list<Type*>&,const tRPt & )
-{
-}
-*/
-
-/*=========== cTestSpatialIndex ===============*/
- 
 class cTestSpatialIndex
 {
     public :
         static constexpr int Dim = 2;
         typedef cPt2dr  tPrimGeom;
+        typedef int     tArgPG;  /// unused here
 
-	const tPrimGeom & PrimGeom() const {return mPt;}
+	const tPrimGeom & GetPrimGeom(int Arg=-1) const {return mPt;}
+
+	cTestSpatialIndex(const cPt2dr & aPt) :
+           mPt (aPt)
+	{
+	}
          
     private :
 	cPt2dr  mPt;
 };
-template class cTiling<cTestSpatialIndex>;
 
+/* **************************************** */
+/*                                          */
+/*              cVerifSpatial               */
+/*                                          */
+/* **************************************** */
+
+template <const int Dim> struct cVerifSpatial
+{
+    public :
+       typedef cPtxd<tREAL8,Dim>     tRPt;
+
+       cVerifSpatial(const tRPt & aC ,tREAL8 aD) : mC  (aC), mD  (aD) { }
+
+       void Add(const tRPt & aP)
+       {
+           tREAL8 aW = std::pow(std::max(0.0,mD-Norm2(aP-mC)),0.5);
+           mWAvg.Add(aW,aP);
+       }
+
+       cWeightAv<tREAL8,tRPt>  mWAvg;
+       tRPt                    mC;
+       tREAL8                  mD;
+};
+
+
+void OneBenchSpatialIndex()
+{
+    tREAL8 aMul = RandInInterval(0.1,10);
+    cPt2dr aSz = cPt2dr(0.01,0.01) + cPt2dr::PRand() * aMul;  // generate size >0 
+    cPt2dr aSzMargin = aSz * RandInInterval(0.01,0.1);   //  generate some margin to have point outside
+
+    cPt2dr aP0 = cPt2dr::PRandC() * aMul; // random origin
+    cPt2dr aP1 = aP0 + aSz;
+
+    cBox2dr aBox(aP0,aP1); // Box of the tiling
+    cBox2dr aBoxMargin(aP0-aSzMargin,aP1+aSzMargin); // box slightly bigger 
+
+    cTiling<cTestSpatialIndex> aSI(aBox,true,1000,-1); // The tiling we want to check
+
+    // Test the function GetObjAtPos
+    std::list<cPt2dr>  aLPt;
+    for (int aK=0 ; aK<100 ; aK++)
+    {
+       cPt2dr aPt = aBoxMargin.GeneratePointInside();
+       aLPt.push_back(aPt);
+       cTestSpatialIndex * aExtr = aSI.GetObjAtPos(aPt);
+       MMVII_INTERNAL_ASSERT_bench(aExtr==nullptr,"Spat index, got unexpected");
+       cTestSpatialIndex aObj(aPt);
+       aSI.Add(aObj);
+       aExtr = aSI.GetObjAtPos(aPt);
+       MMVII_INTERNAL_ASSERT_bench(aExtr!=nullptr,"Spat index, ungot unexpected");
+    }
+
+    for (int aK=0 ; aK<100 ; aK++)
+    {
+         cPt2dr aP0 = aBoxMargin.GeneratePointInside();
+	 tREAL8 aDist =  aMul * std::pow(RandUnif_0_1(),3);
+         std::list<cTestSpatialIndex*> aL = aSI.GetObjAtDist(aP0,aDist);
+
+
+	 cVerifSpatial<2>  aVerif1(aP0,aDist);
+	 for (const auto & aObj : aL)
+	 {
+              aVerif1.Add(aObj->GetPrimGeom());
+	 }
+
+	 cVerifSpatial<2>  aVerif2(aP0,aDist);
+	 for (const auto & aPt : aLPt)
+	 {
+              aVerif2.Add(aPt);
+	 }
+
+	 MMVII_INTERNAL_ASSERT_bench(Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW())<1e-5,"GetObjAtDist");
+	 //StdOut() << "Llllllll " << Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW()) << "\n";
+    }
+    //getchar();
+}
 
 
 
@@ -232,14 +201,16 @@ void Bench_SpatialIndex(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("SpatialIndex")) return;
 
-     cTilingIndex<2>  aTI(cBox2dr(cPt2dr(0,0),cPt2dr(2,2)),true,5);
-     FakeUseIt(aTI);
+     /*cTilingIndex<2>  aTI(cBox2dr(cPt2dr(0,0),cPt2dr(2,2)),true,5);
+     FakeUseIt(aTI); */
 
+     for (int aK=0 ; aK<50 ; aK++)
+     {
+         OneBenchSpatialIndex();
+     }
 
 
      aParam.EndBench();
 }
-
-
 
 };

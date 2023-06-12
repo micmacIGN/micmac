@@ -145,10 +145,13 @@ template <class Type,const int Dim> class cPtxd
         std::vector<Type> ToStdVector() const; ///< conversion
 
         tBigNum  MinSqN2(const std::vector<tPt> &,bool SVP=false) const; ///< if SVP & empty return 0
+
+	/// Used for "generik" object that must describes its box
+	cTplBox<Type,Dim>  GetBoxEnglob() const;
+	bool  InfEqDist(const tPt &,tREAL8) const;
     protected :
        Type mCoords[Dim];
 };
-
 template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >
 {
     public :
@@ -794,6 +797,8 @@ template <class Type,const int Dim> class cSegment
 
        tPt  V12() const;   ///<  Vector  P1->P2
        tPt  PMil() const;  ///<  P middle
+	/// Used for "generik" object that must describes its box
+	cTplBox<Type,Dim>  GetBoxEnglob() const;
     protected :
        tPt  mP1;
        tPt  mP2;

@@ -376,6 +376,18 @@ template <class Type,const int Dim>
    return aRes;
 }
 
+template <class Type,const int Dim> 
+        cTplBox<Type,Dim>  cPtxd<Type,Dim>::GetBoxEnglob() const
+{
+   return cTplBox<Type,Dim>(*this,*this,true);
+}
+
+template <class Type,const int Dim> 
+        bool  cPtxd<Type,Dim>::InfEqDist(const tPt & aPt,tREAL8 aDist) const
+{
+	return SqN2(*this-aPt) <= Square(aDist);
+}
+
 
 template <class Type,const int Dim> double NormK(const cPtxd<Type,Dim> & aPt,double anExp) 
 {
@@ -1221,6 +1233,8 @@ template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandInSphere();\
+template  cTplBox<TYPE,DIM>  cPtxd<TYPE,DIM>::GetBoxEnglob() const;\
+template  bool  cPtxd<TYPE,DIM>::InfEqDist(const cPtxd<TYPE,DIM> & aPt,tREAL8) const;\
 template typename cPtxd<TYPE,DIM>::tBigNum cPtxd<TYPE,DIM>::MinSqN2(const std::vector<tPt> &,bool SVP) const;\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitNonAligned(const cPtxd<TYPE,DIM>& ,const TYPE&);\

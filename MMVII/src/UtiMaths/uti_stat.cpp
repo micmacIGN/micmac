@@ -411,6 +411,8 @@ template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>:
     return mSVW / mSW;
 }
 
+template <class TypeWeight,class TypeVal> const TypeVal & cWeightAv<TypeWeight,TypeVal>::SVW () const {return mSVW;}
+
 /* *************************************** */
 /*                                         */
 /*        cRobustAvg                       */
