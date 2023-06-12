@@ -61,6 +61,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <memory>
 #include <ostream>
 #include <ratio>
+#include <regex>
 #include <set>
 #include <string>
 #include <thread>
@@ -2122,6 +2123,32 @@ static std::string Pattern(const finalScene& result)
     return pattern;
 }
 
+/*
+static int bascule(std::string mFullPat, std::string ori0name, std::string oriOut, std::string tempName, std::string mNameOriCalib, std::string mPrefHom) {
+
+    int err = 0;
+    std::cout << exec("mm3d BasculeTriplet \"" + mFullPat + "\" \"Ori-"+ ori0name + "/Orientation-.*.xml\" \"Ori-" + tempName + "/Orientation-.*.xml\" " + ori0name + " OriCalib=" + mNameOriCalib +" SH=" + mPrefHom + " ", &err);
+    return err;
+}
+*/
+
+static int basculepy(std::string ori0, std::string ori1, std::string oriOut, std::string mNameOriCalib, std::string mPrefHom) {
+
+    std::string mTripletPath = "NewOriTmp" + mPrefHom + mNameOriCalib + "Quick";
+    std::string binaryPath = "/home/silvanosky/local/BasculeTriplet/main.py";
+
+    int err = 0;
+    std::cout << exec(binaryPath + " \"" + mTripletPath + "\" \"Ori-"+ ori0 + "\" \"Ori-" + ori1 + "\" Ori-" + oriOut + " ", &err);
+    return err;
+}
+
+static int campari(const finalScene& result, std::string ori0name, std::string mPrefHom) {
+
+    int err = 0;
+std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+    return err;
+}
+
 finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
                                      const std::map<tSomNSI*, finalScene>& rs,
                                      tSomNSI* node) {
@@ -2155,24 +2182,13 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
         return result;
     }
 
-    //Create only seed orientation
-    //std::string oriseedname = node->attr().Im()->Name() + "seed";
-    /*{
-        node->flag_set_kth_true(data.mFlagS);
-        Save(data, oriseedname , false);
-        node->flag_set_kth_false(data.mFlagS);
-    }*/
-
     //Output first child orientation
     auto child0 = childs[0];
     std::string ori0name = "tree_" + child0->attr().Im()->Name();
     const finalScene& r = rs.at(child0);
     result.merge(r);
 
-    /*if (nsummit < 3)
-        return result;*/
-
-    if (result.ss.size() < 6) {
+    if (result.ss.size() < 3) {
 
         for (size_t n = 1; n < childs.size(); n++) {
             auto child = childs[n];
@@ -2185,7 +2201,8 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
     for (auto e : result.ss) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, ori0name, false);
     for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
-    std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+
+    campari(result, ori0name, mPrefHom);
     updateViewFrom(ori0name, result.ss);
 
     for (size_t n = 1; n < childs.size(); n++) {
@@ -2199,25 +2216,16 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
         Save(data, i, false);
         for (auto e : r.ss) { e->flag_set_kth_false(data.mFlagS); }
 
-        int err = 0;
-        std::cout << exec("mm3d BasculeTriplet \"" + mFullPat + "\" \"Ori-"+ ori0name + "/Orientation-.*.xml\" \"Ori-" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=" + mNameOriCalib +" SH=" + mPrefHom + " ", &err);
-        updateViewFrom(ori0name, result.ss);
 
-        //SAVE orientation
-        for (auto e : result.ss) { e->flag_set_kth_true(data.mFlagS); }
-        Save(data, ori0name, false);
-        for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
-
-        std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+        basculepy(ori0name, i, ori0name, mNameOriCalib, mPrefHom);
+        campari(result, ori0name, mPrefHom);
         updateViewFrom(ori0name, result.ss);
     }
 
     for (auto e : result.ss) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, ori0name, false);
     for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
-    //exec("mm3d riplet \"image_002_00.*.tif\" "+ ori0name + "/Orientation-.*.xml\" \"" + i + "/Orientation-.*.xml\" " + ori0name + " OriCalib=CalibPerf SH=5Pts");
-    std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
-
+    campari(result, ori0name, mPrefHom);
     updateViewFrom(ori0name, result.ss);
 
     return result;
