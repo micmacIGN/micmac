@@ -472,9 +472,15 @@ class cImage
     public :
        cImage(int aNum);
 
-    private :
        cPt2dr  mSz;
        cGeneratePointDiff<2>  mGenPts;
+};
+
+class  cMultipleTieP
+{
+      public :
+         std::vector<cPt2dr>  mVPts;
+         std::vector<int>     mNumIm;
 };
 
 
@@ -483,19 +489,111 @@ class cSimulHom
      public :
          cSimulHom(int aNbImage,int aNbPts,int MaxCard);
          ~cSimulHom();
+
+         cMultipleTieP GenMulTieP();
+         void  GenEdges(const cMultipleTieP & aMTP,bool WithError);
      private :
 	 std::vector<cImage *>    mVIm;
 	 std::vector<std::string> mVNames;
+
+	 std::map<cPt2di,cSetHomogCpleIm>   mMapHom;
+
+         int               mNbImage;
+         int               mNbPts;
+         int               mMaxCard;
 };
 
 
-cSimulHom::cSimulHom(int aNbImage,int aNbPts,int MaxCard)
+cSimulHom::cSimulHom(int aNbImage,int aNbPts,int aMaxCard) :
+    mNbImage  (aNbImage),
+    mNbPts    (aNbPts),
+    mMaxCard  (aMaxCard)
 {
     for (int aK=0 ; aK<aNbImage ; aK++)
     {
          mVIm.push_back(new cImage(aK));
 	 mVNames.push_back(ToStr(aK));
     }
+}
+
+
+
+cMultipleTieP cSimulHom::GenMulTieP()
+{
+    cMultipleTieP aRes;
+
+    // 0- Compute multiplicity
+    int aMult = 1 + round_up((mMaxCard-1)*std::pow(RandUnif_0_1(),2));
+    aMult = std::max(2,std::min(aMult,mMaxCard));
+
+    // 1- Compute  set of images
+    aRes.mNumIm = RandSet(aMult,mNbImage);
+
+    // 2- Compute  set of images
+    for (const auto & aNI :  aRes.mNumIm )
+        aRes.mVPts.push_back(mVIm[aNI]->mGenPts.GetNewPoint());
+
+    return aRes;
+}
+
+typedef  std::tuple<int,int,bool> tEdge;
+int  S1(const tEdge & anE)       {return std::get<0>(anE);}
+int  S2(const tEdge & anE)       {return std::get<1>(anE);}
+bool IsRedund(const tEdge & anE) {return std::get<2>(anE);}
+
+void  cSimulHom::GenEdges(const cMultipleTieP & aMTP,bool WithError)
+{
+    int aMult = aMTP.mNumIm.size();
+
+    std::vector<tEdge > aVEdgesInit;
+    
+    // 1  Compute  random tree
+    std::vector<int>  anOrder = RandPerm(aMult);
+
+    aVEdgesInit.push_back(tEdge({anOrder[0],anOrder[1],false}));
+    for (int aK=2; aK<aMult ; aK++)
+    {
+        int aS1 = anOrder[aK];  // next som un reached
+	int aS2 = anOrder[RandUnif_N(aK)];  //
+	// randomize the orde
+	if (HeadOrTail())
+           std::swap(aS1,aS2);
+        aVEdgesInit.push_back(tEdge({aS1,aS2,false}));
+    }
+    
+    // 2  Add random edges to make it more multiple
+
+    int aNbAdd = round_ni( ((aMult-1) * (aMult) - (aMult-1)) * std::pow(RandUnif_0_1(),2)) ;
+
+    for (int aK= 0 ; aK<aNbAdd ; aK++)
+    {
+         int aS1 = RandUnif_N(aMult);
+         int aS2 = RandUnif_N(aMult);
+	 while (aS1==aS2)
+             aS2 = RandUnif_N(aMult);
+        aVEdgesInit.push_back(tEdge({aS1,aS2,true}));
+    }
+
+    // 3  filter duplicatas
+
+    std::sort(aVEdgesInit.begin(),aVEdgesInit.end());
+
+    std::vector<tEdge > aVEdges;
+    aVEdges.push_back(aVEdgesInit[0]);
+
+    for (size_t aK=1 ; aK<aVEdgesInit.size() ; aK++)
+    {
+        const tEdge & aPrec = aVEdgesInit.at(aK-1);
+        const tEdge & aCur  = aVEdgesInit.at(aK);
+
+	if ( (!IsRedund(aCur)) || (S1(aPrec)!=S1(aCur)) || (S2(aPrec)!=S2(aCur)) )
+	{
+            aVEdges.push_back(aCur);
+	}
+    }
+    
+    // 4 generate the tie point itself
+
 }
 
 };
