@@ -39,6 +39,7 @@ template <const int Dim> class cTilingIndex
 	   /// Number of tiles
 	   size_t  NbElem() const;
            bool  OkOut() const;  ///<  Accessor 
+           const tRBox & Box() const;
 
         protected :
 	   /// Convert  R^n -> N^n
@@ -178,6 +179,70 @@ template <class Type>  class  cTiling : public cTilingIndex<Type::Dim>
 	   tVectTiles  mVTiles;
 	   tArgPG      mArgPG;
 };
+
+/**  Sometime we only need to put points in a spatial index, this
+ * class make the interface allowing to use simple point in spatial indexing
+ */
+
+template <const int TheDim> class cPointSpInd
+{
+    public :
+        static constexpr int Dim = TheDim;
+        typedef cPtxd<tREAL8,TheDim>  tPrimGeom;
+        typedef int     tArgPG;  /// unused here
+
+        const tPrimGeom & GetPrimGeom(int Arg=-1) const {return mPt;}
+
+        cPointSpInd(const tPrimGeom & aPt) :
+           mPt (aPt)
+        {
+        }
+
+    private :
+         tPrimGeom  mPt;
+};
+
+template <const int TheDim> class cGeneratePointDiff
+{
+     public :
+           static constexpr int Dim = TheDim;
+
+           typedef cPtxd<tREAL8,Dim>     tRPt;
+           typedef cTplBox<tREAL8,Dim>   tRBox;
+           typedef cPointSpInd<Dim>      tPSI;
+           typedef cTiling<tPSI>         tTiling;
+
+           cGeneratePointDiff(const tRBox & aBox,tREAL8 aDistMin,int aNbMax=1000) :
+               mNbMax   (std::min(aNbMax,(round_down(aBox.NbElem()/pow(aDistMin,TheDim))))),
+               mTiling  (aBox,true,mNbMax,-1),
+               mDistMin (aDistMin)
+           {
+           }
+
+           tRPt GetNewPoint(int aNbTest=1000)
+           {
+               for (int aK=0 ; aK<aNbTest ; aK++)
+               {
+                    tRPt aRes =  mTiling.Box().GeneratePointInside();
+                    auto aL = mTiling.GetObjAtDist(aRes,mDistMin);
+                    if (aL.empty())
+                    {
+                            mTiling.Add(tPSI(aRes));
+                            return aRes;
+                    }
+               }
+               MMVII_INTERNAL_ERROR("Could not GetNewPoint in cGeneratePointDiff");
+               return tRPt::PCste(0);
+           }
+
+
+     private :
+           int      mNbMax;
+           tTiling  mTiling;
+           tREAL8   mDistMin;
+};
+
+
 
 };
 #endif //   _MMVII_Tiling_H_

@@ -86,6 +86,8 @@ template <const int Dim>  size_t  cTilingIndex<Dim>::NbElem() const
 
 template <const int Dim> bool  cTilingIndex<Dim>::OkOut() const {return mOkOut;}
 
+template <const int Dim>  const typename cTilingIndex<Dim>::tRBox &  cTilingIndex<Dim>::Box() const {return mRBoxIn;}
+
 
 template  class cTilingIndex<1>;
 template  class cTilingIndex<2>;
@@ -93,35 +95,17 @@ template  class cTilingIndex<3>;
 
 
 
-/* **************************************** */
-/*                                          */
-/*              cTestSpatialIndex           */
-/*                                          */
-/* **************************************** */
-
-class cTestSpatialIndex
-{
-    public :
-        static constexpr int Dim = 2;
-        typedef cPt2dr  tPrimGeom;
-        typedef int     tArgPG;  /// unused here
-
-	const tPrimGeom & GetPrimGeom(int Arg=-1) const {return mPt;}
-
-	cTestSpatialIndex(const cPt2dr & aPt) :
-           mPt (aPt)
-	{
-	}
-         
-    private :
-	cPt2dr  mPt;
-};
 
 /* **************************************** */
 /*                                          */
 /*              cVerifSpatial               */
 /*                                          */
 /* **************************************** */
+
+/** Testing that point extracted at given distance are excatly was is expected,
+ * may be too restrictive due to rounding error, so we make an average, weighted by a function of distance
+ * to have a robust control
+ */
 
 template <const int Dim> struct cVerifSpatial
 {
@@ -154,7 +138,7 @@ void OneBenchSpatialIndex()
     cBox2dr aBox(aP0,aP1); // Box of the tiling
     cBox2dr aBoxMargin(aP0-aSzMargin,aP1+aSzMargin); // box slightly bigger 
 
-    cTiling<cTestSpatialIndex> aSI(aBox,true,1000,-1); // The tiling we want to check
+    cTiling<cPointSpInd<2>> aSI(aBox,true,1000,-1); // The tiling we want to check
 
     // Test the function GetObjAtPos
     std::list<cPt2dr>  aLPt;
@@ -162,9 +146,9 @@ void OneBenchSpatialIndex()
     {
        cPt2dr aPt = aBoxMargin.GeneratePointInside();
        aLPt.push_back(aPt);
-       cTestSpatialIndex * aExtr = aSI.GetObjAtPos(aPt);
+       cPointSpInd<2> * aExtr = aSI.GetObjAtPos(aPt);
        MMVII_INTERNAL_ASSERT_bench(aExtr==nullptr,"Spat index, got unexpected");
-       cTestSpatialIndex aObj(aPt);
+       cPointSpInd<2> aObj(aPt);
        aSI.Add(aObj);
        aExtr = aSI.GetObjAtPos(aPt);
        MMVII_INTERNAL_ASSERT_bench(aExtr!=nullptr,"Spat index, ungot unexpected");
@@ -174,7 +158,7 @@ void OneBenchSpatialIndex()
     {
          cPt2dr aP0 = aBoxMargin.GeneratePointInside();
 	 tREAL8 aDist =  aMul * std::pow(RandUnif_0_1(),3);
-         std::list<cTestSpatialIndex*> aL = aSI.GetObjAtDist(aP0,aDist);
+         std::list<cPointSpInd<2>*> aL = aSI.GetObjAtDist(aP0,aDist);
 
 
 	 cVerifSpatial<2>  aVerif1(aP0,aDist);

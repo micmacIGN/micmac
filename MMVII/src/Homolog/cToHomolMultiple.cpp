@@ -13,6 +13,13 @@
 namespace MMVII
 {
 
+/*  ************************************************* */
+/*                                                    */
+/*      CLASS/METHOD of general ineterest that will   */
+/*   put in headers (later)                           */
+/*                                                    */
+/*  ************************************************* */
+
 /**  Methof fir sorting simultaneously 2 vector
       => maybe in future moe=re efficient implementation using a permutation ?
 */
@@ -60,22 +67,65 @@ void  MakeBoxNonEmptyWithMargin(cPt2dr & aP0 ,cPt2dr & aP1,tREAL8 aStdMargin,tRE
 /*********************************************************************/
 /*********************************************************************/
 
+typedef std::pair<int,int>  tIP;  // Type Image point
+				
+int Im(const tIP & aPair) {return aPair.first;}
+int Pt(const tIP & aPair) {return aPair.second;}
+
 /**  Class for representing a "topological" tie-poin, i.e no geometry is stored */
-class cTopoMMP
+class cTopoMMP : public cMemCheck
 {
       public :
 
-        cTopoMMP(const cPt2di&,const cPt2di&);
-        std::vector<cPt2di>  mVIP; // Vector Image(x) Point-Indexe(y)
-        bool  mOk;  // Not Ok, as soon as for an image we get 2 different point
+        cTopoMMP(const tIP&,const tIP&);
+
+	/// Compute if, for a given image, the point is unique
+	void ComputeOk();
+
+	void Add(const tIP&,const tIP&);
+	void Add(const cTopoMMP & aT2);
+        std::vector<tIP>  mVIP; // Vector Image(x) Point-Indexe(y)
+        bool  mOk;    // used to store the result of correctness (is each point represent by only one image)
+        bool  mDone;  // marker used to parse points only once
+
+        // bool  mOk;  // Not Ok, as soon as for an image we get 2 different point
 };
 
-/*
-cTopoMMP::cTopoMMP() :
-    mOk (true)
+cTopoMMP::cTopoMMP(const tIP& aP1,const tIP& aP2)  :
+     mOk    (false),
+     mDone  (false)
 {
+	Add(aP1,aP2);
 }
-*/
+
+void cTopoMMP::Add(const tIP& aP1,const tIP& aP2) 
+{
+	mVIP.push_back(aP1);
+	mVIP.push_back(aP2);
+}
+
+void cTopoMMP::Add(const cTopoMMP & aT2)
+{
+    AppendIn(mVIP,aT2.mVIP);
+}
+
+
+void cTopoMMP::ComputeOk()
+{
+    if (mDone) 
+       return;
+
+    mOk = true;
+    mDone = true;
+
+    // Lexicographic sort, Im then Pt, that's OK
+    std::sort(mVIP.begin(),mVIP.end());
+
+    for (size_t aK=1 ; (aK<mVIP.size()) && mOk ; aK++)
+         if (   (  Im(mVIP[aK-1]) == Im(mVIP[aK])  )  && (  Pt(mVIP[aK-1]) == Pt(mVIP[aK])  )   )
+            mOk = false;
+
+}
 
 /**   Class for presenting a merged/compactified version of multiple homologous point
  * of one image.  The same point being present in several set of homol, at the
@@ -95,16 +145,17 @@ class cOneImMEff2MP
 	  const std::string &  NameIm() const;
 
 	  void ComputeIndexPts(cInterfImportHom &,const  std::vector<cOneImMEff2MP> &  mVIms);
-
 	  void CreatMultiplePoint(std::vector<cOneImMEff2MP> &  mVIms);
-
 	  const cPt2dr & Pt(int aNum) {return mVPts.at(aNum);}
+	  void MarkeMergeUndone();
+
+	  void ComputeMergedOk();
 
 
      private :
 	  typedef std::vector<int> tIndCoord;
 	  cOneImMEff2MP(const cOneImMEff2MP &) = delete;
-	  void CreatMultiplePoint(int aKIm,cOneImMEff2MP &);
+	  void CreatMultiplePoint(int aKIm,cOneImMEff2MP &,std::vector<cOneImMEff2MP> &  mVIms);
 
           ///  if  NumIm is an image connected to this, return K such that mImCnx[K] = NumIm
 	  int  FindNumIm(int aNumIm) const;
@@ -245,21 +296,21 @@ void cOneImMEff2MP::ComputeIndexPts(cInterfImportHom & anImport,const  std::vect
      }
      // adjust exactly size of points
      mVPts.shrink_to_fit();
-     mMerge.resize(mVPts.size());
+     mMerge.resize(mVPts.size());  // we know now the size of merged points
 }
 
-void cOneImMEff2MP::CreatMultiplePoint(std::vector<cOneImMEff2MP> &  mVIms)
+void cOneImMEff2MP::CreatMultiplePoint(std::vector<cOneImMEff2MP> &  aVIms)
 {
      for (size_t aKIm=0 ; aKIm<mNbIm ; aKIm++)
      {
          if (mIsFirst[aKIm])  // need to do it only one way
 	 {
-             CreatMultiplePoint(aKIm,mVIms[aKIm]);
+             CreatMultiplePoint(aKIm,aVIms[aKIm],aVIms);
 	 }
      }
 }
 
-void cOneImMEff2MP::CreatMultiplePoint(int aKIm1,cOneImMEff2MP &  aIm2)
+void cOneImMEff2MP::CreatMultiplePoint(int aKIm1,cOneImMEff2MP &  aIm2,std::vector<cOneImMEff2MP> &  aVIms)
 {
     int aKIm2  = aIm2.FindNumIm(mNumIm);
 
@@ -275,20 +326,60 @@ void cOneImMEff2MP::CreatMultiplePoint(int aKIm1,cOneImMEff2MP &  aIm2)
         cTopoMMP * & aT1 =  mMerge.at(aIndP1);
         cTopoMMP * & aT2 =  aIm2.mMerge.at(aIndP2);
 
-        cPt2di  aIP1 (mNumIm      , aIndP1);
-        cPt2di  aIP2 (aIm2.mNumIm , aIndP2);
+        tIP  aIP1 (mNumIm      , aIndP1);
+        tIP  aIP2 (aIm2.mNumIm , aIndP2);
 
+	// case no point exist, 
 	if ((aT1==nullptr) && (aT2==nullptr))
 	{
-              cTopoMMP * aNew = new cTopoMMP(aIP1,aIP2);
-
+	      // we create a new one with, initially, only two points
+              cTopoMMP * aNew = new cTopoMMP(aIP1,aIP2); 
               aT1 = aNew;
               aT2 = aNew;
 	}
+	else if ((aT1!=nullptr) && (aT2==nullptr))
+	{
+           // If T2 dont exist, T1 is the common merged point
+           aT1->Add(aIP1,aIP2);
+           aT2 = aT1;
+	}
+	else if ((aT1==nullptr) && (aT2!=nullptr))
+	{
+		aT2->Add(aIP1,aIP2);
+		aT1 = aT2;
+	}
+	else 
+	{
+           aT1->Add(aIP1,aIP2);
+           if (aT1==aT2) // nothing to do, we have  added IP1,IP2 in new point
+	   {
+	   }
+	   else
+	   {
+               // More complicated case
+               aT1->Add(*aT2); // fisrt put information of T2 in T1
+               for (const auto & aIP : aT2->mVIP)
+	       {
+                   // Now replace T2 by T1 in all point that where refering to T2
+                   aVIms.at(Im(aIP)).mMerge.at(MMVII::Pt(aIP)) = aT1;
+	       }
+	       delete aT2;
+	   }
+	}
     }
-
 }
 
+void cOneImMEff2MP::ComputeMergedOk()
+{
+    for (auto & aMerged : mMerge)
+        aMerged->ComputeOk();
+}
+
+void cOneImMEff2MP::MarkeMergeUndone()
+{
+    for (auto & aMerged : mMerge)
+        aMerged->mDone = false;
+}
 
 /**
  *     Do the conversion.
@@ -305,11 +396,17 @@ class cMemoryEffToMultiplePoint
       public :
            cMemoryEffToMultiplePoint(cInterfImportHom &,const std::vector<std::string>& aVNames);
       private :
+	   void MarkeMergeUndone();
            cInterfImportHom &           mInterImport;
 	   size_t                       mNbIm;
 	   std::vector<cOneImMEff2MP>   mVIms;
 };
 
+void cMemoryEffToMultiplePoint::MarkeMergeUndone()
+{
+    for (auto & aIm : mVIms)
+        aIm.MarkeMergeUndone();
+}
 
 cMemoryEffToMultiplePoint::cMemoryEffToMultiplePoint(cInterfImportHom & anInterf,const std::vector<std::string>& aVNames) :
     mInterImport  (anInterf),
@@ -348,11 +445,67 @@ cMemoryEffToMultiplePoint::cMemoryEffToMultiplePoint(cInterfImportHom & anInterf
     {
         mVIms.at(aKIm).CreatMultiplePoint(mVIms);
     }
+
+    // Make all point undone (to avoid multiple computation)
+    MarkeMergeUndone();
+
+
+    // Compute for all merged point if it OK
+    for (size_t aKIm=0 ; aKIm<mNbIm ; aKIm++)
+    {
+        mVIms.at(aKIm).ComputeMergedOk();
+    }
+
 }
 
+/*********************************************************/
+/*                                                       */
+/*                                                       */
+/*                                                       */
+/*********************************************************/
 
+namespace NB_BenchMergeHomol
+{
+
+class cImage
+{
+    public :
+       cImage(int aNum);
+
+    private :
+       cPt2dr  mSz;
+       cGeneratePointDiff<2>  mGenPts;
+};
+
+
+class cSimulHom
+{
+     public :
+         cSimulHom(int aNbImage,int aNbPts,int MaxCard);
+         ~cSimulHom();
+     private :
+	 std::vector<cImage *>    mVIm;
+	 std::vector<std::string> mVNames;
+};
+
+
+cSimulHom::cSimulHom(int aNbImage,int aNbPts,int MaxCard)
+{
+    for (int aK=0 ; aK<aNbImage ; aK++)
+    {
+         mVIm.push_back(new cImage(aK));
+	 mVNames.push_back(ToStr(aK));
+    }
+}
+
+};
 
 
 
 }; // MMVII
+
+
+
+
+
 
