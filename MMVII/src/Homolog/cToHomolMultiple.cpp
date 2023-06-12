@@ -13,6 +13,10 @@
 namespace MMVII
 {
 
+/**  Methof fir sorting simultaneously 2 vector
+      => maybe in future moe=re efficient implementation using a permutation ?
+*/
+
 template <class T1,class T2>  void Sort2Vect(std::vector<T1> &aV1,std::vector<T2> & aV2)
 {
      MMVII_INTERNAL_ASSERT_tiny(aV1.size()==aV2.size(),"Diff size in Sort2V");
@@ -30,6 +34,9 @@ template <class T1,class T2>  void Sort2Vect(std::vector<T1> &aV1,std::vector<T2
           aV2[aK] = aV12[aK].second;
      }
 }
+
+/**  Assure that P0,P1 are non empty box, using a minimum changes
+*/
 
 void  MakeBoxNonEmptyWithMargin(cPt2dr & aP0 ,cPt2dr & aP1,tREAL8 aStdMargin,tREAL8 aMarginSemiEmpty,tREAL8 aMarginEmpty)
 {
@@ -58,15 +65,17 @@ class cTopoMMP
 {
       public :
 
-        cTopoMMP();
+        cTopoMMP(const cPt2di&,const cPt2di&);
         std::vector<cPt2di>  mVIP; // Vector Image(x) Point-Indexe(y)
         bool  mOk;  // Not Ok, as soon as for an image we get 2 different point
 };
 
+/*
 cTopoMMP::cTopoMMP() :
     mOk (true)
 {
 }
+*/
 
 /**   Class for presenting a merged/compactified version of multiple homologous point
  * of one image.  The same point being present in several set of homol, at the
@@ -96,7 +105,9 @@ class cOneImMEff2MP
 	  typedef std::vector<int> tIndCoord;
 	  cOneImMEff2MP(const cOneImMEff2MP &) = delete;
 	  void CreatMultiplePoint(int aKIm,cOneImMEff2MP &);
-	  int  FindNumIm(int aKIm) const;
+
+          ///  if  NumIm is an image connected to this, return K such that mImCnx[K] = NumIm
+	  int  FindNumIm(int aNumIm) const;
 
           std::string            mNameIm;
 	  int                    mNumIm;
@@ -148,11 +159,14 @@ void cOneImMEff2MP::AddCnx(int aNumIm,bool IsFirst)
 
 int  cOneImMEff2MP::FindNumIm(int aKIm) const
 {
+    // Use binary search for fast recover
     auto anIt = std::lower_bound(mImCnx.begin(),mImCnx.end(),aKIm);
-    MMVII_INTERNAL_ASSERT_tiny(anIt!=mImCnx.end(),"Diff size in Sort2V");
+    MMVII_INTERNAL_ASSERT_tiny(anIt!=mImCnx.end(),"Can find in FindNumIm");
 
+    // convert iterator to int
     int aRes = anIt-mImCnx.begin();
 
+    // 4 now, called only one way, so check coherence, maybe to relax later
     MMVII_INTERNAL_ASSERT_tiny(!mIsFirst.at(aRes),"Incoherence in mIsFirst");
 
     return aRes;
@@ -261,8 +275,15 @@ void cOneImMEff2MP::CreatMultiplePoint(int aKIm1,cOneImMEff2MP &  aIm2)
         cTopoMMP * & aT1 =  mMerge.at(aIndP1);
         cTopoMMP * & aT2 =  aIm2.mMerge.at(aIndP2);
 
+        cPt2di  aIP1 (mNumIm      , aIndP1);
+        cPt2di  aIP2 (aIm2.mNumIm , aIndP2);
+
 	if ((aT1==nullptr) && (aT2==nullptr))
 	{
+              cTopoMMP * aNew = new cTopoMMP(aIP1,aIP2);
+
+              aT1 = aNew;
+              aT2 = aNew;
 	}
     }
 
