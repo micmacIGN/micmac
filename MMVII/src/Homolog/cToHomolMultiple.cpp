@@ -479,10 +479,19 @@ class cImage
 class  cMultipleTieP
 {
       public :
+
+         cMultipleTieP();
+         bool mGotEr;
          std::vector<cPt2dr>  mVPts;
          std::vector<int>     mNumIm;
 };
 
+cMultipleTieP::cMultipleTieP() :
+   mGotEr (false)
+{
+}
+
+typedef std::pair<int,int>  tII;  // Type Image point
 
 class cSimulHom
 {
@@ -491,12 +500,12 @@ class cSimulHom
          ~cSimulHom();
 
          cMultipleTieP GenMulTieP();
-         void  GenEdges(const cMultipleTieP & aMTP,bool WithError);
+         void  GenEdges(cMultipleTieP & aMTP,bool WithError);
      private :
 	 std::vector<cImage *>    mVIm;
 	 std::vector<std::string> mVNames;
 
-	 std::map<cPt2di,cSetHomogCpleIm>   mMapHom;
+	 std::map<tII,cSetHomogCpleIm>   mMapHom;
 
          int               mNbImage;
          int               mNbPts;
@@ -541,7 +550,7 @@ int  S1(const tEdge & anE)       {return std::get<0>(anE);}
 int  S2(const tEdge & anE)       {return std::get<1>(anE);}
 bool IsRedund(const tEdge & anE) {return std::get<2>(anE);}
 
-void  cSimulHom::GenEdges(const cMultipleTieP & aMTP,bool WithError)
+void  cSimulHom::GenEdges(cMultipleTieP & aMTP,bool WithError)
 {
     int aMult = aMTP.mNumIm.size();
 
@@ -555,7 +564,7 @@ void  cSimulHom::GenEdges(const cMultipleTieP & aMTP,bool WithError)
     {
         int aS1 = anOrder[aK];  // next som un reached
 	int aS2 = anOrder[RandUnif_N(aK)];  //
-	// randomize the orde
+	// randomize the order
 	if (HeadOrTail())
            std::swap(aS1,aS2);
         aVEdgesInit.push_back(tEdge({aS1,aS2,false}));
@@ -592,8 +601,27 @@ void  cSimulHom::GenEdges(const cMultipleTieP & aMTP,bool WithError)
 	}
     }
     
-    // 4 generate the tie point itself
+    // 4 generate the tie points itself
 
+    for (const auto & anE : aVEdges)
+    {
+         cPt2dr aP1 = aMTP.mVPts[S1(anE)];
+	 int aI1    =  aMTP.mNumIm[S1(anE)];
+
+         cPt2dr aP2 = aMTP.mVPts[S2(anE)];
+	 int aI2    =  aMTP.mNumIm[S2(anE)];
+
+	 if (IsRedund(anE) && WithError && (HeadOrTail()))
+	 {
+             aMTP.mGotEr = true;
+             if (HeadOrTail())
+                aP1 = mVIm[aI1]->mGenPts.GetNewPoint();
+	     else
+                aP2 = mVIm[aI2]->mGenPts.GetNewPoint();
+	 }
+
+	 mMapHom[tII(aI1,aI2)].Add(cHomogCpleIm(aP1,aP2));
+    }
 }
 
 };
