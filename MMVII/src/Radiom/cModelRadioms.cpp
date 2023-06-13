@@ -43,7 +43,7 @@ cCalibRadiomSensor * cCalibRadiomSensor::FromFile(const std::string & aNameFile)
 cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal) :
     cCalibRadiomSensor   (aNameCal),
     mCenter              (aCenter),
-    mCoeffRad            (aDegRad,0.0),
+    mCoeffRad            (aDegRad,0.0),  // create a polynom with null coeff
     mSzPix               (aSzPix),
     mScaleNor            (-1.0)
 {
@@ -54,6 +54,7 @@ cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzP
      }
 }
 
+// === defaut constructor for serialization =============
 cRadialCRS::cRadialCRS() :
     cRadialCRS(cPt2dr(-1e10,-1e10),0,cPt2di(0,0),"NONE")
 {

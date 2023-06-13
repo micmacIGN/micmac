@@ -15,14 +15,22 @@ class cRadialCRS ;
 class cCalRadIm_Cst ; 
 class cComputeCalibRadIma ;
 
+/**  Store the radiometric data for one image. For one image we store for each point :
+
+     - the radiometry
+     - the coordinate of this points in image (optional)
+     - an index (long int) that allow to recover its homologous in other image
+*/
+
+
 class cImageRadiomData : public cMemCheck
 {
    public :
         typedef size_t               tIndex;
-        typedef cPt2df               tPtMem;
-        typedef std::vector<tPtMem>  tVPt;
-        typedef tU_INT2              tRadiom;
-	typedef std::vector<tRadiom> tVRadiom;
+        typedef cPt2df               tPtMem;      ///< Point are store on float (4 byte) 
+        typedef std::vector<tPtMem>  tVPt;       ///< vector of  pts 
+        typedef tU_INT2              tRadiom;    ///< Type of integer on which we store each radiometry
+	typedef std::vector<tRadiom> tVRadiom;   ///< Radiometry 
 
         cImageRadiomData(const std::string & aNameIm,int aNbChanel,bool withPoint);
 	static cImageRadiomData * FromFile(const std::string & aNameFile);
@@ -43,7 +51,7 @@ class cImageRadiomData : public cMemCheck
 
 	void AddData(const  cAuxAr2007 & anAux); ///< Serialization
 						
-        void MakeOrdered();
+        void MakeOrdered();  /// order if necessary 
 	static void Bench(cParamExeBench & aParam);
 
 	const std::vector<tIndex> & VIndex()             const;
@@ -59,15 +67,15 @@ class cImageRadiomData : public cMemCheck
 	void AddIndex(tIndex);
 	void CheckAndAdd(tIndex ,tRadiom ,int aNbCh,bool WithPoint);
 
-	bool                   mIndexWellOrdered;
-	std::string            mNameIm;
-	int                    mNbChanel;
-	bool                   mWithPoints;
+	bool                   mIndexWellOrdered; ///< Flag used to avoid useless reordering
+	std::string            mNameIm;     ///<  Name of image
+	int                    mNbChanel;   ///<  Number of channel
+	bool                   mWithPoints; ///< do we store also the points
 
-	std::vector<tIndex>    mVIndex;
-	size_t                 mLimitIndex;   // Indexes in [0 mLimitIndex[   in fact the MaxIndex+1
-	tVPt                   mVPts;
-	std::vector<tVRadiom>  mVVRadiom;
+	std::vector<tIndex>    mVIndex;      ///< Indexe that allow to recover homologous point
+	size_t                 mLimitIndex;  ///< Indexes in [0 mLimitIndex[   in fact the MaxIndex+1
+	tVPt                   mVPts;        ///< Optional Pts
+	std::vector<tVRadiom>  mVVRadiom;    ///< Vector of radiometry [Chanel][Index]
 
 };
 
@@ -129,13 +137,14 @@ class cCalibRadiomSensor :   public cObj2DelAtEnd,
 class cRadialCRS : public cCalibRadiomSensor
 {
     public :
-        cRadialCRS();  ///< usefull for addata .
+        cRadialCRS();  ///< usefull for AddData .
         cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string &);
 
         void  AddData(const cAuxAr2007 & anAux);
         static cRadialCRS * FromFile(const std::string & aNameFile);
         void ToFile(const std::string & aNameFile) const override;
 
+        // normalize coordinate to have non dimensional equarion
         tREAL8  NormalizedRho2(const cPt2dr & aPt) const;
         tREAL8  FlatField(const cPt2dr &) const override;
         std::vector<double> &  CoeffRad();
@@ -149,7 +158,7 @@ class cRadialCRS : public cCalibRadiomSensor
         tREAL8                 mScaleNor;  ///< Scale of normalization
 };
 
-/**  Base-class for calibration of radiometry */
+/**  Base-class for calibration of radiometry of each individual image */
 class cCalibRadiomIma : public cMemCheck
 {
         public :

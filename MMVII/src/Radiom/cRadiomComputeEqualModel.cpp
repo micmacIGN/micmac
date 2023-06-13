@@ -175,7 +175,9 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-        void MakeLinearCpleIm(size_t aK1,size_t aK2);
+        // Compute robust ratio between pair, and add it as obversyion to global ratio
+        void MakeLinearCpleIm(size_t aNumIm1,size_t aNumIm2);
+        // Make a first global linear model, using all ratio
         void MakeLinearModel();
 
         void   MakeOneIterMixtModel(int aKIter);
@@ -253,8 +255,9 @@ void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2)
       const cImageRadiomData::tVRadiom & aVRad1 = mVRadIm[aK1]->IRD().VRadiom(0);
       const cImageRadiomData::tVRadiom & aVRad2 = mVRadIm[aK2]->IRD().VRadiom(0);
 
-      // compute the median of ration as a robust estimator
-      std::vector<double>  aVRatio;
+      // 1 : estimate the ratio between Im1 and Im2,
+      // use the median of ration as a robust estimator
+      std::vector<double>  aVRatio;  // stack of ratio
       for (const auto & aCpl : aVCpleI)
       {
           cImageRadiomData::tRadiom aR1 = aVRad1.at(aCpl.x());
@@ -264,20 +267,22 @@ void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2)
 	  aVRatio.push_back(aRatio);
 
       }
-      double aRMed = NC_KthVal(aVRatio,0.5);
+      double aRMed = NC_KthVal(aVRatio,0.5); // estimate the median as propotion 0.5
 
       //  Use sqrt of ratio to have a more symetric equation
+      //  R1 and R2 are the unkown multiplier , ratio is the observation computed
       //  aRatio = R1/R2   R1-R2 Ratio = 0
-      //    R1/Sqrt(R) -R2*Sqrt(R) = 0
+      //    to symetrize and linarize we write equation :
+      //           R1/Sqrt(R) -R2*Sqrt(R) = 0  [EqRatio]
       double aSqrR = std::sqrt(aRMed);
 
       tElSys  aWeight = std::sqrt(aVCpleI.size()); // a bit (a lot ?) arbitrary
       mSomWLinear += aWeight;						   
 
-      cSparseVect<tElSys>  aSV;
+      cSparseVect<tElSys>  aSV;  // sparse vector will be filled by eq  [EqRatio]
       aSV.AddIV(aK1,1.0/aSqrR);
       aSV.AddIV(aK2,-aSqrR);
-      mCurSys->AddObservationLinear(aWeight,aSV,0.0);
+      mCurSys->AddObservationLinear(aWeight,aSV,0.0);  // Weight/Linear/  0.0=Const
 
 
       if (false)
@@ -294,13 +299,16 @@ void cAppliRadiom2ImageSameMod::MakeLinearCpleIm(size_t aK1,size_t aK2)
 
 void cAppliRadiom2ImageSameMod::MakeLinearModel()
 {
+    // Structure that accumulate  all  unknowns
     mSetInterv = new cSetInterUK_MultipeObj<tElSys> ;
-    //for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
+    // Each image put its unkowns
     for (auto & aPtrIm : mVRadIm)
 	mSetInterv->AddOneObj(aPtrIm);
 
+    // Create a system with correosponding unknown
     mCurSys = new  cResolSysNonLinear<tElSys>(eModeSSR::eSSR_LsqDense,mSetInterv->GetVUnKnowns());
 
+    // Add all equations on ratio
     mSomWLinear = 0.0;
     for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
     {
@@ -312,14 +320,15 @@ void cAppliRadiom2ImageSameMod::MakeLinearModel()
         }
     }
 
-    // Add an equation that fix  Avg(Ratio) = 1
+    // Add an equation that fix  Avg(Ratio) = 1 because the system is purely linear
     cDenseVect<tElSys>  aVecAll1 = cDenseVect<tElSys>::Cste( mNbIm,1.0);
     mCurSys->AddObservationLinear(mSomWLinear/1e2,aVecAll1,tElSys(mNbIm));
 
+    // we get a vector of ratio
     cDenseVect<tElSys> aSol = mCurSys->SolveUpdateReset();
 
-    aSol.SetAvg(1.0);
-    mSetInterv->SetVUnKnowns(aSol);
+    aSol.SetAvg(1.0);  // we force Avg to 1
+    mSetInterv->SetVUnKnowns(aSol); // we retransfer the value in object
 
     StdOut() << " 111 - AVG LINEAR= " << aSol.AvgElem()-1 << "\n";
 
@@ -395,6 +404,7 @@ void   cAppliRadiom2ImageSameMod::MakeOneIterMixtModel(int aKIter)
 	 cResidualWeighter<tElSys> aRW(aW);
 
          // 2.2 -  Add observation
+         // create an unknown 
          cSetIORSNL_SameTmp<tElSys>  aSetTmp({aAlbedo});
          for (const  auto & aImInd : aVecIndMul)
          {
@@ -456,9 +466,11 @@ void   cAppliRadiom2ImageSameMod::MakeMixtModel()
     mSetInterv = new cSetInterUK_MultipeObj<tElSys> ;
     mCalcEqRad = EqRadiomVignettageLinear(5,true,1);
 
+    // Add the unknonws due to image calibration
     for (auto & aPtrIm : mVRadIm)
 	mSetInterv->AddOneObj(aPtrIm);
 
+    // Add the unknonws due to sensor calibration
     for (auto & aPair : mMapCal2Im)
 	mSetInterv->AddOneObj(aPair.second);
 
@@ -537,8 +549,6 @@ int cAppliRadiom2ImageSameMod::Exe()
     // ----------------  Linear ----------------------
 
     MakeLinearModel();
-
-    
 
     // ----------------  Mixte ----------------------
 
