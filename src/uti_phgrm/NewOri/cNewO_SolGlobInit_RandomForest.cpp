@@ -2135,7 +2135,8 @@ static int bascule(std::string mFullPat, std::string ori0name, std::string oriOu
 static int basculepy(std::string ori0, std::string ori1, std::string oriOut, std::string mNameOriCalib, std::string mPrefHom) {
 
     std::string mTripletPath = "NewOriTmp" + mPrefHom + mNameOriCalib + "Quick";
-    std::string binaryPath = "/home/silvanosky/local/BasculeTriplet/main.py";
+    //std::string binaryPath = "/home/silvanosky/local/BasculeTriplet/main.py";
+    std::string binaryPath =  MMDir() + "src/uti_phgrm/NewOri/BasculeTriplet/main.py";
 
     int err = 0;
     std::cout << exec(binaryPath + " \"" + mTripletPath + "\" \"Ori-"+ ori0 + "\" \"Ori-" + ori1 + "\" Ori-" + oriOut + " ", &err);
