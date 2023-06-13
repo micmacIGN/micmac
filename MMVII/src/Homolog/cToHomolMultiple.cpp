@@ -502,7 +502,7 @@ cMultipleTieP::cMultipleTieP() :
 
 typedef std::pair<std::string,std::string>  tSS;  // Type Image point
 
-class cSimulHom // : public  cInterfImportHom
+class cSimulHom : public  cInterfImportHom
 {
      public :
          cSimulHom(int aNbImage,int aNbPts,int MaxCard);
@@ -511,8 +511,8 @@ class cSimulHom // : public  cInterfImportHom
          cMultipleTieP GenMulTieP();
          void  GenEdges(cMultipleTieP & aMTP,bool WithError);
      private :
-	 // void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const override;
-         // bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const override;
+	 void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const override;
+         bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const override;
 
 	 std::vector<cImage *>    mVIm;
 	 std::vector<std::string> mVNames;
@@ -525,15 +525,16 @@ class cSimulHom // : public  cInterfImportHom
 };
 
 
-/*
 bool cSimulHom::HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const
 {
-    return true;
+    return mMapHom.find(tSS(aNameIm1,aNameIm2)) != mMapHom.end();
 }
-void cSimulHom::GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const 
+
+void cSimulHom::GetHom(cSetHomogCpleIm & aSet,const std::string & aNameIm1,const std::string & aNameIm2) const 
 {
+   MMVII_INTERNAL_ASSERT_tiny(HasHom(aNameIm1,aNameIm2),"Cannot get hom in cSimulHom");
+   aSet = mMapHom.find(tSS(aNameIm1,aNameIm2))->second;
 }
-*/
 
 cSimulHom::~cSimulHom()
 {

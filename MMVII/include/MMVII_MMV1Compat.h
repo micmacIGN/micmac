@@ -39,8 +39,6 @@ struct  cExportV1StenopeCalInterne
 class cInterfImportHom : public cMemCheck
 {
       public :
-          cInterfImportHom();
-
           virtual void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const = 0;
           virtual bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const = 0;
 
