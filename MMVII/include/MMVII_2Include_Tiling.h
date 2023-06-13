@@ -22,7 +22,7 @@ template <class Type>  class  cTiling ;
  *       Reaal Coordinate  in R^n -> index of tile in N^n -> linear index in N
  */
 
-template <const int Dim> class cTilingIndex
+template <const int Dim> class cTilingIndex : cMemCheck
 {
        public :
            typedef cPtxd<int,Dim>        tIPt;

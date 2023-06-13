@@ -138,7 +138,7 @@ void cTopoMMP::ComputeOk()
 class cOneImMEff2MP
 {
      public :
-          cOneImMEff2MP();
+          cOneImMEff2MP() {}
 	  void AddCnx(int aNumIm,bool IsFirt);
 	  void SetNameIm(const std::string & aNameIm);
 	  void SetNumIm(int aNumIm);
@@ -464,7 +464,7 @@ cMemoryEffToMultiplePoint::cMemoryEffToMultiplePoint(cInterfImportHom & anInterf
 /*                                                       */
 /*********************************************************/
 
-namespace NB_BenchMergeHomol
+namespace NS_BenchMergeHomol
 {
 
 class cImage
@@ -472,9 +472,18 @@ class cImage
     public :
        cImage(int aNum);
 
+       int     mNum;
        cPt2dr  mSz;
        cGeneratePointDiff<2>  mGenPts;
 };
+
+cImage::cImage(int aNum) :
+   mNum     (aNum),
+   mSz      (3000,2000),
+   mGenPts  (cBox2dr(cPt2dr(0,0),ToR(mSz)),0.1)
+{
+}
+
 
 class  cMultipleTieP
 {
@@ -491,9 +500,9 @@ cMultipleTieP::cMultipleTieP() :
 {
 }
 
-typedef std::pair<int,int>  tII;  // Type Image point
+typedef std::pair<std::string,std::string>  tSS;  // Type Image point
 
-class cSimulHom
+class cSimulHom // : public  cInterfImportHom
 {
      public :
          cSimulHom(int aNbImage,int aNbPts,int MaxCard);
@@ -502,16 +511,34 @@ class cSimulHom
          cMultipleTieP GenMulTieP();
          void  GenEdges(cMultipleTieP & aMTP,bool WithError);
      private :
+	 // void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const override;
+         // bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const override;
+
 	 std::vector<cImage *>    mVIm;
 	 std::vector<std::string> mVNames;
 
-	 std::map<tII,cSetHomogCpleIm>   mMapHom;
+	 std::map<tSS,cSetHomogCpleIm>   mMapHom;
 
          int               mNbImage;
          int               mNbPts;
          int               mMaxCard;
 };
 
+
+/*
+bool cSimulHom::HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const
+{
+    return true;
+}
+void cSimulHom::GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const 
+{
+}
+*/
+
+cSimulHom::~cSimulHom()
+{
+    DeleteAllAndClear(mVIm);
+}
 
 cSimulHom::cSimulHom(int aNbImage,int aNbPts,int aMaxCard) :
     mNbImage  (aNbImage),
@@ -600,6 +627,8 @@ void  cSimulHom::GenEdges(cMultipleTieP & aMTP,bool WithError)
             aVEdges.push_back(aCur);
 	}
     }
+
+    StdOut() << "M=" << aMult << " E=" << aVEdges.size() << "\n";
     
     // 4 generate the tie points itself
 
@@ -620,11 +649,38 @@ void  cSimulHom::GenEdges(cMultipleTieP & aMTP,bool WithError)
                 aP2 = mVIm[aI2]->mGenPts.GetNewPoint();
 	 }
 
-	 mMapHom[tII(aI1,aI2)].Add(cHomogCpleIm(aP1,aP2));
+	 mMapHom[tSS(ToStr(aI1),ToStr(aI2))].Add(cHomogCpleIm(aP1,aP2));
     }
 }
 
+void OneBench(int aNbImage,int aNbPts,int aMaxCard)
+{
+    StdOut() << "NbImage= " << aNbImage << "\n";
+    cSimulHom aSimH(aNbImage,aNbPts,aMaxCard);
+
+    for (int aKPts=0 ; aKPts<aNbPts ; aKPts++)
+    {
+        cMultipleTieP aMTP = aSimH.GenMulTieP();
+
+	aSimH.GenEdges(aMTP,false);
+    }
+}
+
+void Bench()
+{
+	OneBench(10,5,3);
+}
+
 };
+
+void Bench_ToHomMult(cParamExeBench & aParam)
+{
+   if (! aParam.NewBench("HomMult")) return;
+
+   NS_BenchMergeHomol::Bench();
+
+   aParam.EndBench();
+}
 
 
 

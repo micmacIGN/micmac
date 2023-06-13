@@ -556,6 +556,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 	BenchL1Solver(aParam);
 	Bench_MatEss(aParam);
 	Bench_SpatialIndex(aParam);
+	Bench_ToHomMult(aParam);
     }
 
     // Now call the bench of all application that define their own bench
