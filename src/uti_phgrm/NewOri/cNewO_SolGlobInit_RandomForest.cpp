@@ -2219,7 +2219,7 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
 
 
         basculepy(ori0name, i, ori0name, mNameOriCalib, mPrefHom);
-        campari(result, ori0name, mPrefHom);
+        //campari(result, ori0name, mPrefHom);
         updateViewFrom(ori0name, result.ss);
     }
 
