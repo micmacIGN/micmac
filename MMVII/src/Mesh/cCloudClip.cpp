@@ -131,13 +131,15 @@ class cAppliCloudClip : public cMMVII_Appli
            // --- Optionnal ----
 	      std::string mNameCloudOut;
 	      bool        mBinOut;
+	      int         mNbMinVertexByTri;
            // --- Internal ----
 
 };
 
 cAppliCloudClip::cAppliCloudClip(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli     (aVArgs,aSpec),
-   mBinOut          (false)
+   cMMVII_Appli      (aVArgs,aSpec),
+   mBinOut           (false),
+   mNbMinVertexByTri (3)
 {
 }
 
@@ -156,6 +158,7 @@ cCollecSpecArg2007 & cAppliCloudClip::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
            << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file")
            << AOpt2007(mBinOut,CurOP_OutBin,"Generate out in binary format",{eTA2007::HDV})
+           << AOpt2007(mNbMinVertexByTri,"NbMinV","Number minimal of vertex to maintain a triangle",{eTA2007::HDV})
    ;
 }
 
@@ -166,7 +169,7 @@ int  cAppliCloudClip::Exe()
 
    cTriangulation3D<tREAL8>  aTri(mNameCloudIn);
    cDataBoundedSet<tREAL8,3> * aMasq=  MMV1_Masq(aTri.BoxEngl(),DirProject()+mNameMasq);
-   aTri.Filter(*aMasq);
+   aTri.Filter(*aMasq,mNbMinVertexByTri);
    aTri.WriteFile(DirProject()+mNameCloudOut,mBinOut);
 
    delete aMasq;
