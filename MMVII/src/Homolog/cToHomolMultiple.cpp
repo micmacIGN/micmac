@@ -1,5 +1,6 @@
 #include "MMVII_2Include_Tiling.h"
 #include "MMVII_MMV1Compat.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 /**
    \file  cImplemConvertHom
@@ -21,11 +22,11 @@ class cMemoryEffToMultiplePoint;
 /*                                                    */
 /*  ************************************************* */
 
-/**  Methof fir sorting simultaneously 2 vector
+/**  Methof for sorting simultaneously 2 vector uing lexicographic order => the 2 type must be comparable
       => maybe in future moe=re efficient implementation using a permutation ?
 */
 
-template <class T1,class T2>  void Sort2Vect(std::vector<T1> &aV1,std::vector<T2> & aV2)
+template <class T1,class T2>  void Sort2VectLexico(std::vector<T1> &aV1,std::vector<T2> & aV2)
 {
      MMVII_INTERNAL_ASSERT_tiny(aV1.size()==aV2.size(),"Diff size in Sort2V");
 
@@ -35,6 +36,7 @@ template <class T1,class T2>  void Sort2Vect(std::vector<T1> &aV1,std::vector<T2
          aV12.push_back(std::pair<T1,T2>(aV1.at(aK),aV2.at(aK)));
 
      std::sort(aV12.begin(),aV12.end());
+     // std::sort(aV12.begin(),aV12.end(),[](const auto &aP1,const auto & aP2){return aP1.first < aP2.first;});
 
      for (size_t aK=0 ; aK<aV1.size() ; aK++)
      {
@@ -42,6 +44,31 @@ template <class T1,class T2>  void Sort2Vect(std::vector<T1> &aV1,std::vector<T2
           aV2.at(aK) = aV12.at(aK).second;
      }
 }
+
+/**  Methof for sorting simultaneously 2 vector using only first vector; only first type must be comparible,
+       and order among equivalent first value is undefined
+      => maybe in future moe=re efficient implementation using a permutation ?
+*/
+
+template <class T1,class T2>  void Sort2VectFirstOne(std::vector<T1> &aV1,std::vector<T2> & aV2)
+{
+     MMVII_INTERNAL_ASSERT_tiny(aV1.size()==aV2.size(),"Diff size in Sort2V");
+
+     std::vector<std::pair<T1,T2> > aV12;
+
+     for (size_t aK=0 ; aK<aV1.size() ; aK++)
+         aV12.push_back(std::pair<T1,T2>(aV1.at(aK),aV2.at(aK)));
+
+     std::sort(aV12.begin(),aV12.end(),[](const auto &aP1,const auto & aP2){return aP1.first < aP2.first;});
+
+     for (size_t aK=0 ; aK<aV1.size() ; aK++)
+     {
+          aV1.at(aK) = aV12.at(aK).first;
+          aV2.at(aK) = aV12.at(aK).second;
+     }
+}
+
+
 
 /**  Assure that P0,P1 are non empty box, using a minimum changes
 */
@@ -75,6 +102,80 @@ template <class Type,const int Dim>
 	return  std::lexicographical_compare(aV1.begin(),aV1.end(),aV2.begin(),aV2.end(),PtLexCompare<Type,Dim>);
 }
 
+/*  ************************************************* */
+/*                                                    */
+/*           class That Will be exported              */
+/*   specifically for multiple tie points             */
+/*                                                    */
+/*  ************************************************* */
+
+class cSetMultipleTiePoints
+{
+     public :
+        typedef std::vector<int>     tConfigIm;
+        typedef std::vector<cPt2dr>  tPtsOfConfig;
+        cSetMultipleTiePoints();
+
+	void AddPMul(const tConfigIm&,const std::vector<cPt2dr> &);
+
+	void  AddData(const cAuxAr2007 & anAux);
+     private  :
+        std::vector<std::string>          mVNames;
+	std::map<tConfigIm,tPtsOfConfig>  mPts;
+};
+
+/*
+template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std::pair<TypeKey,TypeVal> & aPair)
+{
+}
+*/
+
+template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
+{
+    size_t aNb=aMap.size();
+    // put or read the number
+    AddData(cAuxAr2007("Nb",anAux),aNb);
+    // In input, nb is now intialized, we must set the size of list
+    //
+    if (anAux.Input())
+    {
+       for (size_t aK=0 ; aK<aNb ; aK++)
+       {
+          {
+            cAuxAr2007 anAuxPair("Pair",anAux);
+            TypeKey aKey;
+            AddData(anAuxPair,aKey);
+	    AddData(anAuxPair,aMap[aKey]);
+          }
+       }
+    }
+    else
+    {
+        for (auto & aPair : aMap)
+        {
+            cAuxAr2007 anAuxPair("Pair",anAux);
+            AddData(anAuxPair,const_cast<TypeKey&>(aPair.first));
+            AddData(anAuxPair,const_cast<TypeVal&>(aPair.second));
+	    //AddData(anAuxPair,aPair->second);
+        }
+    }
+}
+
+void TMAP()
+{
+    std::map<std::string,std::vector<cPt2dr>> aMap;
+    aMap["1"] = std::vector<cPt2dr>{{1,1}};
+    aMap["2"] = std::vector<cPt2dr>{{1,1},{2,2}};
+    aMap["0"] = std::vector<cPt2dr>{};
+
+    SaveInFile(aMap,"toto.xml");
+
+    std::map<std::string,std::vector<cPt2dr>> aMap2;
+    ReadFromFile(aMap2,"toto.xml");
+    aMap2["3"] = std::vector<cPt2dr>{{1,1},{2,2},{3,3}};
+    SaveInFile(aMap2,"tata.xml");
+}
+
 
 /*********************************************************************/
 /*********************************************************************/
@@ -91,6 +192,22 @@ template <class T1,class T2> std::ostream & operator << (std::ostream & OS,const
     return OS;
 }
 */
+
+/** Minimal class for representing multiple-points */
+class  cSimMTP
+{
+      public :
+         cSimMTP();
+
+	 void Show();
+	 void Sort();
+         bool mGotEr;
+         std::vector<cPt2dr>  mVPts;
+         std::vector<int>     mNumIm;
+};
+
+
+
 
 
 /**  Class for representing a "topological" tie-poin, i.e no geometry is stored */
@@ -179,6 +296,8 @@ class cOneImMEff2MP
 	  void ComputeIndexPts(cInterfImportHom &,const  cMemoryEffToMultiplePoint &);
 	  void CreatMultiplePoint(cMemoryEffToMultiplePoint &);
 	  const cPt2dr & Pt(int aNum) {return mVPts.at(aNum);}
+
+	  /// Mark Done False for all points
 	  void MarkeMergeUndone();
 
 	  void ComputeMergedOk();
@@ -231,6 +350,7 @@ class cMemoryEffToMultiplePoint
 	   void ShowCur() const;
 
       private :
+	  /// Mark Done False for all points
 	   void MarkeMergeUndone();
            cInterfImportHom &           mInterImport;
 	   size_t                       mNbIm;
@@ -312,7 +432,7 @@ void cOneImMEff2MP::ComputeIndexPts(cInterfImportHom & anImport,const  cMemoryEf
 {
     const  std::vector<cOneImMEff2MP> &  aVIms = aMEff2MP.VIms();
     // sort the  num of connected , for fast retrieval using binary search
-     Sort2Vect(mImCnx,mIsFirst);
+     Sort2VectLexico(mImCnx,mIsFirst);
      mNbIm = mImCnx.size();
      mIndPts.resize(mNbIm);
 
@@ -407,7 +527,7 @@ void cOneImMEff2MP::CreatMultiplePoint(int aKIm1,cOneImMEff2MP &  aIm2,cMemoryEf
     const std::vector<int>  & aVInd1 = mIndPts.at(aKIm1);
     const std::vector<int>  & aVInd2 = aIm2.mIndPts.at(aKIm2);
 
-    MMVII_INTERNAL_ASSERT_tiny(aVInd1.size()==aVInd2.size(),"Diff size in Sort2V");
+    MMVII_INTERNAL_ASSERT_tiny(aVInd1.size()==aVInd2.size(),"Diff size in CreatMultiplePoint");
 
     for (size_t aK=0 ; aK<aVInd1.size() ; aK++)
     {
@@ -502,12 +622,15 @@ void cOneImMEff2MP::DeleteMTP(std::vector<cOneImMEff2MP> &  aVIms)
 {
      for (auto aMTP : mMerge)
      {
+         // if is has not been erased yet
          if (aMTP != nullptr)
 	 {
+             // erase all its copy
              for (const auto & aIP :  aMTP->mVIP)
 	     {
 		   aVIms.at(Im(aIP)).mMerge.at(MMVII::Pt(aIP)) = nullptr;
 	     }
+	     // and finally delete
              delete aMTP;
 	 }
      }
@@ -660,34 +783,19 @@ const std::vector<cOneImMEff2MP> &  cMemoryEffToMultiplePoint::VIms() const {ret
 
 /*********************************************************/
 /*                                                       */
-/*                                                       */
+/*                         cSimMTP                       */
 /*                                                       */
 /*********************************************************/
 
-class  cMultipleTieP
-{
-      public :
-         cMultipleTieP();
 
-	 void Show();
-	 void Sort();
-         bool mGotEr;
-         std::vector<cPt2dr>  mVPts;
-         std::vector<int>     mNumIm;
-};
 
-// template <class T1,class T2>  void Sort2Vect(std::vector<T1> &aV1,std::vector<T2> & aV2)
-cMultipleTieP::cMultipleTieP() :
+
+cSimMTP::cSimMTP() :
    mGotEr (false)
 {
 }
 
-void cMultipleTieP::Sort()
-{
-     // Sort2Vect(mNumIm,mVPts);
-}
-
-void cMultipleTieP::Show()
+void cSimMTP::Show()
 {
     StdOut() << "SHOWMPT ";
     for (size_t aK=0 ; aK<mVPts.size() ; aK++)
@@ -695,7 +803,7 @@ void cMultipleTieP::Show()
     StdOut() << "\n";
 }
 
-bool operator < (cMultipleTieP &aPM1,cMultipleTieP &aPM2)
+bool operator < (cSimMTP &aPM1,cSimMTP &aPM2)
 {
     if (aPM1.mNumIm < aPM2.mNumIm) return true;
     if (aPM1.mNumIm > aPM2.mNumIm) return false;
@@ -706,6 +814,17 @@ bool operator < (cMultipleTieP &aPM1,cMultipleTieP &aPM2)
     return false;
 }
 
+void cSimMTP::Sort()
+{
+      Sort2VectFirstOne(mNumIm,mVPts);
+
+}
+
+/*********************************************************/
+/*                                                       */
+/*               NS_BenchMergeHomol                      */
+/*                                                       */
+/*********************************************************/
 
 namespace NS_BenchMergeHomol
 {
@@ -737,8 +856,8 @@ class cSimulHom : public  cInterfImportHom
          cSimulHom(int aNbImage,int aNbPts,int MaxCard,bool Debug);
          ~cSimulHom();
 
-         cMultipleTieP GenMulTieP();
-         void  GenEdges(cMultipleTieP & aMTP,bool WithError);
+         cSimMTP GenMulTieP();
+         void  GenEdges(cSimMTP & aMTP,bool WithError);
 	 const std::vector<std::string> & VNames() const;
      private :
 	 void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const override;
@@ -788,9 +907,9 @@ cSimulHom::cSimulHom(int aNbImage,int aNbPts,int aMaxCard,bool Debug) :
 const std::vector<std::string> & cSimulHom::VNames() const {return mVNames;}
 
 
-cMultipleTieP cSimulHom::GenMulTieP()
+cSimMTP cSimulHom::GenMulTieP()
 {
-    cMultipleTieP aRes;
+    cSimMTP aRes;
 
     // 0- Compute multiplicity
     int aMult = 1 + round_up((mMaxCard-1)*std::pow(RandUnif_0_1(),2));
@@ -815,7 +934,7 @@ int  S1(const tEdge & anE)       {return std::get<0>(anE);}
 int  S2(const tEdge & anE)       {return std::get<1>(anE);}
 bool IsRedund(const tEdge & anE) {return std::get<2>(anE);}
 
-void  cSimulHom::GenEdges(cMultipleTieP & aMTP,bool WithError)
+void  cSimulHom::GenEdges(cSimMTP & aMTP,bool WithError)
 {
     int aMult = aMTP.mNumIm.size();
 
@@ -898,11 +1017,11 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
 {
     // StdOut() << "NbImage= " << aNbImage << "\n";
     cSimulHom aSimH(aNbImage,aNbPts,aMaxCard,false);
-    std::vector<cMultipleTieP>      aVMTP;
+    std::vector<cSimMTP>      aVMTP;
 
     for (int aKPts=0 ; aKPts<aNbPts ; aKPts++)
     {
-        cMultipleTieP aMTP = aSimH.GenMulTieP();
+        cSimMTP aMTP = aSimH.GenMulTieP();
 	aMTP.Sort();
 	aVMTP.push_back(aMTP);
 
@@ -922,7 +1041,7 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
     std::sort(aVMTP.begin(), aVMTP.end());
     for (auto aMPT : aVMTP)
         aMPT.Show();
-    // getchar();
+    getchar();
 }
 
 void Bench()
@@ -965,6 +1084,7 @@ void Bench_ToHomMult(cParamExeBench & aParam)
    if (! aParam.NewBench("HomMult")) return;
 
 
+    TMAP(); getchar();
    // Fonc1(); Fonc2(); getchar();
 
 
