@@ -58,8 +58,22 @@ template class cBijectiveMapI2O<std::string>;
 /*                                                  */
 /****************************************************/
 
+template <class Type> int LexicoCmp(const Type & aB1,const Type & aE1,const Type & aB2,const Type & aE2)
+{
+    for(auto It1=aB1,It2=aB2 ; (It1!=aE1) && (It2!=aE2) ; It1++,It2++)
+    {
+        if ( *It1 < *It2)  return -1;
+        if (*It1 > *It2)  return  1;
+    }
+
+    return 0;
+}
+
 template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2)
 {
+	LexicoCmp(aV1.begin(),aV1.end(),aV2.begin(),aV2.end());
+
+
     int aSz = std::min(aV1.size(),aV2.size());
     for (int aK=0 ; aK<aSz ; aK++)
     {
@@ -70,6 +84,9 @@ template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vec
     if (aV1.size() > aV2.size()) return 1;
     return 0;
 }
+
+
+
 template <class Type> bool operator < (const std::vector<Type> & aV1,const std::vector<Type> & aV2)
 {
    return LexicoCmp(aV1,aV2) == -1;

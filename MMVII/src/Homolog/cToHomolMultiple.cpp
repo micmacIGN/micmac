@@ -190,6 +190,8 @@ class cSetMultipleTiePoints
 	void AddPMul(const tConfigIm&,const std::vector<cPt2dr> &);
 
 	void  AddData(const cAuxAr2007 & anAux);
+
+	void TestEq(cSetMultipleTiePoints &) const;
      private  :
         std::vector<std::string>          mVNames;
 	std::map<tConfigIm,tPtsOfConfig>  mPts;
@@ -209,6 +211,28 @@ void cSetMultipleTiePoints::AddPMul(const tConfigIm& aConfig,const std::vector<c
      AppendIn(mPts[aConfig],aVPts);
 }
 
+void cSetMultipleTiePoints::TestEq(cSetMultipleTiePoints &aS2) const
+{
+    const std::map<tConfigIm,tPtsOfConfig> & aMapPts1 = mPts ;
+    const std::map<tConfigIm,tPtsOfConfig> & aMapPts2 = aS2.mPts ;
+
+    MMVII_INTERNAL_ASSERT_tiny( aMapPts1.size()== aMapPts2.size(),"SetMultipleTiePoints::TestEq");
+
+    for (const auto  &  aP1 : aMapPts1)
+    {
+        const auto & aItP2 =  aMapPts2.find(aP1.first);
+        MMVII_INTERNAL_ASSERT_tiny( aItP2!=aMapPts2.end() ,"SetMultipleTiePoints::TestEq");
+
+        tPtsOfConfig aVPts1 = aP1.second;
+        tPtsOfConfig aVPts2 = aItP2->second;
+
+        StdOut()  << VPtLexCompare(aVPts1,aVPts2) << VPtLexCompare(aVPts2,aVPts1) << aVPts1 << " " << aVPts2 << "\n";
+
+        MMVII_INTERNAL_ASSERT_tiny(VPtLexCompare(aVPts1,aVPts2)==0 ,"SetMultipleTiePoints::TestEq");
+        MMVII_INTERNAL_ASSERT_tiny(VPtLexCompare(aVPts2,aVPts1)==0 ,"SetMultipleTiePoints::TestEq");
+
+    }
+}
 
 
 
@@ -1079,7 +1103,8 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
 {
     // StdOut() << "NbImage= " << aNbImage << "\n";
     cSimulHom aSimH(aNbImage,aNbPts,aMaxCard,false);
-    cSetMultipleTiePoints aSetMTP(aSimH.VNames());
+    cSetMultipleTiePoints aSetMTP1(aSimH.VNames());
+    cSetMultipleTiePoints aSetMTP2(aSimH.VNames());
 
     for (int aKPts=0 ; aKPts<aNbPts ; aKPts++)
     {
@@ -1089,37 +1114,48 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
 	//if (DoIt)
 	    //aMTP.Show();
 
-	aSetMTP.AddPMul(aMTP.mNumIm,aMTP.mVPts);
+	aSetMTP1.AddPMul(aMTP.mNumIm,aMTP.mVPts);
 	aSimH.GenEdges(aMTP,false);
     }
 
     if (DoIt)
     {
-        cMemoryEffToMultiplePoint aToMP(aSimH,aSimH.VNames(),aSetMTP);
+        cMemoryEffToMultiplePoint aToMP(aSimH,aSimH.VNames(),aSetMTP2);
+
+	aSetMTP1.TestEq(aSetMTP2);
 	// StdOut() << "DONNEEE \n";
 	// getchar();
     }
 
-    getchar();
+    // getchar();
 }
 
 void Bench()
 {
-    // OneBench(10,1,3);
+
+	/*
+     for (int aK=0 ; aK<10000 ; aK++)
+     {
+          OneBench(4,2,4,true); //(aK==16));
+     }
+     */
+    // OneBench(10,8,4);
+	/*
      for (int aK=0 ; aK<100 ; aK++)
      {
-	  StdOut() << "k=" << aK << "\n";
-          OneBench(10,9,4,true); //(aK==16));
+	  //StdOut() << "k=" << aK << "\n";
+          OneBench(10,RandInInterval(3,50),4,true); //(aK==16));
      }
     // OneBench(10,8,4);
      //OneBench(10,40,4);
 
     for (int aK=0 ; aK<100 ; aK++)
     {
-        StdOut() << "k=" << aK << "\n";
+        // StdOut() << "k=" << aK << "\n";
         int aNbIm = RandInInterval(3,50);
         OneBench(aNbIm,40,std::min(aNbIm,6),true);
     }
+    */
 }
 
 };
