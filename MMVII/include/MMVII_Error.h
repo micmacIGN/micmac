@@ -140,6 +140,28 @@ class cMMVII_Warning
 
 #define MMVII_DEV_WARNING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
 
+
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+template <class Type>  void AssertSorted(const std::vector<Type> & aV)
+{
+    for (size_t aK=1 ; aK<aV.size() ; aK++)
+    {
+            MMVII_INTERNAL_ASSERT_tiny(aV[aK-1]<=aV[aK],"AssertSorted");
+    }
+}
+#define ASSERT_SORTED(V) {AssertSorted(V);}
+template <class Type> void AssertInRange(const std::vector<Type> & aVect,const Type & aSz)
+{
+     for (const auto &  aV : aVect)
+         MMVII_INTERNAL_ASSERT_tiny(aV<aSz,"AssertInRange");
+}
+#define ASSERT_IN_RANGE(VEC,SZ) {AssertInRange(VEC,SZ);}
+#else
+#define ASSERT_SORTED(V) {}
+#define ASSERT_IN_RANGE(VEC,SZ) {}
+#endif
+
+
 void  ErrorWarnNone(eLevelCheck aLevel,const std::string & aMes);
 /*
 {

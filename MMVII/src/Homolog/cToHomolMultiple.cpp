@@ -1,6 +1,7 @@
 #include "MMVII_2Include_Tiling.h"
-#include "MMVII_MMV1Compat.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_MeasuresIm.h"
+#include "MMVII_UtiSort.h"
 
 /**
    \file  cImplemConvertHom
@@ -16,186 +17,11 @@ namespace MMVII
 class cOneImMEff2MP;
 class cMemoryEffToMultiplePoint;
 
-/*  ************************************************* */
-/*                                                    */
-/*      CLASS/METHOD of general ineterest that will   */
-/*   put in headers (later)                           */
-/*                                                    */
-/*  ************************************************* */
-
-template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
-{
-    size_t aNb=aMap.size();
-    // put or read the number
-    AddData(cAuxAr2007("Nb",anAux),aNb);
-    // In input, nb is now intialized, we must set the size of list
-    //
-    if (anAux.Input())
-    {
-       for (size_t aK=0 ; aK<aNb ; aK++)
-       {
-          {
-            cAuxAr2007 anAuxPair("Pair",anAux);
-            TypeKey aKey;
-            AddData(anAuxPair,aKey);
-	    AddData(anAuxPair,aMap[aKey]);
-          }
-       }
-    }
-    else
-    {
-        for (auto & aPair : aMap)
-        {
-            cAuxAr2007 anAuxPair("Pair",anAux);
-            AddData(anAuxPair,const_cast<TypeKey&>(aPair.first));
-            AddData(anAuxPair,const_cast<TypeVal&>(aPair.second));
-	    //AddData(anAuxPair,aPair->second);
-        }
-    }
-}
-
-void TMAP()
-{
-    std::map<std::string,std::vector<cPt2dr>> aMap;
-    aMap["1"] = std::vector<cPt2dr>{{1,1}};
-    aMap["2"] = std::vector<cPt2dr>{{1,1},{2,2}};
-    aMap["0"] = std::vector<cPt2dr>{};
-
-    SaveInFile(aMap,"toto.xml");
-
-    std::map<std::string,std::vector<cPt2dr>> aMap2;
-    ReadFromFile(aMap2,"toto.xml");
-    aMap2["3"] = std::vector<cPt2dr>{{1,1},{2,2},{3,3}};
-    SaveInFile(aMap2,"tata.xml");
-}
-
-
-/**  Methof for sorting simultaneously 2 vector uing lexicographic order => the 2 type must be comparable
-      => maybe in future moe=re efficient implementation using a permutation ?
-*/
-
-template <class T1,class T2>  void Sort2VectLexico(std::vector<T1> &aV1,std::vector<T2> & aV2)
-{
-     MMVII_INTERNAL_ASSERT_tiny(aV1.size()==aV2.size(),"Diff size in Sort2V");
-
-     std::vector<std::pair<T1,T2> > aV12;
-
-     for (size_t aK=0 ; aK<aV1.size() ; aK++)
-         aV12.push_back(std::pair<T1,T2>(aV1.at(aK),aV2.at(aK)));
-
-     std::sort(aV12.begin(),aV12.end());
-     // std::sort(aV12.begin(),aV12.end(),[](const auto &aP1,const auto & aP2){return aP1.first < aP2.first;});
-
-     for (size_t aK=0 ; aK<aV1.size() ; aK++)
-     {
-          aV1.at(aK) = aV12.at(aK).first;
-          aV2.at(aK) = aV12.at(aK).second;
-     }
-}
-
-/**  Methof for sorting simultaneously 2 vector using only first vector; only first type must be comparible,
-       and order among equivalent first value is undefined
-      => maybe in future moe=re efficient implementation using a permutation ?
-*/
-
-template <class T1,class T2>  void Sort2VectFirstOne(std::vector<T1> &aV1,std::vector<T2> & aV2)
-{
-     MMVII_INTERNAL_ASSERT_tiny(aV1.size()==aV2.size(),"Diff size in Sort2V");
-
-     std::vector<std::pair<T1,T2> > aV12;
-
-     for (size_t aK=0 ; aK<aV1.size() ; aK++)
-         aV12.push_back(std::pair<T1,T2>(aV1.at(aK),aV2.at(aK)));
-
-     std::sort(aV12.begin(),aV12.end(),[](const auto &aP1,const auto & aP2){return aP1.first < aP2.first;});
-
-     for (size_t aK=0 ; aK<aV1.size() ; aK++)
-     {
-          aV1.at(aK) = aV12.at(aK).first;
-          aV2.at(aK) = aV12.at(aK).second;
-     }
-}
-
-
-
-/**  Assure that P0,P1 are non empty box, using a minimum changes
-*/
-
-void  MakeBoxNonEmptyWithMargin(cPt2dr & aP0 ,cPt2dr & aP1,tREAL8 aStdMargin,tREAL8 aMarginSemiEmpty,tREAL8 aMarginEmpty)
-{
-     cPt2dr aSz = aP1-aP0;
-
-     // Different Precaution for box empty
-     if (aSz==cPt2dr(0,0))
-        aSz = cPt2dr(aMarginEmpty,aMarginEmpty);
-     else if (aSz.x()==0)
-        aSz =  cPt2dr(aSz.y()*aMarginSemiEmpty,0.0);
-     else if (aSz.y()==0)
-        aSz =  cPt2dr(0.0,aSz.x()*aMarginSemiEmpty);
-     else
-        aSz = aSz * aStdMargin;
-
-     aP0 += -aSz;
-     aP1 +=  aSz;
-}
-
-template <class Type,const int Dim> bool  PtLexCompare(const cPtxd<Type,Dim> & aP1,const cPtxd<Type,Dim> & aP2)
-{
-	return std::lexicographical_compare(aP1.PtRawData(),aP1.PtRawData()+Dim,aP2.PtRawData(),aP2.PtRawData()+Dim);
-}
-
-template <class Type,const int Dim>  
-         bool VPtLexCompare (const std::vector<cPtxd<Type,Dim>> & aV1,const std::vector<cPtxd<Type,Dim>> & aV2)
-{
-	return  std::lexicographical_compare(aV1.begin(),aV1.end(),aV2.begin(),aV2.end(),PtLexCompare<Type,Dim>);
-}
-#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
-template <class Type>  void AssertSorted(const std::vector<Type> & aV)
-{
-    for (size_t aK=1 ; aK<aV.size() ; aK++)
-    {
-	    MMVII_INTERNAL_ASSERT_tiny(aV[aK-1]<=aV[aK],"AssertSorted");
-    }
-}
-#define ASSERT_SORTED(V) {AssertSorted(V);}
-template <class Type> void AssertInRange(const std::vector<Type> & aVect,const Type & aSz)
-{
-     for (const auto &  aV : aVect)
-         MMVII_INTERNAL_ASSERT_tiny(aV<aSz,"AssertInRange");
-}
-#define ASSERT_IN_RANGE(VEC,SZ) {AssertInRange(VEC,SZ);}
-
-
-#else
-#define ASSERT_SORTED(V) {}
-#define ASSERT_IN_RANGE(VEC,SZ) {}
-#endif
-
-/*  ************************************************* */
-/*                                                    */
-/*           class That Will be exported              */
-/*   specifically for multiple tie points             */
-/*                                                    */
-/*  ************************************************* */
-
-
-
-class cSetMultipleTiePoints
-{
-     public :
-        typedef std::vector<int>     tConfigIm;
-        typedef std::vector<cPt2dr>  tPtsOfConfig;
-        cSetMultipleTiePoints(const  std::vector<std::string> & aVNames);
-
-	void AddPMul(const tConfigIm&,const std::vector<cPt2dr> &);
-
-	void  AddData(const cAuxAr2007 & anAux);
-
-	void TestEq(cSetMultipleTiePoints &) const;
-     private  :
-        std::vector<std::string>          mVNames;
-	std::map<tConfigIm,tPtsOfConfig>  mPts;
-};
+/* ***************************************************** */
+/*                                                       */
+/*                  cSetMultipleTiePoints                */
+/*                                                       */
+/* ***************************************************** */
 
 cSetMultipleTiePoints::cSetMultipleTiePoints(const std::vector<std::string> & aVNames) :
     mVNames (aVNames)
@@ -220,21 +46,39 @@ void cSetMultipleTiePoints::TestEq(cSetMultipleTiePoints &aS2) const
 
     for (const auto  &  aP1 : aMapPts1)
     {
-        const auto & aItP2 =  aMapPts2.find(aP1.first);
+        const auto & aConfig = aP1.first;
+        const auto & aItP2 =  aMapPts2.find(aConfig);
         MMVII_INTERNAL_ASSERT_tiny( aItP2!=aMapPts2.end() ,"SetMultipleTiePoints::TestEq");
 
-        tPtsOfConfig aVPts1 = aP1.second;
-        tPtsOfConfig aVPts2 = aItP2->second;
-
-        StdOut()  << VPtLexCompare(aVPts1,aVPts2) << VPtLexCompare(aVPts2,aVPts1) << aVPts1 << " " << aVPts2 << "\n";
-
-        MMVII_INTERNAL_ASSERT_tiny(VPtLexCompare(aVPts1,aVPts2)==0 ,"SetMultipleTiePoints::TestEq");
-        MMVII_INTERNAL_ASSERT_tiny(VPtLexCompare(aVPts2,aVPts1)==0 ,"SetMultipleTiePoints::TestEq");
-
+	auto aVPMul1 = PUnMixed(aConfig,true);
+	auto aVPMul2 = aS2.PUnMixed(aConfig,true);
+        MMVII_INTERNAL_ASSERT_tiny(aVPMul1==aVPMul2,"SetMultipleTiePoints::TestEq");
     }
 }
 
+std::vector<typename cSetMultipleTiePoints::tPtsOfConfig > cSetMultipleTiePoints::PUnMixed(const tConfigIm & aConfigIm,bool Sorted) const
+{
+    const auto & anIt  = mPts.find(aConfigIm);
+    const auto & aVPts = anIt->second;
+    MMVII_INTERNAL_ASSERT_tiny(anIt!=mPts.end(),"cSetMultipleTiePoints::SortedPtsOf");
 
+    size_t aMult = aConfigIm.size();
+    size_t aNbPMul = aVPts.size() / aMult;
+
+    std::vector<tPtsOfConfig> aRes(aNbPMul);
+
+    for (size_t aK=0 ; aK<aNbPMul ; aK++)
+    {
+        aRes.at(aK) = tPtsOfConfig(aVPts.begin()+aK*aMult,aVPts.begin()+(aK+1)*aMult);
+    }
+
+    if (Sorted)
+    {
+         std::sort(aRes.begin(),aRes.end());
+    }
+
+    return aRes;
+}
 
 
 /*********************************************************************/
@@ -390,8 +234,8 @@ void cTopoMMP::ComputeOk(cSetMultipleTiePoints & aRes,const std::vector<cOneImME
 	 }
     }
 
-    aRes.AddPMul(aVIm,aVPts);
-
+    if (mOk)
+       aRes.AddPMul(aVIm,aVPts);
 }
 
 /**
@@ -896,8 +740,8 @@ bool operator < (cMultiplePt &aPM1,cMultiplePt &aPM2)
     if (aPM1.mNumIm < aPM2.mNumIm) return true;
     if (aPM1.mNumIm > aPM2.mNumIm) return false;
 
-    if (VPtLexCompare(aPM1.mVPts,aPM2.mVPts)) return true;
-    if (VPtLexCompare(aPM2.mVPts,aPM1.mVPts)) return false;
+    if (aPM1.mVPts<aPM2.mVPts) return true;
+    if (aPM2.mVPts>aPM1.mVPts) return false;
 
     return false;
 }
@@ -958,6 +802,7 @@ class cSimulHom : public  cInterfImportHom
          int               mNbPts;
          int               mMaxCard;
 	 bool              mDebug;
+	 int               mKPts;
 };
 
 
@@ -981,8 +826,10 @@ cSimulHom::cSimulHom(int aNbImage,int aNbPts,int aMaxCard,bool Debug) :
     mNbImage  (aNbImage),
     mNbPts    (aNbPts),
     mMaxCard  (aMaxCard),
-    mDebug    (Debug)
+    mDebug    (Debug),
+    mKPts     (0)
 {
+    if (mDebug) StdOut() << "Ddddddddddddddddddddddddddddddeeeeeeeeeeeeebugggggggggggggggg cSimulHom::cSimulHom\n";
     for (int aK=0 ; aK<aNbImage ; aK++)
     {
          mVIm.push_back(new cImage(aK));
@@ -1006,12 +853,24 @@ cMultiplePt cSimulHom::GenMulTieP()
 
     // 2- Compute  set of images
     for (const auto & aNI :  aRes.mNumIm )
-        aRes.mVPts.push_back(mVIm.at(aNI)->mGenPts.GetNewPoint());
+    {
+        if (false)
+	{
+           aRes.mVPts.push_back(cPt2dr(mKPts,mKPts));
+           mKPts++;
+	}
+	else
+	{
+            aRes.mVPts.push_back(mVIm.at(aNI)->mGenPts.GetNewPoint());
+	}
+    }
 
     if (mDebug) 
     {
        StdOut() << "NumIms=" << aRes.mNumIm  << "\n";
     }
+
+
     return aRes;
 }
 
@@ -1106,16 +965,21 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
     cSetMultipleTiePoints aSetMTP1(aSimH.VNames());
     cSetMultipleTiePoints aSetMTP2(aSimH.VNames());
 
+    int aCptErr = 0;
     for (int aKPts=0 ; aKPts<aNbPts ; aKPts++)
     {
         cMultiplePt aMTP = aSimH.GenMulTieP();
 	aMTP.Sort();
 
-	//if (DoIt)
-	    //aMTP.Show();
-
-	aSetMTP1.AddPMul(aMTP.mNumIm,aMTP.mVPts);
-	aSimH.GenEdges(aMTP,false);
+	aSimH.GenEdges(aMTP,true);
+	if (! aMTP.mGotEr)
+	{
+	   aSetMTP1.AddPMul(aMTP.mNumIm,aMTP.mVPts);
+	}
+	else
+	{
+           aCptErr++;
+	}
     }
 
     if (DoIt)
@@ -1133,34 +997,25 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
 void Bench()
 {
 
-	/*
-     for (int aK=0 ; aK<10000 ; aK++)
-     {
-          OneBench(4,2,4,true); //(aK==16));
-     }
-     */
-    // OneBench(10,8,4);
-	/*
      for (int aK=0 ; aK<100 ; aK++)
      {
-	  //StdOut() << "k=" << aK << "\n";
+          OneBench(4,2,4,true);
+     }
+     for (int aK=0 ; aK<100 ; aK++)
+     {
           OneBench(10,RandInInterval(3,50),4,true); //(aK==16));
      }
-    // OneBench(10,8,4);
-     //OneBench(10,40,4);
 
     for (int aK=0 ; aK<100 ; aK++)
     {
-        // StdOut() << "k=" << aK << "\n";
         int aNbIm = RandInInterval(3,50);
         OneBench(aNbIm,40,std::min(aNbIm,6),true);
     }
-    */
 }
 
 };
 
-void Fonc1()
+void PiegeACon()
 {
        int i0=0; int i1=1;
        std::vector<int *> aVPtrA{&i0,&i1};
@@ -1177,10 +1032,6 @@ void Fonc1()
 void Bench_ToHomMult(cParamExeBench & aParam)
 {
    if (! aParam.NewBench("HomMult")) return;
-
-   // TMAP(); getchar();
-   // Fonc1(); Fonc2(); getchar();
-
 
    NS_BenchMergeHomol::Bench();
 

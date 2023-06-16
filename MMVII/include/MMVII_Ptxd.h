@@ -724,6 +724,12 @@ template <class Type,const int Dim>  class cTplBox
 
 };
 
+
+/**  Assure that P0,P1 are non empty box, using a minimum changes */
+template <const int Dim> void  MakeBoxNonEmptyWithMargin(cPtxd<tREAL8,Dim>&P0 , cPtxd<tREAL8,Dim> & aP1, 
+		                                         tREAL8 aStdMargin,tREAL8 aMarginSemiEmpty,tREAL8 aMarginEmpty);
+
+
 // template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & );
 // template <const int Dim>  cTplBox<int,Dim> ToI(const  cTplBox<tREAL8,Dim> & );
 

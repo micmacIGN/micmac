@@ -1054,7 +1054,46 @@ template <class Type>
 }
 
 
+template <const int Dim>
+    void  MakeBoxNonEmptyWithMargin
+          (
+              cPtxd<tREAL8,Dim> & aP0 ,
+              cPtxd<tREAL8,Dim> & aP1,
+              tREAL8 aStdMargin,tREAL8 aMarginSemiEmpty,tREAL8 aMarginEmpty
+         )
+{
+    cPtxd<tREAL8,Dim> aSz = aP1-aP0;
 
+    tREAL8 aMinDnn = 1.0;
+    int aNbNN = 0;
+    for (int aD=0 ; aD<Dim ; aD++)
+    {
+        if (aSz[aD] != 0)
+        {
+            UpdateMin(aMinDnn,aSz[aD]);
+            aNbNN++;
+        }
+    }
+
+    if (aNbNN==Dim)
+       aSz = aSz * aStdMargin;
+    else if (aNbNN==0)
+    {
+       aSz= cPtxd<tREAL8,Dim>::PCste(aMarginEmpty);
+    }
+    else
+    {
+        for (int aD=0 ; aD<Dim ; aD++)
+        {
+            if (aSz[aD] == 0)
+            {
+                aSz[aD] = aMinDnn * aMarginSemiEmpty;
+            }
+        }
+    }
+    aP0 += -aSz;
+    aP1 +=  aSz;
+}
 
 /* ========================== */
 /*       cTpxBoxOfPts         */
@@ -1290,6 +1329,7 @@ template  int NbPixVign(const cPtxd<int,DIM> & aVign);\
 template class cDataGenUnTypedIm<DIM>;\
 template <> const cPixBox<DIM> cPixBox<DIM>::TheEmptyBox(cPtxd<int,DIM>::PCste(0),cPtxd<int,DIM>::PCste(0),true);
 
+template void MakeBoxNonEmptyWithMargin(cPtxd<tREAL8,2>&,cPtxd<tREAL8,2>&,tREAL8,tREAL8,tREAL8);
 
 /*
 void F()
