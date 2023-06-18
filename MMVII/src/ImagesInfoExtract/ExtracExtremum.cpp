@@ -606,7 +606,7 @@ void OneBenchExtrem(const cPt2di & aSz,int aNbLab,int aSzMaj,double aRay)
                        {
                           std::vector<int> aVImQ1({aVQ1,0,aQ.x(),aQ.y()});
                           // Make lexicall comparison
-                          int  aCmp1 = LexicoCmp(aVImP,aVImQ1);
+                          int  aCmp1 = VecLexicoCmp(aVImP,aVImQ1);
                           if (aCmp1==1)
                           {
                               IsMin1 = false;
@@ -622,8 +622,8 @@ void OneBenchExtrem(const cPt2di & aSz,int aNbLab,int aSzMaj,double aRay)
                           int aSign = 1;  // To facilitate swap
                           std::vector<int> aVImQ0({aVQ0,aSign,aQ.x(),aQ.y()});
                           std::vector<int> aVImQ2({aVQ2,-aSign,aQ.x(),aQ.y()});
-                          int  aCmp0 = LexicoCmp(aVImP,aVImQ0);
-                          int  aCmp2 = LexicoCmp(aVImP,aVImQ2);
+                          int  aCmp0 = VecLexicoCmp(aVImP,aVImQ0);
+                          int  aCmp2 = VecLexicoCmp(aVImP,aVImQ2);
 
                           if ((aCmp0==1) || (aCmp2==1))
                           {

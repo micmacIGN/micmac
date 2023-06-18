@@ -257,7 +257,59 @@ class cSetHomogCpleIm
 
 void AddData(const  cAuxAr2007 & anAux,cSetHomogCpleIm &);
 
+/**  Interface class  for importing homolog point in  MMVII from : MMV1 , simulation, MMVII (to come ...)
+*/
 
+class cInterfImportHom : public cMemCheck
+{
+      public :
+          virtual void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const = 0;
+          virtual bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const = 0;
+
+          static cInterfImportHom *  CreateImportV1(const std::string & aDir,const std::string & aSubDir,const std::string & aExt="dat") ;
+
+      private :
+
+          // std::string  mDirGlob;
+          // std::string  mExtIn;
+          // std::string  mExt;
+          // std::string  mKHIn;
+          // cElemAppliSetFile                 mEASF;
+          // cInterfChantierNameManipulateur * mICNM ;
+};
+
+
+/**   This class store multiple homologous point, ie after fusion of  
+ *    points computed by pair of images
+ */
+
+class cSetMultipleTiePoints
+{
+     public :
+        typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
+        typedef std::vector<cPt2dr>  tPtsOfConfig;
+
+        cSetMultipleTiePoints(const  std::vector<std::string> & aVNames);
+
+	/// Data allow to iterate on multiple points
+        const std::map<tConfigIm,tPtsOfConfig> &  Pts() const;
+
+	/// Method use in construction
+        void AddPMul(const tConfigIm&,const std::vector<cPt2dr> &);
+
+	/// Serialization, to see later
+        void  AddData(const cAuxAr2007 & anAux);
+
+	/// Used in bench to compare fusion with simulation
+        void TestEq(cSetMultipleTiePoints &) const;
+
+	/// From a linear vector to set of vector, for easiness of manip, but to avoid in efficient use
+        std::vector<tPtsOfConfig > PUnMixed(const tConfigIm &,bool Sorted) const;
+
+     private  :
+        std::vector<std::string>          mVNames;
+        std::map<tConfigIm,tPtsOfConfig>  mPts;
+};
 
 
 

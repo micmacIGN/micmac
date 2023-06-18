@@ -14,6 +14,18 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+	/*
+class cRadiomVignettageRadial
+{
+      public :
+             cRadiomVignettageRadial(int aDegRad);
+      private :
+	     int mDegRad;
+};
+
+*/
+
+
 /**  Class for calibration of radiometry 
  *
  *    Rad/F (1+K1 r2 + K2 r2 ^2 ...) = Albedo
