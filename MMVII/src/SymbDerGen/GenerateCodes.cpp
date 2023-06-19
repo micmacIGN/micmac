@@ -181,6 +181,12 @@ cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aS
     return StdAllocCalc(NameFormula(cRadiomVignettageLinear(aNbDeg),WithDerive),aSzBuf);
 }
 
+cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormula(cRadiomCalibRadSensor(aNbDeg),WithDerive),aSzBuf);
+}
+
+
      //=============   Tuto/Bench/Network ============
 
      //    Cons distance
@@ -612,6 +618,10 @@ int cAppliGenCode::Exe()
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
+
+
+       GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(5)       ,WithDer);
+
        
        GenCodesFormula((tREAL8*)nullptr,cDeformImAffinity()       ,WithDer);
    }
