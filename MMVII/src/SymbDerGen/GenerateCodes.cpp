@@ -176,15 +176,26 @@ cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,boo
 }
 
      //    Radiometry
-cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf)
-{ 
-    return StdAllocCalc(NameFormula(cRadiomVignettageLinear(aNbDeg),WithDerive),aSzBuf);
-}
 
 cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf)
 { 
     return StdAllocCalc(NameFormula(cRadiomCalibRadSensor(aNbDeg),WithDerive),aSzBuf);
 }
+
+cCalculator<double> * EqRadiomCalibPolIma(int aNbDeg,bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormula(cRadiomCalibPolIma(aNbDeg),WithDerive),aSzBuf);
+}
+cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormula(cRadiomEqualisation(aDegSens,aDegIm),WithDerive),aSzBuf);
+}
+
+      // To delete soon
+      cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf)
+      { 
+          return StdAllocCalc(NameFormula(cRadiomVignettageLinear(aNbDeg),WithDerive),aSzBuf);
+      }
 
 
      //=============   Tuto/Bench/Network ============
@@ -617,10 +628,12 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cTopoSubFrame(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
+
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
-
-
        GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(5)       ,WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(0)       ,WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(1)       ,WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(2)       ,WithDer);
 
        
        GenCodesFormula((tREAL8*)nullptr,cDeformImAffinity()       ,WithDer);

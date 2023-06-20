@@ -14,7 +14,27 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
-class cRadiomCalibRadSensor
+class cRadiomFormulas
+{
+      public :
+          static std::vector<std::string> VNamesObs()  { return {"xIm","yIm","Cx","Cy","NormR"}; }
+
+          template <typename tObs> std::vector<tObs> CoordNom ( const std::vector<tObs> & aVObs,int aK0Obs)  const
+          {
+                const auto & xIm   = aVObs[aK0Obs+0];
+                const auto & yIm   = aVObs[aK0Obs+1];
+                const auto & Cx    = aVObs[aK0Obs+2];
+                const auto & Cy    = aVObs[aK0Obs+3];
+                const auto & NormR = aVObs[aK0Obs+4];
+
+		auto aXRed =(xIm-Cx) / NormR;
+		auto aYRed =(yIm-Cy) / NormR;
+
+                return  {aXRed,aYRed};
+          }
+};
+
+class cRadiomCalibRadSensor : public cRadiomFormulas
 {
       public :
           cRadiomCalibRadSensor(int aDegRad) :
@@ -29,7 +49,7 @@ class cRadiomCalibRadSensor
                   aRes.push_back("K"+ToStr(aK));
               return aRes;
           }
-          std::vector<std::string> VNamesObs()  const     { return {"xIm","yIm","Cx","Cy","NormR"}; }
+          // static std::vector<std::string> VNamesObs()  { return RF_NameObs();}
 
 
           std::string FormulaName() const { return "RadiomCalibRadSensor_" + ToStr(mDegRad);}
@@ -38,36 +58,37 @@ class cRadiomCalibRadSensor
              std::vector<tUk> formula
                   (
                       const std::vector<tUk> & aVUk,
-                      const std::vector<tObs> & aVObs
+                      const std::vector<tObs> & aVObs,
+                      int   aK0Uk   = 0,
+                      int   aK0Obs  = 0
                   )  const
           {
-                const auto & xIm   = aVObs[0];
-                const auto & yIm   = aVObs[1];
-                const auto & Cx    = aVObs[2];
-                const auto & Cy    = aVObs[3];
-                const auto & NormR = aVObs[4];
 
-		auto aR2N = (  Square(xIm-Cx)+Square(yIm-Cy) ) /  Square(NormR);
+                auto xyNorm = CoordNom (aVObs,aK0Obs);
+		auto aR2N   = Square(xyNorm.at(0))+Square(xyNorm.at(1)) ;
 
-	        tUk aCst1         = CreateCste(1.0,xIm);  // create a symbolic formula for constant 1
+	        tUk aCst1         = CreateCste(1.0,xyNorm.at(0));  // create a symbolic formula for constant 1
 	        tUk aPowR2        = aCst1;
 		tUk  aCorrec      = aCst1;
 
 	        for  (int aK=0 ; aK<mDegRad ; aK++)
 	        {
                     aPowR2 = aPowR2 * aR2N;
-                    aCorrec = aCorrec + aPowR2*aVUk[aK];
+                    aCorrec = aCorrec + aPowR2*aVUk[aK+aK0Uk];
 	        }
 
 		return {aCorrec};
 	  }
 
 
+          int DegRad() const {return mDegRad;}
+
+
       private :
           int mDegRad;
 };
 
-class cRadiomCalibPolIma
+class cRadiomCalibPolIma  : public cRadiomFormulas
 {
       public :
           cRadiomCalibPolIma  (int aDegIm) :
@@ -83,10 +104,69 @@ class cRadiomCalibPolIma
                        aRes.push_back("DIm_"+ToStr(aDx) + "_" + ToStr(aDy));
               return aRes;
           }
-          std::vector<std::string> VNamesObs()  const     { return {"xIm","yIm","Cx","Cy","NormR"}; }
+
+          std::string FormulaName() const { return "RadiomCalibPolIm_" + ToStr(mDegIm);}
+
+          template <typename tUk,typename tObs> 
+             std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs,
+                      int   aK0Uk  = 0,
+                      int   aK0Obs = 0
+                  )  const
+          {
+                auto  aVec = CoordNom (aVObs,aK0Obs);
+                const auto & aXRed = aVec.at(0);
+                const auto & aYRed = aVec.at(1);
+	        tUk aCst0         = CreateCste(0.0,aXRed);  // create a symbolic formula for constant 1
+		int aKPol = 0;
+		tUk  aCorrec      = aCst0;
+
+                for (int aDx=0 ; aDx<= mDegIm ; aDx++)
+		{
+                    for (int aDy=0 ; (aDy+aDx)<= mDegIm ; aDx++)
+		    {
+                         aCorrec = aCorrec + aVUk[aKPol+aK0Obs] *powI(aXRed,aDx) *  powI(aYRed,aDy) ;
+			 aKPol++;
+		    }
+		}
+
+		return {aCorrec};
+	  }
+          int DegIm () const {return mDegIm;}
 
 
-          std::string FormulaName() const { return "RadiomCalibRadSensor_" + ToStr(mDegIm);}
+      private :
+          int mDegIm;
+};
+
+
+class cRadiomEqualisation 
+{
+      public :
+          cRadiomEqualisation(int aDegSens,int aDegIm) :
+              mK0Sens  (1),
+              mCalSens (aDegSens),
+              mK0CalIm (1+mCalSens.VNamesUnknowns().size()),
+              mCalIm   (aDegIm),
+              mK0Obs   (1)
+          {
+          }
+          std::vector<std::string> VNamesUnknowns() const 
+          {
+              return Append({"Albedo"},Append(mCalSens.VNamesUnknowns(),mCalIm.VNamesUnknowns()));
+          }
+          std::string FormulaName() const 
+          { 
+                 return   "RadiomEqualisation_" 
+                        + ToStr(mCalSens.DegRad()) + "_"
+                        + ToStr(mCalIm.DegIm());
+          }
+          static std::vector<std::string> VNamesObs()  
+          { 
+              return Append({"RadIm"},cRadiomFormulas::VNamesObs());
+          }
 
           template <typename tUk,typename tObs> 
              std::vector<tUk> formula
@@ -95,39 +175,22 @@ class cRadiomCalibPolIma
                       const std::vector<tObs> & aVObs
                   )  const
           {
-                const auto & xIm   = aVObs[0];
-                const auto & yIm   = aVObs[1];
-                const auto & Cx    = aVObs[2];
-                const auto & Cy    = aVObs[3];
-                const auto & NormR = aVObs[4];
+               const auto & aAlbedo = aVUk[0];
+               const auto & aRadIm = aVObs[0];
+               auto aCorrecSens = mCalSens.formula(aVUk,aVObs,mK0Sens ,mK0Obs);
+               auto aCorrecIm   = mCalIm.formula (aVUk,aVObs ,mK0CalIm,mK0Obs);
 
-		auto aXRed =(xIm-Cx) / NormR;
-		auto aYRed =(yIm-Cy) / NormR;
-	        tUk aCst0         = CreateCste(0.0,xIm);  // create a symbolic formula for constant 1
-		int aKPol = 0;
-		tUk  aCorrec      = aCst0;
-
-                for (int aDx=0 ; aDx<= mDegIm ; aDx++)
-		{
-                    for (int aDy=0 ; (aDy+aDx)<= mDegIm ; aDx++)
-		    {
-                         aCorrec = aCorrec + aVUk[aKPol] *powI(aXRed,aDx) *  powI(aYRed,aDy) ;
-			 aKPol++;
-		    }
-		}
-
-		return {aCorrec};
-	  }
-
-
+               return {aRadIm / aCorrecSens - aAlbedo * aCorrecIm };
+          }
+            
       private :
-          int mDegIm;
+
+          int                     mK0Sens;
+          cRadiomCalibRadSensor   mCalSens;
+          int                     mK0CalIm;
+          cRadiomCalibPolIma      mCalIm;
+          int                     mK0Obs;
 };
-
-
-
-
-
 
 
 
