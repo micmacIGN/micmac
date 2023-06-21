@@ -145,27 +145,36 @@ class cRadiomCalibPolIma  : public cRadiomFormulas
 class cRadiomEqualisation 
 {
       public :
-          cRadiomEqualisation(int aDegSens,int aDegIm) :
-              mK0Sens  (1),
+          typedef std::vector<std::string> tVStr;
+
+          cRadiomEqualisation(bool is4Eq,int aDegSens,int aDegIm) :
+              m4Eq     (is4Eq),
+              mOwnUK   (m4Eq ? tVStr({"Albedo"}) : tVStr({""}) ),
+              mOwnObs  (m4Eq ? tVStr({"RadIm"})  : tVStr({""}) ),
+              mK0Sens  (mOwnUK.size()),
               mCalSens (aDegSens),
-              mK0CalIm (1+mCalSens.VNamesUnknowns().size()),
+              mK0CalIm (mK0Sens+mCalSens.VNamesUnknowns().size()),
               mCalIm   (aDegIm),
-              mK0Obs   (1)
+              mK0Obs   (mOwnObs.size())
           {
           }
-          std::vector<std::string> VNamesUnknowns() const 
+
+          tVStr VNamesUnknowns() const 
           {
-              return Append({"Albedo"},Append(mCalSens.VNamesUnknowns(),mCalIm.VNamesUnknowns()));
+              //  Albedo?   K0 K1 K2 ...   D_Im00  D_Im01 ... 
+              return Append(mOwnUK,Append(mCalSens.VNamesUnknowns(),mCalIm.VNamesUnknowns()));
           }
+          tVStr VNamesObs()  const
+          { 
+              //  RadIm?    xIm  yIm Cx Cy R
+              return Append(mOwnObs,cRadiomFormulas::VNamesObs());
+          }
+
           std::string FormulaName() const 
           { 
-                 return   "RadiomEqualisation_" 
+                 return   (m4Eq ? "RadiomEqualisation_"  : "RadiomCorrected_") 
                         + ToStr(mCalSens.DegRad()) + "_"
                         + ToStr(mCalIm.DegIm());
-          }
-          static std::vector<std::string> VNamesObs()  
-          { 
-              return Append({"RadIm"},cRadiomFormulas::VNamesObs());
           }
 
           template <typename tUk,typename tObs> 
@@ -175,24 +184,33 @@ class cRadiomEqualisation
                       const std::vector<tObs> & aVObs
                   )  const
           {
-               const auto & aAlbedo = aVUk[0];
-               const auto & aRadIm = aVObs[0];
-               auto aCorrecSens = mCalSens.formula(aVUk,aVObs,mK0Sens ,mK0Obs);
-               auto aCorrecIm   = mCalIm.formula (aVUk,aVObs ,mK0CalIm,mK0Obs);
+               auto aCorrecSens = mCalSens.formula(aVUk,aVObs,mK0Sens ,mK0Obs).at(0);
+               auto aCorrecIm   = mCalIm.formula  (aVUk,aVObs,mK0CalIm,mK0Obs).at(0);
+               if (m4Eq)
+               {
+                    const auto & aAlbedo = aVUk[0];
+                    const auto & aRadIm = aVObs[0];
 
-               return {aRadIm / aCorrecSens - aAlbedo * aCorrecIm };
+                    return {aRadIm / aCorrecSens - aAlbedo * aCorrecIm };
+               }
+               else
+               {
+                     return {aCorrecSens * aCorrecIm};
+               }
           }
-            
       private :
-
-          int                     mK0Sens;
-          cRadiomCalibRadSensor   mCalSens;
-          int                     mK0CalIm;
-          cRadiomCalibPolIma      mCalIm;
-          int                     mK0Obs;
+          bool                       m4Eq;
+          tVStr                      mOwnUK;
+          tVStr                      mOwnObs;
+          int                        mK0Sens;
+          cRadiomCalibRadSensor      mCalSens;
+          int                        mK0CalIm;
+          cRadiomCalibPolIma         mCalIm;
+          int                        mK0Obs;
 };
 
 
+// static std::vector<std::string> VNamesObs()  { return {"xIm","yIm","Cx","Cy","NormR"}; }
 
 /**  Class for calibration of radiometry 
  *

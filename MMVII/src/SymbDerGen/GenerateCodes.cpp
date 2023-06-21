@@ -30,6 +30,26 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
+class cPreProcessRadiom
+{
+    public :
+        cPreProcessRadiom(const cPerspCamIntrCalib &);
+        const std::vector<tREAL8> & VObs();
+
+    private :
+        const cPerspCamIntrCalib *  mCal;
+        std::vector<tREAL8>         mVObs;
+};
+
+
+
+  /****************************************************/
+  /****************************************************/
+  /****************************************************/
+  /****************************************************/
+
+
 extern const std::vector<cPt3di>  TheVectDegree;
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
@@ -188,7 +208,7 @@ cCalculator<double> * EqRadiomCalibPolIma(int aNbDeg,bool WithDerive,int aSzBuf)
 }
 cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf)
 { 
-    return StdAllocCalc(NameFormula(cRadiomEqualisation(aDegSens,aDegIm),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cRadiomEqualisation(true,aDegSens,aDegIm),WithDerive),aSzBuf);
 }
 
       // To delete soon
@@ -630,10 +650,29 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
-       GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(5)       ,WithDer);
-       GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(0)       ,WithDer);
-       GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(1)       ,WithDer);
-       GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(2)       ,WithDer);
+       std::vector<int>  aVDegSens {5};
+       std::vector<int>  aVDegIm   {0,1,2};
+
+       for (auto  aDegIm : aVDegIm)
+       {
+           GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(aDegIm)       ,WithDer);
+       }
+       for (auto  aDegSens : aVDegSens)
+       {
+           GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(aDegSens)       ,WithDer);
+
+           for (const auto & aDegIm : {0,1,2})
+           {
+               bool ForEqual = true;
+               GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(ForEqual,aDegSens,aDegIm)       ,WithDer);
+           }
+            
+/*
+           GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(0)       ,WithDer);
+           GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(1)       ,WithDer);
+           GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(2)       ,WithDer);
+*/
+       }
 
        
        GenCodesFormula((tREAL8*)nullptr,cDeformImAffinity()       ,WithDer);
