@@ -141,7 +141,6 @@ class cDataRadialCRS
            cPt2dr                 mCenter;    ///< Center of symetry
            std::vector<double>    mCoeffRad;  ///< Coeff of radial pol R2 R4 ...
            cPt2di                 mSzPix;     ///< Size in pixel, for info
-           tREAL8                 mScaleNor;  ///< Scale of normalization
 };
 
 /**  class for radial calibration radiometric of sensor , 
