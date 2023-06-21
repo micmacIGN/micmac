@@ -8,6 +8,32 @@
 namespace MMVII
 {
 
+class cPreProcessRadiom
+{
+    public :
+        cPreProcessRadiom(const cPerspCamIntrCalib &);
+        const std::vector<tREAL8> & VObs(const cPt2dr & ) const;
+
+    private :
+        const cPerspCamIntrCalib *          mCal;
+        mutable std::vector<tREAL8>         mVObs;
+};
+
+cPreProcessRadiom::cPreProcessRadiom(const cPerspCamIntrCalib & aCal) :
+     mCal  (&aCal),
+     mVObs ( {0.0,0.0,mCal->PP().x(),mCal->PP().y(),Norm2(mCal->SzPix())}  )
+{
+}
+
+
+const std::vector<tREAL8> & cPreProcessRadiom::VObs(const cPt2dr & aPix ) const
+{
+    mVObs[0] = aPix.x();
+    mVObs[1] = aPix.y();
+
+    return mVObs;
+}
+
 /* ================================================== */
 /*                cCalibRadiomSensor                  */
 /* ================================================== */
@@ -32,8 +58,20 @@ cCalibRadiomSensor * cCalibRadiomSensor::FromFile(const std::string & aNameFile)
    MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine radiom-file mode for :" + aNameFile);
    return nullptr;
 }
-/*
-*/
+
+/* ============================================= */
+/*                  cDataRadialCRS               */
+/* ============================================= */
+
+cDataRadialCRS::cDataRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal) :
+   mNameCal  (aNameCal),
+   mCenter   (aCenter),
+   mCoeffRad (aDegRad,0.0),
+   mSzPix    (aSzPix)
+{
+}
+   
+   
 
 
 /* ================================================== */

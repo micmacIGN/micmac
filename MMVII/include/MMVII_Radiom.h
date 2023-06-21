@@ -4,6 +4,7 @@
 #include "MMVII_AllClassDeclare.h"
 #include "MMVII_memory.h"
 #include "MMVII_Ptxd.h"
+#include "MMVII_SysSurR.h"
 
 
 namespace MMVII
@@ -108,6 +109,7 @@ class cFusionIRDSEt
 /**  Base class for radiometric calibration of a sensor */
 class cCalibRadiomSensor :   public cObj2DelAtEnd,
                              public cMemCheck
+			     // public cObjWithUnkowns<tREAL8>
 {
        public :
            /// constructor, just share the name / identifier
@@ -130,6 +132,17 @@ class cCalibRadiomSensor :   public cObj2DelAtEnd,
            std::string            mNameCal;   ///< Name of file
 };
 
+class cDataRadialCRS
+{
+      public :
+           cDataRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal);
+
+           std::string            mNameCal;   ///< Name of file
+           cPt2dr                 mCenter;    ///< Center of symetry
+           std::vector<double>    mCoeffRad;  ///< Coeff of radial pol R2 R4 ...
+           cPt2di                 mSzPix;     ///< Size in pixel, for info
+           tREAL8                 mScaleNor;  ///< Scale of normalization
+};
 
 /**  class for radial calibration radiometric of sensor , 
      caracterized by a symetry center and a even polynomial 
@@ -149,8 +162,8 @@ class cRadialCRS : public cCalibRadiomSensor
         tREAL8  FlatField(const cPt2dr &) const override;
         std::vector<double> &  CoeffRad();
 
-
     private :
+	// void PutUknowsInSetInterval() override ;
 
         cPt2dr                 mCenter;    ///< Center of symetry
         std::vector<double>    mCoeffRad;  ///< Coeff of radial pol R2 R4 ...

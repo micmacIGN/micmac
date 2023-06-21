@@ -31,17 +31,6 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
-class cPreProcessRadiom
-{
-    public :
-        cPreProcessRadiom(const cPerspCamIntrCalib &);
-        const std::vector<tREAL8> & VObs();
-
-    private :
-        const cPerspCamIntrCalib *  mCal;
-        std::vector<tREAL8>         mVObs;
-};
-
 
 
   /****************************************************/
