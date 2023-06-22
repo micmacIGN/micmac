@@ -7,6 +7,7 @@
 
 namespace MMVII
 {
+#if (0)
 class cComputeCalibRadSensor;  
 class cComputeCalibRadIma ;
 
@@ -577,9 +578,12 @@ int cAppliRadiom2ImageSameMod::Exe()
      /*                       ::                        */
      /* =============================================== */
 
+#endif
+
 tMMVII_UnikPApli Alloc_Radiom2ImageSameMod(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppliRadiom2ImageSameMod(aVArgs,aSpec));
+   // return tMMVII_UnikPApli(new cAppliRadiom2ImageSameMod(aVArgs,aSpec));
+   return tMMVII_UnikPApli(nullptr);
 }
 
 
@@ -593,5 +597,7 @@ cSpecMMVII_Appli  TheSpecRadiom2ImageSameMod
       {eApDT::Radiom},
       __FILE__
 );
+
+
 
 };

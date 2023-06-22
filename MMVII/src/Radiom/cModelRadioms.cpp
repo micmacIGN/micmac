@@ -8,6 +8,7 @@
 namespace MMVII
 {
 
+	/*
 class cPreProcessRadiom
 {
     public :
@@ -33,17 +34,16 @@ const std::vector<tREAL8> & cPreProcessRadiom::VObs(const cPt2dr & aPix ) const
 
     return mVObs;
 }
+*/
 
 /* ================================================== */
 /*                cCalibRadiomSensor                  */
 /* ================================================== */
 
-cCalibRadiomSensor::cCalibRadiomSensor(const std::string & aNameCal) :
-    mNameCal  (aNameCal)
+cCalibRadiomSensor::cCalibRadiomSensor()
 {
 }
 
-const std::string & cCalibRadiomSensor::NameCal() const {return mNameCal;}
 
 void  cCalibRadiomSensor::ToFileIfFirstime(const std::string & aNameFile) const
 {
@@ -59,6 +59,7 @@ cCalibRadiomSensor * cCalibRadiomSensor::FromFile(const std::string & aNameFile)
    return nullptr;
 }
 
+
 /* ============================================= */
 /*                  cDataRadialCRS               */
 /* ============================================= */
@@ -70,68 +71,79 @@ cDataRadialCRS::cDataRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2d
    mSzPix    (aSzPix)
 {
 }
+//
+// === defaut constructor for serialization =============
+cDataRadialCRS::cDataRadialCRS() :
+    cDataRadialCRS(cPt2dr(-1e10,-1e10),0,cPt2di(0,0),"NONE")
+{
+}
+
    
+void  cDataRadialCRS::AddData(const cAuxAr2007 & anAux)
+{
+     MMVII::AddData(cAuxAr2007("Name",anAux)      ,mNameCal);
+     MMVII::AddData(cAuxAr2007("Center",anAux)    ,mCenter);
+     MMVII::AddData(cAuxAr2007("CoeffRad",anAux)  ,mCoeffRad);
+     MMVII::AddData(cAuxAr2007("SzPix",anAux)     ,mSzPix);
+}
    
+void AddData(const cAuxAr2007 & anAux,cDataRadialCRS & aDataRadCRS)
+{
+    aDataRadCRS.AddData(anAux);
+}
 
 
 /* ================================================== */
 /*                    cRadialCRS                      */
 /* ================================================== */
 
-cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal) :
-    cCalibRadiomSensor   (aNameCal),
-    mCenter              (aCenter),
-    mCoeffRad            (aDegRad,0.0),  // create a polynom with null coeff
-    mSzPix               (aSzPix),
-    mScaleNor            (-1.0)
+cRadialCRS::cRadialCRS (const cDataRadialCRS & aData) :
+    cCalibRadiomSensor   (),
+    cDataRadialCRS       (aData)
 {
      if (mSzPix.x() >0)
      {
          cBox2dr aBoxIm(ToR(mSzPix));
          mScaleNor = Square(aBoxIm.DistMax2Corners(mCenter));
+	 mVObs = std::vector<tREAL8>({0,0,mCenter.x(),mCenter.y(),mScaleNor});
      }
 }
-
-// === defaut constructor for serialization =============
-cRadialCRS::cRadialCRS() :
-    cRadialCRS(cPt2dr(-1e10,-1e10),0,cPt2di(0,0),"NONE")
+cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal) :
+    cRadialCRS(cDataRadialCRS(aCenter,aDegRad,aSzPix,aNameCal))
 {
 }
 
-void  cRadialCRS::AddData(const cAuxAr2007 & anAux)
-{
-     MMVII::AddData(cAuxAr2007("Name",anAux)      ,mNameCal);
-     MMVII::AddData(cAuxAr2007("Center",anAux)    ,mCenter);
-     MMVII::AddData(cAuxAr2007("CoeffRad",anAux)  ,mCoeffRad);
-     MMVII::AddData(cAuxAr2007("SzPix",anAux)     ,mSzPix);
-     MMVII::AddData(cAuxAr2007("ScaleNorm",anAux) ,mScaleNor);
-}
-
-void AddData(const cAuxAr2007 & anAux,cRadialCRS & aRCRS)
-{
-    aRCRS.AddData(anAux);
-}
-
-void  cRadialCRS::ToFile(const std::string & aNameFile) const
-{
-      SaveInFile(const_cast<cRadialCRS&>(*this),aNameFile);
-}
 
 cRadialCRS * cRadialCRS::FromFile(const std::string & aNameFile)
 {
-   return RemanentObjectFromFile<cRadialCRS,cRadialCRS>(aNameFile);
+   return RemanentObjectFromFile<cRadialCRS,cDataRadialCRS>(aNameFile);
+}
+
+
+
+void  cRadialCRS::ToFile(const std::string & aNameFile) const
+{
+      SaveInFile(static_cast<const cDataRadialCRS&>(*this),aNameFile);
 }
 
 std::vector<double>& cRadialCRS::CoeffRad() {return mCoeffRad;}
 
-
-tREAL8  cRadialCRS::NormalizedRho2(const cPt2dr & aPt) const
+const std::vector<tREAL8> & cRadialCRS::VObs(const cPt2dr & aPix ) const
 {
-      return SqN2(ToR(aPt)-mCenter) / mScaleNor;
+    mVObs[0] = aPix.x();
+    mVObs[1] = aPix.y();
+
+    return mVObs;
 }
+
+
+
 
 tREAL8  cRadialCRS::FlatField(const cPt2dr & aPt) const
 {
+      MMVII_INTERNAL_ERROR("cRadialCRS::FlatField");
+      return 0;
+	/*
       tREAL8  aRho2 = NormalizedRho2(aPt);
       tREAL8 aSum = 1.0;
       tREAL8 aPowRho2 = 1.0;
@@ -142,7 +154,9 @@ tREAL8  cRadialCRS::FlatField(const cPt2dr & aPt) const
            aSum += aCoeff * aPowRho2;
       }
       return aSum;
+      */
 }
+#if (0)
 
 /* ================================================== */
 /*                  cCalibRadiomIma                   */
@@ -155,6 +169,7 @@ cCalibRadiomIma::cCalibRadiomIma(const std::string & aNameIm) :
 const std::string & cCalibRadiomIma::NameIm() const {return mNameIm;}
 
 cCalibRadiomIma::~cCalibRadiomIma() {}
+const std::string & cCalibRadiomIma::NameIm() const {return mNameIm;}
 
 /* ================================================== */
 /*                  cCalRadIm_Cst                     */
@@ -210,5 +225,7 @@ void  cCalRadIm_Cst::ToFile(const std::string & aNameFile) const
 
     mTmpCalib = "";
 }
+#endif
+
 
 };

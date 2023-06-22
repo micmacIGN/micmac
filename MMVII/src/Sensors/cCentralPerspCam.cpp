@@ -223,7 +223,7 @@ void AddData(const cAuxAr2007 & anAux,cDataPerspCamIntrCalib & aPCIC)
 
 void  cPerspCamIntrCalib::ToFile(const std::string & aNameFile ) const
 {
-    //  make a local copy to have a own for constness
+    //  make a local copy to have a own for constness, BtW Param dist are own by distorsion
     mVTmpCopyParams = VParamDist();
     SaveInFile(static_cast<const cDataPerspCamIntrCalib&>(*this),aNameFile);
 }

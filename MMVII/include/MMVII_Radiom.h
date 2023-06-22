@@ -113,7 +113,7 @@ class cCalibRadiomSensor :   public cObj2DelAtEnd,
 {
        public :
            /// constructor, just share the name / identifier
-           cCalibRadiomSensor(const std::string & aNameCal);
+           cCalibRadiomSensor();
 	   /// Allocator : switch on derived class according to name prefix
            static cCalibRadiomSensor * FromFile(const std::string & aNameFile);
 
@@ -127,15 +127,21 @@ class cCalibRadiomSensor :   public cObj2DelAtEnd,
            virtual tREAL8  FlatField(const cPt2dr &) const =  0;
 
            /// Accessor
-           const std::string & NameCal() const;
+           virtual const std::string & NameCal() const =0;
+
+	    //  Vector of observation, used in equation to compute normalized coordinate
+	    virtual const std::vector<tREAL8> & VObs(const cPt2dr & ) const =0;
+
        protected :
-           std::string            mNameCal;   ///< Name of file
+           // std::string            mNameCal;   ///< Name of file
 };
 
 class cDataRadialCRS
 {
       public :
            cDataRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal);
+           cDataRadialCRS();  ///< usefull for AddData .
+	   void AddData(const cAuxAr2007 & anAux);
 
            std::string            mNameCal;   ///< Name of file
            cPt2dr                 mCenter;    ///< Center of symetry
@@ -146,28 +152,31 @@ class cDataRadialCRS
 /**  class for radial calibration radiometric of sensor , 
      caracterized by a symetry center and a even polynomial 
 */
-class cRadialCRS : public cCalibRadiomSensor
+class cRadialCRS : public cCalibRadiomSensor,
+	           public cDataRadialCRS
 {
     public :
-        cRadialCRS();  ///< usefull for AddData .
         cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string &);
+        cRadialCRS(const cDataRadialCRS&);
 
         void  AddData(const cAuxAr2007 & anAux);
         static cRadialCRS * FromFile(const std::string & aNameFile);
         void ToFile(const std::string & aNameFile) const override;
 
         // normalize coordinate to have non dimensional equarion
-        tREAL8  NormalizedRho2(const cPt2dr & aPt) const;
+        // tREAL8  NormalizedRho2(const cPt2dr & aPt) const;
         tREAL8  FlatField(const cPt2dr &) const override;
         std::vector<double> &  CoeffRad();
 
+         /// Accessor
+        const std::string & NameCal() const override;
+
+	const std::vector<tREAL8> & VObs(const cPt2dr & ) const override;
     private :
 	// void PutUknowsInSetInterval() override ;
 
-        cPt2dr                 mCenter;    ///< Center of symetry
-        std::vector<double>    mCoeffRad;  ///< Coeff of radial pol R2 R4 ...
-        cPt2di                 mSzPix;     ///< Size in pixel, for info
-        tREAL8                 mScaleNor;  ///< Scale of normalization
+        tREAL8                      mScaleNor;  ///< Scale of normalization
+	mutable std::vector<tREAL8> mVObs;
 };
 
 /**  Base-class for calibration of radiometry of each individual image */
