@@ -122,6 +122,10 @@ NS_SymbolicDerivative::cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf);
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibPolIma(int aNbDeg,bool WithDerive,int aSzBuf);
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf);
+std::vector<std::string> RadiomCPI_NameParam(int aDegree);
+int RadiomCPI_NbParam(int aDegree);
+
+
 
 
 

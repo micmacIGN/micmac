@@ -13,7 +13,7 @@ class cImageRadiomData;
 class cFusionIRDSEt;
 class cCalibRadiomSensor ;
 class cRadialCRS ; 
-class cCalRadIm_Cst ; 
+class cCalRadIm_Pol ; 
 class cComputeCalibRadIma ;
 
 /**  Store the radiometric data for one image. For one image we store for each point :
@@ -106,10 +106,16 @@ class cFusionIRDSEt
            std::vector<tV1Index > mVVIndexes;
 };
 
+/* ******************************************************** */
+/*                                                          */
+/*        Classes 4 "sensor" radiometric calibration        */
+/*                                                          */
+/* ******************************************************** */
+
 /**  Base class for radiometric calibration of a sensor */
 class cCalibRadiomSensor :   public cObj2DelAtEnd,
-                             public cMemCheck
-			     // public cObjWithUnkowns<tREAL8>
+                             public cMemCheck,
+			     public cObjWithUnkowns<tREAL8>
 {
        public :
            /// constructor, just share the name / identifier
@@ -136,6 +142,9 @@ class cCalibRadiomSensor :   public cObj2DelAtEnd,
            // std::string            mNameCal;   ///< Name of file
 };
 
+/** As ususal with complexe object serialisable, separate fundamental data 
+ * from "living" object */
+
 class cDataRadialCRS
 {
       public :
@@ -147,6 +156,7 @@ class cDataRadialCRS
            cPt2dr                 mCenter;    ///< Center of symetry
            std::vector<double>    mCoeffRad;  ///< Coeff of radial pol R2 R4 ...
            cPt2di                 mSzPix;     ///< Size in pixel, for info
+           tREAL8                 mScaleNor;
 };
 
 /**  class for radial calibration radiometric of sensor , 
@@ -173,48 +183,65 @@ class cRadialCRS : public cCalibRadiomSensor,
 
 	const std::vector<tREAL8> & VObs(const cPt2dr & ) const override;
     private :
-	// void PutUknowsInSetInterval() override ;
+	cRadialCRS (const cRadialCRS&) = delete;
+	void PutUknowsInSetInterval() override ;
 
-        tREAL8                      mScaleNor;  ///< Scale of normalization
-	mutable std::vector<tREAL8> mVObs;
+	mutable std::vector<tREAL8>                  mVObs; ///< Vector of obs use in normalization 4 computation
+	NS_SymbolicDerivative::cCalculator<double> * mCalcFF;
 };
 
+/* ******************************************************** */
+/*                                                          */
+/*    Classes 4 "per image" radiometric calibration         */
+/*                                                          */
+/* ******************************************************** */
+
 /**  Base-class for calibration of radiometry of each individual image */
-class cCalibRadiomIma : public cMemCheck
+class cCalibRadiomIma : public cMemCheck,
+                        public cObjWithUnkowns<tREAL8>
 {
         public :
             virtual tREAL8  ImageCorrec(const cPt2dr &) const   = 0;
             virtual void  ToFile(const std::string &) const =0; ///< export in xml/dmp ...  
-	    const std::string & NameIm() const;
+	    virtual const std::string & NameIm() const = 0;
 	    virtual ~cCalibRadiomIma() ;  ///< nothing to do, but maybe in derived classes
         protected :
-	    cCalibRadiomIma(const std::string & aNameIm);
+	    cCalibRadiomIma();
 
-	    std::string mNameIm;
 };
 
+
 /**   calibration of radiometry with cte model/image */
-class cCalRadIm_Cst : public  cCalibRadiomIma
+class cCalRadIm_Pol : public  cCalibRadiomIma
 {
         public :
-            cCalRadIm_Cst(); ///< For AddData
-            cCalRadIm_Cst(cCalibRadiomSensor *,const std::string & aNameIm);
+            cCalRadIm_Pol(); ///< For AddData
+            cCalRadIm_Pol(cCalibRadiomSensor *,int  aDegree,const std::string & aNameIm);
             void  AddData(const cAuxAr2007 & anAux);
 
             void  ToFile(const std::string &) const override ; ///< export in xml/dmp ...  
-            static cCalRadIm_Cst * FromFile(const std::string &); ///< create form xml/dmp ...
+            static cCalRadIm_Pol * FromFile(const std::string &); ///< create form xml/dmp ...
 
 
             tREAL8  ImageCorrec(const cPt2dr &) const  override;
+	    /// Correction w/o sensor
+            tREAL8  ImageOwnCorrec(const cPt2dr &) const  ;
 
             tREAL8 & DivIm();
             const tREAL8 & DivIm() const ;
             cCalibRadiomSensor &  CalibSens();
+	    const std::string & NameIm() const override;
 
         public :
-             cCalibRadiomSensor *  mCalibSens;
-             tREAL8                mDivIm;
-             mutable std::string   mTmpCalib;
+	     cCalRadIm_Pol (const cCalRadIm_Pol&) = delete;
+	     void PutUknowsInSetInterval() override ;
+
+             cCalibRadiomSensor *                         mCalibSens;
+	     std::string                                  mNameCalib;
+	     int                                          mDegree;
+	     std::string                                  mNameIm;
+	     std::vector<tREAL8>                          mCoeffPol;
+	     NS_SymbolicDerivative::cCalculator<double> * mImaCorr;
 };
 
 

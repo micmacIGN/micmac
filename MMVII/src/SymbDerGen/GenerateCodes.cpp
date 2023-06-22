@@ -200,6 +200,15 @@ cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDeri
     return StdAllocCalc(NameFormula(cRadiomEqualisation(true,aDegSens,aDegIm),WithDerive),aSzBuf);
 }
 
+std::vector<std::string> RadiomCPI_NameParam(int aDegree)
+{
+    return  cRadiomCalibPolIma(aDegree).VNamesUnknowns();
+}
+int RadiomCPI_NbParam(int aDegree)
+{
+    return RadiomCPI_NameParam(aDegree).size();
+}
+
       // To delete soon
       cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf)
       { 

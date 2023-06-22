@@ -315,7 +315,7 @@ cCalibRadiomIma * cPhotogrammetricProject::AllocCalibRadiomIma(const std::string
  */	
     std::string aNameFile = mDPRadiom.DirIn() + PrefixCalRadRad + aNameIm + "." + PostF_XmlFiles;
     if (ExistFile(aNameFile))
-       return cCalRadIm_Cst::FromFile(aNameFile);
+       return cCalRadIm_Pol::FromFile(aNameFile);
 
    MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mDPRadiom.DirIn());
    return nullptr;

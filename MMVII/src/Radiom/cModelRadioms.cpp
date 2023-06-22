@@ -106,6 +106,8 @@ cRadialCRS::cRadialCRS (const cDataRadialCRS & aData) :
          cBox2dr aBoxIm(ToR(mSzPix));
          mScaleNor = Square(aBoxIm.DistMax2Corners(mCenter));
 	 mVObs = std::vector<tREAL8>({0,0,mCenter.x(),mCenter.y(),mScaleNor});
+
+	 mCalcFF = EqRadiomCalibRadSensor(mCoeffRad.size(),false,1);
      }
 }
 cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal) :
@@ -136,64 +138,78 @@ const std::vector<tREAL8> & cRadialCRS::VObs(const cPt2dr & aPix ) const
     return mVObs;
 }
 
-
-
-
 tREAL8  cRadialCRS::FlatField(const cPt2dr & aPt) const
 {
-      MMVII_INTERNAL_ERROR("cRadialCRS::FlatField");
-      return 0;
-	/*
-      tREAL8  aRho2 = NormalizedRho2(aPt);
-      tREAL8 aSum = 1.0;
-      tREAL8 aPowRho2 = 1.0;
-
-      for (const auto & aCoeff : mCoeffRad)
-      {
-           aPowRho2 *= aRho2;
-           aSum += aCoeff * aPowRho2;
-      }
-      return aSum;
-      */
+      return mCalcFF->DoOneEval(mCoeffRad,VObs(aPt)).at(0);
 }
-#if (0)
+
+void cRadialCRS::PutUknowsInSetInterval()
+{
+   mSetInterv->AddOneInterv(mCoeffRad);
+}
+
 
 /* ================================================== */
 /*                  cCalibRadiomIma                   */
 /* ================================================== */
 
-cCalibRadiomIma::cCalibRadiomIma(const std::string & aNameIm) :
-   mNameIm  (aNameIm)
+cCalibRadiomIma::cCalibRadiomIma()
 {
 }
-const std::string & cCalibRadiomIma::NameIm() const {return mNameIm;}
 
 cCalibRadiomIma::~cCalibRadiomIma() {}
-const std::string & cCalibRadiomIma::NameIm() const {return mNameIm;}
 
 /* ================================================== */
-/*                  cCalRadIm_Cst                     */
+/*                  cCalRadIm_Pol                     */
 /* ================================================== */
 
 
-cCalRadIm_Cst::cCalRadIm_Cst(cCalibRadiomSensor * aCalSens,const std::string & aNameIm) :
-      cCalibRadiomIma  (aNameIm),
+cCalRadIm_Pol::cCalRadIm_Pol(cCalibRadiomSensor * aCalSens,int  aDegree,const std::string & aNameIm) :
       mCalibSens       (aCalSens),
-      mDivIm           (1.0)
+      mDegree          (aDegree),
+      mNameIm          (aNameIm)
+{
+     if (mDegree >= 0)
+     {
+         // Initialize with constant-1 polynom
+         mCoeffPol.resize(RadiomCPI_NbParam(mDegree),0.0);
+         mCoeffPol.at(0) = 1.0;
+         mImaCorr =  EqRadiomCalibPolIma(mDegree,false,1);
+	 mNameCalib = mCalibSens->NameCal();
+     }
+}
+
+cCalRadIm_Pol::cCalRadIm_Pol()  :
+    cCalRadIm_Pol(nullptr,-1,"")
 {
 }
 
-tREAL8  cCalRadIm_Cst::ImageCorrec(const cPt2dr & aPt) const
+const std::string & cCalRadIm_Pol::NameIm() const {return mNameIm;}
+
+tREAL8  cCalRadIm_Pol::ImageOwnCorrec(const cPt2dr & aPt) const
 {
-    return mDivIm * mCalibSens->FlatField(aPt);
+    return mImaCorr->DoOneEval(mCoeffPol,mCalibSens->VObs(aPt)).at(0);
 }
 
-cCalRadIm_Cst * cCalRadIm_Cst::FromFile(const std::string & aName)
+tREAL8  cCalRadIm_Pol::ImageCorrec(const cPt2dr & aPt) const
 {
-     cCalRadIm_Cst *  aRes = new cCalRadIm_Cst(nullptr,"NONE");
+    return ImageOwnCorrec(aPt) * mCalibSens->FlatField(aPt);
+}
+
+void  cCalRadIm_Pol::AddData(const cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("NameCalib",anAux) ,mNameCalib);
+    MMVII::AddData(cAuxAr2007("Degree",anAux)    ,mDegree);
+    MMVII::AddData(cAuxAr2007("NameIm",anAux) ,   mNameIm);
+    MMVII::AddData(cAuxAr2007("CoeffPol",anAux) , mCoeffPol);
+}
+
+#if (0)
+cCalRadIm_Pol * cCalRadIm_Pol::FromFile(const std::string & aName)
+{
+     cCalRadIm_Pol *  aRes = new cCalRadIm_Cst(nullptr,"NONE");
      ReadFromFile(*aRes,aName);
-     aRes->mCalibSens = cCalibRadiomSensor::FromFile(DirOfPath(aName) + aRes->mTmpCalib + ".xml");
-     aRes->mTmpCalib = "";
+     aRes->mCalibSens = cCalibRadiomSensor::FromFile(DirOfPath(aName) + aRes-> + ".xml");
 
      return aRes; 
 }
@@ -202,15 +218,6 @@ tREAL8 & cCalRadIm_Cst::DivIm() {return mDivIm;}
 const tREAL8 & cCalRadIm_Cst::DivIm() const {return mDivIm;}
 cCalibRadiomSensor &  cCalRadIm_Cst::CalibSens() {return *mCalibSens;}
 
-void  cCalRadIm_Cst::AddData(const cAuxAr2007 & anAux)
-{
-    MMVII::AddData(cAuxAr2007("DivIm",anAux) ,mDivIm);
-    MMVII::AddData(cAuxAr2007("NameIm",anAux) ,mNameIm);
-
-    if (!anAux.Input())
-       mTmpCalib = mCalibSens->NameCal();
-    MMVII::AddData(cAuxAr2007("NameCal",anAux) ,mTmpCalib);
-}
 
 void AddData(const cAuxAr2007 & anAux,cCalRadIm_Cst & aCRI_Cst)
 {
