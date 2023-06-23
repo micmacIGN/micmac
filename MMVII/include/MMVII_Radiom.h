@@ -227,8 +227,6 @@ class cCalRadIm_Pol : public  cCalibRadiomIma
 	    /// Correction w/o sensor
             tREAL8  ImageOwnCorrec(const cPt2dr &) const  ;
 
-            tREAL8 & DivIm();
-            const tREAL8 & DivIm() const ;
             cCalibRadiomSensor &  CalibSens();
 	    const std::string & NameIm() const override;
 

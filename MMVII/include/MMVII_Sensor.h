@@ -311,7 +311,7 @@ class cPhotogrammetricProject
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
 	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
 
-	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete,bool SVP=false); ///< Create Camera using Input orientation
+	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete,bool SVP=false) const; ///< Create Camera using Input orientation
 
 
 	  /// Load a sensor, try different type (will add RPC , and others ?)
@@ -324,7 +324,7 @@ class cPhotogrammetricProject
 	  std::string  FullDirCalibOut() const;
 	  
 	  /// read Pose file  and extract the name of internal  calibration
-          cPerspCamIntrCalib *  InternalCalibFromImCal(const std::string &aNameIm);
+          cPerspCamIntrCalib *  InternalCalibFromImage(const std::string &aNameIm) const;
 	  ///  compute the standard name of calibration before reading it
 	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm) const;
 
@@ -343,6 +343,8 @@ class cPhotogrammetricProject
 	  ///  Name of radiometric calibration with a  radial model , hypothesis : depends of internal calibration
 	  ///  +  metadata (aperture)
           std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMetaDataImage &) const;
+	  ///  Call NameCalibRadiomSensor with parameters computed from image
+          std::string NameCalibRSOfImage(const std::string &) const;
 
 	 //===================================================================
          //==================    MASKS           =============================
@@ -409,7 +411,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMetaData;
 
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;
-	  std::list<cSensorCamPC*>          mLCam2Del; 
+	  mutable std::list<cSensorCamPC*>          mLCam2Del; 
 
 };
 

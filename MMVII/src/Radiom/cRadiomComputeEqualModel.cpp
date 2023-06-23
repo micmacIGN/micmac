@@ -580,10 +580,79 @@ int cAppliRadiom2ImageSameMod::Exe()
 
 #endif
 
+class cAppliTestRad : public cMMVII_Appli
+{
+     public :
+
+        cAppliTestRad(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+     // --- constructed ---
+        cPhotogrammetricProject            mPhProj;     ///< The Project, as usual
+	std::string                        mNamePatternIm;
+};
+
+cCollecSpecArg2007 & cAppliTestRad::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+   return anArgObl
+          <<   Arg2007(mNamePatternIm,"Name of image", {{eTA2007::MPatFile,"0"},eTA2007::FileDirProj} )
+          <<   mPhProj.DPRadiom().ArgDirOutMand()
+          <<   mPhProj.DPOrient().ArgDirInMand("InputCalibration")
+
+   ;
+}
+
+cCollecSpecArg2007 & cAppliTestRad::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+          <<   mPhProj.DPRadiom().ArgDirInOpt()
+   ;
+}
+
+int cAppliTestRad::Exe()
+{
+    mPhProj.FinishInit();
+
+    for (const auto & aNameIm : VectMainSet(0))
+    {
+	    /*
+	  cMetaDataImage aMetaData =  mPhProj.GetMetaData(aNameIm);
+          cPerspCamIntrCalib* aCalib = mPhProj.InternalCalibFromImage(aNameIm);
+	  std::string aNameCalRad = mPhProj.NameCalibRadiomSensor(*aCalib,aMetaData);
+	  */
+	  std::string aNameCalRad = mPhProj.NameCalibRSOfImage(aNameIm);
+
+	  StdOut() << " aNameIm = " << aNameIm << " "<< aNameCalRad << "\n";
+    }
+
+    {
+         std::string aPat = ".*";
+         std::string aVal = "ABC";
+         std::string aName = "toto.tif";
+	 std::string aRepl = ReplacePattern(aPat,aVal,aName);
+
+	 StdOut() << "RRR=" << aRepl << "\n";
+    }
+
+
+    return EXIT_SUCCESS;
+}
+
+cAppliTestRad::cAppliTestRad(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+    cMMVII_Appli      (aVArgs,aSpec),
+    mPhProj           (*this)
+{
+}
+
+
 tMMVII_UnikPApli Alloc_Radiom2ImageSameMod(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   // return tMMVII_UnikPApli(new cAppliRadiom2ImageSameMod(aVArgs,aSpec));
-   return tMMVII_UnikPApli(nullptr);
+   return tMMVII_UnikPApli(new cAppliTestRad(aVArgs,aSpec));
+   //return tMMVII_UnikPApli(nullptr);
 }
 
 

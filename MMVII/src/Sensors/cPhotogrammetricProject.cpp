@@ -331,6 +331,15 @@ std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCa
     return  PrefixCalRadRad  + "Sensor-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
 }
 
+std::string cPhotogrammetricProject::NameCalibRSOfImage(const std::string & aNameIm) const
+{
+     cMetaDataImage aMetaData =  GetMetaData(aNameIm);
+     cPerspCamIntrCalib* aCalib = InternalCalibFromImage(aNameIm);
+
+     return NameCalibRadiomSensor(*aCalib,aMetaData);
+}
+
+
         //  =============  Orientation =================
 
 void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
@@ -346,7 +355,7 @@ void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) co
 }
 
 
-cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete,bool SVP)
+cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete,bool SVP) const
 {
     mDPOrient.AssertDirInIsInit();
 
@@ -386,7 +395,7 @@ void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImag
      }
 }
 
-cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImCal(const std::string & aNameIm)
+cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std::string & aNameIm) const
 {
     // 4 now, pretty basic allox sensor, extract internal, destroy
     // later will have to handle :

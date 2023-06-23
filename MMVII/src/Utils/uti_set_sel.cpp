@@ -478,6 +478,16 @@ bool  MatchRegex(const std::string& aName,const std::string& aPat)
 
 std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString)
 {
+   //  [4JO]
+   //  to see  jo why  
+   //     ReplacePattern(".*","15","toto") -> 1515    ??? 
+   //     ReplacePattern("t.*","15","toto") -> 15    as it should be
+   //
+   if (aPattern==".*")
+   {
+	   // tricky to we replace the univ pattern by the string that macth itself perfectly !!
+         return  std::regex_replace(aString,std::regex(aString),aSubst, std::regex_constants::format_no_copy);
+   }
    return std::regex_replace(aString,std::regex(aPattern),aSubst, std::regex_constants::format_no_copy);
 }
 

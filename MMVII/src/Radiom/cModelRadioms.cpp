@@ -148,6 +148,12 @@ void cRadialCRS::PutUknowsInSetInterval()
    mSetInterv->AddOneInterv(mCoeffRad);
 }
 
+const std::string & cRadialCRS::NameCal() const
+{
+   return mNameCal;
+}
+
+
 
 /* ================================================== */
 /*                  cCalibRadiomIma                   */
@@ -204,34 +210,39 @@ void  cCalRadIm_Pol::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("CoeffPol",anAux) , mCoeffPol);
 }
 
-#if (0)
+void AddData(const cAuxAr2007 & anAux,cCalRadIm_Pol & aCalRadIm_Pol)
+{
+    aCalRadIm_Pol.AddData(anAux);
+}
+
 cCalRadIm_Pol * cCalRadIm_Pol::FromFile(const std::string & aName)
 {
-     cCalRadIm_Pol *  aRes = new cCalRadIm_Cst(nullptr,"NONE");
+     cCalRadIm_Pol *  aRes = new cCalRadIm_Pol();
      ReadFromFile(*aRes,aName);
-     aRes->mCalibSens = cCalibRadiomSensor::FromFile(DirOfPath(aName) + aRes-> + ".xml");
+     aRes->mCalibSens = cCalibRadiomSensor::FromFile(DirOfPath(aName) + aRes->mNameCalib + ".xml");
+     aRes->mImaCorr =  EqRadiomCalibPolIma(aRes->mDegree,false,1);
 
      return aRes; 
 }
 
-tREAL8 & cCalRadIm_Cst::DivIm() {return mDivIm;}
-const tREAL8 & cCalRadIm_Cst::DivIm() const {return mDivIm;}
-cCalibRadiomSensor &  cCalRadIm_Cst::CalibSens() {return *mCalibSens;}
+cCalibRadiomSensor &  cCalRadIm_Pol::CalibSens() {return *mCalibSens;}
 
-
-void AddData(const cAuxAr2007 & anAux,cCalRadIm_Cst & aCRI_Cst)
+void cCalRadIm_Pol::PutUknowsInSetInterval() 
 {
-    aCRI_Cst.AddData(anAux);
+   mSetInterv->AddOneInterv(mCoeffPol);
 }
 
-void  cCalRadIm_Cst::ToFile(const std::string & aNameFile) const 
+
+
+
+void  cCalRadIm_Pol::ToFile(const std::string & aNameFile) const 
 {
     SaveInFile(*this,aNameFile);
-    std::string aNameCalib = DirOfPath(aNameFile) + mTmpCalib + ".xml";
+    std::string aNameCalib = DirOfPath(aNameFile) + mNameCalib + ".xml";
     mCalibSens->ToFileIfFirstime(aNameCalib);
-
-    mTmpCalib = "";
 }
+
+#if (0)
 #endif
 
 
