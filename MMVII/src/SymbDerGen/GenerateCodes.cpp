@@ -200,13 +200,16 @@ cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDeri
     return StdAllocCalc(NameFormula(cRadiomEqualisation(true,aDegSens,aDegIm),WithDerive),aSzBuf);
 }
 
-std::vector<std::string> RadiomCPI_NameParam(int aDegree)
+const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree)
 {
-    return  cRadiomCalibPolIma(aDegree).VNamesUnknowns();
-}
-int RadiomCPI_NbParam(int aDegree)
-{
-    return RadiomCPI_NameParam(aDegree).size();
+    static std::vector<std::vector<cDescOneFuncDist>>  aRes;
+
+    if (aRes.empty())
+    {
+        for (int aK=0 ; aK<=10 ; aK++)
+             aRes.push_back(cRadiomCalibPolIma(aK).VDesc());
+    }
+    return aRes.at(aDegree);
 }
 
       // To delete soon
@@ -653,11 +656,13 @@ int cAppliGenCode::Exe()
 
        for (auto  aDegIm : aVDegIm)
        {
-           GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(aDegIm)       ,WithDer);
+           if (!WithDer)  // Generator doesnt like multipe genera : he is quite touchy ...
+               GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(aDegIm)       ,WithDer);
        }
        for (auto  aDegSens : aVDegSens)
        {
-           GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(aDegSens)       ,WithDer);
+           if (!WithDer)
+              GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(aDegSens)       ,WithDer);
 
            for (const auto & aDegIm : {0,1,2})
            {

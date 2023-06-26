@@ -5,16 +5,36 @@
 #include "MMVII_memory.h"
 #include "MMVII_Ptxd.h"
 #include "MMVII_SysSurR.h"
+#include "MMVII_PhgrDist.h"
 
 
 namespace MMVII
 {
-class cImageRadiomData;
-class cFusionIRDSEt;
-class cCalibRadiomSensor ;
-class cRadialCRS ; 
-class cCalRadIm_Pol ; 
-class cComputeCalibRadIma ;
+/* ======================================================*/
+/* =======   Classes for storing radiometry  ============*/
+/* ======================================================*/
+
+class cImageRadiomData;   // Radiometry for one image
+class cFusionIRDSEt;      // Fusion index of radiometry
+
+/*   Basically, for each image in a cImageRadiomData, we will have for each point : 
+ *       *  anIndex, apoint, one a several radiometry
+ *   In cFusionIRDSEt, we will make the "fusion" of index allowing to retrieve the information belongin to the same point.
+ *       *  tImInd : is pair num of image + num of point in this image
+ *       *  tV1Index : is a set of tImInd, it contains all the merged point
+ *       *  cFusionIRDSEt is essentially a set of tV1Index
+ */
+
+/* ======================================================*/
+/* =======   Classes for radiometric modelization  ======*/
+/* =======   of sensor/images                      ======*/
+/* ======================================================*/
+
+class cCalibRadiomSensor ;  // base class for radiometric modelizaion of the sensor
+class cDataRadialCRS;       // data-part of cRadialCRS (separation for serialization)
+class cRadialCRS ;          // class for radial sensor vignettage
+class cCalibRadiomIma ;     // base class for per/image  correction
+class cCalRadIm_Pol ;       // class for polynomial per image correction
 
 /**  Store the radiometric data for one image. For one image we store for each point :
 
@@ -28,41 +48,47 @@ class cImageRadiomData : public cMemCheck
 {
    public :
         typedef size_t               tIndex;
-        typedef cPt2df               tPtMem;      ///< Point are store on float (4 byte) 
+        typedef cPt2df               tPtMem;     ///< Point are store on float (4 byte) 
         typedef std::vector<tPtMem>  tVPt;       ///< vector of  pts 
         typedef tU_INT2              tRadiom;    ///< Type of integer on which we store each radiometry
 	typedef std::vector<tRadiom> tVRadiom;   ///< Radiometry 
 
+	/// Constructor allocate structure for future storing
         cImageRadiomData(const std::string & aNameIm,int aNbChanel,bool withPoint);
+	void AddData(const  cAuxAr2007 & anAux); ///< Serialization
+	/// Create an object from file
 	static cImageRadiomData * FromFile(const std::string & aNameFile);
+	/// Write an object on a file
 	void    ToFile(const std::string & aNameFile) const;
+
+	/// Generate standard namefile from the name of image, must be callable w/o object
 	static std::string NameFileOfImage(const std::string&);
+	/// Name file from an object 
 	std::string NameFile() const;
 
-	// non const <= possible reordering
-	void GetIndexCommon(std::vector<tPt2di> &,cImageRadiomData &);
+	///  Put in "aRes" the num of common index with "aIRD2",  method is non const as reorder may be necessary
+	void GetIndexCommon(std::vector<tPt2di> & aRes,cImageRadiomData & aIRD2);
 
-	void AddObsGray(tIndex,tRadiom);
-	void AddObsGray(tIndex,tRadiom,const tPtMem &);
-	void AddObsRGB(tIndex,tRadiom,tRadiom,tRadiom);
-	void AddObsRGB(tIndex,tRadiom,tRadiom,tRadiom,const tPtMem &);
+	// only one of this 4 method is accessible, depending how was created (point or not, nb channel)
+	void AddObsGray(tIndex,tRadiom);  ///< add for 1 chanel w/o point
+	void AddObsGray(tIndex,tRadiom,const tPtMem &);  ///< add for 1 chanel with point
+	void AddObsRGB(tIndex,tRadiom,tRadiom,tRadiom);  ///< add for 3 chanels w/o point
+	void AddObsRGB(tIndex,tRadiom,tRadiom,tRadiom,const tPtMem &); ///< add for 3 chanels wth point
 
 	///  switch on one other AddObs depending on internal variable
 	void AddObs_Adapt(tIndex,tRadiom,tRadiom,tRadiom,const tPtMem &);
 
-	void AddData(const  cAuxAr2007 & anAux); ///< Serialization
 						
-        void MakeOrdered();  /// order if necessary 
+        void MakeOrdered();  /// order if necessary , "mIndexWellOrdered" allow to do it only when required
 	static void Bench(cParamExeBench & aParam);
 
-	const std::vector<tIndex> & VIndex()             const;
-	const tVPt  &               VPts()               const;
-	const tVRadiom            & VRadiom(size_t aKCh) const;
+	const std::vector<tIndex> & VIndex()             const;  ///< Accessor
+	const tVPt  &               VPts()               const;  ///< Accessor
+	const tVRadiom            & VRadiom(size_t aKCh) const;  ///< Accessor
 	size_t  LimitIndex() const ;  
 
 	const tPtMem  & Pt  (size_t) const;
 	tRadiom         Gray(size_t) const;  
-
 
    private :
 	void AddIndex(tIndex);
@@ -113,13 +139,14 @@ class cFusionIRDSEt
 /* ******************************************************** */
 
 /**  Base class for radiometric calibration of a sensor */
-class cCalibRadiomSensor :   public cObj2DelAtEnd,
+class cCalibRadiomSensor : 
                              public cMemCheck,
 			     public cObjWithUnkowns<tREAL8>
 {
        public :
            /// constructor, just share the name / identifier
            cCalibRadiomSensor();
+           virtual ~cCalibRadiomSensor();
 	   /// Allocator : switch on derived class according to name prefix
            static cCalibRadiomSensor * FromFile(const std::string & aNameFile);
 
@@ -137,6 +164,10 @@ class cCalibRadiomSensor :   public cObj2DelAtEnd,
 
 	    //  Vector of observation, used in equation to compute normalized coordinate
 	    virtual const std::vector<tREAL8> & VObs(const cPt2dr & ) const =0;
+
+	    /// Not good design because it suppose model is radial,  but do it for now
+	    virtual int NbParamRad() const ;
+	    virtual const std::vector<tREAL8> & CoeffRad() const =0;
 
        protected :
            // std::string            mNameCal;   ///< Name of file
@@ -163,11 +194,13 @@ class cDataRadialCRS
      caracterized by a symetry center and a even polynomial 
 */
 class cRadialCRS : public cCalibRadiomSensor,
+      	           public cObj2DelAtEnd,
 	           public cDataRadialCRS
 {
     public :
         cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string &);
         cRadialCRS(const cDataRadialCRS&);
+        virtual ~cRadialCRS();
 
         void  AddData(const cAuxAr2007 & anAux);
         static cRadialCRS * FromFile(const std::string & aNameFile);
@@ -182,6 +215,8 @@ class cRadialCRS : public cCalibRadiomSensor,
         const std::string & NameCal() const override;
 
 	const std::vector<tREAL8> & VObs(const cPt2dr & ) const override;
+        int NbParamRad() const override;
+        const std::vector<tREAL8> & CoeffRad() const override;
     private :
 	cRadialCRS (const cRadialCRS&) = delete;
 	void PutUknowsInSetInterval() override ;
@@ -201,10 +236,27 @@ class cCalibRadiomIma : public cMemCheck,
                         public cObjWithUnkowns<tREAL8>
 {
         public :
-            virtual tREAL8  ImageCorrec(const cPt2dr &) const   = 0;
+            virtual tREAL8  ImageCorrec(tREAL8 aGray,const cPt2dr &) const  =0;
+            virtual cPt3dr  ImageCorrec(const cPt3dr & aCoul,const cPt2dr &) const  =0;
             virtual void  ToFile(const std::string &) const =0; ///< export in xml/dmp ...  
 	    virtual const std::string & NameIm() const = 0;
 	    virtual ~cCalibRadiomIma() ;  ///< nothing to do, but maybe in derived classes
+            virtual cCalibRadiomSensor &  CalibSens() =0;
+
+	    virtual std::vector<double> &  Params() = 0;
+	    virtual const std::vector<cDescOneFuncDist> & VDesc()  const =0 ;
+	    
+	    /// Return the index in global equation (begin to Uk0) corresponding to degree, -1 if SVP&NotFound
+	    int  IndDegree(const cPt2di & aDegree,bool SVP=false) const;
+	    ///  IndDegre of 0,0 the Cst-polynom
+	    int  IndCste() const;
+
+	    virtual NS_SymbolicDerivative::cCalculator<double> * ImaEqual() = 0;
+	    // Vector of observation , probably comme from sensor
+	    // virtual const std::vector<tREAL8> & VObs(const cPt2dr & ) const = 0;
+	    //  Vector of param containing Sensor + Owns
+	    // std::vector<double>   ParamGlob() =0 ;
+            virtual int MaxDegree() const =0;
         protected :
 	    cCalibRadiomIma();
 
@@ -216,30 +268,37 @@ class cCalRadIm_Pol : public  cCalibRadiomIma
 {
         public :
             cCalRadIm_Pol(); ///< For AddData
+            ~cCalRadIm_Pol(); ///< For AddData
             cCalRadIm_Pol(cCalibRadiomSensor *,int  aDegree,const std::string & aNameIm);
             void  AddData(const cAuxAr2007 & anAux);
 
             void  ToFile(const std::string &) const override ; ///< export in xml/dmp ...  
             static cCalRadIm_Pol * FromFile(const std::string &); ///< create form xml/dmp ...
 
-
-            tREAL8  ImageCorrec(const cPt2dr &) const  override;
+            tREAL8  ImageCorrec(tREAL8 aGray,const cPt2dr &) const  override;
+            cPt3dr  ImageCorrec(const cPt3dr & aCoul,const cPt2dr &) const  override;
 	    /// Correction w/o sensor
-            tREAL8  ImageOwnCorrec(const cPt2dr &) const  ;
+            tREAL8  ImageOwnDivisor(const cPt2dr &) const  ;
 
-            cCalibRadiomSensor &  CalibSens();
+            cCalibRadiomSensor &  CalibSens() override;
 	    const std::string & NameIm() const override;
 
-        public :
-	     cCalRadIm_Pol (const cCalRadIm_Pol&) = delete;
-	     void PutUknowsInSetInterval() override ;
+	    std::vector<double> &  Params() override ;
+	    const std::vector<cDescOneFuncDist> & VDesc() const override ;
+	    NS_SymbolicDerivative::cCalculator<double> * ImaEqual() override;
+            int MaxDegree() const override;
 
-             cCalibRadiomSensor *                         mCalibSens;
-	     std::string                                  mNameCalib;
-	     int                                          mDegree;
-	     std::string                                  mNameIm;
-	     std::vector<tREAL8>                          mCoeffPol;
-	     NS_SymbolicDerivative::cCalculator<double> * mImaCorr;
+        public :
+	    cCalRadIm_Pol (const cCalRadIm_Pol&) = delete;
+	    void PutUknowsInSetInterval() override ;
+
+            cCalibRadiomSensor *                         mCalibSens;
+	    std::string                                  mNameCalib;
+	    int                                          mDegree;
+	    std::string                                  mNameIm;
+	    std::vector<tREAL8>                          mCoeffPol;
+	    NS_SymbolicDerivative::cCalculator<double> * mImaOwnCorr;
+	    NS_SymbolicDerivative::cCalculator<double> * mImaEqual;
 };
 
 

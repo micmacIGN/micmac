@@ -8,34 +8,6 @@
 namespace MMVII
 {
 
-	/*
-class cPreProcessRadiom
-{
-    public :
-        cPreProcessRadiom(const cPerspCamIntrCalib &);
-        const std::vector<tREAL8> & VObs(const cPt2dr & ) const;
-
-    private :
-        const cPerspCamIntrCalib *          mCal;
-        mutable std::vector<tREAL8>         mVObs;
-};
-
-cPreProcessRadiom::cPreProcessRadiom(const cPerspCamIntrCalib & aCal) :
-     mCal  (&aCal),
-     mVObs ( {0.0,0.0,mCal->PP().x(),mCal->PP().y(),Norm2(mCal->SzPix())}  )
-{
-}
-
-
-const std::vector<tREAL8> & cPreProcessRadiom::VObs(const cPt2dr & aPix ) const
-{
-    mVObs[0] = aPix.x();
-    mVObs[1] = aPix.y();
-
-    return mVObs;
-}
-*/
-
 /* ================================================== */
 /*                cCalibRadiomSensor                  */
 /* ================================================== */
@@ -59,6 +31,15 @@ cCalibRadiomSensor * cCalibRadiomSensor::FromFile(const std::string & aNameFile)
    return nullptr;
 }
 
+cCalibRadiomSensor::~cCalibRadiomSensor() 
+{
+}
+
+int cCalibRadiomSensor::NbParamRad() const 
+{
+   MMVII_INTERNAL_ERROR("No default NbParamRad");
+   return -1;
+}
 
 /* ============================================= */
 /*                  cDataRadialCRS               */
@@ -99,12 +80,13 @@ void AddData(const cAuxAr2007 & anAux,cDataRadialCRS & aDataRadCRS)
 
 cRadialCRS::cRadialCRS (const cDataRadialCRS & aData) :
     cCalibRadiomSensor   (),
-    cDataRadialCRS       (aData)
+    cDataRadialCRS       (aData),
+    mCalcFF              (nullptr)
 {
      if (mSzPix.x() >0)
      {
          cBox2dr aBoxIm(ToR(mSzPix));
-         mScaleNor = Square(aBoxIm.DistMax2Corners(mCenter));
+         mScaleNor = aBoxIm.DistMax2Corners(mCenter);
 	 mVObs = std::vector<tREAL8>({0,0,mCenter.x(),mCenter.y(),mScaleNor});
 
 	 mCalcFF = EqRadiomCalibRadSensor(mCoeffRad.size(),false,1);
@@ -113,6 +95,11 @@ cRadialCRS::cRadialCRS (const cDataRadialCRS & aData) :
 cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal) :
     cRadialCRS(cDataRadialCRS(aCenter,aDegRad,aSzPix,aNameCal))
 {
+}
+
+cRadialCRS::~cRadialCRS() 
+{
+     delete mCalcFF;
 }
 
 
@@ -153,6 +140,16 @@ const std::string & cRadialCRS::NameCal() const
    return mNameCal;
 }
 
+int cRadialCRS::NbParamRad() const  
+{
+    return  mCoeffRad.size();
+}
+
+const std::vector<tREAL8>& cRadialCRS::CoeffRad() const 
+{
+    return  mCoeffRad;
+}
+
 
 
 /* ================================================== */
@@ -165,6 +162,26 @@ cCalibRadiomIma::cCalibRadiomIma()
 
 cCalibRadiomIma::~cCalibRadiomIma() {}
 
+
+int  cCalibRadiomIma::IndDegree(const cPt2di & aDegree,bool SVP) const
+{
+    const std::vector<cDescOneFuncDist> & aVDesc =  VDesc();
+
+    for (size_t aK=0 ; aK<aVDesc.size() ; aK++)
+    {
+        if (aVDesc[aK].mDegMon == aDegree)
+           return aK+IndUk0();
+    }
+    MMVII_INTERNAL_ASSERT_tiny(SVP,"Cannot find in cCalibRadiomIma::IndDegree");
+
+    return -1;
+}
+
+int  cCalibRadiomIma::IndCste() const
+{
+	return IndDegree(cPt2di(0,0));
+}
+
 /* ================================================== */
 /*                  cCalRadIm_Pol                     */
 /* ================================================== */
@@ -173,15 +190,20 @@ cCalibRadiomIma::~cCalibRadiomIma() {}
 cCalRadIm_Pol::cCalRadIm_Pol(cCalibRadiomSensor * aCalSens,int  aDegree,const std::string & aNameIm) :
       mCalibSens       (aCalSens),
       mDegree          (aDegree),
-      mNameIm          (aNameIm)
+      mNameIm          (aNameIm),
+      mImaOwnCorr      (nullptr),
+      mImaEqual        (nullptr)
 {
      if (mDegree >= 0)
      {
          // Initialize with constant-1 polynom
-         mCoeffPol.resize(RadiomCPI_NbParam(mDegree),0.0);
+         mCoeffPol.resize(VDesc_RadiomCPI(mDegree).size(),0.0);
          mCoeffPol.at(0) = 1.0;
-         mImaCorr =  EqRadiomCalibPolIma(mDegree,false,1);
+         mImaOwnCorr =  EqRadiomCalibPolIma(mDegree,false,1);
+         mImaEqual = EqRadiomEqualisation(mCalibSens->NbParamRad(),mDegree,true,1);
 	 mNameCalib = mCalibSens->NameCal();
+
+	 StdOut() << "CPPP=" << mCoeffPol  << " D=" << mDegree << "\n";
      }
 }
 
@@ -190,16 +212,27 @@ cCalRadIm_Pol::cCalRadIm_Pol()  :
 {
 }
 
-const std::string & cCalRadIm_Pol::NameIm() const {return mNameIm;}
-
-tREAL8  cCalRadIm_Pol::ImageOwnCorrec(const cPt2dr & aPt) const
+cCalRadIm_Pol::~cCalRadIm_Pol() 
 {
-    return mImaCorr->DoOneEval(mCoeffPol,mCalibSens->VObs(aPt)).at(0);
+    delete mImaOwnCorr;
+    delete mImaEqual;
 }
 
-tREAL8  cCalRadIm_Pol::ImageCorrec(const cPt2dr & aPt) const
+const std::string & cCalRadIm_Pol::NameIm() const {return mNameIm;}
+
+tREAL8  cCalRadIm_Pol::ImageOwnDivisor(const cPt2dr & aPt) const
 {
-    return ImageOwnCorrec(aPt) * mCalibSens->FlatField(aPt);
+    return mImaOwnCorr->DoOneEval(mCoeffPol,mCalibSens->VObs(aPt)).at(0);
+}
+
+tREAL8  cCalRadIm_Pol::ImageCorrec(tREAL8 aGray,const cPt2dr & aPt) const
+{
+    return aGray / (ImageOwnDivisor(aPt) * mCalibSens->FlatField(aPt));
+}
+
+cPt3dr  cCalRadIm_Pol::ImageCorrec(const cPt3dr & aRGB,const cPt2dr & aPt) const
+{
+    return aRGB / (ImageOwnDivisor(aPt) * mCalibSens->FlatField(aPt));
 }
 
 void  cCalRadIm_Pol::AddData(const cAuxAr2007 & anAux)
@@ -220,7 +253,8 @@ cCalRadIm_Pol * cCalRadIm_Pol::FromFile(const std::string & aName)
      cCalRadIm_Pol *  aRes = new cCalRadIm_Pol();
      ReadFromFile(*aRes,aName);
      aRes->mCalibSens = cCalibRadiomSensor::FromFile(DirOfPath(aName) + aRes->mNameCalib + ".xml");
-     aRes->mImaCorr =  EqRadiomCalibPolIma(aRes->mDegree,false,1);
+     aRes->mImaOwnCorr =  EqRadiomCalibPolIma(aRes->mDegree,false,1);
+     aRes->mImaEqual = EqRadiomEqualisation(aRes->mCalibSens->NbParamRad(),aRes->mDegree,true,1);
 
      return aRes; 
 }
@@ -232,7 +266,15 @@ void cCalRadIm_Pol::PutUknowsInSetInterval()
    mSetInterv->AddOneInterv(mCoeffPol);
 }
 
+std::vector<double> &  cCalRadIm_Pol::Params() 
+{
+    return mCoeffPol;
+}
 
+const std::vector<cDescOneFuncDist> & cCalRadIm_Pol::VDesc()  const
+{
+	return VDesc_RadiomCPI(mDegree);
+}
 
 
 void  cCalRadIm_Pol::ToFile(const std::string & aNameFile) const 
@@ -242,8 +284,15 @@ void  cCalRadIm_Pol::ToFile(const std::string & aNameFile) const
     mCalibSens->ToFileIfFirstime(aNameCalib);
 }
 
-#if (0)
-#endif
+NS_SymbolicDerivative::cCalculator<double> * cCalRadIm_Pol::ImaEqual()
+{
+     return mImaEqual;
+}
+
+int cCalRadIm_Pol::MaxDegree() const 
+{
+    return mDegree;
+}
 
 
 };

@@ -737,7 +737,7 @@ template <const int Dim> class cUB_ComputeStdDev
         cUB_ComputeStdDev();
 
         void Add(const  double * aVal,const double & aPds);
-        const double  *  ComputeUnBiasedVar() ;
+        const double  *  ComputeUnBiasedVar() ;  // return a pointer because of Dim
         const double  *  ComputeBiasedVar() ;
         double  DeBiasFactor() const;
 

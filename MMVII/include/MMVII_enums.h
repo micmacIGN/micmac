@@ -33,7 +33,8 @@ enum class eTA2007
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
                 Orient,        ///< Orientation
-                Radiom,        ///< Radiometry
+                RadiomData,    ///< Data for Radiometry 
+                RadiomModel,   ///< Model for Radiometry
                 MeshDev,       ///< Mesh Devlopment
                 Mask,          ///< Mask of image
                 MetaData,      ///< Meta data images

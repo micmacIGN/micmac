@@ -95,13 +95,25 @@ class cRadiomCalibPolIma  : public cRadiomFormulas
                mDegIm         (aDegIm)
           {
           }
+	  std::vector<cDescOneFuncDist> VDesc() const
+	  {
+	      std::vector<cDescOneFuncDist> aRes;
+
+              for (int aDx=0 ; aDx<= mDegIm ; aDx++)
+	      {
+                  for (int aDy=0 ; (aDy+aDx)<= mDegIm ; aDy++)
+		  {
+                       aRes.push_back(cDescOneFuncDist(eTypeFuncDist::eMonom, cPt2di(aDx,aDy)));
+		  }
+	      }
+	      return aRes;
+	  }
 
           std::vector<std::string> VNamesUnknowns() const 
           {
 	      std::vector<std::string>  aRes ;
-              for (int aDx=0 ; aDx<= mDegIm ; aDx++)
-                  for (int aDy=0 ; (aDy+aDx)<= mDegIm ; aDx++)
-                       aRes.push_back("DIm_"+ToStr(aDx) + "_" + ToStr(aDy));
+              for (const auto & aDesc : VDesc())
+                  aRes.push_back(aDesc.mName);
               return aRes;
           }
 
@@ -120,16 +132,13 @@ class cRadiomCalibPolIma  : public cRadiomFormulas
                 const auto & aXRed = aVec.at(0);
                 const auto & aYRed = aVec.at(1);
 	        tUk aCst0         = CreateCste(0.0,aXRed);  // create a symbolic formula for constant 1
-		int aKPol = 0;
 		tUk  aCorrec      = aCst0;
 
-                for (int aDx=0 ; aDx<= mDegIm ; aDx++)
+		auto aVDesc = VDesc() ;
+                for (size_t aKPol=0 ; aKPol<aVDesc.size() ; aKPol++)
 		{
-                    for (int aDy=0 ; (aDy+aDx)<= mDegIm ; aDx++)
-		    {
-                         aCorrec = aCorrec + aVUk[aKPol+aK0Obs] *powI(aXRed,aDx) *  powI(aYRed,aDy) ;
-			 aKPol++;
-		    }
+                    auto aDeg = aVDesc[aKPol].mDegMon;
+                    aCorrec = aCorrec + aVUk[aKPol+aK0Uk] * powI(aXRed,aDeg.x()) *  powI(aYRed,aDeg.y()) ;
 		}
 
 		return {aCorrec};
@@ -149,8 +158,8 @@ class cRadiomEqualisation
 
           cRadiomEqualisation(bool is4Eq,int aDegSens,int aDegIm) :
               m4Eq     (is4Eq),
-              mOwnUK   (m4Eq ? tVStr({"Albedo"}) : tVStr({""}) ),
-              mOwnObs  (m4Eq ? tVStr({"RadIm"})  : tVStr({""}) ),
+              mOwnUK   (m4Eq ? tVStr({"Albedo"}) : tVStr() ),
+              mOwnObs  (m4Eq ? tVStr({"RadIm"})  : tVStr() ),
               mK0Sens  (mOwnUK.size()),
               mCalSens (aDegSens),
               mK0CalIm (mK0Sens+mCalSens.VNamesUnknowns().size()),
@@ -191,7 +200,11 @@ class cRadiomEqualisation
                     const auto & aAlbedo = aVUk[0];
                     const auto & aRadIm = aVObs[0];
 
-                    return {aRadIm / aCorrecSens - aAlbedo * aCorrecIm };
+                    return {aRadIm - aAlbedo * aCorrecIm * aCorrecSens}; // 3.69312
+                    // return {CreateCste(1.0,aAlbedo) - (aAlbedo * aCorrecIm * aCorrecSens)/aRadIm};  NAN
+                    //  return {aRadIm/aCorrecSens - aAlbedo * aCorrecIm };     //3.73095
+                    //  return {aRadIm/(aCorrecSens*aCorrecIm) - aAlbedo  };   // 3.7714
+                    // return {aRadIm/aAlbedo -  aCorrecIm * aCorrecSens}; // 3.94555
                }
                else
                {

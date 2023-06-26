@@ -199,6 +199,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecProMeshImage);
         TheVecAll.push_back(&TheSpecMeshImageDevlp);
         TheVecAll.push_back(&TheSpecRadiom2ImageSameMod);
+        TheVecAll.push_back(&TheSpecRadiomCreateModel);
+
         TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
         //TheVecAll.push_back(&TheSpecTopoComp);
 

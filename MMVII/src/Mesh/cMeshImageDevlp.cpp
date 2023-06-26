@@ -105,7 +105,7 @@ cCollecSpecArg2007 & cAppliMeshImageDevlp::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
            << AOpt2007(mWGrayLab,"WGL","With Gray Label 2-byte image generation",{eTA2007::HDV})
            << AOpt2007(mWRGBLab,"WRGBL","With RGB Label  1 chanel-label/2 label contrast",{eTA2007::HDV})
-	   << mPhProj.DPRadiom().ArgDirInOpt()
+	   << mPhProj.DPRadiomModel().ArgDirInOpt()
 /*
            << AOpt2007(mNameCloud2DIn,"M2","Mesh 2D, dev of cloud 3D,to generate a visu of hiden part ",{eTA2007::FileCloud,eTA2007::Input})
            << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
@@ -137,14 +137,14 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
    }
 
    std::string aNameIm = mMDBI.mNames[aKIm];
-   if (mPhProj.DPRadiom().DirOutIsInit())
+   if (mPhProj.DPRadiomModel().DirInIsInit())
    {
-       aRadIma = mPhProj.AllocCalibRadiomIma(aNameIm);
+       aRadIma = mPhProj.ReadCalibRadiomIma(aNameIm);
    }
 
    cDataFileIm2D aDFIIm = cDataFileIm2D::Create(aNameIm,false);
 
-   cSensorCamPC * aCamPC = mPhProj.AllocCamPC(aNameIm,false);
+   cSensorCamPC * aCamPC = mPhProj.ReadCamPC(aNameIm,false);
 
    // compute Ind of pts used in this image
    for (const auto & aIndF :   mVListIndTri.at(aKIm))
@@ -206,8 +206,8 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
 
 	    if (aRadIma)
 	    {
-                double aDiv = aRadIma->ImageCorrec(aPtIm+ aP0Im);
-		aRGB = ToI(ToR(aRGB)/aDiv);
+                cPt2dr aPtGlobIm = aPtIm+ aP0Im;
+		aRGB = ToI( aRadIma->ImageCorrec(ToR(aRGB),aPtGlobIm)  );
 	    }
 
             mGlobIm.SetRGBPix(aPixG,aRGB);

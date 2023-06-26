@@ -288,7 +288,8 @@ class cPhotogrammetricProject
 
           cMMVII_Appli &  Appli(); ///< Accessor
 	  cDirsPhProj &   DPOrient(); ///< Accessor
-	  cDirsPhProj &   DPRadiom(); ///< Accessor
+	  cDirsPhProj &   DPRadiomData(); ///< Accessor
+	  cDirsPhProj &   DPRadiomModel(); ///< Accessor
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
 	  cDirsPhProj &   DPMask(); ///< Accessor
 	  cDirsPhProj &   DPPointsMeasures(); ///< Accessor
@@ -296,7 +297,8 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPHomol();    ///<  Accessor
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
-	  const cDirsPhProj &   DPRadiom() const; ///< Accessor
+	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
+	  const cDirsPhProj &   DPRadiomModel() const; ///< Accessor
 	  const cDirsPhProj &   DPMeshDev() const; ///< Accessor
 	  const cDirsPhProj &   DPMask() const; ///< Accessor
 	  const cDirsPhProj &   DPPointsMeasures() const; ///< Accessor
@@ -311,7 +313,7 @@ class cPhotogrammetricProject
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
 	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
 
-	  cSensorCamPC * AllocCamPC(const std::string &,bool ToDelete,bool SVP=false) const; ///< Create Camera using Input orientation
+	  cSensorCamPC * ReadCamPC(const std::string &,bool ToDelete,bool SVP=false) const; ///< Create Camera using Input orientation
 
 
 	  /// Load a sensor, try different type (will add RPC , and others ?)
@@ -332,14 +334,21 @@ class cPhotogrammetricProject
          //==================   RADIOMETRY       =============================
 	 //===================================================================
 
+	       //  ------------  Create data --------------------
+	      
+	  /** Create a new radial-radiom calib adapted to image; geometric calibration & meta data must
+	   * be accessible; if already exist with same name return existing; add in Obj2DelAtEnd, as many
+	   * image will share it */
+	  cRadialCRS * CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm);
                //     --------   Save Data ---------------------
           void SaveRadiomData(const cImageRadiomData &) const; ///< Save camera using OutPut-orientation
           void SaveCalibRad(const cCalibRadiomIma &) const; ///< Save radiom-calib using OutPut-orientation
 
                //     --------   Read Data ---------------------
-	  cImageRadiomData * AllocRadiomData(const std::string &) const; ///< Read radiometric data for 1 image
-	  cCalibRadiomIma * AllocCalibRadiomIma(const std::string &) const; ///< Read radiom calib of 1 image
+	  cImageRadiomData * ReadRadiomData(const std::string &) const; ///< Read radiometric data for 1 image
+	  cCalibRadiomIma *  ReadCalibRadiomIma(const std::string &) const; ///< Read radiom calib of 1 image
 
+               //     --------   Standard names of files ---------------------
 	  ///  Name of radiometric calibration with a  radial model , hypothesis : depends of internal calibration
 	  ///  +  metadata (aperture)
           std::string NameCalibRadiomSensor(const cPerspCamIntrCalib &,const cMetaDataImage &) const;
@@ -403,7 +412,8 @@ class cPhotogrammetricProject
           std::string     mFolderProject;
 
 	  cDirsPhProj     mDPOrient;
-	  cDirsPhProj     mDPRadiom;
+	  cDirsPhProj     mDPRadiomData;
+	  cDirsPhProj     mDPRadiomModel;
 	  cDirsPhProj     mDPMeshDev;
 	  cDirsPhProj     mDPMask;
 	  cDirsPhProj     mDPPointsMeasures;   ///<  For GCP measures  Image + Grounds
