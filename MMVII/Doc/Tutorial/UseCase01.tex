@@ -175,7 +175,7 @@ compute the visibility of each triangle in each image, it also computes tie poin
 radiometry to compute radiometric equalisation 
 
 \begin{itemize}
-    \item {MMVII MeshProjImage "P.*jpg"  Dev3D\_Clip\_Correc-C3DC\_BigMac\_mesh.ply Basc DEV OutRad=R0}
+    \item {\tt MMVII MeshProjImage "P.*jpg"  Dev3D\_Clip\_Correc-C3DC\_BigMac\_mesh.ply Basc DEV OutRadData=R0}
 \end{itemize}
 
 The parameter {\tt DEV} indicates where the data must be stored.
@@ -191,20 +191,27 @@ as the vignettage is dependand of aperture. As these images contains no metadata
 we must indicate it . This has to be indicated in the file :
 
 \begin{itemize}
-    \item {MMVII-PhgrProj/MetaData/Std/CalcMTD.xml}
+    \item {\tt MMVII-PhgrProj/MetaData/Std/CalcMTD.xml}
 \end{itemize}
 
 We can do it by copying the file {\tt DataAux/CalcMTD.xml}. We can also
 do it using the command {\tt EditCalcMTDI} :
 
 \begin{itemize}
-      \item {MMVII  EditCalcMTDI Std Aperture "Modif=[P.*.jpg,11,0]"  Save=1}
+      \item {\tt MMVII  EditCalcMTDI Std Aperture "Modif=[P.*.jpg,11,0]"  Save=1}
+\end{itemize}
+
+We must first create the initial radiometric model  we want to use, here we select
+a degree $2$ by image :
+
+\begin{itemize}
+	\item {\tt MMVII RadiomCreateModel P.*jpg Init2 Basc DegIma=2}
 \end{itemize}
 
 Now we can compute the radometric equalization model :
 
 \begin{itemize}
-     \item {MMVII RadiomComputeEqual "P.*jpg" R0 Basc}
+	\item {\tt MMVII RadiomComputeEqual P.*jpg R0 Init2 Equal Basc}
 \end{itemize}
 
 
@@ -216,7 +223,7 @@ And finally, we can create the devloped surface :
 
 
 \begin{itemize}
-	\item {MMVII MeshImageDevlp Dev2D\_Clip\_Correc-C3DC\_BigMac\_mesh.ply  DEV InRad=R0}
+	\item {\tt MMVII MeshImageDevlp Dev2D\_Clip\_Correc-C3DC\_BigMac\_mesh.ply  DEV InRadModel=Equal}
 \end{itemize}
 
 The results can be found in {\tt MMVII-PhgrProj/MeshDev/DEV/DevIm.tif}, an illustration is shown on figure~\ref{fig:TutDI:DevIm}.

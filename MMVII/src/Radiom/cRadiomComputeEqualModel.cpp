@@ -134,7 +134,7 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgObl(cCollecSpecArg2007 & anAr
           <<   mPhProj.DPRadiomData().ArgDirInMand()
           <<   mPhProj.DPRadiomModel().ArgDirInMand()
           <<   mPhProj.DPRadiomModel().ArgDirOutMand()
-          <<   mPhProj.DPOrient().ArgDirInMand("InputCalibration")
+          //  <<   mPhProj.DPOrient().ArgDirInMand("InputCalibration")
 
    ;
 }
