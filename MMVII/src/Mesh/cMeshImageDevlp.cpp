@@ -69,12 +69,17 @@ class cAppliMeshImageDevlp : public cMMVII_Appli
 	size_t                         mNbPts;
 	std::vector<std::list<size_t>> mVListIndTri;  
 
-	std::vector<cPt2dr>            mPtsCurIm;
+	std::vector<cPt2dr>            mPtsCurIm; ///< projection of mesh vertex in image
 	std::vector<cPt2dr>            mPtsGlob;
 	cSetIntDyn                     mSetPCurIm;
-	cRGBImage                      mGlobIm;
+	cRGBImage                      mGlobIm;     ///<  Devloped  Image in RAM, has full size
 	cIm2D<tINT2>                   mGrLabIm;
 	cRGBImage                      mRGBLabIm;
+
+	cIm2D<tINT1>                   mNormX;  ///< Image of X-normal, stored on 8-byte 
+	cIm2D<tINT1>                   mNormY;  ///< Image of X-normal, stored on 8-byte
+	tREAL8                         mNormMult; ///< Multiplier of normal					
+        bool                           mWithNorm; ///< Do we create an image of normal
 
 	std::vector<cPt3di>            mLutLabel;
 
@@ -92,9 +97,13 @@ cAppliMeshImageDevlp::cAppliMeshImageDevlp(const std::vector<std::string> & aVAr
    mTriDev          (nullptr),
    mBoxDev          (cBox2dr::Empty()),
    mSetPCurIm       (0),
-   mGlobIm          (cPt2di(1,1)),
+   mGlobIm          (cPt2di(1,1)),  ///< init with minmal size
    mGrLabIm         (cPt2di(1,1)),
-   mRGBLabIm        (cPt2di(1,1))
+   mRGBLabIm        (cPt2di(1,1)),
+   mNormX           (cPt2di(1,1)),
+   mNormY           (cPt2di(1,1)),
+   mNormMult        (100.0),  // defautlt value fit [-1,1] in [-128,127]
+   mWithNorm        (false)
 {
 }
 
@@ -106,15 +115,7 @@ cCollecSpecArg2007 & cAppliMeshImageDevlp::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            << AOpt2007(mWGrayLab,"WGL","With Gray Label 2-byte image generation",{eTA2007::HDV})
            << AOpt2007(mWRGBLab,"WRGBL","With RGB Label  1 chanel-label/2 label contrast",{eTA2007::HDV})
 	   << mPhProj.DPRadiomModel().ArgDirInOpt()
-/*
-           << AOpt2007(mNameCloud2DIn,"M2","Mesh 2D, dev of cloud 3D,to generate a visu of hiden part ",{eTA2007::FileCloud,eTA2007::Input})
-           << AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
-	  <<  AOpt2007(mDoImages,"DoIm","Do images", {eTA2007::HDV})
-           << AOpt2007(mNbPixImRedr,"NbPixIR","Resolution of ZBuffer", {eTA2007::HDV})
-           << AOpt2007(mSKE,CurOP_SkipWhenExist,"Skip command when result exist")
-           << AOpt2007(mNameBenchMode,"NameBM","Use name as in bench mode",{eTA2007::HDV,eTA2007::Tuning})
-	   << AOptBench()
-*/
+           << AOpt2007(mWithNorm,"WithNormal","Do we want to create images of  normal ?",{eTA2007::HDV})
    ;
 
 }
@@ -154,16 +155,16 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
            mSetPCurIm.AddIndFixe(aFace[aK3]);
    }
    // conpute  coord of pts in ortho and in cur Im
-   cTplBoxOfPts<tREAL8,2> aBoxDev;
-   cTplBoxOfPts<tREAL8,2> aBoxIm;
+   cTplBoxOfPts<tREAL8,2> aBoxDev;  /// store bounding box of devlopped point
+   cTplBoxOfPts<tREAL8,2> aBoxIm;  /// store box of vertex in image
    for (const auto & anIndPts : mSetPCurIm.mVIndOcc)
    {
        cPt2dr aPGlob = mPtsGlob.at(anIndPts);
        aBoxDev.Add(aPGlob);
 
        cPt2dr aPIm = aCamPC->Ground2Image(mTri3->KthPts(anIndPts));
-       aBoxIm.Add(aPIm);
-       mPtsCurIm.at(anIndPts) = aPIm;
+       aBoxIm.Add(aPIm);    
+       mPtsCurIm.at(anIndPts) = aPIm; // memorize coordinate of vertex in image
    }
 
    // Create box of pix from box of Tri Proj : dilate (for margin),  cast to int, intersect with box of image
@@ -186,6 +187,8 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
 
    for (const auto & aIndF :   mVListIndTri.at(aKIm))
    {
+	 auto aTriangle3D = mTri3->KthTri(aIndF);
+         cPt3dr aNormal = NormalUnit(aTriangle3D);
         const cPt3di  & aFace =  mTriDev->KthFace(aIndF);
 
         cTriangle2DCompiled<tREAL8> aTriGlob  = TriFromFace(mPtsGlob,aFace);
@@ -215,6 +218,12 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
                mGrLabIm.DIm().SetV(aPixG,aKIm);
 	    if (mWRGBLab)
                mRGBLabIm.SetRGBPix(aPixG,mLutLabel.at(aKIm));
+
+	    if (mWithNorm)
+	    {
+               mNormX.DIm().SetV(aPixG,round_ni(aNormal.x() * mNormMult));
+               mNormY.DIm().SetV(aPixG,round_ni(aNormal.y() * mNormMult));
+	    }
 	}
    }
 
@@ -286,6 +295,11 @@ int cAppliMeshImageDevlp::Exe()
      if (mWRGBLab)
         mRGBLabIm = cRGBImage(mSzPix,mLutLabel.at(mNbIm)) ;
 
+     if (mWithNorm)  // if need them, give adequate size (else minimal size required)
+     {
+         mNormX.DIm().Resize(mSzPix);
+         mNormY.DIm().Resize(mSzPix);
+     }
 
      for (size_t aKIm = 0 ; aKIm < mNbIm ; aKIm++)
      {
@@ -300,6 +314,12 @@ int cAppliMeshImageDevlp::Exe()
 
      if (mWGrayLab || mWRGBLab)
         SaveInFile(mMDBI.mNames,NameFileMeshDev("LabNames.xml"));
+
+     if (mWithNorm)
+     {
+         mNormX.DIm().ToFile(NameFileMeshDev("XNorm.tif"));
+         mNormY.DIm().ToFile(NameFileMeshDev("YNorm.tif"));
+     }
 
      delete mTriDev;
      delete mTri3;
