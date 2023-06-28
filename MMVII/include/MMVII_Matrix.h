@@ -682,6 +682,7 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
         cWeightAv();
         void Add(const TypeWeight & aWeight,const TypeVal & aVal);
         TypeVal Average() const;
+        const TypeVal & SVW() const;  /// Accessor to sum weighted vals
     private :
         TypeWeight  mSW;   ///< Som of    W
         TypeVal     mSVW;   ///< Som of    VW
@@ -736,7 +737,7 @@ template <const int Dim> class cUB_ComputeStdDev
         cUB_ComputeStdDev();
 
         void Add(const  double * aVal,const double & aPds);
-        const double  *  ComputeUnBiasedVar() ;
+        const double  *  ComputeUnBiasedVar() ;  // return a pointer because of Dim
         const double  *  ComputeBiasedVar() ;
         double  DeBiasFactor() const;
 

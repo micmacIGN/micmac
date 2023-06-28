@@ -59,6 +59,7 @@ extern cSpecMMVII_Appli  TheSpecMeshCheck;
 extern cSpecMMVII_Appli  TheSpecProMeshImage; 
 extern cSpecMMVII_Appli  TheSpecMeshImageDevlp; 
 extern cSpecMMVII_Appli  TheSpecRadiom2ImageSameMod; 
+extern cSpecMMVII_Appli  TheSpecRadiomCreateModel;
 extern cSpecMMVII_Appli  TheSpecTopoComp;
 extern cSpecMMVII_Appli  TheSpecGenerateEncoding;
 extern cSpecMMVII_Appli  TheSpecTestGraphPart;

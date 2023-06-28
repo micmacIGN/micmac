@@ -1,0 +1,8 @@
+Lot1 :
+
+    portage window
+    separation MMV1
+    bloc rigide
+    metadata
+    jeu tests de non regression (caneva general?)
+

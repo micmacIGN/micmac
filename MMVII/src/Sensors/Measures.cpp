@@ -49,8 +49,9 @@ void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm & aCple)  {aCple.AddData(anA
 /*                                        */
 /* ************************************** */
 
-cSetHomogCpleIm::cSetHomogCpleIm() 
+cSetHomogCpleIm::cSetHomogCpleIm(size_t aReserve) 
 {
+	mSetH.reserve(aReserve);
 }
 
 const std::vector<cHomogCpleIm> & cSetHomogCpleIm::SetH() const {return mSetH;}

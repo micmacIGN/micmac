@@ -48,14 +48,18 @@ MMVII  MeshCloudClip Correc-C3DC_BigMac_mesh.ply  AperiCloud_Basc_polyg3d.xml
 
 
 MMVII MeshDev Clip_Correc-C3DC_BigMac_mesh.ply
-MMVII MeshProjImage "P.*jpg"  Dev3D_Clip_Correc-C3DC_BigMac_mesh.ply Basc DEV OutRad=R0
+MMVII MeshProjImage "P.*jpg"  Dev3D_Clip_Correc-C3DC_BigMac_mesh.ply Basc DEV OutRadData=R0
 
 
 MMVII  EditCalcMTDI Std Aperture "Modif=[P.*.jpg,11,0]"  Save=1
-MMVII RadiomComputeEqual "P.*jpg" R0 Basc 
 
 
-MMVII MeshImageDevlp Dev2D_Clip_Correc-C3DC_BigMac_mesh.ply  DEV InRad=R0
+MMVII RadiomCreateModel P.*jpg Init2 Basc DegIma=2
+MMVII RadiomComputeEqual P.*jpg R0 Init2 Equal
+MMVII MeshImageDevlp Dev2D_Clip_Correc-C3DC_BigMac_mesh.ply DEV InRadModel=Equal
+
+
+
 
 
 

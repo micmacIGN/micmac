@@ -263,6 +263,25 @@ getchar();
     }
 }
 
+
+/** Basic test on read/write of a map */
+void BenchSerialMap(const std::string & aDirOut,bool isXml)
+{
+    std::string aNameFile =  aDirOut + "TestMAP." + StdPostF_ArMMVII(isXml);
+    std::map<std::string,std::vector<cPt2dr>> aMap;
+    aMap["1"] = std::vector<cPt2dr>{{1,1}};
+    aMap["2"] = std::vector<cPt2dr>{{1,1},{2,2}};
+    aMap["0"] = std::vector<cPt2dr>{};
+
+    SaveInFile(aMap,aNameFile);
+
+    std::map<std::string,std::vector<cPt2dr>> aMap2;
+    ReadFromFile(aMap2,aNameFile);
+
+    MMVII_INTERNAL_ASSERT_bench(aMap==aMap2,"BenchSerialMap");
+}
+
+
 void BenchSerialization
     (
         cParamExeBench & aParam,
@@ -271,6 +290,9 @@ void BenchSerialization
     )
 {
     if (! aParam.NewBench("Serial")) return;
+
+    BenchSerialMap(aDirOut,true);
+    BenchSerialMap(aDirOut,false);
     // std::string aDir= DirCur();
     {
         BenchSerialIm2D<tREAL4>(aDirOut);

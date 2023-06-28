@@ -164,6 +164,7 @@ std::string cOneTranslAttrIm::Translate(const std::string & aName,bool ForTest) 
 	        {
                    if (ForTest)
                      StdOut()  <<  " match and got : [" << aTransfo  << "]\n" ;
+// StdOut() << "TTrrRanfooo= " << aTransfo << " P=" << aTry.mPat << " V=" << aTry.mValue << " N=" << aName<< "\n";
                    return aTransfo;
 	        }
 	        else
@@ -303,6 +304,7 @@ std::string cGlobCalculMetaDataProject::Translate(const std::string & aName,eMTD
 	     StdOut() << "============= Try with dir " << *aV << " =================\n";
 	}
         std::string aRes = aTr.Translate(aName,aMode,ForTest);
+	// StdOut()  << " WwwttTttt " << aRes << "\n";
 	if (aRes != MMVII_NONE)
            return aRes;
     }
@@ -315,6 +317,7 @@ void     cGlobCalculMetaDataProject::SetReal(tREAL8 & aVal,const std::string & a
     if (aVal !=-1) return;
 
     std::string aTr = Translate(aNameIm,aMode);
+
 
     if (aTr !=MMVII_NONE)  
         aVal =  cStrIO<double>::FromStr(aTr);
@@ -381,6 +384,7 @@ cMetaDataImage::cMetaDataImage(const std::string & aDir,const std::string & aNam
     aGlobCalc->SetReal(mFocalMM,aNameIm,eMTDIm::eFocalmm);
     aGlobCalc->SetName(mCameraName,aNameIm,eMTDIm::eModelCam);
     aGlobCalc->SetName(mAdditionalName,aNameIm,eMTDIm::eAdditionalName);
+
 }
 
 cMetaDataImage::cMetaDataImage() :

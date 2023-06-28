@@ -14,6 +14,7 @@ enum class eTypeFuncDist
               eDecY,  ///< Coefficient for decentric distorsion y mean derived by Cy (it has X and Y components)
               eMonX,  ///< Coefficient for a monom in X, of the polynomial distorsion
               eMonY,  ///< Coefficient for a monom in Y, of the polynomial distorsion
+              eMonom,   ///< Coefficient for a monom in X or Y
               eNbVals ///< Tag for number of value
            };
 
@@ -41,6 +42,10 @@ class cDescOneFuncDist
 };
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);
+
+const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree);
+
+
 
 /**  Class for generating distorsion random BUT invertible on certain domain,
     used for checking functionnalities on distorsion implying inversio
@@ -119,6 +124,13 @@ NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,
 
            // .............   Equation radiometry .............
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibPolIma(int aNbDeg,bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf);
+
+
+
+
 
 
      //  ====   equations used in tuto/bench/ devpt of surface  ==============================

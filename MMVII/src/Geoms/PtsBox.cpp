@@ -376,6 +376,18 @@ template <class Type,const int Dim>
    return aRes;
 }
 
+template <class Type,const int Dim> 
+        cTplBox<Type,Dim>  cPtxd<Type,Dim>::GetBoxEnglob() const
+{
+   return cTplBox<Type,Dim>(*this,*this,true);
+}
+
+template <class Type,const int Dim> 
+        bool  cPtxd<Type,Dim>::InfEqDist(const tPt & aPt,tREAL8 aDist) const
+{
+	return SqN2(*this-aPt) <= Square(aDist);
+}
+
 
 template <class Type,const int Dim> double NormK(const cPtxd<Type,Dim> & aPt,double anExp) 
 {
@@ -1042,7 +1054,46 @@ template <class Type>
 }
 
 
+template <const int Dim>
+    void  MakeBoxNonEmptyWithMargin
+          (
+              cPtxd<tREAL8,Dim> & aP0 ,
+              cPtxd<tREAL8,Dim> & aP1,
+              tREAL8 aStdMargin,tREAL8 aMarginSemiEmpty,tREAL8 aMarginEmpty
+         )
+{
+    cPtxd<tREAL8,Dim> aSz = aP1-aP0;
 
+    tREAL8 aMinDnn = 1.0;
+    int aNbNN = 0;
+    for (int aD=0 ; aD<Dim ; aD++)
+    {
+        if (aSz[aD] != 0)
+        {
+            UpdateMin(aMinDnn,aSz[aD]);
+            aNbNN++;
+        }
+    }
+
+    if (aNbNN==Dim)
+       aSz = aSz * aStdMargin;
+    else if (aNbNN==0)
+    {
+       aSz= cPtxd<tREAL8,Dim>::PCste(aMarginEmpty);
+    }
+    else
+    {
+        for (int aD=0 ; aD<Dim ; aD++)
+        {
+            if (aSz[aD] == 0)
+            {
+                aSz[aD] = aMinDnn * aMarginSemiEmpty;
+            }
+        }
+    }
+    aP0 += -aSz;
+    aP1 +=  aSz;
+}
 
 /* ========================== */
 /*       cTpxBoxOfPts         */
@@ -1221,6 +1272,8 @@ template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandInSphere();\
+template  cTplBox<TYPE,DIM>  cPtxd<TYPE,DIM>::GetBoxEnglob() const;\
+template  bool  cPtxd<TYPE,DIM>::InfEqDist(const cPtxd<TYPE,DIM> & aPt,tREAL8) const;\
 template typename cPtxd<TYPE,DIM>::tBigNum cPtxd<TYPE,DIM>::MinSqN2(const std::vector<tPt> &,bool SVP) const;\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitNonAligned(const cPtxd<TYPE,DIM>& ,const TYPE&);\
@@ -1276,6 +1329,7 @@ template  int NbPixVign(const cPtxd<int,DIM> & aVign);\
 template class cDataGenUnTypedIm<DIM>;\
 template <> const cPixBox<DIM> cPixBox<DIM>::TheEmptyBox(cPtxd<int,DIM>::PCste(0),cPtxd<int,DIM>::PCste(0),true);
 
+template void MakeBoxNonEmptyWithMargin(cPtxd<tREAL8,2>&,cPtxd<tREAL8,2>&,tREAL8,tREAL8,tREAL8);
 
 /*
 void F()

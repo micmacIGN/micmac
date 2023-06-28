@@ -268,7 +268,7 @@ class cRadialCRS ;            // class for "standard" model : radial function
 
       // radiometric  image calibration
 class cCalibRadiomIma ;     //  base class  for representing a calib
-class cCalRadIm_Cst ;       // class for standar model :   Cste + Sensor
+class cCalRadIm_Pol ;       // class for standar model :   Cste + Sensor
 
      // ================  Ground & Image measures of points ========
     

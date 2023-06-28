@@ -279,6 +279,11 @@ class cMultipleOfs
         {
              return ShowCont(aVal,"[,]");
         }
+        template <class T1,class T2> cMultipleOfs & operator << (const std::pair<T1,T2> &aPair)
+        {
+            *this  << "{" << aPair.first  << "," << aPair.second << "}";
+            return *this;
+        }
         // General version
         template <class Type> cMultipleOfs & operator << (const Type & aVal)
         {
@@ -286,12 +291,15 @@ class cMultipleOfs
                  *Ofs << aVal;
              return *this;
         }
+
     private :
         
         cMultipleOfs(const cMultipleOfs &) = delete;
         cMMVII_Ofs *                mOfsCreated;
         std::vector<std::ostream *> mVOfs;
 };
+
+
 
 /// For now I have problem with cMultipleOfs << std::endl , tag end of line to come back on it later
 #define ENDL "\n"

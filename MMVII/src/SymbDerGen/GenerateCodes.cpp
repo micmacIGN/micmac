@@ -30,6 +30,15 @@ using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+
+
+
+  /****************************************************/
+  /****************************************************/
+  /****************************************************/
+  /****************************************************/
+
+
 extern const std::vector<cPt3di>  TheVectDegree;
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
@@ -176,10 +185,39 @@ cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,boo
 }
 
      //    Radiometry
-cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf)
+
+cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf)
 { 
-    return StdAllocCalc(NameFormula(cRadiomVignettageLinear(aNbDeg),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cRadiomCalibRadSensor(aNbDeg),WithDerive),aSzBuf);
 }
+
+cCalculator<double> * EqRadiomCalibPolIma(int aNbDeg,bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormula(cRadiomCalibPolIma(aNbDeg),WithDerive),aSzBuf);
+}
+cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormula(cRadiomEqualisation(true,aDegSens,aDegIm),WithDerive),aSzBuf);
+}
+
+const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree)
+{
+    static std::vector<std::vector<cDescOneFuncDist>>  aRes;
+
+    if (aRes.empty())
+    {
+        for (int aK=0 ; aK<=10 ; aK++)
+             aRes.push_back(cRadiomCalibPolIma(aK).VDesc());
+    }
+    return aRes.at(aDegree);
+}
+
+      // To delete soon
+      cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf)
+      { 
+          return StdAllocCalc(NameFormula(cRadiomVignettageLinear(aNbDeg),WithDerive),aSzBuf);
+      }
+
 
      //=============   Tuto/Bench/Network ============
 
@@ -611,7 +649,34 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cTopoSubFrame(),WithDer);
 
        GenCodesFormula((tREAL8*)nullptr,cDeformImHomotethy()       ,WithDer);
+
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
+       std::vector<int>  aVDegSens {5};
+       std::vector<int>  aVDegIm   {0,1,2};
+
+       for (auto  aDegIm : aVDegIm)
+       {
+           if (!WithDer)  // Generator doesnt like multipe genera : he is quite touchy ...
+               GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(aDegIm)       ,WithDer);
+       }
+       for (auto  aDegSens : aVDegSens)
+       {
+           if (!WithDer)
+              GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(aDegSens)       ,WithDer);
+
+           for (const auto & aDegIm : {0,1,2})
+           {
+               bool ForEqual = true;
+               GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(ForEqual,aDegSens,aDegIm)       ,WithDer);
+           }
+            
+/*
+           GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(0)       ,WithDer);
+           GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(1)       ,WithDer);
+           GenCodesFormula((tREAL8*)nullptr,cRadiomCalibPolIma(2)       ,WithDer);
+*/
+       }
+
        
        GenCodesFormula((tREAL8*)nullptr,cDeformImAffinity()       ,WithDer);
    }

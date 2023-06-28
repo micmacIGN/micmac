@@ -223,7 +223,8 @@ void cDirsPhProj::SetDirOutInIfNotInit()
 cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mAppli            (anAppli),
     mDPOrient         (eTA2007::Orient,*this),
-    mDPRadiom         (eTA2007::Radiom,*this),
+    mDPRadiomData     (eTA2007::RadiomData,*this),
+    mDPRadiomModel    (eTA2007::RadiomModel,*this),
     mDPMeshDev        (eTA2007::MeshDev,*this),
     mDPMask           (eTA2007::Mask,*this),
     mDPPointsMeasures (eTA2007::PointsMeasure,*this),
@@ -239,7 +240,8 @@ void cPhotogrammetricProject::FinishInit()
     mFolderProject = mAppli.DirProject() ;
 
     mDPOrient.Finish();
-    mDPRadiom.Finish();
+    mDPRadiomData.Finish();
+    mDPRadiomModel.Finish();
     mDPMeshDev.Finish();
     mDPMask.Finish();
     mDPPointsMeasures.Finish();
@@ -273,7 +275,8 @@ cPhotogrammetricProject::~cPhotogrammetricProject()
 cMMVII_Appli &  cPhotogrammetricProject::Appli()    {return mAppli;}
 
 cDirsPhProj &   cPhotogrammetricProject::DPOrient() {return mDPOrient;}
-cDirsPhProj &   cPhotogrammetricProject::DPRadiom() {return mDPRadiom;}
+cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() {return mDPRadiomData;}
+cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() {return mDPRadiomModel;}
 cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
 cDirsPhProj &   cPhotogrammetricProject::DPMask() {return mDPMask;}
 cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() {return mDPPointsMeasures;}
@@ -281,7 +284,8 @@ cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
 cDirsPhProj &   cPhotogrammetricProject::DPHomol() {return mDPHomol;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
-const cDirsPhProj &   cPhotogrammetricProject::DPRadiom() const {return mDPRadiom;}
+const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
+const cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() const {return mDPRadiomModel;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMeshDev;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
 const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return mDPPointsMeasures;}
@@ -293,43 +297,71 @@ const cDirsPhProj &   cPhotogrammetricProject::DPHomol() const {return mDPHomol;
 
         //  =============  Radiometric Data =================
 
-cImageRadiomData * cPhotogrammetricProject::AllocRadiomData(const std::string & aNameIm) const
+cImageRadiomData * cPhotogrammetricProject::ReadRadiomData(const std::string & aNameIm) const
 {
-    mDPRadiom.AssertDirInIsInit();
+    mDPRadiomData.AssertDirInIsInit();
 
-    std::string aFullName  = mDPRadiom.FullDirIn() + cImageRadiomData::NameFileOfImage(aNameIm);
+    std::string aFullName  = mDPRadiomData.FullDirIn() + cImageRadiomData::NameFileOfImage(aNameIm);
     return cImageRadiomData::FromFile(aFullName);
 }
 
 void cPhotogrammetricProject::SaveRadiomData(const cImageRadiomData & anIRD) const
 {
-    anIRD.ToFile(mDPRadiom.FullDirOut()+anIRD.NameFile());
+    anIRD.ToFile(mDPRadiomData.FullDirOut()+anIRD.NameFile());
 }
 
         //  =============  Radiometric Calibration =================
 
-cCalibRadiomIma * cPhotogrammetricProject::AllocCalibRadiomIma(const std::string & aNameIm) const
+cCalibRadiomIma * cPhotogrammetricProject::ReadCalibRadiomIma(const std::string & aNameIm) const
 {
 /* With only the name of images and the folder, cannot determinate the model used, so the methods
  * test the possible model by testing existence of files.
  */	
-    std::string aNameFile = mDPRadiom.DirIn() + PrefixCalRadRad + aNameIm + "." + PostF_XmlFiles;
+    std::string aNameFile = mDPRadiomModel.FullDirIn() + PrefixCalRadRad + aNameIm + "." + PostF_XmlFiles;
     if (ExistFile(aNameFile))
-       return cCalRadIm_Cst::FromFile(aNameFile);
+       return cCalRadIm_Pol::FromFile(aNameFile);
 
-   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mDPRadiom.DirIn());
+   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mDPRadiomModel.DirIn());
    return nullptr;
 }
 
 void cPhotogrammetricProject::SaveCalibRad(const cCalibRadiomIma & aCalRad) const
 {
-     aCalRad.ToFile(mDPRadiom.FullDirOut() + PrefixCalRadRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
+     aCalRad.ToFile(mDPRadiomModel.FullDirOut() + PrefixCalRadRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
 }
 
 std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMetaDataImage & aMTD) const
 {
     return  PrefixCalRadRad  + "Sensor-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
 }
+
+std::string cPhotogrammetricProject::NameCalibRSOfImage(const std::string & aNameIm) const
+{
+     cMetaDataImage aMetaData =  GetMetaData(aNameIm);
+     cPerspCamIntrCalib* aCalib = InternalCalibFromImage(aNameIm);
+
+     return NameCalibRadiomSensor(*aCalib,aMetaData);
+}
+
+cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm)
+{
+      static std::map<std::string,cRadialCRS *> TheDico;
+      std::string aNameCal = NameCalibRSOfImage(aNameIm);
+
+      cRadialCRS * &  aRes = TheDico[aNameCal];
+
+      if (aRes != nullptr)  return aRes;
+
+      cPerspCamIntrCalib* aCalib = InternalCalibFromImage(aNameIm);
+
+      aRes = new cRadialCRS(aCalib->PP(),aDegree,aCalib->SzPix(),aNameCal);
+
+      mAppli.AddObj2DelAtEnd(aRes);
+
+      return aRes;
+}
+
+
 
         //  =============  Orientation =================
 
@@ -346,7 +378,7 @@ void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) co
 }
 
 
-cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete,bool SVP)
+cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bool ToDelete,bool SVP) const
 {
     mDPOrient.AssertDirInIsInit();
 
@@ -369,7 +401,7 @@ void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImag
      aSI = nullptr;
      aSPC =nullptr;
 
-     aSPC = AllocCamPC(aNameIm,true,true);
+     aSPC = ReadCamPC(aNameIm,true,true);
      if (aSPC !=nullptr)
      {
         aSI = aSPC;
@@ -386,7 +418,7 @@ void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImag
      }
 }
 
-cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImCal(const std::string & aNameIm)
+cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std::string & aNameIm) const
 {
     // 4 now, pretty basic allox sensor, extract internal, destroy
     // later will have to handle :
@@ -394,7 +426,7 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImCal(const std:
     //    * case where nor calib nor pose exist, and must be created from xif 
     mDPOrient.AssertDirInIsInit();
 
-    cSensorCamPC *  aPC = AllocCamPC(aNameIm,false);
+    cSensorCamPC *  aPC = ReadCamPC(aNameIm,false);
     cPerspCamIntrCalib * aCalib = aPC->InternalCalib();
     delete aPC;
 
