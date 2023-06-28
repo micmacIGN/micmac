@@ -2185,7 +2185,8 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
 
     //Output first child orientation
     auto child0 = childs[0];
-    std::string ori0name = "tree_" + child0->attr().Im()->Name();
+    //std::string ori0name = "tree_" + child0->attr().Im()->Name();
+    std::string ori0name = "tree_" + curNodeName;
     const finalScene& r = rs.at(child0);
     result.merge(r);
 
@@ -2203,8 +2204,8 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
     Save(data, ori0name, false);
     for (auto e : result.ss) { e->flag_set_kth_false(data.mFlagS); }
 
-    campari(result, ori0name, mPrefHom);
-    updateViewFrom(ori0name, result.ss);
+    //campari(result, ori0name, mPrefHom);
+    //updateViewFrom(ori0name, result.ss);
 
     for (size_t n = 1; n < childs.size(); n++) {
         auto child = childs[n];
@@ -2216,7 +2217,6 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
         for (auto e : r.ss) { e->flag_set_kth_true(data.mFlagS); }
         Save(data, i, false);
         for (auto e : r.ss) { e->flag_set_kth_false(data.mFlagS); }
-
 
         basculepy(ori0name, i, ori0name, mNameOriCalib, mPrefHom);
         //campari(result, ori0name, mPrefHom);
@@ -2236,6 +2236,10 @@ void RandomForest::updateViewFrom(std::string name, std::set<tSomNSI*> views)
 {
     std::string inOri = name;
     std::cout << "Reading output ori from: " << inOri << std::endl;
+    if (!ELISE_fp::exist_file(inOri)) {
+        //No directory to read from
+        return;
+    }
     for (auto e : views) {
         std::string imgName = e->attr().Im()->Name();
         std::string f = mNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+inOri,imgName,true);
@@ -2293,7 +2297,7 @@ finalScene RandomForest::bfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
             std::cout << "Working on level: " << std::to_string(s.size()) << std::endl;
             //tasks.emplace_back([&results, &data, tree, n, this]() {
                 results[n] = processNode(data, tree, results, n);
-         /*   });
+            /*});
             if (tasks.size() >= processor_count) {
                 for (auto& t : tasks) {
                     t.join();
@@ -2301,6 +2305,7 @@ finalScene RandomForest::bfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
                 tasks.clear();
             }*/
         }
+
         /*
         for (auto& t : tasks) {
             t.join();
