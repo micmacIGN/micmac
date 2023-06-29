@@ -200,6 +200,13 @@ cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDeri
     return StdAllocCalc(NameFormula(cRadiomEqualisation(true,aDegSens,aDegIm),WithDerive),aSzBuf);
 }
 
+cCalculator<double> * EqRadiomStabilization(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf)
+{ 
+    return StdAllocCalc(NameFormula(cRadiomEqualisation(false,aDegSens,aDegIm),WithDerive),aSzBuf);
+}
+
+
+
 const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree)
 {
     static std::vector<std::vector<cDescOneFuncDist>>  aRes;
@@ -666,8 +673,8 @@ int cAppliGenCode::Exe()
 
            for (const auto & aDegIm : {0,1,2})
            {
-               bool ForEqual = true;
-               GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(ForEqual,aDegSens,aDegIm)       ,WithDer);
+               GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(true ,aDegSens,aDegIm) ,WithDer);
+               GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(false,aDegSens,aDegIm) ,WithDer);
            }
             
 /*

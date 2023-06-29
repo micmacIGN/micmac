@@ -108,6 +108,7 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
      // ---  Optionnal args ------
 	bool    mShow;
 	size_t  mNbMinByClpe;
+	tREAL8  mStabW;  ///< Weight for "stabilizing" equation, avoid "big  drift"
 
      // --- constructed ---
         cPhotogrammetricProject            mPhProj;     ///< The Project, as usual
@@ -143,6 +144,7 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgOpt(cCollecSpecArg2007 & anAr
 {
    return anArgOpt
            << AOpt2007(mShow,"Show","Show messages",{eTA2007::HDV})
+           << AOpt2007(mStabW,"WStab","Weight for stabilization/avoid drift",{eTA2007::HDV})
    ;
 }
 
@@ -151,7 +153,8 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgOpt(cCollecSpecArg2007 & anAr
 cAppliRadiom2ImageSameMod::cAppliRadiom2ImageSameMod(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli               (aVArgs,aSpec),
     mShow                      (true),
-    mNbMinByClpe               (50),
+    mNbMinByClpe               (20),
+    mStabW                     (1e-2),
     mPhProj                    (*this),
     mSolRadial                 (1),
     mFusIndex                  (1),
@@ -285,6 +288,7 @@ void   cAppliRadiom2ImageSameMod::OneIterationGen(int aDegFroze)
      cWeightAv<tREAL8> aAvgAlb;  // compute average albeda (used for stat normalization)
 
      tElSys  aSomWeight = 0.0;
+     size_t  aNbEq = 0;
      // 2- Add equations
      for (size_t aKPMul=0; aKPMul<mFusIndex.VVIndexes().size(); aKPMul++)
      {
@@ -329,9 +333,42 @@ void   cAppliRadiom2ImageSameMod::OneIterationGen(int aDegFroze)
              mCurSys->AddEq2Subst(aSetTmp,aCRI.ImaEqual(),aVInd,aVObs,aRW);
 
 	     aSomWeight += aW;
+	     aNbEq++;
          }
 	 // All equation for 1 albedo have been accumulated, we can make substitution
          mCurSys->AddObsWithTmpUK(aSetTmp); 
+     }
+
+     if (mStabW>0)
+     {
+	 tElSys  aW =  (aSomWeight/aNbEq) * mStabW;
+	 cResidualWeighter<tElSys> aRW(aW);  // weighter constant
+         for (size_t aKPMul=0; aKPMul<mFusIndex.VVIndexes().size(); aKPMul++)
+         {
+              const auto & aVecIndMul = mFusIndex.VVIndexes().at(aKPMul);
+              for (const  auto & aImInd : aVecIndMul)
+              {
+              // extract  Image+Sensor Calib, radiom data
+                  cComputeCalibRadIma * aRIM = mVRadIm.at(aImInd.x());
+                  cCalibRadiomIma & aCRI = aRIM->CalRadIm();
+	          cCalibRadiomSensor & aCalS = aCRI.CalibSens();
+                  cImageRadiomData&   aIRD = aRIM->IRD();
+
+	          // extract point & Radiometry of image
+                  int aIndPt = aImInd.y();
+                  cPt2dr  aPt =  ToR(aIRD.Pt(aIndPt));
+                  tREAL8  aRadIm = aIRD.Gray(aIndPt);
+
+	          // compute observation an unknowns current value
+                  std::vector<tREAL8> aVObs = Append({aRadIm},aCalS.VObs(aPt)); // Radiom,P.x(),P.y(),C.x(),C.y(),Rho
+                  std::vector<int>  aVInd;
+                  aCalS.PushIndexes(aVInd);       // Add indexes of sensor calibration
+                  aCRI.PushIndexes(aVInd);        // Add indexes of image calibration
+
+	          //  Now accumulate observation
+                  mCurSys->CalcAndAddObs(aCRI.ImaStab(),aVInd,aVObs,aRW);
+              }
+          }
      }
 
      if (mShow)

@@ -192,19 +192,28 @@ cCalRadIm_Pol::cCalRadIm_Pol(cCalibRadiomSensor * aCalSens,int  aDegree,const st
       mDegree          (aDegree),
       mNameIm          (aNameIm),
       mImaOwnCorr      (nullptr),
-      mImaEqual        (nullptr)
+      mImaEqual        (nullptr),
+      mImaStab         (nullptr)
 {
      if (mDegree >= 0)
      {
          // Initialize with constant-1 polynom
          mCoeffPol.resize(VDesc_RadiomCPI(mDegree).size(),0.0);
          mCoeffPol.at(0) = 1.0;
-         mImaOwnCorr =  EqRadiomCalibPolIma(mDegree,false,1);
-         mImaEqual = EqRadiomEqualisation(mCalibSens->NbParamRad(),mDegree,true,1);
 	 mNameCalib = mCalibSens->NameCal();
+         // mImaOwnCorr =  EqRadiomCalibPolIma(mDegree,false,1);
+         // mImaEqual = EqRadiomEqualisation(mCalibSens->NbParamRad(),mDegree,true,1);
+	 PostInit();
 
 	 StdOut() << "CPPP=" << mCoeffPol  << " D=" << mDegree << "\n";
      }
+}
+
+void cCalRadIm_Pol::PostInit()
+{
+    mImaOwnCorr = EqRadiomCalibPolIma(mDegree,false,1);
+    mImaEqual   = EqRadiomEqualisation(mCalibSens->NbParamRad(),mDegree,true,1);
+    mImaStab    = EqRadiomStabilization(mCalibSens->NbParamRad(),mDegree,true,1);
 }
 
 cCalRadIm_Pol::cCalRadIm_Pol()  :
@@ -216,6 +225,7 @@ cCalRadIm_Pol::~cCalRadIm_Pol()
 {
     delete mImaOwnCorr;
     delete mImaEqual;
+    delete mImaStab;
 }
 
 const std::string & cCalRadIm_Pol::NameIm() const {return mNameIm;}
@@ -253,8 +263,9 @@ cCalRadIm_Pol * cCalRadIm_Pol::FromFile(const std::string & aName)
      cCalRadIm_Pol *  aRes = new cCalRadIm_Pol();
      ReadFromFile(*aRes,aName);
      aRes->mCalibSens = cCalibRadiomSensor::FromFile(DirOfPath(aName) + aRes->mNameCalib + ".xml");
-     aRes->mImaOwnCorr =  EqRadiomCalibPolIma(aRes->mDegree,false,1);
-     aRes->mImaEqual = EqRadiomEqualisation(aRes->mCalibSens->NbParamRad(),aRes->mDegree,true,1);
+     // aRes->mImaOwnCorr =  EqRadiomCalibPolIma(aRes->mDegree,false,1);
+     // aRes->mImaEqual = EqRadiomEqualisation(aRes->mCalibSens->NbParamRad(),aRes->mDegree,true,1);
+     aRes->PostInit();
 
      return aRes; 
 }
@@ -287,6 +298,10 @@ void  cCalRadIm_Pol::ToFile(const std::string & aNameFile) const
 NS_SymbolicDerivative::cCalculator<double> * cCalRadIm_Pol::ImaEqual()
 {
      return mImaEqual;
+}
+NS_SymbolicDerivative::cCalculator<double> * cCalRadIm_Pol::ImaStab()
+{
+     return mImaStab;
 }
 
 int cCalRadIm_Pol::MaxDegree() const 

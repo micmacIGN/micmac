@@ -252,6 +252,7 @@ class cCalibRadiomIma : public cMemCheck,
 	    int  IndCste() const;
 
 	    virtual NS_SymbolicDerivative::cCalculator<double> * ImaEqual() = 0;
+	    virtual NS_SymbolicDerivative::cCalculator<double> * ImaStab () = 0;
 	    // Vector of observation , probably comme from sensor
 	    // virtual const std::vector<tREAL8> & VObs(const cPt2dr & ) const = 0;
 	    //  Vector of param containing Sensor + Owns
@@ -286,11 +287,13 @@ class cCalRadIm_Pol : public  cCalibRadiomIma
 	    std::vector<double> &  Params() override ;
 	    const std::vector<cDescOneFuncDist> & VDesc() const override ;
 	    NS_SymbolicDerivative::cCalculator<double> * ImaEqual() override;
+	    NS_SymbolicDerivative::cCalculator<double> * ImaStab() override;
             int MaxDegree() const override;
 
         public :
 	    cCalRadIm_Pol (const cCalRadIm_Pol&) = delete;
 	    void PutUknowsInSetInterval() override ;
+	    void PostInit();
 
             cCalibRadiomSensor *                         mCalibSens;
 	    std::string                                  mNameCalib;
@@ -299,6 +302,7 @@ class cCalRadIm_Pol : public  cCalibRadiomIma
 	    std::vector<tREAL8>                          mCoeffPol;
 	    NS_SymbolicDerivative::cCalculator<double> * mImaOwnCorr;
 	    NS_SymbolicDerivative::cCalculator<double> * mImaEqual;
+	    NS_SymbolicDerivative::cCalculator<double> * mImaStab;
 };
 
 

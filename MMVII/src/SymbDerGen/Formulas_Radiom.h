@@ -159,7 +159,7 @@ class cRadiomEqualisation
           cRadiomEqualisation(bool is4Eq,int aDegSens,int aDegIm) :
               m4Eq     (is4Eq),
               mOwnUK   (m4Eq ? tVStr({"Albedo"}) : tVStr() ),
-              mOwnObs  (m4Eq ? tVStr({"RadIm"})  : tVStr() ),
+              mOwnObs  (tVStr({"RadIm"})),
               mK0Sens  (mOwnUK.size()),
               mCalSens (aDegSens),
               mK0CalIm (mK0Sens+mCalSens.VNamesUnknowns().size()),
@@ -181,7 +181,7 @@ class cRadiomEqualisation
 
           std::string FormulaName() const 
           { 
-                 return   (m4Eq ? "RadiomEqualisation_"  : "RadiomCorrected_") 
+                 return   (m4Eq ? "RadiomEqualisation_"  : "RadiomStabilized_") 
                         + ToStr(mCalSens.DegRad()) + "_"
                         + ToStr(mCalIm.DegIm());
           }
@@ -195,10 +195,10 @@ class cRadiomEqualisation
           {
                auto aCorrecSens = mCalSens.formula(aVUk,aVObs,mK0Sens ,mK0Obs).at(0);
                auto aCorrecIm   = mCalIm.formula  (aVUk,aVObs,mK0CalIm,mK0Obs).at(0);
+               const auto & aRadIm = aVObs[0];
                if (m4Eq)
                {
                     const auto & aAlbedo = aVUk[0];
-                    const auto & aRadIm = aVObs[0];
 
                     return {aRadIm - aAlbedo * aCorrecIm * aCorrecSens}; // 3.69312
                     // return {CreateCste(1.0,aAlbedo) - (aAlbedo * aCorrecIm * aCorrecSens)/aRadIm};  NAN
@@ -208,7 +208,7 @@ class cRadiomEqualisation
                }
                else
                {
-                     return {aCorrecSens * aCorrecIm};
+                     return {aRadIm*(aVUk[mK0CalIm]-aCorrecIm )};
                }
           }
       private :
