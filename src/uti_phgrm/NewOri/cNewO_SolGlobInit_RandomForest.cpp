@@ -880,6 +880,10 @@ void RandomForest::NumeroteCC(Dataset& data) {
             data.mGr.free_flag_som(aFlagSom);
         }
 
+        for (auto a : aCCS) {
+            std::cout << a->attr().Im()->Name();
+        }
+
         std::cout << "Nb of sommets " << aCCS.size() << " in CC " << aNumCC
                   << "\n";
 
