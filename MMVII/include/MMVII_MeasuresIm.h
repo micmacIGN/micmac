@@ -268,6 +268,7 @@ class cInterfImportHom : public cMemCheck
 
           static cInterfImportHom *  CreateImportV1(const std::string & aDir,const std::string & aSubDir,const std::string & aExt="dat") ;
 
+	  virtual ~cInterfImportHom();
       private :
 
           // std::string  mDirGlob;
@@ -283,13 +284,13 @@ class cInterfImportHom : public cMemCheck
  *    points computed by pair of images
  */
 
-class cSetMultipleTiePoints
+class cSetMultipleTiePoints : public cMemCheck
 {
      public :
         typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
         typedef std::vector<cPt2dr>  tPtsOfConfig;
 
-        cSetMultipleTiePoints(const  std::vector<std::string> & aVNames);
+        cSetMultipleTiePoints(const  std::vector<std::string> & aVNames,cInterfImportHom * =nullptr);
 
 	/// Data allow to iterate on multiple points
         const std::map<tConfigIm,tPtsOfConfig> &  Pts() const;
@@ -306,6 +307,7 @@ class cSetMultipleTiePoints
 	/// From a linear vector to set of vector, for easiness of manip, but to avoid in efficient use
         std::vector<tPtsOfConfig > PUnMixed(const tConfigIm &,bool Sorted) const;
 
+        const std::vector<std::string> & VNames() const; ///< Accessor
      private  :
         std::vector<std::string>          mVNames;
         std::map<tConfigIm,tPtsOfConfig>  mPts;

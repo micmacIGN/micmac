@@ -10,7 +10,6 @@ cHomogCpleIm  ToMMVII(const cNupletPtsHomologues &  aNUp)
 	return  cHomogCpleIm(ToMMVII(aNUp.P1()),ToMMVII(aNUp.P2()));
 }
 
-
 /*   ************************************************* */
 /*                                                     */
 /*         cConvertHomV1                               */
@@ -70,10 +69,19 @@ void  cImportHomV1::GetHom(cSetHomogCpleIm & aPackV2,const std::string & aNameIm
      }
 }
 
+/*   ************************************************* */
+/*                                                     */
+/*                 cInterfImportHom                    */
+/*                                                     */
+/*   ************************************************* */
 
-#if (0)
-#endif
+cInterfImportHom::~cInterfImportHom()
+{
+}
 
-
+cInterfImportHom * cInterfImportHom::CreateImportV1(const std::string&aDir,const std::string&aSubDir,const std::string&aExt)
+{
+	return new cImportHomV1(aDir,aSubDir,aExt);
+}
 
 };

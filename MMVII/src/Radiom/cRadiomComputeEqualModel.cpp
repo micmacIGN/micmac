@@ -108,7 +108,8 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
      // ---  Optionnal args ------
 	bool    mShow;
 	size_t  mNbMinByClpe;
-	tREAL8  mStabW;  ///< Weight for "stabilizing" equation, avoid "big  drift"
+	tREAL8  mWeightStabPolIm;  ///< Weight for "stabilizing" equation, avoid "big  drift"
+	tREAL8  mWeightFixCste;    ///< Weight for fixing cste
 
      // --- constructed ---
         cPhotogrammetricProject            mPhProj;     ///< The Project, as usual
@@ -125,6 +126,8 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
 	cResolSysNonLinear<tREAL8> *                 mCurSys;
         int                                          mMaxDegree; ///< Max Degree used in image model
         cSparseVect<tElSys>                          mSVFixSum;  // sparse vector to fixx the sum
+	bool                                         mTestCsteFrz;
+        int                                          mNbIter;
 };
 
 
@@ -144,7 +147,10 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgOpt(cCollecSpecArg2007 & anAr
 {
    return anArgOpt
            << AOpt2007(mShow,"Show","Show messages",{eTA2007::HDV})
-           << AOpt2007(mStabW,"WStab","Weight for stabilization/avoid drift",{eTA2007::HDV})
+           << AOpt2007(mWeightStabPolIm,"WStabIm","Weight for stabilization Image Pol/avoid drift (relative tot W)",{eTA2007::HDV})
+           << AOpt2007(mWeightFixCste,"WFixCste","Weight for fixing constant",{eTA2007::HDV})
+           << AOpt2007(mTestCsteFrz,"CsteFrz","Frose cste",{eTA2007::HDV,eTA2007::Tuning})
+           << AOpt2007(mNbIter,"NbIter","Number iter/step",{eTA2007::HDV})
    ;
 }
 
@@ -154,12 +160,15 @@ cAppliRadiom2ImageSameMod::cAppliRadiom2ImageSameMod(const std::vector<std::stri
     cMMVII_Appli               (aVArgs,aSpec),
     mShow                      (true),
     mNbMinByClpe               (20),
-    mStabW                     (1e-2),
+    mWeightStabPolIm           (1e-2),
+    mWeightFixCste             (0.0),
     mPhProj                    (*this),
     mSolRadial                 (1),
     mFusIndex                  (1),
     mCurSys                    (nullptr),
-    mMaxDegree                 (-1)
+    mMaxDegree                 (-1),
+    mTestCsteFrz               (false),
+    mNbIter                    (2)
 {
 }
 
@@ -339,9 +348,21 @@ void   cAppliRadiom2ImageSameMod::OneIterationGen(int aDegFroze)
          mCurSys->AddObsWithTmpUK(aSetTmp); 
      }
 
-     if (mStabW>0)
+     if (mWeightFixCste>0)
      {
-	 tElSys  aW =  (aSomWeight/aNbEq) * mStabW;
+         for (auto & aPtrCalS : mSetCalRS)
+	 {
+             if (aPtrCalS->WithCste())
+	     {
+	        tElSys  aW =  (aSomWeight/aNbEq) * mWeightFixCste;
+                mCurSys->AddEqFixCurVar(*aPtrCalS,aPtrCalS->Cste2Add(),aW);
+	     }
+	 }
+     }
+     //  Add stability in polynoms  , fix close to identity
+     if (mWeightStabPolIm>0)
+     {
+	 tElSys  aW =  (aSomWeight/aNbEq) * mWeightStabPolIm;
 	 cResidualWeighter<tElSys> aRW(aW);  // weighter constant
          for (size_t aKPMul=0; aKPMul<mFusIndex.VVIndexes().size(); aKPMul++)
          {
@@ -410,6 +431,15 @@ void cAppliRadiom2ImageSameMod::InitSys(bool FrozenSens,int aMaxDegIma)
      {
          for (auto & aPtrCalS : mSetCalRS)
              mCurSys->SetFrozenAllCurrentValues(*aPtrCalS);
+     }
+
+     if (mTestCsteFrz)
+     {
+         for (auto & aPtrCalS : mSetCalRS)
+	 {
+             if (aPtrCalS->WithCste())
+                mCurSys->SetFrozenVarCurVal(*aPtrCalS,aPtrCalS->Cste2Add());
+	 }
      }
 
      // for all image, freeze all polynom with Degree > aMaxDegIma
@@ -505,8 +535,8 @@ int cAppliRadiom2ImageSameMod::Exe()
     for (int aDegree=-1 ; aDegree<=mMaxDegree ; aDegree++)
     {
          StdOut() << "=============== Begin degree :" << aDegree << " ======= \n";
-         OneIterationGen(aDegree);
-         OneIterationGen(aDegree);
+	 for (int aKIter=0 ; aKIter < mNbIter ; aKIter++)
+             OneIterationGen(aDegree);
     }
     OneIterationGen(mMaxDegree);  // one more iteration
     StdOut()  << "* SigmaFinal=" << ComputeSigma(aVSigma) << "\n";

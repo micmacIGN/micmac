@@ -35,22 +35,37 @@ cCalibRadiomSensor::~cCalibRadiomSensor()
 {
 }
 
+/*
 int cCalibRadiomSensor::NbParamRad() const 
 {
    MMVII_INTERNAL_ERROR("No default NbParamRad");
    return -1;
 }
+*/
 
 /* ============================================= */
 /*                  cDataRadialCRS               */
 /* ============================================= */
 
-cDataRadialCRS::cDataRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal) :
-   mNameCal  (aNameCal),
-   mCenter   (aCenter),
-   mCoeffRad (aDegRad,0.0),
-   mSzPix    (aSzPix)
+cDataRadialCRS::cDataRadialCRS
+(
+      const cPt2dr & aCenter,
+      size_t aDegRad,
+      const cPt2di & aSzPix,
+      const std::string & aNameCal,
+      bool   WithCsteAdd,
+      int    aDegPol
+) :
+   mNameCal      (aNameCal),
+   mCenter       (aCenter),
+   mCoeffRad     (aDegRad,0.0),
+   mWithAddCste  (WithCsteAdd),
+   mCste2Add     (0.0),
+   mDegPol       (aDegPol),
+   mSzPix        (aSzPix)
 {
+   if (mDegPol>0)
+      mCoeffPol.resize(VDesc_RadiomCPI(mDegPol,aDegRad).size(),0.0);
 }
 //
 // === defaut constructor for serialization =============
@@ -66,6 +81,18 @@ void  cDataRadialCRS::AddData(const cAuxAr2007 & anAux)
      MMVII::AddData(cAuxAr2007("Center",anAux)    ,mCenter);
      MMVII::AddData(cAuxAr2007("CoeffRad",anAux)  ,mCoeffRad);
      MMVII::AddData(cAuxAr2007("SzPix",anAux)     ,mSzPix);
+
+     MMVII::AddData(cAuxAr2007("WithCsteAdd",anAux)      ,mWithAddCste);
+     if (mWithAddCste)
+     {
+          MMVII::AddData(cAuxAr2007("CsteAdd",anAux)     ,mCste2Add);
+     }
+     MMVII::AddData(cAuxAr2007("DegPol",anAux)      ,mDegPol);
+     if (mDegPol>0)
+     {
+          MMVII::AddData(cAuxAr2007("CoeffPol",anAux)     ,mCoeffPol);
+     }
+
 }
    
 void AddData(const cAuxAr2007 & anAux,cDataRadialCRS & aDataRadCRS)
@@ -89,11 +116,12 @@ cRadialCRS::cRadialCRS (const cDataRadialCRS & aData) :
          mScaleNor = aBoxIm.DistMax2Corners(mCenter);
 	 mVObs = std::vector<tREAL8>({0,0,mCenter.x(),mCenter.y(),mScaleNor});
 
-	 mCalcFF = EqRadiomCalibRadSensor(mCoeffRad.size(),false,1);
+	 mCalcFF = EqRadiomCalibRadSensor(mCoeffRad.size(),false,1,mWithAddCste,mDegPol);
      }
 }
-cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal) :
-    cRadialCRS(cDataRadialCRS(aCenter,aDegRad,aSzPix,aNameCal))
+
+cRadialCRS::cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal,bool WithCste,int aDegPol) :
+    cRadialCRS(cDataRadialCRS(aCenter,aDegRad,aSzPix,aNameCal,WithCste,aDegPol))
 {
 }
 
@@ -125,14 +153,37 @@ const std::vector<tREAL8> & cRadialCRS::VObs(const cPt2dr & aPix ) const
     return mVObs;
 }
 
-tREAL8  cRadialCRS::FlatField(const cPt2dr & aPt) const
+/*
+tREAL8  cRadialCRS::CorrectRadiom(const tREAL8& aRadiom,const cPt2dr & aPt) const
 {
-      return mCalcFF->DoOneEval(mCoeffRad,VObs(aPt)).at(0);
+      cPt2dr  aCC = AddMul_CC(aPt);
+      return (aRadiom - aCC.x()) / aCC.y();
+}
+*/
+
+cPt2dr  cRadialCRS::AddMul_CC(const cPt2dr & aPt) const
+{
+      std::vector<tREAL8>  aVUk;
+      if (mWithAddCste)
+         aVUk.push_back(mCste2Add);
+      AppendIn(aVUk,mCoeffRad);
+
+      if (mDegPol>0)
+      {
+	      // StdOut() << "YuyuymCoeffPolmCoeffPol " << mCoeffPol << "\n";
+          AppendIn(aVUk,mCoeffPol);
+      }
+      auto aVR =  mCalcFF->DoOneEval(aVUk,VObs(aPt));
+      return cPt2dr(aVR.at(0),aVR.at(1));
 }
 
 void cRadialCRS::PutUknowsInSetInterval()
 {
+   if (mWithAddCste)
+      mSetInterv->AddOneInterv(mCste2Add);
    mSetInterv->AddOneInterv(mCoeffRad);
+   if (mCoeffPol.size())
+      mSetInterv->AddOneInterv(mCoeffPol);
 }
 
 const std::string & cRadialCRS::NameCal() const
@@ -145,10 +196,24 @@ int cRadialCRS::NbParamRad() const
     return  mCoeffRad.size();
 }
 
+bool cRadialCRS::WithCste() const  
+{
+    return  mWithAddCste;
+}
+
+int  cRadialCRS::DegPol() const
+{
+    return mDegPol;
+}
+
+
+
 const std::vector<tREAL8>& cRadialCRS::CoeffRad() const 
 {
     return  mCoeffRad;
 }
+
+tREAL8 & cRadialCRS::Cste2Add() {return mCste2Add;}
 
 
 
@@ -212,8 +277,8 @@ cCalRadIm_Pol::cCalRadIm_Pol(cCalibRadiomSensor * aCalSens,int  aDegree,const st
 void cCalRadIm_Pol::PostInit()
 {
     mImaOwnCorr = EqRadiomCalibPolIma(mDegree,false,1);
-    mImaEqual   = EqRadiomEqualisation(mCalibSens->NbParamRad(),mDegree,true,1);
-    mImaStab    = EqRadiomStabilization(mCalibSens->NbParamRad(),mDegree,true,1);
+    mImaEqual   = EqRadiomEqualisation (mCalibSens->NbParamRad(),mDegree,true,1,mCalibSens->WithCste(),mCalibSens->DegPol());
+    mImaStab    = EqRadiomStabilization(mCalibSens->NbParamRad(),mDegree,true,1,mCalibSens->WithCste(),mCalibSens->DegPol());
 }
 
 cCalRadIm_Pol::cCalRadIm_Pol()  :
@@ -237,12 +302,14 @@ tREAL8  cCalRadIm_Pol::ImageOwnDivisor(const cPt2dr & aPt) const
 
 tREAL8  cCalRadIm_Pol::ImageCorrec(tREAL8 aGray,const cPt2dr & aPt) const
 {
-    return aGray / (ImageOwnDivisor(aPt) * mCalibSens->FlatField(aPt));
+    cPt2dr  aAddMul = mCalibSens->AddMul_CC(aPt);
+    return  (aGray/ ImageOwnDivisor(aPt) - aAddMul.x()) / aAddMul.y();
 }
 
 cPt3dr  cCalRadIm_Pol::ImageCorrec(const cPt3dr & aRGB,const cPt2dr & aPt) const
 {
-    return aRGB / (ImageOwnDivisor(aPt) * mCalibSens->FlatField(aPt));
+    cPt2dr  aAddMul = mCalibSens->AddMul_CC(aPt);
+    return (aRGB/ImageOwnDivisor(aPt)-cPt3dr::PCste(aAddMul.x())) /  aAddMul.y();
 }
 
 void  cCalRadIm_Pol::AddData(const cAuxAr2007 & anAux)

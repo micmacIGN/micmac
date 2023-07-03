@@ -157,10 +157,19 @@ class cMemoryEffToMultiplePoint
 /*                                                       */
 /* ***************************************************** */
 
-cSetMultipleTiePoints::cSetMultipleTiePoints(const std::vector<std::string> & aVNames) :
+cSetMultipleTiePoints::cSetMultipleTiePoints(const std::vector<std::string> & aVNames,cInterfImportHom * anIIH) :
     mVNames (aVNames)
 {
+   if (anIIH)
+   {
+      cMemoryEffToMultiplePoint aToMP(*anIIH,mVNames,*this);
+   }
 }
+
+const std::vector<std::string> & cSetMultipleTiePoints::VNames() const { return mVNames;}
+
+const std::map<std::vector<int>,std::vector<cPt2dr>> &  cSetMultipleTiePoints::Pts() const {return mPts;}
+
 	
 void cSetMultipleTiePoints::AddPMul(const tConfigIm& aConfig,const std::vector<cPt2dr> & aVPts)
 {
@@ -977,7 +986,6 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
     // StdOut() << "NbImage= " << aNbImage << "\n";
     cSimulHom aSimH(aNbImage,aNbPts,aMaxCard,false);
     cSetMultipleTiePoints aSetMTP1(aSimH.VNames());
-    cSetMultipleTiePoints aSetMTP2(aSimH.VNames());
 
     int aCptErr = 0;
     for (int aKPts=0 ; aKPts<aNbPts ; aKPts++)
@@ -997,8 +1005,11 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
 
     if (DoIt)
     {
-        cMemoryEffToMultiplePoint aToMP(aSimH,aSimH.VNames(),aSetMTP2);
+        // cMemoryEffToMultiplePoint aToMP(aSimH,aSimH.VNames(),aSetMTP2);
+        //cMemoryEffToMultiplePoint aToMP(aSimH,aSetMTP2.VNames(),aSetMTP2);
+	//StdOut() << "cMemoryEffToMultiplePointcMemoryEffToMultiplePoint \n";
 
+        cSetMultipleTiePoints aSetMTP2(aSimH.VNames(),&aSimH);
 	aSetMTP1.TestEq(aSetMTP2);
 	// StdOut() << "DONNEEE \n";
 	// getchar();

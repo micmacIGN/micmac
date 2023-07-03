@@ -31,14 +31,19 @@ cHomogCpleIm::cHomogCpleIm() :
 {
 }
 
+/*
 void cHomogCpleIm::AddData(const  cAuxAr2007 & anAux)
 {
      MMVII::AddData(anAux,mP1.x());
+       anAux.Ar().Separator();
      MMVII::AddData(anAux,mP1.y());
+       anAux.Ar().Separator();
      MMVII::AddData(anAux,mP2.x());
+       anAux.Ar().Separator();
      MMVII::AddData(anAux,mP2.y());
 }
 void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm & aCple)  {aCple.AddData(anAux);}
+*/
 
 
 

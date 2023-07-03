@@ -77,6 +77,15 @@ enum class eApF
                eNbVals     ///< Tag for number of value
            };
 
+/// Type of serialization
+enum class eTypeSerial
+           {
+                exml,
+                edmp,
+                etxt,
+                eNbVals     ///< Tag for number of value
+	   };
+
 /// Type of external format that are potentially imported/exported in MicMac
 enum class eFormatExtern
            {
@@ -475,6 +484,7 @@ enum class eMTDIm
 
 const std::string & E2Str(const eMTDIm &);
 const std::string & E2Str(const eFormatExtern &);
+const std::string & E2Str(const eTypeSerial &);
 const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTyCodeTarget &);         

@@ -294,7 +294,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPMask(); ///< Accessor
 	  cDirsPhProj &   DPPointsMeasures(); ///< Accessor
 	  cDirsPhProj &   DPMetaData();    ///<  Accessor
-	  cDirsPhProj &   DPHomol();    ///<  Accessor
+	  cDirsPhProj &   DPTieP();    ///<  Accessor
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
@@ -303,7 +303,7 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPMask() const; ///< Accessor
 	  const cDirsPhProj &   DPPointsMeasures() const; ///< Accessor
 	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
-	  const cDirsPhProj &   DPHomol() const;    ///<  Accessor
+	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
@@ -339,7 +339,7 @@ class cPhotogrammetricProject
 	  /** Create a new radial-radiom calib adapted to image; geometric calibration & meta data must
 	   * be accessible; if already exist with same name return existing; add in Obj2DelAtEnd, as many
 	   * image will share it */
-	  cRadialCRS * CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm);
+	  cRadialCRS * CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm,bool WithCste=false,int aDegPol=-1);
                //     --------   Save Data ---------------------
           void SaveRadiomData(const cImageRadiomData &) const; ///< Save camera using OutPut-orientation
           void SaveCalibRad(const cCalibRadiomIma &) const; ///< Save radiom-calib using OutPut-orientation
@@ -417,7 +417,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMeshDev;
 	  cDirsPhProj     mDPMask;
 	  cDirsPhProj     mDPPointsMeasures;   ///<  For GCP measures  Image + Grounds
-	  cDirsPhProj     mDPHomol;            ///<  For Homologous point
+	  cDirsPhProj     mDPTieP;            ///<  For Homologous point
 	  cDirsPhProj     mDPMetaData;
 
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;

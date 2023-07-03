@@ -228,7 +228,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPMeshDev        (eTA2007::MeshDev,*this),
     mDPMask           (eTA2007::Mask,*this),
     mDPPointsMeasures (eTA2007::PointsMeasure,*this),
-    mDPHomol          (eTA2007::TieP,*this),
+    mDPTieP          (eTA2007::TieP,*this),
     mDPMetaData       (eTA2007::MetaData,*this),
     mGlobCalcMTD      (nullptr)
 {
@@ -245,7 +245,7 @@ void cPhotogrammetricProject::FinishInit()
     mDPMeshDev.Finish();
     mDPMask.Finish();
     mDPPointsMeasures.Finish();
-    mDPHomol.Finish();
+    mDPTieP.Finish();
     mDPMetaData.Finish();
 
     // Force the creation of directory for metadata spec, make 
@@ -281,7 +281,7 @@ cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
 cDirsPhProj &   cPhotogrammetricProject::DPMask() {return mDPMask;}
 cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() {return mDPPointsMeasures;}
 cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
-cDirsPhProj &   cPhotogrammetricProject::DPHomol() {return mDPHomol;}
+cDirsPhProj &   cPhotogrammetricProject::DPTieP() {return mDPTieP;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
@@ -290,7 +290,7 @@ const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMesh
 const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
 const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return mDPPointsMeasures;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
-const cDirsPhProj &   cPhotogrammetricProject::DPHomol() const {return mDPHomol;}
+const cDirsPhProj &   cPhotogrammetricProject::DPTieP() const {return mDPTieP;}
 
 
 
@@ -343,7 +343,7 @@ std::string cPhotogrammetricProject::NameCalibRSOfImage(const std::string & aNam
      return NameCalibRadiomSensor(*aCalib,aMetaData);
 }
 
-cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm)
+cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm,bool WithCste,int aDegPol)
 {
       static std::map<std::string,cRadialCRS *> TheDico;
       std::string aNameCal = NameCalibRSOfImage(aNameIm);
@@ -354,7 +354,7 @@ cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const st
 
       cPerspCamIntrCalib* aCalib = InternalCalibFromImage(aNameIm);
 
-      aRes = new cRadialCRS(aCalib->PP(),aDegree,aCalib->SzPix(),aNameCal);
+      aRes = new cRadialCRS(aCalib->PP(),aDegree,aCalib->SzPix(),aNameCal,WithCste,aDegPol);
 
       mAppli.AddObj2DelAtEnd(aRes);
 
@@ -545,12 +545,21 @@ cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
 
 void  cPhotogrammetricProject::SaveHomol
       (
-           const cSetHomogCpleIm &,
+           const cSetHomogCpleIm & aSetHCI,
            const std::string & aNameIm1 ,
 	   const std::string & aNameIm2,
 	   const std::string & anExt
       ) const
 {
+	std::string aDir = mDPTieP.FullDirOut();
+
+	aDir = aDir + aNameIm1 + StringDirSeparator();
+	CreateDirectories(aDir,true);
+
+	std::string  aName = aDir+aNameIm2 + "." +anExt;
+	aSetHCI.ToFile(aName);
+
+	// SaveInFile(aSetHCI,aName);
 }
 
 

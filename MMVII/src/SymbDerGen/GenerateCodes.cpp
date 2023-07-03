@@ -186,37 +186,36 @@ cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,boo
 
      //    Radiometry
 
-cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf)
+cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens)
 { 
-    return StdAllocCalc(NameFormula(cRadiomCalibRadSensor(aNbDeg),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cRadiomCalibRadSensor(aNbDeg,WithCste,aDegPolSens),WithDerive),aSzBuf);
 }
 
 cCalculator<double> * EqRadiomCalibPolIma(int aNbDeg,bool WithDerive,int aSzBuf)
 { 
     return StdAllocCalc(NameFormula(cRadiomCalibPolIma(aNbDeg),WithDerive),aSzBuf);
 }
-cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf)
+cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens)
 { 
-    return StdAllocCalc(NameFormula(cRadiomEqualisation(true,aDegSens,aDegIm),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cRadiomEqualisation(true,aDegSens,aDegIm,WithCste,aDegPolSens),WithDerive),aSzBuf);
 }
 
-cCalculator<double> * EqRadiomStabilization(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf)
+cCalculator<double> * EqRadiomStabilization(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens)
 { 
-    return StdAllocCalc(NameFormula(cRadiomEqualisation(false,aDegSens,aDegIm),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cRadiomEqualisation(false,aDegSens,aDegIm,WithCste,aDegPolSens),WithDerive),aSzBuf);
 }
 
 
 
-const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree)
+const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree,int aDRadElim)
 {
-    static std::vector<std::vector<cDescOneFuncDist>>  aRes;
+    static std::map<std::pair<int,int>,std::vector<cDescOneFuncDist>>  aDico;
+    std::pair<int,int> aKey(aDegree,aDRadElim);
 
-    if (aRes.empty())
-    {
-        for (int aK=0 ; aK<=10 ; aK++)
-             aRes.push_back(cRadiomCalibPolIma(aK).VDesc());
-    }
-    return aRes.at(aDegree);
+    if (aDico.find(aKey) == aDico.end())
+       aDico[aKey] = cRadiomCalibPolIma(aDegree,aDRadElim).VDesc();
+
+    return aDico[aKey];
 }
 
       // To delete soon
@@ -659,7 +658,7 @@ int cAppliGenCode::Exe()
 
        GenCodesFormula((tREAL8*)nullptr,cRadiomVignettageLinear(5)       ,WithDer);
        std::vector<int>  aVDegSens {5};
-       std::vector<int>  aVDegIm   {0,1,2};
+       std::vector<int>  aVDegIm   {0,1,2,3};
 
        for (auto  aDegIm : aVDegIm)
        {
@@ -668,13 +667,27 @@ int cAppliGenCode::Exe()
        }
        for (auto  aDegSens : aVDegSens)
        {
-           if (!WithDer)
-              GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(aDegSens)       ,WithDer);
 
-           for (const auto & aDegIm : {0,1,2})
+           for (const auto WithCste : {true,false})
            {
-               GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(true ,aDegSens,aDegIm) ,WithDer);
-               GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(false,aDegSens,aDegIm) ,WithDer);
+               for (const auto & aDegIm : aVDegIm)
+               {
+		       //  true/false => Eq/Stab
+                   GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(true ,aDegSens,aDegIm,WithCste) ,WithDer);
+                   GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(false,aDegSens,aDegIm,WithCste) ,WithDer);
+                   GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(true ,aDegSens,aDegIm,WithCste,2) ,WithDer);
+                   GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(false,aDegSens,aDegIm,WithCste,2) ,WithDer);
+                   GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(true ,aDegSens,aDegIm,WithCste,3) ,WithDer);
+                   GenCodesFormula((tREAL8*)nullptr,cRadiomEqualisation(false,aDegSens,aDegIm,WithCste,3) ,WithDer);
+		   /*
+		   */
+               }
+               if (!WithDer)
+               {
+                  GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(aDegSens,WithCste)       ,WithDer);
+                  GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(aDegSens,WithCste,2)       ,WithDer);
+                  GenCodesFormula((tREAL8*)nullptr,cRadiomCalibRadSensor(aDegSens,WithCste,3)       ,WithDer);
+	       }
            }
             
 /*

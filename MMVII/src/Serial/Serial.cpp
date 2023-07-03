@@ -23,6 +23,7 @@
 
 #include "MMVII_Stringifier.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_MeasuresIm.h"
 
 namespace MMVII
 {
@@ -209,6 +210,18 @@ template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int
 template void AddTabData(const  cAuxAr2007 & anAux, size_t *  aVD,int aNbVal);
 template void AddTabData(const  cAuxAr2007 & anAux, tREAL8 *  aVD,int aNbVal);
 template void AddTabData(const  cAuxAr2007 & anAux, tREAL4 *  aVD,int aNbVal);
+
+void cHomogCpleIm::AddData(const  cAuxAr2007 & anAux)
+{
+     MMVII::AddData(anAux,mP1.x());
+       anAux.Ar().Separator();
+     MMVII::AddData(anAux,mP1.y());
+       anAux.Ar().Separator();
+     MMVII::AddData(anAux,mP2.x());
+       anAux.Ar().Separator();
+     MMVII::AddData(anAux,mP2.y());
+}
+void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm & aCple)  {aCple.AddData(anAux);}
 
 
 

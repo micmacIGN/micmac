@@ -338,11 +338,22 @@ TPL_ENUM_2_STRING(eMTDIm);
 
 template<> cE2Str<eFormatExtern>::tMapE2Str cE2Str<eFormatExtern>::mE2S
            {
-                {eFormatExtern::eMMV1,"Focalmm"},
+                {eFormatExtern::eMMV1,"MMV1"},
                 {eFormatExtern::eMeshRoom,"MeshRoom"},
-                {eFormatExtern::eColMap,"ColMap"},
+                {eFormatExtern::eColMap,"ColMap"}
            };
 TPL_ENUM_2_STRING(eFormatExtern);
+
+
+template<> cE2Str<eTypeSerial>::tMapE2Str cE2Str<eTypeSerial>::mE2S
+           {
+                {eTypeSerial::exml,"xml"},
+                {eTypeSerial::edmp,"dmp"},
+                {eTypeSerial::etxt,"txt"}
+           };
+TPL_ENUM_2_STRING(eTypeSerial);
+
+
 
 template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
            {

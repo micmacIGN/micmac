@@ -191,6 +191,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTyCodeTarget,"TypeCodedTarget")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeTestPropCov,"TestPropCov")
 MACRO_INSTANTITATE_STRIO_ENUM(eMTDIm,"TypeMTDIm")
 MACRO_INSTANTITATE_STRIO_ENUM(eFormatExtern,"ExternalFormat")
+MACRO_INSTANTITATE_STRIO_ENUM(eTypeSerial,"TypeSerial")
 
 
 /* ==================================== */

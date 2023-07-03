@@ -82,6 +82,7 @@ class cAppliMeshImageDevlp : public cMMVII_Appli
         bool                           mWithNorm; ///< Do we create an image of normal
 
 	std::vector<cPt3di>            mLutLabel;
+	std::string                    mNameDev;
 
 };
 
@@ -103,7 +104,8 @@ cAppliMeshImageDevlp::cAppliMeshImageDevlp(const std::vector<std::string> & aVAr
    mNormX           (cPt2di(1,1)),
    mNormY           (cPt2di(1,1)),
    mNormMult        (100.0),  // defautlt value fit [-1,1] in [-128,127]
-   mWithNorm        (false)
+   mWithNorm        (false),
+   mNameDev         ("DevIm.tif")
 {
 }
 
@@ -241,7 +243,12 @@ int cAppliMeshImageDevlp::Exe()
      mPhProj.DPOrient().SetDirIn(mMDBI.mNameOri);
      mPhProj.FinishInit();
 
-     StdOut() << "JJJJJ " << NameFileMeshDev("DevIm.tif")  << "\n";
+     if (mPhProj.DPRadiomModel().DirInIsInit())
+     {
+         mNameDev = Prefix(mNameDev) + "_" +  mPhProj.DPRadiomModel().DirIn() + ".tif";
+     }
+
+     StdOut() << "JJJJJ " << NameFileMeshDev(mNameDev)  << "\n";
 
 
      //  Read triangulations
@@ -306,7 +313,7 @@ int cAppliMeshImageDevlp::Exe()
           DoAnIm(aKIm);
      }
 
-     mGlobIm.ToFile(NameFileMeshDev("DevIm.tif"));
+     mGlobIm.ToFile(NameFileMeshDev(mNameDev));
      if (mWGrayLab)
         mGrLabIm.DIm().ToFile(NameFileMeshDev("LabGRIm.tif"));
      if (mWRGBLab)

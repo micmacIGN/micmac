@@ -157,7 +157,9 @@ class cCalibRadiomSensor :
            void ToFileIfFirstime(const std::string & aNameFile) const;
 
 	   /// Function to divide radiometry for normalisation
-           virtual tREAL8  FlatField(const cPt2dr &) const =  0;
+           // virtual tREAL8  CorrectRadiom(const tREAL8&,const cPt2dr &) const =  0;
+	   virtual cPt2dr  AddMul_CC(const cPt2dr & aPt) const = 0;
+
 
            /// Accessor
            virtual const std::string & NameCal() const =0;
@@ -166,8 +168,11 @@ class cCalibRadiomSensor :
 	    virtual const std::vector<tREAL8> & VObs(const cPt2dr & ) const =0;
 
 	    /// Not good design because it suppose model is radial,  but do it for now
-	    virtual int NbParamRad() const ;
+	    virtual int NbParamRad() const =0 ;
+	    virtual bool WithCste() const  =0;
+	    virtual int  DegPol() const  =0;
 	    virtual const std::vector<tREAL8> & CoeffRad() const =0;
+	    virtual tREAL8 & Cste2Add() =0;
 
        protected :
            // std::string            mNameCal;   ///< Name of file
@@ -179,13 +184,21 @@ class cCalibRadiomSensor :
 class cDataRadialCRS
 {
       public :
-           cDataRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal);
+           cDataRadialCRS
+           (
+               const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string & aNameCal,
+	       bool WithCste=false,int aDegPol=-1
+           );
            cDataRadialCRS();  ///< usefull for AddData .
 	   void AddData(const cAuxAr2007 & anAux);
 
            std::string            mNameCal;   ///< Name of file
            cPt2dr                 mCenter;    ///< Center of symetry
            std::vector<double>    mCoeffRad;  ///< Coeff of radial pol R2 R4 ...
+	   bool                   mWithAddCste;
+	   tREAL8                 mCste2Add;
+	   int                    mDegPol;
+           std::vector<double>    mCoeffPol;  ///< Coeff of Polynom if exist
            cPt2di                 mSzPix;     ///< Size in pixel, for info
            tREAL8                 mScaleNor;
 };
@@ -198,7 +211,7 @@ class cRadialCRS : public cCalibRadiomSensor,
 	           public cDataRadialCRS
 {
     public :
-        cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string &);
+        cRadialCRS(const cPt2dr & aCenter,size_t aDegRad,const cPt2di & aSzPix,const std::string &,bool WithCste=false,int aDegPol=-1);
         cRadialCRS(const cDataRadialCRS&);
         virtual ~cRadialCRS();
 
@@ -208,7 +221,8 @@ class cRadialCRS : public cCalibRadiomSensor,
 
         // normalize coordinate to have non dimensional equarion
         // tREAL8  NormalizedRho2(const cPt2dr & aPt) const;
-        tREAL8  FlatField(const cPt2dr &) const override;
+        // tREAL8  CorrectRadiom(const tREAL8&,const cPt2dr &) const override;
+	cPt2dr  AddMul_CC(const cPt2dr & aPt) const override;
         std::vector<double> &  CoeffRad();
 
          /// Accessor
@@ -216,7 +230,10 @@ class cRadialCRS : public cCalibRadiomSensor,
 
 	const std::vector<tREAL8> & VObs(const cPt2dr & ) const override;
         int NbParamRad() const override;
+        bool WithCste() const override ;
+        int  DegPol() const  override;
         const std::vector<tREAL8> & CoeffRad() const override;
+	tREAL8 & Cste2Add() override;
     private :
 	cRadialCRS (const cRadialCRS&) = delete;
 	void PutUknowsInSetInterval() override ;
@@ -278,8 +295,6 @@ class cCalRadIm_Pol : public  cCalibRadiomIma
 
             tREAL8  ImageCorrec(tREAL8 aGray,const cPt2dr &) const  override;
             cPt3dr  ImageCorrec(const cPt3dr & aCoul,const cPt2dr &) const  override;
-	    /// Correction w/o sensor
-            tREAL8  ImageOwnDivisor(const cPt2dr &) const  ;
 
             cCalibRadiomSensor &  CalibSens() override;
 	    const std::string & NameIm() const override;
@@ -291,6 +306,9 @@ class cCalRadIm_Pol : public  cCalibRadiomIma
             int MaxDegree() const override;
 
         public :
+	    /// Correction w/o sensor
+            tREAL8  ImageOwnDivisor(const cPt2dr &) const  ;
+
 	    cCalRadIm_Pol (const cCalRadIm_Pol&) = delete;
 	    void PutUknowsInSetInterval() override ;
 	    void PostInit();
