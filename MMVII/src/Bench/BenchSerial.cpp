@@ -265,9 +265,9 @@ getchar();
 
 
 /** Basic test on read/write of a map */
-void BenchSerialMap(const std::string & aDirOut,bool isXml)
+void BenchSerialMap(const std::string & aDirOut,eTypeSerial aTypeS)
 {
-    std::string aNameFile =  aDirOut + "TestMAP." + StdPostF_ArMMVII(isXml);
+    std::string aNameFile =  aDirOut + "TestMAP." + E2Str(aTypeS);
     std::map<std::string,std::vector<cPt2dr>> aMap;
     aMap["1"] = std::vector<cPt2dr>{{1,1}};
     aMap["2"] = std::vector<cPt2dr>{{1,1},{2,2}};
@@ -286,13 +286,15 @@ void BenchSerialization
     (
         cParamExeBench & aParam,
         const std::string & aDirOut,  ///< For write-read temp file
-        const std::string & aDirIn  ///< For readin existing file (as Xml with comments)
+        const std::string & aDirIn,  ///< For readin existing file (as Xml with comments)
+	eTypeSerial         aTypeS
     )
 {
+    std::string anExt = E2Str(aTypeS);
+
     if (! aParam.NewBench("Serial")) return;
 
-    BenchSerialMap(aDirOut,true);
-    BenchSerialMap(aDirOut,false);
+    BenchSerialMap(aDirOut,aTypeS);
     // std::string aDir= DirCur();
     {
         BenchSerialIm2D<tREAL4>(aDirOut);
@@ -300,16 +302,22 @@ void BenchSerialization
         BenchHistoAndSerial<tINT4,tREAL8>(aDirOut);
     }
 
-    SaveInFile(cTestSerial1(),aDirOut+"F1."+PostF_XmlFiles);
+    SaveInFile(cTestSerial1(),aDirOut+"F1."+anExt);
 
     {
        cTestSerial1 aP12;
        aP12.mLI.clear();
        aP12.mVD.clear();
-       ReadFromFile(aP12,aDirOut+"F1."+PostF_XmlFiles);
+       ReadFromFile(aP12,aDirOut+"F1."+anExt);
+StdOut() << "FFFFf   " << aDirOut+"F1."+anExt << "\n";
+SaveInFile(aP12,"toto_P12.xml");
+SaveInFile(aP12,"toto_P12.txt");
+SaveInFile(cTestSerial1(),"toto_S1.xml");
+SaveInFile(cTestSerial1(),"toto_S1.txt");
        // Check the value read is the same
        MMVII_INTERNAL_ASSERT_bench(aP12==cTestSerial1(),"cAppli_MMVII_TestSerial");
 
+StdOut() << "KKKKKkkKkjjjll " << __LINE__ << "\n"; getchar();
        cTestSerial1 aS1;
 
        // Same object, same key
@@ -404,6 +412,17 @@ void BenchSerialization
     // return EXIT_SUCCESS;
 }
 
+void BenchSerialization
+    (
+        cParamExeBench & aParam,
+        const std::string & aDirOut,  ///< For write-read temp file
+        const std::string & aDirIn  ///< For readin existing file (as Xml with comments)
+    )
+{
+	BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::etxt);
+	BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml);
+	BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::edmp);
+}
 
 };
 

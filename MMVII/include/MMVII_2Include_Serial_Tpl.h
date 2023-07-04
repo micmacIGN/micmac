@@ -92,7 +92,8 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
     else
     {
        // Indicate if the value is present and if yes put it
-       AddData(anAux,aNb);
+       AddData(anAux,aNb);  
+       AddSeparator(anAux.Ar());
        if (aNb)
           AddData(anAux,*aL);
     }
@@ -202,6 +203,7 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
         {
             cAuxAr2007 anAuxPair("Pair",anAux);
             AddData(anAuxPair,const_cast<TypeKey&>(aPair.first));
+	    AddSeparator(anAux.Ar());
             AddData(anAuxPair,const_cast<TypeVal&>(aPair.second));
             //AddData(anAuxPair,aPair->second);
         }

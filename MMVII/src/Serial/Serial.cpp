@@ -130,6 +130,12 @@ void AddComment(cAr2007 & anAr, const std::string & aString)
 {
 	anAr.AddComment(aString);
 }
+void AddSeparator(cAr2007 & anAr)
+{
+	anAr.Separator();
+}
+
+
 
 void cAr2007::RawBeginName(const cAuxAr2007& anOT) {}
 void cAr2007::RawEndName(const cAuxAr2007& anOT) {}
@@ -330,15 +336,16 @@ class cXMLEOF
 class cIXml_Ar2007 : public cAr2007
 {
      public :
-          cIXml_Ar2007(std::string const  & aName) : 
-                cAr2007     (true,true,false), // Input, Tagged,Binary
+          cIXml_Ar2007(std::string const  & aName,eTypeSerial aTypeS) : 
+                cAr2007     (true,(aTypeS!=eTypeSerial::etxt),false), // Input, Tagged,Binary
                 mMMIs       (aName),
-                mExcepOnEOF (false)
+                mExcepOnEOF (false),
+		mTypeS      (aTypeS)
            {
            }
 
            bool IsFileOfFirstTag(bool Is2007,const std::string &);
-     private :
+     protected :
            inline std::istream  & Ifs() {return mMMIs.Ifs();}
 
         // Inherited from cAr2007
@@ -377,6 +384,7 @@ class cIXml_Ar2007 : public cAr2007
 
            cMMVII_Ifs                        mMMIs; ///< secured istream
            bool                              mExcepOnEOF; ///< Do We use exception on EOF
+	   eTypeSerial                       mTypeS;
 };
 
 bool cIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName)
@@ -398,7 +406,7 @@ bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string
   if ((Postfix(aName,'.',true) != "xml") || (! ExistFile(aName)))
      return false;
 
-  cIXml_Ar2007 aFile (aName);
+  cIXml_Ar2007 aFile (aName,eTypeSerial::exml);
   return aFile.IsFileOfFirstTag(Is2007,aTag);
 }
 
@@ -459,7 +467,9 @@ std::string  cIXml_Ar2007::GetNextString()
         {
             int aC= GetNotEOF();
             if (aC=='"')  // End of "
+	    {
               return aRes;
+	    }
             if (aC=='\\')  /* Maybe  \"  */
             {
                 int aC2 = GetNotEOF();
@@ -486,7 +496,8 @@ std::string  cIXml_Ar2007::GetNextString()
     }
     Ifs().unget(); // put back < or ' '  etc ..
     
-    SkeepWhite();
+    if (mTypeS!= eTypeSerial::etxt)  // else get EOF at end
+       SkeepWhite();
     return aRes;
 }
 
@@ -594,11 +605,15 @@ class cIBaseTxt_Ar2007 : public cIXml_Ar2007
 {
      public :
         cIBaseTxt_Ar2007(std::string const  & aName) : 
-		  cIXml_Ar2007 (aName)
+		  cIXml_Ar2007 (aName,eTypeSerial::etxt)
 	{
 	}
         void RawBeginName(const cAuxAr2007& anOT) override {}
         void RawEndName(const cAuxAr2007& anOT) override {}
+        int NbNextOptionnal(const std::string &) override
+	{
+               return cStrIO<int>::FromStr(GetNextString());
+	}
      private :
 };
 
@@ -620,7 +635,7 @@ class cIBaseTxt_Ar2007 : public cIXml_Ar2007
 class cOBaseTxt_Ar2007 : public cAr2007
 {
      public :
-	     cOBaseTxt_Ar2007(const std::string & aName) ;
+	     cOBaseTxt_Ar2007(const std::string & aName,eTypeSerial aTypeS) ;
              inline std::ostream  & Ofs() {return mMMOs.Ofs();}
 	     ~cOBaseTxt_Ar2007();
      protected :
@@ -645,10 +660,11 @@ class cOBaseTxt_Ar2007 : public cAr2007
 
 cOBaseTxt_Ar2007::~cOBaseTxt_Ar2007()
 {
+     // Ofs() << " ";
 }
 
-cOBaseTxt_Ar2007::cOBaseTxt_Ar2007(const std::string & aName) : 
-   cAr2007(false,true,false),  // Output, Tagged, Binary
+cOBaseTxt_Ar2007::cOBaseTxt_Ar2007(const std::string & aName,eTypeSerial aTypeS) : 
+   cAr2007(false,(aTypeS!=eTypeSerial::etxt),false),  // Output, Tagged, Binary
    mMMOs(aName,false) ,
    mXTerm (false),
    mFirst(true) 
@@ -730,7 +746,7 @@ void cOXml_Ar2007::AddComment(const std::string & aString)
 }
 
 cOXml_Ar2007::cOXml_Ar2007(const std::string & aName) : 
-   cOBaseTxt_Ar2007 (aName)
+   cOBaseTxt_Ar2007 (aName,eTypeSerial::exml)
 {
    // Not sure all that is usefull, however, untill now I skipp <? ?>
    mMMOs.Ofs() <<  "<?xml" 
@@ -987,7 +1003,7 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    {
        if (Input)
        {
-          aRes =  new cIXml_Ar2007(aName);
+          aRes =  new cIXml_Ar2007(aName,eTypeSerial::exml);
        }
        else
        {
@@ -1008,9 +1024,10 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    {
        if (Input)
        {
+          aRes =  new cIBaseTxt_Ar2007(aName);
        }
        else
-          aRes =  new cOBaseTxt_Ar2007(aName);
+          aRes =  new cOBaseTxt_Ar2007(aName,eTypeSerial::etxt);
    }
 
 
