@@ -223,8 +223,13 @@ void cSensorCamPC::ToFile(const std::string & aNameFile) const
 {
     SaveInFile(const_cast<cSensorCamPC &>(*this),aNameFile);
     std::string aNameCalib = DirOfPath(aNameFile) + mInternalCalib->Name() + ".xml";
-
     mInternalCalib->ToFileIfFirstime(aNameCalib);
+
+    {
+	    StdOut() << "cSensorCamPC::ToFilecSensorCamPC::ToFilecSensorCamPC::ToFilecSensorCamPC::ToFile\n";
+        aNameCalib = DirOfPath(aNameFile) + mInternalCalib->Name() + ".txt";
+        mInternalCalib->ToFileIfFirstime(aNameCalib);
+    }
 }
 
 cSensorCamPC * cSensorCamPC::FromFile(const std::string & aFile)

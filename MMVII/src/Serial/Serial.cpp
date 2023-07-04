@@ -588,6 +588,117 @@ int cIXml_Ar2007::SkeepWhite()
 }
 
 
+
+
+class cIBaseTxt_Ar2007 : public cIXml_Ar2007
+{
+     public :
+        cIBaseTxt_Ar2007(std::string const  & aName) : 
+		  cIXml_Ar2007 (aName)
+	{
+	}
+        void RawBeginName(const cAuxAr2007& anOT) override {}
+        void RawEndName(const cAuxAr2007& anOT) override {}
+     private :
+};
+
+
+
+
+/*============================================================*/
+/*                                                            */
+/*          cOBaseTxt_Ar2007                                  */
+/*                                                            */
+/*============================================================*/
+
+/**  Class for write/seriliaztion in text format, use to write
+ * readable data with minimal syntax
+ *
+ *  Also used as base class to implement XML
+ * */
+
+class cOBaseTxt_Ar2007 : public cAr2007
+{
+     public :
+	     cOBaseTxt_Ar2007(const std::string & aName) ;
+             inline std::ostream  & Ofs() {return mMMOs.Ofs();}
+	     ~cOBaseTxt_Ar2007();
+     protected :
+        void DoIndent(); ///< add white correspond to xml level
+        void Separator() override;  ///< put a ' ' between field of final non atomic type
+				    //
+         void RawBeginName(const cAuxAr2007& anOT)  override; ///< Put opening tag
+         void RawEndName(const cAuxAr2007& anOT)  override;  ///< Put closing tag
+							     //
+	virtual std::string StrIndent() const;
+
+        void RawAddDataTerm(int &    anI)  override;  ///< write int in text
+        void RawAddDataTerm(size_t &    anI) override;
+        void RawAddDataTerm(double &    anI)  override;  ///< write double in text
+        void RawAddDataTerm(std::string &    anI)  override; // write string
+        void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
+				    
+        cMMVII_Ofs     mMMOs;  ///< secure oftsream to write values
+        bool mXTerm;           ///< mXTerm is activated by RawAdds.. , it allow to put values on the same line
+        bool mFirst;  ///< new line is done before <tag> or </tag>, mFirst is used to avoid at first one
+};
+
+cOBaseTxt_Ar2007::~cOBaseTxt_Ar2007()
+{
+}
+
+cOBaseTxt_Ar2007::cOBaseTxt_Ar2007(const std::string & aName) : 
+   cAr2007(false,true,false),  // Output, Tagged, Binary
+   mMMOs(aName,false) ,
+   mXTerm (false),
+   mFirst(true) 
+{
+   mMMOs.Ofs().precision(15);
+}
+
+void cOBaseTxt_Ar2007::Separator() {Ofs() << ' ';}
+
+void cOBaseTxt_Ar2007::RawAddDataTerm(size_t &    aSz) {Ofs() <<aSz; mXTerm=true;}
+void cOBaseTxt_Ar2007::RawAddDataTerm(int &    anI) {Ofs() <<anI; mXTerm=true;}
+void cOBaseTxt_Ar2007::RawAddDataTerm(double &  aD) {Ofs() <<aD; mXTerm=true;}
+void cOBaseTxt_Ar2007::RawAddDataTerm(std::string &  anS) 
+{  
+    // To allow white in string, put it between ""
+    Ofs() << '"' <<anS << '"'; mXTerm=true;
+}
+
+void cOBaseTxt_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
+{
+   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
+   for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
+   {
+       int aICar = aPtr[aK];
+       Ofs() << ToHexacode(aICar/16) << ToHexacode(aICar%16) ;
+   }
+   mXTerm=true;
+}
+
+std::string cOBaseTxt_Ar2007::StrIndent() const   { return " "; }
+
+void cOBaseTxt_Ar2007::DoIndent()
+{
+     for (int aK=0 ; aK<mLevel ; aK++)
+         Ofs()  << StrIndent();
+}
+
+void cOBaseTxt_Ar2007::RawBeginName(const cAuxAr2007& anOT)
+{
+    // if (mXTerm) Ofs()  << std::endl;
+    // mFirst = false;
+    // DoIndent();
+}
+
+void cOBaseTxt_Ar2007::RawEndName(const cAuxAr2007& anOT)
+{
+    if (mXTerm)  Ofs()  << std::endl; 
+    mXTerm = false;
+}
+
 /*============================================================*/
 /*                                                            */
 /*          cOXml_Ar2007                                      */
@@ -599,29 +710,18 @@ int cIXml_Ar2007::SkeepWhite()
     An archive for writing XML file 
     Much easier than reading ...
 */
-class cOXml_Ar2007 : public cAr2007
+class cOXml_Ar2007 : public cOBaseTxt_Ar2007
 {
      public :
           cOXml_Ar2007(const std::string & aName) ;
-          inline std::ostream  & Ofs() {return mMMOs.Ofs();}
           ~cOXml_Ar2007();
 
 	 virtual void AddComment(const std::string &) override;
      protected :
-         void Indent(); ///< add white correspond to xml level
+	 std::string StrIndent() const override ;
 
          void RawBeginName(const cAuxAr2007& anOT)  override; ///< Put opening tag
          void RawEndName(const cAuxAr2007& anOT)  override;  ///< Put closing tag
-         void RawAddDataTerm(int &    anI)  override;  ///< write int in text
-         void RawAddDataTerm(size_t &    anI) override;
-         void RawAddDataTerm(double &    anI)  override;  ///< write double in text
-         void RawAddDataTerm(std::string &    anI)  override; // write string
-         void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
-         void Separator() override;  ///< put a ' ' between field of final non atomic type
-
-         cMMVII_Ofs     mMMOs;  ///< secure oftsream to write values
-         bool mXTerm;  ///< mXTerm is activated by RawAdds.. , it allow to put values on the same line
-         bool mFirst;  ///< new line is done before <tag> or </tag>, mFirst is used to avoid at first one
 };
 
 void cOXml_Ar2007::AddComment(const std::string & aString) 
@@ -630,12 +730,8 @@ void cOXml_Ar2007::AddComment(const std::string & aString)
 }
 
 cOXml_Ar2007::cOXml_Ar2007(const std::string & aName) : 
-   cAr2007(false,true,false),  // Output, Tagged, Binary
-   mMMOs(aName,false), 
-   mXTerm (false), 
-   mFirst(true) 
+   cOBaseTxt_Ar2007 (aName)
 {
-   mMMOs.Ofs().precision(15);
    // Not sure all that is usefull, however, untill now I skipp <? ?>
    mMMOs.Ofs() <<  "<?xml" 
                << " version=\"1.0\""
@@ -650,46 +746,21 @@ cOXml_Ar2007::~cOXml_Ar2007()
    Ofs()  << std::endl;
 }
 
-void cOXml_Ar2007::RawAddDataTerm(size_t &    aSz) {Ofs() <<aSz; mXTerm=true;}
-void cOXml_Ar2007::RawAddDataTerm(int &    anI) {Ofs() <<anI; mXTerm=true;}
-void cOXml_Ar2007::RawAddDataTerm(double &  aD) {Ofs() <<aD; mXTerm=true;}
-void cOXml_Ar2007::RawAddDataTerm(std::string &  anS) 
-{  
-    // To allow white in string, put it between ""
-    Ofs() << '"' <<anS << '"'; mXTerm=true;
-}
+std::string cOXml_Ar2007::StrIndent() const  { return "   "; }
 
 
-void cOXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
-{
-   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
-   for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
-   {
-       int aICar = aPtr[aK];
-       Ofs() << ToHexacode(aICar/16) << ToHexacode(aICar%16) ;
-   }
-   mXTerm=true;
-}
-
-void cOXml_Ar2007::Separator() {Ofs() << ' ';}
-
-void cOXml_Ar2007::Indent()
-{
-     for (int aK=0 ; aK<mLevel ; aK++)
-         Ofs()  << "   ";
-}
 
 void cOXml_Ar2007::RawBeginName(const cAuxAr2007& anOT)
 {
     if (!mFirst) Ofs()  << std::endl;
     mFirst = false;
-    Indent();
+    DoIndent();
     Ofs()  << "<" << anOT.Name() << ">";
 }
 
 void cOXml_Ar2007::RawEndName(const cAuxAr2007& anOT)
 {
-    if (! mXTerm){  Ofs()  << std::endl; Indent(); }
+    if (! mXTerm){  Ofs()  << std::endl; DoIndent(); }
     Ofs()  << "</" << anOT.Name() << ">";
     mXTerm = false;
 }
@@ -933,6 +1004,15 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
        else
           aRes =  new cOBin_Ar2007(aName);
    }
+   else if (UCaseEqual(aPost,"txt") )
+   {
+       if (Input)
+       {
+       }
+       else
+          aRes =  new cOBaseTxt_Ar2007(aName);
+   }
+
 
 
    MMVII_INTERNAL_ASSERT_always(aRes!=0,"Do not handle postfix for "+ aName);
