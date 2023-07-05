@@ -101,6 +101,10 @@ class cAr2007 : public cMemCheck
          virtual void RawAddDataTerm(double &    anI) =  0; ///< Heriting class descrine how they serialze double
          virtual void RawAddDataTerm(std::string &    anI) =  0; ///< Heriting class descrine how they serialze string
          virtual void RawAddDataTerm(cRawData4Serial  &    aRDS) =  0; ///< Heriting class descrine how they serialze string
+								       //
+								     
+	 virtual void OnBeginTab() {}
+	 virtual void OnEndTab() {}
 
     protected  :
          cAr2007(bool InPut,bool Tagged,bool Binary);
@@ -205,6 +209,8 @@ template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int
 {
     // A precaution, probably it work but need to test
     MMVII_INTERNAL_ASSERT_always(aNbVal,"Not Sur AddTabData work for NbVal=0, check....");
+    anAux.Ar().OnBeginTab();
+
     if (aNbVal)
        AddData(anAux,aVD[0]);
     for (int aK=1 ; aK<aNbVal ; aK++)
@@ -212,6 +218,7 @@ template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int
         anAux.Ar().Separator();
         AddData(anAux,aVD[aK]);
     }
+    anAux.Ar().OnEndTab();
 }
 template void AddTabData(const  cAuxAr2007 & anAux, size_t *  aVD,int aNbVal);
 template void AddTabData(const  cAuxAr2007 & anAux, tREAL8 *  aVD,int aNbVal);
@@ -598,6 +605,11 @@ int cIXml_Ar2007::SkeepWhite()
    return aC;
 }
 
+/*============================================================*/
+/*                                                            */
+/*          cIBaseTxt_Ar2007                                  */
+/*                                                            */
+/*============================================================*/
 
 
 
@@ -647,6 +659,7 @@ class cOBaseTxt_Ar2007 : public cAr2007
 							     //
 	virtual std::string StrIndent() const;
 
+	virtual void BDT() {} // Begin Data Term
         void RawAddDataTerm(int &    anI)  override;  ///< write int in text
         void RawAddDataTerm(size_t &    anI) override;
         void RawAddDataTerm(double &    anI)  override;  ///< write double in text
@@ -656,6 +669,7 @@ class cOBaseTxt_Ar2007 : public cAr2007
         cMMVII_Ofs     mMMOs;  ///< secure oftsream to write values
         bool mXTerm;           ///< mXTerm is activated by RawAdds.. , it allow to put values on the same line
         bool mFirst;  ///< new line is done before <tag> or </tag>, mFirst is used to avoid at first one
+		      
 };
 
 cOBaseTxt_Ar2007::~cOBaseTxt_Ar2007()
@@ -674,17 +688,19 @@ cOBaseTxt_Ar2007::cOBaseTxt_Ar2007(const std::string & aName,eTypeSerial aTypeS)
 
 void cOBaseTxt_Ar2007::Separator() {Ofs() << ' ';}
 
-void cOBaseTxt_Ar2007::RawAddDataTerm(size_t &    aSz) {Ofs() <<aSz; mXTerm=true;}
-void cOBaseTxt_Ar2007::RawAddDataTerm(int &    anI) {Ofs() <<anI; mXTerm=true;}
-void cOBaseTxt_Ar2007::RawAddDataTerm(double &  aD) {Ofs() <<aD; mXTerm=true;}
+void cOBaseTxt_Ar2007::RawAddDataTerm(size_t &    aSz) {BDT();Ofs() <<aSz; mXTerm=true;}
+void cOBaseTxt_Ar2007::RawAddDataTerm(int &    anI) {BDT();Ofs() <<anI; mXTerm=true;}
+void cOBaseTxt_Ar2007::RawAddDataTerm(double &  aD) {BDT();Ofs() <<aD; mXTerm=true;}
 void cOBaseTxt_Ar2007::RawAddDataTerm(std::string &  anS) 
 {  
+	BDT();
     // To allow white in string, put it between ""
     Ofs() << '"' <<anS << '"'; mXTerm=true;
 }
 
 void cOBaseTxt_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
 {
+   BDT();
    tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
    for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
    {
@@ -712,6 +728,67 @@ void cOBaseTxt_Ar2007::RawBeginName(const cAuxAr2007& anOT)
 void cOBaseTxt_Ar2007::RawEndName(const cAuxAr2007& anOT)
 {
     if (mXTerm)  Ofs()  << std::endl; 
+    mXTerm = false;
+}
+
+/*============================================================*/
+/*                                                            */
+/*          cOJSN_Ar2007                                      */
+/*                                                            */
+/*============================================================*/
+
+class cOJSN_Ar2007 : public cOBaseTxt_Ar2007
+{
+     public :
+        cOJSN_Ar2007(const std::string & aName) :
+              cOBaseTxt_Ar2007 (aName,eTypeSerial::ejson),
+	      mTabBegin (false)
+	{
+	}
+         ~cOJSN_Ar2007()
+	 {
+             Ofs()  << std::endl;
+	 }
+         void Separator() override { Ofs()  << "";}
+	 void OnBeginTab() override { mTabBegin= true;}
+	 void OnEndTab() override { Ofs()  << "]";}
+
+         void RawBeginName(const cAuxAr2007& anOT)  override; ///< Put opening tag
+         void RawEndName(const cAuxAr2007& anOT)  override;  ///< Put closing tag
+							     //
+	 void BDT() override 
+	 {
+                Ofs()  << ",";
+		if (mTabBegin) 
+		{
+			Ofs()  << "[";
+			mTabBegin = false;
+		}
+	 }
+	 std::string StrIndent() const override  {return "   ";}
+
+	 bool mTabBegin;
+};
+
+void cOJSN_Ar2007::RawBeginName(const cAuxAr2007& anOT)
+{
+    if (!mFirst)
+    {
+	if (!mXTerm)
+	{	
+		Ofs() << ",";
+	}
+	Ofs()   << std::endl;
+    }
+    mFirst = false;
+    DoIndent();
+    Ofs()  << "[\"" << anOT.Name() << "\"";
+}
+
+void cOJSN_Ar2007::RawEndName(const cAuxAr2007& anOT)
+{
+    if (! mXTerm){  Ofs()  << std::endl; DoIndent(); }
+    Ofs()  << "]";
     mXTerm = false;
 }
 
@@ -1028,6 +1105,15 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
        }
        else
           aRes =  new cOBaseTxt_Ar2007(aName,eTypeSerial::etxt);
+   }
+   else if (UCaseEqual(aPost,"json") )
+   {
+       if (Input)
+       {
+          // aRes =  new cIBaseTxt_Ar2007(aName);
+       }
+       else
+          aRes =  new cOJSN_Ar2007(aName);
    }
 
 

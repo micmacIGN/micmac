@@ -349,7 +349,8 @@ template<> cE2Str<eTypeSerial>::tMapE2Str cE2Str<eTypeSerial>::mE2S
            {
                 {eTypeSerial::exml,"xml"},
                 {eTypeSerial::edmp,"dmp"},
-                {eTypeSerial::etxt,"txt"}
+                {eTypeSerial::etxt,"txt"},
+                {eTypeSerial::ejson,"json"}
            };
 TPL_ENUM_2_STRING(eTypeSerial);
 

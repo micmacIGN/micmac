@@ -83,6 +83,7 @@ enum class eTypeSerial
                 exml,
                 edmp,
                 etxt,
+                ejson,
                 eNbVals     ///< Tag for number of value
 	   };
 

@@ -291,6 +291,11 @@ void BenchSerialization
 	eTypeSerial         aTypeS2
     )
 {
+   if ((aTypeS==eTypeSerial::ejson) || (aTypeS2==eTypeSerial::ejson))
+   {
+	   StdOut() << "JSON NON FINISHED \n";
+	   return;
+   }
     std::string anExt  = E2Str(aTypeS);
     std::string anExt2 = E2Str(aTypeS2);
     std::string anExtXml = E2Str(eTypeSerial::exml);
@@ -421,6 +426,12 @@ void BenchSerialization
 {
     if (! aParam.NewBench("Serial")) return;
 
+    SaveInFile(cTestSerial1(),"toto.xml");
+    SaveInFile(cTestSerial1(),"toto.txt");
+    SaveInFile(cTestSerial1(),"toto.json");
+    StdOut() << "BenchSerializationBenchSerialization\n";  
+
+    /*
     for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
     {
         for (int aKS2=0 ; aKS2 <int(eTypeSerial::eNbVals) ;aKS2++)
@@ -428,6 +439,7 @@ void BenchSerialization
             BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial(aKS1),eTypeSerial(aKS2));
         }
     }
+    */
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml,eTypeSerial::etxt);
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml);
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::edmp);
