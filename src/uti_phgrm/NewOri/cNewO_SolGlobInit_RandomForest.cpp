@@ -2802,8 +2802,15 @@ void RandomForest::CoherTripletsAllSamples(Dataset& data) {
                 data.mV3[aT]->Sum()[i] = 1000000;
             continue;
         }
+        for (size_t i = 0; i < data.mV3[aT]->Data()[0].size(); i++) {
+            if (std::isnan(data.mV3[aT]->Data()[0][i])) {
+                data.mV3[aT]->Data()[0][i] = 100000;
+            }
+        }
+
         data.mV3[aT]->Sum()[0] = mean(data.mV3[aT]->Data()[0]);
-        data.mV3[aT]->Sum()[1] = MedianeSup(data.mV3[aT]->Data()[0]);
+        //data.mV3[aT]->Sum()[1] = MedianeSup(data.mV3[aT]->Data()[0]);
+        data.mV3[aT]->Sum()[1] = data.mV3[aT]->Data()[0][data.mV3[aT]->Data()[0].size()/2];
         data.mV3[aT]->Sum()[2] = mean(data.mV3[aT]->Data()[2]);
         auto a = data.mV3[aT]->Data()[2];
         std::sort(a.begin(), a.end());
