@@ -287,12 +287,17 @@ void BenchSerialization
         cParamExeBench & aParam,
         const std::string & aDirOut,  ///< For write-read temp file
         const std::string & aDirIn,  ///< For readin existing file (as Xml with comments)
-	eTypeSerial         aTypeS
+	eTypeSerial         aTypeS,
+	eTypeSerial         aTypeS2
     )
 {
-    std::string anExt = E2Str(aTypeS);
+    std::string anExt  = E2Str(aTypeS);
+    std::string anExt2 = E2Str(aTypeS2);
+    std::string anExtXml = E2Str(eTypeSerial::exml);
 
-    if (! aParam.NewBench("Serial")) return;
+    // Test on low level binary compat work only with non tagged format
+    std::string anExtNonTagged = E2Str((aTypeS==eTypeSerial::exml) ? eTypeSerial::edmp  : aTypeS);
+
 
     BenchSerialMap(aDirOut,aTypeS);
     // std::string aDir= DirCur();
@@ -309,15 +314,9 @@ void BenchSerialization
        aP12.mLI.clear();
        aP12.mVD.clear();
        ReadFromFile(aP12,aDirOut+"F1."+anExt);
-StdOut() << "FFFFf   " << aDirOut+"F1."+anExt << "\n";
-SaveInFile(aP12,"toto_P12.xml");
-SaveInFile(aP12,"toto_P12.txt");
-SaveInFile(cTestSerial1(),"toto_S1.xml");
-SaveInFile(cTestSerial1(),"toto_S1.txt");
        // Check the value read is the same
        MMVII_INTERNAL_ASSERT_bench(aP12==cTestSerial1(),"cAppli_MMVII_TestSerial");
 
-StdOut() << "KKKKKkkKkjjjll " << __LINE__ << "\n"; getchar();
        cTestSerial1 aS1;
 
        // Same object, same key
@@ -339,13 +338,13 @@ StdOut() << "KKKKKkkKkjjjll " << __LINE__ << "\n"; getchar();
        cTestSerial1 aPModif = aP12;
        aPModif.mO1 = cPt2dr(14,18);
        MMVII_INTERNAL_ASSERT_bench(!(aPModif==cTestSerial1()),"cAppli_MMVII_TestSerial");
-       SaveInFile(aP12,aDirOut+"F2."+PostF_XmlFiles);
+       SaveInFile(aP12,aDirOut+"XF2."+anExtXml);
     }
 
     {
         cTestSerial1 aP23;
-        ReadFromFile(aP23,aDirOut+"F2."+PostF_XmlFiles);
-        SaveInFile(aP23,aDirOut+"F3."+PostF_DumpFiles);
+        ReadFromFile(aP23,aDirOut+"XF2."+anExtXml);
+        SaveInFile(aP23,aDirOut+"F3."+anExtNonTagged);
     }
 
 
@@ -353,7 +352,7 @@ StdOut() << "KKKKKkkKkjjjll " << __LINE__ << "\n"; getchar();
     {
         cTestSerial1 aP34;
         cTestSerial1 aP34_0 = aP34;
-        ReadFromFile(aP34,aDirOut+"F3."+PostF_DumpFiles);
+        ReadFromFile(aP34,aDirOut+"F3."+anExtNonTagged);
         MMVII_INTERNAL_ASSERT_bench(aP34==aP34_0,"cAppli_MMVII_TestSerial");
 
 
@@ -362,8 +361,9 @@ StdOut() << "KKKKKkkKkjjjll " << __LINE__ << "\n"; getchar();
         aP34_0 = aP34;
 	//std::vector<string> aVPost ({PostF_DumpFiles,PostF_XmlFiles})
 
-	for (const auto & aPost : {PostF_DumpFiles,PostF_XmlFiles})
+	for (int aKS=0 ; aKS <int(eTypeSerial::eNbVals) ;aKS++)
         {
+           std::string aPost = E2Str(eTypeSerial(aKS));
            SaveInFile(aP34,aDirOut+"F10."+aPost);
            cTestSerial1 aP34_Read;
            ReadFromFile(aP34_Read,aDirOut+"F10."+aPost);
@@ -373,17 +373,18 @@ StdOut() << "KKKKKkkKkjjjll " << __LINE__ << "\n"; getchar();
 
 
     {
-        SaveInFile(cTestSerial2(),aDirOut+"F_T2."+PostF_XmlFiles);
+        SaveInFile(cTestSerial2(),aDirOut+"F_T2."+anExt);
         cTestSerial2 aT2;
         
         // Generate an error
         //  ReadFromFile(aT2,aDirOut+"F2."+PostF_XmlFiles);
         
-        ReadFromFile(aT2,aDirOut+"F_T2."+PostF_XmlFiles); // OK , read what we wrote as usual
+        ReadFromFile(aT2,aDirOut+"F_T2."+anExt); // OK , read what we wrote as usual
         // and the value is the same
         MMVII_INTERNAL_ASSERT_bench(aT2==cTestSerial1(),"cAppli_MMVII_TestSerial");
     
-        ReadFromFile(aT2,aDirOut+"F3."+  PostF_DumpFiles);   // OK also in binary, the format has no influence
+	// this test work only for non tagged format 
+        ReadFromFile(aT2,aDirOut+"F3."+  anExtNonTagged);   // OK also in binary, the format has no influence
         // And the value is still the same as dump is compatible at binary level
 
         MMVII_INTERNAL_ASSERT_bench(aT2==cTestSerial2(),"cAppli_MMVII_TestSerial");
@@ -401,12 +402,11 @@ StdOut() << "KKKKKkkKkjjjll " << __LINE__ << "\n"; getchar();
 
     // Bench IsFile2007XmlOfGivenTag 
     {
-       MMVII_INTERNAL_ASSERT_bench( IsFileXmlOfGivenTag(true,aDirOut+"F2."+PostF_XmlFiles,"TS0"),"cAppli_MMVII_TestSerial");
-       MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirOut+"F2."+PostF_XmlFiles,"TS1"),"cAppli_MMVII_TestSerial");
-       MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirIn+"PBF2."+PostF_XmlFiles,"TS0"),"cAppli_MMVII_TestSerial");
+       MMVII_INTERNAL_ASSERT_bench( IsFileXmlOfGivenTag(true,aDirOut+"XF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
+       MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirOut+"XF2."+anExtXml,"TS1"),"cAppli_MMVII_TestSerial");
+       MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirIn+"PBF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
     }
 
-    aParam.EndBench();
     //StdOut() << "DONE SERIAL\n";
 
     // return EXIT_SUCCESS;
@@ -419,9 +419,20 @@ void BenchSerialization
         const std::string & aDirIn  ///< For readin existing file (as Xml with comments)
     )
 {
-	BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::etxt);
-	BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml);
-	BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::edmp);
+    if (! aParam.NewBench("Serial")) return;
+
+    for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
+    {
+        for (int aKS2=0 ; aKS2 <int(eTypeSerial::eNbVals) ;aKS2++)
+        {
+            BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial(aKS1),eTypeSerial(aKS2));
+        }
+    }
+    // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml,eTypeSerial::etxt);
+    // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml);
+    // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::edmp);
+
+    aParam.EndBench();
 }
 
 };
