@@ -68,6 +68,7 @@ enum class eApF
                Radiometry, ///< Radiometric modelization
                Ori,        ///< Orientation
                Match,      ///< Dense Matching
+               GCP,       ///< Tie-Point processing
                TieP,       ///< Tie-Point processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing

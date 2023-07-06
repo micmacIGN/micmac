@@ -508,6 +508,8 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
    std::vector<std::string> aListFileGCP =  GetFilesFromDir(aDir,AllocRegex(aPatFiltr));
    MMVII_INTERNAL_ASSERT_User(!aListFileGCP.empty(),eTyUEr::eUnClassedError,"No file found in LoadGCP");
 
+// StdOut()<< "aListFileGCPaListFileGCP " << aListFileGCP.size() << "\n";
+
    for (const auto  & aNameFile : aListFileGCP)
    {
        cSetMesGCP aMesGGP = cSetMesGCP::FromFile(aDir+aNameFile);

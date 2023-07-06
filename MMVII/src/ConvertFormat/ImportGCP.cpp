@@ -41,6 +41,7 @@ class cAppli_ImportGCP : public cMMVII_Appli
 	int              mLLast;
 	int              mComment;
 	eTypeSerial      mTypeS;
+	int              mNbDigName;
 
         std::string mNameOut; 
 };
@@ -68,7 +69,8 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
     return anArgObl
        << AOpt2007(mNameGCP,"NameGCP","Name of GCP set")
        << AOpt2007(mNameOut,"Out","Name of output file, def=\"NameGCP+xml\"")
-       <<  mPhProj.DPPointsMeasures().ArgDirOutOpt()
+       << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
+       << mPhProj.DPPointsMeasures().ArgDirOutOpt()
     ;
 }
 
@@ -89,11 +91,6 @@ int cAppli_ImportGCP::Exe()
     );
 
 
-    cSetMesGCP aSetM(mNameGCP);
-    for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
-    {
-         aSetM.AddMeasure(cMes1GCP(aVXYZ[aK],aVNames.at(aK).at(0),1.0));
-    }
 
     if (! IsInit(&mNameGCP))
     {
@@ -107,14 +104,26 @@ int cAppli_ImportGCP::Exe()
 
     mNameOut  = mNameOut + "." +  E2Str(mTypeS);
 
+    // StdOut() << "ggggg " << mPhProj.DPPointsMeasures().DirOutIsInit() << "\n";
+    // StdOut() << "ggggg " << mPhProj.DPPointsMeasures().FullDirOut() << "\n";
     if (mPhProj.DPPointsMeasures().DirOutIsInit())
     {
-        mNameOut = mPhProj.DPPointsMeasures().DirOut() + mNameOut;
+        mNameOut = mPhProj.DPPointsMeasures().FullDirOut() + cSetMesGCP::ThePrefixFiles + "_" + mNameOut;
     }
 
     if ((mNameOut==mNameFile) && (!IsInit(&mNameOut)))
     {
        MMVII_UnclasseUsEr("Default out would overwrite input file");
+    }
+
+    cSetMesGCP aSetM(mNameGCP);
+    for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
+    {
+         std::string aName = aVNames.at(aK).at(0);
+	 if (IsInit(&mNbDigName))
+            aName =   ToStr(cStrIO<int>::FromStr(aName),mNbDigName);
+
+         aSetM.AddMeasure(cMes1GCP(aVXYZ[aK],aName,1.0));
     }
 
     aSetM.ToFile(mNameOut);
@@ -123,28 +132,26 @@ int cAppli_ImportGCP::Exe()
 }
 
 
-#if (0)
 
 
 
 
 
-tMMVII_UnikPApli Alloc_OriConvV1V2(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_ImportGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_OriConvV1V2(aVArgs,aSpec));
+   return tMMVII_UnikPApli(new cAppli_ImportGCP(aVArgs,aSpec));
 }
 
-cSpecMMVII_Appli  TheSpec_OriConvV1V2
+cSpecMMVII_Appli  TheSpec_ImportGCP
 (
-     "OriConvV1V2",
-      Alloc_OriConvV1V2,
-      "Convert orientation of MMV1  to MMVII",
-      {eApF::Ori},
-      {eApDT::Orient},
-      {eApDT::Orient},
+     "ImportGCP",
+      Alloc_ImportGCP,
+      "Import basic GCP file in MicMac format",
+      {eApF::GCP},
+      {eApDT::GCP},
+      {eApDT::GCP},
       __FILE__
 );
-#endif
 
 
 }; // MMVII

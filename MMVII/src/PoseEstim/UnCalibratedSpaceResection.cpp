@@ -805,6 +805,7 @@ int cAppli_UncalibSpaceResection::Exe()
     std::string aNameIm =FileOfPath(mSpecImIn);
 
     mSet23 =mPhProj.LoadSet32(aNameIm);
+    StdOut() <<  "Nb Measures=" << mSet23.NbPair() << "\n";
 
     cPt2di aSz =  cDataFileIm2D::Create(aNameIm,false).Sz();
     cSensorCamPC *  aCam0 =  cSensorCamPC::CreateUCSR(mSet23,aSz,aNameIm,mReal16);

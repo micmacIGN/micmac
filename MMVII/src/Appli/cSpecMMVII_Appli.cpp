@@ -203,6 +203,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecRadiomCreateModel);
 
         TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
+        TheVecAll.push_back(&TheSpec_ImportGCP);
         //TheVecAll.push_back(&TheSpecTopoComp);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
