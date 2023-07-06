@@ -1,5 +1,6 @@
 #include "MMVII_Error.h"
 #include "MMVII_util.h"
+#include "MMVII_Ptxd.h"
 
 namespace MMVII
 {
@@ -163,11 +164,36 @@ void cMMVII_Ifs::Read(std::string & aVal )
    VoidRead(const_cast<char *>(aVal.c_str()),aSz);
 }
 
-/** Lox level read of file containing nums in fixed format */
+/** Low level read of file containing nums in fixed format */
 
-void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile)
+template<class Type> inline Type GetV(std::istringstream & iss)
 {
-    aVRes.clear();
+    Type aNum;
+    iss >> aNum;
+    return aNum;
+}
+
+void  ReadFilesStruct 
+      (
+	    const std::string &                     aNameFile,
+            const std::string &                     aFormat,
+            int                                     aL0,
+            int                                     aLastL,
+            int                                     aComment,
+            std::vector<std::vector<std::string>> & aVNames,
+            std::vector<cPt3dr>                   & aVXYZ,
+            std::vector<cPt3dr>                   & aVWKP,
+            std::vector<std::vector<double>>      & aVNums
+      )
+{
+    if (aLastL<=0) 
+       aLastL = 100000000;
+
+    aVNames.clear();
+    aVXYZ.clear();
+    aVWKP.clear();
+    aVNums.clear();
+
     if (! ExistFile(aNameFile))
     {
        MMVII_UsersErrror(eTyUEr::eOpenFile,std::string("For file ") + aNameFile);
@@ -175,32 +201,62 @@ void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> 
     std::ifstream infile(aNameFile);
 
     std::string line;
+    int aNumL = 0;
     while (std::getline(infile, line))
     {
-        std::istringstream iss(line);
-        std::vector<double> aLD;
-        for (const auto & aCar : aFormat)
-        {
-            if (aCar=='F')
-            {
-               tREAL8 aNum;
-               iss >> aNum;
-               aLD.push_back(aNum);
+        if ((aNumL>=aL0) && (aNumL<aLastL))
+	{
+            std::istringstream iss(line);
+	    int aC0 = iss.get();
+            if (aC0 != aComment)
+	    {
+                iss.unget();
+                std::vector<double> aLNum;
+                std::vector<std::string> aLNames;
+	        cPt3dr aXYZ;
+	        cPt3dr aWKP;
+
+                for (const auto & aCar : aFormat)
+                {
+                    switch (aCar) 
+                    {
+                         case 'F' : aLNum.push_back(GetV<tREAL8>(iss)); break;
+                         case 'X' : aXYZ.x() = GetV<tREAL8>(iss); break;
+                         case 'Y' : aXYZ.y() = GetV<tREAL8>(iss); break;
+                         case 'Z' : aXYZ.z() = GetV<tREAL8>(iss); break;
+                         case 'W' : aWKP.x() = GetV<tREAL8>(iss); break;
+                         case 'P' : aWKP.y() = GetV<tREAL8>(iss); break;
+                         case 'K' : aWKP.z() = GetV<tREAL8>(iss); break;
+
+			 case 'N' : aLNames.push_back(GetV<std::string>(iss)); break;
+			 case 'S' : GetV<std::string>(iss); break;
+
+		         default :
+		         break;
+                    }
+	        }
+		aVXYZ.push_back(aXYZ);
+		aVWKP.push_back(aWKP);
+                aVNames.push_back(aLNames);
+                aVNums.push_back(aLNum);
             }
-            else if (aCar=='S')
-            {
-               std::string anAtom;
-               iss >> anAtom;
-            }
-            else
-            {
-                 MMVII_UsersErrror(eTyUEr::eUnClassedError,"Bad string format");
-            }
-        }
-        aVRes.push_back(aLD);
+	}
+	aNumL++;
     }
 }
 
+void  ReadFilesNum (const std::string & aNameFile,const std::string & aFormat,std::vector<std::vector<double>> & aVRes)
+{
+    std::vector<cPt3dr> aVXYZ;
+    std::vector<std::vector<std::string>> aVNames;
+    ReadFilesStruct 
+    (
+        aNameFile,aFormat,
+        0,1000000,-1,
+        aVNames,
+        aVXYZ,aVXYZ,
+        aVRes
+    );
+}
 
 };
-

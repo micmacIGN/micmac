@@ -982,8 +982,19 @@ template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>&
 // Rank of values
 template <class TCont,class TVal> double Rank(const TCont &, const TVal&);
 
-/// Lox level read of file containing nums in fixed format   F->double   S->string (skipped)
-void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile);
+/// Low level read of file containing nums in fixed format   F->double   S->string (skipped)
+void  ReadFilesNum(const std::string & aNameFile,const std::string & aFormat,std::vector<std::vector<double>> & aVRes);
+
+void  ReadFilesStruct
+      (
+          const std::string & aNameFile, const std::string & aFormat,
+          int aL0, int aLastL, int aComment,
+          std::vector<std::vector<std::string>> & aVNames,
+          std::vector<cPt3dr> & aVXYZ, std::vector<cPt3dr>  & aVWKP,
+          std::vector<std::vector<double>>      & aVNums
+      );
+
+
 
 
 /**  Class for implementing proba law whith given average & standard deviation*/

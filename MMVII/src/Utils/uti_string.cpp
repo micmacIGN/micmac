@@ -696,6 +696,11 @@ bool starts_with(const std::string & aFullStr,const std::string & aPrefix)
     return anItPref==aPrefix.end();
 }
 
+bool IsPrefixed(const std::string & aStr,char aSep)
+{
+	return aStr.find(aSep) != std::string::npos;
+}
+
 
 /*
 std::vector<std::string>  GetFilesFromDirAndER(const std::string & aDir,const std::string & aRegEx)
