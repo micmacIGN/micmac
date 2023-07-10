@@ -500,9 +500,14 @@ void cPhotogrammetricProject::SaveGCP(const cSetMesImGCP& aSetMes,const std::str
      aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles +aExt + ".xml");
 }
 
+std::string cPhotogrammetricProject::GCPPattern(const std::string & aArgPatFiltr) const
+{
+    return (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*.xml")  : aArgPatFiltr;
+}
+
 void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr) const
 {
-   std::string aPatFiltr = (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*.xml")  : aArgPatFiltr;
+   std::string aPatFiltr = GCPPattern(aArgPatFiltr);
 
    std::string aDir = mDPPointsMeasures.FullDirIn();
    std::vector<std::string> aListFileGCP =  GetFilesFromDir(aDir,AllocRegex(aPatFiltr));
@@ -516,6 +521,18 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
        aSetMes.AddMes3D(aMesGGP);
    }
 }
+
+void cPhotogrammetricProject::CpGCPPattern(const std::string & aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr) const
+{
+   CopyPatternFile(aDirIn,GCPPattern(aArgPatFiltr),aDirOut);
+}
+
+void cPhotogrammetricProject::CpGCP() const
+{
+	CpGCPPattern(mDPPointsMeasures.FullDirIn(),mDPPointsMeasures.FullDirOut());
+}
+
+
 
 void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & aNameIm,cSensorImage * aSIm) const
 {

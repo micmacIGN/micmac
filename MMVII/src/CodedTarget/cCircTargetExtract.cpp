@@ -614,6 +614,23 @@ void  cCCDecode::Show(const std::string & aPrefix)
 
 };
 
+void SaveAndFilterAttrEll(const cPhotogrammetricProject & aPhp,const cSetMesPtOf1Im &  aSetM,const std::set<std::string> & ToRem)
+{
+     std::string  aNameIn = cSaveExtrEllipe::NameFile(aPhp,aSetM,true);
+     if (!ExistFile(aNameIn))
+        return;
+
+     std::vector<cSaveExtrEllipe> aVSEEIn;
+     ReadFromFile(aVSEEIn,aNameIn);
+
+
+     std::vector<cSaveExtrEllipe> aVSEEOut;
+     for (const auto & aSEE : aVSEEIn)
+         if (ToRem.find(aSEE.mNameCode) == ToRem.end())
+            aVSEEOut.push_back(aSEE);
+     SaveInFile(aVSEEOut,cSaveExtrEllipe::NameFile(aPhp,aSetM,false));
+}
+
 /*  *********************************************************** */
 /*                                                              */
 /*             cAppliExtractCodeTarget                          */

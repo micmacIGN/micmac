@@ -1,6 +1,8 @@
 #ifndef  _MMVII_SENSOR_H_
 #define  _MMVII_SENSOR_H_
 
+#include <set>
+
 #include "SymbDer/SymbDer_Common.h"
 #include "MMVII_Mappings.h"
 #include "MMVII_MeasuresIm.h"
@@ -377,6 +379,11 @@ class cPhotogrammetricProject
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
 	  void SaveGCP(const cSetMesImGCP&,const std::string & aExt);
 
+	  /// Pattern for GCP file, if "" return default  = "cSetMesGCP::ThePrefixFiles.*.xml"
+	  std::string GCPPattern(const std::string & aArgPatFiltr) const;
+	  void CpGCPPattern(const std::string& aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr="") const;
+	  void CpGCP() const;
+
 	  /// For a givgen image, return 3D-2D corresp, using LoadGCP&LoadIm
 	  cSet2D3D  LoadSet32(const std::string & aNameIm) const;
 	  
@@ -424,8 +431,7 @@ class cPhotogrammetricProject
 	  mutable std::list<cSensorCamPC*>          mLCam2Del; 
 
 };
-
-
+void SaveAndFilterAttrEll(const cPhotogrammetricProject & aPhp,const cSetMesPtOf1Im &  aSetM,const std::set<std::string> & ToRem);
 
 };
 

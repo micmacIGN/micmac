@@ -35,8 +35,9 @@ MMVII  CodedTargetCircExtract ".*_Scaled.tif" CERN_Nbb14_Freq14_Hamm1_Run1000_10
 #  => Fail because no GCP found in PointsMeasure/Test
 
 
-# make a copy a GCP at write place
-cp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/PointsMeasure/Test/
+# make a copy a GCP at write placecp Data-Aux/MesGCP-AICON-CERN-Pannel.xml MMVII-PhgrProj/PointsMeasure/Test/
+MMVII  ImportGCP  Data-Aux/Positions-3D-14bit_lookup.txt NXYZ OutPointsMeasure=Test NbDigName=3
+
 
 #  Now it works
 MMVII  OriPoseEstim11P 043_0005_Scaled.tif Test 11P
@@ -47,7 +48,7 @@ MMVII  OriPoseEstim11P 043_0005_Scaled.tif Test 11P
 MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P DoMedianCalib=false
 
 # If ommit DoMedianCalib -> try to make an  average camere
-MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P 
+#MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P 
 # => fail because cannot compute common calibration name (need at least focal + camera model)
 
 # put file for computing missing meta-data at the right place
@@ -84,20 +85,12 @@ MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[3,1,1] PatFrozen="(b|p).*|K3"
 
 
 
+MMVII OriPoseEstimSpaceResection .*Scaled.tif Test 11P  Resec  DirFiltered=Fil ThrRej=5.0
+MMVII OriBundleAdj ".*_Scaled.tif" Resec BA  GCPW=[1,1] DataDir=Fil
 
-MMVII OriPoseEstimSpaceResection .*Scaled.tif Test 11P  Resec
-
-MMVII OriBundleAdj ".*_Scaled.tif" Resec BA  GCPW=[1,1] DataDir=Test
-
-
-
-MMVII CodedTargetCompleteUncoded 043_0005_Scaled.tif BA 1.0 InPointsMeasure=Test 
-
-MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InPointsMeasure=Test 
-
+MMVII CodedTargetCompleteUncoded 043_0005_Scaled.tif BA 1.0 InPointsMeasure=Fil 
+MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InPointsMeasure=Fil
 MMVII OriBundleAdj ".*_Scaled.tif"  BA BA2  GCPW=[1,1] DataDir=Completed
-
-
 
 
 

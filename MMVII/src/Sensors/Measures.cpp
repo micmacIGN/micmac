@@ -123,6 +123,8 @@ const cPt2dr * cMultipleImPt::PtOfIm(int aIndIm) const
 const std::vector<cPt2dr> & cMultipleImPt::VMeasures() const  {return mVMeasures;}
 const std::vector<int>    & cMultipleImPt::VImages()   const  {return mVImages  ;}
 
+int cMultipleImPt::NumPt() const {return mNumPt;}
+
 
 /* ********************************************* */
 /*                                               */

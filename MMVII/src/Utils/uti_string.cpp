@@ -563,6 +563,16 @@ void CopyFile(const std::string & aName,const std::string & aDest)
    std::filesystem::copy_file(aName,aDest,std::filesystem::copy_options::overwrite_existing);
 }
 
+void CopyPatternFile(const std::string & aDirIn,const std::string & aPattern,const std::string & aDirOut)
+{
+   std::vector<std::string> aListFile =  GetFilesFromDir(aDirIn,AllocRegex(aPattern));
+   for (const auto  & aNameFile : aListFile)
+   {
+       CopyFile(aDirIn+aNameFile,aDirOut+aNameFile);
+   }
+}
+
+
 void ActionDir(const std::string & aName,eModeCreateDir aMode)
 {
    switch(aMode)

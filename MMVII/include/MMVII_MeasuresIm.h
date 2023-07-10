@@ -164,6 +164,7 @@ class cMultipleImPt
 
 	      const std::vector<cPt2dr> & VMeasures() const;  ///< Accessor
               const std::vector<int>    & VImages()   const;  ///< Accessor
+	      int NumPt() const;
       private :
               int                             mNumPt;
               std::vector<cPt2dr>             mVMeasures;
