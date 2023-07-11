@@ -209,6 +209,7 @@ int OriRedTie_main(int argc, char **argv);
 int HomFusionPDVUnik_main(int argc, char **argv);
 int TestDistM2C_main(int argc, char ** argv);
 int TestDistortion_main(int argc, char ** argv);
+int Bundles2Comp_main(int argc, char ** argv);
 
 int Blinis_main(int argc, char ** argv);
 int OrientFromBlock_main(int argc, char ** argv);
@@ -517,6 +518,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("TestCam", TestCam_main, " Test camera orientation convention"));
 		aRes.push_back(cMMCom("TestDistM2C", TestDistM2C_main, " Basic Test for problematic camera "));
 		aRes.push_back(cMMCom("TestDistortion", TestDistortion_main, " Basic Test of distortion formula "));
+		aRes.push_back(cMMCom("Bundles2Comp", Bundles2Comp_main, " Export of Micmac bundles to Comp3D (code 12) obs "));
 		aRes.push_back(cMMCom("TestChantier", TestChantier_main, " Test global acquisition"));
 
 		aRes.push_back(cMMCom("TestKey", TestSet_main, " Test Keys for Sets and Assoc"));

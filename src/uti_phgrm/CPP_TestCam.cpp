@@ -38,7 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-
 void TestOneCorner(ElCamera * aCam,const Pt2dr&  aP, const Pt2dr&  aG)
 {
      Pt2dr aQ0 = aCam->DistDirecte(aP);
@@ -302,6 +301,157 @@ int TestDistM2C_main(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 
+
+// -------------------------------------------------------------------------------
+// Code d'export des faisceaux Micmac vers un fichier (code 12) de Comp
+// -------------------------------------------------------------------------------
+// Inputs:
+//      - Fichier de calibration interne de la caméra
+//      - Fichier xml de mesures images (e.g. mesures-S2D.xml)
+// Outputs:
+//      - 1 fichier .xyz d'obs Comp (code 12) par image
+// -------------------------------------------------------------------------------
+int Bundles2Comp_main(int argc,char ** argv){
+	
+	std::string    					aNameCalib;
+	std::string    					mName2D;
+	std::string    					mOutput_folder;  
+	cSetOfMesureAppuisFlottants     mDAF2D;  
+	
+	double 							mPrecisionPx;
+
+	
+	ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  <<  EAMC(aNameCalib,"Calibration Name")
+                    <<  EAMC(mName2D,"Image 2D points measurement file"),
+        LArgMain()  <<  EAM(mOutput_folder, "Out", "", "Output folder")
+                    <<  EAM(mPrecisionPx, "PxAcc", 0, "Pixel accuracy [Default: 0.289]")
+    );
+    
+    if (EAMIsInit(&mOutput_folder)){
+		ELISE_fp::MkDir(mOutput_folder);
+	}else{
+		mOutput_folder = ".";
+	}
+	if (!EAMIsInit(&mPrecisionPx)){
+		mPrecisionPx = 0.289;	
+	}
+    
+    std::string out_path_obs = mName2D;
+    unsigned idx = out_path_obs.find("/");
+    while (idx <= out_path_obs.size()) {
+		out_path_obs = out_path_obs.substr(idx+1, 100);
+		idx = out_path_obs.find("/");
+	}
+	out_path_obs = out_path_obs.substr(0, out_path_obs.find(".")) + ".obs";
+    std::cout << out_path_obs << "\n";
+    
+    ofstream obs_file;
+    obs_file.open(mOutput_folder + "/" + out_path_obs);
+    
+    ofstream xyz_file;
+    
+    // ---------------------------------------------------------------
+	// Récupération de la calibration interne de la caméra
+	// ---------------------------------------------------------------
+
+	cElemAppliSetFile anEASF(aNameCalib);
+	CamStenope * aCam =  CamOrientGenFromFile(aNameCalib,anEASF.mICNM);
+
+	std::cout << "Focale " << aCam->Focale() << "   PP " << aCam->PP() << "\n";
+	
+	// ---------------------------------------------------------------
+	// Récupération des points dans le repère image (2D)
+	// ---------------------------------------------------------------
+	mDAF2D = StdGetFromPCP(mName2D, SetOfMesureAppuisFlottants);
+	std::cout << "Number of images in measurement file [" << mName2D;
+	std::cout << "]: " << mDAF2D.MesureAppuiFlottant1Im().size() << std::endl;
+
+	std::vector<cMesureAppuiFlottant1Im> MESURE_IMAGES;
+	for (std::list<cMesureAppuiFlottant1Im>::const_iterator itM= mDAF2D.MesureAppuiFlottant1Im().begin();
+         itM != mDAF2D.MesureAppuiFlottant1Im().end();
+         itM++){
+	 	MESURE_IMAGES.push_back(*itM);
+	}
+	
+	
+	// ---------------------------------------------------------------
+	// Calcul des angles
+	// ---------------------------------------------------------------	
+	std::string sep  = "-------------------------------------------------------------------------------\n";
+	std::string sep2 = "===============================================================================\n";
+	
+	std::cout << sep2;
+	std::cout << "IMAGE " << "NAME" << "\n";
+	std::cout << "     [" << "PT NAME" << "]  ";
+	std::cout << "   "    << " X (px) ";
+	std::cout << " "      << "Y (px)  ";
+	std::cout << "  "     << "THETA (gon) ";
+	std::cout << " "      << "PHI (gon)";
+	std::cout << " "      << "SIGMA (gon)" << "\n";
+
+	unsigned counter_obs = 0;
+	unsigned counter_files = 1;
+	
+	for (unsigned i=0; i<MESURE_IMAGES.size(); i++){
+		
+		if (MESURE_IMAGES[i].OneMesureAF1I().size() == 0) continue;
+		
+		std::string name_station = MESURE_IMAGES[i].NameIm().substr(0, MESURE_IMAGES[i].NameIm().find("."));
+		std::cout << sep;
+		std::cout << "IMAGE " << MESURE_IMAGES[i].NameIm() << "\n";
+		obs_file  << "12 " << name_station << " @ " << name_station << ".xyz\n";
+		xyz_file.open(mOutput_folder + "/"+ name_station +".xyz");
+		
+		for (std::list<cOneMesureAF1I>::iterator j=MESURE_IMAGES[i].OneMesureAF1I().begin(); 
+			j != MESURE_IMAGES[i].OneMesureAF1I().end(); j++){
+		
+			Pt2dr no_distorsion = aCam->F2toC2(aCam->NormM2C(j->PtIm()));
+			double delta_x = +(no_distorsion.x - aCam->PP().x);
+			double delta_y = -(no_distorsion.y - aCam->PP().y);
+			double theta = atan(delta_x/aCam->Focale())*200/PI;
+			double phi   = atan(delta_y/aCam->Focale())*200/PI;
+			double factor = mPrecisionPx*200/PI/aCam->Focale();
+			double sigma_theta  = 1/(1+pow(delta_x/aCam->Focale(), 2))*factor;
+			double sigma_phi    = 1/(1+pow(delta_y/aCam->Focale(), 2))*factor;
+			double sigma_angles = max(sigma_theta, sigma_phi);
+			
+			
+			std::cout << "     [" << j->NamePt() << "]  ";
+			std::cout << "   "    << std::printf("%8.2lf", j->PtIm().x);
+			std::cout << " "      << std::printf("%8.2lf", j->PtIm().y);
+			std::cout << "   "    << std::printf("%10.4lf", theta);
+			std::cout << "   "    << std::printf("%10.4lf", phi);
+			std::cout << "   "    << std::printf("%7.6lf", sigma_angles) << "\n";
+			
+			xyz_file << j->NamePt();
+			xyz_file << " "  << theta;
+			xyz_file << " "  << phi;
+			xyz_file << " "  << "XXXX";
+			xyz_file << " "  << sigma_angles;
+			xyz_file << " "  << -1;
+			xyz_file << "\n";
+			
+			counter_obs += 1;
+			
+		}
+		
+		counter_files += 1;
+		xyz_file.close();
+	}
+	
+	std::cout << sep2;
+	std::cout << "Bundles converted: " << counter_files << " file(s) written (";
+	std::cout <<  counter_obs << " observations for " << (counter_files-1) << " stations)\n";
+	std::cout << sep2;
+	
+	obs_file.close();	
+	
+	return 0;
+	
+}
 
 
 int TestDistortion_main(int argc,char ** argv)
