@@ -1,4 +1,5 @@
 #include "CodedTarget.h"
+#include "CodedTarget_Tpl.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include "include/MMVII_Tpl_Images.h"
 #include "src/Matrix/MMVII_EigenWrap.h"
@@ -31,6 +32,19 @@ void TestParamTarg();
 namespace  cNS_CodedTarget
 {
 
+cBaseTE::cBaseTE(const cPt2dr & aPt,tREAL4 aBlack,tREAL4 aWhite) :
+   mPt      (aPt),
+   mGT      (nullptr),
+   mVBlack  (aBlack),
+   mVWhite  (aWhite)
+{
+}
+
+cBaseTE::cBaseTE(const cPt2dr & aPt) :
+     cBaseTE(aPt,-1,-1)
+{
+}
+
 /*  *********************************************************** */
 /*                                                              */
 /*                       cDCT                                   */
@@ -39,8 +53,8 @@ namespace  cNS_CodedTarget
 
 
 cDCT::cDCT(const cPt2dr aPtR,eResDCT aState) :
-   mGT          (nullptr),
-   mPt          (aPtR),
+   cBaseTE      (aPtR),
+   //   mPt          (aPtR),
    mState       (aState),
    mScRadDir    (1e5),
    mSym         (1e5),
@@ -71,8 +85,6 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-	///  Create the matching between GT and extracted
-        void MatchOnGT(cGeomSimDCT & aGSD);
 
 	void DoAllMatchOnGT();
 	/// compute direction of ellipses
@@ -264,8 +276,8 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mTest, "Test", "Test for Ellipse Fit", {eTA2007::HDV})
                     << AOpt2007(mParamBin, "BinF", "Param for binary filter", {eTA2007::HDV})
                     << AOpt2007(mRecompute, "Adjust", "Recompute directions with adjusted size", {eTA2007::HDV})
-                    << AOpt2007(mXml, "Xml", "Print xml outout in file", {eTA2007::HDV})
-                    << AOpt2007(mDebugPlot, "Debug", "Plot debug image with options", {eTA2007::HDV})
+                    << AOpt2007(mXml, "Xml", "Export to xml filename (empty=no xml output)", {eTA2007::HDV})
+                    << AOpt2007(mDebugPlot, "Debug", "Options mask for debug image", {eTA2007::HDV})
                     << AOpt2007(mMaxEcc, "MaxEcc", "Max. eccentricity of targets", {eTA2007::HDV})
                     << AOpt2007(mSaddle, "Saddle", "Prefiltering with saddle test", {eTA2007::HDV})
                     << AOpt2007(mMargin, "Margin", "Margin on butterfly edge for fit", {eTA2007::HDV})
@@ -371,41 +383,12 @@ void cAppliExtractCodeTarget::SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool M
   delete aFilter;
 }
 
-void cAppliExtractCodeTarget::MatchOnGT(cGeomSimDCT & aGSD)
-{
-     // strtucture for extracting min
-     cWhichMin<cDCT*,double>  aWMin(nullptr,1e10);
-
-     for (auto aPtrDCT : mVDCT)
-         aWMin.Add(aPtrDCT,SqN2(aPtrDCT->mPt-aGSD.mC));
-
-     if (aWMin.ValExtre() < Square(mDMaxMatch))
-     {
-     	aGSD.mResExtr = aWMin.IndexExtre(); // the simul memorize its detected
-        aGSD.mResExtr->mGT =& aGSD;         // the detected memorize its ground truth
-     }
-     else
-     {
-     }
-}
 
 void cAppliExtractCodeTarget::DoAllMatchOnGT()
 {
      if (mWithGT)
      {
-        int aNbGTMatched = 0;
-        for (auto & aGSD : mGTResSim.mVG)
-	{
-             MatchOnGT(aGSD);
-	     if (aGSD.mResExtr )
-		aNbGTMatched++;
-	     else
-	     {
-                 StdOut() << " UNMATCH000 at " << aGSD.mC << "\n";
-	     }
-	}
-
-	StdOut()  << "GT-MATCHED : %:" << (100.0*aNbGTMatched) /mGTResSim.mVG.size() << " on " << mGTResSim.mVG.size() << " total-GT\n";
+         AllMatchOnGT(mGTResSim,mVDCT,mDMaxMatch,true,[](const auto&){return true;});
      }
 }
 
@@ -470,7 +453,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
      {
           // [1]   Extract point that are extremum of symetricity
          //    [1.1]   extract integer pixel
-         cIm2D<tREAL4>  aImSym = ImSymetricity(false,aIm,mRayMinCB*0.4,mRayMinCB*0.8,0);  // compute fast symetry
+         cIm2D<tREAL4>  aImSym = ImSymmetricity(false,aIm,mRayMinCB*0.4,mRayMinCB*0.8,0);  // compute fast symetry
 
          if (1)
          {
@@ -706,30 +689,6 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 
     if (mFlagDebug != "") StdOut() << mFlagDebug << "Focus on center: " << mTestCenter << "\n";
 
-    std::string CODES[2*spec.NbCodeAvalaible()+1];
-    for (int i=0; i<2*spec.NbCodeAvalaible()+1; i++){
-        CODES[i] = "NA";
-    }
-
-    for (int aNum=0 ; aNum<spec.NbCodeAvalaible(); aNum++){
-        std::vector<int> code = spec.CodesOfNum(aNum).CodeOfNumC(0).ToVect();
-        std::vector<int> binary_code;
-        int sum = 0;
-        binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0);
-        binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0); binary_code.push_back(0);
-        binary_code.push_back(0);
-        for (unsigned i=0; i<code.size(); i++){
-            binary_code.at(code.at(i)) = 1;
-            sum += pow(2, code.at(i));
-        }
-
-        if (spec.mModeFlight){
-            CODES[aNum] = spec.NameOfNum(aNum);
-        }else{
-             CODES[sum] = spec.NameOfNum(aNum);   // Attention : problème entre ces deux lignes !!!!!
-        }
-    }
-
     cPt2di center = aDCT->Pix();
 
     // -------------------------------------------
@@ -840,7 +799,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     std::string chaine = "NA";
 
     if (code != -1){
-        chaine = CODES[code];
+        chaine = spec.NameOfBinCode(code);
         if (mToRestrict.size() > 0){
             if (chaine != "NA"){
                 if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
@@ -884,7 +843,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // Comparison with ground truth (if any)
     // ----------------------------------------------------------------------------------------------
     for (auto & aGSD : mGTResSim.mVG){
-        if (aGSD.name == chaine){
+        if (aGSD.mEncod.Name() == chaine){
             double error = sqrt(pow(aGSD.mC.x()-x_centre_moy, 2) + pow(aGSD.mC.x()-x_centre_moy, 2));
             if (error < 10){
                 mErrAvgGT += error*error;

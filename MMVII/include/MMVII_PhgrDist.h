@@ -14,6 +14,7 @@ enum class eTypeFuncDist
               eDecY,  ///< Coefficient for decentric distorsion y mean derived by Cy (it has X and Y components)
               eMonX,  ///< Coefficient for a monom in X, of the polynomial distorsion
               eMonY,  ///< Coefficient for a monom in Y, of the polynomial distorsion
+              eMonom,   ///< Coefficient for a monom in X or Y
               eNbVals ///< Tag for number of value
            };
 
@@ -41,6 +42,10 @@ class cDescOneFuncDist
 };
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);
+
+const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree);
+
+
 
 /**  Class for generating distorsion random BUT invertible on certain domain,
     used for checking functionnalities on distorsion implying inversio
@@ -115,10 +120,17 @@ NS_SymbolicDerivative::cCalculator<double> * EqCPProjDir(eProjPC  aType,bool Wit
 NS_SymbolicDerivative::cCalculator<double> * EqCPProjInv(eProjPC  aType,bool WithDerive,int aSzBuf);
 
            // .............   Equation colinearity , imply external parameter, Projectiion, distorsion, foc+PP .............
-NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse);
 
            // .............   Equation radiometry .............
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibPolIma(int aNbDeg,bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf);
+
+
+
+
 
 
      //  ====   equations used in tuto/bench/ devpt of surface  ==============================

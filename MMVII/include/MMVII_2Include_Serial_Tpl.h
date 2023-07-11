@@ -30,7 +30,8 @@ template <class Type> void EnumAddData(const cAuxAr2007 & anAux,Type & anEnum,co
 {
    if (anAux.Tagged())
    {
-       std::string aName = E2Str(anEnum);
+       // modif MPD , if input enum is not init
+       std::string aName = anAux.Input() ? std::string("") :E2Str(anEnum);
        AddData(cAuxAr2007(aTag,anAux),aName);
        if (anAux.Input())
           anEnum = Str2E<Type>(aName);
@@ -170,6 +171,43 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & aL) { StdContAddData(anAux,aL); }
 /// std::vector interface  AddData -> StdContAddData
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) { StdContAddData(anAux,aL); }
+
+
+/** Serialization for map (will be) used for cSetMultipleTiePoints, and more ? */
+
+template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
+{
+    size_t aNb=aMap.size();
+    // put or read the number
+    AddData(cAuxAr2007("Nb",anAux),aNb);
+    // a bit trick the iteration is fundamentally different in input and output, because can't easily
+    // fix the size
+    if (anAux.Input())
+    {
+       // when read parse the Number of pair, read the key and put the value in the key
+       for (size_t aK=0 ; aK<aNb ; aK++)
+       {
+          {
+            cAuxAr2007 anAuxPair("Pair",anAux);
+            TypeKey aKey;
+            AddData(anAuxPair,aKey);
+            AddData(anAuxPair,aMap[aKey]);
+          }
+       }
+    }
+    else
+    {
+       // when write parse the map,
+        for (auto & aPair : aMap)
+        {
+            cAuxAr2007 anAuxPair("Pair",anAux);
+            AddData(anAuxPair,const_cast<TypeKey&>(aPair.first));
+            AddData(anAuxPair,const_cast<TypeVal&>(aPair.second));
+            //AddData(anAuxPair,aPair->second);
+        }
+    }
+}
+
 
 
 template <class Type,const int Dim> void AddData(const cAuxAr2007 & anAux,cDataTypedIm<Type,Dim> & aIm)

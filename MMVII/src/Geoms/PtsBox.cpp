@@ -6,6 +6,78 @@ namespace MMVII
 {
 
 /* ========================== */
+/*  cComputeCentroids         */
+/* ========================== */
+
+template <class tContPts>  typename cComputeCentroids<tContPts>::tPts  cComputeCentroids<tContPts>::MedianCentroids(const tContPts & aContPts)
+{
+     tPts aRes;
+     for (int aDim=0 ; aDim<tPts::TheDim ; aDim++)
+     {
+          std::vector<tREAL8> aVCoord;
+          for (const auto & aPts : aContPts)
+              aVCoord.push_back(aPts[aDim]);
+          aRes[aDim] =  tEl(NonConstMediane(aVCoord));
+     }
+
+     return aRes;
+}
+
+
+template <class tContPts>  
+   typename cComputeCentroids<tContPts>::tPts  
+                cComputeCentroids<tContPts>::LinearWeigtedCentroids(const tContPts & aContPts,const tPts & aP0,tREAL8 aSigma)
+{
+     tPts aRes = tPts::PCste(tEl(0));
+     tREAL8  aSomW = 0.0;
+     tREAL8  aS2 = Square(aSigma);
+
+     for (const auto & aPt : aContPts)
+     {
+         tREAL8 aW =  aS2 / (aS2+SqN2(aPt-aP0));
+
+	 aSomW += aW;
+	 aRes += aPt * aW;
+     }
+
+     return aRes/aSomW;
+}
+
+template <class tContPts>  
+   tREAL8 cComputeCentroids<tContPts>::SigmaDist(const tContPts & aContPts,const tPts & aP0,double aProp)
+{
+    std::vector<tREAL8> aVDist2;
+    for (const auto & aPt : aContPts)
+    {
+        aVDist2.push_back(SqN2(aPt-aP0));
+    }
+
+    return std::sqrt(NC_KthVal(aVDist2,aProp));
+}
+
+
+template <class tContPts>  
+   typename cComputeCentroids<tContPts>::tPts  
+                cComputeCentroids<tContPts>::StdRobustCentroid(const tContPts & aContPts,double aProp,int aNbIter)
+{
+     tPts aRes = MedianCentroids(aContPts);
+
+     for (int aK=0 ; aK<aNbIter ; aK++)
+     {
+          tREAL8 aSigma = SigmaDist(aContPts,aRes,aProp);
+	  aRes = LinearWeigtedCentroids(aContPts,aRes,aSigma);
+     }
+
+     return aRes;
+}
+
+
+
+template class cComputeCentroids<std::vector<cPt3dr> >;
+
+
+
+/* ========================== */
 /*        cSegment            */
 /* ========================== */
 
@@ -24,6 +96,13 @@ template <class Type,const int Dim> void cSegment<Type,Dim>::CompileFoncLinear
     aVec  =   aV12 * Type((aV2-aV1) /SqN2(aV12)) ;
     aVal = aV1  - Scal(aVec,mP1);
 }
+
+template <class Type,const int Dim>  const cPtxd<Type,Dim>& cSegment<Type,Dim>::P1() const {return mP1;}
+template <class Type,const int Dim>  const cPtxd<Type,Dim>& cSegment<Type,Dim>::P2() const {return mP2;}
+
+
+template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::V12() const  {return mP2-mP1;}
+template <class Type,const int Dim> cPtxd<Type,Dim> cSegment<Type,Dim>::PMil() const {return (mP1+mP2)/Type(2);}
 
 /* ========================== */
 /*    cSegmentCompiled        */
@@ -295,6 +374,18 @@ template <class Type,const int Dim>
    for (size_t  aKPts=1 ; aKPts<aVecPts.size() ; aKPts++)
        aRes = std::min(aRes, SqN2(aVecPts[aKPts]-*this));
    return aRes;
+}
+
+template <class Type,const int Dim> 
+        cTplBox<Type,Dim>  cPtxd<Type,Dim>::GetBoxEnglob() const
+{
+   return cTplBox<Type,Dim>(*this,*this,true);
+}
+
+template <class Type,const int Dim> 
+        bool  cPtxd<Type,Dim>::InfEqDist(const tPt & aPt,tREAL8 aDist) const
+{
+	return SqN2(*this-aPt) <= Square(aDist);
 }
 
 
@@ -710,7 +801,7 @@ template <class Type,const int Dim>
 }
 
 template <class Type,const int Dim>
-   cTplBox<Type,Dim>  cTplBox<Type,Dim>::BoxCste(Type aVal)
+   cTplBox<Type,Dim>  cTplBox<Type,Dim>::CenteredBoxCste(Type aVal)
 {
    return cTplBox<Type,Dim>(tPt::PCste(-aVal),tPt::PCste(aVal));
 }
@@ -718,7 +809,7 @@ template <class Type,const int Dim>
 template <class Type,const int Dim>
    cTplBox<Type,Dim>  cTplBox<Type,Dim>::BigBox()
 {
-     return  BoxCste(tNumTrait<Type>::MaxValue());
+     return  CenteredBoxCste(tNumTrait<Type>::MaxValue());
 }
 
 
@@ -963,7 +1054,46 @@ template <class Type>
 }
 
 
+template <const int Dim>
+    void  MakeBoxNonEmptyWithMargin
+          (
+              cPtxd<tREAL8,Dim> & aP0 ,
+              cPtxd<tREAL8,Dim> & aP1,
+              tREAL8 aStdMargin,tREAL8 aMarginSemiEmpty,tREAL8 aMarginEmpty
+         )
+{
+    cPtxd<tREAL8,Dim> aSz = aP1-aP0;
 
+    tREAL8 aMinDnn = 1.0;
+    int aNbNN = 0;
+    for (int aD=0 ; aD<Dim ; aD++)
+    {
+        if (aSz[aD] != 0)
+        {
+            UpdateMin(aMinDnn,aSz[aD]);
+            aNbNN++;
+        }
+    }
+
+    if (aNbNN==Dim)
+       aSz = aSz * aStdMargin;
+    else if (aNbNN==0)
+    {
+       aSz= cPtxd<tREAL8,Dim>::PCste(aMarginEmpty);
+    }
+    else
+    {
+        for (int aD=0 ; aD<Dim ; aD++)
+        {
+            if (aSz[aD] == 0)
+            {
+                aSz[aD] = aMinDnn * aMarginSemiEmpty;
+            }
+        }
+    }
+    aP0 += -aSz;
+    aP1 +=  aSz;
+}
 
 /* ========================== */
 /*       cTpxBoxOfPts         */
@@ -1142,6 +1272,8 @@ template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandInSphere();\
+template  cTplBox<TYPE,DIM>  cPtxd<TYPE,DIM>::GetBoxEnglob() const;\
+template  bool  cPtxd<TYPE,DIM>::InfEqDist(const cPtxd<TYPE,DIM> & aPt,tREAL8) const;\
 template typename cPtxd<TYPE,DIM>::tBigNum cPtxd<TYPE,DIM>::MinSqN2(const std::vector<tPt> &,bool SVP) const;\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitNonAligned(const cPtxd<TYPE,DIM>& ,const TYPE&);\
@@ -1197,6 +1329,7 @@ template  int NbPixVign(const cPtxd<int,DIM> & aVign);\
 template class cDataGenUnTypedIm<DIM>;\
 template <> const cPixBox<DIM> cPixBox<DIM>::TheEmptyBox(cPtxd<int,DIM>::PCste(0),cPtxd<int,DIM>::PCste(0),true);
 
+template void MakeBoxNonEmptyWithMargin(cPtxd<tREAL8,2>&,cPtxd<tREAL8,2>&,tREAL8,tREAL8,tREAL8);
 
 /*
 void F()

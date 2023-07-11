@@ -33,12 +33,17 @@ enum class eTA2007
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
                 Orient,        ///< Orientation
-                Radiom,        ///< Radiometry
+                RadiomData,    ///< Data for Radiometry 
+                RadiomModel,   ///< Model for Radiometry
                 MeshDev,       ///< Mesh Devlopment
                 Mask,          ///< Mask of image
+                MetaData,      ///< Meta data images
+                PointsMeasure, ///< Measure of point , 2D or 3D
+                TieP,          ///< Tie Points
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
+		PatParamCalib, ///< It's a pattern for parameter of calibration
             // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
                 AddCom,        ///< Not an attribute, used to embed additionnal comment in Help mode
             // ---------- Not Printed -----------
@@ -49,6 +54,7 @@ enum class eTA2007
                 Tuning,        ///< Used for testing/tuning command but not targeted for user
                 HDV,           ///< Has Default Value, will be printed on help
                 ISizeV,        ///< Interval size vect, print on help
+		XmlOfTopTag,   ///< Parameter must be a XML-file containing certain tag
                 eNbVals        ///< Tag for number of value
            };
 
@@ -71,12 +77,21 @@ enum class eApF
                eNbVals     ///< Tag for number of value
            };
 
+/// Type of external format that are potentially imported/exported in MicMac
+enum class eFormatExtern
+           {
+              eMMV1,      ///< MicMac-V1 format, can import Orient/Calib/
+              eMeshRoom,  ///< For example, not suppoted for now
+              eColMap,    ///< For example, not suppoted for now
+              eNbVals     ///< Tag for number of value
+	   };
 /// Appli Data Type
 enum class eApDT
            {
               Ori,    ///< Orientation
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
+              GCP,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files
               Radiom,   ///< Orientations files
@@ -141,6 +156,7 @@ enum class eTyUEr
               eCreateDir,
               eRemoveFile,
               eEmptyPattern,
+              eBadXmlTopTag,
               eBadFileSetName,
               eBadFileRelName,
               eOpenFile,
@@ -148,6 +164,7 @@ enum class eTyUEr
               eReadFile,
               eBadBool,
               eBadInt,
+              eBadDegreeDist,
               eBadEnum,
               eMulOptParam,
               eBadOptParam,
@@ -166,6 +183,7 @@ enum class eTyUEr
               eNoAperture,
               eNoFocale,
               eNoFocaleEqui35,
+              eNoCameraName,
               eUnClassedError,
               eNbVals
            };
@@ -298,7 +316,8 @@ enum class eModeSSR
 {
       eSSR_LsqDense,        ///< Least square, normal equation, with dense implementation
       eSSR_LsqNormSparse,   ///< Least square, normal equation, with sparse implementation
-      eSSR_LsqSparseGC      ///< Least square, NO normal equation (Conjugate Gradient) , with sparse implementation
+      eSSR_LsqSparseGC,     ///< Least square, NO normal equation (Conjugate Gradient) , with sparse implementation
+      eSSR_L1Barrodale      ///< L1 minimization using Barrodale-Method
 };
 
 
@@ -437,13 +456,25 @@ enum class eProjPC
 
 enum class eTyCodeTarget
 {
-    eIGNIndoor,  ///<  checkboard , circular sym-code
-    eIGNDrone,   ///<  checkboard , code separate , hamming redundnace  
-    eCERN,       ///<  central circle, coding invariant (AICON, METASHAPE ...)
+    eIGNIndoor,     ///<  checkboard , 
+    eIGNDroneSym,    ///<  checkboard , code separate Top/Down
+    eIGNDroneTop,   ///<  checkboard Top , code bottom,
+    eCERN,          ///<  central circle, coding invariant (AICON, METASHAPE ...)
     eNbVals
 };
 
+enum class eMTDIm
+           {
+              eFocalmm,
+              eAperture,
+              eModelCam,
+              eAdditionalName,
+              eNbVals
+           };
 
+
+const std::string & E2Str(const eMTDIm &);
+const std::string & E2Str(const eFormatExtern &);
 const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTyCodeTarget &);         

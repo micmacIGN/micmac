@@ -1,6 +1,7 @@
-
 #include "MMVII_Image2D.h"
 #include "MMVII_Tpl_Images.h"
+#include "MMVII_Geom2D.h"
+
 
 namespace MMVII
 {
@@ -13,6 +14,8 @@ const cPt3di cRGBImage::Magenta(255,0,255);
 const cPt3di cRGBImage::Cyan(0,255,255);
 const cPt3di cRGBImage::Orange(255,128,0);
 const cPt3di cRGBImage::White(255,255,255);
+const cPt3di cRGBImage::Gray128(128,128,128);
+// const cPt3di cRGBImage::Black(0,0,0);
 
 //template <class Type> void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<Type> & aIm,const double & aMul=1.0);
 /// Do it for all pix; 
@@ -274,6 +277,69 @@ void cRGBImage::Write(const std::string & aName,const cPt2di & aP0,double aDyn,c
      Write(cDataFileIm2D::Create(aName,false),aP0,aDyn,aRect);
 }
 
+void cRGBImage::DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta,tREAL8 aWitdh)
+{
+    cPt2dr aCenterLoc = PointToRPix(aCenter);
+
+    std::vector<cPt2di> aVPts;
+    GetPts_Ellipse(aVPts,aCenterLoc,aGA*mRZoom,aSA*mRZoom,aTeta,true,aWitdh);
+    for (const auto & aPix : aVPts)
+    {
+         RawSetPoint(aPix,aCoul);
+    }
+}
+
+void  cRGBImage::FillRectangle (const cPt3di& aCoul,const cPt2di & aP1,const cPt2di & aP2,const cPt3dr & aAlpha)
+{
+     for (const auto & aPix : cRect2(aP1,aP2))
+         SetRGBPixWithAlpha(aPix,aCoul,aAlpha);
+}
+
+
+void cRGBImage::DrawString
+     (
+                  const std::string & aName,const cPt3di& aCoul,
+                  const cPt2dr & aP00,const cPt2dr & anAlignment,
+                  tREAL8 aZoom, tREAL8 AlphaBackGround , const cPt3di& aCoulBackGround ,int aSpace
+     )
+{
+   cIm2D<tU_INT1>  aImStr  = ImageOfString_10x8(aName,aSpace);
+   cDataIm2D<tU_INT1>& aDImStr  = aImStr.DIm();
+
+
+   cPt2dr aP0 = aP00 -  MulCByC(anAlignment,ToR(aDImStr.Sz()) * aZoom);
+
+   for (const auto & aPixStr : aDImStr)
+   {
+	   // PointToRPix
+        bool ForeGround =   (aDImStr.GetV(aPixStr) != 0);
+	cPt2di aP0Pix = PointToPix(aP0+ToR(aPixStr)*aZoom);
+	cPt2di aP1Pix = PointToPix(aP0+ToR(aPixStr+cPt2di(1,1))*aZoom);
+
+	for (const auto & aPixIm : cRect2(aP0Pix,aP1Pix))
+	{
+            if (ForeGround)
+               RawSetPoint(aPixIm,aCoul);
+	}
+   }
+
+}
+
+
+void cRGBImage::DrawCircle(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8  aRay)
+{
+	DrawEllipse(aCoul,aCenter,aRay,aRay,0.0);
+}
+
+void cRGBImage:: DrawLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul,tREAL8 aWidth)
+{
+    std::vector<cPt2di> aVPts;
+    GetPts_Line(aVPts,PointToRPix(aP1),PointToRPix(aP2),aWidth);
+    for (const auto & aPix : aVPts)
+    {
+         RawSetPoint(aPix,aCoul);
+    }
+}
 
 std::vector<cPt3di>  cRGBImage::LutVisuLabRand(int aNbLab)
 {
@@ -302,4 +368,5 @@ std::vector<cPt3di>  cRGBImage::LutVisuLabRand(int aNbLab)
 template  void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<tREAL4> & aIm,const double &);
 template  void SetGrayPix(cRGBImage&,const cDataIm2D<tREAL4> & aIm,const double & aMul);
 template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const double & aMul,int aZoom);
+template  cRGBImage  RGBImFromGray(const cDataIm2D<tU_INT1> & aGrayIm,const double & aMul,int aZoom);
 };

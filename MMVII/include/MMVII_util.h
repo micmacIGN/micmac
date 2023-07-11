@@ -45,12 +45,19 @@ class cCarLookUpTable
          void Init(const std::string&,char aC);
          void UnInit(); 
          cCarLookUpTable ();  
+	 void InitId(char aC1,char aC2);
+	 void Chg1C(char aC1,char aC2);
+
+
 
          inline char Val(const int & aV) const
          {
              MMVII_INTERNAL_ASSERT_tiny(IsChar(aV),"cCarLookUpTable::Val()");
              return mUTable[aV];
          }
+
+	 /// make a translation using lut, dont maintain null char
+	 std::string  Translate(const std::string &) const;
      private :
          // static cGestObjetEmpruntable<cCarLookUpTable>   msGOE;
 
@@ -58,12 +65,16 @@ class cCarLookUpTable
          char *        mUTable;      ///< To handle that sometimes char are signed
          std::string   mIns;         ///< Memorize char !=0 to  reset
          bool          mInit;        ///< Is it initialize
+         bool          mReUsable;    ///< If InitId of Chg1C used -> no longer reusable
 };
 
 // Indicate if all "word" of list are in KeyList, use aSpace to separate word
 // Si aMes=="SVP"=> No Error just return false, else aMes is error message
 bool  CheckIntersect(const std::string & aMes,const std::string & aKeyList,const std::string & aList,const std::string & aSpace);
 std::string  Quote(const std::string &);  ///<  Assure a string is between quote, do nothing when begins by "
+///   Transformate a string to make it a standard identifier (+- a C++ accpetable symbol) , rather conservative & basic
+///  " " -> "_"  , accept letter digit "-", refuse all other
+std::string  ToStandardStringIdent(const std::string &);  
 
 
 //  String spliting, post fix, prefix etc ...
@@ -96,6 +107,7 @@ std::string OneUpDir(const std::string & aDir);  ///< If OneUpStd fail add /../
 std::string UpDir(const std::string & aDir,int aNb);
 
 // std::string AbsoluteName(const std::string &); ///< Get absolute name of path; rather pwd than unalias, no good
+std::string ToLower(const std::string &  aStr);  ///< return lower case version
 bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitive equality
 bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case UN-sensitive premisse of aStr ?
 bool UCaseMember(const std::vector<std::string> & aVec,const std::string & aName); ///< is Name meber of vec, insensitive way
@@ -106,6 +118,11 @@ void RenameFiles(const std::string & anOldName, const std::string & aNewName); /
 void CopyFile(const std::string & aName,const std::string & aDest);
 bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all file corresponding to pattern
 void ActionDir(const std::string &,eModeCreateDir);
+/// Generate a Back-Up by creating a copy with a new num
+void  MakeBckUp(const std::string & aDir,const std::string & aNameFile,int aNbDig);
+
+
+
 
 std::string AddBefore(const std::string & aPath,const std::string & ToAdd); // A/B/C.tif,@  =>  A/B/@C.tif
 std::string AddAfter(const std::string & aPath,const std::string & ToAdd); // A/B/C.tif,@  =>  A/B/@C.tif
@@ -262,6 +279,11 @@ class cMultipleOfs
         {
              return ShowCont(aVal,"[,]");
         }
+        template <class T1,class T2> cMultipleOfs & operator << (const std::pair<T1,T2> &aPair)
+        {
+            *this  << "{" << aPair.first  << "," << aPair.second << "}";
+            return *this;
+        }
         // General version
         template <class Type> cMultipleOfs & operator << (const Type & aVal)
         {
@@ -269,12 +291,15 @@ class cMultipleOfs
                  *Ofs << aVal;
              return *this;
         }
+
     private :
         
         cMultipleOfs(const cMultipleOfs &) = delete;
         cMMVII_Ofs *                mOfsCreated;
         std::vector<std::ostream *> mVOfs;
 };
+
+
 
 /// For now I have problem with cMultipleOfs << std::endl , tag end of line to come back on it later
 #define ENDL "\n"

@@ -1225,6 +1225,10 @@ void cRPC::Initialize(const std::string &aName,
             aGrid2D.push_back(Pt3dr(aP.x, aP.y, aGrid3D.at(aK).z));
         }
         
+        ISDIR=true;
+        ISINV=true;
+
+
 
         /* Learn parameters */
         std::vector<Pt3dr> aGrid2DTest, aGrid3DTest;//vectors empty so no test will be done
@@ -1235,8 +1239,22 @@ void cRPC::Initialize(const std::string &aName,
 
         //Show();
 
-        ISDIR=true;
-        ISINV=true;
+
+	if(0)
+{
+        std::cout << "RPC computed on : " << aGrid3D.size() << " 2D-3D correspondances, \n"
+                                     "    precision computed on : " << aGrid3DTest.size() << " 2D-3D correspondances.\n";
+
+        cPlyCloud aPly3d, aPly2d;
+        for (auto aP : aGrid3D)
+            aPly3d.AddPt(Pt3di(255,255,255),aP);
+        aPly3d.PutFile(StdPrefix(aNameRPC) +"-Err3d.ply");
+
+        for (auto aP : aGrid2D)
+            aPly2d.AddPt(Pt3di(255,255,255),aP);
+        aPly2d.PutFile(StdPrefix(aNameRPC) +"-Err2d.ply");
+
+}
 
     }
     else if(aType==eTIGB_MMScanLineSensor)
@@ -1348,7 +1366,7 @@ std::string cRPC::NameSave(const std::string & aName,std::string aDirName)
     ELISE_fp::MkDirSvp(aNewDir);*/
 
 	StdCorrecNameOrient(aDirName,"./",true);
-	//ELISE_fp::MkDirSvp("Ori-" + aDirName);
+	ELISE_fp::MkDirSvp("Ori-" + aDirName);
 
     //std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
     std::string aNameXml = "Ori-" + aDirName + "/" + StdPrefix(NameWithoutDir(aName)) + ".xml";
@@ -1559,9 +1577,9 @@ std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
     std::string aPref = (aOri=="") ? "" :  anICNM->Dir() ;
     /* Create new RPC */
     cRPC aRPCSauv(aName);
- 
 
-	std::string aNameXmlOld = aRPCSauv.mName;
+
+    std::string aNameXmlOld = aRPCSauv.mName;
     std::string aNameXml 	= cRPC::NameSave(aRPCSauv.mName,aOriOut);
     std::string aNewDirLoc 	= DirOfFile(aNameXml); 
 

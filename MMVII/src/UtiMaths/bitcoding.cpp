@@ -7,6 +7,41 @@
 namespace MMVII
 {
 
+size_t GetNDigit_OfBase(size_t aNum,size_t aBase)
+{
+   size_t aNbD=1;
+   size_t aVMax = aBase-1;
+
+   while (aVMax < aNum)
+   {
+       aVMax = aVMax*aBase + aBase-1;
+       aNbD++;
+   }
+   return aNbD;
+};
+
+std::string  NameOfNum_InBase(size_t aNum,size_t aBase,size_t aNbDigit)
+{
+    size_t aNbDigMin = GetNDigit_OfBase(aNum,aBase);
+    UpdateMax(aNbDigit,aNbDigMin);
+
+    std::string aRes(aNbDigit,'0');
+
+    for (int aK = aRes.size() -1 ; aK>=int(aRes.size()-aNbDigMin) ; aK--)
+    {
+        size_t aCar = aNum % aBase;
+        if (aCar < 10)
+           aCar = '0' +  aCar;
+        else
+           aCar = 'A' + (aCar-10);
+        aRes[aK] = aCar;
+        aNum /= aBase;
+    }
+
+    return aRes;
+}
+
+
 
 /* ************************************************* */
 /*                                                   */
@@ -64,6 +99,18 @@ size_t  LeftBitsCircPerm(size_t aSetFlag,size_t aPow2)
      return aSetFlag >> 1;            // now left shit
 }
 
+size_t  N_LeftBitsCircPerm(size_t aSetFlag,size_t aPow2,size_t N)
+{
+    while (N!=0)
+    {
+        N--;
+        aSetFlag= LeftBitsCircPerm(aSetFlag,aPow2);
+    }
+
+    return aSetFlag;
+}
+
+
 /// make a symetry bits, assuming a size NbIt, with  aPow2= NbBit^2
 
 size_t  BitMirror(size_t aSetFlag,size_t aPow2) 
@@ -116,8 +163,13 @@ void  BitsToVect(std::vector<int> & aVBits,tU_INT4 aVal,size_t aPow2)
 }
 
 ///  return the maximal length of consecutive 0 & 1, interpreted circularly    (94="01111010", 256=2^8)  =>  (3,2)
-cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2)
+///  fill vector will all interval
+cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2,std::vector<cPt2di> & aVInterv0,std::vector<cPt2di> & aVInterv1)
 {
+
+   aVInterv0.clear();
+   aVInterv1.clear();
+   
    std::vector<int> aVBits;
    BitsToVect(aVBits,aVal,aPow2);
 
@@ -135,9 +187,15 @@ cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2)
 	   while ( ValCirc(aVBits,aK1)==ValCirc(aVBits,aK2) ) // reach next diff
                  aK2++;
            if (ValCirc(aVBits,aK1))  // update count for 0 or 1
+           {
+              aVInterv1.push_back(cPt2di(aK1,aK2));
               UpdateMax(aMaxR1,aK2-aK1);
+           }
            else
+           {
+              aVInterv0.push_back(cPt2di(aK1,aK2));
               UpdateMax(aMaxR0,aK2-aK1);
+           }
 	}
    }
 
@@ -150,6 +208,13 @@ cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2)
    }
 
    return cPt2di(aMaxR0,aMaxR1);
+}
+
+cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2)
+{
+     std::vector<cPt2di> aVInterv0;
+     std::vector<cPt2di> aVInterv1;
+     return MaxRunLength(aVal,aPow2,aVInterv0,aVInterv1);
 }
 
 /// Max of both run (0 and 1)
@@ -215,6 +280,9 @@ cCompEquiCodes::cCompEquiCodes(size_t aNbBits,size_t aPer,bool WithMirror) :
               // Nothing to do, code has been processed by equivalent lower codes
 	  }
      }
+
+     //for (const auto & AC : mVecOfCells)
+         //StdOut()  << " AC " << AC->mEquivCode << "\n";
 }
 
 cCompEquiCodes::~cCompEquiCodes()
@@ -235,6 +303,23 @@ cCompEquiCodes * cCompEquiCodes::Alloc(size_t aNbBits,size_t aPer,bool WithMirro
      */
 }
 
+const cCelCC &  cCompEquiCodes::CellOfCodeOK(size_t aCode) const 
+{
+    const cCelCC * aRes = CellOfCode(aCode);
+    MMVII_INTERNAL_ASSERT_tiny(aRes!=nullptr,"cCompEquiCodes::CellOfCodeOK");
+
+    return *aRes;
+}
+
+
+const cCelCC *  cCompEquiCodes::CellOfCode(size_t aCode) const
+{
+   if (aCode>=mVCodes2Cell.size()) return nullptr;
+
+   return  mVCodes2Cell.at(aCode);
+}
+
+
 
 void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
 {
@@ -247,11 +332,12 @@ void cCompEquiCodes::AddCodeWithPermCirc(size_t aCode,cCelCC * aNewCel)
             mVCodes2Cell[aCode] = aNewCel;
             aNewCel->mEquivCode.push_back(aCode);
        }
-       aCode = LeftBitsCircPerm(aCode,mNbCodeUC);
+       aCode = N_LeftBitsCircPerm(aCode,mNbCodeUC,mPeriod);
    }
 }
 
 const std::vector<cCelCC*>  & cCompEquiCodes::VecOfCells() const {return mVecOfCells;}
+
 
 std::vector<cCelCC*>  cCompEquiCodes::VecOfUsedCode(const std::vector<cPt2di> & aVXY,bool Used)
 {
@@ -291,33 +377,24 @@ std::list<cCompEquiCodes::tAmbigPair>  cCompEquiCodes::AmbiguousCode(const std::
     return aRes;
 }
 
-std::string cCompEquiCodes::NameCERNLookUpTable(size_t aNbBits)
+std::string cCompEquiCodes::NameCERStuff(const std::string & aPrefix,size_t aNbBits)
 {
 	return     cMMVII_Appli::DirRessourcesMMVII() 
 		+ "CodeCircTaget"  + StringDirSeparator()
-		+ ToStr(aNbBits) + "bit_lookup.txt";
+		+ aPrefix + ToStr(aNbBits) + "bit_lookup.txt";
 }
-            
+std::string cCompEquiCodes::NameCERNLookUpTable(size_t aNbBits) {return NameCERStuff("",aNbBits);}
+std::string cCompEquiCodes::NameCERNPannel(size_t aNbBits) {return NameCERStuff("Positions-3D-",aNbBits);}
+
 /// Low level function, read the pair Num->Code in a file
 void  ReadCodesTarget(std::vector<cPt2di> & aVCode,const std::string & aNameFile)
 {
-    if (! ExistFile(aNameFile))
-    {
-       MMVII_UsersErrror(eTyUEr::eOpenFile,std::string("For file ") + aNameFile);
-    }
-    std::ifstream infile(aNameFile);
+     std::vector<std::vector<double>> aVV;
+     ReadFilesNum("FF",aVV,aNameFile);
+     aVCode.clear();
 
-    std::string line;
-    while (std::getline(infile, line))
-    {
-        std::istringstream iss(line);
-        int a, b;
-        if (!(iss >> a >> b)) 
-	{ 
-            MMVII_UnclasseUsEr(std::string("Bad target file for ") + aNameFile);
-	}
-	aVCode.push_back(cPt2di(a,b));
-    }
+     for (const auto & aV : aVV)
+         aVCode.push_back(cPt2di(round_ni(aV.at(0)),round_ni(aV.at(1))));
 }
 
 /** show some static of run lenght on certain codinf scheme */
@@ -354,8 +431,40 @@ void  TestComputeCoding(size_t aNBBCoding,int aParity,size_t aPer)
 }
 
 
+void cCompEquiCodes::Bench(size_t aNBB,size_t aPer,bool Miror)
+{
+     std::unique_ptr<cCompEquiCodes> aCEC (cCompEquiCodes::Alloc(aNBB,aPer,Miror));
+
+     int aNBC = 0;
+     for (const auto & aPC : aCEC->mVecOfCells)
+     {
+          aNBC += aPC->mEquivCode.size();
+     }
+     MMVII_INTERNAL_ASSERT_bench((aNBC==(1<<aNBB)),"Base representation");
+
+     /*
+     StdOut() << "Lllllllll " 
+	      <<  aPer << " " 
+	      << Miror << " " 
+	      <<   aCEC->mVecOfCells.size() * (aNBB/aPer) * (1+Miror) / (double) aNBC << "\n";
+	      */
+}
+
 void BenchCircCoding()
 {
+    for (auto aMir : {false,true})
+    {
+        for (auto aNbB : {10,11,12})
+	{
+             cCompEquiCodes::Bench(aNbB,aNbB,aMir);
+	     cCompEquiCodes::Bench(aNbB,   1,aMir);
+	}
+        for (auto aPer : {1,2,3})
+	{
+             cCompEquiCodes::Bench(aPer*4,aPer,aMir);
+             cCompEquiCodes::Bench(aPer*5,aPer,aMir);
+	}
+    }
     if (0)
     {
        TestComputeCoding(20,2,1);
@@ -363,8 +472,14 @@ void BenchCircCoding()
        TestComputeCoding(14,3,7);
     }
 
+	/* 1.0  make test on low-level bits manipulations */
 
-	/* 1  make test on low-level bits manipulations */
+    MMVII_INTERNAL_ASSERT_bench(NameOfNum_InBase(256,16)=="100","Base representation");
+    MMVII_INTERNAL_ASSERT_bench(NameOfNum_InBase(255,16)=="FF","Base representation");
+    MMVII_INTERNAL_ASSERT_bench(NameOfNum_InBase(255,16,4)=="00FF","Base representation");
+    MMVII_INTERNAL_ASSERT_bench(NameOfNum_InBase(71,36,3)=="01Z","Base representation");
+
+	/* 1.1  make test on low-level bits manipulations */
 
     MMVII_INTERNAL_ASSERT_bench(NbBits(256)==1,"Nb Bits");
     MMVII_INTERNAL_ASSERT_bench(NbBits(255)==8,"Nb Bits");
@@ -483,6 +598,22 @@ tU_INT4 cHamingCoder::Coding(tU_INT4 aV) const
    return aRes/2;
 }
 
+
+// a basic implementation, but we don need to have it very efficient
+cHamingCoder cHamingCoder::HCOfBitTot(int aNbBitsTot,bool WithParity)
+{
+   int  aNBI = 1;
+   cHamingCoder aHC(aNBI);
+   while ((aHC.NbBitsOut() <aNbBitsTot) || (WithParity &&(aHC.NbBitsOut()%2 != 0)) )
+   {
+         aNBI++;
+         aHC = cHamingCoder(aNBI);
+
+	 StdOut() << "HHHH " << aHC.NbBitsOut() << " " << aHC.NbBitsIn() << "\n";
+   }
+   return aHC;
+}
+
 cHamingCoder::cHamingCoder(int aNbBitsIn) :
    mNbBitsIn  (aNbBitsIn),
    mNbBitsRed (1),
@@ -569,6 +700,7 @@ void BenchHammingCode(int aNbB)
 
 void BenchHamming(cParamExeBench & aParam)
 {
+    Bench_Target_Encoding();
     BenchCircCoding();
     if (! aParam.NewBench("Hamming")) return;
 

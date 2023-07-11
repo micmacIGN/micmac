@@ -254,6 +254,8 @@ class cMMVIIUnivDist
        const int & DegDec()  const {return mTheDegDec;}
        const int & DegUniv() const {return mTheDegUniv;}
 
+       bool VoidDist() const {return (mTheDegRad==0) && (mTheDegDec==0) && (mTheDegUniv==0);}
+
        /// Usable for message, also for name generation in formulas
        std::string  NameModel()  const
        {
@@ -512,7 +514,10 @@ class cMMVIIUnivDist
            MMVII_INTERNAL_ASSERT_always(aK0P==aVParam.size(),"Inconsistent param number");
 
            if (mForBase) 
+	   {
+		   // StdOut()  << "aVBaseXaVBaseX " << aVBaseX.size() <<  " " << aVBaseY.size() << "\n";
               return Append(aVBaseX,aVBaseY) ;
+	   }
 
            return        {xDist,yDist}  ;
        }
@@ -538,8 +543,18 @@ class cMMVIIUnivDist
 template <typename TypeDist>  class cEqDist
 {
   public :
-    cEqDist(const TypeDist & aDist) : mDist      (aDist) { }
-    static std::vector<std::string>  VNamesUnknowns() {return {"xPi","yPi"}; }
+    cEqDist(const TypeDist & aDist) : 
+	    mDist      (aDist) 
+    { }
+    std::vector<std::string>  VNamesUnknowns()  const
+    {
+/*	    if (mDist.VoidDist())
+	    {
+	         return {};
+	    }
+	    */
+	    return {"xPi","yPi"}; 
+    }
     const std::vector<std::string>    VNamesObs() const {return mDist.VNamesParams();}
      
     std::string FormulaName() const { return "EqDist_" + mDist.NameModel();}

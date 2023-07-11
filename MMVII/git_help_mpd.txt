@@ -1,5 +1,4 @@
-
- git config core.editor vim
+git config core.editor vim
 
 git fetch origin
 

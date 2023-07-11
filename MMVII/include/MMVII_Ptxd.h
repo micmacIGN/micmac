@@ -145,10 +145,13 @@ template <class Type,const int Dim> class cPtxd
         std::vector<Type> ToStdVector() const; ///< conversion
 
         tBigNum  MinSqN2(const std::vector<tPt> &,bool SVP=false) const; ///< if SVP & empty return 0
+
+	/// Used for "generik" object that must describes its box
+	cTplBox<Type,Dim>  GetBoxEnglob() const;
+	bool  InfEqDist(const tPt &,tREAL8) const;
     protected :
        Type mCoords[Dim];
 };
-
 template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >
 {
     public :
@@ -511,6 +514,20 @@ template <class T> inline cPtxd<tREAL4,2> ToF(const cPtxd<T,2> & aP) {return cPt
 template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts);
 template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,const cPtxd<T,Dim> & aP1);
 template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,T aW1,const cPtxd<T,Dim> & aP1);
+
+template <class tContPts>  class cComputeCentroids
+{
+    public :
+       typedef  typename tContPts::value_type tPts;
+       typedef  typename tPts::tEl            tEl;
+
+       static tPts   MedianCentroids(const tContPts &);
+       static tPts   LinearWeigtedCentroids(const tContPts &,const tPts & aP0,double aSigma);
+       static tREAL8 SigmaDist(const tContPts &,const tPts & aP0,double aProp);
+
+       static tPts  StdRobustCentroid(const tContPts &,double aProp,int aNbIter);
+};
+
 /*
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}
@@ -620,7 +637,7 @@ template <class Type,const int Dim>  class cTplBox
         static tBox Empty();
         static tBox FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty=false);
         static tBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
-        static tBox BoxCste(Type);
+        static tBox CenteredBoxCste(Type);
         static tBox BigBox();
 
 	cTplBox<tREAL8,Dim> ToR() const;
@@ -707,6 +724,12 @@ template <class Type,const int Dim>  class cTplBox
 
 };
 
+
+/**  Assure that P0,P1 are non empty box, using a minimum changes */
+template <const int Dim> void  MakeBoxNonEmptyWithMargin(cPtxd<tREAL8,Dim>&P0 , cPtxd<tREAL8,Dim> & aP1, 
+		                                         tREAL8 aStdMargin,tREAL8 aMarginSemiEmpty,tREAL8 aMarginEmpty);
+
+
 // template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & );
 // template <const int Dim>  cTplBox<int,Dim> ToI(const  cTplBox<tREAL8,Dim> & );
 
@@ -775,6 +798,13 @@ template <class Type,const int Dim> class cSegment
        cSegment(const tPt& aP1,const tPt& aP2);
        /// Estimate fonc linear, with gradient paral to tangent,  given value in P1 and P2, will be F(Q) =  R.first + R.second Q
        void CompileFoncLinear(Type & aVal,tPt & aVec,const Type  &aV1,const Type  & aV2) const;
+       const tPt&  P1() const; ///< Accessor
+       const tPt&  P2() const; ///< Accessor
+
+       tPt  V12() const;   ///<  Vector  P1->P2
+       tPt  PMil() const;  ///<  P middle
+	/// Used for "generik" object that must describes its box
+	cTplBox<Type,Dim>  GetBoxEnglob() const;
     protected :
        tPt  mP1;
        tPt  mP2;

@@ -5,8 +5,20 @@ MicMac v2 Python3 API
 Dependencies
 ------------
 
-    pip3 install pybind11 pybind11_mkdoc
-    apt install libxext-dev
+As admin:
+
+    apt install python3-pip
+
+For ubuntu 22.04, as admin:
+
+    apt install libclang-14-dev
+
+As user:
+
+    pip3 install pybind11 pybind11_mkdoc
+    pip3 install --upgrade 'clang<15'
+
+And make sure `$HOME/.local/bin` is in PATH.
 
 
 Compilation
@@ -28,7 +40,10 @@ Installation
 Distribution
 ------------
 
-The file dist/MMVII-*.whl, created at compilation, can be distributed to machines with same OS, arch and python version.
+The file dist/MMVII-*.whl, created at compilation, can be distributed to machines with same OS, architecture and python version.
+
+This file contains all the necessary files to run the module:
+MMVII does not have to be installed on the machine to use the python module.
 
 It can be installed with:
 
@@ -38,6 +53,8 @@ Upgrade pip if needed:
 
     python3 -m pip install --upgrade pip
 
+
+
 Usage
 -----
 
@@ -45,4 +62,7 @@ Usage
     import MMVII
 ```
 
+The built-in Python help system can be used to have information about the API.
+
 See 'examples' directory for use cases.
+

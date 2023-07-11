@@ -8,6 +8,8 @@
    \file  cPhotogrammetricProject.cpp
 
    \brief file for handling names/upload/download of photogram data (pose,calib, ...)
+
+   test Git
 */
 
 
@@ -74,10 +76,13 @@ void cDirsPhProj::Finish()
     {
        mDirOut = mDirIn;
     }
+
+    if (mAppli.IsInit(&mDirOut))  // dont do it if mDirIn not used ...
+        mDirOut  = SuppressDirFromNameFile(mDirLocOfMode,mDirOut);   
     mFullDirOut = mAppli.DirProject() + mDirLocOfMode + mDirOut + StringDirSeparator();
 
     // Create output directory if needed
-    if (mAppli.IsInSpec(&mDirOut))
+    if ((mAppli.IsInSpec(&mDirOut)) || (mAppli.IsInit(&mDirOut)))
     {
         CreateDirectories(mFullDirOut,true);
 	if (mPurgeOut)
@@ -92,31 +97,53 @@ tPtrArg2007    cDirsPhProj::ArgDirInMand(const std::string & aMesg)
     return  Arg2007 (mDirIn ,StrWDef(aMesg,"Input " +mPrefix) ,{mMode,eTA2007::Input }); 
 }
 
-tPtrArg2007    cDirsPhProj::ArgDirInOpt(const std::string & aNameVar,const std::string & aMsg)  
+tPtrArg2007    cDirsPhProj::ArgDirInOpt(const std::string & aNameVar,const std::string & aMsg,bool WithHDV)  
 { 
+    std::vector<tSemA2007>   aVOpt{mMode,eTA2007::Input};
+    if (WithHDV) aVOpt.push_back(eTA2007::HDV);
     return  AOpt2007
 	    (
                mDirIn,
                StrWDef(aNameVar,"In"+mPrefix) ,
                StrWDef(aMsg,"Input "  + mPrefix),
-               {mMode,eTA2007::Input }
+               aVOpt
             ); 
 }
+
+tPtrArg2007    cDirsPhProj::ArgDirInputOptWithDef(const std::string & aDef,const std::string & aNameVar,const std::string & aMsg)
+{ 
+    mDirIn = aDef;
+    mAppli.SetVarInit(&mDirIn);
+    return ArgDirInOpt(aNameVar,aMsg,true);
+}
+
+
+
+
 
 tPtrArg2007    cDirsPhProj::ArgDirOutMand(const std::string & aMesg)
 { 
      return  Arg2007(mDirOut,StrWDef(aMesg,"Output " + mPrefix),{mMode,eTA2007::Output}); 
 }
 
-tPtrArg2007    cDirsPhProj::ArgDirOutOpt(const std::string & aNameVar,const std::string & aMsg)
+tPtrArg2007    cDirsPhProj::ArgDirOutOpt(const std::string & aNameVar,const std::string & aMsg,bool WithDV)
 { 
+    std::vector<tSemA2007>   aVOpt{mMode,eTA2007::Output};
+    if (WithDV) aVOpt.push_back(eTA2007::HDV);
     return  AOpt2007
             (
                 mDirOut,
                 StrWDef(aNameVar,"Out"+mPrefix),
                 StrWDef(aMsg,"Output " + mPrefix),
-                {mMode,eTA2007::Output}
+                aVOpt
             ); 
+}
+
+tPtrArg2007    cDirsPhProj::ArgDirOutOptWithDef(const std::string & aDef,const std::string & aNameVar,const std::string & aMsg)
+{ 
+    mDirOut = aDef;
+    mAppli.SetVarInit(&mDirOut);
+    return ArgDirOutOpt(aNameVar,aMsg,true);
 }
 
 
@@ -170,6 +197,19 @@ void cDirsPhProj::SetDirIn(const std::string & aDirIn)
      mAppli.SetVarInit(&mDirIn); // required becaus of AssertOriInIsInit
 }
 
+void cDirsPhProj::SetDirOut(const std::string & aDirOut)
+{
+     mDirOut = aDirOut;
+     mAppli.SetVarInit(&mDirOut); // required becaus of AssertOriInIsInit
+}
+
+void cDirsPhProj::SetDirOutInIfNotInit()
+{
+    if (! DirOutIsInit())
+    {
+        SetDirOut(DirIn());
+    }
+}
 
 
    /* ********************************************************** */
@@ -181,11 +221,16 @@ void cDirsPhProj::SetDirIn(const std::string & aDirIn)
         //  =============  Construction & destuction =================
 
 cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
-    mAppli          (anAppli),
-    mDPOrient       (eTA2007::Orient,*this),
-    mDPRadiom       (eTA2007::Radiom,*this),
-    mDPMeshDev      (eTA2007::MeshDev,*this),
-    mDPMask         (eTA2007::Mask,*this)
+    mAppli            (anAppli),
+    mDPOrient         (eTA2007::Orient,*this),
+    mDPRadiomData     (eTA2007::RadiomData,*this),
+    mDPRadiomModel    (eTA2007::RadiomModel,*this),
+    mDPMeshDev        (eTA2007::MeshDev,*this),
+    mDPMask           (eTA2007::Mask,*this),
+    mDPPointsMeasures (eTA2007::PointsMeasure,*this),
+    mDPHomol          (eTA2007::TieP,*this),
+    mDPMetaData       (eTA2007::MetaData,*this),
+    mGlobCalcMTD      (nullptr)
 {
 }
 
@@ -195,70 +240,128 @@ void cPhotogrammetricProject::FinishInit()
     mFolderProject = mAppli.DirProject() ;
 
     mDPOrient.Finish();
-    mDPRadiom.Finish();
+    mDPRadiomData.Finish();
+    mDPRadiomModel.Finish();
     mDPMeshDev.Finish();
     mDPMask.Finish();
+    mDPPointsMeasures.Finish();
+    mDPHomol.Finish();
+    mDPMetaData.Finish();
+
+    // Force the creation of directory for metadata spec, make 
+    if (! mDPMetaData.DirOutIsInit())
+    {
+        mDPMetaData.ArgDirOutOptWithDef("Std","","");
+    }
+    //  Make Std as default value for input 
+    if (! mDPMetaData.DirInIsInit())
+	mDPMetaData.SetDirIn("Std");
+
+    mDPMetaData.Finish();
+    // Create an example file  if none exist
+    GenerateSampleCalcMTD();
+
+    // StdOut() << "MTD=" <<   mDPMetaData.FullDirOut() << "\n"; 
+    // StdOut() << "MTD=" <<   mDPMetaData.FullDirOut() << "\n"; getchar();
 }
 
 cPhotogrammetricProject::~cPhotogrammetricProject() 
 {
+    DeleteMTD();
     DeleteAllAndClear(mLCam2Del);
 }
+
 
 cMMVII_Appli &  cPhotogrammetricProject::Appli()    {return mAppli;}
 
 cDirsPhProj &   cPhotogrammetricProject::DPOrient() {return mDPOrient;}
-cDirsPhProj &   cPhotogrammetricProject::DPRadiom() {return mDPRadiom;}
+cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() {return mDPRadiomData;}
+cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() {return mDPRadiomModel;}
 cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
 cDirsPhProj &   cPhotogrammetricProject::DPMask() {return mDPMask;}
+cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() {return mDPPointsMeasures;}
+cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
+cDirsPhProj &   cPhotogrammetricProject::DPHomol() {return mDPHomol;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
-const cDirsPhProj &   cPhotogrammetricProject::DPRadiom() const {return mDPRadiom;}
+const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
+const cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() const {return mDPRadiomModel;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMeshDev;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
+const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return mDPPointsMeasures;}
+const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
+const cDirsPhProj &   cPhotogrammetricProject::DPHomol() const {return mDPHomol;}
 
 
 
 
         //  =============  Radiometric Data =================
 
-cImageRadiomData * cPhotogrammetricProject::AllocRadiomData(const std::string & aNameIm) const
+cImageRadiomData * cPhotogrammetricProject::ReadRadiomData(const std::string & aNameIm) const
 {
-    mDPRadiom.AssertDirInIsInit();
+    mDPRadiomData.AssertDirInIsInit();
 
-    std::string aFullName  = mDPRadiom.FullDirIn() + cImageRadiomData::NameFileOfImage(aNameIm);
+    std::string aFullName  = mDPRadiomData.FullDirIn() + cImageRadiomData::NameFileOfImage(aNameIm);
     return cImageRadiomData::FromFile(aFullName);
 }
 
 void cPhotogrammetricProject::SaveRadiomData(const cImageRadiomData & anIRD) const
 {
-    anIRD.ToFile(mDPRadiom.FullDirOut()+anIRD.NameFile());
+    anIRD.ToFile(mDPRadiomData.FullDirOut()+anIRD.NameFile());
 }
 
         //  =============  Radiometric Calibration =================
 
-cCalibRadiomIma * cPhotogrammetricProject::AllocCalibRadiomIma(const std::string & aNameIm) const
+cCalibRadiomIma * cPhotogrammetricProject::ReadCalibRadiomIma(const std::string & aNameIm) const
 {
 /* With only the name of images and the folder, cannot determinate the model used, so the methods
  * test the possible model by testing existence of files.
  */	
-    std::string aNameFile = mDPRadiom.DirIn() + PrefixCalRadRad + aNameIm + "." + PostF_XmlFiles;
+    std::string aNameFile = mDPRadiomModel.FullDirIn() + PrefixCalRadRad + aNameIm + "." + PostF_XmlFiles;
     if (ExistFile(aNameFile))
-       return cCalRadIm_Cst::FromFile(aNameFile);
+       return cCalRadIm_Pol::FromFile(aNameFile);
 
-   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mDPRadiom.DirIn());
+   MMVII_UsersErrror(eTyUEr::eUnClassedError,"Cannot determine Image RadiomCalib  for :" + aNameIm + " in " + mDPRadiomModel.DirIn());
    return nullptr;
 }
 
 void cPhotogrammetricProject::SaveCalibRad(const cCalibRadiomIma & aCalRad) const
 {
-     aCalRad.ToFile(mDPRadiom.FullDirOut() + PrefixCalRadRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
+     aCalRad.ToFile(mDPRadiomModel.FullDirOut() + PrefixCalRadRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
 }
 
-std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMedaDataImage & aMTD) const
+std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMetaDataImage & aMTD) const
 {
     return  PrefixCalRadRad  + "Sensor-" + aCam.Name() + "-Aperture_" + ToStr(aMTD.Aperture());
 }
+
+std::string cPhotogrammetricProject::NameCalibRSOfImage(const std::string & aNameIm) const
+{
+     cMetaDataImage aMetaData =  GetMetaData(aNameIm);
+     cPerspCamIntrCalib* aCalib = InternalCalibFromImage(aNameIm);
+
+     return NameCalibRadiomSensor(*aCalib,aMetaData);
+}
+
+cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm)
+{
+      static std::map<std::string,cRadialCRS *> TheDico;
+      std::string aNameCal = NameCalibRSOfImage(aNameIm);
+
+      cRadialCRS * &  aRes = TheDico[aNameCal];
+
+      if (aRes != nullptr)  return aRes;
+
+      cPerspCamIntrCalib* aCalib = InternalCalibFromImage(aNameIm);
+
+      aRes = new cRadialCRS(aCalib->PP(),aDegree,aCalib->SzPix(),aNameCal);
+
+      mAppli.AddObj2DelAtEnd(aRes);
+
+      return aRes;
+}
+
+
 
         //  =============  Orientation =================
 
@@ -267,11 +370,24 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
     aCamPC.ToFile(mDPOrient.FullDirOut() + aCamPC.NameOriStd());
 }
 
-cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,bool ToDelete)
+
+void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const
+{
+    std::string aNameCalib = mDPOrient.FullDirOut() + aCalib.Name() + ".xml";
+    aCalib.ToFileIfFirstime(aNameCalib);
+}
+
+
+cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bool ToDelete,bool SVP) const
 {
     mDPOrient.AssertDirInIsInit();
 
     std::string aNameCam  =  mDPOrient.FullDirIn() + cSensorCamPC::NameOri_From_Image(aNameIm);
+    // if kindly asked and dont exist return
+    if ( SVP && (!ExistFile(aNameCam)) )
+    {
+       return nullptr;
+    }
     cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam);
 
     if (ToDelete)
@@ -280,7 +396,29 @@ cSensorCamPC * cPhotogrammetricProject::AllocCamPC(const std::string & aNameIm,b
     return aCamPC;
 }
 
-cPerspCamIntrCalib *  cPhotogrammetricProject::AllocCalib(const std::string & aNameIm)
+void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool SVP)
+{
+     aSI = nullptr;
+     aSPC =nullptr;
+
+     aSPC = ReadCamPC(aNameIm,true,true);
+     if (aSPC !=nullptr)
+     {
+        aSI = aSPC;
+        return;
+     }
+
+     if (!SVP)
+     {
+         MMVII_UsersErrror
+         (
+             eTyUEr::eUnClassedError,
+             "Cannot get sensor for image " + aNameIm
+         );
+     }
+}
+
+cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std::string & aNameIm) const
 {
     // 4 now, pretty basic allox sensor, extract internal, destroy
     // later will have to handle :
@@ -288,12 +426,37 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::AllocCalib(const std::string & aN
     //    * case where nor calib nor pose exist, and must be created from xif 
     mDPOrient.AssertDirInIsInit();
 
-    cSensorCamPC *  aPC = AllocCamPC(aNameIm,false);
+    cSensorCamPC *  aPC = ReadCamPC(aNameIm,false);
     cPerspCamIntrCalib * aCalib = aPC->InternalCalib();
     delete aPC;
 
     return aCalib;
 }
+        //  =============  Calibration =================
+
+std::string  cPhotogrammetricProject::StdNameCalibOfImage(const std::string aNameIm) const
+{
+     cMetaDataImage aMTD = GetMetaData(mFolderProject+FileOfPath(aNameIm,false));
+     return aMTD.InternalCalibGeomIdent();
+}
+
+std::string  cPhotogrammetricProject::FullDirCalibIn() const
+{
+   mDPOrient.AssertDirInIsInit();
+   return mDPOrient.FullDirIn();
+}
+std::string  cPhotogrammetricProject::FullDirCalibOut() const
+{
+   return mDPOrient.FullDirOut();
+}
+
+cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm) const
+{
+    std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + ".xml";
+    cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib);
+    return aCalib;
+}
+
         //  =============  Masks =================
 
 std::string cPhotogrammetricProject::NameMaskOfImage(const std::string & aNameImage) const
@@ -318,20 +481,82 @@ cIm2D<tU_INT1>  cPhotogrammetricProject::MaskWithDef(const std::string & aNameIm
 }
 
 
+        //  =============  PointsMeasures =================
+
+void cPhotogrammetricProject::SaveMeasureIm(const cSetMesPtOf1Im &  aSetM) const
+{
+     aSetM.ToFile(mDPPointsMeasures.FullDirOut() +aSetM.StdNameFile());
+}
+
+cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm) const
+{
+   std::string aDir = mDPPointsMeasures.FullDirIn();
+   return cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
+}
+
+void cPhotogrammetricProject::SaveGCP(const cSetMesImGCP& aSetMes,const std::string & aExt)
+{
+     cSetMesGCP  aMGCP = aSetMes.ExtractSetGCP(aExt);
+     aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles +aExt + ".xml");
+}
+
+void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr) const
+{
+   std::string aPatFiltr = (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*.xml")  : aArgPatFiltr;
+
+   std::string aDir = mDPPointsMeasures.FullDirIn();
+   std::vector<std::string> aListFileGCP =  GetFilesFromDir(aDir,AllocRegex(aPatFiltr));
+   MMVII_INTERNAL_ASSERT_User(!aListFileGCP.empty(),eTyUEr::eUnClassedError,"No file found in LoadGCP");
+
+   for (const auto  & aNameFile : aListFileGCP)
+   {
+       cSetMesGCP aMesGGP = cSetMesGCP::FromFile(aDir+aNameFile);
+       aSetMes.AddMes3D(aMesGGP);
+   }
+}
+
+void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & aNameIm,cSensorImage * aSIm) const
+{
+//    std::string aDir = mDPPointsMeasures.FullDirIn();
+   //cSetMesPtOf1Im  aSetIm = cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
+   cSetMesPtOf1Im  aSetIm = LoadMeasureIm(aNameIm);
+   aSetMes.AddMes2D(aSetIm,aSIm);
+}
+
+void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,cSensorImage & aSIm) const
+{
+     LoadIm(aSetMes,aSIm.NameImage(),&aSIm);
+}
+
+cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
+{
+    cSetMesImGCP aSetMes;
+
+    LoadGCP(aSetMes);
+    LoadIm(aSetMes,aNameIm);
+
+    cSet2D3D aSet23;
+    aSetMes.ExtractMes1Im(aSet23,aNameIm);
+
+    return aSet23;
+}
+
+        //  =============  Homologous point =================
+
+void  cPhotogrammetricProject::SaveHomol
+      (
+           const cSetHomogCpleIm &,
+           const std::string & aNameIm1 ,
+	   const std::string & aNameIm2,
+	   const std::string & anExt
+      ) const
+{
+}
+
 
         //  =============  Meta Data =================
 
-cMedaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aNameIm) const
-{
-   static std::map<std::string,cMedaDataImage> aMap;
-   auto  anIt = aMap.find(aNameIm);
-   if (anIt== aMap.end())
-   {
-        aMap[aNameIm] = cMedaDataImage(aNameIm);
-   }
-
-   return aMap[aNameIm];
-}
+//  see cMetaDataImages.cpp
 
 
 }; // MMVII

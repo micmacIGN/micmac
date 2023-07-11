@@ -187,7 +187,7 @@ cCollecSpecArg2007 & cAppliProMeshImage::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            << AOpt2007(mMII,"MII","Margin Inside Image (for triangle validation)", {eTA2007::HDV})
            << AOpt2007(mSKE,CurOP_SkipWhenExist,"Skip command when result exist")
 	   << AOptBench()
-	   << mPhProj.DPRadiom().ArgDirOutOpt()
+	   << mPhProj.DPRadiomData().ArgDirOutOpt()
    ;
 
 }
@@ -346,7 +346,7 @@ void cAppliProMeshImage::MakeRadiomData(cZBuffer &  aZB)
 		 {
                      tREAL8 aWy1 = (aKy1+0.5) / double (aNbSample) ;
 		     tPt3dr aGrid1 = aP0 + aWx1 * aVx + aWy1 * aVy;
-		     if (mCamPC->Visibility(aGrid1)>0)
+		     if (mCamPC->IsVisible(aGrid1))
 		     {
                          bool isAllOk = true;
 			 int aNbOk = 0;
@@ -537,7 +537,7 @@ int cAppliProMeshImage::Exe()
 
    cMeshTri3DIterator  aTriIt(mTri3D);
 
-   mCamPC = mPhProj.AllocCamPC(mNameSingleIm,true);
+   mCamPC = mPhProj.ReadCamPC(mNameSingleIm,true);
    cSIMap_Ground2ImageAndProf aMapCamDepth(mCamPC);
 
    cSetVisibility aSetVis(mCamPC,mMII);
@@ -566,7 +566,7 @@ int cAppliProMeshImage::Exe()
           MakeDevlptIm(aZBuf);
        }
 
-       if (mPhProj.DPRadiom().DirOutIsInit())
+       if (mPhProj.DPRadiomData().DirOutIsInit())
        {
            MakeRadiomData(aZBuf);
        }

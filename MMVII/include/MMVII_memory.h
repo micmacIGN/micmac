@@ -23,6 +23,17 @@ void mem_raz(void * adr,int64_t nb);
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
 template <class Type> void  MemCopy(Type * aDest,const Type * aSrce,size_t aNum) {memcpy(aDest,aSrce,sizeof(Type)*aNum);}
 
+template <class T1,class T2>  void ConvertData(T1 * aD1,const T2 * aD2,size_t aNb)
+{
+    for (size_t aK=0 ; aK<aNb ; aK++)
+        aD1[aK] = aD2[aK];
+}
+template <class T1>  void ConvertData(T1 * aD1,const T1 * aD2,size_t aNb)
+{
+        MemCopy(aD1,aD2,aNb);
+}
+
+
 
 /*
 class  cMemState; // Memory state
@@ -182,13 +193,6 @@ class cObj2DelAtEnd
 };
 
 
-///  Usefull, delete all object of the container
-template <class Type> inline void DeleteAllAndClear(Type & aVal)
-{
-    for (auto it=aVal.begin() ; it!=aVal.end() ; it++)
-        delete *it;
-    aVal.clear();
-}
 
 template<class Type> class cGestObjetEmpruntable
 {

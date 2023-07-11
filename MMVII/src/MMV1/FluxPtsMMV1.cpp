@@ -13,6 +13,23 @@
 namespace MMVII
 {
 
+Neighbourhood DiscNeich(const tREAL8 & aRay)
+{
+    std::vector<Pt2di> aVPts;
+    int aNb = round_up(aRay);
+
+    for (int aKx=-aNb ; aKx<=aNb ; aKx++)
+    {
+        for (int aKy=-aNb ; aKy<=aNb ; aKy++)
+        {
+            if ((aKx*aKx+aKy*aKy)<= aRay*aRay)
+               aVPts.push_back(Pt2di(aKx,aKy));
+        }
+    }
+
+    return Neighbourhood(&(aVPts[0]),int(aVPts.size()));
+}
+
 // typedef std::vector<cPt2di> tResFlux;
 
 
@@ -48,12 +65,48 @@ tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh)
 }
 
 // extern Flux_Pts ellipse(Pt2dr c,REAL A,REAL B,REAL teta,bool v8 = true);
+void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh,tREAL8 aDil)
+{
+     Flux_Pts aFlux = ellipse(ToMMV1(aC),aRayA,aRayB,aTeta,with8Neigh);
+     if (aDil>0)
+        aFlux = dilate(aFlux,DiscNeich(aDil));
+
+     FluxToV2Points(aRes,aFlux);
+}
+
 void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh)
 {
-     FluxToV2Points(aRes,ellipse(ToMMV1(aC),aRayA,aRayB,aTeta,with8Neigh));
+	GetPts_Ellipse(aRes,aC,aRayA,aRayB,aTeta,with8Neigh,-1);
 }
 
 
 
+void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2,tREAL8 aDil)
+{
+     Flux_Pts aFlux = line(ToMMV1(ToI(aP1)),ToMMV1(ToI(aP2)));
+     if (aDil>0)
+        aFlux = dilate(aFlux,DiscNeich(aDil));
+     FluxToV2Points(aRes,aFlux);
+}
+
+void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2)
+{
+	GetPts_Line(aRes,aP1,aP2,-1.0);
+}
+
+
+/*
+void Txxxxxxxxx()
+{
+	Flux_Pts disc(Pt2dr,REAL,bool front = true);
+
+	Neighbourhood
+}
+*/
+
 
 };
+
+
+
+

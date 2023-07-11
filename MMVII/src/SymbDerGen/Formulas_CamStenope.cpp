@@ -63,6 +63,18 @@ std::string NamePow(const std::string aExpr,int aExposant)
     return aExpr + "^" + ToStr(aExposant);
 }
 
+std::string NameMon(const cPt2di& aDegMon)
+{
+   if (aDegMon== cPt2di(0,0))
+      return "1";
+   else if (aDegMon.x()==0)
+      return NamePow("Y",aDegMon.y());
+   else if (aDegMon.y()==0)
+      return  NamePow("X",aDegMon.x());
+
+   return  NamePow("X",aDegMon.x()) + "*" + NamePow("Y",aDegMon.y());
+}
+
 
 cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
    mType    (aType),
@@ -77,6 +89,13 @@ cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
 				   //  mLongName
        mDegTot = 1 + 2 * (aNum);   //  X (X^2+Y^2) ^N
        mNum = aNum;
+   }
+   else if (mType==eTypeFuncDist::eMonom)
+   {
+       mDegMon = aDegXY;
+       mDegTot = mDegMon.x() + mDegMon.y();
+       mName = "Mon_" + ToStr(mDegMon.x()) + "_"+ ToStr(mDegMon.y());
+       mLongName = NameMon(mDegMon);
    }
    else if ((mType==eTypeFuncDist::eDecX) ||  (mType==eTypeFuncDist::eDecY))
    {
@@ -119,16 +138,9 @@ cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
                  + "_" + ToStr(mDegMon.x())
                  + "_" + ToStr(mDegMon.y()) ;
       }
-      std::string aStrMon="";
-      if (mDegMon.x()==0)
-        aStrMon = NamePow("Y",mDegMon.y());
-      else if (mDegMon.y()==0)
-        aStrMon = NamePow("X",mDegMon.x());
-      else
-        aStrMon = NamePow("X",mDegMon.x()) + "*" + NamePow("Y",mDegMon.y());
 
+      std::string aStrMon=NameMon(mDegMon);
       mLongName = isX ? ("("+aStrMon+",0)")  : ("(0,"+aStrMon+")");
-
    }
 }
 
@@ -176,30 +188,40 @@ double  MajNormJacOfRho
 /*                                  */
 /* ******************************** */
 
-bool  cDefProjPerspC::HasRadialSym() const { return false; }
+bool  cDefProjPerspC::HasRadialSym() const { return true; }
 
-const cDefProjPerspC & cDefProjPerspC::ProjOfType(eProjPC eProj)
+const cDefProjPerspC * cDefProjPerspC::ProjOfType(eProjPC aProj,tREAL8 aRhoMax)
 {
-    static cProjStenope        TheProjStenope;
-    static cProjFE_EquiDist    TheProjFE_EquiDist;
-    static cProjStereroGraphik TheProjFE_StereroGraphik;
-    static cProjOrthoGraphic   TheProjFE_OrthoGraphic;
-    static cProjFE_EquiSolid   TheProjFE_EquiSolid;
-    static cProj_EquiRect      TheProjFE_EquiRect;
-    static std::vector<const cDefProjPerspC *> TheVProj;
 
-    if (TheVProj.empty())
+    bool DefT =  (aRhoMax==DefRhoMax);
+    switch (aProj)
     {
-        TheVProj.resize(size_t(eProjPC::eNbVals),nullptr);
-	TheVProj.at(size_t(eProjPC::eStenope))        = & TheProjStenope;
-	TheVProj.at(size_t(eProjPC::eFE_EquiDist))    = & TheProjFE_EquiDist;
-	TheVProj.at(size_t(eProjPC::eStereroGraphik)) = & TheProjFE_StereroGraphik;
-	TheVProj.at(size_t(eProjPC::eOrthoGraphik))   = & TheProjFE_OrthoGraphic;
-	TheVProj.at(size_t(eProjPC::eFE_EquiSolid))   = & TheProjFE_EquiSolid;
-	TheVProj.at(size_t(eProjPC::eEquiRect))       = & TheProjFE_EquiRect;
-    }
+          case eProjPC::eStenope          :  return new cProjStenope           (DefT ? 10.0  : aRhoMax);
+          case eProjPC::eFE_EquiDist      :  return new cProjFE_EquiDist       (DefT ? (M_PI/2.0)  : aRhoMax);
+          case eProjPC::eStereroGraphik   :  return new cProjStereroGraphik    (DefT ?  10.0       : aRhoMax);
+          case eProjPC::eOrthoGraphik     :  return new cProjOrthoGraphic      (DefT ? 0.999 : aRhoMax);
+          case eProjPC::eFE_EquiSolid     :  return new cProjFE_EquiSolid      (DefT ? (M_PI/2.0) : aRhoMax);
+          case eProjPC::eEquiRect         :  return new cProj_EquiRect         (DefT ? (M_PI) : aRhoMax);
 
-    return *(TheVProj.at(size_t(eProj)));
+          default :
+              MMVII_INTERNAL_ERROR("cDefProjPerspC::ProjOfType");
+              return nullptr;
+    }
+}
+
+tREAL8 cDefProjPerspC::Insideness(const tPt & aPt) const
+{
+	return P2DIsDef(aPt);
+}
+
+cDefProjPerspC::cDefProjPerspC(tREAL8 aRhoMax) :
+    cDataBoundedSet<tREAL8,2> (cBox2dr::CenteredBoxCste(aRhoMax)),
+    mRhoMax (aRhoMax)
+{
+}
+
+cDefProjPerspC::~cDefProjPerspC() 
+{
 }
 
 

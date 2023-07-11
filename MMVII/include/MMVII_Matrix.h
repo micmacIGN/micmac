@@ -91,6 +91,7 @@ template <class Type> class  cDenseVect
         cDenseVect(int Sz,const tSpV &);
         static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
         cDenseVect<Type>  Dup() const;
+        static cDenseVect<Type>  RanGenerate(int aNbVar);
 	/// 
         void ResizeAndCropIn(const int & aX0,const int & aX1,const cDenseVect<Type> &);
         void Resize(const int & aSz);
@@ -136,7 +137,6 @@ template <class Type> class  cDenseVect
 
         tIM mIm;
 };
-
 /* To come, sparse vector, will be vect<int> + vect<double> */
 
 /** a Interface class , derived class will be :
@@ -682,9 +682,34 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
         cWeightAv();
         void Add(const TypeWeight & aWeight,const TypeVal & aVal);
         TypeVal Average() const;
+        const TypeVal & SVW() const;  /// Accessor to sum weighted vals
     private :
         TypeWeight  mSW;   ///< Som of    W
         TypeVal     mSVW;   ///< Som of    VW
+};
+
+/**  Class for robust average   avg weithgted by   sigma/(sigma+|aRes|) */
+class cRobustAvg
+{
+      public :
+         cRobustAvg(tREAL8 aSigma) ;
+         void Add(tREAL8 aVal);
+	 tREAL8 Average() const;
+      public :
+         tREAL8                    mSigma;
+         tREAL8                    mS2;
+	 cWeightAv<tREAL8,tREAL8>  mAvg;
+};
+
+/**  Class for robust average with a sigma computed  from proportion */
+class cRobustAvgOfProp
+{
+      public :
+         cRobustAvgOfProp();
+         void Add(tREAL8 aVal);
+	 tREAL8 Average(tREAL8 aProp) const;
+      public :
+	 std::vector<double>  mVals;
 };
 
 
@@ -712,7 +737,7 @@ template <const int Dim> class cUB_ComputeStdDev
         cUB_ComputeStdDev();
 
         void Add(const  double * aVal,const double & aPds);
-        const double  *  ComputeUnBiasedVar() ;
+        const double  *  ComputeUnBiasedVar() ;  // return a pointer because of Dim
         const double  *  ComputeBiasedVar() ;
         double  DeBiasFactor() const;
 
@@ -798,7 +823,14 @@ template<class Type> class cSymMeasure
 #define CHECK_SZPT_VECT(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz()==aPT.TheDim,"Bad size in Vec/Pt")
 
 template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L1,const cPtxd<Type,3> &L2,const cPtxd<Type,3> &L3);
+template <class Type>  cDenseMatrix<Type> M3x3FromCol(const cPtxd<Type,3>&C1,const cPtxd<Type,3> &C2,const cPtxd<Type,3> &C3);
 template <class Type>  cDenseMatrix<Type> M2x2FromLines(const cPtxd<Type,2>&L1,const cPtxd<Type,2> &L2);
+template <class Type>  cDenseMatrix<Type> M2x2FromCol(const cPtxd<Type,2>&L1,const cPtxd<Type,2> &L2);
+template <class Type>  cDenseMatrix<Type> MatDiag(const cPtxd<Type,2>&aPt); /// return a 2x2 diagonal matrix
+template <class Type>  cDenseMatrix<Type> MatrSim(const cPtxd<Type,2>& aIm_Ox);  /// return the 2x2 similitude given image of Ox
+template <class Type>  cDenseMatrix<Type> MatrRot(const Type&);  /// return the 2x2  rotation
+
+
 
 template <class Type,int Dim> void GetCol(cPtxd<Type,Dim> &,const cDenseMatrix<Type> &,int aCol);
 // template <class Type,int Dim> cPtxd<Type,Dim> GetCol(const cDenseMatrix<Type> &,int aCol);

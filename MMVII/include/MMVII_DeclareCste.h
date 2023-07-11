@@ -44,6 +44,7 @@ extern const std::string GIP_ShowAll;     ///< Show a lot of intermediary steps
 extern const std::string GIP_PGMA;     ///< Prefix Global Main Appli
 extern const std::string GIP_DirProjGMA;     ///< Dir Proj of Global Main Application
 extern const std::string GIP_BenchMode;     ///< For command who have a bench mode
+extern const std::string GIP_KthCall;     ///< Order of call if mutltiple call
 
 
 // Folders
@@ -52,6 +53,7 @@ extern const std::string TmpMMVIIDirGlob;
 extern const std::string TmpMMVIIDirPCar;
 extern const std::string MMVIITestDir;
 extern const std::string MMVIIRessourcesDir;
+extern const std::string MMVIILocalParametersDir;
 extern const std::string TmpMMVIIProcSubDir;
 
 extern const std::string MMVII_DirPhp;

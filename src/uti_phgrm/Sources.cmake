@@ -24,6 +24,7 @@ set(UTI_PHGRM_TEXT_DIR ${UTI_PHGRM_DIR}/TexturePacker)
 set(UTI_PHGRM_MAXFLOW_DIR ${UTI_PHGRM_GRAPHCUT_DIR}/MaxFlow)
 set(UTI_PHGRM_QPBO_DIR ${UTI_PHGRM_GRAPHCUT_DIR}/QPBO-v1.4)
 set(UTI_PHGRM_SAT4GEO_DIR ${UTI_PHGRM_DIR}/SAT4GEO)
+set(UTI_TENOR_DIR ${UTI_PHGRM_DIR}/Tenor)
 
 set(SrcGrp_Uti_PHGRM uti_phgrm)
 set(SrcGrp_Graph_Cut uti_phgrm/GraphCut)
@@ -48,6 +49,7 @@ include(${UTI_PHGRM_TEXT_DIR}/Sources.cmake)
 include(${UTI_PHGRM_TiePTri_DIR}/Sources.cmake)
 include(${UTI_PHGRM_SAT4GEO_DIR}/Sources.cmake)
 include(${UTI_PHGRM_TiePHisto_DIR}/Sources.cmake)
+include(${UTI_TENOR_DIR}/Sources.cmake)
 
 #define __CUDA_API_VERSION 0x5050
 

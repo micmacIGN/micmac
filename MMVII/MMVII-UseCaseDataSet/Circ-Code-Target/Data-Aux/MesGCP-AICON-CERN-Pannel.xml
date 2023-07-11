@@ -1,0 +1,1204 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<MMVII_Serialization>
+   <SetGCP>
+      <NameSet>"AICON-CERN-Pannel"</NameSet>
+      <Measures>
+         <Nb>239</Nb>
+         <el>
+            <Name>"002"</Name>
+            <Pt>-0.2 -0.1216 -0.3116</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"003"</Name>
+            <Pt>81.9931 -0.8711 -0.2881</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"004"</Name>
+            <Pt>163.7653 -1.1489 -0.2626</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"005"</Name>
+            <Pt>246.2256 -1.3927 -0.2378</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"006"</Name>
+            <Pt>329.4963 -1.3987 -0.2081</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"007"</Name>
+            <Pt>412.2107 -0.7425 -0.1665</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"008"</Name>
+            <Pt>493.4791 -0.6646 -0.1144</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"009"</Name>
+            <Pt>573.9863 -0.0574 -0.0261</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"010"</Name>
+            <Pt>657.1804 -0.1821 0.0633</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"011"</Name>
+            <Pt>734.712 -0.1412 0.1292</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"012"</Name>
+            <Pt>-1.3951 89.0576 -0.3341</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"013"</Name>
+            <Pt>80.981 89.0205 -0.3216</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"014"</Name>
+            <Pt>163.7134 89.3376 -0.3062</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"015"</Name>
+            <Pt>245.6042 89.3921 -0.2723</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"016"</Name>
+            <Pt>329.0058 89.8159 -0.2374</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"017"</Name>
+            <Pt>411.9188 89.9551 -0.2036</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"018"</Name>
+            <Pt>493.0496 90.5946 -0.1603</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"019"</Name>
+            <Pt>573.684 89.7021 -0.0808</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"020"</Name>
+            <Pt>656.6123 90.8783 -0.0079</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"021"</Name>
+            <Pt>734.7924 90.8346 0.0735</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"022"</Name>
+            <Pt>-1.9255 180.876 -0.3232</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"023"</Name>
+            <Pt>80.4121 179.912 -0.3185</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"024"</Name>
+            <Pt>163.6111 180.8731 -0.3233</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"025"</Name>
+            <Pt>245.9167 180.0061 -0.275</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"026"</Name>
+            <Pt>328.7893 181.3495 -0.2506</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"027"</Name>
+            <Pt>411.909 181.3838 -0.2364</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"028"</Name>
+            <Pt>493.5508 181.5006 -0.1966</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"029"</Name>
+            <Pt>574.2283 180.8013 -0.1158</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"030"</Name>
+            <Pt>657.8727 180.4981 -0.0447</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"031"</Name>
+            <Pt>734.8791 181.332 0.0428</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"032"</Name>
+            <Pt>-1.5746 269.7031 -0.3394</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"033"</Name>
+            <Pt>81.3023 269.2247 -0.3303</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"034"</Name>
+            <Pt>163.314 269.1576 -0.3297</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"035"</Name>
+            <Pt>244.2449 268.9106 -0.2638</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"036"</Name>
+            <Pt>326.9474 269.3901 -0.2483</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"037"</Name>
+            <Pt>411.1534 271.2911 -0.2404</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"038"</Name>
+            <Pt>493.3221 270.5732 -0.1993</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"039"</Name>
+            <Pt>573.9467 270.1103 -0.1201</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"040"</Name>
+            <Pt>655.9067 270.8581 -0.0521</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"041"</Name>
+            <Pt>734.0379 270.7154 0.022</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"042"</Name>
+            <Pt>-2.5797 359.9897 -0.3481</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"043"</Name>
+            <Pt>79.8207 359.5959 -0.351</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"044"</Name>
+            <Pt>163.2292 359.2978 -0.3387</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"045"</Name>
+            <Pt>243.5101 359.4987 -0.3108</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"046"</Name>
+            <Pt>324.213 359.7315 -0.2746</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"047"</Name>
+            <Pt>410.5617 359.8327 -0.2537</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"048"</Name>
+            <Pt>492.8398 359.5314 -0.2078</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"049"</Name>
+            <Pt>574.0131 359.281 -0.1456</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"050"</Name>
+            <Pt>655.0522 359.9315 -0.0796</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"051"</Name>
+            <Pt>734.5865 360.8116 -0.0104</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"052"</Name>
+            <Pt>-1.6453 447.4242 -0.3475</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"053"</Name>
+            <Pt>80.9928 448.0545 -0.3304</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"054"</Name>
+            <Pt>163.4856 448.891 -0.3218</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"055"</Name>
+            <Pt>243.5588 449.2152 -0.3307</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"056"</Name>
+            <Pt>322.4811 449.7422 -0.3044</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"057"</Name>
+            <Pt>409.4022 449.3873 -0.2739</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"058"</Name>
+            <Pt>492.9837 450.1243 -0.2396</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"059"</Name>
+            <Pt>573.7786 450.2919 -0.1837</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"060"</Name>
+            <Pt>654.7814 450.0004 -0.0923</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"061"</Name>
+            <Pt>733.9362 450.1826 -0.0656</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"062"</Name>
+            <Pt>-1.8728 535.3071 -0.3736</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"063"</Name>
+            <Pt>80.2765 535.3115 -0.361</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"064"</Name>
+            <Pt>163.6821 535.7717 -0.3442</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"065"</Name>
+            <Pt>243.9029 536.2208 -0.3387</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"066"</Name>
+            <Pt>323.1646 536.6427 -0.3334</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"067"</Name>
+            <Pt>410.3805 537.3688 -0.3324</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"068"</Name>
+            <Pt>492.9699 537.3366 -0.2984</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"069"</Name>
+            <Pt>574.6759 537.2201 -0.2196</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"070"</Name>
+            <Pt>655.5182 536.9064 -0.1305</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"071"</Name>
+            <Pt>732.6087 536.3029 -0.1357</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"072"</Name>
+            <Pt>342.5466 269.4456 203.5882</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"073"</Name>
+            <Pt>378.7232 245.877 203.7174</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"074"</Name>
+            <Pt>379.4738 290.9405 203.5887</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2115"</Name>
+            <Pt>-1.8716 135.9193 -0.3215</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2010"</Name>
+            <Pt>-1.8693 490.7706 -0.3549</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2037"</Name>
+            <Pt>-1.1246 402.2908 -0.3445</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2062"</Name>
+            <Pt>-1.974 313.546 -0.3442</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2087"</Name>
+            <Pt>-0.2721 226.0173 -0.3308</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2106"</Name>
+            <Pt>38.8861 180.2722 -0.3026</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2132"</Name>
+            <Pt>39.4143 89.601 -0.2952</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2141"</Name>
+            <Pt>39.8743 44.9662 -0.3069</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2001"</Name>
+            <Pt>37.4617 536.2396 -0.3553</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2011"</Name>
+            <Pt>37.67 491.4685 -0.3337</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2028"</Name>
+            <Pt>38.2186 446.4486 -0.3289</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2038"</Name>
+            <Pt>38.1293 402.5032 -0.3314</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2053"</Name>
+            <Pt>38.118 360.6805 -0.3399</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2063"</Name>
+            <Pt>37.8343 312.2979 -0.3293</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2079"</Name>
+            <Pt>38.4595 270.2236 -0.3083</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2088"</Name>
+            <Pt>38.5587 225.9699 -0.3089</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2116"</Name>
+            <Pt>80.5512 136.3978 -0.3144</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2142"</Name>
+            <Pt>80.2777 46.2327 -0.1922</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2012"</Name>
+            <Pt>80.9408 491.5061 -0.3338</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2039"</Name>
+            <Pt>80.5841 402.5072 -0.3437</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2064"</Name>
+            <Pt>79.8823 313.8565 -0.3254</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2089"</Name>
+            <Pt>80.1651 224.7932 -0.3174</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2002"</Name>
+            <Pt>122.7969 536.7569 -0.3283</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2013"</Name>
+            <Pt>122.503 491.7238 -0.3092</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2029"</Name>
+            <Pt>122.9242 448.8491 -0.3204</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2040"</Name>
+            <Pt>123.8799 402.982 -0.3207</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2054"</Name>
+            <Pt>122.7182 361.0892 -0.3547</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2065"</Name>
+            <Pt>122.0098 314.7233 -0.3359</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2080"</Name>
+            <Pt>123.2025 270.4483 -0.3326</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2090"</Name>
+            <Pt>123.1156 224.6751 -0.3193</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2107"</Name>
+            <Pt>123.4468 180.9137 -0.3258</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2117"</Name>
+            <Pt>123.5653 135.4117 -0.313</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2133"</Name>
+            <Pt>123.103 89.8555 -0.3191</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2143"</Name>
+            <Pt>122.1284 46.066 -0.3016</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2159"</Name>
+            <Pt>122.9939 -0.7805 -0.2771</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2014"</Name>
+            <Pt>164.11 491.5976 -0.3112</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2041"</Name>
+            <Pt>163.9164 401.9635 -0.3344</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2066"</Name>
+            <Pt>163.4536 314.102 -0.3313</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2091"</Name>
+            <Pt>162.4126 225.7781 -0.3257</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2118"</Name>
+            <Pt>164.5693 136.3614 -0.3131</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2144"</Name>
+            <Pt>163.319 45.7124 -0.2861</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2003"</Name>
+            <Pt>205.1744 536.5909 -0.3283</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2015"</Name>
+            <Pt>203.0063 492.3655 -0.3242</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2030"</Name>
+            <Pt>203.5157 450.4198 -0.3252</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2042"</Name>
+            <Pt>204.1913 402.7455 -0.3284</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2055"</Name>
+            <Pt>204.3008 361.6757 -0.3279</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2067"</Name>
+            <Pt>204.3664 315.0322 -0.3079</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2081"</Name>
+            <Pt>204.7254 270.927 -0.291</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2092"</Name>
+            <Pt>204.0469 226.0979 -0.295</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2108"</Name>
+            <Pt>204.7281 180.5347 -0.2905</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2119"</Name>
+            <Pt>206.2319 137.3871 -0.2834</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2134"</Name>
+            <Pt>204.4018 93.078 -0.2841</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2145"</Name>
+            <Pt>204.6496 46.3388 -0.2675</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2160"</Name>
+            <Pt>204.7052 -1.5018 -0.2475</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2016"</Name>
+            <Pt>244.1338 491.7627 -0.3347</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2043"</Name>
+            <Pt>243.635 402.6978 -0.3233</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2068"</Name>
+            <Pt>245.1971 315.2619 -0.2849</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2093"</Name>
+            <Pt>244.8616 224.0032 -0.272</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2120"</Name>
+            <Pt>246.0315 136.4716 -0.2718</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2146"</Name>
+            <Pt>246.0545 46.5725 -0.2561</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2004"</Name>
+            <Pt>284.1171 537.7557 -0.3284</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2017"</Name>
+            <Pt>284.0964 492.9253 -0.3273</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2031"</Name>
+            <Pt>284.2845 451.3061 -0.317</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2056"</Name>
+            <Pt>284.4568 359.6857 -0.2817</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2069"</Name>
+            <Pt>284.2814 316.3724 -0.261</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2082"</Name>
+            <Pt>284.463 270.6132 -0.239</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2018"</Name>
+            <Pt>322.2571 492.8677 -0.3246</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2121"</Name>
+            <Pt>285.8014 136.9556 -0.2533</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2135"</Name>
+            <Pt>285.3572 91.0005 -0.2531</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2147"</Name>
+            <Pt>285.5801 47.1353 -0.2354</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2161"</Name>
+            <Pt>285.2475 -1.7824 -0.2155</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2070"</Name>
+            <Pt>325.7233 315.6692 -0.2625</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2005"</Name>
+            <Pt>367.8814 537.8162 -0.3474</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2019"</Name>
+            <Pt>366.8138 492.7126 -0.323</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2032"</Name>
+            <Pt>367.0115 451.059 -0.2954</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2122"</Name>
+            <Pt>328.9642 136.9378 -0.2491</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2148"</Name>
+            <Pt>329.1828 46.2006 -0.2216</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2044"</Name>
+            <Pt>367.0792 403.5931 -0.2759</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2057"</Name>
+            <Pt>367.0581 361.63 -0.2621</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2096"</Name>
+            <Pt>368.4475 224.9365 -0.2529</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2110"</Name>
+            <Pt>368.9308 182.2222 -0.2444</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2020"</Name>
+            <Pt>411.3751 493.4774 -0.2948</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2123"</Name>
+            <Pt>371.2906 136.9587 -0.2338</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2136"</Name>
+            <Pt>368.7254 89.3231 -0.2253</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2149"</Name>
+            <Pt>369.8134 46.5643 -0.2168</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2162"</Name>
+            <Pt>370.1536 -0.9445 -0.1821</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2072"</Name>
+            <Pt>411.1533 315.7488 -0.2487</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2124"</Name>
+            <Pt>412.0854 136.5345 -0.2204</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2006"</Name>
+            <Pt>452.8202 537.9324 -0.3111</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2021"</Name>
+            <Pt>452.7031 495.5097 -0.2583</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2150"</Name>
+            <Pt>411.6135 46.5988 -0.1875</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2083"</Name>
+            <Pt>452.9318 270.6636 -0.2104</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2125"</Name>
+            <Pt>453.6464 137.2299 -0.1946</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2022"</Name>
+            <Pt>493.3626 494.1735 -0.2587</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2047"</Name>
+            <Pt>493.0679 403.5436 -0.2221</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2073"</Name>
+            <Pt>492.4723 316.1446 -0.2029</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2137"</Name>
+            <Pt>453.6507 91.3943 -0.178</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2151"</Name>
+            <Pt>453.7562 46.8959 -0.1632</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2163"</Name>
+            <Pt>453.6267 0.4605 -0.1328</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2007"</Name>
+            <Pt>533.1076 536.5205 -0.2547</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2023"</Name>
+            <Pt>533.314 494.0512 -0.2308</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2034"</Name>
+            <Pt>533.262 448.9935 -0.1995</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2099"</Name>
+            <Pt>493.4966 224.7823 -0.1872</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2126"</Name>
+            <Pt>494.6157 137.7644 -0.1773</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2048"</Name>
+            <Pt>533.5405 404.3228 -0.1834</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2059"</Name>
+            <Pt>533.6589 359.5725 -0.1692</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2084"</Name>
+            <Pt>534.6492 269.7629 -0.1535</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2152"</Name>
+            <Pt>493.5138 47.1303 -0.136</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2100"</Name>
+            <Pt>534.8042 223.5526 -0.1552</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2112"</Name>
+            <Pt>534.8642 182.577 -0.157</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2127"</Name>
+            <Pt>535.9235 137.874 -0.1417</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2138"</Name>
+            <Pt>534.4845 91.1198 -0.1193</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2153"</Name>
+            <Pt>534.9337 46.9178 -0.0974</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2008"</Name>
+            <Pt>615.1436 537.2312 -0.1642</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2025"</Name>
+            <Pt>615.3489 494.0656 -0.145</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2075"</Name>
+            <Pt>574.0583 316.3256 -0.1297</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2101"</Name>
+            <Pt>573.1991 224.6997 -0.1154</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2164"</Name>
+            <Pt>535.2418 1.4328 -0.072</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2035"</Name>
+            <Pt>614.8312 450.1613 -0.1275</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2049"</Name>
+            <Pt>615.2085 404.1887 -0.114</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2060"</Name>
+            <Pt>615.245 359.8494 -0.1065</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2076"</Name>
+            <Pt>614.8678 317.4829 -0.09</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2128"</Name>
+            <Pt>574.9493 137.2646 -0.0985</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2154"</Name>
+            <Pt>575.1716 47.2066 -0.051</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2026"</Name>
+            <Pt>654.3069 494.8213 -0.1029</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2050"</Name>
+            <Pt>654.7013 403.9686 -0.0769</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2085"</Name>
+            <Pt>615.9523 270.6533 -0.0831</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2102"</Name>
+            <Pt>615.227 225.6822 -0.0768</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2113"</Name>
+            <Pt>616.213 182.0306 -0.075</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2009"</Name>
+            <Pt>695.5882 538.7352 -0.1091</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2027"</Name>
+            <Pt>694.0589 494.8746 -0.0698</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2077"</Name>
+            <Pt>655.5116 318.1602 -0.0655</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2139"</Name>
+            <Pt>616.0859 90.8943 -0.0297</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2155"</Name>
+            <Pt>617.3397 47.6021 0.0013</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2165"</Name>
+            <Pt>616.5422 -1.0952 0.0327</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2036"</Name>
+            <Pt>695.5404 451.5969 -0.0514</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2051"</Name>
+            <Pt>695.108 404.6374 -0.0333</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2061"</Name>
+            <Pt>695.7643 360.2601 -0.0362</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2103"</Name>
+            <Pt>655.6721 225.9214 -0.0462</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2129"</Name>
+            <Pt>658.0928 137.3103 -0.0199</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2078"</Name>
+            <Pt>694.3104 317.414 -0.0064</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2086"</Name>
+            <Pt>696.4023 272.5935 -0.0148</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2104"</Name>
+            <Pt>695.9036 226.6855 -0.0048</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2156"</Name>
+            <Pt>657.1325 47.5662 0.0297</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2052"</Name>
+            <Pt>734.4942 403.2185 -0.0195</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2114"</Name>
+            <Pt>695.7884 184.1777 -0.0069</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2130"</Name>
+            <Pt>696.7051 139.3673 0.0231</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2140"</Name>
+            <Pt>696.3677 93.0209 0.0408</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2105"</Name>
+            <Pt>735.1341 226.5927 0.0253</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2157"</Name>
+            <Pt>698.0957 47.7642 0.073</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2166"</Name>
+            <Pt>696.4959 0.5271 0.097</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2131"</Name>
+            <Pt>736.0462 139.6786 0.0704</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2158"</Name>
+            <Pt>737.0131 47.8027 0.1046</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2024"</Name>
+            <Pt>573.3678 494.0312 -0.1897</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2074"</Name>
+            <Pt>534.523 316.2858 -0.1627</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2058"</Name>
+            <Pt>452.9593 360.7013 -0.2223</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2046"</Name>
+            <Pt>451.6144 403.886 -0.2311</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2033"</Name>
+            <Pt>451.9436 449.7591 -0.2426</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2045"</Name>
+            <Pt>410.1886 403.536 -0.2555</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2071"</Name>
+            <Pt>367.2481 315.8743 -0.2593</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2109"</Name>
+            <Pt>284.9649 182.4291 -0.2515</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2094"</Name>
+            <Pt>284.4026 225.1772 -0.2488</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2097"</Name>
+            <Pt>411.1881 225.3025 -0.2367</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2098"</Name>
+            <Pt>454.2933 225.494 -0.2026</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2111"</Name>
+            <Pt>453.0408 183.8678 -0.2117</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"2095"</Name>
+            <Pt>325.0882 224.3269 -0.2438</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+      </Measures>
+   </SetGCP>
+</MMVII_Serialization>

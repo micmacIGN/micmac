@@ -58,18 +58,18 @@ plt.show()
 calib = PerspCamIntrCalib.fromFile(dirData + 'Ori-Ground-MMVII/Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5.xml')
 
 dist = calib.dir_Dist()
-sten = calib.calibStenPerfect()
-inv_sten = sten.mapInverse()
+pp2i = calib.mapPProj2Im()
+i2pp = pp2i.mapInverse()
 inv_dist = DataInvertOfMapping2D(calib.dir_DistInvertible())
 
 for name, pt in pts2d[imName1].items():
     print('Pt im: ', pt)
-    print(' -> central with disto: ', inv_sten.value(pt))
-    print(' -> central no disto: ', inv_dist.value(inv_sten.value(pt)))
-    print(' -> lig/col no disto: ', sten.value(inv_dist.value(inv_sten.value(pt))))
+    print(' -> central with disto: ', i2pp.value(pt))
+    print(' -> central no disto: ', inv_dist.value(i2pp.value(pt)))
+    print(' -> lig/col no disto: ', pp2i.value(inv_dist.value(i2pp.value(pt))))
 
 
-def mySten(calib: PerspCamIntrCalib, pt_central: tuple) -> tuple:
+def myPP2I(calib: PerspCamIntrCalib, pt_central: tuple) -> tuple:
     # TODO, see doc 3.2
     pass
 
@@ -77,18 +77,18 @@ def myDist(calib: PerspCamIntrCalib, pt_central: tuple) -> tuple:
     # TODO, see doc ...
     pass
 
-print('Test mySten:')
+print('Test myPP2I:')
 for name, pt in pts2d[imName1].items():
     print('Pt im: ', pt)
-    pt_central = inv_sten.value(pt)
+    pt_central = i2pp.value(pt)
     print(' -> central with disto: ', pt_central)
-    print(' -> my lig/col with disto: ', mySten(dist, pt_central))
+    print(' -> my lig/col with disto: ', myPP2I(dist, pt_central))
 
 
 print('Test myDist:')
 for name, pt in pts2d[imName1].items():
     print('Pt im: ', pt)
-    pt_central_nodist = inv_dist.value(inv_sten.value(pt))
+    pt_central_nodist = inv_dist.value(i2pp.value(pt))
     print(' -> central no disto: ', pt_central_nodist)
     print(' -> my central with disto: ', myDist(dist, pt_central_nodist))
 
@@ -130,7 +130,7 @@ pts2d_nodist = {}
 for imName in pts2d.keys():
     pts2d_nodist[imName] = {}
     for name, pt in pts2d[imName].items():
-        pts2d_nodist[imName][name] = list(inv_dist.value(inv_sten.value(pt)))
+        pts2d_nodist[imName][name] = list(inv_dist.value(i2pp.value(pt)))
 
 
 # TODO: compute 3d coordinates of common points

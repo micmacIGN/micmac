@@ -153,14 +153,17 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecMPDTest);
         TheVecAll.push_back(&TheSpecEditSet);
         TheVecAll.push_back(&TheSpecEditRel);
+        TheVecAll.push_back(&TheSpec_EditCalcMetaDataImage);
         TheVecAll.push_back(&TheSpecWalkman);
         TheVecAll.push_back(&TheSpecDaisy);
         TheVecAll.push_back(&TheSpecCatVideo);
         TheVecAll.push_back(&TheSpecReduceVideo);
+        TheVecAll.push_back(&TheSpecTestGraphPart);
         TheVecAll.push_back(&TheSpec_TestEigen);
         TheVecAll.push_back(&TheSpec_ComputeParamIndexBinaire);
         TheVecAll.push_back(&TheSpecTestRecall);
         TheVecAll.push_back(&TheSpecScaleImage);
+        TheVecAll.push_back(&TheSpec_StackIm);
         TheVecAll.push_back(&TheSpecCalcDiscIm);
         TheVecAll.push_back(&TheSpecCalcDescPCar);
         TheVecAll.push_back(&TheSpecMatchTieP);
@@ -182,16 +185,23 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecExtractCodedTarget);
         TheVecAll.push_back(&TheSpecGenerateEncoding);
         TheVecAll.push_back(&TheSpecSimulCodedTarget);
+        TheVecAll.push_back(&TheSpecCompletUncodedTarget);
         TheVecAll.push_back(&TheSpecDensifyRefMatch);
         TheVecAll.push_back(&TheSpecCloudClip);
         TheVecAll.push_back(&TheSpecMeshDev);
         TheVecAll.push_back(&TheSpecGenMeshDev);
         TheVecAll.push_back(&TheSpecTestCovProp);
         TheVecAll.push_back(&TheSpec_OriConvV1V2);
+        TheVecAll.push_back(&TheSpec_OriUncalibSpaceResection);
+        TheVecAll.push_back(&TheSpec_OriCalibratedSpaceResection);
+        TheVecAll.push_back(&TheSpec_OriBundlAdj);
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);
         TheVecAll.push_back(&TheSpecMeshImageDevlp);
         TheVecAll.push_back(&TheSpecRadiom2ImageSameMod);
+        TheVecAll.push_back(&TheSpecRadiomCreateModel);
+
+        TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
         //TheVecAll.push_back(&TheSpecTopoComp);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);

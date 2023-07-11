@@ -219,7 +219,7 @@ class cRPC
                                         const std::string & aOri,
                                         const std::string & aNameImClip,
                                         const ElAffin2D & anOrIntInit2Cur,
-										const std::string & aOriOut="-RecalRPC"
+										const std::string & aOriOut="RecalRPC"
                     );
 
         /* Save non-existing RPCs in original coordinate system */

@@ -7,6 +7,8 @@
 namespace MMVII
 {
 
+typedef cSegment<tREAL8,3> tSeg3dr;
+
 template<class T> cPtxd<T,3>  PFromNumAxe(int aNum); ///< return I,J or K according to 0,1 or 2
 /// use the 3 "colum vector" to compute the matrix
 template<class T> cDenseMatrix<T> MatFromCols(const cPtxd<T,3>&aP0,const cPtxd<T,3>&aP1,const cPtxd<T,3>&aP2);
@@ -91,8 +93,10 @@ template <class Type> class cRotation3D
        static int NbDOF()   {return 3;}
 
 
-       // RefineIt : if true, assume not fully orthog and compute closest one
+       /// RefineIt : if true, assume not fully orthog and compute closest one
        cRotation3D(const cDenseMatrix<Type> &,bool RefineIt);
+       /// Create rotation from 3 vector I,J,K
+       cRotation3D(const tPt &,const tPt &,const tPt &,bool RefineIt);
        const cDenseMatrix<Type> & Mat() const {return mMat;}
 
        tPt   Value(const tPt & aPt) const  {return mMat * aPt;}
@@ -106,18 +110,21 @@ template <class Type> class cRotation3D
        tPt   AxeJ() const ;
        tPt   AxeK() const ;
 
-       // Compute a normal repair, first vector being colinear to Pt
+       /// Compute a normal repair, first vector being colinear to Pt
        static cRotation3D<Type> CompleteRON(const tPt & aPt);
-       // Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
+       /// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
        static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
-       // Compute a rotation arround a given axe and with a given angle
+       /// Compute a rotation arround a given axe and with a given angle
        static cRotation3D<Type> RotFromAxe(const tPt & anAxe,Type aTeta);
-       //  Axiator close to Rot From but teta=Norm !!  exp(Mat(^Axe))
+       ///  Axiator close to Rot From but teta=Norm !!  exp(Mat(^Axe))
        static cRotation3D<Type> RotFromAxiator(const tPt & anAxe);
-       // Compute a random rotation for test/bench
+       /// Compute a random rotation for test/bench
        static cRotation3D<Type> RandomRot();
-       // Compute a "small" random rot controlled by ampl
+       /// Compute a "small" random rot controlled by ampl
        static cRotation3D<Type> RandomRot(const Type & aAmpl);
+       
+       //// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
+      // static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
 
        // Extract Axes of a rotation and compute its angle 
        void ExtractAxe(tPt & anAxe,Type & aTeta);
@@ -133,6 +140,7 @@ template <class Type> class cRotation3D
     private :
        cDenseMatrix<Type>  mMat;
 };
+
 
 /**  Class for 3D "affine" rotation of vector
 
@@ -186,6 +194,10 @@ template <class Type> class cIsometry3D
        tPt                mTr;
        cRotation3D<Type>  mRot;
 };
+typedef cIsometry3D<tREAL8> tPoseR; 
+
+template <class Type> cRotation3D<tREAL8>  ToReal8(const cRotation3D<Type>  &);
+template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  &);
 
 template <class Type> class cSimilitud3D
 {
@@ -282,6 +294,37 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            void PlyInit(const std::string &);
            void PlyWrite(const std::string &,bool isBinary) const;
 };
+
+class cPlane3D
+{
+     public :
+         cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
+         static cPlane3D FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aAxeK);
+
+         cPt3dr  ToLocCoord(const cPt3dr &) const;
+         cPt3dr  FromCoordLoc(const cPt3dr &) const;
+         cPt3dr  Inter(const cPt3dr&aP0,const cPt3dr&aP1) const;
+         cPt3dr  Inter(const tSeg3dr& ) const;
+
+         // return 3 point for random plane
+         static std::vector<cPt3dr>  RandParam();
+         const cPt3dr& AxeI() const;
+         const cPt3dr& AxeJ() const;
+         const cPt3dr& AxeK() const;
+
+     private :
+         cPt3dr mP0;
+         cPt3dr mAxeI;
+         cPt3dr mAxeJ;
+         cPt3dr mAxeK;
+};
+
+cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8> * aVWeight = nullptr);
+///  Specialization for 2 lines, supposed to be faster,  Weight: 1.0 ->on line 1 , 0.0 -> one line 2
+cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12=0.5);
+
+
+
 
 
 };

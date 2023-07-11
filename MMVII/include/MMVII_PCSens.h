@@ -4,12 +4,22 @@
 #include "SymbDer/SymbDer_Common.h"
 #include "MMVII_PhgrDist.h"
 #include "MMVII_Sensor.h"
+#include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
+
+/*   Cx Cy Cz  Wx Wy Wz   =>  external parameters
+*    F   PPx PPy          =>  Focal & Principal point
+*    K1 K2 K3  ....       =>  Radial
+*    b1 b2      x_0_2     =>  General
+*    p1 p2 (p3 p4  ..)    =>  Decentrique
+*/
 
 using namespace NS_SymbolicDerivative;
 
 namespace MMVII
 {
+extern bool BUGCAL ;
+
 
 /** \file MMVII_PCSens.h
     \brief Interface class for central perspective sensors
@@ -45,7 +55,8 @@ namespace MMVII
 */
 
 class cDefProjPerspC;  // interface for nowing if where a proj is def
-class cCalibStenPerfect ;  // pure intrinsic calib (only PP + F)
+class cMapPProj2Im ;  // pure intrinsic calib (only PP + F)
+class cMapIm2PProj ;  // pure intrinsic calib (only PP + F)
 class cDataPerspCamIntrCalib;  // primary data part of a cPerspCamIntrCalib -> minimal data to save in a file to be able to reconstruct a cal
 class cPerspCamIntrCalib ; // object allowing computation of internal calib = cDataPerspCamIntrCalib + many calculators computed from data
 class cSensorCamPC ; // Sensor for one image = Pose + pointer to cPerspCamIntrCalib
@@ -57,18 +68,30 @@ class cSensorCamPC ; // Sensor for one image = Pose + pointer to cPerspCamIntrCa
  *     - 3D is def if Z>0  => P3DIsDef = Z
  *     - 2D if Def if ||P|| <1  => P2DIsDef = 1 - sqrt(X^2+Y^2) 
  * */
-class cDefProjPerspC
+class cDefProjPerspC : public cDataBoundedSet<tREAL8,2> 
 {
        public :
+          static constexpr tREAL8 DefRhoMax = -1.0;
+
           /// signed belonging function for 3-d points
           virtual tREAL8  P3DIsDef(const cPt3dr &) const = 0 ;
           /// signed belonging function for 2-d points
           virtual tREAL8  P2DIsDef(const cPt2dr &) const =0 ;
 
+	  virtual tREAL8 Insideness(const tPt &) const override;
+
+
           /// Radial symetry, true for physcicall based model, false for ex with equirect
           virtual bool  HasRadialSym() const ;
-	  /// return an object from its enum (for a given enum, will be always the same)
-          static const cDefProjPerspC & ProjOfType(eProjPC);
+	  /// return an object from its enum (for a given enum), it teta max has, if value is default each type will adapt it to its means 
+          static const cDefProjPerspC * ProjOfType(eProjPC,tREAL8 aTetaMax=DefRhoMax);
+
+          virtual ~ cDefProjPerspC();
+
+	  cDefProjPerspC(tREAL8 aRhoMax);
+	  cDefProjPerspC(cPt2dr aRhoMax);
+	  tREAL8  mRhoMax;
+
 };
 
 /**  Class for modelisation of intrisic calibration w/o distorsion : essentially the mapping
@@ -77,31 +100,28 @@ class cDefProjPerspC
  *
  */
 
-class cCalibStenPerfect : public cDataInvertibleMapping<tREAL8,2>
+class cMapPProj2Im : public cInvertMappingFromElem<cHomot2D<tREAL8> >
 {
      public :
-         typedef tREAL8               tScal;
-         typedef cPtxd<tScal,2>       tPt;
-         typedef std::vector<tPt>     tVecPt;
+         cMapPProj2Im(tREAL8 aFoc,const tPt & aPP);
+         cMapPProj2Im(const cMapPProj2Im & aPS);  ///< default wouldnt work because deleted in mother class
+         cMapIm2PProj MapInverse() const;
 
-         cCalibStenPerfect(tScal aFoc,const tPt & aPP);
-         cCalibStenPerfect(const cCalibStenPerfect & aPS);  ///< default wouldnt work because deleted in mother class
-         cCalibStenPerfect MapInverse() const;
-
-         tPt    Value(const tPt& aPt) const override {return mPP + aPt*mF;}
-         tPt    Inverse(const tPt& aPt) const override {return (aPt-mPP) / mF;}
-         const  tVecPt &  Inverses(tVecPt &,const tVecPt & ) const override;
-         const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;
-
-         const tScal& F()  const;   ///<  Focal
+         const tREAL8& F()  const;   ///<  Focal
          const tPt  & PP() const;  ///<  Principal point
-         tScal& F()  ;   ///<  Focal
+         tREAL8& F()  ;   ///<  Focal
          tPt  & PP() ;  ///<  Principal point
      private :
-         tScal  mF;   ///<  Focal
-         // std::string  mUnused; ///< To check if PP & F need to be consecutive; OK it works
-         tPt    mPP;  ///<  Principal point
 };
+
+
+class cMapIm2PProj :  public cInvertMappingFromElem<cHomot2D<tREAL8> >
+{
+    public :
+         cMapIm2PProj(const cHomot2D<tREAL8> &);
+};
+
+
 
 /**  helper for cPerspCamIntrCalib, as the cPerspCamIntrCalib must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
@@ -119,7 +139,7 @@ class cDataPerspCamIntrCalib
             eProjPC        aTypeProj,           ///< type of projection
             const cPt3di & aDegDir,             ///< degrees of distorstion  Rad/Dec/Univ
             const  std::vector<double> & aVParams,  ///< vector of distorsion
-            const cCalibStenPerfect & aCSP,           ///< Calib w/o dist
+            const cMapPProj2Im & aMapP2I,           ///< Calib w/o dist
             const  cDataPixelDomain  & aPixDomain,              ///< sz, domaine of validity in pixel
             const cPt3di & aDegPseudoInv,       ///< degree of inverse approx by least square
             int aSzBuf                         ///< sz of buffers in computation
@@ -129,7 +149,7 @@ class cDataPerspCamIntrCalib
       void PushInformation(const std::string &);
       std::vector<std::string> & VecInfo() ;
 
-      const cCalibStenPerfect& CalibStenPerfect() const { return mCSPerfect;}
+      const cMapPProj2Im& MapPProj2Im() const { return mMapPProj2Im;}
 
    protected :
       std::string                    mName;
@@ -137,7 +157,7 @@ class cDataPerspCamIntrCalib
       cPt3di                         mDir_Degr;             ///< degrees of distorstion  Rad/Dec/Univ
       std::vector<cDescOneFuncDist>  mDir_VDesc;
       mutable std::vector<double>    mVTmpCopyParams;     ///< tempo copy of param, used 4 serialization
-      cCalibStenPerfect              mCSPerfect;                ///< Calib w/o dist
+      cMapPProj2Im                   mMapPProj2Im;                ///< Calib w/o dist
       cDataPixelDomain               mDataPixDomain;              ///< sz, domaine of validity in pixel
       cPt3di                         mInv_Degr;       ///< degree of inverse approx by least square
       int                            mSzBuf;                         ///< sz of buffers in computation
@@ -157,7 +177,7 @@ class cDataPerspCamIntrCalib
 
          * dirtortion  R2->R2 , its a function close to identity (at least ideally)
 	 
-	 * cCalibStenPerfect  R2->R2  transformat additmentional unit in pixels
+	 * cMapPProj2Im  R2->R2  transformat additmentional unit in pixels
 
  */
 
@@ -176,7 +196,23 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
     // ================== construction of object ===============
             static cPerspCamIntrCalib * Alloc(const cDataPerspCamIntrCalib &);
 
+	    /**  Generate random calib, with assurance that distorsion will be inverible, 
+	       the KDeg (in 0,1,2)  pick one of the pre-defined degree */
+            static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg);
 
+
+	    /** Given a set of 2D-3D correspondance, make a pose estimation using space resection,  
+                   NbTriplet :  number of triplet tested in ransac
+                   Real8     :  is the internal computation done on 8/16 byte floating point (theorically more accuracy)
+                   aNbPtsMeasures : possibly reduce the number of point for measuring accuracy (not for triplet selection)
+
+		   return "best" pose + score as Avg Residual (angular not pixel)
+            */
+             cWhichMin<tPoseR,tREAL8>  RansacPoseEstimSpaceResection
+		    (const cSet2D3D & aSet0,size_t aNbTriplet,bool Real8=true, int aNbPtsMeasures=-1,cTimerSegm * =nullptr);
+
+	    /**  Acces to the elementay space resection method : get a list of pose corresponding to a triplet of 2D-3D corresp*/
+	    std::list<tPoseR >  ElemPoseEstimSpaceResection(const cPair2D3D&,const cPair2D3D&,const cPair2D3D&);
 
                 ///  Update parameter of lsq-peudso-inverse distorsion taking into account direct
             void UpdateLSQDistInv();
@@ -195,8 +231,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 
     // ==================   geometric points computation ===================
             const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;
-            const  tVecIn  &  Inverses(tVecIn &,const tVecOut & ) const;
-	    tPtIn  Inverse(const tPtOut &) const;
+            const  tVecIn  &  DirBundles(tVecIn &,const tVecOut & ) const;
+	    tPtIn  DirBundle(const tPtOut &) const;
 
             // for a point in pixel coordinates, indicate how much its invert projection is defined, not parallized !
             tREAL8  InvProjIsDef(const tPtOut & aPix ) const;
@@ -207,12 +243,18 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cPt2dr & PP() const;  ///< acess to principal point
             const cPt3di & DegDir() const;  ///< acess to direct degrees
             const std::string & Name() const;   ///< Name of the file
+            void SetName(const std::string &) ; ///< Change the name
+ 
+            eProjPC TypeProj() const;           ///< type of projection
 
 	    const std::vector<double> & VParamDist() const;  ///< vector of dist param
 	    std::vector<double> & VParamDist();    ///< vector of dist param
             const   std::vector<cDescOneFuncDist> &  VDescDist() const;  ///< desc of dist param
 	           //  ===  Acess to individuald dist values
 	    int IndParamDistFromName(const std::string&,bool SVP=false) const; ///< get index of param from its name, -1 if none & SVP
+
+	    ///  List of adresses of parameters that contain
+	    void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 	    double  ParamDist(const std::string &) const; ///< recover param of dist from its name
 	    void    SetParamDist(const std::string &,const double &) ; ///< set  value of dist from its name
 	    bool    IsNameParamDist(const std::string &) const;  ///< Is it a valuable name of distosion param
@@ -225,9 +267,10 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             const cDataMapping<tREAL8,2,3>* Inv_Proj() const; ///< access to inverse projection as a cDataMapping FOR_PYTHON
             const cDataInvertibleMapping<tREAL8,2>* Dir_DistInvertible() const; ///< access to inverse distorsion as a cDataMapping FOR_PYTHON
 
-            /// point on grid
-	    std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const ;
+            /// point on grid  InPixel -> apply or not F/PP
+	    std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim,bool InPixel) const ;
 
+	    const cPixelDomain & PixelDomain() const ;
 
     // ==================   Test & Bench ===================
 
@@ -242,27 +285,28 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
              void OnUpdate() override;    ///< "reaction" after linear update, eventually update inversion
 
 	     /// return calculator adapted to model of camera (degree, projection)
-             cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf);
+             cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse);
 
-	     void UpdateCSP();  ///< when PP/F modified
+	     void UpdateMapProj2Im();  ///< when PP/F modified
 
 	     const cPt2di & SzPix() const;
 
 	     /// Used by CamPC
-	     double Visibility(const cPt3dr &) const ;
+	     double DegreeVisibility(const cPt3dr &) const ;
 
-	     double VisibilityOnImFrame(const cPt2dr &) const;
+	     double DegreeVisibilityOnImFrame(const cPt2dr &) const;
 
 
 	    ///  real constructor (accessible directly because RemanentObjectFromFile)
             cPerspCamIntrCalib(const cDataPerspCamIntrCalib &);
+	    
+	    /// For inversion, or sampling point, we need seed that is +- corresponding of sensor midle, befor dist
+	    cPt2dr PtSeedInv() const;
 
        private :
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
 
-	    /// For inversion, or sampling point, we need seed that is +- corresponding of sensor midle, befor dist
-	    cPt2dr PtSeedInv() const;
 
 
          // ==================   DATA PART   ===================
@@ -270,7 +314,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
                 // comon to dir & inverse
             // eProjPC                              mTypeProj;
             // int                                  mSzBuf;
-            const cDefProjPerspC &               mDefProj;
+	    bool                                 mVoidDist;  /// special behavior is requires with deg=[0,0,0] 
+            const cDefProjPerspC *               mDefProj;    ///  Prof function
             cPixelDomain                         mPixDomain;              ///< sz, domaine of validity in pixel
 
                 // ------------ parameters for direct projection  DirBundle -> pixel ------------
@@ -280,11 +325,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
            //  std::vector<tREAL8>                  mDir_Params;    ///< Parameters of distorsion -> deprecated, redundant
             cDataMapCalcSymbDer<tREAL8,3,2>*     mDir_Proj;   ///< direct projection  R3->R2
             cDataNxNMapCalcSymbDer<tREAL8,2>*    mDir_Dist;   ///< direct disorstion  R2->R2
-            // cCalibStenPerfect                    mCSPerfect;  ///< R2-phgr -> pixels
-            // cPixelDomain *                       mPixDomain;  ///< validity domain in pixel
                //  -------------  now for "inversion"  pix->DirBundle --------------------
                 //
-            cCalibStenPerfect                    mInv_CSP;
+            cMapIm2PProj                         mMapIm2PProj;
             cDataMappedBoundedSet<tREAL8,2>*     mPhgrDomain;  ///<  validity in F/PP corected space, initialization use mInv_CSP
             // cPt3di                               mInv_Degr;
             std::vector<cDescOneFuncDist>        mInv_VDesc;  ///< contain a "high" level description of dist params
@@ -315,23 +358,41 @@ void AddData(const cAuxAr2007 & anAux,cPerspCamIntrCalib &);
 class cSensorCamPC : public cSensorImage
 {
      public :
+	 typedef cObjWithUnkowns<tREAL8> * tPtrOUK;
          typedef cIsometry3D<tREAL8>  tPose;   /// transformation Cam to Word
 
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
 
          /// Create form  Un-Calibrated-Space-Resection
-         static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,bool Real16=true);
+         static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,const std::string&,bool Real16=true);
 
          cPt2dr Ground2Image(const cPt3dr &) const override;
 
-	 double Visibility(const cPt3dr &) const override;
-	 double VisibilityOnImFrame(const cPt2dr &) const override;
+	 double DegreeVisibility(const cPt3dr &) const override;
+	 double DegreeVisibilityOnImFrame(const cPt2dr &) const override;
+
+	 const cPixelDomain & PixelDomain() const override;
 
 
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
+         tSeg3dr  Image2Bundle(const cPt2dr &) const override;
+
 
          std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim) const override;
+
+         ///  residual of projection as angle between directions, work with any lenses
+         tREAL8  AngularProjResiudal(const cPair2D3D&) const;
+         ///  average of AngularProjResiudal
+         tREAL8  AvgAngularProjResiudal(const cSet2D3D&) const;
+
+	 const cPt3dr * CenterOfPC() override;
+         /// Return the calculator, adapted to the type, for computing colinearity equation
+         cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
+	 /// Push the current rotation, as equation are fixed using delta-rot
+	 void PushOwnObsColinearity( std::vector<double> &) override;
+
+
 
 	 // different accessor to the pose
          const tPose &   Pose()   const;
@@ -349,6 +410,13 @@ class cSensorCamPC : public cSensorImage
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
          void OnUpdate() override;                 // "reaction" after linear update
 
+	 /// contain itself + internal calib
+	 std::vector<tPtrOUK>  GetAllUK() override;
+
+	 /// retur
+	 void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+
+
          size_t NumXCenter() const;  /// num of Center().x when used as cObjWithUnkowns (y and z follow)
          size_t NumXOmega() const;   /// num of mOmega().x when used as cObjWithUnkowns (y and z follow)
 
@@ -363,8 +431,10 @@ class cSensorCamPC : public cSensorImage
          static std::string  PrefixName() ;
          std::string  V_PrefixName() const override;
 
+         static void BenchOneCalib(cPerspCamIntrCalib * aCalib);
 
      private :
+        void Bench();
         cSensorCamPC(const cSensorCamPC&) = delete;
 
         cIsometry3D<tREAL8>  mPose;   ///< transformation Cam to Word

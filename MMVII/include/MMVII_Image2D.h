@@ -338,6 +338,9 @@ template <class Type>  class cIm2D
        /// Image with origin on (0,0)
        cIm2D(const cPt2di & aSz,Type * DataLin=0,eModeInitImage=eModeInitImage::eMIA_NoInit);
 
+       /// Create a 1-Line image (used for filter like exp that were initially implemented on 2D)
+       cIm2D(cDataIm1D<Type>& ); 
+
        /// Create an image and initialize it with the file
        cIm2D(const cBox2di & aSz,const cDataFileIm2D & aDataF);
 
@@ -501,7 +504,21 @@ class cRGBImage
 
 	/// draw only 1 pixel , use zoom for change geom
 	void SetRGBPoint(const cPt2dr & aPoint,const cPt3di & aCoul);  
-	// void SetRGBLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul);
+	void DrawLine(const cPt2dr & aP1,const cPt2dr & aP2,const cPt3di & aCoul,tREAL8 aWitdh=-1);
+	void DrawEllipse(const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aGA,tREAL8 aSA,tREAL8 aTeta,tREAL8 aWitdh=-1);
+	void DrawCircle (const cPt3di& aCoul,const cPt2dr & aCenter,tREAL8 aRay);
+	void FillRectangle (const cPt3di& aCoul,const cPt2di & aP1,const cPt2di & aP2,const cPt3dr & aAlpha);
+
+	static const  cPt2dr AlignCentr;
+
+	void DrawString 
+             (
+                  const std::string &,const cPt3di& aCoul,
+                  const cPt2dr & aP0,const cPt2dr & aLignm,
+                  tREAL8 aZoom=1, tREAL8 AlphaBackGround =0 , const cPt3di& aCoulBackGround = Gray128,int aSpace=1
+             );
+
+
 
 
         tIm1C  ImR(); ///< Accessor
@@ -517,6 +534,7 @@ class cRGBImage
         static const  cPt3di  Cyan;
         static const  cPt3di  Orange;
         static const  cPt3di  White;
+        static const  cPt3di  Gray128;
 
 	/// return a lut adapted to visalise label in one chanel (blue), an maximize constrat in 2 other
 	static  std::vector<cPt3di>  LutVisuLabRand(int aNbLab);

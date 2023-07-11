@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<MMVII_Serialization>
+   <MetaData>
+      <Nb>4</Nb>
+      <el>
+         <Mode>"Focalmm"</Mode>
+         <Nb>2</Nb>
+         <el>
+            <Pat>"XXXXXXXXXX.*XXXXXXX"</Pat>
+            <Val>"1"</Val>
+         </el>
+         <el>
+            <Pat>"XXXXXXXXXX.*XXXXXXX"</Pat>
+            <Val>"2"</Val>
+         </el>
+      </el>
+      <el>
+         <Mode>"Aperture"</Mode>
+         <Nb>1</Nb>
+         <el>
+            <Pat>".*"</Pat>
+            <Val>"11"</Val>
+         </el>
+      </el>
+      <el>
+         <Mode>"ModelCam"</Mode>
+         <Nb>0</Nb>
+      </el>
+      <el>
+         <Mode>"AdditionalName"</Mode>
+         <Nb>0</Nb>
+      </el>
+   </MetaData>
+</MMVII_Serialization>

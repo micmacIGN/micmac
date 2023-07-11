@@ -240,7 +240,23 @@ class  cSensorCamPC;
 class  cPhotogrammetricProject;
 class  cSIMap_Ground2ImageAndProf ;
 class  cPerspCamIntrCalib;
-class  cMedaDataImage;
+class  cMetaDataImage;
+
+// MMVII_MeasuresIm.h
+
+struct cPair2D3D;
+struct cSet2D3D;
+class cMesIm1Pt;
+class cSetMesPtOf1Im;
+
+class cMesIm1Pt;
+class cSetMesPtOf1Im;
+class cMes1GCP;
+class cSetMesGCP;
+
+class cMultipleImPt;
+class cSetMesImGCP;
+
 
 // MMVII_Radiom.h
 class cImageRadiomData;  ///< store data used for radiometric equalisation
@@ -252,7 +268,33 @@ class cRadialCRS ;            // class for "standard" model : radial function
 
       // radiometric  image calibration
 class cCalibRadiomIma ;     //  base class  for representing a calib
-class cCalRadIm_Cst ;       // class for standar model :   Cste + Sensor
+class cCalRadIm_Pol ;       // class for standar model :   Cste + Sensor
+
+     // ================  Ground & Image measures of points ========
+    
+      // without reference to name  of point or image
+struct  cPair2D3D;   //  correspondance between a 2D point and a 3D Poitnt
+struct  cWeightedPair2D3D ;  // cPair2D3D + a Weight
+struct cSet2D3D ;            // Set of cWeightedPair2D3D
+
+class cHomogCpleIm;
+class cSetHomogCpleIm;
+
+class cSetMesImGCP;
+class cMultipleImPt;
+class cSetMesGCP ;
+class cSetMesPtOf1Im ;
+class cMesIm1Pt;
+
+
+
+
+
+
+
+
+
+
 
 
 

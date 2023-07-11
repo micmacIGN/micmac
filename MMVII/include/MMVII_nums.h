@@ -11,7 +11,7 @@ namespace MMVII
 // Call V1 Fast kth value extraction
 double NC_KthVal(std::vector<double> &, double aProportion);
 double Cst_KthVal(const std::vector<double> &, double aProportion);
-
+double Average(const std::vector<double> &);
 
 // some time needs a null val for any type with + (neutral for +)
 
@@ -812,8 +812,14 @@ template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Typ
    /// Same as DerXAtanXY_sX ...  ... bench
 template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
 
+/*  ****************************************** */
+/*     REPRESENTATION of num on a base         */
+/* ******************************************* */
   
-
+///  Number minimal of digit for representing a number in a given base
+size_t GetNDigit_OfBase(size_t aNum,size_t aBase);
+///  Representation of number in a given base, can force minimal number of digit
+std::string  NameOfNum_InBase(size_t aNum,size_t aBase,size_t aNbDigit=0);
 
 /*  ****************************************** */
 /*       BIT MANIPULATION FUNCTIONS            */
@@ -826,6 +832,9 @@ size_t NbBits(tU_INT4 aVal);
 size_t HammingDist(tU_INT4 aV1,tU_INT4 aV2);
 /// make a circular permutation of bits, assuming a size NbIt, with  aPow2= NbBit^2
 size_t  LeftBitsCircPerm(size_t aSetFlag,size_t aPow2);
+/// make N iteratuio of LeftBitsCircPerm
+size_t  N_LeftBitsCircPerm(size_t aSetFlag,size_t aPow2,size_t N);
+
 /// make a symetry bits, assuming a size NbIt, with  aPow2= NbBit^2
 size_t  BitMirror(size_t aSetFlag,size_t aPow2);
 /// make a visualisation of bit flag as  (5,256) -> "10100000"
@@ -836,6 +845,8 @@ size_t  Str2BitFlag(const std::string & aStr);
 void  BitsToVect(std::vector<int> & aVBits,tU_INT4 aVal,size_t aPow2);
 ///  return the maximal length of consecutive 0 & 1, interpreted circularly    (94="01111010", 256=2^8)  =>  (3,2)
 cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2);
+///  idem above + memo the intervals
+cPt2di MaxRunLength(tU_INT4 aVal,size_t aPow2,std::vector<cPt2di> & aV0,std::vector<cPt2di> & aV1);
 /// Max of both run (0 and 1)
 size_t MaxRun2Length(tU_INT4 aVal,size_t aPow2);
 
@@ -865,6 +876,7 @@ class cCompEquiCodes : public cMemCheck
        typedef std::pair<cCelCC*,std::vector<cPt2di> > tAmbigPair;  // to represent possible ambiguity
 
        static std::string NameCERNLookUpTable(size_t aNbBits); ///< name of file where are stored CERN'S   LUT
+       static std::string NameCERNPannel(size_t aNbBits); ///< name of file where are stored CERN'S   3D target
        ///  allocate & compute code , return the same adress if param eq
        static cCompEquiCodes * Alloc(size_t aNbBits,size_t aPerAmbig=1,bool WithMirror=false);
 
@@ -873,9 +885,15 @@ class cCompEquiCodes : public cMemCheck
        /// For a set of code return the ambiguity (code beloning to same class)
        std::list<tAmbigPair>  AmbiguousCode(const std::vector<cPt2di> &);
        const std::vector<cCelCC*>  & VecOfCells() const; ///< Accessor
+       const cCelCC &  CellOfCodeOK(size_t aCode) const;  ///< Error if null
+       const cCelCC *  CellOfCode(size_t) const;  ///< nullptr if bad range or no cell
 
        ~cCompEquiCodes();
+       static void Bench(size_t aNBB,size_t aPer,bool Miror);
+
    private :
+       static std::string NameCERStuff(const std::string & aPrefix,size_t aNbBits); ///< name of file where are stored CERN'S   3D target
+
        cCompEquiCodes(size_t aNbBits,size_t aPerdAmbig,bool WithMirror);
        /// put all the code identic, up to a circular permutation, in the same cellu
        void AddCodeWithPermCirc(size_t aCode,cCelCC *);
@@ -897,6 +915,9 @@ class  cHamingCoder
     public :
          /// Constructor , indicate the number of bit of information
          cHamingCoder(int aNbBitsIn);
+
+         /// Different of default, here we indicate the total number of bits, last indicate if require even number 
+         static cHamingCoder HCOfBitTot(int aNbBitsTot,bool WithParity=false);
 
          int NbBitsOut() const; ///< Number of bit of coded messages
          int NbBitsIn() const;  ///< Number of bits of information
@@ -960,6 +981,35 @@ template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>&
 
 // Rank of values
 template <class TCont,class TVal> double Rank(const TCont &, const TVal&);
+
+/// Lox level read of file containing nums in fixed format   F->double   S->string (skipped)
+void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile);
+
+
+/**  Class for implementing proba law whith given average & standard deviation*/
+
+class cAvgDevLaw : public cMemCheck
+{
+    public  :
+	    /// Value of the law
+            tREAL8  NormalizedValue(tREAL8 aVal) const ;
+            /// Allocator of a cubic law approx gaussian
+            static cAvgDevLaw * CubAppGaussLaw(const tREAL8& aAvg,const  tREAL8& aStdDev);  
+            /// Allocator of a gaussian law
+            static cAvgDevLaw * GaussLaw(const tREAL8& aAvg,const  tREAL8& aStdDev);
+            virtual ~cAvgDevLaw();  ///< virtual destructor because virtual method
+
+            static void Bench();  ///<  Test of Integral/Average/Deviation for diff law
+    protected :
+            static void BenchOneLow(cAvgDevLaw *);  ///< Test of Integral/Average/Deviation for a given law
+
+            cAvgDevLaw(const tREAL8& aAvg,const  tREAL8& aStdDev);
+            virtual tREAL8  RawValue(tREAL8 aVal) const =0 ; ///< fundamental method to override
+
+            tREAL8 mAvg;     ///<  Average of the law
+            tREAL8 mStdDev;  ///<  Standard deviation of the law
+};
+
 
 
 };

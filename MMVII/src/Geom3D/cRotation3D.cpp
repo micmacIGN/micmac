@@ -1,4 +1,3 @@
-
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
@@ -188,6 +187,10 @@ template <class Type>
     return  cIsometry3D<Type> (tPt::PRandC()*AmplPt,cRotation3D<Type>::RandomRot());
 }
 
+template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & anIsom)
+{
+    return cIsometry3D<tREAL8>(  ToR(anIsom.Tr()) , ToReal8(anIsom.Rot())  );
+}
 
 
 /* ************************************************* */
@@ -199,7 +202,16 @@ template <class Type>
 template <class Type> cRotation3D<Type>::cRotation3D(const cDenseMatrix<Type> & aMat,bool RefineIt) :
    mMat (aMat)
 {
-   MMVII_INTERNAL_ASSERT_always((! RefineIt),"Refine to write in Rotation ...");
+   if (RefineIt)
+   {
+      mMat = mMat.ClosestOrthog();
+   }
+   // MMVII_INTERNAL_ASSERT_always((! RefineIt),"Refine to write in Rotation ...");
+}
+
+template <class Type> cRotation3D<Type>::cRotation3D(const tPt &aI,const tPt & aJ,const tPt & aK,bool RefineIt) :
+	cRotation3D<Type>(M3x3FromCol(aI,aJ,aK),RefineIt)
+{
 }
 
 
@@ -337,6 +349,13 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromWPK(const tPt
    ;
 }
 
+template <class Type> cRotation3D<tREAL8>  ToReal8(const cRotation3D<Type>  & aRot)
+{
+    cDenseMatrix<tREAL8>  aM8 =  Convert((tREAL8*)nullptr,aRot.Mat());
+    return cRotation3D<tREAL8>(aM8,false);
+}
+
+
 
 template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 {
@@ -372,7 +391,7 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 
     // aWPK += tPt::PRandC()*Type(0.05);
 
-    // now make some least square optim, do it we finite difference because I am a lazzy guy ;-)
+    // now make some least square optim, do it we finite difference because I am a lazzy guy (;-)
     for (int aK=0 ; aK<1 ; aK++)
     {
         Type aEps = 1e-3;
@@ -423,6 +442,8 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 /*
 */
 #define MACRO_INSTATIATE_PTXD(TYPE)\
+template  cRotation3D<tREAL8>  ToReal8(const cRotation3D<TYPE>  & aRot);\
+template  cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<TYPE>  & anIsom);\
 template class  cSimilitud3D<TYPE>;\
 template class  cIsometry3D<TYPE>;\
 template class  cRotation3D<TYPE>;

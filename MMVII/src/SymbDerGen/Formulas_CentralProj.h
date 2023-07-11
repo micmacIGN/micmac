@@ -64,6 +64,10 @@ class cUnDefinedAtPole
 class cProjStenope : public cDefProjPerspC
 {
    public :
+        cProjStenope(tREAL8 aTetaMax = DefRhoMax) :
+            cDefProjPerspC (aTetaMax)
+        {
+        }
 
         //  static const std::string & NameProj() {static std::string aName("Stenope"); return aName;}
         static eProjPC  TypeProj() {return eProjPC::eStenope;}
@@ -100,6 +104,8 @@ class cProjStenope : public cDefProjPerspC
 
            return {aX,aY,aC1};
         }
+
+
 };
 
      /** class that allow to generate code from formulas */
@@ -117,6 +123,10 @@ template <class  T ypeProj>  class cFormulaProj
 class cProjFE_EquiDist : public cDefProjPerspC
 {
    public :
+        cProjFE_EquiDist (tREAL8 aTetaMax = DefRhoMax) :
+            cDefProjPerspC (aTetaMax)
+        {
+        }
 
         //static const std::string & NameProj() {static std::string aName("FE_EquiDist"); return aName;}
         static eProjPC  TypeProj() {return eProjPC::eFE_EquiDist;}
@@ -195,6 +205,10 @@ class cProjFE_EquiDist : public cDefProjPerspC
 class cProjStereroGraphik : public cDefProjPerspC
 {
    public :
+        cProjStereroGraphik (tREAL8 aTetaMax = DefRhoMax) :
+            cDefProjPerspC (aTetaMax)
+        {
+        }
         // static const std::string & NameProj() {static std::string aName("FE_StereoGr"); return aName;}
         static eProjPC  TypeProj() {return eProjPC::eStereroGraphik;}
 	//
@@ -277,6 +291,10 @@ Also :
 class cProjOrthoGraphic : public cDefProjPerspC
 {
    public :
+        cProjOrthoGraphic (tREAL8 aTetaMax = DefRhoMax) :
+            cDefProjPerspC (aTetaMax)
+        {
+        }
 /* Quite basic :
     Direct N = vunit(P)  => N.x,Ny
     Invese Norm(N) = sin(alpha) , cos = sqrt(1-sin^2) 
@@ -289,7 +307,7 @@ class cProjOrthoGraphic : public cDefProjPerspC
         ///  The equator project on circle of ray 1,  over its is degenerate and the formula cannot be inverted
         tREAL8  P2DIsDef(const cPt2dr & aP) const override
         {
-            return 1.0 - Norm2(aP);
+            return mRhoMax - Norm2(aP);
         }
 
 
@@ -343,6 +361,10 @@ class cProjOrthoGraphic : public cDefProjPerspC
 class cProj_EquiRect  : public cDefProjPerspC
 {
    public :
+        cProj_EquiRect (tREAL8 aTetaMax = DefRhoMax) :
+            cDefProjPerspC (aTetaMax)
+        {
+        }
         bool  HasRadialSym() const override {return false;}
         static eProjPC  TypeProj() {return eProjPC::eEquiRect;}
 	///< always defines, but singular when x,z=0
@@ -392,6 +414,10 @@ class cProj_EquiRect  : public cDefProjPerspC
 class cProjFE_EquiSolid  : public cDefProjPerspC
 {
    public :
+        cProjFE_EquiSolid(tREAL8 aTetaMax = DefRhoMax) :
+            cDefProjPerspC (aTetaMax)
+        {
+        }
         // static const std::string & NameProj() {static std::string aName("FE_EquiSolid"); return aName;}
         static eProjPC  TypeProj() {return eProjPC::eFE_EquiSolid;}
 

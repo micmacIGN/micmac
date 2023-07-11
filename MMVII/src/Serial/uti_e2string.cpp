@@ -182,12 +182,17 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::File3DRegion,"3DReg"},
                 {eTA2007::MPatFile,"MPF"},
                 {eTA2007::Orient,"Ori"},
-                {eTA2007::Radiom,"Rad"},
+                {eTA2007::RadiomData,"RadData"},
+                {eTA2007::RadiomModel,"RadModel"},
                 {eTA2007::MeshDev,"MeshDev"},
                 {eTA2007::Mask,"Mask"},
+                {eTA2007::MetaData,"MetaData"},
+                {eTA2007::PointsMeasure,"PointsMeasure"},
+                {eTA2007::TieP,"TieP"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
                 {eTA2007::OptionalExist,"OptEx"},
+                {eTA2007::PatParamCalib,"ParamCalib"},
                 {eTA2007::AddCom,"AddCom"},
                 {eTA2007::Internal,"##Intern"},
                 {eTA2007::Tuning,"##Tune"},
@@ -195,6 +200,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::Shared,"##Shar"},
                 {eTA2007::HDV,"##HDV"},
                 {eTA2007::ISizeV,"##ISizeV"},
+                {eTA2007::XmlOfTopTag,"##XmlOfTopTag"},
                 {eTA2007::FFI,"FFI"}
            };
 TPL_ENUM_2_STRING(eTA2007);
@@ -223,6 +229,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eCreateDir,"MkDir"},
                 {eTyUEr::eRemoveFile,"RmFile"},
                 {eTyUEr::eEmptyPattern,"EmptyPattern"},
+                {eTyUEr::eBadXmlTopTag,"XmlTopTag"},
                 {eTyUEr::eBadFileSetName,"FileSetN"},
                 {eTyUEr::eBadFileRelName,"FileRelN"},
                 {eTyUEr::eOpenFile,"OpenFile"},
@@ -230,6 +237,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eReadFile,"ReadFile"},
                 {eTyUEr::eBadBool,"BadBool"},
                 {eTyUEr::eBadInt,"BadInt"},
+                {eTyUEr::eBadDegreeDist,"BadDegreeDist"},
                 {eTyUEr::eBadEnum,"BadEnum"},
                 {eTyUEr::eMulOptParam,"MultOptP"},
                 {eTyUEr::eBadOptParam,"BadOptP"},
@@ -248,6 +256,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eNoAperture,"NoAperture"},
                 {eTyUEr::eNoFocale,"NoFocale"},
                 {eTyUEr::eNoFocaleEqui35,"NoFocaleEqui35"},
+                {eTyUEr::eNoCameraName,"NoCameraName"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 
@@ -312,12 +321,28 @@ TPL_ENUM_2_STRING(eDCTFilters);
 template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
            {
                 {eTyCodeTarget::eIGNIndoor,"IGNIndoor"},
-                {eTyCodeTarget::eIGNDrone,"IGNDrone"},
+                {eTyCodeTarget::eIGNDroneSym,"IGNDroneSym"},
+                {eTyCodeTarget::eIGNDroneTop,"IGNDroneTop"},
                 {eTyCodeTarget::eCERN,"CERN"}
            };
 TPL_ENUM_2_STRING(eTyCodeTarget);
 
+template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
+           {
+                {eMTDIm::eFocalmm,"Focalmm"},
+                {eMTDIm::eAperture,"Aperture"},
+                {eMTDIm::eModelCam,"ModelCam"},
+                {eMTDIm::eAdditionalName,"AdditionalName"}
+           };
+TPL_ENUM_2_STRING(eMTDIm);
 
+template<> cE2Str<eFormatExtern>::tMapE2Str cE2Str<eFormatExtern>::mE2S
+           {
+                {eFormatExtern::eMMV1,"Focalmm"},
+                {eFormatExtern::eMeshRoom,"MeshRoom"},
+                {eFormatExtern::eColMap,"ColMap"},
+           };
+TPL_ENUM_2_STRING(eFormatExtern);
 
 template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
            {
@@ -446,6 +471,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eModePaddingEpip>();
     TplBenchEnum<eModeCaracMatch>();
     TplBenchEnum<eDCTFilters>();
+    TplBenchEnum<eTyCodeTarget>();
 
     aParam.EndBench();
 }

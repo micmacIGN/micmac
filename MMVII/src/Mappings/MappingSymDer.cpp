@@ -226,14 +226,17 @@ cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,doub
    // 1- Initialize, without precautions
 
    double aSomJac=0.0;  //  sum of jacobian
-   while (aSomJac==0.0)
+   if (mDeg != cPt3di(0,0,0)) // => would create infinite loop
    {
-      for (int aKPar=0 ; aKPar<mNbParam ;aKPar++)
+      while (aSomJac==0.0) 
       {
-         double aMajNorm =  mVecDesc.at(aKPar).MajNormJacOfRho(mRhoMax);
-         double aV = RandUnif_C() * (RandUnif_0_1() < aProbaNotNul) /aMajNorm;
-         mVParam[aKPar] = aV;
-         aSomJac += std::abs(aV) * aMajNorm;
+         for (int aKPar=0 ; aKPar<mNbParam ;aKPar++)
+         {
+            double aMajNorm =  mVecDesc.at(aKPar).MajNormJacOfRho(mRhoMax);
+            double aV = RandUnif_C() * (RandUnif_0_1() < aProbaNotNul) /aMajNorm;
+            mVParam[aKPar] = aV;
+            aSomJac += std::abs(aV) * aMajNorm;
+         }
       }
    }
    aSomJac = std::max(aSomJac,1e-5) ; // dont divide 0 if allmost null

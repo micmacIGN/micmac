@@ -130,8 +130,8 @@ template <class Type>  class cHomot2D
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
 
           cHomot2D(const tPt & aTr,const Type & aSc)  :
-              mTr (aTr),
-              mSc (aSc)
+              mSc (aSc),
+              mTr (aTr)
           {
           }
           cHomot2D() :  cHomot2D<Type>(tPt(0.0,0.0),1.0) {};
@@ -140,11 +140,13 @@ template <class Type>  class cHomot2D
           tTypeMapInv MapInverse() const {return cHomot2D<Type>(-mTr/mSc,1.0/mSc);}
 	  tTypeMap operator *(const tTypeMap&aS2) const {return tTypeMap(mTr+mSc*aS2.mTr,mSc*aS2.mSc);}
 
-          inline const tPt&  Tr() const   {return mTr;}
-          inline Type        Sc() const   {return mSc;}
+          inline const tPt&     Tr() const   {return mTr;}
+          inline const Type &   Sc() const   {return mSc;}
+          inline tPt&     Tr() {return mTr;}
+          inline Type &   Sc() {return mSc;}
       private :
-          tPt mTr;
           Type mSc;
+          tPt mTr;
 };
 
 /** Usefull when we want to visualize objects : compute box of visu + Mapping Visu/Init */
@@ -431,26 +433,51 @@ template<class Type> class cTriangulation2D : public cTriangulation<Type,2>
 class cEllipse
 {
      public :
+       static void BenchEllispe();
+
        /// Create from a vector of parameter ABCEF such elipse is definedby  :  Axx+2Bxy+Cyy+Dx+Fy=1
        cEllipse(cDenseVect<tREAL8> aDV,const cPt2dr & aC0);
-       double ApproxSigneDist(cPt2dr aP) const;
+       ///  A more physicall creation
+       cEllipse(const cPt2dr & aCenter,tREAL8 aTeta,tREAL8 aLGa,tREAL8 aLSa);
 
-       double SignedD2(cPt2dr aP) const;
-       double Dist(const cPt2dr & aP) const;
+       void AddData(const  cAuxAr2007 & anAux);
+
+
+       double EuclidDist(const cPt2dr& aP) const;  /// rigourous  distance, use projection (long ?)
+       double SignedEuclidDist(const cPt2dr& aP) const;  /// rigourous signed distance
+
+       double ApproxSigneDist(const cPt2dr& aP) const;
+       double ApproxDist(const cPt2dr& aP) const;
+
+       double SignedQF_D2(const cPt2dr& aP) const;  ///  computed frm quadratic form , in D2 at infty
+       double QF_Dist(const cPt2dr & aP) const;     ///  computed frm quadratic form ,  in sqrt(D) at 0
+
        double   Norm() const  {return std::sqrt(1/ mNorm);}
-
-
        bool Ok() const;  ///< Accessor
        tREAL8 LGa() const;  ///< Accessor
        tREAL8 LSa() const;  ///< Accessor
        tREAL8 RayMoy() const;  ///< Accessor
        const cPt2dr &  Center() const; ///< Accessor
+       const cPt2dr &  VGa() const; ///< Accessor
+       const cPt2dr &  VSa() const; ///< Accessor
        double TetaGa() const; /// Teta great axe
 
        cPt2dr  PtOfTeta(tREAL8 aTeta,tREAL8 aMulRho=1.0) const; /// return on ellipse with param A cos(T) + B sin(T)
-       cPt2dr  PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &) const;  /// return also the gradien of belong function
+       cPt2dr  PtAndGradOfTeta(tREAL8 aTeta,cPt2dr &,tREAL8 aMulRho=1.0) const;  /// return also the gradien of belong function
+
+       cPt2dr  ToCoordLoc(const cPt2dr &) const; /// in a sys when ellipse is unity circle
+       cPt2dr  FromCoordLoc(const cPt2dr &) const; /// in a sys when ellipse is unity circle
+       cPt2dr  VectFromCoordLoc(const cPt2dr &) const; /// for vector (dont use center)in a sys when ellipse is unity circle
+       cPt2dr  ToRhoTeta(const cPt2dr &) const; /// Invert function of PtOfTeta
+
+       cPt2dr  ProjOnEllipse(const cPt2dr &) const;
+       cPt2dr  ProjNonEuclOnEllipse(const cPt2dr &) const;   // project with ellispe norm
+
+       cPt2dr  Tgt(const cPt2dr &) const;
+       cPt2dr  NormalInt(const cPt2dr &) const;
 
     private :
+       void OneBenchEllispe();
        cDenseVect<tREAL8>     mV;
        double                 mNorm;
        cPt2dr                 mC0;
@@ -466,6 +493,7 @@ class cEllipse
        tREAL8                 mRayMoy;
        tREAL8                 mSqRatio;
 };
+void AddData(const  cAuxAr2007 & anAux,cEllipse &);
 
 class cEllipse_Estimate
 {
@@ -497,6 +525,11 @@ typedef std::vector<cPt2di> tResFlux;
 
 void      GetPts_Circle(tResFlux & aRes,const cPt2dr & aC,double aRay,bool with8Neigh);
 tResFlux  GetPts_Circle(const cPt2dr & aC,double aRay,bool with8Neigh);
+
+void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2);
+void  GetPts_Line(tResFlux & aRes,const cPt2dr & aP1,const cPt2dr &aP2,tREAL8 Width);
+
+void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh,tREAL8 aDilate);
 void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh);
 
 
@@ -507,6 +540,7 @@ struct cExtractedEllipse
         cEllipse         mEllipse;
 
         cExtractedEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse);
+        void  ShowOnFile(const std::string & aNameIm,int aZoom,const std::string& aPrefName) const; // make a accurate visu
 
         tREAL8               mDist;
         tREAL8               mDistPond;
@@ -524,12 +558,12 @@ class cExtract_BW_Ellipse  : public cExtract_BW_Target
              bool AnalyseEllipse(cSeedBWTarget & aSeed,const std::string & aNameIm);
 
              const std::list<cExtractedEllipse> & ListExtEl() const;  ///< Accessor
-        private :
 
+             void   ComputeBlurr();
+        private :
              std::list<cExtractedEllipse> mListExtEl;
 };
 
-void  ShowEllipse(const cExtractedEllipse & anEE,const std::string & aNameIm);
 
 
 };

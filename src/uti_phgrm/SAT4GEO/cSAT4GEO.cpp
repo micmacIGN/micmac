@@ -442,6 +442,7 @@ cAppliCreateEpi::cAppliCreateEpi(int argc, char** argv)
 		std::string aComTmp = MMBinFile(MM3DStr) + "CreateEpip " 
 						      + itP.N1() + BLANK + itP.N2() + BLANK + mOri  
 					              + mCAS3D.ComParamEpip()
+						      + BLANK + "DoEpiAbs=false"
 						      + BLANK + "Out=" + mCAS3D.NameOfEpiImPrefix(NbPair,mOri) //necessary to avoid too long names 
 						      + BLANK + "@ExitOnBrkp";
 

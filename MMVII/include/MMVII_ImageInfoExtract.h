@@ -102,16 +102,23 @@ struct cParamBWTarget
 
       int NbMaxPtsCC() const; ///<Max number of point (computed from MaxDiam)
       int NbMinPtsCC() const; ///<Min number of point (computed from MinDiam)
+      void SetMax4Inv(tREAL4 aMaxGray);
+      tREAL8    CorrecRad(tREAL8 aBlack) const;
+      tREAL8    RatioBW(tREAL8 aBlack,tREAL8 aWhite) const;
 
-      double    mFactDeriche;   ///< Factor for gradient with deriche-method
-      int       mD0BW;          ///< distance to border
-      double    mValMinW;       ///< Min Value for white
-      double    mValMaxB;       ///< Max value for black
-      double    mRatioMaxBW;    ///< Max Ratio   Black/White
-      double    mMinDiam;       ///< Minimal diameter
-      double    mMaxDiam;       ///< Maximal diameter
-      double    mPropFr;        ///< Minima prop of point wher frontier extraction suceeded
-      int       mNbMinFront;    ///< Minimal number of point
+      double    mFactDeriche;     ///< Factor for gradient with deriche-method
+      int       mD0BW;            ///< distance to border
+      double    mValMinW;         ///< Min Value for white
+      double    mValMaxB;         ///< Max value for black
+      double    mRatioMaxBW;      ///< Max Ratio   Black/White
+      double    mMinDiam;         ///< Minimal diameter
+      double    mMaxDiam;         ///< Maximal diameter
+      double    mPropFr;          ///< Minima prop of point wher frontier extraction suceeded
+      int       mNbMinFront;      ///< Minimal number of point
+      double    mDistMinMaxLoc;   ///< Maximal distance between Max Loc
+
+      bool      mInvGray;
+      tREAL4    mMaxGray;
 };
 
 struct cSeedBWTarget
@@ -125,6 +132,9 @@ struct cSeedBWTarget
 
        tREAL4 mBlack;
        tREAL4 mWhite;
+
+       tREAL4  Contrast() const;
+       tREAL4  Avg() const;
        bool   mOk;
        bool   mMarked4Test;
 
@@ -175,6 +185,8 @@ class cExtract_BW_Target
         bool AnalyseOneConnectedComponents(cSeedBWTarget &);
         bool ComputeFrontier(cSeedBWTarget & aSeed);
 
+	void TestNewSeed();
+
   protected :
 
         /// Is the point a candidate for seed (+- local maxima)
@@ -183,7 +195,7 @@ class cExtract_BW_Target
         /// Update the data for connected component with a new point (centroid, bbox, heap...)
         void AddPtInCC(const cPt2di &);
         // Prolongat on the vertical, untill its a max or a min
-        cPt2di Prolongate(cPt2di aPix,bool IsW,tElemIm & aMaxGy) const;
+        cPt2di Prolongate(cPt2di aPix,bool IsW) const;
 
         /// Extract the accurate frontier point, essentially prepare data to call "cGetPts_ImInterp_FromValue"
         cPt2dr RefineFrontierPoint(const cSeedBWTarget & aSeed,const cPt2di & aP0,bool & Ok);

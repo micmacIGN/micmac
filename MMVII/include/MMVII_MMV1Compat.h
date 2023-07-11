@@ -33,7 +33,6 @@ struct  cExportV1StenopeCalInterne
 	     cSet2D3D              mCorresp;
 };
 
-
 //  Defined in MMVII_Stringifier.h for Serialization
 // template<class Type> void  MMv1_SaveInFile(const Type & aVal,const std::string & aName)
 // template<> void  MMv1_SaveInFile(const tNameSet & aVal,const std::string & aName);

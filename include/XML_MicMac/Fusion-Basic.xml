@@ -67,26 +67,26 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-Basic.xml 
 -->
     </SectionName>
 
-
+       <!-- [RPD] https://doi.org/10.1016/j.isprsjprs.2018.03.016 => For more information on the algorithm -->
        <ParamAlgoFusionMNT>
-           <FMNTSeuilCorrel> 0.7 </FMNTSeuilCorrel>
-           <FMNTGammaCorrel > 1 </FMNTGammaCorrel>
-           <SzBoucheTrou> 3 </SzBoucheTrou>
+	   <FMNTSeuilCorrel> 0.7 </FMNTSeuilCorrel> <!-- not used -->
+           <FMNTGammaCorrel > 1 </FMNTGammaCorrel> <!-- Eq(1) in [RPD], gives more importance to higher correlation scores (useful for noisy correlations as in diachronic 2D matching)  -->
+           <SzBoucheTrou> 3 </SzBoucheTrou> <!-- not used -->
 
            <SpecAlgoFMNT>
-                 <SigmaPds> 5.0 </SigmaPds>
-                 <SeuilMaxLoc> 1  </SeuilMaxLoc>
-                 <SeuilCptOk>  2.0  </SeuilCptOk>
-                 <SigmaZ> 7.5  </SigmaZ> <!--  ???   -->
-                 <NBMaxMaxLoc> 6  </NBMaxMaxLoc>
-                 <FMNT_ProgDyn>
-                            <Regul> 0.0 </Regul>
-                            <Sigma0> 10.0 </Sigma0>
-                            <NbDir>  7 </NbDir>
+                 <SigmaPds> 5.0 </SigmaPds> <!-- sigma in Alg.1 in [RPD]; the larger the value, the more conservative smoothing in the recursive filter; in other words, the filter will try to "cluster" the depths, see Fig.5 in [RPD]  -->
+		 <SeuilMaxLoc> 1  </SeuilMaxLoc> <!-- -->
+		 <SeuilCptOk>  2.0  </SeuilCptOk> <!-- used in recursive f., neighbouring depths that differ by a threshold will not participate in the computation, depth_diff > SeuilCptOk*Resol  -->
+                 <SigmaZ> 7.5  </SigmaZ> <!--  not used   -->
+                 <NBMaxMaxLoc> 6  </NBMaxMaxLoc> <!-- used in recursive f., # maximal of max local retained -->
+		 <FMNT_ProgDyn> <!-- dynamic prgramming, optimisation, Eq(8) in [RPD] -->
+                            <Regul> 0.0 </Regul> <!-- higher values will smooth the surface --> 
+			    <Sigma0> 10.0 </Sigma0> <!-- the opposite effect of Regul -->
+                            <NbDir>  7 </NbDir> <!-- Number of explored directions -->
                             <FMNT_GesNoVal>
-                                <PenteMax> 10000 </PenteMax>
-                                <CostNoVal> 0.9 </CostNoVal>
-                                <Trans>     2 </Trans>
+                                <PenteMax> 10000 </PenteMax> <!-- max slope between consecutive 3D points -->
+                                <CostNoVal> 0.9 </CostNoVal> <!-- initial cost assigned to all depths (1-Corr) -->
+                                <Trans>     2 </Trans> <!-- -->
                             </FMNT_GesNoVal>
                  </FMNT_ProgDyn>
                  <ParamRegProf> </ParamRegProf>

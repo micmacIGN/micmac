@@ -1,0 +1,81 @@
+
+
+\chapter{Radiommetric organization}
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Generality}
+
+%---------------------------------------------
+\subsection{Modelization}
+
+The functionnality implemented currently in {\tt MMVII} do not pretend to make physicall
+modelization of radiometry with approach like BRDF or radiatif transfer.
+They are mainly targeted to make empiricall image equalization, which
+can be summarized as this :
+
+\begin{itemize}
+      \item  as input we have set of homologous point $P_k$ with
+	      $P_k = \{ (r_1 p_1) , (r_2 p_2) , \dots\}$ where $p_1,p_2 ...$
+              are point seeing in image corresponding to the projection
+              of the samepoint of the scene and $r_1, r_2 ...$ their 
+              radiometry, it can be rgb or grey values;
+             
+      \item  a mathematical model of correction, that define for each image
+	      the correction to recover the "real" radiometry  $G_k$;
+\end{itemize}
+
+The image equalizatio try to compute a set of model for $G_k$ such that
+for each homologous point we have :
+
+\begin{equation}
+	G_i(r_i,p_i) = G_j(r_j,p_j)  \forall i,j \label{Rad:Eq:Equal}
+\end{equation}
+
+To avoid some trivial solution as $G_i=0$, that perfectly fit equation ~\ref{Rad:Eq:Equal}
+we will often have to add some constraint as :
+
+\begin{equation}
+	G_i(r_i,p_i) \approx  r_i
+\end{equation}
+
+%---------------------------------------------
+\subsection{Simplification}
+
+In the current version of {\tt MMVII} we have made the following hypothesis :
+
+\begin{itemize}
+        \item  we modelize only grey-level correction;  the correction can be used on
+		RGB image, but it will be the same on all chanel;
+	\item  the correction is multiplicative   $G_i(r,p) = \frac{r}{F_i(p)} $
+        \item  the correction $F$ is made from a sensor correction $S$ and per image correction $f_i$,
+		$F_i(p) = S(p) f_i(p)$ ;
+        \item  the sensor correction is a radial function, of center equal to principal point;
+	\item  the per image correction $f_i(p)$ is a low polynomial function (classical choice
+		for modelizing universal smooth function).
+\end{itemize}
+
+A probable next (and easy ?)  extension will add an additive term to the sensor 
+correction to modelize the "dark current".
+
+The choice $S$ is radial, and $f_i=Cste$, is a basic physicall modelization, the radial
+function modelize the vignetage of lenses, while the constant modelize the global
+energy conversion on each image (iso, speed ...).
+
+In the default parametrisation we have :
+
+\begin{itemize}
+        \item one sensor model for each camera and each aperture;
+	\item one per image correction $f_i$ per image (is it a totology to say that?).
+\end{itemize}
+
+%---------------------------------------------
+\subsection{Main classes}
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Classes for photogrammetric data}

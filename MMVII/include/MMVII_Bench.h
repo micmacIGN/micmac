@@ -122,6 +122,7 @@ void BenchLeastSqMap(cParamExeBench & aParam);
 void BenchDelaunay(cParamExeBench & aParam);
 void BenchTri2D(cParamExeBench & aParam);
 void BenchPly(cParamExeBench & aParam);
+void Bench_Target_Encoding();
 void BenchHamming(cParamExeBench & aParam);
 void BenchPolynome(cParamExeBench & aParam);
 
@@ -136,7 +137,13 @@ void BenchMeshDev(cParamExeBench & aParam);  // bench  devlopment  (on devlopabl
 void BenchCentralePerspective(cParamExeBench & aParam); // test on implementation of central perstective model
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam); // test on importation cam-V1
 
+void BenchL1Solver(cParamExeBench & aParam); /// test that L1 solver is ok
+void Bench_MatEss(cParamExeBench & aParam); /// test that L1 solver is ok
+void Bench_ToHomMult(cParamExeBench & aParam); // Test conversion set pair Hom => Hom Multiple
 
+
+
+void Bench_SpatialIndex(cParamExeBench & aParam); /// test spatial index
 
 
 

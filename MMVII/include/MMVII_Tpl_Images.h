@@ -235,6 +235,24 @@ template<class T2,class T3>   cDenseMatrix<T2> operator * (const  T3 & aV3,const
 {
     return cDenseMatrix<T2>(aI2.Im()*aV3);
 }
+
+template<class T1,class T2,class T3>  
+   cIm1D<T1> MulImageCste(T1* /*Type specifier*/ ,const cIm1D<T2> & aI2,const  T3 & aV3)
+{
+     cIm1D<T1>  aI1(aI2.DIm().P1().x());
+     MulImageCsteInPlace(aI1.DIm(),aI2.DIm(),aV3);
+     return aI1;
+}
+template<class T2,class T3>   cIm1D<T2> operator * (const cIm1D<T2> & aI2,const  T3 & aV3)  
+{
+   return MulImageCste((T2 *)nullptr,aI2,aV3);
+}
+template<class T2,class T3>   cDenseVect<T2> operator * (const  T3 & aV3,const cDenseVect<T2> & aI2)
+{
+    return cDenseVect<T2>(aI2.Im()*aV3);
+}
+
+
        //===========   DivCste ===========
 
 template<class T1,class T2,int Dim>  
@@ -286,6 +304,13 @@ template<class T1,class T2,int Dim>
         aI1.GetRDL(aK) += aV*aI2.GetRDL(aK) ;
 }
 
+template<class T1,class T2>  cDenseVect<T1>  Convert(T1*,const cDenseVect<T2>& aDV2)
+{
+     cDenseVect<T1> aDV1(aDV2.Sz());
+     ConvertData(aDV1.RawData(),aDV2.RawData(),aDV2.Sz());
+
+     return aDV1;
+}
 
 /*****************************************************/
 /*                                                   */

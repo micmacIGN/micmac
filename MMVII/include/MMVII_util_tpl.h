@@ -220,7 +220,7 @@ template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
 }
 
 /// return -1 0 or 1 , regarding < , == or >
-template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+template <class Type> int VecLexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
 /// return if aV1 < aV2 as LexicoCmp==-1
 template <class Type> bool operator < (const std::vector<Type> & aV1,const std::vector<Type> & aV2);
 template <class Type> bool operator == (const std::vector<Type> & aV1,const std::vector<Type> & aV2);
@@ -275,6 +275,48 @@ template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Typ
    if (aSz>aV1.size())
       aV1.resize(aSz,aVal);
 }
+
+template <class Type> void SetAndResize(std::vector<Type> & aVec,size_t aSz,const Type &aVal,const Type & aDef)
+{
+      ResizeUp(aVec,aSz,aDef);
+      SetOrPush(aVec,aSz,aVal);
+}
+
+
+template <class T1,class T2> std::vector<T1> &  Convert(std::vector<T1> & aV1,const std::vector<T2> & aV2)
+{
+	aV1.resize(aV2.size());
+	for (size_t aK=0 ; aK<aV1.size() ; aK++)
+            aV1[aK] = aV2[aK];
+
+	return aV1;
+}
+
+template <class T1,class T2> std::vector<T1>   VecConvert(const std::vector<T2> & aV2)
+{
+    std::vector<T1> aRes;
+    Convert(aRes,aV2);
+    return  aRes;
+}
+
+
+template <class T1> std::vector<T1> & Convert(std::vector<T1> & aV1,const std::vector<T1> & aV2)
+{
+	aV1 = aV2;
+	return aV1;
+}
+
+
+///  Usefull, delete all object of the container
+template <class Type> inline void DeleteAllAndClear(Type & aVal)
+{
+    for (auto it=aVal.begin() ; it!=aVal.end() ; it++)
+        delete *it;
+    aVal.clear();
+}
+
+
+
 
 
 /// Set value, before resize up if required
@@ -347,6 +389,46 @@ template <class TVal,class TFunc> TVal * WhitchMinVect(std::vector<TVal> & aVec,
 template <class TVal,class TFunc> TVal * WhitchMaxVect(std::vector<TVal> & aVec,const TFunc & aFunc)
 {
     return WhitchMinVect(aVec,[&aFunc](auto & aV){return -aFunc(aV);});
+}
+
+
+/**   Class for maintaining a two way mapping Obj <--> Int */
+template <class Type>  class cBijectiveMapI2O
+{
+    public :
+
+        /// Add an object, if alredy exist create an error or do nothing, return value indicate if created
+        int Add(const Type & ,bool OkExist=false);
+
+        Type *   I2Obj(const int) ;  ///< Adr of object at index, 0 if none
+        int      Obj2I(const Type & anOb,bool SVP=false) const;  ///< Index of object , -1 if none
+
+    private :
+        std::vector<Type>    mI2Obj;   /// vector efficient for map int->obj
+        std::map<Type,int>   mObj2I;   /// dictionary in the other wat
+};
+
+typedef  cBijectiveMapI2O<std::string> t2MapStrInt;
+
+template <class Key,class Val> const Key * FindByVal(const std::map<Key,Val> & aMap,const Val & aVal,bool SVP=false)
+{
+    for (const auto & It : aMap)
+       if (It.second == aVal)
+          return  & It.first;
+    MMVII_INTERNAL_ASSERT_tiny(SVP,"FindByVal");
+    return nullptr;
+}
+
+template <class tCont>  typename tCont::value_type *  KthElem(tCont & aCont,int aNb,bool SVP=false)
+{
+    for (typename tCont::iterator anIt = aCont.begin() ; anIt!=aCont.end() ; anIt++)
+    {
+       if (aNb==0) return &(*anIt);
+       aNb--;
+    }
+    MMVII_INTERNAL_ASSERT_tiny(SVP,"KthElem");
+
+    return nullptr;
 }
 
 };

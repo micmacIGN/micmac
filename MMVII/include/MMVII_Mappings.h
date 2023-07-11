@@ -657,7 +657,7 @@ template <class Type,const int Dim>  struct cPtsExtendCMI
 
 
 
-template <class Type,const int Dim> class  cComputeMapInverse
+template <class Type,const int Dim> class  cComputeMapInverse : public cMemCheck
 {
     public :
             //  aCMaxRel => define the zone relatively to the rho max
@@ -678,14 +678,32 @@ template <class Type,const int Dim> class  cComputeMapInverse
         (
              const Type & aThreshJac, ///< Threshold on jacobian to ensure inversability
              const tPtR& aSeed,       ///< Seed point, in input space
-             const int & aNbPtsIn,    ///< Approximate number of point (in the biggest size)
-             tSet &,  ///< Set of validity, in output space
+             tREAL8  aNbPtsIn,    ///< Approximate number of point (in the biggest size)
+             const tSet * aSetIn,  ///< Set of validity, in input space, boundinx box is not used, can be nullptr
+             const tSet & aSetOut,  ///< Set of validity, in output space
              tMap&,   ///< Maping to invert : InputSpace -> OutputSpace
              tLSQ*,  ///< Structure for computing the invert on base of function using least square   
              bool Test=false
         );
 
+
+        static cComputeMapInverse * Alloc
+        (
+             const Type & aThreshJac, ///< Threshold on jacobian to ensure inversability
+             const tPtR& aSeed,       ///< Seed point, in input space
+             tREAL8  aNbPtsIn,    ///< Approximate number of point (in the biggest size)
+             const tSet * aSetIn,  ///< Set of validity, in input space, boundinx box is not used, can be nullptr
+             const tSet & aSetOut,  ///< Set of validity, in output space
+             tMap&,   ///< Maping to invert : InputSpace -> OutputSpace
+             tLSQ*,  ///< Structure for computing the invert on base of function using least square   
+             bool Test=false
+        );
+
+
+
         void  DoPts();
+        void  DoPtsInt();
+        void  DoPtsFront();
         tVPtR  GetPtsOut() const;
         void  DoAll(std::vector<Type> & aVSol);
 
@@ -713,14 +731,15 @@ template <class Type,const int Dim> class  cComputeMapInverse
         void OneStepFront(const Type & aStepFront);
 
         /// Validate (POut/Jac) if in domain and jacobian is OK
-        bool ValidateK(const tCsteResVecJac & aVecPJ,int aKp);
+        bool ValidateK(const tPtR & aPtIn,const tCsteResVecJac & aVecPJ,int aKp);
         /// Add one observtion for computing inverse, IsFront used for memo in test mode
         void AddObsMapDirect(const tVPtR & aPIn,const tVPtR & aPOut);
 
 	         // Copy of parameters
         Type          mThresholdJac;
         tPtR          mPSeed; //  seed point that is waranteed to be inside the domain
-        tSet &        mSet;   // Definition set of Output space
+        const tSet *  mSetIn;   // Definition set of input space
+        const tSet &  mSetOut;   // Definition set of Output space
         tMap &        mMap;   // Map to invert
         tLSQ *        mLSQ;   // systeme to compute the inverse as a linear composition of given base functions (using least square)
           // Created members
@@ -788,6 +807,9 @@ template <class cMapElem> class cInvertMappingFromElem :  public
 
          cInvertMappingFromElem(const cMapElem & aMap,const tMapInv & aIMap); 
          cInvertMappingFromElem(const cMapElem & aMap);  // requires that aMap can compute its inverse
+							 //
+         tMap & Map();							
+         const tMap & Map() const;							
     private :
          cMapElem   mMap;  // Map
          tMapInv  mIMap; // Map inverse
