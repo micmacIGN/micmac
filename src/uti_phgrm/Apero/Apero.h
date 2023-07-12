@@ -1341,7 +1341,7 @@ class cObsLiaisonMultiple
                       bool packMustBeSwapped=false // file aNamePack contains the couples in inverse order (the first point belongs to aName2 and the second to aName1)
                 );
 
-           void AddCple(int anI1,int anI2,const ElCplePtsHomologues&,bool IsFirstSet,double aPds);
+           void AddCple(int anI1,int anI2,const ElCplePtsHomologues&,bool IsFirstSet,double aPds, std::string aName1, std::string aName2);
 
 
           cAppliApero &                              mAppli;
