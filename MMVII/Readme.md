@@ -1,36 +1,40 @@
-Dependences :
--------------
-
-libboost-all-dev
-#  libceres-dev => no longer needed 4 now
-
-
-To compile :
+Dependencies
 ------------
 
-Compile MicMac V1, then in MMVII directory :
+    libboost-all-dev
 
-cd bin/
-make -f Mk-MMVII.makefile
+#    libceres-dev => no longer needed 4 now
+
+
+To compile
+----------
+
+Compile MicMac V1, then in MMVII/bin directory:
+
+    make
+
 or 
-make ....
 
-First time :
------------
-make
-./MMVII  GenCodeSymDer
-make
+    make -f Mk-MMVII.makefile
 
-To generate html doc :
-----------------------
-doxygen Doxyfile 
+On first compilation, SymDer code has to be generated:
+
+    make
+    ./MMVII  GenCodeSymDer
+    make
+
+To generate html doc
+--------------------
+In MMVII directory:
+
+    doxygen Doxyfile 
 
 
-To generate pdf doc :
----------------------
+To generate pdf doc
+-------------------
 
-cd Doc/
-pdflatex  Doc2007.tex
-pdflatex  Doc2007.tex
+In MMVII/Doc directory:
+
+    make
 
 
