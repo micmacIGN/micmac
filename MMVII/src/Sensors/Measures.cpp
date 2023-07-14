@@ -580,6 +580,15 @@ void cSet2D3D::Substract(const cPair2D3D& aSub)
     }
 }
 
+std::vector<cPt3dr> cSet2D3D::VP3() const
+{
+    std::vector<cPt3dr> aRes;
+    for (auto  & aPair : mPairs)
+        aRes.push_back(aPair.mP3);
+
+    return aRes;
+}
+
 
 
 }; // MMVII

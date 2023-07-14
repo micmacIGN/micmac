@@ -654,6 +654,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
         int ExeOnParsedBox() override;
+ 
 
 	void MakeImageLabel();
 	void MakeImageSeed();
@@ -1005,6 +1006,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
 
 
+
 int  cAppliExtractCircTarget::Exe()
 {
    mPhProj.FinishInit();
@@ -1014,7 +1016,9 @@ int  cAppliExtractCircTarget::Exe()
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
-      return ResultMultiSet();
+      int aResult =  ResultMultiSet();
+
+      return aResult;
    }
 
 

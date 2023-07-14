@@ -63,6 +63,7 @@ struct cSet2D3D : public cMemCheck
 
 	 /// compute  weighted centroid
 	 cWeightedPair2D3D  Centroid() const;
+         std::vector<cPt3dr> VP3() const;
 
 	 /// subsract a pair to all
 	 void Substract(const cPair2D3D&);

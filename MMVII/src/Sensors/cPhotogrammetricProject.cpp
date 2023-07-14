@@ -191,6 +191,11 @@ const std::string & cDirsPhProj::FullDirOut() const
    return mFullDirOut;
 }
 
+const std::string & cDirsPhProj::FullDirInOut(bool isIn) const
+{
+   return isIn ? FullDirIn() : FullDirOut();
+}
+
 void cDirsPhProj::SetDirIn(const std::string & aDirIn)
 {
      mDirIn = aDirIn;
@@ -488,9 +493,9 @@ void cPhotogrammetricProject::SaveMeasureIm(const cSetMesPtOf1Im &  aSetM) const
      aSetM.ToFile(mDPPointsMeasures.FullDirOut() +aSetM.StdNameFile());
 }
 
-cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm) const
+cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm,bool isIn) const
 {
-   std::string aDir = mDPPointsMeasures.FullDirIn();
+   std::string aDir = mDPPointsMeasures.FullDirInOut(isIn);
    return cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
 }
 

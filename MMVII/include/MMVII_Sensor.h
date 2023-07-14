@@ -74,6 +74,8 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
           cPt3dr RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax);
 	  ///  Generate a point on sensor
           cPt2dr RandomVisiblePIm() const ;
+	  ///  Position in [0 1]^ 2
+          cPt2dr RelativePosition(const cPt2dr &) const ;
 
 	  /// Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
 	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
@@ -236,6 +238,7 @@ class cDirsPhProj
           const std::string & DirOut() const;   ///< Accessor
           const std::string & FullDirIn() const;   ///< Accessor
           const std::string & FullDirOut() const;   ///< Accessor
+          const std::string & FullDirInOut(bool In) const;   ///< Facility FullDirIn/FullDirInOut
 
 	  void SetDirOut(const std::string & aDirOut); ///< Modifier, for example to have defaut value to input
 	  bool  DirInIsInit() const;
@@ -373,7 +376,8 @@ class cPhotogrammetricProject
 	 //===================================================================
 
 	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
-	  cSetMesPtOf1Im LoadMeasureIm(const std::string &) const;
+          /// return from Std Dir, can be out in case of reload
+	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
 	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;

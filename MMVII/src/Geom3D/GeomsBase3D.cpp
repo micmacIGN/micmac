@@ -318,6 +318,24 @@ void BenchPlane3D()
 /*                                                              */
 /*  *********************************************************** */
 
+tREAL8 L2_DegenerateIndex(const std::vector<cPt3dr> & aVPt,size_t aNumEigV)
+{
+    cStrStat2<tREAL8>  aStat(3);
+    for (const auto & aP3 : aVPt)
+            aStat.Add(aP3.ToVect());
+    aStat.Normalise();
+    const cDenseVect<tREAL8> anEV = aStat.DoEigen().EigenValues() ;
+
+    return Sqrt(SafeDiv(anEV(aNumEigV),anEV(2)));
+}
+
+tREAL8 L2_PlanarityIndex(const std::vector<cPt3dr> & aVPt) { return L2_DegenerateIndex(aVPt,0); }
+tREAL8 L2_LinearityIndex(const std::vector<cPt3dr> & aVPt) { return L2_DegenerateIndex(aVPt,1); }
+
+
+
+
+
 template<class T> cPtxd<T,3>  PFromNumAxe(int aNum)
 {
    static const cDenseMatrix<T> anId3x3(3,3,eModeInitImage::eMIA_MatrixId);
