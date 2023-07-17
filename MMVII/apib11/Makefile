@@ -52,14 +52,18 @@ all: $(MODULE)
 
 clean: uninstall clean_python
 	rm -f docstrings.h
+	rm -fr xml
 
 clean_python:
 	rm -Rf build/ dist/ $(MODULE_NAME).egg-info/ __pycache__/
 	$(PYTHON) setup.py clean
 
-docstrings.h: ${DOC_INCLUDES} Makefile
-	pybind11-mkdoc -o $@ ${DOC_INCLUDES} ${CXXFLAGS} ${ALL_INC} >/dev/null
-
+docstrings.h: $(DOC_INCLUDES) Makefile
+	rm -f $@
+	rm -fr xml
+	(cat Doxyfile ; echo "INPUT=$(DOC_INCLUDES)") | doxygen -
+	python3 makedoc.py xml/class*xml xml/namespaceMMVII.xml > $@ || rm -f $@
+	rm -fr xml
 
 $(MODULE): export CC=${CXX} 
 
