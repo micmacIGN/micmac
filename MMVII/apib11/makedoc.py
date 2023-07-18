@@ -6,7 +6,10 @@
 import xml.sax
 import sys
 import re
+import textwrap
 from collections import deque
+
+docstring_width = int(70)
 
 class DoxygenHandler( xml.sax.ContentHandler ):
     def __init__(self):
@@ -23,13 +26,45 @@ class DoxygenHandler( xml.sax.ContentHandler ):
             '<': 'lt', '>': 'gt', '=': 'assign', '()': 'call'
         }
 
-    def cleanName(self,name):
+    def cleanName(self, name):
         for symb,alias in self.operators.items():
             name = name.replace(f'operator{symb}', f'operator_{alias}')
         name = re.sub('<.*>', '', name)
         name = ''.join([ch if ch.isalnum() else '_' for ch in name])
         name = re.sub('_$', '', re.sub('_+', '_', name))
         return name
+
+    def cleanDesc(self, desc):
+        wrapper = textwrap.TextWrapper()
+        wrapper.expand_tabs = True
+        wrapper.replace_whitespace = True
+        wrapper.drop_whitespace = True
+        wrapper.width = docstring_width
+        wrapper.initial_indent = wrapper.subsequent_indent = ''
+
+        result = ''
+        in_code_segment = False
+        for x in re.split(r'(```)', desc):
+            if x == '```':
+                if not in_code_segment:
+                    result += '\n'
+                else:
+                    result += '\n\n'
+                in_code_segment = not in_code_segment
+            elif in_code_segment:
+                result += x.strip()
+            else:
+                for y in re.split(r'(?: *\n *){2,}', x):
+                    wrapped = wrapper.fill(re.sub(r'\s+', ' ', y).strip())
+                    if len(wrapped) > 0 and wrapped[0] == '$':
+                        result += wrapped[1:] + '\n'
+                        wrapper.initial_indent = \
+                            wrapper.subsequent_indent = ' ' * 4
+                    else:
+                        if len(wrapped) > 0:
+                            result += wrapped + '\n\n'
+                        wrapper.initial_indent = wrapper.subsequent_indent = ''
+        return result.rstrip().lstrip('\n')
 
     def addDesc(self,name):
         if 'detail' in self.desc and self.desc['detail'] != '':
@@ -38,7 +73,9 @@ class DoxygenHandler( xml.sax.ContentHandler ):
             desc = self.desc['brief']
         else:
             desc=""
-        desc = desc.strip()
+        desc = self.cleanDesc(desc)
+        if '\n' in desc:
+            desc = '\n' + desc
         name = self.cleanName(name)
         if name in self.allDesc:
            self.allDesc[name].append(desc)
@@ -124,12 +161,17 @@ class DoxygenHandler( xml.sax.ContentHandler ):
         self.inPara = False
         if self.descType is None:
             return
-        self.desc[self.descType] += '\n'
+        self.desc[self.descType] += '\n\n'
 
-    def verbatiom_start(self, attributes):
+    def verbatim_start(self, attributes):
         if self.descType is None:
             return
-        self.desc[self.descType] += '\n'
+        self.desc[self.descType] += '```'
+
+    def verbatim_end(self):
+        if self.descType is None:
+            return
+        self.desc[self.descType] += '```'
 
     def itemizedlist_start(self, attributes):
         if self.descType is None:
