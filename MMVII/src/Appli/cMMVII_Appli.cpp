@@ -406,7 +406,7 @@ void cMMVII_Appli::InitParam()
   mArgFac
       // <<  AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
       // <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})
-      <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",aGlob)
+      <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",{eTA2007::Global,{eTA2007::Range,"[1,2]"}})
       <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aGlobHDV)
       <<  AOpt2007(msWithWarning,GOP_WW,"Do we print warnings",aGlobHDV)
       <<  AOpt2007(mNbProcAllowed,GOP_NbProc,"Number of process allowed in parallelisation",aGlobHDV)

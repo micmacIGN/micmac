@@ -112,6 +112,8 @@ std::list<std::string>  cSpecOneArg2007::AddComs() const
          aRes.push_back(aSem.Aux());
       if (aSem.Type()== eTA2007::AllowedValues)
          aRes.push_back("Allowed values for this enum:{" + aSem.Aux() + "}");
+      if (aSem.Type()== eTA2007::Range)
+         aRes.push_back("Allowed values range:" + aSem.Aux());
    }
    return aRes;
 }

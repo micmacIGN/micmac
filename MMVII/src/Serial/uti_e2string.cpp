@@ -202,6 +202,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::HDV,"##HDV"},
                 {eTA2007::ISizeV,"##ISizeV"},
                 {eTA2007::XmlOfTopTag,"##XmlOfTopTag"},
+                {eTA2007::Range,"##Range"},
                 {eTA2007::FFI,"FFI"}
            };
 TPL_ENUM_2_STRING(eTA2007);
