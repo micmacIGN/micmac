@@ -207,6 +207,44 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
            };
 TPL_ENUM_2_STRING(eTA2007);
 
+template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
+           {
+                {eApF::ManMMVII,"ManMMVII"},
+                {eApF::Project,"Project"},
+                {eApF::Test,"Test"},
+                {eApF::ImProc,"ImProc"},
+                {eApF::Radiometry,"Radiometry"},
+                {eApF::Ori,"Ori"},
+                {eApF::Match,"Match"},
+                {eApF::TieP,"TieP"},
+                {eApF::TiePLearn,"TiePLearn"},
+                {eApF::Cloud,"Cloud"},
+                {eApF::CodedTarget,"CodedTarget"},
+                {eApF::Topo,"Topo"},
+                {eApF::NoGui,"NoGui"},
+                {eApF::Perso,"Perso"}
+           };
+TPL_ENUM_2_STRING(eApF);
+
+
+template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
+           {
+                {eApDT::Ori,"Ori"},
+                {eApDT::PCar,"PCar"},
+                {eApDT::TieP,"TieP"},
+                {eApDT::GCP,"GCP"},
+                {eApDT::Image,"Image"},
+                {eApDT::Orient,"Orient"},
+                {eApDT::Radiom,"Radiom"},
+                {eApDT::Ply,"Ply"},
+                {eApDT::None,"None"},
+                {eApDT::ToDef,"ToDef"},
+                {eApDT::Console,"Console"},
+                {eApDT::Xml,"Xml"},
+                {eApDT::FileSys,"FileSys"},
+                {eApDT::Media,"Media"},
+           };
+TPL_ENUM_2_STRING(eApDT);
 
 
 template<> cE2Str<eTyNums>::tMapE2Str cE2Str<eTyNums>::mE2S

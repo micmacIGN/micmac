@@ -96,6 +96,9 @@ class cSpecMMVII_Appli
        tMMVII_AppliAllocator  Alloc() const; ///< Accessor
        const std::string &    Comment() const; ///< Accessor
        const std::string &    NameFile() const; ///< Accessor
+       const tVaF &           Features() const; ///< Accessor
+       const tVaDT &          VInputs() const; ///< Accessor
+       const tVaDT &          VOutputs() const; ///< Accessor
 
        // bool HasDataTypeIn(const eApDT & aType) const;
        // bool HasDataTypeOut(const eApDT & aType) const;
@@ -391,6 +394,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
+        bool ModeArgsSpec() const;          ///< If called only to output args specs, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
         bool    IsInit(const void *);       ///< indicate for each variable if it was initiazed by argc/argv
         bool    IsInSpecObl(const void *);  ///< indicate for each variable if it was in an arg opt list (used with cPhotogrammetricProject)
@@ -414,12 +418,13 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
 
-        void InitParam();  ///< Parse the parameter list
+        void InitParam(std::string *aArgsSpecs);  ///< Parse the parameter list. Just return args specs in argsSpec if not null
         void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
         int NbProcAllowed() const; ///< Accessor to nb of process allowed for the appli
         const std::string & DirProject() const;     ///<  Accessor to directoy of project
         static const std::string & TopDirMMVII();   ///<  main directory of MMVII , upon include,src ..
+        static const std::string & DirBinMMVII();   ///<  directory where the MMVII binary is
         static const std::string & TmpDirTestMMVII();     ///< where to put binary file for bench, Export for global bench funtion
         static const std::string & InputDirTestMMVII();   ///<  where are input files for bench   , Export for global bench funtion
         static const std::string & DirMicMacv1();         ///<  Main directory of micmac V1
@@ -503,6 +508,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                                    const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
                                  ); ///< MMVII reccall the same command itself
 
+        std::string GenerateArgsSpec();
+        std::string GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::string &aSpecName, bool aOptional, bool &hadWarning);
+
         void                                      GenerateHelp(); ///< In Help mode print the help
         void PrintAdditionnalComments(tPtrArg2007 anArg); ///< Print the optional comm in mode glob help
 
@@ -532,6 +540,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mDoGlobHelp;    ///< Include common parameter in Help
         bool                                      mDoInternalHelp;///< Include internal parameter in Help
         std::string                               mPatHelp;       ///< Possible filter on name of optionnal param shown
+        bool                                      mModeArgsSpec;  ///< Called to only output args specs to stdout
+        std::string                               mExecFrom;      ///< MMVII launched from a frontend (GUI for ex.)
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
 	int                                       mKthCall;       ///< Number of call if in multiple call

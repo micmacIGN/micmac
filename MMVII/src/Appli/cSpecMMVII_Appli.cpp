@@ -71,8 +71,8 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
         }
 
         // Execute
-        anAppli->InitParam();
-        if (anAppli->ModeHelp())
+        anAppli->InitParam(nullptr);
+        if (anAppli->ModeHelp() || anAppli->ModeArgsSpec())
            aRes = EXIT_SUCCESS;
         else
            aRes = anAppli->Exe();
@@ -98,6 +98,9 @@ const std::string &     cSpecMMVII_Appli::Name() const {return mName;}
 tMMVII_AppliAllocator  cSpecMMVII_Appli::Alloc() const {return mAlloc;}
 const std::string &     cSpecMMVII_Appli::Comment() const {return mComment;}
 const std::string &     cSpecMMVII_Appli::NameFile() const {return mNameFile;}
+const cSpecMMVII_Appli::tVaF &  cSpecMMVII_Appli::Features() const {return mVFeatures;}
+const cSpecMMVII_Appli::tVaDT &  cSpecMMVII_Appli::VInputs() const {return mVInputs;}
+const cSpecMMVII_Appli::tVaDT &  cSpecMMVII_Appli::VOutputs() const {return mVOutputs;}
 
 
 // Si aMes=="SVP"=> No Error
@@ -203,6 +206,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
 
         TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
         //TheVecAll.push_back(&TheSpecTopoComp);
+        TheVecAll.push_back(&TheSpecGenArgsSpec);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
