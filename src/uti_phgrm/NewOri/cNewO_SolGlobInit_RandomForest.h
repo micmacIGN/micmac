@@ -51,6 +51,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <string>
 #include <tuple>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 #include <array>
 
@@ -486,6 +487,7 @@ class Dataset {
     // Complete list of loaded triplets
     std::vector<cNOSolIn_Triplet*> mV3;
     std::vector<cNO_CC_TripSom*> mVCC;
+    std::unordered_map<std::string, CamStenope*> cam;
 
     // Stats variables
 
@@ -593,8 +595,8 @@ class RandomForest : public cCommonMartiniAppli {
 
     finalScene processNode(Dataset& data, const ffinalTree& tree, const std::map<tSomNSI*, finalScene>& r, tSomNSI* node);
 
-    void RandomSolAllCC(Dataset& data);
-    void RandomSolOneCC(Dataset& data, cNO_CC_TripSom*);
+    void RandomSolAllCC(Dataset& data, double* output, size_t n);
+    void RandomSolOneCC(Dataset& data, cNO_CC_TripSom*, double* output, size_t n);
 
     void RandomSolAllCC(Dataset& data, cNO_CC_TripSom* aCC);
     void RandomSolOneCC(Dataset& data, cNOSolIn_Triplet* seed, int NbSomCC);
@@ -616,9 +618,10 @@ class RandomForest : public cCommonMartiniAppli {
     void PreComputeTriplets(Dataset& data);
     void CoherTriplets(Dataset& data);
     void CoherTriplets(std::vector<cNOSolIn_Triplet*>& aV3);
-    void CoherTripletsGraphBasedV2(Dataset& data,
-std::vector<cNOSolIn_Triplet*>& aV3, int,
-                                   int);
+    void CoherTripletsGraphBasedV2(
+        Dataset& data, std::vector<cNOSolIn_Triplet*>& aV3, int, int,
+        double* output);
+
     void CoherTripletsAllSamples(Dataset& data);
     void CoherTripletsAllSamplesMesPond(Dataset& data);
     void HeapPerEdge(Dataset& data);
