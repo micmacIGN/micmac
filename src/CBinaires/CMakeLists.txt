@@ -51,7 +51,12 @@ if(Boost_FOUND)
 endif()
 
 if(WITH_GRAPHVIZ)
-    target_link_libraries(mm3d "${gvc_LIBRARIES}" -lcgraph)
+    cmake_policy(SET CMP0060 NEW)
+    INCLUDE(FindPkgConfig)
+    PKG_SEARCH_MODULE(gvc REQUIRED IMPORTED_TARGET libgvc libcgraph libcdt)
+    set_property(TARGET PkgConfig::gvc PROPERTY IMPORTED_LOCATION "${gvc_LIBRARIES}")
+
+    target_link_libraries(mm3d PkgConfig::gvc)
 endif()
 
 install(TARGETS mm3d RUNTIME DESTINATION ${Install_Dir})
