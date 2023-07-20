@@ -216,8 +216,8 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
        anAppli.SetIfNotInit(mNbBit,20);
        anAppli.SetIfNotInit(mWithParity,false);
        anAppli.SetIfNotInit(mNbRedond,1);
-       anAppli.SetIfNotInit(mThickN_WInt,1.0);
-       anAppli.SetIfNotInit(mThickN_Code,1.0);
+       anAppli.SetIfNotInit(mThickN_WInt,(mNbBit==20) ? 1.5 : 1.0);
+       anAppli.SetIfNotInit(mThickN_Code,(mNbBit==20) ? 1.5 : 1.0);
        anAppli.SetIfNotInit(mThickN_WExt,0.0);
        anAppli.SetIfNotInit(mWithChessboard,false);
        anAppli.SetIfNotInit(mWhiteBackGround,false);

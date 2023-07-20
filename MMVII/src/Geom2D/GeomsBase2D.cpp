@@ -983,8 +983,10 @@ template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::AllocRandom(const Type
 }
 
 
+
 void BenchHomogr2D()
 {
+/*
    for (int aTest=0 ; aTest< 20 ; aTest++)
    {
        cPt2dr aTabIn[4];
@@ -1001,7 +1003,6 @@ void BenchHomogr2D()
        cHomogr2D<tREAL8> aID1 = aH * aHI;
 
 FakeUseIt(aID1);       
-/*
        for (int aKP=0 ; aKP< 4 ; aKP++)
        {
            StdOut() << Norm2(aTabOut[aKP]  - aH.Value(aTabIn[aKP]))   << " " 
@@ -1014,8 +1015,8 @@ FakeUseIt(aID1);
        }
 
        StdOut() << " ======================================== \n";
-*/
    }
+*/
 }
 
 /* ========================== */
@@ -1079,6 +1080,26 @@ template <class Type>
 
 }
 
+template <class Type> 
+      std::pair<std::vector<cPtxd<Type,2> >,std::vector<cPtxd<Type,2>>> RandomPtsId(int aNb,Type aEpsId)
+{
+    std::pair<std::vector<cPtxd<Type,2> >,std::vector<cPtxd<Type,2>>>  aRes;
+    for (int aK=0 ; aK< aNb ; aK++)
+    {
+         cPtxd<Type,2> aP1 =  FromPolar(Type(1.0),Type( ( 2 * M_PI * aK)/aNb));
+         aRes.first.push_back(aP1);
+         aRes.second.push_back(aP1 + cPtxd<Type,2>::PRandC() * aEpsId);
+    }
+    return aRes;
+}
+
+template <class tMap>  tMap RandomMapId(typename tMap::tTypeElem aEpsId)
+{
+     auto aPair = RandomPtsId(tMap::NbPtsMin,aEpsId);
+
+    return tMap::StdGlobEstimate(aPair.first,aPair.second);
+}
+
 
 
 template <class Type,class tMap>  cTriangle<Type,2>  ImageOfTri(const cTriangle<Type,2> & aTri,const tMap & aMap)
@@ -1094,8 +1115,11 @@ template <class Type,class tMap>  cTriangle<Type,2>  ImageOfTri(const cTriangle<
 #define INSTANTIATE_GEOM_REAL(TYPE)\
 template std::vector<cPtxd<TYPE,2> > RandomPtsOnCircle<TYPE>(int aNbPts);\
 template std::pair<std::vector<cPtxd<TYPE,2> >,std::vector<cPtxd<TYPE,2>>> RandomPtsHomgr(TYPE);\
+template std::pair<std::vector<cPtxd<TYPE,2> >,std::vector<cPtxd<TYPE,2>>> RandomPtsId(int aNb,TYPE aEpsId);\
 template class cSegment2DCompiled<TYPE>;\
-template class  cAffin2D<TYPE>;
+template class  cAffin2D<TYPE>;\
+template class  cHomogr2D<TYPE>;\
+template   cHomogr2D<TYPE> RandomMapId(TYPE);
 
 INSTANTIATE_GEOM_REAL(tREAL4)
 INSTANTIATE_GEOM_REAL(tREAL8)
@@ -1119,8 +1143,8 @@ MACRO_INSTATIATE_GEOM2D_MAPPING(TYPE,TMAP,DIM)
 #define MACRO_INSTATIATE_NON_LINEAR_GEOM2D_MAPPING(TYPE,TMAP,DIM)\
 MACRO_INSTATIATE_GEOM2D_MAPPING(TYPE,TMAP,DIM); \
 template TMAP TMAP::LeastSquareRefine(tCRVPts,tCRVPts,TYPE *,tCPVVals)const;\
-template TMAP TMAP::StdGlobEstimate(tCRVPts,tCRVPts,tTypeElem*,tCPVVals,cParamCtrlOpt);
-
+template TMAP TMAP::StdGlobEstimate(tCRVPts,tCRVPts,tTypeElem*,tCPVVals,cParamCtrlOpt);\
+template   TMAP RandomMapId(TYPE);
 
 #define MACRO_INSTATIATE_GEOM2D(TYPE)\
 template  cRot2D<TYPE>  cRot2D<TYPE>::QuickEstimate(tCRVPts aVIn,tCRVPts aVOut);\
@@ -1128,12 +1152,14 @@ MACRO_INSTATIATE_NON_LINEAR_GEOM2D_MAPPING(TYPE,cRot2D<TYPE>,2);\
 template  cRot2D<TYPE> cRot2D<TYPE>::RandomRot(const TYPE & AmplTr);\
 MACRO_INSTATIATE_LINEAR_GEOM2D_MAPPING(TYPE,cSim2D<TYPE>,2);\
 MACRO_INSTATIATE_LINEAR_GEOM2D_MAPPING(TYPE,cHomot2D<TYPE>,2);\
-MACRO_INSTATIATE_LINEAR_GEOM2D_MAPPING(TYPE,cHomogr2D<TYPE>,2);\
 template  cSim2D<TYPE> cSim2D<TYPE>::RandomSimInv(const TYPE & AmplTr,const TYPE & AmplSc,const TYPE & AmplMinSc);\
 template  cHomot2D<TYPE> cHomot2D<TYPE>::RandomHomotInv(const TYPE &,const TYPE &,const TYPE &);\
 template  cSim2D<TYPE> cSim2D<TYPE>::FromMinimalSamples(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;\
 template  cSimilitud3D<TYPE> cSim2D<TYPE>::Ext3D() const;\
 template  cDenseMatrix<TYPE> MatOfMul (const cPtxd<TYPE,2> & aP);
+
+
+//  MACRO_INSTATIATE_LINEAR_GEOM2D_MAPPING(TYPE,cHomogr2D<TYPE>,2);
 
 
 MACRO_INSTATIATE_GEOM2D(tREAL4)

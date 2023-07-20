@@ -458,11 +458,15 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
 
 template <class tMap,class TypeEl> void TplBenchMap2D_NonLinear(const tMap & aMap0,const tMap &aPerturb,TypeEl *)
 {
+    // Generate point with noises ,
+    // 2/3 are perfect correspondance
+    // 1/3 are noise with 0.1 ampl
     int aNbPts = 50;
-    std::vector<cPtxd<TypeEl,2> > aVIn ;
-    std::vector<cPtxd<TypeEl,2> > aVOutNoise;
-    std::vector<cPtxd<TypeEl,2> > aVOutRef;
+    std::vector<cPtxd<TypeEl,2> > aVIn ;      // cloud point generated in [0,1] ^2
+    std::vector<cPtxd<TypeEl,2> > aVOutNoise; // their noisy corresp
+    std::vector<cPtxd<TypeEl,2> > aVOutRef;   // their perfect corresp
 
+    // generate the points
     for (int aK=0 ; aK<aNbPts ; aK++)
     {
          cPtxd<TypeEl,2>  aPIn = cPtxd<TypeEl,2>::PRandC();
@@ -477,6 +481,7 @@ template <class tMap,class TypeEl> void TplBenchMap2D_NonLinear(const tMap & aMa
          aVOutNoise.push_back(aPNoise);
     }
 
+    // ransac estimation, perturbate it (else we woul get good answer initially)
     tMap aMap = tMap::RansacL1Estimate(aVIn, aVOutNoise,300) *  aPerturb;
 
     TypeEl aRes (0);
@@ -517,8 +522,12 @@ template <class Type> void TplElBenchMap2D()
    TplBenchMap2D(cSim2D<Type>::RandomSimInv(5,2,1e-1),cSim2D<Type>::RandomSimInv(3,4,1e-1),(Type*)nullptr);
    TplBenchMap2D(cHomot2D<Type>::RandomHomotInv(5,2,1e-1),cHomot2D<Type>::RandomHomotInv(3,4,1e-1),(Type*)nullptr);
    TplBenchMap2D(cRot2D<Type>::RandomRot(5),cRot2D<Type>::RandomRot(3),(Type*)nullptr);
-/*
 
+   cHomogr2D<Type> aHgrId =  RandomMapId<cHomogr2D<Type>>(0.1);
+   cHomogr2D<Type> aHgGlob =  cHomogr2D<Type>::AllocRandom(2.0);
+   TplBenchMap2D(aHgGlob,aHgrId,(Type*)nullptr);
+
+/*
 */
 
 }

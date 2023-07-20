@@ -428,10 +428,6 @@ template <class Type>  class cHomogr2D
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
           static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
-/*
-          /// Compute a random homotethy, assuring that Amplitude of scale has a minimal value
-          static tTypeMap RandomHomotInv(const Type&AmplTr,const Type&AmplSc,const Type&AmplMinSc);
-*/
 
           const tElemH &  Hx() const {return mHX;}
           const tElemH &  Hy() const {return mHY;}
@@ -616,6 +612,14 @@ class cEllipse_Estimate
 template <class Type> std::vector<cPtxd<Type,2> > RandomPtsOnCircle(int aNbPts);
 /// Specialze for homogr, avoid singlularity in [-1,1]^2 
 template <class Type> std::pair<std::vector<cPtxd<Type,2> >,std::vector<cPtxd<Type,2>>> RandomPtsHomgr(Type aAmpl=1.5);
+/// Point regularly positionned on circle, to generate mapping close to Identity 
+template <class Type> std::pair<std::vector<cPtxd<Type,2> >,std::vector<cPtxd<Type,2>>>  RandomPtsId(int aNb,Type aEpsId);
+/// generate a map, "close to Id", using RandomPtsId
+template <class tMap>  tMap RandomMapId(typename tMap::tTypeElem aEpsId);
+
+
+
+
 
 // geometric   Flux of pixel
 
