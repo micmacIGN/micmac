@@ -983,7 +983,7 @@ template <class Type,const int Dim> cPolynom<Type> PolSqN(const cPtxd<Type,Dim>&
 template <class TCont,class TVal> double Rank(const TCont &, const TVal&);
 
 /// Low level read of file containing nums in fixed format   F->double   S->string (skipped)
-void  ReadFilesNum(const std::string & aNameFile,const std::string & aFormat,std::vector<std::vector<double>> & aVRes);
+void  ReadFilesNum(const std::string & aNameFile,const std::string & aFormat,std::vector<std::vector<double>> & aVRes,int aComment=-1);
 
 void  ReadFilesStruct
       (

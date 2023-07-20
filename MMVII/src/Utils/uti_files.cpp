@@ -245,14 +245,14 @@ void  ReadFilesStruct
     }
 }
 
-void  ReadFilesNum (const std::string & aNameFile,const std::string & aFormat,std::vector<std::vector<double>> & aVRes)
+void  ReadFilesNum (const std::string & aNameFile,const std::string & aFormat,std::vector<std::vector<double>> & aVRes,int aComment)
 {
     std::vector<cPt3dr> aVXYZ;
     std::vector<std::vector<std::string>> aVNames;
     ReadFilesStruct 
     (
         aNameFile,aFormat,
-        0,1000000,-1,
+        0,1000000,aComment,
         aVNames,
         aVXYZ,aVXYZ,
         aVRes

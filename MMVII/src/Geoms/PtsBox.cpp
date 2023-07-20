@@ -29,12 +29,12 @@ template <class tContPts>
                 cComputeCentroids<tContPts>::LinearWeigtedCentroids(const tContPts & aContPts,const tPts & aP0,tREAL8 aSigma)
 {
      tPts aRes = tPts::PCste(tEl(0));
-     tREAL8  aSomW = 0.0;
-     tREAL8  aS2 = Square(aSigma);
+     tEl  aSomW = 0.0;
+     tEl  aS2 = Square(aSigma);
 
      for (const auto & aPt : aContPts)
      {
-         tREAL8 aW =  aS2 / (aS2+SqN2(aPt-aP0));
+         tEl aW =  aS2 / (aS2+SqN2(aPt-aP0));
 
 	 aSomW += aW;
 	 aRes += aPt * aW;
@@ -71,9 +71,18 @@ template <class tContPts>
      return aRes;
 }
 
+template <class tContPts>  tREAL8 cComputeCentroids<tContPts>::MedianSigma(const tContPts & aContPts)
+{
+   return SigmaDist(aContPts,MedianCentroids(aContPts),0.5);
+}
+
+
 
 
 template class cComputeCentroids<std::vector<cPt3dr> >;
+template class cComputeCentroids<std::vector<cPtxd<tREAL4,2> >>;
+template class cComputeCentroids<std::vector<cPtxd<tREAL8,2> >>;
+template class cComputeCentroids<std::vector<cPtxd<tREAL16,2> >>;
 
 
 

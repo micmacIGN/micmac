@@ -526,6 +526,9 @@ template <class tContPts>  class cComputeCentroids
        static tREAL8 SigmaDist(const tContPts &,const tPts & aP0,double aProp);
 
        static tPts  StdRobustCentroid(const tContPts &,double aProp,int aNbIter);
+
+       /// Median of dist to  MedianCentroids
+       static tREAL8   MedianSigma(const tContPts &);
 };
 
 /*

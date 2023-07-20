@@ -390,7 +390,7 @@ std::string cCompEquiCodes::NameCERNPannel(size_t aNbBits) {return NameCERStuff(
 void  ReadCodesTarget(std::vector<cPt2di> & aVCode,const std::string & aNameFile)
 {
      std::vector<std::vector<double>> aVV;
-     ReadFilesNum(aNameFile,"FF",aVV);
+     ReadFilesNum(aNameFile,"FF",aVV,'#');
      aVCode.clear();
 
      for (const auto & aV : aVV)
