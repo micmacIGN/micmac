@@ -2981,6 +2981,9 @@ void RandomForest::DoNRandomSol(Dataset& data) {
     double* p = (double*) mmap(NULL, sizeof(double) * number_memory,
                     PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
+    const auto processor_count = std::thread::hardware_concurrency();
+
+    unsigned int executed = 0;
 
     // Build random inital solutions default 1000 ?
     for (int aIterCur = 0; aIterCur < mNbSamples; aIterCur++) {
@@ -2995,8 +2998,15 @@ void RandomForest::DoNRandomSol(Dataset& data) {
                       << std::endl;
             exit(0);
         }
+        executed++;
+        if (executed > processor_count) {
+            for (unsigned int k = 0; k < processor_count; k++) {
+                wait(NULL);
+            }
+            executed -= processor_count;
+        }
     }
-    for (int k = 0; k < mNbSamples; k++) {
+    for (unsigned int k = 0; k < executed; k++) {
         wait(NULL);
     }
 
