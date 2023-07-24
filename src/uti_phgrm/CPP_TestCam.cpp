@@ -312,40 +312,67 @@ int TestDistM2C_main(int argc,char ** argv)
 //      - 1 fichier .xyz d'obs Comp (code 12) par image
 // -------------------------------------------------------------------------------
 int Bundles2Comp_main(int argc,char ** argv){
-	
-	std::string    					aNameCalib;
-	std::string    					mName2D;
-	std::string    					mOutput_folder;  
-	cSetOfMesureAppuisFlottants     mDAF2D;  
-	
-	double 							mPrecisionPx;
+    
+    std::string                        aNameCalib;
+    std::string                        mName2D;
+    std::string                        mOutput_folder;
+    std::string                        mCodeDistance; 
+    std::string						   ImPattern;
+    cSetOfMesureAppuisFlottants        mDAF2D; 
+    cElemAppliSetFile  				   mEASF;                   
+    cInterfChantierNameManipulateur  * mICNM;  
+    
+    int 							   mMinObs;
+    double                             mPrecisionPx;
+    const std::vector<std::string>  *  aVN;
 
-	
-	ElInitArgMain
+    
+    ElInitArgMain
     (
         argc,argv,
         LArgMain()  <<  EAMC(aNameCalib,"Calibration Name")
                     <<  EAMC(mName2D,"Image 2D points measurement file"),
         LArgMain()  <<  EAM(mOutput_folder, "Out", "", "Output folder")
+					<<  EAM(ImPattern, "Pattern", "", "Images to extract [default: all]")
                     <<  EAM(mPrecisionPx, "PxAcc", 0, "Pixel accuracy [Default: 0.289]")
+                    <<  EAM(mCodeDistance, "Distance", 0, "Distance value [Default: XXXX]")
+                    <<  EAM(mMinObs, "MinObs", 3, "Min number of obs per image [Default: 3]")
     );
     
-    if (EAMIsInit(&mOutput_folder)){
-		ELISE_fp::MkDir(mOutput_folder);
-	}else{
-		mOutput_folder = ".";
-	}
-	if (!EAMIsInit(&mPrecisionPx)){
-		mPrecisionPx = 0.289;	
-	}
+    // ---------------------------------------------------------------
+    // Gestion des entrées
+    // ---------------------------------------------------------------
     
+    if (EAMIsInit(&mOutput_folder)){
+        ELISE_fp::MkDir(mOutput_folder);
+    }else{
+        mOutput_folder = ".";
+    }
+    if (!EAMIsInit(&mPrecisionPx)){
+        mPrecisionPx = 0.289;   
+    }
+    if (!EAMIsInit(&mCodeDistance)){
+        mCodeDistance = "XXXX";   
+    }
+    if (!EAMIsInit(&mMinObs)){
+        mMinObs = 3;   
+    }
+    int n_images = -1;
+    if (EAMIsInit(&ImPattern)){
+		mEASF.Init(ImPattern);
+        mICNM = mEASF.mICNM;
+        aVN = mICNM->Get(ImPattern);
+        n_images = (int)(aVN->size());
+     }
+
+	    
     std::string out_path_obs = mName2D;
     unsigned idx = out_path_obs.find("/");
     while (idx <= out_path_obs.size()) {
-		out_path_obs = out_path_obs.substr(idx+1, 100);
-		idx = out_path_obs.find("/");
-	}
-	out_path_obs = out_path_obs.substr(0, out_path_obs.find(".")) + ".obs";
+        out_path_obs = out_path_obs.substr(idx+1, 100);
+        idx = out_path_obs.find("/");
+    }
+    out_path_obs = out_path_obs.substr(0, out_path_obs.find(".")) + ".obs";
     std::cout << out_path_obs << "\n";
     
     ofstream obs_file;
@@ -354,103 +381,115 @@ int Bundles2Comp_main(int argc,char ** argv){
     ofstream xyz_file;
     
     // ---------------------------------------------------------------
-	// Récupération de la calibration interne de la caméra
-	// ---------------------------------------------------------------
+    // Récupération de la calibration interne de la caméra
+    // ---------------------------------------------------------------
 
-	cElemAppliSetFile anEASF(aNameCalib);
-	CamStenope * aCam =  CamOrientGenFromFile(aNameCalib,anEASF.mICNM);
+    cElemAppliSetFile anEASF(aNameCalib);
+    CamStenope * aCam =  CamOrientGenFromFile(aNameCalib,anEASF.mICNM);
 
-	std::cout << "Focale " << aCam->Focale() << "   PP " << aCam->PP() << "\n";
-	
-	// ---------------------------------------------------------------
-	// Récupération des points dans le repère image (2D)
-	// ---------------------------------------------------------------
-	mDAF2D = StdGetFromPCP(mName2D, SetOfMesureAppuisFlottants);
-	std::cout << "Number of images in measurement file [" << mName2D;
-	std::cout << "]: " << mDAF2D.MesureAppuiFlottant1Im().size() << std::endl;
+    std::cout << "Focale " << aCam->Focale() << "   PP " << aCam->PP() << "\n";
+    
+    // ---------------------------------------------------------------
+    // Récupération des points dans le repère image (2D)
+    // ---------------------------------------------------------------
+    mDAF2D = StdGetFromPCP(mName2D, SetOfMesureAppuisFlottants);
+    std::cout << "Number of images in measurement file [" << mName2D;
+    std::cout << "]: " << mDAF2D.MesureAppuiFlottant1Im().size() << std::endl;
 
-	std::vector<cMesureAppuiFlottant1Im> MESURE_IMAGES;
-	for (std::list<cMesureAppuiFlottant1Im>::const_iterator itM= mDAF2D.MesureAppuiFlottant1Im().begin();
+    std::vector<cMesureAppuiFlottant1Im> MESURE_IMAGES;
+    for (auto itM= mDAF2D.MesureAppuiFlottant1Im().begin();
          itM != mDAF2D.MesureAppuiFlottant1Im().end();
          itM++){
-	 	MESURE_IMAGES.push_back(*itM);
-	}
-	
-	
-	// ---------------------------------------------------------------
-	// Calcul des angles
-	// ---------------------------------------------------------------	
-	std::string sep  = "-------------------------------------------------------------------------------\n";
-	std::string sep2 = "===============================================================================\n";
-	
-	std::cout << sep2;
-	std::cout << "IMAGE " << "NAME" << "\n";
-	std::cout << "     [" << "PT NAME" << "]  ";
-	std::cout << "   "    << " X (px) ";
-	std::cout << " "      << "Y (px)  ";
-	std::cout << "  "     << "THETA (gon) ";
-	std::cout << " "      << "PHI (gon)";
-	std::cout << " "      << "SIGMA (gon)" << "\n";
+         MESURE_IMAGES.push_back(*itM);
+    }
+    
+    
+    // ---------------------------------------------------------------
+    // Calcul des angles
+    // ---------------------------------------------------------------   
+    std::string sep  = "-------------------------------------------------------------------------------\n";
+    std::string sep2 = "===============================================================================\n";
+    
+    std::cout << sep2;
+    std::cout << "IMAGE " << "NAME" << "\n";
+    std::cout << "     [" << "PT NAME" << "]  ";
+    std::cout << "    "   << "X (px) ";
+    std::cout << " "      << "Y (px)  ";
+    std::cout << "  "     << "THETA (gon) ";
+    std::cout << " "      << "PHI (gon)";
+    std::cout << " "      << "SIGMA (gon)" << "\n";
 
-	unsigned counter_obs = 0;
-	unsigned counter_files = 1;
-	
-	for (unsigned i=0; i<MESURE_IMAGES.size(); i++){
-		
-		if (MESURE_IMAGES[i].OneMesureAF1I().size() == 0) continue;
-		
-		std::string name_station = MESURE_IMAGES[i].NameIm().substr(0, MESURE_IMAGES[i].NameIm().find("."));
-		std::cout << sep;
-		std::cout << "IMAGE " << MESURE_IMAGES[i].NameIm() << "\n";
-		obs_file  << "12 " << name_station << " @ " << name_station << ".xyz\n";
-		xyz_file.open(mOutput_folder + "/"+ name_station +".xyz");
-		
-		for (std::list<cOneMesureAF1I>::iterator j=MESURE_IMAGES[i].OneMesureAF1I().begin(); 
-			j != MESURE_IMAGES[i].OneMesureAF1I().end(); j++){
-		
-			Pt2dr no_distorsion = aCam->F2toC2(aCam->NormM2C(j->PtIm()));
-			double delta_x = +(no_distorsion.x - aCam->PP().x);
-			double delta_y = -(no_distorsion.y - aCam->PP().y);
-			double theta = atan(delta_x/aCam->Focale())*200/PI;
-			double phi   = atan(delta_y/aCam->Focale())*200/PI;
-			double factor = mPrecisionPx*200/PI/aCam->Focale();
-			double sigma_theta  = 1/(1+pow(delta_x/aCam->Focale(), 2))*factor;
-			double sigma_phi    = 1/(1+pow(delta_y/aCam->Focale(), 2))*factor;
-			double sigma_angles = max(sigma_theta, sigma_phi);
-			
-			
-			std::cout << "     [" << j->NamePt() << "]  ";
-			std::cout << "   "    << std::printf("%8.2lf", j->PtIm().x);
-			std::cout << " "      << std::printf("%8.2lf", j->PtIm().y);
-			std::cout << "   "    << std::printf("%10.4lf", theta);
-			std::cout << "   "    << std::printf("%10.4lf", phi);
-			std::cout << "   "    << std::printf("%7.6lf", sigma_angles) << "\n";
-			
-			xyz_file << j->NamePt();
-			xyz_file << " "  << theta;
-			xyz_file << " "  << phi;
-			xyz_file << " "  << "XXXX";
-			xyz_file << " "  << sigma_angles;
-			xyz_file << " "  << -1;
-			xyz_file << "\n";
-			
-			counter_obs += 1;
-			
+    unsigned counter_obs = 0;
+    unsigned counter_files = 1;
+    
+    for (unsigned i=0; i<MESURE_IMAGES.size(); i++){
+       
+        if ((int)(MESURE_IMAGES[i].OneMesureAF1I().size()) < mMinObs) continue;
+       
+		bool a_traiter = (n_images == -1);
+		for (int ii=0; ii<n_images; ii++){
+			a_traiter = a_traiter || (MESURE_IMAGES[i].NameIm() == aVN->at(ii));
+			if (a_traiter) break;
 		}
 		
-		counter_files += 1;
-		xyz_file.close();
-	}
-	
-	std::cout << sep2;
-	std::cout << "Bundles converted: " << counter_files << " file(s) written (";
-	std::cout <<  counter_obs << " observations for " << (counter_files-1) << " stations)\n";
-	std::cout << sep2;
-	
-	obs_file.close();	
-	
-	return 0;
-	
+		if (!a_traiter) continue;
+       
+        std::string name_station = MESURE_IMAGES[i].NameIm().substr(0, MESURE_IMAGES[i].NameIm().find("."));
+        std::cout << sep;
+        std::cout << "IMAGE " << MESURE_IMAGES[i].NameIm() << "\n";
+        obs_file  << "12 " << name_station << " @" << name_station << ".xyz\n";
+        xyz_file.open(mOutput_folder + "/"+ name_station +".xyz");
+       
+		double f = aCam->Focale();
+       
+        for (std::list<cOneMesureAF1I>::iterator j=MESURE_IMAGES[i].OneMesureAF1I().begin();
+            j != MESURE_IMAGES[i].OneMesureAF1I().end(); j++){
+       
+            Pt2dr no_distorsion = aCam->DistInverse(j->PtIm());
+           
+            double delta_x = +(no_distorsion.x - aCam->PP().x);
+            double delta_y = -(no_distorsion.y - aCam->PP().y);
+
+			double r = sqrt(f*f+delta_x*delta_x+delta_y*delta_y);
+			double phi   = +asin(delta_y/r);
+			double theta = -asin(delta_x/(r*cos(phi)))*200/PI;  phi *= 200/PI;
+            
+            double factor = mPrecisionPx*200/PI/aCam->Focale();
+            double sigma_theta  = 1/(1+pow(delta_x/aCam->Focale(), 2))*factor;
+            double sigma_phi    = 1/(1+pow(delta_y/aCam->Focale(), 2))*factor;
+            double sigma_angles = max(sigma_theta, sigma_phi);
+
+			printf("  %8s", ("["+j->NamePt()+"]").c_str());
+            printf("   %8.2lf", j->PtIm().x); printf(" %8.2lf", j->PtIm().y);
+            printf("   %10.4lf", theta); printf("   %10.4lf", phi);
+            printf("   %7.6lf\n", sigma_angles);
+           
+            xyz_file << j->NamePt();
+            xyz_file << " "  << theta;                  // alpha (horizontal angle), positive towards right
+            xyz_file << " "  << phi;                    // beta (horizontal angle), positive upwards
+            xyz_file << " "  << mCodeDistance;          // distance for all observations
+            xyz_file << " "  << sigma_angles;           // standard deviation on angles
+            xyz_file << " "  << -1;                     // absolute standard deviation on distances
+            xyz_file << " "  <<  0;                     // relative standard deviation on distances
+            xyz_file << "\n";
+           
+            counter_obs += 1;
+           
+        }
+       
+        counter_files += 1;
+        xyz_file.close();
+    }
+    
+    std::cout << sep2;
+    std::cout << "Bundles converted: " << counter_files << " file(s) written (";
+    std::cout <<  counter_obs << " observations for " << (counter_files-1) << " stations)\n";
+    std::cout << sep2;
+    
+    obs_file.close();   
+    
+    return 0;
+    
 }
 
 
