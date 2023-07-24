@@ -635,6 +635,10 @@ void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB
 void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh);
 
 
+/**  Class to store the extraction of an ellipse, contain the seed-point + geometric ellipse itself +
+ * different quality indicator
+ */
+
 struct cExtractedEllipse
 {
      public :
@@ -644,12 +648,14 @@ struct cExtractedEllipse
         cExtractedEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse);
         void  ShowOnFile(const std::string & aNameIm,int aZoom,const std::string& aPrefName) const; // make a accurate visu
 
-        tREAL8               mDist;
-        tREAL8               mDistPond;
-        tREAL8               mEcartAng;
-        bool                 mValidated;
+        tREAL8               mDist; /// Dist of frontier point to ellispse
+        tREAL8               mDistPond; /// Dist attenuated "very empirically" by size of ellipse
+        tREAL8               mEcartAng;  /// Angular diff between image gradient an theoreticall ellipse normal
+        bool                 mValidated;  /// Is the ellipse validated
         std::vector<cPt2dr>  mVFront;
 };
+
+/** Class for extracting B/W ellipse, herits from B/W target for component analysis and add ellipse recognition */
 
 class cExtract_BW_Ellipse  : public cExtract_BW_Target
 {
@@ -661,10 +667,28 @@ class cExtract_BW_Ellipse  : public cExtract_BW_Target
 
              const std::list<cExtractedEllipse> & ListExtEl() const;  ///< Accessor
 
-             void   ComputeBlurr();
+             void   ComputeBlurr();  /// experimental, to review later, maybe ...
         private :
              std::list<cExtractedEllipse> mListExtEl;
 };
+
+class cCircTargExtr;
+
+/** Minimal struct to save the result of an ellipse extracted in image */
+
+struct cSaveExtrEllipe
+{
+     public :
+          cSaveExtrEllipe (const cCircTargExtr &,const std::string & aNameCode);
+          cSaveExtrEllipe ();
+          static std::string NameFile(const cPhotogrammetricProject & ,const cSetMesPtOf1Im &,bool Input);
+
+          cEllipse  mEllipse;
+          std::string mNameCode;
+          tREAL4 mBlack;
+          tREAL4 mWhite;
+};
+void AddData(const  cAuxAr2007 & anAux, cSaveExtrEllipe & aCTE);
 
 
 

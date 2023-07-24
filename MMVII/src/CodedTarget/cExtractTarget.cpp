@@ -29,9 +29,6 @@ void TestParamTarg();
 
 
 
-namespace  cNS_CodedTarget
-{
-
 cBaseTE::cBaseTE(const cPt2dr & aPt,tREAL4 aBlack,tREAL4 aWhite) :
    mPt      (aPt),
    mGT      (nullptr),
@@ -2163,7 +2160,6 @@ int  cAppliExtractCodeTarget::Exe(){
 
    return EXIT_SUCCESS;
 }
-};
 
 
 /* =============================================== */
@@ -2171,7 +2167,6 @@ int  cAppliExtractCodeTarget::Exe(){
 /*                       ::                        */
 /*                                                 */
 /* =============================================== */
-using namespace  cNS_CodedTarget;
 
 tMMVII_UnikPApli Alloc_ExtractCodedTarget(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {

@@ -9,8 +9,6 @@ namespace MMVII
 {
 
 // Everything specific to coded target in this namespace
-namespace  cNS_CodedTarget
-{
 
 extern const std::string ThePrefixSimulTarget;
 extern const std::string ThePostfixGTSimulTarget;
@@ -438,22 +436,7 @@ class cFullSpecifTarget : public cMemCheck
 
 /** Minimal struct to save the result of an ellipse extracted in image */
 
-class cCircTargExtr;
-struct cSaveExtrEllipe
-{
-     public :
-          cSaveExtrEllipe (const cCircTargExtr &,const std::string & aNameCode);
-          cSaveExtrEllipe ();
-          static std::string NameFile(const cPhotogrammetricProject & ,const cSetMesPtOf1Im &,bool Input);
 
-          cEllipse  mEllipse;
-          std::string mNameCode;
-          tREAL4 mBlack;
-          tREAL4 mWhite;
-};
-void AddData(const  cAuxAr2007 & anAux, cSaveExtrEllipe & aCTE);
-
-};
 
 
 };

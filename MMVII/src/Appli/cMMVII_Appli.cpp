@@ -237,7 +237,8 @@ cMMVII_Appli::cMMVII_Appli
    mCarPPrefIn    (MMVII_StdDest),
    mTiePPrefOut   (MMVII_StdDest),
    mTiePPrefIn    (MMVII_StdDest),
-   mIsInBenchMode (false)
+   mIsInBenchMode (false),
+   mDoMergeCVS    (false)
 {
    mNumCallInsideP = TheNbCallInsideP;
    TheNbCallInsideP++;

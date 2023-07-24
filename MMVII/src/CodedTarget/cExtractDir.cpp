@@ -71,7 +71,7 @@ template <class Type>  cPt2dr cExtractDir<Type>::OptimScore(const cPt2dr & aDir,
 
 }
 
-double TestDir(const cNS_CodedTarget::cGeomSimDCT & aGT,const cNS_CodedTarget::cDCT  &aDCT)
+double TestDir(const cGeomSimDCT & aGT,const cDCT  &aDCT)
 {
     cPt2dr anEl1 = VUnit(aGT.mCornEl1-aGT.mC) ;
     cPt2dr anEl2 = VUnit(aGT.mCornEl2-aGT.mC) ;
@@ -268,7 +268,7 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
 
 template class cExtractDir<tREAL4>;
 
-bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT, cIm2D<tREAL4> anIm, double ray_min, double ray_max, std::vector<cPt2di>& vec2plot){
+bool TestDirDCT(cDCT & aDCT, cIm2D<tREAL4> anIm, double ray_min, double ray_max, std::vector<cPt2di>& vec2plot){
 
 
 /*

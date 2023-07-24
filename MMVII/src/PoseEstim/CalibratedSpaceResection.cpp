@@ -614,6 +614,74 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
     ;
 }
 
+//================================================
+
+class cFilterMesIm
+{
+      public : 
+         cFilterMesIm(cPhotogrammetricProject & aPhProj,const std::string & aNameIm);
+	 void AddInOrOut(const cPt2dr & aPIm,const std::string & aNamePt,bool isIn);
+	 const cSetMesImGCP &   SetMesImGCP();
+	 const cSetMesPtOf1Im & SetMesIm();
+         void Save();
+	 void SetFinished();
+      private :
+
+         cPhotogrammetricProject &  mPhProj;
+	 cSetMesImGCP               mImGCP;  // new set GCP/IM
+	 cSetMesPtOf1Im             mMesIm;
+	 cSetMesPtOf1Im             mMesImSupr;
+	 std::list<std::string>     mSupr;
+	 bool                       mFinished;
+
+};
+
+cFilterMesIm::cFilterMesIm(cPhotogrammetricProject & aPhProj,const std::string & aNameIm)  :
+    mPhProj      (aPhProj),
+    mMesIm       (aNameIm),
+    mFinished    (false)
+{
+    mPhProj.LoadGCP(mImGCP);  // init new GCP/IM with GCP
+}
+
+void cFilterMesIm::AddInOrOut(const cPt2dr & aPtIm,const std::string & aNamePt,bool isIn)
+{
+     MMVII_INTERNAL_ASSERT_medium(!mFinished,"cFilterMesIm::AddInOut while fnished");
+     cMesIm1Pt aMes(aPtIm,aNamePt,1.0 );
+     if (isIn) 
+     {
+        mMesIm.AddMeasure(cMesIm1Pt(aPtIm,aNamePt,1.0 ));
+     }
+     else
+     {
+        mSupr.push_back(aNamePt);
+     }
+}
+
+void cFilterMesIm::SetFinished()
+{
+    if (! mFinished)
+       mImGCP.AddMes2D(mMesIm);
+        
+    mFinished = true;
+}
+
+const cSetMesImGCP &   cFilterMesIm::SetMesImGCP()
+{
+     SetFinished();
+     return mImGCP;
+}
+
+void cFilterMesIm::Save()
+{
+     MMVII_INTERNAL_ASSERT_medium(mFinished,"cFilterMesIm::Sve while not fnished");
+     mPhProj.SaveMeasureIm(mMesIm);
+
+     mPhProj.SaveAndFilterAttrEll(mMesIm,mSupr);
+}
+
+//================================================
+
 int cAppli_CalibratedSpaceResection::Exe()
 {
     mPhProj.FinishInit();
@@ -667,15 +735,13 @@ int cAppli_CalibratedSpaceResection::Exe()
           aVRes.pop_back();
        std::reverse(aVRes.begin(),aVRes.end());
     }
+     
+    cFilterMesIm aFMIM(mPhProj,aNameIm);
 
     // If we want to filter on residual 
     if (mShowBundle || IsInit(&mThrsReject))
     {
          StdOut() <<   " =====  WORST RESIDUAL ============= \n";
-         cSetMesImGCP    mFilterdSetMes;  // new set GCP/IM
-         mPhProj.LoadGCP(mFilterdSetMes);     // init new GCP/IM with GCP
-	 cSetMesPtOf1Im  mFilterMesIm(aNameIm);  // new set of image points
-	 std::set<std::string> aSetToRem;
 
          tREAL8 aThShow = aVRes.at(std::max(0,int(aVRes.size()-5)));  // arbitray threshols for worst points
 	 for (const auto & aMes : mSetMes.MesImOfPt())
@@ -690,31 +756,15 @@ int cAppli_CalibratedSpaceResection::Exe()
 	         if (aRes>=aThShow)
                     StdOut() <<   " * Name=" << aGCP.mNamePt << " " << aRes << "\n";
 
-		 if (aRes < mThrsReject)
-		 {
-                    mFilterMesIm.AddMeasure(cMesIm1Pt(aPtIm,aGCP.mNamePt,1.0 ));
-		 }
-		 else
-		 {
-                     aSetToRem.insert(aGCP.mNamePt);
-		 }
+                 aFMIM.AddInOrOut(aPtIm,aGCP.mNamePt,aRes < mThrsReject);
 	     }
 	 }
+         aFMIM.SetFinished();
+
 	 if (IsInit(&mThrsReject))
 	 {
-	     mFilterdSetMes.AddMes2D(mFilterMesIm);
-             mFilterdSetMes.ExtractMes1Im(mSet23,aNameIm);
-
-	     if (aExpFilt)
-	     {
-		     /*
-                std::string  aNameAttrIn = cSaveExtrEllipe::NameFile(mPhProj,mFilterMesIm,true);
-		StdOut() << "Nnnnnnnnnnnnnnn= " << aNameAttrIn << "\n";
-		*/
-
-                mPhProj.SaveMeasureIm(mFilterMesIm);
-		SaveAndFilterAttrEll(mPhProj,mFilterMesIm,aSetToRem);
-	     }
+	     aFMIM.Save();
+	     aFMIM.SetMesImGCP().ExtractMes1Im(mSet23,aNameIm);
 	 }
     }
 

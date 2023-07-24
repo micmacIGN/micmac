@@ -191,7 +191,7 @@ class cSetMesImGCP : public cMemCheck
             void AddMes2D(const cSetMesPtOf1Im &,cSensorImage* =nullptr,eLevelCheck OnNonExistP=eLevelCheck::Warning);
 
 	    /// return a set of mesure as 2d/3d corresp
-            void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm);
+            void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm) const;
 
             const std::vector<cMes1GCP> &        MesGCP() const ; ///< Accessor
             std::vector<cMes1GCP> &        MesGCP() ; ///< Accessor

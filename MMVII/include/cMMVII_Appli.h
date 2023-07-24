@@ -343,6 +343,15 @@ struct cParamProfile
 
 bool UserIsMPD();
 
+
+enum class eModeCall
+           {
+              eUnik,
+              eMulTop,
+              eMulSubP
+           };
+
+
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
 {
@@ -455,6 +464,18 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 	static const std::string & UserName();
 	static const std::string & DirProfileUsage();
+
+	// ========================  Methods for memorizing report using csv 
+	
+	std::string  DirCSV();
+	std::string  DirSubPCSV(const std::string &anId);
+
+	void  InitDirCSV(const std::string &anId,eModeCall);
+	void  AddOneMesCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
+	void  DoMergeCSV();
+
+
+
     protected :
 
         /// Constructor, essenntially memorize command line and specifs
@@ -466,6 +487,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         const tNameSet &                         MainSet(int aK) const;    ///< MainSets[aK] , check range !=0 before
         void                                     CheckRangeMainSet(int) const;  ///< Check range in [0,NbMaxMainSets[
         std::vector<std::string>                 VectMainSet(int aK) const; ///< interface to MainSet
+	std::string                              UniqueStr(int aK); /// return VectMainSet(0) after check
         virtual bool            AcceptEmptySet(int aK) const; ///< Generally if the set is empty, it's an error
 
         virtual cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) = 0;  ///< A command specifies its mandatory args
@@ -614,6 +636,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static std::vector<cObj2DelAtEnd *>       mVectObj2DelAtEnd; ///< for object which deletion is delegated to appli
         bool                                      mIsInBenchMode;   ///< is the command executed for bench (will probably make specific test)
 
+	char                               mCSVSep;
+	std::map<std::string,std::string>  mMapIdFilesCSV;
+	bool                               mDoMergeCVS;
 };
 
 

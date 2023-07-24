@@ -217,7 +217,7 @@ const std::vector<cSensorImage*> &   cSetMesImGCP::VSens()     const  {return mV
 
 std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()   {return mMesGCP; }
 
-void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm)
+void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm) const
 {
     aS23.Clear();
 

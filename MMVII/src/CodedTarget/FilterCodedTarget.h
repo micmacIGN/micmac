@@ -14,10 +14,7 @@
 
 namespace MMVII
 {
-namespace  cNS_CodedTarget
-{
-    class cDCT;
-};
+class cDCT;
 
 class cParam1FilterDCT
 {
@@ -144,7 +141,7 @@ template <class Type>  class  cFilterDCT : public cMemCheck
            virtual double Compute() =0;
 
            /// Some stuff computed by the filter may be of interest for followings
-           virtual void UpdateSelected(cNS_CodedTarget::cDCT & aDC) const ;
+           virtual void UpdateSelected(cDCT & aDC) const ;
 
            double ComputeVal(const cPt2dr & aP);
            tIm    ComputeIm();
@@ -194,7 +191,7 @@ template <class Type>  class cExtractDir
      public :
          typedef cIm2D<Type>     tIm;   // shared pointer
          typedef cDataIm2D<Type> tDIm;  // raw reference/pointer for manipulating object
-         typedef cNS_CodedTarget::cDCT tDCT;
+         typedef cDCT tDCT;
          typedef std::vector<cPt2dr> tVDir;
 
          cExtractDir(tIm anIm,double aRhoMin,double aRhoMax);
@@ -223,7 +220,7 @@ template <class Type>  class cExtractDir
           tDCT *                  mPDCT;       ///< tested target
        // (SortedVectOfRadius(aR0,aR1,IsSym))
 };
-bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor, std::vector<cPt2di> & vec2plot);
+bool TestDirDCT(cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor, std::vector<cPt2di> & vec2plot);
 
 
 /* =====================================================================================================
@@ -294,7 +291,7 @@ class cCalcSaddle
 	     /// compute refined displacement a  saddle point using values of neihboor
              cPt2dr   RefineSadlPtFromVals(const std::vector<tREAL8> & aVVals,bool Show);
 	     /// optimize position by iteration on  RefineSadlPtFromVals
-             void RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cNS_CodedTarget::cDCT & aDCT);
+             void RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cDCT & aDCT);
 
         private :
              double                   mRay;   ///< Radius of neighbourhood

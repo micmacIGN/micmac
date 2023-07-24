@@ -11,8 +11,6 @@ namespace MMVII
 
 class cAppliGenerateEncoding;
 
-namespace  cNS_CodedTarget
-{
 class cPrioCC;
 
 
@@ -195,14 +193,12 @@ void cPrioCC::UpdateHammingD(const cPrioCC & aPC2)
 	UpdateMin(mHammingMinD,mCel->HammingDist(*aPC2.mCel));
 }
 
-};
 
 /*  *********************************************************** */
 /*                                                              */
 /*             cAppliGenerateEncoding                           */
 /*                                                              */
 /*  *********************************************************** */
-using namespace cNS_CodedTarget;
 
 
 class cAppliGenerateEncoding : public cMMVII_Appli

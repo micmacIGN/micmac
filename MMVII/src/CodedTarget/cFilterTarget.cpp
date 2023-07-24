@@ -200,7 +200,7 @@ template <class Type>  cFilterDCT<Type>::~cFilterDCT()
 {
 }
 
-template <class Type> void cFilterDCT<Type>::UpdateSelected(cNS_CodedTarget::cDCT & aDC)  const
+template <class Type> void cFilterDCT<Type>::UpdateSelected(cDCT & aDC)  const
 {
 }
 
@@ -441,7 +441,7 @@ template <class Type>  class  cBinFilterCT : public cFilterDCT<Type>
            // cBinFilterCT(tIm anIm,double aR0,double aR1);
            cBinFilterCT(tIm anIm,const cParamAllFilterDCT &);
 
-           void UpdateSelected(cNS_CodedTarget::cDCT & aDC) const override;
+           void UpdateSelected(cDCT & aDC) const override;
 
     private  :
           void Reset()               override;
@@ -453,7 +453,7 @@ template <class Type>  class  cBinFilterCT : public cFilterDCT<Type>
           float mVWhite ;
 };
 
-template<class Type> void  cBinFilterCT<Type>::UpdateSelected(cNS_CodedTarget::cDCT & aDC) const
+template<class Type> void  cBinFilterCT<Type>::UpdateSelected(cDCT & aDC) const
 {
     aDC.mVBlack = mVBlack;
     aDC.mVWhite = mVWhite;

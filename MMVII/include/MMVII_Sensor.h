@@ -390,6 +390,8 @@ class cPhotogrammetricProject
 
 	  /// For a givgen image, return 3D-2D corresp, using LoadGCP&LoadIm
 	  cSet2D3D  LoadSet32(const std::string & aNameIm) const;
+
+          void SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM,const std::list<std::string> & ToRem)   const ;
 	  
 	 //===================================================================
          //==================   META-DATA       ==============================

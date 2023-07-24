@@ -14,7 +14,6 @@
 
 namespace MMVII
 {
-using namespace  cNS_CodedTarget;
 
 template <const int Dim> std::vector< cPtxd<tREAL8,Dim> > ToR(const std::vector< cPtxd<int,Dim> > &aVPtI,double aStep)
 {
@@ -164,7 +163,7 @@ cPt2dr   cCalcSaddle::RefineSadlPtFromVals(const std::vector<tREAL8> & aVVals,bo
       return  -cPt2dr(dYY*dX -dXY*dY,-dXY*dX +dXX*dY) / aDet;
 }
 
-void cCalcSaddle::RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cNS_CodedTarget::cDCT & aDCT)
+void cCalcSaddle::RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cDCT & aDCT)
 {
      double aThrDiv = 3.0;
      cPt2dr aP0 = aDCT.mPt;

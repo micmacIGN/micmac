@@ -3,6 +3,8 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Radiom.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 
 /**
    \file  cPhotogrammetricProject.cpp
@@ -564,6 +566,24 @@ cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
 
     return aSet23;
 }
+
+
+void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM,const std::list<std::string> & ToRem) const
+{
+     std::string  aNameIn = cSaveExtrEllipe::NameFile(*this,aSetM,true);
+     if (!ExistFile(aNameIn))
+        return;
+
+     std::vector<cSaveExtrEllipe> aVSEEIn;
+     ReadFromFile(aVSEEIn,aNameIn);
+
+     std::vector<cSaveExtrEllipe> aVSEEOut;
+     for (const auto & aSEE : aVSEEIn)
+         if (BoolFind(ToRem,aSEE.mNameCode))
+            aVSEEOut.push_back(aSEE);
+     SaveInFile(aVSEEOut,cSaveExtrEllipe::NameFile(*this,aSetM,false));
+}
+
 
         //  =============  Homologous point =================
 

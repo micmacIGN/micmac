@@ -9,9 +9,6 @@
 namespace MMVII
 {
 
-namespace  cNS_CodedTarget
-{
-
 /*  *********************************************************** */
 /*                                                              */
 /*                   cGeomSimDCT                                */
@@ -353,7 +350,6 @@ int  cAppliSimulCodeTarget::Exe()
 
    return EXIT_SUCCESS;
 }
-};
 
 
 /* =============================================== */
@@ -361,7 +357,6 @@ int  cAppliSimulCodeTarget::Exe()
 /*                       ::                        */
 /*                                                 */
 /* =============================================== */
-using namespace  cNS_CodedTarget;
 
 tMMVII_UnikPApli Alloc_SimulCodedTarget(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {

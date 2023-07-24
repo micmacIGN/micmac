@@ -8,8 +8,6 @@
 namespace MMVII
 {
 // Everything specific to coded target in this namespace
-namespace  cNS_CodedTarget
-{
 
 template   <class TypeExtract,class TypeFSel> 
 	void OneMatchOnGT
@@ -70,6 +68,5 @@ template   <class TypeExtract,class TypeFSel>
 
 
 };     // MMVII
-};     // cNS_CodedTarget
 #endif // _CODED_TARGET_TPL_H_
 
