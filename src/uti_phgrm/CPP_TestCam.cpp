@@ -324,7 +324,7 @@ int Bundles2Comp_main(int argc,char ** argv){
     
     int 							   mMinObs;
     double                             mPrecisionPx;
-    const std::vector<std::string>  *  aVN;
+    const std::vector<std::string>  *  aVN = nullptr;
 
     
     ElInitArgMain
