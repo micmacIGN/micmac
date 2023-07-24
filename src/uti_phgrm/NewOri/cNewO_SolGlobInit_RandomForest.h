@@ -61,6 +61,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define TREEDIST_WITH_MMVII false
 #include "../../../MMVII/include/TreeDist.h"
 
+#include <unistd.h>
+#include <sys/types.h>
+#include <errno.h>
+#include <sys/wait.h>
+#include <sys/mman.h>
+
+
+
 
 namespace SolGlobInit {
 
@@ -563,14 +571,16 @@ struct ffinalTree {
 };
 
 struct finalScene {
-    std::set<cNOSolIn_Triplet*> ts;
+    //std::set<cNOSolIn_Triplet*> ts;
     std::set<tSomNSI*> ss;
 
     void merge(const finalScene& other) {
-        for (auto e : other.ts) ts.insert(e);
+        //for (auto e : other.ts) ts.insert(e);
         for (auto e : other.ss) ss.insert(e);
     }
 };
+
+#include <unordered_map>
 
 class RandomForest : public cCommonMartiniAppli {
    public:
@@ -590,10 +600,12 @@ class RandomForest : public cCommonMartiniAppli {
 
     void hierarchique(Dataset& data, size_t cc, ffinalTree& tree);
     finalScene bfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
+    std::set<tSomNSI*> bfs2(Dataset& data, ffinalTree& tree, tSomNSI* node);
 
     finalScene dfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
 
     finalScene processNode(Dataset& data, const ffinalTree& tree, const std::map<tSomNSI*, finalScene>& r, tSomNSI* node);
+    void postorderNode(size_t depth, Dataset& data,std::unordered_map<tSomNSI*, std::set<tSomNSI*>>& ss, const ffinalTree& tree, tSomNSI* node);
 
     void RandomSolAllCC(Dataset& data, double* output, size_t n);
     void RandomSolOneCC(Dataset& data, cNO_CC_TripSom*, double* output, size_t n);
