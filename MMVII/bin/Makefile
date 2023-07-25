@@ -58,9 +58,6 @@ LIB_SRCS:=${wildcard ${MMV2_SRCDIR}/*/*.cpp} ${wildcard ${MMV2_DIR}/kapture/*.cp
 ## Force ${REGEN} to be built, but assure only once in LIB_SRCS :
 LIB_SRCS:=${filter-out ${SRC_REGGEN},${LIB_SRCS}} ${SRC_REGGEN}
 LIB_OBJS:=${LIB_SRCS:.cpp=.o}
-LIB_OBJS:=${filter-out ${MMV2_SRCDIR}/BinaireInstall/%,${LIB_OBJS}}
-LIB_OBJS:=${filter-out ${MMV2_SRCDIR}/ResultInstall/%,${LIB_OBJS}}
-LIB_OBJS:=${filter-out ${MMV2_SRCDIR}/TestCodeGen/%,${LIB_OBJS}}
 
 
 %.o: %.cpp Makefile
