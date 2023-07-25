@@ -3206,10 +3206,8 @@ void RandomForest::DoNRandomSol(Dataset& data) {
         }
         executed++;
         if (executed > processor_count) {
-            for (unsigned int k = 0; k < processor_count; k++) {
-                wait(NULL);
-            }
-            executed -= processor_count;
+            wait(NULL);
+            executed--;
         }
     }
     for (unsigned int k = 0; k < executed; k++) {
