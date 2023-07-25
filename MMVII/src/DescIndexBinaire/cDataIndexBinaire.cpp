@@ -1,7 +1,7 @@
 
 #include "IndexBinaire.h"
 
-#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_Tpl_Images.h"
 
 /** \file cCalcul_IndexBinaire.cpp
     \brief Command for computing the parameters of 

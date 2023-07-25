@@ -1,6 +1,6 @@
 
-#include "include/V1VII.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "V1VII.h"
+#include "MMVII_Tpl_Images.h"
 
 // #include "include/V1VII.h"
 

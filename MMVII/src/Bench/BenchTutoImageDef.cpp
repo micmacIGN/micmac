@@ -1,7 +1,7 @@
 #include "MMVII_Image2D.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_PhgrDist.h"
-#include "src/TutoBenchTrianguRSNL/TrianguRSNL.h"
+#include "../TutoBenchTrianguRSNL/TrianguRSNL.h"
 
 #include "MMVII_TplSymbImage.h"
 

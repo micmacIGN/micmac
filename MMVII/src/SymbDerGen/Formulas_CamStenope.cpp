@@ -1,7 +1,7 @@
 
-#include "include/SymbDer/SymbolicDerivatives.h"
-#include "include/SymbDer/SymbDer_MACRO.h"
-#include "include/MMVII_TplSymbImage.h"
+#include "SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbDer_MACRO.h"
+#include "MMVII_TplSymbImage.h"
 #include "Formulas_CamStenope.h"
 
 using namespace NS_SymbolicDerivative;

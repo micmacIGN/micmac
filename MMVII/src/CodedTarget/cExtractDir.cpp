@@ -1,6 +1,6 @@
 #include "CodedTarget.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Tpl_Images.h"
 
 
 namespace MMVII

@@ -1,8 +1,8 @@
 #include "CodedTarget.h"
 #include "CodedTarget_Tpl.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
-#include "include/MMVII_Tpl_Images.h"
-#include "src/Matrix/MMVII_EigenWrap.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Tpl_Images.h"
+#include "../Matrix/MMVII_EigenWrap.h"
 #include <random>
 #include <bitset>
 #include <time.h>
@@ -11,7 +11,7 @@
 #include <fstream>
 
 
-#include "include/MMVII_PhgrDist.h"
+#include "MMVII_PhgrDist.h"
 using namespace NS_SymbolicDerivative;
 
 /*   Modularistion

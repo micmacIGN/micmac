@@ -1,6 +1,6 @@
 #include <bitset>
 #include "CodedTarget.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 //  49 : 387 =  256 + 128 + 2 +1
 //              00000110000011

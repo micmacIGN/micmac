@@ -1,5 +1,5 @@
-#include "include/V1VII.h"
-#include "include/ext_stl/numeric.h"
+#include "V1VII.h"
+#include "ext_stl/numeric.h"
 
 namespace MMVII
 {

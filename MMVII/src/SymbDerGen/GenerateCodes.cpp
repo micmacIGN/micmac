@@ -1,6 +1,6 @@
 #include "ComonHeaderSymb.h"
-#include "include/SymbDer/SymbolicDerivatives.h"
-#include "include/SymbDer/SymbDer_GenNameAlloc.h"
+#include "SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_ImagesDeform.h"
 #include "Formulas_CamStenope.h"
 #include "Formulas_Geom2D.h"
@@ -531,7 +531,7 @@ template <typename tFormula,typename tCompute> void cAppliGenCode::GenCodesFormu
    aCEq(aNF,aSzBuf,aFormula.VNamesUnknowns(),aFormula.VNamesObs()); // Gives the liste of names
 
    // Set header in a place to compilation path of MMVII
-   aCEq.SetHeaderIncludeSymbDer("include/SymbDer/SymbDer_Common.h"); 
+   aCEq.SetHeaderIncludeSymbDer("SymbDer/SymbDer_Common.h");
    aCEq.SetDirGenCode(mDirGenCode);
 
    auto aXY= aFormula.formula(aCEq.VUk(),aCEq.VObs()); // Give ths list of atomic formula
@@ -728,10 +728,10 @@ int cAppliGenCode::Exe()
    cMMVIIUnivDist           aDistBase(3,1,1,true);
    cEqDist<cMMVIIUnivDist>  anEqBase(aDistBase);
    GenCodesFormula(anEqBase,false);
-   cGenNameAlloc::GenerateFile(mDirGenCode+"cName2CalcRegisterAll.cpp","include/SymbDer/SymbDer_Common.h","");
+   cGenNameAlloc::GenerateFile(mDirGenCode+"cName2CalcRegisterAll.cpp","SymbDer/SymbDer_Common.h","");
 */
 
-   cGenNameAlloc::GenerateFile(mDirGenCode+"cName2CalcRegisterAll.cpp","include/SymbDer/SymbDer_Common.h","");
+   cGenNameAlloc::GenerateFile(mDirGenCode+"cName2CalcRegisterAll.cpp","SymbDer/SymbDer_Common.h","");
    return EXIT_SUCCESS;
 }
 

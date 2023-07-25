@@ -1,6 +1,6 @@
 
 #include "IndexBinaire.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_Tpl_Images.h"
 
 // #include "include/MMVII_2Include_Serial_Tpl.h"
 // #include<map>

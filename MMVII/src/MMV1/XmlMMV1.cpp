@@ -1,10 +1,10 @@
-#include "include/V1VII.h"
+#include "V1VII.h"
 
 #include "MMVII_Mappings.h"
 #include "MMVII_AimeTieP.h"
 
 
-#include "src/uti_image/NewRechPH/cParamNewRechPH.h"
+#include "../src/uti_image/NewRechPH/cParamNewRechPH.h"
 // #include "../CalcDescriptPCar/AimeTieP.h"
 
 #include "im_tpl/cPtOfCorrel.h"
