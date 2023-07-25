@@ -110,6 +110,10 @@ std::list<std::string>  cSpecOneArg2007::AddComs() const
    {
       if (aSem.Type()== eTA2007::AddCom)
          aRes.push_back(aSem.Aux());
+      if (aSem.Type()== eTA2007::AllowedValues)
+         aRes.push_back("Allowed values for this enum:{" + aSem.Aux() + "}");
+      if (aSem.Type()== eTA2007::Range)
+         aRes.push_back("Allowed values range:" + aSem.Aux());
    }
    return aRes;
 }
@@ -211,6 +215,12 @@ tVecArg2007 & cCollecSpecArg2007::Vec()
 /*                                                */
 /* ============================================== */
 
+template<typename T> struct is_vector : public std::false_type {};
+
+template<typename T, typename A>
+struct is_vector<std::vector<T, A>> : public std::true_type {};
+
+
 template <class Type> void  GlobCheckSize(const Type & ,const std::string & anArg) 
 {
     MMVII_INTERNAL_ASSERT_always(false,"Check size vect for non vect arg");
@@ -234,6 +244,12 @@ template <class Type> class cInstReadOneArgCL2007 : public cSpecOneArg2007
        {
                GlobCheckSize(mVal,anArg);
        }
+
+       bool IsVector() const override
+       {
+           return  is_vector<Type>::value;
+       }
+
 
 
         void V_InitParam(const std::string & aStr) override

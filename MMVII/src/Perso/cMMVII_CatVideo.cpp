@@ -147,7 +147,7 @@ cSpecMMVII_Appli  TheSpecCatVideo
      "MediaCat",
       Alloc_CatVideo,
       "This command is used for concatening medias (interface to ffmpeg)",
-      {eApF::Perso},
+      {eApF::Perso,eApF::NoGui},
       {eApDT::Media},
       {eApDT::Media},
       __FILE__

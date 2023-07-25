@@ -2,6 +2,7 @@
 #define  _MMVII_DeclareCste_H_
 
 #include "MMVII_AllClassDeclare.h"
+#include "MMVII_enums.h"
 
 namespace MMVII
 {
@@ -45,6 +46,7 @@ extern const std::string GIP_PGMA;     ///< Prefix Global Main Appli
 extern const std::string GIP_DirProjGMA;     ///< Dir Proj of Global Main Application
 extern const std::string GIP_BenchMode;     ///< For command who have a bench mode
 extern const std::string GIP_KthCall;     ///< Order of call if mutltiple call
+extern const std::string GIP_ExecFrom;    ///< Called from a frontend (i.e. GUI), name of the frontend
 
 
 // Folders
@@ -61,6 +63,9 @@ extern const std::string MMVIIDirOrient;
 extern const std::string MMVIIDirHomol;
 extern const std::string MMVIIDirMeshDev;
 extern const std::string MMVIIDirRadiom;
+
+// File extensions for some supported files type declared en eTA2007
+extern const std::map<eTA2007,std::vector<std::string>> MMVIISupportedFilesExt;
 
 //  String 
 extern const std::string BLANK;  // just std::string(" ") to avoid char * + char *

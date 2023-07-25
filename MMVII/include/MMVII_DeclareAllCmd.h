@@ -65,6 +65,7 @@ extern cSpecMMVII_Appli  TheSpecGenerateEncoding;
 extern cSpecMMVII_Appli  TheSpecTestGraphPart;
 extern cSpecMMVII_Appli  TheSpec_OriBundlAdj;
 extern cSpecMMVII_Appli  TheSpecDistCorrectCirgTarget;
+extern cSpecMMVII_Appli  TheSpecGenArgsSpec;
 
 
 };

@@ -63,7 +63,7 @@ template <class TypeEnum> class cE2Str
          std::string aRes;
          for (const auto & it : mE2S)
          {
-             if (aRes!="") aRes += " ";
+             if (aRes!="") aRes += ",";
              aRes += it.second;
          }
          return aRes;
@@ -131,7 +131,7 @@ template <> std::vector<TypeEnum> SubOfPat<TypeEnum>(const std::string & aPat,bo
 }\
 template <> tSemA2007  AC_ListVal<TypeEnum>()\
 {\
-   return {eTA2007::AddCom,"Allowed values for this enum:{"+StrAllVall<TypeEnum>()+"}"};\
+   return {eTA2007::AllowedValues,StrAllVall<TypeEnum>()};\
 }\
 template <> std::vector<bool> VBoolOfPat<TypeEnum>(const std::string & aPat,bool AcceptEmpty)\
 {\
@@ -194,6 +194,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::OptionalExist,"OptEx"},
                 {eTA2007::PatParamCalib,"ParamCalib"},
                 {eTA2007::AddCom,"AddCom"},
+                {eTA2007::AllowedValues,"Allowed"},
                 {eTA2007::Internal,"##Intern"},
                 {eTA2007::Tuning,"##Tune"},
                 {eTA2007::Global,"##Glob"},
@@ -201,10 +202,49 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::HDV,"##HDV"},
                 {eTA2007::ISizeV,"##ISizeV"},
                 {eTA2007::XmlOfTopTag,"##XmlOfTopTag"},
+                {eTA2007::Range,"##Range"},
                 {eTA2007::FFI,"FFI"}
            };
 TPL_ENUM_2_STRING(eTA2007);
 
+template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
+           {
+                {eApF::ManMMVII,"ManMMVII"},
+                {eApF::Project,"Project"},
+                {eApF::Test,"Test"},
+                {eApF::ImProc,"ImProc"},
+                {eApF::Radiometry,"Radiometry"},
+                {eApF::Ori,"Ori"},
+                {eApF::Match,"Match"},
+                {eApF::TieP,"TieP"},
+                {eApF::TiePLearn,"TiePLearn"},
+                {eApF::Cloud,"Cloud"},
+                {eApF::CodedTarget,"CodedTarget"},
+                {eApF::Topo,"Topo"},
+                {eApF::NoGui,"NoGui"},
+                {eApF::Perso,"Perso"}
+           };
+TPL_ENUM_2_STRING(eApF);
+
+
+template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
+           {
+                {eApDT::Ori,"Ori"},
+                {eApDT::PCar,"PCar"},
+                {eApDT::TieP,"TieP"},
+                {eApDT::GCP,"GCP"},
+                {eApDT::Image,"Image"},
+                {eApDT::Orient,"Orient"},
+                {eApDT::Radiom,"Radiom"},
+                {eApDT::Ply,"Ply"},
+                {eApDT::None,"None"},
+                {eApDT::ToDef,"ToDef"},
+                {eApDT::Console,"Console"},
+                {eApDT::Xml,"Xml"},
+                {eApDT::FileSys,"FileSys"},
+                {eApDT::Media,"Media"},
+           };
+TPL_ENUM_2_STRING(eApDT);
 
 
 template<> cE2Str<eTyNums>::tMapE2Str cE2Str<eTyNums>::mE2S

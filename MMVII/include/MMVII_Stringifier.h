@@ -193,6 +193,7 @@ class  cSpecOneArg2007 : public cMemCheck
         virtual std::string  NameValue() const = 0;  ///< Used to print def value
 
         virtual void  CheckSize(const std::string &) const = 0;  ///< Used to check size of vect from a parameter like "[4,6]"
+        virtual bool IsVector() const = 0;                       ///< Used by MMVII_Appli::GenerateOneArgSpec
 
         /// Does any of  mVSem contains aType
         bool HasType(const eTA2007 & aType,std::string * aValue=nullptr)            const;

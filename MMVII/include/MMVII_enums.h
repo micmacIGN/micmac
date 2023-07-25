@@ -27,25 +27,31 @@ enum class eTA2007
             // ---------- Printed --------------
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File that define the  Dir Proj
+            // !!!!! FileImage must be FIRST of files types (cf cMMVII_Appli::GenerateOneArgSpec)
                 FileImage,     ///< File containing an image
                 FileCloud,     ///< File containing a cloud file (ply ?)
                 File3DRegion,  ///< File containing a 3D region
+            // !!!!! MPatFile must be LAST of files types (cf cMMVII_Appli::GenerateOneArgSpec)
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
+    // !!!!! Orient must be FIRST of dirs types (cf cMMVII_Appli::GenerateOneArgSpec)
                 Orient,        ///< Orientation
-                RadiomData,    ///< Data for Radiometry 
+                RadiomData,    ///< Data for Radiometry
+    // !!!!! RadiomModel must be LAST of dirs types (cf cMMVII_Appli::GenerateOneArgSpec)
                 RadiomModel,   ///< Model for Radiometry
                 MeshDev,       ///< Mesh Devlopment
                 Mask,          ///< Mask of image
                 MetaData,      ///< Meta data images
                 PointsMeasure, ///< Measure of point , 2D or 3D
                 TieP,          ///< Tie Points
+            // !!!!! Radiom must be LAST of dirs types (cf cMMVII_Appli::GenerateOneArgSpec)
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
 		PatParamCalib, ///< It's a pattern for parameter of calibration
             // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
                 AddCom,        ///< Not an attribute, used to embed additionnal comment in Help mode
+                AllowedValues, ///< String of possible values for enums type, automagically added for args of enum type
             // ---------- Not Printed -----------
             // !!!!! Shared must be first UNPRINTED  !!! because of test in Name4Help()
                 Shared,        ///< Parameter  Shared by many (several) command
@@ -54,7 +60,8 @@ enum class eTA2007
                 Tuning,        ///< Used for testing/tuning command but not targeted for user
                 HDV,           ///< Has Default Value, will be printed on help
                 ISizeV,        ///< Interval size vect, print on help
-		XmlOfTopTag,   ///< Parameter must be a XML-file containing certain tag
+                XmlOfTopTag,   ///< Parameter must be a XML-file containing certain tag
+                Range,         ///< Range of allowed numerical values: "[min,max]" | "[min,]" | "[,max]"
                 eNbVals        ///< Tag for number of value
            };
 
@@ -73,6 +80,7 @@ enum class eApF
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
                Topo,        ///< Topometry
+               NoGui,        ///< Will not have a GUI frontend
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
            };
@@ -481,7 +489,9 @@ const std::string & E2Str(const eTyCodeTarget &);
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
 const std::string & E2Str(const eTA2007 &);         
-const std::string & E2Str(const eTyUEr &);         
+const std::string & E2Str(const eApF &);
+const std::string & E2Str(const eApDT&);
+const std::string & E2Str(const eTyUEr &);
 const std::string & E2Str(const eTyNums &);         
 const std::string & E2Str(const eTyInvRad &);         
 const std::string & E2Str(const eTyPyrTieP &);         

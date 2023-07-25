@@ -151,7 +151,7 @@ cMMVII_Appli::~cMMVII_Appli()
 
    if (mForExe)
    {
-      if (! mModeHelp)
+      if (! mModeHelp && !mModeArgsSpec)
       {
          RenameFiles(NameFileLog(false),NameFileLog(true));
          LogCommandOut(NameFileLog(true),false);
@@ -215,6 +215,7 @@ cMMVII_Appli::cMMVII_Appli
    mModeHelp      (false),
    mDoGlobHelp    (false),
    mDoInternalHelp(false),
+   mModeArgsSpec  (false),
    mShowAll       (false),
    mLevelCall     (0),
    mKthCall       (0),
@@ -349,7 +350,7 @@ void cMMVII_Appli::SetNot4Exe()
    mForExe = false;
 }
 
-void cMMVII_Appli::InitParam()
+void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
 {
   mSeedRand = DefSeedRand();
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl); // Call virtual method
@@ -406,7 +407,7 @@ void cMMVII_Appli::InitParam()
   mArgFac
       // <<  AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
       // <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})
-      <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",aGlob)
+      <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",{eTA2007::Global,{eTA2007::Range,"[1,2]"}})
       <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aGlobHDV)
       <<  AOpt2007(msWithWarning,GOP_WW,"Do we print warnings",aGlobHDV)
       <<  AOpt2007(mNbProcAllowed,GOP_NbProc,"Number of process allowed in parallelisation",aGlobHDV)
@@ -418,6 +419,7 @@ void cMMVII_Appli::InitParam()
       <<  AOpt2007(mShowAll,GIP_ShowAll,"",aInternal)
       <<  AOpt2007(mPrefixGMA,GIP_PGMA," Prefix Global Main Appli",aInternal)
       <<  AOpt2007(mDirProjGMA,GIP_DirProjGMA," Folder Project Global Main Appli",aInternal)
+      <<  AOpt2007(mExecFrom,GIP_ExecFrom," Name of the frontend that launched this command",aInternal)
   ;
 
   // Check that names of optionnal parameters begin with alphabetic caracters
@@ -455,6 +457,11 @@ void cMMVII_Appli::InitParam()
       return;
   }
 
+  if (aArgsSpecs) {
+      mModeArgsSpec = true;
+      *aArgsSpecs = GenerateArgsSpec();
+      return;
+  }
 
   int aNbObl = mArgObl.size(); //  Number of mandatory argument expected
   int aNbArgGot = 0; // Number of  Arg received untill now
@@ -981,6 +988,195 @@ void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
 
 
 
+static std::string JsonEscaped(const std::string& s)
+{
+    std::string res;
+
+    for (const auto& c : s) {
+        switch (c) {
+        case '\b' : res += "\\b"; break;
+        case '\f' : res += "\\f"; break;
+        case '\n' : res += "\\n"; break;
+        case '\r' : res += "\\r"; break;
+        case '\t' : res += "\\t"; break;
+        case '"'  : res += "\\\""; break;
+        case '\\' : res += "\\\\"; break;
+        default   :  res += c;
+        }
+    }
+    return res;
+}
+
+std::string cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::string& aSpecName, bool aOptional, bool& hadWarning)
+{
+    std::string desc;
+
+    if (aOptional)
+        desc = "      \"optional\": [";
+    else
+        desc = "      \"mandatory\": [";
+
+    int num = 1;
+    for (const auto & Arg : aSpecArgs.Vec())
+    {
+        if (Arg->HasType(eTA2007::Internal))
+            continue;
+
+        if (num != 1)
+            desc +=  ",";
+
+        // semantic checks
+        std::string argName;
+        if (aOptional)
+            argName = Arg->Name();
+        else
+            argName = "obl #" + std::to_string(num);
+        num++;
+
+        std::string fileType,dirType;
+        for (const auto& a : Arg->SemPL()) {
+            if (a.Type() >= eTA2007::FileImage && a.Type() <= eTA2007::MPatFile) {
+                if (fileType.length() != 0) {
+                    ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": has " << fileType << " and " << E2Str(a.Type()) << " file semantic.\n";
+                    hadWarning = true;
+                }
+                fileType = E2Str(a.Type());
+            }
+            if (a.Type() >= eTA2007::Orient && a.Type() <= eTA2007::RadiomModel) {
+                if (dirType.length() != 0) {
+                    ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": has " << dirType << " and " << E2Str(a.Type()) << " dir semantic.\n";
+                    hadWarning = true;
+                }
+                dirType = E2Str(a.Type());
+                break;
+            }
+        }
+        if (fileType.length() != 0 && dirType.length() != 0)  {
+            ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": has " << dirType << " and " << fileType << " semantics.\n";
+            hadWarning = true;
+        }
+
+        bool hasFileInOut = Arg->HasType(eTA2007::Input) || Arg->HasType(eTA2007::Output) || Arg->HasType(eTA2007::OptionalExist);
+
+        if (Arg->IsVector()  && !Arg->HasType(eTA2007::Range)) {
+            ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": is a vector with no ISizeV semantic.\n";
+            hadWarning = true;
+        }
+        if (Arg->HasType(eTA2007::FileDirProj)  && fileType.length() == 0) {
+            ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": has FileDirProj semantic with no File type semantic.\n";
+            hadWarning = true;
+        }
+        if ( ! hasFileInOut && fileType.length() != 0) {
+            ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": type " << fileType << ": Missing [Input|Output|OptionalExist] semantic.\n";
+            hadWarning = true;
+        }
+        if ( ! hasFileInOut && dirType.length() != 0) {
+            ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": type " << dirType << ": Missing [Input|Output|OptionalExist] semantic.\n";
+            hadWarning = true;
+        }
+        // end of checks
+
+        std::vector<std::string> semantic;
+        std::vector<std::string> allowed;
+        std::string range;
+        std::string vectorSize;
+        for (const auto& a : Arg->SemPL()) {
+
+            if (a.Type() < eTA2007::AddCom) {
+                semantic.push_back(E2Str(a.Type()));
+            }
+            if (a.Type() == eTA2007::AllowedValues) {
+                allowed = SplitString(a.Aux(),",");
+            }
+            if (a.Type() == eTA2007::Range) {
+                range = a.Aux();
+            }
+            if (a.Type() == eTA2007::ISizeV) {
+                vectorSize = a.Aux();
+            }
+        }
+
+        desc +=  "\n        {\n";
+        if (aOptional) {
+            std::string level = Arg->HasType(eTA2007::Global) ? "global" : Arg->HasType(eTA2007::Tuning) ? "tuning" : "normal";
+            desc +=  "            \"name\": \"" + JsonEscaped(Arg->Name()) + "\",\n";
+            desc +=  "            \"level\": \"" + level + "\",\n";
+        }
+        desc +=  "            \"type\": \"" + JsonEscaped(Arg->NameType()) + "\"";
+        if (semantic.size()) {
+            desc +=  ",\n            \"semantic\": [";
+            for (unsigned i=0; i<semantic.size(); i++) {
+                if (i > 0)
+                    desc +=  ",";
+                desc +=  "\"" + semantic[i] + "\"";
+            }
+            desc +=  "]";
+        }
+        if (allowed.size()) {
+            desc +=  ",\n            \"allowed\" : [";
+            for (unsigned i=0; i<allowed.size(); i++) {
+                if (i > 0)
+                    desc +=  ",";
+                desc +=  "\"" + allowed[i] + "\"";
+            }
+            desc +=  "]";
+        }
+        if (range.size())
+            desc +=  ",\n            \"range\" : \"" + range + "\"";
+        if (vectorSize.size())
+            desc +=  ",\n            \"vsize\" : \"" + vectorSize + "\"";
+        if (Arg->HasType((eTA2007::HDV)))
+            desc +=  ",\n            \"default\": \"" + JsonEscaped(Arg->NameValue()) + "\"";
+        if (Arg->Com().size())
+            desc +=  ",\n            \"comment\": \"" + JsonEscaped(Arg->Com()) + "\"";
+        desc +=  "\n        }";
+    }
+    desc +=  "\n      ]";
+    return desc;
+}
+
+template <typename VE>
+static std::string enumsVectorToStr(const VE& aVe)
+{
+    std::string s="";
+
+    for (const auto& e : aVe) {
+        if (s != "") s += ",";
+        s += "\"" + E2Str(e) + "\"";
+    }
+    return s;
+}
+
+std::string cMMVII_Appli::GenerateArgsSpec()
+{
+   bool hadWarning = false;
+   std::string desc;
+   desc = "    {\n";
+   desc += "      \"name\": \"" + JsonEscaped(mSpecs.Name()) + "\",\n";
+
+   desc += "      \"comment\": \"" + JsonEscaped(mSpecs.Comment()) + "\",\n";
+   desc += "      \"source\": \"" + JsonEscaped(mSpecs.NameFile()) + "\",\n";
+   desc += "      \"features\": [" + enumsVectorToStr(mSpecs.Features()) + "],\n";
+/*
+   desc += joe(mSpecs.Features());
+   for (unsigned i=0; i<mSpecs.Features().size(); i++) {
+       if (i>0)
+           desc += ",";
+       desc += "\"" + E2Str(mSpecs.Features()[i]) + "\"";
+   }
+   desc += "],\n";
+*/
+   desc += "      \"inputs\": [" + enumsVectorToStr(mSpecs.VInputs()) + "],\n";
+   desc += "      \"outputs\": [" + enumsVectorToStr(mSpecs.VOutputs()) + "],\n";
+
+   desc += GenerateOneArgSpec(mArgObl,mSpecs.Name(),false, hadWarning);
+   desc += ",\n";
+   desc += GenerateOneArgSpec(mArgFac,mSpecs.Name(),true, hadWarning);
+   desc += "\n    }";
+   if (hadWarning)
+       ErrOut() << "\n";
+   return desc;
+}
 
     // ========== Help ============
 
@@ -1121,6 +1317,11 @@ void cMMVII_Appli::ShowAllParams()
 bool cMMVII_Appli::ModeHelp() const
 {
    return mModeHelp;
+}
+
+bool cMMVII_Appli::ModeArgsSpec() const
+{
+   return mModeArgsSpec;
 }
 
     // ========== Handling of Mains Sets
@@ -1273,6 +1474,7 @@ std::string cMMVII_Appli::mDirMicMacv2;
 const std::string & cMMVII_Appli::TmpDirTestMMVII()   {return mTmpDirTestMMVII;}
 const std::string & cMMVII_Appli::InputDirTestMMVII() {return mInputDirTestMMVII;}
 const std::string & cMMVII_Appli::TopDirMMVII()       {return mTopDirMMVII;}
+const std::string & cMMVII_Appli::DirBinMMVII()       {return mDirBinMMVII; }
 const std::string & cMMVII_Appli::FullBin()           {return mFullBin;}
 const std::string & cMMVII_Appli::DirTestMMVII()      {return mDirTestMMVII;}
 const std::string & cMMVII_Appli::DirMicMacv1()       {return mDirMicMacv1;}
