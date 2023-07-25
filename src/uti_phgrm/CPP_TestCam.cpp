@@ -333,7 +333,7 @@ int Bundles2Comp_main(int argc,char ** argv){
         LArgMain()  <<  EAMC(aNameCalib,"Calibration Name")
                     <<  EAMC(mName2D,"Image 2D points measurement file"),
         LArgMain()  <<  EAM(mOutput_folder, "Out", "", "Output folder")
-					<<  EAM(ImPattern, "Pattern", "", "Images to extract [default: all]")
+                    <<  EAM(ImPattern, "Pattern", "", "Images to extract [default: all]")
                     <<  EAM(mPrecisionPx, "PxAcc", 0, "Pixel accuracy [Default: 0.289]")
                     <<  EAM(mCodeDistance, "Distance", 0, "Distance value [Default: XXXX]")
                     <<  EAM(mMinObs, "MinObs", 3, "Min number of obs per image [Default: 3]")
@@ -452,12 +452,14 @@ int Bundles2Comp_main(int argc,char ** argv){
 
 			double r = sqrt(f*f+delta_x*delta_x+delta_y*delta_y);
 			double phi   = +asin(delta_y/r);
-			double theta = -asin(delta_x/(r*cos(phi)))*200/PI;  phi *= 200/PI;
+			double theta = -asin(delta_x/(r*cos(phi)));
+
+            double sigma_theta  = 1/sqrt(1-pow(delta_y/r,2));
+            double sigma_phi    = 1/sqrt(1-pow(delta_x/(r*cos(phi)),2));
+            double sigma_angles = max(sigma_theta, sigma_phi)*mPrecisionPx*200/PI/r;
             
-            double factor = mPrecisionPx*200/PI/aCam->Focale();
-            double sigma_theta  = 1/(1+pow(delta_x/aCam->Focale(), 2))*factor;
-            double sigma_phi    = 1/(1+pow(delta_y/aCam->Focale(), 2))*factor;
-            double sigma_angles = max(sigma_theta, sigma_phi);
+            theta *= 200/PI;  
+			phi   *= 200/PI;
 
 			printf("  %8s", ("["+j->NamePt()+"]").c_str());
             printf("   %8.2lf", j->PtIm().x); printf(" %8.2lf", j->PtIm().y);
