@@ -2377,9 +2377,13 @@ finalScene RandomForest::bfs3(Dataset& data, ffinalTree& tree, tSomNSI* node) {
             std::lock_guard<std::mutex> guard(result_m);
             results[som] = res;
         });
-        while (!tasks.empty() && !tasks.front().joinable()) {
-            tasks.front().join();
-            tasks.pop_front();
+        for (auto it = tasks.begin(); it != tasks.end();) {
+            if (!it->joinable()) {
+                it->join();
+                it = tasks.erase(it);
+            } else {
+                ++it;
+            }
         }
         if (tasks.size() >= processor_count * 0.7) {
             tasks.front().join();
