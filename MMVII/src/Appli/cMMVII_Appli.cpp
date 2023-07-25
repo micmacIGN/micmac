@@ -143,6 +143,7 @@ void cMMVII_Appli::AddObj2DelAtEnd(cObj2DelAtEnd * aPtrO)
 
 cMMVII_Appli::~cMMVII_Appli()
 {
+   DoMergeReport();
    if (mMainAppliInsideP)
    {
         for (auto  aPtrO : mVectObj2DelAtEnd)

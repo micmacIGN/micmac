@@ -686,6 +686,10 @@ int cAppli_CalibratedSpaceResection::Exe()
 {
     mPhProj.FinishInit();
 
+   InitReport("toto","txt",true);
+   AddTopReport("toto","TOP Lign 1\n");
+   AddTopReport("toto","TOP Lign 2\n");
+
     bool  aExpFilt = mPhProj.DPPointsMeasures().DirOutIsInit();
     if (aExpFilt)
     {
@@ -693,6 +697,7 @@ int cAppli_CalibratedSpaceResection::Exe()
     }
     if (RunMultiSet(0,0))
     {
+
         int aResult = ResultMultiSet();
 
         if (aResult != EXIT_SUCCESS)
@@ -705,6 +710,18 @@ int cAppli_CalibratedSpaceResection::Exe()
 
         return EXIT_SUCCESS;
     }
+    AddOneReportCSV("toto",{"Sub1","a"});
+    AddOneReport("toto","Sub3\n");
+
+    //AddOneReport("toto","Sub1\n");
+    //AddOneReport("toto","Sub2\n");
+/*
+{
+    InitReport("titi","txt",eModeCall::eUnik);
+    AddOneReport("titi","Lign 1\n");
+    AddOneReport("titi","Lign 2\n");
+}
+*/
 
     // By default print detail if we are not in //
     SetIfNotInit(mShowBundle,LevelCall()==0);
