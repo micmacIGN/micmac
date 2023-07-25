@@ -59,6 +59,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <locale>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <ostream>
 #include <ratio>
 #include <regex>
@@ -2192,7 +2193,6 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
     });
 
     auto node_ori = tree.ori.at(node);
-    //result.ts.insert(node_ori->m3);
     result.ss.insert(node);
 
     std::string curNodeName = node->attr().Im()->Name();
@@ -2323,27 +2323,68 @@ finalScene RandomForest::bfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
     std::map<tSomNSI*, finalScene> results;
     while (!s.empty()) {
         auto& lastlevel = s.back();
-        //std::vector<std::thread> tasks;
+        std::vector<std::thread> tasks;
         std::cout << "Parallel width: " << lastlevel.size() << std::endl;
         for (tSomNSI* n : lastlevel) {
             std::cout << "Working on level: " << std::to_string(s.size()) << std::endl;
-            //tasks.emplace_back([&results, &data, tree, n, this]() {
+            tasks.emplace_back([&results, &data, tree, n, this]() {
                 results[n] = processNode(data, tree, results, n);
-            /*});
+            });
             if (tasks.size() >= processor_count) {
                 for (auto& t : tasks) {
                     t.join();
                 }
                 tasks.clear();
-            }*/
+            }
         }
 
-        /*
         for (auto& t : tasks) {
             t.join();
         }
-        */
         s.pop_back();
+    }
+
+    return results[node];
+}
+
+finalScene RandomForest::bfs3(Dataset& data, ffinalTree& tree, tSomNSI* node) {
+    std::deque<tSomNSI*> s;
+    for (auto cs : data.mVCC[0]->mSoms) {
+        s.push_back(cs);
+    }
+    std::map<tSomNSI*, finalScene> results;
+
+    std::cout << "Down the tree" << std::endl;
+    std::cout << "Using N:" << processor_count << " processor." << std::endl;
+
+    std::mutex result_m;
+
+    std::deque<std::thread> tasks;
+    while (!s.empty()) {
+        auto som = s.front();
+        bool ready = true;
+        for (auto c : tree.next[som]) {
+            if (!results.count(c))
+                ready = false;
+        }
+        s.pop_front();
+        if (!ready) {
+            s.push_back(som);
+            continue;
+        }
+        tasks.emplace_back([&results, &result_m, &data, tree, som, this]() {
+            auto res = processNode(data, tree, results, som);
+            std::lock_guard<std::mutex> guard(result_m);
+            results[som] = res;
+        });
+        if (tasks.size() >= processor_count) {
+            tasks.front().join();
+            tasks.pop_front();
+        }
+    }
+    while (!tasks.empty()) {
+        tasks.front().join();
+        tasks.pop_front();
     }
 
     return results[node];
@@ -2562,16 +2603,16 @@ finalScene RandomForest::dfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
 void RandomForest::hierarchique(Dataset& data, size_t cc, ffinalTree& tree) {
     //Clean old ori images
     std::cout << exec("rm -rf Ori-tree_*");
-    auto all = bfs2(data, tree, tree.root->KSom(0));
+    auto all = bfs3(data, tree, tree.root->KSom(0));
     //TODO global campari on all data
     std::string pattern = "(";
-    for (auto v : all) pattern += v->attr().Im()->Name() + "|";
+    for (auto v : all.ss) pattern += v->attr().Im()->Name() + "|";
     pattern += ")";
 
     std::string aOutOri = mOutName + std::to_string(cc) + "Hierarchique";
-    for (auto e : all) { e->flag_set_kth_true(data.mFlagS); }
+    for (auto e : all.ss) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, aOutOri, false);
-    for (auto e : all) { e->flag_set_kth_false(data.mFlagS); }
+    for (auto e : all.ss) { e->flag_set_kth_false(data.mFlagS); }
     std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + aOutOri + " " + aOutOri +" SH=" + mPrefHom);
 
     //updateViewFrom(ori0name, result.ss);
@@ -3066,7 +3107,7 @@ void RandomForest::Save(Dataset& data, const std::string& OriOut, bool SaveListO
             aListOfName.push_back(aNameIm);
 
             MakeFileXML(anOC, aNameOri);
-            std::cout << "WRITE:" << aNameOri <<std::endl;
+            //std::cout << "WRITE:" << aNameOri <<std::endl;
         }
     }
 

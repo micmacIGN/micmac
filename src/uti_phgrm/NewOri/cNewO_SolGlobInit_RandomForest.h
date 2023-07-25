@@ -600,6 +600,8 @@ class RandomForest : public cCommonMartiniAppli {
 
     void hierarchique(Dataset& data, size_t cc, ffinalTree& tree);
     finalScene bfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
+    finalScene bfs3(Dataset& data, ffinalTree& tree, tSomNSI* node);
+
     std::set<tSomNSI*> bfs2(Dataset& data, ffinalTree& tree, tSomNSI* node);
 
     finalScene dfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
