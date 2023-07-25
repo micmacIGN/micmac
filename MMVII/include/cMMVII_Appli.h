@@ -465,16 +465,16 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	static const std::string & UserName();
 	static const std::string & DirProfileUsage();
 
-	// ========================  Methods for memorizing report using csv 
+	// ========================  Methods for memorizing report (for example using csv)
 	
-	std::string  DirCSV();
-	std::string  DirSubPCSV(const std::string &anId);
+	std::string  DirReport();
+	std::string  DirSubPReport(const std::string &anId);
+	std::string  NameTmpReport(const std::string &anId,const std::string &anImg);
 
-	void  InitDirCSV(const std::string &anId,eModeCall);
-	void  AddOneMesCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
-	void  DoMergeCSV();
-
-
+	void  InitReport(const std::string &anId,const std::string & aPost,eModeCall);
+	void  AddOneReport(const std::string &anId,const std::string & VecMsg);
+	void  DoMergeReport();
+	void  AddOneReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
 
     protected :
 
@@ -487,7 +487,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         const tNameSet &                         MainSet(int aK) const;    ///< MainSets[aK] , check range !=0 before
         void                                     CheckRangeMainSet(int) const;  ///< Check range in [0,NbMaxMainSets[
         std::vector<std::string>                 VectMainSet(int aK) const; ///< interface to MainSet
-	std::string                              UniqueStr(int aK); /// return VectMainSet(0) after check
+	std::string                              UniqueStr(int aK) const; /// return VectMainSet(0) after check size=1
         virtual bool            AcceptEmptySet(int aK) const; ///< Generally if the set is empty, it's an error
 
         virtual cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) = 0;  ///< A command specifies its mandatory args
@@ -637,8 +637,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mIsInBenchMode;   ///< is the command executed for bench (will probably make specific test)
 
 	char                               mCSVSep;
-	std::map<std::string,std::string>  mMapIdFilesCSV;
-	bool                               mDoMergeCVS;
+	std::map<std::string,std::string>  mMapIdFilesReport;
+	std::map<std::string,std::string>  mMapIdPostReport;
+	bool                               mDoMergeReport;
 };
 
 

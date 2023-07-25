@@ -238,7 +238,7 @@ cMMVII_Appli::cMMVII_Appli
    mTiePPrefOut   (MMVII_StdDest),
    mTiePPrefIn    (MMVII_StdDest),
    mIsInBenchMode (false),
-   mDoMergeCVS    (false)
+   mDoMergeReport (false)
 {
    mNumCallInsideP = TheNbCallInsideP;
    TheNbCallInsideP++;
@@ -1143,6 +1143,16 @@ std::vector<std::string> cMMVII_Appli::VectMainSet(int aK) const
 {
    return ToVect(MainSet(aK));
 }
+
+std::string  cMMVII_Appli::UniqueStr(int aK) const
+{
+    auto aV = VectMainSet(aK);
+    MMVII_INTERNAL_ASSERT_always(aV.size()==1,"cMMVII_Appli::UniqueStr");
+
+    return aV[0];
+}
+
+
 
 void cMMVII_Appli::CheckRangeMainSet(int aK) const
 {

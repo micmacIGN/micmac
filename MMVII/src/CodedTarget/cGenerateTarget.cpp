@@ -95,7 +95,7 @@ void Bench_Target_Encoding()
 
 std::string  cParamCodedTarget::NameOfBinCode(int aNum) const
 {
-    MMVII_INTERNAL_ASSERT_strong(false,"NameOfBinCode");
+    MMVII_INTERNAL_ASSERT_strong(false,"OBSOLOTE TO READ IN FULL SPECIF,NameOfBinCode");
 
     return "-1111111";
 }
@@ -1034,6 +1034,13 @@ int  cAppliGenCodedTarget::Exe()
 
    std::string aName = aFullSpec.Prefix()+"_FullSpecif.xml";
    SaveInFile(aFullSpec, aName);
+
+   if (0)  // test reload
+   {
+         auto aPtr = cFullSpecifTarget::CreateFromFile(aName);
+	 StdOut() << "NNN=" << aName << "\n";
+	 delete aPtr;
+   }
 
    if (IsInit(&mZoomShow))
    {

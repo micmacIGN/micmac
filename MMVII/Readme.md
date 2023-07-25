@@ -2,6 +2,7 @@ Dependences :
 -------------
 
 libboost-all-dev
+libeigen3-dev
 #  libceres-dev => no longer needed 4 now
 
 

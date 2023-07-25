@@ -138,6 +138,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 	std::string mNameTarget;
 
 	cParamCodedTarget        mPCT;
+        cFullSpecifTarget*       mSpec ;
     double                   mDiamMinD;
     bool                     mConstrainCenter;
 	cPt2dr                   mRaysTF;
@@ -177,7 +178,6 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 
 
         std::vector<double>  mParamBin;
-        cParamCodedTarget spec;
         std::string mOutput_folder;
         int mTargetCounter;
         std::vector<double> mTransfo;
@@ -400,7 +400,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
     }
     StdOut() << "------------------------------------------------------------------\n";
 
-    spec.InitFromFile(mNameTarget);
+    // mPCTI.InitFromFile(mNameTarget);
 
     // --------------------------------------------------------------------------------------------------------
     // Get debug plot options
@@ -739,7 +739,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     if (!printDebug("Ellipse-cross intersections", (aDCT->mDetectedCorners.size() == 4))) return false;
 
     // Affinity first estimation
-    mTransfo = estimateRectification(aDCT->mDetectedCorners, spec.mChessboardAng);
+    mTransfo = estimateRectification(aDCT->mDetectedCorners, mPCT.mChessboardAng);
     aDCT->mSizeTargetEllipse = std::min(ellipse[2], ellipse[3]);
 
     // ======================================================================
@@ -759,7 +759,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 
         // Recomputing affinity if needed (and if possible)
         if (aDCT->mDetectedCorners.size() != 4) return false;
-        mTransfo = estimateRectification(aDCT->mDetectedCorners, spec.mChessboardAng);
+        mTransfo = estimateRectification(aDCT->mDetectedCorners, mPCT.mChessboardAng);
         aDCT->mRecomputed = true;
     }
 
@@ -791,19 +791,26 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // ======================================================================
 
     std::string code_binary;
-    int code = decodeTarget(aImT.DIm(), aDCT->mVWhite, aDCT->mVBlack, code_binary, spec.mModeFlight);
+    int code = decodeTarget(aImT.DIm(), aDCT->mVWhite, aDCT->mVBlack, code_binary, mPCT.mModeFlight);
 
     std::string chaine = "NA";
 
     if (code != -1){
-        chaine = spec.NameOfBinCode(code);
-        if (mToRestrict.size() > 0){
-            if (chaine != "NA"){
-                if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
-                    return false;
+        
+	//chaine = mPCT.NameOfBinCode(code);
+
+         const cOneEncoding * anEnc  = mSpec->EncodingFromCode(code);
+	 if (anEnc != nullptr)
+	 {
+            chaine = anEnc->Name();
+            if (mToRestrict.size() > 0){
+                if (chaine != "NA"){
+                    if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
+                        return false;
+                    }
                 }
             }
-        }
+	}
     }
 
     std::string name_file = "target_" + chaine + ".tif";
@@ -882,12 +889,12 @@ bool cAppliExtractCodeTarget::printDebug(std::string name, double value, double 
 tImTarget cAppliExtractCodeTarget::generateRectifiedImage(cDCT* aDCT, const cDataIm2D<float>& aDIm){
 
     double irel, jrel;
-    int Ni = spec.mModeFlight?640:600;
-    int Nj = spec.mModeFlight?1280:600;
+    int Ni = mPCT.mModeFlight?640:600;
+    int Nj = mPCT.mModeFlight?1280:600;
     tImTarget aImT(cPt2di(Ni, Nj));
     tDataImT & aDImT = aImT.DIm();
 
-    if (!spec.mModeFlight){
+    if (!mPCT.mModeFlight){
 
         // -------------------------------------------------------------
         // Standard case
@@ -1722,7 +1729,7 @@ int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double t
 
 
         // Prepare hamming decoder
-        cHamingCoder aHC(spec.mNbBit-1);
+        cHamingCoder aHC(mPCT.mNbBit-1);
 
         aDImT.SetV(cPt2di(300,300), 255.0);
 
@@ -2113,12 +2120,6 @@ int  cAppliExtractCodeTarget::Exe(){
     }
 
 
-
-
-
-
-
-
     StdOut() << "============================================================\n";
     StdOut() << "CODED TARGET AUTOMATIC EXTRACTION \n";
     StdOut() << "============================================================\n";
@@ -2146,7 +2147,13 @@ int  cAppliExtractCodeTarget::Exe(){
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
       return ResultMultiSet();
 
-   mPCT.InitFromFile(mNameTarget);
+
+   {
+         mSpec  = cFullSpecifTarget::CreateFromFile(mNameTarget);
+	 mPCT = mSpec->Render();
+   }
+
+   StdOut() << "ooooooooooooNNNNN " << mNameTarget << "\n";
    mRayMinCB = (mDiamMinD/2.0) * (mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar);
 
 // StdOut() << "mRayMinCB " << mRayMinCB << "\n"; getchar();
@@ -2158,6 +2165,7 @@ int  cAppliExtractCodeTarget::Exe(){
    APBI_ExecAll();  // run the parse file  SIMPL
 
 
+   delete mSpec;
    return EXIT_SUCCESS;
 }
 

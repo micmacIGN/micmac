@@ -401,6 +401,7 @@ class cFullSpecifTarget : public cMemCheck
 	 const cPt2dr & CornerlEl_BW() const; ///<  Corner of ellipse transition B->W ( trigonometric sense)
 	 const cPt2dr & CornerlEl_WB() const; ///<  Corner of ellipse transition W->B ( trigonometric sense)
 
+         const  cParamRenderingTarget &     Render()    const;
       private :
 	 ///  default constructor required for step by step buildin
          cFullSpecifTarget();
@@ -414,7 +415,6 @@ class cFullSpecifTarget : public cMemCheck
 
          const  cSpecBitEncoding &          Specs()     const;
 	 int    DeZoomIm() const;
-         const  cParamRenderingTarget &     Render()    const;
 
 	 std::string NameOfImPattern() const;
 	 std::string NameOfEncode(const cOneEncoding & anEnCode) const;
