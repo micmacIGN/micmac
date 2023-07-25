@@ -2162,7 +2162,7 @@ static int basculepy(std::string ori0, std::string ori1, std::string oriOut, std
     std::string binaryPath =  MMDir() + "src/uti_phgrm/NewOri/BasculeTriplet/main.py";
 
     int err = 0;
-    std::cout << exec(binaryPath + " \"" + mTripletPath + "\" \"Ori-"+ ori0 + "\" \"Ori-" + ori1 + "\" Ori-" + oriOut + " ", &err);
+    std::cout << exec("python " + binaryPath + " \"" + mTripletPath + "\" \"Ori-"+ ori0 + "\" \"Ori-" + ori1 + "\" Ori-" + oriOut + " ", &err);
     return err;
 }
 
@@ -2459,7 +2459,7 @@ void RandomForest::postorderNode(
             current.insert(e);
 
         //Bundle des actuels pour "nettoyer"
-        campari(current, ori0name, mPrefHom);
+        //campari(current, ori0name, mPrefHom);
         //On lit tout ce petit monde
         updateViewFrom(ori0name, current);
     }
