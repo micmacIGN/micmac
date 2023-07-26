@@ -686,7 +686,7 @@ int cAppli_CalibratedSpaceResection::Exe()
 {
     mPhProj.FinishInit();
 
-    std::string aNameReport = "toto_"+ PrefixGMA();
+    std::string aNameReport = "toto_"+ Prefix_TIM_GMA();
 
    InitReport(aNameReport,"txt",true);
    AddTopReport(aNameReport,"TOP Lign 1\n");

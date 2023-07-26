@@ -471,6 +471,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	static const std::string & DirProfileUsage();
 
 	const std::string & PrefixGMA () const; /// Accessor
+	const std::string & Prefix_TIM_GMA () const; /// Accessor
 
 	// ========================  Methods for memorizing report (for example using csv)
 	
@@ -604,6 +605,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mGlobalMainAppli; ///< Both main process && main appli inside P
         std::string                               mPrefixNameAppli;  ///< String Id of process
         std::string                               mPrefixGMA;        ///< Sting Id of Global Main Appli
+        std::string                               mPrefix_TIM_GMA;    ///< Sting Id of Time of Global main appli
         std::string                               mDirProjGMA;        ///< Dir Project Main Appli
      
         static std::string                        mDirBinMMVII;   ///< where is the binary
