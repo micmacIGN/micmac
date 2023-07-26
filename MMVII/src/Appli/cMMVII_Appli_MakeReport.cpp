@@ -90,6 +90,7 @@ void  cMMVII_Appli::DoMergeReport()
 	     }
 
 	 }
+         RemoveRecurs(DirSubPReport(anId),false,false);
      }
 }
 
