@@ -600,13 +600,18 @@ class RandomForest : public cCommonMartiniAppli {
 
     void hierarchique(Dataset& data, size_t cc, ffinalTree& tree);
     finalScene bfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
-    finalScene bfs3(Dataset& data, ffinalTree& tree, tSomNSI* node);
+    std::set<tSomNSI*> bfs3(Dataset& data, ffinalTree& tree, tSomNSI* node);
+    void callbackNode(Dataset& data,
+              const std::unordered_map<tSomNSI*, std::set<tSomNSI*>>& ss,
+              std::set<tSomNSI*>& processed,
+              tSomNSI* node);
 
     std::set<tSomNSI*> bfs2(Dataset& data, ffinalTree& tree, tSomNSI* node);
 
     finalScene dfs(Dataset& data, ffinalTree& tree, tSomNSI* node);
 
     finalScene processNode(Dataset& data, const ffinalTree& tree, const std::map<tSomNSI*, finalScene>& r, tSomNSI* node);
+    void processNode2(Dataset& data, const ffinalTree& tree, const std::unordered_map<tSomNSI*, std::set<tSomNSI*>>& ss, tSomNSI* node);
     void postorderNode(size_t depth, Dataset& data,std::unordered_map<tSomNSI*, std::set<tSomNSI*>>& ss, const ffinalTree& tree, tSomNSI* node);
 
     void RandomSolAllCC(Dataset& data, double* output, size_t n);

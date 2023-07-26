@@ -66,6 +66,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <set>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -2181,6 +2182,11 @@ std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + "
     return err;
 }
 
+static bool exist_dir(const std::string& path) {
+    struct stat sb;
+    return stat(path.c_str(), &sb) == 0 && (sb.st_mode & S_IFDIR);
+}
+
 finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
                                      const std::map<tSomNSI*, finalScene>& rs,
                                      tSomNSI* node) {
@@ -2264,20 +2270,117 @@ finalScene RandomForest::processNode(Dataset& data, const ffinalTree& tree,
     return result;
 }
 
+void RandomForest::processNode2(
+    Dataset& data, const ffinalTree& tree,
+    const std::unordered_map<tSomNSI*, std::set<tSomNSI*>>& ss, tSomNSI* node) {
+
+    std::string curNodeName = node->attr().Im()->Name();
+    std::string ori0name = "tree_"+ curNodeName;
+    std::cout << "Output:" << ori0name << std::endl;
+
+    //Output first child orientation
+    if (ss.at(node).size() < 2) {
+        //Save current all data
+        for (auto e : ss.at(node)) { e->flag_set_kth_true(data.mFlagS); }
+        Save(data, ori0name, false);
+        for (auto e : ss.at(node)) { e->flag_set_kth_false(data.mFlagS); }
+        std::cout << "Leaf: " << node->attr().Im()->Name() << std::endl;
+        for (auto& child : ss.at(node)) {
+            std::cout << " " << child->attr().Im()->Name() << std::endl ;
+        }
+
+        return;
+    }
+
+    for (auto child : tree.next.at(node)) {
+        std::string name = "Ori-tree_" + child->attr().Im()->Name();
+        if (!exist_dir(name)) {
+            std::cout << "ERROR: child " << name << " dont exist." << std::endl;
+        }
+    }
+
+    std::vector<tSomNSI*> childs;
+    for (auto c : tree.next.at(node)) { childs.push_back(c); }
+    std::sort(childs.begin(), childs.end(), [&ss](tSomNSI* a, tSomNSI* b) {
+        return ss.at(a).size() > ss.at(b).size();
+    });
+
+
+    std::cout << "Parent: " << node->attr().Im()->Name() << ":";
+    for (auto& child : childs) {
+        std::cout << " " << child->attr().Im()->Name();
+    }
+    std::cout << std::endl;
+
+    auto child0 = childs[0];
+    std::set<tSomNSI*> current;
+    {
+        current.insert(node);
+        auto r0 = ss.at(child0);
+        for (auto e : r0) current.insert(e);
+    }
+
+    for (auto e : current) { e->flag_set_kth_true(data.mFlagS); }
+    Save(data, ori0name, false);
+    for (auto e : current) { e->flag_set_kth_false(data.mFlagS); }
+
+    campari(current, ori0name, mPrefHom);
+    updateViewFrom(ori0name, current);
+
+    for (size_t n = 1; n < childs.size(); n++) {
+        auto child = childs[n];
+        auto i = "tree_" + child->attr().Im()->Name();
+
+        //On bascule tout dans le premier fils
+        basculepy(ori0name, i, ori0name, mNameOriCalib, mPrefHom);
+
+        //On liste tous les nodes du fils
+        const auto& rn = ss.at(child);
+        for (auto e : rn)
+            current.insert(e);
+
+        //Bundle des actuels pour "nettoyer"
+        campari(current, ori0name, mPrefHom);
+        //On lit tout ce petit monde
+        updateViewFrom(ori0name, current);
+    }
+
+    // On recup la liste precompute de tout ce dont on devrait avoir en sortie
+    const auto& result = ss.at(node);
+
+    //On les save saitons jamais
+    for (auto e : result) { e->flag_set_kth_true(data.mFlagS); }
+    Save(data, ori0name, false);
+    for (auto e : result) { e->flag_set_kth_false(data.mFlagS); }
+
+    //On commence par un bundle, donc pas a la fin
+    //campari(result, ori0name, mPrefHom);
+    //updateViewFrom(ori0name, result);
+
+    //Fin pour ce node
+    return;
+
+}
+
 void RandomForest::updateViewFrom(std::string name, std::set<tSomNSI*> views)
 {
-    std::string inOri = name;
-    std::cout << "Reading output ori from: " << inOri << std::endl;
-    if (!ELISE_fp::exist_file(inOri)) {
+    std::string dirOri = "Ori-" + name;
+    std::cout << "Reading output ori from: " << dirOri << std::endl;
+    if (!exist_dir(dirOri)) {
+        std::cout << "Ori: " << dirOri << " don't exist." <<  std::endl;
         //No directory to read from
         return;
     }
+
+    std::string inOri = name;
     for (auto e : views) {
         std::string imgName = e->attr().Im()->Name();
         std::string f = mNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+inOri,imgName,true);
         if (ELISE_fp::exist_file(f)) {
             auto aCam = mNM->ICNM()->StdCamStenOfNames(imgName, inOri);
             e->attr().CurRot() = aCam->Orient().inv();
+        } else {
+            std::cout << "File: " << f << " missing." <<  std::endl;
         }
     }
 }
@@ -2347,56 +2450,6 @@ finalScene RandomForest::bfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
     return results[node];
 }
 
-finalScene RandomForest::bfs3(Dataset& data, ffinalTree& tree, tSomNSI* node) {
-    std::deque<tSomNSI*> s;
-    for (auto cs : data.mVCC[0]->mSoms) {
-        s.push_back(cs);
-    }
-    std::map<tSomNSI*, finalScene> results;
-
-    std::cout << "Down the tree" << std::endl;
-    std::cout << "Using N:" << processor_count << " processor." << std::endl;
-
-    std::mutex result_m;
-
-    std::deque<std::thread> tasks;
-    while (!s.empty()) {
-        auto som = s.front();
-        bool ready = true;
-        for (auto c : tree.next[som]) {
-            if (!results.count(c))
-                ready = false;
-        }
-        s.pop_front();
-        if (!ready) {
-            s.push_back(som);
-            continue;
-        }
-        tasks.emplace_back([&results, &result_m, &data, tree, som, this]() {
-            auto res = processNode(data, tree, results, som);
-            std::lock_guard<std::mutex> guard(result_m);
-            results[som] = res;
-        });
-        for (auto it = tasks.begin(); it != tasks.end();) {
-            if (!it->joinable()) {
-                it->join();
-                it = tasks.erase(it);
-            } else {
-                ++it;
-            }
-        }
-        if (tasks.size() >= processor_count * 0.7) {
-            tasks.front().join();
-            tasks.pop_front();
-        }
-    }
-    while (!tasks.empty()) {
-        tasks.front().join();
-        tasks.pop_front();
-    }
-
-    return results[node];
-}
 
 #include <unordered_map>
 static void bfs2_postorder(std::unordered_map<tSomNSI*, std::set<tSomNSI*>>& ss,
@@ -2413,6 +2466,86 @@ static void bfs2_postorder(std::unordered_map<tSomNSI*, std::set<tSomNSI*>>& ss,
         }
     }
 }
+
+void RandomForest::callbackNode(Dataset& data,
+              const std::unordered_map<tSomNSI*, std::set<tSomNSI*>>& ss,
+              std::set<tSomNSI*>& processed,
+              tSomNSI* node) {
+
+    std::string curNodeName = node->attr().Im()->Name();
+    std::string ori0name = "tree_" + curNodeName;
+    std::cout << "Callback of " << ori0name << std::endl;
+
+    updateViewFrom(ori0name, ss.at(node));
+
+    for (auto c : ss.at(node)) {
+        processed.insert(c);
+    }
+    processed.insert(node);
+}
+
+std::set<tSomNSI*> RandomForest::bfs3(Dataset& data, ffinalTree& tree, tSomNSI* node) {
+    std::deque<tSomNSI*> s;
+    for(auto const& cs: tree.next) {
+        s.push_back(cs.first);
+    }
+
+    std::cout << "Down the tree" << std::endl;
+    std::cout << "Using N:" << processor_count << " processor." << std::endl;
+
+    std::unordered_map<tSomNSI*, std::set<tSomNSI*>> ss;
+    bfs2_postorder(ss, data, tree, node);
+
+    std::set<tSomNSI*> processed;
+
+    std::deque<std::tuple<tSomNSI*, int>> tasks;
+    while (!s.empty()) {
+        for (auto it = tasks.begin(); it != tasks.end();) {
+            pid_t return_pid = waitpid(std::get<1>(*it), nullptr, WNOHANG);
+            if (return_pid == std::get<1>(*it)) { //TODO test
+                callbackNode(data, ss, processed, std::get<0>(*it));
+                it = tasks.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        if (tasks.size() >= processor_count) {
+            waitpid(std::get<1>(tasks.front()), nullptr, 0);
+            callbackNode(data, ss, processed, std::get<0>(tasks.front()));
+            tasks.pop_front();
+        }
+
+        auto som = s.front();
+        bool ready = true;
+        for (auto c : tree.next[som]) {
+            if (!processed.count(c)) {
+                //std::cout << "Wait " << c->attr().Im()->Name() << std::endl;
+                ready = false;
+            }
+        }
+        s.pop_front();
+        if (!ready) {
+            s.push_back(som);
+            //std::cout << "Not ready " << som->attr().Im()->Name() << std::endl;
+            continue;
+        }
+
+        int cpid;
+        if ((cpid=fork()) == 0) {
+            processNode2(data, tree, ss, som);
+            exit(0);
+        }
+        tasks.push_back({som,cpid});
+    }
+
+    while (!tasks.empty()) {
+        waitpid(std::get<1>(tasks.front()), nullptr, 0);
+        callbackNode(data, ss, processed, std::get<0>(tasks.front()));
+        tasks.pop_front();
+    }
+    return ss[node];
+}
+
 void RandomForest::postorderNode(
     size_t depth,
     Dataset& data, std::unordered_map<tSomNSI*, std::set<tSomNSI*>>& ss,
@@ -2458,7 +2591,7 @@ void RandomForest::postorderNode(
     for (auto child : tree.next.at(node)) {
 
         std::string name = "Ori-tree_"+ std::to_string(depth+1) + "_" + child->attr().Im()->Name();
-        if (!ELISE_fp::exist_file(name)) {
+        if (!exist_dir(name)) {
             std::cout << "ERROR: child " << name << " dont exist." << std::endl;
         }
     }
@@ -2614,13 +2747,13 @@ void RandomForest::hierarchique(Dataset& data, size_t cc, ffinalTree& tree) {
     auto all = bfs3(data, tree, tree.root->KSom(0));
     //TODO global campari on all data
     std::string pattern = "(";
-    for (auto v : all.ss) pattern += v->attr().Im()->Name() + "|";
+    for (auto v : all) pattern += v->attr().Im()->Name() + "|";
     pattern += ")";
 
     std::string aOutOri = mOutName + std::to_string(cc) + "Hierarchique";
-    for (auto e : all.ss) { e->flag_set_kth_true(data.mFlagS); }
+    for (auto e : all) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, aOutOri, false);
-    for (auto e : all.ss) { e->flag_set_kth_false(data.mFlagS); }
+    for (auto e : all) { e->flag_set_kth_false(data.mFlagS); }
     std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + aOutOri + " " + aOutOri +" SH=" + mPrefHom);
 
     //updateViewFrom(ori0name, result.ss);
