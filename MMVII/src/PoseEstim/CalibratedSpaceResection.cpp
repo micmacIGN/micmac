@@ -686,9 +686,11 @@ int cAppli_CalibratedSpaceResection::Exe()
 {
     mPhProj.FinishInit();
 
-   InitReport("toto","txt",true);
-   AddTopReport("toto","TOP Lign 1\n");
-   AddTopReport("toto","TOP Lign 2\n");
+    std::string aNameReport = "toto_"+ PrefixGMA();
+
+   InitReport(aNameReport,"txt",true);
+   AddTopReport(aNameReport,"TOP Lign 1\n");
+   AddTopReport(aNameReport,"TOP Lign 2\n");
 
     bool  aExpFilt = mPhProj.DPPointsMeasures().DirOutIsInit();
     if (aExpFilt)
@@ -710,8 +712,8 @@ int cAppli_CalibratedSpaceResection::Exe()
 
         return EXIT_SUCCESS;
     }
-    AddOneReportCSV("toto",{"Sub1","a"});
-    AddOneReport("toto","Sub3\n");
+    AddOneReportCSV(aNameReport,{"Sub1","a"});
+    AddOneReport(aNameReport,"Sub3\n");
 
     //AddOneReport("toto","Sub1\n");
     //AddOneReport("toto","Sub2\n");

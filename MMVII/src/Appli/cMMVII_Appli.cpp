@@ -1491,10 +1491,12 @@ const std::string & cMMVII_Appli::FullBin()           {return mFullBin;}
 const std::string & cMMVII_Appli::DirTestMMVII()      {return mDirTestMMVII;}
 const std::string & cMMVII_Appli::DirMicMacv1()       {return mDirMicMacv1;}
 
+
 const std::string & cMMVII_Appli::DirRessourcesMMVII()      {return mDirRessourcesMMVII;}
               // Accessors
 const std::string & cMMVII_Appli::DirProject() const  {return mDirProject;}
 int cMMVII_Appli::NbProcAllowed () const {return mNbProcAllowed;}
+const std::string & cMMVII_Appli::PrefixGMA () const {return mPrefixGMA;}
 
 std::string  cMMVII_Appli::DirTmpOfCmd(eModeCreateDir aMode) const
 {
