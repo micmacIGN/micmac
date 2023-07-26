@@ -416,8 +416,11 @@ bool cSetMesPtOf1Im::NameHasMeasure(const std::string & aN) const {return Privat
 cMes1GCP::cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma) :
     mPt       (aPt),
     mNamePt   (aNamePt),
-    mSigma2   {aSigma,0,0,aSigma,0,aSigma}
+    mSigma2   {0,0,0,0,0,0}
 {
+    mSigma2[IndXX] = aSigma;
+    mSigma2[IndYY] = aSigma;
+    mSigma2[IndZZ] = aSigma;
 }
 
 cMes1GCP::cMes1GCP() :

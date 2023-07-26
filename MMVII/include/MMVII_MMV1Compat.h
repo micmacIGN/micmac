@@ -37,6 +37,11 @@ struct  cExportV1StenopeCalInterne
 // template<class Type> void  MMv1_SaveInFile(const Type & aVal,const std::string & aName)
 // template<> void  MMv1_SaveInFile(const tNameSet & aVal,const std::string & aName);
 
+///  Import a file of measures image in V1 format in a V2 structure
+void ImportMesImV1(std::list<cSetMesPtOf1Im>  &,const std::string & aNameFileMesImV1);
+
+///  Import a file of measures ground-control-points in V1 format in a V2 structure
+cSetMesGCP ImportMesGCPV1(const std::string & aNameFileMesGCPV1,const std::string & aNameSet);
 
 
 

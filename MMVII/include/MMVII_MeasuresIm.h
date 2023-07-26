@@ -122,6 +122,10 @@ class cMes1GCP
 
         cPt3dr         mPt;
         std::string    mNamePt;
+        static constexpr int IndXX = 0;
+        static constexpr int IndYY = 3;
+        static constexpr int IndZZ = 5;
+
         tREAL4         mSigma2[6];  //  xx xy xz yy yz zz
 };
 
