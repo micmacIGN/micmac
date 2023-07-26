@@ -75,6 +75,7 @@ enum class eApF
                Radiometry, ///< Radiometric modelization
                Ori,        ///< Orientation
                Match,      ///< Dense Matching
+               GCP,       ///< Tie-Point processing
                TieP,       ///< Tie-Point processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
@@ -84,6 +85,16 @@ enum class eApF
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
            };
+
+/// Type of serialization
+enum class eTypeSerial
+           {
+                exml,
+                edmp,
+                etxt,
+                ejson,
+                eNbVals     ///< Tag for number of value
+	   };
 
 /// Type of external format that are potentially imported/exported in MicMac
 enum class eFormatExtern
@@ -483,6 +494,7 @@ enum class eMTDIm
 
 const std::string & E2Str(const eMTDIm &);
 const std::string & E2Str(const eFormatExtern &);
+const std::string & E2Str(const eTypeSerial &);
 const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTyCodeTarget &);         

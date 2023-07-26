@@ -563,11 +563,14 @@ class cAppli_CalibratedSpaceResection : public cMMVII_Appli
 
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
+        cSetMesImGCP             mSetMes;
         cSet2D3D                 mSet23 ;
 
 	int                      mNbTriplets;
 	int                      mNbIterBundle;
 	bool                     mShowBundle;
+	tREAL8                   mThrsReject;
+        std::string              mDirFilter;
         // bool                     mShow;
         // bool                     mReal16;
 
@@ -582,7 +585,8 @@ cAppli_CalibratedSpaceResection::cAppli_CalibratedSpaceResection
      mPhProj       (*this),
      mNbTriplets   (500),
      mNbIterBundle (10),
-     mShowBundle   (false)
+     mShowBundle   (false),
+     mThrsReject   (10000.0)
 {
 }
 
@@ -605,30 +609,181 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
 	   << AOpt2007(mNbTriplets,"NbTriplets","Number max of triplet tested in Ransac",{eTA2007::HDV})
 	   << AOpt2007(mNbIterBundle,"NbIterBund","Number of bundle iteration, after ransac init",{eTA2007::HDV})
 	   << AOpt2007(mShowBundle,"ShowBundle","Show detail of bundle results",{eTA2007::HDV})
+	   << AOpt2007(mThrsReject,"ThrRej","Threshold for rejection of outlayer, in pixel")
+	   <<  mPhProj.DPPointsMeasures().ArgDirOutOpt("DirFiltered","Directory for filtered point")
     ;
 }
+
+//================================================
+
+class cFilterMesIm
+{
+      public : 
+         cFilterMesIm(cPhotogrammetricProject & aPhProj,const std::string & aNameIm);
+	 void AddInOrOut(const cPt2dr & aPIm,const std::string & aNamePt,bool isIn);
+	 const cSetMesImGCP &   SetMesImGCP();
+	 const cSetMesPtOf1Im & SetMesIm();
+         void Save();
+	 void SetFinished();
+      private :
+
+         cPhotogrammetricProject &  mPhProj;
+	 cSetMesImGCP               mImGCP;  // new set GCP/IM
+	 cSetMesPtOf1Im             mMesIm;
+	 cSetMesPtOf1Im             mMesImSupr;
+	 std::list<std::string>     mSupr;
+	 bool                       mFinished;
+
+};
+
+cFilterMesIm::cFilterMesIm(cPhotogrammetricProject & aPhProj,const std::string & aNameIm)  :
+    mPhProj      (aPhProj),
+    mMesIm       (aNameIm),
+    mFinished    (false)
+{
+    mPhProj.LoadGCP(mImGCP);  // init new GCP/IM with GCP
+}
+
+void cFilterMesIm::AddInOrOut(const cPt2dr & aPtIm,const std::string & aNamePt,bool isIn)
+{
+     MMVII_INTERNAL_ASSERT_medium(!mFinished,"cFilterMesIm::AddInOut while fnished");
+     cMesIm1Pt aMes(aPtIm,aNamePt,1.0 );
+     if (isIn) 
+     {
+        mMesIm.AddMeasure(cMesIm1Pt(aPtIm,aNamePt,1.0 ));
+     }
+     else
+     {
+        mSupr.push_back(aNamePt);
+     }
+}
+
+void cFilterMesIm::SetFinished()
+{
+    if (! mFinished)
+       mImGCP.AddMes2D(mMesIm);
+        
+    mFinished = true;
+}
+
+const cSetMesImGCP &   cFilterMesIm::SetMesImGCP()
+{
+     SetFinished();
+     return mImGCP;
+}
+
+void cFilterMesIm::Save()
+{
+     MMVII_INTERNAL_ASSERT_medium(mFinished,"cFilterMesIm::Sve while not fnished");
+     mPhProj.SaveMeasureIm(mMesIm);
+
+     mPhProj.SaveAndFilterAttrEll(mMesIm,mSupr);
+}
+
+//================================================
 
 int cAppli_CalibratedSpaceResection::Exe()
 {
     mPhProj.FinishInit();
 
+   InitReport("toto","txt",true);
+   AddTopReport("toto","TOP Lign 1\n");
+   AddTopReport("toto","TOP Lign 2\n");
+
+    bool  aExpFilt = mPhProj.DPPointsMeasures().DirOutIsInit();
+    if (aExpFilt)
+    {
+	    MMVII_INTERNAL_ASSERT_User(IsInit(&mThrsReject),eTyUEr::eUnClassedError,"Dir filter w/o threshold for filter");
+    }
     if (RunMultiSet(0,0))
     {
+
         int aResult = ResultMultiSet();
 
         if (aResult != EXIT_SUCCESS)
            return aResult;
 
+	if (aExpFilt)
+	{
+           mPhProj.CpGCP(); // Save GCP from StdIn to StdOut
+        }
+
         return EXIT_SUCCESS;
     }
+    AddOneReportCSV("toto",{"Sub1","a"});
+    AddOneReport("toto","Sub3\n");
+
+    //AddOneReport("toto","Sub1\n");
+    //AddOneReport("toto","Sub2\n");
+/*
+{
+    InitReport("titi","txt",eModeCall::eUnik);
+    AddOneReport("titi","Lign 1\n");
+    AddOneReport("titi","Lign 2\n");
+}
+*/
+
+    // By default print detail if we are not in //
+    SetIfNotInit(mShowBundle,LevelCall()==0);
 
     std::string aNameIm =FileOfPath(mSpecImIn);
-    mSet23 =mPhProj.LoadSet32(aNameIm);
+
+    mPhProj.LoadGCP(mSetMes);
+    mPhProj.LoadIm(mSetMes,aNameIm);
+    mSetMes.ExtractMes1Im(mSet23,aNameIm);
+
+    // mSet23 =mPhProj.LoadSet32(aNameIm);
     cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(aNameIm);
 
     cWhichMin<tPoseR,tREAL8>  aWMin = aCal->RansacPoseEstimSpaceResection(mSet23,mNbTriplets);
     tPoseR   aPose = aWMin.IndexExtre();
     cSensorCamPC  aCam(FileOfPath(aNameIm,false),aPose,aCal);
+
+    std::vector<double> aVRes;
+    {
+       for (const auto & aPair : mSet23.Pairs())
+       {
+            tREAL8 aRes = aCam.AngularProjResiudal(aPair) * aCal->F();
+	    aVRes.push_back(aRes); 
+       }
+       std::sort(aVRes.begin(),aVRes.end());
+       std::reverse(aVRes.begin(),aVRes.end()); // reverse to supress 3 lowest val => RANSAC
+       for (int aK=0 ; aK<3 ; aK++)
+          aVRes.pop_back();
+       std::reverse(aVRes.begin(),aVRes.end());
+    }
+     
+    cFilterMesIm aFMIM(mPhProj,aNameIm);
+
+    // If we want to filter on residual 
+    if (mShowBundle || IsInit(&mThrsReject))
+    {
+         StdOut() <<   " =====  WORST RESIDUAL ============= \n";
+
+         tREAL8 aThShow = aVRes.at(std::max(0,int(aVRes.size()-5)));  // arbitray threshols for worst points
+	 for (const auto & aMes : mSetMes.MesImOfPt())
+	 {
+             if (! aMes.VMeasures().empty())
+	     {
+                 cPt2dr aPtIm  = aMes.VMeasures().at(0);
+	         cMes1GCP      aGCP =  mSetMes.MesGCP().at(aMes.NumPt());
+
+	         tREAL8 aRes = aCam.AngularProjResiudal(cPair2D3D(aPtIm,aGCP.mPt)) * aCal->F();
+
+	         if (aRes>=aThShow)
+                    StdOut() <<   " * Name=" << aGCP.mNamePt << " " << aRes << "\n";
+
+                 aFMIM.AddInOrOut(aPtIm,aGCP.mNamePt,aRes < mThrsReject);
+	     }
+	 }
+         aFMIM.SetFinished();
+
+	 if (IsInit(&mThrsReject))
+	 {
+	     aFMIM.Save();
+	     aFMIM.SetMesImGCP().ExtractMes1Im(mSet23,aNameIm);
+	 }
+    }
 
     if (mNbIterBundle)
     {
@@ -656,14 +811,8 @@ int cAppli_CalibratedSpaceResection::Exe()
 
     }
 
-
-
     mPhProj.SaveCamPC(aCam);
 
-    {
-       tREAL8 aRes = aWMin.ValExtre();
-       StdOut()  << "Residual, Ang=" << aRes  << " Pix=" << aRes * aCal->F() << "\n";
-    }
 
     return EXIT_SUCCESS;
 }                                       

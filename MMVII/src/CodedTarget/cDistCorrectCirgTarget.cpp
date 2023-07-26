@@ -15,7 +15,6 @@
 
 namespace MMVII
 {
-using namespace  cNS_CodedTarget;
 
 /*  *********************************************************** */
 /*                                                              */

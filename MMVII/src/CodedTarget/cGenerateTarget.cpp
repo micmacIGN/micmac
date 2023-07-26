@@ -10,7 +10,6 @@
 
 namespace MMVII
 {
-using namespace cNS_CodedTarget;
 
 /**  Generate a visualistion of target, made an external-non-friend  function
  * to test the usability.
@@ -87,9 +86,6 @@ void Bench_Target_Encoding()
 }
 
 
-namespace  cNS_CodedTarget
-{
-
 /**************************************************/
 /*                                                */
 /*           cParamCodedTarget                    */
@@ -99,7 +95,7 @@ namespace  cNS_CodedTarget
 
 std::string  cParamCodedTarget::NameOfBinCode(int aNum) const
 {
-    MMVII_INTERNAL_ASSERT_strong(false,"NameOfBinCode");
+    MMVII_INTERNAL_ASSERT_strong(false,"OBSOLOTE TO READ IN FULL SPECIF,NameOfBinCode");
 
     return "-1111111";
 }
@@ -194,6 +190,9 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
    mType = aSpec.mType;
    cMMVII_Appli & anAppli = cMMVII_Appli::CurrentAppli();
 
+   mNbBit = aSpec.mNbBits;
+   mWithParity = aSpec.mParity;
+
    if (aSpec.mType==eTyCodeTarget::eIGNIndoor)
    {
          // Nothingto do all default value have been setled for this case
@@ -213,11 +212,12 @@ void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
    }
    else if (aSpec.mType==eTyCodeTarget::eCERN)
    {
-       anAppli.SetIfNotInit(mNbBit,20);
-       anAppli.SetIfNotInit(mWithParity,false);
+      //  anAppli.SetIfNotInit(mNbBit,20);
+       // anAppli.SetIfNotInit(mWithParity,false);
+
        anAppli.SetIfNotInit(mNbRedond,1);
-       anAppli.SetIfNotInit(mThickN_WInt,1.0);
-       anAppli.SetIfNotInit(mThickN_Code,1.0);
+       anAppli.SetIfNotInit(mThickN_WInt,(mNbBit==20) ? 1.5 : 1.0);
+       anAppli.SetIfNotInit(mThickN_Code,(mNbBit==20) ? 1.5 : 1.0);
        anAppli.SetIfNotInit(mThickN_WExt,0.0);
        anAppli.SetIfNotInit(mWithChessboard,false);
        anAppli.SetIfNotInit(mWhiteBackGround,false);
@@ -982,8 +982,8 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return anArgOpt
           << AOpt2007(mPatternDoImage,"PatIm","Pattern for generating image (def no generation)")
           << AOpt2007(mPCT.mRayCenterMiniTarget,"RayMCT","Rayon \"mini\" center target (for topo)",{eTA2007::HDV})
-          << AOpt2007(mPCT.mNbBit,"NbBit","Nb Bit printed",{eTA2007::HDV})
-          << AOpt2007(mPCT.mWithParity,"WPar","With parity bit",{eTA2007::HDV})
+          // << AOpt2007(mPCT.mNbBit,"NbBit","Nb Bit printed",{eTA2007::HDV})
+          // << AOpt2007(mPCT.mWithParity,"WPar","With parity bit",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_WInt,"ThW0","Thickness of interior white circle",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_Code,"ThCod","Thickness of bin-coding black circle",{eTA2007::HDV})
           << AOpt2007(mPCT.mThickN_WExt,"ThSepCar","Thickness of sep bin-code / ahpha code",{eTA2007::HDV})
@@ -1002,9 +1002,9 @@ int  cAppliGenCodedTarget::Exe()
 {
     //  Bench_Target_Encoding();
 
+       // anAppli.SetIfNotInit(mWithParity,false);
 
    ReadFromFile(mBE,mNameBE);
-
    mPCT.FinishInitOfSpec(mBE.Specs());
    mPCT.Finish();
 
@@ -1035,6 +1035,13 @@ int  cAppliGenCodedTarget::Exe()
    std::string aName = aFullSpec.Prefix()+"_FullSpecif.xml";
    SaveInFile(aFullSpec, aName);
 
+   if (0)  // test reload
+   {
+         auto aPtr = cFullSpecifTarget::CreateFromFile(aName);
+	 StdOut() << "NNN=" << aName << "\n";
+	 delete aPtr;
+   }
+
    if (IsInit(&mZoomShow))
    {
       TestReloadAndShow_cFullSpecifTarget(aName,mZoomShow);
@@ -1044,7 +1051,6 @@ int  cAppliGenCodedTarget::Exe()
 
    return EXIT_SUCCESS;
 }
-};
 
 
 /* =============================================== */
@@ -1052,7 +1058,6 @@ int  cAppliGenCodedTarget::Exe()
 /*                       ::                        */
 /*                                                 */
 /* =============================================== */
-using namespace  cNS_CodedTarget;
 
 tMMVII_UnikPApli Alloc_GenCodedTarget(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {

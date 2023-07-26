@@ -43,7 +43,7 @@ class cDescOneFuncDist
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);
 
-const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree);
+const std::vector<cDescOneFuncDist> & VDesc_RadiomCPI(int aDegree,int aDRadElim=-1);
 
 
 
@@ -123,10 +123,11 @@ NS_SymbolicDerivative::cCalculator<double> * EqCPProjInv(eProjPC  aType,bool Wit
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse);
 
            // .............   Equation radiometry .............
-NS_SymbolicDerivative::cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf);
-NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomVignettageLinear(int aNbDeg,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens);
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibRadSensor(int aNbDeg,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens);
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibPolIma(int aNbDeg,bool WithDerive,int aSzBuf);
-NS_SymbolicDerivative::cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf);
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens);
+NS_SymbolicDerivative::cCalculator<double> * EqRadiomStabilization(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens);
 
 
 

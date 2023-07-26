@@ -29,6 +29,7 @@ extern cSpecMMVII_Appli  TheSpec_StackIm;
 extern cSpecMMVII_Appli  TheSpecCalcDiscIm;
 extern cSpecMMVII_Appli  TheSpecCalcDescPCar;
 extern cSpecMMVII_Appli  TheSpecMatchTieP;
+extern cSpecMMVII_Appli  TheSpec_TiePConv;
 extern cSpecMMVII_Appli  TheSpecEpipGenDenseMatch;
 extern cSpecMMVII_Appli  TheSpecEpipDenseMatchEval; 
 extern cSpecMMVII_Appli  TheSpecGenSymbDer;
@@ -55,6 +56,7 @@ extern cSpecMMVII_Appli  TheSpecTestCovProp;
 extern cSpecMMVII_Appli  TheSpec_OriConvV1V2; 
 extern cSpecMMVII_Appli  TheSpec_OriUncalibSpaceResection; 
 extern cSpecMMVII_Appli  TheSpec_OriCalibratedSpaceResection; 
+extern cSpecMMVII_Appli  TheSpec_OriCheckGCPDist; 
 extern cSpecMMVII_Appli  TheSpecMeshCheck; 
 extern cSpecMMVII_Appli  TheSpecProMeshImage; 
 extern cSpecMMVII_Appli  TheSpecMeshImageDevlp; 
@@ -66,6 +68,7 @@ extern cSpecMMVII_Appli  TheSpecTestGraphPart;
 extern cSpecMMVII_Appli  TheSpec_OriBundlAdj;
 extern cSpecMMVII_Appli  TheSpecDistCorrectCirgTarget;
 extern cSpecMMVII_Appli  TheSpecGenArgsSpec;
+extern cSpecMMVII_Appli  TheSpec_ImportGCP;
 
 
 };

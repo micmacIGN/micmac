@@ -88,6 +88,7 @@
 namespace MMVII
 {
 
+
 template <class Type> class cHomog2D3D; // class for homography 3D->2D as in [EqHom]
 template <class Type,const int Dim> class cAffineForm;  // H3D2 are made of 3 Affine forms 
 						
@@ -675,12 +676,16 @@ cSensorCamPC * cAppli_UncalibSpaceResection::ChgModel(cSensorCamPC * aCam0)
     tREAL8 aR0 =  aCam0->AvgSqResidual(mSet23);
     cPerspCamIntrCalib * aCal0 = aCam0->InternalCalib();
 
+    bool  PPFrozen=false;
     cPt2dr aPP = aCal0->PP();
     cPt2di aSzPix = aCal0->SzPix();
+
     if (IsInit(&mValFixPP))
     {
         aPP = MulCByC(mValFixPP,ToR(aSzPix));
+        PPFrozen=true;
     }
+
     
     // Create a calibration with adequate degree, same paramater as is init, except dist=0
     cDataPerspCamIntrCalib  aData
@@ -715,6 +720,10 @@ cSensorCamPC * cAppli_UncalibSpaceResection::ChgModel(cSensorCamPC * aCam0)
      {
         aBA.SetFrozenVarOfPattern(mPatParFrozen);
      }
+     if (PPFrozen)
+     {
+        aBA.SetFrozenVarOfPattern("PP.*");
+     }
 
 
      for (int aK=0 ; aK<10 ; aK++)
@@ -737,11 +746,19 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
      for (const auto &  aNameIm : VectMainSet(0))
      {
          std::string aNameCal = mPhProj.DPOrient().FullDirOut() + cPerspCamIntrCalib::PrefixName()  + aNameIm  + ".xml";
-         cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCal);
+         if (ExistFile(aNameCal))
+         {
+             cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCal);
 
-	 cMetaDataImage  aMDI = mPhProj.GetMetaData(DirProject()+aNameIm);
-	 aMapCal[aMDI.InternalCalibGeomIdent()].push_back(aCalib);
-	 StdOut() << "NIIII  " << aNameIm << " F=" << aCalib->F()   << "\n";
+	     cMetaDataImage  aMDI = mPhProj.GetMetaData(DirProject()+aNameIm);
+	     aMapCal[aMDI.InternalCalibGeomIdent()].push_back(aCalib);
+	     StdOut() << "NIIII  " << aNameIm << " F=" << aCalib->F()   << "\n";
+         }
+         else
+         {
+             // No reason dont exit
+             MMVII_UsersErrror(eTyUEr::eOpenFile,"No calib file found");
+         }
      }
 
      for (const auto & aNameCal : aMapCal)
@@ -806,11 +823,14 @@ int cAppli_UncalibSpaceResection::Exe()
 
     mSet23 =mPhProj.LoadSet32(aNameIm);
 
+    StdOut() <<  "Nb Measures=" << mSet23.NbPair() << "\n";
+
+
     cPt2di aSz =  cDataFileIm2D::Create(aNameIm,false).Sz();
     cSensorCamPC *  aCam0 =  cSensorCamPC::CreateUCSR(mSet23,aSz,aNameIm,mReal16);
 
      
-    if (IsInit(& mDegDist))
+    if (IsInit(&mDegDist))
     {
        aCam0 = ChgModel(aCam0);
     }

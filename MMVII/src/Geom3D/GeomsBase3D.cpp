@@ -143,12 +143,80 @@ cPlane3D::cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ)
     mAxeK = aRot.AxeK();
 }
 
-
-cPlane3D cPlane3D::FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aAxeK)
+cPlane3D cPlane3D::From3Point(const cPt3dr & aP0,const cPt3dr & aP1,cPt3dr & aP2)
 {
-   cRotation3D<tREAL8> aRep = cRotation3D<tREAL8>::CompleteRON(aAxeK);
+	return cPlane3D(aP0,aP1-aP0,aP2-aP0);
+}
 
+tREAL8  cPlane3D::Dist(const cPt3dr & aPt) const
+{
+    return std::abs(Scal(mAxeK,aPt-mP0));
+}
+
+tREAL8 cPlane3D::AvgDist(const std::vector<cPt3dr> & aVPts) const
+{
+      tREAL8 aSom=0.0;
+
+      for (const auto & aPt : aVPts)
+          aSom += Dist(aPt);
+
+      return SafeDiv(aSom,tREAL8(aVPts.size()));
+}
+
+tREAL8 cPlane3D::MaxDist(const std::vector<cPt3dr> & aVPts) const
+{
+     tREAL8 aMaxD = 0.0;
+
+     for (const auto & aPt : aVPts)
+          UpdateMax(aMaxD,Dist(aPt));
+
+     return aMaxD;
+}
+
+
+std::pair<cPt3di,tREAL8> cPlane3D::IndexRansacEstimate(const std::vector<cPt3dr> & aVPts,bool AvgOrMax,int aNbTest,tREAL8 aRegulMinTri)
+{
+     cWhichMin<cPt3di,tREAL8> aWM(cPt3di(-1,-1,-1),1e30);
+
+     std::vector<cSetIExtension>  aSet3I; // Set of triple of indexes
+
+     if (aNbTest<0) 
+        aNbTest = 1000000000;
+
+     GenRanQsubCardKAmongN(aSet3I,aNbTest,3,aVPts.size());
+
+     for (const auto & a3I : aSet3I)
+     {
+         cPt3di anInd(a3I.mElems.at(0),a3I.mElems.at(1),a3I.mElems.at(2));
+         cPt3dr aP0 = aVPts.at(anInd.x());
+         cPt3dr aP1 = aVPts.at(anInd.y());
+         cPt3dr aP2 = aVPts.at(anInd.z());
+
+	 tTri3dr aTri(aP0,aP1,aP2);
+	 if (aTri.Regularity() > aRegulMinTri)
+	 {
+            cPlane3D aPlane(aP0,aP1,aP2);
+
+	    tREAL8 aD = AvgOrMax ? aPlane.AvgDist(aVPts) : aPlane.MaxDist(aVPts);
+	    aWM.Add(anInd,aD);
+	 }
+     }
+
+     return std::pair(aWM.IndexExtre(),aWM.ValExtre());
+}
+
+
+
+// void GenRanQsubCardKAmongN(std::vector<cSetIExtension> & aRes,int aQ,int aK,int aN)
+
+cPlane3D cPlane3D::FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aNormal)
+{
+   cRotation3D<tREAL8> aRep = cRotation3D<tREAL8>::CompleteRON(aNormal);
+
+   //  Rep =  I(=Normal) , J, K
    return cPlane3D(aP0,aRep.AxeJ(),aRep.AxeK());
+
+   //return cPlane3D(aP0,aRep.AxeI(),aRep.AxeJ());
 }
 
 const cPt3dr& cPlane3D::AxeI() const {return mAxeI;}
@@ -249,6 +317,24 @@ void BenchPlane3D()
 /*  *********************************************************** */
 /*                                                              */
 /*  *********************************************************** */
+
+tREAL8 L2_DegenerateIndex(const std::vector<cPt3dr> & aVPt,size_t aNumEigV)
+{
+    cStrStat2<tREAL8>  aStat(3);
+    for (const auto & aP3 : aVPt)
+            aStat.Add(aP3.ToVect());
+    aStat.Normalise();
+    const cDenseVect<tREAL8> anEV = aStat.DoEigen().EigenValues() ;
+
+    return Sqrt(SafeDiv(anEV(aNumEigV),anEV(2)));
+}
+
+tREAL8 L2_PlanarityIndex(const std::vector<cPt3dr> & aVPt) { return L2_DegenerateIndex(aVPt,0); }
+tREAL8 L2_LinearityIndex(const std::vector<cPt3dr> & aVPt) { return L2_DegenerateIndex(aVPt,1); }
+
+
+
+
 
 template<class T> cPtxd<T,3>  PFromNumAxe(int aNum)
 {

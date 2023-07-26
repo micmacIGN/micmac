@@ -31,14 +31,19 @@ cHomogCpleIm::cHomogCpleIm() :
 {
 }
 
+/*
 void cHomogCpleIm::AddData(const  cAuxAr2007 & anAux)
 {
      MMVII::AddData(anAux,mP1.x());
+       anAux.Ar().Separator();
      MMVII::AddData(anAux,mP1.y());
+       anAux.Ar().Separator();
      MMVII::AddData(anAux,mP2.x());
+       anAux.Ar().Separator();
      MMVII::AddData(anAux,mP2.y());
 }
 void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm & aCple)  {aCple.AddData(anAux);}
+*/
 
 
 
@@ -117,6 +122,8 @@ const cPt2dr * cMultipleImPt::PtOfIm(int aIndIm) const
 
 const std::vector<cPt2dr> & cMultipleImPt::VMeasures() const  {return mVMeasures;}
 const std::vector<int>    & cMultipleImPt::VImages()   const  {return mVImages  ;}
+
+int cMultipleImPt::NumPt() const {return mNumPt;}
 
 
 /* ********************************************* */
@@ -210,7 +217,7 @@ const std::vector<cSensorImage*> &   cSetMesImGCP::VSens()     const  {return mV
 
 std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()   {return mMesGCP; }
 
-void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm)
+void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm) const
 {
     aS23.Clear();
 
@@ -571,6 +578,15 @@ void cSet2D3D::Substract(const cPair2D3D& aSub)
         aPair.mP2 =  aPair.mP2-aSub.mP2;
         aPair.mP3 =  aPair.mP3-aSub.mP3;
     }
+}
+
+std::vector<cPt3dr> cSet2D3D::VP3() const
+{
+    std::vector<cPt3dr> aRes;
+    for (auto  & aPair : mPairs)
+        aRes.push_back(aPair.mP3);
+
+    return aRes;
 }
 
 

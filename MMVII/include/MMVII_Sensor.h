@@ -1,6 +1,8 @@
 #ifndef  _MMVII_SENSOR_H_
 #define  _MMVII_SENSOR_H_
 
+#include <set>
+
 #include "SymbDer/SymbDer_Common.h"
 #include "MMVII_Mappings.h"
 #include "MMVII_MeasuresIm.h"
@@ -72,6 +74,8 @@ class cSensorImage  :  public cObjWithUnkowns<tREAL8>
           cPt3dr RandomVisiblePGround(tREAL8 aDepMin,tREAL8 aDepMax);
 	  ///  Generate a point on sensor
           cPt2dr RandomVisiblePIm() const ;
+	  ///  Position in [0 1]^ 2
+          cPt2dr RelativePosition(const cPt2dr &) const ;
 
 	  /// Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
 	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
@@ -234,6 +238,7 @@ class cDirsPhProj
           const std::string & DirOut() const;   ///< Accessor
           const std::string & FullDirIn() const;   ///< Accessor
           const std::string & FullDirOut() const;   ///< Accessor
+          const std::string & FullDirInOut(bool In) const;   ///< Facility FullDirIn/FullDirInOut
 
 	  void SetDirOut(const std::string & aDirOut); ///< Modifier, for example to have defaut value to input
 	  bool  DirInIsInit() const;
@@ -294,7 +299,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPMask(); ///< Accessor
 	  cDirsPhProj &   DPPointsMeasures(); ///< Accessor
 	  cDirsPhProj &   DPMetaData();    ///<  Accessor
-	  cDirsPhProj &   DPHomol();    ///<  Accessor
+	  cDirsPhProj &   DPTieP();    ///<  Accessor
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
@@ -303,7 +308,7 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPMask() const; ///< Accessor
 	  const cDirsPhProj &   DPPointsMeasures() const; ///< Accessor
 	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
-	  const cDirsPhProj &   DPHomol() const;    ///<  Accessor
+	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
@@ -339,7 +344,7 @@ class cPhotogrammetricProject
 	  /** Create a new radial-radiom calib adapted to image; geometric calibration & meta data must
 	   * be accessible; if already exist with same name return existing; add in Obj2DelAtEnd, as many
 	   * image will share it */
-	  cRadialCRS * CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm);
+	  cRadialCRS * CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm,bool WithCste=false,int aDegPol=-1);
                //     --------   Save Data ---------------------
           void SaveRadiomData(const cImageRadiomData &) const; ///< Save camera using OutPut-orientation
           void SaveCalibRad(const cCalibRadiomIma &) const; ///< Save radiom-calib using OutPut-orientation
@@ -371,14 +376,22 @@ class cPhotogrammetricProject
 	 //===================================================================
 
 	  void SaveMeasureIm(const cSetMesPtOf1Im & aSetM) const;
-	  cSetMesPtOf1Im LoadMeasureIm(const std::string &) const;
+          /// return from Std Dir, can be out in case of reload
+	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
 	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
 	  void SaveGCP(const cSetMesImGCP&,const std::string & aExt);
 
+	  /// Pattern for GCP file, if "" return default  = "cSetMesGCP::ThePrefixFiles.*.xml"
+	  std::string GCPPattern(const std::string & aArgPatFiltr) const;
+	  void CpGCPPattern(const std::string& aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr="") const;
+	  void CpGCP() const;
+
 	  /// For a givgen image, return 3D-2D corresp, using LoadGCP&LoadIm
 	  cSet2D3D  LoadSet32(const std::string & aNameIm) const;
+
+          void SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM,const std::list<std::string> & ToRem)   const ;
 	  
 	 //===================================================================
          //==================   META-DATA       ==============================
@@ -417,15 +430,14 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMeshDev;
 	  cDirsPhProj     mDPMask;
 	  cDirsPhProj     mDPPointsMeasures;   ///<  For GCP measures  Image + Grounds
-	  cDirsPhProj     mDPHomol;            ///<  For Homologous point
+	  cDirsPhProj     mDPTieP;            ///<  For Homologous point
 	  cDirsPhProj     mDPMetaData;
 
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;
 	  mutable std::list<cSensorCamPC*>          mLCam2Del; 
 
 };
-
-
+void SaveAndFilterAttrEll(const cPhotogrammetricProject & aPhp,const cSetMesPtOf1Im &  aSetM,const std::set<std::string> & ToRem);
 
 };
 

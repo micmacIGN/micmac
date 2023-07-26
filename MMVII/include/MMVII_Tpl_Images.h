@@ -469,6 +469,18 @@ template <const int Dim> std::vector< cPtxd<tREAL8,Dim> > ToR(const std::vector<
 */
 
 
+template <class Type> typename tBaseNumTrait<Type>::tBase SumIm(const cDataIm2D<Type>& aDIm,cRect2 aRect)
+{
+    typename tBaseNumTrait<Type>::tBase aRes = 0;
+
+    for (const auto & aPix : aRect)
+        aRes += aDIm.GetV(aPix);
+
+    return aRes;
+}
+
+
+
 
 };
 

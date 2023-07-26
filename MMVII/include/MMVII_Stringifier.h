@@ -309,6 +309,7 @@ cAr2007* AllocArHashVal(bool ordered);
 size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
 				 
 void AddComment(cAr2007 & anAr, const std::string & aString);
+void AddSeparator(cAr2007 & anAr);
 
 
 /** Here are the atomic serialization function */

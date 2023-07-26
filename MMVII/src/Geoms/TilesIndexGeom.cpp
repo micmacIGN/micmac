@@ -157,7 +157,7 @@ void OneBenchSpatialIndex()
     for (int aK=0 ; aK<100 ; aK++)
     {
          cPt2dr aP0 = aBoxMargin.GeneratePointInside();
-	 tREAL8 aDist =  aMul * std::pow(RandUnif_0_1(),3);
+	 tREAL8 aDist =  aMul * std::max(1e-5,std::pow(RandUnif_0_1(),3)); // max -> else bug in dilate
          std::list<cPointSpInd<2>*> aL = aSI.GetObjAtDist(aP0,aDist);
 
 

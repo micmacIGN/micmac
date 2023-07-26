@@ -83,6 +83,7 @@ std::vector<std::string> SplitString(const std::string & aStr,const std::string 
 
 // Si PrivPref  "a" => (aaa,)  (a.b.c)  => (a.b,c)
 void  SplitStringArround(std::string & aBefore,std::string & aAfter,const std::string & aStr,char aSep,bool SVP=false,bool PrivPref=true);
+bool IsPrefixed(const std::string & aStr,char aSep='.');
 std::string Prefix(const std::string & aStr,char aSep='.',bool SVP=false,bool PrivPref=true);
 std::string LastPrefix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "a.b"
 std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool PrivPref=true);
@@ -116,6 +117,7 @@ bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP); ///< Purge r
 bool RemoveFile(const  std::string & aDir,bool SVP); ///< Remove file
 void RenameFiles(const std::string & anOldName, const std::string & aNewName); ///< Move/Rename
 void CopyFile(const std::string & aName,const std::string & aDest);
+void CopyPatternFile(const std::string & aDirIn,const std::string & aPattern,const std::string & aDirOut);
 bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all file corresponding to pattern
 void ActionDir(const std::string &,eModeCreateDir);
 /// Generate a Back-Up by creating a copy with a new num

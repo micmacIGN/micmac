@@ -108,6 +108,8 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
      // ---  Optionnal args ------
 	bool    mShow;
 	size_t  mNbMinByClpe;
+	tREAL8  mWeightStabPolIm;  ///< Weight for "stabilizing" equation, avoid "big  drift"
+	tREAL8  mWeightFixCste;    ///< Weight for fixing cste
 
      // --- constructed ---
         cPhotogrammetricProject            mPhProj;     ///< The Project, as usual
@@ -124,6 +126,8 @@ class cAppliRadiom2ImageSameMod : public cMMVII_Appli
 	cResolSysNonLinear<tREAL8> *                 mCurSys;
         int                                          mMaxDegree; ///< Max Degree used in image model
         cSparseVect<tElSys>                          mSVFixSum;  // sparse vector to fixx the sum
+	bool                                         mTestCsteFrz;
+        int                                          mNbIter;
 };
 
 
@@ -143,6 +147,10 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgOpt(cCollecSpecArg2007 & anAr
 {
    return anArgOpt
            << AOpt2007(mShow,"Show","Show messages",{eTA2007::HDV})
+           << AOpt2007(mWeightStabPolIm,"WStabIm","Weight for stabilization Image Pol/avoid drift (relative tot W)",{eTA2007::HDV})
+           << AOpt2007(mWeightFixCste,"WFixCste","Weight for fixing constant",{eTA2007::HDV})
+           << AOpt2007(mTestCsteFrz,"CsteFrz","Frose cste",{eTA2007::HDV,eTA2007::Tuning})
+           << AOpt2007(mNbIter,"NbIter","Number iter/step",{eTA2007::HDV})
    ;
 }
 
@@ -151,12 +159,16 @@ cCollecSpecArg2007 & cAppliRadiom2ImageSameMod::ArgOpt(cCollecSpecArg2007 & anAr
 cAppliRadiom2ImageSameMod::cAppliRadiom2ImageSameMod(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli               (aVArgs,aSpec),
     mShow                      (true),
-    mNbMinByClpe               (50),
+    mNbMinByClpe               (20),
+    mWeightStabPolIm           (1e-2),
+    mWeightFixCste             (0.0),
     mPhProj                    (*this),
     mSolRadial                 (1),
     mFusIndex                  (1),
     mCurSys                    (nullptr),
-    mMaxDegree                 (-1)
+    mMaxDegree                 (-1),
+    mTestCsteFrz               (false),
+    mNbIter                    (2)
 {
 }
 
@@ -285,6 +297,7 @@ void   cAppliRadiom2ImageSameMod::OneIterationGen(int aDegFroze)
      cWeightAv<tREAL8> aAvgAlb;  // compute average albeda (used for stat normalization)
 
      tElSys  aSomWeight = 0.0;
+     size_t  aNbEq = 0;
      // 2- Add equations
      for (size_t aKPMul=0; aKPMul<mFusIndex.VVIndexes().size(); aKPMul++)
      {
@@ -329,9 +342,54 @@ void   cAppliRadiom2ImageSameMod::OneIterationGen(int aDegFroze)
              mCurSys->AddEq2Subst(aSetTmp,aCRI.ImaEqual(),aVInd,aVObs,aRW);
 
 	     aSomWeight += aW;
+	     aNbEq++;
          }
 	 // All equation for 1 albedo have been accumulated, we can make substitution
          mCurSys->AddObsWithTmpUK(aSetTmp); 
+     }
+
+     if (mWeightFixCste>0)
+     {
+         for (auto & aPtrCalS : mSetCalRS)
+	 {
+             if (aPtrCalS->WithCste())
+	     {
+	        tElSys  aW =  (aSomWeight/aNbEq) * mWeightFixCste;
+                mCurSys->AddEqFixCurVar(*aPtrCalS,aPtrCalS->Cste2Add(),aW);
+	     }
+	 }
+     }
+     //  Add stability in polynoms  , fix close to identity
+     if (mWeightStabPolIm>0)
+     {
+	 tElSys  aW =  (aSomWeight/aNbEq) * mWeightStabPolIm;
+	 cResidualWeighter<tElSys> aRW(aW);  // weighter constant
+         for (size_t aKPMul=0; aKPMul<mFusIndex.VVIndexes().size(); aKPMul++)
+         {
+              const auto & aVecIndMul = mFusIndex.VVIndexes().at(aKPMul);
+              for (const  auto & aImInd : aVecIndMul)
+              {
+              // extract  Image+Sensor Calib, radiom data
+                  cComputeCalibRadIma * aRIM = mVRadIm.at(aImInd.x());
+                  cCalibRadiomIma & aCRI = aRIM->CalRadIm();
+	          cCalibRadiomSensor & aCalS = aCRI.CalibSens();
+                  cImageRadiomData&   aIRD = aRIM->IRD();
+
+	          // extract point & Radiometry of image
+                  int aIndPt = aImInd.y();
+                  cPt2dr  aPt =  ToR(aIRD.Pt(aIndPt));
+                  tREAL8  aRadIm = aIRD.Gray(aIndPt);
+
+	          // compute observation an unknowns current value
+                  std::vector<tREAL8> aVObs = Append({aRadIm},aCalS.VObs(aPt)); // Radiom,P.x(),P.y(),C.x(),C.y(),Rho
+                  std::vector<int>  aVInd;
+                  aCalS.PushIndexes(aVInd);       // Add indexes of sensor calibration
+                  aCRI.PushIndexes(aVInd);        // Add indexes of image calibration
+
+	          //  Now accumulate observation
+                  mCurSys->CalcAndAddObs(aCRI.ImaStab(),aVInd,aVObs,aRW);
+              }
+          }
      }
 
      if (mShow)
@@ -373,6 +431,15 @@ void cAppliRadiom2ImageSameMod::InitSys(bool FrozenSens,int aMaxDegIma)
      {
          for (auto & aPtrCalS : mSetCalRS)
              mCurSys->SetFrozenAllCurrentValues(*aPtrCalS);
+     }
+
+     if (mTestCsteFrz)
+     {
+         for (auto & aPtrCalS : mSetCalRS)
+	 {
+             if (aPtrCalS->WithCste())
+                mCurSys->SetFrozenVarCurVal(*aPtrCalS,aPtrCalS->Cste2Add());
+	 }
      }
 
      // for all image, freeze all polynom with Degree > aMaxDegIma
@@ -468,8 +535,8 @@ int cAppliRadiom2ImageSameMod::Exe()
     for (int aDegree=-1 ; aDegree<=mMaxDegree ; aDegree++)
     {
          StdOut() << "=============== Begin degree :" << aDegree << " ======= \n";
-         OneIterationGen(aDegree);
-         OneIterationGen(aDegree);
+	 for (int aKIter=0 ; aKIter < mNbIter ; aKIter++)
+             OneIterationGen(aDegree);
     }
     OneIterationGen(mMaxDegree);  // one more iteration
     StdOut()  << "* SigmaFinal=" << ComputeSigma(aVSigma) << "\n";

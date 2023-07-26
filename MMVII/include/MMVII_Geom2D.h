@@ -120,7 +120,7 @@ template <class Type>  class cHomot2D
           /// compute the vector used in least square equation
           static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
-          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
 
@@ -144,6 +144,11 @@ template <class Type>  class cHomot2D
           inline const Type &   Sc() const   {return mSc;}
           inline tPt&     Tr() {return mTr;}
           inline Type &   Sc() {return mSc;}
+          /// Basic   Value(aPIn) - aPOUt 
+          tPt DiffInOut(const tPt & aPIn,const tPt & aPOUt) const;
+          /// Basic   1.0
+          Type Divisor(const tPt & aPInt) const;
+
       private :
           Type mSc;
           tPt mTr;
@@ -201,7 +206,7 @@ template <class Type>  class cSim2D
           static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
 
           /// compute by least square the mapping such that Sim(PIn[aK]) = POut[aK]
-          static tTypeMap StdGlobEstimate(tCRVPts & aVIn,tCRVPts& aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
+          static tTypeMap StdGlobEstimate(tCRVPts & aVIn,tCRVPts& aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
 	  /// Compute a random similitude, assuring that Amplitude of scale has a minimal value
@@ -210,6 +215,10 @@ template <class Type>  class cSim2D
           inline const tPt &  Tr() const {return mTr ;}
           inline const tPt &  Sc() const {return mSc ;}
 
+          /// Basic   Value(aPIn) - aPOUt 
+          tPt DiffInOut(const tPt & aPIn,const tPt & aPOUt) const;
+          /// Basic   1.0
+          Type Divisor(const tPt & aPInt) const;
                 
 	  ///  Generate the 3D-Sim having same impact in the plane X,Y
 	  cSimilitud3D<Type> Ext3D() const;
@@ -275,7 +284,7 @@ template <class Type>  class cRot2D
                              tCRVPts aVIn,
                              tCRVPts aVOut,
                              Type * aRes2=nullptr,
-                             tCPVVals=nullptr,
+                             tCPVVals aVWeight=nullptr,
                              cParamCtrlOpt=cParamCtrlOpt::Default()
                           );
           /// compute with minimal number of samples
@@ -284,6 +293,10 @@ template <class Type>  class cRot2D
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
           /// compute a quick estimate, assuming no outlayers, +or- generalization of FromMinimalSamples
           static tTypeMap QuickEstimate(tCRVPts aVIn,tCRVPts aVOut);
+          /// Basic   Value(aPIn) - aPOUt 
+          tPt DiffInOut(const tPt & aPIn,const tPt & aPOUt) const;
+          /// Basic   1.0
+          Type Divisor(const tPt & aPInt) const;
       private :
           Type          mTeta;
           cSim2D<Type>  mSim;
@@ -347,13 +360,17 @@ template <class Type>  class cAffin2D
           static tTypeMap Tri2Tri(const tTri& aTriIn,const tTri& aTriOut);
 
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
-          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals=nullptr);
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
 
           /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
 
           /// compute the minimal resolution in all possible direction
           Type  MinResolution() const;
+          /// Basic   Value(aPIn) - aPOUt 
+          tPt DiffInOut(const tPt & aPIn,const tPt & aPOUt) const;
+          /// Basic   1.0
+          Type Divisor(const tPt & aPInt) const;
 
       private :
           tPt   mTr;
@@ -365,6 +382,81 @@ template <class Type>  class cAffin2D
 };
 typedef  cAffin2D<tREAL8>  cAff2D_r;
 cBox2dr  ImageOfBox(const cAff2D_r & aAff,const cBox2dr & aBox);
+
+
+template <class Type>  class cHomogr2D
+{
+      public :
+          static constexpr int TheDim=2;
+          static constexpr int NbDOF = 8;
+          static std::string Name() {return "Homogr2D";}
+          static constexpr int NbPtsMin = DIV_SUP(NbDOF,TheDim);
+
+          typedef Type                 tTypeElem;
+          typedef cHomogr2D<Type>      tTypeMap;
+          typedef cHomogr2D<Type>      tTypeMapInv;
+          // typedef cElemHomogr2D<Type>  tElemH;
+          typedef cPtxd<Type,3>     tElemH;
+
+          typedef cPtxd<Type,2>     tPt;
+          typedef std::vector<tPt>  tVPts;
+          typedef const tVPts&      tCRVPts;
+          typedef std::vector<Type> tVVals;
+          typedef const tVVals *    tCPVVals;
+          typedef tPt   tTabMin[NbPtsMin];  // Used for estimate with min number of point=> for ransac
+          ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
+          static tTypeMap  FromParam(const cDenseVect<Type> &);
+
+//==================
+          cHomogr2D(const tElemH & aHX,const tElemH & aHY,const tElemH & aHZ);
+          cHomogr2D() ;
+
+          cDenseMatrix<Type>  Mat() const;
+          static tTypeMap  FromMat(const cDenseMatrix<Type> &);
+
+          tTypeMap operator *(const tTypeMap&aS2) const ;
+          tTypeMapInv MapInverse() const ;
+
+          inline tPt  Value(const tPt & aP) const   {return tPt(S(mHX,aP),S(mHY,aP)) / S(mHZ,aP);}
+          inline tPt  Inverse(const tPt & aP) const {return tPt(S(mIHX,aP),S(mIHY,aP)) / S(mIHZ,aP);}
+          /// compute the vector used in least square equation
+          static void ToEqParam(tPt & aRHS,cDenseVect<Type>&,cDenseVect<Type> &,const tPt &In,const tPt & Out);
+          /// Creat an homotethy from 4 example
+          static tTypeMap FromMinimalSamples(const tTabMin&,const tTabMin&);
+
+          /// compute by ransac the map minizing Sum |Map(VIn[K])-VOut[K]|
+          static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
+          /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
+          static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
+
+          const tElemH &  Hx() const {return mHX;}
+          const tElemH &  Hy() const {return mHY;}
+          const tElemH &  Hz() const {return mHZ;}
+          tElemH &  Hx()  {return mHX;}
+          tElemH &  Hy()  {return mHY;}
+          tElemH &  Hz()  {return mHZ;}
+
+          Type S(const tElemH & aH,const tPt & aP) const {return aH.x()*aP.x() + aH.y()*aP.y() + aH.z();}
+
+          ///   Amplitue of the square where inversible
+          static  tTypeMap  AllocRandom(const Type & aAmpl);
+
+          /// !! NON BASIC !! ~   (Value(aPIn) - aPOUt) * Hz
+          tPt DiffInOut(const tPt & aPIn,const tPt & aPOUt) const;
+          /// !! NON BASIC !! ~   S( Hz)
+          Type Divisor(const tPt & aPInt) const;
+      private :
+
+          tElemH  mHX;
+          tElemH  mHY;
+          tElemH  mHZ;
+
+          tElemH  mIHX;
+          tElemH  mIHY;
+          tElemH  mIHZ;
+};
+
+
 
 
 //template <class Type,class TMap>  cTplBox<2,Type>  ImageOfBox();
@@ -518,6 +610,16 @@ class cEllipse_Estimate
 
 /// Return random point that are not degenerated, +or- pertubation of unity roots
 template <class Type> std::vector<cPtxd<Type,2> > RandomPtsOnCircle(int aNbPts);
+/// Specialze for homogr, avoid singlularity in [-1,1]^2 
+template <class Type> std::pair<std::vector<cPtxd<Type,2> >,std::vector<cPtxd<Type,2>>> RandomPtsHomgr(Type aAmpl=1.5);
+/// Point regularly positionned on circle, to generate mapping close to Identity 
+template <class Type> std::pair<std::vector<cPtxd<Type,2> >,std::vector<cPtxd<Type,2>>>  RandomPtsId(int aNb,Type aEpsId);
+/// generate a map, "close to Id", using RandomPtsId
+template <class tMap>  tMap RandomMapId(typename tMap::tTypeElem aEpsId);
+
+
+
+
 
 // geometric   Flux of pixel
 
@@ -533,6 +635,10 @@ void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB
 void  GetPts_Ellipse(tResFlux & aRes,const cPt2dr & aC,double aRayA,double aRayB, double aTeta,bool with8Neigh);
 
 
+/**  Class to store the extraction of an ellipse, contain the seed-point + geometric ellipse itself +
+ * different quality indicator
+ */
+
 struct cExtractedEllipse
 {
      public :
@@ -542,12 +648,14 @@ struct cExtractedEllipse
         cExtractedEllipse(const cSeedBWTarget& aSeed,const cEllipse & anEllipse);
         void  ShowOnFile(const std::string & aNameIm,int aZoom,const std::string& aPrefName) const; // make a accurate visu
 
-        tREAL8               mDist;
-        tREAL8               mDistPond;
-        tREAL8               mEcartAng;
-        bool                 mValidated;
+        tREAL8               mDist; /// Dist of frontier point to ellispse
+        tREAL8               mDistPond; /// Dist attenuated "very empirically" by size of ellipse
+        tREAL8               mEcartAng;  /// Angular diff between image gradient an theoreticall ellipse normal
+        bool                 mValidated;  /// Is the ellipse validated
         std::vector<cPt2dr>  mVFront;
 };
+
+/** Class for extracting B/W ellipse, herits from B/W target for component analysis and add ellipse recognition */
 
 class cExtract_BW_Ellipse  : public cExtract_BW_Target
 {
@@ -559,10 +667,28 @@ class cExtract_BW_Ellipse  : public cExtract_BW_Target
 
              const std::list<cExtractedEllipse> & ListExtEl() const;  ///< Accessor
 
-             void   ComputeBlurr();
+             void   ComputeBlurr();  /// experimental, to review later, maybe ...
         private :
              std::list<cExtractedEllipse> mListExtEl;
 };
+
+class cCircTargExtr;
+
+/** Minimal struct to save the result of an ellipse extracted in image */
+
+struct cSaveExtrEllipe
+{
+     public :
+          cSaveExtrEllipe (const cCircTargExtr &,const std::string & aNameCode);
+          cSaveExtrEllipe ();
+          static std::string NameFile(const cPhotogrammetricProject & ,const cSetMesPtOf1Im &,bool Input);
+
+          cEllipse  mEllipse;
+          std::string mNameCode;
+          tREAL4 mBlack;
+          tREAL4 mWhite;
+};
+void AddData(const  cAuxAr2007 & anAux, cSaveExtrEllipe & aCTE);
 
 
 

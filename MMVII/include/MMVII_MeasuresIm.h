@@ -63,6 +63,7 @@ struct cSet2D3D : public cMemCheck
 
 	 /// compute  weighted centroid
 	 cWeightedPair2D3D  Centroid() const;
+         std::vector<cPt3dr> VP3() const;
 
 	 /// subsract a pair to all
 	 void Substract(const cPair2D3D&);
@@ -164,6 +165,7 @@ class cMultipleImPt
 
 	      const std::vector<cPt2dr> & VMeasures() const;  ///< Accessor
               const std::vector<int>    & VImages()   const;  ///< Accessor
+	      int NumPt() const;
       private :
               int                             mNumPt;
               std::vector<cPt2dr>             mVMeasures;
@@ -189,7 +191,7 @@ class cSetMesImGCP : public cMemCheck
             void AddMes2D(const cSetMesPtOf1Im &,cSensorImage* =nullptr,eLevelCheck OnNonExistP=eLevelCheck::Warning);
 
 	    /// return a set of mesure as 2d/3d corresp
-            void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm);
+            void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm) const;
 
             const std::vector<cMes1GCP> &        MesGCP() const ; ///< Accessor
             std::vector<cMes1GCP> &        MesGCP() ; ///< Accessor
@@ -268,6 +270,7 @@ class cInterfImportHom : public cMemCheck
 
           static cInterfImportHom *  CreateImportV1(const std::string & aDir,const std::string & aSubDir,const std::string & aExt="dat") ;
 
+	  virtual ~cInterfImportHom();
       private :
 
           // std::string  mDirGlob;
@@ -283,13 +286,13 @@ class cInterfImportHom : public cMemCheck
  *    points computed by pair of images
  */
 
-class cSetMultipleTiePoints
+class cSetMultipleTiePoints : public cMemCheck
 {
      public :
         typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
         typedef std::vector<cPt2dr>  tPtsOfConfig;
 
-        cSetMultipleTiePoints(const  std::vector<std::string> & aVNames);
+        cSetMultipleTiePoints(const  std::vector<std::string> & aVNames,cInterfImportHom * =nullptr);
 
 	/// Data allow to iterate on multiple points
         const std::map<tConfigIm,tPtsOfConfig> &  Pts() const;
@@ -306,6 +309,7 @@ class cSetMultipleTiePoints
 	/// From a linear vector to set of vector, for easiness of manip, but to avoid in efficient use
         std::vector<tPtsOfConfig > PUnMixed(const tConfigIm &,bool Sorted) const;
 
+        const std::vector<std::string> & VNames() const; ///< Accessor
      private  :
         std::vector<std::string>          mVNames;
         std::map<tConfigIm,tPtsOfConfig>  mPts;

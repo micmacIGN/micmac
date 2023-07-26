@@ -33,17 +33,12 @@ struct cThresholdCircTarget
 };
 
 cThresholdCircTarget::cThresholdCircTarget() :
-    mRatioStdDevGlob  (0.1),
-    mRatioStdDevAmpl  (0.05),
+    mRatioStdDevGlob  (0.15),
+    mRatioStdDevAmpl  (0.07),
     mAngRadCode       (0.15),
-    mAngTanCode       (0.15)
+    mAngTanCode       (0.40)
 {
 }
-
-using namespace cNS_CodedTarget;
-
-namespace  cNS_CodedTarget
-{
 
 
 /* ********************************************* */
@@ -287,6 +282,8 @@ cCCDecode::cCCDecode
         mDAvg.SetV(aKTeta,NonConstMediane(aVGray));
     }
 
+    // if (mMarked4Test) StdOut() << "MMMM4T OK=" << mOK << " L=" << __LINE__ << "\n";
+
     ComputePhaseTeta() ;
     if (!mOK) 
     {
@@ -294,12 +291,15 @@ cCCDecode::cCCDecode
         return;
     }
 
+    // if (mMarked4Test) StdOut() << "MMMM4T OK=" << mOK << " L=" << __LINE__ << "\n";
     ComputeCode();
     if (!mOK)
     {
         if (mMarked4Test)  StdOut() << "REFUTED AFTER ComputeCode\n";
         return;
     }
+
+    // if (mMarked4Test) StdOut() << "MMMM4T OK=" << mOK << " L=" << __LINE__ << "\n";
 }
 
 //  =============   Agregation on interval : StdDev , Avg, TotalStdDevOfPhase ====
@@ -557,10 +557,11 @@ void cCCDecode::ComputeCode()
         if (mMarked4Test)
 	{
 	       StdOut() << " "  << mEnCode->Name() 
+		       << " OKG=" << mOkGrad
 		       << " PBB " << mPixPerB 
 		       << " Rad:" <<  aAvgRad.Average()  
 		       << " Tan:" << aAvgTan.Average() 
-		       << " Th=" << aThickCode<< "\n"; 
+		       << " Th=" << aThickCode << "\n"; 
 	}
 	// getchar();
     }
@@ -595,7 +596,7 @@ void  cCCDecode::Show(const std::string & aPrefix)
 
     aIm.ToFile(aPrefix + "_ImPolar_"+ToStr(aCpt)+".tif");
 
-    StdOut() << "Adr=" << mEnCode << " ";
+    StdOut() << "Adr=" << mEnCode << " Ok=" << mOK;
     if (mEnCode) 
     {
        StdOut() << " Name=" << mEnCode->Name()  
@@ -604,9 +605,6 @@ void  cCCDecode::Show(const std::string & aPrefix)
     }
     StdOut() << "\n";
 }
-
-
-};
 
 /*  *********************************************************** */
 /*                                                              */
@@ -631,6 +629,7 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
         int ExeOnParsedBox() override;
+ 
 
 	void MakeImageLabel();
 	void MakeImageSeed();
@@ -789,6 +788,7 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
                anEl.LGa()*aMul , anEl.LSa()*aMul , anEl.TetaGa()
             );
         }
+	//BF
 	if (anEE->mWithCode)
         {
              aImVisu.DrawString
@@ -981,6 +981,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
 
 
+
 int  cAppliExtractCircTarget::Exe()
 {
    mPhProj.FinishInit();
@@ -990,11 +991,15 @@ int  cAppliExtractCircTarget::Exe()
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
-      return ResultMultiSet();
+      int aResult =  ResultMultiSet();
+
+      return aResult;
    }
 
 
-   mPrefixOut = "CircTarget_" +  LastPrefix(APBI_NameIm());
+   mPrefixOut = "CircTarget_" +  LastPrefix(FileOfPath(APBI_NameIm()));
+
+   // StdOut() << "mPrefixOutmPrefixOut " << mPrefixOut << "\n"; getchar();
 
    if (! IsInit(&mUseSimul))
    {

@@ -11,8 +11,6 @@ namespace MMVII
 
 class cAppliGenerateEncoding;
 
-namespace  cNS_CodedTarget
-{
 class cPrioCC;
 
 
@@ -195,14 +193,12 @@ void cPrioCC::UpdateHammingD(const cPrioCC & aPC2)
 	UpdateMin(mHammingMinD,mCel->HammingDist(*aPC2.mCel));
 }
 
-};
 
 /*  *********************************************************** */
 /*                                                              */
 /*             cAppliGenerateEncoding                           */
 /*                                                              */
 /*  *********************************************************** */
-using namespace cNS_CodedTarget;
 
 
 class cAppliGenerateEncoding : public cMMVII_Appli
@@ -285,8 +281,7 @@ void cAppliGenerateEncoding::Show()
 void  Read
 NameCERNLookUpTable
 
-void  ReadFilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile)
-*/
+void  Read FilesNum(const std::string & aFormat,std::vector<std::vector<double>> & aVRes,const std::string & aNameFile)
 
 void MakeFile3DCern3DTargt(size_t aNBB,size_t aNbD)
 {
@@ -317,6 +312,7 @@ void MakeFile3DCern3DTargt(size_t aNBB,size_t aNbD)
 
     // StdOut()  << "AICON => " << aVV[0] << "......." << aVV.back() << "\n";
 }
+*/
 
 
 int  cAppliGenerateEncoding::Exe()
@@ -562,10 +558,12 @@ int  cAppliGenerateEncoding::Exe()
        SaveInFile(aBE,mNameOut);
    }
 
+   /*
    if (mUseAiconCode)
    {
        MakeFile3DCern3DTargt(mSpec.mNbBits,mSpec.mNbDigit);
-   }
+   }		  
+   */
 
    delete mCEC;
 

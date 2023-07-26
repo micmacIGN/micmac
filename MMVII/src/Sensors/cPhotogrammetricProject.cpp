@@ -3,6 +3,8 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Radiom.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 
 /**
    \file  cPhotogrammetricProject.cpp
@@ -191,6 +193,11 @@ const std::string & cDirsPhProj::FullDirOut() const
    return mFullDirOut;
 }
 
+const std::string & cDirsPhProj::FullDirInOut(bool isIn) const
+{
+   return isIn ? FullDirIn() : FullDirOut();
+}
+
 void cDirsPhProj::SetDirIn(const std::string & aDirIn)
 {
      mDirIn = aDirIn;
@@ -228,7 +235,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPMeshDev        (eTA2007::MeshDev,*this),
     mDPMask           (eTA2007::Mask,*this),
     mDPPointsMeasures (eTA2007::PointsMeasure,*this),
-    mDPHomol          (eTA2007::TieP,*this),
+    mDPTieP          (eTA2007::TieP,*this),
     mDPMetaData       (eTA2007::MetaData,*this),
     mGlobCalcMTD      (nullptr)
 {
@@ -245,7 +252,7 @@ void cPhotogrammetricProject::FinishInit()
     mDPMeshDev.Finish();
     mDPMask.Finish();
     mDPPointsMeasures.Finish();
-    mDPHomol.Finish();
+    mDPTieP.Finish();
     mDPMetaData.Finish();
 
     // Force the creation of directory for metadata spec, make 
@@ -281,7 +288,7 @@ cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() {return mDPMeshDev;}
 cDirsPhProj &   cPhotogrammetricProject::DPMask() {return mDPMask;}
 cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() {return mDPPointsMeasures;}
 cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
-cDirsPhProj &   cPhotogrammetricProject::DPHomol() {return mDPHomol;}
+cDirsPhProj &   cPhotogrammetricProject::DPTieP() {return mDPTieP;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
@@ -290,7 +297,7 @@ const cDirsPhProj &   cPhotogrammetricProject::DPMeshDev() const {return mDPMesh
 const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
 const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return mDPPointsMeasures;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
-const cDirsPhProj &   cPhotogrammetricProject::DPHomol() const {return mDPHomol;}
+const cDirsPhProj &   cPhotogrammetricProject::DPTieP() const {return mDPTieP;}
 
 
 
@@ -343,7 +350,7 @@ std::string cPhotogrammetricProject::NameCalibRSOfImage(const std::string & aNam
      return NameCalibRadiomSensor(*aCalib,aMetaData);
 }
 
-cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm)
+cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const std::string& aNameIm,bool WithCste,int aDegPol)
 {
       static std::map<std::string,cRadialCRS *> TheDico;
       std::string aNameCal = NameCalibRSOfImage(aNameIm);
@@ -354,7 +361,7 @@ cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const st
 
       cPerspCamIntrCalib* aCalib = InternalCalibFromImage(aNameIm);
 
-      aRes = new cRadialCRS(aCalib->PP(),aDegree,aCalib->SzPix(),aNameCal);
+      aRes = new cRadialCRS(aCalib->PP(),aDegree,aCalib->SzPix(),aNameCal,WithCste,aDegPol);
 
       mAppli.AddObj2DelAtEnd(aRes);
 
@@ -488,9 +495,9 @@ void cPhotogrammetricProject::SaveMeasureIm(const cSetMesPtOf1Im &  aSetM) const
      aSetM.ToFile(mDPPointsMeasures.FullDirOut() +aSetM.StdNameFile());
 }
 
-cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm) const
+cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm,bool isIn) const
 {
-   std::string aDir = mDPPointsMeasures.FullDirIn();
+   std::string aDir = mDPPointsMeasures.FullDirInOut(isIn);
    return cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
 }
 
@@ -500,13 +507,20 @@ void cPhotogrammetricProject::SaveGCP(const cSetMesImGCP& aSetMes,const std::str
      aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles +aExt + ".xml");
 }
 
+std::string cPhotogrammetricProject::GCPPattern(const std::string & aArgPatFiltr) const
+{
+    return (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*.xml")  : aArgPatFiltr;
+}
+
 void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr) const
 {
-   std::string aPatFiltr = (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*.xml")  : aArgPatFiltr;
+   std::string aPatFiltr = GCPPattern(aArgPatFiltr);
 
    std::string aDir = mDPPointsMeasures.FullDirIn();
    std::vector<std::string> aListFileGCP =  GetFilesFromDir(aDir,AllocRegex(aPatFiltr));
    MMVII_INTERNAL_ASSERT_User(!aListFileGCP.empty(),eTyUEr::eUnClassedError,"No file found in LoadGCP");
+
+// StdOut()<< "aListFileGCPaListFileGCP " << aListFileGCP.size() << "\n";
 
    for (const auto  & aNameFile : aListFileGCP)
    {
@@ -514,6 +528,18 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
        aSetMes.AddMes3D(aMesGGP);
    }
 }
+
+void cPhotogrammetricProject::CpGCPPattern(const std::string & aDirIn,const std::string & aDirOut,const std::string & aArgPatFiltr) const
+{
+   CopyPatternFile(aDirIn,GCPPattern(aArgPatFiltr),aDirOut);
+}
+
+void cPhotogrammetricProject::CpGCP() const
+{
+	CpGCPPattern(mDPPointsMeasures.FullDirIn(),mDPPointsMeasures.FullDirOut());
+}
+
+
 
 void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & aNameIm,cSensorImage * aSIm) const
 {
@@ -541,16 +567,43 @@ cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
     return aSet23;
 }
 
+
+void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM,const std::list<std::string> & ToRem) const
+{
+     std::string  aNameIn = cSaveExtrEllipe::NameFile(*this,aSetM,true);
+     if (!ExistFile(aNameIn))
+        return;
+
+     std::vector<cSaveExtrEllipe> aVSEEIn;
+     ReadFromFile(aVSEEIn,aNameIn);
+
+     std::vector<cSaveExtrEllipe> aVSEEOut;
+     for (const auto & aSEE : aVSEEIn)
+         if (BoolFind(ToRem,aSEE.mNameCode))
+            aVSEEOut.push_back(aSEE);
+     SaveInFile(aVSEEOut,cSaveExtrEllipe::NameFile(*this,aSetM,false));
+}
+
+
         //  =============  Homologous point =================
 
 void  cPhotogrammetricProject::SaveHomol
       (
-           const cSetHomogCpleIm &,
+           const cSetHomogCpleIm & aSetHCI,
            const std::string & aNameIm1 ,
 	   const std::string & aNameIm2,
 	   const std::string & anExt
       ) const
 {
+	std::string aDir = mDPTieP.FullDirOut();
+
+	aDir = aDir + aNameIm1 + StringDirSeparator();
+	CreateDirectories(aDir,true);
+
+	std::string  aName = aDir+aNameIm2 + "." +anExt;
+	aSetHCI.ToFile(aName);
+
+	// SaveInFile(aSetHCI,aName);
 }
 
 

@@ -170,6 +170,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecCalcDiscIm);
         TheVecAll.push_back(&TheSpecCalcDescPCar);
         TheVecAll.push_back(&TheSpecMatchTieP);
+	TheVecAll.push_back(&TheSpec_TiePConv);
         TheVecAll.push_back(&TheSpecEpipGenDenseMatch);
         TheVecAll.push_back(&TheSpecEpipDenseMatchEval);
         TheVecAll.push_back(&TheSpecGenSymbDer);
@@ -197,6 +198,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_OriConvV1V2);
         TheVecAll.push_back(&TheSpec_OriUncalibSpaceResection);
         TheVecAll.push_back(&TheSpec_OriCalibratedSpaceResection);
+        TheVecAll.push_back(&TheSpec_OriCheckGCPDist);
         TheVecAll.push_back(&TheSpec_OriBundlAdj);
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);
@@ -205,6 +207,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecRadiomCreateModel);
 
         TheVecAll.push_back(&TheSpecDistCorrectCirgTarget);
+        TheVecAll.push_back(&TheSpec_ImportGCP);
         //TheVecAll.push_back(&TheSpecTopoComp);
         TheVecAll.push_back(&TheSpecGenArgsSpec);
 

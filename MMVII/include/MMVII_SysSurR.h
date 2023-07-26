@@ -761,6 +761,8 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
           int   IndUk0() const;   ///< Accessor
           int   IndUk1() const;   ///< Accessor
 
+	  // void GetAllValues(std::vector<Type> & aVRes);
+
        protected :
 	  /// defautl constructor, put non init in all vars
           void Reset();

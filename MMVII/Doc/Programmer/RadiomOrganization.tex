@@ -74,8 +74,75 @@ In the default parametrisation we have :
 %---------------------------------------------
 \subsection{Main classes}
 
+The  classes used to modelized the radiometry are defined in {\tt MMVII\_Radiom.h},
+There is two main set of classses :
+
+\begin{itemize}
+   \item  classes for storing the radiometric data,  i.e set of homolgous point
+	   with their radiometry ;
+
+   \item  classes for modelizeing the radiometric function correction;
+\end{itemize}
+
+A typicall radiometric processus, will occur in $3$ steps :
+
+\begin{itemize}
+	\item  compute the radiometric data, these can be done mesh, from tie point (to implemant),
+		from  MNT (to implemant)
+        \item   use the radiometric data to compute correction functions;
+	\item   use the correction function to produce equalized result : devlopped images,
+                ortho-photo (to come), coloured meshes (to come);
+\end{itemize}
+
 %---------------------------------------------
 %---------------------------------------------
 %---------------------------------------------
 
 \section{Classes for photogrammetric data}
+
+%---------------------------------------------
+\subsection{General organisation}
+
+The two classes are {\tt cImageRadiomData} and {\tt cFusionIRDSEt}.
+
+The classe {\tt cImageRadiomData}  store the information on images,
+it's the only class used and saved where with command like {\tt MeshProjImage}.
+
+The class {\tt cFusionIRDSEt} is used to recover efficiently the 
+homologous radiometric point comings from multiple {\tt cImageRadiomData}.
+
+The principle of use is that :
+
+\begin{itemize} 
+   \item all the  {\tt cImageRadiomData} must be created in the same command,
+         this is necessary to warantee the coherence  of indexes used to recover the homologous point;
+
+   \item when reading and using them, any arbitrary subset can be loaded.
+\end{itemize}
+
+
+
+\subsection{Class cImageRadiomData}
+
+The class {\tt cImageRadiomData} store the information relative to one image.
+I consist essentially of a set of triplet $R_k,P_k,I_k$ where :
+
+
+\begin{itemize}
+	\item $R_k$ are the radiometry they are stored in the vector {\tt mVVRadiom}:
+	\item $P_k$ are the image points they are stored in the vector {\tt mVPts}
+	\item $I_k$ is an identifiant that will allow to recover the homologous point
+		in all  other images (i.e. points homologous to this point will also
+		have the same identifiant);
+\end{itemize}
+
+For efficiency, the index must be ordered. Generally this is "naturally" the case at creation,
+if nessecary the indexes (and the other data) can be re-ordered.
+
+
+
+
+
+
+
+

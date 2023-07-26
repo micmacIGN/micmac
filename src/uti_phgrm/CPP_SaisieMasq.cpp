@@ -286,6 +286,7 @@ cAppliSM::cAppliSM(int argc,char ** argv,bool ForV2) :
          );
 
          aNTifIm = NameFileStd(aFullName,1,false);
+
 	 aNameMasq = DirMMVII_AndCreate("Mask",aDirV2) + aFullName + ".tif";
     }
     else
@@ -369,7 +370,7 @@ cAppliSM::cAppliSM(int argc,char ** argv,bool ForV2) :
 
 // std::cout << "EEEEEEEEEEEE  "<< aNTifIm << "\n";
     mBiS =  BiScroller::MasqBiscroller(*aVVE,aNTifIm,aNameMasq);
-// std::cout << "FFFFF  "<< aNTifIm << "\n";
+   std::cout << "FFFFF  "<< aNTifIm << "\n";
 
    mBiS->GraySetGamaCorrec(aGama);
 

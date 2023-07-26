@@ -341,7 +341,8 @@ void  cArgMpDCRaw::DevJpg()
                          +   std::string(" -depth ") + (En8B ? "8 " : "16 ")
                          +   aTmp;
 
-   //std::cout << aCom << "\n";
+   std::cout << aCom << "\n";
+   // std::cout << "JjjjjjjjJKKllll \n"; getchar();
 
     VoidSystem(aCom.c_str());
 

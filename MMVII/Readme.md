@@ -1,13 +1,11 @@
 Dependencies
-------------
 
-    libboost-all-dev
+libboost-all-dev
+libeigen3-dev
+#  libceres-dev => no longer needed 4 now
 
-#    libceres-dev => no longer needed 4 now
 
-
-To compile
-----------
+To compile :
 
 Compile MicMac V1, then in MMVII/bin directory:
 

@@ -9,8 +9,6 @@ namespace MMVII
 {
 
 // Everything specific to coded target in this namespace
-namespace  cNS_CodedTarget
-{
 
 extern const std::string ThePrefixSimulTarget;
 extern const std::string ThePostfixGTSimulTarget;
@@ -403,6 +401,7 @@ class cFullSpecifTarget : public cMemCheck
 	 const cPt2dr & CornerlEl_BW() const; ///<  Corner of ellipse transition B->W ( trigonometric sense)
 	 const cPt2dr & CornerlEl_WB() const; ///<  Corner of ellipse transition W->B ( trigonometric sense)
 
+         const  cParamRenderingTarget &     Render()    const;
       private :
 	 ///  default constructor required for step by step buildin
          cFullSpecifTarget();
@@ -416,7 +415,6 @@ class cFullSpecifTarget : public cMemCheck
 
          const  cSpecBitEncoding &          Specs()     const;
 	 int    DeZoomIm() const;
-         const  cParamRenderingTarget &     Render()    const;
 
 	 std::string NameOfImPattern() const;
 	 std::string NameOfEncode(const cOneEncoding & anEnCode) const;
@@ -438,22 +436,7 @@ class cFullSpecifTarget : public cMemCheck
 
 /** Minimal struct to save the result of an ellipse extracted in image */
 
-class cCircTargExtr;
-struct cSaveExtrEllipe
-{
-     public :
-          cSaveExtrEllipe (const cCircTargExtr &,const std::string & aNameCode);
-          cSaveExtrEllipe ();
-          static std::string NameFile(const cPhotogrammetricProject & ,const cSetMesPtOf1Im &,bool Input);
 
-          cEllipse  mEllipse;
-          std::string mNameCode;
-          tREAL4 mBlack;
-          tREAL4 mWhite;
-};
-void AddData(const  cAuxAr2007 & anAux, cSaveExtrEllipe & aCTE);
-
-};
 
 
 };

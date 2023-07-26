@@ -128,6 +128,11 @@ tPt2dr cSensorImage::RandomVisiblePIm() const
       return aRes;
 }
 
+tPt2dr  cSensorImage::RelativePosition(const tPt2dr & aPt) const
+{
+   return DivCByC(aPt,ToR(Sz()));
+}
+
 
 tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTestMax,bool * isOk ) const
 {

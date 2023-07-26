@@ -300,9 +300,17 @@ class cPlane3D
      public :
          cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
          static cPlane3D FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aAxeK);
+         static cPlane3D From3Point(const cPt3dr & aP0,const cPt3dr & aP1,cPt3dr & aP2);
+	 /// Return the indexes of the "best" plane
+         static std::pair<cPt3di,tREAL8>  IndexRansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
+         static std::pair<cPlane3D,tREAL8> RansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
+
+	 tREAL8 AvgDist(const std::vector<cPt3dr> &) const;
+	 tREAL8 MaxDist(const std::vector<cPt3dr> &) const;
 
          cPt3dr  ToLocCoord(const cPt3dr &) const;
          cPt3dr  FromCoordLoc(const cPt3dr &) const;
+         tREAL8  Dist(const cPt3dr &) const;
          cPt3dr  Inter(const cPt3dr&aP0,const cPt3dr&aP1) const;
          cPt3dr  Inter(const tSeg3dr& ) const;
 
@@ -318,6 +326,13 @@ class cPlane3D
          cPt3dr mAxeJ;
          cPt3dr mAxeK;
 };
+
+/// Planarity index using ratio of eigen value 0/2 of moment matrix
+tREAL8 L2_PlanarityIndex(const std::vector<cPt3dr> & aVPt);
+/// Linearity index using ratio of eigen value 1/2 of moment matrix
+tREAL8 L2_LinearityIndex(const std::vector<cPt3dr> & aVPt);
+
+
 
 cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8> * aVWeight = nullptr);
 ///  Specialization for 2 lines, supposed to be faster,  Weight: 1.0 ->on line 1 , 0.0 -> one line 2
