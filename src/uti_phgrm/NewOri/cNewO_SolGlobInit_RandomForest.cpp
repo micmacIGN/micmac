@@ -148,7 +148,7 @@ static bool IsInImage(Pt2di aSz, Pt2dr aPt)
 
 */
 
-double median(vector<double> vec)
+double median(vector<double>& vec)
 {
         typedef vector<double>::size_type vec_sz;
 
@@ -162,6 +162,21 @@ double median(vector<double> vec)
 
         return size % 2 == 0 ? (vec[mid] + vec[mid-1]) / 2 : vec[mid];
 }
+double cut(vector<double>& vec, double p)
+{
+        typedef vector<double>::size_type vec_sz;
+
+        vec_sz size = vec.size();
+        if (size == 0)
+                throw domain_error("median of an empty vector");
+
+        sort(vec.begin(), vec.end());
+
+        vec_sz mid = size * p;
+
+        return size % 2 == 0 ? (vec[mid] + vec[mid-1]) / 2 : vec[mid];
+}
+
 static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
     //double value = 0;
     //double number = 0;
@@ -2340,7 +2355,7 @@ void RandomForest::processNode2(
             current.insert(e);
 
         //Bundle des actuels pour "nettoyer"
-        campari(current, ori0name, mPrefHom);
+        //campari(current, ori0name, mPrefHom);
         //On lit tout ce petit monde
         updateViewFrom(ori0name, current);
     }
@@ -2499,6 +2514,28 @@ std::set<tSomNSI*> RandomForest::bfs3(Dataset& data, ffinalTree& tree, tSomNSI* 
     std::set<tSomNSI*> processed;
 
     std::deque<std::tuple<tSomNSI*, int>> tasks;
+    //Kick start all leafs
+    for (auto it = s.begin(); it != s.end();) {
+        auto som = *it;
+        bool ready = true;
+        for (auto c : tree.next[som]) {
+            if (!processed.count(c)) {
+                ready = false;
+            }
+        }
+        if (!ready) {
+            ++it;
+            continue;
+        }
+        it = s.erase(it);
+
+        int cpid;
+        if ((cpid=fork()) == 0) {
+            processNode2(data, tree, ss, som);
+            exit(0);
+        }
+        tasks.push_back({som,cpid});
+    }
     while (!s.empty()) {
         for (auto it = tasks.begin(); it != tasks.end();) {
             pid_t return_pid = waitpid(std::get<1>(*it), nullptr, WNOHANG);
@@ -3097,9 +3134,16 @@ void RandomForest::PreComputeTriplets(Dataset& data) {
 
 /* Final mean and 80% quantile incoherence computed on all triplets in the graph
  */
-double median(std::vector<double> &v)
+/*double cmedian(std::vector<double> &v)
 {
     size_t n = v.size() / 2;
+    nth_element(v.begin(), v.begin()+n, v.end());
+    return v[n];
+}*/
+
+double generalmedian(std::vector<double> &v, float pourcentage)
+{
+    size_t n = v.size() * pourcentage;
     nth_element(v.begin(), v.begin()+n, v.end());
     return v[n];
 }
@@ -3119,13 +3163,12 @@ void RandomForest::CoherTripletsAllSamples(Dataset& data) {
             }
         }
 
-        data.mV3[aT]->Sum()[0] = mean(data.mV3[aT]->Data()[0]);
+        //data.mV3[aT]->Sum()[0] = mean(data.mV3[aT]->Data()[0]);
+        data.mV3[aT]->Sum()[0] = median(data.mV3[aT]->Data()[0]);
         //data.mV3[aT]->Sum()[1] = MedianeSup(data.mV3[aT]->Data()[0]);
         data.mV3[aT]->Sum()[1] = data.mV3[aT]->Data()[0][data.mV3[aT]->Data()[0].size()/2];
         data.mV3[aT]->Sum()[2] = mean(data.mV3[aT]->Data()[2]);
-        auto a = data.mV3[aT]->Data()[2];
-        std::sort(a.begin(), a.end());
-        data.mV3[aT]->Sum()[3] = a.back();
+        data.mV3[aT]->Sum()[3] = data.mV3[aT]->Sum()[0];
     }
 }
 
