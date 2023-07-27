@@ -318,7 +318,7 @@ int  cAuxAr2007::NbNextOptionnal(const std::string & aTag)  const
 
 /*============================================================*/
 /*                                                            */
-/*          cIXml_Ar2007                                      */
+/*             cIXml_Parser                                   */
 /*                                                            */
 /*============================================================*/
 
@@ -333,135 +333,121 @@ class cXMLEOF
 {
 };
 
-
-/// Xml read archive
-/**
-    An archive for reading XML file saved by MMVII with cOXml_Ar2007
-    Probably the more complicated class for cAr2007
-*/
-
-class cIXml_Ar2007 : public cAr2007
+/**  Facility for xml parsing whatever you do after
+ */ 
+class cIXml_Parser
 {
-     public :
-          cIXml_Ar2007(std::string const  & aName,eTypeSerial aTypeS) : 
-                cAr2007     (true,(aTypeS!=eTypeSerial::etxt),false), // Input, Tagged,Binary
-                mMMIs       (aName),
-                mExcepOnEOF (false),
-		mTypeS      (aTypeS)
-           {
-           }
-
-           bool IsFileOfFirstTag(bool Is2007,const std::string &);
+     public    :
+          cIXml_Parser(const std::string & aName,eTypeSerial aTypeS);
      protected :
-           inline std::istream  & Ifs() {return mMMIs.Ifs();}
-
-        // Inherited from cAr2007
-           /// put <Tag>
-           void RawBeginName(const cAuxAr2007& anOT) override;
-           /// put </Tag>
-           void RawEndName(const cAuxAr2007& anOT) override;
-           void RawAddDataTerm(int &    anI) override;
-           void RawAddDataTerm(size_t &    anI) override;
-           void RawAddDataTerm(double &    anI) override;
-           void RawAddDataTerm(std::string &    anI) override;
-           void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
-           /// Read next tag, if its what expected return 1, restore state of file
-           int NbNextOptionnal(const std::string &) override;
-
-           void Error(const std::string & aMes);
-
-           std::string GetNextString();
-
-        // Utilitaire de manipulation 
-
-           /// If found Skeep one extpected string, and indicate if it was found, 
-           bool SkeepOneString(const char * aString);
-           /// Skeep a comment
-           bool SkeepCom();
+          inline std::istream  & Ifs() {return mMMIs.Ifs();}
+          /// Get a char, and check its not EOF, only access to mMMIs.get() in this class
+          int GetNotEOF();
+	  /// error specific handler
+          void Error(const std::string & aMes);
            /// Skeep all series of space and comment
            int  SkeepWhite();
+
+
            /// Skeep one <!-- --> or <? ?>
            bool SkeepOneKindOfCom(const char * aBeg,const char * anEnd);
+           /// Skeep a comment
+           bool SkeepCom();
+
+          /// If found Skeep one extpected string, and indicate if it was found, 
+          bool SkeepOneString(const char * aString);
+
+	  /// retunr string after skeep whit, comm .... accept "a b c" , 
+          std::string  GetNextString();
            /// Get one tag
            bool GetTag(bool close,const std::string & aName);
-
-           /// Get a char, and check its not EOF, only access to mMMIs.get() in this class
-           int GetNotEOF();
-
-
-           cMMVII_Ifs                        mMMIs; ///< secured istream
-           bool                              mExcepOnEOF; ///< Do We use exception on EOF
-	   eTypeSerial                       mTypeS;
+	   
+          cMMVII_Ifs                        mMMIs; ///< secured istream
+          bool                              mExcepOnEOF; ///< Do We use exception on EOF
+	  eTypeSerial                       mTypeS;
 };
 
-bool cIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName)
+cIXml_Parser::cIXml_Parser(const std::string & aName,eTypeSerial aTypeS) :
+   mMMIs          (aName),
+   mExcepOnEOF    (false),
+   mTypeS         (aTypeS)
 {
-    bool aRes = false;
-    mExcepOnEOF = true;
-    try {
-        aRes = ((!Is2007) || GetTag(false,TagMMVIISerial)) && GetTag(false,aName);
-    }
-    catch (cXMLEOF anE)
-    {
-        return false;
-    }
-    return aRes;
 }
 
-bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string & aTag)
+void cIXml_Parser::Error(const std::string & aMesLoc)
 {
-  if ((Postfix(aName,'.',true) != "xml") || (! ExistFile(aName)))
-     return false;
+    std::string aMesGlob =   aMesLoc + "\n" 
+                           + "while processing file=" +  mMMIs.Name() + " at char " + ToS(int(Ifs().tellg()));
 
-  cIXml_Ar2007 aFile (aName,eTypeSerial::exml);
-  return aFile.IsFileOfFirstTag(Is2007,aTag);
+    MMVII_INTERNAL_ASSERT_bench(false,aMesGlob);
 }
 
-
-void cIXml_Ar2007::RawAddDataTerm(size_t &    aSz) 
+int cIXml_Parser::GetNotEOF()
 {
-    FromS(GetNextString(),aSz);
-}
-
-void cIXml_Ar2007::RawAddDataTerm(int &    anI) 
-{
-    FromS(GetNextString(),anI);
-}
-void cIXml_Ar2007::RawAddDataTerm(double &    aD) 
-{
-    FromS(GetNextString(),aD);
-}
-void cIXml_Ar2007::RawAddDataTerm(std::string &    aS) 
-{
-    aS =   GetNextString();
-}
-
-void cIXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
-{
-   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
-   for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
+   int aC = Ifs().get();
+   if (aC==EOF)
    {
-       int aC1= FromHexaCode(GetNotEOF());
-       int aC2= FromHexaCode(GetNotEOF());
-       aPtr[aK] = aC1 * 16 + aC2;
+       if (mExcepOnEOF)
+          throw cXMLEOF();
+       else
+          Error("Unexpected EOF");
    }
+   return aC;
 }
 
-
-void  cIXml_Ar2007::RawBeginName(const cAuxAr2007& anOT) 
+bool cIXml_Parser::SkeepOneString(const char * aString)
 {
-     bool GotTag =  GetTag(false,anOT.Name());
-     MMVII_INTERNAL_ASSERT_always(GotTag,"cIXml_Ar2007 did not get entering tag=" +anOT.Name());
+     int aNbC=0;
+     while (*aString)
+     {
+         // int aC = Ifs().get();
+         int aC = GetNotEOF();
+         aNbC++;
+         if (aC != *aString)
+         {
+             for (int aK=0 ; aK<aNbC ; aK++)
+             {
+                  Ifs().unget();
+             }
+             return false;
+         }
+         ++aString;
+     }
+     return true;
 }
 
-
-void  cIXml_Ar2007::RawEndName(const cAuxAr2007& anOT) 
+bool  cIXml_Parser::SkeepOneKindOfCom(const char * aBeg,const char * anEnd)
 {
-     bool GotTag =  GetTag(true,anOT.Name());
-     MMVII_INTERNAL_ASSERT_always(GotTag,"cIXml_Ar2007 did not get closing tag=" +anOT.Name());
+   if (! SkeepOneString(aBeg))
+      return false;
+
+   while (! SkeepOneString(anEnd))
+   {
+        GetNotEOF();
+   }
+   return true;
 }
 
-std::string  cIXml_Ar2007::GetNextString()
+bool  cIXml_Parser::SkeepCom()
+{
+    return    SkeepOneKindOfCom(aXMLBeginCom,aXMLEndCom)
+           || SkeepOneKindOfCom(aXMLBeginCom2,aXMLEndCom2);
+}
+
+int cIXml_Parser::SkeepWhite()
+{
+   int aC=' ';
+   while (isspace(aC)|| (aC==0x0A)) // Apparement 0x0A est un retour chariot
+   {
+       while (SkeepCom());
+       // aC = Ifs().get();
+       aC = GetNotEOF();
+   }
+   Ifs().unget();
+   return aC;
+}
+
+std::string  cIXml_Parser::GetNextString()
 {
     SkeepWhite();
     std::string aRes;
@@ -508,8 +494,133 @@ std::string  cIXml_Ar2007::GetNextString()
     return aRes;
 }
 
+bool cIXml_Parser::GetTag(bool aClose,const std::string & aName)
+{
+    SkeepWhite();
+    std::string aTag = std::string(aClose ? "</" : "<") + aName + ">";
+   
+    return SkeepOneString(aTag.c_str());
+}
 
-int cIXml_Ar2007::NbNextOptionnal(const std::string & aTag) 
+/*============================================================*/
+/*                                                            */
+/*          cStreamIXml_Ar2007                                */
+/*                                                            */
+/*============================================================*/
+
+
+/// Xml read archive
+/**
+    An archive for reading XML file saved by MMVII with cOXml_Ar2007
+    Probably the more complicated class for cAr2007
+*/
+
+// class 
+
+class cStreamIXml_Ar2007 : public cAr2007,
+	                   public cIXml_Parser
+{
+     public :
+          cStreamIXml_Ar2007(const std::string & aName,eTypeSerial aTypeS) : 
+                cAr2007        (true,(aTypeS!=eTypeSerial::etxt),false), // Input, Tagged,Binary
+                cIXml_Parser   (aName,aTypeS)
+                // mExcepOnEOF    (false),
+           {
+           }
+
+           bool IsFileOfFirstTag(bool Is2007,const std::string &);
+     protected :
+
+        // Inherited from cAr2007
+           /// put <Tag>
+           void RawBeginName(const cAuxAr2007& anOT) override;
+           /// put </Tag>
+           void RawEndName(const cAuxAr2007& anOT) override;
+           void RawAddDataTerm(int &    anI) override;
+           void RawAddDataTerm(size_t &    anI) override;
+           void RawAddDataTerm(double &    anI) override;
+           void RawAddDataTerm(std::string &    anI) override;
+           void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
+           /// Read next tag, if its what expected return 1, restore state of file
+           int NbNextOptionnal(const std::string &) override;
+
+
+
+        // Utilitaire de manipulation 
+
+
+};
+
+bool cStreamIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName)
+{
+    bool aRes = false;
+    mExcepOnEOF = true;
+    try {
+        aRes = ((!Is2007) || GetTag(false,TagMMVIISerial)) && GetTag(false,aName);
+    }
+    catch (cXMLEOF anE)
+    {
+        return false;
+    }
+    return aRes;
+}
+
+bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string & aTag)
+{
+  if ((Postfix(aName,'.',true) != "xml") || (! ExistFile(aName)))
+     return false;
+
+  cStreamIXml_Ar2007 aFile (aName,eTypeSerial::exml);
+  return aFile.IsFileOfFirstTag(Is2007,aTag);
+}
+
+
+void cStreamIXml_Ar2007::RawAddDataTerm(size_t &    aSz) 
+{
+    FromS(GetNextString(),aSz);
+}
+
+void cStreamIXml_Ar2007::RawAddDataTerm(int &    anI) 
+{
+    FromS(GetNextString(),anI);
+}
+void cStreamIXml_Ar2007::RawAddDataTerm(double &    aD) 
+{
+    FromS(GetNextString(),aD);
+}
+void cStreamIXml_Ar2007::RawAddDataTerm(std::string &    aS) 
+{
+    aS =   GetNextString();
+}
+
+void cStreamIXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
+{
+   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
+   for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
+   {
+       int aC1= FromHexaCode(GetNotEOF());
+       int aC2= FromHexaCode(GetNotEOF());
+       aPtr[aK] = aC1 * 16 + aC2;
+   }
+}
+
+
+void  cStreamIXml_Ar2007::RawBeginName(const cAuxAr2007& anOT) 
+{
+     bool GotTag =  GetTag(false,anOT.Name());
+     MMVII_INTERNAL_ASSERT_always(GotTag,"cStreamIXml_Ar2007 did not get entering tag=" +anOT.Name());
+}
+
+
+void  cStreamIXml_Ar2007::RawEndName(const cAuxAr2007& anOT) 
+{
+     bool GotTag =  GetTag(true,anOT.Name());
+     MMVII_INTERNAL_ASSERT_always(GotTag,"cStreamIXml_Ar2007 did not get closing tag=" +anOT.Name());
+}
+
+
+
+int cStreamIXml_Ar2007::NbNextOptionnal(const std::string & aTag) 
 {
     std::streampos  aPos = Ifs().tellg();
     bool GotTag = GetTag(false,aTag);
@@ -519,91 +630,6 @@ int cIXml_Ar2007::NbNextOptionnal(const std::string & aTag)
 }
 
 
-bool cIXml_Ar2007::GetTag(bool aClose,const std::string & aName)
-{
-    SkeepWhite();
-    std::string aTag = std::string(aClose ? "</" : "<") + aName + ">";
-   
-    return SkeepOneString(aTag.c_str());
-}
-
-
-
-
-void cIXml_Ar2007::Error(const std::string & aMesLoc)
-{
-    std::string aMesGlob =   aMesLoc + "\n" 
-                           + "while processing file=" +  mMMIs.Name() + " at char " + ToS(int(Ifs().tellg()));
-
-    MMVII_INTERNAL_ASSERT_bench(false,aMesGlob);
-}
-
-bool cIXml_Ar2007::SkeepOneString(const char * aString)
-{
-     int aNbC=0;
-     while (*aString)
-     {
-         // int aC = Ifs().get();
-         int aC = GetNotEOF();
-         aNbC++;
-         if (aC != *aString)
-         {
-             for (int aK=0 ; aK<aNbC ; aK++)
-             {
-                  Ifs().unget();
-             }
-             return false;
-         }
-         ++aString;
-     }
-     return true;
-}
-
-int cIXml_Ar2007::GetNotEOF()
-{
-   int aC = Ifs().get();
-   if (aC==EOF)
-   {
-       if (mExcepOnEOF)
-          throw cXMLEOF();
-       else
-          Error("Unexpected EOF");
-   }
-   return aC;
-}
-
-bool  cIXml_Ar2007::SkeepOneKindOfCom(const char * aBeg,const char * anEnd)
-{
-   if (! SkeepOneString(aBeg))
-      return false;
-
-   while (! SkeepOneString(anEnd))
-   {
-        GetNotEOF();
-   }
-   return true;
-}
-
-
-bool  cIXml_Ar2007::SkeepCom()
-{
-    return    SkeepOneKindOfCom(aXMLBeginCom,aXMLEndCom)
-           || SkeepOneKindOfCom(aXMLBeginCom2,aXMLEndCom2);
-}
-
-
-int cIXml_Ar2007::SkeepWhite()
-{
-   int aC=' ';
-   while (isspace(aC)|| (aC==0x0A)) // Apparement 0x0A est un retour chariot
-   {
-       while (SkeepCom());
-       // aC = Ifs().get();
-       aC = GetNotEOF();
-   }
-   Ifs().unget();
-   return aC;
-}
 
 /*============================================================*/
 /*                                                            */
@@ -613,11 +639,11 @@ int cIXml_Ar2007::SkeepWhite()
 
 
 
-class cIBaseTxt_Ar2007 : public cIXml_Ar2007
+class cIBaseTxt_Ar2007 : public cStreamIXml_Ar2007
 {
      public :
         cIBaseTxt_Ar2007(std::string const  & aName) : 
-		  cIXml_Ar2007 (aName,eTypeSerial::etxt)
+		  cStreamIXml_Ar2007 (aName,eTypeSerial::etxt)
 	{
 	}
         void RawBeginName(const cAuxAr2007& anOT) override {}
@@ -1080,7 +1106,7 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    {
        if (Input)
        {
-          aRes =  new cIXml_Ar2007(aName,eTypeSerial::exml);
+          aRes =  new cStreamIXml_Ar2007(aName,eTypeSerial::exml);
        }
        else
        {

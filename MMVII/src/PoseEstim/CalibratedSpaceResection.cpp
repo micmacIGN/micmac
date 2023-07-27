@@ -618,80 +618,13 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
 
 //================================================
 
-class cFilterMesIm
-{
-      public : 
-         cFilterMesIm(cPhotogrammetricProject & aPhProj,const std::string & aNameIm);
-	 void AddInOrOut(const cPt2dr & aPIm,const std::string & aNamePt,bool isIn);
-	 const cSetMesImGCP &   SetMesImGCP();
-	 const cSetMesPtOf1Im & SetMesIm();
-         void Save();
-	 void SetFinished();
-      private :
-
-         cPhotogrammetricProject &  mPhProj;
-	 cSetMesImGCP               mImGCP;  // new set GCP/IM
-	 cSetMesPtOf1Im             mMesIm;
-	 cSetMesPtOf1Im             mMesImSupr;
-	 std::list<std::string>     mSupr;
-	 bool                       mFinished;
-
-};
-
-cFilterMesIm::cFilterMesIm(cPhotogrammetricProject & aPhProj,const std::string & aNameIm)  :
-    mPhProj      (aPhProj),
-    mMesIm       (aNameIm),
-    mFinished    (false)
-{
-    mPhProj.LoadGCP(mImGCP);  // init new GCP/IM with GCP
-}
-
-void cFilterMesIm::AddInOrOut(const cPt2dr & aPtIm,const std::string & aNamePt,bool isIn)
-{
-     MMVII_INTERNAL_ASSERT_medium(!mFinished,"cFilterMesIm::AddInOut while fnished");
-     cMesIm1Pt aMes(aPtIm,aNamePt,1.0 );
-     if (isIn) 
-     {
-        mMesIm.AddMeasure(cMesIm1Pt(aPtIm,aNamePt,1.0 ));
-     }
-     else
-     {
-        mSupr.push_back(aNamePt);
-     }
-}
-
-void cFilterMesIm::SetFinished()
-{
-    if (! mFinished)
-       mImGCP.AddMes2D(mMesIm);
-        
-    mFinished = true;
-}
-
-const cSetMesImGCP &   cFilterMesIm::SetMesImGCP()
-{
-     SetFinished();
-     return mImGCP;
-}
-
-void cFilterMesIm::Save()
-{
-     MMVII_INTERNAL_ASSERT_medium(mFinished,"cFilterMesIm::Sve while not fnished");
-     mPhProj.SaveMeasureIm(mMesIm);
-
-     mPhProj.SaveAndFilterAttrEll(mMesIm,mSupr);
-}
-
-//================================================
-
 int cAppli_CalibratedSpaceResection::Exe()
 {
-   mPhProj.FinishInit();
+    mPhProj.FinishInit();
 
-   mNameReport = mSpecs.Name() +"-" +   mPhProj.DPOrient().DirIn() + "-" + Prefix_TIM_GMA();
+    mNameReport = mSpecs.Name() +"-" +   mPhProj.DPOrient().DirIn() + "-" + Prefix_TIM_GMA();
 
-   InitReport(mNameReport,"cvs",true);
-   // AddTopReport(aNameReport,"TOP Lign 2\n");
+    InitReport(mNameReport,"cvs",true);
 
     bool  aExpFilt = mPhProj.DPPointsMeasures().DirOutIsInit();
     if (aExpFilt)
@@ -744,11 +677,11 @@ int cAppli_CalibratedSpaceResection::Exe()
        std::reverse(aVRes.begin(),aVRes.end());
     }
      
-    cFilterMesIm aFMIM(mPhProj,mNameIm);
 
     // If we want to filter on residual 
     if (mShowBundle || IsInit(&mThrsReject))
     {
+         cFilterMesIm aFMIM(mPhProj,mNameIm);
          StdOut() <<   " =====  WORST RESIDUAL ============= \n";
 
          tREAL8 aThShow = aVRes.at(std::max(0,int(aVRes.size()-5)));  // arbitray threshols for worst points

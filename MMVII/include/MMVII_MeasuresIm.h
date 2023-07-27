@@ -319,6 +319,35 @@ class cSetMultipleTiePoints : public cMemCheck
         std::map<tConfigIm,tPtsOfConfig>  mPts;
 };
 
+/**  Helper for exporting filter of image  measures.
+ *
+ *   The class memorize the measure added or supressed.
+ */
+
+class cFilterMesIm
+{
+      public :
+         /// constructor Name of Image + Project (for loading GCP & final export)
+         cFilterMesIm(cPhotogrammetricProject & aPhProj,const std::string & aNameIm);
+
+	 /// memorize a measure  as in or Out
+         void AddInOrOut(const cPt2dr & aPIm,const std::string & aNamePt,bool isIn);
+
+         const cSetMesImGCP &   SetMesImGCP(); ///< acessor
+         const cSetMesPtOf1Im & SetMesIm();    ///< accessor
+         void Save();                          ///< save image measure + eventual secondary ettributes
+         void SetFinished();                   ///< 
+      private :
+
+         cPhotogrammetricProject &  mPhProj;
+         cSetMesImGCP               mImGCP;  // new set GCP/IM
+         cSetMesPtOf1Im             mMesIm;
+         cSetMesPtOf1Im             mMesImSupr;
+         std::list<std::string>     mSupr;
+         bool                       mFinished;
+
+};
+
 
 
 };
