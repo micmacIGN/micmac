@@ -181,18 +181,18 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
     //double value = 0;
     //double number = 0;
     //double MaxDiag = 6400; //Cam light
-        CamStenope* v[3] = {triplet->KSom(0)->attr().Im()->CS(),
-                            triplet->KSom(1)->attr().Im()->CS(),
-                            triplet->KSom(2)->attr().Im()->CS()};
-        ElRotation3D r_[3] = {triplet->KSom(0)->attr().CurRot(),
-                             triplet->KSom(1)->attr().CurRot(),
-                             triplet->KSom(2)->attr().CurRot()};
-        double MaxDiag = 2202;  // 1920
-        {
-            double x = v[0]->Sz().x;
-            double y = v[0]->Sz().y;
-            MaxDiag = sqrt(x * x + y * y);
-            // std::cout << "Diag: " << MaxDiag << std::endl;
+    CamStenope* v[3] = {triplet->KSom(0)->attr().Im()->CS(),
+        triplet->KSom(1)->attr().Im()->CS(),
+        triplet->KSom(2)->attr().Im()->CS()};
+    ElRotation3D r_[3] = {triplet->KSom(0)->attr().CurRot(),
+        triplet->KSom(1)->attr().CurRot(),
+        triplet->KSom(2)->attr().CurRot()};
+    double MaxDiag = 2202;  // 1920
+    {
+        double x = v[0]->Sz().x;
+        double y = v[0]->Sz().y;
+        MaxDiag = sqrt(x * x + y * y);
+        // std::cout << "Diag: " << MaxDiag << std::endl;
     }
     std::vector<double> res;
     //std::cout << triplet->getHomolPts().size() << std::endl;
@@ -200,16 +200,19 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
     for (uint i = 0; i < 3; i++) {
         auto r = r_[i].inv();
         /*
-        std::cout
-            << r.Mat()(0,0) << " " << r.Mat()(1,0) << " " << r.Mat()(2,0) << std::endl
-            << r.Mat()(0,1) << " " << r.Mat()(1,1) << " " << r.Mat()(2,1) << std::endl
-            << r.Mat()(0,2) << " " << r.Mat()(1,2) << " " << r.Mat()(2,2) << std::endl
-            << r.tr() << std::endl;
-        std::cout << "-----------------" << std::endl;*/
+           std::cout
+           << r.Mat()(0,0) << " " << r.Mat()(1,0) << " " << r.Mat()(2,0) << std::endl
+           << r.Mat()(0,1) << " " << r.Mat()(1,1) << " " << r.Mat()(2,1) << std::endl
+           << r.Mat()(0,2) << " " << r.Mat()(1,2) << " " << r.Mat()(2,2) << std::endl
+           << r.tr() << std::endl;
+           std::cout << "-----------------" << std::endl;*/
     }
 
     if (!triplet->getHomolPts().size()) {
         return MaxDiag;
+    }
+    for (int i = 0; i < 3; i++) {
+        v[i]->SetOrientation(r_[i].inv());
     }
 
     for (auto& pts : triplet->getHomolPts()) {
@@ -218,7 +221,7 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
             if (!pts[i].x && !pts[i].y)
                 continue;
 
-            v[i]->SetOrientation(r_[i].inv());
+            //v[i]->SetOrientation(r_[i].inv());
             //aVSeg.push_back(triplet->KSom(i)->attr().Im()->CS()->F2toRayonR3(pts[i]));
             aVSeg.push_back(v[i]->Capteur2RayTer(pts[i]));
         }
@@ -234,8 +237,8 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
         for (int i = 0; i < 3; i++) {
             if (!pts[i].x && !pts[i].y) continue;
 
-            v[i]->SetOrientation(
-                r_[i].inv());
+            //v[i]->SetOrientation(
+            //                     r_[i].inv());
             Pt2dr pts_proj =
                 v[i]->Ter2Capteur(aInt);
             auto a = euclid(pts[i], pts_proj);
@@ -266,10 +269,10 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
         //number += 1;
     }
     /*
-    for (int i = 0; i < 3; i++) {
-        std::cout << "Image: " << triplet->KSom(i)->attr().Im()->Name()
-            << " Res: " << residues[i]/n_res[i] << std::endl;
-    }*/
+       for (int i = 0; i < 3; i++) {
+       std::cout << "Image: " << triplet->KSom(i)->attr().Im()->Name()
+       << " Res: " << residues[i]/n_res[i] << std::endl;
+       }*/
     //value /= number;
     //cout.precision(12);
     //std::cout << "Residu for triplet: " << value  << "  " << triplet->residue << std::endl;
@@ -892,6 +895,7 @@ void RandomForest::NumeroteCC(Dataset& data) {
             // Compute the sommet of the CC, it's easy, just be careful to get
             // them only once
             int aFlagSom = data.mGr.alloc_flag_som();
+
             for (unsigned aKT = 0; aKT < aCC3.size(); aKT++) {
                 cNOSolIn_Triplet* aTri = aCC3[aKT];
                 for (int aKS = 0; aKS < 3; aKS++) {
@@ -2186,14 +2190,14 @@ static int basculepy(std::string ori0, std::string ori1, std::string oriOut, std
 static int campari(const std::set<tSomNSI*>& result, std::string ori0name, std::string mPrefHom) {
 
     int err = 0;
-std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE SH=" + mPrefHom);
     return err;
 }
 
 static int campari(const finalScene& result, std::string ori0name, std::string mPrefHom) {
 
     int err = 0;
-std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SH=" + mPrefHom);
+std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE SH=" + mPrefHom);
     return err;
 }
 
@@ -3150,6 +3154,8 @@ double generalmedian(std::vector<double> &v, float pourcentage)
 
 
 void RandomForest::CoherTripletsAllSamples(Dataset& data) {
+
+    #pragma omp parallel for
     for (int aT = 0; aT < int(data.mV3.size()); aT++) {
         if (data.mV3[aT]->Data()[0].size() == 0
             || data.mV3[aT]->Data()[2].size() == 0) {

@@ -175,7 +175,7 @@ int TiPunch_main(int argc,char ** argv)
 
     if (computeMesh)
     {
-        #if USE_OPEN_MP
+        #ifdef USE_OPEN_MP
             int nbProc = NbProcSys();
             stringstream sst;
             sst << nbProc;
@@ -185,7 +185,7 @@ int TiPunch_main(int argc,char ** argv)
             + string(" --in ") + aPly.c_str()
             + string(" --out ") + poissonMesh.c_str()
             + " --depth " + ss.str()
-        #if USE_OPEN_MP
+        #ifdef USE_OPEN_MP
             + " --threads " + sst.str()
         #endif
         ;
