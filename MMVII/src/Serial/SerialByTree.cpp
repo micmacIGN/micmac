@@ -30,6 +30,7 @@ class cNodeSerial
 	  std::list<cNodeSerial>  mSons;
 };
 
+
 class  cXML_CreateSerial
 {
 };
