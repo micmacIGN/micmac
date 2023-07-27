@@ -686,9 +686,9 @@ void cFilterMesIm::Save()
 
 int cAppli_CalibratedSpaceResection::Exe()
 {
-    mPhProj.FinishInit();
+   mPhProj.FinishInit();
 
-    mNameReport = "RejectSpaceResec_"+ Prefix_TIM_GMA();
+   mNameReport = mSpecs.Name() +"-" +   mPhProj.DPOrient().DirIn() + "-" + Prefix_TIM_GMA();
 
    InitReport(mNameReport,"cvs",true);
    // AddTopReport(aNameReport,"TOP Lign 2\n");
@@ -714,15 +714,6 @@ int cAppli_CalibratedSpaceResection::Exe()
         return EXIT_SUCCESS;
     }
 
-    //AddOneReport("toto","Sub1\n");
-    //AddOneReport("toto","Sub2\n");
-/*
-{
-    InitReport("titi","txt",eModeCall::eUnik);
-    AddOneReport("titi","Lign 1\n");
-    AddOneReport("titi","Lign 2\n");
-}
-*/
 
     // By default print detail if we are not in //
     SetIfNotInit(mShowBundle,LevelCall()==0);
