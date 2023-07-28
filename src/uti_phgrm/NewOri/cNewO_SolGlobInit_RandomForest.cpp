@@ -46,6 +46,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <csignal>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -2545,7 +2546,11 @@ std::set<tSomNSI*> RandomForest::bfs3(Dataset& data, ffinalTree& tree, tSomNSI* 
             if (return_pid == std::get<1>(*it)) { //TODO test
                 callbackNode(data, ss, processed, std::get<0>(*it));
                 it = tasks.erase(it);
-            } else {
+            } else if (return_pid == -1) {
+                kill(std::get<1>(*it), 0);
+                callbackNode(data, ss, processed, std::get<0>(*it));
+                it = tasks.erase(it);
+            }else {
                 ++it;
             }
         }
