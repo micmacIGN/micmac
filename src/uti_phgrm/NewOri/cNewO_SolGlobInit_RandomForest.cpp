@@ -2190,14 +2190,14 @@ static int basculepy(std::string ori0, std::string ori1, std::string oriOut, std
 static int campari(const std::set<tSomNSI*>& result, std::string ori0name, std::string mPrefHom) {
 
     int err = 0;
-std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE SH=" + mPrefHom);
+std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE NbIterEnd=2 SH=" + mPrefHom);
     return err;
 }
 
 static int campari(const finalScene& result, std::string ori0name, std::string mPrefHom) {
 
     int err = 0;
-std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE SH=" + mPrefHom);
+std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE NbIterEnd=2 SH=" + mPrefHom);
     return err;
 }
 
@@ -2372,9 +2372,8 @@ void RandomForest::processNode2(
     Save(data, ori0name, false);
     for (auto e : result) { e->flag_set_kth_false(data.mFlagS); }
 
-    //On commence par un bundle, donc pas a la fin
-    //campari(result, ori0name, mPrefHom);
-    //updateViewFrom(ori0name, result);
+    campari(result, ori0name, mPrefHom);
+    updateViewFrom(ori0name, result);
 
     //Fin pour ce node
     return;
