@@ -335,11 +335,30 @@ class cXMLEOF
 
 /**  Facility for xml parsing whatever you do after
  */ 
+
+enum class eLexP
+     {
+          eNoPunct,  ///< standard string
+          eEnd,      ///< end
+          ePlus,     ///<  {[(  <hhh> 
+          eMinus,    ///<  )]}  </hhh> 
+          eZero      ///<  ,&: 
+     };
+
+typedef std::pair<std::string,eLexP>  tResLex;
+
+
 class cIXml_Parser
 {
      public    :
-          cIXml_Parser(const std::string & aName,eTypeSerial aTypeS);
+          cIXml_Parser(const std::string & aName,eTypeSerial aTypeS,bool ExcepOnEOF=false);
+	  tResLex GetNextLex();
      protected :
+
+	  virtual bool BeginPonctuation(char aC) const;
+	  virtual tResLex AnalysePonctuation(char aC) ;
+
+
           inline std::istream  & Ifs() {return mMMIs.Ifs();}
           /// Get a char, and check its not EOF, only access to mMMIs.get() in this class
           int GetNotEOF();
@@ -358,7 +377,12 @@ class cIXml_Parser
           bool SkeepOneString(const char * aString);
 
 	  /// retunr string after skeep whit, comm .... accept "a b c" , 
-          std::string  GetNextString();
+          std::string  GetNextStdString();
+
+
+	   /// Get "khhk"
+           std::string  GetQuotedString();
+
            /// Get one tag
            bool GetTag(bool close,const std::string & aName);
 	   
@@ -367,9 +391,34 @@ class cIXml_Parser
 	  eTypeSerial                       mTypeS;
 };
 
-cIXml_Parser::cIXml_Parser(const std::string & aName,eTypeSerial aTypeS) :
+void TestXMLPARSE(const std::string& aName)
+{
+    cIXml_Parser aXmlParse(aName,eTypeSerial::exml,true);
+
+    StdOut() << "HHHH " << aName << "\n";
+
+    try 
+    {
+        for (;;)
+        {
+            tResLex aRL = aXmlParse.GetNextLex();
+
+	    StdOut() << "kkk: " << aRL.first << "\n";
+
+        }
+    }
+    catch (cXMLEOF anE)
+    {
+		StdOut() <<  "------------  END of " << aName << "\n";
+		getchar();
+		return;
+    }
+}
+
+
+cIXml_Parser::cIXml_Parser(const std::string & aName,eTypeSerial aTypeS,bool ExcepOnEOF) :
    mMMIs          (aName),
-   mExcepOnEOF    (false),
+   mExcepOnEOF    (ExcepOnEOF),
    mTypeS         (aTypeS)
 {
 }
@@ -390,7 +439,11 @@ int cIXml_Parser::GetNotEOF()
        if (mExcepOnEOF)
           throw cXMLEOF();
        else
+       {
+	       StdOut() << "jjjjjjjjjjjjjjj " << __LINE__ << "\n";
           Error("Unexpected EOF");
+	       StdOut() << "jjjjjjjjjjjjjjj " << __LINE__ << "\n";
+       }
    }
    return aC;
 }
@@ -440,24 +493,18 @@ int cIXml_Parser::SkeepWhite()
    while (isspace(aC)|| (aC==0x0A)) // Apparement 0x0A est un retour chariot
    {
        while (SkeepCom());
-       // aC = Ifs().get();
+       //aC = Ifs().get();
        aC = GetNotEOF();
    }
    Ifs().unget();
    return aC;
 }
 
-std::string  cIXml_Parser::GetNextString()
+std::string  cIXml_Parser::GetQuotedString()
 {
-    SkeepWhite();
-    std::string aRes;
- 
-    int aC =  GetNotEOF();
-     // Case string between " "
-    if (aC=='"')
-    {
-        for(;;)
-        {
+   std::string aRes;
+   for(;;)
+   {
             int aC= GetNotEOF();
             if (aC=='"')  // End of "
 	    {
@@ -478,20 +525,74 @@ std::string  cIXml_Parser::GetNextString()
             }
             else
                aRes+= aC;
-        }
+   }
+}
+
+bool  cIXml_Parser::BeginPonctuation(char aC) const { return aC=='<'; }
+
+tResLex cIXml_Parser::AnalysePonctuation(char aC) 
+{
+    aC =  GetNotEOF();
+    eLexP aLex= eLexP::eMinus;
+    std::string aRes ;
+    
+    if (aC!='/')
+    {
+        aLex= eLexP::ePlus;
+	aRes += aC;
+    }
+
+    while (aC!='>')
+    {
+         aC =  GetNotEOF();
+	 if (aC!='>')
+	    aRes += aC;
+    }
+
+    return tResLex(aRes,aLex);
+}
+
+
+
+
+std::string  cIXml_Parser::GetNextStdString()
+{
+	return GetNextLex().first;
+}
+
+tResLex  cIXml_Parser::GetNextLex()
+{
+    SkeepWhite();
+    std::string aRes;
+ 
+    int aC =  GetNotEOF();
+    /*
+    int aC = Ifs().get();
+    if (aC==EOF)
+       return tResLex("",eLexP::eEnd);
+       */
+
+    if (BeginPonctuation(aC))
+    {
+	    return AnalysePonctuation(aC);
+    }
+    if (aC=='"')
+    {
+          return tResLex(GetQuotedString(),eLexP::eNoPunct);
     }
 
 
-    while ((aC!='<') && (!std::isspace(aC)))
+    while ((!BeginPonctuation(aC)) && (!std::isspace(aC)))
     {
        aRes += aC;
        aC =  GetNotEOF();
     }
     Ifs().unget(); // put back < or ' '  etc ..
     
-    if (mTypeS!= eTypeSerial::etxt)  // else get EOF at end
-       SkeepWhite();
-    return aRes;
+    //if (mTypeS!= eTypeSerial::etxt)  // else get EOF at end
+    //   SkeepWhite();
+
+    return tResLex(aRes,eLexP::eNoPunct);
 }
 
 bool cIXml_Parser::GetTag(bool aClose,const std::string & aName)
@@ -577,20 +678,20 @@ bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string
 
 void cStreamIXml_Ar2007::RawAddDataTerm(size_t &    aSz) 
 {
-    FromS(GetNextString(),aSz);
+    FromS(GetNextStdString(),aSz);
 }
 
 void cStreamIXml_Ar2007::RawAddDataTerm(int &    anI) 
 {
-    FromS(GetNextString(),anI);
+    FromS(GetNextStdString(),anI);
 }
 void cStreamIXml_Ar2007::RawAddDataTerm(double &    aD) 
 {
-    FromS(GetNextString(),aD);
+    FromS(GetNextStdString(),aD);
 }
 void cStreamIXml_Ar2007::RawAddDataTerm(std::string &    aS) 
 {
-    aS =   GetNextString();
+    aS =   GetNextStdString();
 }
 
 void cStreamIXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
@@ -650,7 +751,7 @@ class cIBaseTxt_Ar2007 : public cStreamIXml_Ar2007
         void RawEndName(const cAuxAr2007& anOT) override {}
         int NbNextOptionnal(const std::string &) override
 	{
-               return cStrIO<int>::FromStr(GetNextString());
+               return cStrIO<int>::FromStr(GetNextStdString());
 	}
      private :
 };
@@ -1107,6 +1208,7 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
        if (Input)
        {
           aRes =  new cStreamIXml_Ar2007(aName,eTypeSerial::exml);
+//TestXMLPARSE(aName);
        }
        else
        {
