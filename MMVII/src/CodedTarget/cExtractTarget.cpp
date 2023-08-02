@@ -2,7 +2,7 @@
 #include "CodedTarget_Tpl.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Tpl_Images.h"
-#include "../Matrix/MMVII_EigenWrap.h"
+#include "../src/Matrix/MMVII_EigenWrap.h"
 #include <random>
 #include <bitset>
 #include <time.h>
@@ -95,7 +95,8 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         void MarkDCT() ;
         void SelectOnFilter(cFilterDCT<tREAL4> * aFilter,bool MinCrown,double aThrS,eResDCT aModeSup);
         bool analyzeDCT(cDCT*, const cDataIm2D<float> &);                        ///< Analyze a potential target
-        int decodeTarget(tDataImT &, double, double, std::string&, bool);        ///< Decode a potential target
+        int decodeTargetOld(tDataImT &, double, double, std::string&, bool);     ///< Decode a potential target
+        std::string decodeTarget(tDataImT &, cDCT*);                             ///< Decode a potential target
         bool markImage(tDataImT &, cPt2di, int, int);                            ///< Plot mark on gray level image
         std::vector<cPt2dr> solveIntersections(cDCT*, double*);
         std::vector<cPt2dr> extractButterflyEdge(const cDataIm2D<float> &, cDCT*);
@@ -103,6 +104,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         void exportInXml(std::vector<cDCT*>);
         void plotDebugImage(cDCT*, const cDataIm2D<float>&);
         tImTarget generateRectifiedImage(cDCT*, const cDataIm2D<float>&);
+        std::vector<cPt2dr> getEncodingPositions(tDataImT &, cDCT*);
         double ellipseResidual(std::vector<cPt2dr>, std::vector<double>);        ///< Computes pixel residual of ellipse fit
 
 
@@ -128,7 +130,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         int fitFreeEllipse(std::vector<cPt2dr>, double*);                        ///< Least squares estimation of a floating ellipse from 2D points
         int fitConstrainedEllipse(std::vector<cPt2dr>, cPt2dr, double*);         ///< Least squares estimation of a constrained ellipse from 2D points
 
-        std::vector<double> estimateRectification(std::vector<cPt2dr>, double);
+        std::vector<double> estimateRectification(std::vector<cPt2dr>);
         std::vector<double> estimateAffinity(std::vector<cPt2dr>, std::vector<cPt2dr>);
         bool isValidAffinity(std::vector<double>);
         cPt2dr applyAffinity(cPt2dr, std::vector<double>);
@@ -138,7 +140,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
 	std::string mNameTarget;
 
 	cParamCodedTarget        mPCT;
-        cFullSpecifTarget*       mSpec ;
+    cFullSpecifTarget*       mSpec ;
     double                   mDiamMinD;
     bool                     mConstrainCenter;
 	cPt2dr                   mRaysTF;
@@ -198,6 +200,12 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         std::string mGroundTruthFile;
         double mStepButterfly;
         double mGradButterfly;
+        
+        int mSizeXIndoor;
+        int mSizeYIndoor;
+        int mSizeXDrone;
+        int mSizeYDrone;
+        
 };
 
 
@@ -236,13 +244,17 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mTolerance       (0.0),
    mFlagDebug       (""),
    mLineWidthDebug  (1.0),
-   mLetter          (1),
+   mLetter          (3),
    mErrAvgGT        (0.0),
    mErrMaxGT        (0.0),
    mCompGT          (0.0),
    mGroundTruthFile (""),
    mStepButterfly   (0.05),
-   mGradButterfly   (0)
+   mGradButterfly   (0),
+   mSizeXIndoor     (600),
+   mSizeYIndoor     (600),
+   mSizeXDrone      (600),
+   mSizeYDrone      (1096)
 {
 }
 
@@ -698,6 +710,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // [001] 0000000001 plot only candidates after filtering operations (magenta pixels)
     // ----------------------------------------------------------------------------------------------
     if(mBitsPlotDebug[0]) mImVisu.SetRGBrectWithAlpha(center, 1, cRGBImage::Magenta, 0.0);
+    
 
     // -----------------------------------------------------------------
     // Testing borders
@@ -735,11 +748,13 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     }
 
     // Solve intersections
-    aDCT->mDetectedCorners = solveIntersections(aDCT, param);
+    aDCT->mDetectedCorners = solveIntersections(aDCT, param); // JM : devrait regarder l'image ?
+
     if (!printDebug("Ellipse-cross intersections", (aDCT->mDetectedCorners.size() == 4))) return false;
 
     // Affinity first estimation
-    mTransfo = estimateRectification(aDCT->mDetectedCorners, mPCT.mChessboardAng);
+    mTransfo = estimateRectification(aDCT->mDetectedCorners);
+    
     aDCT->mSizeTargetEllipse = std::min(ellipse[2], ellipse[3]);
 
     // ======================================================================
@@ -756,10 +771,11 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 
         // Recomputing intersections if needed
         aDCT->mDetectedCorners = solveIntersections(aDCT, param);
+        //aDCT->mDetectedCorners[3].x()=98.0;
 
         // Recomputing affinity if needed (and if possible)
         if (aDCT->mDetectedCorners.size() != 4) return false;
-        mTransfo = estimateRectification(aDCT->mDetectedCorners, mPCT.mChessboardAng);
+        mTransfo = estimateRectification(aDCT->mDetectedCorners);
         aDCT->mRecomputed = true;
     }
 
@@ -768,8 +784,8 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     if (!printDebug("Affinity estimation", validAff)) return false;
 
     // Ellipse fit residual test (requires affinity estimation);
-    double rmse_px = ellipseResidual(mPoints, mTransfo)/600*mDiamMinD;
-    if (!printDebug("Ellipse fit residual", 1, rmse_px)) return false;
+    double rmse_px = ellipseResidual(mPoints, mTransfo);
+    if (!printDebug("Ellipse fit residual", 10, rmse_px)) return false;
 
     // Control on center position
     double x_centre_moy = (ellipse[0] + aDCT->mPt.x())/2.0;
@@ -790,27 +806,12 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // Decoding
     // ======================================================================
 
-    std::string code_binary;
-    int code = decodeTarget(aImT.DIm(), aDCT->mVWhite, aDCT->mVBlack, code_binary, mPCT.mModeFlight);
+    std::string chaine = decodeTarget(aImT.DIm(), aDCT);;
 
-    std::string chaine = "NA";
-
-    if (code != -1){
-        
-	//chaine = mPCT.NameOfBinCode(code);
-
-         const cOneEncoding * anEnc  = mSpec->EncodingFromCode(code);
-	 if (anEnc != nullptr)
-	 {
-            chaine = anEnc->Name();
-            if (mToRestrict.size() > 0){
-                if (chaine != "NA"){
-                    if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
-                        return false;
-                    }
-                }
-            }
-	}
+    if (mToRestrict.size() > 0){
+		if (std::find(mToRestrict.begin(), mToRestrict.end(), chaine) == mToRestrict.end()){
+			return false;
+        }
     }
 
     std::string name_file = "target_" + chaine + ".tif";
@@ -824,12 +825,12 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
         if (!mFailure)  return false;
     }
 
+
     // --------------------------------------------------------------------------------
     // Begin print console
     // --------------------------------------------------------------------------------
     StdOut() << " [" << mTargetCounter << "]" << " Centre: [";
     StdOut() << x_centre_moy << " +/- " << dx  << ", " << y_centre_moy << " +/- " << dy << "]  -  ";
-    StdOut() << code_binary;
     StdOut() << "  ->  " << name_file;
     mTargetCounter ++;
     // --------------------------------------------------------------------------------
@@ -888,58 +889,35 @@ bool cAppliExtractCodeTarget::printDebug(std::string name, double value, double 
 // ---------------------------------------------------------------------------
 tImTarget cAppliExtractCodeTarget::generateRectifiedImage(cDCT* aDCT, const cDataIm2D<float>& aDIm){
 
-    double irel, jrel;
-    int Ni = mPCT.mModeFlight?640:600;
-    int Nj = mPCT.mModeFlight?1280:600;
+
+    int Ni = (mSpec->Type() == eTyCodeTarget::eIGNDroneTop)?mSizeXDrone:mSizeXIndoor;
+    int Nj = (mSpec->Type() == eTyCodeTarget::eIGNDroneTop)?mSizeYIndoor:mSizeYIndoor;
+    int offset =  (mSpec->Type() == eTyCodeTarget::eIGNDroneTop)?((mSizeYDrone-mSizeYIndoor)/2):0;
+    
+  
     tImTarget aImT(cPt2di(Ni, Nj));
     tDataImT & aDImT = aImT.DIm();
 
-    if (!mPCT.mModeFlight){
+    // -------------------------------------------------------------
+    // Standard case
+    // -------------------------------------------------------------
 
-        // -------------------------------------------------------------
-        // Standard case
-        // -------------------------------------------------------------
-
-        for (int i=0; i<Ni; i++){
-            for (int j=0; j<Nj; j++){
-                irel = +6*((double)i-Ni/2.0)/Ni;
-                jrel = -6*((double)j-Nj/2.0)/Nj;
-                cPt2dr p = applyAffinity(cPt2dr(irel, jrel), mTransfo);
-                if ((p.x() < 0) || (p.y() < 0) || (p.x() >= aDIm.Sz().x()-1) || (p.y() >= aDIm.Sz().y()-1)){
-                    continue;
-                }
-                aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(p));
-                if ((i == 0) || (j == 0) || (i == Ni-1) || (j == Nj-1)){
-                    aDCT->mDetectedFrame.push_back(cPt2di(p.x(), p.y()));
-                }
+    for (int i=0; i<Ni; i++){
+        for (int j=0; j<Nj; j++){
+            cPt2dr p = applyAffinity(cPt2dr(i, j-offset), mTransfo);
+            if ((p.x() < 0) || (p.y() < 0) || (p.x() >= aDIm.Sz().x()-1) || (p.y() >= aDIm.Sz().y()-1)){
+                continue;
             }
-        }
-
-        // Corners and center
-        markImage(aDImT, cPt2di(300, 300), 3, 0);
-        markImage(aDImT, cPt2di(300, 300), 2, 255);
-
-    }else{
-
-        // -------------------------------------------------------------
-        // Aerial case
-        // -------------------------------------------------------------
-
-        for (int i=0; i<Ni; i++){
-            for (int j=0; j<Nj; j++){
-                irel =  1.00*3.2*((double)i-Ni/2.0)/Ni;              //  !!!!!!!!! WARNING: temp scale factor for Patricio * 1.35
-                jrel = -6.3*((double)j-Nj/2.0)/Nj;
-                cPt2dr p = applyAffinity(cPt2dr(irel, jrel), mTransfo);
-                if ((p.x() < 0) || (p.y() < 0) || (p.x() >= aDIm.Sz().x()-1) || (p.y() >= aDIm.Sz().y()-1)){
-                    continue;
-                }
-                aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(p));
-                if ((i == 0) || (j == 0) || (i == Ni-1) || (j == Nj-1)){
-                    aDCT->mDetectedFrame.push_back(cPt2di(p.x(), p.y()));
-                }
+            aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(p));
+            if ((i == 0) || (j == 0) || (i == Ni-1) || (j == Nj-1)){
+                aDCT->mDetectedFrame.push_back(cPt2di(p.x(), p.y()));
             }
         }
     }
+
+    // Center
+    markImage(aDImT, cPt2di(mPCT.mCenterF.x(), mPCT.mCenterF.y()+offset), 2, 0);
+    markImage(aDImT, cPt2di(mPCT.mCenterF.x(), mPCT.mCenterF.y()+offset), 1, 255);
 
     return aImT;
 
@@ -957,7 +935,7 @@ cPt2dr cAppliExtractCodeTarget::applyAffinity(cPt2dr p, std::vector<double> para
 cPt2dr cAppliExtractCodeTarget::applyAffinityInv(cPt2dr p, std::vector<double> param){
     double a11 = param[0]; double a12 = param[1]; double bx  = param[2];
     double a21 = param[3]; double a22 = param[4]; double by  = param[5];
-    double det = a11*a22 - a21-a12;
+    double det = a11*a22 - a21*a12;
     double tx = p.x()-bx; double ty = p.y()-by;
     return cPt2dr((a22*tx - a12*ty)/det, (-a21*tx+a11*ty)/det);
 }
@@ -1036,6 +1014,8 @@ void cAppliExtractCodeTarget::plotDebugImage(cDCT* target, const cDataIm2D<float
         for (unsigned i=0; i<target->mDetectedCorners.size(); i++){
             cPt2di p = cPt2di((int)(target->mDetectedCorners.at(i).x()), (int)(target->mDetectedCorners.at(i).y()));
             plotSafeRectangle(mImVisu, p, 0, cRGBImage::Yellow, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+            std::cout<<"mDetectedCorners: "<<target->mDetectedCorners.at(i).x()<< " "
+                     << target->mDetectedCorners.at(i).y()<< "\n";
         }
     }
 
@@ -1052,7 +1032,7 @@ void cAppliExtractCodeTarget::plotDebugImage(cDCT* target, const cDataIm2D<float
     // [256] 0100000000 plot detected target code name (cyan characters)
     // ----------------------------------------------------------------------------------------------------------
     if (mBitsPlotDebug[8]){
-        cPt2dr p = applyAffinity(cPt2dr(4.0,4.0), mTransfo);
+        cPt2dr p = applyAffinity(cPt2dr(700.0, 700.0), mTransfo);
         double it = p.x(); double jt = p.y();
         for (unsigned lettre=0; lettre<target->mDecodedName.size(); lettre++){
             std::string aStr; aStr.push_back(target->mDecodedName[lettre]);
@@ -1333,14 +1313,16 @@ int cAppliExtractCodeTarget::fitConstrainedEllipse(std::vector<cPt2dr> points, c
 
 // ---------------------------------------------------------------------------
 // Function to test ellipse fit pixel residuals
-// Requires estimated affinity paramer to compute RMSE in pixel space
+// Requires estimated affinity parameter to compute RMSE in pixel space
 // ---------------------------------------------------------------------------
 double cAppliExtractCodeTarget::ellipseResidual(std::vector<cPt2dr> points, std::vector<double> transfo){
     double m1r = 0;
     double m2r = 0;
     for (unsigned i=0; i<points.size(); i++){
         cPt2dr p = applyAffinityInv(points.at(i), transfo);
-        double value = sqrt(p.x()*p.x() + p.y()*p.y());
+        double dx = p.x() - mPCT.mCenterF.x();
+        double dy = p.y() - mPCT.mCenterF.y();
+        double value = sqrt(dx*dx + dy*dy) ;
         m1r += value;
         m2r += value*value;
     }
@@ -1518,15 +1500,14 @@ std::vector<double> cAppliExtractCodeTarget::estimateAffinity(std::vector<cPt2dr
 // Outputs:
 //  - vector of parameters a11, a12, bx, a21, a22, by + RMSE
 // ---------------------------------------------------------------------------
-std::vector<double> cAppliExtractCodeTarget::estimateRectification(std::vector<cPt2dr>Y, double theta){
+std::vector<double> cAppliExtractCodeTarget::estimateRectification(std::vector<cPt2dr>Y){
 
-    theta = theta - PI/4.0;
-
-    cPt2dr c1 = cPt2dr(cos(theta)*(+1) - sin(theta)*(+1), sin(theta)*(+1) + cos(theta)*(+1));
-    cPt2dr c2 = cPt2dr(cos(theta)*(+1) - sin(theta)*(-1), sin(theta)*(+1) + cos(theta)*(-1));
-    cPt2dr c3 = cPt2dr(cos(theta)*(-1) - sin(theta)*(-1), sin(theta)*(-1) + cos(theta)*(-1));
-    cPt2dr c4 = cPt2dr(cos(theta)*(-1) - sin(theta)*(+1), sin(theta)*(-1) + cos(theta)*(+1));
-
+    cPt2dr c0 = mPCT.mCenterF;
+	cPt2dr c1 = mPCT.mCornEl1;
+	cPt2dr c2 = mPCT.mCornEl2;
+	cPt2dr c3 = cPt2dr(2*c0.x() - c1.x(), 2*c0.y() - c1.y());
+	cPt2dr c4 = cPt2dr(2*c0.x() - c2.x(), 2*c0.y() - c2.y());
+ 
     std::vector<cPt2dr> X = {c1, c2, c3, c4};
 
     return estimateAffinity(X, Y);
@@ -1601,205 +1582,78 @@ void cAppliExtractCodeTarget::translateEllipse(double* parameters, cPt2dr transl
 
 
 // ---------------------------------------------------------------------------
-// Function to decode a potential target on image
+// New function to decode a potential target on image
 // Inputs:
 //     - a rectified image after affinity computation
 //     - threshold for white pixel values area
 //     - threshold for black pixel values area
 //     - a string to get read bits
 //     - a boolean for mode (true for mode flight)
-// Output: decoded id of target (-1 if failed)
+// Output: decoded id of target ("NA" if failed)
 // ---------------------------------------------------------------------------
-int cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, double thw, double thb, std::string& debug, bool modeFilght){
+std::string cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, cDCT* aDCT){
+	
+	bool bit;
+	
+	double thw = aDCT->mVWhite;
+	double thb = aDCT->mVBlack;
+	double threshold = (thw + thb)/2.0;
+	
+	std::vector<cPt2dr> vec = getEncodingPositions(aDImT, aDCT);
 
-    double R1 = 140.1*(1+0.35/2);
-    double R2 = 140.1*(1+3*0.35/2);
+	int bits = 0;
+	for (unsigned i=0; i<vec.size(); i++){
+		bit = (aDImT.GetVBL(cPt2dr(vec.at(i).x(), vec.at(i).y())) > threshold);
+		markImage(aDImT, cPt2di(vec.at(i).x(), vec.at(i).y()), 5, bit?0:255);
+		bits += (bit ? 0:1)*pow(2,i);
+	}
+	
+	const cOneEncoding * anEnc  = mSpec->EncodingFromCode(bits);
 
+	return ((anEnc == nullptr)?"NA":anEnc->Name());
 
-    double cx = 300;
-    double cy = 300;
-
-    double threshold = (thw + thb)/2.0;
-    double th_std_white_circle = 35;
-    //double int_circle_th = 0.25*thb + 0.75*thw;
-
-    if (modeFilght){
-        R1 = 300;
-        cx = 640/2.0;
-        cy = 1260/2.0;
-    }
-
-
-    // -------------------------------------------
-    // Internal white strip circle control
-    // -------------------------------------------
-    double M = 0;
-    double S = 0;
-    int nb_pts = 0;
-
-    for (double t=0; t<2*PI; t+=0.01){
-
-        double xc_int = cx + R1*cos(t);
-        double yc_int = cy + R1*sin(t);
-
-        double value = aDImT.GetVBL(cPt2dr(xc_int, yc_int));
-
-        if (t == 0){
-            M = value;
-            continue;
-        }
-
-		double Mt = M;
-		M += (value-M)/(nb_pts+1);
-		S += (value-Mt)*(value-M);
-		nb_pts ++;
-
-        // Image modification (at the end!)
-        aDImT.SetV(cPt2di(xc_int ,yc_int), 0.0);
-
-    }
-
-    S = sqrt(S/(nb_pts-1));
-
-    printDebug("Internal strip circle avg", M, 0.8*thw);
-    printDebug("Internal strip circle std", th_std_white_circle, S);
-
-    if ((S > th_std_white_circle) || (M < 0.8*thw)){
-        return -1;
-    }
-
-
-    // ====================================================================
-    // Code central symetry control and decoding
-    // ====================================================================
-
-    int bits = 0; bool bit, bit1, bit2; double max_error = 0; debug = ""; bool consistent = true;
-
-    // -------------------------------------------------------------
-    // Standard case
-    // -------------------------------------------------------------
-
-    if (!modeFilght){
-        for (int t=0; t<9; t++){
-
-            double theta = (1.0/18.0 + t/9.0)*PI;
-
-            double xc_code = 300 + R2*cos(theta);    double xc_code_tol = 300 + (1+mTolerance/100.0)*R2*cos(theta);
-            double yc_code = 300 + R2*sin(theta);    double yc_code_tol = 300 + (1+mTolerance/100.0)*R2*sin(theta);
-
-            double xc_code_opp = 300 - R2*cos(theta);   double xc_code_opp_tol = 300 - (1+mTolerance/100.0)*R2*cos(theta);
-            double yc_code_opp = 300 - R2*sin(theta);   double yc_code_opp_tol = 300 - (1+mTolerance/100.0)*R2*sin(theta);
-
-
-            // Code reading
-            double value1 = std::min(aDImT.GetVBL(cPt2dr(xc_code    , yc_code    )), aDImT.GetVBL(cPt2dr(xc_code_tol    , yc_code_tol    )));
-            double value2 = std::min(aDImT.GetVBL(cPt2dr(xc_code_opp, yc_code_opp)), aDImT.GetVBL(cPt2dr(xc_code_opp_tol, yc_code_opp_tol)));
-            double avgval = (value1+value2)/2;
-
-            bit1 = value1 > threshold;
-            bit2 = value2 > threshold;
-            bit = avgval > threshold;
-
-            consistent = consistent && (bit1 == bit2);
-
-            max_error = std::max(max_error, abs(value1-value2));
-
-            bits += (bit ? 0:1)*pow(2,t);
-            debug += (bit ? std::string("0 "):std::string("1 "));
-
-            // Image modification (at the end!)
-            if (bit1 == bit2){
-                markImage(aDImT, cPt2di(xc_code        , yc_code        ), 5, bit1?0:255);
-                markImage(aDImT, cPt2di(xc_code_opp    , yc_code_opp    ), 5, bit2?0:255);
-                markImage(aDImT, cPt2di(xc_code_tol    , yc_code_tol    ), 5, bit1?0:255);
-                markImage(aDImT, cPt2di(xc_code_opp_tol, yc_code_opp_tol), 5, bit2?0:255);
-            } else {
-                markImage(aDImT, cPt2di(xc_code        , yc_code        ), 5, 128);
-                markImage(aDImT, cPt2di(xc_code_opp    , yc_code_opp    ), 5, 128);
-                markImage(aDImT, cPt2di(xc_code_tol    , yc_code_tol    ), 5, 128);
-                markImage(aDImT, cPt2di(xc_code_opp_tol, yc_code_opp_tol), 5, 128);
-            }
-        }
-    }else {
-
-    // -------------------------------------------------------------
-    // Aerial case
-    // -------------------------------------------------------------
-        bits = 0;
-
-
-        // Prepare hamming decoder
-        cHamingCoder aHC(mPCT.mNbBit-1);
-
-        aDImT.SetV(cPt2di(300,300), 255.0);
-
-
-        int NbCols = ceil(((double)aHC.NbBitsOut())/2.0);
-
-        int sq_vt = 90;
-        int sq_sz = 480/NbCols;
-        int idl, idc;
-        int px, py;
-        double val1, val2;
-
-        double mx1 = 98 ; double my1 = 636;
-        double mx2 = 550; double my2 = 636;
-
-        val1 = aDImT.GetVBL(cPt2dr(mx1, my1));
-        val2 = aDImT.GetVBL(cPt2dr(mx2, my2));
-        bool hypo1 = val1 > threshold;
-        bool hypo2 = val2 > threshold;
-        markImage(aDImT, cPt2di(mx1, my1), 10, hypo1?0:255);
-        markImage(aDImT, cPt2di(mx2, my2), 10, hypo2?0:255);
-
-        hypo1 = val1 > val2;
-
-        StdOut() << "------------------------------------------------------------------------------------\n";
-
-        for (int k=0; k<aHC.NbBitsOut(); k++){
-            idc = k % NbCols;
-            idl = (k>=NbCols)*1;
-
-            // ---------------------------------------------------
-            // Upper part hypothesis
-            // ---------------------------------------------------
-
-            if (!hypo1){
-                px = 125+idc*sq_sz;
-                py = 150 + idl*sq_vt;
-                val1 = aDImT.GetVBL(cPt2dr(px, py));
-                bit = val1 > threshold;
-                markImage(aDImT, cPt2di(px, py), 10, bit?0:255);
-                bits += (bit ? 0:1)*pow(2,aHC.NbBitsOut()-1-k);
-                debug = (bit ? std::string("0 "):std::string("1 ")) + debug;
-            }else{
-            // ---------------------------------------------------
-            // Lower part hypothesis
-            // ---------------------------------------------------
-                px = 125+idc*sq_sz;
-                py = 1035 + idl*sq_vt;
-                val1 = aDImT.GetVBL(cPt2dr(px, py));
-                bit = val1 > threshold;
-                markImage(aDImT, cPt2di(px, py), 10, bit?0:255);
-                bits += (bit ? 0:1)*pow(2,k);
-                debug = debug + (bit ? std::string("0 "):std::string("1 "));
-            }
-
-        }
-
-        StdOut() << "Hamming code: " << bits;
-        bits = aHC.UnCodeWhenCorrect(bits);
-        StdOut() << " / Uncoded: " << bits << " / Recoded: " << aHC.Coding(bits) << "\n";
-
-    }
-
-    // !!!!!!!!!!!!!!!!!!! PROVISOIRE !!!!!!!!!!!!!!!!!!!
-    printDebug("Code symetric consistency", (max_error < 60) && consistent);
-    if ((bits == -1) || (max_error > 100) || (!consistent)) return bits = 0;
-
-    return bits;
 }
 
+
+// ---------------------------------------------------------------------------
+// Function to generate opposite encoding positions for Drone mode
+// ---------------------------------------------------------------------------
+std::vector<cPt2dr> cAppliExtractCodeTarget::getEncodingPositions(tDataImT & aDImT, cDCT* aDCT){
+	
+	int mark_orientation_drone_x = 180; 
+	
+	int offset_drone = (mSpec->Type() == eTyCodeTarget::eIGNDroneTop)?((mSizeYDrone-mSizeYIndoor)/2):0;
+	
+	double thw = aDCT->mVWhite;
+	double thb = aDCT->mVBlack;
+	double threshold = (thw + thb)/2.0;
+	
+	bool to_invert = false;
+	
+	if (mSpec->Type() == eTyCodeTarget::eIGNDroneTop){
+		double xm1 = mPCT.mCenterF.x() - mark_orientation_drone_x;
+		double xm2 = mPCT.mCenterF.x() + mark_orientation_drone_x;
+		double ym  = mPCT.mCenterF.y() + offset_drone;
+		double value1 = aDImT.GetVBL(cPt2dr(xm1, ym)); bool bit1 = (value1 > threshold);
+		double value2 = aDImT.GetVBL(cPt2dr(xm2, ym)); bool bit2 = (value2 > threshold);
+		markImage(aDImT, cPt2di(xm1, ym), 5, bit1?0:255);
+		markImage(aDImT, cPt2di(xm2, ym), 5, bit2?0:255);
+		to_invert = (value1 < value2);
+	}
+	
+	std::vector<cPt2dr> output;
+	const std::vector<cPt2dr>& vec = mSpec->BitsCenters();
+	for (unsigned i=0; i<vec.size(); i++){
+		double x = vec.at(i).x();
+		double y = vec.at(i).y() + offset_drone;
+		if (to_invert){
+			x = mSizeXDrone-x;
+			y = mSizeYDrone-y;
+		}
+		output.push_back(cPt2dr(x, y));
+	}
+	return output;		
+}
 
 // ---------------------------------------------------------------------------
 // Function to generate plot in R script for ellipse fit debugging
@@ -2149,17 +2003,11 @@ int  cAppliExtractCodeTarget::Exe(){
 
 
    {
-         mSpec  = cFullSpecifTarget::CreateFromFile(mNameTarget);
+     mSpec  = cFullSpecifTarget::CreateFromFile(mNameTarget);
 	 mPCT = mSpec->Render();
    }
 
-   StdOut() << "ooooooooooooNNNNN " << mNameTarget << "\n";
    mRayMinCB = (mDiamMinD/2.0) * (mPCT.mRho_0_EndCCB/mPCT.mRho_4_EndCar);
-
-// StdOut() << "mRayMinCB " << mRayMinCB << "\n"; getchar();
-
-
-
 
 
    APBI_ExecAll();  // run the parse file  SIMPL
