@@ -286,7 +286,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mDiamMinD, "DMD","Diam min for detect",{eTA2007::HDV})
                     << AOpt2007(mConstrainCenter, "CC","Constrain centers for ellipse fit",{eTA2007::HDV})
                     << AOpt2007(mRaysTF, "RayTF","Rays Min/Max for testing filter",{eTA2007::HDV,eTA2007::Tuning})
-                    << AOpt2007(mTestCenter, "TestCenter","Test program only on a center +/- 2 px",{eTA2007::HDV,eTA2007::Tuning})
+                    << AOpt2007(mTestCenter, "TestCenter","Test program only on a center +/- 2 px",{eTA2007::HDV,eTA2007::HDV})
                     << AOpt2007(mPatExportF, "PatExpF","Pattern export filters" ,{AC_ListVal<eDCTFilters>(),eTA2007::HDV})
                     << AOpt2007(mTest, "Test", "Test for Ellipse Fit", {eTA2007::HDV})
                     << AOpt2007(mParamBin, "BinF", "Param for binary filter", {eTA2007::HDV})
