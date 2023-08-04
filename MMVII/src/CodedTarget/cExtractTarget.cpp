@@ -106,7 +106,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         tImTarget generateRectifiedImage(cDCT*, const cDataIm2D<float>&);
         std::vector<cPt2dr> getEncodingPositions(tDataImT &, cDCT*);
         double ellipseResidual(std::vector<cPt2dr>, std::vector<double>);        ///< Computes pixel residual of ellipse fit
-
+		bool decodeBit(tDataImT &, cPt2dr, double);
 
 
         // ---------------------------------------------------------------------------------
@@ -1014,8 +1014,8 @@ void cAppliExtractCodeTarget::plotDebugImage(cDCT* target, const cDataIm2D<float
         for (unsigned i=0; i<target->mDetectedCorners.size(); i++){
             cPt2di p = cPt2di((int)(target->mDetectedCorners.at(i).x()), (int)(target->mDetectedCorners.at(i).y()));
             plotSafeRectangle(mImVisu, p, 0, cRGBImage::Yellow, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-            std::cout<<"mDetectedCorners: "<<target->mDetectedCorners.at(i).x()<< " "
-                     << target->mDetectedCorners.at(i).y()<< "\n";
+            //std::cout<<"mDetectedCorners: "<<target->mDetectedCorners.at(i).x()<< " "
+            //         << target->mDetectedCorners.at(i).y()<< "\n";
         }
     }
 
@@ -1580,6 +1580,35 @@ void cAppliExtractCodeTarget::translateEllipse(double* parameters, cPt2dr transl
 }
 
 
+// ---------------------------------------------------------------------------
+// Function to generate positions on image from tolerance
+// ---------------------------------------------------------------------------
+bool cAppliExtractCodeTarget::decodeBit(tDataImT & aDImT, cPt2dr p, double threshold){
+	std::vector<double> BITS;
+	std::vector<cPt2dr> DOTS;
+	DOTS.push_back(p);
+	if (mTolerance > 0){
+		DOTS.push_back(cPt2dr(p.x() - mTolerance*(p.x()-mPCT.mCenterF.x()), p.y() - mTolerance*(p.y()-mPCT.mCenterF.y())));
+		DOTS.push_back(cPt2dr(p.x() + mTolerance*(p.x()-mPCT.mCenterF.x()), p.y() + mTolerance*(p.y()-mPCT.mCenterF.y())));
+	}
+	for (unsigned j=0; j<DOTS.size(); j++){
+		BITS.push_back(aDImT.GetVBL(DOTS.at(j)));
+	}
+	
+	bool bit;
+	
+	if (mPCT.mWhiteBackGround){
+		bit = *std::min_element(BITS.begin(), BITS.end()) > threshold;
+	}else{
+		bit = *std::max_element(BITS.begin(), BITS.end()) < threshold;
+	}
+				
+	for (unsigned j=0; j<DOTS.size(); j++){
+		markImage(aDImT, cPt2di((int)(DOTS.at(j).x()), (int)(DOTS.at(j).y())), 5, bit?0:255);
+	}
+	return bit;
+}
+
 
 // ---------------------------------------------------------------------------
 // New function to decode a potential target on image
@@ -1593,19 +1622,13 @@ void cAppliExtractCodeTarget::translateEllipse(double* parameters, cPt2dr transl
 // ---------------------------------------------------------------------------
 std::string cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, cDCT* aDCT){
 	
-	bool bit;
-	
-	double thw = aDCT->mVWhite;
-	double thb = aDCT->mVBlack;
-	double threshold = (thw + thb)/2.0;
+	double threshold = (aDCT->mVWhite + aDCT->mVBlack)/2.0;
 	
 	std::vector<cPt2dr> vec = getEncodingPositions(aDImT, aDCT);
 
 	int bits = 0;
 	for (unsigned i=0; i<vec.size(); i++){
-		bit = (aDImT.GetVBL(cPt2dr(vec.at(i).x(), vec.at(i).y())) > threshold);
-		markImage(aDImT, cPt2di(vec.at(i).x(), vec.at(i).y()), 5, bit?0:255);
-		bits += (bit ? 0:1)*pow(2,i);
+		bits += (decodeBit(aDImT, vec.at(i), threshold) ? 0:1)*pow(2,i);
 	}
 	
 	const cOneEncoding * anEnc  = mSpec->EncodingFromCode(bits);
