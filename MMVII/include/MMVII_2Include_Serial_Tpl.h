@@ -146,6 +146,9 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,const Type * & aL)
      // AddData(anAux,const_cast<Type&>(*aL));
 }
 
+extern void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux);
+
+
 /// Serialization for stl container
 /** Thi should work both for stl containers (require size + iterator auto)
 */
@@ -153,7 +156,8 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
 {
     int aNb=aL.size();
     // put or read the number
-    AddData(cAuxAr2007("Nb",anAux),aNb);
+    // AddData(cAuxAr2007("Nb",anAux),aNb);
+    AddDataSizeCont(aNb,anAux);
     // In input, nb is now intialized, we must set the size of list
     if (aNb!=int(aL.size()))
     {  

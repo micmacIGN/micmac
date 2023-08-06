@@ -390,6 +390,10 @@ template <class Type> const std::string  & MMv1_XMLTagSet();
 template <> const std::string  &           MMv1_XMLTagSet<std::string> ();
 template <> const std::string  &           MMv1_XMLTagSet<tNamePair>   ();
 
+///  temporary method while devloping the new methods
+void TestGenerikPARSE(const std::string& aName);
+
+
 /*****************************************************************/
 
 

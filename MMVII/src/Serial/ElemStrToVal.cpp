@@ -370,6 +370,7 @@ template<> cE2Str<eFormatExtern>::tMapE2Str cE2Str<eFormatExtern>::mE2S
 template<> cE2Str<eTypeSerial>::tMapE2Str cE2Str<eTypeSerial>::mE2S
            {
                 {eTypeSerial::exml,"xml"},
+                {eTypeSerial::exml2,"xml2"},
                 {eTypeSerial::edmp,"dmp"},
                 {eTypeSerial::etxt,"txt"},
                 {eTypeSerial::ejson,"json"}

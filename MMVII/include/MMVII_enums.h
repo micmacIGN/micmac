@@ -90,6 +90,7 @@ enum class eApF
 enum class eTypeSerial
            {
                 exml,
+                exml2,
                 edmp,
                 etxt,
                 ejson,

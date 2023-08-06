@@ -291,7 +291,12 @@ void BenchSerialization
 	eTypeSerial         aTypeS2
     )
 {
-   if ((aTypeS==eTypeSerial::ejson) || (aTypeS2==eTypeSerial::ejson))
+   bool OkJSon =false;
+   if (!OkJSon)
+	   MMVII_DEV_WARNING("NO JSON IN BenchSerialization");
+
+
+   if ((! OkJSon) && ((aTypeS==eTypeSerial::ejson) || (aTypeS2==eTypeSerial::ejson) || (aTypeS==eTypeSerial::exml2)  || (aTypeS2==eTypeSerial::exml2)))
    {
 	   StdOut() << "JSON NON FINISHED \n";
 	   return;
@@ -368,14 +373,16 @@ void BenchSerialization
 
 	for (int aKS=0 ; aKS <int(eTypeSerial::eNbVals) ;aKS++)
         {
-           std::string aPost = E2Str(eTypeSerial(aKS));
-           SaveInFile(aP34,aDirOut+"F10."+aPost);
-           cTestSerial1 aP34_Read;
-           ReadFromFile(aP34_Read,aDirOut+"F10."+aPost);
-           MMVII_INTERNAL_ASSERT_bench(aP34_Read==aP34_0,"cAppli_MMVII_TestSerial");
+           if (OkJSon || (  (aKS!=(int) eTypeSerial::ejson) && (aKS!=(int) eTypeSerial::exml2)))
+	   {
+               std::string aPost = E2Str(eTypeSerial(aKS));
+               SaveInFile(aP34,aDirOut+"F10."+aPost);
+               cTestSerial1 aP34_Read;
+               ReadFromFile(aP34_Read,aDirOut+"F10."+aPost);
+               MMVII_INTERNAL_ASSERT_bench(aP34_Read==aP34_0,"cAppli_MMVII_TestSerial");
+	   }
 	}
     }
-
 
     {
         SaveInFile(cTestSerial2(),aDirOut+"F_T2."+anExt);
@@ -417,6 +424,7 @@ void BenchSerialization
     // return EXIT_SUCCESS;
 }
 
+
 void BenchSerialization
     (
         cParamExeBench & aParam,
@@ -429,9 +437,10 @@ void BenchSerialization
     SaveInFile(cTestSerial1(),"toto.xml");
     SaveInFile(cTestSerial1(),"toto.txt");
     SaveInFile(cTestSerial1(),"toto.json");
+    SaveInFile(cTestSerial1(),"toto.xml2");
     StdOut() << "BenchSerializationBenchSerialization\n";  
+    getchar();
 
-    /*
     for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
     {
         for (int aKS2=0 ; aKS2 <int(eTypeSerial::eNbVals) ;aKS2++)
@@ -439,6 +448,7 @@ void BenchSerialization
             BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial(aKS1),eTypeSerial(aKS2));
         }
     }
+    /*
     */
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml,eTypeSerial::etxt);
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml);
