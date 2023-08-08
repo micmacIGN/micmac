@@ -41,17 +41,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <fcntl.h>
 #include <graphviz/types.h>
 #include <math.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <csignal>
 #include <cstddef>
-#include <cstdint>
-#include <cstdio>
+#include <deque>
 #include <exception>
-#include <ios>
 #include <iostream>
 #include <iterator>
 #include <algorithm>
@@ -85,6 +81,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "private/files.h"
 
 #include <time.h>
+#include <unistd.h>
 
 
 using namespace SolGlobInit::RandomForest;
@@ -659,6 +656,8 @@ RandomForest::RandomForest(int argc, char** argv)
             << ArgCMA());
 
         mEASF.Init(mFullPat);
+
+        //mOutName = "DSF_N" + std::to_string(mNbSamples) + "_R"+std::to_string(mResidu) + "_P"+std::to_string(aPond);
         // Loading of xml datafiles
         mNM = new cNewO_NameManager(mExtName, mPrefHom, mQuick, mEASF.mDir,
                 mNameOriCalib, "dat");
@@ -1078,7 +1077,7 @@ struct CmpTri {
 
 void RandomForest::RandomSolOneCC(Dataset& data, cNO_CC_TripSom* aCC,
                                   double* output, size_t n) {
-    if (aCC->mSoms.size() <= 3) return;
+    //if (aCC->mSoms.size() <= 3) return;
 
     DataTravel travel(data);
     NRrandom3InitOfTime(); //TODO Activer pour debug
@@ -1229,111 +1228,13 @@ class DisjointSet {
     }
 };
 
-void RandomForest::BestSolOneCCKurskal(Dataset& data, cNO_CC_TripSom* aCC) {
-    GraphViz g;
-
-    tHeapTriNSI mEdges(TheCmp3);
-    {
-        std::vector<cLinkTripl*> aVMaj;
-        unsigned aKCur = 0;
-        // Traditional loop of CC : while  no new inexplored neighboor
-        while (aKCur != aCC->mTri.size()) {
-            cNOSolIn_Triplet* aTri = aCC->mTri[aKCur];
-            // For each edge of the current triplet
-            for (int aKA = 0; aKA < 3; aKA++) {
-                // Get triplet adjacent to this edge and parse them
-                std::vector<cLinkTripl>& aLnk =
-                    aTri->KArc(aKA)->attr().ASym()->Lnk3();
-                for (int aKL = 0; aKL < int(aLnk.size()); aKL++) {
-                    mEdges.push(&aLnk[aKL]);
-                    aVMaj.push_back(&aLnk[aKL]);
-                }
-            }
-            aKCur++;
-        }
-
-        for (int aK = 0; aK < int(aVMaj.size()); aK++) {
-            mEdges.MAJ(aVMaj[aK]);
-        }
-    }
-    DisjointSet<tSomNSI*> ds;
-    ds.makeSet(aCC->mSoms);
-    std::vector<cLinkTripl*> tree;
-
-    cLinkTripl* aTriRoot = 0;
-    mEdges.pop(aTriRoot);
-    //ROOT
-    {
-        tSomNSI* pS1 = ds.Find(aTriRoot->S1());
-        tSomNSI* pS2 = ds.Find(aTriRoot->S2());
-        tSomNSI* pS3 = ds.Find(aTriRoot->S3());
-
-        aTriRoot->S1()->attr().next1.push_back(aTriRoot);
-        aTriRoot->S2()->attr().next2.push_back(aTriRoot);
-        aTriRoot->S3()->attr().prev = aTriRoot;
-
-        ds.Union(pS1, pS3);
-        ds.Union(pS2, pS3);
-    }
-
-    cLinkTripl* aTriNext = 0;
-    while (mEdges.pop(aTriNext)) {
-        aTriNext->m3->KArc(0)->attr().ASym()->Lnk3();
-        tSomNSI* pS1 = ds.Find(aTriNext->S1());
-        tSomNSI* pS2 = ds.Find(aTriNext->S2());
-        tSomNSI* pS3 = ds.Find(aTriNext->S3());
-
-        if (pS1 != pS3 && pS2 != pS3 && pS1 == pS2) {
-            tree.push_back(aTriNext);
-            aTriNext->S1()->attr().next1.push_back(aTriNext);
-            aTriNext->S2()->attr().next2.push_back(aTriNext);
-            aTriNext->S3()->attr().prev = aTriNext;
-            g.addTriplet(*aTriNext->m3);
-
-            ds.Union(pS1, pS3);
-            ds.Union(pS2, pS3);
-        }
-    }
-
-    std::set<cLinkTripl*> lista, listb;
-    std::set<cLinkTripl*>* pla = &lista;
-    //std::set<cLinkTripl*>* plb = &listb;
-    for (int aK = 0; aK < 3; aK++) {
-        // Flag sommets as explored
-        aTriRoot->S1()->attr().treeCost = aTriRoot->m3->Cost();
-        aTriRoot->S2()->attr().treeCost = aTriRoot->m3->Cost();
-
-        // Set the current R,t of the seed
-        aTriRoot->m3->KSom(aK)->attr().CurRot() =
-            aTriRoot->m3->RotOfSom(aTriRoot->m3->KSom(aK));
-
-        for (auto a : aTriRoot->m3->KSom(aK)->attr().next1) {
-            pla->insert(a);
-        }
-        for (auto a : aTriRoot->m3->KSom(aK)->attr().next2) {
-            pla->insert(a);
-        }
-    }
-
-    std::set<tSomNSI*> oriented;
-    for (tSomNSI* som : aCC->mSoms) {
-        if (!oriented.count(som)) {
-            if (!som->attr().prev) {
-                //Root node
-                std::cout << "null" << std::endl;
-            }
-        }
-    }
-
-    g.write(mOutName + "/graph/", "final.dot");
-
-}
 class cNO_CmpSomByCost {
    public:
     bool operator()(tSomNSI* a, tSomNSI* b) {
         return a->attr().treeCost < b->attr().treeCost;
     }
 };
+
 class cNO_HeapIndSom_NSI {
    public:
     static void SetIndex(tSomNSI* aV, int i) { aV->attr().HeapIndex() = i; }
@@ -1346,11 +1247,13 @@ class cNO_CmpArcByCost {
         return a->treecost < b->treecost;
     }
 };
+/*
 class cNO_HeapIndArc_NSI {
    public:
     static void SetIndex(cNOSolIn_AttrArc* aV, int i) { aV->HeapIndex() = i; }
     static int Index(cNOSolIn_AttrArc* aV) { return aV->HeapIndex(); }
 };
+*/
 
 
 
@@ -1477,7 +1380,11 @@ void orientFinalTree2(Dataset& data, finalTree& tree, cNOSolIn_Triplet* root, in
 
 template<typename T, typename fT>
 bool is_tree(fT& tree, std::set<T*>& visited, T* root) {
-    if (visited.count(root)) return false;
+    if (visited.count(root)) {
+        //std::cout << "bad " << root->attr().Im()->Name() << std::endl;
+        return false;
+    }
+    //std::cout << "good " << root->attr().Im()->Name() << std::endl;
     visited.insert(root);
 
     bool r = true;
@@ -1486,136 +1393,6 @@ bool is_tree(fT& tree, std::set<T*>& visited, T* root) {
     }
     return r;
 }
-/*
-void RandomForest::BestSolOneCCPrim2(Dataset& data, cNO_CC_TripSom* aCC) {
-    int NbSomCC = int(aCC->mSoms.size());
-    GraphViz g;
-    DataLog<int, int, double, double, double, double, double, double> log(
-        {"Id", "Category", "Distance", "Residue", "ResidueMedian", "Score",
-         "ScoreMedian", "Accumulated"});
-    finalTree tree;
-
-    std::cout << "Generate graph gt" << std::endl;
-    for (auto t : aCC->mTri) {
-        for (char i : {0, 1, 2})
-            for (auto& l : t->KArc(i)->attr().ASym()->Lnk3()){
-                tree.gt[t].insert(l.m3);
-                tree.gt[l.m3].insert(t);
-            }
-    }
-    std::cout << "Generated graph gt" << std::endl;
-    //INIT
-    for (auto s : aCC->mTri) {
-        s->treecost = std::numeric_limits<double>::max();
-        tree.pred[s] = nullptr;
-    }
-    for (auto s : aCC->mSoms) {
-        s->attr().treeCost = std::numeric_limits<double>::max();
-    }
-
-    cNOSolIn_Triplet* aTri0 = *std::min_element(
-        aCC->mTri.begin(), aCC->mTri.end(),
-        [](decltype(*begin(aCC->mTri)) a, decltype(*begin(aCC->mTri)) b) {
-            size_t na = a->KArc(0)->attr().ASym()->Lnk3().size()
-            + a->KArc(1)->attr().ASym()->Lnk3().size()
-            + a->KArc(2)->attr().ASym()->Lnk3().size();
-
-            size_t nb = b->KArc(0)->attr().ASym()->Lnk3().size()
-            + b->KArc(1)->attr().ASym()->Lnk3().size()
-            + b->KArc(2)->attr().ASym()->Lnk3().size();
-            return a->Sum()[1] < b->Sum()[1] && na > nb;
-        });
-
-
-    std::cout << "Best triplet " << aTri0->KSom(0)->attr().Im()->Name()
-              << " "             << aTri0->KSom(1)->attr().Im()->Name()
-              << " "             << aTri0->KSom(2)->attr().Im()->Name()
-              << " "             << aTri0->Sum()[aTri0->indexSum]
-              << std::endl;
-    tree.root = aTri0;
-    aTri0->KArc(0)->attr();
-    aTri0->treecost = 0;
-    std::cout << aTri0->NumId() << std::endl;
-
-    //End INIT
-    //SEED
-    //tree.pred[aTri0] = aTri0;
-    std::cout << "Fin init" << std::endl;
-
-    int Cpt = 0;
-    cNO_CmpArcByCost cmp;
-    ElHeap<cNOSolIn_AttrArc*, cNO_CmpArcByCost, cNO_HeapIndArc_NSI> tri(cmp);
-    for (int i : {0, 1, 2}) {
-        tri.push(&aTri0->KArc(i)->attr());
-        tri.MAJ(&aTri0->KArc(i)->attr());
-    }
-    std::cout << "Added triplets" << std::endl;
-    std::set<cNOSolIn_AttrArc*> visited;
-
-    while (!tri.empty()) {
-        cNOSolIn_AttrArc* t = nullptr;
-        tri.pop(t);
-        visited.insert(t);
-        for (auto& u : t->ASym()->Lnk3()) {
-            std::cout << "Check" << std::endl;
-            if (u.m3 >= t->treecost + t.->Cost()) {
-                u->treecost = t->treecost + t->Cost();
-                std::cout << "Change cost" << std::endl;
-                tree.pred[u] = t;
-                std::cout << "update pred" << std::endl;
-
-                if (!visited.count(u))
-                    tri.MajOrAdd(u);
-                std::cout << "Updated cost" << std::endl;
-            }
-        }
-    }
-    std::cout << "Fin Arbre" << std::endl;
-    std::cout << "Invert Arbre" << std::endl;
-    for (auto t : tree.pred) {
-        if (t.first == t.second)
-            continue;
-
-        if (t.first && t.second)
-            std::cout << t.first->NumId() << " " << t.second->NumId() << std::endl;
-        if (t.second) {
-            tree.next[t.second].insert(t.first);
-        } else {
-            std::cout << "Pas de second - racine" << std::endl;
-        }
-    }
-    std::cout << "Fin Invert Arbre" << std::endl;
-
-    orientFinalTree2(data, tree, aTri0);
-
-    std::cout << "Orient Arbre" << std::endl;
-    for (auto x : tree.outpred) {
-        auto t = x.second;
-        std::cout << t->NumId() << std::endl;
-        log.add({t->NumId(), t->category,
-                t->NumTT(), t->Sum()[0],
-                t->Sum()[1], t->Sum()[2],
-                t->Sum()[3],
-                t->KSom(0)->attr().treeCost,
-                });
-        g.addTriplet(*t);
-    }
-
-    for (auto const& x : tree.outpred) {
-        if (x.first && x.second)
-            g.linkTriplets(x.second, tree.pred[x.second]);
-        for (auto c : x.second) {
-            g.linkTriplets(x.first, c);
-        }
-    }
-    std::cout << "Fin log" << std::endl;
-
-    g.write(mOutName + "/graph/", "final.dot");
-    log.write(mOutName + "/graph/logs/", "final.csv");
-    std::cout << "Nb final sommets=" << Cpt + 3 << ", out of " << NbSomCC
-              << "\n";
-}
-*/
 
 void orientFinalTree(Dataset& data, finalTree& tree, cNOSolIn_Triplet* t, int deep = 0)
 {
@@ -1658,196 +1435,422 @@ void orientFinalTree(Dataset& data, finalTree& tree, cNOSolIn_Triplet* t, int de
         orientFinalTree(data, tree, nt, deep + 1);
     }
 }
-void RandomForest::BestSolOneCCPrim(Dataset& data, cNO_CC_TripSom* aCC) {
-    int NbSomCC = int(aCC->mSoms.size());
-    GraphViz g;
-    DataLog<int, int, double, double, double, double, double, double> log(
-        {"Id", "Category", "Distance", "Residue", "ResidueMedian", "Score",
-         "ScoreMedian", "Accumulated"});
 
-    cNOSolIn_Triplet* aTri0 = *std::min_element(
-        aCC->mTri.begin(), aCC->mTri.end(),
-        [](decltype(*begin(aCC->mTri)) a, decltype(*begin(aCC->mTri)) b) {
-            size_t na = a->KArc(0)->attr().ASym()->Lnk3().size()
-            + a->KArc(1)->attr().ASym()->Lnk3().size()
-            + a->KArc(2)->attr().ASym()->Lnk3().size();
+void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
+                                        ffinalTree& tree) {
 
-            size_t nb = b->KArc(0)->attr().ASym()->Lnk3().size()
-            + b->KArc(1)->attr().ASym()->Lnk3().size()
-            + b->KArc(2)->attr().ASym()->Lnk3().size();
-            return a->Sum()[1] < b->Sum()[1] && na > nb;
+    //Select root
+    //cNOSolIn_Triplet* troot = GetBestTri(data);
+   /* tree.troot = root;
+    for (int i = 0; i < 3; i++) {
+        root->KSom(i)->attr().CurRot() = root->RotOfSom(root->KSom(i));
+    }
+    tree.root = root->KSom(0);*/
 
-            //return ;
-        });
-    finalTree tree;
+    //Start Djikstra
+    size_t NbTriplet = aCC->mTri.size();
+    double* dist = new double[NbTriplet * NbTriplet];
 
-    std::cout << "Best triplet " << aTri0->KSom(0)->attr().Im()->Name()
-              << " "             << aTri0->KSom(1)->attr().Im()->Name()
-              << " "             << aTri0->KSom(2)->attr().Im()->Name()
-              << " "             << aTri0->Sum()[aTri0->indexSum]
-              << std::endl;
-    tree.root = aTri0;
+    #pragma omp parallel for
+    for (size_t i = 0; i < NbTriplet * NbTriplet; i++)
+        dist[i] = std::numeric_limits<double>::infinity();
 
-    //INIT
-    for (auto s : aCC->mSoms) {
-        s->attr().treeCost = std::numeric_limits<double>::max();
-        tree.triplets[s] = nullptr;
-        tree.orientation[s] = nullptr;
+    cNOSolIn_Triplet** prev = new cNOSolIn_Triplet*[NbTriplet * NbTriplet];
+    cLinkTripl** links = new cLinkTripl*[NbTriplet * NbTriplet];
+
+    #pragma omp parallel for
+    for (size_t i = 0; i < NbTriplet * NbTriplet; i++) {
+        prev[i] = nullptr;
+        links[i] = nullptr;
     }
 
-    //End INIT
-    //SEED
-    cLinkTripl* aLnk0 = new cLinkTripl(aTri0, 1, 2, 0);
-    cLinkTripl* aLnk1 = new cLinkTripl(aTri0, 0, 2, 1);
-    cLinkTripl* aLnk2 = new cLinkTripl(aTri0, 0, 1, 2);
-    for (int i : {0, 1, 2}) {
-        aTri0->KSom(i)->attr().treeCost = 0;
-        tree.triplets[aTri0->KSom(i)] = aTri0;
-        aTri0->KSom(i)->flag_set_kth_true(data.mFlagS);
+
+    std::map<cNOSolIn_Triplet*, int> index;
+    std::map<int, cNOSolIn_Triplet*> xedni;
+    {
+        size_t i =0;
+        for (auto& u : aCC->mTri) {
+            index[u] = i;
+            xedni[i] = u;
+            i++;
+        }
     }
-    tree.orientation[aTri0->KSom(0)] = aLnk0;
-    tree.orientation[aTri0->KSom(1)] = aLnk1;
-    tree.orientation[aTri0->KSom(2)] = aLnk2;
 
-    //tree.pred[aTri0] = aTri0;
-    std::cout << "Fin init" << std::endl;
+    for (auto& u_ : aCC->mTri) {
+        size_t u = index[u_];
 
-    int Cpt = 0;
-    cNO_CmpSomByCost cmp;
-    //std::priority_queue<tSomNSI*, std::vector<tSomNSI*>,  cNO_CmpSomByCost> som;
-    ElHeap<tSomNSI*, cNO_CmpSomByCost, cNO_HeapIndSom_NSI> som(cmp);
-    som.push(aTri0->KSom(0));
-    som.MAJ(aTri0->KSom(0));
-    som.push(aTri0->KSom(1));
-    som.MAJ(aTri0->KSom(1));
-    som.push(aTri0->KSom(2));
-    som.MAJ(aTri0->KSom(2));
-    /*for (auto s : aCC->mSoms) {
-        som.push(s);
-        som.MAJ(s);
-    }*/
-    //for (auto s : aCC->mSoms) {  }
-
-    std::cout << aTri0->NumId() << std::endl;
-    //som.MAJ(aTri0->KSom(0));
-    std::cout << "Added triplets" << std::endl;
-    std::set<std::string> processed;
-
-    while (!som.empty()) {
-        tSomNSI* t = nullptr;
-        som.pop(t);
-        if (!t)
-            continue;
-        processed.insert(t->attr().Im()->Name());
-        auto aT = tree.triplets[t];
-        auto lT = tree.orientation[t];
-        if (!lT) {
-            t->attr().treeCost = std::numeric_limits<double>::max();
-            std::cout << "No orientation" << std::endl;
-            continue;
+        for (int i = 0; i < 3; i++) {
+            for (auto& v_ : u_->KArc(i)->attr().ASym()->Lnk3()) {
+                size_t v = index[v_.m3];
+                dist[u * NbTriplet + v] = v_.m3->Cost() + u_->Cost();
+                prev[u * NbTriplet + v] = u_;
+                links[u * NbTriplet + v] = &v_;
+            }
         }
-        std::cout << t->attr().Im()->Name() << std::endl;
-        std::set<cLinkTripl*, cNO_CmpTriByCost> lnks;
-        for (char i : {lT->mK1, lT->mK2}) {
-            for (auto& l : aT->KArc(i)->attr().ASym()->Lnk3())
-                lnks.insert(&l);
-        }
-        for (auto& cl : lnks) {
-            if (!cl->S3()->flag_kth(data.mFlagS)
-              //  && cl->S3()->attr().treeCost >= cl->S1()->attr().treeCost + cl->m3->Cost()
-               // && tree.g[cl->S1()].count(cl->S2())
-               ) {
-                auto& tS2 = tree.triplets[cl->S2()];
-                bool c = tS2->KSom(0) == cl->S1() ||
-                         tS2->KSom(1) == cl->S1() ||
-                         tS2->KSom(2) == cl->S1();
-                auto& tS1 = tree.triplets[cl->S1()];
-                bool c2 = tS1->KSom(0) == cl->S2() ||
-                          tS1->KSom(1) == cl->S2() ||
-                          tS1->KSom(2) == cl->S2();
-
-                if (!(c || c2)) {
-                    continue;
-                }
-                cl->S3()->attr().treeCost = cl->S1()->attr().treeCost + cl->m3->Cost();
-
-                tree.orienting[cl->S3()].insert(aT);
-                cl->S3()->flag_set_kth_true(data.mFlagS);
-
-                //Remove old link in tree
-                tree.pred[cl->m3] = aT;
-                tree.triplets[cl->S3()] = cl->m3;
-                tree.orientation[cl->S3()] = cl;
-                tree.ori[cl->m3] = cl;
-                tree.sommit[cl->m3] = cl->S3();
-
-                if (!processed.count(cl->S3()->attr().Im()->Name())) {
-                    processed.insert(cl->S3()->attr().Im()->Name());
-                    som.push(cl->S3());
+        dist[u * NbTriplet + u] = 0;
+        prev[u * NbTriplet + u] = u_;
+        links[u * NbTriplet + u] = nullptr;
+    }
+    for (size_t k = 0; k < NbTriplet; k++) {
+        for (size_t i = 0; i < NbTriplet; i++) {
+            for (size_t j = 0; j < NbTriplet; j++) {
+                if (dist[i * NbTriplet + j] >
+                    dist[i * NbTriplet + k] + dist[k * NbTriplet + j]) {
+                    dist[i * NbTriplet + j] =
+                        dist[i * NbTriplet + k] + dist[k * NbTriplet + j];
+                    prev[i * NbTriplet + j] = prev[k * NbTriplet + j];
+                    links[i * NbTriplet + j] = links[k * NbTriplet + j];
                 }
             }
         }
     }
-    std::cout << "Fin Arbre" << std::endl;
-    std::cout << processed.size() << std::endl;
-    std::cout << "Fin Arbre" << std::endl;
-    for (auto t : tree.pred) {
-        if (t.first->NumId() == t.second->NumId())
+    double* linemax = new double[NbTriplet];
+    #pragma omp parallel for
+    for (size_t k = 0; k < NbTriplet; k++) {
+        double max = 0;
+        for (size_t i = 0; i < NbTriplet; i++) {
+            if (dist[k * NbTriplet + i] > max) {
+                max += dist[k * NbTriplet + i];
+            }
+        }
+        linemax[k] = max/NbTriplet;
+    }
+
+    double lmin = std::numeric_limits<double>::infinity();
+    size_t iroot = 0;
+    for (size_t k = 0; k < NbTriplet; k++) {
+        if (linemax[k] < lmin) {
+            lmin = linemax[k];
+            iroot = k;
+        }
+    }
+    delete [] linemax;
+    cNOSolIn_Triplet* root = xedni[iroot];
+    //cNOSolIn_Triplet* root = troot;
+
+    std::cout << "Found root: " << root->print() << std::endl;
+
+    tree.troot = root;
+    for (int i = 0; i < 3; i++) {
+        root->KSom(i)->attr().CurRot() = root->RotOfSom(root->KSom(i));
+    }
+    tree.root = root->KSom(0);
+
+    std::map<cNOSolIn_Triplet*, cNOSolIn_Triplet*> tprev;
+    std::map<cNOSolIn_Triplet*, cLinkTripl*> tlinks;
+    #pragma omp parallel for
+    for (size_t v = 0; v < NbTriplet; v++) {
+        if (!prev[iroot* NbTriplet + v])
             continue;
 
-        std::cout << t.first->NumId() << " " << t.second->NumId() << std::endl;
+        size_t rv = v;
+        while (rv != iroot) {
+            auto nv = prev[iroot * NbTriplet + rv];
+            if (!nv)
+                break;
+            tprev[xedni[rv]] = nv;
+            tlinks[xedni[rv]] = links[iroot * NbTriplet + rv];
+            rv = index[nv];
+        }
+    }
+
+//////////////////////////////////
+
+    std::cout << "End Djikstra" << std::endl;
+
+    std::map<cNOSolIn_Triplet*, std::set<cNOSolIn_Triplet*>> next;
+    size_t number_root = 0;
+    for (auto t : tprev) {
+        if (t.first == t.second)
+            continue;
+
+        if (t.second) {
+            next[t.second].insert(t.first);
+        } else {
+            number_root ++;
+            std::cout << "Root: " << t.first->print()
+                      << std::endl;
+        }
+    }
+    std::cout << "Number root :" << number_root << "/" << aCC->mTri.size() << std::endl;
+
+    std::set<tSomNSI*> oriented;
+    oriented.insert(root->KSom(0));
+    oriented.insert(root->KSom(1));
+    oriented.insert(root->KSom(2));
+    std::deque<cNOSolIn_Triplet*> s;
+    s.push_back(root);
+    std::map<tSomNSI*, cLinkTripl*> ori;
+    while (!s.empty()) {
+        cNOSolIn_Triplet* node = s.front();
+        s.pop_front();
+        for (auto n : next[node]) {
+            s.push_back(n);
+        }
+
+        cLinkTripl* link = tlinks[node];
+        if (!link)
+            continue;
+
+        if (oriented.count(link->S3()))
+            continue;
+
+        oriented.insert(link->S3());
+
+        /*
+        if (!oriented.count(link->S1()) ||
+            !oriented.count(link->S2())) {
+            std::cout << "origin not yet oriented" << std::endl;
+            s.push_back(node);
+        }*/
+        EstimRt(link);
+        ori[link->S3()] = link;
+
+        tree.pred[link->S3()] = link->S1();
+        link->S3()->flag_set_kth_true(data.mFlagS);
+    }
+
+    std::cout << "Oriented Number :" << oriented.size() << std::endl;
+    for (auto e : oriented) {
+        std::cout << "Oriented: " << e->attr().Im()->Name() << std::endl;
+    }
+
+    GraphViz g;
+    GraphViz gt;
+    DataLog<int, int, double, double, double, double, double, double> log(
+        {"Id", "Category", "Distance", "Residue", "ResidueMedian", "Score",
+         "ScoreMedian", "Accumulated"});
+
+    tree.next[tree.root].insert(root->KSom(1));
+    gt.linkTree(tree.root, root->KSom(1), true);
+    tree.next[tree.root].insert(root->KSom(2));
+    gt.linkTree(tree.root, root->KSom(2), true);
+     log.add({root->NumId(), root->category, 0., root->Sum()[0],
+             root->Sum()[1], root->Sum()[2], root->Sum()[3], root->Sum()[0]});
+
+    g.addTriplet(*root);
+
+    std::cout << "Finish tree " << std::endl;
+    for (auto t : tree.pred) {
+        if (t.first == t.second)
+            continue;
+
+        auto triplet = ori[t.first]->m3;
+
+        t.first->flag_set_kth_true(data.mFlagS);
+            log.add({
+                triplet->NumId(),
+                triplet->category,
+                triplet->NumTT(),
+                triplet->Sum()[0],
+                triplet->Sum()[1],
+                triplet->Sum()[2],
+                triplet->Sum()[3],
+                triplet->Cost(),
+
+            });
+
+        std::cout << t.first->attr().Im()->Name() << " " << t.second->attr().Im()->Name() << std::endl;
+        g.addTriplet(*triplet);
         if (t.second) {
             tree.next[t.second].insert(t.first);
+            gt.linkTree(t.second, t.first, true);
+            g.linkTree(t.second, t.first);
         } else {
             std::cout << "Pas de second" << std::endl;
         }
     }
-    std::cout << "Invert Arbre" << std::endl;
-    std::set<cNOSolIn_Triplet *> visited;
-    std::cout << "Check tree: " << is_tree(tree, visited, aTri0) << std::endl;
 
-    orientFinalTree(data, tree, aTri0);
-    std::cout << "Orient Arbre" << std::endl;
-    for (auto x : tree.next) {
-        std::cout << x.first->NumId() << std::endl;
-        log.add({x.first->NumId(), x.first->category,
-                x.first->NumTT(), x.first->Sum()[0],
-                x.first->Sum()[1], x.first->Sum()[2],
-                x.first->Sum()[3],
-                x.first->KSom(0)->attr().treeCost,
-                });
-        g.addTriplet(*x.first);
-    }
+    std::cout << "Fin Arbre" << std::endl;
+    std::set<tSomNSI*> visited;
+    std::cout << "Check tree: " << is_tree(tree, visited, tree.root) << std::endl;
 
-    for (auto const& x : tree.next) {
-        for (auto c : x.second) {
-            g.linkTree(x.first, c);
-        }
-    }
+    g.linkTree(root->KSom(0), root->KSom(1));
+    g.linkTree(root->KSom(0), root->KSom(2));
+
     std::cout << "Fin log" << std::endl;
 
     g.write(mOutName + "/graph/", "final.dot");
+    gt.write(mOutName + "/graph/", "tree.dot");
     log.write(mOutName + "/graph/logs/", "final.csv");
-    std::cout << "Nb final sommets=" << Cpt + 3 << ", out of " << NbSomCC
-              << "\n";
+
+    delete [] dist;
+    delete [] prev;
+    delete [] links;
+
 }
 
+static tSomNSI* findCenter(ffinalTree& tree) {
+    std::unordered_map<tSomNSI*, std::set<tSomNSI*>> graph;
+    for (auto n : tree.next) {
+        auto u = n.first;
+        for (auto v : n.second) {
+            graph[u].insert(v);
+            graph[v].insert(u);
+        }
+    }
+    std::unordered_map<tSomNSI*, int> degree;
+    for (auto n : tree.next) {
+        degree[n.first] = graph[n.first].size();
+    }
+    std::deque<tSomNSI*> leafs;
+    for (auto n : tree.next) {
+        if (degree[n.first] <= 1) {
+            leafs.push_back(n.first);
+        }
+    }
+
+    while (leafs.size() > 1) {
+        auto leaf = leafs.front();
+        leafs.pop_front();
+        for (auto parent : graph[leaf]) {
+            degree[parent]--;
+            graph[parent].erase(leaf);
+
+            if (degree[parent] <= 1) {
+                leafs.push_back(parent);
+            }
+        }
+        graph.erase(leaf);
+    }
+    auto root = leafs.front();
+
+    std::cout << "Center:" << root->attr().Im()->Name() << std::endl;
+    return root;
+}
+
+static void reCenter(ffinalTree& result, const ffinalTree& tree, tSomNSI* root) {
+    std::unordered_map<tSomNSI*, std::set<tSomNSI*>> graph;
+    for (auto n : tree.next) {
+        auto u = n.first;
+        for (auto v : n.second) {
+            graph[u].insert(v);
+            graph[v].insert(u);
+        }
+    }
+
+    result.root = root;
+    result.troot = tree.troot;
+    std::set<tSomNSI*> visited;
+    std::deque<tSomNSI*> s;
+    s.push_back(root);
+    while(!s.empty()) {
+        auto node = s.front();
+        s.pop_front();
+        if (visited.count(node)) {
+        }
+        visited.insert(node);
+        for (auto n : graph[node]) {
+            s.push_back(n);
+        }
+
+        for (auto n : graph[node]) {
+            if (!visited.count(n)) {
+                result.next[node].insert(n);
+                result.pred[n] = node;
+            }
+        }
+    }
+}
+
+/*
+static cNOSolIn_Triplet* centralTriplet(Dataset& data, int cc) {
+
+*
+let dist be a |V| × |V| array of minimum distances initialized to ∞ (infinity)
+for each edge (u, v) do
+    dist[u][v] ← w(u, v)  // The weight of the edge (u, v)
+for each vertex v do
+    dist[v][v] ← 0
+for k from 1 to |V|
+    for i from 1 to |V|
+        for j from 1 to |V|
+            if dist[i][j] > dist[i][k] + dist[k][j]
+                dist[i][j] ← dist[i][k] + dist[k][j]
+            end if
+/
+
+    std::unordered_map<int, cNOSolIn_Triplet*> map;
+    std::unordered_map<cNOSolIn_Triplet*, int> mapi;
+    size_t kk = 0;
+    for (auto k : data.mVCC[cc]->mTri) {
+        map[kk] = k;
+        mapi[k] = kk;
+        kk++;
+    }
+
+    size_t n = data.mVCC[cc]->mTri.size();
+    auto dist = new double[n*n]();
+    std::fill_n(dist, n*n, std::numeric_limits<double>::infinity());
+
+    for (auto k : data.mVCC[cc]->mTri) {
+        size_t u = mapi[k];
+        for (int i = 0; i < 3; i++) {
+            for (auto j : k->KArc(i)->attr().ASym()->Lnk3()) {
+                size_t v = mapi[j.m3];
+                dist[u * n + v] = j.m3->Cost();
+            }
+        }
+    }
+    for (auto k : data.mVCC[cc]->mTri) {
+        size_t u = mapi[k];
+        dist[u * n + u] = 0.;
+        map[u] = k;
+    }
+    #pragma omp parallel for
+    for (auto k_ : data.mVCC[cc]->mTri) {
+        int k = mapi[k_];
+        #pragma omp parallel for
+        for (auto i_ : data.mVCC[cc]->mTri) {
+            int i = mapi[i_];
+            #pragma omp parallel for
+            for (auto j_ : data.mVCC[cc]->mTri) {
+                int j = mapi[j_];
+                if (dist[i*n+j] > dist[i*n+k] + dist[k*n+j]) {
+                    dist[i*n+j] = dist[i*n+k] + dist[k*n+j];
+                }
+            }
+        }
+    }
+
+    double minimum = std::numeric_limits<double>::infinity();
+    cNOSolIn_Triplet* mint = nullptr;
+    for (auto k : data.mVCC[cc]->mTri) {
+        auto i = mapi[k];
+        double lmax = 0;
+        for (size_t j = 0; j < n; j++) {
+            if (dist[i*n + j] != std::numeric_limits<double>::infinity()
+                && dist[i*n + j] < lmax)
+            lmax = dist[i*n + j];
+        }
+        if (lmax < minimum) {
+            minimum = lmax;
+            mint = k;
+        }
+    }
+    return mint;
+}
+*/
+
 void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC, ffinalTree& tree) {
+    ffinalTree tmptree;
     int NbSomCC = int(aCC->mSoms.size());
     GraphViz g;
+    GraphViz gt;
     DataLog<int, int, double, double, double, double, double, double> log(
         {"Id", "Category", "Distance", "Residue", "ResidueMedian", "Score",
          "ScoreMedian", "Accumulated"});
 
     // Pick the  triplet
     cNOSolIn_Triplet* aTri0 = GetBestTri(data);
+    //cNOSolIn_Triplet* aTri0 = centralTriplet(data, aCC->mNumCC);
     std::cout << "Best triplet " << aTri0->KSom(0)->attr().Im()->Name() << " "
               << aTri0->KSom(1)->attr().Im()->Name() << " "
               << aTri0->KSom(2)->attr().Im()->Name() << " " << aTri0->Sum()[aTri0->indexSum]
               << "\n";
-    tree.root = aTri0;
-    tree.pred[aTri0->KSom(1)] = aTri0->KSom(0);
-    tree.pred[aTri0->KSom(2)] = aTri0->KSom(0);
+    tmptree.troot = aTri0;
+    tmptree.pred[aTri0->KSom(1)] = aTri0->KSom(0);
+    tmptree.pred[aTri0->KSom(2)] = aTri0->KSom(0);
 
 
 
@@ -1864,7 +1867,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC, ffinalTree& 
         // Flag sommets as explored
         aTri0->KSom(aK)->flag_set_kth_true(data.mFlagS);
         aTri0->KSom(aK)->attr().treeCost = aTri0->Cost();
-        tree.ori[aTri0->KSom(aK)] = aLnk0;
+        tmptree.ori[aTri0->KSom(aK)] = aLnk0;
 
         aTri0->KSom(aK)->attr().residue = aTri0->Sum()[0];
         aTri0->KSom(aK)->attr().NumCC() = 0;
@@ -1910,8 +1913,8 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC, ffinalTree& 
             if (aTriNext->S2()->attr().treeCost < aTriNext->S1()->attr().treeCost)
                 prev = aTriNext->S2();
             aTriNext->S3()->attr().treeCost = prev->attr().treeCost + aTriNext->m3->Cost();
-            tree.pred[aTriNext->S3()] = prev;
-            tree.ori[aTriNext->S3()] = aTriNext;
+            tmptree.pred[aTriNext->S3()] = prev;
+            tmptree.ori[aTriNext->S3()] = aTriNext;
 
             // Flag the concatenation order of the node
             // = order of the "builder" triplet
@@ -1939,18 +1942,18 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC, ffinalTree& 
                      aTriNext->S3()->attr().residue,
                      });
 
-            tree.g[aTriNext->S3()].insert(aTriNext->S1());
-            tree.g[aTriNext->S1()].insert(aTriNext->S3());
+            tmptree.g[aTriNext->S3()].insert(aTriNext->S1());
+            tmptree.g[aTriNext->S1()].insert(aTriNext->S3());
 
-            tree.g[aTriNext->S3()].insert(aTriNext->S2());
-            tree.g[aTriNext->S2()].insert(aTriNext->S3());
+            tmptree.g[aTriNext->S3()].insert(aTriNext->S2());
+            tmptree.g[aTriNext->S2()].insert(aTriNext->S3());
 
             g.addTriplet(*aTriNext->m3);
             //g.linkTriplets(common, aTriNext->m3);
 
-            tree.triplets[aTriNext->m3->KSom(0)].insert(aTriNext->m3);
-            tree.triplets[aTriNext->m3->KSom(1)].insert(aTriNext->m3);
-            tree.triplets[aTriNext->m3->KSom(2)].insert(aTriNext->m3);
+            tmptree.triplets[aTriNext->m3->KSom(0)].insert(aTriNext->m3);
+            tmptree.triplets[aTriNext->m3->KSom(1)].insert(aTriNext->m3);
+            tmptree.triplets[aTriNext->m3->KSom(2)].insert(aTriNext->m3);
 
             // Mark node as vistied
             aTriNext->S3()->flag_set_kth_true(data.mFlagS);
@@ -1991,24 +1994,30 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC, ffinalTree& 
         }
     }
     std::cout << "Finish tree " << std::endl;
-    for (auto t : tree.pred) {
+    for (auto t : tmptree.pred) {
         if (t.first == t.second)
             continue;
 
         std::cout << t.first->attr().Im()->Name() << " " << t.second->attr().Im()->Name() << std::endl;
         if (t.second) {
-            tree.next[t.second].insert(t.first);
+            tmptree.next[t.second].insert(t.first);
         } else {
             std::cout << "Pas de second" << std::endl;
         }
     }
     std::set<tSomNSI *> visited;
-    std::cout << "Check tree: " << is_tree(tree, visited, aTri0->KSom(0)) << std::endl;
+    std::cout << "Check tree: " << is_tree(tmptree, visited, aTri0->KSom(0)) << std::endl;
 
+    tree.root = findCenter(tmptree);
+    reCenter(tree, tmptree, tree.root);
+
+    std::set<tSomNSI *> visited2;
+    std::cout << "Check tree: " << is_tree(tree, visited2, tree.root) << std::endl;
 
     for (auto const& x : tree.next) {
         for (auto c : x.second) {
             g.linkTree(x.first, c);
+            gt.linkTree(x.first, c, true);
         }
     }
 
@@ -2016,6 +2025,7 @@ void RandomForest::BestSolOneCC(Dataset& data, cNO_CC_TripSom* aCC, ffinalTree& 
     g.linkTree(aTri0->KSom(0), aTri0->KSom(2));
 
     g.write(mOutName + "/graph/", "final.dot");
+    gt.write(mOutName + "/graph/", "tree.dot");
     log.write(mOutName + "/graph/logs/", "final.csv");
     std::cout << "Nb final sommets=" << Cpt + 3 << ", out of " << NbSomCC
               << "\n";
@@ -2188,17 +2198,17 @@ static int basculepy(std::string ori0, std::string ori1, std::string oriOut, std
     return err;
 }
 
-static int campari(const std::set<tSomNSI*>& result, std::string ori0name, std::string mPrefHom) {
+static int campari(const std::set<tSomNSI*>& result, std::string ori0name, std::string mPrefHom, int nbIter = 2) {
 
     int err = 0;
-std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE NbIterEnd=2 SH=" + mPrefHom);
+std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE NbIterEnd=" + std::to_string(nbIter) + " SH=" + mPrefHom);
     return err;
 }
 
-static int campari(const finalScene& result, std::string ori0name, std::string mPrefHom) {
+static int campari(const finalScene& result, std::string ori0name, std::string mPrefHom, int nbIter = 2) {
 
     int err = 0;
-std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE NbIterEnd=2 SH=" + mPrefHom);
+std::cout << exec("mm3d Campari \"" + Pattern(result) + "\" Ori-" + ori0name + " " + ori0name +" SauvAutom=NONE NbIterEnd=" + std::to_string(nbIter) + " SH=" + mPrefHom);
     return err;
 }
 
@@ -2305,9 +2315,6 @@ void RandomForest::processNode2(
         Save(data, ori0name, false);
         for (auto e : ss.at(node)) { e->flag_set_kth_false(data.mFlagS); }
         std::cout << "Leaf: " << node->attr().Im()->Name() << std::endl;
-        for (auto& child : ss.at(node)) {
-            std::cout << " " << child->attr().Im()->Name() << std::endl ;
-        }
 
         return;
     }
@@ -2332,18 +2339,20 @@ void RandomForest::processNode2(
     }
     std::cout << std::endl;
 
-    auto child0 = childs[0];
     std::set<tSomNSI*> current;
-    {
-        current.insert(node);
-        auto r0 = ss.at(child0);
-        for (auto e : r0) current.insert(e);
+    current.insert(node);
+
+    for (auto e : ss.at(childs[0])) {
+        current.insert(e);
     }
 
+    //Update directly from folder since system is maybe not update to date
+    //updateViewFrom("tree_" + childs[0]->attr().Im()->Name(), ss.at(childs[0]));
+
+    //Save as current block
     for (auto e : current) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, ori0name, false);
     for (auto e : current) { e->flag_set_kth_false(data.mFlagS); }
-
     campari(current, ori0name, mPrefHom);
     updateViewFrom(ori0name, current);
 
@@ -2359,13 +2368,18 @@ void RandomForest::processNode2(
         for (auto e : rn)
             current.insert(e);
 
-        //Bundle des actuels pour "nettoyer"
-        //campari(current, ori0name, mPrefHom);
         //On lit tout ce petit monde
+        auto missing = updateViewFrom(ori0name, current);
+
+        //In case of error output current view without bascule
+        for (auto e : missing) { e->flag_set_kth_true(data.mFlagS); }
+        Save(data, ori0name, false);
+        for (auto e : missing) { e->flag_set_kth_false(data.mFlagS); }
+        campari(current, ori0name, mPrefHom);
         updateViewFrom(ori0name, current);
     }
 
-    // On recup la liste precompute de tout ce dont on devrait avoir en sortie
+    //The current node is in ss so will be saved here only
     const auto& result = ss.at(node);
 
     //On les save saitons jamais
@@ -2374,24 +2388,24 @@ void RandomForest::processNode2(
     for (auto e : result) { e->flag_set_kth_false(data.mFlagS); }
 
     campari(result, ori0name, mPrefHom);
-    updateViewFrom(ori0name, result);
 
     //Fin pour ce node
     return;
 
 }
 
-void RandomForest::updateViewFrom(std::string name, std::set<tSomNSI*> views)
+std::set<tSomNSI*> RandomForest::updateViewFrom(std::string name, std::set<tSomNSI*> views)
 {
     std::string dirOri = "Ori-" + name;
     std::cout << "Reading output ori from: " << dirOri << std::endl;
     if (!exist_dir(dirOri)) {
         std::cout << "Ori: " << dirOri << " don't exist." <<  std::endl;
         //No directory to read from
-        return;
+        return views;
     }
 
     std::string inOri = name;
+    std::set<tSomNSI*> missing;
     for (auto e : views) {
         std::string imgName = e->attr().Im()->Name();
         std::string f = mNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+inOri,imgName,true);
@@ -2400,8 +2414,10 @@ void RandomForest::updateViewFrom(std::string name, std::set<tSomNSI*> views)
             e->attr().CurRot() = aCam->Orient().inv();
         } else {
             std::cout << "File: " << f << " missing." <<  std::endl;
+            missing.insert(e);
         }
     }
+    return missing;
 }
 
 finalScene RandomForest::bfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
@@ -2554,33 +2570,35 @@ std::set<tSomNSI*> RandomForest::bfs3(Dataset& data, ffinalTree& tree, tSomNSI* 
                 ++it;
             }
         }
-        if (tasks.size() >= processor_count) {
-            waitpid(std::get<1>(tasks.front()), nullptr, 0);
-            callbackNode(data, ss, processed, std::get<0>(tasks.front()));
-            tasks.pop_front();
-        }
-
-        auto som = s.front();
-        bool ready = true;
-        for (auto c : tree.next[som]) {
-            if (!processed.count(c)) {
-                //std::cout << "Wait " << c->attr().Im()->Name() << std::endl;
-                ready = false;
+        for (auto it = s.begin(); it != s.end();) {
+            if (tasks.size() >= processor_count) {
+                waitpid(std::get<1>(tasks.front()), nullptr, 0);
+                callbackNode(data, ss, processed, std::get<0>(tasks.front()));
+                tasks.pop_front();
             }
-        }
-        s.pop_front();
-        if (!ready) {
-            s.push_back(som);
-            //std::cout << "Not ready " << som->attr().Im()->Name() << std::endl;
-            continue;
-        }
 
-        int cpid;
-        if ((cpid=fork()) == 0) {
-            processNode2(data, tree, ss, som);
-            exit(0);
+            auto som = *it;
+            bool ready = true;
+            for (auto c : tree.next[som]) {
+                if (!processed.count(c)) {
+                    //std::cout << "Wait " << c->attr().Im()->Name() << std::endl;
+                    ready = false;
+                }
+            }
+            if (!ready) {
+                it++;
+                continue;
+            } else {
+                it = s.erase(it);
+            }
+
+            int cpid;
+            if ((cpid=fork()) == 0) {
+                processNode2(data, tree, ss, som);
+                exit(0);
+            }
+            tasks.push_back({som,cpid});
         }
-        tasks.push_back({som,cpid});
     }
 
     while (!tasks.empty()) {
@@ -2789,7 +2807,7 @@ finalScene RandomForest::dfs(Dataset& data, ffinalTree& tree, tSomNSI* node) {
 void RandomForest::hierarchique(Dataset& data, size_t cc, ffinalTree& tree) {
     //Clean old ori images
     std::cout << exec("rm -rf Ori-tree_*");
-    auto all = bfs3(data, tree, tree.root->KSom(0));
+    auto all = bfs3(data, tree, tree.root);
     //TODO global campari on all data
     std::string pattern = "(";
     for (auto v : all) pattern += v->attr().Im()->Name() + "|";
@@ -2799,7 +2817,7 @@ void RandomForest::hierarchique(Dataset& data, size_t cc, ffinalTree& tree) {
     for (auto e : all) { e->flag_set_kth_true(data.mFlagS); }
     Save(data, aOutOri, false);
     for (auto e : all) { e->flag_set_kth_false(data.mFlagS); }
-    std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + aOutOri + " " + aOutOri +" SH=" + mPrefHom);
+    std::cout << exec("mm3d Campari \"" + pattern + "\" Ori-" + aOutOri + " " + aOutOri +" NbIterEnd=8 SH=" + mPrefHom);
 
     //updateViewFrom(ori0name, result.ss);
 }
@@ -2811,10 +2829,9 @@ void RandomForest::BestSolAllCC(Dataset& data) {
 
     // Get  solution for each CC
     for (int aKC = 0; aKC < int(data.mVCC.size()); aKC++) {
-        //BestSolOneCCKurskal(data, data.mVCC[aKC]);
         ffinalTree tree;
-        BestSolOneCC(data, data.mVCC[aKC], tree);
-        //BestSolOneCCPrim(data, data.mVCC[aKC]);
+        //BestSolOneCC(data, data.mVCC[aKC], tree);
+        BestSolOneCCDjikstra(data, data.mVCC[aKC], tree);
         std::cout << "Finish MSP" << std::endl;
         // Save
         std::string aOutOri = mOutName + ToString(aKC);
@@ -2978,7 +2995,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
                 output[aT * 3 + 1] = aDist;
                 output[aT * 3 + 2] = score;
                 //aV3[aT]->Data()[0].push_back(aResidue);
-                //aV3[aT]->Data()[1].push_back(aDist);
+                //aV3[aT]->2ata()[1].push_back(aDist);
                 //aV3[aT]->Data()[2].push_back(score);
 
                 // Plot coherence vs sample vs distance
@@ -3171,14 +3188,15 @@ void RandomForest::CoherTripletsAllSamples(Dataset& data) {
             if (std::isnan(data.mV3[aT]->Data()[0][i])) {
                 data.mV3[aT]->Data()[0][i] = 100000;
             }
+            if (std::isnan(data.mV3[aT]->Data()[2][i])) {
+                data.mV3[aT]->Data()[2][i] = 1.;
+            }
         }
 
-        //data.mV3[aT]->Sum()[0] = mean(data.mV3[aT]->Data()[0]);
-        data.mV3[aT]->Sum()[0] = median(data.mV3[aT]->Data()[0]);
-        //data.mV3[aT]->Sum()[1] = MedianeSup(data.mV3[aT]->Data()[0]);
-        data.mV3[aT]->Sum()[1] = data.mV3[aT]->Data()[0][data.mV3[aT]->Data()[0].size()/2];
+        data.mV3[aT]->Sum()[0] = mean(data.mV3[aT]->Data()[0]);
+        data.mV3[aT]->Sum()[1] = median(data.mV3[aT]->Data()[0]);
         data.mV3[aT]->Sum()[2] = mean(data.mV3[aT]->Data()[2]);
-        data.mV3[aT]->Sum()[3] = data.mV3[aT]->Sum()[0];
+        data.mV3[aT]->Sum()[3] = median(data.mV3[aT]->Data()[2]);
     }
 }
 
@@ -3430,14 +3448,16 @@ void RandomForest::DoNRandomSol(Dataset& data) {
     ShowTripletCost(data);
     if (mDebug) ShowTripletCostPerSample(data);
 
-    // Build "most coherent" solution
-    BestSolAllCC(data);
-
     GraphViz g;
     g.loadTotalGraph(data);
     g.write(mOutName + "/graph/", "total.dot");
     logTotalGraph(data, mOutName + "/graph/logs/", "total.csv");
+
+    // Build "most coherent" solution
+    BestSolAllCC(data);
 }
+
+
 void RandomForest::logTotalGraph(Dataset& data, std::string dir, std::string filename) {
     DataTravel travel(data);
     DataLog<int, int, double, double, double, double, double> log(

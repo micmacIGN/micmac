@@ -38,14 +38,10 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include <sys/types.h>
 #include "NewOri.h"
 //#include "general/CMake_defines.h"
-#include <cstdint>
 #include <fstream>
-#include <ios>
 #include <iostream>
-#include <locale>
 #include <map>
 #include <random>
 #include <string>
@@ -66,8 +62,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/mman.h>
-
-
 
 
 namespace SolGlobInit {
@@ -270,7 +264,7 @@ class cNOSolIn_Triplet {
      * 2: Score
      */
     std::array<std::vector<double>, 3>& Data() { return mData; };
-    static constexpr int indexSum = 2;
+    static constexpr int indexSum = 3;
     /*
      * 0: Mean
      *
@@ -293,6 +287,12 @@ class cNOSolIn_Triplet {
 
     double pondSum;
     double pondN;
+
+    std::string print() {
+        return mSoms[0]->attr().Im()->Name() + "/" +
+               mSoms[1]->attr().Im()->Name() + "/" +
+               mSoms[2]->attr().Im()->Name();
+    }
 
    private:
     cNOSolIn_Triplet(const cNOSolIn_Triplet&);  // N.I.
@@ -438,16 +438,61 @@ class cNO_HeapIndSom_NSI {
     static int Index(tSomNSI* aV) { return aV->attr().HeapIndex(); }
 };
 
+class cNO_HeapIndArc_NSI {
+   public:
+    static void SetIndex(tArcNSI* aV, int i) { aV->attr().HeapIndex() = i; }
+    static int Index(tArcNSI* aV) { return aV->attr().HeapIndex(); }
+};
+
 
 class cNO_CmpTriSolByCost {
    public:
     bool operator()(cNOSolIn_Triplet* aL1, cNOSolIn_Triplet* aL2) {
         //return aL1->Sum()[aL1->indexSum] < aL2->Sum()[aL2->indexSum];
-        return aL1->Sum()[0] < aL2->Sum()[0];
+        size_t n1 = 0;
+        size_t n2 = 0;
+        for (int i = 0; i < 3; i++) {
+            n1 += aL1->KSom(i)->attr().Lnk3().size();
+            n2 += aL2->KSom(i)->attr().Lnk3().size();
+        }
+        return n1 > n2 || aL1->Sum()[aL1->indexSum] < aL2->Sum()[aL2->indexSum];
+        //return aL1->Sum()[] < aL2->Sum()[aL2->indexSum];
         //return (aL1->pondSum / aL1->pondN) < (aL2->pondSum / aL2->pondN);
         //return (aL1->Pds()) < (T2->Pds());
     }
 };
+
+class cNO_CmpTriSolByDist {
+   public:
+    cNO_CmpTriSolByDist(const std::map<cNOSolIn_Triplet*, double>& dist)
+        : dist(dist) {}
+    bool operator()(cNOSolIn_Triplet* aL1, cNOSolIn_Triplet* aL2) {
+        return dist.at(aL1) < dist.at(aL2);
+    }
+    const std::map<cNOSolIn_Triplet*, double>& dist;
+};
+
+class cNO_CmpSomByDist {
+   public:
+    cNO_CmpSomByDist (const std::map<tSomNSI*, double>& dist)
+        : dist(dist) {}
+    bool operator()(tSomNSI* aL1, tSomNSI* aL2) {
+        return dist.at(aL1) < dist.at(aL2);
+    }
+    const std::map<tSomNSI*, double>& dist;
+};
+
+class cNO_CmpArcByDist {
+   public:
+    cNO_CmpArcByDist (const std::map<tSomNSI*, double>& dist)
+        : dist(dist) {}
+    bool operator()(tArcNSI* aL1, tArcNSI* aL2) {
+        return dist.at(&aL1->s2()) < dist.at(&aL2->s2());
+    }
+    const std::map<tSomNSI*, double>& dist;
+};
+
+
 
 using tHeapTriSolNSI =
     ElHeap<cNOSolIn_Triplet*, cNO_CmpTriSolByCost, cNO_HeapIndTriSol_NSI>;
@@ -567,7 +612,8 @@ struct ffinalTree {
     std::map<tSomNSI*, std::set<cNOSolIn_Triplet*>> triplets;
 //    std::map<tSomNSI*, cNOSolIn_Triplet*> ori;
 
-    cNOSolIn_Triplet* root;
+    cNOSolIn_Triplet* troot;
+    tSomNSI* root;
 };
 
 struct finalScene {
@@ -580,8 +626,6 @@ struct finalScene {
     }
 };
 
-#include <unordered_map>
-
 class RandomForest : public cCommonMartiniAppli {
    public:
     RandomForest(int argc, char** argv);
@@ -593,7 +637,7 @@ class RandomForest : public cCommonMartiniAppli {
     //void loadHomol(cNOSolIn_Triplet* aTriplet, tTriPointList& aLst);
     void loadHomol(cNOSolIn_Triplet* aTriplet, tTriPointList& aLst, tTriPointList& aLstAll);
 
-    void updateViewFrom(std::string name, std::set<tSomNSI*> views);
+    std::set<tSomNSI*> updateViewFrom(std::string name, std::set<tSomNSI*> views);
 
     // Entry point
     void DoNRandomSol(Dataset& data);
@@ -623,9 +667,7 @@ class RandomForest : public cCommonMartiniAppli {
     void BestSolAllCC(Dataset& data);
 
     void BestSolOneCC(Dataset& data, cNO_CC_TripSom*, ffinalTree& );
-    void BestSolOneCCKurskal(Dataset& data, cNO_CC_TripSom*);
-    void BestSolOneCCPrim2(Dataset& data, cNO_CC_TripSom* aCC);
-    void BestSolOneCCPrim(Dataset& data, cNO_CC_TripSom* aCC);
+    void BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom*, ffinalTree& );
 
    private:
     void NumeroteCC(Dataset& data);
@@ -859,15 +901,15 @@ class GraphViz {
         agedge(treeG, triplet, ct, 0, 1);
     }
 
-    void linkTree(tSomNSI* t1, tSomNSI* t2) {
+    void linkTree(tSomNSI* t1, tSomNSI* t2, bool create = false) {
         std::string name1 = t1->attr().Im()->Name();
-        node_t* i1 = agnode(nG, (char*)name1.c_str(), 0);
+        node_t* i1 = agnode(nG, (char*)name1.c_str(), create);
         if (!i1) {  // Triplet Id don't exist
             std::cout << "triplet dont exist GraphViz" << std::endl;
             return;
         }
         std::string name2 = t2->attr().Im()->Name();
-        node_t* i2 = agnode(nG, (char*)name2.c_str(), 0);
+        node_t* i2 = agnode(nG, (char*)name2.c_str(), create);
         if (!i2) {  // Triplet Id don't exist
             std::cout << "image dont exist GraphViz next" << t2->attr().Im()->Name()
                       << std::endl;
