@@ -1005,11 +1005,11 @@ class GraphViz {
                         // travel.mVS[aLnk[aKL].S3()->attr().Im()->Name()] =
                         //    aLnk[aKL].S3();
 
-                        std::cout << aCC3.size() << "=["
+                        /*std::cout << aCC3.size() << "=["
                                   << aLnk[aKL].S1()->attr().Im()->Name();
                         std::cout << "," << aLnk[aKL].S2()->attr().Im()->Name();
                         std::cout << "," << aLnk[aKL].S3()->attr().Im()->Name()
-                                  << "=====\n";
+                                  << "=====\n";*/
 
                         addTriplet(*aLnk[aKL].m3);
                     }

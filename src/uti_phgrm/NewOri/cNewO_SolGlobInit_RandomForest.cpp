@@ -185,7 +185,7 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
     ElRotation3D r_[3] = {triplet->KSom(0)->attr().CurRot(),
         triplet->KSom(1)->attr().CurRot(),
         triplet->KSom(2)->attr().CurRot()};
-    double MaxDiag = 2202;  // 1920
+    double MaxDiag;  // 1920
     {
         double x = v[0]->Sz().x;
         double y = v[0]->Sz().y;
@@ -210,7 +210,7 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
         return MaxDiag;
     }
     for (int i = 0; i < 3; i++) {
-        v[i]->SetOrientation(r_[i].inv());
+        //v[i]->SetOrientation(r_[i].inv());
     }
 
     for (auto& pts : triplet->getHomolPts()) {
@@ -219,7 +219,8 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
             if (!pts[i].x && !pts[i].y)
                 continue;
 
-            //v[i]->SetOrientation(r_[i].inv());
+            v[i]->SetOrientation(r_[i].inv());
+            //
             //aVSeg.push_back(triplet->KSom(i)->attr().Im()->CS()->F2toRayonR3(pts[i]));
             aVSeg.push_back(v[i]->Capteur2RayTer(pts[i]));
         }
@@ -235,8 +236,7 @@ static double computeResiduFromPos(const cNOSolIn_Triplet* triplet) {
         for (int i = 0; i < 3; i++) {
             if (!pts[i].x && !pts[i].y) continue;
 
-            //v[i]->SetOrientation(
-            //                     r_[i].inv());
+            v[i]->SetOrientation(r_[i].inv());
             Pt2dr pts_proj =
                 v[i]->Ter2Capteur(aInt);
             auto a = euclid(pts[i], pts_proj);
@@ -626,7 +626,7 @@ RandomForest::RandomForest(int argc, char** argv)
       mGraphCoher(true),
       mHeapTriAll(TheCmp3Sol),
       mHeapTriDyn(TheCmp3),
-      mDistThresh(1e3),
+      mDistThresh(1e5),
       mResidu(20),
       mApplyCostPds(false),
       mAlphaProb(0.5),
@@ -1451,14 +1451,12 @@ void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
     size_t NbTriplet = aCC->mTri.size();
     double* dist = new double[NbTriplet * NbTriplet];
 
-    #pragma omp parallel for
     for (size_t i = 0; i < NbTriplet * NbTriplet; i++)
         dist[i] = std::numeric_limits<double>::infinity();
 
     cNOSolIn_Triplet** prev = new cNOSolIn_Triplet*[NbTriplet * NbTriplet];
     cLinkTripl** links = new cLinkTripl*[NbTriplet * NbTriplet];
 
-    #pragma omp parallel for
     for (size_t i = 0; i < NbTriplet * NbTriplet; i++) {
         prev[i] = nullptr;
         links[i] = nullptr;
@@ -1504,43 +1502,47 @@ void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
             }
         }
     }
-    double* linemax = new double[NbTriplet];
-    #pragma omp parallel for
-    for (size_t k = 0; k < NbTriplet; k++) {
-        double max = 0;
-        for (size_t i = 0; i < NbTriplet; i++) {
-            if (dist[k * NbTriplet + i] > max) {
-                max += dist[k * NbTriplet + i];
+    size_t iroot = 0;
+    {
+        double* linemax = new double[NbTriplet];
+        #pragma omp parallel for
+        for (size_t k = 0; k < NbTriplet; k++) {
+            double max = 0;
+            for (size_t i = 0; i < NbTriplet; i++) {
+                if (dist[k * NbTriplet + i] > max) {
+                    max += dist[k * NbTriplet + i];
+                }
+            }
+            linemax[k] = max/NbTriplet;
+        }
+
+        double lmin = std::numeric_limits<double>::infinity();
+        for (size_t k = 0; k < NbTriplet; k++) {
+            if (linemax[k] < lmin) {
+                lmin = linemax[k];
+                iroot = k;
             }
         }
-        linemax[k] = max/NbTriplet;
+        delete [] linemax;
     }
-
-    double lmin = std::numeric_limits<double>::infinity();
-    size_t iroot = 0;
-    for (size_t k = 0; k < NbTriplet; k++) {
-        if (linemax[k] < lmin) {
-            lmin = linemax[k];
-            iroot = k;
-        }
-    }
-    delete [] linemax;
     cNOSolIn_Triplet* root = xedni[iroot];
     //cNOSolIn_Triplet* root = troot;
 
     std::cout << "Found root: " << root->print() << std::endl;
 
     tree.troot = root;
+    tree.root = root->KSom(0);
     for (int i = 0; i < 3; i++) {
         root->KSom(i)->attr().CurRot() = root->RotOfSom(root->KSom(i));
     }
-    tree.root = root->KSom(0);
 
     std::map<cNOSolIn_Triplet*, cNOSolIn_Triplet*> tprev;
     std::map<cNOSolIn_Triplet*, cLinkTripl*> tlinks;
-    #pragma omp parallel for
+    std::map<cNOSolIn_Triplet*, double> tdist;
+
+    //#pragma omp parallel for
     for (size_t v = 0; v < NbTriplet; v++) {
-        if (!prev[iroot* NbTriplet + v])
+        if (!prev[iroot * NbTriplet + v])
             continue;
 
         size_t rv = v;
@@ -1550,6 +1552,7 @@ void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
                 break;
             tprev[xedni[rv]] = nv;
             tlinks[xedni[rv]] = links[iroot * NbTriplet + rv];
+            tdist[xedni[rv]] = dist[iroot * NbTriplet + rv];
             rv = index[nv];
         }
     }
@@ -1575,12 +1578,16 @@ void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
     std::cout << "Number root :" << number_root << "/" << aCC->mTri.size() << std::endl;
 
     std::set<tSomNSI*> oriented;
+    std::map<tSomNSI*, double> weight;
     oriented.insert(root->KSom(0));
     oriented.insert(root->KSom(1));
     oriented.insert(root->KSom(2));
     std::deque<cNOSolIn_Triplet*> s;
     s.push_back(root);
     std::map<tSomNSI*, cLinkTripl*> ori;
+    for (auto s : aCC->mSoms) {
+        weight[s] = std::numeric_limits<double>::infinity();
+    }
     while (!s.empty()) {
         cNOSolIn_Triplet* node = s.front();
         s.pop_front();
@@ -1592,10 +1599,12 @@ void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
         if (!link)
             continue;
 
-        if (oriented.count(link->S3()))
+        if (weight[link->S3()] <= node->Cost())
+        //if (oriented.count(link->S3()))
             continue;
 
         oriented.insert(link->S3());
+        weight[link->S3()] = node->Cost();
 
         /*
         if (!oriented.count(link->S1()) ||
@@ -2969,7 +2978,7 @@ void RandomForest::CoherTripletsGraphBasedV2(
         //double aDistAl = square_euclid(center2, center);
         //std::cout << "Distance euclid: " << aDistAl << std::endl;
 
-        if (aDist < 1) continue;
+        //if (aDist < 1) continue;
         if (aDist < mDistThresh) {
             //double aRot = abs(currentTriplet->CoherTest());
             // std::cout << ",Dist=" << aDist << " CohTest(à=" <<
@@ -3423,8 +3432,10 @@ void RandomForest::DoNRandomSol(Dataset& data) {
         auto& aV3 = data.mV3;
         for (size_t aT = 0; aT < aV3.size(); aT++) {
             for (size_t k = 0; k < 3; k++) {
+                //std::cout << line[aT * 3 + k] << " ";
                 aV3[aT]->Data()[k].push_back(line[aT * 3 + k]);
             }
+            //std::cout << std::endl;
         }
     }
     munmap(p, sizeof(double) * number_memory);
@@ -3445,8 +3456,8 @@ void RandomForest::DoNRandomSol(Dataset& data) {
     //std::cout << "Ponderate Trees" << std::endl;
 
     // Print the cost for all triplets
-    ShowTripletCost(data);
-    if (mDebug) ShowTripletCostPerSample(data);
+    //ShowTripletCost(data);
+    //if (mDebug) ShowTripletCostPerSample(data);
 
     GraphViz g;
     g.loadTotalGraph(data);
@@ -3497,11 +3508,11 @@ void RandomForest::logTotalGraph(Dataset& data, std::string dir, std::string fil
                     // travel.mVS[aLnk[aKL].S3()->attr().Im()->Name()] =
                     //    aLnk[aKL].S3();
 
-                    std::cout << aCC3.size() << "=["
+                    /*std::cout << aCC3.size() << "=["
                               << aLnk[aKL].S1()->attr().Im()->Name();
                     std::cout << "," << aLnk[aKL].S2()->attr().Im()->Name();
                     std::cout << "," << aLnk[aKL].S3()->attr().Im()->Name()
-                              << "=====\n";
+                              << "=====\n";*/
                     double distance = mean(aLnk[aKL].m3->Data()[1]);
                     log.add({aLnk[aKL].m3->NumId(), aLnk[aKL].m3->category,
                              distance, aLnk[aKL].m3->Sum()[0],
@@ -3517,6 +3528,8 @@ void RandomForest::logTotalGraph(Dataset& data, std::string dir, std::string fil
     for (unsigned aK3 = 0; aK3 < data.mV3.size(); aK3++) {
         data.mV3[aK3]->Flag().set_kth_false(flag);
     }
+
+    std::cout << "Done log total" << std::endl;
 
     data.mAllocFlag3.flag_free(flag);
     log.write(dir, filename);
