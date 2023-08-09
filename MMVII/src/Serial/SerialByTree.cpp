@@ -37,6 +37,18 @@ int DecLevel(eLexP aLexP)
 
 /*============================================================*/
 /*                                                            */
+/*             cResLex                                        */
+/*                                                            */
+/*============================================================*/
+
+cResLex::cResLex(std::string aVal,eLexP aLexP) :
+    mVal  (aVal),
+    mLexP (aLexP)
+{
+}
+
+/*============================================================*/
+/*                                                            */
 /*             cSerialTokenParser                             */
 /*                                                            */
 /*============================================================*/
@@ -158,7 +170,7 @@ std::string  cSerialTokenParser::GetQuotedString()
    }
 }
 
-tResLex  cSerialTokenParser::GetNextLex_NOEOF()
+cResLex  cSerialTokenParser::GetNextLex_NOEOF()
 {
     SkeepWhite();
     std::string aRes;
@@ -171,7 +183,7 @@ tResLex  cSerialTokenParser::GetNextLex_NOEOF()
     }
     if (aC=='"')
     {
-          return tResLex(GetQuotedString(),eLexP::eStdToken_String);
+          return cResLex(GetQuotedString(),eLexP::eStdToken_String);
     }
 
 
@@ -185,10 +197,10 @@ tResLex  cSerialTokenParser::GetNextLex_NOEOF()
     //if (mTypeS!= eTypeSerial::etxt)  // else get EOF at end
     //   SkeepWhite();
 
-    return tResLex(aRes,eLexP::eStdToken_UK);
+    return cResLex(aRes,eLexP::eStdToken_UK);
 }
 
-tResLex  cSerialTokenParser::GetNextLex()
+cResLex  cSerialTokenParser::GetNextLex()
 {
     try
     {
@@ -196,7 +208,7 @@ tResLex  cSerialTokenParser::GetNextLex()
     }
     catch (cEOF_Exception anE)
     {
-         return tResLex("",eLexP::eEnd);
+         return cResLex("",eLexP::eEnd);
     }
 
 }
@@ -215,7 +227,7 @@ cXmlSerialTokenParser::cXmlSerialTokenParser(const std::string & aName,eTypeSeri
 
 bool  cXmlSerialTokenParser::BeginPonctuation(char aC) const { return aC=='<'; }
 
-tResLex cXmlSerialTokenParser::AnalysePonctuation(char aC)
+cResLex cXmlSerialTokenParser::AnalysePonctuation(char aC)
 {
     aC =  GetNotEOF();
     eLexP aLex= eLexP::eDown;
@@ -234,7 +246,7 @@ tResLex cXmlSerialTokenParser::AnalysePonctuation(char aC)
             aRes += aC;
     }
 
-    return tResLex(aRes,aLex);
+    return cResLex(aRes,aLex);
 }
 
 /*============================================================*/
@@ -243,18 +255,52 @@ tResLex cXmlSerialTokenParser::AnalysePonctuation(char aC)
 /*                                                            */
 /*============================================================*/
 
-cSerialTree::cSerialTree(const std::string & aValue,int aDepth) :
-   mValue (aValue),
-   mDepth (aDepth)
+cSerialTree::cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP) :
+   mLexP    (aLexP),
+   mValue   (aValue),
+   mDepth   (aDepth),
+   mMaxDSon (aDepth)
 {
 }
 
-cSerialTree::cSerialTree(cSerialTokenGenerator & aGenerator,int aDepth) :
-   mDepth (aDepth)
+bool cSerialTree::TerminalNode() const
+{
+	return mDepth == mMaxDSon;
+}
+
+bool cSerialTree::IsTab() const
+{
+    if (mLexP != eLexP::eUp)  
+        return false;
+
+    for (const auto & aSon : mSons)
+        if (! aSon.TerminalNode())
+           return false;
+
+    return true;
+}
+
+bool cSerialTree::IsSingleTaggedVal() const
+{
+	return IsTab() && (mSons.size()==1);
+}
+
+
+void cSerialTree::UpdateMaxDSon()
+{
+    UpdateMax(mMaxDSon,mSons.back().mMaxDSon);
+}
+
+cSerialTree::cSerialTree(cSerialTokenGenerator & aGenerator,int aDepth,eLexP aLexP) :
+   mLexP    (aLexP),
+   mDepth   (aDepth),
+   mMaxDSon (aDepth)
 {
     for(;;)
     {
-        auto [aStr,aLex] = aGenerator.GetNextLex();
+        cResLex aRL= aGenerator.GetNextLex();
+	const std::string& aStr = aRL.mVal;
+	eLexP aLex  = aRL.mLexP;
 
 	if (aLex==eLexP::eEnd)
 	{
@@ -267,16 +313,19 @@ cSerialTree::cSerialTree(cSerialTokenGenerator & aGenerator,int aDepth) :
         int aDec =  DecLevel(aLex);
 	if (aDec>0)
 	{
-            mSons.push_back(cSerialTree(aGenerator,aDepth+1));
+            mSons.push_back(cSerialTree(aGenerator,aDepth+1,aLex));
 	    mSons.back().mValue = aStr;
+	    UpdateMaxDSon();
 	}
 	else if (aDec<0)
 	{
+	     mComment = aRL.mComment;
              return;
 	}
 	else
 	{
-            mSons.push_back(cSerialTree(aStr,aDepth+1));
+            mSons.push_back(cSerialTree(aStr,aDepth+1,aLex));
+	    UpdateMaxDSon();
 	}
     }
 }
@@ -290,25 +339,94 @@ void  cSerialTree::Indent(cMMVII_Ofs & anOfs) const
 void  cSerialTree::Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
 {
      bool IsTag = (mDepth!=0) && (!mSons.empty());
+     bool OneLine = (mMaxDSon <= mDepth+1);
+
+
      if (mDepth!=0)
      {
-	Indent(anOfs);
 	if (IsTag)
-            anOfs.Ofs()  << "<" << mValue << ">\n";
+	{
+	    Indent(anOfs);
+            anOfs.Ofs()  << "<" << mValue << ">";
+	}
 	else 
-           anOfs.Ofs()<< mValue << "\n";
+	{
+           if (!OneLine)
+	       Indent(anOfs);
+           anOfs.Ofs()<< mValue ;
+	}
+
+	if (!OneLine)
+            anOfs.Ofs()  << "\n";
      }
+     int aK=0;
      for (const auto & aSon : mSons)
      {
+        if (OneLine && (aK!=0))
+            anOfs.Ofs()  << " ";
+		
         aSon.Xml_PrettyPrint(anOfs);
+	aK++;
      }
-     if ((mDepth!=0) && (!mSons.empty()))
+     if (IsTag && (mDepth!=0) )  // && (!mSons.empty()))
      {
-	Indent(anOfs);
-	if (IsTag) 
-           anOfs.Ofs()<< "</" <<  mValue   << ">\n";
+        if (!OneLine)
+	    Indent(anOfs);
+        anOfs.Ofs()<< "</" <<  mValue   << ">";
+	if (mComment!="")
+	{
+            anOfs.Ofs()  << " " << TheXMLBeginCom << mComment << TheXMLEndCom;
+	}
+        anOfs.Ofs()<< "\n";
      }
 }
+
+void  cSerialTree::Raw_PrettyPrint(cMMVII_Ofs & anOfs) const
+{
+     // bool OneLine = (mMaxDSon <= mDepth+1);
+      Indent(anOfs);
+      anOfs.Ofs() <<   mValue ;
+      if (TerminalNode())  anOfs.Ofs() << " *";
+      else if (IsSingleTaggedVal())  anOfs.Ofs() << " @";
+      else if (IsTab())  anOfs.Ofs() << " #";
+      anOfs.Ofs() << "\n";
+      for (const auto & aSon : mSons)
+      {
+           aSon.Raw_PrettyPrint(anOfs);
+      }
+}
+
+void  cSerialTree::Json_PrettyPrint(cMMVII_Ofs & anOfs) const
+{
+      if (IsSingleTaggedVal())
+      {
+          Indent(anOfs);
+          anOfs.Ofs() <<   mValue << " :" << UniqueSon().mValue << "\n";
+	  return;
+      }
+      if (IsTab())
+      {
+          Indent(anOfs);
+          anOfs.Ofs() <<   mValue << " :[" ;
+	  int aK=0;
+	  for (const auto & aSon : mSons)
+	  {
+               if (aK!=0) anOfs.Ofs() <<  " , ";
+               anOfs.Ofs() <<  aSon.mValue;
+	       aK++;
+	  }
+          anOfs.Ofs() <<   "]\n" ;
+	  return;
+      }
+}
+
+const cSerialTree & cSerialTree::UniqueSon() const
+{
+    MMVII_INTERNAL_ASSERT_tiny(mSons.size()==1,"cSerialTree::UniqueSon");
+
+    return *(mSons.begin());
+}
+
 
 /*============================================================*/
 /*                                                            */
@@ -323,9 +441,9 @@ class cOMakeTreeAr : public cAr2007,
         cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS) ;
         ~cOMakeTreeAr();
      protected :
-	typedef std::list<tResLex>   tContToken;
+	typedef std::list<cResLex>   tContToken;
 
-	tResLex GetNextLex() override;
+	cResLex GetNextLex() override;
         void RawBeginName(const cAuxAr2007& anOT)  override; ///< Put opening tag
         void RawEndName(const cAuxAr2007& anOT)  override;  ///< Put closing tag
 
@@ -336,6 +454,9 @@ class cOMakeTreeAr : public cAr2007,
         void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
 	/// Do nothing because tree-struct contains the information for size
 	void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux) override;
+
+	void AddComment(const std::string &) override;
+
 
 
 	tContToken            mContToken;
@@ -354,18 +475,20 @@ cOMakeTreeAr::cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
 
 void cOMakeTreeAr::RawBeginName(const cAuxAr2007& anOT)  
 {
-    mContToken.push_back(tResLex(anOT.Name(),eLexP::eUp));
+   if (anOT.Name()!= "el")
+      mContToken.push_back(cResLex(anOT.Name(),eLexP::eUp));
 }
 
 void cOMakeTreeAr::RawEndName(const cAuxAr2007& anOT)  
 {
-    mContToken.push_back(tResLex(anOT.Name(),eLexP::eDown));
+   if (anOT.Name()!= "el")
+      mContToken.push_back(cResLex(anOT.Name(),eLexP::eDown));
 }
 
-void cOMakeTreeAr::RawAddDataTerm(int &    anI)           { mContToken.push_back(tResLex(ToStr(anI),eLexP::eStdToken_Int)); }
-void cOMakeTreeAr::RawAddDataTerm(size_t &    anS)        { mContToken.push_back(tResLex(ToStr(anS),eLexP::eStdToken_Size_t)); }
-void cOMakeTreeAr::RawAddDataTerm(double &    aD)         { mContToken.push_back(tResLex(ToStr(aD),eLexP::eStdToken_Double)); }
-void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)   { mContToken.push_back(tResLex(anS,eLexP::eStdToken_String)); }
+void cOMakeTreeAr::RawAddDataTerm(int &    anI)           { mContToken.push_back(cResLex(ToStr(anI),eLexP::eStdToken_Int)); }
+void cOMakeTreeAr::RawAddDataTerm(size_t &    anS)        { mContToken.push_back(cResLex(ToStr(anS),eLexP::eStdToken_Size_t)); }
+void cOMakeTreeAr::RawAddDataTerm(double &    aD)         { mContToken.push_back(cResLex(ToStr(aD),eLexP::eStdToken_Double)); }
+void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)   { mContToken.push_back(cResLex(anS,eLexP::eStdToken_String)); }
 void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)   
 { 
    std::string aStr;
@@ -376,26 +499,39 @@ void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)
        aStr +=  ToHexacode(aICar/16) ;
        aStr +=  ToHexacode(aICar%16) ;
    }
-   mContToken.push_back(tResLex(aStr,eLexP::eStdToken_RD4S)); 
+   mContToken.push_back(cResLex(aStr,eLexP::eStdToken_RD4S)); 
 
 }
 
+void cOMakeTreeAr::AddComment(const std::string & anS)
+{
+      // StdOut() <<  "CCCC " << anS << " " <<  mContToken.back().mVal << "\n";
+       mContToken.back().mComment = anS; 
+}
+
+
 void cOMakeTreeAr::AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux)  {}
 
-tResLex cOMakeTreeAr::GetNextLex() 
+cResLex cOMakeTreeAr::GetNextLex() 
 {
      return *(mItToken++);
 }
 
 cOMakeTreeAr::~cOMakeTreeAr()
 {
-    mContToken.push_back(tResLex("",eLexP::eEnd));
+    mContToken.push_back(cResLex("",eLexP::eEnd));
     mItToken = mContToken.begin();
 
-    cSerialTree aTree(*this,0);
-
-    cMMVII_Ofs anOfs(mNameFile,false);
-    aTree.Xml_PrettyPrint(anOfs);
+    cSerialTree aTree(*this,0,eLexP::eBegin);
+ 
+    {
+        cMMVII_Ofs anOfs(mNameFile,false);
+        aTree.UniqueSon().Xml_PrettyPrint(anOfs);
+    }
+    {
+        cMMVII_Ofs anOfs(Prefix(mNameFile)+"_raw.txt",false);
+        aTree.UniqueSon().Raw_PrettyPrint(anOfs);
+    }
 }
 
 

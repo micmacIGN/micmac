@@ -325,7 +325,7 @@ bool cStreamIXml_Ar2007::GetTag(bool aClose,const std::string & aName)
 
 std::string  cStreamIXml_Ar2007::GetNextStdString()
 {
-	return GetNextLex().first;
+	return GetNextLex().mVal;
 }
 
 

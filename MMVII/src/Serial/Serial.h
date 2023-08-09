@@ -116,7 +116,7 @@ enum class eLexP
           eStdToken_Size_t, ///< standard string int
           eStdToken_Double, ///< standard string int
           eStdToken_String,   ///< string in ""
-          eStdToken_RD4S,   ///< string in ""
+          eStdToken_RD4S,   ///< Data 
           eBegin,    ///< begin, before any read, 
           eEnd,      ///< end of read, like encounter EOF
           eUp,       ///< increase the depth of tree, like  {[(  <hhh>
@@ -124,26 +124,36 @@ enum class eLexP
           eSep       ///<  single separator like ,&:
      };
 
-typedef std::pair<std::string,eLexP>  tResLex;
+// typedef std::pair<std::string,eLexP>  tResLex;
+
+class cResLex
+{
+     public :
+         cResLex(std::string,eLexP);
+
+         std::string  mVal;
+         eLexP        mLexP;
+         std::string  mComment;
+};
 
 class cSerialTokenGenerator
 {
 	public :
-          virtual tResLex GetNextLex() = 0;
+          virtual cResLex GetNextLex() = 0;
 };
 
 class cSerialTokenParser : public cSerialTokenGenerator
 {
      public    :
           cSerialTokenParser(const std::string & aName,eTypeSerial aTypeS);
-          tResLex GetNextLex() override;
+          cResLex GetNextLex() override;
 
      protected :
 
           virtual bool BeginPonctuation(char aC) const = 0;
-          virtual tResLex AnalysePonctuation(char aC)  = 0;
+          virtual cResLex AnalysePonctuation(char aC)  = 0;
 
-          tResLex GetNextLex_NOEOF();
+          cResLex GetNextLex_NOEOF();
 
           inline std::istream  & Ifs() {return mMMIs.Ifs();}
           /// Get a char, and check its not EOF, only access to mMMIs.get() in this class
@@ -175,22 +185,34 @@ class cXmlSerialTokenParser : public cSerialTokenParser
           cXmlSerialTokenParser(const std::string & aName,eTypeSerial aTypeS);
      protected :
           bool BeginPonctuation(char aC) const override;
-          tResLex AnalysePonctuation(char aC)  override;
+          cResLex AnalysePonctuation(char aC)  override;
 };
 
 class cSerialTree
 {
       public :
-          cSerialTree(cSerialTokenGenerator &,int aDepth);
-	  cSerialTree(const std::string & aValue,int aDepth);
+          cSerialTree(cSerialTokenGenerator &,int aDepth,eLexP aLexP);
+	  cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP);
 	  void  Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;
+	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs) const;
+	  void  Raw_PrettyPrint(cMMVII_Ofs& anOfs) const;
 
 
+	  const cSerialTree & UniqueSon() const; 
+     private :
+	  bool TerminalNode() const;
+	  bool IsSingleTaggedVal() const;
+	  bool IsTab() const;
+
+	  void  UpdateMaxDSon();
+	  void  Indent(cMMVII_Ofs& anOfs) const;
+
+	  eLexP       mLexP;
           std::string mValue;
+          std::string mComment;
 	  std::vector<cSerialTree>  mSons;
 	  int         mDepth;
-     private :
-	  void  Indent(cMMVII_Ofs& anOfs) const;
+	  int         mMaxDSon;
 };
 
 cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS);
