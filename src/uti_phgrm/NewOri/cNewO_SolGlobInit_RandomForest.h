@@ -668,6 +668,7 @@ class RandomForest : public cCommonMartiniAppli {
 
     void BestSolOneCC(Dataset& data, cNO_CC_TripSom*, ffinalTree& );
     void BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom*, ffinalTree& );
+    void BestSolOneCCFloydWarshall(Dataset& data, cNO_CC_TripSom*, ffinalTree& );
 
    private:
     void NumeroteCC(Dataset& data);
