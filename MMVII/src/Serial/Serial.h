@@ -194,18 +194,20 @@ class cSerialTree
           cSerialTree(cSerialTokenGenerator &,int aDepth,eLexP aLexP);
 	  cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP);
 	  void  Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;
-	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs) const;
+	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs,bool IsLast) const;
 	  void  Raw_PrettyPrint(cMMVII_Ofs& anOfs) const;
 
 
 	  const cSerialTree & UniqueSon() const; 
      private :
-	  bool TerminalNode() const;
+	  bool IsTerminalNode() const;
+	  void PrintTerminalNode(cMMVII_Ofs&,bool Last) const;
 	  bool IsSingleTaggedVal() const;
+	  void PrintSingleTaggedVal(cMMVII_Ofs&,bool Last) const;
 	  bool IsTab() const;
 
 	  void  UpdateMaxDSon();
-	  void  Indent(cMMVII_Ofs& anOfs) const;
+	  void  Indent(cMMVII_Ofs& anOfs,int aDeltaInd) const;
 
 	  eLexP       mLexP;
           std::string mValue;

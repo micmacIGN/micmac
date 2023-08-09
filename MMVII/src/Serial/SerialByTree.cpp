@@ -263,7 +263,7 @@ cSerialTree::cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP) :
 {
 }
 
-bool cSerialTree::TerminalNode() const
+bool cSerialTree::IsTerminalNode() const
 {
 	return mDepth == mMaxDSon;
 }
@@ -274,7 +274,7 @@ bool cSerialTree::IsTab() const
         return false;
 
     for (const auto & aSon : mSons)
-        if (! aSon.TerminalNode())
+        if (! aSon.IsTerminalNode())
            return false;
 
     return true;
@@ -330,9 +330,9 @@ cSerialTree::cSerialTree(cSerialTokenGenerator & aGenerator,int aDepth,eLexP aLe
     }
 }
 
-void  cSerialTree::Indent(cMMVII_Ofs & anOfs) const
+void  cSerialTree::Indent(cMMVII_Ofs & anOfs,int aDeltaInd) const
 {
-      for (int aK=0 ; aK<(mDepth-1) ; aK++)  
+      for (int aK=0 ; aK<(mDepth-1+aDeltaInd) ; aK++)  
           anOfs.Ofs() << "   ";
 }
 
@@ -346,13 +346,13 @@ void  cSerialTree::Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
      {
 	if (IsTag)
 	{
-	    Indent(anOfs);
+	    Indent(anOfs,0);
             anOfs.Ofs()  << "<" << mValue << ">";
 	}
 	else 
 	{
            if (!OneLine)
-	       Indent(anOfs);
+	       Indent(anOfs,0);
            anOfs.Ofs()<< mValue ;
 	}
 
@@ -371,7 +371,7 @@ void  cSerialTree::Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
      if (IsTag && (mDepth!=0) )  // && (!mSons.empty()))
      {
         if (!OneLine)
-	    Indent(anOfs);
+	    Indent(anOfs,0);
         anOfs.Ofs()<< "</" <<  mValue   << ">";
 	if (mComment!="")
 	{
@@ -384,9 +384,9 @@ void  cSerialTree::Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
 void  cSerialTree::Raw_PrettyPrint(cMMVII_Ofs & anOfs) const
 {
      // bool OneLine = (mMaxDSon <= mDepth+1);
-      Indent(anOfs);
+      Indent(anOfs,0);
       anOfs.Ofs() <<   mValue ;
-      if (TerminalNode())  anOfs.Ofs() << " *";
+      if (IsTerminalNode())  anOfs.Ofs() << " *";
       else if (IsSingleTaggedVal())  anOfs.Ofs() << " @";
       else if (IsTab())  anOfs.Ofs() << " #";
       anOfs.Ofs() << "\n";
@@ -396,18 +396,18 @@ void  cSerialTree::Raw_PrettyPrint(cMMVII_Ofs & anOfs) const
       }
 }
 
-void  cSerialTree::Json_PrettyPrint(cMMVII_Ofs & anOfs) const
+void  cSerialTree::PrintTerminalNode(cMMVII_Ofs & anOfs,bool Last) const
 {
-      if (IsSingleTaggedVal())
-      {
-          Indent(anOfs);
-          anOfs.Ofs() <<   mValue << " :" << UniqueSon().mValue << "\n";
-	  return;
-      }
-      if (IsTab())
-      {
-          Indent(anOfs);
-          anOfs.Ofs() <<   mValue << " :[" ;
+      Indent(anOfs,1);
+      anOfs.Ofs() <<   Quote(mValue) << " :" << UniqueSon().mValue;
+      if (! Last) anOfs.Ofs() <<  " ,";
+      anOfs.Ofs() <<  "\n";
+}
+
+void  cSerialTree::PrintSingleTaggedVal(cMMVII_Ofs & anOfs,bool Last) const
+{
+          Indent(anOfs,1);
+          anOfs.Ofs() <<   Quote(mValue) << " :[" ;
 	  int aK=0;
 	  for (const auto & aSon : mSons)
 	  {
@@ -415,9 +415,41 @@ void  cSerialTree::Json_PrettyPrint(cMMVII_Ofs & anOfs) const
                anOfs.Ofs() <<  aSon.mValue;
 	       aK++;
 	  }
-          anOfs.Ofs() <<   "]\n" ;
-	  return;
+          anOfs.Ofs() <<   "]" ;
+          if (! Last) anOfs.Ofs() <<  " ,";
+          anOfs.Ofs() <<   "\n" ;
+}
+
+
+
+
+void  cSerialTree::Json_PrettyPrint(cMMVII_Ofs & anOfs,bool IsLast) const
+{
+      Indent(anOfs,1);
+      anOfs.Ofs() <<   "{\n" ;
+      int aK = mSons.size();
+      for (const auto & aSon : mSons)
+      {
+          aK--;
+          if (aSon.IsSingleTaggedVal())
+          {
+              aSon.PrintTerminalNode(anOfs,aK==0);
+          }
+          else  if (aSon.IsTab())
+          {
+              aSon.PrintSingleTaggedVal(anOfs,aK==0);
+          }
+          else
+          {
+               aSon.Indent(anOfs,1);
+               anOfs.Ofs() <<   Quote(aSon.mValue) << " :\n" ;
+               aSon.Json_PrettyPrint(anOfs,aK==0);
+          }
       }
+      Indent(anOfs,1);
+      anOfs.Ofs() <<   "}" ;
+      if (!IsLast) anOfs.Ofs() <<   " ," ;
+      anOfs.Ofs() <<   "\n" ;
 }
 
 const cSerialTree & cSerialTree::UniqueSon() const
@@ -488,7 +520,10 @@ void cOMakeTreeAr::RawEndName(const cAuxAr2007& anOT)
 void cOMakeTreeAr::RawAddDataTerm(int &    anI)           { mContToken.push_back(cResLex(ToStr(anI),eLexP::eStdToken_Int)); }
 void cOMakeTreeAr::RawAddDataTerm(size_t &    anS)        { mContToken.push_back(cResLex(ToStr(anS),eLexP::eStdToken_Size_t)); }
 void cOMakeTreeAr::RawAddDataTerm(double &    aD)         { mContToken.push_back(cResLex(ToStr(aD),eLexP::eStdToken_Double)); }
-void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)   { mContToken.push_back(cResLex(anS,eLexP::eStdToken_String)); }
+void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)   
+{ 
+    mContToken.push_back(cResLex(Quote(anS),eLexP::eStdToken_String)); 
+}
 void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)   
 { 
    std::string aStr;
@@ -531,6 +566,10 @@ cOMakeTreeAr::~cOMakeTreeAr()
     {
         cMMVII_Ofs anOfs(Prefix(mNameFile)+"_raw.txt",false);
         aTree.UniqueSon().Raw_PrettyPrint(anOfs);
+    }
+    {
+        cMMVII_Ofs anOfs(Prefix(mNameFile)+"_json.txt",false);
+        aTree.Json_PrettyPrint(anOfs,true);
     }
 }
 
