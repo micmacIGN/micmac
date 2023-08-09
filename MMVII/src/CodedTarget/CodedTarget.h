@@ -229,8 +229,10 @@ class  cDCT : public cBaseTE
          bool mFinalState;
          double mSizeTargetEllipse;
          std::vector<cPt2dr> mDetectedCorners;
-         std::vector<cPt2di> mDetectedVectors;
          std::vector<cPt2di> mDetectedEllipse;
+         std::vector<cPt2di> mDetectedVectors;
+         std::vector<cPt2di> mDetectedVectors1;
+         std::vector<cPt2di> mDetectedVectors2;
          std::vector<cPt2di> mDetectedFrame;
 
          bool mRecomputed;

@@ -174,6 +174,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         std::string mXml;         ///< Print xml output in file
         int mDebugPlot;           ///< Debug plot code (binary)
         double mMaxEcc;           ///< Max. eccentricity of detected ellispes
+        double mLinedUpPx;        ///< Max. alignment error on axes detection
         bool mSaddle;             ///< Prefiletring with Saddle test
         double mMargin;           ///< Percent margin of butterfly edge used for fit
 
@@ -237,6 +238,7 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mRecompute       (false),
    mXml             (""),
    mMaxEcc          (1e9),
+   mLinedUpPx       (1.5),
    mSaddle          (false),
    mMargin          (0.20),
    mToRestrict      ({}),
@@ -288,6 +290,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
                     << AOpt2007(mXml, "Xml", "Export to xml filename (empty=no xml output)", {eTA2007::HDV})
                     << AOpt2007(mDebugPlot, "Debug", "Options mask for debug image", {eTA2007::HDV})
                     << AOpt2007(mMaxEcc, "MaxEcc", "Max. eccentricity of targets", {eTA2007::HDV})
+                    << AOpt2007(mLinedUpPx, "LinedUpPx", "Max. alignment error on axes detection", {eTA2007::HDV})
                     << AOpt2007(mSaddle, "Saddle", "Prefiltering with saddle test", {eTA2007::HDV})
                     << AOpt2007(mMargin, "Margin", "Margin on butterfly edge for fit", {eTA2007::HDV})
                     << AOpt2007(mToRestrict, "Restrict", "List of codes to restrict on", {eTA2007::HDV})
@@ -595,7 +598,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
         }
 
         if (aPtrDCT->mState == eResDCT::Ok){
-            if (!TestDirDCT(*aPtrDCT,APBI_Im(), 0.4*mRayMinCB, 0.8*mRayMinCB, aPtrDCT->mDetectedVectors)){
+            if (!TestDirDCT(*aPtrDCT,APBI_Im(), 0.4*mRayMinCB, 0.8*mRayMinCB, aPtrDCT->mDetectedVectors, mLinedUpPx)){
                 aPtrDCT->mState = eResDCT::BadDir;
             }else{
                 mVDCTOk.push_back(aPtrDCT);
@@ -767,7 +770,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
         double min_ray_adjust = 0.4*mRayMinCB;
         double max_ray_adjust = 0.8*aDCT->mSizeTargetEllipse;
 
-        TestDirDCT(*aDCT, APBI_Im(), min_ray_adjust, max_ray_adjust, aDCT->mDetectedVectors);
+        TestDirDCT(*aDCT, APBI_Im(), min_ray_adjust, max_ray_adjust, aDCT->mDetectedVectors, mLinedUpPx);
 
         // Recomputing intersections if needed
         aDCT->mDetectedCorners = solveIntersections(aDCT, param);
@@ -980,13 +983,21 @@ void cAppliExtractCodeTarget::plotDebugImage(cDCT* target, const cDataIm2D<float
     }
 
     // ----------------------------------------------------------------------------------------------------------
-    // [004] 0000000100 plot only transitions on circles around candidate targets (yellow pixels)
+    // [004] 0000000100 plot only transitions on circles around candidate targets (orange or yellow pixels)
     // ----------------------------------------------------------------------------------------------------------
     if (mBitsPlotDebug[2]){
-        cPt3di color = (target->mRecomputed?cRGBImage::Yellow:cRGBImage::Orange);
-        for (unsigned i=0; i<target->mDetectedVectors.size(); i++){
-            plotSafeRectangle(mImVisu, target->mDetectedVectors.at(i), 0, color, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+
+        cPt3di color1 = (target->mRecomputed?cRGBImage::Yellow:cRGBImage::Orange);
+        cPt3di color2 = (target->mRecomputed?cRGBImage::Orange:cRGBImage::Yellow);
+        
+        for (unsigned i=0; i<target->mDetectedVectors1.size(); i++){
+            plotSafeRectangle(mImVisu, target->mDetectedVectors1.at(i), 0, color1, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
         }
+        
+        for (unsigned i=0; i<target->mDetectedVectors2.size(); i++){
+            plotSafeRectangle(mImVisu, target->mDetectedVectors2.at(i), 0, color2, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+        }
+        
     }
 
     // ----------------------------------------------------------------------------------------------------------

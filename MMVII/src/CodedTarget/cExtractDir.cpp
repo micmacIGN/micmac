@@ -94,9 +94,78 @@ double TestDir(const cGeomSimDCT & aGT,const cDCT  &aDCT)
 }
 
 
-template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT){
+double TestAlignmentsOfDir(std::vector<cPt2di> transitions){
+	
+	double x, y, det;
+	double mse = 0;
+	double n = transitions.size();
+	
+	double mx  = 0;
+	double my  = 0;
+	double mxx = 0;
+	double myy = 0;
+	double mxy = 0;
+	
+	double a, b, norm2;
+
+	for (unsigned i=0; i<n; i++){
+		x = transitions.at(i).x();
+		y = transitions.at(i).y();
+		mx  += x;
+		my  += y;
+		mxx += x*x;
+		myy += y*y;
+		mxy += x*y;
+	}
+	
+	det = mxx*myy - mxy*mxy;
+	
+	a = (myy*mx-mxy*my)/det;
+	b = (mxx*my-mxy*mx)/det;
+	norm2 = a*a + b*b;
+
+	for (unsigned i=0; i<n; i++){
+		x = transitions.at(i).x();
+		y = transitions.at(i).y();
+		mse += pow(abs(a*x + b*y - 1), 2)/norm2;
+	}
+	
+	
+/*
+	
+	StdOut() << "A = [\n";
+
+	for (unsigned i=0; i<n; i++){
+		x = transitions.at(i).x();
+		y = transitions.at(i).y();
+		StdOut() << x << "," << y << "\n";
+	}
+			
+	StdOut() << "];\n B=[";
+	
+	for (unsigned i=0; i<n; i++){
+		x = transitions.at(i).x();
+		y = transitions.at(i).y();
+		StdOut() << x << "," << -a/b*x+1.0/b << "\n";
+	}
+	
+	StdOut() << "];\n";
+
+	StdOut() << "plot(A(:,1), A(:,2), 'ro'); hold on; plot(B(:,1), B(:,2), 'b-');\n";
+	
+*/
+	
+	return mse/n;
+
+}
+
+double TestAlignmentsOfDirs(std::vector<cPt2di> transitions1, std::vector<cPt2di> transitions2){
+	return(sqrt(TestAlignmentsOfDir(transitions1) + TestAlignmentsOfDir(transitions2)));
+}
 
 
+template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, double lined_up_px){
+	
      mPDCT = & aDCT;  // memorize as internal variables
      std::vector<float>  aVVals;  // vectors of value of pixel , here to avoir reallocation
      std::vector<bool>   aVIsW;   // vector of boolean IsWhite ?  / IsBlack ?
@@ -126,7 +195,7 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT){
          }
 
          int aCpt = 0;
-
+         
          // parse the value to detect black/white transitions
          for (int  aKp=0 ; aKp<aNbInC ; aKp++){
 
@@ -147,6 +216,11 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT){
                 // -----------------------------------------------------------------------------------
                 // REPRESENTATION OF TRANSITIONS
                 aDCT.mDetectedVectors.push_back(cPt2di(aC.x()+radius*aDir.x(), aC.y()+radius*aDir.y()));
+                if (aVIsW[aKp]){
+					aDCT.mDetectedVectors1.push_back(cPt2di(aC.x()+radius*aDir.x(), aC.y()+radius*aDir.y()));
+				} else {
+					aDCT.mDetectedVectors2.push_back(cPt2di(aC.x()+radius*aDir.x(), aC.y()+radius*aDir.y()));
+				}
                 // -----------------------------------------------------------------------------------
 
                 aDir = aDir * aDir;  // make a tensor of it => double its angle, complexe-point multiplication
@@ -155,19 +229,21 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT){
              }
          }
 
-
          // if we dont have exactly 4 transition, there is someting wrong ...
          if (aCpt!=4)  {
             return false;
         }
 
      }
-
+     
+    if (TestAlignmentsOfDirs(aDCT.mDetectedVectors1, aDCT.mDetectedVectors2) > lined_up_px) return false;
+    
      // now recover from the tensor one of its two vectors (we have no control one which)
      for (auto & aDir : aSomDir)
      {
          aDir = ToPolar(aDir,0.0);  // cartesian => polar  P= (Rho,Theta)
          aDir = FromPolar(1.0,aDir.y()/2.0);  // polar=>cartesian  P.y() = theta
+         
      }
 
      aDCT.mDirC1 = aSomDir[1];
@@ -268,7 +344,7 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
 
 template class cExtractDir<tREAL4>;
 
-bool TestDirDCT(cDCT & aDCT, cIm2D<tREAL4> anIm, double ray_min, double ray_max, std::vector<cPt2di>& vec2plot){
+bool TestDirDCT(cDCT & aDCT, cIm2D<tREAL4> anIm, double ray_min, double ray_max, std::vector<cPt2di>& vec2plot, double lined_up_px){
 
 
 /*
@@ -282,7 +358,7 @@ bool TestDirDCT(cDCT & aDCT, cIm2D<tREAL4> anIm, double ray_min, double ray_max,
 
     cExtractDir<tREAL4>  anED(anIm, ray_min, ray_max);
 
-    bool Ok = anED.CalcDir(aDCT);
+    bool Ok = anED.CalcDir(aDCT, lined_up_px);
 
 
     if (!Ok) return false;
