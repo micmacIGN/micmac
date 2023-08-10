@@ -206,6 +206,8 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         int mSizeYIndoor;
         int mSizeXDrone;
         int mSizeYDrone;
+        int mSizeXDroneSym;
+        int mSizeYDroneSym;
         
 };
 
@@ -256,7 +258,9 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mSizeXIndoor     (600),
    mSizeYIndoor     (600),
    mSizeXDrone      (600),
-   mSizeYDrone      (1096)
+   mSizeYDrone      (1096),
+   mSizeXDroneSym   (600),
+   mSizeYDroneSym   (900)
 {
 }
 
@@ -804,11 +808,12 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // ======================================================================
 
     tImTarget aImT = generateRectifiedImage(aDCT, aDIm);
+    
 
     // ======================================================================
     // Decoding
     // ======================================================================
-
+    
     std::string chaine = decodeTarget(aImT.DIm(), aDCT);;
 
     if (mToRestrict.size() > 0){
@@ -893,10 +898,19 @@ bool cAppliExtractCodeTarget::printDebug(std::string name, double value, double 
 tImTarget cAppliExtractCodeTarget::generateRectifiedImage(cDCT* aDCT, const cDataIm2D<float>& aDIm){
 
 
-    int Ni = (mSpec->Type() == eTyCodeTarget::eIGNDroneTop)?mSizeXDrone:mSizeXIndoor;
-    int Nj = (mSpec->Type() == eTyCodeTarget::eIGNDroneTop)?mSizeYIndoor:mSizeYIndoor;
-    int offset =  (mSpec->Type() == eTyCodeTarget::eIGNDroneTop)?((mSizeYDrone-mSizeYIndoor)/2):0;
+	int Ni = mSizeXIndoor;
+	int Nj = mSizeYIndoor;
+	
+	if  (mSpec->Type() == eTyCodeTarget::eIGNDroneTop) {
+		Ni = mSizeXDrone;
+		Nj = mSizeYIndoor;
+	}
+	if (mSpec->Type() == eTyCodeTarget::eIGNDroneSym){
+		Ni = mSizeXDroneSym;
+		Nj = mSizeYDroneSym;
+	}    
     
+    int offset =  (mSpec->Type() == eTyCodeTarget::eIGNDroneTop)?((mSizeYDrone-mSizeYIndoor)/2):0;
   
     tImTarget aImT(cPt2di(Ni, Nj));
     tDataImT & aDImT = aImT.DIm();
