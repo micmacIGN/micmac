@@ -260,7 +260,7 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mSizeXDrone      (600),
    mSizeYDrone      (1096),
    mSizeXDroneSym   (600),
-   mSizeYDroneSym   (900)
+   mSizeYDroneSym   (848)
 {
 }
 
@@ -903,7 +903,7 @@ tImTarget cAppliExtractCodeTarget::generateRectifiedImage(cDCT* aDCT, const cDat
 	
 	if  (mSpec->Type() == eTyCodeTarget::eIGNDroneTop) {
 		Ni = mSizeXDrone;
-		Nj = mSizeYIndoor;
+		Nj = mSizeYDrone;
 	}
 	if (mSpec->Type() == eTyCodeTarget::eIGNDroneSym){
 		Ni = mSizeXDroneSym;
@@ -1509,8 +1509,6 @@ std::vector<double> cAppliExtractCodeTarget::estimateAffinity(std::vector<cPt2dr
     for (unsigned i=0; i<6; i++) transfo[i] = x.GetElem(0,i);
     cDenseMatrix<double> V = A*x-B;
 
-    transfo[6] = sqrt((V.Transpose()*V).GetElem(0,0)/(2*N-6)) ;
-
     return transfo;
 
 }
@@ -1668,9 +1666,21 @@ std::string cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, cDCT* aDCT){
 // ---------------------------------------------------------------------------
 std::vector<cPt2dr> cAppliExtractCodeTarget::getEncodingPositions(tDataImT & aDImT, cDCT* aDCT){
 	
-	int mark_orientation_drone_x = 180; 
+	int mark_orientation_drone_x = mPCT.mCenterF.x() - mPCT.mCornEl1.x(); 
 	
 	int offset_drone = (mSpec->Type() == eTyCodeTarget::eIGNDroneTop)?((mSizeYDrone-mSizeYIndoor)/2):0;
+	
+	int size_x = mSizeXDrone;
+	int size_y = mSizeYDrone;
+	
+	if (mSpec->Type() == eTyCodeTarget::eIGNDroneSym){
+		size_x = mSizeXDroneSym;
+		size_y = mSizeYDroneSym;
+	}
+	if (mSpec->Type() == eTyCodeTarget::eIGNIndoor){
+		size_x = mSizeXIndoor;
+		size_y = mSizeYIndoor;
+	}
 	
 	double thw = aDCT->mVWhite;
 	double thb = aDCT->mVBlack;
@@ -1678,7 +1688,7 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::getEncodingPositions(tDataImT & aDI
 	
 	bool to_invert = false;
 	
-	if (mSpec->Type() == eTyCodeTarget::eIGNDroneTop){
+	if ((mSpec->Type() == eTyCodeTarget::eIGNDroneTop) || (mSpec->Type() == eTyCodeTarget::eIGNDroneSym)){
 		double xm1 = mPCT.mCenterF.x() - mark_orientation_drone_x;
 		double xm2 = mPCT.mCenterF.x() + mark_orientation_drone_x;
 		double ym  = mPCT.mCenterF.y() + offset_drone;
@@ -1689,14 +1699,18 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::getEncodingPositions(tDataImT & aDI
 		to_invert = (value1 < value2);
 	}
 	
+	if (mSpec->Type() == eTyCodeTarget::eIGNDroneSym){
+		to_invert = !to_invert;
+	}
+	
 	std::vector<cPt2dr> output;
 	const std::vector<cPt2dr>& vec = mSpec->BitsCenters();
 	for (unsigned i=0; i<vec.size(); i++){
 		double x = vec.at(i).x();
 		double y = vec.at(i).y() + offset_drone;
 		if (to_invert){
-			x = mSizeXDrone-x;
-			y = mSizeYDrone-y;
+			x = size_x-x;
+			y = size_y-y;
 		}
 		output.push_back(cPt2dr(x, y));
 	}
