@@ -13,13 +13,13 @@
 namespace MMVII
 {
 
-class cAr2007 ;
-class cEOF_Exception;
-enum class eLexP;
-class cSerialTokenGenerator;
-class cSerialTokenParser ;
-class cXmlSerialTokenParser ;
-class cSerialTree;
+class cAr2007 ; // base class of all archives (serializer)
+class cEOF_Exception;  // use to catch End of File w/o by exception
+enum class eLexP;  //  possible value of lexical analysis
+class cSerialTokenGenerator;  //  base class for stuff generaing token (file, list of token ..)
+class cSerialTokenParser ;   // base class for token generator resulting from file parsing
+class cXmlSerialTokenParser ; // instantiation of cSerialTokenParser to xml files
+class cSerialTree;  //  class for representing in a tree the "grammatical" parsing of a token generator
 
 
 /// Base class of all archive class
@@ -117,6 +117,7 @@ enum class eLexP
           eStdToken_Double, ///< standard string int
           eStdToken_String,   ///< string in ""
           eStdToken_RD4S,   ///< Data 
+          eSizeCont,    ///< mean that the value is the size of a container that will require special treatment
           eBegin,    ///< begin, before any read, 
           eEnd,      ///< end of read, like encounter EOF
           eUp,       ///< increase the depth of tree, like  {[(  <hhh>
@@ -140,14 +141,19 @@ class cSerialTokenGenerator
 {
 	public :
           virtual cResLex GetNextLex() = 0;
+          cResLex GetNextLexSizeCont() ;
+          cResLex GetNextLexNotSizeCont() ;
 };
 
-class cSerialTokenParser : public cSerialTokenGenerator
+class cSerialTokenParser : public cSerialTokenGenerator,
+	                   public cMemCheck
 {
      public    :
           cSerialTokenParser(const std::string & aName,eTypeSerial aTypeS);
-          cResLex GetNextLex() override;
+	  virtual ~cSerialTokenParser();
+	  static cSerialTokenParser *  Alloc(const std::string & aName,eTypeSerial aTypeS);
 
+          cResLex GetNextLex() override;
      protected :
 
           virtual bool BeginPonctuation(char aC) const = 0;
@@ -182,7 +188,7 @@ extern const char * TheXMLEndCom    ;
 class cXmlSerialTokenParser : public cSerialTokenParser
 {
      public :
-          cXmlSerialTokenParser(const std::string & aName,eTypeSerial aTypeS);
+          cXmlSerialTokenParser(const std::string & aName);
      protected :
           bool BeginPonctuation(char aC) const override;
           cResLex AnalysePonctuation(char aC)  override;

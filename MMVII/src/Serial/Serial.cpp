@@ -283,7 +283,7 @@ class cStreamIXml_Ar2007 : public cAr2007,
      public :
           cStreamIXml_Ar2007(const std::string & aName,eTypeSerial aTypeS) : 
                 cAr2007        (true,(aTypeS!=eTypeSerial::etxt),false), // Input, Tagged,Binary
-                cXmlSerialTokenParser   (aName,aTypeS)
+                cXmlSerialTokenParser   (aName)
            {
            }
 

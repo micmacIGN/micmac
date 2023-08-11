@@ -49,6 +49,25 @@ cResLex::cResLex(std::string aVal,eLexP aLexP) :
 
 /*============================================================*/
 /*                                                            */
+/*             cSerialTokenGenerator                          */
+/*                                                            */
+/*============================================================*/
+
+cResLex cSerialTokenGenerator::GetNextLexSizeCont() 
+{
+   cResLex aRes = GetNextLex();
+   MMVII_INTERNAL_ASSERT_tiny(aRes.mLexP == eLexP::eSizeCont,"cSerialTree::UniqueSon");
+
+   return aRes;
+}
+
+
+//cResLex GetNextLexSize() override;
+// cResLex GetNextLexNotSize() override;
+
+
+/*============================================================*/
+/*                                                            */
 /*             cSerialTokenParser                             */
 /*                                                            */
 /*============================================================*/
@@ -61,12 +80,30 @@ cSerialTokenParser::cSerialTokenParser(const std::string & aName,eTypeSerial aTy
 {
 }
 
+cSerialTokenParser::~cSerialTokenParser()
+{
+}
+
+
+cSerialTokenParser *  cSerialTokenParser::Alloc(const std::string & aName,eTypeSerial aTypeS)
+{
+    switch (aTypeS) 
+    {
+         case eTypeSerial::exml : return new  cXmlSerialTokenParser(aName);
+	 default : {}
+    }
+
+    MMVII_UnclasseUsEr("Bad enum for cSerialTokenParser::Alloc");
+    return nullptr;
+}
+
+
 void cSerialTokenParser::Error(const std::string & aMesLoc)
 {
     std::string aMesGlob =   aMesLoc + "\n"
                            + "while processing file=" +  mMMIs.Name() + " at char " + ToS(int(Ifs().tellg()));
 
-    MMVII_INTERNAL_ASSERT_bench(false,aMesGlob);
+    MMVII_UnclasseUsEr(aMesGlob);
 }
 
 int cSerialTokenParser::GetNotEOF()
@@ -219,8 +256,8 @@ cResLex  cSerialTokenParser::GetNextLex()
 /*                                                            */
 /*============================================================*/
 
-cXmlSerialTokenParser::cXmlSerialTokenParser(const std::string & aName,eTypeSerial aTypeS) :
-	cSerialTokenParser(aName,aTypeS)
+cXmlSerialTokenParser::cXmlSerialTokenParser(const std::string & aName) :
+	cSerialTokenParser(aName,eTypeSerial::exml)
 {
 }
 
@@ -254,6 +291,8 @@ cResLex cXmlSerialTokenParser::AnalysePonctuation(char aC)
 /*                       cSerialTree                          */
 /*                                                            */
 /*============================================================*/
+
+static bool DEBUG=false;
 
 cSerialTree::cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP) :
    mLexP    (aLexP),
@@ -298,18 +337,21 @@ cSerialTree::cSerialTree(cSerialTokenGenerator & aGenerator,int aDepth,eLexP aLe
 {
     for(;;)
     {
+if (DEBUG) StdOut() << "cSerialTree::cSerialTree " << __LINE__ << "\n";
         cResLex aRL= aGenerator.GetNextLex();
 	const std::string& aStr = aRL.mVal;
 	eLexP aLex  = aRL.mLexP;
 
 	if (aLex==eLexP::eEnd)
 	{
+if (DEBUG) StdOut() << "cSerialTree::cSerialTree " << __LINE__ << "\n";
 	    if (aDepth!=0)
 	    {
                MMVII_UnclasseUsEr("cSerialTree unexpected EOF");
 	    }
 	    return;
 	}
+if (DEBUG) StdOut() << "cSerialTree::cSerialTree " << __LINE__ << "\n";
         int aDec =  DecLevel(aLex);
 	if (aDec>0)
 	{
@@ -459,12 +501,86 @@ const cSerialTree & cSerialTree::UniqueSon() const
     return *(mSons.begin());
 }
 
+/*============================================================*/
+/*                                                            */
+/*                cIMakeTreeAr                                */
+/*                                                            */
+/*============================================================*/
+
+class cIMakeTreeAr // : public cAr2007
+	           //   public cSerialTokenGenerator
+{
+     public :
+        cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS) ;
+        //~cIMakeTreeAr();
+     protected :
+	typedef std::list<cResLex>   tContToken;
+
+	/*
+	cResLex GetNextLex() override;
+        void RawBeginName(const cAuxAr2007& anOT)  override; ///< Put opening tag
+        void RawEndName(const cAuxAr2007& anOT)  override;  ///< Put closing tag
+
+        void RawAddDataTerm(int &    anI)  override;  ///< write int in text
+        void RawAddDataTerm(size_t &    anI) override;
+        void RawAddDataTerm(double &    anI)  override;  ///< write double in text
+        void RawAddDataTerm(std::string &    anI)  override; // write string
+        void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
+	/// Do nothing because tree-struct contains the information for size
+	void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux) override;
+
+	void AddComment(const std::string &) override;
+
+
+
+	tContToken            mContToken;
+	tContToken::iterator  mItToken;
+	*/
+        std::string           mNameFile;
+	eTypeSerial           mTypeS;
+};
+
+cIMakeTreeAr::cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
+    mNameFile (aName),
+    mTypeS    (aTypeS)
+{
+   DEBUG = true;
+   StdOut() << "cIMakeTreeAr " << mNameFile << "\n";
+
+   cSerialTokenParser *  aSTP = cSerialTokenParser::Alloc(mNameFile,aTypeS);
+   cSerialTree aTree(*aSTP,0,eLexP::eBegin);
+
+
+   {
+        std::string aNewName = Prefix(mNameFile)+"_3.xml";
+        cMMVII_Ofs anOfs(aNewName,false);
+        aTree.Xml_PrettyPrint(anOfs);
+   }
+
+   delete aSTP;
+}
+
 
 /*============================================================*/
 /*                                                            */
 /*                cOMakeTreeAr                                */
 /*                                                            */
 /*============================================================*/
+
+/**  Class for creating  serializing an object by creating an explicit tree representation 
+ *   (in a "cSerialTree"), instead of the more basic class using streaming.
+ *
+ *   Basically :
+ *      - the method called in serialization "AddData.." and  "RawBeginName..." generate tokens
+ *      that are memorized in a list (it contains the nature of the call and the string associated)
+ *
+ *      - at  destruction of object :
+ *          *  an explicit cSerialTree is created from the object (which is a cSerialTokenGenerator)
+ *          * the this tree is exported in xml, json of whatever dialect which is implemented in  the "xxx_PrettyPrint" method
+ *          of  "cSerialTree"
+ *
+ *    Crystal clear, isn't it ? ;-))
+ */
 
 class cOMakeTreeAr : public cAr2007,
 	             public cSerialTokenGenerator
@@ -560,15 +676,20 @@ cOMakeTreeAr::~cOMakeTreeAr()
     cSerialTree aTree(*this,0,eLexP::eBegin);
  
     {
-        cMMVII_Ofs anOfs(mNameFile,false);
-        aTree.UniqueSon().Xml_PrettyPrint(anOfs);
+        std::string aNewName = Prefix(mNameFile)+"_2.xml";
+        {
+            cMMVII_Ofs anOfs(aNewName,false);
+            aTree.UniqueSon().Xml_PrettyPrint(anOfs);
+        }
+
+        cIMakeTreeAr aIAMR(aNewName,eTypeSerial::exml);
     }
     {
         cMMVII_Ofs anOfs(Prefix(mNameFile)+"_raw.txt",false);
         aTree.UniqueSon().Raw_PrettyPrint(anOfs);
     }
     {
-        cMMVII_Ofs anOfs(Prefix(mNameFile)+"_json.txt",false);
+        cMMVII_Ofs anOfs(Prefix(mNameFile)+"_2.json",false);
         aTree.Json_PrettyPrint(anOfs,true);
     }
 }
@@ -579,29 +700,7 @@ cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)
     return new cOMakeTreeAr(aName,aTypeS);
 }
 
-/*============================================================*/
-/*                                                            */
-/*                           ::                               */
-/*                                                            */
-/*============================================================*/
 
-/*
-void TestcNodeSerial()
-{
-	cSerialTree aN("",0);
-	aN.mSons.push_back(aN);
-}
-
-void TestGenerikPARSE(const std::string& aName)
-{
-    cXmlSerialTokenParser aXmlParse(aName,eTypeSerial::exml);
-
-    StdOut() << "\n\n";
-    cSerialTree aTree(aXmlParse,0);
-    // aTree.Xml_PrettyPrint();
-    getchar();
-}
-*/
 
 
 };
