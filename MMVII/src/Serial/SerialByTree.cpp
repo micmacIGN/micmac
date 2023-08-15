@@ -501,7 +501,7 @@ const cSerialTree & cSerialTree::UniqueSon() const
     return *(mSons.begin());
 }
 
-void cSerialTree::Unfold(std::list<cResLex> &) const;
+void cSerialTree::Unfold(std::list<cResLex> &) const
 {
 }
 
