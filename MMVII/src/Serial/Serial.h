@@ -205,6 +205,8 @@ class cSerialTree
 
 
 	  const cSerialTree & UniqueSon() const; 
+
+	  void Unfold(std::list<cResLex> &) const;
      private :
 	  bool IsTerminalNode() const;
 	  void PrintTerminalNode(cMMVII_Ofs&,bool Last) const;

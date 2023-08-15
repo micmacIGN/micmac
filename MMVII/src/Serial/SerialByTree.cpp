@@ -501,6 +501,10 @@ const cSerialTree & cSerialTree::UniqueSon() const
     return *(mSons.begin());
 }
 
+void cSerialTree::Unfold(std::list<cResLex> &) const;
+{
+}
+
 /*============================================================*/
 /*                                                            */
 /*                cIMakeTreeAr                                */
@@ -554,7 +558,7 @@ cIMakeTreeAr::cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
    {
         std::string aNewName = Prefix(mNameFile)+"_3.xml";
         cMMVII_Ofs anOfs(aNewName,false);
-        aTree.Xml_PrettyPrint(anOfs);
+        aTree.UniqueSon().Xml_PrettyPrint(anOfs);
    }
 
    delete aSTP;
