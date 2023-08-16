@@ -433,6 +433,7 @@ template <class Type>  class cName2Calc
            {
              if (SVP) return nullptr;
              UserSError("Cannot extract allocator. Check that this application was recompiled after code generation",aName);
+             return nullptr; // to prevent reaching next return
            }
            return anIter->second;
        }
