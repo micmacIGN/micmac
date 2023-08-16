@@ -157,6 +157,7 @@ cPt2di cParamCodedTarget::ToMultiple_2DeZoom(const cPt2di &aSz) const
 }
 
 
+
 cParamCodedTarget::cParamCodedTarget() :
    mType             (eTyCodeTarget::eIGNIndoor),  // used to create problem in reading serial, solved, but maintain fake-init
    mNbBit            (9),
@@ -474,12 +475,18 @@ bool    cStraightNP2B::PNormIsCoding(const cPt2dr & aPt) const
 
 int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
 {
-
+    bool  isLine2 =   (aPt.y()>mSep2L)  ;
     int aRes = round_down((aPt.x()+mRho1)/(2*mRho1) *mNbBS2)  ;
+
+    // MPD 16/08/23 => correction because  want a trigonometrique ordrer of bits
+    // so that bit-shift correspond to rotations
+    if (mIsSym && isLine2)
+    {
+        aRes =  mNbBS2-1 - aRes;
+    }
     aRes = std::max(0,std::min(aRes,mNbBS2-1));
 
 
-    bool  isLine2 =   (aPt.y()>mSep2L)  ;
 
    aRes =  aRes +  mNbBS2* isLine2;
 
@@ -585,7 +592,7 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
      mRho2C      (Square(mRhoC)),
      mWOriTab    (mRender.mRayOrientTablet >0),
      mRayOT      (mRender.mRayOrientTablet),
-     mCenterOT   (mRender.mCenterOrientTablet),
+     mCenterOT   (mRender.mCenterOrientTablet * FromPolar(1.0,(M_PI/4.0+mTeta0))),
      mRayCT      (mRender.mRayCenterMiniTarget),
      mRay2CT     (Square(mRayCT))
 {
@@ -976,6 +983,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
    ;
 }
 
+// cParamCodedTarget   mRayOrientTablet
 
 cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
@@ -992,6 +1000,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mPCT.mChessboardAng,"Theta","Origin angle of chessboard pattern ",{eTA2007::HDV})
           << AOpt2007(mPCT.mWhiteBackGround,"WhiteBG","White back ground")
           << AOpt2007(mPCT.mModeFlight,"ModeFlight","Special mode for Patricio ",{eTA2007::HDV})
+	  << AOpt2007(mPCT.mRayOrientTablet,"SzOrFig","Size of \"diamond\" for orientation")
           << AOpt2007(mDoMarkC,"MarkC","Mark center of bits, just for verif ",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mZoomShow,"ZoomShow","Zoom to generate a high resolution check images",{eTA2007::Tuning})
    ;
