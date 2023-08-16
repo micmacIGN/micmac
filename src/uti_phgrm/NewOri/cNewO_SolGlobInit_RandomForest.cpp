@@ -1444,13 +1444,13 @@ void orientFinalTree(Dataset& data, finalTree& tree, cNOSolIn_Triplet* t, int de
 void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
                                         ffinalTree& tree) {
     //Start Djikstra
-    size_t NbTriplet = aCC->mTri.size();
+    //size_t NbTriplet = aCC->mTri.size();
     std::map<cNOSolIn_Triplet*, double> bestdist;
     std::map<cNOSolIn_Triplet*, cNOSolIn_Triplet*> bestprev;
     std::map<cNOSolIn_Triplet*, cLinkTripl*> bestlinks;
 
     double distMean = std::numeric_limits<double>::infinity();
-    cNOSolIn_Triplet* bestroot = aCC->mTri[0];
+    cNOSolIn_Triplet* bestroot = GetBestTri(data);
 
     for (auto i : aCC->mTri) {
         bestdist[i] = std::numeric_limits<double>::infinity();
@@ -1458,8 +1458,9 @@ void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
         bestlinks[i] = nullptr;
     }
 
-    for (size_t k = 0; k < NbTriplet; k++) {
-        auto root = aCC->mTri[k];
+    auto root = bestroot;
+    //for (size_t k = 0; k < NbTriplet; k++) {
+    //    auto root = aCC->mTri[k];
 
         std::map<cNOSolIn_Triplet*, double> dist;
         std::map<cNOSolIn_Triplet*, cNOSolIn_Triplet*> prev;
@@ -1514,11 +1515,13 @@ void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
             }
 
             //if (e.second > dmax)
-                dmax += e.second;
+            //    dmax = e.second;
+            dmax += e.second;
         }
         (void)nbinf;
 
-        double m = dmax/ dist.size();
+        double m = dmax / (dist.size() - nbinf);
+        //double m = dmax;
         {
             if (m < distMean) {
                 distMean = m;
@@ -1531,9 +1534,9 @@ void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
 
         //std::cout << "Compute root: " << root->print() << m << " " << nbinf
         //          << std::endl;
-    }
+    //}
 
-    cNOSolIn_Triplet* root = bestroot;
+    //cNOSolIn_Triplet* root = bestroot;
 
     std::cout << "Found root: " << root->print() << std::endl;
 
@@ -1574,6 +1577,9 @@ void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
     for (auto s : aCC->mSoms) {
         weight[s] = std::numeric_limits<double>::infinity();
     }
+    weight[root->KSom(0)] = 0;
+    weight[root->KSom(1)] = 0;
+    weight[root->KSom(2)] = 0;
     while (!s.empty()) {
         cNOSolIn_Triplet* node = s.front();
         s.pop_front();
@@ -1585,12 +1591,15 @@ void RandomForest::BestSolOneCCDjikstra(Dataset& data, cNO_CC_TripSom* aCC,
         if (!link)
             continue;
 
-        if (weight[link->S3()] <= node->Cost())
-        //if (oriented.count(link->S3()))
+        //if (weight[link->S3()] <= node->Cost())
+        double alt = (weight[link->S1()] + weight[link->S2()]) / 2. + node->Cost();
+        //if (weight[link->S3()] < alt)
+        if (oriented.count(link->S3()))
             continue;
 
         oriented.insert(link->S3());
-        weight[link->S3()] = node->Cost();
+        //weight[link->S3()] = node->Cost();
+        weight[link->S3()] = alt;
 
         /*
         if (!oriented.count(link->S1()) ||
