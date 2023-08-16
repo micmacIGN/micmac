@@ -416,8 +416,11 @@ bool cSetMesPtOf1Im::NameHasMeasure(const std::string & aN) const {return Privat
 cMes1GCP::cMes1GCP(const cPt3dr & aPt,const std::string & aNamePt,tREAL4 aSigma) :
     mPt       (aPt),
     mNamePt   (aNamePt),
-    mSigma2   {aSigma,0,0,aSigma,0,aSigma}
+    mSigma2   {0,0,0,0,0,0}
 {
+    mSigma2[IndXX] = aSigma;
+    mSigma2[IndYY] = aSigma;
+    mSigma2[IndZZ] = aSigma;
 }
 
 cMes1GCP::cMes1GCP() :
@@ -587,6 +590,55 @@ std::vector<cPt3dr> cSet2D3D::VP3() const
         aRes.push_back(aPair.mP3);
 
     return aRes;
+}
+
+/**********************************************/
+/*                                            */
+/*           cFilterMesIm                     */
+/*                                            */
+/**********************************************/
+
+cFilterMesIm::cFilterMesIm(cPhotogrammetricProject & aPhProj,const std::string & aNameIm)  :
+    mPhProj      (aPhProj),
+    mMesIm       (aNameIm),
+    mFinished    (false)
+{
+    mPhProj.LoadGCP(mImGCP);  // init new GCP/IM with GCP
+}
+
+void cFilterMesIm::AddInOrOut(const cPt2dr & aPtIm,const std::string & aNamePt,bool isIn)
+{
+     MMVII_INTERNAL_ASSERT_medium(!mFinished,"cFilterMesIm::AddInOut while fnished");
+     cMesIm1Pt aMes(aPtIm,aNamePt,1.0 );
+     if (isIn)
+     {
+        mMesIm.AddMeasure(cMesIm1Pt(aPtIm,aNamePt,1.0 ));
+     }
+     else
+     {
+        mSupr.push_back(aNamePt);
+     }
+}
+
+void cFilterMesIm::SetFinished()
+{
+    if (! mFinished)
+       mImGCP.AddMes2D(mMesIm);
+
+    mFinished = true;
+}
+const cSetMesImGCP &   cFilterMesIm::SetMesImGCP()
+{
+     SetFinished();
+     return mImGCP;
+}
+
+void cFilterMesIm::Save()
+{
+     MMVII_INTERNAL_ASSERT_medium(mFinished,"cFilterMesIm::Sve while not fnished");
+     mPhProj.SaveMeasureIm(mMesIm);
+
+     mPhProj.SaveAndFilterAttrEll(mMesIm,mSupr);
 }
 
 

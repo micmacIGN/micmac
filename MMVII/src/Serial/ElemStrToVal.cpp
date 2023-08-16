@@ -1,4 +1,3 @@
-
 #include <map>
 #include "MMVII_util.h"
 #include "MMVII_enums.h"
@@ -148,7 +147,6 @@ template<> cE2Str<eOpAff>::tMapE2Str cE2Str<eOpAff>::mE2S
                            {eOpAff::eEq,"="},
                            {eOpAff::eReset,"=0"}
            };
-TPL_ENUM_2_STRING(eOpAff);
 
 
 template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
@@ -160,7 +158,6 @@ template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
                {eProjPC::eOrthoGraphik,"OrthoGraphik"},
                {eProjPC::eEquiRect,"eEquiRect"}
            };
-TPL_ENUM_2_STRING(eProjPC);
 
 
 
@@ -170,7 +167,6 @@ template<> cE2Str<eTySC>::tMapE2Str cE2Str<eTySC>::mE2S
                            {eTySC::NonInit,MMVII_NONE},
                            {eTySC::US,"unordered"},
            };
-TPL_ENUM_2_STRING(eTySC);
 
 
 template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
@@ -205,7 +201,6 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::Range,"##Range"},
                 {eTA2007::FFI,"FFI"}
            };
-TPL_ENUM_2_STRING(eTA2007);
 
 template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
            {
@@ -224,7 +219,6 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::NoGui,"NoGui"},
                 {eApF::Perso,"Perso"}
            };
-TPL_ENUM_2_STRING(eApF);
 
 
 template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
@@ -244,7 +238,6 @@ template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
                 {eApDT::FileSys,"FileSys"},
                 {eApDT::Media,"Media"},
            };
-TPL_ENUM_2_STRING(eApDT);
 
 
 template<> cE2Str<eTyNums>::tMapE2Str cE2Str<eTyNums>::mE2S
@@ -261,7 +254,6 @@ template<> cE2Str<eTyNums>::tMapE2Str cE2Str<eTyNums>::mE2S
                 {eTyNums::eTN_REAL16,"REAL16"},
                 {eTyNums::eTN_UnKnown,"Unknown"}
            };
-TPL_ENUM_2_STRING(eTyNums);
 
 
 template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
@@ -300,7 +292,6 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 
-TPL_ENUM_2_STRING(eTyUEr);
 
 template<> cE2Str<eTyInvRad>::tMapE2Str cE2Str<eTyInvRad>::mE2S
            {
@@ -309,7 +300,6 @@ template<> cE2Str<eTyInvRad>::tMapE2Str cE2Str<eTyInvRad>::mE2S
                 {eTyInvRad::eTVIR_ACR0,"eTVIR_ACR0"},
                 {eTyInvRad::eTVIR_Curve,"eTVIR_Curve"}
            };
-TPL_ENUM_2_STRING(eTyInvRad);
 
 template<> cE2Str<eTyPyrTieP>::tMapE2Str cE2Str<eTyPyrTieP>::mE2S
            {
@@ -318,7 +308,6 @@ template<> cE2Str<eTyPyrTieP>::tMapE2Str cE2Str<eTyPyrTieP>::mE2S
                 {eTyPyrTieP::eTPTP_Corner,"Corner"},
                 {eTyPyrTieP::eTPTP_OriNorm,"OriNorm"}
            };
-TPL_ENUM_2_STRING(eTyPyrTieP);
 
 template<> cE2Str<eModeEpipMatch>::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
            {
@@ -326,7 +315,6 @@ template<> cE2Str<eModeEpipMatch>::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
                 {eModeEpipMatch::eMEM_PSMNet,"PSMNet"},
                 {eModeEpipMatch::eMEM_NoMatch,"NoMatch"}
            };
-TPL_ENUM_2_STRING(eModeEpipMatch);
 
 template<> cE2Str<eModeTestPropCov>::tMapE2Str cE2Str<eModeTestPropCov>::mE2S
            {
@@ -335,7 +323,6 @@ template<> cE2Str<eModeTestPropCov>::tMapE2Str cE2Str<eModeTestPropCov>::mE2S
                 {eModeTestPropCov::eMTPC_PtsRFix     ,"PtsRFix"},
                 {eModeTestPropCov::eMTPC_PtsRUk      ,"PtsRUk"}
            };
-TPL_ENUM_2_STRING(eModeTestPropCov);
 
 
 
@@ -346,7 +333,6 @@ template<> cE2Str<eModePaddingEpip>::tMapE2Str cE2Str<eModePaddingEpip>::mE2S
                 {eModePaddingEpip::eMPE_PxNeg,"PxNeg"},
                 {eModePaddingEpip::eMPE_SzEq,"SzEq"}
            };
-TPL_ENUM_2_STRING(eModePaddingEpip);
 
 template<> cE2Str<eDCTFilters>::tMapE2Str cE2Str<eDCTFilters>::mE2S
            {
@@ -355,7 +341,6 @@ template<> cE2Str<eDCTFilters>::tMapE2Str cE2Str<eDCTFilters>::mE2S
                 {eDCTFilters::eRad,"Rad"},
                 {eDCTFilters::eGrad,"Grad"}
            };
-TPL_ENUM_2_STRING(eDCTFilters);
 
 
 template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
@@ -365,7 +350,6 @@ template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
                 {eTyCodeTarget::eIGNDroneTop,"IGNDroneTop"},
                 {eTyCodeTarget::eCERN,"CERN"}
            };
-TPL_ENUM_2_STRING(eTyCodeTarget);
 
 template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
            {
@@ -374,7 +358,6 @@ template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
                 {eMTDIm::eModelCam,"ModelCam"},
                 {eMTDIm::eAdditionalName,"AdditionalName"}
            };
-TPL_ENUM_2_STRING(eMTDIm);
 
 template<> cE2Str<eFormatExtern>::tMapE2Str cE2Str<eFormatExtern>::mE2S
            {
@@ -382,17 +365,16 @@ template<> cE2Str<eFormatExtern>::tMapE2Str cE2Str<eFormatExtern>::mE2S
                 {eFormatExtern::eMeshRoom,"MeshRoom"},
                 {eFormatExtern::eColMap,"ColMap"}
            };
-TPL_ENUM_2_STRING(eFormatExtern);
 
 
 template<> cE2Str<eTypeSerial>::tMapE2Str cE2Str<eTypeSerial>::mE2S
            {
                 {eTypeSerial::exml,"xml"},
+                {eTypeSerial::exml2,"xml2"},
                 {eTypeSerial::edmp,"dmp"},
                 {eTypeSerial::etxt,"txt"},
                 {eTypeSerial::ejson,"json"}
            };
-TPL_ENUM_2_STRING(eTypeSerial);
 
 
 
@@ -489,7 +471,8 @@ template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
                 {eModeCaracMatch::eSTD_Cen8,"STD_Cen8"}
 
            };
-TPL_ENUM_2_STRING(eModeCaracMatch);
+
+
 /****************************  BENCH **************************/
 
 /// Bench enum, template
@@ -529,7 +512,651 @@ void BenchEnum(cParamExeBench & aParam)
 }
 
 
+/* ========================== */
+/*          cEnumAttr         */
+/* ========================== */
+
+template <class TypeEnum> cEnumAttr<TypeEnum>::cEnumAttr(TypeEnum aType,const std::string & anAux) :
+   mType (aType),
+   mAux  (anAux)
+{
+}
+template <class TypeEnum> cEnumAttr<TypeEnum>::cEnumAttr(TypeEnum aType) :
+   cEnumAttr<TypeEnum>(aType,"")
+{
+}
+template <class TypeEnum> TypeEnum            cEnumAttr<TypeEnum>::Type() const {return mType;}
+template <class TypeEnum> const std::string & cEnumAttr<TypeEnum>::Aux()  const {return mAux;}
+
+
+/* ========================== */
+/*    cES_PropertyList        */
+/* ========================== */
+
+template <class TypeEnum> cES_PropertyList<TypeEnum>::cES_PropertyList(const tAllPairs & aAllPairs) :
+   mAllPairs (aAllPairs)
+{
+}
+
+template <class TypeEnum> const typename  cES_PropertyList<TypeEnum>::tAllPairs & cES_PropertyList<TypeEnum>::AllPairs() const
+{
+   return mAllPairs;
+}
+
+
+template class cEnumAttr<eTA2007>;
+template class cES_PropertyList<eTA2007>;
+
+
+/* ========================== */
+/*             ::             */
+/* ========================== */
+
+
+std::string  Name4Help(const tSemA2007 & aSem)
+{
+   if (int(aSem.Type()) < int(eTA2007::AddCom))
+   {
+      return E2Str(aSem.Type()) + aSem.Aux();
+   }
+
+   return "";
+}
+
+
+
+/* ========================== */
+/*          cSpecOneArg2007   */
+/* ========================== */
+
+const std::vector<tSemA2007>   cSpecOneArg2007::TheEmptySem;
+
+cSpecOneArg2007::cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tAllSemPL & aVPL) :
+   mName  (aName),
+   mCom   (aCom),
+   mSemPL (aVPL)
+{
+    ReInit();
+}
+
+cSpecOneArg2007::~cSpecOneArg2007()
+{
+}
+
+void cSpecOneArg2007::ReInit()
+{
+   mNbMatch = 0;
+}
+
+
+std::string  cSpecOneArg2007::Name4Help() const
+{
+   std::string aRes;
+   int aNb=0;
+   for (const auto & aSem : SemPL())
+   {
+      std::string aStr = MMVII::Name4Help(aSem);
+      if (aStr!="")
+      {
+         if (aNb==0)
+            aRes = " [";
+         else
+            aRes = aRes + ",";
+         aRes = aRes + aStr;
+         aNb++;
+      }
+   }
+   if (aNb!=0)
+      aRes += "]";
+   return aRes;
+}
+
+std::list<std::string>  cSpecOneArg2007::AddComs() const
+{
+   std::list<std::string> aRes;
+   for (const auto & aSem : SemPL())
+   {
+      if (aSem.Type()== eTA2007::AddCom)
+         aRes.push_back(aSem.Aux());
+      if (aSem.Type()== eTA2007::AllowedValues)
+         aRes.push_back("Allowed values for this enum:{" + aSem.Aux() + "}");
+      if (aSem.Type()== eTA2007::Range)
+         aRes.push_back("Allowed values range:" + aSem.Aux());
+   }
+   return aRes;
+}
+
+
+void cSpecOneArg2007::IncrNbMatch()
+{
+   mNbMatch++;
+}
+
+int  cSpecOneArg2007::NbMatch () const
+{
+   return mNbMatch;
+}
+
+const cSpecOneArg2007::tAllSemPL & cSpecOneArg2007::SemPL() const
+{
+   return mSemPL.AllPairs();
+}
+
+bool cSpecOneArg2007::HasType(const eTA2007 & aType,std::string * aValue) const
+{
+    for (const auto & aSem : SemPL())
+    {
+       if (aSem.Type() == aType)
+       {
+          if (aValue) 
+             *aValue =  aSem.Aux();
+          return true;
+       }
+   }
+
+    return false;
+}
+
+const std::string  & cSpecOneArg2007::Name() const
+{
+   return mName;
+}
+
+const std::string  & cSpecOneArg2007::Value() const
+{
+   return mValue;
+}
+
+const std::string  & cSpecOneArg2007::Com() const
+{
+   return mCom;
+}
+
+void  cSpecOneArg2007::InitParam(const std::string & aStr) 
+{
+   mValue = aStr;
+   V_InitParam(aStr);
+}
+
+
+/* ============================ */
+/*          cCollecSpecArg2007  */
+/* ============================ */
+
+
+cCollecSpecArg2007 & cCollecSpecArg2007::operator << (tPtrArg2007 aVal)
+{
+    mV.push_back(aVal);
+    return *this; 
+}
+
+cCollecSpecArg2007::cCollecSpecArg2007()
+{
+}
+
+size_t cCollecSpecArg2007::size() const
+{
+   return mV.size();
+}
+
+tPtrArg2007 cCollecSpecArg2007::operator [] (int aK) const
+{
+   return mV.at(aK);
+}
+
+void cCollecSpecArg2007::clear()
+{
+   mV.clear();
+}
+
+tVecArg2007 & cCollecSpecArg2007::Vec()
+{
+   return mV;
+}
+
+
+
+
+/* ============================================== */
+/*                                                */
+/*       cInstReadOneArgCL2007                    */
+/*                                                */
+/* ============================================== */
+
+template<typename T> struct is_vector : public std::false_type {};
+
+template<typename T, typename A>
+struct is_vector<std::vector<T, A>> : public std::true_type {};
+
+
+template <class Type> void  GlobCheckSize(const Type & ,const std::string & anArg) 
+{
+    MMVII_INTERNAL_ASSERT_always(false,"Check size vect for non vect arg");
+}
+
+template <class Type> void  GlobCheckSize(const std::vector<Type> & aVal,const std::string & anArg) 
+{
+    cPt2di aSz = cStrIO<cPt2di>::FromStr(anArg);
+    if ((int(aVal.size()) < aSz.x()) || ((int(aVal.size()) > aSz.y()))) 
+    {
+       MMVII_UsersErrror(eTyUEr::eBadSize4Vect,"IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
+    }
+}
+
+
+template <class Type> class cInstReadOneArgCL2007 : public cSpecOneArg2007
+{
+    public :
+
+       void  CheckSize(const std::string & anArg) const override 
+       {
+               GlobCheckSize(mVal,anArg);
+       }
+
+       bool IsVector() const override
+       {
+           return  is_vector<Type>::value;
+       }
+
+
+
+        void V_InitParam(const std::string & aStr) override
+        {
+            mVal = cStrIO<Type>::FromStr(aStr);
+        }
+        cInstReadOneArgCL2007 (Type & aVal,const std::string & aName,const std::string & aCom,const tAllSemPL & aVSem) :
+              cSpecOneArg2007(aName,aCom,aVSem),
+              mVal         (aVal)
+        {
+        }
+        const std::string & NameType() const override 
+        {
+            return  cStrIO<Type>::msNameType;
+        }
+        void * AdrParam() override {return &mVal;}
+        std::string NameValue() const override {return ToStr(mVal);}
+
+    private :
+        Type &          mVal;
 };
 
 
+template <class Type> tPtrArg2007 Arg2007(Type & aVal, const std::string & aCom,const cSpecOneArg2007::tAllSemPL & aVSem )
+{
+   return tPtrArg2007(new cInstReadOneArgCL2007<Type>(aVal,"",aCom,aVSem));
+}
 
+
+
+
+template <class Type> tPtrArg2007 AOpt2007(Type & aVal,const std::string & aName, const std::string &aCom,const cSpecOneArg2007::tAllSemPL & aVSem)
+{
+   return  tPtrArg2007(new cInstReadOneArgCL2007<Type>(aVal,aName,aCom,aVSem));
+}
+
+#define MACRO_INSTANTIATE_ARG2007(Type)\
+template tPtrArg2007 Arg2007<Type>(Type &, const std::string & aCom,const cSpecOneArg2007::tAllSemPL & aVSem);\
+template tPtrArg2007 AOpt2007<Type>(Type &,const std::string & aName, const std::string & aCom,const cSpecOneArg2007::tAllSemPL & aVSem);
+
+MACRO_INSTANTIATE_ARG2007(size_t)
+MACRO_INSTANTIATE_ARG2007(int)
+MACRO_INSTANTIATE_ARG2007(double)
+MACRO_INSTANTIATE_ARG2007(bool)
+MACRO_INSTANTIATE_ARG2007(std::string)
+MACRO_INSTANTIATE_ARG2007(std::vector<std::string>)
+MACRO_INSTANTIATE_ARG2007(std::vector<int>)
+MACRO_INSTANTIATE_ARG2007(std::vector<double>)
+MACRO_INSTANTIATE_ARG2007(cPt2di)
+MACRO_INSTANTIATE_ARG2007(cPt2dr)
+MACRO_INSTANTIATE_ARG2007(cPt3di)
+MACRO_INSTANTIATE_ARG2007(cPt3dr)
+MACRO_INSTANTIATE_ARG2007(cBox2di)
+MACRO_INSTANTIATE_ARG2007(cBox2dr)
+MACRO_INSTANTIATE_ARG2007(cBox3di)
+MACRO_INSTANTIATE_ARG2007(cBox3dr)
+
+
+
+
+/**
+    This file contains the implemenation of conversion between strings and 
+   atomic and some non atomic object
+*/
+
+/* ==================================== */
+/*                                      */
+/*         std::vector<T>               */
+/*                                      */
+/* ==================================== */
+
+static char BufStrIO[1000];
+
+//  vector<int>  => [1,2,3]
+
+template <class Type>  std::string Vect2Str(const std::vector<Type>  & aV)
+{
+   std::string aRes ="[";
+   for (int aK=0 ; aK<(int)aV.size() ; aK++)
+   {
+      if (aK>0)
+         aRes += ",";
+      aRes += ToStr(aV[aK]);
+   }
+   aRes += "]";
+   return aRes;
+}
+
+template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
+{
+   std::vector<Type> aRes;
+   const char * aC=aStrGlob.c_str();
+   if (*aC!='[')
+       MMVII_UsersErrror(eTyUEr::eParseError,"expected [ at beging of vect");
+   aC++;
+   while((*aC) && *aC!=']')
+   {
+       std::string aStrV;
+       while ((*aC) && (*aC!=',') && (*aC!=']'))
+          aStrV += *(aC++);
+       if (!(*aC))
+          MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string while expecting \",\"");
+       aRes.push_back(cStrIO<Type>::FromStr(aStrV)); 
+       if (*aC==',')
+          aC++;
+   }
+   if (*aC!=']')
+      MMVII_UsersErrror(eTyUEr::eParseError,"unexpected end of string while expecting \"]\"");
+   aC++;
+
+   return  aRes;
+}
+
+                          //   - - std::vector<Type>  - -
+
+#define MACRO_INSTANTITATE_STRIO_VECT_TYPE(TYPE)\
+template <>  std::string cStrIO<std::vector<TYPE>>::ToStr(const std::vector<TYPE>  & aV)\
+{\
+   return  Vect2Str(aV);\
+}\
+template <>  std::vector<TYPE> cStrIO<std::vector<TYPE> >::FromStr(const std::string & aStr)\
+{\
+    return Str2Vec<TYPE>(aStr);\
+}\
+template <>  const std::string cStrIO<std::vector<TYPE>>::msNameType = "std::vector<"  #TYPE  ">";\
+
+MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::string)
+MACRO_INSTANTITATE_STRIO_VECT_TYPE(int)
+MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
+
+/* ==================================== */
+/*                                      */
+/*         cPtxd                        */
+/*                                      */
+/* ==================================== */
+
+                          //   - - cPtxd  - -
+
+
+#define MACRO_INSTANTITATE_STRIO_CPTXD(TYPE,DIM)\
+template <>  std::string cStrIO<cTplBox<TYPE,DIM> >::ToStr(const cTplBox<TYPE,DIM>  & aV)\
+{\
+  std::vector<TYPE> aVec;\
+  for (int aD=0; aD<DIM; aD++) aVec.push_back(aV.P0()[aD]);\
+  for (int aD=0; aD<DIM; aD++) aVec.push_back(aV.P1()[aD]);\
+  return Vect2Str(aVec);\
+}\
+template <>  std::string cStrIO<cPtxd<TYPE,DIM> >::ToStr(const cPtxd<TYPE,DIM>  & aV)\
+{\
+  return Vect2Str(std::vector<TYPE>(aV.PtRawData(),aV.PtRawData()+cPtxd<TYPE,DIM>::TheDim));\
+}\
+template <>  cPtxd<TYPE,DIM> cStrIO<cPtxd<TYPE,DIM> >::FromStr(const std::string & aStr)\
+{\
+    std::vector<TYPE> aV = cStrIO<std::vector<TYPE>>::FromStr(aStr);\
+    if (aV.size()!=DIM)\
+       MMVII_UsersErrror(eTyUEr::eBadDimForPt,"Expect="+ MMVII::ToStr(DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
+    cPtxd<TYPE,DIM> aRes;\
+    for (int aK=0 ; aK<DIM ; aK++)\
+        aRes[aK] = aV[aK];\
+    return aRes;\
+}\
+template <>  cTplBox<TYPE,DIM> cStrIO<cTplBox<TYPE,DIM> >::FromStr(const std::string & aStr)\
+{\
+    std::vector<TYPE> aV = cStrIO<std::vector<TYPE>>::FromStr(aStr);\
+    if (aV.size()!=2*DIM)\
+       MMVII_UsersErrror(eTyUEr::eBadDimForBox,"Expect="+ MMVII::ToStr(2*DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
+    cPtxd<TYPE,DIM> aP0,aP1;\
+    for (int aK=0 ; aK<DIM ; aK++){\
+        aP0[aK] = aV[aK];\
+        aP1[aK] = aV[aK+DIM];\
+    }\
+    return cTplBox<TYPE,DIM>(aP0,aP1);\
+}\
+template <>  const std::string cStrIO<cPtxd<TYPE,DIM> >::msNameType = "cPtxd<" #TYPE ","  #DIM ">";\
+template <>  const std::string cStrIO<cTplBox<TYPE,DIM> >::msNameType = "cTplBox<" #TYPE ","  #DIM ">";\
+
+MACRO_INSTANTITATE_STRIO_CPTXD(int,2)
+MACRO_INSTANTITATE_STRIO_CPTXD(double,2)
+MACRO_INSTANTITATE_STRIO_CPTXD(int,3)
+MACRO_INSTANTITATE_STRIO_CPTXD(double,3)
+
+
+
+
+
+void OneBenchStrIO(std::string aStr,const  std::vector<std::string> & aV)
+{
+   // std::string aStr =
+   std::vector<std::string> aV2 =  cStrIO<std::vector<std::string> >::FromStr(aStr);
+   if(aV!=aV2)
+   {
+      StdOut() << "STR=" << aStr << "\n";
+      StdOut() << "VEC=[";
+      for (int aK=0 ; aK<int(aV2.size()) ; aK++)
+      {
+         if (aK!=0) StdOut() << ",";
+         StdOut() << "{" << aV2[aK] << "}";
+      }
+      StdOut() << "]\n";
+      MMVII_INTERNAL_ASSERT_bench((aV==aV2),"OneBenchStrIO");
+   }
+}
+
+void BenchStrIO(cParamExeBench & aParam)
+{
+   if (! aParam.NewBench("StrIO")) return;
+   OneBenchStrIO("[1,2,3]",{"1","2","3"});
+   OneBenchStrIO("[1]",{"1"});
+   OneBenchStrIO("[]",{});
+   OneBenchStrIO("[,1]",{"","1"});
+   OneBenchStrIO("[,,,1]",{"","","","1"});
+   OneBenchStrIO("[,]",{""});
+   OneBenchStrIO("[1,2,]",{"1","2"});
+   OneBenchStrIO("[1,2,,]",{"1","2",""});
+   OneBenchStrIO("[1,2,,,,]",{"1","2","","",""});
+   // OneBenchStrIO("[,,1,,3,]",{"","","1","","3",""});
+   // Check that we get an error catched
+   //    OneBenchStrIO("[",{});
+   //    OneBenchStrIO("[1,2",{});
+   // getchar();
+   aParam.EndBench();
+}
+
+/* ==================================== */
+/*                                      */
+/*          Enumerated type             */
+/*    eOpAff,                           */
+/*                                      */
+/* ==================================== */
+
+
+#define MACRO_INSTANTITATE_STRIO_ENUM(ETYPE,ENAME)\
+MACRO_INSTANTIATE_ARG2007(ETYPE)\
+TPL_ENUM_2_STRING(ETYPE)\
+template <>  std::string cStrIO<ETYPE>::ToStr(const ETYPE & anEnum) { return  E2Str(anEnum); }\
+template <>  ETYPE cStrIO<ETYPE>::FromStr(const std::string & aStr) { return Str2E<ETYPE>(aStr); }\
+template <>  const std::string cStrIO<ETYPE>::msNameType = ENAME;
+
+MACRO_INSTANTITATE_STRIO_ENUM(eApF,"ApF")
+MACRO_INSTANTITATE_STRIO_ENUM(eApDT,"ApDT")
+MACRO_INSTANTITATE_STRIO_ENUM(eTyNums,"TypeNum")
+MACRO_INSTANTITATE_STRIO_ENUM(eTyUEr,"TyUEr")
+MACRO_INSTANTITATE_STRIO_ENUM(eTyInvRad,"TyInvRad")
+MACRO_INSTANTITATE_STRIO_ENUM(eTyPyrTieP,"TyPyrTieP")
+MACRO_INSTANTITATE_STRIO_ENUM(eProjPC,"ProjPC")
+MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
+MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
+MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")
+MACRO_INSTANTITATE_STRIO_ENUM(eModeCaracMatch,"ModeCaracMatch")
+MACRO_INSTANTITATE_STRIO_ENUM(eDCTFilters,"DCTFilters")
+MACRO_INSTANTITATE_STRIO_ENUM(eTyCodeTarget,"TypeCodedTarget")
+MACRO_INSTANTITATE_STRIO_ENUM(eModeTestPropCov,"TestPropCov")
+MACRO_INSTANTITATE_STRIO_ENUM(eMTDIm,"TypeMTDIm")
+MACRO_INSTANTITATE_STRIO_ENUM(eFormatExtern,"ExternalFormat")
+MACRO_INSTANTITATE_STRIO_ENUM(eTypeSerial,"TypeSerial")
+MACRO_INSTANTITATE_STRIO_ENUM(eTA2007,"TA2007")
+MACRO_INSTANTITATE_STRIO_ENUM(eTySC,"TySC")
+
+
+/* ==================================== */
+/*                                      */
+/*         Atomic native type           */
+/*  bool, int, double, std::string      */
+/*                                      */
+/* ==================================== */
+
+   // ================  bool ==============================================
+
+template <>  std::string cStrIO<bool>::ToStr(const bool & anI)
+{
+   return  anI ? "true" : "false";
+}
+template <>  bool cStrIO<bool>::FromStr(const std::string & aStr)
+{
+    if ((aStr=="1") || UCaseEqual(aStr,"true")) return true;
+    if ((aStr=="0") || UCaseEqual(aStr,"false")) return false;
+
+    MMVII_UsersErrror(eTyUEr::eBadBool,"Bad value for boolean :["+aStr+"]");
+
+    return false;
+}
+
+template <>  const std::string cStrIO<bool>::msNameType = "bool";
+
+   // ================  size_t ==============================================
+
+template <>  std::string cStrIO<size_t>::ToStr(const size_t & aSz)
+{
+   sprintf(BufStrIO,"%zu",aSz);
+   return BufStrIO;
+}
+template <>  size_t cStrIO<size_t>::FromStr(const std::string & aStr)
+{
+    // can be convenient that empty string correspond to zero
+    if (aStr.empty())
+       return 0;
+    size_t aSz;
+    int aNb= sscanf(aStr.c_str(),"%zu",&aSz);
+
+    MMVII_INTERNAL_ASSERT_User((aNb!=0),eTyUEr::eBadInt,"String is not a valid size_t")
+    return aSz;
+}
+template <>  const std::string cStrIO<size_t>::msNameType = "size_t";
+
+
+   // ================  int ==============================================
+
+template <>  std::string cStrIO<int>::ToStr(const int & anI)
+{
+   sprintf(BufStrIO,"%d",anI);
+   return BufStrIO;
+}
+template <>  int cStrIO<int>::FromStr(const std::string & aStr)
+{
+    // can be convenient that empty string correspond to zero
+    if (aStr.empty())
+       return 0;
+    int anI;
+    int aNb= sscanf(aStr.c_str(),"%d",&anI);
+
+    MMVII_INTERNAL_ASSERT_User((aNb!=0),eTyUEr::eBadInt,"String is not a valid int")
+    return anI;
+}
+template <>  const std::string cStrIO<int>::msNameType = "int";
+
+std::string ToStr(int aVal,int aSzMin)
+{
+   std::string aRes = ToStr(std::abs(aVal));
+   while (int(aRes.size())<aSzMin)
+       aRes = "0" + aRes;
+   if (aVal<0)
+       aRes = "-" + aRes;
+   return aRes;
+}
+
+
+
+/*
+std::string  ToS_NbDigit(int aNb,int aNbDig,bool AcceptOverFlow)
+{
+   std::string aRes = ToS(aNb);
+   int aSz = (int)aRes.size();
+   if ((!AcceptOverFlow) && (aSz>aNbDig))
+   {
+       MMVII_INTERNAL_ASSERT_user(eTyUEr::eTooBig4NbDigit,"Pas assez de digit dans ToStringNBD")
+   }
+   for (;aSz<aNbDig ; aSz++)
+   {
+       aRes = "0" + aRes;
+   }
+   return aRes;
+}
+*/
+
+
+   // ================  double ==============================================
+
+template <>  std::string cStrIO<double>::ToStr(const double & anI)
+{
+   sprintf(BufStrIO,"%lg",anI);
+   return BufStrIO;
+}
+template <>  double cStrIO<double>::FromStr(const std::string & aStr)
+{
+    double anI;
+    sscanf(aStr.c_str(),"%lf",&anI);
+    return anI;
+}
+template <>  const std::string cStrIO<double>::msNameType = "double";
+
+std::string FixDigToStr(double aSignedVal,int aNbDig)
+{
+   std::string aFormat = "%."+ToS(aNbDig) + "f";
+   char aBuf[100];
+   sprintf(aBuf,aFormat.c_str(),aSignedVal);
+   return aBuf;
+}
+
+std::string FixDigToStr(double aSignedVal,int aNbBef,int aNbAfter)
+{
+   std::string aFormat = "%0" + ToS(aNbBef+aNbAfter+1) + "."+ToS(aNbAfter) + "f";
+   char aBuf[100];
+   sprintf(aBuf,aFormat.c_str(),aSignedVal);
+   return aBuf;
+}
+
+
+
+   // ================  std::string ==============================================
+
+template <>  std::string cStrIO<std::string>::ToStr(const std::string & aStr)
+{
+   return aStr;
+}
+template <>  std::string cStrIO<std::string>::FromStr(const std::string & aStr)
+{
+    return aStr;
+}
+
+template <>  const std::string cStrIO<std::string>::msNameType = "string";
+
+};

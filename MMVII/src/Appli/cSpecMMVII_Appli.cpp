@@ -210,6 +210,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportGCP);
         //TheVecAll.push_back(&TheSpecTopoComp);
         TheVecAll.push_back(&TheSpecGenArgsSpec);
+        TheVecAll.push_back(&TheSpec_ConvertV1V2_GCPIM);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

@@ -79,6 +79,7 @@ const std::string GIP_KthCall = "KthCall";
 const std::string GIP_LevCall = "LevCall";
 const std::string GIP_ShowAll = "ShowAll";
 const std::string GIP_PGMA = "PrefixGMA";
+const std::string GIP_TIM_GMA = "Prefix_TIM_GMA";
 const std::string GIP_DirProjGMA = "DirGMA";
 const std::string GIP_BenchMode = "BenchMode";
 const std::string GIP_ExecFrom = "ExecFrom";

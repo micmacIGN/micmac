@@ -420,6 +420,7 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
 
       <<  AOpt2007(mShowAll,GIP_ShowAll,"",aInternal)
       <<  AOpt2007(mPrefixGMA,GIP_PGMA," Prefix Global Main Appli",aInternal)
+      <<  AOpt2007(mPrefix_TIM_GMA,GIP_TIM_GMA," Prefix for Time of Global Main Appli",aInternal)
       <<  AOpt2007(mDirProjGMA,GIP_DirProjGMA," Folder Project Global Main Appli",aInternal)
       <<  AOpt2007(mExecFrom,GIP_ExecFrom," Name of the frontend that launched this command",aInternal)
   ;
@@ -617,6 +618,7 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
    if (mGlobalMainAppli)  // Pour communique aux sous process
    {
        mPrefixGMA  = mPrefixNameAppli;
+       mPrefix_TIM_GMA = StrIdTime();
        mDirProjGMA = mDirProject;
    }
 
@@ -1491,10 +1493,13 @@ const std::string & cMMVII_Appli::FullBin()           {return mFullBin;}
 const std::string & cMMVII_Appli::DirTestMMVII()      {return mDirTestMMVII;}
 const std::string & cMMVII_Appli::DirMicMacv1()       {return mDirMicMacv1;}
 
+
 const std::string & cMMVII_Appli::DirRessourcesMMVII()      {return mDirRessourcesMMVII;}
               // Accessors
 const std::string & cMMVII_Appli::DirProject() const  {return mDirProject;}
 int cMMVII_Appli::NbProcAllowed () const {return mNbProcAllowed;}
+const std::string & cMMVII_Appli::PrefixGMA () const {return mPrefixGMA;}
+const std::string & cMMVII_Appli::Prefix_TIM_GMA () const {return mPrefix_TIM_GMA;}
 
 std::string  cMMVII_Appli::DirTmpOfCmd(eModeCreateDir aMode) const
 {
@@ -1591,6 +1596,7 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
        if (
 	          (aPOpt.first != GIP_LevCall) 
                && (aPOpt.first != GIP_PGMA) 
+	       && (aPOpt.first!=  GIP_TIM_GMA)
 	       && (aPOpt.first != GIP_DirProjGMA)
 	       && (aPOpt.first!=  GOP_WW)
 	       && (aPOpt.first!=  GIP_KthCall)
@@ -1618,10 +1624,10 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
    // aComGlob += GIP_LevCall + "=" + ToStr(mLevelCall+1);
    aRes.AddArgs(GIP_LevCall + "=" + ToStr(mLevelCall+1));
    aRes.AddArgs(GIP_PGMA + "=" + mPrefixGMA);
+   aRes.AddArgs(GIP_TIM_GMA + "=" + mPrefix_TIM_GMA);
    aRes.AddArgs(GIP_DirProjGMA + "=" + mDirProjGMA);
    aRes.AddArgs(GOP_WW + "=" +  ToStr(WithWarnings()));
    aRes.AddArgs(GIP_KthCall + "=" +  ToStr(aKthCall));
-   // aRes.AddArgs(GIP_PGMA + "=" + mPrefixGMA);
 
    // If no substitution, it means it was to be added simply
    int aKSubst=0;

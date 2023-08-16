@@ -1,4 +1,5 @@
 #include "cMMVII_Appli.h"
+#include "Serial.h"
 
 #include <boost/version.hpp>
 #if BOOST_VERSION > 106700
@@ -59,72 +60,16 @@ int    cRawData4Serial::NbElem() const {return mNbElem;}
     It is a bit more complicated with tagged format
 */
 
-class cAr2007 : public cMemCheck
+
+void cAr2007::AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux)
 {
-    public  :
-         friend class cAuxAr2007;
+     AddData(cAuxAr2007("Nb",anAux),aNb);
+}
 
-         template <class Type,class TypeCast> inline void TplAddDataTermByCast (const cAuxAr2007& anOT,Type&  aValInit,TypeCast* UnUsed)
-         {
-// StdOut() << "TplAddDataTermByCast " << (int) aValInit << "BINAY" << mBinary << "\n";
-              if (mBinary)
-	      {
-                  cRawData4Serial aRDS = cRawData4Serial::Tpl(&aValInit,1);
-		  RawAddDataTerm(aRDS);
-	      }
-	      else
-	      {
-                   TypeCast aCast = aValInit;
-                   RawAddDataTerm(aCast);
-		   if (mInput)
-                      aValInit = aCast;
-	      }
-         }
-
-         /// default do nothing)
-	 virtual void AddComment(const std::string &);
-         ///  Tagged File = xml Like, important for handling optionnal parameter
-         bool  Tagged() const; 
-         ///  May optimize the action
-         bool  Input() const; 
-         /// Allow to  know by advance if next optionnal value is present, usefull with Xml
-         /// Default return error
-         virtual int NbNextOptionnal(const std::string &);
-         virtual ~cAr2007();
-         virtual void Separator(); /**< Used in final but non atomic type, 
-                                        for ex with Pt : in text separate x,y, in bin do nothing */
-         virtual size_t HashKey() const;
-
-      // Final atomic type for serialization
-         virtual void RawAddDataTerm(int &    anI) =  0; ///< Heriting class descrine how they serialze int
-         virtual void RawAddDataTerm(size_t &    anI) =  0; ///< Heriting class descrine how they serialze int
-         virtual void RawAddDataTerm(double &    anI) =  0; ///< Heriting class descrine how they serialze double
-         virtual void RawAddDataTerm(std::string &    anI) =  0; ///< Heriting class descrine how they serialze string
-         virtual void RawAddDataTerm(cRawData4Serial  &    aRDS) =  0; ///< Heriting class descrine how they serialze string
-								       //
-								     
-	 virtual void OnBeginTab() {}
-	 virtual void OnEndTab() {}
-
-    protected  :
-         cAr2007(bool InPut,bool Tagged,bool Binary);
-         int   mLevel;
-         bool  mInput;
-         bool  mTagged; 
-         bool  mBinary;   //  != from tagged iw we implemant a pure txt format
-     private  :
-
-         /// By default error, to redefine in hashing class
-         /// This message is send before each data is serialized, tagged file put/read their opening tag here
-         virtual void RawBeginName(const cAuxAr2007& anOT);
-         /// This message is send each each data is serialized, tagged file put/read their closing tag here
-         virtual void RawEndName(const cAuxAr2007& anOT);
-
-
-
-
-      // Final non atomic type for serialization
-};
+void AddDataSizeCont(int& aNb,const cAuxAr2007 & anAux)
+{
+     anAux.Ar().AddDataSizeCont(aNb,anAux);
+}
 
 
 void cAr2007::AddComment(const std::string &){}
@@ -316,22 +261,12 @@ int  cAuxAr2007::NbNextOptionnal(const std::string & aTag)  const
    return mAr.NbNextOptionnal(aTag);
 }
 
+
 /*============================================================*/
 /*                                                            */
-/*          cIXml_Ar2007                                      */
+/*          cStreamIXml_Ar2007                                */
 /*                                                            */
 /*============================================================*/
-
-static const char * aXMLBeginCom = "<!--";
-static const char * aXMLEndCom = "-->";
-static const char * aXMLBeginCom2 = "<?";
-static const char * aXMLEndCom2 = "?>";
-
-
-/// Class for recuperating End Of File error
-class cXMLEOF
-{
-};
 
 
 /// Xml read archive
@@ -340,20 +275,20 @@ class cXMLEOF
     Probably the more complicated class for cAr2007
 */
 
-class cIXml_Ar2007 : public cAr2007
+// class 
+
+class cStreamIXml_Ar2007 : public cAr2007,
+	                   public cXmlSerialTokenParser
 {
      public :
-          cIXml_Ar2007(std::string const  & aName,eTypeSerial aTypeS) : 
-                cAr2007     (true,(aTypeS!=eTypeSerial::etxt),false), // Input, Tagged,Binary
-                mMMIs       (aName),
-                mExcepOnEOF (false),
-		mTypeS      (aTypeS)
+          cStreamIXml_Ar2007(const std::string & aName,eTypeSerial aTypeS) : 
+                cAr2007        (true,(aTypeS!=eTypeSerial::etxt),false), // Input, Tagged,Binary
+                cXmlSerialTokenParser   (aName)
            {
            }
 
            bool IsFileOfFirstTag(bool Is2007,const std::string &);
      protected :
-           inline std::istream  & Ifs() {return mMMIs.Ifs();}
 
         // Inherited from cAr2007
            /// put <Tag>
@@ -368,40 +303,40 @@ class cIXml_Ar2007 : public cAr2007
            /// Read next tag, if its what expected return 1, restore state of file
            int NbNextOptionnal(const std::string &) override;
 
-           void Error(const std::string & aMes);
 
-           std::string GetNextString();
+           /// Get one tag
+           bool GetTag(bool close,const std::string & aName);
+	   
+	  /// retunr string after skeep whit, comm .... accept "a b c" , 
+          std::string  GetNextStdString();
 
         // Utilitaire de manipulation 
 
-           /// If found Skeep one extpected string, and indicate if it was found, 
-           bool SkeepOneString(const char * aString);
-           /// Skeep a comment
-           bool SkeepCom();
-           /// Skeep all series of space and comment
-           int  SkeepWhite();
-           /// Skeep one <!-- --> or <? ?>
-           bool SkeepOneKindOfCom(const char * aBeg,const char * anEnd);
-           /// Get one tag
-           bool GetTag(bool close,const std::string & aName);
 
-           /// Get a char, and check its not EOF, only access to mMMIs.get() in this class
-           int GetNotEOF();
-
-
-           cMMVII_Ifs                        mMMIs; ///< secured istream
-           bool                              mExcepOnEOF; ///< Do We use exception on EOF
-	   eTypeSerial                       mTypeS;
 };
 
-bool cIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName)
+bool cStreamIXml_Ar2007::GetTag(bool aClose,const std::string & aName)
+{
+    SkeepWhite();
+    std::string aTag = std::string(aClose ? "</" : "<") + aName + ">";
+   
+    return SkeepOneString(aTag.c_str());
+}
+
+std::string  cStreamIXml_Ar2007::GetNextStdString()
+{
+	return GetNextLex().mVal;
+}
+
+
+
+bool cStreamIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName)
 {
     bool aRes = false;
-    mExcepOnEOF = true;
     try {
         aRes = ((!Is2007) || GetTag(false,TagMMVIISerial)) && GetTag(false,aName);
     }
-    catch (cXMLEOF anE)
+    catch (cEOF_Exception anE)
     {
         return false;
     }
@@ -413,30 +348,30 @@ bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string
   if ((Postfix(aName,'.',true) != "xml") || (! ExistFile(aName)))
      return false;
 
-  cIXml_Ar2007 aFile (aName,eTypeSerial::exml);
+  cStreamIXml_Ar2007 aFile (aName,eTypeSerial::exml);
   return aFile.IsFileOfFirstTag(Is2007,aTag);
 }
 
 
-void cIXml_Ar2007::RawAddDataTerm(size_t &    aSz) 
+void cStreamIXml_Ar2007::RawAddDataTerm(size_t &    aSz) 
 {
-    FromS(GetNextString(),aSz);
+    FromS(GetNextStdString(),aSz);
 }
 
-void cIXml_Ar2007::RawAddDataTerm(int &    anI) 
+void cStreamIXml_Ar2007::RawAddDataTerm(int &    anI) 
 {
-    FromS(GetNextString(),anI);
+    FromS(GetNextStdString(),anI);
 }
-void cIXml_Ar2007::RawAddDataTerm(double &    aD) 
+void cStreamIXml_Ar2007::RawAddDataTerm(double &    aD) 
 {
-    FromS(GetNextString(),aD);
+    FromS(GetNextStdString(),aD);
 }
-void cIXml_Ar2007::RawAddDataTerm(std::string &    aS) 
+void cStreamIXml_Ar2007::RawAddDataTerm(std::string &    aS) 
 {
-    aS =   GetNextString();
+    aS =   GetNextStdString();
 }
 
-void cIXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
+void cStreamIXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
 {
    tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
    for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
@@ -448,68 +383,22 @@ void cIXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS)
 }
 
 
-void  cIXml_Ar2007::RawBeginName(const cAuxAr2007& anOT) 
+void  cStreamIXml_Ar2007::RawBeginName(const cAuxAr2007& anOT) 
 {
      bool GotTag =  GetTag(false,anOT.Name());
-     MMVII_INTERNAL_ASSERT_always(GotTag,"cIXml_Ar2007 did not get entering tag=" +anOT.Name());
+     MMVII_INTERNAL_ASSERT_always(GotTag,"cStreamIXml_Ar2007 did not get entering tag=" +anOT.Name());
 }
 
 
-void  cIXml_Ar2007::RawEndName(const cAuxAr2007& anOT) 
+void  cStreamIXml_Ar2007::RawEndName(const cAuxAr2007& anOT) 
 {
      bool GotTag =  GetTag(true,anOT.Name());
-     MMVII_INTERNAL_ASSERT_always(GotTag,"cIXml_Ar2007 did not get closing tag=" +anOT.Name());
-}
-
-std::string  cIXml_Ar2007::GetNextString()
-{
-    SkeepWhite();
-    std::string aRes;
- 
-    int aC =  GetNotEOF();
-     // Case string between " "
-    if (aC=='"')
-    {
-        for(;;)
-        {
-            int aC= GetNotEOF();
-            if (aC=='"')  // End of "
-	    {
-              return aRes;
-	    }
-            if (aC=='\\')  /* Maybe  \"  */
-            {
-                int aC2 = GetNotEOF();
-                if (aC2=='"')   /*  really \"  */
-                {
-                   aRes+= aC2;
-                }
-                else   /*  no finaly just a  \somehtinh */
-                {
-                   Ifs().unget();
-                   aRes+= aC;
-                }
-            }
-            else
-               aRes+= aC;
-        }
-    }
-
-
-    while ((aC!='<') && (!std::isspace(aC)))
-    {
-       aRes += aC;
-       aC =  GetNotEOF();
-    }
-    Ifs().unget(); // put back < or ' '  etc ..
-    
-    if (mTypeS!= eTypeSerial::etxt)  // else get EOF at end
-       SkeepWhite();
-    return aRes;
+     MMVII_INTERNAL_ASSERT_always(GotTag,"cStreamIXml_Ar2007 did not get closing tag=" +anOT.Name());
 }
 
 
-int cIXml_Ar2007::NbNextOptionnal(const std::string & aTag) 
+
+int cStreamIXml_Ar2007::NbNextOptionnal(const std::string & aTag) 
 {
     std::streampos  aPos = Ifs().tellg();
     bool GotTag = GetTag(false,aTag);
@@ -519,91 +408,6 @@ int cIXml_Ar2007::NbNextOptionnal(const std::string & aTag)
 }
 
 
-bool cIXml_Ar2007::GetTag(bool aClose,const std::string & aName)
-{
-    SkeepWhite();
-    std::string aTag = std::string(aClose ? "</" : "<") + aName + ">";
-   
-    return SkeepOneString(aTag.c_str());
-}
-
-
-
-
-void cIXml_Ar2007::Error(const std::string & aMesLoc)
-{
-    std::string aMesGlob =   aMesLoc + "\n" 
-                           + "while processing file=" +  mMMIs.Name() + " at char " + ToS(int(Ifs().tellg()));
-
-    MMVII_INTERNAL_ASSERT_bench(false,aMesGlob);
-}
-
-bool cIXml_Ar2007::SkeepOneString(const char * aString)
-{
-     int aNbC=0;
-     while (*aString)
-     {
-         // int aC = Ifs().get();
-         int aC = GetNotEOF();
-         aNbC++;
-         if (aC != *aString)
-         {
-             for (int aK=0 ; aK<aNbC ; aK++)
-             {
-                  Ifs().unget();
-             }
-             return false;
-         }
-         ++aString;
-     }
-     return true;
-}
-
-int cIXml_Ar2007::GetNotEOF()
-{
-   int aC = Ifs().get();
-   if (aC==EOF)
-   {
-       if (mExcepOnEOF)
-          throw cXMLEOF();
-       else
-          Error("Unexpected EOF");
-   }
-   return aC;
-}
-
-bool  cIXml_Ar2007::SkeepOneKindOfCom(const char * aBeg,const char * anEnd)
-{
-   if (! SkeepOneString(aBeg))
-      return false;
-
-   while (! SkeepOneString(anEnd))
-   {
-        GetNotEOF();
-   }
-   return true;
-}
-
-
-bool  cIXml_Ar2007::SkeepCom()
-{
-    return    SkeepOneKindOfCom(aXMLBeginCom,aXMLEndCom)
-           || SkeepOneKindOfCom(aXMLBeginCom2,aXMLEndCom2);
-}
-
-
-int cIXml_Ar2007::SkeepWhite()
-{
-   int aC=' ';
-   while (isspace(aC)|| (aC==0x0A)) // Apparement 0x0A est un retour chariot
-   {
-       while (SkeepCom());
-       // aC = Ifs().get();
-       aC = GetNotEOF();
-   }
-   Ifs().unget();
-   return aC;
-}
 
 /*============================================================*/
 /*                                                            */
@@ -613,18 +417,18 @@ int cIXml_Ar2007::SkeepWhite()
 
 
 
-class cIBaseTxt_Ar2007 : public cIXml_Ar2007
+class cIBaseTxt_Ar2007 : public cStreamIXml_Ar2007
 {
      public :
         cIBaseTxt_Ar2007(std::string const  & aName) : 
-		  cIXml_Ar2007 (aName,eTypeSerial::etxt)
+		  cStreamIXml_Ar2007 (aName,eTypeSerial::etxt)
 	{
 	}
         void RawBeginName(const cAuxAr2007& anOT) override {}
         void RawEndName(const cAuxAr2007& anOT) override {}
         int NbNextOptionnal(const std::string &) override
 	{
-               return cStrIO<int>::FromStr(GetNextString());
+               return cStrIO<int>::FromStr(GetNextStdString());
 	}
      private :
 };
@@ -819,7 +623,7 @@ class cOXml_Ar2007 : public cOBaseTxt_Ar2007
 
 void cOXml_Ar2007::AddComment(const std::string & aString) 
 {
-    mMMOs.Ofs() << "  " <<aXMLBeginCom  << aString << aXMLEndCom;
+    mMMOs.Ofs() << "  " << TheXMLBeginCom  << aString << TheXMLEndCom;
 }
 
 cOXml_Ar2007::cOXml_Ar2007(const std::string & aName) : 
@@ -1080,7 +884,7 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    {
        if (Input)
        {
-          aRes =  new cIXml_Ar2007(aName,eTypeSerial::exml);
+          aRes =  new cStreamIXml_Ar2007(aName,eTypeSerial::exml);
        }
        else
        {
@@ -1115,8 +919,17 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
        else
           aRes =  new cOJSN_Ar2007(aName);
    }
-
-
+   else if (UCaseEqual(aPost,E2Str(eTypeSerial::exml2)))
+   {
+       if (Input)
+       {
+          // aRes =  new cIBaseTxt_Ar2007(aName);
+       }
+       else
+       {
+          aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::exml);
+       }
+   }
 
    MMVII_INTERNAL_ASSERT_always(aRes!=0,"Do not handle postfix for "+ aName);
    return aRes;

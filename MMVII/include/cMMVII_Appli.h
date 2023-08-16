@@ -470,6 +470,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	static const std::string & UserName();
 	static const std::string & DirProfileUsage();
 
+	const std::string & PrefixGMA () const; /// Accessor
+	const std::string & Prefix_TIM_GMA () const; /// Accessor
+
 	// ========================  Methods for memorizing report (for example using csv)
 	
 	std::string  DirReport();
@@ -509,7 +512,6 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         static const std::string & FullBin();            ///< Protected accessor to full pathname of MMVII executable
         static const std::string & DirTestMMVII();       ///< Protected accessor to dir to read/write test bench
-
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
@@ -603,6 +605,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mGlobalMainAppli; ///< Both main process && main appli inside P
         std::string                               mPrefixNameAppli;  ///< String Id of process
         std::string                               mPrefixGMA;        ///< Sting Id of Global Main Appli
+        std::string                               mPrefix_TIM_GMA;    ///< Sting Id of Time of Global main appli
         std::string                               mDirProjGMA;        ///< Dir Project Main Appli
      
         static std::string                        mDirBinMMVII;   ///< where is the binary
