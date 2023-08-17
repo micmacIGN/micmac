@@ -152,6 +152,10 @@ extern void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux);
 /// Serialization for stl container
 /** Thi should work both for stl containers (require size + iterator auto)
 */
+
+extern const std::string  StrElCont;
+
+
 template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont & aL)
 {
     int aNb=aL.size();
@@ -168,7 +172,7 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
     // now read the elements
     for (auto & el : aL)
     {    
-         AddData(cAuxAr2007("el",anAux),el);
+         AddData(cAuxAr2007(StrElCont,anAux),el);
     }
 }
 

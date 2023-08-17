@@ -441,6 +441,12 @@ void BenchSerialization
     SaveInFile(cTestSerial1(),"toto.txt");
     SaveInFile(cTestSerial1(),"toto.json");
     SaveInFile(cTestSerial1(),"toto.xml2");
+    {
+         cTestSerial1 aTS1;
+         ReadFromFile(aTS1,"toto.xml2");
+         SaveInFile(aTS1,"toto_222.xml2");
+
+    }
     StdOut() << "BenchSerializationBenchSerialization\n";  
     getchar();
 

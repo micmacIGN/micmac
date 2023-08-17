@@ -1,5 +1,7 @@
 #include "MMVII_Stringifier.h"
 #include "Serial.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 
 
 /** \file SerialByTree.cpp
@@ -94,7 +96,8 @@ cSerialTokenParser *  cSerialTokenParser::Alloc(const std::string & aName,eTypeS
 {
     switch (aTypeS) 
     {
-         case eTypeSerial::exml : return new  cXmlSerialTokenParser(aName);
+         case eTypeSerial::exml  : return new  cXmlSerialTokenParser(aName);
+         case eTypeSerial::exml2 : return new  cXmlSerialTokenParser(aName);
 	 default : {}
     }
 
@@ -508,8 +511,11 @@ const cSerialTree & cSerialTree::UniqueSon() const
 
 void cSerialTree::Unfold(std::list<cResLex> & aRes) const
 {
+
     // add value
     aRes.push_back(cResLex(mValue,mLexP));
+    if (! IsTerminalNode())
+       aRes.push_back(cResLex(ToStr(mSons.size()),eLexP::eSizeCont));
 
     // parse son for recursive call
     for (const auto & aSon : mSons)
@@ -537,31 +543,31 @@ class cIMakeTreeAr : public cAr2007,
         //~cIMakeTreeAr();
      protected :
 	typedef std::list<cResLex>   tContToken;
+	typedef tContToken::iterator tIterCTk;
 
 	cResLex GetNextLex() override;
 
         void RawBeginName(const cAuxAr2007& anOT)  override; ///< Put opening tag
-	/*
         void RawEndName(const cAuxAr2007& anOT)  override;  ///< Put closing tag
+							    //
+        int NbNextOptionnal(const std::string & aTag) override;							    
+	void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux) override;
 
         void RawAddDataTerm(int &    anI)  override;  ///< write int in text
         void RawAddDataTerm(size_t &    anI) override;
         void RawAddDataTerm(double &    anI)  override;  ///< write double in text
         void RawAddDataTerm(std::string &    anI)  override; // write string
         void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
-	/// Do nothing because tree-struct contains the information for size
-	void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux) override;
-
-	void AddComment(const std::string &) override;
 
 
-
-	tContToken            mContToken;
-	tContToken::iterator  mItToken;
+	void OnTag(const cAuxAr2007& anOT,bool IsUp);
+	/*
 	*/
+	
+	///  Put the size added to the list of token
 
 	tContToken            mListRL;
-	tContToken::iterator  mItLR;
+	tIterCTk              mItLR;
         std::string           mNameFile;
 	eTypeSerial           mTypeS;
 };
@@ -581,6 +587,14 @@ cIMakeTreeAr::cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
 
    mItLR = mListRL.begin();
 
+   if (1)
+   {
+       for (auto & aL : mListRL)
+       {
+            StdOut() << aL.mVal << " " << (int) aL.mLexP << "\n";
+       }
+   }
+
    delete aSTP;
 }
 
@@ -592,14 +606,109 @@ cResLex cIMakeTreeAr::GetNextLex()
 
 }
 
+void cIMakeTreeAr::OnTag(const cAuxAr2007& aTag,bool IsUp)
+{
+   if (aTag.Name() == StrElCont)
+      return;
+   cResLex aRL = GetNextLexNotSizeCont();
+   // we skeep the "el" tags that are not used with this serialization
+
+   // StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << "\n";
+
+   MMVII_INTERNAL_ASSERT_tiny(aRL.mLexP == (IsUp ? eLexP::eUp  : eLexP::eDown) ,"Bad token cIMakeTreeAr::RawBegin-EndName");
+   MMVII_INTERNAL_ASSERT_tiny(aRL.mVal  == aTag.Name() ,"Bad tag cIMakeTreeAr::RawBegin-EndName");
+}
+
+
 void cIMakeTreeAr::RawBeginName(const cAuxAr2007& anIT)
 {
+   OnTag(anIT,true);
+	/*
    cResLex aRL = GetNextLexNotSizeCont();
+
+   StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  anIT.Name() << "\n";
 
    MMVII_INTERNAL_ASSERT_tiny(aRL.mLexP == eLexP::eUp  ,"Bad token cIMakeTreeAr::RawBeginName");
    MMVII_INTERNAL_ASSERT_tiny(aRL.mVal  == anIT.Name() ,"Bad tag cIMakeTreeAr::RawBeginName");
+   */
 }
 
+void cIMakeTreeAr::RawEndName(const cAuxAr2007& anIT)
+{
+   OnTag(anIT,false);
+   /*
+   cResLex aRL = GetNextLexNotSizeCont();
+
+   MMVII_INTERNAL_ASSERT_tiny(aRL.mLexP == eLexP::eDown  ,"Bad token cIMakeTreeAr::RawBeginName");
+   MMVII_INTERNAL_ASSERT_tiny(aRL.mVal  == anIT.Name() ,"Bad tag cIMakeTreeAr::RawBeginName");
+   */
+}
+
+
+void cIMakeTreeAr::AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux)
+{
+   cResLex aRL = GetNextLexSizeCont();
+
+   aNb = cStrIO<int>::FromStr(aRL.mVal);
+}
+
+int cIMakeTreeAr::NbNextOptionnal(const std::string & aTag) 
+{
+    tIterCTk    aCurIt =  mItLR;
+    int aResult = 0;
+
+
+    cResLex aRL = GetNextLexNotSizeCont();
+    if ((aRL.mVal==aTag) && (aRL.mLexP==eLexP::eUp))
+        aResult = 1;
+
+    mItLR =  aCurIt;
+
+    return aResult;
+}
+
+void cIMakeTreeAr::RawAddDataTerm(int &    anI)  
+{
+   cResLex aRL = GetNextLexNotSizeCont();
+   FromS(aRL.mVal,anI);
+}
+
+void cIMakeTreeAr::RawAddDataTerm(size_t &    aSz)  
+{
+   cResLex aRL = GetNextLexNotSizeCont();
+   FromS(aRL.mVal,aSz);
+}
+
+void cIMakeTreeAr::RawAddDataTerm(double &    aD)  
+{
+   cResLex aRL = GetNextLexNotSizeCont();
+   FromS(aRL.mVal,aD);
+}
+
+void cIMakeTreeAr::RawAddDataTerm(std::string &    aS)  
+{
+   cResLex aRL = GetNextLexNotSizeCont();
+   aS = aRL.mVal;
+}
+
+void cIMakeTreeAr::RawAddDataTerm(cRawData4Serial &    aRDS)  
+{
+   cResLex aRL = GetNextLexNotSizeCont();
+   const char * aCPtr = aRL.mVal.c_str();
+
+   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
+   for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
+   {
+       int aC1= FromHexaCode(*(aCPtr++));
+       int aC2= FromHexaCode(*(aCPtr++));
+       aPtr[aK] = aC1 * 16 + aC2;
+   }
+}
+
+cAr2007 * Alloc_cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS) 
+{
+    return new cIMakeTreeAr(aName,aTypeS);
+}
 							     
 /*============================================================*/
 /*                                                            */
@@ -714,16 +823,12 @@ cOMakeTreeAr::~cOMakeTreeAr()
     mItToken = mContToken.begin();
 
     cSerialTree aTree(*this,0,eLexP::eBegin);
- 
-    {
-        std::string aNewName = Prefix(mNameFile)+"_2.xml";
-        {
-            cMMVII_Ofs anOfs(aNewName,false);
-            aTree.UniqueSon().Xml_PrettyPrint(anOfs);
-        }
+    cMMVII_Ofs anOfs(mNameFile,false);
 
-        // cIMakeTreeAr aIAMR(aNewName,eTypeSerial::exml);
-    }
+    if (mTypeS==eTypeSerial::exml2)
+       aTree.UniqueSon().Xml_PrettyPrint(anOfs);
+
+    /*
     {
         cMMVII_Ofs anOfs(Prefix(mNameFile)+"_raw.txt",false);
         aTree.UniqueSon().Raw_PrettyPrint(anOfs);
@@ -732,6 +837,7 @@ cOMakeTreeAr::~cOMakeTreeAr()
         cMMVII_Ofs anOfs(Prefix(mNameFile)+"_2.json",false);
         aTree.Json_PrettyPrint(anOfs,true);
     }
+    */
 }
 
 

@@ -25,9 +25,13 @@
 #include "MMVII_Stringifier.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_MeasuresIm.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 namespace MMVII
 {
+
+const std::string  StrElCont = "el";
+
 
 /* ========================================================= */
 /*                                                           */
@@ -923,11 +927,11 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    {
        if (Input)
        {
-          // aRes =  new cIBaseTxt_Ar2007(aName);
+          aRes =  Alloc_cIMakeTreeAr(aName,eTypeSerial::exml2);
        }
        else
        {
-          aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::exml);
+          aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::exml2);
        }
    }
 

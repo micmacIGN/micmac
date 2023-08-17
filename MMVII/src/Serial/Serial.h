@@ -226,6 +226,8 @@ class cSerialTree
 };
 
 cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS);
+cAr2007 * Alloc_cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS);
+
 
 
 };
