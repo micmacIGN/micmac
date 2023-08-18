@@ -113,6 +113,7 @@ def myGround2ImageAndDepth(camPose: Isometry3D, calib: PerspCamIntrCalib, pt3d: 
     # TODO, see doc 3.2
     pass 
 
+print('Test myGround2ImageAndDepth')
 for name, pt in pts3d.items():
     print('Proj MM: ', cam1.ground2ImageAndDepth(pt))
     print('My proj: ', myGround2ImageAndDepth(cam1.pose, cam1.internalCalib, pt))
@@ -138,7 +139,7 @@ def myPseudoIntersect(cam1: SensorCamPC, pt2d1: tuple, cam2: SensorCamPC, pt2d2:
     # TODO, see doc 3.2
     pass 
 
-print('Pseudo-intersection:')
+print('Test myPseudoIntersect')
 # apply to common points between im1 and im2
 for ptName, pt1 in pts2d[imName1].items():
     if not ptName in pts3d :

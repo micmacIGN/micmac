@@ -7,18 +7,11 @@ Dependencies
 
 As admin:
 
-    apt install python3-pip
-
-For ubuntu 22.04, as admin:
-
-    apt install libclang-14-dev
+    apt install python3-pip doxygen
 
 As user:
 
-    pip3 install pybind11 pybind11_mkdoc
-    pip3 install --upgrade 'clang<15'
-
-And make sure `$HOME/.local/bin` is in PATH.
+    pip3 install pybind11
 
 
 Compilation

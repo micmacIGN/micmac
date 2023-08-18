@@ -11,12 +11,15 @@ Compile MicMac V1, then in MMVII/bin directory:
 
     make
 
-or 
+On first compilation or SymDer-related runtime error, synbolic derivatives code has to be generated:
 
-    make -f Mk-MMVII.makefile
+    make
+    ./MMVII  GenCodeSymDer
+    make
 
-On first compilation, SymDer code has to be generated:
+In case of SynDer-related compilation error, clear all generated code before compilation:
 
+    make distclean
     make
     ./MMVII  GenCodeSymDer
     make
