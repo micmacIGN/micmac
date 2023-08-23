@@ -20,4 +20,6 @@ void pyb_init_Image2D(py::module_ &m);
 void pyb_init_DenseMatrix(py::module_ &m);
 void pyb_init_Memory(py::module_ &m);
 void pyb_init_Aime(py::module_ &m);
+void pyb_init_MeasuresIm(py::module_ &m);
+
 #endif // PY_MMVII_H

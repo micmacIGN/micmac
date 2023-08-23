@@ -291,10 +291,10 @@ cSetMesGCP  cSetMesImGCP::ExtractSetGCP(const std::string & aName) const
 /*                                               */
 /* ********************************************* */
         
-cMesIm1Pt::cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aS) :
+cMesIm1Pt::cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aS2) :
      mPt      (aPt),
      mNamePt  (aNamePt),
-     mSigma2   {aS,0,aS}
+     mSigma2   {aS2,0,aS2}
 {
 }
 

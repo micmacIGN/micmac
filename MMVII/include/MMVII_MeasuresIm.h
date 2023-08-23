@@ -1,6 +1,9 @@
 #ifndef  _MMVII_MEASURES_IM_H_
 #define  _MMVII_MEASURES_IM_H_
 
+#include "MMVII_Ptxd.h"
+#include "MMVII_util_tpl.h"
+
 namespace MMVII
 {
 
@@ -75,10 +78,10 @@ struct cSet2D3D : public cMemCheck
 class cMesIm1Pt
 {
      public :
-        cMesIm1Pt(const cPt2dr & aPt,const std::string & aNameIm,tREAL4 aSigma);
+        cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aSigma2);
         cMesIm1Pt();
 
-        cPt2dr         mPt;
+        cPt2dr         mPt; ///< the point
         std::string    mNamePt;
         tREAL4         mSigma2[3];  // xx xy yy
 };
