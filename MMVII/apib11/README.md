@@ -11,7 +11,7 @@ As admin:
 
 As user:
 
-    pip3 install pybind11
+    pip3 install pybind11 wheel
 
 
 Compilation
