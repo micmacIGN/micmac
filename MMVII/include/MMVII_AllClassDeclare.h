@@ -106,7 +106,7 @@ typedef cExtSet<tNamePair>          tNameRel;
 template <class Type,const int Dim> class cPtxd;
 template <class Type,const int Dim> class cTplBox;
 
-    ///  1 dimension specializatio,
+    ///  1 dimension specialization
 typedef cPtxd<double,1>  cPt1dr ;
 typedef cPtxd<int,1>     cPt1di ;
 typedef cPtxd<float,1>   cPt1df ;

@@ -747,7 +747,7 @@ linear optimisation with images. Typically example of such use are :
           %  - - - - - - - - - - - - - - - - - - - 
 \subsection{Mathematical modelization}
 
-The basic mathematical modelization is simply  to consider the images as functions.
+The basic mathematical modelization is simply to consider images as functions.
 As we deal with  continuous optimization, we need to have an interpolation scheme that
 allow to consider them as function from $\RR^2 \rightarrow \RR$.
 Ideally (to be mathematically consistant with derivation) we should use an interpolation 
@@ -756,17 +756,17 @@ we will generally prefer a non rigourous model as bilinear;  however the redunda
 neglectable the difference with bicubic (probably, later, the bicubic option will be added for finer
 tests).
 
-A typical example is :
+A typical example is:
 
 \begin{itemize}
       \item we have an image $I$, we note $I[i,k]$ its value for integer points;
       \item we extend  $I$ to a function $\RR^2 \rightarrow \RR$ via the interpolation;
-      \item we have a mapping of  $\RR^2$ ,  $\phi : \RR^2 \rightarrow \RR^2$.
+      \item we have a mapping of  $\RR^2$,  $\phi : \RR^2 \rightarrow \RR^2$.
       \item we want to use the composed function $I \circ \phi$;
 \end{itemize}
 
-Let $q$ , be a point and $q=(\tilde{x}_q,\tilde{y}_q)=\phi(p)$ its transformation by $\phi$. Let $x_0$ and $y_0$
-be the lower bound of $q$ ,and $x_1=x_0+1, y_1 = y_0+1$:
+Let $p$ be a point and $q=(\tilde{x}_q,\tilde{y}_q)=\phi(p)$ its transformation by $\phi$. Let $x_0$ and $y_0$
+be the lower bound of $q$, and $x_1=x_0+1, y_1 = y_0+1$:
 
 \begin{equation}
 	x_0 \leq \tilde{x}_q < x_1   \; and \;  y_0 \leq \tilde{y}_q < y_1
@@ -782,9 +782,9 @@ interpolation is given by :
 		     \label{Eq:Bilinear}
 \end{equation}
 
-We see with equation~\ref{Eq:Bilinear} that we dont need to add new primitive to compute $I \circ \phi$ ,
-as it just a polynomial combination of existing primitive.   By the way, reprogramming it,
-each time we need it would be fastidious and MMVII offer facility functions to make the use of 
+We see with equation~\ref{Eq:Bilinear} that we don't need to add new primitive to compute $I \circ \phi$,
+as it just a polynomial combination of existing primitives. By the way, reprogramming it
+each time we need it would be fastidious and MMVII offers facility functions to make the use of 
 formula~\ref{Eq:Bilinear}  easier.
 
           %  - - - - - - - - - - - - - - - - - - - 
@@ -875,7 +875,7 @@ So that :
 	I[i,j] =  B + A * M(T_x + S*i,T_y+S*j) , (i,j) \in \NN^2  \label{EqDefIm}
 \end{equation}
 
-Knowing approximate guess   $\{A',B',S',T'_x,T'_y\}$ , the model , the image and equation
+Knowing approximate guess  $\{A',B',S',T'_x,T'_y\}$, the model, the image and equation
 \ref{EqDefIm} we want to recover "exact" value of $P$.
 
 Note that we will use equation ~\ref{EqDefIm} in the invert sense of geometry, noting
@@ -890,10 +890,10 @@ So what we will estimate is $\{A,B,\tilde{S},\tilde{T}_x,\tilde{T}_y\}$,
 
 \subsection{Generating the code}
 
-The code for generating the automatic derivation applied to the example are located in the two files.
+The code for generating the automatic derivation applied to the example are located in two files:
 
 \begin{itemize}
-    \item {\tt src/SymbDerGen/FormulasImagesDeform.h } contain the definition of  class 
+    \item {\tt src/SymbDerGen/FormulasImagesDeform.h } contains the definition of  class 
               {\tt cDeformImHomotethy} that will be used for generating the code, it is the homologous
               of class  {\tt cDist2DConservation} seen bellow;
 
