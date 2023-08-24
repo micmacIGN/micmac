@@ -81,7 +81,7 @@ class cMesIm1Pt
         cMesIm1Pt(const cPt2dr & aPt,const std::string & aNamePt,tREAL4 aSigma2);
         cMesIm1Pt();
 
-        cPt2dr         mPt; ///< the point
+        cPt2dr         mPt;
         std::string    mNamePt;
         tREAL4         mSigma2[3];  // xx xy yy
 };

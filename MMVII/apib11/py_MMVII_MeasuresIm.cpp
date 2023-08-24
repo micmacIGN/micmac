@@ -23,6 +23,32 @@ void pyb_init_MeasuresIm(py::module_ &m) {
              })
             ;
 
+    py::class_<cSetMesPtOf1Im>(m, "SetMesPtOf1Im", DOC(MMVII_cSetMesPtOf1Im))
+            .def(py::init<>(),DOC(MMVII_cSetMesPtOf1Im,cSetMesPtOf1Im))
+            .def(py::init<const std::string &>(),DOC(MMVII_cSetMesPtOf1Im,cSetMesPtOf1Im))
+            .def_static("fromFile", &cSetMesPtOf1Im::FromFile,DOC(MMVII_cSetMesPtOf1Im,FromFile))
+            .def("AddMeasure", &cSetMesPtOf1Im::AddMeasure,DOC(MMVII_cSetMesPtOf1Im,AddMeasure))
+            .def("toFile", py::overload_cast<const std::string &>(&cSetMesPtOf1Im::ToFile, py::const_),DOC(MMVII_cSetMesPtOf1Im,ToFile))
+            .def("nameIm", &cSetMesPtOf1Im::NameIm,DOC(MMVII_cSetMesPtOf1Im,NameIm))
+            .def("stdNameFile", &cSetMesPtOf1Im::StdNameFile,DOC(MMVII_cSetMesPtOf1Im,StdNameFile))
+            .def("measures", py::overload_cast<>(&cSetMesPtOf1Im::Measures), py::return_value_policy::reference_internal, DOC(MMVII_cSetMesPtOf1Im,Measures))
+
+            .def("measuresOfName", py::overload_cast<const std::string & >(&cSetMesPtOf1Im::MeasuresOfName), py::return_value_policy::reference_internal, DOC(MMVII_cSetMesPtOf1Im,MeasuresOfName))
+            .def("nameHasMeasure", &cSetMesPtOf1Im::NameHasMeasure, DOC(MMVII_cSetMesPtOf1Im,NameHasMeasure))
+            .def("nearestMeasure", &cSetMesPtOf1Im::NearestMeasure, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesPtOf1Im,NearestMeasure))
+
+
+            .def("__repr__",
+                 [](const cSetMesPtOf1Im &m) {
+                   std::ostringstream ss;
+                   ss.precision(8);
+                   ss << "SetMesPtOf1Im " << m.StdNameFile() << "\n" ;
+                   for (auto aPt : m.Measures())
+                       ss << aPt.mNamePt << " " << aPt.mPt.x() << " " << aPt.mPt.y() << "\n";
+                           return ss.str();
+             })
+            ;
+
     py::class_<cMes1GCP>(m, "Mes1GCP", DOC(MMVII_cMes1GCP))
             .def(py::init<>(),DOC(MMVII_cMes1GCP,cMes1GCP))
             .def(py::init<const cPt3dr &,const std::string &,tREAL4>(),DOC(MMVII_cMes1GCP,cMes1GCP))
@@ -41,19 +67,21 @@ void pyb_init_MeasuresIm(py::module_ &m) {
              })
             ;
 
-/*    py::class_<cSetMesGCP>(m, "SetMesGCP", DOC(MMVII_cSetMesGCP))
+    py::class_<cSetMesGCP>(m, "SetMesGCP", DOC(MMVII_cSetMesGCP))
             .def(py::init<>(),DOC(MMVII_cSetMesGCP,cSetMesGCP))
             .def(py::init<const std::string &>(),DOC(MMVII_cSetMesGCP,cSetMesGCP))
-//            .def_property("nameSet",[](const cSetMesGCP& m){return m.StdNameFile();},DOC(MMVII_cSetMesGCP,mNameSet))
-            .def_property("measures",[](const cSetMesGCP& m){return m.Measures();},DOC(MMVII_cSetMesGCP,mMeasures))
+            .def_static("fromFile", &cSetMesGCP::FromFile,DOC(MMVII_cSetMesGCP,FromFile))
+            .def("toFile", py::overload_cast<const std::string &>(&cSetMesGCP::ToFile, py::const_),DOC(MMVII_cSetMesGCP,ToFile))
+            .def("stdNameFile", &cSetMesGCP::StdNameFile,DOC(MMVII_cSetMesGCP,StdNameFile))
+            .def("measures", &cSetMesGCP::Measures, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesGCP,Measures))
             .def("__repr__",
                  [](const cSetMesGCP &m) {
                    std::ostringstream ss;
                    ss.precision(8);
-                 //  ss << "SetMesGCP " << m.StdNameFile() << "\n" ;
-		   for (auto aPt : m.Measures())
-		       ss << aPt.mPt.x() << " " << aPt.mPt.y() << " " << aPt.mPt.z() << "\n";
-                   return ss.str();
+                   ss << "SetMesGCP " << m.StdNameFile() << "\n" ;
+                   for (auto aPt : m.Measures())
+                       ss << aPt.mPt.x() << " " << aPt.mPt.y() << " " << aPt.mPt.z() << "\n";
+                           return ss.str();
              })
-            ;*/
+            ;
 }
