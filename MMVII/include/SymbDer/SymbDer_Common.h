@@ -239,7 +239,11 @@ const std::vector<std::vector<T> *> & cCalculator<T>::EvalAndClear()
     this->mBufRes.clear();
     this->DoEval();
     for (size_t aK=0; aK < this->mNbInBuf; aK++)
+    {
         this->mBufRes.push_back(&this->mBufLineRes[aK]);
+        //for (int i=0; i<int(mBufLineRes[aK].size()); i++)
+        //    std::cout << " errt " << this->mBufLineRes[aK][i] << "\n";
+    }
     this->mNbInBuf = 0;
     return mBufRes;
 }

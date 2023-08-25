@@ -38,7 +38,12 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
+#ifndef _NEW_RAND_DFS_H
+#define _NEW_RAND_DFS_H
+
+
 #include "NewOri.h"
+#include "cNewO_SolGlobInit_PerfTri.h"
 //#include "general/CMake_defines.h"
 #include "graphes/cNewO_BuildOptions.h"
 #include <random>
@@ -452,52 +457,8 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 
 } //SolGlobInit_DFS
 
-class RandUnifQuick;
 
-class cAppliGenOptTriplets : public cCommonMartiniAppli
-{
-	public:
-		cAppliGenOptTriplets(int argc,char ** argv);
-		
-
-	private:
-        
-		ElMatrix<double> RandPeturbR();
-        ElMatrix<double> RandPeturbRGovindu();
-        ElMatrix<double> w2R(double[]);
-
-		std::string mFullPat; 
-		std::string InOri;
-
-
-		int    mNbTri;
-		double mSigma;//bruit
-		double mRatioOutlier;//outlier ratio, if 0.3 => 30% of outliers will be present among the triplets
-
-		cElemAppliSetFile    mEASF;
-        cNewO_NameManager  * mNM;
-
-		RandUnifQuick * TheRandUnif;
-};
-
-class RandUnifQuick 
-{
-    public:
-        RandUnifQuick(int Seed);
-        double Unif_0_1();
-        ~RandUnifQuick() {}
-
-    private:
-        std::mt19937                     mGen;
-        std::uniform_real_distribution<> mDis01;
-
-};
-/*
-double RandUnif_C()
-{
-   return (RandUnif_0_1()-0.5) * 2.0;
-}
-*/
+#endif // _NEW_RAND_DFS_H
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

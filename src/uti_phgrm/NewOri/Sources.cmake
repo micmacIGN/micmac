@@ -23,6 +23,7 @@ set(uti_phgrm_NewOri_Src_Files
     ${UTI_PHGRM_NEW_ORI}/cNewO_Strecha2MM.cpp
     ${UTI_PHGRM_NEW_ORI}/GpsLoc.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_PyWrapper.cpp
+    ${UTI_PHGRM_NEW_ORI}/TestTriplets.cpp
 )
 
 

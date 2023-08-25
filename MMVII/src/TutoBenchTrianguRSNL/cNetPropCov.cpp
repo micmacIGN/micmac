@@ -443,6 +443,142 @@ namespace NS_Bench_RSNL
 template <class Type>  class  cElemNetwork ;  // "Elementary" network
 template <class Type>  class  cCovNetwork  ;  // "Big" network
 
+class cGraph2DBasic
+{
+    public: 
+        cGraph2DBasic(double * obs) : PLocObs(obs) {}
+        ~cGraph2DBasic() {};
+
+        template<typename T>
+        bool operator()(const T* const P1X,
+                        const T* const P1Y,
+                        const T* const P2X,
+                        const T* const P2Y,
+                        const T* const P3X,
+                        const T* const P3Y,
+                        const T* const P4X,
+                        const T* const P4Y,
+                        const T* const tx,
+                        const T* const ty,
+                        const T* const theta,
+                        T* Residual) const {
+               
+            const T cosT = cos(theta[0]);
+            const T sinT = sin(theta[0]);
+            
+            const T p1x = tx[0] + cosT * P1X[0] - sinT * P1Y[0];
+            const T p1y = ty[0] + cosT * P1Y[0] + sinT * P1X[0];
+
+            const T p2x = tx[0] + cosT * P2X[0] - sinT * P2Y[0];
+            const T p2y = ty[0] + cosT * P2Y[0] + sinT * P2X[0];
+
+            const T p3x = tx[0] + cosT * P3X[0] - sinT * P3Y[0];
+            const T p3y = ty[0] + cosT * P3Y[0] + sinT * P3X[0];
+
+            const T p4x = tx[0] + cosT * P4X[0] - sinT * P4Y[0];
+            const T p4y = ty[0] + cosT * P4Y[0] + sinT * P4X[0];
+
+
+            Residual[0] = p1x - (PLocObs[0]);
+            Residual[1] = p1y - (PLocObs[1]);
+            Residual[2] = p2x - (PLocObs[2]);
+            Residual[3] = p2y - (PLocObs[3]);
+            Residual[4] = p3x - (PLocObs[4]);
+            Residual[5] = p3y - (PLocObs[5]);
+            Residual[6] = p4x - (PLocObs[6]);
+            Residual[7] = p4y - (PLocObs[7]);
+
+
+
+            StdOut() << "txytheta=" << tx[0] << " " << ty[0] << " " << theta[0] << "\n";
+            /*StdOut() << "P=" << P1X[0] << " " << P1Y[0] << " " << P2X[0] << " " << P2Y[0] << "\n"
+                              << P3X[0] << " " << P3Y[0] << " " << P4X[0] << " " << P4Y[0] << "\n";
+            StdOut() << "p=" <<  PLocObs[0] << " " << PLocObs[1] << " " << PLocObs[2] << " " << PLocObs[3] << "\n"
+                             <<  PLocObs[4] << " " << PLocObs[5] << " " << PLocObs[6] << " " << PLocObs[7] << "\n";*/
+            StdOut() << "Residuals= " << Residual[0] << " " << Residual[1] << " " << Residual[2] << " " 
+                                      << Residual[3] << " " << Residual[4] << " " << Residual[5] << " " 
+                                      << Residual[6] << " " << Residual[7] << "\n";
+
+            //getchar();
+            return true;
+
+
+        }
+        static ceres::CostFunction* Create(double * obs){
+            return (new ceres::AutoDiffCostFunction<cGraph2DBasic,8,1,1,1,1,1,1,1,1,1,1,1> (new cGraph2DBasic(obs)));
+
+        }
+
+
+    private:
+       const double * PLocObs;
+};
+
+class cGraph2D
+{
+    public:
+        cGraph2D(std::vector<double> covs,double weight) : 
+            mcovs(covs), mweight(weight) {}
+
+        ~cGraph2D() {}
+
+        template<typename T>
+        bool operator()(const T* const P1X,
+                        const T* const P1Y,
+                        const T* const P2X,
+                        const T* const P2Y,
+                        const T* const P3X,
+                        const T* const P3Y,
+                        const T* const P4X,
+                        const T* const P4Y,
+                        const T* const tx,
+                        const T* const ty,
+                        const T* const theta,
+                        T* Residual) const {
+
+            const T cosT = cos(theta[0]);
+            const T sinT = sin(theta[0]);
+            
+            const T p1x = tx[0] + cosT * P1X[0] - sinT * P1Y[0];
+            const T p1y = ty[0] + cosT * P1Y[0] + sinT * P1X[0];
+
+            const T p2x = tx[0] + cosT * P2X[0] - sinT * P2Y[0];
+            const T p2y = ty[0] + cosT * P2Y[0] + sinT * P2X[0];
+
+            const T p3x = tx[0] + cosT * P3X[0] - sinT * P3Y[0];
+            const T p3y = ty[0] + cosT * P3Y[0] + sinT * P3X[0];
+
+            const T p4x = tx[0] + cosT * P4X[0] - sinT * P4Y[0];
+            const T p4y = ty[0] + cosT * P4Y[0] + sinT * P4X[0];
+
+            //
+            Residual[0] = mweight * ( mcovs[0] * p1x + mcovs[1] * p1y + 
+                                      mcovs[2] * p2x + mcovs[3] * p2y +
+                                      mcovs[4] * p3x + mcovs[5] * p3y +
+                                      mcovs[6] * p4x + mcovs[7] * p4y - mcovs[8] );
+
+            /*StdOut() << "cov=" << mcovs[0] << " " << mcovs[1] << " " << mcovs[2] << " " << mcovs[3] << " " << mcovs[4] << " " << mcovs[5] << " " << mcovs[6] << " " << mcovs[7] << " " << mcovs[8] << "\n";
+            StdOut() << "txytheta=" << tx[0] << " " << ty[0] << " " << theta[0] << "\n";
+            StdOut() << mcovs[0] * p1x + mcovs[1] * p1y + mcovs[2] * p2x + mcovs[3] * p2y + mcovs[4] * p3x + mcovs[5] * p3y + mcovs[6] * p4x + mcovs[7] * p4y << "\n";
+
+            StdOut() << Residual[0] << "\n";
+            StdOut() << "w=" << mweight << "\n";
+            getchar();*/ 
+
+            return true;
+        }
+        static ceres::CostFunction* Create(const std::vector<double> covs,const double weight){
+            return (new ceres::AutoDiffCostFunction<cGraph2D,1,1,1,1,1,1,1,1,1,1,1,1> (new cGraph2D(covs,weight)));
+
+        }
+
+
+    private:
+        const std::vector<double> mcovs;
+        const double              mweight;
+};
+
+
 
 /**   Class implementing a network that is "resolved" using covariance propagation.  It contains a subset
       of small network.
@@ -482,6 +618,7 @@ template <class Type>  class  cCovNetwork :   public cMainNetwork<Type>
                 converge so slowly
            */
            Type SolveByCovPropagation(double aCheatMT,int aNbIter);
+           Type SolveByCovPropagationCeres(double aCheatMT,int aNbIter);
 
             /** create some noise in the estimation of distance, to make it +or- realistic assure via a
                 dictionnary that the result is always the same */
@@ -541,8 +678,14 @@ template <class Type>  class  cElemNetwork : public cMainNetwork<Type>
         ///   
         bool OwnLinkingFiltrage(const cPt2di & aP1,const cPt2di & aP2) const override;
 
+        cPNetwork<Type> & MainHomCeres(const tPNet & aPN) const
+        {
+               return MainHomOfInd(aPN.mInd);
+        }
+        cDecSumSqLinear<Type> & DSSL() {return mDSSL;}
 
-        
+        bool PtsAtt() {return mPtsAtt;}
+        bool L2Cov()  {return mL2Cov;}
     private :
          const cPt2di &  IndOfMainHom(const tPNet & aPN) const
          {
@@ -618,6 +761,7 @@ template <class Type>  Type cCovNetwork<Type>::FactRandomizeObsDist(const cPt2di
 template <class Type> 
         void cCovNetwork<Type>::PostInit() 
 {
+
      // 1-  First call the usual initialisation to create the nodes
      cMainNetwork<Type>::PostInit();
 
@@ -679,14 +823,257 @@ template <class Type>  Type cCovNetwork<Type>::SolveByCovPropagation(double aChe
 
           // for all subnetwork propagate the covariance
           for (auto & aPtrNet : mVNetElem)
+          {
              aPtrNet->PropagCov(aCheatMT);
-
+             //getchar();
+          }
           //  Add a gauge constraint for the main newtork, as all subnetnwork are computed up to a rotation
 	  this->AddGaugeConstraint(10.0);
 	  this->mSys->SolveUpdateReset();  // classical gauss jordan iteration
 
      }
      StdOut()  <<  "\n";
+     return aResidual;
+}
+
+//typedef cPtxd<double,2>   tPt;
+//typedef cPNetwork<double> tPNet;
+
+template <class Type>  Type cCovNetwork<Type>::SolveByCovPropagationCeres(double aCheatMT,int aNbIter)
+{
+     typedef cPtxd<Type,2>             tPt;
+     typedef cPNetwork<Type>           tPNet;
+     
+     Type   aResidual = 0.0;
+
+     //create ceres problem 
+     ceres::Problem * aProblem = new ceres::Problem;
+     ceres::Solver::Summary        aSummary;
+     // unknown ordering (necessary for Schur)
+     //ceres::ParameterBlockOrdering* ordering = new ceres::ParameterBlockOrdering;
+
+
+
+     //1- preprare the data: collect all unknowns (simil,X,Y) and covariances 
+     double*  Glob2LocSim = new double [(mVNetElem.size())*3]; //Tx Ty, teta => 3 els  
+     std::vector<std::vector<int>>     GlobIdPerElem(mVNetElem.size());  //4x 1 => 1 elem for Id within GlobLoc 
+     double*   GlobLoc = new double [this->VPts().size()*2]; // vector of XY
+     double**  LocalLoc = new double* [mVNetElem.size()]; // vector of XY
+
+
+     //collect all global XY
+     for (int iXY=0; iXY<int(this->VPts().size()); iXY++)
+     {
+         //StdOut() << XY.mNumX/2 << "\n";
+         tPNet XY = this->VPts().at(iXY);
+
+         GlobLoc[XY.mNumX] = double(XY.PCur().x()); 
+         GlobLoc[XY.mNumX+1] = double(XY.PCur().y());
+
+     }
+     for (int iXY=0; iXY<int(this->VPts().size()); iXY++)
+     {
+         tPNet XY = this->VPts().at(iXY);
+         //StdOut() << XY.TheorPt().x() << " " << XY.PCur().x() << " " << GlobLoc[XY.mNumX] << " " << XY.mNumX << "\n";
+         //StdOut() << XY.TheorPt().y() << " " << XY.PCur().y() << " " << GlobLoc[XY.mNumX+1] << " " << XY.mNumX+1 << "\n";
+         
+     }
+     
+    
+     // for all subnetwork propagate the covariance
+     int el_idx=0;
+     for (auto & aPtrNet : mVNetElem)
+     {
+         //observations for ceres 
+         LocalLoc[el_idx] = new double [int(aPtrNet->VPts().size())*2];
+
+
+         //localc and global coordinates to calculate the similarity
+         std::vector<tPt> aVLoc;
+         std::vector<tPt> aVMain; 
+
+         GlobIdPerElem[el_idx].resize(4);
+
+         for (const auto & aPNet : aPtrNet->VPts())
+         {
+
+             const tPNet & aHomMain = aPtrNet->MainHomCeres(aPNet);
+             aVLoc.push_back(aPNet.PCur()); 
+             aVMain.push_back(aHomMain.PCur()); 
+
+             GlobIdPerElem[el_idx][aPNet.mNumX/2] = aHomMain.mNumX; 
+             LocalLoc[el_idx][aPNet.mNumX] = aPNet.PCur().x();
+             LocalLoc[el_idx][aPNet.mNumY] = aPNet.PCur().y();
+
+             //StdOut() << "el " << el_idx << " " << aPNet.mNumX/2 << " " << aPNet.PCur() << " " << aHomMain.PCur() << "\n";
+             //getchar();
+             
+         }
+
+         // estimate the rotation 
+         Type aSqResidual;
+         cRot2D<Type>  aRotM2L =  cRot2D<Type>::StdGlobEstimate(aVMain,aVLoc,&aSqResidual);
+
+         tPt  aTr   = aRotM2L.Tr();
+         Type aTeta = aRotM2L.Teta();
+
+         Glob2LocSim[el_idx*3] = double(aTr.x());
+         Glob2LocSim[el_idx*3+1] = double(aTr.y());
+         Glob2LocSim[el_idx*3+2] = double(aTeta);
+
+
+         auto idx_g_p1 = GlobIdPerElem[el_idx][0];
+         auto idx_g_p2 = GlobIdPerElem[el_idx][1];
+         auto idx_g_p3 = GlobIdPerElem[el_idx][2];
+         auto idx_g_p4 = GlobIdPerElem[el_idx][3];
+
+         //StdOut() << idx_g_p1 << " " << idx_g_p2 << " " << idx_g_p3 << " " << idx_g_p4 << "\n";
+
+         /*StdOut() << GlobLoc[idx_g_p1] << " " << GlobLoc[idx_g_p1+1] 
+                  << " L=" << LocalLoc[el_idx][0] << " " << LocalLoc[el_idx][1]  << "\n"
+                  << GlobLoc[idx_g_p2] << " " << GlobLoc[idx_g_p2+1]  
+                  << " L=" << LocalLoc[el_idx][2] << " " << LocalLoc[el_idx][3]  << "\n"
+                  << GlobLoc[idx_g_p3] << " " << GlobLoc[idx_g_p3+1]  
+                  << " L=" << LocalLoc[el_idx][4] << " " << LocalLoc[el_idx][5]  << "\n" 
+                  << GlobLoc[idx_g_p4] << " " << GlobLoc[idx_g_p4+1]  
+                  << " L=" << LocalLoc[el_idx][6] << " " << LocalLoc[el_idx][7]  << "\n";
+
+         StdOut() << "S\n" << Glob2LocSim[el_idx*3] << " " 
+                             << Glob2LocSim[el_idx*3+1] << " "
+                             << Glob2LocSim[el_idx*3+2] << "\n";*/ 
+
+
+         if (aPtrNet->PtsAtt())
+         {
+             //StdOut() << "Basic Graph2D " << &LocalLoc[el_idx] << "\n";
+              
+
+             ceres::CostFunction * Cost = cGraph2DBasic::Create(LocalLoc[el_idx]); 
+
+             aProblem->AddResidualBlock(Cost,NULL,&GlobLoc[idx_g_p1],
+                                                      &GlobLoc[idx_g_p1+1],
+                                                      &GlobLoc[idx_g_p2],
+                                                      &GlobLoc[idx_g_p2+1],
+                                                      &GlobLoc[idx_g_p3],
+                                                      &GlobLoc[idx_g_p3+1],
+                                                      &GlobLoc[idx_g_p4],
+                                                      &GlobLoc[idx_g_p4+1],
+                                                      &Glob2LocSim[el_idx*3],
+                                                      &Glob2LocSim[el_idx*3+1],
+                                                      &Glob2LocSim[el_idx*3+2]);
+
+             //getchar();
+         }
+         else if (aPtrNet->L2Cov())
+         {
+             /* Get covariance and add equation */ 
+             for (const auto & anElemLin : aPtrNet->DSSL().VElems()) // parse all linear system
+             {
+          
+                 //cResidualWeighter<Type>  aRW(anElemLin.mW);  // the weigth as given by eigen values
+                 double weight = anElemLin.mW;
+                 std::vector<Type> aVObsT = anElemLin.mCoeff.ToStdVect(); // coefficient of the linear forme
+                 std::vector<double> aVObs;
+                 for (auto i : aVObsT)
+                     aVObs.push_back(double(i));
+          
+                 aVObs.push_back(double(anElemLin.mCste));  // cste  of the linear form
+                 
+                 /*StdOut() << "\ndssl el " << "\n";
+                 for (auto i : aVObs)
+                     StdOut() << i << " ";
+                 StdOut() << "\n";*/ 
+          
+                 ceres::CostFunction * Cost = cGraph2D::Create(aVObs,weight); //constants
+                 aProblem->AddResidualBlock(Cost,NULL,&GlobLoc[idx_g_p1],
+                                                      &GlobLoc[idx_g_p1+1],
+                                                      &GlobLoc[idx_g_p2],
+                                                      &GlobLoc[idx_g_p2+1],
+                                                      &GlobLoc[idx_g_p3],
+                                                      &GlobLoc[idx_g_p3+1],
+                                                      &GlobLoc[idx_g_p4],
+                                                      &GlobLoc[idx_g_p4+1],
+                                                      &Glob2LocSim[el_idx*3],
+                                                      &Glob2LocSim[el_idx*3+1],
+                                                      &Glob2LocSim[el_idx*3+2]);
+          
+                 // add ordering of the similarity (for schurr)
+                 //ordering->AddElementToGroup(Glob2LocSim[el_idx], 0);
+          
+          
+             }
+         }
+
+         el_idx++;
+
+
+     }
+     // Add gauge constraint
+     for (int iXY=0; iXY<int(this->VPts().size()); iXY++)
+     {
+         //StdOut() << XY.mNumX/2 << "\n";
+         tPNet XY = this->VPts().at(iXY);
+
+        if (XY.mFrozenX)
+        {
+           aProblem->SetParameterBlockConstant(&GlobLoc[XY.mNumX]);
+           StdOut() << GlobLoc[XY.mNumX] << " X fix\n";
+           //getchar();
+        }
+        if (XY.mFrozenY)
+        {
+           aProblem->SetParameterBlockConstant(&GlobLoc[XY.mNumX+1]);
+           StdOut() << GlobLoc[XY.mNumY] << " " << GlobLoc[XY.mNumX+1] << " Y fix\n";
+           //getchar();
+        }
+
+     }
+
+
+     aResidual = this->CalcResidual() ; 
+     StdOut()   <<  " RResiduals before:   " << aResidual <<  "\n";
+
+     StdOut() << "SOLVE\n";
+
+     //add global coordinates ordering (schurr)
+     //for (auto unk : GlobLoc)
+     //   ordering->AddElementToGroup(unk, 1);
+
+
+     //solve the least squares problem
+     ceres::Solver::Options Opts;
+     Opts.linear_solver_type = ceres::SPARSE_SCHUR;
+     //Opts.linear_solver_ordering.reset(ordering);
+     Opts.max_num_iterations = 100;
+     Opts.minimizer_progress_to_stdout = true;
+     Opts.num_threads = 1;//std::thread::hardware_concurrency();
+
+     ceres::Solve(Opts,aProblem,&aSummary);
+     std::cout << aSummary.FullReport() << "\n";
+
+
+
+     //Update and print initial /adjusted values
+     int aK=0;
+     Type aSumResidual=0;
+     for (auto XY : this->VPts())
+     {
+         StdOut() << XY.TheorPt().x() << " " << XY.PCur().x() << " " << GlobLoc[XY.mNumX] << "\n";
+         StdOut() << XY.TheorPt().y() << " " << XY.PCur().y() << " " << GlobLoc[XY.mNumX+1] << "\n";
+
+         aSumResidual += SqN2( cPtxd<Type,2>(GlobLoc[XY.mNumX],GlobLoc[XY.mNumX+1])-XY.TheorPt());
+          
+         aK++;
+     }
+
+     aResidual = aSumResidual / aK ; 
+     StdOut()   <<  " RResiduals :   " << aResidual <<  "\n";
+
+     delete Glob2LocSim;
+     delete GlobLoc;
+     delete LocalLoc;
+     getchar();
+     
      return aResidual;
 }
 
@@ -787,7 +1174,9 @@ template <class Type>  Type cElemNetwork<Type>::ComputeCovMatrix(double aWGaugeC
      // #CCM1    Iteration to compute the 
      for (int aK=0 ; aK<(aNbIter-1); aK++)
      {
+         //std::cout << "ElemNet: " << aK << "\n";
          this->DoOneIterationCompensation(10.0,true);  // Iterations with a gauge and solve
+         //getchar();
      } 
      Type aRes = this->CalcResidual(); // memorization of residual
 
@@ -820,7 +1209,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     // Index of unknown, if Rotation unknown,  begin with 3 Tmp-Schur for rotation
     std::vector<int> aVIndUk(this->mVPts.size()*2+aNbUkRot,-1); 
  
-        // 1.1  compute indexes and homologous points
+    // 1.1  compute indexes and homologous points
     for (const auto & aPNet : this->mVPts)
     {
          const tPNet & aHomMain = this->MainHom(aPNet);
@@ -828,12 +1217,15 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
          // global index if 36, the index 36 must be at place 2, after eventually rotations indexes
          aVIndUk.at(aNbUkRot+aPNet.mNumX) = aHomMain.mNumX;
          aVIndUk.at(aNbUkRot+aPNet.mNumY) = aHomMain.mNumY;
+         //StdOut() << "idx=" << aNbUkRot+aPNet.mNumX << "," << aNbUkRot+aPNet.mNumY  << "\n" 
+         //         << aHomMain.mNumX << " " << aHomMain.mNumY << "\n"; 
 
 	 if(aWCheatMT<=0)
 	 {
              // standard case
              aVLoc.push_back(aPNet.PCur());  // Cur point of local, where it has converger
              aVMain.push_back(aHomMain.PCur());  // Cur point of global, will evolve
+             //std::cout << "PropagCov " << aPNet.PCur() << " " << aHomMain.PCur() << "\n";
 	 }
 	 else
 	 {
@@ -871,13 +1263,20 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
 	int aNbObsRot = aVObs.size();  
 	aVObs.resize(aVObs.size()+2*this->mVPts.size()); // extend to required size
 
+
         for (const auto & aPNet : this->mVPts)  // for all points of network
         {
              tPt aPt =    aPNet.PCur();
+
              // put points  of network as observation
              aVObs.at(aNbObsRot+aPNet.mNumX) = aPt.x(); 
              aVObs.at(aNbObsRot+aPNet.mNumY) = aPt.y();
+
+            
         }
+
+      
+
         if (mRotUk) // if rotation unknown use schurr complement or equivalent
         {
             cSetIORSNL_SameTmp<Type> aSetIO;
@@ -902,6 +1301,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
            aVObs.push_back(anElemLin.mCste);  // cste  of the linear form
            // Add the equation in the structure
            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcSumL2RUk,aVIndUk,aVTmpRot,aVObs,aRW);
+
        }
        // Once all equation have been bufferd in aSetIO, add it to the system
        //  the unknown rotation will be eliminated
@@ -1002,6 +1402,9 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     }
 }
 
+
+
+
 /* ======================================== */
 /*           INSTANTIATION                  */
 /* ======================================== */
@@ -1047,6 +1450,7 @@ class cAppli_TestPropCov : public cMMVII_Appli
          std::vector<double>    mWeightConfig;
          cCovNetwork<tREAL8> *  mMainNet;
          double                 mRatioXY;
+         bool                   mCeres;
 };
 
 
@@ -1059,7 +1463,8 @@ cAppli_TestPropCov::cAppli_TestPropCov(const std::vector<std::string> & aVArgs,c
    mWeightGaugeCovMat   (1.0),
    mWCheatMT            (0.0),
    mWeightConfig        ({1.0}),
-   mRatioXY             (1.0)
+   mRatioXY             (1.0),
+   mCeres               (false)
 {
 }
 
@@ -1085,6 +1490,7 @@ cCollecSpecArg2007 & cAppli_TestPropCov::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            << AOpt2007(mParam.mNoiseOnDist, "NoiseDist","Noise added on dist estim,typical 1e-3",{eTA2007::HDV})
            << AOpt2007(mWeightConfig, "WConf","Weight 4 Config [Std,LowX,LowY,FarLowX,FarLowY]",{{eTA2007::ISizeV,"[1,5]"}})
            << AOpt2007(mRatioXY, "RXY","Weight 4 Config [Std,LowX,LowY,FarLowX,FarLowY]")
+           << AOpt2007(mCeres, "Ceres","Optimise with Ceres")
    ;
 
 }
@@ -1113,13 +1519,19 @@ int  cAppli_TestPropCov::Exe()
 		  );
        mMainNet->PostInit();
 
-       tREAL8 aRes = mMainNet->SolveByCovPropagation(mWCheatMT ,mNbItCovProp);
+       tREAL8 aRes=0;
+       if (mCeres)
+            aRes = mMainNet->SolveByCovPropagationCeres(mWCheatMT ,mNbItCovProp);
+       else 
+            aRes = mMainNet->SolveByCovPropagation(mWCheatMT ,mNbItCovProp);
+       
        aVRes.push_back(aRes);
        aSomRes += aRes;
 
        double aRefRes =100;
        for (int aK=0 ; aK < 10 ; aK++)
        {
+         std::cout << "MainNet: " << aK << "\n";
          aRefRes = mMainNet->DoOneIterationCompensation(100.0,true);
        }
 

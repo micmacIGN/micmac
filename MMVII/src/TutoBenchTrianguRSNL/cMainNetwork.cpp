@@ -232,7 +232,7 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
             aVCur.push_back(aPN.PCur());
             aVTh.push_back(aPN.TheorPt());
             aSumResidual += SqN2(aPN.PCur() -aPN.TheorPt());
-	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << "\n";
+	     //StdOut() << aPN.PCur() << " " << aPN.PCur() - aPN.TheorPt() << aPN.mInd << "\n";
             if (aPN.mFrozenX || aPN.mFrozenY)
             {
 	        //  StdOut() << "CCC=> " << aPN.PCur() << aPN.TheorPt() << aPN.mInd << "\n";

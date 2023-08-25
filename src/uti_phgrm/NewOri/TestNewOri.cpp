@@ -456,7 +456,7 @@ class cAppliImportSfmInit
 		void Map2viewTracks(const std::string& aName1,const std::string& aName2,ElPackHomologue& aPack);
 		void AddVPts2Map(tMapM & aMap,ElPackHomologue& aPack,int anInd1,int anInd2);
 
-		void Rel2Stenope(std::string aN1,std::string aN2,std::string aN3="");
+		bool Rel2Stenope(std::string aN1,std::string aN2,std::string aN3="");
 
 		//template <typename T>
         //void FileReadOK(FILE *fptr, const char *format, T *value);
@@ -501,6 +501,8 @@ class cAppliImportSfmInit
 		ElMatrix<double>*   mRotZ;
 		
 		bool ExpStructurelessBA;
+		double _MAX_REPRJ_ERROR;
+		double _MAX_MOTION_ERROR;
 };
 
 
@@ -1586,6 +1588,7 @@ bool cAppliImportSfmInit::SaveCoords()
 		int aParCnt=0;
         for (auto a2 : aLCpl.Cple())
         {
+		std::cout << a2.N1() << " " << a2.N2() << "\n";
 			if (DicBoolFind(mMFile,a2.N1()) && DicBoolFind(mMFile,a2.N2())) 
 			{
                 
@@ -1594,32 +1597,36 @@ bool cAppliImportSfmInit::SaveCoords()
 				aSupDupl[a2.N1()+a2.N2()] = aParCnt++;
                 
 		    
-				
+			    bool PAIR_OK=true;	
    		        if (!DicBoolFind(mMapCamStenPerView,a2.N1()+a2.N2()))
 				{
-					Rel2Stenope(a2.N1(),a2.N2());
+					PAIR_OK=Rel2Stenope(a2.N1(),a2.N2());
 				}
-                
-                CamStenope * aCam1 = mMapCamStenPerView[a2.N1()+a2.N2()].at(0);
-                CamStenope * aCam2 = mMapCamStenPerView[a2.N1()+a2.N2()].at(1);
-
-                
-				for (auto aPt : aPack)
-				{
-					std::vector<ElSeg3D> aSegV;
-					aSegV.push_back(aCam1->Capteur2RayTer(aPt.P1()));
-					aSegV.push_back(aCam2->Capteur2RayTer(aPt.P2()));
-                
-					//intersect in 3D
-					Pt3dr aInt3d = ElSeg3D::L2InterFaisceaux(&aPds2V,aSegV);
-                
-					// undistort the image observations
-					Pt2dr aPt1UnDist = aCam1->F2toPtDirRayonL3(aPt.P1());
-					Pt2dr aPt2UnDist = aCam2->F2toPtDirRayonL3(aPt.P2());
-                
-					//          cam_name                              pt_xy  ptxyz
-                	aTrkStream << "2 " << a2.N1() << " " << aPt1UnDist.x << " " << aPt1UnDist.y << " " << a2.N2() << " " << aPt2UnDist.x << " " << aPt2UnDist.y << " " << aInt3d.x << " " << aInt3d.y << " " << aInt3d.z << "\n";
-				}
+               
+                if (PAIR_OK)
+                {
+			std::cout << "Pair OK\n";
+                    CamStenope * aCam1 = mMapCamStenPerView[a2.N1()+a2.N2()].at(0);
+                    CamStenope * aCam2 = mMapCamStenPerView[a2.N1()+a2.N2()].at(1);
+                 
+                    
+			 	   for (auto aPt : aPack)
+			 	   {
+			 	     	std::vector<ElSeg3D> aSegV;
+			 	     	aSegV.push_back(aCam1->Capteur2RayTer(aPt.P1()));
+			 	     	aSegV.push_back(aCam2->Capteur2RayTer(aPt.P2()));
+                   
+			 	     	//intersect in 3D
+			 	     	Pt3dr aInt3d = ElSeg3D::L2InterFaisceaux(&aPds2V,aSegV);
+                   
+			 	     	// undistort the image observations
+			 	     	Pt2dr aPt1UnDist = aCam1->F2toPtDirRayonL3(aPt.P1());
+			 	     	Pt2dr aPt2UnDist = aCam2->F2toPtDirRayonL3(aPt.P2());
+					std::cout << aPt1UnDist.x << "\n";
+			 	     	//          cam_name                              pt_xy  ptxyz
+                        aTrkStream << "2 " << a2.N1() << " " << aPt1UnDist.x << " " << aPt1UnDist.y << " " << a2.N2() << " " << aPt2UnDist.x << " " << aPt2UnDist.y << " " << aInt3d.x << " " << aInt3d.y << " " << aInt3d.z << "\n";
+			 	   }
+                }
 			}
 		}
 		std::cout << "Pairs saved" << "\n";
@@ -1643,99 +1650,130 @@ bool cAppliImportSfmInit::SaveCoords()
 	 	   		Map3viewTracks(a3.Name1(),a3.Name2(),a3.Name3(),aMap);
                     
 	 	   		const tListM aLM =  aMap.ListMerged();
-                    
+                   
+                bool TRIPLET_OK=true;
 	 	   		if (!DicBoolFind(mMapCamStenPerView,a3.Name1()+a3.Name2()+a3.Name3()))
-                    {
-                        Rel2Stenope(a3.Name1(),a3.Name2(),a3.Name3());
-                    }
-                    
+                {
+                    TRIPLET_OK = Rel2Stenope(a3.Name1(),a3.Name2(),a3.Name3());
+                }
+                
+                if (TRIPLET_OK)
+                {
+		    double ResAccum=0;
+                    std::cout << a3.Name1() << " " << a3.Name2() << " " << a3.Name3() << "\n";
+
                     CamStenope * aCam1 = mMapCamStenPerView[a3.Name1()+a3.Name2()+a3.Name3()].at(0);
                     CamStenope * aCam2 = mMapCamStenPerView[a3.Name1()+a3.Name2()+a3.Name3()].at(1);
                     CamStenope * aCam3 = mMapCamStenPerView[a3.Name1()+a3.Name2()+a3.Name3()].at(2);
                     
                     
-                    
+                    int NbImPt=0;
                     for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
-	 	   		{
-	 	   			std::vector<double>  aPdsV;
+	 	   		    {
+	 	   			    std::vector<double>  aPdsV;
                         std::vector<ElSeg3D> aSegV;
                     
-	 	   			if ((*itM)->NbSom()>2 ) //==3
-                    	{
-	 	   				Pt2dr aPt1 = (*itM)->GetVal(0);
-                            Pt2dr aPt2 = (*itM)->GetVal(1);
-                            Pt2dr aPt3 = (*itM)->GetVal(2);
-                    
-                    
-	                        aSegV.push_back(aCam1->Capteur2RayTer(aPt1));
-     	                   aSegV.push_back(aCam2->Capteur2RayTer(aPt2));
-     	                   aSegV.push_back(aCam3->Capteur2RayTer(aPt3));
-            		        //aPdsV = {1.0,1.0,1.0};
-                    
-	 	   				//intersect in 3D
-                        	Pt3dr aInt3d = ElSeg3D::L2InterFaisceaux(&aPds3V,aSegV);
-                    
-	 	   				// undistort the image observations
-                        	Pt2dr aPt1UnDist = aCam1->F2toPtDirRayonL3(aPt1);
-                        	Pt2dr aPt2UnDist = aCam2->F2toPtDirRayonL3(aPt2);
-                        	Pt2dr aPt3UnDist = aCam3->F2toPtDirRayonL3(aPt3);
-                    
-	 	   				//          cam_name                              pt_xy
-             	 		    aTrkStream << "3 " << a3.Name1() << " " << aPt1UnDist.x << " " << aPt1UnDist.y << " " 
-	 	   				           		   << a3.Name2() << " " << aPt2UnDist.x << " " << aPt2UnDist.y << " "
-	 	   						   		   << a3.Name3() << " " << aPt3UnDist.x << " " << aPt3UnDist.y << " "
-	 	   								   << aInt3d.x << " "<< aInt3d.y << " " << aInt3d.z << "\n";
-                    
-	 	   			}
-	 	   			else if ((*itM)->NbSom()==2 )
-	 	   			{
-                    
-	 	   				Pt2dr aPt1 = (*itM)->GetVal(0);
-	 	   				Pt2dr aPt2 = (*itM)->GetVal(1);
-	 	   				Pt2dr aPt3 = (*itM)->GetVal(2);
-	 	   				std::string aPairId = ((aPt1.x==0 && aPt1.y==0) ? "" : a3.Name1()) + 
-	 	   					                  ((aPt2.x==0 && aPt2.y==0) ? "" : a3.Name2()) +
-	 	   									  ((aPt3.x==0 && aPt3.y==0) ? "" : a3.Name3());	  
-                    
-                    
-	 	   				// undistort the image observations
-                            Pt2dr aPt1UnDist = aCam1->F2toPtDirRayonL3(aPt1);
-	 	   				Pt2dr aPt2UnDist = aCam2->F2toPtDirRayonL3(aPt2);
-                            Pt2dr aPt3UnDist = aCam3->F2toPtDirRayonL3(aPt3);
-	 	   				
-	 	   				// avoid adding the pair features if you were added before
-	 	   				if (! DicBoolFind(aSupDupl,aPairId))
-	 	   				{
-                    
-	 	   					if (!(aPt1.x==0 && aPt1.y==0))
-	 	   					{
-	 	   						aSegV.push_back(aCam1->Capteur2RayTer(aPt1));
-	 	   					}
-	 	   					if (!(aPt2.x==0 && aPt2.y==0))
-                                {
-                                    aSegV.push_back(aCam2->Capteur2RayTer(aPt2));
-                                }
-	 	   					if (!(aPt3.x==0 && aPt3.y==0))
-                                {
-                                    aSegV.push_back(aCam3->Capteur2RayTer(aPt3));
-                                }
-                    
+	 	   				if ((*itM)->NbSom()>2 ) //==3
+                        	{
+	 	   					Pt2dr aPt1 = (*itM)->GetVal(0);
+                                Pt2dr aPt2 = (*itM)->GetVal(1);
+                                Pt2dr aPt3 = (*itM)->GetVal(2);
+                        
+                        
+	                            aSegV.push_back(aCam1->Capteur2RayTer(aPt1));
+     	                       aSegV.push_back(aCam2->Capteur2RayTer(aPt2));
+     	                       aSegV.push_back(aCam3->Capteur2RayTer(aPt3));
+            			        //aPdsV = {1.0,1.0,1.0};
+                        
 	 	   					//intersect in 3D
-	 	   					Pt3dr aInt3d = ElSeg3D::L2InterFaisceaux(&aPds2V,aSegV);
-                    
+                            	Pt3dr aInt3d = ElSeg3D::L2InterFaisceaux(&aPds3V,aSegV);
+                       
+			       // check the re-projection error and if too big ignore the point
+			       Pt2dr aPt1Pred = aCam1->Ter2Capteur(aInt3d);
+                               Pt2dr aPt2Pred = aCam2->Ter2Capteur(aInt3d);
+                               Pt2dr aPt3Pred = aCam3->Ter2Capteur(aInt3d);
+
+			       double ResCur = 0.33*(euclid(aPt1Pred-aPt1) + euclid(aPt2Pred-aPt2) + euclid(aPt3Pred-aPt3));
+
+ /*                  std::cout << "Obs : " << aPt1 << ", " << aPt2 << "," << aPt3 << "\n";
+                   std::cout << "Pred: " << aPt1Pred << ", " << aPt2Pred << "," << aPt3Pred << ", 3D=" << aInt3d << "\n";
+getchar();*/
+			       //ignore the point if too big error 
+                               if (ResCur>_MAX_REPRJ_ERROR)
+			           continue;
+
+                               ResAccum += ResCur;
+			       //std::cout << euclid(aPt1Pred-aPt1) << " " << euclid(aPt2Pred-aPt2) << " " << euclid(aPt3Pred-aPt3) << "\n";	
+
+
+	 	   	       // undistort the image observations
+                            	Pt2dr aPt1UnDist = aCam1->F2toPtDirRayonL3(aPt1);
+                            	Pt2dr aPt2UnDist = aCam2->F2toPtDirRayonL3(aPt2);
+                            	Pt2dr aPt3UnDist = aCam3->F2toPtDirRayonL3(aPt3);
+                        
 	 	   					//          cam_name                              pt_xy
-                            	aTrkStream << "2 " << ((aPt1.x==0 && aPt1.y==0) ? "" : a3.Name1()) << " " 
-	 	   						           << ((aPt1.x==0 && aPt1.y==0) ? "" : ToString(aPt1UnDist.x)+" "+ToString(aPt1UnDist.y)) << " "
-                                               << ((aPt2.x==0 && aPt2.y==0) ? "" : a3.Name2()) << " "
-                                               << ((aPt2.x==0 && aPt2.y==0) ? "" : ToString(aPt2UnDist.x)+" "+ToString(aPt2UnDist.y)) << " "
-                                               << ((aPt3.x==0 && aPt3.y==0) ? "" : a3.Name3()) << " "
-                                               << ((aPt3.x==0 && aPt3.y==0) ? "" : ToString(aPt3UnDist.x)+" "+ToString(aPt3UnDist.y)) << " "
-	 	   								   << aInt3d.x << " "<< aInt3d.y << " " << aInt3d.z << "\n";
-                    
-                    
+             	 	 		    aTrkStream << "3 " << a3.Name1() << " " << aPt1UnDist.x << " " << aPt1UnDist.y << " " 
+	 	   					           		   << a3.Name2() << " " << aPt2UnDist.x << " " << aPt2UnDist.y << " "
+	 	   							   		   << a3.Name3() << " " << aPt3UnDist.x << " " << aPt3UnDist.y << " "
+	 	   									   << aInt3d.x << " "<< aInt3d.y << " " << aInt3d.z << "\n";
+
+					    NbImPt++;
+                        
 	 	   				}
-	 	   			}
-	 	   		}
+	 	   				else if ((*itM)->NbSom()==2 )
+	 	   				{
+                        
+	 	   					Pt2dr aPt1 = (*itM)->GetVal(0);
+	 	   					Pt2dr aPt2 = (*itM)->GetVal(1);
+	 	   					Pt2dr aPt3 = (*itM)->GetVal(2);
+	 	   					std::string aPairId = ((aPt1.x==0 && aPt1.y==0) ? "" : a3.Name1()) + 
+	 	   						                  ((aPt2.x==0 && aPt2.y==0) ? "" : a3.Name2()) +
+	 	   										  ((aPt3.x==0 && aPt3.y==0) ? "" : a3.Name3());	  
+                        
+                        
+	 	   					// undistort the image observations
+                                Pt2dr aPt1UnDist = aCam1->F2toPtDirRayonL3(aPt1);
+	 	   					Pt2dr aPt2UnDist = aCam2->F2toPtDirRayonL3(aPt2);
+                                Pt2dr aPt3UnDist = aCam3->F2toPtDirRayonL3(aPt3);
+	 	   					
+	 	   					// avoid adding the pair features if you were added before
+	 	   					if (! DicBoolFind(aSupDupl,aPairId))
+	 	   					{
+                        
+	 	   						if (!(aPt1.x==0 && aPt1.y==0))
+	 	   						{
+	 	   							aSegV.push_back(aCam1->Capteur2RayTer(aPt1));
+	 	   						}
+	 	   						if (!(aPt2.x==0 && aPt2.y==0))
+                                    {
+                                        aSegV.push_back(aCam2->Capteur2RayTer(aPt2));
+                                    }
+	 	   						if (!(aPt3.x==0 && aPt3.y==0))
+                                    {
+                                        aSegV.push_back(aCam3->Capteur2RayTer(aPt3));
+                                    }
+                        
+	 	   						//intersect in 3D
+	 	   						Pt3dr aInt3d = ElSeg3D::L2InterFaisceaux(&aPds2V,aSegV);
+                        
+	 	   						//          cam_name                              pt_xy
+                                	aTrkStream << "2 " << ((aPt1.x==0 && aPt1.y==0) ? "" : a3.Name1()) << " " 
+	 	   							           << ((aPt1.x==0 && aPt1.y==0) ? "" : ToString(aPt1UnDist.x)+" "+ToString(aPt1UnDist.y)) << " "
+                                                   << ((aPt2.x==0 && aPt2.y==0) ? "" : a3.Name2()) << " "
+                                                   << ((aPt2.x==0 && aPt2.y==0) ? "" : ToString(aPt2UnDist.x)+" "+ToString(aPt2UnDist.y)) << " "
+                                                   << ((aPt3.x==0 && aPt3.y==0) ? "" : a3.Name3()) << " "
+                                                   << ((aPt3.x==0 && aPt3.y==0) ? "" : ToString(aPt3UnDist.x)+" "+ToString(aPt3UnDist.y)) << " "
+	 	   									   << aInt3d.x << " "<< aInt3d.y << " " << aInt3d.z << "\n";
+                        
+                        
+	 	   					}
+	 	   				}
+	 	   		    }
+
+		std::cout << "==ResAccum== " << (NbImPt ? ResAccum/NbImPt : ResAccum) << "\n";
+		//getchar();
+                }
+
 	 	   	}
 	 	   }
         }
@@ -1749,44 +1787,90 @@ bool cAppliImportSfmInit::SaveCoords()
 	return true;
 }
 
-void cAppliImportSfmInit::Rel2Stenope(std::string aN1,std::string aN2,std::string aN3)
+bool cAppliImportSfmInit::Rel2Stenope(std::string aN1,std::string aN2,std::string aN3)
 {
 	//pair
 	if (aN3=="")
 	{
-		bool OK;
-		ElRotation3D aP2 = mNM->OriCam2On1 (aN1,aN2,OK);
 
-		CamStenope *aC1 = mNM->CalibrationCamera(aN1)->Dupl();
-        CamStenope *aC2 = mNM->CalibrationCamera(aN2)->Dupl();
+        //residual test 
+        cXml_Ori2Im OriXml = mNM->GetOri2Im (aN1,aN2);
+        double aRes = OriXml.Geom().Val().OrientAff().ResiduHighPerc();
 
-		//update poses
-        aC1->SetOrientation(ElRotation3D::Id);
-        aC2->SetOrientation(aP2);
-
-		mMapCamStenPerView[aN1+aN2] = {aC1,aC2};
-
+        if (aRes<_MAX_MOTION_ERROR)
+        {
+			bool OK;
+			ElRotation3D aP2 = mNM->OriCam2On1 (aN1,aN2,OK);
+            
+            
+            
+			CamStenope *aC1 = mNM->CalibrationCamera(aN1)->Dupl();
+            CamStenope *aC2 = mNM->CalibrationCamera(aN2)->Dupl();
+            
+			//update poses
+            aC1->SetOrientation(ElRotation3D::Id);
+            aC2->SetOrientation(aP2);
+            
+			mMapCamStenPerView[aN1+aN2] = {aC1,aC2};
+            
+            /*
+             *
+            std::pair<CamStenope*,CamStenope*> aP1P2Rel = mNM->CamOriRel(aN1,aN2);
+             * ElRotation3D Rot1Rel = aP1P2Rel.second->Orient();
+            ElRotation3D Rot1    = aC2->Orient();
+            
+            std::cout << "\n";
+            for (int aK1=0; aK1<3; aK1++)
+            {
+                for (int aK2=0; aK2<3; aK2++)
+                {
+                    std::cout << Rot1.Mat()(aK1,aK2) << " " << Rot1Rel.Mat()(aK1,aK2) << " ";
+            
+                }
+                std::cout << "\n";
+            }
+            
+            getchar();*/ 
+        }
+        else
+        {
+            std::cout << "=============Residual=" << aRes << "\n";
+            return false;
+        }
 	}
 	else //triplet
 	{
 		std::string  aName3R = mNM->NameOriOptimTriplet(true,aN1,aN2,aN3);
         cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
 
-		ElRotation3D aP2 = Xml2El(aXml3Ori.Ori2On1());
-        ElRotation3D aP3 = Xml2El(aXml3Ori.Ori3On1());
+        //residual test 
+        double aRes = aXml3Ori.ResiduTriplet();
 
-		CamStenope * aC1 = mNM->CalibrationCamera(aN1)->Dupl();
-        CamStenope * aC2 = mNM->CalibrationCamera(aN2)->Dupl();
-        CamStenope * aC3 = mNM->CalibrationCamera(aN3)->Dupl();
+        if (aRes <_MAX_MOTION_ERROR)
+        {
+			ElRotation3D aP2 = Xml2El(aXml3Ori.Ori2On1());
+            ElRotation3D aP3 = Xml2El(aXml3Ori.Ori3On1());
+            
+			CamStenope * aC1 = mNM->CalibrationCamera(aN1)->Dupl();
+            CamStenope * aC2 = mNM->CalibrationCamera(aN2)->Dupl();
+            CamStenope * aC3 = mNM->CalibrationCamera(aN3)->Dupl();
+            
+			//update poses
+            aC1->SetOrientation(ElRotation3D::Id);
+            aC2->SetOrientation(aP2.inv());
+            aC3->SetOrientation(aP3.inv());
+            
+			mMapCamStenPerView[aN1+aN2+aN3] = {aC1,aC2,aC3};
+        }
+        else
+        {
+            std::cout << "=============Residual=" << aRes << "\n";
+            return false;
 
-		//update poses
-        aC1->SetOrientation(ElRotation3D::Id);
-        aC2->SetOrientation(aP2.inv());
-        aC3->SetOrientation(aP3.inv());
-
-		mMapCamStenPerView[aN1+aN2+aN3] = {aC1,aC2,aC3};
-
+        }
 	}
+
+    return true;
 	
 }
 
@@ -1917,7 +2001,8 @@ void cAppliImportSfmInit::SaveEG()
 			//save the relative motion
 			if (DicBoolFind(mStr2Id,a2.N1()) && DicBoolFind(mStr2Id,a2.N2()))
 			{	
-				aEG << mStr2Id[a2.N1()] << " " << mStr2Id[a2.N2()]  << " " 
+			
+                aEG << mStr2Id[a2.N1()] << " " << mStr2Id[a2.N2()]  << " " 
 				    << aRij(0,0) << " " << aRij(1,0) << " " << aRij(2,0) << " "
 					<< aRij(0,1) << " " << aRij(1,1) << " " << aRij(2,1) << " "
 					<< aRij(0,2) << " " << aRij(1,2) << " " << aRij(2,2) << " "
@@ -1932,17 +2017,22 @@ void cAppliImportSfmInit::SaveEG()
 			if (DicBoolFind(mMFile,a2.N1()) && DicBoolFind(mMFile,a2.N2()))
             {
 				std::cout << a2.N1()+a2.N2() << "\n";
-				CamStenope * aCam2 = mMapCamStenPerView[a2.N1()+a2.N2()].at(1);
-                
-				///1-2
-                ElRotation3D aP12 = aCam2->Orient().inv();
-				Pt3dr        aC12 = aP12.ImAff(Pt3dr(0,0,0));
 
-				aEG << "2 " << a2.N1() << " " << a2.N2() << " "
-					<< aP12.Mat()(0,0) << " " << aP12.Mat()(1,0) << " " << aP12.Mat()(2,0) << " "
-					<< aP12.Mat()(0,1) << " " << aP12.Mat()(1,1) << " " << aP12.Mat()(2,1) << " "
-					<< aP12.Mat()(0,2) << " " << aP12.Mat()(1,2) << " " << aP12.Mat()(2,2) << " "
-					<< aC12.x << " " << aC12.y << " " << aC12.z << "\n";
+                if (mMapCamStenPerView.find(a2.N1()+a2.N2()) != mMapCamStenPerView.end())
+                {
+				    CamStenope * aCam2 = mMapCamStenPerView[a2.N1()+a2.N2()].at(1);
+                
+
+			 	   ///1-2
+                    ElRotation3D aP12 = aCam2->Orient().inv();
+			 	    Pt3dr        aC12 = aP12.ImAff(Pt3dr(0,0,0));
+                 
+			 	   aEG << "2 " << a2.N1() << " " << a2.N2() << " "
+			 	   	<< aP12.Mat()(0,0) << " " << aP12.Mat()(1,0) << " " << aP12.Mat()(2,0) << " "
+			 	   	<< aP12.Mat()(0,1) << " " << aP12.Mat()(1,1) << " " << aP12.Mat()(2,1) << " "
+			 	   	<< aP12.Mat()(0,2) << " " << aP12.Mat()(1,2) << " " << aP12.Mat()(2,2) << " "
+			 	   	<< aC12.x << " " << aC12.y << " " << aC12.z << "\n";
+                }
 			}
 			else
 				std::cout << "Could not find ids for " << a2.N1() << " " << a2.N2() << " probably missing in your Ori\n";
@@ -1964,7 +2054,9 @@ void cAppliImportSfmInit::SaveEG()
             {
                 if (DicBoolFind(mMFile,a3.Name1()) && DicBoolFind(mMFile,a3.Name2()) && DicBoolFind(mMFile,a3.Name3()) )
 	 	   	{
-         
+        
+                if (mMapCamStenPerView.find(a3.Name1()+a3.Name2()+a3.Name3()) != mMapCamStenPerView.end())
+                { 
          
                     //CamStenope * aCam1 = mMapCamStenPerView[a3.Name1()+a3.Name2()+a3.Name3()].at(0);
                     CamStenope * aCam2 = mMapCamStenPerView[a3.Name1()+a3.Name2()+a3.Name3()].at(1);
@@ -1973,14 +2065,14 @@ void cAppliImportSfmInit::SaveEG()
          
                     ///1-2
                     ElRotation3D aP12 = aCam2->Orient().inv();
-	 	   		Pt3dr        aC12 = aP12.ImAff(Pt3dr(0,0,0));
+	 	   		    Pt3dr        aC12 = aP12.ImAff(Pt3dr(0,0,0));
                     ///1-3
                     ElRotation3D aP13 = aCam3->Orient().inv();
-	 	   		Pt3dr        aC13 = aP13.ImAff(Pt3dr(0,0,0));
+	 	   	 	    Pt3dr        aC13 = aP13.ImAff(Pt3dr(0,0,0));
          
          
          
-	 	   		aEG << "3 " << a3.Name1() << " " << a3.Name2() << " " << " " << a3.Name3() << " "
+	 	   		    aEG << "3 " << a3.Name1() << " " << a3.Name2() << " " << " " << a3.Name3() << " "
                         << aP12.Mat()(0,0) << " " << aP12.Mat()(1,0) << " " << aP12.Mat()(2,0) << " "
                         << aP12.Mat()(0,1) << " " << aP12.Mat()(1,1) << " " << aP12.Mat()(2,1) << " "
                         << aP12.Mat()(0,2) << " " << aP12.Mat()(1,2) << " " << aP12.Mat()(2,2) << " "
@@ -1989,7 +2081,7 @@ void cAppliImportSfmInit::SaveEG()
                         << aP13.Mat()(0,1) << " " << aP13.Mat()(1,1) << " " << aP13.Mat()(2,1) << " "
                         << aP13.Mat()(0,2) << " " << aP13.Mat()(1,2) << " " << aP13.Mat()(2,2) << " "
                         << aC13.x << " "   << aC13.y << " "   << aC13.z << "\n";
-         
+                }
 	 	   	}
          
          
@@ -2018,9 +2110,10 @@ bool cAppliImportSfmInit::Save()
 	// choose subset of images
 	int aK=0;
 	std::list<std::string> aLFile = mICNM->StdGetListOfFile(mPat,1);
-	for (auto aImP : aLFile)
+	for (auto aImP : aLFile){
 		mMFile[aImP] = aK++;
-
+	    std::cout << aImP << "\n";
+	}
 	
 	/* Save coords, tracks, cc and list */
 	if (SaveCoords())
@@ -2061,7 +2154,9 @@ cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
     mPat(""),
     CalibDir(""),
     mCCVec(new std::vector<std::string>()),
-	ExpStructurelessBA(false)
+	ExpStructurelessBA(false),
+	_MAX_REPRJ_ERROR(20),
+	_MAX_MOTION_ERROR(5)
 {
 
     ElInitArgMain
@@ -2083,7 +2178,9 @@ cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
 				   << EAM(mExpTxt,"ExpTxt",true,"Homol in txt")
                    << EAM(mMMOriDir,"Ori",true,"If Pat is init -> Export MM to SfmInit else only ori to txt format ")
                    << EAM(mPat,"Pat",true,"Pattern of images to export to SfmInit problem")
-				   << EAM(ExpStructurelessBA,"ExpSBA",true,"Export for use in structureless BA")
+		   << EAM(ExpStructurelessBA,"ExpSBA",true,"Export for use in structureless BA")
+		   << EAM(_MAX_REPRJ_ERROR,"MaxErr",true,"Reproj error threshold, eliminate everything above, Def=20")
+		   << EAM(_MAX_MOTION_ERROR,"MaxMotionErr",true,"Motion error threshold, eliminate everything above, Def=5")
     );    
 
     #if (ELISE_windows)
@@ -2297,10 +2394,10 @@ int CPP_ImportArtsQuad(int argc,char ** argv)
 	return EXIT_SUCCESS;
 }
 
-void SimilGlob2LocTwoV(const ElRotation3D Ri, const ElRotation3D Rj, 
-				       const ElRotation3D rk_i, const ElRotation3D rk_j,
-					   ElMatrix<double>& Rk, Pt3dr& Ck, double& Lk)
-{
+//void SimilGlob2LocTwoV(const ElRotation3D Ri, const ElRotation3D Rj, 
+//				       const ElRotation3D rk_i, const ElRotation3D rk_j,
+//					   ElMatrix<double>& Rk, Pt3dr& Ck, double& Lk)
+//{
 /*
 	//lambda
     Lk = euclid(rk_i.tr() - rk_j.tr())/euclid(Ri.tr() - Rj.tr());
@@ -2325,7 +2422,7 @@ void SimilGlob2LocTwoV(const ElRotation3D Ri, const ElRotation3D Rj,
     }
 */
         //verif
-    std::vector<ElRotation3D> aVR1;
+/*    std::vector<ElRotation3D> aVR1;
     std::vector<ElRotation3D> aVR2;
     std::vector<Pt3dr> aVP1;
     std::vector<Pt3dr> aVP2;
@@ -2339,7 +2436,7 @@ void SimilGlob2LocTwoV(const ElRotation3D Ri, const ElRotation3D Rj,
 
     Lk = aSol.Lambda();
     Rk = aSol.Rot();
-    Ck = aSol.Tr();
+    Ck = aSol.Tr();*/
 
 //    std::cout << "\nverifs, L=" << aSol.Lambda() << ", Tr=" << aSol.Tr() << "\n";
     /*for (int i=0; i<3; i++)
@@ -2348,12 +2445,12 @@ void SimilGlob2LocTwoV(const ElRotation3D Ri, const ElRotation3D Rj,
     }*/
 
 
-}
+//}
 
-void SimilGlob2LocThreeV(const ElRotation3D Ri, const ElRotation3D Rj,  const ElRotation3D Rm,
-                       const ElRotation3D rk_i, const ElRotation3D rk_j, const ElRotation3D rk_m,
-                       ElMatrix<double>& Rk, Pt3dr& Ck, double& Lk)
-{
+//void SimilGlob2LocThreeV(const ElRotation3D Ri, const ElRotation3D Rj,  const ElRotation3D Rm,
+//                       const ElRotation3D rk_i, const ElRotation3D rk_j, const ElRotation3D rk_m,
+//                       ElMatrix<double>& Rk, Pt3dr& Ck, double& Lk)
+//{
 /*
     //lambda
     double L1 = euclid(rk_i.tr() - rk_j.tr())/euclid(Ri.tr() - Rj.tr());
@@ -2383,7 +2480,7 @@ void SimilGlob2LocThreeV(const ElRotation3D Ri, const ElRotation3D Rj,  const El
     }
 */
     //verif
-    std::vector<ElRotation3D> aVR1;
+/*    std::vector<ElRotation3D> aVR1;
     std::vector<ElRotation3D> aVR2;
     std::vector<Pt3dr> aVP1; 
     std::vector<Pt3dr> aVP2;
@@ -2400,14 +2497,14 @@ void SimilGlob2LocThreeV(const ElRotation3D Ri, const ElRotation3D Rj,  const El
     
     Rk = aSol.Rot();
     Ck = aSol.Tr();
-    Lk = aSol.Lambda();
+    Lk = aSol.Lambda();*/
     /*std::cout << "\nverifs, L=" << aSol.Lambda() << ", Tr=" << aSol.Tr() << "\n";
     for (int i=0; i<3; i++)
     {
         std::cout << aRVer(i,0) << "|" << aRVer(i,1) << "|" << aRVer(i,2) << "\n" ;
     }*/
 
-}
+//}
 
 
 int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
@@ -2419,10 +2516,12 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
 	std::string aSH="";
 	std::string aOutSim="SimilitudesPerMotion.txt";
 	std::string aOutGlob="GlobalPoses.txt";
-	bool PerturbGPoses = false;
-
+	bool   PerturbGPoses = false;
+    double PerturbCSigma = 0.1;//will depend on the scale of the model 
+    double PerturbRSigma = 0.001;
 	cInterfChantierNameManipulateur * aICNM;
     cNewO_NameManager *aNM;
+
 
 	ElInitArgMain
     (
@@ -2434,6 +2533,8 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
 		   << EAM(aOutSim,"OutS",true,"Output file name for similitudes, Def=SimilitudesPerMotion.txt")
 		   << EAM(aOutGlob,"OutG",true,"Output file name for global poses, Def=SimilitudesPerMotion.txt")
                    << EAM(PerturbGPoses,"PerturbGB",true,"Introduce perturbation to global poses, Def=false")
+                   << EAM(PerturbRSigma,"PerturbRSigma",true,"Magnitude of perturbation on rotation, Def=0.001")
+                   << EAM(PerturbCSigma,"PerturbCSigma",true,"Magnitude of perturbation on center, Def=0.1")
     );
 
 	aICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
@@ -2444,6 +2545,11 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
 	cElemAppliSetFile anEASF(aPattern);
    	const std::vector<std::string> * aSetName =   anEASF.SetIm();
 
+    RandUnifQuick * TheRandUnif = new RandUnifQuick(time(0)); 
+    if (PerturbGPoses)
+    {
+        NRrandom3InitOfTime();
+    }
 	//read abs poses
 	std::cout << "Read absolute poses " << aSetName->size() << "\n";
 	std::map<std::string,ElRotation3D*> aGlobalP;
@@ -2460,7 +2566,7 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
 
         if (ELISE_fp::exist_file(aImOriName))
         {
-	    cOrientationConique aOC = StdGetObjFromFile<cOrientationConique>
+	        cOrientationConique aOC = StdGetObjFromFile<cOrientationConique>
                                                (
                                                    aImOriName,
                                                    StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
@@ -2468,7 +2574,7 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
                                                    "OrientationConique"
                                                );
             cOrientationExterneRigide anOER = aOC.Externe();
-            Pt3dr aC = StdGetObjFromFile<Pt3dr>
+            /*Pt3dr aC = StdGetObjFromFile<Pt3dr>
                     (
                         aImOriName,
                         StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
@@ -2481,17 +2587,48 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
                         StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                         "ParamRotation",
                         "RotationVect"
-                    );
+                    );*/ 
 
-            bool               aTrueR = true;
+        bool               aTrueR = true;
 	    ElRotation3D aCRot = Std_RAff_C2M(anOER,anOER.KnownConv().Val());
-	    aGlobalP[aImName] = new ElRotation3D (aCRot.tr(),aCRot.Mat(),aTrueR);			
+        Pt3dr tr = aCRot.tr();
+        ElMatrix<double> rotation = aCRot.Mat();
+
+ /*       std::cout << " tr=" << tr <<  "\n";
+        std::cout << rotation(0,0) << " " << rotation(0,1) << " " << rotation(0,2) << "\n"
+                  << rotation(1,0) << " " << rotation(1,1) << " " << rotation(1,2) << "\n"
+                  << rotation(2,0) << " " << rotation(2,1) << " " << rotation(2,2) << "\n";*/
+
+
+        if (PerturbGPoses)
+        {
+            tr = tr + Pt3dr(PerturbCSigma*TheRandUnif->Unif_0_1(),
+                            PerturbCSigma*TheRandUnif->Unif_0_1(),
+                            PerturbCSigma*TheRandUnif->Unif_0_1());
+
+            double aW[] = {PerturbRSigma*(TheRandUnif->Unif_0_1()-0.5)*2.0,
+	                       PerturbRSigma*(TheRandUnif->Unif_0_1()-0.5)*2.0,
+				           PerturbRSigma*(TheRandUnif->Unif_0_1()-0.5)*2.0};
+
+            ElMatrix<double> WMat = MatFromCol(Pt3dr(0,      aW[2],     -aW[1]),
+                                               Pt3dr(-aW[2],     0,      aW[0]),
+                                               Pt3dr( aW[1], -aW[0],        0)); 
+            ElMatrix<double> rotation_pert = rotation + rotation*WMat;
+            
+            rotation = NearestRotation(rotation_pert);
+        
+
+
+        }
+
+   
+	    aGlobalP[aImName] = new ElRotation3D (tr,rotation,aTrueR);			
 
 	    ElRotation3D *aGlob = aGlobalP[aImName];
-	    aFG << aImName << " " << aGlob->Mat()(0,0) << " " << aGlob->Mat()(1,0) << " " << aGlob->Mat()(2,0) << " " 
+	    aFG << aImName << " "     << aGlob->Mat()(0,0) << " " << aGlob->Mat()(1,0) << " " << aGlob->Mat()(2,0) << " " 
 			    				  << aGlob->Mat()(0,1) << " " << aGlob->Mat()(1,1) << " " << aGlob->Mat()(2,1) << " "
   			    				  << aGlob->Mat()(0,2) << " " << aGlob->Mat()(1,2) << " " << aGlob->Mat()(2,2) << " "
-								  << aC.x << " " << aC.y << " " << aC.z << "\n";
+								  << tr.x << " " << tr.y << " " << tr.z << "\n";
 
         }
 		
@@ -2511,12 +2648,13 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
 	cSauvegardeNamedRel aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);	
 
 	const ElRotation3D aP1 = ElRotation3D::Id;
-	//const ElRotation3D aP1inv = aP1.inv();
+
+    //const ElRotation3D aP1inv = aP1.inv();
 	for (auto a2 : aLCpl.Cple())
 	{
-                bool aN1InfN2 = (a2.N1()<a2.N2());
+        //bool aN1InfN2 = (a2.N1()<a2.N2()); taken care of by OriCam2On1
 
-		std::cout << "* " << a2.N1() << " " << a2.N2() << "\n";
+		//std::cout << "* " << a2.N1() << " " << a2.N2() << " " << aN1InfN2 << "\n";
 		if (DicBoolFind(aGlobalP,a2.N1()) && DicBoolFind(aGlobalP,a2.N2()) )
 		{
 			std::cout << "+ ";
@@ -2531,14 +2669,16 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
 			Pt3dr            Ck;
 			double           Lk;
 			//SimilGlob2LocTwoV(*aG1, *aG2,aP1inv,aP2inv,Rk,Ck,Lk);
-		        SimilGlob2LocTwoV(*aG1, *aG2,aP1,aN1InfN2 ? aP2.inv() : aP2,Rk,Ck,Lk);
+		        //SimilGlob2LocTwoV(*aG1, *aG2,aP1,aN1InfN2 ? aP2.inv() : aP2,Rk,Ck,Lk);
+		        SimilGlob2LocTwoV(*aG1, *aG2,aP1,aP2,Rk,Ck,Lk);
 
 			// #views name1 name2 Rk tk
 			aFile << "2 " << a2.N1() << " " << a2.N2() << " " << Rk(0,0) << " " << Rk(1,0) << " " << Rk(2,0) << " " <<
 					                                             Rk(0,1) << " " << Rk(1,1) << " " << Rk(2,1) << " " << 
 																 Rk(0,2) << " " << Rk(1,2) << " " << Rk(2,2) << " " << 
 																 Ck.x << " " << Ck.y << " " << Ck.z << " " << Lk << "\n";
-		}
+		
+        }
 	}
 
 	
@@ -2559,7 +2699,7 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
                 std::string  aName3R = aNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
                 cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
  
- 	   		ElRotation3D *aG1 = aGlobalP[a3.Name1()];
+ 	   		    ElRotation3D *aG1 = aGlobalP[a3.Name1()];
                 ElRotation3D *aG2 = aGlobalP[a3.Name2()];
                 ElRotation3D *aG3 = aGlobalP[a3.Name3()];
  
@@ -2582,7 +2722,7 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
  	   							Rk,Ck,Lk);
  	   		// #views name1 name2 Rk tk
                 aFile << "3 " << a3.Name1() << " " << a3.Name2() << " " << a3.Name3() << " " << 
- 	   				         Rk(0,0) << " " << Rk(1,0) << " " << Rk(2,0) << " " << 
+ 	   				             Rk(0,0) << " " << Rk(1,0) << " " << Rk(2,0) << " " << 
                                  Rk(0,1) << " " << Rk(1,1) << " " << Rk(2,1) << " " << 
                                  Rk(0,2) << " " << Rk(1,2) << " " << Rk(2,2) << " " <<
                                  Ck.x << " " << Ck.y << " " << Ck.z << " " << Lk << "\n";
@@ -2592,10 +2732,114 @@ int CPP_ExportSimilPerMotion_main(int argc,char ** argv)
 
 	aFile.close();
 
+    delete TheRandUnif;
+
     return EXIT_SUCCESS;
 }
 
 void SaveCamera(ElMatrix<double>& R, Pt3dr& T, std::string CalName,std::string OriName);
+
+int CPP_InitGeoTag(int argc,char ** argv)
+{
+
+    std::string aOutBatch="ExivGeoTag";
+    std::string aInGlobFile;
+    std::vector<std::string> aCmdVec;
+
+
+
+    ElInitArgMain
+    (
+    argc,argv, 
+    LArgMain() << EAMC(aInGlobFile,"List of poses (txt)", eSAM_IsExistFile)
+               << EAMC(aOutBatch,"Output batch file, Def=ExivGeoTag"),
+    LArgMain()
+    );
+
+    ELISE_fp aFIn(aInGlobFile.c_str(),ELISE_fp::READ);
+    char * aLine;
+
+    ElMatrix<double> aRot(3,3);
+    Pt3dr            aTr;
+    std::string      aOriName;
+	std::string      aOriCalFile;
+
+    int aMul=1000;
+
+    /* Save metadata file per images */
+    while ((aLine = aFIn.std_fgets()))
+    {
+        char aImName[50];
+        int aNb=sscanf(aLine,"%s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+                                 aImName,
+                                 &aRot(0,0),&aRot(0,1),&aRot(0,2),
+                                 &aRot(1,0),&aRot(1,1),&aRot(1,2),
+                                 &aRot(2,0),&aRot(2,1),&aRot(2,2),
+                                 &aTr.x,&aTr.y,&aTr.z);
+
+        ELISE_ASSERT((aNb==13),"Could not read 13 values");
+
+        std::string aNameFile = aOutBatch + aImName + ".txt";
+        FILE * aFP = FopenNN(aNameFile,"w","CPP_InitGeoTag");
+
+        if (aTr.x<0)
+        {
+            fprintf(aFP,"set Exif.GPSInfo.GPSLatitudeRef Ascii S\n");
+            aTr.x *= -1.0;
+        }
+        else
+            fprintf(aFP,"set Exif.GPSInfo.GPSLatitudeRef Ascii N\n");
+
+        fprintf(aFP,"set Exif.GPSInfo.GPSLatitude Rational %d/%d 0/1 0/1\n",round_ni(aTr.x*aMul*100),aMul);
+        std::cout << aTr.x << " " << round_ni(aTr.x*aMul) << " " << aTr.x*aMul << "\n";
+
+        if (aTr.y<0)
+        {
+            fprintf(aFP,"set Exif.GPSInfo.GPSLongitudeRef Ascii W\n");
+            aTr.y *= -1.0;
+        }
+        else
+            fprintf(aFP,"set Exif.GPSInfo.GPSLongitudeRef Ascii E\n");
+        
+        fprintf(aFP,"set Exif.GPSInfo.GPSLongitude Rational %d/%d 0/1 0/1\n",round_ni(aTr.y*aMul*100),aMul);
+
+        if (aTr.z<0)
+        {
+            fprintf(aFP,"set Exif.GPSInfo.GPSAltitudeRef Byte 1\n");
+            aTr.z *= -1.0;
+        }
+        else
+            fprintf(aFP,"set Exif.GPSInfo.GPSAltitudeRef Byte 0\n");
+        
+        fprintf(aFP,"set Exif.GPSInfo.GPSAltitude Rational %d/%d\n",round_ni(aTr.z*aMul*100),aMul);
+
+
+        fclose(aFP);   
+
+        std::string batch_cmd = "exiv2 -m " + aNameFile + " " + aImName + "\n";
+        aCmdVec.push_back(batch_cmd);
+ 
+    }
+
+    /* Save a global batch */
+    std::string aNameFileAll = aOutBatch + "_All.sh";
+    FILE * aFP = FopenNN(aNameFileAll,"w","CPP_InitGeoTag");
+
+    for (auto aCmd : aCmdVec) 
+    {
+        std::cout << aCmd << "\n";
+
+        fputs(aCmd.c_str(),aFP);
+    }
+    fclose(aFP);   
+
+    /*
+     *
+     * */
+
+
+    return EXIT_SUCCESS;
+}
 
 int CPP_ImportEO_main(int argc,char ** argv)
 {
@@ -2680,6 +2924,7 @@ void SaveCamera(ElMatrix<double>& R, Pt3dr& T, std::string CalName,std::string O
     cOrientationExterneRigide aExtern;
     aExtern.Centre() = T;
     aExtern.IncCentre() = Pt3dr(1,1,1);
+    aExtern.KnownConv() = eConvApero_DistM2C;
 
     cTypeCodageMatr aTCRot;
     aTCRot.L1() = Pt3dr(R(0,0),R(0,1),R(0,2));

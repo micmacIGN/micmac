@@ -304,11 +304,15 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
               {
                   aVCoord.push_back(aIO.mVTmpUK.at(anIndTmp++));
               }
+              //StdOut() << "CalcVal GLOB= " << aVCoord[aVCoord.size()-1] << " \n";
           }
           // Make a type converstion to calc type
           tStdCalcVect aVObs;
           for (const auto & aObs : aIO.mVObs)
+          {
               aVObs.push_back(aObs);
+              //StdOut() << " Obs= " << aObs << "\n";
+          }
 	  // transferate potential temporary coordinates
 	  //  Add equation in buffer
           aCalcVal->PushNewEvals(aVCoord,aVObs);
@@ -330,6 +334,7 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
            for (size_t aKEl=0; aKEl<aNbEl  ; aKEl++)
 	   {
                aIO.mVals.at(aKEl) = aCalcVal->ValComp(aNumPush,aKEl);
+               //StdOut() << "aIO.mVals.at(aKEl) =" << aIO.mVals.at(aKEl) << "\n";
 	       if (WithDer)
 	       {
 	            // parse  all unknowns
@@ -340,6 +345,7 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
                }
 	   }
            aIO.mWeights = aWeighter.WeightOfResidual(aIO.mVals);
+           //StdOut() << "weights=" << aIO.mWeights << "\n";
       }
 }
 #if (0)

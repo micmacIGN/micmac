@@ -1,7 +1,10 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_Tpl_Images.h"
-
-
+#include "ceres/ceres.h"
+#include "ceres/types.h"
+#include "Eigen/Core"
+#include "Eigen/Dense"
+#include <thread>
 // ==========  3 variable used for debuging  , will disappear
 //
 using namespace NS_SymbolicDerivative;
@@ -153,6 +156,8 @@ template <class Type>  class  cMainNetwork
           const cSim2D<Type> &  SimInd2G() const;  ///<Accessor
           const cParamMainNW &  ParamNW() const;   ///<Accessor
 	  tSys * Sys();
+
+      const std::vector<tPNet>& VPts() {return mVPts;};
 
 
 	protected :

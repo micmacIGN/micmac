@@ -1966,7 +1966,7 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 
     }
 
-
+        /* DO TRIPLETS */ 
 	// Save the triplets and perturb with outliers if asked 
 	int aK=0;
     for
@@ -1995,7 +1995,13 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 			aXml.Ori2On1() = El2Xml(ElRotation3D(aPair.first.tr(),RandPeturbRGovindu(),true));
             aXml.Ori3On1() = El2Xml(ElRotation3D(aPair.second.tr(),RandPeturbRGovindu(),true));
 			std::cout << "Perturbed R=["<< it3->Name1() <<","<< it3->Name2() << "," << it3->Name3() 
-					                    << "], " << aPair.first.tr() << " " << aPair.second.tr() << "\n";	
+					                    << "], " << aPair.first.tr() << " " << aPair.second.tr()  
+                                        << " " << aNameSauveXml << "\n";	
+            aXml.ResiduTriplet() = 1.0;
+
+        MakeFileXML(aXml,aNameSauveXml);
+        MakeFileXML(aXml,aNameSauveBin);
+
 		}
 		else
 		{
@@ -2005,12 +2011,82 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 		}
 
 
-        MakeFileXML(aXml,aNameSauveXml);
-        MakeFileXML(aXml,aNameSauveBin);
+        //MakeFileXML(aXml,aNameSauveXml);
+        //MakeFileXML(aXml,aNameSauveBin);
 
 
 		aK++;
 	}
+
+    	/* DO PAIRS */
+        cSauvegardeNamedRel aLCpl;
+ 
+ 
+        std::string aNameLCple = mNM->NameListeCpleOriented(true);
+ 
+        aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
+ 
+        /* Save to EG.txt */
+        std::fstream aEG;
+ 
+ 
+        for (auto a2 : aLCpl.Cple())
+        {
+	    //names of the new files 
+	    std::string aNameXML    = mNM->NameXmlOri2Im(a2.N1(),a2.N2(),false);
+            std::string aNameXMLBin = mNM->NameXmlOri2Im(a2.N1(),a2.N2(),true);
+
+	    /* The current pair ori will be updated with new values */
+            cXml_Ori2Im  aXmlO = mNM->GetOri2Im(a2.N1(),a2.N2());	
+
+            const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
+            ElRotation3D aR12 =    ElRotation3D (aXO.Centre(),ImportMat(aXO.Ori()),true);
+
+	    //perfect ori
+	    ElRotation3D aR12P = OriRelPairFromExisting(InOri,a2.N1(),a2.N2());
+
+            //update the xml
+	    aXmlO.Geom().Val().OrientAff().Ori().L1() = Pt3dr(aR12.Mat()(0,0),aR12.Mat()(0,1),aR12.Mat()(0,2));
+	    aXmlO.Geom().Val().OrientAff().Ori().L2() = Pt3dr(aR12.Mat()(1,0),aR12.Mat()(1,1),aR12.Mat()(1,2));
+	    aXmlO.Geom().Val().OrientAff().Ori().L3() = Pt3dr(aR12.Mat()(2,0),aR12.Mat()(2,1),aR12.Mat()(2,2));
+	    aXmlO.Geom().Val().OrientAff().Centre() = aR12.tr();
+
+	    //save the xml
+	    MakeFileXML(aXmlO,aNameXML);
+	    MakeFileXML(aXmlO,aNameXMLBin);
+
+	    /*std::cout << aR12.tr() << " " << aR12P.tr() << "\n";
+
+	    std::cout << aR12.Mat()(0,0) << " " << aR12.Mat()(0,1) << " " << aR12.Mat()(0,2) << "\n"
+		      << aR12.Mat()(1,0) << " " << aR12.Mat()(1,1) << " " << aR12.Mat()(1,2) << "\n"
+		      << aR12.Mat()(2,0) << " " << aR12.Mat()(2,1) << " " << aR12.Mat()(2,2) << "\n";
+            
+	    std::cout << aR12P.Mat()(0,0) << " " << aR12P.Mat()(0,1) << " " << aR12P.Mat()(0,2) << "\n"
+		      << aR12P.Mat()(1,0) << " " << aR12P.Mat()(1,1) << " " << aR12P.Mat()(1,2) << "\n"
+		      << aR12P.Mat()(2,0) << " " << aR12P.Mat()(2,1) << " " << aR12P.Mat()(2,2) << "\n";
+
+	    getchar();*/
+	}
+
+}
+
+ElRotation3D cAppliGenOptTriplets::OriRelPairFromExisting(std::string& InOri,const std::string& N1,const std::string& N2)
+{
+    ElRotation3D aRot2Sur1 = ElRotation3D::Id;
+    CamStenope * aCam1 = mNM->CamOriOfNameSVP(N1,InOri);
+    CamStenope * aCam2 = mNM->CamOriOfNameSVP(N2,InOri);
+    
+    if (aCam1 && aCam2)
+    {
+       aRot2Sur1  = (aCam2->Orient() *aCam1->Orient().inv());
+       aRot2Sur1 = aRot2Sur1.inv();
+
+       double aDist = euclid(aRot2Sur1.tr());
+       aRot2Sur1.tr() = aRot2Sur1.tr() /aDist;
+
+    }
+
+    return aRot2Sur1;
 }
 
 /* Kanatani : Geometric Computation for Machine Vision */

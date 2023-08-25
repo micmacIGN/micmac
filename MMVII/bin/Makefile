@@ -11,6 +11,24 @@ MMV2_INSTALL_PATH=${dir ${abspath ${MMV2_EXE}}}
 
 MMV2_GENDIR=${MMV2_SRCDIR}/GeneratedCodes
 
+# CERES 
+CERES_SRC_DIR := /usr/local
+CERES_BIN_DIR := /usr/local/lib
+EIGEN_SRC_DIR := /usr/include
+CERES_INCLUDES := -I$(CERES_SRC_DIR)/include \
+                  -I$(EIGEN_SRC_DIR)
+CERES_LIBRARY := -lceres
+#CERES_LIBRARY_PATH := -L$(CERES_BIN_DIR)/lib
+CERES_LIBRARY_DEPENDENCIES = -lgflags -lglog
+# If Ceres was built with Suitesparse:
+CERES_LIBRARY_DEPENDENCIES += -llapack -lcamd -lamd -lccolamd -lcolamd -lcholmod
+# If Ceres was built with CXSparse:
+CERES_LIBRARY_DEPENDENCIES += -lcxsparse
+# If Ceres was built with OpenMP:
+CERES_LIBRARY_DEPENDENCIES += -fopenmp -lpthread -lgomp -lm
+CERES_LIBRARY_DEPENDENCIES += -lcusolver -lcublas -lcudart 
+
+
 # =========== Includes & Libraries
 MMV1_INCLUDES=-I ${MMV1_DIR}/include -I${MMV1_DIR}
 MMV2_INCLUDES=-I ${MMV2_DIR} -I ${MMV2_DIR}/ExternalInclude
@@ -25,7 +43,7 @@ EXT_LIBS=-lpthread -lX11 -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
+CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES} ${CERES_INCLUDES} ${CERES_LIBRARY_DEPENDENCIES} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
 LDFLAGS=-fopenmp
 
 
@@ -72,7 +90,7 @@ ${MMV2_LIB}: ${LIB_OBJS}
 MAIN_OBJ=${MMV2_SRCDIR}/main.o
 
 ${MMV2_EXE}: ${MAIN_OBJ} ${MMV2_LIB} ${MMV1_LIBS}
-	${CXX} ${LDFLAGS} $^ ${EXT_LIBS}  -o $@
+	${CXX} ${LDFLAGS} $^ ${EXT_LIBS} ${CERES_LIBRARY} ${CERES_LIBRARY_DEPENDENCIES}  -o $@
 
 
 # =========== Auto dependancies

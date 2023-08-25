@@ -881,8 +881,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     NormEllips(anElips3D);
     aXCmp.Elips() = anElips3D;
     
-
-    double anErr90 =  mFullPvIBI->ErrInitRobuste(mBestSol,0.90);
+    double anErPerc = (0.9 + 5.0/int(mPackPStd.size()));
+    double anErr90 =  mFullPvIBI->ErrInitRobuste(mBestSol,anErPerc);
     mIA =  MedianNuage(mPackStdRed,mBestSol);
     aXCmp.OrientAff().Ori() = ExportMatr(mBestSol.Mat());
     aXCmp.OrientAff().Centre() = mBestSol.tr();

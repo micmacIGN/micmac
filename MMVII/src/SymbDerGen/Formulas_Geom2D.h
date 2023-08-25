@@ -148,7 +148,7 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
                           const std::vector<tUk> & aVObs
                      ) const
            {
-
+               
                  cPtxd<tUk,2>  aTr(aVUk[0],aVUk[1]);
                  tUk aTeta = aVUk[2];
                  cPtxd<tUk,2>  aSc(cos(aTeta),sin(aTeta));
@@ -167,6 +167,7 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
                       tUk  aLY = aVObs[aIndObs++];
                       cPtxd<tUk,2> aPLoc = aTr + aSc*cPtxd<tUk,2>(aX,aY);
                       aResidual = aResidual + aLX * aPLoc.x() + aLY * aPLoc.y();
+                      
                  }
                  aResidual = aResidual -  aVObs[aIndObs++];  // substract constant
                  return {aResidual};

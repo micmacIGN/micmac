@@ -37,8 +37,73 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#ifndef _NEW_TESTORI_H
+#define _NEW_TESTORI_H
+
+#include<ctime>
 #include "NewOri.h"
 #include "../TiepTri/MultTieP.h"
+#include "cNewO_SolGlobInit_PerfTri.h"
+
+//class RandUnifQuick;
+//class cAppliGenOptTriplets;
+extern cSolBasculeRig  BascFromVRot
+                (
+                     const std::vector<ElRotation3D> & aVR1 ,
+                     const std::vector<ElRotation3D> & aVR2,
+                     std::vector<Pt3dr> &              aVP1,
+                     std::vector<Pt3dr> &              aVP2
+                );
+
+static void SimilGlob2LocThreeV(const ElRotation3D Ri, const ElRotation3D Rj,  const ElRotation3D Rm,
+                                const ElRotation3D rk_i, const ElRotation3D rk_j, const ElRotation3D rk_m,
+                                ElMatrix<double>& Rk, Pt3dr& Ck, double& Lk)
+{
+    std::vector<ElRotation3D> aVR1;
+    std::vector<ElRotation3D> aVR2;
+    std::vector<Pt3dr> aVP1;
+    std::vector<Pt3dr> aVP2;
+
+    aVR1.push_back(rk_i);
+    aVR1.push_back(rk_j);
+    aVR1.push_back(rk_m);
+    aVR2.push_back(Ri);
+    aVR2.push_back(Rj);
+    aVR2.push_back(Rm);
+
+    cSolBasculeRig  aSol =  BascFromVRot(aVR1,aVR2,aVP1,aVP2);
+
+
+    Rk = aSol.Rot();
+    Ck = aSol.Tr();
+    Lk = aSol.Lambda();
+
+}
+
+static void SimilGlob2LocTwoV(const ElRotation3D Ri, const ElRotation3D Rj, 
+				       const ElRotation3D rk_i, const ElRotation3D rk_j,
+					   ElMatrix<double>& Rk, Pt3dr& Ck, double& Lk)
+{
+    std::vector<ElRotation3D> aVR1;
+    std::vector<ElRotation3D> aVR2;
+    std::vector<Pt3dr> aVP1;
+    std::vector<Pt3dr> aVP2;
+
+    aVR1.push_back(rk_i);
+    aVR1.push_back(rk_j);
+    aVR2.push_back(Ri);
+    aVR2.push_back(Rj);
+
+    cSolBasculeRig  aSol =  BascFromVRot(aVR1,aVR2,aVP1,aVP2);
+
+    Lk = aSol.Lambda();
+    Rk = aSol.Rot();
+    Ck = aSol.Tr();
+
+
+
+}
+
 
 class cAppliImportArtsQuad
 {
@@ -58,7 +123,7 @@ class cAppliImportArtsQuad
 		std::string mSH;
 };
 
-
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -724,7 +724,9 @@ extern int CPP_Strecha2MM(int argc, char ** argv);
 extern int CPP_MM2OpenMVG_main(int argc, char ** argv);
 extern int CPP_MM2Colmap_main(int argc, char ** argv);
 extern int CPP_ExportSimilPerMotion_main(int argc, char ** argv);
+extern int TestTriplets_main(int argc, char ** argv);
 extern int CPP_ImportEO_main(int argc, char ** argv);
+extern int CPP_InitGeoTag(int argc, char ** argv);
 extern int ImPts2Dir_main(int argc, char ** argv);
 extern int FictiveObstest_main(int argc, char ** argv);
 extern int TestFastTreeDist(int argc, char ** argv);
@@ -1120,6 +1122,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("MM2Colmap", CPP_MM2Colmap_main, "Convert MicMac poses to Colmap"));
 		aRes.push_back(cMMCom("GlobSimPerM", CPP_ExportSimilPerMotion_main, "Export global similitude per pair/triplet motion"));
 		aRes.push_back(cMMCom("GlobPoseImp", CPP_ImportEO_main, "Import global poses"));
+		aRes.push_back(cMMCom("InitGeoTag", CPP_InitGeoTag, "Initialise geotag"));
+		aRes.push_back(cMMCom("TestTriplets", TestTriplets_main, "Test Triplets"));
 		aRes.push_back(cMMCom("Im2Dir", ImPts2Dir_main, "Extract directions from images"));
 		aRes.push_back(cMMCom("FictObs", FictiveObstest_main, "someee stuff"));
 		aRes.push_back(cMMCom("CamTOFExp", TestCamTOF_main, "Export TOF camera pcd file to MicMac formats (e.g. tif, xml, ply)"));

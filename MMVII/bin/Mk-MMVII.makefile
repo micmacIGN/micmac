@@ -11,10 +11,41 @@ MMV2ElisePath=${MMDir}/lib/libelise.a
 MMV2Exe=MMVII
 MMV2_INSTALL_PATH=${abspath ${MMV2DirBin}}/
 
+CERES_SRC_DIR := /etc/opt/ceres-solver
+CERES_BIN_DIR := /usr/local/lib
+EIGEN_SRC_DIR := /usr/include
+INCLUDES_CERES := -I$(CERES_SRC_DIR)/include \
+                  -I$(EIGEN_SRC_DIR)
+
+CERES_LIBRARY := -lceres
+CERES_LIBRARY_PATH := -L$(CERES_BIN_DIR)/lib
+CERES_LIBRARY_DEPENDENCIES = -lgflags -lglog
+
+# If Ceres was built with Suitesparse:
+CERES_LIBRARY_DEPENDENCIES += -llapack -lcamd -lamd -lccolamd -lcolamd -lcholmod
+
+# If Ceres was built with CXSparse:
+CERES_LIBRARY_DEPENDENCIES += -lcxsparse
+
+# If Ceres was built with OpenMP:
+CERES_LIBRARY_DEPENDENCIES += -fopenmp -lpthread -lgomp -lm
+
+# The set of object files for your application.
+APPLICATION_OBJS := simple_bundle_adjuster.o
+
+
+simple_bundle_adjuster: $(APPLICATION_OBJS)
+	g++ \
+		$(APPLICATION_OBJS) \
+		$(CERES_LIBRARY_PATH) \
+		$(CERES_LIBRARY) \
+		$(CERES_LIBRARY_DEPENDENCIES) \
+		-o simple_bundle_adjuster
+
 MMSymbDerHeader=$(wildcard ${MMV2DirIncl}/SymbDer/*.h)
 MMKaptureHeader=$(wildcard ${MMV2Dir}/kapture/*.h)
 
-all : ${MMV2DirBin}${MMV2Exe}
+all : ${MMV2DirBin}${MMV2Exe} simple_bundle_adjuster
 
 #
 #=========== Sous directory des sources
@@ -185,7 +216,7 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++-8
-CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
+CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"' "-O2" "-DNDEBUG"
 #CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-march=native" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
 
 
@@ -243,7 +274,7 @@ ${MMV2DirDenseMatch}%.o :  ${MMV2DirDenseMatch}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirLearnMatch}%.o :  ${MMV2DirLearnMatch}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
-${MMV2DirBenchSNL}%.o :  ${MMV2DirBenchSNL}%.cpp   ${HEADER}
+${MMV2DirBenchSNL}%.o :  ${MMV2DirBenchSNL}%.cpp   ${HEADER} ${INCLUDES_CERES}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirSymbDerGen}%.o :  ${MMV2DirSymbDerGen}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
@@ -259,6 +290,8 @@ ${MMV2DirKapture}%.o :  ${MMV2DirKapture}%.cpp   ${MMKaptureHeader}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirCodedTarget}%.o :  ${MMV2DirCodedTarget}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
+#%.o: %.cpp $(DEPS)
+#	${CXX} -c -o $@ $< $(CFLAGS) $(INCLUDES_CERES)
 #
 #       ===== TEST ========================================
 #
