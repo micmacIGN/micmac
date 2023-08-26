@@ -18,6 +18,9 @@
 
 namespace MMVII
 {
+typedef  std::map<std::string,std::vector<cPt2dr>>  tTestMasSerial;  /// Type for basic test-serialisation of maps
+tTestMasSerial  GentTestMasSerial(); /// Generate a sample for test
+
 
 
 template <class Type> void TplAddRawData(const cAuxAr2007 & anAux,Type * anAdr,int aNbElem,const std::string & aTag="Data")
@@ -154,10 +157,12 @@ extern void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux);
 */
 
 extern const std::string  StrElCont;
+extern const std::string  StrElMap;
 
 
 template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont & aL)
 {
+    anAux.SetType(eTAAr::eCont);
     int aNb=aL.size();
     // put or read the number
     // AddData(cAuxAr2007("Nb",anAux),aNb);
@@ -172,7 +177,7 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
     // now read the elements
     for (auto & el : aL)
     {    
-         AddData(cAuxAr2007(StrElCont,anAux),el);
+         AddData(cAuxAr2007(StrElCont,anAux,eTAAr::eElemCont),el);
     }
 }
 
@@ -186,21 +191,23 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & 
 
 template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
 {
-    size_t aNb=aMap.size();
+    anAux.SetType(eTAAr::eMap);
+    int aNb=aMap.size();
     // put or read the number
-    AddData(cAuxAr2007("Nb",anAux),aNb);
+    //  AddData(cAuxAr2007("Nb",anAux),aNb);
+    AddDataSizeCont(aNb,anAux);
     // a bit trick the iteration is fundamentally different in input and output, because can't easily
     // fix the size
     if (anAux.Input())
     {
        // when read parse the Number of pair, read the key and put the value in the key
-       for (size_t aK=0 ; aK<aNb ; aK++)
+       for (int aK=0 ; aK<aNb ; aK++)
        {
           {
-            cAuxAr2007 anAuxPair("Pair",anAux);
+            cAuxAr2007 anAuxPair(StrElMap,anAux,eTAAr::ePairMap);
             TypeKey aKey;
-            AddData(anAuxPair,aKey);
-            AddData(anAuxPair,aMap[aKey]);
+            AddData(cAuxAr2007("K",anAuxPair,eTAAr::eKeyMap),aKey);
+            AddData(cAuxAr2007("V",anAuxPair,eTAAr::eValMap),aMap[aKey]);
           }
        }
     }
@@ -209,10 +216,10 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
        // when write parse the map,
         for (auto & aPair : aMap)
         {
-            cAuxAr2007 anAuxPair("Pair",anAux);
-            AddData(anAuxPair,const_cast<TypeKey&>(aPair.first));
-	    AddSeparator(anAux.Ar());
-            AddData(anAuxPair,const_cast<TypeVal&>(aPair.second));
+            cAuxAr2007 anAuxPair(StrElMap,anAux,eTAAr::ePairMap);
+            AddData(cAuxAr2007("K",anAuxPair,eTAAr::eKeyMap),const_cast<TypeKey&>(aPair.first));
+	    // AddSeparator(anAux.Ar());
+            AddData(cAuxAr2007("V",anAuxPair,eTAAr::eValMap),const_cast<TypeVal&>(aPair.second));
             //AddData(anAuxPair,aPair->second);
         }
     }
@@ -294,7 +301,7 @@ template<class Type> void  SaveInFile(const Type & aVal,const std::string & aNam
        // DeleteAr -> function that will be called for deleting
        std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,false),DeleteAr);
        {
-           cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+           cAuxAr2007  aGLOB(TagMMVIISerial,*anAr,eTAAr::eStd);
            /// Not proud of cons_cast ;-( 
            AddData(aGLOB,const_cast<Type&>(aVal));
        }
@@ -317,7 +324,7 @@ template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
 */
 template<class Type> size_t  HashValue(cAr2007 * anAr,const Type & aVal,bool ordered)
 {
-    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr, eTAAr::eStd);
     AddData(aGLOB,const_cast<Type&>(aVal));
     return HashValFromAr(*anAr);
 }
@@ -335,7 +342,7 @@ template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
 {
     std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,true),DeleteAr);
     {
-       cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+       cAuxAr2007  aGLOB(TagMMVIISerial,*anAr,eTAAr::eStd);
        AddData(aGLOB,aVal);
     }
 }

@@ -16,10 +16,11 @@ namespace MMVII
 class cAr2007 ; // base class of all archives (serializer)
 class cEOF_Exception;  // use to catch End of File w/o by exception
 enum class eLexP;  //  possible value of lexical analysis
-class cSerialTokenGenerator;  //  base class for stuff generaing token (file, list of token ..)
-class cSerialTokenParser ;   // base class for token generator resulting from file parsing
-class cXmlSerialTokenParser ; // instantiation of cSerialTokenParser to xml files
+class cSerialParser;  //  base class for stuff generaing token (file, list of token ..)
+class cSerialFileParser ;   // base class for token generator resulting from file parsing
+class cXmlSerialTokenParser ; // instantiation of cSerialFileParser to xml files
 class cSerialTree;  //  class for representing in a tree the "grammatical" parsing of a token generator
+
 
 
 /// Base class of all archive class
@@ -75,8 +76,8 @@ class cAr2007 : public cMemCheck
          virtual void RawAddDataTerm(cRawData4Serial  &    aRDS) =  0; ///< Heriting class descrine how they serialze string
                                                                        //
 
-         virtual void OnBeginTab() {}
-         virtual void OnEndTab() {}
+         virtual void OnBeginTab() {} /// Used in old json, probably will disapear
+         virtual void OnEndTab() {} /// Used in old json, probably will disapear
          /**  Called when we add the size of vect/list, for compatibility, just add int whit tag Nb, can be overloaded
           * when "well parenthesis struct" is used to compute the size */
          virtual  void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux);
@@ -130,28 +131,31 @@ enum class eLexP
 class cResLex
 {
      public :
-         cResLex(std::string,eLexP);
+         cResLex(std::string,eLexP,eTAAr);
 
          std::string  mVal;
          eLexP        mLexP;
+	 eTAAr        mTAAr;
          std::string  mComment;
 };
 
-class cSerialTokenGenerator
+class cSerialParser
 {
 	public :
           virtual cResLex GetNextLex() = 0;
+	  virtual void OnClose(const cSerialTree &,const std::string &) const;
+
           cResLex GetNextLexSizeCont() ;
           cResLex GetNextLexNotSizeCont() ;
 };
 
-class cSerialTokenParser : public cSerialTokenGenerator,
+class cSerialFileParser : public cSerialParser,
 	                   public cMemCheck
 {
      public    :
-          cSerialTokenParser(const std::string & aName,eTypeSerial aTypeS);
-	  virtual ~cSerialTokenParser();
-	  static cSerialTokenParser *  Alloc(const std::string & aName,eTypeSerial aTypeS);
+          cSerialFileParser(const std::string & aName,eTypeSerial aTypeS);
+	  virtual ~cSerialFileParser();
+	  static cSerialFileParser *  Alloc(const std::string & aName,eTypeSerial aTypeS);
 
           cResLex GetNextLex() override;
      protected :
@@ -184,45 +188,74 @@ class cSerialTokenParser : public cSerialTokenGenerator,
 
 extern const char * TheXMLBeginCom  ;
 extern const char * TheXMLEndCom    ;
+extern  const char * TheXMLHeader;
 
-class cXmlSerialTokenParser : public cSerialTokenParser
+class cXmlSerialTokenParser : public cSerialFileParser
 {
      public :
           cXmlSerialTokenParser(const std::string & aName);
      protected :
           bool BeginPonctuation(char aC) const override;
           cResLex AnalysePonctuation(char aC)  override;
+	  void OnClose(const cSerialTree &,const std::string &) const override;
+};
+
+class cJsonSerialTokenParser : public cSerialFileParser
+{
+     public :
+          cJsonSerialTokenParser(const std::string & aName);
+     protected :
+          bool BeginPonctuation(char aC) const override;
+          cResLex AnalysePonctuation(char aC)  override;
+	  void OnClose(const cSerialTree &,const std::string &) const override;
 };
 
 class cSerialTree
 {
       public :
-          cSerialTree(cSerialTokenGenerator &,int aDepth,eLexP aLexP);
-	  cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP);
+	  cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP,eTAAr); /// For leaf
+	  /// for "standard" nodes
+          cSerialTree(cSerialParser &,const std::string & aValue,int aDepth,eLexP aLexP,eTAAr);
+
 	  void  Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;
 	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs,bool IsLast) const;
 	  void  Raw_PrettyPrint(cMMVII_Ofs& anOfs) const;
 
+	  void  Test_Print(cMMVII_Ofs & anOfs,bool OneLine) const;
 
 	  const cSerialTree & UniqueSon() const; 
 
 	  void Unfold(std::list<cResLex> &) const;
+          const std::string & Value() const ; /// accessor
      private :
+
+
+         void  Test_PrintTab(cMMVII_Ofs & anOfs,bool OneLine) const;
+	 void  Test_PrintAtomic(cMMVII_Ofs & anOfs,bool OneLine) const;
+
+	 const cSerialTree * RealSonOf(const cSerialTree *) const;
+
+
+
 	  bool IsTerminalNode() const;
-	  void PrintTerminalNode(cMMVII_Ofs&,bool Last) const;
 	  bool IsSingleTaggedVal() const;
-	  void PrintSingleTaggedVal(cMMVII_Ofs&,bool Last) const;
 	  bool IsTab() const;
+
+	  void JSon_PrintTerminalNode(cMMVII_Ofs&,bool Last) const;
+	  void JSon_PrintSingleTaggedVal(cMMVII_Ofs&,bool Last) const;
+	  bool Json_OmitKey() const;
 
 	  void  UpdateMaxDSon();
 	  void  Indent(cMMVII_Ofs& anOfs,int aDeltaInd) const;
 
 	  eLexP       mLexP;
+	  eTAAr       mTAAr;
           std::string mValue;
           std::string mComment;
 	  std::vector<cSerialTree>  mSons;
 	  int         mDepth;
 	  int         mMaxDSon;
+	  size_t      mLength;
 };
 
 cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS);

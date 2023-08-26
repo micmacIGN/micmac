@@ -31,6 +31,13 @@ namespace MMVII
 {
 
 const std::string  StrElCont = "el";
+const std::string  StrElMap = "Pair";
+
+bool IsTagged(eTypeSerial aTypeS)
+{
+    return  (aTypeS==eTypeSerial::exml) || (aTypeS==eTypeSerial::exml2) || (aTypeS==eTypeSerial::ejson);
+}
+
 
 
 /* ========================================================= */
@@ -159,6 +166,10 @@ template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int
     // A precaution, probably it work but need to test
     MMVII_INTERNAL_ASSERT_always(aNbVal,"Not Sur AddTabData work for NbVal=0, check....");
     anAux.Ar().OnBeginTab();
+    
+// StdOut() << "AddTabDataAddTabData\n";
+    anAux.SetType(eTAAr::eFixTabNum);
+
 
     if (aNbVal)
        AddData(anAux,aVD[0]);
@@ -169,6 +180,7 @@ template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int
     }
     anAux.Ar().OnEndTab();
 }
+
 template void AddTabData(const  cAuxAr2007 & anAux, size_t *  aVD,int aNbVal);
 template void AddTabData(const  cAuxAr2007 & anAux, tREAL8 *  aVD,int aNbVal);
 template void AddTabData(const  cAuxAr2007 & anAux, tREAL4 *  aVD,int aNbVal);
@@ -231,16 +243,17 @@ size_t  HashValFromAr(cAr2007& anAr) {return anAr.HashKey();}
 /*                                                           */
 /* ========================================================= */
 
-cAuxAr2007::cAuxAr2007 (const std::string & aName,cAr2007 & aTS2) :
-    mName     (aName),
-    mAr      (aTS2)
+cAuxAr2007::cAuxAr2007 (const std::string & aName,cAr2007 & aTS2,eTAAr aType) :
+    mName    (aName),
+    mAr      (aTS2),
+    mType    (aType)
 {
     mAr.RawBeginName(*this);  // Indicate an opening tag
     mAr.mLevel++;             // Incremente the call level for indentatio,
 }
 
-cAuxAr2007::cAuxAr2007 (const std::string & aName, const cAuxAr2007 & anAux) :
-    cAuxAr2007(aName,anAux.mAr)
+cAuxAr2007::cAuxAr2007 (const std::string & aName, const cAuxAr2007 & anAux,eTAAr aType) :
+    cAuxAr2007(aName,anAux.mAr,aType)
 {
 }
 
@@ -265,6 +278,12 @@ int  cAuxAr2007::NbNextOptionnal(const std::string & aTag)  const
    return mAr.NbNextOptionnal(aTag);
 }
 
+void cAuxAr2007::SetType(eTAAr aType) const
+{
+     (const_cast<cAuxAr2007*>(this))->mType = aType;
+}
+
+eTAAr cAuxAr2007::Type() const {return mType;}
 
 /*============================================================*/
 /*                                                            */
@@ -634,11 +653,14 @@ cOXml_Ar2007::cOXml_Ar2007(const std::string & aName) :
    cOBaseTxt_Ar2007 (aName,eTypeSerial::exml)
 {
    // Not sure all that is usefull, however, untill now I skipp <? ?>
+	/*
    mMMOs.Ofs() <<  "<?xml" 
                << " version=\"1.0\""
                << " encoding=\"ISO8859-1\"" 
                << " standalone=\"yes\"" 
                << " ?>" << std::endl;
+	       */
+   mMMOs.Ofs() <<  TheXMLHeader << std::endl;
 }
 
 
@@ -888,14 +910,16 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    {
        if (Input)
        {
-          aRes =  new cStreamIXml_Ar2007(aName,eTypeSerial::exml);
+          // aRes =  new cStreamIXml_Ar2007(aName,eTypeSerial::exml);
+          aRes =  Alloc_cIMakeTreeAr(aName,eTypeSerial::exml);
        }
        else
        {
           if (starts_with(FileOfPath(aName,false),PrefixSpecifXML))
              aRes =  new cOXmlSpecif_Ar2007(aName);
           else
-             aRes =  new cOXml_Ar2007(aName);
+             // aRes =  new cOXml_Ar2007(aName);
+             aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::exml);
        }
    }
    else if (UCaseEqual(aPost,PostF_DumpFiles) || UCaseEqual(aPost,"dat"))
@@ -921,17 +945,30 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
           // aRes =  new cIBaseTxt_Ar2007(aName);
        }
        else
-          aRes =  new cOJSN_Ar2007(aName);
+          // aRes =  new cOJSN_Ar2007(aName);
+          aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::ejson);
+   }
+   else if (UCaseEqual(aPost,"tagt") )
+   {
+       if (Input)
+       {
+          // aRes =  new cIBaseTxt_Ar2007(aName);
+       }
+       else
+          // aRes =  new cOJSN_Ar2007(aName);
+          aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::etagt);
    }
    else if (UCaseEqual(aPost,E2Str(eTypeSerial::exml2)))
    {
        if (Input)
        {
-          aRes =  Alloc_cIMakeTreeAr(aName,eTypeSerial::exml2);
+          //  aRes =  Alloc_cIMakeTreeAr(aName,eTypeSerial::exml2);
+          aRes =  new cStreamIXml_Ar2007(aName,eTypeSerial::exml2);
        }
        else
        {
-          aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::exml2);
+          // aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::exml2);
+          aRes =  new cOXml_Ar2007(aName);
        }
    }
 

@@ -268,13 +268,30 @@ getchar();
 
 
 /** Basic test on read/write of a map */
+
+tTestMasSerial  GentTestMasSerial()
+{
+    tTestMasSerial aMap;
+    aMap["1"] = std::vector<cPt2dr>{{1,1}};
+    aMap["2"] = std::vector<cPt2dr>{{1,1},{2,2}};
+    aMap["0"] = std::vector<cPt2dr>{};
+
+    return aMap;
+}
+
 void BenchSerialMap(const std::string & aDirOut,eTypeSerial aTypeS)
 {
+     // StdOut() <<  "SKeeeeeeeeeeeep  BenchSerialMap\n"; return; // getchar(); 
+
+
     std::string aNameFile =  aDirOut + "TestMAP." + E2Str(aTypeS);
+    /*
     std::map<std::string,std::vector<cPt2dr>> aMap;
     aMap["1"] = std::vector<cPt2dr>{{1,1}};
     aMap["2"] = std::vector<cPt2dr>{{1,1},{2,2}};
     aMap["0"] = std::vector<cPt2dr>{};
+    */
+    tTestMasSerial aMap = GentTestMasSerial();
 
     SaveInFile(aMap,aNameFile);
 
@@ -299,7 +316,7 @@ void BenchSerialization
 	   MMVII_DEV_WARNING("NO JSON IN BenchSerialization");
 
 
-   if ((! OkJSon) && ((aTypeS==eTypeSerial::ejson) || (aTypeS2==eTypeSerial::ejson) || (aTypeS==eTypeSerial::exml2)  || (aTypeS2==eTypeSerial::exml2)))
+   if ((! OkJSon) && ((aTypeS==eTypeSerial::ejson) || (aTypeS2==eTypeSerial::ejson) || (aTypeS==eTypeSerial::etagt)  || (aTypeS2==eTypeSerial::etagt) ))
    {
 	   StdOut() << "JSON NON FINISHED \n";
 	   return;
@@ -309,7 +326,7 @@ void BenchSerialization
     std::string anExtXml = E2Str(eTypeSerial::exml);
 
     // Test on low level binary compat work only with non tagged format
-    std::string anExtNonTagged = E2Str((aTypeS==eTypeSerial::exml) ? eTypeSerial::edmp  : aTypeS);
+    std::string anExtNonTagged = E2Str(IsTagged(aTypeS) ? eTypeSerial::edmp  : aTypeS);
 
 
     BenchSerialMap(aDirOut,aTypeS);
@@ -376,7 +393,7 @@ void BenchSerialization
 
 	for (int aKS=0 ; aKS <int(eTypeSerial::eNbVals) ;aKS++)
         {
-           if (OkJSon || (  (aKS!=(int) eTypeSerial::ejson) && (aKS!=(int) eTypeSerial::exml2)))
+           if (OkJSon || (  (aKS!=(int) eTypeSerial::ejson) && (aKS!=(int) eTypeSerial::etagt) && (aKS!=(int) eTypeSerial::exml2)))
 	   {
                std::string aPost = E2Str(eTypeSerial(aKS));
                SaveInFile(aP34,aDirOut+"F10."+aPost);
@@ -427,6 +444,7 @@ void BenchSerialization
     // return EXIT_SUCCESS;
 }
 
+extern void BenchSerialJson();
 
 void BenchSerialization
     (
@@ -437,9 +455,24 @@ void BenchSerialization
 {
     if (! aParam.NewBench("Serial")) return;
 
+    BenchSerialJson();
+    /*
+    SaveInFile(cTestSerial1(),"toto.json");
+    SaveInFile(GentTestMasSerial(),"toto_map.json");
+    SaveInFile(GentTestMasSerial(),"toto_map.xml");
+    */
+
+
+    if (1)
+    {
+       BenchSerialJson();
+       BenchSerialMap("./",eTypeSerial::exml);
+       BenchSerialMap("./",eTypeSerial::exml2);
+    }
+
+    SaveInFile(cTestSerial1(),"toto.json");
     SaveInFile(cTestSerial1(),"toto.xml");
     SaveInFile(cTestSerial1(),"toto.txt");
-    SaveInFile(cTestSerial1(),"toto.json");
     SaveInFile(cTestSerial1(),"toto.xml2");
     {
          cTestSerial1 aTS1;
@@ -447,8 +480,6 @@ void BenchSerialization
          SaveInFile(aTS1,"toto_222.xml2");
 
     }
-    StdOut() << "BenchSerializationBenchSerialization\n";  
-    getchar();
 
     for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
     {

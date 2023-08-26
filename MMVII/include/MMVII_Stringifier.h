@@ -264,14 +264,14 @@ template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string & aName, con
 
 
 
-/// Auxiliary class for Archive manipulation
-
 /**
    The serialization "file" inherit from the mother class cAr2007. This
    class is accessible via the  the  cAuxAr2007 , the automitazation of 
    calling level (usefull for example in XML pretty printing) is done by
    constructor and destructor of cAuxAr2007.
 */
+
+
 
 class cAuxAr2007
 {
@@ -280,11 +280,11 @@ class cAuxAr2007
          /// No usefull copy constructor inhibit it
          cAuxAr2007 (const cAuxAr2007 &) = delete;
          /// Increase counter, send the  virtual message  of opening  tag
-         cAuxAr2007 (const std::string & aName,cAr2007 &);
+         cAuxAr2007 (const std::string & aName,cAr2007 &,eTAAr);
          /// Decrease counter, send the  virtual message  of closing  tag
          ~cAuxAr2007 ();
          ///  Just a more connvenient way to call 
-         cAuxAr2007 (const std::string & aName, const cAuxAr2007 &);
+         cAuxAr2007 (const std::string & aName, const cAuxAr2007 &,eTAAr = eTAAr::eStd);
 
          const std::string  Name () const {return mName;}
          cAr2007 & Ar()             const {return mAr;}
@@ -294,9 +294,12 @@ class cAuxAr2007
          bool Tagged() const;
          /// Call mAr, return 0 or 1, indicating if next optionnal value is present
          int NbNextOptionnal(const std::string &) const;
+	 eTAAr  Type() const ; /// Accessor
+	 void  SetType(eTAAr) const;   ///  Not const in fact,  but must be called on const object ...
      private : 
          const std::string  mName;
          cAr2007 & mAr;
+	 eTAAr     mType;
 };
 
 

@@ -30,7 +30,7 @@
       </Polynomial>
    </Distorsion>
    <Informations>
-      <Nb>1</Nb>
+		   <!-- <Nb>1</Nb> -->
       <el>"Converted from MMV1"</el>
    </Informations>
 </MMVII_Serialization>

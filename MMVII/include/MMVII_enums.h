@@ -89,13 +89,35 @@ enum class eApF
 /// Type of serialization
 enum class eTypeSerial
            {
-                exml,
-                exml2,
-                edmp,
-                etxt,
-                ejson,
+                exml,    ///< current xml file
+                exml2,   ///<  previous xml file, contains number of elements
+                edmp,    ///<  binary files, containt no tag
+                etxt,    ///< equivalent to binary but in text file
+                etagt,    ///< internal, tagged-text to generate readable tree struct, write only
+                ejson,      ///<  Json file
                 eNbVals     ///< Tag for number of value
 	   };
+bool IsTagged(eTypeSerial);
+
+/**  Define the type of each element of serialization; was not necessary in xml-streaming,
+ *  but with new xml/json export, that require a fine analyse of the tree, it makes things easier
+ */
+enum class eTAAr
+{
+      eStd,         //  standard defaut value
+      eSzCont,      //  it the size of a container
+      eFixTabNum,   //  Tab of num with fixed sized, as used in cPtxd serialisation
+      eCont    ,    //  container  list, vector ...
+      eElemCont,    //  element of a container  list, vector
+      eMap,         //  a std::map
+      ePairMap,     //  element of a map
+      eKeyMap,      //  key-part of map-pair
+      eValMap,      //  value-part of a map-pair
+      eUndef,       //  when not initalized
+      eNbVals     ///< Tag for number of value
+};
+
+
 
 /// Type of external format that are potentially imported/exported in MicMac
 enum class eFormatExtern
@@ -177,6 +199,8 @@ enum class eTyUEr
               eRemoveFile,
               eEmptyPattern,
               eBadXmlTopTag,
+              eParseBadClose,
+              eJSonBadPunct,
               eBadFileSetName,
               eBadFileRelName,
               eOpenFile,
@@ -496,6 +520,7 @@ enum class eMTDIm
 const std::string & E2Str(const eMTDIm &);
 const std::string & E2Str(const eFormatExtern &);
 const std::string & E2Str(const eTypeSerial &);
+const std::string & E2Str(const eTAAr &);
 const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTyCodeTarget &);         

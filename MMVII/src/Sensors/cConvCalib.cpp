@@ -229,10 +229,14 @@ void BenchPoseImportV1(const std::string & aNameOriV1,double anAccuracy)
 
      std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() +  aPC->NameOriStd();  // "ccTestOri.xml";
      aPC->ToFile(aNameTmp);
+     aPC->ToFile(LastPrefix(aNameTmp)+".xml2");
 
 
      cSensorCamPC  *aPC2  =  cSensorCamPC::FromFile(aNameTmp);
      double aR2 = aPC2->AvgSqResidual(aExp.mCorresp) ;
+
+     // StdOut() << "BenchPoseImportV1 " << aR2 <<  " " <<  aNameTmp << "\n"; getchar();
+
      MMVII_INTERNAL_ASSERT_bench(aR2<anAccuracy ,"No Conv in Reimport cam");
 
 
