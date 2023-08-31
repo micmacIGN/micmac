@@ -479,7 +479,8 @@ vector<GrpVodka> Make_Grp(std::string aDir, std::string InCal, std::vector<std::
     //Creating a new list of images for each combination of Diaph & Foc, and recording their ExpTime and ISO for future normalisation
     for (int j=0;j<(int)aSetIm.size();j++){
         std::string aFullName=aSetIm[j];
-        const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(aDir + aFullName);
+        auto path = aDir + aFullName;
+        const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(path);
         cout<<"Getting Diaph and Focal from "<<aFullName<<endl;
 
         if (aVectGrpVodka.size()==0){
@@ -574,7 +575,7 @@ int  Vignette_main(int argc,char ** argv)
                             //Avec Points homol
                             PtsHom aPtsHomol=ReadPtsHom(aDir, aVectGrpVodka[i], Extension);
 
-                            // cas où pour un même groupe il n'y a pas de points homologues (les images ne se recouvrent pas par exemple)
+                            // cas o? pour un m?me groupe il n'y a pas de points homologues (les images ne se recouvrent pas par exemple)
                             if(aPtsHomol.size() == 0)
                             {
 								std::cout<< endl << "WARNING : A vignette can't be computed with 0 tie points from the group with Foc = "<< aGrp.foc << " and Diaph = " << aGrp.diaph << endl << endl;
@@ -612,7 +613,7 @@ int  Vignette_main(int argc,char ** argv)
                         
                         if (DoCor && aVectGrpVodka[i].isComputed==1)
                         {
-							//Correction des images avec les params calculés
+							//Correction des images avec les params calcul?s
                             cout<<"Correcting the images"<<endl;
                             Vignette_correct(aDir, aVectGrpVodka[i], aDirOut, CalibFolder);
                         }
@@ -624,34 +625,34 @@ int  Vignette_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant ? la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+Ce logiciel est r?gi par la licence CeCILL-B soumise au droit fran?ais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+de la licence CeCILL-B telle que diffus?e par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
+En contrepartie de l'accessibilit? au code source et des droits de copie,
+de modification et de redistribution accord?s par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limit?e.  Pour les m?mes raisons,
+seule une responsabilit? restreinte p?se sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les conc?dants successifs.
 
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à
-manipuler et qui le réserve donc à des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+A cet ?gard  l'attention de l'utilisateur est attir?e sur les risques
+associ?s au chargement,  ? l'utilisation,  ? la modification et/ou au
+d?veloppement et ? la reproduction du logiciel par l'utilisateur ?tant
+donn? sa sp?cificit? de logiciel libre, qui peut le rendre complexe ?
+manipuler et qui le r?serve donc ? des d?veloppeurs et des professionnels
+avertis poss?dant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invit?s ? charger  et  tester  l'ad?quation  du
+logiciel ? leurs besoins dans des conditions permettant d'assurer la
+s?curit? de leurs syst?mes et ou de leurs donn?es et, plus g?n?ralement,
+? l'utiliser et l'exploiter dans les m?mes conditions de s?curit?.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+Le fait que vous puissiez acc?der ? cet en-t?te signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accept? les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
 

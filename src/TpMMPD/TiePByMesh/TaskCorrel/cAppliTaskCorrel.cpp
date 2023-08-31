@@ -116,7 +116,7 @@ void cAppliTaskCorrel::ReadXMLMesurePts(string aGCPMesureXML, vector<cImgForTiep
            std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
            string aNameIm = iT1->NameIm();
            cout<<endl<<" + Img : "<<aNameIm<<endl;
-           cImgForTiepTri* aImg;
+           cImgForTiepTri* aImg{};
            for (uint akIm=0; akIm<mVImgs.size(); akIm++)
            {
                if (aNameIm == mVImgs[akIm]->Name())

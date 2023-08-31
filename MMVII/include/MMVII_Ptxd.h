@@ -61,7 +61,7 @@ template <class Type,const int Dim> class cPtxd
        }
 
        /// Some function requires default constructor (serialization ?)
-       cPtxd() {}
+       cPtxd() : mCoords{} {}
 
        /* I would prefer not inline but : cannot make work explicit instance of a 
           a specific method,  and explicit of the whole class create problem
