@@ -369,7 +369,7 @@ bool cStreamIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName
 
 bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aNameFile,const std::string & aNameTag)
 {
-  cSerialFileParser::TestFirstTag(aNameFile,aNameTag);
+  cSerialFileParser::TestFirstTag(aNameFile);
 
   if ((Postfix(aNameFile,'.',true) != "xml") || (! ExistFile(aNameFile)))
      return false;

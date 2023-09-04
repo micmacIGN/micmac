@@ -169,6 +169,8 @@ tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 
     StdOut() << "cSerialFileParser::TestFirstTaghhhhh " << aTagMMVII  << " " << aTagMaster  << aCptLev << "\n";
     getchar();
+
+    return tTestFileSerial(true,"");
 }
 
 
