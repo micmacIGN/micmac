@@ -356,6 +356,7 @@ template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & a
       aVal = Type();
 }
 
+///  Save in file if it's the first times it occurs inside the process
 template<class Type> void  ToFileIfFirstime(const Type & anObj,const std::string & aNameFile)
 {
    static std::set<std::string> aSetFilesAlreadySaved;
@@ -366,6 +367,16 @@ template<class Type> void  ToFileIfFirstime(const Type & anObj,const std::string
    }
 }
 
+template<class Type,class TypeTmp> Type * ObjectFromFile(const std::string & aName)
+{
+    TypeTmp aDataCreate;
+    ReadFromFile(aDataCreate,aName);
+    return new Type(aDataCreate);
+}
+
+/**  Read in the file if first time and memorize, other times return the same object ,
+ *   at end, destruction will be handled using "AddObj2DelAtEnd"  (which is required for memory checking)
+ */
 template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::string & aName)
 {
      static std::map<std::string,Type *> TheMap;
@@ -373,9 +384,10 @@ template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::stri
 
      if (anExistingRes == 0)
      {
-        TypeTmp aDataCreate;
-        ReadFromFile(aDataCreate,aName);
-        anExistingRes = new Type(aDataCreate);
+        // TypeTmp aDataCreate;
+        // ReadFromFile(aDataCreate,aName);
+        // anExistingRes = new Type(aDataCreate);
+        anExistingRes = ObjectFromFile<Type,TypeTmp>(aName);
         cMMVII_Appli::AddObj2DelAtEnd(anExistingRes);
      }
      return anExistingRes;

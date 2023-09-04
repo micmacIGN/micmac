@@ -13,13 +13,33 @@
 namespace MMVII
 {
 
-class cAr2007 ; // base class of all archives (serializer)
-class cEOF_Exception;  // use to catch End of File w/o by exception
-enum class eLexP;  //  possible value of lexical analysis
-class cSerialParser;  //  base class for stuff generaing token (file, list of token ..)
-class cSerialFileParser ;   // base class for token generator resulting from file parsing
-class cXmlSerialTokenParser ; // instantiation of cSerialFileParser to xml files
-class cSerialTree;  //  class for representing in a tree the "grammatical" parsing of a token generator
+/**  Schema of serialization by tree
+ *        
+ *      - for read/write object in "serialization by tree"
+ *
+ *          *  read   
+ *                           "Complex process :  Unfold"
+ *                               |
+ *               File ---> tree  --> list of token  -> fill the obect
+ *
+ *                                            "Complex process: PrettyPrint"
+ *          *  write                                     |
+ *                       
+ *                 "token ar acumulated in RawAddData of cOMakeTreeAr"
+ *                       |
+ *               Object -> List of token |  --->   Tree --->  File
+ *                                       |    
+ *                                       "at destruction of cOMakeTreeAr"
+ */
+
+class cAr2007 ;                // base class of all archives (serializer)
+class cEOF_Exception;          // use to catch End of File w/o by exception
+enum class eLexP;              //  possible value of lexical analysis
+class cSerialGenerator;           //  base class for stuff generaing token (file, list of token ..)
+class cSerialFileParser ;      // base class for token generator resulting from file parsing
+class cXmlSerialTokenParser ;  // instantiation of cSerialFileParser to xml files
+class cJsonSerialTokenParser ; // instantiation of cSerialFileParser to json files
+class cSerialTree;             //  class for representing in a tree the "grammatical" parsing of a token generator
 
 
 
@@ -101,15 +121,12 @@ class cAr2007 : public cMemCheck
 };
 
 
-
+///  Use to handle End Of File using exception
 class cEOF_Exception
 {
 };
 
-
-/**  Facility for xml parsing whatever you do after
- */
-
+/** Store the type of token ,  in fact there is only 4 values critical Up/Down/SzCont */
 enum class eLexP
      {
           eStdToken_UK, ///< standard string unknown
@@ -126,46 +143,56 @@ enum class eLexP
           eSep       ///<  single separator like ,&:
      };
 
-// typedef std::pair<std::string,eLexP>  tResLex;
 
 class cResLex
 {
      public :
          cResLex(std::string,eLexP,eTAAr);
 
-         std::string  mVal;
-         eLexP        mLexP;
-	 eTAAr        mTAAr;
-         std::string  mComment;
+         std::string  mVal;  ///< the value = string of the token
+         eLexP        mLexP; ///< nature of this value => comes from the files
+	 eTAAr        mTAAr;  ///< Type of element, comes from C++ (is it a vector, a map ...)
+         std::string  mComment;  ///< possible comment associated
 };
 
-class cSerialParser
+/**  Abstraction of files as a stuff that generates token, can be used also on list
+ */
+class cSerialGenerator
 {
 	public :
+          /// Fundamental method, generate token
           virtual cResLex GetNextLex() = 0;
-	  virtual void OnClose(const cSerialTree &,const std::string &) const;
+	  ///  method called to check the tree when it is finished (closing tag occurs)
+	  virtual void CheckOnClose(const cSerialTree &,const std::string & aTagClose) const;
 
-          cResLex GetNextLexSizeCont() ;
-          cResLex GetNextLexNotSizeCont() ;
+          cResLex GetNextLexSizeCont() ; /// Get a token that "must" be a size of container
+          cResLex GetNextLexNotSizeCont() ; /// Get a token, "skeeping" all size of container
 };
 
-class cSerialFileParser : public cSerialParser,
+/** Specialization of cSerialGenerator for file, contain basic element of grammar */
+
+typedef  std::pair<bool,std::string> tTestFileSerial;
+
+class cSerialFileParser : public cSerialGenerator,
 	                   public cMemCheck
 {
      public    :
-          cSerialFileParser(const std::string & aName,eTypeSerial aTypeS);
-	  virtual ~cSerialFileParser();
-	  static cSerialFileParser *  Alloc(const std::string & aName,eTypeSerial aTypeS);
+          cSerialFileParser(const std::string & aName,eTypeSerial aTypeS); ///< constructor
+	  virtual ~cSerialFileParser(); ///< destructor
+	  static cSerialFileParser *  Alloc(const std::string & aName,eTypeSerial aTypeS); ///< allocator of inheriting class
 
-          cResLex GetNextLex() override;
+          cResLex GetNextLex() override; ///< generate tokens from files
+
+	  /// Return if the file is ok and, if ok,  indicate the master tag
+	  static tTestFileSerial TestFirstTag(const std::string & aNameFile);
      protected :
 
-          virtual bool BeginPonctuation(char aC) const = 0;
-          virtual cResLex AnalysePonctuation(char aC)  = 0;
+          virtual bool BeginPonctuation(char aC) const = 0; ///< is the caracter the begining of a punctuation
+          virtual cResLex AnalysePonctuation(char aC)  = 0; ///<  analyse of token after a punction is detected
 
-          cResLex GetNextLex_NOEOF();
+          cResLex GetNextLex_NOEOF(); ///< get token, w/o accepting end-of-file
 
-          inline std::istream  & Ifs() {return mMMIs.Ifs();}
+          inline std::istream  & Ifs() {return mMMIs.Ifs();} ///< accessor
           /// Get a char, and check its not EOF, only access to mMMIs.get() in this class
           int GetNotEOF();
           /// error specific handler
@@ -183,13 +210,15 @@ class cSerialFileParser : public cSerialParser,
           std::string  GetQuotedString();  /// extract "ddgg \\  kk "
 
           cMMVII_Ifs                        mMMIs; ///< secured istream
-          eTypeSerial                       mTypeS;
+          eTypeSerial                       mTypeS; ///< Type of serialization (xml,json ...)
 };
 
-extern const char * TheXMLBeginCom  ;
-extern const char * TheXMLEndCom    ;
-extern  const char * TheXMLHeader;
+extern const char * TheXMLBeginCom  ; ///<  string begining xml-comment
+extern const char * TheXMLEndCom    ; ///<  string ending xml-comment
+extern  const char * TheXMLHeader;    ///<  header of xml-file
 
+
+/** Specialization to parse xml-files */
 class cXmlSerialTokenParser : public cSerialFileParser
 {
      public :
@@ -197,68 +226,89 @@ class cXmlSerialTokenParser : public cSerialFileParser
      protected :
           bool BeginPonctuation(char aC) const override;
           cResLex AnalysePonctuation(char aC)  override;
-	  void OnClose(const cSerialTree &,const std::string &) const override;
+	  void CheckOnClose(const cSerialTree &,const std::string &) const override;
 };
 
+/** Specialization to parse json-files */
 class cJsonSerialTokenParser : public cSerialFileParser
 {
      public :
           cJsonSerialTokenParser(const std::string & aName);
+
+	  static  const  std::string  ComentString;
      protected :
+
+	  static  const  std::string  OpenCars;  ///< cars generating an opening "{["
+	  static  const  std::string  CloseCars; ///< cars generating a closing "]}"
+	  static  const  std::string  SepCars;
+
           bool BeginPonctuation(char aC) const override;
           cResLex AnalysePonctuation(char aC)  override;
-	  void OnClose(const cSerialTree &,const std::string &) const override;
+	  void CheckOnClose(const cSerialTree &,const std::string &) const override;
 };
 
+/**  Class to represent as a tree  the object, in write, or the file, in read, for the serialization by tree
+ */
 class cSerialTree
 {
       public :
 	  cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP,eTAAr); /// For leaf
 	  /// for "standard" nodes
-          cSerialTree(cSerialParser &,const std::string & aValue,int aDepth,eLexP aLexP,eTAAr);
+          cSerialTree(cSerialGenerator &,const std::string & aValue,int aDepth,eLexP aLexP,eTAAr);
 
-	  void  Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;
-	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs,bool IsLast) const;
-	  void  Raw_PrettyPrint(cMMVII_Ofs& anOfs) const;
+	        // "pretty printing" functions
+	  void  Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// xml-pretty print
+	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs) const; /// json-pretty print
+	  void  Raw_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// Tagt-pretty print
 
-	  void  Test_Print(cMMVII_Ofs & anOfs,bool OneLine) const;
-
+	  /// Assert that there is only 1 son and return it
 	  const cSerialTree & UniqueSon() const; 
 
-	  void Unfold(std::list<cResLex> &) const;
-          const std::string & Value() const ; /// accessor
+	  /// put linearly the contain of the node in a list of token , will be used as a token generator
+	  void Unfold(std::list<cResLex> &,eTypeSerial) const;
+
+	  const std::vector<cSerialTree>&  Sons() const; /// acessor
+          const std::string & Value() const ;            /// accessor
      private :
 
+	  bool IsTerminalNode() const;     ///< is it a node w/o son and not tagged
+	  bool IsTab() const;              ///< is it a non tagged node with all son terminal
+	  bool IsSingleTaggedVal() const;  ///< is it  a 
 
-         void  Test_PrintTab(cMMVII_Ofs & anOfs,bool OneLine) const;
-	 void  Test_PrintAtomic(cMMVII_Ofs & anOfs,bool OneLine) const;
-
-	 const cSerialTree * RealSonOf(const cSerialTree *) const;
-
-
-
-	  bool IsTerminalNode() const;
-	  bool IsSingleTaggedVal() const;
-	  bool IsTab() const;
-
-	  void JSon_PrintTerminalNode(cMMVII_Ofs&,bool Last) const;
-	  void JSon_PrintSingleTaggedVal(cMMVII_Ofs&,bool Last) const;
+	  /// recursive json pretty print , IsLast to handle "," , aCptComment to generat different comment tag at each occurence
+	  void Rec_Json_PrettyPrint(cMMVII_Ofs& anOfs,bool IsLast,int &aCptComment) const; 
+	  ///  print a tab on a single line for fixed size tab (like "cPt2di" )
+	  void Json_PrintSingleTab(cMMVII_Ofs&,bool Last,int &aCpt) const;
+	  /// print a "terminal" node  on a signle line
+	  void Json_PrintTerminalNode(cMMVII_Ofs&,bool Last,int &aCpt) const;
+	  /// print the eventually the comment (will increment the counter)
+	  void Json_Comment(cMMVII_Ofs&,bool Last,int & aCpt) const;
+	  /// is it a key to ommit , like the "el" , "Pair" that would have multi occurence
 	  bool Json_OmitKey() const;
 
+	  /// Was the generated for comment
+	  static bool IsJsonComment(const std::string&) ;
+	  ///  Generate a new comment tag, increment counnetr
+	  static std::string TagJsonComment(int&);
+
+	  /// Udpate the maximal depth of sons + the total length
 	  void  UpdateMaxDSon();
+	  ///  Create a idention prop to  "mDepth+aDeltaInd"
 	  void  Indent(cMMVII_Ofs& anOfs,int aDeltaInd) const;
 
-	  eLexP       mLexP;
-	  eTAAr       mTAAr;
-          std::string mValue;
-          std::string mComment;
-	  std::vector<cSerialTree>  mSons;
-	  int         mDepth;
-	  int         mMaxDSon;
-	  size_t      mLength;
+	  eLexP       mLexP;   ///  lexical element, essentially "Up" Or not  is used, extracted from file parsing
+	  eTAAr       mTAAr;   /// semantical element, exracted from C++ file by AddData
+          std::string mValue;  /// value of the node, like tag "<F>"  of final value (int, string ...)
+          std::string mComment;  /// possible comment associated to the node by C++
+	  std::vector<cSerialTree>  mSons;  ///  sons of the tree, because it is a tree ;-)
+	  int         mDepth;       /// depth computed in recursion by "D+1"
+	  int         mMaxDSon;     /// maximal depth of all its son
+	  size_t      mLength;      /// lenght of the pontially unfolded tree
 };
 
+///  external allocator for outing by tree-serialization
 cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS);
+///  external allocator for inputing by tree-serialization
 cAr2007 * Alloc_cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS);
 
 

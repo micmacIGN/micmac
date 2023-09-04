@@ -3,6 +3,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 
 #include "MMVII_Geom2D.h"
+#include "MMVII_PCSens.h"
 
 
 /** \file BenchSerial.cpp
@@ -279,27 +280,97 @@ tTestMasSerial  GentTestMasSerial()
     return aMap;
 }
 
+template <class Type> void BenchSerialObject_1Mode(const Type & anObj,const std::string & aDirOut,eTypeSerial aTypeS)
+{
+    std::string aNameFile =  aDirOut + "TestObj." + E2Str(aTypeS);
+
+    SaveInFile(anObj,aNameFile);
+    Type  anObj2;
+    ReadFromFile(anObj2,aNameFile);
+
+    MMVII_INTERNAL_ASSERT_bench(anObj==anObj2,"BenchSerialObject");
+}
+
+
+template <class Type> void BenchSerialObject_AllMode(const Type & anObj,const std::string & aDirOut)
+{
+    for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
+    {
+        if (aKS1 != int (eTypeSerial::etagt))
+	{
+		BenchSerialObject_1Mode(anObj,aDirOut,eTypeSerial(aKS1));
+	}
+    }
+}
+
+
+
 void BenchSerialMap(const std::string & aDirOut,eTypeSerial aTypeS)
 {
-     // StdOut() <<  "SKeeeeeeeeeeeep  BenchSerialMap\n"; return; // getchar(); 
-
-
-    std::string aNameFile =  aDirOut + "TestMAP." + E2Str(aTypeS);
-    /*
-    std::map<std::string,std::vector<cPt2dr>> aMap;
-    aMap["1"] = std::vector<cPt2dr>{{1,1}};
-    aMap["2"] = std::vector<cPt2dr>{{1,1},{2,2}};
-    aMap["0"] = std::vector<cPt2dr>{};
-    */
-    tTestMasSerial aMap = GentTestMasSerial();
-
-    SaveInFile(aMap,aNameFile);
-
-    std::map<std::string,std::vector<cPt2dr>> aMap2;
-    ReadFromFile(aMap2,aNameFile);
-
-    MMVII_INTERNAL_ASSERT_bench(aMap==aMap2,"BenchSerialMap");
+   BenchSerialObject_1Mode(GentTestMasSerial(),aDirOut,aTypeS);
 }
+
+
+tREAL8 CmpCalib(cPerspCamIntrCalib * aCam1,cPerspCamIntrCalib * aCam2)
+{
+     std::vector<cPt2dr>  aVPIm =  aCam1->PtsSampledOnSensor(10,true);
+     tREAL8 aMaxD = 0.0;
+
+     for (const auto & aPIm : aCam1->PtsSampledOnSensor(30,true))
+     {
+	     UpdateMax(aMaxD,Norm2(aCam1->DirBundle(aPIm)-aCam2->DirBundle(aPIm)));
+     }
+
+     // StdOut() <<  "DDD=" << aMaxD << "\n";
+     MMVII_INTERNAL_ASSERT_bench(aMaxD<1e-5,"CmpCalib");
+
+     return aMaxD;
+}
+
+void BenchSerial_PerspCamIntrCalib(cPerspCamIntrCalib * aCam1,const std::string & aDirOut,eTypeSerial aTypeS)
+{
+	std::string aNameCal = aDirOut + "Calib." + E2Str(aTypeS);
+	aCam1->ToFile(aNameCal);
+	
+	cPerspCamIntrCalib * aCam2 = cPerspCamIntrCalib::FromFile(aNameCal,false);
+
+
+	CmpCalib(aCam1,aCam2);
+	CmpCalib(aCam2,aCam1);
+	// StdOut() << "BenchSerial_PerspCamIntrCalib " << aNameCal << " " << aCam2 << "\n";
+	delete aCam2;
+
+	if (false) // (aTypeS==eTypeSerial::ejson)
+	{
+		StdOut() << "BenchSerial_PerspCamIntrCalibBenchSerial_PerspCamIntrCalib\n";
+		StdOut() << aNameCal << "\n";
+	    getchar();
+	}
+}
+
+void BenchSerial_PerspCamIntrCalib(const std::string & aDirOut,eTypeSerial aTypeS)
+{
+     // tuning serial -type, dont handle read
+     if (aTypeS==eTypeSerial::etagt) 
+        return;
+
+     for (int aKM=0 ; aKM<int(eProjPC::eNbVals) ; aKM++)
+     {
+         for (int aKDeg=0 ; aKDeg<3 ; aKDeg++)
+         {
+	     eProjPC aProj =  (eProjPC) aKM;
+	     cPerspCamIntrCalib *  aCal = cPerspCamIntrCalib::RandomCalib(aProj,aKDeg);
+	     BenchSerial_PerspCamIntrCalib(aCal,aDirOut,aTypeS);
+
+	     delete aCal;
+         }
+     }
+}
+// void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...
+//  static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg);
+
+
+/* ===================================================== */
 
 
 void BenchSerialization
@@ -311,14 +382,13 @@ void BenchSerialization
 	eTypeSerial         aTypeS2
     )
 {
-   bool OkJSon =false;
+   bool OkJSon =true;
    if (!OkJSon)
 	   MMVII_DEV_WARNING("NO JSON IN BenchSerialization");
 
 
-   if ((! OkJSon) && ((aTypeS==eTypeSerial::ejson) || (aTypeS2==eTypeSerial::ejson) || (aTypeS==eTypeSerial::etagt)  || (aTypeS2==eTypeSerial::etagt) ))
+   if ( (aTypeS==eTypeSerial::etagt)  || (aTypeS2==eTypeSerial::etagt))
    {
-	   StdOut() << "JSON NON FINISHED \n";
 	   return;
    }
     std::string anExt  = E2Str(aTypeS);
@@ -393,7 +463,8 @@ void BenchSerialization
 
 	for (int aKS=0 ; aKS <int(eTypeSerial::eNbVals) ;aKS++)
         {
-           if (OkJSon || (  (aKS!=(int) eTypeSerial::ejson) && (aKS!=(int) eTypeSerial::etagt) && (aKS!=(int) eTypeSerial::exml2)))
+           // if (OkJSon || (  (aKS!=(int) eTypeSerial::ejson) && (aKS!=(int) eTypeSerial::etagt) && (aKS!=(int) eTypeSerial::exml2)))
+           if (aKS!=(int) eTypeSerial::etagt) 
 	   {
                std::string aPost = E2Str(eTypeSerial(aKS));
                SaveInFile(aP34,aDirOut+"F10."+aPost);
@@ -444,7 +515,6 @@ void BenchSerialization
     // return EXIT_SUCCESS;
 }
 
-extern void BenchSerialJson();
 
 void BenchSerialization
     (
@@ -455,17 +525,28 @@ void BenchSerialization
 {
     if (! aParam.NewBench("Serial")) return;
 
-    BenchSerialJson();
+
+    BenchSerialObject_AllMode(222,aDirOut);
+    BenchSerialObject_AllMode(222.5,aDirOut);
+    BenchSerialObject_AllMode(cPt2di(1,2),aDirOut);
+    BenchSerialObject_AllMode(cPt2dr(1,2),aDirOut);
+    BenchSerialObject_AllMode(cTestSerial1(),aDirOut);
+
+
+
     /*
     SaveInFile(cTestSerial1(),"toto.json");
     SaveInFile(GentTestMasSerial(),"toto_map.json");
     SaveInFile(GentTestMasSerial(),"toto_map.xml");
     */
 
+    for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
+        BenchSerial_PerspCamIntrCalib(aDirOut,eTypeSerial(aKS1));
+    // BenchSerial_PerspCamIntrCalib(aDirOut,eTypeSerial::exml);
+
 
     if (1)
     {
-       BenchSerialJson();
        BenchSerialMap("./",eTypeSerial::exml);
        BenchSerialMap("./",eTypeSerial::exml2);
     }

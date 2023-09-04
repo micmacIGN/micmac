@@ -2,4 +2,5 @@
 <MMVII_Serialization>
    <UserName>"Uknown"</UserName>
    <NbProcMax>1000</NbProcMax>
+   <SerialMode>xml</SerialMode>
 </MMVII_Serialization>

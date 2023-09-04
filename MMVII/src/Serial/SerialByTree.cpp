@@ -22,8 +22,6 @@ namespace MMVII
 {
 
 
-bool SkeepStrStrElCont = false;
-
 const char * TheXMLBeginCom  = "<!--";
 const char * TheXMLEndCom    = "-->";
 const char * TheXMLBeginCom2 = "<?";
@@ -31,6 +29,8 @@ const char * TheXMLEndCom2   = "?>";
 const char * TheXMLHeader = "<?xml version=\"1.0\" encoding=\"ISO8859-1\" standalone=\"yes\" ?>";
 
 static const char *  FakeTopSerialTree = "FakeTopSerialTree";
+// static const std::string  JSonComment =  "<!--comment-->" ;
+
 
 
 int DecLevel(eLexP aLexP)
@@ -58,11 +58,11 @@ cResLex::cResLex(std::string aVal,eLexP aLexP,eTAAr aTAAR) :
 
 /*============================================================*/
 /*                                                            */
-/*             cSerialParser                          */
+/*             cSerialGenerator                               */
 /*                                                            */
 /*============================================================*/
 
-cResLex cSerialParser::GetNextLexSizeCont() 
+cResLex cSerialGenerator::GetNextLexSizeCont() 
 {
    cResLex aRes = GetNextLex();
    MMVII_INTERNAL_ASSERT_tiny(aRes.mLexP == eLexP::eSizeCont,"GetNextLexSizeCont");
@@ -70,7 +70,7 @@ cResLex cSerialParser::GetNextLexSizeCont()
    return aRes;
 }
 
-cResLex cSerialParser::GetNextLexNotSizeCont() 
+cResLex cSerialGenerator::GetNextLexNotSizeCont() 
 {
    cResLex aRes = GetNextLex();
    while (aRes.mLexP == eLexP::eSizeCont)
@@ -79,7 +79,7 @@ cResLex cSerialParser::GetNextLexNotSizeCont()
    return aRes;
 }
 
-void cSerialParser::OnClose(const cSerialTree &,const std::string &) const 
+void cSerialGenerator::CheckOnClose(const cSerialTree &,const std::string &)  const
 {
 }
 
@@ -110,11 +110,65 @@ cSerialFileParser *  cSerialFileParser::Alloc(const std::string & aName,eTypeSer
     {
          case eTypeSerial::exml  : return new  cXmlSerialTokenParser(aName);
          case eTypeSerial::exml2 : return new  cXmlSerialTokenParser(aName);
+         case eTypeSerial::ejson : return new  cJsonSerialTokenParser(aName);
 	 default : {}
     }
 
     MMVII_UnclasseUsEr("Bad enum for cSerialFileParser::Alloc");
     return nullptr;
+}
+
+tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
+{
+    eTypeSerial aTypeS = Str2E<eTypeSerial>(LastPostfix(aNameFile));
+    cSerialFileParser * aSFP = Alloc(aNameFile,aTypeS);
+
+    bool  Cont = true;
+    int aK=0;
+
+    int aKTagMMVII = (aTypeS==eTypeSerial::exml) ? 0 : 1;
+    int aKTagMaster = (aTypeS==eTypeSerial::exml) ? 1 : 4;
+
+    std::vector aCptLev(5,0);
+
+    std::string aTagMMVII;
+    std::string aTagMaster;
+    int aLev = 0;
+    while (Cont)
+    {
+         cResLex aRL = aSFP->GetNextLex();
+
+	 if (aRL.mLexP==eLexP::eEnd)
+	 {
+		 Cont = false;
+         }
+	 else
+	 {
+            if (aRL.mLexP==eLexP::eUp) 
+	    {
+               if (aLev<int(aCptLev.size()))
+                  aCptLev.at(aLev)++;
+	       aLev++;
+	    }
+
+            if (aRL.mLexP==eLexP::eDown) 
+	    {
+	       aLev--;
+	    }
+
+	    if (aK==aKTagMMVII)  aTagMMVII = aRL.mVal;
+	    if (aK==aKTagMaster) 
+	    {
+	       aTagMaster = aRL.mVal;
+	       StdOut() << "Llll=" << aLev << "\n";
+	    }
+	 }
+         aK++;
+    }
+    delete aSFP;
+
+    StdOut() << "cSerialFileParser::TestFirstTaghhhhh " << aTagMMVII  << " " << aTagMaster  << aCptLev << "\n";
+    getchar();
 }
 
 
@@ -227,6 +281,7 @@ std::string  cSerialFileParser::GetQuotedString()
 
 cResLex  cSerialFileParser::GetNextLex_NOEOF()
 {
+
     SkeepWhite();
     std::string aRes;
 
@@ -303,7 +358,7 @@ cResLex cXmlSerialTokenParser::AnalysePonctuation(char aC)
     return cResLex(aRes,aLex,eTAAr::eUndef);
 }
 
-void cXmlSerialTokenParser::OnClose(const cSerialTree & aTree,const std::string & aStr)  const
+void cXmlSerialTokenParser::CheckOnClose(const cSerialTree & aTree,const std::string & aStr)  const
 {
      MMVII_INTERNAL_ASSERT_tiny(aTree.Value() == aStr,"Close tag unexpected");
 }
@@ -314,18 +369,77 @@ void cXmlSerialTokenParser::OnClose(const cSerialTree & aTree,const std::string 
 /*                                                            */
 /*============================================================*/
 
-/*
 cJsonSerialTokenParser::cJsonSerialTokenParser(const std::string & aName) :
 	cSerialFileParser(aName,eTypeSerial::ejson)
 {
 }
 
-bool BeginPonctuation(char aC) const override
+const  std::string  cJsonSerialTokenParser::OpenCars = "{[";
+const  std::string  cJsonSerialTokenParser::CloseCars = "}]";
+const  std::string  cJsonSerialTokenParser::SepCars = ",:";
+
+
+bool cJsonSerialTokenParser::BeginPonctuation(char aC) const 
 {
+     static std::string JSonPonct = OpenCars+CloseCars+SepCars;
+     return  JSonPonct.find(aC) !=  std::string::npos;
 }
-          cResLex AnalysePonctuation(char aC)  override;
-          void OnClose(const cSerialTree &,const std::string &) const override;
-	  */
+
+cResLex cJsonSerialTokenParser::AnalysePonctuation(char aC)
+{
+    std::string aStr(1,aC);
+
+    if (OpenCars.find(aC) != std::string::npos)   return cResLex(aStr,eLexP::eUp,eTAAr::eUndef);
+
+    if (CloseCars.find(aC) != std::string::npos)  return cResLex(aStr,eLexP::eDown,eTAAr::eUndef);
+
+    return cResLex(aStr,eLexP::eSep,eTAAr::eUndef);
+}
+
+void cJsonSerialTokenParser::CheckOnClose(const cSerialTree & aTree,const std::string & aStr)  const
+{
+     char aCOpen = aTree.Value().at(0);
+     char aCClose = aStr.at(0);
+
+     size_t aIndOpen  = OpenCars.find( aCOpen);
+     size_t aIndClose = CloseCars.find(aCClose);
+
+     // is this case occurs this probably a MMVII-error
+     MMVII_INTERNAL_ASSERT_tiny((aIndOpen!=std::string::npos) && (aIndClose!=std::string::npos),"Bad close in JSon");
+
+     // other  case are user error
+
+     //  case open dont match close
+     MMVII_INTERNAL_ASSERT_User((aIndOpen==aIndClose),eTyUEr::eParseBadClose,"Bad open/close : \"" + aTree.Value() +"/" + aStr + "\" ");
+
+
+     size_t aSz = aTree.Sons().size();
+     if (aIndOpen==0) // we are in  a stuff like "{ "a":1 , ...}" 
+     {
+	     // test punctuations
+         MMVII_INTERNAL_ASSERT_User((aSz==0) || (aSz%4==3),eTyUEr::eJSonBadPunct,"Bad size inside a json \"{...}\"");
+
+	 for (size_t aKS=0 ; aKS<aSz ; aKS+=4)
+	 {
+	     std::string aS = aTree.Sons().at(aKS+1).Value() ;
+             MMVII_INTERNAL_ASSERT_User(aS==":",eTyUEr::eJSonBadPunct,"Got \""+ aS + "\" instead of \":\"");
+	     if (aKS+3<aSz)
+	     {
+	          aS = aTree.Sons().at(aKS+3).Value() ;
+                  MMVII_INTERNAL_ASSERT_User(aS==",",eTyUEr::eJSonBadPunct,"Got \""+ aS + "\" instead of \",\"");
+	     }
+	 }
+     }
+     else if (aIndOpen==1)
+     {
+         MMVII_INTERNAL_ASSERT_User((aSz==0) || (aSz%2==1),eTyUEr::eJSonBadPunct,"Bad size inside a json \"{...}\"");
+	 for (size_t aKS=1 ; aKS<aSz ; aKS+=2)
+	 {
+             std::string aS = aTree.Sons().at(aKS).Value() ;
+             MMVII_INTERNAL_ASSERT_User(aS==",",eTyUEr::eJSonBadPunct,"Got \""+ aS + "\" instead of \",\"");
+	 }
+     }
+}
 
 
 /*============================================================*/
@@ -378,9 +492,10 @@ void cSerialTree::UpdateMaxDSon()
 
 
 const std::string & cSerialTree::Value() const { return mValue; }
+const std::vector<cSerialTree>&  cSerialTree::Sons() const {return mSons;}
 
 
-cSerialTree::cSerialTree(cSerialParser & aGenerator,const std::string & aValue,int aDepth,eLexP aLexP,eTAAr aTAAr) :
+cSerialTree::cSerialTree(cSerialGenerator & aGenerator,const std::string & aValue,int aDepth,eLexP aLexP,eTAAr aTAAr) :
    mLexP    (aLexP),
    mTAAr    (aTAAr),
    mValue   (aValue),
@@ -415,12 +530,9 @@ cSerialTree::cSerialTree(cSerialParser & aGenerator,const std::string & aValue,i
 	}
 	else if (aDec<0)
 	{
-
-	     // StdOut() << "GGgGG: " <<  E2Str(aRL.mTAAr) << "\n";
-             // MMVII_INTERNAL_ASSERT_tiny(mValue == aStr,"Close tag unexpected");
 	     mComment = aRL.mComment;
 	     mTAAr = aRL.mTAAr;
-	     aGenerator.OnClose(*this,aStr);
+	     aGenerator.CheckOnClose(*this,aStr);
              return;
 	}
 	else
@@ -511,54 +623,20 @@ void  cSerialTree::Raw_PrettyPrint(cMMVII_Ofs & anOfs) const
 
 static constexpr int MaxLength = 30;
 
-const cSerialTree * cSerialTree::RealSonOf(const cSerialTree * aSon) const
+void  cSerialTree::Json_Comment(cMMVII_Ofs & anOfs,bool Last,int & aCpt) const
 {
-    if (mTAAr == eTAAr::eCont)
+    if ( (! Json_OmitKey()) && (mComment!="") )
+    // if (  (mComment!="") )
     {
-	 StdOut() << "V=" << mValue << " L=" << mLength << "\n";
-         MMVII_INTERNAL_ASSERT_tiny(aSon->mTAAr == eTAAr::eElemCont,"RealSonOf TAAr");
-        // MMVII_INTERNAL_ASSERT_tiny(aSon->mSons.size()==1,"Size son");
-
-        return &(aSon->mSons.at(0));
+        Indent(anOfs,1);
+        anOfs.Ofs() <<  "           " ;
+	if (Last)  anOfs.Ofs() << ",";
+        // anOfs.Ofs() <<  " "<<  Quote(JSonComment)  <<  ":" << Quote(mComment);
+        anOfs.Ofs() <<  " "<<  Quote(TagJsonComment(aCpt))  <<  ":" << Quote(mComment);
+	if (!Last)  anOfs.Ofs() << ",";
+        anOfs.Ofs() <<  "\n";
     }
-
-    return aSon;
 }
-
-
-void  cSerialTree::Test_PrintTab(cMMVII_Ofs & anOfs,bool IsLast) const
-{
-      Indent(anOfs,1);
-      anOfs.Ofs() << mValue <<   "[\n" ;
-
-      int aK = mSons.size();
-      for (const auto & aSon : mSons)
-      {
-           aK--;
-	   RealSonOf(&aSon)->Test_Print(anOfs,(aK==0));
-      }
-
-      Indent(anOfs,1);
-      anOfs.Ofs() <<   "]" ;
-      if (!IsLast)  anOfs.Ofs() << ",";
-      anOfs.Ofs() <<   "\n" ;
-}
-
-void  cSerialTree::Test_PrintAtomic(cMMVII_Ofs & anOfs,bool IsLast) const
-{
-      Indent(anOfs,1);
-      anOfs.Ofs() <<   mValue << "\n";
-}
-
-void  cSerialTree::Test_Print(cMMVII_Ofs & anOfs,bool IsLast) const
-{
-      if (IsTerminalNode())
-         Test_PrintAtomic(anOfs,IsLast);
-      else 
-         Test_PrintTab(anOfs,IsLast);
-}
-
-
 
 bool cSerialTree::Json_OmitKey() const
 {
@@ -566,7 +644,7 @@ bool cSerialTree::Json_OmitKey() const
 }
 
 
-void  cSerialTree::JSon_PrintTerminalNode(cMMVII_Ofs & anOfs,bool Last) const
+void  cSerialTree::Json_PrintTerminalNode(cMMVII_Ofs & anOfs,bool Last,int & aCpt) const
 {
       Indent(anOfs,1);
       if (!Json_OmitKey())
@@ -574,9 +652,10 @@ void  cSerialTree::JSon_PrintTerminalNode(cMMVII_Ofs & anOfs,bool Last) const
       anOfs.Ofs() << UniqueSon().mValue;
       if (! Last) anOfs.Ofs() <<  " ,";
       anOfs.Ofs() <<  "\n";
+      Json_Comment(anOfs,Last,aCpt);
 }
 
-void  cSerialTree::JSon_PrintSingleTaggedVal(cMMVII_Ofs & anOfs,bool Last) const
+void  cSerialTree::Json_PrintSingleTab(cMMVII_Ofs & anOfs,bool Last,int & aCpt) const
 {
           Indent(anOfs,1);
           if (!Json_OmitKey())
@@ -592,9 +671,10 @@ void  cSerialTree::JSon_PrintSingleTaggedVal(cMMVII_Ofs & anOfs,bool Last) const
           anOfs.Ofs() <<   "]" ;
           if (! Last) anOfs.Ofs() <<  " ,";
           anOfs.Ofs() <<   "\n" ;
+          Json_Comment(anOfs,Last,aCpt);
 }
 
-void  cSerialTree::Json_PrettyPrint(cMMVII_Ofs & anOfs,bool IsLast) const
+void  cSerialTree::Rec_Json_PrettyPrint(cMMVII_Ofs & anOfs,bool IsLast,int & aCpt) const
 {
       bool IsCont = ((mTAAr ==  eTAAr::eCont) ||  (mTAAr==eTAAr::eMap));
       Indent(anOfs,1);
@@ -605,11 +685,11 @@ void  cSerialTree::Json_PrettyPrint(cMMVII_Ofs & anOfs,bool IsLast) const
           aK--;
           if (aSon.IsSingleTaggedVal())
           {
-              aSon.JSon_PrintTerminalNode(anOfs,aK==0);
+              aSon.Json_PrintTerminalNode(anOfs,aK==0,aCpt);
           }
           else  if (aSon.IsTab())
           {
-              aSon.JSon_PrintSingleTaggedVal(anOfs,aK==0);
+              aSon.Json_PrintSingleTab(anOfs,aK==0,aCpt);
           }
           else
           {
@@ -619,15 +699,38 @@ void  cSerialTree::Json_PrettyPrint(cMMVII_Ofs & anOfs,bool IsLast) const
                   anOfs.Ofs() <<   Quote(aSon.mValue) << " :" ;
                   anOfs.Ofs() <<   "\n" ;
 	       }
-               aSon.Json_PrettyPrint(anOfs,aK==0);
+               aSon.Rec_Json_PrettyPrint(anOfs,aK==0,aCpt);
+               Json_Comment(anOfs,aK==0,aCpt);
           }
       }
       Indent(anOfs,1);
       anOfs.Ofs() <<   (IsCont ? "]" : "}") ;
       if (!IsLast) anOfs.Ofs() <<   " ," ;
       anOfs.Ofs() <<   "\n" ;
+      Json_Comment(anOfs,IsLast,aCpt);
 }
 
+
+void  cSerialTree::Json_PrettyPrint(cMMVII_Ofs & anOfs) const
+{
+	int aCpt=0;
+	Rec_Json_PrettyPrint(anOfs,true,aCpt);
+}
+
+std::string cSerialTree::TagJsonComment(int & aCpt)
+{
+    aCpt++;
+    return "<!--comment"+ToStr(aCpt) +  "-->";
+}
+
+bool cSerialTree::IsJsonComment(const std::string& aName) 
+{
+    cMemManager::SetActiveMemoryCount(false);
+    static  tNameSelector aPat = AllocRegex("<!--comment[0-9]+-->");
+    cMemManager::SetActiveMemoryCount(true);
+
+    return aPat.Match(aName);
+}
 
 
 
@@ -639,21 +742,65 @@ const cSerialTree & cSerialTree::UniqueSon() const
     return *(mSons.begin());
 }
 
-void cSerialTree::Unfold(std::list<cResLex> & aRes) const
+void cSerialTree::Unfold(std::list<cResLex> & aRes,eTypeSerial aTypeS) const
 {
 
-    // add value
-    aRes.push_back(cResLex(mValue,mLexP,mTAAr));
-    if (! IsTerminalNode())
-       aRes.push_back(cResLex(ToStr(mSons.size()),eLexP::eSizeCont,eTAAr::eSzCont));
+    if (aTypeS==eTypeSerial::exml)
+    {
+        aRes.push_back(cResLex(mValue,mLexP,mTAAr));
+        if (! IsTerminalNode())
+           aRes.push_back(cResLex(ToStr(mSons.size()),eLexP::eSizeCont,eTAAr::eSzCont));
 
-    // parse son for recursive call
-    for (const auto & aSon : mSons)
-        aSon.Unfold(aRes);
+        // parse son for recursive call
+        for (const auto & aSon : mSons)
+            aSon.Unfold(aRes,aTypeS);
 
-    // add potentiel closing tag
-    if (mLexP==eLexP::eUp)
-        aRes.push_back(cResLex(mValue,eLexP::eDown,mTAAr));
+        // add potentiel closing tag
+        if (mLexP==eLexP::eUp)
+            aRes.push_back(cResLex(mValue,eLexP::eDown,mTAAr));
+    }
+    else if (aTypeS==eTypeSerial::ejson)
+    {
+         size_t aSz = mSons.size();
+	 if (mValue == "{")
+	 {
+            int aNbCom = 0;
+            for (size_t aK=0 ; aK<mSons.size() ; aK+=4)
+	    {
+                //if ( mSons.at(aK).mValue==JSonComment)
+                if ( IsJsonComment(mSons.at(aK).mValue))
+                   aNbCom ++;
+	    }
+
+            aRes.push_back(cResLex(ToStr((aSz+1)/4-aNbCom),eLexP::eSizeCont,eTAAr::eSzCont));
+            for (size_t aK=0 ; aK<mSons.size() ; aK+=4)
+            {
+                 const cSerialTree  & aSonTag =  mSons.at(aK);
+		 const std::string & aTag = aSonTag.mValue;
+		 // if (aTag != JSonComment)
+                 if ( !IsJsonComment(aTag))
+		 {
+                     aRes.push_back(cResLex(aTag,eLexP::eUp,eTAAr::eStd));
+                     mSons.at(aK+2).Unfold(aRes,aTypeS);
+                     aRes.push_back(cResLex(aTag,eLexP::eDown,eTAAr::eStd));
+		 }
+            }
+	 }
+	 else if (mValue == "[")
+	 {
+            aRes.push_back(cResLex(ToStr((aSz+1)/2),eLexP::eSizeCont,eTAAr::eSzCont));
+            for (size_t aK=0 ; aK<mSons.size() ; aK+=2)
+            {
+                mSons.at(aK).Unfold(aRes,aTypeS);
+	    }
+	 }
+	 else
+	 {
+            MMVII_INTERNAL_ASSERT_tiny(mSons.empty(),"Unfold : non empty sons");
+            aRes.push_back(cResLex(mValue,eLexP::eStdToken_UK,eTAAr::eStd));
+	 }
+ 
+    }
 }
 
 /*============================================================*/
@@ -662,11 +809,8 @@ void cSerialTree::Unfold(std::list<cResLex> & aRes) const
 /*                                                            */
 /*============================================================*/
 
-// cResLex cSerialParser::GetNextLexSizeCont() 
-// cResLex cSerialParser::GetNextLexNotSizeCont() 
-//
 class cIMakeTreeAr : public cAr2007,
-	             public cSerialParser
+	             public cSerialGenerator
 {
      public :
         cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS) ;
@@ -711,7 +855,12 @@ cIMakeTreeAr::cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
    cSerialTree aTree(*aSTP,FakeTopSerialTree,0,eLexP::eBegin,eTAAr::eUndef);
 
    // StdOut() << "JJJJJUiOp " << mNameFile << "\n";
-   aTree.UniqueSon().Unfold(mListRL);
+   aTree.UniqueSon().Unfold(mListRL,mTypeS);
+   // Show(mListRL);
+   /*
+   if (mTypeS==eTypeSerial::ejson)
+       mListRL.pop_front();
+       */
 
    mItLR = mListRL.begin();
 
@@ -742,11 +891,10 @@ cResLex cIMakeTreeAr::GetNextLex()
 
 void cIMakeTreeAr::OnTag(const cAuxAr2007& aTag,bool IsUp)
 {
-   if (SkeepStrStrElCont && (aTag.Name() == StrElCont))
+   if ((mTypeS==eTypeSerial::ejson)  && ( (aTag.Name() == StrElCont) || (aTag.Name()==StrElMap)))
        return;
    cResLex aRL = GetNextLexNotSizeCont();
 
-   // StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << "\n";
 
    if (aRL.mLexP != (IsUp ? eLexP::eUp  : eLexP::eDown))
    {
@@ -853,13 +1001,15 @@ cAr2007 * Alloc_cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)
 /*                                                            */
 /*============================================================*/
 
-class cTokenGeneByList : public cSerialParser
+/**   Class for 
+ */
+
+class cTokenGeneByList : public cSerialGenerator
 {
       public :
 	typedef std::list<cResLex>   tContToken;
 	cResLex GetNextLex() override;
 	cTokenGeneByList(tContToken &);
-	// cListTokenGenerator(
 
       private :
 	tContToken *           mContToken;
@@ -892,7 +1042,7 @@ cResLex cTokenGeneByList::GetNextLex()
  *      that are memorized in a list (it contains the nature of the call and the string associated)
  *
  *      - at  destruction of object :
- *          *  an explicit cSerialTree is created from the object (which is a cSerialParser)
+ *          *  an explicit cSerialTree is created from the object (which is a cSerialGenerator)
  *          * the this tree is exported in xml, json of whatever dialect which is implemented in  the "xxx_PrettyPrint" method
  *          of  "cSerialTree"
  *
@@ -1013,14 +1163,7 @@ cOMakeTreeAr::~cOMakeTreeAr()
     }
     else if (mTypeS==eTypeSerial::ejson)
     {
-         aTree.Json_PrettyPrint(anOfs,true);
-
-
-	 if (0)
-         {
-             cMMVII_Ofs anOfs2(LastPrefix(mNameFile)+".json2",false);
-             aTree.Test_Print(anOfs2,false);
-	 }
+         aTree.Json_PrettyPrint(anOfs);
     }
     else if (mTypeS==eTypeSerial::etagt)
     {
@@ -1034,56 +1177,6 @@ cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)
     return new cOMakeTreeAr(aName,aTypeS);
 }
 
-
-void BenchSerialJson()
-{
-	/*
-         SkeepStrStrElCont = false;
-
-         cTestSerial0 aS0;
-         SaveInFile(aS0,"toto_S0_.tagt");
-
-         SaveInFile(GentTestMasSerial(),"toto_Map.tagt");
-
-	 std::vector< std::vector<int> > aVI {{1},{},{1,2}};
-         SaveInFile(aVI,"toto_VI.tagt");
-
-	 exit(EXIT_SUCCESS);
-	 */
-
-    for  (bool Skeep : {false})
-    {
-         // SkeepStrStrElCont = Skeep;
-         cTestSerial0 aS0;
-
-	 std::string aPost = Skeep ? "Skeep" : "NoSk";
-
-
-         SaveInFile(aS0,"toto_S0_" + aPost + ".xml");
-         SaveInFile(aS0,"toto_S0_" + aPost + ".json");
-         SaveInFile(aS0,"toto_S0_" + aPost + ".tagt");
-// StdOut() << "SkeepSkeepSkeep\n"; getchar();
-
-	 std::vector< std::vector<int> > aVI {{1},{},{1,2}};
-         SaveInFile(aVI,"toto_VI_" + aPost + ".xml");
-         SaveInFile(aVI,"toto_VI_" + aPost + ".tagt");
-         SaveInFile(aVI,"toto_VI_" + aPost + ".json");
-
-         SaveInFile(GentTestMasSerial(),"toto_Map_" + aPost + ".xml");
-         SaveInFile(GentTestMasSerial(),"toto_Map_" + aPost + ".tagt");
-         SaveInFile(GentTestMasSerial(),"toto_Map_" + aPost + ".json");
-    }
-	/*
-    cTestSerial0 aS0;
-    // SaveInFile(aS0,"toto.json");
-    SaveInFile(aS0,"toto.xml");
-    StdOut() << "SAVE--- BenchSerialJson \n"; 
-    ReadFromFile(aS0,"toto.xml");
-    StdOut() << "BenchSerialJson \n"; getchar();
-
-     SkeepStrStrElCont = false;
-    */
-}
 
 
 

@@ -353,11 +353,12 @@ std::string  cStreamIXml_Ar2007::GetNextStdString()
 
 
 
-bool cStreamIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName)
+bool cStreamIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aNameTag)
 {
+
     bool aRes = false;
     try {
-        aRes = ((!Is2007) || GetTag(false,TagMMVIISerial)) && GetTag(false,aName);
+        aRes = ((!Is2007) || GetTag(false,TagMMVIISerial)) && GetTag(false,aNameTag);
     }
     catch (cEOF_Exception anE)
     {
@@ -366,13 +367,15 @@ bool cStreamIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName
     return aRes;
 }
 
-bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string & aTag)
+bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aNameFile,const std::string & aNameTag)
 {
-  if ((Postfix(aName,'.',true) != "xml") || (! ExistFile(aName)))
+  cSerialFileParser::TestFirstTag(aNameFile,aNameTag);
+
+  if ((Postfix(aNameFile,'.',true) != "xml") || (! ExistFile(aNameFile)))
      return false;
 
-  cStreamIXml_Ar2007 aFile (aName,eTypeSerial::exml);
-  return aFile.IsFileOfFirstTag(Is2007,aTag);
+  cStreamIXml_Ar2007 aFile (aNameFile,eTypeSerial::exml);
+  return aFile.IsFileOfFirstTag(Is2007,aNameTag);
 }
 
 
@@ -396,6 +399,7 @@ void cStreamIXml_Ar2007::RawAddDataTerm(std::string &    aS)
 
 void cStreamIXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
 {
+   SkeepWhite();
    tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
    for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
    {
@@ -942,7 +946,7 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    {
        if (Input)
        {
-          // aRes =  new cIBaseTxt_Ar2007(aName);
+          aRes =  Alloc_cIMakeTreeAr(aName,eTypeSerial::ejson);
        }
        else
           // aRes =  new cOJSN_Ar2007(aName);
