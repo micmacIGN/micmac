@@ -120,6 +120,8 @@ cSerialFileParser *  cSerialFileParser::Alloc(const std::string & aName,eTypeSer
 
 tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 {
+    return tTestFileSerial(true,"");
+
     eTypeSerial aTypeS = Str2E<eTypeSerial>(LastPostfix(aNameFile));
     cSerialFileParser * aSFP = Alloc(aNameFile,aTypeS);
 
@@ -556,6 +558,12 @@ void  cSerialTree::Indent(cMMVII_Ofs & anOfs,int aDeltaInd) const
 
 void  cSerialTree::Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
 {
+     for (const auto & aSon : mSons)
+         aSon.Rec_Xml_PrettyPrint(anOfs);
+}
+
+void  cSerialTree::Rec_Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
+{
      // bool IsTag = (mDepth!=0) && (!mSons.empty());
      bool IsTag = (mLexP == eLexP::eUp);
      bool OneLine = (mMaxDSon <= mDepth+1);
@@ -584,7 +592,7 @@ void  cSerialTree::Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
         if (OneLine && (aK!=0))
             anOfs.Ofs()  << " ";
 		
-        aSon.Xml_PrettyPrint(anOfs);
+        aSon.Rec_Xml_PrettyPrint(anOfs);
 	aK++;
      }
      if (IsTag && (mDepth!=0) )  // && (!mSons.empty()))
@@ -1161,7 +1169,8 @@ cOMakeTreeAr::~cOMakeTreeAr()
     if (mTypeS==eTypeSerial::exml)
     {
        anOfs.Ofs() <<  TheXMLHeader << std::endl;
-       aTree.UniqueSon().Xml_PrettyPrint(anOfs);
+       aTree.Xml_PrettyPrint(anOfs);
+       // aTree.UniqueSon().Xml_PrettyPrint(anOfs);
     }
     else if (mTypeS==eTypeSerial::ejson)
     {

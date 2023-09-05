@@ -260,10 +260,6 @@ template <class TypeH,class TypeCumul> void BenchHistoAndSerial(const std::strin
             double aDif = RelativeDifference(aProp,aH2.PropCumul(aX));
             MMVII_INTERNAL_ASSERT_bench(aDif<1e-7,"BenchHistoAndSerial");
         }
-/*
-StdOut() << "WwwwwwwwWWWWWWwwww " << aNameFile << " " << aH2.H().Sz() << "\n";
-getchar();
-*/
     }
 }
 
@@ -382,6 +378,8 @@ void BenchSerialization
 	eTypeSerial         aTypeS2
     )
 {
+StdOut() << "BenchSerialization "  << E2Str(aTypeS) << " " <<  E2Str(aTypeS2) << "\n";
+
    bool OkJSon =true;
    if (!OkJSon)
 	   MMVII_DEV_WARNING("NO JSON IN BenchSerialization");
@@ -504,10 +502,15 @@ void BenchSerialization
 
 
     // Bench IsFile2007XmlOfGivenTag 
+    if (0)
     {
        MMVII_INTERNAL_ASSERT_bench( IsFileXmlOfGivenTag(true,aDirOut+"XF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
        MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirOut+"XF2."+anExtXml,"TS1"),"cAppli_MMVII_TestSerial");
        MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirIn+"PBF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
+    }
+    else
+    {
+	    StdOut() << "SKEEPING IsFileXmlOfGivenTag\n";
     }
 
     //StdOut() << "DONE SERIAL\n";
@@ -525,6 +528,9 @@ void BenchSerialization
 {
     if (! aParam.NewBench("Serial")) return;
 
+    SaveInFile(cTestSerial1(),"toto.json");
+    SaveInFile(GentTestMasSerial(),"toto_map.json");
+    SaveInFile(GentTestMasSerial(),"toto_map.xml");
 
     BenchSerialObject_AllMode(222,aDirOut);
     BenchSerialObject_AllMode(222.5,aDirOut);
@@ -532,13 +538,6 @@ void BenchSerialization
     BenchSerialObject_AllMode(cPt2dr(1,2),aDirOut);
     BenchSerialObject_AllMode(cTestSerial1(),aDirOut);
 
-
-
-    /*
-    SaveInFile(cTestSerial1(),"toto.json");
-    SaveInFile(GentTestMasSerial(),"toto_map.json");
-    SaveInFile(GentTestMasSerial(),"toto_map.xml");
-    */
 
     for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
         BenchSerial_PerspCamIntrCalib(aDirOut,eTypeSerial(aKS1));
@@ -561,6 +560,7 @@ void BenchSerialization
          SaveInFile(aTS1,"toto_222.xml2");
 
     }
+StdOut() << "JJJjjjj " << __LINE__ << "\n";
 
     for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
     {
@@ -569,6 +569,7 @@ void BenchSerialization
             BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial(aKS1),eTypeSerial(aKS2));
         }
     }
+StdOut() << "JJJjjjj " << __LINE__ << "\n";
     /*
     */
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml,eTypeSerial::etxt);

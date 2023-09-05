@@ -811,6 +811,18 @@ void cMMVII_Appli::InitProfile()
   // ========================================================================
   // ========================  HANDLING PROFILE USER ETC ... ================
   // ========================================================================
+  //
+  if (1)
+  {
+	  StdOut() << "NO USEERRRRRRRRRRRRRR \n"; getchar();
+
+      mParamProfile.mUserName = "Uknown";
+      mParamProfile.mNbProcMax = 1000;
+      mParamProfile.mDefSerial = eTypeSerial::exml;
+  mNameDefSerial = E2Str(mParamProfile.mDefSerial);
+  return;
+
+  } 
 
   /*  Compute the name of file containing the profile of user;  this profile is 
    *

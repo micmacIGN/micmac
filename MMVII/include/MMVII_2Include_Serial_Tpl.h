@@ -293,6 +293,28 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet
      Allocate the archive from name (Xml, binary, ...)
      Write using AddData
 */
+template<class TypeVal> void  TopAddAr(cAr2007  & anAr,TypeVal & aVal,const std::string & aName)
+{
+    std::string aVV="0.00";
+    std::string aVS=TagMMVIISerial;
+    std::string aLP =  LastPostfix(aName);
+    bool IsXml =  (aLP=="xml") || (aLP=="xml2");
+
+    if (IsXml)
+    {
+       cAuxAr2007  aG0(aVS,anAr,eTAAr::eStd);
+       // AddData(cAuxAr2007("Type"   ,aG0,eTAAr::eStd),aVS);
+       AddData(cAuxAr2007("Version",aG0,eTAAr::eStd),aVV);
+       AddData(cAuxAr2007("Data",   aG0,eTAAr::eStd),aVal);
+    }
+    else
+    {
+       AddData(cAuxAr2007("Type"   ,anAr,eTAAr::eStd),aVS);
+       AddData(cAuxAr2007("Version",anAr,eTAAr::eStd),aVV);
+       AddData(cAuxAr2007("Data",   anAr,eTAAr::eStd),aVal);
+    }
+}
+
 template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
 {
    if (GlobOutV2Format())  // Do we save using MMV2 format by serialization
@@ -300,11 +322,35 @@ template<class Type> void  SaveInFile(const Type & aVal,const std::string & aNam
        // Unique Ptr  , second type indicate the type of deleting unction
        // DeleteAr -> function that will be called for deleting
        std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,false),DeleteAr);
+
+           /// Not proud of cons_cast ;-( 
+       TopAddAr(*anAr,const_cast<Type&>(aVal),aName);
+
+       /*
+       {
+           cAuxAr2007  aGLOB("Type",*anAr,eTAAr::eStd);
+	   std::string aV=TagMMVIISerial;
+           AddData(aGLOB,aV);
+       }
+       {
+           cAuxAr2007  aGLOB("Version",*anAr,eTAAr::eStd);
+	   std::string aV="0.00";
+           AddData(aGLOB,aV);
+       }
+       {
+           cAuxAr2007  aGLOB("Data",*anAr,eTAAr::eStd);
+           /// Not proud of cons_cast ;-( 
+           AddData(aGLOB,const_cast<Type&>(aVal));
+       }
+       */
+
+       /*
        {
            cAuxAr2007  aGLOB(TagMMVIISerial,*anAr,eTAAr::eStd);
            /// Not proud of cons_cast ;-( 
            AddData(aGLOB,const_cast<Type&>(aVal));
        }
+       */
    }
    else
    {
@@ -335,16 +381,31 @@ template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
 }
 
 
-/// Read  the value in an archive
-/** Same as write, but simpler as V1/V2 choice is guided by file */
 
+
+/** Same as write, but simpler as V1/V2 choice is guided by file */
 template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
 {
     std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,true),DeleteAr);
+    TopAddAr(*anAr,aVal,aName);
+    /*
+    std::string aVV="0.00";
+    std::string aVS=TagMMVIISerial;
+    bool IsXml =  LastPostfix(aName)=="xml";
+    if (IsXml)
     {
-       cAuxAr2007  aGLOB(TagMMVIISerial,*anAr,eTAAr::eStd);
-       AddData(aGLOB,aVal);
+       cAuxAr2007  aG0("",*anAr,eTAAr::eStd);
+       AddData(cAuxAr2007("Type"   ,aG0,eTAAr::eStd),aVS);
+       AddData(cAuxAr2007("Version",aG0,eTAAr::eStd),aVV);
+       AddData(cAuxAr2007("Data",   aG0,eTAAr::eStd),aVal);
     }
+    else
+    {
+       AddData(cAuxAr2007("Type"   ,*anAr,eTAAr::eStd),aVS);
+       AddData(cAuxAr2007("Version",*anAr,eTAAr::eStd),aVV);
+       AddData(cAuxAr2007("Data",   *anAr,eTAAr::eStd),aVal);
+    }
+    */
 }
 
 /// If the file does not exist, initialize with default constructor

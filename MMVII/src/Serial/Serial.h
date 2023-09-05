@@ -275,6 +275,7 @@ class cSerialTree
 	  bool IsTab() const;              ///< is it a non tagged node with all son terminal
 	  bool IsSingleTaggedVal() const;  ///< is it  a 
 
+	  void  Rec_Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// xml-pretty print
 	  /// recursive json pretty print , IsLast to handle "," , aCptComment to generat different comment tag at each occurence
 	  void Rec_Json_PrettyPrint(cMMVII_Ofs& anOfs,bool IsLast,int &aCptComment) const; 
 	  ///  print a tab on a single line for fixed size tab (like "cPt2di" )
