@@ -252,14 +252,19 @@ class cJsonSerialTokenParser : public cSerialFileParser
 class cSerialTree
 {
       public :
-	  cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP,eTAAr); /// For leaf
+	  cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP,eTAAr); ///< For leaf
 	  /// for "standard" nodes
           cSerialTree(cSerialGenerator &,const std::string & aValue,int aDepth,eLexP aLexP,eTAAr);
+          /// top call
+          cSerialTree(cSerialGenerator &);
 
 	        // "pretty printing" functions
 	  void  Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// xml-pretty print
 	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs) const; /// json-pretty print
 	  void  Raw_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// Tagt-pretty print
+
+          tTestFileSerial  Xml_TestFirstTag();
+          tTestFileSerial  Json_TestFirstTag();
 
 	  /// Assert that there is only 1 son and return it
 	  const cSerialTree & UniqueSon() const; 

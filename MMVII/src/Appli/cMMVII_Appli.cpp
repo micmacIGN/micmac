@@ -818,7 +818,7 @@ void cMMVII_Appli::InitProfile()
 
       mParamProfile.mUserName = "Uknown";
       mParamProfile.mNbProcMax = 1000;
-      mParamProfile.mDefSerial = eTypeSerial::exml;
+      mParamProfile.mDefSerial = eTypeSerial::ejson;
   mNameDefSerial = E2Str(mParamProfile.mDefSerial);
   return;
 

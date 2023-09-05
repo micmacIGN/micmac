@@ -120,59 +120,21 @@ cSerialFileParser *  cSerialFileParser::Alloc(const std::string & aName,eTypeSer
 
 tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 {
-    return tTestFileSerial(true,"");
-
     eTypeSerial aTypeS = Str2E<eTypeSerial>(LastPostfix(aNameFile));
     cSerialFileParser * aSFP = Alloc(aNameFile,aTypeS);
 
-    bool  Cont = true;
-    int aK=0;
-
-    int aKTagMMVII = (aTypeS==eTypeSerial::exml) ? 0 : 1;
-    int aKTagMaster = (aTypeS==eTypeSerial::exml) ? 1 : 4;
-
-    std::vector aCptLev(5,0);
-
-    std::string aTagMMVII;
-    std::string aTagMaster;
-    int aLev = 0;
-    while (Cont)
-    {
-         cResLex aRL = aSFP->GetNextLex();
-
-	 if (aRL.mLexP==eLexP::eEnd)
-	 {
-		 Cont = false;
-         }
-	 else
-	 {
-            if (aRL.mLexP==eLexP::eUp) 
-	    {
-               if (aLev<int(aCptLev.size()))
-                  aCptLev.at(aLev)++;
-	       aLev++;
-	    }
-
-            if (aRL.mLexP==eLexP::eDown) 
-	    {
-	       aLev--;
-	    }
-
-	    if (aK==aKTagMMVII)  aTagMMVII = aRL.mVal;
-	    if (aK==aKTagMaster) 
-	    {
-	       aTagMaster = aRL.mVal;
-	       StdOut() << "Llll=" << aLev << "\n";
-	    }
-	 }
-         aK++;
-    }
+    cSerialTree  aTree(*aSFP);
     delete aSFP;
 
-    StdOut() << "cSerialFileParser::TestFirstTaghhhhh " << aTagMMVII  << " " << aTagMaster  << aCptLev << "\n";
-    getchar();
 
-    return tTestFileSerial(true,"");
+    if (aTypeS==eTypeSerial::exml)
+       return aTree.Xml_TestFirstTag();
+
+    if (aTypeS==eTypeSerial::ejson)
+       return aTree.Json_TestFirstTag();
+
+
+    return tTestFileSerial(false,"");
 }
 
 
@@ -464,6 +426,7 @@ cSerialTree::cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP,eTAAr
 {
 }
 
+
 bool cSerialTree::IsTerminalNode() const
 {
         if (mLexP == eLexP::eUp)   return false;
@@ -498,6 +461,10 @@ void cSerialTree::UpdateMaxDSon()
 const std::string & cSerialTree::Value() const { return mValue; }
 const std::vector<cSerialTree>&  cSerialTree::Sons() const {return mSons;}
 
+cSerialTree:: cSerialTree(cSerialGenerator & aGenerator) :
+   cSerialTree (aGenerator,FakeTopSerialTree,0,eLexP::eBegin,eTAAr::eUndef) 
+{
+}
 
 cSerialTree::cSerialTree(cSerialGenerator & aGenerator,const std::string & aValue,int aDepth,eLexP aLexP,eTAAr aTAAr) :
    mLexP    (aLexP),
@@ -556,6 +523,28 @@ void  cSerialTree::Indent(cMMVII_Ofs & anOfs,int aDeltaInd) const
 
      //=======================    XLM PRINTING ======================
 
+const std::string TagMMVIIData = "Data";
+
+tTestFileSerial  cSerialTree::Xml_TestFirstTag()
+{
+
+  const cSerialTree & aS0 = UniqueSon();
+
+  // StdOut() << "Xml_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
+  if ((aS0.mValue!= TagMMVIISerial) || ( aS0.mSons.size() !=2)) 
+     return tTestFileSerial(false,"");
+
+  const cSerialTree & aS1 = aS0.mSons.at(1);
+
+  if ((aS1.mValue!= TagMMVIIData) || ( aS1.mSons.size() !=1)) 
+     return tTestFileSerial(false,"");
+
+  const cSerialTree & aS2 = aS1.UniqueSon() ;
+
+  return tTestFileSerial(true,aS2.mValue);
+}
+
+
 void  cSerialTree::Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
 {
      for (const auto & aSon : mSons)
@@ -608,6 +597,15 @@ void  cSerialTree::Rec_Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
      }
 }
      //=======================    TAGT PRINTING ======================
+
+tTestFileSerial  cSerialTree::Json_TestFirstTag()
+{
+   StdOut() << "Json_TestFirstTag::: " << mValue << " " << mSons.size() << "\n";
+
+   getchar();
+   return tTestFileSerial(false,"");
+}
+
 
 void  cSerialTree::Raw_PrettyPrint(cMMVII_Ofs & anOfs) const
 {
@@ -862,7 +860,7 @@ cIMakeTreeAr::cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
    DEBUG = true;
 
    cSerialFileParser *  aSTP = cSerialFileParser::Alloc(mNameFile,aTypeS);
-   cSerialTree aTree(*aSTP,FakeTopSerialTree,0,eLexP::eBegin,eTAAr::eUndef);
+   cSerialTree aTree(*aSTP);
 
    // StdOut() << "JJJJJUiOp " << mNameFile << "\n";
    aTree.UniqueSon().Unfold(mListRL,mTypeS);
@@ -1163,7 +1161,7 @@ cOMakeTreeAr::~cOMakeTreeAr()
 
     cTokenGeneByList aTGBL(mContToken);
 
-    cSerialTree aTree(aTGBL,FakeTopSerialTree,0,eLexP::eBegin,eTAAr::eUndef);
+    cSerialTree aTree(aTGBL);
     cMMVII_Ofs anOfs(mNameFile,false);
 
     if (mTypeS==eTypeSerial::exml)

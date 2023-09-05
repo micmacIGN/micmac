@@ -4,6 +4,7 @@
 
 #include "MMVII_Geom2D.h"
 #include "MMVII_PCSens.h"
+#include "Serial.h"
 
 
 /** \file BenchSerial.cpp
@@ -378,7 +379,7 @@ void BenchSerialization
 	eTypeSerial         aTypeS2
     )
 {
-StdOut() << "BenchSerialization "  << E2Str(aTypeS) << " " <<  E2Str(aTypeS2) << "\n";
+// StdOut() << "BenchSerialization "  << E2Str(aTypeS) << " " <<  E2Str(aTypeS2) << "\n";
 
    bool OkJSon =true;
    if (!OkJSon)
@@ -550,8 +551,12 @@ void BenchSerialization
        BenchSerialMap("./",eTypeSerial::exml2);
     }
 
-    SaveInFile(cTestSerial1(),"toto.json");
     SaveInFile(cTestSerial1(),"toto.xml");
+    cSerialFileParser::TestFirstTag("toto.xml");
+    cSerialFileParser::TestFirstTag("CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.json");
+    cSerialFileParser::TestFirstTag("CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.xml");
+
+    SaveInFile(cTestSerial1(),"toto.json");
     SaveInFile(cTestSerial1(),"toto.txt");
     SaveInFile(cTestSerial1(),"toto.xml2");
     {
