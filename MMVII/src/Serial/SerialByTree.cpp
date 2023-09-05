@@ -600,7 +600,14 @@ void  cSerialTree::Rec_Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
 
 tTestFileSerial  cSerialTree::Json_TestFirstTag()
 {
-   StdOut() << "Json_TestFirstTag::: " << mValue << " " << mSons.size() << "\n";
+  const cSerialTree & aS0 = UniqueSon();
+
+   StdOut() << "Json_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
+  // StdOut() << "Xml_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
+  if ((aS0.mValue!= "{") || ( aS0.mSons.size() !=11)) 
+     return tTestFileSerial(false,"");
+
+   StdOut() <<  aS0.mSons[0].mValue << " " <<  aS0.mSons[2].mValue  << " " <<  aS0.mSons[4].mValue <<   " " << aS0.mSons[8].mValue << "\n";
 
    getchar();
    return tTestFileSerial(false,"");
