@@ -161,7 +161,7 @@ void TestRatkoswky(bool Show,const tVRatkoswkyData & aVData,const std::vector<do
           aCFD.PushNewEvals(aInitialGuess,aVYX);
      }
         // Now run the computation on "pushed" data, we have the derivative
-     const std::vector<std::vector<double> *> & aVEvals = aCFD.EvalAndClear();
+     [[maybe_unused]] const std::vector<std::vector<double> *> & aVEvals = aCFD.EvalAndClear();
      assert(aVEvals.size()==aVData.size()); // Check we get the number of computation we inserted
 
    //-[3] ========= Now we can use the derivatives ========================== 
