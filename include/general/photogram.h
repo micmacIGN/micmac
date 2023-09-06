@@ -2565,9 +2565,9 @@ class cCamStenopeModStdPhpgr : public cCamStenopeDistRadPol
         // En point de liaison les equation sont faite C->M, compte
         // tenu de l'absence d'inversion triviale pour le Modele Std,
         // on a interet a toujours raisonner dans ce sens
-           virtual ElDistortion22_Gen   &  Dist();
-           virtual const ElDistortion22_Gen   &  Dist() const;
-            virtual cParamIntrinsequeFormel * AllocParamInc(bool isDC2M,cSetEqFormelles &);
+           virtual ElDistortion22_Gen   &  Dist() override;
+           virtual const ElDistortion22_Gen   &  Dist() const override;
+            virtual cParamIntrinsequeFormel * AllocParamInc(bool isDC2M,cSetEqFormelles &) override;
         cParamIFDistStdPhgr * AllocPhgrStdInc(bool isDC2M,cSetEqFormelles &);
     private :
            cCamStenopeModStdPhpgr(const cCamStenopeModStdPhpgr &); // N.I.
