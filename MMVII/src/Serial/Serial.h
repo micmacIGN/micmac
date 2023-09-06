@@ -247,6 +247,15 @@ class cJsonSerialTokenParser : public cSerialFileParser
 	  void CheckOnClose(const cSerialTree &,const std::string &) const override;
 };
 
+class cResDifST
+{
+     public :
+        cResDifST(const cSerialTree*,const cSerialTree*);
+
+        const cSerialTree * mST1;
+        const cSerialTree * mST2;
+};
+
 /**  Class to represent as a tree  the object, in write, or the file, in read, for the serialization by tree
  */
 class cSerialTree
@@ -258,6 +267,9 @@ class cSerialTree
           /// top call
           cSerialTree(cSerialGenerator &);
 
+
+	  /// Compute firt occurence of tree difference return as res diff 
+	  cResDifST AnalyseDiffTree(const cSerialTree &,const std::string &aSkeep) const;
 	        // "pretty printing" functions
 	  void  Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// xml-pretty print
 	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs) const; /// json-pretty print
@@ -275,6 +287,8 @@ class cSerialTree
 	  const std::vector<cSerialTree>&  Sons() const; /// acessor
           const std::string & Value() const ;            /// accessor
      private :
+	  /// Implement using exception
+	  void Rec_AnalyseDiffTree(const cSerialTree &,const std::string & aSkeep) const;
 
 	  bool IsTerminalNode() const;     ///< is it a node w/o son and not tagged
 	  bool IsTab() const;              ///< is it a non tagged node with all son terminal

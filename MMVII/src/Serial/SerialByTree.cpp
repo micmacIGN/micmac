@@ -123,17 +123,29 @@ tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
     if (!ExistFile(aNameFile))
        return tTestFileSerial(false,"");
 
-
     eTypeSerial aTypeS = Str2E<eTypeSerial>(LastPostfix(aNameFile),true);
 
     if ((aTypeS!=eTypeSerial::exml) && (aTypeS!=eTypeSerial::ejson))
        return tTestFileSerial(false,"");
 
+
     cSerialFileParser * aSFP = Alloc(aNameFile,aTypeS);
     cSerialTree  aTree(*aSFP);
     delete aSFP;
 
+    aSFP = Alloc(cMMVII_Appli::CurrentAppli().DirRessourcesMMVII()+"Model."+E2Str(aTypeS),aTypeS);
+    cSerialTree  aTreeMod(*aSFP);
+    delete aSFP;
 
+    cResDifST aDif = aTreeMod.AnalyseDiffTree(aTree,"XXX");
+
+    if ((aDif.mST1!=nullptr) && (aDif.mST2!=nullptr))
+    {
+	if (aDif.mST1->Value()=="ToMatch")
+           return  tTestFileSerial(true,aDif.mST2->Value());
+    }
+
+    /*
     if (aTypeS==eTypeSerial::exml)
     {
        return aTree.Xml_TestFirstTag();
@@ -141,6 +153,7 @@ tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 
     if (aTypeS==eTypeSerial::ejson)
        return aTree.Json_TestFirstTag();
+       */
 
     return tTestFileSerial(false,"");
 }
@@ -854,6 +867,43 @@ void cSerialTree::Unfold(std::list<cResLex> & aRes,eTypeSerial aTypeS) const
 	 }
  
     }
+}
+
+
+void cSerialTree::Rec_AnalyseDiffTree(const cSerialTree &aT1,const std::string & aSkeep) const
+{
+   if ((mValue != aT1.mValue) && (mValue!=aSkeep) && (aT1.mValue!=aSkeep))
+      throw cResDifST(this,&aT1);
+
+   size_t aSz = std::min(mSons.size(),aT1.mSons.size());
+
+   for (size_t aK =0 ; aK<aSz ; aK++)
+       mSons[aK].Rec_AnalyseDiffTree(aT1.mSons[aK],aSkeep);
+
+   if (mSons.size() > aT1.mSons.size())
+        throw cResDifST(&(mSons[aSz]),nullptr);
+   else if (mSons.size() < aT1.mSons.size())
+        throw cResDifST(nullptr,&(aT1.mSons[aSz]));
+}
+
+cResDifST::cResDifST(const cSerialTree* aST1,const cSerialTree* aST2) :
+     mST1 (aST1),
+     mST2 (aST2)
+{
+}
+
+cResDifST  cSerialTree::AnalyseDiffTree(const cSerialTree &aT1,const std::string & aSkeep) const
+{
+    try
+    {
+         Rec_AnalyseDiffTree(aT1,aSkeep);
+    }
+    catch (cResDifST aRes)
+    {
+         return aRes;
+    }
+
+    return cResDifST(nullptr,nullptr);
 }
 
 /*============================================================*/
