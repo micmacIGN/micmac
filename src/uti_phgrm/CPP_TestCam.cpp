@@ -324,6 +324,7 @@ int Bundles2Comp_main(int argc,char ** argv){
     
     int 							   mMinObs;
     double                             mPrecisionPx;
+    double                             mPrecisionPxRel;
     const std::vector<std::string>  *  aVN = nullptr;
 
     
@@ -335,6 +336,7 @@ int Bundles2Comp_main(int argc,char ** argv){
         LArgMain()  <<  EAM(mOutput_folder, "Out", "", "Output folder")
                     <<  EAM(ImPattern, "Pattern", "", "Images to extract [default: all]")
                     <<  EAM(mPrecisionPx, "PxAcc", 0, "Pixel accuracy [Default: 0.289]")
+                    <<  EAM(mPrecisionPxRel, "PxAccRel", 0, "Pixel accuracy relative to normalized radius [Default: 0]")
                     <<  EAM(mCodeDistance, "Distance", 0, "Distance value [Default: XXXX]")
                     <<  EAM(mMinObs, "MinObs", 3, "Min number of obs per image [Default: 3]")
     );
@@ -350,6 +352,9 @@ int Bundles2Comp_main(int argc,char ** argv){
     }
     if (!EAMIsInit(&mPrecisionPx)){
         mPrecisionPx = 0.289;   
+    }
+    if (!EAMIsInit(&mPrecisionPxRel)){
+        mPrecisionPxRel = 0.;
     }
     if (!EAMIsInit(&mCodeDistance)){
         mCodeDistance = "XXXX";   
@@ -442,6 +447,7 @@ int Bundles2Comp_main(int argc,char ** argv){
        
 		double f = aCam->Focale();
        
+        double img_half_diag = sqrt(aCam->PP().x*aCam->PP().x + aCam->PP().y*aCam->PP().y);
         for (std::list<cOneMesureAF1I>::iterator j=MESURE_IMAGES[i].OneMesureAF1I().begin();
             j != MESURE_IMAGES[i].OneMesureAF1I().end(); j++){
        
@@ -456,7 +462,9 @@ int Bundles2Comp_main(int argc,char ** argv){
 
             double sigma_theta  = 1/sqrt(1-pow(delta_y/r,2));
             double sigma_phi    = 1/sqrt(1-pow(delta_x/(r*cos(phi)),2));
-            double sigma_angles = max(sigma_theta, sigma_phi)*mPrecisionPx*200/PI/r;
+            double radius2Drel = sqrt(delta_x*delta_x+delta_y*delta_y)/img_half_diag;
+            double sigma_factor = mPrecisionPx + mPrecisionPxRel * radius2Drel;
+            double sigma_angles = max(sigma_theta, sigma_phi)*sigma_factor*200/PI/r;
             
             theta *= 200/PI;  
 			phi   *= 200/PI;
