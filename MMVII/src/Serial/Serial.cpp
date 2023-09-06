@@ -367,15 +367,13 @@ bool cStreamIXml_Ar2007::IsFileOfFirstTag(bool Is2007,const std::string  & aName
     return aRes;
 }
 
-bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aNameFile,const std::string & aNameTag)
+bool IsXmlV1FileGivenTag(const std::string & aNameFile,const std::string & aNameTag)
 {
-  cSerialFileParser::TestFirstTag(aNameFile);
-
   if ((Postfix(aNameFile,'.',true) != "xml") || (! ExistFile(aNameFile)))
      return false;
 
   cStreamIXml_Ar2007 aFile (aNameFile,eTypeSerial::exml);
-  return aFile.IsFileOfFirstTag(Is2007,aNameTag);
+  return aFile.IsFileOfFirstTag(false,aNameTag);
 }
 
 

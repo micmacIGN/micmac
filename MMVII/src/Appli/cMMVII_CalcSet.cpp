@@ -138,7 +138,7 @@ static void OneBenchEditSet
     const std::string & aTag = (aRealNumOut==1) ?  MMv1XmlTag_SetName : TagSetOfName;
     MMVII_INTERNAL_ASSERT_always
     (
-        IsFileXmlOfGivenTag((aRealNumOut==2),aDirT+Ouput,aTag) ,
+        IsFileGivenTag((aRealNumOut==2),aDirT+Ouput,aTag) ,
         "Tag in OneBenchEditSet"
     );
 

@@ -503,11 +503,13 @@ void BenchSerialization
 
 
     // Bench IsFile2007XmlOfGivenTag 
-    if (0)
+    if (1)
     {
-       MMVII_INTERNAL_ASSERT_bench( IsFileXmlOfGivenTag(true,aDirOut+"XF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
-       MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirOut+"XF2."+anExtXml,"TS1"),"cAppli_MMVII_TestSerial");
-       MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirIn+"PBF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
+StdOut() << "BENCHIsfIleGiv  " << __LINE__ << "\n";
+       MMVII_INTERNAL_ASSERT_bench( IsFileGivenTag(true,aDirOut+"XF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
+StdOut() << "BENCHIsfIleGiv  " << __LINE__ << "\n";
+       MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirOut+"XF2."+anExtXml,"TS1"),"cAppli_MMVII_TestSerial");
+       MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirIn+"PBF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
     }
     else
     {

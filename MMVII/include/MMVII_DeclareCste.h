@@ -19,7 +19,10 @@ namespace MMVII
 
 
 // Xml tags
-extern const std::string TagMMVIISerial;    ///< Xml top tag of all generated file
+extern const std::string TagMMVIISerial;    ///< Xml top tag of all generated file, or value of type 4 json
+extern const std::string TagMMVIIType;    ///<  json tag for type
+extern const std::string TagMMVIIData;    ///< Xml-json tag for data
+extern const std::string TagMMVIIVersion;    ///< Xml-json tag for version
 extern const std::string TagSetOfName;      ///< Xml (sub) top tag for  Set of name
 extern const std::string TagSetOfCpleName;  ///< Xml (sub) top tag for  Set of Cple of Name (relation)
 // ------

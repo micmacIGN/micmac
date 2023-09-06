@@ -382,7 +382,9 @@ template<> void  MMv1_SaveInFile(const tNameSet & aVal,const std::string & aName
 bool GlobOutV2Format();
 
 /// Indicate if a file is really XML, created by MMVII and containing the expected Tag
-bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string & aTag); 
+bool IsFileGivenTag(bool Is2007,const std::string & aName,const std::string & aTag); 
+/// Probably soon obsolete
+bool IsXmlV1FileGivenTag(const std::string & aName,const std::string & aTag); 
 
 
 template <class Type> const std::string  & XMLTagSet();

@@ -120,22 +120,38 @@ cSerialFileParser *  cSerialFileParser::Alloc(const std::string & aName,eTypeSer
 
 tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 {
-    eTypeSerial aTypeS = Str2E<eTypeSerial>(LastPostfix(aNameFile));
-    cSerialFileParser * aSFP = Alloc(aNameFile,aTypeS);
 
+    eTypeSerial aTypeS = Str2E<eTypeSerial>(LastPostfix(aNameFile));
+
+    if ((aTypeS!=eTypeSerial::exml) && (aTypeS!=eTypeSerial::ejson))
+       return tTestFileSerial(false,"");
+
+    cSerialFileParser * aSFP = Alloc(aNameFile,aTypeS);
     cSerialTree  aTree(*aSFP);
     delete aSFP;
 
 
     if (aTypeS==eTypeSerial::exml)
+    {
+StdOut() << "TEST  " << __LINE__  << " NF=" << aNameFile << "\n";
        return aTree.Xml_TestFirstTag();
+    }
 
     if (aTypeS==eTypeSerial::ejson)
        return aTree.Json_TestFirstTag();
 
-
     return tTestFileSerial(false,"");
 }
+
+bool IsFileGivenTag(bool Is2007,const std::string & aNameFile,const std::string & aTag)
+{
+   if (! Is2007) return IsXmlV1FileGivenTag(aNameFile,aTag);
+
+   tTestFileSerial  aTF =  cSerialFileParser::TestFirstTag(aNameFile);
+
+   return aTF.first && (aTF.second == aTag);
+}
+
 
 
 void cSerialFileParser::Error(const std::string & aMesLoc)
@@ -523,23 +539,24 @@ void  cSerialTree::Indent(cMMVII_Ofs & anOfs,int aDeltaInd) const
 
      //=======================    XLM PRINTING ======================
 
-const std::string TagMMVIIData = "Data";
 
 tTestFileSerial  cSerialTree::Xml_TestFirstTag()
 {
+StdOut() << "Xml_TestFirstTag  " << __LINE__ << "\n";
 
   const cSerialTree & aS0 = UniqueSon();
 
   // StdOut() << "Xml_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
-  if ((aS0.mValue!= TagMMVIISerial) || ( aS0.mSons.size() !=2)) 
+  if ((aS0.mValue!= TagMMVIISerial) || ( aS0.mSons.size() !=2) || (aS0.mSons.at(0).mValue != TagMMVIIVersion))
      return tTestFileSerial(false,"");
 
   const cSerialTree & aS1 = aS0.mSons.at(1);
-
   if ((aS1.mValue!= TagMMVIIData) || ( aS1.mSons.size() !=1)) 
      return tTestFileSerial(false,"");
 
   const cSerialTree & aS2 = aS1.UniqueSon() ;
+
+StdOut() << "Xml_TestFirstTag  " << __LINE__ << "\n";
 
   return tTestFileSerial(true,aS2.mValue);
 }
@@ -602,15 +619,24 @@ tTestFileSerial  cSerialTree::Json_TestFirstTag()
 {
   const cSerialTree & aS0 = UniqueSon();
 
-   StdOut() << "Json_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
+  // StdOut() << "Json_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
   // StdOut() << "Xml_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
   if ((aS0.mValue!= "{") || ( aS0.mSons.size() !=11)) 
      return tTestFileSerial(false,"");
 
-   StdOut() <<  aS0.mSons[0].mValue << " " <<  aS0.mSons[2].mValue  << " " <<  aS0.mSons[4].mValue <<   " " << aS0.mSons[8].mValue << "\n";
+   if (    (aS0.mSons[0].mValue!=TagMMVIIType)
+        || (aS0.mSons[2].mValue!=TagMMVIISerial)
+        || (aS0.mSons[4].mValue!=TagMMVIIVersion)
+        || (aS0.mSons[8].mValue!=TagMMVIIData)
+        || (aS0.mSons[10].mValue!="{")
+      )
+     return tTestFileSerial(false,"");
 
-   getchar();
-   return tTestFileSerial(false,"");
+  const cSerialTree & aS1 = aS0.mSons[10];
+  if ( aS1.mSons.size() !=3)
+     return tTestFileSerial(false,"");
+
+  return tTestFileSerial(true,aS1.mSons[0].mValue);
 }
 
 

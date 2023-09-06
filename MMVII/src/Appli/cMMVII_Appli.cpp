@@ -690,7 +690,7 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
       std::string aNameTag;
       if (aVSpec[aK]->HasType(eTA2007::XmlOfTopTag,&aNameTag))
       {
-         if (!IsFileXmlOfGivenTag(true,aVValues[aK],aNameTag))
+         if (!IsFileGivenTag(true,aVValues[aK],aNameTag))
 	 {
 	       MMVII_UsersErrror(eTyUEr::eBadXmlTopTag,"[" + aVValues[aK] + "] is not an existing xml file of main tag <" + aNameTag + ">");
 			      // IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
@@ -811,17 +811,18 @@ void cMMVII_Appli::InitProfile()
   // ========================================================================
   // ========================  HANDLING PROFILE USER ETC ... ================
   // ========================================================================
-  //
-  if (1)
+
+
+  //  part of code that was used to initialize "at hand", soon will be obsolete...
+  if (0)
   {
-	  StdOut() << "NO USEERRRRRRRRRRRRRR \n"; getchar();
+      StdOut() << "NO USEERRRRRRRRRRRRRR \n"; getchar();
 
       mParamProfile.mUserName = "Uknown";
       mParamProfile.mNbProcMax = 1000;
       mParamProfile.mDefSerial = eTypeSerial::ejson;
-  mNameDefSerial = E2Str(mParamProfile.mDefSerial);
-  return;
-
+      mNameDefSerial = E2Str(mParamProfile.mDefSerial);
+      return;
   } 
 
   /*  Compute the name of file containing the profile of user;  this profile is 

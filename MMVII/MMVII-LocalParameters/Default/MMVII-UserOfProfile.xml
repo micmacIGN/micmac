@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
 <MMVII_Serialization>
-   <UserName>"Uknown"</UserName>
-   <NbProcMax>1000</NbProcMax>
-   <SerialMode>xml</SerialMode>
+   <Version>"0.00"</Version>
+   <Data>
+      <UserName>"Uknown"</UserName>
+      <NbProcMax>1000</NbProcMax>
+      <SerialMode>"xml"</SerialMode>
+   </Data>
 </MMVII_Serialization>

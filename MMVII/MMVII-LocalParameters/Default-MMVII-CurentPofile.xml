@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
 <MMVII_Serialization>
-   <NameProfile>"Default"</NameProfile>
+   <Version>"0.00"</Version>
+   <Data>
+      <NameProfile>"Default"</NameProfile>
+   </Data>
 </MMVII_Serialization>
