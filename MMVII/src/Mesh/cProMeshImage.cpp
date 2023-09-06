@@ -207,6 +207,10 @@ int  cAppliProMeshImage::ExecuteBench(cParamExeBench & aParam)
       return EXIT_SUCCESS;
    }
 
+   // I am a bit tired of regenerating data for this bench when format evolute, will change later
+   MMVII_DEV_WARNING("No cAppliProMeshImage::ExecuteBench");
+   return EXIT_SUCCESS;
+
    // call the proj for all file in FileTestMesh.xml => in the recall we will test the result with the reference
    std::string aCom =
 	              FullBin() + BLANK

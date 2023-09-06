@@ -18,6 +18,9 @@
 
 namespace MMVII
 {
+typedef  std::map<std::string,std::vector<cPt2dr>>  tTestMasSerial;  /// Type for basic test-serialisation of maps
+tTestMasSerial  GentTestMasSerial(); /// Generate a sample for test
+
 
 
 template <class Type> void TplAddRawData(const cAuxAr2007 & anAux,Type * anAdr,int aNbElem,const std::string & aTag="Data")
@@ -152,8 +155,14 @@ extern void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux);
 /// Serialization for stl container
 /** Thi should work both for stl containers (require size + iterator auto)
 */
+
+extern const std::string  StrElCont;
+extern const std::string  StrElMap;
+
+
 template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont & aL)
 {
+    anAux.SetType(eTAAr::eCont);
     int aNb=aL.size();
     // put or read the number
     // AddData(cAuxAr2007("Nb",anAux),aNb);
@@ -168,7 +177,7 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
     // now read the elements
     for (auto & el : aL)
     {    
-         AddData(cAuxAr2007("el",anAux),el);
+         AddData(cAuxAr2007(StrElCont,anAux,eTAAr::eElemCont),el);
     }
 }
 
@@ -182,21 +191,23 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & 
 
 template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
 {
-    size_t aNb=aMap.size();
+    anAux.SetType(eTAAr::eMap);
+    int aNb=aMap.size();
     // put or read the number
-    AddData(cAuxAr2007("Nb",anAux),aNb);
+    //  AddData(cAuxAr2007("Nb",anAux),aNb);
+    AddDataSizeCont(aNb,anAux);
     // a bit trick the iteration is fundamentally different in input and output, because can't easily
     // fix the size
     if (anAux.Input())
     {
        // when read parse the Number of pair, read the key and put the value in the key
-       for (size_t aK=0 ; aK<aNb ; aK++)
+       for (int aK=0 ; aK<aNb ; aK++)
        {
           {
-            cAuxAr2007 anAuxPair("Pair",anAux);
+            cAuxAr2007 anAuxPair(StrElMap,anAux,eTAAr::ePairMap);
             TypeKey aKey;
-            AddData(anAuxPair,aKey);
-            AddData(anAuxPair,aMap[aKey]);
+            AddData(cAuxAr2007("K",anAuxPair,eTAAr::eKeyMap),aKey);
+            AddData(cAuxAr2007("V",anAuxPair,eTAAr::eValMap),aMap[aKey]);
           }
        }
     }
@@ -205,10 +216,10 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
        // when write parse the map,
         for (auto & aPair : aMap)
         {
-            cAuxAr2007 anAuxPair("Pair",anAux);
-            AddData(anAuxPair,const_cast<TypeKey&>(aPair.first));
-	    AddSeparator(anAux.Ar());
-            AddData(anAuxPair,const_cast<TypeVal&>(aPair.second));
+            cAuxAr2007 anAuxPair(StrElMap,anAux,eTAAr::ePairMap);
+            AddData(cAuxAr2007("K",anAuxPair,eTAAr::eKeyMap),const_cast<TypeKey&>(aPair.first));
+	    // AddSeparator(anAux.Ar());
+            AddData(cAuxAr2007("V",anAuxPair,eTAAr::eValMap),const_cast<TypeVal&>(aPair.second));
             //AddData(anAuxPair,aPair->second);
         }
     }
@@ -282,6 +293,31 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet
      Allocate the archive from name (Xml, binary, ...)
      Write using AddData
 */
+template<class TypeVal> void  TopAddAr(cAr2007  & anAr,TypeVal & aVal,const std::string & aName)
+{
+    std::string aStrVersion ="0.00";
+    std::string aStrSerial  =TagMMVIISerial;
+    std::string aStrRoot    =TagMMVIIRoot;
+
+    std::string aLP =  LastPostfix(aName);
+    bool IsXml =  (aLP=="xml") || (aLP=="xml2");
+
+    if (IsXml)
+    {
+       cAuxAr2007  aG0(aStrRoot,anAr,eTAAr::eStd);
+       // AddData(cAuxAr2007("Type"   ,aG0,eTAAr::eStd),aVS);
+       AddData(cAuxAr2007(TagMMVIIType    ,aG0,eTAAr::eStd),aStrSerial);
+       AddData(cAuxAr2007(TagMMVIIVersion ,aG0,eTAAr::eStd),aStrVersion);
+       AddData(cAuxAr2007(TagMMVIIData    ,aG0,eTAAr::eStd),aVal);
+    }
+    else
+    {
+       AddData(cAuxAr2007(TagMMVIIType   ,anAr,eTAAr::eStd),aStrSerial);
+       AddData(cAuxAr2007(TagMMVIIVersion,anAr,eTAAr::eStd),aStrVersion);
+       AddData(cAuxAr2007(TagMMVIIData,   anAr,eTAAr::eStd),aVal);
+    }
+}
+
 template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
 {
    if (GlobOutV2Format())  // Do we save using MMV2 format by serialization
@@ -289,11 +325,35 @@ template<class Type> void  SaveInFile(const Type & aVal,const std::string & aNam
        // Unique Ptr  , second type indicate the type of deleting unction
        // DeleteAr -> function that will be called for deleting
        std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,false),DeleteAr);
+
+           /// Not proud of cons_cast ;-( 
+       TopAddAr(*anAr,const_cast<Type&>(aVal),aName);
+
+       /*
        {
-           cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+           cAuxAr2007  aGLOB("Type",*anAr,eTAAr::eStd);
+	   std::string aV=TagMMVIISerial;
+           AddData(aGLOB,aV);
+       }
+       {
+           cAuxAr2007  aGLOB("Version",*anAr,eTAAr::eStd);
+	   std::string aV="0.00";
+           AddData(aGLOB,aV);
+       }
+       {
+           cAuxAr2007  aGLOB("Data",*anAr,eTAAr::eStd);
            /// Not proud of cons_cast ;-( 
            AddData(aGLOB,const_cast<Type&>(aVal));
        }
+       */
+
+       /*
+       {
+           cAuxAr2007  aGLOB(TagMMVIISerial,*anAr,eTAAr::eStd);
+           /// Not proud of cons_cast ;-( 
+           AddData(aGLOB,const_cast<Type&>(aVal));
+       }
+       */
    }
    else
    {
@@ -313,7 +373,7 @@ template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
 */
 template<class Type> size_t  HashValue(cAr2007 * anAr,const Type & aVal,bool ordered)
 {
-    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr, eTAAr::eStd);
     AddData(aGLOB,const_cast<Type&>(aVal));
     return HashValFromAr(*anAr);
 }
@@ -324,16 +384,31 @@ template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
 }
 
 
-/// Read  the value in an archive
-/** Same as write, but simpler as V1/V2 choice is guided by file */
 
+
+/** Same as write, but simpler as V1/V2 choice is guided by file */
 template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
 {
     std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,true),DeleteAr);
+    TopAddAr(*anAr,aVal,aName);
+    /*
+    std::string aVV="0.00";
+    std::string aVS=TagMMVIISerial;
+    bool IsXml =  LastPostfix(aName)=="xml";
+    if (IsXml)
     {
-       cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
-       AddData(aGLOB,aVal);
+       cAuxAr2007  aG0("",*anAr,eTAAr::eStd);
+       AddData(cAuxAr2007("Type"   ,aG0,eTAAr::eStd),aVS);
+       AddData(cAuxAr2007("Version",aG0,eTAAr::eStd),aVV);
+       AddData(cAuxAr2007("Data",   aG0,eTAAr::eStd),aVal);
     }
+    else
+    {
+       AddData(cAuxAr2007("Type"   ,*anAr,eTAAr::eStd),aVS);
+       AddData(cAuxAr2007("Version",*anAr,eTAAr::eStd),aVV);
+       AddData(cAuxAr2007("Data",   *anAr,eTAAr::eStd),aVal);
+    }
+    */
 }
 
 /// If the file does not exist, initialize with default constructor
@@ -345,6 +420,7 @@ template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & a
       aVal = Type();
 }
 
+///  Save in file if it's the first times it occurs inside the process
 template<class Type> void  ToFileIfFirstime(const Type & anObj,const std::string & aNameFile)
 {
    static std::set<std::string> aSetFilesAlreadySaved;
@@ -355,6 +431,16 @@ template<class Type> void  ToFileIfFirstime(const Type & anObj,const std::string
    }
 }
 
+template<class Type,class TypeTmp> Type * ObjectFromFile(const std::string & aName)
+{
+    TypeTmp aDataCreate;
+    ReadFromFile(aDataCreate,aName);
+    return new Type(aDataCreate);
+}
+
+/**  Read in the file if first time and memorize, other times return the same object ,
+ *   at end, destruction will be handled using "AddObj2DelAtEnd"  (which is required for memory checking)
+ */
 template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::string & aName)
 {
      static std::map<std::string,Type *> TheMap;
@@ -362,9 +448,10 @@ template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::stri
 
      if (anExistingRes == 0)
      {
-        TypeTmp aDataCreate;
-        ReadFromFile(aDataCreate,aName);
-        anExistingRes = new Type(aDataCreate);
+        // TypeTmp aDataCreate;
+        // ReadFromFile(aDataCreate,aName);
+        // anExistingRes = new Type(aDataCreate);
+        anExistingRes = ObjectFromFile<Type,TypeTmp>(aName);
         cMMVII_Appli::AddObj2DelAtEnd(anExistingRes);
      }
      return anExistingRes;

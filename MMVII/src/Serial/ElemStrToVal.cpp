@@ -38,7 +38,8 @@ template <class TypeEnum> class cE2Str
          return anIt->second;
      }
 
-     static const TypeEnum &  Str2E(const std::string & aStr)
+     //static const TypeEnum &  Str2E(const std::string & aStr,bool WithDef)
+     static TypeEnum   Str2E(const std::string & aStr,bool WithDef)
      {
          /// If first time we create mS2E by inverting the  mE2S
          if (mS2E==0)
@@ -52,6 +53,8 @@ template <class TypeEnum> class cE2Str
          // String to enum is probably a user error (programm create enum)
          if (anIt == mS2E->end())
          {
+            if (WithDef) 
+                return TypeEnum::eNbVals;
             MMVII_UsersErrror(eTyUEr::eBadEnum,"Str2E for : "+aStr+" ; valids are : "+ StrAllVal() );
          }
          return anIt->second;
@@ -116,9 +119,9 @@ const std::string & E2Str(const TypeEnum & anOp)\
 {\
    return cE2Str<TypeEnum>::E2Str(anOp);\
 }\
-template <> const TypeEnum & Str2E<TypeEnum>(const std::string & aName)\
+template <> TypeEnum  Str2E<TypeEnum>(const std::string & aName,bool WithDef)\
 {\
-   return cE2Str<TypeEnum>::Str2E(aName);\
+   return cE2Str<TypeEnum>::Str2E(aName,WithDef);\
 }\
 template <> std::string   StrAllVall<TypeEnum>()\
 {\
@@ -262,6 +265,8 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eRemoveFile,"RmFile"},
                 {eTyUEr::eEmptyPattern,"EmptyPattern"},
                 {eTyUEr::eBadXmlTopTag,"XmlTopTag"},
+                {eTyUEr::eParseBadClose,"ParseBadClose"},
+                {eTyUEr::eJSonBadPunct,"JSonBadPunct"},
                 {eTyUEr::eBadFileSetName,"FileSetN"},
                 {eTyUEr::eBadFileRelName,"FileRelN"},
                 {eTyUEr::eOpenFile,"OpenFile"},
@@ -373,9 +378,23 @@ template<> cE2Str<eTypeSerial>::tMapE2Str cE2Str<eTypeSerial>::mE2S
                 {eTypeSerial::exml2,"xml2"},
                 {eTypeSerial::edmp,"dmp"},
                 {eTypeSerial::etxt,"txt"},
+                {eTypeSerial::etagt,"tagt"},
                 {eTypeSerial::ejson,"json"}
            };
 
+template<> cE2Str<eTAAr>::tMapE2Str cE2Str<eTAAr>::mE2S
+           {
+                {eTAAr::eStd,"Std"},
+                {eTAAr::eSzCont,"SzCont"},
+                {eTAAr::eFixTabNum,"FixTabNum"},
+                {eTAAr::eCont,"Cont"},
+                {eTAAr::eElemCont,"ElemC"},
+                {eTAAr::eMap,"Map"},
+                {eTAAr::ePairMap,"PairM"},
+                {eTAAr::eKeyMap,"KeyM"},
+                {eTAAr::eValMap,"ValM"},
+                {eTAAr::eUndef,"???"}
+           };
 
 
 template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
@@ -507,6 +526,8 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eModeCaracMatch>();
     TplBenchEnum<eDCTFilters>();
     TplBenchEnum<eTyCodeTarget>();
+    TplBenchEnum<eTypeSerial>();
+    TplBenchEnum<eTAAr>();
 
     aParam.EndBench();
 }
@@ -1013,6 +1034,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eModeTestPropCov,"TestPropCov")
 MACRO_INSTANTITATE_STRIO_ENUM(eMTDIm,"TypeMTDIm")
 MACRO_INSTANTITATE_STRIO_ENUM(eFormatExtern,"ExternalFormat")
 MACRO_INSTANTITATE_STRIO_ENUM(eTypeSerial,"TypeSerial")
+MACRO_INSTANTITATE_STRIO_ENUM(eTAAr,"TypeAAr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTA2007,"TA2007")
 MACRO_INSTANTITATE_STRIO_ENUM(eTySC,"TySC")
 
@@ -1115,10 +1137,34 @@ std::string  ToS_NbDigit(int aNb,int aNbDig,bool AcceptOverFlow)
 
    // ================  double ==============================================
 
-template <>  std::string cStrIO<double>::ToStr(const double & anI)
+template <>  std::string cStrIO<double>::ToStr(const double & aD)
 {
-   sprintf(BufStrIO,"%lg",anI);
+    if (int(aD) == aD) return cStrIO<int>::ToStr (int(aD));
+
+    std::ostringstream out;
+    out.precision(15);
+    out << std::fixed << aD;
+
+    std::string aRes = std::move(out).str();
+
+    if (aRes.back() != '0') return aRes;
+
+    int aL = aRes.size()-1;
+
+    while ((aL>=0) && (aRes[aL] == '0'))
+          aL--;
+
+    std::string aNewRes = aRes.substr(0,aL+1);
+
+    if (RelativeSafeDifference(aD,FromStr(aNewRes)) < 1e-10)
+	    return aNewRes;
+
+    return aRes;
+	/*
+   sprintf(BufStrIO,"%lf",aD);
    return BufStrIO;
+    */
+   // return std::to_string(aD);
 }
 template <>  double cStrIO<double>::FromStr(const std::string & aStr)
 {

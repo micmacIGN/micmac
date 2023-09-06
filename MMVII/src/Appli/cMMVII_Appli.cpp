@@ -266,6 +266,7 @@ void AddData(const cAuxAr2007 & anAux,cParamProfile & aProfile)
 {
      AddData(cAuxAr2007("UserName",anAux),aProfile.mUserName);
      AddData(cAuxAr2007("NbProcMax",anAux),aProfile.mNbProcMax);
+     EnumAddData(anAux,aProfile.mDefSerial,"SerialMode");
 }
 
 
@@ -689,7 +690,7 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
       std::string aNameTag;
       if (aVSpec[aK]->HasType(eTA2007::XmlOfTopTag,&aNameTag))
       {
-         if (!IsFileXmlOfGivenTag(true,aVValues[aK],aNameTag))
+         if (!IsFileGivenTag(true,aVValues[aK],aNameTag))
 	 {
 	       MMVII_UsersErrror(eTyUEr::eBadXmlTopTag,"[" + aVValues[aK] + "] is not an existing xml file of main tag <" + aNameTag + ">");
 			      // IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
@@ -800,45 +801,94 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
   {
       mSeedRand =  std::chrono::system_clock::to_time_t(mT0);
   }
+  if (mMainAppliInsideP) 
+     InitProfile();
+}
 
-  //  handling the user, profile ....
-  static std::string NameFileCurentProfile =  "MMVII-CurentPofile.xml";
-  if (! ExistFile(mDirLocalParameters+NameFileCurentProfile))
+void cMMVII_Appli::InitProfile()
+{
+  
+  // ========================================================================
+  // ========================  HANDLING PROFILE USER ETC ... ================
+  // ========================================================================
+
+
+  //  part of code that was used to initialize "at hand", soon will be obsolete...
+  if (0)
   {
-      NameFileCurentProfile = "Default-" + NameFileCurentProfile;
-  }
-  static std::string NameFileUseOfProfile =  "MMVII-UserOfProfile.xml";
-  if (0) // first time create by hand
+      StdOut() << "NO USEERRRRRRRRRRRRRR \n"; getchar();
+
+      mParamProfile.mUserName = "Uknown";
+      mParamProfile.mNbProcMax = 1000;
+      mParamProfile.mDefSerial = eTypeSerial::ejson;
+      mNameDefSerial = E2Str(mParamProfile.mDefSerial);
+      return;
+  } 
+
+  /*  Compute the name of file containing the profile of user;  this profile is 
+   *
+   *     - "MMVII-CurentPofile.xml" if this file exists, to allow tuning by user
+   *     - "Default-MMVII-CurentPofile.xml" if it does not exist, this is the file shared on github
+   */
+  std::string NameFileCurentProfile =  "MMVII-CurentPofile.xml";
+  std::string DefaultNameFileCurentProfile =  "Default-" + NameFileCurentProfile;
+  std::string NameFileUseOfProfile =  "MMVII-UserOfProfile.xml";
+
+  // if the default file  does not exist, we are probably the first time, or in reinit step because
+  // directory has been purged, we create a file containing  the default profile
+  if (! ExistFile(mDirLocalParameters+DefaultNameFileCurentProfile))
   {
         cSpecifProfileUserMMVII  aSpec;
         aSpec.mNameProfile = "Default";
-	SaveInFile(aSpec,mDirLocalParameters+NameFileCurentProfile);
+        SaveInFile(aSpec,mDirLocalParameters+DefaultNameFileCurentProfile);
   }
-  // read the name of the profile
+
+  // we set NameFileCurentProfile  to its default or not,
+  if (! ExistFile(mDirLocalParameters+NameFileCurentProfile))
   {
-	  cSpecifProfileUserMMVII aSpec;
-	  // is user has not created a profil then we use the default that is git-shared
-
-	  ReadFromFile(aSpec,mDirLocalParameters+NameFileCurentProfile);
-	  mProfileUsage = aSpec.mNameProfile;
-	  mDirProfileUsage =  mDirLocalParameters + mProfileUsage + StringDirSeparator();
-
+      NameFileCurentProfile = DefaultNameFileCurentProfile;
   }
 
-  if (0)
+  /**  Compute the "usage" store in the profile, 
+   *   init the variable  "mProfileUsage"  and  "mDirProfileUsage"
+   */
+  {
+      cSpecifProfileUserMMVII aSpec;
+
+      ReadFromFile(aSpec,mDirLocalParameters+NameFileCurentProfile);
+      mProfileUsage = aSpec.mNameProfile;
+      mDirProfileUsage =  mDirLocalParameters + mProfileUsage + StringDirSeparator();
+  }
+
+  /**  if file containing users profile does not exist, we create some default one */
+  if (! ExistFile(mDirProfileUsage+NameFileUseOfProfile))
   {
       CreateDirectories(mDirProfileUsage,false);
 
       mParamProfile.mUserName = "Uknown";
       mParamProfile.mNbProcMax = 1000;
+      mParamProfile.mDefSerial = eTypeSerial::exml;
       SaveInFile(mParamProfile,mDirProfileUsage+NameFileUseOfProfile);
   }
   ReadFromFile(mParamProfile,mDirProfileUsage+NameFileUseOfProfile);
-  //  StdOut() << "USER=" << UserName()    << " " << mDirProfileUsage << "\n";getchar();
+  mNameDefSerial = E2Str(mParamProfile.mDefSerial);
 }
 
 const  std::string & cMMVII_Appli::UserName() {return mParamProfile.mUserName;}
 const  std::string & cMMVII_Appli::DirProfileUsage() {return mDirProfileUsage;}
+eTypeSerial cMMVII_Appli::DefSerial() const 
+{
+    CurrentAppli(); // as member is static assure init was done
+    return mParamProfile.mDefSerial;
+}
+const std::string & cMMVII_Appli::NameDefSerial() const 
+{
+    CurrentAppli(); // as member is static assure init was done
+    return mNameDefSerial;
+}
+
+
+// const  std::string & cMMVII_Appli::UserName() {return mParamProfile.mUserName;}
 
 
 tPtrArg2007 cMMVII_Appli::AOptBench()
@@ -1417,6 +1467,11 @@ bool cMMVII_Appli::ExistAppli()
 {
   return !TheStackAppli.empty();
 }
+
+bool UserIsMPD()
+{
+     return cMMVII_Appli::CurrentAppli().UserName() == "MPD";
+}
  
     // ========== Random seed  =================
 
@@ -1483,6 +1538,7 @@ std::string cMMVII_Appli::mDirProfileUsage;
 cParamProfile cMMVII_Appli::mParamProfile;
 std::string cMMVII_Appli::mDirMicMacv1;
 std::string cMMVII_Appli::mDirMicMacv2;
+std::string cMMVII_Appli::mNameDefSerial;
 
               // static Accessors
 const std::string & cMMVII_Appli::TmpDirTestMMVII()   {return mTmpDirTestMMVII;}

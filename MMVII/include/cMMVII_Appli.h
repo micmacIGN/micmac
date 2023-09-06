@@ -342,6 +342,7 @@ struct cParamProfile
        public :
            std::string   mUserName;
 	   int           mNbProcMax;
+	   eTypeSerial   mDefSerial;
 };
 
 bool UserIsMPD();
@@ -428,6 +429,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
 
         void InitParam(std::string *aArgsSpecs);  ///< Parse the parameter list. Just return args specs in argsSpec if not null
+        void InitProfile();  ///< init the profile of usage/user ....
         void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
         int NbProcAllowed() const; ///< Accessor to nb of process allowed for the appli
@@ -472,6 +474,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 	const std::string & PrefixGMA () const; /// Accessor
 	const std::string & Prefix_TIM_GMA () const; /// Accessor
+
+	eTypeSerial DefSerial() const; ///< Accessor
+	const std::string & NameDefSerial() const; ///< Accessor
+
 
 	// ========================  Methods for memorizing report (for example using csv)
 	
@@ -624,6 +630,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	static std::string                        mDirProfileUsage;     ///< The full dir containing the information of a profile
 
 	static cParamProfile                      mParamProfile;   ///< Parameters of the profile (as user name)
+	static std::string                        mNameDefSerial;  ///< the string "xml", "json" ...
 
 
     protected :
