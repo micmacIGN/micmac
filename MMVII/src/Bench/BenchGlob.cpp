@@ -705,6 +705,7 @@ int cAppli_MMRecall::Exe()
     // Purge TMP
     if (mLevelCall == mLev0)
     {
+        // HERE
         RemovePatternFile(aDirT+".*",true);
     }
 

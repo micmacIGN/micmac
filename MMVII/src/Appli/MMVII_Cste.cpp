@@ -22,6 +22,7 @@ const std::string  MMv1XmlTag_RelName = "SauvegardeNamedRel";
     // V2
 const std::string TagMMVIISerial = "MMVII_Serialization";
 const std::string TagMMVIIData = "Data";
+const std::string TagMMVIIRoot = "Root";
 const std::string TagMMVIIType = "Type";
 const std::string TagMMVIIVersion = "Version";
 

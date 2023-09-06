@@ -120,8 +120,11 @@ cSerialFileParser *  cSerialFileParser::Alloc(const std::string & aName,eTypeSer
 
 tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 {
+    if (!ExistFile(aNameFile))
+       return tTestFileSerial(false,"");
 
-    eTypeSerial aTypeS = Str2E<eTypeSerial>(LastPostfix(aNameFile));
+
+    eTypeSerial aTypeS = Str2E<eTypeSerial>(LastPostfix(aNameFile),true);
 
     if ((aTypeS!=eTypeSerial::exml) && (aTypeS!=eTypeSerial::ejson))
        return tTestFileSerial(false,"");
@@ -133,7 +136,6 @@ tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 
     if (aTypeS==eTypeSerial::exml)
     {
-StdOut() << "TEST  " << __LINE__  << " NF=" << aNameFile << "\n";
        return aTree.Xml_TestFirstTag();
     }
 
@@ -542,21 +544,27 @@ void  cSerialTree::Indent(cMMVII_Ofs & anOfs,int aDeltaInd) const
 
 tTestFileSerial  cSerialTree::Xml_TestFirstTag()
 {
-StdOut() << "Xml_TestFirstTag  " << __LINE__ << "\n";
+  if (mSons.size() != 1)
+  {
+     return tTestFileSerial(false,"");
+  }
 
   const cSerialTree & aS0 = UniqueSon();
 
   // StdOut() << "Xml_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
-  if ((aS0.mValue!= TagMMVIISerial) || ( aS0.mSons.size() !=2) || (aS0.mSons.at(0).mValue != TagMMVIIVersion))
+  if (     (aS0.mValue!= TagMMVIIRoot ) 
+        || (aS0.mSons.size() !=3) 
+	|| (aS0.mSons.at(0).mValue != TagMMVIIType)
+	|| (aS0.mSons.at(1).mValue != TagMMVIIVersion)
+     )
      return tTestFileSerial(false,"");
 
-  const cSerialTree & aS1 = aS0.mSons.at(1);
+  const cSerialTree & aS1 = aS0.mSons.at(2);
   if ((aS1.mValue!= TagMMVIIData) || ( aS1.mSons.size() !=1)) 
      return tTestFileSerial(false,"");
 
   const cSerialTree & aS2 = aS1.UniqueSon() ;
 
-StdOut() << "Xml_TestFirstTag  " << __LINE__ << "\n";
 
   return tTestFileSerial(true,aS2.mValue);
 }
@@ -617,6 +625,10 @@ void  cSerialTree::Rec_Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
 
 tTestFileSerial  cSerialTree::Json_TestFirstTag()
 {
+  if (mSons.size() != 1)
+  {
+     return tTestFileSerial(false,"");
+  }
   const cSerialTree & aS0 = UniqueSon();
 
   // StdOut() << "Json_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
@@ -942,7 +954,11 @@ void cIMakeTreeAr::OnTag(const cAuxAr2007& aTag,bool IsUp)
         StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << "\n";
         MMVII_INTERNAL_ASSERT_tiny(false ,"Bad token cIMakeTreeAr::RawBegin-EndName");
    }
-   MMVII_INTERNAL_ASSERT_tiny(aRL.mVal  == aTag.Name() ,"Bad tag cIMakeTreeAr::RawBegin-EndName");
+   if (aRL.mVal  != aTag.Name())
+   {
+      StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << "\n";
+      MMVII_INTERNAL_ASSERT_tiny(false,"Bad tag cIMakeTreeAr::RawBegin-EndName");
+   }
 }
 
 

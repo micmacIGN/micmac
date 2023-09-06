@@ -78,8 +78,11 @@ bool cTestSerial1::operator ==   (const cTestSerial1 & aT1) const
 }
 
 
-void AddData(const cAuxAr2007 & anAux, cTestSerial1 &    aTS1) 
+void AddData(const cAuxAr2007 & anAux0, cTestSerial1 &    aTS1) 
 {
+
+    cAuxAr2007 anAux("TS1",anAux0);
+
     AddData(cAuxAr2007("TS0",anAux),aTS1.mTS0);
     AddComment(anAux.Ar(),"This is TS0");
     AddData(cAuxAr2007("S",anAux),aTS1.mS);
@@ -438,6 +441,7 @@ void BenchSerialization
        aPModif.mO1 = cPt2dr(14,18);
        MMVII_INTERNAL_ASSERT_bench(!(aPModif==cTestSerial1()),"cAppli_MMVII_TestSerial");
        SaveInFile(aP12,aDirOut+"XF2."+anExtXml);
+       SaveInFile(aP12,aDirOut+"XF2.json");
     }
 
     {
@@ -505,11 +509,12 @@ void BenchSerialization
     // Bench IsFile2007XmlOfGivenTag 
     if (1)
     {
-StdOut() << "BENCHIsfIleGiv  " << __LINE__ << "\n";
-       MMVII_INTERNAL_ASSERT_bench( IsFileGivenTag(true,aDirOut+"XF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
-StdOut() << "BENCHIsfIleGiv  " << __LINE__ << "\n";
-       MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirOut+"XF2."+anExtXml,"TS1"),"cAppli_MMVII_TestSerial");
-       MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirIn+"PBF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
+       for (const auto & anExt : {"xml","json"})
+       {
+           MMVII_INTERNAL_ASSERT_bench( IsFileGivenTag(true,aDirOut+"XF2."+anExt,"TS1"),"cAppli_MMVII_TestSerial");
+           MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirOut+"XF2."+anExt,"TS0"),"cAppli_MMVII_TestSerial");
+           MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirIn+"PBF2."+anExt,"TS0"),"cAppli_MMVII_TestSerial");
+       }
     }
     else
     {
@@ -567,7 +572,6 @@ void BenchSerialization
          SaveInFile(aTS1,"toto_222.xml2");
 
     }
-StdOut() << "JJJjjjj " << __LINE__ << "\n";
 
     for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
     {
@@ -576,7 +580,6 @@ StdOut() << "JJJjjjj " << __LINE__ << "\n";
             BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial(aKS1),eTypeSerial(aKS2));
         }
     }
-StdOut() << "JJJjjjj " << __LINE__ << "\n";
     /*
     */
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml,eTypeSerial::etxt);

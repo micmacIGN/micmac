@@ -538,7 +538,7 @@ const std::string & E2Str(const eModeTestPropCov &);
 const std::string & E2Str(const eModePaddingEpip &);         
 const std::string & E2Str(const eModeCaracMatch &);         
 
-template <class Type> const Type & Str2E(const std::string &); 
+template <class Type> Type  Str2E(const std::string &,bool WithDef=false); 
 template <class Type> std::string   StrAllVall();
 /// return a vector with list all label corresponding to aPat
 template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);

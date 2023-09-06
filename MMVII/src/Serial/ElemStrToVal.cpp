@@ -38,7 +38,8 @@ template <class TypeEnum> class cE2Str
          return anIt->second;
      }
 
-     static const TypeEnum &  Str2E(const std::string & aStr)
+     //static const TypeEnum &  Str2E(const std::string & aStr,bool WithDef)
+     static TypeEnum   Str2E(const std::string & aStr,bool WithDef)
      {
          /// If first time we create mS2E by inverting the  mE2S
          if (mS2E==0)
@@ -52,6 +53,8 @@ template <class TypeEnum> class cE2Str
          // String to enum is probably a user error (programm create enum)
          if (anIt == mS2E->end())
          {
+            if (WithDef) 
+                return TypeEnum::eNbVals;
             MMVII_UsersErrror(eTyUEr::eBadEnum,"Str2E for : "+aStr+" ; valids are : "+ StrAllVal() );
          }
          return anIt->second;
@@ -116,9 +119,9 @@ const std::string & E2Str(const TypeEnum & anOp)\
 {\
    return cE2Str<TypeEnum>::E2Str(anOp);\
 }\
-template <> const TypeEnum & Str2E<TypeEnum>(const std::string & aName)\
+template <> TypeEnum  Str2E<TypeEnum>(const std::string & aName,bool WithDef)\
 {\
-   return cE2Str<TypeEnum>::Str2E(aName);\
+   return cE2Str<TypeEnum>::Str2E(aName,WithDef);\
 }\
 template <> std::string   StrAllVall<TypeEnum>()\
 {\
