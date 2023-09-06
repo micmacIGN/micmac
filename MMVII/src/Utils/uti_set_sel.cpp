@@ -971,11 +971,11 @@ tNameSet SetNameFromFile(const std::string& aNameFile,int aNumV)
 
 tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
 {
-   if (IsFileXmlOfGivenTag(true,aName,TagSetOfName)) // MMVII
+   if (IsFileGivenTag(true,aName,TagSetOfName)) // MMVII
    {
       return SetNameFromFile(aName,2);
    }
-   else if (IsFileXmlOfGivenTag(false,aName,MMv1XmlTag_SetName))  // MMv1
+   else if (IsFileGivenTag(false,aName,MMv1XmlTag_SetName))  // MMv1
    {
       return SetNameFromFile(aName,1);
    }
@@ -1021,14 +1021,14 @@ std::vector<std::string>  ToVect(const tNameSet & aSet)
 tNameRel  RelNameFromXmlFileIfExist (const std::string& aNameFile,bool &Exist)
 {
    Exist = true;
-   if (IsFileXmlOfGivenTag(true,aNameFile,TagSetOfCpleName)) // MMVII
+   if (IsFileGivenTag(true,aNameFile,TagSetOfCpleName)) // MMVII
    {
        tNameRel aSet(eTySC::US);
        ReadFromFileWithDef(aSet,aNameFile);
 
        return aSet;
    }
-   else if (IsFileXmlOfGivenTag(false,aNameFile,MMv1XmlTag_RelName))  // MMv1
+   else if (IsFileGivenTag(false,aNameFile,MMv1XmlTag_RelName))  // MMv1
    {
        return MMV1InitRel(aNameFile);
    }

@@ -234,9 +234,12 @@ void  cPerspCamIntrCalib::ToFileIfFirstime(const std::string & aNameFile ) const
 }
 
 
-cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName)
+cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName,bool Remanent)
 {
-    return RemanentObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+    if (Remanent) 
+       return RemanentObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+    else
+       return ObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
 }
 
 std::string cPerspCamIntrCalib::PrefixName() {return "Calib-" + cSensorCamPC::PrefixName() + "-";}

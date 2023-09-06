@@ -3,6 +3,8 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 
 #include "MMVII_Geom2D.h"
+#include "MMVII_PCSens.h"
+#include "Serial.h"
 
 
 /** \file BenchSerial.cpp
@@ -76,8 +78,11 @@ bool cTestSerial1::operator ==   (const cTestSerial1 & aT1) const
 }
 
 
-void AddData(const cAuxAr2007 & anAux, cTestSerial1 &    aTS1) 
+void AddData(const cAuxAr2007 & anAux0, cTestSerial1 &    aTS1) 
 {
+
+    cAuxAr2007 anAux("TS1",anAux0);
+
     AddData(cAuxAr2007("TS0",anAux),aTS1.mTS0);
     AddComment(anAux.Ar(),"This is TS0");
     AddData(cAuxAr2007("S",anAux),aTS1.mS);
@@ -259,30 +264,113 @@ template <class TypeH,class TypeCumul> void BenchHistoAndSerial(const std::strin
             double aDif = RelativeDifference(aProp,aH2.PropCumul(aX));
             MMVII_INTERNAL_ASSERT_bench(aDif<1e-7,"BenchHistoAndSerial");
         }
-/*
-StdOut() << "WwwwwwwwWWWWWWwwww " << aNameFile << " " << aH2.H().Sz() << "\n";
-getchar();
-*/
     }
 }
 
 
 /** Basic test on read/write of a map */
-void BenchSerialMap(const std::string & aDirOut,eTypeSerial aTypeS)
+
+tTestMasSerial  GentTestMasSerial()
 {
-    std::string aNameFile =  aDirOut + "TestMAP." + E2Str(aTypeS);
-    std::map<std::string,std::vector<cPt2dr>> aMap;
+    tTestMasSerial aMap;
     aMap["1"] = std::vector<cPt2dr>{{1,1}};
     aMap["2"] = std::vector<cPt2dr>{{1,1},{2,2}};
     aMap["0"] = std::vector<cPt2dr>{};
 
-    SaveInFile(aMap,aNameFile);
-
-    std::map<std::string,std::vector<cPt2dr>> aMap2;
-    ReadFromFile(aMap2,aNameFile);
-
-    MMVII_INTERNAL_ASSERT_bench(aMap==aMap2,"BenchSerialMap");
+    return aMap;
 }
+
+template <class Type> void BenchSerialObject_1Mode(const Type & anObj,const std::string & aDirOut,eTypeSerial aTypeS)
+{
+    std::string aNameFile =  aDirOut + "TestObj." + E2Str(aTypeS);
+
+    SaveInFile(anObj,aNameFile);
+    Type  anObj2;
+    ReadFromFile(anObj2,aNameFile);
+
+    MMVII_INTERNAL_ASSERT_bench(anObj==anObj2,"BenchSerialObject");
+}
+
+
+template <class Type> void BenchSerialObject_AllMode(const Type & anObj,const std::string & aDirOut)
+{
+    for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
+    {
+        if (aKS1 != int (eTypeSerial::etagt))
+	{
+		BenchSerialObject_1Mode(anObj,aDirOut,eTypeSerial(aKS1));
+	}
+    }
+}
+
+
+
+void BenchSerialMap(const std::string & aDirOut,eTypeSerial aTypeS)
+{
+   BenchSerialObject_1Mode(GentTestMasSerial(),aDirOut,aTypeS);
+}
+
+
+tREAL8 CmpCalib(cPerspCamIntrCalib * aCam1,cPerspCamIntrCalib * aCam2)
+{
+     std::vector<cPt2dr>  aVPIm =  aCam1->PtsSampledOnSensor(10,true);
+     tREAL8 aMaxD = 0.0;
+
+     for (const auto & aPIm : aCam1->PtsSampledOnSensor(30,true))
+     {
+	     UpdateMax(aMaxD,Norm2(aCam1->DirBundle(aPIm)-aCam2->DirBundle(aPIm)));
+     }
+
+     // StdOut() <<  "DDD=" << aMaxD << "\n";
+     MMVII_INTERNAL_ASSERT_bench(aMaxD<1e-5,"CmpCalib");
+
+     return aMaxD;
+}
+
+void BenchSerial_PerspCamIntrCalib(cPerspCamIntrCalib * aCam1,const std::string & aDirOut,eTypeSerial aTypeS)
+{
+	std::string aNameCal = aDirOut + "Calib." + E2Str(aTypeS);
+	aCam1->ToFile(aNameCal);
+	
+	cPerspCamIntrCalib * aCam2 = cPerspCamIntrCalib::FromFile(aNameCal,false);
+
+
+	CmpCalib(aCam1,aCam2);
+	CmpCalib(aCam2,aCam1);
+	// StdOut() << "BenchSerial_PerspCamIntrCalib " << aNameCal << " " << aCam2 << "\n";
+	delete aCam2;
+
+	if (false) // (aTypeS==eTypeSerial::ejson)
+	{
+		StdOut() << "BenchSerial_PerspCamIntrCalibBenchSerial_PerspCamIntrCalib\n";
+		StdOut() << aNameCal << "\n";
+	    getchar();
+	}
+}
+
+void BenchSerial_PerspCamIntrCalib(const std::string & aDirOut,eTypeSerial aTypeS)
+{
+     // tuning serial -type, dont handle read
+     if (aTypeS==eTypeSerial::etagt) 
+        return;
+
+     for (int aKM=0 ; aKM<int(eProjPC::eNbVals) ; aKM++)
+     {
+         for (int aKDeg=0 ; aKDeg<3 ; aKDeg++)
+         {
+	     eProjPC aProj =  (eProjPC) aKM;
+	     cPerspCamIntrCalib *  aCal = cPerspCamIntrCalib::RandomCalib(aProj,aKDeg);
+	     BenchSerial_PerspCamIntrCalib(aCal,aDirOut,aTypeS);
+
+	     delete aCal;
+         }
+     }
+}
+// void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...
+//  static cPerspCamIntrCalib * RandomCalib(eProjPC aTypeProj,int aKDeg);
+
+
+/* ===================================================== */
 
 
 void BenchSerialization
@@ -294,14 +382,15 @@ void BenchSerialization
 	eTypeSerial         aTypeS2
     )
 {
-   bool OkJSon =false;
+// StdOut() << "BenchSerialization "  << E2Str(aTypeS) << " " <<  E2Str(aTypeS2) << "\n";
+
+   bool OkJSon =true;
    if (!OkJSon)
 	   MMVII_DEV_WARNING("NO JSON IN BenchSerialization");
 
 
-   if ((! OkJSon) && ((aTypeS==eTypeSerial::ejson) || (aTypeS2==eTypeSerial::ejson) || (aTypeS==eTypeSerial::exml2)  || (aTypeS2==eTypeSerial::exml2)))
+   if ( (aTypeS==eTypeSerial::etagt)  || (aTypeS2==eTypeSerial::etagt))
    {
-	   StdOut() << "JSON NON FINISHED \n";
 	   return;
    }
     std::string anExt  = E2Str(aTypeS);
@@ -309,7 +398,7 @@ void BenchSerialization
     std::string anExtXml = E2Str(eTypeSerial::exml);
 
     // Test on low level binary compat work only with non tagged format
-    std::string anExtNonTagged = E2Str((aTypeS==eTypeSerial::exml) ? eTypeSerial::edmp  : aTypeS);
+    std::string anExtNonTagged = E2Str(IsTagged(aTypeS) ? eTypeSerial::edmp  : aTypeS);
 
 
     BenchSerialMap(aDirOut,aTypeS);
@@ -352,6 +441,7 @@ void BenchSerialization
        aPModif.mO1 = cPt2dr(14,18);
        MMVII_INTERNAL_ASSERT_bench(!(aPModif==cTestSerial1()),"cAppli_MMVII_TestSerial");
        SaveInFile(aP12,aDirOut+"XF2."+anExtXml);
+       SaveInFile(aP12,aDirOut+"XF2.json");
     }
 
     {
@@ -376,7 +466,8 @@ void BenchSerialization
 
 	for (int aKS=0 ; aKS <int(eTypeSerial::eNbVals) ;aKS++)
         {
-           if (OkJSon || (  (aKS!=(int) eTypeSerial::ejson) && (aKS!=(int) eTypeSerial::exml2)))
+           // if (OkJSon || (  (aKS!=(int) eTypeSerial::ejson) && (aKS!=(int) eTypeSerial::etagt) && (aKS!=(int) eTypeSerial::exml2)))
+           if (aKS!=(int) eTypeSerial::etagt) 
 	   {
                std::string aPost = E2Str(eTypeSerial(aKS));
                SaveInFile(aP34,aDirOut+"F10."+aPost);
@@ -416,10 +507,18 @@ void BenchSerialization
 
 
     // Bench IsFile2007XmlOfGivenTag 
+    if (1)
     {
-       MMVII_INTERNAL_ASSERT_bench( IsFileXmlOfGivenTag(true,aDirOut+"XF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
-       MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirOut+"XF2."+anExtXml,"TS1"),"cAppli_MMVII_TestSerial");
-       MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirIn+"PBF2."+anExtXml,"TS0"),"cAppli_MMVII_TestSerial");
+       for (const auto & anExt : {"xml","json"})
+       {
+           MMVII_INTERNAL_ASSERT_bench( IsFileGivenTag(true,aDirOut+"XF2."+anExt,"TS1"),"cAppli_MMVII_TestSerial");
+           MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirOut+"XF2."+anExt,"TS0"),"cAppli_MMVII_TestSerial");
+           MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirIn+"PBF2."+anExt,"TS0"),"cAppli_MMVII_TestSerial");
+       }
+    }
+    else
+    {
+	    StdOut() << "SKEEPING IsFileXmlOfGivenTag\n";
     }
 
     //StdOut() << "DONE SERIAL\n";
@@ -437,12 +536,42 @@ void BenchSerialization
 {
     if (! aParam.NewBench("Serial")) return;
 
-    SaveInFile(cTestSerial1(),"toto.xml");
-    SaveInFile(cTestSerial1(),"toto.txt");
     SaveInFile(cTestSerial1(),"toto.json");
+    SaveInFile(GentTestMasSerial(),"toto_map.json");
+    SaveInFile(GentTestMasSerial(),"toto_map.xml");
+
+    BenchSerialObject_AllMode(222,aDirOut);
+    BenchSerialObject_AllMode(222.5,aDirOut);
+    BenchSerialObject_AllMode(cPt2di(1,2),aDirOut);
+    BenchSerialObject_AllMode(cPt2dr(1,2),aDirOut);
+    BenchSerialObject_AllMode(cTestSerial1(),aDirOut);
+
+
+    for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
+        BenchSerial_PerspCamIntrCalib(aDirOut,eTypeSerial(aKS1));
+    // BenchSerial_PerspCamIntrCalib(aDirOut,eTypeSerial::exml);
+
+
+    if (1)
+    {
+       BenchSerialMap("./",eTypeSerial::exml);
+       BenchSerialMap("./",eTypeSerial::exml2);
+    }
+
+    SaveInFile(cTestSerial1(),"toto.xml");
+    cSerialFileParser::TestFirstTag("toto.xml");
+    cSerialFileParser::TestFirstTag("CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.json");
+    cSerialFileParser::TestFirstTag("CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.xml");
+
+    SaveInFile(cTestSerial1(),"toto.json");
+    SaveInFile(cTestSerial1(),"toto.txt");
     SaveInFile(cTestSerial1(),"toto.xml2");
-    StdOut() << "BenchSerializationBenchSerialization\n";  
-    getchar();
+    {
+         cTestSerial1 aTS1;
+         ReadFromFile(aTS1,"toto.xml2");
+         SaveInFile(aTS1,"toto_222.xml2");
+
+    }
 
     for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
     {
