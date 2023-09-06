@@ -82,10 +82,11 @@ void cAvgDevLaw::Bench()
 class cGaussLaw : public cAvgDevLaw
 {
     public :
-            static constexpr tREAL8 Norm = sqrt(2*M_PI);
+            static const tREAL8 Norm;
             cGaussLaw(const tREAL8& aAvg,const  tREAL8& aStdDev) : cAvgDevLaw(aAvg,aStdDev) {}
             tREAL8  RawValue(tREAL8 aVal) const override {return  exp(-0.5*Square(aVal)) / Norm;}
 };
+const tREAL8 cGaussLaw::Norm = sqrt(2*M_PI);
     /*  ===========   cCubAppGaussLaw ======== */
 
 class cCubAppGaussLaw : public cAvgDevLaw

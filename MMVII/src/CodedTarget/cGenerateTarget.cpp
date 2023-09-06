@@ -954,6 +954,8 @@ class cAppliGenCodedTarget : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
+        int PerGen() const { return mPerGen;}   //CM: avoid mPerGen unused
+
 
 	int                mPerGen;  // Pattern of numbers
 	int                mZoomShow;

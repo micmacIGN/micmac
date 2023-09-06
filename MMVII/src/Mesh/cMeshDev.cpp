@@ -790,7 +790,7 @@ void cDevTriangu3d::TestGroundTruth2D(const tTriangulation3D & aDevGT)
     MMVII_INTERNAL_ASSERT_bench(mTri.NbPts()==aDevGT.NbPts(),"Mesh dev");
 
     // 1 - compute vector of 2d points
-    tCoordDevTri aSomDInit=0.0; // som distance before computing rotatio,
+    [[maybe_unused]] tCoordDevTri aSomDInit=0.0; // som distance before computing rotatio,
     for (size_t aK=0 ; aK<mTri.NbPts() ; aK++)
     {
        aVDev.push_back(mVSoms.at(aK).Pt2());

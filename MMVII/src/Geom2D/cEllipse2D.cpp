@@ -702,7 +702,7 @@ bool  cExtract_BW_Ellipse::AnalyseEllipse(cSeedBWTarget & aSeed,const std::strin
 
 
      double aSomD = 0;
-     double aSomRad = 0;   // Average radiometry diff, unused
+     [[maybe_unused]] double aSomRad = 0;   // Average radiometry diff, unused
      tREAL8 aGrFr = (aSeed.mBlack+aSeed.mWhite)/2.0;
      for (const auto  & aPFr : mVFront)
      {

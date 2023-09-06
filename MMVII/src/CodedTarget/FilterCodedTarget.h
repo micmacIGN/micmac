@@ -293,6 +293,9 @@ class cCalcSaddle
 	     /// optimize position by iteration on  RefineSadlPtFromVals
              void RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cDCT & aDCT);
 
+             double Ray() const { return mRay;}         //CM: avoid mRay unused
+             double Step() const { return mStep;}       //CM: avoid mStep unused
+
         private :
              double                   mRay;   ///< Radius of neighbourhood
              double                   mStep;  ///< Step for discretization

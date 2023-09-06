@@ -783,6 +783,9 @@ class cSimulHom : public  cInterfImportHom
 	 void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const override;
          bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const override;
 
+     int NbPts() const { return mNbPts;}    //CM: avoid mNbPts unused
+     int KPts() const { return mKPts;}      //CM: avoid mKPts unused
+
 	 std::vector<cImage *>    mVIm;
 	 std::vector<std::string> mVNames;
 
