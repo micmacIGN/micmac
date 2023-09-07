@@ -169,6 +169,19 @@ class cSerialGenerator
           cResLex GetNextLexNotSizeCont() ; /// Get a token, "skeeping" all size of container
 };
 
+class cTokenGeneByList : public cSerialGenerator
+{
+      public :
+        typedef std::list<cResLex>   tContToken;
+        cResLex GetNextLex() override;
+        cTokenGeneByList(tContToken &);
+
+      private :
+        tContToken *           mContToken;
+        tContToken::iterator   mItToken;
+};
+
+
 /** Specialization of cSerialGenerator for file, contain basic element of grammar */
 
 typedef  std::pair<bool,std::string> tTestFileSerial;
@@ -247,9 +260,18 @@ class cJsonSerialTokenParser : public cSerialFileParser
 	  void CheckOnClose(const cSerialTree &,const std::string &) const override;
 };
 
+class cResDifST
+{
+     public :
+        cResDifST(const cSerialTree*,const cSerialTree*);
+
+        const cSerialTree * mST1;
+        const cSerialTree * mST2;
+};
+
 /**  Class to represent as a tree  the object, in write, or the file, in read, for the serialization by tree
  */
-class cSerialTree
+class cSerialTree : public cMemCheck
 {
       public :
 	  cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP,eTAAr); ///< For leaf
@@ -258,6 +280,11 @@ class cSerialTree
           /// top call
           cSerialTree(cSerialGenerator &);
 
+	  static cSerialTree* AllocSimplify(const std::string &);
+
+
+	  /// Compute firt occurence of tree difference return as res diff 
+	  cResDifST AnalyseDiffTree(const cSerialTree &,const std::string &aSkeep) const;
 	        // "pretty printing" functions
 	  void  Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// xml-pretty print
 	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs) const; /// json-pretty print
@@ -268,6 +295,8 @@ class cSerialTree
 
 	  /// Assert that there is only 1 son and return it
 	  const cSerialTree & UniqueSon() const; 
+	  /// Assert Father !=0
+	  const cSerialTree & Father() const;
 
 	  /// put linearly the contain of the node in a list of token , will be used as a token generator
 	  void Unfold(std::list<cResLex> &,eTypeSerial) const;
@@ -275,6 +304,10 @@ class cSerialTree
 	  const std::vector<cSerialTree>&  Sons() const; /// acessor
           const std::string & Value() const ;            /// accessor
      private :
+          void RecursSetFather(cSerialTree *);
+	  // cSerialTree(const cSerialTree &) ;
+	  /// Implement using exception
+	  void Rec_AnalyseDiffTree(const cSerialTree &,const std::string & aSkeep) const;
 
 	  bool IsTerminalNode() const;     ///< is it a node w/o son and not tagged
 	  bool IsTab() const;              ///< is it a non tagged node with all son terminal
@@ -306,6 +339,7 @@ class cSerialTree
 	  eTAAr       mTAAr;   /// semantical element, exracted from C++ file by AddData
           std::string mValue;  /// value of the node, like tag "<F>"  of final value (int, string ...)
           std::string mComment;  /// possible comment associated to the node by C++
+	  cSerialTree * mFather;
 	  std::vector<cSerialTree>  mSons;  ///  sons of the tree, because it is a tree ;-)
 	  int         mDepth;       /// depth computed in recursion by "D+1"
 	  int         mMaxDSon;     /// maximal depth of all its son

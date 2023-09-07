@@ -222,7 +222,7 @@ void AddData(const cAuxAr2007 & anAux,cSensorCamPC & aPC)
 void cSensorCamPC::ToFile(const std::string & aNameFile) const
 {
     SaveInFile(const_cast<cSensorCamPC &>(*this),aNameFile);
-    std::string aNameCalib = DirOfPath(aNameFile) + mInternalCalib->Name() + ".xml";
+    std::string aNameCalib = DirOfPath(aNameFile) + mInternalCalib->Name() + "." + GlobNameDefSerial();
     mInternalCalib->ToFileIfFirstime(aNameCalib);
 }
 
@@ -231,7 +231,7 @@ cSensorCamPC * cSensorCamPC::FromFile(const std::string & aFile)
    cSensorCamPC * aPC = new cSensorCamPC("NONE",tPose::Identity(),nullptr);
    ReadFromFile(*aPC,aFile);
 
-   aPC->mInternalCalib =  cPerspCamIntrCalib::FromFile(DirOfPath(aFile) + aPC->mTmpNameCalib + ".xml");
+   aPC->mInternalCalib =  cPerspCamIntrCalib::FromFile(DirOfPath(aFile) + aPC->mTmpNameCalib + "." + GlobNameDefSerial());
    aPC->mTmpNameCalib = "";
 
    return aPC;

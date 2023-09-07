@@ -120,20 +120,72 @@ cSerialFileParser *  cSerialFileParser::Alloc(const std::string & aName,eTypeSer
 
 tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 {
+    std::string aPost = LastPostfix(aNameFile);
+    std::string aNameModel = cMMVII_Appli::CurrentAppli().DirRessourcesMMVII()+"Model."+aPost;
+
+     tTestFileSerial aResult(false,"");
+
+     cSerialTree*  aTS1 = cSerialTree::AllocSimplify(aNameModel);
+     cSerialTree*  aTS2 = cSerialTree::AllocSimplify(aNameFile);
+
+     if (aTS1 && aTS2)
+     {
+          cResDifST aDif = aTS1->AnalyseDiffTree(*aTS2,"XXX");
+
+          if (0)
+	  {
+	     {
+                cMMVII_Ofs aOfs1("Model.tagt",false);
+                aTS1->Raw_PrettyPrint(aOfs1);
+	     }
+	     {
+                cMMVII_Ofs aOfs2("Obj.tagt",false);
+                aTS2->Raw_PrettyPrint(aOfs2);
+	     }
+	  }
+
+          if ((aDif.mST1!=nullptr) && (aDif.mST2!=nullptr))
+          {
+	      if ((aDif.mST1->Value()=="ToMatch") && (aDif.mST2->Father().Sons().size()==2))
+	      {
+		      aResult = tTestFileSerial(true,aDif.mST2->Value());
+	      }
+          }
+     }
+
+     delete aTS1;
+     delete aTS2;
+
+     return aResult;
+
+/*  OLD VERSION w/o "Simplify"
     if (!ExistFile(aNameFile))
        return tTestFileSerial(false,"");
 
-
-    eTypeSerial aTypeS = Str2E<eTypeSerial>(LastPostfix(aNameFile),true);
+    eTypeSerial aTypeS = Str2E<eTypeSerial>(aPost,true);
 
     if ((aTypeS!=eTypeSerial::exml) && (aTypeS!=eTypeSerial::ejson))
        return tTestFileSerial(false,"");
+
 
     cSerialFileParser * aSFP = Alloc(aNameFile,aTypeS);
     cSerialTree  aTree(*aSFP);
     delete aSFP;
 
+    aSFP = Alloc(aNameModel,aTypeS);
+    cSerialTree  aTreeMod(*aSFP);
+    delete aSFP;
 
+    cResDifST aDif = aTreeMod.AnalyseDiffTree(aTree,"XXX");
+
+    if ((aDif.mST1!=nullptr) && (aDif.mST2!=nullptr))
+    {
+	if (aDif.mST1->Value()=="ToMatch")
+           return  tTestFileSerial(true,aDif.mST2->Value());
+    }
+
+    WERY OLD VERSION W/O "AnalyseDiffTree"
+    /---*
     if (aTypeS==eTypeSerial::exml)
     {
        return aTree.Xml_TestFirstTag();
@@ -141,8 +193,10 @@ tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 
     if (aTypeS==eTypeSerial::ejson)
        return aTree.Json_TestFirstTag();
+       *---/
 
     return tTestFileSerial(false,"");
+*/
 }
 
 bool IsFileGivenTag(bool Is2007,const std::string & aNameFile,const std::string & aTag)
@@ -438,10 +492,34 @@ cSerialTree::cSerialTree(const std::string & aValue,int aDepth,eLexP aLexP,eTAAr
    mLexP      (aLexP),
    mTAAr      (aTAAr),
    mValue     (aValue),
+   mFather    (nullptr),
    mDepth     (aDepth),
    mMaxDSon   (aDepth),
    mLength    (mValue.size())
 {
+}
+
+cSerialTree* cSerialTree::AllocSimplify(const std::string & aNameFile)
+{
+    if (!ExistFile(aNameFile))
+	return nullptr;
+    eTypeSerial aTypeS = Str2E<eTypeSerial>(LastPostfix(aNameFile),true);
+
+    if ((aTypeS!=eTypeSerial::exml) && (aTypeS!=eTypeSerial::ejson))
+       return nullptr;
+
+    cSerialFileParser * aSFP = cSerialFileParser::Alloc(aNameFile,aTypeS);
+    cSerialTree  aTree(*aSFP);
+    delete aSFP;
+    std::list<cResLex> aLRL;
+    if (aTree.mSons.size() != 1) return  nullptr;
+
+    aTree.UniqueSon().Unfold(aLRL,aTypeS);
+    cTokenGeneByList aTGbL(aLRL);
+    cSerialTree* aRes = new  cSerialTree(aTGbL);
+
+
+    return aRes;
 }
 
 
@@ -482,15 +560,24 @@ const std::vector<cSerialTree>&  cSerialTree::Sons() const {return mSons;}
 cSerialTree:: cSerialTree(cSerialGenerator & aGenerator) :
    cSerialTree (aGenerator,FakeTopSerialTree,0,eLexP::eBegin,eTAAr::eUndef) 
 {
+	RecursSetFather(nullptr);
+}
+
+void cSerialTree::RecursSetFather(cSerialTree * aFather)
+{
+    mFather = aFather;
+    for (auto & aSon : mSons)
+        aSon.RecursSetFather(this);
 }
 
 cSerialTree::cSerialTree(cSerialGenerator & aGenerator,const std::string & aValue,int aDepth,eLexP aLexP,eTAAr aTAAr) :
    mLexP    (aLexP),
    mTAAr    (aTAAr),
    mValue   (aValue),
+   mFather  (nullptr),
    mDepth   (aDepth),
    mMaxDSon (aDepth),
-   mLength    (mValue.size())
+   mLength  (mValue.size())
 {
     for(;;)
     {
@@ -655,7 +742,7 @@ tTestFileSerial  cSerialTree::Json_TestFirstTag()
 void  cSerialTree::Raw_PrettyPrint(cMMVII_Ofs & anOfs) const
 {
      // bool OneLine = (mMaxDSon <= mDepth+1);
-      Indent(anOfs,0);
+      Indent(anOfs,1);
       anOfs.Ofs() <<   mValue ;
 
       anOfs.Ofs() << " [" << E2Str(mTAAr) << "] : " << mLength ;
@@ -786,6 +873,12 @@ bool cSerialTree::IsJsonComment(const std::string& aName)
 }
 
 
+const cSerialTree & cSerialTree::Father() const
+{
+    MMVII_INTERNAL_ASSERT_tiny(mFather!=nullptr,"cSerialTree::UniqueSon");
+
+    return *(mFather);
+}
 
 
 const cSerialTree & cSerialTree::UniqueSon() const
@@ -849,11 +942,52 @@ void cSerialTree::Unfold(std::list<cResLex> & aRes,eTypeSerial aTypeS) const
 	 }
 	 else
 	 {
-            MMVII_INTERNAL_ASSERT_tiny(mSons.empty(),"Unfold : non empty sons");
+            if (! mSons.empty())
+	    {
+                 StdOut() << "VJSONUNFLOD " << mValue << "\n";
+                 MMVII_INTERNAL_ASSERT_tiny(false,"Unfold : non empty sons");
+	    }
             aRes.push_back(cResLex(mValue,eLexP::eStdToken_UK,eTAAr::eStd));
 	 }
  
     }
+}
+
+
+void cSerialTree::Rec_AnalyseDiffTree(const cSerialTree &aT1,const std::string & aSkeep) const
+{
+   if ((mValue != aT1.mValue) && (mValue!=aSkeep) && (aT1.mValue!=aSkeep))
+      throw cResDifST(this,&aT1);
+
+   size_t aSz = std::min(mSons.size(),aT1.mSons.size());
+
+   for (size_t aK =0 ; aK<aSz ; aK++)
+       mSons[aK].Rec_AnalyseDiffTree(aT1.mSons[aK],aSkeep);
+
+   if (mSons.size() > aT1.mSons.size())
+        throw cResDifST(&(mSons[aSz]),nullptr);
+   else if (mSons.size() < aT1.mSons.size())
+        throw cResDifST(nullptr,&(aT1.mSons[aSz]));
+}
+
+cResDifST::cResDifST(const cSerialTree* aST1,const cSerialTree* aST2) :
+     mST1 (aST1),
+     mST2 (aST2)
+{
+}
+
+cResDifST  cSerialTree::AnalyseDiffTree(const cSerialTree &aT1,const std::string & aSkeep) const
+{
+    try
+    {
+         Rec_AnalyseDiffTree(aT1,aSkeep);
+    }
+    catch (cResDifST aRes)
+    {
+         return aRes;
+    }
+
+    return cResDifST(nullptr,nullptr);
 }
 
 /*============================================================*/
@@ -1058,20 +1192,6 @@ cAr2007 * Alloc_cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)
 /*                                                            */
 /*============================================================*/
 
-/**   Class for 
- */
-
-class cTokenGeneByList : public cSerialGenerator
-{
-      public :
-	typedef std::list<cResLex>   tContToken;
-	cResLex GetNextLex() override;
-	cTokenGeneByList(tContToken &);
-
-      private :
-	tContToken *           mContToken;
-	tContToken::iterator   mItToken;
-};
 
 cTokenGeneByList::cTokenGeneByList(tContToken & aCont) :
     mContToken  (& aCont),
@@ -1081,6 +1201,9 @@ cTokenGeneByList::cTokenGeneByList(tContToken & aCont) :
 
 cResLex cTokenGeneByList::GetNextLex() 
 {
+     if (mItToken==mContToken->end())
+        return cResLex("",eLexP::eEnd,eTAAr::eUndef);
+
      return *(mItToken++);
 }
 
@@ -1182,7 +1305,7 @@ void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)
 }
 void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)   
 { 
-   std::string aStr;
+   std::string aStr ="\"";  // quote the string because of json
    tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
    for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
    {
@@ -1190,6 +1313,7 @@ void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)
        aStr +=  ToHexacode(aICar/16) ;
        aStr +=  ToHexacode(aICar%16) ;
    }
+   aStr += '"';
    mContToken.push_back(cResLex(aStr,eLexP::eStdToken_RD4S,eTAAr::eStd)); 
 
 }

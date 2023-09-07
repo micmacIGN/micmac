@@ -876,16 +876,23 @@ void cMMVII_Appli::InitProfile()
 
 const  std::string & cMMVII_Appli::UserName() {return mParamProfile.mUserName;}
 const  std::string & cMMVII_Appli::DirProfileUsage() {return mDirProfileUsage;}
+
 eTypeSerial cMMVII_Appli::DefSerial() const 
 {
     CurrentAppli(); // as member is static assure init was done
     return mParamProfile.mDefSerial;
 }
-const std::string & cMMVII_Appli::NameDefSerial() const 
+
+const std::string & cMMVII_Appli::NameDefSerialOut() const { return NameDefSerial();}
+const std::string & cMMVII_Appli::NameDefSerialIn () const  { return NameDefSerial();}
+const std::string & cMMVII_Appli::NameDefSerial   () const 
 {
     CurrentAppli(); // as member is static assure init was done
     return mNameDefSerial;
 }
+
+const std::string & GlobNameDefSerial() {return cMMVII_Appli::CurrentAppli().NameDefSerial();}
+
 
 
 // const  std::string & cMMVII_Appli::UserName() {return mParamProfile.mUserName;}

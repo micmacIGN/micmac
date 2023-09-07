@@ -476,7 +476,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	const std::string & Prefix_TIM_GMA () const; /// Accessor
 
 	eTypeSerial DefSerial() const; ///< Accessor
-	const std::string & NameDefSerial() const; ///< Accessor
+
+	// For now in=out, may be later separate
+	const std::string & NameDefSerialIn() const; ///< Accessor
+	const std::string & NameDefSerialOut() const; ///< Accessor
+	const std::string & NameDefSerial() const; ///< Accessor , assert In=Out
 
 
 	// ========================  Methods for memorizing report (for example using csv)
@@ -663,6 +667,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::map<std::string,std::string>  mMapIdPostReport;
 	bool                               mDoMergeReport;
 };
+
+const std::string & GlobNameDefSerial() ; ///< of current appli
 
 
 bool    IsInit(const void *);  ///< Call IsInit on the appli def

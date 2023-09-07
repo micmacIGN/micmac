@@ -213,13 +213,18 @@ template <class Type> void BenchSerialIm2D(const std::string & aDirOut)
          ReadFromFile(aT44,aNameFile);
          MMVII_INTERNAL_ASSERT_bench((aT3==aT44),"BenchSerial3-Ptr");
     }
-    for (int aK=0 ;aK<10 ; aK++)
+    for (int aK=0 ;aK<20 ; aK++)
     {
-        bool isXml = ((aK%2)==0);
+        eTypeSerial aTypeS = eTypeSerial::exml;
+	if (aK%4==1) aTypeS= eTypeSerial::ejson;
+	if (aK%4==2) aTypeS= eTypeSerial::edmp;
+	if (aK%4==3) aTypeS= eTypeSerial::etxt;
+
+
         cPt2di aSz(1+RandUnif_N(10),1+RandUnif_N(10));
         cIm2D<Type>  anIm1(aSz,nullptr,eModeInitImage::eMIA_RandCenter);
 
-        std::string aNameFile = aDirOut + "Image." + StdPostF_ArMMVII(isXml);
+        std::string aNameFile = aDirOut + "Image." + E2Str(aTypeS);
         SaveInFile(anIm1.DIm(),aNameFile);
 
         cIm2D<Type>  anIm2(cPt2di(1,1));
@@ -227,9 +232,11 @@ template <class Type> void BenchSerialIm2D(const std::string & aDirOut)
 
         double aD = anIm1.DIm().L1Dist(anIm2.DIm());
 
-        // StdOut() << "BENCHSssIm2Dddd " << aD << " "<<  tNumTrait<Type>::NameType() << " Sz=" << aSz <<"\n";
+	// StdOut()  << "BENCHIII " << aD << " " << E2Str(aTypeS) << "\n";
         MMVII_INTERNAL_ASSERT_bench(aD<1e-5,"BenchSerialIm2D");
+
     }
+    //getchar();
 }
 
 /// Test both Cumul and its Read/Write mode
@@ -506,6 +513,8 @@ void BenchSerialization
     }
 
 
+     //IsFileGivenTag(true,aDirOut+"Calib.xml","Name");
+    //IsFileGivenTag(true,aDirOut+"Calib.json","Name");
     // Bench IsFile2007XmlOfGivenTag 
     if (1)
     {
@@ -514,6 +523,8 @@ void BenchSerialization
            MMVII_INTERNAL_ASSERT_bench( IsFileGivenTag(true,aDirOut+"XF2."+anExt,"TS1"),"cAppli_MMVII_TestSerial");
            MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirOut+"XF2."+anExt,"TS0"),"cAppli_MMVII_TestSerial");
            MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirIn+"PBF2."+anExt,"TS0"),"cAppli_MMVII_TestSerial");
+
+           MMVII_INTERNAL_ASSERT_bench( !IsFileGivenTag(true,aDirOut+"Calib."+anExt,"Name"),"cAppli_MMVII_TestSerial");
        }
     }
     else
@@ -521,7 +532,8 @@ void BenchSerialization
 	    StdOut() << "SKEEPING IsFileXmlOfGivenTag\n";
     }
 
-    //StdOut() << "DONE SERIAL\n";
+    // StdOut() << "DONE SERIAL\n";
+    // getchar();
 
     // return EXIT_SUCCESS;
 }
@@ -536,9 +548,9 @@ void BenchSerialization
 {
     if (! aParam.NewBench("Serial")) return;
 
-    SaveInFile(cTestSerial1(),"toto.json");
-    SaveInFile(GentTestMasSerial(),"toto_map.json");
-    SaveInFile(GentTestMasSerial(),"toto_map.xml");
+    // SaveInFile(cTestSerial1(),"toto.json");
+    // SaveInFile(GentTestMasSerial(),"toto_map.json");
+    // SaveInFile(GentTestMasSerial(),"toto_map.xml");
 
     BenchSerialObject_AllMode(222,aDirOut);
     BenchSerialObject_AllMode(222.5,aDirOut);
@@ -554,18 +566,21 @@ void BenchSerialization
 
     if (1)
     {
-       BenchSerialMap("./",eTypeSerial::exml);
-       BenchSerialMap("./",eTypeSerial::exml2);
+       // BenchSerialMap("./",eTypeSerial::exml);
+       // BenchSerialMap("./",eTypeSerial::exml2);
     }
 
-    SaveInFile(cTestSerial1(),"toto.xml");
+    // SaveInFile(cTestSerial1(),"toto.xml");
+    /*
     cSerialFileParser::TestFirstTag("toto.xml");
     cSerialFileParser::TestFirstTag("CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.json");
     cSerialFileParser::TestFirstTag("CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.xml");
+    */
 
-    SaveInFile(cTestSerial1(),"toto.json");
-    SaveInFile(cTestSerial1(),"toto.txt");
-    SaveInFile(cTestSerial1(),"toto.xml2");
+    // SaveInFile(cTestSerial1(),"toto.json");
+    // SaveInFile(cTestSerial1(),"toto.txt");
+    // SaveInFile(cTestSerial1(),"toto.xml2");
+    if (0)
     {
          cTestSerial1 aTS1;
          ReadFromFile(aTS1,"toto.xml2");

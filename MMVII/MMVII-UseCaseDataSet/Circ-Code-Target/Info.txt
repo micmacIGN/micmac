@@ -78,10 +78,10 @@ MMVII  OriPoseEstim11P  ImOk.xml Test 11P DegDist=[3,1,1]
 
 
 #Can use model w/o distorsion
-MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[0,0,0] PlanIm=1e-2
+MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[0,0,0] 
 
 #Can fix some parameters
-MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[3,1,1] PatFrozen="(b|p).*|K3" PlanIm=1e-2
+MMVII  OriPoseEstim11P ImOk.xml Test 11P DegDist=[3,1,1] PatFrozen="(b|p).*|K3"
 
 
 

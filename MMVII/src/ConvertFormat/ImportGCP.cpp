@@ -155,7 +155,6 @@ class cAppli_ImportGCP : public cMMVII_Appli
 	int              mL0;
 	int              mLLast;
 	int              mComment;
-	eTypeSerial      mTypeS;
 	int              mNbDigName;
 
         std::string mNameOut; 
@@ -165,8 +164,7 @@ cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const
    cMMVII_Appli  (aVArgs,aSpec),
    mPhProj       (*this),
    mL0           (0),
-   mLLast        (-1),
-   mTypeS        (eTypeSerial::exml)
+   mLLast        (-1)
 {
 }
 
@@ -183,7 +181,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
     
     return anArgObl
        << AOpt2007(mNameGCP,"NameGCP","Name of GCP set")
-       << AOpt2007(mNameOut,"Out","Name of output file, def=\"NameGCP+xml\"")
+       << AOpt2007(mNameOut,"Out","Name of output file, def=\"NameGCP+xml/json\"")
        << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
        << mPhProj.DPPointsMeasures().ArgDirOutOpt()
     ;
@@ -217,7 +215,7 @@ int cAppli_ImportGCP::Exe()
     if (!IsInit(&mNameOut))
        mNameOut = mNameGCP;
 
-    mNameOut  = mNameOut + "." +  E2Str(mTypeS);
+    mNameOut  = mNameOut + "." +  NameDefSerial();
 
     // StdOut() << "ggggg " << mPhProj.DPPointsMeasures().DirOutIsInit() << "\n";
     // StdOut() << "ggggg " << mPhProj.DPPointsMeasures().FullDirOut() << "\n";
