@@ -506,6 +506,8 @@ void BenchSerialization
     }
 
 
+     //IsFileGivenTag(true,aDirOut+"Calib.xml","Name");
+    //IsFileGivenTag(true,aDirOut+"Calib.json","Name");
     // Bench IsFile2007XmlOfGivenTag 
     if (1)
     {
@@ -514,6 +516,8 @@ void BenchSerialization
            MMVII_INTERNAL_ASSERT_bench( IsFileGivenTag(true,aDirOut+"XF2."+anExt,"TS1"),"cAppli_MMVII_TestSerial");
            MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirOut+"XF2."+anExt,"TS0"),"cAppli_MMVII_TestSerial");
            MMVII_INTERNAL_ASSERT_bench(!IsFileGivenTag(true,aDirIn+"PBF2."+anExt,"TS0"),"cAppli_MMVII_TestSerial");
+
+           MMVII_INTERNAL_ASSERT_bench( !IsFileGivenTag(true,aDirOut+"Calib."+anExt,"Name"),"cAppli_MMVII_TestSerial");
        }
     }
     else
@@ -521,7 +525,8 @@ void BenchSerialization
 	    StdOut() << "SKEEPING IsFileXmlOfGivenTag\n";
     }
 
-    //StdOut() << "DONE SERIAL\n";
+    StdOut() << "DONE SERIAL\n";
+    getchar();
 
     // return EXIT_SUCCESS;
 }

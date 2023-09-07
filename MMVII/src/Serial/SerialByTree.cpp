@@ -134,17 +134,21 @@ if (1)
      {
           cResDifST aDif = aTS1->AnalyseDiffTree(*aTS2,"XXX");
 
+	  if (0)
 	  {
-             cMMVII_Ofs aOfs1("Model.tagt",false);
-             aTS1->Raw_PrettyPrint(aOfs1);
-	  }
-	  {
-             cMMVII_Ofs aOfs2("Obj.tagt",false);
-             aTS2->Raw_PrettyPrint(aOfs2);
+	     {
+                cMMVII_Ofs aOfs1("Model.tagt",false);
+                aTS1->Raw_PrettyPrint(aOfs1);
+	     }
+	     {
+                cMMVII_Ofs aOfs2("Obj.tagt",false);
+                aTS2->Raw_PrettyPrint(aOfs2);
+	     }
 	  }
 
           if ((aDif.mST1!=nullptr) && (aDif.mST2!=nullptr))
           {
+		  StdOut() << "SSSSS " << aNameFile << " " << aDif.mST2->Father().Sons().size() << "\n";
 	      if ((aDif.mST1->Value()=="ToMatch") && (aDif.mST2->Father().Sons().size()==2))
 	      {
 		      aResult = tTestFileSerial(true,aDif.mST2->Value());
