@@ -20,7 +20,11 @@ MMVII/MMVII-TestDir/Input/Files/RelTest_0-5.xml
 bin/*
 !bin/Makefile
 !bin/Mk-MMVII.makefile
+!bin/Makefile.legacy
 html/
 latex/
 doxygen/
 src/GeneratedCodes/
+!/build/
+/build/*
+!/build/.keep
