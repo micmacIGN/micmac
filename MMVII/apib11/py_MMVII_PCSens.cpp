@@ -61,7 +61,7 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
 
     py::class_<tPCIC>(m, "PerspCamIntrCalib", DOC(MMVII_cPerspCamIntrCalib))
             .def("toFile", &tPCIC::ToFile,"filename"_a,DOC(MMVII_cPerspCamIntrCalib, ToFile))
-            .def_static("fromFile", &tPCIC::FromFile,"filename"_a,py::return_value_policy::reference, DOC(MMVII_cPerspCamIntrCalib, FromFile))
+            .def_static("fromFile", &tPCIC::FromFile,"filename"_a,"remanent"_a = true,py::return_value_policy::reference, DOC(MMVII_cPerspCamIntrCalib, FromFile))
             .def_static("prefixName", &tPCIC::PrefixName, DOC(MMVII_cPerspCamIntrCalib, PrefixName))
 
             .def_property_readonly("degDir", &tPCIC::DegDir, DOC(MMVII_cPerspCamIntrCalib, DegDir))
