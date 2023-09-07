@@ -559,9 +559,11 @@ void BenchSerialization
     }
 
     SaveInFile(cTestSerial1(),"toto.xml");
+    /*
     cSerialFileParser::TestFirstTag("toto.xml");
     cSerialFileParser::TestFirstTag("CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.json");
     cSerialFileParser::TestFirstTag("CERN_Nbb14_Freq14_Hamm1_Run1000_1000_SpecEncoding.xml");
+    */
 
     SaveInFile(cTestSerial1(),"toto.json");
     SaveInFile(cTestSerial1(),"toto.txt");

@@ -5,6 +5,6 @@
    <Data>
       <UserName>"Uknown"</UserName>
       <NbProcMax>1000</NbProcMax>
-      <SerialMode>"json"</SerialMode>
+      <SerialMode>"xml"</SerialMode>
    </Data>
 </Root>
