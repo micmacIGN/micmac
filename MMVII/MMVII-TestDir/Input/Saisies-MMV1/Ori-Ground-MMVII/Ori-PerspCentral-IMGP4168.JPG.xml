@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
-<MMVII_Serialization>
-   <NameImage>"IMGP4168.JPG"</NameImage>
-   <NameInternalCalib>"Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5"</NameInternalCalib>
-   <Center>5.20548296910593 0.802588965707 2.10381571053917</Center>
-   <RotMatrix>
-      <AxeI>-0.163292321617949 0.0505998171336314 0.98527928842875</AxeI>
-      <AxeJ>0.115503241438878 0.992796558336643 -0.0318432877076039</AxeJ>
-      <AxeK>-0.979793151087378 0.108603187158388 -0.167960497800249</AxeK>
-   </RotMatrix>
-   <EQ>0.6445044101708 -0.0544784770474932 -0.762241657506798 -0.0251757099257266</EQ>  <!--EigenQuaternion, for information-->
-   <WPK>-147.113308260214 -78.4622543151708 -144.726691144982</WPK>  <!--Omega Phi Kapa in degree, for information-->
-   <YPR>162.783223273025 -80.1568016653512 -169.264820367196</YPR>  <!--Yaw Pitch Roll in degree, for information-->
-</MMVII_Serialization>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.00"</Version>
+   <Data>
+      <NameImage>"IMGP4168.JPG"</NameImage>
+      <NameInternalCalib>"Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5"</NameInternalCalib>
+      <Center>5.203315710339428 0.801558951120939 2.104233883945823</Center>
+      <RotMatrix>
+         <AxeI>-0.16360794707346 0.050533795937991 0.985230315775202</AxeI>
+         <AxeJ>0.115991824112041 0.992745533269003 -0.03165758856268</AxeJ>
+         <AxeK>-0.979682773347357 0.109099228423211 -0.168282565834643</AxeK>
+      </RotMatrix>
+      <EQ>0.644370821103986 -0.05461017646048 -0.762337859183365 -0.02539610191454</EQ> <!--EigenQuaternion, for information-->
+      <WPK>-147.044265252458558 -78.430678169693721 -144.664806564715178</WPK> <!--Omega Phi Kapa in degree, for information-->
+      <YPR>162.835583563307466 -80.140401697848631 -169.345942117534065</YPR> <!--Yaw Pitch Roll in degree, for information-->
+   </Data>
+</Root>
