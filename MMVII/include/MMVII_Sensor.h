@@ -292,6 +292,7 @@ class cPhotogrammetricProject
 	 //========================== ACCESSOR ===============================
 
           cMMVII_Appli &  Appli(); ///< Accessor
+	  const std::string & NameDefSerial() const; /// short to Appli.Nam...
 	  cDirsPhProj &   DPOrient(); ///< Accessor
 	  cDirsPhProj &   DPRadiomData(); ///< Accessor
 	  cDirsPhProj &   DPRadiomModel(); ///< Accessor

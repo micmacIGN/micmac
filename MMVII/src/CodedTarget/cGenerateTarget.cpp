@@ -979,7 +979,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
  return
       anArgObl
-          <<   Arg2007(mNameBE,"XML name for bit encoding struct",{{eTA2007::XmlOfTopTag,cBitEncoding::TheMainTag}})
+          <<   Arg2007(mNameBE,"Xml/Json name for bit encoding struct",{{eTA2007::XmlOfTopTag,cBitEncoding::TheMainTag}})
    ;
 }
 
@@ -1041,7 +1041,7 @@ int  cAppliGenCodedTarget::Exe()
       }
    }
 
-   std::string aName = aFullSpec.Prefix()+"_FullSpecif.xml";
+   std::string aName = aFullSpec.Prefix()+"_FullSpecif."+NameDefSerialOut();
    SaveInFile(aFullSpec, aName);
 
    if (0)  // test reload

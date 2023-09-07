@@ -78,7 +78,7 @@ class cCalculMetaDataProject
 	 ///  Generate a sample of calculator , for user to modify it
 	 static void  GenerateSample(const std::string & aNameFile);
          ///  Default name used to save computations
-	 static const std::string  NameStdFile;
+	 static const std::string  NameStdFile();
 
 	 /// All translator for different type
          std::vector<cOneTranslAttrIm>  mTranslators;
@@ -185,7 +185,7 @@ void AddData(const cAuxAr2007 & anAux,cOneTranslAttrIm & aTransl)
       //  cAuxAr2007 anAux("Translat",anAuxParam);
 
       EnumAddData(anAux,aTransl.mMode,"Mode");
-      AddData(anAux,aTransl.mVTries);
+      AddData(cAuxAr2007("Tries",anAux),aTransl.mVTries);
 }
 
 /* ******************************************* */
@@ -272,7 +272,10 @@ void cCalculMetaDataProject::GenerateSample(const std::string & aNameFile)
    SaveInFile(aRes,aNameFile);
 }
 
-const std::string  cCalculMetaDataProject::NameStdFile = "CalcMTD.xml";
+const std::string  cCalculMetaDataProject::NameStdFile()
+{
+     return "CalcMTD." + cMMVII_Appli::CurrentAppli().NameDefSerial();
+}
 
 /* ******************************************* */
 /*                                             */
@@ -282,7 +285,7 @@ const std::string  cCalculMetaDataProject::NameStdFile = "CalcMTD.xml";
 
 void cGlobCalculMetaDataProject::AddDir(const std::string& aDir)
 {
-     std::string aNameF = aDir + cCalculMetaDataProject::NameStdFile;
+     std::string aNameF = aDir + cCalculMetaDataProject::NameStdFile();
 
      if (ExistFile(aNameF))
      {
@@ -456,7 +459,7 @@ void cPhotogrammetricProject::DeleteMTD()
 
 void cPhotogrammetricProject::GenerateSampleCalcMTD()
 {
-     cCalculMetaDataProject::GenerateSample( mDPMetaData.FullDirIn()+cCalculMetaDataProject::NameStdFile);
+     cCalculMetaDataProject::GenerateSample( mDPMetaData.FullDirIn()+cCalculMetaDataProject::NameStdFile());
 }
 
 
@@ -598,9 +601,9 @@ int cAppli_EditCalcMetaDataImage::Exe()
 
     if (mSave)
     {
-       MakeBckUp(mPhProj.DPMetaData().FullDirIn(),cCalculMetaDataProject::NameStdFile,5);
+       MakeBckUp(mPhProj.DPMetaData().FullDirIn(),cCalculMetaDataProject::NameStdFile(),5);
 
-       SaveInFile(*mCalcProj,mPhProj.DPMetaData().FullDirIn() + cCalculMetaDataProject::NameStdFile);
+       SaveInFile(*mCalcProj,mPhProj.DPMetaData().FullDirIn() + cCalculMetaDataProject::NameStdFile());
        // mCalcProj
     }
 

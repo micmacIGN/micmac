@@ -281,6 +281,8 @@ cPhotogrammetricProject::~cPhotogrammetricProject()
 
 cMMVII_Appli &  cPhotogrammetricProject::Appli()    {return mAppli;}
 
+const std::string & cPhotogrammetricProject::NameDefSerial() const {return mAppli.NameDefSerial();}
+
 cDirsPhProj &   cPhotogrammetricProject::DPOrient() {return mDPOrient;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() {return mDPRadiomData;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiomModel() {return mDPRadiomModel;}
@@ -324,7 +326,7 @@ cCalibRadiomIma * cPhotogrammetricProject::ReadCalibRadiomIma(const std::string 
 /* With only the name of images and the folder, cannot determinate the model used, so the methods
  * test the possible model by testing existence of files.
  */	
-    std::string aNameFile = mDPRadiomModel.FullDirIn() + PrefixCalRadRad + aNameIm + "." + PostF_XmlFiles;
+    std::string aNameFile = mDPRadiomModel.FullDirIn() + PrefixCalRadRad + aNameIm + "." + NameDefSerial();
     if (ExistFile(aNameFile))
        return cCalRadIm_Pol::FromFile(aNameFile);
 
@@ -334,7 +336,7 @@ cCalibRadiomIma * cPhotogrammetricProject::ReadCalibRadiomIma(const std::string 
 
 void cPhotogrammetricProject::SaveCalibRad(const cCalibRadiomIma & aCalRad) const
 {
-     aCalRad.ToFile(mDPRadiomModel.FullDirOut() + PrefixCalRadRad + aCalRad.NameIm()+ "." + PostF_XmlFiles);
+     aCalRad.ToFile(mDPRadiomModel.FullDirOut() + PrefixCalRadRad + aCalRad.NameIm()+ "." + NameDefSerial());
 }
 
 std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMetaDataImage & aMTD) const
@@ -380,7 +382,7 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 
 void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const
 {
-    std::string aNameCalib = mDPOrient.FullDirOut() + aCalib.Name() + ".xml";
+    std::string aNameCalib = mDPOrient.FullDirOut() + aCalib.Name() + "." + NameDefSerial();
     aCalib.ToFileIfFirstime(aNameCalib);
 }
 
@@ -459,7 +461,7 @@ std::string  cPhotogrammetricProject::FullDirCalibOut() const
 
 cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm) const
 {
-    std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + ".xml";
+    std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + NameDefSerial();
     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib);
     return aCalib;
 }
@@ -504,12 +506,12 @@ cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameI
 void cPhotogrammetricProject::SaveGCP(const cSetMesImGCP& aSetMes,const std::string & aExt)
 {
      cSetMesGCP  aMGCP = aSetMes.ExtractSetGCP(aExt);
-     aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles +aExt + ".xml");
+     aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles +aExt + "." + NameDefSerial());
 }
 
 std::string cPhotogrammetricProject::GCPPattern(const std::string & aArgPatFiltr) const
 {
-    return (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*.xml")  : aArgPatFiltr;
+    return (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*." +NameDefSerial())  : aArgPatFiltr;
 }
 
 void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr) const

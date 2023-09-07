@@ -693,7 +693,7 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgObl(cCollecSpecArg2007 & anArgO
    // Standard use, we put args of  cAppliParseBoxIm first
    return
              APBI_ArgObl(anArgObl)
-        <<   Arg2007(mNameSpec,"XML name for bit encoding struct",{{eTA2007::XmlOfTopTag,cFullSpecifTarget::TheMainTag}})
+        <<   Arg2007(mNameSpec,"Xml/Json name for bit encoding struct",{{eTA2007::XmlOfTopTag,cFullSpecifTarget::TheMainTag}})
    ;
 }
 

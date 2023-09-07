@@ -23,7 +23,7 @@ tTestMasSerial  GentTestMasSerial(); /// Generate a sample for test
 
 
 
-template <class Type> void TplAddRawData(const cAuxAr2007 & anAux,Type * anAdr,int aNbElem,const std::string & aTag="Data")
+template <class Type> void TplAddRawData(const cAuxAr2007 & anAux,Type * anAdr,int aNbElem,const std::string & aTag="RawData")
 {
     cRawData4Serial aRDS = cRawData4Serial::Tpl(anAdr,aNbElem);
     AddData(cAuxAr2007(aTag,anAux),aRDS);

@@ -377,7 +377,7 @@ const std::string  cSetMesPtOf1Im::ThePrefixFiles = "MesIm-";
 
 std::string cSetMesPtOf1Im::StdNameFileOfIm(const std::string & aName)
 {
-	return ThePrefixFiles +aName+ "."+PostF_XmlFiles;
+	return ThePrefixFiles +aName+ "."+ cMMVII_Appli::CurrentAppli().NameDefSerial();
 }
 
 std::string cSetMesPtOf1Im::StdNameFile() const
@@ -489,7 +489,7 @@ void cSetMesGCP::ToFile(const std::string & aNameFile)
 
 std::string cSetMesGCP::StdNameFileOfSet(const std::string & aName) 
 {
-     return ThePrefixFiles+"-"+ aName+ "."+PostF_XmlFiles;
+     return ThePrefixFiles+"-"+ aName+ "."+GlobNameDefSerial();
 }
 std::string cSetMesGCP::StdNameFile() const {return StdNameFileOfSet(mNameSet);}
 

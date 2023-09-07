@@ -123,10 +123,8 @@ tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
     std::string aPost = LastPostfix(aNameFile);
     std::string aNameModel = cMMVII_Appli::CurrentAppli().DirRessourcesMMVII()+"Model."+aPost;
 
-if (1)
-{
-
      tTestFileSerial aResult(false,"");
+
      cSerialTree*  aTS1 = cSerialTree::AllocSimplify(aNameModel);
      cSerialTree*  aTS2 = cSerialTree::AllocSimplify(aNameFile);
 
@@ -134,7 +132,7 @@ if (1)
      {
           cResDifST aDif = aTS1->AnalyseDiffTree(*aTS2,"XXX");
 
-	  if (0)
+          if (0)
 	  {
 	     {
                 cMMVII_Ofs aOfs1("Model.tagt",false);
@@ -148,7 +146,6 @@ if (1)
 
           if ((aDif.mST1!=nullptr) && (aDif.mST2!=nullptr))
           {
-		  StdOut() << "SSSSS " << aNameFile << " " << aDif.mST2->Father().Sons().size() << "\n";
 	      if ((aDif.mST1->Value()=="ToMatch") && (aDif.mST2->Father().Sons().size()==2))
 	      {
 		      aResult = tTestFileSerial(true,aDif.mST2->Value());
@@ -160,8 +157,8 @@ if (1)
      delete aTS2;
 
      return aResult;
-}
 
+/*  OLD VERSION w/o "Simplify"
     if (!ExistFile(aNameFile))
        return tTestFileSerial(false,"");
 
@@ -187,7 +184,8 @@ if (1)
            return  tTestFileSerial(true,aDif.mST2->Value());
     }
 
-    /*
+    WERY OLD VERSION W/O "AnalyseDiffTree"
+    /---*
     if (aTypeS==eTypeSerial::exml)
     {
        return aTree.Xml_TestFirstTag();
@@ -195,9 +193,10 @@ if (1)
 
     if (aTypeS==eTypeSerial::ejson)
        return aTree.Json_TestFirstTag();
-       */
+       *---/
 
     return tTestFileSerial(false,"");
+*/
 }
 
 bool IsFileGivenTag(bool Is2007,const std::string & aNameFile,const std::string & aTag)
@@ -1306,7 +1305,7 @@ void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)
 }
 void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)   
 { 
-   std::string aStr;
+   std::string aStr ="\"";  // quote the string because of json
    tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
    for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
    {
@@ -1314,6 +1313,7 @@ void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)
        aStr +=  ToHexacode(aICar/16) ;
        aStr +=  ToHexacode(aICar%16) ;
    }
+   aStr += '"';
    mContToken.push_back(cResLex(aStr,eLexP::eStdToken_RD4S,eTAAr::eStd)); 
 
 }
