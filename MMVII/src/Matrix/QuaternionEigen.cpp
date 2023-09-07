@@ -1,5 +1,3 @@
-
-
 #include "MMVII_EigenWrap.h"
 #include "Eigen/Geometry"
 
