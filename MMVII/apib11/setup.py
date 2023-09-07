@@ -31,7 +31,7 @@ ext_modules = [
         all_cpp_api_files,
         libraries = ['X11', 'Xext', 'm', 'dl', 'pthread', 'stdc++fs', 'gomp'],
         library_dirs = [],
-        include_dirs = ['/usr/local/include', '.', '..', '../include/', '../ExternalInclude/'],
+        include_dirs = ['/usr/local/include', '.', '..', '../include/', '/usr/include/eigen3'],
         language = 'c++',
         extra_objects = extra_objects,
         extra_compile_args = cxxflags,

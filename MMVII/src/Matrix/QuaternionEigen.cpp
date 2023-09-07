@@ -1,7 +1,7 @@
 
 
 #include "MMVII_EigenWrap.h"
-#include "../ExternalInclude/Eigen/Geometry" 
+#include "Eigen/Geometry"
 
 using namespace Eigen;
 

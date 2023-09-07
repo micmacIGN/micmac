@@ -24,6 +24,9 @@ In case of SynDer-related compilation error, clear all generated code before com
     ./MMVII  GenCodeSymDer
     make
 
+if Eigen is not installed in /usr/include/eigen3 (apt install libeigen3-dev does this correctly), use:
+`make EIGEN_DIR=/my_eigen_dir` in the above commands.
+
 To generate html doc
 --------------------
 In MMVII directory:

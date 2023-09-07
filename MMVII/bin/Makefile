@@ -1,5 +1,6 @@
 # make CC=gcc-10 CPP=g++-10 CXX=g++-10 LD=g++-10
 # =========== Directories
+
 MMV1_DIR=../..
 MMV1_LIBDIR=${MMV1_DIR}/lib
 MMV2_DIR=${MMV1_DIR}/MMVII
@@ -12,7 +13,7 @@ MMV2_GENDIR=${MMV2_SRCDIR}/GeneratedCodes
 
 # =========== Includes & Libraries
 MMV1_INCLUDES=-I ${MMV1_DIR}/include -I${MMV1_DIR}
-MMV2_INCLUDES=-I ${MMV2_INCDIR} -I ${MMV2_DIR}/ExternalInclude
+MMV2_INCLUDES=-I ${MMV2_INCDIR} -I ${EIGEN_DIR}
 
 MMV2_LIBNAME=P2007
 MMV2_LIB=${MMV2_BINDIR}/lib${MMV2_LIBNAME}.a
@@ -21,12 +22,17 @@ MMV1_LIBS=${MMV1_LIBDIR}/libelise.a ${MMV1_LIBDIR}/libANN.a
 EXT_LIBS=-lpthread -lX11 -lstdc++fs
 
 
+
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
 CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES}
 LDFLAGS=-fopenmp
 
+EIGEN_DIR=/usr/include/eigen3
+ifeq ("","$(wildcard ${EIGEN_DIR}/Eigen/Dense)")
+  $(error "EIGEN_DIR(='${EIGEN_DIR}') doesn't contain Eigen include files. Use make EIGEN_DIR=/my_eigen_dir")
+endif
 
 # ===========  Use ccache if found
 CCACHE:=${shell which ccache}

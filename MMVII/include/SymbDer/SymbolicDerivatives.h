@@ -85,7 +85,7 @@
 
 
 #if SYMBDER_WITH_EIGEN
-#include "../ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
+#include "Eigen/Dense"
 #define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 #else
 #define EIGEN_ALLIGNMENT_IN_MMVII

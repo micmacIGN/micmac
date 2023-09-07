@@ -1,11 +1,11 @@
 
 
 #include "MMVII_EigenWrap.h"
-#include "../ExternalInclude/Eigen/Sparse"
-#include "../ExternalInclude/Eigen/Dense"
+#include "Eigen/Sparse"
+#include "Eigen/Dense"
 
-#include "../ExternalInclude/Eigen/Eigenvalues"
-#include "../ExternalInclude/Eigen/Householder"  // HouseholderQR.h"
+#include "Eigen/Eigenvalues"
+#include "Eigen/Householder"  // HouseholderQR.h"
 
 
 using namespace Eigen;
