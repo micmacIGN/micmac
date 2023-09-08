@@ -763,8 +763,6 @@ void  cSerialTree::Raw_PrettyPrint(cMMVII_Ofs & anOfs) const
      //=======================    JSON PRINTING ======================
 
 
-static constexpr int MaxLength = 30;
-
 void  cSerialTree::Json_Comment(cMMVII_Ofs & anOfs,bool Last,int & aCpt) const
 {
     if ( (! Json_OmitKey()) && (mComment!="") )
