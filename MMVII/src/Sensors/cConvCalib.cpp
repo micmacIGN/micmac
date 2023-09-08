@@ -180,7 +180,7 @@ static int aCpt=0; aCpt++;
         if (aResidual<aAccuracy)
         {
             // create a new file , to avoid reading in map in "FromFile"
-	    std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "TestCalib_" + ToStr(aCpt) + ".xml";
+	    std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "TestCalib_" + ToStr(aCpt) + "." + GlobNameDefSerial();
 	    aCalib->ToFile(aNameTmp);
 
 	    cPerspCamIntrCalib *  aCam2 = cPerspCamIntrCalib::FromFile(aNameTmp);
@@ -229,7 +229,6 @@ void BenchPoseImportV1(const std::string & aNameOriV1,double anAccuracy)
 
      std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() +  aPC->NameOriStd();  // "ccTestOri.xml";
      aPC->ToFile(aNameTmp);
-     aPC->ToFile(LastPrefix(aNameTmp)+".xml2");
 
 
      cSensorCamPC  *aPC2  =  cSensorCamPC::FromFile(aNameTmp);

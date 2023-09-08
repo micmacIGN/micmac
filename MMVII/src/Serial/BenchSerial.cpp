@@ -600,7 +600,7 @@ void BenchSerialization
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml,eTypeSerial::etxt);
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml);
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::edmp);
-
+    // StdOut() << "BenchSerializationBenchSerialization \n"; getchar() ;
     aParam.EndBench();
 }
 

@@ -295,12 +295,13 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet
 */
 template<class TypeVal> void  TopAddAr(cAr2007  & anAr,TypeVal & aVal,const std::string & aName)
 {
-    std::string aStrVersion ="0.00";
+    std::string aStrVersion ="0:0.0";
     std::string aStrSerial  =TagMMVIISerial;
     std::string aStrRoot    =TagMMVIIRoot;
 
     std::string aLP =  LastPostfix(aName);
     bool IsXml =  (aLP=="xml") || (aLP=="xml2");
+
 
     if (IsXml)
     {

@@ -84,8 +84,10 @@ static void OneBenchEditSet
     cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
     std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
     std::string aDirT = anAp.TmpDirTestMMVII()  ;
-    std::string Input = "Input.xml";
-    std::string Ouput = "Ouput.xml";
+
+    std::string anExt = (aRealNumOut==2) ? anAp.NameDefSerial() : "xml";
+    std::string Input = "Input." + anExt;
+    std::string Ouput = "Ouput." + anExt;
 
     // if true uses GOP_DirProj else fix it via mandatory arg
     bool UseDirP = (aNumTest==1);
@@ -514,21 +516,24 @@ int cAppli_EditRel::ExecuteBench(cParamExeBench &)
    cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
    std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
 
-   RemovePatternFile(aDirI+"RelTest.*.xml",true);
+   std::string  anExt = NameDefSerial();
+   std::string aNameRT = "RelTest." + anExt;
 
-   OneBenchEditRel("RelTest.xml","=","F.*.txt",17,anAp.StrOpt() << t2S("Line","2"));
-   OneBenchEditRel("RelTest.xml","=","F.*.txt",45,anAp.StrOpt() << t2S("AllP","true"));
-   OneBenchEditRel("RelTest.xml","-=","F[0-5].txt",30 ,anAp.StrOpt() << t2S("AllP","true"));
-   OneBenchEditRel("RelTest.xml","+=","F[0-4].txt",40 ,anAp.StrOpt() << t2S("AllP","true"));
-   OneBenchEditRel("RelTest.xml","+=","F[0-5].txt",45 ,anAp.StrOpt() << t2S("AllP","true"));
-   OneBenchEditRel("RelTest.xml","=","F[0-5].txt",24 ,anAp.StrOpt() << t2S("AllP","true") << t2S("Pat2","F[6-9].txt"));
-   OneBenchEditRel("RelTest.xml","=","F.*.txt",20 ,anAp.StrOpt() << t2S("Line","2") << t2S("Circ","true"));
+   RemovePatternFile(aDirI+"RelTest.*."+anExt,true);
 
-   OneBenchEditRel("RelTest.xml","=","F.*.txt",30 ,anAp.StrOpt() << t2S("Line","2") << t2S("Circ","true") << t2S("Reflexif","true"));
+   OneBenchEditRel(aNameRT,"=","F.*.txt",17,anAp.StrOpt() << t2S("Line","2"));
+   OneBenchEditRel(aNameRT,"=","F.*.txt",45,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel(aNameRT,"-=","F[0-5].txt",30 ,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel(aNameRT,"+=","F[0-4].txt",40 ,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel(aNameRT,"+=","F[0-5].txt",45 ,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel(aNameRT,"=","F[0-5].txt",24 ,anAp.StrOpt() << t2S("AllP","true") << t2S("Pat2","F[6-9].txt"));
+   OneBenchEditRel(aNameRT,"=","F.*.txt",20 ,anAp.StrOpt() << t2S("Line","2") << t2S("Circ","true"));
+
+   OneBenchEditRel(aNameRT,"=","F.*.txt",30 ,anAp.StrOpt() << t2S("Line","2") << t2S("Circ","true") << t2S("Reflexif","true"));
 
 
-   OneBenchEditRel("RelTest_0-5.xml","=","F[0-5].txt",15,anAp.StrOpt() << t2S("AllP","true"));
-   OneBenchEditRel("RelTest.xml","=","RelTest_0-5.xml",15,anAp.StrOpt() );
+   OneBenchEditRel("RelTest_0-5."+anExt,"=","F[0-5].txt",15,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel(aNameRT,"=","RelTest_0-5."+anExt,15,anAp.StrOpt() );
 
    return EXIT_SUCCESS;
 }

@@ -170,8 +170,9 @@ tREAL8  cSensorCamPC::AvgAngularProjResiudal(const cSet2D3D& aSet) const
 
      // =================  READ/WRITE on files ===================
 
-void cSensorCamPC::AddData(const cAuxAr2007 & anAux)
+void cSensorCamPC::AddData(const cAuxAr2007 & anAux0)
 {
+     cAuxAr2007 anAux("CameraPose",anAux0);
      std::string aNameImage = NameImage();
      cPt3dr aC = Center();
      cPt3dr aI = AxeI();

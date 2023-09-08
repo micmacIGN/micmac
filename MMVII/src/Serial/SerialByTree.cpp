@@ -201,6 +201,8 @@ tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 
 bool IsFileGivenTag(bool Is2007,const std::string & aNameFile,const std::string & aTag)
 {
+    // StdOut()  << "aNameFaNameF F=" << aNameFile <<  " T=" << aTag << " V2="<< Is2007 << "\n";
+
    if (! Is2007) return IsXmlV1FileGivenTag(aNameFile,aTag);
 
    tTestFileSerial  aTF =  cSerialFileParser::TestFirstTag(aNameFile);

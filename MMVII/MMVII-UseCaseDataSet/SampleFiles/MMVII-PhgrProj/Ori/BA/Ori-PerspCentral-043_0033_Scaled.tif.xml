@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.00"</Version>
+   <Data>
+      <CameraPose>
+         <NameImage>"043_0033_Scaled.tif"</NameImage>
+         <NameInternalCalib>"CalibIntr_CamNIKON_D5600_Add043_Foc24"</NameInternalCalib>
+         <Center>101.777213417124699 -75.195663221320714 1365.555069382602142</Center>
+         <RotMatrix>
+            <AxeI>0.996984861847217 0.024894326512392 0.07349461038046</AxeI>
+            <AxeJ>0.054465194426073 -0.899125856733897 -0.434288195037195</AxeJ>
+            <AxeK>0.055269592395923 0.436981654374675 -0.897770742392708</AxeK>
+         </RotMatrix>
+         <EQ>-0.223656132668328 0.97389443228897 0.020371694895088 0.033053942631581</EQ> <!--EigenQuaternion, for information-->
+         <WPK>-154.045922900485607 3.168328841724858 -3.126955092909805</WPK> <!--Omega Phi Kapa in degree, for information-->
+         <YPR>1.430356243296265 -4.214731096748234 -154.185058852028732</YPR> <!--Yaw Pitch Roll in degree, for information-->
+      </CameraPose>
+   </Data>
+</Root>

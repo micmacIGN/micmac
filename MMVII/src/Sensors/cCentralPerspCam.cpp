@@ -85,8 +85,9 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
 }
 
     
-void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux)
+void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
 {
+    cAuxAr2007 anAux("InternalCalibration",anAux0);
     MMVII::AddData(cAuxAr2007("Name",anAux),mName);
     mDataPixDomain.AddData(cAuxAr2007("PixelFrame",anAux));
 

@@ -1,0 +1,54 @@
+{
+   "Type" :"MMVII_Serialization" ,
+   "Version" :"0.00" ,
+   "Data" :
+   {
+      "InternalCalibration" :
+      {
+         "Name" :"CalibIntr_CamNIKON_D5600_Add043_Foc24" ,
+         "PixelFrame" :
+         {
+            "NbPix" :[2000 , 1333]
+         } ,
+         "Projection" :"Stenope" ,
+         "Auxiliary" :
+         {
+            "SzBuffer" :10 ,
+            "Degree" :[3 , 1 , 1] ,
+            "DegreeApproxInv" :[3 , 1 , 1]
+         } ,
+         "PerfectProj" :
+         {
+            "F" :2095.531368401818781 ,
+            "PP" :[986.899140850465301 , 664.366217037365573]
+         } ,
+         "Distorsion" :
+         {
+            "Radial" :
+            {
+               "K1" :-0.096865127036641 ,
+                           "<!--comment1-->":"(X,Y) * (X^2+Y^2)",
+               "K2" :0.101925641589017 ,
+                           "<!--comment2-->":"(X,Y) * (X^2+Y^2)^2",
+               "K3" :-0.027262136255927
+                          , "<!--comment3-->":"(X,Y) * (X^2+Y^2)^3"
+            } ,
+            "Decentric" :
+            {
+               "p1" :-0.00037036497934 ,
+                           "<!--comment4-->":"(3X2+Y2,2XY)",
+               "p2" :-0.000235139045106
+                          , "<!--comment5-->":"(2XY,X2+3Y2)"
+            } ,
+            "Polynomial" :
+            {
+               "b1" :0.000083337414107 ,
+                           "<!--comment6-->":"(X,0)",
+               "b2" :0.000028076896172
+                          , "<!--comment7-->":"(Y,0)"
+            }
+         } ,
+         "Informations" :[]
+      }
+   }
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.00"</Version>
+   <Data>
+      <Pair>
+         <K>"0"</K>
+         <V></V>
+      </Pair>
+      <Pair>
+         <K>"1"</K>
+         <V>
+            <el>1 1</el>
+         </V>
+      </Pair>
+      <Pair>
+         <K>"2"</K>
+         <V>
+            <el>1 1</el>
+            <el>2 2</el>
+         </V>
+      </Pair>
+   </Data>
+</Root>
