@@ -7,6 +7,7 @@
 #include "CodedTarget.h"
 #include "CodedTarget_Tpl.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include <cmath>
 
 /*   Modularistion
  *   Code extern tel que ellipse

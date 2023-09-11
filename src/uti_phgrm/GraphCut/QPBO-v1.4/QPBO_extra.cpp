@@ -478,12 +478,13 @@ template <typename REAL>
 	Node* j = a->head;
 	Node* _j[2];
 	Arc* _a[2] = { a, GetMate(a) };
-	int x; GccUse(x);// 0 if current edge is submodular, 1 otherwise
+	int x; // 0 if current edge is submodular, 1 otherwise
 
+	
 	_j[0] = j;
 	if (IsNode0(j)) { _j[1] = GetMate0(j); x = 0; }
 	else            { _j[1] = GetMate1(j); x = 1; }
-
+	(void)x;
 	code_assert((xi + xj + x)%2 == 0);
 
 	if (xi == 0)

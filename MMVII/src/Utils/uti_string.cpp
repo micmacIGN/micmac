@@ -295,7 +295,7 @@ const std::string & StringDirSeparator()
 
 std::string DirCur()
 {
-   return  std::string(".") + path::preferred_separator;
+   return  std::string(".") + CharDirSeparator();
 }
 
 std::string DirOfPath(const std::string & aPath,bool ErrorNonExist)
@@ -314,7 +314,7 @@ std::string FileOfPath(const std::string & aPath,bool ErrorNonExist)
 
 std::string AbsoluteName(const std::string & aName)
 {
-     return absolute(aName).c_str();
+     return absolute(aName).string().c_str();
 }
 
 std::string AddBefore(const std::string & aPath,const std::string & ToAdd)
@@ -370,7 +370,7 @@ std::string OneUpDir(const std::string & aDir)
 {
    std::string aRes = OneUpStd(aDir);
    if (aRes!="") return aRes;
-   return  aDir + std::string("..") +  path::preferred_separator;
+   return  aDir + std::string("..") +  CharDirSeparator();
 }
 
 /** Basic but seems to work untill now
@@ -451,9 +451,9 @@ if (0)
    }
    else
    {
-       aFile = aPath.filename().c_str();
+       aFile = aPath.filename().string().c_str();
        aPath.remove_filename();
-       aDir = aPath.c_str();
+       aDir = aPath.string().c_str();
        if (aDir.empty())
        {
           aDir = DirCur();
@@ -634,7 +634,7 @@ void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,co
 {
    for (directory_iterator itr(aDir); itr!=directory_iterator(); ++itr)
    {
-      std::string aName ( itr->path().filename().c_str());
+      std::string aName ( itr->path().filename().string().c_str());
       if ( ( (!OnlyRegular) || is_regular_file(itr->status())) &&  aNS.Match(aName))
          aRes.push_back(aName);
    }
@@ -671,7 +671,7 @@ void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aD
         int aLev = itr.depth();
         if ((aLev>=aLevMin) && (aLev<aLevMax))
         {
-           std::string aName(itr->path().c_str());
+           std::string aName(itr->path().string().c_str());
            if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
               aRes.push_back(aName);
         }

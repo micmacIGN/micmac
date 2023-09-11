@@ -83,6 +83,7 @@ template <>  cPt2di cStrIO<cPt2di>::FromStr(const std::string & aStr);
 * declaration."
 */
 
+#ifndef _MSC_VER
 template <>  const std::string cStrIO<bool>::msNameType;
 template <>  const std::string cStrIO<int>::msNameType;
 template <>  const std::string cStrIO<double>::msNameType;
@@ -110,6 +111,7 @@ template <>  const std::string cStrIO<eModeCaracMatch>::msNameType;
 template <>  const std::string cStrIO<eProjPC>::msNameType;
 template <>  const std::string cStrIO<eModeTestPropCov>::msNameType;
 template <>  const std::string cStrIO<eDCTFilters>::msNameType;
+#endif
 
 /** These functions offer an"easy" interface to cStrIO, however I think
 *    cStrIO is still usefull when type inference becomes too compliicated

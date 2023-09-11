@@ -121,7 +121,9 @@ template <> inline  bool cPixBox<3>::InsideBL(const cPtxd<double,3> & aP) const
     ;
 }
 
+#if ! defined(_MSC_VER)
 template<> const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration of specialization
+#endif
 
 typedef  cPixBox<1> cRect1;
 typedef  cPixBox<2> cRect2;

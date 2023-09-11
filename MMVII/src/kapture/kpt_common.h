@@ -1,10 +1,6 @@
 #ifndef KPT_COMMON_H
 #define KPT_COMMON_H
 
-#if __cplusplus < 201703L
-#error C++ 17 is needed
-#endif
-
 #include <string>
 #include <vector>
 #include <set>

@@ -63,7 +63,6 @@ extern bool BugDG;
 
 class cOrientationConique;
 
-using namespace std;
 
 
 #include "general/sys_dep.h"

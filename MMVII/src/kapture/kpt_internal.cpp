@@ -28,18 +28,22 @@ bool strICaseEqual(const std::string &a, const std::string &b)
 
 void PosixLocale::begin()
 {
+/*
     if (! posixLocale)
         posixLocale = newlocale(LC_ALL_MASK,"C",(locale_t(0)));
     if (! oldLocale)
         oldLocale = uselocale(posixLocale);
+*/
 }
 
 void PosixLocale::end()
 {
+/*
     if (oldLocale) {
         uselocale(oldLocale);
         oldLocale = (locale_t)0;
     }
+*/
 }
 
 static StringList parseLine(const std::string line)

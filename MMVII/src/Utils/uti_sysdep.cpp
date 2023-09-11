@@ -11,6 +11,7 @@
 #  include <unistd.h>
 #elif (THE_MACRO_MMVII_SYS==MMVII_SYS_W)  // Windows
 #  include <windows.h>
+#  include <process.h>
 #else  // Max OS X
 #  include <unistd.h>
 #  include <mach-o/dyld.h>
@@ -107,7 +108,7 @@ std::string MMVII_CanonicalSelfExecName()
     static std::string selfExec = MMVII_RawSelfExecName();
     if (selfExec.length() == 0)
         MMVII_INTERNAL_ERROR("Can't find file name of this process !");
-    return std::filesystem::canonical(selfExec);
+    return std::filesystem::canonical(selfExec).string();
 }
 
 

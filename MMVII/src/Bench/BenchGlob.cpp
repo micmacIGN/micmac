@@ -4,7 +4,6 @@
 #include "MMVII_PhgrDist.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_Radiom.h"
-#include <unistd.h>
 #include <cmath>
 #ifdef _WIN32
     #include <windows.h>

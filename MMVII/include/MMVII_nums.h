@@ -217,7 +217,7 @@ template <> class tBaseNumTrait<tStdInt>
         static int RoundDownToType(const double & aV) {return round_down(aV);}
         static int RoundNearestToType(const double & aV) {return round_ni(aV);}
 
-        static bool IsInt() {return true;}
+        static bool constexpr IsInt() {return true;}
         typedef tStdInt  tBase;
         typedef tINT8    tBig;
 };
@@ -228,7 +228,7 @@ template <> class tBaseNumTrait<tINT8>
         static tINT8 RoundDownToType(const double & aV) {return lround_down(aV);}
         static tINT8 RoundNearestToType(const double & aV) {return lround_ni(aV);}
 
-        static bool IsInt() {return true;}
+        static bool constexpr IsInt() {return true;}
         typedef tINT8  tBase;
         typedef tINT8    tBig;
 };
@@ -239,7 +239,7 @@ template <> class tBaseNumTrait<tStdDouble>
         static double RoundDownToType(const double & aV) {return aV;}
         static double RoundNearestToType(const double & aV) {return aV;}
 
-        static bool IsInt() {return false;}
+        static bool constexpr IsInt() {return false;}
         typedef tStdDouble  tBase;
         typedef tStdDouble  tBig;
 };
@@ -250,7 +250,7 @@ template <> class tBaseNumTrait<tREAL16>
         static double RoundDownToType(const double & aV) {return aV;}
         static double RoundNearestToType(const double & aV) {return aV;}
 
-        static bool IsInt() {return false;}
+        static bool constexpr IsInt() {return false;}
         typedef tREAL16  tBase;
         typedef tREAL16  tBig;
 };
@@ -259,9 +259,9 @@ template <> class tBaseNumTrait<tREAL4>
 {
     public :
         // By default rounding has no meaning
-        static tREAL4 RoundDownToType(const double & aV) {return aV;}
-        static tREAL4 RoundNearestToType(const double & aV) {return aV;}
-        static bool IsInt() {return false;}
+        static tREAL4 RoundDownToType(const double & aV) {return static_cast<tREAL4>(aV);}
+        static tREAL4 RoundNearestToType(const double & aV) {return static_cast<tREAL4>(aV);}
+        static bool constexpr IsInt() {return false;}
         typedef tREAL4      tBase;
         typedef tStdDouble  tBig;
 };
@@ -350,7 +350,7 @@ template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
 {
     public :
         static tREAL4 DummyVal() {return std::nanf("");}
-        static tREAL4 Accuracy() {return 1e-2;} 
+        static tREAL4 Accuracy() {return 1e-2f;}
         static bool   Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL4;}
         typedef tREAL4   tFloatAssoc;
@@ -424,9 +424,10 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
 
          static bool ValueOk(const tBase & aV)
          {
-               if (tETrait::IsInt())
+               if constexpr (tETrait::IsInt())
                   return (aV>=MinValue()) && (aV<=MaxValue());
-               return ValidFloatValue(aV);
+               else
+                return ValidFloatValue(aV);
          }
 	 static void AssertValueOk(const tBase & aV)
 	 {

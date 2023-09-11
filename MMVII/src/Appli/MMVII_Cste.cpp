@@ -95,8 +95,13 @@ const char CharProctected = '\\';
 #endif
 
 // Name of executable
+#if (THE_MACRO_MMVII_SYS == MMVII_SYS_L)
 const std::string MMVIIBin2007 = "MMVII";
-
+#elif (THE_MACRO_MMVII_SYS == MMVII_SYS_A)
+const std::string MMVIIBin2007 = "MMVII";
+#elif (THE_MACRO_MMVII_SYS == MMVII_SYS_W)
+const std::string MMVIIBin2007 = "MMVII.exe";
+#endif
 
 // User/Command
 const   std::string MMVII_NONE = "NONE";

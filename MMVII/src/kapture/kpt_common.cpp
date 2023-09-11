@@ -4,7 +4,7 @@
 
 namespace Kapture {
 
-locale_t PosixLocale::posixLocale = (locale_t) 0;
+//locale_t PosixLocale::posixLocale = (locale_t) 0;
 
 
 
@@ -63,4 +63,4 @@ std::vector<char> readBinaryFile(const Path& p)
 }
 
 
-} // namespave Kapture
+} // namespace Kapture

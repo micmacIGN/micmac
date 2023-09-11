@@ -35,7 +35,12 @@ static inline std::ostream& operator<<(std::ostream& os, const DType& dt)
 }
 
 
-std::string formatErrorMsg(const char *fmt, ...) __attribute__ ((format(printf,1,2))) ;
+std::string formatErrorMsg(const char *fmt, ...) 
+#ifndef _MSC_VER
+__attribute__ ((format(printf,1,2))) 
+#endif
+;
+
 
 #define error(except,msg)       throw except(msg, __FILE__,__LINE__, __func__ )
 #define errorf(except,fmt,...)  throw except(formatErrorMsg(fmt,__VA_ARGS__),__FILE__,__LINE__, __func__ )
@@ -45,13 +50,13 @@ bool strICaseEqual(const std::string& a, const std::string& b);
 
 class PosixLocale {
 public:
-    PosixLocale() : oldLocale((locale_t)0) { begin(); }
+    PosixLocale() /* : oldLocale((locale_t)0) */ { begin(); }
     ~PosixLocale() { end(); }
     void begin();
     void end();
 private:
-    locale_t oldLocale;
-    static locale_t posixLocale;
+//    locale_t oldLocale;
+//    static locale_t posixLocale;
 };
 
 
