@@ -154,6 +154,7 @@ class cCollecSpecArg2007;
 
 class cAuxAr2007;
 class cAr2007;
+class cRawData4Serial;
 
 // MMVII_Images.h
 template <const int Dim>  class cPixBoxIterator;

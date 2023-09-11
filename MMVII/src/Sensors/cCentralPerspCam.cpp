@@ -136,7 +136,7 @@ void cDataPerspCamIntrCalib::AddData(const cAuxAr2007 & anAux0)
 	       if (DoAtThisStep)
 	       {
                    MMVII::AddData(cAuxAr2007(mDir_VDesc[aKD].mName,aAuxTypeDist),mVTmpCopyParams.at(aKD));
-		   AddComment(anAux.Ar(),mDir_VDesc[aKD].mLongName);
+		   anAux.Ar().AddComment(mDir_VDesc[aKD].mLongName);
 	       }
            }
        }

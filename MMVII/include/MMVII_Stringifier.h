@@ -262,6 +262,104 @@ template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string & aName, con
 /*                                                     */
 /*  ================================================== */
 
+/** This class is used to embed the information necessary to a raw/hardcopy serialization */
+class cRawData4Serial
+{
+     public :
+        template <class Type> static cRawData4Serial Tpl(Type *Adr,int aNb) 
+        {
+            return cRawData4Serial(Adr,aNb*sizeof(Type));
+        }
+        void * Adr() const;
+        int   NbElem() const;
+     private :
+        cRawData4Serial(void * aAdr,int aNbElem);
+        void * mAdr;
+        int mNbElem;
+};
+
+// Base class of all archive class
+
+/**
+     Base class of all archive class;
+
+     Adding a new kind of archive, essentially consist to indicate how to read/write atomic values.
+    It is a bit more complicated with tagged format
+*/
+
+
+class cAr2007 : public cMemCheck
+{
+    public  :
+         friend class cAuxAr2007;
+
+         template <class Type,class TypeCast> inline void TplAddDataTermByCast (const cAuxAr2007& anOT,Type&  aValInit,TypeCast* UnUsed)
+         {
+// StdOut() << "TplAddDataTermByCast " << (int) aValInit << "BINAY" << mBinary << "\n";
+              if (mBinary)
+              {
+                  cRawData4Serial aRDS = cRawData4Serial::Tpl(&aValInit,1);
+                  RawAddDataTerm(aRDS);
+              }
+              else
+              {
+                   TypeCast aCast = aValInit;
+                   RawAddDataTerm(aCast);
+                   if (mInput)
+                      aValInit = aCast;
+              }
+         }
+
+          /// default do nothing)
+         virtual void AddComment(const std::string &);
+         ///  Tagged File = xml Like, important for handling optionnal parameter
+         bool  Tagged() const;
+         ///  May optimize the action
+         bool  Input() const;
+         ///  Specification archive need some trick action with containers
+         bool  IsSpecif() const;
+         /// Allow to  know by advance if next optionnal value is present, usefull with Xml
+         /// Default return error
+         virtual int NbNextOptionnal(const std::string &);
+         virtual ~cAr2007();
+         virtual void Separator(); /**< Used in final but non atomic type,
+                                        for ex with Pt : in text separate x,y, in bin do nothing */
+         virtual size_t HashKey() const;
+
+      // Final atomic type for serialization
+         virtual void RawAddDataTerm(int &    anI) =  0; ///< Heriting class descrine how they serialze int
+         virtual void RawAddDataTerm(size_t &    anI) =  0; ///< Heriting class descrine how they serialze int
+         virtual void RawAddDataTerm(double &    anI) =  0; ///< Heriting class descrine how they serialze double
+         virtual void RawAddDataTerm(std::string &    anI) =  0; ///< Heriting class descrine how they serialze string
+         virtual void RawAddDataTerm(cRawData4Serial  &    aRDS) =  0; ///< Heriting class descrine how they serialze string
+                                                                       //
+
+         virtual void OnBeginTab() {} /// Used in old json, probably will disapear
+         virtual void OnEndTab() {} /// Used in old json, probably will disapear
+         /**  Called when we add the size of vect/list, for compatibility, just add int whit tag Nb, can be overloaded
+          * when "well parenthesis struct" is used to compute the size */
+         virtual  void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux);
+
+    protected  :
+         cAr2007(bool InPut,bool Tagged,bool Binary);
+         int   mLevel;
+         bool  mInput;
+         bool  mTagged;
+         bool  mBinary;   //  != from tagged iw we implemant a pure txt format
+         bool  mIsSpecif;   ///  special value for handling specificcation archive requirement 
+     private  :
+
+         /// By default error, to redefine in hashing class
+         /// This message is send before each data is serialized, tagged file put/read their opening tag here
+         virtual void RawBeginName(const cAuxAr2007& anOT);
+         /// This message is send each each data is serialized, tagged file put/read their closing tag here
+         virtual void RawEndName(const cAuxAr2007& anOT);
+
+
+      // Final non atomic type for serialization
+};
+
+
 
 
 /**
@@ -302,17 +400,18 @@ class cAuxAr2007
 	 eTAAr     mType;
 };
 
-
-
 /// Create an archive structure, its type (xml, binary, text) is determined by extension
  cAr2007* AllocArFromFile(const std::string & aName,bool Input);
+
+ ///  Create an archive for storing specif
+ cAr2007* AllocArSpecif(const std::string & aName);
 
 /// Create an archive for hashing value
 cAr2007* AllocArHashVal(bool ordered);
 size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
 				 
-void AddComment(cAr2007 & anAr, const std::string & aString);
-void AddSeparator(cAr2007 & anAr);
+// void AddComment(cAr2007 & anAr, const std::string & aString);
+// void AddSeparator(cAr2007 & anAr);
 
 
 /** Here are the atomic serialization function */
@@ -336,21 +435,7 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type
 template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal);
 
 
-/** This class is used to embed the information necessary to a raw/hardcopy serialization */
-class cRawData4Serial
-{
-     public :
-        template <class Type> static cRawData4Serial Tpl(Type *Adr,int aNb) 
-        {
-            return cRawData4Serial(Adr,aNb*sizeof(Type));
-        }
-        void * Adr() const;
-        int   NbElem() const;
-     private :
-        cRawData4Serial(void * aAdr,int aNbElem);
-        void * mAdr;
-        int mNbElem;
-};
+
 /*
 template <class Type> cRawData4Serial TplRawData4Serial(Type *Adr,int aNb) 
 {
@@ -364,7 +449,6 @@ void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal); ///< for cRaw
 // template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<Type> & aL);
 
 
-void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!
 
 /// By default no MMV1 save, def value is required for general template SaveInFile
 template<class Type> void  MMv1_SaveInFile(const Type & aVal,const std::string & aName)

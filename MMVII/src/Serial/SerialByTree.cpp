@@ -319,6 +319,13 @@ std::string  cSerialFileParser::GetQuotedString()
    }
 }
 
+bool  cSerialFileParser::BeginPonctuation(char aC) const {return false;}
+cResLex cSerialFileParser::AnalysePonctuation(char aC) 
+{
+    MMVII_UnclasseUsEr("No cSerialFileParser::AnalysePonctuation");
+    return cResLex("",eLexP::eEnd,eTAAr::eUndef);
+}
+
 cResLex  cSerialFileParser::GetNextLex_NOEOF()
 {
 
@@ -1235,7 +1242,7 @@ cResLex cTokenGeneByList::GetNextLex()
 class cOMakeTreeAr : public cAr2007
 {
      public :
-        cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS) ;
+        cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool IsSpecif = false) ;
         ~cOMakeTreeAr();
      protected :
 	typedef std::list<cResLex>   tContToken;
@@ -1263,12 +1270,13 @@ class cOMakeTreeAr : public cAr2007
 };
 
 
-cOMakeTreeAr::cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
+cOMakeTreeAr::cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool IsSpecif)  :
     cAr2007           (false,true,false),   // Input,  Tagged, Binary
     mNameFile         (aName),
     mTypeS            (aTypeS),
     mSkeepStrElCont   (false) // ((aTypeS == eTypeSerial::ejson) || (aTypeS == eTypeSerial::etagt))
 {
+	mIsSpecif = IsSpecif;
 }
 
 bool  cOMakeTreeAr::SkeepStrElCont(const cAuxAr2007& anOT) const
@@ -1291,19 +1299,20 @@ void cOMakeTreeAr::RawEndName(const cAuxAr2007& anOT)
 
 void cOMakeTreeAr::RawAddDataTerm(int &    anI)           
 {
-    mContToken.push_back(cResLex(ToStr(anI),eLexP::eStdToken_Int,eTAAr::eStd)); 
+    mContToken.push_back(cResLex(mIsSpecif?"int":ToStr(anI),eLexP::eStdToken_Int,eTAAr::eStd)); 
 }
+
 void cOMakeTreeAr::RawAddDataTerm(size_t &    anS)        
 { 
-     mContToken.push_back(cResLex(ToStr(anS),eLexP::eStdToken_Size_t,eTAAr::eStd)); 
+     mContToken.push_back(cResLex(mIsSpecif?"size_t":ToStr(anS),eLexP::eStdToken_Size_t,eTAAr::eStd)); 
 }
 void cOMakeTreeAr::RawAddDataTerm(double &    aD)         
 { 
-     mContToken.push_back(cResLex(ToStr(aD),eLexP::eStdToken_Double,eTAAr::eStd)); 
+     mContToken.push_back(cResLex(mIsSpecif?"double":ToStr(aD),eLexP::eStdToken_Double,eTAAr::eStd)); 
 }
 void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)   
 { 
-    mContToken.push_back(cResLex(Quote(anS),eLexP::eStdToken_String,eTAAr::eStd)); 
+    mContToken.push_back(cResLex(mIsSpecif?"std::string":Quote(anS),eLexP::eStdToken_String,eTAAr::eStd)); 
 }
 void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)   
 { 
@@ -1316,6 +1325,10 @@ void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)
        aStr +=  ToHexacode(aICar%16) ;
    }
    aStr += '"';
+   if (mIsSpecif)
+   {
+       aStr = "hexacode";
+   }
    mContToken.push_back(cResLex(aStr,eLexP::eStdToken_RD4S,eTAAr::eStd)); 
 
 }
@@ -1356,9 +1369,9 @@ cOMakeTreeAr::~cOMakeTreeAr()
 }
 
 
-cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS) 
+cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool IsSpecif) 
 {
-    return new cOMakeTreeAr(aName,aTypeS);
+    return new cOMakeTreeAr(aName,aTypeS,IsSpecif);
 }
 
 

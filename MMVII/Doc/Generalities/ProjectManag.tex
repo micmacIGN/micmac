@@ -166,6 +166,52 @@ and only modify  {\tt MMVII-CurentPofile.xml}.
 
 \section{General data organization}
 
+The data organization in {\tt MMVII} is the following :
+
+\begin{itemize}
+     \item for a given project, almost all the file created are located somewhere under
+           the same folder {\tt MMVII-PhgrProj},  this is necessary because during a complex 
+           photogrammetric process many files will be created and we dont want to encumber
+           the main folder;
+
+     \item an example of such folder (resulting from the coded-target usecase) can be
+	     found under {\tt MMVII-UseCaseDataSet/SampleFiles}
+
+     \item for each kind of processing, there exist a subfolder corresponding to the "nature"
+            of the data stored;
+
+    \item  in the example there is of folder for orientation {\tt Ori}, one for point measurement
+	   {\tt PointsMeasure}, one fore handling meta data {\tt MetaData}, one for storing reports
+           {\tt Reports}, all the name of this subfolder are defined by {\tt MMVII} and cannot be changed
+            by the user;
+
+    \item there is (will be) many other king of folder : homologous point, radiometric model, radiometric data,
+           \dots
+
+     \item in each of the predefined folder, there exist different subfolder corresponding to different step
+           of the process; the name of this subfolder are specified by user, sometime as input to a command,
+	   sometime as output to a command; typically the output a command being the input of the next command;
+\end{itemize}
+
+In this example, we have $4$ different folder for orientation in {\tt Ori} :
+
+\begin{itemize}
+      \item  {\tt 11P} which is the result of initial estimation using uncalibrated spaced resection
+	      (with the "$11$ parameters method");
+
+      \item  {\tt Resec} which is the result of pose estimation using calibrated camera, using as input
+	      the calibration stored in {\tt 11P};
+
+      \item  {\tt BA} which is the result of pose estimation using bundled adjusment, using as input
+	      for initial value the pose stored in {\tt Resec};
+
+      \item   the refined pose of  {\tt BA} are used as input to drive a research of uncoded target with
+	      accurate initial position in imahe;
+ 
+       \item using the additional target, {\tt BA} is used as input to a new bundle adjusment and the result is
+             stored in {\tt BA2}.
+
+\end{itemize}
 
 
 %---------------------------------------------

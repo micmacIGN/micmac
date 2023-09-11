@@ -40,7 +40,8 @@ cTestSerial0::cTestSerial0() :
 void AddData(const cAuxAr2007 & anAux, cTestSerial0 &    aTS0) 
 {
     AddData(cAuxAr2007("P1",anAux),aTS0.mP1);
-    AddComment(anAux.Ar(),"This is P1");
+    // AddComment(anAux.Ar(),"This is P1");
+    anAux.Ar().AddComment("This is P1");
 
     AddData(cAuxAr2007("I1",anAux),aTS0.mI1);
     AddData(cAuxAr2007("R4",anAux),aTS0.mR4);
@@ -84,7 +85,7 @@ void AddData(const cAuxAr2007 & anAux0, cTestSerial1 &    aTS1)
     cAuxAr2007 anAux("TS1",anAux0);
 
     AddData(cAuxAr2007("TS0",anAux),aTS1.mTS0);
-    AddComment(anAux.Ar(),"This is TS0");
+    anAux.Ar().AddComment("This is TS0");
     AddData(cAuxAr2007("S",anAux),aTS1.mS);
     AddData(cAuxAr2007("P3",anAux),aTS1.mP3);
     AddData(cAuxAr2007("LI",anAux),aTS1.mLI);
@@ -600,7 +601,10 @@ void BenchSerialization
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml,eTypeSerial::etxt);
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml);
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::edmp);
-    // StdOut() << "BenchSerializationBenchSerialization \n"; getchar() ;
+    if (UserIsMPD())
+    {
+       // StdOut() << "BenchSerializationBenchSerialization \n"; getchar() ;
+    }
     aParam.EndBench();
 }
 
