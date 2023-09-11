@@ -64,7 +64,7 @@ KeypointsType KeypointsType::read(const Kapture::Path &path)
 }
 
 template<typename T>
-Keypoints<T> read(const Path& path, int dsize)
+Keypoints<T> Keypoints<T>::read(const Path& path, int dsize)
 {
     std::ifstream is(path, std::ios::binary);
     if (! is)
@@ -77,7 +77,8 @@ Keypoints<T> read(const Path& path, int dsize)
 
     Keypoints<T> kpt(dsize,fSize / (sizeof (T) * dsize));
     is.seekg(0, std::ios::beg);
-    is.read((char*)kpt.data(), fSize);
+    is.read((char*)kpt.mData.data(), fSize);
+    return kpt;
 }
 
 
