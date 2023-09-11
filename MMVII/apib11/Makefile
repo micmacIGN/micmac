@@ -11,7 +11,7 @@ DOC_INCLUDES=../include/MMVII_PCSens.h ../include/MMVII_memory.h ../include/MMVI
 
 # =========== Includes & Libraries
 MMV1_INCLUDES=-I ${MMV1_DIR}/include -I${MMV1_DIR}
-MMV2_INCLUDES=-I ${MMV2_DIR} -I ${MMV2_INCDIR} -I /usr/include/eigen3
+MMV2_INCLUDES=-I ${MMV2_DIR} -I ${MMV2_INCDIR} -I ${MMV2_DIR}/ExternalInclude/eigen-3.4.0
 PYBIND_INCLUDES=$(shell python3 -m pybind11 --includes) 
 
 MMV2_LIBNAME=P2007

@@ -7,12 +7,14 @@ MMV2_DIR=${MMV1_DIR}/MMVII
 MMV2_BINDIR=${MMV2_DIR}/bin
 MMV2_SRCDIR=${MMV2_DIR}/src
 MMV2_INCDIR=${MMV2_DIR}/include
+MMV2_EXTINCDIR=${MMV2_DIR}/ExternalInclude
 MMV2_EXE=${MMV2_BINDIR}/MMVII
 
 MMV2_GENDIR=${MMV2_SRCDIR}/GeneratedCodes
 
 # =========== Includes & Libraries
-MMV1_INCLUDES=-I ${MMV1_DIR}/include -I${MMV1_DIR}
+EIGEN_DIR=${MMV2_EXTINCDIR}/eigen-3.4.0
+MMV1_INCLUDES=-I ${MMV1_DIR}/include
 MMV2_INCLUDES=-I ${MMV2_INCDIR} -I ${EIGEN_DIR}
 
 MMV2_LIBNAME=P2007
@@ -29,10 +31,6 @@ LD=g++
 CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES}
 LDFLAGS=-fopenmp
 
-EIGEN_DIR=/usr/include/eigen3
-ifeq ("","$(wildcard ${EIGEN_DIR}/Eigen/Dense)")
-  $(error "EIGEN_DIR(='${EIGEN_DIR}') doesn't contain Eigen include files. Use make EIGEN_DIR=/my_eigen_dir")
-endif
 
 # ===========  Use ccache if found
 CCACHE:=${shell which ccache}
