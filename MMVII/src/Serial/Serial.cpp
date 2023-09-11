@@ -35,7 +35,7 @@ const std::string  StrElMap = "Pair";
 
 bool IsTagged(eTypeSerial aTypeS)
 {
-    return  (aTypeS==eTypeSerial::exml) || (aTypeS==eTypeSerial::exml2) || (aTypeS==eTypeSerial::ejson);
+    return  (aTypeS==eTypeSerial::exml) ||  (aTypeS==eTypeSerial::ejson);
 }
 
 
@@ -202,6 +202,11 @@ void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm & aCple)  {aCple.AddData(anA
 
 template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aPt) 
 {
+   if (false && anAux.Ar().IsSpecif())
+   {
+       StdOut() << "PointPointPoint\n";
+       anAux.Ar().AddComment("xxPoint");
+   }
    AddTabData(anAux,aPt.PtRawData(),Dim);
 }
 
@@ -292,14 +297,6 @@ eTAAr cAuxAr2007::Type() const {return mType;}
 /*                                                            */
 /*============================================================*/
 
-
-/// Xml read archive
-/**
-    An archive for reading XML file saved by MMVII with cOXml_Ar2007
-    Probably the more complicated class for cAr2007
-*/
-
-// class 
 
 class cIBaseTxt_Ar2007 : public cAr2007,
 	                   public cXmlSerialTokenParser
@@ -480,6 +477,7 @@ class cOBaseTxt_Ar2007 : public cAr2007
 				    
         cMMVII_Ofs     mMMOs;  ///< secure oftsream to write values
 
+     private :
         bool mXTerm;           ///< mXTerm is activated by RawAdds.. , it allow to put values on the same line
         bool mFirst;  ///< new line is done before <tag> or </tag>, mFirst is used to avoid at first one
 		      
@@ -531,119 +529,16 @@ void cOBaseTxt_Ar2007::DoIndent()
 
 void cOBaseTxt_Ar2007::RawBeginName(const cAuxAr2007& anOT)
 {
-    // if (mXTerm) Ofs()  << std::endl;
-    // mFirst = false;
-    // DoIndent();
 }
 
 void cOBaseTxt_Ar2007::RawEndName(const cAuxAr2007& anOT)
 {
     if (mXTerm)  Ofs()  << std::endl; 
+    // Ofs()  << std::endl; 
     mXTerm = false;
 }
 
 
-/*============================================================*/
-/*                                                            */
-/*          cOXml_Ar2007                                      */
-/*                                                            */
-/*============================================================*/
-
-/// Xml write archive
-/**
-    An archive for writing XML file 
-    Much easier than reading ...
-*/
-class cOXml_Ar2007 : public cOBaseTxt_Ar2007
-{
-     public :
-          cOXml_Ar2007(const std::string & aName) ;
-          ~cOXml_Ar2007();
-
-	 virtual void AddComment(const std::string &) override;
-     protected :
-	 std::string StrIndent() const override ;
-
-         void RawBeginName(const cAuxAr2007& anOT)  override; ///< Put opening tag
-         void RawEndName(const cAuxAr2007& anOT)  override;  ///< Put closing tag
-};
-
-void cOXml_Ar2007::AddComment(const std::string & aString) 
-{
-    mMMOs.Ofs() << "  " << TheXMLBeginCom  << aString << TheXMLEndCom;
-}
-
-cOXml_Ar2007::cOXml_Ar2007(const std::string & aName) : 
-   cOBaseTxt_Ar2007 (aName,eTypeSerial::exml)
-{
-   // Not sure all that is usefull, however, untill now I skipp <? ?>
-	/*
-   mMMOs.Ofs() <<  "<?xml" 
-               << " version=\"1.0\""
-               << " encoding=\"ISO8859-1\"" 
-               << " standalone=\"yes\"" 
-               << " ?>" << std::endl;
-	       */
-   mMMOs.Ofs() <<  TheXMLHeader << std::endl;
-}
-
-
-cOXml_Ar2007::~cOXml_Ar2007()
-{
-   Ofs()  << std::endl;
-}
-
-std::string cOXml_Ar2007::StrIndent() const  { return "   "; }
-
-
-
-void cOXml_Ar2007::RawBeginName(const cAuxAr2007& anOT)
-{
-    if (!mFirst) Ofs()  << std::endl;
-    mFirst = false;
-    DoIndent();
-    Ofs()  << "<" << anOT.Name() << ">";
-}
-
-void cOXml_Ar2007::RawEndName(const cAuxAr2007& anOT)
-{
-    if (! mXTerm){  Ofs()  << std::endl; DoIndent(); }
-    Ofs()  << "</" << anOT.Name() << ">";
-    mXTerm = false;
-}
-
-/*============================================================*/
-/*                                                            */
-/*          cOXmlSpecif_Ar2007                                */
-/*                                                            */
-/*============================================================*/
-
-class cOXmlSpecif_Ar2007 : public cOXml_Ar2007
-{
-     public :
-          cOXmlSpecif_Ar2007(const std::string & aName) ;
-          // inline std::ostream  & Ofs() {return mMMOs.Ofs();}
-          ~cOXmlSpecif_Ar2007();
-     private :
-         void RawAddDataTerm(int &    anI)  override;  ///< write int in text
-         void RawAddDataTerm(size_t &    anI) override;
-         void RawAddDataTerm(double &    anI)  override;  ///< write double in text
-         void RawAddDataTerm(std::string &    anI)  override; // write string
-         void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
-};
-
-void cOXmlSpecif_Ar2007::RawAddDataTerm(int &    anI)          { Ofs() <<"int"   ; mXTerm=true;}
-void cOXmlSpecif_Ar2007::RawAddDataTerm(size_t &    anI)       { Ofs() <<"size_t"; mXTerm=true;}
-void cOXmlSpecif_Ar2007::RawAddDataTerm(double &    anI)       { Ofs() <<"real"  ; mXTerm=true;}
-void cOXmlSpecif_Ar2007::RawAddDataTerm(std::string &    anI)  { Ofs() <<"string"; mXTerm=true;}
-void cOXmlSpecif_Ar2007::RawAddDataTerm(cRawData4Serial & anI) { Ofs() <<"data"  ; mXTerm=true;}
-
-cOXmlSpecif_Ar2007::~cOXmlSpecif_Ar2007(){}
-
-cOXmlSpecif_Ar2007::cOXmlSpecif_Ar2007(const std::string & aName)  :
-   cOXml_Ar2007(aName)
-{
-}	
 
 /*============================================================*/
 /*                                                            */
@@ -824,8 +719,13 @@ void cIBin_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS)
 */
 
 // std::unique_ptr<cAr2007 >  AllocArFromFile(const std::string & aName,bool Input)
-cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
+cAr2007 *  AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif)
 {
+   if (IsSpecif)
+   {
+      MMVII_INTERNAL_ASSERT_always(!Input,"AllocArFromFile Input && Specif incompatible");
+   }
+
    std::string aPost = Postfix(aName,'.',true);
 // StdOut() << "AllocArFromFile, " << aName << " => " << aPost << "\n";
    cAr2007 * aRes = nullptr;
@@ -839,11 +739,7 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
        }
        else
        {
-          if (starts_with(FileOfPath(aName,false),PrefixSpecifXML))
-             aRes =  new cOXmlSpecif_Ar2007(aName);
-          else
-             // aRes =  new cOXml_Ar2007(aName);
-             aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::exml);
+          aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::exml,IsSpecif);
        }
    }
    else if (UCaseEqual(aPost,PostF_DumpFiles) || UCaseEqual(aPost,"dat"))
@@ -869,7 +765,7 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
           aRes =  Alloc_cIMakeTreeAr(aName,eTypeSerial::ejson);
        }
        else
-          aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::ejson);
+          aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::ejson,IsSpecif);
    }
    else if (UCaseEqual(aPost,"tagt") )
    {
@@ -884,13 +780,11 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    {
        if (Input)
        {
-          //  aRes =  Alloc_cIMakeTreeAr(aName,eTypeSerial::exml2);
           aRes =  new cStreamIXml_Ar2007(aName);
        }
        else
        {
-          // aRes =  Alloc_cOMakeTreeAr(aName,eTypeSerial::exml2);
-          aRes =  new cOXml_Ar2007(aName);
+          // aRes =  new cOXml_Ar2007(aName);
        }
    }
 
@@ -898,17 +792,6 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
    return aRes;
 }
 
-cAr2007* AllocArSpecif(const std::string & aName)
-{
-   std::string aPost = Postfix(aName,'.',true);
-   eTypeSerial aTypeS = Str2E<eTypeSerial>(ToLower(aPost));
-
-   if ((aTypeS==eTypeSerial::exml) || (aTypeS==eTypeSerial::ejson))
-      return  Alloc_cOMakeTreeAr(aName,aTypeS,true);
-
-   MMVII_INTERNAL_ASSERT_always(false,"Bad AllocArSpecif");
-   return nullptr;
-}
 
 /***********************************************************/
 

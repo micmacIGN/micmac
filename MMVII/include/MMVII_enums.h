@@ -90,7 +90,7 @@ enum class eApF
 enum class eTypeSerial
            {
                 exml,    ///< current xml file
-                exml2,   ///<  previous xml file, contains number of elements
+                exml2,    ///< old xml, using streaming, maintained 4 now to process V1 file
                 edmp,    ///<  binary files, containt no tag
                 etxt,    ///< equivalent to binary but in text file
                 etagt,    ///< internal, tagged-text to generate readable tree struct, write only

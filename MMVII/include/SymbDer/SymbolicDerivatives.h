@@ -867,10 +867,12 @@ cCoordinatorF<TypeElem>::cCoordinatorF(const std::string &aName, int aSzBuf, int
 template <class TypeElem> 
 cCoordinatorF<TypeElem>::~cCoordinatorF()
 {
+//std::cout <<	"cCoordinatorFcCoordinatorF\n";
     for (auto & aForm : mVAllFormula)
     {
        aForm.FreeMem();
     }
+//std::cout <<	"cCoordinatorFcCoordinatorF\n";
 }
 
 template <class TypeElem>

@@ -295,7 +295,7 @@ class cAr2007 : public cMemCheck
 
          template <class Type,class TypeCast> inline void TplAddDataTermByCast (const cAuxAr2007& anOT,Type&  aValInit,TypeCast* UnUsed)
          {
-// StdOut() << "TplAddDataTermByCast " << (int) aValInit << "BINAY" << mBinary << "\n";
+		 // if it's a binary file, to optimize we make a raw read/write
               if (mBinary)
               {
                   cRawData4Serial aRDS = cRawData4Serial::Tpl(&aValInit,1);
@@ -303,9 +303,10 @@ class cAr2007 : public cMemCheck
               }
               else
               {
+                  //  Else we make a cast of  the value
                    TypeCast aCast = aValInit;
                    RawAddDataTerm(aCast);
-                   if (mInput)
+                   if (mInput)  // in read-mode we must transfert the casted read value
                       aValInit = aCast;
               }
          }
@@ -401,7 +402,7 @@ class cAuxAr2007
 };
 
 /// Create an archive structure, its type (xml, binary, text) is determined by extension
- cAr2007* AllocArFromFile(const std::string & aName,bool Input);
+ cAr2007* AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif=false);
 
  ///  Create an archive for storing specif
  cAr2007* AllocArSpecif(const std::string & aName);

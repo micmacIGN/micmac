@@ -325,12 +325,12 @@ template<class TypeVal> void  TopAddAr(cAr2007  & anAr,TypeVal & aVal,const std:
     }
 }
 
-template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
+template<class Type> void  GenSaveInFile(const Type & aVal,const std::string & aName,bool IsSpecif)
 {
    if (GlobOutV2Format())  // Do we save using MMV2 format by serialization
    {
        // Unique Ptr  , second type indicate the type of deleting unction
-       std::unique_ptr<cAr2007>  anAr (AllocArFromFile(aName,false));
+       std::unique_ptr<cAr2007>  anAr (AllocArFromFile(aName,false,IsSpecif));
 
            /// Not proud of cons_cast ;-( 
        TopAddAr(*anAr,const_cast<Type&>(aVal),aName);
@@ -340,6 +340,17 @@ template<class Type> void  SaveInFile(const Type & aVal,const std::string & aNam
      MMv1_SaveInFile<Type>(aVal,aName);
    }
 }
+template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
+{
+	GenSaveInFile(aVal,aName,false);
+}
+template<class Type> void  SpecificationSaveInFile(const std::string & aName)
+{
+     Type aVal;
+     GenSaveInFile(aVal,aName,true);
+}
+
+
 
 template<class Type> size_t  HashValue(cAr2007 * anAr,const Type & aVal,bool ordered)
 {

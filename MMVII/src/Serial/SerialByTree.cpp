@@ -1335,7 +1335,7 @@ void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)
 
 void cOMakeTreeAr::AddComment(const std::string & anS)
 {
-      // StdOut() <<  "CCCC " << anS << " " <<  mContToken.back().mVal << "\n";
+       // StdOut() <<  "CCCC " << anS << " " <<  mContToken.back().mVal  << " " << int(mContToken.back().mLexP) << "\n";
        mContToken.back().mComment = anS; 
 }
 
