@@ -185,7 +185,6 @@ int CptOccur(const std::string & aStr,char aC0)
 
 int CptSameOccur(const std::string & aStr,const std::string & aStr0)
 {
-    StdOut()  << " *** "  << aStr << " " << aStr0 << "\n";
     const char * aC0 = aStr0.c_str();
     MMVII_INTERNAL_ASSERT_tiny(*aC0!=0,"CptSameOccur str empty");
 
@@ -193,7 +192,7 @@ int CptSameOccur(const std::string & aStr,const std::string & aStr0)
     for (; *aC0; aC0++)
     {
          int aR2 = CptOccur(aStr,*aC0);
-         StdOut() << "__CptSameOccur " << aRes  << " " << aR2 << "\n";
+	 MMVII_INTERNAL_ASSERT_tiny(aR2==aRes,"Not same counting of " + aStr0);
     }
     return aRes;
 }
@@ -211,7 +210,7 @@ void  ReadFilesStruct
             std::vector<std::vector<double>>      & aVNums
       )
 {
-    CptSameOccur("XYZY","XYZ");
+    CptSameOccur(aFormat,"NXYZ");
 
 
     if (aLastL<=0) 
@@ -241,8 +240,8 @@ void  ReadFilesStruct
                 iss.unget();
                 std::vector<double> aLNum;
                 std::vector<std::string> aLNames;
-	        cPt3dr aXYZ = cPt3dr::PNan();
-	        cPt3dr aWKP = cPt3dr::PNan();
+	        cPt3dr aXYZ = cPt3dr::Dummy();
+	        cPt3dr aWKP = cPt3dr::Dummy();
 
                 for (const auto & aCar : aFormat)
                 {

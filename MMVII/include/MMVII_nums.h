@@ -3,6 +3,7 @@
 
 #include "MMVII_Error.h"
 #include "MMVII_memory.h"
+#include <limits>
 //#include "MMVII_AllClassDeclare.h"
 
 namespace MMVII
@@ -280,7 +281,8 @@ template <class Type> class tElemNumTrait
 template <> class tElemNumTrait<tU_INT1> : public tBaseNumTrait<tStdInt>
 {
     public :
-        static tU_INT1 MaxVal() {return 0xFF;}
+        static tU_INT1 DummyVal() {MMVII_INTERNAL_ERROR("No DummyVal for type");return 0;}
+        static tU_INT1 MaxVal() {return  std::numeric_limits<tU_INT1>::max();}
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT1;}
         typedef tREAL4   tFloatAssoc;
@@ -288,7 +290,8 @@ template <> class tElemNumTrait<tU_INT1> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tU_INT2> : public tBaseNumTrait<tStdInt>
 {
     public :
-        static tU_INT2 MaxVal() {return 0xFFFF;}
+        static tU_INT2 DummyVal() {MMVII_INTERNAL_ERROR("No DummyVal for type");return 0;}
+        static tU_INT2 MaxVal() {return  std::numeric_limits<tU_INT2>::max();}
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT2;}
         typedef tREAL4   tFloatAssoc;
@@ -296,7 +299,8 @@ template <> class tElemNumTrait<tU_INT2> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tU_INT4> : public tBaseNumTrait<tINT8>
 {
     public :
-        static tU_INT4 MaxVal() {return 0xFFFFFFFF;}
+        static tU_INT4 DummyVal() {return MaxVal();}
+        static tU_INT4 MaxVal() {return  std::numeric_limits<tU_INT4>::max();}
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT4;}
         typedef tREAL8   tFloatAssoc;
@@ -307,6 +311,7 @@ template <> class tElemNumTrait<tU_INT4> : public tBaseNumTrait<tINT8>
 template <> class tElemNumTrait<tINT1> : public tBaseNumTrait<tStdInt>
 {
     public :
+        static tINT1 DummyVal() {MMVII_INTERNAL_ERROR("No DummyVal for type");return 0;}
         static bool   Signed() {return true;}
         static eTyNums   TyNum() {return eTyNums::eTN_INT1;}
         typedef tREAL4   tFloatAssoc;
@@ -314,6 +319,7 @@ template <> class tElemNumTrait<tINT1> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tINT2> : public tBaseNumTrait<tStdInt>
 {
     public :
+        static tINT2 DummyVal() {MMVII_INTERNAL_ERROR("No DummyVal for type");return 0;}
         static bool   Signed() {return true;}
         static eTyNums   TyNum() {return eTyNums::eTN_INT2;}
         typedef tREAL4   tFloatAssoc;
@@ -321,6 +327,9 @@ template <> class tElemNumTrait<tINT2> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tINT4> : public tBaseNumTrait<tStdInt>
 {
     public :
+        static tINT4 MaxVal() {return  std::numeric_limits<tINT4>::max();}
+        static tINT4 DummyVal() {return MaxVal();}
+
         static bool   Signed() {return true;}
         static eTyNums   TyNum() {return eTyNums::eTN_INT4;}
         typedef tREAL8   tFloatAssoc;
@@ -328,6 +337,8 @@ template <> class tElemNumTrait<tINT4> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tINT8>
 {
     public :
+        static tINT8 MaxVal() {return  std::numeric_limits<tINT8>::max();}
+        static tINT8 DummyVal() {return MaxVal();}
         static bool      Signed() {return true;}
         static eTyNums   TyNum() {return eTyNums::eTN_INT8;}
         typedef tREAL8   tFloatAssoc;
@@ -338,6 +349,7 @@ template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tINT8>
 template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
 {
     public :
+        static tREAL4 DummyVal() {return std::nanf("");}
         static tREAL4 Accuracy() {return 1e-2;} 
         static bool   Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL4;}
@@ -346,6 +358,7 @@ template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
 template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
 {
     public :
+        static tREAL8 DummyVal() {return std::nan("");}
         static tREAL8 Accuracy() {return 1e-4;} 
         static bool   Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL8;}
@@ -354,6 +367,7 @@ template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
 template <> class tElemNumTrait<tREAL16> : public tBaseNumTrait<tREAL16>
 {
     public :
+        static tREAL16 DummyVal() {return std::nanl("");}
         static tREAL16 Accuracy() {return static_cast<tREAL16>(1e-6);} 
         static bool      Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL16;}
@@ -997,6 +1011,12 @@ void  ReadFilesStruct
           std::vector<cPt3dr>  & aVWKP,  //   "WPK" 
           std::vector<std::vector<double>>  & aVNums  //  get other double "FF*F"
       );
+
+/// nuber of occurence of aC0 in aStr
+int CptOccur(const std::string & aStr,char aC0);
+/// Check same number of occurence of Str0 in aStr, and return it, Str0 cannot be empty
+int CptSameOccur(const std::string & aStr,const std::string & aStr0);
+
 
 
 

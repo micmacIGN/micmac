@@ -197,15 +197,14 @@ int cAppli_ImportGCP::Exe()
     std::vector<cPt3dr> aVXYZ,aVWKP;
 
 
+    MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYZN")==1,"Bad format vs NXYZ");
+
     ReadFilesStruct
     (
         mNameFile, mFormat,
         mL0, mLLast, mComment,
         aVNames,aVXYZ,aVWKP,aVNums
     );
-
-    StdOut() << "aVNameaVName " << aVNames.size() << " " << aVXYZ.size() << "\n";
-
 
 
     if (! IsInit(&mNameGCP))
@@ -220,8 +219,6 @@ int cAppli_ImportGCP::Exe()
 
     mNameOut  = mNameOut + "." +  NameDefSerial();
 
-    // StdOut() << "ggggg " << mPhProj.DPPointsMeasures().DirOutIsInit() << "\n";
-    // StdOut() << "ggggg " << mPhProj.DPPointsMeasures().FullDirOut() << "\n";
     if (mPhProj.DPPointsMeasures().DirOutIsInit())
     {
         mNameOut = mPhProj.DPPointsMeasures().FullDirOut() + cSetMesGCP::ThePrefixFiles + "_" + mNameOut;
@@ -232,7 +229,6 @@ int cAppli_ImportGCP::Exe()
        MMVII_UnclasseUsEr("Default out would overwrite input file");
     }
 
-StdOut() << "cAppli_ImportGCP::Exe " << __LINE__ << "\n";
     cSetMesGCP aSetM(mNameGCP);
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
@@ -242,7 +238,6 @@ StdOut() << "cAppli_ImportGCP::Exe " << __LINE__ << "\n";
 
          aSetM.AddMeasure(cMes1GCP(aVXYZ[aK],aName,1.0));
     }
-StdOut() << "cAppli_ImportGCP::Exe " << __LINE__ << "\n";
 
     aSetM.ToFile(mNameOut);
 
