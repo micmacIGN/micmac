@@ -987,8 +987,11 @@ void  ReadFilesNum(const std::string & aNameFile,const std::string & aFormat,std
 
 void  ReadFilesStruct
       (
-          const std::string & aNameFile, const std::string & aFormat,
-          int aL0, int aLastL, int aComment,
+          const std::string & aNameFile,  // name of file ...
+	  const std::string & aFormat,    // format of each line like "NXYZ"
+          int aL0,    // Num first line
+	  int aLastL,  // Num last line
+	  int aComment,  // 
           std::vector<std::vector<std::string>> & aVNames,
           std::vector<cPt3dr> & aVXYZ, std::vector<cPt3dr>  & aVWKP,
           std::vector<std::vector<double>>      & aVNums

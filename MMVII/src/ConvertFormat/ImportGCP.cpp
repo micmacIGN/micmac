@@ -203,6 +203,8 @@ int cAppli_ImportGCP::Exe()
         aVNames,aVXYZ,aVWKP,aVNums
     );
 
+    StdOut() << "aVNameaVName " << aVNames.size() << " " << aVXYZ.size() << "\n";
+
 
 
     if (! IsInit(&mNameGCP))
@@ -229,6 +231,7 @@ int cAppli_ImportGCP::Exe()
        MMVII_UnclasseUsEr("Default out would overwrite input file");
     }
 
+StdOut() << "cAppli_ImportGCP::Exe " << __LINE__ << "\n";
     cSetMesGCP aSetM(mNameGCP);
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
@@ -238,6 +241,7 @@ int cAppli_ImportGCP::Exe()
 
          aSetM.AddMeasure(cMes1GCP(aVXYZ[aK],aName,1.0));
     }
+StdOut() << "cAppli_ImportGCP::Exe " << __LINE__ << "\n";
 
     aSetM.ToFile(mNameOut);
 
