@@ -72,6 +72,9 @@ template <class Type,const int Dim> class cPtxd
 
        /// Initialisation with constants
        static cPtxd<Type,Dim>  PCste(const Type & aVal) ;
+       /// Initialisation with nan value (to detect error asap)
+       static cPtxd<Type,Dim>  PNan();
+      
       
        /// Initialisation from PInt
        static cPtxd<Type,Dim>  FromPtInt(const  cPtxd<int,Dim> & aVal) ;

@@ -1,6 +1,7 @@
 #include "MMVII_Error.h"
 #include "MMVII_util.h"
 #include "MMVII_Ptxd.h"
+#include "cMMVII_Appli.h"
 
 namespace MMVII
 {
@@ -173,6 +174,30 @@ template<class Type> inline Type GetV(std::istringstream & iss)
     return aNum;
 }
 
+int CptOccur(const std::string & aStr,char aC0)
+{
+   int aCptOccur = 0;
+   for (const auto & aC :  aStr)
+      aCptOccur +=  (aC==aC0);
+
+   return aCptOccur;
+}
+
+int CptSameOccur(const std::string & aStr,const std::string & aStr0)
+{
+    StdOut()  << " *** "  << aStr << " " << aStr0 << "\n";
+    const char * aC0 = aStr0.c_str();
+    MMVII_INTERNAL_ASSERT_tiny(*aC0!=0,"CptSameOccur str empty");
+
+    int aRes = CptOccur(aStr,*(aC0++));
+    for (; *aC0; aC0++)
+    {
+         int aR2 = CptOccur(aStr,*aC0);
+         StdOut() << "__CptSameOccur " << aRes  << " " << aR2 << "\n";
+    }
+    return aRes;
+}
+
 void  ReadFilesStruct 
       (
 	    const std::string &                     aNameFile,
@@ -186,6 +211,9 @@ void  ReadFilesStruct
             std::vector<std::vector<double>>      & aVNums
       )
 {
+    CptSameOccur("XYZY","XYZ");
+
+
     if (aLastL<=0) 
        aLastL = 100000000;
 
@@ -213,8 +241,8 @@ void  ReadFilesStruct
                 iss.unget();
                 std::vector<double> aLNum;
                 std::vector<std::string> aLNames;
-	        cPt3dr aXYZ;
-	        cPt3dr aWKP;
+	        cPt3dr aXYZ = cPt3dr::PNan();
+	        cPt3dr aWKP = cPt3dr::PNan();
 
                 for (const auto & aCar : aFormat)
                 {

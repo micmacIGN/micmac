@@ -990,11 +990,12 @@ void  ReadFilesStruct
           const std::string & aNameFile,  // name of file ...
 	  const std::string & aFormat,    // format of each line like "NXYZ"
           int aL0,    // Num first line
-	  int aLastL,  // Num last line
-	  int aComment,  // 
-          std::vector<std::vector<std::string>> & aVNames,
-          std::vector<cPt3dr> & aVXYZ, std::vector<cPt3dr>  & aVWKP,
-          std::vector<std::vector<double>>      & aVNums
+	  int aLastL,  // Num last line, if <0 => infty
+	  int aComment,  // Car for begining a comment, for ex -1 if no comment
+          std::vector<std::vector<std::string>> & aVNames,  // "N" 
+          std::vector<cPt3dr> & aVXYZ,   //  "XYZ"
+          std::vector<cPt3dr>  & aVWKP,  //   "WPK" 
+          std::vector<std::vector<double>>  & aVNums  //  get other double "FF*F"
       );
 
 

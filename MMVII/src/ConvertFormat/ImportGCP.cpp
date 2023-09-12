@@ -164,7 +164,8 @@ cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const
    cMMVII_Appli  (aVArgs,aSpec),
    mPhProj       (*this),
    mL0           (0),
-   mLLast        (-1)
+   mLLast        (-1),
+   mComment      (-1)
 {
 }
 

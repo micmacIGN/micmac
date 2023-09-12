@@ -301,6 +301,11 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PCste(cons
    return aRes;
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PNan()
+{
+  return PCste(0);// NAN);
+}
+
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::FromPtInt(const cPtxd<int,Dim> & aPInt)
 {
    cPtxd<Type,Dim> aRes;
@@ -1276,6 +1281,7 @@ template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,TYPE aW1
 template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,const cPtxd<TYPE,DIM> & aP1);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PNan();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
