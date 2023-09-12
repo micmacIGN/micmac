@@ -1,0 +1,30 @@
+{
+   "Type" :"std::string" ,
+   "Version" :"std::string" ,
+   "Data" :
+   {
+      "TS1" :
+      {
+         "TS0" :
+         {
+            "P1" :["double" , "double"] ,
+                        "<!--comment1-->":"This is P1",
+            "I1" :"int" ,
+            "R4" :"double" ,
+            "P2" :["double" , "double"]
+         } ,
+                     "<!--comment2-->":"This is TS0",
+         "S" :"std::string" ,
+         "P3" :["double" , "double"] ,
+         "LI" :
+         [
+            "int"
+         ] ,
+         "VD" :
+         [
+            "double"
+         ] ,
+         "Opt:O2" :["double" , "double"]
+      }
+   }
+}

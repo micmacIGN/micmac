@@ -571,6 +571,13 @@ int  cAppliGenerateEncoding::Exe()
    return EXIT_SUCCESS;
 }
 
+void GenSpec_BitEncoding(const std::string & aDir)
+{
+    SpecificationSaveInFile<cBitEncoding>(aDir +"BitEncoding.xml");
+    SpecificationSaveInFile<cBitEncoding>(aDir +"BitEncoding.json");
+
+}
+
 /* =============================================== */
 /*                                                 */
 /*                       ::                        */

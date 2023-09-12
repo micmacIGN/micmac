@@ -57,10 +57,19 @@ cCollecSpecArg2007 & cAppliSpecSerial::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           ;
 }
 
+
+void GenSpec_BitEncoding(const std::string & aDir);
+
+
 int  cAppliSpecSerial::Exe()
 {
-   SpecificationSaveInFile<cTestSerial1>("cTestSerial1.xml");
-   // SpecificationSaveInFile<cTestSerial1>("cTestSerial1.json");
+   std::string aDir = DirRessourcesMMVII() + "SpecifSerial/";
+
+   SpecificationSaveInFile<cTestSerial1>(aDir+"cTestSerial1.xml");
+   SpecificationSaveInFile<cTestSerial1>(aDir+"cTestSerial1.json");
+
+   GenSpec_BitEncoding(aDir);
+
 
    return EXIT_SUCCESS;
 }

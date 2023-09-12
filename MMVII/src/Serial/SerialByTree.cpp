@@ -1245,6 +1245,10 @@ class cOMakeTreeAr : public cAr2007
         cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool IsSpecif = false) ;
         ~cOMakeTreeAr();
      protected :
+
+	std::string JSonQuote(const std::string & aStr) const;
+
+
 	typedef std::list<cResLex>   tContToken;
 
         void RawBeginName(const cAuxAr2007& anOT)  override; ///< Put opening tag
@@ -1268,6 +1272,11 @@ class cOMakeTreeAr : public cAr2007
 	eTypeSerial           mTypeS;
 	bool                  mSkeepStrElCont;
 };
+
+std::string cOMakeTreeAr::JSonQuote(const std::string & aStr) const
+{
+    return (mTypeS==eTypeSerial::ejson) ? Quote(aStr) : aStr;
+}
 
 
 cOMakeTreeAr::cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool IsSpecif)  :
@@ -1299,20 +1308,20 @@ void cOMakeTreeAr::RawEndName(const cAuxAr2007& anOT)
 
 void cOMakeTreeAr::RawAddDataTerm(int &    anI)           
 {
-    mContToken.push_back(cResLex(mIsSpecif?"int":ToStr(anI),eLexP::eStdToken_Int,eTAAr::eStd)); 
+    mContToken.push_back(cResLex(mIsSpecif?JSonQuote("int"):ToStr(anI),eLexP::eStdToken_Int,eTAAr::eStd)); 
 }
 
 void cOMakeTreeAr::RawAddDataTerm(size_t &    anS)        
 { 
-     mContToken.push_back(cResLex(mIsSpecif?"size_t":ToStr(anS),eLexP::eStdToken_Size_t,eTAAr::eStd)); 
+     mContToken.push_back(cResLex(mIsSpecif?JSonQuote("size_t"):ToStr(anS),eLexP::eStdToken_Size_t,eTAAr::eStd)); 
 }
 void cOMakeTreeAr::RawAddDataTerm(double &    aD)         
 { 
-     mContToken.push_back(cResLex(mIsSpecif?"double":ToStr(aD),eLexP::eStdToken_Double,eTAAr::eStd)); 
+     mContToken.push_back(cResLex(mIsSpecif?JSonQuote("double"):ToStr(aD),eLexP::eStdToken_Double,eTAAr::eStd)); 
 }
 void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)   
 { 
-    mContToken.push_back(cResLex(mIsSpecif?"std::string":Quote(anS),eLexP::eStdToken_String,eTAAr::eStd)); 
+    mContToken.push_back(cResLex(mIsSpecif?JSonQuote("std::string"):Quote(anS),eLexP::eStdToken_String,eTAAr::eStd)); 
 }
 void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)   
 { 

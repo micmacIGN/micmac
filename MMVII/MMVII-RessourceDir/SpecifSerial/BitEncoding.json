@@ -1,0 +1,37 @@
+{
+   "Type" :"std::string" ,
+   "Version" :"std::string" ,
+   "Data" :
+   {
+      "BitEncoding" :
+      {
+         "Specifs" :
+         {
+            "Type" :"std::string" ,
+            "NbBits" :"size_t" ,
+            "FreqCircEq" :"size_t" ,
+            "MinHammingD" :"size_t" ,
+            "UseHammingCode" :"int" ,
+            "MaxRunL" :["int" , "int"] ,
+            "Parity" :"size_t" ,
+            "MaxNb" :"size_t" ,
+            "Base4N" :"size_t" ,
+            "Computed" :
+            {
+               "Prefix" :"std::string" ,
+               "NbDigit" :"size_t" ,
+               "MaxNum" :"size_t" ,
+               "MaxLowCode" :"size_t" ,
+               "MaxCodeEqui" :"size_t"
+            }
+         } ,
+         "Encoding" :
+         [
+            {
+               "NumCode" :["size_t" , "size_t"] ,
+               "Name" :"std::string"
+            }
+         ]
+      }
+   }
+}
