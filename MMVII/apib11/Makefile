@@ -41,10 +41,11 @@ export SRCS:=${wildcard *.cpp}
 # ============ Targets
 export XML_MICMAC_FILES=$(wildcard ../../include/XML_MicMac/*.xml)
 export XML_GEN_FILES=$(wildcard ../../include/XML_GEN/*.xml)
+export XML_MMVII_LOCALPARAMETERS=$(wildcard ../MMVII-LocalParameters/*.xml)
 export EXTRA_OBJECTS=../bin/libP2007.a ../../lib/libelise.a ../../lib/libANN.a
 export MMVII_BIN=../bin/MMVII
 
-MODULE=$(shell export CC="$$CXX" SRCS="$$SRCS"  CXXFLAGS="$$CXXFLAGS" XML_MICMAC_FILES="$$XML_MICMAC_FILES" XML_GEN_FILES="$$XML_GEN_FILES" EXTRA_OBJECTS="$$EXTRA_OBJECTS" MMVII_BIN="$$MMVII_BIN" ; $(PYTHON) setup.py module_name)
+MODULE=$(shell export CC="$$CXX" SRCS="$$SRCS"  CXXFLAGS="$$CXXFLAGS" XML_MICMAC_FILES="$$XML_MICMAC_FILES" XML_GEN_FILES="$$XML_GEN_FILES" XML_MMVII_LOCALPARAMETERS="$$XML_MMVII_LOCALPARAMETERS" EXTRA_OBJECTS="$$EXTRA_OBJECTS" MMVII_BIN="$$MMVII_BIN" ; $(PYTHON) setup.py module_name)
 
 .phony: all clean clean_python install uninstall
 
@@ -67,7 +68,7 @@ docstrings.h: $(DOC_INCLUDES) Makefile
 
 $(MODULE): export CC=${CXX} 
 
-$(MODULE): docstrings.h ${SRCS} $(MMVII_BIN) $(EXTRA_OBJECTS) $(XML_MICMAC_FILES) $(XML_GEN_FILES)
+$(MODULE): docstrings.h ${SRCS} $(MMVII_BIN) $(EXTRA_OBJECTS) $(XML_MICMAC_FILES) $(XML_GEN_FILES) $(XML_MMVII_LOCALPARAMETERS)
 	$(MAKE) clean_python
 	$(PYTHON) setup.py build
 	$(PYTHON) setup.py bdist_wheel

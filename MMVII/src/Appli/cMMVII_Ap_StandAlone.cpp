@@ -41,6 +41,7 @@ void InitStandAloneAppli(const char* aAppName, const char *aComment)
                 __FILE__
             );
     static cDummyAppli cDummyAppli({},TheSpecDummyAppli);
+    cDummyAppli.InitParam(nullptr);
 }
 
 int InitStandAloneAppli(const cSpecMMVII_Appli & aSpec, int argc, char*argv[])

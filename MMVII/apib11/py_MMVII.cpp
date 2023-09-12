@@ -50,13 +50,11 @@ class MM_Module
         MMVII::MMVII_SetErrorHandler(ErrHanlderPy);
         NS_SymbolicDerivative::ErrorMgr::SetHandler(ErrHanlderSymbDerPy);
         MMVII::InitStandAloneAppli("apipy");
-        MMVII::OpenRandom();
         std::cout<<"MMVII initialized."<<std::endl;
         init = true;
     }
     ~MM_Module()
     {
-        MMVII::CloseRandom();
         std::cout<<"MMVII exited."<<std::endl;
     }
     static bool init;
