@@ -91,7 +91,7 @@ void cOneEncoding::SetName(const std::string & aName)
 void cOneEncoding::AddData(const  cAuxAr2007 & anAux)
 {
    if ((! anAux.Input()) && (mNC[2]!=0))
-       AddComment(anAux.Ar(),StrOfBitFlag(Code(),1<<mNC[2]));
+       anAux.Ar().AddComment(StrOfBitFlag(Code(),1<<mNC[2]));
    // AddTabData(anAux,mNC,2);
    AddTabData(cAuxAr2007("NumCode",anAux),mNC,2);
    MMVII::AddData(cAuxAr2007("Name",anAux),mName);
@@ -569,6 +569,13 @@ int  cAppliGenerateEncoding::Exe()
 
 
    return EXIT_SUCCESS;
+}
+
+void GenSpec_BitEncoding(const std::string & aDir)
+{
+    SpecificationSaveInFile<cBitEncoding>(aDir +"BitEncoding.xml");
+    SpecificationSaveInFile<cBitEncoding>(aDir +"BitEncoding.json");
+
 }
 
 /* =============================================== */

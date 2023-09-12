@@ -193,16 +193,16 @@ void cSensorCamPC::AddData(const cAuxAr2007 & anAux0)
         MMVII::AddData(cAuxAr2007("AxeK",aAuxRot),aK);
     }
     MMVII::AddData(cAuxAr2007("EQ",anAux),aQuat);
-    AddComment(anAux.Ar(),"EigenQuaternion, for information");
+    anAux.Ar().AddComment("EigenQuaternion, for information");
 
     cPt3dr aWPK = mPose.Rot().ToWPK() *  (180.0/M_PI);
     MMVII::AddData(cAuxAr2007("WPK",anAux),aWPK);
-    AddComment(anAux.Ar(),"Omega Phi Kapa in degree, for information");
+    anAux.Ar().AddComment("Omega Phi Kapa in degree, for information");
 
 
     cPt3dr aYPR = mPose.Rot().ToYPR() *  (180.0/M_PI);
     MMVII::AddData(cAuxAr2007("YPR",anAux),aYPR);
-    AddComment(anAux.Ar(),"Yaw Pitch Roll in degree, for information");
+    anAux.Ar().AddComment("Yaw Pitch Roll in degree, for information");
 
 
 

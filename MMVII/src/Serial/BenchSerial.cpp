@@ -40,7 +40,8 @@ cTestSerial0::cTestSerial0() :
 void AddData(const cAuxAr2007 & anAux, cTestSerial0 &    aTS0) 
 {
     AddData(cAuxAr2007("P1",anAux),aTS0.mP1);
-    AddComment(anAux.Ar(),"This is P1");
+    // AddComment(anAux.Ar(),"This is P1");
+    anAux.Ar().AddComment("This is P1");
 
     AddData(cAuxAr2007("I1",anAux),aTS0.mI1);
     AddData(cAuxAr2007("R4",anAux),aTS0.mR4);
@@ -84,7 +85,7 @@ void AddData(const cAuxAr2007 & anAux0, cTestSerial1 &    aTS1)
     cAuxAr2007 anAux("TS1",anAux0);
 
     AddData(cAuxAr2007("TS0",anAux),aTS1.mTS0);
-    AddComment(anAux.Ar(),"This is TS0");
+    anAux.Ar().AddComment("This is TS0");
     AddData(cAuxAr2007("S",anAux),aTS1.mS);
     AddData(cAuxAr2007("P3",anAux),aTS1.mP3);
     AddData(cAuxAr2007("LI",anAux),aTS1.mLI);
@@ -303,7 +304,7 @@ template <class Type> void BenchSerialObject_AllMode(const Type & anObj,const st
 {
     for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
     {
-        if (aKS1 != int (eTypeSerial::etagt))
+        if ((aKS1 != int (eTypeSerial::etagt)) &&(aKS1 != int (eTypeSerial::exml2)))
 	{
 		BenchSerialObject_1Mode(anObj,aDirOut,eTypeSerial(aKS1));
 	}
@@ -358,7 +359,7 @@ void BenchSerial_PerspCamIntrCalib(cPerspCamIntrCalib * aCam1,const std::string 
 void BenchSerial_PerspCamIntrCalib(const std::string & aDirOut,eTypeSerial aTypeS)
 {
      // tuning serial -type, dont handle read
-     if (aTypeS==eTypeSerial::etagt) 
+     if ((aTypeS==eTypeSerial::etagt)  || (aTypeS==eTypeSerial::exml2))
         return;
 
      for (int aKM=0 ; aKM<int(eProjPC::eNbVals) ; aKM++)
@@ -396,7 +397,9 @@ void BenchSerialization
 	   MMVII_DEV_WARNING("NO JSON IN BenchSerialization");
 
 
-   if ( (aTypeS==eTypeSerial::etagt)  || (aTypeS2==eTypeSerial::etagt))
+   if (     (aTypeS==eTypeSerial::etagt)  || (aTypeS2==eTypeSerial::etagt)
+        ||  (aTypeS==eTypeSerial::exml2)  || (aTypeS2==eTypeSerial::exml2)
+      )
    {
 	   return;
    }
@@ -473,8 +476,7 @@ void BenchSerialization
 
 	for (int aKS=0 ; aKS <int(eTypeSerial::eNbVals) ;aKS++)
         {
-           // if (OkJSon || (  (aKS!=(int) eTypeSerial::ejson) && (aKS!=(int) eTypeSerial::etagt) && (aKS!=(int) eTypeSerial::exml2)))
-           if (aKS!=(int) eTypeSerial::etagt) 
+           if ((aKS!=(int) eTypeSerial::etagt) &&  (aKS!=(int) eTypeSerial::exml2) )
 	   {
                std::string aPost = E2Str(eTypeSerial(aKS));
                SaveInFile(aP34,aDirOut+"F10."+aPost);
@@ -600,7 +602,10 @@ void BenchSerialization
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml,eTypeSerial::etxt);
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::exml);
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::edmp);
-    // StdOut() << "BenchSerializationBenchSerialization \n"; getchar() ;
+    if (UserIsMPD())
+    {
+       // StdOut() << "BenchSerializationBenchSerialization \n"; getchar() ;
+    }
     aParam.EndBench();
 }
 

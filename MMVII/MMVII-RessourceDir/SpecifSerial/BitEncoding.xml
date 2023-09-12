@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>std::string</Type>
+   <Version>std::string</Version>
+   <Data>
+      <BitEncoding>
+         <Specifs>
+            <Type>std::string</Type>
+            <NbBits>size_t</NbBits>
+            <FreqCircEq>size_t</FreqCircEq>
+            <MinHammingD>size_t</MinHammingD>
+            <UseHammingCode>int</UseHammingCode>
+            <MaxRunL>int int</MaxRunL>
+            <Parity>size_t</Parity>
+            <MaxNb>size_t</MaxNb>
+            <Base4N>size_t</Base4N>
+            <Computed>
+               <Prefix>std::string</Prefix>
+               <NbDigit>size_t</NbDigit>
+               <MaxNum>size_t</MaxNum>
+               <MaxLowCode>size_t</MaxLowCode>
+               <MaxCodeEqui>size_t</MaxCodeEqui>
+            </Computed>
+         </Specifs>
+         <Encoding>
+            <el>
+               <NumCode>size_t size_t</NumCode>
+               <Name>std::string</Name>
+            </el>
+         </Encoding>
+      </BitEncoding>
+   </Data>
+</Root>

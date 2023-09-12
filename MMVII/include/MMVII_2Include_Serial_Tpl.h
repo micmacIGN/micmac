@@ -40,7 +40,12 @@ template <class Type> void EnumAddData(const cAuxAr2007 & anAux,Type & anEnum,co
           anEnum = Str2E<Type>(aName);
    }
    else
-      TplAddRawData(anAux,&anEnum,1,aTag);
+   {
+       int aIEnum = int(anEnum);
+       AddData(cAuxAr2007(aTag,anAux),aIEnum);
+       if (anAux.Input())
+          anEnum =  (Type) aIEnum;
+   }
 }
 
 
@@ -96,7 +101,7 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
     {
        // Indicate if the value is present and if yes put it
        AddData(anAux,aNb);  
-       AddSeparator(anAux.Ar());
+       anAux.Ar().Separator();
        if (aNb)
           AddData(anAux,*aL);
     }
@@ -164,6 +169,8 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
 {
     anAux.SetType(eTAAr::eCont);
     int aNb=aL.size();
+    if (anAux.Ar().IsSpecif())
+       aNb = 1;
     // put or read the number
     // AddData(cAuxAr2007("Nb",anAux),aNb);
     AddDataSizeCont(aNb,anAux);
@@ -218,7 +225,6 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
         {
             cAuxAr2007 anAuxPair(StrElMap,anAux,eTAAr::ePairMap);
             AddData(cAuxAr2007("K",anAuxPair,eTAAr::eKeyMap),const_cast<TypeKey&>(aPair.first));
-	    // AddSeparator(anAux.Ar());
             AddData(cAuxAr2007("V",anAuxPair,eTAAr::eValMap),const_cast<TypeVal&>(aPair.second));
             //AddData(anAuxPair,aPair->second);
         }
@@ -319,59 +325,33 @@ template<class TypeVal> void  TopAddAr(cAr2007  & anAr,TypeVal & aVal,const std:
     }
 }
 
-template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
+template<class Type> void  GenSaveInFile(const Type & aVal,const std::string & aName,bool IsSpecif)
 {
    if (GlobOutV2Format())  // Do we save using MMV2 format by serialization
    {
        // Unique Ptr  , second type indicate the type of deleting unction
-       // DeleteAr -> function that will be called for deleting
-       std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,false),DeleteAr);
+       std::unique_ptr<cAr2007>  anAr (AllocArFromFile(aName,false,IsSpecif));
 
            /// Not proud of cons_cast ;-( 
        TopAddAr(*anAr,const_cast<Type&>(aVal),aName);
-
-       /*
-       {
-           cAuxAr2007  aGLOB("Type",*anAr,eTAAr::eStd);
-	   std::string aV=TagMMVIISerial;
-           AddData(aGLOB,aV);
-       }
-       {
-           cAuxAr2007  aGLOB("Version",*anAr,eTAAr::eStd);
-	   std::string aV="0.00";
-           AddData(aGLOB,aV);
-       }
-       {
-           cAuxAr2007  aGLOB("Data",*anAr,eTAAr::eStd);
-           /// Not proud of cons_cast ;-( 
-           AddData(aGLOB,const_cast<Type&>(aVal));
-       }
-       */
-
-       /*
-       {
-           cAuxAr2007  aGLOB(TagMMVIISerial,*anAr,eTAAr::eStd);
-           /// Not proud of cons_cast ;-( 
-           AddData(aGLOB,const_cast<Type&>(aVal));
-       }
-       */
    }
    else
    {
      MMv1_SaveInFile<Type>(aVal,aName);
    }
 }
-
-/*
-template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
+template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
 {
-    std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArHashVal(ordered),DeleteAr);
-    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
-    AddData(aGLOB,const_cast<Type&>(aVal));
-    return HashValFromAr(*anAr);
+	GenSaveInFile(aVal,aName,false);
+}
+template<class Type> void  SpecificationSaveInFile(const std::string & aName)
+{
+     Type aVal;
+     GenSaveInFile(aVal,aName,true);
 }
 
-*/
+
+
 template<class Type> size_t  HashValue(cAr2007 * anAr,const Type & aVal,bool ordered)
 {
     cAuxAr2007  aGLOB(TagMMVIISerial,*anAr, eTAAr::eStd);
@@ -380,7 +360,7 @@ template<class Type> size_t  HashValue(cAr2007 * anAr,const Type & aVal,bool ord
 }
 template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
 {
-    std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArHashVal(ordered),DeleteAr);
+    std::unique_ptr<cAr2007>  anAr (AllocArHashVal(ordered));
     return HashValue(anAr.get(),aVal,ordered);
 }
 
@@ -390,26 +370,8 @@ template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
 /** Same as write, but simpler as V1/V2 choice is guided by file */
 template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
 {
-    std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,true),DeleteAr);
+    std::unique_ptr<cAr2007>  anAr (AllocArFromFile(aName,true));
     TopAddAr(*anAr,aVal,aName);
-    /*
-    std::string aVV="0.00";
-    std::string aVS=TagMMVIISerial;
-    bool IsXml =  LastPostfix(aName)=="xml";
-    if (IsXml)
-    {
-       cAuxAr2007  aG0("",*anAr,eTAAr::eStd);
-       AddData(cAuxAr2007("Type"   ,aG0,eTAAr::eStd),aVS);
-       AddData(cAuxAr2007("Version",aG0,eTAAr::eStd),aVV);
-       AddData(cAuxAr2007("Data",   aG0,eTAAr::eStd),aVal);
-    }
-    else
-    {
-       AddData(cAuxAr2007("Type"   ,*anAr,eTAAr::eStd),aVS);
-       AddData(cAuxAr2007("Version",*anAr,eTAAr::eStd),aVV);
-       AddData(cAuxAr2007("Data",   *anAr,eTAAr::eStd),aVal);
-    }
-    */
 }
 
 /// If the file does not exist, initialize with default constructor

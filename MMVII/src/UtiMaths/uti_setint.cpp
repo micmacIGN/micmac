@@ -145,7 +145,6 @@ typedef std::pair<size_t,std::vector<size_t> > tHashedVI;
 void GenRanQsubCardKAmongN(std::vector<cSetIExtension> & aRes,int aQ,int aK,int aN)
 {
 
-
    MMVII_INTERNAL_ASSERT_tiny(aK<=aN,"GenRanQsubCardKAmongN K>N");
    tREAL8 aSzMax = rBinomialCoeff(aK,aN);
 

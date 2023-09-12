@@ -43,83 +43,6 @@ class cSerialTree;             //  class for representing in a tree the "grammat
 
 
 
-/// Base class of all archive class
-
-/**
-     Base class of all archive class;
- 
-     Adding a new kind of archive, essentially consist to indicate how to read/write atomic values.
-    It is a bit more complicated with tagged format
-*/
-
-class cAr2007 : public cMemCheck
-{
-    public  :
-         friend class cAuxAr2007;
-
-         template <class Type,class TypeCast> inline void TplAddDataTermByCast (const cAuxAr2007& anOT,Type&  aValInit,TypeCast* UnUsed)
-         {
-// StdOut() << "TplAddDataTermByCast " << (int) aValInit << "BINAY" << mBinary << "\n";
-              if (mBinary)
-              {
-                  cRawData4Serial aRDS = cRawData4Serial::Tpl(&aValInit,1);
-                  RawAddDataTerm(aRDS);
-              }
-              else
-              {
-                   TypeCast aCast = aValInit;
-                   RawAddDataTerm(aCast);
-                   if (mInput) 
-                      aValInit = aCast;
-              }
-         }
-
-         /// default do nothing)
-         virtual void AddComment(const std::string &);
-         ///  Tagged File = xml Like, important for handling optionnal parameter
-         bool  Tagged() const;
-         ///  May optimize the action
-         bool  Input() const;
-         /// Allow to  know by advance if next optionnal value is present, usefull with Xml
-         /// Default return error
-         virtual int NbNextOptionnal(const std::string &);
-         virtual ~cAr2007();
-         virtual void Separator(); /**< Used in final but non atomic type, 
-                                        for ex with Pt : in text separate x,y, in bin do nothing */
-         virtual size_t HashKey() const;
-
-      // Final atomic type for serialization
-         virtual void RawAddDataTerm(int &    anI) =  0; ///< Heriting class descrine how they serialze int
-         virtual void RawAddDataTerm(size_t &    anI) =  0; ///< Heriting class descrine how they serialze int
-         virtual void RawAddDataTerm(double &    anI) =  0; ///< Heriting class descrine how they serialze double
-         virtual void RawAddDataTerm(std::string &    anI) =  0; ///< Heriting class descrine how they serialze string
-         virtual void RawAddDataTerm(cRawData4Serial  &    aRDS) =  0; ///< Heriting class descrine how they serialze string
-                                                                       //
-
-         virtual void OnBeginTab() {} /// Used in old json, probably will disapear
-         virtual void OnEndTab() {} /// Used in old json, probably will disapear
-         /**  Called when we add the size of vect/list, for compatibility, just add int whit tag Nb, can be overloaded
-          * when "well parenthesis struct" is used to compute the size */
-         virtual  void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux);
-
-    protected  :
-         cAr2007(bool InPut,bool Tagged,bool Binary);
-         int   mLevel;
-         bool  mInput;
-         bool  mTagged;
-         bool  mBinary;   //  != from tagged iw we implemant a pure txt format
-     private  :
-
-         /// By default error, to redefine in hashing class
-         /// This message is send before each data is serialized, tagged file put/read their opening tag here
-         virtual void RawBeginName(const cAuxAr2007& anOT);
-         /// This message is send each each data is serialized, tagged file put/read their closing tag here
-         virtual void RawEndName(const cAuxAr2007& anOT);
-
-
-      // Final non atomic type for serialization
-};
-
 
 ///  Use to handle End Of File using exception
 class cEOF_Exception
@@ -200,8 +123,8 @@ class cSerialFileParser : public cSerialGenerator,
 	  static tTestFileSerial TestFirstTag(const std::string & aNameFile);
      protected :
 
-          virtual bool BeginPonctuation(char aC) const = 0; ///< is the caracter the begining of a punctuation
-          virtual cResLex AnalysePonctuation(char aC)  = 0; ///<  analyse of token after a punction is detected
+          virtual bool BeginPonctuation(char aC) const ; ///< is the caracter the begining of a punctuation
+          virtual cResLex AnalysePonctuation(char aC)  ; ///<  analyse of token after a punction is detected
 
           cResLex GetNextLex_NOEOF(); ///< get token, w/o accepting end-of-file
 
@@ -347,7 +270,7 @@ class cSerialTree : public cMemCheck
 };
 
 ///  external allocator for outing by tree-serialization
-cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS);
+cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool IsSpecif=false);
 ///  external allocator for inputing by tree-serialization
 cAr2007 * Alloc_cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS);
 
