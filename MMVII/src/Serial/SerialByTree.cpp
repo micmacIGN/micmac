@@ -1269,6 +1269,8 @@ class cOMakeTreeAr : public cAr2007
         std::string           mNameFile;
 	eTypeSerial           mTypeS;
 	bool                  mSkeepStrElCont;
+	int                   mLevel;
+	std::string           mLastTag;
 };
 
 std::string cOMakeTreeAr::JSonQuote(const std::string & aStr) const
@@ -1281,9 +1283,10 @@ cOMakeTreeAr::cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool IsS
     cAr2007           (false,true,false),   // Input,  Tagged, Binary
     mNameFile         (aName),
     mTypeS            (aTypeS),
-    mSkeepStrElCont   (false) // ((aTypeS == eTypeSerial::ejson) || (aTypeS == eTypeSerial::etagt))
+    mSkeepStrElCont   (false), // ((aTypeS == eTypeSerial::ejson) || (aTypeS == eTypeSerial::etagt))
+    mLevel            (0)
 {
-	mIsSpecif = IsSpecif;
+    mIsSpecif = IsSpecif;
 }
 
 bool  cOMakeTreeAr::SkeepStrElCont(const cAuxAr2007& anOT) const
@@ -1293,12 +1296,15 @@ bool  cOMakeTreeAr::SkeepStrElCont(const cAuxAr2007& anOT) const
 
 void cOMakeTreeAr::RawBeginName(const cAuxAr2007& anOT)  
 {
+   mLevel++;
+   mLastTag = anOT.Name();
    if ( !SkeepStrElCont(anOT))
        mContToken.push_back(cResLex(anOT.Name(),eLexP::eUp,anOT.Type()));
 }
 
 void cOMakeTreeAr::RawEndName(const cAuxAr2007& anOT)  
 {
+    mLevel--;
    // if (anOT.Name()!= StrElCont)
    if ( !SkeepStrElCont(anOT))
       mContToken.push_back(cResLex(anOT.Name(),eLexP::eDown,anOT.Type()));
@@ -1319,7 +1325,16 @@ void cOMakeTreeAr::RawAddDataTerm(double &    aD)
 }
 void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)   
 { 
-    mContToken.push_back(cResLex(mIsSpecif?JSonQuote("std::string"):Quote(anS),eLexP::eStdToken_String,eTAAr::eStd)); 
+    std::string aStr = Quote(anS);
+    // complicated stuff to maintain the "header" even in case of specif
+    if (mIsSpecif)
+    {
+       int aLevHeader = (mTypeS== eTypeSerial::exml) ? 2 : 1;
+       if ((mLevel != aLevHeader) || ((mLastTag!=TagMMVIIType) && (mLastTag!=TagMMVIIVersion)) )
+	       aStr = JSonQuote("std::string");
+    }
+
+    mContToken.push_back(cResLex(aStr,eLexP::eStdToken_String,eTAAr::eStd)); 
 }
 void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)   
 { 
