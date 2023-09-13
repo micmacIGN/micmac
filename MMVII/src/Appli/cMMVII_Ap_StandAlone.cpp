@@ -2,6 +2,8 @@
 
 namespace MMVII {
 
+void OpenRandom();
+
 class cDummyAppli : public cMMVII_Appli
 {
 public :
@@ -41,6 +43,7 @@ void InitStandAloneAppli(const char* aAppName, const char *aComment)
                 __FILE__
             );
     static cDummyAppli cDummyAppli({},TheSpecDummyAppli);
+    OpenRandom();
     cDummyAppli.InitParam(nullptr);
 }
 

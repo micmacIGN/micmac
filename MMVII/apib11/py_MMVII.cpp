@@ -5,7 +5,6 @@
 #include "SymbDer/SymbDer_Common.h"
 
 namespace MMVII {
-    void OpenRandom();
     void CloseRandom();
 }
 
@@ -55,6 +54,7 @@ class MM_Module
     }
     ~MM_Module()
     {
+        MMVII::CloseRandom();
         std::cout<<"MMVII exited."<<std::endl;
     }
     static bool init;
