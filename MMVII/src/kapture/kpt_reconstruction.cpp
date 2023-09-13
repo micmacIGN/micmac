@@ -68,12 +68,12 @@ Keypoints<T> Keypoints<T>::read(const Path& path, int dsize)
 {
     std::ifstream is(path, std::ios::binary);
     if (! is)
-        errorf(Error,"Can't read file %s",path.string().c_str());
+        errorf(Error,"Can't read file %s",path.generic_string().c_str());
 
     is.seekg(0, std::ios::end);
     std::streamsize fSize = is.tellg();
     if ( fSize % (dsize * sizeof(T)) != 0)
-        errorf(Error,"File %s is not a valid keypoints file",path.string().c_str());
+        errorf(Error,"File %s is not a valid keypoints file",path.generic_string().c_str());
 
     Keypoints<T> kpt(dsize,fSize / (sizeof (T) * dsize));
     is.seekg(0, std::ios::beg);
@@ -110,12 +110,12 @@ void Descriptors<T>::read(const Path &path, int dsize)
 {
     std::ifstream is(path, std::ios::binary);
     if (! is)
-        errorf(Error,"Can't read file %s",path.string().c_str());
+        errorf(Error,"Can't read file %s",path.generic_string().c_str());
 
     is.seekg(0, std::ios::end);
     std::streamsize fSize = is.tellg();
     if ( fSize % (dsize * sizeof(T)) != 0)
-        errorf(Error,"File %s is not a valid keypoints file",path.string().c_str());
+        errorf(Error,"File %s is not a valid keypoints file",path.generic_string().c_str());
 
     mDSize = dsize;
     mData.resize(fSize / sizeof(T));
@@ -158,12 +158,12 @@ Matches::List Matches::read(const Path &path)
 
     std::ifstream is(path, std::ios::binary);
     if (! is)
-        errorf(Error,"Can't read file %s",path.string().c_str());
+        errorf(Error,"Can't read file %s",path.generic_string().c_str());
 
     is.seekg(0, std::ios::end);
     std::streamsize fSize = is.tellg();
     if ( fSize % sizeof(Matches) != 0)
-        errorf(Error,"File %s is not a valid matches file",path.string().c_str());
+        errorf(Error,"File %s is not a valid matches file",path.generic_string().c_str());
 
     ml.resize(fSize / sizeof(Matches));
     is.seekg(0, std::ios::beg);

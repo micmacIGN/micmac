@@ -20,7 +20,7 @@ int main(int argc, char ** argv)
    std::setlocale(LC_ALL, "C");
    // std::setlocale(LC_ALL, "en_US.UTF-8");
 
-   cMMVII_Appli::InitMMVIIDirs(UpDir(DirOfPath(MMVII_CanonicalSelfExecName()),1));
+   cMMVII_Appli::InitMMVIIDirs(MMVII_CanonicalRootDirFromExec());
    // Debug, print command
 #if 0
    {

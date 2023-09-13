@@ -18,7 +18,7 @@ void Project::load()
 {
     // FIXME CM: traiter errreurs ? (pas de traj, de rigs, ...
     if (! checkVersion())
-        errorf(Error,"'%s': not a supported version.",localPath(sensorsPath()).string().c_str());
+        errorf(Error,"'%s': not a supported version.",localPath(sensorsPath()).generic_string().c_str());
 
     try  {
         mCameras = readCameras();
@@ -93,7 +93,7 @@ std::string Project::version()
 
     std::ifstream is(localPath(sensorsPath()));
     if (!is)
-        errorf(Error," %s not found",localPath(sensorsPath()).string().c_str());
+        errorf(Error," %s not found",localPath(sensorsPath()).generic_string().c_str());
     std::string firstLine;
     if (! getline(is,firstLine))
         return mVersion;
@@ -138,7 +138,7 @@ PathList Project::imagesMatch(const std::string &re) const
     std::regex regex(re,std::regex::icase);
 
     for (const auto& i : imageRecords()) {
-        if (std::regex_search(i.image_path().string(),regex))
+        if (std::regex_search(i.image_path().generic_string(),regex))
                 paths.emplace_back(i.image_path());
     }
     return paths;

@@ -85,7 +85,7 @@ void csvParse(const Path &path, std::vector<int> nbValues,
     bool ok;
 
     if (! is) {
-        errorf(Error,"Can't read file '%s'.",path.string().c_str());
+        errorf(Error,"Can't read file '%s'.",path.generic_string().c_str());
         return;
     }
     while (getline(is, line)) {
@@ -105,8 +105,8 @@ void csvParse(const Path &path, std::vector<int> nbValues,
             }
         }
         if (! ok)
-            errorf(Error,"In '%s', line %u has an incorrect number of fields.",path.string().c_str(),nLine);
-        if (! f(values,path.string(),nLine))
+            errorf(Error,"In '%s', line %u has an incorrect number of fields.",path.generic_string().c_str(),nLine);
+        if (! f(values,path.generic_string(),nLine))
             return;
     }
 }

@@ -101,11 +101,7 @@ bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & 
 std::string DirCur(); // as "./" on Unix
 std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string FileOfPath(const std::string & aPath,bool ErroNonExist=true);
-
-
-std::string OneUpStd(const std::string & aDir);  ///< Try to supress the as a/B => a/
-std::string OneUpDir(const std::string & aDir);  ///< If OneUpStd fail add /../
-std::string UpDir(const std::string & aDir,int aNb);
+std::string UpDir(const std::string & aDir);
 
 // std::string AbsoluteName(const std::string &); ///< Get absolute name of path; rather pwd than unalias, no good
 std::string ToLower(const std::string &  aStr);  ///< return lower case version
@@ -137,7 +133,6 @@ const std::string & StrWDef(const std::string & aValue,const std::string & aDef)
 
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
 void SkeepWhite(const char * & aC);
-char CharDirSeparator();
 const std::string & StringDirSeparator();
 bool IsDirectory(const std::string & aName);
 

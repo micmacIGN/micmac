@@ -236,16 +236,6 @@ void Bench_0000_String(cParamExeBench & aParam)
     MMVII_INTERNAL_ASSERT_bench(starts_with("ABC","a")==false,"starts_with");
 
 
-    MMVII_INTERNAL_ASSERT_bench(OneUpStd("/a/bbb///c////")=="/a/bbb/","Up dir");
-    MMVII_INTERNAL_ASSERT_bench(OneUpStd("/a/bbb///c")=="/a/bbb/","Up dir");
-    MMVII_INTERNAL_ASSERT_bench(OneUpStd("ccc")=="","Up dir");
-    MMVII_INTERNAL_ASSERT_bench(OneUpStd("ccc///")=="","Up dir");
-    MMVII_INTERNAL_ASSERT_bench(OneUpStd("/ccc///")=="/","Up dir");
-    MMVII_INTERNAL_ASSERT_bench(OneUpStd("////ccc///")=="/","Up dir");
-    MMVII_INTERNAL_ASSERT_bench(OneUpStd("/ccc")=="/","Up dir");
-    MMVII_INTERNAL_ASSERT_bench(OneUpStd("////ccc")=="/","Up dir");
-    MMVII_INTERNAL_ASSERT_bench(OneUpStd("")=="","Up dir");
-
     MMVII_INTERNAL_ASSERT_bench(ToStandardStringIdent("+A 9")==std::string("A_9"),"ToStandardStringIdent");
     MMVII_INTERNAL_ASSERT_bench(ToStandardStringIdent("&?AbZ!aBz 012 9")==std::string("AbZaBz_012_9"),"ToStandardStringIdent");
 

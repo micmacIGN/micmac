@@ -276,17 +276,16 @@ void cMMVII_Appli::InitMMVIIDirs(const std::string& aMMVIIDir)
         return;
 
     mTopDirMMVII       = aMMVIIDir;
-    if (mTopDirMMVII.back() != '/'  && mTopDirMMVII.back() != '\\')
-        mTopDirMMVII += "/";
-    mDirBinMMVII       = mTopDirMMVII + "bin/";
+    MakeNameDir(mTopDirMMVII);
+    mDirBinMMVII       = mTopDirMMVII + "bin" + StringDirSeparator();
     mFullBin           = mDirBinMMVII + MMVIIBin2007;
-    mDirMicMacv1       = UpDir(mTopDirMMVII,1);
+    mDirMicMacv1       = UpDir(mTopDirMMVII);
     mDirMicMacv2       = mTopDirMMVII;
     mDirTestMMVII      = mDirMicMacv2 + MMVIITestDir;
     mDirRessourcesMMVII      = mDirMicMacv2 + MMVIIRessourcesDir;
     mDirLocalParameters      = mDirMicMacv2 + MMVIILocalParametersDir;
-    mTmpDirTestMMVII   = mDirTestMMVII + "Tmp/";
-    mInputDirTestMMVII = mDirTestMMVII + "Input/";
+    mTmpDirTestMMVII   = mDirTestMMVII + "Tmp" + StringDirSeparator();
+    mInputDirTestMMVII = mDirTestMMVII + "Input" + StringDirSeparator();
 
 }
 

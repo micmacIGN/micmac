@@ -53,8 +53,8 @@ int GlobSysCall(const std::string &, bool SVP=false); ///< call system, if SVP=f
 ///  Execucte the command in parallel by generating a makefile
 int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::string> & aListCom,int aNbProcess,bool SVP=false,bool Silence=false);
 
-// Return full canonical name (absolute, no DOT, symbolic links followed) of the current executable
-std::string MMVII_CanonicalSelfExecName();
+// Return full canonical path (absolute, no DOT, symbolic links followed) of the MMVII root dir (deduced from current executable path)
+std::string MMVII_CanonicalRootDirFromExec();
 
 
 };

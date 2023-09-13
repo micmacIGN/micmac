@@ -151,7 +151,7 @@ int cAppli_Kapture::Exe()
 
     if (mCommand == "images") {
         for (const auto &i : p.imagesMatch(mCmdArg1))
-            std::cout <<  i.string() << ":" << p.imagePath(i) << "\n";
+            std::cout <<  i.generic_string() << ":" << p.imagePath(i) << "\n";
         exit(EXIT_SUCCESS);
     }
 

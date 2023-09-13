@@ -32,8 +32,8 @@ DType dtypeFromStr(const std::string &s)
 }
 
 Error::Error(const std::string &errorMsg, const std::string &file, size_t line, const std::string &func)
-    : std::runtime_error(std::string("In function ") + func + ", at " + Path(file).filename().string() + ": " + std::to_string(line) + ": " + errorMsg),
-      mErrorMsg(errorMsg),mFile(Path(file).string()),mLine(line),mFunc(func)
+    : std::runtime_error(std::string("In function ") + func + ", at " + Path(file).filename().generic_string() + ": " + std::to_string(line) + ": " + errorMsg),
+      mErrorMsg(errorMsg),mFile(Path(file).generic_string()),mLine(line),mFunc(func)
 {
     std::cout.flush();
 }
@@ -58,7 +58,7 @@ std::vector<char> readBinaryFile(const Path& p)
 {
     std::ifstream is(p, std::ios::binary);
     if (! is)
-        errorf(Error,"Can't read file %s",p.string().c_str());
+        errorf(Error,"Can't read file %s",p.generic_string().c_str());
     return readBinaryFile(is);
 }
 

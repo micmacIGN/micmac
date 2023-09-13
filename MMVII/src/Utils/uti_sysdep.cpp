@@ -17,6 +17,7 @@
 #  include <mach-o/dyld.h>
 #endif
 
+namespace fs = std::filesystem;
 
 namespace MMVII
 {
@@ -100,15 +101,15 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::stri
    return GlobSysCall(aComMake,false);
 }
 
-static std::string MMVII_RawSelfExecName();
+static fs::path MMVII_RawSelfExecName();
 
 
-std::string MMVII_CanonicalSelfExecName()
+std::string MMVII_CanonicalRootDirFromExec()
 {
-    static std::string selfExec = MMVII_RawSelfExecName();
-    if (selfExec.length() == 0)
+   auto selfExec = MMVII_RawSelfExecName();
+   if (selfExec.empty())
         MMVII_INTERNAL_ERROR("Can't find file name of this process !");
-    return std::filesystem::canonical(selfExec).string();
+   return fs::canonical(selfExec).parent_path().parent_path().generic_string();
 }
 
 
@@ -123,17 +124,17 @@ int mmvii_GetPId()
     return getpid();
 }
 
-std::string MMVII_RawSelfExecName()
+static fs::path MMVII_RawSelfExecName()
 {
-    std::string path;
-
     char buf[4096];
+
+    *buf = 0;
     ssize_t result = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
-    if (result >= 0 && (size_t)result < sizeof(buf) - 1) {
+    if (result >= 0 && (size_t)result < sizeof(buf) - 1)
         buf[result] = 0;
-        path = buf;
-    }
-    return path;
+    else
+        buf[0] = 0;
+    return fs::path(buf);
 }
 
 #elif (THE_MACRO_MMVII_SYS==MMVII_SYS_W)
@@ -151,15 +152,14 @@ int mmvii_GetPId()
 }
 
 
-std::string MMVII_RawSelfExecName()
+fs::path MMVII_RawSelfExecName()
 {
-// Ch.M: Not tested
-    std::string path;
-    char buffer[4096];
-    DWORD size = GetModuleFileNameA(nullptr, buffer,(DWORD)sizeof(buffer));
-    if (size >=0 && size != (DWORD)sizeof(buffer))
-        path = buffer;
-    return path;
+    wchar_t buffer[MAX_PATH];
+    *buffer = L'0';
+    DWORD size = GetModuleFileNameW(nullptr, buffer,(DWORD)sizeof(buffer));
+    if (size <0 || size == (DWORD)sizeof(buffer))
+        *buffer = L'0';
+    return fs::path(buffer);
 }
 
 #else
@@ -174,10 +174,10 @@ int mmvii_NbProcSys()
     return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
-std::string MMVII_RawSelfExecName()
+fs::path MMVII_RawSelfExecName()
 {
 // Ch.M: Not tested
-    std::string path;
+    fs::path path;
 
     uint32_t size = 0;
     _NSGetExecutablePath(nullptr, &size);

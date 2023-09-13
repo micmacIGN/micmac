@@ -15,13 +15,14 @@
 
 #include <filesystem>
 
+#include "MMVII_Sys.h"
 #include "MMVII_util.h"
 #include "cMMVII_Appli.h"
 #include <boost/algorithm/string.hpp>
 
 
 
-using namespace std::filesystem;
+namespace fs=std::filesystem;
 
 
 namespace MMVII
@@ -281,21 +282,19 @@ std::string  ToStandardStringIdent(const std::string & aStr)
     /*                                             */
     /* =========================================== */
 
-char CharDirSeparator()
-{
-   return  path::preferred_separator;
-}
-
 const std::string & StringDirSeparator()
 {
-   static std::string aRes{path::preferred_separator};
-   
-   return  aRes;
+//    static std::string aRes{fs::path::preferred_separator};
+// CM: We'll always use '/' as directory separator, even on Windows.
+// It's supported and MicMac pattern matching will work better and identically on all systems
+    static std::string aRes{"/"};
+
+    return  aRes;
 }
 
 std::string DirCur()
 {
-   return  std::string(".") + CharDirSeparator();
+    return  "." + StringDirSeparator();
 }
 
 std::string DirOfPath(const std::string & aPath,bool ErrorNonExist)
@@ -314,7 +313,7 @@ std::string FileOfPath(const std::string & aPath,bool ErrorNonExist)
 
 std::string AbsoluteName(const std::string & aName)
 {
-     return absolute(aName).string().c_str();
+   return fs::absolute(aName).generic_string();
 }
 
 std::string AddBefore(const std::string & aPath,const std::string & ToAdd)
@@ -322,96 +321,48 @@ std::string AddBefore(const std::string & aPath,const std::string & ToAdd)
    return DirOfPath(aPath,false) + ToAdd + FileOfPath(aPath,false);
 }
 
-
-
-
-/*
-  It was a test of using Boost for Up Dir,but untill now I am not 100% ok
-  with the results:
-        [.] => []
-        [/a/b/c] => [/a/b]
-        [a/b/c] => [a/b]
-        [a] => []
-
-std::string BUD(const std::string & aDir)
+static bool EndWithDirectorySeparator(const std::string& aName)
 {
-   path aPath(aDir);
-   aPath = aPath.parent_path();
-   std:: cout << "BUDDDDDD [" << aDir << "] => [" <<  aPath.c_str() << "]\n";
-   return aPath.c_str();
-}
-*/
-std::string OneUpStd(const std::string & aDir)
-{
-   const char * aC = aDir.c_str();
-   int aL = strlen(aC);
-
-   // Supress all the finishing  /
-   while ((aL>0) && (aC[aL-1] == path::preferred_separator)) 
-          aL--;
-
-   // Supress all the not /
-   while ((aL>0) && (aC[aL-1]!= path::preferred_separator))
-       aL--;
-
-   int aL0 = aL;
-   // Supress all the  /
-   while ((aL>0) && (aC[aL-1] == path::preferred_separator)) 
-         aL--;
-
-    // Add the last /
-    if (aL0!=aL) 
-        aL++;
-    return  aDir.substr(0,aL);
+#if (THE_MACRO_MMVII_SYS==MMVII_SYS_W)
+   return aName.back() == '/' || aName.back() == '\\';
+#else
+   return aName.back() == '/';
+#endif
 }
 
 
-std::string OneUpDir(const std::string & aDir)
+std::string UpDir(const std::string & aDir)
 {
-   std::string aRes = OneUpStd(aDir);
-   if (aRes!="") return aRes;
-   return  aDir + std::string("..") +  CharDirSeparator();
+   fs::path parent_path(aDir);
+   if (EndWithDirectorySeparator(aDir))
+       parent_path = parent_path.parent_path(); // remove trailing '/' , considered as a directory path
+   parent_path = parent_path.parent_path();
+   std::string updir = parent_path.generic_string();
+   MakeNameDir(updir);
+   return updir;
 }
 
-/** Basic but seems to work untill now
-*/
-std::string UpDir(const std::string & aDir,int aNb)
-{
-   std::string aRes = aDir;
-   for (int aK=0 ; aK<aNb ; aK++)
-   {
-      // aRes += std::string("..") +  path::preferred_separator;
-      // aRes += ".." +  path::preferred_separator;
-      // aRes = aRes + std::string("..") +  path::preferred_separator;
-      aRes = OneUpDir(aRes);
-   }
-   return aRes;
-}
 
 bool ExistFile(const std::string & aName)
 {
-   path aPath(aName);
-   return exists(aPath);
+   return fs::exists(aName);
 }
 
 uintmax_t SizeFile(const std::string & aName)
 {
-    path aPath(aName);
-    return file_size(aPath);
+   return fs::file_size(aName);
 }
 
 bool IsDirectory(const std::string & aName)
 {
-    path aPath(aName);
-    return is_directory(aPath);
+   return fs::is_directory(aName);
 }
-
 
 void MakeNameDir(std::string & aDir)
 {
-   if (aDir.back() != path::preferred_separator)
+   if (! EndWithDirectorySeparator(aDir))
    {
-      aDir += path::preferred_separator;
+      aDir += StringDirSeparator();
    }
 }
 
@@ -426,9 +377,9 @@ if (0)
 }
 */
 
-   path aPath(aDirAndFile);
+   fs::path aPath(aDirAndFile);
    bool aResult = true;
-   if (! exists(aPath))
+   if (! fs::exists(aPath))
    {
        if (ErrorNonExist)
        {
@@ -438,22 +389,22 @@ if (0)
        aResult = false;
    }
 
-   if (is_directory(aPath))
+   if (fs::is_directory(aPath))
    {
        aDir = aDirAndFile;
        aFile = "";
    }
    // This case is not handled as I want , File=".", I want ""
-   else if ( (! aDirAndFile.empty()) &&  (aDirAndFile.back()== path::preferred_separator))
+   else if ( (! aDirAndFile.empty()) && EndWithDirectorySeparator(aDirAndFile))
    {
        aDir = aDirAndFile;
        aFile = "";
    }
    else
    {
-       aFile = aPath.filename().string().c_str();
+       aFile = aPath.filename().generic_string().c_str();
        aPath.remove_filename();
-       aDir = aPath.string().c_str();
+       aDir = aPath.generic_string().c_str();
        if (aDir.empty())
        {
           aDir = DirCur();
@@ -463,12 +414,6 @@ if (0)
           MakeNameDir(aDir);
        }
 
-/*if (aDir.back() != path::preferred_separator)
-       {
-           aDir += path::preferred_separator;
-       }     
-*/
-       // path& remove_filename();
    }  
    return aResult;
 }
@@ -490,7 +435,7 @@ void SkeepWhite(const char * & aC)
 
 bool CreateDirectories(const std::string & aDir,bool SVP)
 {
-    bool Ok = std::filesystem::create_directories(aDir);
+    bool Ok = fs::create_directories(aDir);
 
     if ((! Ok) && (!SVP))
     {
@@ -515,7 +460,7 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 
 bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
 {
-    std::filesystem::remove_all(aDir);
+    fs::remove_all(aDir);
     if (ReMkDir)
     {
         bool aRes = CreateDirectories(aDir,SVP);
@@ -526,7 +471,7 @@ bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
 
 bool RemoveFile(const  std::string & aFile,bool SVP)
 {
-   bool Ok = std::filesystem::remove(aFile);
+   bool Ok = fs::remove(aFile);
    MMVII_INTERNAL_ASSERT_User(  Ok||SVP  , eTyUEr::eRemoveFile,"Cannot remove file for arg " + aFile);
    return Ok;
 }
@@ -551,7 +496,7 @@ bool  RemovePatternFile(const  std::string & aPat,bool SVP)
 
 void RenameFiles(const std::string & anOldName, const std::string & aNewName)
 {
-    std::filesystem::rename(anOldName,aNewName);
+    fs::rename(anOldName,aNewName);
 }
 
 
@@ -560,7 +505,7 @@ void RenameFiles(const std::string & anOldName, const std::string & aNewName)
 
 void CopyFile(const std::string & aName,const std::string & aDest)
 {
-   std::filesystem::copy_file(aName,aDest,std::filesystem::copy_options::overwrite_existing);
+   fs::copy_file(aName,aDest,fs::copy_options::overwrite_existing);
 }
 
 void CopyPatternFile(const std::string & aDirIn,const std::string & aPattern,const std::string & aDirOut)
@@ -632,9 +577,9 @@ void  MakeBckUp(const std::string & aDir,const std::string & aNameFile,int aNbDi
 
 void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,const tNameSelector &  aNS,bool OnlyRegular)
 {
-   for (directory_iterator itr(aDir); itr!=directory_iterator(); ++itr)
+    for (fs::directory_iterator itr(aDir); itr!=fs::directory_iterator(); ++itr)
    {
-      std::string aName ( itr->path().filename().string().c_str());
+      std::string aName ( itr->path().filename().generic_string().c_str());
       if ( ( (!OnlyRegular) || is_regular_file(itr->status())) &&  aNS.Match(aName))
          aRes.push_back(aName);
    }
@@ -666,12 +611,12 @@ std::vector<std::string> GetSubDirFromDir(const std::string & aDir,const tNameSe
 */
 void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax)
 {
-    for (recursive_directory_iterator itr(aDir); itr!=        recursive_directory_iterator(); ++itr)
+    for (fs::recursive_directory_iterator itr(aDir); itr!=fs::recursive_directory_iterator(); ++itr)
     {
         int aLev = itr.depth();
         if ((aLev>=aLevMin) && (aLev<aLevMax))
         {
-           std::string aName(itr->path().string().c_str());
+           std::string aName(itr->path().generic_string());
            if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
               aRes.push_back(aName);
         }
