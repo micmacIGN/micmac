@@ -424,7 +424,12 @@ void Bench_Nums(cParamExeBench & aParam)
    MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL4)==4,"Bench size tREAL4");
    MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL8)==8,"Bench size tREAL8");
 
-   MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL16)==16,"Bench size tREAL16");
+// MSVC++ has no support for real greater than 8 bytes. tREAL16 (=long double) are 8 bytes
+#if (THE_MACRO_MMVII_SYS==MMVII_SYS_W)
+   MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL16)==8,"Bench size tREAL16 = 8 on Windows");
+#else
+   MMVII_INTERNAL_ASSERT_bench(sizeof(tREAL16) == 16, "Bench size tREAL16");
+#endif
 
    MMVII_INTERNAL_ASSERT_bench (sizeof( tINT1)==1,"Bench size tINT1");
    MMVII_INTERNAL_ASSERT_bench (sizeof( tINT2)==2,"Bench size tINT2");
