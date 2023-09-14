@@ -105,7 +105,7 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         void plotDebugImage(cDCT*, const cDataIm2D<float>&);
         tImTarget generateRectifiedImage(cDCT*, const cDataIm2D<float>&);
         std::vector<cPt2dr> getEncodingPositions(tDataImT &, cDCT*);
-        double ellipseResidual(std::vector<cPt2dr>, std::vector<double>);        ///< Computes pixel residual of ellipse fit
+        double ellipseResidual(std::vector<cPt2dr>, cDCT*);        ///< Computes pixel residual of ellipse fit
 		bool decodeBit(tDataImT &, cPt2dr, double);
 
 
@@ -237,7 +237,7 @@ cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> 
    mWithGT          (false),
    mDMaxMatch       (2.0),
    mTest            (false),
-   mRecompute       (false),
+   mRecompute       (true),
    mXml             (""),
    mMaxEcc          (1e9),
    mLinedUpPx       (1.5),
@@ -762,17 +762,19 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // Affinity first estimation
     mTransfo = estimateRectification(aDCT->mDetectedCorners);
     
-    aDCT->mSizeTargetEllipse = std::min(ellipse[2], ellipse[3]);
-
+    aDCT->mSizeTargetEllipseA = std::max(ellipse[2], ellipse[3]);
+    aDCT->mSizeTargetEllipseB = std::min(ellipse[2], ellipse[3]);
+    
+   
     // ======================================================================
     // Recomputing directions and intersections if needed
     // ======================================================================
 
-    if ((aDCT->mSizeTargetEllipse > mRayMinCB) && (mRecompute)){
+    if ((aDCT->mSizeTargetEllipseB > mRayMinCB) && (mRecompute)){
 
         // Recomputing directions if needed
         double min_ray_adjust = 0.4*mRayMinCB;
-        double max_ray_adjust = 0.8*aDCT->mSizeTargetEllipse;
+        double max_ray_adjust = 0.8*aDCT->mSizeTargetEllipseB;
 
         TestDirDCT(*aDCT, APBI_Im(), min_ray_adjust, max_ray_adjust, aDCT->mDetectedVectors, mLinedUpPx);
 
@@ -790,9 +792,11 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     bool validAff = isValidAffinity(mTransfo);
     if (!printDebug("Affinity estimation", validAff)) return false;
 
-    // Ellipse fit residual test (requires affinity estimation);
-    double rmse_px = ellipseResidual(mPoints, mTransfo);
-    if (!printDebug("Ellipse fit residual", 10, rmse_px)) return false;
+    // Ellipse fit residual test
+    double rmse_px = ellipseResidual(mPoints, aDCT);
+    double th_res = 1 + 0.05*aDCT->mSizeTargetEllipseA;
+    if (!printDebug("Ellipse fit residual", th_res, rmse_px)) return false;
+    
 
     // Control on center position
     double x_centre_moy = (ellipse[0] + aDCT->mPt.x())/2.0;
@@ -808,7 +812,6 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // ======================================================================
 
     tImTarget aImT = generateRectifiedImage(aDCT, aDIm);
-    
 
     // ======================================================================
     // Decoding
@@ -915,10 +918,6 @@ tImTarget cAppliExtractCodeTarget::generateRectifiedImage(cDCT* aDCT, const cDat
     tImTarget aImT(cPt2di(Ni, Nj));
     tDataImT & aDImT = aImT.DIm();
 
-    // -------------------------------------------------------------
-    // Standard case
-    // -------------------------------------------------------------
-
     for (int i=0; i<Ni; i++){
         for (int j=0; j<Nj; j++){
             cPt2dr p = applyAffinity(cPt2dr(i, j-offset), mTransfo);
@@ -979,7 +978,7 @@ void cAppliExtractCodeTarget::plotDebugImage(cDCT* target, const cDataIm2D<float
     // ----------------------------------------------------------------------------------------------------------
     if (mBitsPlotDebug[3]){
         for (int sign=-1; sign<=1; sign+=2){
-            for (int i=1; i<=target->mSizeTargetEllipse; i++){
+            for (int i=1; i<=target->mSizeTargetEllipseB; i++){
                 cPt2di center = target->Pix();
                 cPt2di p1 = cPt2di(center.x()+sign*target->mDirC1.x()*i, center.y()+sign*target->mDirC1.y()*i);
                 cPt2di p2 = cPt2di(center.x()+sign*target->mDirC2.x()*i, center.y()+sign*target->mDirC2.y()*i);
@@ -1338,23 +1337,26 @@ int cAppliExtractCodeTarget::fitConstrainedEllipse(std::vector<cPt2dr> points, c
 
 // ---------------------------------------------------------------------------
 // Function to test ellipse fit pixel residuals
-// Requires estimated affinity parameter to compute RMSE in pixel space
 // ---------------------------------------------------------------------------
-double cAppliExtractCodeTarget::ellipseResidual(std::vector<cPt2dr> points, std::vector<double> transfo){
-    double m1r = 0;
-    double m2r = 0;
+double cAppliExtractCodeTarget::ellipseResidual(std::vector<cPt2dr> points, cDCT* aDCT){
+	double rmse_px = 0;
     for (unsigned i=0; i<points.size(); i++){
-        cPt2dr p = applyAffinityInv(points.at(i), transfo);
-        double dx = p.x() - mPCT.mCenterF.x();
-        double dy = p.y() - mPCT.mCenterF.y();
-        double value = sqrt(dx*dx + dy*dy) ;
-        m1r += value;
-        m2r += value*value;
-    }
-    m1r /= points.size();
-    m2r /= points.size();
-    return sqrt(m2r - m1r*m1r);
+		cPt2dr p = points.at(i);
+		double dist_min = 1e300;
+		for (unsigned j=0; j<aDCT->mDetectedEllipse.size(); j++){
+			cPt2di q = aDCT->mDetectedEllipse.at(j);
+			double dx = p.x()-q.x();
+			double dy = p.y()-q.y();
+			double value = dx*dx + dy*dy;
+			if (value < dist_min) dist_min = value;
+		}
+		rmse_px += dist_min;
+	}
+	return sqrt(rmse_px/points.size());
 }
+
+
+
 
 
 // ---------------------------------------------------------------------------
@@ -1682,9 +1684,9 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::getEncodingPositions(tDataImT & aDI
 		size_y = mSizeYIndoor;
 	}
 	
-	double thw = aDCT->mVWhite;
-	double thb = aDCT->mVBlack;
-	double threshold = (thw + thb)/2.0;
+	// double thw = aDCT->mVWhite;
+	// double thb = aDCT->mVBlack;
+	// double threshold = (thw + thb)/2.0;
 	
 	bool to_invert = false;
 	
@@ -1692,10 +1694,10 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::getEncodingPositions(tDataImT & aDI
 		double xm1 = mPCT.mCenterF.x() - mark_orientation_drone_x;
 		double xm2 = mPCT.mCenterF.x() + mark_orientation_drone_x;
 		double ym  = mPCT.mCenterF.y() + offset_drone;
-		double value1 = aDImT.GetVBL(cPt2dr(xm1, ym)); bool bit1 = (value1 > threshold);
-		double value2 = aDImT.GetVBL(cPt2dr(xm2, ym)); bool bit2 = (value2 > threshold);
-		markImage(aDImT, cPt2di(xm1, ym), 5, bit1?0:255);
-		markImage(aDImT, cPt2di(xm2, ym), 5, bit2?0:255);
+		double value1 = aDImT.GetVBL(cPt2dr(xm1, ym)); // bool bit1 = (value1 > threshold);
+		double value2 = aDImT.GetVBL(cPt2dr(xm2, ym)); // bool bit2 = (value2 > threshold);
+		// markImage(aDImT, cPt2di(xm1, ym), 5, bit1?0:255);
+		// markImage(aDImT, cPt2di(xm2, ym), 5, bit2?0:255);
 		to_invert = (value1 < value2);
 	}
 	

@@ -227,7 +227,8 @@ class  cDCT : public cBaseTE
          cPt2dr mRefinedCenter;      ///< Coordinates of center after detection process
          std::string mDecodedName;   ///< Name of target after detection process
          bool mFinalState;
-         double mSizeTargetEllipse;
+         double mSizeTargetEllipseA;   ///<  Semi-major axis
+         double mSizeTargetEllipseB;   ///<  Semi-minor axis
          std::vector<cPt2dr> mDetectedCorners;
          std::vector<cPt2di> mDetectedEllipse;
          std::vector<cPt2di> mDetectedVectors;
