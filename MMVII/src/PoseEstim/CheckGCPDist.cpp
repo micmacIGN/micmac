@@ -28,12 +28,21 @@ class cGeomCERNPannel
 	     tREAL8  mDistPlani;   ///  size of tiling in main plane => to compute an index
 
          // 
-             int     mNbMinByP; ///  Number minimal of point in each plane
+             int     mNbMin0; ///  Number minimal of point in each plane
+             int     mNbMin1; ///  Number minimal of point in each plane
 	     cPt2di  mSzRect;   /// Size of the rect in which we search consecutive target
              int     mNbMinRect;  /// number min of Pts InRect
 
+             /// Pts with  grid number established, used to give grid id to all
+             std::map<std::string,cPt2di>  mPtGrid;
+
 	     void AddData(const cAuxAr2007 & anAux0);
+
+             bool IsZ0(tREAL8 aZ) {return IsAlmostZ(aZ,mH0);}
+             bool IsZ1(tREAL8 aZ) {return IsAlmostZ(aZ,mH1);}
+
      private :
+             bool IsAlmostZ(tREAL8 aZ,tREAL8 aRef) {return std::abs(aZ-aRef) < mDH;}
 };
 
 template <>  const std::string cStrIO<cGeomCERNPannel>::msNameType = "GeomCERNPannel";
@@ -47,9 +56,11 @@ void cGeomCERNPannel::AddData(const cAuxAr2007 & anAux0)
     MMVII::AddData(cAuxAr2007("H1",anAux),mH1);
     MMVII::AddData(cAuxAr2007("Delta",anAux),mDH);
     MMVII::AddData(cAuxAr2007("DistPlani",anAux),mDistPlani);
-    MMVII::AddData(cAuxAr2007("MinNbByPlane",anAux),mNbMinByP);
+    MMVII::AddData(cAuxAr2007("NbMin0",anAux),mNbMin0);
+    MMVII::AddData(cAuxAr2007("NbMin1",anAux),mNbMin1);
     MMVII::AddData(cAuxAr2007("SzRect",anAux),mSzRect);
     MMVII::AddData(cAuxAr2007("NbMinRect",anAux),mNbMinRect);
+    MMVII::AddData(cAuxAr2007("PtGrid",anAux),mPtGrid);
 }
 
 void AddData(const cAuxAr2007 & anAux,cGeomCERNPannel & aGCP)
@@ -61,6 +72,17 @@ void AddData(const cAuxAr2007 & anAux,cGeomCERNPannel & aGCP)
 /*          cAppli_CheckGCPDist                         */
 /*                                                      */
 /* ==================================================== */
+
+class  cPtCheck
+{
+     public :
+       const cMultipleImPt *  mIm;
+       cPt2dr                 mP2Im;
+       const cMes1GCP *       mGr;
+       cPt2di                 mId;
+       bool                   mIsOk;
+       bool                   mIsZ0;
+};
 
 class cAppli_CheckGCPDist : public cMMVII_Appli
 {
@@ -82,7 +104,7 @@ class cAppli_CheckGCPDist : public cMMVII_Appli
 
 	bool                     mGenSpecCERN;  ///< do we generate the specification of cGeomCERNPannel
 	bool                     mUseGCP;       ///< Do we use a CERN Pannel Filter
-	cGeomCERNPannel          mGCP;          ///< parametrs specific to CERN Panel
+	cGeomCERNPannel          mPannel;          ///< parametrs specific to CERN Panel
 	std::string              mNameGCP;      ///< Name of mGCP
 
         int                      mNbMin11;      ///< number minimal of point for 11 parameters estimation 
@@ -99,6 +121,8 @@ class cAppli_CheckGCPDist : public cMMVII_Appli
 	// ---- Set not OK, more for documentation & inspection
         tNameSet                 mSetNotOK11;     ///< Set of point NOT Ok for 11 P
         tNameSet                 mSetNotOKResec;
+
+        std::vector<cPtCheck>    mPtCheck;
 };
 
 cAppli_CheckGCPDist::cAppli_CheckGCPDist
@@ -144,54 +168,129 @@ cCollecSpecArg2007 & cAppli_CheckGCPDist::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 }
 
 
+
 void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
 {
-    cSetMesImGCP  aSetMes;
-    cSet2D3D      aSet23 ;
+    //  load GCP & Im in aSetMes
 
+    cSetMesImGCP  aSetMes;
     mPhProj.LoadGCP(aSetMes);
     mPhProj.LoadIm(aSetMes,aNameIm);
-    aSetMes.ExtractMes1Im(aSet23,aNameIm);
 
-    std::vector<cPt3dr> aVP3 = aSet23.VP3();
+    // Create a structure with GCP of image, so that we can add information
+    mPtCheck.clear() ;
+    for (const auto & aMes : aSetMes.MesImOfPt())
+    {
+        if (aMes.VImages().size()==1)
+        {
+             cPtCheck aPC;
+ 
+             aPC.mP2Im = aMes.VMeasures().at(0);
+             aPC.mIm = &aMes;
+             aPC.mGr = & aSetMes.MesGCPOfMulIm(aMes);
+             aPC.mId = cPt2di::Dummy();  // just to be detect use w/o init
+             aPC.mIsOk = true;
+             mPtCheck.push_back(aPC);
+        }
+    }
 
-    // Specific test for CERN PANEL
     bool RefuteByNbInPlanes = false;
-    bool CoordRefut = false;
-
     if (mUseGCP)
     {
-       // First we test if enouh point on each of the 2 plane
-       CoordRefut = true;
-       tREAL8 aDH = mGCP.mDH;
+       // Compute the mapping (homography 4 now) that associate a grid-num to planar coordinates
+       cHomogr2D<tREAL8> aHNum ;
+       {
+           std::vector<cPt2dr>  aVPlani;
+           std::vector<cPt2dr>  aVNum;
+           for (const auto & aPair : mPannel.mPtGrid)
+           {
+                aVNum.push_back(ToR(aPair.second));
+                const cMes1GCP & aGCP = aSetMes.MesGCPOfName(aPair.first);
+                aVPlani.push_back(Proj(aGCP.mPt));
+           }
+           aHNum =  cHomogr2D<tREAL8>::StdGlobEstimate(aVPlani,aVNum);
+       }
 
+       /// Set the identifier + store the point for homography computing
        int aNb0 = 0;
        int aNb1 = 0;
+       std::vector<cPt2dr>  aVPlani;
+       std::vector<cPt2dr>  aVIm;
+       for (auto & aPC : mPtCheck)
+       {
+           cPt3dr aPGr = aPC.mGr->mPt;
+           aPC.mIsZ0 = (mPannel.IsZ0(aPGr.z()));
+           if (aPC.mIsZ0)
+           {
+              cPt2dr aP2 = Proj(aPGr);
+              aPC.mId  =  ToI(aHNum.Value(aP2));
+              aNb0++;
+              aVPlani.push_back(aP2);
+              aVIm.push_back(aPC.mP2Im);
+           }
+           else
+           {
+                MMVII_INTERNAL_ASSERT_tiny(mPannel.IsZ1(aPGr.z()),"CERN pannel nor z0 nor z1 ");
+                aNb1++;
+           }
+       }
+
+       RefuteByNbInPlanes = (aNb0<mPannel.mNbMin0) || (aNb1<mPannel.mNbMin1) ;
+
+       if (! RefuteByNbInPlanes)
+       {
+            cHomogr2D<tREAL8> aHG2I =  cHomogr2D<tREAL8>::RansacL1Estimate(aVPlani,aVIm,1000);
+            for (auto & aPC : mPtCheck)
+            {
+                if (aPC.mIsZ0)
+                {
+                   cPt2dr aDif = aHG2I.Value(Proj(aPC.mGr->mPt)) - aPC.mP2Im;
+
+                   if (Norm2(aDif) > 10.0)
+                   {
+                       StdOut() << "DIFFF " << aDif << " Pt=" <<  aPC.mGr->mNamePt << " Im=" << aNameIm << "\n";
+                   }
+              
+                }
+            }
+        }
+
+       // StdOut() << "aNb0 " << aNb0 << " aNb1 " << aNb1 << "\n";
+   }
+
+FakeUseIt(RefuteByNbInPlanes);
+}
+
+
+#if (0)
+       // First we test if enouh point on each of the 2 plane
+/*
+       CoordRefut = true;
+       tREAL8 aDH = mPannel.mDH;
+
 
        std::vector<cPt2di> aVIndex;
        cPt2di aSzMax(0,0);
        for (const auto & aPt : aVP3)
        {
             tREAL8 aH = aPt.z();
-	    bool Is0 = (aH>mGCP.mH0-aDH) && (aH<mGCP.mH0+aDH);
+	    bool Is0 = (aH>mPannel.mH0-aDH) && (aH<mPannel.mH0+aDH);
             aNb0 += Is0;
-            aNb1 += (aH>mGCP.mH1-aDH) && (aH<mGCP.mH1+aDH);
+            aNb1 += (aH>mPannel.mH1-aDH) && (aH<mPannel.mH1+aDH);
 
 	    if (Is0)
 	    {
-                cPt2di aIndex = ToI(cPt2dr(aPt.x(),aPt.y()) / mGCP.mDistPlani);
-	        StdOut()  << "JJJJ " << cPt2dr(aPt.x(),aPt.y()) / mGCP.mDistPlani << "\n";
+                cPt2di aIndex = ToI(cPt2dr(aPt.x(),aPt.y()) / mPannel.mDistPlani);
+	        // StdOut()  << "JJJJ " << cPt2dr(aPt.x(),aPt.y()) / mPannel.mDistPlani << "\n";
                 aVIndex.push_back(aIndex);
                 SetSupEq(aSzMax,aIndex);
 	    }
        }
-       RefuteByNbInPlanes = (aNb0<mGCP.mNbMinByP) || (aNb1<mGCP.mNbMinByP) ;
+*/
 
-       StdOut() << "aNb0 " << aNb0 << " aNb1 " << aNb1 << "\n";
-
-return;
 
        // Now we test if there exist a grid Nx*Ny or Ny*Nx of target (we dont want a single line)
+/*
        if (! aVIndex.empty())
        {
            int    aNbX    = round_ni(mVSpecCernPanel.at(5));
@@ -233,8 +332,9 @@ return;
     {
         mSetOKResec.Add(aNameIm);
     }
+*/
+#endif
     
-}
 
 
 int cAppli_CheckGCPDist::Exe()
@@ -250,7 +350,7 @@ int cAppli_CheckGCPDist::Exe()
     mUseGCP =IsInit(&mNameGCP);
     if (mUseGCP)
     {
-       ReadFromFile(mGCP,mNameGCP);
+       ReadFromFile(mPannel,mNameGCP);
     }
 
     // By default print detail if we are not in //

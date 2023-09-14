@@ -161,6 +161,18 @@ const cMes1GCP &  cSetMesImGCP::MesGCPOfName(const std::string & aNamePt) const
     return mMesGCP.at(m2MapPtInt.Obj2I(aNamePt));
 }
 
+const cMes1GCP &  cSetMesImGCP::MesGCPOfNum(int aNum) const
+{
+    return mMesGCP.at(aNum);
+}
+
+const cMes1GCP & cSetMesImGCP::MesGCPOfMulIm(const cMultipleImPt & aMIP) const
+{
+   return MesGCPOfNum(aMIP.NumPt());
+}
+
+
+
 bool  cSetMesImGCP::NameIsGCP(const std::string & aNamePt) const
 {
   return m2MapPtInt.Obj2I(aNamePt,true) >= 0;
