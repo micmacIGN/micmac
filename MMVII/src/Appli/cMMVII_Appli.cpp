@@ -654,7 +654,7 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
      // Keyword NONE means no out at all
      if (MMVII_NONE != aPSO)
      {
-         mFileStdOut.reset(new cMMVII_Ofs(aPSO,aModeAppend));
+         mFileStdOut.reset(new cMMVII_Ofs(aPSO,aModeAppend ? eFileModeOut::AppendText : eFileModeOut::CreateText));
          // separator between each process , to refine ... (date ? Id ?)
          mFileStdOut->Ofs() << "=============================================" << ENDL;
          mStdCout.Add(mFileStdOut->Ofs());
@@ -1030,7 +1030,7 @@ void cMMVII_Appli::InitProject()
 
 void cMMVII_Appli::LogCommandIn(const std::string & aName,bool MainLogFile)
 {
-   cMMVII_Ofs  aOfs(aName,true);
+   cMMVII_Ofs  aOfs(aName,eFileModeOut::AppendText);
    aOfs.Ofs() << "========================================================================\n";
    aOfs.Ofs() << "  Id : " <<  mPrefixNameAppli << "\n";
    aOfs.Ofs() << "  begining at : " <<  StrDateCur() << "\n\n";
@@ -1040,7 +1040,7 @@ void cMMVII_Appli::LogCommandIn(const std::string & aName,bool MainLogFile)
 
 void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
 {
-   cMMVII_Ofs  aOfs(aName,true);
+   cMMVII_Ofs  aOfs(aName,eFileModeOut::AppendText);
    // Add id, if several process were throw in // there is a mix and we no longer know which was closed
    aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  << "(Id=" << mPrefixNameAppli << ")\n\n";
    aOfs.Ofs().close();
@@ -1732,14 +1732,14 @@ int cMMVII_Appli::ExtSysCall(const std::string & aCom, bool SVP)
 {
    std::string aName  = NameFileLog(false);
    {
-      cMMVII_Ofs  aOfs(aName,true);
+      cMMVII_Ofs  aOfs(aName, eFileModeOut::AppendText);
       aOfs.Ofs() << "  ---   begining at : " <<  StrDateCur() << "\n";
       aOfs.Ofs() << "        ExtCom : [" <<  aCom << "]\n";
       aOfs.Ofs().close();
    }
    int aResult = GlobSysCall(aCom,SVP);
    {
-      cMMVII_Ofs  aOfs(aName,true);
+      cMMVII_Ofs  aOfs(aName, eFileModeOut::AppendText);
       aOfs.Ofs() << "  ---   ending at : " <<  StrDateCur() << "\n\n";
       aOfs.Ofs().close();
    }
@@ -1781,7 +1781,7 @@ int  cMMVII_Appli::ExeOnePackComParal(const std::list<std::string> & aLCom,bool 
  
    std::string aName  = NameFileLog(false);
    {
-      cMMVII_Ofs  aOfs(aName,true);
+      cMMVII_Ofs  aOfs(aName, eFileModeOut::AppendText);
       aOfs.Ofs() <<  "<<=============== Execute " << aLCom.size() << " in paral in file " << aNameMk << "\n";
       for (const auto & aCom : aLCom)
           aOfs.Ofs() <<  "   Com=" << aCom << "\n";
@@ -1790,7 +1790,7 @@ int  cMMVII_Appli::ExeOnePackComParal(const std::list<std::string> & aLCom,bool 
 
    int aResult =  GlobParalSysCallByMkF(aNameMk,aLCom,mNbProcAllowed,false,Silence);
    {
-      cMMVII_Ofs  aOfs(aName,true);
+      cMMVII_Ofs  aOfs(aName, eFileModeOut::AppendText);
       if (aResult == EXIT_SUCCESS)
          aOfs.Ofs() <<  ">>======== Done correctly paral in ===== \n";
       else

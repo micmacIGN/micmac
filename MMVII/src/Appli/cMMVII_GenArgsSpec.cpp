@@ -57,7 +57,7 @@ int cAppli_GenArgsSpec::Exe()
     aVArgs.push_back(mArgv[1]);             // will be replaced by anAppli name
 
 
-    cMMVII_Ofs  aOfs(mSpecFileName,false);
+    cMMVII_Ofs  aOfs(mSpecFileName, eFileModeOut::CreateText);
 
     StdOut() << "Generating specifications in :\n";
     StdOut() << "  " << mSpecFileName << "\n\n";

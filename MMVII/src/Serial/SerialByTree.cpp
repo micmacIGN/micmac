@@ -94,7 +94,7 @@ void cSerialGenerator::CheckOnClose(const cSerialTree &,const std::string &)  co
 
 
 cSerialFileParser::cSerialFileParser(const std::string & aName,eTypeSerial aTypeS) :
-   mMMIs          (aName),
+   mMMIs          (aName, eFileModeIn::Text),
    mTypeS         (aTypeS)
 {
 }
@@ -135,11 +135,11 @@ tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
           if (0)
 	  {
 	     {
-                cMMVII_Ofs aOfs1("Model.tagt",false);
+                cMMVII_Ofs aOfs1("Model.tagt", eFileModeOut::CreateText);
                 aTS1->Raw_PrettyPrint(aOfs1);
 	     }
 	     {
-                cMMVII_Ofs aOfs2("Obj.tagt",false);
+                cMMVII_Ofs aOfs2("Obj.tagt", eFileModeOut::CreateText);
                 aTS2->Raw_PrettyPrint(aOfs2);
 	     }
 	  }
@@ -1372,7 +1372,7 @@ cOMakeTreeAr::~cOMakeTreeAr()
     cTokenGeneByList aTGBL(mContToken);
 
     cSerialTree aTree(aTGBL);
-    cMMVII_Ofs anOfs(mNameFile,false);
+    cMMVII_Ofs anOfs(mNameFile, eFileModeOut::CreateText);
 
     if (mTypeS==eTypeSerial::exml)
     {

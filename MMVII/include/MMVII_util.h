@@ -180,10 +180,22 @@ std::string replaceFirstOccurrence(const std::string& s,const std::string& toRep
 
    No need for close() as it done automatically at destroy in std::ofstream.
 */
+enum class eFileModeOut {
+    CreateText,
+    CreateBinary,
+    AppendText,
+    AppendBinary,
+};
+
+enum class eFileModeIn {
+    Text,
+    Binary
+};
+
 class cMMVII_Ofs : public cMemCheck
 {
     public :
-        cMMVII_Ofs(const std::string & aName,bool aModeAppend);
+        cMMVII_Ofs(const std::string & aName, eFileModeOut aMode);
         std::ofstream & Ofs() ;
         const std::string &   Name() const;
 
@@ -211,7 +223,7 @@ class cMMVII_Ofs : public cMemCheck
 class cMMVII_Ifs : public cMemCheck
 {
     public :
-        cMMVII_Ifs(const std::string & aName);
+        cMMVII_Ifs(const std::string & aName, eFileModeIn aMode);
         std::ifstream & Ifs() ;
         const std::string &   Name() const;
 
@@ -238,9 +250,9 @@ class cMultipleOfs
         {
            Add(aOfs);
         }
-        cMultipleOfs(const std::string & aS,bool ModeAppend = false)
+        cMultipleOfs(const std::string & aS,eFileModeOut aMode)
         {
-             mOfsCreated = new cMMVII_Ofs(aS,ModeAppend);
+             mOfsCreated = new cMMVII_Ofs(aS,aMode);
              Add(mOfsCreated->Ofs());
         }
         ~cMultipleOfs()

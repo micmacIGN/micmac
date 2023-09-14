@@ -561,7 +561,7 @@ int  cAppliCalcHistoNDim::Exe()
 
    if (1)
    {
-      cMultipleOfs  aMulOfs(NameReport(),false);
+      cMultipleOfs  aMulOfs(NameReport(), eFileModeOut::CreateText);
       aMulOfs << "COM=[" << CommandOfMain() << "]\n\n";
       for (bool InReport : {false,true})
       {
@@ -606,7 +606,7 @@ int  cAppliCalcHistoNDim::Exe()
 
    if (! mGenerateVisu)
    {
-       cMultipleOfs  aMulOfs(NameReport(),true);
+       cMultipleOfs  aMulOfs(NameReport(), eFileModeOut::AppendText);
        aMulOfs << "\n========================================\n\n";
        ShowPerf(aMulOfs);
 

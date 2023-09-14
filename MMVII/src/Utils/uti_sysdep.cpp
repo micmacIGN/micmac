@@ -81,7 +81,7 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::stri
 {
    //RemoveFile(const  std::string & aFile,bool SVP)
 
-   cMMVII_Ofs  aOfs(aNameMkF,false);
+   cMMVII_Ofs  aOfs(aNameMkF, eFileModeOut::CreateText);
    int aNumTask=0;
    std::string aStrAllTask = "all : ";
    for (const auto & aNameCom : aListCom)

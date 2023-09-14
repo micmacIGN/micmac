@@ -490,7 +490,7 @@ cOBaseTxt_Ar2007::~cOBaseTxt_Ar2007()
 
 cOBaseTxt_Ar2007::cOBaseTxt_Ar2007(const std::string & aName,eTypeSerial aTypeS) : 
    cAr2007(false,(aTypeS!=eTypeSerial::etxt),false),  // Output, Tagged, Binary
-   mMMOs(aName,false) ,
+   mMMOs(aName, eFileModeOut::CreateText) ,
    mXTerm (false),
    mFirst(true) 
 {
@@ -632,7 +632,7 @@ class  cOBin_Ar2007 : public cAr2007
     public :
         cOBin_Ar2007 (const std::string & aName) :
             cAr2007(false,false,true),  // Is Not Input, Tagged,Binary
-            mMMOs  (aName,false)
+            mMMOs  (aName, eFileModeOut::CreateBinary)
         {
         }
         // void RawAddDataTerm(tU_INT2 &    anI) override ; 
@@ -674,7 +674,7 @@ class  cIBin_Ar2007 : public cAr2007
     public :
         cIBin_Ar2007 (const std::string & aName) :
             cAr2007(true,false,true),  // Input, Tagged,Binary
-            mMMIs  (aName)
+            mMMIs  (aName, eFileModeIn::Binary)
         {
         }
         int NbNextOptionnal(const std::string &) override;

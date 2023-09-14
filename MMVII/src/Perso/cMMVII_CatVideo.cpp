@@ -83,7 +83,7 @@ int cAppli_CatVideo::Exe()
    // Sometime computing postfix fails, so dont do it when you dont need it
    bool ComputePost = (! IsInit(&mNameResult));
   
-   cMMVII_Ofs aFileOfFile(mNameFoF,mAppend);
+   cMMVII_Ofs aFileOfFile(mNameFoF,mAppend ? eFileModeOut::AppendText : eFileModeOut::CreateText);
    for (const auto & aStr : ToVect(MainSet0()))
    {
        aFileOfFile.Ofs() << "file '" << aStr << "'" << std::endl;

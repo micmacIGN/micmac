@@ -36,7 +36,7 @@ void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,
         return;
     mMapIdPostReport[anId] = aPost;
 
-    cMMVII_Ofs(mMapIdFilesReport[anId],false);
+    cMMVII_Ofs(mMapIdFilesReport[anId], eFileModeOut::CreateText);
 }
 
 void  cMMVII_Appli::AddTopReport(const std::string &anId,const std::string & aMsg)
@@ -51,7 +51,7 @@ void  cMMVII_Appli::AddOneReport(const std::string &anId,const std::string & aMs
 {
     std::string  aName = mMapIdFilesReport[anId];
     MMVII_INTERNAL_ASSERT_tiny(aName!="","No file in AddOneMesCSV");
-    cMMVII_Ofs aFile(aName,true);
+    cMMVII_Ofs aFile(aName, eFileModeOut::AppendText);
 
     aFile.Ofs() << aMsg;
 }
@@ -76,12 +76,12 @@ void  cMMVII_Appli::DoMergeReport()
 
      for (const auto & anIt : mMapIdFilesReport)
      {
-         cMMVII_Ofs aFileGlob(anIt.second,true);
+         cMMVII_Ofs aFileGlob(anIt.second, eFileModeOut::AppendText);
          const std::string & anId = anIt.first;
 	 for (const auto & aNameIm : VectMainSet(0))
 	 {
              std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm) + "." + mMapIdPostReport[anId];
-	     cMMVII_Ifs aIn(aNameIn);
+	     cMMVII_Ifs aIn(aNameIn, eFileModeIn::Text);
 
 	     std::string aLine;
 	     while (std::getline(aIn.Ifs(), aLine))

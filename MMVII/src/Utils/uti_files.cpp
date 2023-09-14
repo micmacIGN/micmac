@@ -30,6 +30,26 @@ std::unique_ptr<std::ofstream>  NNOfs(const std::string & aNameFile,const std::s
    return NNfs<std::ofstream>(aNameFile,"WRITE",aMes);
 }
 
+static std::ios_base::openmode StdFileMode(eFileModeOut aMode)
+{
+    switch (aMode) {
+    case eFileModeOut::CreateText   : return std::ios_base::out | std::ios_base::trunc;
+    case eFileModeOut::CreateBinary : return std::ios_base::out | std::ios_base::trunc | std::ios_base::binary;
+    case eFileModeOut::AppendText   : return std::ios_base::out | std::ios_base::app;
+    case eFileModeOut::AppendBinary : return std::ios_base::out | std::ios_base::app | std::ios_base::binary;
+    }
+    return std::ios_base::out | std::ios_base::trunc;
+}
+
+static std::ios_base::openmode StdFileMode(eFileModeIn aMode)
+{
+    switch (aMode) {
+    case eFileModeIn::Text: return std::ios_base::in;
+    case eFileModeIn::Binary: return std::ios_base::in | std::ios_base::binary;
+    }
+    return std::ios_base::in;
+}
+
 /*=============================================*/
 /*                                             */
 /*            cMMVII_Ofs                       */
@@ -37,8 +57,8 @@ std::unique_ptr<std::ofstream>  NNOfs(const std::string & aNameFile,const std::s
 /*=============================================*/
 
 
-cMMVII_Ofs::cMMVII_Ofs(const std::string & aName,bool ModeAppend) :
-   mOfs  (aName,ModeAppend ? std::ios_base::app : std::ios_base::out),
+cMMVII_Ofs::cMMVII_Ofs(const std::string & aName,eFileModeOut aMode) :
+   mOfs  (aName,StdFileMode(aMode)),
    mName (aName)
 {
     MMVII_INTERNAL_ASSERT_User
@@ -105,8 +125,8 @@ void cMMVII_Ofs::Write(const std::string & aVal)
 /*=============================================*/
 
 
-cMMVII_Ifs::cMMVII_Ifs(const std::string & aName) :
-   mIfs  (aName),
+cMMVII_Ifs::cMMVII_Ifs(const std::string & aName, eFileModeIn aMode) :
+   mIfs  (aName, StdFileMode(aMode)),
    mName (aName)
 {
     MMVII_INTERNAL_ASSERT_User

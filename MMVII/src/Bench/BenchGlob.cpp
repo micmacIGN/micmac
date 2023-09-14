@@ -594,7 +594,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
 
 static void CreateFile(const std::string & aNameFile)
 {
-   cMMVII_Ofs aFile(aNameFile,false);
+   cMMVII_Ofs aFile(aNameFile, eFileModeOut::CreateBinary);
    int anI=44;
    aFile.Write(anI);
 }
@@ -701,7 +701,7 @@ int cAppli_MMRecall::Exe()
     // to create a file with Num in name
     { 
        std::string aNameF = aDirT + ToStr(mNum) + ".txt";
-       cMMVII_Ofs (aNameF,false);
+       cMMVII_Ofs (aNameF, eFileModeOut::CreateText);
     }
     MMVII_INTERNAL_ASSERT_always(mNum!=mNumBug,"Bug generate by user in cAppli_MMRecall");
 
