@@ -18,6 +18,7 @@
 #include <chrono>
 #include <optional>
 #include <cmath>
+#include <cstdint>
 
 //========== LIB EXTEN==============
 
@@ -45,17 +46,17 @@ typedef float       tREAL4;
 typedef double      tREAL8;
 typedef long double tREAL16;
 
-typedef signed char  tINT1;
-typedef signed short tINT2;
-typedef signed int   tINT4;
-typedef long int     tINT8;
+typedef int8_t  tINT1;
+typedef int16_t tINT2;
+typedef int32_t tINT4;
+typedef int64_t tINT8;
 
 
 
-typedef unsigned char  tU_INT1;
-typedef unsigned short tU_INT2;
-typedef unsigned int   tU_INT4;
-typedef unsigned long int tU_INT8;
+typedef uint8_t  tU_INT1;
+typedef uint16_t tU_INT2;
+typedef uint32_t tU_INT4;
+typedef uint64_t tU_INT8;
 
 
 typedef int    tStdInt;  ///< "natural" int
