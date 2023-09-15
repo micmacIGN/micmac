@@ -229,6 +229,8 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, double lined
              }
          }
 
+		   
+
          // if we dont have exactly 4 transition, there is someting wrong ...
          if (aCpt!=4)  {
             return false;
@@ -236,7 +238,7 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, double lined
 
      }
      
-    if (TestAlignmentsOfDirs(aDCT.mDetectedVectors1, aDCT.mDetectedVectors2) > lined_up_px) return false;
+     if (TestAlignmentsOfDirs(aDCT.mDetectedVectors1, aDCT.mDetectedVectors2) > lined_up_px) return false;
     
      // now recover from the tensor one of its two vectors (we have no control one which)
      for (auto & aDir : aSomDir)
@@ -346,35 +348,16 @@ template class cExtractDir<tREAL4>;
 
 bool TestDirDCT(cDCT & aDCT, cIm2D<tREAL4> anIm, double ray_min, double ray_max, std::vector<cPt2di>& vec2plot, double lined_up_px){
 
-
-/*
-    double max_possible_x = std::min(aDCT.Pix().x(), anIm.DIm().Sz().x()-aDCT.Pix().x());
-    double max_possible_y = std::min(aDCT.Pix().y(), anIm.DIm().Sz().y()-aDCT.Pix().y());
-    double max_possible   = std::min(max_possible_x, max_possible_y);
-    double max_ray        = std::min(aRayCB*0.8*size_factor, max_possible-1);
-*/
-
-    // StdOut() << max_possible_x << " " << max_possible_y << " " << max_possible << " " << max_ray << "\n";
-
     cExtractDir<tREAL4>  anED(anIm, ray_min, ray_max);
 
     bool Ok = anED.CalcDir(aDCT, lined_up_px);
 
-
     if (!Ok) return false;
 
-
     anED.ScoreRadiom(aDCT) ;
-
-      double th1 = 0.50;
-      double th2 = 0.50;
-
-  //  double th1 = 0.12;
-  //  double th2 = 0.85;
-
-   // StdOut() << " Test 1 " << aDCT.mScRadDir  << " " <<  th1 << "\n";
-   // StdOut() << " Test 2 " << aDCT.mCorMinDir << " " <<  th2 << "\n";
-
+    
+    double th1 = 0.50;
+    double th2 = 0.50;
 
     return (aDCT.mScRadDir < th1) && (aDCT.mCorMinDir> th2) ;
 
