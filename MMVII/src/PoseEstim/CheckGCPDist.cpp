@@ -394,7 +394,8 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
         }
     }
 
-    bool  Ok= true;
+    bool  OkResec = true;
+    bool  Ok11P   = true;
     if (mUseGCP)
     {
 
@@ -402,27 +403,26 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
        ComputeGridId(aSetMes);
        cHomogr2D<tREAL8> aHG2I;
 
-       if (Ok) 
-          Ok = ComputeMainHomogr(aHG2I);
+       if (OkResec) 
+          OkResec = ComputeMainHomogr(aHG2I);
 
-       if (Ok)
+       if (OkResec)
        {
-	  Ok = ComputeHomogrZ1(aHG2I);
+	  Ok11P = ComputeHomogrZ1(aHG2I);
+          //  if not validated, the point at Z1 are not valide
+          if (! Ok11P)
+          {
+             for (auto & aPC : mPtCheck)
+                 if (! aPC.mIsZ0)
+                    aPC.mIsOk = false;
+          }
        }
        else // if cant comput homogr all point false
        {
+          Ok11P = false;
           for (auto & aPC : mPtCheck)
               aPC.mIsOk = false;
        }
-
-       //  if not validated, the point at Z1 are not valide
-       if (! Ok)
-       {
-          for (auto & aPC : mPtCheck)
-              if (! aPC.mIsZ0)
-                 aPC.mIsOk = false;
-       }
-
     }
 
     mCalib = nullptr;
@@ -457,19 +457,19 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
         mSetOK11.Add(aNameIm);
     }
 
-    if (aLinearityIndex < mNbMinResec)
+    if (aLinearityIndex < mMinLineResec)
     {
        mSetNotOKResec.Add(aNameIm);
     }
     else
     {
-        mSetOKResec.Add(aNameIm);
+       mSetOKResec.Add(aNameIm);
     }
 
 
     if (mSaveMeasures)
     {
-       if (Ok)
+       if (OkResec)
        {
           cFilterMesIm aFMIM(mPhProj,mCurNameIm);
           for (const auto & aPC : mPtCheck)

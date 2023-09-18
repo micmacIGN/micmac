@@ -405,6 +405,16 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
     return aCamPC;
 }
 
+cSensorImage* cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,bool SVP)
+{
+     cSensorImage*   aSI;
+     cSensorCamPC *  aSPC;
+
+     LoadSensor(aNameIm,aSI,aSPC,SVP);
+
+     return aSI;
+}
+
 void cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,cSensorImage* & aSI,cSensorCamPC * & aSPC,bool SVP)
 {
      aSI = nullptr;
@@ -572,6 +582,7 @@ cSet2D3D  cPhotogrammetricProject::LoadSet32(const std::string & aNameIm) const
 
 void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM,const std::list<std::string> & ToRem) const
 {
+
      std::string  aNameIn = cSaveExtrEllipe::NameFile(*this,aSetM,true);
      if (!ExistFile(aNameIn))
         return;
@@ -581,7 +592,7 @@ void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM
 
      std::vector<cSaveExtrEllipe> aVSEEOut;
      for (const auto & aSEE : aVSEEIn)
-         if (BoolFind(ToRem,aSEE.mNameCode))
+         if (! BoolFind(ToRem,aSEE.mNameCode))
             aVSEEOut.push_back(aSEE);
      SaveInFile(aVSEEOut,cSaveExtrEllipe::NameFile(*this,aSetM,false));
 }

@@ -392,13 +392,15 @@ class cAppliBundlAdj : public cMMVII_Appli
 
 	std::string               mGCPDir;  ///  GCP Data Dir if != mDataDir
 	std::vector<double>       mGCPW;
+	int                       mNbIter;
 };
 
 cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
    mDataDir      ("Std"),
    mPhProj       (*this),
-   mBA           (&mPhProj)
+   mBA           (&mPhProj),
+   mNbIter       (10)
 {
 }
 
@@ -416,6 +418,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     
     return anArgOpt
                << AOpt2007(mDataDir,"DataDir","Defautl data directories ",{eTA2007::HDV})
+	       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
 
                << AOpt2007(mGCPDir,"GCPDir","Dir for GCP if != DataDir")
                << AOpt2007(mGCPW,"GCPW","Weithing of GCP if any [SigmaG,SigmaI], SG=0 fix, SG<0 schurr elim, SG>0",{{eTA2007::ISizeV,"[2,2]"}})
@@ -454,7 +457,7 @@ int cAppliBundlAdj::Exe()
 
     MMVII_INTERNAL_ASSERT_tiny(MeasureAdded,"Not any measure added");
 
-    for (int aKIter=0 ; aKIter<15 ; aKIter++)
+    for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {
         mBA.OneIteration();
     }
