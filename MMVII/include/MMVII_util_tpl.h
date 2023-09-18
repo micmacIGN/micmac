@@ -317,8 +317,6 @@ template <class Type> inline void DeleteAllAndClear(Type & aVal)
 
 
 
-
-
 /// Set value, before resize up if required
 template <class Type> void SetAndResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal,const Type &aValDef)
 {
@@ -389,6 +387,20 @@ template <class TVal,class TFunc> TVal * WhitchMinVect(std::vector<TVal> & aVec,
 template <class TVal,class TFunc> TVal * WhitchMaxVect(std::vector<TVal> & aVec,const TFunc & aFunc)
 {
     return WhitchMinVect(aVec,[&aFunc](auto & aV){return -aFunc(aV);});
+}
+
+template <class Type>  void SubVector(std::vector<Type>& aRes,const std::vector<Type>& aFull,const std::vector<size_t>& aVInd)
+{
+    aRes.clear();
+    for (const auto & anInd : aVInd)
+       aRes.push_back(aFull[anInd]);
+}
+template <class Type>   std::vector<Type>  SubVector(const std::vector<Type> & aFull,const std::vector<size_t>& aVInd)
+{
+    std::vector<Type> aRes;
+    SubVector(aRes,aFull,aVInd);
+
+    return aRes;
 }
 
 

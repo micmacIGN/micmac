@@ -3,6 +3,7 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_Tpl_Images.h"
+#include "MMVII_PCSens.h"
 
 
 /**
@@ -27,9 +28,11 @@ class cGeomCERNPannel
 	     tREAL8  mDH;       ///  hight of main plane
 	     tREAL8  mDistPlani;   ///  size of tiling in main plane => to compute an index
 
-         // 
-             int     mNbMin0; ///  Number minimal of point in each plane
-             int     mNbMin1; ///  Number minimal of point in each plane
+             int     mNbMinZ0; ///  Number minimal of point in each plane
+             int     mNbMinZ1; ///  Number minimal of point in each plane
+
+	     tREAL8  mThreshHomogNoCal;  ///  Threshold on homgraphy if initial no calib is given
+	     tREAL8  mThreshHomogCalib;  ///   Threshold on homgraphy when we have initial caliv to correct distorsion
 	     cPt2di  mSzRect;   /// Size of the rect in which we search consecutive target
              int     mNbMinRect;  /// number min of Pts InRect
 
@@ -56,12 +59,17 @@ void cGeomCERNPannel::AddData(const cAuxAr2007 & anAux0)
     MMVII::AddData(cAuxAr2007("H1",anAux),mH1);
     MMVII::AddData(cAuxAr2007("Delta",anAux),mDH);
     MMVII::AddData(cAuxAr2007("DistPlani",anAux),mDistPlani);
-    MMVII::AddData(cAuxAr2007("NbMin0",anAux),mNbMin0);
-    MMVII::AddData(cAuxAr2007("NbMin1",anAux),mNbMin1);
+    MMVII::AddData(cAuxAr2007("NbMinZ0",anAux),mNbMinZ0);
+    MMVII::AddData(cAuxAr2007("NbMinZ1",anAux),mNbMinZ1);
+
+    MMVII::AddData(cAuxAr2007("ThresholdHomographyNOCal",anAux),mThreshHomogNoCal);
+    MMVII::AddData(cAuxAr2007("ThresholdHomographyCalib",anAux),mThreshHomogCalib);
+
     MMVII::AddData(cAuxAr2007("SzRect",anAux),mSzRect);
     MMVII::AddData(cAuxAr2007("NbMinRect",anAux),mNbMinRect);
     MMVII::AddData(cAuxAr2007("PtGrid",anAux),mPtGrid);
 }
+
 
 void AddData(const cAuxAr2007 & anAux,cGeomCERNPannel & aGCP)
 {
@@ -77,7 +85,8 @@ class  cPtCheck
 {
      public :
        const cMultipleImPt *  mIm;
-       cPt2dr                 mP2Im;
+       cPt2dr                 mP2ImInit;
+       cPt2dr                 mP2ImCorr;
        const cMes1GCP *       mGr;
        cPt2di                 mId;
        bool                   mIsOk;
@@ -96,6 +105,16 @@ class cAppli_CheckGCPDist : public cMMVII_Appli
 
      private :
 
+	/// give the point their grid Id, init IsZ0,  init Nb0, Nb1
+        void   ComputeGridId(const cSetMesImGCP & aSetMes);
+	///  compute homography Plane -> Im for point in the main plane (Z~0 in CERN-pannel)
+        bool   ComputeMainHomogr(cHomogr2D<tREAL8> &);
+	///  for the point up (Z~200 in CERN pannel), compute the homography as a perturbation to previous one
+        bool    ComputeHomogrZ1(const cHomogr2D<tREAL8> &);
+	///  compute the max number of point in  a given rectangle
+	int    ComputeSquareAdj();
+
+
         ///  Process 1 image
         void MakeOneIm(const std::string & aName);
 
@@ -107,13 +126,17 @@ class cAppli_CheckGCPDist : public cMMVII_Appli
 	cGeomCERNPannel          mPannel;          ///< parametrs specific to CERN Panel
 	std::string              mNameGCP;      ///< Name of mGCP
 
-        int                      mNbMin11;      ///< number minimal of point for 11 parameters estimation 
+        int                      mNbMin11P;      ///< number minimal of point for 11 parameters estimation 
         tREAL8                   mMinPlan11;    ///<  minimal value of non planarity
         int                      mNbMinResec;   ///<  minimal number of point for space resection
         tREAL8                   mMinLineResec;  ///< minimal value for non linearity 
         std::string              mPrefSave;
         std::vector<double>      mVSpecCernPanel;
+        cPerspCamIntrCalib *     mCalib;
+        tREAL8                   mThresholdHomog; ///< Thresholds for homograhic fitting on Z0 && Z1
+        std::string              mCurNameIm;
 
+	bool                     mSaveMeasures;
 	// ---  Set ok for different processing, will be used in next steps
         tNameSet                 mSetOK11;        ///< Set of point OK for 11 parameters estimation
         tNameSet                 mSetOKResec;      ///< Set of  point ok for space resection
@@ -123,6 +146,10 @@ class cAppli_CheckGCPDist : public cMMVII_Appli
         tNameSet                 mSetNotOKResec;
 
         std::vector<cPtCheck>    mPtCheck;
+        int                      mNbZ0 ;  ///< number of validated point in plane 0 of CERN PANNEL
+        int                      mNbZ1 ;  ///< number of validated point in other plane  of CERN PANNEL
+	cPt2di                   mSupId;
+        cIm2D<tU_INT1>           mImId;
 };
 
 cAppli_CheckGCPDist::cAppli_CheckGCPDist
@@ -132,11 +159,13 @@ cAppli_CheckGCPDist::cAppli_CheckGCPDist
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
-     mNbMin11      (12),
+     mNbMin11P     (6),
      mMinPlan11    (1e-2),
-     mNbMinResec   (6),
+     mNbMinResec   (4),
      mMinLineResec (1e-1),
-     mPrefSave     ("SetFiltered_GCP")
+     mPrefSave     ("SetFiltered_GCP"),
+     mCalib        (nullptr),
+     mImId         (cPt2di(1,1))
 {
 }
 
@@ -154,9 +183,9 @@ cCollecSpecArg2007 & cAppli_CheckGCPDist::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
     return    anArgOpt
-	      << AOpt2007(mNameGCP,"CERNFilter","File for Geometric of CERN-like pannel, for special filtering",{{eTA2007::XmlOfTopTag,cStrIO<cGeomCERNPannel>::msNameType}})
-
-	      << AOpt2007(mNbMin11,"NbMin11P","Number minimal of point for 11 Param",{eTA2007::HDV})
+	      << AOpt2007(mNameGCP,"CERNFilter","File for Geometric of CERN-like pannel, for special filtering",
+			      {{eTA2007::XmlOfTopTag,cStrIO<cGeomCERNPannel>::msNameType}})
+	      << AOpt2007(mNbMin11P,"NbMin11P","Number minimal of point for 11 Param",{eTA2007::HDV})
 	      << AOpt2007(mMinPlan11,"MinPlane11P","Minim planarity index of 11 Param",{eTA2007::HDV})
 	      << AOpt2007(mNbMinResec,"NbMinResec","Number minimal of point for space resection",{eTA2007::HDV})
 	      << AOpt2007(mMinLineResec,"MinPlane11P","Mimimal linearity index of space resection",{eTA2007::HDV})
@@ -164,157 +193,262 @@ cCollecSpecArg2007 & cAppli_CheckGCPDist::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	      << AOpt2007(mVSpecCernPanel,"SpecCernPan","[H0 H1 Delta Nb Tile Dx Dy] : spec CERN for 11P",
                           {{eTA2007::ISizeV,"[8,8]"}})
 	      << AOpt2007(mGenSpecCERN,"GenarateSpecfifCERNPannel","for editing to a usable value",{eTA2007::HDV})
+              << mPhProj.DPPointsMeasures().ArgDirOutOpt("DirFiltered","Directory for filtered point")
+              << mPhProj.DPOrient().ArgDirInOpt("Calib","Internal calibration folder is any")
     ;
 }
 
 
 
+void   cAppli_CheckGCPDist::ComputeGridId(const cSetMesImGCP & aSetMes)  
+{
+    mSupId = cPt2di(-1000,-1000);
+    cHomogr2D<tREAL8> aHNum ;
+    std::vector<cPt2dr>  aVPlani;
+    std::vector<cPt2dr>  aVNum;
+    for (const auto & aPair : mPannel.mPtGrid)
+    {
+        aVNum.push_back(ToR(aPair.second));
+	SetSupEq(mSupId,aPair.second);
+        const cMes1GCP & aGCP = aSetMes.MesGCPOfName(aPair.first);
+        aVPlani.push_back(Proj(aGCP.mPt));
+    }
+    mSupId += cPt2di(1,1);
+    aHNum =  cHomogr2D<tREAL8>::StdGlobEstimate(aVPlani,aVNum);
+
+    mNbZ0 = 0;
+    mNbZ1 = 0;
+    for (auto & aPC : mPtCheck)
+    {
+       cPt3dr aPGr = aPC.mGr->mPt;
+       aPC.mIsZ0 = (mPannel.IsZ0(aPGr.z()));
+       if (aPC.mIsZ0)
+       {
+            cPt2dr aP2 = Proj(aPGr);
+            aPC.mId  =  ToI(aHNum.Value(aP2));
+	    //  should not happen,  by the way never too cautious
+	    if ( !( SupEq(aPC.mId,cPt2di(0,0)) && InfStr(aPC.mId,mSupId)))
+	    {
+               aPC.mIsOk = false;
+	    }
+	    else
+	    {
+                mNbZ0++;
+	    }
+        }
+        else
+        {
+            MMVII_INTERNAL_ASSERT_tiny(mPannel.IsZ1(aPGr.z()),"CERN pannel nor z0 nor z1 ");
+            mNbZ1++;
+        }
+     }
+
+     int aRab = NormInf(mPannel.mSzRect);
+     mImId = cIm2D<tU_INT1>(mSupId+cPt2di(aRab,aRab),nullptr,eModeInitImage::eMIA_Null);
+}
+
+bool   cAppli_CheckGCPDist::ComputeMainHomogr(cHomogr2D<tREAL8> & aHG2I)
+{
+  if (ComputeSquareAdj() < mPannel.mNbMinRect) 
+     return false;
+
+   mNbZ0 = 0;
+   std::vector<cPt2dr>  aVPlani;
+   std::vector<cPt2dr>  aVIm;
+   for (auto & aPC : mPtCheck)
+   {
+           if (aPC.mIsZ0 && aPC.mIsOk)
+           {
+              aVPlani.push_back( Proj(aPC.mGr->mPt));
+              aVIm.push_back(aPC.mP2ImCorr);
+	      mNbZ0++;
+           }
+   }
+
+   if (mNbZ0<mPannel.mNbMinZ0)
+   {
+      return false;
+   }
+
+   mNbZ0 = 0;
+
+   cAvgAndBoundVals<tREAL8>  aAvgD;
+   aHG2I =  cHomogr2D<tREAL8>::RansacL1Estimate(aVPlani,aVIm,1000);
+   // cHomogr2D<tREAL8> aHG2I =  cHomogr2D<tREAL8>::RansacL1Estimate(aVPlani,aVIm,1000);
+   for (auto & aPC : mPtCheck)
+   {
+          if (aPC.mIsZ0 && aPC.mIsOk)
+          {
+              tREAL8 aDif = Norm2(aHG2I.Value(Proj(aPC.mGr->mPt)) - aPC.mP2ImCorr);
+              aAvgD.Add(aDif);
+
+              if (aDif >  mThresholdHomog)
+              {
+                 aPC.mIsOk = false;
+                 // StdOut() << "##############  DIFFF " << aDif << " Pt=" <<  aPC.mGr->mNamePt << " Im=" << mCurNameIm << "#### \n";
+              }
+	      else
+                 mNbZ0++;
+          }
+   }
+
+  if (ComputeSquareAdj() < mPannel.mNbMinRect) 
+     return false;
+
+   return  (mNbZ0 >= mPannel.mNbMinZ0) ;
+}
+
+
+bool  cAppli_CheckGCPDist::ComputeHomogrZ1(const cHomogr2D<tREAL8> & aH0)
+{
+   std::vector<cPt2dr>  aVPlani;
+   std::vector<cPt2dr>  aVIm;
+   for (auto & aPC : mPtCheck)
+   {
+          if ((!aPC.mIsZ0) && aPC.mIsOk)
+          {
+              aVPlani.push_back( Proj(aPC.mGr->mPt));
+              aVIm.push_back(aPC.mP2ImCorr);
+	  }
+   }
+
+   if (int(aVPlani.size()) < mPannel.mNbMinZ1) 
+      return false;
+
+   mNbZ1=0;
+   cHomogr2D<tREAL8> aH1 = aH0.RansacParalPlaneShift(aVPlani,aVIm,2,4);
+
+   for (auto & aPC : mPtCheck)
+   {
+          if ((!aPC.mIsZ0) && aPC.mIsOk)
+          {
+              tREAL8 aDif = Norm2(aH1.Value(Proj(aPC.mGr->mPt)) - aPC.mP2ImCorr);
+              if (aDif >  mThresholdHomog)
+              {
+                 aPC.mIsOk = false;
+                 StdOut() << "##############  DIFFF " << aDif << " Pt=" <<  aPC.mGr->mNamePt << " Im=" << mCurNameIm << "#### \n";
+              }
+	      else
+	      {
+                  mNbZ1++;
+	      }
+	  }
+   }
+
+   return (mNbZ1 >= mPannel.mNbMinZ1);
+}
+
+int   cAppli_CheckGCPDist::ComputeSquareAdj()
+{
+   cDataIm2D<tU_INT1> & aDIm = mImId.DIm();
+   for (auto & aPC : mPtCheck)
+   {
+       if (aPC.mIsZ0 && aPC.mIsOk)
+       {
+            aDIm.SetV(aPC.mId,1);
+       }
+   }
+   int aRes=0;
+
+    for (const auto & aPix : cRect2(cPt2di(0,0),mSupId) )
+    {
+        int aS1 = SumIm(aDIm,cRect2(aPix,aPix +        mPannel.mSzRect));
+        int aS2 = SumIm(aDIm,cRect2(aPix,aPix + PSymXY(mPannel.mSzRect)));
+
+        UpdateMax(aRes,std::max(aS1,aS2));
+    }
+   return aRes;
+}
+
 void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
 {
-    //  load GCP & Im in aSetMes
+    mCurNameIm = aNameIm;
 
     cSetMesImGCP  aSetMes;
     mPhProj.LoadGCP(aSetMes);
     mPhProj.LoadIm(aSetMes,aNameIm);
 
-    // Create a structure with GCP of image, so that we can add information
+    if (mPhProj.DPOrient().DirInIsInit())
+    {
+	mCalib =  mPhProj.InternalCalibFromStdName(aNameIm);
+    }
+
+    // Create a structure with GCP + image-points, so that we can add information
     mPtCheck.clear() ;
     for (const auto & aMes : aSetMes.MesImOfPt())
     {
-        if (aMes.VImages().size()==1)
+        if (aMes.VImages().size()==1)  // there can be empty images because its a structure for multiple points
         {
              cPtCheck aPC;
- 
-             aPC.mP2Im = aMes.VMeasures().at(0);
+
+	     // compute measue image
+             aPC.mP2ImInit = aMes.VMeasures().at(0);
+             aPC.mP2ImCorr=  mCalib ? mCalib->Undist(aPC.mP2ImInit ) : aPC.mP2ImInit;
+
              aPC.mIm = &aMes;
              aPC.mGr = & aSetMes.MesGCPOfMulIm(aMes);
              aPC.mId = cPt2di::Dummy();  // just to be detect use w/o init
-             aPC.mIsOk = true;
+             aPC.mIsOk = true;  //  up to now, everything is ok
+
              mPtCheck.push_back(aPC);
         }
     }
 
-    bool RefuteByNbInPlanes = false;
+    bool  Ok= true;
     if (mUseGCP)
     {
-       // Compute the mapping (homography 4 now) that associate a grid-num to planar coordinates
-       cHomogr2D<tREAL8> aHNum ;
+
+       mThresholdHomog  =  mCalib ?  mPannel.mThreshHomogCalib : mPannel.mThreshHomogNoCal;
+       ComputeGridId(aSetMes);
+       cHomogr2D<tREAL8> aHG2I;
+
+       if (Ok) 
+          Ok = ComputeMainHomogr(aHG2I);
+
+       if (Ok)
        {
-           std::vector<cPt2dr>  aVPlani;
-           std::vector<cPt2dr>  aVNum;
-           for (const auto & aPair : mPannel.mPtGrid)
-           {
-                aVNum.push_back(ToR(aPair.second));
-                const cMes1GCP & aGCP = aSetMes.MesGCPOfName(aPair.first);
-                aVPlani.push_back(Proj(aGCP.mPt));
-           }
-           aHNum =  cHomogr2D<tREAL8>::StdGlobEstimate(aVPlani,aVNum);
+	  Ok = ComputeHomogrZ1(aHG2I);
+       }
+       else // if cant comput homogr all point false
+       {
+          for (auto & aPC : mPtCheck)
+              aPC.mIsOk = false;
        }
 
-       /// Set the identifier + store the point for homography computing
-       int aNb0 = 0;
-       int aNb1 = 0;
-       std::vector<cPt2dr>  aVPlani;
-       std::vector<cPt2dr>  aVIm;
-       for (auto & aPC : mPtCheck)
+       //  if not validated, the point at Z1 are not valide
+       if (! Ok)
        {
-           cPt3dr aPGr = aPC.mGr->mPt;
-           aPC.mIsZ0 = (mPannel.IsZ0(aPGr.z()));
-           if (aPC.mIsZ0)
-           {
-              cPt2dr aP2 = Proj(aPGr);
-              aPC.mId  =  ToI(aHNum.Value(aP2));
-              aNb0++;
-              aVPlani.push_back(aP2);
-              aVIm.push_back(aPC.mP2Im);
-           }
-           else
-           {
-                MMVII_INTERNAL_ASSERT_tiny(mPannel.IsZ1(aPGr.z()),"CERN pannel nor z0 nor z1 ");
-                aNb1++;
-           }
+          for (auto & aPC : mPtCheck)
+              if (! aPC.mIsZ0)
+                 aPC.mIsOk = false;
        }
 
-       RefuteByNbInPlanes = (aNb0<mPannel.mNbMin0) || (aNb1<mPannel.mNbMin1) ;
-
-       if (! RefuteByNbInPlanes)
-       {
-            cHomogr2D<tREAL8> aHG2I =  cHomogr2D<tREAL8>::RansacL1Estimate(aVPlani,aVIm,1000);
-            for (auto & aPC : mPtCheck)
-            {
-                if (aPC.mIsZ0)
-                {
-                   cPt2dr aDif = aHG2I.Value(Proj(aPC.mGr->mPt)) - aPC.mP2Im;
-
-                   if (Norm2(aDif) > 10.0)
-                   {
-                       StdOut() << "DIFFF " << aDif << " Pt=" <<  aPC.mGr->mNamePt << " Im=" << aNameIm << "\n";
-                   }
-              
-                }
-            }
-        }
-
-       // StdOut() << "aNb0 " << aNb0 << " aNb1 " << aNb1 << "\n";
-   }
-
-FakeUseIt(RefuteByNbInPlanes);
-}
-
-
-#if (0)
-       // First we test if enouh point on each of the 2 plane
-/*
-       CoordRefut = true;
-       tREAL8 aDH = mPannel.mDH;
-
-
-       std::vector<cPt2di> aVIndex;
-       cPt2di aSzMax(0,0);
-       for (const auto & aPt : aVP3)
-       {
-            tREAL8 aH = aPt.z();
-	    bool Is0 = (aH>mPannel.mH0-aDH) && (aH<mPannel.mH0+aDH);
-            aNb0 += Is0;
-            aNb1 += (aH>mPannel.mH1-aDH) && (aH<mPannel.mH1+aDH);
-
-	    if (Is0)
-	    {
-                cPt2di aIndex = ToI(cPt2dr(aPt.x(),aPt.y()) / mPannel.mDistPlani);
-	        // StdOut()  << "JJJJ " << cPt2dr(aPt.x(),aPt.y()) / mPannel.mDistPlani << "\n";
-                aVIndex.push_back(aIndex);
-                SetSupEq(aSzMax,aIndex);
-	    }
-       }
-*/
-
-
-       // Now we test if there exist a grid Nx*Ny or Ny*Nx of target (we dont want a single line)
-/*
-       if (! aVIndex.empty())
-       {
-           int    aNbX    = round_ni(mVSpecCernPanel.at(5));
-           int    aNbY    = round_ni(mVSpecCernPanel.at(6));
-           int    aNbXYMin    = round_ni(mVSpecCernPanel.at(7));
-
-           int aRab = std::max(aNbX,aNbY);
-           cIm2D<tU_INT1> aIm(aSzMax+cPt2di(aRab,aRab),nullptr,eModeInitImage::eMIA_Null);
-           cDataIm2D<tU_INT1> & aDIm = aIm.DIm();
-           for (const auto & aIndex : aVIndex)
-               aDIm.SetV(aIndex,1);
-
-           for (const auto & aPix : cRect2(cPt2di(0,0),aSzMax) )
-           {
-                if (    
-                         (SumIm(aDIm,cRect2(aPix,aPix+cPt2di(aNbX,aNbY)))>= aNbXYMin)
-                     ||  (SumIm(aDIm,cRect2(aPix,aPix+cPt2di(aNbY,aNbX)))>= aNbXYMin)
-                   )
-                   CoordRefut = false;
-           }
-       }
     }
 
-    if (((int)aVP3.size() <mNbMin11) || (L2_PlanarityIndex(aVP3)<mMinPlan11)   || RefuteByNbInPlanes || CoordRefut)
+    mCalib = nullptr;
+
+
+    std::vector<cPt3dr>  aVP3;
+    for (auto & aPC : mPtCheck)
+    {
+        if (aPC.mIsOk)
+        {
+           aVP3.push_back(aPC.mGr->mPt);
+	}
+    }
+
+    double aPlanarityIndex = -1;
+    if ((int)aVP3.size() >=mNbMin11P)
+       aPlanarityIndex = L2_PlanarityIndex(aVP3);
+
+    double aLinearityIndex = -1;
+    if ((int)aVP3.size() >=mNbMinResec) 
+        aLinearityIndex = L2_LinearityIndex(aVP3);
+
+    if (0)   StdOut() << " Im=" << mCurNameIm << " PlaneInd=" << aPlanarityIndex  << " LineInd=" << aLinearityIndex << "\n";
+
+
+    if (aPlanarityIndex < mMinPlan11)
     {
        mSetNotOK11.Add(aNameIm);
     }
@@ -323,8 +457,7 @@ FakeUseIt(RefuteByNbInPlanes);
         mSetOK11.Add(aNameIm);
     }
 
-
-    if (((int)aVP3.size() <mNbMinResec) || (L2_LinearityIndex(aVP3)<mMinLineResec) || CoordRefut)
+    if (aLinearityIndex < mNbMinResec)
     {
        mSetNotOKResec.Add(aNameIm);
     }
@@ -332,15 +465,31 @@ FakeUseIt(RefuteByNbInPlanes);
     {
         mSetOKResec.Add(aNameIm);
     }
-*/
-#endif
-    
+
+
+    if (mSaveMeasures)
+    {
+       if (Ok)
+       {
+          cFilterMesIm aFMIM(mPhProj,mCurNameIm);
+          for (const auto & aPC : mPtCheck)
+          {          
+               aFMIM.AddInOrOut(aPC.mP2ImInit,aPC.mGr->mNamePt,aPC.mIsOk);
+          }
+	  aFMIM.SetFinished();
+	  aFMIM.Save();
+       }
+    }
+}
+
 
 
 int cAppli_CheckGCPDist::Exe()
 {
     mPhProj.FinishInit();
 
+
+    //  if we just need a pattern for xml file
     if (mGenSpecCERN)
     {
        SpecificationSaveInFile<cGeomCERNPannel>();
@@ -353,22 +502,29 @@ int cAppli_CheckGCPDist::Exe()
        ReadFromFile(mPannel,mNameGCP);
     }
 
-    // By default print detail if we are not in //
+    mSaveMeasures = mPhProj.DPPointsMeasures().DirOutIsInit();
+    // For now this case woul be probably not coherent , but I dont see how avoid it before, so test it now
+    if (mUseGCP!=mSaveMeasures)
+    {
+        MMVII_UnclasseUsEr("Must save measure iff have CERN Pannel");
+    }
+
+
+
+
+    // make computation for each image (not in //, very fast)
     for (const auto & aNameIm : VectMainSet(0))
     {
         MakeOneIm(aNameIm);
     }
 
-     SaveInFile(mSetNotOK11,mPrefSave+"_NotOK_11Param.xml");
-     SaveInFile(mSetOK11,mPrefSave+"_OK_11Param.xml");
-     SaveInFile(mSetNotOKResec,mPrefSave+"_NotOK_Resec.xml");
-     SaveInFile(mSetOKResec,mPrefSave+"_OK_Resec.xml");
+    SaveInFile(mSetNotOK11,mPrefSave+"_NotOK_11Param.xml");
+    SaveInFile(mSetOK11,mPrefSave+"_OK_11Param.xml");
+    SaveInFile(mSetNotOKResec,mPrefSave+"_NotOK_Resec.xml");
+    SaveInFile(mSetOKResec,mPrefSave+"_OK_Resec.xml");
 
-/*
-    mPhProj.LoadGCP(mSetMes);
-    mPhProj.LoadIm(mSetMes,aNameIm);
-    mSetMes.ExtractMes1Im(mSet23,aNameIm);
-*/
+    if (mSaveMeasures)
+	  mPhProj.CpGCP();
 
     return EXIT_SUCCESS;
 }                                       

@@ -417,6 +417,8 @@ template <class Type>  class cHomogr2D
           tTypeMap operator *(const tTypeMap&aS2) const ;
           tTypeMapInv MapInverse() const ;
 
+	  tTypeElem  AvgDistL1(tCRVPts aVIn,tCRVPts aVOut);
+
           inline tPt  Value(const tPt & aP) const   {return tPt(S(mHX,aP),S(mHY,aP)) / S(mHZ,aP);}
           inline tPt  Inverse(const tPt & aP) const {return tPt(S(mIHX,aP),S(mIHY,aP)) / S(mIHZ,aP);}
           /// compute the vector used in least square equation
@@ -428,6 +430,11 @@ template <class Type>  class cHomogr2D
           static tTypeMap RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);
           /// compute by least square the mapping such that Hom(PIn[aK]) = POut[aK]
           static tTypeMap StdGlobEstimate(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2=nullptr,tCPVVals aVWeight=nullptr);
+
+	  /// compute the homography, assuming we know it up to a shift of Z (devlopped in CERN pannel context)
+          tTypeMap LeastSqParalPlaneShift(tCRVPts aVIn,tCRVPts aVOut) const;
+	  /// call LeastSqParalPlaneShift for a robust approach
+          tTypeMap RansacParalPlaneShift(tCRVPts aVIn,tCRVPts aVOut,int aNbMin=2,int aNbMax=2) const;
 
           const tElemH &  Hx() const {return mHX;}
           const tElemH &  Hy() const {return mHY;}
