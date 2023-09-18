@@ -1,4 +1,5 @@
 #include "py_MMVII.h"
+#include "pybind11/numpy.h"
 
 #include "MMVII_Geom2D.h"
 
@@ -18,6 +19,21 @@ void pyb_init_Matrix_tpl(py::module_ &m, const std::string& name) {
             dm.def(py::init<int,eModeInitImage>(),"x"_a,"modeInitImage"_a = eModeInitImage::eMIA_NoInit);
             dm.def(py::init<typename tDM::tIm>(),"im2d"_a);
 
+            // TODO : a verifier le stride/offset !
+            dm.def(py::init([](py::array_t<T, py::array::c_style | py::array::forcecast> array) {
+                py::buffer_info info = array.request();
+                if (info.format != py::format_descriptor<T>::format())
+                    throw std::runtime_error("Incompatible format: expected a array!");
+                if (info.ndim != 2)
+                    throw std::runtime_error("Incompatible buffer dimension!");
+                tDM *m = new tDM(info.shape[1], info.shape[0]);
+                T* ptr = static_cast<T *>(info.ptr);
+                for (int j=0; j<info.shape[0]; j++)
+                    for (int i=0; i<info.shape[1]; i++)
+                        m->SetElem(i, j, *(ptr++));
+                return m;
+            })
+            ,"array"_a);
 
             dm.def("dup",&tDM::Dup);
             dm.def_static("identity",&tDM::Identity,"size"_a);
@@ -39,6 +55,20 @@ void pyb_init_Matrix_tpl(py::module_ &m, const std::string& name) {
 
             dm.def("inverse",py::overload_cast<>(&tDM::Inverse, py::const_));
 
+            dm.def("__repr__",[name](const tDM& m) {
+                std::ostringstream ss;
+                ss << name << " (" << m.Sz().y() << " rows, " << m.Sz().x() << " cols)";
+                return ss.str();
+            });
+
+            dm.def("__matmul__",[](const tDM& m1, const tDM& m2) -> tDM {
+                return m1*m2;
+            });
+
+            dm.def("__matmul__",[](const tDM& m1, const cDenseVect<T>& m2) -> cDenseVect<T> {
+
+                  return m1*m2;
+            });
 
             // TODO : a verifier le stride/offset !
             dm.def_buffer([](tDM &m) -> py::buffer_info {

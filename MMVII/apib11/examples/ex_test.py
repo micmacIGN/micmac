@@ -1,8 +1,8 @@
 from MMVII import *
 import numpy as np
 
-
-calib=PerspCamIntrCalib.fromFile("../../MMVII-TestDir/Input/Ply/MMVII-PhgrProj/Ori/TestProjMesh/Calib-PerspCentral-Foc-14000_Cam-DCGX9.xml")
+dirData = '../../MMVII-TestDir/Input/Saisies-MMV1/'
+calib=PerspCamIntrCalib.fromFile(dirData + 'Ori-Ground-MMVII/Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5.xml')
 pp0=Pt3di(1,2,3)
 p0=Pt2di(0,0)
 p1=Pt2di(5,6)
@@ -16,13 +16,12 @@ r=Rect2(box2)
 
 m=Matrixr(10,10,ModeInitImage.eMIA_Rand)
 mf=Matrixf(10,10,ModeInitImage.eMIA_Rand)
-
 a=np.array(m,copy=False)
 
 im=Im2Di.fromFile("../../MMVII-TestDir/Input/EPIP/Tiny/ImL.tif")
 im_np=np.array(im,copy=False)
 
-scpc=SensorCamPC.fromFile("../../MMVII-TestDir/Input/Ply/MMVII-PhgrProj/Ori/TestProjMesh/Ori-PerspCentral-P1056160.JPG.xml")
+scpc=SensorCamPC.fromFile(dirData + 'Ori-Ground-MMVII/Ori-PerspCentral-IMGP4168.JPG.xml')
 p=(10,20,100)
 diff=scpc.ground2ImageAndDepth(scpc.imageAndDepth2Ground(p))-p
 print("diff = ",diff)
@@ -40,3 +39,14 @@ l = Isometry3D((0,0,0),array)
 print (k == l)
 print (k.rot == r)
 print (k.tr == Pt3dr(0,0,0))
+
+n = np.array( [ [1, 2, 3], [4, 5, 6] ] )
+m = Matrixr(n)
+
+print( np.array_equal( (n-m), (m-n) ))
+
+m = Matrixr( [ [1, 2], [3, 4] ] )
+n = np.array(m)
+
+n@m
+m@n #does not work
