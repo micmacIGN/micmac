@@ -49,4 +49,14 @@ m = Matrixr( [ [1, 2], [3, 4] ] )
 n = np.array(m)
 
 n@m
-m@n #does not work
+
+try:
+    m@n #does not work
+except TypeError:
+    print('MMVII apib11 has to be fixed!')
+
+p = Pt2dr([8,9])
+v = Vectorr(p)
+print(v)
+print(m@p)
+

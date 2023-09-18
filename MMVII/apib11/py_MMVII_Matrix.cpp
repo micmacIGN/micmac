@@ -66,8 +66,11 @@ void pyb_init_Matrix_tpl(py::module_ &m, const std::string& name) {
             });
 
             dm.def("__matmul__",[](const tDM& m1, const cDenseVect<T>& m2) -> cDenseVect<T> {
-
                   return m1*m2;
+            });
+
+            dm.def("__matmul__",[](const tDM& m1, const cPtxd<T,2> p) -> cDenseVect<T> {
+                  return m1*p.ToVect();
             });
 
             // TODO : a verifier le stride/offset !
@@ -85,9 +88,95 @@ void pyb_init_Matrix_tpl(py::module_ &m, const std::string& name) {
             
 }
 
+
+template<typename T>
+void pyb_init_Vector_tpl(py::module_ &m, const std::string& name) {
+    using namespace std::literals;
+    using namespace pybind11::literals;
+
+    typedef cDenseVect<T> tDV;
+
+    auto dm=py::class_<tDV>(m, name.c_str(),py::buffer_protocol());
+            dm.def(py::init<int,eModeInitImage>(),"sz"_a,"modeInitImage"_a = eModeInitImage::eMIA_NoInit);
+
+            dm.def(py::init([](cPtxd<T,2> p) {
+                    tDV *m = new tDV(p.TheDim);
+                    for (int i=0; i<m->Sz(); i++)
+                        m->RawData()[i] = p[i];
+                    return m;
+            }),"tuple"_a);
+
+            dm.def(py::init([](cPtxd<T,3> p) {
+                   tDV *m = new tDV(p.TheDim);
+                   for (int i=0; i<m->Sz(); i++)
+                       m->RawData()[i] = p[i];
+                   return m;
+           }),"tuple"_a);
+
+            // TODO : a verifier le stride/offset !
+            dm.def(py::init([](py::array_t<T, py::array::c_style | py::array::forcecast> array) {
+                py::buffer_info info = array.request();
+                if (info.format != py::format_descriptor<T>::format())
+                    throw std::runtime_error("Incompatible format: expected a array!");
+                if (info.ndim != 1)
+                    throw std::runtime_error("Incompatible buffer dimension!");
+                tDV *m = new tDV(info.shape[0]);
+                T* ptr = static_cast<T *>(info.ptr);
+                for (int i=0; i<info.shape[0]; i++)
+                        m->RawData()[i] = *(ptr++);
+                return m;
+            })
+            ,"array"_a);
+
+
+            dm.def_static("ranGenerate",&tDV::RanGenerate);
+
+            dm.def("sz",&tDV::Sz);
+
+            dm.def("resize",&tDV::Resize);
+
+            dm.def("L1Dist",&tDV::L1Dist);
+            dm.def("L2Dist",&tDV::L2Dist);
+
+            dm.def("L1Norm",&tDV::L1Norm);
+            dm.def("L2Norm",&tDV::L2Norm);
+            dm.def("LInfNorm",&tDV::LInfNorm);
+
+            dm.def("prodElem",&tDV::ProdElem);
+            dm.def("sumElem",&tDV::SumElem);
+            dm.def("avgElem",&tDV::AvgElem);
+            dm.def("setAvg",&tDV::SetAvg);
+
+            dm.def("DotProduct",&tDV::DotProduct);
+
+            dm.def("__repr__",[name](const tDV& m) {
+                std::ostringstream ss;
+                ss << name << " (" << m.Sz() << " rows): [ ";
+                for (int i=0; i<m.Sz(); i++)
+                    ss << m.RawData()[i] << " ";
+                ss << "]";
+                return ss.str();
+            });
+
+
+            // TODO : a verifier le stride/offset !
+            dm.def_buffer([](tDV &m) -> py::buffer_info {
+                    return py::buffer_info(
+                        m.RawData(),                               /* Pointer to buffer */
+                        sizeof(T),                          /* Size of one scalar */
+                        py::format_descriptor<T>::format(), /* Python struct-style format descriptor */
+                        1,                                      /* Number of dimensions */
+                        { m.Sz() },                 /* Buffer dimensions */
+                        { sizeof(T) }             /* Strides (in bytes) for each index */
+                    );})
+            ;
+
+}
+
 void pyb_init_DenseMatrix(py::module_ &m)
 {
-
     pyb_init_Matrix_tpl<double>(m,"Matrixr");
     pyb_init_Matrix_tpl<float>(m,"Matrixf");
+    pyb_init_Vector_tpl<double>(m,"Vectorr");
+    pyb_init_Vector_tpl<float>(m,"Vectorf");
 }
