@@ -385,14 +385,14 @@ class cStreamIXml_Ar2007 : public cIBaseTxt_Ar2007
 		  cIBaseTxt_Ar2007 (aName,eTypeSerial::exml2)
 	{
 	}
-        void  RawBeginName(const cAuxAr2007& anOT) 
+        void  RawBeginName(const cAuxAr2007& anOT) override
         {
              bool GotTag =  GetTag(false,anOT.Name());
              MMVII_INTERNAL_ASSERT_always(GotTag,"cStreamIXml_Ar2007 did not get entering tag=" +anOT.Name());
         }
 
 
-        void  RawEndName(const cAuxAr2007& anOT) 
+        void  RawEndName(const cAuxAr2007& anOT) override
         {
              bool GotTag =  GetTag(true,anOT.Name());
              MMVII_INTERNAL_ASSERT_always(GotTag,"cStreamIXml_Ar2007 did not get closing tag=" +anOT.Name());
@@ -479,7 +479,6 @@ class cOBaseTxt_Ar2007 : public cAr2007
 
      private :
         bool mXTerm;           ///< mXTerm is activated by RawAdds.. , it allow to put values on the same line
-        bool mFirst;  ///< new line is done before <tag> or </tag>, mFirst is used to avoid at first one
 		      
 };
 
@@ -491,8 +490,7 @@ cOBaseTxt_Ar2007::~cOBaseTxt_Ar2007()
 cOBaseTxt_Ar2007::cOBaseTxt_Ar2007(const std::string & aName,eTypeSerial aTypeS) : 
    cAr2007(false,(aTypeS!=eTypeSerial::etxt),false),  // Output, Tagged, Binary
    mMMOs(aName, eFileModeOut::CreateText) ,
-   mXTerm (false),
-   mFirst(true) 
+   mXTerm (false)
 {
    mMMOs.Ofs().precision(15);
 }
