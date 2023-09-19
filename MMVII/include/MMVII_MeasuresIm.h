@@ -212,6 +212,7 @@ class cSetMesImGCP : public cMemCheck
 
             const cSetMesPtOf1Im  & MesImInitOfName(const std::string &) const;
 	    const cMes1GCP &        MesGCPOfName(const std::string &) const;
+	    cMes1GCP &              MesGCPOfName(const std::string &) ;
 	    const cMes1GCP &        MesGCPOfNum(int) const;
 	    const cMes1GCP &        MesGCPOfMulIm(const cMultipleImPt &) const;
 

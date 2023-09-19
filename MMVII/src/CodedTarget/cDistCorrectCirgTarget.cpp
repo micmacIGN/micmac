@@ -26,8 +26,11 @@ struct cSimulProjEllispe
 {
      public :
         cPt2dr                mProj3DC;
+        cPt2dr                mCenterIm;
 	std::vector<cPt2dr>   mVProjFr;
 	cPt2dr                mCorrecC;
+
+	cPt2dr  CenterEllToProj(const cPt2dr & aPIm) {return aPIm+mCorrecC;}
 };
 
 class cAppliCorrecDistCircTarget : public cMMVII_Appli
@@ -57,6 +60,7 @@ class cAppliCorrecDistCircTarget : public cMMVII_Appli
         cSensorImage *              mSensor;
         cSensorCamPC *              mCamPC;
         cSetMesImGCP                mMesImGCP;
+	bool                        mSaveMeasure;
 };
 
 cAppliCorrecDistCircTarget::cAppliCorrecDistCircTarget
@@ -76,6 +80,7 @@ cCollecSpecArg2007 & cAppliCorrecDistCircTarget::ArgObl(cCollecSpecArg2007 & anA
    return
             anArgObl
          << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+         << mPhProj.DPPointsMeasures().ArgDirInMand()
 	 << mPhProj.DPOrient().ArgDirInMand()
 
    ;
@@ -85,8 +90,8 @@ cCollecSpecArg2007 & cAppliCorrecDistCircTarget::ArgOpt(cCollecSpecArg2007 & anA
 {
    return 
                   anArgOpt
-	     <<   mPhProj.DPPointsMeasures().ArgDirInputOptWithDef("Std")
              << AOpt2007(mRayTarget,"RayTarget","Ray for target (else estimate automatically)")
+             << mPhProj.DPPointsMeasures().ArgDirOutOpt()
 		/*
              << AOpt2007(mB,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
@@ -127,7 +132,6 @@ void cAppliCorrecDistCircTarget::EstimateRay()
           aVRay.push_back(EstimateOneRay(aSEE));
    }
    mRayTarget = NonConstMediane(aVRay);
-
 }
 
 
@@ -135,28 +139,30 @@ cSimulProjEllispe cAppliCorrecDistCircTarget::EstimateRealCenter(const cMes1GCP 
 {
     cSimulProjEllispe aRes;
     const cPt3dr & aCenterTarget =  aGCP.mPt;
-    //  The real projection center
+
+    //  The real projection center : projection of GCP on image
     aRes.mProj3DC = mSensor->Ground2Image(aCenterTarget);
 
+    // estimate the projection of ground ellipse in image
     cPlane3D aPlaneTarget = cPlane3D::FromPtAndNormal(aCenterTarget,mNormal);
     int aNbTeta = 200;
 
-    cEllipse_Estimate  aEEs(aRes.mProj3DC);
-    for (int aKTeta =0 ; aKTeta < aNbTeta ; aKTeta++)
+    cEllipse_Estimate  aEEs(aRes.mProj3DC); // structure to estimate ellispe from a set of points
+    for (int aKTeta =0 ; aKTeta < aNbTeta ; aKTeta++) // parse teta
     {
-         cPt2dr aPPl2 = FromPolar(mRayTarget, (2*M_PI*aKTeta)/aNbTeta);
-	 cPt3dr aPGr = aPlaneTarget.FromCoordLoc(TP3z0(aPPl2));
+         cPt2dr aPPl2 = FromPolar(mRayTarget, (2*M_PI*aKTeta)/aNbTeta);  // point on a circle of given ray
+	 cPt3dr aPGr = aPlaneTarget.FromCoordLoc(TP3z0(aPPl2)); // put it in the plane 
 
-	 cPt2dr aPIm =  mSensor->Ground2Image(aPGr);
-         aEEs.AddPt(aPIm);
-	 aRes.mVProjFr.push_back(aPIm);
+	 cPt2dr aPIm =  mSensor->Ground2Image(aPGr);  // project in image
+         aEEs.AddPt(aPIm);  // add it to ellipse
+	 aRes.mVProjFr.push_back(aPIm);  // memorize  the points
     }
 
-    cEllipse anEl = aEEs.Compute() ;
-    cPt2dr  aImEstim = anEl.Center();
+    cEllipse anEl = aEEs.Compute() ;  // estimate the ellipse
+    aRes.mCenterIm  = anEl.Center();
 
     // Delta  = Real-Estim  =>>   REAL = ESTIM+DELTA
-    aRes.mCorrecC =  aRes.mProj3DC - aImEstim;
+    aRes.mCorrecC =  aRes.mProj3DC - aRes.mCenterIm;
     return aRes;
 }
 
@@ -164,13 +170,18 @@ void cAppliCorrecDistCircTarget::EstimateRealCenter()
 {
    cSetMesPtOf1Im  aSetMesIm = mMesImGCP.MesImInitOfName(mNameIm);
 
-   for (const auto & aMesIm : aSetMesIm.Measures())
+   for (auto & aMesIm : aSetMesIm.Measures())
    {
         const cMes1GCP &  aGCP = mMesImGCP.MesGCPOfName(aMesIm.mNamePt);
 
         cSimulProjEllispe aSPE = EstimateRealCenter(aGCP);
-	StdOut()  << "DD=" << aGCP.mNamePt << " " << aSPE.mCorrecC << "\n";
+
+	aMesIm.mPt   = aSPE.CenterEllToProj(aMesIm.mPt);
+	//  StdOut()  << "DD=" << aGCP.mNamePt << " " << aSPE.mCorrecC << "\n";
    }
+
+   if (mSaveMeasure)
+      mPhProj.SaveMeasureIm(aSetMesIm);
 }
 
 
@@ -178,6 +189,8 @@ void cAppliCorrecDistCircTarget::EstimateRealCenter()
 int  cAppliCorrecDistCircTarget::Exe()
 {
    mPhProj.FinishInit();
+
+   mSaveMeasure = mPhProj.DPPointsMeasures().DirOutIsInit();
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
@@ -200,6 +213,11 @@ int  cAppliCorrecDistCircTarget::Exe()
    }
 
    EstimateRealCenter();
+
+   if (mSaveMeasure)
+   {
+        mPhProj.CpGCP();
+   }
 
    StdOut() << "RAY=" <<  mRayTarget << "\n";
 
