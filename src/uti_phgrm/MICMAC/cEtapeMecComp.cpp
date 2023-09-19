@@ -159,7 +159,6 @@ static void InitArgOneEtapePx
        }
     }
 
-
 }
 
 void Init3ArgOneEtapePx
@@ -300,7 +299,7 @@ cEtapeMecComp::cEtapeMecComp
   mUseWAdapt         (false),
   mNameXMLNuage      ("")
 {
-// std::cout << "XPPOOOOOORRT ZZZZzzz Aaabs  " << mIsExportZAbs << "\n"; getchar();
+   //std::cout << "cEtapeMecComp XPPOOOOOORRT ZZZZzzz Aaabs  " << mIsExportZAbs << "\n";
 
      if (mIsExportZAbs)
      {

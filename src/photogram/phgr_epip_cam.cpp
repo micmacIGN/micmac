@@ -597,7 +597,8 @@ template <class Type,class TypeBase> class cReechantEpi
                  Tiff_Im aTOut,
                  Box2di  aBoxOut,
                  Polynome2dReal * aPol,
-                 double           aScale
+                 double           aScale,
+                 bool DoExportGrid
             );
             typedef TIm2D<Type,TypeBase>  tTIm;
      private  :
@@ -621,7 +622,8 @@ template <class Type,class TypeBase>
              Tiff_Im aTOut,
              Box2di  aBoxOut,
              Polynome2dReal * aPol,
-             double           aScale
+             double           aScale,
+             bool DoExportGrid
          )
 {
 
@@ -672,8 +674,10 @@ template <class Type,class TypeBase>
 
 
    int aPas = 4;
+   if (DoExportGrid) aPas=1;
    int aSzXR = 1+(aSzOut.x+ aPas-1) / aPas;
    int aSzXY = 1+(aSzOut.y+ aPas-1) / aPas;
+
    TIm2D<REAL8,REAL8> aTImX(Pt2di(aSzXR+1,aSzXY+1));
    TIm2D<REAL8,REAL8> aTImY(Pt2di(aSzXR+1,aSzXY+1));
    Pt2di aPInd;
@@ -754,6 +758,40 @@ template <class Type,class TypeBase>
          trans(aFOut,-aBoxOut._p0),
          aTOut.out()
     );
+
+    if (DoExportGrid) // Export Epipolar grids in x and y directions
+      {
+
+        std::string aNameRedX = AddPrePost(aTOut.name(),"","_GEOX");
+        std::string aNameRedY = AddPrePost(aTOut.name(),"","_GEOY");
+        Tiff_Im  aTifMRedX(aNameRedX.c_str());
+        Tiff_Im  aTifMRedY(aNameRedY.c_str());
+        Pt2dr Orig_x0y0=Pt2dr(aBoxIn._p0);
+        ELISE_COPY(
+              aTImX.all_pts(),
+              aTImX._the_im.in(0)+Orig_x0y0.x,
+              aTImX.out()
+              );
+        ELISE_COPY(
+              aTImY.all_pts(),
+              aTImY._the_im.in(0)+Orig_x0y0.y,
+              aTImY.out()
+              );
+        ELISE_COPY
+        (
+             rectangle(aBoxOut._p0,aBoxOut._p1),
+             trans(aTImX._the_im.in(0),-aBoxOut._p0),
+             aTifMRedX.out()
+        );
+
+
+        ELISE_COPY
+        (
+             rectangle(aBoxOut._p0,aBoxOut._p1),
+             trans(aTImY._the_im.in(0),-aBoxOut._p0),
+             aTifMRedY.out()
+        );
+      }
     delete aKern;
     delete aK1D;
 
@@ -767,26 +805,27 @@ void ReechEpipGen
              Tiff_Im aTOut,
              Box2di  aBoxOut,
              Polynome2dReal * aPol,
-             double           aScale
+             double           aScale,
+             bool DoExportGrid
      )
 {
    switch (aTOut.type_el())
    {
         case GenIm::u_int1 :
         {
-             cReechantEpi<U_INT1,INT> aREE1(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol,aScale);
+             cReechantEpi<U_INT1,INT> aREE1(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol,aScale,DoExportGrid);
         }
         break;
 
         case GenIm::u_int2 :
         {
-             cReechantEpi<U_INT2,INT> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol,aScale);
+             cReechantEpi<U_INT2,INT> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol,aScale,DoExportGrid);
         }
         break;
 
         case GenIm::real4 :
         {
-             cReechantEpi<REAL4,REAL> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol,aScale);
+             cReechantEpi<REAL4,REAL> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol,aScale,DoExportGrid);
         }
         break;
 
@@ -808,6 +847,7 @@ int CreateBlockEpip_main(int argc,char ** argv)
    bool mSinCard=false;
    std::vector<double>  aVecPolCorrec;
    double               anAmplPol,aScale;
+   bool exportGrid=false;
 
 
 
@@ -823,6 +863,7 @@ int CreateBlockEpip_main(int argc,char ** argv)
                     << EAM(aVecPolCorrec,"PolCorr",true,"Coeff of pol correc")
                     << EAM(anAmplPol,"AmplPol",true,"Ampl of Pol")
                     << EAM(aScale,"Scale",true,"Ampl of Pol")
+                    << EAM(exportGrid,"WithGridXY",false, "Export grid of epipolar resampling")
    );
 
     CamStenope * aCamOut = CamOrientGenFromFile(aNameCamOut,0);
@@ -839,7 +880,7 @@ int CreateBlockEpip_main(int argc,char ** argv)
     }
 
 
-    ReechEpipGen(*aCamIn,aTIn,*aCamOut,aTOut,aBoxOut,aPolCor,aScale);
+    ReechEpipGen(*aCamIn,aTIn,*aCamOut,aTOut,aBoxOut,aPolCor,aScale,exportGrid);
 
     return 0;
 }
@@ -1021,7 +1062,8 @@ cChangEpip::cChangEpip(const ElPackHomologue & aPck,double anAmpl,int aDegre) :
 }
 
 
-void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal,bool DoIm,const char * CarNameHom,int aDegPolyCor,bool ExpTxt)
+void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal,bool DoIm,const char * CarNameHom,
+                       int aDegPolyCor,bool ExpTxt, bool ExportGridsGeoxy)
 {
 
     LockMess("Begin cCpleEpip::ImEpip Im1="+ToString(Im1));
@@ -1049,12 +1091,10 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
     cOrientationConique anOC = aCamOut.StdExportCalibGlob();
     MakeFileXML(anOC,mDir+aNameOriOut);
     // CamStenope * aCTEST = CamOrientGenFromFile(aNameOriOut,mICNM);
-
-
     Polynome2dReal  *  aPolyCor = 0;
-
     if (CarNameHom || (aDegPolyCor>=0))
     {
+
         std::string & aNamA  =  Im1 ? mName1 : mName2;
         std::string & aNamB  =  Im1 ? mName2 : mName1;
         std::string aNameHom = mICNM->Dir()
@@ -1144,7 +1184,36 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
 
     MakeMetaData_XML_GeoI(aNameMasq,1.0);
 
+    // Nappes de redressement epipolaire
+    Tiff_Im aTifRedX=aTOut;
+    Tiff_Im aTifRedY=aTOut;
+    if (ExportGridsGeoxy)
+      {
 
+        std::string  aNameRedX=AddPrePost(aNameImOut,"","_GEOX");
+        std::string  aNameRedY=AddPrePost(aNameImOut,"","_GEOY");
+
+            aTifRedX=Tiff_Im
+                            (
+                                aNameRedX.c_str(),
+                                aSzOut,
+                                GenIm::real4,
+                                Tiff_Im::No_Compr,
+                                Tiff_Im::BlackIsZero
+                            )    ;
+            aTifRedY= Tiff_Im
+                            (
+                                aNameRedY.c_str(),
+                                aSzOut,
+                                GenIm::real4,
+                                Tiff_Im::No_Compr,
+                                Tiff_Im::BlackIsZero
+                            )    ;
+       ELISE_COPY(aTifRedX.all_pts(),0,aTifRedX.out());
+       ELISE_COPY(aTifRedY.all_pts(),0,aTifRedY.out());
+        MakeMetaData_XML_GeoI(aNameRedX,1.0);
+        MakeMetaData_XML_GeoI(aNameRedY,1.0);
+      }
 
     cDecoupageInterv2D  aDec = cDecoupageInterv2D::SimpleDec(aSzOut,2000,0,8);
     std::list<std::string> aLCom;
@@ -1162,7 +1231,8 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
                                   + " " + mDir + aNameOriIn
                                   + " " + mDir + aNameOriOut
                                   + " " + QUOTE(ToString(aBoxOut))
-                                  + " Scale=" + ToString(mScale) ;
+                                  + " Scale=" + ToString(mScale)
+                                  + " WithGridXY=" + ToString(ExportGridsGeoxy);
 
              if (aPolyCor)
              {
@@ -1175,7 +1245,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
          }
          else
          {
-              ReechEpipGen (aCamIn,aTIn,aCamOut,aTOut,aBoxOut,0,mScale);
+              ReechEpipGen (aCamIn,aTIn,aCamOut,aTOut,aBoxOut,0,mScale,ExportGridsGeoxy);
          }
     }
     if (InParal)

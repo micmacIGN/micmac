@@ -3569,6 +3569,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
         //  Variables utilisee dans les correls Ad Hoc
 
            void DoInitAdHoc(const Box2di & aBox);
+           std::vector<std::pair<cElHomographie,cElHomographie>> DoEstimWarpersPDVs();
            // Si pas FirstZ de la colone et Im1 maitresse, pas la peine
            // de reinitialiser 
            bool InitZ(int aZ,eModeInitZ aMode);

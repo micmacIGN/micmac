@@ -3423,8 +3423,11 @@ MMVII/src/LearningMatching/DensifyRefMatch.cpp
 MMVII/src/LearningMatching/EvalRefDM.cpp
 MMVII/src/LearningMatching/ExtracLearnVecDM.cpp
 MMVII/src/LearningMatching/FillCubeCostMatch.cpp
+MMVII/src/LearningMatching/FillCubeCostMatch2D.cpp
 MMVII/src/LearningMatching/FormatTrainDataEDM.cpp
 MMVII/src/LearningMatching/LearnDM.h
+MMVII/src/LearningMatching/MMGenDepthMV.cpp
+MMVII/src/LearningMatching/MMGenMVDeformMaps.cpp
 MMVII/src/LearningMatching/MatchMultiOrtho.cpp
 MMVII/src/LearningMatching/ProgDynEpipolar.cpp
 MMVII/src/LearningMatching/TestHypSteps.cpp

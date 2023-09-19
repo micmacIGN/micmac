@@ -989,8 +989,8 @@ int  cAppliFillCubeCost::Exe()
 
     if (aVMods.at(0)->mWIthMVCNNCorr)
     {
-        auto cuda_available = torch::cuda::is_available();
-        //auto cuda_available=false;
+        //auto cuda_available = torch::cuda::is_available();
+        auto cuda_available=false;
         torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
         aVMods.at(0)->CalcCorrelMvCNN();
         // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
@@ -1250,8 +1250,8 @@ int  cAppliFillCubeCost::Exe()
                             if (aDZMax.GetV(aPix)>aMaxZmax) aMaxZmax=aDZMax.GetV(aPix);
                     }
                     // FILL COST VOLUME SLICE ON ONE LINE
-                    auto cuda_available = torch::cuda::is_available();
-                    //auto cuda_available=false;
+                    //auto cuda_available = torch::cuda::is_available();
+                    auto cuda_available=false;
                     torch::Device TheAvailDevice(cuda_available ? torch::kCUDA : torch::kCPU);
                     ELISE_ASSERT(aMaxZmax-aMinZmin, "PAX INTERVAL NULL !");
                     using namespace torch::indexing;
@@ -1605,7 +1605,8 @@ int  cAppliFillCubeCost::Exe()
                                 if (aDZMax.GetV(aPix)>aMaxZmax) aMaxZmax=aDZMax.GetV(aPix);
                         }
                         // FILL COST VOLUME SLICE ON ONE LINE
-                        auto cuda_available = torch::cuda::is_available();
+                        //auto cuda_available = torch::cuda::is_available();
+                        auto cuda_available=false;
                         torch::Device TheAvailDevice(cuda_available ? torch::kCUDA : torch::kCPU);
                         ELISE_ASSERT(aMaxZmax-aMinZmin, "PAX INTERVAL NULL !");
                         using namespace torch::indexing;

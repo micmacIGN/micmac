@@ -58,6 +58,8 @@ namespace MMVII
         tREAL4 blur_sigma =  1.7;
         tREAL4 blur_t     =  2.0;
     }; 
+
+
 class cAppliProgDynEpipolar: public cAppliLearningMatch
 {
      public :
@@ -272,7 +274,7 @@ void cAppliProgDynEpipolar::DoInferenceFillCostOneForward()
     torch::Tensor tmp_cbca = torch::empty({1, mDispRange, vol.size(2), vol.size(3)},torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
     for (int i=0;i<AggregParams.cbca_i1;i++)
     {
-        std::cout<<"================> COST AGGREGATION"<<std::endl;
+        //std::cout<<"================> COST AGGREGATION"<<std::endl;
         CrBaCoAgg(x0c,x1c,vol,tmp_cbca,-1);
         vol.copy_(tmp_cbca);
     }
@@ -390,7 +392,7 @@ void cAppliProgDynEpipolar::DoInference()
         disp.index({direction == -1 ? 0 : 1,0,Slice(0,None,1),Slice(0,None,1)}).copy_(indexes.squeeze()); 
         vols.index({direction == -1 ? 0 : 1,Slice(0,None,1),Slice(0,None,1),Slice(0,None,1)}).copy_(vol.squeeze());
     }
-    
+
     // All Subsequent steps that allow to handle filtering and interpolation 
     /*torch::Tensor outlier = torch::zeros(disp.slice(0,1,2,1).sizes(),torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));
     torch::Tensor out = torch::zeros(disp.slice(0,1,2,1).sizes(),torch::TensorOptions().dtype(torch::kFloat32).device(TheCPUDevice));

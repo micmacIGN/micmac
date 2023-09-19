@@ -647,7 +647,11 @@ See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_an
         <SzCaptMm>   53.7 40.4 </SzCaptMm>
         <ShortName> IQ180 </ShortName>
 	</CameraEntry>
-
+	<CameraEntry>
+        <Name>  RCD30 </Name> <!-- Phase One A/S -->
+        <SzCaptMm>   40.392 45.0 </SzCaptMm>
+        <ShortName> RCD30 </ShortName>
+	</CameraEntry>
 
 </MMCameraDataBase>
 

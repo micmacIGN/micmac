@@ -1437,10 +1437,11 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 
   // return Quick_MS_CensusQuant(aVBOI1,aVBOI2,aPx2,aVV,aVPds);
+  std::cout << "HHHHHHHHHHHHHHHHHHHh " << aCC.TypeCost() << " "<<  eMCC_CensusCorrel << " VERIF " << Verif << "\n";
 
   if (MPD_MM())
   {
-      //  std::cout << "HHHHHHHHHHHHHHHHHHHh " << aCC.TypeCost() << " "<<  eMCC_CensusCorrel << " VERIF " << Verif << "\n";
+      // std::cout << "HHHHHHHHHHHHHHHHHHHh " << aCC.TypeCost() << " "<<  eMCC_CensusCorrel << " VERIF " << Verif << "\n";
       // getchar(); // => HHHHHHHHHHHHHHHHHHHh 2 2 VERIF 0
   }
 

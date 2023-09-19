@@ -510,8 +510,8 @@ bool needCommandlineProtection( const string &aStr )
 {
 	const char *it = aStr.c_str();
 	size_t i = aStr.length();
-        if (i && (*it=='"')) 
-           return false;
+	if (i && (*it=='"'))
+	   return false;
 	while (i--)
 	{
 		const char &c = *it++;
@@ -587,33 +587,33 @@ void BanniereMM3D()
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant ? la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+Ce logiciel est r?gi par la licence CeCILL-B soumise au droit fran?ais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+de la licence CeCILL-B telle que diffus?e par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
+En contrepartie de l'accessibilit? au code source et des droits de copie,
+de modification et de redistribution accord?s par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limit?e.  Pour les m?mes raisons,
+seule une responsabilit? restreinte p?se sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les conc?dants successifs.
 
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à
-manipuler et qui le réserve donc à des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+A cet ?gard  l'attention de l'utilisateur est attir?e sur les risques
+associ?s au chargement,  ? l'utilisation,  ? la modification et/ou au
+d?veloppement et ? la reproduction du logiciel par l'utilisateur ?tant
+donn? sa sp?cificit? de logiciel libre, qui peut le rendre complexe ?
+manipuler et qui le r?serve donc ? des d?veloppeurs et des professionnels
+avertis poss?dant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invit?s ? charger  et  tester  l'ad?quation  du
+logiciel ? leurs besoins dans des conditions permettant d'assurer la
+s?curit? de leurs syst?mes et ou de leurs donn?es et, plus g?n?ralement,
+? l'utiliser et l'exploiter dans les m?mes conditions de s?curit?.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+Le fait que vous puissiez acc?der ? cet en-t?te signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accept? les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

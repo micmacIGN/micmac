@@ -279,6 +279,13 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
          {
               ELISE_ASSERT(anEtape.AlgoRegul()==eAlgoLeastSQ,"Least Sq require eAlgoLeastSQ");
          }
+         else if (mCorrelAdHoc->TypeCAH().ScoreLearnedMMVII().IsInit())
+         {
+             if (mCorrelAdHoc->TypeCAH().ScoreLearnedMMVII().Val().FileModeleCost()=="MVCNNCorrel2D")
+                 {
+                       ELISE_ASSERT(mDimPx==2,"Pax should be 2D for calling DeepSimNets in Mode Epip");
+                 }
+         }
          else
          {
              ELISE_ASSERT(mDimPx==1,"Multiple Px in GPU");
@@ -1266,6 +1273,7 @@ REAL cAppliMICMAC::CalculScore()
 void   cAppliMICMAC::CalcCorrelByRect(Box2di aBox,int * aPx)
 {
 
+  //std::cout<<"correl by rect)))))))))))))))))  "<<std::endl;
    mLTer->MakeImTerOfPx(aBox,aPx);
    mStatGlob->SetSomsMade(false);
    mPDVBoxInterneAct.clear();

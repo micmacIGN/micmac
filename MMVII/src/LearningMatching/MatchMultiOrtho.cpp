@@ -735,6 +735,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     void CorrelMaster(const cPt2di &,int aKIm,bool & AllOk,float &aWeight,float & aCorrel);
     void MakeNormalizedIms();
     void InitializePredictor ();
+    torch::Tensor ToTensorGeo(tImOrtho & aGeoX,tImOrtho & aGeoY, cPt2di aDIM);
     torch::Tensor ResampleFeatureMap(torch::Tensor & aFeatMap, tImOrtho aGeoX, tImOrtho aGeoY);
     torch::Tensor Gather2D(torch::Tensor & aFeatMap, torch::Tensor anX, torch::Tensor anY);
     torch::Tensor InterpolateFeatMap(torch::Tensor & aFeatMap, tImOrtho aGeoX, tImOrtho aGeoY);
@@ -1698,7 +1699,7 @@ void cAppliMatchMultipleOrtho::MakeNormalizedIms()  // Possible errors here
 
 
 
-int  cAppliMatchMultipleOrtho::Exe()
+int  cAppliMatchMultipleOrtho::ExeSubPixFeats()
 {
 
    // Parse all Z
@@ -1897,7 +1898,8 @@ double cAppliMatchMultipleOrtho::Interpol_Bilin(torch::Tensor & aMap, const cPt2
     return InterpValue;
 }
 
-torch::Tensor cAppliMatchMultipleOrtho::Gather2D(torch::Tensor & aFeatMap, torch::Tensor  anX, torch::Tensor  anY)
+torch::Tensor cAppliMatchMultipleOrtho::Gather2D(torch::Tensor & aFeatMap, torch::Tensor  anX,
+                                                 torch::Tensor  anY)
 {
     using namespace torch::indexing;
     // Gathers a tensor given mappings anX and anY
@@ -1918,8 +1920,25 @@ torch::Tensor cAppliMatchMultipleOrtho::Gather2D(torch::Tensor & aFeatMap, torch
     return torch::einsum("ijk->ijk",{aFeatMap.index({Slice(),anY,anX})});
 }
 
+torch::Tensor cAppliMatchMultipleOrtho::ToTensorGeo(tImOrtho & aGeoX,tImOrtho & aGeoY, cPt2di aDIM)
+{
+  using namespace torch::indexing;
+  cPt2di aSzOrtho=aGeoX.DIm().Sz();
+  // Generate tensor offsets
+  tREAL4 ** mGeoXData=aGeoX.DIm().ExtractRawData2D();
+  tREAL4 ** mGeoYData=aGeoY.DIm().ExtractRawData2D();
+  // create offsets tensors for interpolation
+  torch::Tensor aGeoXT=torch::from_blob((*mGeoXData), {aSzOrtho.y(),aSzOrtho.x()},
+                                        torch::TensorOptions().dtype(torch::kFloat32));
+  torch::Tensor aGeoYT=torch::from_blob((*mGeoYData), {aSzOrtho.y(),aSzOrtho.x()},
+                                        torch::TensorOptions().dtype(torch::kFloat32));
+   aGeoXT=aGeoXT.index({Slice(0,aSzOrtho.y()-1,1),Slice(0,aSzOrtho.x()-1,1)});
+   aGeoYT=aGeoYT.index({Slice(0,aSzOrtho.y()-1,1),Slice(0,aSzOrtho.x()-1,1)});
+   return torch::stack({aGeoXT.div((float)aDIM.x()/2),aGeoYT.div((float)aDIM.y()/2)},-1).sub(1.0).unsqueeze(0);
+}
 
-torch::Tensor cAppliMatchMultipleOrtho::InterpolateFeatMap(torch::Tensor & aFeatMap, tImOrtho aGeoX, tImOrtho aGeoY)
+torch::Tensor cAppliMatchMultipleOrtho::InterpolateFeatMap(torch::Tensor & aFeatMap,
+                                                           tImOrtho aGeoX, tImOrtho aGeoY)
 {
     cPt2di aSzOrtho=aGeoX.DIm().Sz();
     using namespace torch::indexing;
@@ -1928,29 +1947,36 @@ torch::Tensor cAppliMatchMultipleOrtho::InterpolateFeatMap(torch::Tensor & aFeat
     auto WFeatMap=aFeatMap.size(2);
 
     // Tensor Interpolate at once
-    torch::Tensor anInterPolFeatMap=torch::zeros({FeatSz,aSzOrtho.y()-1,aSzOrtho.x()-1},torch::TensorOptions().dtype(torch::kFloat32));
+    torch::Tensor anInterPolFeatMap=torch::zeros({FeatSz,aSzOrtho.y()-1,aSzOrtho.x()-1},
+                                                 torch::TensorOptions().dtype(torch::kFloat32));
 
     // Generate tensor offsets
     tREAL4 ** mGeoXData=aGeoX.DIm().ExtractRawData2D();
     tREAL4 ** mGeoYData=aGeoY.DIm().ExtractRawData2D();
 
-    torch::Tensor aGeoXT=torch::from_blob((*mGeoXData), {aSzOrtho.y()-1,aSzOrtho.x()-1}, torch::TensorOptions().dtype(torch::kFloat32));
-    torch::Tensor aGeoYT=torch::from_blob((*mGeoYData), {aSzOrtho.y()-1,aSzOrtho.x()-1}, torch::TensorOptions().dtype(torch::kFloat32));
+    // create offsets tensors for interpolation
+    torch::Tensor aGeoXT=torch::from_blob((*mGeoXData), {aSzOrtho.y(),aSzOrtho.x()},
+                                          torch::TensorOptions().dtype(torch::kFloat32));
+    torch::Tensor aGeoYT=torch::from_blob((*mGeoYData), {aSzOrtho.y(),aSzOrtho.x()},
+                                          torch::TensorOptions().dtype(torch::kFloat32));
 
+     aGeoXT=aGeoXT.index({Slice(0,aSzOrtho.y()-1,1),Slice(0,aSzOrtho.x()-1,1)});
+     aGeoYT=aGeoYT.index({Slice(0,aSzOrtho.y()-1,1),Slice(0,aSzOrtho.x()-1,1)});
     //std::cout<<"  OFFSETS DIMENSIONS ------   X"<<aGeoXT.sizes()<<"   Y  "<<aGeoYT.sizes()<<std::endl;
 
     // Get definition Tensors
-
-    auto DEF_X=torch::mul((aGeoXT>0), (aGeoXT<WFeatMap));
-    auto DEF_Y=torch::mul((aGeoYT>0), (aGeoYT<HFeatMap));
+    auto DEF_X=torch::mul((aGeoXT>=0), (aGeoXT<WFeatMap));
+    auto DEF_Y=torch::mul((aGeoYT>=0), (aGeoYT<HFeatMap));
 
     // floor and ceil
-
     torch::Tensor Y_1=torch::floor(aGeoYT).mul(DEF_Y);
     torch::Tensor X_1=torch::floor(aGeoXT).mul(DEF_X);
 
     torch::Tensor Y_2=torch::ceil(aGeoYT).mul(DEF_Y);
     torch::Tensor X_2=torch::ceil(aGeoXT).mul(DEF_X);
+
+    aGeoXT=aGeoXT.mul(DEF_X);
+    aGeoYT=aGeoYT.mul(DEF_Y);
 
     Y_2=Y_2.mul(Y_2<HFeatMap);
     X_2=X_2.mul(X_2<WFeatMap);
@@ -1964,14 +1990,19 @@ torch::Tensor cAppliMatchMultipleOrtho::InterpolateFeatMap(torch::Tensor & aFeat
     //std::cout<<"ALONG XXXX "<<alongx.sizes()<<std::endl;
 
     //auto aMAP_11= torch::gather(alongx,-1,Y_1.unsqueeze(0).repeat_interleave(FeatSz,0).to(torch::kInt64));
-    auto aMAP_11=torch::einsum("ijk->ijk",{aFeatMap.index({Slice(),Y_1.to(torch::kInt64),X_1.to(torch::kInt64)})});
+    //auto aMAP_11=torch::einsum("ijk->ijk",{aFeatMap.index({Slice(),Y_1.to(torch::kInt64),X_1.to(torch::kInt64)})});
+    auto aMAP_11=aFeatMap.index({Slice(),Y_1.to(torch::kInt64),X_1.to(torch::kInt64)});
     //std::cout<<"  composed offsets "<<aMAP_11.sizes()<<std::endl;
-    auto aMAP_21=torch::einsum("ijk->ijk",{aFeatMap.index({Slice(),Y_2.to(torch::kInt64),X_1.to(torch::kInt64)})});
-    auto aMAP_12=torch::einsum("ijk->ijk",{aFeatMap.index({Slice(),Y_1.to(torch::kInt64),X_2.to(torch::kInt64)})});
-    auto aMAP_22=torch::einsum("ijk->ijk",{aFeatMap.index({Slice(),Y_2.to(torch::kInt64),X_2.to(torch::kInt64)})});
+    //auto aMAP_21=torch::einsum("ijk->ijk",{aFeatMap.index({Slice(),Y_2.to(torch::kInt64),X_1.to(torch::kInt64)})});
+    auto aMAP_21=aFeatMap.index({Slice(),Y_2.to(torch::kInt64),X_1.to(torch::kInt64)});
+    //auto aMAP_12=torch::einsum("ijk->ijk",{aFeatMap.index({Slice(),Y_1.to(torch::kInt64),X_2.to(torch::kInt64)})});
+    auto aMAP_12=aFeatMap.index({Slice(),Y_1.to(torch::kInt64),X_2.to(torch::kInt64)});
+    //auto aMAP_22=torch::einsum("ijk->ijk",{aFeatMap.index({Slice(),Y_2.to(torch::kInt64),X_2.to(torch::kInt64)})});
+    auto aMAP_22=aFeatMap.index({Slice(),Y_2.to(torch::kInt64),X_2.to(torch::kInt64)});
     //std::cout<<"  MAP 22 DIMENSIONS ------   X"<<aMAP_22.sizes()<<"   Y  "<<aMAP_22.sizes()<<std::endl;
 
-    if (1)
+    /*bool oktest1=true;
+    if (oktest1)
         {
             // Tests on feature warping routine correctness
             auto aFeat= aMAP_11.index({Slice(0,None,1),50,50});
@@ -1980,7 +2011,7 @@ torch::Tensor cAppliMatchMultipleOrtho::InterpolateFeatMap(torch::Tensor & aFeat
             auto aFeatFromIndices=aFeatMap.index({Slice(0,None,1),y_ind,x_ind});
             auto isEqual=torch::equal(aFeat,aFeatFromIndices);
             MMVII_INTERNAL_ASSERT_strong(isEqual, "PROBLEM WITH FEATURE WARPIGN BEFORE INTERPOLATION !!!");
-        }
+        }*/
 
     // INTERPOLATE THE WHOLE FEATURE MAP
 
@@ -1992,36 +2023,52 @@ torch::Tensor cAppliMatchMultipleOrtho::InterpolateFeatMap(torch::Tensor & aFeat
 //   out = |X_2 - X , X - X_1 |  |             | |       |
 //                               |aMAP12 aMAP22| |Y - Y_1|
 
-    auto TERM_1= torch::einsum("ijk,jk->ijk",{aMAP_11,Y_2-aGeoYT})+torch::einsum("ijk,jk->ijk",{aMAP_21,aGeoYT-Y_1});
-    auto TERM_2= torch::einsum("ijk,jk->ijk",{aMAP_12,Y_2-aGeoYT})+torch::einsum("ijk,jk->ijk",{aMAP_22,aGeoYT-Y_1});
-    anInterPolFeatMap=torch::einsum("ijk,jk->ijk",{TERM_1,X_2-aGeoXT})+torch::einsum("ijk,jk->ijk",{TERM_2,aGeoXT-X_1});
+    auto Y_1GEOYT=aGeoYT-Y_1;
+    auto Y_2GEOYT=Y_2-aGeoYT;
+    auto X_1GEOXT=aGeoXT-X_1;
+    auto X_2GEOXT=X_2-aGeoXT;
+    Y_2GEOYT.index_put_({Y_2GEOYT==0},1);
+    X_2GEOXT.index_put_({X_2GEOXT==0},1);
+    auto TERM_1= torch::einsum("ijk,jk->ijk",{aMAP_11,Y_2GEOYT})+torch::einsum("ijk,jk->ijk",{aMAP_21,Y_1GEOYT});
+    auto TERM_2= torch::einsum("ijk,jk->ijk",{aMAP_12,Y_2GEOYT})+torch::einsum("ijk,jk->ijk",{aMAP_22,Y_1GEOYT});
+    anInterPolFeatMap=torch::einsum("ijk,jk->ijk",{TERM_1,X_2GEOXT})+torch::einsum("ijk,jk->ijk",{TERM_2,X_1GEOXT});
 
     /*anInterPolFeatMap=(X_2-aGeoXT)*(aMAP_11.mul(Y_2-aGeoYT)+aMAP_21.mul(aGeoYT-Y_1))
             + (aGeoXT-X_1)*(aMAP_12.mul(Y_2-aGeoYT)+aMAP_22.mul(aGeoYT-Y_1)) ;*/
 
-// SOME CHECKS
+    // SOME CHECKS
+    bool oktest=false;
 
-    if (1)
+    if (oktest)
         {
-            //std::cout<<"CHECK  CORRECTNESS OF BILIN INTERPOL "<<std::endl;
-            // Tests on feature warping routine correctness
-            auto aFeat11= aMAP_11.index({Slice(0,None,1),5,50});
-            auto aFeat21= aMAP_21.index({Slice(0,None,1),5,50});
-            auto aFeat12= aMAP_12.index({Slice(0,None,1),5,50});
-            auto aFeat22= aMAP_22.index({Slice(0,None,1),5,50});
 
-            double y1_ind=Y_1.index({5,50}).item<double>();
-            double x1_ind=X_1.index({5,50}).item<double>();
-            double y2_ind=Y_2.index({5,50}).item<double>();
-            double x2_ind=X_2.index({5,50}).item<double>();
-            double XX=aGeoXT.index({5,50}).item<double>();
-            double YY=aGeoYT.index({5,50}).item<double>();
+            std::cout<<"------------><<<<< CHECK  CORRECTNESS OF BILIN INTERPOL "<<std::endl;
+            // Tests on feature warping routine correctness
+            auto aFeat11= aMAP_11.index({Slice(0,None,1),50,50});
+            auto aFeat21= aMAP_21.index({Slice(0,None,1),50,50});
+            auto aFeat12= aMAP_12.index({Slice(0,None,1),50,50});
+            auto aFeat22= aMAP_22.index({Slice(0,None,1),50,50});
+
+            double y1_ind=Y_1.index({50,50}).item<double>();
+            double x1_ind=X_1.index({50,50}).item<double>();
+            double y2_ind=Y_2.index({50,50}).item<double>();
+            double x2_ind=X_2.index({50,50}).item<double>();
+            double XX=aGeoXT.index({50,50}).item<double>();
+            double YY=aGeoYT.index({50,50}).item<double>();
 
             auto res =(x2_ind-XX)*(aFeat11.mul(y2_ind-YY)+aFeat21.mul(YY-y1_ind))
                     + (XX-x1_ind)*(aFeat12.mul(y2_ind-YY)+aFeat22.mul(YY-y1_ind)) ;
-            auto isEqual=torch::equal(res,anInterPolFeatMap.index({Slice(),5,50}));
-            MMVII_INTERNAL_ASSERT_strong(isEqual, "PROBLEM WITH FEATURE WARPIGN BEFORE INTERPOLATION !!!");
+            float diff=torch::sum(res-anInterPolFeatMap.index({Slice(),50,50})).squeeze().item<float>();
+
+            //std::cout<<"  by hand interpolation   ==>  "<<res<<std::endl;
+            //std::cout<<"  bulk accessed with index interpol "<<anInterPolFeatMap.index({Slice(),50,50})<<std::endl;
+            //std::cout<<"Difference ==> "<<torch::sum(res-anInterPolFeatMap.index({Slice(),50,50}))<<" condition on equality"<<isEqual<<std::endl;
+
+            std::cout<<" Error check by comparing bulk interpolator with by sample one "<<diff<<std::endl;
+
+            MMVII_INTERNAL_ASSERT_tiny(diff>0.001, "PROBLEM WITH FEATURE WARPIGN BEFORE INTERPOLATION !!!");
         }
+
 
     return anInterPolFeatMap;
 }
@@ -2074,7 +2121,7 @@ torch::Tensor cAppliMatchMultipleOrtho::ResampleFeatureMap(torch::Tensor & aFeat
     return anInterPolFeatMap;
 }
 
-int  cAppliMatchMultipleOrtho::ExeSubPixFeats()
+int  cAppliMatchMultipleOrtho::Exe()
 {
 
    // Parse all Z
@@ -2097,6 +2144,22 @@ int  cAppliMatchMultipleOrtho::ExeSubPixFeats()
                    }
            }
         }
+
+   // compute original embeddings
+   std::vector<torch::Tensor> * OrigEmbeddings= new std::vector<torch::Tensor>;
+   if (mWithExtCorr)
+     {
+
+       for (unsigned int i=0; i<mORIGIm.size();i++)
+         {
+           cPt2di aSzImOrig=mORIGIm.at(i).at(0).DIm().Sz();
+           if (mArchitecture==TheUnetMlpCubeMatcher)
+             {
+                  OrigEmbeddings->push_back(mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mORIGIm.at(i),aSzImOrig));
+             }
+         }
+
+     }
 
    // Load Displacement grids in X and Y directions to apply to each embedding
    for (int aZ=0 ; aZ<mNbZ ; aZ++)
@@ -2125,6 +2188,11 @@ int  cAppliMatchMultipleOrtho::ExeSubPixFeats()
                      for (int aKScale=0 ; aKScale<mNbScale ; aKScale++)
                         {
                             mVOrtho.at(aKIm).push_back(tImOrtho::FromFile(NameOrtho(aKIm,aKScale)));
+                            /*if (aKIm==2)
+                              {
+                                std::cout<<"NAME GEOX :"<<NameGeoX(aKIm,aKScale)<<std::endl;
+                                std::cout<<"NAME GEOY :"<<NameGeoY(aKIm,aKScale)<<std::endl;
+                              }*/
                             mVGEOX.at(aKIm).push_back(tImOrtho::FromFile(NameGeoX(aKIm,aKScale)));
                             mVGEOY.at(aKIm).push_back(tImOrtho::FromFile(NameGeoY(aKIm,aKScale)));
                             if ((aKIm==0) && (aKScale==0))
@@ -2144,7 +2212,7 @@ int  cAppliMatchMultipleOrtho::ExeSubPixFeats()
 
             if(mWithExtCorr)
             {
-                std::vector<torch::Tensor> * OrigEmbeddings= new std::vector<torch::Tensor>;
+                std::vector<torch::Tensor> * ProjectEmbeddings = new std::vector<torch::Tensor>;
                 if (!mWithDecisionNet)
                 {
                     // Inference based correlation
@@ -2153,31 +2221,32 @@ int  cAppliMatchMultipleOrtho::ExeSubPixFeats()
                     MMVII_INTERNAL_ASSERT_strong(mArchitecture==TheUnetMlpCubeMatcher, "TheUnetMlpCubeMatcher is the only option for Now");
                     if (mArchitecture==TheUnetMlpCubeMatcher)
                        {
-                            torch::Tensor OneEmbeding;
+                            namespace FFunc=torch::nn::functional;
                             cPt2di aSzIm;
-                            for (unsigned int i=0;i<mORIGIm.size();i++)
-                            {
-                                if (i==0)
-                                    {
-                                     // mVOrtho at 0 is relative to the master image
-                                        aSzIm=mVOrtho.at(i).at(0).DIm().Sz();
-                                        //OneEmbeding=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mVOrtho.at(i),aSzIm);
-                                        OneEmbeding=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mORIGIm.at(i),aSzIm);
-                                        //OrigEmbeddings->push_back(OneEmbeding);
-                                        OrigEmbeddings->push_back(this->InterpolateFeatMap(OneEmbeding,mVGEOX[i][0],mVGEOY[i][0]));
-                                    }
-                                else
-                                    {
-                                        aSzIm=mORIGIm.at(i).at(0).DIm().Sz();
-                                        OneEmbeding=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mORIGIm.at(i),aSzIm);
-                                        // Resample the embedding at z given displacement fields GEOX and GEOY
-                                        //StdOut()  <<" EMBEDDING : "<<i<<"   "<<OneEmbeding.sizes()<<"\n";
-                                        OrigEmbeddings->push_back(this->InterpolateFeatMap(OneEmbeding,mVGEOX[i][0],mVGEOY[i][0]));
-                                    }
-                                StdOut()  <<" EMBEDDING FOR VECTOR OR FULL RESOLUTION ORTHO : "<<i<<"   "<<OrigEmbeddings->at(i).sizes()<<"\n";
-                            }
-                            //StdOut()  <<" ALL ORTHOS EMBEDDINGS  : "<<OrigEmbeddings->size()<<"\n";
-                            ComputeSimilByLearnedCorrelMasterEnhanced(OrigEmbeddings);
+                            cPt2di aSzImOrig;
+
+                            // project all except the master (i=0) embedding
+                            MMVII_INTERNAL_ASSERT_strong(mVGEOX.size()>1,"No query image found!");
+                            //ProjectEmbeddings->push_back(OrigEmbeddings->at(0));
+                            //std::cout<<"##########################  "<<0<<"  "<<ProjectEmbeddings->at(0).sizes()<<"  ###########################"<<std::endl;
+                            for (unsigned int i=0; i<mORIGIm.size();i++)
+                              {
+                                aSzIm=mVOrtho.at(i).at(0).DIm().Sz();
+                                aSzImOrig=mORIGIm.at(i).at(0).DIm().Sz();
+                                //ProjectEmbeddings->push_back(this->InterpolateFeatMap(OrigEmbeddings->at(i),mVGEOX[i][0],mVGEOY[i][0]));
+
+                                ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i).unsqueeze(0),
+                                                                                ToTensorGeo(mVGEOX[i][0],mVGEOY[i][0],aSzImOrig),
+                                  F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
+
+
+
+                                //auto OrthoEmbedding=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mVOrtho.at(i),aSzIm);
+                                //auto COSINE=at::cosine_similarity(OrthoEmbedding,ProjectEmbeddings->at(i),0).squeeze();
+                                //std::cout<<" CORRELATION CHECK >>>  "<<at::mean(COSINE)<<std::endl;
+                                //std::cout<<"##########################  "<<i<<"  "<<ProjectEmbeddings->at(i).sizes()<<"  ###########################"<<std::endl;
+                              }
+                            ComputeSimilByLearnedCorrelMasterEnhanced(ProjectEmbeddings);
                        }
                 }
             }

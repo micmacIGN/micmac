@@ -35,6 +35,7 @@ extern cSpecMMVII_Appli  TheSpecExtractLearnVecDM;
 extern cSpecMMVII_Appli  TheSpecCalcHistoCarac; 
 extern cSpecMMVII_Appli  TheSpecCalcHistoNDim; 
 extern cSpecMMVII_Appli  TheSpecFillCubeCost; 
+extern cSpecMMVII_Appli  TheSpecFillCubeCost2D;
 extern cSpecMMVII_Appli  TheSpecMatchMultipleOrtho; 
 extern cSpecMMVII_Appli  TheSpecDMEvalRef; 
 extern cSpecMMVII_Appli  TheSpecGenCodedTarget; 
@@ -46,6 +47,8 @@ extern cSpecMMVII_Appli  TheSpecMeshDev;
 extern cSpecMMVII_Appli  TheSpecGenMeshDev; 
 extern cSpecMMVII_Appli  TheSpecComputeStatsCorrel; 
 extern cSpecMMVII_Appli  TheSpecProgDynEpipolar;
+extern cSpecMMVII_Appli  TheSpecMMGenDepthMV;
+extern cSpecMMVII_Appli  TheSpecMGenDeformMaps;
 extern cSpecMMVII_Appli  TheSpecTestCovProp; 
 };
 

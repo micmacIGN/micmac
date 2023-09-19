@@ -299,8 +299,6 @@ Box2dr  cGeomDiscFPx::RoundCoord(const Box2dr  & aBox)
 void cGeomDiscFPx::PostInit()
 {
 
-
-
   cFileOriMnt * aFileExt = 0;
   if (mAp->FileOriMnt().IsInit())
   {
@@ -369,7 +367,6 @@ void cGeomDiscFPx::PostInit()
 
          double aResol = (*itFI)->Geom().GetResolMoyenne_Euclid();
 
-
          mResol  += aResol;
          aNbResolGot++;
          double aRatio[theDimPxMax];
@@ -390,14 +387,12 @@ void cGeomDiscFPx::PostInit()
       }
   }
 
-
   if (mAp->RatioAltiPlani().IsInit())
      mRatioResAltPlani[0] = mAp->RatioAltiPlani().Val();
 
 
   for (int aK=0; aK<mDimPx ; aK++)
   {
-      // std::cout << "RRRRAAPP " << mRatioResAltPlani[aK] << "\n"; getchar();
       ELISE_ASSERT(mRatioResAltPlani[aK]<1e9,"Pas trouve mRatioResAltPlani");
   }
 
@@ -916,6 +911,7 @@ if (0 && MPD_MM())
 double  cGeomDiscFPx::PxMin(int aK) const
 {
    return mV0Px[aK] - mEcPxInitMoins[aK];
+
 }
 double  cGeomDiscFPx::PxMax(int aK) const
 {
@@ -932,7 +928,7 @@ double  cGeomDiscFPx::CorrectDerivee() const
 
 int cGeomDiscFPx::GetEcartInitialGen(double aPas,int aKPx,double anEcart) const
 {
-   // std::cout << " E " << anEcart << " P " << aPas << " R " << mRatioResAltPlani[aKPx] << "\n";
+   std::cout << " E " << anEcart << " P " << aPas <<" ResDz  "<<mResolDz <<" R " << mRatioResAltPlani[aKPx] <<"    "<<round_ni(anEcart/(aPas*mResolDz* mRatioResAltPlani[aKPx]))<< "\n";
    return  round_ni(anEcart/(aPas*mResolDz* mRatioResAltPlani[aKPx]));
 }
 
@@ -984,7 +980,7 @@ void cGeomDiscFPx::SetStep(const REAL * aVStep)
        }
 /*
 */
-       // std::cout <<  mStepRel[aD] << " " << mStepAbs[aD] << "\n";
+        //std::cout <<"  $$$$$$$$$$$$$$$ "<<  mStepRel[aD] << " " << mStepAbs[aD] << "\n";
    }
 }
 

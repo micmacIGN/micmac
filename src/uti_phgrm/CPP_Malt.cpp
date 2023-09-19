@@ -848,7 +848,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               + 1   //  Dulication de pas a la premiere
               + (mAffineLast ? 1 : 0)  ;  // Raffinement de pas;
 
-      std::cout << 3+ log2(mZoomInit/ mZoomFinal)  << "\n";
+      //std::cout << 3+ log2(mZoomInit/ mZoomFinal)  << "\n";
       ShowParam();
 
 
@@ -1330,7 +1330,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +X1Clip=") + ToString(aBoxClip._p1.x)
                   +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
       }
-
       if (EAMIsInit(&aRatioResolImage))
       {
            mCom  =    mCom + " +UseRatioResolImage=true " + " +RatioResolImage=" + ToString(aRatioResolImage);

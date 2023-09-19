@@ -770,6 +770,7 @@ void cFilePx::InitComputedPas(double aRatio)
    {
         mRatioDzPrec =   mPredCalc->mEtape.DeZoomTer() / mEtape.DeZoomTer();
         mRatioStepPrec =  (ComputedPas() / mPredCalc->ComputedPas()) / mRatioDzPrec;
+        //std::cout<<" mRatioDzPrec "<<mRatioDzPrec<<"   mRatioStepPrec   "<<mRatioStepPrec<<std::endl;
    }
 }
 
@@ -880,6 +881,8 @@ void cFilePx::LoadNappeEstim
             aPRed.y += aDy;
         }
     }
+    //Test SAVE NAPPE ON LOADING
+
 
 
     if (mEtape.PxAfterModAnIsNulle())
@@ -987,6 +990,7 @@ void cFilePx::LoadNappeEstim
     SaveNappe("./DILA_ZMIN_"+random_string(5)+".tif",aImage.data(),aBoxIn);
     */
     /***********************************************/
+
     ELISE_COPY
     (
        aNappe.mPxInit.all_pts(),
@@ -1180,7 +1184,7 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
            double aSomPx=0;
            double aSom1=0;
            TIm2DBits<1> aTM(aIMasq);
-// std::cout << " IFX " << isForCont << "WWwwwXX " << aNappe.FromDiscPx(0) << " " << aNappe.FromDiscPx(1) << " " << mRatioStepPrec << "\n"; getchar();
+ //std::cout << " IFX " << isForCont << "WWwwwXX " << aNappe.FromDiscPx(0) << " " << aNappe.FromDiscPx(1) << " " << mRatioStepPrec << "\n"; getchar();
            for (int anX=0 ; anX<aSz.x ; anX++)
            {
            // On evite de refaire le calcul en utilisant le fait qu'on

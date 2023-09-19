@@ -70,6 +70,7 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
    std::string aN2 =  PDV2()->IMIL()->NameFileOfResol(aDZIm);
 
    double aStepZ = GeomDFPx().PasPxRel0();
+   std::cout<<"ZZZZ   <<<<<<  STEP >>>>> ZZZZZ "<<aStepZ<<std::endl;
 
    Pt2di aSz = aBox.sz() ;
 
@@ -101,9 +102,6 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
 
    int aSzW = 0;
    if (aModele=="MMV1") aSzW=3;
-   //if (aModele=="MVCNNCorrel") aSzW=15;
-
-
    Tiff_Im aF2(aN2.c_str());
    int aX0In2 = ElMax(mBoxIn.P0().x-aSzW+aZMin,  0);
    int aY0In2 = ElMax(mBoxIn.P0().y-aSzW      ,  0);
@@ -236,6 +234,126 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
        ELISE_fp::RmFile(aNameCube);
    }
 
+   else if (aModele=="MVCNNCorrel2D")  // Correl for 2D displacement
+   {
+
+        /*************************************************************/
+        ELISE_ASSERT
+        (
+                (aCPC.FileModeleParams().IsInit()),
+                "MVCNN INFERENCE REQUIRES MODEL PARAMETERS"
+        );
+        ELISE_ASSERT
+        (
+                (aCPC.FileModeleArch().IsInit()),
+                "MVCNN INFERENCE REQUIRES MODEL ARCHITECTURE"
+        );
+
+       std::string aModeleParams = aCPC.FileModeleParams().Val();
+       std::string aModeleArch = aCPC.FileModeleArch().Val();
+       // add condition
+       int aPId = mm_getpid();
+       std::string aPost = "MMV1Pid" + ToString(aPId);
+
+       // Nappes Pax1
+       std::string aNameZMin1 = StdName("ZMin1",aPost,"tif");
+       std::string aNameZMax1 = StdName("ZMax1",aPost,"tif");
+       // Nappes Pax2
+       std::string aNameZMin2 = StdName("ZMin2",aPost,"tif");
+       std::string aNameZMax2 = StdName("ZMax2",aPost,"tif");
+
+       std::string aNameCube = StdName("MatchingCube",aPost,"data");
+
+
+       Tiff_Im::CreateFromIm(aImZMin,aNameZMin1);
+       Tiff_Im::CreateFromIm(aImZMax,aNameZMax1);
+
+       // get transverse parallax nappes Px2
+       ELISE_ASSERT(this->DimPx()==2, "CostCube2D should be called for 2D search intervals");
+
+       Im2D_INT2  aImZMin2 = mLTer->KthNap(1).mImPxMin;
+       Im2D_INT2  aImZMax2 = mLTer->KthNap(1).mImPxMax;
+       TIm2D<INT2,INT4>  aTImZMin2(aImZMin2);
+       TIm2D<INT2,INT4>  aTImZMax2(aImZMax2);
+
+       // save  images
+       Tiff_Im::CreateFromIm(aImZMin2,aNameZMin2);
+       Tiff_Im::CreateFromIm(aImZMax2,aNameZMax2);
+
+       // check sizes are coherent
+
+       ELISE_ASSERT( aSz == aImZMin2.sz(),"Learn, Box origin  expected in (0,0) for Px2");
+       ELISE_ASSERT( aSz == aImZMax2.sz(),"Learn, Box origin  expected in (0,0) for Px2");
+
+       // Update bounding boxes
+       int aZMin2 = 1e9;
+       int aZMax2 = -1e9;
+       {
+           for (int aX=0 ; aX<aSz.x ; aX++)
+           {
+               for (int aY=0 ; aY<aSz.y ; aY++)
+               {
+                   if ( IsInTer(aX,aY))
+                   {
+                      ElSetMin(aZMin2,aTImZMin2.Val(aX,aY));
+                      ElSetMax(aZMax2,aTImZMax2.Val(aX,aY));
+                   }
+               }
+           }
+           aZMin2 = round_down(aZMin2*aStepZ);
+           aZMax2 = round_up  (aZMax2*aStepZ);
+       }
+       aY0In2 = ElMax(mBoxIn.P0().y-aSzW+aZMin2      ,  0);
+       aY1In2 = ElMin(mBoxIn.P1().y+aSzW+aZMax2      ,  aF2.sz().y);
+
+       // New box for query image
+       aBoxIn2=Box2di(Pt2di(aX0In2,aY0In2),Pt2di(aX1In2,aY1In2));
+
+
+       std::string aCom =   "MMVII DM4FillCubeCost2D " + aN1 + " " + aN2
+                          + " " +  aModele
+                          + " " +  ToString(mBoxIn.P0())
+                          + " " +  ToString(aBoxIn1)
+                          + " " +  ToString(aBoxIn2)
+                                     + " " +  aPost
+                          + " " +  "CNNParams="+aModeleParams
+                          + " " +  "CNNArch="+aModeleArch
+                          + " " +  "StepZ="+ToString(aStepZ);
+
+       if (aCPC.Cmp_FileMC().IsInit())
+       {
+           aCom = aCom + " ModCmp=" +  aCPC.Cmp_FileMC().Val();
+       }
+       System(aCom);
+       ELISE_fp aFileCube(aNameCube.c_str());
+       Pt2di aPLoc;
+
+       for (aPLoc.y=0 ; aPLoc.y<aSz.y ; aPLoc.y++)
+        {
+            for (aPLoc.x=0 ; aPLoc.x<aSz.x ; aPLoc.x++)
+            {
+                // Pt2di aPAbs = aPLoc +mBoxIn.P0();
+                // Pt2di aPLoc1 = aPAbs -Pt2di(aX0In1,aY0In1);
+                for (int aZy= aTImZMin2.Val(aPLoc.x,aPLoc.y) ; aZy<aTImZMax2.Val(aPLoc.x,aPLoc.y) ; aZy++)
+                {
+                    for (int aZx= aTImZMin.Val(aPLoc.x,aPLoc.y) ; aZx<aTImZMax.Val(aPLoc.x,aPLoc.y) ; aZx++)
+                    {
+                        int Pos[2]={aZx,aZy};
+                        U_INT2 aCostI= aFileCube.read_U_INT2();
+                        double aCost = aCostI/1e4;
+                        mSurfOpt->SetCout(aPLoc,Pos,aCost);
+                    }
+                }
+            }
+        }
+      /***************************************************************/
+       aFileCube.close();
+       ELISE_fp::RmFile(aNameZMin1);
+       ELISE_fp::RmFile(aNameZMax1);
+       ELISE_fp::RmFile(aNameZMin2);
+       ELISE_fp::RmFile(aNameZMax2);
+       ELISE_fp::RmFile(aNameCube);
+   }
    // 
    else 
    {

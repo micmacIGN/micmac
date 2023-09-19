@@ -362,10 +362,10 @@ void aCnnModelPredictor::PopulateModelFeatures(torch::jit::script::Module & Netw
         }
     }
     //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
-    auto cuda_available = torch::cuda::is_available();
+    //auto cuda_available = torch::cuda::is_available();
     //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
     StdOut()<<"Model Name "<<aModel<<"\n";
-    //auto cuda_available=false;
+    auto cuda_available=false;
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
     Network=torch::jit::load(aModel);
     Network.to(device);
@@ -386,8 +386,8 @@ void aCnnModelPredictor::PopulateModelDecision(torch::jit::script::Module & Netw
             break;
         }
     }
-    auto cuda_available = torch::cuda::is_available();
-    //auto cuda_available=false;
+    //auto cuda_available = torch::cuda::is_available();
+    auto cuda_available=false;
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
     Network=torch::jit::load(aModel);
     Network.to(device);
@@ -829,12 +829,15 @@ torch::Tensor aCnnModelPredictor::PredictUNetWDecision(torch::jit::script::Modul
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
     torch::NoGradGuard no_grad;
     mNet.eval();
-    torch::Tensor aPAllMasters=torch::empty({(int) aMasterP.size(),aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
-    torch::Tensor aPAllSlaves=torch::empty({(int) aPatchLV.size(),aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+    torch::Tensor aPAllMasters=torch::empty({(int) aMasterP.size(),aPSz.y(),aPSz.x()},
+                                            torch::TensorOptions().dtype(torch::kFloat32));
+    torch::Tensor aPAllSlaves=torch::empty({(int) aPatchLV.size(),aPSz.y(),aPSz.x()},
+                                           torch::TensorOptions().dtype(torch::kFloat32));
     for (int cc=0;cc<(int) aMasterP.size();cc++)
     {
         tREAL4 ** mPatchLData=aMasterP.at(cc).DIm().ExtractRawData2D();
-        torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+        torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()},
+                                           torch::TensorOptions().dtype(torch::kFloat32));
         //normalize apl
         //auto std=aPL.std();
         //aPL=aPL.sub(aPL.mean());
@@ -848,7 +851,8 @@ torch::Tensor aCnnModelPredictor::PredictUNetWDecision(torch::jit::script::Modul
     for (int cc=0;cc<(int) aPatchLV.size();cc++)
     {
         tREAL4 ** mPatchLData=aPatchLV.at(cc).DIm().ExtractRawData2D();
-        torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+        torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()},
+                                           torch::TensorOptions().dtype(torch::kFloat32));
         //auto std=aPL.std();
         //aPL=aPL.sub(aPL.mean());
         //aPL=aPL.div(std.add(1e-12));
@@ -876,14 +880,16 @@ torch::Tensor aCnnModelPredictor::PredictUnetFeaturesOnly(torch::jit::script::Mo
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
     torch::NoGradGuard no_grad;
     mNet.eval();
-    torch::Tensor aPAllSlaves=torch::empty({(int) aPatchLV.size(),aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+    torch::Tensor aPAllSlaves=torch::empty({(int) aPatchLV.size(),aPSz.y(),aPSz.x()},
+                                           torch::TensorOptions().dtype(torch::kFloat32)).to(device);;
     for (int cc=0;cc<(int) aPatchLV.size();cc++)
     {
         tREAL4 ** mPatchLData=aPatchLV.at(cc).DIm().ExtractRawData2D();
-        torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()}, torch::TensorOptions().dtype(torch::kFloat32));
+        torch::Tensor aPL=torch::from_blob((*mPatchLData), {1,aPSz.y(),aPSz.x()},
+                                           torch::TensorOptions().dtype(torch::kFloat32));
         aPL=aPL.div(255.0);
         aPL=(aPL.sub(0.4353755468)).div(0.19367880);
-        aPAllSlaves.index_put_({cc},aPL);
+        aPAllSlaves.index_put_({cc},aPL.to(device));
     }
     torch::jit::IValue inp(aPAllSlaves.unsqueeze(0));
     std::vector<torch::jit::IValue> allinp={inp};
@@ -911,8 +917,8 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTile(torch::jit::script::Module mN
 /**********************************************************************************************************************/
 torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz)
 {
-    auto cuda_available = torch::cuda::is_available();
-    //auto cuda_available = false;
+    //auto cuda_available = torch::cuda::is_available();
+    auto cuda_available = false;
     //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
     torch::NoGradGuard no_grad;
@@ -924,6 +930,7 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::M
     //std::cout<<"TILE CONTENT  ========= >  "<<aPL<<std::endl;
     aPL=(aPL.div(255.0));
     aPL=(aPL.sub(0.4357159999)).div(0.1951853861); //0.4357159999,0.1951853861
+    //aPL=(aPL.sub(0.14555590213)).div(0.06);
     //aPL=(aPL.sub(aPL.mean())).div(aPL.std()+1e-8);
     torch::jit::IValue inp(aPL);
     std::vector<torch::jit::IValue> allinp={inp};
