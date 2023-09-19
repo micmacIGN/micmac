@@ -35,6 +35,8 @@ class cAppli_CGPReport : public cMMVII_Appli
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
         cSetMesImGCP             mSetMes;
+
+	std::vector<double>      mGeomFiedlVec;
 };
 
 cAppli_CGPReport::cAppli_CGPReport
@@ -62,7 +64,7 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
     return    anArgOpt
-	   //  << AOpt2007(mNbTriplets,"NbTriplets","Number max of triplet tested in Ransac",{eTA2007::HDV})
+	     << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray]",{{eTA2007::ISizeV,"[3,3]"}})
     ;
 }
 
@@ -78,18 +80,22 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 
     StdOut() << " aNameImaNameIm " << aNameIm  << " " << aSet32.NbPair() << " Cam=" << aCam << "\n";
 
-    if (1)
+    if (IsInit(&mGeomFiedlVec))
     {
+         tREAL8 aMul    = mGeomFiedlVec.at(0);
+         tREAL8 aWitdh  = mGeomFiedlVec.at(1);
+         tREAL8 aRay    = mGeomFiedlVec.at(2);
          cRGBImage aIma =  cRGBImage::FromFile(aNameIm);
 
+	 //  [Mul,Witdh,Ray]
 	 for (const auto & aPair : aSet32.Pairs())
 	 {
-             aIma.DrawCircle(cRGBImage::Green,aPair.mP2,8.0);
+             aIma.DrawCircle(cRGBImage::Green,aPair.mP2,aRay);
 
 	     cPt2dr aProj = aCam->Ground2Image(aPair.mP3);
 	     cPt2dr  aVec = (aPair.mP2-aProj);
 
-             aIma.DrawLine(aPair.mP2,aPair.mP2+aVec*800.0,cRGBImage::Red,2.0);
+             aIma.DrawLine(aPair.mP2,aPair.mP2+aVec*aMul,cRGBImage::Red,aWitdh);
 	 }
 
          aIma.ToFile("ZOOM-"+aNameIm+".tif");
@@ -110,10 +116,6 @@ int cAppli_CGPReport::Exe()
    {
         MakeOneIm(aNameIm);
    }
-
-
-
-        //MakeOneIm(aNameIm);
 
     return EXIT_SUCCESS;
 }                                       
