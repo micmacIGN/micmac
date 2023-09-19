@@ -118,8 +118,8 @@ static void pyb_init_SensorCamPC(py::module_ &m)
             .def_property_readonly("pose",&tSCPC::Pose,DOC(MMVII_cSensorCamPC,Pose) )
             .def_property_readonly("center",&tSCPC::Center,DOC(MMVII_cSensorCamPC,Center) )
             .def_property_readonly("axeI",&tSCPC::AxeI,DOC(MMVII_cSensorCamPC,AxeI) )
-            .def_property_readonly("axeJ",&tSCPC::AxeI,DOC(MMVII_cSensorCamPC,AxeI) )
-            .def_property_readonly("axeK",&tSCPC::AxeI,DOC(MMVII_cSensorCamPC,AxeI) )
+            .def_property_readonly("axeJ",&tSCPC::AxeJ,DOC(MMVII_cSensorCamPC,AxeI) )
+            .def_property_readonly("axeK",&tSCPC::AxeK,DOC(MMVII_cSensorCamPC,AxeI) )
 
             .def_property_readonly("internalCalib",&tSCPC::InternalCalib,py::return_value_policy::reference_internal ,DOC(MMVII_cSensorCamPC,InternalCalib) )
 
