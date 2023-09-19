@@ -473,6 +473,8 @@ class cRGBImage
         cRGBImage(const cPt2di & aSz,int aZoom=1);
         cRGBImage(const cPt2di & aSz,const cPt3di & aCoul,int aZoom=1);
         void ToFile(const std::string & aName);
+	void ToFileDeZoom(const std::string & aName,int aDeZoom);
+
 
         static cRGBImage FromFile(const std::string& aName,int aZoom=1);  ///< Allocate and init from file
         static cRGBImage FromFile(const std::string& aName,const cBox2di & ,int aZoom=1);  ///< Allocate and init from file

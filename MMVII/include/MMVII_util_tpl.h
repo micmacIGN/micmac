@@ -282,6 +282,13 @@ template <class Type> void SetAndResize(std::vector<Type> & aVec,size_t aSz,cons
       SetOrPush(aVec,aSz,aVal);
 }
 
+template <class Type> Type GetDef(std::vector<Type> & aVec,int aSz,const Type & aDef)
+{
+   if ((aSz>=0) && (aSz<int(aVec.size()))) 
+       return aVec.at(aSz);
+   return aDef;
+}
+
 
 template <class T1,class T2> std::vector<T1> &  Convert(std::vector<T1> & aV1,const std::vector<T2> & aV2)
 {

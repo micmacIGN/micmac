@@ -64,7 +64,7 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
     return    anArgOpt
-	     << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray]",{{eTA2007::ISizeV,"[3,3]"}})
+	     << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray,Zoom?=2]",{{eTA2007::ISizeV,"[3,4]"}})
     ;
 }
 
@@ -74,32 +74,53 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 {
-    cSet2D3D aSet32;
-    mSetMes.ExtractMes1Im(aSet32,aNameIm);
+    const cSetMesPtOf1Im  &  aSetMesIm = mSetMes.MesImInitOfName(aNameIm);
+
+    // cSet2D3D aSet32;
+    // mSetMes.ExtractMes1Im(aSet32,aNameIm);
     cSensorImage*  aCam = mPhProj.LoadSensor(aNameIm,false);
 
-    StdOut() << " aNameImaNameIm " << aNameIm  << " " << aSet32.NbPair() << " Cam=" << aCam << "\n";
+    // StdOut() << " aNameImaNameIm " << aNameIm  << " " << aSetMesIm.Measures().size() << " Cam=" << aCam << "\n";
 
     if (IsInit(&mGeomFiedlVec))
     {
          tREAL8 aMul    = mGeomFiedlVec.at(0);
          tREAL8 aWitdh  = mGeomFiedlVec.at(1);
          tREAL8 aRay    = mGeomFiedlVec.at(2);
+	 int aDeZoom    = round_ni(GetDef(mGeomFiedlVec,3,2.0));
          cRGBImage aIma =  cRGBImage::FromFile(aNameIm);
 
 	 //  [Mul,Witdh,Ray]
-	 for (const auto & aPair : aSet32.Pairs())
+	 for (const auto & aMes : aSetMesIm.Measures())
 	 {
-             aIma.DrawCircle(cRGBImage::Green,aPair.mP2,aRay);
+	     cPt2dr aP2 = aMes.mPt;
+	     cPt3dr aPGr = mSetMes.MesGCPOfName(aMes.mNamePt).mPt;
+	     cPt2dr aProj = aCam->Ground2Image(aPGr);
+	     cPt2dr  aVec = (aP2-aProj);
 
-	     cPt2dr aProj = aCam->Ground2Image(aPair.mP3);
-	     cPt2dr  aVec = (aPair.mP2-aProj);
-
-             aIma.DrawLine(aPair.mP2,aPair.mP2+aVec*aMul,cRGBImage::Red,aWitdh);
+             aIma.DrawCircle(cRGBImage::Green,aP2,aRay);
+             aIma.DrawLine(aP2,aP2+aVec*aMul,cRGBImage::Red,aWitdh);
 	 }
 
-         aIma.ToFile("ZOOM-"+aNameIm+".tif");
+         aIma.ToFileDeZoom("ZOOM-"+aNameIm+".tif",aDeZoom);
     }
+
+
+    std::vector<tREAL8>  aVRes;
+    cWeightAv<tREAL8,cPt2dr>  aAvg2d;
+    for (const auto & aMes : aSetMesIm.Measures())
+    {
+        cPt2dr aP2 = aMes.mPt;
+        cPt3dr aPGr = mSetMes.MesGCPOfName(aMes.mNamePt).mPt;
+        cPt2dr aProj = aCam->Ground2Image(aPGr);
+        cPt2dr  aVec = (aP2-aProj);
+
+	aAvg2d.Add(1.0,aVec);
+	aVRes.push_back(Norm2(aVec));
+    }
+
+    StdOut() << "Im=" << aNameIm <<  " Av2 : " << aAvg2d.Average()  << " P50=" << NC_KthVal(aVRes,0.5) << " P75=" <<  NC_KthVal(aVRes,0.75) << "\n";
+
 
 }
 
