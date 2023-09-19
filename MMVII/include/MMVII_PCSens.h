@@ -237,6 +237,11 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
             // for a point in pixel coordinates, indicate how much its invert projection is defined, not parallized !
             tREAL8  InvProjIsDef(const tPtOut & aPix ) const;
 
+	    /** return the value of an undistorded camera, note tha with fisheyes it can trow points to infinite ... but
+	     dont see what can be done ... */
+	    tPtOut Undist(const tPtOut &) const;
+
+
 
     // ==================   Accessors & Modifiers ===================
             const double & F() const;   ///< access to focal

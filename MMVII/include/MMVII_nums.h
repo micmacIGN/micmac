@@ -762,7 +762,7 @@ template <class TypeVal> class cAvgAndBoundVals  : public cBoundVals<TypeVal>
 			mSomVal += aVal;
 			mNbVals++;
 		}
-		TypeVal  Avg() const { SafeDiv(mSomVal,mNbVals); }
+		TypeVal  Avg() const {return SafeDiv(mSomVal,mNbVals); }
 	private :
            TypeVal  mSomVal;
            TypeVal  mNbVals;

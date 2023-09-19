@@ -478,6 +478,15 @@ cPt3dr  cPerspCamIntrCalib::DirBundle(const tPtOut & aPt) const
      return aRes;
 }
 
+cPt2dr  cPerspCamIntrCalib::Undist(const tPtOut & aP0) const
+{
+    cPt3dr aPt = DirBundle(aP0);
+
+    cPt2dr aP1 = Proj(aPt) / aPt.z();
+
+    return mMapPProj2Im.Value(aP1);
+}
+
 tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
 {
     return mDefProj->P2DIsDef(mDist_DirInvertible->Inverse(mMapIm2PProj.Value(aPix)));
@@ -524,6 +533,7 @@ void  cPerspCamIntrCalib::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
        );
    }
 }
+
 
 
 cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse)

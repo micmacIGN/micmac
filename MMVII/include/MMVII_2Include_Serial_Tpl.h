@@ -220,6 +220,11 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
     }
     else
     {
+        if (anAux.Ar().IsSpecif())
+        {
+            aMap.clear();
+            aMap[TypeKey{}] = TypeVal{};
+        }
        // when write parse the map,
         for (auto & aPair : aMap)
         {
@@ -301,7 +306,7 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet
 */
 template<class TypeVal> void  TopAddAr(cAr2007  & anAr,TypeVal & aVal,const std::string & aName)
 {
-    std::string aStrVersion ="0:0.0";
+    std::string aStrVersion ="0.0.0";
     std::string aStrSerial  =TagMMVIISerial;
     std::string aStrRoot    =TagMMVIIRoot;
 
@@ -350,6 +355,10 @@ template<class Type> void  SpecificationSaveInFile(const std::string & aName)
      GenSaveInFile(aVal,aName,true);
 }
 
+template<class Type> void  SpecificationSaveInFile()
+{
+     SpecificationSaveInFile<Type>("Specifications_"+cStrIO<Type>::msNameType+"."+GlobNameDefSerial());
+}
 
 
 template<class Type> size_t  HashValue(cAr2007 * anAr,const Type & aVal,bool ordered)

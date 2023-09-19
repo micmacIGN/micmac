@@ -88,10 +88,7 @@ template <class TypeMap> class  cMapEstimate
 
           /// For non linear make Ransac+linear refine
           static TypeMap LeastSquareNLEstimate(tCRVPts,tCRVPts,tTypeElem*,tCPVVals,const cParamCtrlOpt&);
-        
-
     private :
-
 };
 
 template <class TypeMap>  
@@ -101,6 +98,16 @@ template <class TypeMap>
    MMVII_INTERNAL_ASSERT_medium(aVIn.size()>= TypeMap::NbPtsMin,"Not enough obs in cMapEstimate");
 }
 
+template <class TypeMap> 
+   typename TypeMap::tTypeElem  AvgDistL1(const TypeMap & aMap,typename TypeMap::tCRVPts aVIn,typename TypeMap::tCRVPts aVOut)
+{
+    MMVII_INTERNAL_ASSERT_medium(aVIn.size()==aVOut.size(),"Bad sizes in AvgDistL1");
+    typename TypeMap::tTypeElem  aRes= 0.0;
+    for (size_t aKP=0 ; aKP< aVIn.size() ; aKP++)
+        aRes +=  Norm1(aMap.Value(aVIn[aKP])-aVOut[aKP]);
+
+    return aRes / aVIn.size();
+}
 
 
 template <class TypeMap>  
@@ -159,7 +166,6 @@ template <class TypeMap>
     TypeMap  cMapEstimate<TypeMap>::RansacL1Estimate(const  tVPts& aVAllIn,const tVPts & aVAllOut,int aNbTest)
 {
 // StdOut() << "L111 " << TypeMap::Name() << " " << tNumTrait<tTypeElem>::NameType() << "\n";
-bool IsHgr = false; //  (TypeMap::Name()=="Homogr2D");
 
 
     tTypeElem aSigma = 0.5 * (      cComputeCentroids<tVPts>::MedianSigma(aVAllIn)
@@ -177,7 +183,6 @@ bool IsHgr = false; //  (TypeMap::Name()=="Homogr2D");
     //  Parse all subset
     for (const auto & aSub : aVSubInd)
     {
-static int aCpt=0; aCpt++;
          // Generate the minimal subset of points In&Out
          for(int aK=0 ; aK<TypeMap::NbPtsMin ; aK++)
          {
@@ -190,40 +195,15 @@ static int aCpt=0; aCpt++;
          // Compute the residual for this map
          tTypeElem aSomDist = 0;
 
-std::vector<tREAL8> aVD;
          for (int aKP=0 ; aKP<int(aVAllIn.size()) ; aKP++)
          {
              // tTypeElem aDist = Norm2(aVAllOut[aKP]-aMap.Value(aVAllIn[aKP]));
              tTypeElem aDist = Norm2(aMap.DiffInOut(aVAllIn[aKP],aVAllOut[aKP]));
              aDist = aDist * aSigma/ (aSigma+aDist);
              aSomDist += aDist;
-aVD.push_back(aDist);
          }
-if ( (aSomDist <aWMin.ValExtre() ) && IsHgr)
-{
-StdOut() << "AvgD " << aSomDist/(aVAllIn.size()) << " Med "<< ConstMediane(aVD)  << " Cpt=" << aCpt<< "\n";
-
-static bool First=false;
-if ((First && ( ConstMediane(aVD)< 1e-10)) || (aCpt==490))
-{
-   First= false;
-   for (int aKP=0 ; aKP<int(aVAllIn.size()) ; aKP++)
-   {
-             tTypeElem aDist = Norm2(aVAllOut[aKP]-aMap.Value(aVAllIn[aKP]));
-             StdOut() << " DDDD=" << aDist << "\n";
-             if (aDist> 1)
-             {
-                   InspectMap2D(aMap,aVAllIn[aKP]);
-             }
-   }
-   getchar();
-}
-
-}
-
-
-          // Update best map
-          aWMin.Add(aMap,aSomDist);
+         // Update best map
+         aWMin.Add(aMap,aSomDist);
     }
 
      return aWMin.IndexExtre();
@@ -975,6 +955,11 @@ template <class Type>
 }
 */
 
+template <class Type>  Type cHomogr2D<Type>::AvgDistL1(tCRVPts aVIn,tCRVPts aVOut)
+{
+	return MMVII::AvgDistL1(*this,aVIn,aVOut);
+}
+
 
 template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::AllocRandom(const Type & aAmpl)
 {
@@ -982,7 +967,93 @@ template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::AllocRandom(const Type
     return StdGlobEstimate(aPair.first,aPair.second);
 }
 
+/*   Solving the paral homographic equation
+ *
+ *           ax + by +cz +d             ix + jy + kz +l
+ *    xo=    ---------------      yo =  --------------- 
+ *           ex + fy + gz + 1           ex + fy + gz + 1
+ *
+ *    
+ *    xo = (Hx(P) + cz) / (Hz(P) + gz)     yo = (Hy(P) + kz) / (Hz(P) + gz)
+ *
+ *    We have a linear system with 3 unknown cz,kz,fd.  For each point where we know xi,yi,x,y we can write :
+ *
+ *    xo Hz(P) - Hx(P)  = cz - xo gz
+ *    yo Hz(P) - Hy(P)  = kz - yo gz
+ *
+ *    We can solve it with 2 known correp
+ */
 
+template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::LeastSqParalPlaneShift(tCRVPts aVIn,tCRVPts aVOut) const
+{
+
+   MMVII_INTERNAL_ASSERT_medium(aVIn.size()==aVOut.size(),"Bad sizes in LeastSqParalPlaneShift");
+   // MMVII_INTERNAL_ASSERT_medium(aVIn.size()==aVOut.size(),"Bad sizes in LeastSqParalPlaneShift");
+   MMVII_INTERNAL_ASSERT_medium(aVIn.size()>=2,"Bad sizes in LeastSqParalPlaneShift");
+
+   cLeasSqtAA<Type>  aSys(3);
+   cDenseVect<Type>  aVec(3);
+
+   for (size_t aKP=0 ; aKP<aVIn.size() ; aKP++)
+   {
+       const tPt & aPIn = aVIn[aKP];
+       const tPt & aPOut = aVOut[aKP];
+       Type aHx = S(mHX,aPIn);
+       Type aHy = S(mHY,aPIn);
+       Type aHz = S(mHZ,aPIn);
+       Type xo = aPOut.x();
+       Type yo = aPOut.y();
+
+ // *    xo Hz(P) - Hx(P)  = cz - xo gz
+       aVec(0) = 1;
+       aVec(1) = 0;
+       aVec(2) = -xo;
+       aSys.AddObservation(1.0,aVec,xo*aHz-aHx);
+
+ // *    yo Hz(P) - Hy(P)  = kz - yi gz
+       aVec(0) = 0;
+       aVec(1) = 1;
+       aVec(2) = -yo;
+       aSys.AddObservation(1.0,aVec,yo*aHz-aHy);
+   }
+
+   cDenseVect<Type>  aSol = aSys.Solve();
+   tTypeMap  aRes 
+	     (
+	         mHX + tElemH(0,0,aSol(0)),
+	         mHY + tElemH(0,0,aSol(1)),
+	         mHZ + tElemH(0,0,aSol(2))
+	     );
+
+   return aRes;
+}
+
+template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::RansacParalPlaneShift(tCRVPts aVIn,tCRVPts aVOut,int aNbMin,int aNbMax) const
+{
+   aNbMax =std::min(aNbMax,int(aVOut.size()));
+   int aNbTest = 10000;
+
+   MMVII_INTERNAL_ASSERT_medium(aVIn.size()==aVOut.size(),"Bad sizes in RansacParalPlaneShift");
+   cWhichMin<tTypeMap,tTypeElem>  aWMin(tTypeMap(),1e30);
+
+
+   for (int aNb=aNbMin ; aNb<=aNbMax ; aNb++)
+   {
+       std::vector<cSetIExtension> aVSubInd;
+       GenRanQsubCardKAmongN(aVSubInd,aNbTest,aNb,aVIn.size());
+
+       for (const auto & aSubInd : aVSubInd)
+       {
+           tVPts aSubIn = SubVector(aVIn,aSubInd.mElems);
+           tVPts aSubOut = SubVector(aVOut,aSubInd.mElems);
+	   tTypeMap  aHomTest = LeastSqParalPlaneShift(aSubIn,aSubOut);
+	   tTypeElem aSc = aHomTest.AvgDistL1(aVIn,aVOut);
+
+	   aWMin.Add(aHomTest,aSc);
+       }
+   }
+   return aWMin.IndexExtre();
+}
 
 void BenchHomogr2D()
 {
@@ -1018,6 +1089,8 @@ FakeUseIt(aID1);
    }
 */
 }
+
+
 
 /* ========================== */
 /*             ::             */

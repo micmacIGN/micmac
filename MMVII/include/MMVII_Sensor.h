@@ -325,6 +325,10 @@ class cPhotogrammetricProject
 	  /// Load a sensor, try different type (will add RPC , and others ?)
 	  void LoadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool SVP);
 
+	  /// return the generic sensor
+	  cSensorImage* LoadSensor(const std::string  &aNameIm,bool SVP);
+
+
 	      // Internal Calibration  
 
 	  std::string  StdNameCalibOfImage(const std::string aNameIm) const;
