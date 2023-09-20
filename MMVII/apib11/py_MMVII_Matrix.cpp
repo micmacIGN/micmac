@@ -23,7 +23,7 @@ void pyb_init_Matrix_tpl(py::module_ &m, const std::string& name) {
             dm.def(py::init([](py::array_t<T, py::array::c_style | py::array::forcecast> array) {
                 py::buffer_info info = array.request();
                 if (info.format != py::format_descriptor<T>::format())
-                    throw std::runtime_error("Incompatible format: expected a array!");
+                    throw std::runtime_error("Incompatible format: expected an array!");
                 if (info.ndim != 2)
                     throw std::runtime_error("Incompatible buffer dimension!");
                 tDM *m = new tDM(info.shape[1], info.shape[0]);
@@ -71,6 +71,20 @@ void pyb_init_Matrix_tpl(py::module_ &m, const std::string& name) {
 
             dm.def("__matmul__",[](const tDM& m1, const cPtxd<T,2> p) -> cDenseVect<T> {
                   return m1*p.ToVect();
+            });
+
+            dm.def("__matmul__",[](const tDM& m1, py::array_t<T, py::array::c_style | py::array::forcecast> array) {
+                py::buffer_info info = array.request();
+                if (info.format != py::format_descriptor<T>::format())
+                    throw std::runtime_error("Incompatible format: expected an array!");
+                if (info.ndim != 2)
+                    throw std::runtime_error("Incompatible buffer dimension!");
+                tDM m2(info.shape[1], info.shape[0]);
+                T* ptr = static_cast<T *>(info.ptr);
+                for (int j=0; j<info.shape[0]; j++)
+                    for (int i=0; i<info.shape[1]; i++)
+                        m2.SetElem(i, j, *(ptr++));
+                return m1*m2;
             });
 
             // TODO : a verifier le stride/offset !
