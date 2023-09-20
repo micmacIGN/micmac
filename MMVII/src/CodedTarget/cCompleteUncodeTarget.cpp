@@ -74,7 +74,7 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgObl(cCollecSpecArg2007 & anA
             anArgObl
          << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
 	 << mPhProj.DPOrient().ArgDirInMand()
-         << Arg2007(mThresholdDist,"Threshold on distance for ")
+         << Arg2007(mThresholdDist,"Threshold on distance for in pixel")
 
    ;
 }
@@ -85,17 +85,7 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
                   anArgOpt
 	     <<   mPhProj.DPPointsMeasures().ArgDirInputOptWithDef("Std")
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Completed")
-             // << AOpt2007(mRayTarget,"RayTarget","Ray for target (else estimate automatically)")
-		/*
-             << AOpt2007(mB,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
-             << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
-             << AOpt2007(mPBWT.mMinDiam,"DiamMin","Minimum diameters for ellipse",{eTA2007::HDV})
-             << AOpt2007(mPBWT.mMaxDiam,"DiamMax","Maximum diameters for ellipse",{eTA2007::HDV})
-             << AOpt2007(mRatioDMML,"RDMML","Ratio Distance minimal bewteen local max /Diam min ",{eTA2007::HDV})
-             << AOpt2007(mVisuLabel,"VisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
-             << AOpt2007(mVisuElFinal,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
-             << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
-	     */
+             << AOpt2007(mThreshRay,"ThRay","Threshold for ray [RatioMax,RMin,RMax]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
           ;
 }
 

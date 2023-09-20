@@ -267,6 +267,11 @@ void cRGBImage::ToFile(const std::string & aName)
 
 void cRGBImage::ToFileDeZoom(const std::string & aName,int aDeZoom)
 {
+  if (aDeZoom==1)
+  {
+      ToFile(aName);
+      return;
+  }
   tIm1C  aImR = mImR.GaussDeZoom(aDeZoom);
   tIm1C  aImG = mImG.GaussDeZoom(aDeZoom);
   tIm1C  aImB = mImB.GaussDeZoom(aDeZoom);

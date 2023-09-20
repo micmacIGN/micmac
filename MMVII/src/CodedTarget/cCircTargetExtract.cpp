@@ -802,7 +802,7 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
 	}
    }
 
-    aImVisu.ToFile(mPrefixOut + "_VisuEllipses.tif");
+    aImVisu.ToFileDeZoom(mPrefixOut + "_VisuEllipses.tif",2);
 }
 
 void cAppliExtractCircTarget::MakeImageLabel()
@@ -986,9 +986,6 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 int  cAppliExtractCircTarget::Exe()
 {
    mPhProj.FinishInit();
-
-
-
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
