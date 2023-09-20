@@ -115,8 +115,8 @@ void GeoreferencedDepthMap(std::string aImg1, std::string aDir, std::string aDSM
     int nMasked = 0;
     double aCorrelMax = -100000;
     double aCorrelMin = 100000;
-    for(j=0; j<ImgSzL.y; j++){      //first row first, the row/height is the y in MicMac
-        for(i=0; i<ImgSzL.x; i++){
+    for(j=0; j<ImgSzL.y; j++){      //ImgSzL.y: height
+        for(i=0; i<ImgSzL.x; i++){    //ImgSzL.x: width
             Pt2di aP1_img = Pt2di(i, j);
             Pt2di aP1_dsm = Pt2di(int(i/aScale), int(j/aScale));
             int nVal = 0;
