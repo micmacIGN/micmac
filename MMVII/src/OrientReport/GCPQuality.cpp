@@ -34,9 +34,12 @@ class cAppli_CGPReport : public cMMVII_Appli
 
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
-        cSetMesImGCP             mSetMes;
 
 	std::vector<double>      mGeomFiedlVec;
+
+	std::string              mPostfixReport;
+	std::string              mPrefixReport;
+	std::string              mNameReportIm;
 };
 
 cAppli_CGPReport::cAppli_CGPReport
@@ -74,7 +77,10 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 {
-    const cSetMesPtOf1Im  &  aSetMesIm = mSetMes.MesImInitOfName(aNameIm);
+    cSetMesImGCP             aSetMes;
+    mPhProj.LoadGCP(aSetMes);
+    mPhProj.LoadIm(aSetMes,aNameIm);
+    const cSetMesPtOf1Im  &  aSetMesIm = aSetMes.MesImInitOfName(aNameIm);
 
     // cSet2D3D aSet32;
     // mSetMes.ExtractMes1Im(aSet32,aNameIm);
@@ -94,7 +100,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 	 for (const auto & aMes : aSetMesIm.Measures())
 	 {
 	     cPt2dr aP2 = aMes.mPt;
-	     cPt3dr aPGr = mSetMes.MesGCPOfName(aMes.mNamePt).mPt;
+	     cPt3dr aPGr = aSetMes.MesGCPOfName(aMes.mNamePt).mPt;
 	     cPt2dr aProj = aCam->Ground2Image(aPGr);
 	     cPt2dr  aVec = (aP2-aProj);
 
@@ -108,35 +114,58 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 
     std::vector<tREAL8>  aVRes;
     cWeightAv<tREAL8,cPt2dr>  aAvg2d;
+    cWeightAv<tREAL8,tREAL8>  aAvgDist;
+    cWeightAv<tREAL8,tREAL8>  aAvgDist2;
+
     for (const auto & aMes : aSetMesIm.Measures())
     {
         cPt2dr aP2 = aMes.mPt;
-        cPt3dr aPGr = mSetMes.MesGCPOfName(aMes.mNamePt).mPt;
+        cPt3dr aPGr = aSetMes.MesGCPOfName(aMes.mNamePt).mPt;
         cPt2dr aProj = aCam->Ground2Image(aPGr);
         cPt2dr  aVec = (aP2-aProj);
 
 	aAvg2d.Add(1.0,aVec);
+	tREAL8 aDist = Norm2(aVec);
 	aVRes.push_back(Norm2(aVec));
+	aAvgDist.Add(1.0,aDist);
+	aAvgDist2.Add(1.0,Square(aDist));
     }
 
-    StdOut() << "Im=" << aNameIm <<  " Av2 : " << aAvg2d.Average()  << " P50=" << NC_KthVal(aVRes,0.5) << " P75=" <<  NC_KthVal(aVRes,0.75) << "\n";
+    StdOut() << "Im=" << aNameIm <<  " Avxy : " << aAvg2d.Average()  
+	    <<  " AvD=" << aAvgDist.Average() << " AvD2=" << std::sqrt(aAvgDist2.Average())
+	    << " P50=" << NC_KthVal(aVRes,0.5) << " P75=" <<  NC_KthVal(aVRes,0.75) 
+	    << "\n";
 
+
+    std::vector<std::string> aVIm{
+                                    aNameIm,
+                                    ToStr(aAvg2d.Average().x()),
+                                    ToStr(aAvg2d.Average().y())
+                              };
+     AddOneReportCSV(mNameReportIm,aVIm);
 
 }
 
 int cAppli_CGPReport::Exe()
 {
+
+   mPrefixReport =  mSpecs.Name() +"-" ;
+   mPostfixReport  =  "-"+  mPhProj.DPOrient().DirIn() +  "-"+  mPhProj.DPPointsMeasures().DirIn() + "-" + Prefix_TIM_GMA();
+   mNameReportIm = mPrefixReport + "ByImage" + mPostfixReport;
+
+
+   InitReport(mNameReportIm,"csv",true);
+
+
    mPhProj.FinishInit();
-   mPhProj.LoadGCP(mSetMes);
-   for (const auto & aNameIm : VectMainSet(0))
+
+   if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
-        mPhProj.LoadIm(mSetMes,aNameIm);
+      AddOneReportCSV(mNameReportIm,{"Image","AvgX","AvgY"});
+      return ResultMultiSet();
    }
 
-   for (const auto & aNameIm : VectMainSet(0))
-   {
-        MakeOneIm(aNameIm);
-   }
+   MakeOneIm(FileOfPath(mSpecImIn));
 
     return EXIT_SUCCESS;
 }                                       
