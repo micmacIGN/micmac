@@ -3,6 +3,8 @@ import numpy as np
 
 dirData = '../../MMVII-TestDir/Input/Saisies-MMV1/'
 calib=PerspCamIntrCalib.fromFile(dirData + 'Ori-Ground-MMVII/Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5.xml')
+print(calib.infoParam())
+
 pp0=Pt3di(1,2,3)
 p0=Pt2di(0,0)
 p1=Pt2di(5,6)
@@ -48,15 +50,13 @@ print( np.array_equal( (n-m), (m-n) ))
 m = Matrixr( [ [1, 2], [3, 4] ] )
 n = np.array(m)
 
-n@m
-
-try:
-    m@n #does not work
-except TypeError:
-    print('MMVII apib11 has to be fixed!')
+print(n@m)
+(m@n).show()
+(m@m).show()
 
 p = Pt2dr([8,9])
 v = Vectorr(p)
 print(v)
 print(m@p)
+print(n@p)
 
