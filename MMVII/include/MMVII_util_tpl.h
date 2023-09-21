@@ -219,6 +219,15 @@ template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
    aVec.erase(std::remove_if(aVec.begin(),aVec.end(),aFonc),aVec.end());
 }
 
+template <class TypeCont,class Fonc> typename TypeCont::value_type & FindIf(TypeCont & aCont,const Fonc & aFonc)
+{
+      auto  anIter = std::find_if(aCont.begin(), aCont.end(), aFonc);
+      MMVII_INTERNAL_ASSERT_tiny(anIter!=aCont.end(),"FindIf");
+
+      return *anIter;
+}
+
+
 /// return -1 0 or 1 , regarding < , == or >
 template <class Type> int VecLexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
 /// return if aV1 < aV2 as LexicoCmp==-1
