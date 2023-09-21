@@ -93,6 +93,17 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
             .def("inv_Proj",&tPCIC::Inv_Proj,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Inv_Proj) )
             .def("dir_DistInvertible",&tPCIC::Dir_DistInvertible,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Dir_DistInvertible) )
 
+            .def("infoParam",[](tPCIC &c) {
+                cGetAdrInfoParam<tREAL8> aGAIP(".*",c);
+                c.GetAdrInfoParam(aGAIP);
+                auto names  = aGAIP.VNames();
+                auto valptr = aGAIP.VAdrs();
+                py::dict d;
+                for (unsigned i=0; i<names.size(); i++)
+                    d[py::cast(names[i])] = *valptr[i];
+                return d;
+                },  "Return parameter names and values as dict"
+            )
 
             .def("__repr__",[](const tPCIC&){return "MMVII.PerspCamIntrCalib";})
 
