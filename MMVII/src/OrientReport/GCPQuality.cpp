@@ -31,6 +31,7 @@ class cAppli_CGPReport : public cMMVII_Appli
 
      private :
         void MakeOneIm(const std::string & aNameIm);
+        void  BeginReport();
 
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
@@ -40,6 +41,7 @@ class cAppli_CGPReport : public cMMVII_Appli
 	std::string              mPostfixReport;
 	std::string              mPrefixReport;
 	std::string              mNameReportIm;
+	// std::string              mNameReportGCP;
 };
 
 cAppli_CGPReport::cAppli_CGPReport
@@ -140,10 +142,21 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
     std::vector<std::string> aVIm{
                                     aNameIm,
                                     ToStr(aAvg2d.Average().x()),
-                                    ToStr(aAvg2d.Average().y())
+                                    ToStr(aAvg2d.Average().y()),
+				    ToStr( aAvgDist.Average()),
+				    ToStr(std::sqrt(aAvgDist2.Average())),
+				    ToStr(NC_KthVal(aVRes,0.5)),
+				    ToStr(NC_KthVal(aVRes,0.75))
                               };
      AddOneReportCSV(mNameReportIm,aVIm);
 
+}
+
+void cAppli_CGPReport::BeginReport()
+{
+      AddOneReportCSV(mNameReportIm,{"Image","AvgX","AvgY","AvgD","Sigma","V50","V75"});
+      // AddOneReportCSV(mNameReportGCP,{"GCP","Avg"});
+      // AddOneReportCSV(mNameReportGCP,{"1","2"});
 }
 
 int cAppli_CGPReport::Exe()
@@ -152,16 +165,21 @@ int cAppli_CGPReport::Exe()
    mPrefixReport =  mSpecs.Name() +"-" ;
    mPostfixReport  =  "-"+  mPhProj.DPOrient().DirIn() +  "-"+  mPhProj.DPPointsMeasures().DirIn() + "-" + Prefix_TIM_GMA();
    mNameReportIm = mPrefixReport + "ByImage" + mPostfixReport;
+   // mNameReportGCP = mPrefixReport + "ByGCP" + mPostfixReport;
 
 
    InitReport(mNameReportIm,"csv",true);
+   // InitReport(mNameReportGCP,"csv",true);
 
 
    mPhProj.FinishInit();
 
+   if (LevelCall()==0)
+   {
+       BeginReport();
+   }
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
-      AddOneReportCSV(mNameReportIm,{"Image","AvgX","AvgY"});
       return ResultMultiSet();
    }
 

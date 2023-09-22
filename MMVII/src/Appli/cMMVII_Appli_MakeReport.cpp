@@ -78,6 +78,7 @@ void  cMMVII_Appli::DoMergeReport()
      {
          cMMVII_Ofs aFileGlob(anIt.second, eFileModeOut::AppendText);
          const std::string & anId = anIt.first;
+StdOut() << "DoMergeReportDoMergeReport " << __LINE__ << "\n";
 	 for (const auto & aNameIm : VectMainSet(0))
 	 {
              std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm) + "." + mMapIdPostReport[anId];
@@ -90,7 +91,9 @@ void  cMMVII_Appli::DoMergeReport()
 	     }
 
 	 }
+StdOut() << "DoMergeReportDoMergeReport " << __LINE__ << "\n";
          RemoveRecurs(DirSubPReport(anId),false,false);
+StdOut() << "DoMergeReportDoMergeReport " << __LINE__ << "\n";
      }
 }
 
