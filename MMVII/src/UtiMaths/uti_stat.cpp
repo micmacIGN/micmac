@@ -463,6 +463,34 @@ tREAL8 cRobustAvgOfProp::Average(tREAL8 aProp) const
       return aAvg.Average();
 }
 
+/* *********************************************** */
+/*                                                 */
+/*            cStdStatRes                          */
+/*                                                 */
+/* *********************************************** */
+
+cStdStatRes::cStdStatRes() :
+    mVRes {},
+    mAvgDist (),
+    mAvgDist2 (),
+    mBounds()
+{
+}
+
+void cStdStatRes::Add(tREAL8 aVal)
+{
+     mVRes.push_back(aVal);
+     mAvgDist.Add(1.0,aVal);
+     mAvgDist2.Add(1.0,Square(aVal));
+     mBounds.Add(aVal);
+}
+
+tREAL8  cStdStatRes::Avg() const {return mAvgDist.Average();}
+tREAL8  cStdStatRes::StdDev() const {return std::sqrt(mAvgDist2.Average());}
+tREAL8  cStdStatRes::ErrAtProp(tREAL8 aProp) const {return NC_KthVal(mVRes,aProp);}
+tREAL8  cStdStatRes::Min() const {return mBounds.VMin();}
+tREAL8  cStdStatRes::Max() const {return mBounds.VMax();}
+
 
 
 /* *********************************************** */

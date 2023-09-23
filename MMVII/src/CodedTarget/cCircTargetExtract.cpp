@@ -657,7 +657,10 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 	std::string                 mNameMask;
 	std::string                 mPatHihlight;
 	bool                        mUseSimul; 
-        cResSimul                   mResSimul;
+        cResSimul                   mGT_Simul;  // Ground Truth coming from simulation
+	bool                        mDoReportSimul;  // At glob level is true iff one the sub process is true
+	std::string                 mReportSimulDet;
+	std::string                 mReportSimulGlob;
 	double                      mRatioDMML;
         cThresholdCircTarget        mThresh;
 
@@ -675,16 +678,17 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
 ) :
    cMMVII_Appli  (aVArgs,aSpec),
    cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(20000,20000),cPt2di(300,300),false) ,
-   mSpec         (nullptr),
-   mVisuLabel    (false),
-   mVisuSeed    (false),
-   mVisuElFinal  (false),
-   mExtrEll      (nullptr),
-   mImMarq       (cPt2di(1,1)),
-   mPhProj       (*this),
-   mPatHihlight  ("XXXXX"),
-   mUseSimul     (false),
-   mRatioDMML    (1.5)
+   mSpec             (nullptr),
+   mVisuLabel        (false),
+   mVisuSeed         (false),
+   mVisuElFinal      (false),
+   mExtrEll          (nullptr),
+   mImMarq           (cPt2di(1,1)),
+   mPhProj           (*this),
+   mPatHihlight      ("XXXXX"),
+   mUseSimul         (false),
+   mDoReportSimul    (false),
+   mRatioDMML        (1.5)
 {
 }
 
@@ -846,11 +850,13 @@ void cAppliExtractCircTarget::MakeImageLabel()
 
 void cAppliExtractCircTarget::TestOnSimul()
 {
-      AllMatchOnGT(mResSimul,mVCTE,2.0,false,[](const auto& aPEE){return aPEE->mWithCode;});
+     // Do the Matching  bewteen  mGT_Simul & mVCTE
+     //  Will create the double link  GT <-> Extract
+     AllMatchOnGT(mGT_Simul,mVCTE,2.0,false,[](const auto& aPEE){return aPEE->mWithCode;});
 
      std::vector<tREAL8>  aVErr;
      // Analyse the ground truth to detect omited + prepare statistic on good match
-     for (const auto & aRS : mResSimul.mVG)
+     for (const auto & aRS : mGT_Simul.mVG)
      {
          if (aRS.mResExtr == nullptr)
 	 {
@@ -865,6 +871,30 @@ void cAppliExtractCircTarget::TestOnSimul()
 	 }
      }
 
+     // put in csv files the matchings
+     cStdStatRes aStat;
+     if (mDoReportSimul)
+     {
+         for (const auto & anExt : mVCTE)
+	 {
+             if (anExt->mGT !=nullptr)
+	     {
+                cPt2dr aPt = anExt->mGT->mC - anExt->mPt;
+		std::string aNamePt = anExt->mEncode.Name();
+		tREAL8 aD2 = Norm2(aPt);
+                AddOneReportCSV(mReportSimulDet,{APBI_NameIm(),aNamePt,"0",ToStr(aD2),ToStr(aPt.x()),ToStr(aPt.y())});
+		aStat.Add(aD2);
+	     }
+	 }
+     }
+     std::vector<std::string>  aVRep {APBI_NameIm(),ToStr(aStat.Avg()),ToStr(aStat.StdDev()),ToStr(aStat.Max()),
+	                               ToStr(aStat.ErrAtProp(0.5)),ToStr(aStat.ErrAtProp(0.75)),ToStr(aStat.ErrAtProp(0.9))};
+
+     AddOneReportCSV(mReportSimulGlob,aVRep);
+
+   //if (mDoReportSimul)
+         // AddOneReportCSV(mReportSimulDet,{"Image","Name","Ok","N2","Dx","Dy"});
+
      // analyse detected target to get false extracted
      for (const auto & anEE : mVCTE)
      {
@@ -877,6 +907,7 @@ void cAppliExtractCircTarget::TestOnSimul()
          }
      }
 
+     /*
      if (aVErr.size())
      {
          StdOut()  <<  "==============  ERROR SATISTICS ===================\n";
@@ -889,6 +920,7 @@ void cAppliExtractCircTarget::TestOnSimul()
      {
          StdOut()  <<  "  ==============  NOT ANY MATCH !!!! ===================\n";
      }
+     */
 }
 
 
@@ -987,8 +1019,29 @@ int  cAppliExtractCircTarget::Exe()
 {
    mPhProj.FinishInit();
 
+   // Do simul if one sub image do simul
+   for (const auto & anIm : VectMainSet(0))
+   {
+       if (starts_with(FileOfPath(anIm),ThePrefixSimulTarget))
+	   mDoReportSimul = true;
+   }
+
+   if (mDoReportSimul)
+   {
+        mReportSimulDet   =   mSpecs.Name()  + "-SimulDetails-" + Prefix_TIM_GMA();
+        mReportSimulGlob  =   mSpecs.Name()  + "-SimulGlob-"    + Prefix_TIM_GMA();
+        InitReport(mReportSimulDet,"csv",true);
+        InitReport(mReportSimulGlob,"csv",true);
+   }
+
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
+      if (mDoReportSimul)
+      {
+         AddOneReportCSV(mReportSimulDet,{"Image","Name","Ok","N2","Dx","Dy"});
+         AddOneReportCSV(mReportSimulGlob,{"Image","Avd","StdDev","Max","P50","P75","P90"});
+      }
+
       int aResult =  ResultMultiSet();
 
       return aResult;
@@ -999,15 +1052,19 @@ int  cAppliExtractCircTarget::Exe()
 
    // StdOut() << "mPrefixOutmPrefixOut " << mPrefixOut << "\n"; getchar();
 
+   // By default use Simul iff the name of imagebegin by "SimulTarget"
    if (! IsInit(&mUseSimul))
    {
-       mUseSimul = MatchRegex(mNameIm,ThePrefixSimulTarget+".*");
+       mUseSimul = starts_with(FileOfPath(mNameIm),ThePrefixSimulTarget);
    }
-   if (mUseSimul)
+   if (mUseSimul)  // If use it, read the ground truth
    {
        std::string aNameResSim = LastPrefix(APBI_NameIm()) + ThePostfixGTSimulTarget;
-       mResSimul = cResSimul::FromFile(aNameResSim);
+       mGT_Simul = cResSimul::FromFile(aNameResSim);
    }
+
+   /*
+   */
 
    mSpec = cFullSpecifTarget::CreateFromFile(mNameSpec);
 

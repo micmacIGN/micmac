@@ -4,6 +4,7 @@
 #include "MMVII_util.h"
 #include "MMVII_Stringifier.h"
 #include "MMVII_Bench.h"
+#include <set>
 
 
 namespace MMVII
@@ -665,7 +666,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	char                               mCSVSep;
 	std::map<std::string,std::string>  mMapIdFilesReport;
 	std::map<std::string,std::string>  mMapIdPostReport;
-	bool                               mDoMergeReport;
+	std::set<std::string>              mReport2Merge;
 };
 
 const std::string & GlobNameDefSerial() ; ///< of current appli

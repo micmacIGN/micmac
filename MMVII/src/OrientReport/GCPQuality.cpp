@@ -30,8 +30,11 @@ class cAppli_CGPReport : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
      private :
-        void MakeOneIm(const std::string & aNameIm);
+        void  MakeOneIm(const std::string & aNameIm);
+        void  MakeGlobReports();
         void  BeginReport();
+        void  ReportsByGCP();
+        void  ReportsByCam();
 
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
@@ -41,7 +44,7 @@ class cAppli_CGPReport : public cMMVII_Appli
 	std::string              mPostfixReport;
 	std::string              mPrefixReport;
 	std::string              mNameReportIm;
-	// std::string              mNameReportGCP;
+        std::string              mNameReportGCP;
 };
 
 cAppli_CGPReport::cAppli_CGPReport
@@ -114,10 +117,8 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
     }
 
 
-    std::vector<tREAL8>  aVRes;
     cWeightAv<tREAL8,cPt2dr>  aAvg2d;
-    cWeightAv<tREAL8,tREAL8>  aAvgDist;
-    cWeightAv<tREAL8,tREAL8>  aAvgDist2;
+    cStdStatRes               aStat;
 
     for (const auto & aMes : aSetMesIm.Measures())
     {
@@ -128,36 +129,88 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 
 	aAvg2d.Add(1.0,aVec);
 	tREAL8 aDist = Norm2(aVec);
-	aVRes.push_back(Norm2(aVec));
-	aAvgDist.Add(1.0,aDist);
-	aAvgDist2.Add(1.0,Square(aDist));
+	aStat.Add(aDist);
     }
-
-    StdOut() << "Im=" << aNameIm <<  " Avxy : " << aAvg2d.Average()  
-	    <<  " AvD=" << aAvgDist.Average() << " AvD2=" << std::sqrt(aAvgDist2.Average())
-	    << " P50=" << NC_KthVal(aVRes,0.5) << " P75=" <<  NC_KthVal(aVRes,0.75) 
-	    << "\n";
 
 
     std::vector<std::string> aVIm{
                                     aNameIm,
                                     ToStr(aAvg2d.Average().x()),
                                     ToStr(aAvg2d.Average().y()),
-				    ToStr( aAvgDist.Average()),
-				    ToStr(std::sqrt(aAvgDist2.Average())),
-				    ToStr(NC_KthVal(aVRes,0.5)),
-				    ToStr(NC_KthVal(aVRes,0.75))
+				    ToStr(aStat.Avg()),
+				    ToStr(aStat.StdDev()),
+				    ToStr(aStat.ErrAtProp(0.5)),
+				    ToStr(aStat.ErrAtProp(0.75))
                               };
-     AddOneReportCSV(mNameReportIm,aVIm);
-
+    AddOneReportCSV(mNameReportIm,aVIm);
 }
 
 void cAppli_CGPReport::BeginReport()
 {
       AddOneReportCSV(mNameReportIm,{"Image","AvgX","AvgY","AvgD","Sigma","V50","V75"});
-      // AddOneReportCSV(mNameReportGCP,{"GCP","Avg"});
-      // AddOneReportCSV(mNameReportGCP,{"1","2"});
 }
+
+void cAppli_CGPReport::ReportsByGCP()
+{
+   cSetMesImGCP             aSetMes;
+   mPhProj.LoadGCP(aSetMes);
+
+   for (const auto & aNameIm : VectMainSet(0))
+   {
+       mPhProj.LoadIm(aSetMes,aNameIm,mPhProj.LoadSensor(aNameIm,false));
+   }
+
+   const std::vector<cSensorImage*> &  aVSens =  aSetMes.VSens() ;
+
+   InitReport(mNameReportGCP,"csv",false);
+   AddOneReportCSV(mNameReportGCP,{"GCP","Avg","StdDev","P50","P75"});
+
+   for (const auto &  aMesIm :  aSetMes.MesImOfPt())
+   {
+        const auto & aGCP  = aSetMes.MesGCPOfMulIm(aMesIm);
+	const std::vector<int> &  aVIndI = aMesIm.VImages() ;
+        cStdStatRes               aStat;
+
+	for (size_t aKIm = 0 ; aKIm<  aVIndI.size() ; aKIm++)
+	{
+            aStat.Add(Norm2( aMesIm.VMeasures()[aKIm]  - aVSens[aVIndI[aKIm]]->Ground2Image(aGCP.mPt)));
+	}
+	std::vector<std::string>  aVReport
+	{
+	       aGCP.mNamePt,
+	       ToStr(aStat.Avg()),
+	       ToStr(aStat.StdDev()),
+	       ToStr(aStat.ErrAtProp(0.5)),
+	       ToStr(aStat.ErrAtProp(0.75))
+	};
+        AddOneReportCSV(mNameReportGCP,aVReport);
+   }
+
+}
+
+void cAppli_CGPReport::ReportsByCam()
+{
+
+}
+
+
+void cAppli_CGPReport::MakeGlobReports()
+{
+   ReportsByGCP();
+
+	/*
+   std::map<std::string,std::list<std::string>>  aMapCamLIM;
+   for (const auto & aNameIm : VectMainSet(0))
+   {
+   }
+
+    cSetMesImGCP             aSetMes;
+    mPhProj.LoadGCP(aSetMes);
+    mPhProj.LoadIm(aSetMes,aNameIm);
+    */
+}
+
+
 
 int cAppli_CGPReport::Exe()
 {
@@ -165,11 +218,10 @@ int cAppli_CGPReport::Exe()
    mPrefixReport =  mSpecs.Name() +"-" ;
    mPostfixReport  =  "-"+  mPhProj.DPOrient().DirIn() +  "-"+  mPhProj.DPPointsMeasures().DirIn() + "-" + Prefix_TIM_GMA();
    mNameReportIm = mPrefixReport + "ByImage" + mPostfixReport;
-   // mNameReportGCP = mPrefixReport + "ByGCP" + mPostfixReport;
+   mNameReportGCP = mPrefixReport + "ByGCP" + mPostfixReport;
 
 
    InitReport(mNameReportIm,"csv",true);
-   // InitReport(mNameReportGCP,"csv",true);
 
 
    mPhProj.FinishInit();
@@ -180,7 +232,10 @@ int cAppli_CGPReport::Exe()
    }
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
-      return ResultMultiSet();
+      int aRes = ResultMultiSet();
+
+      MakeGlobReports();
+      return aRes;
    }
 
    MakeOneIm(FileOfPath(mSpecImIn));
