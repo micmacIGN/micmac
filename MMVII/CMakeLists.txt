@@ -97,7 +97,7 @@ set(mmv2_gencode_main_src "${mmv2_gencode_dir}/cName2CalcRegisterAll.cpp")
 set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
 
 # MMVII sources: Auto generate. Not recommended, but let's try it ...
-file(GLOB_RECURSE mmv2_libsrcs CONFIGURE_DEPENDS "${mmv2_src_dir}/*/*.cpp")
+file(GLOB mmv2_libsrcs CONFIGURE_DEPENDS "${mmv2_src_dir}/*/*.cpp")
 
 # Here we initialize the generated code with en empty template if working dir is clean (first checkout or after make distclean)
 list(APPEND mmv2_libsrcs "${mmv2_gencode_main_src}")   # This file may not be present (deleted after clean all), force dependance on it
