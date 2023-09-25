@@ -595,7 +595,7 @@ void  cCCDecode::Show(const std::string & aPrefix)
        }
     }
 
-    aIm.ToFile(aPrefix + "_ImPolar_"+ToStr(aCpt)+".tif");
+    aIm.ToJpgFileDeZoom(aPrefix + "_ImPolar_"+ToStr(aCpt)+".tif",1);
 
     StdOut() << "Adr=" << mEnCode << " Ok=" << mOK;
     if (mEnCode) 
@@ -641,9 +641,9 @@ class cAppliExtractCircTarget : public cMMVII_Appli,
 
 	std::string         mNameSpec;
 	cFullSpecifTarget * mSpec;
-        bool                  mVisuLabel;
-        bool                  mVisuSeed;
-        bool                  mVisuElFinal;
+        int                   mZoomVisuLabel;
+        int                   mZoomVisuSeed;
+        int                   mZoomVisuElFinal;
         cExtract_BW_Ellipse * mExtrEll;
         cParamBWTarget  mPBWT;
 
@@ -679,9 +679,9 @@ cAppliExtractCircTarget::cAppliExtractCircTarget
    cMMVII_Appli  (aVArgs,aSpec),
    cAppliParseBoxIm<tREAL4>(*this,true,cPt2di(20000,20000),cPt2di(300,300),false) ,
    mSpec             (nullptr),
-   mVisuLabel        (false),
-   mVisuSeed         (false),
-   mVisuElFinal      (false),
+   mZoomVisuLabel    (0),
+   mZoomVisuSeed     (0),
+   mZoomVisuElFinal  (0),
    mExtrEll          (nullptr),
    mImMarq           (cPt2di(1,1)),
    mPhProj           (*this),
@@ -711,9 +711,9 @@ cCollecSpecArg2007 & cAppliExtractCircTarget::ArgOpt(cCollecSpecArg2007 & anArgO
              << AOpt2007(mPBWT.mMinDiam,"DiamMin","Minimum diameters for ellipse",{eTA2007::HDV})
              << AOpt2007(mPBWT.mMaxDiam,"DiamMax","Maximum diameters for ellipse",{eTA2007::HDV})
              << AOpt2007(mRatioDMML,"RDMML","Ratio Distance minimal bewteen local max /Diam min ",{eTA2007::HDV})
-             << AOpt2007(mVisuLabel,"VisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
-             << AOpt2007(mVisuSeed,"VisuSeed","Make a visualisation of seed point",{eTA2007::HDV})
-             << AOpt2007(mVisuElFinal,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
+             << AOpt2007(mZoomVisuLabel,"ZoomVisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
+             << AOpt2007(mZoomVisuSeed,"ZoomVisuSeed","Make a visualisation of seed point",{eTA2007::HDV})
+             << AOpt2007(mZoomVisuElFinal,"ZoomVisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
              << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Std")
           );
@@ -754,7 +754,7 @@ void cAppliExtractCircTarget::MakeImageSeed()
                5.0,5.0,0.0
             );
    }
-    aImVisu.ToFile(mPrefixOut + "_VisuSeed.tif");
+    aImVisu.ToJpgFileDeZoom(mPhProj.DirVisu()+mPrefixOut + "_VisuSeed.tif",mZoomVisuSeed);
 }
 
 void cAppliExtractCircTarget::MakeImageFinalEllispe()
@@ -806,7 +806,7 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
 	}
    }
 
-    aImVisu.ToFileDeZoom(mPrefixOut + "_VisuEllipses.tif",2);
+    aImVisu.ToJpgFileDeZoom(mPhProj.DirVisu()+mPrefixOut + "_Ellipses.tif",mZoomVisuElFinal);
 }
 
 void cAppliExtractCircTarget::MakeImageLabel()
@@ -844,7 +844,7 @@ void cAppliExtractCircTarget::MakeImageLabel()
            aImVisuLabel.SetRGBPix(aSeed.mPixW,cRGBImage::Yellow);
         }
     }
-    aImVisuLabel.ToFile(mPrefixOut + "_Label.tif");
+    aImVisuLabel.ToJpgFileDeZoom(mPhProj.DirVisu()+mPrefixOut + "_Label.tif",mZoomVisuLabel);
 }
 
 
@@ -951,7 +951,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
    double aT1 = SecFromT0();
    mExtrEll->ExtractAllSeed();
-   if (mVisuSeed)
+   if (mZoomVisuSeed!=0)
    {
 	   StdOut()  << "\%seed-selec=" << (100.0 * mExtrEll->VSeeds().size()) / double(APBI_DIm().NbElem()) << "\n";
    }
@@ -959,7 +959,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    mExtrEll->AnalyseAllConnectedComponents(mNameIm);
    double aT3 = SecFromT0();
 
-   if (mVisuElFinal)
+   if (mZoomVisuElFinal!=0)
    {
        StdOut() << "TIME-INIT " << aT1-aT0 << "\n";
        StdOut() << "TIME-SEED " << aT2-aT1 << "\n";
@@ -990,16 +990,16 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
       TestOnSimul();
    }
 
-   if (mVisuLabel)
+   if (mZoomVisuLabel!=0)
    {
       MakeImageLabel();
    }
-   if (mVisuSeed)
+   if (mZoomVisuSeed!=0)
    {
       MakeImageSeed();
    }
 
-   if (mVisuElFinal)
+   if (mZoomVisuElFinal!=0)
    {
       MakeImageFinalEllispe();
    }

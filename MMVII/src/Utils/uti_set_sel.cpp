@@ -491,6 +491,11 @@ std::string ReplacePattern(const std::string & aPattern,const std::string & aSub
    return std::regex_replace(aString,std::regex(aPattern),aSubst, std::regex_constants::format_no_copy);
 }
 
+std::string PatternKthSubExpr(const std::string & aPattern,int aKThSub,const std::string & aString)
+{
+   std::string aSub = "$" +ToStr(aKThSub);
+   return ReplacePattern(aPattern,aSub,aString);
+}
 
 
 void BenchSelector(cParamExeBench & aParam,const std::string & aDir)

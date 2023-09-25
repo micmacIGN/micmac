@@ -50,6 +50,18 @@ template<class T2,class T3>   cDenseMatrix<T2> operator * (const cDenseMatrix<T2
 template<class T2,class T3>   cDenseMatrix<T2> operator * (const  T3 & aV3,const cDenseMatrix<T2> & aI2) ;
 
 
+template<class T1,class T2,class T3,int Dim>   // I1 = I2 +I3
+   void MulImageInPlace(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2,const cDataTypedIm<T3,Dim> & aI3);
+template<class T1,class T2,class T3>  // return I2 + I3
+   cIm2D<T1> MulImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3);
+
+template<class T1,class T2,class T3,int Dim>   // I1 = I2 +I3
+   void DivImageInPlace(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2,const cDataTypedIm<T3,Dim> & aI3);
+template<class T1,class T2,class T3>  // return I2 + I3
+   cIm2D<T1> DivImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3);
+
+
+
     // -------------------------- Div Cste -------------------------
 template<class T1,class T2,int Dim>  void DivCsteIn(cDataTypedIm<T1,Dim> & aI1,const T2 & aV2); // I1 /= V2
     // -------------------------- Copy -------------------------
@@ -250,6 +262,46 @@ template<class T2,class T3>   cIm1D<T2> operator * (const cIm1D<T2> & aI2,const 
 template<class T2,class T3>   cDenseVect<T2> operator * (const  T3 & aV3,const cDenseVect<T2> & aI2)
 {
     return cDenseVect<T2>(aI2.Im()*aV3);
+}
+
+       //===========   MulImage ===========
+       
+template<class T1,class T2,class T3,int Dim>  
+   void MulImageInPlace(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2,const cDataTypedIm<T3,Dim> & aI3)
+{
+    aI1.AssertSameArea(aI2); 
+    aI1.AssertSameArea(aI3);
+
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) = aI2.GetRDL(aK) * aI3.GetRDL(aK) ;
+}
+
+template<class T1,class T2,class T3>  
+   cIm2D<T1> MulImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)
+{
+     cIm2D<T1>  aI1(aI2.DIm().P0(),aI2.DIm().P1());
+     MulImageInPlace(aI1.DIm(),aI2.DIm(),aI3.DIm());
+     return aI1;
+}
+
+       //===========   DivImage ===========
+
+template<class T1,class T2,class T3,int Dim>  
+   void DivImageInPlace(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2,const cDataTypedIm<T3,Dim> & aI3)
+{
+    aI1.AssertSameArea(aI2); 
+    aI1.AssertSameArea(aI3);
+
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) = SafeDiv(aI2.GetRDL(aK), aI3.GetRDL(aK)) ;
+}
+
+template<class T1,class T2,class T3>  
+   cIm2D<T1> DivImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)
+{
+     cIm2D<T1>  aI1(aI2.DIm().P0(),aI2.DIm().P1());
+     DivImageInPlace(aI1.DIm(),aI2.DIm(),aI3.DIm());
+     return aI1;
 }
 
 

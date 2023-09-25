@@ -2,6 +2,7 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_PCSens.h"
+#include "MMVII_Tpl_Images.h"
 
 
 /**
@@ -113,7 +114,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
              aIma.DrawLine(aP2,aP2+aVec*aMul,cRGBImage::Red,aWitdh);
 	 }
 
-         aIma.ToFileDeZoom("ZOOM-"+aNameIm+".tif",aDeZoom);
+         aIma.ToJpgFileDeZoom(mPhProj.DirVisu() + "FieldRes-"+aNameIm+".tif",aDeZoom);
     }
 
 
@@ -149,6 +150,7 @@ void cAppli_CGPReport::BeginReport()
 {
       AddOneReportCSV(mNameReportIm,{"Image","AvgX","AvgY","AvgD","Sigma","V50","V75"});
 }
+
 
 void cAppli_CGPReport::ReportsByGCP()
 {
@@ -190,13 +192,64 @@ void cAppli_CGPReport::ReportsByGCP()
 
 void cAppli_CGPReport::ReportsByCam()
 {
+   std::map<cPerspCamIntrCalib*,std::vector<cSensorCamPC*>>  aMapCam;
+   cSetMesImGCP             aSetMes;
+   mPhProj.LoadGCP(aSetMes);
 
+   for (const auto & aNameIm : VectMainSet(0))
+   {
+       cSensorCamPC *  aCam = mPhProj.ReadCamPC(aNameIm,true);
+       mPhProj.LoadIm(aSetMes,aNameIm,aCam);
+       aMapCam[aCam->InternalCalib()].push_back(aCam);
+   }
+
+   tREAL8 aFactRed = 100.0;
+   tREAL8 anExag = 1000;
+   for (const auto& aPair : aMapCam)
+   {
+       cPerspCamIntrCalib * aCalib =  aPair.first;
+       cPt2di aSz = Pt_round_up(ToR(aCalib->SzPix())/aFactRed) + cPt2di(1,1);
+
+       cIm2D<tREAL8> aImX(aSz,nullptr,eModeInitImage::eMIA_Null);  // average X residual
+       cIm2D<tREAL8> aImY(aSz,nullptr,eModeInitImage::eMIA_Null);  // average Y redidual
+       cIm2D<tREAL8> aImW(aSz,nullptr,eModeInitImage::eMIA_Null);  // averagge weight
+
+       for (const auto & aCam : aPair.second)
+       {
+           cSet2D3D aSet32;
+	   aSetMes.ExtractMes1Im(aSet32,aCam->NameImage());
+// StdOut() << " aCam->NameImage()aCam->NameImage() " << aCam->NameImage() << "\n";
+
+           for (const auto & aPair : aSet32.Pairs())
+           {
+               cPt2dr aP2 = aPair.mP2;
+               cPt2dr aRes = (aCam->Ground2Image(aPair.mP3) - aP2) *anExag;
+               aImX.DIm().AddVBL(aP2/aFactRed,aRes.x());
+               aImY.DIm().AddVBL(aP2/aFactRed,aRes.y());
+               aImW.DIm().AddVBL(aP2/aFactRed,1.0);
+           }
+       }
+       tREAL8 aSigma = Norm2(aImX.DIm().Sz()) / 60.0;
+
+       aImW.DIm().ToFile(mPhProj.DirVisu() + "W_RawResidual_"+aCalib->Name() +".tif");
+       aImX = aImX.GaussFilter(aSigma);
+       aImY = aImY.GaussFilter(aSigma);
+       aImW = aImW.GaussFilter(aSigma);
+
+       DivImageInPlace(aImX.DIm(),aImX.DIm(),aImW.DIm());
+       DivImageInPlace(aImY.DIm(),aImY.DIm(),aImW.DIm());
+
+       aImX.DIm().ToFile(mPhProj.DirVisu() + "X_Residual_"+aCalib->Name() +".tif");
+       aImY.DIm().ToFile(mPhProj.DirVisu() + "Y_Residual_"+aCalib->Name() +".tif");
+       aImW.DIm().ToFile(mPhProj.DirVisu() + "W_FiltResidual_"+aCalib->Name() +".tif");
+   }
 }
 
 
 void cAppli_CGPReport::MakeGlobReports()
 {
    ReportsByGCP();
+   ReportsByCam();
 
 	/*
    std::map<std::string,std::list<std::string>>  aMapCamLIM;

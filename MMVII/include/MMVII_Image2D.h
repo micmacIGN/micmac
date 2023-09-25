@@ -223,6 +223,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         virtual ~cDataIm2D();  ///< will delete mRawData2D
 
         void ToFile(const std::string& aName) const; ///< Create a File having same size/type ...
+        void ToJpgFile(const std::string& aName) const; ///< Make a Jpg file of image
         void ToFile(const std::string& aName,eTyNums) const; ///< Create a File of given type, having same size ...
         void ClipToFile(const std::string& aName,const cRect2&) const; ///< Create a Clip File of Box
         void ToFile(const std::string& aName,const tIm &aIG,const tIm &aIB) const; ///< Create a File having same size/type ...
@@ -317,6 +318,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         int     mSzYMax;     ///< For resize
         tPVal * mRawData2D;  ///< Pointers on DataLin
 };
+
+void Convert_JPG(const std::string &  aNameIm,bool DeleteAfter,tREAL8 aQuality,const std::string & aPost);
 
 
 
@@ -474,6 +477,7 @@ class cRGBImage
         cRGBImage(const cPt2di & aSz,const cPt3di & aCoul,int aZoom=1);
         void ToFile(const std::string & aName);
 	void ToFileDeZoom(const std::string & aName,int aDeZoom);
+	void ToJpgFileDeZoom(const std::string & aName,int aDeZoom);
 
 
         static cRGBImage FromFile(const std::string& aName,int aZoom=1);  ///< Allocate and init from file

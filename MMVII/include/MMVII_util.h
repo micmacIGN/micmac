@@ -142,8 +142,11 @@ bool IsDirectory(const std::string & aName);
 tNameSelector  AllocRegex(const std::string& aRegEx);
 /// Indicate if name match patter, uses AllocRegex
 bool  MatchRegex(const std::string& aName,const std::string& aPat);
-/// replace a pattern  yy(.*)zz , A$1 , yytotozz  => Atoto
+/// replace a pattern :  yy(.*)zz , A$1 , yytotozz  => Atoto
 std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString);
+
+///  return the kth parenthesis sub-expr :  yy(.*)zz , 1 , yytotozz  => toto
+std::string PatternKthSubExpr(const std::string & aPattern,int aKThSub,const std::string & aString);
 
 
 
