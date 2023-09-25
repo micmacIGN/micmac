@@ -300,7 +300,7 @@ class cPlane3D
      public :
          cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
          static cPlane3D FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aAxeK);
-         static cPlane3D From3Point(const cPt3dr & aP0,const cPt3dr & aP1,cPt3dr & aP2);
+         static cPlane3D From3Point(const cPt3dr & aP0, const cPt3dr & aP1, const cPt3dr &aP2);
 	 /// Return the indexes of the "best" plane
          static std::pair<cPt3di,tREAL8>  IndexRansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
          static std::pair<cPlane3D,tREAL8> RansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);

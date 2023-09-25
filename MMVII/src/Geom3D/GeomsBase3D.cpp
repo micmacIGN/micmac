@@ -143,7 +143,7 @@ cPlane3D::cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ)
     mAxeK = aRot.AxeK();
 }
 
-cPlane3D cPlane3D::From3Point(const cPt3dr & aP0,const cPt3dr & aP1,cPt3dr & aP2)
+cPlane3D cPlane3D::From3Point(const cPt3dr & aP0,const cPt3dr & aP1,const cPt3dr & aP2)
 {
 	return cPlane3D(aP0,aP1-aP0,aP2-aP0);
 }

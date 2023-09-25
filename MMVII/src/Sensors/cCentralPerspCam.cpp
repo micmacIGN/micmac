@@ -67,7 +67,7 @@ cDataPerspCamIntrCalib::cDataPerspCamIntrCalib
     eProjPC aTypeProj,
     const cPt3di & aDeg,
     double aFoc,
-    cPt2di & aNbPix,
+    const cPt2di & aNbPix,
     int aSzBuf
 ) :
     cDataPerspCamIntrCalib
