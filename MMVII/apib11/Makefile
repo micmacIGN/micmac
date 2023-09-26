@@ -37,6 +37,7 @@ ifneq (,${CCACHE})
 endif
 
 export SRCS:=${wildcard *.cpp}
+SRCS_INC:=${wildcard *.h}
 
 # ============ Targets
 export XML_MICMAC_FILES=$(wildcard ../../include/XML_MicMac/*.xml)
@@ -68,7 +69,7 @@ docstrings.h: $(DOC_INCLUDES) Makefile
 
 $(MODULE): export CC=${CXX} 
 
-$(MODULE): docstrings.h ${SRCS} $(MMVII_BIN) $(EXTRA_OBJECTS) $(XML_MICMAC_FILES) $(XML_GEN_FILES) $(XML_MMVII_LOCALPARAMETERS)
+$(MODULE): docstrings.h ${SRCS} ${SRCS_INC} $(MMVII_BIN) $(EXTRA_OBJECTS) $(XML_MICMAC_FILES) $(XML_GEN_FILES) $(XML_MMVII_LOCALPARAMETERS)
 	$(MAKE) clean_python
 	$(PYTHON) setup.py build
 	$(PYTHON) setup.py bdist_wheel

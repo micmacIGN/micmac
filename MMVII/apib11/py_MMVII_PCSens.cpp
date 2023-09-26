@@ -71,7 +71,7 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
 
             .def("values", [](const tPCIC &c, const tVecIn &vi) {tVecOut vo; return c.Values(vo, vi);},"pt3dr_list"_a, DOC(MMVII_cPerspCamIntrCalib, Values))
             .def("dirBundles", [](const tPCIC &c, const tVecOut &vo) {tVecIn vi; return c.DirBundles(vi, vo);},"pt2dr_list"_a, DOC(MMVII_cPerspCamIntrCalib, DirBundles))
-            .def("dirBundle", &tPCIC::DirBundle,"ptr2dr"_a, DOC(MMVII_cPerspCamIntrCalib, DirBundle))
+            .def("dirBundle", &tPCIC::DirBundle,"pt2dr"_a, DOC(MMVII_cPerspCamIntrCalib, DirBundle))
             .def("value", &tPCIC::Value,"pt3dr"_a)
             .def("invProjIsDef", &tPCIC::InvProjIsDef,"pt2dr"_a, DOC(MMVII_cPerspCamIntrCalib, InvProjIsDef))
 

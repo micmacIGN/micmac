@@ -7,6 +7,8 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 
+#include "py_MMVII_TypeConv.h"
+
 #include "docstrings.h"
 
 namespace py = pybind11;
