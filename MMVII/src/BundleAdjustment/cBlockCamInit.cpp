@@ -13,24 +13,103 @@
 namespace MMVII
 {
 
-	/*
-
 class cBlocCam
 {
       public :
-         void Add(const std::string & aNameIm,);
+          void Add(cSensorCamPC *);
+          cBlocCam(const std::string & aPattern,cPt2di aNum);
+          void Finish();
 
-         cBlocCam(const std::string aPattern&,cPt2di aNum);
-	 // cSensorCamPC
       private :
-	  cBijectiveMapI2O  
+	  // typedef cBijectiveMapI2O<cSensorCamPC *>  tMap;
+	  void AssertFinish();
+	  void AssertNotFinish();
 
+	  std::pair<std::string,std::string>   BlocTime(cSensorCamPC*);
+	  std::pair<int,int>                   IndBlocTime(cSensorCamPC*);
+
+	  bool         mClosed;
 	  std::string  mPattern;
-	  cPt2di       mNum;
-          // t2MapStrInt  mMapIntCam;
-          // t2MapStrInt  mMapIntBlock;
+	  cPt2di       mNumSub;
+
+          t2MapStrInt  mMapIntTime;
+          t2MapStrInt  mMapIntBlock;
+
+	  std::vector<cSensorCamPC*>  mVAllCam;
+	  std::vector<std::vector<cSensorCamPC*> >  mV_TB;  // mV_TB[KTime][KBlock]
 };
-*/
+
+cBlocCam::cBlocCam(const std::string & aPattern,cPt2di aNum):
+    mClosed  (false),
+    mPattern (aPattern),
+    mNumSub  (aNum)
+{
+}
+
+void cBlocCam::Finish()
+{
+    AssertNotFinish();
+    mClosed = true;
+
+    for (size_t aKTime=0 ; aKTime<mMapIntTime.size() ; aKTime++)
+    {
+        mV_TB.push_back(std::vector<cSensorCamPC*>(mMapIntBlock.size(),nullptr));
+    }
+
+    for (const auto & aCam : mVAllCam)
+    {
+	auto [aIndBloc,aIndTime] = IndBlocTime(aCam);
+	mV_TB.at(aIndTime).at(aIndBloc) = aCam;
+    }
+
+    for (const auto & aVBl : mV_TB)
+    {
+        for (const auto  &aCam : aVBl)
+	{
+            if (aCam==nullptr)
+               StdOut() <<  "    00000000000000000\n";
+	    else
+               StdOut() <<  "    " << aCam->NameImage() << "\n";
+	}
+        StdOut() << "============================================================\n";
+    }
+}
+
+void cBlocCam::AssertNotFinish() {MMVII_INTERNAL_ASSERT_tiny(!mClosed,"cBlocCam::AssertNotFinish");}
+void cBlocCam::AssertFinish() {MMVII_INTERNAL_ASSERT_tiny(mClosed,"cBlocCam::AssertFinish");}
+
+void cBlocCam::Add(cSensorCamPC * aCam)
+{
+    AssertNotFinish();
+
+    if (MatchRegex(aCam->NameImage(),mPattern))
+    {
+	auto [aStrBlock,aStrTime] = BlocTime(aCam);
+
+        mMapIntBlock.Add(aStrBlock,true);
+        mMapIntTime.Add(aStrTime,true);
+
+        mVAllCam.push_back(aCam);
+    }
+}
+
+std::pair<std::string,std::string>   cBlocCam::BlocTime(cSensorCamPC* aCam)
+{
+    std::string aNameCam = aCam->NameImage();
+
+    std::string aStrBlock = PatternKthSubExpr(mPattern,mNumSub.x(),aNameCam);
+    std::string aStrTime  = PatternKthSubExpr(mPattern,mNumSub.y(),aNameCam);
+
+    return std::pair<std::string,std::string>(aStrBlock,aStrTime);
+}
+
+std::pair<int,int>  cBlocCam::IndBlocTime(cSensorCamPC* aCam)
+{
+    auto [aStrBlock,aStrTime] = BlocTime(aCam);
+
+    return std::pair<int,int>(mMapIntBlock.Obj2I(aStrBlock),mMapIntTime.Obj2I(aStrTime));
+}
+
 
 /**  Structure of block data
  
@@ -106,19 +185,17 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     ;
 }
 
-
 int cAppli_BlockCamInit::Exe()
 {
     mPhProj.FinishInit();
 
+    cBlocCam aBloc(mPattern,mNumSub);
     for (const auto & anIm : VectMainSet(0))
     {
-        std::string aStrBlock = PatternKthSubExpr(mPattern,mNumSub.x(),FileOfPath(anIm));
-        std::string aStrIma   = PatternKthSubExpr(mPattern,mNumSub.y(),FileOfPath(anIm));
-
-
-        StdOut() << " Bl=" << aStrBlock  << " ; Ima=" << aStrIma  << "   <<== " << anIm << "\n";
+	cSensorCamPC * aCam = mPhProj.ReadCamPC(anIm,true);
+	aBloc.Add(aCam);
     }
+    aBloc.Finish();
 
     return EXIT_SUCCESS;
 }                                       

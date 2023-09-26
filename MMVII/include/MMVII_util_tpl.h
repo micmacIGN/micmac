@@ -431,6 +431,8 @@ template <class Type>  class cBijectiveMapI2O
         Type *   I2Obj(const int) ;  ///< Adr of object at index, 0 if none
         int      Obj2I(const Type & anOb,bool SVP=false) const;  ///< Index of object , -1 if none
 
+	size_t  size() const;
+
     private :
         std::vector<Type>    mI2Obj;   /// vector efficient for map int->obj
         std::map<Type,int>   mObj2I;   /// dictionary in the other wat

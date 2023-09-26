@@ -27,6 +27,12 @@ template <class Type>
     return aNum;
 }
 
+template <class Type> size_t  cBijectiveMapI2O<Type>::size() const
+{
+    return mI2Obj.size();
+}
+
+
 template <class Type>
    Type * cBijectiveMapI2O<Type>::I2Obj(int anInd)
 {
