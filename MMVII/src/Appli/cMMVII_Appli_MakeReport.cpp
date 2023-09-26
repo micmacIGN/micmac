@@ -41,6 +41,7 @@ void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,
     cMMVII_Ofs(mMapIdFilesReport[anId], eFileModeOut::CreateText);
 }
 
+/*
 void  cMMVII_Appli::AddTopReport(const std::string &anId,const std::string & aMsg)
 {
     if (LevelCall()!=0)
@@ -48,6 +49,7 @@ void  cMMVII_Appli::AddTopReport(const std::string &anId,const std::string & aMs
     
     AddOneReport(anId,aMsg);
 }
+*/
 
 void  cMMVII_Appli::AddOneReport(const std::string &anId,const std::string & aMsg)
 {

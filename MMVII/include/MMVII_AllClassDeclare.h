@@ -120,6 +120,7 @@ typedef cPtxd<float,2>   cPt2df ;
     ///  3 dimension specialization
 typedef cPtxd<tREAL16,3> cPt3dLR ;
 typedef cPtxd<double,3>  cPt3dr ;
+typedef cPtxd<double,4>  cPt4dr ;
 typedef cPtxd<int,3>     cPt3di ;
 typedef cPtxd<float,3>   cPt3df ;
 

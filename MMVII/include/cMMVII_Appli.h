@@ -491,12 +491,13 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::string  NameTmpReport(const std::string &anId,const std::string &anImg);
 
 	void  InitReport(const std::string &anId,const std::string & aPost,bool IsMul);
-	void  AddTopReport(const std::string &anId,const std::string & VecMsg);
-	void  AddOneReport(const std::string &anId,const std::string & VecMsg);
+	//  void  AddTopReport(const std::string &anId,const std::string & VecMsg);
 
-	void  DoMergeReport();
 	void  AddOneReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
 
+    private:
+	void  AddOneReport(const std::string &anId,const std::string & VecMsg);
+	void  DoMergeReport();
     protected :
 
         /// Constructor, essenntially memorize command line and specifs
