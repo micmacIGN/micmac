@@ -476,7 +476,7 @@ int Bundles2Comp_main(int argc,char ** argv){
            
             xyz_file << j->NamePt();
             xyz_file << " "  << theta;                  // alpha (horizontal angle), positive towards right
-            xyz_file << " "  << phi;                    // beta (horizontal angle), positive upwards
+            xyz_file << " "  << phi;                    // beta (vertical angle), positive upwards
             xyz_file << " "  << mCodeDistance;          // distance for all observations
             xyz_file << " "  << sigma_angles;           // standard deviation on angles
             xyz_file << " "  << -1;                     // absolute standard deviation on distances
