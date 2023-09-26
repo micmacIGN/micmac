@@ -1028,8 +1028,8 @@ int  cAppliExtractCircTarget::Exe()
 
    if (mDoReportSimul)
    {
-        mReportSimulDet   =   mSpecs.Name()  + "-SimulDetails-" + Prefix_TIM_GMA();
-        mReportSimulGlob  =   mSpecs.Name()  + "-SimulGlob-"    + Prefix_TIM_GMA();
+        mReportSimulDet   =    "SimulDetails" ;
+        mReportSimulGlob  =    "SimulGlob"    ;
         InitReport(mReportSimulDet,"csv",true);
         InitReport(mReportSimulGlob,"csv",true);
    }

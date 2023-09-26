@@ -622,9 +622,9 @@ int cAppli_CalibratedSpaceResection::Exe()
 {
     mPhProj.FinishInit();
 
-    mNameReport = mSpecs.Name() +"-" +   mPhProj.DPOrient().DirIn() + "-" + Prefix_TIM_GMA();
+    mNameReport = "Rejected_Ori-" +   mPhProj.DPOrient().DirIn() + "_Mes-" + mPhProj.DPPointsMeasures().DirIn() ;
 
-    InitReport(mNameReport,"cvs",true);
+    InitReport(mNameReport,"csv",true);
 
     bool  aExpFilt = mPhProj.DPPointsMeasures().DirOutIsInit();
     if (aExpFilt)
@@ -633,6 +633,7 @@ int cAppli_CalibratedSpaceResection::Exe()
     }
     if (RunMultiSet(0,0))
     {
+        AddOneReportCSV(mNameReport,{"Image","GCP","Residual"});
 
         int aResult = ResultMultiSet();
 

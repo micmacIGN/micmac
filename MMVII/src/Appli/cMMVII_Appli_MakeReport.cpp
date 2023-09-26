@@ -7,7 +7,10 @@ namespace MMVII
 
 std::string  cMMVII_Appli::DirReport()
 {
-     std::string aRes =  DirProject() + MMVII_DirPhp + "Reports" + StringDirSeparator();
+     std::string aRes =    DirProject() + MMVII_DirPhp 
+	                + "Reports" + StringDirSeparator()
+	                + mSpecs.Name() + StringDirSeparator();
+
      mCSVSep = ',';
      return aRes;
 }

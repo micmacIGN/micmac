@@ -267,17 +267,16 @@ void cAppli_CGPReport::MakeGlobReports()
 
 int cAppli_CGPReport::Exe()
 {
+   mPhProj.FinishInit();
 
-   mPrefixReport =  mSpecs.Name() +"-" ;
-   mPostfixReport  =  "-"+  mPhProj.DPOrient().DirIn() +  "-"+  mPhProj.DPPointsMeasures().DirIn() + "-" + Prefix_TIM_GMA();
-   mNameReportIm = mPrefixReport + "ByImage" + mPostfixReport;
-   mNameReportGCP = mPrefixReport + "ByGCP" + mPostfixReport;
+   mPostfixReport  =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn() ;
+   mNameReportIm = "ByImage" + mPostfixReport;
+   mNameReportGCP ="ByGCP" + mPostfixReport;
 
 
    InitReport(mNameReportIm,"csv",true);
 
 
-   mPhProj.FinishInit();
 
    if (LevelCall()==0)
    {

@@ -421,7 +421,7 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
     {
        return nullptr;
     }
-    cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam);
+    cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam,!ToDelete);
 
     if (ToDelete)
        mLCam2Del.push_back(aCamPC);
