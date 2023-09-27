@@ -11,14 +11,18 @@
 namespace MMVII
 {
 
-class cSetHomogCpleDir;  /// store tie point as pairs of homologous directions
-class cMatEssential;     /// class for representing a matt ess, double rep :  vector 9 + matrix 3x3
-class cComputeMatEssential;
-class cCamSimul ;   ///  Class for simulating position of set camera having visibility domain in common
+class cSetHomogCpleDir;  // store tie point as pairs of homologous directions
+class cMatEssential;     // class for representing a matt ess, double rep :  vector 9 + matrix 3x3
+class cCamSimul ;        //  Class for simulating position of set camera having visibility domain in common
 
 
-void SetVectMatEss(cDenseVect<tREAL8> & aVect,const cPt3dr& aP1,const cPt3dr& aP2);
+// Vect being "a-plat" representation of matrix M, put in Vect the constraint P1 M P2
+void SetVectMatEss(cDenseVect<tREAL8> & aVect,const cPt3dr& aP1,const cPt3dr& aP2);  
+// transformate linear rep in a matrix
 cDenseMatrix<tREAL8> Vect2MatEss(const cDenseVect<tREAL8> & aSol);
+									    
+//  Add in Sys all the constraint relative to direction of Sys
+void  MatEssAddEquations(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<tREAL8> & aSys);
 
 
 bool BUGME = false;
@@ -89,22 +93,6 @@ class cMatEssential
  
     private :
         cDenseMatrix<tREAL8> mMat; /// The Ess  matrix itself
-};
-
-class cComputeMatEssential
-{
-    public :
-        cComputeMatEssential();
-
-        // cMatEssential Compute(const cSetHomogCpleDir &,cLinearOverCstrSys<tREAL8> & aSys,int aKFix,bool Reset);
-
-	 /// Make a reasonnable "guess" of the "good" unknown that must be fixed, see detail in implement
-         int   GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show=false);
-    private :
-	void SetVectMatEss(const cPt3dr& aP1,const cPt3dr& aP2);
-        void  AddEquations(const cSetHomogCpleDir &,cLinearOverCstrSys<tREAL8> & aSys);
-
-        cDenseVect<tREAL8>   mVect;
 };
 
 
@@ -220,32 +208,15 @@ cDenseMatrix<tREAL8> Vect2MatEss(const cDenseVect<tREAL8> & aSol)
     return aMat;
 }
 
-
-/* ************************************** */
-/*                                        */
-/*         cComputeMatEssential           */
-/*                                        */
-/* ************************************** */
-
-cComputeMatEssential::cComputeMatEssential() :
-     mVect (9)
+void  MatEssAddEquations(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<tREAL8> & aSys)
 {
-}
-
-void cComputeMatEssential::SetVectMatEss(const cPt3dr& aP1,const cPt3dr& aP2)
-{
-   MMVII::SetVectMatEss(mVect,aP1,aP2);
-}
-
-
-void  cComputeMatEssential::AddEquations(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<tREAL8> & aSys)
-{
+     cDenseVect<tREAL8>   aVect(9);
      const std::vector<cPt3dr>&  aVD1 = aSetD.VDir1() ;
      const std::vector<cPt3dr>&  aVD2 = aSetD.VDir2() ;
      for (size_t aKP=0 ; aKP<aVD1.size() ; aKP++)
      {
-         SetVectMatEss(aVD1[aKP],aVD2[aKP]);
-	 aSys.AddObservation(1.0,mVect,0.0);
+         SetVectMatEss(aVect,aVD1[aKP],aVD2[aKP]);
+	 aSys.AddObservation(1.0,aVect,0.0);
      }
 }
 
@@ -280,13 +251,13 @@ void  cComputeMatEssential::AddEquations(const cSetHomogCpleDir & aSetD,cLinearO
  *
  */
 
-int   cComputeMatEssential::GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show)
+int   GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show=false)
 {
     size_t aNbEq =  aSetD.VDir1().size();
 
     // 1- compute a standard sys
     cLeasSqtAA<tREAL8> aSysOri(9);
-    AddEquations(aSetD,aSysOri);
+    MatEssAddEquations(aSetD,aSysOri);
 
 
     // 2- Now try all possible var-fix and accumulate solution
@@ -604,10 +575,9 @@ void cCamSimul::BenchMatEss
 
             // Make 3D direction of points
 	    cSetHomogCpleDir aSetD (aSetH,*(aCam1->InternalCalib()),*(aCam2->InternalCalib()));
-            cComputeMatEssential aCME;
 
             cAutoTimerSegm aTSGetMax(aTS,"GetMaxK");
-            int aKMax =  aCME.GetKMax(aSetD,1e-6);
+            int aKMax =  GetKMax(aSetD,1e-6);
 
             // These point where axe k almost intersect, the z1z2 term of mat ess is probably small
             // and must not be KMax
@@ -729,6 +699,34 @@ void Bench_MatEss(cParamExeBench & aParam)
     delete aTS;
     aParam.EndBench();
 }
+
+   /* ********************************************************** */
+   /*                                                            */
+   /*                 cAppliBundlAdj                             */
+   /*                                                            */
+   /* ********************************************************** */
+
+class cAppli_MatEss : public cMMVII_Appli
+{
+     public :
+        cAppli_MatEss(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+     private :
+        cPhotogrammetricProject   mPhProj;
+	std::string               mSpecImIn;
+};
+
+cCollecSpecArg2007 & cAppli_MatEss::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+    return anArgObl
+              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+              <<  mPhProj.DPOrient().ArgDirInMand()
+           ;
+}
+
+
 
 }; // MMVII
 
