@@ -370,6 +370,19 @@ class cSetIntDyn
           std::vector<int   >  mVInvertInd;   ///< if created, give for an index its rank [ _ 0 _ _  1 _ 2 _]
 };
 
+class cRandSubSetGenerator
+{
+      public :
+          cRandSubSetGenerator(size_t aNb);
+
+          void NewSubset(std::vector<size_t> & aRes,size_t aCard);
+
+      private :
+          size_t      mNb;
+          cSetIntDyn mSetDyn;  /// use to accelerate computation
+};
+
+
 /** Class for representing a set of int simply as a vector of int,
     usefull for K among N when N is big 
     make no control of duplicate,  just an interface to vector<int> as a set
