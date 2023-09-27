@@ -688,6 +688,28 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
         TypeVal     mSVW;   ///< Som of    VW
 };
 
+/** Class for making standard star on residuals */
+class cStdStatRes
+{
+     public :
+        cStdStatRes();
+
+        void Add(tREAL8 aVal);
+
+        tREAL8  Avg() const;
+        tREAL8  StdDev() const;
+        tREAL8  ErrAtProp(tREAL8 aProp) const;
+        tREAL8  Min() const;
+        tREAL8  Max() const;
+
+     private :
+        mutable std::vector<tREAL8>       mVRes;
+        cWeightAv<tREAL8,tREAL8>  mAvgDist;
+        cWeightAv<tREAL8,tREAL8>  mAvgDist2;
+        cBoundVals<tREAL8>        mBounds;
+};
+
+
 /**  Class for robust average   avg weithgted by   sigma/(sigma+|aRes|) */
 class cRobustAvg
 {

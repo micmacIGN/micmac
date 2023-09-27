@@ -27,11 +27,20 @@ template <class Type>
     return aNum;
 }
 
+template <class Type> size_t  cBijectiveMapI2O<Type>::size() const
+{
+    return mI2Obj.size();
+}
+
+
 template <class Type>
-   Type * cBijectiveMapI2O<Type>::I2Obj(int anInd)
+   Type * cBijectiveMapI2O<Type>::I2Obj(int anInd,bool SVP)
 {
    if ( (anInd<0) || (anInd>=int(mObj2I.size())) )
+   {
+      MMVII_INTERNAL_ASSERT_tiny(SVP,"I2Obj : object dont exist");
       return nullptr;
+   }
 
    return & mI2Obj.at(anInd);
 }

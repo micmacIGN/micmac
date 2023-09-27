@@ -11,14 +11,23 @@
 namespace MMVII
 {
 
-bool BUGME = false;
-void SetVectMatEss(cDenseVect<tREAL8> & aVect,const cPt3dr& aP1,const cPt3dr& aP2);
+class cSetHomogCpleDir;  /// store tie point as pairs of homologous directions
+class cMatEssential;     /// class for representing a matt ess, double rep :  vector 9 + matrix 3x3
+class cComputeMatEssential;
+class cCamSimul ;   ///  Class for simulating position of set camera having visibility domain in common
 
-/* ************************************** */
-/*                                        */
-/*         cSetHomogCpleDir               */
-/*                                        */
-/* ************************************** */
+
+void SetVectMatEss(cDenseVect<tREAL8> & aVect,const cPt3dr& aP1,const cPt3dr& aP2);
+cDenseMatrix<tREAL8> Vect2MatEss(const cDenseVect<tREAL8> & aSol);
+
+
+bool BUGME = false;
+
+/**   Class for storing homologous point as unitary direction of bundles (one made
+ *     its no longer needed to access to the internal calibration + the coordonates are bounded).
+ *
+ *     Optionnaly , for normalization, the point can be turned from a rotation 
+ */
 
 class cSetHomogCpleDir
 {
@@ -30,15 +39,15 @@ class cSetHomogCpleDir
 
 	/// make both normalization so that bundles are +- centered onK
 	void NormalizeRot();
-	/// Randomize the rotation , for bench
-	void RandomizeRot();
 
         const std::vector<cPt3dr>& VDir1() const; ///< Accessor
         const std::vector<cPt3dr>& VDir2() const; ///< Accessor
-
-
 	void Show() const;
 
+	  
+	/// 4 bench :  Randomize the rotation 
+	void RandomizeRot();
+	///  4 bench : Put in current data an outlayer, in Dir1 or Dir2 (randomly), at random position
         void GenerateRandomOutLayer(double aAmpl);
 
      private :
@@ -47,11 +56,64 @@ class cSetHomogCpleDir
 	/// Transormate bundle and accuumlate to memorize transformation
 	void  AddRot(const tRot&,tRot&,std::vector<cPt3dr> &);
 
-	tRot                 mR1ToInit;
 	std::vector<cPt3dr>  mVDir1;
-	tRot                 mR2ToInit;
 	std::vector<cPt3dr>  mVDir2;
+
+	tRot                 mR1ToInit;
+	tRot                 mR2ToInit;
 };
+
+/** Class to represent the result of essential matrix computation,
+ * essentially 3x3 matrix and an eq
+ */
+
+class cMatEssential
+{
+    public :
+        /** Constructor use a set of 3D homologous dir, a solver (L1/L2) , and the number, in [0,8] of the variable
+	    that is arbirtrarily fixed */
+        cMatEssential(const cSetHomogCpleDir &,cLinearOverCstrSys<tREAL8> & aSys,int aKFix);
+
+        ///  Sigma attenuates big error  E*S / (E+S)  => ~E in 0  , bound to S at infty, if S<=0  return E
+	tREAL8  Cost(const  cPt3dr & aP1,const  cPt3dr &aP2,const tREAL8 & aSigma) const;
+
+	/// No more than average of Cost
+	tREAL8  AvgCost(const  cSetHomogCpleDir &,const tREAL8 & aSigma) const;
+
+	/// No more than 
+	tREAL8  KthCost(const  cSetHomogCpleDir &,tREAL8 aProp) const;
+
+	void Show(const cSetHomogCpleDir &) const;
+
+        cMatEssential(const  cDenseMatrix<tREAL8>& aMat);
+ 
+    private :
+        cDenseMatrix<tREAL8> mMat; /// The Ess  matrix itself
+};
+
+class cComputeMatEssential
+{
+    public :
+        cComputeMatEssential();
+
+        // cMatEssential Compute(const cSetHomogCpleDir &,cLinearOverCstrSys<tREAL8> & aSys,int aKFix,bool Reset);
+
+	 /// Make a reasonnable "guess" of the "good" unknown that must be fixed, see detail in implement
+         int   GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show=false);
+    private :
+	void SetVectMatEss(const cPt3dr& aP1,const cPt3dr& aP2);
+        void  AddEquations(const cSetHomogCpleDir &,cLinearOverCstrSys<tREAL8> & aSys);
+
+        cDenseVect<tREAL8>   mVect;
+};
+
+
+
+/* ************************************** */
+/*                                        */
+/*         cSetHomogCpleDir               */
+/*                                        */
+/* ************************************** */
 
 
 cSetHomogCpleDir::cSetHomogCpleDir(const cSetHomogCpleIm & aSetH,const cPerspCamIntrCalib & aCal1,const cPerspCamIntrCalib & aCal2) :
@@ -70,8 +132,6 @@ const std::vector<cPt3dr>& cSetHomogCpleDir::VDir2() const {return mVDir2;}
 
 void  cSetHomogCpleDir::NormalizeRot(cRotation3D<tREAL8>&  aRot ,std::vector<cPt3dr> & aVPts)
 {
-   
-      // cPt3dr aP = cComputeCentroids<std::vector<cPt3dr> >::StdRobustCentroid(aVPts,0.5,2);
       cPt3dr aP = Centroid(aVPts);
       tRot  aRKAB  = tRot::CompleteRON(aP);
 
@@ -160,54 +220,12 @@ cDenseMatrix<tREAL8> Vect2MatEss(const cDenseVect<tREAL8> & aSol)
     return aMat;
 }
 
-/* ************************************** */
-/*                                        */
-/*         cMatEssential                  */
-/*                                        */
-/* ************************************** */
-
-class cMatEssential
-{
-    public :
-        cMatEssential(const cSetHomogCpleDir &,cLinearOverCstrSys<tREAL8> & aSys,int aKFix);
-        ///  Sigma attenuates big error  E*S / (E+S)  => ~E in 0  , bound to S at infty
-	tREAL8  Cost(const  cPt3dr & aP1,const  cPt3dr &aP2,const tREAL8 & aSigma) const;
-	tREAL8  AvgCost(const  cSetHomogCpleDir &,const tREAL8 & aSigma) const;
-
-	tREAL8  KthCost(const  cSetHomogCpleDir &,tREAL8 aProp) const;
-
-	void Show(const cSetHomogCpleDir &) const;
-
-	void SetVectMatEss(const cPt3dr& aP1,const cPt3dr& aP2);
-
-        cMatEssential(const  cDenseMatrix<tREAL8>& aMat);
- 
-    private :
-        cDenseVect<tREAL8>   mVect;
-        cDenseMatrix<tREAL8> mMat;
-};
-
 
 /* ************************************** */
 /*                                        */
 /*         cComputeMatEssential           */
 /*                                        */
 /* ************************************** */
-
-class cComputeMatEssential
-{
-    public :
-        cComputeMatEssential();
-
-        // cMatEssential Compute(const cSetHomogCpleDir &,cLinearOverCstrSys<tREAL8> & aSys,int aKFix,bool Reset);
-        void  AddEquations(const cSetHomogCpleDir &,cLinearOverCstrSys<tREAL8> & aSys);
-
-         int   GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show=false);
-    private :
-	void SetVectMatEss(const cPt3dr& aP1,const cPt3dr& aP2);
-
-        cDenseVect<tREAL8>   mVect;
-};
 
 cComputeMatEssential::cComputeMatEssential() :
      mVect (9)
@@ -231,6 +249,37 @@ void  cComputeMatEssential::AddEquations(const cSetHomogCpleDir & aSetD,cLinearO
      }
 }
 
+/**  For essential matrix as the equations are purely linear,  it is necessary to add
+ *  some arbitray constraint to make the system solvable.
+ *
+ *   The obvious choice is to select one arbitray constraint Xk  and to add Xk=1,
+ *   often it's m22 that is fix to 1.  But the problem is that, if we are unlucky,
+ *   the natural solution for variable Xk  is Xk=0, so fixing Xk=1 lead to have
+ *   infinite value for other.  More generally is natural solution lead to Xk very small,
+ *   the system is unstable.
+ *
+ *   One could argue that this is a very pessimistic assumption, but Murphy's law is 
+ *   not ambiguous, if this can happen, it will happen, and much more often than you expect ...
+ *
+ *   Ideally, we should fix Xk=1 for the variable havind the biggest value, but the problem
+ *   if that if dont know this value ...
+ *
+ *   The implementation try to guess it, using a not fast, but not so slow and, hopefully robust, approach. 
+ *   It test all the possible variable :
+ *
+ *       - for each test, we add the equation Xk=1
+ *       - also to stabilize the system we add, with a very small weight  Xj=0 for the other variables
+ *       - we compute the solution of the system Sk, normalized by Sk=Sk/||S||inf
+ *
+ *  Each |Sk| may give a indication of what is the biggest variable, but is biased as it fix Xk=1 and Xj=0 (even with
+ *  a vey small weight).
+ *  So to have a fair indicator, we compute  S = Sum(|Sk)
+ *
+ *  A bit heavy ... but not so slow, when we have many points as the longest part, computation of
+ *  covariance matrix is done only once .
+ *
+ */
+
 int   cComputeMatEssential::GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show)
 {
     size_t aNbEq =  aSetD.VDir1().size();
@@ -239,15 +288,15 @@ int   cComputeMatEssential::GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeigh
     cLeasSqtAA<tREAL8> aSysOri(9);
     AddEquations(aSetD,aSysOri);
 
-    // 2- Add a "small" weight to 0  be sure the syst will be well condtionned
 
-    // 3- Now try all possible var-fix and accumulate solution
+    // 2- Now try all possible var-fix and accumulate solution
     cDenseVect<tREAL8> aSum(9, eModeInitImage::eMIA_Null);
     for (int aKFix1=0 ; aKFix1<9 ; aKFix1++)
     {
         cLeasSqtAA<tREAL8> aSys =aSysOri.Dup();
         aSys.AddObsFixVar(aNbEq,aKFix1,1.0);
 
+        // 2- Add a "small" weight to 0  be sure the syst will be well condtionned
          for (int aKFix0=0 ; aKFix0<9 ; aKFix0++)
          {
              if (aKFix0 != aKFix1)
@@ -288,17 +337,17 @@ int   cComputeMatEssential::GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeigh
 /* ************************************** */
 
 cMatEssential::cMatEssential(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<tREAL8> & aSys,int aKFix) :
-    mVect (9), 
     mMat  (cPt2di(3,3))
 {
      aSys.Reset();
+     cDenseVect<tREAL8> aVect(9);
 
      const std::vector<cPt3dr>&  aVD1 = aSetD.VDir1() ;
      const std::vector<cPt3dr>&  aVD2 = aSetD.VDir2() ;
      for (size_t aKP=0 ; aKP<aVD1.size() ; aKP++)
      {
-         SetVectMatEss(aVD1[aKP],aVD2[aKP]);
-	 aSys.AddObservation(1.0,mVect,0.0);
+         MMVII::SetVectMatEss(aVect,aVD1[aKP],aVD2[aKP]);
+	 aSys.AddObservation(1.0,aVect,0.0);
      }
      aSys.AddObsFixVar(aVD1.size(),aKFix,1.0);
      cDenseVect<tREAL8> aSol = aSys.Solve();
@@ -312,9 +361,10 @@ cMatEssential::cMatEssential(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<t
 tREAL8  cMatEssential::Cost(const  cPt3dr & aP1,const  cPt3dr &aP2,const tREAL8 & aSigma) const
 {
    //  tP1 Mat P2 =0  
-   cPt3dr aQ1 = VUnit(aP1 * mMat); // Q1 is orthognal to plane containing P2
-   cPt3dr aQ2 = VUnit(mMat * aP2); // Q1 is orthognal to plane containing P2
-					 //
+   cPt3dr aQ1 = VUnit(aP1 * mMat); // Q1 is orthognal to plane supposed to  contain P2
+   cPt3dr aQ2 = VUnit(mMat * aP2); // Q2 is orthognal to plane supposed to  contain P1
+					 
+   // P1 and P2 are (hopefully) already unitary, so no need to normalize them
    tREAL8 aD = (std::abs(Scal(aQ1,aP2)) + std::abs(Scal(aP1,aQ2))  ) / 2.0;
 
    if (false)
@@ -366,27 +416,6 @@ tREAL8  cMatEssential::KthCost(const  cSetHomogCpleDir & aSetD,tREAL8  aProp) co
 
    return Cst_KthVal(aVRes,aProp);
 }
-
-
-
-	// tREAL8  KthCost(const  cSetHomogCpleDir &,tREAL8 aProp) const;
-
-void cMatEssential:: SetVectMatEss(const cPt3dr& aP1,const cPt3dr& aP2)
-{
-     mVect(0) = aP1.x() *  aP2.x();
-     mVect(1) = aP1.x() *  aP2.y();
-     mVect(2) = aP1.x() *  aP2.z();
-
-     mVect(3) = aP1.y() *  aP2.x();
-     mVect(4) = aP1.y() *  aP2.y();
-     mVect(5) = aP1.y() *  aP2.z();
-
-     mVect(6) = aP1.z() *  aP2.x();
-     mVect(7) = aP1.z() *  aP2.y();
-     mVect(8) = aP1.z() *  aP2.z();
-}
-
-
 
 
 
@@ -575,7 +604,6 @@ void cCamSimul::BenchMatEss
 
             // Make 3D direction of points
 	    cSetHomogCpleDir aSetD (aSetH,*(aCam1->InternalCalib()),*(aCam2->InternalCalib()));
-
             cComputeMatEssential aCME;
 
             cAutoTimerSegm aTSGetMax(aTS,"GetMaxK");
@@ -614,6 +642,8 @@ void cCamSimul::BenchMatEss
                 MMVII_INTERNAL_ASSERT_bench(aMatNoise.KthCost(aSetD,0.70) <1e-5,"Kth cost ");
                 MMVII_INTERNAL_ASSERT_bench(aMatNoise.KthCost(aSetD,0.95) >1e-2,"Kth cost ");
             }
+
+	    // We test if the residual at 70% is almost 0 (with 4/40 outlayers)
             if (aMatNoise.KthCost(aSetD,0.70)>1e-5)
                aCptPbL1++;
 

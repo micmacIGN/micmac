@@ -227,14 +227,23 @@ void cSensorCamPC::ToFile(const std::string & aNameFile) const
     mInternalCalib->ToFileIfFirstime(aNameCalib);
 }
 
-cSensorCamPC * cSensorCamPC::FromFile(const std::string & aFile)
+cSensorCamPC * cSensorCamPC::FromFile(const std::string & aFile,bool Remanent)
 {
+   // Cannot use RemanentObjectFromFile because construction is not standard
+   static std::map<std::string,cSensorCamPC*> TheMapRes;
+   cSensorCamPC * & anExistingCam = TheMapRes[aFile];
+
+   if (Remanent && (anExistingCam!= nullptr))
+      return anExistingCam;
+
+
    cSensorCamPC * aPC = new cSensorCamPC("NONE",tPose::Identity(),nullptr);
    ReadFromFile(*aPC,aFile);
 
    aPC->mInternalCalib =  cPerspCamIntrCalib::FromFile(DirOfPath(aFile) + aPC->mTmpNameCalib + "." + GlobNameDefSerial());
    aPC->mTmpNameCalib = "";
 
+   anExistingCam = aPC;
    return aPC;
 }
 

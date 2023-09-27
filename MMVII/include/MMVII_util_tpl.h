@@ -219,6 +219,15 @@ template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
    aVec.erase(std::remove_if(aVec.begin(),aVec.end(),aFonc),aVec.end());
 }
 
+template <class TypeCont,class Fonc> typename TypeCont::value_type & FindIf(TypeCont & aCont,const Fonc & aFonc)
+{
+      auto  anIter = std::find_if(aCont.begin(), aCont.end(), aFonc);
+      MMVII_INTERNAL_ASSERT_tiny(anIter!=aCont.end(),"FindIf");
+
+      return *anIter;
+}
+
+
 /// return -1 0 or 1 , regarding < , == or >
 template <class Type> int VecLexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
 /// return if aV1 < aV2 as LexicoCmp==-1
@@ -280,6 +289,13 @@ template <class Type> void SetAndResize(std::vector<Type> & aVec,size_t aSz,cons
 {
       ResizeUp(aVec,aSz,aDef);
       SetOrPush(aVec,aSz,aVal);
+}
+
+template <class Type> Type GetDef(std::vector<Type> & aVec,int aSz,const Type & aDef)
+{
+   if ((aSz>=0) && (aSz<int(aVec.size()))) 
+       return aVec.at(aSz);
+   return aDef;
 }
 
 
@@ -412,8 +428,10 @@ template <class Type>  class cBijectiveMapI2O
         /// Add an object, if alredy exist create an error or do nothing, return value indicate if created
         int Add(const Type & ,bool OkExist=false);
 
-        Type *   I2Obj(const int) ;  ///< Adr of object at index, 0 if none
+        Type *   I2Obj(const int,bool SVP=true) ;  ///< Adr of object at index, 0 if none
         int      Obj2I(const Type & anOb,bool SVP=false) const;  ///< Index of object , -1 if none
+
+	size_t  size() const;
 
     private :
         std::vector<Type>    mI2Obj;   /// vector efficient for map int->obj

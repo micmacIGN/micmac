@@ -429,6 +429,20 @@ cIm2D<tU_INT1> ImageOfString_DCT(const std::string & aStr ,int aSpace)
     return BitsV1ToV2(aImV1);
 }
 
+void Convert_JPG(const std::string &  aNameIm,bool DeleteAfter,tREAL8 aQuality,const std::string & aPost)
+{
+       std::string aCom =    "convert -quality "+  ToStr(aQuality) 
+	                   + " " + aNameIm  
+			   + " " +  LastPrefix(aNameIm) + "." + aPost;
+
+       int aResult = GlobSysCall(aCom,true);
+
+       if ( (aResult==EXIT_SUCCESS) && DeleteAfter)
+       {
+           RemoveFile(aNameIm,false);
+       }
+
+}
 
 
 //  INSTANTIATION 

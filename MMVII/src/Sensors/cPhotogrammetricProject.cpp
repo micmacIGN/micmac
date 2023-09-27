@@ -63,6 +63,8 @@ cDirsPhProj::cDirsPhProj(eTA2007 aMode,cPhotogrammetricProject & aPhp):
 {
 }
 
+
+
 void cDirsPhProj::Finish()
 {
     //  Allow user to specify indiferrently short name of full name, will extract short name
@@ -241,10 +243,27 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
 {
 }
 
+/*
+std::string  cDirsPhProj::DirVisu() const
+{
+    std::string  aDirVisu = mAppli.DirProject() + "VISU" + StringDirSeparator();
+
+    MMVII_DirPhp
+}
+*/
 
 void cPhotogrammetricProject::FinishInit() 
 {
     mFolderProject = mAppli.DirProject() ;
+
+    mDirPhp = mFolderProject + MMVII_DirPhp + StringDirSeparator();
+    mDirVisu = mDirPhp + "VISU" + StringDirSeparator();
+
+    if (mAppli.LevelCall()==0)
+    {
+        CreateDirectories(mDirVisu,false);
+    }
+
 
     mDPOrient.Finish();
     mDPRadiomData.Finish();
@@ -300,6 +319,11 @@ const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
 const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return mDPPointsMeasures;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
 const cDirsPhProj &   cPhotogrammetricProject::DPTieP() const {return mDPTieP;}
+
+
+const std::string &   cPhotogrammetricProject::DirPhp() const   {return mDirPhp;}
+const std::string &   cPhotogrammetricProject::DirVisu() const  {return mDirVisu;}
+
 
 
 
@@ -397,7 +421,7 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
     {
        return nullptr;
     }
-    cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam);
+    cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam,!ToDelete);
 
     if (ToDelete)
        mLCam2Del.push_back(aCamPC);

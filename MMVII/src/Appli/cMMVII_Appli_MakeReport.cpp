@@ -7,7 +7,10 @@ namespace MMVII
 
 std::string  cMMVII_Appli::DirReport()
 {
-     std::string aRes =  DirProject() + MMVII_DirPhp + "Reports" + StringDirSeparator();
+     std::string aRes =    DirProject() + MMVII_DirPhp 
+	                + "Reports" + StringDirSeparator()
+	                + mSpecs.Name() + StringDirSeparator();
+
      mCSVSep = ',';
      return aRes;
 }
@@ -20,7 +23,9 @@ std::string  cMMVII_Appli::DirSubPReport(const std::string &anId)
 
 void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,bool IsMul)
 {
-    mDoMergeReport = (IsMul && (LevelCall()==0));
+    if (IsMul && (LevelCall()==0))
+       mReport2Merge.insert(anId);
+
     if (LevelCall()==0)
     {
          CreateDirectories(DirReport(),true);
@@ -39,6 +44,7 @@ void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,
     cMMVII_Ofs(mMapIdFilesReport[anId], eFileModeOut::CreateText);
 }
 
+/*
 void  cMMVII_Appli::AddTopReport(const std::string &anId,const std::string & aMsg)
 {
     if (LevelCall()!=0)
@@ -46,6 +52,7 @@ void  cMMVII_Appli::AddTopReport(const std::string &anId,const std::string & aMs
     
     AddOneReport(anId,aMsg);
 }
+*/
 
 void  cMMVII_Appli::AddOneReport(const std::string &anId,const std::string & aMsg)
 {
@@ -71,26 +78,29 @@ void  cMMVII_Appli::AddOneReportCSV(const std::string &anId,const std::vector<st
 
 void  cMMVII_Appli::DoMergeReport()
 {
-     if (! mDoMergeReport)
-        return;
-
      for (const auto & anIt : mMapIdFilesReport)
      {
-         cMMVII_Ofs aFileGlob(anIt.second, eFileModeOut::AppendText);
-         const std::string & anId = anIt.first;
-	 for (const auto & aNameIm : VectMainSet(0))
-	 {
-             std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm) + "." + mMapIdPostReport[anId];
-	     cMMVII_Ifs aIn(aNameIn, eFileModeIn::Text);
+        if (BoolFind(mReport2Merge,anIt.first))
+	{
+             cMMVII_Ofs aFileGlob(anIt.second, eFileModeOut::AppendText);
+             const std::string & anId = anIt.first;
 
-	     std::string aLine;
-	     while (std::getline(aIn.Ifs(), aLine))
+	     if (mRMSWasUsed)
 	     {
-	          aFileGlob.Ofs() << aLine<< "\n";
-	     }
+	        for (const auto & aNameIm : VectMainSet(0))
+	        {
+                    std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm) + "." + mMapIdPostReport[anId];
+	            cMMVII_Ifs aIn(aNameIn, eFileModeIn::Text);
 
-	 }
-         RemoveRecurs(DirSubPReport(anId),false,false);
+	            std::string aLine;
+	            while (std::getline(aIn.Ifs(), aLine))
+	            {
+	                 aFileGlob.Ofs() << aLine<< "\n";
+	            }
+	         }
+	     }
+             RemoveRecurs(DirSubPReport(anId),false,false);
+	}
      }
 }
 

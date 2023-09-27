@@ -142,8 +142,11 @@ bool IsDirectory(const std::string & aName);
 tNameSelector  AllocRegex(const std::string& aRegEx);
 /// Indicate if name match patter, uses AllocRegex
 bool  MatchRegex(const std::string& aName,const std::string& aPat);
-/// replace a pattern  yy(.*)zz , A$1 , yytotozz  => Atoto
+/// replace a pattern :  yy(.*)zz , A$1 , yytotozz  => Atoto
 std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString);
+
+///  return the kth parenthesis sub-expr :  yy(.*)zz , 1 , yytotozz  => toto
+std::string PatternKthSubExpr(const std::string & aPattern,int aKThSub,const std::string & aString);
 
 
 
@@ -366,6 +369,19 @@ class cSetIntDyn
           std::vector<size_t>  mVIndOcc;      ///< list  of element               [1 4 6]
           std::vector<int   >  mVInvertInd;   ///< if created, give for an index its rank [ _ 0 _ _  1 _ 2 _]
 };
+
+class cRandSubSetGenerator
+{
+      public :
+          cRandSubSetGenerator(size_t aNb);
+
+          void NewSubset(std::vector<size_t> & aRes,size_t aCard);
+
+      private :
+          size_t      mNb;
+          cSetIntDyn mSetDyn;  /// use to accelerate computation
+};
+
 
 /** Class for representing a set of int simply as a vector of int,
     usefull for K among N when N is big 

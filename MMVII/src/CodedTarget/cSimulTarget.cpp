@@ -321,7 +321,12 @@ const std::string ThePostfixGTSimulTarget = "_GroundTruth.xml";
 
 int  cAppliSimulCodeTarget::Exe()
 {
-   mPrefixOut =  ThePrefixSimulTarget +  mSuplPref + LastPrefix(mNameIm);
+   if (RunMultiSet(0,0))
+   {
+	   return ResultMultiSet();
+   }
+
+   mPrefixOut =  ThePrefixSimulTarget +  mSuplPref + LastPrefix(FileOfPath(mNameIm));
    mRS.mCom = CommandOfMain();
    // mPCT.InitFromFile(mNameSpecif);
    mSpec =  cFullSpecifTarget::CreateFromFile(mNameSpecif);

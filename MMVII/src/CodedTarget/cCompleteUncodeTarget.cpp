@@ -16,6 +16,22 @@
 namespace MMVII
 {
 
+	/*
+struct A 
+{
+};
+struct B
+{
+	A mA;
+};
+
+void f ()
+{
+	B aB;
+	A aA = aB;
+}
+*/
+
 
 /*  *********************************************************** */
 /*                                                              */
@@ -29,6 +45,18 @@ class cAppliCompletUncodedTarget : public cMMVII_Appli
 
         cAppliCompletUncodedTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
+        void ShouldNotCompile()
+        {
+           ///  WHY DOES THIS COMPILE ???
+           if (0)
+           {
+              // cPhotogrammetricProject &  aPPPP = *this;
+              // cPhotogrammetricProject * aPPPP = this;
+              cPhotogrammetricProject  aPPPP = * this;
+              FakeUseIt(aPPPP);
+           }
+        }
+
      private :
         int Exe() override;
 
@@ -38,6 +66,8 @@ class cAppliCompletUncodedTarget : public cMMVII_Appli
 
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+
 
 	cPhotogrammetricProject        mPhProj;
         std::string                    mSpecImIn;
@@ -74,7 +104,7 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgObl(cCollecSpecArg2007 & anA
             anArgObl
          << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
 	 << mPhProj.DPOrient().ArgDirInMand()
-         << Arg2007(mThresholdDist,"Threshold on distance for ")
+         << Arg2007(mThresholdDist,"Threshold on distance for in pixel")
 
    ;
 }
@@ -85,17 +115,7 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
                   anArgOpt
 	     <<   mPhProj.DPPointsMeasures().ArgDirInputOptWithDef("Std")
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Completed")
-             // << AOpt2007(mRayTarget,"RayTarget","Ray for target (else estimate automatically)")
-		/*
-             << AOpt2007(mB,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
-             << mPhProj.DPMask().ArgDirInOpt("TestMask","Mask for selecting point used in detailed mesg/output")
-             << AOpt2007(mPBWT.mMinDiam,"DiamMin","Minimum diameters for ellipse",{eTA2007::HDV})
-             << AOpt2007(mPBWT.mMaxDiam,"DiamMax","Maximum diameters for ellipse",{eTA2007::HDV})
-             << AOpt2007(mRatioDMML,"RDMML","Ratio Distance minimal bewteen local max /Diam min ",{eTA2007::HDV})
-             << AOpt2007(mVisuLabel,"VisuLabel","Make a visualisation of labeled image",{eTA2007::HDV})
-             << AOpt2007(mVisuElFinal,"VisuEllipse","Make a visualisation extracted ellispe & target",{eTA2007::HDV})
-             << AOpt2007(mPatHihlight,"PatHL","Pattern for highliting targets in visu",{eTA2007::HDV})
-	     */
+             <<   AOpt2007(mThreshRay,"ThRay","Threshold for ray [RatioMax,RMin,RMax]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
           ;
 }
 
@@ -103,7 +123,9 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
 {
     // if has already been selected, nothing to do
     if (mImageM.NameHasMeasure(aGCP.mNamePt))
+    {
        return;
+    }
 
     // if 3D point not visible , reject
     if (! mSensor->IsVisible(aGCP.mPt))
@@ -117,8 +139,8 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
        return;
 
     // get the ellipse that has the same (temporary) code than the point
-    const auto & anIt = find_if(mVSEE.begin(),mVSEE.end(),[aMes](const auto& aM){return aM.mNameCode==aMes->mNamePt;});
-    if (anIt==mVSEE.end())   // should not happen
+    auto  anIt_SEE = find_if(mVSEE.begin(),mVSEE.end(),[aMes](const auto& aM){return aM.mNameCode==aMes->mNamePt;});
+    if (anIt_SEE==mVSEE.end())   // should not happen
     {
        MMVII_INTERNAL_ERROR("Could not find ellipse");
        return;
@@ -127,7 +149,7 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
     // Now test shape of ellispe compared to theoreticall ground pose
  
     cPlane3D aPlaneT  = cPlane3D::FromPtAndNormal(aGCP.mPt,mNormal);     // 3D plane of the ellispe
-    cEllipse aEl = mSensor->EllipseIm2Plane(aPlaneT,anIt->mEllipse,50);  // ellipse in ground coordinate
+    cEllipse aEl = mSensor->EllipseIm2Plane(aPlaneT,anIt_SEE->mEllipse,50);  // ellipse in ground coordinate
 
     tREAL8 aL1 = aEl.LSa();   // gread axe
     tREAL8 aL2 = aEl.LGa();   // small axe
@@ -141,12 +163,13 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
        )
        return;
 
-    if (LevelCall()==0)  // print info if was done whith only one image
+    if (false && (LevelCall()==0))  // print info if was done whith only one image
     {
         StdOut() << "NNN=" << aGCP.mNamePt  << " DistReproj: " << Norm2(aProjIm-aMes->mPt) 
 	         <<  " Excentricity*1000=" << (1-aL2/aL1) *1000 << " Ray=" << std::sqrt(aL1*aL2) << "\n";
     }
     aMes->mNamePt = aGCP.mNamePt; // match suceed, give the right name
+    anIt_SEE->mNameCode = aGCP.mNamePt;
 }
 
 void cAppliCompletUncodedTarget::CompleteAll()
@@ -156,6 +179,7 @@ void cAppliCompletUncodedTarget::CompleteAll()
          CompleteOneGCP(aGCP);
      }
 }
+
 
 
 int  cAppliCompletUncodedTarget::Exe()
@@ -181,13 +205,14 @@ int  cAppliCompletUncodedTarget::Exe()
    mPhProj.LoadIm(mMesImGCP,*mSensor);
    mImageM = mPhProj.LoadMeasureIm(mNameIm);
 
+
    std::string  aNameE = cSaveExtrEllipe::NameFile(mPhProj,mMesImGCP.MesImInitOfName(mNameIm),true);
    ReadFromFile(mVSEE,aNameE);
 
    CompleteAll();
    // mCamPC = mPhProj.AllocCamPC(FileOfPath(mSpecImIn),true);
 
-   StdOut()  << mNameIm << " Fff=" << mCamPC->InternalCalib()->F()  << " "<<  mCamPC->NameImage() << "\n";
+   // StdOut()  << mNameIm << " Fff=" << mCamPC->InternalCalib()->F()  << " "<<  mCamPC->NameImage() << "\n";
 
 
    mPhProj.SaveMeasureIm(mImageM);
@@ -197,7 +222,8 @@ int  cAppliCompletUncodedTarget::Exe()
        mPhProj.SaveGCP(mMesImGCP,"");
    }
 
-
+   aNameE = cSaveExtrEllipe::NameFile(mPhProj,mMesImGCP.MesImInitOfName(mNameIm),false);
+   SaveInFile(mVSEE,aNameE);
 
    return EXIT_SUCCESS;
 }

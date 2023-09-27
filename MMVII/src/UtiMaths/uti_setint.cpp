@@ -123,7 +123,7 @@ void cSetIExtension::AddElem(size_t anElem)
 /*                                                         */
 /* ======================================================= */
 
-static void MakeRandomSet(std::vector<size_t> & aRes,cSetIntDyn & aSet,int aK)
+static void MakeRandomSet(std::vector<size_t> & aRes,cSetIntDyn & aSet,int aK,bool Sort= true)
 {
    while (aK!=0)
    {
@@ -135,9 +135,13 @@ static void MakeRandomSet(std::vector<size_t> & aRes,cSetIntDyn & aSet,int aK)
         }
    }
    aRes = aSet.mVIndOcc;
-   std::sort(aRes.begin(),aRes.end());
+   if (Sort)
+       std::sort(aRes.begin(),aRes.end());
    aSet.Clear();
 }
+
+
+
 
 typedef std::pair<size_t,std::vector<size_t> > tHashedVI;
 
@@ -290,6 +294,37 @@ void BenchRansSubset(cParamExeBench & aParam)
     // MMVII_INTERNAL_ASSERT_bench(false,"xxxxxxxxx Unfinished bench for BenchRansSubset");
 
 }
+
+/* ***************************************** */
+/*                                           */
+/*        cRandSubSetGenerator               */
+/*                                           */
+/* ***************************************** */
+
+cRandSubSetGenerator::cRandSubSetGenerator(size_t aNb) :
+   mNb     (aNb),
+   mSetDyn (aNb)
+{
+}
+
+
+void cRandSubSetGenerator::NewSubset(std::vector<size_t> & aRes,size_t aCard)
+{
+    // for small subset avoid parsing all the index, 
+    if (aCard<mNb/3) // each operation is not so fast
+    {
+       MakeRandomSet(aRes,mSetDyn,aCard,false);
+    }
+    else
+    {
+       aRes.clear();
+       cRandKAmongN aSel(aCard,mNb);
+       for (size_t aK=0 ; aK< mNb ; aK++)
+           if (aSel.GetNext())
+              aRes.push_back(aK);
+    }
+}
+
 
 };//  namespace MMVII
 

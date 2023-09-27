@@ -265,6 +265,27 @@ void cRGBImage::ToFile(const std::string & aName)
     mImR.DIm().ToFile(aName,mImG.DIm(),mImB.DIm());
 }
 
+void cRGBImage::ToFileDeZoom(const std::string & aName,int aDeZoom)
+{
+  if (aDeZoom==1)
+  {
+      ToFile(aName);
+      return;
+  }
+  tIm1C  aImR = mImR.GaussDeZoom(aDeZoom);
+  tIm1C  aImG = mImG.GaussDeZoom(aDeZoom);
+  tIm1C  aImB = mImB.GaussDeZoom(aDeZoom);
+
+  aImR.DIm().ToFile(aName,aImG.DIm(),aImB.DIm());
+}
+
+void cRGBImage::ToJpgFileDeZoom(const std::string & aName,int aDeZoom)
+{
+    ToFileDeZoom(aName,aDeZoom);
+    Convert_JPG(aName,true,90,"jpg");
+}
+
+
 void cRGBImage::Write(const cDataFileIm2D & aDFI,const cPt2di & aP0,double aDyn,const cRect2& aRect) const
 {
     AssertZ1();

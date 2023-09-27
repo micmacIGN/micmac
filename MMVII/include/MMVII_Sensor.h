@@ -311,6 +311,9 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 
+	  const std::string &   DirPhp() const;   ///< Accessor
+	  const std::string &   DirVisu() const;   ///< Accessor
+
 	 //===================================================================
          //==================   ORIENTATION      =============================
 	 //===================================================================
@@ -429,6 +432,8 @@ class cPhotogrammetricProject
           cMMVII_Appli &  mAppli;
           std::string     mFolderProject;
 
+	  std::string     mDirPhp;
+	  std::string     mDirVisu;
 	  cDirsPhProj     mDPOrient;
 	  cDirsPhProj     mDPRadiomData;
 	  cDirsPhProj     mDPRadiomModel;
