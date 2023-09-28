@@ -532,7 +532,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cParamCallSys  StrCallMMVII (  int   aKthCall, // sometime when called in // it's necessary to know the order
 			              const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
                                       bool Separate, // Separate argv for call inside
-                                      const cColStrAOpt &  aLSubst  = cColStrAOpt::Empty); ///< MMVII call itself
+                                      const cColStrAOpt &  aLSubst  = cColStrAOpt::Empty,
+				      const std::string &  aPaternInit =""// if not "" initial value of the pattern that was expanded
+				      ); ///< MMVII call itself
         std::list<cParamCallSys>  ListStrCallMMVII
                                 (  const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,
                                    const std::string & aNameOpt  , const std::vector<std::string> &  LVals,
@@ -563,6 +565,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static bool                               msWithWarning;  ///<   do we print warnings
         void                                      AssertInitParam() const; ///< Check Init was called
     protected :
+        const cCollecSpecArg2007 &                ArgObl() const;        ///< Mandatory args
         virtual int                               DefSeedRand();  ///< Clas can redefine instead of msDefSeedRand, value <=0 mean init from time:w
         cMemState                                 mMemStateBegin; ///< To check memory management
 
@@ -668,6 +671,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::map<std::string,std::string>  mMapIdFilesReport;
 	std::map<std::string,std::string>  mMapIdPostReport;
 	std::set<std::string>              mReport2Merge;
+
+	std::string                        mPatternInitGMA;
 };
 
 const std::string & GlobNameDefSerial() ; ///< of current appli

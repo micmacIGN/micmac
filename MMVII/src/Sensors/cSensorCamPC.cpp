@@ -114,6 +114,12 @@ cPt3dr cSensorCamPC::AxeJ()   const {return mPose.Rot().AxeJ();}
 cPt3dr cSensorCamPC::AxeK()   const {return mPose.Rot().AxeK();}
 const cIsometry3D<tREAL8> & cSensorCamPC::Pose() const {return mPose;}
 
+cIsometry3D<tREAL8>  cSensorCamPC::RelativePose(const cSensorCamPC& aCam2) const
+{
+	return mPose.MapInverse()*aCam2.mPose;
+}
+
+
 /*   Let R be the rotation of pose  P=(C,P= : Cam-> Word, what is optimized in colinearity for a ground point G
  *   is Word->Cam  :
  *

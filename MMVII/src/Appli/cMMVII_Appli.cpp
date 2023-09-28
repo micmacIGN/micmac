@@ -239,7 +239,8 @@ cMMVII_Appli::cMMVII_Appli
    mCarPPrefIn    (MMVII_StdDest),
    mTiePPrefOut   (MMVII_StdDest),
    mTiePPrefIn    (MMVII_StdDest),
-   mIsInBenchMode (false)
+   mIsInBenchMode (false),
+   mPatternInitGMA (MMVII_NONE) 
 {
    mNumCallInsideP = TheNbCallInsideP;
    TheNbCallInsideP++;
@@ -357,6 +358,7 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl); // Call virtual method
   cCollecSpecArg2007 & anArgFac = ArgOpt(mArgFac); // Call virtual method
 
+// StdOut() << "CAPPLL " << __LINE__ << " " << mArgObl.V().size() << "\n";
 
   mInitParamDone = true;
   // MMVII_INTERNAL_ASSERT_always(msTheAppli==0,"cMMVII_Appli only one by process");
@@ -416,6 +418,7 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
       <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for add,"+ MMVII_NONE + "for no out)",aGlob)
       <<  AOpt2007(mLevelCall,GIP_LevCall," Level Of Call",aInternal)
       <<  AOpt2007(mKthCall,GIP_KthCall," Ordre Of Call when multiple call",aInternal)
+      <<  AOpt2007(mPatternInitGMA,GIP_PatternGMA,"Initial pattern of global main appli ",aInternal)
 
       <<  AOpt2007(mShowAll,GIP_ShowAll,"",aInternal)
       <<  AOpt2007(mPrefixGMA,GIP_PGMA," Prefix Global Main Appli",aInternal)
@@ -1490,6 +1493,8 @@ int  cMMVII_Appli::DefSeedRand()
    return msDefSeedRand;
 }
 
+const cCollecSpecArg2007 &   cMMVII_Appli::ArgObl() const { return mArgObl; }
+
 bool cMMVII_Appli::msWithWarning =  true;
 bool cMMVII_Appli::WithWarnings() {return  msWithWarning;}
 
@@ -1603,7 +1608,8 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
                   const cColStrAObl& anAObl,
                   const cColStrAOpt& anAOpt,
                   bool  Separate,
-                  const cColStrAOpt&  aSubst
+                  const cColStrAOpt&  aSubst,
+		  const std::string & aPatInit
                )
 {
   cParamCallSys aRes(aCom2007,Separate);
@@ -1661,6 +1667,7 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
 	       && (aPOpt.first != GIP_DirProjGMA)
 	       && (aPOpt.first!=  GOP_WW)
 	       && (aPOpt.first!=  GIP_KthCall)
+	       && (aPOpt.first!=  GIP_PatternGMA)
           )
        {
           std::string aVal = aPOpt.second;
@@ -1689,6 +1696,11 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
    aRes.AddArgs(GIP_DirProjGMA + "=" + mDirProjGMA);
    aRes.AddArgs(GOP_WW + "=" +  ToStr(WithWarnings()));
    aRes.AddArgs(GIP_KthCall + "=" +  ToStr(aKthCall));
+
+   if (aPatInit !="")
+   {
+        aRes.AddArgs(GIP_PatternGMA + "=" +  Quote(aPatInit));
+   }
 
    // If no substitution, it means it was to be added simply
    int aKSubst=0;
@@ -1862,6 +1874,12 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
                           )
 {
     std::list<cParamCallSys> aRes;
+    std::string aPatInit="";
+    //  if mandatory arg we try to recover initial value of expanded pattern
+    if( std::isdigit(aNameOpt[0]))
+    {
+        aPatInit =  mArgObl[cStrIO<int>::FromStr(aNameOpt)]->Value();
+    }
 
     int aKthVal = 0;
     for (const auto & aVal : aLVals) // For each value to substitute/add
@@ -1870,7 +1888,7 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
 
          cColStrAOpt  aNewSubst(cExplicitCopy(),aLSubstInit);  // make copy of aLSubstInit as it is const
          aNewSubst << t2S(aNameOpt,aVal); // subsitute/add  aVal with "named" arg aVal
-         aRes.push_back(StrCallMMVII(aKthVal,mSpecs,mColStrAObl,mColStrAOpt,Separate,aNewSubst));
+         aRes.push_back(StrCallMMVII(aKthVal,mSpecs,mColStrAObl,mColStrAOpt,Separate,aNewSubst,aPatInit));
 	 aKthVal++;
     }
     return aRes;
@@ -1894,6 +1912,10 @@ bool cMMVII_Appli::RunMultiSet(int aKParam,int aKSet,bool MkFSilence)
          mRMSWasUsed = true;
          return true;
     }
+
+    // so that the pattern is defined with coherent value even if run with a single file
+    if (mLevelCall==0)
+       mPatternInitGMA = mArgObl[aKParam]->Value();
 
     mRMSWasUsed = false;
     return false;

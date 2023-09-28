@@ -217,6 +217,7 @@ cAppli_EditSet::cAppli_EditSet(const std::vector<std::string> & aVArgs,const cSp
 
 int cAppli_EditSet::Exe()
 {
+
    InitOutFromIn(mNameXmlOut,mNameXmlIn);
 
    tNameSet aInput = SetNameFromString(mNameXmlIn,false);

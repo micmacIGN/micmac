@@ -88,6 +88,7 @@ const std::string GIP_TIM_GMA = "Prefix_TIM_GMA";
 const std::string GIP_DirProjGMA = "DirGMA";
 const std::string GIP_BenchMode = "BenchMode";
 const std::string GIP_ExecFrom = "ExecFrom";
+const std::string GIP_PatternGMA = "PatternInit_GMA";
 
 
 #if (THE_MACRO_MMVII_SYS == MMVII_SYS_L)

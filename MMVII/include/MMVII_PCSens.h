@@ -398,6 +398,9 @@ class cSensorCamPC : public cSensorImage
 	 void PushOwnObsColinearity( std::vector<double> &) override;
 
 
+	 /// return the pose of aCam2 relatively to Cam1
+	 tPose RelativePose(const cSensorCamPC& aCame) const;
+
 
 	 // different accessor to the pose
          const tPose &   Pose()   const;

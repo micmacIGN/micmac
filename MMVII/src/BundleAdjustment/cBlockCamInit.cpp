@@ -23,8 +23,8 @@ class cBlocCam
 
           void Show() const;
 
-          void EstimateInit();
-          void EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli &);
+          void EstimateInit(cMMVII_Appli &);
+          void EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli &,const std::string & anIdGlob);
       private :
 
 
@@ -141,7 +141,22 @@ cBlocCam::tPairInd cBlocCam::ComputeIndPoseIdSyncId(cSensorCamPC* aCam)
     return std::pair<int,int>(mMapIntPoseId.Obj2I(aStrBlock),mMapIntSyncId.Obj2I(aStrSyncId));
 }
 
-void cBlocCam::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli)
+void cBlocCam::EstimateInit(cMMVII_Appli & anAppli)
+{
+    std::string  anIdGlob =  "StatGlob";
+    anAppli.InitReport(anIdGlob,"csv",false);
+    anAppli.AddOneReportCSV(anIdGlob,{"Id1","Id2","SigmaTr","SigmaRot"});
+
+     for (size_t aKB1=0 ; aKB1<mNbPoseId ; aKB1++)
+     {
+         for (size_t aKB2 =aKB1+1 ; aKB2<mNbPoseId ; aKB2++)
+         {
+             EstimateInit(aKB1,aKB2,anAppli,anIdGlob);
+         }
+     }
+}
+
+void cBlocCam::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli,const std::string & anIdGlob)
 {
     std::string  anIdReport =  "Detail_" +  NamePoseId(aKB1) + "_" +   NamePoseId(aKB2) ;
 
@@ -159,11 +174,7 @@ void cBlocCam::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli)
 	// P1(C1)=W   P2(C2) =  W   P1-1 P2 (C2)  = C1
         if ((aCam1!=nullptr) && (aCam2!=nullptr))
         {
-           const cIsometry3D<tREAL8> & aP1 = aCam1->Pose();
-           const cIsometry3D<tREAL8> & aP2 = aCam2->Pose();
-
-	   // cIsometry3D<tREAL8>  aP2To1 = aP1 * aP2.MapInverse();
-	   cIsometry3D<tREAL8>  aP2To1 =  aP1.MapInverse() * aP2;
+	   cIsometry3D<tREAL8>  aP2To1 =  aCam1->RelativePose(*aCam2);
 	   const auto & aRot = aP2To1.Rot();
 	   const auto & aMat = aRot.Mat();
 	   cPt3dr aTr = aP2To1.Tr();
@@ -179,7 +190,6 @@ void cBlocCam::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli)
 		                              ToStr(aWPK.x()),ToStr(aWPK.y()),ToStr(aWPK.z())
 	                                   };
            anAppli.AddOneReportCSV(anIdReport,aVReport);
-	   StdOut()  << "TR =" << aP2To1.Tr() << " Q=" << MatrRot2Quat(aMat) << " "<< aRot.ToWPK()  << "\n";
         }
     }
 
@@ -197,18 +207,29 @@ void cBlocCam::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli)
 
         if ((aCam1!=nullptr) && (aCam2!=nullptr))
         {
-           const cIsometry3D<tREAL8> & aP1 = aCam1->Pose();
-           const cIsometry3D<tREAL8> & aP2 = aCam2->Pose();
-	   cIsometry3D<tREAL8>  aP2To1 =  aP1.MapInverse() * aP2;
+           // const cIsometry3D<tREAL8> & aP1 = aCam1->Pose();
+           // const cIsometry3D<tREAL8> & aP2 = aCam2->Pose();
+	   // cIsometry3D<tREAL8>  aP2To1 =  aP1.MapInverse() * aP2;
+	   cIsometry3D<tREAL8>  aP2To1 =  aCam1->RelativePose(*aCam2);
 
 	   aSomEcTr += SqN2(aSomTr-aP2To1.Tr());
 	   aSomEc4  += SqN2(a4- MatrRot2Quat(aP2To1.Rot().Mat()));
         }
     }
+    tREAL8 aSigmaTr =  std::sqrt(aSomEcTr/(aNb-1));
+    tREAL8 aSigmaRot =  std::sqrt(aSomEc4/(aNb-1));
 
-    StdOut() << " KKKKK " << aSomTr << " " << a4 << "\n";
-    StdOut()  << "DISPTR " << std::sqrt(aSomEcTr/(aNb-1))  << " DISPROT=" << std::sqrt(aSomEc4/(aNb-1)) << "\n";
-    StdOut() << " BBB " << NamePoseId(aKB1) <<  " " << NamePoseId(aKB2) << "\n";
+    if (anIdGlob !="")
+    {
+        std::vector<std::string> aVReport {NamePoseId(aKB1),NamePoseId(aKB2),ToStr(aSigmaTr),ToStr(aSigmaRot)};
+        anAppli.AddOneReportCSV(anIdGlob,aVReport);
+    }
+    else
+    {
+        StdOut() << " KKKKK " << aSomTr << " " << a4 << "\n";
+        StdOut()  << "DISPTR " << aSigmaTr  << " DISPROT=" << aSigmaRot << "\n";
+        StdOut() << " BBB " << NamePoseId(aKB1) <<  " " << NamePoseId(aKB2) << "\n";
+    }
 }
 
 /**  Structure of block data
@@ -291,7 +312,9 @@ int cAppli_BlockCamInit::Exe()
     }
     aBloc.Finish();
     aBloc.Show();
-    aBloc.EstimateInit(0,1,*this);
+
+    aBloc.EstimateInit(0,1,*this,"");
+    aBloc.EstimateInit(*this);
 
     return EXIT_SUCCESS;
 }                                       

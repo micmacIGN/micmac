@@ -1047,7 +1047,6 @@ int  cAppliExtractCircTarget::Exe()
       return aResult;
    }
 
-
    mPrefixOut = "CircTarget_" +  LastPrefix(FileOfPath(APBI_NameIm()));
 
    // StdOut() << "mPrefixOutmPrefixOut " << mPrefixOut << "\n"; getchar();

@@ -52,6 +52,7 @@ extern const std::string GIP_DirProjGMA;     ///< Dir Proj of Global Main Applic
 extern const std::string GIP_BenchMode;     ///< For command who have a bench mode
 extern const std::string GIP_KthCall;     ///< Order of call if mutltiple call
 extern const std::string GIP_ExecFrom;    ///< Called from a frontend (i.e. GUI), name of the frontend
+extern const std::string GIP_PatternGMA;   ///< if run multi process, initial value of the pattern expanded
 
 
 // Folders
