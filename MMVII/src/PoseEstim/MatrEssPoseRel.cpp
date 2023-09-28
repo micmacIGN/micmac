@@ -90,6 +90,8 @@ class cMatEssential
 	void Show(const cSetHomogCpleDir &) const;
 
         cMatEssential(const  cDenseMatrix<tREAL8>& aMat);
+
+         void DoSVD() const;
  
     private :
         cDenseMatrix<tREAL8> mMat; /// The Ess  matrix itself
@@ -389,6 +391,25 @@ tREAL8  cMatEssential::KthCost(const  cSetHomogCpleDir & aSetD,tREAL8  aProp) co
 }
 
 
+void cMatEssential::DoSVD() const
+{
+    cResulSVDDecomp<tREAL8> aSVD = mMat.SVD();
+
+    const auto & aEV = aSVD.SingularValues();
+    cWhichMin<int,tREAL8> aMinAbsInd(-1,1e30);
+
+    for (int aK=0 ; aK<3 ; aK++)
+    {
+        aMinAbsInd.Add(aK,std::abs(aEV(aK)));
+    }
+    
+
+
+    StdOut() << "KM= " << aMinAbsInd.IndexExtre() << "\n";
+    StdOut() << "EV=" << aEV(0) << " " << aEV(1) << " " << aEV(2) << "\n";
+    StdOut() << "Det=" << aSVD.MatU().Det() << " " << aSVD.MatV().Det() << "\n";
+    StdOut() << "\n";
+}
 
 /* ************************************** */
 /*                                        */
@@ -586,6 +607,12 @@ void cCamSimul::BenchMatEss
             // Now test that residual is ~ 0 on these perfect points
             cAutoTimerSegm aTSL2(aTS,"L2");
             cMatEssential aMatEL2(aSetD,aSysL2,aKMax);
+
+            {
+                cIsometry3D<tREAL8>  aPRel =  aCam1->RelativePose(*aCam2);
+                StdOut() << "TR-REL " << aPRel.Tr() << "\n";
+                aMatEL2.DoSVD();
+            }
             MMVII_INTERNAL_ASSERT_bench(aMatEL2.AvgCost(aSetD,1.0)<1e-5,"Avg cost ");
 
             cAutoTimerSegm aTSL1(aTS,"L1");
