@@ -435,8 +435,7 @@ template <class Type>
     cDenseMatrix<tREAL8>  aRot = aRQ.Q_Matrix().Transpose(); // transpose to change W->C into Cam->Word for pose
 
     //  matrix are udefined up to scale, there is a sign ambiguity on aRot
-    if (aRot.Det() <0) 
-       aRot = aRot * -1;
+    aRot.SetDirectBySign();
 
     // matrix beign defined up to a scale, fix R(2,2) = 1 
     aRQ.R_Matrix().DIm() *=  (1.0/aRQ.R_Matrix().GetElem(2,2));

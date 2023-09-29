@@ -445,6 +445,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         double Diagonalicity() const; ///< how much close to a diagonal matrix, square only , 
         Type   Det() const;  ///< compute the determinant, not sur optimise
 
+        void ChangSign(); ///< Multiply by -1
+        void SetDirectBySign(); ///< Multiply by -1 if indirect
+
         //  =====   Overridng of cMatrix classe  ==== 
         void  MulColInPlace(tDV &,const tDV &) const override;
         Type MulColElem(int  aY,const tDV &)const override;

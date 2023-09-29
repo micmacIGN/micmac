@@ -326,6 +326,18 @@ template <class Type>  double cDenseMatrix<Type>::TriangSupicity() const   ///< 
      return std::sqrt(aSom);
 }
 
+template <class Type>  void cDenseMatrix<Type>::ChangSign()
+{
+     for (const auto & aP : *this)
+         GetReference_V(aP.x(),aP.y()) *= -1;
+}
+
+template <class Type>  void cDenseMatrix<Type>::SetDirectBySign()
+{
+   if (Det()<0)
+      ChangSign();
+}
+
 
 
 /* ===================================================== */

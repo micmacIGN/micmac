@@ -349,9 +349,19 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
         // Singular value decomposition
         {
              cResulSVDDecomp<Type>  aSVD = aM.SVD();
-             MMVII_INTERNAL_ASSERT_bench(aSVD.MatU().Unitarity()<aDTest,"SVD-U Unit");
-             MMVII_INTERNAL_ASSERT_bench(aSVD.MatV().Unitarity()<aDTest,"SVD-V Unit");
-             MMVII_INTERNAL_ASSERT_bench(aM.DIm().L2Dist(aSVD.OriMatr().DIm())<aDTest,"SVD Reconstr");
+             MMVII_INTERNAL_ASSERT_bench(aSVD.MatU().Unitarity()<aDTest,"SVD-U Unit");  // U is unitary
+             MMVII_INTERNAL_ASSERT_bench(aSVD.MatV().Unitarity()<aDTest,"SVD-V Unit");  // V is unitary
+             MMVII_INTERNAL_ASSERT_bench(aM.DIm().L2Dist(aSVD.OriMatr().DIm())<aDTest,"SVD Reconstr"); // It's M's decomposition
+
+             // As SVD is abirtray up to signs/permutation, eigen use the following convention : vp are >=0 and
+             // given in degrowing order;  test this conventio is satisfied
+             const auto & aEV= aSVD.SingularValues();
+             for (int aK=0  ; aK< aNb ; aK++)
+             {
+                    MMVII_INTERNAL_ASSERT_bench(aEV(aK)>=0,"SVD positivennes"); // EV are >=0
+                    if (aK>0)
+                       MMVII_INTERNAL_ASSERT_bench(aEV(aK)<=aEV(aK-1),"SVD Ordering"); // EV are >= degrowing
+             }
 
              Type aDU =  aSVD.MatU().Det();
              Type aDV =  aSVD.MatV().Det();
