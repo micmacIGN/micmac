@@ -75,6 +75,7 @@ class cMatEssential
 {
     public :
         typedef cDenseMatrix<tREAL8> tMat; 
+	typedef cIsometry3D<tREAL8>  tPose;
 
         /** Constructor use a set of 3D homologous dir, a solver (L1/L2) , and the number, in [0,8] of the variable
 	    that is arbirtrarily fixed */
@@ -93,7 +94,7 @@ class cMatEssential
 
         cMatEssential(const  tMat & aMat);
 
-         void DoSVD(bool Bench=false) const;
+         void DoSVD(tPose * aRes= nullptr) const;
  
     private :
         tMat mMat; /// The Ess  matrix itself
@@ -394,34 +395,35 @@ tREAL8  cMatEssential::KthCost(const  cSetHomogCpleDir & aSetD,tREAL8  aProp) co
 }
 
 
-void cMatEssential::DoSVD(bool Bench) const
+void cMatEssential::DoSVD(tPose * aRef) const
 {
-    // static matrix will never be freed
-    cMemManager::SetActiveMemoryCount(false);
-    static tMat aMSwapXZ = M3x3FromLines(cPt3dr(0,0,1),cPt3dr(0,1,0 ),cPt3dr(1,0,0));
-    static tMat aMRot90    = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0,0,-1),cPt3dr(0,1,0));
-    cMemManager::SetActiveMemoryCount(true);
-
-    /*  We have EssM = U D tV 
+    /*  We have EssM = U D tV , and due to eigen convention
              1 0 0
         D =  0 1 0
              0 0 0
 
             M =  U D V  =  U (Sw Sw) D (Sw aRot) t(aSw aRot) tV
-           =   (U Sw)  (Sw D Sw aRot)  
+           =   (U Sw)  (Sw D Sw aRot)  t( V aSw R)
     */
+    // static matrix will never be freed
+    cMemManager::SetActiveMemoryCount(false);
+    static tMat aMSwapXZ = M3x3FromLines(cPt3dr(0,0,1),cPt3dr(0,1,0 ),cPt3dr(1,0,0));
+    static tMat aMRot90    = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0,0,-1),cPt3dr(0,1,0));
+    static tMat aSwR    = aMSwapXZ * aMRot90;
+    cMemManager::SetActiveMemoryCount(true);
+
    //  aTest = aMSwapXZ * aSVD0 * aMSwapXZ * aMRot;
 
     cResulSVDDecomp<tREAL8> aSVD = mMat.SVD();
 
-    tMat aMatU = aSVD.MatU();
+    tMat aMatU = aSVD.MatU() * aMSwapXZ;
     aMatU.SetDirectBySign();
-    tMat aMatV = aSVD.MatV();
 
-    aMatV.SelfTransposeIn();
+    tMat aMatV = aSVD.MatV() * aSwR;
     aMatV.SetDirectBySign();
 
-    if (Bench)
+
+    if (aRef!=nullptr)
     {
        const auto & aEV = aSVD.SingularValues();
       
@@ -430,21 +432,28 @@ void cMatEssential::DoSVD(bool Bench) const
        tREAL8  aDif  = std::abs((aEV(0)-aEV(1)) / (aEV(0)+aEV(1)));
        tREAL8  aZero = std::abs( aEV(2)         / (aEV(0)+aEV(1)));
 
-       StdOut()  << "DDDD " << aDif << " " << aZero << " " << aMatU.Det() << " " << aMatV.Det() << "\n";
+       // StdOut()  << "DDDD " << aDif << " " << aZero << " " << aMatU.Det() << " " << aMatV.Det() << "\n";
        MMVII_INTERNAL_ASSERT_bench(aDif<1e-4,"Matric organ in MatEss ");
        MMVII_INTERNAL_ASSERT_bench(aZero<1e-4,"Matric organ in MatEss ");
+
+       // Matrix that should result from a perefct eigen decomposition due to eigen convention
+       tMat aSVD0 = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0,1,0 ),cPt3dr(0,0,0));
+       // Matrix we want in current epipolar formalization
+       tMat aSVD1 = M3x3FromLines(cPt3dr(0,0,0),cPt3dr(0,0,-1 ),cPt3dr(0,1,0));
+
        if (First)
        {
-          // Matrix that should result from a perefct eigen decomposition due to eigen convention
-          tMat aSVD0 = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0,1,0 ),cPt3dr(0,0,0));
-          // Matrix we want in current epipolar formalization
-          tMat aSVD1 = M3x3FromLines(cPt3dr(0,0,0),cPt3dr(0,0,-1 ),cPt3dr(0,1,0));
           tMat aTest = aMSwapXZ * aSVD0 * aMSwapXZ * aMRot90;
-          // aTest.Show(); 
-          // aSVD1.Show(); 
-          // StdOut() << "TTTTT " << aTest.L2Dist(aSVD1) << "\n";
           MMVII_INTERNAL_ASSERT_bench(aTest.L2Dist(aSVD1)==0,"Matric organ in MatEss ");
        }
+
+       // from the 2 matrix and the standar epip we reconstitue M
+       tMat aRconst = aMatU * aSVD1 * aMatV.Transpose();
+       //  there is a scaling factor + an undefined sign, to we test both
+       tREAL8 aDif1 = mMat.L2Dist( aRconst *  aEV(0));
+       tREAL8 aDif2 = mMat.L2Dist( aRconst * (-aEV(0)));
+       MMVII_INTERNAL_ASSERT_bench(std::min(aDif1,aDif2)<1e-5,"");
+
        First = false;
     }
 
@@ -653,7 +662,7 @@ void cCamSimul::BenchMatEss
             {
                 cIsometry3D<tREAL8>  aPRel =  aCam1->RelativePose(*aCam2);
                 // StdOut() << "TR-REL " << aPRel.Tr() << "\n";
-                aMatEL2.DoSVD(true);
+                aMatEL2.DoSVD(&aPRel);
             }
             MMVII_INTERNAL_ASSERT_bench(aMatEL2.AvgCost(aSetD,1.0)<1e-5,"Avg cost ");
 
