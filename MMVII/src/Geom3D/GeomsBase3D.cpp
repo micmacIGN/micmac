@@ -22,7 +22,7 @@ namespace MMVII
  *
  */
 
-cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
+cPt3dr  BundleInters(cPt3dr & aABC,const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
 {
    cPt3dr  aV1   = aSeg1.V12();
    cPt3dr  aMil1 = aSeg1.PMil();
@@ -32,11 +32,24 @@ cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
 
    cDenseMatrix<tREAL8> aMat =  M3x3FromCol(aV1,aV2,aNorm);
 
-   cPt3dr  ABC = SolveCol(aMat,aMil2-aMil1);
+   aABC = SolveCol(aMat,aMil2-aMil1);
+   
+   //  aMil2 - aMil1 = x aV1 + y aV2 + a aNom
 
-   return aMil1 + aV1 * ABC.x() + aNorm * (ABC.z() * (1.0-aW12));
+   /*  To test convention on sign
+   StdOut() << aMil1 + aV1 * aABC.x() + aNorm * (aABC.z() * 0.5)
+            << aMil2 - aV2 * aABC.y() - aNorm * (aABC.z() * 0.5)
+	    << "\n";
+	    */
+
+   return aMil1 + aV1 * aABC.x() + aNorm * (aABC.z() * (1.0-aW12));
 }
 
+cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
+{
+   cPt3dr  ABC ;
+   return BundleInters(ABC,aSeg1,aSeg2,aW12);
+}
 
 /*
  *   "ONR"= Orthognal Normalised Repair 

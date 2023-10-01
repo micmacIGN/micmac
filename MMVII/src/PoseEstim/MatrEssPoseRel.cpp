@@ -94,7 +94,7 @@ class cMatEssential
 
         cMatEssential(const  tMat & aMat);
 
-         void DoSVD(tPose * aRes= nullptr) const;
+         void DoSVD(const cSetHomogCpleDir & aHoms,tPose * aRes= nullptr) const;
  
     private :
         tMat mMat; /// The Ess  matrix itself
@@ -394,21 +394,59 @@ tREAL8  cMatEssential::KthCost(const  cSetHomogCpleDir & aSetD,tREAL8  aProp) co
    return Cst_KthVal(aVRes,aProp);
 }
 
+  //std::pair< std::vector<cDenseMatrix<tREAL8>>> 
+/*
+void MatrixesSVDConv()
+{
+    tMat aMSwapXZ = M3x3FromLines(cPt3dr(0,0,1),cPt3dr(0,1,0 ),cPt3dr(1,0,0));
+    tMat aMRot90    = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0,0,-1),cPt3dr(0,1,0));
+    tMat aSwR    = aMSwapXZ * aMRot90;
 
-void cMatEssential::DoSVD(tPose * aRef) const
+    std::vector<std::vector<tREAL8>>  aVSigns {{1,1,1},{1,-1,-1},{-1,1,-1},{-1,-1,1}};
+}
+*/
+
+/*
+     L1 (ux uy uz) + (1 0 0) + L2 (vx vy vz) = 0
+
+     L1 uy + L1 uz
+ */
+
+
+void cMatEssential::DoSVD(const cSetHomogCpleDir & aHom,tPose * aRef) const
 {
     /*  We have EssM = U D tV , and due to eigen convention
              1 0 0
-        D =  0 1 0
+        D =  0 1 0      
              0 0 0
 
-            M =  U D V  =  U (Sw Sw) D (Sw aRot) t(aSw aRot) tV
-           =   (U Sw)  (Sw D Sw aRot)  t( V aSw R)
+        Let "SwXZ" be matrix swaping xz, and "aRot" the rotation arround x, we have :
+        We can write 
+            M =  U D tV  =  U (SwXZ SwXZ) D (SwXZ aRot) t(aSwXZ aRot) tV
+           =   (U SwXZ)  (SwXZ D SwXZ aRot)  t( V aSwXZ R)
+
+        And  Sw D Sw aRot is what we want :
+                              0 0  0
+	   (Sw D Sw aRot) =   0 0 -1
+	                      0 1  0
+        
+        Now  we must take into account sign ambiguity  in SVD , let S be any of the direct
+	diagonal matrix with "1/-1" , we have also 
+
+            M =  U SDS tV  =  US  D  t(VS) = 
+           =   (U S SwXZ)  (SwXZ D SwXZ aRot)  t( V S aSwXZ R)
+
     */
     // static matrix will never be freed
     cMemManager::SetActiveMemoryCount(false);
     static tMat aMSwapXZ = M3x3FromLines(cPt3dr(0,0,1),cPt3dr(0,1,0 ),cPt3dr(1,0,0));
     static tMat aMRot90    = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0,0,-1),cPt3dr(0,1,0));
+
+    static tMat aMId      = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0, 1,0),cPt3dr(0,0, 1));
+    static tMat aMSymX    = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0,-1,0),cPt3dr(0,0,-1));
+    static tMat aMSymY    = M3x3FromLines(cPt3dr(-1,0,0),cPt3dr(0, 1,0),cPt3dr(0,0,-1));
+    static tMat aMSymZ    = M3x3FromLines(cPt3dr(-1,0,0),cPt3dr(0,-1,0),cPt3dr(0,0,1));
+
     static tMat aSwR    = aMSwapXZ * aMRot90;
     cMemManager::SetActiveMemoryCount(true);
 
@@ -416,11 +454,12 @@ void cMatEssential::DoSVD(tPose * aRef) const
 
     cResulSVDDecomp<tREAL8> aSVD = mMat.SVD();
 
-    tMat aMatU = aSVD.MatU() * aMSwapXZ;
-    aMatU.SetDirectBySign();
+    tMat aMatU0 = aSVD.MatU() * aMSwapXZ;
+    tMat aMatV0 = aSVD.MatV() * aSwR;
 
-    tMat aMatV = aSVD.MatV() * aSwR;
-    aMatV.SetDirectBySign();
+    // we want matrix to be direct and btw multiply by cste will not change coplanarity
+    aMatU0.SetDirectBySign();
+    aMatV0.SetDirectBySign();
 
 
     if (aRef!=nullptr)
@@ -432,7 +471,6 @@ void cMatEssential::DoSVD(tPose * aRef) const
        tREAL8  aDif  = std::abs((aEV(0)-aEV(1)) / (aEV(0)+aEV(1)));
        tREAL8  aZero = std::abs( aEV(2)         / (aEV(0)+aEV(1)));
 
-       // StdOut()  << "DDDD " << aDif << " " << aZero << " " << aMatU.Det() << " " << aMatV.Det() << "\n";
        MMVII_INTERNAL_ASSERT_bench(aDif<1e-4,"Matric organ in MatEss ");
        MMVII_INTERNAL_ASSERT_bench(aZero<1e-4,"Matric organ in MatEss ");
 
@@ -444,18 +482,111 @@ void cMatEssential::DoSVD(tPose * aRef) const
        if (First)
        {
           tMat aTest = aMSwapXZ * aSVD0 * aMSwapXZ * aMRot90;
-          MMVII_INTERNAL_ASSERT_bench(aTest.L2Dist(aSVD1)==0,"Matric organ in MatEss ");
+          MMVII_INTERNAL_ASSERT_bench(aTest.L2Dist(aSVD1)==0,"Matrix organization in MatEss ");
        }
+int Got11=0;
+       for (int aKOri=0 ; aKOri< 2 ; aKOri++)
+       {
+       for (int aSignPt= -1 ; aSignPt<=1 ;  aSignPt+=2)
+       {
+	  tMat aMatSign = aMId;
+	  if (aKOri==1)
+             aMatSign =  aMSymX;
 
-       // from the 2 matrix and the standar epip we reconstitue M
-       tMat aRconst = aMatU * aSVD1 * aMatV.Transpose();
-       //  there is a scaling factor + an undefined sign, to we test both
-       tREAL8 aDif1 = mMat.L2Dist( aRconst *  aEV(0));
-       tREAL8 aDif2 = mMat.L2Dist( aRconst * (-aEV(0)));
-       MMVII_INTERNAL_ASSERT_bench(std::min(aDif1,aDif2)<1e-5,"");
+          tMat aMatU = aMatU0 * aMatSign ;
+          tMat aMatV = aMatV0 ;
+          aSVD1 =  aMatSign * aMSwapXZ  * aSVD0 * aMSwapXZ * aMRot90;
 
-       First = false;
+          // from the 2 matrix and the standar epip we reconstitue M
+          tMat aRconst = aMatU *  aSVD1 * aMatV.Transpose();
+          //  there is a scaling factor + an undefined sign, to we test both
+          tREAL8 aDif1 = mMat.L2Dist( aRconst *  aEV(0));
+          tREAL8 aDif2 = mMat.L2Dist( aRconst * (-aEV(0)));
+          MMVII_INTERNAL_ASSERT_bench(std::min(aDif1,aDif2)<1e-5,"Matric Reconstution in EssMat");
+
+          First = false;
+
+          size_t aNbP = aHom.VDir1().size();
+          size_t aNbPU = 0;
+          size_t aNbPV = 0;
+
+          size_t aNbZpU = 0;
+          size_t aNbZpV = 0;
+
+	  cPt3dr aPU(0,0,0);
+	  cPt3dr aPV(aSignPt,0,0);
+
+          for (size_t aKP=0 ; aKP<aNbP ; aKP++)
+          {
+	       // Direction in local repair of each camea
+               cPt3dr  aDirU0  =  aHom.VDir1().at(aKP);
+               cPt3dr  aDirV0  =  aHom.VDir2().at(aKP) ;
+	       aNbZpU +=  aDirU0.z() > 0;
+	       aNbZpV +=  aDirV0.z() > 0;
+               MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aDirU0,mMat*aDirV0))<1e-4 ,"Ess scal MatInit ");
+
+	       // Direction in epipolar repair
+	       cPt3dr aDirU = aDirU0 * aMatU;
+	       cPt3dr aDirV = aDirV0 * aMatV ;
+               MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aDirU,aSVD1*aDirV))<1e-4 ,"Ess scal Mat Rec   ");
+
+	       // bundles in epipolar repair
+	       tSeg3dr aSegU(aPU,aPU+aDirU);
+	       tSeg3dr aSegV(aPV,aPV+aDirV);
+
+	       cPt3dr ABC;
+	        BundleInters(ABC,aSegU,aSegV);
+               // To understand the test on signs, go to see the func bundle that copy coeef 
+	       // thet start from middle and have opposite directio,
+	       // cPt3dr aPI = BundleInters(ABC,aSegU,aSegV);
+	       //   Maintain this code it "proves" the correctness of computing PU/PV
+               //   StdOut() << aPI  << aPU + aDirU * (ABC.x() +0.5)  << aPV + aDirV * (-ABC.y() +0.5)  << "\n";
+
+
+	       // on ground truth the bundle intersects perfectly
+	       if (std::abs(ABC.z())>=1e-4)
+	       {
+		       StdOut()  << "BUNDLE INTER " << ABC.z() << " \n";
+                       //MMVII_INTERNAL_ASSERT_bench(false ,"Ess Bundle Inter  ");
+		       // getchar();
+	       }
+	       aNbPU += (ABC.x() +0.5 > 0) ;
+	       //  the convention are opposite for U and V as segment are travalled in opposite directions
+	       aNbPV += (0.5- ABC.y() > 0) ;
+               // tREAL8  aScal  = Scal(aDirU,aSVD1*aDirV);
+	       // StdOut() << "Ssssssssssss " << aScal << "\n";
+            }
+            StdOut()  << " PUV=" << aNbPU/double(aNbP) << " "  << aNbPV/double(aNbP) 
+                      << "     ZUVp=" << aNbZpU/double(aNbP) << " " << aNbZpV/double(aNbP) 
+		      << "\n";
+
+	    if ((aNbPU==aNbP) && (aNbPV==aNbP))
+	    {
+               Got11 ++;
+               if (aRef)
+               {
+		  tMat aEstR = aMatU * aMatV.Transpose();
+		  cPt3dr aEstB = aMatU * aPV;
+
+		  StdOut()  << " DIST=" <<aEstR.L2Dist(aRef->Rot().Mat())   << "\n";
+		  StdOut()  << " COS=" <<  Cos(aEstB,aRef->Tr())  << "\n";
+		  MMVII_INTERNAL_ASSERT_bench(aEstR.L2Dist(aRef->Rot().Mat())<1e-4,"Dist Rot in Mat Ess Ctrl");
+		  MMVII_INTERNAL_ASSERT_bench(std::abs(Cos(aEstB,aRef->Tr()) -1)<1e-4,"Cos-Tr in Mat Ess Ctrl");
+
+		  // getchar();
+               }
+	    }
+
+	}
+	}
+
+        StdOut() << "Esss================================== " << Got11 << " \n";
+	if ( Got11!=1) 
+	{
+		getchar();
+	}
     }
+
 
     // StdOut() << "EV=" << aEV(0) << " " << aEV(1) << " " << aEV(2) << "\n";
     // StdOut() << "Det=" << aSVD.MatU().Det() << " " << aSVD.MatV().Det() << "\n";
@@ -661,8 +792,8 @@ void cCamSimul::BenchMatEss
 
             {
                 cIsometry3D<tREAL8>  aPRel =  aCam1->RelativePose(*aCam2);
-                // StdOut() << "TR-REL " << aPRel.Tr() << "\n";
-                aMatEL2.DoSVD(&aPRel);
+                StdOut() << " PROJS  " << E2Str(eProjPC(aK1)) << " " << E2Str(eProjPC(aK2))  << "\n";
+                aMatEL2.DoSVD(aSetD,&aPRel);
             }
             MMVII_INTERNAL_ASSERT_bench(aMatEL2.AvgCost(aSetD,1.0)<1e-5,"Avg cost ");
 
