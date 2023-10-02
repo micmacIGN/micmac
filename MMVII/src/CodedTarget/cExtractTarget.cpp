@@ -706,7 +706,8 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     if (mFlagDebug != "") StdOut() << mFlagDebug << "Focus on center: " << mTestCenter << "\n";
 
     cPt2di center = aDCT->Pix();
-
+    
+    
     // -------------------------------------------
     // Test on binarity of target
     // -------------------------------------------
@@ -791,6 +792,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
         mTransfo = estimateRectification(aDCT->mDetectedCorners);
         aDCT->mRecomputed = true;
     }
+    
 
     // Affinity estimation test
     bool validAff = isValidAffinity(mTransfo);
@@ -896,7 +898,7 @@ bool cAppliExtractCodeTarget::printDebug(std::string name, double value, double 
 }
 
 
-// --------------F-------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // Function to generate image of rectified targets
 // ---------------------------------------------------------------------------
 tImTarget cAppliExtractCodeTarget::generateRectifiedImage(cDCT* aDCT, const cDataIm2D<float>& aDIm){

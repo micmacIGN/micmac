@@ -188,9 +188,13 @@ template <class Type>  bool cExtractDir<Type>::CalcDir(tDCT & aDCT, double lined
          aVIsW.clear();
          //  parse the circle , for each pixel compute gray level and its thresholding
          for (const auto & aPt : aCircle){
-             float aVal  = mDIm.GetV(aC+aPt);
-             aVVals.push_back(aVal);
-             aVIsW.push_back(aVal>mVThrs);
+			 
+			cPt2di px = aC+aPt;
+			if ((px.x() < 0) || (px.y() < 0)) return false;
+			if ((px.x() >= mDIm.Sz()[0]) || (px.y() >= mDIm.Sz()[1])) return false;
+            float aVal  = mDIm.GetV(px);
+            aVVals.push_back(aVal);
+            aVIsW.push_back(aVal>mVThrs);
 
          }
 
