@@ -25,24 +25,13 @@ namespace MMVII
 cPt3dr  BundleInters(cPt3dr & aABC,const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
 {
    cPt3dr  aV1   = aSeg1.V12();
-   cPt3dr  aMil1 = aSeg1.PMil();
    cPt3dr  aV2   = aSeg2.V12();
-   cPt3dr  aMil2 = aSeg2.PMil();
    cPt3dr  aNorm = aV1 ^ aV2;
 
-   cDenseMatrix<tREAL8> aMat =  M3x3FromCol(aV1,aV2,aNorm);
+   cDenseMatrix<tREAL8> aMat =  M3x3FromCol(aV1,-aV2,aNorm);
+   aABC = SolveCol(aMat,aSeg2.P1()-aSeg1.P1());
 
-   aABC = SolveCol(aMat,aMil2-aMil1);
-   
-   //  aMil2 - aMil1 = x aV1 + y aV2 + a aNom
-
-   /*  To test convention on sign
-   StdOut() << aMil1 + aV1 * aABC.x() + aNorm * (aABC.z() * 0.5)
-            << aMil2 - aV2 * aABC.y() - aNorm * (aABC.z() * 0.5)
-	    << "\n";
-	    */
-
-   return aMil1 + aV1 * aABC.x() + aNorm * (aABC.z() * (1.0-aW12));
+   return aSeg1.P1() + aV1 * aABC.x() + aNorm * (aABC.z() * (1.0-aW12));
 }
 
 cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)

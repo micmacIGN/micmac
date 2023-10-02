@@ -1,3 +1,13 @@
+/*
+
+    Eigen::SparseQR<SpMat, Eigen::NaturalOrdering<int> > : 3 min (mode actuel de comp v5)
+    Eigen::SparseQR<SpMat, Eigen::AMDOrdering<int> > : 5-6 min
+    Eigen::SparseQR<SpMat, Eigen::COLAMDOrdering<int> > : 5-6 min
+    Eigen::SimplicialLDLT<SpMat, Eigen::Lower, Eigen::AMDOrdering<int> > : 40s (dont presque rien sur le calcul matriciel !)
+    Eigen::SimplicialLDLT<SpMat, Eigen::Lower, Eigen::AMDOrdering<int> > sans la réorganisation de la matrice : 40s
+    Eigen::SimplicialLDLT<SpMat, Eigen::Lower, Eigen::NaturalOrdering<int> > : 1 min
+    Eigen::SparseLU<SpMat, Eigen::NaturalOrdering<int> > : 56s
+*/
 
 
 #include "MMVII_EigenWrap.h"
@@ -77,7 +87,9 @@ template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
 
    Eigen::SparseMatrix<Type> aSpMat(aN,aN);
    aSpMat.setFromTriplets(aV3.begin(), aV3.end());
-   Eigen::SimplicialCholesky< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
+
+   // Eigen::SimplicialCholesky< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
+   Eigen::SimplicialLDLT< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
 
 
    cConst_EigenColVectWrap  aWVec(aVec);

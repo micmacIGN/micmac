@@ -94,7 +94,7 @@ class cMatEssential
 
         cMatEssential(const  tMat & aMat);
 
-         void DoSVD(const cSetHomogCpleDir & aHoms,tPose * aRes= nullptr) const;
+         tPose ComputePose(const cSetHomogCpleDir & aHoms,tPose * aRes= nullptr) const;
  
     private :
         tMat mMat; /// The Ess  matrix itself
@@ -413,7 +413,7 @@ void MatrixesSVDConv()
  */
 
 
-void cMatEssential::DoSVD(const cSetHomogCpleDir & aHom,tPose * aRef) const
+cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,tPose * aRef) const
 {
     /*  We have EssM = U D tV , and due to eigen convention
              1 0 0
@@ -446,11 +446,11 @@ void cMatEssential::DoSVD(const cSetHomogCpleDir & aHom,tPose * aRef) const
     static tMat aMSymX    = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0,-1,0),cPt3dr(0,0,-1));
     static tMat aMSymY    = M3x3FromLines(cPt3dr(-1,0,0),cPt3dr(0, 1,0),cPt3dr(0,0,-1));
     static tMat aMSymZ    = M3x3FromLines(cPt3dr(-1,0,0),cPt3dr(0,-1,0),cPt3dr(0,0,1));
+    static tMat aSVD0 = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0,1,0 ),cPt3dr(0,0,0));
 
     static tMat aSwR    = aMSwapXZ * aMRot90;
     cMemManager::SetActiveMemoryCount(true);
 
-   //  aTest = aMSwapXZ * aSVD0 * aMSwapXZ * aMRot;
 
     cResulSVDDecomp<tREAL8> aSVD = mMat.SVD();
 
@@ -461,13 +461,17 @@ void cMatEssential::DoSVD(const cSetHomogCpleDir & aHom,tPose * aRef) const
     aMatU0.SetDirectBySign();
     aMatV0.SetDirectBySign();
 
+    // test assumption on eigen dec + some matrix multiplication
+    const auto & aEV = aSVD.SingularValues();
 
     if (aRef!=nullptr)
     {
-       const auto & aEV = aSVD.SingularValues();
+       // eigen convention waranty >=0 
+       for (int aK=0 ; aK<3 ; aK++)
+           MMVII_INTERNAL_ASSERT_bench(aEV(aK) >= 0.0,"Matric organ in MatEss ");
       
        static bool First = true;
-       // eigen convention waranty >=0 and decreasing order (see bench on matrix)
+       // eigen waranty decreasing order (see bench on matrix)
        tREAL8  aDif  = std::abs((aEV(0)-aEV(1)) / (aEV(0)+aEV(1)));
        tREAL8  aZero = std::abs( aEV(2)         / (aEV(0)+aEV(1)));
 
@@ -475,122 +479,101 @@ void cMatEssential::DoSVD(const cSetHomogCpleDir & aHom,tPose * aRef) const
        MMVII_INTERNAL_ASSERT_bench(aZero<1e-4,"Matric organ in MatEss ");
 
        // Matrix that should result from a perefct eigen decomposition due to eigen convention
-       tMat aSVD0 = M3x3FromLines(cPt3dr(1,0,0),cPt3dr(0,1,0 ),cPt3dr(0,0,0));
        // Matrix we want in current epipolar formalization
        tMat aSVD1 = M3x3FromLines(cPt3dr(0,0,0),cPt3dr(0,0,-1 ),cPt3dr(0,1,0));
 
+       // test the multiplication we do to have matrix we want
        if (First)
        {
           tMat aTest = aMSwapXZ * aSVD0 * aMSwapXZ * aMRot90;
           MMVII_INTERNAL_ASSERT_bench(aTest.L2Dist(aSVD1)==0,"Matrix organization in MatEss ");
+          First = false;
        }
-int Got11=0;
-       for (int aKOri=0 ; aKOri< 2 ; aKOri++)
-       {
+    }
+
+    cWhichMax<tPose,int> aBestPose(tPose::Identity(),-1);
+    int aNb11 = 0; // number of test where have 100% ins the good direction
+    for (int aKOri=0 ; aKOri< 2 ; aKOri++)
+    {
+       tMat aMatSign = (aKOri==1) ? aMId : aMSymX;
+       tMat aMatU = aMatU0 * aMatSign ;
+       tMat aMatV = aMatV0 ;
+       // the matrix correspond to y1z2-y2z1 modified by signs
+       tMat aSVD1 =  aMatSign * aMSwapXZ  * aSVD0 * aMSwapXZ * aMRot90;
        for (int aSignPt= -1 ; aSignPt<=1 ;  aSignPt+=2)
        {
-	  tMat aMatSign = aMId;
-	  if (aKOri==1)
-             aMatSign =  aMSymX;
 
-          tMat aMatU = aMatU0 * aMatSign ;
-          tMat aMatV = aMatV0 ;
-          aSVD1 =  aMatSign * aMSwapXZ  * aSVD0 * aMSwapXZ * aMRot90;
+          // test we can rerbuilt the matrix up to a scaling factor
+          if (aRef!=nullptr)
+          {
 
-          // from the 2 matrix and the standar epip we reconstitue M
-          tMat aRconst = aMatU *  aSVD1 * aMatV.Transpose();
-          //  there is a scaling factor + an undefined sign, to we test both
-          tREAL8 aDif1 = mMat.L2Dist( aRconst *  aEV(0));
-          tREAL8 aDif2 = mMat.L2Dist( aRconst * (-aEV(0)));
-          MMVII_INTERNAL_ASSERT_bench(std::min(aDif1,aDif2)<1e-5,"Matric Reconstution in EssMat");
+              // from the 2 matrix and the standar epip we reconstitue M
+              tMat aRconst = aMatU *  aSVD1 * aMatV.Transpose();
+              //  there is a scaling factor + an undefined sign, to we test both
+              tREAL8 aDif1 = mMat.L2Dist( aRconst *  aEV(0));
+              tREAL8 aDif2 = mMat.L2Dist( aRconst * (-aEV(0)));
+              MMVII_INTERNAL_ASSERT_bench(std::min(aDif1,aDif2)<1e-5,"Matric Reconstution in EssMat");
+	  }
 
-          First = false;
 
           size_t aNbP = aHom.VDir1().size();
           size_t aNbPU = 0;
           size_t aNbPV = 0;
 
-          size_t aNbZpU = 0;
-          size_t aNbZpV = 0;
-
-	  cPt3dr aPU(0,0,0);
-	  cPt3dr aPV(aSignPt,0,0);
+	  cPt3dr aPU(0,0,0); //Image center for first cam
+	  cPt3dr aPV(aSignPt,0,0); // Image center for second cam
 
           for (size_t aKP=0 ; aKP<aNbP ; aKP++)
           {
-	       // Direction in local repair of each camea
-               cPt3dr  aDirU0  =  aHom.VDir1().at(aKP);
-               cPt3dr  aDirV0  =  aHom.VDir2().at(aKP) ;
-	       aNbZpU +=  aDirU0.z() > 0;
-	       aNbZpV +=  aDirV0.z() > 0;
-               MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aDirU0,mMat*aDirV0))<1e-4 ,"Ess scal MatInit ");
+	     // Direction in local repair of each camea
+             cPt3dr  aDirU0  =  aHom.VDir1().at(aKP);
+             cPt3dr  aDirV0  =  aHom.VDir2().at(aKP) ;
 
-	       // Direction in epipolar repair
-	       cPt3dr aDirU = aDirU0 * aMatU;
-	       cPt3dr aDirV = aDirV0 * aMatV ;
-               MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aDirU,aSVD1*aDirV))<1e-4 ,"Ess scal Mat Rec   ");
+	     // Direction in epipolar repair
+	     cPt3dr aDirU = aDirU0 * aMatU;
+	     cPt3dr aDirV = aDirV0 * aMatV ;
 
-	       // bundles in epipolar repair
-	       tSeg3dr aSegU(aPU,aPU+aDirU);
-	       tSeg3dr aSegV(aPV,aPV+aDirV);
+             // In Bench mode test that bundle complies with essential equation, in repair init and epip
+	     if (aRef)
+	     {
+                MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aDirU0,mMat*aDirV0))<1e-4 ,"Ess scal MatInit ");
+                MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aDirU,aSVD1*aDirV))<1e-4 ,"Ess scal Mat Rec   ");
+	     }
 
-	       cPt3dr ABC;
-	        BundleInters(ABC,aSegU,aSegV);
-               // To understand the test on signs, go to see the func bundle that copy coeef 
-	       // thet start from middle and have opposite directio,
-	       // cPt3dr aPI = BundleInters(ABC,aSegU,aSegV);
-	       //   Maintain this code it "proves" the correctness of computing PU/PV
-               //   StdOut() << aPI  << aPU + aDirU * (ABC.x() +0.5)  << aPV + aDirV * (-ABC.y() +0.5)  << "\n";
+	     // bundles in epipolar repair
+	     tSeg3dr aSegU(aPU,aPU+aDirU);
+	     tSeg3dr aSegV(aPV,aPV+aDirV);
 
+	     cPt3dr ABC;
+	     BundleInters(ABC,aSegU,aSegV);
+	     // on ground truth the bundle intersects perfectly
+	     if ((aRef!=nullptr) && (std::abs(ABC.z())>=1e-4))
+	     {
+                // this bad intersection can in fact occur when bundle are sub-parallel
+                MMVII_INTERNAL_ASSERT_bench( 1.0- std::abs(Cos(aDirU,aDirV)) <1e-3 ,"Ess Bundle Inter  ");
+	     }
+	     aNbPU += ABC.x() > 0;
+	     aNbPV += ABC.y() > 0 ;
+          }
 
-	       // on ground truth the bundle intersects perfectly
-	       if (std::abs(ABC.z())>=1e-4)
-	       {
-		       StdOut()  << "BUNDLE INTER " << ABC.z() << " \n";
-                       //MMVII_INTERNAL_ASSERT_bench(false ,"Ess Bundle Inter  ");
-		       // getchar();
-	       }
-	       aNbPU += (ABC.x() +0.5 > 0) ;
-	       //  the convention are opposite for U and V as segment are travalled in opposite directions
-	       aNbPV += (0.5- ABC.y() > 0) ;
-               // tREAL8  aScal  = Scal(aDirU,aSVD1*aDirV);
-	       // StdOut() << "Ssssssssssss " << aScal << "\n";
-            }
-            StdOut()  << " PUV=" << aNbPU/double(aNbP) << " "  << aNbPV/double(aNbP) 
-                      << "     ZUVp=" << aNbZpU/double(aNbP) << " " << aNbZpV/double(aNbP) 
-		      << "\n";
-
-	    if ((aNbPU==aNbP) && (aNbPV==aNbP))
-	    {
-               Got11 ++;
-               if (aRef)
-               {
-		  tMat aEstR = aMatU * aMatV.Transpose();
-		  cPt3dr aEstB = aMatU * aPV;
-
-		  StdOut()  << " DIST=" <<aEstR.L2Dist(aRef->Rot().Mat())   << "\n";
-		  StdOut()  << " COS=" <<  Cos(aEstB,aRef->Tr())  << "\n";
-		  MMVII_INTERNAL_ASSERT_bench(aEstR.L2Dist(aRef->Rot().Mat())<1e-4,"Dist Rot in Mat Ess Ctrl");
-		  MMVII_INTERNAL_ASSERT_bench(std::abs(Cos(aEstB,aRef->Tr()) -1)<1e-4,"Cos-Tr in Mat Ess Ctrl");
-
-		  // getchar();
-               }
-	    }
-
-	}
-	}
-
-        StdOut() << "Esss================================== " << Got11 << " \n";
-	if ( Got11!=1) 
-	{
-		getchar();
-	}
+	  aNb11 += (aNbPU==aNbP) && (aNbPV==aNbP);
+	  tPose aSol(aMatU * aPV,cRotation3D<tREAL8>(aMatU * aMatV.Transpose(),false));
+	  aBestPose.Add(aSol,aNbPU+aNbPV);
+       }
     }
 
+    if (aRef)
+    {
+       // with perfect data should have 1 and only 1 combination with perfect orient
+       MMVII_INTERNAL_ASSERT_bench(aNb11==1 ,"Mat ess : number comb in good dir   ");
 
-    // StdOut() << "EV=" << aEV(0) << " " << aEV(1) << " " << aEV(2) << "\n";
-    // StdOut() << "Det=" << aSVD.MatU().Det() << " " << aSVD.MatV().Det() << "\n";
-    // StdOut() << "\n";
+       const tPose& aPose =  aBestPose.IndexExtre();
+
+       MMVII_INTERNAL_ASSERT_bench(aPose.Rot().Mat().L2Dist(aRef->Rot().Mat())<1e-4,"Disr Rot in Matess");
+       MMVII_INTERNAL_ASSERT_bench(Norm2(VUnit(aRef->Tr()) -aPose.Tr())<1e-4,"Disr Tr in Matess");
+    }
+
+    return aBestPose.IndexExtre();
 }
 
 /* ************************************** */
@@ -792,8 +775,8 @@ void cCamSimul::BenchMatEss
 
             {
                 cIsometry3D<tREAL8>  aPRel =  aCam1->RelativePose(*aCam2);
-                StdOut() << " PROJS  " << E2Str(eProjPC(aK1)) << " " << E2Str(eProjPC(aK2))  << "\n";
-                aMatEL2.DoSVD(aSetD,&aPRel);
+                // StdOut() << " PROJS  " << E2Str(eProjPC(aK1)) << " " << E2Str(eProjPC(aK2))  << "\n";
+                aMatEL2.ComputePose(aSetD,&aPRel);
             }
             MMVII_INTERNAL_ASSERT_bench(aMatEL2.AvgCost(aSetD,1.0)<1e-5,"Avg cost ");
 

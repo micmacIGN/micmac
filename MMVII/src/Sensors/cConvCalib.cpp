@@ -231,7 +231,7 @@ void BenchPoseImportV1(const std::string & aNameOriV1,double anAccuracy)
      aPC->ToFile(aNameTmp);
 
 
-     cSensorCamPC  *aPC2  =  cSensorCamPC::FromFile(aNameTmp);
+     cSensorCamPC  *aPC2  =  cSensorCamPC::FromFile(aNameTmp,false);
      double aR2 = aPC2->AvgSqResidual(aExp.mCorresp) ;
 
      // StdOut() << "BenchPoseImportV1 " << aR2 <<  " " <<  aNameTmp << "\n"; getchar();
