@@ -4,7 +4,7 @@
     Eigen::SparseQR<SpMat, Eigen::AMDOrdering<int> > : 5-6 min
     Eigen::SparseQR<SpMat, Eigen::COLAMDOrdering<int> > : 5-6 min
     Eigen::SimplicialLDLT<SpMat, Eigen::Lower, Eigen::AMDOrdering<int> > : 40s (dont presque rien sur le calcul matriciel !)
-    Eigen::SimplicialLDLT<SpMat, Eigen::Lower, Eigen::AMDOrdering<int> > sans la réorganisation de la matrice : 40s
+    Eigen::SimplicialLDLT<SpMat, Eigen::Lower, Eigen::AMDOrdering<int> > sans la reorganisation de la matrice : 40s
     Eigen::SimplicialLDLT<SpMat, Eigen::Lower, Eigen::NaturalOrdering<int> > : 1 min
     Eigen::SparseLU<SpMat, Eigen::NaturalOrdering<int> > : 56s
 */
