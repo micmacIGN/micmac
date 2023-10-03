@@ -214,6 +214,7 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::Radiometry,"Radiometry"},
                 {eApF::Ori,"Ori"},
                 {eApF::Match,"Match"},
+                {eApF::GCP,"GCP"},
                 {eApF::TieP,"TieP"},
                 {eApF::TiePLearn,"TiePLearn"},
                 {eApF::Cloud,"Cloud"},
