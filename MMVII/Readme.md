@@ -1,26 +1,27 @@
 Dependencies
 ------------
-  - Required: boost, eigen3, cmake.
+  - Required: boost, cmake.
   - Optional: OpenMP, ccache
 
   - Ubuntu 20.04:
-    - `sudo apt install libboost-all-dev libeigen3-dev ccache cmake`
-  If using CLang version XX and want OpenMP:
-    - `sudo apt install libomp-XX-dev`
+    - `sudo apt install libboost-all-dev ccache cmake`
+    - If using CLang version XX and want OpenMP: `sudo apt install libomp-XX-dev`
 
 
-Compilation (short):
+Compilation (short), replace N with the number of processor threads:
 --------------------
     Compile MicMac V1
-    cd MMVII/build
+    cd MMVII
+    (mkdir -p build)
+    cd build
     cmake ..
-    make or make VERBOSE=1
+    make -j N (or make -j N VERBOSE=1 to see compile command line)
 
  On first compilation, generated code must be created:
 
-    make
+    make -j N
     ../bin/MMVII GenCodeSymDer
-    make
+    make -j N
 
  Tests :
 
@@ -31,18 +32,18 @@ Compilation (short):
 
     make clean     : delete build products
     make distclean : delete build products and generated codes
-    rm -fr MMVII/build/*` : reinitialize the build configuration
+    rm -fr MMVII/build/* : reinitialize the build configuration
 
  In case of SymDer-related compilation error, clear all generated code before compilation:
 
-   make distclean
-   make
-   ../bin/MMVII  GenCodeSymDer
-   make
+    make distclean
+    make
+    ../bin/MMVII  GenCodeSymDer
+    make
 
 Compilation (detail):
 --------------------
- - You can use `cmake -G Ninja ..` to use Ninja build system instead of the native one. (Ninja must be installed ...)
+ - You can use `cmake -G Ninja ..` to use Ninja build system instead of the native one. (`sudo apt install ninja-build`)
  - Use `cmake --build . -j 8` or `cmake --build . -j 8 -v` instead of make (works with all build systems)
  - Use `cmake --build . --target clean` or `cmake --build . --target cleanall`
  - Use `ccmake ..` or `cmake-gui ..` to change config option:
@@ -50,11 +51,6 @@ Compilation (detail):
        . Debug : -g
        . RelWithDebInfo : -O3 -g  (default)
        . Release : -O3 -DNDEBUG
-   - EIGEN3_INCLUDE_PATH:
-       . Contains path to eigen3 source files. Auto filled if cmake found eigen3
-       . You can set it to your own eigen3 directory if desired
-       . You HAVE to set it if cmake didn't find it
-       . You can clear it to force cmake to search for eigen3
     - CMAKE_CXX_COMPILER (advanced mode : 't'):
        . Allow to set compiler version and type (g++, clang)
 
@@ -72,13 +68,10 @@ Legacy :
  
    In case of SymDer-related compilation error, clear all generated code before compilation:
  
-   make distclean
-   make
-   /MMVII  GenCodeSymDer
-   make
-
-  if Eigen is not installed in /usr/include/eigen3 (apt install libeigen3-dev does this correctly), use:
-  `make EIGEN_DIR=/my_eigen_dir` in the above commands.
+    make distclean
+    make
+    /MMVII  GenCodeSymDer
+    make
 
 
 To generate html doc
@@ -90,6 +83,8 @@ In MMVII directory:
 
 To generate pdf doc
 -------------------
+
+Require latex: `sudo apt install texalive`
 
 In MMVII/Doc directory:
 
