@@ -5,6 +5,10 @@
 
 #include <filesystem>
 #include <string>
+#include <mutex>
+#include <thread>
+#include <atomic>
+#include <deque>
 
 
 #if   (THE_MACRO_MMVII_SYS==MMVII_SYS_L)  // Linux
@@ -76,11 +80,62 @@ int GlobSysCall(const cParamCallSys & aCom, bool SVP)
    return aResult;
 }
 
+class cMMVIIMultiProcess
+{
+public:
+    cMMVIIMultiProcess() {}
+    int Exec(const std::list<cParamCallSys> & aListCom,int aNbProcess,bool SVP,bool Silence)
+    {
+      for (const auto& aCom : aListCom)
+	     mQueueCom.push_back(aCom.Com());
+      StdOut().flush();
+      std::cerr.flush();
+      mError = 0;
+      std::vector<std::thread> aThreadList;
+      for (int i = 0; i < aNbProcess; ++i)
+          aThreadList.emplace_back(std::thread(&cMMVIIMultiProcess::ExecLoop, this, i, SVP, Silence));
+      for (auto& t : aThreadList)
+          t.join();
+      return mError;
+    }
+
+private:
+    void ExecLoop(int nThread, bool SVP, bool Silence)
+    {
+      while (true) {
+          std::string aCom;
+          {
+              std::lock_guard<std::mutex> lock(mMutex_QueueCom);
+              if (mQueueCom.empty() || mError)
+                  return;
+              aCom = mQueueCom.front();
+              mQueueCom.pop_front();
+          }
+          if (! Silence)
+          {
+              std::lock_guard<std::mutex> lock(mMutex_cout);
+              std::cout << aCom << "\n";
+              std::cout.flush();
+          }
+          int aResult = system(aCom.c_str());
+          if (aResult!= EXIT_SUCCESS)
+          {
+              mError = aResult;              // mError is shared std::atomic, will be /=0 if any thread doesn't return EXIT_SUCCESS
+              MMVII_INTERNAL_ASSERT_always(SVP,"Syscall for ["+aCom+"]");  // May be not thread safe ...
+          }
+      }
+    }
+
+    std::deque<std::string> mQueueCom;
+    std::atomic<int> mError;
+    std::mutex mMutex_QueueCom;
+    std::mutex mMutex_cout;
+};
+
 
 int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCallSys> & aListCom,int aNbProcess,bool SVP,bool Silence)
 {
-   //RemoveFile(const  std::string & aFile,bool SVP)
-
+   //CM: Keep creating the Makefile, maybe useful for debugging ?
    cMMVII_Ofs  aOfs(aNameMkF, eFileModeOut::CreateText);
    int aNumTask=0;
    std::string aStrAllTask = "all : ";
@@ -96,9 +151,8 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCal
    aOfs.Ofs() << "\t\n";
    aOfs.Ofs().close();
 
-   cParamCallSys aComMake("make","all","-f",aNameMkF,"-j"+ToStr(aNbProcess));
-
-   return GlobSysCall(aComMake,false);
+   cMMVIIMultiProcess e;
+   return e.Exec(aListCom, aNbProcess, SVP, Silence);
 }
 
 static fs::path MMVII_RawSelfExecName();
