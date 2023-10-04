@@ -6,6 +6,7 @@
 #endif
 
 #include "MMVII_AllClassDeclare.h"
+#include "cMMVII_Appli.h"
 
 namespace MMVII
 {
@@ -49,9 +50,9 @@ const eSYS TheSYS = eSYS::MacOs;
 int mmvii_NbProcSys();
 int mmvii_GetPId();
 
-int GlobSysCall(const std::string &, bool SVP=false); ///< call system, if SVP=false error not EXIT_SUCCESS
+int GlobSysCall(const cParamCallSys& , bool SVP=false); ///< call system, if SVP=false error not EXIT_SUCCESS
 ///  Execucte the command in parallel by generating a makefile
-int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::string> & aListCom,int aNbProcess,bool SVP=false,bool Silence=false);
+int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCallSys> & aListCom,int aNbProcess,bool SVP=false,bool Silence=false);
 
 // Return full canonical path (absolute, no DOT, symbolic links followed) of the MMVII root dir (deduced from current executable path)
 std::string MMVII_CanonicalRootDirFromExec();

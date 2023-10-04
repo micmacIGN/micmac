@@ -1,4 +1,5 @@
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Sys.h"
 #include<map>
 
 /** \file cMMVII_CatVideo.cpp
@@ -217,15 +218,12 @@ int cAppli_ReduceVideo::Exe()
 	         }
 	         std::string aNameTmp   =  mPrefixRed + LastPrefix(aNameInit) + "-TmpRed" + ".mp4";
 
-                 std::string aStrSz;
-
-		 if (mSzReduc.x()>0)  //  x=-1 => convention for conserving size
-		 {
-                    aStrSz = " -vf scale=" + ToStr(mSzReduc.x()) + ":" + ToStr(mSzReduc.y())  ;
-		 }
-	         std::string aCom =    "ffmpeg -i " + Quote(aCurDir+aNameInit)
-		                     + aStrSz
-				     + " " +  Quote(aCurDir+aNameTmp);
+         cParamCallSys aCom("ffmpeg","-i",aCurDir+aNameInit);
+         if (mSzReduc.x()>0)  //  x=-1 => convention for conserving size
+         {
+                    aCom.AddArgs("-vf","scale=" + ToStr(mSzReduc.x()) + ":" + ToStr(mSzReduc.y()));
+         }
+         aCom.AddArgs(aCurDir+aNameTmp);
 
 		 if (mExec)
 		 {
@@ -255,7 +253,7 @@ int cAppli_ReduceVideo::Exe()
                          aFileFails.push_back(aFullN0);
 		    }
 		 }
-	         StdOut() << "COM=[" << aCom <<"]" << std::endl; 
+	         StdOut() << "COM=[" << aCom.Com() <<"]" << std::endl; 
 	     }
 	 }
     }

@@ -291,23 +291,59 @@ class cMMVII_Ap_CPU
          cTimerSegm                                mTimeSegm;  ///<  To have a global time Segm
 };
 
+
+
 /**   When we will deal with cluster computing, it will be usefull that command can specify
-   their ressource , for now this class is just a "coquille vide" arround a string
+   their ressource.
+
+   This class contains all the args of the command line (i.e. args[0] = program to execute.
+   Each argument must be added seperatly or in a coma separated list.
+   The arguments will be automatically quoted (hopefully correctly ...).
+
+   The full command line can be retreive by the .Com() method.
+
+   Ex:
+     cParamCallSys aCom(cMMVII_Apli::FullBin(),"Bench",1);
+   or
+     cParamCallSys aCom;
+     aCom.AddArgs(cMMVII_Apli::FullBin());
+     aCom.AddArgs("Bench");
+     aCom.AddArgs("1");
+
+   or
+     cParamCallSys aCom(cMMVII_Apli::FullBin());
+     aCom.AddArgs("Bench","1");
+
+    ExtSysCall(aCom,true);
+
 */
+
 class cParamCallSys
 {
     public :
-       cParamCallSys(const cSpecMMVII_Appli & aCom2007,bool InArgSep);
-       void AddArgs(const std::string &);
+       cParamCallSys();
+       explicit cParamCallSys(const cSpecMMVII_Appli & aCom2007);
 
-       int Execute() const;
+       template<typename ... Targs>
+       explicit cParamCallSys(Targs... args)
+       {
+             AddArgs(args...);
+       }
+
+       void AddArgs(const std::string &);
+       template<typename ... Targs>
+       void AddArgs(const std::string &arg, Targs... args)
+       {
+           AddArgs(arg);
+           AddArgs(args...);
+       }
+
+       int Execute(bool forceExternal) const;
        const std::string & Com() const ; ///< Accessor
     private :
-       const cSpecMMVII_Appli * mSpec;  ///< used for allocation in ArgSep mode
-       bool        mArgSep;  ///< means that args are maintend separated 4 use in arg/argv mode, else construc glob com
-       std::string mCom; ///< used with ! mArgSep
-       int         mArgc;  ///< classical arg count
-       std::vector<std::string> mArgv; ///< used with mArgSep
+       const cSpecMMVII_Appli * mSpec;
+       std::string mCom;
+       std::vector<std::string> mArgv;
 };
 
 
@@ -373,12 +409,12 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMultipleOfs & ErrOut();
 
         /// External call sys : use GlobalSysCall + register the command in log files
-        int ExtSysCall(const std::string & aCom, bool SVP);
+        int ExtSysCall(const cParamCallSys & aCom, bool SVP);
 
 
         static bool WithWarnings();
         /// MMVII call itself
-        int   ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,bool ByLineCom=true); 
+        int   ExeCallMMVII(const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&);
         void  ExeMultiAutoRecallMMVII
                                 (  const std::string & aNameOpt  ,  //!  Name of parameter to substitue, if mandatory "0", "1" ....
                                    const std::vector<std::string> &  LVals, //! List of value for each process
@@ -387,10 +423,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                                  ); ///< MMVII reccall the same command itself
 
 
-        int ExeComSerial(const std::list<cParamCallSys> &);    ///< 1 after 1
-        int ExeComParal(const std::list<cParamCallSys> &,bool Silence=false);     ///< soon paral with Make for now (other to see ...)
-        int ExeComParal(const std::list<std::string> & aLCom,bool Silence=false); ///< in paral for any command; cut in pack and call ExeOnePackComParal
-        int ExeOnePackComParal(const std::list<std::string> & aLCom,bool Silence=false); ///< really run in paral for any command
+        int ExeComSerial(const std::list<cParamCallSys> &, bool forceExternal);    ///< 1 after 1
+        int ExeComParal(const std::list<cParamCallSys> &,bool Silence=false);      ///< in paral for any command; cut in pack and call ExeOnePackComParal
+        int ExeOnePackComParal(const std::list<cParamCallSys> &aLCom, bool Silence=false); ///< really run in paral for any command
 
 
 
@@ -441,6 +476,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static const std::string & TmpDirTestMMVII();     ///< where to put binary file for bench, Export for global bench funtion
         static const std::string & InputDirTestMMVII();   ///<  where are input files for bench   , Export for global bench funtion
         static const std::string & DirMicMacv1();         ///<  Main directory of micmac V1
+        static const std::string & MMV1Bin();             ///< full name of micmac v1 (mm3d) binary
 
         ///  Name of folder specific to the command
         std::string  DirTmpOfCmd(eModeCreateDir=eModeCreateDir::CreateIfNew) const;   
@@ -463,7 +499,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
         virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
-        std::string  CommandOfMain() const; ///< Glob command by aggregation of ArgcArgv
+        cParamCallSys CommandOfMain() const; ///< Glob command by aggregation of ArgcArgv
 
         static void AddObj2DelAtEnd(cObj2DelAtEnd *);
 
@@ -535,20 +571,15 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         // aNameOpt :  si existe substitue, si "+" ajoute a mandatory, si "3"  => sub 3 mandatory, si MMVII_NONE
         cParamCallSys  StrCallMMVII (  int   aKthCall, // sometime when called in // it's necessary to know the order
 			              const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
-                                      bool Separate, // Separate argv for call inside
                                       const cColStrAOpt &  aLSubst  = cColStrAOpt::Empty,
 				      const std::string &  aPaternInit =""// if not "" initial value of the pattern that was expanded
-				      ); ///< MMVII call itself
+                                     ); ///< MMVII call itself
         std::list<cParamCallSys>  ListStrCallMMVII
-                                (  const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,
-                                   const std::string & aNameOpt  , const std::vector<std::string> &  LVals,
-                                   bool Separate
-                                   //  const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
-                                 ); ///< MMVII call itself
+                                (const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
+                                   const std::string & aNameOpt  , const std::vector<std::string> &  LVals); ///< MMVII call itself
 
         std::list<cParamCallSys>  ListStrAutoRecallMMVII
                                 (  const std::string & aNameOpt  , const std::vector<std::string> &  LVals,
-                                   bool Separate,
                                    const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
                                  ); ///< MMVII reccall the same command itself
 
@@ -631,9 +662,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static std::string                        mTopDirMMVII;   ///< directory  mother of src/ bin/ ...
 
         static std::string                        mFullBin;       ///< full name of binarie =argv[0]
-        static std::string                        mDirMMVII;      ///< directory of binary
         static std::string                        mDirMicMacv1;   ///< Dir where is located MicMac V1
         static std::string                        mDirMicMacv2;   ///< Dir where is located MicMac V2
+        static std::string                        mMMV1Bin;       ///< full name of mm3d binary
         static std::string                        mDirTestMMVII;  ///< Directory for read/write bench files
         static std::string                        mTmpDirTestMMVII;  ///< Tmp files (not versionned)
         static std::string                        mInputDirTestMMVII;  ///< Input files (versionned on git)

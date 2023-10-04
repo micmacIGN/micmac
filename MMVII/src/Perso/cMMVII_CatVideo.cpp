@@ -122,16 +122,16 @@ int cAppli_CatVideo::Exe()
    if (! IsInit(&mOptions))
    {
       if (mVideoMode)
-         mOptions = " -vcodec mpeg4 -b 15000k ";
+         mOptions = "-vcodec mpeg4 -b 15000k";
    }
 
-   std::string aCom = "ffmpeg -safe 0 -f concat -i "+ mNameFoF + mOptions+ " " +  mNameResult;
+   cParamCallSys aCom("ffmpeg","-safe","0","-f","concat","-i",mNameFoF,mOptions,mNameResult);
    int aRes = EXIT_SUCCESS ;
    if (mExec) 
    {
       aRes = ExtSysCall(aCom,false);
    }
-   StdOut() << "Com=[" << aCom << "]" << std::endl;
+   StdOut() << "Com=[" << aCom.Com() << "]" << std::endl;
 
    return aRes;
 }

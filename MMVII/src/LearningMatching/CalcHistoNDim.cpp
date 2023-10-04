@@ -562,7 +562,7 @@ int  cAppliCalcHistoNDim::Exe()
    if (1)
    {
       cMultipleOfs  aMulOfs(NameReport(), eFileModeOut::CreateText);
-      aMulOfs << "COM=[" << CommandOfMain() << "]\n\n";
+      aMulOfs << "COM=[" << CommandOfMain().Com() << "]\n\n";
       for (bool InReport : {false,true})
       {
           cMultipleOfs &  aOfs = InReport ? aMulOfs : StdOut() ;

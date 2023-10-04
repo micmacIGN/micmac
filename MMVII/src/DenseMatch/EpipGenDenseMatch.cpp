@@ -116,8 +116,8 @@ class cOneLevel
        std::string  StdFullName(const std::string & aName) const;
                  //  ------  Generate Commands
                    /// Generate the clipped images
-       std::string StrComClipIm(bool ModeIm,const cPt2di & aInd,const cParam1Match &) const;
-       std::string StrComReduce(bool ModeIm=true) const; ///< Generate the string for computing reduced images
+       cParamCallSys StrComClipIm(bool ModeIm,const cPt2di & aInd,const cParam1Match &) const;
+       cParamCallSys StrComReduce(bool ModeIm=true) const; ///< Generate the string for computing reduced images
                  //  ------  Generate name for cliped images
        std::string  NameClip(const std::string & aPrefix,const cPt2di & aInd) const; ///< Genreik name
        std::string  NameClipIm(const cPt2di & aInd) const;  ///<  Clipped input image
@@ -191,7 +191,7 @@ class cAppli : public cMMVII_Appli
                  // --- Others 
         void MakePyramid(); ///< Generate the pyramid of image
         void MatchOneLevel(int aLevel);  ///< Compute the matching a given level of the pyramid
-        std::string ComMatch (cParam1Match &) ; ///< Command for match, depend of selected method
+        cParamCallSys ComMatch (cParam1Match &) ; ///< Command for match, depend of selected method
         void SetOutPut(std::string & aNamePx);  ///< Fix to same value aNamePx and mOutPx
 
        // =========== Inline Definition ========
@@ -320,16 +320,18 @@ void  cOneLevel::MakeImPx()
    cDataFileIm2D::Create(mNamePx,eTyNums::eTN_REAL4,aDataIm.Sz());
 }
 
-std::string cOneLevel::StrComReduce(bool ModeIm) const
+cParamCallSys cOneLevel::StrComReduce(bool ModeIm) const
 {
 
-   return  "mm3d ScaleIm"
-           + BLANK + NameImOrMasq(ModeIm)
-           + BLANK + ToStr(mIm.mAppli.mRatioByL)
-           + BLANK + std::string("Out=")  + mDownLev->NameImOrMasq(ModeIm)
-           + std::string(ModeIm ? "" : " ModMasq=1")
-	   + BLANK + "@ExitOnBrkp"
-   ;
+   return cParamCallSys(
+       cMMVII_Appli::MMV1Bin(),
+       "ScaleIm",
+       NameImOrMasq(ModeIm),
+       ToStr(mIm.mAppli.mRatioByL),
+       std::string("Out=") + mDownLev->NameImOrMasq(ModeIm),
+       ModeIm ? "" : " ModMasq=1",
+	   "@ExitOnBrkp"
+       );
 }
 
 
@@ -366,32 +368,34 @@ std::string  cOneLevel::NameClipDirTmp(const cPt2di & aInd) const
 }
   
 
-std::string  cOneLevel::StrComClipIm(bool ModeIm,const cPt2di & aInd,const cParam1Match & aParam) const
+cParamCallSys cOneLevel::StrComClipIm(bool ModeIm,const cPt2di & aInd,const cParam1Match & aParam) const
 {
    bool IsIm1 = mIm.mIsIm1;
    const cBox2di & aBox = IsIm1 ? aParam.mBoxIn1 : aParam.mBoxIn2;
 
 
-   std::string aCom =
-         "mm3d ClipIm" 
-          + BLANK +  NameImOrMasq(ModeIm)
-          + BLANK +  ToStrComMMV1(aBox.P0())
-          + BLANK +  ToStrComMMV1(aBox.Sz())
-          + BLANK +  "Out=" + (ModeIm ? NameClipIm(aInd) : NameClipMasq(aInd))
-          + BLANK + "@ExitOnBrkp"
+   cParamCallSys aCom(
+         cMMVII_Appli::MMV1Bin(),
+         "ClipIm",
+          NameImOrMasq(ModeIm),
+          ToStrComMMV1(aBox.P0()),
+          ToStrComMMV1(aBox.Sz()),
+          "Out=" + (ModeIm ? NameClipIm(aInd) : NameClipMasq(aInd)),
+          "@ExitOnBrkp"
+       );
    ;
 
    if (IsIm1)
    {
       if (aParam.mBoxIn1.P1().x() != aParam.mBoxUtiIn1.P1().x())
-         aCom = aCom + BLANK + "XMaxNot0=" + ToStr(aParam.mBoxUtiIn1.P1().x());
+          aCom.AddArgs("XMaxNot0=" + ToStr(aParam.mBoxUtiIn1.P1().x()));
 
       if (aParam.mBoxIn1.P0().x() != aParam.mBoxUtiIn1.P0().x())
-         aCom = aCom + BLANK + "XMinNot0=" + ToStr(aParam.mBoxUtiIn1.P0().x());
+          aCom.AddArgs("XMinNot0=" + ToStr(aParam.mBoxUtiIn1.P0().x()));
    }
 
    if (ModeIm &&   mAppli.mRandPaded)
-      aCom = aCom + " AmplRandVout=255";
+      aCom.AddArgs("AmplRandVout=255");
 
    return aCom;
 }
@@ -662,34 +666,34 @@ void cAppli::SetOutPut(std::string & aNamePx)
      mOutPx = aNamePx;
 }
 
-std::string cAppli::ComMatch(cParam1Match & aParam) 
+cParamCallSys cAppli::ComMatch(cParam1Match & aParam)
 {
    switch (mModeMatchCur)
    {
        case  eModeEpipMatch::eMEM_MMV1 :
        {
-          return    "mm3d MMTestMMVII"
-                 +  BLANK  +  DirTmpOfCmd()
-                 +  BLANK  +  aParam.mClipNameIm1
-                 +  BLANK  +  aParam.mClipNameIm2
-                 +  BLANK  +  "NbP=1"   // Allocate only one process as they are themself parallelized
-                 +  BLANK  +  "DirMEC=" + aParam.mClipDirTmp  // 
-                 +  BLANK  +  "FileExp=" + aParam.mClipNamePx  // 
-          ;
-       	  break;
+          return cParamCallSys(
+                 MMV1Bin(),
+                 "MMTestMMVII",
+                 DirTmpOfCmd(),
+                 aParam.mClipNameIm1,
+                 aParam.mClipNameIm2,
+                 "NbP=1",   // Allocate only one process as they are themself parallelized
+                 "DirMEC=" + aParam.mClipDirTmp,  //
+                 "FileExp=" + aParam.mClipNamePx  //
+          );
        }
        case eModeEpipMatch::eMEM_PSMNet :
        {
 		  std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
-          std::string aCom = "bash " + aDenseMDir + "run.sh " 
-				             //+ BLANK + "--loadmodel"  + BLANK + mTrainedModel
-                             + BLANK + "--leftimg"  + BLANK + DirTmpOfCmd() + aParam.mClipNameIm1
-                             + BLANK + "--rightimg" + BLANK + DirTmpOfCmd() + aParam.mClipNameIm2
-                             + BLANK + "--result"     + BLANK + DirTmpOfCmd() + aParam.mClipNamePx;
-				  
-          
-		  return aCom;
-          break;
+          return cParamCallSys(
+                     "bash",
+                     aDenseMDir + "run.sh",
+                     // "--loadmodel",mTrainedModel,
+                     "--leftimg", DirTmpOfCmd() + aParam.mClipNameIm1,
+                     "--rightimg", DirTmpOfCmd() + aParam.mClipNameIm2,
+                     "--result", DirTmpOfCmd() + aParam.mClipNamePx
+              );
        }
        case eModeEpipMatch::eMEM_NoMatch :
        {
@@ -706,12 +710,12 @@ std::string cAppli::ComMatch(cParam1Match & aParam)
 
              cDataFileIm2D::Create(aNamePx,eTyNums::eTN_INT1,aParam.mBoxIn1.Sz(),1);
 
-             return "";
+             return cParamCallSys();
        }
 
        default : break;
    }
-   return "";
+   return cParamCallSys();
 }
 
 
@@ -724,7 +728,7 @@ void cAppli::MakePyramid()
       for (int aLev=0 ; aLev<mNbLevel ; aLev++)
       {
           // In each level, can compute in parallel for both images
-          std::list<std::string> aLComReduce;
+          std::list<cParamCallSys> aLComReduce;
           for (auto aIm : mIms)
           {
               aLComReduce.push_back(aIm->LevAt(aLev).StrComReduce(true));  // Image
@@ -811,8 +815,8 @@ void  cAppli::MatchOneLevel(int aLevel)
 
      cParseBoxInOut<2> aBoxParser =  cParseBoxInOut<2>::CreateFromSize(aCurBoxFile1,mSzTile);
 
-     std::list<std::string>   aLComClip; // list of commands for clipping images
-     std::list<std::string>   aLComMatch; // list of command for match cliped image
+     std::list<cParamCallSys> aLComClip; // list of commands for clipping images
+     std::list<cParamCallSys> aLComMatch; // list of command for match cliped image
      std::list<cParam1Match>  aLParam; // list of parameter of the match
      for (auto anIndex :  aBoxParser.BoxIndex())
      {
@@ -938,10 +942,10 @@ int  cAppli::ExecuteBench(cParamExeBench & aParam)
 
 
    std::string aDirData = InputDirTestMMVII() + "EPIP/Tiny/";
-   std::string aCom =    FullBin()
-                       + BLANK  + mSpecs.Name()
-                       + " MMV1 ImR.tif ImL.tif   Out=PxRL.tif SzTile=[300,200]"
-                       + BLANK + GOP_DirProj + "=" + aDirData;
+   cParamCallSys aCom(FullBin(),
+                      mSpecs.Name(),
+                      "MMV1","ImR.tif","ImL.tif","Out=PxRL.tif","SzTile=[300,200]",
+                      GOP_DirProj + "=" + aDirData);
 
    ExtSysCall(aCom,false);
 

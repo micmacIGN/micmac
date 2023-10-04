@@ -3,6 +3,7 @@
 #include "MMVII_Image2D.h"
 #include "MMVII_DeclareCste.h"
 #include "cMMVII_Appli.h"
+#include "MMVII_Sys.h"
 
 
 extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff
@@ -24,12 +25,10 @@ void Init_mm3d_In_MMVII()
    if (! First) return;
    First = false;
 
-   static const std::string MMV1Bin = cMMVII_Appli::DirMicMacv1() + "bin/mm3d";
-
    // Compute mm3d location from relative position to MMVII
    // static std::string CA0 =  DirBin2007 + "../../bin/mm3d";
-   char * A0= const_cast<char *>(MMV1Bin.c_str());
-   MM3DFixeByMMVII = MMV1Bin;
+   char * A0= const_cast<char *>(cMMVII_Appli::MMV1Bin().c_str());
+   MM3DFixeByMMVII = cMMVII_Appli::MMV1Bin();
    MMD_InitArgcArgv(1,&A0);
 }
 
@@ -431,9 +430,10 @@ cIm2D<tU_INT1> ImageOfString_DCT(const std::string & aStr ,int aSpace)
 
 void Convert_JPG(const std::string &  aNameIm,bool DeleteAfter,tREAL8 aQuality,const std::string & aPost)
 {
-       std::string aCom =    "convert -quality "+  ToStr(aQuality) 
-	                   + " " + aNameIm  
-			   + " " +  LastPrefix(aNameIm) + "." + aPost;
+    cParamCallSys aCom("convert","-quality",ToStr(aQuality),
+	                   aNameIm,
+                       LastPrefix(aNameIm) + "." + aPost
+                       );
 
        int aResult = GlobSysCall(aCom,true);
 

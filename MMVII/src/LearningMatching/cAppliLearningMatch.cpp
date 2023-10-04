@@ -71,7 +71,7 @@ std::string cAppliLearningMatch::MakeName(const std::string & aName,const std::s
 
 void cAppliLearningMatch::GenConvertIm(const std::string & aInput, const std::string & aOutput)
 {
-    std::string aCom =   "convert -colorspace Gray -compress none " + aInput + " " + aOutput;
+    cParamCallSys aCom("convert","-colorspace","Gray","-compress","none",aInput,aOutput);
     GlobSysCall(aCom);
 }
 

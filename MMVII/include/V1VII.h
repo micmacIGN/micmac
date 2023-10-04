@@ -11,9 +11,6 @@
 namespace MMVII
 {
 
-const std::string & MMV1Bin();
-
-
 template <class Type> Pt2d<Type>  ToMMV1(const cPtxd<Type,2> &  aP) {return  Pt2d<Type>(aP.x(),aP.y());}
 template <class Type> Pt3d<Type>  ToMMV1(const cPtxd<Type,3> &  aP) {return  Pt3d<Type>(aP.x(),aP.y(),aP.z());}
 

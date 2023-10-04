@@ -327,7 +327,7 @@ int  cAppliSimulCodeTarget::Exe()
    }
 
    mPrefixOut =  ThePrefixSimulTarget +  mSuplPref + LastPrefix(FileOfPath(mNameIm));
-   mRS.mCom = CommandOfMain();
+   mRS.mCom = CommandOfMain().Com();
    // mPCT.InitFromFile(mNameSpecif);
    mSpec =  cFullSpecifTarget::CreateFromFile(mNameSpecif);
 

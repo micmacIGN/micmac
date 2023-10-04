@@ -66,18 +66,18 @@ void MMVII_Warning(const std::string & aMes,int aLine,const std::string &  aFile
 */
 
 
-int GlobSysCall(const std::string & aCom, bool SVP) 
+int GlobSysCall(const cParamCallSys & aCom, bool SVP)
 {
-   int aResult = system(aCom.c_str());
+   int aResult = system(aCom.Com().c_str());
    if (aResult != EXIT_SUCCESS)
    {
-      MMVII_INTERNAL_ASSERT_always(SVP,"Syscall for ["+aCom+"]");
+      MMVII_INTERNAL_ASSERT_always(SVP,"Syscall for ["+aCom.Com()+"]");
    }
    return aResult;
 }
 
 
-int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::string> & aListCom,int aNbProcess,bool SVP,bool Silence)
+int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCallSys> & aListCom,int aNbProcess,bool SVP,bool Silence)
 {
    //RemoveFile(const  std::string & aFile,bool SVP)
 
@@ -89,14 +89,14 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::stri
        std::string aNameTask = "Task_" + ToStr(aNumTask);
        aStrAllTask += BLANK  + aNameTask;
        aOfs.Ofs() << aNameTask << " :\n";
-       aOfs.Ofs() << (Silence ? "\t@" : "\t") << aNameCom << "\n";
+       aOfs.Ofs() << (Silence ? "\t@" : "\t") << aNameCom.Com() << "\n";
        aNumTask++;
    }
    aOfs.Ofs() << aStrAllTask << "\n";
    aOfs.Ofs() << "\t\n";
    aOfs.Ofs().close();
 
-   std::string aComMake = "make all -f " +  aNameMkF + " -j" + ToStr(aNbProcess);
+   cParamCallSys aComMake("make","all","-f",aNameMkF,"-j"+ToStr(aNbProcess));
 
    return GlobSysCall(aComMake,false);
 }
