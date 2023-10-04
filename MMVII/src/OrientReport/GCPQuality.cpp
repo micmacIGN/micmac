@@ -15,6 +15,7 @@ namespace MMVII
 {
 
 
+
 /* ==================================================== */
 /*                                                      */
 /*          cAppli_CalibratedSpaceResection             */
@@ -31,21 +32,30 @@ class cAppli_CGPReport : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
      private :
+	/** make the report  by image, for each image a cvs file with all GCP,
+	 * optionnaly make a visualisation of the residual fielsd for each image */
         void  MakeOneIm(const std::string & aNameIm);
+
+	/** Make a report with an average for each GCP */
+        void  ReportsByGCP();
+	/** Make a visualization of residual in sensor plane*/
+        void  ReportsByCam();
+
         void  MakeGlobReports();
         void  BeginReport();
-        void  ReportsByGCP();
-        void  ReportsByCam();
 
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
 
 	std::vector<double>      mGeomFiedlVec;
+	std::vector<int>         mPropStat;
 
 	std::string              mPostfixReport;
 	std::string              mPrefixReport;
+
 	std::string              mNameReportIm;
         std::string              mNameReportGCP;
+        std::string              mNameReportCam;
 };
 
 cAppli_CGPReport::cAppli_CGPReport
@@ -54,7 +64,8 @@ cAppli_CGPReport::cAppli_CGPReport
      const cSpecMMVII_Appli & aSpec
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
-     mPhProj       (*this)
+     mPhProj       (*this),
+     mPropStat     ({50,75})
 {
 }
 
@@ -72,8 +83,9 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgObl(cCollecSpecArg2007 & anArgObl)
 cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
-    return    anArgOpt
+    return      anArgOpt
 	     << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray,Zoom?=2]",{{eTA2007::ISizeV,"[3,4]"}})
+	     << AOpt2007(mPropStat,"Perc","Percentil for stat exp",{eTA2007::HDV})
     ;
 }
 
@@ -133,22 +145,16 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 	aStat.Add(aDist);
     }
 
-
-    std::vector<std::string> aVIm{
-                                    aNameIm,
-                                    ToStr(aAvg2d.Average().x()),
-                                    ToStr(aAvg2d.Average().y()),
-				    ToStr(aStat.Avg()),
-				    ToStr(aStat.StdDev()),
-				    ToStr(aStat.ErrAtProp(0.5)),
-				    ToStr(aStat.ErrAtProp(0.75))
-                              };
-    AddOneReportCSV(mNameReportIm,aVIm);
+    AddStdStatCSV
+    (
+       mNameReportIm,"Image",aStat,mPropStat, 
+       {ToStr(aAvg2d.Average().x()),ToStr(aAvg2d.Average().y())}
+    );
 }
 
 void cAppli_CGPReport::BeginReport()
 {
-      AddOneReportCSV(mNameReportIm,{"Image","AvgX","AvgY","AvgD","Sigma","V50","V75"});
+   AddStdHeaderStatCSV(mNameReportIm,"Image",mPropStat,{"AvgX","AvgY"});
 }
 
 
@@ -165,7 +171,7 @@ void cAppli_CGPReport::ReportsByGCP()
    const std::vector<cSensorImage*> &  aVSens =  aSetMes.VSens() ;
 
    InitReport(mNameReportGCP,"csv",false);
-   AddOneReportCSV(mNameReportGCP,{"GCP","Avg","StdDev","P50","P75"});
+   AddStdHeaderStatCSV(mNameReportGCP,"GCP",mPropStat);
 
    for (const auto &  aMesIm :  aSetMes.MesImOfPt())
    {
@@ -177,15 +183,7 @@ void cAppli_CGPReport::ReportsByGCP()
 	{
             aStat.Add(Norm2( aMesIm.VMeasures()[aKIm]  - aVSens[aVIndI[aKIm]]->Ground2Image(aGCP.mPt)));
 	}
-	std::vector<std::string>  aVReport
-	{
-	       aGCP.mNamePt,
-	       ToStr(aStat.Avg()),
-	       ToStr(aStat.StdDev()),
-	       ToStr(aStat.ErrAtProp(0.5)),
-	       ToStr(aStat.ErrAtProp(0.75))
-	};
-        AddOneReportCSV(mNameReportGCP,aVReport);
+	AddStdStatCSV(mNameReportGCP,aGCP.mNamePt,aStat,mPropStat);
    }
 
 }
@@ -203,6 +201,9 @@ void cAppli_CGPReport::ReportsByCam()
        aMapCam[aCam->InternalCalib()].push_back(aCam);
    }
 
+   InitReport(mNameReportCam,"csv",false);
+   AddStdHeaderStatCSV(mNameReportCam,"Cam",mPropStat);
+
    tREAL8 aFactRed = 100.0;
    tREAL8 anExag = 1000;
    for (const auto& aPair : aMapCam)
@@ -214,16 +215,20 @@ void cAppli_CGPReport::ReportsByCam()
        cIm2D<tREAL8> aImY(aSz,nullptr,eModeInitImage::eMIA_Null);  // average Y redidual
        cIm2D<tREAL8> aImW(aSz,nullptr,eModeInitImage::eMIA_Null);  // averagge weight
 
+       cStdStatRes               aStat;
+
        for (const auto & aCam : aPair.second)
        {
            cSet2D3D aSet32;
 	   aSetMes.ExtractMes1Im(aSet32,aCam->NameImage());
-// StdOut() << " aCam->NameImage()aCam->NameImage() " << aCam->NameImage() << "\n";
 
            for (const auto & aPair : aSet32.Pairs())
            {
                cPt2dr aP2 = aPair.mP2;
-               cPt2dr aRes = (aCam->Ground2Image(aPair.mP3) - aP2) *anExag;
+               cPt2dr aRes = (aCam->Ground2Image(aPair.mP3) - aP2) ;
+	       aStat.Add(Norm2(aRes));
+
+               aRes = aRes *anExag;
                aImX.DIm().AddVBL(aP2/aFactRed,aRes.x());
                aImY.DIm().AddVBL(aP2/aFactRed,aRes.y());
                aImW.DIm().AddVBL(aP2/aFactRed,1.0);
@@ -242,6 +247,8 @@ void cAppli_CGPReport::ReportsByCam()
        aImX.DIm().ToFile(mPhProj.DirVisu() + "X_Residual_"+aCalib->Name() +".tif");
        aImY.DIm().ToFile(mPhProj.DirVisu() + "Y_Residual_"+aCalib->Name() +".tif");
        aImW.DIm().ToFile(mPhProj.DirVisu() + "W_FiltResidual_"+aCalib->Name() +".tif");
+
+       AddStdStatCSV(mNameReportCam,aCalib->Name(),aStat,mPropStat);
    }
 }
 
@@ -270,8 +277,9 @@ int cAppli_CGPReport::Exe()
    mPhProj.FinishInit();
 
    mPostfixReport  =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn() ;
-   mNameReportIm = "ByImage" + mPostfixReport;
-   mNameReportGCP ="ByGCP" + mPostfixReport;
+   mNameReportIm   =  "ByImage" + mPostfixReport;
+   mNameReportGCP  =  "ByGCP"   + mPostfixReport;
+   mNameReportCam   =  "ByCam"   + mPostfixReport;
 
 
    InitReport(mNameReportIm,"csv",true);

@@ -156,6 +156,7 @@ class cAppli_ImportGCP : public cMMVII_Appli
 	int              mLLast;
 	int              mComment;
 	int              mNbDigName;
+	std::string      mPatternTransfo;        
 
         std::string mNameOut; 
 };
@@ -184,6 +185,9 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mNameGCP,"NameGCP","Name of GCP set")
        << AOpt2007(mNameOut,"Out","Name of output file, def=\"NameGCP+xml/json\"")
        << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
+       << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
+       << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
+       << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)")
        << mPhProj.DPPointsMeasures().ArgDirOutOpt()
     ;
 }
@@ -233,6 +237,8 @@ int cAppli_ImportGCP::Exe()
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
          std::string aName = aVNames.at(aK).at(0);
+	 if (IsInit(&mPatternTransfo))
+		 aName = PatternKthSubExpr(mPatternTransfo,1,aName);
 	 if (IsInit(&mNbDigName))
             aName =   ToStr(cStrIO<int>::FromStr(aName),mNbDigName);
 

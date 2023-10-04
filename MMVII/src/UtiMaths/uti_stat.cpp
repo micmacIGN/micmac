@@ -490,6 +490,7 @@ tREAL8  cStdStatRes::StdDev() const {return std::sqrt(mAvgDist2.Average());}
 tREAL8  cStdStatRes::ErrAtProp(tREAL8 aProp) const {return NC_KthVal(mVRes,aProp);}
 tREAL8  cStdStatRes::Min() const {return mBounds.VMin();}
 tREAL8  cStdStatRes::Max() const {return mBounds.VMax();}
+int     cStdStatRes::NbMeasures() const {return mVRes.size();}
 
 
 

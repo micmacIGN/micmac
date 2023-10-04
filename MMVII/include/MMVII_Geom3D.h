@@ -298,7 +298,7 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 class cPlane3D
 {
      public :
-         cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
+         static cPlane3D FromP0And2V(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
          static cPlane3D FromPtAndNormal(const cPt3dr & aP0,const cPt3dr& aAxeK);
          static cPlane3D From3Point(const cPt3dr & aP0, const cPt3dr & aP1, const cPt3dr &aP2);
 	 /// Return the indexes of the "best" plane
@@ -321,6 +321,7 @@ class cPlane3D
          const cPt3dr& AxeK() const;
 
      private :
+         cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ);
          cPt3dr mP0;
          cPt3dr mAxeI;
          cPt3dr mAxeJ;

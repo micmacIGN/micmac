@@ -182,6 +182,7 @@ template <class TypeObj,class TypeLayer>  class cLayer3D ;
 
 // MMVII_Matrix.h
 template <class Type> class  cDenseVect;
+class cStdStatRes;
 
 
 //  MMVII_Triangles.h

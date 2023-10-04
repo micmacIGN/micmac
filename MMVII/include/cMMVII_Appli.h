@@ -495,6 +495,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
 	void  AddOneReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
 
+	void  AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
+	void  AddStdStatCSV(const std::string &anId,const std::string & aCol1,const cStdStatRes &,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
+
     private:
 	void  AddOneReport(const std::string &anId,const std::string & VecMsg);
 	void  DoMergeReport();

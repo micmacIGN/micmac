@@ -145,6 +145,11 @@ cPlane3D::cPlane3D(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ)
     mAxeK = aRot.AxeK();
 }
 
+cPlane3D cPlane3D::FromP0And2V(const cPt3dr & aP0,const cPt3dr& aAxeI , const cPt3dr& aAxeJ) 
+{
+    return cPlane3D(aP0,aAxeI,aAxeJ);
+}
+
 cPlane3D cPlane3D::From3Point(const cPt3dr & aP0,const cPt3dr & aP1,const cPt3dr & aP2)
 {
 	return cPlane3D(aP0,aP1-aP0,aP2-aP0);
@@ -175,10 +180,11 @@ tREAL8 cPlane3D::MaxDist(const std::vector<cPt3dr> & aVPts) const
      return aMaxD;
 }
 
+static const cPt3di NoTriplet(-1,-1,-1);
 
 std::pair<cPt3di,tREAL8> cPlane3D::IndexRansacEstimate(const std::vector<cPt3dr> & aVPts,bool AvgOrMax,int aNbTest,tREAL8 aRegulMinTri)
 {
-     cWhichMin<cPt3di,tREAL8> aWM(cPt3di(-1,-1,-1),1e30);
+     cWhichMin<cPt3di,tREAL8> aWM(NoTriplet,1e30);
 
      std::vector<cSetIExtension>  aSet3I; // Set of triple of indexes
 
@@ -197,7 +203,7 @@ std::pair<cPt3di,tREAL8> cPlane3D::IndexRansacEstimate(const std::vector<cPt3dr>
 	 tTri3dr aTri(aP0,aP1,aP2);
 	 if (aTri.Regularity() > aRegulMinTri)
 	 {
-            cPlane3D aPlane(aP0,aP1,aP2);
+            cPlane3D aPlane = cPlane3D::From3Point(aP0,aP1,aP2);
 
 	    tREAL8 aD = AvgOrMax ? aPlane.AvgDist(aVPts) : aPlane.MaxDist(aVPts);
 	    aWM.Add(anInd,aD);
@@ -205,6 +211,16 @@ std::pair<cPt3di,tREAL8> cPlane3D::IndexRansacEstimate(const std::vector<cPt3dr>
      }
 
      return std::pair(aWM.IndexExtre(),aWM.ValExtre());
+}
+
+std::pair<cPlane3D,tREAL8> cPlane3D::RansacEstimate(const std::vector<cPt3dr> & aVPts,bool AvgOrMax,int aNbTest,tREAL8 aRegulMinTri)
+{
+   auto [anInd,aCost]  = IndexRansacEstimate(aVPts,AvgOrMax,aNbTest,aRegulMinTri);
+
+   MMVII_INTERNAL_ASSERT_tiny(anInd!=NoTriplet,"No Triplet found in cPlane3D::RansacEstimate");
+
+   return std::pair<cPlane3D,tREAL8>(cPlane3D::From3Point(aVPts.at(anInd.x()),aVPts.at(anInd.y()),aVPts.at(anInd.z())),aCost);
+
 }
 
 
@@ -265,7 +281,7 @@ void BenchPlane3D()
     for  (int aK=0 ;aK<100 ;aK++)
     {
          std::vector<cPt3dr>  aVP = cPlane3D::RandParam();
-         cPlane3D aPlane(aVP[0],aVP[1],aVP[2]);
+         cPlane3D aPlane = cPlane3D::FromP0And2V(aVP[0],aVP[1],aVP[2]);
 	 MMVII_INTERNAL_ASSERT_bench(Norm2(aPlane.ToLocCoord(aVP[0])) < 1e-9,"BenchPlane3D");
 	 MMVII_INTERNAL_ASSERT_bench(std::abs(aPlane.ToLocCoord(aVP[0]+aVP[1]).z())<1e-5,"BenchPlane3D");
 	 MMVII_INTERNAL_ASSERT_bench(std::abs(aPlane.ToLocCoord(aVP[0]+aVP[2]).z())<1e-5,"BenchPlane3D");

@@ -74,6 +74,7 @@ class cAppliCompletUncodedTarget : public cMMVII_Appli
 
 	tREAL8                         mThresholdDist;
 
+	std::string                    mPatternNormal;
         cPt3dr                         mNormal;
 	std::vector<tREAL8>            mThreshRay;  // Ratio Max Min
 
@@ -83,6 +84,7 @@ class cAppliCompletUncodedTarget : public cMMVII_Appli
         cSetMesImGCP                   mMesImGCP;
         cSetMesPtOf1Im                 mImageM;
         std::vector<cSaveExtrEllipe>   mVSEE;
+	std::string                    mNameReportEllipse;
 };
 
 cAppliCompletUncodedTarget::cAppliCompletUncodedTarget
@@ -116,6 +118,7 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
 	     <<   mPhProj.DPPointsMeasures().ArgDirInputOptWithDef("Std")
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Completed")
              <<   AOpt2007(mThreshRay,"ThRay","Threshold for ray [RatioMax,RMin,RMax]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
+             <<   AOpt2007(mPatternNormal,"PatNorm","If estimate normal, pattern for point involved")
           ;
 }
 
@@ -153,8 +156,11 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
 
     tREAL8 aL1 = aEl.LSa();   // gread axe
     tREAL8 aL2 = aEl.LGa();   // small axe
+			      
     tREAL8 aRatio = aL2/aL1;  // ratio (should be  equal to 1)
     tREAL8 aRMoy = std::sqrt(aL1*aL2);  // ray, to compare to theoretical (for ex 5 mm for3D AICON)
+
+   AddOneReportCSV(mNameReportEllipse,{mNameIm,aGCP.mNamePt,ToStr(aRMoy),ToStr(aRatio)});
 
     if (  // check ratio and Ray
                (aRatio > mThreshRay[0])
@@ -186,8 +192,13 @@ int  cAppliCompletUncodedTarget::Exe()
 {
    mPhProj.FinishInit();
 
+   mNameReportEllipse = "EllipsesDim";
+   InitReport(mNameReportEllipse,"csv",true);
+
+
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
+       AddOneReportCSV(mNameReportEllipse,{"Image","Pt","Ray","Ratio"});
       int aRes =  ResultMultiSet();
       if (aRes!=EXIT_SUCCESS) return aRes;
 
@@ -196,7 +207,6 @@ int  cAppliCompletUncodedTarget::Exe()
       return EXIT_SUCCESS;
    }
 
-
    mNameIm = FileOfPath(mSpecImIn);
    mPhProj.LoadSensor(mNameIm,mSensor,mCamPC,false);
 
@@ -204,6 +214,25 @@ int  cAppliCompletUncodedTarget::Exe()
    mPhProj.LoadGCP(mMesImGCP);
    mPhProj.LoadIm(mMesImGCP,*mSensor);
    mImageM = mPhProj.LoadMeasureIm(mNameIm);
+
+
+   // evenntually estimate normal from a subset of point
+   if (IsInit(&mPatternNormal))
+   {
+       std::vector<cPt3dr> aVPt;
+       for (const auto & aGCP :  mMesImGCP.MesGCP())
+       {
+           if (MatchRegex(aGCP.mNamePt,mPatternNormal))
+	   {
+                aVPt.push_back(aGCP.mPt);
+	   }
+       }
+       auto [aPlane,aCost] = cPlane3D::RansacEstimate(aVPt,true);
+       mNormal = aPlane.AxeK();
+       if (LevelCall() ==0)
+           StdOut() <<  "Normal,  Dist=" << aCost << " Axe=" <<  mNormal << "\n";
+   }
+
 
 
    std::string  aNameE = cSaveExtrEllipe::NameFile(mPhProj,mMesImGCP.MesImInitOfName(mNameIm),true);

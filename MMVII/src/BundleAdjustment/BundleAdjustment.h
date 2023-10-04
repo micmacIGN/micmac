@@ -47,6 +47,11 @@ class cMMVII_BundleAdj
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
+								//
+	  //  =========  control object free/frozen ===================
+
+	  void SetParamFrozenCalib(const std::string & aPattern);
+
      private :
 
           //============== Methods =============================
@@ -76,10 +81,13 @@ class cMMVII_BundleAdj
           std::vector<cPerspCamIntrCalib *>  mVPCIC;     ///< vector of all internal calibration 4 easy parse
           std::vector<cSensorCamPC *>        mVSCPC;      ///< vector of perspectiv  cameras
           std::vector<cSensorImage *>        mVSIm;       ///< vector of sensor image (PC+RPC ...)
-          std::vector<cCalculator<double> *> mVEqCol;       ///< vector of sensor image (PC+RPC ...)
+          std::vector<cCalculator<double> *> mVEqCol;     ///< vector of co-linearity equation
 
           cSetInterUK_MultipeObj<tREAL8>    mSetIntervUK;
 
+	  // ================= Frozen/UnFrozen
+
+	  std::string  mPatParamFrozenCalib;
 
           // ===================  Object to be adjusted ==================
           cSetMesImGCP *           mMesGCP;

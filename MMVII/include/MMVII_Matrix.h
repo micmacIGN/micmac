@@ -704,6 +704,7 @@ class cStdStatRes
         tREAL8  ErrAtProp(tREAL8 aProp) const;
         tREAL8  Min() const;
         tREAL8  Max() const;
+	int     NbMeasures() const;
 
      private :
         mutable std::vector<tREAL8>       mVRes;

@@ -66,6 +66,14 @@ void cMMVII_BundleAdj::OneIteration()
         InitIteration();
     }
 
+    if (mPatParamFrozenCalib !="")
+    {
+        for (const  auto & aPtrCal : mVPCIC)
+	{
+            mR8_Sys->SetFrozenFromPat(*aPtrCal,mPatParamFrozenCalib,true);
+	}
+    }
+
     OneItere_GCP();
 
     // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << "\n";
@@ -122,6 +130,12 @@ const std::vector<cSensorImage *> &  cMMVII_BundleAdj::VSIm() const  {return mVS
 const std::vector<cSensorCamPC *> &  cMMVII_BundleAdj::VSCPC() const {return mVSCPC;}
 
 
+void cMMVII_BundleAdj::SetParamFrozenCalib(const std::string & aPattern)
+{    
+    mPatParamFrozenCalib = aPattern;
+}
+
+
    /* ********************************************************** */
    /*                                                            */
    /*                 cAppliBundlAdj                             */
@@ -147,6 +161,8 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::string               mGCPDir;  ///  GCP Data Dir if != mDataDir
 	std::vector<double>       mGCPW;
 	int                       mNbIter;
+
+	std::string               mPatParamFrozCalib;
 };
 
 cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -176,6 +192,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
                << AOpt2007(mGCPDir,"GCPDir","Dir for GCP if != DataDir")
                << AOpt2007(mGCPW,"GCPW","Weithing of GCP if any [SigmaG,SigmaI], SG=0 fix, SG<0 schurr elim, SG>0",{{eTA2007::ISizeV,"[2,2]"}})
+	       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
            ;
 }
 
@@ -192,6 +209,12 @@ int cAppliBundlAdj::Exe()
     {
          mBA.AddCam(aNameIm);
     }
+
+    if (IsInit(&mPatParamFrozCalib))
+    {
+        mBA.SetParamFrozenCalib(mPatParamFrozCalib);
+    }
+	   
 
     if (IsInit(&mGCPW))
     {

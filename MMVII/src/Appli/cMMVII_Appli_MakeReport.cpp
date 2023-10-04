@@ -1,5 +1,6 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_DeclareCste.h"
+#include "MMVII_Matrix.h"
 
 
 namespace MMVII
@@ -75,6 +76,34 @@ void  cMMVII_Appli::AddOneReportCSV(const std::string &anId,const std::vector<st
     aLine += "\n";
     AddOneReport(anId,aLine);
 }
+
+
+void cMMVII_Appli::AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string>  & Additional)
+{
+    std::vector<std::string> aVStd {aNameCol1,"NbMes","Avg","StdDev"};
+    for (const auto & aPerc : aVPerc)
+        aVStd.push_back("P"+ToStr(aPerc));
+
+   AddOneReportCSV(anId,Append(aVStd,Additional));
+}
+
+void  cMMVII_Appli:: AddStdStatCSV(const std::string &anId,const std::string & aCol1,const cStdStatRes & aStat,const std::vector<int> aVPerc,const std::vector<std::string>  & Additional)
+{
+    if (aStat.NbMeasures()==0)
+    {
+       std::vector<std::string> aVStd {aCol1,"0","XXX","XXX"};
+       for (size_t aK=0 ; aK< aVPerc.size() ; aK++)
+           aVStd.push_back("XXX");
+       AddOneReportCSV(anId,Append(aVStd,Additional));
+       return;
+    }
+    std::vector<std::string> aVStd {aCol1,ToStr(aStat.NbMeasures()),ToStr(aStat.Avg()),((aStat.NbMeasures()>1) ? ToStr(aStat.StdDev()) : "XXX")};
+    for (const auto & aPerc : aVPerc)
+        aVStd.push_back(ToStr(aStat.ErrAtProp(aPerc/100.0)));
+   AddOneReportCSV(anId,Append(aVStd,Additional));
+}
+
+
 
 void  cMMVII_Appli::DoMergeReport()
 {
