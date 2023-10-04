@@ -53,6 +53,7 @@ class cAppli_CGPReport : public cMMVII_Appli
 	std::string              mPostfixReport;
 	std::string              mPrefixReport;
 
+	std::string              mNameReportDetail;
 	std::string              mNameReportIm;
         std::string              mNameReportGCP;
         std::string              mNameReportCam;
@@ -143,11 +144,12 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 	aAvg2d.Add(1.0,aVec);
 	tREAL8 aDist = Norm2(aVec);
 	aStat.Add(aDist);
+        AddOneReportCSV(mNameReportDetail,{aNameIm,aMes.mNamePt,ToStr(aDist)});
     }
 
     AddStdStatCSV
     (
-       mNameReportIm,"Image",aStat,mPropStat, 
+       mNameReportIm,aNameIm,aStat,mPropStat, 
        {ToStr(aAvg2d.Average().x()),ToStr(aAvg2d.Average().y())}
     );
 }
@@ -155,6 +157,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 void cAppli_CGPReport::BeginReport()
 {
    AddStdHeaderStatCSV(mNameReportIm,"Image",mPropStat,{"AvgX","AvgY"});
+   AddOneReportCSV(mNameReportDetail,{"Image","GCP","Err"});
 }
 
 
@@ -278,13 +281,12 @@ int cAppli_CGPReport::Exe()
 
    mPostfixReport  =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn() ;
    mNameReportIm   =  "ByImage" + mPostfixReport;
+   mNameReportDetail   =  "Detail" + mPostfixReport;
    mNameReportGCP  =  "ByGCP"   + mPostfixReport;
    mNameReportCam   =  "ByCam"   + mPostfixReport;
 
-
    InitReport(mNameReportIm,"csv",true);
-
-
+   InitReport(mNameReportDetail,"csv",true);
 
    if (LevelCall()==0)
    {
