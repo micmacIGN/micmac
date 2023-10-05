@@ -27,6 +27,12 @@ cSensorCamPC::cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cP
 {
 }
 
+void cSensorCamPC::SetPose(const tPose & aPose)
+{
+   mPose = aPose;
+}
+
+
 std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK() 
 {
     return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib};

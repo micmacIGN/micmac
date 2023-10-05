@@ -378,6 +378,7 @@ class cSensorCamPC : public cSensorImage
 
 	 const cPixelDomain & PixelDomain() const override;
 
+         void SetPose(const tPose & aPose);
 
          cPt3dr Ground2ImageAndDepth(const cPt3dr &) const override;
          cPt3dr ImageAndDepth2Ground(const cPt3dr & ) const override;
