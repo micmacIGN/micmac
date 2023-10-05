@@ -13,6 +13,41 @@
 namespace MMVII
 {
 
+class cClinoCal1Mes
+{
+    public :
+        cClinoCal1Mes(cSensorCamPC * aCam,const std::vector<tREAL8> & aVAngles);
+
+        cSensorCamPC *         mCam;
+	std::vector<cPt2dr>     mVDir;
+	cPt3dr                 mVertInLoc;  ///  Vertical in camera coordinates
+
+        tREAL8  ScoreWPK(int aKClino,const  cRotation3D<tREAL8> &aR) const;
+};
+
+
+cClinoCal1Mes::cClinoCal1Mes(cSensorCamPC * aCam,const std::vector<tREAL8> & aVAngles) :
+    mCam       (aCam),
+    mVertInLoc (mCam->V_W2L(cPt3dr(0,0,1)))
+{
+    for (auto & aTeta : aVAngles)
+    {
+        mVDir.push_back(FromPolar(1.0,aTeta));
+    }
+}
+
+tREAL8  cClinoCal1Mes::ScoreWPK(int aKClino,const  cRotation3D<tREAL8>& aCam2Clino) const
+{
+     cPt3dr  aVClin =  aCam2Clino.Value(mVertInLoc);
+
+     cPt2dr aNeedleDir =  VUnit(Proj(aVClin));
+
+     return Norm2(aNeedleDir- mVDir[aKClino]);
+}
+
+
+
+
 /* ==================================================== */
 /*                                                      */
 /*          cAppli_CalibratedSpaceResection             */
@@ -28,9 +63,9 @@ class cAppli_ClinoInit : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
      private :
-        std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
         std::string              mNameClino;   ///  Pattern of xml file
+	std::vector<std::string>  mPrePost;   ///  Pattern of xml file
 	
 };
 
@@ -48,9 +83,9 @@ cAppli_ClinoInit::cAppli_ClinoInit
 cCollecSpecArg2007 & cAppli_ClinoInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
-              <<  Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+              <<  Arg2007(mNameClino,"Name of inclination file",{eTA2007::FileDirProj})
+              <<  Arg2007(mPrePost,"[Prefix,PostFix] to compute image name",{{eTA2007::ISizeV,"[2,2]"}})
               <<  mPhProj.DPOrient().ArgDirInMand()
-              <<  Arg2007(mNameClino,"Name of inclination file")
            ;
 }
 
@@ -83,13 +118,17 @@ int cAppli_ClinoInit::Exe()
 	 -1,
 	 aVNames,
 	 aVFakePts,aVFakePts,
-	 aVAngles
+	 aVAngles,
+	 false
     );
 
-    for (const auto & anIm : VectMainSet(0))
+    for (size_t aKLine=0 ; aKLine<aVNames.size() ; aKLine++)
     {
-	cSensorCamPC * aCam = mPhProj.ReadCamPC(anIm,true);
-	FakeUseIt(aCam);
+        std::string aNameIm = mPrePost[0] +  aVNames[aKLine][0] + mPrePost[1];
+	cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true);
+
+	StdOut() << aNameIm  << " " << aVAngles[aKLine] << " FF=" << aCam->Pose().Tr() << "\n";
+
     }
     return EXIT_SUCCESS;
 }                                       

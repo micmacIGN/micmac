@@ -227,10 +227,14 @@ void  ReadFilesStruct
             std::vector<std::vector<std::string>> & aVNames,
             std::vector<cPt3dr>                   & aVXYZ,
             std::vector<cPt3dr>                   & aVWKP,
-            std::vector<std::vector<double>>      & aVNums
+            std::vector<std::vector<double>>      & aVNums,
+	    bool                                    CheckFormat
       )
 {
-    CptSameOccur(aFormat,"NXYZ");
+    if (CheckFormat)
+    {
+       CptSameOccur(aFormat,"NXYZ");
+    }
 
 
     if (aLastL<=0) 

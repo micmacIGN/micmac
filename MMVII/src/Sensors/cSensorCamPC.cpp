@@ -41,9 +41,19 @@ void cSensorCamPC::PutUknowsInSetInterval()
 
 cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
 {
-        //  mPose(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
-     return mInternalCalib->Value(mPose.Inverse(aP));
+     return mInternalCalib->Value(P_W2L(aP));
 }
+
+
+        //  Local(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
+cPt3dr cSensorCamPC::P_W2L(const cPt3dr & aP) const { return       mPose.Inverse(aP); }
+cPt3dr cSensorCamPC::V_W2L(const cPt3dr & aP) const { return mPose.Rot().Inverse(aP); }
+
+cPt3dr cSensorCamPC::P_L2W(const cPt3dr & aP) const { return       mPose.Value(aP); }
+cPt3dr cSensorCamPC::V_L2W(const cPt3dr & aP) const { return mPose.Rot().Value(aP); }
+
+
+
 
 double cSensorCamPC::DegreeVisibility(const cPt3dr & aP) const
 {
