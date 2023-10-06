@@ -111,7 +111,7 @@ int cAppli_GenArgsSpec::Exe()
         bool gui = true;
         for (auto& feature: aSpec->Features()) {
             if (feature == eApF::NoGui) {
-                gui= false;
+                gui = false;
                 break;
             }
         }

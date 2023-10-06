@@ -790,7 +790,18 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs, std::string *aErrors)
      HelpOut() << "DIRPROJ=[" << mDirProject << "]" << std::endl;
   }
 
-  // By default, if calls is done at top level, assure that everything is init
+    // By default, if calls is done at top level, assure that everything is init
+  if (mSeedRand<=0)
+  {
+     mSeedRand =  std::chrono::system_clock::to_time_t(mT0);
+  }
+
+  // Don't fully initialize project if this appli is a special MMVII management applu
+  const auto aFeatures = mSpecs.Features();
+  if (std::find(aFeatures.cbegin(), aFeatures.cend(), eApF::ManMMVII) != aFeatures.cend()) {
+     mForExe = false;   // Don't do special cleaning in cMMVII_Appli destructor
+     return;
+  }
 
   if (mGlobalMainAppli)
   {
@@ -799,10 +810,6 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs, std::string *aErrors)
   if (!mModeHelp)
      LogCommandIn(NameFileLog(false),false);
 
-  if (mSeedRand<=0)
-  {
-      mSeedRand =  std::chrono::system_clock::to_time_t(mT0);
-  }
   if (mMainAppliInsideP) 
      InitProfile();
 }
