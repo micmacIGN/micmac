@@ -352,7 +352,7 @@ void cMMVII_Appli::SetNot4Exe()
    mForExe = false;
 }
 
-void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
+void cMMVII_Appli::InitParam(std::string *aArgsSpecs, std::string *aErrors)
 {
   mSeedRand = DefSeedRand();
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl); // Call virtual method
@@ -464,7 +464,8 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs)
 
   if (aArgsSpecs) {
       mModeArgsSpec = true;
-      *aArgsSpecs = GenerateArgsSpec();
+      MMVII_INTERNAL_ASSERT_always(aErrors," cMMVII_Appli::InitParam: AErrors == nullptr and aArgsSpecs != nullptr");
+      GenerateArgsSpec(*aArgsSpecs, *aErrors);
       return;
   }
 
@@ -1069,14 +1070,12 @@ static std::string JsonEscaped(const std::string& s)
     return res;
 }
 
-std::string cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::string& aSpecName, bool aOptional, bool& hadWarning)
+void cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::string& aSpecName, bool aOptional, std::string &aDesc, std::string &aErr)
 {
-    std::string desc;
-
     if (aOptional)
-        desc = "      \"optional\": [";
+        aDesc += "      \"optional\": [";
     else
-        desc = "      \"mandatory\": [";
+        aDesc += "      \"mandatory\": [";
 
     int num = 1;
     for (const auto & Arg : aSpecArgs.Vec())
@@ -1085,7 +1084,7 @@ std::string cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, cons
             continue;
 
         if (num != 1)
-            desc +=  ",";
+            aDesc +=  ",";
 
         // semantic checks
         std::string argName;
@@ -1098,44 +1097,30 @@ std::string cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, cons
         std::string fileType,dirType;
         for (const auto& a : Arg->SemPL()) {
             if (a.Type() >= eTA2007::FileImage && a.Type() <= eTA2007::MPatFile) {
-                if (fileType.length() != 0) {
-                    ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": has " << fileType << " and " << E2Str(a.Type()) << " file semantic.\n";
-                    hadWarning = true;
-                }
+                if (fileType.length() != 0)
+                    aErr += "WARNING: " + aSpecName + ": " + argName + ": has " + fileType + " and " + E2Str(a.Type()) + " file semantic.\n";
                 fileType = E2Str(a.Type());
             }
             if (a.Type() >= eTA2007::Orient && a.Type() <= eTA2007::RadiomModel) {
-                if (dirType.length() != 0) {
-                    ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": has " << dirType << " and " << E2Str(a.Type()) << " dir semantic.\n";
-                    hadWarning = true;
-                }
+                if (dirType.length() != 0)
+                    aErr += "WARNING: " + aSpecName + ": " + argName + ": has " + dirType + " and " + E2Str(a.Type()) + " dir semantic.\n";
                 dirType = E2Str(a.Type());
                 break;
             }
         }
-        if (fileType.length() != 0 && dirType.length() != 0)  {
-            ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": has " << dirType << " and " << fileType << " semantics.\n";
-            hadWarning = true;
-        }
+        if (fileType.length() != 0 && dirType.length() != 0)
+            aErr += "WARNING: " + aSpecName + ": " + argName + ": has " + dirType + " and " + fileType + " semantics.\n";
 
         bool hasFileInOut = Arg->HasType(eTA2007::Input) || Arg->HasType(eTA2007::Output) || Arg->HasType(eTA2007::OptionalExist);
 
-        if (Arg->IsVector()  && !Arg->HasType(eTA2007::Range)) {
-            ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": is a vector with no ISizeV semantic.\n";
-            hadWarning = true;
-        }
-        if (Arg->HasType(eTA2007::FileDirProj)  && fileType.length() == 0) {
-            ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": has FileDirProj semantic with no File type semantic.\n";
-            hadWarning = true;
-        }
-        if ( ! hasFileInOut && fileType.length() != 0) {
-            ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": type " << fileType << ": Missing [Input|Output|OptionalExist] semantic.\n";
-            hadWarning = true;
-        }
-        if ( ! hasFileInOut && dirType.length() != 0) {
-            ErrOut() << "WARNING: " << aSpecName << ": " << argName << ": type " << dirType << ": Missing [Input|Output|OptionalExist] semantic.\n";
-            hadWarning = true;
-        }
+        if (Arg->IsVector()  && !Arg->HasType(eTA2007::Range))
+            aErr += "WARNING: " + aSpecName + ": " + argName + ": is a vector with no ISizeV semantic.\n";
+        if (Arg->HasType(eTA2007::FileDirProj)  && fileType.length() == 0)
+            aErr += "WARNING: " + aSpecName + ": " + argName + ": has FileDirProj semantic with no File type semantic.\n";
+        if ( ! hasFileInOut && fileType.length() != 0)
+            aErr += "WARNING: " + aSpecName + ": " + argName + ": type " + fileType + ": Missing [Input|Output|OptionalExist] semantic.\n";
+        if ( ! hasFileInOut && dirType.length() != 0)
+            aErr += "WARNING: " + aSpecName + ": " + argName + ": type " + dirType + ": Missing [Input|Output|OptionalExist] semantic.\n";
         // end of checks
 
         std::vector<std::string> semantic;
@@ -1158,43 +1143,42 @@ std::string cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, cons
             }
         }
 
-        desc +=  "\n        {\n";
+        aDesc +=  "\n        {\n";
         if (aOptional) {
             std::string level = Arg->HasType(eTA2007::Global) ? "global" : Arg->HasType(eTA2007::Tuning) ? "tuning" : "normal";
-            desc +=  "            \"name\": \"" + JsonEscaped(Arg->Name()) + "\",\n";
-            desc +=  "            \"level\": \"" + level + "\",\n";
+            aDesc +=  "            \"name\": \"" + JsonEscaped(Arg->Name()) + "\",\n";
+            aDesc +=  "            \"level\": \"" + level + "\",\n";
         }
-        desc +=  "            \"type\": \"" + JsonEscaped(Arg->NameType()) + "\"";
+        aDesc +=  "            \"type\": \"" + JsonEscaped(Arg->NameType()) + "\"";
         if (semantic.size()) {
-            desc +=  ",\n            \"semantic\": [";
+            aDesc +=  ",\n            \"semantic\": [";
             for (unsigned i=0; i<semantic.size(); i++) {
                 if (i > 0)
-                    desc +=  ",";
-                desc +=  "\"" + semantic[i] + "\"";
+                    aDesc +=  ",";
+                aDesc +=  "\"" + semantic[i] + "\"";
             }
-            desc +=  "]";
+            aDesc +=  "]";
         }
         if (allowed.size()) {
-            desc +=  ",\n            \"allowed\" : [";
+            aDesc +=  ",\n            \"allowed\" : [";
             for (unsigned i=0; i<allowed.size(); i++) {
                 if (i > 0)
-                    desc +=  ",";
-                desc +=  "\"" + allowed[i] + "\"";
+                    aDesc +=  ",";
+                aDesc +=  "\"" + allowed[i] + "\"";
             }
-            desc +=  "]";
+            aDesc +=  "]";
         }
         if (range.size())
-            desc +=  ",\n            \"range\" : \"" + range + "\"";
+            aDesc +=  ",\n            \"range\" : \"" + range + "\"";
         if (vectorSize.size())
-            desc +=  ",\n            \"vsize\" : \"" + vectorSize + "\"";
+            aDesc +=  ",\n            \"vsize\" : \"" + vectorSize + "\"";
         if (Arg->HasType((eTA2007::HDV)))
-            desc +=  ",\n            \"default\": \"" + JsonEscaped(Arg->NameValue()) + "\"";
+            aDesc +=  ",\n            \"default\": \"" + JsonEscaped(Arg->NameValue()) + "\"";
         if (Arg->Com().size())
-            desc +=  ",\n            \"comment\": \"" + JsonEscaped(Arg->Com()) + "\"";
-        desc +=  "\n        }";
+            aDesc +=  ",\n            \"comment\": \"" + JsonEscaped(Arg->Com()) + "\"";
+        aDesc +=  "\n        }";
     }
-    desc +=  "\n      ]";
-    return desc;
+    aDesc +=  "\n      ]";
 }
 
 template <typename VE>
@@ -1209,35 +1193,24 @@ static std::string enumsVectorToStr(const VE& aVe)
     return s;
 }
 
-std::string cMMVII_Appli::GenerateArgsSpec()
+void cMMVII_Appli::GenerateArgsSpec(std::string& aDesc, std::string& aErrors)
 {
-   bool hadWarning = false;
-   std::string desc;
-   desc = "    {\n";
-   desc += "      \"name\": \"" + JsonEscaped(mSpecs.Name()) + "\",\n";
+   aDesc += "    {\n";
+   aDesc += "      \"name\": \"" + JsonEscaped(mSpecs.Name()) + "\",\n";
 
-   desc += "      \"comment\": \"" + JsonEscaped(mSpecs.Comment()) + "\",\n";
-   desc += "      \"source\": \"" + JsonEscaped(mSpecs.NameFile()) + "\",\n";
-   desc += "      \"features\": [" + enumsVectorToStr(mSpecs.Features()) + "],\n";
-/*
-   desc += joe(mSpecs.Features());
-   for (unsigned i=0; i<mSpecs.Features().size(); i++) {
-       if (i>0)
-           desc += ",";
-       desc += "\"" + E2Str(mSpecs.Features()[i]) + "\"";
-   }
-   desc += "],\n";
-*/
-   desc += "      \"inputs\": [" + enumsVectorToStr(mSpecs.VInputs()) + "],\n";
-   desc += "      \"outputs\": [" + enumsVectorToStr(mSpecs.VOutputs()) + "],\n";
+   aDesc += "      \"comment\": \"" + JsonEscaped(mSpecs.Comment()) + "\",\n";
+   aDesc += "      \"source\": \"" + JsonEscaped(mSpecs.NameFile()) + "\",\n";
+   aDesc += "      \"features\": [" + enumsVectorToStr(mSpecs.Features()) + "],\n";
+   aDesc += "      \"inputs\": [" + enumsVectorToStr(mSpecs.VInputs()) + "],\n";
+   aDesc += "      \"outputs\": [" + enumsVectorToStr(mSpecs.VOutputs()) + "],\n";
 
-   desc += GenerateOneArgSpec(mArgObl,mSpecs.Name(),false, hadWarning);
-   desc += ",\n";
-   desc += GenerateOneArgSpec(mArgFac,mSpecs.Name(),true, hadWarning);
-   desc += "\n    }";
-   if (hadWarning)
-       ErrOut() << "\n";
-   return desc;
+   std::string aErr;
+   GenerateOneArgSpec(mArgObl,mSpecs.Name(),false, aDesc, aErr);
+   aDesc += ",\n";
+   GenerateOneArgSpec(mArgFac,mSpecs.Name(),true, aDesc, aErr);
+   aDesc += "\n    }";
+   if (aErr.size())
+       aErrors += aErr + "\n";
 }
 
     // ========== Help ============

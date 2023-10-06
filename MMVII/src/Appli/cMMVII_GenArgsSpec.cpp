@@ -21,8 +21,7 @@ class cAppli_GenArgsSpec : public cMMVII_Appli
         int Exe() override;                                             ///< execute action
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override; ///< return spec of  mandatory args
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override; ///< return spec of optional args
-     protected :
-     private :
+    private:
         std::string mSpecFileName;
 };
 
@@ -35,16 +34,14 @@ cCollecSpecArg2007 & cAppli_GenArgsSpec::ArgObl(cCollecSpecArg2007 & anArgObl)
 
 cCollecSpecArg2007 & cAppli_GenArgsSpec::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
-   return anArgOpt
-            << AOpt2007(mSpecFileName,"Out","Destination file",{eTA2007::Output,eTA2007::HDV})
-            ;
+    return anArgOpt
+          << AOpt2007(mSpecFileName,"Out","Destination file",{eTA2007::Output,eTA2007::HDV});
 }
 
 
 cAppli_GenArgsSpec::cAppli_GenArgsSpec(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli (aVArgs,aSpec)
 {
-    mSpecFileName = DirBinMMVII() + "MMVII_argsspec.json";
 }
 
 int cAppli_GenArgsSpec::Exe()
@@ -52,52 +49,61 @@ int cAppli_GenArgsSpec::Exe()
     std::vector<std::string> appletsWithGUI;
     std::vector<std::string> appletsWithoutGUI;
 
+    std::string aDesc;
+    std::string aErrors;
+
+    cMultipleOfs aEfs(std::cerr);
+    cMultipleOfs aOfs(std::cout);
+    std::unique_ptr<cMMVII_Ofs> aOFile;
+
+    if (mSpecFileName.size() != 0) {
+        aOfs.Clear();
+        aOFile.reset(new cMMVII_Ofs(mSpecFileName,eFileModeOut::CreateText));
+        aOfs.Add(aOFile->Ofs());
+    }
+
     std::vector<std::string> aVArgs;
     aVArgs.push_back(mArgv[0]);             // MMV2
     aVArgs.push_back(mArgv[1]);             // will be replaced by anAppli name
 
 
-    cMMVII_Ofs  aOfs(mSpecFileName, eFileModeOut::CreateText);
+    aEfs << "Generating command line specifications ...\n\n";
 
-    StdOut() << "Generating specifications in :\n";
-    StdOut() << "  " << mSpecFileName << "\n\n";
+    aDesc  = "{\n";
+    aDesc += "  \"config\": {\n";
+    aDesc += "    \"DirBin2007\":\"" + DirBinMMVII() + "\",\n";
+    aDesc += "    \"Bin2007\":\"" + FullBin() + "\",\n";
 
-
-    aOfs.Ofs() << "{\n";
-    aOfs.Ofs() << "  \"config\": {\n";
-    aOfs.Ofs() << "    \"DirBin2007\":\"" + DirBinMMVII() + "\",\n";
-    aOfs.Ofs() << "    \"Bin2007\":\"" + FullBin() + "\",\n";
-
-    aOfs.Ofs() << "    \"MMVIIDirOrient\":\"" + MMVIIDirOrient + "\",\n";
-    aOfs.Ofs() << "    \"MMVIIDirHomol\":\"" + MMVIIDirHomol + "\",\n";
-    aOfs.Ofs() << "    \"MMVIIDirMeshDev\":\"" + MMVIIDirMeshDev + "\",\n";
-    aOfs.Ofs() << "    \"MMVIIDirRadiom\":\"" + MMVIIDirRadiom + "\",\n";
-    aOfs.Ofs() << "    \"MMVIITestDir\":\"" + MMVIITestDir + "\",\n";
+    aDesc += "    \"MMVIIDirOrient\":\"" + MMVIIDirOrient + "\",\n";
+    aDesc += "    \"MMVIIDirHomol\":\"" + MMVIIDirHomol + "\",\n";
+    aDesc += "    \"MMVIIDirMeshDev\":\"" + MMVIIDirMeshDev + "\",\n";
+    aDesc += "    \"MMVIIDirRadiom\":\"" + MMVIIDirRadiom + "\",\n";
+    aDesc += "    \"MMVIITestDir\":\"" + MMVIITestDir + "\",\n";
 
 
-    aOfs.Ofs() << "    \"extensions\": {" ;
+    aDesc += "    \"extensions\": {" ;
 
     bool firstEta = true;
     for (const auto& [anETA2077,anExtList] : MMVIISupportedFilesExt) {
         if (!firstEta)
-            aOfs.Ofs() << ",";
-        aOfs.Ofs() << "\n";
+            aDesc += ",";
+        aDesc += "\n";
         firstEta = false;
-        aOfs.Ofs() << "      \"" << E2Str(anETA2077) << "\": [" ;
+        aDesc += "      \"" + E2Str(anETA2077) + "\": [" ;
         bool firstExt = true;
         for (const auto& anExt : anExtList) {
             if (!firstExt)
-                aOfs.Ofs() << ",";
-            aOfs.Ofs() << "\n";
+                aDesc += ",";
+            aDesc += "\n";
             firstExt = false;
-            aOfs.Ofs() << "        \"" << anExt << "\"" ;
+            aDesc += "        \"" + anExt + "\"" ;
         }
-        aOfs.Ofs() << "\n      ]" ;
+        aDesc += "\n      ]" ;
     }
-    aOfs.Ofs() << "\n    }\n" ;  // Extensions
-    aOfs.Ofs() << "  },\n" ;     // Config
+    aDesc += "\n    }\n" ;  // Extensions
+    aDesc += "  },\n" ;     // Config
 
-    aOfs.Ofs() << "  \"applets\": [\n";
+    aDesc += "  \"applets\": [\n";
 
     bool first = true;
     for (const auto & aSpec : cSpecMMVII_Appli::VecAll())
@@ -114,24 +120,24 @@ int cAppli_GenArgsSpec::Exe()
         else
             appletsWithoutGUI.push_back(aSpec->Name());
 
-        std::string argDesc;
         if (!first)
-            aOfs.Ofs()<<",\n";
+            aDesc += ",\n";
         first = false;
         aVArgs[1] = aSpec->Name();
         tMMVII_UnikPApli anAppli = aSpec->Alloc()(aVArgs,*aSpec);
         anAppli->SetNot4Exe();
-        anAppli->InitParam(&argDesc);
-        aOfs.Ofs() <<  argDesc;
+        anAppli->InitParam(&aDesc, &aErrors);
     }
-    aOfs.Ofs() << "\n  ]\n";
-    aOfs.Ofs() << "}\n";
-    aOfs.Ofs().close();
+    aDesc += "\n  ]\n";
+    aDesc += "}\n";
 
-    StdOut() << "Specifications with GUI generated for:\n";
-    StdOut() << "  " << appletsWithGUI << "\n\n";
-    StdOut() << "Specifications with NO GUI generated for:\n";
-    StdOut() << "  " << appletsWithoutGUI << "\n";
+    aOfs << aDesc;
+
+    aEfs << aErrors;
+    aEfs << "Specifications with GUI generated for:\n";
+    aEfs << "  " << appletsWithGUI << "\n\n";
+    aEfs << "Specifications with NO GUI generated for:\n";
+    aEfs << "  " << appletsWithoutGUI << "\n";
     return EXIT_SUCCESS;
 }
 

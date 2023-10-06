@@ -429,7 +429,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
 
-        void InitParam(std::string *aArgsSpecs);  ///< Parse the parameter list. Just return args specs in argsSpec if not null
+        void InitParam(std::string *aArgsSpec = nullptr, std::string *aErrors = nullptr);  ///< Parse the parameter list, aArgsSpecs must be nullptr. (only cMMVII_GenArgsSpec use aArgsSpec)
         void InitProfile();  ///< init the profile of usage/user ....
         void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
@@ -551,8 +551,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                                    const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
                                  ); ///< MMVII reccall the same command itself
 
-        std::string GenerateArgsSpec();
-        std::string GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::string &aSpecName, bool aOptional, bool &hadWarning);
+        void GenerateArgsSpec(std::string &aDesc, std::string &aErrors);
+        void GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::string& aSpecName, bool aOptional, std::string &aDesc, std::string &aErr);
 
         void                                      GenerateHelp(); ///< In Help mode print the help
         void PrintAdditionnalComments(tPtrArg2007 anArg); ///< Print the optional comm in mode glob help
