@@ -57,6 +57,9 @@ class cAppli_CGPReport : public cMMVII_Appli
 	std::string              mNameReportIm;
         std::string              mNameReportGCP;
         std::string              mNameReportCam;
+        std::string              mNameReportMissed;
+
+	double                   mMarginMiss;  ///  Margin for counting missing targets
 };
 
 cAppli_CGPReport::cAppli_CGPReport
@@ -66,7 +69,8 @@ cAppli_CGPReport::cAppli_CGPReport
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
-     mPropStat     ({50,75})
+     mPropStat     ({50,75}),
+     mMarginMiss   (50.0)
 {
 }
 
@@ -87,6 +91,7 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     return      anArgOpt
 	     << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray,Zoom?=2]",{{eTA2007::ISizeV,"[3,4]"}})
 	     << AOpt2007(mPropStat,"Perc","Percentil for stat exp",{eTA2007::HDV})
+	     << AOpt2007(mMarginMiss,"MargMiss","Margin to border for counting missed target",{eTA2007::HDV})
     ;
 }
 
@@ -147,6 +152,20 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
         AddOneReportCSV(mNameReportDetail,{aNameIm,aMes.mNamePt,ToStr(aDist)});
     }
 
+
+    for (const auto & aGCP : aSetMes.MesGCP())
+    {
+        if (aCam->IsVisible(aGCP.mPt))
+        {
+           cPt2dr aPIm = aCam->Ground2Image(aGCP.mPt);
+           tREAL8 aDeg = aCam->DegreeVisibilityOnImFrame(aPIm);
+           if ((aDeg> mMarginMiss) && (!aSetMesIm.NameHasMeasure(aGCP.mNamePt)))
+           {
+              AddOneReportCSV(mNameReportMissed,{aNameIm,aGCP.mNamePt,ToStr(aPIm.x()),ToStr(aPIm.y())});
+           }
+        }
+    }
+
     AddStdStatCSV
     (
        mNameReportIm,aNameIm,aStat,mPropStat, 
@@ -158,6 +177,7 @@ void cAppli_CGPReport::BeginReport()
 {
    AddStdHeaderStatCSV(mNameReportIm,"Image",mPropStat,{"AvgX","AvgY"});
    AddOneReportCSV(mNameReportDetail,{"Image","GCP","Err"});
+   AddOneReportCSV(mNameReportMissed,{"Image","GCP","XTh","YTh"});
 }
 
 
@@ -285,8 +305,11 @@ int cAppli_CGPReport::Exe()
    mNameReportGCP  =  "ByGCP"   + mPostfixReport;
    mNameReportCam   =  "ByCam"   + mPostfixReport;
 
+   mNameReportMissed   =  "MissedPoint"   + mPostfixReport;
+
    InitReport(mNameReportIm,"csv",true);
    InitReport(mNameReportDetail,"csv",true);
+   InitReport(mNameReportMissed,"csv",true);
 
    if (LevelCall()==0)
    {

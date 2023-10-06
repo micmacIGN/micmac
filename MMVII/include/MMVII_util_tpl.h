@@ -440,6 +440,7 @@ template <class Type>  class cBijectiveMapI2O
 
 typedef  cBijectiveMapI2O<std::string> t2MapStrInt;
 
+///  make a research in a map using the key and not the val
 template <class Key,class Val> const Key * FindByVal(const std::map<Key,Val> & aMap,const Val & aVal,bool SVP=false)
 {
     for (const auto & It : aMap)
@@ -449,6 +450,7 @@ template <class Key,class Val> const Key * FindByVal(const std::map<Key,Val> & a
     return nullptr;
 }
 
+/// find the kth element, slow but works for list
 template <class tCont>  typename tCont::value_type *  KthElem(tCont & aCont,int aNb,bool SVP=false)
 {
     for (typename tCont::iterator anIt = aCont.begin() ; anIt!=aCont.end() ; anIt++)

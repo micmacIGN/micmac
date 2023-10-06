@@ -150,6 +150,7 @@ class cAppli_CheckGCPDist : public cMMVII_Appli
         int                      mNbZ1 ;  ///< number of validated point in other plane  of CERN PANNEL
 	cPt2di                   mSupId;
         cIm2D<tU_INT1>           mImId;
+	std::string              mNameReportError;
 };
 
 cAppli_CheckGCPDist::cAppli_CheckGCPDist
@@ -285,6 +286,8 @@ bool   cAppli_CheckGCPDist::ComputeMainHomogr(cHomogr2D<tREAL8> & aHG2I)
               if (aDif >  mThresholdHomog)
               {
                  aPC.mIsOk = false;
+		 AddOneReportCSV(mNameReportError,{mCurNameIm,aPC.mGr->mNamePt,"MainHom",ToStr(aDif)});
+
                  // StdOut() << "##############  DIFFF " << aDif << " Pt=" <<  aPC.mGr->mNamePt << " Im=" << mCurNameIm << "#### \n";
               }
 	      else
@@ -487,6 +490,11 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
 int cAppli_CheckGCPDist::Exe()
 {
     mPhProj.FinishInit();
+
+    mNameReportError = "ErronedTarget";
+    InitReport(mNameReportError,"csv",true);
+
+    AddOneReportCSV(mNameReportError,{"Image","GCP","Cause","Err"});
 
 
     //  if we just need a pattern for xml file

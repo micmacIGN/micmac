@@ -784,11 +784,11 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
    {
         const cEllipse &   anEl  = anEE->mEllipse;
 	bool doHL = MatchRegex(anEE->mEncode.Name(),mPatHihlight);
-        for (tREAL8 aMul = 1.0; aMul < (doHL ? 4.0 : 1.5); aMul += (doHL ? 0.05 : 0.2))
+        for (tREAL8 aMul = 1.0; aMul < (doHL ? 4.0 : 2.5); aMul += (doHL ? 0.05 : 0.05))
         {
             aImVisu.DrawEllipse
             (
-               cRGBImage::Blue ,  // anEE.mWithCode ? cRGBImage::Blue : cRGBImage::Red,
+               cRGBImage::Green ,  // anEE.mWithCode ? cRGBImage::Blue : cRGBImage::Red,
                anEl.Center(),
                anEl.LGa()*aMul , anEl.LSa()*aMul , anEl.TetaGa()
             );
