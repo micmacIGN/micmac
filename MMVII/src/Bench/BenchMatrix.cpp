@@ -336,7 +336,7 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
            const cDenseVect<Type>   & aEVals = aRSEV.EigenValues();
            for (int aK=1 ; aK<aNb ; aK++)
            {
-               MMVII_INTERNAL_ASSERT_bench(aEVals(aK-1)<=aEVals(aK),"Bench unitarity EigenValue");
+               MMVII_INTERNAL_ASSERT_bench(aEVals(aK-1)<=aEVals(aK),"Bench decreasing order EigenValue");
            }
            cDenseMatrix<Type> aCheckEV =  aRSEV.OriMatr();
            MMVII_INTERNAL_ASSERT_bench(aCheckEV.DIm().L2Dist(aSim.DIm())<1e-5,"Bench unitarity EigenValue");

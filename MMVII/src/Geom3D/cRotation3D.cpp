@@ -342,11 +342,32 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToYPR() const
 
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromWPK(const tPt & aWPK)
 {
+   Type aCx = std::cos(aWPK.x());
+   Type aSx = std::sin(aWPK.x());
+   auto aRx = M3x3FromLines(tPt(1,0,0),tPt(0,aCx,-aSx),tPt(0,aSx,aCx));
+
+   Type aCy = std::cos(aWPK.y());
+   Type aSy = std::sin(aWPK.y());
+   auto aRy = M3x3FromLines(tPt(aCy,0,aSy),tPt(0,1,0),tPt(-aSy,0,aCy));
+
+   Type aCz = std::cos(aWPK.z());
+   Type aSz = std::sin(aWPK.z());
+   auto aRz = M3x3FromLines(tPt(aCz,-aSz,0),tPt(aSz,aCz,0),tPt(0,0,1));
+
+   return cRotation3D<Type>(aRx*aRy*aRz,false);
+/*
+   return 
+	    cRotation3D<Type>(aRx,false)
+	  * cRotation3D<Type>(aRy,false)
+	  * cRotation3D<Type>(aRz,false)
+   ;
+    Old formulation, slower, but dont destroy can be used again in tuning
    return 
 	    RotFromAxe(cPtxd<Type,3>(1,0,0),aWPK.x())
 	  * RotFromAxe(cPtxd<Type,3>(0,1,0),aWPK.y())
 	  * RotFromAxe(cPtxd<Type,3>(0,0,1),aWPK.z()) 
    ;
+   */
 }
 
 template <class Type> cRotation3D<tREAL8>  ToReal8(const cRotation3D<Type>  & aRot)
