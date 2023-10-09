@@ -26,12 +26,7 @@ std::string SuppressDirFromNameFile(const std::string & aDir,const std::string &
     // mOriIn.starts_with(aDir);  -> C++20
     // to see if StringDirSeparator() is not a meta carac on window ?
 
-     if (TheSYS == eSYS::Windows)
-     {
-          MMVII_DEV_WARNING("SuppressDirFromNameFile check regular expression on Window");
-     }
-     
-     std::string aPat =  "(.*" + aDir+")?" + "([A-Za-z0-9_-]+)" + StringDirSeparator() + "?";
+     std::string aPat =  "(.*" + aDir+")?" + "([A-Za-z0-9_-]+)[\\/]?";
      if (! MatchRegex(aName,aPat))
      {
          MMVII_UsersErrror
