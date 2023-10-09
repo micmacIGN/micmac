@@ -65,7 +65,7 @@ MMVII  OriPoseEstim11P 0.*_Scaled.tif Test 11P
 #  NIIII  043_0031_Scaled.tif F=32.1533
 MMVII EditSet  ImOk.xml = ".*Scaled.tif"
 
-MVII EditSet ImOk.xml -=  043_0031_Scaled.tif
+MMVII EditSet ImOk.xml -=  043_0031_Scaled.tif
 MMVII EditSet ImOk.xml -=  671_0013_Scaled.tif
 MMVII EditSet ImOk.xml -=  671_0025_Scaled.tif
 MMVII EditSet ImOk.xml -=  671_0031_Scaled.tif
