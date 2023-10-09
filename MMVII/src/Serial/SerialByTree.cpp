@@ -202,18 +202,13 @@ int cSerialFileParser::GetNotEOF()
 
 bool cSerialFileParser::SkeepOneString(const char * aString)
 {
-     int aNbC=0;
-     while (*aString)
+    auto start = Ifs().tellg();
+    while (*aString)
      {
-         // int aC = Ifs().get();
          int aC = GetNotEOF();
-         aNbC++;
          if (aC != *aString)
          {
-             for (int aK=0 ; aK<aNbC ; aK++)
-             {
-                  Ifs().unget();
-             }
+             Ifs().seekg(start);        // Hack to not use multiple unget() in a row ... Won't work if Ifs is not a file
              return false;
          }
          ++aString;
