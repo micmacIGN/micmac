@@ -236,29 +236,33 @@ int cAppli_ClinoInit::Exe()
 {
     mPhProj.FinishInit();
 
+
     std::vector<std::vector<std::string>> aVNames;   // for reading names of camera
     std::vector<std::vector<double>>      aVAngles;  // for reading angles of  clinometers
     std::vector<cPt3dr>                   aVFakePts; // not used, required by ReadFilesStruct
 
+    std::string mFormat = "NFFFF";
     //  read angles and camera
     ReadFilesStruct
     (
          mNameClino,
-	 "NNFNF",
+	 mFormat,
 	 0,-1,
-	 -1,
+	 '#',
 	 aVNames,
 	 aVFakePts,aVFakePts,
 	 aVAngles,
 	 false
     );
 
-    cPt3dr aWPK_Sim =  cPt3dr::PRandC() * mASim[3];
+    cPt3dr aWPK_Sim (0,0,0);
     tRot aRSim = cRotation3D<tREAL8>::RotFromWPK(aWPK_Sim);
 
     size_t aNbMeasures = aVNames.size();
     if (IsInit(&mASim))
     {
+       aWPK_Sim =  cPt3dr::PRandC() * mASim[3];
+       aRSim = cRotation3D<tREAL8>::RotFromWPK(aWPK_Sim);
        mKClino = 0;
        aNbMeasures = size_t (mASim[4]);
     }
@@ -303,9 +307,9 @@ int cAppli_ClinoInit::Exe()
     cWhichMin<tRot,tREAL8> aWM0 =  OneIter(mKClino,tRot::Identity(),aStep0,mNbStep0);
 
     int aNbStep = 15;
-    tREAL8 aDiv = 1.414;
+    tREAL8 aDiv = 1.1;
     
-    for (int aK=0 ; aK<40 ; aK++)
+    for (int aK=0 ; aK<200 ; aK++)
     {
          aStep0 /= aDiv;
          aWM0 =  OneIter(mKClino,aWM0.IndexExtre(), (2*aDiv*aStep0)/aNbStep,aNbStep);

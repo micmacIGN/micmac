@@ -431,6 +431,9 @@ template <class Type>  class cBijectiveMapI2O
         Type *   I2Obj(const int,bool SVP=true) ;  ///< Adr of object at index, 0 if none
         int      Obj2I(const Type & anOb,bool SVP=false) const;  ///< Index of object , -1 if none
 
+      	/// Call Obj2I with a human readable message in case
+        int      Obj2IWithMsg(const Type & anObj,const std::string & aMesg) const;
+
 	size_t  size() const;
 
     private :

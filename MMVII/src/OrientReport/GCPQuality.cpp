@@ -207,6 +207,8 @@ void cAppli_CGPReport::ReportsByGCP()
             aStat.Add(Norm2( aMesIm.VMeasures()[aKIm]  - aVSens[aVIndI[aKIm]]->Ground2Image(aGCP.mPt)));
 	}
 	AddStdStatCSV(mNameReportGCP,aGCP.mNamePt,aStat,mPropStat);
+
+	// int aNbX = std::sqrt(aVIndI.size());
    }
 
 }
