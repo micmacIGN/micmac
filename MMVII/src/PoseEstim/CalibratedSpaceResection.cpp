@@ -359,6 +359,9 @@ template <class Type>
    cSet2D3D aBufSetTest;  // will have the space to store locally the test set
    int aNbTot = aSet0.NbPair();
 
+   MMVII_INTERNAL_ASSERT_tiny(aNbTot>3,"Not enough 2-3 corresp in RansacPoseBySR");
+
+
    //  is we require less test that total of point we must create the subset
    if ( (aNbPtsMeasures>0)  && (aNbPtsMeasures<aNbTot)  )  
    {
@@ -570,6 +573,7 @@ class cAppli_CalibratedSpaceResection : public cMMVII_Appli
 	int                      mNbIterBundle;
 	bool                     mShowBundle;
 	tREAL8                   mThrsReject;
+	tREAL8                   mMaxErrOK;
         std::string              mDirFilter;
         std::string              mNameReport;
         std::string              mNameIm;
@@ -588,7 +592,8 @@ cAppli_CalibratedSpaceResection::cAppli_CalibratedSpaceResection
      mNbTriplets   (500),
      mNbIterBundle (10),
      mShowBundle   (false),
-     mThrsReject   (10000.0)
+     mThrsReject   (10000.0),
+     mMaxErrOK     (20.0)
 {
 }
 
@@ -611,7 +616,8 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
 	   << AOpt2007(mNbTriplets,"NbTriplets","Number max of triplet tested in Ransac",{eTA2007::HDV})
 	   << AOpt2007(mNbIterBundle,"NbIterBund","Number of bundle iteration, after ransac init",{eTA2007::HDV})
 	   << AOpt2007(mShowBundle,"ShowBundle","Show detail of bundle results",{eTA2007::HDV})
-	   << AOpt2007(mThrsReject,"ThrRej","Threshold for rejection of outlayer, in pixel")
+	   << AOpt2007(mThrsReject,"ThrRej","Threshold for rejection of outlayer, in pixel",{eTA2007::HDV})
+	   << AOpt2007(mMaxErrOK,"MaxErr","Max error acceptable for initial resection",{eTA2007::HDV})
 	   <<  mPhProj.DPPointsMeasures().ArgDirOutOpt("DirFiltered","Directory for filtered point")
     ;
 }
@@ -627,10 +633,7 @@ int cAppli_CalibratedSpaceResection::Exe()
     InitReport(mNameReport,"csv",true);
 
     bool  aExpFilt = mPhProj.DPPointsMeasures().DirOutIsInit();
-    if (aExpFilt)
-    {
-	    MMVII_INTERNAL_ASSERT_User(IsInit(&mThrsReject),eTyUEr::eUnClassedError,"Dir filter w/o threshold for filter");
-    }
+
     if (RunMultiSet(0,0))
     {
         AddOneReportCSV(mNameReport,{"Image","GCP","Residual"});
@@ -658,8 +661,11 @@ int cAppli_CalibratedSpaceResection::Exe()
     mPhProj.LoadIm(mSetMes,mNameIm);
     mSetMes.ExtractMes1Im(mSet23,mNameIm);
 
+    MMVII_INTERNAL_ASSERT_User(mSet23.NbPair()>3,eTyUEr::eUnClassedError,"Not enouh 3-2 pair for space resection");
+
     cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mNameIm);
 
+    // Pose estimation with ransac using 3 point method
     cWhichMin<tPoseR,tREAL8>  aWMin = aCal->RansacPoseEstimSpaceResection(mSet23,mNbTriplets);
     tPoseR   aPose = aWMin.IndexExtre();
     cSensorCamPC  aCam(FileOfPath(mNameIm,false),aPose,aCal);
@@ -676,11 +682,20 @@ int cAppli_CalibratedSpaceResection::Exe()
        for (int aK=0 ; aK<3 ; aK++)
           aVRes.pop_back();
        std::reverse(aVRes.begin(),aVRes.end());
+
+       tREAL8 aMedErr = Cst_KthVal(aVRes,0.5);
+       if (aMedErr> mMaxErrOK)
+       {
+           StdOut() << " ============================================================\n";
+           StdOut() << " median error on residual seems too High " << aMedErr << "\n";
+           StdOut() << " check data or eventutally change value of [MaxErr] (now =" << mMaxErrOK << ")\n";
+           MMVII_INTERNAL_ASSERT_User(false,eTyUEr::eUnClassedError,"Space resection probably failed due to bad data");
+       }
     }
      
 
     // If we want to filter on residual 
-    if (mShowBundle || IsInit(&mThrsReject))
+    if (mShowBundle )
     {
          cFilterMesIm aFMIM(mPhProj,mNameIm);
          StdOut() <<   " =====  WORST RESIDUAL ============= \n";
@@ -707,7 +722,7 @@ int cAppli_CalibratedSpaceResection::Exe()
 	 }
          aFMIM.SetFinished();
 
-	 if (IsInit(&mThrsReject))
+	 if (aExpFilt)
 	 {
 	     aFMIM.Save();
 	     aFMIM.SetMesImGCP().ExtractMes1Im(mSet23,mNameIm);

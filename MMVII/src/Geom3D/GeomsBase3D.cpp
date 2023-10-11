@@ -344,11 +344,27 @@ tREAL8 L2_DegenerateIndex(const std::vector<cPt3dr> & aVPt,size_t aNumEigV)
     aStat.Normalise();
     const cDenseVect<tREAL8> anEV = aStat.DoEigen().EigenValues() ;
 
+    if (anEV(2)==0)  return 0.0;
+
     return Sqrt(SafeDiv(anEV(aNumEigV),anEV(2)));
 }
 
-tREAL8 L2_PlanarityIndex(const std::vector<cPt3dr> & aVPt) { return L2_DegenerateIndex(aVPt,0); }
-tREAL8 L2_LinearityIndex(const std::vector<cPt3dr> & aVPt) { return L2_DegenerateIndex(aVPt,1); }
+tREAL8 L2_PlanarityIndex(const std::vector<cPt3dr> & aVPt) 
+{ 
+    tREAL8 aNbP = aVPt.size() ;
+    if (aNbP <=3) return 0.0;
+
+    return L2_DegenerateIndex(aVPt,0) * (aNbP / (aNbP-3.0));
+}
+
+
+tREAL8 L2_LinearityIndex(const std::vector<cPt3dr> & aVPt) 
+{ 
+    tREAL8 aNbP = aVPt.size() ;
+    if (aNbP <=2) return 0.0;
+
+    return L2_DegenerateIndex(aVPt,1) *  (aNbP / (aNbP-2.0));
+}
 
 
 

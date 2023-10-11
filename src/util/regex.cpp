@@ -262,6 +262,7 @@ const std::string & cElRegex::Error() const
 
 bool  cElRegex::Replace(const std::string & aMotifInit)  
 {
+
    std::string aMotif = mCaseSensitive ? aMotifInit : tolower(aMotifInit);
    mError = "";
    AssertIsMatched();

@@ -13,11 +13,14 @@ namespace MMVII
 /* ********************************************* */
 
 template <class Type>
-   int cBijectiveMapI2O<Type>::Add(const Type & anObj,bool OkExist)
+   int cBijectiveMapI2O<Type>::Add(const Type & anObj,bool OkExist,const std::string & aMsgError)
 {
     if (mObj2I.find(anObj) != mObj2I.end())
     {
-       MMVII_INTERNAL_ASSERT_tiny(OkExist,"cBijectiveMapI2O multiple add");
+       if  (!OkExist)
+       {
+           MMVII_INTERNAL_ASSERT_tiny(false,"cBijectiveMapI2O multiple add : " + aMsgError);
+       }
        return -1;
     }
 
