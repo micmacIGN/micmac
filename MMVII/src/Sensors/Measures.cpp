@@ -158,7 +158,7 @@ const cSetMesPtOf1Im  & cSetMesImGCP::MesImInitOfName(const std::string & aNameI
 
 const cMes1GCP &  cSetMesImGCP::MesGCPOfName(const std::string & aNamePt) const
 {
-    return mMesGCP.at(m2MapPtInt.Obj2I(aNamePt));
+    return mMesGCP.at(m2MapPtInt.Obj2IWithMsg(aNamePt,"GCP : " + aNamePt));
 }
 
 cMes1GCP &  cSetMesImGCP::MesGCPOfName(const std::string & aNamePt)   

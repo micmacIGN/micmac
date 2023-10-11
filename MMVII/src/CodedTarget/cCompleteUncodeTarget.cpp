@@ -94,8 +94,8 @@ cAppliCompletUncodedTarget::cAppliCompletUncodedTarget
 ) :
    cMMVII_Appli  (aVArgs,aSpec),
    mPhProj       (*this),
-   mNormal       (0,0,1),
-   mThreshRay    {1.03,4.85,5.05}
+   mNormal       (0,0,1)
+   // mThreshRay    {1.03,4.85,5.05}
 {
 }
 
@@ -117,7 +117,7 @@ cCollecSpecArg2007 & cAppliCompletUncodedTarget::ArgOpt(cCollecSpecArg2007 & anA
                   anArgOpt
 	     <<   mPhProj.DPPointsMeasures().ArgDirInputOptWithDef("Std")
 	     <<   mPhProj.DPPointsMeasures().ArgDirOutOptWithDef("Completed")
-             <<   AOpt2007(mThreshRay,"ThRay","Threshold for ray [RatioMax,RMin,RMax]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
+             <<   AOpt2007(mThreshRay,"ThRay","Threshold for ray [RatioMax,RMin,RMax]",{{eTA2007::ISizeV,"[3,3]"}})
              <<   AOpt2007(mPatternNormal,"PatNorm","If estimate normal, pattern for point involved")
           ;
 }
@@ -162,12 +162,16 @@ void cAppliCompletUncodedTarget::CompleteOneGCP(const cMes1GCP & aGCP)
 
    AddOneReportCSV(mNameReportEllipse,{mNameIm,aGCP.mNamePt,ToStr(aRMoy),ToStr(aRatio)});
 
-    if (  // check ratio and Ray
-               (aRatio > mThreshRay[0])
-           ||  (aRMoy  < mThreshRay[1])
-           ||  (aRMoy  > mThreshRay[2])
+    if (  IsInit(&mThreshRay) &&
+	  (
+                 (aRatio > mThreshRay[0])
+             ||  (aRMoy  < mThreshRay[1])
+             ||  (aRMoy  > mThreshRay[2])
+	  )
        )
+    {
        return;
+    }
 
     if (false && (LevelCall()==0))  // print info if was done whith only one image
     {

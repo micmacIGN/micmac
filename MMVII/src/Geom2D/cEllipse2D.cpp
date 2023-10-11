@@ -729,6 +729,10 @@ bool  cExtract_BW_Ellipse::AnalyseEllipse(cSeedBWTarget & aSeed,const std::strin
                   return false;
 	    }
             cPt2dr aGradIm (mDGx.GetVBL(aPt),mDGy.GetVBL(aPt));
+	    // Case rather rare, bur would generate error
+	    if (IsNull(aGradIm))
+               return false;
+
 	    aSomTeta += std::abs(ToPolar(aGradIm/-aGradTh).y());
      }
      aSomTeta /= aNbPts;

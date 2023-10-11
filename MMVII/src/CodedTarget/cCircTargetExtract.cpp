@@ -36,7 +36,8 @@ struct cThresholdCircTarget
 cThresholdCircTarget::cThresholdCircTarget() :
     mRatioStdDevGlob  (0.15),
     mRatioStdDevAmpl  (0.07),
-    mAngRadCode       (0.15),
+    // mAngRadCode       (0.15),
+    mAngRadCode       (0.25),
     mAngTanCode       (0.40)
 {
 }
@@ -784,7 +785,7 @@ void cAppliExtractCircTarget::MakeImageFinalEllispe()
    {
         const cEllipse &   anEl  = anEE->mEllipse;
 	bool doHL = MatchRegex(anEE->mEncode.Name(),mPatHihlight);
-        for (tREAL8 aMul = 1.0; aMul < (doHL ? 4.0 : 2.5); aMul += (doHL ? 0.05 : 0.05))
+        for (tREAL8 aMul = 1.0; aMul < (doHL ? 4.0 : 2.5); aMul += (doHL ? 0.05 : 0.4))
         {
             aImVisu.DrawEllipse
             (
