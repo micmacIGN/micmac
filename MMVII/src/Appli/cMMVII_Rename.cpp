@@ -31,8 +31,9 @@ class cAppli_Rename : public cMMVII_Appli
         std::string               mPattern;
         std::string               mSubst;
         std::vector<std::string>  mArithmReplace;
-        std::set<std::string>     mSet;
         bool                      mDoReplace;
+
+        std::set<std::string>     mSetOut;
 };
 
 
@@ -60,13 +61,13 @@ cAppli_Rename::cAppli_Rename(const std::vector<std::string> & aVArgs,const cSpec
 {
 }
 
-void cAppli_Rename::TestSet(const std::string & aName)
+void cAppli_Rename::TestSet(const std::string & aNameOut)
 {
-    if (BoolFind(mSet,aName))
+    if (BoolFind(mSetOut,aNameOut))
     {
         MMVII_UnclasseUsEr("Proposed replacement would create a conflict");
     }
-    mSet.insert(aName);
+    mSetOut.insert(aNameOut);
 }
 
 int cAppli_Rename::Exe()
@@ -125,18 +126,38 @@ int cAppli_Rename::Exe()
 
         StdOut() << " ==> [" << aStrOut  << "]  \n";
 
-        TestSet(aStrIn0);
+        // TestSet(aStrIn0);
         TestSet(aStrOut);
         aVInOut.push_back(std::pair<std::string,std::string>(aStrIn0,aStrOut));
     }
 
+    for (const auto & aPair : aVInOut)
+    {
+       // auto [aStrIn0,aStrOut] = aPair;
+       auto aStrOut = aPair.second;
+       if (ExistFile(aStrOut) && (! BoolFind(mSetOut,aStrOut)))
+       {
+           MMVII_UnclasseUsEr("File already exist");
+       }
+    }
+
+    std::string aPrefTmp = "MMVII_Tmp_Replace_"+ PrefixGMA() + "_";
+
     if (mDoReplace)
     {
+        // In case "input" intersect "outout", put first "input" in "tmp" file,
         for (const auto & aPair : aVInOut)
         {
             auto [aStrIn0,aStrOut] = aPair;
-            StdOut() << "mv " << aStrIn0  << " " << aStrOut  << "\n";
-	    RenameFiles(aStrIn0,aStrOut);
+            StdOut() << "mv " << aStrIn0  << " " << aPrefTmp+aStrIn0  << "\n";
+	    RenameFiles(aStrIn0,aPrefTmp+aStrIn0);
+        }
+	// the put, safely, "tmp" in "output"
+        for (const auto & aPair : aVInOut)
+        {
+            auto [aStrIn0,aStrOut] = aPair;
+            StdOut() << "mv " << aPrefTmp+ aStrIn0  << " " << aStrOut  << "\n";
+	    RenameFiles(aPrefTmp+aStrIn0,aStrOut);
         }
     }
     return EXIT_SUCCESS;

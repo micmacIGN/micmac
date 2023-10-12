@@ -695,7 +695,7 @@ int cAppli_CalibratedSpaceResection::Exe()
      
 
     // If we want to filter on residual 
-    if (mShowBundle )
+    if (aExpFilt )
     {
          cFilterMesIm aFMIM(mPhProj,mNameIm);
          StdOut() <<   " =====  WORST RESIDUAL ============= \n";
@@ -722,11 +722,8 @@ int cAppli_CalibratedSpaceResection::Exe()
 	 }
          aFMIM.SetFinished();
 
-	 if (aExpFilt)
-	 {
-	     aFMIM.Save();
-	     aFMIM.SetMesImGCP().ExtractMes1Im(mSet23,mNameIm);
-	 }
+	 aFMIM.Save();
+	 aFMIM.SetMesImGCP().ExtractMes1Im(mSet23,mNameIm);
     }
 
     if (mNbIterBundle)
