@@ -4,20 +4,11 @@
 
 
 #include <regex.h>
+#include <regex>
 
 
 namespace MMVII
 {
-
-// int regexec(const regex_t *preg, const char *string, size_t nmatch, regmatch_t *pmatch, int eflags);
-void FFF(const std::string & aPattern)
-{
-   size_t aNbPar = std::count(aPattern.begin(), aPattern.end(), '('); //)
-FakeUseIt(aNbPar);
-   regex_t    preg;
-   regcomp(&preg, nullptr, 0);
-   regexec(&preg,nullptr,1,nullptr,33);
-}
 
 /* ==================================================== */
 /*                                                      */
@@ -58,7 +49,7 @@ cCollecSpecArg2007 & cAppli_Rename::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
             << AOpt2007(mDoReplace,"DoReplace","do the replacement ",{{eTA2007::HDV}})
-            << AOpt2007(mArithmReplace,"AR","arthim repacement like [+,2,33,4] to add 33 to second expr and put on 4 digt ",{{eTA2007::ISizeV,"[3,4]"}})
+            << AOpt2007(mArithmReplace,"AR","arthim repacement like [+,33,2,4] to add 33 to second expr and put on 4 digt ",{{eTA2007::ISizeV,"[3,4]"}})
             ;
 }
 
@@ -86,22 +77,66 @@ int cAppli_Rename::Exe()
     std::vector<std::pair<std::string,std::string>  > aVInOut;
 
 
-    for (const auto & aStrIn : VectMainSet(0))
-    {
-        std::string aStrOut =  ReplacePattern(mPattern,mSubst,aStrIn);
-        StdOut() << "[" << aStrIn  << "] ==> [" << aStrOut  << "]\n";
+     std::regex aPat(mPattern);
 
-        TestSet(aStrIn);
+    for (const auto & aStrIn0 : VectMainSet(0))
+    {
+        std::string aStrIn = aStrIn0;
+        if (IsInit(&mArithmReplace))
+	{
+             std::string anOp = mArithmReplace[0];
+	     int aOffset = cStrIO<int>::FromStr(mArithmReplace[1]);
+	     int aKExpr = cStrIO<int>::FromStr(mArithmReplace[2]);
+
+             std::smatch aBoundMatch;
+             bool aGotMatch = std::regex_search(aStrIn0, aBoundMatch, aPat);
+             MMVII_INTERNAL_ASSERT_tiny(aGotMatch,"cCRegex::BoundsMatch no match");
+
+	     if ((aKExpr<0)||(aKExpr >= (int) aBoundMatch.size()))
+	     {
+                  MMVII_UnclasseUsEr("Num of expr incompatible with pattern : " + mArithmReplace[2]);
+	     }
+
+	     // auto aMatch  = aBoundMatch[aKExpr];
+
+	     std::string aStrNumIn = aBoundMatch[aKExpr];
+	     int aNum    = cStrIO<int>::FromStr(aStrNumIn);
+
+	     if (anOp=="+")
+                aNum += aOffset;
+	     else if (anOp=="-")
+                aNum -= aOffset;
+	     else if (anOp=="%")
+                aNum %= aOffset;
+	     else
+	     {
+                MMVII_UnclasseUsEr("Bad operand in arithmetic : " + mArithmReplace[0]);
+	     }
+
+	     int aNbDig = (mArithmReplace.size()> 3) ? cStrIO<int>::FromStr(mArithmReplace[3]) : aStrNumIn.size();
+	     std::string aStrNumOut = ToStr(aNum,aNbDig);
+
+	     aStrIn.replace(aBoundMatch.position(aKExpr),aBoundMatch.length(aKExpr),aStrNumOut);
+	}
+        std::string aStrOut =  ReplacePattern(mPattern,mSubst,aStrIn);
+        StdOut() << "[" << aStrIn0  << "] ";
+        if (IsInit(&mArithmReplace))
+           StdOut() << " ==> [" << aStrIn  << "] ";
+
+        StdOut() << " ==> [" << aStrOut  << "]  \n";
+
+        TestSet(aStrIn0);
         TestSet(aStrOut);
-        aVInOut.push_back(std::pair<std::string,std::string>(aStrIn,aStrOut));
+        aVInOut.push_back(std::pair<std::string,std::string>(aStrIn0,aStrOut));
     }
 
     if (mDoReplace)
     {
         for (const auto & aPair : aVInOut)
         {
-            auto [aStrIn,aStrOut] = aPair;
-            StdOut() << "[" << aStrIn  << "] MMMMMVVVVVV [" << aStrOut  << "]\n";
+            auto [aStrIn0,aStrOut] = aPair;
+            StdOut() << "mv " << aStrIn0  << " " << aStrOut  << "\n";
+	    RenameFiles(aStrIn0,aStrOut);
         }
     }
     return EXIT_SUCCESS;
