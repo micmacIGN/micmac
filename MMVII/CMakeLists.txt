@@ -99,6 +99,7 @@ set(EIGEN3_INCLUDE_PATH  "${mmv2_external_include_dir}/eigen-3.4.0")
 
 # MMVII sources: Auto generate. Not recommended, but let's try it ...
 file(GLOB mmv2_libsrcs CONFIGURE_DEPENDS "${mmv2_src_dir}/*/*.cpp")
+file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*.h" "${mmv2_src_dir}/*/*.h")
 
 # Here we initialize the generated code with en empty template if working dir is clean (first checkout or after make distclean)
 list(APPEND mmv2_libsrcs "${mmv2_gencode_main_src}")   # This file may not be present (deleted after clean all), force dependance on it
@@ -109,7 +110,7 @@ add_custom_command(OUTPUT "${mmv2_gencode_main_src}" COMMAND ${CMAKE_COMMAND} -E
 #######################################################
 ##        libP2007 buid (MMVII library)
 #######################################################
-add_library(P2007 "${mmv2_libsrcs}")
+add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
 target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${Boost_INCLUDE_DIRS}")
 target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads)
 
