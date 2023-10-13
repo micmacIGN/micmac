@@ -682,7 +682,7 @@ template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix()
 
 template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
-// StdOut() << "cSparseLeasSqtAA<Type>::AddObsWithTmpUK \n";
+// StdOut() << "cSparseLeasSqtAA<Type>::AddObsWithTmpUK " << std::endl;
 
     //  1 - Compute the reduce schur matrix
     mBufSchur.CompileSubst(aSetSetEq);

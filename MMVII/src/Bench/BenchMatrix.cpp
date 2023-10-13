@@ -390,12 +390,12 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
   
         if (aD>aDTest)
         {
-            StdOut() << "D=" << aD << " DTest=" << aDTest << " Cpt=" << aCpt << "\n";
+            StdOut() << "D=" << aD << " DTest=" << aDTest << " Cpt=" << aCpt << std::endl;
             MMVII_INTERNAL_ASSERT_bench(false,"Bench inverse  Matrixes");
         }
         if (aD2>aDTest)
         {
-            StdOut() << "D=" << aD2 << " DTest=" << aDTest << " Cpt=" << aCpt << "\n";
+            StdOut() << "D=" << aD2 << " DTest=" << aDTest << " Cpt=" << aCpt << std::endl;
             MMVII_INTERNAL_ASSERT_bench(false,"Bench inverse  Matrixes");
         }
 
@@ -579,7 +579,7 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
 
       Type aR0 = Residual(aSys,aSol,aLWeight,aLVec,aLVal);
       Type aDTest = sqrt(std::numeric_limits<Type>::epsilon()) * 100;
-      // StdOut() << "aR0aR0aR0aR0aR0 " << aR0 << "\n";
+      // StdOut() << "aR0aR0aR0aR0aR0 " << aR0 << std::endl;
 
       if (Exact)
       {
@@ -590,7 +590,7 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
              /* StdOut() << "ddDddDDDD " << aDif << " " << E2Str(tElemNumTrait<Type>::TyNum()) 
                    << " Eps: " << std::numeric_limits<Type>::epsilon() << " " <<  aDTest << "\n"; */
              MMVII_INTERNAL_ASSERT_bench(aDif<aDTest,"Bench Op Im");
-             // StdOut() << "ScaAal " <<  aLVal[aK] - aSol.DotProduct(aLVec[aK]) << "\n";
+             // StdOut() << "ScaAal " <<  aLVal[aK] - aSol.DotProduct(aLVec[aK]) << std::endl;
          }
       }
       else
@@ -604,12 +604,12 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
                 aNewV(aK) = aSol(aK) + aEps * RandUnif_C();
 
              Type aRN = Residual(aSys,aNewV,aLWeight,aLVec,aLVal);
-             // StdOut() << "RRRRR  " << aRN-aR0 << "\n";
+             // StdOut() << "RRRRR  " << aRN-aR0 << std::endl;
 
              MMVII_INTERNAL_ASSERT_bench(aRN>=aR0-1e-5,"Bench residual ");
 
              // double aD = aSol.DIm().L2Dist(aNewV.DIm());
-             // StdOut() << " D=" << aD << "Dif " << (aRN-aR0) /Square(aD) << "\n";
+             // StdOut() << " D=" << aD << "Dif " << (aRN-aR0) /Square(aD) << std::endl;
           }
       }
    }
@@ -682,7 +682,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
          int aNbEq =  2 * aNbVar + 3 ;
 
          if (TrackBugEigenSucc)
-            StdOut()  << "NBVARR=" << aNbVar << " NbE="<<aNbEq << "\n";
+            StdOut()  << "NBVARR=" << aNbVar << " NbE="<<aNbEq << std::endl;
 
          // random param for sparse normal syst
 	 cParamSparseNormalLstSq aParam
@@ -734,7 +734,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
                        cResulSymEigenValue<Type> aSVD = aMat.SymEigenValue();
                        cDenseVect<Type>   aVP = aSVD.EigenValues() ;
 
-                       StdOut() << "EIGENVAL " << aVP << "\n";
+                       StdOut() << "EIGENVAL " << aVP << std::endl;
                   }
               }
 
@@ -742,7 +742,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
 	      for (int aKSys=0 ; aKSys<int(aVSys.size()) ;  aKSys++)
 	      {
                   if (TrackBugEigenSucc)
-                      StdOut() << "KSYS " << aKSys << " CPT=" << aCpt << "\n";
+                      StdOut() << "KSYS " << aKSys << " CPT=" << aCpt << std::endl;
 	          auto & aSys  =  aVSys[aKSys];
                   // with conj grad, change error handling
                   if (aKSys==1) 
@@ -762,11 +762,11 @@ template <class Type,class TypeSys> void TplBenchLsq()
                       {
                             for (const auto& aIV : aCoefs.IV())
                                 StdOut() << "[" << aIV.mInd << "," << aIV.mVal << "] ";
-                            StdOut() << "\n";
+                            StdOut() << std::endl;
                       }
                       StdOut() << "KS=" << aKSys << " DDddd " << aDist 
                                << " Acc=" << tNumTrait<Type>::Accuracy() << "\n";
-                      StdOut() << " NBV=" << aNbVar << " NbE=" << aNbEq << "\n"; 
+                      StdOut() << " NBV=" << aNbVar << " NbE=" << aNbEq << std::endl; 
 
                       cDenseMatrix<Type>  atAA = aVSys[0]->V_tAA();
                       cDenseVect<Type>    atARhs = aVSys[0]->V_tARhs();
@@ -774,7 +774,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
 	              for (int aKS2=0 ; aKS2<int(aVSys.size()) ;  aKS2++)
                       {
                           cDenseVect<Type> aRes = atAA * aVSys[aKS2]->Solve() - atARhs;
-                          StdOut() << "NNNN " << aRes.L2Norm()   << " " << atARhs.L2Norm() << "\n";
+                          StdOut() << "NNNN " << aRes.L2Norm()   << " " << atARhs.L2Norm() << std::endl;
                       }
   
                       MMVII_INTERNAL_ASSERT_bench(false,"Cmp Least Square");
@@ -861,10 +861,10 @@ void BenchLsqDegenerate()
         tREAL8 aDV =  aSys2.V_tARhs().L2Dist(atARhs) ;
         tREAL8 aDM =   aSys2.V_tAA().L2Dist(atAA);
     
-         // StdOut() << "Ddddd " << aDV << " " << aDM  << " \n";
+         // StdOut() << "Ddddd " << aDV << " " << aDM  << " " << std::endl;
          MMVII_INTERNAL_ASSERT_bench(aDV<1e-5,"cDecSumSqLinear vector");
          MMVII_INTERNAL_ASSERT_bench(aDM<1e-5,"cDecSumSqLinear matrix");
-         ///  StdOut() << "mmmMMMMmm " << aSys2.V_tAA().L2Dist(atAA) << " \n";
+         ///  StdOut() << "mmmMMMMmm " << aSys2.V_tAA().L2Dist(atAA) << " " << std::endl;
     }
     DeleteAllAndClear(aVSys);
 }
@@ -886,7 +886,7 @@ void BenchLsq()
                 BenchLsqDegenerate();
              }
          }
-         // StdOut() << "EEEEEEEeeeeeeeeeeeeeeee\n"; getchar();
+         // StdOut() << "EEEEEEEeeeeeeeeeeeeeeee" << std::endl; getchar();
 #endif
      }
 
@@ -1076,7 +1076,7 @@ void BenchDenseMatrix0(cParamExeBench & aParam)
         int aNb = std::min(60,20+aParam.Level()*5);
         for (int aK=1 ; aK<aNb ; aK++)
         {
-// StdOut() << "KKKKKK " << aK << "\n";
+// StdOut() << "KKKKKK " << aK << std::endl;
            TplBenchDenseMatr<tREAL4>(aK,aK);
            TplBenchDenseMatr<tREAL8>(aK,aK);
         }

@@ -82,7 +82,7 @@ void  Bench_cPt2dr()
         // Bench div complex vis rho-teta
         MMVII_INTERNAL_ASSERT_bench(Norm2(aP1d2 - aQ1d2)<1e-5,"cPt2r Bench");
 
-        //  StdOut() << "CcccMul " << aP1d2 - aQ1d2 << "\n";
+        //  StdOut() << "CcccMul " << aP1d2 - aQ1d2 << std::endl;
    }
 }
 

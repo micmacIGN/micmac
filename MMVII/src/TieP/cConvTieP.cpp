@@ -108,7 +108,7 @@ int cAppli_TiePConvert::Exe()
 	       }
 
 		       // cSetHomogCpleIm
-	       // StdOut() << "aSMTPaSMTP " << aSMTP.Pts().size() << "\n";
+	       // StdOut() << "aSMTPaSMTP " << aSMTP.Pts().size() << std::endl;
            }
       }
    }

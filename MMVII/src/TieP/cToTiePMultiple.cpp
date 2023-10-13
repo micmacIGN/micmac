@@ -373,7 +373,7 @@ int  cOneImMEff2MP::FindNumIm(int aKIm) const
     int aRes = anIt-mImCnx.begin();
     MMVII_INTERNAL_ASSERT_tiny(mImCnx.at(aRes)==aKIm,"Can find in FindNumIm");
 
-    // StdOut() << "FNii " << aRes << " " << aKIm << " " << mImCnx[aRes] << "\n";
+    // StdOut() << "FNii " << aRes << " " << aKIm << " " << mImCnx[aRes] << std::endl;
 
     // 4 now, called only one way, so check coherence, maybe to relax later
     MMVII_INTERNAL_ASSERT_tiny(!mIsFirst.at(aRes),"Incoherence in mIsFirst");
@@ -573,7 +573,7 @@ void cOneImMEff2MP::ShowMerged(std::vector<cOneImMEff2MP> &  aVIms)
 {
     for (auto & aMerged : mMerge)
     {
-        StdOut() << "ADRMERGED" << aMerged << "\n";
+        StdOut() << "ADRMERGED" << aMerged << std::endl;
         if (!  aMerged->mDone)
 	{
            aMerged->mDone = true;
@@ -583,22 +583,22 @@ void cOneImMEff2MP::ShowMerged(std::vector<cOneImMEff2MP> &  aVIms)
 		   int aKP = MMVII::Pt(aMerged->mVIP.at(aK));
 		   StdOut() << aKI  << aVIms.at(aKI).mVPts.at(aKP) << " ";
 	   }
-           StdOut() <<  "\n";
-           // StdOut() << " VIP " << aMerged->mVIP << "\n";
+           StdOut() <<  std::endl;
+           // StdOut() << " VIP " << aMerged->mVIP << std::endl;
 	}
     }
 }
 
 void cOneImMEff2MP::ShowInit() const
 {
-   StdOut() << "Im=" << mNameIm    << mVPts << "\n";
+   StdOut() << "Im=" << mNameIm    << mVPts << std::endl;
    for (size_t aK= 0 ;  aK< mNbIm; aK++)
    {
        StdOut()   << " ** "; 
        StdOut()  << (mIsFirst.at(aK)  ? "+" : "-") << " ";
        StdOut()  << mImCnx.at(aK) ;
        StdOut()  << " " << mIndPts.at(aK) ;
-       StdOut()   << "\n"; 
+       StdOut()   << std::endl; 
    }
 }
 void cOneImMEff2MP::ShowCur() const
@@ -611,14 +611,14 @@ void cOneImMEff2MP::ShowCur() const
 	else if (mMerge[aK]->mKilled )  StdOut() << "[?]" ;
 	else  StdOut() << "[" << mMerge[aK]->mCpt << "]";
    }
-   StdOut() << "\n";
+   StdOut() << std::endl;
 }
 
 void cOneImMEff2MP::ShowTestMerge(cCstrMulP* aT2)
 {
      if (! mMerge.empty())
      {
-         // StdOut() << "STM: " << mIndPts << "\n";
+         // StdOut() << "STM: " << mIndPts << std::endl;
 	 for (auto & aMerge : mMerge)
          {
               MMVII_INTERNAL_ASSERT_tiny(aMerge!=aT2,"Incoherence ShowTestMerge");
@@ -705,7 +705,7 @@ void cMemoryEffToMultiplePoint::MarkeMergeUndone()
 
 void cMemoryEffToMultiplePoint::ShowCur() const
 {
-    StdOut() << "------------------------------------------\n";
+    StdOut() << "------------------------------------------" << std::endl;
     for (auto & aIm : mVIms)
         aIm.ShowCur();
 }
@@ -814,7 +814,7 @@ void cMultiplePt::Show()
     StdOut() << "SHOWMPT ";
     for (size_t aK=0 ; aK<mVPts.size() ; aK++)
        StdOut() << mNumIm.at(aK) << mVPts.at(aK) << " ";
-    StdOut() << "\n";
+    StdOut() << std::endl;
 }
 
 
@@ -858,7 +858,7 @@ cSimulHom::cSimulHom(int aNbImage,int aNbPts,int aMaxCard,bool Debug) :
     mDebug    (Debug),
     mKPts     (0)
 {
-    if (mDebug) StdOut() << "Ddddddddddddddddddddddddddddddeeeeeeeeeeeeebugggggggggggggggg cSimulHom::cSimulHom\n";
+    if (mDebug) StdOut() << "Ddddddddddddddddddddddddddddddeeeeeeeeeeeeebugggggggggggggggg cSimulHom::cSimulHom" << std::endl;
     for (int aK=0 ; aK<aNbImage ; aK++)
     {
          mVIm.push_back(new cImage(aK));
@@ -889,7 +889,7 @@ cMultiplePt cSimulHom::GenMulTieP()
 
     if (mDebug) 
     {
-       StdOut() << "NumIms=" << aRes.mNumIm  << "\n";
+       StdOut() << "NumIms=" << aRes.mNumIm  << std::endl;
     }
 
     return aRes;
@@ -980,13 +980,13 @@ void  cSimulHom::GenEdges(cMultiplePt & aMTP,bool WithError)
 	 mMapHom[tSS(ToStr(aI1),ToStr(aI2))].Add(cHomogCpleIm(aP1,aP2));
 
 	 if (mDebug)
-            StdOut() <<  "-EeeE=" << aI1 << " " << aI2 << "\n";
+            StdOut() <<  "-EeeE=" << aI1 << " " << aI2 << std::endl;
     }
 }
 
 void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
 {
-    // StdOut() << "NbImage= " << aNbImage << "\n";
+    // StdOut() << "NbImage= " << aNbImage << std::endl;
     cSimulHom aSimH(aNbImage,aNbPts,aMaxCard,false);
     cSetMultipleTiePoints aSetMTP1(aSimH.VNames());
 
@@ -1010,11 +1010,11 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
     {
         // cMemoryEffToMultiplePoint aToMP(aSimH,aSimH.VNames(),aSetMTP2);
         //cMemoryEffToMultiplePoint aToMP(aSimH,aSetMTP2.VNames(),aSetMTP2);
-	//StdOut() << "cMemoryEffToMultiplePointcMemoryEffToMultiplePoint \n";
+	//StdOut() << "cMemoryEffToMultiplePointcMemoryEffToMultiplePoint " << std::endl;
 
         cSetMultipleTiePoints aSetMTP2(aSimH.VNames(),&aSimH);
 	aSetMTP1.TestEq(aSetMTP2);
-	// StdOut() << "DONNEEE \n";
+	// StdOut() << "DONNEEE " << std::endl;
 	// getchar();
     }
 

@@ -704,7 +704,7 @@ void BenchDelaunayRand(int aNbPts)
 template<class Type>  std::vector<Type>  XRandomOrder(const std::vector<Type> & aV)
 {
     std::vector<int> aPermut = RandPerm(aV.size());
-    // StdOut()<< RandPerm(8) << "\n";
+    // StdOut()<< RandPerm(8) << std::endl;
     std::vector<Type> aRes;
     for (const auto & aI : aPermut)
         aRes.push_back(aV.at(aI));

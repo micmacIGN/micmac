@@ -187,7 +187,7 @@ void cAppliCorrecDistCircTarget::EstimateRealCenter()
         cSimulProjEllispe aSPE = EstimateRealCenter(aGCP);
 
 	aMesIm.mPt   = aSPE.CenterEllToProj(aMesIm.mPt);
-	//  StdOut()  << "DD=" << aGCP.mNamePt << " " << aSPE.mCorrecC << "\n";
+	//  StdOut()  << "DD=" << aGCP.mNamePt << " " << aSPE.mCorrecC << std::endl;
 	aStat.Add(Norm2(aSPE.mCorrecC));
    }
    AddStdStatCSV(mReportIm,mNameIm,aStat,mPropStat);
@@ -228,7 +228,7 @@ int  cAppliCorrecDistCircTarget::Exe()
 
    // mCamPC = mPhProj.AllocCamPC(FileOfPath(mSpecImIn),true);
 
-   StdOut()  << mNameIm << " Fff=" << mCamPC->InternalCalib()->F()  << " "<<  mCamPC->NameImage() << "\n";
+   StdOut()  << mNameIm << " Fff=" << mCamPC->InternalCalib()->F()  << " "<<  mCamPC->NameImage() << std::endl;
 
    if (! IsInit(&mRayTarget))
    {
@@ -242,7 +242,7 @@ int  cAppliCorrecDistCircTarget::Exe()
         mPhProj.CpGCP();
    }
 
-   StdOut() << "RAY=" <<  mRayTarget << "\n";
+   StdOut() << "RAY=" <<  mRayTarget << std::endl;
 
    return EXIT_SUCCESS;
 }

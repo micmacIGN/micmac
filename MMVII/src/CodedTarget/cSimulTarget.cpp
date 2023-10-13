@@ -313,7 +313,7 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
     aGSD.mCornEl1 = aMapT2Im.Value(mSpec->CornerlEl_BW()/mDownScale);
     aGSD.mCornEl2 = aMapT2Im.Value(mSpec->CornerlEl_WB()/mDownScale);
 
-    StdOut() << "NNN= " << aGSD.mEncod.Name() << " C0=" << aC0 <<  aBoxIm.Sz() <<  " " << aGSD.mR2/aGSD.mR1 << "\n";
+    StdOut() << "NNN= " << aGSD.mEncod.Name() << " C0=" << aC0 <<  aBoxIm.Sz() <<  " " << aGSD.mR2/aGSD.mR1 << std::endl;
 }
 
 const std::string ThePrefixSimulTarget = "SimulTarget_";
@@ -338,7 +338,7 @@ int  cAppliSimulCodeTarget::Exe()
         if (MatchRegex(anEncod.Name(),mPatternNames))
 	{
             AddPosTarget(anEncod);
-            StdOut() <<  "Target " << anEncod.Name() << " " << mRS.mVG.back().mC << "\n";
+            StdOut() <<  "Target " << anEncod.Name() << " " << mRS.mVG.back().mC << std::endl;
 	}
    }
 

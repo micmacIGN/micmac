@@ -287,8 +287,8 @@ void cPhotogrammetricProject::FinishInit()
     // Create an example file  if none exist
     GenerateSampleCalcMTD();
 
-    // StdOut() << "MTD=" <<   mDPMetaData.FullDirOut() << "\n"; 
-    // StdOut() << "MTD=" <<   mDPMetaData.FullDirOut() << "\n"; getchar();
+    // StdOut() << "MTD=" <<   mDPMetaData.FullDirOut() << std::endl; 
+    // StdOut() << "MTD=" <<   mDPMetaData.FullDirOut() << std::endl; getchar();
 }
 
 cPhotogrammetricProject::~cPhotogrammetricProject() 
@@ -556,7 +556,7 @@ void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & 
    std::vector<std::string> aListFileGCP =  GetFilesFromDir(aDir,AllocRegex(aPatFiltr));
    MMVII_INTERNAL_ASSERT_User(!aListFileGCP.empty(),eTyUEr::eUnClassedError,"No file found in LoadGCP");
 
-// StdOut()<< "aListFileGCPaListFileGCP " << aListFileGCP.size() << "\n";
+// StdOut()<< "aListFileGCPaListFileGCP " << aListFileGCP.size() << std::endl;
 
    for (const auto  & aNameFile : aListFileGCP)
    {

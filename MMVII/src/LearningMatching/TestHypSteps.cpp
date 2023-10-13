@@ -110,9 +110,9 @@ int  cAppliTestHypStep::Exe()
    std::string aNameOut = "Steep.tif";
    aDRes.ToFile(aNameOut);
 
-   StdOut() << "IM1 " <<  mIsIm1 << "\n";
-   StdOut() << "  Px= " <<  PxFromIm(mNameIm) << "\n";
-   StdOut() << "  Masq= " <<  MasqFromIm(mNameIm) << "\n";
+   StdOut() << "IM1 " <<  mIsIm1 << std::endl;
+   StdOut() << "  Px= " <<  PxFromIm(mNameIm) << std::endl;
+   StdOut() << "  Masq= " <<  MasqFromIm(mNameIm) << std::endl;
    return EXIT_SUCCESS;
 }
 

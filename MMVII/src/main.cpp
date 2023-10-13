@@ -24,13 +24,13 @@ int main(int argc, char ** argv)
    // Debug, print command
 #if 0
    {
-       StdOut() << "==========COMM=====   \n";
+       StdOut() << "==========COMM=====   " << std::endl;
        for (int aK=0 ; aK<argc ; aK++)
        {
             if (aK) StdOut() << " ";
             StdOut() << argv[aK];
        }
-       StdOut() << "\n";
+       StdOut() << std::endl;
    }
 #endif
     
@@ -54,7 +54,7 @@ int main(int argc, char ** argv)
    // Affiche toutes les commandes
    for (const auto & aSpec : cSpecMMVII_Appli::VecAll())
    {
-       StdOut()  << aSpec->Name() << " => " << aSpec->Comment() << "\n";
+      StdOut()  << aSpec->Name() << " => " << aSpec->Comment() << std::endl;
    }
    return EXIT_SUCCESS;
 }

@@ -333,13 +333,13 @@ void BenchSymDerMap(cParamExeBench & aParam)
            aMaxD = std::max(aMaxD,Norm2(aDif));
            aMaxDisto = std::max(aMaxDisto,Norm2(aVIn[aKPts]-aVInv[aKPts]));
  
-           // StdOut() << "Kp: " << aKPts << " PTS "<< aVIn[aKPts]<< " Dif " << aDif << "\n";
+           // StdOut() << "Kp: " << aKPts << " PTS "<< aVIn[aKPts]<< " Dif " << aDif << std::endl;
            // TestJacob(aMCS,aVInv[aKPts]);
 
        }
        if (aMaxD>1e-5)
        {
-            StdOut() << "MOYD " << aMaxD  << " " << aMaxDisto << "\n";
+            StdOut() << "MOYD " << aMaxD  << " " << aMaxDisto << std::endl;
             MMVII_INTERNAL_ASSERT_bench(false,"Distorsion inverse");
        }
    }

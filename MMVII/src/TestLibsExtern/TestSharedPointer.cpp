@@ -72,9 +72,9 @@ void TestCountSharePointer()
 
        std::shared_ptr<cTestMMV2Obj> p2 = p0;
        p2 = p1;
-       StdOut() << "NB OBJ " << cTestMMV2Obj::NbObj() << " =? 2\n";
+       StdOut() << "NB OBJ " << cTestMMV2Obj::NbObj() << " =? 2" << std::endl;
     }
-    StdOut() << "NB OBJ " << cTestMMV2Obj::NbObj() << " =? 0\n";
+    StdOut() << "NB OBJ " << cTestMMV2Obj::NbObj() << " =? 0" << std::endl;
 }
 
     //===============================================
@@ -183,11 +183,11 @@ void  TestSharedPointer()
    // new  cDataFonc1V_Cste(3.14);
    {
        cFonc1V aF = X()+3+(X()+4);
-       StdOut() << "F(10) = " << aF.GetVal(10) << " Count= " << cTestMMV2Obj::NbObj() << "\n";
-       StdOut() << "F'(10) = " << aF.Derive().GetVal(10)  << "\n";
-       aF->Show(StdOut()) ; StdOut() << "\n";
+       StdOut() << "F(10) = " << aF.GetVal(10) << " Count= " << cTestMMV2Obj::NbObj() << std::endl;
+       StdOut() << "F'(10) = " << aF.Derive().GetVal(10)  << std::endl;
+       aF->Show(StdOut()) ; StdOut() << std::endl;
    }
-   StdOut()  << " Compte final " << cTestMMV2Obj::NbObj() << "\n";
+   StdOut()  << " Compte final " << cTestMMV2Obj::NbObj() << std::endl;
 }
 
 
@@ -283,7 +283,7 @@ double Div(double a,double b) {return a/b;}
 class cUnikP
 {
    public :
-      ~cUnikP(){StdOut() << "KilledP=" << mMes << "\n";}
+      ~cUnikP(){StdOut() << "KilledP=" << mMes << std::endl;}
       cUnikP(const std::string & aMes) : mMes(aMes) {}
       std::string mMes;
 };
@@ -304,12 +304,12 @@ int cAppli_MMVII_TestCpp11::Exe()
    {
         std::unique_ptr<cUnikP> aP (new cUnikP("T1"));
    }
-   StdOut() << "END BLOCK T1\n";
+   StdOut() << "END BLOCK T1" << std::endl;
    {
         std::unique_ptr<cUnikP> aP2 = Transfer("T2");
-        StdOut() << " IN  BLOCK T2\n";
+        StdOut() << " IN  BLOCK T2" << std::endl;
    }
-   StdOut() << "END BLOCK T2\n";
+   StdOut() << "END BLOCK T2" << std::endl;
 
    cPt2dr aP{1,2};
    std::vector<cPt2dr> aVP{{1,2},{3,1},{1,1}};  // Uniform initialization synta
@@ -329,18 +329,18 @@ int cAppli_MMVII_TestCpp11::Exe()
 
    std::string s = R"(\w\\\w)"; // Raw string , \ is \ !!
    std::string s2 = R"**(\w"()"\\\w)**"; // Raw string  avec "()" etc dedans ... 
-   StdOut() << "TEST RAW STRING " << s  << "###"  << s2 << "\n";
+   StdOut() << "TEST RAW STRING " << s  << "###"  << s2 << std::endl;
 
    auto aTuple = std::make_tuple(1,2.0,"3+2=5");
-   StdOut() << " T0=> " << std::get<0>(aTuple) << " T2=>" << std::get<2>(aTuple) << " " << "\n";
+   StdOut() << " T0=> " << std::get<0>(aTuple) << " T2=>" << std::get<2>(aTuple) << " " << std::endl;
    
-   StdOut() << " Type1=> " << typeid(std::get<1>(aTuple)).name()  << "\n";
+   StdOut() << " Type1=> " << typeid(std::get<1>(aTuple)).name()  << std::endl;
 
 
    char * C= nullptr; IgnoreUnused(C); // Un pointeur nul universel, + clean que (char *) 
 
    cCtsrCallCstr aT;
-   StdOut() << "cCtsrCallCstr => " << aT.mV << "\n";
+   StdOut() << "cCtsrCallCstr => " << aT.mV << std::endl;
    // PrintSzVect({1,2}); => Pb avec template et initializer , pas sur pb moo ou g++ ?
    PrintSzVectI({1,2});  // Ok sans template
    // Les const expression sont garanties evaluables a la compile
@@ -357,7 +357,7 @@ int cAppli_MMVII_TestCpp11::Exe()
    std::vector<int>  aVI;
    for (auto & it : aVI)
    {
-       StdOut() << it << "\n";
+       StdOut() << it << std::endl;
        it += 2;
    }
    // Range for "enum" values
@@ -376,18 +376,18 @@ int cAppli_MMVII_TestCpp11::Exe()
 
    std::forward_list<int> aFLPrime{2,3,5,7,11,13};
    for (const auto &  it : aFLPrime) StdOut() << " " << it ;
-   StdOut() <<  ENDL;
+   StdOut() <<  std::endl;
 
    std::unordered_map<std::string,int> aUMap{{"Un",1},{"deux",2},{"trois",3},{"Quatre",4}};
    for (const auto &  it : aUMap) StdOut() << " " << it.first<<","<<it.second ;
-   StdOut() <<  ENDL;
-   StdOut() << "aUMap[Un]=" <<aUMap["Un"] << " aUMap[un]=" << aUMap["un"] << "\n";
-   StdOut() << " SZUM " << sizeof(aUMap) <<  ENDL;
+   StdOut() <<  std::endl;
+   StdOut() << "aUMap[Un]=" <<aUMap["Un"] << " aUMap[un]=" << aUMap["un"] << std::endl;
+   StdOut() << " SZUM " << sizeof(aUMap) <<  std::endl;
 
 
    // Pas sur supporte par g++ ??? 
    auto Div2 = std::bind(Div,std::placeholders::_1,2.0);
-   StdOut() <<  " 5/2.0= " << Div2(5.0) << ENDL;
+   StdOut() <<  " 5/2.0= " << Div2(5.0) << std::endl;
    // auto Div2 = std::bind(Div,std::_1,2.0);
    // auto Div2 = std::bind(Div,std::_1,2.0);
    //auto Div2 = bind(Div,_1,2.0);

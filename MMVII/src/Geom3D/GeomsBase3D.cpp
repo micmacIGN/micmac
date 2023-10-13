@@ -326,7 +326,7 @@ void BenchPlane3D()
        std::vector<tSeg3dr> aVSeg{aSeg1,aSeg2};
        cPt3dr aPIVec =   BundleInters(aVSeg);
 
-       //  StdOut() << "NnnNnn " <<  Norm2(aPI - aPIVec) << "\n";
+       //  StdOut() << "NnnNnn " <<  Norm2(aPI - aPIVec) << std::endl;
        MMVII_INTERNAL_ASSERT_bench(Norm2(aPI - aPIVec) <1e-5,"BundleInters");
     }
     

@@ -197,7 +197,7 @@ template <class Type> void OperatorTestIm2D(const cPt2di & aP0,const cPt2di & aP
        for (const auto & aP : aI1.DIm())
        {
            double aDif = std::abs(aI3.DIm().GetV(aP)-4*aI1.DIm().GetV(aP));
-           // StdOut() << "Dddd = " << aDif << "\n";
+           // StdOut() << "Dddd = " << aDif << std::endl;
            MMVII_INTERNAL_ASSERT_bench(aDif<1e-5,"Bench image error");
        }
     }
@@ -236,7 +236,7 @@ template <class Type> void TestInterBL(cPt2di aSz,Type aCste,Type aCoeffX,Type a
         double aV2 = aDIm.GetVBL(aP);
         if(std::abs(aV1-aV2)>1e-5)
         {
-             StdOut() << aP << "V1 " << aV1 << " dif " << aV1-aV2 << "\n";
+             StdOut() << aP << "V1 " << aV1 << " dif " << aV1-aV2 << std::endl;
              MMVII_INTERNAL_ASSERT_bench(false,"Bench image error");
         }
         //  =============== Test on grad =========================
@@ -509,10 +509,10 @@ void BenchHisto(int aNbVal,double aIncr)
     for (int aK=0 ; aK <=aNbVal ; aK++)
     {
         MMVII_INTERNAL_ASSERT_bench(aH.IndexeLowerProp(aK/(double) aNbVal)==(aK-1),"Bench image error");
-        // StdOut() << "ILP " << aK << " " << aH.IndexeLowerProp(aK/(double) aNbVal) << "\n";
+        // StdOut() << "ILP " << aK << " " << aH.IndexeLowerProp(aK/(double) aNbVal) << std::endl;
 	if (aK<aNbVal)
 	{
-            //  StdOut() << "ILP' " << aK << " " << aH.IndexeLowerProp((aK+0.5)/(double) aNbVal) << "\n";
+            //  StdOut() << "ILP' " << aK << " " << aH.IndexeLowerProp((aK+0.5)/(double) aNbVal) << std::endl;
              MMVII_INTERNAL_ASSERT_bench(aH.IndexeLowerProp((aK+0.5)/(double) aNbVal)==(aK-1),"IndexeLowerProp");
 	}
     }
@@ -526,7 +526,7 @@ void BenchHisto(int aNbVal,double aIncr)
 	  else if (aNb==1) 
              aVal=aNbVal;
 	  double aValTh = std::max(0.0,std::min(aVal,double(aNbVal))) ;
-          // StdOut() << aVal << " " << aH.PropCumul(aVal) * aNbVal  << " " << aValTh << "\n";
+          // StdOut() << aVal << " " << aH.PropCumul(aVal) * aNbVal  << " " << aValTh << std::endl;
           MMVII_INTERNAL_ASSERT_bench(std::abs(aValTh-aH.PropCumul(aVal) * aNbVal)==0,"PropCumul");
 	  // getchar();
 

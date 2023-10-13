@@ -334,7 +334,7 @@ class cProjOrthoGraphic : public cDefProjPerspC
 
            // return {aX,aY,sqrt(std::max(0.0,1.0-SqN2(aP)))};
            //  !!  Warning  -> have supress the max for sort term derivation
-           // StdOut() << "Warning cProjOrthoGraphic::ToDirBundle \n";
+           // StdOut() << "Warning cProjOrthoGraphic::ToDirBundle " << std::endl;
            return {aX,aY,sqrt(aC1-SqNormL2V2(aX,aY))};
 
         }

@@ -344,7 +344,7 @@ cPt2dr cPerspCamIntrCalib::PtSeedInv() const
 
      cPt2dr  aPProj = aDRI.Inverse(aPDist);
 
-     // StdOut() << "PSEED "  << aPProj<< " " << aCpt << "\n";
+     // StdOut() << "PSEED "  << aPProj<< " " << aCpt << std::endl;
      return aPProj;
 }
 
@@ -653,7 +653,7 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
              if (mDefProj->InsideWithBox(aP0Ud))
 	     {
                 aVPt1.push_back(aP0);
-		// StdOut() << "P000 =" << aP0 << " " << aP0Ud << "\n";
+		// StdOut() << "P000 =" << aP0 << " " << aP0Ud << std::endl;
 	     }
 	 }
 
@@ -698,7 +698,7 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
          aSD13 = std::sqrt(aSD13/aVPt1.size());
          aSD15 = std::sqrt(aSD15/aVPt1.size());
 
-	 // StdOut() << "SDDDDD " << aSD12 << " " << aSD23 << " " << aSD13 <<  " " << aSD15 << "\n";
+	 // StdOut() << "SDDDDD " << aSD12 << " " << aSD23 << " " << aSD13 <<  " " << aSD15 << std::endl;
 
          MMVII_INTERNAL_ASSERT_bench((aSD13==0) || (aSD13/aSD12<aTolApprox),"Test approx inv");
          MMVII_INTERNAL_ASSERT_bench((aSD15==0) || (aSD15/aSD12<aTolAccurate),"Test approx inv");
@@ -773,12 +773,12 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
        aCam->SetThresholdPhgrAccInv(1e-9);
 
        if (BUGCAL)
-           StdOut() << "RrrrAtio="  << Norm2(aPP-aMidle) / aFoc << " TTTt=" << E2Str(aTypeProj)  << "\n";
+           StdOut() << "RrrrAtio="  << Norm2(aPP-aMidle) / aFoc << " TTTt=" << E2Str(aTypeProj)  << std::endl;
 
        aCam->InitRandom(0.1);
 
        if (BUGCAL)
-           StdOut() << "Kkkkkkkkkkkkkkkkk\n";
+           StdOut() << "Kkkkkkkkkkkkkkkkk" << std::endl;
 
        return aCam;
 }

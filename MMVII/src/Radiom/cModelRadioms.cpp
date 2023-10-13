@@ -170,7 +170,7 @@ cPt2dr  cRadialCRS::AddMul_CC(const cPt2dr & aPt) const
 
       if (mDegPol>0)
       {
-	      // StdOut() << "YuyuymCoeffPolmCoeffPol " << mCoeffPol << "\n";
+	      // StdOut() << "YuyuymCoeffPolmCoeffPol " << mCoeffPol << std::endl;
           AppendIn(aVUk,mCoeffPol);
       }
       auto aVR =  mCalcFF->DoOneEval(aVUk,VObs(aPt));
@@ -270,7 +270,7 @@ cCalRadIm_Pol::cCalRadIm_Pol(cCalibRadiomSensor * aCalSens,int  aDegree,const st
          // mImaEqual = EqRadiomEqualisation(mCalibSens->NbParamRad(),mDegree,true,1);
 	 PostInit();
 
-	 StdOut() << "CPPP=" << mCoeffPol  << " D=" << mDegree << "\n";
+	 StdOut() << "CPPP=" << mCoeffPol  << " D=" << mDegree << std::endl;
      }
 }
 

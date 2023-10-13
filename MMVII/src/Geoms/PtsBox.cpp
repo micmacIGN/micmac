@@ -544,7 +544,7 @@ template <const int Dim>  class cAllocNeighourhood
 
       static const tVecPt &  Alloc(int aNbPix)
       {
-// StdOut() <<  "----------------======================\n";
+// StdOut() <<  "----------------======================" << std::endl;
             static  std::vector<tVecPt> aBufRes(Dim);
             MMVII_INTERNAL_ASSERT_tiny((aNbPix>0)&&(aNbPix<=Dim),"Bad Nb in neighbourhood");
 
@@ -560,7 +560,7 @@ template <const int Dim>  class cAllocNeighourhood
                 if ((aN>0) && (aN<=aNbPix))
                 {
                     aRes.push_back(aP);
-                    // StdOut() << aP << "\n";
+                    // StdOut() << aP << std::endl;
                 }
             }
 
@@ -1025,8 +1025,8 @@ template <class Type,const int Dim> cPtxd<Type,Dim>   cTplBox<Type,Dim>::Generat
    cPtxd<double,Dim> aP0 = RandomNormalised();
    cPtxd<Type,Dim>  aP1 = FromNormaliseCoord(aP0);
    cPtxd<Type,Dim> aP2 = Proj(aP1);
-StdOut() << "BOX " << mP0 << " " << mP1 << "\n";
-StdOut() <<  aP0 << aP1 << aP2 << "\n"; getchar();
+StdOut() << "BOX " << mP0 << " " << mP1 << std::endl;
+StdOut() <<  aP0 << aP1 << aP2 << std::endl; getchar();
    return aP2;
 */
    return Proj(FromNormaliseCoord(RandomNormalised()));

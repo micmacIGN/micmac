@@ -47,7 +47,7 @@ void OneBench_Random(cParamExeBench & aParam)
           AssertIsSetKN(aK,aNb,aSet);
        }
    }
-   // StdOut() << "Begin Bench_Random\n";
+   // StdOut() << "Begin Bench_Random" << std::endl;
    {
       int aNb = std::min(3e6,1e6 *(1+pow(aParam.Level(),1.5)));
       std::vector<double> aVInit;

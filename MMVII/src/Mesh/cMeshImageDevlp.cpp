@@ -199,7 +199,7 @@ void cAppliMeshImageDevlp::DoAnIm(size_t aKIm)
         cAffin2D<tREAL8> aAffG2I = cAffin2D<tREAL8>::Tri2Tri(aTriGlob,aTriCurIm);
 	aAffG2I = cAffin2D<tREAL8>::Translation(-ToR(aBoxPixIm.P0())) * aAffG2I;
 
-//StdOut() << "FFF " << aAffG2I.Tr() << aAffG2I.VX() << aAffG2I.VY() << "\n";
+//StdOut() << "FFF " << aAffG2I.Tr() << aAffG2I.VX() << aAffG2I.VY() << std::endl;
 
 	std::vector<cPt2di>  aVPixGlob;
 	aTriGlob.PixelsInside(aVPixGlob,1e-8);
@@ -248,7 +248,7 @@ int cAppliMeshImageDevlp::Exe()
          mNameDev = Prefix(mNameDev) + "_" +  mPhProj.DPRadiomModel().DirIn() + ".tif";
      }
 
-     StdOut() << "JJJJJ " << NameFileMeshDev(mNameDev)  << "\n";
+     StdOut() << "JJJJJ " << NameFileMeshDev(mNameDev)  << std::endl;
 
 
      //  Read triangulations

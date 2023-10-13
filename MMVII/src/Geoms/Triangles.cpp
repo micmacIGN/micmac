@@ -71,7 +71,7 @@ void  cVecEquiv::StableRenums(const std::vector<cPt2di> & aVEdge,bool Show)
          if (mNums[aK]!=int(aK))
          {
              if (Show)
-                StdOut() << "KKK " << aK  << " -> " << mNums[aK]<< "\n";
+                StdOut() << "KKK " << aK  << " -> " << mNums[aK]<< std::endl;
 	 }
 	 else
 	 {
@@ -80,7 +80,7 @@ void  cVecEquiv::StableRenums(const std::vector<cPt2di> & aVEdge,bool Show)
       }
 
       if (Show)
-         StdOut() << "NB RDUX " << mNums.size() - mNbCompressed << "\n\n";
+         StdOut() << "NB RDUX " << mNums.size() - mNbCompressed << "\n" << std::endl;
 }
 
 size_t cVecEquiv::NbCompressed() const {return mNbCompressed;}
@@ -692,13 +692,13 @@ template <class Type,const int Dim> bool cTriangulation<Type,Dim>::CheckAndCorre
 	       }
 	   }
 	   if (Show)
-	      StdOut() << "====================\n";
+	      StdOut() << "====================" << std::endl;
        }
     }
 
 
     if (Show) 
-       StdOut() << "--------Irregular faces : " << aNbFaceIrreg << "\n";
+       StdOut() << "--------Irregular faces : " << aNbFaceIrreg << std::endl;
 
     cVecEquiv aVEquiv(mVPts.size());
     aVEquiv.StableRenums(aVEdges,Show);

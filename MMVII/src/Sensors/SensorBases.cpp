@@ -146,7 +146,7 @@ tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTest
 
        tPt3dr aResult = PInterBundle(cHomogCpleIm(aPIm1,aPIm2),other);
 
-// StdOut() << aPIm1 << aPIm2 << aResult << aResult << "\n";
+// StdOut() << aPIm1 << aPIm2 << aResult << aResult << std::endl;
        if ( this->IsVisible(aResult)  && other.IsVisible(aResult))
        {
            if (isOk!=nullptr) *isOk= true;

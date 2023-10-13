@@ -113,7 +113,7 @@ MMVII_INTERNAL_ASSERT_tiny(ValidPosFloatValue(VALUE),"Non positive value")
 template<class T> void IgnoreUnused( const T& ) { }; /// To avoid some warning on TEMPORARILY unused variable 
 void DoNothingWithIt(void *);  /// Used to avoid compiler optimization, make believe it can be used
 
-#define BREAK_POINT(MSG)  {StdOut() << MSG << "; BREAK POINT at " << __LINE__ << " of " << __FILE__ << "\n";getchar();}
+#define BREAK_POINT(MSG)  {StdOut() << MSG << "; BREAK POINT at " << __LINE__ << " of " << __FILE__ << std::endl;getchar();}
 
 /* handling of eigen test on sucess of decomposition, by default it generate an error, btw this
 can be temporarily supress if the use know what he does. For example see BenchLsqDegenerate

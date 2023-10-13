@@ -102,7 +102,7 @@ cConcavexMapP1M1::cConcavexMapP1M1(double aSteep,double aExp,bool Shift0Is0) :
            {
                mShift = pow(mSteep /(mFact*mExp),1/(mExp-1));
                mFact = 1/(pow(1+mShift,mExp) - pow(mShift,mExp));
-               // StdOut() << "cConcavexMapP1M1::  SHF" << mShift << " FACT " << mFact << "\n";
+               // StdOut() << "cConcavexMapP1M1::  SHF" << mShift << " FACT " << mFact << std::endl;
            }
            // Show();
        }
@@ -112,7 +112,7 @@ cConcavexMapP1M1::cConcavexMapP1M1(double aSteep,double aExp,bool Shift0Is0) :
 void cConcavexMapP1M1::Show() const
 {
    double aEps= 1e-4;
-   StdOut()  << " STEEP0 " << mSteep << " EXP " << mExp << "\n";
+   StdOut()  << " STEEP0 " << mSteep << " EXP " << mExp << std::endl;
    StdOut()  << " V0 " << NVF(0) 
              << " V1 " << NVF(-1) 
              << " VM1 " << NVF(-1) 
@@ -123,7 +123,7 @@ void cConcavexMapP1M1::Show() const
    for (int aK=0 ; aK<=10 ; aK++)
    {
         double aV = aK/10.0;
-        StdOut()  << "  * " << aV << " => " << NVF(aV) << "\n";
+        StdOut()  << "  * " << aV << " => " << NVF(aV) << std::endl;
    }
    getchar();
 }
@@ -357,7 +357,7 @@ double CalcOrient(const cDataIm2D<tREAL4>&  aDIm,eModeNormOr aMode)
 
 template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFPC,cAimePCar & aPC,bool ForTest)
 {
-// static int aCpt=0; aCpt++;  StdOut() << "BUG cProtoAimeTieP " << aCpt << " " << ForTest << "\n";
+// static int aCpt=0; aCpt++;  StdOut() << "BUG cProtoAimeTieP " << aCpt << " " << ForTest << std::endl;
 // bool Bug=(aCpt==65);
 
    int aNbTeta = aFPC.LPS_NbTeta();
@@ -441,9 +441,9 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
              }
         }
         IndRhoLP++;
-// StdOut() << "RoohhhhK " << aRhok << " ABS=" << anIk.ScaleAbs()<< "\n";
+// StdOut() << "RoohhhhK " << aRhok << " ABS=" << anIk.ScaleAbs()<< std::endl;
    }
-// StdOut() << "xxxxxRoohhhhK NBT=" << aNbTeta << " \n"; getchar();
+// StdOut() << "xxxxxRoohhhhK NBT=" << aNbTeta << " " << std::endl; getchar();
    // Now, in test mode, we know that all the circle will be inside, OK then ...
    if (ForTest)
    {
@@ -544,13 +544,13 @@ void cSetAimePCAR::InitFromFile(const std::string & aName)
 
 void cSetAimePCAR::SaveInFile(const std::string & aName) const
 {
- //  StdOut() << "MMPPPDD " << aName << " "  << (const_cast<cSetAimePCAR *>(this))->VPC().size()  << "\n";
+ //  StdOut() << "MMPPPDD " << aName << " "  << (const_cast<cSetAimePCAR *>(this))->VPC().size()  << std::endl;
      MMVII::SaveInFile(*this,aName);
 
 #if 0
      {
           for (int aK=0; aK<100 ; aK++) 
-              StdOut() << "MMv1_SaveInFile\n";
+              StdOut() << "MMv1_SaveInFile" << std::endl;
           MMv1_SaveInFile<cSetAimePCAR>(*this,aName);  // generate an error as "it should"
      }
 #endif

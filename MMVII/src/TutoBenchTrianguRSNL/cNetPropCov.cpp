@@ -656,7 +656,7 @@ template <class Type>
                  // consistancy, check that the sub-network reach convergence, but only when observation are exact
 	         if ((aRes>=1e-8) && (this->mParamNW.mNoiseOnDist==0))
                  {
-                     StdOut() << " Residual  " << aRes << "\n";
+                     StdOut() << " Residual  " << aRes << std::endl;
 	             MMVII_INTERNAL_ASSERT_bench(false,"No conv 4 sub net");
                  }
              }
@@ -677,7 +677,7 @@ template <class Type>  Type cCovNetwork<Type>::SolveByCovPropagation(double aChe
      {
          // compute and print the difference comuted values/ground truth
 	 aResidual = this->CalcResidual() ;
-	 StdOut()   << aTime <<  " RResiduals :   " << aResidual <<  "\n";
+	 StdOut()   << aTime <<  " RResiduals :   " << aResidual <<  std::endl;
 
           //  Add a gauge constraint for the main newtork, as all subnetnwork are computed up to a rotation
 	  //  do it before propag, as required in case of hard constraint
@@ -689,7 +689,7 @@ template <class Type>  Type cCovNetwork<Type>::SolveByCovPropagation(double aChe
 	  this->mSys->SolveUpdateReset();  // classical gauss jordan iteration
 
      }
-     StdOut()  <<  "\n";
+     StdOut()  <<  std::endl;
      return aResidual;
 }
 
@@ -797,7 +797,7 @@ template <class Type>  Type cElemNetwork<Type>::ComputeCovMatrix(double aWGaugeC
 
      // last iteration with a gauge w/o solve (because solving would reinit the covariance) 
      this->DoOneIterationCompensation(aWGaugeCovMatr,false);     
-     // StdOut() << "aWGaugeCovMatr " << aWGaugeCovMatr << "\n";
+     // StdOut() << "aWGaugeCovMatr " << aWGaugeCovMatr << std::endl;
 
 
      // #CCM2  Now get the normal matrix and vector, and decompose it in a weighted sum of square  of linear forms
@@ -975,7 +975,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
                cDenseVect<Type>  aVLoc2 =  (aMatrixTranf * aVecGlob) + aVecTranf;
                cDenseVect<Type>  aVDif = aVLoc2 - aVecLoc;
 
-               StdOut() << "DIF " << aVDif.L2Norm() << "\n";
+               StdOut() << "DIF " << aVDif.L2Norm() << std::endl;
          }
 
 
@@ -1002,7 +1002,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
          cDenseMatrix<Type> Ap  =   tMA  * M;
          cDenseVect<Type>   Vp  =   tM * (V -A *T);
 
-//  StdOut()  <<  "JJJJJ " <<  Ap.Symetricity() << "\n";
+//  StdOut()  <<  "JJJJJ " <<  Ap.Symetricity() << std::endl;
 
 	 this->mMainNW->Sys()->SysLinear()->AddCov(Ap,Vp,aVIndTransf);
      }
@@ -1136,10 +1136,10 @@ int  cAppli_TestPropCov::Exe()
        delete mMainNet;
    }
 
-   StdOut() << "========RESIDUAL AT CONVERGENCE ==== : \n";
+   StdOut() << "========RESIDUAL AT CONVERGENCE ==== : " << std::endl;
    for (int aK=0 ; aK<mNbTest ; aK++)
-       StdOut() <<  " * " << aK << " " << aVRes[aK]  << "\n";
-   StdOut() << " --------------------------------- : \n";
+       StdOut() <<  " * " << aK << " " << aVRes[aK]  << std::endl;
+   StdOut() << " --------------------------------- : " << std::endl;
    StdOut() << "AVG="  << aSomRes/mNbTest   
             << " RefAvg=" << aSomRefRes/mNbTest 
             << " Med=" << ConstMediane(aVRes) 

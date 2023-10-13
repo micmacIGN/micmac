@@ -528,12 +528,12 @@ void OneTestEqual_RE
     for (const auto & aP : aV1)
     {
         if (!BoolFind(aV2,aP))
-           StdOut() << "Difff1 " << aP << "\n";
+           StdOut() << "Difff1 " << aP << std::endl;
     }
     for (const auto & aP : aV2)
     {
         if (!BoolFind(aV1,aP))
-           StdOut() << "Difff2 " << aP << "\n";
+           StdOut() << "Difff2 " << aP << std::endl;
     }
     MMVII_INTERNAL_ASSERT_bench
     (
@@ -665,7 +665,7 @@ void OneBenchExtrem(const cPt2di & aSz,int aNbLab,int aSzMaj,double aRay)
        for (const auto & aP : aTestE1.mPtsMin)
        {
             if (!BoolFind(aExtr1.mPtsMin,aP))
-               StdOut() << "Difff " << aP << "\n";
+               StdOut() << "Difff " << aP << std::endl;
        }
     }
     // Before all, be reasonnably sure it's the same set by couting pts inside
@@ -787,7 +787,7 @@ void BenchExtre(cParamExeBench & aParam)
          MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5, "Interpol Extr d1");
      }
      // std::optional<double>  InterpoleExtr(double V1,double V2,double V3)
-     // StdOut() << "Bench Extremmum\n";
+     // StdOut() << "Bench Extremmum" << std::endl;
      aParam.EndBench();
 }
 

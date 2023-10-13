@@ -164,7 +164,7 @@ template <class Type> cTriangle<Type,2> cIsometry3D<Type>::ToPlaneZ0(int aKOut,c
      tPt aP1 = aIso.Inverse(aTriOut.Pt((aKOut+1)%3));
      tPt aP2 = aIso.Inverse(aTriOut.Pt((aKOut+2)%3));
 
-      //StdOut() << "ToPlaneZ0 " << aP0.z() << " " << aP1.z() << " " << aP2.z() << "\n";
+      //StdOut() << "ToPlaneZ0 " << aP0.z() << " " << aP1.z() << " " << aP2.z() << std::endl;
      // return tTri2d(Proj(aP0),Proj(aP1),Proj(aP2));
      return Proj(tTri(aP0,aP1,aP2));
 }

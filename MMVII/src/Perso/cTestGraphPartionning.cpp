@@ -104,7 +104,7 @@ cGraphPartition:: cGraphPartition(tIm  aIm0) :
     for (int aK=1 ; aK<= aNb ; aK++)
     {
          MakeOneIteration(aK/double(aNb));
-	 StdOut() << "KKKK " << aK << "\n";
+	 StdOut() << "KKKK " << aK << std::endl;
 	 if (aK%10==0)
             mDCurGr.ToFile("MatRelax_" + ToStr(aK) + ".tif");
     }
@@ -168,7 +168,7 @@ void cGraphPartition::MakeOneIteration(tREAL8 aAlpha)
 
      tREAL8 aMul = aAlpha * ( aSumCur /mSomNew);
 
-     ///StdOut() << "MMMM" << aMul  << " " << aSumCur << " " << mSomNew << "\n";
+     ///StdOut() << "MMMM" << aMul  << " " << aSumCur << " " << mSomNew << std::endl;
 
      // transferate the accumulated vals + reset in interval [0 1]
      for (size_t aX=0 ; aX<mNb ; aX++)
@@ -176,18 +176,18 @@ void cGraphPartition::MakeOneIteration(tREAL8 aAlpha)
          for (size_t aY=aX+1 ; aY<mNb ; aY++)
 	 {
              cPt2di aP(aX,aY);
-	     // StdOut()  << " AVV " <<   mDCurGr.GetV(aP)  << "\n";
+	     // StdOut()  << " AVV " <<   mDCurGr.GetV(aP)  << std::endl;
              mDCurGr.AddVal(aP,aMul*(mDLikH1.GetV(aP)-mDLikH0.GetV(aP)));
 
 
 	     tREAL8 aV = mDCurGr.GetV(aP);
 
 	     if ((aV>0) && (aV<1))
-		     StdOut()  << aP<< " " << aV << "\n";
+		     StdOut()  << aP<< " " << aV << std::endl;
 
 	     mDCurGr.SetV(aP,std::max(0.0,std::min(1.0,aV)));
-	     // StdOut()  << " APP " <<   mDCurGr.GetV(aP)  << "\n";
-	     // StdOut()  << "Likkk " <<  aMul*(mDLikH1.GetV(aP)-mDLikH0.GetV(aP)) << "\n";
+	     // StdOut()  << " APP " <<   mDCurGr.GetV(aP)  << std::endl;
+	     // StdOut()  << "Likkk " <<  aMul*(mDLikH1.GetV(aP)-mDLikH0.GetV(aP)) << std::endl;
 	 }
      }
      getchar();
@@ -398,7 +398,7 @@ int cAppli_TestGraphPart::Exe()
 
    cResulSymEigenValue<tREAL8> aRSE = mMat0.SymEigenValue();
    for (int aK=0 ; aK<10 ; aK++)
-	   StdOut() << " * EV=" << aRSE.EigenValues()(mNbVertex-aK-1) << "\n";
+	   StdOut() << " * EV=" << aRSE.EigenValues()(mNbVertex-aK-1) << std::endl;
 
    /*
    tMat mMat2 = mMat0 * mMat0 * (1.0/ tREAL8(mNbVertex)) ;

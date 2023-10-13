@@ -198,7 +198,7 @@ static int aCpt=0; aCpt++;
             return;
         }
      }
-     StdOut() << "---------------RR=" <<  aResidual  << "\n";
+     StdOut() << "---------------RR=" <<  aResidual  << std::endl;
      MMVII_INTERNAL_ASSERT_bench(false ,"No convergence in BenchCentralePerspective_ImportV1");
 }
 
@@ -234,7 +234,7 @@ void BenchPoseImportV1(const std::string & aNameOriV1,double anAccuracy)
      cSensorCamPC  *aPC2  =  cSensorCamPC::FromFile(aNameTmp,false);
      double aR2 = aPC2->AvgSqResidual(aExp.mCorresp) ;
 
-     // StdOut() << "BenchPoseImportV1 " << aR2 <<  " " <<  aNameTmp << "\n"; getchar();
+     // StdOut() << "BenchPoseImportV1 " << aR2 <<  " " <<  aNameTmp << std::endl; getchar();
 
      MMVII_INTERNAL_ASSERT_bench(aR2<anAccuracy ,"No Conv in Reimport cam");
 

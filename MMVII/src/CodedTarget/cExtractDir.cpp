@@ -76,7 +76,7 @@ double TestDir(const cGeomSimDCT & aGT,const cDCT  &aDCT)
     cPt2dr anEl1 = VUnit(aGT.mCornEl1-aGT.mC) ;
     cPt2dr anEl2 = VUnit(aGT.mCornEl2-aGT.mC) ;
 
-    //StdOut()<<  (anEl1^anEl2) <<  " " <<  (aDCT.mDirC1 ^aDCT.mDirC2) << "\n";
+    //StdOut()<<  (anEl1^anEl2) <<  " " <<  (aDCT.mDirC1 ^aDCT.mDirC2) << std::endl;
 
     if (Scal(anEl2,aDCT.mDirC2) < 0)
     {
@@ -133,12 +133,12 @@ double TestAlignmentsOfDir(std::vector<cPt2di> transitions){
 	
 /*
 	
-	StdOut() << "A = [\n";
+	StdOut() << "A = [" << std::endl;
 
 	for (unsigned i=0; i<n; i++){
 		x = transitions.at(i).x();
 		y = transitions.at(i).y();
-		StdOut() << x << "," << y << "\n";
+		StdOut() << x << "," << y << std::endl;
 	}
 			
 	StdOut() << "];\n B=[";
@@ -146,12 +146,12 @@ double TestAlignmentsOfDir(std::vector<cPt2di> transitions){
 	for (unsigned i=0; i<n; i++){
 		x = transitions.at(i).x();
 		y = transitions.at(i).y();
-		StdOut() << x << "," << -a/b*x+1.0/b << "\n";
+		StdOut() << x << "," << -a/b*x+1.0/b << std::endl;
 	}
 	
-	StdOut() << "];\n";
+	StdOut() << "];" << std::endl;
 
-	StdOut() << "plot(A(:,1), A(:,2), 'ro'); hold on; plot(B(:,1), B(:,2), 'b-');\n";
+	StdOut() << "plot(A(:,1), A(:,2), 'ro'); hold on; plot(B(:,1), B(:,2), 'b-');" << std::endl;
 	
 */
 	
@@ -334,7 +334,7 @@ template <class Type>  double cExtractDir<Type>::ScoreRadiom(tDCT & aDCT)
         if (aDCT.mGT &&(aCorMin<0.9))
            StdOut() <<  " ########################";
 
-        StdOut() << "\n";
+        StdOut() << std::endl;
      }
      */
 
@@ -354,7 +354,7 @@ bool TestDirDCT(cDCT & aDCT, cIm2D<tREAL4> anIm, double ray_min, double ray_max,
     double max_ray        = std::min(aRayCB*0.8*size_factor, max_possible-1);
 */
 
-    // StdOut() << max_possible_x << " " << max_possible_y << " " << max_possible << " " << max_ray << "\n";
+    // StdOut() << max_possible_x << " " << max_possible_y << " " << max_possible << " " << max_ray << std::endl;
 
     cExtractDir<tREAL4>  anED(anIm, ray_min, ray_max);
 
@@ -372,8 +372,8 @@ bool TestDirDCT(cDCT & aDCT, cIm2D<tREAL4> anIm, double ray_min, double ray_max,
   //  double th1 = 0.12;
   //  double th2 = 0.85;
 
-   // StdOut() << " Test 1 " << aDCT.mScRadDir  << " " <<  th1 << "\n";
-   // StdOut() << " Test 2 " << aDCT.mCorMinDir << " " <<  th2 << "\n";
+   // StdOut() << " Test 1 " << aDCT.mScRadDir  << " " <<  th1 << std::endl;
+   // StdOut() << " Test 2 " << aDCT.mCorMinDir << " " <<  th2 << std::endl;
 
 
     return (aDCT.mScRadDir < th1) && (aDCT.mCorMinDir> th2) ;

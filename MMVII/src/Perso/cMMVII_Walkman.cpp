@@ -188,7 +188,7 @@ int cAppli_Walkman::Exe()
    { 
       cOneEntryWalkMan & anE  = *(mVE.at(aKSel));
       aSzSel +=  anE.mFileSize / 1e6;
-      StdOut() << "NAME=" << anE.mName <<  " SZF=" << anE.mFileSize << "\n";
+      StdOut() << "NAME=" << anE.mName <<  " SZF=" << anE.mFileSize << std::endl;
       anE.mNbListened++;
 
       int aNum = aSW.mNbTot;
@@ -209,7 +209,7 @@ int cAppli_Walkman::Exe()
       aSW.mVE.push_back(anE);
    }
 
-   StdOut() << "Nb Files " << aKSel << " Sz=" << aSzSel << "\n";
+   StdOut() << "Nb Files " << aKSel << " Sz=" << aSzSel << std::endl;
    SaveInFile(aSW,mDirProject+mNameSauv);
 
    return EXIT_SUCCESS;

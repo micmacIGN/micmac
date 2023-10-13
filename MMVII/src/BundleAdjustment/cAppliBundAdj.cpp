@@ -76,7 +76,7 @@ void cMMVII_BundleAdj::OneIteration()
 
     OneItere_GCP();
 
-    // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << "\n";
+    // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << std::endl;
 
     const auto & aVectSol = mSys->R_SolveUpdateReset();
     mSetIntervUK.SetVUnKnowns(aVectSol);

@@ -114,7 +114,7 @@ tREAL8  cCalcSaddle::CalcSaddleCrit(const std::vector<tREAL8> & aVVals,bool Show
       tREAL8 aXY = aVect(1);
       tREAL8 aYY = aVect(2);
 
-      if (Show) StdOut() << " dxx=" << aXX << " dxy=" << aXY << " dyy=" << aYY << "\n";
+      if (Show) StdOut() << " dxx=" << aXX << " dxy=" << aXY << " dyy=" << aYY << std::endl;
 
        //               (A -X  B)
        //det(M-XI) =    (B  C-X)     =  (X-A) (X-C) - B^2 = X^2 - (A+C) X  + (-B^2 +AC) = 0
@@ -125,7 +125,7 @@ tREAL8  cCalcSaddle::CalcSaddleCrit(const std::vector<tREAL8> & aVVals,bool Show
       tREAL8 aL1 = (aLapl+aDiscr)/2.0;
       tREAL8 aL2 = (aLapl-aDiscr)/2.0;
 
-      if (Show) StdOut() << " L1=" << aL1 << " L2=" << aL2 << "\n";
+      if (Show) StdOut() << " L1=" << aL1 << " L2=" << aL2 << std::endl;
       if (aL1>0)
       {
          aL2 = -aL2;
@@ -182,7 +182,7 @@ void cCalcSaddle::RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cDCT & aDCT)
 	  {
               if (aDCT.mGT)  
 	      {
-		      StdOut() << "DIVG  "  << aDCT.mGT->mC << " DPT " << aDPt << "\n";
+		      StdOut() << "DIVG  "  << aDCT.mGT->mC << " DPT " << aDPt << std::endl;
 	      }
               aDCT.mState =  eResDCT::Divg;
 	      return;

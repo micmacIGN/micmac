@@ -340,7 +340,7 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,cParamDevTri3D & aParam) :
 	mNumGenFrozen = mNumGen - (6+round_up(2.0*std::sqrt(mNumGen)));
 
 	if (mParam.mShowAv)
-           StdOut() << "DONE " <<aIndNewF0 << " on " <<  mTri.NbFace()   << " ### NG=" << mNumGen << " NGF=" << mNumGenFrozen << "\n";
+           StdOut() << "DONE " <<aIndNewF0 << " on " <<  mTri.NbFace()   << " ### NG=" << mNumGen << " NGF=" << mNumGenFrozen << std::endl;
 
         size_t aIndNewF1 = mVReachedFaces.size();  // memorize size to avoid doing everything in one step
 
@@ -369,7 +369,7 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,cParamDevTri3D & aParam) :
    }
    if (mParam.mShowAv)
    {
-      StdOut() << "\nFACE DONE " <<aIndNewF0 << " on " <<  mTri.NbFace()   << " NG=" << mNumGen << " NGF=" << mNumGenFrozen << "\n\n";
+      StdOut() << "\nFACE DONE " <<aIndNewF0 << " on " <<  mTri.NbFace()   << " NG=" << mNumGen << " NGF=" << mNumGenFrozen << "\n" << std::endl;
    }
 
    // now we free everything
@@ -381,7 +381,7 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,cParamDevTri3D & aParam) :
    for (int aKIter=0 ; aKIter<mParam.mNbIterEnd ; aKIter++)
    {
        if (mParam.mShowAv)
-           StdOut() << "ITER END "   <<  aKIter << " on " << mParam.mNbIterEnd << "\n";
+           StdOut() << "ITER END "   <<  aKIter << " on " << mParam.mNbIterEnd << std::endl;
        OneIterationCompens(true);
    }
 
@@ -394,7 +394,7 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,cParamDevTri3D & aParam) :
         }
    }
    if (mParam.mShowAv)
-      StdOut() << " NbDeg=" << aNbFDegen  <<  " NbReach=" << mVReachedFaces.size() << " NbF=" << mTri.NbFace() << "\n";
+      StdOut() << " NbDeg=" << aNbFDegen  <<  " NbReach=" << mVReachedFaces.size() << " NbF=" << mTri.NbFace() << std::endl;
 
    if (mParam.mErrorUnReached)
    {
@@ -403,8 +403,8 @@ cDevTriangu3d::cDevTriangu3d(tTriangulation3D & aTri,cParamDevTri3D & aParam) :
    }
    else
    {
-       StdOut() << "ReachedF=" << mVReachedFaces.size() << " DegF=" << aNbFDegen  << " TriF=" << mTri.NbFace() << "\n";
-       StdOut() << "ReachedP=" << mVReachedSoms.size() <<  " TriNbP=" << mTri.NbPts() << "\n";
+       StdOut() << "ReachedF=" << mVReachedFaces.size() << " DegF=" << aNbFDegen  << " TriF=" << mTri.NbFace() << std::endl;
+       StdOut() << "ReachedP=" << mVReachedSoms.size() <<  " TriNbP=" << mTri.NbPts() << std::endl;
    }
 }
 
@@ -507,7 +507,7 @@ void  cDevTriangu3d::AddOneFace(int aKFace,bool IsFaceC)
       {
 	      /*
 static int aCpt=0; aCpt++; // bool Bug = (aCpt==128660);
-StdOut() << "CCCCCC  " << aCpt << " KF=" << aKFace << "\n";
+StdOut() << "CCCCCC  " << aCpt << " KF=" << aKFace << std::endl;
 bool Bug = (aCpt==128709);
 THE_BUG_MESH = Bug;
 */
@@ -522,13 +522,13 @@ THE_BUG_MESH = Bug;
 
 	  if (false)
 	  {
-		  StdOut() << "DDD2 " <<  Norm2(aP1-aP2) << "\n";
+		  StdOut() << "DDD2 " <<  Norm2(aP1-aP2) << std::endl;
 		  StdOut() << "DD3 " 
 			  << Norm2(aTri3D.KVect(0)) << " " 
 			  << Norm2(aTri3D.KVect(1)) << " " 
 			  << Norm2(aTri3D.KVect(2)) << " " 
 			  << "\n";
-		  StdOut() << "P2 " <<  aP1 << aP2 << "\n";
+		  StdOut() << "P2 " <<  aP1 << aP2 << std::endl;
 		  StdOut() << "P3 " 
 			  << Norm2(aTri3D.Pt(0)) << " " 
 			  << Norm2(aTri3D.Pt(1)) << " " 
@@ -552,8 +552,8 @@ THE_BUG_MESH = Bug;
 	  mSys->SetCurSol(aS0.NumX(),aS0.Pt2().x());
 	  mSys->SetCurSol(aS0.NumY(),aS0.Pt2().y());
 	  //tCoordDevTri aSomDiff=0,aSomDist=0;
-          //StdOut() << "   DISTort " << aFace.DistortionDist(aSomDiff,aSomDist)  << "\n";
-          // StdOut() <<  aSim.Value(aTri3D.Pt(aIndK1)) << " " <<  aSim.Value(aTri3D.Pt(aIndK2)) << "\n";
+          //StdOut() << "   DISTort " << aFace.DistortionDist(aSomDiff,aSomDist)  << std::endl;
+          // StdOut() <<  aSim.Value(aTri3D.Pt(aIndK1)) << " " <<  aSim.Value(aTri3D.Pt(aIndK2)) << std::endl;
           // getchar();
       }
    }
@@ -664,9 +664,9 @@ void  cDevTriangu3d::OneIterationCompens(bool IsLast)
            std::sort(aVSomEc.begin(),aVSomEc.end());
            for (double aResi = 0.5 ; aResi>1e-6 ; aResi/=4.0)
 	   {
-                StdOut()  << " Ec " << 100.0*(1-aResi) << " :  "  << aVSomEc.at(aNb*(1-aResi))  << "\n";
+                StdOut()  << " Ec " << 100.0*(1-aResi) << " :  "  << aVSomEc.at(aNb*(1-aResi))  << std::endl;
 	   }
-	   StdOut()  << " Ec Max=" << aVSomEc.back() << "\n";
+	   StdOut()  << " Ec Max=" << aVSomEc.back() << std::endl;
 
        }
     }
@@ -690,7 +690,7 @@ void  cDevTriangu3d::OneIterationCompens(bool IsLast)
 
 
     if (mParam.mShowAv)
-       StdOut() << "  -- TIME-EQ=" << aT1-aT0   << " TIME-SOLVE=" << aT2 - aT1 << "\n";
+       StdOut() << "  -- TIME-EQ=" << aT1-aT0   << " TIME-SOLVE=" << aT2 - aT1 << std::endl;
 }
 
 
@@ -797,7 +797,7 @@ void cDevTriangu3d::TestGroundTruth2D(const tTriangulation3D & aDevGT)
        aVGT.push_back(Proj(aDevGT.KthPts(aK)));
        aSomDInit += Norm2(aVDev.back()-aVGT.back());
     }
-    // StdOut() << "SOMD0 " << aSomDInit  << "\n";
+    // StdOut() << "SOMD0 " << aSomDInit  << std::endl;
 
     // 2 - compute best rotation for maping of vector to the other
     tCoordDevTri aDistAdjusted=1e6;
@@ -809,7 +809,7 @@ void cDevTriangu3d::TestGroundTruth2D(const tTriangulation3D & aDevGT)
        tCoordDevTri aD = Norm2(aRot.Value(aVDev[aK])-aVGT[aK]);
        if (aD>=1e-10)
        {
-            StdOut() <<  "D-TestGroundTruth2D=" << aD << "\n";
+            StdOut() <<  "D-TestGroundTruth2D=" << aD << std::endl;
             MMVII_INTERNAL_ASSERT_bench(aD<1e-10,"Mesh dev");
        }
     }
@@ -927,13 +927,13 @@ void BenchMeshDev(cParamExeBench & aParam)
        aParam.mWeightEdgeTriDist =  aK%2;
        aParam.mWeightTriRot      =  (aK+1)%2;
 
-       // StdOut() <<  "WWWWs= " <<  aParam.mWeightEdgeTriDist  << " " << aParam.mWeightTriRot << "\n";
+       // StdOut() <<  "WWWWs= " <<  aParam.mWeightEdgeTriDist  << " " << aParam.mWeightTriRot << std::endl;
 
        cDevTriangu3d aDev(aTri3D,aParam);
        tCoordDevTri  aDist = aDev.GlobDistortiontDist();
        if (aDist>=1e-10)
        {
-            StdOut() << "DDD " << aDist << "\n";
+            StdOut() << "DDD " << aDist << std::endl;
             MMVII_INTERNAL_ASSERT_bench(aDist<1e-10,"Mesh dev");
        }
        aDev.TestGroundTruth2D(aTri2D);

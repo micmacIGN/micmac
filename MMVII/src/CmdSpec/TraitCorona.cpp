@@ -129,7 +129,7 @@ void  cAppli_CalcDiscIm::LoadOneIm(cACDI_Stat1Im & aStat)
      tIm aIm =  mVert ? aStat.mIm : aStat.mIm.Transpose() ;
      tDIm & aDIm = aIm.DIm();
      cPt2di aSz = aIm.DIm().Sz();
-     // StdOut()  <<  (aStat.mLeft ? "  L " : "  R ") <<   mP0 << " " << mP1 << "\n";
+     // StdOut()  <<  (aStat.mLeft ? "  L " : "  R ") <<   mP0 << " " << mP1 << std::endl;
 
      aStat.mMoy = 0;
      int aNb =0 ;
@@ -168,7 +168,7 @@ void cAppli_CalcDiscIm::MakeOneLine(int aXYC,int aNum)
     // mXYC = aXYC;
     // mPC       =  mVert ? cPt2di(aXYC,0) :  cPt2di(0,aXYC);
 
-    StdOut()  << "========== XYC " << mXYC << " Num " << mNum << " ==========\n";
+    StdOut()  << "========== XYC " << mXYC << " Num " << mNum << " ==========" << std::endl;
 
     LoadOneIm(mLeft);
     LoadOneIm(mRight);

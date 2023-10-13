@@ -179,7 +179,7 @@ template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int
     MMVII_INTERNAL_ASSERT_always(aNbVal,"Not Sur AddTabData work for NbVal=0, check....");
     anAux.Ar().OnBeginTab();
     
-// StdOut() << "AddTabDataAddTabData\n";
+// StdOut() << "AddTabDataAddTabData" << std::endl;
     anAux.SetType(aTAAr);
 
 
@@ -215,7 +215,7 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type
 {
    if (false && anAux.Ar().IsSpecif())
    {
-       StdOut() << "PointPointPoint\n";
+       StdOut() << "PointPointPoint" << std::endl;
        anAux.Ar().AddComment("xxPoint");
    }
    AddTabData(anAux,aPt.PtRawData(),Dim,eTAAr::ePtxd);
@@ -226,7 +226,7 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cTplBox<Ty
    AddData(cAuxAr2007("P0",anAux),aBox.P0ByRef());
    AddData(cAuxAr2007("P1",anAux),aBox.P1ByRef());
    // Need to recreate a coherent object
-// StdOut() << "AddDataAddDataBox " << aBox.P0ByRef() << " " << aBox.P1ByRef() << "\n";
+// StdOut() << "AddDataAddDataBox " << aBox.P0ByRef() << " " << aBox.P1ByRef() << std::endl;
    if (anAux.Input())
       aBox = cTplBox<Type,Dim>(aBox.P0(),aBox.P1());
 }
@@ -736,7 +736,7 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif)
    }
 
    std::string aPost = Postfix(aName,'.',true);
-// StdOut() << "AllocArFromFile, " << aName << " => " << aPost << "\n";
+// StdOut() << "AllocArFromFile, " << aName << " => " << aPost << std::endl;
    cAr2007 * aRes = nullptr;
 
    if (UCaseEqual(aPost,PostF_XmlFiles))

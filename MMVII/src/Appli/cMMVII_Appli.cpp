@@ -196,7 +196,7 @@ static std::vector<std::string> InitFromArgcArgv(int argc, char ** argv)
 
 template <class Type> const Type & MessageInCstr(const Type & aVal,const std::string & aMsg,int aLine)
 {
-    StdOut() << aMsg << " at line " << aLine << "\n";
+    StdOut() << aMsg << " at line " << aLine << std::endl;
     return aVal;
 }
 
@@ -358,7 +358,7 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs, std::string *aErrors)
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl); // Call virtual method
   cCollecSpecArg2007 & anArgFac = ArgOpt(mArgFac); // Call virtual method
 
-// StdOut() << "CAPPLL " << __LINE__ << " " << mArgObl.V().size() << "\n";
+// StdOut() << "CAPPLL " << __LINE__ << " " << mArgObl.V().size() << std::endl;
 
   mInitParamDone = true;
   // MMVII_INTERNAL_ASSERT_always(msTheAppli==0,"cMMVII_Appli only one by process");
@@ -659,7 +659,7 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs, std::string *aErrors)
      {
          mFileStdOut.reset(new cMMVII_Ofs(aPSO,aModeAppend ? eFileModeOut::AppendText : eFileModeOut::CreateText));
          // separator between each process , to refine ... (date ? Id ?)
-         mFileStdOut->Ofs() << "=============================================" << ENDL;
+         mFileStdOut->Ofs() << "=============================================" << std::endl;
          mStdCout.Add(mFileStdOut->Ofs());
      }
   }
@@ -783,11 +783,11 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs, std::string *aErrors)
      // Print the value of all parameter
      for (size_t aK=0 ; aK<aNbArgTot; aK++)
      {
-         HelpOut() << aVSpec[aK]->Name()  << " => [" << aVValues[aK] << "]" << ENDL;
+         HelpOut() << aVSpec[aK]->Name()  << " => [" << aVValues[aK] << "]" << std::endl;
      }
-     HelpOut() << "---------------------------------------" << ENDL;
-     HelpOut() << "IS INIT  DP: " << IsInit(&aDP) << ENDL;
-     HelpOut() << "DIRPROJ=[" << mDirProject << "]" << ENDL;
+     HelpOut() << "---------------------------------------" << std::endl;
+     HelpOut() << "IS INIT  DP: " << IsInit(&aDP) << std::endl;
+     HelpOut() << "DIRPROJ=[" << mDirProject << "]" << std::endl;
   }
 
   // By default, if calls is done at top level, assure that everything is init
@@ -818,7 +818,7 @@ void cMMVII_Appli::InitProfile()
   //  part of code that was used to initialize "at hand", soon will be obsolete...
   if (0)
   {
-      StdOut() << "NO USEERRRRRRRRRRRRRR \n"; getchar();
+      StdOut() << "NO USEERRRRRRRRRRRRRR " << std::endl; getchar();
 
       mParamProfile.mUserName = "Uknown";
       mParamProfile.mNbProcMax = 1000;
@@ -1338,12 +1338,12 @@ void cMMVII_Appli::GenerateHelp()
 
 void cMMVII_Appli::ShowAllParams() 
 {
-    StdOut()  << "=================== PARAM AFTER FULL INIT ============== \n";
+    StdOut()  << "=================== PARAM AFTER FULL INIT ============== " << std::endl;
     for (auto & Arg : mArgFac.Vec())
     {
         if (( IsInit(Arg->AdrParam()) ||  Arg->HasType(eTA2007::HDV)) &&  (!Arg->HasType(eTA2007::Global)) )
         {
-            StdOut() << " * " <<  Arg->Name() << "=" <<  Arg->NameValue() << "\n";
+            StdOut() << " * " <<  Arg->Name() << "=" <<  Arg->NameValue() << std::endl;
         }
     }
 }
@@ -1503,9 +1503,9 @@ bool  cMMVII_Appli::IsInSpec(const void * aPtr)
 
 void cMMVII_Appli::MMVII_WARNING(const std::string & aMes)
 {
-   StdOut() << "===================================================================\n";
-   StdOut() <<  aMes << "\n";
-   StdOut() << "===================================================================\n";
+   StdOut() << "===================================================================" << std::endl;
+   StdOut() <<  aMes << std::endl;
+   StdOut() << "===================================================================" << std::endl;
 }
 
 std::string cMMVII_Appli::mDirBinMMVII;

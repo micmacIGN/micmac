@@ -170,14 +170,14 @@ void cTimerSegm::Show()
    }
 
    double aSom = 0.0;
-   StdOut()  <<  " ========== TIMING ===========\n";
+   StdOut()  <<  " ========== TIMING ===========" << std::endl;
    for (const auto & aPair : mTimers)
    {
        aSom += aPair.second;
-       StdOut() << " * "  << FixDigToStr(aPair.second,4,4) << " : " << aPair.first << "\n";
+       StdOut() << " * "  << FixDigToStr(aPair.second,4,4) << " : " << aPair.first << std::endl;
    }
 
-   StdOut() << " *** SOM " << aSom  <<  " " << mAppli->SecFromT0() << "\n";
+   StdOut() << " *** SOM " << aSom  <<  " " << mAppli->SecFromT0() << std::endl;
 }
 
 

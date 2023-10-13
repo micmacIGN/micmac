@@ -252,7 +252,7 @@ cCCDecode::cCCDecode
 	mEnCode      (nullptr),
         mMarked4Test (anEE.mMarked4Test)
 {
-    if (mMarked4Test)  StdOut() << "ENTER MARKED " << mTetaWanted << "\n";
+    if (mMarked4Test)  StdOut() << "ENTER MARKED " << mTetaWanted << std::endl;
     //  compute a polar image
     for (int aKTeta=0 ; aKTeta < mNbTeta; aKTeta++)
     {
@@ -284,24 +284,24 @@ cCCDecode::cCCDecode
         mDAvg.SetV(aKTeta,NonConstMediane(aVGray));
     }
 
-    // if (mMarked4Test) StdOut() << "MMMM4T OK=" << mOK << " L=" << __LINE__ << "\n";
+    // if (mMarked4Test) StdOut() << "MMMM4T OK=" << mOK << " L=" << __LINE__ << std::endl;
 
     ComputePhaseTeta() ;
     if (!mOK) 
     {
-        if (mMarked4Test)  StdOut() << "REFUTED AFTER ComputePhaseTeta\n";
+        if (mMarked4Test)  StdOut() << "REFUTED AFTER ComputePhaseTeta" << std::endl;
         return;
     }
 
-    // if (mMarked4Test) StdOut() << "MMMM4T OK=" << mOK << " L=" << __LINE__ << "\n";
+    // if (mMarked4Test) StdOut() << "MMMM4T OK=" << mOK << " L=" << __LINE__ << std::endl;
     ComputeCode();
     if (!mOK)
     {
-        if (mMarked4Test)  StdOut() << "REFUTED AFTER ComputeCode\n";
+        if (mMarked4Test)  StdOut() << "REFUTED AFTER ComputeCode" << std::endl;
         return;
     }
 
-    // if (mMarked4Test) StdOut() << "MMMM4T OK=" << mOK << " L=" << __LINE__ << "\n";
+    // if (mMarked4Test) StdOut() << "MMMM4T OK=" << mOK << " L=" << __LINE__ << std::endl;
 }
 
 //  =============   Agregation on interval : StdDev , Avg, TotalStdDevOfPhase ====
@@ -432,7 +432,7 @@ void cCCDecode::ComputePhaseTeta()
     {
         if (mMarked4Test)
 	{
-            StdOut() << "Bad ratio StdDev : Glob \n";
+            StdOut() << "Bad ratio StdDev : Glob " << std::endl;
 	}
         mOK = false;
 	return;
@@ -471,11 +471,11 @@ void cCCDecode::ComputeCode()
     {
          tREAL8 aDev0 = StdDevOfSumInterv(mVInt0);
          tREAL8 aDev1 = StdDevOfSumInterv(mVInt1);
-         StdOut()  << mEnCode->Name() <<  " D0=" << aDev0/ mBWAmpl <<  " D1=" << aDev1/ mBWAmpl <<  "\n";
+         StdOut()  << mEnCode->Name() <<  " D0=" << aDev0/ mBWAmpl <<  " D1=" << aDev1/ mBWAmpl <<  std::endl;
     }
 
     mRPhase0 = RefinePhase(mIPhase0);
-    // StdOut() <<"PHASE "<< mRPhase0 -mIPhase0 <<" SC "<< GlobalScorePhase(mIPhase0)<<" => "<<GlobalScorePhase(mRPhase0)<<" "<< "\n";
+    // StdOut() <<"PHASE "<< mRPhase0 -mIPhase0 <<" SC "<< GlobalScorePhase(mIPhase0)<<" => "<<GlobalScorePhase(mRPhase0)<<" "<< std::endl;
     // tREAL8 cCCDecode::RefinePhase(tREAL8 aPhase0) const
     // tREAL8 cCCDecode::GlobalScorePhase(tREAL8 aPhase) const
 
@@ -517,7 +517,7 @@ void cCCDecode::ComputeCode()
                            cPt2dr aGRadIm(mDGx.GetVBL(aPIm),mDGy.GetVBL(aPIm)); // grad of image
 		           tREAL8 aTeta = std::abs(ToPolar(aGRadIm/aDirRad).y());
 			   aAvgTan.Add(1.0,aTeta);
-			   if (BugR)  StdOut() << "TETAT= " << aTeta << "  GIM=" << aGRadIm   << " DRad=" << aDirRad  << "\n";
+			   if (BugR)  StdOut() << "TETAT= " << aTeta << "  GIM=" << aGRadIm   << " DRad=" << aDirRad  << std::endl;
                        }
                        else
                        {
@@ -605,7 +605,7 @@ void  cCCDecode::Show(const std::string & aPrefix)
                 << " Code=" <<  mEnCode->Code() 
                 << " BF=" << StrOfBitFlag(mEnCode->Code(), 1<<mNbB);
     }
-    StdOut() << "\n";
+    StdOut() << std::endl;
 }
 
 /*  *********************************************************** */
@@ -911,15 +911,15 @@ void cAppliExtractCircTarget::TestOnSimul()
      /*
      if (aVErr.size())
      {
-         StdOut()  <<  "==============  ERROR SATISTICS ===================\n";
-         StdOut()  <<  "AVERAGE = " << Average(aVErr) << "\n";
+         StdOut()  <<  "==============  ERROR SATISTICS ===================" << std::endl;
+         StdOut()  <<  "AVERAGE = " << Average(aVErr) << std::endl;
 
          for (const auto & aProp : {0.5,0.75,0.9})
-             StdOut()  << "  * Er at " << aProp << " = " << Cst_KthVal(aVErr,aProp)  << "\n";
+             StdOut()  << "  * Er at " << aProp << " = " << Cst_KthVal(aVErr,aProp)  << std::endl;
      }	
      else
      {
-         StdOut()  <<  "  ==============  NOT ANY MATCH !!!! ===================\n";
+         StdOut()  <<  "  ==============  NOT ANY MATCH !!!! ===================" << std::endl;
      }
      */
 }
@@ -954,7 +954,7 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    mExtrEll->ExtractAllSeed();
    if (mZoomVisuSeed!=0)
    {
-	   StdOut()  << "\%seed-selec=" << (100.0 * mExtrEll->VSeeds().size()) / double(APBI_DIm().NbElem()) << "\n";
+	   StdOut()  << "\%seed-selec=" << (100.0 * mExtrEll->VSeeds().size()) / double(APBI_DIm().NbElem()) << std::endl;
    }
    double aT2 = SecFromT0();
    mExtrEll->AnalyseAllConnectedComponents(mNameIm);
@@ -962,9 +962,9 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
 
    if (mZoomVisuElFinal!=0)
    {
-       StdOut() << "TIME-INIT " << aT1-aT0 << "\n";
-       StdOut() << "TIME-SEED " << aT2-aT1 << "\n";
-       StdOut() << "TIME-CC   " << aT3-aT2 << "\n";
+       StdOut() << "TIME-INIT " << aT1-aT0 << std::endl;
+       StdOut() << "TIME-SEED " << aT2-aT1 << std::endl;
+       StdOut() << "TIME-CC   " << aT3-aT2 << std::endl;
    }
 
    for (const auto & anEE : mExtrEll->ListExtEl() )
@@ -1050,7 +1050,7 @@ int  cAppliExtractCircTarget::Exe()
 
    mPrefixOut = "CircTarget_" +  LastPrefix(FileOfPath(APBI_NameIm()));
 
-   // StdOut() << "mPrefixOutmPrefixOut " << mPrefixOut << "\n"; getchar();
+   // StdOut() << "mPrefixOutmPrefixOut " << mPrefixOut << std::endl; getchar();
 
    // By default use Simul iff the name of imagebegin by "SimulTarget"
    if (! IsInit(&mUseSimul))
@@ -1074,7 +1074,7 @@ int  cAppliExtractCircTarget::Exe()
    if (mHasMask)
    {
       mNameMask =  mPhProj.NameMaskOfImage(APBI_NameIm());
-      StdOut() << "MAK=== " <<   mHasMask << " " << mNameMask  << " UseSim=" << mUseSimul << "\n";
+      StdOut() << "MAK=== " <<   mHasMask << " " << mNameMask  << " UseSim=" << mUseSimul << std::endl;
    }
 
 

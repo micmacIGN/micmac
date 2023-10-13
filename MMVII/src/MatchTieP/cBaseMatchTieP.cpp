@@ -58,8 +58,8 @@ void  cBaseMatchTieP::PostInit()
                 // Call method that will use serialization to init objects
                 mVSAPc1.back().InitFromFile(aNamePC1);
                 mVSAPc2.back().InitFromFile(aNamePC2);
-                // StdOut() << " " << mSAPc1.Ampl2N() << "\n";
-                StdOut() << aNamePC1 << " Nb=" << mVSAPc1.back().VPC().size() << "\n"  
+                // StdOut() << " " << mSAPc1.Ampl2N() << std::endl;
+                StdOut() << aNamePC1 << " Nb=" << mVSAPc1.back().VPC().size() << std::endl  
                          << aNamePC2 << "\n\n";
             }
        }

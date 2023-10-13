@@ -251,7 +251,7 @@ int  cAppliGenMeshDev::Exe()
    {
       auto aPtr = EqConsDist(true,100);
       auto aPtr2 = EqConsRatioDist(true,100);
-      StdOut() << "DIFPTR "  << ((void*) aPtr2) << " " <<  ((void *) aPtr) << "\n";
+      StdOut() << "DIFPTR "  << ((void*) aPtr2) << " " <<  ((void *) aPtr) << std::endl;
       delete aPtr;
       delete aPtr2;
    }

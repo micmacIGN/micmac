@@ -29,7 +29,7 @@ bool  ReadableSerialType (eTypeSerial aType)
 
 bool cTestSerial0::operator ==   (const cTestSerial0 & aT0) const 
 {
-	// StdOut() << "cTestSerial0cTestSerial0\n";
+	// StdOut() << "cTestSerial0cTestSerial0" << std::endl;
 	return     (mP1==aT0.mP1) 
 		&& (mI1==aT0.mI1)
 		&& (mR4==aT0.mR4)
@@ -242,7 +242,7 @@ template <class Type> void BenchSerialIm2D(const std::string & aDirOut)
 
         double aD = anIm1.DIm().L1Dist(anIm2.DIm());
 
-	// StdOut()  << "BENCHIII " << aD << " " << E2Str(aTypeS) << "\n";
+	// StdOut()  << "BENCHIII " << aD << " " << E2Str(aTypeS) << std::endl;
         MMVII_INTERNAL_ASSERT_bench(aD<1e-5,"BenchSerialIm2D");
 
     }
@@ -338,7 +338,7 @@ tREAL8 CmpCalib(cPerspCamIntrCalib * aCam1,cPerspCamIntrCalib * aCam2)
 	     UpdateMax(aMaxD,Norm2(aCam1->DirBundle(aPIm)-aCam2->DirBundle(aPIm)));
      }
 
-     // StdOut() <<  "DDD=" << aMaxD << "\n";
+     // StdOut() <<  "DDD=" << aMaxD << std::endl;
      MMVII_INTERNAL_ASSERT_bench(aMaxD<1e-5,"CmpCalib");
 
      return aMaxD;
@@ -354,13 +354,13 @@ void BenchSerial_PerspCamIntrCalib(cPerspCamIntrCalib * aCam1,const std::string 
 
 	CmpCalib(aCam1,aCam2);
 	CmpCalib(aCam2,aCam1);
-	// StdOut() << "BenchSerial_PerspCamIntrCalib " << aNameCal << " " << aCam2 << "\n";
+	// StdOut() << "BenchSerial_PerspCamIntrCalib " << aNameCal << " " << aCam2 << std::endl;
 	delete aCam2;
 
 	if (false) // (aTypeS==eTypeSerial::ejson)
 	{
-		StdOut() << "BenchSerial_PerspCamIntrCalibBenchSerial_PerspCamIntrCalib\n";
-		StdOut() << aNameCal << "\n";
+		StdOut() << "BenchSerial_PerspCamIntrCalibBenchSerial_PerspCamIntrCalib" << std::endl;
+		StdOut() << aNameCal << std::endl;
 	    getchar();
 	}
 }
@@ -399,7 +399,7 @@ void BenchSerialization
 	eTypeSerial         aTypeS2
     )
 {
-// StdOut() << "BenchSerialization "  << E2Str(aTypeS) << " " <<  E2Str(aTypeS2) << "\n";
+// StdOut() << "BenchSerialization "  << E2Str(aTypeS) << " " <<  E2Str(aTypeS2) << std::endl;
 
    bool OkJSon =true;
    if (!OkJSon)
@@ -538,10 +538,10 @@ void BenchSerialization
     }
     else
     {
-	    StdOut() << "SKEEPING IsFileXmlOfGivenTag\n";
+	    StdOut() << "SKEEPING IsFileXmlOfGivenTag" << std::endl;
     }
 
-    // StdOut() << "DONE SERIAL\n";
+    // StdOut() << "DONE SERIAL" << std::endl;
     // getchar();
 
     // return EXIT_SUCCESS;
@@ -613,7 +613,7 @@ void BenchSerialization
     // BenchSerialization(aParam,aDirOut,aDirIn, eTypeSerial::edmp);
     if (UserIsMPD())
     {
-       // StdOut() << "BenchSerializationBenchSerialization \n"; getchar() ;
+       // StdOut() << "BenchSerializationBenchSerialization " << std::endl; getchar() ;
     }
     aParam.EndBench();
 }

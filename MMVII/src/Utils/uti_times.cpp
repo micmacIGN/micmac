@@ -113,7 +113,7 @@ void Bench_Duration_Daisy(double aT,const std::string & aStr)
     std::string aDS = cMMVII_Duration::FromSecond(aT).ToDaisyStr();
     if (aDS != aStr)
     {
-        StdOut() << aT << " " << aDS << " " << aStr << "\n";
+        StdOut() << aT << " " << aDS << " " << aStr << std::endl;
         MMVII_INTERNAL_ASSERT_bench(false,"Bench_Duration_Daisy");
     }
 }
@@ -182,8 +182,8 @@ void OneBenchTimeVect(int aNbVect,int aSzVect)
     double aT3 = cMMVII_Appli::CurrentAppli().SecFromT0();
 
 
-    StdOut()  <<  "NbV=" <<aNbVect << " NbEl=" << aSzVect << "\n";
-    StdOut()  <<  "El=" << aT1-aT0 << " Vec=" << aT2-aT1  << " Mcp=" << aT3-aT2 << "\n\n";
+    StdOut()  <<  "NbV=" <<aNbVect << " NbEl=" << aSzVect << std::endl;
+    StdOut()  <<  "El=" << aT1-aT0 << " Vec=" << aT2-aT1  << " Mcp=" << aT3-aT2 << "\n" << std::endl;
 }
 
 void BenchTimeVect()

@@ -258,7 +258,7 @@ int cMDLB_AppliFormatTDEDM::Exe()
                   }
 
               aVBox.push_back(aBox.CurBox());
-              StdOut() << aBox.CurBox() << "\n";
+              StdOut() << aBox.CurBox() << std::endl;
 /*
 if (aKIm==0)
 {
@@ -270,7 +270,7 @@ for (int aK=0 ; aK<20 ; aK++)
           }
           int aY0 = std::max(aVBox[0].P0().y(),aVBox[1].P0().y());
           int aY1 = std::min(aVBox[0].P1().y(),aVBox[1].P1().y());
-          StdOut() << "YY " << aY0 << " " << aY1 << "\n";
+          StdOut() << "YY " << aY0 << " " << aY1 << std::endl;
           for (int aKIm=0; aKIm<2 ; aKIm++)
           {
               aVBox[aKIm] = cBox2di(cPt2di(aVBox[aKIm].P0().x(),aY0),cPt2di(aVBox[aKIm].P1().x(),aY1));
@@ -294,9 +294,9 @@ for (int aK=0 ; aK<20 ; aK++)
                                    + NamePx(aKIm) + aStrBox ;
               GlobSysCall(aComPx);
           }
-          StdOut() << "DPX= " << aDPx << "\n";
+          StdOut() << "DPX= " << aDPx << std::endl;
 
-          // StdOut() << "BBbbBB " << aVBox[0] << " ;;; " << aVBox[1] << " DPx: " << aDPx<< "\n";
+          // StdOut() << "BBbbBB " << aVBox[0] << " ;;; " << aVBox[1] << " DPx: " << aDPx<< std::endl;
           // getchar();
        }
        else if (mMDLB)

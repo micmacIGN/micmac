@@ -90,7 +90,7 @@ void cCdtBasic::MatchInit(cSetCdtBasic& aSet,int NbSel)
         aVH.push_back(cHypMatchCdtBasic(aWM.ValExtre(),*this,aCd2,aWM.IndexExtre()));
     }
     std::sort(aVH.begin(),aVH.end());
-    StdOut() << "BEST COST  " << aVH[0].Cost() << " " << aVH.back().Cost() << " Cpt " << aCpt << "\n";
+    StdOut() << "BEST COST  " << aVH[0].Cost() << " " << aVH.back().Cost() << " Cpt " << aCpt << std::endl;
     
 }
 
@@ -200,7 +200,7 @@ int cAppliMatchTiePBasic::Exe()
    {
         mVSCB.push_back(cCpleSetCdtBasic(&mVSAPc1.at(aKSet),&mVSAPc2.at(aKSet)));
         mVSCB.back().MakeCost();
-        StdOut() << "=================================\n";
+        StdOut() << "=================================" << std::endl;
    }
    return EXIT_SUCCESS;
 }

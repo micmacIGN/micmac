@@ -604,7 +604,7 @@ StdOut() << "WWW=" ;
 StdOut() << " " << aVecWeight.at(aK) ;
             aUBS.Add(&(aVecVals.at(aK)),aVecWeight.at(aK));
          }
-StdOut() << "\n" ;
+StdOut() << std::endl ;
          StdOut() << "MOYVAR " << aMoyVar <<  " " <<  aUBS.DeBiasFactor() *  aUBS.ComputeBiasedVar()[0] 
                   << " DBF=" <<  aUBS.DeBiasFactor() << "\n";
 getchar();

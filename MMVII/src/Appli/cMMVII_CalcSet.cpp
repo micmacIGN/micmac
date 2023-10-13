@@ -79,7 +79,7 @@ static void OneBenchEditSet
         const std::string & ExpSet   // Expect set
     )
 {
-    // StdOut() << "OneBenchEditSet " << anOp << "\n";
+    // StdOut() << "OneBenchEditSet " << anOp << std::endl;
 
     cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
     std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
@@ -248,7 +248,7 @@ int cAppli_EditSet::Exe()
                 {
                    StdOut() <<  " " << (aInInit ? "+" : "-");
                    StdOut() <<   (aInRes ? "+" : "-") << " ";
-                   StdOut() <<  *aPtrS << "\n";
+                   StdOut() <<  *aPtrS << std::endl;
                 }
              }
           }

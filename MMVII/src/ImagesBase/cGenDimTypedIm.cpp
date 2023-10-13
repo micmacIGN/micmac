@@ -268,7 +268,7 @@ template <class Type>  void cBenchImNDim<Type>::FinaleRec(tIndex & anIndex,int a
    {
        Type aV1 = Func(anIndex);
        Type aV2 = mIm.GetV(anIndex);
-       // StdOut() << " vvvvvVVv=" << aV1-aV2 << " " << aV1 << " " << aV2 << "\n";
+       // StdOut() << " vvvvvVVv=" << aV1-aV2 << " " << aV1 << " " << aV2 << std::endl;
        MMVII_INTERNAL_ASSERT_bench(std::abs(aV1-aV2)<1e-5,"Final Rec");
    }
 }
@@ -362,7 +362,7 @@ template <class Type>
              bool Ok0 = true;
              if ((RelativeDifference(aV1,aV2,&Ok0)>=1e-3)  && (std::abs(aV1-aV2)>1e-5))
              {
-                   StdOut() << "ddddd " << aV1 << " " << aV2 << Ok0 << " " << RelativeDifference(aV1,aV2,&Ok0) << "\n";
+                   StdOut() << "ddddd " << aV1 << " " << aV2 << Ok0 << " " << RelativeDifference(aV1,aV2,&Ok0) << std::endl;
                    MMVII_INTERNAL_ASSERT_bench(false,"Interpol Im N DIM");
              }
 

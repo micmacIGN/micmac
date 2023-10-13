@@ -110,7 +110,7 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
     // mSetMes.ExtractMes1Im(aSet32,aNameIm);
     cSensorImage*  aCam = mPhProj.LoadSensor(aNameIm,false);
 
-    // StdOut() << " aNameImaNameIm " << aNameIm  << " " << aSetMesIm.Measures().size() << " Cam=" << aCam << "\n";
+    // StdOut() << " aNameImaNameIm " << aNameIm  << " " << aSetMesIm.Measures().size() << " Cam=" << aCam << std::endl;
 
     cRGBImage aImaFieldRes(cPt2di(1,1));
 

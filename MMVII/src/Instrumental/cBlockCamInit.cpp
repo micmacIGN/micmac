@@ -98,11 +98,11 @@ void cBlocCam::Show() const
         for (const auto  &aCam : aVBl)
 	{
             if (aCam==nullptr)
-               StdOut() <<  "    00000000000000000\n";
+               StdOut() <<  "    00000000000000000" << std::endl;
 	    else
-               StdOut() <<  "    " << aCam->NameImage() << "\n";
+               StdOut() <<  "    " << aCam->NameImage() << std::endl;
 	}
-        StdOut() << "============================================================\n";
+        StdOut() << "============================================================" << std::endl;
     }
 }
 
@@ -226,9 +226,9 @@ void cBlocCam::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli,const
     }
     else
     {
-        StdOut() << " KKKKK " << aSomTr << " " << a4 << "\n";
-        StdOut()  << "DISPTR " << aSigmaTr  << " DISPROT=" << aSigmaRot << "\n";
-        StdOut() << " BBB " << NamePoseId(aKB1) <<  " " << NamePoseId(aKB2) << "\n";
+        StdOut() << " KKKKK " << aSomTr << " " << a4 << std::endl;
+        StdOut()  << "DISPTR " << aSigmaTr  << " DISPROT=" << aSigmaRot << std::endl;
+        StdOut() << " BBB " << NamePoseId(aKB1) <<  " " << NamePoseId(aKB2) << std::endl;
     }
 }
 

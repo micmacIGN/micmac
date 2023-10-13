@@ -130,7 +130,7 @@ void AddData(const  cAuxAr2007 & anAux,cDaisyFOneBook & aBook)
     AddData(cAuxAr2007("Narrator",anAux),aBook.mNarrator);
     AddData(cAuxAr2007("Chaps",anAux),aBook.mChaps);
 
-    StdOut() << "Time " << aBook.Time() << "\n";
+    StdOut() << "Time " << aBook.Time() << std::endl;
 }
 
 

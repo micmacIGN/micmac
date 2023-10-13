@@ -424,7 +424,7 @@ template <class Type>
        double aD =  Norm2(mGTCam->Center() - aCAbs) ;
        if (0) // (aD >= 1e-2)
        {
-            StdOut() <<  "DIST CENTERS= " << aD << "\n";
+            StdOut() <<  "DIST CENTERS= " << aD << std::endl;
             MMVII_INTERNAL_ASSERT_bench(aD < tElemNumTrait<Type>::Accuracy()*1e-2,"Center in cUncalibSpaceRessection");
        }
     }
@@ -484,9 +484,9 @@ template <class Type>
               aAvgDiff.Add(aPair.mWeight,aDif);
 	  }
 	  double aAvR = aAvgDiff.Average() ;
-          //  StdOut() << "AVVVV " << aAvgDiff.Average() << "\n";
+          //  StdOut() << "AVVVV " << aAvgDiff.Average() << std::endl;
           MMVII_INTERNAL_ASSERT_bench(aAvR < 1e-5,"Residual cam in cUncalibSpaceRessection");
-          // StdOut()<< mGTCam->Center() << " " << aCam.Center() << "\n";
+          // StdOut()<< mGTCam->Center() << " " << aCam.Center() << std::endl;
       }
       return aCam;
 }
@@ -532,7 +532,7 @@ cSensorCamPC *
 void OneBenchUnCalibResection(int aKTest)
 {
 
-     // StdOut() << "KKK=" << aKTest << "\n";
+     // StdOut() << "KKK=" << aKTest << std::endl;
 
      cPt2di  aSz(2000+RandUnif_0_1()*2000,2000+RandUnif_0_1()*2000);
      tREAL8  aFoc = 1000 + RandUnif_0_1() * 10000;
@@ -575,7 +575,7 @@ void OneBenchUnCalibResection(int aKTest)
                   const auto & aDesc = aCalib->VDescDist().at(aInd);
                   StdOut()  << " LN=" << aDesc.mLongName  << " Deg=" << aDesc.mDegMon << " V=" <<aCalib->ParamDist(aName);
 	      }
-              StdOut()  << "\n";
+              StdOut()  << std::endl;
           }
       }
 
@@ -733,7 +733,7 @@ cSensorCamPC * cAppli_UncalibSpaceResection::ChgModel(cSensorCamPC * aCam0)
 
      if (mShow)
      {
-        StdOut() << "RESIDUAL, R0=" << aR0 << " R1Init=" << aR1Init << " R1Final=" << aR1Final << "\n";
+        StdOut() << "RESIDUAL, R0=" << aR0 << " R1Init=" << aR1Init << " R1Final=" << aR1Final << std::endl;
      }
      return aCam1;
 }
@@ -751,7 +751,7 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
 
 	     cMetaDataImage  aMDI = mPhProj.GetMetaData(DirProject()+aNameIm);
 	     aMapCal[aMDI.InternalCalibGeomIdent()].push_back(aCalib);
-	     StdOut() << "NIIII  " << aNameIm << " F=" << aCalib->F()   << "\n";
+	     StdOut() << "NIIII  " << aNameIm << " F=" << aCalib->F()   << std::endl;
          }
          else
          {
@@ -781,7 +781,7 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
 
      //std::vector<cPerspCamIntrCalib *> aVCal;
 
-          StdOut() << " ####  " <<  aName   << " ####\n";
+          StdOut() << " ####  " <<  aName   << " ####" << std::endl;
           for (size_t aKP=0 ; aKP< aNbParam ; aKP++)
           {
                StdOut() << " " <<  aGAIP0.VNames()[aKP] ;
@@ -790,7 +790,7 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
 	       tREAL8 aV80 = NC_KthVal(aVVParam.at(aKP),0.8);
                StdOut() <<  ": V=" << aVMed;
                StdOut() <<  ": DISP=" << (aV80-aV20);
-               StdOut() <<  "\n";
+               StdOut() <<  std::endl;
 
 	       *(aGAIP0.VAdrs()[aKP]) = aVMed;
           }
@@ -822,7 +822,7 @@ int cAppli_UncalibSpaceResection::Exe()
 
     mSet23 =mPhProj.LoadSet32(aNameIm);
 
-    StdOut() <<  "Nb Measures=" << mSet23.NbPair() << "\n";
+    StdOut() <<  "Nb Measures=" << mSet23.NbPair() << std::endl;
 
 
     cPt2di aSz =  cDataFileIm2D::Create(aNameIm,false).Sz();

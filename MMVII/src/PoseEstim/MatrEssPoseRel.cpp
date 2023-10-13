@@ -167,12 +167,12 @@ void cSetHomogCpleDir::Show() const
      for (size_t aK=0 ; aK<mVDir1.size() ; aK++)
      {
         
-         // StdOut() << " Dir="  << mVDir1[aK]  << mVDir2[aK] << "\n";
+         // StdOut() << " Dir="  << mVDir1[aK]  << mVDir2[aK] << std::endl;
 	 aS1 += mVDir1[aK];
 	 aS2 += mVDir2[aK];
 	 aSomDif += Norm2(mVDir1[aK]-mVDir2[aK]);
      }
-     StdOut() << " ** AVG-Dirs="  << VUnit(aS1)  <<  VUnit(aS2)  << " DIFS=" << aSomDif/mVDir1.size() << "\n";
+     StdOut() << " ** AVG-Dirs="  << VUnit(aS1)  <<  VUnit(aS2)  << " DIFS=" << aSomDif/mVDir1.size() << std::endl;
 }
 
 /* ************************************** */
@@ -290,7 +290,7 @@ int   GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show=false)
                 StdOut() << ToStr(aNewV*1000,4) << " ";
         }
         if (Show)
-           StdOut() << "\n";
+           StdOut() << std::endl;
     }
     if (Show)
     {
@@ -363,13 +363,13 @@ void cMatEssential::Show(const cSetHomogCpleDir& aSetD) const
         {
 		StdOut() << " " <<  FixDigToStr(1000*mMat.GetElem(aX,aY),8) ;
         }
-	StdOut() << "\n";
+	StdOut() << std::endl;
     }
-    StdOut() << "     Cost=" << AvgCost(aSetD,1.0) << "\n";
+    StdOut() << "     Cost=" << AvgCost(aSetD,1.0) << std::endl;
     cResulSVDDecomp<tREAL8>  aRSVD =  mMat.SVD();
     cDenseVect<tREAL8>       aVP = aRSVD.SingularValues();
-    StdOut() <<  "EIGEN-VAL " << aVP(0) << " " << aVP(1) << " " << aVP(2) << "\n";
-    StdOut() << "============================================\n";
+    StdOut() <<  "EIGEN-VAL " << aVP(0) << " " << aVP(1) << " " << aVP(2) << std::endl;
+    StdOut() << "============================================" << std::endl;
 }
 
 tREAL8  cMatEssential::AvgCost(const  cSetHomogCpleDir & aSetD,const tREAL8 & aSigma) const
@@ -710,7 +710,7 @@ cCamSimul * cCamSimul::Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool 
 
 void cCamSimul::TestCam(cSensorCamPC * aCam) const
 {
-	StdOut() << "CC " << aCam->Center()  << " CG=" << mCenterGround << "\n";
+	StdOut() << "CC " << aCam->Center()  << " CG=" << mCenterGround << std::endl;
 
 cPt3dr aV = aCam->Center() - mCenterGround;
 
@@ -719,7 +719,7 @@ StdOut()  << " I " << Cos(aV,aCam->AxeI())
           << " K " << Cos(aV,aCam->AxeK())
 	  << " \n";
 
-	StdOut() << "Vis " <<  aCam->IsVisible(mCenterGround) << "\n";
+	StdOut() << "Vis " <<  aCam->IsVisible(mCenterGround) << std::endl;
 }
 
 void cCamSimul::BenchMatEss
@@ -775,7 +775,7 @@ void cCamSimul::BenchMatEss
 
             {
                 cIsometry3D<tREAL8>  aPRel =  aCam1->RelativePose(*aCam2);
-                // StdOut() << " PROJS  " << E2Str(eProjPC(aK1)) << " " << E2Str(eProjPC(aK2))  << "\n";
+                // StdOut() << " PROJS  " << E2Str(eProjPC(aK1)) << " " << E2Str(eProjPC(aK2))  << std::endl;
                 aMatEL2.ComputePose(aSetD,&aPRel);
             }
             MMVII_INTERNAL_ASSERT_bench(aMatEL2.AvgCost(aSetD,1.0)<1e-5,"Avg cost ");
@@ -813,7 +813,7 @@ void cCamSimul::BenchMatEss
 	    if (BUGME) 
 	    {
 /*
-                StdOut()  <<  "----------------KkkkkkkkkkkkMmmmmmmax \n";
+                StdOut()  <<  "----------------KkkkkkkkkkkkMmmmmmmax " << std::endl;
                 // cComputeMatEssential aCME;
                 // aCME.GetKMax(aSetD,1e-6);
 
@@ -834,7 +834,7 @@ void cCamSimul::BenchMatEss
 		/*
 		*/
 
-		StdOut() << "***************************************************\n";
+		StdOut() << "***************************************************" << std::endl;
                 getchar();
 	    }
 
@@ -848,7 +848,7 @@ void cCamSimul::BenchMatEss
             delete aCamSim;
         }
     }
-    StdOut() << "CPT " << aCptPbL1  << " " << aCpt << "\n";
+    StdOut() << "CPT " << aCptPbL1  << " " << aCpt << std::endl;
 
     // delete aSysL1;
 }
@@ -866,7 +866,7 @@ void TestRotMatEss(const cSetHomogCpleDir & aSetD,const cMatEssential aMatE,cLin
     }
     cMatEssential aMat2(aSetBis,*aSysL1);
     aMatE.Show();
-    StdOut() << "\n";
+    StdOut() << std::endl;
     aMat2.Show();
     getchar();
 }

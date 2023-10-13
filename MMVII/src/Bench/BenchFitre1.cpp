@@ -7,7 +7,7 @@ namespace MMVII
 
 void BenchFilterImage_000()
 {
-    // StdOut() << "BenchFilterImage1BenchFilterImage1BenchFilterImage1\n";
+    // StdOut() << "BenchFilterImage1BenchFilterImage1BenchFilterImage1" << std::endl;
     cPt2di  aSzInd(6,9);
     cPt2di  aSz10 = aSzInd * 10;
     cPt2di  aSz = aSz10 - cPt2di(1,1);

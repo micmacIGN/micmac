@@ -92,7 +92,7 @@ bool  cParamExeBench::NewBench(const std::string & aName,bool ExactMatch)
    {
        mNbExe++;
        mInsideFunc = true;
-       StdOut() << "  Bench : " << aName << "\n";
+       StdOut() << "  Bench : " << aName << std::endl;
    }
    return  mInsideFunc;
 }
@@ -110,7 +110,7 @@ bool  cParamExeBench::GenerateBug(const std::string & aKey)
 
 void cParamExeBench::ShowIdBench() const
 {
-   StdOut() << "=====  POSSIBLE ID FOR BENCH ==============,  # require exact match\n";
+   StdOut() << "=====  POSSIBLE ID FOR BENCH ==============,  # require exact match" << std::endl;
    for (int aK=0 ; aK<int(mVallBench.size()) ; aK++)
    {
        StdOut() << "    " << (mVExactMatch[aK] ? "#" : "-")   << " " << mVallBench[aK]  << " ";
@@ -120,7 +120,7 @@ void cParamExeBench::ShowIdBench() const
           for (const auto & aNameBug :mVAllBugKeys[aK])
              StdOut()  << aNameBug << " ";
        }
-       StdOut()  << "\n";
+       StdOut()  << std::endl;
    }
 }
 
@@ -357,7 +357,7 @@ cAppli_MMVII_Bench::cAppli_MMVII_Bench (const std::vector<std::string> & aVArgs,
 {
   if (The_MMVII_DebugLevel < The_MMVII_DebugLevel_InternalError_tiny)
   {
-      StdOut() << "WARNN  MMVII Bench requires highest level of debug \n" ; getchar();
+      StdOut() << "WARNN  MMVII Bench requires highest level of debug " << std::endl ; getchar();
   }
   else
   {
@@ -390,7 +390,7 @@ int  cAppli_MMVII_Bench::Exe()
 
    for (int aLev=mLevMin ; aLev<mLevelMax ; aLev++)
    {
-        StdOut() << "=====  RUN BENCH AT LEVEL " << aLev << "========\n";
+        StdOut() << "=====  RUN BENCH AT LEVEL " << aLev << "========" << std::endl;
         ExecuteBench(aParam);
 
         // No bench where executed
@@ -564,7 +564,7 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
               if (aParam.NewBench(aSpec->Name()))
               {
                   anAppli->ExecuteBench(aParam);
-              //  StdOut()  << aSpec->Name() << " => " << aSpec->Comment() << "\n";
+              //  StdOut()  << aSpec->Name() << " => " << aSpec->Comment() << std::endl;
                   aParam.EndBench();
               }
           }
@@ -864,7 +864,7 @@ cAppli_MPDTest:: cAppli_MPDTest(const std::vector<std::string> & aVArgs,const cS
 
 void TestArg0(const std::vector<int> & aV0)
 {
-   for (auto I : aV0){I++; StdOut() << "I=" << I << "\n"; }
+   for (auto I : aV0){I++; StdOut() << "I=" << I << std::endl; }
 }
 
 
@@ -874,8 +874,8 @@ void TestBooostIter();
 class cTestShared
 {
     public :
-        cTestShared()  {StdOut()  << "CREATE cTestShared "<< this << "\n";;}
-        ~cTestShared() {StdOut() << "XXXXXX cTestShared "<< this << "\n";;}
+        cTestShared()  {StdOut()  << "CREATE cTestShared "<< this << std::endl;}
+        ~cTestShared() {StdOut() << "XXXXXX cTestShared "<< this << std::endl;}
         static void Test()
         {
             cTestShared anOb;
@@ -926,7 +926,7 @@ class cMultipleOfs  : public  std::ostream
 
 void TestVectBool()
 {
-    StdOut() << "BEGIN TBOOL \n"; getchar();
+    StdOut() << "BEGIN TBOOL " << std::endl; getchar();
 
     for (int aK=0 ; aK<5000 ; aK++)
     {
@@ -934,25 +934,25 @@ void TestVectBool()
         for (int aK=0 ; aK<1000000 ; aK++)
            aV->push_back(true);
     }
-    StdOut() << "END TBOOL \n"; getchar();
+    StdOut() << "END TBOOL " << std::endl; getchar();
     for (int aK=0 ; aK<5000 ; aK++)
     {
         std::vector<tU_INT1> * aV = new std::vector<tU_INT1>;
         for (int aK=0 ; aK<1000000 ; aK++)
            aV->push_back(1);
     }
-    StdOut() << "END TBYTE \n"; getchar();
+    StdOut() << "END TBYTE " << std::endl; getchar();
 }
 
 bool PrintAndTrue(const std::string & aMes) 
 {
-    StdOut() <<"FFFFF=" << aMes << "\n"; 
+    StdOut() <<"FFFFF=" << aMes << std::endl; 
     return true;
 }
 
 void ShowAdr(double & anAdr)
 {
-       StdOut () <<  "ADDDDDr " << &(anAdr) << "\n";
+       StdOut () <<  "ADDDDDr " << &(anAdr) << std::endl;
 }
 void TTT();
 void TestDNA();
@@ -967,7 +967,7 @@ int cAppli_MPDTest::Exe()
    }
    if (1)
    {
-       StdOut()  <<   " ================  TEST INIT & SPEC ===================\n";
+       StdOut()  <<   " ================  TEST INIT & SPEC ===================" << std::endl;
        int aVExt;
        StdOut() <<  "-VExt ## InSpec: " << IsInSpec(&aVExt)        << " SpecObl: " << IsInSpecObl(&aVExt)  
 	       << " SpecFac: " << IsInSpecFac(&aVExt) << " IsInit: " << IsInit(&aVExt) << "\n";
@@ -983,21 +983,21 @@ int cAppli_MPDTest::Exe()
       std::vector<cDescOneFuncDist>  aVD =  DescDist(mDegDistTest);
 
       for (const auto & aDesc : aVD)
-	      StdOut() << " "  << aDesc.mName <<  " " << aDesc.mLongName << "\n";
+	      StdOut() << " "  << aDesc.mName <<  " " << aDesc.mLongName << std::endl;
 
       return EXIT_SUCCESS;
    }
    TTT ();
 #if 1
    {
-     StdOut() << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << "\n";
-     StdOut() << "T1:" << cName2Calc<double>::CalcFromName("EqDist_Dist_Rad3_Dec1_XY1",10) << "\n";
+     StdOut() << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << std::endl;
+     StdOut() << "T1:" << cName2Calc<double>::CalcFromName("EqDist_Dist_Rad3_Dec1_XY1",10) << std::endl;
       return EXIT_SUCCESS;
    }
 #else
    if (mMMV1_GenCodeTestCam)
    {
-       //StdOut() << "kkk=[" << mTopDirMMVII <<"]\n";
+       //StdOut() << "kkk=[" << mTopDirMMVII <<"]" << std::endl;
        MMV1_GenerateCodeTestCam();
        return EXIT_SUCCESS;
    }
@@ -1008,7 +1008,7 @@ int cAppli_MPDTest::Exe()
        sleepcp(3600.0 * t * 1000);
        std::string aName= "/home/mpd/Bureau/Perso1/Musik/Bach/bach-goldberg-variations-bwv-988-glenn-gould-1981.mp3";
        aName = "cvlc " + aName;
-       StdOut() << system(aName.c_str()) << "\n";;
+       StdOut() << system(aName.c_str()) << std::endl;;
    }
    {
        cPt3dr * anAdr = nullptr;
@@ -1034,7 +1034,7 @@ int cAppli_MPDTest::Exe()
    cSparseVect<float>  aSV;
    for (const auto & aP : aSV)
    {
-        StdOut() << aP.mI << "\n";
+        StdOut() << aP.mI << std::endl;
    }
 */
 
@@ -1046,9 +1046,9 @@ int cAppli_MPDTest::Exe()
    // new cIm2D<tU_INT1>(cPt2di(3,3));
    cDataIm2D<tU_INT1> & aDIm = aIm.DIm();
    tU_INT1*  aPtr = aDIm.RawDataLin();
-   StdOut() << "aIm=" << int(aPtr[0]) <<  "\n";
+   StdOut() << "aIm=" << int(aPtr[0]) <<  std::endl;
    aPtr[0] = 14;
-   StdOut() << "aIm=" << (int)aDIm.GetV(cPt2di(0,0)) <<  "\n";
+   StdOut() << "aIm=" << (int)aDIm.GetV(cPt2di(0,0)) <<  std::endl;
    // aPtr[-1] = 0;
 */
 

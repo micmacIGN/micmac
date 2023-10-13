@@ -270,7 +270,7 @@ class cMMVIIUnivDist
        /// Used to indicate reason why monom sould be removes. To maintain for debug  ?
        void ShowElim(const std::string aMesWhy, bool isX,  int aDegX, int aDegY ) const
        {
-          // StdOut() << aMesWhy << " " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << "\n";
+          // StdOut() << aMesWhy << " " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << std::endl;
        }
 
 
@@ -342,7 +342,7 @@ class cMMVIIUnivDist
             //   supress X^n Y^n, not X^0Y^0 (already PP) and 
             if ( (aDegX==aDegY) && (aDegX>=1) && (aDegX<=DegDec()))
             {
-               // StdOut() << "DEC " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << "\n";
+               // StdOut() << "DEC " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << std::endl;
                ShowElim("DEC",isX,aDegX,aDegY);
                return false;
             }
@@ -515,7 +515,7 @@ class cMMVIIUnivDist
 
            if (mForBase) 
 	   {
-		   // StdOut()  << "aVBaseXaVBaseX " << aVBaseX.size() <<  " " << aVBaseY.size() << "\n";
+		   // StdOut()  << "aVBaseXaVBaseX " << aVBaseX.size() <<  " " << aVBaseY.size() << std::endl;
               return Append(aVBaseX,aVBaseY) ;
 	   }
 

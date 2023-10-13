@@ -347,10 +347,10 @@ template <class Type,const int Dim>
 
    for (int aKIter=0 ; (aKIter<10) && (!mVSubDicot.empty()) ; aKIter++)
    {
-       //StdOut() << "DICOT  " <<    mVSubDicot.size() << "\n"; //getchar();
+       //StdOut() << "DICOT  " <<    mVSubDicot.size() << std::endl; //getchar();
        OneIterDicot();
    }
-   // StdOut() << "cInvertDIMByIter " <<   aNewInd << " " << mVSubDicot.size() << "\n\n"; //getchar();
+   // StdOut() << "cInvertDIMByIter " <<   aNewInd << " " << mVSubDicot.size() << "\n" << std::endl; //getchar();
 }
 
 template <class Type,const int Dim>
@@ -861,7 +861,7 @@ template <class Type,const int Dim> void
          // mOut_VPtsFr.push_back(aVFrontOut[aKp]);
      }
 
-     // StdOut() << "MmmmMMM O: " << mOut_VPtsInt.size() << " "<< mOut_VPtsFr.size() << " I:" << mIn_VPtsInt.size() << " " << mOut_VPtsInt.size() << "\n";
+     // StdOut() << "MmmmMMM O: " << mOut_VPtsInt.size() << " "<< mOut_VPtsFr.size() << " I:" << mIn_VPtsInt.size() << " " << mOut_VPtsInt.size() << std::endl;
 }
      
 template <class Type,const int Dim> void  
@@ -929,7 +929,7 @@ void  OneBench_CMI(double aCMaxRel)
           double aPrec =  CaseDiskInclude ? std::abs(Norm2(aP)  -aRho)  : std::abs(NormInf(aP)  - aCMax);
           if (aPrec>aPrecFr*4)
           {
-             StdOut() << "FFRRRRr " << aPrec / aPrecFr << "\n";
+             StdOut() << "FFRRRRr " << aPrec / aPrecFr << std::endl;
              MMVII_INTERNAL_ASSERT_bench(false,"Frontier Precision in MapInverse");
           }
        }
@@ -953,7 +953,7 @@ void  OneBench_CMI(double aCMaxRel)
               
             if (aAtanMin > aPrecDenseAtan *1.2 )
             {
-                 StdOut() << "ATMIN " << aAtanMin /  aPrecDenseAtan  << "\n";
+                 StdOut() << "ATMIN " << aAtanMin /  aPrecDenseAtan  << std::endl;
                  MMVII_INTERNAL_ASSERT_bench(false,"Frontier densite in MapInveres");
             }
        }
@@ -977,14 +977,14 @@ void  OneBench_CMI(double aCMaxRel)
         double aDTestDense = std::min(aDInt,aDFr);
         if (aDTestDense>1.42)
         {
-            StdOut() << "aDIntaDIntDENSE " <<  aDTestDense << "\n";
+            StdOut() << "aDIntaDIntDENSE " <<  aDTestDense << std::endl;
             MMVII_INTERNAL_ASSERT_bench(false,"Mapping inverse : grid not dense");
         }
     }
     anEcartMoy /= aNbTest;
     if ((anEcartMax>2e-5*aRho) || (anEcartMoy>1e-5*aRho))
     {
-        StdOut() << "ECMax " << (anEcartMax)/ aRho << " EcMoy" << anEcartMoy / aRho<< "\n";
+        StdOut() << "ECMax " << (anEcartMax)/ aRho << " EcMoy" << anEcartMoy / aRho<< std::endl;
         MMVII_INTERNAL_ASSERT_bench(false,"Mapping inverse : is not inverse ....");
     }
 
@@ -1120,7 +1120,7 @@ void BenchInvertMapping(cParamExeBench & aParam)
 
 
 
-       // StdOut()  << "JJJJ " << aPMIter1->StrInvertIter() << "\n";
+       // StdOut()  << "JJJJ " << aPMIter1->StrInvertIter() << std::endl;
        
        std::vector<double> aVRatio{1.0,5.0,25.0,125.0,625.0};
        double aRatio = aVRatio.at(aKMap%5);

@@ -302,7 +302,7 @@ void cParamCodedTarget::Finish()
 
   if (false)
   {
-      StdOut() <<  "r0 : " << mRho_0_EndCCB << "\n"
+      StdOut() <<  "r0 : " << mRho_0_EndCCB << std::endl
                <<  "r1 : " << mRho_1_BeginCode << "\n"
                <<  "r2 : " << mRho_2_EndCode << "\n"
                <<  "r3 : " << mRho_3_BeginCar << "\n"
@@ -421,7 +421,7 @@ cPt2dr  cCircNP2B::PreProcessCoord(const cPt2dr & aPt)   const
 bool  cCircNP2B::PNormIsCoding(const cPt2dr & aPt) const 
 {
     tREAL8 aRho = PreProcessCoord(aPt).x();
-    // StdOut() << " RRR " << aRho  << " "<< mRho0 << " " << mRho1 <<"\n";
+    // StdOut() << " RRR " << aRho  << " "<< mRho0 << " " << mRho1 <<std::endl;
     return   (aRho>=mRho0)  && (aRho<mRho1) ;
 }
 
@@ -463,7 +463,7 @@ cStraightNP2B::cStraightNP2B(const cFullSpecifTarget & aSpecif,bool IsSym) :
    
 {
     MMVII_INTERNAL_ASSERT_tiny((mNbBS2*2)==mNbBits,"Odd nbbits in cStraightNP2B");
-     // StdOut() << "r1=" << mRho1 << " I=" << aSpecif.Render().mRho_EndIm  << " p2n:" << aSpecif.Render().Pix2Norm(cPt2di(0,0)) << "\n";
+     // StdOut() << "r1=" << mRho1 << " I=" << aSpecif.Render().mRho_EndIm  << " p2n:" << aSpecif.Render().Pix2Norm(cPt2di(0,0)) << std::endl;
 }
 
 bool    cStraightNP2B::PNormIsCoding(const cPt2dr & aPt) const   
@@ -490,7 +490,7 @@ int   cStraightNP2B::BitsOfNorm(const cPt2dr & aPt) const
 
    aRes =  aRes +  mNbBS2* isLine2;
 
-   // StdOut()  << "rrr = " << aRes << " " << (aPt.x()+mRho1)/(2*mRho1) << "\n";
+   // StdOut()  << "rrr = " << aRes << " " << (aPt.x()+mRho1)/(2*mRho1) << std::endl;
    return aRes;
 }
 
@@ -632,7 +632,7 @@ cCodedTargetPatternIm::cCodedTargetPatternIm(cFullSpecifTarget & aSpec) :
 	   }
            if (mWOriTab && (Norm1(aPN-mCenterOT) < mRayOT))
            {
-		   // StdOut() <<  "RRRoot " << aPix << aPN  << mCenterOT<< " \n";
+		   // StdOut() <<  "RRRoot " << aPix << aPN  << mCenterOT<< " " << std::endl;
               aLab = eLPT::eForeGround;
            }
 
@@ -1038,7 +1038,7 @@ int  cAppliGenCodedTarget::Exe()
 
              std::string aName = aFullSpec.NameOfEncode(anEncode);
              anIm.DIm().ToFile(aName);
-             StdOut() << aName << "\n";
+             StdOut() << aName << std::endl;
 	  }
       }
    }
@@ -1049,7 +1049,7 @@ int  cAppliGenCodedTarget::Exe()
    if (0)  // test reload
    {
          auto aPtr = cFullSpecifTarget::CreateFromFile(aName);
-	 StdOut() << "NNN=" << aName << "\n";
+	 StdOut() << "NNN=" << aName << std::endl;
 	 delete aPtr;
    }
 

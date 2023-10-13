@@ -59,7 +59,7 @@ template<class Type> void  TplOneBenchSSRNL
      }
      if (anEc>aPrec)
      {
-           StdOut() << "Fin-ECc== " << anEc /aPrec   << "\n";
+           StdOut() << "Fin-ECc== " << anEc /aPrec   << std::endl;
            MMVII_INTERNAL_ASSERT_bench(anEc<aPrec,"Error in Network-SSRNL Bench");
      }
 }

@@ -396,7 +396,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         {
              if (!ValueOk(aV))
 	     {
-                 StdOut()  << " Value=" << aV << "\n";
+                 StdOut()  << " Value=" << aV << std::endl;
                  MMVII_INTERNAL_ASSERT_tiny(ValueOk(aV),"Invalid Value for image");
 	     }
         }

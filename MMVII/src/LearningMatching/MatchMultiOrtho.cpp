@@ -188,7 +188,7 @@ int  cAppliMatchMultipleOrtho::Exe()
         if ((aZ==0)  && (true))
         {
              cDataFileIm2D aDF = cDataFileIm2D::Create(NameOrtho(0,0),false);
-             StdOut() << " * NbI=" << mNbIm << " NbS=" <<  mNbScale << " NbZ=" <<  mNbZ << " Sz=" << aDF.Sz() << " SzW=" << mSzW << "\n";
+             StdOut() << " * NbI=" << mNbIm << " NbS=" <<  mNbScale << " NbZ=" <<  mNbZ << " Sz=" << aDF.Sz() << " SzW=" << mSzW << std::endl;
         }
 
 

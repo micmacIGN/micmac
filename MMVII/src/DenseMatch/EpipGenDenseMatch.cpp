@@ -699,7 +699,7 @@ std::string cAppli::ComMatch(cParam1Match & aParam)
 
              if ((mModePad!=eModePaddingEpip::eMPE_NoPad) && (aSzBox1!=aSzBox2))
              {
-                  StdOut() << "EXECUCTE Eq: " <<   aSzBox1 << aSzBox2 << "\n"; getchar();
+                  StdOut() << "EXECUCTE Eq: " <<   aSzBox1 << aSzBox2 << std::endl; getchar();
                   MMVII_INTERNAL_ASSERT_always(false,"Sz of boxes should be equal");
              }
 
@@ -736,8 +736,8 @@ void cAppli::MakePyramid()
    else
    {
        for (int aK=0 ; aK<10 ; aK++)
-           StdOut() << "!!!!! Pyramid skipped !!!!\n";
-       StdOut() << "--> type any key to continue the process\n";
+           StdOut() << "!!!!! Pyramid skipped !!!!" << std::endl;
+       StdOut() << "--> type any key to continue the process" << std::endl;
        getchar();
    }
 

@@ -197,7 +197,7 @@ template <class Type> void cCraig_Barrodale_Roberts_l1<Type>::Bench1Sol(const cD
 
      std::sort(aVRes.begin(),aVRes.end());
 
-     //StdOut() <<  "RESS " << aVRes.at(this->mNbVar-1) << " " << aVRes.at(this->mNbVar) << "\n";
+     //StdOut() <<  "RESS " << aVRes.at(this->mNbVar-1) << " " << aVRes.at(this->mNbVar) << std::endl;
      // A first condition is that at least NB VAR are out
      MMVII_INTERNAL_ASSERT_bench(aVRes.at(this->mNbVar-1)<1e-5,"Bench1Sol");
 

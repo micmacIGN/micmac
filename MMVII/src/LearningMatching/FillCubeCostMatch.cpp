@@ -482,7 +482,7 @@ int  cAppliFillCubeCost::Exe()
 
    for (aPix.y()=0 ; aPix.y()<aSz.y() ; aPix.y()++)
    {
-       StdOut() << "Line " << aPix.y() << " on " << aSz.y()  << "\n";
+       StdOut() << "Line " << aPix.y() << " on " << aSz.y()  << std::endl;
        MakeLinePC(aPix.y(),true );
        MakeLinePC(aPix.y(),false);
        for (aPix.x()=0 ; aPix.x()<aSz.x() ; aPix.x()++)

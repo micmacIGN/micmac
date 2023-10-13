@@ -164,7 +164,7 @@ tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
 
 bool IsFileGivenTag(bool Is2007,const std::string & aNameFile,const std::string & aTag)
 {
-    // StdOut()  << "aNameFaNameF F=" << aNameFile <<  " T=" << aTag << " V2="<< Is2007 << "\n";
+    // StdOut()  << "aNameFaNameF F=" << aNameFile <<  " T=" << aTag << " V2="<< Is2007 << std::endl;
 
    if (! Is2007) return IsXmlV1FileGivenTag(aNameFile,aTag);
 
@@ -555,25 +555,25 @@ cSerialTree::cSerialTree(cSerialGenerator & aGenerator,const std::string & aValu
 {
     for(;;)
     {
-// if (DEBUG) StdOut() << "cSerialTree::cSerialTree " << __LINE__ << "\n";
+// if (DEBUG) StdOut() << "cSerialTree::cSerialTree " << __LINE__ << std::endl;
         cResLex aRL= aGenerator.GetNextLex();
 	const std::string& aStr = aRL.mVal;
 	eLexP aLex  = aRL.mLexP;
 
 	if (aLex==eLexP::eEnd)
 	{
-// if (DEBUG) StdOut() << "cSerialTree::cSerialTree " << __LINE__ << "\n";
+// if (DEBUG) StdOut() << "cSerialTree::cSerialTree " << __LINE__ << std::endl;
 	    if (aDepth!=0)
 	    {
                MMVII_UnclasseUsEr("cSerialTree unexpected EOF");
 	    }
 	    return;
 	}
-// if (DEBUG) StdOut() << "cSerialTree::cSerialTree " << __LINE__ << "\n";
+// if (DEBUG) StdOut() << "cSerialTree::cSerialTree " << __LINE__ << std::endl;
         int aDec =  DecLevel(aLex);
 	if (aDec>0)
 	{
-	    // StdOut() << "HHHHH: " <<  mSons.size() << " ::  " <<  aStr << "\n";
+	    // StdOut() << "HHHHH: " <<  mSons.size() << " ::  " <<  aStr << std::endl;
             mSons.push_back(cSerialTree(aGenerator,aStr,aDepth+1,aLex,aRL.mTAAr));
 	    //mSons.back().mValue = aStr;
 	    UpdateMaxDSon();
@@ -855,7 +855,7 @@ void cSerialTree::Unfold(std::list<cResLex> & aRes,eTypeSerial aTypeS) const
 	 {
             if (! mSons.empty())
 	    {
-                 StdOut() << "VJSONUNFLOD " << mValue << "\n";
+                 StdOut() << "VJSONUNFLOD " << mValue << std::endl;
                  MMVII_INTERNAL_ASSERT_tiny(false,"Unfold : non empty sons");
 	    }
             aRes.push_back(cResLex(mValue,eLexP::eStdToken_UK,eTAAr::eStd));
@@ -952,7 +952,7 @@ cIMakeTreeAr::cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
    cSerialFileParser *  aSTP = cSerialFileParser::Alloc(mNameFile,aTypeS);
    cSerialTree aTree(*aSTP);
 
-   // StdOut() << "JJJJJUiOp " << mNameFile << "\n";
+   // StdOut() << "JJJJJUiOp " << mNameFile << std::endl;
    aTree.UniqueSon().Unfold(mListRL,mTypeS);
    // Show(mListRL);
    /*
@@ -964,12 +964,12 @@ cIMakeTreeAr::cIMakeTreeAr(const std::string & aName,eTypeSerial aTypeS)  :
 
    if (0)
    {
-       StdOut()  << "<<<<<<<<\n";
+       StdOut()  << "<<<<<<<<" << std::endl;
        for (auto & aL : mListRL)
        {
-            StdOut() << aL.mVal << " " << (int) aL.mLexP << "\n";
+            StdOut() << aL.mVal << " " << (int) aL.mLexP << std::endl;
        }
-       StdOut()  << ">>>>>>>>\n";
+       StdOut()  << ">>>>>>>>" << std::endl;
    }
 
    delete aSTP;
@@ -996,12 +996,12 @@ void cIMakeTreeAr::OnTag(const cAuxAr2007& aTag,bool IsUp)
 
    if (aRL.mLexP != (IsUp ? eLexP::eUp  : eLexP::eDown))
    {
-        StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << "\n";
+        StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << std::endl;
         MMVII_INTERNAL_ASSERT_tiny(false ,"Bad token cIMakeTreeAr::RawBegin-EndName");
    }
    if (aRL.mVal  != aTag.Name())
    {
-      StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << "\n";
+      StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  aTag.Name() << " F=" << mNameFile << std::endl;
       MMVII_INTERNAL_ASSERT_tiny(false,"Bad tag cIMakeTreeAr::RawBegin-EndName");
    }
 }
@@ -1013,7 +1013,7 @@ void cIMakeTreeAr::RawBeginName(const cAuxAr2007& anIT)
 	/*
    cResLex aRL = GetNextLexNotSizeCont();
 
-   StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  anIT.Name() << "\n";
+   StdOut() <<  "LEX " << int(aRL.mLexP)  << "VALS ,got " << aRL.mVal  << " Exp=" <<  anIT.Name() << std::endl;
 
    MMVII_INTERNAL_ASSERT_tiny(aRL.mLexP == eLexP::eUp  ,"Bad token cIMakeTreeAr::RawBeginName");
    MMVII_INTERNAL_ASSERT_tiny(aRL.mVal  == anIT.Name() ,"Bad tag cIMakeTreeAr::RawBeginName");
@@ -1272,7 +1272,7 @@ void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)
 
 void cOMakeTreeAr::AddComment(const std::string & anS)
 {
-       // StdOut() <<  "CCCC " << anS << " " <<  mContToken.back().mVal  << " " << int(mContToken.back().mLexP) << "\n";
+       // StdOut() <<  "CCCC " << anS << " " <<  mContToken.back().mVal  << " " << int(mContToken.back().mLexP) << std::endl;
        mContToken.back().mComment = anS; 
 }
 

@@ -129,7 +129,7 @@ void TestResDegree(cCalculator<double> * aCalc,const cPt3di & aDeg,const std::st
 {
      if (aCalc==nullptr)
      {
-         StdOut() << " *  Generated Degree Are " <<   TheVectDegree << "\n";
+         StdOut() << " *  Generated Degree Are " <<   TheVectDegree << std::endl;
 	 MMVII_UsersErrror
          (
 	      eTyUEr::eBadDegreeDist,
@@ -172,7 +172,7 @@ cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,boo
     /*
      if (aRes==nullptr)
      {
-         StdOut() << " *  Generated Degree Are " <<   TheVectDegree << "\n";
+         StdOut() << " *  Generated Degree Are " <<   TheVectDegree << std::endl;
 	 MMVII_UsersErrror
          (
 	      eTyUEr::eBadDegreeDist,
@@ -440,8 +440,8 @@ void BenchProjToDirBundle(cParamExeBench & aParam)
 {
    if (aParam.Show())
    {
-       StdOut()<<"cName2Calc T0:"<<StdAllocCalc("toto",10,true)<<"\n";
-       StdOut()<<"cName2Calc T1:"<<StdAllocCalc("EqDistDist_Rad3_Dec1_XY1",10,true)<<"\n";
+       StdOut()<<"cName2Calc T0:"<<StdAllocCalc("toto",10,true)<<std::endl;
+       StdOut()<<"cName2Calc T1:"<<StdAllocCalc("EqDistDist_Rad3_Dec1_XY1",10,true)<<std::endl;
    }
 
    OneBenchProjToDirBundle<cProjStenope> (aParam);

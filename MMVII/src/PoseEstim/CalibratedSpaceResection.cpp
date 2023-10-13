@@ -226,7 +226,7 @@ template <class Type> std::list<cPtxd<Type,3>>  cElemSpaceResection<Type>::Compu
 		{
                    Type aSqPerim = aD2AB + aD2AC + aD2BC;
                    aRes.push_back(tResBC((1+b),(1+c),std::sqrt(mSqPerimG/aSqPerim)));
-		   // StdOut()  << " E " << E <<  " bc " << b << " " << c << " " << aCheckABC << " " << aCheckCBA << "\n";
+		   // StdOut()  << " E " << E <<  " bc " << b << " " << c << " " << aCheckABC << " " << aCheckCBA << std::endl;
 		}
 	    }
         }
@@ -286,7 +286,7 @@ template <class Type> void  cElemSpaceResection<Type>::OneTestCorrectness()
        }
        if (aWMin.ValExtre()>=1e-4)
        {
-	    StdOut() << "cElemSpaceResection::BC " << aWMin.ValExtre() << "\n";
+	    StdOut() << "cElemSpaceResection::BC " << aWMin.ValExtre() << std::endl;
             MMVII_INTERNAL_ASSERT_bench(aWMin.ValExtre()<1e-4,"2 value in OneTestCorrectness");  // is it close enough
        }
 
@@ -698,7 +698,7 @@ int cAppli_CalibratedSpaceResection::Exe()
     if (aExpFilt )
     {
          cFilterMesIm aFMIM(mPhProj,mNameIm);
-         StdOut() <<   " =====  WORST RESIDUAL ============= \n";
+         StdOut() <<   " =====  WORST RESIDUAL ============= " << std::endl;
 
          tREAL8 aThShow = aVRes.at(std::max(0,int(aVRes.size()-5)));  // arbitray threshols for worst points
 	 for (const auto & aMes : mSetMes.MesImOfPt())
@@ -712,7 +712,7 @@ int cAppli_CalibratedSpaceResection::Exe()
 
 	         if (aRes>=aThShow)
                  {			  
-                     StdOut() <<   " * Name=" << aGCP.mNamePt << " " << aRes << "\n";
+                     StdOut() <<   " * Name=" << aGCP.mNamePt << " " << aRes << std::endl;
 		 }
 		 if (aRes>mThrsReject)
                      AddOneReportCSV(mNameReport,{mNameIm,aGCP.mNamePt,ToStr(aRes)});
@@ -743,11 +743,11 @@ int cAppli_CalibratedSpaceResection::Exe()
 
 	 if (mShowBundle)
 	 {
-	    StdOut() <<  "DFoc : " <<  aF1-aF0 << "\n";
+	    StdOut() <<  "DFoc : " <<  aF1-aF0 << std::endl;
 	    StdOut() <<  "Pose DC=" <<  Norm2(aPose.Tr()-aPose1.Tr()) 
 	              <<   " DMat=" <<  aPose.Rot().Mat().L2Dist(aPose1.Rot().Mat()) << "\n";
-	    // StdOut() <<  "DPose : " <<  Norm2(aCam.Center()-aPose1.Tr()) << "\n"; // check conv, should be 0
-	    StdOut() <<  "Sq Residual : " << aRes0 << " => " << aRes1 << "\n";
+	    // StdOut() <<  "DPose : " <<  Norm2(aCam.Center()-aPose1.Tr()) << std::endl; // check conv, should be 0
+	    StdOut() <<  "Sq Residual : " << aRes0 << " => " << aRes1 << std::endl;
 	 }
 
     }

@@ -633,7 +633,7 @@ cFilterMesIm::cFilterMesIm(cPhotogrammetricProject & aPhProj,const std::string &
 
 void cFilterMesIm::AddInOrOut(const cPt2dr & aPtIm,const std::string & aNamePt,bool isIn)
 {
-// StdOut() <<   " **AddInOrOutAddInOrOut " << isIn << "\n";
+// StdOut() <<   " **AddInOrOutAddInOrOut " << isIn << std::endl;
      MMVII_INTERNAL_ASSERT_medium(!mFinished,"cFilterMesIm::AddInOut while fnished");
      cMesIm1Pt aMes(aPtIm,aNamePt,1.0 );
      if (isIn)

@@ -38,8 +38,8 @@ void cTopoComp::initializeLeastSquares()
 
     if (verbose)
     {
-        StdOut()<<" nb free var: "<<mSys->CountFreeVariables()<<"\n";
-        StdOut()  <<  " init: " <<  mSys->CurGlobSol() << "\n";
+        StdOut()<<" nb free var: "<<mSys->CountFreeVariables()<<std::endl;
+        StdOut()  <<  " init: " <<  mSys->CurGlobSol() << std::endl;
     }
 
     isInit = true;
@@ -125,14 +125,14 @@ double cTopoComp::getSigma0() const
             }
             if (verbose) for (size_t j=0;j<res.size();++j) StdOut()<<res[j]<<" ";
         }
-    if (verbose) StdOut()<<"]\n";
+    if (verbose) StdOut()<<"]" << std::endl;
     return sqrt(resid2/(mSys->GetNbObs()-mSys->CountFreeVariables()));
 }
 
 bool cTopoComp::OneIteration()
 {
     if (!isInit) initializeLeastSquares();
-    if (verbose) StdOut()  << "iter\n";
+    if (verbose) StdOut()  << "iter" << std::endl;
     //add points constraints
     for (auto & pt: allPts)
         pt->addConstraints(this);
@@ -150,17 +150,17 @@ bool cTopoComp::OneIteration()
     {
         const auto & aVectSol = mSys->SolveUpdateReset();
         mSetIntervMultObj->SetVUnKnowns(aVectSol); //update params
-        if (verbose) StdOut()  <<  " sol: " <<  mSys->CurGlobSol() << "\n";
+        if (verbose) StdOut()  <<  " sol: " <<  mSys->CurGlobSol() << std::endl;
     } catch(...) {
-        StdOut()  <<  " Error solving system...\n";
+        StdOut()  <<  " Error solving system..." << std::endl;
         return false;
     }
 
     if (verbose)
     {
-        StdOut()<<" nb obs: "<<mSys->GetNbObs()<<"\n";
+        StdOut()<<" nb obs: "<<mSys->GetNbObs()<<std::endl;
         double sigma0 = getSigma0();
-        StdOut()<<" sigma0: "<<sigma0<<"\n";
+        StdOut()<<" sigma0: "<<sigma0<<std::endl;
     }
     return true;
 }
@@ -176,7 +176,7 @@ void BenchTopoComp(cParamExeBench & aParam)
     aTopoComp.createEx1();
     for (int iter=0; iter<5; ++iter)
     {
-        //StdOut()<<"Iter "<<iter<<"\n";
+        //StdOut()<<"Iter "<<iter<<std::endl;
         //mTopoComp.print();
         if (!aTopoComp.OneIteration()) break;
     }
@@ -213,17 +213,17 @@ cCollecSpecArg2007 & cAppli_TopoComp::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 int  cAppli_TopoComp::Exe()
 {
 
-    StdOut() << "-------------------------------------------------------------------\n";
+    StdOut() << "-------------------------------------------------------------------" << std::endl;
 
     mTopoComp.createEx1();
     for (int iter=0; iter<5; ++iter)
     {
-        StdOut()<<"Iter "<<iter<<"\n";
+        StdOut()<<"Iter "<<iter<<std::endl;
         //mTopoComp.print();
         if (!mTopoComp.OneIteration()) break;
     }
 
-    StdOut() << "-------------------------------------------------------------------\n";
+    StdOut() << "-------------------------------------------------------------------" << std::endl;
 
    return EXIT_SUCCESS;
 }

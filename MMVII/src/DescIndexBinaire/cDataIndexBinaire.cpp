@@ -45,10 +45,10 @@ void cMetaDataOneFileInvRad::CheckCoherence(const cMetaDataOneFileInvRad& aMD2) 
    // at the end we must have same name.  Also number of pair must be identic
    if ((mName != aMD2.mName) ||  (mNbPair!=aMD2.mNbPair))
    {
-       StdOut() << "\n\n";
-       StdOut() << "TYPES= " << E2Str(mDOIR->TIR()) << " " <<  E2Str(aMD2.mDOIR->TIR()) << "\n";
-       StdOut() << "NAMES= " << mName << " " <<  aMD2.mName << "\n";
-       StdOut() << "NbPatch= " << mNbPair  << " " << aMD2.mNbPair << "\n";
+       StdOut() << "\n" << std::endl;
+       StdOut() << "TYPES= " << E2Str(mDOIR->TIR()) << " " <<  E2Str(aMD2.mDOIR->TIR()) << std::endl;
+       StdOut() << "NAMES= " << mName << " " <<  aMD2.mName << std::endl;
+       StdOut() << "NbPatch= " << mNbPair  << " " << aMD2.mNbPair << std::endl;
        MMVII_UsersErrror(eTyUEr::eUnClassedError,"Incohernt files of file in Invar");
    }
 }
@@ -181,9 +181,9 @@ void cDataOneInvRad::CheckCoherence(const cDataOneInvRad& aD2) const
     // Numbet of file must be equal in all folder
     if(mMDOFIR.size()!=aD2.mMDOFIR.size() || (mNbPatch!=aD2.mNbPatch))
     {
-       StdOut() << "\n\n";
-       StdOut() << "SIZES = " << mMDOFIR.size() << " " << aD2.mMDOFIR.size() << "\n";
-       StdOut() << "TYPES = " << E2Str(mTIR) << " " << E2Str(aD2.mTIR) << "\n";
+       StdOut() << "\n" << std::endl;
+       StdOut() << "SIZES = " << mMDOFIR.size() << " " << aD2.mMDOFIR.size() << std::endl;
+       StdOut() << "TYPES = " << E2Str(mTIR) << " " << E2Str(aD2.mTIR) << std::endl;
        MMVII_UsersErrror(eTyUEr::eUnClassedError,"Variable number of file in Invar");
     }
     // Check coherence between corresponding files
@@ -193,7 +193,7 @@ void cDataOneInvRad::CheckCoherence(const cDataOneInvRad& aD2) const
 
 int  cDataOneInvRad::NbValByP() const
 {
-// StdOut() << "mSzP0Final.xmSzP0Final.x " << mSzP0Final << "\n";
+// StdOut() << "mSzP0Final.xmSzP0Final.x " << mSzP0Final << std::endl;
     return SzP0Final().x() * SzP0Final().y();
 }
 

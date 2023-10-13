@@ -207,7 +207,7 @@ template <class Type>  void cDenseMatrix<Type>::TransposeIn(tDM & aM2) const
      for (const auto & aP : *this)
      {
 
-  StdOut() << "xxxxx "  << aP << Sz() << " " << DIm().Sz() << "\n";
+  StdOut() << "xxxxx "  << aP << Sz() << " " << DIm().Sz() << std::endl;
           aM2.SetElem(aP.y(),aP.x(),GetElem(aP));
      }
 */

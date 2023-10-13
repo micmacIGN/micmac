@@ -12,11 +12,11 @@ void Default_MMVII_Error(const std::string & aType,const std::string &  aMes,con
     std::cout.flush();
     std::cerr.flush();
     StdOut().flush();
-    ErrOut() << "\n\n ######################################""\n\n";
-    ErrOut() << "Level=[" << aType << "]\n";
-    ErrOut() << "Mes=[" << aMes << "]\n";
+    ErrOut() << "\n\n ######################################""\n" << std::endl;
+    ErrOut() << "Level=[" << aType << "]" << std::endl;
+    ErrOut() << "Mes=[" << aMes << "]"<< std::endl;
     if (aFile)
-       ErrOut() << "at line  " << aLine << " of file " << aFile  << "\n";
+       ErrOut() << "at line  " << aLine << " of file " << aFile  << std::endl;
     ErrOut().flush();
 
     cSpecMMVII_Appli::ShowCmdArgs();        // Writes to std::cout ..

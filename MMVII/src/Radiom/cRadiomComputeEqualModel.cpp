@@ -242,7 +242,7 @@ void cAppliRadiom2ImageSameMod::ComputeLinearModel()
     for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
     {
         if ((aKIm1%50)==0)
-           StdOut()  << "      Linear Still " << mNbIm - aKIm1 << "\n";
+           StdOut()  << "      Linear Still " << mNbIm - aKIm1 << std::endl;
         for (size_t aKIm2=aKIm1+1 ; aKIm2<mNbIm; aKIm2++)
         {
             ComputeLinearModelCpleIm(aKIm1,aKIm2);
@@ -401,7 +401,7 @@ void   cAppliRadiom2ImageSameMod::OneIterationGen(int aDegFroze)
 		   << " SigNorm= " << 100.0*(aSigma/aAvgAlb.Average()) 
 	           << " AVGALB " << aAvgAlb.Average() 
 		   << "\n";
-         // for (auto & aPtrCalS : mSetCalRS) StdOut() << "CRADD " << aPtrCalS->CoeffRad() << "\n";
+         // for (auto & aPtrCalS : mSetCalRS) StdOut() << "CRADD " << aPtrCalS->CoeffRad() << std::endl;
      }
 
     // 3/Add an equation that fix  Avg(Ratio) = 1
@@ -478,7 +478,7 @@ int cAppliRadiom2ImageSameMod::Exe()
     for (size_t aKIm1=0 ; aKIm1<mNbIm; aKIm1++)
     {
         if ((aKIm1%50)==0)
-           StdOut()  << "      Reading, Still " << mNbIm - aKIm1 << "\n";
+           StdOut()  << "      Reading, Still " << mNbIm - aKIm1 << std::endl;
         std::string aNameIm = VectMainSet(0).at(aKIm1);
         cImageRadiomData* aIRD = mPhProj.ReadRadiomData(aNameIm);   // read data radiom
         if (aIRD->VIndex().size() >10)  //if enough data
@@ -525,7 +525,7 @@ int cAppliRadiom2ImageSameMod::Exe()
     //==================================================
 
     std::vector<tElSys> aVSigma;
-    StdOut()  << "* SigmaInit=" << ComputeSigma(aVSigma) << "\n";
+    StdOut()  << "* SigmaInit=" << ComputeSigma(aVSigma) << std::endl;
 
     //   ==========  Compute initial model, begin by this because we can very
     //   ==========  high dynamic for it (for ex if different apperture time)
@@ -534,12 +534,12 @@ int cAppliRadiom2ImageSameMod::Exe()
     //  ====  make adjustment =================
     for (int aDegree=-1 ; aDegree<=mMaxDegree ; aDegree++)
     {
-         StdOut() << "=============== Begin degree :" << aDegree << " ======= \n";
+         StdOut() << "=============== Begin degree :" << aDegree << " ======= " << std::endl;
 	 for (int aKIter=0 ; aKIter < mNbIter ; aKIter++)
              OneIterationGen(aDegree);
     }
     OneIterationGen(mMaxDegree);  // one more iteration
-    StdOut()  << "* SigmaFinal=" << ComputeSigma(aVSigma) << "\n";
+    StdOut()  << "* SigmaFinal=" << ComputeSigma(aVSigma) << std::endl;
  
     //==================================================
     //     3  SAVE AND FREE

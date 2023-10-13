@@ -35,9 +35,9 @@ template <const int Dim>  cTilingIndex<Dim>::cTilingIndex(const tRBox & aBox,boo
 	mSzI     (Pt_round_up(aBox.Sz()/mStep)),
         mIBoxIn  (  tIBox(tIPt::PCste(0),mSzI+tIPt::PCste(2)))
 {
-    // StdOut()  <<  " -- SSSS=" << mStep << " " << mSzI << "\n";
-    // StdOut()  <<  mIBoxIn.P0()  << mIBoxIn.P1() << "\n";
-    // StdOut()  <<  mIBoxIn.Proj(cPt2di(1,1))   << mIBoxIn.Proj(cPt2di(-3,-3))  << mIBoxIn.Proj(cPt2di(10,10)) << "\n";
+    // StdOut()  <<  " -- SSSS=" << mStep << " " << mSzI << std::endl;
+    // StdOut()  <<  mIBoxIn.P0()  << mIBoxIn.P1() << std::endl;
+    // StdOut()  <<  mIBoxIn.Proj(cPt2di(1,1))   << mIBoxIn.Proj(cPt2di(-3,-3))  << mIBoxIn.Proj(cPt2di(10,10)) << std::endl;
 /*
 */
 }
@@ -174,7 +174,7 @@ void OneBenchSpatialIndex()
 	 }
 
 	 MMVII_INTERNAL_ASSERT_bench(Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW())<1e-5,"GetObjAtDist");
-	 //StdOut() << "Llllllll " << Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW()) << "\n";
+	 //StdOut() << "Llllllll " << Norm2(aVerif1.mWAvg.SVW()-aVerif2.mWAvg.SVW()) << std::endl;
     }
     //getchar();
 }

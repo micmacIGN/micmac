@@ -201,7 +201,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::RandomSquareRegMat
     cResulSVDDecomp<Type>  aSVDD = RandomSquareRegSVD(aSz,IsSym,AmplAcc,aCondMinAccept);
     return aSVDD.OriMatr();
 /*
-StdOut() << "HHhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh\n";
+StdOut() << "HHhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh" << std::endl;
     return RandomSquareRegSVD(aSz,IsSym,AmplAcc,aCondMinAccept).OriMatr();
 */
 }
@@ -279,7 +279,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse(double Eps
 
    {
       cDenseMatrix<Type> AAp = A * Ap;
-      StdOut() << "D000 " << AAp.DIm().L2Dist(cDenseMatrix<Type>(aNb,eModeInitImage::eMIA_MatrixId).DIm()) << "\n";
+      StdOut() << "D000 " << AAp.DIm().L2Dist(cDenseMatrix<Type>(aNb,eModeInitImage::eMIA_MatrixId).DIm()) << std::endl;
 
    // Test that pertubate the inverse, it's only for bench purpose, to be sure that
    // iterative algoritm work.
@@ -312,7 +312,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse(double Eps
           }
        }
        aSomEr = std::sqrt(aSomEr/R8Square(aNb));
-       StdOut() << "SOMM EE " << aSomEr << "\n";
+       StdOut() << "SOMM EE " << aSomEr << std::endl;
        Ap = Ap * ImE;
        aK++;
    }

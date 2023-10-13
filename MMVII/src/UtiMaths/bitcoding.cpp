@@ -282,7 +282,7 @@ cCompEquiCodes::cCompEquiCodes(size_t aNbBits,size_t aPer,bool WithMirror) :
      }
 
      //for (const auto & AC : mVecOfCells)
-         //StdOut()  << " AC " << AC->mEquivCode << "\n";
+         //StdOut()  << " AC " << AC->mEquivCode << std::endl;
 }
 
 cCompEquiCodes::~cCompEquiCodes()
@@ -424,10 +424,10 @@ void  TestComputeCoding(size_t aNBBCoding,int aParity,size_t aPer)
 	{
             int aSz = aVCodeByRun[aL].size() ;
 	    aCumul += aSz;
-            StdOut() << " For RunLength " << aL << " got " << aSz << " Cumul=" << aCumul << " codes\n";
+            StdOut() << " For RunLength " << aL << " got " << aSz << " Cumul=" << aCumul << " codes" << std::endl;
 	}
    }
-   StdOut() << "\n";
+   StdOut() << std::endl;
 }
 
 
@@ -520,13 +520,13 @@ void BenchCircCoding()
        }
        else if (0)  // for now the 20 bits code are erroneous, so dont test ...
        {
-           StdOut() << "------------AmbiguousCode: " << aNbB << " Sz=" << aLamb.size() << "\n";
+           StdOut() << "------------AmbiguousCode: " << aNbB << " Sz=" << aLamb.size() << std::endl;
 	   for (const auto & aPair : aLamb)
-               StdOut() << "  * " << aPair.second << "\n";
-           StdOut() << "--------------  Parity check \n";
+               StdOut() << "  * " << aPair.second << std::endl;
+           StdOut() << "--------------  Parity check " << std::endl;
 	   for (const auto &  aOdd : aListOddCode)
-                StdOut() <<  "N= " << aOdd.x() <<  " NbB=" << NbBits(aOdd.y()) << " Code=" << aOdd.y() << "\n";
-	   StdOut() << "Nb odd codes : " << aListOddCode.size() << "\n";
+                StdOut() <<  "N= " << aOdd.x() <<  " NbB=" << NbBits(aOdd.y()) << " Code=" << aOdd.y() << std::endl;
+	   StdOut() << "Nb odd codes : " << aListOddCode.size() << std::endl;
            getchar();
        }
     }
@@ -609,7 +609,7 @@ cHamingCoder cHamingCoder::HCOfBitTot(int aNbBitsTot,bool WithParity)
          aNBI++;
          aHC = cHamingCoder(aNBI);
 
-	 StdOut() << "HHHH " << aHC.NbBitsOut() << " " << aHC.NbBitsIn() << "\n";
+	 StdOut() << "HHHH " << aHC.NbBitsOut() << " " << aHC.NbBitsIn() << std::endl;
    }
    return aHC;
 }
@@ -624,7 +624,7 @@ cHamingCoder::cHamingCoder(int aNbBitsIn) :
         mNbBitsRed++;
         mNbBitsOut++;
     }
-    //  StdOut() << "HHHC " << mNbBitsIn << " " << mNbBitsRed << " " <<  mNbBitsOut << "\n";
+    //  StdOut() << "HHHC " << mNbBitsIn << " " << mNbBitsRed << " " <<  mNbBitsOut << std::endl;
     mIsBitRed = std::vector<bool>(mNbBitsOut+1,false);
     mNumI2O   = std::vector<int> (mNbBitsIn+1,-1);
     mNumO2I   = std::vector<int> (mNbBitsOut+1,-1);
@@ -643,8 +643,8 @@ cHamingCoder::cHamingCoder(int aNbBitsIn) :
          }
     }
     /*
-StdOut()   << "O2I: " <<  mNumO2I << "\n";
-StdOut()   << "I2O: " <<  mNumI2O << "\n";
+StdOut()   << "O2I: " <<  mNumO2I << std::endl;
+StdOut()   << "I2O: " <<  mNumI2O << std::endl;
 getchar();
 */
 
@@ -672,7 +672,7 @@ void BenchHammingCode(int aNbB)
       aVC.push_back(aC);
       aVIsCorrect.at(aC) = true;
       MMVII_INTERNAL_ASSERT_bench(aK==aHC.UnCodeWhenCorrect(aC),"Ham decode");
-      //  StdOut() << "HH " << aK << " "<< aC  << " " << aHC.UnCodeWhenCorrect(aC) << "\n";
+      //  StdOut() << "HH " << aK << " "<< aC  << " " << aHC.UnCodeWhenCorrect(aC) << std::endl;
    }
 
    for (tU_INT4 aK=0 ; aK<aVIsCorrect.size() ; aK++)
@@ -692,7 +692,7 @@ void BenchHammingCode(int aNbB)
               aWM.Add(aK2,HammingDist(aVC[aK1],aVC[aK2]));
            }
        }
-       // StdOut() << "DH " << aWM.ValExtre() << "\n";
+       // StdOut() << "DH " << aWM.ValExtre() << std::endl;
        MMVII_INTERNAL_ASSERT_bench(aWM.ValExtre()>=3 ,"Ham dist");
    }
 

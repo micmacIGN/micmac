@@ -143,7 +143,7 @@ template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,co
 /*
 const cPt2di & ShowPt(const cPt2di &aSz,const std::string & aMsg)
 {
-	StdOut() <<  "SZ:" << aSz << aMsg << "\n";
+	StdOut() <<  "SZ:" << aSz << aMsg << std::endl;
 	return aSz;
 }
 */

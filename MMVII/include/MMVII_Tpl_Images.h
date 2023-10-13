@@ -511,11 +511,11 @@ template <class TFonc,class TMasq>
 /*
 template <const int Dim> std::vector< cPtxd<tREAL8,Dim> > ToR(const std::vector< cPtxd<int,Dim> > &aVPtI)
 {
-	StdOut() << "KKKKKKKKKKKKKKKKKKKKKKk\n";
+	StdOut() << "KKKKKKKKKKKKKKKKKKKKKKk" << std::endl;
     std::vector< cPtxd<tREAL8,Dim> > aRes;
     std::transform(aVPtI.begin(),aVPtI.end(),aRes.begin(),[](auto aPtI){return ToR<int>(aPtI);});
 
-	StdOut() << "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
+	StdOut() << "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" << std::endl;
     return aRes;
 }
 */

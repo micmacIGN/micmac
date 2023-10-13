@@ -151,7 +151,7 @@ std::string cOneTranslAttrIm::Translate(const std::string & aName,bool ForTest) 
     {
         if (aName==TheNameSHOW_MTD)
 	{
-           StdOut()  <<  "     *  Rule [" << aTry.mPat <<"] => [" << aTry.mValue << "]\n";
+           StdOut()  <<  "     *  Rule [" << aTry.mPat <<"] => [" << aTry.mValue << "]" << std::endl;
 	}
 	else
 	{
@@ -163,18 +163,18 @@ std::string cOneTranslAttrIm::Translate(const std::string & aName,bool ForTest) 
 	        if (aTransfo != MMVII_NONE)
 	        {
                    if (ForTest)
-                     StdOut()  <<  " match and got : [" << aTransfo  << "]\n" ;
-// StdOut() << "TTrrRanfooo= " << aTransfo << " P=" << aTry.mPat << " V=" << aTry.mValue << " N=" << aName<< "\n";
+                     StdOut()  <<  " match and got : [" << aTransfo  << "]" << std::endl ;
+// StdOut() << "TTrrRanfooo= " << aTransfo << " P=" << aTry.mPat << " V=" << aTry.mValue << " N=" << aName<< std::endl;
                    return aTransfo;
 	        }
 	        else
 	        {
                     if (ForTest)
-                       StdOut()  <<  " match but got " << MMVII_NONE << "\n";
+                       StdOut()  <<  " match but got " << MMVII_NONE << std::endl;
 	        }
 	    }
             if (ForTest)
-               StdOut()  <<  "    no match\n";
+               StdOut()  <<  "    no match" << std::endl;
 	}
     }
     return MMVII_NONE;
@@ -213,7 +213,7 @@ std::string cCalculMetaDataProject::Translate(const std::string & aName,eMTDIm  
     if (aTransl)
     {
        if (ForTest || (aName==TheNameSHOW_MTD))
-           StdOut()  <<  "   -> found section for : " << E2Str(aMode) << "\n";
+           StdOut()  <<  "   -> found section for : " << E2Str(aMode) << std::endl;
        return aTransl->Translate(aName,ForTest);
     }
 	/*
@@ -222,13 +222,13 @@ std::string cCalculMetaDataProject::Translate(const std::string & aName,eMTDIm  
          if (aTransl.mMode==aMode)
          {
             if (ForTest || (aName==TheNameSHOW_MTD))
-                StdOut()  <<  "   -> found section for : " << E2Str(aMode) << "\n";
+                StdOut()  <<  "   -> found section for : " << E2Str(aMode) << std::endl;
             return aTransl.Translate(aName,ForTest);
          }
     }
     */
     if ((ForTest) ||  (aName==TheNameSHOW_MTD))
-       StdOut()  <<  "   -> Did not find section for : " << E2Str(aMode) << "\n";
+       StdOut()  <<  "   -> Did not find section for : " << E2Str(aMode) << std::endl;
     return MMVII_NONE;
 }
 
@@ -304,10 +304,10 @@ std::string cGlobCalculMetaDataProject::Translate(const std::string & aName,eMTD
 	{
 
              const std::string * aV = FindByVal(mMapDir2T,&aTr,false);
-	     StdOut() << "============= Try with dir " << *aV << " =================\n";
+	     StdOut() << "============= Try with dir " << *aV << " =================" << std::endl;
 	}
         std::string aRes = aTr.Translate(aName,aMode,ForTest);
-	// StdOut()  << " WwwttTttt " << aRes << "\n";
+	// StdOut()  << " WwwttTttt " << aRes << std::endl;
 	if (aRes != MMVII_NONE)
            return aRes;
     }
@@ -580,23 +580,23 @@ int cAppli_EditCalcMetaDataImage::Exe()
 
     if (mShow)
     {
-        StdOut() << "\n";
-        StdOut() << "********************************************\n";
-        StdOut() << "*********       SHOW ALL RULES    **********\n";
-        StdOut() << "********************************************\n\n";
+        StdOut() << std::endl;
+        StdOut() << "********************************************" << std::endl;
+        StdOut() << "*********       SHOW ALL RULES    **********" << std::endl;
+        StdOut() << "********************************************\n" << std::endl;
         mCalcGlob->Translate(TheNameSHOW_MTD,mTypeMTDIM,false);
-        StdOut() << "********************************************\n\n";
+        StdOut() << "********************************************\n" << std::endl;
     }
     if (IsInit(&mNameImTest))
     {
-        StdOut() << "\n";
-	StdOut() << "********************************************\n";
-	StdOut() << "*********       TEST TRANSLATE    **********\n";
-	StdOut() << "********************************************\n\n";
+        StdOut() << std::endl;
+	StdOut() << "********************************************" << std::endl;
+	StdOut() << "*********       TEST TRANSLATE    **********" << std::endl;
+	StdOut() << "********************************************\n" << std::endl;
         std::string aRes =mCalcGlob->Translate(mNameImTest,mTypeMTDIM,true);
-	StdOut() << "\n";
-	StdOut() << "    Result of computation=[" << aRes << "]\n\n";
-	StdOut() << "********************************************\n";
+	StdOut() << std::endl;
+	StdOut() << "    Result of computation=[" << aRes << "]\n" << std::endl;
+	StdOut() << "********************************************" << std::endl;
     }
 
     if (mSave)

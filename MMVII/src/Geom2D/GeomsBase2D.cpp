@@ -143,7 +143,7 @@ template <class TypeMap>
       {
           *aRes2 += SqN2(aVOut[aK]-aMap.Value(aVIn[aK]));
       }
-      ///StdOut() << "NOOrrrmSol= " << aSomR2 << "\n";
+      ///StdOut() << "NOOrrrmSol= " << aSomR2 << std::endl;
    }
 
    return aMap;
@@ -155,17 +155,17 @@ template <class TypeMap,class TypePt>  void InspectMap2D(const TypeMap & aMap,co
 
 void InspectMap2D(const cHomogr2D<tREAL8> & aMap,const tPt2dr & aPt)
 {
-     StdOut() << " ----------- Pt=" << aPt << "-------------\n";
-     StdOut() << "Hxx : " <<  aMap.Hx() << " S=" << aMap.S(aMap.Hx(),aPt) << "\n";
-     StdOut() << "Hyy : " <<  aMap.Hy() << " S=" << aMap.S(aMap.Hy(),aPt) << "\n";
-     StdOut() << "Hzz : " <<  aMap.Hz() << " S=" << aMap.S(aMap.Hz(),aPt) << "\n";
+     StdOut() << " ----------- Pt=" << aPt << "-------------" << std::endl;
+     StdOut() << "Hxx : " <<  aMap.Hx() << " S=" << aMap.S(aMap.Hx(),aPt) << std::endl;
+     StdOut() << "Hyy : " <<  aMap.Hy() << " S=" << aMap.S(aMap.Hy(),aPt) << std::endl;
+     StdOut() << "Hzz : " <<  aMap.Hz() << " S=" << aMap.S(aMap.Hz(),aPt) << std::endl;
 }
 
 
 template <class TypeMap>  
     TypeMap  cMapEstimate<TypeMap>::RansacL1Estimate(const  tVPts& aVAllIn,const tVPts & aVAllOut,int aNbTest)
 {
-// StdOut() << "L111 " << TypeMap::Name() << " " << tNumTrait<tTypeElem>::NameType() << "\n";
+// StdOut() << "L111 " << TypeMap::Name() << " " << tNumTrait<tTypeElem>::NameType() << std::endl;
 
 
     tTypeElem aSigma = 0.5 * (      cComputeCentroids<tVPts>::MedianSigma(aVAllIn)
@@ -232,7 +232,7 @@ template <class TypeMap>
 
 /*
 if (aRes2)
-StdOut() << "===RRRR " << *aRes2 << "\n";
+StdOut() << "===RRRR " << *aRes2 << std::endl;
 */
 
     return aDeltaM1.MapInverse() * aMap0;
@@ -846,7 +846,7 @@ template <class Type> cHomogr2D<Type>  cHomogr2D<Type>::FromMinimalSamples(const
    // aMat.Show();
 
    cDenseVect<Type> aSol =  aMat.SolveColumn(aVect);
-   // for (int aK=0 ; aK<8 ; aK++) StdOut() << "PPPP " << aSol(aK) << "\n";
+   // for (int aK=0 ; aK<8 ; aK++) StdOut() << "PPPP " << aSol(aK) << std::endl;
    return FromParam(aSol);
 }
 
@@ -1085,7 +1085,7 @@ FakeUseIt(aID1);
                     << "\n";
        }
 
-       StdOut() << " ======================================== \n";
+       StdOut() << " ======================================== " << std::endl;
    }
 */
 }

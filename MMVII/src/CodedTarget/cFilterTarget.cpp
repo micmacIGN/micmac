@@ -169,7 +169,7 @@ template <class Type>
       mVK0K1.push_back(cPt2di(0,0));
    IncrK1(aK1,aK0);
    mVK0K1.push_back(cPt2di(aK0,aK1));
-   // StdOut() << "KKKK " << aK0 << " " << aK1 << " \n";
+   // StdOut() << "KKKK " << aK0 << " " << aK1 << " " << std::endl;
 
    while (aK1<int(mIVois.size()))
    {
@@ -399,7 +399,7 @@ template<class TypeEl> cIm2D<TypeEl> ImScalab(const  cDataIm2D<TypeEl> & aDImIn,
 {
     std::vector<cPt2di>  aVectVois = SortedVectOfRadius(aR0,aR1,true);
 
-    // aVectVois = GetPts_Circle(cPt2dr(0,0),aR0,true);  StdOut() << "SYMMMM\n";
+    // aVectVois = GetPts_Circle(cPt2dr(0,0),aR0,true);  StdOut() << "SYMMMM" << std::endl;
 
     int aD = round_up(aR1);
     cPt2di aPW(aD,aD);
@@ -616,7 +616,7 @@ template<class TypeEl> void CheckSymmetricity
     int aD = round_up(aR1);
     cPt2di aPW(aD+1,aD+1);
 
-    StdOut() << "Begin cmp  low/high level\n";
+    StdOut() << "Begin cmp  low/high level" << std::endl;
     {
        cSymFilterCT<TypeEl> aSymF(aImIn,aR0,aR1,Epsilon);
        cIm2D<TypeEl>  anI2 = aSymF.ComputeIm();
@@ -627,12 +627,12 @@ template<class TypeEl> void CheckSymmetricity
            TypeEl aV2 = aDI2.GetV(aPix);
            if (std::abs(aV1-aV2) > 1e-5)
            {
-               StdOut() << "Diiiff = " <<aV1 -  aV2  << " PIX= " << aPix << "\n";
+               StdOut() << "Diiiff = " <<aV1 -  aV2  << " PIX= " << aPix << std::endl;
                // getchar();
            }
        }
     }
-    StdOut() << "end computation sym\n";
+    StdOut() << "end computation sym" << std::endl;
 }
 
 template<class TypeEl> cIm2D<TypeEl> ImSymmetricity(bool doCheck,cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon)
@@ -652,7 +652,7 @@ template<class TypeEl> cIm2D<TypeEl> ImSymmetricity(bool doCheck,cIm2D<TypeEl>  
     cIm2D<TypeEl> aImOut(aSz,nullptr,eModeInitImage::eMIA_V1);
     cDataIm2D<TypeEl> & aDImOut = aImOut.DIm();
 
-    StdOut() << "Begin computation low level\n";
+    StdOut() << "Begin computation low level" << std::endl;
     for (const auto & aPix : cRect2(aPW,aSz-aPW))
     {
           cSymMeasure<float> aSM;
@@ -666,7 +666,7 @@ template<class TypeEl> cIm2D<TypeEl> ImSymmetricity(bool doCheck,cIm2D<TypeEl>  
           double aVal = aSM.Sym(Epsilon);
           aDImOut.SetV(aPix,aVal);
     }
-    StdOut() << "End computation sym low level\n";
+    StdOut() << "End computation sym low level" << std::endl;
     if (doCheck)
     {
        CheckSymmetricity(aDImOut,aImIn,aR0,aR1,Epsilon);

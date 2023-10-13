@@ -110,7 +110,7 @@ cStatOneVecCarac::cStatOneVecCarac(const cPt2di & aSzCr)  :
 static int aCpt = 0;
 aCpt++;
 double aSz = (TheDynSave*TheDynSave) *((double) aCpt) * sizeof(tINT4) *2;
-StdOut() << "SSZZZZ " << aSz << " ; Cpt " << aCpt << "\n";
+StdOut() << "SSZZZZ " << aSz << " ; Cpt " << aCpt << std::endl;
 }
 */
    for (int aKH=0 ; aKH<TheNbH ; aKH++)

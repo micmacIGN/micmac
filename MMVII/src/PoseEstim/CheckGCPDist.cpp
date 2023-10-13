@@ -285,7 +285,7 @@ bool   cAppli_CheckGCPDist::ComputeMainHomogr(cHomogr2D<tREAL8> & aHG2I)
                  aPC.mIsOk = false;
 		 AddOneReportCSV(mNameReportErrTarget,{mCurNameIm,aPC.mGr->mNamePt,"MainHom",ToStr(aDif)});
 
-                 // StdOut() << "##############  DIFFF " << aDif << " Pt=" <<  aPC.mGr->mNamePt << " Im=" << mCurNameIm << "#### \n";
+                 // StdOut() << "##############  DIFFF " << aDif << " Pt=" <<  aPC.mGr->mNamePt << " Im=" << mCurNameIm << "#### " << std::endl;
               }
 	      else
                  mNbZ0++;
@@ -326,7 +326,7 @@ bool  cAppli_CheckGCPDist::ComputeHomogrZ1(const cHomogr2D<tREAL8> & aH0)
               if (aDif >  mThresholdHomog)
               {
                  aPC.mIsOk = false;
-                 StdOut() << "##############  DIFFF " << aDif << " Pt=" <<  aPC.mGr->mNamePt << " Im=" << mCurNameIm << "#### \n";
+                 StdOut() << "##############  DIFFF " << aDif << " Pt=" <<  aPC.mGr->mNamePt << " Im=" << mCurNameIm << "#### " << std::endl;
               }
 	      else
 	      {
@@ -445,7 +445,7 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
     if ((int)aVP3.size() >=mNbMinResec) 
         aLinearityIndex = L2_LinearityIndex(aVP3);
 
-    if (0)   StdOut() << " Im=" << mCurNameIm << " PlaneInd=" << aPlanarityIndex  << " LineInd=" << aLinearityIndex << "\n";
+    if (0)   StdOut() << " Im=" << mCurNameIm << " PlaneInd=" << aPlanarityIndex  << " LineInd=" << aLinearityIndex << std::endl;
 
 
     Ok11P = Ok11P && (aPlanarityIndex > mMinPlan11);

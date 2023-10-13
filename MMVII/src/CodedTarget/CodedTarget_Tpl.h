@@ -56,12 +56,12 @@ template   <class TypeExtract,class TypeFSel>
         else
         {
            if (ShowMSG)
-              StdOut() << " UNMATCH000 at " << aGSD.mC << "\n";
+              StdOut() << " UNMATCH000 at " << aGSD.mC << std::endl;
         }
     }
 
     if (ShowMSG)
-       StdOut()  << "GT-MATCHED : %:" << (100.0*aNbGTMatched) /aGTResSim.mVG.size() << " on " << aGTResSim.mVG.size() << " total-GT\n";
+       StdOut()  << "GT-MATCHED : %:" << (100.0*aNbGTMatched) /aGTResSim.mVG.size() << " on " << aGTResSim.mVG.size() << " total-GT" << std::endl;
 
     return aNbGTMatched;
 }

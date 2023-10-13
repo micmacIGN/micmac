@@ -461,7 +461,7 @@ template <class Type>
       {
           Type * anAdr =aGIAP.VAdrs()[aK];
 	  tObjWUk * anObjPtr  = aGIAP.VObjs()[aK];
-	  //  StdOut() << "Aaaa " << *anAdr << " NN=" << aGIAP.VNames() [aK] << " " << anObjPtr->IndOfVal(anAdr) << "\n";
+	  //  StdOut() << "Aaaa " << *anAdr << " NN=" << aGIAP.VNames() [aK] << " " << anObjPtr->IndOfVal(anAdr) << std::endl;
           if (Frozen)
 	  {
              SetFrozenVarCurVal(*anObjPtr,*anAdr);
@@ -896,7 +896,7 @@ template <class Type> const cDenseVect<Type> & cResolSysNonLinear<Type>::SolveUp
 {
     if (mNbVar>currNbObs)
     {
-           //StdOut()  << "currNbObscurrNbObs " << currNbObs  << " RRRRR=" << currNbObs - mNbVar << "\n";
+           //StdOut()  << "currNbObscurrNbObs " << currNbObs  << " RRRRR=" << currNbObs - mNbVar << std::endl;
         MMVII_DEV_WARNING("Not enough obs for var ");
     }
     lastNbObs = currNbObs;

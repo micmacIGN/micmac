@@ -98,10 +98,10 @@ template <class Type> void cMainNetwork <Type>::PostInit()
         if (1)
 	{
            mVPts = RandomOrder(mVPts);
-           // StdOut() << " Dooo :  ORDER RANDOM\n";
+           // StdOut() << " Dooo :  ORDER RANDOM" << std::endl;
 	}
         else
-           StdOut() << "NO ORDER RANDOM\n";
+           StdOut() << "NO ORDER RANDOM" << std::endl;
         // But need to reset the num of points which is used in link construction
         for (int aK=0 ; aK<int(mVPts.size()) ; aK++)
         {
@@ -203,7 +203,7 @@ template <class Type> cPtxd<Type,2>  cMainNetwork <Type>::ComputeInd2Geom(const 
 {
     Type aIndX = anInd.x()*mParamNW.mFactXY.x();
     Type aIndY = anInd.y()*mParamNW.mFactXY.y();
-// StdOut() << "SSSS " << mParamNW.mFactXY << "\n";
+// StdOut() << "SSSS " << mParamNW.mFactXY << std::endl;
 
     return mSimInd2G.Value(tPt(aIndX,aIndY) + tPt::PRandC()*Type(mParamNW.mAmplGrid2Real)  );
 }
@@ -239,10 +239,10 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
             aVCur.push_back(aPN.PCur());
             aVTh.push_back(aPN.TheorPt());
             aSumResidual += SqN2(aPN.PCur() -aPN.TheorPt());
-	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << "\n";
+	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << std::endl;
             if (aPN.mFrozenX || aPN.mFrozenY)
             {
-	        //  StdOut() << "CCC=> " << aPN.PCur() << aPN.TheorPt() << aPN.mInd << "\n";
+	        //  StdOut() << "CCC=> " << aPN.PCur() << aPN.TheorPt() << aPN.mInd << std::endl;
             }
         }
      }
@@ -252,7 +252,7 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
          auto  aMap = cSim2D<Type>::StdGlobEstimate(aVCur,aVTh,&aRes);
          FakeUseIt(aMap);
          //StdOut() << "RESIDUAL By Map Fit ";
-         //StdOut() << aVCur[1] - aVCur[0] / aVTh[1]-aVTh[0] <<  "\n";
+         //StdOut() << aVCur[1] - aVCur[0] / aVTh[1]-aVTh[0] <<  std::endl;
          return aRes;
      }
      return sqrt(aSumResidual / aNbPairTested );
@@ -336,7 +336,7 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
                 if (mWeightSetSchur.at(1)>=0) aSetIO.AddFixVarTmp(-2,aPTh1.y(), mWeightSetSchur.at(1)); // soft constraint-y  on theoreticall
                 if (mWeightSetSchur.at(2)>=0) aSetIO.AddFixCurVarTmp(-1, mWeightSetSchur.at(2)); // soft constraint-x  on current
                 if (mWeightSetSchur.at(3)>=0) aSetIO.AddFixCurVarTmp(-2, mWeightSetSchur.at(3)); // soft constraint-y  on current
-		// StdOut() << "GGGGGgg\n";getchar();
+		// StdOut() << "GGGGGgg" << std::endl;getchar();
 	    }
 	    mSys->AddObsWithTmpUK(aSetIO);
 	 }

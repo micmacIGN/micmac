@@ -51,9 +51,9 @@ template <class Type> void cGetAdrInfoParam<Type>::ShowAllParam(cObjWithUnkowns<
 {
     cGetAdrInfoParam aGAIP(".*",anObj);
 
-    StdOut() << "===============  Avalaible names =================\n";
+    StdOut() << "===============  Avalaible names =================" << std::endl;
     for (const auto & aName  : aGAIP.VNames())
-        StdOut()  << "  -[ " << aName << "]\n";
+        StdOut()  << "  -[ " << aName << "]" << std::endl;
 }
 
 template <class Type> void cGetAdrInfoParam<Type>::PatternSetToVal(const std::string & aPattern,tObjWUK & aObj,const Type & aVal)

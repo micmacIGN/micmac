@@ -261,7 +261,7 @@ void  cHistoCarNDim::GenerateVis2DInitOneInit(const std::string & aDir,const std
      }
      for (int aY=0 ; aY<aTy ;aY++)
      {
-         StdOut() << "Y=" << aY << " V=" << aH1D.DIm().GetV(aY) * (aTy/aSomV) << "\n";
+         StdOut() << "Y=" << aY << " V=" << aH1D.DIm().GetV(aY) * (aTy/aSomV) << std::endl;
      }
      getchar();
 */
@@ -374,7 +374,7 @@ cCollecSpecArg2007 & cAppliCalcHistoNDim::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 void cAppliCalcHistoNDim::AddHistoOneFile(const std::string & aStr0,int aKFile,int aNbFile)
 {
-    StdOut() << "      ####### "   << aStr0  << " : " << aKFile << "/" << aNbFile << "   ####### \n";
+    StdOut() << "      ####### "   << aStr0  << " : " << aKFile << "/" << aNbFile << "   ####### " << std::endl;
     int aMulH = (mCloseH ? 1 : 2);
     if (mInitialProcess)
     {
@@ -520,7 +520,7 @@ int  cAppliCalcHistoNDim::Exe()
               aVCar.push_back(Str2E<eModeCaracMatch>(aStr));
               StdOut() << aStr << "///";
 	  }
-	  StdOut() << "\n";
+	  StdOut() << std::endl;
           aMapSeq[aVCar] = aVCar;
       }
       // BREAK_POINT("Test Separe");

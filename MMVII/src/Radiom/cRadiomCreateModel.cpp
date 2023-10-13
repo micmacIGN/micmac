@@ -78,7 +78,7 @@ int cAppliCreateModelRadiom::Exe()
 	  if (mPhProj.DPRadiomModel().DirInIsInit())
 	  {
                cCalibRadiomIma *  aCRI = mPhProj.ReadCalibRadiomIma(aNameIm);
-	       StdOut() << "ZZZZ= " << aCRI->NameIm() << "\n";
+	       StdOut() << "ZZZZ= " << aCRI->NameIm() << std::endl;
 	       delete aCRI;
 	  }
 

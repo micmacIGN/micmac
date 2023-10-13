@@ -89,10 +89,10 @@ int cAppli_ConvertV1V2_GCPIM::Exe()
                std::string aNameIm =  aMesIm.NameIm();
                cSensorCamPC * aCamPC =  mPhProj.ReadCamPC(aNameIm,true);
                aMesImGCP.AddMes2D(aMesIm,aCamPC);
-               // StdOut() << " Nom Im " << aNameIm << " " << aCamPC->InternalCalib()->F() << "\n";
+               // StdOut() << " Nom Im " << aNameIm << " " << aCamPC->InternalCalib()->F() << std::endl;
           }
 
-          StdOut() << "AVSS RESIDUAL " <<  aMesImGCP.AvgSqResidual() << "\n";
+          StdOut() << "AVSS RESIDUAL " <<  aMesImGCP.AvgSqResidual() << std::endl;
           int aK=0;
           for (const auto & aMesIm : aLMesIm)
           {
@@ -100,7 +100,7 @@ int cAppli_ConvertV1V2_GCPIM::Exe()
                aMesImGCP.ExtractMes1Im(aSet32,aMesIm.NameIm());
                cSensorImage * aSens =  aMesImGCP.VSens().at(aK);
 
-               StdOut() << " Im=" << aMesIm.NameIm()  << " AvgRes=" << aSens->AvgSqResidual(aSet32) << "\n";
+               StdOut() << " Im=" << aMesIm.NameIm()  << " AvgRes=" << aSens->AvgSqResidual(aSet32) << std::endl;
 
                aK++;
           }

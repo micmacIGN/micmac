@@ -700,8 +700,8 @@ std::string replaceFirstOccurrence
     {
         if (!SVP)
         {
-           StdOut() << "REPLACE ["<< toReplace << "] by : [" << replaceWith << "\n";
-           StdOut() << "in [" << s << "]\n";
+           StdOut() << "REPLACE ["<< toReplace << "] by : [" << replaceWith << std::endl;
+           StdOut() << "in [" << s << "]" << std::endl;
            MMVII_INTERNAL_ASSERT_always(false,"Cannot make subs");
         }
         return "";

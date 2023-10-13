@@ -15,7 +15,7 @@ void cMMVII_BundleAdj::AddGCP(const  std::vector<double>& aWeightGCP, cSetMesImG
 
     if (1)
     {
-        StdOut()<<  "MESIM=" << mMesGCP->MesImOfPt().size() << " MesGCP=" << mMesGCP->MesGCP().size()  << "\n";
+        StdOut()<<  "MESIM=" << mMesGCP->MesImOfPt().size() << " MesGCP=" << mMesGCP->MesGCP().size()  << std::endl;
     }
 }
 
@@ -45,7 +45,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet,const std::
      const std::vector<cMultipleImPt> & aVMesIm  = aSet->MesImOfPt() ;
      const std::vector<cSensorImage*> & aVSens   = aSet->VSens() ;
 
-    // StdOut() << "GCP " << aVMesGCP.size() << " " << aVMesIm.size() << " " << aVSens.size() << "\n";
+    // StdOut() << "GCP " << aVMesGCP.size() << " " << aVMesIm.size() << " " << aVSens.size() << std::endl;
 
      size_t aNbGCP = aVMesGCP.size();
 
@@ -65,7 +65,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet,const std::
                 mNewGCP.MesGCP()[aK].mPt = mGCP_UK[aK]->Pt();
             StdOut() << "  GcpNew: " << mNewGCP.AvgSqResidual() ;
         }
-        StdOut() << "\n";
+        StdOut() << std::endl;
      }
 
     // MMVII_INTERNAL_ASSERT_tiny(!aGcpUk,"Dont handle GCP UK 4 Now");

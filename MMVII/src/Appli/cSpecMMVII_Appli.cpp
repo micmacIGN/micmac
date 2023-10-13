@@ -45,7 +45,7 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
           if (aK!=0) StdOut() << " ";
           StdOut() << aVArgs[aK];
       }
-      StdOut() << "]\n";
+      StdOut() << "]" << std::endl;
    }
 #endif
    static int aCptCallIntern=0;

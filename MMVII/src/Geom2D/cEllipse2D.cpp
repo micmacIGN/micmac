@@ -275,7 +275,7 @@ cPt2dr  cEllipse::ProjOnEllipse(const cPt2dr & aPtAbs) const
     std::vector<tREAL8> aVRoots = aPol.RealRoots(1e-10,20);
 
 
-    // StdOut() << "VRRRRRR " << aVRoots << "\n";
+    // StdOut() << "VRRRRRR " << aVRoots << std::endl;
     cWhichMin<cPt2dr,tREAL8>  aBestP(aPLoc,1e60);
     for (const auto & aSinus : aVRoots)
     {
@@ -312,7 +312,7 @@ void cEllipse::BenchEllispe()
      for (int aK=0 ; aK<50 ; aK++)
      {
          static int aCpt=0; aCpt++;  
-	 // StdOut() << "cccCPT=" << aCpt << "\n"; 
+	 // StdOut() << "cccCPT=" << aCpt << std::endl; 
 	 bool Bug=aCpt==-474; // No bug 4 now
 
          bool  IsCircle = (aK%5)==2;
@@ -385,8 +385,8 @@ void cEllipse::BenchEllispe()
 	     cPt2dr aPP = anEl.ProjOnEllipse(aP1);
 	     if (Bug)
 	     {
-		     StdOut() << anEl.ToRhoTeta(aP1) << " " <<   Scal(anEl.Tgt(aPP),aP1-aPP)  << aP1-aPP  << "\n";
-		     StdOut() <<  "Ratiooo=" << aLSa/aLGa   << "\n";
+		     StdOut() << anEl.ToRhoTeta(aP1) << " " <<   Scal(anEl.Tgt(aPP),aP1-aPP)  << aP1-aPP  << std::endl;
+		     StdOut() <<  "Ratiooo=" << aLSa/aLGa   << std::endl;
 	     }
 
 	     MMVII_INTERNAL_ASSERT_bench(std::abs(anEl.ToRhoTeta(aPP).x()-1.0)<1e-5,"BenchEllispe");
@@ -648,7 +648,7 @@ void cRadialBlurrCompute::Compute()
    mStdDev = mComputeSD.StdDev(1e-10);
    // Convulation by mSigmaFNN has artificially increased the blurring, we correct it
    mStdDev  = std::sqrt(std::max(0.0,Square(mStdDev)-Square(mSigmaFNN)));
-   // StdOut() << " * C0 => AVG=" <<  mAvg  <<  " DEV=" << mStdDev  << "\n";
+   // StdOut() << " * C0 => AVG=" <<  mAvg  <<  " DEV=" << mStdDev  << std::endl;
 
 }
 
@@ -664,7 +664,7 @@ cRadialBlurrCompute cRadialBlurrCompute::MakeNormalized(tREAL8 aNbSigma,size_t a
        aRes.Add(aDG.x(),aDG.y());
    aRes.Compute();
 
-   StdOut() << " * C0 => " <<  mAvg  <<  " " << mStdDev  << "  NN " << aRes.mAvg << " " << aRes.mStdDev << "\n";
+   StdOut() << " * C0 => " <<  mAvg  <<  " " << mStdDev  << "  NN " << aRes.mAvg << " " << aRes.mStdDev << std::endl;
 
    return aRes;
 }
@@ -779,7 +779,7 @@ if (true)
            aSeed.mBlack = 0.0;
            aSeed.mWhite = 100.0;
 	   for (tREAL8 aX=-2; aX<=2 ; aX +=0.2)
-               StdOut() << "X: " << aX  << " " << GraySimul(aX,aSeed) << "\n";
+               StdOut() << "X: " << aX  << " " << GraySimul(aX,aSeed) << std::endl;
       }
       First = false;
    }
@@ -896,7 +896,7 @@ if (true)
 
 FakeUseIt(aSomGrad);
 FakeUseIt(aSomGauss);
-   StdOut()  << "AVG=" << aAvg  << " StdD="   << aDev  << "\n\n";
+   StdOut()  << "AVG=" << aAvg  << " StdD="   << aDev  << "\n" << std::endl;
 
    /*
 	   << " GAUS" << aStdGauss.SomWV() << " " << std::sqrt(aStdGauss.SomWV2())
@@ -905,7 +905,7 @@ FakeUseIt(aSomGauss);
 
    if (aSeed.mMarked4Test)
    {
-       StdOut()  <<  " =========================== \n";
+       StdOut()  <<  " =========================== " << std::endl;
        for (const auto & aD : aDPopDist)
        {
            StdOut()  <<  " D: " <<  FixDigToStr( (aD.x()/double(aNbDig) - aDMax) , 3)
@@ -924,9 +924,9 @@ FakeUseIt(aSomGauss);
               tREAL8 aX = aK/double(aNb);
               tREAL8 aW = CubAppGaussVal(aX);
 	      aStdCub.Add(aW,aX);
-	      // StdOut() << "X:" << aX  << " W:" << aW << "\n";
+	      // StdOut() << "X:" << aX  << " W:" << aW << std::endl;
 	 }
-	 StdOut()  << "CUB DEV " << aStdCub.StdDev() << "\n";
+	 StdOut()  << "CUB DEV " << aStdCub.StdDev() << std::endl;
        }
        getchar();
 
@@ -971,10 +971,10 @@ FakeUseIt(aSomGauss);
 	 aAvgD.Add(aPop,std::abs(exp(aSom)-aPop));
          if (aSeed.mMarked4Test)
 	 {
-             StdOut() <<  "EEE=" << aDGradGray.GetV(aDInt) << " " << exp(aSom) << "\n";
+             StdOut() <<  "EEE=" << aDGradGray.GetV(aDInt) << " " << exp(aSom) << std::endl;
 	 }
       }
-      StdOut() << "sss=" <<  aSol.ToStdVect()   << " DDD=" << aAvgD.Average() << "\n";
+      StdOut() << "sss=" <<  aSol.ToStdVect()   << " DDD=" << aAvgD.Average() << std::endl;
    }
 #endif
 }
@@ -1006,7 +1006,7 @@ void  cExtractedEllipse::ShowOnFile(const std::string & aNameIm,int aZoom,const 
         for (const auto  & aPFr : mVFront)
 	{
             aRGBIm.SetRGBPoint(aPFr-aPOfs,cRGBImage::Red);
-	    //StdOut() <<  "DDDD " <<  anEl.ApproxSigneDist(aPFr) << "\n";
+	    //StdOut() <<  "DDDD " <<  anEl.ApproxSigneDist(aPFr) << std::endl;
 	}
 
 	aRGBIm.ToFile(aPrefName + "_Ellipses_" + ToStr(aCptIm) + ".tif");

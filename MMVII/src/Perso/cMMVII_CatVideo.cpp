@@ -91,7 +91,7 @@ int cAppli_CatVideo::Exe()
        {
           aSetPostfix.Add(LastPostfix(aStr));
        }
-       StdOut() << " STR=" << aStr << "\n";
+       StdOut() << " STR=" << aStr << std::endl;
    }
    aFileOfFile.Ofs().close();
 
@@ -131,7 +131,7 @@ int cAppli_CatVideo::Exe()
    {
       aRes = ExtSysCall(aCom,false);
    }
-   StdOut() << "Com=[" << aCom << "]\n";
+   StdOut() << "Com=[" << aCom << "]" << std::endl;
 
    return aRes;
 }

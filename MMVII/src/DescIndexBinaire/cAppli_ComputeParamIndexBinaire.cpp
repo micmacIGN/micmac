@@ -152,7 +152,7 @@ int cAppli_ComputeParamIndexBinaire::Exe()
 
 void  cAppli_ComputeParamIndexBinaire::ProcessOneDir(const std::string & aDir)
 {
-    StdOut() << "================== " << mPatPCar << " ===========\n";
+    StdOut() << "================== " << mPatPCar << " ===========" << std::endl;
     mDirCurPC = mDirGlob + aDir + StringDirSeparator(); // Compute full name of folder for data
 
     cDataOneInvRad * aLast = nullptr;
@@ -260,7 +260,7 @@ void  cAppli_ComputeParamIndexBinaire::OneIterComputeIndexBinaire()
     {
         if ((aK+1)%aPerAff ==0)
         {
-            StdOut() << "Fill cov, Remain " << (mNbPts-aK) << " on " << mNbPts << "\n";
+            StdOut() << "Fill cov, Remain " << (mNbPts-aK) << " on " << mNbPts << std::endl;
         }
         if ( mVIR[aK]->mSelected)
         {
@@ -275,7 +275,7 @@ void  cAppli_ComputeParamIndexBinaire::OneIterComputeIndexBinaire()
     // Create bit vector corresponding to mNbEigenVal highest eigen value (they are sorted)
     for (int aK=mNbValByP-1 ; aK>=mNbValByP-mNbEigenVal; aK--)
     {
-        StdOut() << "EV["<< aK<< "]=" <<  mEigen->EigenValues()(aK) << "\n";
+        StdOut() << "EV["<< aK<< "]=" <<  mEigen->EigenValues()(aK) << std::endl;
         int aInd = mVVBool.size();
         mVVBool.push_back(tPtVBool ( new cVecBool (aInd,mMedian,new cIB_LinearFoncBool(*this,aK), mVIR)));
         if (mOptimAPrio)
@@ -313,7 +313,7 @@ void  cAppli_ComputeParamIndexBinaire::OneIterComputeIndexBinaire()
            aNbOk += 2;
         }
     }
-    StdOut() << "Prop Deteteced " << aNbOk / double(mVIR0.size()) << "\n";
+    StdOut() << "Prop Deteteced " << aNbOk / double(mVIR0.size()) << std::endl;
 
     // TestNbBit();
     // SaveFileData();
@@ -399,7 +399,7 @@ void cAppli_ComputeParamIndexBinaire::TestNewSol
        mBestIndex = aVI;
 
        ShowStat();
-       /* StdOut() << "========== Score : " << aSc  << "\n";
+       /* StdOut() << "========== Score : " << aSc  << std::endl;
        cStatDifBits aStTrue(mVecTrueP,aNewVB);
        cStatDifBits aStFalse(mVecFalseP,aNewVB);
        aStTrue.Show(aStFalse,0,aKMax+3); */
@@ -408,7 +408,7 @@ void cAppli_ComputeParamIndexBinaire::TestNewSol
 
 void cAppli_ComputeParamIndexBinaire::ShowStat()
 {
-   StdOut() << "========== Score : " << mBestSc  << "\n";
+   StdOut() << "========== Score : " << mBestSc  << std::endl;
    cStatDifBits aStTrue(mVecTrueP,mBestVB);
    cStatDifBits aStFalse(mVecFalseP,mBestVB);
    aStTrue.Show(aStFalse,0,30,0.99);
@@ -453,7 +453,7 @@ void cAppli_ComputeParamIndexBinaire::TestRandom()
    for (int aKC=0 ; aKC< mNbOptCombLoc ; aKC++)
    {
         if ((aKC%10)==0) 
-            StdOut() << "Chnage cphase " << mNbOptCombLoc - aKC  << "\n";
+            StdOut() << "Chnage cphase " << mNbOptCombLoc - aKC  << std::endl;
 
         // int aPer = 7;
         // int aDelta = mVVBool.size() -mNbVecBit;
@@ -515,9 +515,9 @@ void cAppli_ComputeParamIndexBinaire::TestNbBit(int aNb) const
     cStatDifBits aStTrue(mVecTrueP,aVVB);
     cStatDifBits aStFalse(mVecFalseP,aVVB);
 
-    MMVII::StdOut() << "================= " << aNb << "==============\n";
+    MMVII::StdOut() << "================= " << aNb << "==============" << std::endl;
     for (int aK =0 ; aK <= aNb ; aK++)
-        MMVII::StdOut() << aK << " " << aStTrue.mStatRCum[aK] << " " << aStFalse.mStatRCum[aK]<< "\n";
+        MMVII::StdOut() << aK << " " << aStTrue.mStatRCum[aK] << " " << aStFalse.mStatRCum[aK]<< std::endl;
 }
 
 

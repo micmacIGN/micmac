@@ -234,7 +234,7 @@ int  cAppliCompletUncodedTarget::Exe()
        auto [aPlane,aCost] = cPlane3D::RansacEstimate(aVPt,true);
        mNormal = aPlane.AxeK();
        if (LevelCall() ==0)
-           StdOut() <<  "Normal,  Dist=" << aCost << " Axe=" <<  mNormal << "\n";
+           StdOut() <<  "Normal,  Dist=" << aCost << " Axe=" <<  mNormal << std::endl;
    }
 
 
@@ -245,7 +245,7 @@ int  cAppliCompletUncodedTarget::Exe()
    CompleteAll();
    // mCamPC = mPhProj.AllocCamPC(FileOfPath(mSpecImIn),true);
 
-   // StdOut()  << mNameIm << " Fff=" << mCamPC->InternalCalib()->F()  << " "<<  mCamPC->NameImage() << "\n";
+   // StdOut()  << mNameIm << " Fff=" << mCamPC->InternalCalib()->F()  << " "<<  mCamPC->NameImage() << std::endl;
 
 
    mPhProj.SaveMeasureIm(mImageM);

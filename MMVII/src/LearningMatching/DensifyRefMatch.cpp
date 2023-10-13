@@ -195,7 +195,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
     mIMasqOut  = cIm2D<tU_INT1>(mDIPx->Sz(),nullptr,eModeInitImage::eMIA_Null);
     mDIMasqOut = &mIMasqOut.DIm();
     // cDataIm2D<tREAL4>          tDataImPx;
-    StdOut() << "SZIM= " << APBI_DIm().Sz()  << mIPx.DIm().Sz() << "\n";
+    StdOut() << "SZIM= " << APBI_DIm().Sz()  << mIPx.DIm().Sz() << std::endl;
 
     std::vector<cPt2dr> aVPts;
     for (const auto & aPix : *mDIMasqIn)
@@ -205,7 +205,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
     }
     cTriangulation2D<tCoordDensify> aTriangul(aVPts);
     aTriangul.MakeDelaunay();
-    StdOut() << "NbFace= " <<  aTriangul.NbFace() << "\n";
+    StdOut() << "NbFace= " <<  aTriangul.NbFace() << std::endl;
 
 
     // Initiate image of interpolated value

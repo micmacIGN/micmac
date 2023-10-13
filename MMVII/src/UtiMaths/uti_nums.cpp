@@ -68,7 +68,7 @@ void cDecomposPAdikVar::Bench(int aValue) const
         std::vector<int> aDec =  SizeBase ? DecomposSizeBase(aValue) : Decompos(aValue);
         int aVCheck = FromDecompos(aDec);
 
-    // StdOut() << aValue  << " " << aDec << " " << aVCheck << "\n";
+    // StdOut() << aValue  << " " << aDec << " " << aVCheck << std::endl;
         MMVII_INTERNAL_ASSERT_bench (aValue==aVCheck,"cDecomposPAdikVar Bad decomp/recomp");
 
         for (int aK=0 ; aK<int(aDec.size()) ; aK++)

@@ -304,6 +304,14 @@ class cMultipleOfs
              return *this;
         }
 
+        // CM: This will allow standard stream manipulator to work with cMultipleOgs (std::endl, ...)
+        cMultipleOfs& operator<<(std::ostream&(*f)(std::ostream&))
+        {
+             for (const auto & Ofs :  mVOfs)
+                 *Ofs << f;
+             return *this;
+        }
+
     private :
         
         cMultipleOfs(const cMultipleOfs &) = delete;
@@ -311,10 +319,6 @@ class cMultipleOfs
         std::vector<std::ostream *> mVOfs;
 };
 
-
-
-/// For now I have problem with cMultipleOfs << std::endl , tag end of line to come back on it later
-#define ENDL "\n"
 
 
 /** Probably job could be done with boost, but I am not sure I could handle

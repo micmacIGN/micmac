@@ -160,7 +160,7 @@ bool TESTPT(const cPt2dr & aPt,int aLine,const std::string& aFile)
 {
     cPt2dr aPTEST(778.357,261);
     if (Norm2(aPTEST-aPt)>1e-2) return false;
-    StdOut() << "TEST PT Line=" << aLine << " " << aFile << "\n";
+    StdOut() << "TEST PT Line=" << aLine << " " << aFile << std::endl;
     return true;
 }
 
@@ -176,7 +176,7 @@ void cAppliExtractLearnVecDM::AddLearn(cFileVecCaracMatch & aFVCM,const cAimePCa
        //SaveInFile(aVCM,"XXXXTest.xml");
        //SaveInFile(aVCM,"XXXXTest.dmp");
        aVCM.Show(mSelShowCarac);
-       StdOut() << "LLLLLLlevvvv " << aLevHom << "PPPp==="  << aAP1.Pt() << " " << aAP2.Pt() << "\n";
+       StdOut() << "LLLLLLlevvvv " << aLevHom << "PPPp==="  << aAP1.Pt() << " " << aAP2.Pt() << std::endl;
    }
 }
 
@@ -248,8 +248,8 @@ int  cAppliExtractLearnVecDM::Exe()
 
    cDataFileIm2D aDFIm1 = cDataFileIm2D::Create(mNameIm1,false);
 
-   StdOut() << "IM2=" << mNameIm2 << " " << mNamePx1 << " " << mNameMasq1 << "\n";
-   StdOut() << "Sz=" <<  aDFIm1.Sz() << "\n";
+   StdOut() << "IM2=" << mNameIm2 << " " << mNamePx1 << " " << mNameMasq1 << std::endl;
+   StdOut() << "Sz=" <<  aDFIm1.Sz() << std::endl;
 
    cParseBoxInOut<2> aPBI = cParseBoxInOut<2>::CreateFromSizeCste(aDFIm1,mSzTile);
 
@@ -299,7 +299,7 @@ void cAppliExtractLearnVecDM::MakeCutHisto
           const std::vector<bool> & aVOk2,const std::vector<cAimePCar> & aVPC2
      )
 {
-   StdOut() << "LINECUT " << aY << "\n";
+   StdOut() << "LINECUT " << aY << std::endl;
    int aNbPix = aVOk1.size();
    int aNbPax = mCutsFreqPx * (mCutPxMax-mCutPxMin);
    cIm2D<tU_INT1>  aResult(cPt2di(aNbPix,aNbPax),nullptr,eModeInitImage::eMIA_Null);
@@ -362,7 +362,7 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxI
                 {
                     aNbInMasq ++;
                    //static int aCpt=0; aCpt++;
-                   //StdOut() << "CCCCcc   " << aCpt << "\n";
+                   //StdOut() << "CCCCcc   " << aCpt << std::endl;
                 }
                 else
                 {
@@ -397,7 +397,7 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxI
          cDataFileIm2D  aFile2 = cDataFileIm2D::Create(mNameIm2,true);
          mCurBoxIn2 = mCurBoxIn2.Inter(cBox2di(cPt2di(0,0),aFile2.Sz()));
 
-         StdOut() << "INDEX " << anIndex << " PX=[" << aPxMin << " : "<< aPxMax << "] B=" <<  mCurBoxIn2 << "\n";
+         StdOut() << "INDEX " << anIndex << " PX=[" << aPxMin << " : "<< aPxMax << "] B=" <<  mCurBoxIn2 << std::endl;
       }
    }
    else

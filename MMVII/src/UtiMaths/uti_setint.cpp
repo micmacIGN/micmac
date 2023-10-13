@@ -157,7 +157,7 @@ void GenRanQsubCardKAmongN(std::vector<cSetIExtension> & aRes,int aQ,int aK,int 
    // Typicall  K=2 , N=10 , Q=1000
    if (aSzMax<=aQ)
    {
-  // StdOut()  << "LL " << __LINE__ << " \n";
+  // StdOut()  << "LL " << __LINE__ << " " << std::endl;
         aRes = SubKAmongN<cSetIExtension>(aK,aN);
         return ;
    }

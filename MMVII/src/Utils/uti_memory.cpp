@@ -19,7 +19,7 @@ void DoNothingWithIt(void *)
 
 cObj2DelAtEnd::~cObj2DelAtEnd()
 {
-        // StdOut() << "DELO2DEAE " << this << "\n";
+        // StdOut() << "DELO2DEAE " << this << std::endl;
 }
 
 

@@ -239,7 +239,7 @@ template<class Type> void TplBenchPolynome()
          std::vector<Type>  aVRootsCalc  = aPol.RealRoots(1e-20,60);
 	 if (aVRootsGen.size()  != aVRootsCalc.size())
 	 {
-	     StdOut() <<  "VEEE  " << aVRootsGen.size()  << " " << aVRootsCalc.size()<< "\n";
+	     StdOut() <<  "VEEE  " << aVRootsGen.size()  << " " << aVRootsCalc.size()<< std::endl;
              MMVII_INTERNAL_ASSERT_bench(false,"roots size check");
 	 }
 

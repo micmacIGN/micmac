@@ -2102,7 +2102,7 @@ template <class Type> void cTriangulation3D<Type>::Bench()
     MMVII_INTERNAL_ASSERT_bench(aTriTxt3D.HeuristikAlmostEqual(aTriBin3D,1e-5,-1),"cTriangulation3D::Bench");
     //           bool  AlmostEqual (const cTriangulation<Dim> &,double)  const;
 
-    // StdOut() << "SzP= " << aTriTxt3D.mVPts.size() << " " << aTriBin3D.mVPts.size() << "\n";
+    // StdOut() << "SzP= " << aTriTxt3D.mVPts.size() << " " << aTriBin3D.mVPts.size() << std::endl;
 
     std::string aDirTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII();
     aTriBin3D.WriteFile(aDirTmp+"MeshBin.ply",true);
@@ -2237,8 +2237,8 @@ template <class Type> void cTriangulation3D<Type>::CheckOri3D()
 	      }
 	  }
      }
-     StdOut() << " * NbEdgeInt=" << aNbEInt  << " NbEdgeExt=" << aNbEExt  <<  "\n";
-     StdOut() << " Non Orientable  Edges :  " << aNbBadOri <<  " on " << (aNbEInt+aNbEExt) << "\n\n";
+     StdOut() << " * NbEdgeInt=" << aNbEInt  << " NbEdgeExt=" << aNbEExt  <<  std::endl;
+     StdOut() << " Non Orientable  Edges :  " << aNbBadOri <<  " on " << (aNbEInt+aNbEExt) << "\n" << std::endl;
 }
 
 template <class Type> void cTriangulation3D<Type>::CheckOri2D()
@@ -2257,7 +2257,7 @@ template <class Type> void cTriangulation3D<Type>::CheckOri2D()
      }
 
      int aNbBadOri = std::min(aNbOriP,aNbOriM);
-     StdOut() << " 2D-Bad Orientation " << aNbBadOri << " on " << this->NbFace() <<  "\n\n";
+     StdOut() << " 2D-Bad Orientation " << aNbBadOri << " on " << this->NbFace() <<  "\n" << std::endl;
 }
 
 /* ********************************************************** */

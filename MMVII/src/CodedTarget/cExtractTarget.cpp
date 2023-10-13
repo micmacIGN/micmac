@@ -337,7 +337,7 @@ void cAppliExtractCodeTarget::ShowStats(const std::string & aMes)
        ;
    }
 
-   StdOut()   << "\n";
+   StdOut()   << std::endl;
 }
 
 
@@ -361,12 +361,12 @@ void cAppliExtractCodeTarget::MarkDCT()
 
           /*
 
-          if (aDCT->mState == eResDCT::Ok) StdOut()        << "OK "        << aDCT->mPt.x() << " " << aDCT->mPt.y() << "\n";
-          if (aDCT->mState == eResDCT::Divg) StdOut()      << "DIVG "      << aDCT->mPt.x() << " " << aDCT->mPt.y() << "\n";
-          if (aDCT->mState == eResDCT::LowSym) StdOut()    << "LOWSYM "    << aDCT->mPt.x() << " " << aDCT->mPt.y() << "\n";
-          if (aDCT->mState == eResDCT::LowBin) StdOut()    << "LOWBIN "    << aDCT->mPt.x() << " " << aDCT->mPt.y() << "\n";
-          if (aDCT->mState == eResDCT::LowRad) StdOut()    << "LOWRAD "    << aDCT->mPt.x() << " " << aDCT->mPt.y() << "\n";
-          if (aDCT->mState == eResDCT::LowSymMin) StdOut() << "LOWSYMMIN " << aDCT->mPt.x() << " " << aDCT->mPt.y() << "\n";
+          if (aDCT->mState == eResDCT::Ok) StdOut()        << "OK "        << aDCT->mPt.x() << " " << aDCT->mPt.y() << std::endl;
+          if (aDCT->mState == eResDCT::Divg) StdOut()      << "DIVG "      << aDCT->mPt.x() << " " << aDCT->mPt.y() << std::endl;
+          if (aDCT->mState == eResDCT::LowSym) StdOut()    << "LOWSYM "    << aDCT->mPt.x() << " " << aDCT->mPt.y() << std::endl;
+          if (aDCT->mState == eResDCT::LowBin) StdOut()    << "LOWBIN "    << aDCT->mPt.x() << " " << aDCT->mPt.y() << std::endl;
+          if (aDCT->mState == eResDCT::LowRad) StdOut()    << "LOWRAD "    << aDCT->mPt.x() << " " << aDCT->mPt.y() << std::endl;
+          if (aDCT->mState == eResDCT::LowSymMin) StdOut() << "LOWSYMMIN " << aDCT->mPt.x() << " " << aDCT->mPt.y() << std::endl;
 
           */
 
@@ -411,13 +411,13 @@ void cAppliExtractCodeTarget::DoAllMatchOnGT()
 void  cAppliExtractCodeTarget::DoExtract(){
 
     if (mToRestrict.size() > 0){
-        StdOut() << "List of target codes to keep: \n";
+        StdOut() << "List of target codes to keep: " << std::endl;
         for (unsigned i=0; i<mToRestrict.size(); i++){
             StdOut() << mToRestrict.at(i) << " ";
         }
-        StdOut() << "\n";
+        StdOut() << std::endl;
     }
-    StdOut() << "------------------------------------------------------------------\n";
+    StdOut() << "------------------------------------------------------------------" << std::endl;
 
     // mPCTI.InitFromFile(mNameTarget);
 
@@ -439,20 +439,20 @@ void  cAppliExtractCodeTarget::DoExtract(){
     // --------------------------------------------------------------------------------------------------------
     mBitsPlotDebug = std::bitset<10>(mDebugPlot);
     if (mDebugPlot){
-        StdOut() << "\n------------------------------------------------------------------\n";
-        StdOut() << "DEBUG PLOT:\n";
-        StdOut() << "------------------------------------------------------------------\n";
-        if (mBitsPlotDebug[0]) StdOut() << "* CANDIDATES AFTER FILTERING\n";
-        if (mBitsPlotDebug[1]) StdOut() << "* CENTER OF DETECTED TARGETS\n";
-        if (mBitsPlotDebug[2]) StdOut() << "* TRANSITIONS ON CIRCLES AROUND TARGETS\n";
-        if (mBitsPlotDebug[3]) StdOut() << "* AXIS LINES ON CHESSBOARDS\n";
-        if (mBitsPlotDebug[4]) StdOut() << "* DATA POINTS TO FIT ELLIPSE\n";
-        if (mBitsPlotDebug[5]) StdOut() << "* FITTED ELLIPSE ON CHESSBOARD\n";
-        if (mBitsPlotDebug[6]) StdOut() << "* INTERSECTIONS BETWEEN ELLIPSE AND AXES\n";
-        if (mBitsPlotDebug[7]) StdOut() << "* DETECTED TARGET FRAMES\n";
-        if (mBitsPlotDebug[8]) StdOut() << "* DETECTED TARGET CODE NAMES\n";
-        if (mBitsPlotDebug[9]) StdOut() << "* RECTIFIED IMAGES OF DETECTED TARGETS\n";
-        StdOut() << "------------------------------------------------------------------\n";
+        StdOut() << "\n------------------------------------------------------------------" << std::endl;
+        StdOut() << "DEBUG PLOT:" << std::endl;
+        StdOut() << "------------------------------------------------------------------" << std::endl;
+        if (mBitsPlotDebug[0]) StdOut() << "* CANDIDATES AFTER FILTERING" << std::endl;
+        if (mBitsPlotDebug[1]) StdOut() << "* CENTER OF DETECTED TARGETS" << std::endl;
+        if (mBitsPlotDebug[2]) StdOut() << "* TRANSITIONS ON CIRCLES AROUND TARGETS" << std::endl;
+        if (mBitsPlotDebug[3]) StdOut() << "* AXIS LINES ON CHESSBOARDS" << std::endl;
+        if (mBitsPlotDebug[4]) StdOut() << "* DATA POINTS TO FIT ELLIPSE" << std::endl;
+        if (mBitsPlotDebug[5]) StdOut() << "* FITTED ELLIPSE ON CHESSBOARD" << std::endl;
+        if (mBitsPlotDebug[6]) StdOut() << "* INTERSECTIONS BETWEEN ELLIPSE AND AXES" << std::endl;
+        if (mBitsPlotDebug[7]) StdOut() << "* DETECTED TARGET FRAMES" << std::endl;
+        if (mBitsPlotDebug[8]) StdOut() << "* DETECTED TARGET CODE NAMES" << std::endl;
+        if (mBitsPlotDebug[9]) StdOut() << "* RECTIFIED IMAGES OF DETECTED TARGETS" << std::endl;
+        StdOut() << "------------------------------------------------------------------" << std::endl;
     }
 
 
@@ -501,9 +501,9 @@ void  cAppliExtractCodeTarget::DoExtract(){
          double aThrSadCPT = 0.45;  //   Div 3 generate one false neg
 
 	 // 1.1 compute saddle images
-         StdOut()  <<  "------- BEGIN SADDLE-------------\n";
+         StdOut()  <<  "------- BEGIN SADDLE-------------" << std::endl;
          auto [aImDif,aImCpt] =  FastComputeSaddleCriterion(APBI_Im(),aRaySaddle);
-         StdOut()  <<  "------- END SADDLE-------------\n";
+         StdOut()  <<  "------- END SADDLE-------------" << std::endl;
 
 	 if (0) /// Save image sadles for visu
 	 {
@@ -552,7 +552,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
 	 }
 	 for (double aVal : {0.4,0.45,0.5})
 	 {
-	     StdOut() << "   --- SadCPT : " << aVal  << " PropGT " <<  Rank(aVCPT_GT,aVal) << " PropStd " <<  Rank(aVCPT_Glob,aVal)<< "\n";
+	     StdOut() << "   --- SadCPT : " << aVal  << " PropGT " <<  Rank(aVCPT_GT,aVal) << " PropStd " <<  Rank(aVCPT_Glob,aVal)<< std::endl;
 	 }
          ShowStats("SadleCpt ");
      }
@@ -612,7 +612,7 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
 
      ShowStats("ExtractDir");
-     StdOut()  << "MAINTAINED " << mVDCTOk.size() << "\n";
+     StdOut()  << "MAINTAINED " << mVDCTOk.size() << std::endl;
 
 
      // ----------------------------------------------------------------------------------------------
@@ -638,10 +638,10 @@ void  cAppliExtractCodeTarget::DoExtract(){
     if ((mGroundTruthFile != "") && (NGT != 0)){
         double rmse = sqrt(mErrAvgGT/NGT);
         double comp = floor(mCompGT/NGT*1e5)/1e3;
-        StdOut() << "GROUND TRUTH COMPARISON:\n";
-        StdOut() << "   *PROP: " << comp << " %\n";
-        StdOut() << "   *RMSE: " << rmse << " px\n";
-        StdOut() << "   *MAX.: " << mErrMaxGT << " px\n";
+        StdOut() << "GROUND TRUTH COMPARISON:" << std::endl;
+        StdOut() << "   *PROP: " << comp << " %" << std::endl;
+        StdOut() << "   *RMSE: " << rmse << " px" << std::endl;
+        StdOut() << "   *MAX.: " << mErrMaxGT << " px" << std::endl;
     }
 
     // ------------------------------------------------
@@ -703,7 +703,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // Build list of codes from specification file
     // --------------------------------------------------------------------------------------------------------
 
-    if (mFlagDebug != "") StdOut() << mFlagDebug << "Focus on center: " << mTestCenter << "\n";
+    if (mFlagDebug != "") StdOut() << mFlagDebug << "Focus on center: " << mTestCenter << std::endl;
 
     cPt2di center = aDCT->Pix();
 
@@ -866,7 +866,7 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
         }
     }
 
-    StdOut() << "\n";
+    StdOut() << std::endl;
 
     aDCT->mFinalState = true;
     return true;
@@ -879,14 +879,14 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
 // ---------------------------------------------------------------------------
 bool cAppliExtractCodeTarget::printDebug(std::string name, bool pass){
     std::string pass_status = pass? "ok ":"failed ";
-    if (mFlagDebug != "") StdOut() << mFlagDebug << name << ": " << pass_status << "\n";
+    if (mFlagDebug != "") StdOut() << mFlagDebug << name << ": " << pass_status << std::endl;
     return pass;
 }
 bool cAppliExtractCodeTarget::printDebug(std::string name, double value, double threshold){
     std::string pass_status = value > threshold? "ok ":"failed ";
     if (mFlagDebug != ""){
         StdOut() << mFlagDebug << name << ": " << pass_status << " [";
-        StdOut() << value << " >= " << threshold << "]\n";
+        StdOut() << value << " >= " << threshold << "]" << std::endl;
     }
     return (pass_status == "ok ");
 }
@@ -1114,18 +1114,18 @@ bool cAppliExtractCodeTarget::markImage(tDataImT & aDImT, cPt2di p, int sz, int 
 
 // EIGEN
 void cAppliExtractCodeTarget::printMatrix(MatrixXd M){
-    StdOut() << "================================================================\n";
-    StdOut() << "M = matrix(c(\n";
+    StdOut() << "================================================================" << std::endl;
+    StdOut() << "M = matrix(c(" << std::endl;
     for (int i=0; i<M.rows(); i++){
         for (int j=0; j<M.cols(); j++){
             StdOut() << M(i,j);
             if ((i != M.rows()-1) || (j != M.cols()-1)) StdOut() << ",";
         }
-        StdOut() << "\n";
+        StdOut() << std::endl;
     }
-    StdOut() << " ), ncol=" << M.cols() <<", nrow=" << M.rows() << ", byrow=TRUE)\n";
-    StdOut() << "image(M, col = gray.colors(255))\n";
-    StdOut() << "================================================================\n";
+    StdOut() << " ), ncol=" << M.cols() <<", nrow=" << M.rows() << ", byrow=TRUE)" << std::endl;
+    StdOut() << "image(M, col = gray.colors(255))" << std::endl;
+    StdOut() << "================================================================" << std::endl;
 }
 
 // ---------------------------------------------------------------------------
@@ -1384,7 +1384,7 @@ int cAppliExtractCodeTarget::cartesianToNaturalEllipse(double* parameters, doubl
     delta = B*B - A*C;
 
     if (delta > 0){
-        //StdOut() << "Error: bad coefficients for ellipse algebraic equation \n";
+        //StdOut() << "Error: bad coefficients for ellipse algebraic equation " << std::endl;
         return 1;
     }
 
@@ -1750,38 +1750,38 @@ void cAppliExtractCodeTarget::benchEllipseR(){
     cartesianToNaturalEllipse(output, solution);
 
 
-    StdOut() << "pdf('test.pdf')\n";
+    StdOut() << "pdf('test.pdf')" << std::endl;
 
     // Data points generation
-    StdOut() << "A = matrix(c(\n";
+    StdOut() << "A = matrix(c(" << std::endl;
     for (unsigned i=0; i<POINTS.size(); i++){
         StdOut() << POINTS.at(i).x() << "," << POINTS.at(i).y();
         if (i < POINTS.size()-1)  StdOut() << ",";
-        StdOut() << "\n";
+        StdOut() << std::endl;
     }
-    StdOut() << "), ncol=2, byrow=TRUE)\n";
+    StdOut() << "), ncol=2, byrow=TRUE)" << std::endl;
 
 
     POINTS = generatePointsOnEllipse(solution, 1000, 0.0);
 
 
-    StdOut() << "B = matrix(c(\n";
+    StdOut() << "B = matrix(c(" << std::endl;
     for (unsigned i=0; i<1000; i++){
         StdOut() << POINTS.at(i).x() << "," << POINTS.at(i).y();
         if (i < 999)  StdOut() << ",";
-        StdOut() << "\n";
+        StdOut() << std::endl;
     }
-    StdOut() << "), ncol=2, byrow=TRUE)\n";
-    StdOut() << "plot(A[,1], A[,2], col='blue', pch=4)\n";
-    StdOut() << "points(B[,1], B[,2], col='red', cex=.1)\n";
-    StdOut() << "points(" << parameter[0] << "," << parameter[1] << ", pch=4)\n";
-    StdOut() << "points(" << solution[0]  << "," << solution[1]  << ", pch=5)\n";
-    StdOut() << "dev.off()\n";
-    StdOut() << "cat('-----------------------------------------\n')\n";
+    StdOut() << "), ncol=2, byrow=TRUE)" << std::endl;
+    StdOut() << "plot(A[,1], A[,2], col='blue', pch=4)" << std::endl;
+    StdOut() << "points(B[,1], B[,2], col='red', cex=.1)" << std::endl;
+    StdOut() << "points(" << parameter[0] << "," << parameter[1] << ", pch=4)" << std::endl;
+    StdOut() << "points(" << solution[0]  << "," << solution[1]  << ", pch=5)" << std::endl;
+    StdOut() << "dev.off()" << std::endl;
+    StdOut() << "cat('-----------------------------------------\n')" << std::endl;
     for (unsigned i=0; i<5; i++){
-        StdOut() << "cat('" << parameter[i] << " " << solution[i] << " " << parameter[i]-solution[i] <<  "\n')\n";
+        StdOut() << "cat('" << parameter[i] << " " << solution[i] << " " << parameter[i]-solution[i] <<  "\n')" << std::endl;
     }
-    StdOut() << "cat('-----------------------------------------\n')\n";
+    StdOut() << "cat('-----------------------------------------\n')" << std::endl;
 
 }
 
@@ -1791,26 +1791,26 @@ void cAppliExtractCodeTarget::benchEllipseR(){
 // ---------------------------------------------------------------------------
 void cAppliExtractCodeTarget::plotCaseR(std::vector<cPt2dr> POINTS, double* solution){
 
-    StdOut() << "A = matrix(c(\n";
+    StdOut() << "A = matrix(c(" << std::endl;
     for (unsigned i=0; i<POINTS.size(); i++){
         StdOut() << POINTS.at(i).x() << "," << POINTS.at(i).y();
         if (i < POINTS.size()-1)  StdOut() << ",";
-        StdOut() << "\n";
+        StdOut() << std::endl;
     }
-    StdOut() << "), ncol=2, byrow=TRUE)\n";
+    StdOut() << "), ncol=2, byrow=TRUE)" << std::endl;
 
     std::vector<cPt2dr> ELLIPSE = generatePointsOnEllipse(solution, 1000, 0.0);
 
-    StdOut() << "B = matrix(c(\n";
+    StdOut() << "B = matrix(c(" << std::endl;
     for (unsigned i=0; i<1000; i++){
         StdOut() << ELLIPSE.at(i).x() << "," << ELLIPSE.at(i).y();
         if (i < 999)  StdOut() << ",";
-        StdOut() << "\n";
+        StdOut() << std::endl;
     }
-    StdOut() << "), ncol=2, byrow=TRUE)\n";
-    StdOut() << "plot(A[,1], A[,2], col='blue', pch=4)\n";
-    StdOut() << "points(B[,1], B[,2], col='red', cex=.1)\n";
-    StdOut() << "points(" << solution[0]  << "," << solution[1]  << ", pch=5)\n";
+    StdOut() << "), ncol=2, byrow=TRUE)" << std::endl;
+    StdOut() << "plot(A[,1], A[,2], col='blue', pch=4)" << std::endl;
+    StdOut() << "points(B[,1], B[,2], col='red', cex=.1)" << std::endl;
+    StdOut() << "points(" << solution[0]  << "," << solution[1]  << ", pch=5)" << std::endl;
 
 }
 
@@ -1888,17 +1888,17 @@ void cAppliExtractCodeTarget::benchEllipse(){
         StdOut() << "[" << (ok?"PASSED":"FAILED") << "]";
 
         if (!ok){
-            StdOut() << "\n--------------------------------------------\n";
-            StdOut() << "TEST FAILURE DETAILS: \n";
-            StdOut() << "--------------------------------------------\n";
+            StdOut() << "\n--------------------------------------------" << std::endl;
+            StdOut() << "TEST FAILURE DETAILS: " << std::endl;
+            StdOut() << "--------------------------------------------" << std::endl;
             for (int j=0; j<5; j++){
-                StdOut() << param[j] << " " << solution[j] << " " << param[j] - solution[j] << "\n";
+                StdOut() << param[j] << " " << solution[j] << " " << param[j] - solution[j] << std::endl;
             }
-            StdOut() << "--------------------------------------------\n";
+            StdOut() << "--------------------------------------------" << std::endl;
 
         }
 
-        StdOut() << "\n";
+        StdOut() << std::endl;
 
     }
 
@@ -1936,7 +1936,7 @@ void cAppliExtractCodeTarget::benchAffinity(){
     StdOut() << param[3]-a21 << " ";
     StdOut() << param[4]-a22 << " ";
     StdOut() << param[5]-by  << " ";
-    StdOut() << param[6] << "\n";
+    StdOut() << param[6] << std::endl;
 
 }
 
@@ -1995,14 +1995,14 @@ int  cAppliExtractCodeTarget::Exe(){
                 mVPtsMod.push_back(cPt2dr(aPixIm.x(), aPixIm.y()));
                 double value = (double)(128+128*RandUnif_C());
                 mValueMod.push_back(value);
-                StdOut() << cPt2dr(aPixIm.x(), aPixIm.y()) << " " << value << "\n";
+                StdOut() << cPt2dr(aPixIm.x(), aPixIm.y()) << " " << value << std::endl;
             }
         }
 
 
         /*
         for (unsigned i=0; i<mVPtsMod.size(); i++){
-            StdOut() << mVPtsMod.at(i) << " " << mValueMod.at(i) << "\n";
+            StdOut() << mVPtsMod.at(i) << " " << mValueMod.at(i) << std::endl;
         }
         */
 
@@ -2015,11 +2015,11 @@ int  cAppliExtractCodeTarget::Exe(){
         cDenseVect<double> aVCur = mSys->CurGlobSol();
 
 
-        StdOut() << "-----------------------\n";
-        StdOut() << "Valeurs initiales\n";
-        StdOut() << "-----------------------\n";
+        StdOut() << "-----------------------" << std::endl;
+        StdOut() << "Valeurs initiales" << std::endl;
+        StdOut() << "-----------------------" << std::endl;
         for (int i=0; i<aVCur.Sz(); i++) {
-            StdOut() << aVCur(i) << "\n";
+            StdOut() << aVCur(i) << std::endl;
         }
 
 
@@ -2036,9 +2036,9 @@ int  cAppliExtractCodeTarget::Exe(){
     }
 
 
-    StdOut() << "============================================================\n";
-    StdOut() << "CODED TARGET AUTOMATIC EXTRACTION \n";
-    StdOut() << "============================================================\n";
+    StdOut() << "============================================================" << std::endl;
+    StdOut() << "CODED TARGET AUTOMATIC EXTRACTION " << std::endl;
+    StdOut() << "============================================================" << std::endl;
 
     // -------------------------------------------------------------------------------------
     // Loading ground truth (if any)
@@ -2048,10 +2048,10 @@ int  cAppliExtractCodeTarget::Exe(){
         mWithGT = true;
         mGTResSim   = cResSimul::FromFile(mGroundTruthFile);
         for (auto & aGSD : mGTResSim.mVG){      //  Take into account offset of reading
-         //   StdOut() << aGSD << "\n";
+         //   StdOut() << aGSD << std::endl;
             aGSD.Translate(-ToR(mBoxTest.P0()));
         }
-        StdOut() << "ok (" << mGTResSim.mVG.size() << " targets loaded)\n";
+        StdOut() << "ok (" << mGTResSim.mVG.size() << " targets loaded)" << std::endl;
     }
     // -------------------------------------------------------------------------------------
 

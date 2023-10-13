@@ -25,7 +25,7 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
        {
           // Type anAcc =  tElemNumTrait<Type>::Accuracy();
           Type aU= aRP01.Mat().Unitarity();
-          // StdOut() << "UUUUU " << aU  << " " << Scal(aP0,aP1) << "\n";
+          // StdOut() << "UUUUU " << aU  << " " << Scal(aP0,aP1) << std::endl;
           MMVII_INTERNAL_ASSERT_bench(aU<1e-5,"Complete RON 1 Vect"); // Its a rot
           MMVII_INTERNAL_ASSERT_bench(Norm1( aP0-aRP01.AxeI())<1e-5,"Complete RON 1 Vect"); //Its axe is P0
           MMVII_INTERNAL_ASSERT_bench(std::abs(Scal(aP1,aRP01.AxeK()))<1e-5,"Complete RON 1 Vect"); // Orthog to P1
@@ -172,9 +172,9 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
 	aR1 = cRotation3D<Type>::RotFromYPR(aWPK);
 	aD = aR0.Mat().DIm().L2Dist(aR1.Mat().DIm());
         MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"Omega Phi Kapa"); 
-	// StdOut() << "DDDD " << aD << "\n";
+	// StdOut() << "DDDD " << aD << std::endl;
    }
-   // StdOut() << "============================\n";
+   // StdOut() << "============================" << std::endl;
 }
 
 void BenchRotation3D(cParamExeBench & aParam)
@@ -249,7 +249,7 @@ template<class Type> void TplBenchIsometrie(cParamExeBench & aParam)
 	aP3 = aSimI.Value(aSim.Value(aP1));
 	MMVII_INTERNAL_ASSERT_bench(Norm2(aP1 - aP3)<aEps,"Sim MapInverse");
     }
-    // StdOut() << "=======================\n";
+    // StdOut() << "=======================" << std::endl;
     // =========== Test  ext3d of 2D similitude ===========
     for (int aKCpt=0 ; aKCpt<10000 ; aKCpt++)
     {
@@ -289,7 +289,7 @@ template<class Type> void TplBenchIsometrie(cParamExeBench & aParam)
 	 MMVII_INTERNAL_ASSERT_bench( Norm2(TP3z0(aP2)  - aSim.Value(aTri.Pt((aK+1)%3)))<aEps,"Simil Tri3D  P1");
 	 MMVII_INTERNAL_ASSERT_bench( std::abs(aSim.Value(aTri.Pt((aK+1)%2)).z()) <aEps,"Simil Tri3D  P1");
 
-	 //  StdOut() << aSim.Value(aTri.Pt(aK)) <<   aSim.Value(aTri.Pt((aK+1)%3)) << "\n"; 
+	 //  StdOut() << aSim.Value(aTri.Pt(aK)) <<   aSim.Value(aTri.Pt((aK+1)%3)) << std::endl; 
 
 	 cPtxd<Type,3> aN = NormalUnit(aTri);
 	 cPtxd<Type,3> aImN = aSim.Value(aN) - aSim.Value(cPtxd<Type,3>(0,0,0)) ;  // Image of normal as vector
@@ -330,9 +330,9 @@ template <class tMap,class TypeEl> void TplBenchMap2D(const tMap & aMap,const tM
 	aD = Norm2(aP1-aQ1) /tElemNumTrait<TypeEl>::Accuracy();
 	if (aD>=1e-2)
 	{
-		// StdOut() << "DDDelta " <<  aMap.Delta() << " accc : " << tElemNumTrait<TypeEl>::Accuracy() << "\n";
-		// StdOut() << "Tr " <<  aMap.Tr() << " Vx " << aMap.VX() << " VY " << aMap.VY() << "\n";
-		StdOut() << "DDD " <<  aD << "\n";
+		// StdOut() << "DDDelta " <<  aMap.Delta() << " accc : " << tElemNumTrait<TypeEl>::Accuracy() << std::endl;
+		// StdOut() << "Tr " <<  aMap.Tr() << " Vx " << aMap.VX() << " VY " << aMap.VY() << std::endl;
+		StdOut() << "DDD " <<  aD << std::endl;
 	    MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapInv");
 	}
 
@@ -395,7 +395,7 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
           TypeEl aDiv=std::min(TypeEl(1.0),Square(aMap.Divisor(aVIn[aK])));
           if ((aDiv>1e-10) && (anEr*aDiv>=1e-2))
           {
-               StdOut()  << "Diivv " << aMap.Divisor(aVIn[aK])  << " DD=" << aDiv  << " E=" << anEr << "\n";
+               StdOut()  << "Diivv " << aMap.Divisor(aVIn[aK])  << " DD=" << aDiv  << " E=" << anEr << std::endl;
 	       MMVII_INTERNAL_ASSERT_bench(false,"Least Sq Estimat 4 Mapping");
           }
           aTabIn[aK] = aVIn[aK];
@@ -449,7 +449,7 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
              {
                   TypeEl aEps = 1e-3;
                   cPtxd<TypeEl,2> aDx(aEps,0);
-                  StdOut() <<  "erRRR = " << anEr << "\n";
+                  StdOut() <<  "erRRR = " << anEr << std::endl;
 
              }
          }
@@ -490,17 +490,17 @@ template <class tMap,class TypeEl> void TplBenchMap2D_NonLinear(const tMap & aMa
     for (int aKIter=0 ; aKIter<10 ; aKIter++)
     {
         aMap = aMap.LeastSquareRefine(aVIn,aVOutRef,&aRes);
-        // StdOut() << "      RESIDUAL=" << aRes << "\n";
+        // StdOut() << "      RESIDUAL=" << aRes << std::endl;
         aResMin= std::min(aRes,aResMin);
     }
     aRes /= tElemNumTrait<TypeEl>::Accuracy();
 
-    //StdOut() << "RESIDUAL=" << aRes << " " << aResMin << "\n";
+    //StdOut() << "RESIDUAL=" << aRes << " " << aResMin << std::endl;
 
     MMVII_INTERNAL_ASSERT_bench(aResMin<1e-5,"Ransac  Estimat 4 Mapping");
     // Dont understand why sometimes it grows back after initial decrease, to see later ...
     MMVII_INTERNAL_ASSERT_Unresolved(aRes<1e-3,"Ransac  Estimat 4 Mapping");
-    // StdOut() << "Hhhhhhhhhhhhh \n"; getchar();
+    // StdOut() << "Hhhhhhhhhhhhh " << std::endl; getchar();
 }
 
 template <class Type> void TplElBenchMap2D()

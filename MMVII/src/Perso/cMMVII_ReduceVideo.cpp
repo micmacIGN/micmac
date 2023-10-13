@@ -66,7 +66,7 @@ template <typename tFunc>
      double aRatioMed = ConstMediane(aVRatioMed);
      double aRatioAvg = ConstMediane(aVRatioAvg);
 
-     StdOut()  <<  "===============  TEST FOR " << aMes << " ================ \n\n";
+     StdOut()  <<  "===============  TEST FOR " << aMes << " ================ \n" << std::endl;
      for (size_t aK=0 ; aK<aVSz.size() ; aK++)
      {
          double aFitTime = aVFitTime[aK];
@@ -199,7 +199,7 @@ int cAppli_ReduceVideo::Exe()
              std::string aNameInit = FileOfPath(aFullN0);
 	     if (! starts_with(aNameInit,mPrefixRed))
 	     {
-		     StdOut() << "NN=[" << aNameInit << "] RR=[" << mPrefixRed << "]\n";
+		     StdOut() << "NN=[" << aNameInit << "] RR=[" << mPrefixRed << "]" << std::endl;
 	         // if name of file has ' ' , replace with '_'
 	         if (false) // ( (aNameInit.find(' ') !=  std::string::npos) || (aNameInit.find('&') !=  std::string::npos))
 	         {
@@ -255,25 +255,25 @@ int cAppli_ReduceVideo::Exe()
                          aFileFails.push_back(aFullN0);
 		    }
 		 }
-	         StdOut() << "COM=[" << aCom <<"]\n"; 
+	         StdOut() << "COM=[" << aCom <<"]" << std::endl; 
 	     }
 	 }
     }
 
     if (! aDirsWithWhite.empty())
     {
-       StdOut() << "===============  FOLDER WITH WHITE ===============\n";
+       StdOut() << "===============  FOLDER WITH WHITE ===============" << std::endl;
        for (const auto & aDir : aDirsWithWhite)
        {
-           StdOut() << "    DIR=[" << aDir << "]\n";
+           StdOut() << "    DIR=[" << aDir << "]" << std::endl;
        }
     }
     if (! aFileFails.empty())
     {
-       StdOut() << "===============  FILE WITH FAILS ===============\n";
+       StdOut() << "===============  FILE WITH FAILS ===============" << std::endl;
        for (const auto & aName : aFileFails)
        {
-           StdOut() << "    Name=[" << aName << "]\n";
+           StdOut() << "    Name=[" << aName << "]" << std::endl;
        }
     }
 

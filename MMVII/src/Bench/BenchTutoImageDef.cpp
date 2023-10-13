@@ -206,7 +206,7 @@ void cTestDeformIm::OneIterationFitModele(bool IsLast)
    mSys->SolveUpdateReset();
 
    if (mShow)
-      StdOut() << " Dif=" << aSomDif / aSomMod << " NbOut=" << aNbOut  << "\n";
+      StdOut() << " Dif=" << aSomDif / aSomMod << " NbOut=" << aNbOut  << std::endl;
    //  If we are at end, check that the model is equal (up to numerical accuracy)  to the target 
    if (IsLast)
    {

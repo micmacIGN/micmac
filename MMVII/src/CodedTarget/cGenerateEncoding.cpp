@@ -274,7 +274,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
 void cAppliGenerateEncoding::Show()
 {
      for (const auto & aPC : mVOC)
-         StdOut() << StrOfBitFlag(aPC->mLowCode,mP2) << "\n";
+         StdOut() << StrOfBitFlag(aPC->mLowCode,mP2) << std::endl;
 }
 
 /*
@@ -305,12 +305,12 @@ void MakeFile3DCern3DTargt(size_t aNBB,size_t aNbD)
          cPt3dr aPt(aV.at(1),aV.at(2),aV.at(3));
 	 std::string aName = ToStr(round_ni(aV.at(0)),aNbD);
 	 aSetM.AddMeasure(cMes1GCP(aPt,aName,1.0));
-	 // StdOut() << "N=" << aName << " P=" << aPt << "\n";
+	 // StdOut() << "N=" << aName << " P=" << aPt << std::endl;
     }
 
     aSetM.ToFile(aNameFileOut);
 
-    // StdOut()  << "AICON => " << aVV[0] << "......." << aVV.back() << "\n";
+    // StdOut()  << "AICON => " << aVV[0] << "......." << aVV.back() << std::endl;
 }
 */
 
@@ -390,7 +390,7 @@ int  cAppliGenerateEncoding::Exe()
    //  [1] =============   read initial value of cells
    mCEC = cCompEquiCodes::Alloc(mSpec.mNbBits,mPerCircPerm,mMiror);
    mVOC = mCEC->VecOfCells();
-   StdOut() <<  "Size Cells init " << mVOC.size() << "\n";
+   StdOut() <<  "Size Cells init " << mVOC.size() << std::endl;
 
    //  [2]  ========  filter : if there exist an external file of codes, use it to filter ==========
 
@@ -406,14 +406,14 @@ int  cAppliGenerateEncoding::Exe()
            MMVII_DEV_WARNING("Use of ambiguous filter code");
        }
        mVOC = mCEC->VecOfUsedCode(aVCode,true);
-       StdOut() <<  "Size after file filter " << mVOC.size() << "\n";
+       StdOut() <<  "Size after file filter " << mVOC.size() << std::endl;
 
 
        if (1)
        {
           for (size_t aK=1 ; aK<aVCode.size(); aK++)
 	  {
-              // StdOut() << "KKK " << aVCode[aK] << "\n";
+              // StdOut() << "KKK " << aVCode[aK] << std::endl;
               MMVII_INTERNAL_ASSERT_bench(aVCode[aK-1].x() < aVCode[aK].x(),"Not growing order for num in 3D-AICON");
               MMVII_INTERNAL_ASSERT_bench(aVCode[aK-1].y() < aVCode[aK].y(),"Not growing order for bitflag in 3D-AICON");
 	  }
@@ -440,7 +440,7 @@ int  cAppliGenerateEncoding::Exe()
                 return aHC.UnCodeWhenCorrect(aPC->mLowCode) <0;
              } 
        );
-       StdOut() <<  "Size after hamming code " << mVOC.size()  << "\n";
+       StdOut() <<  "Size after hamming code " << mVOC.size()  << std::endl;
    }
    //  [3]  ========  filter : if there is a parity check  ====================
 
@@ -455,7 +455,7 @@ int  cAppliGenerateEncoding::Exe()
                 return  toSupress;
              } 
        );
-       StdOut() <<  "Size after parity filter " << mVOC.size()  <<  " PARITY=" << mSpec.mParity << "\n";
+       StdOut() <<  "Size after parity filter " << mVOC.size()  <<  " PARITY=" << mSpec.mParity << std::endl;
    }
 
    //  [4]  ========  filter : if there is constraint on run lenght  ====================
@@ -471,7 +471,7 @@ int  cAppliGenerateEncoding::Exe()
 		     return (aRL.x() > mSpec.mMaxRunL.x()) || (aRL.y() > mSpec.mMaxRunL.y());
              } 
        );
-       StdOut() <<  "Size after max run lenght filter " << mVOC.size() << "\n";
+       StdOut() <<  "Size after max run lenght filter " << mVOC.size() << std::endl;
    }
      
    //  [5]  ========  make a selection of "maxmimal" subset respecting hamming criteria  ====================
@@ -511,11 +511,11 @@ int  cAppliGenerateEncoding::Exe()
        }
        if (aTSeq.ItsTime2Execute())  // make user patient
        {
-	   StdOut() << "Hamming filter, still to do " << mSpec.mMaxNb-aNewVOC.size() << "\n";
+	   StdOut() << "Hamming filter, still to do " << mSpec.mMaxNb-aNewVOC.size() << std::endl;
        }
    }
    mVOC = aNewVOC;
-   StdOut() <<  "Size after hamming  distance selection" << mVOC.size() << "\n";
+   StdOut() <<  "Size after hamming  distance selection" << mVOC.size() << std::endl;
 
    //  [6] ==================== Finalization : 
    //        * Compute range (max val)  of code, code-equiv and num
