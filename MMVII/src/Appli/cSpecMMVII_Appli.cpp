@@ -64,14 +64,17 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
    {
         // Use allocator
         tMMVII_UnikPApli anAppli = Alloc()(aVArgs,*this);
+
+        // Execute
+        anAppli->InitParam(nullptr);
+
+        //  MPD : put it after InitParam, else seed modif does not work
         //  Force random creation, just after allocation, because it may need 
         if (aCptCallIntern==1)
         {
            OpenRandom();
         }
 
-        // Execute
-        anAppli->InitParam(nullptr);
         if (anAppli->ModeHelp() || anAppli->ModeArgsSpec())
            aRes = EXIT_SUCCESS;
         else
@@ -214,6 +217,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_SpecSerial);
         TheVecAll.push_back(&TheSpec_CGPReport);
         TheVecAll.push_back(&TheSpec_BlockCamInit);
+        TheVecAll.push_back(&TheSpec_ClinoInit);
+        TheVecAll.push_back(&TheSpecRename);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

@@ -80,7 +80,7 @@ void  cMMVII_Appli::AddOneReportCSV(const std::string &anId,const std::vector<st
 
 void cMMVII_Appli::AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string>  & Additional)
 {
-    std::vector<std::string> aVStd {aNameCol1,"NbMes","Avg","StdDev"};
+    std::vector<std::string> aVStd {aNameCol1,"NbMes","Avg","Err2"};
     for (const auto & aPerc : aVPerc)
         aVStd.push_back("P"+ToStr(aPerc));
 

@@ -7,6 +7,7 @@ namespace MMVII
 
 template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
 {
+
    int aNbTest = std::min(10000,300*(1+aParam.Level()));
    for (int aKTest=0 ; aKTest<aNbTest ; aKTest++)
    {
@@ -163,7 +164,7 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
 
 	Type aD = aR0.Mat().DIm().L2Dist(aR1.Mat().DIm());
 	aSomD += aD;
-        MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"Omega Phi Kapa"); 
+        MMVII_INTERNAL_ASSERT_bench(aD<1e-3,"Omega Phi Kapa"); 
 
 
 	aR0 = cRotation3D<Type>::RotFromYPR(aWPK);
@@ -552,6 +553,8 @@ void BenchHomogr2D();
 void BenchGeom(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Geom")) return;
+
+    BenchSampleQuat();
 
     BenchHomogr2D();
 

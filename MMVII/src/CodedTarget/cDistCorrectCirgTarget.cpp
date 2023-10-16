@@ -61,6 +61,11 @@ class cAppliCorrecDistCircTarget : public cMMVII_Appli
         cSensorCamPC *              mCamPC;
         cSetMesImGCP                mMesImGCP;
 	bool                        mSaveMeasure;
+
+	std::string                 mPostfixReport;
+	std::string                 mReportDetail;
+	std::string                 mReportIm;
+	std::vector<int>            mPropStat;
 };
 
 cAppliCorrecDistCircTarget::cAppliCorrecDistCircTarget
@@ -70,7 +75,8 @@ cAppliCorrecDistCircTarget::cAppliCorrecDistCircTarget
 ) :
    cMMVII_Appli  (aVArgs,aSpec),
    mPhProj       (*this),
-   mNormal       (0,0,1)
+   mNormal       (0,0,1),
+   mPropStat     ({50,75})
 {
 }
 
@@ -162,7 +168,10 @@ cSimulProjEllispe cAppliCorrecDistCircTarget::EstimateRealCenter(const cMes1GCP 
     aRes.mCenterIm  = anEl.Center();
 
     // Delta  = Real-Estim  =>>   REAL = ESTIM+DELTA
-    aRes.mCorrecC =  aRes.mProj3DC - aRes.mCenterIm;
+    cPt2dr aCor =  aRes.mProj3DC - aRes.mCenterIm;
+    aRes.mCorrecC =  aCor;
+
+    AddOneReportCSV(mReportDetail,{mNameIm,aGCP.mNamePt,ToStr(aCor.x()),ToStr(aCor.y()),ToStr(Norm2(aCor))});
     return aRes;
 }
 
@@ -170,6 +179,7 @@ void cAppliCorrecDistCircTarget::EstimateRealCenter()
 {
    cSetMesPtOf1Im  aSetMesIm = mMesImGCP.MesImInitOfName(mNameIm);
 
+   cStdStatRes aStat;
    for (auto & aMesIm : aSetMesIm.Measures())
    {
         const cMes1GCP &  aGCP = mMesImGCP.MesGCPOfName(aMesIm.mNamePt);
@@ -178,7 +188,10 @@ void cAppliCorrecDistCircTarget::EstimateRealCenter()
 
 	aMesIm.mPt   = aSPE.CenterEllToProj(aMesIm.mPt);
 	//  StdOut()  << "DD=" << aGCP.mNamePt << " " << aSPE.mCorrecC << "\n";
+	aStat.Add(Norm2(aSPE.mCorrecC));
    }
+   AddStdStatCSV(mReportIm,mNameIm,aStat,mPropStat);
+
 
    if (mSaveMeasure)
       mPhProj.SaveMeasureIm(aSetMesIm);
@@ -190,15 +203,25 @@ int  cAppliCorrecDistCircTarget::Exe()
 {
    mPhProj.FinishInit();
 
+   mPostfixReport  = "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn() ;
+   mReportDetail   = "Detail-" +mPostfixReport;
+   mReportIm       = "ByImage-" +mPostfixReport;
+   InitReport(mReportDetail,"csv",true);
+   InitReport(mReportIm,"csv",true);
+
+
    mSaveMeasure = mPhProj.DPPointsMeasures().DirOutIsInit();
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
-      return ResultMultiSet();
+        AddOneReportCSV(mReportDetail,{"Image","GCP","Dx","Dx","Norm"});
+	AddStdHeaderStatCSV(mReportIm,"Image",mPropStat);
+
+        return ResultMultiSet();
    }
 
    mNameIm = FileOfPath(mSpecImIn);
-   mPhProj.LoadSensor(mNameIm,mSensor,mCamPC,true);
+   mPhProj.LoadSensor(mNameIm,mSensor,mCamPC,false);
 
    mPhProj.LoadGCP(mMesImGCP);
    mPhProj.LoadIm(mMesImGCP,*mSensor);

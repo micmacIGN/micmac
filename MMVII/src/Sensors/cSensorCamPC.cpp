@@ -27,6 +27,12 @@ cSensorCamPC::cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cP
 {
 }
 
+void cSensorCamPC::SetPose(const tPose & aPose)
+{
+   mPose = aPose;
+}
+
+
 std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK() 
 {
     return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib};
@@ -41,9 +47,19 @@ void cSensorCamPC::PutUknowsInSetInterval()
 
 cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
 {
-        //  mPose(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
-     return mInternalCalib->Value(mPose.Inverse(aP));
+     return mInternalCalib->Value(Pt_W2L(aP));
 }
+
+
+        //  Local(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
+cPt3dr cSensorCamPC::Pt_W2L(const cPt3dr & aP) const { return       mPose.Inverse(aP); }
+cPt3dr cSensorCamPC::Vec_W2L(const cPt3dr & aP) const { return mPose.Rot().Inverse(aP); }
+
+cPt3dr cSensorCamPC::Pt_L2W(const cPt3dr & aP) const { return       mPose.Value(aP); }
+cPt3dr cSensorCamPC::Vec_L2W(const cPt3dr & aP) const { return mPose.Rot().Value(aP); }
+
+
+
 
 double cSensorCamPC::DegreeVisibility(const cPt3dr & aP) const
 {

@@ -321,6 +321,10 @@ class cAr2007 : public cMemCheck
          bool  Input() const;
          ///  Specification archive need some trick action with containers
          bool  IsSpecif() const;
+	 ///  rare used, required in CSV to avoid duplication, default error
+	 virtual void SetSpecif(bool);
+	 /// rare used, required in CSV
+	 virtual void PutArchiveIn(std::vector<std::string> * aRes);
          /// Allow to  know by advance if next optionnal value is present, usefull with Xml
          /// Default return error
          virtual int NbNextOptionnal(const std::string &);
@@ -435,7 +439,7 @@ void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered
 void AddData(const  cAuxAr2007 & anAux, std::map<std::string,int>&  aVal) ;  ///< 
 
 template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) ;  ///<for cPt2dr
-template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal);
+template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal,eTAAr aTAAr= eTAAr::eFixTabNum);
 
 
 

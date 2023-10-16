@@ -294,7 +294,6 @@ void cPhotogrammetricProject::FinishInit()
 cPhotogrammetricProject::~cPhotogrammetricProject() 
 {
     DeleteMTD();
-    DeleteAllAndClear(mLCam2Del);
 }
 
 
@@ -424,7 +423,8 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
     cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam,!ToDelete);
 
     if (ToDelete)
-       mLCam2Del.push_back(aCamPC);
+       cMMVII_Appli::AddObj2DelAtEnd(aCamPC);
+      
 
     return aCamPC;
 }

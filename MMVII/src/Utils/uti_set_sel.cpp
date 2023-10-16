@@ -483,12 +483,24 @@ std::string ReplacePattern(const std::string & aPattern,const std::string & aSub
    //     ReplacePattern(".*","15","toto") -> 1515    ??? 
    //     ReplacePattern("t.*","15","toto") -> 15    as it should be
    //
+   std::string aRes ="";
    if (aPattern==".*")
    {
 	   // tricky to we replace the univ pattern by the string that macth itself perfectly !!
-         return  std::regex_replace(aString,std::regex(aString),aSubst, std::regex_constants::format_no_copy);
+         aRes=  std::regex_replace(aString,std::regex(aString),aSubst, std::regex_constants::format_no_copy);
    }
-   return std::regex_replace(aString,std::regex(aPattern),aSubst, std::regex_constants::format_no_copy);
+   else
+   {
+       aRes = std::regex_replace(aString,std::regex(aPattern),aSubst, std::regex_constants::format_no_copy);
+   }
+   if (aRes=="")
+   {
+       StdOut() << "Pat=[" << aPattern << "] String=[" << aString << "]\n";
+       MMVII_INTERNAL_ASSERT_tiny(false,"No match  in ReplacePattern");
+   }
+
+
+   return aRes;
 }
 
 std::string PatternKthSubExpr(const std::string & aPattern,int aKThSub,const std::string & aString)

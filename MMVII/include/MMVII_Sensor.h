@@ -62,7 +62,8 @@ class cPixelDomain :  public cDataBoundedSet<tREAL8,2>
 
 /*  base-class  4 all image sensor */
 
-class cSensorImage  :  public cObjWithUnkowns<tREAL8>
+class cSensorImage  :   public cObj2DelAtEnd,
+                        public cObjWithUnkowns<tREAL8>
 {
      public :
 
@@ -444,7 +445,6 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMetaData;
 
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;
-	  mutable std::list<cSensorCamPC*>          mLCam2Del; 
 
 };
 void SaveAndFilterAttrEll(const cPhotogrammetricProject & aPhp,const cSetMesPtOf1Im &  aSetM,const std::set<std::string> & ToRem);

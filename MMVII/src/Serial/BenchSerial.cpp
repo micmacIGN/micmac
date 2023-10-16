@@ -1,6 +1,7 @@
 #include "MMVII_Bench.h"
 #include "MMVII_Class4Bench.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_CSV_Serial_Tpl.h"
 
 #include "MMVII_Geom2D.h"
 #include "MMVII_PCSens.h"
@@ -15,6 +16,14 @@
 
 namespace MMVII
 {
+void BenchCSV(const std::string & aDirTmp);
+
+bool  ReadableSerialType (eTypeSerial aType)
+{
+  static std::vector<eTypeSerial> UnreadableTypes{eTypeSerial::etagt,eTypeSerial::exml2,eTypeSerial::ecsv};
+
+  return ! BoolFind(UnreadableTypes,aType);
+}
 
 //  ==========  cTestSerial0 =================
 
@@ -304,9 +313,9 @@ template <class Type> void BenchSerialObject_AllMode(const Type & anObj,const st
 {
     for (int aKS1=0 ; aKS1 <int(eTypeSerial::eNbVals) ;aKS1++)
     {
-        if ((aKS1 != int (eTypeSerial::etagt)) &&(aKS1 != int (eTypeSerial::exml2)))
+        if (ReadableSerialType((eTypeSerial) aKS1))
 	{
-		BenchSerialObject_1Mode(anObj,aDirOut,eTypeSerial(aKS1));
+           BenchSerialObject_1Mode(anObj,aDirOut,eTypeSerial(aKS1));
 	}
     }
 }
@@ -359,7 +368,7 @@ void BenchSerial_PerspCamIntrCalib(cPerspCamIntrCalib * aCam1,const std::string 
 void BenchSerial_PerspCamIntrCalib(const std::string & aDirOut,eTypeSerial aTypeS)
 {
      // tuning serial -type, dont handle read
-     if ((aTypeS==eTypeSerial::etagt)  || (aTypeS==eTypeSerial::exml2))
+     if (! ReadableSerialType(aTypeS))
         return;
 
      for (int aKM=0 ; aKM<int(eProjPC::eNbVals) ; aKM++)
@@ -397,11 +406,9 @@ void BenchSerialization
 	   MMVII_DEV_WARNING("NO JSON IN BenchSerialization");
 
 
-   if (     (aTypeS==eTypeSerial::etagt)  || (aTypeS2==eTypeSerial::etagt)
-        ||  (aTypeS==eTypeSerial::exml2)  || (aTypeS2==eTypeSerial::exml2)
-      )
+   if ( (!ReadableSerialType(aTypeS)) || (!ReadableSerialType(aTypeS2))  )
    {
-	   return;
+       return;
    }
     std::string anExt  = E2Str(aTypeS);
     std::string anExt2 = E2Str(aTypeS2);
@@ -476,7 +483,7 @@ void BenchSerialization
 
 	for (int aKS=0 ; aKS <int(eTypeSerial::eNbVals) ;aKS++)
         {
-           if ((aKS!=(int) eTypeSerial::etagt) &&  (aKS!=(int) eTypeSerial::exml2) )
+           if (ReadableSerialType(eTypeSerial(aKS)))
 	   {
                std::string aPost = E2Str(eTypeSerial(aKS));
                SaveInFile(aP34,aDirOut+"F10."+aPost);
@@ -550,6 +557,8 @@ void BenchSerialization
 {
     if (! aParam.NewBench("Serial")) return;
 
+    BenchCSV(aDirOut);
+
     // SaveInFile(cTestSerial1(),"toto.json");
     // SaveInFile(GentTestMasSerial(),"toto_map.json");
     // SaveInFile(GentTestMasSerial(),"toto_map.xml");
@@ -608,6 +617,33 @@ void BenchSerialization
     }
     aParam.EndBench();
 }
+
+template <class Type> void VectBenchCSV(const std::vector<Type>& aVect1,const std::string & aNameFile,bool WithHeader)
+{
+    ToCSV(aVect1,aNameFile,WithHeader);
+
+    std::vector<Type> aVect2;
+    FromCSV(aVect2,aNameFile,WithHeader);
+
+    MMVII_INTERNAL_ASSERT_bench(aVect1.size()==aVect2.size(),"Sz Diff in VectBenchCSV");
+}
+
+
+void BenchCSV(const std::string & aDirTmp)
+{
+
+    std::vector<cTestSerial0> aVObj;
+    for (int aK=0 ; aK<10 ; aK++)
+    {
+         cTestSerial0 aTS0;
+         aTS0.mI1 = aK;
+         // aFileTS0.AddObj(aTS0);
+         aVObj.push_back(aTS0);
+    }
+    VectBenchCSV(aVObj,aDirTmp+"FilecTestSerial0_H.csv",true);
+    VectBenchCSV(aVObj,aDirTmp+"FilecTestSerial0_NoH.csv",false);
+}
+
 
 };
 

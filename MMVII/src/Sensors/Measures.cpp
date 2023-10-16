@@ -142,7 +142,7 @@ void cSetMesImGCP::Add1GCP(const cMes1GCP & aMes)
 {
      MMVII_INTERNAL_ASSERT_medium(!mPhaseGCPFinished,"cSetMesImGCP cannot add GCP after image");
      mMesGCP.push_back(aMes);
-     m2MapPtInt.Add(aMes.mNamePt);
+     m2MapPtInt.Add(aMes.mNamePt,false,"GCP-3D : " + aMes.mNamePt);
 }
 
 void cSetMesImGCP::AddMes3D(const cSetMesGCP &  aSet)
@@ -158,7 +158,7 @@ const cSetMesPtOf1Im  & cSetMesImGCP::MesImInitOfName(const std::string & aNameI
 
 const cMes1GCP &  cSetMesImGCP::MesGCPOfName(const std::string & aNamePt) const
 {
-    return mMesGCP.at(m2MapPtInt.Obj2I(aNamePt));
+    return mMesGCP.at(m2MapPtInt.Obj2IWithMsg(aNamePt,"GCP : " + aNamePt));
 }
 
 cMes1GCP &  cSetMesImGCP::MesGCPOfName(const std::string & aNamePt)   
@@ -502,6 +502,11 @@ cSetMesGCP  cSetMesGCP::FromFile(const std::string & aNameFile)
 
 void cSetMesGCP::ToFile(const std::string & aNameFile)
 {
+    // we do this because by side effect it check efficiently the absence of duplicata
+    {
+        cSetMesImGCP aMesIG;
+        aMesIG.AddMes3D(*this);
+    }
      SaveInFile(*this,aNameFile);
 }
 

@@ -95,6 +95,7 @@ enum class eTypeSerial
                 etxt,    ///< equivalent to binary but in text file
                 etagt,    ///< internal, tagged-text to generate readable tree struct, write only
                 ejson,      ///<  Json file
+                ecsv,      ///<  csv file
                 eNbVals     ///< Tag for number of value
 	   };
 bool IsTagged(eTypeSerial);
@@ -106,7 +107,8 @@ enum class eTAAr
 {
       eStd,         //  standard defaut value
       eSzCont,      //  it the size of a container
-      eFixTabNum,   //  Tab of num with fixed sized, as used in cPtxd serialisation
+      eFixTabNum,   //  Tab of num with fixed sized ( used before in cPtxd serialisation)
+      ePtxd     ,   //  Special case of eFixTabNum,
       eCont    ,    //  container  list, vector ...
       eElemCont,    //  element of a container  list, vector
       eMap,         //  a std::map

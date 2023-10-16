@@ -141,15 +141,13 @@ class cAppli_CheckGCPDist : public cMMVII_Appli
         tNameSet                 mSetOK11;        ///< Set of point OK for 11 parameters estimation
         tNameSet                 mSetOKResec;      ///< Set of  point ok for space resection
 
-	// ---- Set not OK, more for documentation & inspection
-        tNameSet                 mSetNotOK11;     ///< Set of point NOT Ok for 11 P
-        tNameSet                 mSetNotOKResec;
-
         std::vector<cPtCheck>    mPtCheck;
         int                      mNbZ0 ;  ///< number of validated point in plane 0 of CERN PANNEL
         int                      mNbZ1 ;  ///< number of validated point in other plane  of CERN PANNEL
 	cPt2di                   mSupId;
         cIm2D<tU_INT1>           mImId;
+	std::string              mNameReportErrTarget;
+	std::string              mNameReportImages;
 };
 
 cAppli_CheckGCPDist::cAppli_CheckGCPDist
@@ -188,7 +186,7 @@ cCollecSpecArg2007 & cAppli_CheckGCPDist::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	      << AOpt2007(mNbMin11P,"NbMin11P","Number minimal of point for 11 Param",{eTA2007::HDV})
 	      << AOpt2007(mMinPlan11,"MinPlane11P","Minim planarity index of 11 Param",{eTA2007::HDV})
 	      << AOpt2007(mNbMinResec,"NbMinResec","Number minimal of point for space resection",{eTA2007::HDV})
-	      << AOpt2007(mMinLineResec,"MinPlane11P","Mimimal linearity index of space resection",{eTA2007::HDV})
+	      << AOpt2007(mMinLineResec,"MinLineResec","Mimimal linearity index of space resection",{eTA2007::HDV})
 	      << AOpt2007(mPrefSave,"PrefSave","Prefix for saved files",{eTA2007::HDV})
 	      << AOpt2007(mVSpecCernPanel,"SpecCernPan","[H0 H1 Delta Nb Tile Dx Dy] : spec CERN for 11P",
                           {{eTA2007::ISizeV,"[8,8]"}})
@@ -285,6 +283,8 @@ bool   cAppli_CheckGCPDist::ComputeMainHomogr(cHomogr2D<tREAL8> & aHG2I)
               if (aDif >  mThresholdHomog)
               {
                  aPC.mIsOk = false;
+		 AddOneReportCSV(mNameReportErrTarget,{mCurNameIm,aPC.mGr->mNamePt,"MainHom",ToStr(aDif)});
+
                  // StdOut() << "##############  DIFFF " << aDif << " Pt=" <<  aPC.mGr->mNamePt << " Im=" << mCurNameIm << "#### \n";
               }
 	      else
@@ -448,24 +448,19 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
     if (0)   StdOut() << " Im=" << mCurNameIm << " PlaneInd=" << aPlanarityIndex  << " LineInd=" << aLinearityIndex << "\n";
 
 
-    if (aPlanarityIndex < mMinPlan11)
-    {
-       mSetNotOK11.Add(aNameIm);
-    }
-    else
+    Ok11P = Ok11P && (aPlanarityIndex > mMinPlan11);
+    if (Ok11P)
     {
         mSetOK11.Add(aNameIm);
     }
 
-    if (aLinearityIndex < mMinLineResec)
-    {
-       mSetNotOKResec.Add(aNameIm);
-    }
-    else
+    OkResec = OkResec && (aLinearityIndex > mMinLineResec);
+    if (OkResec)
     {
        mSetOKResec.Add(aNameIm);
     }
 
+    AddOneReportCSV(mNameReportImages,{ToStr(Ok11P),ToStr(OkResec),aNameIm,ToStr(aVP3.size()),ToStr(aLinearityIndex),ToStr(aPlanarityIndex)});
 
     if (mSaveMeasures)
     {
@@ -487,6 +482,15 @@ void cAppli_CheckGCPDist::MakeOneIm(const std::string & aNameIm)
 int cAppli_CheckGCPDist::Exe()
 {
     mPhProj.FinishInit();
+
+    mNameReportErrTarget = "RejectedTarget";
+    mNameReportImages = "ReportImage";
+    InitReport(mNameReportErrTarget,"csv",false);
+    InitReport(mNameReportImages,"csv",false);
+
+    AddOneReportCSV(mNameReportErrTarget,{"Image","GCP","Cause","Err"});
+
+    AddOneReportCSV(mNameReportImages,{"Ok11P","OKResec","Image","NbGCP","LineIndex","PlaneIndex"});
 
 
     //  if we just need a pattern for xml file
@@ -518,9 +522,7 @@ int cAppli_CheckGCPDist::Exe()
         MakeOneIm(aNameIm);
     }
 
-    SaveInFile(mSetNotOK11,mPrefSave+"_NotOK_11Param.xml");
     SaveInFile(mSetOK11,mPrefSave+"_OK_11Param.xml");
-    SaveInFile(mSetNotOKResec,mPrefSave+"_NotOK_Resec.xml");
     SaveInFile(mSetOKResec,mPrefSave+"_OK_Resec.xml");
 
     if (mSaveMeasures)

@@ -334,9 +334,10 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
            MMVII_INTERNAL_ASSERT_bench(aRSEV.EigenVectors().Unitarity() <1e-5,"Bench unitarity EigenValue");
                // Test Eigen value are given in growing order
            const cDenseVect<Type>   & aEVals = aRSEV.EigenValues();
+           //  check decreasing order
            for (int aK=1 ; aK<aNb ; aK++)
            {
-               MMVII_INTERNAL_ASSERT_bench(aEVals(aK-1)<=aEVals(aK),"Bench unitarity EigenValue");
+               MMVII_INTERNAL_ASSERT_bench(aEVals(aK-1)<=aEVals(aK),"Bench decreasing order EigenValue");
            }
            cDenseMatrix<Type> aCheckEV =  aRSEV.OriMatr();
            MMVII_INTERNAL_ASSERT_bench(aCheckEV.DIm().L2Dist(aSim.DIm())<1e-5,"Bench unitarity EigenValue");
@@ -354,7 +355,7 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
              MMVII_INTERNAL_ASSERT_bench(aM.DIm().L2Dist(aSVD.OriMatr().DIm())<aDTest,"SVD Reconstr"); // It's M's decomposition
 
              // As SVD is abirtray up to signs/permutation, eigen use the following convention : vp are >=0 and
-             // given in degrowing order;  test this conventio is satisfied
+             // given in decreasing order;  test this conventio is satisfied
              const auto & aEV= aSVD.SingularValues();
              for (int aK=0  ; aK< aNb ; aK++)
              {

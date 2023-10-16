@@ -30,6 +30,8 @@
 namespace MMVII
 {
 
+bool  ReadableSerialType (eTypeSerial);
+
 const std::string  StrElCont = "el";
 const std::string  StrElMap = "Pair";
 
@@ -98,6 +100,15 @@ void AddSeparator(cAr2007 & anAr)
 */
 
 
+void cAr2007::SetSpecif(bool)
+{
+	MMVII_INTERNAL_ERROR("cAr2007::SetSpecif -> should not be here");
+}
+
+void cAr2007::PutArchiveIn(std::vector<std::string> * aRes)
+{
+	MMVII_INTERNAL_ERROR("cAr2007::PutArchiveIn -> should not be here");
+}
 
 void cAr2007::RawBeginName(const cAuxAr2007& anOT) {}
 void cAr2007::RawEndName(const cAuxAr2007& anOT) {}
@@ -162,14 +173,14 @@ void AddData(const  cAuxAr2007 & anAux, bool     &  aVal) { anAux.Ar().TplAddDat
 
 // void AddData(const  cAuxAr2007 & anAux, bool  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
 
-template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal)
+template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal,eTAAr aTAAr)
 {
     // A precaution, probably it work but need to test
     MMVII_INTERNAL_ASSERT_always(aNbVal,"Not Sur AddTabData work for NbVal=0, check....");
     anAux.Ar().OnBeginTab();
     
 // StdOut() << "AddTabDataAddTabData\n";
-    anAux.SetType(eTAAr::eFixTabNum);
+    anAux.SetType(aTAAr);
 
 
     if (aNbVal)
@@ -182,9 +193,9 @@ template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int
     anAux.Ar().OnEndTab();
 }
 
-template void AddTabData(const  cAuxAr2007 & anAux, size_t *  aVD,int aNbVal);
-template void AddTabData(const  cAuxAr2007 & anAux, tREAL8 *  aVD,int aNbVal);
-template void AddTabData(const  cAuxAr2007 & anAux, tREAL4 *  aVD,int aNbVal);
+template void AddTabData(const  cAuxAr2007 & anAux, size_t *  aVD,int aNbVal,eTAAr);
+template void AddTabData(const  cAuxAr2007 & anAux, tREAL8 *  aVD,int aNbVal,eTAAr);
+template void AddTabData(const  cAuxAr2007 & anAux, tREAL4 *  aVD,int aNbVal,eTAAr);
 
 void cHomogCpleIm::AddData(const  cAuxAr2007 & anAux)
 {
@@ -207,7 +218,7 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type
        StdOut() << "PointPointPoint\n";
        anAux.Ar().AddComment("xxPoint");
    }
-   AddTabData(anAux,aPt.PtRawData(),Dim);
+   AddTabData(anAux,aPt.PtRawData(),Dim,eTAAr::ePtxd);
 }
 
 template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cTplBox<Type,Dim>  &  aBox) 

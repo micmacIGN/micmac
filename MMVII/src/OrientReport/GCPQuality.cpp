@@ -53,9 +53,13 @@ class cAppli_CGPReport : public cMMVII_Appli
 	std::string              mPostfixReport;
 	std::string              mPrefixReport;
 
+	std::string              mNameReportDetail;
 	std::string              mNameReportIm;
         std::string              mNameReportGCP;
         std::string              mNameReportCam;
+        std::string              mNameReportMissed;
+
+	double                   mMarginMiss;  ///  Margin for counting missing targets
 };
 
 cAppli_CGPReport::cAppli_CGPReport
@@ -65,7 +69,8 @@ cAppli_CGPReport::cAppli_CGPReport
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
-     mPropStat     ({50,75})
+     mPropStat     ({50,75}),
+     mMarginMiss   (50.0)
 {
 }
 
@@ -86,6 +91,7 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     return      anArgOpt
 	     << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray,Zoom?=2]",{{eTA2007::ISizeV,"[3,4]"}})
 	     << AOpt2007(mPropStat,"Perc","Percentil for stat exp",{eTA2007::HDV})
+	     << AOpt2007(mMarginMiss,"MargMiss","Margin to border for counting missed target",{eTA2007::HDV})
     ;
 }
 
@@ -106,13 +112,14 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 
     // StdOut() << " aNameImaNameIm " << aNameIm  << " " << aSetMesIm.Measures().size() << " Cam=" << aCam << "\n";
 
+    cRGBImage aImaFieldRes(cPt2di(1,1));
+
     if (IsInit(&mGeomFiedlVec))
     {
          tREAL8 aMul    = mGeomFiedlVec.at(0);
          tREAL8 aWitdh  = mGeomFiedlVec.at(1);
          tREAL8 aRay    = mGeomFiedlVec.at(2);
-	 int aDeZoom    = round_ni(GetDef(mGeomFiedlVec,3,2.0));
-         cRGBImage aIma =  cRGBImage::FromFile(aNameIm);
+         aImaFieldRes =  cRGBImage::FromFile(aNameIm);
 
 	 //  [Mul,Witdh,Ray]
 	 for (const auto & aMes : aSetMesIm.Measures())
@@ -122,11 +129,10 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 	     cPt2dr aProj = aCam->Ground2Image(aPGr);
 	     cPt2dr  aVec = (aP2-aProj);
 
-             aIma.DrawCircle(cRGBImage::Green,aP2,aRay);
-             aIma.DrawLine(aP2,aP2+aVec*aMul,cRGBImage::Red,aWitdh);
+             aImaFieldRes.DrawCircle(cRGBImage::Green,aP2,aRay);
+             aImaFieldRes.DrawLine(aP2,aP2+aVec*aMul,cRGBImage::Red,aWitdh);
 	 }
 
-         aIma.ToJpgFileDeZoom(mPhProj.DirVisu() + "FieldRes-"+aNameIm+".tif",aDeZoom);
     }
 
 
@@ -143,11 +149,44 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 	aAvg2d.Add(1.0,aVec);
 	tREAL8 aDist = Norm2(aVec);
 	aStat.Add(aDist);
+        AddOneReportCSV(mNameReportDetail,{aNameIm,aMes.mNamePt,ToStr(aDist)});
+    }
+
+
+    for (const auto & aGCP : aSetMes.MesGCP())
+    {
+        if (aCam->IsVisible(aGCP.mPt))
+        {
+           cPt2dr aPIm = aCam->Ground2Image(aGCP.mPt);
+           tREAL8 aDeg = aCam->DegreeVisibilityOnImFrame(aPIm);
+           if ((aDeg> mMarginMiss) && (!aSetMesIm.NameHasMeasure(aGCP.mNamePt)))
+           {
+              AddOneReportCSV(mNameReportMissed,{aNameIm,aGCP.mNamePt,ToStr(aPIm.x()),ToStr(aPIm.y())});
+	      if (IsInit(&mGeomFiedlVec))
+	      {
+		    for (const auto aRay : {2.0,30.0,32.0,34.0})
+                        aImaFieldRes.DrawCircle(cRGBImage::Red,aPIm,aRay);
+	      }
+           }
+            if (LevelCall()==0)
+               StdOut() << "VISIBLE " << aGCP.mNamePt << "\n";
+        }
+	else
+	{
+            if (LevelCall()==0)
+               StdOut() << "### UNVISIBLE " << aGCP.mNamePt << "\n";
+	}
+    }
+
+    if (IsInit(&mGeomFiedlVec))
+    {
+	int aDeZoom    = round_ni(GetDef(mGeomFiedlVec,3,2.0));
+        aImaFieldRes.ToJpgFileDeZoom(mPhProj.DirVisu() + "FieldRes-"+aNameIm+".tif",aDeZoom);
     }
 
     AddStdStatCSV
     (
-       mNameReportIm,"Image",aStat,mPropStat, 
+       mNameReportIm,aNameIm,aStat,mPropStat, 
        {ToStr(aAvg2d.Average().x()),ToStr(aAvg2d.Average().y())}
     );
 }
@@ -155,6 +194,8 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 void cAppli_CGPReport::BeginReport()
 {
    AddStdHeaderStatCSV(mNameReportIm,"Image",mPropStat,{"AvgX","AvgY"});
+   AddOneReportCSV(mNameReportDetail,{"Image","GCP","Err"});
+   AddOneReportCSV(mNameReportMissed,{"Image","GCP","XTh","YTh"});
 }
 
 
@@ -184,6 +225,7 @@ void cAppli_CGPReport::ReportsByGCP()
             aStat.Add(Norm2( aMesIm.VMeasures()[aKIm]  - aVSens[aVIndI[aKIm]]->Ground2Image(aGCP.mPt)));
 	}
 	AddStdStatCSV(mNameReportGCP,aGCP.mNamePt,aStat,mPropStat);
+
    }
 
 }
@@ -278,13 +320,15 @@ int cAppli_CGPReport::Exe()
 
    mPostfixReport  =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPPointsMeasures().DirIn() ;
    mNameReportIm   =  "ByImage" + mPostfixReport;
+   mNameReportDetail   =  "Detail" + mPostfixReport;
    mNameReportGCP  =  "ByGCP"   + mPostfixReport;
    mNameReportCam   =  "ByCam"   + mPostfixReport;
 
+   mNameReportMissed   =  "MissedPoint"   + mPostfixReport;
 
    InitReport(mNameReportIm,"csv",true);
-
-
+   InitReport(mNameReportDetail,"csv",true);
+   InitReport(mNameReportMissed,"csv",true);
 
    if (LevelCall()==0)
    {

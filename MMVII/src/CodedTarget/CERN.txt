@@ -1,8 +1,18 @@
 Lot1 :
 
 +++   portage window
-++    separation MMV1
 +++   bloc rigide
-+    metadata
-    jeu tests de non regression (caneva general?)
 
+
+++    separation MMV1
++    metadata
+
+    jeu tests de non regression (caneva general?)
+Doc
+Formation
+
+
+Noms de fichiers  
+Formats de fichiers
+
+interface

@@ -1,7 +1,10 @@
 #include "MMVII_Stringifier.h"
 #include "Serial.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_CSV_Serial_Tpl.h"
 #include "MMVII_Class4Bench.h"
+
+#include "MMVII_PCSens.h"
 
 
 
@@ -157,46 +160,6 @@ tTestFileSerial  cSerialFileParser::TestFirstTag(const std::string & aNameFile)
      delete aTS2;
 
      return aResult;
-
-/*  OLD VERSION w/o "Simplify"
-    if (!ExistFile(aNameFile))
-       return tTestFileSerial(false,"");
-
-    eTypeSerial aTypeS = Str2E<eTypeSerial>(aPost,true);
-
-    if ((aTypeS!=eTypeSerial::exml) && (aTypeS!=eTypeSerial::ejson))
-       return tTestFileSerial(false,"");
-
-
-    cSerialFileParser * aSFP = Alloc(aNameFile,aTypeS);
-    cSerialTree  aTree(*aSFP);
-    delete aSFP;
-
-    aSFP = Alloc(aNameModel,aTypeS);
-    cSerialTree  aTreeMod(*aSFP);
-    delete aSFP;
-
-    cResDifST aDif = aTreeMod.AnalyseDiffTree(aTree,"XXX");
-
-    if ((aDif.mST1!=nullptr) && (aDif.mST2!=nullptr))
-    {
-	if (aDif.mST1->Value()=="ToMatch")
-           return  tTestFileSerial(true,aDif.mST2->Value());
-    }
-
-    WERY OLD VERSION W/O "AnalyseDiffTree"
-    /---*
-    if (aTypeS==eTypeSerial::exml)
-    {
-       return aTree.Xml_TestFirstTag();
-    }
-
-    if (aTypeS==eTypeSerial::ejson)
-       return aTree.Json_TestFirstTag();
-       *---/
-
-    return tTestFileSerial(false,"");
-*/
 }
 
 bool IsFileGivenTag(bool Is2007,const std::string & aNameFile,const std::string & aTag)
@@ -538,7 +501,7 @@ bool cSerialTree::IsTerminalNode() const
 	return  mDepth == mMaxDSon;
 }
 
-bool cSerialTree::IsTab() const
+bool cSerialTree::IsTabulable() const
 {
     if (mLexP != eLexP::eUp)  
         return false;
@@ -552,8 +515,10 @@ bool cSerialTree::IsTab() const
 
 bool cSerialTree::IsSingleTaggedVal() const
 {
-	return IsTab() && (mSons.size()==1);
+	return IsTabulable() && (mSons.size()==1);
 }
+
+
 
 
 void cSerialTree::UpdateMaxDSon()
@@ -638,33 +603,6 @@ void  cSerialTree::Indent(cMMVII_Ofs & anOfs,int aDeltaInd) const
      //=======================    XLM PRINTING ======================
 
 
-tTestFileSerial  cSerialTree::Xml_TestFirstTag()
-{
-  if (mSons.size() != 1)
-  {
-     return tTestFileSerial(false,"");
-  }
-
-  const cSerialTree & aS0 = UniqueSon();
-
-  // StdOut() << "Xml_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
-  if (     (aS0.mValue!= TagMMVIIRoot ) 
-        || (aS0.mSons.size() !=3) 
-	|| (aS0.mSons.at(0).mValue != TagMMVIIType)
-	|| (aS0.mSons.at(1).mValue != TagMMVIIVersion)
-     )
-     return tTestFileSerial(false,"");
-
-  const cSerialTree & aS1 = aS0.mSons.at(2);
-  if ((aS1.mValue!= TagMMVIIData) || ( aS1.mSons.size() !=1)) 
-     return tTestFileSerial(false,"");
-
-  const cSerialTree & aS2 = aS1.UniqueSon() ;
-
-
-  return tTestFileSerial(true,aS2.mValue);
-}
-
 
 void  cSerialTree::Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
 {
@@ -719,35 +657,6 @@ void  cSerialTree::Rec_Xml_PrettyPrint(cMMVII_Ofs & anOfs) const
 }
      //=======================    TAGT PRINTING ======================
 
-tTestFileSerial  cSerialTree::Json_TestFirstTag()
-{
-  if (mSons.size() != 1)
-  {
-     return tTestFileSerial(false,"");
-  }
-  const cSerialTree & aS0 = UniqueSon();
-
-  // StdOut() << "Json_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
-  // StdOut() << "Xml_TestFirstTag::: " << aS0.mValue << " " << aS0.mSons.size() << "\n";
-  if ((aS0.mValue!= "{") || ( aS0.mSons.size() !=11)) 
-     return tTestFileSerial(false,"");
-
-   if (    (aS0.mSons[0].mValue!=TagMMVIIType)
-        || (aS0.mSons[2].mValue!=TagMMVIISerial)
-        || (aS0.mSons[4].mValue!=TagMMVIIVersion)
-        || (aS0.mSons[8].mValue!=TagMMVIIData)
-        || (aS0.mSons[10].mValue!="{")
-      )
-     return tTestFileSerial(false,"");
-
-  const cSerialTree & aS1 = aS0.mSons[10];
-  if ( aS1.mSons.size() !=3)
-     return tTestFileSerial(false,"");
-
-  return tTestFileSerial(true,aS1.mSons[0].mValue);
-}
-
-
 void  cSerialTree::Raw_PrettyPrint(cMMVII_Ofs & anOfs) const
 {
      // bool OneLine = (mMaxDSon <= mDepth+1);
@@ -755,11 +664,6 @@ void  cSerialTree::Raw_PrettyPrint(cMMVII_Ofs & anOfs) const
       anOfs.Ofs() <<   mValue ;
 
       anOfs.Ofs() << " [" << E2Str(mTAAr) << "] : " << mLength ;
-      /*
-      if (IsTerminalNode())  anOfs.Ofs() << " (terminal)";
-      else if (IsSingleTaggedVal())  anOfs.Ofs() << " (SingleTaggeVal)";
-      else if (IsTab())  anOfs.Ofs() << " (tab)";
-      */
       anOfs.Ofs() << "\n";
       for (const auto & aSon : mSons)
       {
@@ -834,7 +738,7 @@ void  cSerialTree::Rec_Json_PrettyPrint(cMMVII_Ofs & anOfs,bool IsLast,int & aCp
           {
               aSon.Json_PrintTerminalNode(anOfs,aK==0,aCpt);
           }
-          else  if (aSon.IsTab())
+          else  if (aSon.IsTabulable())
           {
               aSon.Json_PrintSingleTab(anOfs,aK==0,aCpt);
           }
@@ -1242,6 +1146,10 @@ class cOMakeTreeAr : public cAr2007
      public :
         cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool IsSpecif = false) ;
         ~cOMakeTreeAr();
+
+	void PutArchiveIn(std::vector<std::string> * ) override; // do the job at destuction can be called several time
+	void SetSpecif(bool IsSpecif) override;
+
      protected :
 
 	std::string JSonQuote(const std::string & aStr) const;
@@ -1278,6 +1186,10 @@ std::string cOMakeTreeAr::JSonQuote(const std::string & aStr) const
     return (mTypeS==eTypeSerial::ejson) ? Quote(aStr) : aStr;
 }
 
+void cOMakeTreeAr::SetSpecif(bool IsSpecif)
+{
+    mIsSpecif = IsSpecif;
+}
 
 cOMakeTreeAr::cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool IsSpecif)  :
     cAr2007           (false,true,false),   // Input,  Tagged, Binary
@@ -1338,6 +1250,10 @@ void cOMakeTreeAr::RawAddDataTerm(std::string &    anS)
 }
 void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)   
 { 
+   if (mTypeS == eTypeSerial::ecsv)
+   {
+       MMVII_INTERNAL_ERROR("No cRawData4Serial for CSV file");
+   }
    std::string aStr ="\"";  // quote the string because of json
    tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
    for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
@@ -1352,7 +1268,6 @@ void cOMakeTreeAr::RawAddDataTerm(cRawData4Serial & aRDS)
        aStr = "hexacode";
    }
    mContToken.push_back(cResLex(aStr,eLexP::eStdToken_RD4S,eTAAr::eStd)); 
-
 }
 
 void cOMakeTreeAr::AddComment(const std::string & anS)
@@ -1362,9 +1277,22 @@ void cOMakeTreeAr::AddComment(const std::string & anS)
 }
 
 
-void cOMakeTreeAr::AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux)  {}
+void cOMakeTreeAr::AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux)  
+{
+     MMVII_INTERNAL_ASSERT_tiny
+     (
+          mTypeS != eTypeSerial::ecsv,
+	  "CSV file dont handle list, vector ..."
+     );
+}
+
 
 cOMakeTreeAr::~cOMakeTreeAr()
+{
+     PutArchiveIn(nullptr);
+}
+
+void cOMakeTreeAr::PutArchiveIn(std::vector<std::string> * aRes)
 {
     mContToken.push_back(cResLex("",eLexP::eEnd,eTAAr::eUndef));
     mItToken = mContToken.begin();
@@ -1372,22 +1300,32 @@ cOMakeTreeAr::~cOMakeTreeAr()
     cTokenGeneByList aTGBL(mContToken);
 
     cSerialTree aTree(aTGBL);
-    cMMVII_Ofs anOfs(mNameFile, eFileModeOut::CreateText);
 
-    if (mTypeS==eTypeSerial::exml)
+    if (mTypeS==eTypeSerial::ecsv)
     {
-       anOfs.Ofs() <<  TheXMLHeader << std::endl;
-       aTree.Xml_PrettyPrint(anOfs);
-       // aTree.UniqueSon().Xml_PrettyPrint(anOfs);
+        // cMMVII_Ofs anOfs(mNameFile, eFileModeOut::CreateText);
+        aTree.CSV_PrettyPrint(*aRes,mIsSpecif);
     }
-    else if (mTypeS==eTypeSerial::ejson)
+    else
     {
-         aTree.Json_PrettyPrint(anOfs);
+        cMMVII_Ofs anOfs(mNameFile, eFileModeOut::CreateText);
+        if (mTypeS==eTypeSerial::exml)
+        {
+           anOfs.Ofs() <<  TheXMLHeader << std::endl;
+           aTree.Xml_PrettyPrint(anOfs);
+           // aTree.UniqueSon().Xml_PrettyPrint(anOfs);
+        }
+        else if (mTypeS==eTypeSerial::ejson)
+        {
+             aTree.Json_PrettyPrint(anOfs);
+        }
+        else if (mTypeS==eTypeSerial::etagt)
+        {
+             aTree.Raw_PrettyPrint(anOfs);
+        }
     }
-    else if (mTypeS==eTypeSerial::etagt)
-    {
-         aTree.Raw_PrettyPrint(anOfs);
-    }
+
+    mContToken.clear();
 }
 
 
@@ -1396,7 +1334,75 @@ cAr2007 * Alloc_cOMakeTreeAr(const std::string & aName,eTypeSerial aTypeS,bool I
     return new cOMakeTreeAr(aName,aTypeS,IsSpecif);
 }
 
+/* ===============  CSV ========================================*/
 
+void  cSerialTree::CSV_PrettyPrint(std::vector<std::string> & aRes,bool IsSpecif) const
+{
+	Rec_CSV_PrettyPrint(aRes,IsSpecif);
+}
+
+void  cSerialTree::Rec_CSV_PrettyPrint(std::vector<std::string> & aRes,bool IsSpecif) const
+{
+     static std::vector<std::string>  aVxyzt{"x","y","z","t"};
+     if (IsSingleTaggedVal())
+     {
+         if (IsSpecif) 
+            aRes.push_back(mValue);
+	 else 
+            aRes.push_back(UniqueSon().mValue);
+
+	 return;
+     }
+     else if ((mTAAr==eTAAr::eFixTabNum) || (mTAAr==eTAAr::ePtxd))
+     {
+         int aCpt=0;
+         for (const auto & aSon : mSons)
+	 {
+             if (IsSpecif) 
+	     {
+                  std::string aNameExt = (mTAAr==eTAAr::eFixTabNum) ? (":v"+ToStr(aCpt)) : aVxyzt.at(aCpt) ;
+		  aRes.push_back(mValue +"." + aNameExt);
+	     }
+	     else
+	     {
+		  aRes.push_back(aSon.mValue);
+	     }
+	     aCpt++;
+	 }
+	 return;
+     }
+
+     for (const auto & aSon : mSons)
+         aSon.Rec_CSV_PrettyPrint(aRes,IsSpecif);
+}
+
+/* ==================================================================== */
+/*                                                                      */
+/*                      cBaseCVSFile                                    */
+/*                                                                      */
+/* ==================================================================== */
+
+
+cBaseCVSFile::cBaseCVSFile() :
+   mArTreeOut  (new cOMakeTreeAr("CSVFILE",eTypeSerial::ecsv,false)),
+   mArOut      (mArTreeOut)
+{
+}
+
+cBaseCVSFile::~cBaseCVSFile() 
+{
+    delete mArTreeOut;
+}
+
+
+void PutLineCSV(cMMVII_Ofs & anOfs,const std::vector<std::string>  & aVS) 
+{
+   if (! aVS.empty())
+	anOfs.Ofs() << aVS[0] ;
+   for (size_t aK=1 ; aK<aVS.size() ; aK++)
+       anOfs.Ofs() << "," << aVS[aK] ;
+   anOfs.Ofs() << "\n";
+}
 
 
 };

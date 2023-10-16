@@ -1,6 +1,7 @@
 #include "MMVII_enums.h"
 #include "MMVII_util_tpl.h"
 #include "MMVII_Ptxd.h"
+#include "cMMVII_Appli.h"
 
 
 namespace MMVII
@@ -12,11 +13,14 @@ namespace MMVII
 /* ********************************************* */
 
 template <class Type>
-   int cBijectiveMapI2O<Type>::Add(const Type & anObj,bool OkExist)
+   int cBijectiveMapI2O<Type>::Add(const Type & anObj,bool OkExist,const std::string & aMsgError)
 {
     if (mObj2I.find(anObj) != mObj2I.end())
     {
-       MMVII_INTERNAL_ASSERT_tiny(OkExist,"cBijectiveMapI2O multiple add");
+       if  (!OkExist)
+       {
+           MMVII_INTERNAL_ASSERT_tiny(false,"cBijectiveMapI2O multiple add : " + aMsgError);
+       }
        return -1;
     }
 
@@ -53,11 +57,28 @@ template <class Type>
 
     if (anIt== mObj2I.end())
     {
-        MMVII_INTERNAL_ASSERT_tiny(SVP,"Obj2I : object dont exist");
+        if (! SVP)
+	{
+              MMVII_INTERNAL_ASSERT_tiny(SVP,"Obj2I : object dont exist" );
+	}
         return -1;
     }
 
     return anIt->second;
+}
+
+template <class Type>
+   int  cBijectiveMapI2O<Type>::Obj2IWithMsg(const Type & anObj,const std::string & aMesg) const
+{
+    int aK = Obj2I(anObj,true);
+
+    if (aK<0)
+    {
+         StdOut()  << "For context : " << aMesg << "\n";
+         MMVII_INTERNAL_ASSERT_tiny(false,"Obj2I : object dont exist ===> [ " + aMesg + "]" );
+    }
+
+    return aK;
 }
 
 template class cBijectiveMapI2O<std::string>;

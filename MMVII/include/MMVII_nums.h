@@ -1010,7 +1010,8 @@ void  ReadFilesStruct
           std::vector<std::vector<std::string>> & aVNames,  // "N" 
           std::vector<cPt3dr> & aVXYZ,   //  "XYZ"
           std::vector<cPt3dr>  & aVWKP,  //   "WPK" 
-          std::vector<std::vector<double>>  & aVNums  //  get other double "FF*F"
+          std::vector<std::vector<double>>  & aVNums,  //  get other double "FF*F"
+          bool CheckFormat= true  // if true check :  XYZN have same count ... and more 2 com
       );
 
 /// nuber of occurence of aC0 in aStr

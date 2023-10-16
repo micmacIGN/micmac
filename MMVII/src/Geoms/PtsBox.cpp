@@ -301,6 +301,25 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PCste(cons
    return aRes;
 }
 
+
+template <class Type,const int Dim>  cPtxd<Type,Dim>  cPtxd<Type,Dim>::PFromCanonicalName(const std::string & aName,size_t & anIndex)
+{
+    int aSign =1;
+    if (aName.at(anIndex) == '-')
+    {
+        aSign = -1;
+	anIndex++;
+    }
+
+    int aKC = aName.at(anIndex++) - 'i';
+    cPtxd<Type,Dim>  aRes = PCste(0);
+    aRes[aKC] = aSign;
+
+    return aRes;
+}
+
+
+
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::Dummy()
 {
   return PCste(tElemNumTrait<Type>::DummyVal());// NAN);
@@ -1281,6 +1300,7 @@ template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,TYPE aW1
 template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,const cPtxd<TYPE,DIM> & aP1);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PFromCanonicalName(const std::string & aName,size_t & anIndex);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Dummy();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\

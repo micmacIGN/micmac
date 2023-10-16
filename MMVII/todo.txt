@@ -1,0 +1,15 @@
+importer a calib from another project :  scrypt python
+
+check data CERN : python or C++
+   taille image
+   numerotation
+
+
+Resec => big residu
+
+
+================  DONE ================================
+ImortGCP => Pts Mult ;
+
+
+
