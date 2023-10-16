@@ -212,9 +212,8 @@ class cSerialTree : public cMemCheck
 	  void  Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// xml-pretty print
 	  void  Json_PrettyPrint(cMMVII_Ofs& anOfs) const; /// json-pretty print
 	  void  Raw_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// Tagt-pretty print
+	  void  CSV_PrettyPrint(std::vector<std::string>& aRes,bool IsSpecif) const;  /// print 
 
-          tTestFileSerial  Xml_TestFirstTag();
-          tTestFileSerial  Json_TestFirstTag();
 
 	  /// Assert that there is only 1 son and return it
 	  const cSerialTree & UniqueSon() const; 
@@ -233,7 +232,7 @@ class cSerialTree : public cMemCheck
 	  void Rec_AnalyseDiffTree(const cSerialTree &,const std::string & aSkeep) const;
 
 	  bool IsTerminalNode() const;     ///< is it a node w/o son and not tagged
-	  bool IsTab() const;              ///< is it a non tagged node with all son terminal
+	  bool IsTabulable() const;        ///< can it be printed as a tab == is it a non tagged node with all son terminal
 	  bool IsSingleTaggedVal() const;  ///< is it  a 
 
 	  void  Rec_Xml_PrettyPrint(cMMVII_Ofs& anOfs) const;  /// xml-pretty print
@@ -247,6 +246,9 @@ class cSerialTree : public cMemCheck
 	  void Json_Comment(cMMVII_Ofs&,bool Last,int & aCpt) const;
 	  /// is it a key to ommit , like the "el" , "Pair" that would have multi occurence
 	  bool Json_OmitKey() const;
+
+	  /// 
+	  void  Rec_CSV_PrettyPrint(std::vector<std::string> & aRes,bool IsSpecif) const;  /// print 
 
 	  /// Was the generated for comment
 	  static bool IsJsonComment(const std::string&) ;

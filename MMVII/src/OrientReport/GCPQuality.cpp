@@ -112,13 +112,14 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 
     // StdOut() << " aNameImaNameIm " << aNameIm  << " " << aSetMesIm.Measures().size() << " Cam=" << aCam << "\n";
 
+    cRGBImage aImaFieldRes(cPt2di(1,1));
+
     if (IsInit(&mGeomFiedlVec))
     {
          tREAL8 aMul    = mGeomFiedlVec.at(0);
          tREAL8 aWitdh  = mGeomFiedlVec.at(1);
          tREAL8 aRay    = mGeomFiedlVec.at(2);
-	 int aDeZoom    = round_ni(GetDef(mGeomFiedlVec,3,2.0));
-         cRGBImage aIma =  cRGBImage::FromFile(aNameIm);
+         aImaFieldRes =  cRGBImage::FromFile(aNameIm);
 
 	 //  [Mul,Witdh,Ray]
 	 for (const auto & aMes : aSetMesIm.Measures())
@@ -128,11 +129,10 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 	     cPt2dr aProj = aCam->Ground2Image(aPGr);
 	     cPt2dr  aVec = (aP2-aProj);
 
-             aIma.DrawCircle(cRGBImage::Green,aP2,aRay);
-             aIma.DrawLine(aP2,aP2+aVec*aMul,cRGBImage::Red,aWitdh);
+             aImaFieldRes.DrawCircle(cRGBImage::Green,aP2,aRay);
+             aImaFieldRes.DrawLine(aP2,aP2+aVec*aMul,cRGBImage::Red,aWitdh);
 	 }
 
-         aIma.ToJpgFileDeZoom(mPhProj.DirVisu() + "FieldRes-"+aNameIm+".tif",aDeZoom);
     }
 
 
@@ -162,8 +162,26 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
            if ((aDeg> mMarginMiss) && (!aSetMesIm.NameHasMeasure(aGCP.mNamePt)))
            {
               AddOneReportCSV(mNameReportMissed,{aNameIm,aGCP.mNamePt,ToStr(aPIm.x()),ToStr(aPIm.y())});
+	      if (IsInit(&mGeomFiedlVec))
+	      {
+		    for (const auto aRay : {2.0,30.0,32.0,34.0})
+                        aImaFieldRes.DrawCircle(cRGBImage::Red,aPIm,aRay);
+	      }
            }
+            if (LevelCall()==0)
+               StdOut() << "VISIBLE " << aGCP.mNamePt << "\n";
         }
+	else
+	{
+            if (LevelCall()==0)
+               StdOut() << "### UNVISIBLE " << aGCP.mNamePt << "\n";
+	}
+    }
+
+    if (IsInit(&mGeomFiedlVec))
+    {
+	int aDeZoom    = round_ni(GetDef(mGeomFiedlVec,3,2.0));
+        aImaFieldRes.ToJpgFileDeZoom(mPhProj.DirVisu() + "FieldRes-"+aNameIm+".tif",aDeZoom);
     }
 
     AddStdStatCSV
@@ -208,7 +226,6 @@ void cAppli_CGPReport::ReportsByGCP()
 	}
 	AddStdStatCSV(mNameReportGCP,aGCP.mNamePt,aStat,mPropStat);
 
-	// int aNbX = std::sqrt(aVIndI.size());
    }
 
 }

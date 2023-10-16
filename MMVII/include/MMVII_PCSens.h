@@ -164,6 +164,9 @@ class cDataPerspCamIntrCalib
       std::vector<std::string>       mVectInfo;  ///< vector of potential commentarys
 };
 
+void AddData(const cAuxAr2007 & anAux,cDataPerspCamIntrCalib & aPCIC);
+
+
 
 /** this the class for computing the intric calibration of perspective camera :
 
@@ -442,10 +445,10 @@ class cSensorCamPC : public cSensorImage
 
          static void BenchOneCalib(cPerspCamIntrCalib * aCalib);
 
-	 cPt3dr  P_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "point"
-	 cPt3dr  P_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "point"
-	 cPt3dr  V_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "vector"
-	 cPt3dr  V_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "vector"
+	 cPt3dr  Pt_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "point"
+	 cPt3dr  Pt_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "point"
+	 cPt3dr  Vec_L2W(const cPt3dr &) const;  ///< Coordinat local of cam to coordinate word for a "vector"
+	 cPt3dr  Vec_W2L(const cPt3dr &) const;  ///< Coordinat word to coordinate local of cam for a "vector"
 
      private :
         void Bench();

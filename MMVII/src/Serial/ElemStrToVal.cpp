@@ -379,7 +379,8 @@ template<> cE2Str<eTypeSerial>::tMapE2Str cE2Str<eTypeSerial>::mE2S
                 {eTypeSerial::edmp,"dmp"},
                 {eTypeSerial::etxt,"txt"},
                 {eTypeSerial::etagt,"tagt"},
-                {eTypeSerial::ejson,"json"}
+                {eTypeSerial::ejson,"json"},
+                {eTypeSerial::ecsv,"csv"}
            };
 
 template<> cE2Str<eTAAr>::tMapE2Str cE2Str<eTAAr>::mE2S
@@ -387,6 +388,7 @@ template<> cE2Str<eTAAr>::tMapE2Str cE2Str<eTAAr>::mE2S
                 {eTAAr::eStd,"Std"},
                 {eTAAr::eSzCont,"SzCont"},
                 {eTAAr::eFixTabNum,"FixTabNum"},
+                {eTAAr::ePtxd,"Ptxd"},
                 {eTAAr::eCont,"Cont"},
                 {eTAAr::eElemCont,"ElemC"},
                 {eTAAr::eMap,"Map"},

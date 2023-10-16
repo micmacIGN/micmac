@@ -97,6 +97,7 @@ template <class Type> class cRotation3D
        cRotation3D(const cDenseMatrix<Type> &,bool RefineIt);
        /// Create rotation from 3 vector I,J,K
        cRotation3D(const tPt &,const tPt &,const tPt &,bool RefineIt);
+
        const cDenseMatrix<Type> & Mat() const {return mMat;}
 
        tPt   Value(const tPt & aPt) const  {return mMat * aPt;}
@@ -122,6 +123,8 @@ template <class Type> class cRotation3D
        static cRotation3D<Type> RandomRot();
        /// Compute a "small" random rot controlled by ampl
        static cRotation3D<Type> RandomRot(const Type & aAmpl);
+       /// create rotation from  string like "ijk" "i-kj" ... if sth like "ikj" => error !, so last is redundant but necessary
+       static cRotation3D RotFromCanonicalAxes(const std::string&);
        
        //// Compute a normal repair, first vector being colinear to P1, second in the plane P1,P2
       // static cRotation3D<Type> CompleteRON(const tPt & aP0,const tPt & aP1);
@@ -342,6 +345,54 @@ cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12=0.5
 cPt3dr  BundleInters(cPt3dr & aCoeff,const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12=0.5);
 
 
+/**  Class for sampling the space of quaternion/quaternion.  Method :
+ *
+ *     - we sample the sphere of R4
+ *     - for this we sample the frontier of hypercube of R4 and normalize it lenghth, not uniform
+ *     (impossible to realize by th way) but bounded anisoptropy
+ *     - for this we sample regularly the  cube R3 and make the cartesian profuct with all the 8 (4*2)
+ *    "principal" direction  (+- ijkt)
+ *     - also we must be aware that Q and -Q correspond to same rotation, so if want to sample
+ *     the space of rotation, which is generaly the case, we will take only one of both and
+ *     explore + ijkt only
+ *
+ *    => possible amelioration make a non regular sampling in each direction ?
+ *    => other amelioration  ???  Tabulate the result  with more sophisticated computation
+ */
+
+
+class cSampleQuat
+{
+      public :
+         cSampleQuat(int aNbElem,bool ForRot);  ///< constructor indicating  number of step
+         static cSampleQuat FromNbRot(int aNbRot,bool ForRot);  ///< constructor indicating the min number of rotation expected
+
+
+         cPt4dr  KthQuat(int aK) const; ///< Main method return the number of rot
+         size_t NbRot() const;  ///< Accessor
+         size_t NbStep() const;  ///< Accessor
+
+         //  compute vector, for NbTest random point, of  minimal distance to all sampled rot/quat
+         std::vector<tREAL8 >  TestVecMinDist(size_t aNbTest) const;
+
+         //  compute statistics, for NbTest random point, of  minimal distance to all sampled rot/quat
+         cStdStatRes  TestStatMinDist(size_t aNbTest) const;
+
+         // return the min distance bewteen all pair of sampled quat
+         tREAL8 TestMinDistPairQuat() const;
+
+	 // generate all the quaternions sampled
+         std::vector<cPt4dr>  VecAllQuat() const;
+      private :
+
+
+         tREAL8 Int2Coord(int aK) const;  ///< convert on 1 direction [0,NbStep] => [-1,1]
+
+         bool    m4R;     // is it for rotation
+         size_t  mNbF;    // number of face
+         size_t  mNbStep;
+         size_t  mNbRot;
+};
 
 
 

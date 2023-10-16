@@ -7,6 +7,7 @@ namespace MMVII
 
 template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
 {
+
    int aNbTest = std::min(10000,300*(1+aParam.Level()));
    for (int aKTest=0 ; aKTest<aNbTest ; aKTest++)
    {
@@ -552,6 +553,8 @@ void BenchHomogr2D();
 void BenchGeom(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Geom")) return;
+
+    BenchSampleQuat();
 
     BenchHomogr2D();
 

@@ -74,7 +74,8 @@ template <class Type,const int Dim> class cPtxd
        static cPtxd<Type,Dim>  PCste(const Type & aVal) ;
        /// Initialisation with nan value (to detect error asap)
        static cPtxd<Type,Dim>  Dummy();
-      
+       /// Initialisation from name "i..."  "-j..."    valide are "ijkl" 
+       static cPtxd<Type,Dim>  PFromCanonicalName(const std::string & aName,size_t & anIndex);
       
        /// Initialisation from PInt
        static cPtxd<Type,Dim>  FromPtInt(const  cPtxd<int,Dim> & aVal) ;

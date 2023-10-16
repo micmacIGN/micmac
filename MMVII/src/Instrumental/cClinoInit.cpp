@@ -14,6 +14,22 @@
 
 namespace MMVII
 {
+
+class  cS
+{
+	public :
+		int i = 1;
+};
+
+void f()
+{
+    cS aS {.i=4};
+    FakeUseIt(aS);
+}
+
+
+
+
 typedef cRotation3D<tREAL8>  tRot;
 
 class cClinoCalMes1Cam
@@ -49,7 +65,7 @@ class cClinoCalMes1Cam
 
 cClinoCalMes1Cam::cClinoCalMes1Cam(cSensorCamPC * aCam,const std::vector<tREAL8> & aVAngles) :
     mCam       (aCam),
-    mVertInLoc (mCam->V_W2L(cPt3dr(0,0,-1)))
+    mVertInLoc (mCam->Vec_W2L(cPt3dr(0,0,-1)))
 {
     for (auto & aTeta : aVAngles)
     {
@@ -91,7 +107,7 @@ cPt2dr  cClinoCalMes1Cam::EcarVectRot(int aKClino,const  cRotation3D<tREAL8> &aC
 
 tREAL8  cClinoCalMes1Cam::ScoreRot(int aKClino,const  cRotation3D<tREAL8>& aCam2Clino) const
 {
-     return Norm2(EcarVectRot(aKClino,aCam2Clino));
+     return SqN2(EcarVectRot(aKClino,aCam2Clino));
 }
 
 tREAL8  cClinoCalMes1Cam::ScoreWPK(int aKClino,const  cPt3dr & aWPK) const
@@ -126,25 +142,39 @@ class cAppli_ClinoInit : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
      private :
+	tRot  OriOfClino(int aKCl,const tRot & aRot) const {return mOriRelClin.at(aKCl) *aRot;}
+
 	/// for a given clinometern compute the cost of a tested boresight
-        tREAL8                     CostRot(size_t aKClino,const tRot & aWPK);
+        tREAL8                     CostRot(const tRot & aWPK) const;
+
+	/// Vector of score, can be agregated  sum/max
+	std::vector<tREAL8>  VectCostRot(const tRot & aWPK) const;
 
 	///  Make one iteration of research arround a current solution
-        cWhichMin<tRot,tREAL8>   OneIter(size_t aKClino,const tRot & aR0,tREAL8 aAmpl, int aNbStep);
+        cWhichMin<tRot,tREAL8>   OneIter(const tRot & aR0,tREAL8 aStep, int aNbStep);
+
+	/// Make a first iteration using sampling by quaternions
+        cWhichMin<tRot,tREAL8>   IterInit(int aNbStep);
 
 	///  Compute the conditionning of least-square matrix
-        void ComputeCond(int aKClino,const tRot & aWPK,tREAL8 aEpsilon=1e-3);
+        void ComputeCond(const tRot & aWPK,tREAL8 aEpsilon=1e-3);
 
 
         cPhotogrammetricProject        mPhProj;
         std::string                    mNameClino;   ///  Pattern of xml file
 	std::vector<std::string>       mPrePost;     ///  Pattern of xml file
         int                            mNbStep0;
+        int                            mNbStep;
+        int                            mNbIter;
         std::vector<double>            mASim;
 
 
         std::vector<cClinoCalMes1Cam>  mVMeasures;
-	int                            mKClino;
+	std::vector<int>               mVKClino;
+	std::vector<bool>              mComputedClino;  ///  Clino can be computed globally or independantly
+
+	std::string                    mNameRel12;
+        std::vector<tRot>              mOriRelClin;
 
 };
 
@@ -155,7 +185,10 @@ cAppli_ClinoInit::cAppli_ClinoInit
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
-     mNbStep0      (10)
+     mNbStep0      (65),
+     mNbStep       (10),
+     mNbIter       (50),
+     mNameRel12    ("i-kj")
 {
 }
 
@@ -165,7 +198,7 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgObl(cCollecSpecArg2007 & anArgObl)
       return anArgObl
               <<  Arg2007(mNameClino,"Name of inclination file",{eTA2007::FileDirProj})
               <<  Arg2007(mPrePost,"[Prefix,PostFix] to compute image name",{{eTA2007::ISizeV,"[2,2]"}})
-              <<  Arg2007(mKClino,"Index of clinometer")
+              <<  Arg2007(mVKClino,"Index of clinometer",{{eTA2007::ISizeV,"[1,2]"}})
               <<  mPhProj.DPOrient().ArgDirInMand()
            ;
 }
@@ -174,23 +207,63 @@ cCollecSpecArg2007 & cAppli_ClinoInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
     return     anArgOpt
-	    << AOpt2007(mNbStep0,"NbIt0","Number of step at  first iteration",{eTA2007::HDV})
+	    << AOpt2007(mNbStep0,"NbStep0","Number of step at  first iteration",{eTA2007::HDV})
+	    << AOpt2007(mNbStep,"NbStep","Number of step at  current iteration",{eTA2007::HDV})
+	    << AOpt2007(mNbIter,"NbIter","Number of iteration",{eTA2007::HDV})
 	    << AOpt2007(mASim,"AmplSim","Amplitude of rotation is simul [W,P,K,BS]",{{eTA2007::ISizeV,"[5,5]"}})
+	    << AOpt2007(mNameRel12,"Rel12","orientation relative 2 to 1, if several clino",{eTA2007::HDV})
     ;
 }
 
 //  just the average of cost for all measurements/position
-tREAL8   cAppli_ClinoInit::CostRot(size_t aKClino,const tRot & aRot)
+std::vector<tREAL8>   cAppli_ClinoInit::VectCostRot(const tRot & aRot0) const
 {
-    tREAL8 aSom = 0.0;
+     std::vector<tREAL8> aRes;
 
-     for (const auto & aMes : mVMeasures)
-         aSom +=  aMes.ScoreRot(aKClino,aRot);
+     for (size_t aIndC=0 ; aIndC<mVKClino.size() ; aIndC++)
+     {
+         if (mComputedClino.at(aIndC))
+         {
+             tREAL8 aSom = 0.0;
+             tRot aRot = OriOfClino(aIndC,aRot0);
+             for (const auto & aMes : mVMeasures)
+                  aSom +=  aMes.ScoreRot(mVKClino[aIndC],aRot);
 
-     return aSom / mVMeasures.size();
+	     aRes.push_back(aSom / mVMeasures.size());
+         }
+     }
+
+     return aRes;
 }
 
-cWhichMin<tRot,tREAL8>  cAppli_ClinoInit::OneIter(size_t aKClino,const tRot & aR0,tREAL8 aStep, int aNbStep)
+tREAL8   cAppli_ClinoInit::CostRot(const tRot & aRot0) const
+{
+     std::vector<tREAL8> aVCost = VectCostRot(aRot0);
+
+     return std::accumulate(aVCost.begin(),aVCost.end(),0.0) / aVCost.size();
+}
+
+
+
+cWhichMin<tRot,tREAL8>   cAppli_ClinoInit::IterInit(int aNbStep)
+{
+    cWhichMin<tRot,tREAL8>  aWMin(tRot::Identity(),1e10);
+    cSampleQuat aSQ(aNbStep,true);
+
+    for (size_t aKQ=0 ; aKQ<aSQ.NbRot() ; aKQ++)
+    {
+        cDenseMatrix<tREAL8> aMat = Quat2MatrRot(aSQ.KthQuat(aKQ));
+	tRot aRot(aMat,false);
+
+        tREAL8 aCost = CostRot(aRot);  // cost of tested rot
+        aWMin.Add(aRot,aCost);  // update lowest cost solution
+    }
+
+    StdOut() << "MIN0=  " << std::sqrt(aWMin.ValExtre())  << "\n";
+    return aWMin;
+}
+
+cWhichMin<tRot,tREAL8>  cAppli_ClinoInit::OneIter(const tRot & aR0,tREAL8 aStep, int aNbStep)
 {
     cWhichMin<tRot,tREAL8>  aWMin(aR0,1e10);
 
@@ -204,26 +277,34 @@ cWhichMin<tRot,tREAL8>  cAppli_ClinoInit::OneIter(size_t aKClino,const tRot & aR
                 cPt3dr aWPK =  cPt3dr(aKw,aKp,aKk) * aStep; // compute a small Omega-Phi-Kapa
 		tRot aRot = aR0*cRotation3D<tREAL8>::RotFromWPK(aWPK);  // compute a neighbooring rotation
 
-                tREAL8 aCost = CostRot(aKClino,aRot);  // cost of tested rot
+                tREAL8 aCost = CostRot(aRot);  // cost of tested rot
                 aWMin.Add(aRot,aCost);  // update lowest cost solution
             }
         }
     }
 
-    StdOut() << "MIN " << aWMin.ValExtre()  << "\n";
+    StdOut() << "MIN " << std::sqrt(aWMin.ValExtre())  << " Step=" << aStep << "\n";
     return  aWMin;
 }
 
-void cAppli_ClinoInit::ComputeCond(int aKClino,const tRot & aRot,tREAL8 aEpsilon)
+
+void cAppli_ClinoInit::ComputeCond(const tRot & aRot0,tREAL8 aEpsilon)
 {
      cStrStat2<tREAL8>  aStat(3);  // covariant matrix
 
      // Add  Gx and Gy of all measures in covariance-matrix
-     for (const auto & aMes : mVMeasures)
+     for (size_t aIndC=0 ; aIndC<mVKClino.size() ; aIndC++)
      {
-        auto [aGx,aGy] = aMes.Grad(aKClino,aRot,aEpsilon);
-	aStat.Add(aGx.ToVect());
-	aStat.Add(aGy.ToVect());
+         if (mComputedClino.at(aIndC))
+	 {
+             tRot aRot = OriOfClino(aIndC,aRot0);
+             for (const auto & aMes : mVMeasures)
+             {
+                auto [aGx,aGy] = aMes.Grad(mVKClino[aIndC],aRot,aEpsilon);
+	        aStat.Add(aGx.ToVect());
+	        aStat.Add(aGy.ToVect());
+             }
+	 }
      }
      aStat.Normalise(false);  // normalize w/o centering
 
@@ -236,6 +317,7 @@ int cAppli_ClinoInit::Exe()
 {
     mPhProj.FinishInit();
 
+    mComputedClino = std::vector<bool>(mVKClino.size(),true);  // initially all user clino are active
 
     std::vector<std::vector<std::string>> aVNames;   // for reading names of camera
     std::vector<std::vector<double>>      aVAngles;  // for reading angles of  clinometers
@@ -255,15 +337,15 @@ int cAppli_ClinoInit::Exe()
 	 false
     );
 
-    cPt3dr aWPK_Sim (0,0,0);
-    tRot aRSim = cRotation3D<tREAL8>::RotFromWPK(aWPK_Sim);
+    tRot aRSim = tRot::Identity();  // Rotation for simulation
+    mOriRelClin.push_back(tRot::Identity());
+    mOriRelClin.push_back(tRot::RotFromCanonicalAxes(mNameRel12));
 
     size_t aNbMeasures = aVNames.size();
+    //  if we do simulation, generate 
     if (IsInit(&mASim))
     {
-       aWPK_Sim =  cPt3dr::PRandC() * mASim[3];
-       aRSim = cRotation3D<tREAL8>::RotFromWPK(aWPK_Sim);
-       mKClino = 0;
+       aRSim = tRot::RandomRot(mASim[3]);
        aNbMeasures = size_t (mASim[4]);
     }
 
@@ -280,8 +362,9 @@ int cAppli_ClinoInit::Exe()
             aCam->SetPose(cIsometry3D<tREAL8>(cPt3dr(0,0,0),aRPose));
 
             // mVMeasures.push_back(cClinoCalMes1Cam(aCam,aVAngles[aKLine]));
-            mVMeasures.push_back(cClinoCalMes1Cam(aCam,{0.0}));
-            mVMeasures.back().SetDirSimul(mKClino,aRSim);
+            mVMeasures.push_back(cClinoCalMes1Cam(aCam,std::vector<tREAL8>(10,0.0)));
+	    for (size_t aKCl=0 ; aKCl<mVKClino.size() ; aKCl++)
+                mVMeasures.back().SetDirSimul(mVKClino[aKCl],OriOfClino(aKCl,aRSim));
         }
 	else 
         {
@@ -291,33 +374,42 @@ int cAppli_ClinoInit::Exe()
         }
     }
 
+    cWhichMin<tRot,tREAL8>  aWM0 = IterInit(mNbStep0);
 
-    /*
-    if (IsInit(&mASim))
-    {
-       for (auto & aMes : mVMeasures)
-       {
-       }
-    }
-    */
+    tREAL8 aStep = 2.0/mNbStep0;
+    tREAL8 aDiv = 1.25;
     
-
-    tREAL8 aStep0 = 1.5/mNbStep0;
-
-    cWhichMin<tRot,tREAL8> aWM0 =  OneIter(mKClino,tRot::Identity(),aStep0,mNbStep0);
-
-    int aNbStep = 15;
-    tREAL8 aDiv = 1.1;
-    
-    for (int aK=0 ; aK<200 ; aK++)
+    for (int aK=0 ; aK<mNbIter ; aK++)
     {
-         aStep0 /= aDiv;
-         aWM0 =  OneIter(mKClino,aWM0.IndexExtre(), (2*aDiv*aStep0)/aNbStep,aNbStep);
+         aWM0 =  OneIter(aWM0.IndexExtre(), (2*aStep)/mNbStep,mNbStep);
+         aStep /= aDiv;
     }
 
-    ComputeCond(mKClino, aWM0.IndexExtre());
+    ComputeCond(aWM0.IndexExtre());
+    
 
+    // if several clino, after global opt try to make opt independantly
+    if (mVKClino.size() > 1)
+    {
+        for (size_t aKCSel=0 ; aKCSel<mVKClino.size() ; aKCSel++)
+	{
+            StdOut() << "OPTIMIZE CLINO " << mVKClino[aKCSel] << "\n";
+            for (size_t aKC=0 ; aKC<mVKClino.size() ; aKC++)
+	    {
+                 mComputedClino.at(aKC) = (aKC==aKCSel);
+	    }
+            cWhichMin<tRot,tREAL8>  aWMK = aWM0;
+	    tREAL8 aStep = 1e-3;
+            for (int aK=0 ; aK<30 ; aK++)
+            {
+                 aWMK =  OneIter(aWMK.IndexExtre(), (2*aStep)/mNbStep,mNbStep);
+                 aStep /= aDiv;
+            }
+            ComputeCond(aWMK.IndexExtre());
+	}
+    }
 
+#if (0)
 
     tRot  aRSol =  aWM0.IndexExtre();
 
@@ -329,8 +421,8 @@ int cAppli_ClinoInit::Exe()
        StdOut() << "   ============== GROUND TRUTH ======================\n";
        StdOut() << "COST " << CostRot(mKClino,aRSim) << "\n";
        ComputeCond(mKClino, aRSim);
-       // cRotation3D<tREAL8>::RotFromWPK(aWPK_Sim).Mat().Show();
      }
+#endif
 
 
     return EXIT_SUCCESS;
