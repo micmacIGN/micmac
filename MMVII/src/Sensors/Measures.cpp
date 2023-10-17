@@ -81,7 +81,9 @@ void cSetHomogCpleIm::Clear()
 
 void cSetHomogCpleIm::ToFile(const std::string & aName) const
 {
-	SaveInFile(*this,aName);
+    PushPrecTxtSerial(3); // avoid "ridiculous" number of digit for tie-points
+    SaveInFile(mSetH,aName);
+    PopPrecTxtSerial();   // restore previous number of digit
 }
 
 void  cSetHomogCpleIm::InitFromFile(const std::string & aName) 

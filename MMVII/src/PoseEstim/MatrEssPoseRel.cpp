@@ -907,16 +907,60 @@ class cAppli_MatEss : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
         cPhotogrammetricProject   mPhProj;
-	std::string               mSpecImIn;
+	std::string               mIm1;
+	std::string               mIm2;
+	bool                      mUseOri4GT;
 };
+
+cAppli_MatEss::cAppli_MatEss(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+    cMMVII_Appli (aVArgs,aSpec),
+    mPhProj      (*this),
+    mUseOri4GT   (false)
+{
+}
 
 cCollecSpecArg2007 & cAppli_MatEss::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
-              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-              <<  mPhProj.DPOrient().ArgDirInMand()
+              << Arg2007(mIm1,"name first image")
+              << Arg2007(mIm2,"name second image")
+              <<  mPhProj.DPOrient().ArgDirInMand("Input orientation for calibration")
            ;
 }
+
+cCollecSpecArg2007 & cAppli_MatEss::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return    anArgOpt
+          << AOpt2007(mUseOri4GT,"OriGT","Set if orientation contains also exterior as a ground truth",{eTA2007::HDV})
+   ;
+}
+
+
+int cAppli_MatEss::Exe()
+{
+     mPhProj.FinishInit();
+
+     return EXIT_SUCCESS;
+}
+
+
+tMMVII_UnikPApli Alloc_MatEss(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_MatEss(aVArgs,aSpec));
+}
+
+/*
+cSpecMMVII_Appli  TheSpec_MatEss
+(
+     "OriConvV1V2",
+      Alloc_OriConvV1V2,
+      "Convert orientation of MMV1  to MMVII",
+      {eApF::Ori},
+      {eApDT::Orient},
+      {eApDT::Orient},
+      __FILE__
+);
+*/
 
 
 

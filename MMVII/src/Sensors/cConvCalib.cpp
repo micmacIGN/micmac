@@ -30,13 +30,13 @@ class cV1PCConverter : public cCorresp32_BA
          typedef cIsometry3D<tREAL8>   tPose;
 	 /** Take as input the name xml-v1 internal calib and create Calib+Pos+Set , return then 
 	    the cV1PCConverter  used in bench & command 4 convert */
-         static cV1PCConverter *  AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix);
+         static cV1PCConverter *  AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix,const std::string & aNameCalOut="",tREAL8 aDS=1.0);
 
 	 /** Alloc a calib from name : create  the converter ,do the iteration, if already created return same object */
-         static cPerspCamIntrCalib *       AllocCalibV1(const std::string & aFullName);
+         static cPerspCamIntrCalib *       AllocCalibV1(const std::string & aFullName,const std::string & aNameCalOut="",tREAL8 aDS=1.0);
 
 	 /** */
-         static cSensorCamPC *             AllocSensorPCV1(const std::string& aNameIm,const std::string & aFullName);
+         static cSensorCamPC * AllocSensorPCV1(const std::string& aNameIm,const std::string & aFullName,const std::string& aNameCalOut="",tREAL8 aDS=1.0);
 
          const cSensorCamPC  &       CamPC() const {return *mCamPC;}
          cPerspCamIntrCalib *    Calib() {return mCamPC->InternalCalib();}
@@ -81,11 +81,11 @@ cV1PCConverter::cV1PCConverter
 
      // ==============  conversion for V1 ================
 
-cV1PCConverter *  cV1PCConverter::AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix)
+cV1PCConverter *  cV1PCConverter::AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix,const std::string & aNameCalOut,tREAL8 aDS)
 {
      //  [1]   ==========   Raw-read the parameters from V1 ================
      bool  isForTest = (!HCG) ||  (! CenterFix);
-     cExportV1StenopeCalInterne  aExp(true,aFullName,15);
+     cExportV1StenopeCalInterne  aExp(true,aFullName,30,2,aDS);
      cIsometry3D<tREAL8>   aPose0 = cIsometry3D<tREAL8>::Identity();
 
      // [2] ============  in mode test perturbate internal et external parameters =================
@@ -103,10 +103,12 @@ cV1PCConverter *  cV1PCConverter::AllocV1Converter(const std::string & aFullName
      // [3]   ============= 
         // aFullName = ".../Ori-MMV1/AutoCal_Foc-60000_Cam-NIKON_D810.xml"   =>  "Foc-60000_Cam-NIKON_D810" = aNameCam
      std::string aNameCam = LastPrefix(FileOfPath(aFullName,false));
-     aNameCam =  ReplacePattern("AutoCal_(.*)","$1",aNameCam);
+     aNameCam =  cPerspCamIntrCalib::PrefixName() +  ReplacePattern("AutoCal_(.*)","$1",aNameCam);
      
+     if (aNameCalOut!="")
+	     aNameCam  = aNameCalOut;
         //  Data part for  internal calibration w/o distorsion
-     cDataPerspCamIntrCalib aDataCalib(cPerspCamIntrCalib::PrefixName() +aNameCam,aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
+     cDataPerspCamIntrCalib aDataCalib(aNameCam,aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
      aDataCalib.PushInformation("Converted from MMV1");  // just for info
      cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::Alloc(aDataCalib); // the calib itself
 
@@ -114,7 +116,7 @@ cV1PCConverter *  cV1PCConverter::AllocV1Converter(const std::string & aFullName
      return new cV1PCConverter(aCamPC,aExp.mCorresp,HCG,CenterFix); // We have Calib+Pose+corresp : go
 }
 
-cPerspCamIntrCalib * cV1PCConverter::AllocCalibV1(const std::string & aFullName)
+cPerspCamIntrCalib * cV1PCConverter::AllocCalibV1(const std::string & aFullName,const std::string & aNameCalOut,tREAL8 aDS)
 { 
      // If object already created
      static std::map<std::string,cPerspCamIntrCalib *> TheMap;
@@ -123,7 +125,7 @@ cPerspCamIntrCalib * cV1PCConverter::AllocCalibV1(const std::string & aFullName)
      if (aPersp==0)
      {
          // Create the converter
-         cV1PCConverter * aConvertor = cV1PCConverter::AllocV1Converter(aFullName,true,true);
+         cV1PCConverter * aConvertor = cV1PCConverter::AllocV1Converter(aFullName,true,true,aNameCalOut,aDS);
 	 // make the bundle adjustment
          for (int aK=0 ; aK<10 ; aK++)
          {
@@ -139,12 +141,12 @@ cPerspCamIntrCalib * cV1PCConverter::AllocCalibV1(const std::string & aFullName)
 }
 
 
-cSensorCamPC * cV1PCConverter::AllocSensorPCV1(const std::string & aNameIm,const std::string & aFullName)
+cSensorCamPC * cV1PCConverter::AllocSensorPCV1(const std::string & aNameIm,const std::string & aFullName,const std::string& aNameCalOut,tREAL8 aDS)
 {
-     cExportV1StenopeCalInterne  aExp(false,aFullName,0); // Alloc w/o  3d-2d correspondance
+     cExportV1StenopeCalInterne  aExp(false,aFullName,0,0,aDS); // Alloc w/o  3d-2d correspondance
 
      std::string aNameCal = DirOfPath(aFullName,false) + FileOfPath(aExp.mNameCalib,false);
-     cPerspCamIntrCalib * aCalib =  cV1PCConverter::AllocCalibV1(aNameCal);
+     cPerspCamIntrCalib * aCalib =  cV1PCConverter::AllocCalibV1(aNameCal,aNameCalOut,aDS);
 
      return new cSensorCamPC(aNameIm,aExp.mPose,aCalib);
 }
@@ -281,11 +283,15 @@ class cAppli_OriConvV1V2 : public cMMVII_Appli
      private :
 	std::string              mDirMMV1;
 	cPhotogrammetricProject  mPhProj;
+	bool                     mUseStdNameCalib;
+	tREAL8                   mDownScale;
 };
 
 cAppli_OriConvV1V2::cAppli_OriConvV1V2(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli(aVArgs,aSpec),
-   mPhProj (*this)
+   cMMVII_Appli     (aVArgs,aSpec),
+   mPhProj          (*this),
+   mUseStdNameCalib (false),
+   mDownScale       (1.0)
 {
 }
 
@@ -297,11 +303,12 @@ cCollecSpecArg2007 & cAppli_OriConvV1V2::ArgObl(cCollecSpecArg2007 & anArgObl)
            ;
 }
 
-cCollecSpecArg2007 & cAppli_OriConvV1V2::ArgOpt(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppli_OriConvV1V2::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
 {
-    
-    return anArgObl
-           ;
+   return    anArgOpt
+          << AOpt2007(mUseStdNameCalib,"USNC","Use Standard name for calib (when metadata can be  computed) ",{eTA2007::HDV})
+          << AOpt2007(mDownScale,"DS","Down scale, if want to generate smaller ",{eTA2007::HDV})
+   ;
 }
 
 
@@ -315,7 +322,11 @@ int cAppli_OriConvV1V2::Exe()
     for (const auto & aNameOri : aListOriV1)
     {
         std::string aNameIm = V1NameOri2NameImage(aNameOri); // ReplacePattern(ThePatOriV1,"$1",aName);
-        cSensorCamPC * aPC =  cV1PCConverter::AllocSensorPCV1(aNameIm,mDirMMV1+aNameOri);
+	std::string aNameCalib ="";
+	if (mUseStdNameCalib)
+           aNameCalib = mPhProj.StdNameCalibOfImage(aNameIm);
+
+        cSensorCamPC * aPC =  cV1PCConverter::AllocSensorPCV1(aNameIm,mDirMMV1+aNameOri,aNameCalib,mDownScale);
 
 	mPhProj.SaveCamPC(*aPC);
 

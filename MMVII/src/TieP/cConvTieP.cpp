@@ -34,12 +34,15 @@ class cAppli_TiePConvert : public cMMVII_Appli
 	eFormatExtern            mFormat;
 	eTypeSerial              mTypeSerial;
 	cPhotogrammetricProject  mPhProj;
+	std::string              mExtV1;
+	double                   mDownScale;
 };
 
 cAppli_TiePConvert::cAppli_TiePConvert(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
    mTypeSerial   (eTypeSerial::ecsv),
-   mPhProj       (*this)
+   mPhProj       (*this),
+   mDownScale    (1.0)
 {
 }
 
@@ -56,7 +59,9 @@ cCollecSpecArg2007 & cAppli_TiePConvert::ArgOpt(cCollecSpecArg2007 & anArgObl)
 {
     
     return anArgObl
-	     << AOpt2007(mTypeSerial,"Ext","Extention for files",{{eTA2007::HDV},{AC_ListVal<eTypeSerial>()}})
+	     << AOpt2007(mTypeSerial,"Postfix","Postix for output files",{{eTA2007::HDV},{AC_ListVal<eTypeSerial>()}})
+	     << AOpt2007(mExtV1,"V1Ext","Extension of V1 input file if !) Homol/")
+	     << AOpt2007(mDownScale,"DS","Downscale, if want to adapt to smaller images",{eTA2007::HDV})
            ;
 }
 
@@ -68,7 +73,7 @@ int cAppli_TiePConvert::Exe()
     
    if (mFormat==eFormatExtern::eMMV1)
    {
-       aIIH = cInterfImportHom::CreateImportV1(DirProject(),"");
+       aIIH = cInterfImportHom::CreateImportV1(DirProject(),mExtV1);
    }
    else
    {
@@ -102,7 +107,7 @@ int cAppli_TiePConvert::Exe()
                    cSetHomogCpleIm  aSetH;
 		   for (size_t  aKP=0 ; aKP<aVP.size() ; aKP+=2)
 		   {
-                       aSetH.Add(cHomogCpleIm(aVP.at(aKP),aVP.at(aKP+1)));
+                       aSetH.Add(cHomogCpleIm(aVP.at(aKP)/mDownScale,aVP.at(aKP+1)/mDownScale));
 		   }
 
 		   mPhProj.SaveHomol(aSetH,aN1,aN2,E2Str(mTypeSerial));
