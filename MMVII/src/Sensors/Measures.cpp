@@ -58,6 +58,7 @@ cSetHomogCpleIm::cSetHomogCpleIm(size_t aReserve)
 }
 
 const std::vector<cHomogCpleIm> & cSetHomogCpleIm::SetH() const {return mSetH;}
+std::vector<cHomogCpleIm> & cSetHomogCpleIm::SetH() {return mSetH;}
 
 void cSetHomogCpleIm::Add(const cHomogCpleIm & aCple)
 {

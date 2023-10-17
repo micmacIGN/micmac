@@ -421,7 +421,12 @@ class cPhotogrammetricProject
 	 void  SaveHomol(const cSetHomogCpleIm &,
 			 const std::string & aNameIm1 ,
 			 const std::string & aNameIm2,
-			 const std::string & Ext=PostF_DumpFiles) const;
+			 const std::string & Ext=PostF_CsvFiles) const;
+
+	 void  ReadHomol(cSetHomogCpleIm &,
+			 const std::string & aNameIm1 ,
+			 const std::string & aNameIm2,
+			 const std::string & Ext=PostF_CsvFiles) const;
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;

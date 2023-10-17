@@ -639,8 +639,18 @@ void  cPhotogrammetricProject::SaveHomol
 
 	std::string  aName = aDir+aNameIm2 + "." +anExt;
 	aSetHCI.ToFile(aName);
+}
 
-	// SaveInFile(aSetHCI,aName);
+void  cPhotogrammetricProject::ReadHomol
+      (
+           cSetHomogCpleIm & aSetHCI,
+           const std::string & aNameIm1 ,
+           const std::string & aNameIm2,
+           const std::string & anExt
+      ) const
+{
+    std::string aName = mDPTieP.FullDirIn()+aNameIm1+StringDirSeparator()+aNameIm2+"."+anExt;
+    ReadFromFile(aSetHCI.SetH(),aName);
 }
 
 

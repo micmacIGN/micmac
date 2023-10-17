@@ -406,11 +406,30 @@ template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
 
 
 /** Same as write, but simpler as V1/V2 choice is guided by file */
-template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
+template<class Type> void  ReadFromFile_Std(Type & aVal,const std::string & aName)
 {
     std::unique_ptr<cAr2007>  anAr (AllocArFromFile(aName,true));
     TopAddAr(*anAr,aVal,aName);
 }
+
+template<class Type> void  ReadFromFile(std::vector<Type> & aVec,const std::string & aName)
+{
+    if (LastPostfix(aName) == E2Str(eTypeSerial::ecsv))
+    {
+        FromCSV(aVec,aName,true);
+    }
+    else
+    {
+        ReadFromFile_Std(aVec,aName);
+    }
+}
+
+template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
+{
+    ReadFromFile_Std(aVal,aName);
+}
+
+
 
 /// If the file does not exist, initialize with default constructor
 template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & aName)
