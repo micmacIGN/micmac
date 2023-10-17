@@ -70,6 +70,10 @@ int cAppli_TiePConvert::Exe()
    {
        aIIH = cInterfImportHom::CreateImportV1(DirProject(),"");
    }
+   else
+   {
+       MMVII_UnclasseUsEr("Only mmv1 suported now for tie point import");
+   }
 
    auto aVName = VectMainSet(0);
 
@@ -106,9 +110,6 @@ int cAppli_TiePConvert::Exe()
 	       else
 	       {
 	       }
-
-		       // cSetHomogCpleIm
-	       // StdOut() << "aSMTPaSMTP " << aSMTP.Pts().size() << "\n";
            }
       }
    }
