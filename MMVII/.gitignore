@@ -28,3 +28,4 @@ src/GeneratedCodes/
 !/build/
 /build/*
 !/build/.keep
+!/build/NoCompile.sh

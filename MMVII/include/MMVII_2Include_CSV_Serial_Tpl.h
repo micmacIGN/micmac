@@ -153,6 +153,9 @@ template <class Type> void FromCSV(std::vector<Type>& aVect,const std::string & 
     aCvsIn1.ReadFromFile(aVect);
 }
 
+
+
+
 };
 
 #endif //  _MMVII_Serial_CSV_Tpl2Inc_H_

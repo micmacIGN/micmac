@@ -38,7 +38,7 @@ class cAppli_TiePConvert : public cMMVII_Appli
 
 cAppli_TiePConvert::cAppli_TiePConvert(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
-   mTypeSerial   (eTypeSerial::edmp),
+   mTypeSerial   (eTypeSerial::ecsv),
    mPhProj       (*this)
 {
 }
@@ -69,6 +69,10 @@ int cAppli_TiePConvert::Exe()
    if (mFormat==eFormatExtern::eMMV1)
    {
        aIIH = cInterfImportHom::CreateImportV1(DirProject(),"");
+   }
+   else
+   {
+       MMVII_UnclasseUsEr("Only mmv1 suported now for tie point import");
    }
 
    auto aVName = VectMainSet(0);
@@ -107,8 +111,6 @@ int cAppli_TiePConvert::Exe()
 	       {
 	       }
 
-		       // cSetHomogCpleIm
-	       // StdOut() << "aSMTPaSMTP " << aSMTP.Pts().size() << std::endl;
            }
       }
    }

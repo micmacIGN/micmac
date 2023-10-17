@@ -197,18 +197,6 @@ template void AddTabData(const  cAuxAr2007 & anAux, size_t *  aVD,int aNbVal,eTA
 template void AddTabData(const  cAuxAr2007 & anAux, tREAL8 *  aVD,int aNbVal,eTAAr);
 template void AddTabData(const  cAuxAr2007 & anAux, tREAL4 *  aVD,int aNbVal,eTAAr);
 
-void cHomogCpleIm::AddData(const  cAuxAr2007 & anAux)
-{
-     MMVII::AddData(anAux,mP1.x());
-       anAux.Ar().Separator();
-     MMVII::AddData(anAux,mP1.y());
-       anAux.Ar().Separator();
-     MMVII::AddData(anAux,mP2.x());
-       anAux.Ar().Separator();
-     MMVII::AddData(anAux,mP2.y());
-}
-void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm & aCple)  {aCple.AddData(anAux);}
-
 
 
 template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aPt) 

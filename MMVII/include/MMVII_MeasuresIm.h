@@ -255,7 +255,9 @@ class cSetHomogCpleIm
       public :
 	cSetHomogCpleIm(size_t aReserve=10);
 	void AddData(const  cAuxAr2007 & anAux);
+
 	void ToFile(const std::string &) const;
+
 	static cSetHomogCpleIm FromFile(const std::string &) ;
 	void   InitFromFile(const std::string &) ;
 
