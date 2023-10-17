@@ -3,7 +3,6 @@
 #include "MMVII_DeclareCste.h"
 
 
-#include <regex.h>
 #include <regex>
 
 

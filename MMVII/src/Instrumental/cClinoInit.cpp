@@ -15,20 +15,6 @@
 namespace MMVII
 {
 
-class  cS
-{
-	public :
-		int i = 1;
-};
-
-void f()
-{
-    cS aS {.i=4};
-    FakeUseIt(aS);
-}
-
-
-
 
 typedef cRotation3D<tREAL8>  tRot;
 
