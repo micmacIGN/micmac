@@ -33,31 +33,15 @@ cHomogCpleIm::cHomogCpleIm() :
 
 void cHomogCpleIm::AddData(const  cAuxAr2007 & anAux)
 {
-     MMVII::AddData(anAux,mP1.x());
-       anAux.Ar().Separator();
-     MMVII::AddData(anAux,mP1.y());
-       anAux.Ar().Separator();
-     MMVII::AddData(anAux,mP2.x());
-       anAux.Ar().Separator();
-     MMVII::AddData(anAux,mP2.y());
+     MMVII::AddData(cAuxAr2007("x1",anAux),mP1.x());
+     MMVII::AddData(cAuxAr2007("y1",anAux),mP1.y());
+     MMVII::AddData(cAuxAr2007("x2",anAux),mP2.x());
+     MMVII::AddData(cAuxAr2007("y2",anAux),mP2.y());
 }
+
 void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm & aCple)  {aCple.AddData(anAux);}
 
 
-
-/*
-void cHomogCpleIm::AddData(const  cAuxAr2007 & anAux)
-{
-     MMVII::AddData(anAux,mP1.x());
-       anAux.Ar().Separator();
-     MMVII::AddData(anAux,mP1.y());
-       anAux.Ar().Separator();
-     MMVII::AddData(anAux,mP2.x());
-       anAux.Ar().Separator();
-     MMVII::AddData(anAux,mP2.y());
-}
-void AddData(const  cAuxAr2007 & anAux,cHomogCpleIm & aCple)  {aCple.AddData(anAux);}
-*/
 
 
 

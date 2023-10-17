@@ -153,6 +153,13 @@ template <class Type> void FromCSV(std::vector<Type>& aVect,const std::string & 
     aCvsIn1.ReadFromFile(aVect);
 }
 
+
+template <class Type>
+    void ToCSVOrFile(const std::vector<Type> & aVObj,const std::string & aName)
+{
+}
+
+
 };
 
 #endif //  _MMVII_Serial_CSV_Tpl2Inc_H_

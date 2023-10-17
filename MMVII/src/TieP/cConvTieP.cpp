@@ -38,7 +38,7 @@ class cAppli_TiePConvert : public cMMVII_Appli
 
 cAppli_TiePConvert::cAppli_TiePConvert(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
-   mTypeSerial   (eTypeSerial::edmp),
+   mTypeSerial   (eTypeSerial::ecsv),
    mPhProj       (*this)
 {
 }

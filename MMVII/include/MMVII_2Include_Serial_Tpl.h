@@ -12,6 +12,7 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_Stringifier.h"
 #include "MMVII_Matrix.h"
+#include "MMVII_2Include_CSV_Serial_Tpl.h"
 #include <set>
 #include <map>
 
@@ -345,10 +346,31 @@ template<class Type> void  GenSaveInFile(const Type & aVal,const std::string & a
      MMv1_SaveInFile<Type>(aVal,aName);
    }
 }
-template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
+template<class Type> void  SaveInFile_Std(const Type & aVal,const std::string & aName)
 {
 	GenSaveInFile(aVal,aName,false);
 }
+
+///
+
+template<class Type> void  SaveInFile(const std::vector<Type> & aVec,const std::string & aName)
+{
+    if (LastPostfix(aName) == E2Str(eTypeSerial::ecsv))
+    {
+        ToCSV(aVec,aName,true);
+    }
+    else
+    {
+        SaveInFile_Std(aVec,aName);
+    }
+}
+
+template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
+{
+	 SaveInFile_Std(aVal,aName);
+}
+
+
 template<class Type> void  SpecificationSaveInFile(const std::string & aName)
 {
      Type aVal;
