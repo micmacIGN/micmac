@@ -1120,7 +1120,7 @@ void cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::
 
         bool hasFileInOut = Arg->HasType(eTA2007::Input) || Arg->HasType(eTA2007::Output) || Arg->HasType(eTA2007::OptionalExist);
 
-        if (Arg->IsVector()  && !Arg->HasType(eTA2007::Range))
+        if (Arg->IsVector()  && !Arg->HasType(eTA2007::ISizeV))
             aErr += "WARNING: " + aSpecName + ": " + argName + ": is a vector with no ISizeV semantic.\n";
         if (Arg->HasType(eTA2007::FileDirProj)  && fileType.length() == 0)
             aErr += "WARNING: " + aSpecName + ": " + argName + ": has FileDirProj semantic with no File type semantic.\n";
