@@ -34,9 +34,6 @@ endif()
 ##        Dependencies
 #######################################################
 
-# Boost
-find_package(Boost 1.53.0 REQUIRED)
-
 # Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
@@ -111,7 +108,7 @@ add_custom_command(OUTPUT "${mmv2_gencode_main_src}" COMMAND ${CMAKE_COMMAND} -E
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${Boost_INCLUDE_DIRS}")
+target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH}")
 target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads)
 
 

@@ -1,10 +1,10 @@
 Dependencies
 ------------
-  - Required: boost, cmake.
+  - Required: cmake.
   - Optional: OpenMP, ccache
 
   - Ubuntu 20.04:
-    - `sudo apt install libboost-all-dev ccache cmake`
+    - `sudo apt install ccache cmake`
     - If using CLang version XX and want OpenMP: `sudo apt install libomp-XX-dev`
 
 
