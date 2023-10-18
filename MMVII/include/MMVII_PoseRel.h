@@ -24,7 +24,7 @@ void  MatEssAddEquations(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<tREAL
  *     Optionnaly , for normalization, the point can be turned from a rotation
  */
 
-class cSetHomogCpleDir
+class cSetHomogCpleDir : public cMemCheck
 {
      public :
         typedef cRotation3D<tREAL8> tRot;

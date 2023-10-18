@@ -22,7 +22,7 @@ class cAppli_OriRel2Im : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
-        tPose  EstimPose_By_MatEssL1Glob(const  cSetHomogCpleDir & aSetD) ;
+        tPose  EstimPose_By_MatEssL1Glob();
 
         cPhotogrammetricProject   mPhProj;
 	std::string               mIm1;
@@ -31,13 +31,17 @@ class cAppli_OriRel2Im : public cMMVII_Appli
 	bool                      mUseOri4GT;
 	cPerspCamIntrCalib        * mCalib1;
 	cPerspCamIntrCalib        * mCalib2;
+	tREAL8                    mFocM;
+        cSetHomogCpleDir          * mCpleDir;
 	int                       mKMaxME;
+	tPoseR                    mGTPose;
 };
 
 cAppli_OriRel2Im::cAppli_OriRel2Im(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
-    mUseOri4GT   (false)
+    mUseOri4GT   (false),
+    mGTPose      (tPoseR::Identity())
 {
 }
 
@@ -58,18 +62,28 @@ cCollecSpecArg2007 & cAppli_OriRel2Im::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    ;
 }
 
-cAppli_OriRel2Im::tPose  cAppli_OriRel2Im::EstimPose_By_MatEssL1Glob(const  cSetHomogCpleDir & aSetD) 
+cAppli_OriRel2Im::tPose  cAppli_OriRel2Im::EstimPose_By_MatEssL1Glob()
 {
      cLinearOverCstrSys<tREAL8> *  aSysL1 = AllocL1_Barrodale<tREAL8>(9);
-     cMatEssential aMatEL1(aSetD,*aSysL1,mKMaxME);
+     cMatEssential aMatEL1(*mCpleDir,*aSysL1,mKMaxME);
 
-     StdOut()  <<  "CCCCC= " << aMatEL1.AvgCost(aSetD,0.05) *mCalib1->F() << "\n";
-     StdOut()  <<  "CCCCC= " << aMatEL1.AvgCost(aSetD,0.005) *mCalib1->F() << "\n";
-     StdOut()  <<  "MED= " << aMatEL1.KthCost(aSetD,0.5) *mCalib1->F() << "\n";
-     StdOut()  <<  "P90= " << aMatEL1.KthCost(aSetD,0.9) *mCalib1->F() << "\n";
-     StdOut()  <<  "MAX= " << aMatEL1.KthCost(aSetD,1.1) *mCalib1->F() << "\n";
-     tPose aRes  = aMatEL1.ComputePose(aSetD);
+     StdOut()  <<  "CCCCC= " << aMatEL1.AvgCost(*mCpleDir,0.05)  * mFocM << "\n";
+     StdOut()  <<  "CCCCC= " << aMatEL1.AvgCost(*mCpleDir,5.0/mFocM) * mFocM << "\n";
+     StdOut()  <<  "MED= " << aMatEL1.KthCost(*mCpleDir,0.5) * mFocM << "\n";
+     StdOut()  <<  "P90= " << aMatEL1.KthCost(*mCpleDir,0.9) * mFocM << "\n";
+     StdOut()  <<  "MAX= " << aMatEL1.KthCost(*mCpleDir,1.1) * mFocM << "\n";
+     tPose aRes  = aMatEL1.ComputePose(*mCpleDir);
      delete aSysL1;
+
+
+     if (mUseOri4GT)
+     {
+         StdOut() << VUnit(mGTPose.Tr())  << aRes.Tr() << "\n";
+
+	 mGTPose.Rot().Mat().Show();
+	 StdOut() << "=============================\n";
+	 aRes.Rot().Mat().Show();
+     }
 
      return aRes;
 }
@@ -81,15 +95,24 @@ int cAppli_OriRel2Im::Exe()
      OrderMinMax(mIm1,mIm2);
      mPhProj.ReadHomol(mCpleH,mIm1,mIm2,"csv");
 
-     mCalib1 = mPhProj.InternalCalibFromImage(mIm1);
-     mCalib2 = mPhProj.InternalCalibFromImage(mIm2);
+     mCalib1 =  mPhProj.InternalCalibFromImage(mIm1);
+     mCalib2 =  mPhProj.InternalCalibFromImage(mIm2);
+     mCpleDir = new cSetHomogCpleDir(mCpleH,*mCalib1,*mCalib2);
 
+     if (mUseOri4GT)
+     {
+         cSensorCamPC *  aPC1 = mPhProj.ReadCamPC(mIm1,true);
+         cSensorCamPC *  aPC2 = mPhProj.ReadCamPC(mIm2,true);
 
-     cSetHomogCpleDir aCpleDir(mCpleH,*mCalib1,*mCalib2);
+	 mGTPose = aPC1->RelativePose(*aPC2);
+     }
 
-     mKMaxME =  MatEss_GetKMax(aCpleDir, 1e-6);
+     mFocM = (mCalib1->F()+mCalib2->F()) /2.0;
 
-     EstimPose_By_MatEssL1Glob(aCpleDir);
+     mKMaxME =  MatEss_GetKMax(*mCpleDir, 1e-6);
+     EstimPose_By_MatEssL1Glob();
+
+     delete mCpleDir;
 
      return EXIT_SUCCESS;
 }
