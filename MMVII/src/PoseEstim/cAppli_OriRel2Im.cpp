@@ -93,7 +93,7 @@ int cAppli_OriRel2Im::Exe()
      mPhProj.FinishInit();
 
      OrderMinMax(mIm1,mIm2);
-     mPhProj.ReadHomol(mCpleH,mIm1,mIm2,"csv");
+     mPhProj.ReadHomol(mCpleH,mIm1,mIm2);
 
      mCalib1 =  mPhProj.InternalCalibFromImage(mIm1);
      mCalib2 =  mPhProj.InternalCalibFromImage(mIm2);

@@ -343,7 +343,8 @@ struct cParamProfile
        public :
            std::string   mUserName;
 	   int           mNbProcMax;
-	   eTypeSerial   mDefSerial;
+	   eTypeSerial   mTaggedDefSerial;  // xml or json
+	   eTypeSerial   mVectDefSerial;     // generally csv, can be xml/json
 };
 
 bool UserIsMPD();
@@ -476,12 +477,12 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	const std::string & PrefixGMA () const; /// Accessor
 	const std::string & Prefix_TIM_GMA () const; /// Accessor
 
-	eTypeSerial DefSerial() const; ///< Accessor
+	eTypeSerial TaggedDefSerial() const; ///< Accessor
+	eTypeSerial VectDefSerial() const; ///< Accessor
 
 	// For now in=out, may be later separate
-	const std::string & NameDefSerialIn() const; ///< Accessor
-	const std::string & NameDefSerialOut() const; ///< Accessor
-	const std::string & NameDefSerial() const; ///< Accessor , assert In=Out
+	const std::string & VectNameDefSerial() const;     ///< Accessor
+	const std::string & TaggedNameDefSerial() const;   ///< Accessor 
 
 
 	// ========================  Methods for memorizing report (for example using csv)
@@ -642,7 +643,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	static std::string                        mDirProfileUsage;     ///< The full dir containing the information of a profile
 
 	static cParamProfile                      mParamProfile;   ///< Parameters of the profile (as user name)
-	static std::string                        mNameDefSerial;  ///< the string "xml", "json" ...
+	static std::string                        mVectNameDefSerial;  ///< the string "csv", or "xml", "json" ...
+	static std::string                        mTaggedNameDefSerial;  ///< the string "xml", "json" ...
 
 
     protected :
@@ -678,7 +680,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	std::string                        mPatternInitGMA;
 };
 
-const std::string & GlobNameDefSerial() ; ///< of current appli
+const std::string & GlobVectNameDefSerial() ; ///< of current appli
+const std::string & GlobTaggedNameDefSerial() ; ///< of current appli
 
 
 bool    IsInit(const void *);  ///< Call IsInit on the appli def

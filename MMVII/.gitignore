@@ -21,6 +21,7 @@ bin/*
 !bin/Makefile
 !bin/Mk-MMVII.makefile
 !bin/Makefile.legacy
+!bin/NoCompile-Build.sh
 html/
 latex/
 doxygen/

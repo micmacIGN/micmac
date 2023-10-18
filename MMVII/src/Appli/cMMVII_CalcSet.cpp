@@ -85,7 +85,7 @@ static void OneBenchEditSet
     std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
     std::string aDirT = anAp.TmpDirTestMMVII()  ;
 
-    std::string anExt = (aRealNumOut==2) ? anAp.NameDefSerial() : "xml";
+    std::string anExt = (aRealNumOut==2) ? anAp.TaggedNameDefSerial() : "xml";
     std::string Input = "Input." + anExt;
     std::string Ouput = "Ouput." + anExt;
 
@@ -517,7 +517,7 @@ int cAppli_EditRel::ExecuteBench(cParamExeBench &)
    cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
    std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
 
-   std::string  anExt = NameDefSerial();
+   std::string  anExt = TaggedNameDefSerial();
    std::string aNameRT = "RelTest." + anExt;
 
    RemovePatternFile(aDirI+"RelTest.*."+anExt,true);

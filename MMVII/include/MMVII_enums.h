@@ -44,6 +44,7 @@ enum class eTA2007
                 MetaData,      ///< Meta data images
                 PointsMeasure, ///< Measure of point , 2D or 3D
                 TieP,          ///< Tie Points
+                MulTieP,          ///< Tie Points
             // !!!!! Radiom must be LAST of dirs types (cf cMMVII_Appli::GenerateOneArgSpec)
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write

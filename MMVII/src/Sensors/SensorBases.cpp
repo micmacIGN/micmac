@@ -97,7 +97,7 @@ std::string cSensorImage::PrefixName() { return "Ori"; }
 
 std::string  cSensorImage::NameOri_From_PrefixAndImage(const std::string & aPrefix,const std::string & aNameImage)
 { 
-    return PrefixName() + "-" + aPrefix + "-" + aNameImage + "." + GlobNameDefSerial(); 
+    return PrefixName() + "-" + aPrefix + "-" + aNameImage + "." + GlobTaggedNameDefSerial(); 
 }
 std::string cSensorImage::NameOriStd() const 
 { 

@@ -237,7 +237,8 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPMeshDev        (eTA2007::MeshDev,*this),
     mDPMask           (eTA2007::Mask,*this),
     mDPPointsMeasures (eTA2007::PointsMeasure,*this),
-    mDPTieP          (eTA2007::TieP,*this),
+    mDPTieP           (eTA2007::TieP,*this),
+    mDPMulTieP        (eTA2007::MulTieP,*this),
     mDPMetaData       (eTA2007::MetaData,*this),
     mGlobCalcMTD      (nullptr)
 {
@@ -272,6 +273,7 @@ void cPhotogrammetricProject::FinishInit()
     mDPMask.Finish();
     mDPPointsMeasures.Finish();
     mDPTieP.Finish();
+    mDPMulTieP.Finish();
     mDPMetaData.Finish();
 
     // Force the creation of directory for metadata spec, make 
@@ -299,7 +301,8 @@ cPhotogrammetricProject::~cPhotogrammetricProject()
 
 cMMVII_Appli &  cPhotogrammetricProject::Appli()    {return mAppli;}
 
-const std::string & cPhotogrammetricProject::NameDefSerial() const {return mAppli.NameDefSerial();}
+const std::string & cPhotogrammetricProject::TaggedNameDefSerial() const {return mAppli.TaggedNameDefSerial();}
+const std::string & cPhotogrammetricProject::VectNameDefSerial() const {return mAppli.VectNameDefSerial();}
 
 cDirsPhProj &   cPhotogrammetricProject::DPOrient() {return mDPOrient;}
 cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() {return mDPRadiomData;}
@@ -309,6 +312,7 @@ cDirsPhProj &   cPhotogrammetricProject::DPMask() {return mDPMask;}
 cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() {return mDPPointsMeasures;}
 cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
 cDirsPhProj &   cPhotogrammetricProject::DPTieP() {return mDPTieP;}
+cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() {return mDPMulTieP;}
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
@@ -318,6 +322,7 @@ const cDirsPhProj &   cPhotogrammetricProject::DPMask() const {return mDPMask;}
 const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return mDPPointsMeasures;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
 const cDirsPhProj &   cPhotogrammetricProject::DPTieP() const {return mDPTieP;}
+const cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() const {return mDPMulTieP;}
 
 
 const std::string &   cPhotogrammetricProject::DirPhp() const   {return mDirPhp;}
@@ -349,7 +354,7 @@ cCalibRadiomIma * cPhotogrammetricProject::ReadCalibRadiomIma(const std::string 
 /* With only the name of images and the folder, cannot determinate the model used, so the methods
  * test the possible model by testing existence of files.
  */	
-    std::string aNameFile = mDPRadiomModel.FullDirIn() + PrefixCalRadRad + aNameIm + "." + NameDefSerial();
+    std::string aNameFile = mDPRadiomModel.FullDirIn() + PrefixCalRadRad + aNameIm + "." + TaggedNameDefSerial();
     if (ExistFile(aNameFile))
        return cCalRadIm_Pol::FromFile(aNameFile);
 
@@ -359,7 +364,7 @@ cCalibRadiomIma * cPhotogrammetricProject::ReadCalibRadiomIma(const std::string 
 
 void cPhotogrammetricProject::SaveCalibRad(const cCalibRadiomIma & aCalRad) const
 {
-     aCalRad.ToFile(mDPRadiomModel.FullDirOut() + PrefixCalRadRad + aCalRad.NameIm()+ "." + NameDefSerial());
+     aCalRad.ToFile(mDPRadiomModel.FullDirOut() + PrefixCalRadRad + aCalRad.NameIm()+ "." + TaggedNameDefSerial());
 }
 
 std::string cPhotogrammetricProject::NameCalibRadiomSensor(const cPerspCamIntrCalib & aCam,const cMetaDataImage & aMTD) const
@@ -405,7 +410,7 @@ void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 
 void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const
 {
-    std::string aNameCalib = mDPOrient.FullDirOut() + aCalib.Name() + "." + NameDefSerial();
+    std::string aNameCalib = mDPOrient.FullDirOut() + aCalib.Name() + "." + TaggedNameDefSerial();
     aCalib.ToFileIfFirstime(aNameCalib);
 }
 
@@ -495,7 +500,7 @@ std::string  cPhotogrammetricProject::FullDirCalibOut() const
 
 cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm) const
 {
-    std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + NameDefSerial();
+    std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + TaggedNameDefSerial();
     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib);
     return aCalib;
 }
@@ -540,12 +545,12 @@ cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameI
 void cPhotogrammetricProject::SaveGCP(const cSetMesImGCP& aSetMes,const std::string & aExt)
 {
      cSetMesGCP  aMGCP = aSetMes.ExtractSetGCP(aExt);
-     aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles +aExt + "." + NameDefSerial());
+     aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles +aExt + "." + TaggedNameDefSerial());
 }
 
 std::string cPhotogrammetricProject::GCPPattern(const std::string & aArgPatFiltr) const
 {
-    return (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*." +NameDefSerial())  : aArgPatFiltr;
+    return (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*." +TaggedNameDefSerial())  : aArgPatFiltr;
 }
 
 void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr) const
@@ -628,8 +633,7 @@ void  cPhotogrammetricProject::SaveHomol
       (
            const cSetHomogCpleIm & aSetHCI,
            const std::string & aNameIm1 ,
-	   const std::string & aNameIm2,
-	   const std::string & anExt
+	   const std::string & aNameIm2
       ) const
 {
 	std::string aDir = mDPTieP.FullDirOut();
@@ -637,19 +641,24 @@ void  cPhotogrammetricProject::SaveHomol
 	aDir = aDir + aNameIm1 + StringDirSeparator();
 	CreateDirectories(aDir,true);
 
-	std::string  aName = aDir+aNameIm2 + "." +anExt;
+	std::string  aName = aDir+aNameIm2 + "." +  VectNameDefSerial();
 	aSetHCI.ToFile(aName);
 }
+
+std::string cPhotogrammetricProject::NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2) const
+{
+    return  mDPTieP.FullDirIn()+aNameIm1+StringDirSeparator()+aNameIm2+"."+VectNameDefSerial();
+}
+
 
 void  cPhotogrammetricProject::ReadHomol
       (
            cSetHomogCpleIm & aSetHCI,
            const std::string & aNameIm1 ,
-           const std::string & aNameIm2,
-           const std::string & anExt
+           const std::string & aNameIm2
       ) const
 {
-    std::string aName = mDPTieP.FullDirIn()+aNameIm1+StringDirSeparator()+aNameIm2+"."+anExt;
+    std::string aName = NameTiePIn(aNameIm1,aNameIm2); 
     ReadFromFile(aSetHCI.SetH(),aName);
 }
 

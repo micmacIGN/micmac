@@ -386,7 +386,7 @@ template<class Type> void  SpecificationSaveInFile(const std::string & aName)
 
 template<class Type> void  SpecificationSaveInFile()
 {
-     SpecificationSaveInFile<Type>("Specifications_"+cStrIO<Type>::msNameType+"."+GlobNameDefSerial());
+     SpecificationSaveInFile<Type>("Specifications_"+cStrIO<Type>::msNameType+"."+GlobTaggedNameDefSerial());
 }
 
 

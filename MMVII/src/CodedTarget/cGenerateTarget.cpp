@@ -1043,7 +1043,7 @@ int  cAppliGenCodedTarget::Exe()
       }
    }
 
-   std::string aName = aFullSpec.Prefix()+"_FullSpecif."+NameDefSerialOut();
+   std::string aName = aFullSpec.Prefix()+"_FullSpecif."+TaggedNameDefSerial();
    SaveInFile(aFullSpec, aName);
 
    if (0)  // test reload

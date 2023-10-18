@@ -379,7 +379,7 @@ int  cAppliGenerateEncoding::Exe()
                        + "_Hamm" + ToStr(mSpec.mMinHammingD)
                        + "_Run" + ToStr(mSpec.mMaxRunL.x()) + "_" + ToStr(mSpec.mMaxRunL.y());
    }
-   mNameOut  =   mSpec.mPrefix + "_SpecEncoding." + NameDefSerialOut();
+   mNameOut  =   mSpec.mPrefix + "_SpecEncoding." + TaggedNameDefSerial();
 
    // calls method in cMMVII_Appli, to show current value of params, as many transformation have been made
    ShowAllParams();

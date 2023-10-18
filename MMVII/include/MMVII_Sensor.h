@@ -293,7 +293,8 @@ class cPhotogrammetricProject
 	 //========================== ACCESSOR ===============================
 
           cMMVII_Appli &  Appli(); ///< Accessor
-	  const std::string & NameDefSerial() const; /// short to Appli.Nam...
+	  const std::string & TaggedNameDefSerial() const; /// short to Appli.Nam...
+	  const std::string & VectNameDefSerial() const; /// short to Appli.Nam...
 	  cDirsPhProj &   DPOrient(); ///< Accessor
 	  cDirsPhProj &   DPRadiomData(); ///< Accessor
 	  cDirsPhProj &   DPRadiomModel(); ///< Accessor
@@ -302,6 +303,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPPointsMeasures(); ///< Accessor
 	  cDirsPhProj &   DPMetaData();    ///<  Accessor
 	  cDirsPhProj &   DPTieP();    ///<  Accessor
+	  cDirsPhProj &   DPMulTieP();    ///<  Accessor
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
@@ -311,6 +313,7 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPPointsMeasures() const; ///< Accessor
 	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
+	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
 
 	  const std::string &   DirPhp() const;   ///< Accessor
 	  const std::string &   DirVisu() const;   ///< Accessor
@@ -420,13 +423,14 @@ class cPhotogrammetricProject
 	 
 	 void  SaveHomol(const cSetHomogCpleIm &,
 			 const std::string & aNameIm1 ,
-			 const std::string & aNameIm2,
-			 const std::string & Ext=PostF_CsvFiles) const;
+			 const std::string & aNameIm2) const;
 
 	 void  ReadHomol(cSetHomogCpleIm &,
 			 const std::string & aNameIm1 ,
-			 const std::string & aNameIm2,
-			 const std::string & Ext=PostF_CsvFiles) const;
+			 const std::string & aNameIm2) const;
+
+	 std::string NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2) const;
+
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
@@ -445,8 +449,9 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPRadiomModel;
 	  cDirsPhProj     mDPMeshDev;
 	  cDirsPhProj     mDPMask;
-	  cDirsPhProj     mDPPointsMeasures;   ///<  For GCP measures  Image + Grounds
+	  cDirsPhProj     mDPPointsMeasures;  ///<  For GCP measures  Image + Grounds
 	  cDirsPhProj     mDPTieP;            ///<  For Homologous point
+	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
 
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;

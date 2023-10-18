@@ -182,7 +182,7 @@ static int aCpt=0; aCpt++;
         if (aResidual<aAccuracy)
         {
             // create a new file , to avoid reading in map in "FromFile"
-	    std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "TestCalib_" + ToStr(aCpt) + "." + GlobNameDefSerial();
+	    std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "TestCalib_" + ToStr(aCpt) + "." + GlobTaggedNameDefSerial();
 	    aCalib->ToFile(aNameTmp);
 
 	    cPerspCamIntrCalib *  aCam2 = cPerspCamIntrCalib::FromFile(aNameTmp);

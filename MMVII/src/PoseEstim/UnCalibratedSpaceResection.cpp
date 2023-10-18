@@ -744,7 +744,7 @@ void cAppli_UncalibSpaceResection::DoMedianCalib()
      std::map<std::string,tVCal> aMapCal;
      for (const auto &  aNameIm : VectMainSet(0))
      {
-         std::string aNameCal = mPhProj.DPOrient().FullDirOut() + cPerspCamIntrCalib::PrefixName()  + aNameIm  + "." +NameDefSerial();
+         std::string aNameCal = mPhProj.DPOrient().FullDirOut() + cPerspCamIntrCalib::PrefixName()  + aNameIm  + "." +TaggedNameDefSerial();
          if (ExistFile(aNameCal))
          {
              cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCal);
