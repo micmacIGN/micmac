@@ -668,6 +668,39 @@ void cFilterMesIm::Save()
      mPhProj.SaveAndFilterAttrEll(mMesIm,mSupr);
 }
 
+/* **************************************** */
+/*                                          */
+/*               cTiePMul                   */
+/*                                          */
+/* **************************************** */
+
+cTiePMul::cTiePMul(cPt2dr  aPt,int anIndex) :
+   mPt    (aPt) ,
+   mId    (anIndex)
+{
+}
+
+cTiePMul::cTiePMul() :
+     cTiePMul(cPt2dr::Dummy(),-1)
+{
+}
+
+void AddData(const cAuxAr2007 & anAux,cTiePMul & aPMul)
+{
+    AddData(cAuxAr2007("Pt",anAux),aPMul.mPt);
+    AddData(cAuxAr2007("Id",anAux),aPMul.mId);
+}
+
+/* **************************************** */
+/*                                          */
+/*               cVecTiePMul                */
+/*                                          */
+/* **************************************** */
+
+cVecTiePMul::cVecTiePMul(const std::string & anIm) :
+   mNameIm (anIm)
+{
+}
 
 
 }; // MMVII

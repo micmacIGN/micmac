@@ -287,13 +287,6 @@ class cInterfImportHom : public cMemCheck
 
 	  virtual ~cInterfImportHom();
       private :
-
-          // std::string  mDirGlob;
-          // std::string  mExtIn;
-          // std::string  mExt;
-          // std::string  mKHIn;
-          // cElemAppliSetFile                 mEASF;
-          // cInterfChantierNameManipulateur * mICNM ;
 };
 
 
@@ -329,6 +322,29 @@ class cSetMultipleTiePoints : public cMemCheck
         std::vector<std::string>          mVNames;
         std::map<tConfigIm,tPtsOfConfig>  mPts;
 };
+
+class cTiePMul
+{
+    public :
+        cTiePMul(cPt2dr  aPt,int anIndex);
+        cTiePMul();
+
+        cPt2dr mPt;
+        int    mId;
+};
+void AddData(const cAuxAr2007 & anAux,cTiePMul & aPMul);
+
+class   cVecTiePMul
+{
+      public :
+          cVecTiePMul(const std::string & anIm);
+
+          std::string           mNameIm;
+          std::vector<cTiePMul> mVecTPM;
+};
+
+
+
 
 /**  Helper for exporting filter of image  measures.
  *

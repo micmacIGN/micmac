@@ -261,6 +261,9 @@ class cSetMesGCP;
 class cMultipleImPt;
 class cSetMesImGCP;
 
+class cVecTiePMul;
+class cTiePMul;
+
 
 // MMVII_Radiom.h
 class cImageRadiomData;  ///< store data used for radiometric equalisation

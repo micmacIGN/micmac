@@ -46,59 +46,6 @@ void cMMVII_ImportHom::GetHom(cSetHomogCpleIm & aCple,const std::string & aNameI
     mPhProj.ReadHomol(aCple,aNameIm1,aNameIm2);
 }
 
-/* **************************************** */
-/*                                          */
-/*               cTiePMul                   */
-/*                                          */
-/* **************************************** */
-
-class cTiePMul
-{
-    public :
-        cTiePMul(cPt2dr  aPt,int anIndex);
-        cTiePMul();
-
-        cPt2dr mPt;
-        int    mId;
-};
-
-cTiePMul::cTiePMul(cPt2dr  aPt,int anIndex) :
-   mPt    (aPt) ,
-   mId    (anIndex)
-{
-}
-
-cTiePMul::cTiePMul() :
-     cTiePMul(cPt2dr::Dummy(),-1)
-{
-}
-
-void AddData(const cAuxAr2007 & anAux,cTiePMul & aPMul)
-{
-    AddData(cAuxAr2007("Pt",anAux),aPMul.mPt);
-    AddData(cAuxAr2007("Id",anAux),aPMul.mId);
-}
-
-/* **************************************** */
-/*                                          */
-/*               cVecTiePMul                */
-/*                                          */
-/* **************************************** */
-
-class   cVecTiePMul
-{
-      public :
-          cVecTiePMul(const std::string & anIm);
-
-	  std::string           mNameIm;
-	  std::vector<cTiePMul> mVecTPM;
-};
-
-cVecTiePMul::cVecTiePMul(const std::string & anIm) :
-   mNameIm (anIm)
-{
-}
-
    /* ********************************************************** */
    /*                                                            */
    /*                 cAppli_OriConvV1V2                         */
@@ -129,6 +76,7 @@ cCollecSpecArg2007 & cAppli_ToTiePMul::ArgObl(cCollecSpecArg2007 & anArgObl)
     return anArgObl
 	   <<  Arg2007(mSpecIm,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
 	   <<  mPhProj.DPTieP().ArgDirInMand()
+	   <<  mPhProj.DPMulTieP().ArgDirOutMand()
      ;
 }
 
@@ -202,10 +150,10 @@ int cAppli_ToTiePMul::Exe()
 
    for (const auto & aVPm : aVVPm)
    {
-       SaveInFile(aVPm.mVecTPM,"PMUL-"+aVPm.mNameIm +".csv");
+       mPhProj.SaveMultipleTieP(aVPm,aVPm.mNameIm );
    }
 
-   StdOut () << "VVVV " << aVecCpt << "\n";
+
 
    return EXIT_SUCCESS;
 }

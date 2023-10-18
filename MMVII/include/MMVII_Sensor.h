@@ -431,6 +431,13 @@ class cPhotogrammetricProject
 
 	 std::string NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2) const;
 
+	 //===================================================================
+         //==================   Multiple Tie-Points  =========================
+	 //===================================================================
+
+	 std::string NameMultipleTieP(const std::string &) const;
+	 void  SaveMultipleTieP(const cVecTiePMul&,const std::string &) const;
+	 void  ReadMultipleTieP(cVecTiePMul&,const std::string & ) const;
 
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;

@@ -626,6 +626,21 @@ void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM
      SaveInFile(aVSEEOut,cSaveExtrEllipe::NameFile(*this,aSetM,false));
 }
 
+        //  =============  Homologous point =================
+
+std::string cPhotogrammetricProject::NameMultipleTieP(const std::string & aNameIm) const
+{
+   return "PMUL-"+ aNameIm + "." + VectNameDefSerial();
+}
+
+void  cPhotogrammetricProject::SaveMultipleTieP(const cVecTiePMul& aVPm,const std::string & aNameIm) const
+{
+   PushPrecTxtSerial(3);
+   SaveInFile(aVPm.mVecTPM,mDPMulTieP.FullDirOut()+NameMultipleTieP(aNameIm));
+   PopPrecTxtSerial();
+}
+
+
 
         //  =============  Homologous point =================
 
