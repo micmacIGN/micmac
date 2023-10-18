@@ -1,12 +1,6 @@
 #include "cMMVII_Appli.h"
 #include "Serial.h"
 
-#include <boost/version.hpp>
-#if BOOST_VERSION > 106700
-#include <boost/container_hash/hash.hpp>
-#else
-#include <boost/functional/hash.hpp>
-#endif
 
 /** \file Serial.cpp
     \brief Implementation of serialisation servive
@@ -578,10 +572,19 @@ void cHashValue_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS)
    }
 }
 
+// From boost:: ...
+template <class T>
+static inline void hash_combine(std::size_t& seed, T const& v)
+{
+   std::hash<T> hasher;
+   seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
+
 void cHashValue_Ar2007::RawAddDataTerm(size_t &  aSz) 
 {
     if (mOrdered)
-       boost::hash_combine(mHashKey, aSz);
+       hash_combine(mHashKey, aSz);
     else
        mHashKey ^= std::hash<size_t>()(aSz);
 }
@@ -589,7 +592,7 @@ void cHashValue_Ar2007::RawAddDataTerm(size_t &  aSz)
 void cHashValue_Ar2007::RawAddDataTerm(int &    anI) 
 {
     if (mOrdered)
-       boost::hash_combine(mHashKey, anI);
+       hash_combine(mHashKey, anI);
     else
        mHashKey ^= std::hash<int>()(anI);
 }
@@ -597,7 +600,7 @@ void cHashValue_Ar2007::RawAddDataTerm(int &    anI)
 void cHashValue_Ar2007::RawAddDataTerm(double &    aD) 
 {
     if (mOrdered)
-       boost::hash_combine(mHashKey, aD);
+       hash_combine(mHashKey, aD);
     else
        mHashKey ^= std::hash<double>()(aD);
 }
@@ -605,7 +608,7 @@ void cHashValue_Ar2007::RawAddDataTerm(double &    aD)
 void cHashValue_Ar2007::RawAddDataTerm(std::string &    anS) 
 {
     if (mOrdered)
-       boost::hash_combine(mHashKey, anS);
+       hash_combine(mHashKey, anS);
     else 
        mHashKey ^= std::hash<std::string>()(anS);
 }
