@@ -18,7 +18,6 @@
 #include "MMVII_Sys.h"
 #include "MMVII_util.h"
 #include "cMMVII_Appli.h"
-#include <boost/algorithm/string.hpp>
 
 
 
@@ -212,12 +211,20 @@ std::string ChgPostix(const std::string & aPath,const std::string & aPost)
 
 bool UCaseEqual(const std::string & aStr1 ,const std::string & aStr2)
 {
-   return boost::iequals(aStr1,aStr2);
+    return std::equal(
+        aStr1.begin(), aStr1.end(), aStr2.begin(), aStr2.end(),
+        [](unsigned char a, unsigned char b) { return std::tolower(a) == std::tolower(b); }
+    );
 }
 
 std::string ToLower(const std::string &  aStr)
 {
-   return boost::algorithm::to_lower_copy(aStr);
+    std::string s;
+    std::transform(
+        aStr.cbegin(),aStr.cend(),std::back_inserter(s),
+        [](unsigned char c) { return std::tolower(c); }
+        );
+    return s;
 }
 
 bool UCaseBegin(const char * aBegin,const char * aStr)
@@ -439,7 +446,7 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 
     if ((! Ok) && (!SVP))
     {
-        // There is something I dont understand with boost on error with create_directories,
+        // There is something I dont understand with std::filesystem on error with create_directories,
         // for me it works but it return false, to solve later ....
 	// Ch. M.: My understanrdfing is :
 	//   - if directory is created, return true
