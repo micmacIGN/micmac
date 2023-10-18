@@ -266,7 +266,8 @@ void AddData(const cAuxAr2007 & anAux,cParamProfile & aProfile)
 {
      AddData(cAuxAr2007("UserName",anAux),aProfile.mUserName);
      AddData(cAuxAr2007("NbProcMax",anAux),aProfile.mNbProcMax);
-     EnumAddData(anAux,aProfile.mDefSerial,"SerialMode");
+     EnumAddData(anAux,aProfile.mTaggedDefSerial,"TaggedSerialMode");
+     EnumAddData(anAux,aProfile.mVectDefSerial,"VectSerialMode");
 }
 
 
@@ -827,10 +828,12 @@ void cMMVII_Appli::InitProfile()
   {
       StdOut() << "NO USEERRRRRRRRRRRRRR " << std::endl; getchar();
 
-      mParamProfile.mUserName = "Uknown";
+      mParamProfile.mUserName = "Unkown";
       mParamProfile.mNbProcMax = 1000;
-      mParamProfile.mDefSerial = eTypeSerial::ejson;
-      mNameDefSerial = E2Str(mParamProfile.mDefSerial);
+      mParamProfile.mVectDefSerial = eTypeSerial::ecsv;
+      mParamProfile.mTaggedDefSerial = eTypeSerial::ejson;
+      mVectNameDefSerial = E2Str(mParamProfile.mVectDefSerial);
+      mTaggedNameDefSerial = E2Str(mParamProfile.mTaggedDefSerial);
       return;
   } 
 
@@ -874,33 +877,44 @@ void cMMVII_Appli::InitProfile()
   {
       CreateDirectories(mDirProfileUsage,false);
 
-      mParamProfile.mUserName = "Uknown";
+      mParamProfile.mUserName = "Unkown";
       mParamProfile.mNbProcMax = 1000;
-      mParamProfile.mDefSerial = eTypeSerial::exml;
+      mParamProfile.mVectDefSerial = eTypeSerial::ecsv;
+      mParamProfile.mTaggedDefSerial = eTypeSerial::exml;
       SaveInFile(mParamProfile,mDirProfileUsage+NameFileUseOfProfile);
   }
   ReadFromFile(mParamProfile,mDirProfileUsage+NameFileUseOfProfile);
-  mNameDefSerial = E2Str(mParamProfile.mDefSerial);
+  mVectNameDefSerial = E2Str(mParamProfile.mVectDefSerial);
+  mTaggedNameDefSerial = E2Str(mParamProfile.mTaggedDefSerial);
 }
 
 const  std::string & cMMVII_Appli::UserName() {return mParamProfile.mUserName;}
 const  std::string & cMMVII_Appli::DirProfileUsage() {return mDirProfileUsage;}
 
-eTypeSerial cMMVII_Appli::DefSerial() const 
+eTypeSerial cMMVII_Appli::VectDefSerial() const 
 {
     CurrentAppli(); // as member is static assure init was done
-    return mParamProfile.mDefSerial;
+    return mParamProfile.mVectDefSerial;
 }
-
-const std::string & cMMVII_Appli::NameDefSerialOut() const { return NameDefSerial();}
-const std::string & cMMVII_Appli::NameDefSerialIn () const  { return NameDefSerial();}
-const std::string & cMMVII_Appli::NameDefSerial   () const 
+eTypeSerial cMMVII_Appli::TaggedDefSerial() const 
 {
     CurrentAppli(); // as member is static assure init was done
-    return mNameDefSerial;
+    return mParamProfile.mTaggedDefSerial;
 }
 
-const std::string & GlobNameDefSerial() {return cMMVII_Appli::CurrentAppli().NameDefSerial();}
+const std::string & cMMVII_Appli::VectNameDefSerial   () const 
+{
+    CurrentAppli(); // as member is static assure init was done
+    return mVectNameDefSerial;
+}
+const std::string & cMMVII_Appli::TaggedNameDefSerial   () const 
+{
+    CurrentAppli(); // as member is static assure init was done
+    return mTaggedNameDefSerial;
+}
+
+const std::string & GlobVectNameDefSerial() {return cMMVII_Appli::CurrentAppli().VectNameDefSerial();}
+const std::string & GlobTaggedNameDefSerial() {return cMMVII_Appli::CurrentAppli().TaggedNameDefSerial();}
 
 
 
@@ -1528,7 +1542,8 @@ std::string cMMVII_Appli::mDirProfileUsage;
 cParamProfile cMMVII_Appli::mParamProfile;
 std::string cMMVII_Appli::mDirMicMacv1;
 std::string cMMVII_Appli::mDirMicMacv2;
-std::string cMMVII_Appli::mNameDefSerial;
+std::string cMMVII_Appli::mVectNameDefSerial;
+std::string cMMVII_Appli::mTaggedNameDefSerial;
 
               // static Accessors
 const std::string & cMMVII_Appli::TmpDirTestMMVII()   {return mTmpDirTestMMVII;}

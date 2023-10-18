@@ -221,7 +221,7 @@ int cAppli_ImportGCP::Exe()
     if (!IsInit(&mNameOut))
        mNameOut = mNameGCP;
 
-    mNameOut  = mNameOut + "." +  NameDefSerial();
+    mNameOut  = mNameOut + "." +  TaggedNameDefSerial();
 
     if (mPhProj.DPPointsMeasures().DirOutIsInit())
     {

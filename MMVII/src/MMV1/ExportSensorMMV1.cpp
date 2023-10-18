@@ -18,7 +18,8 @@ void DoCorresp
         cSet2D3D & aSet,      ///< result where put the correspondance
 	CamStenope * aCamV1,  ///< camera-stenope-V1  generating the correspondance
 	int aNbPointPerDim,   ///< number of point in each dimension
-	int aNbLayer          ///< number of layer
+	int aNbLayer,         ///< number of layer
+        tREAL8 aDS
      )
 {
    size_t aNbPtsMin = Square(aNbPointPerDim);
@@ -55,12 +56,12 @@ void DoCorresp
        for (const auto & aPImV1 : aVP2)
        {
            Pt3dr aPGroundV1 = aCamV1->ImEtProf2Terrain(aPImV1,aLayer+1);
-           aSet.AddPair(cPair2D3D(ToMMVII(aPImV1),ToMMVII(aPGroundV1)));
+           aSet.AddPair(cPair2D3D(ToMMVII(aPImV1)/aDS,ToMMVII(aPGroundV1)));
        }
    }
 }
 
-cExportV1StenopeCalInterne::cExportV1StenopeCalInterne(bool isForCalib,const std::string& aFile,int aNbPointPerDim,int aNbLayer) :
+cExportV1StenopeCalInterne::cExportV1StenopeCalInterne(bool isForCalib,const std::string& aFile,int aNbPointPerDim,int aNbLayer,tREAL8 aDS) :
    mPose (cIsometry3D<tREAL8>::Identity())
 {
 	// do we read only a calibration or calib+pose
@@ -69,9 +70,9 @@ cExportV1StenopeCalInterne::cExportV1StenopeCalInterne(bool isForCalib,const std
 	                     BasicCamOrientGenFromFile (aFile)  ;
 
    //  Do the easy stuff for parameters having obvious  equivalence  V1/V2
-   mSzCam = ToI(ToMMVII(aCamV1->SzPixel()));
-   mFoc   =  aCamV1->Focale();
-   mPP    =  ToMMVII(aCamV1->PP());
+   mSzCam = Pt_round_up(ToMMVII(aCamV1->SzPixel()) /aDS);
+   mFoc   =  aCamV1->Focale() / aDS;
+   mPP    =  ToMMVII(aCamV1->PP()) / aDS;
 
 
    // determine equivalent model of projection, if any
@@ -136,7 +137,7 @@ cExportV1StenopeCalInterne::cExportV1StenopeCalInterne(bool isForCalib,const std
 
 
    if ((aNbLayer>0) && (aNbPointPerDim>0))
-      DoCorresp(mCorresp,aCamV1,aNbPointPerDim,aNbLayer);
+      DoCorresp(mCorresp,aCamV1,aNbPointPerDim,aNbLayer,aDS);
 }
 
 };

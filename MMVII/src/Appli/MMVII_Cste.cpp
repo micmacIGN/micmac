@@ -112,6 +112,7 @@ const   std::string MMVII_PrefRefBench = "RefBench-";
 // PostFix 4 files
 const   std::string PostF_XmlFiles  = "xml";
 const   std::string PostF_DumpFiles = "dmp";
+const   std::string PostF_CsvFiles = "csv";
 const   std::string & StdPostF_ArMMVII(bool isXml)
 {
     return isXml ? PostF_XmlFiles  : PostF_DumpFiles;

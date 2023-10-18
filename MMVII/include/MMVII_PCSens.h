@@ -461,7 +461,44 @@ class cSensorCamPC : public cSensorImage
 };
 
 
+class cCamSimul : public cMemCheck
+{
+   public :
+      static cCamSimul * Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool SubVert);
 
+      ~cCamSimul();
+
+      cPt3dr mCenterGround;
+
+      //   Geometry of acquisition
+      tREAL8 mProfMin;
+      tREAL8 mProfMax;
+      tREAL8 mBsHMin;
+      tREAL8 mBsHMax;
+      tREAL8 mRandInterK;
+
+      static void BenchMatEss(cTimerSegm * aTS,bool PerfInter);
+
+      void TestCam(cSensorCamPC * aCam) const;
+   private :
+      void AddCam(cPerspCamIntrCalib *,bool SubVert);
+      void AddCam(eProjPC aProj1,bool SubVert);
+
+      cCamSimul();
+      ///  is the new center sufficiently far, but not too much
+      bool ValidateCenter(const cPt3dr & aP) const;
+
+      ///  Generatea new valide point
+      cPt3dr  GenValideCenter(bool SubVert) const;
+      /// Generate a point w/o constraint
+      cPt3dr  GenAnyCenter(bool SubVert) const;
+
+      std::vector<cSensorCamPC *>         mListCam;
+      std::vector<cPerspCamIntrCalib *>   mListCalib;
+
+
+      // cSetHomogCpleIm
+};
 
 };
 

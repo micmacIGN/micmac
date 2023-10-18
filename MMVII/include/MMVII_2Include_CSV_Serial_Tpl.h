@@ -98,6 +98,7 @@ template <class Type>  class cICSVFile :  public  cCSVFile<Type>,
                   AddData(cAuxAr2007("CSV",*this,eTAAr::eStd),anObj);
                   aRes.push_back(anObj);
               }
+	      aRes.shrink_to_fit();
           }
 
      private  :

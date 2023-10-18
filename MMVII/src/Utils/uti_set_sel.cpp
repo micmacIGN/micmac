@@ -1160,7 +1160,7 @@ void BenchSet(cParamExeBench & aParam,const std::string & aDir)
        aTest.Add(tNamePair("d","c"));
        
        MMVII_INTERNAL_ASSERT_bench(aTest.size()==2,"BenchSet");
-       std::string aNameFile = anAp.TmpDirTestMMVII() + "TestRel."+GlobNameDefSerial();
+       std::string aNameFile = anAp.TmpDirTestMMVII() + "TestRel."+GlobTaggedNameDefSerial();
        SaveInFile(aTest,aNameFile);
        ReadFromFileWithDef(aT2,aNameFile);
 

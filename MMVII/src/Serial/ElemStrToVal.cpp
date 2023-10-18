@@ -188,6 +188,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::MetaData,"MetaData"},
                 {eTA2007::PointsMeasure,"PointsMeasure"},
                 {eTA2007::TieP,"TieP"},
+                {eTA2007::MulTieP,"MulTieP"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
                 {eTA2007::OptionalExist,"OptEx"},
@@ -1140,12 +1141,17 @@ std::string  ToS_NbDigit(int aNb,int aNbDig,bool AcceptOverFlow)
 
    // ================  double ==============================================
 
+static std::vector<size_t> The_VecPrecTxtSerial = {15};
+void PushPrecTxtSerial(size_t aPrec) { The_VecPrecTxtSerial.push_back(aPrec); }
+void PopPrecTxtSerial() { The_VecPrecTxtSerial.pop_back(); }
+
+
 template <>  std::string cStrIO<double>::ToStr(const double & aD)
 {
     if (int(aD) == aD) return cStrIO<int>::ToStr (int(aD));
 
     std::ostringstream out;
-    out.precision(15);
+    out.precision(The_VecPrecTxtSerial.back());
     out << std::fixed << aD;
 
     std::string aRes = std::move(out).str();

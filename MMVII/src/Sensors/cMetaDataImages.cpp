@@ -274,7 +274,7 @@ void cCalculMetaDataProject::GenerateSample(const std::string & aNameFile)
 
 const std::string  cCalculMetaDataProject::NameStdFile()
 {
-     return "CalcMTD." + cMMVII_Appli::CurrentAppli().NameDefSerial();
+     return "CalcMTD." + cMMVII_Appli::CurrentAppli().TaggedNameDefSerial();
 }
 
 /* ******************************************* */

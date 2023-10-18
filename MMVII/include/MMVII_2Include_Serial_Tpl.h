@@ -19,6 +19,13 @@
 
 namespace MMVII
 {
+   
+void PushPrecTxtSerial(size_t aPrec);  /// set new precision for txt-serialisation
+void PopPrecTxtSerial();   /// restore precision for txt-serialisation
+
+
+
+
 typedef  std::map<std::string,std::vector<cPt2dr>>  tTestMasSerial;  /// Type for basic test-serialisation of maps
 tTestMasSerial  GentTestMasSerial(); /// Generate a sample for test
 
@@ -379,7 +386,7 @@ template<class Type> void  SpecificationSaveInFile(const std::string & aName)
 
 template<class Type> void  SpecificationSaveInFile()
 {
-     SpecificationSaveInFile<Type>("Specifications_"+cStrIO<Type>::msNameType+"."+GlobNameDefSerial());
+     SpecificationSaveInFile<Type>("Specifications_"+cStrIO<Type>::msNameType+"."+GlobTaggedNameDefSerial());
 }
 
 
@@ -399,11 +406,30 @@ template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
 
 
 /** Same as write, but simpler as V1/V2 choice is guided by file */
-template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
+template<class Type> void  ReadFromFile_Std(Type & aVal,const std::string & aName)
 {
     std::unique_ptr<cAr2007>  anAr (AllocArFromFile(aName,true));
     TopAddAr(*anAr,aVal,aName);
 }
+
+template<class Type> void  ReadFromFile(std::vector<Type> & aVec,const std::string & aName)
+{
+    if (LastPostfix(aName) == E2Str(eTypeSerial::ecsv))
+    {
+        FromCSV(aVec,aName,true);
+    }
+    else
+    {
+        ReadFromFile_Std(aVec,aName);
+    }
+}
+
+template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
+{
+    ReadFromFile_Std(aVal,aName);
+}
+
+
 
 /// If the file does not exist, initialize with default constructor
 template<class Type> void  ReadFromFileWithDef(Type & aVal,const std::string & aName)

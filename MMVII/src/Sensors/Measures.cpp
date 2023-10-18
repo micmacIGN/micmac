@@ -58,6 +58,7 @@ cSetHomogCpleIm::cSetHomogCpleIm(size_t aReserve)
 }
 
 const std::vector<cHomogCpleIm> & cSetHomogCpleIm::SetH() const {return mSetH;}
+std::vector<cHomogCpleIm> & cSetHomogCpleIm::SetH() {return mSetH;}
 
 void cSetHomogCpleIm::Add(const cHomogCpleIm & aCple)
 {
@@ -81,7 +82,9 @@ void cSetHomogCpleIm::Clear()
 
 void cSetHomogCpleIm::ToFile(const std::string & aName) const
 {
-	SaveInFile(*this,aName);
+    PushPrecTxtSerial(3); // avoid "ridiculous" number of digit for tie-points
+    SaveInFile(mSetH,aName);
+    PopPrecTxtSerial();   // restore previous number of digit
 }
 
 void  cSetHomogCpleIm::InitFromFile(const std::string & aName) 
@@ -395,7 +398,7 @@ const std::string  cSetMesPtOf1Im::ThePrefixFiles = "MesIm-";
 
 std::string cSetMesPtOf1Im::StdNameFileOfIm(const std::string & aName)
 {
-	return ThePrefixFiles +aName+ "."+ cMMVII_Appli::CurrentAppli().NameDefSerial();
+	return ThePrefixFiles +aName+ "."+ cMMVII_Appli::CurrentAppli().TaggedNameDefSerial();
 }
 
 std::string cSetMesPtOf1Im::StdNameFile() const
@@ -512,7 +515,7 @@ void cSetMesGCP::ToFile(const std::string & aNameFile)
 
 std::string cSetMesGCP::StdNameFileOfSet(const std::string & aName) 
 {
-     return ThePrefixFiles+"-"+ aName+ "."+GlobNameDefSerial();
+     return ThePrefixFiles+"-"+ aName+ "."+GlobTaggedNameDefSerial();
 }
 std::string cSetMesGCP::StdNameFile() const {return StdNameFileOfSet(mNameSet);}
 

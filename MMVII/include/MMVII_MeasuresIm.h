@@ -262,6 +262,7 @@ class cSetHomogCpleIm
 	void   InitFromFile(const std::string &) ;
 
         const std::vector<cHomogCpleIm> & SetH() const;
+        std::vector<cHomogCpleIm> & SetH() ;
 
 	void Add(const cHomogCpleIm &);
 	void Clear();

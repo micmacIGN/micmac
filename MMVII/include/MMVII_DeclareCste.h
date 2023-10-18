@@ -92,6 +92,7 @@ extern const   std::string MMVIIBin2007;  ///< Name of MMVII binary (i.e. "MMVII
 // PostFix 4 files
 extern const   std::string PostF_XmlFiles; ///< xml now
 extern const   std::string PostF_DumpFiles; ///< dmp now
+extern const   std::string PostF_CsvFiles; ///< dmp now
 const   std::string & StdPostF_ArMMVII(bool xml); ///< one of 2 above
 
 // PreFix 4 files

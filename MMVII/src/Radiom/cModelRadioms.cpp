@@ -329,7 +329,7 @@ cCalRadIm_Pol * cCalRadIm_Pol::FromFile(const std::string & aName)
 {
      cCalRadIm_Pol *  aRes = new cCalRadIm_Pol();
      ReadFromFile(*aRes,aName);
-     aRes->mCalibSens = cCalibRadiomSensor::FromFile(DirOfPath(aName) + aRes->mNameCalib + "."+GlobNameDefSerial());
+     aRes->mCalibSens = cCalibRadiomSensor::FromFile(DirOfPath(aName) + aRes->mNameCalib + "."+GlobTaggedNameDefSerial());
      // aRes->mImaOwnCorr =  EqRadiomCalibPolIma(aRes->mDegree,false,1);
      // aRes->mImaEqual = EqRadiomEqualisation(aRes->mCalibSens->NbParamRad(),aRes->mDegree,true,1);
      aRes->PostInit();
@@ -358,7 +358,7 @@ const std::vector<cDescOneFuncDist> & cCalRadIm_Pol::VDesc()  const
 void  cCalRadIm_Pol::ToFile(const std::string & aNameFile) const 
 {
     SaveInFile(*this,aNameFile);
-    std::string aNameCalib = DirOfPath(aNameFile) + mNameCalib + "." + GlobNameDefSerial();
+    std::string aNameCalib = DirOfPath(aNameFile) + mNameCalib + "." + GlobTaggedNameDefSerial();
     mCalibSens->ToFileIfFirstime(aNameCalib);
 }
 
