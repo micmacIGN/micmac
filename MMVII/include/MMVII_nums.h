@@ -32,7 +32,6 @@ template<> cPtxd<double,3>   NullVal<cPtxd<double,3>  >();// {return cPt3dr::PCs
 
 template <class Type> bool ValidFloatValue(const Type & aV)
 {
-   // return ! (   ((boost::math::isnan)(aV)) ||   ((boost::math::isinf)(aV)));
    return (std::isfinite)(aV) ;
 }
 template <class Type> bool ValidInvertibleFloatValue(const Type & aV)
@@ -587,7 +586,7 @@ template <class Type> void OrderMinMax(Type & aV1,Type & aV2)
       std::swap(aV1,aV2);
 }
 
-// 4 now use sort, will enhance with boost or home made
+// 4 now use sort, will enhance with home made
 template <class Type> Type NonConstMediane(std::vector<Type> & aV);
 template <class Type> Type ConstMediane(const std::vector<Type> & aV);
 

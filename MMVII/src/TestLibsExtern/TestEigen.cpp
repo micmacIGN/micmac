@@ -30,7 +30,6 @@ using namespace Eigen;
 namespace MMVII
 {
 
-/// MMVII Appli for Testing boost serialization service
 /**
      Probably obsolete
 */

@@ -47,7 +47,7 @@ template<class Type> cSelector<Type> operator && (const cSelector<Type> &,const 
 template<class Type> cSelector<Type> operator || (const cSelector<Type> &,const cSelector<Type>&); ///< Or/Union of selector
 template<class Type> cSelector<Type> operator !  (const cSelector<Type> &); ///< Negation of selector
 
-/**  Selector corresponding to interval  V1..V2,  boost::none mean no bound
+/**  Selector corresponding to interval  V1..V2,  std::nullopt mean no bound
     aInclLow,InclUp  indicate if bounds are included.
 
      (V1,V2,true,true)  => [V1,V2]
