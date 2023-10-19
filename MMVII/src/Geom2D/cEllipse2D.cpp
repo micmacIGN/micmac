@@ -498,9 +498,22 @@ void cExtract_BW_Ellipse::AnalyseAllConnectedComponents(const std::string & aNam
 {
     for (auto & aSeed : mVSeeds)
     {
-        if (AnalyseOneConnectedComponents(aSeed))
+        aSeed.mMarked4Test = mDMasqT.GetV(aSeed.mPixW);
+	bool OkCC = AnalyseOneConnectedComponents(aSeed);
+        if (aSeed.mMarked4Test && (!OkCC) )
+	{
+            StdOut() << "###  For Marked point " << aSeed.mPixW << " AnalyseCC = " << OkCC << "    ###\n";
+	}
+        if (OkCC)
         {
-            if (ComputeFrontier(aSeed))
+            bool OkFront = ComputeFrontier(aSeed);
+
+            if (aSeed.mMarked4Test && (!OkFront))
+	    {
+                StdOut() << "###  For Marked point " << aSeed.mPixW << " AnalyseFront = " << OkFront << "  ###\n";
+	    }
+
+            if (OkFront)
             {
                 AnalyseEllipse(aSeed,aNameIm);
             }

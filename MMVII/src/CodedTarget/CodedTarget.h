@@ -244,7 +244,7 @@ class  cDCT : public cBaseTE
 class cParamCodedTarget : public cMemCheck
 {
     public :
-       cParamCodedTarget();
+       cParamCodedTarget(int aNbPixBin = 1800);
        void InitFromFile(const std::string & aNameFile);
 
        static const std::string TheMainTag;
@@ -258,6 +258,9 @@ class cParamCodedTarget : public cMemCheck
 
        /// Set value that are computed from other like mRho_0... , mRho_1...
        void      Finish();
+       /// fix number of pixel 4 draw
+       void SetNbPixBin(int aNbPixBin);
+
        /// Set default value that depend from the type , used only in create target
        void      FinishInitOfSpec(const cSpecBitEncoding & aSpec);
 

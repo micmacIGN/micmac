@@ -157,15 +157,19 @@ cPt2di cParamCodedTarget::ToMultiple_2DeZoom(const cPt2di &aSz) const
 }
 
 
+void cParamCodedTarget::SetNbPixBin(int aNbPixBin)
+{
+    mNbPixelBin = ToMultiple_2DeZoom(aNbPixBin); // make size a multiple of 2 * zoom, to have final center at 1/2 pix
+}
 
-cParamCodedTarget::cParamCodedTarget() :
+cParamCodedTarget::cParamCodedTarget(int aNbPixBin) :
    mType             (eTyCodeTarget::eIGNIndoor),  // used to create problem in reading serial, solved, but maintain fake-init
    mNbBit            (9),
    mWithParity       (true),
    mNbRedond         (2),
    mNbCircle         (1),
    mSzGaussDeZoom    (3),
-   mNbPixelBin       (ToMultiple_2DeZoom(1800)), // make size a multiple of 2 * zoom, to have final center at 1/2 pix
+   mNbPixelBin       (-1), // Put fake value, because init is done later
    mSz_CCB           (1),
    mThickN_WInt      (0.35),
    mThickN_Code      (0.35),
@@ -184,6 +188,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mCBAtTop          (false),//
    mDecP             ({1,1})  // "Fake" init 4 now
 {
+    SetNbPixBin(aNbPixBin);
 }
 
 void cParamCodedTarget::FinishInitOfSpec(const cSpecBitEncoding & aSpec)
@@ -965,6 +970,7 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 	cParamCodedTarget  mPCT;
 	bool               mDoMarkC;
 	std::string        mPatternDoImage;
+	int                mNbPixBin;
 };
 
 eTyCodeTarget cAppliGenCodedTarget::Type() {return mBE.Specs().mType ;}
@@ -1005,6 +1011,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 	  << AOpt2007(mPCT.mRayOrientTablet,"SzOrFig","Size of \"diamond\" for orientation")
           << AOpt2007(mDoMarkC,"MarkC","Mark center of bits, just for verif ",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mZoomShow,"ZoomShow","Zoom to generate a high resolution check images",{eTA2007::Tuning})
+          << AOpt2007(mNbPixBin,"NbPixBin","Size of binary image when printing")
    ;
 }
 
@@ -1014,6 +1021,9 @@ int  cAppliGenCodedTarget::Exe()
     //  Bench_Target_Encoding();
 
        // anAppli.SetIfNotInit(mWithParity,false);
+
+   if (IsInit(&mNbPixBin))
+      mPCT.SetNbPixBin(mNbPixBin);
 
    ReadFromFile(mBE,mNameBE);
    mPCT.FinishInitOfSpec(mBE.Specs());

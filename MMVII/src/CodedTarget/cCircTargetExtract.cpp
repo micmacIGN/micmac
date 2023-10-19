@@ -970,7 +970,10 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    for (const auto & anEE : mExtrEll->ListExtEl() )
    {
        if (anEE.mSeed.mMarked4Test)
+       {
+          StdOut() << "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK \n"; getchar();
           anEE.ShowOnFile(mNameIm,21,mPrefixOut);
+       }
        if (anEE.mValidated  || anEE.mSeed.mMarked4Test)
        {
 	  mVCTE.push_back(new cCircTargExtr(anEE));
