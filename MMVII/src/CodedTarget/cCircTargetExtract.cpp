@@ -971,7 +971,6 @@ int cAppliExtractCircTarget::ExeOnParsedBox()
    {
        if (anEE.mSeed.mMarked4Test)
        {
-          StdOut() << "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK \n"; getchar();
           anEE.ShowOnFile(mNameIm,21,mPrefixOut);
        }
        if (anEE.mValidated  || anEE.mSeed.mMarked4Test)

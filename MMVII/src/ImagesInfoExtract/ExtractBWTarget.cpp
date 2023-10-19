@@ -215,11 +215,13 @@ const cExtract_BW_Target::tDImMarq&    cExtract_BW_Target::DImMarq() const {retu
 const cExtract_BW_Target::tDataIm&    cExtract_BW_Target::DGx() const {return mDGx;}
 const cExtract_BW_Target::tDataIm&    cExtract_BW_Target::DGy() const {return mDGy;}
 
-void cExtract_BW_Target::AddPtInCC(const cPt2di & aPt)
+void cExtract_BW_Target::AddPtInCC(const cPt2di & aPt,tREAL8 aW)
 {
-     mDImMarq.SetV(aPt,tU_INT1(eEEBW_Lab::eTmp) );
+     SetMarq(aPt,eEEBW_Lab::eTmp);
+
      mPtsCC.push_back(aPt);
-     mCentroid = mCentroid + ToR(aPt);
+     mCentroid = mCentroid + ToR(aPt)*aW;
+     mWCenter += aW;
 
      SetInfEq(mPInf,aPt);
      SetSupEq(mPSup,aPt);
@@ -244,7 +246,7 @@ cPt2dr cExtract_BW_Target::RefineFrontierPoint(const cSeedBWTarget & aSeed,const
     cPt2dr aDir = (aP0-mCentroid) /aDist;
     tREAL8 aGrFr = (aSeed.mBlack+aSeed.mWhite)/2.0;
 
-    cGetPts_ImInterp_FromValue<tREAL4> aGPV(mDIm,aGrFr,0.1,aP0,aDir);
+    cGetPts_ImInterp_FromValue<tREAL4> aGPV(mDIm,aGrFr,0.1,aP0,aDir);  ///  (aSeed.mMarked4Test);
 
     Ok = aGPV.Ok();
     if (Ok) return aGPV.PRes();
@@ -257,6 +259,7 @@ bool  cExtract_BW_Target::AnalyseOneConnectedComponents(cSeedBWTarget & aSeed)
      cPt2di aPTest(-99999999,594);
 
      mCentroid = cPt2dr(0,0);
+     mWCenter  = 0.0;
      mPtsCC.clear();
      cPt2di aP0 = aSeed.mPixW;
      mPSup = aP0;
@@ -270,7 +273,6 @@ bool  cExtract_BW_Target::AnalyseOneConnectedComponents(cSeedBWTarget & aSeed)
      }
 
      mIndCurPts = 0;
-     AddPtInCC(aP0);
 
      double aPdsW =  0.5;
 
@@ -282,6 +284,7 @@ bool  cExtract_BW_Target::AnalyseOneConnectedComponents(cSeedBWTarget & aSeed)
      size_t aMaxNbPts = mPBWT.NbMaxPtsCC();  // if we want to avoid big area
      std::vector<cPt2di> aV4Neigh =  AllocNeighbourhood<2>(1); 
 
+     AddPtInCC(aP0,mDIm.GetV(aP0)-aVMinW);
      bool touchOther = false;
      // Classical  CC loop + stop condition on number of points
      while (   (mIndCurPts!=int(mPtsCC.size())) && (mPtsCC.size()<aMaxNbPts)   )
@@ -297,7 +300,7 @@ bool  cExtract_BW_Target::AnalyseOneConnectedComponents(cSeedBWTarget & aSeed)
                    {
                       if (mDMasqT.GetV(aPN))
                          aSeed.mMarked4Test = true;
-                      AddPtInCC(aPN);
+                      AddPtInCC(aPN,aValIm-aVMinW);
 		      if (aPN== aPTest)
 		      {
                          aSeed.mMarked4Test = true;
@@ -316,7 +319,7 @@ bool  cExtract_BW_Target::AnalyseOneConnectedComponents(cSeedBWTarget & aSeed)
         return false;
      }
 
-     mCentroid = mCentroid / double(mIndCurPts);
+     mCentroid = mCentroid / mWCenter;
      aSeed.mPInf = mPInf;
      aSeed.mPSup = mPSup;
      return true;
@@ -325,6 +328,28 @@ bool  cExtract_BW_Target::AnalyseOneConnectedComponents(cSeedBWTarget & aSeed)
 bool  cExtract_BW_Target::ComputeFrontier(cSeedBWTarget & aSeed)
 {
      std::vector<cPt2di> aV8Neigh =  AllocNeighbourhood<2>(2);
+     std::vector<cPt2di> aV4Neigh =  AllocNeighbourhood<2>(1);
+
+     // First we must compute frontier with a separation between exterior and other in
+     // cas there is whole
+     if  (aSeed.mMarked4Test)
+     {
+         StdOut() << " KKKKK " << aSeed.mPixW  << mPtsCC[0]  << "\n";
+         for (const auto & aPix : mPtsCC)
+         {
+              bool HasNeighFree=false;
+	      for (const auto & aN : aV8Neigh)
+                  if (MarqFree(aPix+aN))
+		     HasNeighFree = true;
+FakeUseIt(HasNeighFree);
+	 }
+
+
+	 getchar();
+     }
+
+
+
      mVFront.clear();
      int aNbOk = 0;
      int aNbFront = 0;
@@ -348,15 +373,24 @@ bool  cExtract_BW_Target::ComputeFrontier(cSeedBWTarget & aSeed)
 	  }
      }
 
+
      if (aNbOk<mPBWT.mNbMinFront)
      {
         CC_SetMarq(eEEBW_Lab::eBadFr); 
+	if (aSeed.mMarked4Test)
+	{
+            StdOut() << "---### Not enough point for frontier : " << aNbOk << "### \n";
+	}
 	return false;
      }
      double aProp = aNbOk / double(aNbFront);
      if ( aProp < mPBWT.mPropFr)
      {
         CC_SetMarq(eEEBW_Lab::eBadFr); 
+	if (aSeed.mMarked4Test)
+	{
+            StdOut() << "---### Proportion frontier-point ok to low : " << aProp << "### \n";
+	}
 	return false;
      }
 
