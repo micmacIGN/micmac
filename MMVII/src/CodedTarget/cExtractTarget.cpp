@@ -775,24 +775,23 @@ bool cAppliExtractCodeTarget::analyzeDCT(cDCT* aDCT, const cDataIm2D<float> & aD
     // ======================================================================
     // Recomputing directions and intersections if needed
     // ======================================================================
-
     if ((aDCT->mSizeTargetEllipseB > mRayMinCB) && (mRecompute)){
 
         // Recomputing directions
         double min_ray_adjust = 0.4*mRayMinCB;
 		double max_ray_adjust = 0.8*aDCT->mSizeTargetEllipseB;
-        
+       
         bool ok = TestDirDCT(*aDCT, APBI_Im(), min_ray_adjust, max_ray_adjust, aDCT->mDetectedVectors, mLinedUpPx);
 	
         // Recomputing intersections
         aDCT->mDetectedCorners = solveIntersections(aDCT, param);
 
         // Recomputing affinity (if possible)
-        if ((aDCT->mDetectedCorners.size() != 4) || (!ok)) return false;
-        mTransfo = estimateRectification(aDCT->mDetectedCorners);
-        aDCT->mRecomputed = true;
+        if ((aDCT->mDetectedCorners.size() == 4) && ok){ 
+			mTransfo = estimateRectification(aDCT->mDetectedCorners);
+			aDCT->mRecomputed = true;
+		}
     }
-    
 
     // Affinity estimation test
     bool validAff = isValidAffinity(mTransfo);
