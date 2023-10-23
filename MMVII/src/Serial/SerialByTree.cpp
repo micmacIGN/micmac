@@ -96,8 +96,12 @@ void cSerialGenerator::CheckOnClose(const cSerialTree &,const std::string &)  co
 
 
 
+// Althought serialized files are text files, we have to open them in binary mode
+// because we use tellg()/seekg() whiches don't work well with text-opened files on Windows.
+// (CR+LF counts as 1 byte for tellg, 2 bytes for seekg or something like that ...)
+// CR chars will be seeen as general space chars and discarded.
 cSerialFileParser::cSerialFileParser(const std::string & aName,eTypeSerial aTypeS) :
-   mMMIs          (aName, eFileModeIn::Text),
+   mMMIs          (aName, eFileModeIn::Binary),
    mTypeS         (aTypeS)
 {
 }
