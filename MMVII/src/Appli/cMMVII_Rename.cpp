@@ -90,6 +90,7 @@ int cAppli_Rename::Exe()
 
              std::smatch aBoundMatch;
              bool aGotMatch = std::regex_search(aStrIn0, aBoundMatch, aPat);
+	     Fake4ReleaseUseIt(aGotMatch);
              MMVII_INTERNAL_ASSERT_tiny(aGotMatch,"cCRegex::BoundsMatch no match");
 
 	     if ((aKExpr<0)||(aKExpr >= (int) aBoundMatch.size()))

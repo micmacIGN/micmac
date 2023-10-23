@@ -12,121 +12,6 @@
 
 namespace MMVII
 {
-   /* ********************************************************** */
-   /*                                                            */
-   /*                 cAppli_ConvertV1V2_GCPIM                   */
-   /*                                                            */
-   /* ********************************************************** */
-
-class cAppli_ConvertV1V2_GCPIM : public cMMVII_Appli
-{
-     public :
-        cAppli_ConvertV1V2_GCPIM(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-
-     private :
-	cPhotogrammetricProject  mPhProj;
-	std::string              mNameGCP;
-	std::string              mNameIm;
-};
-
-cAppli_ConvertV1V2_GCPIM::cAppli_ConvertV1V2_GCPIM(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli  (aVArgs,aSpec),
-   mPhProj       (*this)
-{
-}
-
-cCollecSpecArg2007 & cAppli_ConvertV1V2_GCPIM::ArgObl(cCollecSpecArg2007 & anArgObl) 
-{
-    return anArgObl
-	      <<  Arg2007(mNameIm  ,"Name of V1-image-measure file (\""+MMVII_NONE +"\" if none !)")
-	      <<  Arg2007(mNameGCP ,"Name of V1-GCP file (\""+MMVII_NONE +"\")if none !)")
-              <<  mPhProj.DPPointsMeasures().ArgDirOutMand()
-           ;
-}
-
-cCollecSpecArg2007 & cAppli_ConvertV1V2_GCPIM::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
-{
-    return   anArgOpt
-          << mPhProj.DPOrient().ArgDirInOpt()
-    ;
-}
-
-int cAppli_ConvertV1V2_GCPIM::Exe()
-{
-    mPhProj.FinishInit();
-
-    cSetMesGCP  aMesGCP;
-    bool  useGCP=false;
-    if (mNameGCP != MMVII_NONE)
-    {
-        aMesGCP = ImportMesGCPV1(mNameGCP,"FromV1-"+Prefix(mNameGCP));
-        useGCP = true;
-        std::string aNameOut = mPhProj.DPPointsMeasures().FullDirOut() + cSetMesGCP::ThePrefixFiles + "_" + mNameGCP;
-        aMesGCP.ToFile(aNameOut);
-    }
-
-    std::list<cSetMesPtOf1Im> aLMesIm;
-
-    bool  useIm=false;
-    if (mNameIm != MMVII_NONE)
-    {
-        useIm = true;
-        ImportMesImV1(aLMesIm,mNameIm);
-        for (const auto & aMes1Im : aLMesIm)
-             mPhProj.SaveMeasureIm(aMes1Im);
-    }
-
-    if (useGCP && useIm && mPhProj.DPOrient().DirInIsInit())
-    {
-          cSetMesImGCP aMesImGCP;
-          aMesImGCP.AddMes3D(aMesGCP);
-
-          for (const auto & aMesIm : aLMesIm)
-          {
-               std::string aNameIm =  aMesIm.NameIm();
-               cSensorCamPC * aCamPC =  mPhProj.ReadCamPC(aNameIm,true);
-               aMesImGCP.AddMes2D(aMesIm,aCamPC);
-               // StdOut() << " Nom Im " << aNameIm << " " << aCamPC->InternalCalib()->F() << std::endl;
-          }
-
-          StdOut() << "AVSS RESIDUAL " <<  aMesImGCP.AvgSqResidual() << std::endl;
-          int aK=0;
-          for (const auto & aMesIm : aLMesIm)
-          {
-               cSet2D3D aSet32;
-               aMesImGCP.ExtractMes1Im(aSet32,aMesIm.NameIm());
-               cSensorImage * aSens =  aMesImGCP.VSens().at(aK);
-
-               StdOut() << " Im=" << aMesIm.NameIm()  << " AvgRes=" << aSens->AvgSqResidual(aSet32) << std::endl;
-
-               aK++;
-          }
-    }
-    
-
-    return EXIT_SUCCESS;
-}
-
-tMMVII_UnikPApli Alloc_ConvertV1V2_GCPIM(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_ConvertV1V2_GCPIM(aVArgs,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpec_ConvertV1V2_GCPIM
-(
-     "ConvertGCPIm",
-      Alloc_ConvertV1V2_GCPIM,
-      "Convert Im&GCP measure from V1 to VII format",
-      {eApF::GCP},
-      {eApDT::GCP},
-      {eApDT::GCP},
-      __FILE__
-);
-
-
 
    /* ********************************************************** */
    /*                                                            */
@@ -141,6 +26,8 @@ class cAppli_ImportGCP : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        std::vector<std::string>  Samples() const override;
      private :
 
 	cPhotogrammetricProject  mPhProj;
@@ -157,8 +44,6 @@ class cAppli_ImportGCP : public cMMVII_Appli
 	int              mComment;
 	int              mNbDigName;
 	std::string      mPatternTransfo;        
-
-        std::string mNameOut; 
 };
 
 cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -175,6 +60,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgObl(cCollecSpecArg2007 & anArgObl)
     return anArgObl
 	      <<  Arg2007(mNameFile ,"Name of Input File")
 	      <<  Arg2007(mFormat   ,"Format of file as for ex \"SNSXYZSS\" ")
+              << mPhProj.DPPointsMeasures().ArgDirOutMand()
            ;
 }
 
@@ -183,12 +69,10 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
     
     return anArgObl
        << AOpt2007(mNameGCP,"NameGCP","Name of GCP set")
-       << AOpt2007(mNameOut,"Out","Name of output file, def=\"NameGCP+xml/json\"")
        << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
        << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
        << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
        << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)")
-       << mPhProj.DPPointsMeasures().ArgDirOutOpt()
     ;
 }
 
@@ -218,20 +102,7 @@ int cAppli_ImportGCP::Exe()
          mNameGCP = LastPrefix(mNameGCP);
     }
 
-    if (!IsInit(&mNameOut))
-       mNameOut = mNameGCP;
 
-    mNameOut  = mNameOut + "." +  TaggedNameDefSerial();
-
-    if (mPhProj.DPPointsMeasures().DirOutIsInit())
-    {
-        mNameOut = mPhProj.DPPointsMeasures().FullDirOut() + cSetMesGCP::ThePrefixFiles + "_" + mNameOut;
-    }
-
-    if ((mNameOut==mNameFile) && (!IsInit(&mNameOut)))
-    {
-       MMVII_UnclasseUsEr("Default out would overwrite input file");
-    }
 
     cSetMesGCP aSetM(mNameGCP);
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
@@ -245,11 +116,16 @@ int cAppli_ImportGCP::Exe()
          aSetM.AddMeasure(cMes1GCP(aVXYZ[aK],aName,1.0));
     }
 
-    aSetM.ToFile(mNameOut);
+    mPhProj.SaveGCP(aSetM);
 
     return EXIT_SUCCESS;
 }
 
+
+std::vector<std::string>  cAppli_ImportGCP::Samples() const
+{
+   return {"MMVII ImportGCP  2023-10-06_15h31PolarModule.coo  NXYZ Std  NumL0=14 NumLast=34  PatName=\"P\\.(.*)\" NbDigName=4"};
+}
 
 
 
@@ -260,9 +136,9 @@ tMMVII_UnikPApli Alloc_ImportGCP(const std::vector<std::string> & aVArgs,const c
 
 cSpecMMVII_Appli  TheSpec_ImportGCP
 (
-     "ImportGCP",
+     "V1ImportGCP",
       Alloc_ImportGCP,
-      "Import basic GCP file in MicMac format",
+      "Import/Convert basic GCP file in MMVII format",
       {eApF::GCP},
       {eApDT::GCP},
       {eApDT::GCP},

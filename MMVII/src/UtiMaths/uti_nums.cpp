@@ -5,6 +5,21 @@
 namespace MMVII
 {
 
+tREAL8 AngleInRad(eTyUnitAngle aUnit)
+{
+    switch (aUnit)
+    {
+        case eTyUnitAngle::eUA_radian :  return 1.0;
+        case eTyUnitAngle::eUA_degree :  return (180.0/M_PI);
+        case eTyUnitAngle::eUA_gon    :  return (200.0/M_PI);
+
+        default : ;
+    }
+
+    MMVII_INTERNAL_ERROR("should not be here in AngleInRad");
+    return 0.0;
+}
+
 
 /* ****************  cDecomposPAdikVar *************  */
 

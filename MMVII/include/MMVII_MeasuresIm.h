@@ -283,7 +283,7 @@ class cInterfImportHom : public cMemCheck
           virtual void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const = 0;
           virtual bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const = 0;
 
-          static cInterfImportHom *  CreateImportV1(const std::string & aDir,const std::string & aSubDir,const std::string & aExt="dat") ;
+          static cInterfImportHom *  CreateImportV1(const std::string & aDir,const std::string & aSubDir,const std::string & aExt="txt") ;
 
 	  virtual ~cInterfImportHom();
       private :
@@ -293,35 +293,6 @@ class cInterfImportHom : public cMemCheck
 /**   This class store multiple homologous point, ie after fusion of  
  *    points computed by pair of images
  */
-
-class cSetMultipleTiePoints : public cMemCheck
-{
-     public :
-        typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
-        typedef std::vector<cPt2dr>  tPtsOfConfig;
-
-        cSetMultipleTiePoints(const  std::vector<std::string> & aVNames,cInterfImportHom * =nullptr);
-
-	/// Data allow to iterate on multiple points
-        const std::map<tConfigIm,tPtsOfConfig> &  Pts() const;
-
-	/// Method use in construction
-        void AddPMul(const tConfigIm&,const std::vector<cPt2dr> &);
-
-	/// Serialization, to see later
-        void  AddData(const cAuxAr2007 & anAux);
-
-	/// Used in bench to compare fusion with simulation
-        void TestEq(cSetMultipleTiePoints &) const;
-
-	/// From a linear vector to set of vector, for easiness of manip, but to avoid in efficient use
-        std::vector<tPtsOfConfig > PUnMixed(const tConfigIm &,bool Sorted) const;
-
-        const std::vector<std::string> & VNames() const; ///< Accessor
-     private  :
-        std::vector<std::string>          mVNames;
-        std::map<tConfigIm,tPtsOfConfig>  mPts;
-};
 
 class cTiePMul
 {
@@ -342,6 +313,49 @@ class   cVecTiePMul
           std::string           mNameIm;
           std::vector<cTiePMul> mVecTPM;
 };
+
+/**   This class store multiple homologous point, 
+ *    it can be created (initially) after fusion of    points computed by pair of images in folder "TieP"
+ *    or by loading the result of folder "MulTieP" 
+ */
+
+class cComputeMergeMulTieP : public cMemCheck
+{
+     public :
+        typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
+        typedef std::vector<cPt2dr>  tPtsOfConfig;
+
+        // VNames must be sorted as it will (may) allow faster computation
+        cComputeMergeMulTieP(const  std::vector<std::string> & aVNames,cInterfImportHom * =nullptr);
+
+        /// Data allow to iterate on multiple points
+        const std::map<tConfigIm,tPtsOfConfig> &  Pts() const;
+
+        std::map<tConfigIm,tPtsOfConfig> &  Pts() ;
+
+        /// Method use in construction
+        void AddPMul(const tConfigIm&,const std::vector<cPt2dr> &);
+
+        /// Serialization, to see later
+        void  AddData(const cAuxAr2007 & anAux);
+
+        /// Used in bench to compare fusion with simulation
+        void TestEq(cComputeMergeMulTieP &) const;
+
+        /// From a linear vector to set of vector, for easiness of manip, but to avoid in efficient use
+        std::vector<tPtsOfConfig > PUnMixed(const tConfigIm &,bool Sorted) const;
+
+        const std::vector<std::string> & VNames() const; ///< Accessor
+        //  comptactify each of the point vector
+        void Shrink() ;
+     private  :
+        std::vector<std::string>          mVNames;
+        std::map<tConfigIm,tPtsOfConfig>  mPts;
+};
+
+/// create a structure of multiple tie-point from Tab of "Point+Index", saved in "MulTieP"
+cComputeMergeMulTieP * AllocStdFromMTP(const std::vector<std::string> & aVNames,const cPhotogrammetricProject & aPhProj);
+
 
 
 

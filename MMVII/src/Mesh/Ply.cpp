@@ -2200,6 +2200,7 @@ template <class Type> cDevBiFaceMesh<Type> cTriangulation3D<Type>::DoDevBiFace(i
      if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny)
      {
             Type aDif =  Norm2(this->KthPts(aIS1)-this->KthPts(aIS2)) -  Norm2(aT1.Pt(0)-aT1.Pt(1));
+	    Fake4ReleaseUseIt(aDif);
             MMVII_INTERNAL_ASSERT_tiny(std::abs(aDif)<1e-8,"Bad ToPlaneZ0");
 
             MMVII_INTERNAL_ASSERT_tiny(NormInf(aT1.Pt(0) )<1e-8,"Bad ToPlaneZ0");

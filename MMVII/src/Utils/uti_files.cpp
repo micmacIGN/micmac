@@ -187,10 +187,16 @@ void cMMVII_Ifs::Read(std::string & aVal )
 
 /** Low level read of file containing nums in fixed format */
 
+static std::string  CurFile;  /// global var to get context, not proud of that
+static int          CurLine;  /// global var to get context, not proud of that
 template<class Type> inline Type GetV(std::istringstream & iss)
 {
     Type aNum;
     iss >> aNum;
+    if ( iss.rdstate())
+    {
+       MMVII_UnclasseUsEr("Bad reading at line  " + ToStr(CurLine) + " of file [" + CurFile + "]");
+    }
     return aNum;
 }
 
@@ -212,6 +218,7 @@ int CptSameOccur(const std::string & aStr,const std::string & aStr0)
     for (; *aC0; aC0++)
     {
          int aR2 = CptOccur(aStr,*aC0);
+	 Fake4ReleaseUseIt(aR2);
 	 MMVII_INTERNAL_ASSERT_tiny(aR2==aRes,"Not same counting of " + aStr0);
     }
     return aRes;
@@ -231,6 +238,7 @@ void  ReadFilesStruct
 	    bool                                    CheckFormat
       )
 {
+    CurFile = aNameFile;
     if (CheckFormat)
     {
        CptSameOccur(aFormat,"NXYZ");
@@ -255,6 +263,7 @@ void  ReadFilesStruct
     int aNumL = 0;
     while (std::getline(infile, line))
     {
+        CurLine = aNumL;
         if ((aNumL>=aL0) && (aNumL<aLastL))
 	{
             std::istringstream iss(line);

@@ -634,7 +634,6 @@ void  cDevTriangu3d::OneIterationCompens(bool IsLast)
 		    aVObs.push_back(aPDev.y());
 	       }
 	       cRot2D<tREAL8> aRot = cRot2D<tREAL8>::QuickEstimate(aVIn,aVOut);
-              //FakeUseIt(aEqSubs);
                double aSomD=0;
                double aSomEc=0;
                for (int aK=0 ;aK<3 ; aK++)

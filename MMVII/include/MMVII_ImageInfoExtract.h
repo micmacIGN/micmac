@@ -145,6 +145,8 @@ enum class eEEBW_Lab : tU_INT1
    eFree,
    eBorder,
    eTmp,
+   eFront,
+   eFrontExt,
    eBadZ,
    eBadFr,
    eElNotOk,

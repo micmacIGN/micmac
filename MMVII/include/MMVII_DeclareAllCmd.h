@@ -77,6 +77,8 @@ extern cSpecMMVII_Appli  TheSpec_CGPReport;
 extern cSpecMMVII_Appli  TheSpec_BlockCamInit;
 extern cSpecMMVII_Appli  TheSpec_ClinoInit;
 extern cSpecMMVII_Appli  TheSpecRename;
+extern cSpecMMVII_Appli  TheSpec_V2ImportCalib;
+extern cSpecMMVII_Appli  TheSpec_ImportOri;
 
 
 };

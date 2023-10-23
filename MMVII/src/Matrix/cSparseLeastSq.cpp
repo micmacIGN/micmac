@@ -732,7 +732,6 @@ template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIO
         mtARhs(anInd) += atARhsS(aIndRed);
         tLine * aLine = mtAA.at(anInd);
 	aLine->AddLineMatr(aIndRed,atAAS,aVInd);
-	FakeUseIt(aLine);
     }
 
 

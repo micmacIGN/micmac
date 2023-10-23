@@ -229,7 +229,10 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...  
 	     void  ToFileIfFirstime(const std::string & ) const ; ///< to avoid many write 4 same cam
 	     static cPerspCamIntrCalib * FromFile(const std::string &,bool Remanent=true); ///< create form xml/dmp ...
+	     /// Prefix used for calib per image
              static std::string  PrefixName() ;
+	     /// Prefix used for shared calibration
+             static std::string  SharedCalibPrefixName() ;
 
 
     // ==================   geometric points computation ===================

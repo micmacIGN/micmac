@@ -152,13 +152,10 @@ template<class Type> void BenchTri2D(Type aSz)
     cPtxd<Type,2>  aPB=cPtxd<Type,2>::PCste(2*aSz);
     cTplBox<Type,2> aBox(-aPB,aPB);
 
-    // FakeUseIt(aTri);
-    // FakeUseIt(aBox);
     for (int aK=0 ; aK<1000 ; aK++)
     {
         // cPt2dr aP1 = aBox.GeneratePointInside();
         cPtxd<Type,2> aP1 (RandUnif_C()*2*aSz,RandUnif_C()*2*aSz);
-        FakeUseIt(aP1);
         cPtxd<Type,3> aCoBa = aTri.CoordBarry(aP1);
         cPtxd<Type,2> aP2 = aTri.FromCoordBarry(aCoBa);
 

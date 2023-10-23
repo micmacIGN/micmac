@@ -4,7 +4,7 @@
 #include "MMVII_Error.h"
 #include "MMVII_memory.h"
 #include <limits>
-//#include "MMVII_AllClassDeclare.h"
+#include "MMVII_AllClassDeclare.h"
 
 namespace MMVII
 {
@@ -13,6 +13,8 @@ namespace MMVII
 double NC_KthVal(std::vector<double> &, double aProportion);
 double Cst_KthVal(const std::vector<double> &, double aProportion);
 double Average(const std::vector<double> &);
+
+tREAL8 AngleInRad(eTyUnitAngle);
 
 // some time needs a null val for any type with + (neutral for +)
 

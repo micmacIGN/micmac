@@ -63,6 +63,8 @@ template <>  std::string cStrIO<double>::ToStr(const double & anI);
 template <>  double cStrIO<double>::FromStr(const std::string & aStr);
 template <>  std::string cStrIO<std::string>::ToStr(const std::string & anI);
 template <>  std::string cStrIO<std::string>::FromStr(const std::string & aStr);
+template <>  std::string cStrIO<char>::ToStr(const char & anI);
+template <>  char cStrIO<char>::FromStr(const std::string & aStr);
 
 /*
 template <>  std::string cStrIO<cPt2dr>::ToStr(const cPt2dr & anI);
@@ -84,6 +86,7 @@ template <>  cPt2di cStrIO<cPt2di>::FromStr(const std::string & aStr);
 */
 
 #ifndef _MSC_VER
+template <>  const std::string cStrIO<char>::msNameType;
 template <>  const std::string cStrIO<bool>::msNameType;
 template <>  const std::string cStrIO<int>::msNameType;
 template <>  const std::string cStrIO<double>::msNameType;

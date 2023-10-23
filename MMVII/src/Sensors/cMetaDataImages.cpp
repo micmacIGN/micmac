@@ -3,6 +3,7 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_util_tpl.h"
+#include "MMVII_PCSens.h"
 
 /**
    \file cMetaDataImages.cpp
@@ -401,7 +402,7 @@ cMetaDataImage::cMetaDataImage() :
 
 std::string  cMetaDataImage::InternalCalibGeomIdent() const
 {
-    std::string  aRes = "CalibIntr";
+    std::string  aRes = cPerspCamIntrCalib::SharedCalibPrefixName();
     aRes = aRes + "_Cam"+ ToStandardStringIdent(CameraName());  // replace " " by "_" , refuse special characters
     if (mAdditionalName!="")
     {

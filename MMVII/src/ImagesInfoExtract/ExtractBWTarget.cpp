@@ -330,49 +330,70 @@ bool  cExtract_BW_Target::ComputeFrontier(cSeedBWTarget & aSeed)
      std::vector<cPt2di> aV8Neigh =  AllocNeighbourhood<2>(2);
      std::vector<cPt2di> aV4Neigh =  AllocNeighbourhood<2>(1);
 
-     // First we must compute frontier with a separation between exterior and other in
+
+     // [A]  First we must compute frontier with a separation between exterior and other in
      // cas there is whole
-     if  (aSeed.mMarked4Test)
+
+     std::vector<cPt2di> aVecFrExt;  // point of exterior frontier
+     cWhichMin<cPt2di,int>  aCompExtre; // for storing the extremal point, this one we are sure is on external frontier
+     //  A1 marq all front point  with label eFront
+     for (const auto & aPix : mPtsCC)
      {
-         StdOut() << " KKKKK " << aSeed.mPixW  << mPtsCC[0]  << "\n";
-         for (const auto & aPix : mPtsCC)
-         {
               bool HasNeighFree=false;
 	      for (const auto & aN : aV8Neigh)
                   if (MarqFree(aPix+aN))
 		     HasNeighFree = true;
-FakeUseIt(HasNeighFree);
+	      if (HasNeighFree)
+	      {
+                 SetMarq(aPix,eEEBW_Lab::eFront);
+		 aCompExtre.Add(aPix,aPix.x());
+	      }
+     }
+     cPt2di aPExtre = aCompExtre.IndexExtre();
+
+     // a little check   StdOut() << int(eEEBW_Lab::eFront) << " " << int (GetMarq(aPExtre)) << "\n";
+     MMVII_INTERNAL_ASSERT_tiny(eEEBW_Lab::eFront==GetMarq(aPExtre),"Chekc in front ext");
+
+     // A2 now search eFront point connected to seed 
+     SetMarq(aPExtre,eEEBW_Lab::eFrontExt);
+     aVecFrExt.push_back(aPExtre);
+
+
+     //  now put in "aVecFrExt"  the point, marked frontier, connected to 
+     size_t aIndCur = 0;
+     while (aIndCur !=aVecFrExt.size())
+     {
+         cPt2di aPix = aVecFrExt.at(aIndCur);  // extract last point in the heap
+         for (const auto & aNeigh : aV4Neigh)   // explorate its neighboord
+         {
+             cPt2di aPN = aPix + aNeigh;
+             if (GetMarq(aPN) == eEEBW_Lab::eFront)  // they have not been met
+             {
+	        SetMarq(aPN,eEEBW_Lab::eFrontExt);
+                aVecFrExt.push_back(aPN);
+	     }
 	 }
-
-
-	 getchar();
+	 aIndCur++;
      }
 
-
-
+     // [B]  now  refine the frontier to have a sub pixel estimation
      mVFront.clear();
      int aNbOk = 0;
      int aNbFront = 0;
-     for (const auto & aPix : mPtsCC)
-     {
-          bool HasNeighFree=false;
-	  for (const auto & aN : aV8Neigh)
-              if (MarqFree(aPix+aN))
-		 HasNeighFree = true;
 
-	  if (HasNeighFree)
-	  {
-              aNbFront ++;
-              bool Ok;
-              cPt2dr aPFr = RefineFrontierPoint(aSeed,aPix,Ok);
-	      if (Ok)
-	      {
-                  aNbOk++;
-                  mVFront.push_back(aPFr);
-	      }
-	  }
+     for (const auto & aPix: aVecFrExt)
+     {
+         aNbFront ++;
+         bool Ok;
+         cPt2dr aPFr = RefineFrontierPoint(aSeed,aPix,Ok);
+         if (Ok)
+         {
+            aNbOk++;
+            mVFront.push_back(aPFr);
+         }
      }
 
+     //  [C]  some test of validation 
 
      if (aNbOk<mPBWT.mNbMinFront)
      {

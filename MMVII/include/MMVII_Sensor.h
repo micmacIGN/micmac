@@ -241,6 +241,8 @@ class cDirsPhProj
           const std::string & FullDirOut() const;   ///< Accessor
           const std::string & FullDirInOut(bool In) const;   ///< Facility FullDirIn/FullDirInOut
 
+          const std::string & DirLocOfMode() const;   ///< Accessor
+
 	  void SetDirOut(const std::string & aDirOut); ///< Modifier, for example to have defaut value to input
 	  bool  DirInIsInit() const;
 	  bool  DirOutIsInit() const;
@@ -393,7 +395,7 @@ class cPhotogrammetricProject
 	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
 	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
-	  void SaveGCP(const cSetMesImGCP&,const std::string & aExt);
+	  void SaveGCP(const cSetMesGCP&);
 
 	  /// Pattern for GCP file, if "" return default  = "cSetMesGCP::ThePrefixFiles.*.xml"
 	  std::string GCPPattern(const std::string & aArgPatFiltr) const;
@@ -423,17 +425,23 @@ class cPhotogrammetricProject
 	 
 	 void  SaveHomol(const cSetHomogCpleIm &,
 			 const std::string & aNameIm1 ,
-			 const std::string & aNameIm2) const;
+			 const std::string & aNameIm2,const std::string & aDir="") const;
 
 	 void  ReadHomol(cSetHomogCpleIm &,
 			 const std::string & aNameIm1 ,
-			 const std::string & aNameIm2) const;
+			 const std::string & aNameIm2,const std::string & aDir="") const;
 
-	 std::string NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2) const;
+	 std::string NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2,const std::string & aDir="") const;
 
 	 //===================================================================
          //==================   Multiple Tie-Points  =========================
 	 //===================================================================
+
+	 //  for config we read/write by default in dmp, but allow to write a copy in xml/json .. for inspection
+	 //  and/or external software
+	 static std::string NameConfigMTP(const std::string &  anExt ="dmp");
+	 std::string NameConfigMTPIn() const;
+	 std::string NameConfigMTPOut(const std::string &  anExt ="dmp") const;
 
 	 std::string NameMultipleTieP(const std::string &) const;
 	 void  SaveMultipleTieP(const cVecTiePMul&,const std::string &) const;

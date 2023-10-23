@@ -252,7 +252,8 @@ int  cAppliCompletUncodedTarget::Exe()
    // Save GCP because they will probaly be re-used, but do it only once at first call, else risk of simultaneaous writting
    if (KthCall()==0)
    {
-       mPhProj.SaveGCP(mMesImGCP,"");
+       //mPhProj.SaveGCP(mMesImGCP,"");
+       mPhProj.CpGCP();
    }
 
    aNameE = cSaveExtrEllipe::NameFile(mPhProj,mMesImGCP.MesImInitOfName(mNameIm),false);

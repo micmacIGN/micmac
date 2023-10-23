@@ -373,7 +373,6 @@ template <class Type>
           if (aSub.GetNext())
              aBufSetTest.AddPair(aSet0.KthPair(aKPair));
    }
-   FakeUseIt(aSetTest);
 
    std::vector<cSetIExtension>  aVecTriplet;
    GenRanQsubCardKAmongN(aVecTriplet,aNbTriplet,3,aNbTot);

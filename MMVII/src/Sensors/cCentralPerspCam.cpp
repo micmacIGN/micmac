@@ -244,6 +244,7 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName,bool
 }
 
 std::string cPerspCamIntrCalib::PrefixName() {return "Calib-" + cSensorCamPC::PrefixName() + "-";}
+std::string cPerspCamIntrCalib::SharedCalibPrefixName() {return "CalibIntr" ;}
 
 	//  ==================  destuctor  "big" modifier ====================
 

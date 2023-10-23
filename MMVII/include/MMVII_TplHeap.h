@@ -102,7 +102,7 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
              /// pop, don't get the values
         bool Pop() 
         {
-            return PopPtr(0);
+            return PopPtr(nullptr);
         }
              /// directly get the poped value, but require not empty ...
         Type  PopVal(const Type & aDef) 
@@ -136,7 +136,7 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
         void Clear() 
         { 
             for (auto & anElem : mElements)
-             SetNoIndex(anElem);
+                SetNoIndex(anElem);
             mElements.clear();
         }
         // =============== Specific to indexed heap ==========================
@@ -164,7 +164,7 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
 
         /// Take out an element that is in the heap (error if it is not)
 
-        void TakeOut(const Type & aV)
+        void TakeOut(Type & aV)
         {
             MMVII_INTERNAL_ASSERT_tiny(IsInHeap(aV),"update : Object not in heap");
 
@@ -194,7 +194,7 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
               TParam::SetIndex(mElements[aK],aK);
         }
         ///  readjust index so that it contain the conventional "NO INDEX"
-        void SetNoIndex(const Type & v)
+        void SetNoIndex(Type & v)
         {
             TParam::SetIndex(v,HEAP_NO_INDEX);
         }
