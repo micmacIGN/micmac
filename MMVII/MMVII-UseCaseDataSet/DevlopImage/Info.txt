@@ -40,7 +40,7 @@ mm3d TiPunch C3DC_BigMac.ply Filter=0
  # ==========         MMVII part               =======
  # ===================================================
 
-MMVII OriConvV1V2 Ori-Basc/ Basc
+MMVII V1OriConv Ori-Basc/ Basc
 
 
 MMVII  MeshCheck C3DC_BigMac_mesh.ply Out=Correc-C3DC_BigMac_mesh.ply Bin=1

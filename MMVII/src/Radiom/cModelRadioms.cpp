@@ -270,7 +270,7 @@ cCalRadIm_Pol::cCalRadIm_Pol(cCalibRadiomSensor * aCalSens,int  aDegree,const st
          // mImaEqual = EqRadiomEqualisation(mCalibSens->NbParamRad(),mDegree,true,1);
 	 PostInit();
 
-	 StdOut() << "CPPP=" << mCoeffPol  << " D=" << mDegree << std::endl;
+	 // StdOut() << "CPPP=" << mCoeffPol  << " D=" << mDegree << std::endl;
      }
 }
 

@@ -328,7 +328,7 @@ class cPhotogrammetricProject
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
 	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
 
-	  cSensorCamPC * ReadCamPC(const std::string &,bool ToDelete,bool SVP=false) const; ///< Create Camera using Input orientation
+	  cSensorCamPC * ReadCamPC(const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
 
 
 	  /// Load a sensor, try different type (will add RPC , and others ?)

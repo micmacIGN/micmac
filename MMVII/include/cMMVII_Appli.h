@@ -303,7 +303,7 @@ class cMMVII_Ap_CPU
    The full command line can be retreive by the .Com() method.
 
    Ex:
-     cParamCallSys aCom(cMMVII_Apli::FullBin(),"Bench",1);
+     cParamCallSys aCom(cMMVII_Apli::FullBin(),"Bench","1");
    or
      cParamCallSys aCom;
      aCom.AddArgs(cMMVII_Apli::FullBin());

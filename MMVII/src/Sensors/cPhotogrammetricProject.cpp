@@ -284,8 +284,6 @@ void cPhotogrammetricProject::FinishInit()
     // Create an example file  if none exist
     GenerateSampleCalcMTD();
 
-    // StdOut() << "MTD=" <<   mDPMetaData.FullDirOut() << std::endl; 
-    // StdOut() << "MTD=" <<   mDPMetaData.FullDirOut() << std::endl; getchar();
 }
 
 cPhotogrammetricProject::~cPhotogrammetricProject() 
@@ -410,7 +408,7 @@ void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) co
 }
 
 
-cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bool ToDelete,bool SVP) const
+cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bool ToDeleteAutom,bool SVP) const
 {
     mDPOrient.AssertDirInIsInit();
 
@@ -420,9 +418,11 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
     {
        return nullptr;
     }
-    cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam,!ToDelete);
+    // Modif MPD : if we want to delete it ourseff (ToDeleteAuto=false) it must not be a remanent object
+    // cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam,!ToDelete);
+    cSensorCamPC * aCamPC =  cSensorCamPC::FromFile(aNameCam,ToDeleteAutom);
 
-    if (ToDelete)
+    if (ToDeleteAutom)
        cMMVII_Appli::AddObj2DelAtEnd(aCamPC);
       
 
@@ -468,7 +468,6 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std:
     //    * case where calib exist but not pose
     //    * case where nor calib nor pose exist, and must be created from xif 
     mDPOrient.AssertDirInIsInit();
-
     cSensorCamPC *  aPC = ReadCamPC(aNameIm,false);
     cPerspCamIntrCalib * aCalib = aPC->InternalCalib();
     delete aPC;

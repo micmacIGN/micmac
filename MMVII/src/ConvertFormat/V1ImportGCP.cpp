@@ -118,7 +118,7 @@ tMMVII_UnikPApli Alloc_ConvertV1V2_GCPIM(const std::vector<std::string> & aVArgs
 
 cSpecMMVII_Appli  TheSpec_ConvertV1V2_GCPIM
 (
-     "ConvertGCPIm",
+     "V1ConvertGCPIm",
       Alloc_ConvertV1V2_GCPIM,
       "Convert Im&GCP measure from V1 to VII format",
       {eApF::GCP},
