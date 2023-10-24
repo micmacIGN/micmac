@@ -262,7 +262,7 @@ class cAppliFillCubeCost : public cAppliLearningMatch
     
         cPyr1ImLearnMatch * PyrL1 () {return PyrL(mPyrL1,mBoxGlob1,mNameI1);}
         cPyr1ImLearnMatch * PyrL2 () {return PyrL(mPyrL2,mBoxGlob2,mNameI2);}
-	    tREAL8     StepZ() const {return mStepZ;}
+        tREAL8     StepZ() const {return mStepZ;}
         bool Ok1(int aX) const {return Ok(aX,mVOk1);}
         bool Ok2(int aX) const {return Ok(aX,mVOk2);}
         const cAimePCar & PC1(int aX) const {return mVPC1.at(aX);}
@@ -288,8 +288,9 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 	const tImZ  & ImZMax() {return  mImZMax;}
 	void MakeNormalizedIm();
         // if with decision Network 
-    bool mWithPredictionNetwork=true;
+    bool mWithPredictionNetwork=false;
     bool mWithMatcher3D=false;
+    bool mUseCuda=false;
 	// -------------- Internal variables -------------------
      private :
 
@@ -425,7 +426,7 @@ cOneModele::cOneModele
         //CalcCorrelMvCNN();
         if(mArchitecture==TheFastArch)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheFastArch,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheFastArch,mModelBinDir,mAppli->mUseCuda);
             // CREATE AN INSTANCE OF THE NETWORK 
             torch::Device device(torch::kCPU);
             mNetFastMVCNN->createModel(184,7,1,3,device); // becareful to change these values with respect to network architecture
@@ -455,7 +456,7 @@ cOneModele::cOneModele
         }
         if(mArchitecture==TheFastArchReg)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheFastArchReg,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchReg,mModelBinDir,mAppli->mUseCuda);
             mCNNPredictor->PopulateModelFromBinaryWithBNReg(mNetFastMVCNNReg);
             
             mCNNWin=mCNNPredictor->GetWindowSizeBNReg(mNetFastMVCNNReg);
@@ -475,7 +476,7 @@ cOneModele::cOneModele
         }
         if(mArchitecture==TheFastandPrjHead)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheFastandPrjHead,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheFastandPrjHead,mModelBinDir,mAppli->mUseCuda);
             mCNNPredictor->PopulateModelPrjHead(mNetFastPrjHead);
             
             mCNNWin=mCNNPredictor->GetWindowSizePrjHead(mNetFastPrjHead);
@@ -496,7 +497,7 @@ cOneModele::cOneModele
         
         if(mArchitecture==TheFastArchWithMLP)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheFastArchWithMLP,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchWithMLP,mModelBinDir,mAppli->mUseCuda);
             // CREATE AN INSTANCE OF THE NETWORK 
             //auto cuda_available = torch::cuda::is_available();
             //torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
@@ -526,13 +527,13 @@ cOneModele::cOneModele
         }
         if(mArchitecture==TheFastArchDirectSim)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheFastArchDirectSim,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchDirectSim,mModelBinDir,mAppli->mUseCuda);
             mCNNPredictor->PopulateModelMSNetHead(mMSNet);  // load script module 
             mCNNWin=cPt2di(7,7); // The chosen window size is 7x7
         }
         else if (mArchitecture==TheFastStandard)
         {
-           mCNNPredictor = new aCnnModelPredictor(TheFastStandard,mModelBinDir); 
+           mCNNPredictor = new aCnnModelPredictor(TheFastStandard,mModelBinDir,mAppli->mUseCuda);
            
            // CREATE A CNN MODULE AND LOAD PARAMS 
             mNetFastStd->createModel(64,4,1,3);
@@ -560,7 +561,7 @@ cOneModele::cOneModele
         }
         else if(mArchitecture==TheMSNet)
         { 
-            mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir,mAppli->mUseCuda);
             mCNNPredictor->PopulateModelFeatures(mMSNet);
             mCNNWin=cPt2di(7,7); 
             if (mAppli->mWithPredictionNetwork)
@@ -570,7 +571,7 @@ cOneModele::cOneModele
         } 
         else if (mArchitecture==TheUnetMlpCubeMatcher)
             {
-                mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,mModelBinDir);
+                mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,mModelBinDir,mAppli->mUseCuda);
                 mCNNPredictor->PopulateModelFeatures(mMSNet);
                 mCNNWin=cPt2di(1,1);
                 if (mAppli->mWithPredictionNetwork)
@@ -842,6 +843,7 @@ cCollecSpecArg2007 & cAppliFillCubeCost::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mSzW, "SzW","Size for windows to match",{eTA2007::HDV})
           << AOpt2007(mModelBinaries,"CNNParams" ,"Model Directory : Contient des fichiers binaires *.bin")
           << AOpt2007(mModelArchitecture,"CNNArch" ,"Modek architecture : "+TheFastArch+" || "+TheFastStandard+" || "+TheFastArchWithMLP)
+          << AOpt2007(mUseCuda,"UseCuda","USE CUDA TO LAUNCH MODELS")
    ;
 }
 
@@ -1251,8 +1253,7 @@ int  cAppliFillCubeCost::Exe()
                     }
                     // FILL COST VOLUME SLICE ON ONE LINE
                     //auto cuda_available = torch::cuda::is_available();
-                    auto cuda_available=false;
-                    torch::Device TheAvailDevice(cuda_available ? torch::kCUDA : torch::kCPU);
+                    torch::Device TheAvailDevice(mUseCuda ? torch::kCUDA : torch::kCPU);
                     ELISE_ASSERT(aMaxZmax-aMinZmin, "PAX INTERVAL NULL !");
                     using namespace torch::indexing;
 
@@ -1280,8 +1281,19 @@ int  cAppliFillCubeCost::Exe()
                             int lim_sup=round_ni(mP0Z.x()-mBoxGlob2.P0().x()+dd+aMinZmin+aSzL.x());
 
                             // CONDITIONS ON CUBE LIMITS
-                            if (lim_sup<=0 || lim_inf>=aSzR.x())
-                                {}
+                            // CONDITIONS ON CUBE LIMITS
+                            if(lim_inf<0 && lim_sup>aSzR.x())
+                              {
+                                auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
+                                                                   Slice(aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()
+                                                                   ,aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()+1,1),
+                                                                   Slice(0,aSzR.x(),1)}); // FEatSize,1,W
+                                //std::cout<<"SLICE RIGHT "<<aSlcR.sizes()<<std::endl;
+                                //std::cout<<"liminf <0    "<<lim_inf<<"  limsup    "<<lim_sup<<std::endl;
+                                CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,
+                                            Slice(0,None,1),Slice(-lim_inf,aSzR.x()-lim_inf,1)}).copy_(aSlcR);
+
+                              }
                             else if (lim_inf<0)
                                 {
                                  auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
@@ -1431,8 +1443,7 @@ int  cAppliFillCubeCost::Exe()
                 }
             }
             // Construct a cube of features to be forwarded into the network
-            auto cuda_available = torch::cuda::is_available();
-            torch::Device TheAvailDevice(cuda_available ? torch::kCUDA : torch::kCPU);
+            torch::Device TheAvailDevice(mUseCuda ? torch::kCUDA : torch::kCPU);
             ELISE_ASSERT(aMaxZmax-aMinZmin, "PAX INTERVAL NULL !");
 
 
@@ -1447,7 +1458,7 @@ int  cAppliFillCubeCost::Exe()
             int Intervalle_DPAX=round_ni(aMaxZmax-aMinZmin);// /this->StepZ());
             torch::Tensor CUBE= torch::ones({2*FeatSize,Intervalle_DPAX,aSzL.y(),aSzL.x()},torch::TensorOptions().dtype(torch::kFloat32).device(TheAvailDevice)).mul(0.5);
 
-            ELISE_ASSERT(Intervalle_DPAX==aMaxZmax-aMinZmin, "ISSUE WITH PAWX INTERVAL ");
+            ELISE_ASSERT(Intervalle_DPAX==aMaxZmax-aMinZmin, "ISSUE WITH PAX INTERVAL ");
 
             for (int dd=0;dd<Intervalle_DPAX;dd++)
                 {
@@ -1459,8 +1470,18 @@ int  cAppliFillCubeCost::Exe()
                     int lim_sup=round_ni(mP0Z.x()-mBoxGlob2.P0().x()+dd+aMinZmin+aSzL.x());
 
                     // CONDITIONS ON CUBE LIMITS
-                    if (lim_sup<=0 || lim_inf>=aSzR.x())
-                        {}
+                    if(lim_inf<0 && lim_sup>aSzR.x())
+                      {
+                        auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
+                                                           Slice(aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()
+                                                           ,aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()+1,1),
+                                                           Slice(0,aSzR.x(),1)}); // FEatSize,1,W
+                        //std::cout<<"SLICE RIGHT "<<aSlcR.sizes()<<std::endl;
+                        //std::cout<<"liminf <0    "<<lim_inf<<"  limsup    "<<lim_sup<<std::endl;
+                        CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,
+                                    Slice(0,None,1),Slice(-lim_inf,aSzR.x()-lim_inf,1)}).copy_(aSlcR);
+
+                      }
                     else if (lim_inf<0)
                         {
                          auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
@@ -1606,8 +1627,7 @@ int  cAppliFillCubeCost::Exe()
                         }
                         // FILL COST VOLUME SLICE ON ONE LINE
                         //auto cuda_available = torch::cuda::is_available();
-                        auto cuda_available=false;
-                        torch::Device TheAvailDevice(cuda_available ? torch::kCUDA : torch::kCPU);
+                        torch::Device TheAvailDevice(mUseCuda ? torch::kCUDA : torch::kCPU);
                         ELISE_ASSERT(aMaxZmax-aMinZmin, "PAX INTERVAL NULL !");
                         using namespace torch::indexing;
 
@@ -1621,7 +1641,7 @@ int  cAppliFillCubeCost::Exe()
                         //std::cout<<"SLICE LEFT IMAGE "<<aSlcL.sizes()<<std::endl;
                         int Intervalle_DPAX=round_ni(aMaxZmax-aMinZmin);// /this->StepZ());
                         torch::Tensor CUBE= torch::ones({2*FeatSize,Intervalle_DPAX,1,aSzL.x()},torch::TensorOptions().dtype(torch::kFloat32).device(TheAvailDevice)).mul(0.5);
-
+                        //std::cout<<"CUBE CONTAINEER SHAPE "<<CUBE.sizes()<<std::endl;
                         ELISE_ASSERT(Intervalle_DPAX==aMaxZmax-aMinZmin, "ISSUE WITH PAWX INTERVAL ");
 
                         for (int dd=0;dd<Intervalle_DPAX;dd++)
@@ -1635,8 +1655,18 @@ int  cAppliFillCubeCost::Exe()
                                 int lim_sup=round_ni(mP0Z.x()-mBoxGlob2.P0().x()+dd+aMinZmin+aSzL.x());
 
                                 // CONDITIONS ON CUBE LIMITS
-                                if (lim_sup<=0 || lim_inf>=aSzR.x())
-                                    {}
+                                if(lim_inf<0 && lim_sup>aSzR.x())
+                                  {
+                                    auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
+                                                                       Slice(aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()
+                                                                       ,aPix.y()+mP0Z.y()-mBoxGlob2.P0().y()+1,1),
+                                                                       Slice(0,aSzR.x(),1)}); // FEatSize,1,W
+                                    //std::cout<<"SLICE RIGHT "<<aSlcR.sizes()<<std::endl;
+                                    //std::cout<<"liminf <0    "<<lim_inf<<"  limsup    "<<lim_sup<<std::endl;
+                                    CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,
+                                                Slice(0,None,1),Slice(-lim_inf,aSzR.x()-lim_inf,1)}).copy_(aSlcR);
+
+                                  }
                                 else if (lim_inf<0)
                                     {
                                      auto aSlcR=LREmbeddingsR.index({Slice(0,FeatSize,1),
@@ -1645,9 +1675,10 @@ int  cAppliFillCubeCost::Exe()
                                                                         Slice(0,lim_sup,1)}); // FEatSize,1,W
 
                                      //aSlcR=aSlcR.unsqueeze(1);
-                                     //std::cout<<"SLICE RGHT "<<aSlcR.sizes()<<std::endl;
-                                     //std::cout<<"liminf <0 "<<std::endl;
-                                     CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,Slice(0,None,1),Slice(-lim_inf,CUBE.size(3),1)}).copy_(aSlcR);
+                                     //std::cout<<"SLICE RIGHT "<<aSlcR.sizes()<<std::endl;
+                                     //std::cout<<"liminf <0    "<<lim_inf<<"  limsup    "<<lim_sup<<std::endl;
+                                     CUBE.index({Slice(FeatSize,2*FeatSize,1),dd,Slice(0,None,1),
+                                                 Slice(-lim_inf,CUBE.size(3),1)}).copy_(aSlcR);
                                     }
                                 else if (lim_sup>aSzR.x())
                                     {

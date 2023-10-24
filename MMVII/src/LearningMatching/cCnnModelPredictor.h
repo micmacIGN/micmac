@@ -32,7 +32,7 @@ class aCnnModelPredictor
 {
     public :
        typedef cIm2D<tREAL4> tTImV2;
-       aCnnModelPredictor(std::string anArchitecture, std::string aModelBinDir);
+       aCnnModelPredictor(std::string anArchitecture, std::string aModelBinDir, bool Cuda);
        double Predict(ConvNet_Fast Net, tTImV2 aPatchL, tTImV2 aPatchR,cPt2di aPSz);
        double PredictWithBN(ConvNet_FastBn Net, tTImV2 aPatchL, tTImV2 aPatchR,cPt2di aPSz);
        
@@ -54,6 +54,7 @@ class aCnnModelPredictor
        torch::Tensor PredictMSNetHead(/*MSNetHead*/ torch::jit::script::Module mNet, std::vector<tTImV2> aPatchLV, cPt2di aPSz);
        torch::Tensor PredictUNetWDecision(torch::jit::script::Module mNet, std::vector<tTImV2> aMasterP,std::vector<tTImV2> aPatchLV, cPt2di aPSz);
        torch::Tensor PredictUnetFeaturesOnly(torch::jit::script::Module mNet,std::vector<tTImV2> aPatchLV, cPt2di aPSz);
+       torch::Tensor PredictUnetFeaturesOnly(torch::jit::script::Module mNet,torch::Tensor aPAllSlaves);
        torch::Tensor PredictMSNet1(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNet2(MSNet Net,torch::Tensor X);
        torch::Tensor PredictMSNet3(MSNet Net,torch::Tensor X);
@@ -67,7 +68,9 @@ class aCnnModelPredictor
 
        // 3 MOdels used to coompute features, compute similarities, enhance similarities in the 3D space
        void PopulateModelFeatures(torch::jit::script::Module & Network);
+       void PopulateModelFeatures(torch::jit::script::Module & Network,bool DeviceCuda);
        void PopulateModelDecision(torch::jit::script::Module & Network);
+       void PopulateModelDecision(torch::jit::script::Module & Network,bool DeviceCuda);
        void PopulateModelMatcher(torch::jit::script::Module & Network);
        
        torch::Tensor ReadBinaryFile(std::string aFilename, torch::Tensor aHost);
@@ -97,9 +100,10 @@ class aCnnModelPredictor
         
        std::string Architecture(){return mArchitecture;};  // it is not useful 
        
-                std::vector<std::string > mSetModelBinaries;
+        std::vector<std::string > mSetModelBinaries;
         std::string mArchitecture;
         std::string mDirModel;
+        bool IsCuda=false;
         /*ConvNet_Fast mNetFastStd;
         ConvNet_FastBn mNetFastMVCNN;
         ConvNet_Slow mNetSlowStd;

@@ -155,8 +155,8 @@ std::string Dir2Write(const std::string  DirChantier)
 void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileMk , int   aNbProc ,bool Exe,bool MoinsK)
 {
     if (aNbProc<=0)  
-       aNbProc = NbProcSys();
-
+       //aNbProc = NbProcSys();
+       aNbProc = 4;
    // Modif MPD, certain process plantent apres qq heures en finissant sur 
    // FAIL IN :
    // "/usr/bin/make" all -f "/home/mpd/MMM/culture3d/TestOpenMMmmmmMkStdMM" -j8

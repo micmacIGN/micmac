@@ -231,8 +231,8 @@ class cAppli : public cMMVII_Appli
         double mRatioByL ; ///< Scale between 2 successive levels
 	int    mMaxAmplPxCur;  ///< Maximal amplitude of Px 
 	
-	     // Case where SGM CUDA is USED in CORRELATION 
-	     std::string mModelPath,mModelDecisionPath;
+	 // Case where SGM CUDA is USED in CORRELATION
+	 std::string mModelPath,mModelDecisionPath;
          std::string Penalty1,Penalty2;
          tREAL4 mPenalty1=0.02;
          tREAL4 mPenalty2=1.0;
@@ -949,6 +949,18 @@ int cAppli::Exe()
       aIm->CreateLevels(mNbLevel);
 
 
+   // create Masq Images if they do not exist
+   for (auto & aIm : mIms)
+     {
+       std::string aImMasq0=aIm->LevAt(0).NameImOrMasq(false);
+       if (!ExistFile(aImMasq0))
+         {
+           //create a Masq of Ones at the same size as the considered image
+           cIm2D<tINT1> mImMasq =cIm2D<tINT1>(aIm->mPFileImFull.Sz(),nullptr,eModeInitImage::eMIA_V1);
+           cDataIm2D<tINT1> & mDataImMasq= mImMasq.DIm();
+           mDataImMasq.ToFile(aImMasq0);
+         }
+     }
    // Compute pyramid of images
    MakePyramid();
 

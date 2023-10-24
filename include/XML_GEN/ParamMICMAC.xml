@@ -998,6 +998,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                                 <OrthFileModeleParams Nb="?" Type="std::string">         </OrthFileModeleParams>
                                 <OrthFileModeleArch Nb="?" Type="std::string">           </OrthFileModeleArch>
                                 <OrthoResol Nb="?" Type="std::string">           </OrthoResol>
+                                <Cuda Nb="1" Type="bool" Def="false">           </Cuda>
                                 <Options Nb="?" Type="std::string"> </Options>
                                 <DeltaZ Nb="?" Type="int" Def="50"> </DeltaZ>
                         </MutiCorrelOrthoExt>
@@ -1024,6 +1025,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                               <FileModeleCost Nb="1" Type="std::string">           </FileModeleCost>
                               <FileModeleParams Nb="1" Type="std::string">         </FileModeleParams>
                               <FileModeleArch Nb="1" Type="std::string">           </FileModeleArch>
+                              <Cuda Nb="1" Type="bool">           </Cuda>
                               <CostDyn        Nb="?" Type="double" Def="0.3333">   </CostDyn>
                               <CostExp        Nb="?" Type="double" Def="0.5">      </CostExp>
                               <Cmp_FileMC     Nb="?" Type="std::string">           </Cmp_FileMC>

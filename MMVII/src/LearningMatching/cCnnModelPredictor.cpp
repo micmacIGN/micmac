@@ -91,8 +91,8 @@ torch::Tensor ReadBinaryFile(std::string filename, torch::Tensor Host)
 
 
 /**************************************************************************/
-aCnnModelPredictor::aCnnModelPredictor(std::string anArchitecture, std::string aModelBinDir):
-    mArchitecture(anArchitecture)
+aCnnModelPredictor::aCnnModelPredictor(std::string anArchitecture, std::string aModelBinDir, bool Cuda):
+    mArchitecture(anArchitecture),IsCuda(Cuda)
 {
     // FILL THE SET OF BINARY FILES NAMES 
     std::string aModelPat,aDirModel;
@@ -362,11 +362,35 @@ void aCnnModelPredictor::PopulateModelFeatures(torch::jit::script::Module & Netw
         }
     }
     //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
-    //auto cuda_available = torch::cuda::is_available();
+    //auto cuda_available =torch::cuda::is_available();
     //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
     StdOut()<<"Model Name "<<aModel<<"\n";
-    auto cuda_available=false;
-    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    torch::Device device(IsCuda ? torch::kCUDA : torch::kCPU);
+    Network=torch::jit::load(aModel);
+    Network.to(device);
+    StdOut()<<"MODEL FEATURES LOADED !!!!!! "<<"\n";
+}
+
+/***********************************************************************/
+void aCnnModelPredictor::PopulateModelFeatures(torch::jit::script::Module & Network,bool DeviceCuda)
+{
+    // add a convention on Model Name TAKE FOR EXAMPLES FEATURES AS A KEY FOR THE FEATURE MODULE
+    std::string aModel;
+    for (unsigned int i=0;i<mSetModelBinaries.size();i++)
+    {
+        if (mSetModelBinaries.at(i).find("FEATURES") != std::string::npos)
+        {
+            aModel=mDirModel+mSetModelBinaries.at(i);
+            std::cout<<"Models checked "<<mSetModelBinaries.at(i)<<std::endl;
+            break;
+        }
+    }
+    //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
+    //auto cuda_available = WhichDevice;  //torch::cuda::is_available();
+    //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
+    StdOut()<<"Model Name "<<aModel<<"\n";
+    //auto cuda_available=false;
+    torch::Device device(DeviceCuda ? torch::kCUDA : torch::kCPU);
     Network=torch::jit::load(aModel);
     Network.to(device);
     StdOut()<<"MODEL FEATURES LOADED !!!!!! "<<"\n";
@@ -387,8 +411,28 @@ void aCnnModelPredictor::PopulateModelDecision(torch::jit::script::Module & Netw
         }
     }
     //auto cuda_available = torch::cuda::is_available();
-    auto cuda_available=false;
-    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    torch::Device device(IsCuda ? torch::kCUDA : torch::kCPU);
+    Network=torch::jit::load(aModel);
+    Network.to(device);
+    StdOut()<<"MODEL DECISION LOADED !!  "<<"\n";
+}
+
+/***************************************************************************************/
+
+void aCnnModelPredictor::PopulateModelDecision(torch::jit::script::Module & Network,bool DeviceCuda)
+{
+    // add a convention on Model Name TAKE FOR EXAMPLES FEATURES AS A KEY FOR THE FEATURE MODULE
+    std::string aModel;
+    for (unsigned int i=0;i<mSetModelBinaries.size();i++)
+    {
+        if (mSetModelBinaries.at(i).find("DECISION_NET") != std::string::npos)
+        {
+            std::cout<<"Models checked for the decision NEtwork"<<mSetModelBinaries.at(i)<<std::endl;
+            aModel=mDirModel+mSetModelBinaries.at(i);
+            break;
+        }
+    }
+    torch::Device device(DeviceCuda ? torch::kCUDA : torch::kCPU);
     Network=torch::jit::load(aModel);
     Network.to(device);
     StdOut()<<"MODEL DECISION LOADED !!  "<<"\n";
@@ -872,16 +916,13 @@ torch::Tensor aCnnModelPredictor::PredictUNetWDecision(torch::jit::script::Modul
 /**********************************************************************************************************************/
 torch::Tensor aCnnModelPredictor::PredictUnetFeaturesOnly(torch::jit::script::Module mNet,std::vector<tTImV2> aPatchLV, cPt2di aPSz)
 {
-    //auto cuda_available = torch::cuda::is_available();
-    //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
-    auto cuda_available=false;
     //<$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$>
     //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
-    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    torch::Device device(IsCuda ? torch::kCUDA : torch::kCPU);
     torch::NoGradGuard no_grad;
     mNet.eval();
     torch::Tensor aPAllSlaves=torch::empty({(int) aPatchLV.size(),aPSz.y(),aPSz.x()},
-                                           torch::TensorOptions().dtype(torch::kFloat32)).to(device);;
+                                           torch::TensorOptions().dtype(torch::kFloat32)).to(device);
     for (int cc=0;cc<(int) aPatchLV.size();cc++)
     {
         tREAL4 ** mPatchLData=aPatchLV.at(cc).DIm().ExtractRawData2D();
@@ -895,7 +936,22 @@ torch::Tensor aCnnModelPredictor::PredictUnetFeaturesOnly(torch::jit::script::Mo
     std::vector<torch::jit::IValue> allinp={inp};
     auto out=mNet.forward(allinp);
     auto output=out.toTensor().squeeze();
-    return output.to(torch::kCPU);
+    return output;//.to(torch::kCPU);
+}
+
+/**********************************************************************************************************************/
+torch::Tensor aCnnModelPredictor::PredictUnetFeaturesOnly(torch::jit::script::Module mNet,torch::Tensor aPAllSlaves)
+{
+    //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
+    torch::Device device(IsCuda ? torch::kCUDA : torch::kCPU);
+    torch::NoGradGuard no_grad;
+    mNet.eval();
+    aPAllSlaves=aPAllSlaves.to(device);
+    torch::jit::IValue inp(aPAllSlaves.unsqueeze(0).unsqueeze(0));
+    std::vector<torch::jit::IValue> allinp={inp};
+    auto out=mNet.forward(allinp);
+    auto output=out.toTensor().squeeze();
+    return output;//.to(torch::kCPU);
 }
 /**********************************************************************************************************************/
 torch::Tensor aCnnModelPredictor::PredictMSNetTile(torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz)
@@ -918,9 +974,8 @@ torch::Tensor aCnnModelPredictor::PredictMSNetTile(torch::jit::script::Module mN
 torch::Tensor aCnnModelPredictor::PredictMSNetTileFeatures(torch::jit::script::Module mNet, tTImV2 aPatchLV, cPt2di aPSz)
 {
     //auto cuda_available = torch::cuda::is_available();
-    auto cuda_available = false;
     //std::cout<<"Cuda is available ? "<<cuda_available<<std::endl;
-    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+    torch::Device device(IsCuda ? torch::kCUDA : torch::kCPU);
     torch::NoGradGuard no_grad;
     mNet.eval();
     tREAL4 ** mPatchLData=aPatchLV.DIm().ExtractRawData2D();

@@ -8014,7 +8014,7 @@ cTplValGesInit< std::string > & cMutiCorrelOrthoExt::Options()
    return mOptions;
 }
 
-const cTplValGesInit< std::string > & cMutiCorrelOrthoExt::Options()const 
+const cTplValGesInit< std::string > & cMutiCorrelOrthoExt::Options() const
 {
    return mOptions;
 }
@@ -8025,9 +8025,19 @@ cTplValGesInit< int > & cMutiCorrelOrthoExt::DeltaZ()
    return mDeltaZ;
 }
 
-const cTplValGesInit< int > & cMutiCorrelOrthoExt::DeltaZ()const 
+const cTplValGesInit< int > & cMutiCorrelOrthoExt::DeltaZ()  const
 {
    return mDeltaZ;
+}
+
+cTplValGesInit< bool > & cMutiCorrelOrthoExt::Cuda()
+{
+   return mUseCuda;
+}
+
+const cTplValGesInit< bool > & cMutiCorrelOrthoExt::Cuda()   const
+{
+   return mUseCuda;
 }
 
 void  BinaryUnDumpFromFile(cMutiCorrelOrthoExt & anObj,ELISE_fp & aFp)
@@ -8087,6 +8097,14 @@ void  BinaryUnDumpFromFile(cMutiCorrelOrthoExt & anObj,ELISE_fp & aFp)
         }
         else  anObj.DeltaZ().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Cuda().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Cuda().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Cuda().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cMutiCorrelOrthoExt & anObj)
@@ -8107,6 +8125,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cMutiCorrelOrthoExt & anObj)
     if (anObj.Options().IsInit()) BinaryDumpInFile(aFp,anObj.Options().Val());
     BinaryDumpInFile(aFp,anObj.DeltaZ().IsInit());
     if (anObj.DeltaZ().IsInit()) BinaryDumpInFile(aFp,anObj.DeltaZ().Val());
+    BinaryDumpInFile(aFp,anObj.Cuda().IsInit());
+    if (anObj.Cuda().IsInit()) BinaryDumpInFile(aFp,anObj.Cuda().Val());
 }
 
 cElXMLTree * ToXMLTree(const cMutiCorrelOrthoExt & anObj)
@@ -8128,6 +8148,8 @@ cElXMLTree * ToXMLTree(const cMutiCorrelOrthoExt & anObj)
       aRes->AddFils(::ToXMLTree(std::string("Options"),anObj.Options().Val())->ReTagThis("Options"));
    if (anObj.DeltaZ().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("DeltaZ"),anObj.DeltaZ().Val())->ReTagThis("DeltaZ"));
+   if (anObj.Cuda().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Cuda"),anObj.Cuda().Val())->ReTagThis("Cuda"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -8147,6 +8169,7 @@ void xml_init(cMutiCorrelOrthoExt & anObj,cElXMLTree * aTree)
    xml_init(anObj.Options(),aTree->Get("Options",1)); //tototo 
 
    xml_init(anObj.DeltaZ(),aTree->Get("DeltaZ",1),int(50)); //tototo 
+   xml_init(anObj.Cuda(),aTree->Get("Cuda",1),false); //tototo
 }
 
 std::string  Mangling( cMutiCorrelOrthoExt *) {return "006BFD020F1FA285FF3F";};
@@ -8429,6 +8452,12 @@ cTplValGesInit< std::string > & cScoreLearnedMMVII::FileModeleArch()
 }
 
 
+cTplValGesInit< bool > & cScoreLearnedMMVII::Cuda()
+{
+   return mCuda;
+}
+
+
 const std::string & cScoreLearnedMMVII::FileModeleCost()const 
 {
    return mFileModeleCost;
@@ -8444,6 +8473,11 @@ const cTplValGesInit< std::string > & cScoreLearnedMMVII::FileModeleArch()const
    return mFileModeleArch;
 }
 
+
+const cTplValGesInit< bool > & cScoreLearnedMMVII::Cuda() const
+{
+   return mCuda;
+}
 
 
 cTplValGesInit< double > & cScoreLearnedMMVII::CostDyn()
@@ -8511,6 +8545,15 @@ void  BinaryUnDumpFromFile(cScoreLearnedMMVII & anObj,ELISE_fp & aFp)
         else  anObj.FileModeleArch().SetNoInit();
   } ;
 
+ { bool IsInit;
+      BinaryUnDumpFromFile(IsInit,aFp);
+       if (IsInit) {
+            anObj.Cuda().SetInitForUnUmp();
+            BinaryUnDumpFromFile(anObj.Cuda().ValForcedForUnUmp(),aFp);
+       }
+       else  anObj.Cuda().SetNoInit();
+ } ;
+
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -8554,6 +8597,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cScoreLearnedMMVII & anObj)
     if (anObj.FileModeleParams().IsInit()) BinaryDumpInFile(aFp,anObj.FileModeleParams().Val());
     BinaryDumpInFile(aFp,anObj.FileModeleArch().IsInit());
     if (anObj.FileModeleArch().IsInit()) BinaryDumpInFile(aFp,anObj.FileModeleArch().Val());
+    BinaryDumpInFile(aFp,anObj.Cuda().IsInit());
+    if (anObj.Cuda().IsInit()) BinaryDumpInFile(aFp,anObj.Cuda().Val());
     /*****************************************************************************/
 
     BinaryDumpInFile(aFp,anObj.CostDyn().IsInit());
@@ -8577,6 +8622,8 @@ cElXMLTree * ToXMLTree(const cScoreLearnedMMVII & anObj)
       aRes->AddFils(::ToXMLTree(std::string("FileModeleParams"),anObj.FileModeleParams().Val())->ReTagThis("FileModeleParams"));
    if (anObj.FileModeleArch().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("FileModeleArch"),anObj.FileModeleArch().Val())->ReTagThis("FileModeleArch"));
+   if (anObj.Cuda().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Cuda"),anObj.Cuda().Val())->ReTagThis("Cuda"));
    /*****************************************************************************/
 
    if (anObj.CostDyn().IsInit())
@@ -8600,6 +8647,7 @@ void xml_init(cScoreLearnedMMVII & anObj,cElXMLTree * aTree)
    xml_init(anObj.FileModeleCost(),aTree->Get("FileModeleCost",1)); //tototo 
    xml_init(anObj.FileModeleParams(),aTree->Get("FileModeleParams",1)); //tototo
    xml_init(anObj.FileModeleArch(),aTree->Get("FileModeleArch",1)); //tototo
+   xml_init(anObj.Cuda(),aTree->Get("Cuda",1),false); //tototo
 
    xml_init(anObj.CostDyn(),aTree->Get("CostDyn",1),double(0.3333)); //tototo 
 

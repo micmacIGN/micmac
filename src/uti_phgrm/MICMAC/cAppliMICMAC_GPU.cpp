@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
+//static bool USE_EPIP=false;
 extern bool ERupnik_MM();
 
 /** @addtogroup GpGpuDoc */
@@ -92,6 +93,8 @@ template <class Type> void  SaveIm(const std::string & aName,Type ** aDataIn,con
 
    Tiff_Im::CreateFromIm(anImOut,aName,aLArg);
 }
+
+
 
 /********************************************************************/
 /*                                                                  */
@@ -745,16 +748,362 @@ if (0)
     //
 
 
+void cAppliMICMAC::GenerateGeoPassage_ImEpip_EpipIm_BBox(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig)
+{
+
+  /*TODO: Include scales: scale deformation maps according to the multi-resolution pipeline*/
+  Tiff_Im::SetDefTileFile(50000);
+  // ONLY ONE SCALE IS TAKEN INTO ACCOUNT
+  int mNbIm=aVLI.size();
+  // Master image Box
+  cGPU_LoadedImGeom & aaGLI_0 = *(aVLI[0]);
+  std::string aMasterName=aaGLI_0.PDV()->Name();
+  Box2di BoxMaster=aaGLI_0.Geom()->BoxClip();
+  std::cout<<"BoxMaster ==> "<<BoxMaster<<std::endl;
+  Pt2di SzMaster=aaGLI_0.getSizeImage();
+  // Orientation to reover epipolar images names
+  std::string aNameOri=DirOfFile(aaGLI_0.PDV()->NameGeom());
+  std::size_t aPosl=aNameOri.find_first_of("/");
+  aNameOri=aNameOri.substr(aPosl+1,-1);
+  std::size_t aPosr=aNameOri.find_last_of("/");
+  aNameOri=aNameOri.substr(0,aPosr);
+  cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+
+  for (int aKIm= 1 ; aKIm<mNbIm ; aKIm++)
+  {
+      std::string aPrefixMaster= aNameOrig + "_I" + ToString(0) + "_S"+ ToString(0)+"_I" + ToString(aKIm) + "_S"+ ToString(0);
+      cGPU_LoadedImGeom & aaGLI_0 = *(aVLI[aKIm]);
+      std::string aSecName=aaGLI_0.PDV()->Name();
+      Box2di BoxSec=aaGLI_0.Geom()->BoxClip();
+      std::cout<<"Box Secondary image "<<BoxSec<<std::endl;
+      Pt2di SzSec=aaGLI_0.getSizeImage();
+      std::string aPrefixSec  = aNameOrig + "_I" + ToString(aKIm) + "_S"+ ToString(0);
+      std::string aPrefixEpip = aNameOrig + "_I" + ToString(aKIm) +"_I" + ToString(0) + "_S"+ ToString(0);
+      // CLIP IMAGES GEOX GEOY EpIm_GEOX EpIm_GEOY
+      std::string NameBareOri=aNameOri.substr(aNameOri.find_first_of("-")+1,-1);
+      std::string aNameEpip12=aICNM->NameImEpip(NameBareOri,aMasterName,aSecName);
+      std::string aNameEpip21=aICNM->NameImEpip(NameBareOri,aSecName,aMasterName);
+      std::string  aNameBareEpip12=aNameEpip12.substr(0,aNameEpip12.find_last_of(".")); //.tif
+      std::string  aNameBareEpip21=aNameEpip21.substr(0,aNameEpip21.find_last_of(".")); //.tif
+      // im1 --> Epip12
+      std::string Im1_to_Epip12_GeoX=aNameBareEpip12+"_GEOX.tif";
+      std::string Im1_to_Epip12_GeoY=aNameBareEpip12+"_GEOY.tif";
+      std::string Im1_to_Epip12_Masq=aNameBareEpip12+"_Masq.tif";
+
+      // im2 --> Epip21
+      std::string Im2_to_Epip21_GeoX=aNameBareEpip21+"_GEOX.tif";
+      std::string Im2_to_Epip21_GeoY=aNameBareEpip21+"_GEOY.tif";
+      std::string Im2_to_Epip21_Masq=aNameBareEpip21+"_Masq.tif";
+
+      // Epip12 --> im1
+      std::string Epip12_to_im1_GeoX=aNameBareEpip12+"_EpIm_GEOX.tif";
+      std::string Epip12_to_im1_GeoY=aNameBareEpip12+"_EpIm_GEOY.tif";
+      std::string Epip12_to_im1_Masq=aNameBareEpip12+"_EpIm_Masq.tif";
+      // Epip21 --> im2
+      std::string Epip21_to_im2_GeoX=aNameBareEpip21+"_EpIm_GEOX.tif";
+      std::string Epip21_to_im2_GeoY=aNameBareEpip21+"_EpIm_GEOY.tif";
+      std::string Epip21_to_im2_Masq=aNameBareEpip21+"_EpIm_Masq.tif";
+
+      // calculer les grilles de déformation
+      std::cout<<"Master2EpipGeoX   => "<<std::endl;
+      Tiff_Im     Master2EpipGeoX(Epip12_to_im1_GeoX.c_str());
+      Tiff_Im     Master2EpipGeoY(Epip12_to_im1_GeoY.c_str());
+      Tiff_Im     Master2EpipMasq(Epip12_to_im1_Masq.c_str());
+
+      Tiff_Im     Sec2EpipGeoX(Epip21_to_im2_GeoX.c_str());
+      Tiff_Im     Sec2EpipGeoY(Epip21_to_im2_GeoY.c_str());
+      //std::cout<<"Sec2EpipGeoY==> "<<Sec2EpipGeoY.sz()<<std::endl;
+      Tiff_Im     Sec2EpipMasq(Epip21_to_im2_Masq.c_str());
+
+      /* read relevant image boxes for Master */
+        TIm2D<float,double> aTImMaster2EpipGeoX(SzMaster);
+        TIm2D<float,double> aTImMaster2EpipGeoY(SzMaster);
+        Im2D_Bits<1> aImMaster2EpipMasq(SzMaster.x,SzMaster.y);
+        //TIm2DBits<1> aTImMaster2EpipMasq(aImMaster2EpipMasq);
+
+        TIm2D<float,double> aTImSec2EpipGeoX(SzSec);
+        TIm2D<float,double> aTImSec2EpipGeoY(SzSec);
+        Im2D_Bits<1> aImSec2EpipMasq(SzSec.x,SzSec.y);
+        //TIm2DBits<1> aTImSec2EpipMasq(aImSec2EpipMasq);
+
+        // Export Epipolars direclty as they have been calculated
+
+        Tiff_Im  anEpip12(aNameEpip12.c_str());
+        Tiff_Im  anEpip21(aNameEpip21.c_str());
+
+        // 1. Master : compute box in epipolar domain
+       ELISE_COPY
+      (
+           aTImMaster2EpipGeoX.all_pts(),
+           trans(Master2EpipGeoX.in(),BoxMaster._p0),
+           aTImMaster2EpipGeoX.out()
+      );
+
+       ELISE_COPY
+      (
+           aTImMaster2EpipGeoY.all_pts(),
+           trans(Master2EpipGeoY.in(),BoxMaster._p0),
+           aTImMaster2EpipGeoY.out()
+      );
+
+       ELISE_COPY
+      (
+           aImMaster2EpipMasq.all_pts(),
+           trans(Master2EpipMasq.in(),BoxMaster._p0),
+           aImMaster2EpipMasq.out()
+      );
+
+       int HomXmin=1e9;
+       int HomYmin=1e9;
+       int HomXmax=-1e9;
+       int HomYmax=-1e9;
+
+       Pt2di aP=Pt2di(0,0);
+       for (aP.x=0;aP.x<SzMaster.x;aP.x++)
+         {
+           for (aP.y=0;aP.y<SzMaster.y;aP.y++)
+             {
+               if (aImMaster2EpipMasq.get(aP.x,aP.y))
+                 {
+                   double aGeox=aTImMaster2EpipGeoX.get(aP);
+                   double aGeoy=aTImMaster2EpipGeoY.get(aP);
+
+                   if (aGeox>HomXmax) HomXmax=aGeox;
+                   if (aGeox<HomXmin) HomXmin=aGeox;
+
+                   if (aGeoy>HomYmax) HomYmax=aGeoy;
+                   if (aGeoy<HomYmin) HomYmin=aGeoy;
+                 }
+             }
+         }
+
+       Box2di aBoxMasterInEpip(round_ni(Pt2dr(HomXmin,HomYmin)),round_ni(Pt2dr(HomXmax,HomYmax)));
+       std::cout<<"aBoxMasterInEpip  => "<<aBoxMasterInEpip<<std::endl;
+
+       // 2. Secondary : compute box in epipolar domain
+
+       ELISE_COPY
+      (
+           aTImSec2EpipGeoX.all_pts(),
+           trans(Sec2EpipGeoX.in(),BoxSec._p0),
+           aTImSec2EpipGeoX.out()
+      );
+
+       ELISE_COPY
+      (
+           aTImSec2EpipGeoY.all_pts(),
+           trans(Sec2EpipGeoY.in(),BoxSec._p0),
+           aTImSec2EpipGeoY.out()
+      );
+
+       ELISE_COPY
+      (
+           aImSec2EpipMasq.all_pts(),
+           trans(Sec2EpipMasq.in(),BoxSec._p0),
+           aImSec2EpipMasq.out()
+      );
+
+       HomXmin=1e9;
+       HomYmin=1e9;
+       HomXmax=-1e9;
+       HomYmax=-1e9;
+
+       aP=Pt2di(0,0);
+       for (aP.x=0;aP.x<SzSec.x;aP.x++)
+         {
+           for (aP.y=0;aP.y<SzSec.y;aP.y++)
+             {
+               if (aImSec2EpipMasq.get(aP.x,aP.y))
+                 {
+                   double aGeox=aTImSec2EpipGeoX.get(aP);
+                   double aGeoy=aTImSec2EpipGeoY.get(aP);
+
+                   if (aGeox>HomXmax) HomXmax=aGeox;
+                   if (aGeox<HomXmin) HomXmin=aGeox;
+
+                   if (aGeoy>HomYmax) HomYmax=aGeoy;
+                   if (aGeoy<HomYmin) HomYmin=aGeoy;
+                 }
+             }
+         }
+       Box2di aBoxSecInEpip(round_ni(Pt2dr(HomXmin,HomYmin)),round_ni(Pt2dr(HomXmax,HomYmax)));
+
+       // 3. Generate Tiles Im->Epip and Epip->Im
+
+       // create epipolar boxes
+
+       TIm2D<float,double> aTImMasterEpip(aBoxMasterInEpip.sz());
+       TIm2D<float,double> aTImSecEpip(aBoxSecInEpip.sz());
+
+       /*3.1 Master*/
+
+       Tiff_Im Epip2MasterGeoX(Im1_to_Epip12_GeoX.c_str());
+       Tiff_Im Epip2MasterGeoY(Im1_to_Epip12_GeoY.c_str());
+       Tiff_Im Epip2MasterMasq(Im1_to_Epip12_Masq.c_str());
+
+       TIm2D<float,double> aTImEpip2MasterGeoX(aBoxMasterInEpip._p1-aBoxMasterInEpip._p0);
+       TIm2D<float,double> aTImEpip2MasterGeoY(aBoxMasterInEpip._p1-aBoxMasterInEpip._p0);
+
+       Pt2di SzInEp=aBoxMasterInEpip._p1-aBoxMasterInEpip._p0;
+       Im2D_Bits<1> aImEpip2MasterMasq(SzInEp.x,SzInEp.y);
+       //TIm2DBits<1> aTImEpip2MasterMasq(aImEpip2MasterMasq);
+
+       ELISE_COPY
+      (
+           aTImEpip2MasterGeoX.all_pts(),
+           trans(Epip2MasterGeoX.in(),aBoxMasterInEpip._p0),
+           aTImEpip2MasterGeoX.out()
+      );
+       ELISE_COPY
+      (
+           aTImEpip2MasterGeoY.all_pts(),
+           trans(Epip2MasterGeoY.in(),aBoxMasterInEpip._p0),
+           aTImEpip2MasterGeoY.out()
+      );
+
+       ELISE_COPY
+      (
+           aTImMasterEpip.all_pts(),
+           trans(anEpip12.in(),aBoxMasterInEpip._p0),
+           aTImMasterEpip.out()
+      );
+
+       ELISE_COPY
+      (
+           aImEpip2MasterMasq.all_pts(),
+           trans(Epip2MasterMasq.in(),aBoxMasterInEpip._p0),
+           aImEpip2MasterMasq.out()
+      );
+
+       Tiff_Im Epip2SecGeoX(Im2_to_Epip21_GeoX.c_str());
+       Tiff_Im Epip2SecGeoY(Im2_to_Epip21_GeoY.c_str());
+       Tiff_Im Epip2SecMasq(Im2_to_Epip21_Masq.c_str());
 
 
+       std::cout<<"aBoxSecInEpip   "<<aBoxSecInEpip<<std::endl;
+       TIm2D<float,double> aTImEpip2SecGeoX(aBoxSecInEpip._p1-aBoxSecInEpip._p0);
+       TIm2D<float,double> aTImEpip2SecGeoY(aBoxSecInEpip._p1-aBoxSecInEpip._p0);
 
-std::vector<std::pair<cElHomographie,cElHomographie>> cAppliMICMAC::DoEstimWarpersPDVs()
+       Pt2di SzInEpSec=aBoxSecInEpip._p1-aBoxSecInEpip._p0;
+       Im2D_Bits<1> aImEpip2SecMasq(SzInEpSec.x,SzInEpSec.y);
+       //TIm2DBits<1> aTImEpip2SecMasq(aImEpip2SecMasq);
+
+       ELISE_COPY
+      (
+           aTImEpip2SecGeoX.all_pts(),
+           trans(Epip2SecGeoX.in(),aBoxSecInEpip._p0),
+           aTImEpip2SecGeoX.out()
+      );
+       ELISE_COPY
+      (
+           aTImEpip2SecGeoY.all_pts(),
+           trans(Epip2SecGeoY.in(),aBoxSecInEpip._p0),
+           aTImEpip2SecGeoY.out()
+      );
+
+       ELISE_COPY
+      (
+           aTImSecEpip.all_pts(),
+           trans(anEpip21.in(),aBoxSecInEpip._p0),
+           aTImSecEpip.out()
+      );
+
+       ELISE_COPY
+      (
+           aImEpip2SecMasq.all_pts(),
+           trans(Epip2SecMasq.in(),aBoxSecInEpip._p0),
+           aImEpip2SecMasq.out()
+      );
+      std::cout<<"Fill Image tiles ==> Im2 to Epip 21 Fill tiles  "<<std::endl;
+
+       //5. Prepare for grid_sample
+       /*
+          xhmin,yhmin,xhmax,yhmax=Bbox
+          divx=xhmax-xhmin
+          divy=yhmax-yhmin
+          """GeoXB=GeoXBox/W
+          GeoXB=GeoXB-(xhmin/W)
+          GeoXB=GeoXB*(W/divx)"""
+
+          GeoXB=(2*(GeoXBox-xhmin)/divx)-1
+          GeoYB=(2*(GeoYBox-yhmin)/divy)-1
+          return GeoXB,GeoYB
+      */
+
+       // Image --> Epip
+       ELISE_COPY(aTImMaster2EpipGeoX.all_pts(),
+                  2*((aTImMaster2EpipGeoX.in()-aBoxMasterInEpip.P0().x)/(aBoxMasterInEpip.P1().x-aBoxMasterInEpip.P0().x))-1.0,
+                  aTImMaster2EpipGeoX.out()
+                  );
+
+       ELISE_COPY(aTImMaster2EpipGeoY.all_pts(),
+                  2*((aTImMaster2EpipGeoY.in()-aBoxMasterInEpip.P0().y)/(aBoxMasterInEpip.P1().y-aBoxMasterInEpip.P0().y))-1.0,
+                  aTImMaster2EpipGeoY.out()
+                  );
+
+       ELISE_COPY(aTImSec2EpipGeoX.all_pts(),
+                  2*((aTImSec2EpipGeoX.in()-aBoxSecInEpip.P0().x)/(aBoxSecInEpip.P1().x-aBoxSecInEpip.P0().x))-1.0,
+                  aTImSec2EpipGeoX.out()
+                  );
+
+       ELISE_COPY(aTImSec2EpipGeoY.all_pts(),
+                  2*((aTImSec2EpipGeoY.in()-aBoxSecInEpip.P0().y)/(aBoxSecInEpip.P1().y-aBoxSecInEpip.P0().y))-1.0,
+                  aTImSec2EpipGeoY.out()
+                  );
+
+       // Epip --> Image
+
+       ELISE_COPY(aTImEpip2MasterGeoX.all_pts(),
+                  2*((aTImEpip2MasterGeoX.in()-BoxMaster.P0().x)/(BoxMaster.P1().x-BoxMaster.P0().x))-1.0,
+                  aTImEpip2MasterGeoX.out()
+                  );
+
+       ELISE_COPY(aTImEpip2MasterGeoY.all_pts(),
+                  2*((aTImEpip2MasterGeoY.in()-BoxMaster.P0().y)/(BoxMaster.P1().y-BoxMaster.P0().y))-1.0,
+                  aTImEpip2MasterGeoY.out()
+                  );
+
+       ELISE_COPY(aTImEpip2SecGeoX.all_pts(),
+                  2*((aTImEpip2SecGeoX.in()-BoxSec.P0().x)/(BoxSec.P1().x-BoxSec.P0().x))-1.0,
+                  aTImEpip2SecGeoX.out()
+                  );
+
+       ELISE_COPY(aTImEpip2SecGeoY.all_pts(),
+                  2*((aTImEpip2SecGeoY.in()-BoxSec.P0().y)/(BoxSec.P1().y-BoxSec.P0().y))-1.0,
+                  aTImEpip2SecGeoY.out()
+                  );
+
+       // 6. Save
+       SaveIm(aPrefixMaster+"_ORIG_EpIm_GEOX.tif",aTImMaster2EpipGeoX._d,Box2di(Pt2di(0,0),SzMaster));
+       SaveIm(aPrefixMaster+"_ORIG_EpIm_GEOY.tif",aTImMaster2EpipGeoY._d,Box2di(Pt2di(0,0),SzMaster));
+       SaveIm(aPrefixMaster+"_ORIG_EpIm_Masq.tif",aImMaster2EpipMasq.data(),Box2di(Pt2di(0,0),SzMaster));
+
+       SaveIm(aPrefixSec+"_ORIG_EpIm_GEOX.tif",aTImSec2EpipGeoX._d,Box2di(Pt2di(0,0),SzSec));
+       SaveIm(aPrefixSec+"_ORIG_EpIm_GEOY.tif",aTImSec2EpipGeoY._d,Box2di(Pt2di(0,0),SzSec));
+       SaveIm(aPrefixSec+"_ORIG_EpIm_Masq.tif",aImSec2EpipMasq.data(),Box2di(Pt2di(0,0),SzSec));
+
+       SaveIm(aPrefixMaster+"_ORIG_GEOX.tif",aTImEpip2MasterGeoX._d,Box2di(Pt2di(0,0),aBoxMasterInEpip._p1-aBoxMasterInEpip._p0));
+       SaveIm(aPrefixMaster+"_ORIG_GEOY.tif",aTImEpip2MasterGeoY._d,Box2di(Pt2di(0,0),aBoxMasterInEpip._p1-aBoxMasterInEpip._p0));
+       SaveIm(aPrefixMaster+"_ORIG_Masq.tif",aImEpip2MasterMasq.data(),Box2di(Pt2di(0,0),aBoxMasterInEpip._p1-aBoxMasterInEpip._p0));
+
+       SaveIm(aPrefixSec+"_ORIG_GEOX.tif",aTImEpip2SecGeoX._d,Box2di(Pt2di(0,0),aBoxSecInEpip._p1-aBoxSecInEpip._p0));
+       SaveIm(aPrefixSec+"_ORIG_GEOY.tif",aTImEpip2SecGeoY._d,Box2di(Pt2di(0,0),aBoxSecInEpip._p1-aBoxSecInEpip._p0));
+       SaveIm(aPrefixSec+"_ORIG_Masq.tif",aImEpip2SecMasq.data(),Box2di(Pt2di(0,0),aBoxSecInEpip._p1-aBoxSecInEpip._p0));
+
+       // Save Epipolars
+       SaveIm(aPrefixMaster+"_Epip.tif",aTImMasterEpip._d,Box2di(Pt2di(0,0),aBoxMasterInEpip.sz()));
+       SaveIm(aPrefixEpip+"_Epip.tif",aTImSecEpip._d,Box2di(Pt2di(0,0),aBoxSecInEpip.sz()));
+  }
+}
+
+
+void cAppliMICMAC::DoEstimWarpersPDVs()
 {
   // cComposElMap2D peut ?tre tu vas ten servir plus tard
     // Estimates a geometric transformation  between a set of PriseDeVues : first image is master
     // and imbricates them into the geometry for subsequential
 
-  cElHomographie mH1To2=cElHomographie::Id();
+  /*cElHomographie mH1To2=cElHomographie::Id();
   cElHomographie mH2To1=cElHomographie::Id();
   int NbVues=mPDVBoxGlobAct.size();
   //ELISE_ASSERT(NbVues>=2,"Nombre de vues non suffisant pour la correlation ");
@@ -870,7 +1219,107 @@ std::vector<std::pair<cElHomographie,cElHomographie>> cAppliMICMAC::DoEstimWarpe
             }
         }
     }
-  return AVecOfGeoTransfo;
+  return AVecOfGeoTransfo;*/
+
+  // compute epipolar pairs and generate Epipolar guiding grids
+  int NbVues=mPDVBoxGlobAct.size();
+  ELISE_ASSERT(NbVues>=2,"Nombre de vues non suffisant pour la correlation ");
+  const cPriseDeVue * aMaster=mPDVBoxGlobAct.at(0);
+  std::string aNameOri=DirOfFile(aMaster->NameGeom());
+  std::size_t aPosl=aNameOri.find_first_of("/");
+  aNameOri=aNameOri.substr(aPosl+1,-1);
+  std::size_t aPosr=aNameOri.find_last_of("/");
+  aNameOri=aNameOri.substr(0,aPosr);
+  //std::cout<<DirOfFile(aMaster->NameGeom())<<std::endl;
+  //bool IsExistFile = ELISE_fp::exist_file(aFullName);
+
+  // compute Epipolar images names and check if they already exist
+   std::list<std::string> aLCom;
+   cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc("./");
+   for (int itSecIm=1; itSecIm<NbVues;itSecIm++)
+       {
+
+        std::string NameBareOri=aNameOri.substr(aNameOri.find_first_of("-")+1,-1);
+        //std::cout<<"Name ori bare ==> "<<NameBareOri<<std::endl;
+         const cPriseDeVue * aSec=mPDVBoxGlobAct.at(itSecIm);
+         std::string aNameEpip12=aICNM->NameImEpip(NameBareOri,aMaster->Name(),aSec->Name());
+         std::string aNameEpip21=aICNM->NameImEpip(NameBareOri,aSec->Name(),aMaster->Name());
+         //without extension
+         std::string  aNameBareEpip12=aNameEpip12.substr(0,aNameEpip12.find_last_of(".")); //.tif
+         std::string  aNameBareEpip21=aNameEpip21.substr(0,aNameEpip21.find_last_of(".")); //.tif
+         std::cout<<"Name Epip 12 ==> "<<aNameEpip12<<std::endl;
+         std::cout<<"Name Epip 21 ==> "<<aNameEpip21<<std::endl;
+         // im1 --> Epip12
+         std::string Im1_to_Epip12_GeoX=aNameBareEpip12+"_GEOX.tif";
+         std::string Im1_to_Epip12_GeoY=aNameBareEpip12+"_GEOY.tif";
+         // im2 --> Epip21
+         std::string Im2_to_Epip21_GeoX=aNameBareEpip21+"_GEOX.tif";
+         std::string Im2_to_Epip21_GeoY=aNameBareEpip21+"_GEOY.tif";
+
+         // Epip12 --> im1
+         std::string Epip12_to_im1_GeoX=aNameBareEpip12+"_EpIm_GEOX.tif";
+         std::string Epip12_to_im1_GeoY=aNameBareEpip12+"_EpIm_GEOY.tif";
+
+         // Epip21 --> im2
+         std::string Epip21_to_im2_GeoX=aNameBareEpip21+"_EpIm_GEOX.tif";
+         std::string Epip21_to_im2_GeoY=aNameBareEpip21+"_EpIm_GEOX.tif";
+
+         bool AllExist=ELISE_fp::exist_file(aNameEpip12) && ELISE_fp::exist_file(aNameEpip21) &&
+             ELISE_fp::exist_file(Im1_to_Epip12_GeoX) && ELISE_fp::exist_file(Im1_to_Epip12_GeoY) &&
+             ELISE_fp::exist_file(Im2_to_Epip21_GeoX) && ELISE_fp::exist_file(Im2_to_Epip21_GeoY) &&
+             ELISE_fp::exist_file(Epip12_to_im1_GeoX) && ELISE_fp::exist_file(Epip12_to_im1_GeoY) &&
+             ELISE_fp::exist_file(Epip21_to_im2_GeoX) && ELISE_fp::exist_file(Epip21_to_im2_GeoY);
+
+         if (!AllExist)
+             {
+               std::string aComEpip=MMBinFile(MM3DStr)  + BLANK+
+                                    "CreateEpip"        + BLANK+
+                                    aMaster->Name()     + BLANK+
+                                    aSec->Name()        + BLANK+
+                                    aNameOri            + BLANK+
+                                    "XCorrecOri=1"      + BLANK+
+                                    "InParal=1"         + BLANK+
+                                    "Export12WayGeoxy=1";
+               aLCom.push_back(aComEpip);
+               std::cout<<"COMMANDE EPIP "<<aComEpip<<std::endl;
+             }
+       }
+
+
+   // Or apply homography to secondary images
+   /*
+   int NBVUES=mPDVBoxGlobAct.size();
+     if (NBVUES>=2) // More than one image
+       {
+         std::string aName1=mPDVBoxGlobAct.at(0)->Name();
+         cElemAppliSetFile anEASF;
+         anEASF.Init(aName1);
+         std::list<std::string> aLCom;
+         for (int im2=1;im2<NBVUES;im2++)
+           {
+             std::string aName2=mPDVBoxGlobAct.at(im2)->Name();
+             std::string aNameRes = anEASF.mDir +  "RegHom_" +aName2 + ".tif";
+             if (! ELISE_fp::exist_file(aNameRes))
+             {
+                 // std::cout << "RES = " << aNameRes << "\n";
+                 std::string aCom =  MM3dBinFile_quotes("TestLib")
+                                     + " OneReechHom "
+                                     +   aName1
+                                     +  " " + anEASF.mDir + aName2
+                                     +  " " +  aNameRes
+                                     +  " PostMasq=" + "_Masq";
+
+                 aLCom.push_back(aCom);
+                 // std::cout << "COM= " << aCom << "\n";
+             }
+           }
+         cEl_GPAO::DoComInParal(aLCom);
+       }
+     */
+   if (aLCom.size()>=1)
+     {
+      cEl_GPAO::DoComInSerie(aLCom);
+     }
 }
 
 void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
@@ -1203,7 +1652,6 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                 {
                     ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
                     ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
-                    //std::cout<<"MODIFF  ZMIN NNN "<<mZMinGlob<<"   mTABZMAX   "<<mTabZMin[anY][anX]<<std::endl;
                 }
             }
 
@@ -2589,46 +3037,8 @@ void cAppliMICMAC::DoCorrelAdHoc
 	else if (aTC.MutiCorrelOrthoExt().IsInit())
 	//	MutiCorrelOrthoExt
 	{
-	      // do some warping
-	      //std::vector<std::pair<cElHomographie,cElHomographie>> AllSetsOfTransfos=DoEstimWarpersPDVs();
-	      // Apply Homographies to secondary images
-	    /*
-	    int NBVUES=mPDVBoxGlobAct.size();
-	      if (NBVUES>=2) // More than one image
-		{
-		  std::string aName1=mPDVBoxGlobAct.at(0)->Name();
-		  cElemAppliSetFile anEASF;
-		  anEASF.Init(aName1);
-		  std::list<std::string> aLCom;
-		  for (int im2=1;im2<NBVUES;im2++)
-		    {
-		      std::string aName2=mPDVBoxGlobAct.at(im2)->Name();
-		      std::string aNameRes = anEASF.mDir +  "RegHom_" +aName2 + ".tif";
-		      if (! ELISE_fp::exist_file(aNameRes))
-		      {
-			  // std::cout << "RES = " << aNameRes << "\n";
-			  std::string aCom =  MM3dBinFile_quotes("TestLib")
-					      + " OneReechHom "
-					      +   aName1
-					      +  " " + anEASF.mDir + aName2
-					      +  " " +  aNameRes
-					      +  " PostMasq=" + "_Masq";
-
-                          aLCom.push_back(aCom);
-                          // std::cout << "COM= " << aCom << "\n";
-                      }
-                    }
-                  cEl_GPAO::DoComInParal(aLCom);
-                }
-              */
-              // get warped secondary images and calculate the boxes of images to feed to the network
-              //std::vector< std::pair<Im2D_REAL4,Im2D_REAL4> > aSetOfRegImages ;
-
-
-
-
-
-	      //std::cout<<"Is Etape Geom Derivable ===>   "<<mCurEtape->UseGeomDerivable()<<std::endl;
+	      // Generate grids to compute descriptors in the epipolar geometry
+	      DoEstimWarpersPDVs();
 	      std::string aPrefixGlobIm = FullDirMEC() + "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
              const cMutiCorrelOrthoExt aMCOE = aTC.MutiCorrelOrthoExt().Val();
              int mDeltaZ = aMCOE.DeltaZ().Val();
@@ -2636,7 +3046,8 @@ void cAppliMICMAC::DoCorrelAdHoc
              for (int aZ0=mZMinGlob ; aZ0<mZMaxGlob ; aZ0+=mDeltaZ)
              {
                  /********************************************************************************/
-                 // Save Original images because they will ommitted every loop aZ0 and aZ1
+
+                 // Save Original images because they will ommitted every loop between aZ0 and aZ1
                  for (int aKIm= 0 ; aKIm<mNbIm ; aKIm++)
                  {
                      cGPU_LoadedImGeom & aaGLI_0 = *(mVLI[aKIm]);
@@ -2654,7 +3065,13 @@ void cAppliMICMAC::DoCorrelAdHoc
                           SaveIm(aPrefiX+"_ORIG.tif",aaDataIm,ABox);
                      }
                  }
-                   /********************************************************************************/
+                 if (aMCOE.OrthFileModeleArch().IsInit())
+                   {
+                     // save transformations from ORIG images to Epipolar images or homography corrected images
+                     GenerateGeoPassage_ImEpip_EpipIm_BBox(mVLI,aPrefixGlobIm);
+                   }
+                 /********************************************************************************/
+
 
                  //std::cout<<" ZMIN GLOBAL "<<mZMinGlob<<" ZMAX GLOBAL "<<mZMaxGlob<<" DELTA Z "<<mDeltaZ<<std::endl
                   int aZ1= ElMin(mZMaxGlob,aZ0+mDeltaZ);
@@ -2665,9 +3082,7 @@ void cAppliMICMAC::DoCorrelAdHoc
                   for (int aZ=aZ0 ; aZ<aZ1 ; aZ++)
                   {
                         std::string aPrefixZ =    aPrefixGlob + "_Z" + ToString(aZ-aZ0) ;
-                        //bool OkZ = InitZ(aZ,eModeNoMom);  // Generate orthos and mask at given Z
-                        //std::cout<<"Initialize Z REF "<<std::endl;
-                        bool OkZ= InitZRef(aZ,aZ0, aPrefixGlob,eModeNoMom); // Create Warping Grids
+                        bool OkZ= InitZRef(aZ,aZ0, aPrefixGlob,eModeNoMom); // create deformation maps
                         allOkZ= allOkZ && OkZ;
                         //std::cout<<"Init Z REF DONE !"<<std::endl;
                         if (OkZ)
@@ -2708,6 +3123,7 @@ void cAppliMICMAC::DoCorrelAdHoc
 
 		  if (allOkZ) // sure to have already writtem images and grids to warp descriptors
 		    {
+
 			//  Call external command
 			std::string   aCom =  aMCOE.Cmd().Val() // "MMVII  DM4MatchMultipleOrtho "
 			  +  " " + aPrefixGlob
@@ -2726,6 +3142,15 @@ void cAppliMICMAC::DoCorrelAdHoc
 			   aCom = aCom + " " +  "CNNParams=" + QUOTE(aMCOE.OrthFileModeleParams().Val());
 			if (aMCOE.OrthoResol().IsInit())
 			   aCom = aCom + " " +  "RESOL=" + QUOTE(aMCOE.OrthoResol().Val());
+			// add cuda
+			if (aMCOE.Cuda().IsInit())
+			  {
+			    aCom= aCom + " "+"UseCuda=" +QUOTE(ToString(aMCOE.Cuda().Val()));
+			  }
+			else
+			  {
+			    aCom= aCom + " "+"UseCuda=" +ToString(0);
+			  }
 			std::cout<<"COMMAND 2 TEST "<<aCom<<std::endl;
 			System(aCom);
 

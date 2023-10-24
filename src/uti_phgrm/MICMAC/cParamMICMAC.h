@@ -2388,6 +2388,9 @@ class cMutiCorrelOrthoExt
         cTplValGesInit< int > & DeltaZ();
         const cTplValGesInit< int > & DeltaZ()const ;
         
+        cTplValGesInit< bool > & Cuda();
+        const cTplValGesInit< bool > & Cuda()const ;
+
     private:
         cTplValGesInit< std::string > mCmd;
         cTplValGesInit< std::string > mOrthFileModeleParams;
@@ -2395,6 +2398,8 @@ class cMutiCorrelOrthoExt
         cTplValGesInit< std::string > mOrthoResol;
         cTplValGesInit< std::string > mOptions;
         cTplValGesInit< int > mDeltaZ;
+        cTplValGesInit< bool > mUseCuda;
+
         
 };
 cElXMLTree * ToXMLTree(const cMutiCorrelOrthoExt &);
@@ -2486,6 +2491,7 @@ class cMultiCorrelPonctuel
         cTplValGesInit< double > mDefCost;
         cTplValGesInit< cMCP_AttachePixel > mMCP_AttachePixel;
 };
+
 cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel &);
 
 void  BinaryDumpInFile(ELISE_fp &,const cMultiCorrelPonctuel &);
@@ -2513,6 +2519,8 @@ class cScoreLearnedMMVII
         cTplValGesInit< std::string > &  FileModeleArch();
         const cTplValGesInit< std::string >  & FileModeleArch() const;
  
+        cTplValGesInit< bool > &  Cuda();
+        const cTplValGesInit< bool >  & Cuda() const;
 
         cTplValGesInit< double > & CostDyn();
         const cTplValGesInit< double > & CostDyn()const ;
@@ -2529,8 +2537,11 @@ class cScoreLearnedMMVII
         std::string mFileModeleCost;
         
         // CNN PARAMS AND ARCHITECTURE
+
         cTplValGesInit< std::string > mFileModeleParams;
         cTplValGesInit< std::string > mFileModeleArch;
+        cTplValGesInit< bool > mCuda;
+
         
         cTplValGesInit< double > mCostDyn;
         cTplValGesInit< double > mCostExp;

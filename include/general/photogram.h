@@ -521,6 +521,7 @@ class StatElPackH
             REAL  RMax2 () const;
             INT   NbPts() const;
             REAL  SomD1 () const;
+            
             REAL  SomD2 () const;
       private :
             REAL  mSPds;

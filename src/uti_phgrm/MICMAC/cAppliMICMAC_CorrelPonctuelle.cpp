@@ -210,6 +210,14 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
        {
            aCom = aCom + " ModCmp=" +  aCPC.Cmp_FileMC().Val();
        }
+       if (aCPC.Cuda().IsInit())
+         {
+           aCom = aCom + " UseCuda=" +  QUOTE(ToString(aCPC.Cuda().Val()));
+         }
+       else
+         {
+           aCom = aCom + " UseCuda=" +  ToString(0);
+         }
        System(aCom);
        ELISE_fp aFileCube(aNameCube.c_str());
        Pt2di aPLoc;

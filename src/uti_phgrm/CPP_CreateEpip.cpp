@@ -750,8 +750,6 @@ cTmpReechEpip::cTmpReechEpip
                  Tiff_Im::BlackIsZero
              );
       }
-    //Tiff_Im::CreateFromIm(mRedImX,aNameRedX);
-    //Tiff_Im::CreateFromIm(mRedImY,aNameRedY);
 
 // std::cout << "POSTMAS " << aPostMasq << "\n";
 
@@ -913,7 +911,7 @@ cTmpReechEpip::cTmpReechEpip
              if (exportGrid2Way)
               {
 
-                // export warpin masks
+                // export warping masks
                 ELISE_COPY
                 (
                     rectangle(aP0Epi,aP0Epi+aSzBloc),
@@ -946,6 +944,8 @@ cTmpReechEpip::cTmpReechEpip
       // create geometry image
         Pt2di aPInd;
 
+        //std::cout<<"mBoxImIn._p0 : "<<mBoxImIn._p0<< "  mBoxImIn._p1: "<<mBoxImIn._p1 <<std::endl;
+
         for (aPInd.x=0 ; aPInd.x<mSzRed.x ; aPInd.x++)
         {
            for (aPInd.y=0 ; aPInd.y<mSzRed.y ; aPInd.y++)
@@ -953,7 +953,7 @@ cTmpReechEpip::cTmpReechEpip
               bool Ok= false;
               Pt2dr aPIm = mBoxImIn._p0 + aPInd * mStep;
               Pt2dr aPEpi =  anEpi->Direct(aPIm);
-              if ((aPEpi.x>0) && (aPEpi.y>0) && (aPEpi.x<mSzEpi.x) && (aPEpi.y<mSzEpi.y))
+              if ((aPEpi.x>mP0Epi.x) && (aPEpi.y>mP0Epi.y) && (aPEpi.x<mP0Epi.x+mSzEpi.x) && (aPEpi.y<mP0Epi.y+mSzEpi.y))
               {
                    Pt2dr aPIm2 = anEpi->Inverse(aPEpi);
 
@@ -969,7 +969,9 @@ cTmpReechEpip::cTmpReechEpip
         }
         ELISE_COPY(aRedIMasq.all_pts(),dilat_d8(aRedIMasq.in(0),4),aRedIMasq.out());
 
+        // Sortie masque de definition
 
+        Tiff_Im::Create8BFromFonc("Reduc-MASQ-INVERSE.tif",aRedIMasq.sz(),aRedIMasq.in()*255);
         // warping grids
 
         int aX00 = mBoxImIn._p0.x;
@@ -1001,11 +1003,11 @@ cTmpReechEpip::cTmpReechEpip
                             double aXIm = aRedTImX.getr(aIndIm,-1,true);
                             double aYIm = aRedTImY.getr(aIndIm,-1,true);
 
-                            if ((aXIm>0) && (aYIm>0))
+                            if ((aXIm>mP0Epi.x) && (aYIm>mP0Epi.y) && (aXIm<mP0Epi.x+mSzEpi.x) && (aYIm<mP0Epi.y+mSzEpi.y))
                             {
                                 aTImMasq.oset(aPIndLoc,1);
-                                aTImX.oset(aPIndLoc,aXIm);
-                                aTImY.oset(aPIndLoc,aYIm);
+                                aTImX.oset(aPIndLoc,aXIm-mP0Epi.x);
+                                aTImY.oset(aPIndLoc,aYIm-mP0Epi.y);
                             }
                          }
                      }
@@ -1622,6 +1624,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mEpsCheckInv (1e-1),
    mMakeAppuis  (false),
    mGenereImageDirEpip (false),
+   mExport12WayGeoxy(false),
    mIntervZIsDef (false),
    mZMin         (1e20),
    mZMax         (-1e20)

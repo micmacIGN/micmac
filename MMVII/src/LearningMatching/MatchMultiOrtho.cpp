@@ -3,6 +3,7 @@
 // include model architecture 
 #include "cCnnModelPredictor.h"
 
+bool TEST=true;
 //WITHOUT ATTENTION DUBLIN
 std::vector<double> spaceCorrDUBLIN_TEST_ENSCHEDE = {0.0 ,5.01437811e-03 ,1.00142388e-02, 1.50140990e-02
  ,2.00139601e-02 ,2.50138212e-02 ,3.00136805e-02 ,3.50135416e-02
@@ -654,6 +655,24 @@ void InterpolatePos(std::vector<double> aX,std::vector<double> aF, double& value
     }
 }
  
+void Tensor2Tiff(torch::Tensor aTens, std::string anImageName)
+{
+    Im2D<REAL4,REAL8> anIm=Im2D<REAL4,REAL8> (aTens.size(-1),aTens.size(-2));
+    REAL4 ** anImD=anIm.data();
+    std::memcpy((*anImD),aTens.data_ptr<REAL4>(),sizeof(REAL4)*aTens.numel());
+    ELISE_COPY
+    (
+     anIm.all_pts(),
+     anIm.in() ,
+     Tiff_Im(
+        anImageName.c_str(),
+        anIm.sz(),
+        GenIm::real4,
+        Tiff_Im::No_Compr,
+        Tiff_Im::BlackIsZero,
+        Tiff_Im::Empty_ARG ).out()
+      );
+}
 /*
 namespace {
 	void display_weights(torch::nn::Module & module)
@@ -711,21 +730,50 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
         {
              return mPrefixGlob + "_I" +ToStr(aKIm) + "_S" + ToStr(aKScale) + "_"+ aPost  + ".tif";
         }
+        std::string NameImOrgEpip12(int aKIm,int aKIm2,int aKScale, const std::string & aPost) const
+        {
+             return mPrefixGlob + "_I" +ToStr(aKIm) + "_S" + ToStr(aKScale) + "_I" +ToStr(aKIm2) + "_S" + ToStr(aKScale) + "_"+ aPost  + ".tif";
+        }
+        std::string NameImEpip(int aKIm,int aKIm2,int aKScale, const std::string & aPost) const
+        {
+             return mPrefixGlob + "_I" +ToStr(aKIm) + "_I" +ToStr(aKIm2) +"_S" + ToStr(aKScale) + "_"+ aPost  + ".tif";
+        }
 	std::string NameOrtho(int aKIm,int aKScale) const {return NameIm(aKIm,aKScale,"O");}
         std::string NameGeoX (int aKIm,int aKScale) const {return NameIm(aKIm,aKScale,"GEOX");}
         std::string NameGeoY (int aKIm,int aKScale) const {return NameIm(aKIm,aKScale,"GEOY");}
         std::string NameMasq (int aKIm,int aKScale) const {return NameIm(aKIm,aKScale,"M");}
         std::string NameORIG (int aKIm,int aKScale) const {return NameImOrg(aKIm,aKScale,"ORIG");}
 
+        std::string NameORIGMASTERGEOX (int aKIm,int aKIm2,int aKScale) const {return NameImOrgEpip12(aKIm,aKIm2,aKScale,"ORIG_GEOX");}
+        std::string NameMASTEREPIP (int aKIm,int aKIm2,int aKScale) const {return NameImOrgEpip12(aKIm,aKIm2,aKScale,"Epip");}
+        std::string NameSECEPIP (int aKIm,int aKIm2,int aKScale) const {return NameImEpip(aKIm,aKIm2,aKScale,"Epip");}
+        std::string NameORIGMASTERGEOY (int aKIm,int aKIm2,int aKScale) const {return NameImOrgEpip12(aKIm,aKIm2,aKScale,"ORIG_GEOY");}
+        std::string NameORIGMASTERMASQ (int aKIm,int aKIm2,int aKScale) const {return NameImOrgEpip12(aKIm,aKIm2,aKScale,"ORIG_Masq");}
+        std::string NameORIGMASTEREpImGEOX (int aKIm,int aKIm2,int aKScale) const {return NameImOrgEpip12(aKIm,aKIm2,aKScale,"ORIG_EpIm_GEOX");}
+        std::string NameORIGMASTEREpImGEOY (int aKIm,int aKIm2,int aKScale) const {return NameImOrgEpip12(aKIm,aKIm2,aKScale,"ORIG_EpIm_GEOY");}
+        std::string NameORIGMASTEREpImMASQ (int aKIm,int aKIm2,int aKScale) const {return NameImOrgEpip12(aKIm,aKIm2,aKScale,"ORIG_EpIm_Masq");}
+
+        std::string NameORIGSECGEOX (int aKIm,int aKScale) const {return NameImOrg(aKIm,aKScale,"ORIG_GEOX");}
+        std::string NameORIGSECGEOY (int aKIm,int aKScale) const {return NameImOrg(aKIm,aKScale,"ORIG_GEOY");}
+        std::string NameORIGSECMASQ (int aKIm,int aKScale) const {return NameImOrg(aKIm,aKScale,"ORIG_Masq");}
+
+        std::string NameORIGSECEpImGEOX (int aKIm,int aKScale) const {return NameImOrg(aKIm,aKScale,"ORIG_EpIm_GEOX");}
+        std::string NameORIGSECEpImGEOY (int aKIm,int aKScale) const {return NameImOrg(aKIm,aKScale,"ORIG_EpIm_GEOY");}
+        std::string NameORIGSECEpImMASQ (int aKIm,int aKScale) const {return NameImOrg(aKIm,aKScale,"ORIG_EpIm_Masq");}
+
+
         int Exe() override;
+        int ExeProjectOrigEmbeddings();
         int ExeSubPixFeats();
+        int GotoEpipolar();
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-	//  One option, to replace by whatever you want
-	void ComputeSimilByCorrelMaster();
+        //  One option, to replace by whatever you want
+    void ComputeSimilByCorrelMaster();
     void ComputeSimilByLearnedCorrelMaster(std::vector<torch::Tensor> * AllEmbeddings);
     void ComputeSimilByLearnedCorrelMasterEnhanced(std::vector<torch::Tensor> * AllOrthosEmbeddings);
+    void ComputeSimilByLearnedCorrelMasterEnhancedMVS(std::vector<torch::Tensor> * AllOrthosEmbeddings);
     void ComputeSimilByLearnedCorrelMasterDecision();
     void ComputeSimilByLearnedCorrelMasterMaxMoy(std::vector<torch::Tensor> * AllOrthosEmbeddings);
     void ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(std::vector<torch::Tensor> * AllOrthosEmbeddings);
@@ -736,9 +784,11 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     void MakeNormalizedIms();
     void InitializePredictor ();
     torch::Tensor ToTensorGeo(tImOrtho & aGeoX,tImOrtho & aGeoY, cPt2di aDIM);
+    torch::Tensor ToTensorGeo(tImOrtho & aGeoX,tImOrtho & aGeoY);
     torch::Tensor ResampleFeatureMap(torch::Tensor & aFeatMap, tImOrtho aGeoX, tImOrtho aGeoY);
     torch::Tensor Gather2D(torch::Tensor & aFeatMap, torch::Tensor anX, torch::Tensor anY);
     torch::Tensor InterpolateFeatMap(torch::Tensor & aFeatMap, tImOrtho aGeoX, tImOrtho aGeoY);
+    torch::Tensor ComputeEpipolarImage(tImOrtho & aNativeGeomImage, tImOrtho & aGeoX, tImOrtho & aGeoY);
     double Interpol_Bilin(torch::Tensor & aMap,const cPt2dr & aLoc);
 	// -------------- Mandatory args -------------------
 	std::string   mPrefixGlob;   // Prefix to all names
@@ -761,6 +811,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     bool                  mWithMatcher3D=false;
     std::string           mArchitecture;
     std::string           mResol;
+    bool                  mUseCuda=false;
     std::string           mModelBinDir;
     cPt2di                mCNNWin;
     
@@ -834,6 +885,7 @@ cCollecSpecArg2007 & cAppliMatchMultipleOrtho::ArgOpt(cCollecSpecArg2007 & anArg
           << AOpt2007(mModelBinDir,"CNNParams" ,"Model Directory : Contient des fichiers binaires *.bin")
           << AOpt2007(mArchitecture,"CNNArch" ,"Model architecture : "+TheFastArch+" || "+TheFastStandard+" || "+TheFastArchWithMLP)
           << AOpt2007(mResol,"RESOL" ,"RESOL OPTION FOR THE MULTISCALE TRAINING: ")
+          << AOpt2007(mUseCuda,"UseCuda","USE CUDA TO LAUNCH MODELS")
    ;
 }
 
@@ -856,7 +908,7 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
         // ARCHITECTURE and Location of Model Binaries 
         if(mArchitecture==TheFastArch)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheFastArch,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheFastArch,mModelBinDir,mUseCuda);
             // CREATE AN INSTANCE OF THE NETWORK 
             torch::Device device(torch::kCPU);
             mNetFastMVCNN->createModel(184,7,1,3,device); // becareful to change these values with respect to network architecture
@@ -886,7 +938,7 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
         }
         if(mArchitecture==TheFastArchReg)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheFastArchReg,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchReg,mModelBinDir,mUseCuda);
             mCNNPredictor->PopulateModelFromBinaryWithBNReg(mNetFastMVCNNReg);
             
             //mCNNWin=mCNNPredictor->GetWindowSizeBNReg(mNetFastMVCNNReg);  just changed to test
@@ -906,7 +958,7 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
         }
         if(mArchitecture==TheFastandPrjHead)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheFastandPrjHead,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheFastandPrjHead,mModelBinDir,mUseCuda);
             mCNNPredictor->PopulateModelPrjHead(mNetFastPrjHead);
             
             mCNNWin=mCNNPredictor->GetWindowSizePrjHead(mNetFastPrjHead);
@@ -926,7 +978,7 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
         }
         if(mArchitecture==TheMSNet)
         { 
-            mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheMSNet,mModelBinDir,mUseCuda);
             //mCNNPredictor->PopulateModelMSNetHead(mMSNet);<<<<<<<here>>>>>>>>
             mCNNPredictor->PopulateModelMSNetAtt(mMSNet);
 
@@ -935,7 +987,7 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
         }
         if(mArchitecture==TheFastArchWithMLP)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheFastArchWithMLP,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchWithMLP,mModelBinDir,mUseCuda);
             // CREATE AN INSTANCE OF THE NETWORK 
             //auto cuda_available = torch::cuda::is_available();
             //torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
@@ -966,7 +1018,7 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
         }
         if(mArchitecture==TheFastArchDirectSim)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheFastArchDirectSim,mModelBinDir);
+            mCNNPredictor = new aCnnModelPredictor(TheFastArchDirectSim,mModelBinDir,mUseCuda);
             StdOut()<<"LOADING NETWORKKKK   ------> "<<"\n";
             mCNNPredictor->PopulateModelSimNet(mNetFastMVCNNDirectSIM);
             StdOut()<<"MODEL LOADED-SIMILARITY NETWORK    ------> "<<"\n";
@@ -992,7 +1044,7 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
         }
         if (mArchitecture==TheFastStandard)
         {
-           mCNNPredictor = new aCnnModelPredictor(TheFastStandard,mModelBinDir); 
+           mCNNPredictor = new aCnnModelPredictor(TheFastStandard,mModelBinDir,mUseCuda);
            
            // CREATE A CNN MODULE AND LOAD PARAMS 
             mNetFastStd->createModel(64,4,1,3);
@@ -1019,18 +1071,18 @@ void cAppliMatchMultipleOrtho::InitializePredictor ()
         }
         if(mArchitecture==TheUnetMlpCubeMatcher)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,mModelBinDir);
-            mCNNPredictor->PopulateModelFeatures(mMSAFF);
+            mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,mModelBinDir,mUseCuda);
+            mCNNPredictor->PopulateModelFeatures(mMSAFF,mUseCuda);
             mCNNWin=cPt2di(1,1);
             if (mWithDecisionNet)
             {
-              mCNNPredictor->PopulateModelDecision(mDecisionMLP);
+              mCNNPredictor->PopulateModelDecision(mDecisionMLP,mUseCuda);
             }
             if (mWithMatcher3D)
-                {
-                    // Enhance the  generated correlation coefficients using the last stage conv3d MATCHER
-                    //mCNNPredictor->PopulateModelMatcher(mMatcherNet);
-                }
+            {
+                // Enhance the  generated correlation coefficients using the last stage conv3d MATCHER
+                //mCNNPredictor->PopulateModelMatcher(mMatcherNet);
+            }
         }
     }   
 }
@@ -1212,9 +1264,8 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::ve
         {
             aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(0),AllOrthosEmbeddings->at(k),0).squeeze();
         }
-
         //std::cout<<"    MAXXXX    "<<at::max(aCrossProd)<<"    MINNN "<<at::min(aCrossProd)<<std::endl;
-        AllSimilarities->push_back(aCrossProd);
+        AllSimilarities->push_back(aCrossProd.to(torch::kCPU));
         // Here display similarity images of tiles 
     }
     
@@ -1278,6 +1329,100 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::ve
    }
 
    // delete All Similarities 
+   delete AllSimilarities;
+}
+
+
+
+
+void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedMVS(std::vector<torch::Tensor> * AllOrthosEmbeddings)
+{
+   MMVII_INTERNAL_ASSERT_strong(mIm1Mast,"DM4MatchMultipleOrtho, for now, only handle master image mode");
+
+   tDImSimil & aDImSim = mImSimil.DIm();
+   // Parse all pixels
+     const tDImMasq & aDIM1  =  mVMasq.at(0   ).at(0   ).DIm();
+    //compute similarity matrices at the beginning
+    std::vector<torch::Tensor> * AllSimilarities= new std::vector<torch::Tensor>;
+
+    for (int k=0; k<2*(mNbIm-1);k+=2)
+      {
+        //compute similarity maps by pair of as if it is in epipolar geometry
+        torch::Tensor aCrossProd;
+        if (mWithDecisionNet)
+        {
+            torch::Tensor MasterSlave=torch::cat({AllOrthosEmbeddings->at(k).unsqueeze(2),AllOrthosEmbeddings->at(k+1).unsqueeze(2)},0);
+            aCrossProd=mCNNPredictor->PredictONCUBE(mDecisionMLP,MasterSlave).squeeze();
+        }
+        else
+        {
+            aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(k),AllOrthosEmbeddings->at(k+1),0).squeeze();
+        }
+
+        //std::cout<<"    MAXXXX    "<<at::max(aCrossProd)<<"    MINNN "<<at::min(aCrossProd)<<std::endl;
+        AllSimilarities->push_back(aCrossProd.to(torch::kCPU));
+
+      }
+    // Free all ortho OneOrthoEmbeding
+    delete AllOrthosEmbeddings;
+    //std::cout<<" feature vector size : "<<FeatSize<<std::endl;
+   for (const auto & aP : aDImSim)
+   {
+        // method : average of image all ok if any, else weighted average of partial corr
+        float aSumCorAllOk = 0.0; // Sum of correl of image where point are all ok
+        float aSumWeightAllOk = 0.0; //   Nb of All Ok
+        float aSumCorPart  = 0.0; //  Sum of weighted partial correl
+        float aSumWeightPart = 0.0; //  Sum of weight
+         // Parse secondary images
+         using namespace torch::indexing;;
+        for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+        {
+            bool AllOk;
+            float aWeight,aCorrel;
+            //CorrelMaster(aP,aKIm,AllOk,aWeight,aCorrel);
+            // Compute cosine simialrity with respect to master ortho embeddings
+
+            /**************************************************************************************/
+            AllOk = true;
+            aWeight = 0;
+            const tDImMasq & aDIM2  =  mVMasq.at(aKIm).at(0   ).DIm();
+            for (const auto & aPvoisin : cRect2::BoxWindow(aP,mCNNWin))  // Parse the window`
+            {
+                bool Ok = aDIM1.DefGetV(aPvoisin,0) && aDIM2.DefGetV(aPvoisin,0) ;  // Are both pixel valide
+                if (Ok)
+                {
+                    aWeight++;
+                }
+                else
+                {
+                    AllOk=false;
+                }
+            }
+            // Compute correl separately
+            //using namespace torch::indexing;
+            auto aSim=AllSimilarities->at(aKIm-1).slice(0,aP.y(),aP.y()+1,1).slice(1,aP.x(),aP.x()+1,1);
+            //std::cout<<" slave vector "<<aSim<<std::endl;
+            aCorrel=(float)aSim.item<float>();
+            /**************************************************************************************/
+            if (AllOk)
+            {
+           aSumCorAllOk     += aCorrel;
+               aSumWeightAllOk  += 1;
+            }
+            else
+            {
+           aSumCorPart     += aCorrel * aWeight;
+               aSumWeightPart  +=   aWeight;
+            }
+        }
+        float aAvgCorr =  (aSumWeightAllOk !=0)            ?
+                          (aSumCorAllOk / aSumWeightAllOk) :
+                          (aSumCorPart / std::max(1e-5f,aSumWeightPart)) ;
+
+        aDImSim.SetV(aP,1-aAvgCorr);
+   }
+
+   // delete All Similarities
    delete AllSimilarities;
 }
 
@@ -1826,29 +1971,45 @@ int  cAppliMatchMultipleOrtho::ExeSubPixFeats()
                         {
                             OneOrthoEmbeding=mCNNPredictor->PredictSimNetConv(mNetFastMVCNNDirectSIM,mVOrtho.at(i).at(0),aSzOrtho);
                         }
+                    else if (mArchitecture==TheUnetMlpCubeMatcher)
+                      {
+                            OneOrthoEmbeding=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mVOrtho.at(i),aSzOrtho);
+                      }
 
                     //StdOut()  <<" EMBEDDING FOR VECTOR OR FULL RESOLUTION ORTHO : "<<i<<OneOrthoEmbeding.sizes()<<"\n";
                     // store in relevant vector 
                     OrthosEmbeddings->push_back(OneOrthoEmbeding);
                 }
+
+                //
+                if (mArchitecture==TheUnetMlpCubeMatcher)
+                {
+                    //ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(OrthosEmbeddings); // Size 4*numberofOrthos
+                    ComputeSimilByLearnedCorrelMasterEnhanced(OrthosEmbeddings);
+                    //ComputeSimilByLearnedCorrelMasterDecision(); <<<<<<here>>>>>>
+                }
+
             }
             //StdOut()  <<" Size OF EMBEDDINGS MS : " <<OrthosEmbeddings->size()<<"\n";
 
-            // GIVEN THE ORTHOS EMBEDDINGS, Compute Correlation for each pixel in the similarity image => index work to get vectors from from tensors 
-            if (mArchitecture==TheMSNet)
-            {
-                //ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(OrthosEmbeddings); // Size 4*numberofOrthos
-                ComputeSimilByLearnedCorrelMasterEnhanced(OrthosEmbeddings);
-                //ComputeSimilByLearnedCorrelMasterDecision(); <<<<<<here>>>>>>
-            }
-            if (mArchitecture==TheUnetMlpCubeMatcher)
-            {
-                ComputeSimilByLearnedCorrelMasterDecision();
-            }
             else
-            {
-               ComputeSimilByLearnedCorrelMasterMaxMoy(OrthosEmbeddings); 
-            }
+              {
+                  // GIVEN THE ORTHOS EMBEDDINGS, Compute Correlation for each pixel in the similarity image => index work to get vectors from from tensors
+                  if (mArchitecture==TheMSNet)
+                  {
+                      //ComputeSimilByLearnedCorrelMasterMaxMoyMulScale(OrthosEmbeddings); // Size 4*numberofOrthos
+                      ComputeSimilByLearnedCorrelMasterEnhanced(OrthosEmbeddings);
+                      //ComputeSimilByLearnedCorrelMasterDecision(); <<<<<<here>>>>>>
+                  }
+                  if (mArchitecture==TheUnetMlpCubeMatcher)
+                  {
+                      ComputeSimilByLearnedCorrelMasterDecision();
+                  }
+                  else
+                  {
+                     ComputeSimilByLearnedCorrelMasterMaxMoy(OrthosEmbeddings);
+                  }
+              }
             
         }
         else
@@ -1935,6 +2096,23 @@ torch::Tensor cAppliMatchMultipleOrtho::ToTensorGeo(tImOrtho & aGeoX,tImOrtho & 
    aGeoXT=aGeoXT.index({Slice(0,aSzOrtho.y()-1,1),Slice(0,aSzOrtho.x()-1,1)});
    aGeoYT=aGeoYT.index({Slice(0,aSzOrtho.y()-1,1),Slice(0,aSzOrtho.x()-1,1)});
    return torch::stack({aGeoXT.div((float)aDIM.x()/2),aGeoYT.div((float)aDIM.y()/2)},-1).sub(1.0).unsqueeze(0);
+}
+
+torch::Tensor cAppliMatchMultipleOrtho::ToTensorGeo(tImOrtho & aGeoX,tImOrtho & aGeoY)
+{
+  using namespace torch::indexing;
+  cPt2di aSzOrtho=aGeoX.DIm().Sz();
+  // Generate tensor offsets
+  tREAL4 ** mGeoXData=aGeoX.DIm().ExtractRawData2D();
+  tREAL4 ** mGeoYData=aGeoY.DIm().ExtractRawData2D();
+  // create offsets tensors for interpolation
+  torch::Tensor aGeoXT=torch::from_blob((*mGeoXData), {aSzOrtho.y(),aSzOrtho.x()},
+                                        torch::TensorOptions().dtype(torch::kFloat32));
+  torch::Tensor aGeoYT=torch::from_blob((*mGeoYData), {aSzOrtho.y(),aSzOrtho.x()},
+                                        torch::TensorOptions().dtype(torch::kFloat32));
+   //aGeoXT=aGeoXT.index({Slice(0,aSzOrtho.y()-1,1),Slice(0,aSzOrtho.x()-1,1)});
+   //aGeoYT=aGeoYT.index({Slice(0,aSzOrtho.y()-1,1),Slice(0,aSzOrtho.x()-1,1)});
+   return torch::stack({aGeoXT,aGeoYT},-1).unsqueeze(0);
 }
 
 torch::Tensor cAppliMatchMultipleOrtho::InterpolateFeatMap(torch::Tensor & aFeatMap,
@@ -2121,9 +2299,37 @@ torch::Tensor cAppliMatchMultipleOrtho::ResampleFeatureMap(torch::Tensor & aFeat
     return anInterPolFeatMap;
 }
 
-int  cAppliMatchMultipleOrtho::Exe()
-{
 
+torch::Tensor cAppliMatchMultipleOrtho::ComputeEpipolarImage(tImOrtho & aNativeGeomImage, tImOrtho & aGeoX, tImOrtho & aGeoY)
+{
+  using namespace torch::indexing;
+  namespace FFunc=torch::nn::functional;
+  cPt2di aSzOrtho= aNativeGeomImage.DIm().Sz();
+  cPt2di aSzGeo= aGeoX.DIm().Sz();
+  tREAL4 ** mGeoXData=aGeoX.DIm().ExtractRawData2D();
+  tREAL4 ** mGeoYData=aGeoY.DIm().ExtractRawData2D();
+  tREAL4 ** mNativeData=aNativeGeomImage.DIm().ExtractRawData2D();
+
+  // create offsets tensors for interpolation
+  torch::Tensor aGeoXT=torch::from_blob((*mGeoXData), {aSzGeo.y(),aSzGeo.x()},
+                                        torch::TensorOptions().dtype(torch::kFloat32));
+  torch::Tensor aGeoYT=torch::from_blob((*mGeoYData), {aSzGeo.y(),aSzGeo.x()},
+                                        torch::TensorOptions().dtype(torch::kFloat32));
+
+  torch::Tensor aNativeImT=torch::from_blob((*mNativeData), {aSzOrtho.y(),aSzOrtho.x()},
+                                        torch::TensorOptions().dtype(torch::kFloat32)).unsqueeze(0).unsqueeze(0); // 1,1,H,W
+
+   //aGeoXT=aGeoXT.index({Slice(0,aSzOrtho.y()-1,1),Slice(0,aSzOrtho.x()-1,1)});
+   //aGeoYT=aGeoYT.index({Slice(0,aSzOrtho.y()-1,1),Slice(0,aSzOrtho.x()-1,1)});
+
+   return FFunc::grid_sample(aNativeImT,
+                             torch::stack({aGeoXT,aGeoYT},-1).unsqueeze(0), // 1,h,w,2
+                              F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze(); //H,W
+}
+
+int  cAppliMatchMultipleOrtho::ExeProjectOrigEmbeddings()
+{
+  torch::Device device(mUseCuda ? torch::kCUDA : torch::kCPU);
    // Parse all Z
    // If using a model (CNN) Initialize the predictor
    if (mArchitecture!="")
@@ -2149,7 +2355,6 @@ int  cAppliMatchMultipleOrtho::Exe()
    std::vector<torch::Tensor> * OrigEmbeddings= new std::vector<torch::Tensor>;
    if (mWithExtCorr)
      {
-
        for (unsigned int i=0; i<mORIGIm.size();i++)
          {
            cPt2di aSzImOrig=mORIGIm.at(i).at(0).DIm().Sz();
@@ -2177,6 +2382,251 @@ int  cAppliMatchMultipleOrtho::Exe()
         }
         if (WithFile)
         {
+            // Read  orthos and masq in  vectors of images
+            mSzIms = cPt2di(-1234,6789);
+            for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+            {
+                 mVOrtho.push_back(tVecOrtho());
+                 mVMasq.push_back(tVecMasq());
+                 mVGEOX.push_back(tVecOrtho());
+                 mVGEOY.push_back(tVecOrtho());
+                 for (int aKScale=0 ; aKScale<mNbScale ; aKScale++)
+                    {
+                        mVOrtho.at(aKIm).push_back(tImOrtho::FromFile(NameOrtho(aKIm,aKScale)));
+                        /*if (aKIm==2)
+                          {
+                            std::cout<<"NAME GEOX :"<<NameGeoX(aKIm,aKScale)<<std::endl;
+                            std::cout<<"NAME GEOY :"<<NameGeoY(aKIm,aKScale)<<std::endl;
+                          }*/
+                        mVGEOX.at(aKIm).push_back(tImOrtho::FromFile(NameGeoX(aKIm,aKScale)));
+                        mVGEOY.at(aKIm).push_back(tImOrtho::FromFile(NameGeoY(aKIm,aKScale)));
+                        if ((aKIm==0) && (aKScale==0))
+                            mSzIms = mVOrtho[0][0].DIm().Sz();  // Compute the size at level
+
+                        mVMasq.at(aKIm).push_back(tImMasq::FromFile(NameMasq(aKIm,aKScale)));
+
+                        // check all images have the same at a given level
+                        MMVII_INTERNAL_ASSERT_strong(mVOrtho[aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(ortho)");
+                        MMVII_INTERNAL_ASSERT_strong(mVMasq [aKIm][aKScale].DIm().Sz()==mSzIms,"DM4O : variable size(masq)");
+                    }
+            }
+              // Create similarity image with good size
+              mImSimil = tImSimil(mSzIms);
+              mImSimil.DIm().InitCste(2.0);   //  2 => correl of -1
+
+
+        if(mWithExtCorr)
+        {
+            std::vector<torch::Tensor> * ProjectEmbeddings = new std::vector<torch::Tensor>;
+            if (!mWithDecisionNet)
+            {
+                // Inference based correlation
+                // Create Embeddings
+                // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
+                MMVII_INTERNAL_ASSERT_strong(mArchitecture==TheUnetMlpCubeMatcher, "TheUnetMlpCubeMatcher is the only option for Now");
+                if (mArchitecture==TheUnetMlpCubeMatcher)
+                   {
+                        namespace FFunc=torch::nn::functional;
+                        cPt2di aSzIm;
+                        cPt2di aSzImOrig;
+                        // project all except the master (i=0) embedding
+                        MMVII_INTERNAL_ASSERT_strong(mVGEOX.size()>1,"No query image found!");
+                        //ProjectEmbeddings->push_back(OrigEmbeddings->at(0));
+                        //std::cout<<"##########################  "<<0<<"  "<<ProjectEmbeddings->at(0).sizes()<<"  ###########################"<<std::endl;
+                        for (unsigned int i=0; i<mORIGIm.size();i++)
+                          {
+                            aSzIm=mVOrtho.at(i).at(0).DIm().Sz();
+                            aSzImOrig=mORIGIm.at(i).at(0).DIm().Sz();
+                            //ProjectEmbeddings->push_back(this->InterpolateFeatMap(OrigEmbeddings->at(i),mVGEOX[i][0],mVGEOY[i][0]));
+
+                            ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i).unsqueeze(0),
+                                                                            ToTensorGeo(mVGEOX[i][0],mVGEOY[i][0],aSzImOrig).to(device),
+                              FFunc::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
+
+                            //auto OrthoEmbedding=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mVOrtho.at(i),aSzIm);
+                            //auto COSINE=at::cosine_similarity(OrthoEmbedding,ProjectEmbeddings->at(i),0).squeeze();
+                            //std::cout<<" CORRELATION CHECK >>>  "<<at::mean(COSINE)<<std::endl;
+                            //std::cout<<"##########################  "<<i<<"  "<<ProjectEmbeddings->at(i).sizes()<<"  ###########################"<<std::endl;
+                          }
+                        ComputeSimilByLearnedCorrelMasterEnhanced(ProjectEmbeddings);
+                   }
+            }
+        }
+        else
+        {
+            ComputeSimilByCorrelMaster();
+        }
+
+            mImSimil.DIm().ToFile(mPrefixZ+ "_Sim.tif"); // Save similarities
+            mVOrtho.clear();
+            mVGEOX.clear();
+            mVGEOY.clear();
+            mVMasq.clear();
+        }
+   }
+   return EXIT_SUCCESS;
+}
+
+
+
+
+int  cAppliMatchMultipleOrtho::GotoEpipolar()
+{
+  torch::Device device(mUseCuda ? torch::kCUDA : torch::kCPU);
+   // Parse all Z
+   // If using a model (CNN) Initialize the predictor
+   if (mArchitecture!="")
+   {
+        InitializePredictor();
+   }
+
+   // load Original images
+   bool WithFile = ExistFile(NameORIG(0,0));
+   bool WithEpipolar=ExistFile(NameORIGMASTERGEOX(0,1,0));
+   if (WithFile)
+       {
+           for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+           {
+                mORIGIm.push_back(tVecOrtho());
+                for (int aKScale=0 ; aKScale<mNbScale ; aKScale++)
+                   {
+                       mORIGIm.at(aKIm).push_back(tImOrtho::FromFile(NameORIG(aKIm,aKScale)));
+                   }
+           }
+        }
+
+   // load image to epipolar maps and back
+    std::vector<tVecOrtho> mORIG_GEOX, mORIG_GEOY, mORIG_EpIm_GEOX, mORIG_EpIm_GEOY, mEPIPS;
+    std::vector<tVecMasq>  mORIG_MASQs, mORIG_EpIm_MASQs;
+
+    if (WithEpipolar)
+      {
+        int aInd=0;
+        for (int akIm=1; akIm<mNbIm ; akIm++ ) // ajouter une image pour le passage aux images épipolaires
+          {
+            // for each secondary image fille containers twice : one for master eipolar + one for secondary
+
+            // 1. master epipolar
+            mORIG_GEOX.push_back(tVecOrtho());
+            mORIG_GEOY.push_back(tVecOrtho());
+            mORIG_MASQs.push_back(tVecMasq());
+
+            mORIG_EpIm_GEOX.push_back(tVecOrtho());
+            mORIG_EpIm_GEOY.push_back(tVecOrtho());
+            mORIG_EpIm_MASQs.push_back(tVecMasq());
+            mEPIPS.push_back(tVecOrtho());
+
+            // 2. second epipolar
+
+            aInd+=1;
+            mORIG_GEOX.push_back(tVecOrtho());
+            mORIG_GEOY.push_back(tVecOrtho());
+            mORIG_MASQs.push_back(tVecMasq());
+            mEPIPS.push_back(tVecOrtho());
+            mORIG_EpIm_GEOX.push_back(tVecOrtho());
+            mORIG_EpIm_GEOY.push_back(tVecOrtho());
+            mORIG_EpIm_MASQs.push_back(tVecMasq());
+
+            for (int aKScale=0; aKScale<mNbScale; aKScale++)
+              {
+                // Master
+                mORIG_GEOX.at(aInd-1).push_back(tImOrtho::FromFile(NameORIGMASTERGEOX(0,akIm,aKScale)));
+                mORIG_GEOY.at(aInd-1).push_back(tImOrtho::FromFile(NameORIGMASTERGEOY(0,akIm,aKScale)));
+                mORIG_MASQs.at(aInd-1).push_back(tImMasq::FromFile(NameORIGMASTERMASQ(0,akIm,aKScale)));
+
+                mORIG_EpIm_GEOX.at(aInd-1).push_back(tImOrtho::FromFile(NameORIGMASTEREpImGEOX(0,akIm,aKScale)));
+                mORIG_EpIm_GEOY.at(aInd-1).push_back(tImOrtho::FromFile(NameORIGMASTEREpImGEOY(0,akIm,aKScale)));
+                mORIG_EpIm_MASQs.at(aInd-1).push_back(tImMasq::FromFile(NameORIGMASTEREpImMASQ(0,akIm,aKScale)));
+                // Secondary
+                mORIG_GEOX.at(aInd).push_back(tImOrtho::FromFile(NameORIGSECGEOX(akIm,aKScale)));
+                mORIG_GEOY.at(aInd).push_back(tImOrtho::FromFile(NameORIGSECGEOY(akIm,aKScale)));
+                mORIG_MASQs.at(aInd).push_back(tImMasq::FromFile(NameORIGSECMASQ(akIm,aKScale)));
+
+                mORIG_EpIm_GEOX.at(aInd).push_back(tImOrtho::FromFile(NameORIGSECEpImGEOX(akIm,aKScale)));
+                mORIG_EpIm_GEOY.at(aInd).push_back(tImOrtho::FromFile(NameORIGSECEpImGEOY(akIm,aKScale)));
+                mORIG_EpIm_MASQs.at(aInd).push_back(tImMasq::FromFile(NameORIGSECEpImMASQ(akIm,aKScale)));
+
+                // Load bare epips
+                mEPIPS.at(aInd-1).push_back(tImOrtho::FromFile(NameMASTEREPIP(0,akIm,aKScale)));
+                mEPIPS.at(aInd).push_back(tImOrtho::FromFile(NameSECEPIP(akIm,0,aKScale)));
+              }
+            aInd+=1;
+          }
+      }
+
+   // compute original embeddings
+   std::vector<torch::Tensor> * OrigEmbeddings= new std::vector<torch::Tensor>;
+   if (WithEpipolar)
+     {
+       int anIndIm=1;
+       for (int anInd=0;anInd<2*(mNbIm-1);anInd+=2,anIndIm++)
+         {
+           /*auto aMasterEpip=this->ComputeEpipolarImage(mORIGIm.at(0).at(0),
+                                                       mORIG_GEOX.at(anInd).at(0),
+                                                       mORIG_GEOY.at(anInd).at(0));
+           auto aSecEpip=this->ComputeEpipolarImage(mORIGIm.at(anIndIm).at(0),
+                                                    mORIG_GEOX.at(anInd+1).at(0),
+                                                    mORIG_GEOY.at(anInd+1).at(0));
+                                                    */
+           // compute descriptors on the epipolar images directly
+
+           if (mArchitecture==TheUnetMlpCubeMatcher)
+             {
+               namespace FFunc=torch::nn::functional;
+               cPt2di aSzImEpipMaster=mEPIPS.at(anInd).at(0).DIm().Sz();
+               cPt2di aSzImEpipSec =mEPIPS.at(anInd+1).at(0).DIm().Sz();
+               auto MasterFeat=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mEPIPS.at(anInd),aSzImEpipMaster);
+               auto SecFeat   =mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mEPIPS.at(anInd+1),aSzImEpipSec);
+
+               OrigEmbeddings->push_back(FFunc::grid_sample(MasterFeat.unsqueeze(0),
+                                                            ToTensorGeo(mORIG_EpIm_GEOX[anInd][0],mORIG_EpIm_GEOY[anInd][0]).to(device),
+              F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
+
+               OrigEmbeddings->push_back(FFunc::grid_sample(SecFeat.unsqueeze(0),
+                                                            ToTensorGeo(mORIG_EpIm_GEOX[anInd+1][0],mORIG_EpIm_GEOY[anInd+1][0]).to(device),
+              F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
+
+
+               if (TEST)
+                 {
+                   // Save some images rectified back to the original image
+                   if (anInd==0)
+                     {
+                        auto aMasterImage=ComputeEpipolarImage(mEPIPS.at(anInd).at(0),mORIG_EpIm_GEOX[anInd][0],mORIG_EpIm_GEOY[anInd][0]);
+                        auto aSecImage   =ComputeEpipolarImage(mEPIPS.at(anInd+1).at(0),mORIG_EpIm_GEOX[anInd+1][0],mORIG_EpIm_GEOY[anInd+1][0]);
+
+                        // Write images
+                        Tensor2Tiff(aMasterImage,"./MASTER_IM.tif");
+                        Tensor2Tiff(aSecImage,"./SEC_IM.tif");
+
+                     }
+
+                 }
+
+             }
+           else
+             {
+               MMVII_INTERNAL_ASSERT_strong(false,"DM4MatchMultipleOrtho, Model architecture not taken into account !");
+             }
+         }
+     }
+
+   // Load Displacement grids in X and Y directions to apply to each embedding
+   for (int aZ=0 ; aZ<mNbZ ; aZ++)
+   {
+        mPrefixZ =  mPrefixGlob + "_Z" + ToStr(aZ);
+
+        bool NoFile = ExistFile(mPrefixZ+ "_NoData");  // If no data in masq thie file exist
+        WithFile = ExistFile(NameOrtho(0,0));
+        // A little check
+        MMVII_INTERNAL_ASSERT_strong(NoFile!=WithFile,"DM4MatchMultipleOrtho, incoherence file");
+        if ((aZ==0)  && (true))
+        {
+             cDataFileIm2D aDF = cDataFileIm2D::Create(NameOrtho(0,0),false);
+             StdOut() << " * NbI=" << mNbIm << " NbS=" <<  mNbScale << " NbZ=" <<  mNbZ << " Sz=" << aDF.Sz() << " SzW=" << mSzW << "\n";
+        }
+         if (WithFile)
+            {
                 // Read  orthos and masq in  vectors of images
                 mSzIms = cPt2di(-1234,6789);
                 for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
@@ -2208,51 +2658,53 @@ int  cAppliMatchMultipleOrtho::Exe()
                 // Create similarity image with good size
                 mImSimil = tImSimil(mSzIms);
                 mImSimil.DIm().InitCste(2.0);   //  2 => correl of -1
+                if (mWithExtCorr)
+                  {
+                    std::vector<torch::Tensor> * ProjectEmbeddings = new std::vector<torch::Tensor>;
+                      if (!mWithDecisionNet)
+                      {
+                          // Inference based correlation
+                          // Create Embeddings
+                          // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
+                          MMVII_INTERNAL_ASSERT_strong(mArchitecture==TheUnetMlpCubeMatcher, "TheUnetMlpCubeMatcher is the only option for Now");
+                          if (mArchitecture==TheUnetMlpCubeMatcher)
+                             {
+                                  namespace FFunc=torch::nn::functional;
+                                  cPt2di aSzImOrig=mORIGIm.at(0).at(0).DIm().Sz();
+                                  MMVII_INTERNAL_ASSERT_strong(mVGEOX.size()>1,"No query image found!");
 
+                                  int id_im=1;
+                                  for (int i=0; i<2*(mNbIm-1);i+=2,id_im++) // parcourir par couple de paires épipolaires
+                                    {
+                                    // master sec images
 
-            if(mWithExtCorr)
-            {
-                std::vector<torch::Tensor> * ProjectEmbeddings = new std::vector<torch::Tensor>;
-                if (!mWithDecisionNet)
-                {
-                    // Inference based correlation
-                    // Create Embeddings
-                    // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
-                    MMVII_INTERNAL_ASSERT_strong(mArchitecture==TheUnetMlpCubeMatcher, "TheUnetMlpCubeMatcher is the only option for Now");
-                    if (mArchitecture==TheUnetMlpCubeMatcher)
-                       {
-                            namespace FFunc=torch::nn::functional;
-                            cPt2di aSzIm;
-                            cPt2di aSzImOrig;
+                                      ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i).unsqueeze(0),
+                                                                                      ToTensorGeo(mVGEOX[0][0],mVGEOY[0][0],aSzImOrig).to(device),
+                                        F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
 
-                            // project all except the master (i=0) embedding
-                            MMVII_INTERNAL_ASSERT_strong(mVGEOX.size()>1,"No query image found!");
-                            //ProjectEmbeddings->push_back(OrigEmbeddings->at(0));
-                            //std::cout<<"##########################  "<<0<<"  "<<ProjectEmbeddings->at(0).sizes()<<"  ###########################"<<std::endl;
-                            for (unsigned int i=0; i<mORIGIm.size();i++)
-                              {
-                                aSzIm=mVOrtho.at(i).at(0).DIm().Sz();
-                                aSzImOrig=mORIGIm.at(i).at(0).DIm().Sz();
-                                //ProjectEmbeddings->push_back(this->InterpolateFeatMap(OrigEmbeddings->at(i),mVGEOX[i][0],mVGEOY[i][0]));
+                                      cPt2di aSzImSec=mORIGIm.at(id_im).at(0).DIm().Sz();
+                                      ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i+1).unsqueeze(0),
+                                                                                      ToTensorGeo(mVGEOX[id_im][0],mVGEOY[id_im][0],aSzImSec).to(device),
+                                        F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
 
-                                ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i).unsqueeze(0),
-                                                                                ToTensorGeo(mVGEOX[i][0],mVGEOY[i][0],aSzImOrig),
-                                  F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
+                                    }
+                                  ComputeSimilByLearnedCorrelMasterEnhancedMVS(ProjectEmbeddings);
+                             }
+                          else
+                            {
+                              MMVII_INTERNAL_ASSERT_strong(false, "TheUnetMlpCubeMatcher is the only option for Now");
+                            }
 
-
-
-                                //auto OrthoEmbedding=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mVOrtho.at(i),aSzIm);
-                                //auto COSINE=at::cosine_similarity(OrthoEmbedding,ProjectEmbeddings->at(i),0).squeeze();
-                                //std::cout<<" CORRELATION CHECK >>>  "<<at::mean(COSINE)<<std::endl;
-                                //std::cout<<"##########################  "<<i<<"  "<<ProjectEmbeddings->at(i).sizes()<<"  ###########################"<<std::endl;
-                              }
-                            ComputeSimilByLearnedCorrelMasterEnhanced(ProjectEmbeddings);
-                       }
-                }
+                     }
+                  }
+                else
+                  {
+                     ComputeSimilByCorrelMaster();
+                  }
             }
             else
             {
-                ComputeSimilByCorrelMaster();
+             MMVII_INTERNAL_ASSERT_strong(false, "MMV1 Orthos projected in the geometry of master image are not created !");
             }
 
                 mImSimil.DIm().ToFile(mPrefixZ+ "_Sim.tif"); // Save similarities
@@ -2261,10 +2713,17 @@ int  cAppliMatchMultipleOrtho::Exe()
                 mVGEOY.clear();
                 mVMasq.clear();
         }
-   }
    return EXIT_SUCCESS;
 }
 
+
+
+int cAppliMatchMultipleOrtho::Exe()
+{
+   return GotoEpipolar();
+  //return ExeProjectOrigEmbeddings();
+  return ExeSubPixFeats();
+}
 
 };
 

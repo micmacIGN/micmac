@@ -292,7 +292,7 @@ void cAppliFillCubeCost2D::ExeOptim()
    // LOADING MODELS
    if (NameArch()==TheUnetMlpCubeMatcher)
        {
-           mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,this->NameDirModel());
+           mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,this->NameDirModel(),false);
            mCNNPredictor->PopulateModelFeatures(mMSNet);
            if (mWithPredictionNetwork)
            {
@@ -548,7 +548,7 @@ void cAppliFillCubeCost2D::ExeOptim()
     // LOADING MODELS
     if (NameArch()==TheUnetMlpCubeMatcher)
         {
-            mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,this->NameDirModel());
+            mCNNPredictor = new aCnnModelPredictor(TheUnetMlpCubeMatcher,this->NameDirModel(),false);
             mCNNPredictor->PopulateModelFeatures(mMSNet);
             if (mWithPredictionNetwork)
             {
