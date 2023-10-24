@@ -26,7 +26,7 @@ class cAppli_CGPReport : public cMMVII_Appli
 {
      public :
 
-        cAppli_CGPReport(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
+        cAppli_CGPReport(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &,bool IsGCP);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
@@ -46,6 +46,7 @@ class cAppli_CGPReport : public cMMVII_Appli
 
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
+	bool                     mIsGCP;  /// GCP vs Tie Point
 
 	std::vector<double>      mGeomFiedlVec;
 	std::vector<int>         mPropStat;
@@ -65,10 +66,12 @@ class cAppli_CGPReport : public cMMVII_Appli
 cAppli_CGPReport::cAppli_CGPReport
 (
      const std::vector<std::string> &  aVArgs,
-     const cSpecMMVII_Appli & aSpec
+     const cSpecMMVII_Appli & aSpec,
+     bool                     isGCP
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
+     mIsGCP        (isGCP),
      mPropStat     ({50,75}),
      mMarginMiss   (50.0)
 {
@@ -356,7 +359,7 @@ int cAppli_CGPReport::Exe()
 
 tMMVII_UnikPApli Alloc_CGPReport(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_CGPReport(aVArgs,aSpec));
+   return tMMVII_UnikPApli(new cAppli_CGPReport(aVArgs,aSpec,true));
 }
 
 cSpecMMVII_Appli  TheSpec_CGPReport

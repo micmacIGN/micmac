@@ -249,8 +249,7 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
      if (0)
      {
          Type aRes;
-         auto  aMap = cSim2D<Type>::StdGlobEstimate(aVCur,aVTh,&aRes);
-         FakeUseIt(aMap);
+          cSim2D<Type>::StdGlobEstimate(aVCur,aVTh,&aRes);
          //StdOut() << "RESIDUAL By Map Fit ";
          //StdOut() << aVCur[1] - aVCur[0] / aVTh[1]-aVTh[0] <<  std::endl;
          return aRes;

@@ -145,6 +145,8 @@ enum class eEEBW_Lab : tU_INT1
    eFree,
    eBorder,
    eTmp,
+   eFront,
+   eFrontExt,
    eBadZ,
    eBadFr,
    eElNotOk,
@@ -193,7 +195,7 @@ class cExtract_BW_Target
         bool IsExtremalPoint(const cPt2di &) ;
 
         /// Update the data for connected component with a new point (centroid, bbox, heap...)
-        void AddPtInCC(const cPt2di &);
+        void AddPtInCC(const cPt2di &,tREAL8 aWeight);
         // Prolongat on the vertical, untill its a max or a min
         cPt2di Prolongate(cPt2di aPix,bool IsW) const;
 
@@ -215,6 +217,7 @@ class cExtract_BW_Target
         std::vector<cPt2di>  mPtsCC;
         int                  mIndCurPts;  ///< index of point explored in connected component
         cPt2dr               mCentroid;   ///< Centroid of conected compoonent, used for direction & reduction of coordinates
+        tREAL8               mWCenter;    ///< Weitgh for computing centroid
         cIm2D<tU_INT1>       mMasqTest;   ///< Mask for "special" point where we want to make test (debug/visu ...)
         cDataIm2D<tU_INT1>&  mDMasqT;     ///< Data of Masq
 

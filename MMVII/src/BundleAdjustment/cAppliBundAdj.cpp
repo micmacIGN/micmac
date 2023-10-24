@@ -233,6 +233,7 @@ int cAppliBundlAdj::Exe()
     }
 
     MMVII_INTERNAL_ASSERT_tiny(MeasureAdded,"Not any measure added");
+    Fake4ReleaseUseIt(MeasureAdded);
 
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {

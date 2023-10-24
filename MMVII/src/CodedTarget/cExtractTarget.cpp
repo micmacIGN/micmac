@@ -2023,10 +2023,6 @@ int  cAppliExtractCodeTarget::Exe(){
         }
 
 
-        FakeUseIt(mSys);
-        FakeUseIt(mEqHomIm);
-
-
         // Free allocated memory
         delete mSys;
         delete mEqHomIm;

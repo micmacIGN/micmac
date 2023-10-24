@@ -185,8 +185,6 @@ void Bench_SpatialIndex(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("SpatialIndex")) return;
 
-     /*cTilingIndex<2>  aTI(cBox2dr(cPt2dr(0,0),cPt2dr(2,2)),true,5);
-     FakeUseIt(aTI); */
 
      for (int aK=0 ; aK<50 ; aK++)
      {

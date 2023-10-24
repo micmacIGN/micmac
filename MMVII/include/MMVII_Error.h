@@ -32,6 +32,7 @@ namespace MMVII
 
 // extern int  The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_medium;
 #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
+// #define The_MMVII_DebugLevel The_MMVII_DebugLevel_BenchError
 // #define The_MMVII_DebugLevel The_MMVII_DebugLevel_UserError
 
 /**  The error handler can be change , so its a function Ptr of type PtrMMVII_Error_Handler,
@@ -182,6 +183,8 @@ void  ErrorWarnNone(eLevelCheck aLevel,const std::string & aMes);
 
 /// A fake function, to stop momentarilly warnings about unused variable ...
 template <class Type> void FakeUseIt(const Type &) {}
+/// in some case variable can be used only in debug mode, to separate from other case use this function
+template <class Type> void Fake4ReleaseUseIt(const Type &) {}
 /** A function returning always false, use when we dont want to execute something want to compile it
  even with too "clever" compiler who would skip if (0) */
 bool NeverHappens();

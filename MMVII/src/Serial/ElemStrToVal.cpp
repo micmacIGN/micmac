@@ -323,6 +323,13 @@ template<> cE2Str<eModeEpipMatch>::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
                 {eModeEpipMatch::eMEM_NoMatch,"NoMatch"}
            };
 
+template<> cE2Str<eTyUnitAngle>::tMapE2Str cE2Str<eTyUnitAngle>::mE2S
+           {
+                {eTyUnitAngle::eUA_radian,"radian"},
+                {eTyUnitAngle::eUA_degree,"degree"},
+                {eTyUnitAngle::eUA_gon,"gon"}
+           };
+
 template<> cE2Str<eModeTestPropCov>::tMapE2Str cE2Str<eModeTestPropCov>::mE2S
            {
                 {eModeTestPropCov::eMTPC_MatCovRFix  ,"MatCovRFix"},
@@ -823,6 +830,7 @@ template <class Type> tPtrArg2007 AOpt2007(Type & aVal,const std::string & aName
 template tPtrArg2007 Arg2007<Type>(Type &, const std::string & aCom,const cSpecOneArg2007::tAllSemPL & aVSem);\
 template tPtrArg2007 AOpt2007<Type>(Type &,const std::string & aName, const std::string & aCom,const cSpecOneArg2007::tAllSemPL & aVSem);
 
+MACRO_INSTANTIATE_ARG2007(char)
 MACRO_INSTANTIATE_ARG2007(size_t)
 MACRO_INSTANTIATE_ARG2007(int)
 MACRO_INSTANTIATE_ARG2007(double)
@@ -1041,6 +1049,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTypeSerial,"TypeSerial")
 MACRO_INSTANTITATE_STRIO_ENUM(eTAAr,"TypeAAr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTA2007,"TA2007")
 MACRO_INSTANTITATE_STRIO_ENUM(eTySC,"TySC")
+MACRO_INSTANTITATE_STRIO_ENUM(eTyUnitAngle,"AngleUnit")
 
 
 /* ==================================== */
@@ -1067,6 +1076,29 @@ template <>  bool cStrIO<bool>::FromStr(const std::string & aStr)
 }
 
 template <>  const std::string cStrIO<bool>::msNameType = "bool";
+
+   // ================  char ==============================================
+
+template <>  std::string cStrIO<char>::ToStr(const char & anI)
+{
+ 
+   std::string aStrI;
+   aStrI += anI;
+   return   aStrI ;
+}
+template <>  char cStrIO<char>::FromStr(const std::string & aStr)
+{
+    MMVII_INTERNAL_ASSERT_User(aStr.size()==1,eTyUEr::eUnClassedError,"String size shoul be 1 for char create");
+
+    return aStr[0];
+}
+
+template <>  const std::string cStrIO<char>::msNameType = "char";
+
+
+
+
+
 
    // ================  size_t ==============================================
 
@@ -1104,7 +1136,10 @@ template <>  int cStrIO<int>::FromStr(const std::string & aStr)
     int anI;
     int aNb= sscanf(aStr.c_str(),"%d",&anI);
 
-    MMVII_INTERNAL_ASSERT_User((aNb!=0),eTyUEr::eBadInt,"String is not a valid int")
+    if (aNb==0)
+    {
+         MMVII_INTERNAL_ASSERT_User((aNb!=0),eTyUEr::eBadInt,"String=["+ aStr +"] is not a valid int")
+    }
     return anI;
 }
 template <>  const std::string cStrIO<int>::msNameType = "int";

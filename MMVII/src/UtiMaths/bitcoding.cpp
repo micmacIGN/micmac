@@ -662,7 +662,6 @@ void BenchHammingDist(int  aV1,int aV2)
 void BenchHammingCode(int aNbB)
 {
    cHamingCoder aHC(aNbB);
-   FakeUseIt(aHC);
 
    std::vector<int>  aVC;
    std::vector<bool>  aVIsCorrect(1<<aHC.NbBitsOut(),false);

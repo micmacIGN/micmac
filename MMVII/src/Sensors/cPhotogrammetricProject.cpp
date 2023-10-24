@@ -63,7 +63,7 @@ cDirsPhProj::cDirsPhProj(eTA2007 aMode,cPhotogrammetricProject & aPhp):
 {
 }
 
-
+const std::string &  cDirsPhProj::DirLocOfMode() const { return mDirLocOfMode; }
 
 void cDirsPhProj::Finish()
 {
@@ -542,10 +542,10 @@ cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameI
    return cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
 }
 
-void cPhotogrammetricProject::SaveGCP(const cSetMesImGCP& aSetMes,const std::string & aExt)
+void cPhotogrammetricProject::SaveGCP(const cSetMesGCP & aMGCP)
 {
-     cSetMesGCP  aMGCP = aSetMes.ExtractSetGCP(aExt);
-     aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles +aExt + "." + TaggedNameDefSerial());
+     aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + aMGCP.StdNameFile());
+     // aMGCP.ToFile(mDPPointsMeasures.FullDirOut() + cSetMesGCP::ThePrefixFiles + aMGCP.Name() + "." + TaggedNameDefSerial());
 }
 
 std::string cPhotogrammetricProject::GCPPattern(const std::string & aArgPatFiltr) const
@@ -626,7 +626,7 @@ void cPhotogrammetricProject::SaveAndFilterAttrEll(const cSetMesPtOf1Im &  aSetM
      SaveInFile(aVSEEOut,cSaveExtrEllipe::NameFile(*this,aSetM,false));
 }
 
-        //  =============  Homologous point =================
+        //  =============  Multiple Tie Points =================
 
 std::string cPhotogrammetricProject::NameMultipleTieP(const std::string & aNameIm) const
 {
@@ -640,6 +640,29 @@ void  cPhotogrammetricProject::SaveMultipleTieP(const cVecTiePMul& aVPm,const st
    PopPrecTxtSerial();
 }
 
+void  cPhotogrammetricProject::ReadMultipleTieP(cVecTiePMul& aVPm,const std::string & aNameIm) const
+{
+   ReadFromFile(aVPm.mVecTPM,mDPMulTieP.FullDirIn()+NameMultipleTieP(aNameIm));
+   aVPm.mNameIm = aNameIm;
+}
+
+
+std::string cPhotogrammetricProject::NameConfigMTP(const std::string &  anExt)
+{
+    return  "MTP-Config." + anExt;
+}
+
+std::string cPhotogrammetricProject::NameConfigMTPIn() const
+{
+    return mDPMulTieP.FullDirIn() + NameConfigMTP();
+}
+
+std::string cPhotogrammetricProject::NameConfigMTPOut(const std::string &  anExt) const
+{
+    return mDPMulTieP.FullDirOut() + NameConfigMTP(anExt);
+}
+
+
 
 
         //  =============  Homologous point =================
@@ -648,10 +671,11 @@ void  cPhotogrammetricProject::SaveHomol
       (
            const cSetHomogCpleIm & aSetHCI,
            const std::string & aNameIm1 ,
-	   const std::string & aNameIm2
+	   const std::string & aNameIm2,
+	   const std::string & aDirIn
       ) const
 {
-	std::string aDir = mDPTieP.FullDirOut();
+	std::string aDir = (aDirIn=="") ? mDPTieP.FullDirOut() : aDirIn;
 
 	aDir = aDir + aNameIm1 + StringDirSeparator();
 	CreateDirectories(aDir,true);
@@ -660,9 +684,10 @@ void  cPhotogrammetricProject::SaveHomol
 	aSetHCI.ToFile(aName);
 }
 
-std::string cPhotogrammetricProject::NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2) const
+std::string cPhotogrammetricProject::NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2,const std::string & aDirIn) const
 {
-    return  mDPTieP.FullDirIn()+aNameIm1+StringDirSeparator()+aNameIm2+"."+VectNameDefSerial();
+    std::string aDir = (aDirIn=="") ? mDPTieP.FullDirIn() : aDirIn;
+    return  aDir+aNameIm1+StringDirSeparator()+aNameIm2+"."+VectNameDefSerial();
 }
 
 
@@ -670,10 +695,11 @@ void  cPhotogrammetricProject::ReadHomol
       (
            cSetHomogCpleIm & aSetHCI,
            const std::string & aNameIm1 ,
-           const std::string & aNameIm2
+           const std::string & aNameIm2,
+	   const std::string & aDirIn
       ) const
 {
-    std::string aName = NameTiePIn(aNameIm1,aNameIm2); 
+    std::string aName = NameTiePIn(aNameIm1,aNameIm2,aDirIn); 
     ReadFromFile(aSetHCI.SetH(),aName);
 }
 

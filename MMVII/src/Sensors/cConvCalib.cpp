@@ -30,13 +30,13 @@ class cV1PCConverter : public cCorresp32_BA
          typedef cIsometry3D<tREAL8>   tPose;
 	 /** Take as input the name xml-v1 internal calib and create Calib+Pos+Set , return then 
 	    the cV1PCConverter  used in bench & command 4 convert */
-         static cV1PCConverter *  AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix,const std::string & aNameCalOut="",tREAL8 aDS=1.0);
+         static cV1PCConverter *  AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix,const std::string & aNameCalOut="",tREAL8 aDS=1.0,cPt3di aDeg = cPt3di(3,1,1));
 
 	 /** Alloc a calib from name : create  the converter ,do the iteration, if already created return same object */
-         static cPerspCamIntrCalib *       AllocCalibV1(const std::string & aFullName,const std::string & aNameCalOut="",tREAL8 aDS=1.0);
+         static cPerspCamIntrCalib *       AllocCalibV1(const std::string & aFullName,const std::string & aNameCalOut="",tREAL8 aDS=1.0,cPt3di aDeg=cPt3di(3,1,1));
 
 	 /** */
-         static cSensorCamPC * AllocSensorPCV1(const std::string& aNameIm,const std::string & aFullName,const std::string& aNameCalOut="",tREAL8 aDS=1.0);
+         static cSensorCamPC * AllocSensorPCV1(const std::string& aNameIm,const std::string & aFullName,const std::string& aNameCalOut="",tREAL8 aDS=1.0,cPt3di aDegree=cPt3di(3,1,1));
 
          const cSensorCamPC  &       CamPC() const {return *mCamPC;}
          cPerspCamIntrCalib *    Calib() {return mCamPC->InternalCalib();}
@@ -81,7 +81,7 @@ cV1PCConverter::cV1PCConverter
 
      // ==============  conversion for V1 ================
 
-cV1PCConverter *  cV1PCConverter::AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix,const std::string & aNameCalOut,tREAL8 aDS)
+cV1PCConverter *  cV1PCConverter::AllocV1Converter(const std::string & aFullName,bool HCG,bool  CenterFix,const std::string & aNameCalOut,tREAL8 aDS,cPt3di aDeg)
 {
      //  [1]   ==========   Raw-read the parameters from V1 ================
      bool  isForTest = (!HCG) ||  (! CenterFix);
@@ -108,7 +108,7 @@ cV1PCConverter *  cV1PCConverter::AllocV1Converter(const std::string & aFullName
      if (aNameCalOut!="")
 	     aNameCam  = aNameCalOut;
         //  Data part for  internal calibration w/o distorsion
-     cDataPerspCamIntrCalib aDataCalib(aNameCam,aExp.eProj,cPt3di(3,1,1),aExp.mFoc,aExp.mSzCam);
+     cDataPerspCamIntrCalib aDataCalib(aNameCam,aExp.eProj,aDeg,aExp.mFoc,aExp.mSzCam);
      aDataCalib.PushInformation("Converted from MMV1");  // just for info
      cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::Alloc(aDataCalib); // the calib itself
 
@@ -116,7 +116,7 @@ cV1PCConverter *  cV1PCConverter::AllocV1Converter(const std::string & aFullName
      return new cV1PCConverter(aCamPC,aExp.mCorresp,HCG,CenterFix); // We have Calib+Pose+corresp : go
 }
 
-cPerspCamIntrCalib * cV1PCConverter::AllocCalibV1(const std::string & aFullName,const std::string & aNameCalOut,tREAL8 aDS)
+cPerspCamIntrCalib * cV1PCConverter::AllocCalibV1(const std::string & aFullName,const std::string & aNameCalOut,tREAL8 aDS,cPt3di aDeg)
 { 
      // If object already created
      static std::map<std::string,cPerspCamIntrCalib *> TheMap;
@@ -125,7 +125,7 @@ cPerspCamIntrCalib * cV1PCConverter::AllocCalibV1(const std::string & aFullName,
      if (aPersp==0)
      {
          // Create the converter
-         cV1PCConverter * aConvertor = cV1PCConverter::AllocV1Converter(aFullName,true,true,aNameCalOut,aDS);
+         cV1PCConverter * aConvertor = cV1PCConverter::AllocV1Converter(aFullName,true,true,aNameCalOut,aDS,aDeg);
 	 // make the bundle adjustment
          for (int aK=0 ; aK<10 ; aK++)
          {
@@ -141,12 +141,12 @@ cPerspCamIntrCalib * cV1PCConverter::AllocCalibV1(const std::string & aFullName,
 }
 
 
-cSensorCamPC * cV1PCConverter::AllocSensorPCV1(const std::string & aNameIm,const std::string & aFullName,const std::string& aNameCalOut,tREAL8 aDS)
+cSensorCamPC * cV1PCConverter::AllocSensorPCV1(const std::string & aNameIm,const std::string & aFullName,const std::string& aNameCalOut,tREAL8 aDS,cPt3di aDegree)
 {
      cExportV1StenopeCalInterne  aExp(false,aFullName,0,0,aDS); // Alloc w/o  3d-2d correspondance
 
      std::string aNameCal = DirOfPath(aFullName,false) + FileOfPath(aExp.mNameCalib,false);
-     cPerspCamIntrCalib * aCalib =  cV1PCConverter::AllocCalibV1(aNameCal,aNameCalOut,aDS);
+     cPerspCamIntrCalib * aCalib =  cV1PCConverter::AllocCalibV1(aNameCal,aNameCalOut,aDS,aDegree);
 
      return new cSensorCamPC(aNameIm,aExp.mPose,aCalib);
 }
@@ -285,13 +285,15 @@ class cAppli_OriConvV1V2 : public cMMVII_Appli
 	cPhotogrammetricProject  mPhProj;
 	bool                     mUseStdNameCalib;
 	tREAL8                   mDownScale;
+	cPt3di                   mDegree;
 };
 
 cAppli_OriConvV1V2::cAppli_OriConvV1V2(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli     (aVArgs,aSpec),
    mPhProj          (*this),
    mUseStdNameCalib (false),
-   mDownScale       (1.0)
+   mDownScale       (1.0),
+   mDegree          (3,1,1)
 {
 }
 
@@ -308,6 +310,7 @@ cCollecSpecArg2007 & cAppli_OriConvV1V2::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return    anArgOpt
           << AOpt2007(mUseStdNameCalib,"USNC","Use Standard name for calib (when metadata can be  computed) ",{eTA2007::HDV})
           << AOpt2007(mDownScale,"DS","Down scale, if want to generate smaller ",{eTA2007::HDV})
+          << AOpt2007(mDegree,"Degree","Degree of distorsion Rad/Dec/Gen",{eTA2007::HDV})
    ;
 }
 
@@ -326,7 +329,7 @@ int cAppli_OriConvV1V2::Exe()
 	if (mUseStdNameCalib)
            aNameCalib = mPhProj.StdNameCalibOfImage(aNameIm);
 
-        cSensorCamPC * aPC =  cV1PCConverter::AllocSensorPCV1(aNameIm,mDirMMV1+aNameOri,aNameCalib,mDownScale);
+        cSensorCamPC * aPC =  cV1PCConverter::AllocSensorPCV1(aNameIm,mDirMMV1+aNameOri,aNameCalib,mDownScale,mDegree);
 
 	mPhProj.SaveCamPC(*aPC);
 
@@ -352,7 +355,7 @@ tMMVII_UnikPApli Alloc_OriConvV1V2(const std::vector<std::string> & aVArgs,const
 
 cSpecMMVII_Appli  TheSpec_OriConvV1V2
 (
-     "OriConvV1V2",
+     "V1OriConv",
       Alloc_OriConvV1V2,
       "Convert orientation of MMV1  to MMVII",
       {eApF::Ori},

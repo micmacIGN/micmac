@@ -41,21 +41,33 @@ template <class Type> class cGetPts_ImInterp_FromValue
 	    tREAL8 aVal,                    ///< Target value
 	    tREAL8 aTol,                    ///< Tolerance to targeted value
 	    cPt2dr aP0,                     ///< Initial point
-	    const cPt2dr & aDir             ///< Direction of research
+	    const cPt2dr & aDir,            ///< Direction of research
+            bool  Show = false
        ):
                 mOk          (false),  // initial we have no succeded
                 mDIm         (aDIm),
                 mMaxIterInit (10),
-                mMaxIterEnd  (20)
+                mMaxIterEnd  (25)
        {
           // [0]  first bracket the result , find a point P1 such that I(P0) > Val > I (P1) (or revers)
           tREAL8 aV0 = GetV(aP0);
-          if (!CheckNoVal(aV0))  return;
+          if (!CheckNoVal(aV0))
+	  {
+		  if (Show) StdOut() << "CheckNoVal0 " << __LINE__ << "\n";
+		  return;
+	  }
           mP0IsSup = (aV0>=aVal);   // memorise if I0 > Val >I1 or I0<Val>I1
 
           cPt2dr aP1 = aP0 + aDir;
           double aV1 = GetV(aP1);
-          if (!CheckNoVal(aV1))  return;
+          if (!CheckNoVal(aV1))
+	  {
+               if (Show) StdOut() << "CheckNoVal1 " << __LINE__ << "\n";
+               return;
+	  }
+	  if (Show )
+             StdOut() << "VVV " << aVal << " " << aV0 << " " << aV1 << "\n";
+
 
           int aNbIter=0;
           while ( (aV1>=aVal)==mP0IsSup )  // while bracketing if not reached
@@ -65,10 +77,19 @@ template <class Type> class cGetPts_ImInterp_FromValue
                 aP0 = aP1;
                 aP1 += aDir;
                 aV1 = GetV(aP1);
-                if (!CheckNoVal(aV1))  return;
+                if (!CheckNoVal(aV1)) 
+		{
+                     if (Show) StdOut() << "CheckNoVal1 (V2) " << __LINE__ << "\n";
+                     return;
+		}
                 aNbIter++;
-                if (aNbIter>mMaxIterInit) return;
+                if (aNbIter>mMaxIterInit)
+		{
+                        if (Show) StdOut() << "aNbIter>mMaxIterInit " << __LINE__ << "\n";
+			return;
+		}
           }
+          if (Show) StdOut() << "NBIT  " <<  aNbIter << "\n";
 
 	  // now  refine interval by dicothomic cut
           tREAL8 aTol0 = std::abs(aV0-aVal);
@@ -80,7 +101,11 @@ template <class Type> class cGetPts_ImInterp_FromValue
                aNbIter++;
                cPt2dr aNewP =  Centroid(aTol1,aP0,aTol0,aP1);  // estimat new value by interpolation
                tREAL8 aNewV = GetV(aNewP);  // value of new point
-               if (!CheckNoVal(aNewV))  return;
+               if (!CheckNoVal(aNewV))
+	       {
+                     if (Show) StdOut() << "CheckNoValNEW " << __LINE__ << "\n";
+		       return;
+	       }
                if (   ((aNewV<=aV0) != mP0IsSup) || ((aNewV>=aV1) != mP0IsSup) )
                {
                     InInterv = false; // then we are no longer bracketing

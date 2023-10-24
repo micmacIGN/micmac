@@ -907,8 +907,6 @@ if (true)
 
    aStdGauss = aStdGauss.Normalize(1e-5);
 
-FakeUseIt(aSomGrad);
-FakeUseIt(aSomGauss);
    StdOut()  << "AVG=" << aAvg  << " StdD="   << aDev  << "\n" << std::endl;
 
    /*

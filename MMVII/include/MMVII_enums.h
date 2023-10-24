@@ -245,6 +245,14 @@ enum class eTyUnitTime
               eNbVals
            };
 
+enum class eTyUnitAngle
+           {
+              eUA_radian,
+              eUA_degree,
+              eUA_gon,
+              eNbVals
+	   };
+
 enum class eTyNums
            {
               eTN_INT1,
@@ -520,6 +528,7 @@ enum class eMTDIm
            };
 
 
+const std::string & E2Str(const eTyUnitAngle &);
 const std::string & E2Str(const eMTDIm &);
 const std::string & E2Str(const eFormatExtern &);
 const std::string & E2Str(const eTypeSerial &);

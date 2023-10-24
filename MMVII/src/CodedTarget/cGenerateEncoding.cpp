@@ -59,7 +59,6 @@ void cSpecBitEncoding::AddData(const  cAuxAr2007 & anAux)
           MMVII::AddData(cAuxAr2007("MaxLowCode",anAux),mMaxLowCode);
           MMVII::AddData(cAuxAr2007("MaxCodeEqui",anAux),mMaxCodeEqui);
        }
-       FakeUseIt(aV);
     }
 }
 

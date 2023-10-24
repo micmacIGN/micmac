@@ -3,6 +3,8 @@
 #include "MMVII_MeasuresIm.h"
 #include "MMVII_UtiSort.h"
 
+#include "TieP.h"
+
 /**
    \file  cImplemConvertHom
 
@@ -42,7 +44,7 @@ class cCstrMulP : public cMemCheck
         cCstrMulP(const tIP&,const tIP&);
 
 	/// Compute if, for a given image, the point is unique
-	void ComputeCoherence(cSetMultipleTiePoints & aRes,const std::vector<cOneImMEff2MP> &  aVIms);
+	void ComputeCoherence(cComputeMergeMulTieP & aRes,const std::vector<cOneImMEff2MP> &  aVIms);
 
 	void Add(const tIP&,const tIP&);
 	void Add(const cCstrMulP & aT2);
@@ -99,7 +101,7 @@ class cOneImMEff2MP
 	  void MarkeMergeUndone();
 
 	  ///  Compute for each point if there is no incoherence, and if yes add it to results "aRes"
-	  void ComputeMergedOk(cSetMultipleTiePoints & aRes,const std::vector<cOneImMEff2MP> &  aVIms);
+	  void ComputeMergedOk(cComputeMergeMulTieP & aRes,const std::vector<cOneImMEff2MP> &  aVIms);
 
 	  ///  Delete the Multie point referenced
           void DeleteMTP(std::vector<cOneImMEff2MP> &  aVIms);
@@ -136,7 +138,7 @@ class cOneImMEff2MP
 class cMemoryEffToMultiplePoint
 {
       public :
-           cMemoryEffToMultiplePoint(cInterfImportHom &,const std::vector<std::string>& aVNames,cSetMultipleTiePoints & aRes);
+           cMemoryEffToMultiplePoint(cInterfImportHom &,const std::vector<std::string>& aVNames,cComputeMergeMulTieP & aRes);
            ~cMemoryEffToMultiplePoint();
 	   std::vector<cOneImMEff2MP> &  VIms() ;  // Accessor
 	   const std::vector<cOneImMEff2MP> &  VIms() const;  // Accessor
@@ -153,25 +155,35 @@ class cMemoryEffToMultiplePoint
 
 /* ***************************************************** */
 /*                                                       */
-/*                  cSetMultipleTiePoints                */
+/*                  cComputeMergeMulTieP                 */
 /*                                                       */
 /* ***************************************************** */
 
-cSetMultipleTiePoints::cSetMultipleTiePoints(const std::vector<std::string> & aVNames,cInterfImportHom * anIIH) :
+bool operator == (const cVal1ConfTPM & aV1,const cVal1ConfTPM & aV2)
+{
+	return     (aV1.mVPIm== aV2.mVPIm)
+	       &&  (aV1.mVPGround== aV2.mVPGround)
+	       &&  (aV1.mVIdPts== aV2.mVIdPts)
+        ;
+}
+
+cComputeMergeMulTieP::cComputeMergeMulTieP(const std::vector<std::string> & aVNames,cInterfImportHom * anIIH) :
     mVNames (aVNames)
 {
+   ASSERT_SORTED(aVNames);
    if (anIIH)
    {
       cMemoryEffToMultiplePoint aToMP(*anIIH,mVNames,*this);
    }
 }
 
-const std::vector<std::string> & cSetMultipleTiePoints::VNames() const { return mVNames;}
+const std::vector<std::string> & cComputeMergeMulTieP::VNames() const { return mVNames;}
 
-const std::map<std::vector<int>,std::vector<cPt2dr>> &  cSetMultipleTiePoints::Pts() const {return mPts;}
+const std::map<std::vector<int>,cVal1ConfTPM> &  cComputeMergeMulTieP::Pts() const {return mPts;}
+std::map<std::vector<int>,cVal1ConfTPM> &  cComputeMergeMulTieP::Pts() {return mPts;}
 
 	
-void cSetMultipleTiePoints::AddPMul(const tConfigIm& aConfig,const std::vector<cPt2dr> & aVPts)
+void cComputeMergeMulTieP::AddPMul(const tConfigIm& aConfig,const std::vector<cPt2dr> & aVPts)
 {
      // Different check of coherence
      ASSERT_SORTED(aConfig);
@@ -179,13 +191,26 @@ void cSetMultipleTiePoints::AddPMul(const tConfigIm& aConfig,const std::vector<c
      ASSERT_IN_RANGE(aConfig,(int)mVNames.size())
 
      //  finally add new pts to config
-     AppendIn(mPts[aConfig],aVPts);
+     AppendIn(mPts[aConfig].mVPIm,aVPts);
 }
 
-void cSetMultipleTiePoints::TestEq(cSetMultipleTiePoints &aS2) const
+void cComputeMergeMulTieP::TestEq(cComputeMergeMulTieP &aS2) const
 {
-    const std::map<tConfigIm,tPtsOfConfig> & aMapPts1 = mPts ;
-    const std::map<tConfigIm,tPtsOfConfig> & aMapPts2 = aS2.mPts ;
+    const std::map<tConfigIm,cVal1ConfTPM> & aMapPts1 = mPts ;
+    const std::map<tConfigIm,cVal1ConfTPM> & aMapPts2 = aS2.mPts ;
+
+    if  (0)
+    {
+	    /*
+        StdOut() << "SZZZZ " << aMapPts1.size() << " " << aMapPts2.size() <<  std::endl ;
+        for (const auto  &  aP1 : aMapPts1)
+            StdOut() <<  " * C1=" << aP1.first  << " Nb=" << aP1.second.size() << std::endl ;
+        StdOut() << "==================" << std::endl ;
+        for (const auto  &  aP2 : aMapPts2)
+            StdOut() <<  " * C2=" << aP2.first  << " Nb=" << aP2.second.size() << "\n";
+        StdOut() << "==================" << std::endl ;
+	*/
+    }
 
     MMVII_INTERNAL_ASSERT_tiny( aMapPts1.size()== aMapPts2.size(),"SetMultipleTiePoints::TestEq");
 
@@ -193,11 +218,14 @@ void cSetMultipleTiePoints::TestEq(cSetMultipleTiePoints &aS2) const
     {
         const auto & aConfig = aP1.first;
         const auto & aItP2 =  aMapPts2.find(aConfig);
+	Fake4ReleaseUseIt(aItP2);
         MMVII_INTERNAL_ASSERT_tiny( aItP2!=aMapPts2.end() ,"SetMultipleTiePoints::TestEq");
 
-	auto aVPMul1 = PUnMixed(aConfig,true);
-	auto aVPMul2 = aS2.PUnMixed(aConfig,true);
-        MMVII_INTERNAL_ASSERT_tiny(aVPMul1==aVPMul2,"SetMultipleTiePoints::TestEq");
+	auto aVPMul1 = PUnMixed(aConfig,true);  // true = sort
+	auto aVPMul2 = aS2.PUnMixed(aConfig,true); // because order would not be preserved
+        MMVII_INTERNAL_ASSERT_tiny(aVPMul1.size() ==aVPMul2.size(),"SetMultipleTiePoints::TestEq");
+	for (size_t aK=0 ;  aK<aVPMul1.size() ; aK++)
+            MMVII_INTERNAL_ASSERT_tiny(aVPMul1[aK]==aVPMul2[aK],"SetMultipleTiePoints::TestEq");
     }
 }
 
@@ -208,30 +236,51 @@ void cSetMultipleTiePoints::TestEq(cSetMultipleTiePoints &aS2) const
  *
  *   Sorted is usefull essentially for checking equality 
  */
-std::vector<typename cSetMultipleTiePoints::tPtsOfConfig > 
-    cSetMultipleTiePoints::PUnMixed(const tConfigIm & aConfigIm,bool Sorted) const
+std::vector<cVal1ConfTPM>
+    cComputeMergeMulTieP::PUnMixed(const tConfigIm & aConfigIm,bool Sorted) const
 {
     const auto & anIt  = mPts.find(aConfigIm);
-    MMVII_INTERNAL_ASSERT_tiny(anIt!=mPts.end(),"cSetMultipleTiePoints::SortedPtsOf");
-    const auto & aVPts = anIt->second;
+    MMVII_INTERNAL_ASSERT_tiny(anIt!=mPts.end(),"cComputeMergeMulTieP::SortedPtsOf");
+    const auto & aValue = anIt->second;
 
     size_t aMult = aConfigIm.size();
-    size_t aNbPMul = aVPts.size() / aMult;
+    size_t aNbPMul = aValue.mVPIm.size() / aMult;
 
     //  unmix
-    std::vector<tPtsOfConfig> aRes(aNbPMul);
+    std::vector<cVal1ConfTPM> aRes(aNbPMul);
     for (size_t aK=0 ; aK<aNbPMul ; aK++)
     {
-        aRes.at(aK) = tPtsOfConfig(aVPts.begin()+aK*aMult,aVPts.begin()+(aK+1)*aMult);
+        aRes.at(aK).mVPIm = std::vector<cPt2dr>(aValue.mVPIm.begin()+aK*aMult,aValue.mVPIm.begin()+(aK+1)*aMult);
+	if (! aValue.mVIdPts.empty())
+            aRes.at(aK).mVIdPts.push_back(aValue.mVIdPts.at(aK));
+	if (! aValue.mVPGround.empty())
+            aRes.at(aK).mVPGround.push_back(aValue.mVPGround.at(aK));
     }
 
     // sort
     if (Sorted)
     {
-         std::sort(aRes.begin(),aRes.end());
+         std::sort
+         (
+	     aRes.begin(),aRes.end(),
+	     [](const auto & aVal1,const auto& aVal2) {return aVal1.mVPIm < aVal2.mVPIm;}
+         );
     }
+     /*
+    */
 
     return aRes;
+}
+
+void cComputeMergeMulTieP::Shrink()
+{
+     for (auto &  aPair : mPts)
+     {
+         // aPair.first.shrink_to_fit();  : generate constness  issue
+         aPair.second.mVPIm.shrink_to_fit();
+         aPair.second.mVIdPts.shrink_to_fit();
+         aPair.second.mVPGround.shrink_to_fit();
+     }
 }
 
 
@@ -266,7 +315,7 @@ void cCstrMulP::Add(const cCstrMulP & aT2)
 }
 
 
-void cCstrMulP::ComputeCoherence(cSetMultipleTiePoints & aRes,const std::vector<cOneImMEff2MP> &  aVIms)
+void cCstrMulP::ComputeCoherence(cComputeMergeMulTieP & aRes,const std::vector<cOneImMEff2MP> &  aVIms)
 {
     // Marker "mDone" is used to avoid multiple computation on shared point
     if (mDone) 
@@ -561,7 +610,7 @@ void cOneImMEff2MP::CreatMultiplePoint(int aKIm1,cMemoryEffToMultiplePoint & aME
     }
 }
 
-void cOneImMEff2MP::ComputeMergedOk(cSetMultipleTiePoints & aRes,const std::vector<cOneImMEff2MP> &  aVIms)
+void cOneImMEff2MP::ComputeMergedOk(cComputeMergeMulTieP & aRes,const std::vector<cOneImMEff2MP> &  aVIms)
 {
     for (auto & aMerged : mMerge)
         aMerged->ComputeCoherence(aRes,aVIms);
@@ -621,6 +670,7 @@ void cOneImMEff2MP::ShowTestMerge(cCstrMulP* aT2)
          // StdOut() << "STM: " << mIndPts << std::endl;
 	 for (auto & aMerge : mMerge)
          {
+              Fake4ReleaseUseIt(aMerge);
               MMVII_INTERNAL_ASSERT_tiny(aMerge!=aT2,"Incoherence ShowTestMerge");
 	 }
      }
@@ -638,7 +688,7 @@ cMemoryEffToMultiplePoint::cMemoryEffToMultiplePoint
 (
       cInterfImportHom & anInterf,
       const std::vector<std::string>& aVNames,
-      cSetMultipleTiePoints & aRes
+      cComputeMergeMulTieP & aRes
 ):
     mInterImport  (anInterf),
     mNbIm         (aVNames.size()),
@@ -851,6 +901,8 @@ cSimulHom::~cSimulHom()
     DeleteAllAndClear(mVIm);
 }
 
+static constexpr int NbDigit = 4; // 4 digit to be sorted lexicographically
+
 cSimulHom::cSimulHom(int aNbImage,int aNbPts,int aMaxCard,bool Debug) :
     mNbImage  (aNbImage),
     mNbPts    (aNbPts),
@@ -862,9 +914,10 @@ cSimulHom::cSimulHom(int aNbImage,int aNbPts,int aMaxCard,bool Debug) :
     for (int aK=0 ; aK<aNbImage ; aK++)
     {
          mVIm.push_back(new cImage(aK));
-	 mVNames.push_back(ToStr(aK));
+	 mVNames.push_back(ToStr(aK,NbDigit));  
     }
 }
+
 
 const std::vector<std::string> & cSimulHom::VNames() const {return mVNames;}
 
@@ -977,7 +1030,7 @@ void  cSimulHom::GenEdges(cMultiplePt & aMTP,bool WithError)
                 aP2 = mVIm.at(aI2)->mGenPts.GetNewPoint();
 	 }
 
-	 mMapHom[tSS(ToStr(aI1),ToStr(aI2))].Add(cHomogCpleIm(aP1,aP2));
+	 mMapHom[tSS(ToStr(aI1,NbDigit),ToStr(aI2,NbDigit))].Add(cHomogCpleIm(aP1,aP2));
 
 	 if (mDebug)
             StdOut() <<  "-EeeE=" << aI1 << " " << aI2 << std::endl;
@@ -988,7 +1041,7 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
 {
     // StdOut() << "NbImage= " << aNbImage << std::endl;
     cSimulHom aSimH(aNbImage,aNbPts,aMaxCard,false);
-    cSetMultipleTiePoints aSetMTP1(aSimH.VNames());
+    cComputeMergeMulTieP aSetMTP1(aSimH.VNames());
 
     int aCptErr = 0;
     for (int aKPts=0 ; aKPts<aNbPts ; aKPts++)
@@ -1006,13 +1059,16 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
 	}
     }
 
+    aSetMTP1.Shrink();
+
     if (DoIt)
     {
         // cMemoryEffToMultiplePoint aToMP(aSimH,aSimH.VNames(),aSetMTP2);
         //cMemoryEffToMultiplePoint aToMP(aSimH,aSetMTP2.VNames(),aSetMTP2);
 	//StdOut() << "cMemoryEffToMultiplePointcMemoryEffToMultiplePoint " << std::endl;
 
-        cSetMultipleTiePoints aSetMTP2(aSimH.VNames(),&aSimH);
+        cComputeMergeMulTieP aSetMTP2(aSimH.VNames(),&aSimH);
+        aSetMTP2.Shrink();
 	aSetMTP1.TestEq(aSetMTP2);
 	// StdOut() << "DONNEEE " << std::endl;
 	// getchar();
@@ -1059,7 +1115,7 @@ void PiegeACon()
        aVPtrA.at(1) = aPI0;
 
        // Guess what is printed  ...
-       std::cout  << "Zero=" << *aPI0  << " One=" << *aPI1 << "\n";
+       std::cout  << "Zero=" << *aPI0  << " One=" << *aPI1 << std::endl;
 }
 
 

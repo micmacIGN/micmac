@@ -221,6 +221,8 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_BlockCamInit);
         TheVecAll.push_back(&TheSpec_ClinoInit);
         TheVecAll.push_back(&TheSpecRename);
+        TheVecAll.push_back(&TheSpec_V2ImportCalib);
+        TheVecAll.push_back(&TheSpec_ImportOri);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

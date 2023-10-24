@@ -351,10 +351,6 @@ TPT(mPt2);
 
 // StdOut() << "VNNNNN " << aVNorm1 << " " << aVNorm2 << std::endl;
     // tREAL4 aVNorm2 = aImInit1.GetVBL(mPt2);
-// FakeUseIt(aPV1);
-// FakeUseIt(aVC1);
-// FakeUseIt(aPV2);
-// FakeUseIt(aVC2);
          }
          tREAL4 aDiffInit = std::min(1.0,aSomDiffInit/(255.0*aNbPts));
          tREAL4 aDiffNorm = std::min(1.0,double(aSomDiffNorm/aNbPts));

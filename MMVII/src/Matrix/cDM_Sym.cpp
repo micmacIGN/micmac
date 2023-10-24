@@ -27,7 +27,6 @@ template <class Type> void  NormalizeProdDiagPos(cDenseMatrix<Type> &aM1,cDenseM
 
     size_t aSz = aM1.Sz().x();
 
-    FakeUseIt(aSz);
     for (size_t aK=0;aK<aSz; aK++)
     {
        if (aMTest.GetElem(aK,aK)<0)

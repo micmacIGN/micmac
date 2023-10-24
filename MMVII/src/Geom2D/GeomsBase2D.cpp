@@ -1073,7 +1073,6 @@ void BenchHomogr2D()
        cHomogr2D<tREAL8> aHI  = aH.MapInverse();
        cHomogr2D<tREAL8> aID1 = aH * aHI;
 
-FakeUseIt(aID1);       
        for (int aKP=0 ; aKP< 4 ; aKP++)
        {
            StdOut() << Norm2(aTabOut[aKP]  - aH.Value(aTabIn[aKP]))   << " " 
