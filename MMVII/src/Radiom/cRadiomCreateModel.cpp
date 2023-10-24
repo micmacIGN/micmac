@@ -81,7 +81,6 @@ int cAppliCreateModelRadiom::Exe()
 	       StdOut() << "ZZZZ= " << aCRI->NameIm() << std::endl;
 	       delete aCRI;
 	  }
-
     }
 
     return EXIT_SUCCESS;

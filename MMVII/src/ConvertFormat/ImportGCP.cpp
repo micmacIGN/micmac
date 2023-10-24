@@ -136,7 +136,7 @@ tMMVII_UnikPApli Alloc_ImportGCP(const std::vector<std::string> & aVArgs,const c
 
 cSpecMMVII_Appli  TheSpec_ImportGCP
 (
-     "V1ImportGCP",
+     "ImportGCP",
       Alloc_ImportGCP,
       "Import/Convert basic GCP file in MMVII format",
       {eApF::GCP},
