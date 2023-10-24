@@ -734,7 +734,7 @@ void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
         std::sort
         (
             aCC.begin(),aCC.end(),
-            [aVR](int i1,int i2) {return aVR[i1]<aVR[i1];}
+            [aVR](int i1,int i2) {return aVR[i1]<aVR[i2];}
         );
         for (int aK1=1 ; aK1<int(aCC.size()) ; aK1++)
         {
