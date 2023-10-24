@@ -300,10 +300,10 @@ class cMMVII_Ap_CPU
    Each argument must be added seperatly or in a coma separated list.
    The arguments will be automatically quoted (hopefully correctly ...).
 
-   The full command line can be retreive by the .Com() method.
+   The full command line can be retrieved by the .Com() method.
 
    Ex:
-     cParamCallSys aCom(cMMVII_Apli::FullBin(),"Bench",1);
+     cParamCallSys aCom(cMMVII_Apli::FullBin(),"Bench","1");
    or
      cParamCallSys aCom;
      aCom.AddArgs(cMMVII_Apli::FullBin());
