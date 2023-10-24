@@ -263,7 +263,7 @@ void  ReadFilesStruct
     int aNumL = 0;
     while (std::getline(infile, line))
     {
-        CurLine = aNumL;
+        CurLine = aNumL+1;  // editor begin at line 1, non 0
         if ((aNumL>=aL0) && (aNumL<aLastL))
 	{
             std::istringstream iss(line);

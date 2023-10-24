@@ -225,7 +225,7 @@ bool cReadMTP_Std::GetNextConfig()
 
       if (aNewConfig.size() >= 2)  // no use to have singleton tie point ...
       {
-          std::vector<cPt2dr> &  aVPtsOut =  mCompMerge->Pts()[aIdConf];
+          std::vector<cPt2dr> &  aVPtsOut =  mCompMerge->Pts()[aIdConf].mVPIm;
 	  for (const auto  & aPt :  aNewConfig)
 	  {
                const std::vector<cTiePMul> & aVecIn = mVTpm.at(aPt.mIdIm).mVecTPM;

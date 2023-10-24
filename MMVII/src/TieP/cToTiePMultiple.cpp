@@ -159,6 +159,14 @@ class cMemoryEffToMultiplePoint
 /*                                                       */
 /* ***************************************************** */
 
+bool operator == (const cVal1ConfTPM & aV1,const cVal1ConfTPM & aV2)
+{
+	return     (aV1.mVPIm== aV2.mVPIm)
+	       &&  (aV1.mVPGround== aV2.mVPGround)
+	       &&  (aV1.mVIdPts== aV2.mVIdPts)
+        ;
+}
+
 cComputeMergeMulTieP::cComputeMergeMulTieP(const std::vector<std::string> & aVNames,cInterfImportHom * anIIH) :
     mVNames (aVNames)
 {
@@ -171,8 +179,8 @@ cComputeMergeMulTieP::cComputeMergeMulTieP(const std::vector<std::string> & aVNa
 
 const std::vector<std::string> & cComputeMergeMulTieP::VNames() const { return mVNames;}
 
-const std::map<std::vector<int>,std::vector<cPt2dr>> &  cComputeMergeMulTieP::Pts() const {return mPts;}
-std::map<std::vector<int>,std::vector<cPt2dr>> &  cComputeMergeMulTieP::Pts() {return mPts;}
+const std::map<std::vector<int>,cVal1ConfTPM> &  cComputeMergeMulTieP::Pts() const {return mPts;}
+std::map<std::vector<int>,cVal1ConfTPM> &  cComputeMergeMulTieP::Pts() {return mPts;}
 
 	
 void cComputeMergeMulTieP::AddPMul(const tConfigIm& aConfig,const std::vector<cPt2dr> & aVPts)
@@ -183,16 +191,17 @@ void cComputeMergeMulTieP::AddPMul(const tConfigIm& aConfig,const std::vector<cP
      ASSERT_IN_RANGE(aConfig,(int)mVNames.size())
 
      //  finally add new pts to config
-     AppendIn(mPts[aConfig],aVPts);
+     AppendIn(mPts[aConfig].mVPIm,aVPts);
 }
 
 void cComputeMergeMulTieP::TestEq(cComputeMergeMulTieP &aS2) const
 {
-    const std::map<tConfigIm,tPtsOfConfig> & aMapPts1 = mPts ;
-    const std::map<tConfigIm,tPtsOfConfig> & aMapPts2 = aS2.mPts ;
+    const std::map<tConfigIm,cVal1ConfTPM> & aMapPts1 = mPts ;
+    const std::map<tConfigIm,cVal1ConfTPM> & aMapPts2 = aS2.mPts ;
 
     if  (0)
     {
+	    /*
         StdOut() << "SZZZZ " << aMapPts1.size() << " " << aMapPts2.size() <<  std::endl ;
         for (const auto  &  aP1 : aMapPts1)
             StdOut() <<  " * C1=" << aP1.first  << " Nb=" << aP1.second.size() << std::endl ;
@@ -200,6 +209,7 @@ void cComputeMergeMulTieP::TestEq(cComputeMergeMulTieP &aS2) const
         for (const auto  &  aP2 : aMapPts2)
             StdOut() <<  " * C2=" << aP2.first  << " Nb=" << aP2.second.size() << "\n";
         StdOut() << "==================" << std::endl ;
+	*/
     }
 
     MMVII_INTERNAL_ASSERT_tiny( aMapPts1.size()== aMapPts2.size(),"SetMultipleTiePoints::TestEq");
@@ -213,7 +223,9 @@ void cComputeMergeMulTieP::TestEq(cComputeMergeMulTieP &aS2) const
 
 	auto aVPMul1 = PUnMixed(aConfig,true);  // true = sort
 	auto aVPMul2 = aS2.PUnMixed(aConfig,true); // because order would not be preserved
-        MMVII_INTERNAL_ASSERT_tiny(aVPMul1==aVPMul2,"SetMultipleTiePoints::TestEq");
+        MMVII_INTERNAL_ASSERT_tiny(aVPMul1.size() ==aVPMul2.size(),"SetMultipleTiePoints::TestEq");
+	for (size_t aK=0 ;  aK<aVPMul1.size() ; aK++)
+            MMVII_INTERNAL_ASSERT_tiny(aVPMul1[aK]==aVPMul2[aK],"SetMultipleTiePoints::TestEq");
     }
 }
 
@@ -224,28 +236,38 @@ void cComputeMergeMulTieP::TestEq(cComputeMergeMulTieP &aS2) const
  *
  *   Sorted is usefull essentially for checking equality 
  */
-std::vector<typename cComputeMergeMulTieP::tPtsOfConfig > 
+std::vector<cVal1ConfTPM>
     cComputeMergeMulTieP::PUnMixed(const tConfigIm & aConfigIm,bool Sorted) const
 {
     const auto & anIt  = mPts.find(aConfigIm);
     MMVII_INTERNAL_ASSERT_tiny(anIt!=mPts.end(),"cComputeMergeMulTieP::SortedPtsOf");
-    const auto & aVPts = anIt->second;
+    const auto & aValue = anIt->second;
 
     size_t aMult = aConfigIm.size();
-    size_t aNbPMul = aVPts.size() / aMult;
+    size_t aNbPMul = aValue.mVPIm.size() / aMult;
 
     //  unmix
-    std::vector<tPtsOfConfig> aRes(aNbPMul);
+    std::vector<cVal1ConfTPM> aRes(aNbPMul);
     for (size_t aK=0 ; aK<aNbPMul ; aK++)
     {
-        aRes.at(aK) = tPtsOfConfig(aVPts.begin()+aK*aMult,aVPts.begin()+(aK+1)*aMult);
+        aRes.at(aK).mVPIm = std::vector<cPt2dr>(aValue.mVPIm.begin()+aK*aMult,aValue.mVPIm.begin()+(aK+1)*aMult);
+	if (! aValue.mVIdPts.empty())
+            aRes.at(aK).mVIdPts.push_back(aValue.mVIdPts.at(aK));
+	if (! aValue.mVPGround.empty())
+            aRes.at(aK).mVPGround.push_back(aValue.mVPGround.at(aK));
     }
 
     // sort
     if (Sorted)
     {
-         std::sort(aRes.begin(),aRes.end());
+         std::sort
+         (
+	     aRes.begin(),aRes.end(),
+	     [](const auto & aVal1,const auto& aVal2) {return aVal1.mVPIm < aVal2.mVPIm;}
+         );
     }
+     /*
+    */
 
     return aRes;
 }
@@ -255,7 +277,9 @@ void cComputeMergeMulTieP::Shrink()
      for (auto &  aPair : mPts)
      {
          // aPair.first.shrink_to_fit();  : generate constness  issue
-         aPair.second.shrink_to_fit();
+         aPair.second.mVPIm.shrink_to_fit();
+         aPair.second.mVIdPts.shrink_to_fit();
+         aPair.second.mVPGround.shrink_to_fit();
      }
 }
 

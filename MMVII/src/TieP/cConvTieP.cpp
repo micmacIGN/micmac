@@ -122,7 +122,7 @@ int cAppli_TiePConvert::Exe()
 	       }
 	       else if (aSetP.size()==1)  // some coherent pair
 	       {
-                   const auto & aVP = aSetP.begin()->second;
+                   const auto & aVP = aSetP.begin()->second.mVPIm;
                    cSetHomogCpleIm  aSetH;
 		   // point ar stored "A1 A2 B1 B2 C1 C2 ..."
 		   for (size_t  aKP=0 ; aKP<aVP.size() ; aKP+=2)

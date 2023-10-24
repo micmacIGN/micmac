@@ -314,6 +314,14 @@ class   cVecTiePMul
           std::vector<cTiePMul> mVecTPM;
 };
 
+class cVal1ConfTPM
+{
+     public :
+        std::vector<cPt2dr>  mVPIm;
+        std::vector<int>     mVIdPts;    // optionnal, done when construct from point +id
+        std::vector<cPt3dr>  mVPGround;  // optionnal, done when used whith camera
+};
+
 /**   This class store multiple homologous point, 
  *    it can be created (initially) after fusion of    points computed by pair of images in folder "TieP"
  *    or by loading the result of folder "MulTieP" 
@@ -323,15 +331,14 @@ class cComputeMergeMulTieP : public cMemCheck
 {
      public :
         typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
-        typedef std::vector<cPt2dr>  tPtsOfConfig;
 
         // VNames must be sorted as it will (may) allow faster computation
         cComputeMergeMulTieP(const  std::vector<std::string> & aVNames,cInterfImportHom * =nullptr);
 
         /// Data allow to iterate on multiple points
-        const std::map<tConfigIm,tPtsOfConfig> &  Pts() const;
+        const std::map<tConfigIm,cVal1ConfTPM> &  Pts() const;
 
-        std::map<tConfigIm,tPtsOfConfig> &  Pts() ;
+        std::map<tConfigIm,cVal1ConfTPM> &  Pts() ;
 
         /// Method use in construction
         void AddPMul(const tConfigIm&,const std::vector<cPt2dr> &);
@@ -343,14 +350,15 @@ class cComputeMergeMulTieP : public cMemCheck
         void TestEq(cComputeMergeMulTieP &) const;
 
         /// From a linear vector to set of vector, for easiness of manip, but to avoid in efficient use
-        std::vector<tPtsOfConfig > PUnMixed(const tConfigIm &,bool Sorted) const;
+        std::vector<cVal1ConfTPM > PUnMixed(const tConfigIm &,bool Sorted) const;
 
         const std::vector<std::string> & VNames() const; ///< Accessor
         //  comptactify each of the point vector
         void Shrink() ;
      private  :
         std::vector<std::string>          mVNames;
-        std::map<tConfigIm,tPtsOfConfig>  mPts;
+        std::vector<cSensorImage *>       mVSensors;  ///< optionnal, when point are used in 3D
+        std::map<tConfigIm,cVal1ConfTPM>  mPts;
 };
 
 /// create a structure of multiple tie-point from Tab of "Point+Index", saved in "MulTieP"

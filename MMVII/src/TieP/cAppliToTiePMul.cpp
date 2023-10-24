@@ -119,10 +119,10 @@ int cAppli_ToTiePMul::Exe()
    for (const auto & aPair : aPtsGlob)
    {
         const auto & aConfig  = aPair.first;
-        const auto & aPts     = aPair.second;
+        const auto & aVP     = aPair.second.mVPIm;
 	int aNbImConf =  aConfig.size();
-	int aNbPts = aPts.size() / aNbImConf;
-	MMVII_INTERNAL_ASSERT_tiny((aPts.size() % aNbImConf)==0,"Incohernec in PtMul size");
+	int aNbPts = aVP.size() / aNbImConf;
+	MMVII_INTERNAL_ASSERT_tiny((aVP.size() % aNbImConf)==0,"Incohernec in PtMul size");
 	for (const auto & aKIm : aConfig)
              aVecCptIm.at(aKIm) += aNbPts;
    }
@@ -147,10 +147,10 @@ int cAppli_ToTiePMul::Exe()
    for (const auto & aPair : aPtsGlob)  
    {
         const auto & aConfig  = aPair.first;  // config of image
-        const auto & aPts     = aPair.second;
+        const auto & aVP     = aPair.second.mVPIm;
 	int aNbImConf =  aConfig.size();
-	int aNbPts = aPts.size() / aNbImConf;
-	MMVII_INTERNAL_ASSERT_tiny((aPts.size() % aNbImConf)==0,"Incohernec in PtMul size");
+	int aNbPts = aVP.size() / aNbImConf;
+	MMVII_INTERNAL_ASSERT_tiny((aVP.size() % aNbImConf)==0,"Incohernec in PtMul size");
 
 	aConfGlob.KthConf(aKConf).SetIndIm(aConfig);
 	aConfGlob.KthConf(aKConf).SetNbPts(aNbPts);
@@ -161,7 +161,7 @@ int cAppli_ToTiePMul::Exe()
 	{
 	     for (const auto & aKIm : aConfig)
 	     {
-                 cTiePMul aTPM(aPts.at(aIndP++),anIdGlob) ;
+                 cTiePMul aTPM(aVP.at(aIndP++),anIdGlob) ;
                  aVVPm.at(aKIm).mVecTPM.at(aVecCptIm.at(aKIm) ++) = aTPM;
 	     }
              anIdGlob++;
