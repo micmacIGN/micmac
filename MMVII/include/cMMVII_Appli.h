@@ -700,7 +700,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mTiePPrefOut;  ///< Prefix for output Tie Points ...
         std::string                               mTiePPrefIn;   ///< Prefix for inout  Tie Points ...
 
-        static std::vector<cObj2DelAtEnd *>       mVectObj2DelAtEnd; ///< for object which deletion is delegated to appli
+	/// for object which deletion is delegated to appli, MPD -> it's now a set, cannot have duplicata of pointers
+        static std::set<cObj2DelAtEnd *>       mVectObj2DelAtEnd; 
         bool                                      mIsInBenchMode;   ///< is the command executed for bench (will probably make specific test)
 
 	char                               mCSVSep;

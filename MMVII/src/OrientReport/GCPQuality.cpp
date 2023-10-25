@@ -41,9 +41,6 @@ class cAppli_CGPReport : public cMMVII_Appli
 	/** Make a visualization of residual in sensor plane*/
         void  ReportsByCam();
 
-        void  MakeGlobReports();
-        void  BeginReport();
-
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
 	bool                     mIsGCP;  /// GCP vs Tie Point
@@ -83,7 +80,8 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
               << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-              <<  mPhProj.DPPointsMeasures().ArgDirInMand()
+              << (mIsGCP ?  mPhProj.DPPointsMeasures().ArgDirInMand()
+                         :  mPhProj.DPMulTieP().ArgDirInMand())
               <<  mPhProj.DPOrient().ArgDirInMand()
            ;
 }
@@ -91,11 +89,15 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgObl(cCollecSpecArg2007 & anArgObl)
 cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
-    return      anArgOpt
-	     << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray,Zoom?=2]",{{eTA2007::ISizeV,"[3,4]"}})
-	     << AOpt2007(mPropStat,"Perc","Percentil for stat exp",{eTA2007::HDV})
-	     << AOpt2007(mMarginMiss,"MargMiss","Margin to border for counting missed target",{eTA2007::HDV})
-    ;
+    auto & aRes =  anArgOpt
+	        << AOpt2007(mPropStat,"Perc","Percentil for stat exp",{eTA2007::HDV});
+
+    if (mIsGCP)
+       return aRes << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray,Zoom?=2]",{{eTA2007::ISizeV,"[3,4]"}})
+	           << AOpt2007(mMarginMiss,"MargMiss","Margin to border for counting missed target",{eTA2007::HDV})
+       ;
+
+    return aRes;
 }
 
 
@@ -194,12 +196,6 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
     );
 }
 
-void cAppli_CGPReport::BeginReport()
-{
-   AddStdHeaderStatCSV(mNameReportIm,"Image",mPropStat,{"AvgX","AvgY"});
-   AddOneReportCSV(mNameReportDetail,{"Image","GCP","Err"});
-   AddOneReportCSV(mNameReportMissed,{"Image","GCP","XTh","YTh"});
-}
 
 
 void cAppli_CGPReport::ReportsByGCP()
@@ -228,7 +224,6 @@ void cAppli_CGPReport::ReportsByGCP()
             aStat.Add(Norm2( aMesIm.VMeasures()[aKIm]  - aVSens[aVIndI[aKIm]]->Ground2Image(aGCP.mPt)));
 	}
 	AddStdStatCSV(mNameReportGCP,aGCP.mNamePt,aStat,mPropStat);
-
    }
 
 }
@@ -298,22 +293,6 @@ void cAppli_CGPReport::ReportsByCam()
 }
 
 
-void cAppli_CGPReport::MakeGlobReports()
-{
-   ReportsByGCP();
-   ReportsByCam();
-
-	/*
-   std::map<std::string,std::list<std::string>>  aMapCamLIM;
-   for (const auto & aNameIm : VectMainSet(0))
-   {
-   }
-
-    cSetMesImGCP             aSetMes;
-    mPhProj.LoadGCP(aSetMes);
-    mPhProj.LoadIm(aSetMes,aNameIm);
-    */
-}
 
 
 
@@ -335,19 +314,29 @@ int cAppli_CGPReport::Exe()
 
    if (LevelCall()==0)
    {
-       BeginReport();
+       AddStdHeaderStatCSV(mNameReportIm,"Image",mPropStat,{"AvgX","AvgY"});
+       AddOneReportCSV(mNameReportDetail,{"Image","GCP","Err"});
+       AddOneReportCSV(mNameReportMissed,{"Image","GCP","XTh","YTh"});
    }
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself  0->Param 0->Set
    {
       int aRes = ResultMultiSet();
 
-      MakeGlobReports();
+      if (mIsGCP)
+      {
+          ReportsByGCP();
+          ReportsByCam();
+      }
+
       return aRes;
    }
 
-   MakeOneIm(FileOfPath(mSpecImIn));
+   if (mIsGCP)
+   {
+      MakeOneIm(FileOfPath(mSpecImIn));
+   }
 
-    return EXIT_SUCCESS;
+   return EXIT_SUCCESS;
 }                                       
 
 /* ==================================================== */
@@ -373,8 +362,23 @@ cSpecMMVII_Appli  TheSpec_CGPReport
       __FILE__
 );
 
+/* ==================================================== */
 
+tMMVII_UnikPApli Alloc_TiePReport(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_CGPReport(aVArgs,aSpec,false));
+}
 
+cSpecMMVII_Appli  TheSpec_TiePReport
+(
+     "ReportTieP",
+      Alloc_TiePReport,
+      "Reports on TieP projection",
+      {eApF::TieP,eApF::Ori},
+      {eApDT::TieP,eApDT::Orient},
+      {eApDT::Image,eApDT::Xml},
+      __FILE__
+);
 
 
 }; // MMVII

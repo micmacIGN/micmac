@@ -317,10 +317,25 @@ class   cVecTiePMul
 class cVal1ConfTPM
 {
      public :
+        typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
+
+
         std::vector<cPt2dr>  mVPIm;
         std::vector<int>     mVIdPts;    // optionnal, done when construct from point +id
         std::vector<cPt3dr>  mVPGround;  // optionnal, done when used whith camera
 };
+
+typedef std::pair<std::vector<int>,cVal1ConfTPM>  tPtsMult;
+
+const std::vector<int> & Config(const tPtsMult & aPair) {return aPair.first;}
+const cVal1ConfTPM     & Val(const tPtsMult & aPair)    {return aPair.second;}
+cVal1ConfTPM     & Val(tPtsMult & aPair)    {return aPair.second;}
+
+size_t NbPtsMul(const tPtsMult &) ;
+size_t Multiplicity(const tPtsMult&);
+cPt3dr BundleInter(const tPtsMult &,size_t aKPts,std::vector<cSensorImage *>);
+void   MakePGround(tPtsMult &,std::vector<cSensorImage *>);
+
 
 /**   This class store multiple homologous point, 
  *    it can be created (initially) after fusion of    points computed by pair of images in folder "TieP"
@@ -330,10 +345,18 @@ class cVal1ConfTPM
 class cComputeMergeMulTieP : public cMemCheck
 {
      public :
+
+        
         typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
 
+
         // VNames must be sorted as it will (may) allow faster computation
-        cComputeMergeMulTieP(const  std::vector<std::string> & aVNames,cInterfImportHom * =nullptr);
+        cComputeMergeMulTieP
+        (
+             const  std::vector<std::string> & aVNames,
+	     cInterfImportHom * =nullptr,
+	     cPhotogrammetricProject*  aPhP = nullptr
+        );
 
         /// Data allow to iterate on multiple points
         const std::map<tConfigIm,cVal1ConfTPM> &  Pts() const;
@@ -362,7 +385,14 @@ class cComputeMergeMulTieP : public cMemCheck
 };
 
 /// create a structure of multiple tie-point from Tab of "Point+Index", saved in "MulTieP"
-cComputeMergeMulTieP * AllocStdFromMTP(const std::vector<std::string> & aVNames,const cPhotogrammetricProject & aPhProj);
+
+cComputeMergeMulTieP * AllocStdFromMTP
+                      (
+                            const std::vector<std::string> & aVNames,
+                            cPhotogrammetricProject & aPhProj,
+                            bool  WithIndex,
+			    bool  WithSensor
+                      );
 
 
 

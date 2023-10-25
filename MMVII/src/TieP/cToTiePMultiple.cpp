@@ -2,6 +2,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_MeasuresIm.h"
 #include "MMVII_UtiSort.h"
+#include "MMVII_Sensor.h"
 
 #include "TieP.h"
 
@@ -167,13 +168,24 @@ bool operator == (const cVal1ConfTPM & aV1,const cVal1ConfTPM & aV2)
         ;
 }
 
-cComputeMergeMulTieP::cComputeMergeMulTieP(const std::vector<std::string> & aVNames,cInterfImportHom * anIIH) :
+cComputeMergeMulTieP::cComputeMergeMulTieP
+(
+       const std::vector<std::string> & aVNames,
+       cInterfImportHom * anIIH,
+       cPhotogrammetricProject*  aPhP 
+) :
     mVNames (aVNames)
 {
    ASSERT_SORTED(aVNames);
    if (anIIH)
    {
       cMemoryEffToMultiplePoint aToMP(*anIIH,mVNames,*this);
+   }
+
+   if (aPhP)
+   {
+      for (const auto & aName : mVNames)
+          mVSensors.push_back(aPhP->LoadSensor(aName,false));
    }
 }
 
@@ -282,6 +294,48 @@ void cComputeMergeMulTieP::Shrink()
          aPair.second.mVPGround.shrink_to_fit();
      }
 }
+
+    //================================  tPtsMult  ===================
+    //================================  tPtsMult  ===================
+
+size_t Multiplicity(const tPtsMult & aPair) { return  Config(aPair).size(); }
+size_t NbPtsMul(const tPtsMult & aPair)
+{
+	return Val(aPair).mVPIm.size()  / Multiplicity(aPair);
+}
+
+cPt3dr BundleInter(const tPtsMult & aPair,size_t aKPts,std::vector<cSensorImage *>  aVSI)
+{
+    const auto &  aConfig = Config(aPair);
+    const cVal1ConfTPM & aVal =  Val(aPair);
+    size_t aMult = aConfig.size();
+
+    size_t aKP0 = aKPts*aMult;
+    std::vector<tSeg3dr>  aVSeg;
+    for (size_t aK= 0 ; aK<aMult ; aK++)
+    {
+        const cPt2dr & aPIm = aVal.mVPIm[aKP0+aK];
+	cSensorImage * aSI  = aVSI[aConfig[aK]];
+
+	aVSeg.push_back(aSI->Image2Bundle(aPIm));
+    }
+
+    return BundleInters(aVSeg);
+}
+
+
+void   MakePGround(tPtsMult & aPair,std::vector<cSensorImage *> aVSI)
+{
+    std::vector<cPt3dr> & aVPts = Val(aPair).mVPGround;
+    aVPts.clear();
+    size_t aNbPts = NbPtsMul(aPair);
+
+    for (size_t aKP=0 ; aKP<aNbPts; aKP++)
+    {
+        aVPts.push_back(BundleInter(aPair,aKP,aVSI));
+    }
+}
+
 
 
 /* ************************************************* */

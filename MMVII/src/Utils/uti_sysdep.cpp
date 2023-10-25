@@ -152,8 +152,20 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCal
    aOfs.Ofs() << "\t\n";
    aOfs.Ofs().close();
 
-   cMMVIIMultiProcess e;
-   return e.Exec(aListCom, aNbProcess, SVP, Silence);
+   if (0 && UserIsMPD())
+   {
+       std::string aCom = "make all -f "+ aNameMkF + " -j" + ToStr(aNbProcess) ;
+       StdOut() << aCom << std::endl;
+       int aRes= system(aCom.c_str());
+       StdOut() << "KKKKKKKK " << aRes <<  std::endl;
+       getchar();
+       return aRes;
+   }
+   else
+   {
+      cMMVIIMultiProcess e;
+      return e.Exec(aListCom, aNbProcess, SVP, Silence);
+   }
 }
 
 static fs::path MMVII_RawSelfExecName();

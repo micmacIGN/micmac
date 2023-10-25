@@ -132,11 +132,11 @@ template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 //        void cMMVII_Appli::InitParam() => main initialisation must be done after Cstrctor as call virtual methods
 
 
-std::vector<cObj2DelAtEnd *>       cMMVII_Appli::mVectObj2DelAtEnd;
+std::set<cObj2DelAtEnd *>       cMMVII_Appli::mVectObj2DelAtEnd;
 
 void cMMVII_Appli::AddObj2DelAtEnd(cObj2DelAtEnd * aPtrO)
 {
-     mVectObj2DelAtEnd.push_back(aPtrO);
+     mVectObj2DelAtEnd.insert(aPtrO);
 }
 
 cMMVII_Appli::~cMMVII_Appli()
@@ -366,7 +366,6 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs, std::string *aErrors)
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl); // Call virtual method
   cCollecSpecArg2007 & anArgFac = ArgOpt(mArgFac); // Call virtual method
 
-// StdOut() << "CAPPLL " << __LINE__ << " " << mArgObl.V().size() << std::endl;
 
   mInitParamDone = true;
   // MMVII_INTERNAL_ASSERT_always(msTheAppli==0,"cMMVII_Appli only one by process");
