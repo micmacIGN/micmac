@@ -222,7 +222,7 @@ class cSetMesImGCP : public cMemCheck
     private :
 
 
-            // cSetMesImGCP(const  cSetMesImGCP & ) = delete;
+            cSetMesImGCP(const  cSetMesImGCP & ) = delete;
 
             bool                         mPhaseGCPFinished;
             std::vector<cMes1GCP>        mMesGCP;      
@@ -390,6 +390,29 @@ class cComputeMergeMulTieP : public cMemCheck
         std::vector<cSensorImage *>       mVSensors;  ///< optionnal, when point are used in 3D
         std::map<tConfigIm,cVal1ConfTPM>  mPts;
 };
+
+/** Class for parsing tiepoint & gcp identically as generating cPMulGCPIm */
+
+class cInterfParsePMulGCP : public cMemCheck
+{
+      public :
+         cInterfParsePMulGCP(bool WithPGround);
+
+         virtual bool   End() const = 0;
+         virtual void   Incr() = 0;
+         virtual const std::vector<std::string> & VNamesImage() const = 0;
+
+         const cPMulGCPIm & CurP() const;
+         static cInterfParsePMulGCP *  Alloc_CMTP(const cComputeMergeMulTieP &,bool WithPGround);
+         static cInterfParsePMulGCP *  Alloc_ImGCP(const cSetMesImGCP &,bool WithPGround);
+
+	 virtual ~cInterfParsePMulGCP();
+
+      protected :
+         bool       mWithPGround;
+         cPMulGCPIm mResult;
+};
+
 
 /// create a structure of multiple tie-point from Tab of "Point+Index", saved in "MulTieP"
 
