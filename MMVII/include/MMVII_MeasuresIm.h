@@ -314,27 +314,37 @@ class   cVecTiePMul
           std::vector<cTiePMul> mVecTPM;
 };
 
+typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
 class cVal1ConfTPM
 {
      public :
-        typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
-
-
         std::vector<cPt2dr>  mVPIm;
         std::vector<int>     mVIdPts;    // optionnal, done when construct from point +id
         std::vector<cPt3dr>  mVPGround;  // optionnal, done when used whith camera
 };
 
-typedef std::pair<std::vector<int>,cVal1ConfTPM>  tPtsMult;
+class cPMulGCPIm
+{
+    public :
+       std::string          mName;
+       cPt3dr               mPGround;
+       std::vector<cPt2dr>  mVPIm;
+       tConfigIm            mVIm;
+};
 
-const std::vector<int> & Config(const tPtsMult & aPair) {return aPair.first;}
-const cVal1ConfTPM     & Val(const tPtsMult & aPair)    {return aPair.second;}
-cVal1ConfTPM     & Val(tPtsMult & aPair)    {return aPair.second;}
 
-size_t NbPtsMul(const tPtsMult &) ;
-size_t Multiplicity(const tPtsMult&);
-cPt3dr BundleInter(const tPtsMult &,size_t aKPts,std::vector<cSensorImage *>);
-void   MakePGround(tPtsMult &,std::vector<cSensorImage *>);
+typedef std::pair<std::vector<int>,cVal1ConfTPM>  tPairTiePMult;
+typedef std::map<tConfigIm,cVal1ConfTPM>  tMapTiePMult;
+
+
+inline const std::vector<int> & Config(const tPairTiePMult & aPair) {return aPair.first;}
+inline const cVal1ConfTPM     & Val(const tPairTiePMult & aPair)    {return aPair.second;}
+inline cVal1ConfTPM     & Val(tPairTiePMult & aPair)    {return aPair.second;}
+
+size_t NbPtsMul(const tPairTiePMult &) ;
+size_t Multiplicity(const tPairTiePMult&);
+cPt3dr BundleInter(const tPairTiePMult &,size_t aKPts,const std::vector<cSensorImage *> &);
+void   MakePGround(tPairTiePMult &,const std::vector<cSensorImage *>&);
 
 
 /**   This class store multiple homologous point, 
@@ -346,10 +356,6 @@ class cComputeMergeMulTieP : public cMemCheck
 {
      public :
 
-        
-        typedef std::vector<int>     tConfigIm;  // A config is a set of num of images
-
-
         // VNames must be sorted as it will (may) allow faster computation
         cComputeMergeMulTieP
         (
@@ -358,6 +364,7 @@ class cComputeMergeMulTieP : public cMemCheck
 	     cPhotogrammetricProject*  aPhP = nullptr
         );
 
+        const std::vector<cSensorImage *> &  VSensors() const;  ///< Accessor, error if empty
         /// Data allow to iterate on multiple points
         const std::map<tConfigIm,cVal1ConfTPM> &  Pts() const;
 
@@ -373,7 +380,7 @@ class cComputeMergeMulTieP : public cMemCheck
         void TestEq(cComputeMergeMulTieP &) const;
 
         /// From a linear vector to set of vector, for easiness of manip, but to avoid in efficient use
-        std::vector<cVal1ConfTPM > PUnMixed(const tConfigIm &,bool Sorted) const;
+        std::vector<cPMulGCPIm> PUnMixed(const tConfigIm &,bool Sorted) const;
 
         const std::vector<std::string> & VNames() const; ///< Accessor
         //  comptactify each of the point vector
