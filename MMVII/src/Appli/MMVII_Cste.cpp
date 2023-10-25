@@ -57,6 +57,7 @@ const std::string MMVIILocalParametersDir       = "MMVII-LocalParameters" +Strin
 const std::map<eTA2007,std::vector<std::string>> MMVIISupportedFilesExt = {
     {eTA2007::FileImage,{".tif",".tiff",".jpg",".jpeg",".png",".cr2",".crw",".nef"}},
     {eTA2007::FileCloud,{".ply"}},
+    {eTA2007::Orient,{".xml",".json"}},
     {eTA2007::File3DRegion,{".*"}}
 };
 

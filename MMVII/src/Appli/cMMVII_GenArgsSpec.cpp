@@ -74,6 +74,7 @@ int cAppli_GenArgsSpec::Exe()
     aDesc += "    \"DirBin2007\":\"" + DirBinMMVII() + "\",\n";
     aDesc += "    \"Bin2007\":\"" + FullBin() + "\",\n";
 
+    aDesc += "    \"MMVIIDirPhp\":\"" + MMVII_DirPhp + "\",\n";
     aDesc += "    \"MMVIIDirOrient\":\"" + MMVIIDirOrient + "\",\n";
     aDesc += "    \"MMVIIDirHomol\":\"" + MMVIIDirHomol + "\",\n";
     aDesc += "    \"MMVIIDirMeshDev\":\"" + MMVIIDirMeshDev + "\",\n";
