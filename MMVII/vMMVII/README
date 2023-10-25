@@ -1,0 +1,7 @@
+- Requires: QT5 or QT6
+  Ubuntu 22.04: sudo apt install qtbase5-dev
+
+- In this diretory:
+  qmake
+  make -j 8
+  ./vMMVII

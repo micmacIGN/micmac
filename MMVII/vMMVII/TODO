@@ -1,0 +1,73 @@
+vMMVII:
+
+x - Bug DM1ExtractVecLearn
+x - doit lancer MMVII avec option internal withvMMVII
+x - 1er champ obligatoire: Repertoire du chantier
+x   - liste derniers chantiers QSettings general
+x   - Detecter si lancé depuis un chantier, sinon dernier chantier utilisé
+x - tous les noms de fichiers/repertoire relatif à ce chantier
+x - lancer MMVII depuis le repertoire chantier
+x - vMMV2
+x    - sans arg -> Liste commandes
+x    - arg: c'est la commande ou liste commande si commande existe pas
+x - Préremplir champs avec derniere commande (MMVII_logfile.txt ou Qsetting / chantier)
+x   - liste dernieres commandes (MMVII_logfile.txt)
+- HAsh ou autre dans logfile pour verifier version MMVII ?
+- Verif syntaxe
+x - Feu vert/rouge pour valider chque argument (syntaxe, ...)
+x - status message pour mandatory
+x - Afficher valeur par defaut optionnals dans infobulle
+x - std::vector grand,
+x   - InputBox multiline
+x- Ascenceurs si trop de champs (CodedTargetExtract)
+x - Liste extension depuis specs JSON
+x- Semantique sur Input, Output
+x   - Qu'est ce qui definit si c'est un fichier attendu ?
+- Plusieurs fichier si MPF (pattern, multiple file, liste fichier)
+x - Position bouton Exit, Configure, Run, Reset ...
+
+x - Separer source .cpp pour "menu acceuil" et "menu commande"
+
+x - vMMVII lance "MMVII GenArgsSpec Out=tmpFile" et parse le fichier généré (si pas option -s)
+x   ou mieux: utiliser QProcess et communiquer sur stdout/stdin
+x   => MMVI GenArgsSpecs out sur stdout ou files, warnings: on/off, mode "check" pour developpeur
+
+x - Taille fenetre ProcessDialog 80x40 ?
+x - Dir history : Remove one item ?
+
+- Option restreindre liste commandes affichess (fichier texte, ligne commande ?)
+
+TheSpec:
+x  - champ app enabled pour gui
+  - champ lien vers doc complete ?
+
+
+GenGui
+x  - doit creer fichier dans ... ? Option preciser nom fichier
+x  - Fait des verifs
+x  - Genere warnings/error si:
+x    - input|ouput|ExistOptional absent pour fichier/dir
+x    - std::vector: pas de nborne min/max
+x    - MPF : pas de type de fichier specs
+x    - FDP: pas de type de fichier spec
+x  - Passer dans JSON general
+x    - Noms standards sous-repertoire
+x    - Liste extensions possible pour type fichier (cloud, image, ...)
+
+x- FFI: file filter interval : 2 input box (1er fichiers, 2eme fichier)
+x- Orient : dir input doit exister, output. Dir dans chantier/MMVVII_Orient/  (MMVII_Orient dans JSON)
+x - Cloud, Im,3DRef : fichiers
+
+
+x- Run dialog:
+x  Check error handling, resource managments
+x  Ok disabled until finished/error
+x  Cancel -> stop (enabled when started, disabled at end) -> kill
+x  Reopen dialog (to see log) ?
+
+
+- Tester ccache visual studio
+- Compile windows sans visual studio ide (msbuild ?)
+- Compile windows sous QtCreator
+
+
