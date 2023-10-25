@@ -314,8 +314,8 @@ cPt3dr BundleInter(const tPtsMult & aPair,size_t aKPts,std::vector<cSensorImage 
     std::vector<tSeg3dr>  aVSeg;
     for (size_t aK= 0 ; aK<aMult ; aK++)
     {
-        const cPt2dr & aPIm = aVal.mVPIm[aKP0+aK];
-	cSensorImage * aSI  = aVSI[aConfig[aK]];
+        const cPt2dr & aPIm = aVal.mVPIm.at(aKP0+aK);
+	cSensorImage * aSI  = aVSI.at(aConfig.at(aK));
 
 	aVSeg.push_back(aSI->Image2Bundle(aPIm));
     }
