@@ -18,18 +18,56 @@
 namespace MMVII
 {
 
-
-
-cInterfParsePMulGCP::cInterfParsePMulGCP(bool withPGround) :
-    mWithPGround (withPGround)
+class  cGCP_PMGCP : public cInterfParsePMulGCP
 {
+     public :
+	 void  Incr() override;
+	 bool   End() const override;
+	 cGCP_PMGCP(const cSetMesImGCP &);
+
+     private :
+        void SetCurPt();
+
+       	const cSetMesImGCP &  mSet;
+        const std::vector<cMultipleImPt> & mVMIP;
+	size_t                mIndEnd;
+	size_t                mCurInd;
+};
+
+cGCP_PMGCP::cGCP_PMGCP(const cSetMesImGCP & aSet) :
+     cInterfParsePMulGCP (true),
+     mSet    (aSet),
+     mVMIP   (mSet.MesImOfPt()),
+     mIndEnd (mVMIP.size()),
+     mCurInd (0)
+{
+    SetCurPt();
 }
 
-cInterfParsePMulGCP::~cInterfParsePMulGCP() {}
+void cGCP_PMGCP::SetCurPt()
+{
+    const cMultipleImPt & aMP = mVMIP.at(mCurInd);
+    mResult.mVPIm = aMP.VMeasures();
+    mResult.mVIm = aMP.VImages();
+}
+/*
+	    class cPMulGCPIm
+{
+    public :
+       std::string          mName;
+       cPt3dr               mPGround;
+       std::vector<cPt2dr>  mVPIm;
+       tConfigIm            mVIm;
+};
+*/
 
 
-const cPMulGCPIm & cInterfParsePMulGCP::CurP() const {return mResult;}
 
+/******************************************************/
+/*                                                    */
+/*                    cMTP_PMGCP                      */
+/*                                                    */
+/******************************************************/
 
 class cMTP_PMGCP : public cInterfParsePMulGCP
 {
@@ -139,11 +177,25 @@ const std::vector<std::string> & cMTP_PMGCP::VNamesImage()  const
   return mCMTP.VNames();
 }
 
+/******************************************************/
+/*                                                    */
+/*               cInterfParsePMulGCP                  */
+/*                                                    */
+/******************************************************/
+
 cInterfParsePMulGCP *  cInterfParsePMulGCP::Alloc_CMTP(const cComputeMergeMulTieP & aCMTP,bool WithPGround)
 {
     return new  cMTP_PMGCP(aCMTP,WithPGround);
 }
 
+cInterfParsePMulGCP::cInterfParsePMulGCP(bool withPGround) :
+    mWithPGround (withPGround)
+{
+}
+
+cInterfParsePMulGCP::~cInterfParsePMulGCP() {}
+
+const cPMulGCPIm & cInterfParsePMulGCP::CurP() const {return mResult;}
 
 }; // MMVII
 
