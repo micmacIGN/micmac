@@ -9,6 +9,8 @@ namespace MMVII
 {
 
 // extern bool BUGINVMAP;
+//
+// static bool  BUGIM = false;
 
 /* ============================================= */
 /*        cDataInvertibleMapping<Type,Dim>       */
@@ -195,6 +197,7 @@ template <class Type,const int Dim> class cInvertDIMByIter : public cMemCheck
 template <class Type,const int Dim> 
    void cInvertDIMByIter<Type,Dim>::OneIterDicot()
 {
+
    // Push in aVSampleInv  the indermediar values (interpol inverse) between mInvDic0 and mInvDic1
    tVecPt & aVSampleInv =  mDIM.BufInCleared();
    int aNbInterm = 3;
@@ -374,6 +377,7 @@ template <class Type,const int Dim>
     mVSubSet.clear();
     mVInv.clear();
     const tVecPt & aVInit = mDIM.RoughInv()->Values(aVTarget);
+    // if (BUGIM)
     for (tU_INT4 aKPt=0; aKPt<aVInit.size() ; aKPt++)
     {
        tSPIDIM aStr;
@@ -1122,7 +1126,10 @@ void BenchInvertMapping(cParamExeBench & aParam)
 
        // StdOut()  << "JJJJ " << aPMIter1->StrInvertIter() << std::endl;
        
-       std::vector<double> aVRatio{1.0,5.0,25.0,125.0,625.0};
+       // std::vector<double> aVRatio{1.0,5.0,25.0,125.0,625.0};
+       // MPD : dont really understand je change, just it seems more logical as progession and 
+       // there was a bug at some iteration of bench; btw, it doesnt change anything
+       std::vector<double> aVRatio{1.0,5.0,25.0,125.0,0.0625};
        double aRatio = aVRatio.at(aKMap%5);
        aPMIter1->StrInvertIter()->SetRatioGainDicot(aRatio);
 

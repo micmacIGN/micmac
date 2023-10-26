@@ -331,11 +331,11 @@ class cPhotogrammetricProject
 	  cSensorCamPC * ReadCamPC(const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
 
 
-	  /// Load a sensor, try different type (will add RPC , and others ?)
-	  void LoadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool SVP);
+	  /// Load a sensor, try different type (will add RPC , and others ?) use autom delete (dont need to delete it)
+	  void LoadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool SVP=false);
 
-	  /// return the generic sensor
-	  cSensorImage* LoadSensor(const std::string  &aNameIm,bool SVP);
+	  /// return the generic sensor, use autom delete (dont need to delete it)
+	  cSensorImage* LoadSensor(const std::string  &aNameIm,bool SVP=false);
 
 
 	      // Internal Calibration  

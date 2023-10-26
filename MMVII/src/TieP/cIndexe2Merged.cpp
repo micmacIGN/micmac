@@ -182,11 +182,19 @@ class cReadMTP_Std
 {
       public :
               typedef cIndexedHeap<cObjHeapMTP,cParamHeap_MTP,cParamHeap_MTP> tHeap;
-	      cReadMTP_Std(const std::vector<std::string> &aVNames,const cPhotogrammetricProject & aPhProj);
+	      cReadMTP_Std
+              (
+                     const std::vector<std::string> &aVNames,
+		     cPhotogrammetricProject & aPhProj,
+		     bool WithInd,
+		     bool WithSensor
+              );
 
 	      cComputeMergeMulTieP *      CompMerge();
       private :
               bool GetNextConfig();
+	      bool                        mWithIndex;
+	      bool                        mWithSensor;
 	      std::vector<cVecTiePMul>    mVTpm;
 	      tHeap                       mHeap;
 	      cComputeMergeMulTieP      * mCompMerge;
@@ -225,22 +233,35 @@ bool cReadMTP_Std::GetNextConfig()
 
       if (aNewConfig.size() >= 2)  // no use to have singleton tie point ...
       {
-          std::vector<cPt2dr> &  aVPtsOut =  mCompMerge->Pts()[aIdConf].mVPIm;
+          cVal1ConfTPM & aVal =  mCompMerge->Pts()[aIdConf];
+          std::vector<cPt2dr> &  aVPtsOut =  aVal.mVPIm;
 	  for (const auto  & aPt :  aNewConfig)
 	  {
-               const std::vector<cTiePMul> & aVecIn = mVTpm.at(aPt.mIdIm).mVecTPM;
-	       aVPtsOut.push_back(aVecIn.at(aPt.mNumCurInIm).mPt);
+              const std::vector<cTiePMul> & aVecIn = mVTpm.at(aPt.mIdIm).mVecTPM;
+	      aVPtsOut.push_back(aVecIn.at(aPt.mNumCurInIm).mPt);
 	  }
+          if (mWithIndex)
+          {
+             aVal.mVIdPts.push_back(aIdPt0);
+          }
       }
 
       return true;
 }
 
 
-cReadMTP_Std::cReadMTP_Std(const std::vector<std::string> &aVNames,const cPhotogrammetricProject & aPhProj) :
-	mVTpm        (aVNames.size(),cVecTiePMul("")),
-	mHeap        (The_cParamHeap_MTP),
-	mCompMerge   (new cComputeMergeMulTieP(aVNames))
+cReadMTP_Std::cReadMTP_Std
+(
+    const std::vector<std::string> &aVNames,
+    cPhotogrammetricProject & aPhProj,
+    bool  WithIndex,
+    bool  WithSensor
+) :
+     mWithIndex   (WithIndex),
+     mWithSensor  (WithSensor),
+     mVTpm        (aVNames.size(),cVecTiePMul("")),
+     mHeap        (The_cParamHeap_MTP),
+     mCompMerge   (new cComputeMergeMulTieP(aVNames,nullptr,(WithSensor ? &aPhProj : nullptr)))
 {
      for (size_t aKIm=0 ; aKIm<aVNames.size() ; aKIm++)
      {
@@ -262,9 +283,19 @@ cReadMTP_Std::cReadMTP_Std(const std::vector<std::string> &aVNames,const cPhotog
 
 cComputeMergeMulTieP * cReadMTP_Std::CompMerge() {return mCompMerge;}
 
-cComputeMergeMulTieP * AllocStdFromMTP(const std::vector<std::string> &aVNames,const cPhotogrammetricProject & aPhProj)
+cComputeMergeMulTieP * AllocStdFromMTP
+                      (
+                            const std::vector<std::string> &aVNames,
+                            cPhotogrammetricProject & aPhProj,
+                            bool  WithIndexPt,
+                            bool  WithSensor,
+                            bool  WithIndexImages
+                      )
 {
-    cReadMTP_Std aRStd(aVNames,aPhProj);
+    cReadMTP_Std aRStd(aVNames,aPhProj,WithIndexPt,WithSensor);
+
+    if (WithIndexImages)
+        aRStd.CompMerge()->SetImageIndexe();
 
     return aRStd.CompMerge();
 }

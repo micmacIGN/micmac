@@ -67,6 +67,7 @@ cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
  */
 
 
+
 cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8> * aVWeight)
 {
      cDenseMatrix<tREAL8>  aDM(3,eModeInitImage::eMIA_Null);
@@ -124,9 +125,40 @@ cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8
      aDM.SelfSymetrizeBottom();
      return SolveCol(aDM,aRHS);
 }
-	/*
-*/
 
+cPt3dr  RobustBundleInters(const std::vector<tSeg3dr> & aVSeg)
+{		     
+     if (aVSeg.size() == 2)
+        return BundleInters(aVSeg[0],aVSeg[1],0.5);
+
+     std::vector<cSegmentCompiled<tREAL8,3>> aVSC;
+
+     for (const auto & aSeg : aVSeg)
+        aVSC.push_back(cSegmentCompiled<tREAL8,3>(aSeg.P1(),aSeg.P2()));
+
+     cWhichMin<cPt3dr,tREAL8>  aWMin;
+
+
+     for (size_t aKSeg1=0 ; aKSeg1<aVSeg.size() ; aKSeg1++)
+     {
+         for (size_t aKSeg2=aKSeg1+1 ; aKSeg2<aVSeg.size() ; aKSeg2++)
+         {
+             cPt3dr aInt = BundleInters(aVSeg[aKSeg1],aVSeg[aKSeg2],0.5);
+
+	     tREAL8 aSum =0;
+             for (size_t  aKSeg3=0 ;  aKSeg3<aVSeg.size() ; aKSeg3++)
+             {
+                 if ((aKSeg3!=aKSeg1) && (aKSeg3!=aKSeg2))
+		 {
+                    aSum += aVSC[aKSeg3].Dist(aInt);
+		 }
+             }
+	     aWMin.Add(aInt,aSum);
+         }
+     }
+
+     return aWMin.IndexExtre();
+}
 
 /*  *********************************************************** */
 /*                                                              */

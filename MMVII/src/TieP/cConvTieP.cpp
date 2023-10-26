@@ -2,6 +2,7 @@
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
+#include "MMVII_DeclareAllCmd.h"
 
 #include "TieP.h"
 
@@ -40,6 +41,7 @@ class cAppli_TiePConvert : public cMMVII_Appli
 	bool                     mTimingTest;
 	std::string              mPatNameDebug;
 	std::string              mPostV1;
+	bool                     mGenerateMTP;
 };
 
 cAppli_TiePConvert::cAppli_TiePConvert(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -48,7 +50,8 @@ cAppli_TiePConvert::cAppli_TiePConvert(const std::vector<std::string> & aVArgs,c
    mDownScale    (1.0),
    mTimingTest   (false),
    mPatNameDebug ("ZkW@@M"),
-   mPostV1       ("txt")
+   mPostV1       ("txt"),
+   mGenerateMTP  (true)
 {
 }
 
@@ -69,6 +72,7 @@ cCollecSpecArg2007 & cAppli_TiePConvert::ArgOpt(cCollecSpecArg2007 & anArgObl)
 	     << AOpt2007(mPostV1,"Post","V1 postifx like txt or dat",{eTA2007::HDV})
 	     << AOpt2007(mDownScale,"DS","Downscale, if want to adapt to smaller images",{eTA2007::HDV})
 	     << AOpt2007(mPatNameDebug,"PND","Pattern names for debuging",{eTA2007::Tuning})
+	     << AOpt2007(mGenerateMTP,"GenMTP","Generate multiple tie point after conversion",{eTA2007::HDV})
            ;
 }
 
@@ -92,10 +96,12 @@ int cAppli_TiePConvert::Exe()
    tNameSelector  aRegDebug =  AllocRegex(mPatNameDebug);
 
 
+   int aNbExist = 0;
    // parse all pair, in only one sense, as we will merge "AB" with "BA" when both exist
+   int aFreqMsg = std::max(1,std::min(100,int(aVName.size())/10));
    for (size_t aK1=0; aK1<aVName.size() ; aK1++)
    {
-      if (IsInit(&mPatNameDebug) && (aK1%100==0))
+      if (IsInit(&mPatNameDebug) && (aK1%aFreqMsg==0))
          StdOut() << "Still " << aVName.size() - aK1 << " to process " << std::endl;
       for (size_t aK2=aK1+1; aK2<aVName.size() ; aK2++)
       {
@@ -112,6 +118,7 @@ int cAppli_TiePConvert::Exe()
 
            if (Exist12 || Exist21) // if one of both exist : create
            {
+               aNbExist++;
                std::vector<std::string> aV12({aN1,aN2});
 	       // structure to make the fusion
 	       cComputeMergeMulTieP aSMTP(aV12,aIIH);
@@ -135,7 +142,7 @@ int cAppli_TiePConvert::Exe()
 
 		   if (mTimingTest && (aK1==0)  && (aK2==1))
 		   {
-                      // on meramptah test :  TIME SAVE 1.38784 TIME SAVE 0.295475
+                      // on meramptah test :  TIME SAVE 1.38784 TIME READ 0.295475
 
                       double aT0 = SecFromT0();
                       for (int aTime=0 ;aTime<100; aTime++)
@@ -158,7 +165,18 @@ int cAppli_TiePConvert::Exe()
       }
    }
 
+   if (aNbExist==0)
+   {
+       MMVII_UnclasseUsEr("No file found (if MMV1 : maybe change dat/txt)");
+   }
+
    delete aIIH;
+
+   if (mGenerateMTP)
+   {
+      cParamCallSys aPCS(cMMVII_Appli::FullBin(),TheSpec_ToTiePMul.Name(),mSpecIm,mPhProj.DPTieP().DirOut());
+      ExtSysCall(aPCS,false);
+   }
    return EXIT_SUCCESS;
 }
 

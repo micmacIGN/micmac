@@ -92,7 +92,8 @@ cCollecSpecArg2007 & cAppli_ToTiePMul::ArgOpt(cCollecSpecArg2007 & anArgObl)
     return anArgObl
 	   <<  mPhProj.DPMulTieP().ArgDirInOpt("TestReload","Temporay for testing re-merge")
 	   << AOpt2007(mExportConfiXml,"ExpConfXml","Export also configuration of multiple point in xml, for info",{eTA2007::HDV})
-	     // << AOpt2007(mDownScale,"DS","Downscale, if want to adapt to smaller images",{eTA2007::HDV})
+	   << mPhProj.DPOrient().ArgDirInOpt()
+        // << AOpt2007(mDownScale,"DS","Downscale, if want to adapt to smaller images",{eTA2007::HDV})
     ;
 }
 
@@ -193,7 +194,7 @@ int cAppli_ToTiePMul::Exe()
    if (mPhProj.DPMulTieP().DirInIsInit())
    {
        StdOut()  << "BEGINING RELOAD" << std::endl;
-       cComputeMergeMulTieP * aCM =  AllocStdFromMTP(aVName,mPhProj);
+       cComputeMergeMulTieP * aCM =  AllocStdFromMTP(aVName,mPhProj,false,mPhProj.DPOrient().DirInIsInit(),true);
        StdOut()  << "BEGINING TEST INTEGRITY" << std::endl;
        aSMTP.TestEq(*aCM);
        delete aCM;

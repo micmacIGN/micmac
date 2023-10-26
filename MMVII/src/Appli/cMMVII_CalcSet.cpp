@@ -223,6 +223,8 @@ int cAppli_EditSet::Exe()
    tNameSet aInput = SetNameFromString(mNameXmlIn,false);
    const tNameSet & aNew =  MainSet0();
 
+   // StdOut()  << "aNewaNewaNew " <<  aNew.size() << "\n";
+
    tNameSet aRes = aInput.Dupl();
 
    aRes.OpAff(mOp,aNew);

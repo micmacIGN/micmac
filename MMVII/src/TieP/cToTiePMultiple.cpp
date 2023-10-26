@@ -2,6 +2,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_MeasuresIm.h"
 #include "MMVII_UtiSort.h"
+#include "MMVII_Sensor.h"
 
 #include "TieP.h"
 
@@ -16,6 +17,57 @@
 
 namespace MMVII
 {
+
+
+
+    //================================  tPairTiePMult  ===================
+    //================================  tPairTiePMult  ===================
+
+size_t Multiplicity(const tPairTiePMult & aPair) { return  Config(aPair).size(); }
+size_t NbPtsMul(const tPairTiePMult & aPair)
+{
+	return Val(aPair).mVPIm.size()  / Multiplicity(aPair);
+}
+
+cPt3dr BundleInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cSensorImage *>&  aVSI)
+{
+    const auto &  aConfig = Config(aPair);
+    const cVal1ConfTPM & aVal =  Val(aPair);
+    size_t aMult = aConfig.size();
+
+    size_t aKP0 = aKPts*aMult;
+    std::vector<tSeg3dr>  aVSeg;
+    for (size_t aK= 0 ; aK<aMult ; aK++)
+    {
+        const cPt2dr & aPIm = aVal.mVPIm.at(aKP0+aK);
+	cSensorImage * aSI  = aVSI.at(aConfig.at(aK));
+
+	aVSeg.push_back(aSI->Image2Bundle(aPIm));
+    }
+
+    return BundleInters(aVSeg);
+}
+
+
+void MakePGround(tPairTiePMult & aPair,const std::vector<cSensorImage *> & aVSI)
+{
+    std::vector<cPt3dr> & aVPts = Val(aPair).mVPGround;
+    aVPts.clear();
+    size_t aNbPts = NbPtsMul(aPair);
+
+    for (size_t aKP=0 ; aKP<aNbPts; aKP++)
+    {
+        aVPts.push_back(BundleInter(aPair,aKP,aVSI));
+    }
+}
+
+
+
+
+///========================================================
+
+
+
 
 class cOneImMEff2MP;
 class cMemoryEffToMultiplePoint;
@@ -167,7 +219,13 @@ bool operator == (const cVal1ConfTPM & aV1,const cVal1ConfTPM & aV2)
         ;
 }
 
-cComputeMergeMulTieP::cComputeMergeMulTieP(const std::vector<std::string> & aVNames,cInterfImportHom * anIIH) :
+cComputeMergeMulTieP::cComputeMergeMulTieP
+(
+       const std::vector<std::string> & aVNames,
+       cInterfImportHom * anIIH,
+       cPhotogrammetricProject*  aPhP ,
+       bool                      WithImageIndexe
+) :
     mVNames (aVNames)
 {
    ASSERT_SORTED(aVNames);
@@ -175,9 +233,44 @@ cComputeMergeMulTieP::cComputeMergeMulTieP(const std::vector<std::string> & aVNa
    {
       cMemoryEffToMultiplePoint aToMP(*anIIH,mVNames,*this);
    }
+
+   if (aPhP)
+   {
+      for (const auto & aName : mVNames)
+          mVSensors.push_back(aPhP->LoadSensor(aName,false));
+   }
+
+   if (WithImageIndexe)
+      SetImageIndexe();
+}
+const std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> & cComputeMergeMulTieP::IndexeOfImages()  const
+{
+	return mImageIndexes;
+}
+
+void cComputeMergeMulTieP::SetImageIndexe()
+{
+     mImageIndexes.resize(mVNames.size());
+
+     for (auto & aPair : mPts)
+     {
+         auto & aConfig = aPair.first;
+	 tPairTiePMult * anAdr = & aPair;
+	 for (size_t aKI=0 ; aKI<aConfig.size() ; aKI++)
+         {
+              mImageIndexes.at(aConfig.at(aKI)).push_back(std::pair(aKI,anAdr));
+	 }
+     }
 }
 
 const std::vector<std::string> & cComputeMergeMulTieP::VNames() const { return mVNames;}
+
+const std::vector<cSensorImage *> &  cComputeMergeMulTieP::VSensors() const
+{
+   MMVII_INTERNAL_ASSERT_tiny(!mVSensors.empty(),"Sensor non initialized in cComputeMergeMulTieP");
+
+   return mVSensors;
+}
 
 const std::map<std::vector<int>,cVal1ConfTPM> &  cComputeMergeMulTieP::Pts() const {return mPts;}
 std::map<std::vector<int>,cVal1ConfTPM> &  cComputeMergeMulTieP::Pts() {return mPts;}
@@ -212,20 +305,23 @@ void cComputeMergeMulTieP::TestEq(cComputeMergeMulTieP &aS2) const
 	*/
     }
 
-    MMVII_INTERNAL_ASSERT_tiny( aMapPts1.size()== aMapPts2.size(),"SetMultipleTiePoints::TestEq");
+    MMVII_INTERNAL_ASSERT_bench( aMapPts1.size()== aMapPts2.size(),"SetMultipleTiePoints::TestEq");
 
     for (const auto  &  aP1 : aMapPts1)
     {
         const auto & aConfig = aP1.first;
         const auto & aItP2 =  aMapPts2.find(aConfig);
 	Fake4ReleaseUseIt(aItP2);
-        MMVII_INTERNAL_ASSERT_tiny( aItP2!=aMapPts2.end() ,"SetMultipleTiePoints::TestEq");
+        MMVII_INTERNAL_ASSERT_bench( aItP2!=aMapPts2.end() ,"SetMultipleTiePoints::TestEq");
 
 	auto aVPMul1 = PUnMixed(aConfig,true);  // true = sort
 	auto aVPMul2 = aS2.PUnMixed(aConfig,true); // because order would not be preserved
-        MMVII_INTERNAL_ASSERT_tiny(aVPMul1.size() ==aVPMul2.size(),"SetMultipleTiePoints::TestEq");
-	for (size_t aK=0 ;  aK<aVPMul1.size() ; aK++)
-            MMVII_INTERNAL_ASSERT_tiny(aVPMul1[aK]==aVPMul2[aK],"SetMultipleTiePoints::TestEq");
+        MMVII_INTERNAL_ASSERT_bench(aVPMul1.size() ==aVPMul2.size(),"SetMultipleTiePoints::TestEq");
+        for (size_t aK=0 ;  aK<aVPMul1.size() ; aK++)
+        {
+            MMVII_INTERNAL_ASSERT_bench(aVPMul1[aK].mVPIm==aVPMul2[aK].mVPIm,"SetMultipleTiePoints::TestEq");
+            MMVII_INTERNAL_ASSERT_bench(aVPMul1[aK].mVIm==aVPMul2[aK].mVIm,"SetMultipleTiePoints::TestEq");
+        }
     }
 }
 
@@ -236,7 +332,7 @@ void cComputeMergeMulTieP::TestEq(cComputeMergeMulTieP &aS2) const
  *
  *   Sorted is usefull essentially for checking equality 
  */
-std::vector<cVal1ConfTPM>
+std::vector<cPMulGCPIm>
     cComputeMergeMulTieP::PUnMixed(const tConfigIm & aConfigIm,bool Sorted) const
 {
     const auto & anIt  = mPts.find(aConfigIm);
@@ -247,14 +343,15 @@ std::vector<cVal1ConfTPM>
     size_t aNbPMul = aValue.mVPIm.size() / aMult;
 
     //  unmix
-    std::vector<cVal1ConfTPM> aRes(aNbPMul);
+    std::vector<cPMulGCPIm> aRes(aNbPMul);
     for (size_t aK=0 ; aK<aNbPMul ; aK++)
     {
         aRes.at(aK).mVPIm = std::vector<cPt2dr>(aValue.mVPIm.begin()+aK*aMult,aValue.mVPIm.begin()+(aK+1)*aMult);
 	if (! aValue.mVIdPts.empty())
-            aRes.at(aK).mVIdPts.push_back(aValue.mVIdPts.at(aK));
+            aRes.at(aK).mName = ToStr(aValue.mVIdPts.at(aK));
 	if (! aValue.mVPGround.empty())
-            aRes.at(aK).mVPGround.push_back(aValue.mVPGround.at(aK));
+            aRes.at(aK).mPGround = aValue.mVPGround.at(aK);
+         aRes.at(aK).mVIm = aConfigIm;
     }
 
     // sort
@@ -282,6 +379,14 @@ void cComputeMergeMulTieP::Shrink()
          aPair.second.mVPGround.shrink_to_fit();
      }
 }
+
+void cComputeMergeMulTieP::SetPGround()
+{
+    for (auto & aPair : mPts)
+        MakePGround(aPair,mVSensors);
+}
+
+
 
 
 /* ************************************************* */
@@ -892,7 +997,7 @@ bool cSimulHom::HasHom(const std::string & aNameIm1,const std::string & aNameIm2
 
 void cSimulHom::GetHom(cSetHomogCpleIm & aSet,const std::string & aNameIm1,const std::string & aNameIm2) const 
 {
-   MMVII_INTERNAL_ASSERT_tiny(HasHom(aNameIm1,aNameIm2),"Cannot get hom in cSimulHom");
+   MMVII_INTERNAL_ASSERT_bench(HasHom(aNameIm1,aNameIm2),"Cannot get hom in cSimulHom");
    aSet = mMapHom.find(tSS(aNameIm1,aNameIm2))->second;
 }
 
@@ -1070,8 +1175,21 @@ void OneBench(int aNbImage,int aNbPts,int aMaxCard,bool DoIt)
         cComputeMergeMulTieP aSetMTP2(aSimH.VNames(),&aSimH);
         aSetMTP2.Shrink();
 	aSetMTP1.TestEq(aSetMTP2);
-	// StdOut() << "DONNEEE " << std::endl;
-	// getchar();
+
+        cInterfParsePMulGCP *  aIter =  cInterfParsePMulGCP::Alloc_CMTP(aSetMTP2,false);
+	for (const auto & aPair :  aSetMTP2.Pts())
+	{
+             const auto & aVV = aSetMTP2.PUnMixed(Config(aPair),false);
+
+	     for (const auto & aVal : aVV)
+	     {
+                 MMVII_INTERNAL_ASSERT_bench(!aIter->End(),"Error on iter") ;
+                 MMVII_INTERNAL_ASSERT_bench(aVal.mVPIm==aIter->CurP().mVPIm,"Error on iter") ;
+                 aIter->Incr();
+	     }
+	}
+        MMVII_INTERNAL_ASSERT_bench(aIter->End(),"Error on iter") ;
+	delete aIter;
     }
 
     // getchar();
