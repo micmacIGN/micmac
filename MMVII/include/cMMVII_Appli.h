@@ -552,13 +552,15 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         const tNameSet &                         MainSet(int aK) const;    ///< MainSets[aK] , check range !=0 before
         void                                     CheckRangeMainSet(int) const;  ///< Check range in [0,NbMaxMainSets[
         std::vector<std::string>                 VectMainSet(int aK) const; ///< interface to MainSet
-	std::string                              UniqueStr(int aK) const; /// return VectMainSet(0) after check size=1
+        std::string                              UniqueStr(int aK) const; /// return VectMainSet(0) after check size=1
         virtual bool            AcceptEmptySet(int aK) const; ///< Generally if the set is empty, it's an error
 
         virtual cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) = 0;  ///< A command specifies its mandatory args
         virtual cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) = 0;  ///< A command specifies its optional args
         void InitOutFromIn(std::string &aFileOut,const std::string& aFileIn); ///< If out is not init set In, else DirProj+Out
 
+        /// Third step of construction: application specific initialization, after construction and command line parsing, before execution.
+        virtual void InitSpecialProject() {}
         void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
 
         bool RunMultiSet(int aKParam,int aKSet,bool MkFSilence=false);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed

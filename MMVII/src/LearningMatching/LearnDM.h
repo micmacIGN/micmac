@@ -53,6 +53,8 @@ class cAppliLearningMatch : public cMMVII_Appli
     protected :
         cAppliLearningMatch(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
+        void InitSpecialProject() override;
+
         void SetNamesProject (const std::string & aNameInput,const std::string & aNameOutput) ;
         std::string Prefix(bool isIn) const;
         static std::string Post(bool isXml)  ;
@@ -112,7 +114,7 @@ class cAppliLearningMatch : public cMMVII_Appli
         static std::string  Index(int aNum);
         static std::string HomFromIm1(const std::string & aIm1,int aNumHom,std::string anExt,bool isXml=false);
         static std::string HomFromHom0(const std::string & aName,int aNumHom);
-       
+
     private :
         std::string mNameInput;
         std::string mNameOutput;

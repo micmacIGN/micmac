@@ -13,6 +13,10 @@ cAppliLearningMatch::cAppliLearningMatch(const std::vector<std::string> & aVArgs
     mNbLevByOct    (2),
     mNbOverLapByO  (1)
 {
+}
+
+void cAppliLearningMatch::InitSpecialProject()
+{
     SetNamesProject("","");
 }
 
