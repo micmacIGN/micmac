@@ -217,7 +217,7 @@ cSpecMMVII_Appli  TheSpec_TestEigen
      "TestEigen",
       Alloc_MMVII_TestEigen,
       "This command execute some experiments eigen (matrix manipulation) library",
-      {eApF::Test},
+      {eApF::Test,eApF::NoGui},
       {eApDT::None},
       {eApDT::Console},
       __FILE__

@@ -775,7 +775,7 @@ cSpecMMVII_Appli  TheSpecTestRecall
      "TestRecall",
       Alloc_TestRecall,
       "Use in Bench to Test Recall of MMVII by itself ",
-      {eApF::Test},
+      {eApF::Test,eApF::NoGui},
       {eApDT::None},
       {eApDT::Console},
       __FILE__
@@ -1082,7 +1082,7 @@ cSpecMMVII_Appli  TheSpecMPDTest
      "TestMPD",
       Alloc_MPDTest,
       "This used a an entry point to all quick and dirty test by MPD ...",
-      {eApF::Test},
+      {eApF::Test,eApF::NoGui},
       {eApDT::None},
       {eApDT::Console},
       __FILE__
