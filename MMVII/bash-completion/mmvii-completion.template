@@ -1,0 +1,25 @@
+#!/bin/bash
+
+_mmvii_completion()
+{
+  export COMP_LINE COMP_POINT COMP_KEY COMP_TYPE COMP_WORDS COMP_CWORD
+  local cur cword
+  _get_comp_words_by_ref -n = cur cword
+  RESULT="$(python3 -  "$cur" "$cword" < mmvii-completion.py)"
+  readarray -t COMPREPLY < <(echo -n "$RESULT")
+  if [ ${#COMPREPLY[@]} -eq 0 ]; then
+    unset COMPREPLY
+  elif [[ ${COMPREPLY[-1]} == Options:* ]]; then
+    options=${COMPREPLY[-1]}
+    eval compopt ${options##Options:}
+    unset COMPREPLY[-1]
+  elif [[ ${COMPREPLY[-1]} == File:* ]]; then
+    file=${COMPREPLY[-1]}
+    file=${file##File:}
+    COMPREPLY=($(compgen -f $file))
+    compopt -o filenames
+  fi
+}
+
+complete -F _mmvii_completion MMVII
+
