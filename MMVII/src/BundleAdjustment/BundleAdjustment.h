@@ -8,9 +8,8 @@ namespace MMVII
 
 /**   Class for representing a Pt of R3 in bundle adj, when it is considered as
  *   unknown.
- *      +  we have the exact value and uncertainty of the point
- *      -  it add (potentially many)  unknowns
- *      -  it take more place in  memory
+ *      +  we have the exact value and uncertainty of the point is covariance is used
+ *      -  it add (potentially many)  unknowns and then  it take more place in  memory & time
  */
 
 class cPt3dr_UK :  public cObjWithUnkowns<tREAL8>,
@@ -51,6 +50,8 @@ class cMMVII_BundleAdj
 	  //  =========  control object free/frozen ===================
 
 	  void SetParamFrozenCalib(const std::string & aPattern);
+	  void SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle);
+	  void AddPoseViscosity();
 
      private :
 
@@ -64,6 +65,8 @@ class cMMVII_BundleAdj
           void InitIteration();          /// Called at first iteration -> Init things and set we are non longer in Phase Add
           void InitItereGCP();           /// GCP Init => create UK
           void OneItere_GCP();           /// One iteraion of adding GCP measures
+
+	  void OneItere_TieP();   /// Iteration on tie points
 
           ///  One It for 1 pack of GCP (4 now 1 pack allowed, but this may change)
           void OneItere_OnePackGCP(const cSetMesImGCP *,const std::vector<double> & aVW);
@@ -89,11 +92,16 @@ class cMMVII_BundleAdj
 
 	  std::string  mPatParamFrozenCalib;
 
-          // ===================  Object to be adjusted ==================
+          // ===================  Information to use ==================
           cSetMesImGCP *           mMesGCP;
           cSetMesImGCP             mNewGCP;
           std::vector<double>      mWeightGCP;
           std::vector<cPt3dr_UK*>  mGCP_UK;
+	  
+          // ===================  "Viscosity"  ==================
+
+	  tREAL8   mSigmaViscAngles;  ///< "viscosity"  for angles
+	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
 };
 
 

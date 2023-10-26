@@ -143,9 +143,6 @@ void cMMVII_BundleAdj::OneItere_GCP()
 	OneItere_OnePackGCP(mMesGCP,mWeightGCP);
 }
 
-
-
-
     /* ---------------------------------------- */
     /*            cPt3dr_UK                     */
     /* ---------------------------------------- */
@@ -167,6 +164,40 @@ cPt3dr_UK::~cPt3dr_UK()
         Reset();
 }
 
+    /* ---------------------------------------- */
+    /*            AddViscosity                  */
+    /* ---------------------------------------- */
+
+void cMMVII_BundleAdj::AddPoseViscosity()
+{
+     //  parse all centra
+     for (auto aPcPtr : mVSCPC)
+     {
+         if (mSigmaViscCenter>0)
+	 {
+             mR8_Sys->AddEqFixCurVar(*aPcPtr,aPcPtr->Center(),Square(1/mSigmaViscCenter));
+	 }
+         if (mSigmaViscAngles>0)
+	 {
+             mR8_Sys->AddEqFixCurVar(*aPcPtr,aPcPtr->Omega(),Square(1/mSigmaViscAngles));
+	 }
+     }
+}
+
+void cMMVII_BundleAdj::SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle)
+{
+    mSigmaViscCenter = aViscTr;
+    mSigmaViscAngles = aViscAngle;
+}
+
+    /* ---------------------------------------- */
+    /*            AddViscosity                  */
+    /* ---------------------------------------- */
+
+void cMMVII_BundleAdj::OneItere_TieP()
+{
+     cComputeMergeMulTieP *  aMTieP;
+}
 
 
 };

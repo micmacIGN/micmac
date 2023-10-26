@@ -125,6 +125,9 @@ cPerspCamIntrCalib * cSensorCamPC::InternalCalib() {return mInternalCalib;}
 
 const cPt3dr & cSensorCamPC::Center() const {return mPose.Tr();}
 const cPt3dr & cSensorCamPC::Omega()  const {return mOmega;}
+cPt3dr & cSensorCamPC::Center() {return mPose.Tr();}
+cPt3dr & cSensorCamPC::Omega()  {return mOmega;}
+
 cPt3dr cSensorCamPC::AxeI()   const {return mPose.Rot().AxeI();}
 cPt3dr cSensorCamPC::AxeJ()   const {return mPose.Rot().AxeJ();}
 cPt3dr cSensorCamPC::AxeK()   const {return mPose.Rot().AxeK();}

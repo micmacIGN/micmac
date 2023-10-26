@@ -16,11 +16,13 @@ namespace MMVII
 /* ************************************************************************ */
 
 cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
-    mPhProj    (aPhp),
-    mPhaseAdd  (true),
-    mSys       (nullptr),
-    mR8_Sys    (nullptr),
-    mMesGCP    (nullptr)
+    mPhProj           (aPhp),
+    mPhaseAdd         (true),
+    mSys              (nullptr),
+    mR8_Sys           (nullptr),
+    mMesGCP           (nullptr),
+    mSigmaViscAngles  (-1.0),
+    mSigmaViscCenter  (-1.0)
 {
 }
 
@@ -73,6 +75,7 @@ void cMMVII_BundleAdj::OneIteration()
             mR8_Sys->SetFrozenFromPat(*aPtrCal,mPatParamFrozenCalib,true);
 	}
     }
+    AddPoseViscosity();
 
     OneItere_GCP();
 
@@ -163,6 +166,7 @@ class cAppliBundlAdj : public cMMVII_Appli
 	int                       mNbIter;
 
 	std::string               mPatParamFrozCalib;
+	std::vector<tREAL8>       mViscPose;
 };
 
 cAppliBundlAdj::cAppliBundlAdj(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -193,6 +197,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
                << AOpt2007(mGCPDir,"GCPDir","Dir for GCP if != DataDir")
                << AOpt2007(mGCPW,"GCPW","Weithing of GCP if any [SigmaG,SigmaI], SG=0 fix, SG<0 schurr elim, SG>0",{{eTA2007::ISizeV,"[2,2]"}})
 	       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
+	       << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
            ;
 }
 
@@ -213,6 +218,11 @@ int cAppliBundlAdj::Exe()
     if (IsInit(&mPatParamFrozCalib))
     {
         mBA.SetParamFrozenCalib(mPatParamFrozCalib);
+    }
+
+    if (IsInit(&mViscPose))
+    {
+        mBA.SetViscosity(mViscPose.at(0),mViscPose.at(1));
     }
 	   
 
