@@ -461,6 +461,8 @@ const  std::vector<cPt3dr> &  cPerspCamIntrCalib::DirBundles(tVecIn & aV3 ,const
 {
      UpdateLSQDistIfRequired();
 
+     CheckBeforeInverse(aV0);
+
      static tVecOut aV1,aV2;
      mMapIm2PProj.Values(aV1,aV0);
      mDist_DirInvertible->Inverses(aV2,aV1);
@@ -627,6 +629,37 @@ const cDataInvertibleMapping<tREAL8,2>* cPerspCamIntrCalib::Dir_DistInvertible()
 
     return mDist_DirInvertible;
 }
+
+
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+void cPerspCamIntrCalib::CheckBeforeInverse(const tVecOut & aVecOut) const
+{
+    for (const auto & aPOut : aVecOut)
+	    CheckBeforeInverse(aPOut);
+}
+void cPerspCamIntrCalib::CheckBeforeInverse(const tPtOut & aPOut ) const
+{
+    tREAL8 aThreshHigh = -0.2;
+    tREAL8 aThreshLow =  -0.5;
+    tREAL8 aOutness = mPixDomain.InsidenessWithBox(aPOut) / F();
+
+    if (aOutness<aThreshHigh)
+    {
+        std::string aMesg = "Suspicious point for inversion, Pt=" + ToStr(aPOut) + " SzIma=" + ToStr(SzPix()) ;
+        if (aOutness<aThreshLow)
+	{
+           MMVII_UnclasseUsEr(aMesg);
+	}
+	else
+	{
+           MMVII_DEV_WARNING(aMesg);
+	}
+    }
+}
+#else
+void cPerspCamIntrCalib::CheckBeforeInverse(const tVecOut &) const { }
+void cPerspCamIntrCalib::CheckBeforeInverse(const tPtOut & ) const { }
+#endif
 
 
 

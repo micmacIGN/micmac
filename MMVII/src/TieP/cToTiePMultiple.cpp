@@ -49,7 +49,7 @@ cPt3dr BundleInter(const tPairTiePMult & aPair,size_t aKPts,const std::vector<cS
 }
 
 
-void   MakePGround(tPairTiePMult & aPair,std::vector<cSensorImage *> aVSI)
+void MakePGround(tPairTiePMult & aPair,const std::vector<cSensorImage *> & aVSI)
 {
     std::vector<cPt3dr> & aVPts = Val(aPair).mVPGround;
     aVPts.clear();
@@ -223,7 +223,8 @@ cComputeMergeMulTieP::cComputeMergeMulTieP
 (
        const std::vector<std::string> & aVNames,
        cInterfImportHom * anIIH,
-       cPhotogrammetricProject*  aPhP 
+       cPhotogrammetricProject*  aPhP ,
+       bool                      WithImageIndexe
 ) :
     mVNames (aVNames)
 {
@@ -238,6 +239,28 @@ cComputeMergeMulTieP::cComputeMergeMulTieP
       for (const auto & aName : mVNames)
           mVSensors.push_back(aPhP->LoadSensor(aName,false));
    }
+
+   if (WithImageIndexe)
+      SetImageIndexe();
+}
+const std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> & cComputeMergeMulTieP::IndexeOfImages()  const
+{
+	return mImageIndexes;
+}
+
+void cComputeMergeMulTieP::SetImageIndexe()
+{
+     mImageIndexes.resize(mVNames.size());
+
+     for (auto & aPair : mPts)
+     {
+         auto & aConfig = aPair.first;
+	 tPairTiePMult * anAdr = & aPair;
+	 for (size_t aKI=0 ; aKI<aConfig.size() ; aKI++)
+         {
+              mImageIndexes.at(aConfig.at(aKI)).push_back(std::pair(aKI,anAdr));
+	 }
+     }
 }
 
 const std::vector<std::string> & cComputeMergeMulTieP::VNames() const { return mVNames;}
@@ -356,6 +379,13 @@ void cComputeMergeMulTieP::Shrink()
          aPair.second.mVPGround.shrink_to_fit();
      }
 }
+
+void cComputeMergeMulTieP::SetPGround()
+{
+    for (auto & aPair : mPts)
+        MakePGround(aPair,mVSensors);
+}
+
 
 
 

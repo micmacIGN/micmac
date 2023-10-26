@@ -25,6 +25,7 @@ class cSetMesGCP;
 class cMultipleImPt;
 class cSetMesImGCP;
 
+class cComputeMergeMulTieP;
 
 
 /** class for representing  a 3D point paired with it 2d image projection */
@@ -189,6 +190,7 @@ class cSetMesImGCP : public cMemCheck
 {
     public :
             cSetMesImGCP();
+	    // cSetMesImGCP(const cComputeMergeMulTieP  &);
 
             ///  Add one set of 3D measures (often called only once), all calls must occur before AddMes2D
             void AddMes3D(const cSetMesGCP &);
@@ -217,10 +219,10 @@ class cSetMesImGCP : public cMemCheck
 	    const cMes1GCP &        MesGCPOfMulIm(const cMultipleImPt &) const;
 
 	    bool  NameIsGCP(const std::string &) const;
-	    cSetMesGCP  ExtractSetGCP(const std::string & aName) const;
+	    cSetMesGCP  ExtractSetGCP(const std::string & aNameSet) const;
+
 
     private :
-
 
             cSetMesImGCP(const  cSetMesImGCP & ) = delete;
 
@@ -333,7 +335,7 @@ class cPMulGCPIm
 };
 
 
-typedef std::pair<std::vector<int>,cVal1ConfTPM>  tPairTiePMult;
+typedef std::pair<const std::vector<int>,cVal1ConfTPM>  tPairTiePMult;
 typedef std::map<tConfigIm,cVal1ConfTPM>  tMapTiePMult;
 
 
@@ -361,7 +363,8 @@ class cComputeMergeMulTieP : public cMemCheck
         (
              const  std::vector<std::string> & aVNames,
 	     cInterfImportHom * =nullptr,
-	     cPhotogrammetricProject*  aPhP = nullptr
+	     cPhotogrammetricProject*  aPhP = nullptr,
+	     bool WithImageIndex = false
         );
 
         const std::vector<cSensorImage *> &  VSensors() const;  ///< Accessor, error if empty
@@ -385,10 +388,15 @@ class cComputeMergeMulTieP : public cMemCheck
         const std::vector<std::string> & VNames() const; ///< Accessor
         //  comptactify each of the point vector
         void Shrink() ;
+
+	const std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> & IndexeOfImages()  const;
+	void SetImageIndexe();
+	void SetPGround();
      private  :
-        std::vector<std::string>          mVNames;
-        std::vector<cSensorImage *>       mVSensors;  ///< optionnal, when point are used in 3D
-        std::map<tConfigIm,cVal1ConfTPM>  mPts;
+        std::vector<std::string>               mVNames;
+        std::vector<cSensorImage *>            mVSensors;  ///< optionnal, when point are used in 3D
+        std::map<tConfigIm,cVal1ConfTPM>       mPts;
+	std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> mImageIndexes;
 };
 
 /** Class for parsing tiepoint & gcp identically as generating cPMulGCPIm */
@@ -420,8 +428,9 @@ cComputeMergeMulTieP * AllocStdFromMTP
                       (
                             const std::vector<std::string> & aVNames,
                             cPhotogrammetricProject & aPhProj,
-                            bool  WithIndex,
-			    bool  WithSensor
+                            bool  WithPtIndex,
+			    bool  WithSensor,
+			    bool  WithImageIndexe
                       );
 
 

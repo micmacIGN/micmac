@@ -318,6 +318,8 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 	     ///  big object, no valuable copy
             cPerspCamIntrCalib(const cPerspCamIntrCalib &) = delete;
 
+	    void CheckBeforeInverse(const tVecOut &) const;
+	    void CheckBeforeInverse(const tPtOut & ) const;
 
 
          // ==================   DATA PART   ===================

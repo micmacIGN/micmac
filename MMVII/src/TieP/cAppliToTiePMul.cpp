@@ -194,7 +194,7 @@ int cAppli_ToTiePMul::Exe()
    if (mPhProj.DPMulTieP().DirInIsInit())
    {
        StdOut()  << "BEGINING RELOAD" << std::endl;
-       cComputeMergeMulTieP * aCM =  AllocStdFromMTP(aVName,mPhProj,false,mPhProj.DPOrient().DirInIsInit());
+       cComputeMergeMulTieP * aCM =  AllocStdFromMTP(aVName,mPhProj,false,mPhProj.DPOrient().DirInIsInit(),true);
        StdOut()  << "BEGINING TEST INTEGRITY" << std::endl;
        aSMTP.TestEq(*aCM);
        delete aCM;

@@ -182,7 +182,13 @@ class cReadMTP_Std
 {
       public :
               typedef cIndexedHeap<cObjHeapMTP,cParamHeap_MTP,cParamHeap_MTP> tHeap;
-	      cReadMTP_Std(const std::vector<std::string> &aVNames,cPhotogrammetricProject & aPhProj,bool WithInd,bool WithSensor);
+	      cReadMTP_Std
+              (
+                     const std::vector<std::string> &aVNames,
+		     cPhotogrammetricProject & aPhProj,
+		     bool WithInd,
+		     bool WithSensor
+              );
 
 	      cComputeMergeMulTieP *      CompMerge();
       private :
@@ -281,11 +287,15 @@ cComputeMergeMulTieP * AllocStdFromMTP
                       (
                             const std::vector<std::string> &aVNames,
                             cPhotogrammetricProject & aPhProj,
-                            bool  WithIndex,
-                            bool  WithSensor
+                            bool  WithIndexPt,
+                            bool  WithSensor,
+                            bool  WithIndexImages
                       )
 {
-    cReadMTP_Std aRStd(aVNames,aPhProj,WithIndex,WithSensor);
+    cReadMTP_Std aRStd(aVNames,aPhProj,WithIndexPt,WithSensor);
+
+    if (WithIndexImages)
+        aRStd.CompMerge()->SetImageIndexe();
 
     return aRStd.CompMerge();
 }

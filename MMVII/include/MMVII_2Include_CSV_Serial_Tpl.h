@@ -150,6 +150,7 @@ template <class Type>
 
 template <class Type> void FromCSV(std::vector<Type>& aVect,const std::string & aNameFile,bool WithHeader)
 {
+	// StdOut() << "FromCSVFromCSV " << aNameFile << " " << ExistFile(aNameFile) << "\n";
     cICSVFile<Type> aCvsIn1(aNameFile,WithHeader);
     aCvsIn1.ReadFromFile(aVect);
 }

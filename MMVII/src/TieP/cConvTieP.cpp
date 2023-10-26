@@ -96,10 +96,12 @@ int cAppli_TiePConvert::Exe()
    tNameSelector  aRegDebug =  AllocRegex(mPatNameDebug);
 
 
+   int aNbExist = 0;
    // parse all pair, in only one sense, as we will merge "AB" with "BA" when both exist
+   int aFreqMsg = std::max(1,std::min(100,int(aVName.size())/10));
    for (size_t aK1=0; aK1<aVName.size() ; aK1++)
    {
-      if (IsInit(&mPatNameDebug) && (aK1%100==0))
+      if (IsInit(&mPatNameDebug) && (aK1%aFreqMsg==0))
          StdOut() << "Still " << aVName.size() - aK1 << " to process " << std::endl;
       for (size_t aK2=aK1+1; aK2<aVName.size() ; aK2++)
       {
@@ -116,6 +118,7 @@ int cAppli_TiePConvert::Exe()
 
            if (Exist12 || Exist21) // if one of both exist : create
            {
+               aNbExist++;
                std::vector<std::string> aV12({aN1,aN2});
 	       // structure to make the fusion
 	       cComputeMergeMulTieP aSMTP(aV12,aIIH);
@@ -160,6 +163,11 @@ int cAppli_TiePConvert::Exe()
 
            }
       }
+   }
+
+   if (aNbExist==0)
+   {
+       MMVII_UnclasseUsEr("No file found (if MMV1 : maybe change dat/txt)");
    }
 
    delete aIIH;

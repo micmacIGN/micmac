@@ -362,24 +362,6 @@ cSpecMMVII_Appli  TheSpec_CGPReport
       __FILE__
 );
 
-/* ==================================================== */
-
-tMMVII_UnikPApli Alloc_TiePReport(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_CGPReport(aVArgs,aSpec,false));
-}
-
-cSpecMMVII_Appli  TheSpec_TiePReport
-(
-     "ReportTieP",
-      Alloc_TiePReport,
-      "Reports on TieP projection",
-      {eApF::TieP,eApF::Ori},
-      {eApDT::TieP,eApDT::Orient},
-      {eApDT::Image,eApDT::Xml},
-      __FILE__
-);
-
 
 }; // MMVII
 
