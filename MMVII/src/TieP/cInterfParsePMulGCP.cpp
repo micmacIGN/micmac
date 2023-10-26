@@ -49,19 +49,21 @@ void cGCP_PMGCP::SetCurPt()
     const cMultipleImPt & aMP = mVMIP.at(mCurInd);
     mResult.mVPIm = aMP.VMeasures();
     mResult.mVIm = aMP.VImages();
+
+    const cMes1GCP & aMG =   mSet.MesGCPOfMulIm(aMP);
+    mResult.mPGround = aMG.mPt;
+    mResult.mName = aMG.mNamePt;
 }
-/*
-	    class cPMulGCPIm
+
+bool   cGCP_PMGCP::End() const { return (mCurInd==mIndEnd); }
+
+void  cGCP_PMGCP::Incr()
 {
-    public :
-       std::string          mName;
-       cPt3dr               mPGround;
-       std::vector<cPt2dr>  mVPIm;
-       tConfigIm            mVIm;
-};
-*/
+    mCurInd++;
 
-
+    if (mCurInd!=mIndEnd)
+       SetCurPt();
+}
 
 /******************************************************/
 /*                                                    */
@@ -72,7 +74,7 @@ void cGCP_PMGCP::SetCurPt()
 class cMTP_PMGCP : public cInterfParsePMulGCP
 {
      public :
-         const std::vector<std::string> & VNamesImage() const override;
+         const std::vector<std::string> & VNamesImage() const;
 	 cMTP_PMGCP(const cComputeMergeMulTieP &,bool WithPGround);
 	 void  Incr() override;
 	 bool   End() const override;
@@ -187,6 +189,12 @@ cInterfParsePMulGCP *  cInterfParsePMulGCP::Alloc_CMTP(const cComputeMergeMulTie
 {
     return new  cMTP_PMGCP(aCMTP,WithPGround);
 }
+
+cInterfParsePMulGCP *  cInterfParsePMulGCP::Alloc_ImGCP(const cSetMesImGCP &aSet)
+{
+    return new cGCP_PMGCP (aSet);
+}
+
 
 cInterfParsePMulGCP::cInterfParsePMulGCP(bool withPGround) :
     mWithPGround (withPGround)

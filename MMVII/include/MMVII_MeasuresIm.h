@@ -400,11 +400,11 @@ class cInterfParsePMulGCP : public cMemCheck
 
          virtual bool   End() const = 0;
          virtual void   Incr() = 0;
-         virtual const std::vector<std::string> & VNamesImage() const = 0;
+         // virtual const std::vector<std::string> & VNamesImage() const = 0;
 
          const cPMulGCPIm & CurP() const;
          static cInterfParsePMulGCP *  Alloc_CMTP(const cComputeMergeMulTieP &,bool WithPGround);
-         static cInterfParsePMulGCP *  Alloc_ImGCP(const cSetMesImGCP &,bool WithPGround);
+         static cInterfParsePMulGCP *  Alloc_ImGCP(const cSetMesImGCP &);
 
 	 virtual ~cInterfParsePMulGCP();
 
