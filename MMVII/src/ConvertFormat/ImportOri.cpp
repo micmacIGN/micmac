@@ -135,7 +135,7 @@ int cAppli_ImportOri::Exe()
 	 mPhProj.SaveCamPC(aCam);
 
 
-	 StdOut() << "NAME =" <<   aNameIm << " xyz=" << aVXYZ.at(aK)  << " WPK=" << aWPK  << " F=" << aCalib->F() << "\n";
+	 StdOut() << "NAME =" <<   aNameIm << " xyz=" << aVXYZ.at(aK)  << " WPK=" << aWPK  << " F=" << aCalib->F() << std::endl;
 	 // getchar();
     }
 

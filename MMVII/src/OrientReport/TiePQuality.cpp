@@ -119,7 +119,7 @@ void cAppli_TiePReport::MakeStatByImage()
           mPrefixCSVIma,mSetNames[aKImGlob],aStat,mPropStat,
           {ToStr(aAvg2d.Average().x()),ToStr(aAvg2d.Average().y())}
        );
-       StdOut() << mSetNames[aKImGlob]  << " Avg=" << aStat.Avg() << "\n";
+       StdOut() << mSetNames[aKImGlob]  << " Avg=" << aStat.Avg() << std::endl;
    }
 }
 

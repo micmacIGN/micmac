@@ -618,7 +618,7 @@ void BenchSampleQuat()
    if (0)
    {
         tREAL8 aThR = std::sqrt(9.0/8.0);  // theoreticall ratio
-        StdOut() <<  "1.06 ?  = " << aThR << "\n";
+        StdOut() <<  "1.06 ?  = " << aThR << std::endl;
         for (tREAL8 aEps : {1e-3,1e-2,1e-1})  // for different value of what means close
         {
              cStdStatRes aStatC1;  // stat for close points
@@ -644,9 +644,9 @@ void BenchSampleQuat()
 
              }
 
-             StdOut() << " ============ "  << aEps  << " ============ \n";
-             StdOut() << "R12 = " << aStat2.Min()  << " " << aStat2.Max()  << "\n";
-             StdOut() << "R1 -sqrt(9/8)  = " << std::abs(aStatC1.Min()-aThR)  << " " << std::abs(aStatC1.Max()-aThR)  << "\n";
+             StdOut() << " ============ "  << aEps  << " ============ " << std::endl;
+             StdOut() << "R12 = " << aStat2.Min()  << " " << aStat2.Max()  << std::endl;
+             StdOut() << "R1 -sqrt(9/8)  = " << std::abs(aStatC1.Min()-aThR)  << " " << std::abs(aStatC1.Max()-aThR)  << std::endl;
         }
    }
 
@@ -680,9 +680,9 @@ void BenchSampleQuat()
            }
        }
 
-       StdOut()  << "PQ=" << aPQ << " NBC" << aVecClose << "\n";
-       StdOut()  << "D=" << aWMin.ValExtre()  << "\n";
-       StdOut()  << "Q2=" << aSQ.KthQuat(aWMin.IndexExtre())  << "\n";
+       StdOut()  << "PQ=" << aPQ << " NBC" << aVecClose << std::endl;
+       StdOut()  << "D=" << aWMin.ValExtre()  << std::endl;
+       StdOut()  << "Q2=" << aSQ.KthQuat(aWMin.IndexExtre())  << std::endl;
    }
 
     if (0)
@@ -691,12 +691,12 @@ void BenchSampleQuat()
         int aNbTest =   10000;
 
         cSampleQuat aSQ = cSampleQuat::FromNbRot(aNbRot,false);
-        StdOut() << "DMAX=" << aSQ.TestStatMinDist(aNbTest).Max() << "\n";
+        StdOut() << "DMAX=" << aSQ.TestStatMinDist(aNbTest).Max() << std::endl;
 
         cSampleQuat aSQR = cSampleQuat::FromNbRot(aNbRot,true);
-        StdOut() << "DMAXR=" << aSQR.TestStatMinDist(aNbTest).Max() << "\n";
+        StdOut() << "DMAXR=" << aSQR.TestStatMinDist(aNbTest).Max() << std::endl;
 
-        StdOut() << "D12Min=" << aSQ.TestMinDistPairQuat() << "\n";
+        StdOut() << "D12Min=" << aSQ.TestMinDistPairQuat() << std::endl;
     }
 }
 

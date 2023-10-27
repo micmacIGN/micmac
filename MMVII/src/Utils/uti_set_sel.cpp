@@ -495,7 +495,7 @@ std::string ReplacePattern(const std::string & aPattern,const std::string & aSub
    }
    if (aRes=="")
    {
-       StdOut() << "Pat=[" << aPattern << "] String=[" << aString << "]\n";
+       StdOut() << "Pat=[" << aPattern << "] String=[" << aString << "]" << std::endl;
        MMVII_INTERNAL_ASSERT_tiny(false,"No match  in ReplacePattern");
    }
 

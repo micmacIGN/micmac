@@ -67,21 +67,21 @@ cAppli_OriRel2Im::tPose  cAppli_OriRel2Im::EstimPose_By_MatEssL1Glob()
      cLinearOverCstrSys<tREAL8> *  aSysL1 = AllocL1_Barrodale<tREAL8>(9);
      cMatEssential aMatEL1(*mCpleDir,*aSysL1,mKMaxME);
 
-     StdOut()  <<  "CCCCC= " << aMatEL1.AvgCost(*mCpleDir,0.05)  * mFocM << "\n";
-     StdOut()  <<  "CCCCC= " << aMatEL1.AvgCost(*mCpleDir,5.0/mFocM) * mFocM << "\n";
-     StdOut()  <<  "MED= " << aMatEL1.KthCost(*mCpleDir,0.5) * mFocM << "\n";
-     StdOut()  <<  "P90= " << aMatEL1.KthCost(*mCpleDir,0.9) * mFocM << "\n";
-     StdOut()  <<  "MAX= " << aMatEL1.KthCost(*mCpleDir,1.1) * mFocM << "\n";
+     StdOut()  <<  "CCCCC= " << aMatEL1.AvgCost(*mCpleDir,0.05)  * mFocM << std::endl;
+     StdOut()  <<  "CCCCC= " << aMatEL1.AvgCost(*mCpleDir,5.0/mFocM) * mFocM << std::endl;
+     StdOut()  <<  "MED= " << aMatEL1.KthCost(*mCpleDir,0.5) * mFocM << std::endl;
+     StdOut()  <<  "P90= " << aMatEL1.KthCost(*mCpleDir,0.9) * mFocM << std::endl;
+     StdOut()  <<  "MAX= " << aMatEL1.KthCost(*mCpleDir,1.1) * mFocM << std::endl;
      tPose aRes  = aMatEL1.ComputePose(*mCpleDir);
      delete aSysL1;
 
 
      if (mUseOri4GT)
      {
-         StdOut() << VUnit(mGTPose.Tr())  << aRes.Tr() << "\n";
+         StdOut() << VUnit(mGTPose.Tr())  << aRes.Tr() << std::endl;
 
 	 mGTPose.Rot().Mat().Show();
-	 StdOut() << "=============================\n";
+	 StdOut() << "=============================" << std::endl;
 	 aRes.Rot().Mat().Show();
      }
 

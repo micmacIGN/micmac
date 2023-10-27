@@ -179,12 +179,12 @@ void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 	      }
            }
             if (LevelCall()==0)
-               StdOut() << "VISIBLE " << aGCP.mNamePt << "\n";
+               StdOut() << "VISIBLE " << aGCP.mNamePt << std::endl;
         }
 	else
 	{
             if (LevelCall()==0)
-               StdOut() << "### UNVISIBLE " << aGCP.mNamePt << "\n";
+               StdOut() << "### UNVISIBLE " << aGCP.mNamePt << std::endl;
 	}
     }
 

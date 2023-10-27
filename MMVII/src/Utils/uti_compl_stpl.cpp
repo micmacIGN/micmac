@@ -74,7 +74,7 @@ template <class Type>
 
     if (aK<0)
     {
-         StdOut()  << "For context : " << aMesg << "\n";
+         StdOut()  << "For context : " << aMesg << std::endl;
          MMVII_INTERNAL_ASSERT_tiny(false,"Obj2I : object dont exist ===> [ " + aMesg + "]" );
     }
 

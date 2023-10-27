@@ -300,7 +300,7 @@ void cComputeMergeMulTieP::TestEq(cComputeMergeMulTieP &aS2) const
             StdOut() <<  " * C1=" << aP1.first  << " Nb=" << aP1.second.size() << std::endl ;
         StdOut() << "==================" << std::endl ;
         for (const auto  &  aP2 : aMapPts2)
-            StdOut() <<  " * C2=" << aP2.first  << " Nb=" << aP2.second.size() << "\n";
+            StdOut() <<  " * C2=" << aP2.first  << " Nb=" << aP2.second.size() << std::endl;
         StdOut() << "==================" << std::endl ;
 	*/
     }

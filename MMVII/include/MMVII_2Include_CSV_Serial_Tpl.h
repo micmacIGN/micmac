@@ -81,8 +81,8 @@ template <class Type>  class cICSVFile :  public  cCSVFile<Type>,
                   ReadLine();
                   if (mBufLine!=  this->mHeader)
                   {
-                      StdOut() << "Header got      -> " << mBufLine << "\n";
-                      StdOut() << "Header Expected -> "<< this->mHeader << "\n";
+                      StdOut() << "Header got      -> " << mBufLine << std::endl;
+                      StdOut() << "Header Expected -> "<< this->mHeader << std::endl;
 
                       MMVII_UnclasseUsEr("CSV FILE, header does not much what's excpected for type");
                   }
@@ -150,7 +150,7 @@ template <class Type>
 
 template <class Type> void FromCSV(std::vector<Type>& aVect,const std::string & aNameFile,bool WithHeader)
 {
-	// StdOut() << "FromCSVFromCSV " << aNameFile << " " << ExistFile(aNameFile) << "\n";
+	// StdOut() << "FromCSVFromCSV " << aNameFile << " " << ExistFile(aNameFile) << std::endl;
     cICSVFile<Type> aCvsIn1(aNameFile,WithHeader);
     aCvsIn1.ReadFromFile(aVect);
 }

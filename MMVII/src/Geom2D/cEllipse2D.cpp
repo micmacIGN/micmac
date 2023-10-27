@@ -502,7 +502,7 @@ void cExtract_BW_Ellipse::AnalyseAllConnectedComponents(const std::string & aNam
 	bool OkCC = AnalyseOneConnectedComponents(aSeed);
         if (aSeed.mMarked4Test && (!OkCC) )
 	{
-            StdOut() << "###  For Marked point " << aSeed.mPixW << " AnalyseCC = " << OkCC << "    ###\n";
+            StdOut() << "###  For Marked point " << aSeed.mPixW << " AnalyseCC = " << OkCC << "    ###" << std::endl;
 	}
         if (OkCC)
         {
@@ -510,7 +510,7 @@ void cExtract_BW_Ellipse::AnalyseAllConnectedComponents(const std::string & aNam
 
             if (aSeed.mMarked4Test && (!OkFront))
 	    {
-                StdOut() << "###  For Marked point " << aSeed.mPixW << " AnalyseFront = " << OkFront << "  ###\n";
+                StdOut() << "###  For Marked point " << aSeed.mPixW << " AnalyseFront = " << OkFront << "  ###" << std::endl;
 	    }
 
             if (OkFront)

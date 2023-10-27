@@ -148,12 +148,12 @@ int cAppli_TiePConvert::Exe()
                       for (int aTime=0 ;aTime<100; aTime++)
                           mPhProj.SaveHomol(aSetH,aN1,aN2);
                       double aT1 = SecFromT0();
-		      StdOut() << "TIME SAVE " << aT1-aT0 << "\n";
+		      StdOut() << "TIME SAVE " << aT1-aT0 << std::endl;
 
                       for (int aTime=0 ;aTime<100; aTime++)
 		           mPhProj.ReadHomol(aSetH,aN1,aN2,mPhProj.DPTieP().FullDirOut());
                       double aT2 = SecFromT0();
-		      StdOut() << "TIME READ " << aT2-aT1 << "\n";
+		      StdOut() << "TIME READ " << aT2-aT1 << std::endl;
 		   }
 	       }
 	       else  // this case should never happen

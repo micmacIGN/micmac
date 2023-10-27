@@ -245,7 +245,7 @@ cWhichMin<tRot,tREAL8>   cAppli_ClinoInit::IterInit(int aNbStep)
         aWMin.Add(aRot,aCost);  // update lowest cost solution
     }
 
-    StdOut() << "MIN0=  " << std::sqrt(aWMin.ValExtre())  << "\n";
+    StdOut() << "MIN0=  " << std::sqrt(aWMin.ValExtre())  << std::endl;
     return aWMin;
 }
 
@@ -269,7 +269,7 @@ cWhichMin<tRot,tREAL8>  cAppli_ClinoInit::OneIter(const tRot & aR0,tREAL8 aStep,
         }
     }
 
-    StdOut() << "MIN " << std::sqrt(aWMin.ValExtre())  << " Step=" << aStep << "\n";
+    StdOut() << "MIN " << std::sqrt(aWMin.ValExtre())  << " Step=" << aStep << std::endl;
     return  aWMin;
 }
 
@@ -296,7 +296,7 @@ void cAppli_ClinoInit::ComputeCond(const tRot & aRot0,tREAL8 aEpsilon)
 
      // print ratio with highest value
      cDenseVect<tREAL8>  aDV = aStat.DoEigen().EigenValues();
-     StdOut() << "R2=" << std::sqrt(aDV(0)/aDV(2))  << " R1=" << std::sqrt(aDV(1)/aDV(2)) << "\n";
+     StdOut() << "R2=" << std::sqrt(aDV(0)/aDV(2))  << " R1=" << std::sqrt(aDV(1)/aDV(2)) << std::endl;
 }
 
 int cAppli_ClinoInit::Exe()
@@ -379,7 +379,7 @@ int cAppli_ClinoInit::Exe()
     {
         for (size_t aKCSel=0 ; aKCSel<mVKClino.size() ; aKCSel++)
 	{
-            StdOut() << "OPTIMIZE CLINO " << mVKClino[aKCSel] << "\n";
+            StdOut() << "OPTIMIZE CLINO " << mVKClino[aKCSel] << std::endl;
             for (size_t aKC=0 ; aKC<mVKClino.size() ; aKC++)
 	    {
                  mComputedClino.at(aKC) = (aKC==aKCSel);
@@ -401,11 +401,11 @@ int cAppli_ClinoInit::Exe()
 
     if (IsInit(&mASim))
     {
-       StdOut() << "GROUND TRUTH " << CostRot(mKClino,aRSol) << "\n";
+       StdOut() << "GROUND TRUTH " << CostRot(mKClino,aRSol) << std::endl;
        aRSol.Mat().Show();
 
-       StdOut() << "   ============== GROUND TRUTH ======================\n";
-       StdOut() << "COST " << CostRot(mKClino,aRSim) << "\n";
+       StdOut() << "   ============== GROUND TRUTH ======================" << std::endl;
+       StdOut() << "COST " << CostRot(mKClino,aRSim) << std::endl;
        ComputeCond(mKClino, aRSim);
      }
 #endif

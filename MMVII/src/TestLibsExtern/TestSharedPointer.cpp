@@ -361,7 +361,7 @@ int cAppli_MMVII_TestCpp11::Exe()
        it += 2;
    }
    // Range for "enum" values
-   for (const auto x : { 2,3,5,7,11 }) StdOut() << "Prime ? "  << x << '\n';
+   for (const auto x : { 2,3,5,7,11 }) StdOut() << "Prime ? "  << x << std::endl;
 
    // >> and double range
    std::vector<std::vector<int>>  aVVI;

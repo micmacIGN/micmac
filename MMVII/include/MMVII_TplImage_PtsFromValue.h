@@ -53,7 +53,7 @@ template <class Type> class cGetPts_ImInterp_FromValue
           tREAL8 aV0 = GetV(aP0);
           if (!CheckNoVal(aV0))
 	  {
-		  if (Show) StdOut() << "CheckNoVal0 " << __LINE__ << "\n";
+		  if (Show) StdOut() << "CheckNoVal0 " << __LINE__ << std::endl;
 		  return;
 	  }
           mP0IsSup = (aV0>=aVal);   // memorise if I0 > Val >I1 or I0<Val>I1
@@ -62,11 +62,11 @@ template <class Type> class cGetPts_ImInterp_FromValue
           double aV1 = GetV(aP1);
           if (!CheckNoVal(aV1))
 	  {
-               if (Show) StdOut() << "CheckNoVal1 " << __LINE__ << "\n";
+               if (Show) StdOut() << "CheckNoVal1 " << __LINE__ << std::endl;
                return;
 	  }
 	  if (Show )
-             StdOut() << "VVV " << aVal << " " << aV0 << " " << aV1 << "\n";
+             StdOut() << "VVV " << aVal << " " << aV0 << " " << aV1 << std::endl;
 
 
           int aNbIter=0;
@@ -79,17 +79,17 @@ template <class Type> class cGetPts_ImInterp_FromValue
                 aV1 = GetV(aP1);
                 if (!CheckNoVal(aV1)) 
 		{
-                     if (Show) StdOut() << "CheckNoVal1 (V2) " << __LINE__ << "\n";
+                     if (Show) StdOut() << "CheckNoVal1 (V2) " << __LINE__ << std::endl;
                      return;
 		}
                 aNbIter++;
                 if (aNbIter>mMaxIterInit)
 		{
-                        if (Show) StdOut() << "aNbIter>mMaxIterInit " << __LINE__ << "\n";
+                        if (Show) StdOut() << "aNbIter>mMaxIterInit " << __LINE__ << std::endl;
 			return;
 		}
           }
-          if (Show) StdOut() << "NBIT  " <<  aNbIter << "\n";
+          if (Show) StdOut() << "NBIT  " <<  aNbIter << std::endl;
 
 	  // now  refine interval by dicothomic cut
           tREAL8 aTol0 = std::abs(aV0-aVal);
@@ -103,7 +103,7 @@ template <class Type> class cGetPts_ImInterp_FromValue
                tREAL8 aNewV = GetV(aNewP);  // value of new point
                if (!CheckNoVal(aNewV))
 	       {
-                     if (Show) StdOut() << "CheckNoValNEW " << __LINE__ << "\n";
+                     if (Show) StdOut() << "CheckNoValNEW " << __LINE__ << std::endl;
 		       return;
 	       }
                if (   ((aNewV<=aV0) != mP0IsSup) || ((aNewV>=aV1) != mP0IsSup) )

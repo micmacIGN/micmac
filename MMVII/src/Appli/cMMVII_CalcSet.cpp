@@ -243,7 +243,7 @@ int cAppli_EditSet::Exe()
       }
    }
 
-   // StdOut()  << "aNewaNewaNew " <<  aNew.size() << "\n";
+   // StdOut()  << "aNewaNewaNew " <<  aNew.size() << std::endl;
 
    tNameSet aRes = aInput.Dupl();
 

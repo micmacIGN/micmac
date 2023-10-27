@@ -685,9 +685,9 @@ int cAppli_CalibratedSpaceResection::Exe()
        tREAL8 aMedErr = Cst_KthVal(aVRes,0.5);
        if (aMedErr> mMaxErrOK)
        {
-           StdOut() << " ============================================================\n";
-           StdOut() << " median error on residual seems too High " << aMedErr << "\n";
-           StdOut() << " check data or eventutally change value of [MaxErr] (now =" << mMaxErrOK << ")\n";
+           StdOut() << " ============================================================" << std::endl;
+           StdOut() << " median error on residual seems too High " << aMedErr << std::endl;
+           StdOut() << " check data or eventutally change value of [MaxErr] (now =" << mMaxErrOK << ")" << std::endl;
            MMVII_INTERNAL_ASSERT_User(false,eTyUEr::eUnClassedError,"Space resection probably failed due to bad data");
        }
     }

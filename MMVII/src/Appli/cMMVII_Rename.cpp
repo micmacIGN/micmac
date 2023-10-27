@@ -72,7 +72,7 @@ void cAppli_Rename::TestSet(const std::string & aNameOut)
 int cAppli_Rename::Exe()
 {
     std::set<std::string> aSetStr;
-    StdOut() <<  "============= Proposed replacement  ====== \n";
+    StdOut() <<  "============= Proposed replacement  ====== " << std::endl;
 
     std::vector<std::pair<std::string,std::string>  > aVInOut;
 
@@ -124,7 +124,7 @@ int cAppli_Rename::Exe()
         if (IsInit(&mArithmReplace))
            StdOut() << " ==> [" << aStrIn  << "] ";
 
-        StdOut() << " ==> [" << aStrOut  << "]  \n";
+        StdOut() << " ==> [" << aStrOut  << "]  " << std::endl;
 
         // TestSet(aStrIn0);
         TestSet(aStrOut);
@@ -149,14 +149,14 @@ int cAppli_Rename::Exe()
         for (const auto & aPair : aVInOut)
         {
             auto [aStrIn0,aStrOut] = aPair;
-            StdOut() << "mv " << aStrIn0  << " " << aPrefTmp+aStrIn0  << "\n";
+            StdOut() << "mv " << aStrIn0  << " " << aPrefTmp+aStrIn0  << std::endl;
 	    RenameFiles(aStrIn0,aPrefTmp+aStrIn0);
         }
 	// the put, safely, "tmp" in "output"
         for (const auto & aPair : aVInOut)
         {
             auto [aStrIn0,aStrOut] = aPair;
-            StdOut() << "mv " << aPrefTmp+ aStrIn0  << " " << aStrOut  << "\n";
+            StdOut() << "mv " << aPrefTmp+ aStrIn0  << " " << aStrOut  << std::endl;
 	    RenameFiles(aPrefTmp+aStrIn0,aStrOut);
         }
     }

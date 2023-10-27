@@ -351,7 +351,7 @@ bool  cExtract_BW_Target::ComputeFrontier(cSeedBWTarget & aSeed)
      }
      cPt2di aPExtre = aCompExtre.IndexExtre();
 
-     // a little check   StdOut() << int(eEEBW_Lab::eFront) << " " << int (GetMarq(aPExtre)) << "\n";
+     // a little check   StdOut() << int(eEEBW_Lab::eFront) << " " << int (GetMarq(aPExtre)) << std::endl;
      MMVII_INTERNAL_ASSERT_tiny(eEEBW_Lab::eFront==GetMarq(aPExtre),"Chekc in front ext");
 
      // A2 now search eFront point connected to seed 
@@ -400,7 +400,7 @@ bool  cExtract_BW_Target::ComputeFrontier(cSeedBWTarget & aSeed)
         CC_SetMarq(eEEBW_Lab::eBadFr); 
 	if (aSeed.mMarked4Test)
 	{
-            StdOut() << "---### Not enough point for frontier : " << aNbOk << "### \n";
+            StdOut() << "---### Not enough point for frontier : " << aNbOk << "### " << std::endl;
 	}
 	return false;
      }
@@ -410,7 +410,7 @@ bool  cExtract_BW_Target::ComputeFrontier(cSeedBWTarget & aSeed)
         CC_SetMarq(eEEBW_Lab::eBadFr); 
 	if (aSeed.mMarked4Test)
 	{
-            StdOut() << "---### Proportion frontier-point ok to low : " << aProp << "### \n";
+            StdOut() << "---### Proportion frontier-point ok to low : " << aProp << "### " << std::endl;
 	}
 	return false;
      }

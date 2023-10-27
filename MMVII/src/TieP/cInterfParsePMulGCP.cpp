@@ -129,14 +129,14 @@ void cMTP_PMGCP::SetCurPt(bool WithConfigChg)
               //  if instead of mCurIt->second we use the "equivalent" inline VALUE
               mCurVP2 = &(VALUE(*mCurIt).mVPIm);
 
-              StdOut()  <<  "ddd1 " << mCurVP2 << " " << &(VALUE(*mCurIt).mVPIm) << "\n"; // The adress are the same
-              StdOut()  <<  "ddd2 " << mCurVP2 - &(VALUE(*mCurIt).mVPIm) << "\n";  // the adresses are realy the same
-              StdOut()  <<  "ddd3 " << mCurVP2->data() - VALUE(*mCurIt).mVPIm.data() << "\n"; // the adresses are definitively the same
+              StdOut()  <<  "ddd1 " << mCurVP2 << " " << &(VALUE(*mCurIt).mVPIm) << std::endl; // The adress are the same
+              StdOut()  <<  "ddd2 " << mCurVP2 - &(VALUE(*mCurIt).mVPIm) << std::endl;  // the adresses are realy the same
+              StdOut()  <<  "ddd3 " << mCurVP2->data() - VALUE(*mCurIt).mVPIm.data() << std::endl; // the adresses are definitively the same
 											    
-              StdOut()  <<  "ccc1 " << (*mCurVP2)[0] << " " << VALUE(*mCurIt).mVPIm[0] << "\n"; // first element are different
-              StdOut()  <<  "ccc2 " << mCurVP2->at(0) << " " << VALUE(*mCurIt).mVPIm.at(0) << "\n"; // first element are really different
-              StdOut()  <<  "ccc2 " << mCurVP2->data()[0] << " " << VALUE(*mCurIt).mVPIm.data()[0] << "\n"; // first element are definitively different
-              StdOut()  <<  "ccc4 " << (*mCurVP2)[1] << " " << VALUE(*mCurIt).mVPIm[1] << "\n";  //  by the way, second elment are equal !!!!!!
+              StdOut()  <<  "ccc1 " << (*mCurVP2)[0] << " " << VALUE(*mCurIt).mVPIm[0] << std::endl; // first element are different
+              StdOut()  <<  "ccc2 " << mCurVP2->at(0) << " " << VALUE(*mCurIt).mVPIm.at(0) << std::endl; // first element are really different
+              StdOut()  <<  "ccc2 " << mCurVP2->data()[0] << " " << VALUE(*mCurIt).mVPIm.data()[0] << std::endl; // first element are definitively different
+              StdOut()  <<  "ccc4 " << (*mCurVP2)[1] << " " << VALUE(*mCurIt).mVPIm[1] << std::endl;  //  by the way, second elment are equal !!!!!!
               getchar();
 	   }
         }
