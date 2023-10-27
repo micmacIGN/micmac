@@ -1,5 +1,4 @@
 #include "cMMVII_Appli.h"
-#include "MMVII_Sys.h"
 #include "MMVII_DeclareCste.h"
 
 
@@ -75,10 +74,6 @@ int cAppli_GenArgsSpec::Exe()
     aDesc += "    \"Bin2007\":\"" + FullBin() + "\",\n";
 
     aDesc += "    \"MMVIIDirPhp\":\"" + MMVII_DirPhp + "\",\n";
-    aDesc += "    \"MMVIIDirOrient\":\"" + MMVIIDirOrient + "\",\n";
-    aDesc += "    \"MMVIIDirHomol\":\"" + MMVIIDirHomol + "\",\n";
-    aDesc += "    \"MMVIIDirMeshDev\":\"" + MMVIIDirMeshDev + "\",\n";
-    aDesc += "    \"MMVIIDirRadiom\":\"" + MMVIIDirRadiom + "\",\n";
     aDesc += "    \"MMVIITestDir\":\"" + MMVIITestDir + "\",\n";
 
 

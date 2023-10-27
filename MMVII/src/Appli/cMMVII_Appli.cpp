@@ -1128,7 +1128,7 @@ void cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::
                     aErr += "WARNING: " + aSpecName + ": " + argName + ": has " + fileType + " and " + E2Str(a.Type()) + " file semantic.\n";
                 fileType = E2Str(a.Type());
             }
-            if (a.Type() >= eTA2007::Orient && a.Type() <= eTA2007::RadiomModel) {
+            if (a.Type() >= eTA2007::Orient && a.Type() <= eTA2007::MulTieP) {
                 if (dirType.length() != 0)
                     aErr += "WARNING: " + aSpecName + ": " + argName + ": has " + dirType + " and " + E2Str(a.Type()) + " dir semantic.\n";
                 dirType = E2Str(a.Type());
