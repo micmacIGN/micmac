@@ -61,7 +61,15 @@ void DoCorresp
    }
 }
 
-cExportV1StenopeCalInterne::cExportV1StenopeCalInterne(bool isForCalib,const std::string& aFile,int aNbPointPerDim,int aNbLayer,tREAL8 aDS) :
+cExportV1StenopeCalInterne::cExportV1StenopeCalInterne
+(
+        bool isForCalib,
+        const std::string& aFile,
+        int aNbPointPerDim,
+        int aNbLayer,
+        tREAL8 aDS,
+        const std::string& aFileInterneCalib
+) :
    mPose (cIsometry3D<tREAL8>::Identity())
 {
 	// do we read only a calibration or calib+pose
@@ -122,8 +130,15 @@ cExportV1StenopeCalInterne::cExportV1StenopeCalInterne(bool isForCalib,const std
    {
 	   // read the name of calibration
        cOrientationConique aOriConique=StdGetFromPCP(aFile,OrientationConique);
-       MMVII_INTERNAL_ASSERT_strong(aOriConique.FileInterne().IsInit(),"File interne absent");
-       mNameCalib = aOriConique.FileInterne().Val();
+       if (aFileInterneCalib != "")
+       {
+          mNameCalib = aFileInterneCalib;
+       }
+       else
+       {
+          MMVII_INTERNAL_ASSERT_strong(aOriConique.FileInterne().IsInit(),"File interne absent");
+          mNameCalib = aOriConique.FileInterne().Val();
+       }
 
        // In MMV1  Orient  M->C,  in MMV2 Pose C->M , so reciproc image are used
        ElRotation3D  aOriC2M = aCamV1->Orient();

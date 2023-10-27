@@ -197,6 +197,7 @@ void cMMVII_BundleAdj::SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAng
 void cMMVII_BundleAdj::OneItere_TieP()
 {
      cComputeMergeMulTieP *  aMTieP;
+FakeUseIt(aMTieP);
 }
 
 
