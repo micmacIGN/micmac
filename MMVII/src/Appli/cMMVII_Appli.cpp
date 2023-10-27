@@ -1787,7 +1787,7 @@ int  cMMVII_Appli::ExeOnePackComParal(const std::list<cParamCallSys> & aLCom,boo
    std::string aName  = NameFileLog(false);
    {
       cMMVII_Ofs  aOfs(aName, eFileModeOut::AppendText);
-      aOfs.Ofs() <<  "<<=============== Execute " << aLCom.size() << " in paral in file " << aNameMk << "\n";
+      aOfs.Ofs() <<  "<<=============== Execute " << aLCom.size() << " in paral" << "\n";
       for (const auto & aCom : aLCom)
           aOfs.Ofs() <<  "   Com=" << aCom.Com() << "\n";
       aOfs.Ofs().close();
@@ -1802,7 +1802,6 @@ int  cMMVII_Appli::ExeOnePackComParal(const std::list<cParamCallSys> & aLCom,boo
          aOfs.Ofs() <<  "!!!!!!!!!!!!  Failure in one of the commands !!!!!!!! \n";
       aOfs.Ofs().close();
    }
-   RemoveFile(aNameMk,true);
    return aResult;
 }
 

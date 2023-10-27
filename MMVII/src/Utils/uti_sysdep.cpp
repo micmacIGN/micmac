@@ -136,29 +136,28 @@ private:
 
 int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCallSys> & aListCom,int aNbProcess,bool SVP,bool Silence)
 {
-   //CM: Keep creating the Makefile, maybe useful for debugging ?
-   cMMVII_Ofs  aOfs(aNameMkF, eFileModeOut::CreateText);
-   int aNumTask=0;
-   std::string aStrAllTask = "all : ";
-   for (const auto & aNameCom : aListCom)
-   {
-       std::string aNameTask = "Task_" + ToStr(aNumTask);
-       aStrAllTask += BLANK  + aNameTask;
-       aOfs.Ofs() << aNameTask << " :\n";
-       aOfs.Ofs() << (Silence ? "\t@" : "\t") << aNameCom.Com() << "\n";
-       aNumTask++;
-   }
-   aOfs.Ofs() << aStrAllTask << "\n";
-   aOfs.Ofs() << "\t\n";
-   aOfs.Ofs().close();
-
    if (0 && UserIsMPD())
    {
+       cMMVII_Ofs  aOfs(aNameMkF, eFileModeOut::CreateText);
+       int aNumTask=0;
+       std::string aStrAllTask = "all : ";
+       for (const auto & aNameCom : aListCom)
+       {
+           std::string aNameTask = "Task_" + ToStr(aNumTask);
+           aStrAllTask += BLANK  + aNameTask;
+           aOfs.Ofs() << aNameTask << " :\n";
+           aOfs.Ofs() << (Silence ? "\t@" : "\t") << aNameCom.Com() << "\n";
+           aNumTask++;
+       }
+       aOfs.Ofs() << aStrAllTask << "\n";
+       aOfs.Ofs() << "\t\n";
+       aOfs.Ofs().close();
        std::string aCom = "make all -f "+ aNameMkF + " -j" + ToStr(aNbProcess) ;
        StdOut() << aCom << std::endl;
        int aRes= system(aCom.c_str());
        StdOut() << "KKKKKKKK " << aRes <<  std::endl;
        getchar();
+       RemoveFile(aNameMkF,true);
        return aRes;
    }
    else
