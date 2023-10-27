@@ -41,6 +41,8 @@ class cAppli_ImportOri : public cMMVII_Appli
 	int              mLLast;
 	char             mComment;
 	eTyUnitAngle     mAngleUnit;
+	std::string      mRepIJK;
+	bool             mRepIJDir;
 };
 
 cAppli_ImportOri::cAppli_ImportOri(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -49,7 +51,9 @@ cAppli_ImportOri::cAppli_ImportOri(const std::vector<std::string> & aVArgs,const
    mL0           (0),
    mLLast        (-1),
    mComment      ('#'),
-   mAngleUnit    (eTyUnitAngle::eUA_radian)
+   mAngleUnit    (eTyUnitAngle::eUA_radian),
+   mRepIJK       ("ijk"),
+   mRepIJDir     (false)
 {
 }
 
@@ -71,6 +75,8 @@ cCollecSpecArg2007 & cAppli_ImportOri::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
        << AOpt2007(mComment,"Com","Carac for commentary",{eTA2007::HDV})
        << AOpt2007(mAngleUnit,"AngU","Unity for angles",{{eTA2007::HDV},{AC_ListVal<eTyUnitAngle>()}})
+       << AOpt2007(mRepIJK,"Rep","Repair coded (relative  to MMVII convention)  ",{{eTA2007::HDV}})
+       << AOpt2007(mRepIJDir,"KIsUp","Coorespond to repair \"i-j-k\" ",{{eTA2007::HDV}})
     ;
 }
 
@@ -83,6 +89,10 @@ int cAppli_ImportOri::Exe()
     std::vector<std::vector<double>> aVNums;
     std::vector<cPt3dr> aVXYZ,aVWKP;
 
+    if (mRepIJDir)
+       mRepIJK = "i-j-k";
+
+    cRotation3D<tREAL8>  aRotAfter = cRotation3D<tREAL8>::RotFromCanonicalAxes(mRepIJK);
 
     MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYZN")==1,"Bad format vs NXYZ");
 
@@ -102,7 +112,10 @@ int cAppli_ImportOri::Exe()
 	 cPt3dr aWPK = aVWKP.at(aK) / aAngDiv ;
 
 	 cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromStdName(aNameIm);
+
 	 cRotation3D<tREAL8>  aRot =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
+	 aRot = aRot * aRotAfter;
+
 	 cIsometry3D aPose(aCenter,aRot);
 	 cSensorCamPC  aCam(aNameIm,aPose,aCalib);
 

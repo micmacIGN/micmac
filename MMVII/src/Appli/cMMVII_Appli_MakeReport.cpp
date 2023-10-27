@@ -36,7 +36,7 @@ void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,
     }
     else if (LevelCall()==1)
     {
-        mMapIdFilesReport[anId]  = DirSubPReport(anId) + FileOfPath(UniqueStr(0))  +"." + aPost;
+        mMapIdFilesReport[anId]  = DirSubPReport(anId) + FileOfPath(UniqueStr(0),false)  +"." + aPost;
     }
     else
         return;
@@ -118,7 +118,7 @@ void  cMMVII_Appli::DoMergeReport()
 	     {
 	        for (const auto & aNameIm : VectMainSet(0))
 	        {
-                    std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm) + "." + mMapIdPostReport[anId];
+                    std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm,false) + "." + mMapIdPostReport[anId];
 	            cMMVII_Ifs aIn(aNameIn, eFileModeIn::Text);
 
 	            std::string aLine;

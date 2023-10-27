@@ -70,6 +70,7 @@ cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
 
 cPt3dr  BundleInters(const std::vector<tSeg3dr> & aVSeg,const std::vector<tREAL8> * aVWeight)
 {
+     MMVII_INTERNAL_ASSERT_tiny(aVSeg.size()>=2,"Not enough seg in BundleInters");
      cDenseMatrix<tREAL8>  aDM(3,eModeInitImage::eMIA_Null);
      cPt3dr aRHS(0,0,0);
 

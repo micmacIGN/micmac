@@ -393,9 +393,14 @@ class cPhotogrammetricProject
           /// return from Std Dir, can be out in case of reload
 	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
 	  void LoadGCP(cSetMesImGCP&,const std::string & aPatFiltr="") const;
-	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr) const;
+	  // if SVP && file doesnt exist, do nothing
+	  void LoadIm(cSetMesImGCP&,const std::string & aNameIm,cSensorImage * =nullptr,bool SVP=false) const;
 	  void LoadIm(cSetMesImGCP&,cSensorImage & ) const;
 	  void SaveGCP(const cSetMesGCP&);
+
+	  /// Name of the file, usefull if we need to test existence before doing anything
+	  std::string NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const;
+
 
 	  /// Pattern for GCP file, if "" return default  = "cSetMesGCP::ThePrefixFiles.*.xml"
 	  std::string GCPPattern(const std::string & aArgPatFiltr) const;
