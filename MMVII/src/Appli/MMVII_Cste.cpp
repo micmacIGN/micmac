@@ -41,12 +41,6 @@ const std::string TmpMMVIIDirPrefix      =  MMVII_ComonPrefix +"-Tmp-Dir";
 const std::string TmpMMVIIDirGlob        =  TmpMMVIIDirPrefix + "-Glob" + StringDirSeparator();
 const std::string TmpMMVIIDirPCar        =  TmpMMVIIDirPrefix + "-PCar" + StringDirSeparator();
 
-const std::string MMVIIDirOrient      =  MMVII_ComonPrefix +"-Orient" + StringDirSeparator();
-const std::string MMVIIDirHomol       =  MMVII_ComonPrefix +"-Homol" + StringDirSeparator();
-const std::string MMVIIDirRadiom      =  MMVII_ComonPrefix +"-Radiom" + StringDirSeparator();
-
-const std::string MMVIIDirMeshDev      =  MMVII_ComonPrefix +"-MeshDev" + StringDirSeparator();
-
 
 const std::string MMVIITestDir       = "MMVII-TestDir" +StringDirSeparator();
 const std::string TmpMMVIIProcSubDir = "Process" + StringDirSeparator();

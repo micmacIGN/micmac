@@ -65,10 +65,6 @@ extern const std::string MMVIILocalParametersDir;
 extern const std::string TmpMMVIIProcSubDir;
 
 extern const std::string MMVII_DirPhp;
-extern const std::string MMVIIDirOrient;
-extern const std::string MMVIIDirHomol;
-extern const std::string MMVIIDirMeshDev;
-extern const std::string MMVIIDirRadiom;
 
 // File extensions for some supported files type declared en eTA2007
 extern const std::map<eTA2007,std::vector<std::string>> MMVIISupportedFilesExt;
