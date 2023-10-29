@@ -634,6 +634,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       Pt2dr  AltiSolMinMax (0,0);
 
       bool hasNewGenImage =false;
+      std::cout<<"mModePB  "<<mModePB<<std::endl;
       if (! mModePB)
       {
           // MPD : Ajout le 22/05/2015; car peut creer pb  si l'utilisateur a purge la directory
@@ -704,7 +705,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
       
 	//{
-	//    std::cout << "GGHhhh " << aNbAltiSol << " " << TypeForZInit << "\n";
+	    std::cout << "GGHhhh NbAltiSol TypeForZInit " << aNbAltiSol << " " << TypeForZInit <<"  "<<mType<<"  "<<ModeFaisZ<< "\n";
 	//    getchar();
 	//}
 
@@ -749,6 +750,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               aRSRT = true;
           }
       }
+      std::cout << "Iiiiiiiiiiiiinbc = Moy2=" <<  mZMoy << " Inc=" << mZincCalc << "\n";
 
       bool IsOrthoXCSte = false;
       bool IsAnamXCsteOfCart = false;

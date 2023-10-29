@@ -608,6 +608,7 @@ Pt2dr CorrecPoly(const Pt2dr aP,Polynome2dReal *aPol,double aMul)
 {
    if (aPol==0) return aP;
 
+   std::cout<<"aPol"<<std::endl;
    double aDY = (*aPol) (aP) ;
 
    return Pt2dr (aP.x,aP.y+aMul*aDY);
@@ -626,7 +627,6 @@ template <class Type,class TypeBase>
              bool DoExportGrid
          )
 {
-
    INT aRab = 10 + 2 * aScale;
    Pt2di aPRab(aRab,aRab);
    Box2di aBoxIn = R2I(GlobBoxCam(I2R(aBoxOut),aCamOut,aCamIn));
@@ -688,8 +688,7 @@ template <class Type,class TypeBase>
        {
             Pt2dr aPInput = Pt2dr(aPInd*aPas+aBoxOut._p0);
             aPInput = CorrecPoly(aPInput,aPol,-1);
-
-            Pt2dr aPIm = GlobTransfoEpip(aPInput,aCamOut,aCamIn) -Pt2dr(aBoxIn._p0);
+            Pt2dr aPIm = GlobTransfoEpip(aPInput,aCamOut,aCamIn)-Pt2dr(aBoxIn._p0);
             aTImX.oset(aPInd,aPIm.x);
             aTImY.oset(aPInd,aPIm.y);
        }
@@ -761,12 +760,74 @@ template <class Type,class TypeBase>
 
     if (DoExportGrid) // Export Epipolar grids in x and y directions
       {
+        // From Epipolar --> Image
+        int aSzXL=1+(aSzIn.x+aPas-1) / aPas;
+        int aSzYL=1+(aSzIn.y+aPas-1) / aPas;
+
+        TIm2D<REAL8,REAL8> aTEpImX(Pt2di(aSzXL+1,aSzYL+1));
+        TIm2D<REAL8,REAL8> aTEpImY(Pt2di(aSzXL+1,aSzYL+1));
+
+        Im2D_Bits<1> aEpImMasqOut(aSzIn.x,aSzIn.y);
+        //Im2D_Bits<1> aEpImMasqOut(aSzXL+1,aSzYL+1);
+        TIm2DBits<1> aEpTMasqOut(aEpImMasqOut);
+
+        for ( aPInd.x=0; aPInd.x<=aSzXL ; aPInd.x++)
+        {
+            for (aPInd.y=0; aPInd.y<=aSzYL ; aPInd.y++)
+            {
+               Pt2dr aPInput=Pt2dr(aPInd*aPas+aBoxIn._p0);
+               //aPInput= CorrecPoly(aPInput,aPol,-1);
+               Pt2dr aPIm=GlobTransfoEpip(aPInput,aCamIn,aCamOut)-Pt2dr(aBoxOut._p0);
+               aPIm= CorrecPoly(aPIm,aPol,1);
+               //std::cout<<"aPIm   "<<aPIm<<std::endl;
+               aTEpImX.oset(aPInd,aPIm.x);
+               aTEpImY.oset(aPInd,aPIm.y);
+               /*
+                * bool Ok =    (aPIm.x >= 0)
+                         && (aPIm.y >= 0)
+                         && (aPIm.x< aSzOut.x)
+                         && (aPIm.y< aSzOut.y);
+                  aEpTMasqOut.oset(aPInd,Ok);
+
+               */
+            }
+        }
+
+        // Masq Epipolar --> Image
+        UnSPas = 1.0/aPas;
+        for (int anX=0; anX<aSzIn.x ; anX++)
+        {
+           Pt2dr aPR(anX/double(aPas),0);
+           for (int anY=0; anY<aSzIn.y ; anY++)
+           {
+                Pt2di aPOut(anX,anY);
+                Pt2dr aPIm(aTEpImX.getr(aPR),aTEpImY.getr(aPR));
+                aPIm=aPIm+Pt2dr(aBoxOut._p0);
+                bool Ok =    (aPIm.x >= 0)
+                          && (aPIm.y >= 0)
+                          && (aPIm.x< aCamOut.Sz().x)
+                          && (aPIm.y< aCamOut.Sz().y);
+                aEpTMasqOut.oset(aPOut,Ok);
+                aPR.y += UnSPas;
+           }
+        }
 
         std::string aNameRedX = AddPrePost(aTOut.name(),"","_GEOX");
         std::string aNameRedY = AddPrePost(aTOut.name(),"","_GEOY");
         Tiff_Im  aTifMRedX(aNameRedX.c_str());
         Tiff_Im  aTifMRedY(aNameRedY.c_str());
+
+        std::string aNameEpRedX = AddPrePost(aTOut.name(),"","_EpIm_GEOX");
+        std::string aNameEpRedY = AddPrePost(aTOut.name(),"","_EpIm_GEOY");
+        std::string aNameEpMasq = AddPrePost(aTOut.name(),"","_EpIm_Masq");
+
+        Tiff_Im  aTifEpMRedX(aNameEpRedX.c_str());
+        Tiff_Im  aTifEpMRedY(aNameEpRedY.c_str());
+        Tiff_Im  aTifEpM(aNameEpMasq.c_str());
+
         Pt2dr Orig_x0y0=Pt2dr(aBoxIn._p0);
+        Pt2dr OrigEp_x0y0=Pt2dr(aBoxOut._p0);
+
         ELISE_COPY(
               aTImX.all_pts(),
               aTImX._the_im.in(0)+Orig_x0y0.x,
@@ -783,13 +844,43 @@ template <class Type,class TypeBase>
              trans(aTImX._the_im.in(0),-aBoxOut._p0),
              aTifMRedX.out()
         );
-
-
         ELISE_COPY
         (
              rectangle(aBoxOut._p0,aBoxOut._p1),
              trans(aTImY._the_im.in(0),-aBoxOut._p0),
              aTifMRedY.out()
+        );
+
+      // Epipolar --> Image
+        ELISE_COPY(
+              aTEpImX.all_pts(),
+              aTEpImX._the_im.in(0)+OrigEp_x0y0.x,
+              aTEpImX.out()
+              );
+        ELISE_COPY(
+              aTEpImY.all_pts(),
+              aTEpImY._the_im.in(0)+OrigEp_x0y0.y,
+              aTEpImY.out()
+              );
+        ELISE_COPY
+        (
+             rectangle(aBoxIn._p0,aBoxIn._p1),
+             trans(aTEpImX._the_im.in(0),-aBoxIn._p0),
+             aTifEpMRedX.out()
+        );
+        ELISE_COPY
+        (
+             rectangle(aBoxIn._p0,aBoxIn._p1),
+             trans(aTEpImY._the_im.in(0),-aBoxIn._p0),
+             aTifEpMRedY.out()
+        );
+
+       // Epipolar --> Image Masq
+        ELISE_COPY
+        (
+             rectangle(aBoxIn._p0,aBoxIn._p1),
+             trans(aEpImMasqOut.in(),-aBoxIn._p0),
+             aTifEpM.out()
         );
       }
     delete aKern;
@@ -1085,6 +1176,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
     const CamStenope & aCamIn =        Im1 ? mCInit1  : mCInit2;
     const CamStenopeIdeale & aCamOut = Im1 ? mCamOut1 : mCamOut2;
     Pt2di aSzOut = aCamOut.Sz();
+    Pt2di aSzIn  = aCamIn.Sz() ;
 
 
     std::string aNameOriOut =  mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",NameWithoutDir(aNameImOut),true);
@@ -1187,6 +1279,8 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
     // Nappes de redressement epipolaire
     Tiff_Im aTifRedX=aTOut;
     Tiff_Im aTifRedY=aTOut;
+    Tiff_Im aTif_Epip_ImX=aTOut;
+    Tiff_Im aTif_Epip_ImY=aTOut;
     if (ExportGridsGeoxy)
       {
 
@@ -1211,8 +1305,51 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
                             )    ;
        ELISE_COPY(aTifRedX.all_pts(),0,aTifRedX.out());
        ELISE_COPY(aTifRedY.all_pts(),0,aTifRedY.out());
-        MakeMetaData_XML_GeoI(aNameRedX,1.0);
-        MakeMetaData_XML_GeoI(aNameRedY,1.0);
+       MakeMetaData_XML_GeoI(aNameRedX,1.0);
+       MakeMetaData_XML_GeoI(aNameRedY,1.0);
+
+      // Create EpIm_GEOX and EpIm_GEOY
+
+      std::string aNameEpImRedX=AddPrePost(aNameImOut,"","_EpIm_GEOX");
+      std::string aNameEpImRedY=AddPrePost(aNameImOut,"","_EpIm_GEOY");
+
+      aTif_Epip_ImX=Tiff_Im
+          (
+              aNameEpImRedX.c_str(),
+              aSzIn,
+              GenIm::real4,
+              Tiff_Im::No_Compr,
+              Tiff_Im::BlackIsZero
+          );
+
+       aTif_Epip_ImY=Tiff_Im
+          (
+              aNameEpImRedY.c_str(),
+              aSzIn,
+              GenIm::real4,
+              Tiff_Im::No_Compr,
+              Tiff_Im::BlackIsZero
+          );
+
+       // Fill With zeros
+       ELISE_COPY(aTif_Epip_ImX.all_pts(),0,aTif_Epip_ImX.out());
+       ELISE_COPY(aTif_Epip_ImY.all_pts(),0,aTif_Epip_ImY.out());
+       // Metadata
+       MakeMetaData_XML_GeoI(aNameEpImRedX,1.0);
+       MakeMetaData_XML_GeoI(aNameEpImRedY,1.0);
+
+
+       std::string aNameEpMasq = AddPrePost(aNameImOut,"","_EpIm_Masq");
+       Tiff_Im  aTEpMasq
+                (
+                      aNameEpMasq.c_str(),
+                      aSzIn,
+                      GenIm::bits1_msbf,
+                      Tiff_Im::No_Compr,
+                      Tiff_Im::BlackIsZero
+                );
+        ELISE_COPY(aTEpMasq.all_pts(),0,aTEpMasq.out());
+
       }
 
     cDecoupageInterv2D  aDec = cDecoupageInterv2D::SimpleDec(aSzOut,2000,0,8);

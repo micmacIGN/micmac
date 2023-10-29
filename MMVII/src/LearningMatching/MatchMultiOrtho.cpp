@@ -263,7 +263,7 @@ std::vector<double> spaceProb = {0.0,0.0,  .00195898, 0.00357165, 0.00500644, 0.
  ,0.65872244, 0.67878127 ,0.7027543  ,0.73249943 ,0.77204769 ,0.8320679
  ,1.};
 
- // With ATTENTION
+ // With ATTENTION::
 /*
 std::vector<double> spaceCorr = {0.0, 5.00340527e-03, 1.00033870e-02, 1.50033692e-02
  ,2.00033505e-02, 2.50033326e-02, 3.00033130e-02, 3.50032970e-02
@@ -2440,7 +2440,7 @@ int  cAppliMatchMultipleOrtho::ExeProjectOrigEmbeddings()
                             //ProjectEmbeddings->push_back(this->InterpolateFeatMap(OrigEmbeddings->at(i),mVGEOX[i][0],mVGEOY[i][0]));
 
                             ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i).unsqueeze(0),
-                                                                            ToTensorGeo(mVGEOX[i][0],mVGEOY[i][0],aSzImOrig).to(device),
+                                                                            ToTensorGeo(mVGEOX[i][0],mVGEOY[i][0],aSzImOrig-cPt2di(1,1)).to(device),
                               FFunc::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
 
                             //auto OrthoEmbedding=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mVOrtho.at(i),aSzIm);
@@ -2679,12 +2679,12 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
                                     // master sec images
 
                                       ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i).unsqueeze(0),
-                                                                                      ToTensorGeo(mVGEOX[0][0],mVGEOY[0][0],aSzImOrig).to(device),
+                                                                                      ToTensorGeo(mVGEOX[0][0],mVGEOY[0][0],aSzImOrig-cPt2di(1,1)).to(device),
                                         F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
 
                                       cPt2di aSzImSec=mORIGIm.at(id_im).at(0).DIm().Sz();
                                       ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i+1).unsqueeze(0),
-                                                                                      ToTensorGeo(mVGEOX[id_im][0],mVGEOY[id_im][0],aSzImSec).to(device),
+                                                                                      ToTensorGeo(mVGEOX[id_im][0],mVGEOY[id_im][0],aSzImSec-cPt2di(1,1)).to(device),
                                         F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
 
                                     }
@@ -2720,9 +2720,15 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
 
 int cAppliMatchMultipleOrtho::Exe()
 {
-   return GotoEpipolar();
-  //return ExeProjectOrigEmbeddings();
-  return ExeSubPixFeats();
+  int aResol=std::atoi(mResol.c_str());
+  if (aResol==1)
+    {
+      return GotoEpipolar();
+    }
+  else
+    {
+     return ExeProjectOrigEmbeddings();
+    }
 }
 
 };

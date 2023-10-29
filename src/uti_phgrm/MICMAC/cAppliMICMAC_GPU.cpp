@@ -748,9 +748,359 @@ if (0)
     //
 
 
+void cAppliMICMAC::GenerateBoxesImEpip_EpipIm(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig)
+{
+  bool IsStenope= (GeomImages()==eGeomImageOri);
+  bool IsGen    =  (GeomImages()==eGeomGen);
+
+  if (IsStenope) GenerateGeoPassage_ImEpip_EpipIm_BBox_Stenope(aVLI,aNameOrig);
+  if (IsGen)     GenerateGeoPassage_ImEpip_EpipIm_BBox(aVLI,aNameOrig);
+}
+
+void cAppliMICMAC::GenerateGeoPassage_ImEpip_EpipIm_BBox_Stenope(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig)
+{
+  /*TODO: Include scales: scale deformation maps according to the multi-resolution pipeline*/
+  Tiff_Im::SetDefTileFile(50000);
+  // ONLY ONE SCALE IS TAKEN INTO ACCOUNT
+  int mNbIm=aVLI.size();
+  // Master image Box
+  cGPU_LoadedImGeom & aaGLI_0 = *(aVLI[0]);
+  std::string aMasterName=aaGLI_0.PDV()->Name();
+  Box2di BoxMaster=aaGLI_0.Geom()->BoxClip();
+  std::cout<<"BoxMaster ==> "<<BoxMaster<<std::endl;
+  Pt2di SzMaster=aaGLI_0.getSizeImage();
+  for (int aKIm= 1 ; aKIm<mNbIm ; aKIm++)
+  {
+      std::string aPrefixMaster= aNameOrig + "_I" + ToString(0) + "_S"+ ToString(0)+"_I" + ToString(aKIm) + "_S"+ ToString(0);
+      cGPU_LoadedImGeom & aaGLI_0 = *(aVLI[aKIm]);
+      std::string aSecName=aaGLI_0.PDV()->Name();
+      Box2di BoxSec=aaGLI_0.Geom()->BoxClip();
+      std::cout<<"Box Secondary image "<<BoxSec<<std::endl;
+      Pt2di SzSec=aaGLI_0.getSizeImage();
+      std::string aPrefixSec  = aNameOrig + "_I" + ToString(aKIm) + "_S"+ ToString(0);
+      std::string aPrefixEpip = aNameOrig + "_I" + ToString(aKIm) +"_I" + ToString(0) + "_S"+ ToString(0);
+      // CLIP IMAGES GEOX GEOY EpIm_GEOX EpIm_GEOY
+      std::string aMasterBare=aMasterName.substr(0, aMasterName.find_last_of("."));
+      std::string aSecBare=aSecName.substr(0, aSecName.find_last_of("."));
+      bool mCmp=aMasterBare>aSecBare;
+      std::string aNameEpip12=mCmp ? "Epi_Im2_Right_"+aSecBare+"_"+aMasterBare+".tif":"Epi_Im1_Left_"+aMasterBare+"_"+aSecBare+".tif";
+      std::string aNameEpip21=mCmp ? "Epi_Im1_Left_"+aSecBare+"_"+aMasterBare+".tif":"Epi_Im2_Right_"+aMasterBare+"_"+aSecBare+".tif";
+      std::string  aNameBareEpip12=aNameEpip12.substr(0,aNameEpip12.find_last_of(".")); //.tif
+      std::string  aNameBareEpip21=aNameEpip21.substr(0,aNameEpip21.find_last_of(".")); //.tif
+      // im1 --> Epip12
+      std::string Im1_to_Epip12_GeoX=aNameBareEpip12+"_GEOX.tif";
+      std::string Im1_to_Epip12_GeoY=aNameBareEpip12+"_GEOY.tif";
+      std::string Im1_to_Epip12_Masq=aNameBareEpip12+"_Masq.tif";
+
+      // im2 --> Epip21
+      std::string Im2_to_Epip21_GeoX=aNameBareEpip21+"_GEOX.tif";
+      std::string Im2_to_Epip21_GeoY=aNameBareEpip21+"_GEOY.tif";
+      std::string Im2_to_Epip21_Masq=aNameBareEpip21+"_Masq.tif";
+
+      // Epip12 --> im1
+      std::string Epip12_to_im1_GeoX=aNameBareEpip12+"_EpIm_GEOX.tif";
+      std::string Epip12_to_im1_GeoY=aNameBareEpip12+"_EpIm_GEOY.tif";
+      std::string Epip12_to_im1_Masq=aNameBareEpip12+"_EpIm_Masq.tif";
+      // Epip21 --> im2
+      std::string Epip21_to_im2_GeoX=aNameBareEpip21+"_EpIm_GEOX.tif";
+      std::string Epip21_to_im2_GeoY=aNameBareEpip21+"_EpIm_GEOY.tif";
+      std::string Epip21_to_im2_Masq=aNameBareEpip21+"_EpIm_Masq.tif";
+
+      // calculer les grilles de déformation
+      std::cout<<"Master2EpipGeoX   => "<<std::endl;
+      Tiff_Im     Master2EpipGeoX(Epip12_to_im1_GeoX.c_str());
+      Tiff_Im     Master2EpipGeoY(Epip12_to_im1_GeoY.c_str());
+      Tiff_Im     Master2EpipMasq(Epip12_to_im1_Masq.c_str());
+
+      Tiff_Im     Sec2EpipGeoX(Epip21_to_im2_GeoX.c_str());
+      Tiff_Im     Sec2EpipGeoY(Epip21_to_im2_GeoY.c_str());
+      //std::cout<<"Sec2EpipGeoY==> "<<Sec2EpipGeoY.sz()<<std::endl;
+      Tiff_Im     Sec2EpipMasq(Epip21_to_im2_Masq.c_str());
+
+      /* read relevant image boxes for Master */
+        TIm2D<float,double> aTImMaster2EpipGeoX(SzMaster);
+        TIm2D<float,double> aTImMaster2EpipGeoY(SzMaster);
+        Im2D_Bits<1> aImMaster2EpipMasq(SzMaster.x,SzMaster.y);
+        //TIm2DBits<1> aTImMaster2EpipMasq(aImMaster2EpipMasq);
+
+        TIm2D<float,double> aTImSec2EpipGeoX(SzSec);
+        TIm2D<float,double> aTImSec2EpipGeoY(SzSec);
+        Im2D_Bits<1> aImSec2EpipMasq(SzSec.x,SzSec.y);
+        //TIm2DBits<1> aTImSec2EpipMasq(aImSec2EpipMasq);
+
+        // Export Epipolars direclty as they have been calculated
+
+        Tiff_Im  anEpip12(aNameEpip12.c_str());
+        Tiff_Im  anEpip21(aNameEpip21.c_str());
+
+        // 1. Master : compute box in epipolar domain
+       ELISE_COPY
+      (
+           aTImMaster2EpipGeoX.all_pts(),
+           trans(Master2EpipGeoX.in(),BoxMaster._p0),
+           aTImMaster2EpipGeoX.out()
+      );
+
+       ELISE_COPY
+      (
+           aTImMaster2EpipGeoY.all_pts(),
+           trans(Master2EpipGeoY.in(),BoxMaster._p0),
+           aTImMaster2EpipGeoY.out()
+      );
+
+       ELISE_COPY
+      (
+           aImMaster2EpipMasq.all_pts(),
+           trans(Master2EpipMasq.in(),BoxMaster._p0),
+           aImMaster2EpipMasq.out()
+      );
+
+       int HomXmin=1e9;
+       int HomYmin=1e9;
+       int HomXmax=-1e9;
+       int HomYmax=-1e9;
+
+       Pt2di aP=Pt2di(0,0);
+       for (aP.x=0;aP.x<SzMaster.x;aP.x++)
+         {
+           for (aP.y=0;aP.y<SzMaster.y;aP.y++)
+             {
+               if (aImMaster2EpipMasq.get(aP.x,aP.y))
+                 {
+                   double aGeox=aTImMaster2EpipGeoX.get(aP);
+                   double aGeoy=aTImMaster2EpipGeoY.get(aP);
+
+                   if (aGeox>HomXmax) HomXmax=aGeox;
+                   if (aGeox<HomXmin) HomXmin=aGeox;
+
+                   if (aGeoy>HomYmax) HomYmax=aGeoy;
+                   if (aGeoy<HomYmin) HomYmin=aGeoy;
+                 }
+             }
+         }
+
+       Box2di aBoxMasterInEpip(round_ni(Pt2dr(HomXmin,HomYmin)),round_ni(Pt2dr(HomXmax,HomYmax)));
+       std::cout<<"aBoxMasterInEpip  => "<<aBoxMasterInEpip<<std::endl;
+
+       // 2. Secondary : compute box in epipolar domain
+
+       ELISE_COPY
+      (
+           aTImSec2EpipGeoX.all_pts(),
+           trans(Sec2EpipGeoX.in(),BoxSec._p0),
+           aTImSec2EpipGeoX.out()
+      );
+
+       ELISE_COPY
+      (
+           aTImSec2EpipGeoY.all_pts(),
+           trans(Sec2EpipGeoY.in(),BoxSec._p0),
+           aTImSec2EpipGeoY.out()
+      );
+
+       ELISE_COPY
+      (
+           aImSec2EpipMasq.all_pts(),
+           trans(Sec2EpipMasq.in(),BoxSec._p0),
+           aImSec2EpipMasq.out()
+      );
+
+       HomXmin=1e9;
+       HomYmin=1e9;
+       HomXmax=-1e9;
+       HomYmax=-1e9;
+
+       aP=Pt2di(0,0);
+       for (aP.x=0;aP.x<SzSec.x;aP.x++)
+         {
+           for (aP.y=0;aP.y<SzSec.y;aP.y++)
+             {
+               if (aImSec2EpipMasq.get(aP.x,aP.y))
+                 {
+                   double aGeox=aTImSec2EpipGeoX.get(aP);
+                   double aGeoy=aTImSec2EpipGeoY.get(aP);
+
+                   if (aGeox>HomXmax) HomXmax=aGeox;
+                   if (aGeox<HomXmin) HomXmin=aGeox;
+
+                   if (aGeoy>HomYmax) HomYmax=aGeoy;
+                   if (aGeoy<HomYmin) HomYmin=aGeoy;
+                 }
+             }
+         }
+       Box2di aBoxSecInEpip(round_ni(Pt2dr(HomXmin,HomYmin)),round_ni(Pt2dr(HomXmax,HomYmax)));
+
+       // 3. Generate Tiles Im->Epip and Epip->Im
+
+       // create epipolar boxes
+
+       TIm2D<float,double> aTImMasterEpip(aBoxMasterInEpip.sz());
+       TIm2D<float,double> aTImSecEpip(aBoxSecInEpip.sz());
+
+       /*3.1 Master*/
+
+       Tiff_Im Epip2MasterGeoX(Im1_to_Epip12_GeoX.c_str());
+       Tiff_Im Epip2MasterGeoY(Im1_to_Epip12_GeoY.c_str());
+       Tiff_Im Epip2MasterMasq(Im1_to_Epip12_Masq.c_str());
+
+       TIm2D<float,double> aTImEpip2MasterGeoX(aBoxMasterInEpip._p1-aBoxMasterInEpip._p0);
+       TIm2D<float,double> aTImEpip2MasterGeoY(aBoxMasterInEpip._p1-aBoxMasterInEpip._p0);
+
+       Pt2di SzInEp=aBoxMasterInEpip._p1-aBoxMasterInEpip._p0;
+       Im2D_Bits<1> aImEpip2MasterMasq(SzInEp.x,SzInEp.y);
+       //TIm2DBits<1> aTImEpip2MasterMasq(aImEpip2MasterMasq);
+
+       ELISE_COPY
+      (
+           aTImEpip2MasterGeoX.all_pts(),
+           trans(Epip2MasterGeoX.in(),aBoxMasterInEpip._p0),
+           aTImEpip2MasterGeoX.out()
+      );
+       ELISE_COPY
+      (
+           aTImEpip2MasterGeoY.all_pts(),
+           trans(Epip2MasterGeoY.in(),aBoxMasterInEpip._p0),
+           aTImEpip2MasterGeoY.out()
+      );
+
+       ELISE_COPY
+      (
+           aTImMasterEpip.all_pts(),
+           trans(anEpip12.in(),aBoxMasterInEpip._p0),
+           aTImMasterEpip.out()
+      );
+
+       ELISE_COPY
+      (
+           aImEpip2MasterMasq.all_pts(),
+           trans(Epip2MasterMasq.in(),aBoxMasterInEpip._p0),
+           aImEpip2MasterMasq.out()
+      );
+
+       Tiff_Im Epip2SecGeoX(Im2_to_Epip21_GeoX.c_str());
+       Tiff_Im Epip2SecGeoY(Im2_to_Epip21_GeoY.c_str());
+       Tiff_Im Epip2SecMasq(Im2_to_Epip21_Masq.c_str());
+
+
+       std::cout<<"aBoxSecInEpip   "<<aBoxSecInEpip<<std::endl;
+       TIm2D<float,double> aTImEpip2SecGeoX(aBoxSecInEpip._p1-aBoxSecInEpip._p0);
+       TIm2D<float,double> aTImEpip2SecGeoY(aBoxSecInEpip._p1-aBoxSecInEpip._p0);
+
+       Pt2di SzInEpSec=aBoxSecInEpip._p1-aBoxSecInEpip._p0;
+       Im2D_Bits<1> aImEpip2SecMasq(SzInEpSec.x,SzInEpSec.y);
+       //TIm2DBits<1> aTImEpip2SecMasq(aImEpip2SecMasq);
+
+       ELISE_COPY
+      (
+           aTImEpip2SecGeoX.all_pts(),
+           trans(Epip2SecGeoX.in(),aBoxSecInEpip._p0),
+           aTImEpip2SecGeoX.out()
+      );
+       ELISE_COPY
+      (
+           aTImEpip2SecGeoY.all_pts(),
+           trans(Epip2SecGeoY.in(),aBoxSecInEpip._p0),
+           aTImEpip2SecGeoY.out()
+      );
+
+       ELISE_COPY
+      (
+           aTImSecEpip.all_pts(),
+           trans(anEpip21.in(),aBoxSecInEpip._p0),
+           aTImSecEpip.out()
+      );
+
+       ELISE_COPY
+      (
+           aImEpip2SecMasq.all_pts(),
+           trans(Epip2SecMasq.in(),aBoxSecInEpip._p0),
+           aImEpip2SecMasq.out()
+      );
+      std::cout<<"Fill Image tiles ==> Im2 to Epip 21 Fill tiles  "<<std::endl;
+
+       //5. Prepare for grid_sample
+       /*
+          xhmin,yhmin,xhmax,yhmax=Bbox
+          divx=xhmax-xhmin
+          divy=yhmax-yhmin
+          """GeoXB=GeoXBox/W
+          GeoXB=GeoXB-(xhmin/W)
+          GeoXB=GeoXB*(W/divx)"""
+
+          GeoXB=(2*(GeoXBox-xhmin)/divx)-1
+          GeoYB=(2*(GeoYBox-yhmin)/divy)-1
+          return GeoXB,GeoYB
+      */
+
+       // Image --> Epip
+       ELISE_COPY(aTImMaster2EpipGeoX.all_pts(),
+                  2*((aTImMaster2EpipGeoX.in()-aBoxMasterInEpip.P0().x)/(aBoxMasterInEpip.P1().x-aBoxMasterInEpip.P0().x-1.0))-1.0,
+                  aTImMaster2EpipGeoX.out()
+                  );
+
+       ELISE_COPY(aTImMaster2EpipGeoY.all_pts(),
+                  2*((aTImMaster2EpipGeoY.in()-aBoxMasterInEpip.P0().y)/(aBoxMasterInEpip.P1().y-aBoxMasterInEpip.P0().y-1.0))-1.0,
+                  aTImMaster2EpipGeoY.out()
+                  );
+
+       ELISE_COPY(aTImSec2EpipGeoX.all_pts(),
+                  2*((aTImSec2EpipGeoX.in()-aBoxSecInEpip.P0().x)/(aBoxSecInEpip.P1().x-aBoxSecInEpip.P0().x-1.0))-1.0,
+                  aTImSec2EpipGeoX.out()
+                  );
+
+       ELISE_COPY(aTImSec2EpipGeoY.all_pts(),
+                  2*((aTImSec2EpipGeoY.in()-aBoxSecInEpip.P0().y)/(aBoxSecInEpip.P1().y-aBoxSecInEpip.P0().y-1.0))-1.0,
+                  aTImSec2EpipGeoY.out()
+                  );
+
+       // Epip --> Image
+
+       ELISE_COPY(aTImEpip2MasterGeoX.all_pts(),
+                  2*((aTImEpip2MasterGeoX.in()-BoxMaster.P0().x)/(BoxMaster.P1().x-BoxMaster.P0().x-1.0))-1.0,
+                  aTImEpip2MasterGeoX.out()
+                  );
+
+       ELISE_COPY(aTImEpip2MasterGeoY.all_pts(),
+                  2*((aTImEpip2MasterGeoY.in()-BoxMaster.P0().y)/(BoxMaster.P1().y-BoxMaster.P0().y-1.0))-1.0,
+                  aTImEpip2MasterGeoY.out()
+                  );
+
+       ELISE_COPY(aTImEpip2SecGeoX.all_pts(),
+                  2*((aTImEpip2SecGeoX.in()-BoxSec.P0().x)/(BoxSec.P1().x-BoxSec.P0().x-1.0))-1.0,
+                  aTImEpip2SecGeoX.out()
+                  );
+
+       ELISE_COPY(aTImEpip2SecGeoY.all_pts(),
+                  2*((aTImEpip2SecGeoY.in()-BoxSec.P0().y)/(BoxSec.P1().y-BoxSec.P0().y-1.0))-1.0,
+                  aTImEpip2SecGeoY.out()
+                  );
+
+       // 6. Save
+       SaveIm(aPrefixMaster+"_ORIG_EpIm_GEOX.tif",aTImMaster2EpipGeoX._d,Box2di(Pt2di(0,0),SzMaster));
+       SaveIm(aPrefixMaster+"_ORIG_EpIm_GEOY.tif",aTImMaster2EpipGeoY._d,Box2di(Pt2di(0,0),SzMaster));
+       SaveIm(aPrefixMaster+"_ORIG_EpIm_Masq.tif",aImMaster2EpipMasq.data(),Box2di(Pt2di(0,0),SzMaster));
+
+       SaveIm(aPrefixSec+"_ORIG_EpIm_GEOX.tif",aTImSec2EpipGeoX._d,Box2di(Pt2di(0,0),SzSec));
+       SaveIm(aPrefixSec+"_ORIG_EpIm_GEOY.tif",aTImSec2EpipGeoY._d,Box2di(Pt2di(0,0),SzSec));
+       SaveIm(aPrefixSec+"_ORIG_EpIm_Masq.tif",aImSec2EpipMasq.data(),Box2di(Pt2di(0,0),SzSec));
+
+       SaveIm(aPrefixMaster+"_ORIG_GEOX.tif",aTImEpip2MasterGeoX._d,Box2di(Pt2di(0,0),aBoxMasterInEpip._p1-aBoxMasterInEpip._p0));
+       SaveIm(aPrefixMaster+"_ORIG_GEOY.tif",aTImEpip2MasterGeoY._d,Box2di(Pt2di(0,0),aBoxMasterInEpip._p1-aBoxMasterInEpip._p0));
+       SaveIm(aPrefixMaster+"_ORIG_Masq.tif",aImEpip2MasterMasq.data(),Box2di(Pt2di(0,0),aBoxMasterInEpip._p1-aBoxMasterInEpip._p0));
+
+       SaveIm(aPrefixSec+"_ORIG_GEOX.tif",aTImEpip2SecGeoX._d,Box2di(Pt2di(0,0),aBoxSecInEpip._p1-aBoxSecInEpip._p0));
+       SaveIm(aPrefixSec+"_ORIG_GEOY.tif",aTImEpip2SecGeoY._d,Box2di(Pt2di(0,0),aBoxSecInEpip._p1-aBoxSecInEpip._p0));
+       SaveIm(aPrefixSec+"_ORIG_Masq.tif",aImEpip2SecMasq.data(),Box2di(Pt2di(0,0),aBoxSecInEpip._p1-aBoxSecInEpip._p0));
+
+       // Save Epipolars
+       SaveIm(aPrefixMaster+"_Epip.tif",aTImMasterEpip._d,Box2di(Pt2di(0,0),aBoxMasterInEpip.sz()));
+       SaveIm(aPrefixEpip+"_Epip.tif",aTImSecEpip._d,Box2di(Pt2di(0,0),aBoxSecInEpip.sz()));
+  }
+
+}
+
 void cAppliMICMAC::GenerateGeoPassage_ImEpip_EpipIm_BBox(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig)
 {
-
   /*TODO: Include scales: scale deformation maps according to the multi-resolution pipeline*/
   Tiff_Im::SetDefTileFile(50000);
   // ONLY ONE SCALE IS TAKEN INTO ACCOUNT
@@ -1032,44 +1382,44 @@ void cAppliMICMAC::GenerateGeoPassage_ImEpip_EpipIm_BBox(std::vector<cGPU_Loaded
 
        // Image --> Epip
        ELISE_COPY(aTImMaster2EpipGeoX.all_pts(),
-                  2*((aTImMaster2EpipGeoX.in()-aBoxMasterInEpip.P0().x)/(aBoxMasterInEpip.P1().x-aBoxMasterInEpip.P0().x))-1.0,
+                  2*((aTImMaster2EpipGeoX.in()-aBoxMasterInEpip.P0().x)/(aBoxMasterInEpip.P1().x-aBoxMasterInEpip.P0().x-1.0))-1.0,
                   aTImMaster2EpipGeoX.out()
                   );
 
        ELISE_COPY(aTImMaster2EpipGeoY.all_pts(),
-                  2*((aTImMaster2EpipGeoY.in()-aBoxMasterInEpip.P0().y)/(aBoxMasterInEpip.P1().y-aBoxMasterInEpip.P0().y))-1.0,
+                  2*((aTImMaster2EpipGeoY.in()-aBoxMasterInEpip.P0().y)/(aBoxMasterInEpip.P1().y-aBoxMasterInEpip.P0().y-1.0))-1.0,
                   aTImMaster2EpipGeoY.out()
                   );
 
        ELISE_COPY(aTImSec2EpipGeoX.all_pts(),
-                  2*((aTImSec2EpipGeoX.in()-aBoxSecInEpip.P0().x)/(aBoxSecInEpip.P1().x-aBoxSecInEpip.P0().x))-1.0,
+                  2*((aTImSec2EpipGeoX.in()-aBoxSecInEpip.P0().x)/(aBoxSecInEpip.P1().x-aBoxSecInEpip.P0().x-1.0))-1.0,
                   aTImSec2EpipGeoX.out()
                   );
 
        ELISE_COPY(aTImSec2EpipGeoY.all_pts(),
-                  2*((aTImSec2EpipGeoY.in()-aBoxSecInEpip.P0().y)/(aBoxSecInEpip.P1().y-aBoxSecInEpip.P0().y))-1.0,
+                  2*((aTImSec2EpipGeoY.in()-aBoxSecInEpip.P0().y)/(aBoxSecInEpip.P1().y-aBoxSecInEpip.P0().y-1.0))-1.0,
                   aTImSec2EpipGeoY.out()
                   );
 
        // Epip --> Image
 
        ELISE_COPY(aTImEpip2MasterGeoX.all_pts(),
-                  2*((aTImEpip2MasterGeoX.in()-BoxMaster.P0().x)/(BoxMaster.P1().x-BoxMaster.P0().x))-1.0,
+                  2*((aTImEpip2MasterGeoX.in()-BoxMaster.P0().x)/(BoxMaster.P1().x-BoxMaster.P0().x-1.0))-1.0,
                   aTImEpip2MasterGeoX.out()
                   );
 
        ELISE_COPY(aTImEpip2MasterGeoY.all_pts(),
-                  2*((aTImEpip2MasterGeoY.in()-BoxMaster.P0().y)/(BoxMaster.P1().y-BoxMaster.P0().y))-1.0,
+                  2*((aTImEpip2MasterGeoY.in()-BoxMaster.P0().y)/(BoxMaster.P1().y-BoxMaster.P0().y-1.0))-1.0,
                   aTImEpip2MasterGeoY.out()
                   );
 
        ELISE_COPY(aTImEpip2SecGeoX.all_pts(),
-                  2*((aTImEpip2SecGeoX.in()-BoxSec.P0().x)/(BoxSec.P1().x-BoxSec.P0().x))-1.0,
+                  2*((aTImEpip2SecGeoX.in()-BoxSec.P0().x)/(BoxSec.P1().x-BoxSec.P0().x-1.0))-1.0,
                   aTImEpip2SecGeoX.out()
                   );
 
        ELISE_COPY(aTImEpip2SecGeoY.all_pts(),
-                  2*((aTImEpip2SecGeoY.in()-BoxSec.P0().y)/(BoxSec.P1().y-BoxSec.P0().y))-1.0,
+                  2*((aTImEpip2SecGeoY.in()-BoxSec.P0().y)/(BoxSec.P1().y-BoxSec.P0().y-1.0))-1.0,
                   aTImEpip2SecGeoY.out()
                   );
 
@@ -1238,15 +1588,30 @@ void cAppliMICMAC::DoEstimWarpersPDVs()
    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc("./");
    for (int itSecIm=1; itSecIm<NbVues;itSecIm++)
        {
-
         std::string NameBareOri=aNameOri.substr(aNameOri.find_first_of("-")+1,-1);
         //std::cout<<"Name ori bare ==> "<<NameBareOri<<std::endl;
          const cPriseDeVue * aSec=mPDVBoxGlobAct.at(itSecIm);
-         std::string aNameEpip12=aICNM->NameImEpip(NameBareOri,aMaster->Name(),aSec->Name());
-         std::string aNameEpip21=aICNM->NameImEpip(NameBareOri,aSec->Name(),aMaster->Name());
-         //without extension
-         std::string  aNameBareEpip12=aNameEpip12.substr(0,aNameEpip12.find_last_of(".")); //.tif
-         std::string  aNameBareEpip21=aNameEpip21.substr(0,aNameEpip21.find_last_of(".")); //.tif
+
+         std::string aNameBareEpip12,aNameBareEpip21,aNameEpip12,aNameEpip21;
+
+         if (GeomImages()==eGeomGen)
+           {
+               aNameEpip12=aICNM->NameImEpip(NameBareOri,aMaster->Name(),aSec->Name());
+               aNameEpip21=aICNM->NameImEpip(NameBareOri,aSec->Name(),aMaster->Name());
+               //without extension
+               aNameBareEpip12=aNameEpip12.substr(0,aNameEpip12.find_last_of(".")); //.tif
+               aNameBareEpip21=aNameEpip21.substr(0,aNameEpip21.find_last_of(".")); //.tif
+           }
+         if (GeomImages()==eGeomImageOri)
+           {
+             std::string aMasterBare=aMaster->Name().substr(0, aMaster->Name().find_last_of("."));
+             std::string aSecBare=aSec->Name().substr(0, aSec->Name().find_last_of("."));
+             bool mCmp=aMasterBare>aSecBare;
+             aNameEpip12=mCmp ? "Epi_Im2_Right_"+aSecBare+"_"+aMasterBare+".tif":"Epi_Im1_Left_"+aMasterBare+"_"+aSecBare+".tif";
+             aNameEpip21=mCmp ? "Epi_Im1_Left_"+aSecBare+"_"+aMasterBare+".tif":"Epi_Im2_Right_"+aMasterBare+"_"+aSecBare+".tif";
+             aNameBareEpip12=aNameEpip12.substr(0,aNameEpip12.find_last_of(".")); //.tif
+             aNameBareEpip21=aNameEpip21.substr(0,aNameEpip21.find_last_of(".")); //.tif
+           }
          std::cout<<"Name Epip 12 ==> "<<aNameEpip12<<std::endl;
          std::cout<<"Name Epip 21 ==> "<<aNameEpip21<<std::endl;
          // im1 --> Epip12
@@ -3037,6 +3402,7 @@ void cAppliMICMAC::DoCorrelAdHoc
 	else if (aTC.MutiCorrelOrthoExt().IsInit())
 	//	MutiCorrelOrthoExt
 	{
+	      std::cout<<"ZPASSSSSSS   "<<GeomDFPx().PasPxRel0()<<std::endl;
 	      // Generate grids to compute descriptors in the epipolar geometry
 	      DoEstimWarpersPDVs();
 	      std::string aPrefixGlobIm = FullDirMEC() + "MMV1Ortho_Pid" + ToString(mm_getpid()) ;
@@ -3068,8 +3434,18 @@ void cAppliMICMAC::DoCorrelAdHoc
                  if (aMCOE.OrthFileModeleArch().IsInit())
                    {
                      // save transformations from ORIG images to Epipolar images or homography corrected images
-                     GenerateGeoPassage_ImEpip_EpipIm_BBox(mVLI,aPrefixGlobIm);
+                     GenerateBoxesImEpip_EpipIm(mVLI,aPrefixGlobIm);
                    }
+
+                 // export nappes sup et min
+                 /*Im2D_INT2  aImZMin = mLTer->KthNap(0).mImPxMin;
+                 Im2D_INT2  aImZMax = mLTer->KthNap(0).mImPxMax;
+
+                 std::string aNameZMin=aPrefixGlobIm+"_ZMINNN.tif";
+                 std::string aNameZMax=aPrefixGlobIm+"_ZMAXXX.tif";
+
+                 Tiff_Im::CreateFromIm(aImZMin,aNameZMin);
+                 Tiff_Im::CreateFromIm(aImZMax,aNameZMax);*/
                  /********************************************************************************/
 
 

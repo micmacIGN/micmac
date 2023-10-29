@@ -3282,7 +3282,6 @@ class cCpleEpip
          std::string LocMasqFileMatch(bool Im1,int aNum);
 
 
-
          bool IsLeft(bool Im1);
          bool IsLeft(const std::string &);
 
