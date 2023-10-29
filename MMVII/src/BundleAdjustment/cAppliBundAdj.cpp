@@ -9,136 +9,6 @@
 namespace MMVII
 {
 
-/* ************************************************************************ */
-/*                                                                          */
-/*                            cMMVII_BundleAdj                              */
-/*                                                                          */
-/* ************************************************************************ */
-
-cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
-    mPhProj           (aPhp),
-    mPhaseAdd         (true),
-    mSys              (nullptr),
-    mR8_Sys           (nullptr),
-    mMesGCP           (nullptr),
-    mSigmaViscAngles  (-1.0),
-    mSigmaViscCenter  (-1.0)
-{
-}
-
-cMMVII_BundleAdj::~cMMVII_BundleAdj() 
-{
-    delete mSys;
-    delete mMesGCP;
-    DeleteAllAndClear(mGCP_UK);
-}
-
-
-void cMMVII_BundleAdj::AssertPhaseAdd() 
-{
-    MMVII_INTERNAL_ASSERT_tiny(mPhaseAdd,"Mix Add and Use of unknown in cMMVII_BundleAdj");
-}
-void cMMVII_BundleAdj::AssertPhp() 
-{
-    MMVII_INTERNAL_ASSERT_tiny(mPhProj,"No cPhotogrammetricProject");
-}
-
-void cMMVII_BundleAdj::AssertPhpAndPhaseAdd() 
-{
-	AssertPhaseAdd();
-	AssertPhp();
-}
-
-
-void cMMVII_BundleAdj::InitIteration()
-{
-    mPhaseAdd = false;
-
-    InitItereGCP();
-    mR8_Sys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqNormSparse,mSetIntervUK.GetVUnKnowns());
-
-    mSys =  mR8_Sys;
-}
-
-
-void cMMVII_BundleAdj::OneIteration()
-{
-    if (mPhaseAdd)
-    {
-        InitIteration();
-    }
-
-    if (mPatParamFrozenCalib !="")
-    {
-        for (const  auto & aPtrCal : mVPCIC)
-	{
-            mR8_Sys->SetFrozenFromPat(*aPtrCal,mPatParamFrozenCalib,true);
-	}
-    }
-    AddPoseViscosity();
-
-    OneItere_GCP();
-
-    // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << std::endl;
-
-    const auto & aVectSol = mSys->R_SolveUpdateReset();
-    mSetIntervUK.SetVUnKnowns(aVectSol);
-}
-
-//================================================================
-
-void cMMVII_BundleAdj::AddCalib(cPerspCamIntrCalib * aCalib)  
-{
-    AssertPhaseAdd();
-    if (! aCalib->UkIsInit())
-    {
-	  mVPCIC.push_back(aCalib);
-	  mSetIntervUK.AddOneObj(aCalib);
-    }
-}
-
-void cMMVII_BundleAdj::AddSensor(cSensorImage* aSI)
-{
-    AssertPhaseAdd();
-    MMVII_INTERNAL_ASSERT_tiny (!aSI->UkIsInit(),"Multiple add of cam : " + aSI->NameImage());
-    mSetIntervUK.AddOneObj(aSI);
-    mVSIm.push_back(aSI);
-
-    auto anEq = aSI->EqColinearity(true,10,true);  // WithDer, SzBuf, ReUse
-    mVEqCol.push_back(anEq);
-}
-
-
-void cMMVII_BundleAdj::AddCamPC(cSensorCamPC * aCamPC)
-{
-    AddSensor(aCamPC);
-    mVSCPC.push_back(aCamPC);
-
-    AddCalib(aCamPC->InternalCalib());
-}
-
-void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
-{
-    AssertPhpAndPhaseAdd();
-
-    cSensorImage * aNewS;
-    cSensorCamPC * aSPC;
-
-    mPhProj->LoadSensor(aNameIm,aNewS,aSPC,false);  // false -> NoSVP
-    if (aSPC)
-       AddCamPC(aSPC);
-
-}
-const std::vector<cSensorImage *> &  cMMVII_BundleAdj::VSIm() const  {return mVSIm;}
-const std::vector<cSensorCamPC *> &  cMMVII_BundleAdj::VSCPC() const {return mVSCPC;}
-
-
-void cMMVII_BundleAdj::SetParamFrozenCalib(const std::string & aPattern)
-{    
-    mPatParamFrozenCalib = aPattern;
-}
-
-
    /* ********************************************************** */
    /*                                                            */
    /*                 cAppliBundlAdj                             */
@@ -161,9 +31,11 @@ class cAppliBundlAdj : public cMMVII_Appli
 	cPhotogrammetricProject   mPhProj;
 	cMMVII_BundleAdj          mBA;
 
-	std::string               mGCPDir;  ///  GCP Data Dir if != mDataDir
 	std::vector<double>       mGCPW;
+	std::vector<double>       mTiePWeight;
+
 	int                       mNbIter;
+
 
 	std::string               mPatParamFrozCalib;
 	std::vector<tREAL8>       mViscPose;
@@ -187,26 +59,35 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgObl(cCollecSpecArg2007 & anArgObl)
            ;
 }
 
+
 cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
 {
     
-    return anArgOpt
-               << AOpt2007(mDataDir,"DataDir","Defautl data directories ",{eTA2007::HDV})
-	       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
-
-               << AOpt2007(mGCPDir,"GCPDir","Dir for GCP if != DataDir")
-               << AOpt2007(mGCPW,"GCPW","Weithing of GCP if any [SigmaG,SigmaI], SG=0 fix, SG<0 schurr elim, SG>0",{{eTA2007::ISizeV,"[2,2]"}})
-	       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
-	       << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
-           ;
+    return 
+          anArgOpt
+      << AOpt2007(mDataDir,"DataDir","Defautl data directories ",{eTA2007::HDV})
+      << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
+      << mPhProj.DPPointsMeasures().ArgDirInOpt("GCPDir","Dir for GCP if != DataDir")
+      << mPhProj.DPMulTieP().ArgDirInOpt("TPDir","Dir for Tie Points if != DataDir")
+      << AOpt2007
+         (
+            mGCPW,
+            "GCPW",
+            "Weith GCP [SigG,SigI,SigAt?=-1,Thrs?=-1,Exp?=1], SG=0 fix, SG<0 schurr elim, SG>0",
+            {{eTA2007::ISizeV,"[2,5]"}}
+         )
+      << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
+      << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
+      << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
+    ;
 }
 
 int cAppliBundlAdj::Exe()
 {
     bool  MeasureAdded = false; 
 
-    SetIfNotInit(mGCPDir,mDataDir);
-    mPhProj.DPPointsMeasures().SetDirIn(mGCPDir);
+    mPhProj.DPPointsMeasures().SetDirInIfNoInit(mDataDir);
+    mPhProj.DPMulTieP().SetDirInIfNoInit(mDataDir);
 
     mPhProj.FinishInit();
 
@@ -234,16 +115,23 @@ int cAppliBundlAdj::Exe()
 
         for (const auto  & aSens : mBA.VSIm())
         {
-             mPhProj.LoadIm(*aFullMesGCP,*aSens);
+             mPhProj.LoadIm(*aFullMesGCP,aSens->NameImage(),aSens,true);
         }
 	cSetMesImGCP * aMesGCP = aFullMesGCP->FilterNonEmptyMeasure();
 	delete aFullMesGCP;
 
-	mBA.AddGCP(mGCPW,aMesGCP);
+	cStdWeighterResidual aWeighter(mGCPW,1);
+	mBA.AddGCP(mGCPW.at(0),aWeighter,aMesGCP);
     }
 
-    MMVII_INTERNAL_ASSERT_tiny(MeasureAdded,"Not any measure added");
-    Fake4ReleaseUseIt(MeasureAdded);
+    if (IsInit(&mTiePWeight))
+    {
+        MeasureAdded = true;
+	cStdWeighterResidual aWeighter(mTiePWeight,0);
+	mBA.AddMTieP(AllocStdFromMTP(VectMainSet(0),mPhProj,false,true,false),aWeighter);
+    }
+
+    MMVII_INTERNAL_ASSERT_User(MeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
     {

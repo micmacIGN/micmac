@@ -25,6 +25,38 @@ class cPt3dr_UK :  public cObjWithUnkowns<tREAL8>,
               cPt3dr mPt;
 };
 
+/**  "Standard" weighting classes, used the following formula
+ *
+ *    W(R) =
+ *          0 if R>Thrs
+ *          1/Sigma0^2  * (1/(1+ (R/SigmaAtt)^Exp)) 
+ *
+ */
+
+class cStdWeighterResidual : public cResidualWeighter<tREAL8>
+{
+     public :
+         // aThr<0 => dont use
+	 cStdWeighterResidual(tREAL8 aSGlob,tREAL8 aSigAtt,tREAL8 aThr,tREAL8 aExp);
+	 cStdWeighterResidual(const std::vector<tREAL8> & aVect,int aK0);
+	 cStdWeighterResidual();
+
+	 tREAL8   SingleWOfResidual(const tStdVect &) const ;
+	 tREAL8   SingleWOfResidual(const cPt2dr &) const ;
+
+	 tStdVect WeightOfResidual(const tStdVect &) const override;
+
+
+     private :
+       // W(R) =  1/Sigma0^2  * (1/(1+ (R/SigmaAtt)^Exp))  ;  W(R) =0 if R>Thrs
+         tREAL8   mWGlob;
+	 bool     mWithAtt;
+	 tREAL8   mSig2Att;
+	 bool     mWithThr;
+	 tREAL8   mSig2Thrs;
+	 tREAL8   mExpS2;
+};
+
 
 class cMMVII_BundleAdj
 {
@@ -39,7 +71,10 @@ class cMMVII_BundleAdj
 
 
           ///  =======  Add GCP, can be measure or measure & object
-          void AddGCP(const  std::vector<double>&, cSetMesImGCP *);
+          void AddGCP(tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
+
+	  ///  ============  Add multiple tie point ============
+	  void AddMTieP(cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
           void OneIteration();
@@ -69,7 +104,7 @@ class cMMVII_BundleAdj
 	  void OneItere_TieP();   /// Iteration on tie points
 
           ///  One It for 1 pack of GCP (4 now 1 pack allowed, but this may change)
-          void OneItere_OnePackGCP(const cSetMesImGCP *,const std::vector<double> & aVW);
+          void OneItere_OnePackGCP(const cSetMesImGCP *);
 
 
           //============== Data =============================
@@ -93,16 +128,24 @@ class cMMVII_BundleAdj
 	  std::string  mPatParamFrozenCalib;
 
           // ===================  Information to use ==================
+	     
+	          // - - - - - - - - GCP  - - - - - - - - - - -
           cSetMesImGCP *           mMesGCP;
-          cSetMesImGCP             mNewGCP;
-          std::vector<double>      mWeightGCP;
+          cSetMesImGCP             mNewGCP; // set of gcp after adjust
+	  tREAL8                   mSigmaGCP;
+          cStdWeighterResidual     mGCPIm_Weighter;
           std::vector<cPt3dr_UK*>  mGCP_UK;
+
+	          // - - - - - - - - MTP  - - - - - - - - - - -
+	  cComputeMergeMulTieP *   mMTP;
+          cStdWeighterResidual     mTieP_Weighter;
 	  
           // ===================  "Viscosity"  ==================
 
 	  tREAL8   mSigmaViscAngles;  ///< "viscosity"  for angles
 	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
 };
+
 
 
 };

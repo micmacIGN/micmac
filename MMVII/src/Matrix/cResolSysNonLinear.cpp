@@ -755,6 +755,7 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
                }
 	   }
            aIO.mWeights = aWeighter.WeightOfResidual(aIO.mVals);
+	   //  StdOut() << "HHHhUuHH  " << aIO.mVals  << " " << aIO.mWeights << "\n";
 	   ModifyFrozenVar(aIO);
       }
 }
@@ -800,7 +801,7 @@ template <>  void   cResolSysNonLinear<tREAL8>::R_CalcAndAddObs
 
 
 
-template <class Type> void cResolSysNonLinear<Type>::AddObs ( const std::vector<tIO_RSNL>& aVIO)
+template <class Type> void cResolSysNonLinear<Type>::AddObs(const std::vector<tIO_RSNL>& aVIO)
 {
       mInPhaseAddEq = true;
       // Parse all the linearized equation

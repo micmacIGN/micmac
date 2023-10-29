@@ -486,7 +486,10 @@ void cStdStatRes::Add(tREAL8 aVal)
 }
 
 tREAL8  cStdStatRes::Avg() const {return mAvgDist.Average();}
-tREAL8  cStdStatRes::StdDev() const {return std::sqrt(mAvgDist2.Average());}
+
+tREAL8  cStdStatRes::QuadAvg() const {return std::sqrt(mAvgDist2.Average());}
+tREAL8  cStdStatRes::DevStd() const {return std::sqrt(std::max(0.0,mAvgDist2.Average()-Square(Avg())));}
+
 tREAL8  cStdStatRes::ErrAtProp(tREAL8 aProp) const {return NC_KthVal(mVRes,aProp);}
 tREAL8  cStdStatRes::Min() const {return mBounds.VMin();}
 tREAL8  cStdStatRes::Max() const {return mBounds.VMax();}

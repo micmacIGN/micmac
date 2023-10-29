@@ -888,7 +888,7 @@ void cAppliExtractCircTarget::TestOnSimul()
 	     }
 	 }
      }
-     std::vector<std::string>  aVRep {APBI_NameIm(),ToStr(aStat.Avg()),ToStr(aStat.StdDev()),ToStr(aStat.Max()),
+     std::vector<std::string>  aVRep {APBI_NameIm(),ToStr(aStat.Avg()),ToStr(aStat.QuadAvg()),ToStr(aStat.Max()),
 	                               ToStr(aStat.ErrAtProp(0.5)),ToStr(aStat.ErrAtProp(0.75)),ToStr(aStat.ErrAtProp(0.9))};
 
      AddOneReportCSV(mReportSimulGlob,aVRep);
@@ -1042,7 +1042,7 @@ int  cAppliExtractCircTarget::Exe()
       if (mDoReportSimul)
       {
          AddOneReportCSV(mReportSimulDet,{"Image","Name","Ok","N2","Dx","Dy"});
-         AddOneReportCSV(mReportSimulGlob,{"Image","Avd","StdDev","Max","P50","P75","P90"});
+         AddOneReportCSV(mReportSimulGlob,{"Image","Avg","Avg2","Max","P50","P75","P90"});
       }
 
       int aResult =  ResultMultiSet();

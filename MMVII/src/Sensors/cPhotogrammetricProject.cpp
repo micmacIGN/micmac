@@ -201,6 +201,12 @@ void cDirsPhProj::SetDirIn(const std::string & aDirIn)
      mAppli.SetVarInit(&mDirIn); // required becaus of AssertOriInIsInit
 }
 
+void cDirsPhProj::SetDirInIfNoInit(const std::string & aDirIn)
+{
+    if (! DirInIsInit())
+       SetDirIn(aDirIn);
+}
+
 void cDirsPhProj::SetDirOut(const std::string & aDirOut)
 {
      mDirOut = aDirOut;

@@ -235,6 +235,7 @@ class cDirsPhProj
 
 
           void  SetDirIn(const std::string&) ; ///< Modifier, use in case many out params were saved in a xml,like with MeshImageDevlp
+          void  SetDirInIfNoInit(const std::string&) ; ///< do it only if not init in argopt
           const std::string & DirIn() const;   ///< Accessor
           const std::string & DirOut() const;   ///< Accessor
           const std::string & FullDirIn() const;   ///< Accessor
