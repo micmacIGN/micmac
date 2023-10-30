@@ -64,6 +64,7 @@ cCollecSpecArg2007 & cAppli_PoseCmp::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
     return   anArgOpt
           << AOpt2007(mPropStat,"Perc","Percentil for stat exp",{eTA2007::HDV})
+          << AOpt2007(mPatBand,"PatBand","Pattern for band [Patter,Subts]")
     ;
 }
 
@@ -83,8 +84,13 @@ int cAppli_PoseCmp::Exe()
 
    std::vector<cSensorCamPC*> aVCam1;
    std::vector<cSensorCamPC*> aVCam2;
- 
-   
+
+   std::string aLastBand = "Xy#@Z-4lj";
+
+   cPt3dr aLastWPK;
+   cWeightAv<tREAL8>  aAvgDif;
+   cWeightAv<tREAL8>  aAvgRelDif;
+   cWeightAv<tREAL8>  aAvgBandRelDif;
 
    for (size_t aK=0 ; aK<mSetNames.size() ; aK++)
    {
@@ -92,20 +98,37 @@ int cAppli_PoseCmp::Exe()
         cSensorCamPC * aCam1 = mPhProj.ReadCamPC(aName,true);
         cSensorCamPC * aCam2 = mPhProj.ReadCamPC(aDirOri2,aName,true);
 
-        if (IsInit(&mPatBand))
-	{
-            std::string aNameBand = ReplacePattern(mPatBand.at(0),mPatBand.at(1),aName);
-FakeUseIt(aNameBand);
-	}
 	aVCam1.push_back(aCam1);
 	aVCam2.push_back(aCam2);
 
 	auto aP2In1 = aCam1->RelativePose(*aCam2);
+	cPt3dr aWPK = aP2In1.Rot().ToWPK() ;
+	aAvgDif.Add(1.0,Norm2(aWPK));
 
-	StdOut() <<  "Im=" << aName << " Tr="  << aP2In1.Tr()  << " WPK=" << aP2In1.Rot().ToWPK() << "\n";
+	if (aK!=0)
+           aAvgRelDif.Add(1.0,Norm2(aWPK-aLastWPK));
+
+        if (IsInit(&mPatBand))
+	{
+            std::string aNameBand = ReplacePattern(mPatBand.at(0),mPatBand.at(1),aName);
+	    bool aNewBand = (aNameBand!=aLastBand);
+	    aLastBand = aNameBand;
+
+	    if (aNewBand)
+               StdOut() << "NB=" << aName << "\n";
+	    else
+               aAvgBandRelDif.Add(1.0,Norm2(aWPK-aLastWPK));
+	}
+
+	// StdOut() <<  "Im=" << aName << " Tr="  << aP2In1.Tr()  << " WPK=" << aP2In1.Rot().ToWPK() << "\n";
+	aLastWPK = aWPK;
    }
 
    // mPrefixCSV =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPMulTieP().DirIn() ;
+   //
+   StdOut() << "AVG DIFF=" << aAvgDif.Average() << "\n";
+   StdOut() << "AVG REL DIFF=" << aAvgRelDif.Average() << "\n";
+   StdOut() << "AVG BAND REL DIFF=" << aAvgBandRelDif.Average() << "\n";
 
    return EXIT_SUCCESS;
 }
