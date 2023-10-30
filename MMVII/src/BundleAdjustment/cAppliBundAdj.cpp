@@ -38,6 +38,7 @@ class cAppliBundlAdj : public cMMVII_Appli
 
 
 	std::string               mPatParamFrozCalib;
+	std::string               mPatFrosenCenters;
 	std::vector<tREAL8>       mViscPose;
 };
 
@@ -78,6 +79,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          )
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
+      << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
     ;
 }
@@ -99,6 +101,11 @@ int cAppliBundlAdj::Exe()
     if (IsInit(&mPatParamFrozCalib))
     {
         mBA.SetParamFrozenCalib(mPatParamFrozCalib);
+    }
+
+    if (IsInit(&mPatFrosenCenters))
+    {
+        mBA.SetFrozenCenters(mPatFrosenCenters);
     }
 
     if (IsInit(&mViscPose))

@@ -330,6 +330,7 @@ class cPhotogrammetricProject
 	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
 
 	  cSensorCamPC * ReadCamPC(const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
+	  cSensorCamPC * ReadCamPC(const cDirsPhProj&,const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
 
 
 	  /// Load a sensor, try different type (will add RPC , and others ?) use autom delete (dont need to delete it)

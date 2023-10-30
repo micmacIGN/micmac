@@ -1504,7 +1504,7 @@ void cMMVII_Appli::AssertInitParam() const
 {
   MMVII_INTERNAL_ASSERT_always(mInitParamDone,"Init Param was forgotten");
 }
-bool  cMMVII_Appli::IsInit(const void * aPtr)
+bool  cMMVII_Appli::IsInit(const void * aPtr) const
 {
     return  mSetInit.In(aPtr);
 }

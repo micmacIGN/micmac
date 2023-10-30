@@ -86,7 +86,10 @@ class cMMVII_BundleAdj
 
 	  void SetParamFrozenCalib(const std::string & aPattern);
 	  void SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle);
+	  void SetFrozenCenters(const std::string & aPattern);
+
 	  void AddPoseViscosity();
+
 
      private :
 
@@ -125,7 +128,8 @@ class cMMVII_BundleAdj
 
 	  // ================= Frozen/UnFrozen
 
-	  std::string  mPatParamFrozenCalib;
+	  std::string  mPatParamFrozenCalib;  /// Pattern for name of paramater of internal calibration
+	  std::string  mPatFrozenCenter;      /// Pattern for name of pose with frozen centers
 
           // ===================  Information to use ==================
 	     

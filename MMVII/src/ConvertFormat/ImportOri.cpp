@@ -27,6 +27,8 @@ class cAppli_ImportOri : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        std::vector<std::string>  Samples() const override;
      private :
 
 	cPhotogrammetricProject  mPhProj;
@@ -37,12 +39,13 @@ class cAppli_ImportOri : public cMMVII_Appli
 
 
 	// Optionall Arg
-	int              mL0;
-	int              mLLast;
-	char             mComment;
-	eTyUnitAngle     mAngleUnit;
-	std::string      mRepIJK;
-	bool             mRepIJDir;
+	int                      mL0;
+	int                      mLLast;
+	char                     mComment;
+	eTyUnitAngle             mAngleUnit;
+	std::string              mRepIJK;
+	bool                     mRepIJDir;
+	std::vector<std::string> mChgName;
 };
 
 cAppli_ImportOri::cAppli_ImportOri(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -76,8 +79,16 @@ cCollecSpecArg2007 & cAppli_ImportOri::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mComment,"Com","Carac for commentary",{eTA2007::HDV})
        << AOpt2007(mAngleUnit,"AngU","Unity for angles",{{eTA2007::HDV},{AC_ListVal<eTyUnitAngle>()}})
        << AOpt2007(mRepIJK,"Rep","Repair coded (relative  to MMVII convention)  ",{{eTA2007::HDV}})
-       << AOpt2007(mRepIJDir,"KIsUp","Coorespond to repair \"i-j-k\" ",{{eTA2007::HDV}})
+       << AOpt2007(mRepIJDir,"KIsUp","Corespond to repair \"i-j-k\" ",{{eTA2007::HDV}})
+       << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$0]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
     ;
+}
+
+std::vector<std::string>  cAppli_ImportOri::Samples() const
+{
+   return {
+              "MMVII ImportOri trajectographie_tif.opk NSSXYZWPKS Calib InitUP AngU=degree KIsUp=true ChgN=[\".*\",\"Traj_\\$0\"]"
+	};
 }
 
 // "NSSXYZWPKS"
@@ -108,6 +119,8 @@ int cAppli_ImportOri::Exe()
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
          std::string aNameIm = aVNames.at(aK).at(0);
+
+	 ChgName(mChgName,aNameIm);
 	 cPt3dr aCenter = aVXYZ.at(aK);
 	 cPt3dr aWPK = aVWKP.at(aK) / aAngDiv ;
 

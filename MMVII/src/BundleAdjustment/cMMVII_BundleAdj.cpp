@@ -128,11 +128,13 @@ void cMMVII_BundleAdj::InitIteration()
 
 void cMMVII_BundleAdj::OneIteration()
 {
+    // if it's first step, alloc ressources
     if (mPhaseAdd)
     {
         InitIteration();
     }
 
+    // if necessary, fix frozen parameters of internal calibration
     if (mPatParamFrozenCalib !="")
     {
         for (const  auto & aPtrCal : mVPCIC)
@@ -140,10 +142,25 @@ void cMMVII_BundleAdj::OneIteration()
             mR8_Sys->SetFrozenFromPat(*aPtrCal,mPatParamFrozenCalib,true);
 	}
     }
+
+    // if necessary, fix frozen centers of external calibration
+    if (mPatFrozenCenter !="")
+    {
+        tNameSelector aSel =   AllocRegex(mPatFrozenCenter);
+        for (const auto & aPtrCam : mVSCPC)
+        {
+            if ((aPtrCam != nullptr)  && aSel.Match(aPtrCam->NameImage()))
+	    {
+                 mR8_Sys->SetFrozenVarCurVal(*aPtrCam,aPtrCam->Center());
+	    }
+        }
+    }
+
+    // if necessary, add some "viscosity" on poses 
     AddPoseViscosity();
 
-    OneItere_GCP();
-    OneItere_TieP();
+    OneItere_GCP();   // add GCP informations
+    OneItere_TieP();  // ad tie-points information
 
     // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << std::endl;
 
@@ -202,6 +219,42 @@ void cMMVII_BundleAdj::SetParamFrozenCalib(const std::string & aPattern)
 {    
     mPatParamFrozenCalib = aPattern;
 }
+
+void cMMVII_BundleAdj::SetFrozenCenters(const std::string & aPattern)
+{    
+    mPatFrozenCenter = aPattern;
+}
+
+    /* ---------------------------------------- */
+    /*            AddViscosity                  */
+    /* ---------------------------------------- */
+
+void cMMVII_BundleAdj::AddPoseViscosity()
+{
+     //  parse all centra
+     for (auto aPcPtr : mVSCPC)
+     {
+         if (aPcPtr!=nullptr)
+         {
+            if (mSigmaViscCenter>0)
+            {
+               mR8_Sys->AddEqFixCurVar(*aPcPtr,aPcPtr->Center(),Square(1/mSigmaViscCenter));
+            }
+            if (mSigmaViscAngles>0)
+            {
+               mR8_Sys->AddEqFixCurVar(*aPcPtr,aPcPtr->Omega(),Square(1/mSigmaViscAngles));
+            }
+         }
+     }
+}
+
+void cMMVII_BundleAdj::SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle)
+{
+    mSigmaViscCenter = aViscTr;
+    mSigmaViscAngles = aViscAngle;
+}
+
+
 
 }; // MMVII
 
