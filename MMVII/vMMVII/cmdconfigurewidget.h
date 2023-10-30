@@ -40,7 +40,7 @@ private:
     QWidget *wTuning;
     QWidget *wGlobal;
 
-    QWidget *createPage(QVector<ArgSpec> &argSpecs, const QString& level);
+    QWidget *createPage(std::vector<ArgSpec> &argSpecs, const QString& level);
     InputWidget *createInput(QWidget *widget, QGridLayout *layout, ArgSpec& as);
 
     QString quoteString(const QString &s);

@@ -41,13 +41,13 @@ CmdSelectWidget::~CmdSelectWidget()
 }
 
 
-static QStringList parseCmdLine(const QString& line)
+static StrList parseCmdLine(const QString& line)
 {
     enum State {WAIT_ARG, ARG, QUOTED_ARG};
     State state = WAIT_ARG;
 
     QString arg;
-    QStringList args;
+    StrList args;
 
     for (auto c : line) {
         switch (state) {
@@ -71,7 +71,7 @@ static QStringList parseCmdLine(const QString& line)
         case ARG:
             if (c.isSpace()) {
                 state = WAIT_ARG;
-                args.append(arg);
+                args.push_back(arg);
                 arg.clear();
                 break;
             }
@@ -83,13 +83,13 @@ static QStringList parseCmdLine(const QString& line)
         }
     }
     if (arg.size())
-        args.append(arg);
+        args.push_back(arg);
     return args;
 }
 
 
 
-CommandSpec CmdSelectWidget::parseArgs(const QStringList& args, QString& newLine)
+CommandSpec CmdSelectWidget::parseArgs(const StrList& args, QString& newLine)
 {
     CommandSpec spec;
 
@@ -109,21 +109,21 @@ CommandSpec CmdSelectWidget::parseArgs(const QStringList& args, QString& newLine
         return CommandSpec();
 
     newLine = "MMVII " + command;
-    for (int i=0; i<spec.mandatories.size(); i++) {
+    for (unsigned i=0; i<spec.mandatories.size(); i++) {
         spec.mandatories[i].hasInitValue = true;
         spec.mandatories[i].initValue = args[2+i];
         newLine += " " + quotedArg(args[2+i]);
     }
 
-    for (int i=0; i<spec.optionals.size(); i++) {
+    for (unsigned i=0; i<spec.optionals.size(); i++) {
         spec.optionals[i].hasInitValue = false;
     }
 
-    for (int i=2+spec.mandatories.size(); i < args.size(); i++) {
+    for (unsigned i=2+spec.mandatories.size(); i < args.size(); i++) {
         QStringList keyVal=args[i].split('=');
         if (keyVal.size()< 2)
             continue;
-        for (int j=0; j<spec.optionals.size(); j++) {
+        for (unsigned j=0; j<spec.optionals.size(); j++) {
             if (keyVal[0] == spec.optionals[j].name) {
                 spec.optionals[j].hasInitValue = true;
                 spec.optionals[j].initValue = keyVal[1];
@@ -162,7 +162,7 @@ void CmdSelectWidget::workingDirChanged()
             line.startsWith("ending "))
             continue;
 
-        QStringList args = parseCmdLine(line);
+        auto args = parseCmdLine(line);
         CommandSpec spec = parseArgs(args,line);
         if (spec.empty())
             continue;
@@ -257,10 +257,10 @@ void CmdSelectWidget::doRun()
         return;
     CommandSpec specs = qvariant_cast<CommandSpec>(sel[0]->data(Qt::UserRole));
     QStringList args(specs.name);
-    for (const auto& as : qAsConst(specs.mandatories))
+    for (const auto& as : specs.mandatories)
         args.append(as.initValue);
 
-    for (const auto& as : qAsConst(specs.optionals)) {
+    for (const auto& as : specs.optionals) {
         if (as.hasInitValue)
             args.append(as.name + "=" + as.initValue);
     }

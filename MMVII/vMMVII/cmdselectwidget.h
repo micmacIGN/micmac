@@ -29,7 +29,7 @@ private:
     void commandListSelChanged();
     void historyListSelChanged();
 
-    CommandSpec parseArgs(const QStringList &args, QString& newLine);
+    CommandSpec parseArgs(const StrList &args, QString& newLine);
 
     Ui::CmdSelectUI *cmdSelectUi;
     const MMVIISpecs& allSpecs;

@@ -167,7 +167,7 @@ InputNumbers<T,SPIN>::InputNumbers(QWidget *parent, QGridLayout *layout, ArgSpec
             min = -max;
             dsb->setDecimals(3);
         }
-        QStringList range = parseList(as.range);
+        auto range = parseList<StrList>(as.range);
 
         if (range.size() > 0 && range[0].size())
             min = qvariant_cast<T>(range[0]);
@@ -194,9 +194,9 @@ InputNumbers<T,SPIN>::InputNumbers(QWidget *parent, QGridLayout *layout, ArgSpec
 template<typename T, class SPIN>
 void InputNumbers<T,SPIN>::doReset()
 {
-    QStringList values = parseList(as.def);
+    auto values = parseList<StrList>(as.def);
     for (int i=0; i<as.vSizeMax; i++) {
-        if (i<values.size() && !values[i].isEmpty())
+        if (i<(int)values.size() && !values[i].isEmpty())
             sbs[i]->setValue(qvariant_cast<T>(values[i]));
         else
             sbs[i]->setValue(sbs[i]->minimum());
@@ -208,9 +208,9 @@ void InputNumbers<T,SPIN>::setInitialValue()
 {
     if (! as.hasInitValue)
         return;
-    QStringList values = parseList(as.initValue);
+    auto values = parseList<StrList>(as.initValue);
     for (int i=0; i<as.vSizeMax; i++) {
-        if (i<values.size() && !values[i].isEmpty()) {
+        if (i<(int)values.size() && !values[i].isEmpty()) {
             sbs[i]->setValue(qvariant_cast<T>(values[i]));
         } else {
             sbs[i]->setValue(sbs[i]->minimum());

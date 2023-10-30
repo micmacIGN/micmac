@@ -7,6 +7,53 @@
 #include <QVector>
 #include <QMap>
 #include <stdexcept>
+#include <set>
+
+#include "global.h"
+
+class eTA2007 {
+public:
+    enum Enum {
+        DirProject,    ///< Exact Dir of Proj
+        FileDirProj,   ///< File that define the  Dir Proj
+        FileImage,     ///< File containing an image
+        FileCloud,     ///< File containing a cloud file (ply ?)
+        File3DRegion,  ///< File containing a 3D region
+        MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
+        FFI,           ///< File Filter Interval
+        Orient,        ///< Orientation
+        RadiomData,    ///< Data for Radiometry
+        RadiomModel,   ///< Model for Radiometry
+        MeshDev,       ///< Mesh Devlopment
+        Mask,          ///< Mask of image
+        MetaData,      ///< Meta data images
+        PointsMeasure, ///< Measure of point , 2D or 3D
+        TieP,          ///< Tie Points
+        MulTieP,          ///< Tie Points
+        Input,         ///< Is this parameter used as input/read
+        Output,        ///< Is this parameter used as output/write
+        OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
+        PatParamCalib, ///< It's a pattern for parameter of calibration
+        AddCom,        ///< Not an attribute, used to embed additionnal comment in Help mode
+        AllowedValues, ///< String of possible values for enums type, automagically added for args of enum type
+        Shared,        ///< Parameter  Shared by many (several) command
+        Global,        ///< Parameter  Common to all commands
+        Internal,      ///< Reserved to internall use by MMVII
+        Tuning,        ///< Used for testing/tuning command but not targeted for user
+        HDV,           ///< Has Default Value, will be printed on help
+        ISizeV,        ///< Interval size vect, print on help
+        XmlOfTopTag,   ///< Parameter must be a XML-file containing certain tag
+        Range,         ///< Range of allowed numerical values: "[min,max]" | "[min,]" | "[,max]"
+        eNbVals        ///< Tag for number of value
+    };
+
+    static Enum val(const QString &str);
+    static QString str(Enum e);
+
+private:
+    static const std::map<Enum,QString> enumMap;
+    static std::map<QString,Enum> strMap;
+};
 
 struct ArgSpec
 {
@@ -24,8 +71,9 @@ struct ArgSpec
     Type cppType;
     QString def;
     QString comment;
-    QStringList semantic;
-    QStringList allowed;
+    StrSet semantics;
+    std::set<eTA2007::Enum> semantic;
+    StrSet allowed;
     QString range;
     int vSizeMin,vSizeMax;
 
@@ -49,8 +97,8 @@ public:
     QString comment;
     QString source;
 
-    QVector<ArgSpec> mandatories;
-    QVector<ArgSpec> optionals;
+    std::vector<ArgSpec> mandatories;
+    std::vector<ArgSpec> optionals;
 
 };
 
@@ -66,20 +114,19 @@ public:
 
     QString mmviiBin;
     QString phpDir;
-    QString orientDir;
-    QString homolDir;
-    QString meshDevDir;
-    QString radiomDir;
     QString testDir;
-    QMap <QString,QStringList> extensions;
+    StrSet dirTypes;
+    StrSet fileTypes;
+    QMap <QString,StrList> extensions;
 
 private:
     void error(const QString& msg);
     void parseConfig(const QJsonObject &config);
     void parseCommands(const QJsonArray &applets);
     QString toString(const QJsonObject& obj, const QString& key, const QString& context, bool needed = true);
-    QStringList toStringList(const QJsonObject &obj, const QString &key, const QString &context, bool needed = true);
-    QVector<ArgSpec> parseArgsSpecs(const QJsonObject &argsSpecs, const QString &key, QString context, const QString& command);
+    template<class Container>
+    Container toStringList(const QJsonObject &obj, const QString &key, const QString &context, bool needed = true);
+    std::vector<ArgSpec> parseArgsSpecs(const QJsonObject &argsSpecs, const QString &key, QString context, const QString& command);
 };
 
 class ParseJSonException : public std::runtime_error
@@ -88,8 +135,6 @@ public:
     ParseJSonException(const char * msg) : std::runtime_error(msg) {}
 
 };
-
-QStringList parseList(const QString &lv);
 
 
 #endif // COMMANDSPEC_H

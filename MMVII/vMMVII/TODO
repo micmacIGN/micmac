@@ -13,7 +13,7 @@ x    - arg: c'est la commande ou liste commande si commande existe pas
 x - Préremplir champs avec derniere commande (MMVII_logfile.txt ou Qsetting / chantier)
 x   - liste dernieres commandes (MMVII_logfile.txt)
 - HAsh ou autre dans logfile pour verifier version MMVII ?
-- Verif syntaxe
+x - Verif syntaxe
 x - Feu vert/rouge pour valider chque argument (syntaxe, ...)
 x - status message pour mandatory
 x - Afficher valeur par defaut optionnals dans infobulle
@@ -23,7 +23,6 @@ x- Ascenceurs si trop de champs (CodedTargetExtract)
 x - Liste extension depuis specs JSON
 x- Semantique sur Input, Output
 x   - Qu'est ce qui definit si c'est un fichier attendu ?
-- Plusieurs fichier si MPF (pattern, multiple file, liste fichier)
 x - Position bouton Exit, Configure, Run, Reset ...
 
 x - Separer source .cpp pour "menu acceuil" et "menu commande"
@@ -65,9 +64,15 @@ x  Ok disabled until finished/error
 x  Cancel -> stop (enabled when started, disabled at end) -> kill
 x  Reopen dialog (to see log) ?
 
+- Plusieurs possibilités si MPF (pattern ou  liste fichier)
+- All FILES/DIR relatives to current (proj) dir !!
+- Ori,Meshdev, ... : dir under phpDir + enum2str(eta2007)
+- MPF => in, file
+- FDP => in, file other
+- Virer OrientDir, ...
 
 - Tester ccache visual studio
 - Compile windows sans visual studio ide (msbuild ?)
 - Compile windows sous QtCreator
 
-
+- bash-completion: file in project subdir are relative to project subdir ...

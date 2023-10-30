@@ -92,19 +92,19 @@ InputWidget *CmdConfigureWidget::createInput(QWidget *widget, QGridLayout *layou
         else
             return new InputString(widget, layout, as);
     case ArgSpec::T_STRING:
-        if (as.semantic.contains("FFI"))
+        if (contains(as.semantic,eTA2007::FFI))
             return new InputFFI(widget, layout, as);
-        if (as.semantic.contains("Ori"))
+        if (contains(as.semantic,eTA2007::Orient))
             return new InputFile(widget, layout, as, InputFile::ORIENT, allSpecs);
-        if (as.semantic.contains("Im"))
+        if (contains(as.semantic,eTA2007::FileImage))
             return new InputFile(widget, layout, as, InputFile::IM, allSpecs);
-        if (as.semantic.contains("DP"))
+        if (contains(as.semantic,eTA2007::DirProject))
             return new InputFile(widget, layout, as, InputFile::DP, allSpecs);
-        if (as.semantic.contains("Cloud"))
+        if (contains(as.semantic,eTA2007::FileCloud))
             return new InputFile(widget, layout, as, InputFile::CLOUD, allSpecs);
-        if (as.semantic.contains("3DReg"))
+        if (contains(as.semantic,eTA2007::File3DRegion))
             return new InputFile(widget, layout, as, InputFile::REG3D, allSpecs);
-        if (as.semantic.contains("FDP") || as.semantic.contains("MPF"))
+        if (contains(as.semantic,{eTA2007::FileDirProj,eTA2007::MPatFile}))
             return new InputFile(widget, layout, as, InputFile::OTHER, allSpecs);
         return new InputString(widget, layout, as);
     case ArgSpec::T_VEC_STRING:
@@ -116,7 +116,7 @@ InputWidget *CmdConfigureWidget::createInput(QWidget *widget, QGridLayout *layou
 }
 
 
-QWidget *CmdConfigureWidget::createPage(QVector<ArgSpec>& argSpecs, const QString& level)
+QWidget *CmdConfigureWidget::createPage(std::vector<ArgSpec>& argSpecs, const QString& level)
 {
     QWidget *widget = new QWidget;
     QGridLayout *layout= new QGridLayout(widget);
@@ -165,14 +165,14 @@ void CmdConfigureWidget::resetValues()
 void CmdConfigureWidget::checkAllParams()
 {
     bool ok = true;
-    for (const auto& as : qAsConst(specs->mandatories)) {  // avoid QVector detachment
+    for (const auto& as : specs->mandatories) {
         if (! as.check) {
             ok = false;
             break;
         }
     }
     if (ok) {
-        for (const auto& as : qAsConst(specs->optionals)) {  // avoid QVector detachment
+        for (const auto& as : specs->optionals) {
             if (! as.check) {
                 ok = false;
                 break;
@@ -187,10 +187,10 @@ void CmdConfigureWidget::checkAllParams()
 void CmdConfigureWidget::updateCommand()
 {
     cmdLine  = specs->name;
-    for (const auto& as : qAsConst(specs->mandatories))
+    for (const auto& as : specs->mandatories)
         cmdLine += " " + quotedArg(as.value);
 
-    for (const auto& as : qAsConst(specs->optionals)) {
+    for (const auto& as : specs->optionals) {
         if (as.isEnabled)
             cmdLine += " " + quotedArg(as.name + "=" + as.value);
     }
@@ -207,10 +207,10 @@ void CmdConfigureWidget::valueUpdated(const ArgSpec &as)
 void CmdConfigureWidget::doRun()
 {
     QStringList args(specs->name);
-    for (const auto& as : qAsConst(specs->mandatories))
+    for (const auto& as : specs->mandatories)
         args.append(as.value);
 
-    for (const auto& as : qAsConst(specs->optionals)) {
+    for (const auto& as : specs->optionals) {
         if (as.isEnabled)
             args.append(as.name + "=" +  as.value);
     }

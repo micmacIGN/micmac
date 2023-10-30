@@ -134,10 +134,12 @@ InputEnum::InputEnum(QWidget *parent, QGridLayout *layout, ArgSpec &as) : InputW
     cb->show();
     if (! as.mandatory)
         cb->addItem(noValueMarker);
-    if (as.cppType == ArgSpec::T_BOOL)
+    if (as.cppType == ArgSpec::T_BOOL) {
         cb->addItems({"false","true"});
-    else
-        cb->addItems(as.allowed);
+    } else {
+        for (const auto& allowed: as.allowed)
+            cb->addItem(allowed);
+    }
 
     connect(cb,&QComboBox::currentTextChanged,this,[this](const QString& text) {this->valueEdited(text);});
     finish();
@@ -220,7 +222,7 @@ InputChar::InputChar(QWidget *parent, QGridLayout *layout, ArgSpec &as) : InputS
 
 /*********************************************************************************/
 
-static QString extList2Ext(const QStringList& extList)
+static QString extList2Ext(const StrList& extList)
 {
     QString extensions;
     for (const auto& e : extList)
@@ -268,12 +270,12 @@ InputFile::InputFile(QWidget *parent, QGridLayout *layout, ArgSpec &as, Type typ
         mode    = OPEN_FILE;
         caption = tr("Select an orientation file");
         pb->setText(tr("Select File"));
-        subdir = allSpecs.orientDir;
+//        subdir = allSpecs.orientDir;
         filter  = tr("Orientation files") + " (" + extList2Ext(allSpecs.extensions.value("Orient")) + ");;" + tr("All")+ "(*)";
         break;
     case OTHER:
         // FIXME: Is it correct ? (several filenames)
-        if (as.semantic.contains("MPF"))
+        if (contains(as.semantic,eTA2007::MPatFile))
             label->setToolTip(label->toolTip() + tr("\nSelect a file containing a list of files, or enter a pattern"));
         mode    = OPEN_FILE;
         pb->setText(tr("Select File"));
@@ -300,7 +302,7 @@ InputWidget::State InputFile::doCheckValue()
 {
     if (as.value.isEmpty())
         return State::EMPTY;
-    if (as.semantic.contains("MPF")) {
+    if (contains(as.semantic,eTA2007::MPatFile)) {
         QRegularExpression re(as.value);
         if (! re.isValid())
             return State::BAD;
@@ -320,8 +322,8 @@ void InputFile::fileDialog()
 
     switch (mode) {
     case OPEN_FILE:
-        if (as.semantic.contains("Out") || as.semantic.contains("OptEx"))
-            fileName = QFileDialog::getSaveFileName(this,caption,openDir,filter,nullptr,as.semantic.contains("OptEx") ? QFileDialog::DontConfirmOverwrite : QFileDialog::Options());
+        if (contains(as.semantic,{eTA2007::Output,eTA2007::OptionalExist}))
+            fileName = QFileDialog::getSaveFileName(this,caption,openDir,filter,nullptr,contains(as.semantic,eTA2007::OptionalExist) ? QFileDialog::DontConfirmOverwrite : QFileDialog::Options());
         else
             fileName = QFileDialog::getOpenFileName(this,caption,openDir,filter);
         if (fileName.isEmpty())
@@ -377,9 +379,9 @@ InputStrings::InputStrings(QWidget *parent, QGridLayout *layout, ArgSpec &as, in
 
 void InputStrings::doReset()
 {
-    QStringList values = parseList(as.def);
+    auto values = parseList<StrList>(as.def);
     for (int i=0; i<as.vSizeMax; i++) {
-        if (i<values.size() && !values[i].isEmpty())
+        if (i<(int)values.size() && !values[i].isEmpty())
             les[i]->setText(values[i]);
         else
             les[i]->setText("");
@@ -390,9 +392,9 @@ void InputStrings::setInitialValue()
 {
     if (! as.hasInitValue)
         return;
-    QStringList values = parseList(as.initValue);
+    auto values = parseList<StrList>(as.initValue);
     for (int i=0; i<as.vSizeMax; i++) {
-        if (i<values.size() && !values[i].isEmpty()) {
+        if (i<(int)values.size() && !values[i].isEmpty()) {
             les[i]->setText(values[i]);
         } else {
             les[i]->setText("");

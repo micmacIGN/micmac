@@ -8,6 +8,57 @@
 #include <iostream>
 
 
+const std::map<eTA2007::Enum,QString> eTA2007::enumMap=
+    {
+        {eTA2007::DirProject,"DP"},
+        {eTA2007::FileDirProj,"FDP"},
+        {eTA2007::FileImage,"Im"},
+        {eTA2007::FileCloud,"Cloud"},
+        {eTA2007::File3DRegion,"3DReg"},
+        {eTA2007::MPatFile,"MPF"},
+        {eTA2007::Orient,"Ori"},
+        {eTA2007::RadiomData,"RadData"},
+        {eTA2007::RadiomModel,"RadModel"},
+        {eTA2007::MeshDev,"MeshDev"},
+        {eTA2007::Mask,"Mask"},
+        {eTA2007::MetaData,"MetaData"},
+        {eTA2007::PointsMeasure,"PointsMeasure"},
+        {eTA2007::TieP,"TieP"},
+        {eTA2007::MulTieP,"MulTieP"},
+        {eTA2007::Input,"In"},
+        {eTA2007::Output,"Out"},
+        {eTA2007::OptionalExist,"OptEx"},
+        {eTA2007::PatParamCalib,"ParamCalib"},
+        {eTA2007::AddCom,"AddCom"},
+        {eTA2007::AllowedValues,"Allowed"},
+        {eTA2007::Internal,"##Intern"},
+        {eTA2007::Tuning,"##Tune"},
+        {eTA2007::Global,"##Glob"},
+        {eTA2007::Shared,"##Shar"},
+        {eTA2007::HDV,"##HDV"},
+        {eTA2007::ISizeV,"##ISizeV"},
+        {eTA2007::XmlOfTopTag,"##XmlOfTopTag"},
+        {eTA2007::Range,"##Range"},
+        {eTA2007::FFI,"FFI"}
+};
+
+std::map<QString, eTA2007::Enum> eTA2007::strMap;
+
+QString eTA2007::str(eTA2007::Enum e)
+{
+    return enumMap.at(e);
+}
+
+eTA2007::Enum eTA2007::val(const QString& s)
+{
+    if (strMap.empty()) {
+        for (const auto& m: enumMap)
+            strMap[m.second] = m.first;
+    }
+    return strMap[s];
+}
+
+
 static void typeNameToEnum(ArgSpec& as, const QString& command)
 {
     static const std::map<QString, ArgSpec::Type> typeNameEnumMap = {
@@ -46,15 +97,6 @@ static void typeNameToEnum(ArgSpec& as, const QString& command)
 }
 
 
-QStringList parseList(const QString &lv)
-{
-    if (lv.size()>=2 && lv.front() == '['  && lv.back() == ']')
-        return lv.mid(1,lv.size()-2).split(',');
-    else
-        return lv.split(',');
-}
-
-
 
 void MMVIISpecs::error(const QString &msg)
 {
@@ -75,9 +117,10 @@ QString MMVIISpecs::toString(const QJsonObject &obj, const QString &key, const Q
 }
 
 
-QStringList MMVIISpecs::toStringList(const QJsonObject& obj, const QString& key, const QString& context, bool needed)
+template<class Container>
+Container MMVIISpecs::toStringList(const QJsonObject& obj, const QString& key, const QString& context, bool needed)
 {
-    QStringList val;
+    Container val;
 
     if (!obj.contains(key)) {
         if (!needed)
@@ -91,7 +134,7 @@ QStringList MMVIISpecs::toStringList(const QJsonObject& obj, const QString& key,
     for (const auto& v : a) {
         if (! v.isString())
             error (tr("Key \"%1\" is not an array of string  %2").arg(key, context));
-        val.push_back(v.toString());
+        val.insert(val.end(),v.toString());
     }
     return val;
 }
@@ -99,13 +142,11 @@ QStringList MMVIISpecs::toStringList(const QJsonObject& obj, const QString& key,
 void MMVIISpecs::parseConfig(const QJsonObject& config)
 {
     QString context = tr("in \"config\" at top level");
-    mmviiBin   = toString(config,"Bin2007",context);
-    phpDir     = toString(config,"MMVIIDirPhp",context);
-    orientDir  = toString(config,"MMVIIDirOrient",context);
-    homolDir   = toString(config,"MMVIIDirHomol",context);
-    meshDevDir = toString(config,"MMVIIDirMeshDev",context);
-    radiomDir  = toString(config,"MMVIIDirRadiom",context);
-    testDir    = toString(config,"MMVIITestDir",context);
+    mmviiBin  = toString(config,"Bin2007",context);
+    phpDir    = toString(config,"MMVIIDirPhp",context);
+    testDir   = toString(config,"MMVIITestDir",context);
+    fileTypes = toStringList<StrSet>(config,"eTa2007FileTypes",context);
+    dirTypes  = toStringList<StrSet>(config,"eTa2007DirTypes",context);
 
     if (!config.contains("extensions"))
         error(tr("Missing key \"extensions\" in \"config\" at top level"));
@@ -113,12 +154,12 @@ void MMVIISpecs::parseConfig(const QJsonObject& config)
         error(tr("\"extensions\" is not an object in \"config\" at top level"));
     const auto extensionsSpecs = config["extensions"].toObject();
     for (auto& key: extensionsSpecs.keys())
-        extensions[key] = toStringList(extensionsSpecs,key,"\"extensions\" in \"config\"");
+        extensions[key] = toStringList<StrList>(extensionsSpecs,key,"\"extensions\" in \"config\"");
 }
 
-QVector<ArgSpec> MMVIISpecs::parseArgsSpecs(const QJsonObject& argsSpecs, const QString& key, QString context, const QString& command)
+std::vector<ArgSpec> MMVIISpecs::parseArgsSpecs(const QJsonObject& argsSpecs, const QString& key, QString context, const QString& command)
 {
-    QVector<ArgSpec> vSpecs;
+    std::vector<ArgSpec> vSpecs;
 
     if (! argsSpecs.contains(key))
         error(tr("Missing key \"%1\" %2").arg(key, context));
@@ -144,15 +185,18 @@ QVector<ArgSpec> MMVIISpecs::parseArgsSpecs(const QJsonObject& argsSpecs, const 
         as.cppTypeStr = toString(spec,"type",context);
         as.def        = toString(spec,"default",context,false);
         as.comment    = toString(spec,"comment",context,false);
-        as.semantic   = toStringList(spec,"semantic",context,false);
-        as.allowed    = toStringList(spec,"allowed",context,false);
+        as.semantics  = toStringList<StrSet>(spec,"semantic",context,false);
+        for (const auto &s: std::as_const(as.semantics))
+            as.semantic.insert(eTA2007::val(s));
+
+        as.allowed    = toStringList<StrSet>(spec,"allowed",context,false);
         as.range      = toString(spec,"range",context,false);
         as.vSizeMin   = as.vSizeMax = 1;
         typeNameToEnum(as, command);
         QString vsize;
         vsize    = toString(spec,"vsize",context,false);
         if (vsize.length()) {
-            QStringList vsizel = parseList(vsize);
+            auto vsizel = parseList<StrList>(vsize);
             if (vsizel.size() == 2) {
                 bool ok1,ok2;
                 as.vSizeMin = vsizel[0].toInt(&ok1);
@@ -182,8 +226,8 @@ void MMVIISpecs::parseCommands(const QJsonArray& applets)
         cmdSpec.name = toString(theSpec,"name","\"applets\" array");
 
         QString context = tr(" in \"applets\" array");
-        QStringList features = toStringList(theSpec,"features",context);
-        if (features.contains("nogui",Qt::CaseInsensitive))
+        auto features = toStringList<StrSet>(theSpec,"features",context);
+        if (contains(features,"nogui"))
             continue;
         cmdSpec.name = toString(theSpec,"name",context);
         context = " in command \"" + cmdSpec.name + "\"";
@@ -233,20 +277,21 @@ void MMVIISpecs::fromJson(const QByteArray& specsTxt)
 bool CommandSpec::initFrom(const CommandSpec &spec)
 {
     if (spec.name != name ||
-        spec.mandatories.count() != mandatories.count() ||
-        spec.optionals.count() != optionals.count())
+        spec.mandatories.size() != mandatories.size() ||
+        spec.optionals.size() != optionals.size())
         return false;
 
-    for (int i=0; i<mandatories.count(); i++) {
+    for (unsigned i=0; i<mandatories.size(); i++) {
         mandatories[i].hasInitValue = spec.mandatories[i].hasInitValue;
         if (spec.mandatories[i].hasInitValue)
             mandatories[i].initValue = spec.mandatories[i].initValue;
     }
 
-    for (int i=0; i<optionals.count(); i++) {
+    for (unsigned i=0; i<optionals.size(); i++) {
         optionals[i].hasInitValue = spec.optionals[i].hasInitValue;
         if (spec.optionals[i].hasInitValue)
             optionals[i].initValue = spec.optionals[i].initValue;
     }
     return true;
 }
+
