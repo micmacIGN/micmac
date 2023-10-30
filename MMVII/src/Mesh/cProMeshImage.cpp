@@ -146,7 +146,6 @@ class cAppliProMeshImage : public cMMVII_Appli
 	size_t                    mNbF;
 	size_t                    mNbP;
         cSensorCamPC *            mCamPC;
-	std::string               mDirMeshDev;
 	std::string               mNameResult;
 };
 
@@ -270,7 +269,7 @@ void cAppliProMeshImage::MakeDevlptIm(cZBuffer &  aZB )
    }
 
      // save image
-   aIm.ToFile(mDirMeshDev+"Dev-"+LastPrefix(mNameSingleIm)+".tif");
+   aIm.ToFile(mPhProj.DPMeshDev().FullDirOut()+"Dev-"+LastPrefix(mNameSingleIm)+".tif");
 }
 
 
@@ -512,12 +511,6 @@ int cAppliProMeshImage::Exe()
 {
    mPhProj.FinishInit();
 
-   mDirMeshDev = DirProject()+ MMVIIDirMeshDev;
-   if (LevelCall()==0)
-   {
-      CreateDirectories(mDirMeshDev,true);
-   } 
-
    mTri3D = new cTriangulation3D<tREAL8>(DirProject()+mNameCloud3DIn);
    mNbF   = mTri3D->NbFace();
    mNbP   = mTri3D->NbPts();
@@ -564,7 +557,7 @@ int cAppliProMeshImage::Exe()
        ProcessNoPix(aZBuf);
 
        if (mDoImages)
-          aZBuf.ZBufIm().DIm().ToFile(mDirMeshDev+"ZBuf-"+LastPrefix(mNameSingleIm)+".tif");
+          aZBuf.ZBufIm().DIm().ToFile(mPhProj.DPMeshDev().FullDirOut()+"ZBuf-"+LastPrefix(mNameSingleIm)+".tif");
 
 
        if (IsInit(&mNameCloud2DIn))
