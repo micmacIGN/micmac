@@ -360,7 +360,7 @@ void cMMVII_Appli::SetNot4Exe()
    mForExe = false;
 }
 
-void cMMVII_Appli::InitParam(std::string *aArgsSpecs, std::string *aErrors)
+void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
 {
   mSeedRand = DefSeedRand();
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl); // Call virtual method
@@ -471,8 +471,7 @@ void cMMVII_Appli::InitParam(std::string *aArgsSpecs, std::string *aErrors)
 
   if (aArgsSpecs) {
       mModeArgsSpec = true;
-      MMVII_INTERNAL_ASSERT_always(aErrors," cMMVII_Appli::InitParam: AErrors == nullptr and aArgsSpecs != nullptr");
-      GenerateArgsSpec(*aArgsSpecs, *aErrors);
+      GenerateArgsSpec(aArgsSpecs);
       return;
   }
 
@@ -1097,12 +1096,12 @@ static std::string JsonEscaped(const std::string& s)
     return res;
 }
 
-void cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::string& aSpecName, bool aOptional, std::string &aDesc, std::string &aErr)
+void cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::string& aSpecName, bool aOptional, cGenArgsSpecContext *aArgsSpec)
 {
     if (aOptional)
-        aDesc += "      \"optional\": [";
+        aArgsSpec->jsonSpec += "      \"optional\": [";
     else
-        aDesc += "      \"mandatory\": [";
+        aArgsSpec->jsonSpec += "      \"mandatory\": [";
 
     int num = 1;
     for (const auto & Arg : aSpecArgs.Vec())
@@ -1111,7 +1110,7 @@ void cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::
             continue;
 
         if (num != 1)
-            aDesc +=  ",";
+            aArgsSpec->jsonSpec +=  ",";
 
         // semantic checks
         std::string argName;
@@ -1123,31 +1122,33 @@ void cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::
 
         std::string fileType,dirType;
         for (const auto& a : Arg->SemPL()) {
-            if (a.Type() >= eTA2007::FileImage && a.Type() <= eTA2007::MPatFile) {
+            if (a.Type() >= aArgsSpec->firstFileType && a.Type() <= aArgsSpec->lastFileType) {
                 if (fileType.length() != 0)
-                    aErr += "WARNING: " + aSpecName + ": " + argName + ": has " + fileType + " and " + E2Str(a.Type()) + " file semantic.\n";
+                   aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": has " + fileType + " and " + E2Str(a.Type()) + " file semantic.\n";
                 fileType = E2Str(a.Type());
             }
-            if (a.Type() >= eTA2007::Orient && a.Type() <= eTA2007::MulTieP) {
+            if (a.Type() >= aArgsSpec->firstDirType && a.Type() <= aArgsSpec->lastDirType) {
                 if (dirType.length() != 0)
-                    aErr += "WARNING: " + aSpecName + ": " + argName + ": has " + dirType + " and " + E2Str(a.Type()) + " dir semantic.\n";
+                    aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": has " + dirType + " and " + E2Str(a.Type()) + " dir semantic.\n";
                 dirType = E2Str(a.Type());
                 break;
             }
         }
         if (fileType.length() != 0 && dirType.length() != 0)
-            aErr += "WARNING: " + aSpecName + ": " + argName + ": has " + dirType + " and " + fileType + " semantics.\n";
-
-        bool hasFileInOut = Arg->HasType(eTA2007::Input) || Arg->HasType(eTA2007::Output) || Arg->HasType(eTA2007::OptionalExist);
+            aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": has " + dirType + " and " + fileType + " semantics.\n";
 
         if (Arg->IsVector()  && !Arg->HasType(eTA2007::ISizeV))
-            aErr += "WARNING: " + aSpecName + ": " + argName + ": is a vector with no ISizeV semantic.\n";
+            aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": is a vector with no ISizeV semantic.\n";
         if (Arg->HasType(eTA2007::FileDirProj)  && fileType.length() == 0)
-            aErr += "WARNING: " + aSpecName + ": " + argName + ": has FileDirProj semantic with no File type semantic.\n";
+            aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": has FileDirProj semantic with no File type semantic.\n";
+#if 0
+// if no Input/Output/OptionalExist, assume Input
+        bool hasFileInOut = Arg->HasType(eTA2007::Input) || Arg->HasType(eTA2007::Output) || Arg->HasType(eTA2007::OptionalExist);
         if ( ! hasFileInOut && fileType.length() != 0)
-            aErr += "WARNING: " + aSpecName + ": " + argName + ": type " + fileType + ": Missing [Input|Output|OptionalExist] semantic.\n";
+            aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": type " + fileType + ": Missing [Input|Output|OptionalExist] semantic.\n";
         if ( ! hasFileInOut && dirType.length() != 0)
-            aErr += "WARNING: " + aSpecName + ": " + argName + ": type " + dirType + ": Missing [Input|Output|OptionalExist] semantic.\n";
+            aArgsSpec->errors += "WARNING: " + aSpecName + ": " + argName + ": type " + dirType + ": Missing [Input|Output|OptionalExist] semantic.\n";
+#endif
         // end of checks
 
         std::vector<std::string> semantic;
@@ -1170,42 +1171,42 @@ void cMMVII_Appli::GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::
             }
         }
 
-        aDesc +=  "\n        {\n";
+        aArgsSpec->jsonSpec +=  "\n        {\n";
         if (aOptional) {
             std::string level = Arg->HasType(eTA2007::Global) ? "global" : Arg->HasType(eTA2007::Tuning) ? "tuning" : "normal";
-            aDesc +=  "            \"name\": \"" + JsonEscaped(Arg->Name()) + "\",\n";
-            aDesc +=  "            \"level\": \"" + level + "\",\n";
+            aArgsSpec->jsonSpec +=  "            \"name\": \"" + JsonEscaped(Arg->Name()) + "\",\n";
+            aArgsSpec->jsonSpec +=  "            \"level\": \"" + level + "\",\n";
         }
-        aDesc +=  "            \"type\": \"" + JsonEscaped(Arg->NameType()) + "\"";
+        aArgsSpec->jsonSpec +=  "            \"type\": \"" + JsonEscaped(Arg->NameType()) + "\"";
         if (semantic.size()) {
-            aDesc +=  ",\n            \"semantic\": [";
+            aArgsSpec->jsonSpec +=  ",\n            \"semantic\": [";
             for (unsigned i=0; i<semantic.size(); i++) {
                 if (i > 0)
-                    aDesc +=  ",";
-                aDesc +=  "\"" + semantic[i] + "\"";
+                    aArgsSpec->jsonSpec +=  ",";
+                aArgsSpec->jsonSpec +=  "\"" + semantic[i] + "\"";
             }
-            aDesc +=  "]";
+            aArgsSpec->jsonSpec +=  "]";
         }
         if (allowed.size()) {
-            aDesc +=  ",\n            \"allowed\" : [";
+            aArgsSpec->jsonSpec +=  ",\n            \"allowed\" : [";
             for (unsigned i=0; i<allowed.size(); i++) {
                 if (i > 0)
-                    aDesc +=  ",";
-                aDesc +=  "\"" + allowed[i] + "\"";
+                    aArgsSpec->jsonSpec +=  ",";
+                aArgsSpec->jsonSpec +=  "\"" + allowed[i] + "\"";
             }
-            aDesc +=  "]";
+            aArgsSpec->jsonSpec +=  "]";
         }
         if (range.size())
-            aDesc +=  ",\n            \"range\" : \"" + range + "\"";
+            aArgsSpec->jsonSpec +=  ",\n            \"range\" : \"" + range + "\"";
         if (vectorSize.size())
-            aDesc +=  ",\n            \"vsize\" : \"" + vectorSize + "\"";
+            aArgsSpec->jsonSpec +=  ",\n            \"vsize\" : \"" + vectorSize + "\"";
         if (Arg->HasType((eTA2007::HDV)))
-            aDesc +=  ",\n            \"default\": \"" + JsonEscaped(Arg->NameValue()) + "\"";
+            aArgsSpec->jsonSpec +=  ",\n            \"default\": \"" + JsonEscaped(Arg->NameValue()) + "\"";
         if (Arg->Com().size())
-            aDesc +=  ",\n            \"comment\": \"" + JsonEscaped(Arg->Com()) + "\"";
-        aDesc +=  "\n        }";
+            aArgsSpec->jsonSpec +=  ",\n            \"comment\": \"" + JsonEscaped(Arg->Com()) + "\"";
+        aArgsSpec->jsonSpec +=  "\n        }";
     }
-    aDesc +=  "\n      ]";
+    aArgsSpec->jsonSpec +=  "\n      ]";
 }
 
 template <typename VE>
@@ -1220,24 +1221,24 @@ static std::string enumsVectorToStr(const VE& aVe)
     return s;
 }
 
-void cMMVII_Appli::GenerateArgsSpec(std::string& aDesc, std::string& aErrors)
+void cMMVII_Appli::GenerateArgsSpec(cGenArgsSpecContext *aArgsSpec)
 {
-   aDesc += "    {\n";
-   aDesc += "      \"name\": \"" + JsonEscaped(mSpecs.Name()) + "\",\n";
+   aArgsSpec->jsonSpec += "    {\n";
+   aArgsSpec->jsonSpec += "      \"name\": \"" + JsonEscaped(mSpecs.Name()) + "\",\n";
 
-   aDesc += "      \"comment\": \"" + JsonEscaped(mSpecs.Comment()) + "\",\n";
-   aDesc += "      \"source\": \"" + JsonEscaped(mSpecs.NameFile()) + "\",\n";
-   aDesc += "      \"features\": [" + enumsVectorToStr(mSpecs.Features()) + "],\n";
-   aDesc += "      \"inputs\": [" + enumsVectorToStr(mSpecs.VInputs()) + "],\n";
-   aDesc += "      \"outputs\": [" + enumsVectorToStr(mSpecs.VOutputs()) + "],\n";
+   aArgsSpec->jsonSpec += "      \"comment\": \"" + JsonEscaped(mSpecs.Comment()) + "\",\n";
+   aArgsSpec->jsonSpec += "      \"source\": \"" + JsonEscaped(mSpecs.NameFile()) + "\",\n";
+   aArgsSpec->jsonSpec += "      \"features\": [" + enumsVectorToStr(mSpecs.Features()) + "],\n";
+   aArgsSpec->jsonSpec += "      \"inputs\": [" + enumsVectorToStr(mSpecs.VInputs()) + "],\n";
+   aArgsSpec->jsonSpec += "      \"outputs\": [" + enumsVectorToStr(mSpecs.VOutputs()) + "],\n";
 
    std::string aErr;
-   GenerateOneArgSpec(mArgObl,mSpecs.Name(),false, aDesc, aErr);
-   aDesc += ",\n";
-   GenerateOneArgSpec(mArgFac,mSpecs.Name(),true, aDesc, aErr);
-   aDesc += "\n    }";
+   GenerateOneArgSpec(mArgObl,mSpecs.Name(),false, aArgsSpec);
+   aArgsSpec->jsonSpec += ",\n";
+   GenerateOneArgSpec(mArgFac,mSpecs.Name(),true, aArgsSpec);
+   aArgsSpec->jsonSpec += "\n    }";
    if (aErr.size())
-       aErrors += aErr + "\n";
+       aArgsSpec->errors += aErr + "\n";
 }
 
     // ========== Help ============

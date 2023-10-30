@@ -27,14 +27,13 @@ enum class eTA2007
             // ---------- Printed --------------
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File that define the  Dir Proj
-            // !!!!! FileImage must be FIRST of files types (cf cMMVII_Appli::GenerateOneArgSpec)
+            // !!!!! File types must all be here. If changes check cMMVIIGenArgsSpec.cpp
                 FileImage,     ///< File containing an image
                 FileCloud,     ///< File containing a cloud file (ply ?)
                 File3DRegion,  ///< File containing a 3D region
-            // !!!!! MPatFile must be LAST of files types (cf cMMVII_Appli::GenerateOneArgSpec)
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
-    // !!!!! Orient must be FIRST of dirs types (cf cMMVII_Appli::GenerateOneArgSpec)
+            // !!!!! Dir types must all be here. If change, check cMMVIIGenArgsSpec.cpp
                 Orient,        ///< Orientation
                 RadiomData,    ///< Data for Radiometry
                 RadiomModel,   ///< Model for Radiometry
@@ -43,8 +42,7 @@ enum class eTA2007
                 MetaData,      ///< Meta data images
                 PointsMeasure, ///< Measure of point , 2D or 3D
                 TieP,          ///< Tie Points
-    // !!!!! MulTiep must be LAST of dirs types (cf cMMVII_Appli::GenerateOneArgSpec)
-                MulTieP,          ///< Tie Points
+                MulTieP,       ///< Tie Points
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
