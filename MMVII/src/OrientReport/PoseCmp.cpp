@@ -54,7 +54,7 @@ cCollecSpecArg2007 & cAppli_PoseCmp::ArgObl(cCollecSpecArg2007 & anArgObl)
       return     anArgObl
               << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
               << mPhProj.DPOrient().ArgDirInMand()
-              << Arg2007(mOri2,"Second orientation folder")
+              << Arg2007(mOri2,"Second orientation folder",{{eTA2007::Input},{eTA2007::Orient}})
       ;
 }
 
