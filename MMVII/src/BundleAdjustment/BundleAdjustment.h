@@ -58,6 +58,9 @@ class cStdWeighterResidual : public cResidualWeighter<tREAL8>
 };
 
 
+/**  
+ */
+
 class cMMVII_BundleAdj
 {
      public :
