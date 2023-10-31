@@ -16,6 +16,13 @@
 namespace MMVII
 {
 
+void cMMVII_Appli::ChgName(const std::vector<std::string> & aPatSubst,std::string & aName) const
+{
+   if (IsInit(&aPatSubst))
+      aName = ReplacePattern(aPatSubst.at(0),aPatSubst.at(1),aName);
+}
+
+
 
 /* ==================================================== */
 /*                                                      */
@@ -54,6 +61,7 @@ class cAppli_EditSet : public cMMVII_Appli
          std::string mPat;    ///< Pattern (or File) to modify
          eOpAff      mOp;     ///<  operator
          int         mShow;   ///< Level of message
+         std::vector<std::string>  mChgName;
 };
 
 cAppliBenchAnswer cAppli_EditSet::BenchAnswer() const
@@ -206,6 +214,7 @@ cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       anArgOpt
          << AOpt2007(mShow,"Show","Show detail of set before/after, 0->none, (1) modif, (2) all",{{eTA2007::HDV}})
          << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{})
+         << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$0]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
       ;
 }
 
@@ -221,7 +230,18 @@ int cAppli_EditSet::Exe()
    InitOutFromIn(mNameXmlOut,mNameXmlIn);
 
    tNameSet aInput = SetNameFromString(mNameXmlIn,false);
-   const tNameSet & aNew =  MainSet0();
+   tNameSet aNew =  MainSet0();
+
+   if (IsInit(&mChgName))
+   {
+      std::vector aVstr = VectMainSet(0);
+      aNew.clear();
+      for (auto & aStr : aVstr)
+      {
+          ChgName(mChgName,aStr);
+          aNew.Add(aStr);
+      }
+   }
 
    // StdOut()  << "aNewaNewaNew " <<  aNew.size() << "\n";
 

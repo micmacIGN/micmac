@@ -217,6 +217,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecGenArgsSpec);
         TheVecAll.push_back(&TheSpec_ConvertV1V2_GCPIM);
         TheVecAll.push_back(&TheSpec_SpecSerial);
+        TheVecAll.push_back(&TheSpec_PoseCmpReport);
         TheVecAll.push_back(&TheSpec_CGPReport);
         TheVecAll.push_back(&TheSpec_TiePReport);
         TheVecAll.push_back(&TheSpec_BlockCamInit);

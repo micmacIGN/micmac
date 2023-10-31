@@ -414,6 +414,7 @@ class cSensorCamPC : public cSensorImage
 	 // different accessor to the pose
          const tPose &   Pose()   const;
          const cPt3dr &  Center() const;
+         cPt3dr &  Center() ;
          cPt3dr  AxeI()   const;
          cPt3dr  AxeJ()   const;
          cPt3dr  AxeK()   const;
@@ -422,6 +423,7 @@ class cSensorCamPC : public cSensorImage
 
 	 // access to tiny rotation used in bundled adjustment
          const cPt3dr &  Omega()  const;
+         cPt3dr &  Omega()  ;
 
          // interaction in unknowns
          void PutUknowsInSetInterval() override ;  // add the interval on udpate

@@ -700,7 +700,8 @@ class cStdStatRes
         void Add(tREAL8 aVal);
 
         tREAL8  Avg() const;
-        tREAL8  StdDev() const;
+        tREAL8  QuadAvg() const;
+        tREAL8  DevStd() const;
         tREAL8  ErrAtProp(tREAL8 aProp) const;
         tREAL8  Min() const;
         tREAL8  Max() const;

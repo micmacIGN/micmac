@@ -443,7 +443,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         bool ModeArgsSpec() const;          ///< If called only to output args specs, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
-        bool    IsInit(const void *);       ///< indicate for each variable if it was initiazed by argc/argv
+        bool    IsInit(const void *) const;       ///< indicate for each variable if it was initiazed by argc/argv
         bool    IsInSpecObl(const void *);  ///< indicate for each variable if it was in an arg opt list (used with cPhotogrammetricProject)
         bool    IsInSpecFac(const void *);  ///< indicate for each variable if it was in an arg obl list (used with cPhotogrammetricProject)
         bool    IsInSpec(const void *);     ///< IsInSpecObl  or IsInSpecFac
@@ -535,6 +535,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	void  AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
 	void  AddStdStatCSV(const std::string &anId,const std::string & aCol1,const cStdStatRes &,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
 
+        /// if "aPatSubst" was initialized, make a pattern replacement with aPatSubst[0] as pattern and aPatSubst[1] as substitution
+	void ChgName(const std::vector<std::string>& aPatSub,std::string & aName) const;
     private:
 	void  AddOneReport(const std::string &anId,const std::string & VecMsg);
 	void  DoMergeReport();

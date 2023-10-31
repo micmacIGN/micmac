@@ -54,6 +54,8 @@ class cAppli_CGPReport : public cMMVII_Appli
 	std::string              mNameReportDetail;
 	std::string              mNameReportIm;
         std::string              mNameReportGCP;
+        std::string              mNameReportGCP_Ground;
+        std::string              mNameReportGCP_Ground_Glob;
         std::string              mNameReportCam;
         std::string              mNameReportMissed;
 
@@ -106,6 +108,9 @@ cCollecSpecArg2007 & cAppli_CGPReport::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 void cAppli_CGPReport::MakeOneIm(const std::string & aNameIm)
 {
+    if (! ExistFile(mPhProj.NameMeasureGCPIm(aNameIm,true)) )  
+       return ;
+
     cSetMesImGCP             aSetMes;
     mPhProj.LoadGCP(aSetMes);
     mPhProj.LoadIm(aSetMes,aNameIm);
@@ -205,13 +210,18 @@ void cAppli_CGPReport::ReportsByGCP()
 
    for (const auto & aNameIm : VectMainSet(0))
    {
-       mPhProj.LoadIm(aSetMes,aNameIm,mPhProj.LoadSensor(aNameIm,false));
+       mPhProj.LoadIm(aSetMes,aNameIm,mPhProj.LoadSensor(aNameIm,false),true);
    }
 
    const std::vector<cSensorImage*> &  aVSens =  aSetMes.VSens() ;
 
    InitReport(mNameReportGCP,"csv",false);
    AddStdHeaderStatCSV(mNameReportGCP,"GCP",mPropStat);
+
+   InitReport(mNameReportGCP_Ground,"csv",false);
+   AddOneReportCSV(mNameReportGCP_Ground,{"Name","Dx","Dy","Dz"});
+
+   std::vector<cStdStatRes> aVStatXYZ{cStdStatRes(),cStdStatRes(),cStdStatRes()};
 
    for (const auto &  aMesIm :  aSetMes.MesImOfPt())
    {
@@ -224,8 +234,18 @@ void cAppli_CGPReport::ReportsByGCP()
             aStat.Add(Norm2( aMesIm.VMeasures()[aKIm]  - aVSens[aVIndI[aKIm]]->Ground2Image(aGCP.mPt)));
 	}
 	AddStdStatCSV(mNameReportGCP,aGCP.mNamePt,aStat,mPropStat);
+	cPt3dr aDelta = aGCP.mPt -  aSetMes.BundleInter(aMesIm);
+        AddOneReportCSV(mNameReportGCP_Ground,{aGCP.mNamePt,ToStr(aDelta.x()),ToStr(aDelta.y()),ToStr(aDelta.z())});
+
+	for (int aKC=0 ; aKC<3 ; aKC++)
+           aVStatXYZ[aKC].Add(aDelta[aKC]);
    }
 
+   InitReport(mNameReportGCP_Ground_Glob,"csv",false);
+   AddStdHeaderStatCSV(mNameReportGCP_Ground_Glob,"Coord",{});
+   std::vector<std::string> aVCoord{"x","y","z"};
+   for (int aKC=0 ; aKC<3 ; aKC++)
+	AddStdStatCSV(mNameReportGCP_Ground_Glob,aVCoord[aKC],aVStatXYZ[aKC],{});
 }
 
 void cAppli_CGPReport::ReportsByCam()
@@ -237,7 +257,7 @@ void cAppli_CGPReport::ReportsByCam()
    for (const auto & aNameIm : VectMainSet(0))
    {
        cSensorCamPC *  aCam = mPhProj.ReadCamPC(aNameIm,true);
-       mPhProj.LoadIm(aSetMes,aNameIm,aCam);
+       mPhProj.LoadIm(aSetMes,aNameIm,aCam,true);
        aMapCam[aCam->InternalCalib()].push_back(aCam);
    }
 
@@ -257,10 +277,12 @@ void cAppli_CGPReport::ReportsByCam()
 
        cStdStatRes               aStat;
 
+       int aNbPtsTot =0;
        for (const auto & aCam : aPair.second)
        {
            cSet2D3D aSet32;
-	   aSetMes.ExtractMes1Im(aSet32,aCam->NameImage());
+	   aSetMes.ExtractMes1Im(aSet32,aCam->NameImage(),true);
+	   aNbPtsTot += aSet32.NbPair();
 
            for (const auto & aPair : aSet32.Pairs())
            {
@@ -274,7 +296,7 @@ void cAppli_CGPReport::ReportsByCam()
                aImW.DIm().AddVBL(aP2/aFactRed,1.0);
            }
        }
-       tREAL8 aSigma = Norm2(aImX.DIm().Sz()) / 60.0;
+       tREAL8 aSigma = Norm2(aImX.DIm().Sz()) / std::sqrt(aNbPtsTot);
 
        aImW.DIm().ToFile(mPhProj.DirVisu() + "W_RawResidual_"+aCalib->Name() +".tif");
        aImX = aImX.GaussFilter(aSigma);
@@ -306,6 +328,9 @@ int cAppli_CGPReport::Exe()
    mNameReportGCP  =  "ByGCP"   + mPostfixReport;
    mNameReportCam   =  "ByCam"   + mPostfixReport;
 
+   mNameReportGCP_Ground   =  "ByGCP_3D_"   + mPostfixReport;
+   mNameReportGCP_Ground_Glob   =  "ByGCP_3D_Stat_"   + mPostfixReport;
+
    mNameReportMissed   =  "MissedPoint"   + mPostfixReport;
 
    InitReport(mNameReportIm,"csv",true);
@@ -333,7 +358,7 @@ int cAppli_CGPReport::Exe()
 
    if (mIsGCP)
    {
-      MakeOneIm(FileOfPath(mSpecImIn));
+      MakeOneIm(FileOfPath(mSpecImIn,false));
    }
 
    return EXIT_SUCCESS;

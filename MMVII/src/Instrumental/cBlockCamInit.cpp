@@ -23,8 +23,11 @@ class cBlocCam
 
           void Show() const;
 
-          void EstimateInit(cMMVII_Appli &);
-          void EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli &,const std::string & anIdGlob);
+	  /// Make the initial estimation for all pair
+          void EstimateInit(cMMVII_Appli &,const std::string & aPrefReport);
+
+	  ///  Estimate the initial  value of relative pose between  Camera K1 & K2
+          void EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli &,const std::string & anIdGlob,const std::string & aPrefReport);
       private :
 
 
@@ -52,6 +55,7 @@ class cBlocCam
           mutable t2MapStrInt  mMapIntPoseId;
 	  size_t       mNbSyncId;
 	  size_t       mNbPoseId;
+
 
 	  std::vector<cSensorCamPC*>  mVAllCam;
 	  std::vector<std::vector<cSensorCamPC*> >  mV_TB;  // mV_TB[KSyncId][KBlock]
@@ -141,9 +145,9 @@ cBlocCam::tPairInd cBlocCam::ComputeIndPoseIdSyncId(cSensorCamPC* aCam)
     return std::pair<int,int>(mMapIntPoseId.Obj2I(aStrBlock),mMapIntSyncId.Obj2I(aStrSyncId));
 }
 
-void cBlocCam::EstimateInit(cMMVII_Appli & anAppli)
+void cBlocCam::EstimateInit(cMMVII_Appli & anAppli,const std::string & aPrefReport)
 {
-    std::string  anIdGlob =  "StatGlob";
+    std::string  anIdGlob =  aPrefReport + "StatGlob";
     anAppli.InitReport(anIdGlob,"csv",false);
     anAppli.AddOneReportCSV(anIdGlob,{"Id1","Id2","SigmaTr","SigmaRot"});
 
@@ -151,30 +155,32 @@ void cBlocCam::EstimateInit(cMMVII_Appli & anAppli)
      {
          for (size_t aKB2 =aKB1+1 ; aKB2<mNbPoseId ; aKB2++)
          {
-             EstimateInit(aKB1,aKB2,anAppli,anIdGlob);
+             EstimateInit(aKB1,aKB2,anAppli,anIdGlob,aPrefReport);
          }
      }
 }
 
-void cBlocCam::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli,const std::string & anIdGlob)
+void cBlocCam::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli,const std::string & anIdGlob,const std::string & aPrefReport)
 {
-    std::string  anIdReport =  "Detail_" +  NamePoseId(aKB1) + "_" +   NamePoseId(aKB2) ;
+    std::string  anIdReport =  aPrefReport + "Detail_" +  NamePoseId(aKB1) + "_" +   NamePoseId(aKB2) ;
 
     anAppli.InitReport(anIdReport,"csv",false);
     anAppli.AddOneReportCSV(anIdReport,{"SyncId","x","y","z","w","p","k"});
 
-    cPt3dr aSomTr;
-    cPt4dr a4;
+    cPt3dr aSomTr;  //  average off translation
+    cPt4dr a4;      // average of quaternions -> not sure good idea because Q ~ -Q, maybe replace with good old matrices
     size_t aNb=0;
+
+    //  Parse all "times/synchronisation-id"
     for (size_t aKT=0 ; aKT<mNbSyncId ; aKT++)
     {
-        cSensorCamPC * aCam1 = CamOfIndexes(tPairInd(aKB1,aKT));
-        cSensorCamPC * aCam2 = CamOfIndexes(tPairInd(aKB2,aKT));
+        cSensorCamPC * aCam1 = CamOfIndexes(tPairInd(aKB1,aKT));  // camera [KB1,KT]
+        cSensorCamPC * aCam2 = CamOfIndexes(tPairInd(aKB2,aKT));  // camera [KB2,KT]
 
 	// P1(C1)=W   P2(C2) =  W   P1-1 P2 (C2)  = C1
-        if ((aCam1!=nullptr) && (aCam2!=nullptr))
+        if ((aCam1!=nullptr) && (aCam2!=nullptr)) // not all cam have a value
         {
-	   cIsometry3D<tREAL8>  aP2To1 =  aCam1->RelativePose(*aCam2);
+	   cIsometry3D<tREAL8>  aP2To1 =  aCam1->RelativePose(*aCam2); // relative pose 
 	   const auto & aRot = aP2To1.Rot();
 	   const auto & aMat = aRot.Mat();
 	   cPt3dr aTr = aP2To1.Tr();
@@ -197,8 +203,8 @@ void cBlocCam::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli,const
     a4  = a4  / tREAL8(aNb);
     a4 = VUnit(a4);
 
-    tREAL8 aSomEcTr = 0;
-    tREAL8 aSomEc4 = 0;
+    tREAL8 aSomEcTr = 0;  // will store std dev on translation
+    tREAL8 aSomEc4 = 0;   // will store std dev on rotation
 
     for (size_t aKT=0 ; aKT<mNbSyncId ; aKT++)
     {
@@ -207,9 +213,6 @@ void cBlocCam::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli,const
 
         if ((aCam1!=nullptr) && (aCam2!=nullptr))
         {
-           // const cIsometry3D<tREAL8> & aP1 = aCam1->Pose();
-           // const cIsometry3D<tREAL8> & aP2 = aCam2->Pose();
-	   // cIsometry3D<tREAL8>  aP2To1 =  aP1.MapInverse() * aP2;
 	   cIsometry3D<tREAL8>  aP2To1 =  aCam1->RelativePose(*aCam2);
 
 	   aSomEcTr += SqN2(aSomTr-aP2To1.Tr());
@@ -266,6 +269,7 @@ class cAppli_BlockCamInit : public cMMVII_Appli
         cPhotogrammetricProject  mPhProj;
 	std::string              mPattern;
 	cPt2di                   mNumSub;
+	std::string              mPrefixReport;
 };
 
 cAppli_BlockCamInit::cAppli_BlockCamInit
@@ -304,6 +308,8 @@ int cAppli_BlockCamInit::Exe()
 {
     mPhProj.FinishInit();
 
+    mPrefixReport = "Ori_" +  mPhProj.DPOrient().DirIn();
+
     cBlocCam aBloc(mPattern,mNumSub);
     for (const auto & anIm : VectMainSet(0))
     {
@@ -313,8 +319,8 @@ int cAppli_BlockCamInit::Exe()
     aBloc.Finish();
     aBloc.Show();
 
-    aBloc.EstimateInit(0,1,*this,"");
-    aBloc.EstimateInit(*this);
+    aBloc.EstimateInit(0,1,*this,"",mPrefixReport);
+    aBloc.EstimateInit(*this,mPrefixReport);
 
     return EXIT_SUCCESS;
 }                                       

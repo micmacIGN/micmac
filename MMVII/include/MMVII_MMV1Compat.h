@@ -21,7 +21,15 @@ tNameRel  MMV1InitRel(const std::string & aName);
 struct  cExportV1StenopeCalInterne
 {
        public :
-             cExportV1StenopeCalInterne(bool isForCalib,const std::string& aFile,int aNbPointPerDim=30,int aNbLayer=2,tREAL8 aDownScale=1.0);
+             cExportV1StenopeCalInterne
+             (
+                 bool isForCalib,
+                 const std::string& aFile,
+                 int aNbPointPerDim=30,
+                 int aNbLayer=2,
+                 tREAL8 aDownScale=1.0,
+                 const std::string& aFileInterneCalib=""
+             );
 
 	     cIsometry3D<tREAL8>   mPose;
 	     std::string           mNameCalib;

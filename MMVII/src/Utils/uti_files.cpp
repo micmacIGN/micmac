@@ -195,7 +195,7 @@ template<class Type> inline Type GetV(std::istringstream & iss)
     iss >> aNum;
     if ( iss.rdstate())
     {
-       MMVII_UnclasseUsEr("Bad reading at line  " + ToStr(CurLine) + " of file [" + CurFile + "]");
+       MMVII_UnclasseUsEr("Bad reading at line  " + ToStr(CurLine) + " of file [" + CurFile + "] , rdstate=" + ToStr((size_t)iss.rdstate()));
     }
     return aNum;
 }
@@ -263,6 +263,9 @@ void  ReadFilesStruct
     int aNumL = 0;
     while (std::getline(infile, line))
     {
+	    // JOE
+MMVII_DEV_WARNING("Dont understand why must add \" \" at end of line ReadFilesStruct");
+line += " ";
         CurLine = aNumL+1;  // editor begin at line 1, non 0
         if ((aNumL>=aL0) && (aNumL<aLastL))
 	{

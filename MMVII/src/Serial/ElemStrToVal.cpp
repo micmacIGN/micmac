@@ -240,6 +240,7 @@ template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
                 {eApDT::ToDef,"ToDef"},
                 {eApDT::Console,"Console"},
                 {eApDT::Xml,"Xml"},
+                {eApDT::Csv,"Csv"},
                 {eApDT::FileSys,"FileSys"},
                 {eApDT::Media,"Media"},
            };

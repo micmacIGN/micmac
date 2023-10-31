@@ -145,6 +145,7 @@ enum class eApDT
               ToDef,     ///< still unclassed
               Console,  ///< Console , (i.e printed message have values)
               Xml,      ///< Xml-files
+              Csv,      ///< Csv-files
               FileSys,      ///< Input is the file system (list of file)
               Media,      ///< Input is the file system (list of file)
               eNbVals       ///< Tag for number of value

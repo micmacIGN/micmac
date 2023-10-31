@@ -199,8 +199,8 @@ class cSetMesImGCP : public cMemCheck
 	    ///  Add mesure on 1 images, close the possibility for further call to AddMes3D
             void AddMes2D(const cSetMesPtOf1Im &,cSensorImage* =nullptr,eLevelCheck OnNonExistP=eLevelCheck::Warning);
 
-	    /// return a set of mesure as 2d/3d corresp
-            void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm) const;
+	    /// return a set of mesure as 2d/3d corresp : if SVP accept image absent and returns empty
+            void ExtractMes1Im(cSet2D3D&,const std::string &aNameIm,bool SVP=false) const;
 
             const std::vector<cMes1GCP> &        MesGCP() const ; ///< Accessor
             std::vector<cMes1GCP> &        MesGCP() ; ///< Accessor
@@ -221,6 +221,7 @@ class cSetMesImGCP : public cMemCheck
 	    bool  NameIsGCP(const std::string &) const;
 	    cSetMesGCP  ExtractSetGCP(const std::string & aNameSet) const;
 
+	    cPt3dr  BundleInter(const cMultipleImPt & aMPT) const;
 
     private :
 

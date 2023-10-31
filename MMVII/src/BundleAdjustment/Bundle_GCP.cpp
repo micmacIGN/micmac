@@ -8,10 +8,11 @@ namespace MMVII
 /*                cMMVII_BundleAdj::GCP                           */
 /* -------------------------------------------------------------- */
 
-void cMMVII_BundleAdj::AddGCP(const  std::vector<double>& aWeightGCP, cSetMesImGCP *  aMesGCP)
+void cMMVII_BundleAdj::AddGCP(tREAL8 aSigmaGCP,const  cStdWeighterResidual & aWeighter, cSetMesImGCP *  aMesGCP)
 {
     mMesGCP = aMesGCP;
-    mWeightGCP = aWeightGCP;
+    mSigmaGCP = aSigmaGCP;
+    mGCPIm_Weighter = aWeighter;
 
     if (1)
     {
@@ -23,19 +24,19 @@ void cMMVII_BundleAdj::InitItereGCP()
 {
     if (
             (mMesGCP!=nullptr)   //  if GCP where initialized
-         && (mWeightGCP[0] > 0)  // is GGP are unknown
+         && (mSigmaGCP > 0)  // is GGP are unknown
        )
     {
         for (const auto & aGCP : mMesGCP->MesGCP())
 	{
-              cPt3dr_UK * aPtrUK = new cPt3dr_UK(aGCP.mPt);
-              mGCP_UK.push_back(aPtrUK);
-	      mSetIntervUK.AddOneObj(aPtrUK);
+            cPt3dr_UK * aPtrUK = new cPt3dr_UK(aGCP.mPt);
+            mGCP_UK.push_back(aPtrUK);
+	    mSetIntervUK.AddOneObj(aPtrUK);
 	}
     }
 }
 
-void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet,const std::vector<double> & aVW)
+void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet)
 {
     if (aSet==nullptr) return;
     //   W>0  obs is an unknown "like others"
@@ -49,11 +50,9 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet,const std::
 
      size_t aNbGCP = aVMesGCP.size();
 
-     tREAL8 aSigmaGCP = aVW[0];
-     bool  aGcpUk = (aSigmaGCP>0);  // are GCP unknowns
-     bool  aGcpFix = (aSigmaGCP==0);  // is GCP just an obervation
-     tREAL8 aWeightGround =   aGcpFix ? 1.0 : (1.0/Square(aSigmaGCP)) ;  // standard formula, avoid 1/0
-     tREAL8 aWeightImage =   (1.0/Square(aVW[1])) ;  // standard formula
+     bool  aGcpUk = (mSigmaGCP>0);  // are GCP unknowns
+     bool  aGcpFix = (mSigmaGCP==0);  // is GCP just an obervation
+     tREAL8 aWeightGround =   aGcpFix ? 1.0 : (1.0/Square(mSigmaGCP)) ;  // standard formula, avoid 1/0
 
      if (1)
      {
@@ -104,6 +103,8 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet,const std::
 	       // Do something only if GCP is visible 
                if (aSens->IsVisibleOnImFrame(aPIm) && (aSens->IsVisible(aPGr)))
                {
+	             cPt2dr aResidual = aPIm - aSens->Ground2Image(aPGr);
+                     tREAL8 aWeightImage =   mGCPIm_Weighter.SingleWOfResidual(aResidual);
 	             cCalculator<double> * anEqColin =  mVEqCol.at(aIndIm);
                      // the "obs" are made of 2 point and, possibily, current rotation (for PC cams)
                      std::vector<double> aVObs = aPIm.ToStdVector();
@@ -120,7 +121,7 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet,const std::
                }
 	    }
 
-	    if (! aGcpUk) // case  subst we now can make schurr commpl and subst
+	    if (! aGcpUk) // case  subst,  we now can make schurr commpl and subst
 	    {
                 if (! aGcpFix)  // if GCP is not hard fix, we must add obs on ground
 		{
@@ -140,11 +141,11 @@ void cMMVII_BundleAdj::OneItere_OnePackGCP(const cSetMesImGCP * aSet,const std::
 
 void cMMVII_BundleAdj::OneItere_GCP()
 {
-	OneItere_OnePackGCP(mMesGCP,mWeightGCP);
+     if (mMesGCP)
+     {
+	OneItere_OnePackGCP(mMesGCP);
+     }
 }
-
-
-
 
     /* ---------------------------------------- */
     /*            cPt3dr_UK                     */
@@ -166,7 +167,6 @@ cPt3dr_UK::~cPt3dr_UK()
 {
         Reset();
 }
-
 
 
 };

@@ -201,6 +201,12 @@ void cDirsPhProj::SetDirIn(const std::string & aDirIn)
      mAppli.SetVarInit(&mDirIn); // required becaus of AssertOriInIsInit
 }
 
+void cDirsPhProj::SetDirInIfNoInit(const std::string & aDirIn)
+{
+    if (! DirInIsInit())
+       SetDirIn(aDirIn);
+}
+
 void cDirsPhProj::SetDirOut(const std::string & aDirOut)
 {
      mDirOut = aDirOut;
@@ -408,11 +414,11 @@ void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) co
 }
 
 
-cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bool ToDeleteAutom,bool SVP) const
+cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const cDirsPhProj & aDP,const std::string & aNameIm,bool ToDeleteAutom,bool SVP) const
 {
-    mDPOrient.AssertDirInIsInit();
+    aDP.AssertDirInIsInit();
 
-    std::string aNameCam  =  mDPOrient.FullDirIn() + cSensorCamPC::NameOri_From_Image(aNameIm);
+    std::string aNameCam  =  aDP.FullDirIn() + cSensorCamPC::NameOri_From_Image(aNameIm);
     // if kindly asked and dont exist return
     if ( SVP && (!ExistFile(aNameCam)) )
     {
@@ -427,6 +433,11 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bo
       
 
     return aCamPC;
+}
+
+cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const std::string & aNameIm,bool ToDeleteAutom,bool SVP) const
+{
+    return ReadCamPC(mDPOrient,aNameIm,ToDeleteAutom,SVP);
 }
 
 cSensorImage* cPhotogrammetricProject::LoadSensor(const std::string  &aNameIm,bool SVP)
@@ -530,10 +541,17 @@ void cPhotogrammetricProject::SaveMeasureIm(const cSetMesPtOf1Im &  aSetM) const
      aSetM.ToFile(mDPPointsMeasures.FullDirOut() +aSetM.StdNameFile());
 }
 
+std::string cPhotogrammetricProject::NameMeasureGCPIm(const std::string & aNameIm,bool isIn) const
+{
+    return  mDPPointsMeasures.FullDirInOut(isIn) + cSetMesPtOf1Im::StdNameFileOfIm(FileOfPath(aNameIm,false)) ;
+}
+
 cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm,bool isIn) const
 {
-   std::string aDir = mDPPointsMeasures.FullDirInOut(isIn);
-   return cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
+   //  std::string aDir = mDPPointsMeasures.FullDirInOut(isIn);
+   //  return cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
+
+   return cSetMesPtOf1Im::FromFile(NameMeasureGCPIm(aNameIm,isIn));
 }
 
 void cPhotogrammetricProject::SaveGCP(const cSetMesGCP & aMGCP)
@@ -576,10 +594,12 @@ void cPhotogrammetricProject::CpGCP() const
 
 
 
-void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & aNameIm,cSensorImage * aSIm) const
+void cPhotogrammetricProject::LoadIm(cSetMesImGCP& aSetMes,const std::string & aNameIm,cSensorImage * aSIm,bool SVP) const
 {
 //    std::string aDir = mDPPointsMeasures.FullDirIn();
    //cSetMesPtOf1Im  aSetIm = cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
+   if (SVP && (! ExistFile(NameMeasureGCPIm(aNameIm,true))))
+      return;
    cSetMesPtOf1Im  aSetIm = LoadMeasureIm(aNameIm);
    aSetMes.AddMes2D(aSetIm,aSIm);
 }

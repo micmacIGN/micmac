@@ -36,7 +36,7 @@ void  cMMVII_Appli::InitReport(const std::string &anId,const std::string &aPost,
     }
     else if (LevelCall()==1)
     {
-        mMapIdFilesReport[anId]  = DirSubPReport(anId) + FileOfPath(UniqueStr(0))  +"." + aPost;
+        mMapIdFilesReport[anId]  = DirSubPReport(anId) + FileOfPath(UniqueStr(0),false)  +"." + aPost;
     }
     else
         return;
@@ -80,7 +80,7 @@ void  cMMVII_Appli::AddOneReportCSV(const std::string &anId,const std::vector<st
 
 void cMMVII_Appli::AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string>  & Additional)
 {
-    std::vector<std::string> aVStd {aNameCol1,"NbMes","Avg","Err2"};
+    std::vector<std::string> aVStd {aNameCol1,"NbMes","Avg","StdDev","Avg2"};
     for (const auto & aPerc : aVPerc)
         aVStd.push_back("P"+ToStr(aPerc));
 
@@ -97,7 +97,14 @@ void  cMMVII_Appli:: AddStdStatCSV(const std::string &anId,const std::string & a
        AddOneReportCSV(anId,Append(aVStd,Additional));
        return;
     }
-    std::vector<std::string> aVStd {aCol1,ToStr(aStat.NbMeasures()),ToStr(aStat.Avg()),((aStat.NbMeasures()>1) ? ToStr(aStat.StdDev()) : "XXX")};
+    std::vector<std::string> aVStd 
+                             {
+				     aCol1,
+                                     ToStr(aStat.NbMeasures()),
+				     ToStr(aStat.Avg()),
+				     ((aStat.NbMeasures()>1) ? ToStr(aStat.DevStd()) : "XXX"),
+				     ToStr(aStat.QuadAvg())
+			     };
     for (const auto & aPerc : aVPerc)
         aVStd.push_back(ToStr(aStat.ErrAtProp(aPerc/100.0)));
    AddOneReportCSV(anId,Append(aVStd,Additional));
@@ -118,7 +125,7 @@ void  cMMVII_Appli::DoMergeReport()
 	     {
 	        for (const auto & aNameIm : VectMainSet(0))
 	        {
-                    std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm) + "." + mMapIdPostReport[anId];
+                    std::string aNameIn = DirSubPReport(anId) + FileOfPath(aNameIm,false) + "." + mMapIdPostReport[anId];
 	            cMMVII_Ifs aIn(aNameIn, eFileModeIn::Text);
 
 	            std::string aLine;

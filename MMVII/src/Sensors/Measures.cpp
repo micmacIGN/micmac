@@ -188,6 +188,18 @@ bool  cSetMesImGCP::NameIsGCP(const std::string & aNamePt) const
 }
 
 
+cPt3dr  cSetMesImGCP::BundleInter(const cMultipleImPt & aMPT) const
+{
+     std::vector<tSeg3dr>  aVSeg;
+     for (size_t aKI=0 ; aKI<aMPT.VMeasures().size() ; aKI++)
+     {
+         cSensorImage * aSIm = mVSens.at(aMPT.VImages().at(aKI));
+         MMVII_INTERNAL_ASSERT_tiny(aSIm,"No sensor in  cSetMesImGCP::BundleInter");
+         aVSeg.push_back(aSIm->Image2Bundle(aMPT. VMeasures().at(aKI)));
+     }
+
+     return BundleInters(aVSeg);
+}
 
 
 
@@ -238,11 +250,14 @@ const std::vector<cSensorImage*> &   cSetMesImGCP::VSens()     const  {return mV
 
 std::vector<cMes1GCP> &        cSetMesImGCP::MesGCP()   {return mMesGCP; }
 
-void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm) const
+void cSetMesImGCP::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm,bool SVP) const
 {
     aS23.Clear();
 
-    int aNumIm = m2MapImInt.Obj2I(aNameIm);
+
+    int aNumIm = m2MapImInt.Obj2I(aNameIm,SVP);
+
+    if (aNumIm<0) return;
 
     for (size_t aKp=0 ;  aKp<mMesGCP.size() ; aKp++)
     {
