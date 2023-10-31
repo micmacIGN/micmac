@@ -755,7 +755,7 @@ template <class Type> void   cResolSysNonLinear<Type>::CalcVal
                }
 	   }
            aIO.mWeights = aWeighter.WeightOfResidual(aIO.mVals);
-	   //  StdOut() << "HHHhUuHH  " << aIO.mVals  << " " << aIO.mWeights << "\n";
+	   //  StdOut() << "HHHhUuHH  " << aIO.mVals  << " " << aIO.mWeights << std::endl;
 	   ModifyFrozenVar(aIO);
       }
 }

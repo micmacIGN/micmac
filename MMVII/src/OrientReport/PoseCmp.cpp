@@ -80,7 +80,7 @@ int cAppli_PoseCmp::Exe()
    aDirOri2.SetDirIn(mOri2);
    aDirOri2.Finish();
 
-   StdOut() << "JJJ " << aDirOri2.FullDirIn() << "\n";
+   StdOut() << "JJJ " << aDirOri2.FullDirIn() << std::endl;
 
    std::vector<cSensorCamPC*> aVCam1;
    std::vector<cSensorCamPC*> aVCam2;
@@ -115,20 +115,20 @@ int cAppli_PoseCmp::Exe()
 	    aLastBand = aNameBand;
 
 	    if (aNewBand)
-               StdOut() << "NB=" << aName << "\n";
+               StdOut() << "NB=" << aName << std::endl;
 	    else
                aAvgBandRelDif.Add(1.0,Norm2(aWPK-aLastWPK));
 	}
 
-	// StdOut() <<  "Im=" << aName << " Tr="  << aP2In1.Tr()  << " WPK=" << aP2In1.Rot().ToWPK() << "\n";
+	// StdOut() <<  "Im=" << aName << " Tr="  << aP2In1.Tr()  << " WPK=" << aP2In1.Rot().ToWPK() << std::endl;
 	aLastWPK = aWPK;
    }
 
    // mPrefixCSV =  "_Ori-"+  mPhProj.DPOrient().DirIn() +  "_Mes-"+  mPhProj.DPMulTieP().DirIn() ;
    //
-   StdOut() << "AVG DIFF=" << aAvgDif.Average() << "\n";
-   StdOut() << "AVG REL DIFF=" << aAvgRelDif.Average() << "\n";
-   StdOut() << "AVG BAND REL DIFF=" << aAvgBandRelDif.Average() << "\n";
+   StdOut() << "AVG DIFF=" << aAvgDif.Average() << std::endl;
+   StdOut() << "AVG REL DIFF=" << aAvgRelDif.Average() << std::endl;
+   StdOut() << "AVG BAND REL DIFF=" << aAvgBandRelDif.Average() << std::endl;
 
    return EXIT_SUCCESS;
 }

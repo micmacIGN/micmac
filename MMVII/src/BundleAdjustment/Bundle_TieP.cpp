@@ -82,7 +82,7 @@ void cMMVII_BundleAdj::OneItere_TieP()
        }
 
    }
-   StdOut() << "Weighted Residual=" << aWeigthedRes.Average() << "\n";
+   StdOut() << "Weighted Residual=" << aWeigthedRes.Average() << std::endl;
 }
 
 
