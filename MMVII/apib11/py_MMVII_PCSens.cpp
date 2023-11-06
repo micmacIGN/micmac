@@ -127,17 +127,17 @@ static void pyb_init_SensorCamPC(py::module_ &m)
             .def("imageAndDepth2Ground",&tSCPC::ImageAndDepth2Ground,"pt3dr", DOC(MMVII_cSensorCamPC,ImageAndDepth2Ground) )
 
             .def_property_readonly("pose",&tSCPC::Pose,DOC(MMVII_cSensorCamPC,Pose) )
-            .def_property_readonly("center",&tSCPC::Center,DOC(MMVII_cSensorCamPC,Center) )
+            .def_property_readonly("center",py::overload_cast<>(&tSCPC::Center, py::const_),DOC(MMVII_cSensorCamPC,Center) )
             .def_property_readonly("axeI",&tSCPC::AxeI,DOC(MMVII_cSensorCamPC,AxeI) )
             .def_property_readonly("axeJ",&tSCPC::AxeJ,DOC(MMVII_cSensorCamPC,AxeI) )
             .def_property_readonly("axeK",&tSCPC::AxeK,DOC(MMVII_cSensorCamPC,AxeI) )
 
             .def_property_readonly("internalCalib",&tSCPC::InternalCalib,py::return_value_policy::reference_internal ,DOC(MMVII_cSensorCamPC,InternalCalib) )
 
-            .def("omega",&tSCPC::Omega,DOC(MMVII_cSensorCamPC,Omega) )
+            .def("omega",py::overload_cast<>(&tSCPC::Omega, py::const_),DOC(MMVII_cSensorCamPC,Omega) )
 
             .def("toFile",&tSCPC::ToFile,"filename"_a,DOC(MMVII_cSensorCamPC,ToFile) )
-            .def_static("fromFile",&tSCPC::FromFile,"filename"_a,DOC(MMVII_cSensorCamPC,FromFile) )
+            .def_static("fromFile",&tSCPC::FromFile,"filename"_a,"remanent"_a=true,DOC(MMVII_cSensorCamPC,FromFile) )
             .def_static("nameOri_From_Image",&tSCPC::NameOri_From_Image,"imagename"_a,DOC(MMVII_cSensorCamPC,NameOri_From_Image) )
 
             .def_property_readonly("szPix",&tSCPC::SzPix,DOC(MMVII_cSensorCamPC,SzPix) )
