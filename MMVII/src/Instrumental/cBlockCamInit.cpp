@@ -7,11 +7,147 @@
 /**
    \file GCPQuality.cpp
 
-
  */
 
 namespace MMVII
 {
+
+typedef std::pair<std::string,std::string> tPairStr;
+typedef std::pair<int,int>                 tPairInd;
+
+class cSetSensSameId;     //  .....
+class cBlocCamComputeInd;    // class for computing index of Bloc/Sync 
+			  
+
+/**  store a set of "cSensorCamPC" sharing the same identifier, can ident of time or ident  of camera, this
+ * class is a an helper for implementation of set aqcuired at same time or of same camera */
+
+class cSetSensSameId
+{
+      public :
+         cSetSensSameId(size_t aNbCam,const std::string & anIdSync);
+      protected :
+	 /* Identifier common to same cameras like  "Im_T01_CamA.JPG","Im_T01_CamB.JPG"  => "T01"
+	  *                                   or    "Im_T01_CamA.JPG","Im_T02_CamA.JPG"  => "CamA" */
+	 std::string                 mId;        
+	 std::vector<cSensorCamPC*>  mVCams;     ///< vector of camera sharing same  id
+};						 
+
+
+
+/** Class for  .... */
+
+class cBlocCamComputeInd
+{
+      public :
+           cBlocCamComputeInd(const std::string & aPattern,size_t aKBloc,size_t aKSync);
+
+           /// Compute the index of a sensor inside a bloc, pose must have  same index "iff" they are correpond to a position in abloc
+           std::string  CalculIdBloc(cSensorCamPC * ) const ;
+           /// Compute the synchronisation index of a sensor, pose must have  same index "iff" they are acquired at same time
+           std::string  CalculIdSync(cSensorCamPC * ) const ;
+	   /// it may happen that processing cannot be made
+           bool  CanProcess(cSensorCamPC * ) const ;
+      private :
+           std::string mPattern;
+           size_t      mKBloc;  ///< Num of expression
+           size_t      mKSync;  ///< Num of bloc
+};
+
+
+/* ************************************************** */
+/*              cSetSensSameId                        */
+/* ************************************************** */
+
+cSetSensSameId::cSetSensSameId(size_t aNbCam,const std::string & anIdSync) :
+    mVCams  (aNbCam,nullptr)
+{
+}
+
+/* ************************************************** */
+/*              cBlocCamComputeInd                    */
+/* ************************************************** */
+
+cBlocCamComputeInd::cBlocCamComputeInd(const std::string & aPattern,size_t aKBloc,size_t aKSync) :
+     mPattern (aPattern),
+     mKBloc   (aKBloc),
+     mKSync   (aKSync)
+{
+}
+
+bool  cBlocCamComputeInd::CanProcess(cSensorCamPC * aCam) const
+{
+    return MatchRegex(aCam->NameImage(),mPattern);
+}
+
+std::string  cBlocCamComputeInd::CalculIdBloc(cSensorCamPC * aCam) const
+{
+     return PatternKthSubExpr(mPattern,mKBloc,aCam->NameImage());
+}
+
+std::string  cBlocCamComputeInd::CalculIdSync(cSensorCamPC * aCam) const
+{
+     return PatternKthSubExpr(mPattern,mKSync,aCam->NameImage());
+}
+
+
+/**  Interface class for computing the identifier of bloc from a given camera.
+ *
+ *  Use is done in three step :
+ *
+ *     - in first step we "Add" camera, essentially we memorize all the cam
+ *     - when we have finis addding we indicate it by "SetFinishAdd" so  that some indexation are made
+ *     - after we can use it ...
+ *
+ *  The bool "mFinishAdd" control that we dont mix all the steps
+ *    
+*/
+class cBlocOfCamera
+{
+      public :
+           void Add(cSensorCamPC *);
+
+	   typedef std::pair<std::string,std::string> tPairStr;
+	   typedef std::pair<int,int>                 tPairInd;
+
+	   tPairStr  ComputeStrPoseIdSyncId(cSensorCamPC* aCam);
+
+	   void SetFinishAdd();
+      private :
+	   void AssertFinishAdd();
+	   void AssertNotFinishAdd();
+
+	   bool                          mFinishAdd;
+
+	   cBlocCamComputeInd            mCompIndexes;
+
+	   std::vector<cSetSensSameId>   mVBlCamSync;   ///< Vector of bloc of camse
+           t2MapStrInt                   mMapIntSyncId; ///< Bijective map  SyncInd <--> int
+
+	   std::vector<cSetSensSameId>    mVPosSameC;
+           t2MapStrInt                   mMapIntPoseId; ///< Bijective map  PoseInd <--> int
+};
+
+void cBlocOfCamera::AssertNotFinishAdd()
+{
+     MMVII_INTERNAL_ASSERT_tiny(!mFinishAdd,"cBlocCam::AssertNotFinish");
+}
+
+void cBlocOfCamera::Add(cSensorCamPC * aCam)
+{
+     AssertNotFinishAdd();
+
+     if (! mCompIndexes.CanProcess(aCam))
+     {
+         MMVII_UnclasseUsEr("Cant process bloc/ident for " + aCam->NameImage());
+     }
+
+     std::string aIdInBoc = mCompIndexes.CalculIdBloc(aCam);
+     std::string aIdSync  = mCompIndexes.CalculIdSync(aCam);
+}
+
+
+
 
 class cBlocCam
 {
