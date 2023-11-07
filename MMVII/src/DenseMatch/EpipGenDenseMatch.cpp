@@ -117,6 +117,7 @@ class cOneLevel
                    /// Generate the clipped images
        std::string StrComClipIm(bool ModeIm,const cPt2di & aInd,const cParam1Match &) const;
        std::string StrComReduce(bool ModeIm=true) const; ///< Generate the string for computing reduced images
+       void CreateNuageLastFile(const std::string& Dir, const std::string& ImName);
                  //  ------  Generate name for cliped images
        std::string  NameClip(const std::string & aPrefix,const cPt2di & aInd) const; ///< Genreik name
        std::string  NameClipIm(const cPt2di & aInd) const;  ///<  Clipped input image
@@ -211,6 +212,7 @@ class cAppli : public cMMVII_Appli
         bool           mRandPaded; ///< Force Px to be >=0 (assuming the interval prevision on paralax is right)
         cPt2di         mSzTile;    ///< Size of tiles for matching
         std::string    mOutPx;     ///< Output file
+        std::string    mOutDir;    ///< Output folder as MicMac convention
         cPt2di         mSzOverL;   ///< Size of overlap between tile to limit sides effect
         double         mIncPxProp; ///< Inc prop to size, used at first level
         int            mIncPxCste; ///< Cste to add to the interv of Px to take into account innovation
@@ -224,6 +226,7 @@ class cAppli : public cMMVII_Appli
         bool           mDoClip;   ///< Do we do the  clip
         bool           mDoMatch;  ///< Do we do the match
         bool           mDoPurge;  ///< Do we purge the result
+        bool           mDoCorrel; ///< Do correl in standard Micmac convention
 
             // Computed values & auxilary methods on scales, level ...
         eModeEpipMatch  mModeMatchCur;   ///< Current Method for Matching (mModeMatchFinal or mModeMatchInit)
@@ -313,7 +316,7 @@ cOneLevel::cOneLevel(cOneIm &anIm,int aLevel) :
     mDownLev  (nullptr),
     mNameIm   (StdFullName(mIm.mNameIm)),
     mNameMasq (StdFullName(mIm.mNameMasq)),
-    mNamePx   (AddBefore(ChgPostix(mNameIm,"tif"),"Px_"))
+    mNamePx   (AddBefore(ChgPostix("","tif"),"Px1_Num"+ToStr(mIm.mAppli.mNbLevel-aLevel+1)+"_DeZoom"+ToStr(std::pow(2,aLevel))+"_LeChantier"))
 {
    if (aLevel==0)
       mAppli.SetOutPut(mNamePx);
@@ -322,7 +325,7 @@ cOneLevel::cOneLevel(cOneIm &anIm,int aLevel) :
 void  cOneLevel::MakeImPx()
 {
    cDataFileIm2D aDataIm = cDataFileIm2D::Create(mNameIm,false);
-   cDataFileIm2D::Create(mNamePx,eTyNums::eTN_REAL4,aDataIm.Sz());
+   cDataFileIm2D::Create(mAppli.mOutDir+mNamePx,eTyNums::eTN_REAL4,aDataIm.Sz());
 }
 
 std::string cOneLevel::StrComReduce(bool ModeIm) const
@@ -334,6 +337,74 @@ std::string cOneLevel::StrComReduce(bool ModeIm) const
            + BLANK + std::string("Out=")  + mDownLev->NameImOrMasq(ModeIm)
            + std::string(ModeIm ? "" : " ModMasq=1")
    ;
+}
+
+void cOneLevel::CreateNuageLastFile(const std::string& Dir, const std::string& ImName)
+{
+    //read the depth map to read the image size
+    Tiff_Im     aImProfMMVII( (Dir + ImName).c_str());
+
+    //fill the XML_ParamNuage3DMaille structure
+    cXML_ParamNuage3DMaille aNMVII;
+    aNMVII.SsResolRef() = 1;
+    aNMVII.NbPixel() = aImProfMMVII.sz();
+
+    cPN3M_Nuage aPN;
+    cImage_Profondeur  aImP;
+    aImP.Image() = ImName;
+    std::string NameCorrel="./Correl_LeChantier_Num"+ToStr(mAppli.mNbLevel+1)+".tif";
+    std::string NameMasq="./AutoMask_LeChantier_Num"+ToStr(mAppli.mNbLevel+1)+".tif";
+    aImP.Correl() = NameCorrel;
+    aImP.Masq() = NameMasq;
+
+    aImP.OrigineAlti() = 0;
+    aImP.ResolutionAlti() = 1;
+    aImP.GeomRestit() = eGeomPxBiDim;
+
+    aPN.Image_Profondeur() = aImP;
+    aNMVII.PN3M_Nuage() = aPN;
+
+    cOrientationConique aOc;
+    cAffinitePlane aAP;
+    aAP.I00() = Pt2dr(0,0);
+    aAP.V10() = Pt2dr(1,0);
+    aAP.V01() = Pt2dr(0,1);
+    aOc.OrIntImaM2C() = aAP;
+
+    aOc.ZoneUtileInPixel() = true;
+    aOc.TypeProj() = eProjOrthographique;
+
+    cOrientationExterneRigide aEOR;
+    aEOR.Centre() = Pt3dr(0,0,0);
+    cRotationVect aRotVec;
+    cTypeCodageMatr aRotCode;
+    aRotCode.L1() = Pt3dr(1,0,0);
+    aRotCode.L2() = Pt3dr(0,1,0);
+    aRotCode.L3() = Pt3dr(0,0,1);
+    aRotVec.CodageMatr() = aRotCode;
+
+    aEOR.ParamRotation() = aRotVec;
+
+    aOc.Externe() = aEOR;
+
+    cConvOri aCOri;
+    aCOri.KnownConv() = eConvApero_DistM2C;
+    aOc.ConvOri() = aCOri;
+
+    aNMVII.Orientation() = aOc;
+
+
+    aNMVII.RatioResolAltiPlani() = 1;
+
+    cPM3D_ParamSpecifs aParSpec;
+    cModeFaisceauxImage aMFI;
+    aMFI.DirFaisceaux() = Pt3dr(0,0,1);
+    aMFI.ZIsInverse() = false;
+    aMFI.IsSpherik() = false;
+    aParSpec.ModeFaisceauxImage() = aMFI;
+    aNMVII.PM3D_ParamSpecifs() = aParSpec;
+
+    MakeFileXML(aNMVII,Dir+"MMLastNuage.xml");
 }
 
 
@@ -411,7 +482,7 @@ void cOneLevel::SaveGlobPx(const cParam1Match & aParam) const
    {
         aDIm.AddVal(aP, aParam.mOffsetPx);
    }
-   aImClipPx.Write(cDataFileIm2D::Create(mNamePx,false),aParam.mBoxOut.P0());
+   aImClipPx.Write(cDataFileIm2D::Create(mAppli.mOutDir+mNamePx,false),aParam.mBoxOut.P0());
 }
 
 void cOneLevel::EstimateIntervPx
@@ -439,7 +510,7 @@ void cOneLevel::EstimateIntervPx
 
       // Be inialized with def values
 
-      cDataFileIm2D aRedFilePx   = cDataFileIm2D::Create(mDownLev->mNamePx,false);
+      cDataFileIm2D aRedFilePx   = cDataFileIm2D::Create(mAppli.mOutDir+mDownLev->mNamePx,false);
       cDataFileIm2D aRedFileMasq = cDataFileIm2D::Create(mDownLev->mNameMasq,false);
 
 
@@ -549,7 +620,7 @@ void cOneLevel::Purge()
    // For Im1, we must remove Px & Masq one step later as it will be used in next computation
    if (mIm.mIsIm1 && mDownLev!=nullptr)
    {
-       RemoveFile(mDownLev->mNamePx,false);
+       RemoveFile(mAppli.mOutDir+mDownLev->mNamePx,false);
        RemoveFile(mDownLev->mNameMasq,false);
    }
    // At top level, dont remove initial image & masq
@@ -622,7 +693,8 @@ cAppli::cAppli
    mDoPyram    (true),
    mDoClip     (true),
    mDoMatch    (true),
-   mDoPurge    (true)
+   mDoPurge    (true),
+   mDoCorrel   (true)
 {
 }
 
@@ -647,6 +719,7 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          << AOpt2007(mModeMatchInit,"MMInit","Matching mode at low resol resol, def=mode high resol",{AC_ListVal<eModeEpipMatch>()})
          << AOpt2007(mSzBasculeMM,"SzBascMM","Sz in MegaPix of transition Init/Final for match mode",{eTA2007::HDV})
          << AOpt2007(mOutPx,CurOP_Out,"Name of Out file, def=Px_+$Im1")
+         << AOpt2007(mOutDir,"DirMEC","Name of Output folder, def=MEC_PSMNet_{Im1}/")
          << AOpt2007(mModePad,"ModePad","Type of padding, default depend of match mode",{AC_ListVal<eModePaddingEpip>()})
          << AOpt2007(mRandPaded,"RandPaded","Generate random value for added pixel")
          // Case sgm cuda 
@@ -659,6 +732,7 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          << AOpt2007(mDoClip,"DoClip","Compute the clip of images",{eTA2007::HDV,eTA2007::Tuning})
          << AOpt2007(mDoMatch,"DoMatch","Do the matching",{eTA2007::HDV,eTA2007::Tuning})
          << AOpt2007(mDoPurge,"DoPurge","Do we purge the result ?",{eTA2007::HDV,eTA2007::Tuning})
+         << AOpt2007(mDoCorrel,"DoCorrel","Do the computation of correlation map",{eTA2007::HDV,eTA2007::Tuning})
          
    ;
 }
@@ -666,9 +740,24 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 void cAppli::SetOutPut(std::string & aNamePx)
 {
    if (IsInit(&mOutPx))
-      aNamePx =  DirProject() + mOutPx;
+      {
+        aNamePx =  mOutPx;
+      }
    else
-     mOutPx = aNamePx;
+     {
+       mOutPx= aNamePx;
+     }
+
+   if (IsInit(&mOutDir))
+     {
+       CreateDirectories(DirProject()+mOutDir,true);
+     }
+   else
+     {
+       std::string aNameDir=DirProject()+"MEC_PSMNet_"+mNameIm1+"/";
+       CreateDirectories(aNameDir,true);
+       mOutDir=aNameDir;
+     }
 }
 
 std::string cAppli::ComMatch(cParam1Match & aParam) 
@@ -950,7 +1039,7 @@ int cAppli::Exe()
 
 
    // create Masq Images if they do not exist
-   for (auto & aIm : mIms)
+   /*for (auto & aIm : mIms)
      {
        std::string aImMasq0=aIm->LevAt(0).NameImOrMasq(false);
        if (!ExistFile(aImMasq0))
@@ -960,7 +1049,29 @@ int cAppli::Exe()
            cDataIm2D<tINT1> & mDataImMasq= mImMasq.DIm();
            mDataImMasq.ToFile(aImMasq0);
          }
+     }*/
+
+   // Create Masq Enveloppe Convexe
+   std::list<std::string> aComMasqs;
+   for (auto & aIm: mIms)
+     {
+       int aMin=0;
+       int aMax=255;
+
+       if ((aIm->mPFileImFull.Type()==eTyNums::eTN_INT2) || (aIm->mPFileImFull.Type()==eTyNums::eTN_U_INT2))
+         {
+           aMax=65535;
+         }
+
+        std::string aImName=aIm->LevAt(0).NameImOrMasq(true);
+        std::string aCom = "mm3d MasqMaker" + BLANK +
+                aImName         + BLANK +
+                ToStr(aMin)     + BLANK +
+                ToStr(aMax);
+        aComMasqs.push_back(aCom);
      }
+
+   ExeComParal(aComMasqs);
    // Compute pyramid of images
    MakePyramid();
 
@@ -968,6 +1079,21 @@ int cAppli::Exe()
    {
         MatchOneLevel(aLevel);
    }
+   // Create Occlusion Masq and Correlation Image
+   if (mDoCorrel)
+     {
+       std::string NameCorrel="Correl_LeChantier_Num"+ToStr(mNbLevel+1)+".tif";
+       std::string NameMasq="AutoMask_LeChantier_Num"+ToStr(mNbLevel+1)+".tif";
+        std::string aCom="MMVII DenseMatchEpipEval" + BLANK + mNameIm1 + BLANK + mNameIm2
+                         +  BLANK + mOutDir+mOutPx + BLANK + "true" + BLANK +"Masq1="+Im1().LevAt(0).NameImOrMasq(false)
+                         +  BLANK + "Masq2="+Im2().LevAt(0).NameImOrMasq(false)+ BLANK + "ImCorrel="+mOutDir+NameCorrel
+                         +  BLANK + "HiddenMask="+mOutDir+NameMasq;
+        ExtSysCall(aCom,false);
+     }
+   // Save Output MMLastNuage.xml
+    cOneLevel & aLastLevel = Im1().LevAt(0);
+    aLastLevel.CreateNuageLastFile(mOutDir,mOutPx);
+
 
    return EXIT_SUCCESS;
 }

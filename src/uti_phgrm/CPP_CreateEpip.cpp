@@ -1003,7 +1003,10 @@ cTmpReechEpip::cTmpReechEpip
                             double aXIm = aRedTImX.getr(aIndIm,-1,true);
                             double aYIm = aRedTImY.getr(aIndIm,-1,true);
 
-                            if ((aXIm>mP0Epi.x) && (aYIm>mP0Epi.y) && (aXIm<mP0Epi.x+mSzEpi.x) && (aYIm<mP0Epi.y+mSzEpi.y))
+                            if ((aXIm>mP0Epi.x)          &&
+                                (aYIm>mP0Epi.y)          &&
+                                (aXIm<mP0Epi.x+mSzEpi.x) &&
+                                (aYIm<mP0Epi.y+mSzEpi.y))
                             {
                                 aTImMasq.oset(aPIndLoc,1);
                                 aTImX.oset(aPIndLoc,aXIm-mP0Epi.x);

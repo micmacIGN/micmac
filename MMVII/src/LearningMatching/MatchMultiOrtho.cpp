@@ -807,7 +807,7 @@ class cAppliMatchMultipleOrtho : public cMMVII_Appli
     aCnnModelPredictor *  mCNNPredictor=nullptr;
     bool                  mWithIntCorr=true;  // initialized in the begining 
     bool                  mWithExtCorr=false;  // initialized in the begining 
-    bool                  mWithDecisionNet=false;
+    bool                  mWithDecisionNet=true;
     bool                  mWithMatcher3D=false;
     std::string           mArchitecture;
     std::string           mResol;
@@ -1325,7 +1325,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhanced(std::ve
                           (aSumCorAllOk / aSumWeightAllOk) :
                           (aSumCorPart / std::max(1e-5f,aSumWeightPart)) ;
 
-	aDImSim.SetV(aP,1-aAvgCorr);
+    aDImSim.SetV(aP,1.0-aAvgCorr);
    }
 
    // delete All Similarities 
@@ -1358,10 +1358,8 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedMVS(std:
         {
             aCrossProd=at::cosine_similarity(AllOrthosEmbeddings->at(k),AllOrthosEmbeddings->at(k+1),0).squeeze();
         }
-
         //std::cout<<"    MAXXXX    "<<at::max(aCrossProd)<<"    MINNN "<<at::min(aCrossProd)<<std::endl;
         AllSimilarities->push_back(aCrossProd.to(torch::kCPU));
-
       }
     // Free all ortho OneOrthoEmbeding
     delete AllOrthosEmbeddings;
@@ -1419,7 +1417,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterEnhancedMVS(std:
                           (aSumCorAllOk / aSumWeightAllOk) :
                           (aSumCorPart / std::max(1e-5f,aSumWeightPart)) ;
 
-        aDImSim.SetV(aP,1-aAvgCorr);
+    aDImSim.SetV(aP,1.0-aAvgCorr);
    }
 
    // delete All Similarities
@@ -1503,7 +1501,7 @@ void cAppliMatchMultipleOrtho::ComputeSimilByLearnedCorrelMasterDecision()
     // Interpolate correlation values 
     //InterpolatePos(spaceCorrDUBLIN,spaceProbDUBLIN,aAvgCorr);
     //std::cout<<"apres "<<aAvgCorr<<std::endl;
-	aDImSim.SetV(aP,1-aAvgCorr);
+    aDImSim.SetV(aP,1.0-aAvgCorr);
    }
    // delete All Similarities 
    delete AllSimilarities;
@@ -1898,8 +1896,7 @@ int  cAppliMatchMultipleOrtho::ExeSubPixFeats()
     
 	    // Create similarity image with good size
 	    mImSimil = tImSimil(mSzIms);
-            mImSimil.DIm().InitCste(2.0);   //  2 => correl of -1
-    
+	    mImSimil.DIm().InitCste(1.0);
 
         if(mWithExtCorr)
         {
@@ -2412,45 +2409,43 @@ int  cAppliMatchMultipleOrtho::ExeProjectOrigEmbeddings()
             }
               // Create similarity image with good size
               mImSimil = tImSimil(mSzIms);
-              mImSimil.DIm().InitCste(2.0);   //  2 => correl of -1
+              mImSimil.DIm().InitCste(1.0);   //  1.0 => correl of -1  (cube is filled with (1-corr)/2.0 when cos and 1-sim when sim)
 
 
         if(mWithExtCorr)
         {
-            std::vector<torch::Tensor> * ProjectEmbeddings = new std::vector<torch::Tensor>;
-            if (!mWithDecisionNet)
-            {
-                // Inference based correlation
-                // Create Embeddings
-                // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
-                MMVII_INTERNAL_ASSERT_strong(mArchitecture==TheUnetMlpCubeMatcher, "TheUnetMlpCubeMatcher is the only option for Now");
-                if (mArchitecture==TheUnetMlpCubeMatcher)
-                   {
-                        namespace FFunc=torch::nn::functional;
-                        cPt2di aSzIm;
-                        cPt2di aSzImOrig;
-                        // project all except the master (i=0) embedding
-                        MMVII_INTERNAL_ASSERT_strong(mVGEOX.size()>1,"No query image found!");
-                        //ProjectEmbeddings->push_back(OrigEmbeddings->at(0));
-                        //std::cout<<"##########################  "<<0<<"  "<<ProjectEmbeddings->at(0).sizes()<<"  ###########################"<<std::endl;
-                        for (unsigned int i=0; i<mORIGIm.size();i++)
-                          {
-                            aSzIm=mVOrtho.at(i).at(0).DIm().Sz();
-                            aSzImOrig=mORIGIm.at(i).at(0).DIm().Sz();
-                            //ProjectEmbeddings->push_back(this->InterpolateFeatMap(OrigEmbeddings->at(i),mVGEOX[i][0],mVGEOY[i][0]));
+          std::vector<torch::Tensor> * ProjectEmbeddings = new std::vector<torch::Tensor>;
+              // Inference based correlation
+              // Create Embeddings
+              // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
+              MMVII_INTERNAL_ASSERT_strong(mArchitecture==TheUnetMlpCubeMatcher, "TheUnetMlpCubeMatcher is the only option for Now");
+              if (mArchitecture==TheUnetMlpCubeMatcher)
+                 {
+                      namespace FFunc=torch::nn::functional;
+                      cPt2di aSzIm;
+                      cPt2di aSzImOrig;
+                      // project all except the master (i=0) embedding
+                      MMVII_INTERNAL_ASSERT_strong(mVGEOX.size()>1,"No query image found!");
+                      //ProjectEmbeddings->push_back(OrigEmbeddings->at(0));
+                      //std::cout<<"##########################  "<<0<<"  "<<ProjectEmbeddings->at(0).sizes()<<"  ###########################"<<std::endl;
+                      for (unsigned int i=0; i<mORIGIm.size();i++)
+                        {
+                          aSzIm=mVOrtho.at(i).at(0).DIm().Sz();
+                          aSzImOrig=mORIGIm.at(i).at(0).DIm().Sz();
+                          //ProjectEmbeddings->push_back(this->InterpolateFeatMap(OrigEmbeddings->at(i),mVGEOX[i][0],mVGEOY[i][0]));
 
-                            ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i).unsqueeze(0),
-                                                                            ToTensorGeo(mVGEOX[i][0],mVGEOY[i][0],aSzImOrig-cPt2di(1,1)).to(device),
-                              FFunc::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
+                          ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i).unsqueeze(0),
+                                                                          ToTensorGeo(mVGEOX[i][0],mVGEOY[i][0],aSzImOrig-cPt2di(1,1)).to(device),
+                            FFunc::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
 
-                            //auto OrthoEmbedding=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mVOrtho.at(i),aSzIm);
-                            //auto COSINE=at::cosine_similarity(OrthoEmbedding,ProjectEmbeddings->at(i),0).squeeze();
-                            //std::cout<<" CORRELATION CHECK >>>  "<<at::mean(COSINE)<<std::endl;
-                            //std::cout<<"##########################  "<<i<<"  "<<ProjectEmbeddings->at(i).sizes()<<"  ###########################"<<std::endl;
-                          }
-                        ComputeSimilByLearnedCorrelMasterEnhanced(ProjectEmbeddings);
-                   }
-            }
+                          //auto OrthoEmbedding=mCNNPredictor->PredictUnetFeaturesOnly(mMSAFF,mVOrtho.at(i),aSzIm);
+                          //auto COSINE=at::cosine_similarity(OrthoEmbedding,ProjectEmbeddings->at(i),0).squeeze();
+                          //std::cout<<" CORRELATION CHECK >>>  "<<at::mean(COSINE)<<std::endl;
+                          //std::cout<<"##########################  "<<i<<"  "<<ProjectEmbeddings->at(i).sizes()<<"  ###########################"<<std::endl;
+                        }
+                      ComputeSimilByLearnedCorrelMasterEnhanced(ProjectEmbeddings);
+                 }
+
         }
         else
         {
@@ -2598,7 +2593,6 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
                         // Write images
                         Tensor2Tiff(aMasterImage,"./MASTER_IM.tif");
                         Tensor2Tiff(aSecImage,"./SEC_IM.tif");
-
                      }
 
                  }
@@ -2657,45 +2651,45 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
                 }
                 // Create similarity image with good size
                 mImSimil = tImSimil(mSzIms);
-                mImSimil.DIm().InitCste(2.0);   //  2 => correl of -1
+
+                mImSimil.DIm().InitCste(1.0);
+
                 if (mWithExtCorr)
                   {
                     std::vector<torch::Tensor> * ProjectEmbeddings = new std::vector<torch::Tensor>;
-                      if (!mWithDecisionNet)
-                      {
-                          // Inference based correlation
-                          // Create Embeddings
-                          // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
-                          MMVII_INTERNAL_ASSERT_strong(mArchitecture==TheUnetMlpCubeMatcher, "TheUnetMlpCubeMatcher is the only option for Now");
-                          if (mArchitecture==TheUnetMlpCubeMatcher)
-                             {
-                                  namespace FFunc=torch::nn::functional;
-                                  cPt2di aSzImOrig=mORIGIm.at(0).at(0).DIm().Sz();
-                                  MMVII_INTERNAL_ASSERT_strong(mVGEOX.size()>1,"No query image found!");
+                      // Inference based correlation
+                      // Create Embeddings
+                      // Calculate the EMBEDDINGS ONE TIME USING FOWARD OVER THE WHOLE TILEs
+                      MMVII_INTERNAL_ASSERT_strong(mArchitecture==TheUnetMlpCubeMatcher, "TheUnetMlpCubeMatcher is the only option for Now");
+                      if (mArchitecture==TheUnetMlpCubeMatcher)
+                         {
+                              namespace FFunc=torch::nn::functional;
+                              cPt2di aSzImOrig=mORIGIm.at(0).at(0).DIm().Sz();
+                              MMVII_INTERNAL_ASSERT_strong(mVGEOX.size()>1,"No query image found!");
 
-                                  int id_im=1;
-                                  for (int i=0; i<2*(mNbIm-1);i+=2,id_im++) // parcourir par couple de paires épipolaires
-                                    {
-                                    // master sec images
+                              int id_im=1;
+                              for (int i=0; i<2*(mNbIm-1);i+=2,id_im++) // parcourir par couple de paires épipolaires
+                                {
+                                // master sec images
 
-                                      ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i).unsqueeze(0),
-                                                                                      ToTensorGeo(mVGEOX[0][0],mVGEOY[0][0],aSzImOrig-cPt2di(1,1)).to(device),
-                                        F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
+                                  ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i).unsqueeze(0),
+                                                                                  ToTensorGeo(mVGEOX[0][0],mVGEOY[0][0],aSzImOrig-cPt2di(1,1)).to(device),
+                                    F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
 
-                                      cPt2di aSzImSec=mORIGIm.at(id_im).at(0).DIm().Sz();
-                                      ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i+1).unsqueeze(0),
-                                                                                      ToTensorGeo(mVGEOX[id_im][0],mVGEOY[id_im][0],aSzImSec-cPt2di(1,1)).to(device),
-                                        F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
+                                  cPt2di aSzImSec=mORIGIm.at(id_im).at(0).DIm().Sz();
+                                  ProjectEmbeddings->push_back(FFunc::grid_sample(OrigEmbeddings->at(i+1).unsqueeze(0),
+                                                                                  ToTensorGeo(mVGEOX[id_im][0],mVGEOY[id_im][0],aSzImSec-cPt2di(1,1)).to(device),
+                                    F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
 
-                                    }
-                                  ComputeSimilByLearnedCorrelMasterEnhancedMVS(ProjectEmbeddings);
-                             }
-                          else
-                            {
-                              MMVII_INTERNAL_ASSERT_strong(false, "TheUnetMlpCubeMatcher is the only option for Now");
-                            }
+                                }
+                              ComputeSimilByLearnedCorrelMasterEnhancedMVS(ProjectEmbeddings);
+                         }
+                      else
+                        {
+                          MMVII_INTERNAL_ASSERT_strong(false, "TheUnetMlpCubeMatcher is the only option for Now");
+                        }
 
-                     }
+
                   }
                 else
                   {
@@ -2713,6 +2707,7 @@ int  cAppliMatchMultipleOrtho::GotoEpipolar()
                 mVGEOY.clear();
                 mVMasq.clear();
         }
+   //std::cout<<"Get Similarity maps "<<std::getchar();
    return EXIT_SUCCESS;
 }
 
@@ -2724,10 +2719,12 @@ int cAppliMatchMultipleOrtho::Exe()
   if (aResol==1)
     {
       return GotoEpipolar();
+      //return ExeProjectOrigEmbeddings();
     }
   else
     {
-     return ExeProjectOrigEmbeddings();
+      return GotoEpipolar();
+     //return ExeProjectOrigEmbeddings();
     }
 }
 

@@ -881,8 +881,40 @@ void cFilePx::LoadNappeEstim
             aPRed.y += aDy;
         }
     }
-    //Test SAVE NAPPE ON LOADING
 
+    /// < ADD SOMEE FITERING ON mTPxInit
+    /// MEDIAN
+    /// >
+
+
+    int aVMin,aVMax;
+    std::cout<<"$$$$$$   Before median filtering ==>  "<<aVMin<<"   "<<aVMax<<std::endl;
+        ELISE_COPY
+        (
+            rectangle(Pt2di(0,0),aSz),
+            aNappe.mPxInit.in(),
+            VMin(aVMin)|VMax(aVMax)
+        );
+        Fonc_Num aFNPxInit=aNappe.mPxInit.in_proj();
+        ELISE_COPY(
+              aNappe.mPxInit.all_pts(),
+              rect_median(aFNPxInit-aVMin,(aVMax-aVMin==0) ? 0 : 5 ,aVMax-aVMin+1),
+              aNappe.mPxInit.out()
+              );
+       ELISE_COPY
+       (
+           aNappe.mPxInit.all_pts(),
+           aNappe.mPxInit.in()+aVMin,
+           aNappe.mPxInit.out()
+       );
+       ELISE_COPY
+       (
+           rectangle(Pt2di(0,0),aSz),
+           aNappe.mPxInit.in(),
+           VMin(aVMin)|VMax(aVMax)
+       );
+     std::cout<<"$$$$$$   After median filtering ==>  "<<aVMin<<"   "<<aVMax<<std::endl;
+    //Test SAVE NAPPE ON LOADING
 
 
     if (mEtape.PxAfterModAnIsNulle())

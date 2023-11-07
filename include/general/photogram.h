@@ -3265,7 +3265,7 @@ class cCpleEpip
          double BSurHOfPx(bool Im1,double aPx);
          Fonc_Num BSurHOfPx(bool Im1,Fonc_Num aPx);
 
-         std::string Dir();
+         std::string Dir(){return mDir;};
 
          bool IsIm1(const std::string & aNameIm);  // Erreur si ni Im1 ni Im2
 

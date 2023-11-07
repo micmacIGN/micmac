@@ -46,8 +46,7 @@ class cEpipOrientCam : public  ElDistortion22_Gen
 {
     friend class PourFairPlaisirAGCC;
     public :
-           cEpipOrientCam
-       (
+           cEpipOrientCam       (
              bool ToDel,
          REAL aZoom,
              CamStenope & aCam,
@@ -458,7 +457,6 @@ cCpleEpip::cCpleEpip
 
    if (1)
    {
-
       Pt3dr aP1 =  aC1.ImEtProf2Terrain(Pt2dr(aC1.Sz()/2),aC1.GetRoughProfondeur());
       Pt3dr aP2 =  aC2.ImEtProf2Terrain(Pt2dr(aC2.Sz()/2),aC2.GetRoughProfondeur());
       Pt3dr aP = (aP1+aP2) / 2.0;
@@ -608,7 +606,7 @@ Pt2dr CorrecPoly(const Pt2dr aP,Polynome2dReal *aPol,double aMul)
 {
    if (aPol==0) return aP;
 
-   std::cout<<"aPol"<<std::endl;
+   //std::cout<<"aPol"<<std::endl;
    double aDY = (*aPol) (aP) ;
 
    return Pt2dr (aP.x,aP.y+aMul*aDY);
@@ -689,6 +687,8 @@ template <class Type,class TypeBase>
             Pt2dr aPInput = Pt2dr(aPInd*aPas+aBoxOut._p0);
             aPInput = CorrecPoly(aPInput,aPol,-1);
             Pt2dr aPIm = GlobTransfoEpip(aPInput,aCamOut,aCamIn)-Pt2dr(aBoxIn._p0);
+            /// < Scale point to generate image at DeZoom = aScale
+            aPIm=aPIm/aScale;
             aTImX.oset(aPInd,aPIm.x);
             aTImY.oset(aPInd,aPIm.y);
        }
@@ -724,6 +724,8 @@ template <class Type,class TypeBase>
 
             Pt2di aPOut(anX,anY);
             Pt2dr aPIm(aTImX.getr(aPR),aTImY.getr(aPR));
+            /// < correct for scale again
+            aPIm=aPIm*aScale;
             bool Ok =    (aPIm.x > aSzK)
                       && (aPIm.y > aSzK)
                       && (aPIm.x< aTxKer)
@@ -760,14 +762,16 @@ template <class Type,class TypeBase>
 
     if (DoExportGrid) // Export Epipolar grids in x and y directions
       {
+        Box2dr aBoxInGeo=Box2dr(aBoxIn._p0/aScale,aBoxIn._p1/aScale);
         // From Epipolar --> Image
-        int aSzXL=1+(aSzIn.x+aPas-1) / aPas;
-        int aSzYL=1+(aSzIn.y+aPas-1) / aPas;
+        Pt2di aSzInGeo= (aScale==1.0) ? aSzIn : Pt2di(aSzIn/aScale);
+        int aSzXL=1+(aSzInGeo.x+aPas-1) / aPas;
+        int aSzYL=1+(aSzInGeo.y+aPas-1) / aPas;
 
         TIm2D<REAL8,REAL8> aTEpImX(Pt2di(aSzXL+1,aSzYL+1));
         TIm2D<REAL8,REAL8> aTEpImY(Pt2di(aSzXL+1,aSzYL+1));
 
-        Im2D_Bits<1> aEpImMasqOut(aSzIn.x,aSzIn.y);
+        Im2D_Bits<1> aEpImMasqOut(aSzInGeo.x,aSzInGeo.y);
         //Im2D_Bits<1> aEpImMasqOut(aSzXL+1,aSzYL+1);
         TIm2DBits<1> aEpTMasqOut(aEpImMasqOut);
 
@@ -775,7 +779,8 @@ template <class Type,class TypeBase>
         {
             for (aPInd.y=0; aPInd.y<=aSzYL ; aPInd.y++)
             {
-               Pt2dr aPInput=Pt2dr(aPInd*aPas+aBoxIn._p0);
+               Pt2dr aPInput=Pt2dr(aPInd*aPas)+aBoxInGeo._p0;
+               aPInput=aPInput*aScale;
                //aPInput= CorrecPoly(aPInput,aPol,-1);
                Pt2dr aPIm=GlobTransfoEpip(aPInput,aCamIn,aCamOut)-Pt2dr(aBoxOut._p0);
                aPIm= CorrecPoly(aPIm,aPol,1);
@@ -795,10 +800,10 @@ template <class Type,class TypeBase>
 
         // Masq Epipolar --> Image
         UnSPas = 1.0/aPas;
-        for (int anX=0; anX<aSzIn.x ; anX++)
+        for (int anX=0; anX<aSzInGeo.x ; anX++)
         {
            Pt2dr aPR(anX/double(aPas),0);
-           for (int anY=0; anY<aSzIn.y ; anY++)
+           for (int anY=0; anY<aSzInGeo.y ; anY++)
            {
                 Pt2di aPOut(anX,anY);
                 Pt2dr aPIm(aTEpImX.getr(aPR),aTEpImY.getr(aPR));
@@ -825,7 +830,8 @@ template <class Type,class TypeBase>
         Tiff_Im  aTifEpMRedY(aNameEpRedY.c_str());
         Tiff_Im  aTifEpM(aNameEpMasq.c_str());
 
-        Pt2dr Orig_x0y0=Pt2dr(aBoxIn._p0);
+        Box2di aBoxInGeoI=Box2di(Pt2di(aBoxInGeo._p0),Pt2di(aBoxInGeo._p1));
+        Pt2dr Orig_x0y0=Pt2dr(aBoxInGeo._p0);
         Pt2dr OrigEp_x0y0=Pt2dr(aBoxOut._p0);
 
         ELISE_COPY(
@@ -864,22 +870,22 @@ template <class Type,class TypeBase>
               );
         ELISE_COPY
         (
-             rectangle(aBoxIn._p0,aBoxIn._p1),
-             trans(aTEpImX._the_im.in(0),-aBoxIn._p0),
+             rectangle(aBoxInGeoI._p0,aBoxInGeoI._p1),
+             trans(aTEpImX._the_im.in(0),-aBoxInGeoI._p0),
              aTifEpMRedX.out()
         );
         ELISE_COPY
         (
-             rectangle(aBoxIn._p0,aBoxIn._p1),
-             trans(aTEpImY._the_im.in(0),-aBoxIn._p0),
+             rectangle(aBoxInGeoI._p0,aBoxInGeoI._p1),
+             trans(aTEpImY._the_im.in(0),-aBoxInGeoI._p0),
              aTifEpMRedY.out()
         );
 
        // Epipolar --> Image Masq
         ELISE_COPY
         (
-             rectangle(aBoxIn._p0,aBoxIn._p1),
-             trans(aEpImMasqOut.in(),-aBoxIn._p0),
+             rectangle(aBoxInGeoI._p0,aBoxInGeoI._p1),
+             trans(aEpImMasqOut.in(),-aBoxInGeoI._p0),
              aTifEpM.out()
         );
       }
@@ -1176,9 +1182,9 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
     const CamStenope & aCamIn =        Im1 ? mCInit1  : mCInit2;
     const CamStenopeIdeale & aCamOut = Im1 ? mCamOut1 : mCamOut2;
     Pt2di aSzOut = aCamOut.Sz();
+    std::cout<<"Image size out ===> "<<aSzOut<<std::endl;
     Pt2di aSzIn  = aCamIn.Sz() ;
-
-
+    Pt2di aSzInGeo= (mScale==1.0) ? aSzIn: Pt2di(aSzIn/mScale);
     std::string aNameOriOut =  mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",NameWithoutDir(aNameImOut),true);
     cOrientationConique anOC = aCamOut.StdExportCalibGlob();
     MakeFileXML(anOC,mDir+aNameOriOut);
@@ -1316,7 +1322,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
       aTif_Epip_ImX=Tiff_Im
           (
               aNameEpImRedX.c_str(),
-              aSzIn,
+              aSzInGeo,
               GenIm::real4,
               Tiff_Im::No_Compr,
               Tiff_Im::BlackIsZero
@@ -1325,7 +1331,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
        aTif_Epip_ImY=Tiff_Im
           (
               aNameEpImRedY.c_str(),
-              aSzIn,
+              aSzInGeo,
               GenIm::real4,
               Tiff_Im::No_Compr,
               Tiff_Im::BlackIsZero
@@ -1343,7 +1349,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
        Tiff_Im  aTEpMasq
                 (
                       aNameEpMasq.c_str(),
-                      aSzIn,
+                      aSzInGeo,
                       GenIm::bits1_msbf,
                       Tiff_Im::No_Compr,
                       Tiff_Im::BlackIsZero
