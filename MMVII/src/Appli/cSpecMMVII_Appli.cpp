@@ -225,6 +225,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecRename);
         TheVecAll.push_back(&TheSpec_V2ImportCalib);
         TheVecAll.push_back(&TheSpec_ImportOri);
+        TheVecAll.push_back(&TheSpecDicoRename);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

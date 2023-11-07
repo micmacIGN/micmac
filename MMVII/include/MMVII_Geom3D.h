@@ -396,6 +396,7 @@ class cSampleQuat
 
 
 
+
 };
 
 #endif  //  _MMVII_GEOM3D_H_

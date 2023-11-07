@@ -934,41 +934,36 @@ template <class Type,const int Dim> class cBijAffMapElem
         tMat  mMatInv;
 };
 
-
-
-
-/*
-
-template <class Type,const int DimIn,const int DimOut> 
-         class cInvertibleMapping : public cMapping<Type,DimIn,DimOut>
+class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 {
-    public :
-      typedef  cPtxd<Type,DimOut> tPtOut;
-      typedef  cPtxd<Type,DimIn>  tPtIn;
-      typedef  cDenseMatrix<Type> tGrad;  ///< For each 
-      virtual  tPtOut  Inverse(const tPtOut &) const = 0;
+      public :
+
+         cSysCoordV2(tREAL8  aEpsDeriv = 0.1);
+
+         tPt Value(const tPt &) const override;
+         tPt Inverse(const tPt &) const override;
+
+
+         virtual tPt ToGeoC  (const tPt &) const =0;
+         virtual tPt FromGeoC(const tPt &) const =0;
+
+         static cSysCoordV2 * Lambert93();
+         static cSysCoordV2 * RTL(const cPt3dr & Ori,cSysCoordV2* aCoordPt=nullptr);
 };
 
-template <class Type> class  cImageSensor : public  cMapping<Type,3,2>
+class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 {
-    public :
+        public :
+            cChangSysCoordV2(cSysCoordV2 * aSysInit,cSysCoordV2 * aSysTarget,tREAL8  aEpsDeriv = 0.1);
+
+            tPt Value(const tPt &) const override;   /// compute  Point from SysInit 2 SysTarget
+            tPt Inverse(const tPt &) const override; /// compute  Point from SysTarget 2 SysInit
+        private :
+
+            cSysCoordV2 * mSysInit;
+            cSysCoordV2 * mSysTarget;
 };
 
-template <class Type> class cImagePose : public cInvertibleMapping<Type,3,3>
-{
-    public :
-      typedef  cPtxd<Type,3>  tPt;
-      /// Coordinate Cam -> Word ; Pt =>  mC + mOrient * Pt
-      tPt  Direct(const tPt &)  const override;  
-      /// Coordinate Cam -> Word ; Pt =>  (Pt-mC) * mOrient 
-      tPt  Inverse(const tPt &) const override;  // 
-      // cImagePose();
-
-    private :
-       cDenseMatrix<Type>  mOrient;
-       tPt                 mC;
-};
-*/
 
 /*
 Avec R=N(x,y,z) et r=N(x,y)

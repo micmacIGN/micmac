@@ -2,6 +2,8 @@
 #include "MMVII_MMV1Compat.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 
 /**
    \file cConvCalib.cpp  testgit
@@ -46,6 +48,7 @@ class cAppli_ImportOri : public cMMVII_Appli
 	std::string              mRepIJK;
 	bool                     mRepIJDir;
 	std::vector<std::string> mChgName;
+	std::string              mNameDicoName;
 };
 
 cAppli_ImportOri::cAppli_ImportOri(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -81,14 +84,18 @@ cCollecSpecArg2007 & cAppli_ImportOri::ArgOpt(cCollecSpecArg2007 & anArgObl)
        << AOpt2007(mRepIJK,"Rep","Repair coded (relative  to MMVII convention)  ",{{eTA2007::HDV}})
        << AOpt2007(mRepIJDir,"KIsUp","Corespond to repair \"i-j-k\" ",{{eTA2007::HDV}})
        << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$0]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
+       << AOpt2007(mNameDicoName,"DicName","Dictionnary for changing names of images ")
+
     ;
 }
 
 std::vector<std::string>  cAppli_ImportOri::Samples() const
 {
-   return {
-              "MMVII ImportOri trajectographie_tif.opk NSSXYZWPKS Calib InitUP AngU=degree KIsUp=true ChgN=[\".*\",\"Traj_\\$0\"]"
-	};
+   return 
+   {
+        "MMVII ImportOri trajectographie_tif.opk NSSXYZWPKS Calib InitUP AngU=degree KIsUp=true ChgN=[\".*\",\"Traj_\\$0\"]",
+        "MMVII ImportOri trajectographie_tif.opk NSSXYZWPKS Calib001 InitUP AngU=degree KIsUp=true DicName=DicoVol.xml"
+   };
 }
 
 // "NSSXYZWPKS"
@@ -105,27 +112,52 @@ int cAppli_ImportOri::Exe()
 
     cRotation3D<tREAL8>  aRotAfter = cRotation3D<tREAL8>::RotFromCanonicalAxes(mRepIJK);
 
-    MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYZN")==1,"Bad format vs NXYZ");
+    // MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYZN")==1,"Bad format vs NXYZ");
 
     ReadFilesStruct
     (
         mNameFile, mFormat,
         mL0, mLLast, mComment,
-        aVNames,aVXYZ,aVWKP,aVNums
+        aVNames,aVXYZ,aVWKP,aVNums,
+	false
     );
 
     tREAL8  aAngDiv = AngleInRad(mAngleUnit);
 
+    std::string mSeparator = "@";
+    std::map<std::string,std::string>  aDicoChName;
+    bool withDico = false;
+
+    if (IsInit(&mNameDicoName))
+    {
+        withDico = true;
+	ReadFromFile(aDicoChName,mNameDicoName);
+    }
+
     for (size_t aK=0 ; aK<aVXYZ.size() ; aK++)
     {
          std::string aNameIm = aVNames.at(aK).at(0);
+	 for (size_t aKName=1 ; aKName<aVNames.at(aK).size() ; aKName++)
+             aNameIm = aNameIm + mSeparator + aVNames.at(aK).at(aKName);
 
 	 ChgName(mChgName,aNameIm);
+
+         if (withDico)
+         {
+            auto anIt = aDicoChName.find(aNameIm);
+            if (anIt == aDicoChName.end())
+            {
+                MMVII_UnclasseUsEr("Cannot find name in dico for : " + aNameIm);
+            }
+	    aNameIm = anIt->second;
+         }
+
+
 	 cPt3dr aCenter = aVXYZ.at(aK);
 	 cPt3dr aWPK = aVWKP.at(aK) / aAngDiv ;
 
 	 cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromStdName(aNameIm);
-
+	 
 	 cRotation3D<tREAL8>  aRot =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
 	 aRot = aRot * aRotAfter;
 
@@ -135,8 +167,6 @@ int cAppli_ImportOri::Exe()
 	 mPhProj.SaveCamPC(aCam);
 
 
-	 StdOut() << "NAME =" <<   aNameIm << " xyz=" << aVXYZ.at(aK)  << " WPK=" << aWPK  << " F=" << aCalib->F() << "\n";
-	 // getchar();
     }
 
 

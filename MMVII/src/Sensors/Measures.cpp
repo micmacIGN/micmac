@@ -375,6 +375,11 @@ const std::string &              cSetMesPtOf1Im::NameIm()   const {return mNameI
 const std::vector<cMesIm1Pt> &   cSetMesPtOf1Im::Measures() const {return mMeasures;}
 std::vector<cMesIm1Pt> &   cSetMesPtOf1Im::Measures() {return mMeasures;}
 
+void cSetMesPtOf1Im::SetNameIm(const std::string & aNameIm)
+{
+    mNameIm = aNameIm;
+}
+
 void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
 {
      mMeasures.push_back(aMeasure);
