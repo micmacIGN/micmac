@@ -16,6 +16,7 @@ typedef std::pair<std::string,std::string> tPairStr;
 typedef std::pair<int,int>                 tPairInd;
 
 class cSetSensSameId;     //  .....
+class cBlocMatrixSensor;  // ....
 class cBlocCamComputeInd;    // class for computing index of Bloc/Sync 
 			  
 
@@ -25,17 +26,33 @@ class cBlocCamComputeInd;    // class for computing index of Bloc/Sync
 class cSetSensSameId
 {
       public :
+         friend class cBlocMatrixSensor;
+
          cSetSensSameId(size_t aNbCam,const std::string & anIdSync);
-      protected :
+	 void Resize(size_t);
+      private :
 	 /* Identifier common to same cameras like  "Im_T01_CamA.JPG","Im_T01_CamB.JPG"  => "T01"
 	  *                                   or    "Im_T01_CamA.JPG","Im_T02_CamA.JPG"  => "CamA" */
 	 std::string                 mId;        
 	 std::vector<cSensorCamPC*>  mVCams;     ///< vector of camera sharing same  id
 };						 
 
+class cBlocMatrixSensor
+{
+      public :
+           size_t NumNew(const std::string &) ;
+	   void AddNew(cSensorCamPC*,size_t aNumSet,size_t aNumInSet);
+	   cBlocMatrixSensor();
+	   void Show();
+      private :
+	   size_t                        mSizeLine;
+           t2MapStrInt                   mMapInt2Id; ///< Bijective map  SyncInd <--> int
+	   std::vector<cSetSensSameId>   mMatrix;
+};
 
 
-/** Class for  .... */
+
+/** Class for  computing indexes */
 
 class cBlocCamComputeInd
 {
@@ -60,8 +77,14 @@ class cBlocCamComputeInd
 /* ************************************************** */
 
 cSetSensSameId::cSetSensSameId(size_t aNbCam,const std::string & anIdSync) :
+    mId     (anIdSync),
     mVCams  (aNbCam,nullptr)
 {
+}
+
+void cSetSensSameId::Resize(size_t aSize)
+{
+	mVCams.resize(aSize);
 }
 
 /* ************************************************** */
@@ -90,6 +113,66 @@ std::string  cBlocCamComputeInd::CalculIdSync(cSensorCamPC * aCam) const
      return PatternKthSubExpr(mPattern,mKSync,aCam->NameImage());
 }
 
+/* *********************************************************** */
+/*                                                             */
+/*                    cBlocMatrixSensor                        */
+/*                                                             */
+/* *********************************************************** */
+
+cBlocMatrixSensor::cBlocMatrixSensor() :
+    mSizeLine (0)
+{
+}
+
+size_t cBlocMatrixSensor::NumNew(const std::string & anId) 
+{
+     int anInd = mMapInt2Id.Obj2I(anId,true);  // Get index, true because OK non exist
+     if (anInd<0)
+     {
+         anInd = mMatrix.size();
+	 mMapInt2Id.Add(anId);
+	 mMatrix.push_back(cSetSensSameId(mSizeLine,anId));
+     }
+     return anInd;
+}
+
+void cBlocMatrixSensor::AddNew(cSensorCamPC* aPC,size_t aNumSet,size_t aNumInSet)
+{
+     if (aNumInSet >= mSizeLine)
+     {
+         mSizeLine = aNumInSet+1;
+	 for (auto  & aSet : mMatrix)
+             aSet.Resize(mSizeLine);
+     }
+
+     cSensorCamPC* & aLocPC = mMatrix.at(aNumSet).mVCams.at(aNumInSet);
+
+     if (aLocPC!=nullptr)
+     {
+         MMVII_UnclasseUsEr("Bloc Matrix, cam already exists : " + aPC->NameImage());
+     }
+     aLocPC = aPC;
+}
+
+void cBlocMatrixSensor::Show()
+{
+    for (size_t aKMat=0 ; aKMat<mMatrix.size() ; aKMat++)
+    {
+        StdOut() <<  "==================== " <<  mMatrix[aKMat].mId << " =====================" << std::endl;
+	for (const auto & aPtrCam : mMatrix[aKMat].mVCams)
+	{
+            if (aPtrCam)
+               StdOut() << "   * " << aPtrCam ->NameImage() << std::endl;
+	    else
+               StdOut() << "   * xxxxxxxxxxxxxxxxxxxxxxxxxxxx"  << std::endl;
+	}
+
+	/*
+	 std::string                 mId;        
+	 std::vector<cSensorCamPC*>  mVCams;     ///< vector of camera sharing same  id
+	 */
+    }
+}
 
 /**  Interface class for computing the identifier of bloc from a given camera.
  *
@@ -107,12 +190,8 @@ class cBlocOfCamera
       public :
            void Add(cSensorCamPC *);
 
-	   typedef std::pair<std::string,std::string> tPairStr;
-	   typedef std::pair<int,int>                 tPairInd;
-
-	   tPairStr  ComputeStrPoseIdSyncId(cSensorCamPC* aCam);
-
-	   void SetFinishAdd();
+	   void Show();
+	   cBlocOfCamera(const std::string & aPattern,size_t aKBloc,size_t aKSync);
       private :
 	   void AssertFinishAdd();
 	   void AssertNotFinishAdd();
@@ -121,12 +200,15 @@ class cBlocOfCamera
 
 	   cBlocCamComputeInd            mCompIndexes;
 
-	   std::vector<cSetSensSameId>   mVBlCamSync;   ///< Vector of bloc of camse
-           t2MapStrInt                   mMapIntSyncId; ///< Bijective map  SyncInd <--> int
+	   cBlocMatrixSensor             mMatSyncBloc;
+	   cBlocMatrixSensor             mMatBlocSync;
 
-	   std::vector<cSetSensSameId>    mVPosSameC;
-           t2MapStrInt                   mMapIntPoseId; ///< Bijective map  PoseInd <--> int
 };
+
+cBlocOfCamera::cBlocOfCamera(const std::string & aPattern,size_t aKBloc,size_t aKSync) :
+    mCompIndexes (aPattern,aKBloc,aKSync)
+{
+}
 
 void cBlocOfCamera::AssertNotFinishAdd()
 {
@@ -135,7 +217,7 @@ void cBlocOfCamera::AssertNotFinishAdd()
 
 void cBlocOfCamera::Add(cSensorCamPC * aCam)
 {
-     AssertNotFinishAdd();
+     //AssertNotFinishAdd();
 
      if (! mCompIndexes.CanProcess(aCam))
      {
@@ -144,8 +226,18 @@ void cBlocOfCamera::Add(cSensorCamPC * aCam)
 
      std::string aIdInBoc = mCompIndexes.CalculIdBloc(aCam);
      std::string aIdSync  = mCompIndexes.CalculIdSync(aCam);
+
+     size_t  aKSync = mMatSyncBloc.NumNew(aIdSync);
+     size_t  aKBloc = mMatBlocSync.NumNew(aIdInBoc);
+
+     mMatSyncBloc.AddNew(aCam,aKSync,aKBloc);
+     mMatBlocSync.AddNew(aCam,aKBloc,aKSync);
 }
 
+void cBlocOfCamera::Show()
+{
+     mMatSyncBloc.Show();
+}
 
 
 
@@ -443,6 +535,20 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 int cAppli_BlockCamInit::Exe()
 {
     mPhProj.FinishInit();
+
+    {
+       cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y());
+       for (const auto & anIm : VectMainSet(0))
+       {
+	   cSensorCamPC * aCam = mPhProj.ReadCamPC(anIm,true);
+	   aBloc.Add(aCam);
+       }
+
+       aBloc.Show();
+       StdOut() << "HHHHhhhhhhhhhhhhhhhhhhhhh\n"; getchar();
+       return EXIT_SUCCESS;
+    }
+
 
     mPrefixReport = "Ori_" +  mPhProj.DPOrient().DirIn();
 
