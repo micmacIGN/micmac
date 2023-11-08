@@ -307,6 +307,7 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
    ;
 }
 
+
 void cAppliExtractCodeTarget::ShowStats(const std::string & aMes)
 {
    int aNbOk=0;
@@ -460,9 +461,22 @@ void  cAppliExtractCodeTarget::DoExtract(){
 
      tDataIm &  aDIm = APBI_DIm();
      tIm        aIm = APBI_Im();
+     
+     
+    
+    if (!mSpec->WhiteBackGround()){
+		for (int i=0; i<aDIm.Sz().x(); i++){
+			for (int j=0; j<aDIm.Sz().y(); j++){
+				aDIm.SetV(cPt2di(i,j), 255-aDIm.GetV(cPt2di(i,j)));
+			}
+		}
+    }
+    
+     
      mImVisu =   RGBImFromGray(aDIm);
      // mNbPtsIm = aDIm.Sz().x() * aDIm.Sz().y();
 
+	
 
 
      if (!mSaddle) //  Case prefiltring by symetry
@@ -927,6 +941,9 @@ tImTarget cAppliExtractCodeTarget::generateRectifiedImage(cDCT* aDCT, const cDat
                 continue;
             }
             aDImT.SetV(cPt2di(i,j), aDIm.GetVBL(p));
+            if (!mSpec->WhiteBackGround()){
+				aDImT.SetV(cPt2di(i,j), 255-aDImT.GetV(cPt2di(i,j)));
+			}
             if ((i == 0) || (j == 0) || (i == Ni-1) || (j == Nj-1)){
                 aDCT->mDetectedFrame.push_back(cPt2di(p.x(), p.y()));
             }
@@ -1134,12 +1151,15 @@ void cAppliExtractCodeTarget::printMatrix(MatrixXd M){
 // Outputs: a set of boundary points (cPt2dr)
 // ---------------------------------------------------------------------------
 std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdge(const cDataIm2D<float>& aDIm, cDCT* aDCT){
+    
+ 
     std::vector<cPt2dr> POINTS;
     double threshold = (aDCT->mVBlack + aDCT->mVWhite)/2.0;
     cPt2di center = aDCT->Pix();
     double x, y, vx, vy, z_prec, z_curr, w1, w2;
     double vx1 = aDCT->mDirC1.x(); double vy1 = aDCT->mDirC1.y();
     double vx2 = aDCT->mDirC2.x(); double vy2 = aDCT->mDirC2.y();
+    
     for (double t=mMargin; t<1-mMargin; t+=mStepButterfly){
         vx = t*vx1 + (1-t)*vx2;
         vy = t*vy1 + (1-t)*vy2;
@@ -1153,8 +1173,9 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdge(const cDataIm2
                 pf_curr = cPt2dr(x, y);
                 if ((x < 0) || (y < 0) || (x >= aDIm.Sz().x()-1) || (y >= aDIm.Sz().y()-1)) continue;
                 z_prec = z_curr; z_curr = aDIm.GetVBL(pf_curr);
-               // plotSafeRectangle(mImVisu, cPt2di(pf_curr.x(), pf_curr.y()), 0.0, cRGBImage::White, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
-                if ((z_curr > threshold) && (z_curr-z_prec > mGradButterfly) && (pf_prec.x()*pf_prec.y() > 0)){
+		
+                //plotSafeRectangle(mImVisu, cPt2di(pf_curr.x(), pf_curr.y()), 0.0, cRGBImage::White, aDIm.Sz().x(), aDIm.Sz().y(), 0.0);
+                if ((z_curr > threshold) && (abs(z_curr-z_prec) > mGradButterfly) && (pf_prec.x()*pf_prec.y() > 0)){
                     w1 = +(z_prec-threshold)/(z_prec-z_curr);
                     w2 = -(z_curr-threshold)/(z_prec-z_curr);
                     cPt2dr pf = cPt2dr(w1*pf_curr.x() + w2*pf_prec.x(), w1*pf_curr.y() + w2*pf_prec.y());
@@ -1165,6 +1186,7 @@ std::vector<cPt2dr> cAppliExtractCodeTarget::extractButterflyEdge(const cDataIm2
             }
         }
     }
+      
     //plotDebugImage(aDCT, aDIm);
     return POINTS;
 }
@@ -1623,14 +1645,20 @@ bool cAppliExtractCodeTarget::decodeBit(tDataImT & aDImT, cPt2dr p, double thres
 	
 	bool bit;
 	
+	
 	if (mPCT.mWhiteBackGround){
 		bit = *std::min_element(BITS.begin(), BITS.end()) > threshold;
 	}else{
-		bit = *std::max_element(BITS.begin(), BITS.end()) < threshold;
+		bit = *std::max_element(BITS.begin(), BITS.end()) < 255-threshold;
 	}
+	
 				
 	for (unsigned j=0; j<DOTS.size(); j++){
-		markImage(aDImT, cPt2di((int)(DOTS.at(j).x()), (int)(DOTS.at(j).y())), 5, bit?0:255);
+		if (mPCT.mWhiteBackGround){
+			markImage(aDImT, cPt2di((int)(DOTS.at(j).x()), (int)(DOTS.at(j).y())), 5, bit?0:255);
+		}else{
+			markImage(aDImT, cPt2di((int)(DOTS.at(j).x()), (int)(DOTS.at(j).y())), 5, bit?255:0);	
+		}
 	}
 	return bit;
 }
@@ -1656,6 +1684,8 @@ std::string cAppliExtractCodeTarget::decodeTarget(tDataImT & aDImT, cDCT* aDCT){
 	for (unsigned i=0; i<vec.size(); i++){
 		bits += (decodeBit(aDImT, vec.at(i), threshold) ? 0:1)*pow(2,i);
 	}
+	
+	
 	
 	const cOneEncoding * anEnc  = mSpec->EncodingFromCode(bits);
 
