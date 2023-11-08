@@ -20,7 +20,7 @@ class cBlocMatrixSensor;  // ....
 class cBlocCamComputeInd;    // class for computing index of Bloc/Sync 
 			  
 
-/**  store a set of "cSensorCamPC" sharing the same identifier, can ident of time or ident  of camera, this
+/**  store a set of "cSensorCamPC" sharing the same identifier, can be ident of time or ident  of camera, this
  * class is a an helper for implementation of set aqcuired at same time or of same camera */
 
 class cSetSensSameId
@@ -31,23 +31,42 @@ class cSetSensSameId
          cSetSensSameId(size_t aNbCam,const std::string & anIdSync);
 	 void Resize(size_t);
       private :
-	 /* Identifier common to same cameras like  "Im_T01_CamA.JPG","Im_T01_CamB.JPG"  => "T01"
+	 /* Identifier common to same sensors like  "Im_T01_CamA.JPG","Im_T01_CamB.JPG"  => "T01"
 	  *                                   or    "Im_T01_CamA.JPG","Im_T02_CamA.JPG"  => "CamA" */
 	 std::string                 mId;        
 	 std::vector<cSensorCamPC*>  mVCams;     ///< vector of camera sharing same  id
 };						 
 
+/** class to represent the "matricial" organization of bloc of sensor for example with a
+ *  bloc of 2 camera "A" and "B" acquired at 5 different times, we can  will organize
+ *
+ *        A1  A2 A3 A4 A5
+ *        B1  B2 B3 B4 B5
+ *
+ *  The class is organize to alloxw a dynamic creation, we permanently maintain the matrix structure
+ *
+ * */
 class cBlocMatrixSensor
 {
       public :
-           size_t NumNew(const std::string &) ;
+
+           /// return the num of the set associated to a string (possibly new)
+           size_t NumString(const std::string &) ;
+
+	   /// Add a sensor in the matrix at given "Num Of Set" and given "Num inside Set"
 	   void AddNew(cSensorCamPC*,size_t aNumSet,size_t aNumInSet);
+
+	   /// Creator 
 	   cBlocMatrixSensor();
-	   void Show();
+	   /// Show the structure, tuning process
+	   void ShowMatrix() const;
+
+	   /// extract the camera for a given "Num Of Set" and a given "Num inside set"
+           cSensorCamPC* &  GetCam(size_t aNumSet,size_t aNumInSet);
       private :
-	   size_t                        mSizeLine;
-           t2MapStrInt                   mMapInt2Id; ///< Bijective map  SyncInd <--> int
-	   std::vector<cSetSensSameId>   mMatrix;
+	   size_t                        mMaxSzSet;  ///< max number of element in Set
+           t2MapStrInt                   mMapInt2Id; ///< For string/int conversion : Bijective map  SyncInd <--> int
+	   std::vector<cSetSensSameId>   mMatrix;    /// the matrix itself
 };
 
 
@@ -120,41 +139,46 @@ std::string  cBlocCamComputeInd::CalculIdSync(cSensorCamPC * aCam) const
 /* *********************************************************** */
 
 cBlocMatrixSensor::cBlocMatrixSensor() :
-    mSizeLine (0)
+    mMaxSzSet (0)
 {
 }
 
-size_t cBlocMatrixSensor::NumNew(const std::string & anId) 
+size_t cBlocMatrixSensor::NumString(const std::string & anId) 
 {
      int anInd = mMapInt2Id.Obj2I(anId,true);  // Get index, true because OK non exist
      if (anInd<0)
      {
          anInd = mMatrix.size();
 	 mMapInt2Id.Add(anId);
-	 mMatrix.push_back(cSetSensSameId(mSizeLine,anId));
+	 mMatrix.push_back(cSetSensSameId(mMaxSzSet,anId));
      }
      return anInd;
 }
 
+cSensorCamPC* &  cBlocMatrixSensor::GetCam(size_t aNumSet,size_t aNumInSet)
+{
+     return  mMatrix.at(aNumSet).mVCams.at(aNumInSet);
+}
+
 void cBlocMatrixSensor::AddNew(cSensorCamPC* aPC,size_t aNumSet,size_t aNumInSet)
 {
-     if (aNumInSet >= mSizeLine)
+     if (aNumInSet >= mMaxSzSet)
      {
-         mSizeLine = aNumInSet+1;
+         mMaxSzSet = aNumInSet+1;
 	 for (auto  & aSet : mMatrix)
-             aSet.Resize(mSizeLine);
+             aSet.Resize(mMaxSzSet);
      }
 
-     cSensorCamPC* & aLocPC = mMatrix.at(aNumSet).mVCams.at(aNumInSet);
+     cSensorCamPC* & aLocPC = GetCam(aNumSet,aNumInSet); //  mMatrix.at(aNumSet).mVCams.at(aNumInSet);
 
      if (aLocPC!=nullptr)
      {
-         MMVII_UnclasseUsEr("Bloc Matrix, cam already exists : " + aPC->NameImage());
+         MMVII_UnclasseUsEr("Bloc Matrix, cam already exists, detected at  image : " + aPC->NameImage());
      }
      aLocPC = aPC;
 }
 
-void cBlocMatrixSensor::Show()
+void cBlocMatrixSensor::ShowMatrix() const
 {
     for (size_t aKMat=0 ; aKMat<mMatrix.size() ; aKMat++)
     {
@@ -167,10 +191,6 @@ void cBlocMatrixSensor::Show()
                StdOut() << "   * xxxxxxxxxxxxxxxxxxxxxxxxxxxx"  << std::endl;
 	}
 
-	/*
-	 std::string                 mId;        
-	 std::vector<cSensorCamPC*>  mVCams;     ///< vector of camera sharing same  id
-	 */
     }
 }
 
@@ -192,6 +212,12 @@ class cBlocOfCamera
 
 	   void Show();
 	   cBlocOfCamera(const std::string & aPattern,size_t aKBloc,size_t aKSync);
+
+	   const cBlocMatrixSensor & MatSyncBloc() const ; ///< Acessor
+	   const cBlocMatrixSensor & MatBlocSync() const ; ///< Acessor
+
+
+           tPoseR  EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli);
       private :
 	   void AssertFinishAdd();
 	   void AssertNotFinishAdd();
@@ -227,18 +253,22 @@ void cBlocOfCamera::Add(cSensorCamPC * aCam)
      std::string aIdInBoc = mCompIndexes.CalculIdBloc(aCam);
      std::string aIdSync  = mCompIndexes.CalculIdSync(aCam);
 
-     size_t  aKSync = mMatSyncBloc.NumNew(aIdSync);
-     size_t  aKBloc = mMatBlocSync.NumNew(aIdInBoc);
+     size_t  aKSync = mMatSyncBloc.NumString(aIdSync);
+     size_t  aKBloc = mMatBlocSync.NumString(aIdInBoc);
 
      mMatSyncBloc.AddNew(aCam,aKSync,aKBloc);
      mMatBlocSync.AddNew(aCam,aKBloc,aKSync);
 }
 
-void cBlocOfCamera::Show()
-{
-     mMatSyncBloc.Show();
-}
+const cBlocMatrixSensor & cBlocOfCamera::MatSyncBloc()  const {return mMatSyncBloc;}
+const cBlocMatrixSensor & cBlocOfCamera::MatBlocSync()  const {return mMatBlocSync;}
 
+//=======================================================================================
+//=======================================================================================
+//=======================================================================================
+//=======================================================================================
+//=======================================================================================
+//=======================================================================================
 
 
 class cBlocCam
@@ -497,6 +527,9 @@ class cAppli_BlockCamInit : public cMMVII_Appli
         cPhotogrammetricProject  mPhProj;
 	std::string              mPattern;
 	cPt2di                   mNumSub;
+
+	bool                     mShowByBloc;
+	bool                     mShowByCam;
 	std::string              mPrefixReport;
 };
 
@@ -506,7 +539,9 @@ cAppli_BlockCamInit::cAppli_BlockCamInit
      const cSpecMMVII_Appli & aSpec
 ) :
      cMMVII_Appli  (aVArgs,aSpec),
-     mPhProj       (*this)
+     mPhProj       (*this),
+     mShowByBloc   (false),
+     mShowByCam    (false)
 {
 }
 
@@ -522,13 +557,13 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
            ;
 }
 
+
 cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
     return    anArgOpt
-	    /*
-	     << AOpt2007(mGeomFiedlVec,"GFV","Geom Fiel Vect for visu [Mul,Witdh,Ray,Zoom?=2]",{{eTA2007::ISizeV,"[3,4]"}})
-	     */
+	     << AOpt2007(mShowByBloc,"ShowByBloc","Show structure, grouping pose of same bloc",{{eTA2007::HDV}})
+	     << AOpt2007(mShowByCam,"ShowByCam","Show structure, grouping pose of same camera",{{eTA2007::HDV}})
     ;
 }
 
@@ -544,8 +579,10 @@ int cAppli_BlockCamInit::Exe()
 	   aBloc.Add(aCam);
        }
 
-       aBloc.Show();
-       StdOut() << "HHHHhhhhhhhhhhhhhhhhhhhhh\n"; getchar();
+       if (mShowByBloc) 
+           aBloc.MatSyncBloc().ShowMatrix();
+       if (mShowByCam) 
+           aBloc.MatBlocSync().ShowMatrix();
        return EXIT_SUCCESS;
     }
 
