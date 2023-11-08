@@ -30,7 +30,7 @@ void pyb_init_MatEssential(py::module_ &m) {
 		.def(py::init<>(),DOC(MMVII_cSetHomogCpleIm,cSetHomogCpleIm))
 		.def(py::init<py::ssize_t >(),DOC(MMVII_cSetHomogCpleIm,cSetHomogCpleIm))
 		.def("Add", &cSetHomogCpleIm::Add,DOC(MMVII_cSetHomogCpleIm,Add))
-		//.def_static("fromFile", &cSetHomogCpleIm::FromFile,DOC(MMVII_cSetHomogCpleIm,FromFile)) not defined in c++
+		.def_static("fromFile", &cSetHomogCpleIm::FromFile,DOC(MMVII_cSetHomogCpleIm,FromFile))
 
 		.def("__repr__",
                  [](const cSetHomogCpleIm &m) {
