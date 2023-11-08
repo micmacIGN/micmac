@@ -90,9 +90,16 @@ void cSetHomogCpleIm::ToFile(const std::string & aName) const
 void  cSetHomogCpleIm::InitFromFile(const std::string & aName) 
 {
 	Clear();
-	ReadFromFile(*this,aName);
+	ReadFromFile(mSetH,aName);
 }
 
+cSetHomogCpleIm cSetHomogCpleIm::FromFile(const std::string & aName)
+{
+    cSetHomogCpleIm aRes;
+    aRes.InitFromFile(aName);
+
+    return aRes;
+}
 
 
 /* ********************************************* */

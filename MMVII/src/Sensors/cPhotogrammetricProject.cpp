@@ -509,7 +509,6 @@ cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const s
     std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + TaggedNameDefSerial();
     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib);
 
-// StdOut() <<  "aNameCalibaNameCalibaNameCalib "  << aNameCalib << " " << aCalib->Name() << "\n";  getchar();
     return aCalib;
 }
 

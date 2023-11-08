@@ -411,9 +411,6 @@ std::string  cMetaDataImage::InternalCalibGeomIdent() const
     }
     aRes = aRes + "_Foc"+ToStr(FocalMM());
 
-    // StdOut()  << "InternalCalibGeomIdentInternalCalibGeomIdent " << aRes << "\n";
-
-
     return aRes;
 }
 

@@ -157,6 +157,8 @@ int cAppli_ImportOri::Exe()
 	 cPt3dr aWPK = aVWKP.at(aK) / aAngDiv ;
 
 	 cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromStdName(aNameIm);
+
+	 StdOut() << "aCalibaCalibaCalib " << aCalib->Name()  << " " << aNameIm << "\n";
 	 
 	 cRotation3D<tREAL8>  aRot =  cRotation3D<tREAL8>::RotFromWPK(aWPK);
 	 aRot = aRot * aRotAfter;

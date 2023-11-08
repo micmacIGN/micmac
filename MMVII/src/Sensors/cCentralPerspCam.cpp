@@ -237,10 +237,21 @@ void  cPerspCamIntrCalib::ToFileIfFirstime(const std::string & aNameFile ) const
 
 cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName,bool Remanent)
 {
+    cPerspCamIntrCalib * aCalib = nullptr;
     if (Remanent) 
-       return RemanentObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+       aCalib = RemanentObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
     else
-       return ObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+       aCalib =  ObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+
+    std::string aNameWithFile = Prefix( FileOfPath(aName)) ;
+    if (aNameWithFile != aCalib->Name())
+    {
+        StdOut() << "File:" << aNameWithFile << " Tag:" << aCalib->Name() << "\n";
+        StdOut() << "Fullname:" << aName << "\n";
+	MMVII_UnclasseUsEr("Name of calib differs between file and tags");
+    }
+
+    return aCalib;
 }
 
 std::string cPerspCamIntrCalib::PrefixName() {return "Calib-" + cSensorCamPC::PrefixName() + "-";}
