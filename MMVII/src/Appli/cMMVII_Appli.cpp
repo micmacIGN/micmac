@@ -891,6 +891,7 @@ void cMMVII_Appli::InitProfile()
   ReadFromFile(mParamProfile,mDirProfileUsage+NameFileUseOfProfile);
   mVectNameDefSerial = E2Str(mParamProfile.mVectDefSerial);
   mTaggedNameDefSerial = E2Str(mParamProfile.mTaggedDefSerial);
+
 }
 
 const  std::string & cMMVII_Appli::UserName() {return mParamProfile.mUserName;}

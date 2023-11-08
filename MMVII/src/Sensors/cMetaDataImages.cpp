@@ -389,6 +389,7 @@ cMetaDataImage::cMetaDataImage(const std::string & aDir,const std::string & aNam
     aGlobCalc->SetName(mCameraName,aNameIm,eMTDIm::eModelCam);
     aGlobCalc->SetName(mAdditionalName,aNameIm,eMTDIm::eAdditionalName);
 
+    /// StdOut()  <<  "cMetaDataImagecMetaDataImage " << mNameImage << " " << mAdditionalName << "\n" ; 
 }
 
 cMetaDataImage::cMetaDataImage() :
@@ -409,7 +410,6 @@ std::string  cMetaDataImage::InternalCalibGeomIdent() const
         aRes = aRes + "_Add"+ mAdditionalName;  // replace " " by "_" , refuse special characters
     }
     aRes = aRes + "_Foc"+ToStr(FocalMM());
-
 
     return aRes;
 }

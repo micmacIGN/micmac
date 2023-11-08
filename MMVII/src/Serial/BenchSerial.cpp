@@ -346,7 +346,7 @@ tREAL8 CmpCalib(cPerspCamIntrCalib * aCam1,cPerspCamIntrCalib * aCam2)
 
 void BenchSerial_PerspCamIntrCalib(cPerspCamIntrCalib * aCam1,const std::string & aDirOut,eTypeSerial aTypeS)
 {
-	std::string aNameCal = aDirOut + "Calib." + E2Str(aTypeS);
+	std::string aNameCal = aDirOut + "BenchCam." + E2Str(aTypeS);
 	aCam1->ToFile(aNameCal);
 	
 	cPerspCamIntrCalib * aCam2 = cPerspCamIntrCalib::FromFile(aNameCal,false);

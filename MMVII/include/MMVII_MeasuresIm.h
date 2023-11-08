@@ -102,6 +102,7 @@ class cSetMesPtOf1Im : public cMemCheck
 	  std::string StdNameFile() const;
 
 	  const std::string & NameIm() const;  ///<  Accessor
+	  void SetNameIm(const std::string &);
           const std::vector<cMesIm1Pt> &  Measures() const;
           std::vector<cMesIm1Pt> &  Measures() ;
 	  static  const std::string ThePrefixFiles;

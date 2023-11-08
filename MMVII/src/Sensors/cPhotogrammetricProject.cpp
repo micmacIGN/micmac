@@ -490,6 +490,7 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std:
 std::string  cPhotogrammetricProject::StdNameCalibOfImage(const std::string aNameIm) const
 {
      cMetaDataImage aMTD = GetMetaData(mFolderProject+FileOfPath(aNameIm,false));
+// StdOut() << "StdNameCalibOfImageStdNameCalibOfImage " <<  aMTD.InternalCalibGeomIdent()  << "\n";
      return aMTD.InternalCalibGeomIdent();
 }
 
@@ -507,6 +508,7 @@ cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const s
 {
     std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + TaggedNameDefSerial();
     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib);
+
     return aCalib;
 }
 
@@ -565,19 +567,28 @@ std::string cPhotogrammetricProject::GCPPattern(const std::string & aArgPatFiltr
     return (aArgPatFiltr=="") ? (cSetMesGCP::ThePrefixFiles + ".*." +TaggedNameDefSerial())  : aArgPatFiltr;
 }
 
-void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr) const
+std::vector<std::string>  cPhotogrammetricProject::ListFileGCP(const std::string & aArgPatFiltr) const
 {
    std::string aPatFiltr = GCPPattern(aArgPatFiltr);
-
    std::string aDir = mDPPointsMeasures.FullDirIn();
-   std::vector<std::string> aListFileGCP =  GetFilesFromDir(aDir,AllocRegex(aPatFiltr));
-   MMVII_INTERNAL_ASSERT_User(!aListFileGCP.empty(),eTyUEr::eUnClassedError,"No file found in LoadGCP");
+   std::vector<std::string> aRes;
 
-// StdOut()<< "aListFileGCPaListFileGCP " << aListFileGCP.size() << std::endl;
+   GetFilesFromDir(aRes,aDir,AllocRegex(aPatFiltr));
+
+   for (auto & aName : aRes)
+      aName = aDir + aName;
+
+   return aRes;
+}
+
+void cPhotogrammetricProject::LoadGCP(cSetMesImGCP& aSetMes,const std::string & aArgPatFiltr) const
+{
+   std::vector<std::string> aListFileGCP = ListFileGCP(aArgPatFiltr);
+   MMVII_INTERNAL_ASSERT_User(!aListFileGCP.empty(),eTyUEr::eUnClassedError,"No file found in LoadGCP");
 
    for (const auto  & aNameFile : aListFileGCP)
    {
-       cSetMesGCP aMesGGP = cSetMesGCP::FromFile(aDir+aNameFile);
+       cSetMesGCP aMesGGP = cSetMesGCP::FromFile(aNameFile);
        aSetMes.AddMes3D(aMesGGP);
    }
 }

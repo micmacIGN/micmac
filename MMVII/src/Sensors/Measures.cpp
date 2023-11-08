@@ -90,9 +90,16 @@ void cSetHomogCpleIm::ToFile(const std::string & aName) const
 void  cSetHomogCpleIm::InitFromFile(const std::string & aName) 
 {
 	Clear();
-	ReadFromFile(*this,aName);
+	ReadFromFile(mSetH,aName);
 }
 
+cSetHomogCpleIm cSetHomogCpleIm::FromFile(const std::string & aName)
+{
+    cSetHomogCpleIm aRes;
+    aRes.InitFromFile(aName);
+
+    return aRes;
+}
 
 
 /* ********************************************* */
@@ -374,6 +381,11 @@ cSetMesPtOf1Im  cSetMesPtOf1Im::FromFile(const std::string & aNameFile)
 const std::string &              cSetMesPtOf1Im::NameIm()   const {return mNameIm;}
 const std::vector<cMesIm1Pt> &   cSetMesPtOf1Im::Measures() const {return mMeasures;}
 std::vector<cMesIm1Pt> &   cSetMesPtOf1Im::Measures() {return mMeasures;}
+
+void cSetMesPtOf1Im::SetNameIm(const std::string & aNameIm)
+{
+    mNameIm = aNameIm;
+}
 
 void cSetMesPtOf1Im::AddMeasure(const cMesIm1Pt & aMeasure)
 {
