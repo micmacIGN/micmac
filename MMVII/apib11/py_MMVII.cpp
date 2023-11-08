@@ -104,5 +104,6 @@ PYBIND11_MODULE(_MMVII, m) {
     pyb_init_Memory(m);
     pyb_init_Aime(m);
     pyb_init_MeasuresIm(m);
+    pyb_init_MatEssential(m);
 }
 
