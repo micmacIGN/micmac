@@ -2,6 +2,7 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_PCSens.h"
+#include "MMVII_Tpl_Images.h"
 
 
 /**
@@ -28,8 +29,12 @@ class cSetSensSameId
       public :
          friend class cBlocMatrixSensor;
 
+	 ///  Construct with a number of sensor + the id common to all
          cSetSensSameId(size_t aNbCam,const std::string & anIdSync);
-	 void Resize(size_t);
+	 void Resize(size_t); ///<  Extend size with nullptr
+
+	 const std::vector<cSensorCamPC*>&   VCams() const;  ///< Accessor
+	 const std::string & Id() const;  ///< Accessor
       private :
 	 /* Identifier common to same sensors like  "Im_T01_CamA.JPG","Im_T01_CamB.JPG"  => "T01"
 	  *                                   or    "Im_T01_CamA.JPG","Im_T02_CamA.JPG"  => "CamA" */
@@ -50,6 +55,11 @@ class cBlocMatrixSensor
 {
       public :
 
+	   size_t NbSet() const;
+	   size_t NbInSet() const;
+	   const std::string & NameKthSet(size_t) const;
+	   const std::string & NameKthInSet(size_t) const;
+
            /// return the num of the set associated to a string (possibly new)
            size_t NumString(const std::string &) ;
 
@@ -63,6 +73,8 @@ class cBlocMatrixSensor
 
 	   /// extract the camera for a given "Num Of Set" and a given "Num inside set"
            cSensorCamPC* &  GetCam(size_t aNumSet,size_t aNumInSet);
+
+	   const cSetSensSameId &  KthSet(size_t aKth) const;
       private :
 	   size_t                        mMaxSzSet;  ///< max number of element in Set
            t2MapStrInt                   mMapInt2Id; ///< For string/int conversion : Bijective map  SyncInd <--> int
@@ -106,31 +118,9 @@ void cSetSensSameId::Resize(size_t aSize)
 	mVCams.resize(aSize);
 }
 
-/* ************************************************** */
-/*              cBlocCamComputeInd                    */
-/* ************************************************** */
+const std::vector<cSensorCamPC*>&   cSetSensSameId::VCams() const {return mVCams;}
 
-cBlocCamComputeInd::cBlocCamComputeInd(const std::string & aPattern,size_t aKBloc,size_t aKSync) :
-     mPattern (aPattern),
-     mKBloc   (aKBloc),
-     mKSync   (aKSync)
-{
-}
-
-bool  cBlocCamComputeInd::CanProcess(cSensorCamPC * aCam) const
-{
-    return MatchRegex(aCam->NameImage(),mPattern);
-}
-
-std::string  cBlocCamComputeInd::CalculIdBloc(cSensorCamPC * aCam) const
-{
-     return PatternKthSubExpr(mPattern,mKBloc,aCam->NameImage());
-}
-
-std::string  cBlocCamComputeInd::CalculIdSync(cSensorCamPC * aCam) const
-{
-     return PatternKthSubExpr(mPattern,mKSync,aCam->NameImage());
-}
+const std::string & cSetSensSameId::Id() const {return mId;}
 
 /* *********************************************************** */
 /*                                                             */
@@ -194,6 +184,43 @@ void cBlocMatrixSensor::ShowMatrix() const
     }
 }
 
+const cSetSensSameId &  cBlocMatrixSensor::KthSet(size_t aKth) const
+{
+	return mMatrix.at(aKth);
+}
+
+size_t cBlocMatrixSensor::NbSet()   const {return mMaxSzSet;}
+size_t cBlocMatrixSensor::NbInSet() const {return mMatrix.size();}
+
+const std::string & cBlocMatrixSensor::NameKthSet(  size_t aKTh) const { return *mMapInt2Id.I2Obj(aKTh); }
+const std::string & cBlocMatrixSensor::NameKthInSet(size_t aKTh) const { return mMatrix.at(aKTh).Id(); }
+
+/* ************************************************** */
+/*              cBlocCamComputeInd                    */
+/* ************************************************** */
+
+cBlocCamComputeInd::cBlocCamComputeInd(const std::string & aPattern,size_t aKBloc,size_t aKSync) :
+     mPattern (aPattern),
+     mKBloc   (aKBloc),
+     mKSync   (aKSync)
+{
+}
+
+bool  cBlocCamComputeInd::CanProcess(cSensorCamPC * aCam) const
+{
+    return MatchRegex(aCam->NameImage(),mPattern);
+}
+
+std::string  cBlocCamComputeInd::CalculIdBloc(cSensorCamPC * aCam) const
+{
+     return PatternKthSubExpr(mPattern,mKBloc,aCam->NameImage());
+}
+
+std::string  cBlocCamComputeInd::CalculIdSync(cSensorCamPC * aCam) const
+{
+     return PatternKthSubExpr(mPattern,mKSync,aCam->NameImage());
+}
+
 /**  Interface class for computing the identifier of bloc from a given camera.
  *
  *  Use is done in three step :
@@ -213,17 +240,19 @@ class cBlocOfCamera
 	   void Show();
 	   cBlocOfCamera(const std::string & aPattern,size_t aKBloc,size_t aKSync);
 
+	   size_t  NbInBloc() const;
+	   size_t  NbSync() const;
+
+	   const std::string & NameKthInBloc(size_t) const;
+	   const std::string & NameKthSync(size_t) const;
+
 	   const cBlocMatrixSensor & MatSyncBloc() const ; ///< Acessor
 	   const cBlocMatrixSensor & MatBlocSync() const ; ///< Acessor
 
+	   cSensorCamPC *  CamKInBlKSync(size_t aKInBloc,size_t aKSync) const;
 
-           tPoseR  EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli);
+           tPoseR  EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli,const std::string & aReportGlob);
       private :
-	   void AssertFinishAdd();
-	   void AssertNotFinishAdd();
-
-	   bool                          mFinishAdd;
-
 	   cBlocCamComputeInd            mCompIndexes;
 
 	   cBlocMatrixSensor             mMatSyncBloc;
@@ -231,19 +260,40 @@ class cBlocOfCamera
 
 };
 
+
 cBlocOfCamera::cBlocOfCamera(const std::string & aPattern,size_t aKBloc,size_t aKSync) :
     mCompIndexes (aPattern,aKBloc,aKSync)
 {
 }
 
-void cBlocOfCamera::AssertNotFinishAdd()
+const cBlocMatrixSensor & cBlocOfCamera::MatSyncBloc()  const {return mMatSyncBloc;}
+const cBlocMatrixSensor & cBlocOfCamera::MatBlocSync()  const {return mMatBlocSync;}
+
+size_t  cBlocOfCamera::NbInBloc() const  {return mMatSyncBloc.NbSet();}
+size_t  cBlocOfCamera::NbSync() const  {return mMatSyncBloc.NbInSet();}
+
+const std::string & cBlocOfCamera::NameKthInBloc(size_t aKBloc) const {return mMatSyncBloc.NameKthSet(aKBloc);}
+const std::string & cBlocOfCamera::NameKthSync(size_t aKSync) const {return mMatSyncBloc.NameKthInSet(aKSync);}
+
+
+/*
+cSensorCamPC *   cBlocOfCamera::CamKInBlKSync(size_t aKInBloc,size_t aKSync) const
 {
-     MMVII_INTERNAL_ASSERT_tiny(!mFinishAdd,"cBlocCam::AssertNotFinish");
 }
+cSensorCamPC *  CamKInBlKSync(size_t aKBloc,size_t aKSync)
+{
+}
+*/
+/*
+const std::string & cBlocOfCamera::NameKthBloc(size_t) const 
+{
+}
+*/
+//const std::string & NameKthSync(size_t) const;
+
 
 void cBlocOfCamera::Add(cSensorCamPC * aCam)
 {
-     //AssertNotFinishAdd();
 
      if (! mCompIndexes.CanProcess(aCam))
      {
@@ -260,8 +310,79 @@ void cBlocOfCamera::Add(cSensorCamPC * aCam)
      mMatBlocSync.AddNew(aCam,aKBloc,aKSync);
 }
 
-const cBlocMatrixSensor & cBlocOfCamera::MatSyncBloc()  const {return mMatSyncBloc;}
-const cBlocMatrixSensor & cBlocOfCamera::MatBlocSync()  const {return mMatBlocSync;}
+
+
+tPoseR  cBlocOfCamera::EstimateInit(size_t aKB1,size_t aKB2,cMMVII_Appli & anAppli,const std::string & anIdReportGlob)
+{
+
+    std::string  anIdReport =  "Detail_" +  NameKthInBloc(aKB1)  + "_" +   NameKthInBloc(aKB2) ;
+
+    anAppli.InitReport(anIdReport,"csv",false);
+    anAppli.AddOneReportCSV(anIdReport,{"SyncId","x","y","z","w","p","k"});
+
+    cPt3dr aSomTr;  //  average off translation
+
+     const std::vector<cSensorCamPC*> &  aVC1 = mMatBlocSync.KthSet(aKB1).VCams();
+     const std::vector<cSensorCamPC*> &  aVC2 = mMatBlocSync.KthSet(aKB2).VCams();
+     size_t aNbC = aVC1.size();
+
+     cPt3dr aAvgTr = cPt3dr::PCste(0.0);
+     cDenseMatrix<tREAL8> aAvgMat(3,3,eModeInitImage::eMIA_Null);
+     int aNbOk = 0;
+
+     for (size_t aKC=0 ; aKC<aNbC ; aKC++)
+     {
+         if (aVC1[aKC] && aVC2[aKC])
+         {
+            tPoseR  aP2To1 =  aVC1[aKC]->RelativePose(*(aVC2[aKC]));
+	    cPt3dr aTr = aP2To1.Tr();
+            cRotation3D<tREAL8>  aRot = aP2To1.Rot();
+
+            aAvgTr += aTr;
+	    aAvgMat = aAvgMat + aRot.Mat();
+            aNbOk++;
+
+            cPt3dr aWPK = aRot.ToWPK();
+
+	    std::vector<std::string>  aVReport{
+                                              NameKthSync(aKC),
+                                              ToStr(aTr.x()),ToStr(aTr.y()),ToStr(aTr.z()),
+		                              ToStr(aWPK.x()),ToStr(aWPK.y()),ToStr(aWPK.z())
+	                                   };
+             anAppli.AddOneReportCSV(anIdReport,aVReport);
+	 }
+     }
+
+     aAvgTr =  aAvgTr / tREAL8(aNbOk);
+     aAvgMat = aAvgMat * (1.0/tREAL8(aNbOk));
+     cRotation3D<tREAL8>  aAvgRot(aAvgMat,true);
+
+     tREAL8 aSigmTr=0;
+     tREAL8 aSigmRot=0;
+
+     for (size_t aKC=0 ; aKC<aNbC ; aKC++)
+     {
+         if (aVC1[aKC] && aVC2[aKC])
+         {
+	     tPoseR  aP2To1 =  aVC1[aKC]->RelativePose(*(aVC2[aKC]));
+	     aSigmTr +=  SqN2(aAvgTr-aP2To1.Tr());
+
+	     aSigmRot += aAvgRot.Mat().SqL2Dist(aP2To1.Rot().Mat());
+	 }
+     }
+
+     aSigmTr  = std::sqrt( aSigmTr/tREAL8(aNbOk-1));
+     aSigmRot = std::sqrt(aSigmRot/tREAL8(aNbOk-1));
+
+     StdOut() << " STr=" << aSigmTr << " SRot=" << aSigmRot << "\n";
+
+     /*
+     if (anIdReportGlob!="")
+        anAppli.AddOneReportCSV(anIdReportGlob,{mMatBlocSync.KthSet(aKB1).Id(),mMatBlocSync.KthSet(aKB2).Id(),
+	*/
+     
+     return tPoseR(aAvgTr,aAvgRot);
+}
 
 //=======================================================================================
 //=======================================================================================
@@ -583,6 +704,8 @@ int cAppli_BlockCamInit::Exe()
            aBloc.MatSyncBloc().ShowMatrix();
        if (mShowByCam) 
            aBloc.MatBlocSync().ShowMatrix();
+
+       aBloc.EstimateInit(0,1,*this,"");
        return EXIT_SUCCESS;
     }
 

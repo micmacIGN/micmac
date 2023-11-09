@@ -366,6 +366,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         // All distance-norm are  normalized/averaged , so that const image has a norm equal to the constante
         double L1Dist(const cDataTypedIm<Type,Dim> & aV) const;  ///< Distance som abs
         double L2Dist(const cDataTypedIm<Type,Dim> & aV) const;  ///< Dist som square
+        double SqL2Dist(const cDataTypedIm<Type,Dim> & aV) const;  ///< Square L2Dist
         double LInfDist(const cDataTypedIm<Type,Dim> & aV) const; ///< Dist max
         double L1Norm() const;   ///< Norm som abs
         double L2Norm() const;   ///< Norm square

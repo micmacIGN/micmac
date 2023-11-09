@@ -96,6 +96,13 @@ template <class Type> Type  cDenseMatrix<Type>::L2Dist(const cDenseMatrix<Type> 
    return DIm().L2Dist(aV.DIm());
 }
 
+
+template <class Type> Type  cDenseMatrix<Type>::SqL2Dist(const cDenseMatrix<Type> & aV) const
+{
+   return DIm().SqL2Dist(aV.DIm());
+}
+
+
 template <class Type> void cDenseMatrix<Type>::PushByLine(std::vector<Type> & aRes) const
 {
     for (const auto & aPix : DIm())

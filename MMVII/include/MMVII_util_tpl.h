@@ -429,6 +429,7 @@ template <class Type>  class cBijectiveMapI2O
         int Add(const Type & ,bool OkExist=false,const std::string& aMsgError="");
 
         Type *   I2Obj(const int,bool SVP=true) ;  ///< Adr of object at index, 0 if none
+        const Type *   I2Obj(const int,bool SVP=true) const ;  ///< Adr of object at index, 0 if none
         int      Obj2I(const Type & anOb,bool SVP=false) const;  ///< Index of object , -1 if none
 
       	/// Call Obj2I with a human readable message in case
