@@ -24,5 +24,6 @@ void pyb_init_Memory(py::module_ &m);
 void pyb_init_Aime(py::module_ &m);
 void pyb_init_MeasuresIm(py::module_ &m);
 void pyb_init_MatEssential(py::module_ &m);
+void pyb_init_SysSurR(py::module_ &m);
 
 #endif // PY_MMVII_H

@@ -59,3 +59,11 @@ The built-in Python help system can be used to have information about the API.
 
 See 'examples' directory for use cases.
 
+
+
+Binding Conventions
+-------------------
+  - Implement python binding in a .cpp files that matches th C++ header.<p> (i.e. a binding for a C++ class that is declared in MMVII_MyClass.h we'll be implemented in py_MMVII_MyClass.cpp)
+  - Class names are the same than in C++ but without the leading 'c'
+  - functions, methods, properties are the same than in C++ but with initial letter in lower case (and 'm' removed from class variables name)
+

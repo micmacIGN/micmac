@@ -9,6 +9,8 @@ using namespace MMVII;
 
 void pyb_init_MatEssential(py::module_ &m) {
 
+    using namespace std::literals;
+    using namespace pybind11::literals;
 
 	py::class_<cHomogCpleIm>(m, "HomogCpleIm", DOC(MMVII_cHomogCpleIm))
                 .def(py::init<>(),DOC(MMVII_cHomogCpleIm,cHomogCpleIm))
@@ -30,7 +32,7 @@ void pyb_init_MatEssential(py::module_ &m) {
 		.def(py::init<>(),DOC(MMVII_cSetHomogCpleIm,cSetHomogCpleIm))
 		.def(py::init<py::ssize_t >(),DOC(MMVII_cSetHomogCpleIm,cSetHomogCpleIm))
 		.def("Add", &cSetHomogCpleIm::Add,DOC(MMVII_cSetHomogCpleIm,Add))
-		.def_static("fromFile", &cSetHomogCpleIm::FromFile,DOC(MMVII_cSetHomogCpleIm,FromFile))
+//		.def_static("fromFile", &cSetHomogCpleIm::FromFile,DOC(MMVII_cSetHomogCpleIm,FromFile))    // Not impl in C++ yet
 
 		.def("__repr__",
                  [](const cSetHomogCpleIm &m) {
@@ -44,7 +46,7 @@ void pyb_init_MatEssential(py::module_ &m) {
 
 
 	py::class_<cSetHomogCpleDir>(m, "SetHomogCpleDir", DOC(MMVII_cSetHomogCpleDir))
-	    .def(py::init<const cSetHomogCpleIm &,const cPerspCamIntrCalib &,const cPerspCamIntrCalib &>(),DOC(MMVII_cSetHomogCpleDir,cSetHomogCpleDir))
+        .def(py::init<const cSetHomogCpleIm &,const cPerspCamIntrCalib &,const cPerspCamIntrCalib &>(),DOC(MMVII_cSetHomogCpleDir,cSetHomogCpleDir))
             .def("VDir1", &cSetHomogCpleDir::VDir1,DOC(MMVII_cSetHomogCpleDir,VDir1))
             .def("VDir2", &cSetHomogCpleDir::VDir2,DOC(MMVII_cSetHomogCpleDir,VDir2))
 
@@ -64,9 +66,16 @@ void pyb_init_MatEssential(py::module_ &m) {
 	           
                  });
 
-//
-//	py::class_<cMatEssential>(m, "MatEssential", DOC(MMVII_cMatEssential))
-//		.def(py::init<const  tMat & >(),DOC(MMVII_cMatEssential,cMatEssential))
 
+    py::class_<cMatEssential>(m, "MatEssential", DOC(MMVII_cMatEssential))
+        .def(py::init<const cSetHomogCpleDir &,cLinearOverCstrSys<tREAL8> &,int>(),"homs"_a,"sys"_a,"kFix"_a,DOC(MMVII_cMatEssential,cMatEssential))
+        .def("cost",&cMatEssential::Cost,"pt3dr1"_a,"pt3dr2"_a,"sigma"_a,DOC(MMVII_cMatEssential,Cost))
+        .def("avgCost",&cMatEssential::AvgCost,"homs"_a,"sigma"_a,DOC(MMVII_cMatEssential,AvgCost))
+        .def("kthCost",&cMatEssential::KthCost,"homs"_a,"prop"_a,DOC(MMVII_cMatEssential,KthCost))
+        .def("show",&cMatEssential::Show,"homs"_a,DOC(MMVII_cMatEssential,Show))
+        .def("computePose",[](const cMatEssential& aMat, const cSetHomogCpleDir & aHoms){return aMat.ComputePose(aHoms);},DOC(MMVII_cMatEssential,ComputePose))     // remove (defaulted) 2nd args of ComputePos
+        ;
+
+    m.def("matEss_GetKMax",&MatEss_GetKMax,py::arg("setD"),py::arg("weightStab"),py::arg("show")=false,DOC(MMVII_MatEss_GetKMax));
 
 }
