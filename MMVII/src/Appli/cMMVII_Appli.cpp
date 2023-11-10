@@ -1091,7 +1091,14 @@ static std::string JsonEscaped(const std::string& s)
         case '\t' : res += "\\t"; break;
         case '"'  : res += "\\\""; break;
         case '\\' : res += "\\\\"; break;
-        default   :  res += c;
+        default   :
+            if (c < ' ') {
+                std::stringstream ss;
+                ss << std::hex << std::setw(4) << std::setfill('0') << static_cast<unsigned>(c);
+                res += "\\u" + ss.str();
+            } else {
+                res += c;
+            }
         }
     }
     return res;
