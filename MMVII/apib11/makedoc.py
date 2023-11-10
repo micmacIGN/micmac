@@ -98,7 +98,7 @@ class DoxygenHandler( xml.sax.ContentHandler ):
 
 
     def compounddef_start(self, attributes):
-        if attributes['kind'] in ('class','namespace'):
+        if attributes['kind'] in ('struct','class','namespace'):
             self.inClass = True
             self.className = ''
 

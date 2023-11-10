@@ -64,8 +64,8 @@ docstrings.h: $(DOC_INCLUDES) Makefile
 	rm -f $@
 	rm -fr xml
 	(cat Doxyfile ; echo "INPUT=$(DOC_INCLUDES)") | doxygen -
-	python3 makedoc.py xml/class*xml xml/namespaceMMVII.xml > $@ || rm -f $@
-	rm -fr xml
+	python3 makedoc.py xml/class*xml xml/struct*xml xml/namespaceMMVII.xml > $@ || rm -f $@
+	#rm -fr xml
 
 $(MODULE): export CC=${CXX} 
 
