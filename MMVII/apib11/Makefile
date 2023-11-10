@@ -6,7 +6,7 @@ MMV2_BINDIR=${MMV2_DIR}/bin
 MMV2_INCDIR=${MMV2_DIR}/include
 export MODULE_NAME = MMVII
 
-DOC_INCLUDES=../include/MMVII_PCSens.h ../include/MMVII_memory.h ../include/MMVII_AimeTieP.h ../include/MMVII_Geom3D.h ../include/MMVII_Mappings.h ../include/MMVII_MeasuresIm.h ../include/MMVII_PoseRel.h ../include/MMVII_SysSurR.h
+DOC_INCLUDES=../include/MMVII_PCSens.h ../include/MMVII_memory.h ../include/MMVII_AimeTieP.h ../include/MMVII_Geom3D.h ../include/MMVII_Mappings.h ../include/MMVII_MeasuresIm.h ../include/MMVII_PoseRel.h ../include/MMVII_SysSurR.h ../include/MMVII_Sensor.h
 
 
 # =========== Includes & Libraries
