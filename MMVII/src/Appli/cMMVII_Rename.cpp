@@ -32,9 +32,9 @@ class cAppli_DicoRename   : public cMMVII_Appli
 	std::vector<std::string> mPatSubst;
 	std::string              mNameDico;
 	std::vector<std::string> mNameFiles;
-        int                      mL0;
-        int                      mLLast;
-        char                     mComment;
+        int                      mL0{};
+        int                      mLLast{};
+        char                     mComment{};
 	std::string              mSeparator;
 
 };
