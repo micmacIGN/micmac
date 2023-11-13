@@ -119,9 +119,9 @@ void pyb_init_MeasuresIm(py::module_ &m) {
 
 
     py::class_<cSet2D3D>(m, "Set2D3D", DOC(MMVII_cSet2D3D))
+	    .def(py::init<>(),DOC(MMVII_cSet2D3D)) 
             .def("nbPair", &cSet2D3D::NbPair,DOC(MMVII_cSet2D3D,NbPair))
             .def("addPair", py::overload_cast<const cPt2dr&,const cPt3dr&,double>(&cSet2D3D::AddPair), DOC(MMVII_cSet2D3D,AddPair))
-	   
             ;
 
 	    
