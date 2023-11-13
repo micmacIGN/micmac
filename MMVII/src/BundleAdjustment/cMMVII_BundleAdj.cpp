@@ -85,6 +85,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mMesGCP           (nullptr),
     mSigmaGCP         (-1),
     mMTP              (nullptr),
+    mBlRig            (nullptr),
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0)
 {
@@ -95,6 +96,7 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mSys;
     delete mMesGCP;
     delete mMTP;
+    delete mBlRig;
     DeleteAllAndClear(mGCP_UK);
 }
 
@@ -169,6 +171,16 @@ void cMMVII_BundleAdj::OneIteration()
 }
 
 //================================================================
+
+
+void cMMVII_BundleAdj::AddBlocRig(const std::vector<double>& aWeight)  // RIGIDBLOC
+{
+    AssertPhpAndPhaseAdd();
+    mBlRig = new cBA_BlocRig(*mPhProj,aWeight);
+    mBlRig->AddToSys(mSetIntervUK);
+
+}
+
 
 void cMMVII_BundleAdj::AddCalib(cPerspCamIntrCalib * aCalib)  
 {

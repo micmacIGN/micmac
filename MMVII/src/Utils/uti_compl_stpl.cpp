@@ -64,7 +64,7 @@ template <class Type>
     {
         if (! SVP)
 	{
-              MMVII_INTERNAL_ASSERT_tiny(SVP,"Obj2I : object dont exist" );
+              MMVII_INTERNAL_ASSERT_tiny(SVP,"Obj2I : object dont exist,  Obj=[" +ToStr(anObj) + "]");
 	}
         return -1;
     }

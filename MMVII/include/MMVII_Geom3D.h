@@ -162,6 +162,8 @@ template <class Type> class cIsometry3D
        typedef cIsometry3D<Type> tTypeMapInv;
        static int NbDOF()   {return 6;}
 
+       /// Default constructor is only provided for serialization, it initialize with dummy stuff
+       cIsometry3D();
 
        cIsometry3D(const tPt& aTr,const cRotation3D<Type> &);
        tTypeMapInv  MapInverse() const; // {return cIsometry3D(-mRot.Inverse(mTr),mRot.MapInverse());}
@@ -198,6 +200,8 @@ template <class Type> class cIsometry3D
        cRotation3D<Type>  mRot;
 };
 typedef cIsometry3D<tREAL8> tPoseR; 
+void AddData(const cAuxAr2007 & anAux,tPoseR & aPose);
+
 
 template <class Type> cRotation3D<tREAL8>  ToReal8(const cRotation3D<Type>  &);
 template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  &);

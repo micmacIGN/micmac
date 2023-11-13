@@ -293,6 +293,7 @@ template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign)
 
 cPt2di  TAB4Corner[4] = {{1,1},{-1,1},{-1,-1},{1,-1}};
 
+/*
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PCste(const Type & aVal)
 {
    cPtxd<Type,Dim> aRes;
@@ -300,6 +301,7 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PCste(cons
        aRes.mCoords[aK]= aVal;
    return aRes;
 }
+*/
 
 
 template <class Type,const int Dim>  cPtxd<Type,Dim>  cPtxd<Type,Dim>::PFromCanonicalName(const std::string & aName,size_t & anIndex)
@@ -1299,7 +1301,6 @@ template  cPtxd<tREAL8,DIM> Centroid(const std::vector<cPtxd<TYPE,DIM> > & aVPts
 template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,TYPE aW1,const cPtxd<TYPE,DIM> & aP1);\
 template  cPtxd<TYPE,DIM> Centroid(TYPE aW0,const cPtxd<TYPE,DIM> & aP0,const cPtxd<TYPE,DIM> & aP1);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
-template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PFromCanonicalName(const std::string & aName,size_t & anIndex);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Dummy();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>&);\
@@ -1326,6 +1327,7 @@ template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtInt(const cPtxd<int,DIM> & aPI
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtR(const cPtxd<tREAL8,DIM> & aPInt);
 
 // template  cPtxd<TYPE,DIM>  PCste(const DIM & aVal);
+// template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);
 
 #define MACRO_INSTATIATE_POINT(DIM)\
 MACRO_INSTATIATE_PTXD(tINT4,DIM)\
@@ -1365,6 +1367,28 @@ template class cDataGenUnTypedIm<DIM>;\
 template <> const cPixBox<DIM> cPixBox<DIM>::TheEmptyBox(cPtxd<int,DIM>::PCste(0),cPtxd<int,DIM>::PCste(0),true);
 
 template void MakeBoxNonEmptyWithMargin(cPtxd<tREAL8,2>&,cPtxd<tREAL8,2>&,tREAL8,tREAL8,tREAL8);
+
+/*
+#include "SymbDer/SymbolicDerivatives.h"
+using namespace NS_SymbolicDerivative;
+template <> class tNumTrait<cFormula <tREAL8> >
+{
+    public :
+        // For these type rounding mean something
+        // static bool IsInt() {return true;}
+        typedef cFormula<tREAL8>  tBase;
+        typedef cFormula<tREAL8>  tBig;
+        typedef cFormula<tREAL8>  tFloatAssoc;
+        static void AssertValueOk(const cFormula<double> & ) {}
+};
+typedef NS_SymbolicDerivative::cFormula<double> tForm;
+template  cPtxd<NS_SymbolicDerivative::cFormula<double>,3> cPtxd<NS_SymbolicDerivative::cFormula<double>,3>::PCste(const NS_SymbolicDerivative::cFormula<double>&);
+
+void FFF()
+{
+	cPtxd<tForm,3>::PCste(*(tForm*)nullptr);
+}
+*/
 
 /*
 void F()

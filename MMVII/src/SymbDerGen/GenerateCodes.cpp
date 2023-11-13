@@ -6,6 +6,7 @@
 #include "Formulas_Geom2D.h"
 #include "Formulas_Radiom.h"
 #include "Formulas_Geom3D.h"
+#include "Formulas_BlockRigid.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Geom2D.h"
 
@@ -294,6 +295,10 @@ cCalculator<double> * EqDist3DParam(bool WithDerive,int aSzBuf)
     return TplEqDist3DParam<double>(WithDerive,aSzBuf);
 }
 
+cCalculator<double> * EqBlocRig(bool WithDerive,int aSzBuf)  // RIGIDBLOC
+{
+    return StdAllocCalc(NameFormula(cFormulaBlocRigid(),WithDerive),aSzBuf);
+}
 
 // topo subframe with dist parameter
 template <class Type> cCalculator<Type> * TplEqTopoSubFrame(bool WithDerive,int aSzBuf)
@@ -642,6 +647,8 @@ int cAppliGenCode::Exe()
 
    for (const auto WithDer : {true,false})
    {
+       GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC
+
        // cDist2DConservation aD2C;
        GenCodesFormula((tREAL8*)nullptr,cDist2DConservation(),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cRatioDist2DConservation(),WithDer);

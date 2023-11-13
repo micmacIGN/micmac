@@ -284,6 +284,7 @@ void cCalculator<T>::PushNewEvals(const std::vector<T> &aVUK, const std::vector<
     }
     if (aVUK.size() != NbUk())  // Check size are coherents
     {
+	    // std::cout << "Sizes " << aVUK.size() << " " << NbUk() << "\n";
         UserSError("Bad size in Unknowns",Name());
     }
     if (aVObs.size() != NbObs())  // Check size are coherents

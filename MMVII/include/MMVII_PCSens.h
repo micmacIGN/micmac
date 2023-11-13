@@ -364,10 +364,51 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
 
 void AddData(const cAuxAr2007 & anAux,cPerspCamIntrCalib &);
 
+/** Class for modelising a pose when it is used as unknwon in non linear system
+ */
+
+class cPoseWithUK :  public cObjWithUnkowns<tREAL8>
+{
+     public :
+         /// Fill with dummy value for case where default constructor is required
+	 cPoseWithUK();
+
+	 void PushObs(std::vector<double> &,bool TransposeMatr);
+
+	 cPoseWithUK(const tPoseR & aPose);
+         void SetPose(const tPoseR & aPose);
+
+	 // different accessor to the pose
+         const tPoseR &   Pose()   const;
+         const cPt3dr &  Center() const;
+         const cPt3dr &  Tr() const;
+         const cPt3dr &  Omega() const;
+         cPt3dr &  Omega() ;
+         cPt3dr &  Center() ;
+         cPt3dr &  Tr() ;
+         cPt3dr  AxeI()   const;
+         cPt3dr  AxeJ()   const;
+         cPt3dr  AxeK()   const;
+         tPoseR &   Pose()   ;
+
+	 /// The interval is specified as the object can be used as helperto to other classes
+         void PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) ;  
+         void OnUpdate() override;                 // "reaction" after linear update
+	 void  GetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
+	 // std::vector<tPtrOUK>  GetAllUK() override;
+
+     private :
+         void PutUknowsInSetInterval() override ;  // add the interval on udpate
+
+         tPoseR     mPose;   ///< transformation Cam to Word
+         cPt3dr     mOmega;  ///< vector for tiny rotation when used in unknown, mW  in code gene ...
+};
+void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK);
+
+
 /**  Class for modelizing the geometry of perspective-central image, contain essentially a pose (Centre+rotation)
  *   and a pointer to a (generally) shared internall calibration
  */
-
 class cSensorCamPC : public cSensorImage
 {
      public :
@@ -418,6 +459,7 @@ class cSensorCamPC : public cSensorImage
          cPt3dr  AxeI()   const;
          cPt3dr  AxeJ()   const;
          cPt3dr  AxeK()   const;
+	 cPoseWithUK & Pose_WU();
 
 	 cPerspCamIntrCalib * InternalCalib();
 
@@ -461,9 +503,12 @@ class cSensorCamPC : public cSensorImage
         void Bench();
         cSensorCamPC(const cSensorCamPC&) = delete;
 
+	cPoseWithUK          mPose_WU;
+	/*
         cIsometry3D<tREAL8>  mPose;   ///< transformation Cam to Word
-        cPerspCamIntrCalib * mInternalCalib;  ///< pointer to internal calibration
         cPt3dr               mOmega;  ///< vector for tiny rotation when used in unknown, mW  in code gene ...
+	*/
+        cPerspCamIntrCalib * mInternalCalib;  ///< pointer to internal calibration
 	std::string          mTmpNameCalib; ///< use as tmp var in addata
 };
 

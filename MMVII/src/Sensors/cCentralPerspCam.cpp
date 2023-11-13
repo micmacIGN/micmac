@@ -243,7 +243,7 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName,bool
     else
        aCalib =  ObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
 
-    std::string aNameWithFile = Prefix( FileOfPath(aName)) ;
+    std::string aNameWithFile = LastPrefix( FileOfPath(aName)) ;
     if (aNameWithFile != aCalib->Name())
     {
         StdOut() << "File:" << aNameWithFile << " Tag:" << aCalib->Name() << "\n";

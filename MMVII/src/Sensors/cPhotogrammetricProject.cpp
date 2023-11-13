@@ -4,6 +4,7 @@
 #include "MMVII_Sys.h"
 #include "MMVII_Radiom.h"
 #include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_BlocRig.h"
 
 
 /**
@@ -17,9 +18,6 @@
 
 namespace MMVII
 {
-
-
-
 
 std::string SuppressDirFromNameFile(const std::string & aDir,const std::string & aName)
 {
@@ -241,6 +239,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPTieP           (eTA2007::TieP,*this),
     mDPMulTieP        (eTA2007::MulTieP,*this),
     mDPMetaData       (eTA2007::MetaData,*this),
+    mDPRigBloc        (eTA2007::RigBlock,*this), //  // RIGIDBLOC
     mGlobCalcMTD      (nullptr)
 {
 }
@@ -276,6 +275,7 @@ void cPhotogrammetricProject::FinishInit()
     mDPTieP.Finish();
     mDPMulTieP.Finish();
     mDPMetaData.Finish();
+    mDPRigBloc.Finish() ; // RIGIDBLOC
 
     // Force the creation of directory for metadata spec, make 
     if (! mDPMetaData.DirOutIsInit())
@@ -312,6 +312,7 @@ cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() {return mDPPointsMea
 cDirsPhProj &   cPhotogrammetricProject::DPMetaData() {return mDPMetaData;}
 cDirsPhProj &   cPhotogrammetricProject::DPTieP() {return mDPTieP;}
 cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() {return mDPMulTieP;}
+cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() {return mDPRigBloc;} // RIGIDBLOC
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPRadiomData() const {return mDPRadiomData;}
@@ -322,6 +323,7 @@ const cDirsPhProj &   cPhotogrammetricProject::DPPointsMeasures() const {return 
 const cDirsPhProj &   cPhotogrammetricProject::DPMetaData() const {return mDPMetaData;}
 const cDirsPhProj &   cPhotogrammetricProject::DPTieP() const {return mDPTieP;}
 const cDirsPhProj &   cPhotogrammetricProject::DPMulTieP() const {return mDPMulTieP;}
+const cDirsPhProj &   cPhotogrammetricProject::DPRigBloc() const {return mDPRigBloc;} // RIGIDBLOC
 
 
 const std::string &   cPhotogrammetricProject::DirPhp() const   {return mDirPhp;}
@@ -689,7 +691,6 @@ std::string cPhotogrammetricProject::NameConfigMTPOut(const std::string &  anExt
 
 
 
-
         //  =============  Homologous point =================
 
 void  cPhotogrammetricProject::SaveHomol
@@ -728,6 +729,28 @@ void  cPhotogrammetricProject::ReadHomol
     ReadFromFile(aSetHCI.SetH(),aName);
 }
 
+        //  =============  Rigid bloc  =================
+
+	                   // RIGIDBLOC
+static std::string PrefixRigidBloc = "RigidBloc_";
+
+void   cPhotogrammetricProject::SaveBlocCamera(const cBlocOfCamera & aBloc) const
+{
+     std::string  aName = mDPRigBloc.FullDirOut()   + PrefixRigidBloc + aBloc.Name() + "." + TaggedNameDefSerial();
+     aBloc.ToFile(aName);
+}
+
+	                   // RIGIDBLOC
+std::list<cBlocOfCamera *> cPhotogrammetricProject::ReadBlocCams() const
+{
+    std::list<cBlocOfCamera *> aRes;
+
+    std::vector<std::string>  aVNames =   GetFilesFromDir(mDPRigBloc.FullDirIn(),AllocRegex(PrefixRigidBloc+".*"));
+    for (const auto & aName : aVNames)
+        aRes.push_back(cBlocOfCamera::FromFile(mDPRigBloc.FullDirIn()+aName));
+
+    return aRes;
+}
 
         //  =============  Meta Data =================
 

@@ -60,6 +60,8 @@ template <class Type,const int Dim> class cPtxd
           return mCoords[aK];
        }
 
+
+
        /// Some function requires default constructor (serialization ?)
        cPtxd() : mCoords{} // fill array with 0
        { }
@@ -71,7 +73,13 @@ template <class Type,const int Dim> class cPtxd
        // static cPtxd<Type,Dim> T_PCste(const Type & aVal) ;
 
        /// Initialisation with constants
-       static cPtxd<Type,Dim>  PCste(const Type & aVal) ;
+       static cPtxd<Type,Dim>  PCste(const Type & aVal) 
+       {
+           cPtxd<Type,Dim> aRes;
+           for (int aK=0 ; aK<Dim; aK++)
+                aRes.mCoords[aK]= aVal;
+           return aRes;
+       }
        /// Initialisation with nan value (to detect error asap)
        static cPtxd<Type,Dim>  Dummy();
        /// Initialisation from name "i..."  "-j..."    valide are "ijkl" 
@@ -213,6 +221,7 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSy
 template <class Type,const int DimOut,const int DimIn> cPtxd<Type,DimOut> CastDim(const cPtxd<Type,DimIn>&);
 
 template <class Type> inline bool IsNull (const cPtxd<Type,2> & aP) { return (aP.x() ==0) && (aP.y()==0);}
+template <class Type> inline bool IsNull (const cPtxd<Type,3> & aP) { return (aP.x() ==0) && (aP.y()==0) && (aP.z()==0);}
 template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP) { return ! IsNull(aP);}
 //template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP) { return  (aP.x() !=0) || (aP.y()!=0);}
 

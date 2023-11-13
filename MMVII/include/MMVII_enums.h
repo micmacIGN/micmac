@@ -42,7 +42,8 @@ enum class eTA2007
                 MetaData,      ///< Meta data images
                 PointsMeasure, ///< Measure of point , 2D or 3D
                 TieP,          ///< Tie Points
-                MulTieP,       ///< Tie Points
+                MulTieP,       ///< Multiple Tie Points
+                RigBlock,      ///< Rigid bloc    // RIGIDBLOC
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")

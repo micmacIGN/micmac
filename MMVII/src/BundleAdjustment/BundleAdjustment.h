@@ -3,6 +3,7 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 
+using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
@@ -46,7 +47,6 @@ class cStdWeighterResidual : public cResidualWeighter<tREAL8>
 
 	 tStdVect WeightOfResidual(const tStdVect &) const override;
 
-
      private :
        // W(R) =  1/Sigma0^2  * (1/(1+ (R/SigmaAtt)^Exp))  ;  W(R) =0 if R>Thrs
          tREAL8   mWGlob;
@@ -55,6 +55,38 @@ class cStdWeighterResidual : public cResidualWeighter<tREAL8>
 	 bool     mWithThr;
 	 tREAL8   mSig2Thrs;
 	 tREAL8   mExpS2;
+};
+
+// RIGIDBLOC
+class cBA_BlocRig
+{
+     public :
+
+        cBA_BlocRig(const cPhotogrammetricProject &,const std::vector<double> & mW);
+	~cBA_BlocRig();
+        void    AddCam(cSensorCamPC * aCam);
+
+        // The system must be aware of all the unknowns
+        void  AddToSys(cSetInterUK_MultipeObj<tREAL8> &);
+
+        // fix the variable that are frozen
+        void SetFrozenVar(cResolSysNonLinear<tREAL8> &)  ;
+
+        //  Do the kernel job : add rigidity constraint to the system
+        void AddRigidityEquation(cResolSysNonLinear<tREAL8> &);
+     private :
+
+        // do the job for one bloc
+        void OneBlAddRigidityEquation(cBlocOfCamera&,cResolSysNonLinear<tREAL8> &);
+        // do the job for one pair of poses
+        void OnePairAddRigidityEquation(size_t aKSync,size_t aKBl1,size_t aKBl2,cBlocOfCamera&,cResolSysNonLinear<tREAL8> &);
+
+        std::list<cBlocOfCamera *>   mBlocs;
+        std::vector<double>          mSigma;
+        std::vector<double>          mWeight;
+        bool                         mAllPair;  // Do we use all pair or only pair with master
+        cCalculator<double> *        mEqBlUK;
+
 };
 
 
@@ -71,6 +103,8 @@ class cMMVII_BundleAdj
           void  AddCalib(cPerspCamIntrCalib *);  /// add  if not exist
           void  AddCamPC(cSensorCamPC *);  /// add, error id already exist
           void  AddCam(const std::string & aNameIm);  /// add from name, require PhP exist
+
+	  void AddBlocRig(const std::vector<double>& aWeight);
 
 
           ///  =======  Add GCP, can be measure or measure & object
@@ -143,16 +177,18 @@ class cMMVII_BundleAdj
           cStdWeighterResidual     mGCPIm_Weighter;
           std::vector<cPt3dr_UK*>  mGCP_UK;
 
-	          // - - - - - - - - MTP  - - - - - - - - - - -
+	         // - - - - - - - - MTP  - - - - - - - - - - -
 	  cComputeMergeMulTieP *   mMTP;
           cStdWeighterResidual     mTieP_Weighter;
+
+                 // - - - - - - -   Bloc Rigid - - - - - - - -
+	  cBA_BlocRig*              mBlRig;  // RIGIDBLOC
 	  
           // ===================  "Viscosity"  ==================
 
 	  tREAL8   mSigmaViscAngles;  ///< "viscosity"  for angles
 	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
 };
-
 
 
 };
