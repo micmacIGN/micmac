@@ -299,7 +299,8 @@ class cMMVII_Ap_CPU
 
    This class contains all the args of the command line (i.e. args[0] = program to execute.
    Each argument must be added seperatly or in a coma separated list.
-   The arguments will be automatically quoted (hopefully correctly ...).
+   Each argument must be written exactly as MMVII expects it and MUST not be quoted/escaped for shell,
+     the quoting will be automatically done.
 
    The full command line can be retrieved by the .Com() method.
 

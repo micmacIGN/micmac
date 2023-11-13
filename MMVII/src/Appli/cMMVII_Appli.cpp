@@ -82,19 +82,59 @@ int cParamCallSys::Execute(bool forceExternal) const
    }
 }
 
+#if (THE_MACRO_MMVII_SYS==MMVII_SYS_L || THE_MACRO_MMVII_SYS==MMVII_SYS_A)
 static std::string QuoteCmdLine(const std::string& aParam)
 {
-   // Union of windows command.com  and unix bash special characters
-   constexpr const char* ToBeEscaped="  ~`#$&*()|[]{};'<>?!,;=%";
+    constexpr const char* SingleQuoting="!$`\\";
+    constexpr const char* DoubleQuoting=" \t~#*?()[]{}<>;&|\"";
 
     if (aParam.size() == 0)
-       return "\"\"";
-    if (aParam[0] == '"')
-       return aParam;
-    if (aParam.find_first_of(ToBeEscaped) == std::string::npos)
-       return aParam;
-    return "\"" + aParam + "\"";
+        return "\"\"";
+    if (aParam.find_first_of(SingleQuoting) != std::string::npos) {
+           std::string result="'";
+           for (const auto& c: aParam) {
+               if (c=='\'')
+                   result += "'\\''";
+               else
+                   result += c;
+           }
+           return result + "'";
+    }
+    if (aParam.find_first_of(DoubleQuoting) != std::string::npos) {
+           std::string result="\"";
+           for (const auto& c: aParam) {
+               if (c=='"')
+                   result += "'\\\"";
+               else
+                   result += c;
+           }
+           return result + "\"";
+    }
+    return aParam;
 }
+
+#elif (THE_MACRO_MMVII_SYS==MMVII_SYS_W)
+static std::string QuoteCmdLine(const std::string& aParam)
+{
+    constexpr const char* DoubleQuoting=" \t&|()<>^\"";
+
+    if (aParam.size() == 0)
+        return "\"\"";
+    if (aParam.find_first_of(DoubleQuoting) != std::string::npos) {
+           std::string result="\"";
+           for (const auto& c: aParam) {
+               if (c=='"')
+                   result += "\\\"";
+               else
+                   result += c;
+           }
+           return result + "\"";
+    }
+    return aParam;
+}
+#else
+#   error Invalid value for macro THE_MACRO_MMVII_SYS
+#endif
 
 void cParamCallSys::AddArgs(const std::string & aNewArg)
 {
