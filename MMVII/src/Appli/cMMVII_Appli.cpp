@@ -104,7 +104,7 @@ static std::string QuoteCmdLine(const std::string& aParam)
            std::string result="\"";
            for (const auto& c: aParam) {
                if (c=='"')
-                   result += "'\\\"";
+                   result += "\\\"";
                else
                    result += c;
            }
