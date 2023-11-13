@@ -3,25 +3,55 @@
 
 bool showDebug = false;
 
-QString quotedArg(const QString& arg)
+
+#if !defined(WIN32) && !defined(_WIN32)
+QString quotedArg(const QString& aParam)
 {
-    static const  QRegularExpression re("[][()<>{}*?|$^%!#~;`&' \t\"]");
-    QString quote;
-    QString quotedArg;
+    constexpr const char* SingleQuoting="!$`\\";
+    constexpr const char* DoubleQuoting=" \t~#*?()[]{}<>;&|\"";
 
-    if (arg.isEmpty())
+    if (aParam.size() == 0)
         return "\"\"";
-
-    if (arg.contains(re))
-        quote = "\"";
-
-    quotedArg = quote;
-    for (const auto& c : arg) {
-        if (c == '\\' || c == '$' || c == '"')
-            quotedArg += "\\";
-        quotedArg += c;
+    if (aParam.toStdString().find_first_of(SingleQuoting) != std::string::npos) {
+        QString result="'";
+        for (const auto& c: aParam) {
+            if (c=='\'')
+                result += "'\\''";
+            else
+                result += c;
+        }
+        return result + "'";
     }
-    quotedArg += quote;
-    return quotedArg;
+    if (aParam.toStdString().find_first_of(DoubleQuoting) != std::string::npos) {
+        QString result="\"";
+        for (const auto& c: aParam) {
+            if (c=='"')
+                result += "\\\"";
+            else
+                result += c;
+        }
+        return result + "\"";
+    }
+    return aParam;
 }
 
+#else
+QString quotedArg(const QString& aParam)
+{
+    constexpr const char* DoubleQuoting=" \t&|()<>^\"";
+
+    if (aParam.size() == 0)
+        return "\"\"";
+    if (aParam.toStdString().find_first_of(DoubleQuoting) != std::string::npos) {
+        QString result="\"";
+        for (const auto& c: aParam) {
+            if (c=='"')
+                result += "\\\"";
+            else
+                result += c;
+        }
+        return result + "\"";
+    }
+    return aParam;
+}
+#endif
