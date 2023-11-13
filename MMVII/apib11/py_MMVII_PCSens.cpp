@@ -93,6 +93,9 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
             .def("inv_Proj",&tPCIC::Inv_Proj,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Inv_Proj) )
             .def("dir_DistInvertible",&tPCIC::Dir_DistInvertible,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Dir_DistInvertible) )
 
+            .def("ransacPoseEstimSpaceResection",&tPCIC::RansacPoseEstimSpaceResection,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,RansacPoseEstimSpaceResection) )
+
+
             .def("infoParam",[](tPCIC &c) {
                 cGetAdrInfoParam<tREAL8> aGAIP(".*",c);
                 c.GetAdrInfoParam(aGAIP);
@@ -125,6 +128,7 @@ static void pyb_init_SensorCamPC(py::module_ &m)
 
             .def("ground2ImageAndDepth",&tSCPC::Ground2ImageAndDepth,"pt3dr", DOC(MMVII_cSensorCamPC,Ground2ImageAndDepth) )
             .def("imageAndDepth2Ground",&tSCPC::ImageAndDepth2Ground,"pt3dr", DOC(MMVII_cSensorCamPC,ImageAndDepth2Ground) )
+
 
             .def_property_readonly("pose",&tSCPC::Pose,DOC(MMVII_cSensorCamPC,Pose) )
             .def_property_readonly("center",py::overload_cast<>(&tSCPC::Center, py::const_),DOC(MMVII_cSensorCamPC,Center) )

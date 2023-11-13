@@ -84,4 +84,71 @@ void pyb_init_MeasuresIm(py::module_ &m) {
                            return ss.str();
              })
             ;
+
+
+    py::class_<cPair2D3D>(m, "Pair2D3D", DOC(MMVII_cPair2D3D))
+            .def(py::init<const cPt2dr &,const cPt3dr &>(),DOC(MMVII_cPair2D3D,cPair2D3D))
+            .def_readwrite("p2", &cPair2D3D::mP2,DOC(MMVII_cPair2D3D,mP2))
+            .def_readwrite("p3", &cPair2D3D::mP3,DOC(MMVII_cPair2D3D,mP3))
+ 
+            .def("__repr__",
+                 [](const cPair2D3D &m) {
+                   std::ostringstream ss;
+                   ss.precision(8);
+                   ss << "cPair2D3D " << "\n" ;
+                   ss << m.mP2.x() << " " << m.mP2.y() << " \n" << m.mP3.x() << " " << m.mP3.y() << " " << m.mP3.z() << "\n";
+                           return ss.str();
+             })
+            ;
+
+    py::class_<cWeightedPair2D3D>(m, "WeightedPair2D3D", DOC(MMVII_cWeightedPair2D3D))
+            .def(py::init<const cPt2dr &,const cPt3dr &>(),DOC(MMVII_cWeightedPair2D3D,cWeightedPair2D3D))
+
+            .def_readwrite("weight", &cPair2D3D::mP3,DOC(MMVII_cPair2D3D,mP3))
+ 
+            .def("__repr__",
+                 [](const cPair2D3D &m) {
+                   std::ostringstream ss;
+                   ss.precision(8);
+                   ss << "cPair2D3D " << "\n" ;
+                   ss << m.mP2.x() << " " << m.mP2.y() << " \n" << m.mP3.x() << " " << m.mP3.y() << " " << m.mP3.z() << "\n";
+                           return ss.str();
+             })
+            ;
+
+
+
+    py::class_<cSet2D3D>(m, "Set2D3D", DOC(MMVII_cSet2D3D))
+            .def("nbPair", &cSet2D3D::NbPair,DOC(MMVII_cSet2D3D,NbPair))
+            .def("addPair", py::overload_cast<const cPt2dr&,const cPt3dr&,double>(&cSet2D3D::AddPair), DOC(MMVII_cSet2D3D,AddPair))
+	   
+            ;
+
+	    
+
+    py::class_<cSetMesImGCP>(m, "SetMesImGCP", DOC(MMVII_cSetMesImGCP))
+            .def(py::init<>(),DOC(MMVII_cSetMesImGCP,cSetMesImGCP))
+            .def("addMes3D", &cSetMesImGCP::AddMes3D, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,AddMes3D))
+            .def("add1GCP", &cSetMesImGCP::Add1GCP, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,Add1GCP))
+           // .def("addMes2D", &cSetMesImGCP::AddMes2D, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,AddMes2D))
+            .def("extractMes1Im", &cSetMesImGCP::ExtractMes1Im, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,ExtractMes1Im))
+//          .def("mesGCP", &cSetMesImGCP::MesGCP, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,MesGCP))
+            .def("mesImOfPt", &cSetMesImGCP::MesImOfPt, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,MesImOfPt))
+            .def("mesImInitOfName", &cSetMesImGCP::MesImInitOfName, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,MesImInitOfName))
+	    .def("mesGCPOfName", py::overload_cast<const std::string&>(&cSetMesImGCP::MesGCPOfName, py::const_),DOC(MMVII_cSetMesImGCP,MesGCPOfName))
+
+  /*          //.def("vSens", &cSetMesImGCP::VSens, py::return_value_policy::reference_internal, DOC(MMVII_cSetMesImGCP,VSens)) //cSensorImage not defined in api
+*/
+            .def("__repr__",
+                 [](const cSetMesImGCP &m) {
+                   std::ostringstream ss;
+                   ss.precision(8);
+                   ss << "SetMesImGCP " << "\n" ;
+                   for (auto aPt : m.MesGCP())
+                       ss << aPt.mPt.x() << " " << aPt.mPt.y() << " " << aPt.mPt.z() << "\n";
+                           return ss.str();
+             })
+            ;
+
+
 }
