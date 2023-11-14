@@ -887,7 +887,7 @@ void cFilePx::LoadNappeEstim
     /// >
 
 
-    int aVMin,aVMax;
+    /*int aVMin,aVMax;
     std::cout<<"$$$$$$   Before median filtering ==>  "<<aVMin<<"   "<<aVMax<<std::endl;
         ELISE_COPY
         (
@@ -913,7 +913,7 @@ void cFilePx::LoadNappeEstim
            aNappe.mPxInit.in(),
            VMin(aVMin)|VMax(aVMax)
        );
-     std::cout<<"$$$$$$   After median filtering ==>  "<<aVMin<<"   "<<aVMax<<std::endl;
+     std::cout<<"$$$$$$   After median filtering ==>  "<<aVMin<<"   "<<aVMax<<std::endl;*/
     //Test SAVE NAPPE ON LOADING
 
 
@@ -926,9 +926,6 @@ void cFilePx::LoadNappeEstim
            aNappe.mPxInit.out()
        );
     }
-
-
-
     // Dilatation en Alti et plani; afin que les zones hors du masque
     // n'aient pas d'influence on leur donne une valeur + ou - "infini"
     // avant la dilatatation
@@ -952,6 +949,11 @@ void cFilePx::LoadNappeEstim
     // Sinon Bug laisse des valeurs infinies sur les bords
     if (mDilatPlani==0) 
        aFMasq = aFMasq || (!inside(Pt2di(1,1),aSzM-Pt2di(1,1)));
+
+    // eviter des valeurs tres elevees aux bords en verifiant les valeurs de correlation de letape prec
+    //aFMasq=aFMasq || (mPredCalc);
+    //  aFMasq=erod_d4(aFMasq==0,1);
+
 
     int aMaxShrt = (1<<15)-1;
 
@@ -1051,12 +1053,11 @@ void cFilePx::LoadNappeEstim
       aNappe.mVPxMax = 0;
     }
 
-    //cout << "Nb " << aNb << " " << aNappe.mVPxMin << " "<< aNappe.mVPxMax << "\n";
+    cout << "Nb +++++++" << aNb << " " << aNappe.mVPxMin << " "<< aNappe.mVPxMax << "\n";
 
     if  ((mPredCalc->mPredCalc) || (mKPx!=0))  // BUG dit "du patriarche"  !! Corrc Bug Pat =>
     {
        aNappe.ComplWithProj32(aRP32);
-
     }
     else
     {
@@ -1074,7 +1075,7 @@ void cFilePx::LoadNappeEstim
                  Virgule(aNappe.mImPxMin.out(),aNappe.mImPxMax.out())
            );
 
-   
+     std::cout<<"============+><>>>>>    no compl with proj32 "<<std::endl;
     }
 
 // aNappe.TestDebugOPX("COMPL 32");

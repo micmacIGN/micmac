@@ -3570,9 +3570,11 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
            void DoInitAdHoc(const Box2di & aBox);
            void DoEstimWarpersPDVs();
+           void DoEstimHomWarpers();
            void GenerateBoxesImEpip_EpipIm(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
            void GenerateGeoPassage_ImEpip_EpipIm_BBox(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
            void GenerateGeoPassage_ImEpip_EpipIm_BBox_Stenope(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
+           void GenerateGeoPassage_Homography_BBox_Stenope(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig);
            // Si pas FirstZ de la colone et Im1 maitresse, pas la peine
            // de reinitialiser 
            bool InitZ(int aZ,eModeInitZ aMode);
