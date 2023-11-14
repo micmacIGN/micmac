@@ -13,11 +13,13 @@ void pyb_init_cWhichMin_tpl(py::module_ &m, const std::string& name) {
     using namespace std::literals;
     using namespace pybind11::literals;
 
-    typedef cWhichMax<T,Dim> tWhichMax;
+    typedef cWhichMin<T,Dim> tWhichMin;
+    //typedef  cWhichExtrem<T,Dim,true> tExtrem;
+    typedef cWhichExtrem<T,Dim,true> tWhichExtrem;
 
-    auto tb = py::class_<tWhichMax>(m, name.c_str())
+
+    auto tb = py::class_<tWhichMin,tWhichExtrem>(m, name.c_str())
             .def(py::init<const T&, const Dim&>(),"Index"_a,"Val"_a)
-
 	    ;
 
 }
@@ -33,7 +35,7 @@ void pyb_init_cWhichExtrem_tpl(py::module_ &m, const std::string& name) {
     auto tb = py::class_<tWhichExtrem>(m, name.c_str())
             .def(py::init<const T&, const Dim&>(),"Index"_a,"Val"_a)
 
-            .def("indexExtre", &tWhichExtrem::IndexExtre, py::return_value_policy::reference_internal, DOC(MMVII_cWhichExtrem,IndexExtre))
+            .def("indexExtre", &tWhichExtrem::IndexExtre, DOC(MMVII_cWhichExtrem,IndexExtre))
             ;
 
 }
@@ -42,8 +44,8 @@ void pyb_init_cWhichExtrem_tpl(py::module_ &m, const std::string& name) {
 
 void pyb_init_cWhich(py::module_ &m)
 {
-    pyb_init_cWhichMin_tpl<cIsometry3D<tREAL8>,tREAL8>(m,"WhichMin_tPose_tREAL8");
     pyb_init_cWhichExtrem_tpl<cIsometry3D<tREAL8>,tREAL8,true>(m,"WhichExtrem_tPose_tREAL8_true");
     pyb_init_cWhichExtrem_tpl<cIsometry3D<tREAL8>,tREAL8,false>(m,"WhichExtrem_tPose_tREAL8_false");
+    pyb_init_cWhichMin_tpl<cIsometry3D<tREAL8>,tREAL8>(m,"WhichMin_tPose_tREAL8");
 }
 
