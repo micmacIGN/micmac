@@ -72,12 +72,14 @@ cBlocMatrixSensor::cBlocMatrixSensor() :
 size_t cBlocMatrixSensor::NumStringCreate(const std::string & anId) 
 {
      int anInd = mMapInt2Id.Obj2I(anId,true);  // Get index, true because OK non exist
+				       
      if (anInd<0)
      {
          anInd = mMatrix.size();
 	 mMapInt2Id.Add(anId);
 	 mMatrix.push_back(cSetSensSameId(mMaxSzSet,anId));
      }
+// StdOut() << "NumStringCreateNumStringCreate " << anId << " => " << anInd << std::endl;
      return anInd;
 }
 
@@ -134,8 +136,9 @@ const cSetSensSameId &  cBlocMatrixSensor::KthSet(size_t aKth) const
 	return mMatrix.at(aKth);
 }
 
-size_t cBlocMatrixSensor::NbSet()   const {return mMaxSzSet;}
-size_t cBlocMatrixSensor::NbInSet() const {return mMatrix.size();}
+size_t cBlocMatrixSensor::NbSet()   const      {return mMaxSzSet;}
+size_t cBlocMatrixSensor::NbInSet() const      {return mMatrix.size();}
+size_t cBlocMatrixSensor::SetCapacity() const  {return mMapInt2Id.size();}
 
 const std::string & cBlocMatrixSensor::NameKthSet(  size_t aKTh) const { return *mMapInt2Id.I2Obj(aKTh); }
 
@@ -181,6 +184,7 @@ void cDataBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
       MMVII::AddData(cAuxAr2007("Pattern",anAux) ,mPattern);
       MMVII::AddData(cAuxAr2007("KPatBloc",anAux),mKPatBloc);
       MMVII::AddData(cAuxAr2007("KPatSync",anAux),mKPatSync);
+      MMVII::AddData(cAuxAr2007("Master",anAux),mMaster);
       MMVII::AddData(cAuxAr2007("RelPoses",anAux),mMapPoseInBloc); 
 }
 
@@ -214,13 +218,18 @@ void  cBlocOfCamera::Set4Compute()
 	mMatBlocSync.NumStringCreate(aPair.first);
     }
 
+
     // Now we make a vector of PoseUk* for fast indexed access , we could not do in previous loop , because when maps
     // grow they copy object, invalidating previous pointers on these objects
-    for (size_t aKInBl=0 ; aKInBl<NbInBloc() ; aKInBl ++)
+    for (size_t aKInBl=0 ; aKInBl<BlocCapacity() ; aKInBl ++)
     {
          const std::string &  aNameBl = NameKthInBloc(aKInBl);
          mVecPUK.push_back(&(mMapPoseInBlUK[aNameBl]));
     }
+}
+
+cBlocOfCamera::~cBlocOfCamera()
+{
 }
 
 void cBlocOfCamera::ToFile(const std::string & aNameFile) const
@@ -262,8 +271,11 @@ size_t cBlocOfCamera::IndexMaster() const {return NumInBloc(NameMaster());}
 void cBlocOfCamera::ShowByBloc() const {mMatSyncBloc.ShowMatrix();}
 void cBlocOfCamera::ShowBySync() const {mMatBlocSync.ShowMatrix();}
 
+
+
 size_t  cBlocOfCamera::NbInBloc() const  {return mMatSyncBloc.NbSet();}
 size_t  cBlocOfCamera::NbSync() const  {return mMatSyncBloc.NbInSet();}
+size_t  cBlocOfCamera::BlocCapacity() const {return mMatBlocSync.SetCapacity(); }
 
 const std::string & cBlocOfCamera::NameKthSync(size_t   aKSync)   const {return mMatSyncBloc.NameKthSet(aKSync);}
 const std::string & cBlocOfCamera::NameKthInBloc(size_t aKInBloc) const {return mMatBlocSync.NameKthSet(aKInBloc);}
@@ -383,7 +395,7 @@ tPoseR  cBlocOfCamera::EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli
      std::string sSigmTr  = (aNbOk>1) ? ToStr(std::sqrt( aSigmTr/tREAL8(aNbOk-1))) : "xxxx" ;
      std::string sSigmRot = (aNbOk>1) ? ToStr(std::sqrt(aSigmRot/tREAL8(aNbOk-1))) : "xxxx" ;
 
-     StdOut() << " STr=" << sSigmTr << " SRot=" << sSigmRot << "\n";
+     StdOut() << " STr=" << sSigmTr << " SRot=" << sSigmRot << std::endl;
 
      if (anIdReportGlob!="")
      {
@@ -437,9 +449,9 @@ void cBlocOfCamera::EstimateBlocInit(size_t aKMaster)
         ReadFromFile(aBJ,"toto.json");
         SaveInFile(aBJ,"tata.json");
 
-	StdOut() <<  "HX==HJ= " << HashValue(aBX,true) << " " <<  HashValue(aBJ,true) << "\n";
+	StdOut() <<  "HX==HJ= " << HashValue(aBX,true) << " " <<  HashValue(aBJ,true) << std::endl;
 	aBX.mMapPoseInBloc["toto"]  = tPoseR();
-	StdOut() <<  "HJ!=HX " << HashValue(aBX,true) << " " << HashValue(aBJ,true) << "\n";
+	StdOut() <<  "HJ!=HX " << HashValue(aBX,true) << " " << HashValue(aBJ,true) << std::endl;
 
         SaveInFile(mData,"toto.dmp");
 	cDataBlocCam aBD;
@@ -452,12 +464,12 @@ void cBlocOfCamera::EstimateBlocInit(size_t aKMaster)
         SaveInFile(aBT,"tata_txt.xml");
 
 
-	StdOut() <<  "HJ!=HD " << HashValue(aBD,true) << " " << HashValue(aBJ,true) << "\n";
+	StdOut() <<  "HJ!=HD " << HashValue(aBD,true) << " " << HashValue(aBJ,true) << std::endl;
 
 
-         StdOut() <<  aBD.mMapPoseInBloc.begin()->first  << " " <<  aBJ.mMapPoseInBloc.begin()->first << "\n";
-	 StdOut() <<  aBD.mMapPoseInBloc["949"].Rot().AxeI()   << aBJ.mMapPoseInBloc["949"].Rot().AxeI()  << "\n";
-	 StdOut() <<  (aBD.mMapPoseInBloc["949"].Rot().AxeI()   - aBJ.mMapPoseInBloc["949"].Rot().AxeI())  << "\n";
+         StdOut() <<  aBD.mMapPoseInBloc.begin()->first  << " " <<  aBJ.mMapPoseInBloc.begin()->first << std::endl;
+	 StdOut() <<  aBD.mMapPoseInBloc["949"].Rot().AxeI()   << aBJ.mMapPoseInBloc["949"].Rot().AxeI()  << std::endl;
+	 StdOut() <<  (aBD.mMapPoseInBloc["949"].Rot().AxeI()   - aBJ.mMapPoseInBloc["949"].Rot().AxeI())  << std::endl;
 
 	 SpecificationSaveInFile<cDataBlocCam>("toto_specif.xml");
 	 SpecificationSaveInFile<cDataBlocCam>("toto_specif.json");
@@ -571,7 +583,7 @@ int cAppli_BlockCamInit::Exe()
     aBloc.EstimateBlocInit(aNumMaster);
     mPhProj.SaveBlocCamera(aBloc);
 
-    if (1)
+    if (0)
     {
          aBloc.ToFile("titi.xml");
          cBlocOfCamera * aBL = cBlocOfCamera::FromFile("titi.xml");
@@ -586,7 +598,7 @@ int cAppli_BlockCamInit::Exe()
     }
 
 
-    StdOut()  << " NumMaster " <<  aNumMaster  << "\n";
+    StdOut()  << " NumMaster " <<  aNumMaster  << std::endl;
     return EXIT_SUCCESS;
 }                                       
 

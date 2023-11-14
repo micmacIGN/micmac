@@ -72,6 +72,9 @@ cAppli_OriRel2Im::tPose  cAppli_OriRel2Im::EstimPose_By_MatEssL1Glob()
      StdOut()  <<  "MED= " << aMatEL1.KthCost(*mCpleDir,0.5) * mFocM << std::endl;
      StdOut()  <<  "P90= " << aMatEL1.KthCost(*mCpleDir,0.9) * mFocM << std::endl;
      StdOut()  <<  "MAX= " << aMatEL1.KthCost(*mCpleDir,1.1) * mFocM << std::endl;
+
+     aMatEL1.Show(*mCpleDir);
+
      tPose aRes  = aMatEL1.ComputePose(*mCpleDir);
      delete aSysL1;
 

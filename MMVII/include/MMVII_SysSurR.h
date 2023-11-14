@@ -674,7 +674,7 @@ template <class Type> class cSetInterUK_MultipeObj
            void AddOneInterv(cPtxd<Type,2> &);          ///<  call previous wih a point
            void AddOneInterv(cPtxd<Type,3> &);          ///<  call previous wih a point
 
-	   void Reset();  /// Maybe private later, now used for tricky destruction order
+	   void SIUK_Reset();  /// Maybe private later, now used for tricky destruction order
         private :
 
 	   size_t IndOfVal(const cObjWithUnkowns<Type>&,const Type *) const;
@@ -765,7 +765,7 @@ template <class Type> class cObjWithUnkowns //  : public cObjOfMultipleObjUk<Typ
 
        protected :
 	  /// defautl constructor, put non init in all vars
-          void Reset();
+          void OUK_Reset();
           cObjWithUnkowns(const cObjWithUnkowns<Type> &) = delete;
 
 

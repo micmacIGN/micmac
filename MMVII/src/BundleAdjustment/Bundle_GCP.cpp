@@ -165,7 +165,7 @@ const cPt3dr & cPt3dr_UK::Pt() const {return mPt;}
 
 cPt3dr_UK::~cPt3dr_UK()
 {
-        Reset();
+        OUK_Reset();
 }
 
 

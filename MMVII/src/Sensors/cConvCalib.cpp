@@ -81,7 +81,7 @@ class cV1PCConverter : public cCorresp32_BA
 
 cV1PCConverter::~cV1PCConverter()
 {
-      mSetInterv.Reset();
+      mSetInterv.SIUK_Reset();
       delete mCamPC;
 }
 

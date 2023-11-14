@@ -70,8 +70,9 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mDataDir,"DataDir","Defautl data directories ",{eTA2007::HDV})
       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
       << mPhProj.DPPointsMeasures().ArgDirInOpt("GCPDir","Dir for GCP if != DataDir")
-      << mPhProj.DPRigBloc().ArgDirInOpt("BRDir","Dir for Bloc Rigid if != DataDir") //  RIGIDBLOC
       << mPhProj.DPMulTieP().ArgDirInOpt("TPDir","Dir for Tie Points if != DataDir")
+      << mPhProj.DPRigBloc().ArgDirInOpt("BRDirIn","Dir for Bloc Rigid if != DataDir") //  RIGIDBLOC
+      << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
       << AOpt2007
          (
             mGCPW,
@@ -145,6 +146,8 @@ int cAppliBundlAdj::Exe()
     if (IsInit(&mBRWeight)) // RIGIDBLOC
     { 
         mBA.AddBlocRig(mBRWeight);
+        for (const auto &  aNameIm : VectMainSet(0))
+            mBA.AddCamBlocRig(aNameIm);
     }
 
     MMVII_INTERNAL_ASSERT_User(MeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
@@ -155,8 +158,9 @@ int cAppliBundlAdj::Exe()
     }
 
     for (auto & aCamPC : mBA.VSCPC())
-	mPhProj.SaveCamPC(*aCamPC);
+        mPhProj.SaveCamPC(*aCamPC);
 
+    mBA.SaveBlocRigid();
 
     return EXIT_SUCCESS;
 }

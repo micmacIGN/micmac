@@ -95,7 +95,7 @@ template <class Type> class cPoseF
              //   {CA;RA}* {CB;RB} = {CA+RA*CB ; RA*RB}
             return cPoseF<Type>
                    (
-		        aP1.mCenter + aP1.mIJK*mCenter,
+		        aP1.mCenter + aP1.mIJK*aP2.mCenter,
                         aP1.mIJK * aP2.mIJK
                    );
 	}

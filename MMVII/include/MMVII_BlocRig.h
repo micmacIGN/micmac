@@ -58,6 +58,8 @@ class cSetSensSameId
 class cBlocMatrixSensor
 {
       public :
+           // Cuurent number of set in mMapInt2Id 
+           size_t SetCapacity() const;
 
            size_t NbSet() const;
            size_t NbInSet() const;
@@ -92,6 +94,8 @@ class cBlocMatrixSensor
 class cDataBlocCam
 {
       public :
+
+
            friend class cBlocOfCamera;
 
            typedef std::map<std::string,tPoseR> tMapStrPose;
@@ -134,9 +138,12 @@ class cBlocOfCamera : public cMemCheck
            void ShowByBloc() const;
            void ShowBySync() const;
            cBlocOfCamera(const std::string & aPattern,size_t aKBloc,size_t aKSync,const std::string & aName);
+           ~cBlocOfCamera();
 
            size_t  NbInBloc() const;
            size_t  NbSync() const;
+           // Number of NbInBloc pre-allocated
+           size_t BlocCapacity() const;
 
            int NumInBloc(const std::string &,bool SVP=false)  const;
 

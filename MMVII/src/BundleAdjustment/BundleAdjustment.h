@@ -74,13 +74,16 @@ class cBA_BlocRig
 
         //  Do the kernel job : add rigidity constraint to the system
         void AddRigidityEquation(cResolSysNonLinear<tREAL8> &);
+
+	void Save();
      private :
 
         // do the job for one bloc
         void OneBlAddRigidityEquation(cBlocOfCamera&,cResolSysNonLinear<tREAL8> &);
-        // do the job for one pair of poses
-        void OnePairAddRigidityEquation(size_t aKSync,size_t aKBl1,size_t aKBl2,cBlocOfCamera&,cResolSysNonLinear<tREAL8> &);
+        // do the job for one pair of poses, return residual x=Pt y=Rot  z=Ok
+        cPt3dr OnePairAddRigidityEquation(size_t aKSync,size_t aKBl1,size_t aKBl2,cBlocOfCamera&,cResolSysNonLinear<tREAL8> &);
 
+	const cPhotogrammetricProject &mPhProj;
         std::list<cBlocOfCamera *>   mBlocs;
         std::vector<double>          mSigma;
         std::vector<double>          mWeight;
@@ -104,8 +107,8 @@ class cMMVII_BundleAdj
           void  AddCamPC(cSensorCamPC *);  /// add, error id already exist
           void  AddCam(const std::string & aNameIm);  /// add from name, require PhP exist
 
-	  void AddBlocRig(const std::vector<double>& aWeight);
-
+	  void AddBlocRig(const std::vector<double>& aWeight); // RIGIDBLOC
+	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
 
           ///  =======  Add GCP, can be measure or measure & object
           void AddGCP(tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
@@ -119,6 +122,7 @@ class cMMVII_BundleAdj
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
 								//
+
 	  //  =========  control object free/frozen ===================
 
 	  void SetParamFrozenCalib(const std::string & aPattern);
@@ -127,6 +131,7 @@ class cMMVII_BundleAdj
 
 	  void AddPoseViscosity();
 
+	  void SaveBlocRigid();
 
      private :
 

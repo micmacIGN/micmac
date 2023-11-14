@@ -295,9 +295,9 @@ cCalculator<double> * EqDist3DParam(bool WithDerive,int aSzBuf)
     return TplEqDist3DParam<double>(WithDerive,aSzBuf);
 }
 
-cCalculator<double> * EqBlocRig(bool WithDerive,int aSzBuf)  // RIGIDBLOC
+cCalculator<double> * EqBlocRig(bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
 {
-    return StdAllocCalc(NameFormula(cFormulaBlocRigid(),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cFormulaBlocRigid(),WithDerive),aSzBuf,false,ReUse);
 }
 
 // topo subframe with dist parameter

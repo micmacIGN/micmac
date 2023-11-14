@@ -239,6 +239,7 @@ void cMemCheck::operator delete   (void * aPtr)
 int     cMemCheck::NbObjLive() {return TheNbObjLive;}
 
 int     cMemCheck::TheNbObjLive=0;
+int     cMemCheck::TheCptObj = 0;
 
 
 
