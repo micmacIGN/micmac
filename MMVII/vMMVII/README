@@ -2,6 +2,8 @@
   Ubuntu 22.04: sudo apt install qtbase5-dev
 
 - In this diretory:
-  qmake
-  make -j 8
+  mkdir build
+  cd build
+  cmake ..
+  make -j8
   ./vMMVII

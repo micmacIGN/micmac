@@ -78,7 +78,7 @@
       <string>Open a File Explorer window in the selected working dir</string>
      </property>
      <property name="text">
-      <string>&amp;Open dir</string>
+      <string>&amp;View</string>
      </property>
     </widget>
    </item>
@@ -102,7 +102,7 @@
   <customwidget>
    <class>EllipsisComboBox</class>
    <extends>QComboBox</extends>
-   <header>ellipsiscombobox.h</header>
+   <header location="global">ellipsiscombobox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

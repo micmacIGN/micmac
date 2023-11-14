@@ -1,3 +1,6 @@
+#ifndef CMDSELECT_WIDGET_H
+#define CMDSELECT_WIDGET_H
+
 #include <QWidget>
 #include "commandspec.h"
 #include "ui_cmdSelect.h"
@@ -35,3 +38,4 @@ private:
     const MMVIISpecs& allSpecs;
 };
 
+#endif // CMDSELECT_WIDGET_H
