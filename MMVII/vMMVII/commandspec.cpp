@@ -55,7 +55,7 @@ eTA2007::Enum eTA2007::val(const QString& s)
         for (const auto& m: enumMap)
             strMap[m.second] = m.first;
     }
-    return strMap[s];
+    return strMap.at(s);
 }
 
 
@@ -139,14 +139,29 @@ Container MMVIISpecs::toStringList(const QJsonObject& obj, const QString& key, c
     return val;
 }
 
+std::set<eTA2007::Enum> MMVIISpecs::toETA2007Set(const QJsonObject& obj, const QString& key, const QString& context, bool needed)
+{
+    auto semantics  = toStringList<StrSet>(obj,key,context,needed);
+    std::set<eTA2007::Enum> aTA2007Set;
+
+    for (const auto &s: semantics) {
+        try {
+            aTA2007Set.insert(eTA2007::val(s));
+        } catch (const std::out_of_range&) {
+            error(tr("semantic '%1' is not a known aTA2007 value for %2").arg(s,context));
+        }
+    }
+    return aTA2007Set;
+}
+
 void MMVIISpecs::parseConfig(const QJsonObject& config)
 {
     QString context = tr("in \"config\" at top level");
     mmviiBin  = toString(config,"Bin2007",context);
     phpDir    = toString(config,"MMVIIDirPhp",context);
     testDir   = toString(config,"MMVIITestDir",context);
-    fileTypes = toStringList<StrSet>(config,"eTa2007FileTypes",context);
-    dirTypes  = toStringList<StrSet>(config,"eTa2007DirTypes",context);
+    fileTypes = toETA2007Set(config,"eTa2007FileTypes",context);
+    dirTypes  = toETA2007Set(config,"eTa2007DirTypes",context);
 
     if (!config.contains("extensions"))
         error(tr("Missing key \"extensions\" in \"config\" at top level"));
@@ -156,6 +171,7 @@ void MMVIISpecs::parseConfig(const QJsonObject& config)
     for (auto& key: extensionsSpecs.keys())
         extensions[key] = toStringList<StrList>(extensionsSpecs,key,"\"extensions\" in \"config\"");
 }
+
 
 std::vector<ArgSpec> MMVIISpecs::parseArgsSpecs(const QJsonObject& argsSpecs, const QString& key, QString context, const QString& command)
 {
@@ -179,22 +195,20 @@ std::vector<ArgSpec> MMVIISpecs::parseArgsSpecs(const QJsonObject& argsSpecs, co
         as.json = QJsonDocument(spec).toJson();
         as.isEnabled = as.mandatory;
         as.number = n;
-        context = tr("%1 argument #%2 ").arg(key).arg(n) + context;
-        as.name       = toString(spec,"name",context,key != "mandatory");
-        as.level      = toString(spec,"level",context,false);
-        as.cppTypeStr = toString(spec,"type",context);
-        as.def        = toString(spec,"default",context,false);
-        as.comment    = toString(spec,"comment",context,false);
-        as.semantics  = toStringList<StrSet>(spec,"semantic",context,false);
-        for (const auto &s: std::as_const(as.semantics))
-            as.semantic.insert(eTA2007::val(s));
+        QString aContext = tr("%1 argument #%2 ").arg(key).arg(n) + context;
+        as.name       = toString(spec,"name",aContext,key != "mandatory");
+        as.level      = toString(spec,"level",aContext,false);
+        as.cppTypeStr = toString(spec,"type",aContext);
+        as.def        = toString(spec,"default",aContext,false);
+        as.comment    = toString(spec,"comment",aContext,false);
+        as.semantic   = toETA2007Set(spec,"semantic",aContext,false);
 
-        as.allowed    = toStringList<StrSet>(spec,"allowed",context,false);
-        as.range      = toString(spec,"range",context,false);
+        as.allowed    = toStringList<StrSet>(spec,"allowed",aContext,false);
+        as.range      = toString(spec,"range",aContext,false);
         as.vSizeMin   = as.vSizeMax = 1;
         typeNameToEnum(as, command);
         QString vsize;
-        vsize    = toString(spec,"vsize",context,false);
+        vsize    = toString(spec,"vsize",aContext,false);
         if (vsize.length()) {
             auto vsizel = parseList<StrList>(vsize);
             if (vsizel.size() == 2) {

@@ -94,8 +94,6 @@ InputWidget *CmdConfigureWidget::createInput(QWidget *widget, QGridLayout *layou
     case ArgSpec::T_STRING:
         if (contains(as.semantic,eTA2007::FFI))
             return new InputFFI(widget, layout, as);
-        if (contains(as.semantic,eTA2007::Orient))
-            return new InputFile(widget, layout, as, InputFile::ORIENT, allSpecs);
         if (contains(as.semantic,eTA2007::FileImage))
             return new InputFile(widget, layout, as, InputFile::IM, allSpecs);
         if (contains(as.semantic,eTA2007::DirProject))
@@ -106,6 +104,10 @@ InputWidget *CmdConfigureWidget::createInput(QWidget *widget, QGridLayout *layou
             return new InputFile(widget, layout, as, InputFile::REG3D, allSpecs);
         if (contains(as.semantic,{eTA2007::FileDirProj,eTA2007::MPatFile}))
             return new InputFile(widget, layout, as, InputFile::OTHER, allSpecs);
+        for (const auto& t: as.semantic) {
+            if (contains(allSpecs.dirTypes,t))
+                return new InputFile(widget, layout, as, InputFile::OTHER, allSpecs);
+        }
         return new InputString(widget, layout, as);
     case ArgSpec::T_VEC_STRING:
         return new InputStrings(widget,layout,as,0);

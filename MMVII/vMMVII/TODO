@@ -75,4 +75,4 @@ x  Reopen dialog (to see log) ?
 - Compile windows sans visual studio ide (msbuild ?)
 - Compile windows sous QtCreator
 
-- bash-completion: file in project subdir are relative to project subdir ...
+- Command line use same algo than  MMVII

@@ -14,8 +14,6 @@
 #include "spinboxdefault.h"
 
 
-// TODO: std::vector<std::string>
-
 
 class InputWidget : public QWidget
 {

@@ -241,6 +241,19 @@ InputFile::InputFile(QWidget *parent, QGridLayout *layout, ArgSpec &as, Type typ
     addWidget(pb,1);
     connect(le,&QLineEdit::textChanged,this,[this](const QString& val) {this->valueEdited(val);});
     connect(pb,&QPushButton::clicked,this,&InputFile::fileDialog);
+
+    // TODO: refactorer tout ça ...
+    for (const auto& t: as.semantic) {
+        if (contains(allSpecs.dirTypes,t)) {
+            mode    = OPEN_DIR;
+            caption = tr("Select a directory");
+            pb->setText(tr("Select Dir"));
+            subdir = allSpecs.phpDir + eTA2007::str(t);
+            filter  = "";
+        }
+        finish();
+        return;
+    }
     switch (type) {
     case DP:
         mode    = OPEN_DIR;
@@ -270,7 +283,7 @@ InputFile::InputFile(QWidget *parent, QGridLayout *layout, ArgSpec &as, Type typ
         mode    = OPEN_FILE;
         caption = tr("Select an orientation file");
         pb->setText(tr("Select File"));
-//        subdir = allSpecs.orientDir;
+        subdir = allSpecs.phpDir + eTA2007::str(eTA2007::Orient);
         filter  = tr("Orientation files") + " (" + extList2Ext(allSpecs.extensions.value("Orient")) + ");;" + tr("All")+ "(*)";
         break;
     case OTHER:
@@ -344,7 +357,7 @@ void InputFile::fileDialog()
         dirName = QFileDialog::getExistingDirectory(this,caption,openDir);
         if (dirName.isEmpty())
             return;
-        dirName = QDir().relativeFilePath(dirName);
+        dirName = QDir(openDir).relativeFilePath(dirName);
         le->setText(dirName);
         break;
     default:

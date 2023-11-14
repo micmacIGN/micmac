@@ -71,7 +71,6 @@ struct ArgSpec
     Type cppType;
     QString def;
     QString comment;
-    StrSet semantics;
     std::set<eTA2007::Enum> semantic;
     StrSet allowed;
     QString range;
@@ -115,8 +114,8 @@ public:
     QString mmviiBin;
     QString phpDir;
     QString testDir;
-    StrSet dirTypes;
-    StrSet fileTypes;
+    std::set<eTA2007::Enum> dirTypes;
+    std::set<eTA2007::Enum> fileTypes;
     QMap <QString,StrList> extensions;
 
 private:
@@ -126,6 +125,7 @@ private:
     QString toString(const QJsonObject& obj, const QString& key, const QString& context, bool needed = true);
     template<class Container>
     Container toStringList(const QJsonObject &obj, const QString &key, const QString &context, bool needed = true);
+    std::set<eTA2007::Enum> toETA2007Set(const QJsonObject &obj, const QString &key, const QString &context, bool needed = true);
     std::vector<ArgSpec> parseArgsSpecs(const QJsonObject &argsSpecs, const QString &key, QString context, const QString& command);
 };
 
