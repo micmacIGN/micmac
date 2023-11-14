@@ -1997,7 +1997,7 @@ bool  cElXMLTree::TopVerifMatch
 
 	if ((aL1.size() !=1) || (aL2.size() !=1))
 	{
-            if (SVP)
+            if (true)
             {
                return false;
             }

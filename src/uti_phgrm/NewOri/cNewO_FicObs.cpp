@@ -1458,7 +1458,7 @@ void cAppliFictObs::Initialize()
     int aTriNb=0;
     if (DOTRI)
     {
-        std::string aNameLTriplets = mNM->NameTopoTriplet(true);
+        std::string aNameLTriplets = mNM->NameTopoTriplet(false);
         mLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
         std::cout << "Triplet no: " << mLT.Triplets().size() << "\n";
 
@@ -1512,7 +1512,7 @@ void cAppliFictObs::Initialize()
     //update couples orientations in mTriMap
     if (DOCPLE)
     {
-        std::string aNameLCple = mNM->NameListeCpleOriented(true);
+        std::string aNameLCple = mNM->NameListeCpleOriented(false);
         mLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
         std::cout << "Pairs no: " << mLCpl.Cple().size() << "\n";
 
@@ -1705,7 +1705,7 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
     aNM = new cNewO_NameManager("",aCMA.mPrefHom,true,aDir,aCMA.mNameOriCalib,aCMA.mExpTxt ? "txt" : "dat");
 
     //triplets
-    std::string aNameLTriplets = aNM->NameTopoTriplet(true);
+    std::string aNameLTriplets = aNM->NameTopoTriplet(false);
 
     cXml_TopoTriplet aLT;
     if (ELISE_fp::exist_file(aNameLTriplets))
@@ -1871,7 +1871,7 @@ int CPP_Rot2MatEss_main(int argc,char ** argv)
     aNM = new cNewO_NameManager("","",true,aDir,aCMA.mNameOriCalib,aCMA.mExpTxt ? "txt" : "dat");
 
     //couples 
-    std::string aNameLCple = aNM->NameListeCpleOriented(true);
+    std::string aNameLCple = aNM->NameListeCpleOriented(false);
 
     cSauvegardeNamedRel aLCpl;
     if (ELISE_fp::exist_file(aNameLCple))

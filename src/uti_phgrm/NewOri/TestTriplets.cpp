@@ -147,7 +147,7 @@ int TestTriplets_main(int argc,char ** argv)
     const ElRotation3D aP1 = ElRotation3D::Id;
 
 
-    std::string aNameLTriplets = aNM->NameTopoTriplet(true);
+    std::string aNameLTriplets = aNM->NameTopoTriplet(false);
     std::string aNameLTripletsNew = StdPrefix(aNameLTriplets)+"_Filt.xml";
     std::string aNameLTripletsNewDmp = StdPrefix(aNameLTriplets)+"_Filt.dmp";
 
@@ -301,7 +301,8 @@ int TestTriplets_main(int argc,char ** argv)
     if (RUN_PAIRS)
     {
         std::string BogusName="Pair"; 
-        std::string aNameLCple = aNM->NameListeCpleOriented(true);
+        std::string aNameLCple = aNM->NameListeCpleOriented(false);
+            std::cout << "---pairs: " <<aNameLCple  << "\n";
         std::string aNameLCpleNewDmp = StdPrefix(aNameLCple)+"_Filt.dmp";
         std::string aNameLCpleNewXml = StdPrefix(aNameLCple)+"_Filt.xml";
         cSauvegardeNamedRel aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
