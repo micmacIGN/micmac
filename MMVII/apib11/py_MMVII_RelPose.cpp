@@ -12,6 +12,9 @@ void pyb_init_MatEssential(py::module_ &m) {
     using namespace std::literals;
     using namespace pybind11::literals;
 
+	using namespace std::literals;
+        using namespace pybind11::literals;
+
 	py::class_<cHomogCpleIm>(m, "HomogCpleIm", DOC(MMVII_cHomogCpleIm))
                 .def(py::init<>(),DOC(MMVII_cHomogCpleIm,cHomogCpleIm))
 		.def(py::init<const cPt2dr &, const cPt2dr & >(),DOC(MMVII_cHomogCpleIm,cHomogCpleIm))
@@ -77,5 +80,4 @@ void pyb_init_MatEssential(py::module_ &m) {
         ;
 
     m.def("matEss_GetKMax",&MatEss_GetKMax,py::arg("setD"),py::arg("weightStab"),py::arg("show")=false,DOC(MMVII_MatEss_GetKMax));
-
 }
