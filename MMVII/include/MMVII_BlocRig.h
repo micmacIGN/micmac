@@ -23,6 +23,47 @@ class cBlocMatrixSensor;  //  matricial organization of sensor
 class cDataBlocCam;       //  data required for read/write bloc state
 class cBlocOfCamera;      //  the bloc of camera itself
 
+/*   Global organzization :
+ *   Supose 
+ *       - we have a rigid bloc 3 a camera : {a,b,c},  
+ *       - we have a image acquire at $5$ times 
+ *
+ *    Let note {Ima1,Ima2... Imb5,Imc5}   the different images
+ *
+ *   "cSetSensSameId"  represent one set of sensor as a vector, for example [Ima2,Imb2,Imc2]
+ *
+ *   "cBlocMatrixSensor"  represent the set of all images organized as a matrix.
+ *   For example , cBlocOfCamera contain two cBlocMatrixSensor 
+ *
+ *        mMatSyncBloc -> [ [Ima1,Imb1,Imc1]  ...   [Ima5,Imb5,Imc5] ]  , for reprsenting camera acquired at same time in a bloc
+ *        mMatBlocSync -> [ [Ima1,Ima2,Ima3,Ima4,Ima5] .... [..Imc5] ]  , for representing a same position across time
+ *
+ *   For easy creation of the structure, the matrix contains  mMapInt2Id that compute correspondance between string and 
+ *   number (a<=>0, b<=>1 , ...).
+ *
+ *    "cDataBlocCam" contains the data  that allow to construct & save the bloc , essantially :
+ *
+ *        - the regular expression that allow to compute bloc&time identifier from a name
+ *        - the result of bloc calibration  (with translation Tr, and rotation Rot) :
+ *             "a" ->  Tra  Rota
+ *             "b" ->  Trb  Rotb
+ *
+ *    "cBlocOfCamera" is the main structure for representing a bloc a camera, it contains :
+ *
+ *       - the two matrices mMatSyncBloc and mMatBlocSync mentionned above
+ *       - a  cDataBlocCam that allow to compute the matrices and store the initial value of bloc-calib
+ *       - a set of unkown poses that can be used in the bundle adustment.
+ *
+ *    The 3 main operation that we want to do with rigid bloc :
+ *
+ *        * compute initial value of bloc calibration from a set of existing pose, this is
+ *          done by method EstimateBlocInit
+ *
+ *        * refine by global optimization the value of a bloc 
+ *
+ *        * use a calibrated bloc 
+ */
+
 
 /**  store a set of "cSensorCamPC" sharing the same identifier, can be ident of time or ident  of camera, this
  * class is a an helper for implementation of set aqcuired at same time or of same camera */
@@ -58,7 +99,7 @@ class cSetSensSameId
 class cBlocMatrixSensor
 {
       public :
-           // Cuurent number of set in mMapInt2Id 
+           /// Number of identifier in the bloc
            size_t SetCapacity() const;
 
            size_t NbSet() const;
@@ -100,19 +141,18 @@ class cDataBlocCam
 
            typedef std::map<std::string,tPoseR> tMapStrPose;
 
+	   /// contructor allow to compute identifier time/bloc + Name of the bloc
            cDataBlocCam(const std::string & aPattern,size_t aKPatBloc,size_t aKPatSync,const std::string & aName);
-           /// for serialization
+           /// defalut constructor for serialization
            cDataBlocCam();
 
-           /** Compute the index of a sensor inside a bloc, pose must have
-               same index "iff" they are correpond to a position in abloc */
+           /** Compute the index of a sensor inside a bloc, pose have same index "iff" they are correpond to a position in abloc */
            std::string  CalculIdBloc(cSensorCamPC * ) const ;
-           /** Compute the synchronisation index of a sensor, pose must have
-               same index "iff" they are acquired at same time */
+           /** Compute the synchronisation index of a sensor, pose  have same index "iff" they are acquired at same time */
            std::string  CalculIdSync(cSensorCamPC * ) const ;
-           /// it may happen that processing cannot be made
+           /// it may happen that processing cannot be made  (different bloc, or camera outside the bloc)
            bool  CanProcess(cSensorCamPC * ) const ;
-           ///  Local function of serialization, access to private member
+           ///  Local function for serialization, access to private member
            void AddData(const  cAuxAr2007 & anAux);
       private :
            std::string            mName;       ///< Identifier , will be usefull if/when we have several bloc
@@ -133,6 +173,8 @@ class cBlocOfCamera : public cMemCheck
 {
       public :
 	   typedef std::map<std::string,cPoseWithUK> tMapStrPoseUK;
+
+	   /// Add a new sensor to the matrixes
            bool AddSensor(cSensorCamPC *);
 
            void ShowByBloc() const;
