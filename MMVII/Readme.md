@@ -90,3 +90,32 @@ In MMVII/Doc directory:
 
     make
 
+
+Bash completion (beta)
+----------------------
+
+It is possible to have MMVII command completion for Linux bash
+
+- Requires: bash-completion python3
+
+   (Already installed by default on Ubuntu, just in case:  sudo apt install bash-completion python3)
+
+- Configuration:
+  - MMVII must be compiled
+  - MMVII executable must be in your $PATH
+  - Let your ${HOME}/.bashrc source the completion script:
+
+   `[ -f ${HOME}/@MICMAC_SOURCE_DIR@/micmac/MMVII/bash-completion/mmvii-completion ] && . ${HOME}/@MICMAC_SOURCE_DIR@/micmac/MMVII/bash-completion/mmvii-completion ]`
+  - Completion will be active in terminals opened after this modification.
+
+
+vCommand (beta)
+---------------
+There is a GUI tool that can help for writing MMVII command : vMMVII
+
+It will be automatically compiled with MMVII if development package Qt5 (or Qt6) is installed (Ubuntu 22.04: `sudo apt install qtbase5-dev`)
+
+Usage: just type "vMMVII" in your working directory.
+
+- Sorry, no documentation yet
+- This tool is beta: some MMVII parameters may be misinterpreted or not have the good File Dialog helper.
