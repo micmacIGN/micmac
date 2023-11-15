@@ -43,7 +43,7 @@ CmdSelectWidget::~CmdSelectWidget()
 
 static StrList parseCmdLine(const QString& line)
 {
-    enum State {WAIT_ARG, ARG, QUOTED_ARG};
+    enum State {WAIT_ARG, UNQUOTED, UNQUOTED_BACKSLASH, SINGLE_QUOTED, DOUBLE_QUOTED, DOUBLE_QUOTED_BACKSLASH};
     State state = WAIT_ARG;
 
     QString arg;
@@ -54,32 +54,60 @@ static StrList parseCmdLine(const QString& line)
         case WAIT_ARG:
             if (c.isSpace())
                 break;
-            if (c == '"') {
-                state = QUOTED_ARG;
-                break;
+            if (c == '\'') {
+                state = SINGLE_QUOTED;
+            } else if (c == '"') {
+                state = DOUBLE_QUOTED;
+            } else if (c == '\\') {
+                state = UNQUOTED_BACKSLASH;
+            } else {
+                arg += c;
+                state = UNQUOTED;
             }
-            arg += c;
-            state = ARG;
             break;
-        case QUOTED_ARG:
-            if (c == '"') {
-                state = ARG;
-                break;
+        case SINGLE_QUOTED:
+            if (c == '\'') {
+                state = UNQUOTED;
+            } else {
+                arg += c;
             }
-            arg += c;
             break;
-        case ARG:
+        case DOUBLE_QUOTED:
+            if (c == '"') {
+                state = UNQUOTED;
+            } else if (c == '\\') {
+                state = DOUBLE_QUOTED_BACKSLASH;
+            } else {
+                arg += c;
+            }
+            break;
+        case DOUBLE_QUOTED_BACKSLASH:
+            if (c != '$' && c != '`' && c != '"' && c != '\\' && c != '\n')
+                arg += '\\';
+            arg += c;
+            state = DOUBLE_QUOTED;
+            break;
+        case UNQUOTED:
             if (c.isSpace()) {
                 state = WAIT_ARG;
                 args.push_back(arg);
                 arg.clear();
                 break;
             }
-            if (c == '"') {
-                state = QUOTED_ARG;
-                break;
+            if (c == '\'') {
+                state = SINGLE_QUOTED;
+            } else if (c == '"') {
+                state = DOUBLE_QUOTED;
+            } else if (c == '\\') {
+                state = UNQUOTED_BACKSLASH;
+            } else {
+                arg += c;
             }
+            break;
+        case UNQUOTED_BACKSLASH:
             arg += c;
+            state = UNQUOTED;
+            break;
         }
     }
     if (arg.size())
@@ -159,7 +187,9 @@ void CmdSelectWidget::workingDirChanged()
             line.startsWith("Id :") ||
             line.startsWith("begining at") ||
             line.startsWith("beginning at") ||
-            line.startsWith("ending "))
+            line.startsWith("ending ") ||
+            line.startsWith("ABORT ") ||
+            line.startsWith("> "))
             continue;
 
         auto args = parseCmdLine(line);
