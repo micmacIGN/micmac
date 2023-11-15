@@ -504,14 +504,15 @@ class cAppli_BlockCamInit : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
      private :
-        std::string              mSpecImIn;   ///  Pattern or xml file
-        cPhotogrammetricProject  mPhProj;
-	std::string              mPattern;
-	cPt2di                   mNumSub;
+        std::string              mSetInputImages;   /// Pattern or xml file
+        cPhotogrammetricProject  mPhProj;           /// Photogrammetric project manager
+	std::string              mPattern;          /// Pattern to compute identifier
+	cPt2di                   mNumSub;           /// num of sub-expression in pattern
 
 	bool                     mShowByBloc;  ///< Do we show the structure by bloc of image
 	bool                     mShowBySync;  ///< Do we show structure by synchronization
 	std::string              mMaster;      ///< If we enforce the master cam in the bloc
+	std::string              mNameBloc;    ///< The name of the bloc
 };
 
 cAppli_BlockCamInit::cAppli_BlockCamInit
@@ -522,31 +523,38 @@ cAppli_BlockCamInit::cAppli_BlockCamInit
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
      mShowByBloc   (false),
-     mShowBySync   (false)
+     mShowBySync   (false),
+     mNameBloc     ("TheBlocRig")
 {
 }
 
 
+// RB_0_1 : describe the mandatory parameter . For each parameters we must indicate :
+//    - the variable that will be filled
+//    - a short description of its meaning
+//    - optionnaly some description on its semantic
 
 cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
-              <<  Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-              <<  mPhProj.DPOrient().ArgDirInMand()
-              <<  Arg2007(mPattern,"Pattern for images specifing sup expr")
-              <<  Arg2007(mNumSub,"Num of sub expr for x:block and  y:image")
-	      <<  mPhProj.DPRigBloc().ArgDirOutMand()
-           ;
+	   // <<   Arg2007(mSetInputImages,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}) // get images
+	   // <<  mPhProj.DPOrient().ArgDirInMand() // get orient
+	   // <<  Arg2007(mPattern,"Pattern for images specifing sup expr") get pattern describing how we compute bloc/sync Ident 
+	   // <<  Arg2007(mNumSub,"Num of sub expr for x:block and  y:image")// indicate ordering of subpattern (which sub-expression is Ident & Sync)  
+	   // <<  mPhProj.DPRigBloc().ArgDirOutMand()   /// indicate where we will store the calibration
+      ;
 }
 
+// RB_0_1 : describe the optionel parameters, for each parameter we must describe the same info than mandatory + a name
 
 cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
-    return    anArgOpt
-	     << AOpt2007(mShowByBloc,"ShowByBloc","Show structure, grouping pose of same bloc",{{eTA2007::HDV}})
-	     << AOpt2007(mShowBySync,"ShowBySync","Show structure, grouping pose of same camera",{{eTA2007::HDV}})
-	     << AOpt2007(mMaster,"MasterCam","Fix the master cam in the bloc(else arbitrary)")
+    return  anArgOpt
+      // << AOpt2007(mShowByBloc,"ShowByBloc","Show structure, grouping pose of same bloc",{{eTA2007::HDV}})  // do we show the struct by bloc
+      // << AOpt2007(mShowBySync,"ShowBySync","Show structure, grouping pose of same camera",{{eTA2007::HDV}})  // show by sync
+      // << AOpt2007(mMaster,"MasterCam","Fix the master cam in the bloc(else arbitrary)")    // 
+      // << AOpt2007(mNameBloc,"NameBloc","Name of the bloc computed",{{eTA2007::HDV}})    // 
     ;
 }
 
@@ -555,11 +563,13 @@ int cAppli_BlockCamInit::Exe()
     mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
     cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),"toto");
+
     for (const auto & anIm : VectMainSet(0))
     {
 	cSensorCamPC * aCam = mPhProj.ReadCamPC(anIm,true);
 	aBloc.AddSensor(aCam);
     }
+
 
     if (mShowByBloc) aBloc.ShowByBloc();
     if (mShowBySync ) aBloc.ShowBySync();
@@ -583,20 +593,6 @@ int cAppli_BlockCamInit::Exe()
     aBloc.EstimateBlocInit(aNumMaster);
     mPhProj.SaveBlocCamera(aBloc);
 
-    if (0)
-    {
-         aBloc.ToFile("titi.xml");
-         cBlocOfCamera * aBL = cBlocOfCamera::FromFile("titi.xml");
-
-         for (const auto & anIm : VectMainSet(0))
-         {
-	      cSensorCamPC * aCam = mPhProj.ReadCamPC(anIm,true);
-	      aBL->AddSensor(aCam);
-         }
-
-	 delete aBL;
-    }
-
 
     StdOut()  << " NumMaster " <<  aNumMaster  << std::endl;
     return EXIT_SUCCESS;
@@ -608,7 +604,20 @@ int cAppli_BlockCamInit::Exe()
 /*                                                      */
 /* ==================================================== */
 
+//  RB_0_0
+//
+//   We must : 
+//     *  describe a way to allocate an application without knowing the class
+//     * make a minimal specification of the command
+//          - it name
+//          - make a short description as text
+//          - indicate to whih group of command it belongs
+//          - indicate which kind of data are input
+//          - indicate which king of data are output
+//          - indictae the file where the command is written (usefull for devloper)
+//
 
+/*
 tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
    return tMMVII_UnikPApli(new cAppli_BlockCamInit(aVArgs,aSpec));
@@ -616,16 +625,15 @@ tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,cons
 
 cSpecMMVII_Appli  TheSpec_BlockCamInit
 (
-     "BlockCamInit",
-      Alloc_BlockCamInit,
-      "Initialisation of bloc camera",
-      {eApF::GCP,eApF::Ori},
-      {eApDT::Orient},
-      {eApDT::Xml},
-      __FILE__
+      "NameCommand",
+      Allocator,
+      "Comment"   
+      {eApF::?},     
+      {eApDT::?},    Which data are in put
+      {eApDT::Xml},   which data are output
+       In which  File  is located this command
 );
 
-/*
 */
 
 
