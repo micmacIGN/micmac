@@ -9,11 +9,14 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+endif(CCACHE_FOUND)
+
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} QUIET OPTIONAL_COMPONENTS LinguistTools)
-
-set(TS_FILES vMMVII_fr_FR.ts)
 
 set(PROJECT_SOURCES
     actionbox.h
@@ -49,20 +52,10 @@ set(PROJECT_SOURCES
     TODO
 )
 
-if(Qt${QT_VERSION_MAJOR}LinguistTools_FOUND)
-    LIST(APPEND PROJECT_SOURCES ${TS_FILES})
-endif()
-
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(vMMVII MANUAL_FINALIZATION ${PROJECT_SOURCES})
-    if(Qt${QT_VERSION_MAJOR}LinguistTools_FOUND)
-         qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
-    endif()
 else()
     add_executable(vMMVII ${PROJECT_SOURCES})
-    if(Qt${QT_VERSION_MAJOR}LinguistTools_FOUND)
-        qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
-    endif()
 endif()
 
 target_link_libraries(vMMVII PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
