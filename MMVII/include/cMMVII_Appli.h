@@ -440,6 +440,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         virtual int Exe() = 0;              ///< Do the "real" job
         virtual int ExeOnParsedBox(); ///< Action to exec for each box, When the appli parse a big file , def error
 
+        void LogCommandAbortOnError(std::string &aMessage);  ///< Used in MMVII_errors.cpp to log error message in main log
 
         virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
         bool ModeHelp() const;              ///< If we are in help mode, don't execute

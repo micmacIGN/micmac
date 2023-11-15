@@ -1112,8 +1112,28 @@ void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
 {
    cMMVII_Ofs  aOfs(aName,eFileModeOut::AppendText);
    // Add id, if several process were throw in // there is a mix and we no longer know which was closed
-   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  << "(Id=" << mPrefixNameAppli << ")\n\n";
+   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  << " (Id=" << mPrefixNameAppli << ")\n\n";
    aOfs.Ofs().close();
+}
+
+
+void cMMVII_Appli::LogCommandAbortOnError(std::string& aMessage)
+{
+   for (const auto& aLogName : {mFileLogTop, NameFileLog(false)})
+   {
+      cMMVII_Ofs  aOfs(aLogName,eFileModeOut::AppendText);
+      aOfs.Ofs() << "  ABORT on error at : " <<  StrDateCur()  << " (Id=" << mPrefixNameAppli << ")\n";
+      bool nl = true;
+      for (const auto& c: aMessage)
+      {
+         if (nl)
+            aOfs.Ofs() << "  > ";
+         aOfs.Ofs() << c;
+         nl = c == '\n';
+      }
+      aOfs.Ofs() << std::endl;
+      aOfs.Ofs().close();
+   }
 }
 
 
