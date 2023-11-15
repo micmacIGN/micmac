@@ -103,7 +103,7 @@ It is possible to have MMVII command completion for Linux bash
 - Configuration:
   - MMVII must be compiled
   - MMVII executable must be in your $PATH
-  - Let your ${HOME}/.bashrc source the completion script:
+  - Add to your ${HOME}/.bashrc the following line:
 
    `[ -f ${HOME}/@MICMAC_SOURCE_DIR@/micmac/MMVII/bash-completion/mmvii-completion ] && . ${HOME}/@MICMAC_SOURCE_DIR@/micmac/MMVII/bash-completion/mmvii-completion ]`
   - Completion will be active in terminals opened after this modification.
