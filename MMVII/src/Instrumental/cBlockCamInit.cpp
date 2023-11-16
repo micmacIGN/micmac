@@ -537,11 +537,12 @@ cAppli_BlockCamInit::cAppli_BlockCamInit
 cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
-	   // <<   Arg2007(mSetInputImages,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}) // get images
-	   // <<  mPhProj.DPOrient().ArgDirInMand() // get orient
-	   // <<  Arg2007(mPattern,"Pattern for images specifing sup expr") get pattern describing how we compute bloc/sync Ident 
-	   // <<  Arg2007(mNumSub,"Num of sub expr for x:block and  y:image")// indicate ordering of subpattern (which sub-expression is Ident & Sync)  
-	   // <<  mPhProj.DPRigBloc().ArgDirOutMand()   /// indicate where we will store the calibration
+	        <<   Arg2007(mSetInputImages,"Pattern/file for images")
+	    // get images
+	    // get orient
+	    // get pattern describing how we compute bloc/sync Ident 
+	    // indicate ordering of subpattern (which sub-expression is Ident & Sync)  
+	    // indicate where we will store the calibration
       ;
 }
 
@@ -551,33 +552,32 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
     return  anArgOpt
-      // << AOpt2007(mShowByBloc,"ShowByBloc","Show structure, grouping pose of same bloc",{{eTA2007::HDV}})  // do we show the struct by bloc
-      // << AOpt2007(mShowBySync,"ShowBySync","Show structure, grouping pose of same camera",{{eTA2007::HDV}})  // show by sync
-      // << AOpt2007(mMaster,"MasterCam","Fix the master cam in the bloc(else arbitrary)")    // 
-      // << AOpt2007(mNameBloc,"NameBloc","Name of the bloc computed",{{eTA2007::HDV}})    // 
+       // fill "mShowByBloc"  do we show the struct by bloc
+       // fill "mShowBySync"  ShowBySyncShow structure, grouping pose of same camera
+       // fill "mMaster"   Fix the master cam in the bloc(else arbitrary)
+       // fill "mNameBloc"  Name of the bloc computed
     ;
 }
 
 int cAppli_BlockCamInit::Exe()
 {
-    mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
+    // mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
-    cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),"toto");
-
-    for (const auto & anIm : VectMainSet(0))
-    {
-	cSensorCamPC * aCam = mPhProj.ReadCamPC(anIm,true);
-	aBloc.AddSensor(aCam);
-    }
+    // create a bloc of camera "cBlocOfCamera"  (with pattern ...)
 
 
-    if (mShowByBloc) aBloc.ShowByBloc();
-    if (mShowBySync ) aBloc.ShowBySync();
+    //  parse all images : create the sensor and add it  to the bloc
 
-    aBloc.StatAllCples(this);
+ 
+    // eventually show the bloc structure
+    // if (mShowByBloc) aBloc.ShowByBloc();  
+    // if (mShowBySync ) aBloc.ShowBySync();
 
+    // Show the statistics 
+    // aBloc.StatAllCples(this);
+
+    /*  Fix the master bloc if specicied by user
     int aNumMaster = 0; // arbitrary if not specified
-
     if (IsInit(&mMaster))  // IsInit(void*) => indicate if a value was set by user
     {
         aNumMaster = aBloc.NumInBloc(mMaster,true); // true=SVP, becausewe handle ourself the case dont exist
@@ -589,12 +589,17 @@ int cAppli_BlockCamInit::Exe()
             MMVII_UnclasseUsEr("Name master = " +mMaster + " is not an existing bloc");
         }
     }
-
-    aBloc.EstimateBlocInit(aNumMaster);
-    mPhProj.SaveBlocCamera(aBloc);
-
-
     StdOut()  << " NumMaster " <<  aNumMaster  << std::endl;
+    */
+
+    //  Do the estimation of calibration
+    //  aBloc.EstimateBlocInit(aNumMaster);
+
+    //  Save the block of camera
+    //  mPhProj.SaveBlocCamera(aBloc);
+
+
+    
     return EXIT_SUCCESS;
 }                                       
 
@@ -617,6 +622,23 @@ int cAppli_BlockCamInit::Exe()
 //          - indictae the file where the command is written (usefull for devloper)
 //
 
+tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_BlockCamInit(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_BlockCamInit
+(
+      "BlockCamInit",
+      Alloc_BlockCamInit,
+      "Compute and save the calibration of rigid bloc",
+      {eApF::Ori},
+      {eApDT::Ori},
+      {eApDT::Xml},
+      __FILE__
+);
+
+
 /*
 tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
@@ -633,10 +655,7 @@ cSpecMMVII_Appli  TheSpec_BlockCamInit
       {eApDT::Xml},   which data are output
        In which  File  is located this command
 );
-
 */
-
-
 
 
 }; // MMVII
