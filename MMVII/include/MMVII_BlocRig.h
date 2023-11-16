@@ -194,7 +194,14 @@ class cBlocOfCamera : public cMemCheck
 
            cSensorCamPC *  CamKSyncKInBl(size_t aKInBloc,size_t aKSync) const;
 
+	   /** Given to number in a bloc : compute the average relative orientation, 
+	    * optionnaly out in report :
+	           - the detail of each result if Appli is given
+		   - the std deviation
+           */
            tPoseR  EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli * anAppli,const std::string & aReportGlob);
+
+	   /// Do the stat for all pair by calling EstimatePoseRel1Cple 
            void    StatAllCples (cMMVII_Appli * anAppli);
 
            void EstimateBlocInit(size_t aKMaster);

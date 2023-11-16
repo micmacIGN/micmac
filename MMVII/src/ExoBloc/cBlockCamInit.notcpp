@@ -325,70 +325,84 @@ bool cBlocOfCamera::AddSensor(cSensorCamPC * aCam)
 
 tPoseR  cBlocOfCamera::EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli * anAppli,const std::string & anIdReportGlob)
 {
-return tPoseR{} ;  // Fake return, just to compile
-    
-    //  extract the name of the 2 bloc
+    std::string aNB1 = NameKthInBloc(aKB1);
+    std::string aNB2 = NameKthInBloc(aKB2);
+    std::string  anIdReport =  "Detail_" +  NameKthInBloc(aKB1)  + "_" +   NameKthInBloc(aKB2) ;
 
     if (anAppli)
     {
-         //  create an identifier for report on  bloc1 and bloc2
-	 //  Init the raport
-	 //  Add one header  "SyncId","x","y","z","w","p","k"
+        anAppli->InitReport(anIdReport,"csv",false);
+        anAppli->AddOneReportCSV(anIdReport,{"SyncId","x","y","z","w","p","k"});
     }
 
-    // ============= [1]  Compute, for all relative orientation, average of Translation and rotation
+    cPt3dr aSomTr;  //  average off translation
 
-    //  cPt3dr aAvgTr = cPt3dr::PCste(0.0);  => accumulate som of translatio,
-    // cDenseMatrix<tREAL8> aAvgMat(3,3,eModeInitImage::eMIA_Null);  => accumulate sum of translation matrixes
-    int aNbOk = 0; //  count the number of pair where we could make the computation
+    cPt3dr aAvgTr = cPt3dr::PCste(0.0);
+    cDenseMatrix<tREAL8> aAvgMat(3,3,eModeInitImage::eMIA_Null);
+    int aNbOk = 0;
 
-    // for (size_t aKC=0 ; aKC<NbSync() ; aKC++) // parse all pair timee
+    for (size_t aKC=0 ; aKC<NbSync() ; aKC++)
     {
-        // extract Cam1 and Cam2
-         // if  they are not null
+         cSensorCamPC * aCam1 =  CamKSyncKInBl(aKC,aKB1);
+         cSensorCamPC * aCam2 =  CamKSyncKInBl(aKC,aKB2);
+         if (aCam1 &&  aCam2)
          {
-            // compute relative pose
+            tPoseR  aP2To1 =  aCam1->RelativePose(*aCam2);
+	    cPt3dr aTr = aP2To1.Tr();
+            cRotation3D<tREAL8>  aRot = aP2To1.Rot();
 
-            // sum translation and rotation
+            aAvgTr += aTr;
+	    aAvgMat = aAvgMat + aRot.Mat();
+            aNbOk++;
 
-            // eventually make a report
+            cPt3dr aWPK = aRot.ToWPK();
+
+	    std::vector<std::string>  aVReport{
+                                              NameKthSync(aKC),
+                                              ToStr(aTr.x()),ToStr(aTr.y()),ToStr(aTr.z()),
+		                              ToStr(aWPK.x()),ToStr(aWPK.y()),ToStr(aWPK.z())
+	                                   };
+	     if (anAppli)
+                anAppli->AddOneReportCSV(anIdReport,aVReport);
 	 }
      }
 
-     // if no pair OK we cannot compute an average
      if (aNbOk==0)
      {
-         // MMVII_UnclasseUsEr("No pair of image found fof bloc with Ids :" + aNB1 + " " + aNB2 );
+         MMVII_UnclasseUsEr("No pair of image found fof bloc with Ids :" + aNB1 + " " + aNB2 );
      }
-     // aAvgTr =  aAvgTr / tREAL8(aNbOk);
-     // aAvgMat = aAvgMat * (1.0/tREAL8(aNbOk));
-     // cRotation3D<tREAL8>  aAvgRot(aAvgMat,true);
-    
-    // ============= [2]  Compute, standard deviati,on
 
+     aAvgTr =  aAvgTr / tREAL8(aNbOk);
+     aAvgMat = aAvgMat * (1.0/tREAL8(aNbOk));
+     cRotation3D<tREAL8>  aAvgRot(aAvgMat,true);
 
-     // tREAL8 aSigmTr  = 0;  som of square dif for translation
-     // tREAL8 aSigmRot = 0;  som of square dif for rotation
+     tREAL8 aSigmTr  = 0;
+     tREAL8 aSigmRot = 0;
 
-     // for (size_t aKC=0 ; aKC<NbSync() ; aKC++)
+     for (size_t aKC=0 ; aKC<NbSync() ; aKC++)
      {
-        // extract Cam1 and Cam2
-         // if  they are not null
+         cSensorCamPC * aCam1 =  CamKSyncKInBl(aKC,aKB1);
+         cSensorCamPC * aCam2 =  CamKSyncKInBl(aKC,aKB2);
+         if (aCam1 &&  aCam2)
          {
-		 // Add the square difference to tran& rotation average
+	     tPoseR  aP2To1 =  aCam1->RelativePose(*aCam2);
+	     aSigmTr +=  SqN2(aAvgTr-aP2To1.Tr());
+
+	     aSigmRot += aAvgRot.Mat().SqL2Dist(aP2To1.Rot().Mat());
 	 }
      }
 
-     // std::string sSigmTr  = (aNbOk>1) ? ToStr(std::sqrt( aSigmTr/tREAL8(aNbOk-1))) : "xxxx" ;
-     // std::string sSigmRot = (aNbOk>1) ? ToStr(std::sqrt(aSigmRot/tREAL8(aNbOk-1))) : "xxxx" ;
-     // StdOut() << " STr=" << sSigmTr << " SRot=" << sSigmRot << std::endl;
+     std::string sSigmTr  = (aNbOk>1) ? ToStr(std::sqrt( aSigmTr/tREAL8(aNbOk-1))) : "xxxx" ;
+     std::string sSigmRot = (aNbOk>1) ? ToStr(std::sqrt(aSigmRot/tREAL8(aNbOk-1))) : "xxxx" ;
 
-     if ((anIdReportGlob!="") && anAppli)
+     StdOut() << " STr=" << sSigmTr << " SRot=" << sSigmRot << std::endl;
+
+     if (anIdReportGlob!="")
      {
-        // anAppli->AddOneReportCSV(anIdReportGlob,{aNB1,aNB2,sSigmTr,sSigmRot});
+        anAppli->AddOneReportCSV(anIdReportGlob,{aNB1,aNB2,sSigmTr,sSigmRot});
      }
      
-     // return tPoseR(aAvgTr,aAvgRot);
+     return tPoseR(aAvgTr,aAvgRot);
 }
 
 void  cBlocOfCamera::StatAllCples(cMMVII_Appli * anAppli)
@@ -490,15 +504,14 @@ class cAppli_BlockCamInit : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
      private :
-        std::string              mSetInputImages;   /// Pattern or xml file
-        cPhotogrammetricProject  mPhProj;           /// Photogrammetric project manager
-	std::string              mPattern;          /// Pattern to compute identifier
-	cPt2di                   mNumSub;           /// num of sub-expression in pattern
+        std::string              mSpecImIn;   ///  Pattern or xml file
+        cPhotogrammetricProject  mPhProj;
+	std::string              mPattern;
+	cPt2di                   mNumSub;
 
 	bool                     mShowByBloc;  ///< Do we show the structure by bloc of image
 	bool                     mShowBySync;  ///< Do we show structure by synchronization
 	std::string              mMaster;      ///< If we enforce the master cam in the bloc
-	std::string              mNameBloc;    ///< The name of the bloc
 };
 
 cAppli_BlockCamInit::cAppli_BlockCamInit
@@ -509,61 +522,52 @@ cAppli_BlockCamInit::cAppli_BlockCamInit
      cMMVII_Appli  (aVArgs,aSpec),
      mPhProj       (*this),
      mShowByBloc   (false),
-     mShowBySync   (false),
-     mNameBloc     ("TheBlocRig")
+     mShowBySync   (false)
 {
 }
 
 
-// RB_0_1 : describe the mandatory parameter . For each parameters we must indicate :
-//    - the variable that will be filled
-//    - a short description of its meaning
-//    - optionnaly some description on its semantic
 
 cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
-	        <<   Arg2007(mSetInputImages,"Pattern/file for images")
-	    // get images
-	    // get orient
-	    // get pattern describing how we compute bloc/sync Ident 
-	    // indicate ordering of subpattern (which sub-expression is Ident & Sync)  
-	    // indicate where we will store the calibration
-      ;
+              <<  Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+              <<  mPhProj.DPOrient().ArgDirInMand()
+              <<  Arg2007(mPattern,"Pattern for images specifing sup expr")
+              <<  Arg2007(mNumSub,"Num of sub expr for x:block and  y:image")
+	      <<  mPhProj.DPRigBloc().ArgDirOutMand()
+           ;
 }
 
-// RB_0_1 : describe the optionel parameters, for each parameter we must describe the same info than mandatory + a name
 
 cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
-    return  anArgOpt
-       // fill "mShowByBloc"  do we show the struct by bloc
-       // fill "mShowBySync"  ShowBySyncShow structure, grouping pose of same camera
-       // fill "mMaster"   Fix the master cam in the bloc(else arbitrary)
-       // fill "mNameBloc"  Name of the bloc computed
+    return    anArgOpt
+	     << AOpt2007(mShowByBloc,"ShowByBloc","Show structure, grouping pose of same bloc",{{eTA2007::HDV}})
+	     << AOpt2007(mShowBySync,"ShowBySync","Show structure, grouping pose of same camera",{{eTA2007::HDV}})
+	     << AOpt2007(mMaster,"MasterCam","Fix the master cam in the bloc(else arbitrary)")
     ;
 }
 
 int cAppli_BlockCamInit::Exe()
 {
-    // mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
+    mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
-    // create a bloc of camera "cBlocOfCamera"  (with pattern ...)
+    cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),"toto");
+    for (const auto & anIm : VectMainSet(0))
+    {
+	cSensorCamPC * aCam = mPhProj.ReadCamPC(anIm,true);
+	aBloc.AddSensor(aCam);
+    }
 
+    if (mShowByBloc) aBloc.ShowByBloc();
+    if (mShowBySync ) aBloc.ShowBySync();
 
-    //  parse all images : create the sensor and add it  to the bloc
+    aBloc.StatAllCples(this);
 
- 
-    // eventually show the bloc structure
-    // if (mShowByBloc) aBloc.ShowByBloc();  
-    // if (mShowBySync ) aBloc.ShowBySync();
-
-    // Show the statistics 
-    // aBloc.StatAllCples(this);
-
-    /*  Fix the master bloc if specicied by user
     int aNumMaster = 0; // arbitrary if not specified
+
     if (IsInit(&mMaster))  // IsInit(void*) => indicate if a value was set by user
     {
         aNumMaster = aBloc.NumInBloc(mMaster,true); // true=SVP, becausewe handle ourself the case dont exist
@@ -575,17 +579,26 @@ int cAppli_BlockCamInit::Exe()
             MMVII_UnclasseUsEr("Name master = " +mMaster + " is not an existing bloc");
         }
     }
+
+    aBloc.EstimateBlocInit(aNumMaster);
+    mPhProj.SaveBlocCamera(aBloc);
+
+    if (0)
+    {
+         aBloc.ToFile("titi.xml");
+         cBlocOfCamera * aBL = cBlocOfCamera::FromFile("titi.xml");
+
+         for (const auto & anIm : VectMainSet(0))
+         {
+	      cSensorCamPC * aCam = mPhProj.ReadCamPC(anIm,true);
+	      aBL->AddSensor(aCam);
+         }
+
+	 delete aBL;
+    }
+
+
     StdOut()  << " NumMaster " <<  aNumMaster  << std::endl;
-    */
-
-    //  Do the estimation of calibration
-    //  aBloc.EstimateBlocInit(aNumMaster);
-
-    //  Save the block of camera
-    //  mPhProj.SaveBlocCamera(aBloc);
-
-
-    
     return EXIT_SUCCESS;
 }                                       
 
@@ -595,18 +608,6 @@ int cAppli_BlockCamInit::Exe()
 /*                                                      */
 /* ==================================================== */
 
-//  RB_0_0
-//
-//   We must : 
-//     *  describe a way to allocate an application without knowing the class
-//     * make a minimal specification of the command
-//          - it name
-//          - make a short description as text
-//          - indicate to whih group of command it belongs
-//          - indicate which kind of data are input
-//          - indicate which king of data are output
-//          - indictae the file where the command is written (usefull for devloper)
-//
 
 tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
@@ -615,33 +616,19 @@ tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,cons
 
 cSpecMMVII_Appli  TheSpec_BlockCamInit
 (
-      "BlockCamInit",
+     "BlockCamInit",
       Alloc_BlockCamInit,
-      "Compute and save the calibration of rigid bloc",
-      {eApF::Ori},
-      {eApDT::Ori},
+      "Initialisation of bloc camera",
+      {eApF::GCP,eApF::Ori},
+      {eApDT::Orient},
       {eApDT::Xml},
       __FILE__
 );
 
-
 /*
-tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_BlockCamInit(aVArgs,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpec_BlockCamInit
-(
-      "NameCommand",
-      Allocator,
-      "Comment"   
-      {eApF::?},     
-      {eApDT::?},    Which data are in put
-      {eApDT::Xml},   which data are output
-       In which  File  is located this command
-);
 */
+
+
 
 
 }; // MMVII
