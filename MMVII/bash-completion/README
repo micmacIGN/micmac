@@ -1,8 +1,0 @@
-- Requires: bash-completion python3
-   Ubuntu: sudo apt install bash-completion python3
-
-- Install:
-  Add this line in your ~/.bashrc (modify the two paths as needed ...) :
-[ -f ~/micmac/MMVII/bash-completion/mmvii-completion ] && . ~/micmac/MMVII/bash-completion/mmvii-completion
-
-- Nota: this will only works if the MMVII executable is in the PATH !

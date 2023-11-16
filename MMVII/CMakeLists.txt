@@ -139,6 +139,20 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 #######################################################
+##        Compile vMMVII if Qt is found
+#######################################################
+find_package(QT NAMES Qt5 Qt6 QUIET OPTIONAL_COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} QUIET OPTIONAL_COMPONENTS Widgets)
+
+if(Qt${QT_VERSION_MAJOR}Widgets_FOUND)
+  message(STATUS "Qt${QT_VERSION_MAJOR} found. Will compile vMMVII")
+  add_subdirectory(vMMVII)
+else()
+  message(STATUS "Qt not found. vMMVII will not be compiled")
+endif()
+
+
+#######################################################
 ##        target distclean : remove generated code
 #######################################################
 add_custom_target(distclean
