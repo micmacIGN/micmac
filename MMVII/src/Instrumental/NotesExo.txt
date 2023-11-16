@@ -1,0 +1,20 @@
+RB_0_0
+
+tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_BlockCamInit(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_BlockCamInit
+(
+      "BlocInit",
+      Alloc_BlockCamInit,
+      "Comment"   
+      {eApF::Ori},     
+      {eApDT::Ori},  
+      {eApDT::Xml}, 
+      __FILE__
+);
+
+
+
