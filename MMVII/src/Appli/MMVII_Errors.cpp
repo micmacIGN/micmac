@@ -13,20 +13,22 @@ void Default_MMVII_Error(const std::string & aType,const std::string &  aMes,con
     std::cerr.flush();
     StdOut().flush();
     ErrOut() << "\n\n ######################################""\n" << std::endl;
-    ErrOut() << "Level=[" << aType << "]" << std::endl;
-    ErrOut() << "Mes=[" << aMes << "]"<< std::endl;
+    std::string errorMsg = "Level=[" + aType + "]\n";
+    errorMsg +=  "Mes=[" + aMes + "]\n";
     if (aFile)
-       ErrOut() << "at line  " << aLine << " of file " << aFile  << std::endl;
+        errorMsg += "at line  " + std::to_string(aLine) + " of file "  + aFile  + "\n";
+    ErrOut() << errorMsg;
     ErrOut().flush();
 
     cSpecMMVII_Appli::ShowCmdArgs();        // Writes to std::cout ..
     std::cout.flush();
     std::fflush(nullptr);                   // flush all open files
 
-    if (!cMMVII_Appli::ExistAppli())
+    if (cMMVII_Appli::ExistAppli())
     {
-        abort();
+        cMMVII_Appli::CurrentAppli().LogCommandAbortOnError(errorMsg);
     }
+
     abort();
 }
 

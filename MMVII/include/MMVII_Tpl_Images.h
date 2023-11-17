@@ -441,18 +441,18 @@ template<class T1> tREAL8  cDataIm1D<T1>::AvgInterv(int aX0,int aX1) const
 /*****************************************************/
 
 template<class T,int Dim>
-   void NormalizedAvgDev(cDataTypedIm<T,Dim> & aIm,tREAL8 aEpsilon)
+   void NormalizedAvgDev(cDataTypedIm<T,Dim> & aIm,tREAL8 aEpsilon,tREAL8 aMul=1.0)
 {
     cComputeStdDev<tREAL8>  aCSD;
     for (int aK=0 ; aK<aIm.NbElem() ; aK++)
     {
-        aCSD.Add(aIm.GetRDL(aK),1.0);
+        aCSD.Add(1.0,aIm.GetRDL(aK));
     }
     aCSD = aCSD.Normalize(aEpsilon);
     for (int aK=0 ; aK<aIm.NbElem() ; aK++)
     {
         T& aV = aIm.GetRDL(aK);
-        aV = aCSD.NormalizedVal(aV);
+        aV = aCSD.NormalizedVal(aV) * aMul;
     }
 }
 

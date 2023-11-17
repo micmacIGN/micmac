@@ -82,6 +82,7 @@ extern cSpecMMVII_Appli  TheSpecRename;
 extern cSpecMMVII_Appli  TheSpec_V2ImportCalib;
 extern cSpecMMVII_Appli  TheSpec_ImportOri;
 extern cSpecMMVII_Appli  TheSpecDicoRename;
+extern cSpecMMVII_Appli  TheSpec_SimulDispl;
 
 
 };
