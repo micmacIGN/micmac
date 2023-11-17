@@ -425,13 +425,13 @@ void cBlocOfCamera::EstimateBlocInit(size_t aKMaster)
 {
     mData.mMaster = NameKthInBloc(aKMaster);
 
-    std::vector<tPoseR> aVP;
+    // std::vector<tPoseR> aVP;
 
     for (size_t aKInB=0 ;  aKInB<NbInBloc() ; aKInB++)
     {
         std::string aName = NameKthInBloc(aKInB);
         tPoseR  aPose =  EstimatePoseRel1Cple(aKMaster,aKInB,nullptr,"");
-	aVP.push_back(aPose);
+	// aVP.push_back(aPose);
 	mData.mMapPoseInBloc[aName] = aPose;
     }
 

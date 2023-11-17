@@ -39,7 +39,7 @@ class cBlocOfCamera;      //  the bloc of camera itself
  *        mMatBlocSync -> [ [Ima1,Ima2,Ima3,Ima4,Ima5] .... [..Imc5] ]  , for representing a same position across time
  *
  *   For easy creation of the structure, the matrix contains  mMapInt2Id that compute correspondance between string and 
- *   number (a<=>0, b<=>1 , ...).
+ *   number ("a"<=>0, "b"<=>1 , ...).
  *
  *    "cDataBlocCam" contains the data  that allow to construct & save the bloc , essantially :
  *
@@ -61,7 +61,7 @@ class cBlocOfCamera;      //  the bloc of camera itself
  *
  *        * refine by global optimization the value of a bloc 
  *
- *        * use a calibrated bloc 
+ *        * use a calibrated bloc as a constraint
  */
 
 
@@ -99,13 +99,15 @@ class cSetSensSameId
 class cBlocMatrixSensor
 {
       public :
-           /// Number of identifier in the bloc
+           /// Number of identifier in the bloc, may exist even when bloc is empty
            size_t SetCapacity() const;
 
-           size_t NbSet() const;
+	   ///  number of set
+           size_t NbSet() const;  
+	   /// size of each set
            size_t NbInSet() const;
-           const std::string & NameKthSet(size_t) const;
-           // const std::string & NameKthInSet(size_t) const;
+	   /// name of kth set  (acces to "Id()" of  Kth "cSetSensSameId")
+           const std::string & NameKthSet(size_t aKth) const;
 
            /// return the num of the set associated to a string (possibly new)
            size_t NumStringCreate(const std::string &) ;
@@ -120,10 +122,12 @@ class cBlocMatrixSensor
            /// Show the structure, tuning process
            void ShowMatrix() const;
 
-           /// extract the camera for a given "Num Of Set" and a given "Num inside set"
+           /// extract the camera for a given "Num Of Set" and a given "Num inside set", reference so can fill the matrix
            cSensorCamPC* &  GetCam(size_t aNumSet,size_t aNumInSet);
+	   /// const version of above
            cSensorCamPC*  GetCam(size_t aNumSet,size_t aNumInSet) const;
 
+	   /// Acces to Kth set
            const cSetSensSameId &  KthSet(size_t aKth) const;
       private :
            size_t                        mMaxSzSet;  ///< max number of element in Set
@@ -135,11 +139,10 @@ class cBlocMatrixSensor
 class cDataBlocCam
 {
       public :
-
-
+           /// dont use friend generally, but "cDataBlocCam" is just a helper for "cBlocOfCamera"
            friend class cBlocOfCamera;
 
-           typedef std::map<std::string,tPoseR> tMapStrPose;
+	   typedef std::map<std::string,cPoseWithUK> tMapStrPoseUK;
 
 	   /// contructor allow to compute identifier time/bloc + Name of the bloc
            cDataBlocCam(const std::string & aPattern,size_t aKPatBloc,size_t aKPatSync,const std::string & aName);
@@ -155,12 +158,12 @@ class cDataBlocCam
            ///  Local function for serialization, access to private member
            void AddData(const  cAuxAr2007 & anAux);
       private :
-           std::string            mName;       ///< Identifier , will be usefull if/when we have several bloc
-           std::string            mPattern;    ///< Regular expression for extracting "BlocId/SyncId"
-           size_t                 mKPatBloc;   ///< Num of sub-expression that contain the CamId
-           size_t                 mKPatSync;   ///< Num of sub-expression that contain the sync-id
-           std::string            mMaster;     ///<  Name of master cam
-           tMapStrPose            mMapPoseInBloc;    ///<  Map  IdCam -> PoseRel 
+           std::string       mName;            ///< Identifier , will be usefull if/when we have several bloc
+           std::string       mPattern;         ///< Regular expression for extracting "BlocId/SyncId"
+           size_t            mKPatBloc;        ///< Num of sub-expression that contain the CamId
+           size_t            mKPatSync;        ///< Num of sub-expression that contain the sync-id
+           std::string       mMaster;          ///<  Name of master cam
+           tMapStrPoseUK     mMapPoseUKInBloc; ///<  Map  IdCam -> PoseRel 
 };
 
 ///  Global function with standard interface  required for serialization => just call member
@@ -172,26 +175,34 @@ void AddData(const  cAuxAr2007 & anAux,cDataBlocCam & aBloc) ;
 class cBlocOfCamera : public cMemCheck
 {
       public :
+           typedef std::map<std::string,tPoseR> tMapStrPose;
 	   typedef std::map<std::string,cPoseWithUK> tMapStrPoseUK;
 
 	   /// Add a new sensor to the matrixes
            bool AddSensor(cSensorCamPC *);
 
-           void ShowByBloc() const;
-           void ShowBySync() const;
+           void ShowByBloc() const;  /// show matrixial organozation by bloc
+           void ShowBySync() const;  /// show matricial organization by time
+
+	   /// construct a bloc, empty for now
            cBlocOfCamera(const std::string & aPattern,size_t aKBloc,size_t aKSync,const std::string & aName);
+	   /// destructor (do nothing at time being)
            ~cBlocOfCamera();
 
-           size_t  NbInBloc() const;
-           size_t  NbSync() const;
-           // Number of NbInBloc pre-allocated
+           size_t  NbInBloc() const;  ///< Number of camera in a bloc
+           size_t  NbSync() const;    ///< Number of synchronization
+           // Number of NbInBloc pre-allocated, can be < NbInBloc, when not all poses added
            size_t BlocCapacity() const;
 
+	   /// For of bloc id, return its number;- if dont exist : -1 if SVP, error else
            int NumInBloc(const std::string &,bool SVP=false)  const;
 
+	   /// name of Kth in bloc
            const std::string & NameKthInBloc(size_t) const;
+	   /// name of  Kth sync
            const std::string & NameKthSync(size_t) const;
 
+	   ///  return sensor at given KInBloc/KSync, can be nullptr if no cam at this position
            cSensorCamPC *  CamKSyncKInBl(size_t aKInBloc,size_t aKSync) const;
 
 	   /** Given to number in a bloc : compute the average relative orientation, 
@@ -203,8 +214,9 @@ class cBlocOfCamera : public cMemCheck
 
 	   /// Do the stat for all pair by calling EstimatePoseRel1Cple 
            void    StatAllCples (cMMVII_Appli * anAppli);
-
+           /// Make an estimation all pose relative to given master, and save it internally
            void EstimateBlocInit(size_t aKMaster);
+
            /// Standard interface to write an object
            void ToFile(const std::string &) const;
            /// Standard interface to create an object
@@ -220,9 +232,15 @@ class cBlocOfCamera : public cMemCheck
 	   const std::string &  NameMaster() const  ;
 
 	   ///  Acces  to unknowns pose of bloc
-           tMapStrPoseUK& MapStrPoseUK();
+	   tMapStrPoseUK& MapStrPoseUK();
 
-           cPoseWithUK &  PoseOfIdBloc(size_t);
+	   ///  Acces  to unknowns pose of a given id
+           cPoseWithUK &  PoseUKOfNumBloc(size_t);
+	   ///  Acces  to unknowns pose of a given id
+           cPoseWithUK &  PoseUKOfIdBloc(const std::string&) ;
+
+	   /// A function, that illustrate the read/write possibility once object is serialized
+	   void TestReadWrite(bool DoDelete) const;
 
       private :
            cBlocOfCamera();
@@ -233,8 +251,8 @@ class cBlocOfCamera : public cMemCheck
            cDataBlocCam                  mData;             ///< Data part,
            cBlocMatrixSensor             mMatSyncBloc;      ///< Matrix [IdSync][IdBloc]  -->  cSensorCamPC*
            cBlocMatrixSensor             mMatBlocSync;      ///< Matrix [IdBloc][IdSync]  -->  cSensorCamPC*
-	   tMapStrPoseUK                 mMapPoseInBlUK;    ///< Map Name-> Unknown Pose
-	   std::vector<cPoseWithUK*>     mVecPUK;           ///< point to mMapPoseInBlUK for direct access from int
+	   tMapStrPose                   mMapPoseInit;    ///< Map Name-> Unknown Pose
+	   //std::vector<cPoseWithUK*>     mVecPUK;           ///< point to mMapPoseInBlUK for direct access from int
 };
 
 
