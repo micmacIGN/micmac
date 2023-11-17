@@ -522,8 +522,13 @@ template<class Type> class cTriangulation2D : public cTriangulation<Type,2>
 	   /// create by flatening to z=0 the points
            cTriangulation2D(const cTriangulation<Type,3>&);
            cTriangulation2D(const std::string &);
-	   void  MakeDelaunay();
-	public :
+           void WriteFile(const std::string &,bool isBinary) const;
+
+       void  MakeDelaunay();
+
+    private :
+       void PlyWrite(const std::string &,bool isBinary) const;
+
 };
 
 

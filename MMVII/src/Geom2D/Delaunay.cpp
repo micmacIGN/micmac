@@ -770,6 +770,40 @@ template<class Type>  cTriangulation2D<Type>::cTriangulation2D(const std::string
 {
 }
 
+template <class Type> void cTriangulation2D<Type>::WriteFile(const std::string & aName,bool isBinary) const
+{
+    if (UCaseEqual(LastPostfix(aName),"ply"))
+    {
+       PlyWrite(aName,isBinary);
+    }
+    else
+    {
+       MMVII_UsersErrror(eTyUEr::eBadPostfix,"Unknown postfix in cTriangulation3D");
+    }
+}
+
+template <class Type> void cTriangulation2D<Type>::PlyWrite (const std::string & aNameFile,bool isBinary) const
+{
+   typedef cPtxd<Type,3>   tPt3d;
+   typedef cPt3di          tFace3d;
+
+   std::vector<tPt3d>      aVPt3d;
+   std::vector<tFace3d>    aVFace3d;
+
+   // Project 2d triangulation to 3d triangulation with z=0
+   for (const auto &aP : this->VPts())
+   {
+       aVPt3d.push_back(TP3z0(aP));
+   }
+
+   // Write data
+   cTriangulation3D<Type> aTri3D(aVPt3d,this->VFaces());
+   aTri3D.WriteFile(aNameFile,isBinary);
+
+
+
+}
+
 /* *********************************************************** */
 /*                INSTANTIATION                                */
 /* *********************************************************** */
