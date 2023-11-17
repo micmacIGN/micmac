@@ -20,7 +20,7 @@ namespace MMVII
 
 class cSetSensSameId;     //  one set of sensor (at same time, or same camera)
 class cBlocMatrixSensor;  //  matricial organization of sensor
-class cDataBlocCam;       //  data required for read/write bloc state
+class cCalibBlocCam;       //  data required for read/write bloc state
 class cBlocOfCamera;      //  the bloc of camera itself
 
 /*   Global organzization :
@@ -41,7 +41,7 @@ class cBlocOfCamera;      //  the bloc of camera itself
  *   For easy creation of the structure, the matrix contains  mMapInt2Id that compute correspondance between string and 
  *   number ("a"<=>0, "b"<=>1 , ...).
  *
- *    "cDataBlocCam" contains the data  that allow to construct & save the bloc , essantially :
+ *    "cCalibBlocCam" contains the data  that allow to construct & save the bloc , essantially :
  *
  *        - the regular expression that allow to compute bloc&time identifier from a name
  *        - the result of bloc calibration  (with translation Tr, and rotation Rot) :
@@ -51,7 +51,7 @@ class cBlocOfCamera;      //  the bloc of camera itself
  *    "cBlocOfCamera" is the main structure for representing a bloc a camera, it contains :
  *
  *       - the two matrices mMatSyncBloc and mMatBlocSync mentionned above
- *       - a  cDataBlocCam that allow to compute the matrices and store the initial value of bloc-calib
+ *       - a  cCalibBlocCam that allow to compute the matrices and store the initial value of bloc-calib
  *       - a set of unkown poses that can be used in the bundle adustment.
  *
  *    The 3 main operation that we want to do with rigid bloc :
@@ -136,18 +136,18 @@ class cBlocMatrixSensor
 };
 
 /** Class for  representing all the data required for creating and saving the bloc structure  */
-class cDataBlocCam
+class cCalibBlocCam
 {
       public :
-           /// dont use friend generally, but "cDataBlocCam" is just a helper for "cBlocOfCamera"
+           /// dont use friend generally, but "cCalibBlocCam" is just a helper for "cBlocOfCamera"
            friend class cBlocOfCamera;
 
 	   typedef std::map<std::string,cPoseWithUK> tMapStrPoseUK;
 
 	   /// contructor allow to compute identifier time/bloc + Name of the bloc
-           cDataBlocCam(const std::string & aPattern,size_t aKPatBloc,size_t aKPatSync,const std::string & aName);
+           cCalibBlocCam(const std::string & aPattern,size_t aKPatBloc,size_t aKPatSync,const std::string & aName);
            /// defalut constructor for serialization
-           cDataBlocCam();
+           cCalibBlocCam();
 
            /** Compute the index of a sensor inside a bloc, pose have same index "iff" they are correpond to a position in abloc */
            std::string  CalculIdBloc(cSensorCamPC * ) const ;
@@ -167,7 +167,7 @@ class cDataBlocCam
 };
 
 ///  Global function with standard interface  required for serialization => just call member
-void AddData(const  cAuxAr2007 & anAux,cDataBlocCam & aBloc) ;
+void AddData(const  cAuxAr2007 & anAux,cCalibBlocCam & aBloc) ;
 
 
 /**   Class for manipulating  concretely the bloc of camera  , it contains essentially the 
@@ -240,7 +240,7 @@ class cBlocOfCamera : public cMemCheck
            cPoseWithUK &  PoseUKOfIdBloc(const std::string&) ;
 
 	   /// A function, that illustrate the read/write possibility once object is serialized
-	   void TestReadWrite(bool DoDelete) const;
+	   void TestReadWrite(bool OmitDel) const;
 
       private :
            cBlocOfCamera();
@@ -248,7 +248,7 @@ class cBlocOfCamera : public cMemCheck
 	   void  Set4Compute();
 
 	   bool                          mForInit;          ///<  Some behaviur are != in init mode and in calc mod
-           cDataBlocCam                  mData;             ///< Data part,
+           cCalibBlocCam                  mData;             ///< Data part,
            cBlocMatrixSensor             mMatSyncBloc;      ///< Matrix [IdSync][IdBloc]  -->  cSensorCamPC*
            cBlocMatrixSensor             mMatBlocSync;      ///< Matrix [IdBloc][IdSync]  -->  cSensorCamPC*
 	   tMapStrPose                   mMapPoseInit;    ///< Map Name-> Unknown Pose

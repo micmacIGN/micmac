@@ -53,33 +53,41 @@ void cBA_BlocRig::AddCam (cSensorCamPC * aCam)
 
 void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 {
-     for (auto & aBloc : mBlocs) // Parse the blocs
-     {
-         for (auto & aPair : aBloc->MapStrPoseUK())  // Parse the Unkown poses inside each bloc
-         {
-		 aSet.AddOneObj(&aPair.second);
-         }
-     }
+    //  "cSetInterUK_MultipeObj" is a structure that contains a set of
+    //  unknowns, here we "declarate" all the unknwon, the object
+    //  declared must derive from "cObjWithUnkowns". The "declaration" is
+    //  made by calling "AddOneObj" in aSet
+    //
+    //  For each bloc, the unkowns are the "cPoseWithUK" contained in "mMapPoseUKInBloc"
+    //
+
+     //  .....
+     // map all bloc
+     //   map all pair of MapStrPoseUK
+     //        add cPoseWithUK
 }
 
 /**  In a bundle adjusment its current that some variable are "hard" frozen, i.e they are
  *   considered as constant.  We could write specific equation, but generally it's more
  *   economic (from software devlopment) to just indicate this frozen part to the system.
  *
- *   Here the frozen unknown are the poses of the master camera of each blokc
+ *   Here the frozen unknown are the poses of the master camera of each bloc because the
+ *   calibration is purely relative
  *
  */
 void cBA_BlocRig::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)  
 {
-     for (const auto & aBloc : mBlocs)
+     // ... parse all bloc
      {
-	 cPoseWithUK &  aPose = aBloc->MasterPoseInBl() ;
+	   
+         //  ... extract the master
 
 	 // The system handle the unknwon as integers,  the "object" (here aPose)
 	 // "knows" the association between its member and local integers, that's why
 	 // we pass object and members to do the job
-	 aSys.SetFrozenVarCurVal(aPose,aPose.Center());   // freeze the center
-	 aSys.SetFrozenVarCurVal(aPose,aPose.Omega());    // freeze the differential rotation
+	 //
+	 //  ...  freeze the center
+	 //  ... freez omega
      }
 }
 
@@ -91,7 +99,7 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
 {
     OrderMinMax(aKBl1,aKBl2); // not sure necessary, but prefer to fix arbitrary order
 			    
-    //  extract the sensor
+    //  extract the sensor corresponding to the time and num of bloc
     cSensorCamPC* aCam1 = aBloc.CamKSyncKInBl(aKS,aKBl1);
     cSensorCamPC* aCam2 = aBloc.CamKSyncKInBl(aKS,aKBl2);
 
@@ -99,27 +107,32 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
     // it may happen that some image are absent, non oriented ...
     if ((aCam1==nullptr) || (aCam2==nullptr)) return cPt3dr(0,0,0);
 
+    // extract the unknown pose for each cam
     cPoseWithUK &  aPBl1 =  aBloc.PoseUKOfNumBloc(aKBl1);
     cPoseWithUK &  aPBl2 =  aBloc.PoseUKOfNumBloc(aKBl2);
+
+    FakeUseIt(aPBl1); FakeUseIt(aPBl2);
 
     // We must create the observation/context of the equation; here we will push the coeef of matrix
     // for linearization 
     std::vector<double> aVObs;
-    aCam1->Pose_WU().PushObs(aVObs,false);
-    aCam2->Pose_WU().PushObs(aVObs,false);
-    aPBl1.PushObs(aVObs,false);
-    aPBl2.PushObs(aVObs,false);
 
-    // We must create a vector that contains all the unknowns
+    //   for the 4 pose use PushObs to  add it context in aVObs
+    // ...
+
+    // We must create a vector that contains all the global num of unknowns
+    //
+    // ...
     std::vector<int>  aVInd;
-    aCam1->PushIndexes(aVInd);
-    aCam2->PushIndexes(aVInd);
-    aPBl1.PushIndexes(aVInd);
-    aPBl2.PushIndexes(aVInd);
 
     // now we are ready to add the equation
-    aSys.R_CalcAndAddObs(mEqBlUK,aVInd,aVObs,cResidualWeighterExplicit<tREAL8>(false,mWeight));
-    // aSys.R_CalcAndAddObs(mEqBlUK,aVInd,aVObs,0.1);
+    aSys.R_CalcAndAddObs
+    (
+          mEqBlUK,
+	  aVInd,
+	  aVObs,
+	  cResidualWeighterExplicit<tREAL8>(false,mWeight)
+    );
 
     cPt2dr aResTrW(0,0);
     for (size_t aKU=0 ; aKU<12 ; aKU++)

@@ -54,61 +54,6 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
-/** this class represent a Pose on  forumla (or real if necessary)
- *    It contains a Center and the rotation Matrix IJK
- */
-template <class Type> class cPoseF
-{
-     public :
-
-	cPoseF(const cPtxd<Type,3> & aCenter,const cMatF<Type> & aMat) :
-             mCenter  (aCenter),
-             mIJK     (aMat)
-	{
-	}
-
-
-        cPoseF(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs) :
-            cPoseF<Type>
-	    (
-                 VtoP3(aVecUk,aK0Uk),
-	     //  The matrix is Current matrix *  Axiator(-W) , the "-" in omega comming from initial convention
-	     //  See  cPoseWithUK::OnUpdate()  &&  cEqColinearityCamPPC::formula
-	         cMatF<Type>(3,3,aVecObs,aK0Obs)  *  cMatF<Type>::MatAxiator(-VtoP3(aVecUk,aK0Uk+3))
-	    )
-        {
-        }
-
-	/// A pose being considered a the, isometric, mapinc X->Tr+R*X, return pose corresponding to inverse mapping
-	cPoseF<Type> Inverse() const
-	{
-             //  PA-1 =  {-tRA CA ; tRA}
-	     cMatF<Type> aMatInv = mIJK.Transpose();
-             return cPoseF<Type>(- (aMatInv* mCenter),aMatInv);
-	}
-
-	/// A pose being considered as mapping, return their composition
-	cPoseF<Type> operator * (const cPoseF<Type> & aP2) const
-	{
-	    const cPoseF<Type> & aP1 = *this;
-
-             //   {CA;RA}* {CB;RB} = {CA+RA*CB ; RA*RB}
-            return cPoseF<Type>
-                   (
-		        aP1.mCenter + aP1.mIJK*aP2.mCenter,
-                        aP1.mIJK * aP2.mIJK
-                   );
-	}
-
-        cPoseF<Type>  PoseRel(const cPoseF<Type> & aP2) const 
-        { 
-            //  PA~PB = PA-1 * PB 
-            return Inverse() * aP2; 
-        }
-
-        cPtxd<Type,3>  mCenter;
-        cMatF<Type>    mIJK;
-};
 
 class cFormulaBlocRigid
 {
@@ -121,13 +66,9 @@ class cFormulaBlocRigid
                 //  We have 4 pose  A,B,1 en 2;  each has 6 unknown : 3 for centers,3 for axiator
                 //  We could write  explicitely a 24 size vector like {"CxA","CyA","CzA","WxA" .....,"Wy2","Wz2"}
 		//  We prefer to  use the facility "NamesPose" 
-                return  Append
-			(
-			     NamesPose("CA","WA"),
-			     NamesPose("CB","WB"),
-			     NamesPose("C1","W1"),
-			     NamesPose("C2","W2")
-			);
+                return  {};
+
+		// Append NamesPose("CA","WA")
 	   }
 
            std::vector<std::string>    VNamesObs() const
@@ -135,13 +76,8 @@ class cFormulaBlocRigid
                 // we have 4 pose, and for each we have the  3x3 current rotation matrix as "observation/context"
                 // we coul wite explicitely the  36 size vector {"mA_00","mA_10" ... "m1_12","m_22"}
                 // we prefer to use the facility ",NamesMatr"
-                return  Append
-			(
-			     NamesMatr("mA",cPt2di(3,3)),
-			     NamesMatr("mB",cPt2di(3,3)),
-			     NamesMatr("m1",cPt2di(3,3)),
-			     NamesMatr("m2",cPt2di(3,3))
-			);
+                return  {};
+		//  Append   NamesMatr("mA",cPt2di(3,3)),
            }
 	   static constexpr size_t  NbUk =6;
 	   static constexpr size_t  NbObs=9;
@@ -153,23 +89,17 @@ class cFormulaBlocRigid
                           const std::vector<tUk> & aVObs
                        ) const
            {
-                   cPoseF<tUk>  aPoseA(aVUk,0*NbUk,aVObs,0*NbObs);
-                   cPoseF<tUk>  aPoseB(aVUk,1*NbUk,aVObs,1*NbObs);
+		   // ... 
+		   // extract PoseA,PoseB,pose1, pose2
+		   // compute pose rel B to A,   pose rel 2 to 1
+		   // compute the difference
 
-                   cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
 
-                   cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
-                   cPoseF<tUk>  aPose2(aVUk,3*NbUk,aVObs,3*NbObs);
-                   cPoseF<tUk>  aRel12 = aPose1.PoseRel(aPose2);
+		   return {};
 
-		   // FakeUseIt(aRelAB);
-		   // FakeUseIt(aRel12);
-
-		   cPtxd<tUk,3>  aDeltaC =  aRelAB.mCenter - aRel12.mCenter;
-
-		   cMatF<tUk> aDeltaM = aRelAB.mIJK - aRel12.mIJK;
-
-		   return Append(ToVect(aDeltaC),aDeltaM.ToVect());
+		   //  cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
+                   //  cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
+		   // (ToVect(aDeltaC),aDeltaM.ToVect()
 	   }
 
 

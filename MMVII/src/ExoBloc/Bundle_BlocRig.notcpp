@@ -99,8 +99,8 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
     // it may happen that some image are absent, non oriented ...
     if ((aCam1==nullptr) || (aCam2==nullptr)) return cPt3dr(0,0,0);
 
-    cPoseWithUK &  aPBl1 =  aBloc.PoseOfIdBloc(aKBl1);
-    cPoseWithUK &  aPBl2 =  aBloc.PoseOfIdBloc(aKBl2);
+    cPoseWithUK &  aPBl1 =  aBloc.PoseUKOfNumBloc(aKBl1);
+    cPoseWithUK &  aPBl2 =  aBloc.PoseUKOfNumBloc(aKBl2);
 
     // We must create the observation/context of the equation; here we will push the coeef of matrix
     // for linearization 

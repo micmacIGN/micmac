@@ -286,6 +286,64 @@ template  <typename tScal>
 }
 
 
+/** this class represent a Pose on  forumla (or real if necessary)
+ *    It contains a Center and the rotation Matrix IJK
+ */
+template <class Type> class cPoseF
+{
+     public :
+
+        cPoseF(const cPtxd<Type,3> & aCenter,const cMatF<Type> & aMat) :
+             mCenter  (aCenter),
+             mIJK     (aMat)
+        {
+        }
+
+
+        cPoseF(const std::vector<Type> &  aVecUk,size_t aK0Uk,const std::vector<Type> &  aVecObs,size_t aK0Obs) :
+            cPoseF<Type>
+            (
+                 VtoP3(aVecUk,aK0Uk),
+             //  The matrix is Current matrix *  Axiator(-W) , the "-" in omega comming from initial convention
+             //  See  cPoseWithUK::OnUpdate()  &&  cEqColinearityCamPPC::formula
+                 cMatF<Type>(3,3,aVecObs,aK0Obs)  *  cMatF<Type>::MatAxiator(-VtoP3(aVecUk,aK0Uk+3))
+            )
+        {
+        }
+
+        /// A pose being considered a the, isometric, mapinc X->Tr+R*X, return pose corresponding to inverse mapping
+        cPoseF<Type> Inverse() const
+        {
+             //  PA-1 =  {-tRA CA ; tRA}
+             cMatF<Type> aMatInv = mIJK.Transpose();
+             return cPoseF<Type>(- (aMatInv* mCenter),aMatInv);
+        }
+
+
+        /// A pose being considered as mapping, return their composition
+        cPoseF<Type> operator * (const cPoseF<Type> & aP2) const
+        {
+            const cPoseF<Type> & aP1 = *this;
+
+             //   {CA;RA}* {CB;RB} = {CA+RA*CB ; RA*RB}
+            return cPoseF<Type>
+                   (
+                        aP1.mCenter + aP1.mIJK*aP2.mCenter,
+                        aP1.mIJK * aP2.mIJK
+                   );
+        }
+
+        cPoseF<Type>  PoseRel(const cPoseF<Type> & aP2) const
+        {
+            //  PA~PB = PA-1 * PB
+            return Inverse() * aP2;
+        }
+
+        cPtxd<Type,3>  mCenter;
+        cMatF<Type>    mIJK;
+};
+
+
 
 
 };//  namespace MMVII
