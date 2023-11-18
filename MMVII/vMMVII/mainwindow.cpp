@@ -71,7 +71,8 @@ void MainWindow::doError(const QString &msg1, const QString& msg2)
                              + (msg2.size() ? msg2  : "")
                              + "</body></html>"
                          );
-    QTextStream(stderr) << msg1 << "\n" << msg2 << Qt::endl;
+    // QTextStream(stderr) << msg1 << "\n" << msg2 << Qt::endl;
+    QTextStream(stderr) << msg1 << "\n" << msg2 << endl;
     exit (1);
 }
 
@@ -105,7 +106,10 @@ bool MainWindow::getSpecsFromMMVII(const QString mmviiPath, QByteArray& specsTex
 
     auto errorMsg = mmviiProc.readAllStandardError();
     if (errorMsg.contains("WARNING:"))
-        QTextStream(stderr) << errorMsg << Qt::endl;
+    {
+        // QTextStream(stderr) << errorMsg << Qt::endl;
+        QTextStream(stderr) << errorMsg << endl;
+    }
 
     specsText  = mmviiProc.readAllStandardOutput();
     return true;
