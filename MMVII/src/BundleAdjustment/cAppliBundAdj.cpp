@@ -33,6 +33,7 @@ class cAppliBundlAdj : public cMMVII_Appli
 
 	std::vector<double>       mGCPW;
 	std::vector<double>       mTiePWeight;
+	std::vector<double>       mBRWeight; // RIGIDBLOC
 
 	int                       mNbIter;
 
@@ -70,6 +71,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
       << mPhProj.DPPointsMeasures().ArgDirInOpt("GCPDir","Dir for GCP if != DataDir")
       << mPhProj.DPMulTieP().ArgDirInOpt("TPDir","Dir for Tie Points if != DataDir")
+      << mPhProj.DPRigBloc().ArgDirInOpt("BRDirIn","Dir for Bloc Rigid if != DataDir") //  RIGIDBLOC
+      << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
       << AOpt2007
          (
             mGCPW,
@@ -81,6 +84,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
+      << AOpt2007(mBRWeight,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
     ;
 }
 
@@ -90,6 +94,7 @@ int cAppliBundlAdj::Exe()
 
     mPhProj.DPPointsMeasures().SetDirInIfNoInit(mDataDir);
     mPhProj.DPMulTieP().SetDirInIfNoInit(mDataDir);
+    mPhProj.DPRigBloc().SetDirInIfNoInit(mDataDir); //  RIGIDBLOC
 
     mPhProj.FinishInit();
 
@@ -138,6 +143,13 @@ int cAppliBundlAdj::Exe()
 	mBA.AddMTieP(AllocStdFromMTP(VectMainSet(0),mPhProj,false,true,false),aWeighter);
     }
 
+    if (IsInit(&mBRWeight)) // RIGIDBLOC
+    { 
+        mBA.AddBlocRig(mBRWeight);
+        for (const auto &  aNameIm : VectMainSet(0))
+            mBA.AddCamBlocRig(aNameIm);
+    }
+
     MMVII_INTERNAL_ASSERT_User(MeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 
     for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
@@ -146,8 +158,9 @@ int cAppliBundlAdj::Exe()
     }
 
     for (auto & aCamPC : mBA.VSCPC())
-	mPhProj.SaveCamPC(*aCamPC);
+        mPhProj.SaveCamPC(*aCamPC);
 
+    mBA.SaveBlocRigid();
 
     return EXIT_SUCCESS;
 }

@@ -70,7 +70,7 @@ template <class Type> void cGetAdrInfoParam<Type>::PatternSetToVal(const std::st
 //  put all value to "bull shit"
 template <class Type> cObjWithUnkowns<Type>::cObjWithUnkowns() 
 {
-   Reset();
+   OUK_Reset();
 }
 
 
@@ -105,7 +105,7 @@ template <class Type> cObjWithUnkowns<Type>::~cObjWithUnkowns()
      MMVII_INTERNAL_ASSERT_tiny(mSetInterv==nullptr,"Unfreed object in cObjWithUnkowns");
 }
 
-template <class Type> void cObjWithUnkowns<Type>::Reset()
+template <class Type> void cObjWithUnkowns<Type>::OUK_Reset()
 {
    mSetInterv = nullptr;
    mNumObj    = -1;
@@ -155,11 +155,11 @@ template <class Type> cSetInterUK_MultipeObj<Type>::cSetInterUK_MultipeObj() :
 {
 }
 
-template <class Type> void  cSetInterUK_MultipeObj<Type>::Reset()
+template <class Type> void  cSetInterUK_MultipeObj<Type>::SIUK_Reset()
 {
     for (auto &   aVinterv : mVVInterv) // parse object to reset them
     {
-        aVinterv.mObj->Reset();
+        aVinterv.mObj->OUK_Reset();
     }
     mVVInterv.clear();
     mNbUk = 0;
@@ -167,7 +167,7 @@ template <class Type> void  cSetInterUK_MultipeObj<Type>::Reset()
 
 template <class Type> cSetInterUK_MultipeObj<Type>::~cSetInterUK_MultipeObj()
 {
-   Reset();
+   SIUK_Reset();
 }
 
 template <class Type> void  cSetInterUK_MultipeObj<Type>::AddOneObj(cObjWithUnkowns<Type> * anObj)

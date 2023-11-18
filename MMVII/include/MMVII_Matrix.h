@@ -464,6 +464,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         // === method implemente with DIm
         Type L2Dist(const cDenseMatrix<Type> & aV) const;
+        Type SqL2Dist(const cDenseMatrix<Type> & aV) const;
 	//  void operator -= (const cDenseMatrix<Type> &) ;  => see  "include/MMVII_Tpl_Images.h"
 
    private :

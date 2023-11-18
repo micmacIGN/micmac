@@ -81,7 +81,7 @@ class cV1PCConverter : public cCorresp32_BA
 
 cV1PCConverter::~cV1PCConverter()
 {
-      mSetInterv.Reset();
+      mSetInterv.SIUK_Reset();
       delete mCamPC;
 }
 
@@ -231,6 +231,8 @@ static int aCpt=0; aCpt++;
         {
             // create a new file , to avoid reading in map in "FromFile"
 	    std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "TestCalib_" + ToStr(aCpt) + "." + GlobTaggedNameDefSerial();
+	    // std::string aNameTmp = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + aCalib->Name() + ".xml";
+	    aCalib->SetName(FileOfPath(Prefix(aNameTmp),false));
 	    aCalib->ToFile(aNameTmp);
 
 	    cPerspCamIntrCalib *  aCam2 = cPerspCamIntrCalib::FromFile(aNameTmp);

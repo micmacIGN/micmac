@@ -93,7 +93,8 @@ MMVII CodedTargetCompleteUncoded .*_Scaled.tif BA 1.0 InPointsMeasure=Fil
 MMVII OriBundleAdj ".*_Scaled.tif"  BA BA2  GCPW=[1,1] DataDir=Completed
 
 
-
+ MMVII  BlockCamInit ".*_Scaled.tif" BA  "(.*)_(.*)_Scaled.tif" [1,2] BA  ShowByBloc=1
+MMVII OriBundleAdj ".*_Scaled.tif"  BA BA2  GCPW=[1,1] DataDir=Completed BRDirIn=BA BRW=[0.01,0.1] OutRigBlock=BA2
 
 
 

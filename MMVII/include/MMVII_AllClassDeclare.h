@@ -296,16 +296,12 @@ class cSetMesGCP ;
 class cSetMesPtOf1Im ;
 class cMesIm1Pt;
 
-
-
-
-
-
-
-
-
-
-
+//   MMVII_BlocRig.h
+    //  RIGIDBLOC  
+class cSetSensSameId;     
+class cBlocMatrixSensor;  
+class cDataBlocCam;      
+class cBlocOfCamera;
 
 
 

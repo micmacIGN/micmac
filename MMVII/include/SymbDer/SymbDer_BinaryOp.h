@@ -524,11 +524,15 @@ cFormula<TypeElem> operator -
      if (aF1->IsCste(0)) return -aF2;
      if (aF2->IsCste(0)) return aF1;
 
-     //  A - (-B) = A + B
-     if (REDUCE_MM && (aF2->NameOperator()=="-") && (aF2->Ref().size()==1))
+     //  A - (-B) = A + B  ;   
+     if (REDUCE_MM && (aF2->NameOperator()=="-") )
      {
-         SHOW_REDUCE("a-(-b))");
-         return aF1 + aF2->Ref()[0];
+	 if (aF2->Ref().size()==1)
+	 {
+             SHOW_REDUCE("a-(-b))");
+             return aF1 + aF2->Ref()[0];
+	 }
+         //  A- (B-C) = A-B+C :  no gain ?
      }
 
      return cGenOperatorBinaire<cSubF<TypeElem> >::Generate(aF1,aF2);

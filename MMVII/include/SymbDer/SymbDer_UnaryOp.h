@@ -485,10 +485,22 @@ inline cFormula<TypeElem>  operator - (const cFormula<TypeElem> & aF)
     // rule  - (- x) ==  x
     if (REDUCE_MM &&  (aF->NameOperator()=="-"))
     {
+
+    /*
+       std::cout << "RRRRReduce----- " <<  aF->Name() << " :: " ;
+       for (const auto & aR : aF->Ref()) std::cout << " " <<  aR->Name() ;
+       std::cout  <<  " Sz="<< aF->Ref().size() << "\n";
+    */
+       // if it is  - (a-b)  we dont want to simplify this way 
        if (aF->Ref().size()==1)
        {
           SHOW_REDUCE("-(-x)");
           return aF->Ref()[0];
+       }
+       // NEW RULE TO TEST   - (a-b)  => b-a
+       if (aF->Ref().size()==2)
+       {
+          return  aF->Ref()[1] - aF->Ref()[0];
        }
     }
 

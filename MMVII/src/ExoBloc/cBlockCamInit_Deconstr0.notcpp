@@ -36,7 +36,7 @@ namespace MMVII
 
 class cSetSensSameId;     //  .....
 class cBlocMatrixSensor;  // ....
-class cCalibBlocCam;       // class for computing index of Bloc/Sync 
+class cDataBlocCam;       // class for computing index of Bloc/Sync 
 			  
 
 /* ************************************************** */
@@ -79,6 +79,7 @@ size_t cBlocMatrixSensor::NumStringCreate(const std::string & anId)
 	 mMapInt2Id.Add(anId);
 	 mMatrix.push_back(cSetSensSameId(mMaxSzSet,anId));
      }
+// StdOut() << "NumStringCreateNumStringCreate " << anId << " => " << anInd << std::endl;
      return anInd;
 }
 
@@ -116,33 +117,18 @@ void cBlocMatrixSensor::AddNew(cSensorCamPC* aPC,size_t aNumSet,size_t aNumInSet
 
 void cBlocMatrixSensor::ShowMatrix() const
 {
-    //  ...
-    //  Parse matrix id (0 to mMatrix.size())
-    //
-    //    print the Id
-    //
-    //    parse  the cams in a set
-    //        
-    //        print the name of cam or "xxxxx" if cams is null
-    //
-    //
-    //    Should get something like 
-    //
-    //      ...
-    //    ==============   0103 ======
-    //    043_0103.JPG
-    //    671_0103.JPG 
-    //    948_0103.JPG
-    //    949_0103.JPG
-    //    ==============   0104 ======
-    //    043_0104.JPG
-    //    xxxxxxxxxxxx
-    //    948_0104.JPG
-    //    949_0104.JPG
-    //    ==============   0105 ======
-    //      ...
-    //
-    //
+    for (size_t aKMat=0 ; aKMat<mMatrix.size() ; aKMat++)
+    {
+        StdOut() <<  "==================== " <<  mMatrix[aKMat].mId << " =====================" << std::endl;
+	for (const auto & aPtrCam : mMatrix[aKMat].mVCams)
+	{
+            if (aPtrCam)
+               StdOut() << "   * " << aPtrCam ->NameImage() << std::endl;
+	    else
+               StdOut() << "   * xxxxxxxxxxxxxxxxxxxxxxxxxxxx"  << std::endl;
+	}
+
+    }
 }
 
 const cSetSensSameId &  cBlocMatrixSensor::KthSet(size_t aKth) const
@@ -157,10 +143,10 @@ size_t cBlocMatrixSensor::SetCapacity() const  {return mMapInt2Id.size();}
 const std::string & cBlocMatrixSensor::NameKthSet(  size_t aKTh) const { return *mMapInt2Id.I2Obj(aKTh); }
 
 /* ************************************************** */
-/*              cCalibBlocCam                         */
+/*              cDataBlocCam                          */
 /* ************************************************** */
 
-cCalibBlocCam::cCalibBlocCam(const std::string & aPattern,size_t aKPatBloc,size_t aKPatSync,const std::string & aName) :
+cDataBlocCam::cDataBlocCam(const std::string & aPattern,size_t aKPatBloc,size_t aKPatSync,const std::string & aName) :
      mName      (aName),
      mPattern   (aPattern),
      mKPatBloc  (aKPatBloc),
@@ -169,31 +155,30 @@ cCalibBlocCam::cCalibBlocCam(const std::string & aPattern,size_t aKPatBloc,size_
 }
 
 /// dummy value
-cCalibBlocCam::cCalibBlocCam() :
-     cCalibBlocCam ("",0,0,"")
+cDataBlocCam::cDataBlocCam() :
+     cDataBlocCam ("",0,0,"")
 {
 }
 
-bool  cCalibBlocCam::CanProcess(cSensorCamPC * aCam) const
+bool  cDataBlocCam::CanProcess(cSensorCamPC * aCam) const
 {
     return MatchRegex(aCam->NameImage(),mPattern);
 }
 
-std::string  cCalibBlocCam::CalculIdBloc(cSensorCamPC * aCam) const
+std::string  cDataBlocCam::CalculIdBloc(cSensorCamPC * aCam) const
 {
      return PatternKthSubExpr(mPattern,mKPatBloc,aCam->NameImage());
 }
 
-std::string  cCalibBlocCam::CalculIdSync(cSensorCamPC * aCam) const
+std::string  cDataBlocCam::CalculIdSync(cSensorCamPC * aCam) const
 {
      return PatternKthSubExpr(mPattern,mKPatSync,aCam->NameImage());
 }
 
 
-void cCalibBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
+void cDataBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
 {
-     // ...
-     // Put the data in  tag "RigidBlocCam"
+    // Put the data in  tag "RigidBlocCam"
 
      // Add data for
      //    mName
@@ -202,12 +187,9 @@ void cCalibBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
      //    mKPatSync
      //    mKPatSync
      //    mMapPoseInBloc
-
-     //  cAuxAr2007(const std::string& ,const  cAuxAr2007 &)
-     //   MMVII::AddData(cAuxAr2007("Name",anAux)    ,mName);
 }
 
-void AddData(const  cAuxAr2007 & anAux,cCalibBlocCam & aBloc) 
+void AddData(const  cAuxAr2007 & anAux,cDataBlocCam & aBloc) 
 {
      aBloc.AddData(anAux);
 }
@@ -230,13 +212,20 @@ cBlocOfCamera::cBlocOfCamera() :
 void  cBlocOfCamera::Set4Compute()
 {
     mForInit  = false;
-
-    for (const auto  & aPair : mData.mMapPoseUKInBloc)
+    for (const auto  & aPair : mData.mMapPoseInBloc)
     {
-        MMVII_INTERNAL_ASSERT_tiny(IsNull(aPair.second.Omega()),"cBlocOfCamera::TransfertFromUK Omega not null");
-        mMapPoseInit[aPair.first] = aPair.second.Pose();
+        mMapPoseInBlUK[aPair.first] = cPoseWithUK(aPair.second);
 	//  we force the creation a new Id in the bloc because later we will not accept new bloc in compute mode
 	mMatBlocSync.NumStringCreate(aPair.first);
+    }
+
+
+    // Now we make a vector of PoseUk* for fast indexed access , we could not do in previous loop , because when maps
+    // grow they copy object, invalidating previous pointers on these objects
+    for (size_t aKInBl=0 ; aKInBl<BlocCapacity() ; aKInBl ++)
+    {
+         const std::string &  aNameBl = NameKthInBloc(aKInBl);
+         mVecPUK.push_back(&(mMapPoseInBlUK[aNameBl]));
     }
 }
 
@@ -246,6 +235,13 @@ cBlocOfCamera::~cBlocOfCamera()
 
 void cBlocOfCamera::ToFile(const std::string & aNameFile) const
 {
+    for (const auto  & aPair : mMapPoseInBlUK)
+    {
+        // when the transfert is done , "omega" (the differential rot)  should have been transfered 
+	// in rot, else there is a lost of information
+        MMVII_INTERNAL_ASSERT_tiny(IsNull(aPair.second.Omega()),"cBlocOfCamera::TransfertFromUK Omega not null");
+        const_cast<cBlocOfCamera*>(this)->mData.mMapPoseInBloc[aPair.first] = aPair.second.Pose();
+    }
     SaveInFile(mData,aNameFile);
 }
 
@@ -260,17 +256,11 @@ cBlocOfCamera *  cBlocOfCamera::FromFile(const std::string & aNameFile)
 
 cPoseWithUK & cBlocOfCamera::MasterPoseInBl()  
 {
-     return PoseUKOfIdBloc(mData.mMaster);
-}
-cPoseWithUK &  cBlocOfCamera::PoseUKOfIdBloc(const std::string& anId) 
-{
-     auto  anIter = mData.mMapPoseUKInBloc.find(anId);
-     MMVII_INTERNAL_ASSERT_tiny(anIter!=mData.mMapPoseUKInBloc.end(),"cBlocOfCamera::PoseUKOfIdBloc none for:" + anId);
+     auto  anIter = mMapPoseInBlUK.find(mData.mMaster);
+     MMVII_INTERNAL_ASSERT_tiny(anIter!=mMapPoseInBlUK.end(),"cBlocOfCamera::MasterPose none for master=" + mData.mMaster);
 
      return anIter->second;
-
 }
-
 
 const std::string &  cBlocOfCamera::NameMaster() const  { return mData.mMaster; }
 size_t cBlocOfCamera::IndexMaster() const {return NumInBloc(NameMaster());}
@@ -295,12 +285,9 @@ const std::string & cBlocOfCamera::Name() const {return mData.mName;}
 
 int cBlocOfCamera::NumInBloc(const std::string & aName,bool SVP)  const { return mMatBlocSync.NumStringExist(aName,SVP); }
 
-cBlocOfCamera::tMapStrPoseUK& cBlocOfCamera::MapStrPoseUK() {return mData.mMapPoseUKInBloc;}
+cBlocOfCamera::tMapStrPoseUK& cBlocOfCamera::MapStrPoseUK() {return mMapPoseInBlUK;}
 
-cPoseWithUK &  cBlocOfCamera::PoseUKOfNumBloc(size_t aKBl) 
-{
-     return PoseUKOfIdBloc(NameKthInBloc(aKBl));
-}
+cPoseWithUK &  cBlocOfCamera::PoseOfIdBloc(size_t aKBl) {return *mVecPUK.at(aKBl);}
 
 
 
@@ -314,20 +301,25 @@ bool cBlocOfCamera::AddSensor(cSensorCamPC * aCam)
 {
      if (! mData.CanProcess(aCam))
      {
-         MMVII_UnclasseUsEr("Cant process bloc/ident for " + aCam->NameImage());
-	 // maybe be more lenient later with multiple bloc
+	 // a priori accept that pattern does not match
+         // MMVII_UnclasseUsEr("Cant process bloc/ident for " + aCam->NameImage());
 	 return false;
      }
 
+     // extract bloc & synd identifier from name of camera
      std::string aIdInBoc = mData.CalculIdBloc(aCam);
      std::string aIdSync  = mData.CalculIdSync(aCam);
 
+     // extract nums from identifier. In init mode : if identifier does not exist extend the num
+     // (this is what does NumStringCreate), else we dont accept new identifier because they should
+     // have been reserved before.
      size_t  aKSync = mMatSyncBloc.NumStringCreate(aIdSync);
 
-     size_t  aKBloc =  mForInit                                ?
-	               mMatBlocSync.NumStringCreate(aIdInBoc)  :
+     size_t  aKBloc =  mForInit                                    ?
+	               mMatBlocSync.NumStringCreate(aIdInBoc)      :
 		       mMatBlocSync.NumStringExist(aIdInBoc,false) ;  // if in compute mode, dont accept new Id In bloc
 
+     // now we know indexes we add the sensor in both matrixes
      mMatSyncBloc.AddNew(aCam,aKSync,aKBloc);
      mMatBlocSync.AddNew(aCam,aKBloc,aKSync);
 
@@ -339,14 +331,14 @@ bool cBlocOfCamera::AddSensor(cSensorCamPC * aCam)
 tPoseR  cBlocOfCamera::EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli * anAppli,const std::string & anIdReportGlob)
 {
 return tPoseR{} ;  // Fake return, just to compile
-
+    
     //  extract the name of the 2 bloc
 
     if (anAppli)
     {
          //  create an identifier for report on  bloc1 and bloc2
-         //  Init the raport
-         //  Add one header  "SyncId","x","y","z","w","p","k"
+	 //  Init the raport
+	 //  Add one header  "SyncId","x","y","z","w","p","k"
     }
 
     // ============= [1]  Compute, for all relative orientation, average of Translation and rotation
@@ -365,7 +357,7 @@ return tPoseR{} ;  // Fake return, just to compile
             // sum translation and rotation
 
             // eventually make a report
-         }
+	 }
      }
 
      // if no pair OK we cannot compute an average
@@ -376,7 +368,7 @@ return tPoseR{} ;  // Fake return, just to compile
      // aAvgTr =  aAvgTr / tREAL8(aNbOk);
      // aAvgMat = aAvgMat * (1.0/tREAL8(aNbOk));
      // cRotation3D<tREAL8>  aAvgRot(aAvgMat,true);
-
+    
     // ============= [2]  Compute, standard deviati,on
 
 
@@ -388,8 +380,8 @@ return tPoseR{} ;  // Fake return, just to compile
         // extract Cam1 and Cam2
          // if  they are not null
          {
-                 // Add the square difference to tran& rotation average
-         }
+		 // Add the square difference to tran& rotation average
+	 }
      }
 
      // std::string sSigmTr  = (aNbOk>1) ? ToStr(std::sqrt( aSigmTr/tREAL8(aNbOk-1))) : "xxxx" ;
@@ -400,6 +392,7 @@ return tPoseR{} ;  // Fake return, just to compile
      {
         // anAppli->AddOneReportCSV(anIdReportGlob,{aNB1,aNB2,sSigmTr,sSigmRot});
      }
+     
      // return tPoseR(aAvgTr,aAvgRot);
 }
 
@@ -421,80 +414,94 @@ void  cBlocOfCamera::StatAllCples(cMMVII_Appli * anAppli)
 
 void cBlocOfCamera::EstimateBlocInit(size_t aKMaster)
 {
-    // mData.mMaster = NameKthInBloc(aKMaster);
+    mData.mMaster = NameKthInBloc(aKMaster);
 
-    //  ....
-    // for all num bloc
-    //    * estimate  relative pose with KMaster
-    //    * get name
-    //    * update mMapPoseUKInBloc
-    //    
+    std::vector<tPoseR> aVP;
 
-    // Set4Compute();  -> now can be used in computation
+    for (size_t aKInB=0 ;  aKInB<NbInBloc() ; aKInB++)
+    {
+        std::string aName = NameKthInBloc(aKInB);
+        tPoseR  aPose =  EstimatePoseRel1Cple(aKMaster,aKInB,nullptr,"");
+	aVP.push_back(aPose);
+	mData.mMapPoseInBloc[aName] = aPose;
+    }
+
+    Set4Compute();
+
 }
 
-void cBlocOfCamera::TestReadWrite(bool OmitDel) const
+void cBlocOfCamera::TestReadWrite(bool DoDelete) const
 {
-     StdOut() << "Test read/write xml " << std::endl;
-     SaveInFile(mData,"BR.xml");
-     cCalibBlocCam aBRXml;
-     ReadFromFile(aBRXml,"BR.xml");
-     SaveInFile(aBRXml,"BR_2.xml");
-     StdOut() << "inspect BR.xml/BR_2.xml " << std::endl;
-     getchar();
+   // Xml:check that we can read/write   Data => XmlFile1 => Data => XmlFile2
+   SaveInFile(mData,"BR_1.xml");
+   cDataBlocCam aBXml;
+   ReadFromFile(aBXml,"BR_1.xml");
+   SaveInFile(aBXml,"BR_2.xml");
 
-     StdOut() << "Test read/write json " << std::endl;
-     SaveInFile(mData,"BR.json");
-     cCalibBlocCam aBRJson;
-     ReadFromFile(aBRJson,"BR.json");
-     SaveInFile(aBRJson,"BR_2.json");
-     StdOut() << "inspect BR.json/BR_2.json " << std::endl;
-     getchar();
+   StdOut()  << "DONE XML READ/WRITE" << std::endl;
+   getchar();
 
-     StdOut() << "Test Hash code" << std::endl;
-     StdOut() <<  "HX==HJ= " << HashValue(aBRXml,true) << " " <<  HashValue(aBRJson,true) << std::endl;
-     aBRXml.mMapPoseUKInBloc["toto"]  = tPoseR();
-     StdOut() <<  "HJ!=HX " << HashValue(aBRXml,true) << " " << HashValue(aBRJson,true) << std::endl;
-     getchar();
+   // Json:check that we can read/write   Data => JsonFile1 => Data =>JsonFile2
+   SaveInFile(mData,"BR_1.json");
+   cDataBlocCam aBJson;
+   ReadFromFile(aBJson,"BR_1.json");
+   SaveInFile(aBJson,"BR_2.json");
 
-     StdOut() << "Test read/write dmp " << std::endl;
-     SaveInFile(mData,"BR.dmp");
-     cCalibBlocCam aBRDump;
-     ReadFromFile(aBRDump,"BR.dmp");
-     SaveInFile(aBRDump,"BR_dmp.xml");
-     StdOut() << "inspect BR_dmp.xml " << std::endl;
-     getchar();
+   StdOut()  << "DONE JSON READ/WRITE" << std::endl;
+   getchar();
 
-     StdOut() << "Test read/write txt " << std::endl;
-     SaveInFile(mData,"BR.txt");
-     cCalibBlocCam aBT;
-     ReadFromFile(aBT,"BR.txt");
-     SaveInFile(aBT,"BR_txt.xml");
-     StdOut() << "inspect BR_dmp.txt " << std::endl;
-     getchar();
+   // Test HasVal are equal initially for identical object, and different after modif
+   StdOut() <<  "HX==HJ= " << HashValue(aBXml,true) << " " <<  HashValue(aBJson,true) << std::endl;
+   aBXml.mMapPoseInBloc["toto"]  = tPoseR();
+   StdOut() <<  "HJ!=HX " << HashValue(aBXml,true) << " " << HashValue(aBJson,true) << std::endl;
 
-     StdOut() << "Test dump vx xml/json " << std::endl;
-     StdOut() <<  "HJ!=HD " << HashValue(aBRDump,true) << " " << HashValue(aBRJson,true) << std::endl;
-     StdOut() <<  aBRDump.mMapPoseUKInBloc.begin()->first  << " " <<  aBRJson.mMapPoseUKInBloc.begin()->first << std::endl;
-     StdOut() <<  aBRDump.mMapPoseUKInBloc["949"].AxeI()   << aBRJson.mMapPoseUKInBloc["949"].AxeI()  << std::endl;
-     StdOut() <<  (aBRDump.mMapPoseUKInBloc["949"].AxeI()   - aBRJson.mMapPoseUKInBloc["949"].AxeI())  << std::endl;
-     StdOut() << "Difference ~ epsilon machine " << std::endl;
-     getchar();
+   StdOut()  << "DONE  TEST on HashValue" << std::endl;
+   getchar();
 
-     StdOut() << "Test specifications " << std::endl;
-     SpecificationSaveInFile<cCalibBlocCam>("BR_specif.xml");
-     SpecificationSaveInFile<cCalibBlocCam>("BR_specif.json");
-     StdOut() << "inspect BR_specif.xml/BR_specif.json " << std::endl;
-     getchar();
+   //  dmp check   Data => Dmp => Data => xml
+   SaveInFile(mData,"BR.dmp");
+   cDataBlocCam aBDump;
+   ReadFromFile(aBDump,"BR.dmp");
+   SaveInFile(aBDump,"BR_dmp.xml");
+
+   StdOut()  << "DONE Dmp READ/WRITE" << std::endl;
+   getchar();
+
+   //  Value read from dump-file and  json/xml-file may be slightly different (~ epsilon value) due to rounding error
+   StdOut() <<  "HJ!=HD " << HashValue(aBDump,true) << " " << HashValue(aBJson,true) << std::endl;
+   StdOut() <<  aBDump.mMapPoseInBloc["949"].Rot().AxeI()   << aBJson.mMapPoseInBloc["949"].Rot().AxeI()   << std::endl;
+   StdOut() <<  (aBDump.mMapPoseInBloc["949"].Rot().AxeI()   - aBJson.mMapPoseInBloc["949"].Rot().AxeI())  << std::endl;
+
+   StdOut()  << "DONE comparison  Dump/Json-Xml" << std::endl;
+   getchar();
+
+   //  txt check   Data => txt => Data => xml
+   SaveInFile(mData,"BR.txt");
+   cDataBlocCam aBTxt;
+   ReadFromFile(aBTxt,"BR.txt");
+   SaveInFile(aBTxt,"BR_txt.xml");
+
+   StdOut()  << "DONE Txt READ/WRITE" << std::endl;
+   getchar();
+
+   //  Check specifications files
+   SpecificationSaveInFile<cDataBlocCam>("toto_specif.xml");
+   SpecificationSaveInFile<cDataBlocCam>("toto_specif.json");
+
+   StdOut()  << "DONE specification" << std::endl;
+   getchar();
+
+   // test the effectiveness of cMemCheck, if DoDelete=false , we get a memory error
+   cBlocOfCamera * aBOC= new  cBlocOfCamera("",0,0,"");
+   if (DoDelete)
+      delete aBOC;
 
 
-
-     this->ToFile("BR_Tofile.xml");
-     cBlocOfCamera * aB2 = cBlocOfCamera::FromFile("BR_Tofile.xml");
-     aB2->ToFile("BR_Tofile.xml");
-     // test the effectiveness of cMemCheck
-     if (! OmitDel)
-         delete aB2;
+   // test the "top" function for read/write of cBlocOfCamera
+   this->ToFile("BR_myfile.xml");
+   cBlocOfCamera * aB2 = cBlocOfCamera::FromFile("toto_myfile.xml");
+   aB2->ToFile("BR_myfile2.xml");
+   delete aB2;
 }
 
 /* ==================================================== */
@@ -513,17 +520,16 @@ class cAppli_BlockCamInit : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
      private :
-        std::string              mSpecImIn;   ///  Pattern or xml file
-        cPhotogrammetricProject  mPhProj;
-	std::string              mPattern;
-	cPt2di                   mNumSub;
+        std::string              mSetInputImages;   /// Pattern or xml file
+        cPhotogrammetricProject  mPhProj;           /// Photogrammetric project manager
+	std::string              mPattern;          /// Pattern to compute identifier
+	cPt2di                   mNumSub;           /// num of sub-expression in pattern
 
-	bool                     mShowByBloc;  ///< Do we show the structure by bloc of image
-	bool                     mShowBySync;  ///< Do we show structure by synchronization
-	std::string              mMaster;      ///< If we enforce the master cam in the bloc
-	std::string              mNameBloc;    ///< Name of the bloc
-	bool                     mTestRW;      ///< Do we do a test on read/write
-	bool                     mTestNoDel;   ///< Do force an error on memory management to illustrate the 
+	bool                     mShowByBloc;       ///< Do we show the structure by bloc of image
+	bool                     mShowBySync;       ///< Do we show structure by synchronization
+	std::string              mMaster;           ///< If we enforce the master cam in the bloc
+	std::string              mNameBloc;         ///< The name of the bloc
+	bool                     mDoDelete;         ///< do we correctly delete  the object
 };
 
 cAppli_BlockCamInit::cAppli_BlockCamInit
@@ -535,38 +541,40 @@ cAppli_BlockCamInit::cAppli_BlockCamInit
      mPhProj       (*this),
      mShowByBloc   (false),
      mShowBySync   (false),
-     mNameBloc     ("TheBloc"),
-     mTestRW       (false),
-     mTestNoDel    (false)
+     mNameBloc     ("TheBlocRig"),
+     mDoDelete     (true)
 {
 }
 
 
+// RB_0_1 : describe the mandatory parameter . For each parameters we must indicate :
+//    - the variable that will be filled
+//    - a short description of its meaning
+//    - optionnaly some description on its semantic
 
 cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
-	      // ...
-	      // fill mSpecImIn
-	      // get input orient folder
-	      // fill mPattern
-	      // fill mNumSub
-	      // get  output foler for calib
-           ;
+	        <<   Arg2007(mSetInputImages,"Pattern/file for images")
+	    // get images
+	    // get orient
+	    // get pattern describing how we compute bloc/sync Ident 
+	    // indicate ordering of subpattern (which sub-expression is Ident & Sync)  
+	    // indicate where we will store the calibration
+      ;
 }
 
+// RB_0_1 : describe the optionel parameters, for each parameter we must describe the same info than mandatory + a name
 
 cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
-    return    anArgOpt
-	    //  ...
-	    //  fill mNameBloc
-	    //  fill mMaster
-	    //  fill mShowByBloc
-	    //  fill mShowBySync
-	    //  fill mTestRW
-	    //  fill mTestNoDel
+    return  anArgOpt
+       // fill "mShowByBloc"  do we show the struct by bloc
+       // fill "mShowBySync"  ShowBySyncShow structure, grouping pose of same camera
+       // fill "mMaster"   Fix the master cam in the bloc(else arbitrary)
+       // fill "mNameBloc"  Name of the bloc computed
+       // fill "mDoDelete"  if we want to test the consequence of non delete
     ;
 }
 
@@ -574,28 +582,21 @@ int cAppli_BlockCamInit::Exe()
 {
     // mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
-    // cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),mNameBloc);
-    //
-    
+    // create a bloc of camera "cBlocOfCamera"  (with pattern ...)
+
+
     //  parse all images : create the sensor and add it  to the bloc
-    //  
-    //  ...
-    //
 
-
+ 
     // eventually show the bloc structure
-    // if (mShowByBloc) aBloc.ShowByBloc();
+    // if (mShowByBloc) aBloc.ShowByBloc();  
     // if (mShowBySync ) aBloc.ShowBySync();
 
-    // Show the statistics
+    // Show the statistics 
     // aBloc.StatAllCples(this);
 
-
-
     /*  Fix the master bloc if specicied by user
-
     int aNumMaster = 0; // arbitrary if not specified
-
     if (IsInit(&mMaster))  // IsInit(void*) => indicate if a value was set by user
     {
         aNumMaster = aBloc.NumInBloc(mMaster,true); // true=SVP, becausewe handle ourself the case dont exist
@@ -611,16 +612,14 @@ int cAppli_BlockCamInit::Exe()
     */
 
     //  Do the estimation of calibration
-    // aBloc.EstimateBlocInit(aNumMaster);
+    //  aBloc.EstimateBlocInit(aNumMaster);
+    //  aBloc.TestReadWrite(mDoDelete);
 
-    //  Save the bloc of camera
-    // mPhProj.SaveBlocCamera(aBloc);
+    //  Save the block of camera
+    //  mPhProj.SaveBlocCamera(aBloc);
 
-    if (mTestRW)
-    {
-       // aBloc.TestReadWrite(mTestNoDel);
-    }
 
+    
     return EXIT_SUCCESS;
 }                                       
 
@@ -629,6 +628,36 @@ int cAppli_BlockCamInit::Exe()
 /*               MMVII                                  */
 /*                                                      */
 /* ==================================================== */
+
+//  RB_0_0
+//
+//   We must : 
+//     *  describe a way to allocate an application without knowing the class
+//     * make a minimal specification of the command
+//          - it name
+//          - make a short description as text
+//          - indicate to whih group of command it belongs
+//          - indicate which kind of data are input
+//          - indicate which king of data are output
+//          - indictae the file where the command is written (usefull for devloper)
+//
+
+tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_BlockCamInit(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_BlockCamInit
+(
+      "BlockCamInit",
+      Alloc_BlockCamInit,
+      "Compute and save the calibration of rigid bloc",
+      {eApF::Ori},
+      {eApDT::Ori},
+      {eApDT::Xml},
+      __FILE__
+);
+
 
 /*
 tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
@@ -640,14 +669,13 @@ cSpecMMVII_Appli  TheSpec_BlockCamInit
 (
       "NameCommand",
       Allocator,
-      "Comment"
-      {eApF::?},
+      "Comment"   
+      {eApF::?},     
       {eApDT::?},    Which data are in put
       {eApDT::Xml},   which data are output
        In which  File  is located this command
 );
 */
-
 
 
 }; // MMVII

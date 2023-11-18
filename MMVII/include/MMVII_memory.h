@@ -161,11 +161,13 @@ class  cMemCheck
 #if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny)
          cMemCheck()  
          {
+              mCpt = TheCptObj;
               mActiveNbObj=   cMemManager::IsActiveMemoryCount();
               if (mActiveNbObj)
               {
                  TheNbObjLive++;
               }
+	      TheCptObj++;
          }
          cMemCheck(const cMemCheck &)  : cMemCheck () {}
          ~cMemCheck()
@@ -176,10 +178,12 @@ class  cMemCheck
             }
          }
          bool mActiveNbObj; 
+	 int  mCpt;
 #endif
          static int    NbObjLive();
       private :
          static int    TheNbObjLive;
+         static int    TheCptObj;
        // to avoid use 
 };
 

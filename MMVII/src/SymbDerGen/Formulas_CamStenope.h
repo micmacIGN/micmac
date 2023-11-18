@@ -616,8 +616,19 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
 		   cPtxd<tUk,2>  aPtIm    = VtoP2(aVObs,0);
 
                    cPtxd<tUk,3>  aVCP = aPGround - aCCcam;     // vector  CenterCam -> PGround
+		   
+#if (0)
+		   // for now maintain the old version, but should disapear later
+		   /*
 		   cPtxd<tUk,3> aPCam = MulMat(aVObs,2,aVCP);  // multiply by a priori rotation
 		   aPCam = aPCam + (aW ^ aPCam);               // Add unknown "small" rotation
+		   */
+
+#else
+                   cMatF<tUk> aRotInit (3,3,aVObs,2);
+                   cMatF<tUk> aDeltaRot =  cMatF<tUk>::MatAxiator(aW);
+                   cPtxd<tUk,3> aPCam =  aDeltaRot * (aRotInit * aVCP);
+#endif
 
 		   cPtxd<tUk,2>  aPProj = cHelperProj<TypeProj>::Proj(aPCam);  // project 3D-> photogram point
 		   cPtxd<tUk,2> aPDist = VtoP2(mDist.PProjToImNorm (aPProj.x(),aPProj.y(),aVUk,12));  // add distorsion

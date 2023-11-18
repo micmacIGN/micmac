@@ -307,6 +307,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPMetaData();    ///<  Accessor
 	  cDirsPhProj &   DPTieP();    ///<  Accessor
 	  cDirsPhProj &   DPMulTieP();    ///<  Accessor
+	  cDirsPhProj &   DPRigBloc();    ///<  Accessor  // RIGIDBLOC
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
 	  const cDirsPhProj &   DPRadiomData() const; ///< Accessor
@@ -317,6 +318,7 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
+	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
 
 	  const std::string &   DirPhp() const;   ///< Accessor
 	  const std::string &   DirVisu() const;   ///< Accessor
@@ -456,6 +458,15 @@ class cPhotogrammetricProject
 	 void  SaveMultipleTieP(const cVecTiePMul&,const std::string &) const;
 	 void  ReadMultipleTieP(cVecTiePMul&,const std::string & ) const;
 
+	 //===================================================================
+         //==================   Rigid Bloc           =========================
+	 //===================================================================
+	 
+	         // RIGIDBLOC
+	 std::list<cBlocOfCamera *> ReadBlocCams() const;
+	 void   SaveBlocCamera(const cBlocOfCamera &) const;
+
+
       private :
           cPhotogrammetricProject(const cPhotogrammetricProject &) = delete;
 
@@ -477,6 +488,7 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPTieP;            ///<  For Homologous point
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
+	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
 
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;
 

@@ -301,7 +301,7 @@ cResidualWeighterExplicit<Type>::cResidualWeighterExplicit(bool isSigmas, const 
         mSigmas = aData;
         mWeights = aDataInv;
     } else {
-        mSigmas = aDataInv;
+        mSigmas = aDataInv;  // MPD->JMM  : should be rather mSigmas = 1/sqrt(W) ??
         mWeights = aData;
     }
 }

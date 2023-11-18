@@ -109,6 +109,14 @@ template <class Type> cIsometry3D<Type>::cIsometry3D(const tPt& aTr,const cRotat
 {
 }
 
+/*  As this method is provide on for serialization we initialize the rotation with null matrix so that
+ *  any use drive quickly to absurd result if not error
+ */
+template <class Type> cIsometry3D<Type>::cIsometry3D() :
+	cIsometry3D(tPt(0,0,0),cRotation3D<Type>(cDenseMatrix<Type>(3,3,eModeInitImage::eMIA_Null),false))
+{
+}
+
 template <class Type> void cIsometry3D<Type>::SetRotation(const cRotation3D<Type> & aRot)
 {
     mRot = aRot;
@@ -190,6 +198,26 @@ template <class Type>
 template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & anIsom)
 {
     return cIsometry3D<tREAL8>(  ToR(anIsom.Tr()) , ToReal8(anIsom.Rot())  );
+}
+
+void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
+{
+     cPt3dr aC = aPose.Tr();
+     cPt3dr aI = aPose.Rot().AxeI();
+     cPt3dr aJ = aPose.Rot().AxeJ();
+     cPt3dr aK = aPose.Rot().AxeK();
+     MMVII::AddData(cAuxAr2007("Center",anAux),aC);
+
+     {
+         cAuxAr2007 aAuxRot("RotMatrix",anAux);
+         MMVII::AddData(cAuxAr2007("AxeI",aAuxRot),aI);
+         MMVII::AddData(cAuxAr2007("AxeJ",aAuxRot),aJ);
+         MMVII::AddData(cAuxAr2007("AxeK",aAuxRot),aK);
+     }
+     if (anAux.Input())
+     {
+         aPose = tPoseR(aC,cRotation3D<tREAL8>(MatFromCols(aI,aJ,aK),false));
+     }
 }
 
 

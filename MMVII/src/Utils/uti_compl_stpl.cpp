@@ -38,7 +38,7 @@ template <class Type> size_t  cBijectiveMapI2O<Type>::size() const
 
 
 template <class Type>
-   Type * cBijectiveMapI2O<Type>::I2Obj(int anInd,bool SVP)
+   const Type * cBijectiveMapI2O<Type>::I2Obj(int anInd,bool SVP) const
 {
    if ( (anInd<0) || (anInd>=int(mObj2I.size())) )
    {
@@ -49,6 +49,11 @@ template <class Type>
    return & mI2Obj.at(anInd);
 }
 
+template <class Type>
+   Type * cBijectiveMapI2O<Type>::I2Obj(int anInd,bool SVP) 
+{
+    return const_cast<Type *>(I2Obj(anInd,SVP));
+}
 
 template <class Type>
    int  cBijectiveMapI2O<Type>::Obj2I(const Type & anObj,bool SVP) const
@@ -59,7 +64,7 @@ template <class Type>
     {
         if (! SVP)
 	{
-              MMVII_INTERNAL_ASSERT_tiny(SVP,"Obj2I : object dont exist" );
+              MMVII_INTERNAL_ASSERT_tiny(SVP,"Obj2I : object dont exist,  Obj=[" +ToStr(anObj) + "]");
 	}
         return -1;
     }

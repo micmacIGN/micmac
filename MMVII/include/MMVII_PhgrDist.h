@@ -129,6 +129,9 @@ NS_SymbolicDerivative::cCalculator<double> * EqRadiomCalibPolIma(int aNbDeg,bool
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomEqualisation(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens);
 NS_SymbolicDerivative::cCalculator<double> * EqRadiomStabilization(int aDegSens,int aDegIm,bool WithDerive,int aSzBuf,bool WithCste,int aDegPolSens);
 
+           // .............   Equation on rigid bloc .............
+NS_SymbolicDerivative::cCalculator<double> * EqBlocRig(bool WithDerive,int aSzBuf,bool Reuse);  // RIGIDBLOC
+
 
 
 

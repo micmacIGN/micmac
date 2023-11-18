@@ -13,130 +13,36 @@
 namespace MMVII
 {
 
-/* ******************************************************* */
-/*                                                         */
-/*                   cSensorCamPC                          */
-/*                                                         */
-/* ******************************************************* */
-
-cSensorCamPC::cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib) :
-   cSensorImage     (aNameImage),
-   mPose            (aPose),
-   mInternalCalib   (aCalib),
-   mOmega           (0,0,0)
+cPoseWithUK::cPoseWithUK(const tPoseR & aPose) :
+      mPose (aPose),
+      mOmega (0.0,0.0,0.0)
 {
 }
 
-void cSensorCamPC::SetPose(const tPose & aPose)
+cPoseWithUK::cPoseWithUK() :
+	cPoseWithUK(tPoseR())
 {
-   mPose = aPose;
 }
 
 
-std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK() 
+void cPoseWithUK::SetPose(const tPoseR & aPose)
 {
-    return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib};
+	mPose = aPose;
 }
 
-
-void cSensorCamPC::PutUknowsInSetInterval()
-{
-    mSetInterv->AddOneInterv(mPose.Tr());
-    mSetInterv->AddOneInterv(mOmega);
-}
-
-cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
-{
-     return mInternalCalib->Value(Pt_W2L(aP));
-}
+const tPoseR &   cPoseWithUK::Pose()   const  {return mPose;}
+tPoseR &   cPoseWithUK::Pose()   {return mPose;}
+const cPt3dr &   cPoseWithUK::Center() const {return mPose.Tr();}
+cPt3dr &  cPoseWithUK::Center()  {return mPose.Tr();}
+cPt3dr  cPoseWithUK::AxeI()   const {return mPose.Rot().AxeI();}
+cPt3dr  cPoseWithUK::AxeJ()   const {return mPose.Rot().AxeJ();}
+cPt3dr  cPoseWithUK::AxeK()   const {return mPose.Rot().AxeK();}
+const cPt3dr &   cPoseWithUK::Tr() const {return mPose.Tr();}
+cPt3dr &  cPoseWithUK::Tr()  {return mPose.Tr();}
 
 
-        //  Local(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
-cPt3dr cSensorCamPC::Pt_W2L(const cPt3dr & aP) const { return       mPose.Inverse(aP); }
-cPt3dr cSensorCamPC::Vec_W2L(const cPt3dr & aP) const { return mPose.Rot().Inverse(aP); }
-
-cPt3dr cSensorCamPC::Pt_L2W(const cPt3dr & aP) const { return       mPose.Value(aP); }
-cPt3dr cSensorCamPC::Vec_L2W(const cPt3dr & aP) const { return mPose.Rot().Value(aP); }
-
-
-
-
-double cSensorCamPC::DegreeVisibility(const cPt3dr & aP) const
-{
-     return mInternalCalib->DegreeVisibility(mPose.Inverse(aP));
-}
-
-double cSensorCamPC::DegreeVisibilityOnImFrame(const cPt2dr & aP) const
-{
-     return mInternalCalib->DegreeVisibilityOnImFrame(aP);
-}
-
-cPt3dr cSensorCamPC::Ground2ImageAndDepth(const cPt3dr & aP) const
-{
-    cPt3dr aPCam = mPose.Inverse(aP);  // P in camera coordinate
-    cPt2dr aPIm = mInternalCalib->Value(aPCam);
-
-    return cPt3dr(aPIm.x(),aPIm.y(),aPCam.z());
-}
-
-const cPt2di & cSensorCamPC::SzPix() const {return  mInternalCalib->SzPix();}
-
-cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aPImAndD) const
-{
-    cPt2dr aPIm = Proj(aPImAndD);
-    cPt3dr aPCam = mInternalCalib->DirBundle(aPIm);
-    cPt3dr aRes =  mPose.Value(aPCam * (aPImAndD.z() / aPCam.z()));
-    return aRes;
-}
-
-tSeg3dr  cSensorCamPC::Image2Bundle(const cPt2dr & aPIm) const 
-{
-   return  tSeg3dr(Center(),static_cast<const cSensorImage*>(this)->ImageAndDepth2Ground(aPIm,1.0));
-}
-
-
-const cPt3dr * cSensorCamPC::CenterOfPC() { return  & Center(); }
-         /// Return the calculator, adapted to the type, for computing colinearity equation
-cCalculator<double> * cSensorCamPC::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) 
-{
-   return mInternalCalib->EqColinearity(WithDerives,aSzBuf,ReUse);
-}
-
-void cSensorCamPC::PushOwnObsColinearity(std::vector<double> & aVObs)
-{
-     Pose().Rot().Mat().PushByCol(aVObs);
-}
-
-const cPixelDomain & cSensorCamPC::PixelDomain() const 
-{
-	return mInternalCalib->PixelDomain();
-}
-
-
-
-/*
-size_t  cSensorCamPC::NumXCenter() const
-{
-   return IndOfVal(&(mPose.Tr().x()));
-}
-*/
-
-cPerspCamIntrCalib * cSensorCamPC::InternalCalib() {return mInternalCalib;}
-
-const cPt3dr & cSensorCamPC::Center() const {return mPose.Tr();}
-const cPt3dr & cSensorCamPC::Omega()  const {return mOmega;}
-cPt3dr & cSensorCamPC::Center() {return mPose.Tr();}
-cPt3dr & cSensorCamPC::Omega()  {return mOmega;}
-
-cPt3dr cSensorCamPC::AxeI()   const {return mPose.Rot().AxeI();}
-cPt3dr cSensorCamPC::AxeJ()   const {return mPose.Rot().AxeJ();}
-cPt3dr cSensorCamPC::AxeK()   const {return mPose.Rot().AxeK();}
-const cIsometry3D<tREAL8> & cSensorCamPC::Pose() const {return mPose;}
-
-cIsometry3D<tREAL8>  cSensorCamPC::RelativePose(const cSensorCamPC& aCam2) const
-{
-	return mPose.MapInverse()*aCam2.mPose;
-}
+cPt3dr &  cPoseWithUK::Omega()  {return mOmega;}
+const cPt3dr &  cPoseWithUK::Omega() const {return mOmega;}
 
 
 /*   Let R be the rotation of pose  P=(C,P= : Cam-> Word, what is optimized in colinearity for a ground point G
@@ -158,13 +64,201 @@ cIsometry3D<tREAL8>  cSensorCamPC::RelativePose(const cSensorCamPC& aCam2) const
  *
  */
 
-void cSensorCamPC::OnUpdate()
+void cPoseWithUK::OnUpdate()
 {
 	//  used above formula to modify  rotation
      mPose.SetRotation(mPose.Rot() * cRotation3D<tREAL8>::RotFromAxiator(-mOmega));
         // now this have modify rotation, the "delta" is void :
      mOmega = cPt3dr(0,0,0);
 }
+
+void  cPoseWithUK::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
+{
+   aGAIP.TestParam(this, &( mPose.Tr().x()),"Cx");
+   aGAIP.TestParam(this, &( mPose.Tr().y()),"Cy");
+   aGAIP.TestParam(this, &( mPose.Tr().z()),"Cz");
+
+   aGAIP.TestParam(this, &( mOmega.x())    ,"Wx");
+   aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");
+   aGAIP.TestParam(this, &( mOmega.z())    ,"Wz");
+}
+
+void cPoseWithUK::PutUknowsInSetInterval(cSetInterUK_MultipeObj<tREAL8> * aSetInterv) 
+{
+    aSetInterv->AddOneInterv(mPose.Tr());
+    aSetInterv->AddOneInterv(mOmega);
+}
+
+void cPoseWithUK::PutUknowsInSetInterval()
+{
+    PutUknowsInSetInterval(mSetInterv);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cPoseWithUK & aPUK)
+{
+    MMVII::AddData(anAux,aPUK.Pose());
+
+    if (anAux.Input())
+    {
+	 aPUK.Omega() = cPt3dr(0,0,0);
+    }
+    else
+    {
+         MMVII_INTERNAL_ASSERT_tiny(IsNull(aPUK.Omega()),"Write unknown rot with omega!=0");
+    }
+}
+
+void cPoseWithUK::PushObs(std::vector<double> & aVObs,bool TransposeMatr)
+{
+     if (TransposeMatr) 
+        mPose.Rot().Mat().PushByCol(aVObs);
+     else
+        mPose.Rot().Mat().PushByLine(aVObs);
+}
+
+
+
+/* ******************************************************* */
+/*                                                         */
+/*                   cSensorCamPC                          */
+/*                                                         */
+/* ******************************************************* */
+
+cSensorCamPC::cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib) :
+   cSensorImage     (aNameImage),
+   mPose_WU         (aPose),
+   mInternalCalib   (aCalib)
+{
+}
+
+void cSensorCamPC::SetPose(const tPose & aPose)
+{
+   mPose_WU.SetPose(aPose);
+}
+
+
+
+
+#if (1)
+std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK() 
+{
+    // Dont work because unknown are added twice
+    // return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib,&mPose_WU};
+    
+    return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib};
+}
+void cSensorCamPC::PutUknowsInSetInterval()
+{
+    mPose_WU.PutUknowsInSetInterval(mSetInterv);
+}
+#else
+std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK() 
+{
+    return std::vector<cObjWithUnkowns<tREAL8> *> {this,mInternalCalib,&mPose_WU};
+}
+void cSensorCamPC::PutUknowsInSetInterval()
+{
+    // Dont work because IndOfVal cannot be found
+    // mPose_WU.PutUknowsInSetInterval(mSetInterv);
+}
+#endif
+
+
+
+
+cPt2dr cSensorCamPC::Ground2Image(const cPt3dr & aP) const
+{
+     return mInternalCalib->Value(Pt_W2L(aP));
+}
+
+
+        //  Local(0,0,0) = Center, then mPose Cam->Word, then we use Inverse, BTW Inverse is as efficient as direct
+cPt3dr cSensorCamPC::Pt_W2L(const cPt3dr & aP) const { return       Pose().Inverse(aP); }
+cPt3dr cSensorCamPC::Vec_W2L(const cPt3dr & aP) const { return Pose().Rot().Inverse(aP); }
+
+cPt3dr cSensorCamPC::Pt_L2W(const cPt3dr & aP) const { return       Pose().Value(aP); }
+cPt3dr cSensorCamPC::Vec_L2W(const cPt3dr & aP) const { return Pose().Rot().Value(aP); }
+
+
+double cSensorCamPC::DegreeVisibility(const cPt3dr & aP) const
+{
+     return mInternalCalib->DegreeVisibility(Pose().Inverse(aP));
+}
+
+double cSensorCamPC::DegreeVisibilityOnImFrame(const cPt2dr & aP) const
+{
+     return mInternalCalib->DegreeVisibilityOnImFrame(aP);
+}
+
+cPt3dr cSensorCamPC::Ground2ImageAndDepth(const cPt3dr & aP) const
+{
+    cPt3dr aPCam = Pose().Inverse(aP);  // P in camera coordinate
+    cPt2dr aPIm = mInternalCalib->Value(aPCam);
+
+    return cPt3dr(aPIm.x(),aPIm.y(),aPCam.z());
+}
+
+const cPt2di & cSensorCamPC::SzPix() const {return  mInternalCalib->SzPix();}
+
+cPt3dr cSensorCamPC::ImageAndDepth2Ground(const cPt3dr & aPImAndD) const
+{
+    cPt2dr aPIm = Proj(aPImAndD);
+    cPt3dr aPCam = mInternalCalib->DirBundle(aPIm);
+    cPt3dr aRes =  Pose().Value(aPCam * (aPImAndD.z() / aPCam.z()));
+    return aRes;
+}
+
+tSeg3dr  cSensorCamPC::Image2Bundle(const cPt2dr & aPIm) const 
+{
+   return  tSeg3dr(Center(),static_cast<const cSensorImage*>(this)->ImageAndDepth2Ground(aPIm,1.0));
+}
+
+
+const cPt3dr * cSensorCamPC::CenterOfPC() { return  & Center(); }
+         /// Return the calculator, adapted to the type, for computing colinearity equation
+cCalculator<double> * cSensorCamPC::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) 
+{
+   return mInternalCalib->EqColinearity(WithDerives,aSzBuf,ReUse);
+}
+
+void cSensorCamPC::PushOwnObsColinearity(std::vector<double> & aVObs)
+{
+     mPose_WU.PushObs(aVObs,true);
+}
+
+const cPixelDomain & cSensorCamPC::PixelDomain() const 
+{
+	return mInternalCalib->PixelDomain();
+}
+
+
+
+cPerspCamIntrCalib * cSensorCamPC::InternalCalib() {return mInternalCalib;}
+
+const cPt3dr & cSensorCamPC::Center() const {return mPose_WU.Tr();}
+const cPt3dr & cSensorCamPC::Omega()  const {return mPose_WU.Omega();}
+cPt3dr & cSensorCamPC::Center() {return mPose_WU.Tr();}
+cPt3dr & cSensorCamPC::Omega()  {return mPose_WU.Omega();}
+
+cPt3dr cSensorCamPC::AxeI()   const {return mPose_WU.AxeI();}
+cPt3dr cSensorCamPC::AxeJ()   const {return mPose_WU.AxeJ();}
+cPt3dr cSensorCamPC::AxeK()   const {return mPose_WU.AxeK();}
+const cIsometry3D<tREAL8> & cSensorCamPC::Pose() const {return mPose_WU.Pose();}
+
+cPoseWithUK & cSensorCamPC::Pose_WU() {return mPose_WU;}
+
+
+cIsometry3D<tREAL8>  cSensorCamPC::RelativePose(const cSensorCamPC& aCam2) const
+{
+	return Pose().MapInverse()*aCam2.Pose();
+}
+
+
+void cSensorCamPC::OnUpdate()
+{
+     mPose_WU.OnUpdate();
+}
+
 
 
 //
@@ -197,47 +291,34 @@ tREAL8  cSensorCamPC::AvgAngularProjResiudal(const cSet2D3D& aSet) const
 
 void cSensorCamPC::AddData(const cAuxAr2007 & anAux0)
 {
-     cAuxAr2007 anAux("CameraPose",anAux0);
-     std::string aNameImage = NameImage();
-     cPt3dr aC = Center();
-     cPt3dr aI = AxeI();
-     cPt3dr aJ = AxeJ();
-     cPt3dr aK = AxeK();
-     cPtxd<tREAL8,4>  aQuat =  MatrRot2Quat(mPose.Rot().Mat());
-     std::string      aNameCalib = (anAux.Input() ? "" : mInternalCalib->Name());
+    cAuxAr2007 anAux("CameraPose",anAux0);
+    std::string aNameImage = NameImage();
+    cPtxd<tREAL8,4>  aQuat =  MatrRot2Quat(Pose().Rot().Mat());
+    std::string      aNameCalib = (anAux.Input() ? "" : mInternalCalib->Name());
 
 
-     MMVII::AddData(cAuxAr2007("NameImage",anAux),aNameImage);
-     MMVII::AddData(cAuxAr2007("NameInternalCalib",anAux),aNameCalib);
-     MMVII::AddData(cAuxAr2007("Center",anAux),aC);
+    MMVII::AddData(cAuxAr2007("NameImage",anAux),aNameImage);
+    MMVII::AddData(cAuxAr2007("NameInternalCalib",anAux),aNameCalib);
 
+    MMVII::AddData(anAux,mPose_WU);
+    if (anAux.Input())
     {
-        cAuxAr2007 aAuxRot("RotMatrix",anAux);
-        MMVII::AddData(cAuxAr2007("AxeI",aAuxRot),aI);
-        MMVII::AddData(cAuxAr2007("AxeJ",aAuxRot),aJ);
-        MMVII::AddData(cAuxAr2007("AxeK",aAuxRot),aK);
+         SetNameImage(aNameImage);
+	 mTmpNameCalib = aNameCalib;
     }
+
     MMVII::AddData(cAuxAr2007("EQ",anAux),aQuat);
     anAux.Ar().AddComment("EigenQuaternion, for information");
 
-    cPt3dr aWPK = mPose.Rot().ToWPK() *  (180.0/M_PI);
+    cPt3dr aWPK = Pose().Rot().ToWPK() *  (180.0/M_PI);
     MMVII::AddData(cAuxAr2007("WPK",anAux),aWPK);
     anAux.Ar().AddComment("Omega Phi Kapa in degree, for information");
 
 
-    cPt3dr aYPR = mPose.Rot().ToYPR() *  (180.0/M_PI);
+    cPt3dr aYPR = Pose().Rot().ToYPR() *  (180.0/M_PI);
     MMVII::AddData(cAuxAr2007("YPR",anAux),aYPR);
     anAux.Ar().AddComment("Yaw Pitch Roll in degree, for information");
 
-
-
-    if (anAux.Input())
-    {
-         SetNameImage(aNameImage);
-         mPose = tPose(aC,cRotation3D<tREAL8>(MatFromCols(aI,aJ,aK),false));
-	 mTmpNameCalib = aNameCalib;
-	 mOmega = cPt3dr(0,0,0);
-    }
 }
 
 void AddData(const cAuxAr2007 & anAux,cSensorCamPC & aPC)
@@ -288,13 +369,7 @@ std::string  cSensorCamPC::PrefixName()  { return "PerspCentral";}
 
 void  cSensorCamPC::GetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 {
-   aGAIP.TestParam(this, &( mPose.Tr().x()),"Cx");
-   aGAIP.TestParam(this, &( mPose.Tr().y()),"Cy");
-   aGAIP.TestParam(this, &( mPose.Tr().z()),"Cz");
-
-   aGAIP.TestParam(this, &( mOmega.x())    ,"Wx");
-   aGAIP.TestParam(this, &( mOmega.y())    ,"Wy");
-   aGAIP.TestParam(this, &( mOmega.z())    ,"Wz");
+     mPose_WU.GetAdrInfoParam(aGAIP);
 }
      // =================  becnh ===================
 

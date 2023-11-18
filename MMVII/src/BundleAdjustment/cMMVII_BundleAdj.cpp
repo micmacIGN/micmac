@@ -85,6 +85,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mMesGCP           (nullptr),
     mSigmaGCP         (-1),
     mMTP              (nullptr),
+    mBlRig            (nullptr),
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0)
 {
@@ -92,9 +93,11 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
 
 cMMVII_BundleAdj::~cMMVII_BundleAdj() 
 {
+    mSetIntervUK.SIUK_Reset();
     delete mSys;
     delete mMesGCP;
     delete mMTP;
+    delete mBlRig;
     DeleteAllAndClear(mGCP_UK);
 }
 
@@ -134,6 +137,11 @@ void cMMVII_BundleAdj::OneIteration()
         InitIteration();
     }
 
+
+    // ================================================
+    //  [1]   Add "Hard" constraint 
+    // ================================================
+
     // if necessary, fix frozen parameters of internal calibration
     if (mPatParamFrozenCalib !="")
     {
@@ -156,19 +164,40 @@ void cMMVII_BundleAdj::OneIteration()
         }
     }
 
+    if (mBlRig) // RIGIDBLOC
+    {
+        mBlRig->SetFrozenVar(*mR8_Sys);
+    }
+
+    // ================================================
+    //  [2]   Add "Soft" constraint 
+    // ================================================
+
     // if necessary, add some "viscosity" on poses 
     AddPoseViscosity();
 
+
+    // ================================================
+    //  [3]   Add compensation measures
+    // ================================================
+
+
     OneItere_GCP();   // add GCP informations
     OneItere_TieP();  // ad tie-points information
+		      //
 
+    if (mBlRig)
+    {
+        mBlRig->AddRigidityEquation(*mR8_Sys);
+    }
     // StdOut() << "SYS=" << mR8_Sys->GetNbObs() << " " <<  mR8_Sys->NbVar() << std::endl;
 
     const auto & aVectSol = mSys->R_SolveUpdateReset();
     mSetIntervUK.SetVUnKnowns(aVectSol);
+
+    StdOut() << "---------------------------" << std::endl;
 }
 
-//================================================================
 
 void cMMVII_BundleAdj::AddCalib(cPerspCamIntrCalib * aCalib)  
 {
@@ -248,10 +277,39 @@ void cMMVII_BundleAdj::AddPoseViscosity()
      }
 }
 
+
 void cMMVII_BundleAdj::SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle)
 {
     mSigmaViscCenter = aViscTr;
     mSigmaViscAngles = aViscAngle;
+}
+
+
+    /* ---------------------------------------- */
+    /*            Rigid Bloc                    */
+    /* ---------------------------------------- */
+
+void cMMVII_BundleAdj::AddBlocRig(const std::vector<double>& aWeight)  // RIGIDBLOC
+{
+    AssertPhpAndPhaseAdd();
+    mBlRig = new cBA_BlocRig(*mPhProj,aWeight);
+
+    mBlRig->AddToSys(mSetIntervUK);
+}
+void cMMVII_BundleAdj::AddCamBlocRig(const std::string & aNameIm) // RIGIDBLOC
+{
+    cSensorCamPC * aCam = mPhProj->ReadCamPC(aNameIm,/*ToDel*/true,/*SVP*/false);
+    if (aCam == nullptr) 
+       return;
+
+    mBlRig->AddCam(aCam);
+}
+void cMMVII_BundleAdj::SaveBlocRigid()
+{
+    if (mBlRig  && mPhProj->DPRigBloc().DirOutIsInit())  // RIGIDBLOC
+    {
+       mBlRig->Save();
+    }
 }
 
 
