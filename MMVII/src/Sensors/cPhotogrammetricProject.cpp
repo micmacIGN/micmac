@@ -239,7 +239,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPTieP           (eTA2007::TieP,*this),
     mDPMulTieP        (eTA2007::MulTieP,*this),
     mDPMetaData       (eTA2007::MetaData,*this),
-    mDPRigBloc        (eTA2007::RigBlock,*this), //  // RIGIDBLOC
+    mDPRigBloc        (eTA2007::RigBlock,*this),  // RIGIDBLOC
     mGlobCalcMTD      (nullptr)
 {
 }

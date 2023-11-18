@@ -11,10 +11,10 @@ cBA_BlocRig::cBA_BlocRig
      const std::vector<double> & aSigma
 )  :
     mPhProj  (aPhProj),
-    mBlocs   (aPhProj.ReadBlocCams()),
+    mBlocs   (aPhProj.ReadBlocCams()),  // use the standar interface to create the bloc
     mSigma   (aSigma),
     mAllPair (false),
-    mEqBlUK  (EqBlocRig(true,1,true))
+    mEqBlUK  (EqBlocRig(true,1,true))  // get the class computing rigidity equation
 {
     // push the weigth for the 3 equation on centers
     for (int aK=0 ; aK<3 ; aK++)
@@ -39,10 +39,14 @@ void cBA_BlocRig::Save()
 void cBA_BlocRig::AddCam (cSensorCamPC * aCam)
 {
      size_t aNbAdd = 0;
+     //  Parse all the bloc to try to add it
      for (const auto & aBloc : mBlocs)
      {
+         // AddSensor return a boolean value indicating if it was added
          aNbAdd += aBloc->AddSensor(aCam);
      }
+     // it may happen that a sensor does not belong to any bloc,
+     // but a sensor may "never" belongs to several bloc
      if (aNbAdd>1)
      {
          MMVII_UnclasseUsEr("Multiple bloc for "+ aCam->NameImage());
@@ -128,25 +132,29 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
     // now we are ready to add the equation
     aSys.R_CalcAndAddObs
     (
-          mEqBlUK,
+          mEqBlUK,  // the equation itself
 	  aVInd,
 	  aVObs,
 	  cResidualWeighterExplicit<tREAL8>(false,mWeight)
     );
 
-    cPt2dr aResTrW(0,0);
-    for (size_t aKU=0 ; aKU<12 ; aKU++)
-    {
-	aResTrW[aKU>=3] += Square(mEqBlUK->ValComp(0,aKU));
-    }
-    aResTrW = cPt2dr(std::sqrt(aResTrW.x()/3.0),std::sqrt(aResTrW.y()/9.0));
 
-    return cPt3dr(aResTrW.x(),aResTrW.y(),1.0);
+    //  Now compute the residual  in Tr and Rot,
+    //  ie agregate   (Rx,Ry,Rz, m00 , m01 ...)
+    //
+    //          ....
+    //
+    //  mEqBlUK->ValComp(0,aKU)
+
+    return cPt3dr(0,0,1);
 }
+
 
 void cBA_BlocRig::OneBlAddRigidityEquation(cBlocOfCamera& aBloc,cResolSysNonLinear<tREAL8> & aSys)
 {
      cPt3dr aRes(0,0,0);
+
+     //  Parse all the bloc of image acquired at same sync time
      for (size_t  aKSync=0 ; aKSync<aBloc.NbSync() ; aKSync++)
      {
          // case "AllPair", to symetrise the problem we process all pair w/o distinguish master
@@ -160,6 +168,7 @@ void cBA_BlocRig::OneBlAddRigidityEquation(cBlocOfCamera& aBloc,cResolSysNonLine
                 }
             }
 	 }
+	 // other case, we only add the equation implyng the "master" camera
          else
          {
             size_t aKM = aBloc.IndexMaster();
