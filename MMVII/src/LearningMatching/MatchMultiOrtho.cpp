@@ -2796,7 +2796,7 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
                OrigEmbeddings->push_back(FFunc::grid_sample(SecFeat.unsqueeze(0),
                                                             ToTensorGeo(mORIG_EpIm_GEOX[anInd][0],mORIG_EpIm_GEOY[anInd][0]).to(device),
               F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true)).squeeze());
-               if (0)
+               if (1)
                  {
                    // Save some images rectified back to the original image
                    if (anInd==0)
@@ -2895,7 +2895,7 @@ int  cAppliMatchMultipleOrtho::GotoHomography()
                               //std::cout<<" CORRELATION CHECK >>>  "<<at::mean(COSINE)<<std::endl;
                               //std::cout<<"##########################  "<<i<<"  "<<ProjectEmbeddings->at(i).sizes()<<"  ###########################"<<std::endl;
                             }
-                          std::cout<<"PROJECTED EMBEDDINGS     ===================>   "<<ProjectEmbeddings->size()<<std::endl;
+                          //std::cout<<"PROJECTED EMBEDDINGS     ===================>   "<<ProjectEmbeddings->size()<<std::endl;
                               ComputeSimilByLearnedCorrelMasterEnhanced(ProjectEmbeddings);
                          }
                       else
@@ -2942,7 +2942,8 @@ int cAppliMatchMultipleOrtho::Exe()
     }
   else
     {
-      return GotoEpipolar();
+      return GotoHomography();
+      //return GotoEpipolar();
       //return ExeProjectOrigEmbeddings();
     }
 }

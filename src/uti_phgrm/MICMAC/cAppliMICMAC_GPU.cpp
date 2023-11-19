@@ -1461,7 +1461,6 @@ void cAppliMICMAC::GenerateGeoPassage_ImEpip_EpipIm_BBox(std::vector<cGPU_Loaded
 }
 
 
-
 void cAppliMICMAC::GenerateGeoPassage_Homography_BBox_Stenope(std::vector<cGPU_LoadedImGeom *> & aVLI, std::string & aNameOrig)
 {
   /*TODO: Include scales: scale deformation maps according to the multi-resolution pipeline*/
@@ -1676,19 +1675,30 @@ void cAppliMICMAC::DoEstimHomWarpers()
                                 ELISE_fp::exist_file(Epip21_to_im2_GeoY) &&
                                 ELISE_fp::exist_file(Im2_to_Epip21_Masq) &&
                                 ELISE_fp::exist_file(Epip21_to_im2_EpMasq);
-
-                  if (!AllExist)
+                  int aCurDeZoom=this->CurEtape()->DeZoomTer();
+                  bool SizesNoMatch=false;
+                  // Compare Sizes to decide wether to recompute epipolars
+                  if (ELISE_fp::exist_file(Epip21_to_im2_GeoX))
+                    {
+                       Tiff_Im ImEpipolarEpGeox(Epip21_to_im2_GeoX.c_str());
+                       Pt2di aSzZoom=Std2Elise(aSec->IMIL()->Sz(aCurDeZoom));
+                       std::cout<<"taille de limage dezoom "<<aSec->IMIL()->Sz(aCurDeZoom)<<std::endl;
+                       SizesNoMatch=(aSzZoom!=ImEpipolarEpGeox.sz());
+                       std::cout<<"SZ IMAGE "<<aMaster->LoadedIm().SzIm()<<"   "<<ImEpipolarEpGeox.sz()<<" CUD DEZOOM "<<aCurDeZoom<<std::endl;
+                    }
+                  if (!AllExist||SizesNoMatch)
                     {
 
-                      //int aCurDeZoom=this->CurEtape()->DeZoomTer();
+                      int aCurDeZoom=this->CurEtape()->DeZoomTer();
                         std::string aComHom=MMBinFile(MM3DStr)               + BLANK +
                                             "TestLib"                        + BLANK +
                                             "OneReechHom"                    + BLANK +
                                             aMasterName                      + BLANK +
                                             aSecName                         + BLANK +
                                             NameOut+".tif"                   + BLANK +
-                                            "PostMasq="+"_Masq" ;
-                                            //"ScaleReech=" + ToString(aCurDeZoom)  ;
+                                            "ExportGeoXY=1"                 + BLANK +
+                                            "PostMasq="+"_Masq"             + BLANK +
+                                            "ScaleReech=" + ToString(aCurDeZoom)  ;
                         aLCom.push_back(aComHom);
                         std::cout<<"COMMANDE HOMOGRAPHY "<<aComHom<<std::endl;
                     }

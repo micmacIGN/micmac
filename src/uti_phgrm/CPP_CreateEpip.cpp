@@ -114,6 +114,7 @@ class cApply_CreateEpip_main
       // int    mNbZCheck ;   // Ceux la sont aussi random
       double mLengthMin ;
       double mStepReech ;
+      double mScale;
       bool   mForceGen;
       int    mNumKer;
       bool   mDebug;
@@ -656,6 +657,8 @@ cTmpReechEpip::cTmpReechEpip
     }
 
 
+    Pt2di aSzOutEpi= exportGrid2Way ? mSzRed : mSzEpi;
+
     Pt2di aPInd;
 
     for (aPInd.x=0 ; aPInd.x<mSzRed.x ; aPInd.x++)
@@ -689,7 +692,7 @@ cTmpReechEpip::cTmpReechEpip
                        Tiff_Im
                        (
                            aNameOut.c_str(),
-                           mSzEpi,
+                           aSzOutEpi,
                            aTifOri.type_el(),
                            Tiff_Im::No_Compr,
                            aTifOri.phot_interp()
@@ -704,7 +707,8 @@ cTmpReechEpip::cTmpReechEpip
     Tiff_Im aTif_Epip_ImX=aTifOri;
     Tiff_Im aTif_Epip_ImY=aTifOri;
     Tiff_Im aTifMasq_Epip_Im=aTifOri;
-    Pt2di aSzIm=Pt2di(mBoxImIn._p1)-Pt2di(mBoxImIn._p0);
+    //Pt2di aSzIm=Pt2di(mBoxImIn._p1)-Pt2di(mBoxImIn._p0);
+    Pt2di aSzIm= round_up (mBoxImIn.sz() / mStep) + Pt2di(1,1);
     if (exportGrid2Way)
       {
 
@@ -714,7 +718,7 @@ cTmpReechEpip::cTmpReechEpip
             aTifRedX=Tiff_Im
                             (
                                 aNameRedX.c_str(),
-                                mSzEpi,
+                                aSzOutEpi,
                                 GenIm::real4,
                                 Tiff_Im::No_Compr,
                                 Tiff_Im::BlackIsZero
@@ -722,7 +726,7 @@ cTmpReechEpip::cTmpReechEpip
             aTifRedY= Tiff_Im
                             (
                                 aNameRedY.c_str(),
-                                mSzEpi,
+                                aSzOutEpi,
                                 GenIm::real4,
                                 Tiff_Im::No_Compr,
                                 Tiff_Im::BlackIsZero
@@ -765,7 +769,7 @@ cTmpReechEpip::cTmpReechEpip
                     Tiff_Im
                     (
                         aNameMasq.c_str(),
-                        mSzEpi,
+                        aSzOutEpi,
                         GenIm::bits1_msbf,
                         Tiff_Im::No_Compr,
                         Tiff_Im::BlackIsZero
@@ -796,14 +800,14 @@ cTmpReechEpip::cTmpReechEpip
     int aX00 = 0;
     int aY00 = 0;
 
-    for (int aX0=aX00 ; aX0<mSzEpi.x ; aX0+=aNbBloc)
+    for (int aX0=aX00 ; aX0<aSzOutEpi.x ; aX0+=aNbBloc)
     {
-         int aX1 = ElMin(aX0+aNbBloc,mSzEpi.x);
-         for (int aY0=aY00 ; aY0<mSzEpi.y ; aY0+=aNbBloc)
+         int aX1 = ElMin(aX0+aNbBloc,aSzOutEpi.x);
+         for (int aY0=aY00 ; aY0<aSzOutEpi.y ; aY0+=aNbBloc)
          {
 // std::cout << "X0Y0 " << aX0 << " " << aY0 << "\n";
 
-             int aY1 = ElMin(aY0+aNbBloc,mSzEpi.y);
+             int aY1 = ElMin(aY0+aNbBloc,aSzOutEpi.y);
 
              Pt2di aP0Epi(aX0,aY0);
              Pt2di aSzBloc(aX1-aX0,aY1-aY0);
@@ -817,10 +821,11 @@ cTmpReechEpip::cTmpReechEpip
              bool  NonVide= false;
 
              for (int anX =aX0 ; anX<aX1  ; anX++)
-             {
+               {
                  for (int anY =aY0 ; anY<aY1  ; anY++)
                  {
-                     Pt2dr aIndEpi (anX/mStep , anY/mStep);
+                     Pt2dr aIndEpi (exportGrid2Way ?  anX : anX/mStep,
+                                    exportGrid2Way ?  anY : anY/mStep);
                      Pt2di aPIndLoc (anX-aX0,anY-aY0);
                      if (mRedTMasq.get(round_down(aIndEpi)))
                      {
@@ -874,7 +879,8 @@ cTmpReechEpip::cTmpReechEpip
                                aImEpi.oset(aIndEpi,0);
                                Pt2di anIndEpiGlob  = aIndEpi + aP0Epi;
 
-                               Pt2dr aIndEpiRed (anIndEpiGlob.x/mStep , anIndEpiGlob.y/mStep);
+                               Pt2dr aIndEpiRed (exportGrid2Way ? anIndEpiGlob.x : anIndEpiGlob.x/mStep ,
+                                                 exportGrid2Way ? anIndEpiGlob.y : anIndEpiGlob.y/mStep);
                                if (mRedTMasq.get(round_down(aIndEpiRed),0))
                                {
                                    double aXIm = mRedTImX.getr(aIndEpiRed,-1,true);
@@ -899,7 +905,7 @@ cTmpReechEpip::cTmpReechEpip
                      aTifEpi.out()
                  );
              }
-             if (ExportMasq)
+             if (ExportMasq && !exportGrid2Way)
              {
                 ELISE_COPY
                 (
@@ -908,7 +914,9 @@ cTmpReechEpip::cTmpReechEpip
                     aTifMasq.out()
                 );
               }
-             if (exportGrid2Way)
+
+
+             /*if (exportGrid2Way)
               {
 
                 // export warping masks
@@ -924,15 +932,43 @@ cTmpReechEpip::cTmpReechEpip
                     trans(aTImY._the_im.in(0),-aP0Epi),
                     aTifRedY.out()
                 );
+
              }
+             */
              // std::cout << "ReechDONE " <<  aX0 << " "<< aY0 << "\n";
 
          }
     }
 
 
+
+
     if (exportGrid2Way) // supplementary extract maps GeoX and GeoX that regenerate image from epipolar image
      {
+
+        // test Export mTifRedX and mTifRedY
+        ELISE_COPY
+        (
+            rectangle(Pt2di(0,0),aSzOutEpi),
+            trans(mRedTImX._the_im.in(0),Pt2di(0,0)),
+            aTifRedX.out()
+        );
+
+        ELISE_COPY
+        (
+            rectangle(Pt2di(0,0),aSzOutEpi),
+            trans(mRedTImY._the_im.in(0),Pt2di(0,0)),
+            aTifRedY.out()
+        );
+
+        ELISE_COPY
+        (
+            rectangle(Pt2di(0,0),aSzOutEpi),
+            trans(mRedTMasq._the_im.in(0),Pt2di(0,0)),
+            aTifMasq.out()
+        );
+
+
         mSzRed=round_up (mBoxImIn.sz() / mStep) + Pt2di(1,1);
         Im2D_Bits<1> aRedIMasq(mSzRed.x,mSzRed.y);
         TIm2DBits<1> aRedTMasq(aRedIMasq);
@@ -963,15 +999,15 @@ cTmpReechEpip::cTmpReechEpip
                         aRedTMasq.oset(aPInd,Ok);
                    }
               }
-              aRedTImX.oset(aPInd,aPEpi.x);
-              aRedTImY.oset(aPInd,aPEpi.y);
+              aRedTImX.oset(aPInd,(aPEpi.x-mP0Epi.x)/mStep);
+              aRedTImY.oset(aPInd,(aPEpi.y-mP0Epi.y)/mStep);
            }
         }
         ELISE_COPY(aRedIMasq.all_pts(),dilat_d8(aRedIMasq.in(0),4),aRedIMasq.out());
 
         // Sortie masque de definition
 
-        Tiff_Im::Create8BFromFonc("Reduc-MASQ-INVERSE.tif",aRedIMasq.sz(),aRedIMasq.in()*255);
+        /*Tiff_Im::Create8BFromFonc("Reduc-MASQ-INVERSE.tif",aRedIMasq.sz(),aRedIMasq.in()*255);
         // warping grids
 
         int aX00 = mBoxImIn._p0.x;
@@ -986,7 +1022,7 @@ cTmpReechEpip::cTmpReechEpip
 
                  int aY1 = ElMin(aY0+aNbBloc,(int)mBoxImIn._p1.y);
 
-                 Pt2di aP0Im(aX0,aY0);
+                 //Pt2di aP0Im(aX0,aY0);
                  Pt2di aSzBloc(aX1-aX0,aY1-aY0);
 
                  TIm2D<REAL4,REAL8> aTImX(aSzBloc);
@@ -1016,7 +1052,7 @@ cTmpReechEpip::cTmpReechEpip
                      }
                  }
 
-                 // export warpin masks
+                 // export warping masks
                  ELISE_COPY
                  (
                      rectangle(aP0Im,aP0Im+aSzBloc),
@@ -1036,10 +1072,32 @@ cTmpReechEpip::cTmpReechEpip
                      aTifMasq_Epip_Im.out()
                  );
 
+
              }
         }
 
+        */
 
+        // save warping grids  // provisoire ne marche
+
+        ELISE_COPY
+         (
+             rectangle(Pt2di(0,0),aSzIm),
+             trans(aRedTImX._the_im.in(0),Pt2di(0,0)),
+             aTif_Epip_ImX.out()
+         );
+         ELISE_COPY
+         (
+               rectangle(Pt2di(0,0),aSzIm),
+               trans(aRedTImY._the_im.in(0),Pt2di(0,0)),
+             aTif_Epip_ImY.out()
+         );
+         ELISE_COPY
+         (
+               rectangle(Pt2di(0,0),aSzIm),
+               trans(aRedTMasq._the_im.in(0),Pt2di(0,0)),
+             aTifMasq_Epip_Im.out()
+         );
      }
 }
 
@@ -1339,9 +1397,9 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 
 	 // If we are alredy almost in epip, we dont want a 180 deg rotation
 	 if ((mDir2.x+mDir1.x) <0)
-         {
-             mDir1 = -mDir1;
-             mDir2 = -mDir2;
+	 {
+	     mDir1 = -mDir1;
+	     mDir2 = -mDir2;
 	 }
       }
       else
@@ -1365,14 +1423,14 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       ElPackHomologue aPackXFitH;
       if (mXFitHom)
       {
-	 aPackXFitH = mICNM->StdPackHomol(mNameHom,mName1,mName2);
+         aPackXFitH = mICNM->StdPackHomol(mNameHom,mName1,mName2);
       }
       else if (mXFitModele)
       {
           std::list<Appar23>  aLTCheck;
-          DirEpipIm2(mGenI1,mGenI2,aPackXFitH,true,true,aLTCheck,true); 
+          DirEpipIm2(mGenI1,mGenI2,aPackXFitH,true,true,aLTCheck,true);
 
-	      /*std::cout << "mXFitModelemXFitModelemXFitModelemXFitModele \n"; 
+	      /*std::cout << "mXFitModelemXFitModelemXFitModelemXFitModele \n";
 	 aPackXFitH = mICNM->StdPackHomol(mNameHom,mName1,mName2);
 	      getchar();
 	      */
@@ -1427,7 +1485,7 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 
             Pt2dr  aCIm1(0,0);
 
-            // Compute accuracy, bounding box 
+            // Compute accuracy, bounding box
             std::vector<double> aVResid;
             for (ElPackHomologue::const_iterator itC=aPackK->begin() ; itC!= aPackK->end() ; itC++)
             {
@@ -1461,20 +1519,20 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
             double aSupY = ElMax(aSup1.y,aSup2.y);
             aInf1.y = aInf2.y = aInfY;
             aSup1.y = aSup2.y = aSupY;
-	    if (mXFit)
-	    {
+            if (mXFit)
+            {
                 double aInfX = ElMax(aInf1.x,aInf2.x);
                 double aSupX = ElMax(aSup1.x,aSup2.x);
                 aInf1.x = aInf2.x = aInfX;
                 aSup1.x = aSup2.x = aSupX;
-	    }
+            }
 
 
             std::cout  << "======================= " << (ForCheck ? " CONTROL" : "LEARNING DATA") << " ========\n";
-            std::cout << "Epip Rect Accuracy:" 
-                      << " Bias " << aBias/mNbP 
-                      << " ,Moy " <<  aErrMoy/mNbP 
-                      << " ,Max " <<  aErrMax 
+            std::cout << "Epip Rect Accuracy:"
+                      << " Bias " << aBias/mNbP
+                      << " ,Moy " <<  aErrMoy/mNbP
+                      << " ,Max " <<  aErrMax
                       << " Center:" << aCIm1 << " NbC:" << mNbP
                       << "\n";
 
@@ -1509,11 +1567,11 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 
 
       bool aConsChan = true;
-      Pt2di aSzI1 = mWithOri ? 
-                    mGenI1->SzBasicCapt3D() : 
+      Pt2di aSzI1 = mWithOri ?
+                    mGenI1->SzBasicCapt3D() :
                     Tiff_Im::StdConvGen(mName1.c_str(),aConsChan ? -1 :1 ,true).sz() ;
-      Pt2di aSzI2 = mWithOri ? 
-                    mGenI2->SzBasicCapt3D() : 
+      Pt2di aSzI2 = mWithOri ?
+                    mGenI2->SzBasicCapt3D() :
                     Tiff_Im::StdConvGen(mName2.c_str(),aConsChan ? -1 :1 ,true).sz() ;
 
       std::string aNI1 = mICNM->NameImEpip(mOri,mName1,mName2);
@@ -1532,13 +1590,14 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       if (DoIm)
       {
 {
-	std::cout << "HAS XFIT H " << aEpi1->HasXFitHom() << " " << aEpi2->HasXFitHom() << "\n";
+        std::cout << "HAS XFIT H " << aEpi1->HasXFitHom() << " " << aEpi2->HasXFitHom() << "\n";
 }
+         mStepReech = mExport12WayGeoxy ? mScale : mStepReech;
          cTmpReechEpip aReech1(aConsChan,mName1,aBIn1,aEpi1,aBOut1,mStepReech,aNI1,mPostMasq,mNumKer,mDebug,mNbBloc,mExport12WayGeoxy,mEpsCheckInv,&aPackXFitH,aEpi2);
          std::cout << "DONE IM1 \n";
          ElPackHomologue aPSym = aPackXFitH;
-	 aPSym.SelfSwap();
-	 cTmpReechEpip aReech2(aConsChan,mName2,aBIn2,aEpi2,aBOut2,mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mExport12WayGeoxy,mEpsCheckInv,&aPSym,aEpi1);
+         aPSym.SelfSwap();
+         cTmpReechEpip aReech2(aConsChan,mName2,aBIn2,aEpi2,aBOut2,mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mExport12WayGeoxy,mEpsCheckInv,&aPSym,aEpi1);
          std::cout << "DONE IM2 \n";
 
          std::cout << "DONNE REECH TMP \n";
@@ -1557,7 +1616,7 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
          ExportImCurveEpip(*aEpi1,aBIn1,aBOut1,"ImLineEpip1.tif",*aEpi2,aBIn2,aX2mX1);
          ExportImCurveEpip(*aEpi2,aBIn2,aBOut2,"ImLineEpip2.tif",*aEpi1,aBIn1,-aX2mX1);
       }
-         
+
 }
 
 void cApply_CreateEpip_main::MakeAppuis
@@ -1614,6 +1673,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mNbZ       (2),  // One more precaution ...
    mNbXY      (100),
    mNbZRand   (1),
+   mScale(1.0),
    mForceGen  (false),
    mNumKer    (5),
    mDebug     (false),
@@ -1636,7 +1696,6 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
     std::string aDir= ELISE_Current_DIR;
     std::string anOri;
     double  aScale=1.0;
-
     bool Gray = true;
     bool Cons16B = true;
     bool InParal = true;
@@ -1696,6 +1755,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
     if (! EAMIsInit(&mXFitL2))
       mXFitL2  = mXFitModele;
 
+    if (EAMIsInit(&aScale)) mScale=aScale;
 
 if (!MMVisualMode)
 {
@@ -1900,7 +1960,9 @@ cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
     mH1To2    (cElHomographie::Id()),
     mH2To1    (cElHomographie::Id())
 {
-	bool aShow=false;
+    bool aShow=false;
+    bool DoExportGeoXY=false;
+
     ElInitArgMain
     (
           argc,argv,
@@ -1909,7 +1971,8 @@ cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
                       << EAMC(mNameI2Redr,"Name of resulting registered Image", eSAM_IsExistFile),
           LArgMain()  << EAM (mPostMasq,"PostMasq",true,"Name of Masq , Def = \"Masq\"")
                       << EAM (mScaleReech,"ScaleReech",true,"Scale Resampling, used for interpolator when downsizing")
-					  << EAM (aShow,"Show",true,"Show the computed homographies")
+                      << EAM (aShow,"Show",true,"Show the computed homographies")
+                      << EAM (DoExportGeoXY,"ExportGeoXY",false,"Export rectifying grids")
     );
 
      mNameI1 = NameWithoutDir(mFullNameI1);
@@ -1973,6 +2036,7 @@ cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
      cMetaDataPhoto aMTD1 = cMetaDataPhoto::CreateExiv2(mFullNameI1);
      cMetaDataPhoto aMTD2 = cMetaDataPhoto::CreateExiv2(mFullNameI2);
 
+     double ScaleRedr=EAMIsInit(&mScaleReech) ? mScaleReech : 10.0;
 
      ReechFichier
      (
@@ -1981,12 +2045,12 @@ cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
           Box2dr(Pt2dr(0,0),Pt2dr(aMTD2.TifSzIm())),
           this,
           Box2dr(Pt2dr(0,0),Pt2dr(aMTD1.TifSzIm())),
-          10.0,
+          DoExportGeoXY ? ScaleRedr : 10.0,
           mNameI2Redr,
           mPostMasq,
           5,
           2000,
-          true
+          DoExportGeoXY
      );
 
 }
