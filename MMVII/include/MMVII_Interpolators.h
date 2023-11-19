@@ -1,6 +1,8 @@
 #ifndef  _MMVII_Interpolators_H_
 #define  _MMVII_Interpolators_H_
 
+#include "MMVII_Geom2D.h"
+
 namespace MMVII
 {
 /*  ********************************* */
@@ -16,6 +18,8 @@ namespace MMVII
 
 /// If we dont need any kernel interface keep it simple 
 tREAL8 CubAppGaussVal(const tREAL8&);
+
+tREAL8  GaussLaw(const tREAL8& aVal,const tREAL8& aAvg,const tREAL8& aStdDev);
 
 
 class cRessampleWeigth

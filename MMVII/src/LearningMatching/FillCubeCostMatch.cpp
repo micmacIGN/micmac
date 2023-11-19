@@ -1,13 +1,15 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
-#include "include/MMVII_Tpl_Images.h"
-#include "include/MMVII_TplLayers3D.h"
+
+//#include "include/MMVII_Tpl_Images.h"
+//#include "include/MMVII_TplLayers3D.h"
 #include <thread>
-
-
 // included model cnn 
 #include "cCnnModelPredictor.h"
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_TplLayers3D.h"
+
 
 /*
    C = (1-(1-L) ^2)
@@ -981,7 +983,7 @@ int  cAppliFillCubeCost::Exe()
    mIm2 = tImRad::FromFile(mNameI2,mBoxGlob2);
    mDI2 = &(mIm2.DIm());
 
-   mFileCube = new cMMVII_Ofs(mNameCube,false);
+   mFileCube = new cMMVII_Ofs(mNameCube, eFileModeOut::CreateText);
 
    mCmpCorLearn = IsInit(&mNameCmpModele);
    std::vector<cOneModele*> aVMods;
@@ -1069,7 +1071,6 @@ int  cAppliFillCubeCost::Exe()
 
             for (aPix.y()=0 ; aPix.y()<aSzL.y() ; aPix.y()++)
             {
-
                     int nthreads = (int)std::thread::hardware_concurrency();
                     //std::cout<<"NUMBER OF POSSIBLE THREADS AT ONCE "<<nthreads<<std::endl;
                    // SCALING THE PROCESSES THROUGH columns

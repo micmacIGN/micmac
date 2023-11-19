@@ -1,7 +1,7 @@
-#include "include/MMVII_all.h"
+
 #include "LearnDM.h"
-#include "include/MMVII_Tpl_Images.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 
 namespace MMVII
 {
@@ -110,7 +110,7 @@ cStatOneVecCarac::cStatOneVecCarac(const cPt2di & aSzCr)  :
 static int aCpt = 0;
 aCpt++;
 double aSz = (TheDynSave*TheDynSave) *((double) aCpt) * sizeof(tINT4) *2;
-StdOut() << "SSZZZZ " << aSz << " ; Cpt " << aCpt << "\n";
+StdOut() << "SSZZZZ " << aSz << " ; Cpt " << aCpt << std::endl;
 }
 */
    for (int aKH=0 ; aKH<TheNbH ; aKH++)

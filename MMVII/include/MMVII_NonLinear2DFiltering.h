@@ -1,5 +1,8 @@
 #ifndef  _MMVII_NonLinear2DFiltering_H_
 #define  _MMVII_NonLinear2DFiltering_H_
+
+#include "MMVII_Image2D.h"
+
 namespace MMVII
 {
 

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ActionBox</class>
+ <widget class="QWidget" name="ActionBox">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1032</width>
+    <height>422</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,2,0,1,0,0,0,0">
+     <item>
+      <widget class="QPushButton" name="quitButton">
+       <property name="toolTip">
+        <string>Exit the vMMVII application</string>
+       </property>
+       <property name="statusTip">
+        <string>Exit the vMMVII application</string>
+       </property>
+       <property name="text">
+        <string>&amp;Quit</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="settingsButton">
+       <property name="toolTip">
+        <string>Configure the vMMVII application</string>
+       </property>
+       <property name="statusTip">
+        <string>Configure the vMMVII application</string>
+       </property>
+       <property name="text">
+        <string>Settin&amp;gs</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="backButton">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="toolTip">
+        <string>Return to command selection</string>
+       </property>
+       <property name="statusTip">
+        <string>Return to command selection</string>
+       </property>
+       <property name="text">
+        <string>&amp;Back</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="clearButton">
+       <property name="toolTip">
+        <string>Clear all parameters value</string>
+       </property>
+       <property name="statusTip">
+        <string>Clear all parameters value</string>
+       </property>
+       <property name="text">
+        <string>&amp;Clear</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="runSelectedButton">
+       <property name="toolTip">
+        <string>Execute the selected command with MMVII</string>
+       </property>
+       <property name="statusTip">
+        <string>Execute the selected command with MMVII</string>
+       </property>
+       <property name="text">
+        <string>&amp;Run</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="editButton">
+       <property name="toolTip">
+        <string>Edit the selected command parameters</string>
+       </property>
+       <property name="statusTip">
+        <string>Edit the selected command parameters</string>
+       </property>
+       <property name="text">
+        <string>&amp;Edit</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="runEditedButton">
+       <property name="toolTip">
+        <string>Run the command</string>
+       </property>
+       <property name="statusTip">
+        <string>Run the command</string>
+       </property>
+       <property name="text">
+        <string>&amp;Run</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

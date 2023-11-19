@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Bench.h"
 
 namespace MMVII
 {
@@ -81,15 +82,17 @@ void  Bench_cPt2dr()
         // Bench div complex vis rho-teta
         MMVII_INTERNAL_ASSERT_bench(Norm2(aP1d2 - aQ1d2)<1e-5,"cPt2r Bench");
 
-        //  StdOut() << "CcccMul " << aP1d2 - aQ1d2 << "\n";
+        //  StdOut() << "CcccMul " << aP1d2 - aQ1d2 << std::endl;
    }
 }
 
 template <class TypePt> void  TestDist(TypePt aPt,double aN1,double aN2,double aNInf)
 {
+   double aAcc =   tElemNumTrait<typename TypePt::tEl>::Accuracy() ;
+
    MMVII_INTERNAL_ASSERT_bench(std::abs(Norm1(aPt)-aN1)<1e-10,"Norm2");
    MMVII_INTERNAL_ASSERT_bench(std::abs(NormK(aPt,1.0)-aN1)<1e-10,"Norm2");
-   MMVII_INTERNAL_ASSERT_bench(std::abs(Norm2(aPt)-aN2)<1e-10,"Norm2");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(Norm2(aPt)-aN2)<aAcc,"Norm2");
    MMVII_INTERNAL_ASSERT_bench(std::abs(NormK(aPt,2.0)-aN2)<1e-10,"Norm2");
    MMVII_INTERNAL_ASSERT_bench(std::abs(NormInf(aPt)-aNInf)<1e-10,"Norm2");
 

@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_MMV1Compat.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
 #include <regex>
 #include <unordered_set>
 #include <unordered_map>
@@ -475,6 +476,38 @@ bool  MatchRegex(const std::string& aName,const std::string& aPat)
 	 return AllocRegex(aPat).Match(aName);
 }
 
+std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString)
+{
+   //  [4JO]
+   //  to see  jo why  
+   //     ReplacePattern(".*","15","toto") -> 1515    ??? 
+   //     ReplacePattern("t.*","15","toto") -> 15    as it should be
+   //
+   std::string aRes ="";
+   if (aPattern==".*")
+   {
+	   // tricky to we replace the univ pattern by the string that macth itself perfectly !!
+         aRes=  std::regex_replace(aString,std::regex(aString),aSubst, std::regex_constants::format_no_copy);
+   }
+   else
+   {
+       aRes = std::regex_replace(aString,std::regex(aPattern),aSubst, std::regex_constants::format_no_copy);
+   }
+   if (aRes=="")
+   {
+       StdOut() << "Pat=[" << aPattern << "] String=[" << aString << "]" << std::endl;
+       MMVII_INTERNAL_ASSERT_tiny(false,"No match  in ReplacePattern");
+   }
+
+
+   return aRes;
+}
+
+std::string PatternKthSubExpr(const std::string & aPattern,int aKThSub,const std::string & aString)
+{
+   std::string aSub = "$" +ToStr(aKThSub);
+   return ReplacePattern(aPattern,aSub,aString);
+}
 
 
 void BenchSelector(cParamExeBench & aParam,const std::string & aDir)
@@ -621,9 +654,6 @@ template <class Type> cExtSet<Type>::cExtSet(eTySC aKindOf) :
 {
 }
 
-template <class Type> cExtSet<Type>::~cExtSet() 
-{
-}
 
 template <class Type> bool cExtSet<Type>::IsInit() const
 {
@@ -958,11 +988,11 @@ tNameSet SetNameFromFile(const std::string& aNameFile,int aNumV)
 
 tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
 {
-   if (IsFileXmlOfGivenTag(true,aName,TagSetOfName)) // MMVII
+   if (IsFileGivenTag(true,aName,TagSetOfName)) // MMVII
    {
       return SetNameFromFile(aName,2);
    }
-   else if (IsFileXmlOfGivenTag(false,aName,MMv1XmlTag_SetName))  // MMv1
+   else if (IsFileGivenTag(false,aName,MMv1XmlTag_SetName))  // MMv1
    {
       return SetNameFromFile(aName,1);
    }
@@ -1008,14 +1038,14 @@ std::vector<std::string>  ToVect(const tNameSet & aSet)
 tNameRel  RelNameFromXmlFileIfExist (const std::string& aNameFile,bool &Exist)
 {
    Exist = true;
-   if (IsFileXmlOfGivenTag(true,aNameFile,TagSetOfCpleName)) // MMVII
+   if (IsFileGivenTag(true,aNameFile,TagSetOfCpleName)) // MMVII
    {
        tNameRel aSet(eTySC::US);
        ReadFromFileWithDef(aSet,aNameFile);
 
        return aSet;
    }
-   else if (IsFileXmlOfGivenTag(false,aNameFile,MMv1XmlTag_RelName))  // MMv1
+   else if (IsFileGivenTag(false,aNameFile,MMv1XmlTag_RelName))  // MMv1
    {
        return MMV1InitRel(aNameFile);
    }
@@ -1130,7 +1160,7 @@ void BenchSet(cParamExeBench & aParam,const std::string & aDir)
        aTest.Add(tNamePair("d","c"));
        
        MMVII_INTERNAL_ASSERT_bench(aTest.size()==2,"BenchSet");
-       std::string aNameFile = anAp.TmpDirTestMMVII() + "TestRel.xml";
+       std::string aNameFile = anAp.TmpDirTestMMVII() + "TestRel."+GlobTaggedNameDefSerial();
        SaveInFile(aTest,aNameFile);
        ReadFromFileWithDef(aT2,aNameFile);
 

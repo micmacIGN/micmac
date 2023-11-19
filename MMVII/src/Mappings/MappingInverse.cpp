@@ -1,4 +1,7 @@
-#include "include/MMVII_all.h"
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_PhgrDist.h"
+
 
 using namespace NS_SymbolicDerivative;
 
@@ -6,6 +9,8 @@ namespace MMVII
 {
 
 // extern bool BUGINVMAP;
+//
+// static bool  BUGIM = false;
 
 /* ============================================= */
 /*        cDataInvertibleMapping<Type,Dim>       */
@@ -192,6 +197,7 @@ template <class Type,const int Dim> class cInvertDIMByIter : public cMemCheck
 template <class Type,const int Dim> 
    void cInvertDIMByIter<Type,Dim>::OneIterDicot()
 {
+
    // Push in aVSampleInv  the indermediar values (interpol inverse) between mInvDic0 and mInvDic1
    tVecPt & aVSampleInv =  mDIM.BufInCleared();
    int aNbInterm = 3;
@@ -229,7 +235,7 @@ template <class Type,const int Dim>
        aVVal.push_back(aSInv.mValDic1);
 
 
-       cWhitchMin<tU_INT4,Type> aWM(-1,1e30);
+       cWhichMin<tU_INT4,Type> aWM(-1,1e30);
        for (tU_INT4 aKEch=0 ; aKEch<aVVal.size() ; aKEch++)
        {
            Type aScore = aSInv.Score(aVVal[aKEch]);
@@ -344,10 +350,10 @@ template <class Type,const int Dim>
 
    for (int aKIter=0 ; (aKIter<10) && (!mVSubDicot.empty()) ; aKIter++)
    {
-       //StdOut() << "DICOT  " <<    mVSubDicot.size() << "\n"; //getchar();
+       //StdOut() << "DICOT  " <<    mVSubDicot.size() << std::endl; //getchar();
        OneIterDicot();
    }
-   // StdOut() << "cInvertDIMByIter " <<   aNewInd << " " << mVSubDicot.size() << "\n\n"; //getchar();
+   // StdOut() << "cInvertDIMByIter " <<   aNewInd << " " << mVSubDicot.size() << "\n" << std::endl; //getchar();
 }
 
 template <class Type,const int Dim>
@@ -371,6 +377,7 @@ template <class Type,const int Dim>
     mVSubSet.clear();
     mVInv.clear();
     const tVecPt & aVInit = mDIM.RoughInv()->Values(aVTarget);
+    // if (BUGIM)
     for (tU_INT4 aKPt=0; aKPt<aVInit.size() ; aKPt++)
     {
        tSPIDIM aStr;
@@ -438,6 +445,13 @@ template <class Type,const int Dim>
 {
    return mDTolInv;
 }
+
+template <class Type,const int Dim>
+  void cDataIterInvertMapping<Type,Dim>::SetDTolInv( const Type & aTol)
+{
+    mDTolInv =aTol;
+}
+
 
 
 template <class Type,const int Dim>
@@ -541,7 +555,8 @@ template <class Type,const int Dim>
 
     cInvertMappingFromElem<cBijAffMapElem<Type,Dim> > aMap(aDif.MapInverse()); // Compute inverse mapping
 
-    cTplBox<Type,Dim> aRes=  aMap.BoxOfCorners(mSet.Box());  // compute recripoque image of box out
+    cTplBox<Type,Dim> aRes=  aMap.BoxOfCorners(mSetOut.Box());  // compute recripoque image of box out
+
     return aRes;
 
 }
@@ -560,26 +575,19 @@ template <class Type,const int Dim>
 }
 
 template <class Type,const int Dim> 
-   bool cComputeMapInverse<Type,Dim>::ValidateK(const tCsteResVecJac & aVecPJ,int aKp)
+   bool cComputeMapInverse<Type,Dim>::ValidateK(const tPtR & aPtIn,const tCsteResVecJac & aVecPJ,int aKp)
 {
-            return mSet.InsideWithBox((*aVecPJ.first)[aKp]) && ValideJac((*aVecPJ.second)[aKp]);
+            return 
+		   ((mSetIn==nullptr) || (mSetIn->InsideWithBox(aPtIn)) )
+		&& mSetOut.InsideWithBox((*aVecPJ.first)[aKp]) 
+                && ValideJac((*aVecPJ.second)[aKp])
+            ;
 }
 
-template <class Type,const int Dim> 
-   void  cComputeMapInverse<Type,Dim>::AddObsMapDirect(const tPtR & aPIn,const tPtR & aPOut,bool IsFront)
+template <class Type,const int Dim> void  cComputeMapInverse<Type,Dim>::AddObsMapDirect(const tVPtR & aVIn,const tVPtR & aVOut)
 {
-     /*  Carrefull we add aPIn-aPOut : 
-            * in distortion (see  PProjToImNorm in cMMVIIUnivDist) the code part is the additional part,
-	    * i.e the distortion identity is the code by {0,0,...} params
-     */
-     mLSQ.AddObs(aPOut,aPIn-aPOut); // put is as as sample  Out => Map-Identity  = PIn-POut
-     if (mTest)
-     {
-        if (IsFront)
-           mVPtsFr.push_back(aPOut);
-        else
-           mVPtsInt.push_back(aPOut);
-     }
+     for (size_t aK=0; aK<aVIn.size() ; aK++)
+         mLSQ->AddObs(aVOut[aK],aVIn[aK]-aVOut[aK]); // put is as as sample  Out => Map-Identity  = PIn-POut
 }
 
 
@@ -603,11 +611,13 @@ template <class Type,const int Dim>
 	// compute their coordinates and jacobians
         tCsteResVecJac  aVecPJ = mMap.Jacobian(aVPt);
 
+        // small check as PtIn as been added recently in ValidateK
+	MMVII_INTERNAL_ASSERT_tiny(aVecPJ.first->size()== aVPt.size(),"Size pb in OneStepFront");
 	// select those who are valid
         std::vector<int> aNextVSel; // prepare for next iter
         for (int aKSel=0 ; aKSel<int(aVSel.size()) ; aKSel++)
         {
-            if (ValidateK(aVecPJ,aKSel))  // inside and jacobian still ok
+            if (ValidateK(aVPt.at(aKSel),aVecPJ,aKSel))  // inside and jacobian still ok
             {
                 int aIndGlob = aVSel[aKSel];   // Ind in full point of frontier
                 tExtent & anExt = mVExt[aIndGlob];
@@ -621,30 +631,81 @@ template <class Type,const int Dim>
 }
 
 template <class Type,const int Dim> 
+   cComputeMapInverse<Type,Dim> *
+   cComputeMapInverse<Type,Dim>::Alloc
+   (
+        const Type&  aThresholdJac,
+        const tPtR&  aPSeed,
+        tREAL8   aNbPts,
+        const tSet * aSetIn,
+        const tSet & aSetOut,
+        tMap&        aMap,
+        tLSQ*        aLSQ,
+        bool         aTest
+   )
+{
+   cComputeMapInverse<Type,Dim> *  aRes = nullptr;
+
+   int aNbPtsTarget = pow(aNbPts,Dim);
+   int aNbGot = aNbPtsTarget-1;
+
+   int aNbIter=0;
+   while (aNbGot< aNbPtsTarget)
+   {
+         // dont increase firt time
+         if (aNbIter!=0)
+	 {
+	    tREAL8 aMul =  pow((1.5*aNbPtsTarget)/double(aNbGot),1/double(Dim));
+	    aNbPts = std::max(1.0+aNbPts,aMul*aNbPts);
+	 }
+         delete aRes;
+
+         aRes =  new cComputeMapInverse<Type,Dim>
+                     (
+                          aThresholdJac, aPSeed,
+                          aNbPts,
+                          aSetIn,aSetOut,
+                          aMap,aLSQ,aTest
+		     );
+	 aRes->DoPtsInt();
+	 aNbGot = aRes->mIn_VPtsInt.size();
+	 aNbIter++;
+   }
+
+   return aRes;
+
+}
+
+
+
+template <class Type,const int Dim> 
    cComputeMapInverse<Type,Dim>::cComputeMapInverse
    (
-        const Type& aThresholdJac,
-        const tPtR& aPSeed,
-        const int & aNbPts,
-        tSet &      aSet,
-        tMap&       aMap,
-        tLSQ&       aLSQ,
-        bool        aTest
+        const Type&  aThresholdJac,
+        const tPtR&  aPSeed,
+        tREAL8  aNbPts,
+        const tSet * aSetIn,
+        const tSet & aSetOut,
+        tMap&        aMap,
+        tLSQ*        aLSQ,
+        bool         aTest
     ) :
        mThresholdJac  (aThresholdJac),
        mPSeed         (aPSeed),
-       mSet           (aSet),
+       mSetIn         (aSetIn),
+       mSetOut        (aSetOut),
        mMap           (aMap),
        mLSQ           (aLSQ),
        mBoxByJac      (BoxInByJacobian()),
        mBoxMaj        (mBoxByJac.ScaleCentered(1/(1-mThresholdJac))),
-       mStep          (NormInf(mBoxByJac.Sz()) / aNbPts),
+       // mStep          (NormInf(mBoxByJac.Sz()) / aNbPts),
+       mStep          (MinAbsCoord(mBoxByJac.Sz()) / aNbPts),
        mBoxPix        (ToPix(mBoxMaj.P0()), ToPix(mBoxMaj.P1())),
        mMarker        (mBoxPix.P0(),mBoxPix.P1()),
        mJacInv0       (1,1),
        mMatId         (Dim,Dim,eModeInitImage::eMIA_MatrixId),
        mNeigh         (AllocNeighbourhood<Dim>(1)),
-       mTest          (aTest),
+       // mTest          (aTest),
        mStepFrontLim  (TheStepFrontLim)
 {
 }
@@ -679,12 +740,16 @@ template <class Type,const int Dim> void  cComputeMapInverse<Type,Dim>::FilterAn
     tCsteResVecJac  aVecPJ = mMap.Jacobian(aNextGenReal);
     std::vector<tPtI>   aNexGenFiltered;  // Will contain geometrically filtered
     
+    // small check as PtIn as been added recently in ValidateK
+    MMVII_INTERNAL_ASSERT_tiny(aVecPJ.first->size()== aNextGenReal.size(),"Size pb in OneStepFront");
     for (size_t aKp=0 ; aKp<mNextGen.size() ; aKp++)
     {
-        if (ValidateK(aVecPJ,aKp))
+        if (ValidateK(aNextGenReal.at(aKp),aVecPJ,aKp))
         {
              aNexGenFiltered.push_back(mNextGen[aKp]);  // select it for next
-             AddObsMapDirect(aNextGenReal[aKp],(*aVecPJ.first)[aKp],false); 
+             //   AddObsMapDirect(aNextGenReal[aKp],(*aVecPJ.first)[aKp],false); 
+             mIn_VPtsInt.push_back(aNextGenReal[aKp]);
+             mOut_VPtsInt.push_back((*aVecPJ.first)[aKp]);
         }
         else
         {
@@ -695,14 +760,28 @@ template <class Type,const int Dim> void  cComputeMapInverse<Type,Dim>::FilterAn
     mNextGen = aNexGenFiltered;
 }
 
+template <class Type,const int Dim> void  
+     cComputeMapInverse<Type,Dim>::DoPts()
+{
+     DoPtsInt();
+     DoPtsFront();
+}
+
+
+
         // void OneStepFront(const Type & Front);
 template <class Type,const int Dim> void  
-     cComputeMapInverse<Type,Dim>::DoAll(std::vector<Type> & aVSol)
+     cComputeMapInverse<Type,Dim>::DoPtsInt()
 {
+	// If point where already done like in Alloc
+     if (!mIn_VPtsInt.empty())
+        return;
+
      // Initialize label : Interior and border
      mMarker.InitInteriorAndBorder(Type(eLabelIm_CMI::eFree),Type(eLabelIm_CMI::eBorder));
 
      tPtI aPixSeed = ToPix(mPSeed);
+
      MMVII_INTERNAL_ASSERT_tiny( mMarker.Inside(aPixSeed),"Seed outside in Map Inverse");
      MMVII_INTERNAL_ASSERT_tiny( mMarker.VI_GetV(aPixSeed)==int(eLabelIm_CMI::eFree),"Seed bored Map Inverse");
 
@@ -712,6 +791,7 @@ template <class Type,const int Dim> void
      // 0-  Init with the seed
      Add1PixelTopo(aPixSeed);   // init the  heap struct (nexgtgen , marker etc ... with the seed
      FilterAndAddPixelsGeom();  // create the geometry of the seed
+     
 
      MMVII_INTERNAL_ASSERT_tiny( mNextGen.size()==1,"Seed Geom pb");  // if filtering removed the seed, we are bad ...
 
@@ -730,12 +810,16 @@ template <class Type,const int Dim> void
         }
         FilterAndAddPixelsGeom(); // select those who are OK
      }
+}
 
+template <class Type,const int Dim> void  
+     cComputeMapInverse<Type,Dim>::DoPtsFront()
+{
      // 2- Make the extension to have point close to the frontier 
 
          // 2-1 Compute in grid pixel frontier :  reached pixel neighbor of unreached
 	 // at this step put in structure to have the benefit of paralleization
-     for (const auto aPix : mMarker)  // parse all pixel of image
+     for (const auto & aPix : mMarker)  // parse all pixel of image
      {
          if (mMarker.VI_GetV(aPix)== tU_INT1(eLabelIm_CMI::eReached))
          {
@@ -766,21 +850,39 @@ template <class Type,const int Dim> void
          OneStepFront(aStepFront);
      }
 
+
          // 2-3 Compute valuses and add obs
-     std::vector<tPtR>  aVFrontIn;
      for (int aKp=0 ; aKp<int(mVExt.size()) ; aKp++)
-          aVFrontIn.push_back(mVExt[aKp].mCurP);
-     std::vector<tPtR>  aVFrontOut = mMap.Values(aVFrontIn);
+          mIn_VPtsFr.push_back(mVExt[aKp].mCurP);
+
+
+     mOut_VPtsFr = mMap.Values(mIn_VPtsFr);
 
      for (int aKp=0 ; aKp<int(mVExt.size()) ; aKp++)
      {
-         AddObsMapDirect(aVFrontIn[aKp],aVFrontOut[aKp],true); // put is as as sample  Out => In 
+         // AddObsMapDirect(aVFrontIn[aKp],aVFrontOut[aKp],true); // put is as as sample  Out => In 
+         // mIn_VPtsFr.push_back(aVFrontOut[aKp]);
+         // mOut_VPtsFr.push_back(aVFrontOut[aKp]);
      }
+
+     // StdOut() << "MmmmMMM O: " << mOut_VPtsInt.size() << " "<< mOut_VPtsFr.size() << " I:" << mIn_VPtsInt.size() << " " << mOut_VPtsInt.size() << std::endl;
+}
      
-      mLSQ.ComputeSol(aVSol);
+template <class Type,const int Dim> void  
+     cComputeMapInverse<Type,Dim>::DoAll(std::vector<Type> & aVSol)
+{
+     DoPts();
+     AddObsMapDirect(mIn_VPtsInt,mOut_VPtsInt);
+     AddObsMapDirect(mIn_VPtsFr,mOut_VPtsFr);
+
+     mLSQ->ComputeSol(aVSol);
 }
 
 
+template <class Type,const int Dim>   std::vector<cPtxd<Type,Dim> >   cComputeMapInverse<Type,Dim>::GetPtsOut() const
+{
+	return Append(mOut_VPtsInt,mOut_VPtsFr);
+}
 
 void  OneBench_CMI(double aCMaxRel)
 {
@@ -806,9 +908,10 @@ void  OneBench_CMI(double aCMaxRel)
                                     0.5,
                                     cPt2dr(0.0,0.0),
                                     20,
+				    nullptr,
                                     aSBS,
                                     *aTargetFunc,
-                                    aLsqSymb,
+                                    &aLsqSymb,
                                     true
                                   );
 
@@ -825,12 +928,12 @@ void  OneBench_CMI(double aCMaxRel)
     if (CaseDiskInclude || CaseDiskExclude)
     {
        // Check that all point of the frontier are almost on the circle/square
-       for (const auto & aP : aCMI.mVPtsFr)
+       for (const auto & aP : aCMI.mOut_VPtsFr)
        {
           double aPrec =  CaseDiskInclude ? std::abs(Norm2(aP)  -aRho)  : std::abs(NormInf(aP)  - aCMax);
           if (aPrec>aPrecFr*4)
           {
-             StdOut() << "FFRRRRr " << aPrec / aPrecFr << "\n";
+             StdOut() << "FFRRRRr " << aPrec / aPrecFr << std::endl;
              MMVII_INTERNAL_ASSERT_bench(false,"Frontier Precision in MapInverse");
           }
        }
@@ -846,7 +949,7 @@ void  OneBench_CMI(double aCMaxRel)
        {
             cPt2dr aPts = FromPolar(1.0,1000*RandUnif_C()); // Generate dir
             double aAtanMin =1e10;
-            for (const auto & aPFr : aCMI.mVPtsFr)
+            for (const auto & aPFr : aCMI.mOut_VPtsFr)
             {
                 cPt2dr aRatio = VUnit(aPFr/aPts);
                 aAtanMin = std::min(aAtanMin,std::abs(aRatio.y())); // More or less diff in radian
@@ -854,7 +957,7 @@ void  OneBench_CMI(double aCMaxRel)
               
             if (aAtanMin > aPrecDenseAtan *1.2 )
             {
-                 StdOut() << "ATMIN " << aAtanMin /  aPrecDenseAtan  << "\n";
+                 StdOut() << "ATMIN " << aAtanMin /  aPrecDenseAtan  << std::endl;
                  MMVII_INTERNAL_ASSERT_bench(false,"Frontier densite in MapInveres");
             }
        }
@@ -873,19 +976,19 @@ void  OneBench_CMI(double aCMaxRel)
         anEcartMax = std::max(anEcart,anEcartMax);
         anEcartMoy += anEcart;
 
-        double aDInt =  sqrt(aPIn.MinSqN2(aCMI.mVPtsInt)) / aCMI.mStep;
-        double aDFr  =  sqrt(aPIn.MinSqN2(aCMI.mVPtsFr )) / aCMI.mStep;
+        double aDInt =  sqrt(aPIn.MinSqN2(aCMI.mOut_VPtsInt)) / aCMI.mStep;
+        double aDFr  =  sqrt(aPIn.MinSqN2(aCMI.mOut_VPtsFr )) / aCMI.mStep;
         double aDTestDense = std::min(aDInt,aDFr);
         if (aDTestDense>1.42)
         {
-            StdOut() << "aDIntaDIntDENSE " <<  aDTestDense << "\n";
+            StdOut() << "aDIntaDIntDENSE " <<  aDTestDense << std::endl;
             MMVII_INTERNAL_ASSERT_bench(false,"Mapping inverse : grid not dense");
         }
     }
     anEcartMoy /= aNbTest;
     if ((anEcartMax>2e-5*aRho) || (anEcartMoy>1e-5*aRho))
     {
-        StdOut() << "ECMax " << (anEcartMax)/ aRho << " EcMoy" << anEcartMoy / aRho<< "\n";
+        StdOut() << "ECMax " << (anEcartMax)/ aRho << " EcMoy" << anEcartMoy / aRho<< std::endl;
         MMVII_INTERNAL_ASSERT_bench(false,"Mapping inverse : is not inverse ....");
     }
 
@@ -1021,9 +1124,12 @@ void BenchInvertMapping(cParamExeBench & aParam)
 
 
 
-       // StdOut()  << "JJJJ " << aPMIter1->StrInvertIter() << "\n";
+       // StdOut()  << "JJJJ " << aPMIter1->StrInvertIter() << std::endl;
        
-       std::vector<double> aVRatio{1.0,5.0,25.0,125.0,625.0};
+       // std::vector<double> aVRatio{1.0,5.0,25.0,125.0,625.0};
+       // MPD : dont really understand je change, just it seems more logical as progession and 
+       // there was a bug at some iteration of bench; btw, it doesnt change anything
+       std::vector<double> aVRatio{1.0,5.0,25.0,125.0,0.0625};
        double aRatio = aVRatio.at(aKMap%5);
        aPMIter1->StrInvertIter()->SetRatioGainDicot(aRatio);
 

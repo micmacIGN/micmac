@@ -1,5 +1,5 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_2Include_Serial_Tpl.h"
 #include<map>
 
 /** \file cMMVII_Walkman.cpp
@@ -188,7 +188,7 @@ int cAppli_Walkman::Exe()
    { 
       cOneEntryWalkMan & anE  = *(mVE.at(aKSel));
       aSzSel +=  anE.mFileSize / 1e6;
-      StdOut() << "NAME=" << anE.mName <<  " SZF=" << anE.mFileSize << "\n";
+      StdOut() << "NAME=" << anE.mName <<  " SZF=" << anE.mFileSize << std::endl;
       anE.mNbListened++;
 
       int aNum = aSW.mNbTot;
@@ -209,7 +209,7 @@ int cAppli_Walkman::Exe()
       aSW.mVE.push_back(anE);
    }
 
-   StdOut() << "Nb Files " << aKSel << " Sz=" << aSzSel << "\n";
+   StdOut() << "Nb Files " << aKSel << " Sz=" << aSzSel << std::endl;
    SaveInFile(aSW,mDirProject+mNameSauv);
 
    return EXIT_SUCCESS;
@@ -226,7 +226,7 @@ cSpecMMVII_Appli  TheSpecWalkman
      "MediaWalkman",
       Alloc_Walkman,
       "This command is used to make a random selection of music",
-      {eApF::Perso},
+      {eApF::Perso,eApF::NoGui},
       {eApDT::FileSys,eApDT::Media},
       {eApDT::Xml,eApDT::Media},
       __FILE__

@@ -1,6 +1,8 @@
 #ifndef  _MMVII_SET_I_TPL_H_
 #define  _MMVII_SET_I_TPL_H_
 
+#include "MMVII_nums.h"
+
 namespace MMVII
 {
 
@@ -46,7 +48,7 @@ template <typename tVal> class cSetISingleFixed
          void AddElem(const tElem & anElem) {mFlagBits |= FlagSingle(anElem);}
 
          cSetISingleFixed(const tVal & aFlagBit) : mFlagBits (aFlagBit) {}
-    private :
+    protected :
          static constexpr  size_t NbBits = 8 *sizeof(tVal);
          static tVal  FlagSingle(const tElem & anElem) {return (1<<anElem);}
 

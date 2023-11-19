@@ -1,10 +1,10 @@
 #ifndef  _MMVII_Matrix_H_
 #define  _MMVII_Matrix_H_
+
+#include "MMVII_Image2D.h"
+
 namespace MMVII
 {
-
-  // Gittttttttttttt
-
 
 /** \file MMVII_Matrix.h
     \brief Classes for matrix manipulation, 
@@ -54,6 +54,7 @@ template <class Type> class  cSparseVect  : public cMemCheck
 	{
              IV().push_back(tCplIV(anInd,aV));
 	}
+        void AddIV(const tCplIV & aCpl) { IV().push_back(aCpl); }
 
 	/// Random sparse vector
         static cSparseVect<Type>  RanGenerate(int aNbVar,double aProba);
@@ -87,8 +88,10 @@ template <class Type> class  cDenseVect
         cDenseVect(int aSz, eModeInitImage=eModeInitImage::eMIA_NoInit);
         cDenseVect(tIM anIm);
         cDenseVect(const std::vector<Type> & aVect);
+        cDenseVect(int Sz,const tSpV &);
         static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
         cDenseVect<Type>  Dup() const;
+        static cDenseVect<Type>  RanGenerate(int aNbVar);
 	/// 
         void ResizeAndCropIn(const int & aX0,const int & aX1,const cDenseVect<Type> &);
         void Resize(const int & aSz);
@@ -119,6 +122,9 @@ template <class Type> class  cDenseVect
         const tIM & Im() const {return mIm;}
 
         Type ProdElem() const; ///< Mul of all element, usefull for det computation
+        Type SumElem() const; ///< Som of all element
+        Type AvgElem() const; ///< Avereage of all elements
+        void SetAvg(const Type & anAvg); ///< multiply by a cste to fix the average
 
         // operator -= 
         double DotProduct(const cDenseVect &) const;
@@ -131,7 +137,6 @@ template <class Type> class  cDenseVect
 
         tIM mIm;
 };
-
 /* To come, sparse vector, will be vect<int> + vect<double> */
 
 /** a Interface class , derived class will be :
@@ -246,7 +251,7 @@ template <class Type> class cMatrix  : public cRect2
         virtual void  Weighted_Add_tAA(Type aWeight,const tSpV & aColLine,bool OnlySup=true);
 
       //  Constructor && destr
-         virtual ~cMatrix();  ///< Public because called by shared ptr 
+         virtual ~cMatrix() = default;  ///< Public because called by shared ptr 
      protected :
          cMatrix(int aX,int aY);
 
@@ -305,6 +310,7 @@ template <class Type> class cConst_EigenMatWrap;
 template <class Type> class cStrStat2;
 template <class Type> class cNC_EigenMatWrap;
 template <class Type> class cResulQR_Decomp;
+template <class Type> class cResulRQ_Decomp;
 template <class Type> class cResulSVDDecomp;
 template <class Type> class cResulEigenDecomp;
 
@@ -343,7 +349,10 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         cDenseMatrix(int aX,eModeInitImage=eModeInitImage::eMIA_NoInit);  ///< Square
         cDenseMatrix(tIm);
         cDenseMatrix Dup() const;
+        static cDenseMatrix Identity(int aSz);  ///< return identity matrix
         static cDenseMatrix Diag(const tDV &);
+        cDenseMatrix ClosestOrthog() const;  ///< return closest 
+
         /**  Generate a random square matrix having "good" conditionning property , i.e with eigen value constraint,
             usefull for bench as when the random matrix is close to singular, it may instability that fail
             the numerical test.
@@ -373,6 +382,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void  SetElem(int  aX,int  aY,const Type & aV) {  tUO_DM::SetElem(aX,aY,aV);}
         void  AddElem(int  aX,int  aY,const Type & aV) {  tUO_DM::AddElem(aX,aY,aV);}
 
+	void PushByLine(std::vector<Type> &) const; /// write all the matrix, do it line-first
+	void PushByCol(std::vector<Type> &) const; /// write all the matrix, do it Colum-first
+
         void Show() const;
 
         //  ====  Mul and inverse =========
@@ -400,6 +412,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tRSVD  SVD() const;
 
         cResulQR_Decomp<Type>    QR_Decomposition() const;
+        cResulRQ_Decomp<Type>    RQ_Decomposition() const;
         cResulEigenDecomp<Type>  Eigen_Decomposition() const;
 
 
@@ -420,9 +433,20 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void TransposeIn(tDM & M2) const;  ///< Put transposate in M2
         void SelfTransposeIn() ;  ///< transposate in this, square only
         tDM  Transpose() const;  ///< Put transposate in M2
+
+	  
+        void SelfLineInverse() ;  ///< line inversion   (L1 L2 .. LN) =>   (LN ... L2 L1) ,  used for RQ decomposition (QR => RQ)
+        tDM  LineInverse() const;  ///< cont version of SelfLineInverse
+        void SelfColInverse() ;  ///< colum inversion   ,  used for RQ decomposition (QR => RQ)
+
+	void SelfLineChSign(int aNumL); ///<  chang signe of line aNumL, used in QR/RQ to normalize with diag>0 of R
+	void SelfColChSign(int aNumC);  ///<  chang signe of column aNumC, used in QR/RQ to normalize with diag>0 of R
          
         double Diagonalicity() const; ///< how much close to a diagonal matrix, square only , 
         Type   Det() const;  ///< compute the determinant, not sur optimise
+
+        void ChangSign(); ///< Multiply by -1
+        void SetDirectBySign(); ///< Multiply by -1 if indirect
 
         //  =====   Overridng of cMatrix classe  ==== 
         void  MulColInPlace(tDV &,const tDV &) const override;
@@ -440,7 +464,11 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         // === method implemente with DIm
         Type L2Dist(const cDenseMatrix<Type> & aV) const;
+        Type SqL2Dist(const cDenseMatrix<Type> & aV) const;
 	//  void operator -= (const cDenseMatrix<Type> &) ;  => see  "include/MMVII_Tpl_Images.h"
+
+   private :
+        Type & GetReference_V(int aX,int  aY) { return DIm().GetReference_V(cPt2di(aX,aY));}  // dont check vals
 
 };
 
@@ -464,6 +492,8 @@ template <class Type> class cResulSymEigenValue
         friend class cStrStat2<Type>;
 
         cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix
+	  // =>  mEigenVectors * cDenseMatrix<Type>::Diag(mEigenValues) * mEigenVectors.Transpose();
+
 
         const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values
         const cDenseMatrix<Type> &  EigenVectors()const ; ///< Eigen vector
@@ -482,7 +512,7 @@ template <class Type> class cResulSVDDecomp
     public :
         friend class cDenseMatrix<Type>;
 
-        cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix
+        cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix   
 
         const cDenseVect<Type>   &  SingularValues() const ; ///< Eigen values
         const cDenseMatrix<Type> &  MatU()const ; ///< Eigen vector
@@ -498,23 +528,41 @@ template <class Type> class cResulSVDDecomp
 
 };
 
-
-
 template <class Type> class cResulQR_Decomp
 {
     public :
-        friend class cDenseMatrix<Type>;
+        typedef cDenseMatrix<Type> tDM;
+        // friend class tDM;
+        friend tDM;
 
-        cDenseMatrix<Type>  OriMatr() const;
+        cDenseMatrix<Type>  OriMatr() const;  // Q * R
 
-        const cDenseMatrix<Type> &  Q_Matrix() const; ///< Unitary
-        const cDenseMatrix<Type> &  R_Matrix() const; ///< Triang
+        const tDM &  Q_Matrix() const; ///< Unitary
+        const tDM &  R_Matrix() const; ///< Triang
+        tDM &  Q_Matrix() ; ///< Unitary
+        tDM &  R_Matrix() ; ///< Triang
 
     private :
         cResulQR_Decomp(int aSzX,int aSzY);
-        cDenseMatrix<Type>  mQ_Matrix; ///< Unitary Matrix
-        cDenseMatrix<Type>  mR_Matrix; ///< Triangular superior
+    protected :
+        cResulQR_Decomp(const tDM&,const tDM &);
 
+        tDM  mQ_Matrix; ///< Unitary Matrix
+        tDM  mR_Matrix; ///< Triangular superior
+
+};
+
+template <class Type> class cResulRQ_Decomp : public cResulQR_Decomp<Type>
+{
+    public :
+        typedef cDenseMatrix<Type> tDM;
+        //friend class tDM;
+        friend tDM;
+
+        tDM  OriMatr() const;  // R * Q
+
+    private :
+        cResulRQ_Decomp(const tDM&,const tDM &);
 };
 
 
@@ -554,8 +602,6 @@ template <class Type>  class cDecSumSqLinear
 
 };
 
-
-
 template <class Type> cDenseMatrix<Type> operator * (const cDenseMatrix<Type> &,const cDenseMatrix<Type>&);
 template <class T1,class T2> cDenseVect<T1> operator * (const cDenseVect<T1> &,const cDenseMatrix<T2>&);
 template <class T1,class T2> cDenseVect<T1> operator * (const cDenseMatrix<T2>&,const cDenseVect<T1> &);
@@ -587,7 +633,7 @@ template <class Type> class cStrStat2
        double KthNormalizedCoord(int,const cDenseVect<Type>  & aV2) const;
        // Accessors
        cDenseMatrix<Type>& Cov() ;
-       const double              Pds() const;
+       double              Pds() const;
        const cDenseVect<Type>  & Moy() const;
        const cDenseMatrix<Type>& Cov() const;
     private :
@@ -640,9 +686,58 @@ template <class TypeWeight,class TypeVal=TypeWeight> class cWeightAv
         cWeightAv();
         void Add(const TypeWeight & aWeight,const TypeVal & aVal);
         TypeVal Average() const;
+        const TypeVal & SVW() const;  /// Accessor to sum weighted vals
     private :
         TypeWeight  mSW;   ///< Som of    W
         TypeVal     mSVW;   ///< Som of    VW
+};
+
+/** Class for making standard star on residuals */
+class cStdStatRes
+{
+     public :
+        cStdStatRes();
+
+        void Add(tREAL8 aVal);
+
+        tREAL8  Avg() const;
+        tREAL8  QuadAvg() const;
+        tREAL8  DevStd() const;
+        tREAL8  ErrAtProp(tREAL8 aProp) const;
+        tREAL8  Min() const;
+        tREAL8  Max() const;
+	int     NbMeasures() const;
+
+     private :
+        mutable std::vector<tREAL8>       mVRes;
+        cWeightAv<tREAL8,tREAL8>  mAvgDist;
+        cWeightAv<tREAL8,tREAL8>  mAvgDist2;
+        cBoundVals<tREAL8>        mBounds;
+};
+
+
+/**  Class for robust average   avg weithgted by   sigma/(sigma+|aRes|) */
+class cRobustAvg
+{
+      public :
+         cRobustAvg(tREAL8 aSigma) ;
+         void Add(tREAL8 aVal);
+	 tREAL8 Average() const;
+      public :
+         tREAL8                    mSigma;
+         tREAL8                    mS2;
+	 cWeightAv<tREAL8,tREAL8>  mAvg;
+};
+
+/**  Class for robust average with a sigma computed  from proportion */
+class cRobustAvgOfProp
+{
+      public :
+         cRobustAvgOfProp();
+         void Add(tREAL8 aVal);
+	 tREAL8 Average(tREAL8 aProp) const;
+      public :
+	 std::vector<double>  mVals;
 };
 
 
@@ -670,7 +765,7 @@ template <const int Dim> class cUB_ComputeStdDev
         cUB_ComputeStdDev();
 
         void Add(const  double * aVal,const double & aPds);
-        const double  *  ComputeUnBiasedVar() ;
+        const double  *  ComputeUnBiasedVar() ;  // return a pointer because of Dim
         const double  *  ComputeBiasedVar() ;
         double  DeBiasFactor() const;
 
@@ -755,6 +850,15 @@ template<class Type> class cSymMeasure
 
 #define CHECK_SZPT_VECT(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz()==aPT.TheDim,"Bad size in Vec/Pt")
 
+template <class Type>  cDenseMatrix<Type> M3x3FromLines(const cPtxd<Type,3>&L1,const cPtxd<Type,3> &L2,const cPtxd<Type,3> &L3);
+template <class Type>  cDenseMatrix<Type> M3x3FromCol(const cPtxd<Type,3>&C1,const cPtxd<Type,3> &C2,const cPtxd<Type,3> &C3);
+template <class Type>  cDenseMatrix<Type> M2x2FromLines(const cPtxd<Type,2>&L1,const cPtxd<Type,2> &L2);
+template <class Type>  cDenseMatrix<Type> M2x2FromCol(const cPtxd<Type,2>&L1,const cPtxd<Type,2> &L2);
+template <class Type>  cDenseMatrix<Type> MatDiag(const cPtxd<Type,2>&aPt); /// return a 2x2 diagonal matrix
+template <class Type>  cDenseMatrix<Type> MatrSim(const cPtxd<Type,2>& aIm_Ox);  /// return the 2x2 similitude given image of Ox
+template <class Type>  cDenseMatrix<Type> MatrRot(const Type&);  /// return the 2x2  rotation
+
+
 
 template <class Type,int Dim> void GetCol(cPtxd<Type,Dim> &,const cDenseMatrix<Type> &,int aCol);
 // template <class Type,int Dim> cPtxd<Type,Dim> GetCol(const cDenseMatrix<Type> &,int aCol);
@@ -776,6 +880,9 @@ template<class Type,const int DimOut,const int DimIn>void MulLine(cPtxd<Type,Dim
 template<class Type,const int Dim> cPtxd<Type,Dim> SolveCol(const cDenseMatrix<Type>&,const cPtxd<Type,Dim>&);
 template<class Type,const int Dim> cPtxd<Type,Dim> SolveLine(const cPtxd<Type,Dim>&,const cDenseMatrix<Type>&);
 
+/// Considering matrix like a quadratic form, return the scalar product
+template<class Type,const int DimOut,const int DimIn> Type 
+     QScal(const cPtxd<Type,DimOut>&,const cDenseMatrix<Type>&,const cPtxd<Type,DimIn>&);
 
 /** Class for image of any dimension, relatively slow probably */
 

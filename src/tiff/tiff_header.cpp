@@ -1902,6 +1902,7 @@ Tiff_Im  Tiff_Im::BasicConvStd(const ElSTDNS string & Name)
               return Elise_File_Im::pnm(Name.c_str()).to_tiff();
 
    }
+std::cout << "JJJJJJJjjjjjjjjjjjjjjjjjjjjjjjjj " << __LINE__ << "\n";
 
    cSpecifFormatRaw *   aSFR = GetSFRFromString(Name);
    if (aSFR && (! aSFR->BayPat().IsInit()))
@@ -1914,6 +1915,7 @@ Tiff_Im  Tiff_Im::BasicConvStd(const ElSTDNS string & Name)
         return Elise_Tiled_File_Im_2D::HDR(Name).to_tiff();
     }
 
+std::cout << "JJJJJJJjjjjjjjjjjjjjjjjjjjjjjjjj " << __LINE__ << "\n";
    {
       ElSTDNS string Name_Head = Name+ElSTDNS string(".header");
       if (ELISE_fp::exist_file(Name_Head.c_str()))
@@ -1936,6 +1938,7 @@ Tiff_Im  Tiff_Im::BasicConvStd(const ElSTDNS string & Name)
       return aRes;
    }
 
+std::cout << "JJJJJJJjjjjjjjjjjjjjjjjjjjjjjjjj " << __LINE__ << "\n";
 
 
     if (IsPostfixed(Name))
@@ -1958,6 +1961,7 @@ Tiff_Im  Tiff_Im::BasicConvStd(const ElSTDNS string & Name)
                <<"(Full Name  = " << Name.c_str() <<")"
        );
     }
+std::cout << "JJJJJJJjjjjjjjjjjjjjjjjjjjjjjjjj " << __LINE__ << "\n";
 
 
     return Tiff_Im(Name.c_str());

@@ -1,5 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_ImageInfoExtract.h"
+#include "MMVII_Interpolators.h"
+#include "MMVII_NonLinear2DFiltering.h"
 
 
 namespace MMVII
@@ -163,7 +165,7 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSy
 {
     std::vector<cPt2di> aRes;
 
-    double aR02 = Square(aR0);
+    double aR02 = aR0 * std::abs(aR0); // If Neg => no filtering
     double aR12 = Square(aR1);
     
     for (const auto & aP : cRect2::BoxWindow(round_up(aR1)))
@@ -526,12 +528,12 @@ void OneTestEqual_RE
     for (const auto & aP : aV1)
     {
         if (!BoolFind(aV2,aP))
-           StdOut() << "Difff1 " << aP << "\n";
+           StdOut() << "Difff1 " << aP << std::endl;
     }
     for (const auto & aP : aV2)
     {
         if (!BoolFind(aV1,aP))
-           StdOut() << "Difff2 " << aP << "\n";
+           StdOut() << "Difff2 " << aP << std::endl;
     }
     MMVII_INTERNAL_ASSERT_bench
     (
@@ -604,7 +606,7 @@ void OneBenchExtrem(const cPt2di & aSz,int aNbLab,int aSzMaj,double aRay)
                        {
                           std::vector<int> aVImQ1({aVQ1,0,aQ.x(),aQ.y()});
                           // Make lexicall comparison
-                          int  aCmp1 = LexicoCmp(aVImP,aVImQ1);
+                          int  aCmp1 = VecLexicoCmp(aVImP,aVImQ1);
                           if (aCmp1==1)
                           {
                               IsMin1 = false;
@@ -620,8 +622,8 @@ void OneBenchExtrem(const cPt2di & aSz,int aNbLab,int aSzMaj,double aRay)
                           int aSign = 1;  // To facilitate swap
                           std::vector<int> aVImQ0({aVQ0,aSign,aQ.x(),aQ.y()});
                           std::vector<int> aVImQ2({aVQ2,-aSign,aQ.x(),aQ.y()});
-                          int  aCmp0 = LexicoCmp(aVImP,aVImQ0);
-                          int  aCmp2 = LexicoCmp(aVImP,aVImQ2);
+                          int  aCmp0 = VecLexicoCmp(aVImP,aVImQ0);
+                          int  aCmp2 = VecLexicoCmp(aVImP,aVImQ2);
 
                           if ((aCmp0==1) || (aCmp2==1))
                           {
@@ -663,7 +665,7 @@ void OneBenchExtrem(const cPt2di & aSz,int aNbLab,int aSzMaj,double aRay)
        for (const auto & aP : aTestE1.mPtsMin)
        {
             if (!BoolFind(aExtr1.mPtsMin,aP))
-               StdOut() << "Difff " << aP << "\n";
+               StdOut() << "Difff " << aP << std::endl;
        }
     }
     // Before all, be reasonnably sure it's the same set by couting pts inside
@@ -701,7 +703,7 @@ void OneBenchAffineExtre()
     // Generate image 
     cIm2D<tREAL4> aIm(aSz);
     cDataIm2D<tREAL4> & aDIm = aIm.DIm();
-    for (const auto aPix : aDIm)
+    for (const auto & aPix : aDIm)
     {
          cPt2dr aDif = aCenter - ToR(aPix);
          tREAL4 aVal = aCste + aVA * Square(aDif.x()) + 2 * aVB * aDif.x()*aDif.y() + aVC * Square(aDif.y());
@@ -785,7 +787,7 @@ void BenchExtre(cParamExeBench & aParam)
          MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5, "Interpol Extr d1");
      }
      // std::optional<double>  InterpoleExtr(double V1,double V2,double V3)
-     // StdOut() << "Bench Extremmum\n";
+     // StdOut() << "Bench Extremmum" << std::endl;
      aParam.EndBench();
 }
 

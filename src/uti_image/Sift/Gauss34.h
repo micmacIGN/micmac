@@ -17,7 +17,7 @@ inline bool siftpp__gauss33_invert_b( Real_ *i_m, Real_ *i_b )
         for( i=j; i<3; i++ )
         {
             Real_ a    = at(i,j);
-            Real_ absa = fabsf( a );
+            Real_ absa = std::abs( a );
             if ( absa>maxabsa )
             {
                 maxa    = a ;

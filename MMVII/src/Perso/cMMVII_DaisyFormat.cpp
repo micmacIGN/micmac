@@ -1,5 +1,5 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_2Include_Serial_Tpl.h"
 #include<map>
 
 /** \file cMMVII_DaisyFormat.cpp
@@ -130,7 +130,7 @@ void AddData(const  cAuxAr2007 & anAux,cDaisyFOneBook & aBook)
     AddData(cAuxAr2007("Narrator",anAux),aBook.mNarrator);
     AddData(cAuxAr2007("Chaps",anAux),aBook.mChaps);
 
-    StdOut() << "Time " << aBook.Time() << "\n";
+    StdOut() << "Time " << aBook.Time() << std::endl;
 }
 
 
@@ -410,7 +410,7 @@ cSpecMMVII_Appli  TheSpecDaisy
      "MediaDaisy",
       Alloc_Daisy,
       "This command is used to generate audio book to daisy format from mp3 files",
-      {eApF::Perso},
+      {eApF::Perso,eApF::NoGui},
       {eApDT::Xml},
       {eApDT::Xml},
       __FILE__

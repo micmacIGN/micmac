@@ -1,7 +1,7 @@
 #ifndef __DISABLE_MSVC_WARNINGS__
 #define __DISABLE_MSVC_WARNINGS__
 
-#if _MSC_VER
+#ifdef _MSC_VER
 	#pragma warning(disable: 4723)
 	#pragma warning(disable: 4055)
 	#pragma warning(disable: 4054)

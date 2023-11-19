@@ -1,7 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
-//#include "include/MMVII_Tpl_Images.h"
+//#include "MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -68,25 +68,25 @@ cCollecSpecArg2007 & cAppliCalcHistoCarac::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 void cAppliCalcHistoCarac::AddOneFile(const std::string& aStr0,int aKFile,int aNbFile)
 {
-    StdOut() << "****** "   << aStr0  << " : " << aKFile << "/" << aNbFile <<  "   *******\n"; 
+    StdOut() << "****** "   << aStr0  << " : " << aKFile << "/" << aNbFile <<  "   *******" << std::endl; 
     cFileVecCaracMatch aFCV0(HomFromHom0(aStr0,0));
     mStats->AddOneFile(0,aFCV0);
-    StdOut() << "   -------------------------------\n";
+    StdOut() << "   -------------------------------" << std::endl;
 
     cFileVecCaracMatch aFCV1(HomFromHom0(aStr0,1));
     mStats->AddOneFile(1,aFCV1);
-    StdOut() << "   -------------------------------\n";
+    StdOut() << "   -------------------------------" << std::endl;
 
 
     cFileVecCaracMatch aFCV2(HomFromHom0(aStr0,2));
     mStats->AddOneFile(2,aFCV2);
-    StdOut() << "   -------------------------------\n";
+    StdOut() << "   -------------------------------" << std::endl;
 
    if (mWithCr)
    {
       mStats->AddCr(aFCV0,aFCV1,true);
       mStats->AddCr(aFCV0,aFCV2,false);
-      StdOut() << "   ------------ DONE CR-------------------\n";
+      StdOut() << "   ------------ DONE CR-------------------" << std::endl;
    }
 
    if (IsInit(&mPatShowSep))
@@ -118,8 +118,8 @@ int  cAppliCalcHistoCarac::Exe()
    mStats->MakeCumul();
 
    {
-       cMultipleOfs  aMulOfs(NameReport());
-       aMulOfs << "COM=[" << CommandOfMain() << "]\n\n";
+       cMultipleOfs  aMulOfs(NameReport(), eFileModeOut::CreateText);
+       aMulOfs << "COM=[" << CommandOfMain().Com() << "]\n\n";
        mStats->ShowSepar(".*",aMulOfs);
    }
 

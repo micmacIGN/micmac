@@ -1,6 +1,11 @@
 #ifndef _FILTER_CODED_TARGET_H_
 #define _FILTER_CODED_TARGET_H_
 
+#include "MMVII_Linear2DFiltering.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_SysSurR.h"
+
+
 /** \file  FilterCodedTarget.h
 
     \brief contains image processing tools, developed 4 target detection, but
@@ -9,10 +14,7 @@
 
 namespace MMVII
 {
-namespace  cNS_CodedTarget
-{
-    class cDCT;
-};
+class cDCT;
 
 class cParam1FilterDCT
 {
@@ -139,7 +141,7 @@ template <class Type>  class  cFilterDCT : public cMemCheck
            virtual double Compute() =0;
 
            /// Some stuff computed by the filter may be of interest for followings
-           virtual void UpdateSelected(cNS_CodedTarget::cDCT & aDC) const ;
+           virtual void UpdateSelected(cDCT & aDC) const ;
 
            double ComputeVal(const cPt2dr & aP);
            tIm    ComputeIm();
@@ -180,7 +182,7 @@ template <class Type>  class  cFilterDCT : public cMemCheck
 
            std::vector<cPt2di>  mVK0K1;
 };
-template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool DoCheck,cIm2D<TypeEl> anImIn,double aR0,double aR1,double Epsilon);
+template<class TypeEl> cIm2D<TypeEl> ImSymmetricity(bool DoCheck,cIm2D<TypeEl> anImIn,double aR0,double aR1,double Epsilon);
 
 
 /** Class for fine extraction of parameters of target, begins by direction */
@@ -189,13 +191,13 @@ template <class Type>  class cExtractDir
      public :
          typedef cIm2D<Type>     tIm;   // shared pointer
          typedef cDataIm2D<Type> tDIm;  // raw reference/pointer for manipulating object
-         typedef cNS_CodedTarget::cDCT tDCT;
+         typedef cDCT tDCT;
          typedef std::vector<cPt2dr> tVDir;
 
          cExtractDir(tIm anIm,double aRhoMin,double aRhoMax);
 
          /// try the computation of two directions of checkboard, mail fail , return true if sucess
-         bool  CalcDir(tDCT &) ;
+         bool  CalcDir(tDCT &, double) ;
 
          /// computes scores once the direction have been computed
          double ScoreRadiom(tDCT & aDCT) ;
@@ -218,7 +220,104 @@ template <class Type>  class cExtractDir
           tDCT *                  mPDCT;       ///< tested target
        // (SortedVectOfRadius(aR0,aR1,IsSym))
 };
-bool TestDirDCT(cNS_CodedTarget::cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor);
+bool TestDirDCT(cDCT & aDCT,cIm2D<tREAL4> anIm,double aRayCB, double size_factor, std::vector<cPt2di> & vec2plot, double lined_up_px);
+
+
+/* =====================================================================================================
+ *    Class for computing saddle point,  in fact, more generally we fit the neigbouhoor of a pixel
+ *    by a basis of function, by least square,
+ *
+ *      in this we fit   I(x,y) =  a + bx +cy + dx^2 ...
+ ============================================================================================= */
+
+
+
+/**  To be general we use this abstract class for descring a basis of function,
+ *   for a given pixel it must return a vector of value for each element of the basis
+ */
+class cBasisFunc
+{
+     public :
+        virtual  std::pair<tREAL8,std::vector<tREAL8>> WeightAndVals(const cPt2dr &) const = 0;
+};
+
+/** Specialisation to quadratic  case   x,y -> {x^2, xy , ... 1} */
+class cBasisFuncQuad : public cBasisFunc
+{
+     public :
+        std::pair<tREAL8,std::vector<tREAL8>> WeightAndVals(const cPt2dr &) const override;
+};
+
+
+/**  As typically we will use thousands of time the same neighbourhood, to be efficient
+ * we store as data the values of basis for all pixel of a neighb */
+
+class cCompiledNeighBasisFunc
+{
+     public   :
+         typedef std::vector<cPt2dr> tVNeigh;
+         cCompiledNeighBasisFunc(const cBasisFunc & ,const tVNeigh &);
+
+         /** Very basic implementation, slow but safe, will give a fast alternative later
+	  *  Typically a faster implemantation will store for once the var/covar matrix and its inverse
+	  *  (depend only of the neighbourhood */
+         cDenseVect<tREAL8>   SlowCalc(const std::vector<tREAL8> & );
+     private  :
+         inline void AssertValsIsOk(const std::vector<tREAL8> & aVV)
+         {
+              MMVII_INTERNAL_ASSERT_tiny(aVV.size()==mNbNeigh,"Emty neigh cCompiledNeighBasisFunc");
+         }
+
+         tVNeigh                           mVNeigh;  ///< vector of neighboord
+         size_t                            mNbNeigh; ///< number of neighboor, commodity
+         std::vector<tREAL8>               mVWeight; ///< possible weight (all 1 for now)
+         std::vector<cDenseVect<tREAL8>>   mVFuncs;  ///< for each neighboor contain value on the basis
+         size_t                            mNbFunc;  ///< number of functions, commodity
+         cLeasSqtAA<tREAL8>                mSys;     ///< least square system
+};
+
+/** Class specific to saddle point computation using a least square fitting of neighbourood by quadratic
+ * functions */
+
+class cCalcSaddle
+{
+        public :
+             /// Radius of neighbourhood + step of discretization (to test if "aStep" influences accuracy)
+             cCalcSaddle(double aRay,double aStep);
+
+	     /// not use 4 now, compute criteria/eigen values
+             tREAL8  CalcSaddleCrit(const std::vector<tREAL8> &,bool Show);
+
+	     /// compute refined displacement a  saddle point using values of neihboor
+             cPt2dr   RefineSadlPtFromVals(const std::vector<tREAL8> & aVVals,bool Show);
+	     /// optimize position by iteration on  RefineSadlPtFromVals
+             void RefineSadlePointFromIm(cIm2D<tREAL4> aIm,cDCT & aDCT);
+
+             double Ray() const { return mRay;}         //CM: avoid mRay unused
+             double Step() const { return mStep;}       //CM: avoid mStep unused
+
+        private :
+             double                   mRay;   ///< Radius of neighbourhood
+             double                   mStep;  ///< Step for discretization
+             std::vector<cPt2di>      mVINeigh;  ///<  integer neigh
+             size_t                   mNbNeigh;  ///<  nb of neigh
+             std::vector<cPt2dr>      mRNeigh;   ///< real neighboor => the on used
+             cCompiledNeighBasisFunc  mCalcQuad;  ///< tabulated value on basis
+             std::vector<tREAL8>      mVVals;     ///<  buffer for storing values of images
+};
+
+/**  Fast Computation of saddle point criteria, for preliminary computation, dont use
+     linear decomp on a basis.  See the code for method description
+     it returns two images :
+
+       - first one has a dynamic proportionnal to images, so it favorise high constast, which is of interest for
+         neighbooring filtering
+       - firts one is the number of point that complies with the saddle point criteria, it allow a filter
+         on absolute criteria
+ */
+
+std::pair<cIm2D<tREAL4>,cIm2D<tREAL4>> FastComputeSaddleCriterion(cIm2D<tREAL4>  aIm,double aRay);
+
 
 };
 #endif // _FILTER_CODED_TARGET_H_

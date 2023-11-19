@@ -1,6 +1,8 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_Geom2D.h"
 
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_SysSurR.h"
 
 // ==========  3 variable used for debuging  , will disappear
 //
@@ -70,7 +72,7 @@ template <class Type>  class  cPNetwork
             tPt            mPosInit; ///< initial position : pertubation of theoretical one
 	    bool           mFrozenX; ///< is abscisse of this point frozen
 	    bool           mFrozenY;  ///< is this point frozen
-	    bool           mSchurrPoint;   ///< is it a temporay point (point not computed, for testing schur complement)
+	    bool           mSchurPoint;   ///< is it a temporay point (point not computed, for testing schur complement)
 	    int            mNumX;    ///< Num of x unknown
 	    int            mNumY;    ///< Num of y unknown
 
@@ -99,7 +101,15 @@ template <class Type>  class  cMainNetwork
           typedef NS_SymbolicDerivative::cCalculator<tREAL8>  tCalc;
 
 
-          cMainNetwork(eModeSSR aMode,cRect2,bool WithSchurr,const cParamMainNW &,cParamSparseNormalLstSq * = nullptr);
+          cMainNetwork
+          (
+	        eModeSSR aMode,
+	        cRect2,
+	        bool WithSchur,
+	        const cParamMainNW &,
+	        cParamSparseNormalLstSq * = nullptr,
+	        const std::vector<Type>  & aWeightSetSchur = {0.0,0.0,0.0,0.0}  /// for testing AddFixVarTmp
+	   );
           /// Do real construction that cannot be made in constructor (because call to virtual funcs ie ComputeInd2Geom)
           virtual void PostInit();
           virtual ~cMainNetwork();
@@ -164,7 +174,7 @@ template <class Type>  class  cMainNetwork
 	  cRect2 mBoxInd;                ///< rectangle of the network
           int   mX_SzM;                  ///<  1+2*aN  = Sz of Matrix of point
           int   mY_SzM;                  ///<  1+2*aN  = Sz of Matrix of point
-	  bool  mWithSchur;            ///< Do we test Schurr complement
+	  bool  mWithSchur;            ///< Do we test Schur complement
           cParamMainNW  mParamNW;
 	  int   mNum;                  ///< Current num of unknown
 	  std::vector<tPNet>  mVPts;   ///< Vector of point of unknowns coordinate
@@ -177,6 +187,7 @@ template <class Type>  class  cMainNetwork
           cSim2D<Type>        mSimInd2G;  
 
           cBox2dr     mBoxPts;  /// Box englobing Theor + Init
+	  std::vector<Type>   mWeightSetSchur;   /// for testing AddFixVarTmp
 };
 }; // namespace NS_Bench_RSNL
 }; // namespace MMVII

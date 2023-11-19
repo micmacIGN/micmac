@@ -1,5 +1,9 @@
 #ifndef  _MMVII_Triangles_H_
 #define  _MMVII_Triangles_H_
+
+#include "MMVII_Ptxd.h"
+
+
 namespace MMVII
 {
 
@@ -37,7 +41,7 @@ class cGraphDual
          void Init(int aNbSom,const std::vector<tFace>&);
          void  AddTri(int aFace,const cPt3di &);
 
-         cEdgeDual * GetEdgeOfSoms(int aS1,int aS2); ///< return egde s1->s2 if it exist, else return null
+         cEdgeDual * GetEdgeOfSoms(int aS1,int aS2) const; ///< return egde s1->s2 if it exist, else return null
 	 void  GetSomsNeighOfSom(std::vector<int> & aRes,int aS1) const;
 	 void  GetFacesNeighOfFace(std::vector<int> & aRes,int aF1) const;
      private :
@@ -60,6 +64,9 @@ template <class Type,const int Dim> class  cTriangle
 
        cTriangle(const tPt & aP0,const tPt & aP1,const tPt & aP2);
 
+       /// some time we need a fake init, safer to have it explict rather than using a default constructor
+       static tTri  Tri000();
+
        tTri  TriSwapPt(int aK0) const; ///< "same" but with different orientation by swap K0/1+K0
 
        static tTri  RandomTri(const Type & aSz,const Type & aRegulMin = Type(1e-2));
@@ -71,8 +78,10 @@ template <class Type,const int Dim> class  cTriangle
        ///  return K such that Pt(K)Pt(K+1) is the longest
        int  IndexLongestSeg() const;
 
-       /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
+       /// How much is it a non degenerate triangle,  without unity, 0=> degenerate (point aligned)
        Type Regularity() const;
+       /// High degeneracy, 0 indicate two point indentics
+       Type MinDist() const;
        /// Area of the triangle
        Type Area() const;
        /// Point equidistant to 3 point,  To finish for dim 3
@@ -83,15 +92,21 @@ template <class Type,const int Dim> class  cTriangle
        cTplBox<Type,Dim>  BoxEngl() const;
        cTplBox<int,Dim>     BoxPixEngl() const;  // May be a bit bigger
 
+
      protected :
        tPt  mPts[3];
 };
+typedef   cTriangle<tREAL8,2>  tTri2dr;
+typedef   cTriangle<tREAL8,3>  tTri3dr;
 
 
 /// return 2 elementay triangle both oriented, DiagCrois : diag contain 00->11 , else 01->10
 template <class Type> const std::vector<cTriangle<Type,2> > &  SplitPixIn2(bool DiagCrois);
 
+template <class Type,const int Dim>  cTriangle<Type,Dim>  TriFromFace(const std::vector<cPtxd<Type,Dim>> &, const cPt3di &);
 
+/// return K such Face[K] = NumS, if  not found : -1 if SVP, error if not
+int  IndOfSomInFace(const cPt3di & aFace,int aNumS,bool SVP=false);
 
 template <class Type,const int Dim> class cTriangulation
 {
@@ -118,6 +133,7 @@ template <class Type,const int Dim> class cTriangulation
           size_t  NbPts() const;   ///< Number of points
           const tFace &  KthFace(size_t aK) const;  ///<  Faces number K
 	  const tPt  & KthPts(size_t aK) const;  ///< Points number K
+	  tPt  & KthPts(size_t aK) ;  ///< Points number K
 
           tTri  KthTri(int aK) const;  ///< Triangle corresponding to the face
 	  bool  ValidFace(const tFace &) const;  ///< is it a valide face (i.e. : all index in [0,NbPts[)
@@ -130,9 +146,16 @@ template <class Type,const int Dim> class cTriangulation
 	  /// Equality is difficiult, because of permutation,just make heuristik test
 	  bool  HeuristikAlmostEqual (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;
 
-	  ///  Generate topology of dual graphe => implemanted but 4 now, nor used nor tested ...
+	  ///  Generate topology of dual graphe => implemanted ; used in mesh dev (so +or- tested)
 	  void MakeTopo();
           const cGraphDual & DualGr() const;
+
+	  ///  Make some (basic) test on correction of a triangulation, eventually correct some default
+          bool CheckAndCorrect(bool Correct);
+
+
+	  std::vector<size_t> IndexPts3D(size_t aNpPtsTot);
+
      protected :
 	  /// More a
 	  bool  HeuristikAlmostInclude (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;

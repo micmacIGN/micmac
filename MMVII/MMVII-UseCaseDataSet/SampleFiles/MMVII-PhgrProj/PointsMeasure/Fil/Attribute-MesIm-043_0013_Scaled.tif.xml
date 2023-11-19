@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.00"</Version>
+   <Data>
+      <el>
+         <Ellipse>
+            <Vect>
+               <Sz>5</Sz>
+               <RawData>"AC200C217C1C923F9E444E7AE79E243F3AD815E37CD98E3FE77D31FF92DC623F1D03B7F1B11668BF"</RawData>
+            </Vect>
+            <C0>1605.927835051546481 154.608247422680421</C0>
+         </Ellipse>
+         <NameCode>"020"</NameCode>
+         <Black>6</Black>
+         <White>99</White>
+      </el>
+      <el>
+         <Ellipse>
+            <Vect>
+               <Sz>5</Sz>
+               <RawData>"B69F374DFCB3943FD734B519EF47503F06E235F6B60A913FEFE9C43E3FAF643FE4661E0CFA0940BF"</RawData>
+            </Vect>
+            <C0>1818.342857142857156 461.714285714285722</C0>
+         </Ellipse>
+         <NameCode>"020"</NameCode>
+         <Black>2</Black>
+         <White>64</White>
+      </el>
+   </Data>
+</Root>

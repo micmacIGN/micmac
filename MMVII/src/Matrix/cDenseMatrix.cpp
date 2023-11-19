@@ -1,6 +1,4 @@
-#include "include/MMVII_all.h"
-
-
+#include "MMVII_Matrix.h"
 
 namespace MMVII
 {
@@ -20,6 +18,12 @@ template <class Type> cDenseMatrix<Type>::cDenseMatrix(int aX,int aY,eModeInitIm
 template <class Type> cDenseMatrix<Type>::cDenseMatrix(tIm anIm) :
                              cUnOptDenseMatrix<Type>(anIm)
 {
+}
+
+
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Identity(int aSz)
+{
+	return cDenseMatrix(aSz,eModeInitImage::eMIA_MatrixId);
 }
 
 template <class Type> cDenseMatrix<Type>::cDenseMatrix(int aXY,eModeInitImage aMode) :
@@ -68,12 +72,51 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVe
     return aRes;
 }
 
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::ClosestOrthog() const
+{
+    this->CheckSquare(*this);
+    cResulSVDDecomp<Type> aSVD  =   SVD();
+
+    // OriMatr :  return mMatU * cDenseMatrix<Type>::Diag(mSingularValues) * mMatV.Transpose();
+    cDenseVect<Type> aVP = aSVD.SingularValues().Dup(); 
+
+    Type aSignGlob = 1;
+    for (int aK=0 ; aK<aVP.Sz(); aK++)
+    {
+        Type aSign = (aVP(aK)>=0)  ? 1 : - 1;
+        aVP(aK) = aSign;
+	aSignGlob *= aSign;
+    }
+
+    return aSVD.MatU() * cDenseMatrix<Type>::Diag(aVP) * aSVD.MatV().Transpose();
+}
+
 template <class Type> Type  cDenseMatrix<Type>::L2Dist(const cDenseMatrix<Type> & aV) const
 {
    return DIm().L2Dist(aV.DIm());
 }
 
 
+template <class Type> Type  cDenseMatrix<Type>::SqL2Dist(const cDenseMatrix<Type> & aV) const
+{
+   return DIm().SqL2Dist(aV.DIm());
+}
+
+
+template <class Type> void cDenseMatrix<Type>::PushByLine(std::vector<Type> & aRes) const
+{
+    for (const auto & aPix : DIm())
+    {
+          aRes.push_back(GetElem(aPix));
+    }
+}
+
+template <class Type> void cDenseMatrix<Type>::PushByCol(std::vector<Type> & aRes) const
+{
+    for (int aX=0 ; aX<Sz().x() ; aX++)
+        for (int aY=0 ; aY<Sz().y() ; aY++)
+            aRes.push_back(GetElem(aX,aY));
+}
 
 
 template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareRegSVD
@@ -125,8 +168,8 @@ template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareReg
 
     // Set conditionning
     {
-       // Compute max & min of all ABS values (whitch one get it is of no interest)
-       cWhitchMinMax<int,Type> aIMM(0,std::abs(aVDiag(0)));
+       // Compute max & min of all ABS values (which one get it is of no interest)
+       cWhichMinMax<int,Type> aIMM(0,std::abs(aVDiag(0)));
        for (int aK=0 ; aK<aNb  ; aK++)
        {
           aIMM.Add(aK,std::abs(aVDiag(aK)));
@@ -165,7 +208,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::RandomSquareRegMat
     cResulSVDDecomp<Type>  aSVDD = RandomSquareRegSVD(aSz,IsSym,AmplAcc,aCondMinAccept);
     return aSVDD.OriMatr();
 /*
-StdOut() << "HHhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh\n";
+StdOut() << "HHhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh" << std::endl;
     return RandomSquareRegSVD(aSz,IsSym,AmplAcc,aCondMinAccept).OriMatr();
 */
 }
@@ -198,7 +241,7 @@ template<class Type> cDenseVect<Type> cDenseMatrix<Type>::Kernel(Type * aVp) con
     cResulSVDDecomp<Type> aSVDD = SVD();
     cDenseVect<Type>  aVDiag = aSVDD.SingularValues();
 
-    cWhitchMin<int,Type> aWMin(0,std::abs(aVDiag(0)));
+    cWhichMin<int,Type> aWMin(0,std::abs(aVDiag(0)));
     for (int aK=1 ; aK<aVDiag.Sz() ; aK++)
         aWMin.Add(aK,std::abs(aVDiag(aK)));
 
@@ -243,7 +286,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse(double Eps
 
    {
       cDenseMatrix<Type> AAp = A * Ap;
-      StdOut() << "D000 " << AAp.DIm().L2Dist(cDenseMatrix<Type>(aNb,eModeInitImage::eMIA_MatrixId).DIm()) << "\n";
+      StdOut() << "D000 " << AAp.DIm().L2Dist(cDenseMatrix<Type>(aNb,eModeInitImage::eMIA_MatrixId).DIm()) << std::endl;
 
    // Test that pertubate the inverse, it's only for bench purpose, to be sure that
    // iterative algoritm work.
@@ -276,7 +319,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse(double Eps
           }
        }
        aSomEr = std::sqrt(aSomEr/R8Square(aNb));
-       StdOut() << "SOMM EE " << aSomEr << "\n";
+       StdOut() << "SOMM EE " << aSomEr << std::endl;
        Ap = Ap * ImE;
        aK++;
    }

@@ -1,6 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/V1VII.h"
+
+#include "V1VII.h"
 #include "LearnDM.h"
+#include "MMVII_Sys.h"
 
 //  MMVII  DMFormatTD_MDLB ".*JAX_022_004_002_.*" 100 DoRectif=1
 
@@ -120,12 +121,12 @@ cCollecSpecArg2007 & cMDLB_AppliFormatTDEDM::ArgOpt(cCollecSpecArg2007 & anArgOp
 void cMDLB_AppliFormatTDEDM::MakePxSym(const std::string & aDir,int aK)
 {
   std::string aTmp = "SymTmp.tif";
-  std::string aComSym = "mm3d Turn90Im " + aDir + mNamePx[aK] + "  NumGeom=6 Out=" +  aTmp;
+  cParamCallSys aComSym(MMV1Bin(),"Turn90Im",aDir + mNamePx[aK],"NumGeom=6","Out=" +  aTmp);
   GlobSysCall(aComSym);
        //==== Create a Px without inf/nan just in case ====
   int aSign = (aK==0) ? -1 : 1;
   int aDef = aSign * -10000;
-  std::string aComPx = "mm3d Nikrup  \"* " + ToStr(aSign) + " F1F2BN " + aTmp   +" "+ ToStr(aDef) +  " \" "  + NamePx(aK);
+  cParamCallSys aComPx(MMV1Bin(),"Nikrup","* " + ToStr(aSign) + " F1F2BN " + aTmp +" "+ ToStr(aDef),NamePx(aK));
   GlobSysCall(aComPx);
   RemoveFile(aTmp,false);
 }
@@ -182,10 +183,12 @@ void  cMDLB_AppliFormatTDEDM::MakeMaskAR(double aPixThresh,int aK)
     cIm2D<tU_INT1>  aImAR = ComputeAR(aAmpl,aK);
     aImAR.DIm().ToFile(aTmpAR);
 
-    std::string aComMasq = 
-               std::string("mm3d Nikrup " )
-             + "\"* 255  < " + aTmpAR + " " + ToStr(aMul) + "\" "
-             +  NameMasq(aK)  + " Type=u_int1";
+    cParamCallSys aComMasq(
+        MMV1Bin(),
+        "Nikrup",
+        "* 255  < " + aTmpAR + " " + ToStr(aMul),
+        NameMasq(aK),"Type=u_int1"
+        );
     GlobSysCall(aComMasq);
     RemoveFile(aTmpAR,false);
 }
@@ -257,7 +260,7 @@ int cMDLB_AppliFormatTDEDM::Exe()
                   }
 
               aVBox.push_back(aBox.CurBox());
-              StdOut() << aBox.CurBox() << "\n";
+              StdOut() << aBox.CurBox() << std::endl;
 /*
 if (aKIm==0)
 {
@@ -269,7 +272,7 @@ for (int aK=0 ; aK<20 ; aK++)
           }
           int aY0 = std::max(aVBox[0].P0().y(),aVBox[1].P0().y());
           int aY1 = std::min(aVBox[0].P1().y(),aVBox[1].P1().y());
-          StdOut() << "YY " << aY0 << " " << aY1 << "\n";
+          StdOut() << "YY " << aY0 << " " << aY1 << std::endl;
           for (int aKIm=0; aKIm<2 ; aKIm++)
           {
               aVBox[aKIm] = cBox2di(cPt2di(aVBox[aKIm].P0().x(),aY0),cPt2di(aVBox[aKIm].P1().x(),aY1));
@@ -280,22 +283,32 @@ for (int aK=0 ; aK<20 ; aK++)
 //   X1-------         :  DPx >0 et hom X0 >0 donc S=1
 //          X0
               int aSDPx = ((aKIm==0) ? aDPx : -aDPx) * 1;
-              std::string  aStrBox =  " Box=" + ToStrComMMV1(aVBox[aKIm]);
-              std::string aComIm = " mm3d Nikrup  \"/ (+ v0 =F " +  aDir + mNameIm[aKIm] +  " v1 @F v2 @F) 3\" " 
-                                   + NameIm(aKIm) + aStrBox ;
+              std::string  aStrBox =  "Box=" + ToStrComMMV1(aVBox[aKIm]);
+              cParamCallSys aComIm(
+                  MMV1Bin(),"Nikrup",
+                  "/ (+ v0 =F " +  aDir + mNameIm[aKIm] +  " v1 @F v2 @F) 3",
+                  NameIm(aKIm),
+                  aStrBox
+                  );
               GlobSysCall(aComIm);
 
-              std::string aComMasq = " mm3d Nikrup  \"* 255 > 128 " + aDir + mNameMasq[aKIm] + "\" "
-                                   + NameMasq(aKIm) + aStrBox  + " Type=u_int1";
+              cParamCallSys aComMasq(
+                  MMV1Bin(),"Nikrup",
+                  "* 255 > 128 " + aDir + mNameMasq[aKIm],
+                  NameMasq(aKIm),aStrBox,"Type=u_int1"
+                  );
               GlobSysCall(aComMasq);
 
-              std::string aComPx = " mm3d Nikrup  \"+ " + aDir + mNamePx[aKIm] + " " + ToStr(aSDPx) + "\" "
-                                   + NamePx(aKIm) + aStrBox ;
+              cParamCallSys aComPx(
+                  MMV1Bin(),"Nikrup",
+                  "+ " + aDir + mNamePx[aKIm] + " " + ToStr(aSDPx),
+                  NamePx(aKIm),aStrBox
+                  );
               GlobSysCall(aComPx);
           }
-          StdOut() << "DPX= " << aDPx << "\n";
+          StdOut() << "DPX= " << aDPx << std::endl;
 
-          // StdOut() << "BBbbBB " << aVBox[0] << " ;;; " << aVBox[1] << " DPx: " << aDPx<< "\n";
+          // StdOut() << "BBbbBB " << aVBox[0] << " ;;; " << aVBox[1] << " DPx: " << aDPx<< std::endl;
           // getchar();
        }
        else if (mMDLB)
@@ -416,10 +429,10 @@ int cWT_AppliFormatTDEDM::Exe()
 
        std::string aTmpPx =   PrefixAll() + "_tmppx.tif";
        GenConvertIm(aDir+"../disp_occ/"+aFile,aTmpPx);
-       std::string aComDyn = "mm3d Nikrup \"/ " + aTmpPx + " -256.0\" " + NamePx1(aPref);
+       cParamCallSys aComDyn(MMV1Bin(),"Nikrup","/ " + aTmpPx + " -256.0",NamePx1(aPref));
        GlobSysCall(aComDyn);
 
-       std::string aComMasq = "mm3d Nikrup \"* 255 !=  " + aTmpPx + " 0\" " + NameMasq1(aPref)  + " Type=u_int1";
+       cParamCallSys  aComMasq(MMV1Bin(),"Nikrup","* 255 !=  " + aTmpPx + " 0",NameMasq1(aPref),"Type=u_int1");
        GlobSysCall(aComMasq);
 
        RemoveFile(aTmpPx,false);

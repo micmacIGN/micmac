@@ -1,9 +1,11 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
-#include "include/V1VII.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
-
-
+#include "MMVII_Tpl_Images.h"
+#include "V1VII.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Linear2DFiltering.h"
+#include "MMVII_NonLinear2DFiltering.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_ImageInfoExtract.h"
+#include "MMVII_AimeTieP.h"
 
 namespace MMVII
 {
@@ -29,7 +31,7 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
     mNameSave =  mPyr->Params().mAppli->NamePCarImage(mPyr->NameIm(),mPyr->TypePyr(),ShortId(),mPyr->Params().mNumTile);
 
 /*
-StdOut() << "SssSSSS=" << mNameSave << "\n";
+StdOut() << "SssSSSS=" << mNameSave << std::endl;
     mNameSave =      mPyr->Params().mPrefixSave
                    + "-Ima-" 
                    + E2Str(mPyr->TypePyr()) 
@@ -38,7 +40,7 @@ StdOut() << "SssSSSS=" << mNameSave << "\n";
                    + "-" +  mPyr->Prefix()
                    + ".tif"
                 ;
-StdOut() << "XXXxxxX=" << mNameSave << "\n";
+StdOut() << "XXXxxxX=" << mNameSave << std::endl;
 */
     if (mUp==nullptr)
     {
@@ -226,7 +228,7 @@ template <class Type> cGP_OneOctave<Type>::cGP_OneOctave(tPyr * aPyr,int aNum,tO
        mSzIm = mUp->mSzIm / 2;            // octave law
        mUp->mDown = this; // create reciprocate link
     }
-    // StdOut() << "=== Oct === " << mNumInPyr << " Sz=" << mSzIm << "\n";
+    // StdOut() << "=== Oct === " << mNumInPyr << " Sz=" << mSzIm << std::endl;
     tGPIm * aPrec = nullptr;
     for (int aKIm=0 ; aKIm<mPyram->NbImByOct()  ; aKIm++)
     {
@@ -269,7 +271,7 @@ template <class Type> void cGP_OneOctave<Type>::ComputGaussianFilter()
 
 template <class Type> void cGP_OneOctave<Type>::Show() const
 {
-    StdOut() << "   --- Oct --- " << mNumInPyr << " Sz=" << mSzIm << "\n";
+    StdOut() << "   --- Oct --- " << mNumInPyr << " Sz=" << mSzIm << std::endl;
     for (const auto & aPtrIm : mVIms)
        aPtrIm->Show();
 }
@@ -365,7 +367,7 @@ void cFilterPCar::FinishAC(double aVal)
         if (int(mAutoC.size()) == aK)
            mAutoC.push_back(mAutoC.back()-aVal);
     }
-// StdOut() << "HhhhhhhHHhhhhhhh " << mAutoC.size() << " :: " << mAutoC << "\n";
+// StdOut() << "HhhhhhhHHhhhhhhh " << mAutoC.size() << " :: " << mAutoC << std::endl;
 }
 
 std::vector<double> &  cFilterPCar::AutoC() {return mAutoC;}
@@ -570,7 +572,7 @@ template <class Type> cGaussianPyramid<Type>::cGaussianPyramid
        for (int aK=1 ; aK<int(mVMajIm.size()) ; aK++)
        {
            double aRatio = mVMajIm[aK]->ScaleAbs()/mVMajIm[aK-1]->ScaleAbs();
-           //  StdOut() << " sSssSSs= " << aRatio << " MM=" <<  mMulScale     << "\n";
+           //  StdOut() << " sSssSSs= " << aRatio << " MM=" <<  mMulScale     << std::endl;
            MMVII_INTERNAL_ASSERT_strong(std::abs(aRatio-mMulScale)<1e-5,"Ratio in MajorVectImage");
        }
 /*
@@ -663,8 +665,8 @@ template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>
 
 template <class Type> void cGaussianPyramid<Type>::Show() const
 {
-   StdOut() << "============ Gaussian Pyramid ==============\n";
-   StdOut() << "     type elem: " <<  E2Str(tElemNumTrait<Type>:: TyNum())  << "\n";
+   StdOut() << "============ Gaussian Pyramid ==============" << std::endl;
+   StdOut() << "     type elem: " <<  E2Str(tElemNumTrait<Type>:: TyNum())  << std::endl;
    for (const auto & aPtrOct : mVOcts)
        aPtrOct->Show();
 }
@@ -695,7 +697,7 @@ template <class Type> void ScaleAndAdd
     cGP_OneImage<Type> * aBestI= aPtrI->BestEquiv();
     int aIRatio = round_ni(aBestI->ScaleInO() / aPtrI->ScaleInO());
     
-    // StdOut()  << "NULL= " << (aBestI==nullptr) << " BI=" << (aBestI ==aPtrI) << " R=" << aRatio << "\n";
+    // StdOut()  << "NULL= " << (aBestI==nullptr) << " BI=" << (aBestI ==aPtrI) << " R=" << aRatio << std::endl;
     cAutoTimerSegm aATS("CreatePCar");  // timing
     for (const auto & aPtImInit : aLoc)
     {
@@ -714,7 +716,7 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
    std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMax(cInterf_ExportAimeTiep<Type>::Alloc(SzIm0(),true ,mTypePyr,E2Str(mTypePyr),ForInspect,mParams));
 
    if (DoPrint)
-      StdOut() <<  "\n ######  STAT FOR " << E2Str(mTypePyr)  << " Pow " << aPowSPr << " ######\n";
+      StdOut() <<  "\n ######  STAT FOR " << E2Str(mTypePyr)  << " Pow " << aPowSPr << " ######" << std::endl;
 
    // std::vector<cPt2dr> aVGlobMin;
    // std::vector<cPt2dr> aVGlobMax;
@@ -728,7 +730,7 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
        if (DoExport)
        {
            if (DoPrint && aPtrIm->IsTopOct())
-              StdOut() <<  " ===================================================\n";
+              StdOut() <<  " ===================================================" << std::endl;
            cIm2D<Type> aI = aPtrIm->ImG();
            double aML =  MoyAbs(aI);
            double aS =  aPtrIm->ScaleInO();
@@ -779,12 +781,12 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
            }
         
            if (DoPrint)
-              StdOut()  << "\n";
+              StdOut()  << std::endl;
        }
    }
    if (!DoExport)
       return;
-   StdOut() << " ======  NbTot , Min " << aNbMinTot << " Max " << aNbMaxTot << "\n";
+   StdOut() << " ======  NbTot , Min " << aNbMinTot << " Max " << aNbMaxTot << std::endl;
 
    
    // std::string aPref =     mParams.mPrefixSave + "-AimePCar-";
@@ -793,7 +795,7 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
    aPtrExpMin->FiltrageSpatialPts();
    aPtrExpMax->FiltrageSpatialPts();
 
-   // StdOut() <<  " ppppPPppp " <<  mParams.mAppli->NamePCar(mNameIm,eModeOutPCar::eMNO_PCarV1,TypePyr(),false,true,cPt2di(0,0)) << "\n";
+   // StdOut() <<  " ppppPPppp " <<  mParams.mAppli->NamePCar(mNameIm,eModeOutPCar::eMNO_PCarV1,TypePyr(),false,true,cPt2di(0,0)) << std::endl;
 
 
    aPtrExpMin->Export(mNameIm,ForInspect);

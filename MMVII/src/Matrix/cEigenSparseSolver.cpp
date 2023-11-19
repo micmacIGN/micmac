@@ -1,11 +1,21 @@
-#include "include/MMVII_all.h"
+/*
+
+    Eigen::SparseQR<SpMat, Eigen::NaturalOrdering<int> > : 3 min (mode actuel de comp v5)
+    Eigen::SparseQR<SpMat, Eigen::AMDOrdering<int> > : 5-6 min
+    Eigen::SparseQR<SpMat, Eigen::COLAMDOrdering<int> > : 5-6 min
+    Eigen::SimplicialLDLT<SpMat, Eigen::Lower, Eigen::AMDOrdering<int> > : 40s (dont presque rien sur le calcul matriciel !)
+    Eigen::SimplicialLDLT<SpMat, Eigen::Lower, Eigen::AMDOrdering<int> > sans la reorganisation de la matrice : 40s
+    Eigen::SimplicialLDLT<SpMat, Eigen::Lower, Eigen::NaturalOrdering<int> > : 1 min
+    Eigen::SparseLU<SpMat, Eigen::NaturalOrdering<int> > : 56s
+*/
+
 
 #include "MMVII_EigenWrap.h"
-#include "ExternalInclude/Eigen/Sparse"
-#include "ExternalInclude/Eigen/Dense"
+#include "Eigen/Sparse"
+#include "Eigen/Dense"
 
-#include "ExternalInclude/Eigen/Eigenvalues"
-#include "ExternalInclude/Eigen/Householder"  // HouseholderQR.h"
+#include "Eigen/Eigenvalues"
+#include "Eigen/Householder"  // HouseholderQR.h"
 
 
 using namespace Eigen;
@@ -77,7 +87,9 @@ template<class Type> cDenseVect<Type> EigenSolveCholeskyarseFromV3
 
    Eigen::SparseMatrix<Type> aSpMat(aN,aN);
    aSpMat.setFromTriplets(aV3.begin(), aV3.end());
-   Eigen::SimplicialCholesky< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
+
+   // Eigen::SimplicialCholesky< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
+   Eigen::SimplicialLDLT< Eigen::SparseMatrix<Type>  > aChol(aSpMat);  // performs a Cholesky factorization of A
 
 
    cConst_EigenColVectWrap  aWVec(aVec);

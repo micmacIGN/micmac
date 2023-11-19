@@ -1,0 +1,15 @@
+*.so
+*.o
+core
+docstrings.h
+Tmp-MM-Dir
+*.JPG
+*.jpg
+*.TIF
+*.tif
+/dist/
+/build/
+/xml/
+MMVII.egg-info/
+Tmmmp-MM-Dir/
+__pycache__

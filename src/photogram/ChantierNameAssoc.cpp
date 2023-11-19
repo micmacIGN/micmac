@@ -486,9 +486,16 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
     {
         MemoArg(argc,argv);
 #if ELISE_windows
-        TCHAR FilePath[MAX_PATH] = { 0 };
-        GetModuleFileName(NULL,FilePath, MAX_PATH );
-        CurrentProgramFullName = string( FilePath );
+        if (MM3DFixeByMMVII != "")
+        {
+            CurrentProgramFullName = MM3DFixeByMMVII;
+        } 
+        else
+        {
+            TCHAR FilePath[MAX_PATH] = { 0 };
+            GetModuleFileName(NULL, FilePath, MAX_PATH);
+            CurrentProgramFullName = string(FilePath);
+        }
         std::string sFile;
 
         replace( CurrentProgramFullName.begin(), CurrentProgramFullName.end(), '\\', '/' );

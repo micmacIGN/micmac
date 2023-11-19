@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_DeclareAllCmd.h"
 
 
 /** \file cMMVII_CalcSet.cpp
@@ -14,6 +15,13 @@
 
 namespace MMVII
 {
+
+void cMMVII_Appli::ChgName(const std::vector<std::string> & aPatSubst,std::string & aName) const
+{
+   if (IsInit(&aPatSubst))
+      aName = ReplacePattern(aPatSubst.at(0),aPatSubst.at(1),aName);
+}
+
 
 
 /* ==================================================== */
@@ -53,6 +61,7 @@ class cAppli_EditSet : public cMMVII_Appli
          std::string mPat;    ///< Pattern (or File) to modify
          eOpAff      mOp;     ///<  operator
          int         mShow;   ///< Level of message
+         std::vector<std::string>  mChgName;
 };
 
 cAppliBenchAnswer cAppli_EditSet::BenchAnswer() const
@@ -78,13 +87,15 @@ static void OneBenchEditSet
         const std::string & ExpSet   // Expect set
     )
 {
-    // StdOut() << "OneBenchEditSet " << anOp << "\n";
+    // StdOut() << "OneBenchEditSet " << anOp << std::endl;
 
     cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
     std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
     std::string aDirT = anAp.TmpDirTestMMVII()  ;
-    std::string Input = "Input.xml";
-    std::string Ouput = "Ouput.xml";
+
+    std::string anExt = (aRealNumOut==2) ? anAp.TaggedNameDefSerial() : "xml";
+    std::string Input = "Input." + anExt;
+    std::string Ouput = "Ouput." + anExt;
 
     // if true uses GOP_DirProj else fix it via mandatory arg
     bool UseDirP = (aNumTest==1);
@@ -137,7 +148,7 @@ static void OneBenchEditSet
     const std::string & aTag = (aRealNumOut==1) ?  MMv1XmlTag_SetName : TagSetOfName;
     MMVII_INTERNAL_ASSERT_always
     (
-        IsFileXmlOfGivenTag((aRealNumOut==2),aDirT+Ouput,aTag) ,
+        IsFileGivenTag((aRealNumOut==2),aDirT+Ouput,aTag) ,
         "Tag in OneBenchEditSet"
     );
 
@@ -203,6 +214,7 @@ cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       anArgOpt
          << AOpt2007(mShow,"Show","Show detail of set before/after, 0->none, (1) modif, (2) all",{{eTA2007::HDV}})
          << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{})
+         << AOpt2007(mChgName,"ChgN","Change name [Pat,Name], for ex \"[(.*),IMU_\\$0]\"  add prefix \"IMU_\" ",{{eTA2007::ISizeV,"[2,2]"}})
       ;
 }
 
@@ -214,10 +226,24 @@ cAppli_EditSet::cAppli_EditSet(const std::vector<std::string> & aVArgs,const cSp
 
 int cAppli_EditSet::Exe()
 {
+
    InitOutFromIn(mNameXmlOut,mNameXmlIn);
 
    tNameSet aInput = SetNameFromString(mNameXmlIn,false);
-   const tNameSet & aNew =  MainSet0();
+   tNameSet aNew =  MainSet0();
+
+   if (IsInit(&mChgName))
+   {
+      std::vector aVstr = VectMainSet(0);
+      aNew.clear();
+      for (auto & aStr : aVstr)
+      {
+          ChgName(mChgName,aStr);
+          aNew.Add(aStr);
+      }
+   }
+
+   // StdOut()  << "aNewaNewaNew " <<  aNew.size() << std::endl;
 
    tNameSet aRes = aInput.Dupl();
 
@@ -244,7 +270,7 @@ int cAppli_EditSet::Exe()
                 {
                    StdOut() <<  " " << (aInInit ? "+" : "-");
                    StdOut() <<   (aInRes ? "+" : "-") << " ";
-                   StdOut() <<  *aPtrS << "\n";
+                   StdOut() <<  *aPtrS << std::endl;
                 }
              }
           }
@@ -513,21 +539,24 @@ int cAppli_EditRel::ExecuteBench(cParamExeBench &)
    cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
    std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
 
-   RemovePatternFile(aDirI+"RelTest.*.xml",true);
+   std::string  anExt = TaggedNameDefSerial();
+   std::string aNameRT = "RelTest." + anExt;
 
-   OneBenchEditRel("RelTest.xml","=","F.*.txt",17,anAp.StrOpt() << t2S("Line","2"));
-   OneBenchEditRel("RelTest.xml","=","F.*.txt",45,anAp.StrOpt() << t2S("AllP","true"));
-   OneBenchEditRel("RelTest.xml","-=","F[0-5].txt",30 ,anAp.StrOpt() << t2S("AllP","true"));
-   OneBenchEditRel("RelTest.xml","+=","F[0-4].txt",40 ,anAp.StrOpt() << t2S("AllP","true"));
-   OneBenchEditRel("RelTest.xml","+=","F[0-5].txt",45 ,anAp.StrOpt() << t2S("AllP","true"));
-   OneBenchEditRel("RelTest.xml","=","F[0-5].txt",24 ,anAp.StrOpt() << t2S("AllP","true") << t2S("Pat2","F[6-9].txt"));
-   OneBenchEditRel("RelTest.xml","=","F.*.txt",20 ,anAp.StrOpt() << t2S("Line","2") << t2S("Circ","true"));
+   RemovePatternFile(aDirI+"RelTest.*."+anExt,true);
 
-   OneBenchEditRel("RelTest.xml","=","F.*.txt",30 ,anAp.StrOpt() << t2S("Line","2") << t2S("Circ","true") << t2S("Reflexif","true"));
+   OneBenchEditRel(aNameRT,"=","F.*.txt",17,anAp.StrOpt() << t2S("Line","2"));
+   OneBenchEditRel(aNameRT,"=","F.*.txt",45,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel(aNameRT,"-=","F[0-5].txt",30 ,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel(aNameRT,"+=","F[0-4].txt",40 ,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel(aNameRT,"+=","F[0-5].txt",45 ,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel(aNameRT,"=","F[0-5].txt",24 ,anAp.StrOpt() << t2S("AllP","true") << t2S("Pat2","F[6-9].txt"));
+   OneBenchEditRel(aNameRT,"=","F.*.txt",20 ,anAp.StrOpt() << t2S("Line","2") << t2S("Circ","true"));
+
+   OneBenchEditRel(aNameRT,"=","F.*.txt",30 ,anAp.StrOpt() << t2S("Line","2") << t2S("Circ","true") << t2S("Reflexif","true"));
 
 
-   OneBenchEditRel("RelTest_0-5.xml","=","F[0-5].txt",15,anAp.StrOpt() << t2S("AllP","true"));
-   OneBenchEditRel("RelTest.xml","=","RelTest_0-5.xml",15,anAp.StrOpt() );
+   OneBenchEditRel("RelTest_0-5."+anExt,"=","F[0-5].txt",15,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel(aNameRT,"=","RelTest_0-5."+anExt,15,anAp.StrOpt() );
 
    return EXIT_SUCCESS;
 }

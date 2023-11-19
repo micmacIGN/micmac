@@ -1,5 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_Linear2DFiltering.h"
+#include "MMVII_DeclareCste.h"
 
 namespace MMVII
 {
@@ -141,7 +143,7 @@ template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,co
 /*
 const cPt2di & ShowPt(const cPt2di &aSz,const std::string & aMsg)
 {
-	StdOut() <<  "SZ:" << aSz << aMsg << "\n";
+	StdOut() <<  "SZ:" << aSz << aMsg << std::endl;
 	return aSz;
 }
 */
@@ -163,6 +165,13 @@ template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aP0,const cPt2di & aP1,
 
 template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aSz,Type * aRawDataLin,eModeInitImage aModeInit) :
    cIm2D<Type> (cPt2di(0,0),aSz,aRawDataLin,aModeInit)
+{
+}
+
+
+template <class Type>  cIm2D<Type>::cIm2D(cDataIm1D<Type>&  aI1) :
+      cIm2D<Type>(cPt2di(aI1.Sz(),1),aI1.RawDataLin())
+
 {
 }
 
@@ -261,6 +270,71 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const
 
 /* *********************************************************** */
 /*                                                             */
+/*            cAppliWithMasqIma                                */
+/*                                                             */
+/* *********************************************************** */
+
+/*  TO LINK
+class cAppliWithMasqIma
+{
+      public :
+	 /// Muts be done once the appli know its image
+
+	 bool HasMasq() const;
+
+	cCollecSpecArg2007 & AWMI_ArgObl(cCollecSpecArg2007 & anArgObl) ; ///< If Masq is mandatory
+        cCollecSpecArg2007 & AWMI_ArgOpt(cCollecSpecArg2007 & anArgOpt); ///<  If Masq is optionnal
+									 
+      protected :
+         cAppliWithMasqIma(cMMVII_Appli & anAppli);
+	 void InitNameImage(const std::string & aNameImage);
+      private :
+         void AssertImIsInit();
+	 bool NameMasqIsInit() const;
+
+         cMMVII_Appli & mAppli;
+         bool           mImIsInit;	 
+
+	 std::string    mNameMasq;
+	 std::string    mNameImage;
+};
+
+cAppliWithMasqIma::cAppliWithMasqIma(cMMVII_Appli & anAppli) :
+   mAppli      (anAppli),
+   mImIsInit   (false)
+{
+}
+
+
+void cAppliWithMasqIma::InitNameImage(const std::string & aNameImage)
+{
+   mImIsInit = true;
+   mNameImage = aNameImage;
+}
+
+
+bool cAppliWithMasqIma::NameMasqIsInit() const
+{
+	return mAppli.IsInit(&mNameMasq);
+}
+
+bool cAppliWithMasqIma::HasMasq() const
+{
+     //  If masq was specief it exist, except if NONE (case where we want to 
+     //  supress the defaut behavior which is test the existence of IM_Masq.tif
+     if (NameMasqIsInit())
+        return mNameMasq != MMVII_NONE;
+
+    if (mImIsInit)
+       return   ExistFile(AddAfterAndChgPost(mNameImage,"_Masq","tif"));
+
+   return false;
+}
+*/
+
+
+/* *********************************************************** */
+/*                                                             */
 /*            cAppliParseBoxIm<TypeEl>                         */
 /*                                                             */
 /* *********************************************************** */
@@ -310,15 +384,17 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
      cParseBoxInOut<2> aPBIO =  cParseBoxInOut<2>::CreateFromSize(mDFI2d,mSzTiles);
      mParseBox = & aPBIO;
 
-     std::list<std::string>  aLComParal;
+     std::list<cParamCallSys>  aLComParal;
      for (const auto & aPixI : aPBIO.BoxIndex())
      {
          // if a the top level of paralelization, construct the string 
          // For first box, run it classically so that files are created only once
          if (TopCallParallTile() && (aPixI!=cPt2di(0,0)))
          {
-            std::string aCom = mAppli.CommandOfMain() + " " +NameIndBoxRecal + "=" + ToStr(aPixI);
-            std::cout<<" THE COMMAND TO TILE "<<aCom<<std::endl;
+            //std::string aCom = mAppli.CommandOfMain() + " " +NameIndBoxRecal + "=" + ToStr(aPixI);
+            //std::cout<<" THE COMMAND TO TILE "<<aCom<<std::endl;
+             cParamCallSys aCom = mAppli.CommandOfMain();
+             aCom.AddArgs(NameIndBoxRecal + "=" + ToStr(aPixI));
              aLComParal.push_back(aCom);
          }
          else

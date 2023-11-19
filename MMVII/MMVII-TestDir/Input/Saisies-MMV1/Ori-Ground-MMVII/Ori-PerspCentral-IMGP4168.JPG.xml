@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0:0.0"</Version>
+   <Data>
+      <CameraPose>
+         <NameImage>"IMGP4168.JPG"</NameImage>
+         <NameInternalCalib>"Calib-PerspCentral-Foc-28000_Cam-PENTAX_K5"</NameInternalCalib>
+         <Center>5.203315710339428 0.801558951120939 2.104233883945823</Center>
+         <RotMatrix>
+            <AxeI>-0.16360794707346 0.050533795937991 0.985230315775202</AxeI>
+            <AxeJ>0.115991824112041 0.992745533269003 -0.03165758856268</AxeJ>
+            <AxeK>-0.979682773347357 0.109099228423211 -0.168282565834643</AxeK>
+         </RotMatrix>
+         <EQ>0.644370821103986 -0.05461017646048 -0.762337859183365 -0.02539610191454</EQ> <!--EigenQuaternion, for information-->
+         <WPK>-147.044265252458558 -78.430678169693721 -144.664806564715178</WPK> <!--Omega Phi Kapa in degree, for information-->
+         <YPR>162.835583563307466 -80.140401697848631 -169.345942117534065</YPR> <!--Yaw Pitch Roll in degree, for information-->
+      </CameraPose>
+   </Data>
+</Root>

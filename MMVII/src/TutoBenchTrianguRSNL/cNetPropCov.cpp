@@ -1,6 +1,8 @@
 #include "TrianguRSNL.h"
-#include "include/MMVII_Tpl_Images.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_PhgrDist.h"
+
 
 // 100 Iter
 //                  Std      X*10        W/o X=1     W/o X=1 X*10
@@ -150,7 +152,7 @@ With Set Pts, fix rotation we get :
     12000 RResiduals :   3.58846e-15
 
 We have a convergence but very slow. This experiment, if transferable to bundle adjustment,
-show that we MUST consider the tranfer mapping as an unknown (using, for example, schurr complement).
+show that we MUST consider the tranfer mapping as an unknown (using, for example, schur complement).
 
            -----------------------------------------------
 
@@ -654,7 +656,7 @@ template <class Type>
                  // consistancy, check that the sub-network reach convergence, but only when observation are exact
 	         if ((aRes>=1e-8) && (this->mParamNW.mNoiseOnDist==0))
                  {
-                     StdOut() << " Residual  " << aRes << "\n";
+                     StdOut() << " Residual  " << aRes << std::endl;
 	             MMVII_INTERNAL_ASSERT_bench(false,"No conv 4 sub net");
                  }
              }
@@ -675,7 +677,7 @@ template <class Type>  Type cCovNetwork<Type>::SolveByCovPropagation(double aChe
      {
          // compute and print the difference comuted values/ground truth
 	 aResidual = this->CalcResidual() ;
-	 StdOut()   << aTime <<  " RResiduals :   " << aResidual <<  "\n";
+	 StdOut()   << aTime <<  " RResiduals :   " << aResidual <<  std::endl;
 
           //  Add a gauge constraint for the main newtork, as all subnetnwork are computed up to a rotation
 	  //  do it before propag, as required in case of hard constraint
@@ -687,7 +689,7 @@ template <class Type>  Type cCovNetwork<Type>::SolveByCovPropagation(double aChe
 	  this->mSys->SolveUpdateReset();  // classical gauss jordan iteration
 
      }
-     StdOut()  <<  "\n";
+     StdOut()  <<  std::endl;
      return aResidual;
 }
 
@@ -795,7 +797,7 @@ template <class Type>  Type cElemNetwork<Type>::ComputeCovMatrix(double aWGaugeC
 
      // last iteration with a gauge w/o solve (because solving would reinit the covariance) 
      this->DoOneIterationCompensation(aWGaugeCovMatr,false);     
-     // StdOut() << "aWGaugeCovMatr " << aWGaugeCovMatr << "\n";
+     // StdOut() << "aWGaugeCovMatr " << aWGaugeCovMatr << std::endl;
 
 
      // #CCM2  Now get the normal matrix and vector, and decompose it in a weighted sum of square  of linear forms
@@ -822,6 +824,8 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     int aNbUkRot = mRotUk ?  3 : 0; // Number of parameters for unknown rotationn
     // Index of unknown, if Rotation unknown,  begin with 3 Tmp-Schur for rotation
     std::vector<int> aVIndUk(this->mVPts.size()*2+aNbUkRot,-1); 
+    for (int aK=0 ; aK<aNbUkRot ; aK++)
+        aVIndUk[aK] = - (1+aK);
  
         // 1.1  compute indexes and homologous points
     for (const auto & aPNet : this->mVPts)
@@ -881,12 +885,12 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
              aVObs.at(aNbObsRot+aPNet.mNumX) = aPt.x(); 
              aVObs.at(aNbObsRot+aPNet.mNumY) = aPt.y();
         }
-        if (mRotUk) // if rotation unknown use schurr complement or equivalent
+        if (mRotUk) // if rotation unknown use schur complement or equivalent
         {
-            cSetIORSNL_SameTmp<Type> aSetIO;
+            cSetIORSNL_SameTmp<Type> aSetIO(aVTmpRot);
             // compute all the observations 
-            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVTmpRot,aVObs);
-            // add it to system with schurr substitution
+            this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcPtsSimVar,aVIndUk,aVObs);
+            // add it to system with schur substitution
             this->mMainNW->Sys()->AddObsWithTmpUK(aSetIO);
         }
         else // just add observation if rotation is fix
@@ -897,14 +901,14 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
     else if (mL2Cov)
     {
        // ---------  2-B  case where we use  the decomposition covariance as sum of SqL,  #PC2
-       cSetIORSNL_SameTmp<Type> aSetIO; // structure for schur subst
+       cSetIORSNL_SameTmp<Type> aSetIO(aVTmpRot); // structure for schur subst
        for (const auto & anElemLin : mDSSL.VElems()) // parse all linear system
        {
            cResidualWeighter<Type>  aRW(anElemLin.mW);  // the weigth as given by eigen values
            std::vector<Type> aVObs = anElemLin.mCoeff.ToStdVect(); // coefficient of the linear forme
            aVObs.push_back(anElemLin.mCste);  // cste  of the linear form
            // Add the equation in the structure
-           this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcSumL2RUk,aVIndUk,aVTmpRot,aVObs,aRW);
+           this->mMainNW->Sys()->AddEq2Subst(aSetIO,mCalcSumL2RUk,aVIndUk,aVObs,aRW);
        }
        // Once all equation have been bufferd in aSetIO, add it to the system
        //  the unknown rotation will be eliminated
@@ -971,7 +975,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
                cDenseVect<Type>  aVLoc2 =  (aMatrixTranf * aVecGlob) + aVecTranf;
                cDenseVect<Type>  aVDif = aVLoc2 - aVecLoc;
 
-               StdOut() << "DIF " << aVDif.L2Norm() << "\n";
+               StdOut() << "DIF " << aVDif.L2Norm() << std::endl;
          }
 
 
@@ -998,7 +1002,7 @@ template <class Type>  void cElemNetwork<Type>::PropagCov(double aWCheatMT)
          cDenseMatrix<Type> Ap  =   tMA  * M;
          cDenseVect<Type>   Vp  =   tM * (V -A *T);
 
-//  StdOut()  <<  "JJJJJ " <<  Ap.Symetricity() << "\n";
+//  StdOut()  <<  "JJJJJ " <<  Ap.Symetricity() << std::endl;
 
 	 this->mMainNW->Sys()->SysLinear()->AddCov(Ap,Vp,aVIndTransf);
      }
@@ -1132,10 +1136,10 @@ int  cAppli_TestPropCov::Exe()
        delete mMainNet;
    }
 
-   StdOut() << "========RESIDUAL AT CONVERGENCE ==== : \n";
+   StdOut() << "========RESIDUAL AT CONVERGENCE ==== : " << std::endl;
    for (int aK=0 ; aK<mNbTest ; aK++)
-       StdOut() <<  " * " << aK << " " << aVRes[aK]  << "\n";
-   StdOut() << " --------------------------------- : \n";
+       StdOut() <<  " * " << aK << " " << aVRes[aK]  << std::endl;
+   StdOut() << " --------------------------------- : " << std::endl;
    StdOut() << "AVG="  << aSomRes/mNbTest   
             << " RefAvg=" << aSomRefRes/mNbTest 
             << " Med=" << ConstMediane(aVRes) 

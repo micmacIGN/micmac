@@ -1,4 +1,6 @@
-#include "include/MMVII_all.h"
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_PhgrDist.h"
+
 
 using namespace NS_SymbolicDerivative ;
 
@@ -139,6 +141,8 @@ template <class Type,const int DimIn,const int DimOut>
     }
 }
 
+template <class Type,const int DimIn,const int DimOut> std::vector<Type> &  cDataMapCalcSymbDer<Type,DimIn,DimOut>::VObs() {return mVObs;}
+template <class Type,const int DimIn,const int DimOut> const std::vector<Type> &  cDataMapCalcSymbDer<Type,DimIn,DimOut>::VObs() const {return mVObs;}
 
 template class cDataMapCalcSymbDer<tREAL8,2,2> ;
 template class cDataMapCalcSymbDer<tREAL8,2,3> ;
@@ -156,6 +160,11 @@ template <class Type,int Dim> cDataNxNMapCalcSymbDer<Type,Dim>:: cDataNxNMapCalc
      mDMS (aCalcVal,aCalcDer,aVObs,DeleteCalc)
 {
 }
+
+template <class Type,int Dim> const std::vector<Type>& cDataNxNMapCalcSymbDer<Type,Dim>::VObs() const {return mDMS.VObs();}
+template <class Type,int Dim> std::vector<Type>& cDataNxNMapCalcSymbDer<Type,Dim>::VObs() {return mDMS.VObs();}
+
+
 
 template <class Type,int Dim> 
      const typename cDataNxNMapCalcSymbDer<Type,Dim>::tVecOut &  
@@ -177,6 +186,8 @@ template <class Type,int Dim>
 {
     mDMS.SetObs(aVObs);
 }
+
+
 
 template class cDataNxNMapCalcSymbDer<tREAL8,2> ;
 
@@ -215,14 +226,17 @@ cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,doub
    // 1- Initialize, without precautions
 
    double aSomJac=0.0;  //  sum of jacobian
-   while (aSomJac==0.0)
+   if (mDeg != cPt3di(0,0,0)) // => would create infinite loop
    {
-      for (int aKPar=0 ; aKPar<mNbParam ;aKPar++)
+      while (aSomJac==0.0) 
       {
-         double aMajNorm =  mVecDesc.at(aKPar).MajNormJacOfRho(mRhoMax);
-         double aV = RandUnif_C() * (RandUnif_0_1() < aProbaNotNul) /aMajNorm;
-         mVParam[aKPar] = aV;
-         aSomJac += std::abs(aV) * aMajNorm;
+         for (int aKPar=0 ; aKPar<mNbParam ;aKPar++)
+         {
+            double aMajNorm =  mVecDesc.at(aKPar).MajNormJacOfRho(mRhoMax);
+            double aV = RandUnif_C() * (RandUnif_0_1() < aProbaNotNul) /aMajNorm;
+            mVParam[aKPar] = aV;
+            aSomJac += std::abs(aV) * aMajNorm;
+         }
       }
    }
    aSomJac = std::max(aSomJac,1e-5) ; // dont divide 0 if allmost null
@@ -319,13 +333,13 @@ void BenchSymDerMap(cParamExeBench & aParam)
            aMaxD = std::max(aMaxD,Norm2(aDif));
            aMaxDisto = std::max(aMaxDisto,Norm2(aVIn[aKPts]-aVInv[aKPts]));
  
-           // StdOut() << "Kp: " << aKPts << " PTS "<< aVIn[aKPts]<< " Dif " << aDif << "\n";
+           // StdOut() << "Kp: " << aKPts << " PTS "<< aVIn[aKPts]<< " Dif " << aDif << std::endl;
            // TestJacob(aMCS,aVInv[aKPts]);
 
        }
        if (aMaxD>1e-5)
        {
-            StdOut() << "MOYD " << aMaxD  << " " << aMaxDisto << "\n";
+            StdOut() << "MOYD " << aMaxD  << " " << aMaxDisto << std::endl;
             MMVII_INTERNAL_ASSERT_bench(false,"Distorsion inverse");
        }
    }

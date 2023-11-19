@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.00"</Version>
+   <Data>
+      <InternalCalibration>
+         <Name>"Calib-PerspCentral-043_0017_Scaled.tif"</Name>
+         <PixelFrame>
+            <NbPix>2000 1333</NbPix>
+         </PixelFrame>
+         <Projection>"Stenope"</Projection>
+         <Auxiliary>
+            <SzBuffer>10</SzBuffer>
+            <Degree>3 1 1</Degree>
+            <DegreeApproxInv>3 1 1</DegreeApproxInv>
+         </Auxiliary>
+         <PerfectProj>
+            <F>2095.602961874429184</F>
+            <PP>987.442975492211986 664.174843651124093</PP>
+         </PerfectProj>
+         <Distorsion>
+            <Radial>
+               <K1>-0.096276026804173</K1> <!--(X,Y) * (X^2+Y^2)-->
+               <K2>0.098481342536976</K2> <!--(X,Y) * (X^2+Y^2)^2-->
+               <K3>-0.025242727141897</K3> <!--(X,Y) * (X^2+Y^2)^3-->
+            </Radial>
+            <Decentric>
+               <p1>-0.000023546270124</p1> <!--(3X2+Y2,2XY)-->
+               <p2>-0.000358988474265</p2> <!--(2XY,X2+3Y2)-->
+            </Decentric>
+            <Polynomial>
+               <b1>-0.000205313485487</b1> <!--(X,0)-->
+               <b2>0.000186995246505</b2> <!--(Y,0)-->
+            </Polynomial>
+         </Distorsion>
+         <Informations></Informations>
+      </InternalCalibration>
+   </Data>
+</Root>

@@ -1,5 +1,4 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -77,6 +76,12 @@ template <class Type> cDenseVect<Type>::cDenseVect(tIM anIm) :
 {
 }
 
+template <class Type> cDenseVect<Type>  cDenseVect<Type>::RanGenerate(int aSz)
+{
+    return cDenseVect<Type>(aSz,eModeInitImage::eMIA_RandCenter);
+}
+
+
 template <class Type> cDenseVect<Type>::cDenseVect(const std::vector<Type> & aVect) :
    cDenseVect<Type> (tIM(aVect))
 {
@@ -86,6 +91,14 @@ template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeI
    cDenseVect<Type> (tIM  (aSz,nullptr,aModeInit))
 {
 }
+
+template <class Type> cDenseVect<Type>::cDenseVect(int aSz,const tSpV & aSpV) :
+       cDenseVect<Type>(aSz,eModeInitImage::eMIA_Null)
+{
+     for (const auto & aPair : aSpV)
+          mIm.DIm().SetV(aPair.mInd,aPair.mVal);
+}
+
 
 template <class Type> cDenseVect<Type> cDenseVect<Type>::Dup() const
 {
@@ -208,23 +221,52 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cDense
 
 template <class Type> Type  cDenseVect<Type>::ProdElem() const
 {
-   Type aRes = (*this)(0);
-   for (int aK=1 ; aK<Sz() ; aK++)
+   Type aRes = 1.0;
+   for (int aK=0 ; aK<Sz() ; aK++)
         aRes *= (*this)(aK);
 
    return aRes;
 }
 
+template <class Type> Type  cDenseVect<Type>::SumElem() const
+{
+   Type aRes = 0.0;
+   for (int aK=0 ; aK<Sz() ; aK++)
+        aRes += (*this)(aK);
+
+   return aRes;
+}
+
+template <class Type> Type  cDenseVect<Type>::AvgElem() const
+{
+    return SumElem() / Type(Sz());
+}
+
+template <class Type> void  cDenseVect<Type>::SetAvg(const Type & aTargAvg)
+{
+   Type  aMul = SafeDiv (aTargAvg,AvgElem());
+   for (int aK=0 ; aK<Sz() ; aK++)
+        (*this)(aK) *= aMul;
+}
+
+
+/*
+template <class Type> void AddData(const  cAuxAr2007 & anAux, cDenseVect<Type> & aDV)
+{
+    int aNbEl = aDV.Sz();
+    AddData(cAuxAr2007("NbEl",anAux),aNbEl);
+    if (anAux.Input())
+       aDV = cDenseVect<Type>(aNbEl);
+
+    TplAddRawData(anAux,aDV.RawData(),aNbEl);
+}
+*/
 
 /* ========================== */
 /*          cMatrix       */
 /* ========================== */
 template <class Type> cMatrix<Type>::cMatrix(int aX,int aY) :
    cRect2(cPt2di(0,0),cPt2di(aX,aY))
-{
-}
-
-template <class Type> cMatrix<Type>::~cMatrix() 
 {
 }
 
@@ -570,6 +612,7 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cMatri
 }
 
 
+// template void AddData(const  cAuxAr2007 & anAux, cDenseVect<Type> &);
 
 /* ===================================================== */
 /* ===================================================== */

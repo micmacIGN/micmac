@@ -13,11 +13,15 @@ template<typename T> class cCompiledCalculator;
 
 
 #if (SYMBDER_WITH_MMVII)
-#include "include/MMVII_all.h"
-#include "include/MMVII_Derivatives.h"
-#define SYMBDER_cMemCheck  MMVII::cMemCheck
+#include "MMVII_util.h"
+#include "MMVII_Derivatives.h"
+#define SYMBDER_cMemCheck MMVII::cMemCheck
+#define SYMBDER_DelAtEnd  MMVII::cObj2DelAtEnd
 #else             //========================================================== WITH_MMVI
 class SYMBDER_cMemCheck
+{
+};
+class SYMBDER_DelAtEnd
 {
 };
 #endif
@@ -29,6 +33,7 @@ class SYMBDER_cMemCheck
 #include <vector>
 #include <string>
 #include <map>
+#include <algorithm>
 // ===================== MPD  error: call of overloaded ‘abs(const double&)’ is ambiguous ===============
 #include <math.h>
 #include <cmath>
@@ -49,24 +54,60 @@ template <class Type> inline Type pow7(const Type & aV)    {return aV *pow6(aV);
 template <class Type> inline Type pow8(const Type & aV)    {return square(pow4(aV));}
 template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);}
 
-static inline void Error(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
+
+static inline void DefaultErrorHandler(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
 {
-    std::cout << "In SymbolicDerivative a fatal error" << "\n";
-    std::cout << "  Likely Source   ["<< aExplanation << "]\n";
+    std::cerr << "In SymbolicDerivative a fatal error" << "\n";
+    std::cerr << "  Likely Source   ["<< aExplanation << "]\n";
     if (aContext.size())
-        std::cout << "  For formula     ["<< aContext << "]\n";
-    std::cout << "  Message  ["<< aMes << "]\n";
-    assert(false);
+        std::cerr << "  For formula     ["<< aContext << "]\n";
+    std::cerr << "  Message  ["<< aMes << "]\n";
+    std::cerr << std::flush;
+    abort();
 }
+
+class ErrorMgr {
+public:
+    typedef void (*ErrorHandler) (const std::string & aMes,const std::string & aExplanation, const std::string& aContext);
+
+    static void Error(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
+    {
+        GetHandler()(aMes, aExplanation, aContext);
+    }
+
+    static ErrorHandler GetHandler()
+    {
+        return GetSetHandler(nullptr) ;
+    }
+    static ErrorHandler SetHandler(ErrorHandler handler)
+    {
+        if (handler == nullptr)
+            handler = DefaultErrorHandler;
+        return GetSetHandler(handler) ;
+    }
+
+private:
+    ErrorMgr() = delete;
+    ~ErrorMgr() = delete;
+    static ErrorHandler GetSetHandler(ErrorHandler handler)
+    {
+        static ErrorHandler theErrorHandler = DefaultErrorHandler;
+
+        if (handler != nullptr)
+            theErrorHandler = handler;
+        return theErrorHandler;
+    }
+};
+
      ///    Error due probably to internal mistake
 static inline void InternalError(const std::string & aMes, const std::string& aContext)
 {
-   Error(aMes,"Internal Error of the Library",aContext);
+    ErrorMgr::Error(aMes,"Internal Error of the Library",aContext);
 }
      /// Error probably due to bad usage of the library (typically out limit vector access)
 static inline void UserSError(const std::string & aMes, const std::string& aContext)
 {
-   Error(aMes,"Probable error on user's side due to unapropriate usage of the library",aContext);
+    ErrorMgr::Error(aMes,"Probable error on user's side due to unapropriate usage of the library",aContext);
 }
 
 
@@ -107,7 +148,8 @@ class cConvStrRank
 };
 
 template<typename T>
-class cCalculator  : public SYMBDER_cMemCheck
+class cCalculator  : public SYMBDER_cMemCheck,
+	             public SYMBDER_DelAtEnd
 {
 public:
     typedef T                      TypeElem;
@@ -118,7 +160,7 @@ public:
     virtual ~cCalculator() {}
 
     const std::string& Name() const { return mName;}
-    void SetName(const std::string& aName) const { this->mName = aName;}
+    void SetName(const std::string& aName) { this->mName = aName;}
 
     bool BufIsFull() const {return mNbInBuf == mSzBuf;} ///< Can we push more value ?
     size_t SzBuf() const  {return mSzBuf;}  ///< Total Number of value we can push
@@ -134,6 +176,8 @@ public:
         !! => Warn the same memory space is recycled ...
     */
     const std::vector<std::vector<T> *> & EvalAndClear();
+    ///  Get one eval
+    std::vector<T> & DoOneEval(const std::vector<TypeElem> & aVUK,const std::vector<TypeElem> & aVObs);
 
     /// Return value computed taking into account order of storage
     const TypeElem & ValComp(int aNumPush,int aKElem) const
@@ -147,10 +191,10 @@ public:
         return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem +1 + aKVarDer);
     }
 
-    const bool   WithDer() const { return mWithDer; }           // With derive ? Usable for checking
-    const size_t NbUk() const { return mNbUK; }                 // Nb of unknowns
-    const size_t NbObs() const { return mNbObs; }               // Nb of Observations
-    const size_t NbElem() const { return mNbElem; }             // Nb of primary values returned by formula (w/o counting derivatives)
+    bool   WithDer() const { return mWithDer; }           // With derive ? Usable for checking
+    size_t NbUk() const { return mNbUK; }                 // Nb of unknowns
+    size_t NbObs() const { return mNbObs; }               // Nb of Observations
+    size_t NbElem() const { return mNbElem; }             // Nb of primary values returned by formula (w/o counting derivatives)
     const std::vector<tOneRes*> & Result() const { return mBufRes; }
     
     int RangeOfUk(const std::string & aName,bool SVP=false) const
@@ -185,6 +229,22 @@ protected:
         mBufLineRes   (mSzBuf),
         mBufRes       ()
     {
+        for (size_t i=0; i< aVNUk.size(); i++) {
+            if (!IsValidCIdentifier(aVNUk[i])) {
+                UserSError("Name for Unknown #" + std::to_string(i) +
+                           " is not a valid C++ identifier ('"
+                           + aVNUk[i] + "')",
+                           mName);
+            }
+        }
+        for (size_t i=0; i< aVNObs.size(); i++) {
+            if (!IsValidCIdentifier(aVNObs[i])) {
+                UserSError("Name for Observation #" + std::to_string(i) +
+                           " is not a valid C++ identifier ('"
+                           + aVNObs[i] + "')",
+                           mName);
+            }
+        }
         mBufRes.reserve(mSzBuf);
     }
 
@@ -194,6 +254,9 @@ protected:
 
     // Do actual caluculus. Just store resulst in mBurLineRes. This class manages mBufRes
     virtual void DoEval() = 0;
+
+    // Utility function that checks if string s is a valid C/C++ identifier
+    bool IsValidCIdentifier(const std::string& s) const;
 
     std::string                    mName;
     size_t                         mSzBuf;       ///< Capacity of bufferirsation
@@ -221,11 +284,12 @@ void cCalculator<T>::PushNewEvals(const std::vector<T> &aVUK, const std::vector<
     }
     if (aVUK.size() != NbUk())  // Check size are coherents
     {
+	    // std::cout << "Sizes " << aVUK.size() << " " << NbUk() << "\n";
         UserSError("Bad size in Unknowns",Name());
     }
     if (aVObs.size() != NbObs())  // Check size are coherents
     {
-        UserSError("Bad size in Onservations",Name());
+        UserSError("Bad size in Observations",Name());
     }
 
     this->SetNewUks(aVUK);
@@ -243,6 +307,29 @@ const std::vector<std::vector<T> *> & cCalculator<T>::EvalAndClear()
     this->mNbInBuf = 0;
     return mBufRes;
 }
+
+template<typename T>
+std::vector<T> & cCalculator<T>::DoOneEval(const std::vector<TypeElem> & aVUK,const std::vector<TypeElem> & aVObs)
+{
+   if (this->mNbInBuf!=0)
+   {
+      UserSError("DoOneEval: buffer not empty","");
+   }
+   this->PushNewEvals(aVUK,aVObs);
+   return *(this->EvalAndClear()[0]);
+}
+
+template<typename T>
+bool cCalculator<T>::IsValidCIdentifier(const std::string& s) const
+{
+    if (s.size() == 0)
+        return false;
+    if (! (std::isalpha(s[0]) || s[0] == '_'))
+        return false;
+    return std::all_of(s.cbegin()+1, s.cend(),[](char c) { return std::isalnum(c) || c == '_';});
+}
+
+
 
 /** Specilisation for calculator opering generated code  (v.s dynamic just after formula)
 */
@@ -346,7 +433,8 @@ template <class Type>  class cName2Calc
            if(anIter==TheMap.end()) // There must be something associated
            {
              if (SVP) return nullptr;
-             UserSError("Cannot extract allocator,",aName);
+             UserSError("Cannot extract allocator. Check that this application was recompiled after code generation",aName);
+             return nullptr; // to prevent reaching next return
            }
            return anIter->second;
        }

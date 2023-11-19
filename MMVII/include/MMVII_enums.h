@@ -1,6 +1,8 @@
 #ifndef  _MMVII_Enums_H_
 #define  _MMVII_Enums_H_
 
+#include "MMVII_AllClassDeclare.h"
+
 namespace MMVII
 {
 
@@ -24,14 +26,31 @@ enum class eTA2007
            {
             // ---------- Printed --------------
                 DirProject,    ///< Exact Dir of Proj
-                FileDirProj,   ///< File of Dir Proj
+                FileDirProj,   ///< File that define the  Dir Proj
+            // !!!!! File types must all be here. If changes check cMMVIIGenArgsSpec.cpp
                 FileImage,     ///< File containing an image
                 FileCloud,     ///< File containing a cloud file (ply ?)
                 File3DRegion,  ///< File containing a 3D region
                 MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
+            // !!!!! Dir types must all be here. If change, check cMMVIIGenArgsSpec.cpp
+                Orient,        ///< Orientation
+                RadiomData,    ///< Data for Radiometry
+                RadiomModel,   ///< Model for Radiometry
+                MeshDev,       ///< Mesh Devlopment
+                Mask,          ///< Mask of image
+                MetaData,      ///< Meta data images
+                PointsMeasure, ///< Measure of point , 2D or 3D
+                TieP,          ///< Tie Points
+                MulTieP,       ///< Multiple Tie Points
+                RigBlock,      ///< Rigid bloc    // RIGIDBLOC
+                Input,         ///< Is this parameter used as input/read
+                Output,        ///< Is this parameter used as output/write
+                OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
+		PatParamCalib, ///< It's a pattern for parameter of calibration
             // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
                 AddCom,        ///< Not an attribute, used to embed additionnal comment in Help mode
+                AllowedValues, ///< String of possible values for enums type, automagically added for args of enum type
             // ---------- Not Printed -----------
             // !!!!! Shared must be first UNPRINTED  !!! because of test in Name4Help()
                 Shared,        ///< Parameter  Shared by many (several) command
@@ -40,6 +59,8 @@ enum class eTA2007
                 Tuning,        ///< Used for testing/tuning command but not targeted for user
                 HDV,           ///< Has Default Value, will be printed on help
                 ISizeV,        ///< Interval size vect, print on help
+                XmlOfTopTag,   ///< Parameter must be a XML-file containing certain tag
+                Range,         ///< Range of allowed numerical values: "[min,max]" | "[min,]" | "[,max]"
                 eNbVals        ///< Tag for number of value
            };
 
@@ -50,28 +71,79 @@ enum class eApF
                Project,    ///< Project Managenent (user's)
                Test,       ///< Test
                ImProc,     ///< Image processing
+               Radiometry, ///< Radiometric modelization
                Ori,        ///< Orientation
                Match,      ///< Dense Matching
+               GCP,       ///< Tie-Point processing
                TieP,       ///< Tie-Point processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
                Cloud,       ///< Cloud processing
                CodedTarget,  ///< Coded target (generate, match )
+               Topo,        ///< Topometry
+               NoGui,        ///< Will not have a GUI frontend
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
            };
 
+/// Type of serialization
+enum class eTypeSerial
+           {
+                exml,    ///< current xml file
+                exml2,    ///< old xml, using streaming, maintained 4 now to process V1 file
+                edmp,    ///<  binary files, containt no tag
+                etxt,    ///< equivalent to binary but in text file
+                etagt,    ///< internal, tagged-text to generate readable tree struct, write only
+                ejson,      ///<  Json file
+                ecsv,      ///<  csv file
+                eNbVals     ///< Tag for number of value
+	   };
+bool IsTagged(eTypeSerial);
+
+/**  Define the type of each element of serialization; was not necessary in xml-streaming,
+ *  but with new xml/json export, that require a fine analyse of the tree, it makes things easier
+ */
+enum class eTAAr
+{
+      eStd,         //  standard defaut value
+      eSzCont,      //  it the size of a container
+      eFixTabNum,   //  Tab of num with fixed sized ( used before in cPtxd serialisation)
+      ePtxd     ,   //  Special case of eFixTabNum,
+      eCont    ,    //  container  list, vector ...
+      eElemCont,    //  element of a container  list, vector
+      eMap,         //  a std::map
+      ePairMap,     //  element of a map
+      eKeyMap,      //  key-part of map-pair
+      eValMap,      //  value-part of a map-pair
+      eUndef,       //  when not initalized
+      eNbVals     ///< Tag for number of value
+};
+
+
+
+/// Type of external format that are potentially imported/exported in MicMac
+enum class eFormatExtern
+           {
+              eMMV1,      ///< MicMac-V1 format, can import Orient/Calib/
+              eMeshRoom,  ///< For example, not suppoted for now
+              eColMap,    ///< For example, not suppoted for now
+              eNbVals     ///< Tag for number of value
+	   };
 /// Appli Data Type
 enum class eApDT
            {
               Ori,    ///< Orientation
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
+              GCP,   ///< Tie Points
               Image,   ///< Image
+              Orient,   ///< Orientations files
+              Radiom,   ///< Orientations files
               Ply,    ///< Ply file
               None,     ///< Nothing 
               ToDef,     ///< still unclassed
               Console,  ///< Console , (i.e printed message have values)
               Xml,      ///< Xml-files
+              Csv,      ///< Csv-files
               FileSys,      ///< Input is the file system (list of file)
               Media,      ///< Input is the file system (list of file)
               eNbVals       ///< Tag for number of value
@@ -128,6 +200,9 @@ enum class eTyUEr
               eCreateDir,
               eRemoveFile,
               eEmptyPattern,
+              eBadXmlTopTag,
+              eParseBadClose,
+              eJSonBadPunct,
               eBadFileSetName,
               eBadFileRelName,
               eOpenFile,
@@ -135,6 +210,7 @@ enum class eTyUEr
               eReadFile,
               eBadBool,
               eBadInt,
+              eBadDegreeDist,
               eBadEnum,
               eMulOptParam,
               eBadOptParam,
@@ -150,6 +226,10 @@ enum class eTyUEr
               eBadSize4Vect,
               eMultiplePostifx,
               eBadPostfix,
+              eNoAperture,
+              eNoFocale,
+              eNoFocaleEqui35,
+              eNoCameraName,
               eUnClassedError,
               eNbVals
            };
@@ -163,6 +243,14 @@ enum class eTyUnitTime
               eUT_Day,
               eNbVals
            };
+
+enum class eTyUnitAngle
+           {
+              eUA_radian,
+              eUA_degree,
+              eUA_gon,
+              eNbVals
+	   };
 
 enum class eTyNums
            {
@@ -213,6 +301,7 @@ enum class eTyModeRecall
                eTMR_Inside, ///< Recall in the same process
                eTMR_Serial, ///< Recall by sub-process in serial
                eTMR_Parall, ///< Recall by sub-process in parallel
+               eTMR_ParallSilence, ///< Recall by sub-process in parallel
                eNbVals      ///< Tag End of Vals
            };
 
@@ -286,7 +375,8 @@ enum class eModeSSR
 {
       eSSR_LsqDense,        ///< Least square, normal equation, with dense implementation
       eSSR_LsqNormSparse,   ///< Least square, normal equation, with sparse implementation
-      eSSR_LsqSparseGC      ///< Least square, NO normal equation (Conjugate Gradient) , with sparse implementation
+      eSSR_LsqSparseGC,     ///< Least square, NO normal equation (Conjugate Gradient) , with sparse implementation
+      eSSR_L1Barrodale      ///< L1 minimization using Barrodale-Method
 };
 
 
@@ -423,13 +513,39 @@ enum class eProjPC
      eNbVals
 };
 
+enum class eTyCodeTarget
+{
+    eIGNIndoor,     ///<  checkboard , 
+    eIGNDroneSym,    ///<  checkboard , code separate Top/Down
+    eIGNDroneTop,   ///<  checkboard Top , code bottom,
+    eCERN,          ///<  central circle, coding invariant (AICON, METASHAPE ...)
+    eNbVals
+};
 
+enum class eMTDIm
+           {
+              eFocalmm,
+              eAperture,
+              eModelCam,
+              eAdditionalName,
+              eNbVals
+           };
+
+
+const std::string & E2Str(const eTyUnitAngle &);
+const std::string & E2Str(const eMTDIm &);
+const std::string & E2Str(const eFormatExtern &);
+const std::string & E2Str(const eTypeSerial &);
+const std::string & E2Str(const eTAAr &);
 const std::string & E2Str(const eProjPC &);         
 const std::string & E2Str(const eDCTFilters &);         
+const std::string & E2Str(const eTyCodeTarget &);         
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
 const std::string & E2Str(const eTA2007 &);         
-const std::string & E2Str(const eTyUEr &);         
+const std::string & E2Str(const eApF &);
+const std::string & E2Str(const eApDT&);
+const std::string & E2Str(const eTyUEr &);
 const std::string & E2Str(const eTyNums &);         
 const std::string & E2Str(const eTyInvRad &);         
 const std::string & E2Str(const eTyPyrTieP &);         
@@ -438,9 +554,13 @@ const std::string & E2Str(const eModeTestPropCov &);
 const std::string & E2Str(const eModePaddingEpip &);         
 const std::string & E2Str(const eModeCaracMatch &);         
 
-template <class Type> const Type & Str2E(const std::string &); 
+template <class Type> Type  Str2E(const std::string &, bool WithDef=false);
+//template <class Type> const Type & Str2E(const std::string &);
 template <class Type> std::string   StrAllVall();
+/// return a vector with list all label corresponding to aPat
 template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);
+/// logically ~ SubOfPat, but returned as a vec of bool, indexable by (int)Label for direct access
+template <class Type> std::vector<bool> VBoolOfPat(const std::string & aPat,bool AcceptEmpty=false);
 
 template <class TypeEnum> class cEnumAttr;
 typedef cEnumAttr<eTA2007> tSemA2007;

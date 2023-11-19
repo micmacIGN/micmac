@@ -41,6 +41,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 #include "SolInitNewOri.h"
 
+
+
+
 double DefMedianPond(double aDefVal,int aDefKeMed,std::vector<Pt2df> &  aV,int * aKMed)
 {
    if (aV.size() == 0)

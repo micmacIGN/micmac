@@ -1,6 +1,7 @@
-#include "../include/MMVII_all.h"
-
-
+#include "cMMVII_Appli.h"
+#include "MMVII_DeclareCste.h"
+#include <clocale>
+#include "MMVII_Sys.h"
 /*
 
 Delaunay/delaunator : Copyright (c) 2018 Volodymyr Bilonenko  (MIT Licence)
@@ -9,9 +10,6 @@ eigen ...
 
 */
 
-namespace MMVII {
-  const std::string DirBin2007=MMVII_INSTALL_PATH;
-};
 
 using namespace MMVII;
 
@@ -22,18 +20,20 @@ int main(int argc, char ** argv)
    std::setlocale(LC_ALL, "C");
    // std::setlocale(LC_ALL, "en_US.UTF-8");
 
+   cMMVII_Appli::InitMMVIIDirs(MMVII_CanonicalRootDirFromExec());
    // Debug, print command
-   if (0)
+#if 0
    {
-       StdOut() << "==========COMM=====   \n";
+       StdOut() << "==========COMM=====   " << std::endl;
        for (int aK=0 ; aK<argc ; aK++)
        {
             if (aK) StdOut() << " ";
             StdOut() << argv[aK];
        }
-       StdOut() << "\n";
+       StdOut() << std::endl;
    }
-
+#endif
+    
    if (argc>1)
    {
       std::string aNameCom = argv[1];
@@ -54,7 +54,7 @@ int main(int argc, char ** argv)
    // Affiche toutes les commandes
    for (const auto & aSpec : cSpecMMVII_Appli::VecAll())
    {
-       StdOut()  << aSpec->Name() << " => " << aSpec->Comment() << "\n";
+      StdOut()  << aSpec->Name() << " => " << aSpec->Comment() << std::endl;
    }
    return EXIT_SUCCESS;
 }

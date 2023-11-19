@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Derivatives.h"
+
+#include "MMVII_Matrix.h"
+#include "MMVII_Derivatives.h"
 
 
 namespace MMVII
@@ -306,14 +307,14 @@ void BenchJetsCam(cParamExeBench & aParam)
 
            aDif = aVarValJet[aKXY]-aValV1[aKXY];
 
-           // StdOut() << "DDD=" << aDif<< " " << aValJet[aKXY] << " " << aValV1[aKXY] << "\n";
+           // StdOut() << "DDD=" << aDif<< " " << aValJet[aKXY] << " " << aValV1[aKXY] << std::endl;
            for (int aKD=0 ; aKD<SzJetCam ; aKD++)
            {
                 double aDif = aDerV1[aKXY][aKD]-aDerJet[aKXY][aKD];
                 MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5,"Jets/V1 deriv");
                 aDif = aDerV1[aKXY][aKD]-aVarDerJet[aKXY][aKD];
                 MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5,"Jets/V1 deriv");
-                // StdOut() << " Der=" << aDif << " " << aDerV1[aKXY][aKD]  << "\n";
+                // StdOut() << " Der=" << aDif << " " << aDerV1[aKXY][aKD]  << std::endl;
            }
       }
       int aNbTest=1000 * (1+std::min(20,aParam.Level()));

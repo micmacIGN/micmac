@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_TplHeap.h"
+#include "MMVII_Ptxd.h"
+#include "MMVII_Bench.h"
+#include "MMVII_TplHeap.h"
 
 namespace MMVII
 {
@@ -78,7 +79,8 @@ void Bench_Heap(cParamExeBench & aParam)
                     MMVII_INTERNAL_ASSERT_bench(aHeapPtr.IsInHeap(&aPt),"Heap is in");
                     if ( (int (aPt.x()))%2 !=0)  // take out even
                     {
-                       aHeapPtr.TakeOut(&aPt);
+                       cPt2dr * aAdrPt = &aPt;
+                       aHeapPtr.TakeOut(aAdrPt);
                        MMVII_INTERNAL_ASSERT_bench(!aHeapPtr.IsInHeap(&aPt),"Heap is out");
                     }
               }

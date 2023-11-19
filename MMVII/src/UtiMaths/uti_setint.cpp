@@ -1,6 +1,5 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_SetITpl.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_SetITpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
 /*
 #include <regex>
 #include <unordered_set>
@@ -34,6 +33,16 @@ cSetIntDyn::cSetIntDyn(size_t aNb) :
 void cSetIntDyn::SortInd()
 {
     std::sort(mVIndOcc.begin(),mVIndOcc.end());
+}
+
+
+void cSetIntDyn::MakeInvertIndex()
+{
+    SortInd();
+    mVInvertInd.resize(mOccupied.size(),-1);
+
+   for (size_t anInd=0 ; anInd<mVIndOcc.size() ; anInd++)
+       mVInvertInd[mVIndOcc[anInd]] = anInd;
 }
 
 cSetIntDyn::cSetIntDyn(size_t aNb,const std::vector<size_t> & aVInd) :
@@ -114,7 +123,7 @@ void cSetIExtension::AddElem(size_t anElem)
 /*                                                         */
 /* ======================================================= */
 
-static void MakeRandomSet(std::vector<size_t> & aRes,cSetIntDyn & aSet,int aK)
+static void MakeRandomSet(std::vector<size_t> & aRes,cSetIntDyn & aSet,int aK,bool Sort= true)
 {
    while (aK!=0)
    {
@@ -126,23 +135,29 @@ static void MakeRandomSet(std::vector<size_t> & aRes,cSetIntDyn & aSet,int aK)
         }
    }
    aRes = aSet.mVIndOcc;
-   std::sort(aRes.begin(),aRes.end());
+   if (Sort)
+       std::sort(aRes.begin(),aRes.end());
    aSet.Clear();
 }
+
+
+
 
 typedef std::pair<size_t,std::vector<size_t> > tHashedVI;
 
 
 void GenRanQsubCardKAmongN(std::vector<cSetIExtension> & aRes,int aQ,int aK,int aN)
 {
+
    MMVII_INTERNAL_ASSERT_tiny(aK<=aN,"GenRanQsubCardKAmongN K>N");
-   int aSzMax = BinomialCoeff(aK,aN);
+   tREAL8 aSzMax = rBinomialCoeff(aK,aN);
+
 
    // Curent case, we require more subset that possible in max case, just return all possible subset
    // Typicall  K=2 , N=10 , Q=1000
    if (aSzMax<=aQ)
    {
-  // StdOut()  << "LL " << __LINE__ << " \n";
+  // StdOut()  << "LL " << __LINE__ << " " << std::endl;
         aRes = SubKAmongN<cSetIExtension>(aK,aN);
         return ;
    }
@@ -229,10 +244,10 @@ void BenchRansSubset(int aQ,int aK,int aN)
      GenRanQsubCardKAmongN(aRes,aQ,aK,aN);
 
      {  // Test number of subset, can get more than existing subset or required subset
-        int aTheorCard = std::min(aQ,BinomialCoeff(aK,aN));
+        tU_INT4 aTheorCard = std::min(tU_INT4(aQ),iBinomialCoeff(aK,aN));
         //StdOut() << "Q=" << aQ  << " Max=" << BinomialCoeff(aK,aN) 
         //         << " K=" << aK  << " N=" << aN << " R=" << aRes.size() << "\n";
-        MMVII_INTERNAL_ASSERT_bench(aTheorCard==int(aRes.size()),"Bad number of subset in GenRanQsubCardKAmongN");
+        MMVII_INTERNAL_ASSERT_bench(aTheorCard==(aRes.size()),"Bad number of subset in GenRanQsubCardKAmongN");
      }
 
      for (auto & aSubs : aRes)
@@ -268,7 +283,7 @@ void BenchRansSubset(cParamExeBench & aParam)
     {
         int aN = 1+ RandUnif_N(20);
         int aK = std::min(aN,int(RandUnif_N(4)));
-        int aSzMax = BinomialCoeff(aK,aN);
+        int aSzMax = iBinomialCoeff(aK,aN);
 
         int aQ =  aSzMax * (RandUnif_0_1()*2);
         BenchRansSubset(aQ,aK,aN);
@@ -279,6 +294,37 @@ void BenchRansSubset(cParamExeBench & aParam)
     // MMVII_INTERNAL_ASSERT_bench(false,"xxxxxxxxx Unfinished bench for BenchRansSubset");
 
 }
+
+/* ***************************************** */
+/*                                           */
+/*        cRandSubSetGenerator               */
+/*                                           */
+/* ***************************************** */
+
+cRandSubSetGenerator::cRandSubSetGenerator(size_t aNb) :
+   mNb     (aNb),
+   mSetDyn (aNb)
+{
+}
+
+
+void cRandSubSetGenerator::NewSubset(std::vector<size_t> & aRes,size_t aCard)
+{
+    // for small subset avoid parsing all the index, 
+    if (aCard<mNb/3) // each operation is not so fast
+    {
+       MakeRandomSet(aRes,mSetDyn,aCard,false);
+    }
+    else
+    {
+       aRes.clear();
+       cRandKAmongN aSel(aCard,mNb);
+       for (size_t aK=0 ; aK< mNb ; aK++)
+           if (aSel.GetNext())
+              aRes.push_back(aK);
+    }
+}
+
 
 };//  namespace MMVII
 

@@ -9,3 +9,72 @@
 
 %\section{Co-variance propagation}
 
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Bloc fusion}
+
+Hypothesis :
+
+\begin{itemize}
+    \item Two bloc $B_1$ and $B_2$  (the method should work with $N$ blocs),
+          each has been oriented and we have an unknown similitude to compute between $B_1$ and $B_2$
+
+    \item $N\geq 2$ triangle between $B_1$ and $B_2$
+\end{itemize}
+
+We suppose that the rotation has already been solved, which is "easy" because for each triangle,
+the $2$ edges between the two different blocs give an estimation.  For each triangle we have an estimation
+and quality check ($3$ measures of rotation when $1$ is enough). 
+
+We need to estimate the scale $\Lambda$ and translation $T$. 
+Let $P^1$  be a point measured in $B_1$ and $P^2$ be the same point in $B_2$, 
+we thus have :
+
+\begin{equation}
+	P_2 = \Lambda P_1 + T \label{Eq:Bloc12}
+\end{equation}
+
+For each triangle we compute the rotation going to $B_1$ and $B_2$, and we still
+have an unknown scale and translation for aligning it on $B_2$.
+Let $\lambda_i$ and $t_i$  be the unknown scale and offset of the triangle.
+Name $a,b,c$ the three points of a triangle, and $P^a_2, P^b_2 $ their corresponding positions
+in $B_2$, which leads to:
+
+\begin{equation}
+	P^a_2    = a \lambda_i + t_i     \label{Eq:Bloc:Tri2}
+\end{equation}
+
+Now we have two possibilities for each point, if it belongs to bloc $B_2$ we know $P^x_2$ from equation
+\ref{Eq:Bloc:Tri2} and we can use it directly. Else, we combine~\ref{Eq:Bloc12} and~\ref{Eq:Bloc:Tri2}
+to obtain:
+
+\begin{equation}
+	 \Lambda P^a_1 + T = a \lambda_i + t_i \label{Eq:Bloc:Tri1}
+\end{equation}
+
+Finally, for  $n$ triangles we solve a \emph{linear} system with $4\cdot(n+1)$ unknowns:
+$(\Lambda,T,\lambda_i,t_i)$ and we have $9\cdot n$ equations (by the way, even if we have 
+$9$ equation for $8$ unknowns, the system is unslovable for $n=1$, explain why).
+
+Proposed method :
+
+\begin{itemize}
+    \item if there are two triangles use ~\ref{Eq:Bloc:Tri2} and ~\ref{Eq:Bloc:Tri1}
+          to estimate $\Lambda,T$;
+
+    \item if there are $N>2$ triangles use some ransac strategy by selecting a pair of triangles
+          and use previous case to solve it;
+
+     \item if there is $1$ triangle, give up for now;  maybe later, use homologous point between
+	     blocs, and outside the triangle to fixe the scale ????
+
+\end{itemize}
+
+
+
+
+
+
+

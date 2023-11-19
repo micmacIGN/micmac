@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<MMVII_Serialization>
+   <SetMesIm>
+      <NameIm>"IMGP4170.JPG"</NameIm>
+      <Measures>
+         <Nb>4</Nb>
+         <el>
+            <Name>"I-of-I"</Name>
+            <Pt>452.278142467572 808.192805895297</Pt>
+            <Sigma2>1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"u-of-You"</Name>
+            <Pt>521.272784862528 1015.52756464228</Pt>
+            <Sigma2>1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"Acute"</Name>
+            <Pt>458.441997415626 1100.83130652515</Pt>
+            <Sigma2>1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"Finger-1"</Name>
+            <Pt>344.78572136991 1112.92280566175</Pt>
+            <Sigma2>1 0 1</Sigma2>
+         </el>
+      </Measures>
+   </SetMesIm>
+</MMVII_Serialization>

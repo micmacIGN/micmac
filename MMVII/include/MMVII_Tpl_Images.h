@@ -1,5 +1,8 @@
 #ifndef  _MMVII_Tpl_Images_H_
 #define  _MMVII_Tpl_Images_H_
+
+#include "MMVII_Matrix.h"
+
 namespace MMVII
 {
 
@@ -45,6 +48,18 @@ template<class T1,class T2,class T3>
 template<class T2,class T3>   cIm2D<T2> operator * (const cIm2D<T2> & aI2,const  T3 & aV3)  ;
 template<class T2,class T3>   cDenseMatrix<T2> operator * (const cDenseMatrix<T2> & aI2,const  T3 & aV3)   ;
 template<class T2,class T3>   cDenseMatrix<T2> operator * (const  T3 & aV3,const cDenseMatrix<T2> & aI2) ;
+
+
+template<class T1,class T2,class T3,int Dim>   // I1 = I2 +I3
+   void MulImageInPlace(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2,const cDataTypedIm<T3,Dim> & aI3);
+template<class T1,class T2,class T3>  // return I2 + I3
+   cIm2D<T1> MulImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3);
+
+template<class T1,class T2,class T3,int Dim>   // I1 = I2 +I3
+   void DivImageInPlace(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2,const cDataTypedIm<T3,Dim> & aI3);
+template<class T1,class T2,class T3>  // return I2 + I3
+   cIm2D<T1> DivImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3);
+
 
 
     // -------------------------- Div Cste -------------------------
@@ -232,6 +247,64 @@ template<class T2,class T3>   cDenseMatrix<T2> operator * (const  T3 & aV3,const
 {
     return cDenseMatrix<T2>(aI2.Im()*aV3);
 }
+
+template<class T1,class T2,class T3>  
+   cIm1D<T1> MulImageCste(T1* /*Type specifier*/ ,const cIm1D<T2> & aI2,const  T3 & aV3)
+{
+     cIm1D<T1>  aI1(aI2.DIm().P1().x());
+     MulImageCsteInPlace(aI1.DIm(),aI2.DIm(),aV3);
+     return aI1;
+}
+template<class T2,class T3>   cIm1D<T2> operator * (const cIm1D<T2> & aI2,const  T3 & aV3)  
+{
+   return MulImageCste((T2 *)nullptr,aI2,aV3);
+}
+template<class T2,class T3>   cDenseVect<T2> operator * (const  T3 & aV3,const cDenseVect<T2> & aI2)
+{
+    return cDenseVect<T2>(aI2.Im()*aV3);
+}
+
+       //===========   MulImage ===========
+       
+template<class T1,class T2,class T3,int Dim>  
+   void MulImageInPlace(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2,const cDataTypedIm<T3,Dim> & aI3)
+{
+    aI1.AssertSameArea(aI2); 
+    aI1.AssertSameArea(aI3);
+
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) = aI2.GetRDL(aK) * aI3.GetRDL(aK) ;
+}
+
+template<class T1,class T2,class T3>  
+   cIm2D<T1> MulImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)
+{
+     cIm2D<T1>  aI1(aI2.DIm().P0(),aI2.DIm().P1());
+     MulImageInPlace(aI1.DIm(),aI2.DIm(),aI3.DIm());
+     return aI1;
+}
+
+       //===========   DivImage ===========
+
+template<class T1,class T2,class T3,int Dim>  
+   void DivImageInPlace(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2,const cDataTypedIm<T3,Dim> & aI3)
+{
+    aI1.AssertSameArea(aI2); 
+    aI1.AssertSameArea(aI3);
+
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) = SafeDiv(aI2.GetRDL(aK), aI3.GetRDL(aK)) ;
+}
+
+template<class T1,class T2,class T3>  
+   cIm2D<T1> DivImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)
+{
+     cIm2D<T1>  aI1(aI2.DIm().P0(),aI2.DIm().P1());
+     DivImageInPlace(aI1.DIm(),aI2.DIm(),aI3.DIm());
+     return aI1;
+}
+
+
        //===========   DivCste ===========
 
 template<class T1,class T2,int Dim>  
@@ -252,6 +325,16 @@ template<class T1,class T2,int Dim>
         aI1.GetRDL(aK) = aI2.GetRDL(aK) ;
 }
 
+template<class T1,class T2,int Dim>  
+   void RectCopyIn(T1 & aI1,const T2 & aI2,const cPixBox<Dim> & aBox)
+{
+
+    for (const auto & aPix : aBox)
+        aI1.SetV(aPix,aI2.GetV(aPix));
+}
+
+
+
 template<class T1,class T2>  cIm2D<T1>  Convert(T1*,const cDataIm2D<T2>& aDIm2)
 {
      cIm2D<T1> aIm1(aDIm2.Sz());
@@ -259,6 +342,10 @@ template<class T1,class T2>  cIm2D<T1>  Convert(T1*,const cDataIm2D<T2>& aDIm2)
      return aIm1;
 }
 
+template<class T1,class T2>  cDenseMatrix<T1>  Convert(T1*,const cDenseMatrix<T2>& aM2)
+{
+	return cDenseMatrix<T1>(Convert((T1*)nullptr,aM2.DIm()));
+}
 
 template<class T1,class T2,int Dim>  
    void WeightedAddIn(cDataTypedIm<T1,Dim> & aI1,const T2 & aV,const cDataTypedIm<T2,Dim> & aI2)
@@ -269,6 +356,13 @@ template<class T1,class T2,int Dim>
         aI1.GetRDL(aK) += aV*aI2.GetRDL(aK) ;
 }
 
+template<class T1,class T2>  cDenseVect<T1>  Convert(T1*,const cDenseVect<T2>& aDV2)
+{
+     cDenseVect<T1> aDV1(aDV2.Sz());
+     ConvertData(aDV1.RawData(),aDV2.RawData(),aDV2.Sz());
+
+     return aDV1;
+}
 
 /*****************************************************/
 /*                                                   */
@@ -300,7 +394,7 @@ template<class T1,int Dim>
 }
 
 template<class TOper,class T1,int Dim>
-   cPtxd<int,Dim> WhitchMinMax(const TOper & Op, const cDataTypedIm<T1,Dim> & aIm)
+   cPtxd<int,Dim> WhichMinMax(const TOper & Op, const cDataTypedIm<T1,Dim> & aIm)
 {
     int aKMax = 0;
     T1 aVMax = aIm.GetRDL(aKMax);
@@ -318,9 +412,9 @@ template<class TOper,class T1,int Dim>
 }
 
 template<class T1,int Dim>
-   cPtxd<int,Dim> WhitchMax(const cDataTypedIm<T1,Dim> & aIm)
+   cPtxd<int,Dim> WhichMax(const cDataTypedIm<T1,Dim> & aIm)
 {
-     return WhitchMinMax([](const T1&aV1,const T1&aV2){return aV1>aV2;},aIm);
+     return WhichMinMax([](const T1&aV1,const T1&aV2){return aV1>aV2;},aIm);
 }
 
 
@@ -347,18 +441,18 @@ template<class T1> tREAL8  cDataIm1D<T1>::AvgInterv(int aX0,int aX1) const
 /*****************************************************/
 
 template<class T,int Dim>
-   void NormalizedAvgDev(cDataTypedIm<T,Dim> & aIm,tREAL8 aEpsilon)
+   void NormalizedAvgDev(cDataTypedIm<T,Dim> & aIm,tREAL8 aEpsilon,tREAL8 aMul=1.0)
 {
     cComputeStdDev<tREAL8>  aCSD;
     for (int aK=0 ; aK<aIm.NbElem() ; aK++)
     {
-        aCSD.Add(aIm.GetRDL(aK),1.0);
+        aCSD.Add(1.0,aIm.GetRDL(aK));
     }
     aCSD = aCSD.Normalize(aEpsilon);
     for (int aK=0 ; aK<aIm.NbElem() ; aK++)
     {
         T& aV = aIm.GetRDL(aK);
-        aV = aCSD.NormalizedVal(aV);
+        aV = aCSD.NormalizedVal(aV) * aMul;
     }
 }
 
@@ -402,8 +496,8 @@ template <class TFonc,class TMasq>
       }
       if (aVPx.size() > 0)
       {
-         aPxMin = round_ni(aRatio * KthVal(aVPx,  aProp));
-         aPxMax = round_ni(aRatio * KthVal(aVPx,1-aProp));
+         aPxMin = round_ni(aRatio * NC_KthVal(aVPx,  aProp));
+         aPxMax = round_ni(aRatio * NC_KthVal(aVPx,1-aProp));
          return true;
       }
       else
@@ -414,6 +508,28 @@ template <class TFonc,class TMasq>
       }
 }
 
+/*
+template <const int Dim> std::vector< cPtxd<tREAL8,Dim> > ToR(const std::vector< cPtxd<int,Dim> > &aVPtI)
+{
+	StdOut() << "KKKKKKKKKKKKKKKKKKKKKKk" << std::endl;
+    std::vector< cPtxd<tREAL8,Dim> > aRes;
+    std::transform(aVPtI.begin(),aVPtI.end(),aRes.begin(),[](auto aPtI){return ToR<int>(aPtI);});
+
+	StdOut() << "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" << std::endl;
+    return aRes;
+}
+*/
+
+
+template <class Type> typename tBaseNumTrait<Type>::tBase SumIm(const cDataIm2D<Type>& aDIm,cRect2 aRect)
+{
+    typename tBaseNumTrait<Type>::tBase aRes = 0;
+
+    for (const auto & aPix : aRect)
+        aRes += aDIm.GetV(aPix);
+
+    return aRes;
+}
 
 
 

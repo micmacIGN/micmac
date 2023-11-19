@@ -1,0 +1,535 @@
+
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%                 Chapter set editing
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\chapter{Exercices on image orientation}
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\section{Introduction}
+
+\subsection{Données/programmes d'entrées}
+
+\begin{itemize}
+   \item Des images avec  des cibles,  
+   \item Les commandes  pour extraire la position des cibles
+   \item La position 3D des cibles (pas toutes car aussi utilisation en tant que points de liaison)
+   \item les poses et les calibrations de certaines images
+   \item des outils pour visualiser en 2D la position de cibles dans les images
+   \item  ??? des outils pour visualiser en 3D la position de point / caméra dans des scènes => pas un priorité en 2023,
+	   sans doute en 2024
+\end{itemize}
+
+
+Le tag {\tt \bf OPTIONAL} indique que suivant le temps disponible, la vitesse d'avancement  ...,
+l'exercice pourra !
+
+\begin{itemize}
+   \item fait lors de la séance
+   \item fait en préparation
+   \item fourni par les prof sous forme python (que les élèves curieux puisse le lire)
+   \item fourni par les prof sous forme de primitive MMVII
+\end{itemize}
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\section{Formules d'images, cas sans distorsion}
+
+      %   ------------------------------------------------------------------
+
+\subsection{Formule directe}
+
+En entrée :
+
+\begin{itemize}
+   \item une image,
+   \item sa pose et sa calibration (juste PP + F)
+   \item quelque cible en $3d$  (par ex $4$)
+   \item la position $2d$ (controle numérique) de certains de ces points (par exe $2$ sur les $4$)
+\end{itemize}
+
+
+Objectif :
+\begin{itemize}
+   \item Ecrire la fonction de projection terrain image.  
+   \item Sous forme de fonction isolée ? Ou sous forme de méthode dans une classe python ? A voir.
+\end{itemize}
+
+
+Sortie/validation :
+
+\begin{itemize}
+   \item visualisation des points projeté
+   \item controle numérique sur certain  points
+\end{itemize}
+   
+      %   ------------------------------------------------------------------
+
+\subsection{Intersection de faisceau}
+
+\label{TutoBundleIntersec}
+
+{\tt \bf OPTIONAL}
+
+En entrée :
+
+\begin{itemize}
+   \item plusieurs ensemble de droites ;
+   \item certaine s'interescte parfaitement, d'autre non
+   \item quelques résultats de pseudo intersection
+\end{itemize}
+
+Ecrire une fonction réalisant l'intersection de $N$ droite. Peut-être omis, car c'est assez
+basique et purement géométrique. Si on a le temps : c'est un outil qui revient en permanence
+en photogra, c'est l'occasion de mettre en pratique les moindes carrés.  
+
+On peut aussi,de manière intermédaire :
+
+\begin{itemize}
+	\item fournir la complétion du repère orthonormé  (à partir de $u$ trouver $v,w$ tels que $u,v,w$ soit un RON);
+	\item fournir le "trick" $\trans v v + \trans w w = Id - \trans u u$ qui permet de calculer directement la matric
+		des moinde carrés:
+\end{itemize}
+
+En sortie :
+
+\begin{itemize}
+   \item la coordonées du points 
+   \item la visualisation dans un viewer $3d$ 
+\end{itemize}
+
+      %   ------------------------------------------------------------------
+
+\subsection{Formule Inverse}
+\label{TutoFormIWoD}
+
+En entrée :
+
+\begin{itemize}
+   \item plusieurs image, par exemple $I_1,I_2,I_3,I_4$, leurs poses et calibration sans distorsion;
+   \item les coordonnées de plusieurs points vus sur $2$ ou $3$ de ces images;
+   \item pour certains de ces points la position $3d$ et/ou la position $2$ dans les autres image
+\end{itemize}
+
+Objectif :
+\begin{itemize}
+   \item écrire la fonction de projection inverse qui donne le faisceau partir d'un point, de la pose et la calib
+\end{itemize}
+
+Sortie/validation :
+
+\begin{itemize}
+   \item visualisation 3D de plusieurs faisceaux
+   \item comparaison avec une valeur numérique sur qq faisceau (le vecteur directeur de la droite par exemple)
+   \item intersection de faisceaux et reprojection sur une nouvelle image pour un controle 2D
+\end{itemize}
+
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\section{Estimation de poses avec 12 paramètres}
+
+%   ------------------------------------------------------------------
+\subsection{Estimation des $12$ paramètres}
+
+L'estimation de pose par la méthode des $11$ paramètres n'est pas très utiles en pratique
+en photogramétrie (on préfère le relèvement dans l'espace, bcp plus robuste dès qu'on est
+calibré). Cependant :
+
+
+\begin{itemize}
+    \item c'est didactique au sens où les élèves peuvent le programmer eux-même (contrairement au 
+	    relevemnt dans l'espace);
+
+   \item avec les données de la mire CERN ca marche à peu près,
+
+   \item c'est didactique aussi si on montre aussi des exemples dégénérés (cible dans le plan)
+
+   \item Eventuellement, demander à JPP des données qui permettent d'illustrer sur un cas où c'est utile "pour de vrai".
+\end{itemize}
+
+En entrée :
+
+\begin{itemize}
+   \item des images de cibles codées ;
+   \item la commande  de détection de cibles  (certaines seront non detectées)
+   \item la position $2d$ dans des fichiers à part de certaines cibles volontairement non detectees
+   \item les coordonnées $3d$ des cibles
+   \item le module de binding MMVII permertant de lire les cibles $2d$ et $3d$ et de les fusionner
+         (récupérer directement une liste de paire $2d$ / $ 3d$ pour une images données);
+    \item quelques valeurs numériques de résultat (genre 1 centre, 1 focale);
+\end{itemize}
+
+Objectif :
+
+\begin{itemize}
+    \item  estimer par moindre carrés les $11/12$ paramètres 
+    \item  estimer le centre de prise de vue en utilisant la formule~\ref{PoseUnCalEstimC}
+\end{itemize}
+
+Sortie/validation :
+
+\begin{itemize}
+    \item  comparer le centre de prise de vue avec des valeur numériques sur certaines poses;
+    \item  tester la reprojection sur des points de controles (points non détectés);
+\end{itemize}
+
+      %   ------------------------------------------------------------------
+
+\subsection{Des $12$ paramètres à une "vrai" pose}
+
+\label{From12PtoPose}
+En entrée :
+
+\begin{itemize}
+    \item les résultats précédents ($12$ paramètres + séparation du centre);
+    \item un module pour faire la décomposition $RQ$ , soit directement issu de MMVII par
+          binding, soit en appelant numpy (option plus couteuse pour les stagiair, pas mal de pb 
+          de convention à régler, pas une option PPMD, mais peut-être dans un cour élargi);
+    \item le binding pour créer des objet  camera MMVII et les sauvegarder.
+\end{itemize}
+
+Objectif :
+
+\begin{itemize}
+    \item obtenir des paramètres physiques de pose
+    \item analyser comparer ces paramètres
+    \item préparer l'ajustement de faisceau photogrammétrique dans le section suivante:
+    \item écrire la fomule d'image avec cette calibration linéaire
+\end{itemize}
+
+Sortie/validation :
+
+\begin{itemize}
+    \item générer la visualisation des poses ?  faisable éventuellement
+          avec Apericloud ? Ou un module python a écrire ?
+
+    \item analyser comparer ces paramètres, variabilité des paramètres internes
+    \item regarder ce que cela donne sur un cas dégénéré (focale vaut n'importe quoi)
+    \item tester la formule d'image et la valider avec pt de controle
+\end{itemize}
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\section{Formules d'image avec distorsion}
+
+
+%   ------------------------------------------------------------------
+\subsection{Implémenter une fonction de distorsion, et la formule d'image}
+
+\label{TutoFormImD}
+
+Objectif : comprendre completement comment opère une formule d'images realiste.
+A priori on part sur le modele dit de Fraser ou  $3-1-1$ :
+$3$ coefficient radiaux, $2$ coefficient linéaire, $2$ coefficient décentriques.
+
+Entree , +ou- comme le cas avec distorsion :
+
+\begin{itemize}
+     \item des poses et une calibration , en "pièces détachées" (que les élèves n'aient
+           pas acces à ce stade aux projection MMVII ...)
+    \item des correspondance 2D-3D
+    \item des images et des points 3D
+    \item des pair de point 2D avant/apres distorsion pour tester les resultats
+\end{itemize}
+
+Objectif : implémenter la formule d'image avec distorsion;
+
+
+Résultats/validation :
+
+\begin{itemize}
+   \item controle de point distordu 2D;
+   \item visualisation des points projeté
+   \item controle numérique sur certain  points
+\end{itemize}
+
+%   ------------------------------------------------------------------
+
+\subsection{Inverser une distorsion}
+
+Objectif : voir une/des méthode d'inversion de function smooth, et pouvoir prolonger
+les TD jusque vers des "vraies" application de photogra.
+
+Deux options possibles :
+
+\begin{itemize}
+    \item inversion iterative sur le schema $(Id+\delta)^{-1} \approx Id-\delta $
+   \item  inversion paramétrique par moindres carrés
+\end{itemize}
+
+La première est sans doute plus raisonnable pour des PPMD compte tenu du temps limité. La deuxième
+plus robuste et rapide, pourrait faire partie d'un court plus long.
+
+En entrée :
+
+\begin{itemize}
+    \item une distorsion lisible par le binding
+\end{itemize}
+
+Objectif : écrire une fonction qui prenne en paramètre la distorsion 
+et un point et renvoie sont inverse.
+
+
+Sortie/ validation :
+\begin{itemize}
+	\item  verifier sur des point image $D D'(x) = D'(x) D(x) = x $
+	\item  verifier que sur des points trop éloigné : la méthode itérative diverge,
+		la méthode par moindre carrés n'est pas précise.
+\end{itemize}
+
+%   ------------------------------------------------------------------
+
+\subsection{Formule Inverse}
+\label{TutoFormIDist}
+
+Plus ou moins la même chose que~\ref{TutoFormIWoD} mais avec prise en compte de la distorsion.
+
+
+
+%   ------------------------------------------------------------------
+\subsection{Ajustement de faisceaux}
+
+\label{TutoBundleGCP}
+En entrée :
+
+\begin{itemize}
+      \item  des points d'appuis et leur mesure 2d issus du programme de détection de cibles
+      \item  des pose initiales issues de \ref{From12PtoPose}, 
+      \item  calibration intiale issue  de \ref{From12PtoPose},  typiquement une focale
+             et un PP median
+      \item  la formule d'image issue de \ref{TutoFormImD}
+      \item  l'optimiseur universel de python.
+\end{itemize}
+
+Objectif : faire un ajustement de faisceaux, à partir de pose et calibration ayant des
+valeurs initiales et de points d'appuis. Vérifier  que l'on peut estimer complètement la
+calibration de la caméra.
+
+
+Sortie/validation :
+
+\begin{itemize}
+      \item  comparaison avec une ground truh  sur certains paramètres
+	      (une des pose, la focale par exemple);
+
+      \item  analyse des résidus
+
+       \item on garde une pose qui ne participe pas à l'ajustement,
+             celle suite est ensuite affinée avec la calibration fixe :
+             pour voir la stabilité de la calibration interne?
+\end{itemize}
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\section{Estimation relative de $2$ poses} 
+
+Objectif tester les méthodes d'estimation de $2$ poses qui sont 
+souvent le germe initial de toutes les méthode. Tester aussi sur un
+exemple minimaliste l'ajustement de faisceau avec des points inconnus.
+
+
+%   ------------------------------------------------------------------
+\subsection{Estimation par matrice essentielle}
+
+\label{TutoME}
+En entrée :
+
+\begin{itemize}
+      \item  des points homologues entre deux images : points sans outlayers
+              et sur une scène $3D$, 
+      \item  la calibration des caméra
+      \item  pour passer de la ME à la pose relative soit (1)  un module numpy de SVD
+	      (2) le binding sur le programme MMVII qui passe de la ME
+		a l'orientation relative  ; (1) est évidemment plus instructif
+		mais il y a beaucoup de convention différente entre les deux ...
+\end{itemize}
+
+Objectif : calculer la pose relative.
+
+Résultat / validation :
+
+\begin{itemize}
+	\item sur un couple d'image une ground-truth (soit donnée 
+		par les enseignant, soit calculée par les stagaire si elle vient
+		d'une scène avec cible)
+      \item sur d'autre couple validation par les résidus.
+\end{itemize}
+
+%   ------------------------------------------------------------------
+\subsection{Estimation par homographie sur scène plane}
+
+Sans doute trop spécifique pour les PPMD ??  Même un peu border line pour un cour spécialisé ?
+
+
+%   ------------------------------------------------------------------
+\subsection{Ajustement de faisceau par point homologue}
+
+Dans les chaines photogrammétrique actuelle, l'essentiel quand ce n'est la totalité des 
+mesure se fait à partir de points homologue et l'ajustement de faisceau se fait
+essentiellement dessus.  Il n'est pas possible de faire un traitement complet sur point:
+l'optimiseur universel python ne peut pas traiter de grand volume de données, on ne peut pas 
+utiliser le complément de schurr.
+
+L'objectif est de faire un ajustement de faisceau sur point homologues dans les condition minimales .
+
+
+En entrée :
+
+\begin{itemize}
+    \item 2 images 
+    \item leur calibration issue de \ref{TutoBundleGCP}
+    \item une pose initiale issue de  \ref{TutoME}, pas très précise ?
+    \item des points homologues très précis (éventuellement 
+	    les cibles codées dégradée en point homologue) et peu nombreux (une dizaine)
+    \item l'optimiseur universel de python
+\end{itemize}
+
+Objectif : 
+\begin{itemize}
+    \item a partir des points homologues, des calibration des poses initiale,
+          calculer les faisceaux en utilisant  \ref{TutoFormIDist}
+
+     \item  à partir de \ref{TutoBundleIntersec}, calculer la position initiale des points $3D$
+
+     \item maintenant écrir la function d'ajustement à optimiser : avec seulement $5$ inconnue
+           pour une des pose.
+\end{itemize}
+
+Validation/résultats 
+
+\begin{itemize}
+    \item résidu 
+    \item ground truth
+\end{itemize}
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+
+\section{Relèvement dans l'espace}
+
+Le relèvment dans l'espace est sans doute la méthode la plus utilisée
+pour construires des blocs photogrammétriques une fois que l'on a déjà au moins 
+deux images orientées.
+
+Le calcul qui conduit à l'éblissement d'une équation du $4eme$ degre
+est un peu fastidieux et pas très pédagogique. Donc on le prendra 
+en binding de MMVII. Pour le reste, on peut essayer de jouer avec.
+
+%   ------------------------------------------------------------------
+
+\subsection{Des profondeurs aux poses}
+
+En entrée :
+
+\begin{itemize}
+     \item une calibration interne;
+     \item des points $2D-3D$, dont un triplet utilisé pour le relèvement
+     \item un méthode de $MMVII$ qui étant donné $3$ direction de rayon et $3$
+          GCP  donne les triplet de profondeur compatibles
+\end{itemize}
+
+Objectif estimer la pose suivant la démarche suivante :
+
+\begin{itemize}
+    \item en utilsant \ref{TutoFormIDist} estimer les direction de bundle
+    \item en utililant la function MMVII estimer les triplets de profondeur
+    \item avec les bundle on a les coordonées caméra
+    \item écrire la formule permettant de calculer la rotation envoyant un triangle sur un autre.
+    \item comme on a plusieur pose, estimer la meilleure avec les autres correspondance $2D/3D$.
+\end{itemize}
+
+Résultats/validation :
+
+
+\begin{itemize}
+     \item ground truth sur un des exemple
+     \item résidu des points complémentaires
+\end{itemize}
+
+%   ------------------------------------------------------------------
+
+\subsection{Estimation robuste}
+
+\label{TutoRansacResec}
+L'objectif est à la fois de "jouer" avec Ransac dans un contexte photogrammétrique
+et de voir un exemple réaliste d'estimation de pose.
+
+En entrée :
+
+\begin{itemize}
+    \item   une caméra calibrée;
+    \item   des couples $3D/2D$ dont une proportion importante ($50\%$ ?) est très fausse
+    \item   la méthode MMVII d'estimation de pose
+\end{itemize}
+
+Objectif : trouver la pose avec une approche ransac.  Combinatoire sur des petits
+jeux de données où l'on teste tout les triplets, randomisée sur des jeux trop grands.
+
+Résultat validation 
+
+\begin{itemize}
+    \item   ground truth
+    \item   résidus
+\end{itemize}
+
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+%   ------------------------------------------------------------------
+\section{Estimation globale d'un ensemble de pose}
+
+L'objectif est sur un cas simple de faire construire par les 
+elèves un bloc global de poses.  Et accessoirement de leur faire
+prendre conscience de la dérive si on ne fait pas de compensation
+\footnote{et même si on en fait, mais il ne faut pas leur dire(;-)}
+
+En entrée :
+
+\begin{itemize}
+    \item   une calibration des caméras
+    \item   un ordonancement des caméras (choix de la paire initiale, puis ordre des image à rajouter en indiquant sur quels
+	    images elle s'appuient);
+    \item   des points de liaison mutltiple avec une API pour accéder simplement
+	    aux requetes necessaires (à affiner ...) 
+\end{itemize}
+
+
+Objectif , programmer l'estimation de pose globable sur le schéma itératif suivant :
+
+\begin{itemize}
+    \item   estimer la pose relative de la première paire avec \ref{TutoME}
+    \item   pour chaque nouvelle pose, utiliser les point multiples entre celles ci et les pose déjà orientées pour :
+
+     \begin{itemize}
+             
+         \item   estimer la position $3d$ de ces point dans le repère relatif
+         \item   estimer la pose nouvelle avec \ref{TutoRansacResec}
+     \end{itemize}
+\end{itemize}
+
+Résultat / Validation :
+
+
+\begin{itemize}
+    \item   Apericloud ?
+\end{itemize}
+
+
+
+
+

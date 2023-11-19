@@ -1,6 +1,8 @@
 #ifndef  _MMVII_MEMORY_H_
 #define  _MMVII_MEMORY_H_
 
+#include "MMVII_Error.h"
+
 namespace MMVII
 {
 
@@ -20,6 +22,17 @@ namespace MMVII
 void mem_raz(void * adr,int64_t nb);
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
 template <class Type> void  MemCopy(Type * aDest,const Type * aSrce,size_t aNum) {memcpy(aDest,aSrce,sizeof(Type)*aNum);}
+
+template <class T1,class T2>  void ConvertData(T1 * aD1,const T2 * aD2,size_t aNb)
+{
+    for (size_t aK=0 ; aK<aNb ; aK++)
+        aD1[aK] = aD2[aK];
+}
+template <class T1>  void ConvertData(T1 * aD1,const T1 * aD2,size_t aNb)
+{
+        MemCopy(aD1,aD2,aNb);
+}
+
 
 
 /*
@@ -136,7 +149,7 @@ class cMemManager
 
 
 /**
-    This classe redefine l'operetor new and delate to checker alloc / desalloc and (some) bad access.
+    This classe redefine operators new and delate to check alloc / desalloc and (some) bad access.
     Allocation and desallocation is delegated to  cMemManager
 */
 
@@ -148,11 +161,13 @@ class  cMemCheck
 #if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny)
          cMemCheck()  
          {
+              mCpt = TheCptObj;
               mActiveNbObj=   cMemManager::IsActiveMemoryCount();
               if (mActiveNbObj)
               {
                  TheNbObjLive++;
               }
+	      TheCptObj++;
          }
          cMemCheck(const cMemCheck &)  : cMemCheck () {}
          ~cMemCheck()
@@ -163,22 +178,25 @@ class  cMemCheck
             }
          }
          bool mActiveNbObj; 
+	 int  mCpt;
 #endif
          static int    NbObjLive();
       private :
          static int    TheNbObjLive;
+         static int    TheCptObj;
        // to avoid use 
 };
 
-
-
-///  Usefull, delete all object of the container
-template <class Type> inline void DeleteAllAndClear(Type & aVal)
+/**  some object have to live untill the end of the process, just before the verif is done in main
+ *   appli destructor.
+ */
+class cObj2DelAtEnd
 {
-    for (auto it=aVal.begin() ; it!=aVal.end() ; it++)
-        delete *it;
-    aVal.clear();
-}
+        public :
+                virtual ~cObj2DelAtEnd();
+};
+
+
 
 template<class Type> class cGestObjetEmpruntable
 {

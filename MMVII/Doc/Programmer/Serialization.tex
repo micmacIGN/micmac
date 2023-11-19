@@ -1,0 +1,194 @@
+\chapter{Serialization}
+
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Introduction}
+
+\subsection{What is serialization?}
+
+Serialisation is a very general mecanism that allow an object to describe
+itself as a succession of information.   This succession of information is
+then used by a \emph{receiver} (called an archive in MMVII); what does
+do the receiver with this information is, as much possible, not the business
+of the object, just describe yourself !  By the way, generaly the receiver will write or read the information
+in some place with some format. So in most frequent case, the serialization is used
+to save the current state of an object to a file, an re-built it later, generally in
+another process.  In a photogragrammetric suite as {\tt MMVII},  where the computation
+is made from a complex combination of (many) process the serialization is a key point.
+
+What is the interest of this abstraction ? It's a classical problem of "traduction",
+if you have $N$  source language, and $M$ target language and that you want to translate
+source to target, the trivial way is to write $N*M$ translator; but generally, we prefer
+to write a universal language $U$ , and write $N$ translator to $U$, and $M$ translator 
+from $U$ , and we only write $N+M$ translators.
+
+Here this is basically the same idea, with $N$ object and $M$ kind of receiver/format,
+the descritpion by serialization beging the universal language, we have only $M+N$
+translation to do.  One may think that there is not many receiver, but in fact there is many,
+just to cite the existing one:
+
+\begin{itemize}
+	\item  {\tt xml} and {\tt  json}  format; in \emph{read and write mode},  the good thing
+		with serialization is that if you can write an object you can also read it;
+
+	\item  binary format, and raw-text format,  in \emph{read and write mode};
+
+	\item  hash code, receiver are not necessarily files, and hash code can but computed
+		from the accumulation of object;
+
+	\item  specification file (to be finished);
+\end{itemize}
+
+%---------------------------------------------
+
+\subsection{Principle of implementation in {\tt MMVII}}
+
+The main principle principle of serialization is the following :
+
+\begin{itemize}
+       \item  all the receiver inherit from the pure abstract class {\tt cAr2007},
+               when an objet describe itself it only knows this base-class;
+
+       \item for describing itself, an object of type {\tt Type} only needs to define
+	       the method {\tt void AddData(const  cAuxAr2007 \& , Type  \& );}
+
+       \item the type {\tt cAuxAr2007} is just an {\tt cAr2007} + the eventual tag that will
+             be used in tagged format \footnote{{\tt json,xml} and internal format {\tt tagt}}and ignored
+             by others;
+\end{itemize}
+
+     %  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  - - -
+
+\subsubsection{Overview of class {\tt cAr2007}}
+
+The class {\tt cAr2007} is an abstraction of the concept of receiver, it's mainly an interface class.
+The main function to be overlaoded are the function that describe the serialization of atomic-base  value,
+this is where everyting will be really done , the name is {\tt RawAddDataTerm}.
+
+The atomic object are standard native elementary object : {\tt int,double, std::string, size\_t} ( plus
+{\tt cRawData4Serial} we will describe later). Let take the example of {\tt int} we have, the declaration
+of the function in the class  {\tt cAr2007} :
+
+\begin{verbatim}
+    virtual void RawAddDataTerm(int &    anI) =  0;
+\end{verbatim}
+
+Let examine now the overlaoding in different classes. For the binary formats for, reading/writing an object to a file,
+, it's pretty obvious we just read/write the byte consituting the {\tt int}. So here is the overloading
+for class write (class {\tt cOBin\_Ar2007}) and read (class {\tt cIBin\_Ar2007}) :
+
+\begin{verbatim}
+void cOBin_Ar2007::RawAddDataTerm(int &    anI) { mMMOs.Write(anI); }
+void cIBin_Ar2007::RawAddDataTerm(int &    anI) { mMMIs.Read(anI); }
+\end{verbatim}
+
+For raw text-format, it's not very different ,  we write an {\tt int} to a string format in {\tt cOBaseTxt\_Ar2007}.
+The {\tt mXTerm=true;}, is only to handle some cosmeticall pretty print, we dont detail here.
+
+\begin{verbatim}
+void cOBaseTxt_Ar2007::RawAddDataTerm(int &    anI) {Ofs() <<anI; mXTerm=true;}
+\end{verbatim}
+
+For read, we just make a conversion string to int from next string.
+
+\begin{verbatim}
+// get a string and put in I its conversion to int
+void cIBaseTxt_Ar2007::RawAddDataTerm(int &    anI)
+{
+    FromS(GetNextStdString(),anI);
+}
+\end{verbatim}
+
+
+     %  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  - - -
+
+\subsubsection{The function {\tt AddData}}
+
+The principe is that the function {\tt void AddData(const  cAuxAr2007 \& anAux,Type \&)} must be defined
+for each type that must be serialized.  There is basically $4$ types of
+construction for defining the method {\tt AddData} :
+
+\begin{enumerate}
+	\item for basic-atomic type  ({\tt int, double \dots}), the method
+		simple calls {\tt RawAddDataTerm} of the archive;
+
+	\item for atomic type that can be converted to basic-atomic type, 
+		the serialization can use the template method {\tt TplAddDataTermByCast}
+		defined in the class {\tt cAr2007};
+
+	\item for a certain number of standar template type construction (like {\tt std::vector, std::map}),
+		there is template function in file {\tt include/MMVII\_2Include\_Serial\_Tpl.h} that define
+		{\tt AddData} for these template type;  
+
+	\item for user defines-type the user must define the function, typicall it will be a 
+		sucession (serial) call to method {\tt AddData} of its elements;
+\end{enumerate}
+
+\begin{verbatim}
+// Case 1 atomic type
+void AddData(const  cAuxAr2007 & anAux, int  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
+
+// Case 2 AddData by cast
+void AddData(const  cAuxAr2007 & anAux, tU_INT1  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
+
+// Case 3 AddData for template type
+template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) { StdContAddData(anAux,aL); }
+
+// Case 4 AddData for user defined type , cTestSerial0 : is made of mP1+mI1+mR4+mP2
+
+void AddData(const cAuxAr2007 & anAux, cTestSerial0 &    aTS0)
+{
+    AddData(cAuxAr2007("P1",anAux),aTS0.mP1);
+    // AddComment(anAux.Ar(),"This is P1");
+    anAux.Ar().AddComment("This is P1");
+
+    AddData(cAuxAr2007("I1",anAux),aTS0.mI1);
+    AddData(cAuxAr2007("R4",anAux),aTS0.mR4);
+    AddData(cAuxAr2007("P2",anAux),aTS0.mP2);
+}
+\end{verbatim}
+
+     %  -  -  -  -  -  -  -  -  -  -  -  -  -  - -  -  - - -
+
+\subsubsection{Class {\tt cAuxAr2007}}
+
+The object {\tt cAuxAr2007} contains an {\tt cAr2007} plus   a tag.
+The tag is used to give a name to a part of the object that is serialized.
+There is three different way for the receiver to use these tags :
+
+\begin{itemize}
+    \item in a tagged format, like {\tt xml-json}, in write mode the
+	    tag are printed to describe the signification of a given field;
+
+    \item in a tagged format in read mode, the tag is used to control the integrity
+	    of the file (i.e at a given moment, we know that we must get such given tag);
+
+    \item for non tagged format, the tag are just igonred.
+\end{itemize}
+
+
+
+
+\section{Files related to serialization}
+
+The main file containing serialization.
+
+
+
+
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Serialization by streaming}
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+
+\section{Serialization by tree}

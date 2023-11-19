@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 
 
 #include "MMVII_EigenWrap.h"
@@ -18,7 +18,7 @@ namespace MMVII
 template <class Type>  void  cDenseMatrix<Type>::Show() const
 {
     cConst_EigenMatWrap<Type> aMapThis(*this);
-    StdOut() << aMapThis.EW() << "\n";
+    StdOut() << aMapThis.EW() << std::endl;
 }
 
 

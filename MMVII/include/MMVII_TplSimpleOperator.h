@@ -1,5 +1,8 @@
 #ifndef  _MMVII_Tpl_TplSimpleOperator_H_
 #define  _MMVII_Tpl_TplSimpleOperator_H_
+
+#include "MMVII_Images.h"
+
 namespace MMVII
 {
 

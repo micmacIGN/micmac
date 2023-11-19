@@ -246,7 +246,9 @@ void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string 
     }
 
     Save3DXml(vPt3DL, aRGBImgDir+"/"+aOut3DXml1);
+    printf("xdg-open %s\n", aOut3DXml1.c_str());
     Save3DXml(vPt3DR, aRGBImgDir+"/"+aOut3DXml2);
+    printf("xdg-open %s\n", aOut3DXml2.c_str());
 
     //std::string aOut3DTxt1 = aRGBImgDir+"/"+StdPrefix(aOut3DXml1)+".txt";
     //Save3DTxt(vPt3DL, aOut3DTxt1);
@@ -272,12 +274,10 @@ void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string 
     }
     */
 
-    Get2DCoor(aRGBImgDir, vImgList1, vPt3DL, aOri1, aICNM,  aOut2DXml1);
-    Get2DCoor(aRGBImgDir, vImgList2, vPt3DR, aOri2, aICNM,  aOut2DXml2);
+    Get2DCoor(aRGBImgDir, vImgList1, vPt3DL, aOri1, aICNM, aOut2DXml1);
     printf("xdg-open %s\n", aOut2DXml1.c_str());
-    printf("xdg-open %s\n", aOut3DXml1.c_str());
+    Get2DCoor(aRGBImgDir, vImgList2, vPt3DR, aOri2, aICNM, aOut2DXml2);
     printf("xdg-open %s\n", aOut2DXml2.c_str());
-    printf("xdg-open %s\n", aOut3DXml2.c_str());
 }
 
 int CreateGCPs_main(int argc,char ** argv)
@@ -321,8 +321,8 @@ int CreateGCPs_main(int argc,char ** argv)
                     << EAMC(aRGBImgDir,"The directory of RGB image")
                     << EAMC(aImgList1,"ImgList1: All RGB images in epoch1 (Dir+Pattern, or txt file of image list)")
                     << EAMC(aImgList2,"ImgList2: All RGB images in epoch2 (Dir+Pattern, or txt file of image list)")
-               << EAMC(aOri1,"Orientation of images in epoch1")
-               << EAMC(aOri2,"Orientation of images in epoch2")
+               << EAMC(aOri1,"Ori1: Orientation of images in epoch1")
+               << EAMC(aOri2,"Ori2: Orientation of images in epoch2")
                << EAMC(aDSMDirL,"DSM direcotry of epoch1")
                << EAMC(aDSMDirR,"DSM direcotry of epoch2"),
         LArgMain()
@@ -344,7 +344,353 @@ int CreateGCPs_main(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 
+void CreateGCPs4Init11p(std::string aDir, std::string aImgList, std::string aOri, int aGridX, int aGridY, int aGridZ, std::string aOut2DXml, std::string aOut3DXml, double aZmin, double aZmax, bool bDefineZ, std::string strPrefix)
+{
+    cCommonAppliTiepHistorical aCAS3D;
 
+    std::vector<string> vImgList;
+    GetImgListVec(aImgList, vImgList);
+
+    StdCorrecNameOrient(aOri,"./",true);
+
+    std::vector<Pt3dr> vPt3D;
+
+    cSetOfMesureAppuisFlottants aSOMAFout;
+    for(unsigned int i=0; i<vImgList.size(); i++)
+    {
+        std::string aImg1 = vImgList[i];
+        std::string aIm1OriFile = aCAS3D.mICNM->StdNameCamGenOfNames(aOri, aImg1);
+
+        int aType = eTIGB_Unknown;
+        cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
+
+        double dZSol = aCamL->GetAltiSol();
+        //Pt2dr aMinMax = Pt2dr(dZSol, dZSol); //aCamL->GetAltiSolMinMax();
+        if(bDefineZ == false)
+        {
+            //if(ELISE_ASSERT(false,"cBasicGeomCap3D::GetAltiSolMinMax");)
+            if(aCamL->AltisSolMinMaxIsDef() == false)
+            {
+                printf("\n****************************************Command Failed***************************************\n");
+                printf("Please input Minimal and Maximal altitude value of the scene by setting the Named args Zmin and Zmax.\n");
+                printf("The average altitude of the scene is %.2f.\n", aCamL->GetAltiSol());
+                printf("*********************************************************************************************\n");
+                return;
+            }
+            Pt2dr aMinMax = aCamL->GetAltiSolMinMax();
+            aZmin = aMinMax.x;
+            aZmax = aMinMax.y;
+        }
+        printf("Minimal, Maximal and Average altitude value of the scene:\n    %.2lf, %.2lf, %.2lf\n", aZmin, aZmax, dZSol);
+
+        cMesureAppuiFlottant1Im aMAF;
+        aMAF.NameIm() = aImg1;
+        Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
+        Pt2di ImgSz = aRGBIm1.sz();
+
+        int nBorder = 5; //in case backprojected point is out of frame
+        double dIntervalX = (ImgSz.x-nBorder*2)/aGridX;
+        double dIntervalY = (ImgSz.y-nBorder*2)/aGridY;
+        /*
+        double dIntervalX = 0;
+        double dIntervalY = 0;
+        if (aGridX > 1)
+            dIntervalX = ImgSz.x/aGridX;
+        if (aGridY > 1)
+            dIntervalY = ImgSz.y/aGridY;
+        */
+        double dIntervalZ = 0;
+        if (aGridZ > 1)
+            dIntervalZ = (aZmax-aZmin)/(aGridZ-1);
+
+        int nImgX, nImgY;
+        double dZ;
+        for(int i=0; i<aGridX; i++)
+        {
+            nImgX = int(dIntervalX*i) + dIntervalX/2;
+            for(int j=0; j<aGridY; j++)
+            {
+                nImgY = int(dIntervalY*j) + dIntervalY/2;
+                for(int k=0; k<aGridZ; k++)
+                {
+                    dZ = dIntervalZ*k + aZmin;
+                    //printf("i, j, k, dZ: %d, %d, %d, %lf\n", i, j, k, dZ);
+                    Pt3dr aVGCP = aCamL->ImEtZ2Terrain(Pt2dr(nImgX, nImgY), dZ);
+                    vPt3D.push_back(aVGCP);
+
+                    Pt2dr aPproj = Pt2dr(nImgX, nImgY);
+                    //don't need to backproject, but won't hurt
+                    aPproj = aCamL->Ter2Capteur(aVGCP);
+
+                    cOneMesureAF1I anOM;
+                    //anOM.NamePt() = strPrefix + std::to_string(i*aGridY*aGridZ + j*aGridZ + k);
+                    anOM.NamePt() = strPrefix + std::to_string(vPt3D.size()-1);
+                    anOM.PtIm() = aPproj;
+                    aMAF.OneMesureAF1I().push_back(anOM);
+                }
+            }
+        }
+        aSOMAFout.MesureAppuiFlottant1Im().push_back(aMAF);
+    }
+    MakeFileXML(aSOMAFout, aOut2DXml);
+    Save3DXml(vPt3D, aOut3DXml, strPrefix);
+    printf("\n****************************************Command Succeeded***************************************\n");
+    printf("The results are saved in %s and %s.\n", aOut2DXml.c_str(), aOut3DXml.c_str());
+}
+
+/******************************CreateGCPs4Init11p********************************/
+int CreateGCPs4Init11p_main(int argc,char ** argv)
+{
+//    cCommonAppliTiepHistorical aCAS3D;
+
+    std::string aImgList;
+    std::string aOri;
+
+    int aGridX = 10;
+    int aGridY = 10;
+    int aGridZ = 3;
+
+    double aZmin = DBL_MAX;
+    double aZmax = DBL_MIN;
+
+    std::string aOut2DXml = "GCPs4Init11p_2D.xml";
+    std::string aOut3DXml = "GCPs4Init11p_3D.xml";
+
+    std::string aDir = "./";
+
+    std::string strPrefix = "";
+
+    ElInitArgMain
+    (
+        argc,argv,
+               LArgMain()
+                << EAMC(aImgList,"Input images (Dir+Pattern, or txt file of image list)")
+                << EAMC(aOri,"Orientation of input images"),
+        LArgMain()
+                << EAM(aDir,"Dir",true,"Work directory, Def=./")
+                << EAM(aGridX,"GridX",true,"How many grids do you want in the direction of width in image frame to generate virtual GCPs, Def=10.")
+                << EAM(aGridY,"GridY",true,"How many grids do you want in the direction of height in image frame to generate virtual GCPs, Def=10.")
+                << EAM(aGridZ,"GridZ",true,"How many grids do you want in the direction of altitude in 3D to generate virtual GCPs, Def=3.")
+                << EAM(aOut2DXml,"Out2DXml",true,"Output xml files of 2D obersevations of the virtual GCPs, Def=GCPs4Init11p_2D.xml")
+                << EAM(aOut3DXml,"Out3DXml",true,"Output xml files of 3D obersevations of the virtual GCPs, Def=GCPs4Init11p_3D.xml")
+                << EAM(aZmin,"Zmin",true,"Minimal altitude value of the scene, Def=none.")
+                << EAM(aZmax,"Zmax",true,"Maximal altitude value of the scene, Def=none.")
+                << EAM(strPrefix,"Prefix",true,"Prefix of the name of the GCPs to be saved, Def=none")
+    );
+
+    bool bDefineZ = false;
+    if (EAMIsInit(&aZmin) && !EAMIsInit(&aZmax))
+        bDefineZ = true;
+
+    CreateGCPs4Init11p(aDir, aImgList, aOri, aGridX, aGridY, aGridZ, aOut2DXml, aOut3DXml, aZmin, aZmax, bDefineZ, strPrefix);
+
+    return EXIT_SUCCESS;
+}
+
+void CreateGCPs4Init11pSamePts(std::string aDir, std::string aImgList, std::string aOri, int aGridX, int aGridY, int aGridZ, std::string aOut2DXml, std::string aOut3DXml, double aZmin, double aZmax, bool bDefineZ,std::string strPrefix)
+{
+    printf("aGridX, aGridY, aGridZ: %d, %d, %d\n", aGridX, aGridY, aGridZ);
+    cCommonAppliTiepHistorical aCAS3D;
+
+    std::vector<string> vImgList;
+    GetImgListVec(aImgList, vImgList);
+    printf("Image number: %d\n", int(vImgList.size()));
+
+    StdCorrecNameOrient(aOri,"./",true);
+
+    std::vector<Pt3dr> vPt3D;
+
+    cSetOfMesureAppuisFlottants aSOMAFout;
+
+    //Pt3dr aBorderMin = Pt3dr(0, 0, 0);
+    //Pt3dr aBorderMax = Pt3dr(0, 0, 0);
+    double aXmin = DBL_MAX;
+    double aYmin = DBL_MAX;
+    double aXmax = DBL_MIN;
+    double aYmax = DBL_MIN;
+
+    //printf("aZmin, aZmax: %.2lf, %.2lf\n", aZmin, aZmax);
+    /*
+    bool bDefineZ = true;
+    if(aZmin > 99999 && aZmax < -99999)
+    {
+        bDefineZ = false;
+        printf("Zmin and Zmax are not defined, therefore will try to get Zmin and Zmax automatically.\n");
+    }
+    */
+    //find the bounding box of the scene on the ground
+    for(unsigned int i=0; i<vImgList.size(); i++)
+    {
+        std::string aImg1 = vImgList[i];
+        std::string aIm1OriFile = aCAS3D.mICNM->StdNameCamGenOfNames(aOri, aImg1);
+
+        int aType = eTIGB_Unknown;
+        cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
+
+        double dZSol = aCamL->GetAltiSol();
+        //Pt2dr aMinMax = Pt2dr(dZSol, dZSol); //aCamL->GetAltiSolMinMax();
+        if(bDefineZ == false)
+        {
+            //if(ELISE_ASSERT(false,"cBasicGeomCap3D::GetAltiSolMinMax");)
+            if(aCamL->AltisSolMinMaxIsDef() == false)
+            {
+                printf("\n****************************************Command Failed***************************************\n");
+                printf("Please input Minimal and Maximal altitude value of the scene by setting the Named args Zmin and Zmax.\n");
+                printf("The average altitude of the scene is %.2f.\n", aCamL->GetAltiSol());
+                printf("*********************************************************************************************\n");
+                return;
+            }
+            Pt2dr aMinMax = aCamL->GetAltiSolMinMax();
+            if(aMinMax.x < aZmin)
+                aZmin = aMinMax.x;
+            if(aMinMax.y > aZmax)
+                aZmax = aMinMax.y;
+        }
+        //printf("Minimal, Maximal and Average altitude value of the scene:\n    %.2lf, %.2lf, %.2lf\n", aZmin, aZmax, dZSol);
+
+        Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
+        Pt2di ImgSz = aRGBIm1.sz();
+
+        Pt2dr aPCorner[4];
+        Pt2dr origin = Pt2dr(0, 0);
+        aPCorner[0] = origin;
+        aPCorner[1] = Pt2dr(origin.x+ImgSz.x, origin.y);
+        aPCorner[2] = Pt2dr(origin.x+ImgSz.x, origin.y+ImgSz.y);
+        aPCorner[3] = Pt2dr(origin.x, origin.y+ImgSz.y);
+
+        for(int i=0; i<4; i++)
+        {
+            Pt3dr aPGd = aCamL->ImEtZ2Terrain(aPCorner[i], dZSol);
+            if(aPGd.x < aXmin)
+                aXmin = aPGd.x;
+            if(aPGd.x > aXmax)
+                aXmax = aPGd.x;
+            if(aPGd.y < aYmin)
+                aYmin = aPGd.y;
+            if(aPGd.y > aYmax)
+                aYmax = aPGd.y;
+        }
+    }
+
+    printf("aXmin, aXmax, aYmin, aYmax, aZmin, aZmax: %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n", aXmin, aXmax, aYmin, aYmax, aZmin, aZmax);
+
+        double dIntervalX = 0;
+        double dIntervalY = 0;
+        double dIntervalZ = 0;
+        if(aGridX > 1)
+            dIntervalX = (aXmax-aXmin)/(aGridX-1);
+        if(aGridY > 1)
+            dIntervalY = (aYmax-aYmin)/(aGridY-1);
+        if (aGridZ > 1)
+            dIntervalZ = (aZmax-aZmin)/(aGridZ-1);
+
+        int nImgX, nImgY;
+        double dZ;
+        for(int i=0; i<aGridX; i++)
+        {
+            nImgX = dIntervalX*i + aXmin;
+            for(int j=0; j<aGridY; j++)
+            {
+                nImgY = dIntervalY*j + aYmin;
+                for(int k=0; k<aGridZ; k++)
+                {
+                    dZ = dIntervalZ*k + aZmin;
+                    //printf("i, j, k, dZ: %d, %d, %d, %lf\n", i, j, k, dZ);
+                    Pt3dr aVGCP = Pt3dr(nImgX, nImgY, dZ);
+                    vPt3D.push_back(aVGCP);
+                }
+            }
+        }
+    Save3DXml(vPt3D, aOut3DXml, strPrefix);
+
+    printf("Total vGCP number: %d\n", int(vPt3D.size()));
+
+    for(unsigned int i=0; i<vImgList.size(); i++)
+    {
+        std::string aImg1 = vImgList[i];
+        std::string aIm1OriFile = aCAS3D.mICNM->StdNameCamGenOfNames(aOri, aImg1);
+
+        int aType = eTIGB_Unknown;
+        cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
+
+        cMesureAppuiFlottant1Im aMAF;
+        aMAF.NameIm() = aImg1;
+        Tiff_Im aRGBIm1 = Tiff_Im::StdConvGen((aDir+aImg1).c_str(), -1, true ,true);
+        Pt2di ImgSz = aRGBIm1.sz();
+
+        int nValidPtNum = 0;
+        for(unsigned int j=0; j<vPt3D.size(); j++)
+        {
+            Pt2dr aPproj = aCamL->Ter2Capteur(vPt3D[j]);
+
+            cOneMesureAF1I anOM;
+            //anOM.NamePt() = strPrefix + std::to_string(i*aGridY*aGridZ + j*aGridZ + k);
+            anOM.NamePt() = strPrefix + std::to_string(j-1);
+            anOM.PtIm() = aPproj;
+            if(aPproj.x >= 0 && aPproj.y >= 0 && aPproj.x < ImgSz.x && aPproj.y < ImgSz.y)
+            {
+                aMAF.OneMesureAF1I().push_back(anOM);
+                nValidPtNum++;
+            }
+        }
+        aSOMAFout.MesureAppuiFlottant1Im().push_back(aMAF);
+        printf("%d points in image %s\n", nValidPtNum, aImg1.c_str());
+    }
+
+    MakeFileXML(aSOMAFout, aOut2DXml);
+
+    printf("\n****************************************Command Succeeded***************************************\n");
+    printf("The results are saved in %s and %s.\n", aOut2DXml.c_str(), aOut3DXml.c_str());
+}
+
+/******************************CreateGCPs4Init11p********************************/
+int CreateGCPs4Init11pSamePts_main(int argc,char ** argv)
+{
+//    cCommonAppliTiepHistorical aCAS3D;
+
+    std::string aImgList;
+    std::string aOri;
+
+    int aGridX = 50;
+    int aGridY = 50;
+    int aGridZ = 3;
+
+    double aZmin = DBL_MAX;
+    double aZmax = DBL_MIN;
+
+    std::string aOut2DXml = "GCPs4Init11p_2D.xml";
+    std::string aOut3DXml = "GCPs4Init11p_3D.xml";
+
+    std::string aDir = "./";
+
+    std::string strPrefix = "";
+
+    ElInitArgMain
+    (
+        argc,argv,
+               LArgMain()
+                << EAMC(aImgList,"Input images (Dir+Pattern, or txt file of image list)")
+                << EAMC(aOri,"Orientation of input images"),
+        LArgMain()
+                << EAM(aDir,"Dir",true,"Work directory, Def=./")
+                << EAM(aGridX,"GridX",true,"How many grids do you want in the direction of width in image frame to generate virtual GCPs, Def=50.")
+                << EAM(aGridY,"GridY",true,"How many grids do you want in the direction of height in image frame to generate virtual GCPs, Def=50.")
+                << EAM(aGridZ,"GridZ",true,"How many grids do you want in the direction of altitude in 3D to generate virtual GCPs, Def=3.")
+                << EAM(aOut2DXml,"Out2DXml",true,"Output xml files of 2D obersevations of the virtual GCPs, Def=GCPs4Init11p_2D.xml")
+                << EAM(aOut3DXml,"Out3DXml",true,"Output xml files of 3D obersevations of the virtual GCPs, Def=GCPs4Init11p_3D.xml")
+                << EAM(aZmin,"Zmin",true,"Minimal altitude value of the scene, Def=none.")
+                << EAM(aZmax,"Zmax",true,"Maximal altitude value of the scene, Def=none.")
+                << EAM(strPrefix,"Prefix",true,"Prefix of the name of the GCPs to be saved, Def=none")
+    );
+
+    bool bDefineZ = false;
+    if (EAMIsInit(&aZmin) && !EAMIsInit(&aZmax))
+        bDefineZ = true;
+
+    CreateGCPs4Init11pSamePts(aDir, aImgList, aOri, aGridX, aGridY, aGridZ, aOut2DXml, aOut3DXml, aZmin, aZmax, bDefineZ, strPrefix);
+
+    return EXIT_SUCCESS;
+}
 
 
 /******************************InlierRatio********************************/

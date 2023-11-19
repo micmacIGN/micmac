@@ -1,6 +1,9 @@
 #ifndef  _MMVII_MAPPINGS_H_
 #define  _MMVII_MAPPINGS_H_
 
+
+#include "MMVII_ImageInfoExtract.h"
+
 /* For in & out computation of vector of points, do we use static buffer or 
    do each object has its own buffer. First option is more economic, but can lead to
    sides effect if buffering is not well understood . So for now I maintain the possibility
@@ -151,6 +154,8 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 
       /// Does it belong to the set;  default =belong to box,  defined from InsidenessWithBox
       bool InsideWithBox(const tPt &) const;
+      /// Does it belong to the set;  default =belong to box,  defined from InsidenessWithBox
+      bool InsideWithBox(const cTriangle<Type,Dim> &) const;
       /// Does it belong to the set;  default =true, defined form Insideness
       bool Inside(const tPt &) const;
 
@@ -303,9 +308,12 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
       tCsteResVecJac  Jacobian(const tVecIn &) const;  //J1
       virtual tResJac     Jacobian(const tPtIn &) const;
 
-      /// 
-      cTplBox<Type,DimOut> BoxOfCorners(const cTplBox<Type,DimIn>&) const;
+      /** compute the box that contain the image of corners of BoxIn, note that due to non linerity
+          it may not contain the full image of the box */
+      cTplBox<Type,DimOut> BoxOfCorners(const cTplBox<Type,DimIn>& BoxIn) const;
 
+      /** compute the triangle with submit image of mapping */
+      cTriangle<Type,DimOut>  TriValue(const cTriangle<Type,DimIn> &) const;
 
       /// compute diffenrentiable method , default = erreur
     protected :
@@ -415,7 +423,7 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
 #else  // !MAP_STATIC_BUF
        mutable tVecPt  mBufInvOut;
        inline tVecPt&  BufInvOut()    const {return mBufInvOut;}
-       inline tVecPt&  BufInvOutCleared()    const {mBufInvOut.clear();return mBufOut;}
+       inline tVecPt&  BufInvOutCleared()    const {mBufInvOut.clear();return mBufInvOut;}
 #endif
 };
 
@@ -471,13 +479,27 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       // Accessors 
       const tDataMap *     RoughInv() const ;
       const Type & DTolInv() const;
+      void SetDTolInv(const Type &);
       /// Access to the structure, only needed in some bench to create artificial difficult situations
       tHelperInvertIter *  StrInvertIter() const;
 
       ~cDataIterInvertMapping();
     protected :
-      cDataIterInvertMapping(const tPt & aEpsDiff,tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptRoughInv);
-      cDataIterInvertMapping(tDataMap * aRoughInv,const Type& aDistTol,int aNbIterMax,bool AdoptRoughInv);
+      cDataIterInvertMapping
+      (
+            tDataMap * aRoughInv,  ///<  compute initial "Guess" of inverse to initiate gradient iterations
+	    const Type& aDistTol,  ///<  Tol to stop comutation 
+	    int aNbIterMax,        ///< Max number of iteration
+	    bool AdoptRoughInv     ///< If true, Rough inv will be deleted in destructor
+      );
+      cDataIterInvertMapping
+      (
+           const tPt & aEpsDiff,  ///< Epilonto compute jacobian with finite differences
+           tDataMap * aRoughInv,  ///<  compute initial "Guess" of inverse to initiate gradient iterations
+           const Type& aDistTol,  ///<  Tol to stop comutation
+           int aNbIterMax,        ///< Max number of iteration
+           bool AdoptRoughInv     ///< If true, Rough inv will be deleted in destructor
+      );
 
     private :
       cDataIterInvertMapping(const cDataIterInvertMapping<Type,Dim> & ) = delete;
@@ -560,6 +582,8 @@ template <class Type,const int DimIn,const int DimOut>
        void SetObs(const std::vector<Type> &); ///< just modify mVObs
        // void SetDeleteCalc(bool);
 
+       const std::vector<Type> & VObs() const;
+       std::vector<Type> & VObs();
     private  :
        cDataMapCalcSymbDer(const cDataMapCalcSymbDer<Type,DimIn,DimOut> & ) = delete;
        void CheckDim(tCalc *,bool Derive); ///< used to check that both calculator have adequate structure
@@ -588,6 +612,8 @@ template <class Type,int Dim> class  cDataNxNMapCalcSymbDer  : public cDataNxNMa
 
       cDataNxNMapCalcSymbDer(tCalc  * aCalcVal,tCalc  * aCalcDer,const std::vector<Type> & aVObs,bool DeleteCalc);
       void SetObs(const std::vector<Type> &);
+      const std::vector<Type> & VObs() const;
+      std::vector<Type> & VObs();
     public :
        cDataMapCalcSymbDer<Type,Dim,Dim>  mDMS;
 
@@ -631,7 +657,7 @@ template <class Type,const int Dim>  struct cPtsExtendCMI
 
 
 
-template <class Type,const int Dim> class  cComputeMapInverse
+template <class Type,const int Dim> class  cComputeMapInverse : public cMemCheck
 {
     public :
             //  aCMaxRel => define the zone relatively to the rho max
@@ -641,6 +667,7 @@ template <class Type,const int Dim> class  cComputeMapInverse
         typedef cDataBoundedSet<Type,Dim>         tSet;
         typedef cDataNxNMapping<Type,Dim>         tMap;
         typedef cPtxd<Type,Dim>                   tPtR;
+        typedef std::vector<tPtR>                 tVPtR;
         typedef cPtxd<int,Dim>                    tPtI;
         typedef cTplBox<Type,Dim>                 tBoxR;
         typedef cPtsExtendCMI<Type,Dim>           tExtent;
@@ -651,12 +678,33 @@ template <class Type,const int Dim> class  cComputeMapInverse
         (
              const Type & aThreshJac, ///< Threshold on jacobian to ensure inversability
              const tPtR& aSeed,       ///< Seed point, in input space
-             const int & aNbPtsIn,    ///< Approximate number of point (in the biggest size)
-             tSet &,  ///< Set of validity, in output space
+             tREAL8  aNbPtsIn,    ///< Approximate number of point (in the biggest size)
+             const tSet * aSetIn,  ///< Set of validity, in input space, boundinx box is not used, can be nullptr
+             const tSet & aSetOut,  ///< Set of validity, in output space
              tMap&,   ///< Maping to invert : InputSpace -> OutputSpace
-             tLSQ&,  ///< Structure for computing the invert on base of function using least square   
+             tLSQ*,  ///< Structure for computing the invert on base of function using least square   
              bool Test=false
         );
+
+
+        static cComputeMapInverse * Alloc
+        (
+             const Type & aThreshJac, ///< Threshold on jacobian to ensure inversability
+             const tPtR& aSeed,       ///< Seed point, in input space
+             tREAL8  aNbPtsIn,    ///< Approximate number of point (in the biggest size)
+             const tSet * aSetIn,  ///< Set of validity, in input space, boundinx box is not used, can be nullptr
+             const tSet & aSetOut,  ///< Set of validity, in output space
+             tMap&,   ///< Maping to invert : InputSpace -> OutputSpace
+             tLSQ*,  ///< Structure for computing the invert on base of function using least square   
+             bool Test=false
+        );
+
+
+
+        void  DoPts();
+        void  DoPtsInt();
+        void  DoPtsFront();
+        tVPtR  GetPtsOut() const;
         void  DoAll(std::vector<Type> & aVSol);
 
         static int constexpr  TheNbIterByStep = 3;
@@ -683,16 +731,17 @@ template <class Type,const int Dim> class  cComputeMapInverse
         void OneStepFront(const Type & aStepFront);
 
         /// Validate (POut/Jac) if in domain and jacobian is OK
-        bool ValidateK(const tCsteResVecJac & aVecPJ,int aKp);
+        bool ValidateK(const tPtR & aPtIn,const tCsteResVecJac & aVecPJ,int aKp);
         /// Add one observtion for computing inverse, IsFront used for memo in test mode
-        void AddObsMapDirect(const tPtR & aPIn,const tPtR & aPOut,bool IsFront);
+        void AddObsMapDirect(const tVPtR & aPIn,const tVPtR & aPOut);
 
 	         // Copy of parameters
         Type          mThresholdJac;
         tPtR          mPSeed; //  seed point that is waranteed to be inside the domain
-        tSet &        mSet;   // Definition set of Output space
+        const tSet *  mSetIn;   // Definition set of input space
+        const tSet &  mSetOut;   // Definition set of Output space
         tMap &        mMap;   // Map to invert
-        tLSQ &        mLSQ;   // systeme to compute the inverse as a linear composition of given base functions (using least square)
+        tLSQ *        mLSQ;   // systeme to compute the inverse as a linear composition of given base functions (using least square)
           // Created members
         tBoxR         mBoxByJac; ///< Box computed assuming that Map is equal to its jacobian in PSeed
         tBoxR         mBoxMaj;  ///< Majoration of box, taking into account possible  unstability and jacobian threshold
@@ -704,11 +753,14 @@ template <class Type,const int Dim> class  cComputeMapInverse
         cDenseMatrix<Type>        mMatId;   ///< Id Matrix, helper for computing Jacobian criteria
         const std::vector<tPtI> &       mNeigh; ///< Neighbourhood for image-morpho-operation
         std::vector<tExtent>      mVExt; ///< Vector of "extension" to the frontier
-        bool                      mTest; ///< Are we in test mode ?
+        //  bool                      mTest; ///< Are we in test mode ?
     public :
         Type                      mStepFrontLim; // TheStepFrontLim
-        std::vector<tPtR>         mVPtsInt; ///< For test, memo point interior
-        std::vector<tPtR>         mVPtsFr;  ///< For test, memo point frontier
+
+        tVPtR         mOut_VPtsInt; ///< For test, memo point interior
+        tVPtR         mIn_VPtsInt; ///< For test, memo point interior
+        tVPtR         mOut_VPtsFr;  ///< For test, memo point frontier
+        tVPtR         mIn_VPtsFr;  ///< For test, memo point frontier
 
 };
 
@@ -755,6 +807,9 @@ template <class cMapElem> class cInvertMappingFromElem :  public
 
          cInvertMappingFromElem(const cMapElem & aMap,const tMapInv & aIMap); 
          cInvertMappingFromElem(const cMapElem & aMap);  // requires that aMap can compute its inverse
+							 //
+         tMap & Map();							
+         const tMap & Map() const;							
     private :
          cMapElem   mMap;  // Map
          tMapInv  mIMap; // Map inverse
@@ -827,6 +882,9 @@ template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMap
          tVecOut            mBufPOut;
 };
 
+/** Create  a cLeastSqComputeMaps from a calculator,
+ */
+
 template <class Type,const int DimIn,const int DimOut>
     class cLeastSqCompMapCalcSymb : public cLeastSqComputeMaps<Type,DimIn,DimOut>
 {
@@ -876,41 +934,36 @@ template <class Type,const int Dim> class cBijAffMapElem
         tMat  mMatInv;
 };
 
-
-
-
-/*
-
-template <class Type,const int DimIn,const int DimOut> 
-         class cInvertibleMapping : public cMapping<Type,DimIn,DimOut>
+class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 {
-    public :
-      typedef  cPtxd<Type,DimOut> tPtOut;
-      typedef  cPtxd<Type,DimIn>  tPtIn;
-      typedef  cDenseMatrix<Type> tGrad;  ///< For each 
-      virtual  tPtOut  Inverse(const tPtOut &) const = 0;
+      public :
+
+         cSysCoordV2(tREAL8  aEpsDeriv = 0.1);
+
+         tPt Value(const tPt &) const override;
+         tPt Inverse(const tPt &) const override;
+
+
+         virtual tPt ToGeoC  (const tPt &) const =0;
+         virtual tPt FromGeoC(const tPt &) const =0;
+
+         static cSysCoordV2 * Lambert93();
+         static cSysCoordV2 * RTL(const cPt3dr & Ori,cSysCoordV2* aCoordPt=nullptr);
 };
 
-template <class Type> class  cImageSensor : public  cMapping<Type,3,2>
+class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 {
-    public :
+        public :
+            cChangSysCoordV2(cSysCoordV2 * aSysInit,cSysCoordV2 * aSysTarget,tREAL8  aEpsDeriv = 0.1);
+
+            tPt Value(const tPt &) const override;   /// compute  Point from SysInit 2 SysTarget
+            tPt Inverse(const tPt &) const override; /// compute  Point from SysTarget 2 SysInit
+        private :
+
+            cSysCoordV2 * mSysInit;
+            cSysCoordV2 * mSysTarget;
 };
 
-template <class Type> class cImagePose : public cInvertibleMapping<Type,3,3>
-{
-    public :
-      typedef  cPtxd<Type,3>  tPt;
-      /// Coordinate Cam -> Word ; Pt =>  mC + mOrient * Pt
-      tPt  Direct(const tPt &)  const override;  
-      /// Coordinate Cam -> Word ; Pt =>  (Pt-mC) * mOrient 
-      tPt  Inverse(const tPt &) const override;  // 
-      // cImagePose();
-
-    private :
-       cDenseMatrix<Type>  mOrient;
-       tPt                 mC;
-};
-*/
 
 /*
 Avec R=N(x,y,z) et r=N(x,y)

@@ -1,7 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
-//#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_Geom2D.h"
 
 
 
@@ -120,7 +120,7 @@ void cAppliDensifyRefMatch::MakeOneTri(const  tTriangle2DCompiled & aTri)
 	aPPx[aKp] = mDIPx->GetV(ToI(aTri.Pt(aKp)));
     }
     //  Tricky for WMM, but if used aWMM() => generate warning
-    cWhitchMinMax<int,double>  aWMM(0,aPPx[0]);
+    cWhichMinMax<int,double>  aWMM(0,aPPx[0]);
     for (int aKp=1 ; aKp<3 ; aKp++)
     {
         aWMM.Add(aKp,aPPx[aKp]);
@@ -195,7 +195,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
     mIMasqOut  = cIm2D<tU_INT1>(mDFI2d.Sz(),nullptr,eModeInitImage::eMIA_Null);
     mDIMasqOut = &mIMasqOut.DIm();
     // cDataIm2D<tREAL4>          tDataImPx;
-    StdOut() << "SZIM= " << APBI_DIm().Sz()  << mIPx.DIm().Sz() << "\n";
+    StdOut() << "SZIM= " << APBI_DIm().Sz()  << mIPx.DIm().Sz() << std::endl;
 
     std::vector<cPt2dr> aVPts;
     for (const auto & aPix : *mDIMasqIn)
@@ -203,6 +203,7 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
          if (mDIMasqIn->GetV(aPix))
             aVPts.push_back(ToR(aPix));
     }
+
     if (aVPts.size()>3)
       {
           cTriangulation2D<tCoordDensify> aTriangul(aVPts);
@@ -223,6 +224,21 @@ int  cAppliDensifyRefMatch::ExeOnParsedBox()
     //mDImInterp->ToFile("DensifyPx_"+LastPrefix(APBI_NameIm()) + ".tif");
     APBI_WriteIm("DensifyMasq_"+LastPrefix(APBI_NameIm()) + ".tif",mIMasqOut);
     //mDIMasqOut->ToFile("DensifyMasq_"+LastPrefix(APBI_NameIm()) + ".tif");
+
+   /* cTriangulation2D<tCoordDensify> aTriangul(aVPts);
+    aTriangul.MakeDelaunay();
+    StdOut() << "NbFace= " <<  aTriangul.NbFace() << std::endl;
+
+
+    // Initiate image of interpolated value
+    for (size_t aKTri=0 ; aKTri<aTriangul.NbFace() ; aKTri++)
+    {
+         MakeOneTri(cTriangle2DCompiled(aTriangul.KthTri(aKTri)));
+    }
+
+    mDImInterp->ToFile("DensifyPx_"+LastPrefix(APBI_NameIm()) + ".tif");
+    mDIMasqOut->ToFile("DensifyMasq_"+LastPrefix(APBI_NameIm()) + ".tif");
+    */
 
     return EXIT_SUCCESS;
 }

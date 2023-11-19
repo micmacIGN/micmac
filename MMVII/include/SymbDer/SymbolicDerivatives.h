@@ -4,24 +4,13 @@
 // If true, this directive require CERES installed, then it allows a comparison with CERES/Jet (for a potential publication) ..
 #define MMVII_WITH_CERES false
 
+#include <algorithm>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
 
-// #define SYMBDER_WITH_MMVII true
-#define SYMBDER_WITH_EIGEN true
-
-
-#if SYMBDER_WITH_EIGEN
-#include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
-#define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-#else
-#define EIGEN_ALLIGNMENT_IN_MMVII 
-#endif
-/*
-*/
 
 /** \file SymbolicDerivates.h
     \brief File for generating symbolic derivate
@@ -90,18 +79,17 @@
 
 #include "SymbDer_Common.h"
 
-/*
-#if (SYMBDER_WITH_MMVII)
-#include "include/MMVII_all.h"
-#include "include/MMVII_Derivatives.h"
-#define SYMBDER_cMemCheck  MMVII::cMemCheck
-#else             //========================================================== WITH_MMVI
-class SYMBDER_cMemCheck
-{
-};
+#if SYMBDER_WITH_MMVII
+#define SYMBDER_WITH_EIGEN true
 #endif
-*/
 
+
+#if SYMBDER_WITH_EIGEN
+#include "Eigen/Dense"
+#define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#else
+#define EIGEN_ALLIGNMENT_IN_MMVII
+#endif
 
 
 #if (SYMBDER_WITH_MMVII)
@@ -131,7 +119,7 @@ class SYMBDER_cMemCheck
 
 // REDUCTION RULES
 // TODO => REPLACE BY METHOD ON COORDINATOR WHEN THEY IMPROVE THINGS ....
-#define  DOREDUCE      false
+#define  DOREDUCE      true
 
 #define  REDUCE_CSTE    true    //  Cste+Cste => cste
 #define  REDUCE_MM      DOREDUCE    //  - - x => x  ;  a-(-b) => a+b
@@ -337,37 +325,16 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
          // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp. Return filename w/o ext, or "" if error */
          std::pair<std::string,std::string> GenerateCode(const std::string &aFilePrefix="CodeGen_") const
-         { return GenCodeShortExpr(aFilePrefix);
+         {
+             return GenCodeCommon(aFilePrefix, "");
          }
          std::pair<std::string,std::string> GenerateCodeTemplate(const std::string &aFilePrefix="CodeGen_") const
-         { return GenCodeShortExprTemplate(aFilePrefix);
+         {
+             return GenCodeCommon(aFilePrefix, "template<>");
          }
          std::pair<std::string,std::string> GenerateCodeForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
-         { return GenCodeShortExprForType(aTypeName,aFilePrefix);
-         }
-         std::pair<std::string,std::string> GenCodeShortExpr(const std::string &aFilePrefix="CodeGen_") const
-         {
-             return GenCodeCommon(aFilePrefix, "", true);
-         }
-         std::pair<std::string,std::string> GenCodeLonExpr(const std::string &aFilePrefix="CodeGen_") const
-         {
-             return GenCodeCommon(aFilePrefix, "", false);
-         }
-         std::pair<std::string,std::string> GenCodeShortExprTemplate(const std::string &aFilePrefix="CodeGen_") const
-         {
-             return GenCodeCommon(aFilePrefix, "template<>", true);
-         }
-         std::pair<std::string,std::string> GenCodeLonExprTemplate(const std::string &aFilePrefix="CodeGen_") const
-         {
-             return GenCodeCommon(aFilePrefix, "template<>", false);
-         }
-         std::pair<std::string,std::string> GenCodeShortExprForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, aTypeName, true);
-         }
-         std::pair<std::string,std::string> GenCodeLonExprForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
-         {
-             return GenCodeCommon(aFilePrefix, aTypeName, false);
          }
 
          // =========== Parametrisation of the generated code =========
@@ -431,7 +398,7 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
         /// Used to generate automatically Id for Unknown/Observatio, when we dont need to control them explicitely
         static std::vector<std::string>   MakeAutomId(const std::string & aPrefix,int aNb);
 
-        std::pair<std::string,std::string> GenCodeCommon(const std::string &aPrefix, std::string aTypeName, bool isShortExpr) const;
+        std::pair<std::string,std::string> GenCodeCommon(const std::string &aPrefix, std::string aTypeName) const;
 
         std::string TypeElemName() const;
 
@@ -558,9 +525,7 @@ template <class TypeElem> class cImplemF  : public SYMBDER_cMemCheck
        // ---------- Code gen -----------------------
        virtual bool isAtomic() const { return false;}
        virtual std::string  GenCodeFormName() const {return NameGlob();} // Name of formula, referenced value for Atomic
-       virtual std::string  GenCodeShortExpr() const = 0;      // N-Addresses code generation
-       virtual std::string  GenCodeDef() const = 0;        // Formula definition generation
-       virtual std::string  GenCodeRef() const;            // Formula reference generation
+       virtual std::string  GenCodeExpr() const = 0;      // N-Addresses code generation
        int UsedCnt() const {return mUsedCnt;}  ///< Standard accessor
 
      // ---------- Tuning / Debugging / Analysing ---------------
@@ -572,7 +537,7 @@ template <class TypeElem> class cImplemF  : public SYMBDER_cMemCheck
        int RecursiveRec() const;
 
      // Every where a reference name is needed
-       std::string NameGlob() const { return "F" + std::to_string(NumGlob());}
+       std::string NameGlob() const { return "F" + std::to_string(NumGlob()) + "_";}
 
        /// Access at global level is 4 reducing, also it is used 4 implemant in Unary & Binary
        virtual const std::string &  NameOperator() const = 0;
@@ -689,9 +654,7 @@ template <class TypeElem> class cAtomicF : public cImplemF<TypeElem>
      protected :
             bool isAtomic() const override { return true;}
             std::string GenCodeFormName() const override { return this->Name();}
-            std::string GenCodeShortExpr() const override { return this->GenCodeFormName();}
-            std::string GenCodeRef() const override { return this->GenCodeFormName();}
-            std::string GenCodeDef() const override { return mCodeValue;}
+            std::string GenCodeExpr() const override { return this->mCodeValue;}
 
             inline cAtomicF(tCoordF * aCoordF,const std::string& aName) :
                 tImplemF       (aCoordF,aName)
@@ -849,17 +812,6 @@ template <class TypeElem> cFormula<TypeElem> cImplemF<TypeElem>::VOper2(const tF
    return aF1;
 }
 
-
-template <class TypeElem>
-std::string  cImplemF<TypeElem>::GenCodeRef() const
-{
-    if (UsedCnt() == 1) {
-        return GenCodeDef();
-    } else {
-        return GenCodeFormName();
-    }
-}
-
       /* ---------------------- */
       /*       cCoordinatorF        */
       /* ---------------------- */
@@ -915,10 +867,12 @@ cCoordinatorF<TypeElem>::cCoordinatorF(const std::string &aName, int aSzBuf, int
 template <class TypeElem> 
 cCoordinatorF<TypeElem>::~cCoordinatorF()
 {
+//std::cout <<	"cCoordinatorFcCoordinatorF\n";
     for (auto & aForm : mVAllFormula)
     {
        aForm.FreeMem();
     }
+//std::cout <<	"cCoordinatorFcCoordinatorF\n";
 }
 
 template <class TypeElem>
@@ -1112,16 +1066,12 @@ inline std::string VStr2CPP(const std::vector<std::string> & aVS)
 
 
 template <class TypeElem>
-std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, std::string aTypeName, bool isShortExpr) const
+std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, std::string aTypeName) const
 {
     std::string aName = this->Name();
 
-    if (aName.size() == 0)
-        UserSError("Formula name is empty.",this->Name());
-    for (auto &c : aName) {
-        if (!std::isalnum(c) && c != '_')
-            UserSError("Formula name is not a valid C++ identifier: '_,a..z,A..Z,0..9' only.",this->Name());
-    }
+    if (!this->IsValidCIdentifier(this->Name()))
+        UserSError("Formula name is not a valid C++ identifier: '_,a..z,A..Z,0..9' only.",this->Name());
     std::string aClassName  = "c" + aName;
     if (aTypeName.size()==0)
         aTypeName = this->TypeElemName();
@@ -1130,8 +1080,6 @@ std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const 
         aTypeName = "TypeElem";
     std::string aVectorName = "std::vector<" + aTypeName + ">";
 
-    if (! isShortExpr)
-        aClassName = aClassName + "LongExpr";
     std::string aParentClass = "cCompiledCalculator<" + aTypeName + ">";
 
     std::string aFileName  = aPrefix + aClassName;
@@ -1198,27 +1146,20 @@ std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const 
            "#endif\n"
            "  for (size_t aK=0; aK < this->mNbInBuf; aK++) {\n"
            "// Declare local vars in loop to make them per thread\n";
-    for (auto & aForm : mVFormUnknowns)
-        aOs << "    " << aTypeName << " &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
-    for (const auto & aForm : mVFormObservations)
-        aOs << "    " << aTypeName << " &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
-
-    if (isShortExpr) {
-        for (const auto & aForm : mVReachedF) {
-            if (!aForm->isAtomic())
-                aOs << "    " << aTypeName << " " << aForm->GenCodeFormName() << " = " << aForm->GenCodeShortExpr() << ";\n";
-        }
-        for (size_t i=0; i<mVCurF.size(); i++)
-           aOs <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";
-    } else {
-        for (const auto & aForm : mVReachedF) {
-            if (aForm->UsedCnt() != 1 && !aForm->isAtomic()) {
-                aOs << "    " << aTypeName << " " << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
-            }
-        }
-        for (size_t i=0; i<mVCurF.size(); i++)
-           aOs <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeRef() << ";\n";
+    for (auto & aForm : mVFormUnknowns) {
+        if (aForm->Depth() >= 0)          // Unknown is used
+            aOs << "    " << aTypeName << " &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
     }
+    for (const auto & aForm : mVFormObservations) {
+        if (aForm->Depth() >= 0)          // Observation is used
+            aOs << "    " << aTypeName << " &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
+    }
+    for (const auto & aForm : mVReachedF) {
+        if (!aForm->isAtomic())
+            aOs << "    " << aTypeName << " " << aForm->GenCodeFormName() << " = " << aForm->GenCodeExpr() << ";\n";
+    }
+    for (size_t i=0; i<mVCurF.size(); i++)
+        aOs <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";
 
     aOs << "  }\n"
            "}\n\n";
@@ -1251,7 +1192,20 @@ inline std::string cCoordinatorF<TypeElem>::TypeElemName() const
 } //  namespace NS_SymbolicDerivative
 
 
+
 /*
+#if SYMBDER_WITH_MMVII
+template <> class MMVII::tElemNumTrait<NS_SymbolicDerivative::cFormula<double> >
+{
+    public :
+         typedef NS_SymbolicDerivative::cFormula<double> tBase;
+         typedef NS_SymbolicDerivative::cFormula<double> tBig ;
+         typedef NS_SymbolicDerivative::cFormula<double> tFloatAssoc ;
+
+	 static void AssertValueOk(const NS_SymbolicDerivative::cFormula<double> & ) {}
+};
+#endif
+
 #if SYMBDER_WITH_MMVII
 /// requiredfor cPtxd<cFormula> ....  but dont solve the pb, so keep it minimal fornow
 template <class TypeElem>  class MMVII::tElemNumTrait<NS_SymbolicDerivative::cFormula<TypeElem> >

@@ -58,6 +58,8 @@ int CentreBascule_main(int argc,char ** argv)
     bool ModeL1 = false;
     bool CalcV   = false;
 
+    double ForceVert = -1;
+
 
     ElInitArgMain
     (
@@ -69,6 +71,7 @@ int CentreBascule_main(int argc,char ** argv)
     LArgMain()
                     <<  EAM(ModeL1,"L1",true,"L1 minimization vs L2; (Def=false)", eSAM_IsBool)
                     <<  EAM(CalcV,"CalcV",true,"Use speed to estimate time delay (Def=false)", eSAM_IsBool)
+                    <<  EAM(ForceVert,"ForceVert",true,"Weight for forcing Axe of camera to vertical")
     );
 
     if (!MMVisualMode)
@@ -100,6 +103,11 @@ int CentreBascule_main(int argc,char ** argv)
         {
             aCom = aCom+ std::string(" +CalcV=") + ToString(CalcV);
         }
+
+	if (ForceVert>0)
+	{
+            aCom = aCom+ std::string(" +ForceVert=") + ToString(ForceVert);
+	}
 
 
         std::cout << "Com = " << aCom << "\n";

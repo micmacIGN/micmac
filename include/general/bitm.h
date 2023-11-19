@@ -62,8 +62,8 @@ template <class Type> class El_CTypeTraits
 template <> class El_CTypeTraits<U_INT1>
 {
         public :
-                     static const U_INT1 MaxValue() {return   UCHAR_MAX;}
-                     static const U_INT1 MinValue() {return   0;}
+                     static U_INT1 MaxValue() {return   UCHAR_MAX;}
+                     static U_INT1 MinValue() {return   0;}
                      static Fonc_Num TronqueF(Fonc_Num aFonc) {return Max(tBase(eVMin),Min(tBase(eVMax),aFonc));}
 
 static std::string   Name() {return "U_INT1";}
@@ -93,8 +93,8 @@ static tVal TronqueR(double aVal)
 template <> class El_CTypeTraits<U_INT2>
 {
         public :
-                     static const U_INT2 MaxValue() {return   USHRT_MAX;}
-                     static const U_INT2 MinValue() {return  0;}
+                     static U_INT2 MaxValue() {return   USHRT_MAX;}
+                     static U_INT2 MinValue() {return  0;}
                      static Fonc_Num TronqueF(Fonc_Num aFonc) {return Max(tBase(eVMin),Min(tBase(eVMax),aFonc));}
 static std::string   Name() {return "U_INT2";}
                 typedef U_INT2  tVal;
@@ -142,8 +142,8 @@ template <> class El_CTypeTraits<INT2>
 {
         public :
 static std::string   Name() {return "INT2";}
-                     static const INT2 MaxValue () { return SHRT_MAX;}
-                     static const INT2 MinValue () { return SHRT_MIN;}
+                     static INT2 MaxValue () { return SHRT_MAX;}
+                     static INT2 MinValue () { return SHRT_MIN;}
                      static Fonc_Num TronqueF(Fonc_Num aFonc) {return Max(tBase(eVMin),Min(tBase(eVMax),aFonc));}
                 typedef INT2  tVal;
                 typedef INT     tBase;
@@ -168,8 +168,8 @@ template <> class El_CTypeTraits<INT1>
 {
         public :
 static std::string   Name() {return "INT1";}
-                     static const INT1 MaxValue() {return SCHAR_MAX;}
-                     static const INT1 MinValue() {return SCHAR_MIN;}
+                     static INT1 MaxValue() {return SCHAR_MAX;}
+                     static INT1 MinValue() {return SCHAR_MIN;}
                      static Fonc_Num TronqueF(Fonc_Num aFonc) {return Max(tBase(eVMin),Min(tBase(eVMax),aFonc));}
                 typedef INT1    tSignedVal;
                 typedef U_INT1  tUnSignedVal;
@@ -196,8 +196,8 @@ static tVal TronqueR(double aVal)
 template <> class El_CTypeTraits<INT>
 {
         public :
-                     static const INT MaxValue (){ return INT_MAX;}
-                     static const INT MinValue (){ return INT_MIN;}
+                     static INT MaxValue (){ return INT_MAX;}
+                     static INT MinValue (){ return INT_MIN;}
                      static Fonc_Num TronqueF(Fonc_Num aFonc) {return aFonc;}
 static std::string   Name() {return "INT";}
                 typedef INT   tVal;
@@ -220,8 +220,8 @@ static tVal TronqueR(double aVal) { return round_ni(aVal); }
 template <> class El_CTypeTraits<REAL4>
 {
         public :
-                     static const REAL4 MaxValue (){return FLT_MAX;}
-                     static const REAL4 MinValue (){return -FLT_MAX;}
+                     static REAL4 MaxValue (){return FLT_MAX;}
+                     static REAL4 MinValue (){return -FLT_MAX;}
                      static Fonc_Num TronqueF(Fonc_Num aFonc) {return aFonc;}
 static std::string   Name() {return "REAL4";}
                 typedef REAL4   tVal;

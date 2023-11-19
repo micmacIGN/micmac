@@ -1,7 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
-
-
+#include "MMVII_Tpl_Images.h"
+#include "MMVII_Matrix.h"
+#include "MMVII_SysSurR.h"
+#include "MMVII_Sys.h"
 
 namespace MMVII
 {
@@ -251,6 +251,27 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
              // Check Q*R == M
              MMVII_INTERNAL_ASSERT_bench(aM1.DIm().L2Dist(aDec.OriMatr().DIm())<1e-5,"Bench QR  Matrixes");
         }
+	
+        // Test RQ decomp
+	if (0) // (aSzX==aSzY) // Not finished for rect matrix ...
+        {
+             cDenseMatrix<Type> aM1Bis = aM1.Dup();
+             cResulRQ_Decomp<Type>  aDec = aM1Bis.RQ_Decomposition();
+
+             // Check do not modify
+             MMVII_INTERNAL_ASSERT_bench(aM1.DIm().L2Dist(aM1Bis.DIm())<1e-5,"Bench QR  Matrixes");
+             // Check Q is Unitary
+             MMVII_INTERNAL_ASSERT_bench(aDec.Q_Matrix().Unitarity()<1e-5,"Bench QR  Matrixes");
+             // Check R is triangular
+             MMVII_INTERNAL_ASSERT_bench( aDec.R_Matrix().TriangSupicity() <1e-5,"Bench QR  Matrixes");
+             // Check Q*R == M
+             MMVII_INTERNAL_ASSERT_bench(aM1.DIm().L2Dist(aDec.OriMatr().DIm())<1e-5,"Bench QR  Matrixes");
+        }
+
+
+
+
+
         
         {  //  Test sur transp transp = Id
            double aDtt = aM1.DIm().L2Dist(aM1.Transpose().Transpose().DIm());
@@ -313,9 +334,10 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
            MMVII_INTERNAL_ASSERT_bench(aRSEV.EigenVectors().Unitarity() <1e-5,"Bench unitarity EigenValue");
                // Test Eigen value are given in growing order
            const cDenseVect<Type>   & aEVals = aRSEV.EigenValues();
+           //  check decreasing order
            for (int aK=1 ; aK<aNb ; aK++)
            {
-               MMVII_INTERNAL_ASSERT_bench(aEVals(aK-1)<=aEVals(aK),"Bench unitarity EigenValue");
+               MMVII_INTERNAL_ASSERT_bench(aEVals(aK-1)<=aEVals(aK),"Bench decreasing order EigenValue");
            }
            cDenseMatrix<Type> aCheckEV =  aRSEV.OriMatr();
            MMVII_INTERNAL_ASSERT_bench(aCheckEV.DIm().L2Dist(aSim.DIm())<1e-5,"Bench unitarity EigenValue");
@@ -328,9 +350,19 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
         // Singular value decomposition
         {
              cResulSVDDecomp<Type>  aSVD = aM.SVD();
-             MMVII_INTERNAL_ASSERT_bench(aSVD.MatU().Unitarity()<aDTest,"SVD-U Unit");
-             MMVII_INTERNAL_ASSERT_bench(aSVD.MatV().Unitarity()<aDTest,"SVD-V Unit");
-             MMVII_INTERNAL_ASSERT_bench(aM.DIm().L2Dist(aSVD.OriMatr().DIm())<aDTest,"SVD Reconstr");
+             MMVII_INTERNAL_ASSERT_bench(aSVD.MatU().Unitarity()<aDTest,"SVD-U Unit");  // U is unitary
+             MMVII_INTERNAL_ASSERT_bench(aSVD.MatV().Unitarity()<aDTest,"SVD-V Unit");  // V is unitary
+             MMVII_INTERNAL_ASSERT_bench(aM.DIm().L2Dist(aSVD.OriMatr().DIm())<aDTest,"SVD Reconstr"); // It's M's decomposition
+
+             // As SVD is abirtray up to signs/permutation, eigen use the following convention : vp are >=0 and
+             // given in decreasing order;  test this conventio is satisfied
+             const auto & aEV= aSVD.SingularValues();
+             for (int aK=0  ; aK< aNb ; aK++)
+             {
+                    MMVII_INTERNAL_ASSERT_bench(aEV(aK)>=0,"SVD positivennes"); // EV are >=0
+                    if (aK>0)
+                       MMVII_INTERNAL_ASSERT_bench(aEV(aK)<=aEV(aK-1),"SVD Ordering"); // EV are >= degrowing
+             }
 
              Type aDU =  aSVD.MatU().Det();
              Type aDV =  aSVD.MatV().Det();
@@ -358,12 +390,12 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
   
         if (aD>aDTest)
         {
-            StdOut() << "D=" << aD << " DTest=" << aDTest << " Cpt=" << aCpt << "\n";
+            StdOut() << "D=" << aD << " DTest=" << aDTest << " Cpt=" << aCpt << std::endl;
             MMVII_INTERNAL_ASSERT_bench(false,"Bench inverse  Matrixes");
         }
         if (aD2>aDTest)
         {
-            StdOut() << "D=" << aD2 << " DTest=" << aDTest << " Cpt=" << aCpt << "\n";
+            StdOut() << "D=" << aD2 << " DTest=" << aDTest << " Cpt=" << aCpt << std::endl;
             MMVII_INTERNAL_ASSERT_bench(false,"Bench inverse  Matrixes");
         }
 
@@ -547,7 +579,7 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
 
       Type aR0 = Residual(aSys,aSol,aLWeight,aLVec,aLVal);
       Type aDTest = sqrt(std::numeric_limits<Type>::epsilon()) * 100;
-      // StdOut() << "aR0aR0aR0aR0aR0 " << aR0 << "\n";
+      // StdOut() << "aR0aR0aR0aR0aR0 " << aR0 << std::endl;
 
       if (Exact)
       {
@@ -558,7 +590,7 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
              /* StdOut() << "ddDddDDDD " << aDif << " " << E2Str(tElemNumTrait<Type>::TyNum()) 
                    << " Eps: " << std::numeric_limits<Type>::epsilon() << " " <<  aDTest << "\n"; */
              MMVII_INTERNAL_ASSERT_bench(aDif<aDTest,"Bench Op Im");
-             // StdOut() << "ScaAal " <<  aLVal[aK] - aSol.DotProduct(aLVec[aK]) << "\n";
+             // StdOut() << "ScaAal " <<  aLVal[aK] - aSol.DotProduct(aLVec[aK]) << std::endl;
          }
       }
       else
@@ -572,12 +604,12 @@ template <class Type> void BenchSysSur(cLinearOverCstrSys<Type>& aSys,bool Exact
                 aNewV(aK) = aSol(aK) + aEps * RandUnif_C();
 
              Type aRN = Residual(aSys,aNewV,aLWeight,aLVec,aLVal);
-             // StdOut() << "RRRRR  " << aRN-aR0 << "\n";
+             // StdOut() << "RRRRR  " << aRN-aR0 << std::endl;
 
              MMVII_INTERNAL_ASSERT_bench(aRN>=aR0-1e-5,"Bench residual ");
 
              // double aD = aSol.DIm().L2Dist(aNewV.DIm());
-             // StdOut() << " D=" << aD << "Dif " << (aRN-aR0) /Square(aD) << "\n";
+             // StdOut() << " D=" << aD << "Dif " << (aRN-aR0) /Square(aD) << std::endl;
           }
       }
    }
@@ -650,7 +682,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
          int aNbEq =  2 * aNbVar + 3 ;
 
          if (TrackBugEigenSucc)
-            StdOut()  << "NBVARR=" << aNbVar << " NbE="<<aNbEq << "\n";
+            StdOut()  << "NBVARR=" << aNbVar << " NbE="<<aNbEq << std::endl;
 
          // random param for sparse normal syst
 	 cParamSparseNormalLstSq aParam
@@ -665,6 +697,11 @@ template <class Type,class TypeSys> void TplBenchLsq()
 		                                    cLeasSq<Type>::AllocSparseGCLstSq(aNbVar),
 	                                            cLeasSq<Type>::AllocSparseNormalLstSq(aNbVar,aParam)
 	                                     };
+
+	 cDenseVect<Type> aRandSol(aNbVar,eModeInitImage::eMIA_RandCenter);
+	 // use to test NonLinear in mode AddObservationLinear
+	 cResolSysNonLinear<Type> aSysLin(eModeSSR::eSSR_LsqDense,aRandSol);
+
          // juste make several time the test , becaude chek also reseting
 	 for (int aNbTest=0 ; aNbTest<3 ; aNbTest++)
 	 {
@@ -679,6 +716,11 @@ template <class Type,class TypeSys> void TplBenchLsq()
                   Type  aW    =   0.5 + RandUnif_0_1();
 	          for (auto & aSys : aVSys)
 		      aSys->AddObservation(aW,aVCoeff,aCste);
+		  // Add sparse or dense
+		  if (aK%2)  
+		      aSysLin.AddObservationLinear(aW,aVCoeff,aCste);
+		  else
+		      aSysLin.AddObservationLinear(aW,cDenseVect<Type>(aNbVar,aVCoeff),aCste);
 	      }
 
               static int aCpt = 0; aCpt++;
@@ -692,7 +734,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
                        cResulSymEigenValue<Type> aSVD = aMat.SymEigenValue();
                        cDenseVect<Type>   aVP = aSVD.EigenValues() ;
 
-                       StdOut() << "EIGENVAL " << aVP << "\n";
+                       StdOut() << "EIGENVAL " << aVP << std::endl;
                   }
               }
 
@@ -700,7 +742,7 @@ template <class Type,class TypeSys> void TplBenchLsq()
 	      for (int aKSys=0 ; aKSys<int(aVSys.size()) ;  aKSys++)
 	      {
                   if (TrackBugEigenSucc)
-                      StdOut() << "KSYS " << aKSys << " CPT=" << aCpt << "\n";
+                      StdOut() << "KSYS " << aKSys << " CPT=" << aCpt << std::endl;
 	          auto & aSys  =  aVSys[aKSys];
                   // with conj grad, change error handling
                   if (aKSys==1) 
@@ -720,11 +762,11 @@ template <class Type,class TypeSys> void TplBenchLsq()
                       {
                             for (const auto& aIV : aCoefs.IV())
                                 StdOut() << "[" << aIV.mInd << "," << aIV.mVal << "] ";
-                            StdOut() << "\n";
+                            StdOut() << std::endl;
                       }
                       StdOut() << "KS=" << aKSys << " DDddd " << aDist 
                                << " Acc=" << tNumTrait<Type>::Accuracy() << "\n";
-                      StdOut() << " NBV=" << aNbVar << " NbE=" << aNbEq << "\n"; 
+                      StdOut() << " NBV=" << aNbVar << " NbE=" << aNbEq << std::endl; 
 
                       cDenseMatrix<Type>  atAA = aVSys[0]->V_tAA();
                       cDenseVect<Type>    atARhs = aVSys[0]->V_tARhs();
@@ -732,13 +774,16 @@ template <class Type,class TypeSys> void TplBenchLsq()
 	              for (int aKS2=0 ; aKS2<int(aVSys.size()) ;  aKS2++)
                       {
                           cDenseVect<Type> aRes = atAA * aVSys[aKS2]->Solve() - atARhs;
-                          StdOut() << "NNNN " << aRes.L2Norm()   << " " << atARhs.L2Norm() << "\n";
+                          StdOut() << "NNNN " << aRes.L2Norm()   << " " << atARhs.L2Norm() << std::endl;
                       }
   
                       MMVII_INTERNAL_ASSERT_bench(false,"Cmp Least Square");
                   }
 
 	      }
+	      cDenseVect<Type> aSolLin = aSysLin.SolveUpdateReset() - aVSol[0];
+	      MMVII_INTERNAL_ASSERT_bench(aSolLin.L2Norm()<1e-5,"Cmp Least Square");
+
 	      for (int aKSys=0 ; aKSys<int(aVSys.size()) ;  aKSys++)
               {
 	          auto & aSys  =  aVSys[aKSys];
@@ -816,10 +861,10 @@ void BenchLsqDegenerate()
         tREAL8 aDV =  aSys2.V_tARhs().L2Dist(atARhs) ;
         tREAL8 aDM =   aSys2.V_tAA().L2Dist(atAA);
     
-         // StdOut() << "Ddddd " << aDV << " " << aDM  << " \n";
+         // StdOut() << "Ddddd " << aDV << " " << aDM  << " " << std::endl;
          MMVII_INTERNAL_ASSERT_bench(aDV<1e-5,"cDecSumSqLinear vector");
          MMVII_INTERNAL_ASSERT_bench(aDM<1e-5,"cDecSumSqLinear matrix");
-         ///  StdOut() << "mmmMMMMmm " << aSys2.V_tAA().L2Dist(atAA) << " \n";
+         ///  StdOut() << "mmmMMMMmm " << aSys2.V_tAA().L2Dist(atAA) << " " << std::endl;
     }
     DeleteAllAndClear(aVSys);
 }
@@ -834,14 +879,15 @@ void BenchLsq()
          }
          PopErrorEigenErrorLevel();
          // reactivate if you want to check 
-         if (0)
+#if 0
          {
              for (int aK=0 ; aK<200 ; aK++)
              {
                 BenchLsqDegenerate();
              }
          }
-         // StdOut() << "EEEEEEEeeeeeeeeeeeeeeee\n"; getchar();
+         // StdOut() << "EEEEEEEeeeeeeeeeeeeeeee" << std::endl; getchar();
+#endif
      }
 
      TplBenchLsq<tREAL4 ,cLeasSqtAA<tREAL4> >();
@@ -981,9 +1027,11 @@ void BenchDenseMatrix0(cParamExeBench & aParam)
       
     }
 
+    /*
     TQR(3,3);
     TQR(3,5);
     TQR(5,3);
+    */
 
     cDenseVect<double> aV0(2);
     cDenseVect<double> aV1(2);
@@ -1028,7 +1076,7 @@ void BenchDenseMatrix0(cParamExeBench & aParam)
         int aNb = std::min(60,20+aParam.Level()*5);
         for (int aK=1 ; aK<aNb ; aK++)
         {
-// StdOut() << "KKKKKK " << aK << "\n";
+// StdOut() << "KKKKKK " << aK << std::endl;
            TplBenchDenseMatr<tREAL4>(aK,aK);
            TplBenchDenseMatr<tREAL8>(aK,aK);
         }

@@ -1,4 +1,8 @@
 #include "TrianguRSNL.h"
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Sys.h"
+#include "MMVII_PhgrDist.h"
 
 
 // ==========  3 variable used for debuging  , will disappear
@@ -40,16 +44,17 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
                       (
 		            eModeSSR aMode,
                             cRect2   aRect,
-			    bool WithSchurr,
+			    bool WithSchur,
                             const cParamMainNW & aParamNW,
-			    cParamSparseNormalLstSq * aParamLSQ
+			    cParamSparseNormalLstSq * aParamLSQ,
+			    const std::vector<Type>  & aWeightSetSchur
 		      ) :
     mModeSSR   (aMode),
     mParamLSQ  (aParamLSQ),
     mBoxInd    (aRect),
     mX_SzM     (mBoxInd.Sz().x()),
     mY_SzM     (mBoxInd.Sz().y()),
-    mWithSchur (WithSchurr),
+    mWithSchur (WithSchur),
     mParamNW   (aParamNW),
     mNum       (0),
     mMatrP     (cMemManager::AllocMat<tPNetPtr>(mX_SzM,mY_SzM)), // alloc a grid of pointers
@@ -57,7 +62,8 @@ template <class Type> cMainNetwork <Type>::cMainNetwork
     mCalcD     (nullptr),
     // Amplitude of scale muste
     mSimInd2G   (cSim2D<Type>::RandomSimInv(5.0,3.0,0.1)) ,
-    mBoxPts     (cBox2dr::Empty())
+    mBoxPts     (cBox2dr::Empty()),
+    mWeightSetSchur  (aWeightSetSchur)
 {
 }
 
@@ -80,7 +86,7 @@ template <class Type> void cMainNetwork <Type>::PostInit()
          aBox.Add(aPNet.TheorPt());
          aBox.Add(aPNet.PosInit());
 
-	 if (! aPNet.mSchurrPoint)
+	 if (! aPNet.mSchurPoint)
 	 {
              aVCoord0.push_back(aPNet.mPosInit.x());
              aVCoord0.push_back(aPNet.mPosInit.y());
@@ -92,10 +98,10 @@ template <class Type> void cMainNetwork <Type>::PostInit()
         if (1)
 	{
            mVPts = RandomOrder(mVPts);
-           // StdOut() << " Dooo :  ORDER RANDOM\n";
+           // StdOut() << " Dooo :  ORDER RANDOM" << std::endl;
 	}
         else
-           StdOut() << "NO ORDER RANDOM\n";
+           StdOut() << "NO ORDER RANDOM" << std::endl;
         // But need to reset the num of points which is used in link construction
         for (int aK=0 ; aK<int(mVPts.size()) ; aK++)
         {
@@ -118,11 +124,12 @@ template <class Type> void cMainNetwork <Type>::PostInit()
      for (auto& aPix: mBoxInd)
      {
 	  tPNet &  aPSch = PNetOfGrid(aPix);
-          if (aPSch.mSchurrPoint) 
+          if (aPSch.mSchurPoint)
           {
 	      const tPNet & aPL = PNetOfGrid(aPSch.mInd+cPt2di(-1,0));  // PLeft
 	      const tPNet & aPR = PNetOfGrid(aPSch.mInd+cPt2di( 1,0));  // PRight
 	      aPSch.mTheorPt  =   (aPL.TheorPt()+aPR.TheorPt())/Type(2.0);
+
           }
      }
      
@@ -156,9 +163,9 @@ template <class Type> void cMainNetwork <Type>::PostInit()
 		       // the logic of this lines of code take use the fact that K1 and K2 cannot be both 
                        // schur points (tested in Linked())
 		
-                       if (aPN1.mSchurrPoint)  // K1 is Tmp and not K2, save K1->K2
+                       if (aPN1.mSchurPoint)  // K1 is Tmp and not K2, save K1->K2
                           aPN1.mLinked.push_back(aPN2.mNumPt);
-		       else if (aPN2.mSchurrPoint) // K2 is Tmp and not K1, save K2->K2
+		       else if (aPN2.mSchurPoint) // K2 is Tmp and not K1, save K2->K2
                           aPN2.mLinked.push_back(aPN1.mNumPt);
 		       else // None Tmp, does not matters which way it is stored
                           aPN1.mLinked.push_back(aPN2.mNumPt);  
@@ -196,7 +203,7 @@ template <class Type> cPtxd<Type,2>  cMainNetwork <Type>::ComputeInd2Geom(const 
 {
     Type aIndX = anInd.x()*mParamNW.mFactXY.x();
     Type aIndY = anInd.y()*mParamNW.mFactXY.y();
-// StdOut() << "SSSS " << mParamNW.mFactXY << "\n";
+// StdOut() << "SSSS " << mParamNW.mFactXY << std::endl;
 
     return mSimInd2G.Value(tPt(aIndX,aIndY) + tPt::PRandC()*Type(mParamNW.mAmplGrid2Real)  );
 }
@@ -226,26 +233,25 @@ template <class Type> Type cMainNetwork <Type>::CalcResidual()
      for (const auto & aPN : mVPts)
      {
         // Add distance between theoreticall value and curent to compute global residual
-        if (! aPN.mSchurrPoint)
+        if (! aPN.mSchurPoint)
         {
             aNbPairTested++;
             aVCur.push_back(aPN.PCur());
             aVTh.push_back(aPN.TheorPt());
             aSumResidual += SqN2(aPN.PCur() -aPN.TheorPt());
-	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << "\n";
+	    // StdOut() << aPN.PCur() - aPN.TheorPt() << aPN.mInd << std::endl;
             if (aPN.mFrozenX || aPN.mFrozenY)
             {
-	        //  StdOut() << "CCC=> " << aPN.PCur() << aPN.TheorPt() << aPN.mInd << "\n";
+	        //  StdOut() << "CCC=> " << aPN.PCur() << aPN.TheorPt() << aPN.mInd << std::endl;
             }
         }
      }
      if (0)
      {
          Type aRes;
-         auto  aMap = cSim2D<Type>::StdGlobEstimate(aVCur,aVTh,&aRes);
-         FakeUseIt(aMap);
+          cSim2D<Type>::StdGlobEstimate(aVCur,aVTh,&aRes);
          //StdOut() << "RESIDUAL By Map Fit ";
-         //StdOut() << aVCur[1] - aVCur[0] / aVTh[1]-aVTh[0] <<  "\n";
+         //StdOut() << aVCur[1] - aVCur[0] / aVTh[1]-aVTh[0] <<  std::endl;
          return aRes;
      }
      return sqrt(aSumResidual / aNbPairTested );
@@ -291,22 +297,45 @@ template <class Type> Type cMainNetwork<Type>::DoOneIterationCompensation(double
 
      for (const auto & aPN1 : mVPts)
      {
-         // If PN1 is a temporary unknown we will use schurr complement
-         if (aPN1.mSchurrPoint)
+         // If PN1 is a temporary unknown we will use schur complement
+         if (aPN1.mSchurPoint)
 	 {
-            // SCHURR:CALC
-            cSetIORSNL_SameTmp<Type> aSetIO; // structure to grouping all equation relative to PN1
+            // SCHUR:CALC
 	    cPtxd<Type,2> aP1= aPN1.PCur(); // current value, required for linearization
+            cPtxd<Type,2> aPTh1= aPN1.TheorPt(); // theoreticall value, used for test on fix var (else it's cheating to use it)
             std::vector<Type> aVTmp{aP1.x(),aP1.y()};  // vectors of temporary
+
+	    // structure to generate "hard" constraints on temporary , cheat with theoreticall values
+            std::vector<int>    aVIndFrozen;
+            std::vector<Type>   aVValFrozen;
+	    if (mWeightSetSchur.at(1)<0)
+	    {
+                aVIndFrozen.push_back(-2);
+		aVValFrozen.push_back(aPTh1.y());
+	    }
+	    if (mWeightSetSchur.at(0)<0)
+	    {
+                aVIndFrozen.push_back(-1);
+		aVValFrozen.push_back(aPTh1.x());
+	    }
+
+            cSetIORSNL_SameTmp<Type> aSetIO(aVTmp,aVIndFrozen,aVValFrozen); // structure to grouping all equation relative to PN1
 	    // Parse all obsevation on PN1
             for (const auto & aI2 : aPN1.mLinked)
             {
                 const tPNet & aPN2 = mVPts.at(aI2);
 	        //std::vector<int> aVIndMixt{aPN2.mNumX,aPN2.mNumY,-1,-1};  // Compute index of unknowns for this equation
-	        std::vector<int> aVIndMixt{-1,-1,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns for this equation
+	        std::vector<int> aVIndMixt{-1,-2,aPN2.mNumX,aPN2.mNumY};  // Compute index of unknowns for this equation
                 std::vector<Type> aVObs{ObsDist(aPN1,aPN2)}; // compute observations=target distance
                 // Add eq in aSetIO, using CalcD intantiated with VInd,aVTmp,aVObs
-		mSys->AddEq2Subst(aSetIO,mCalcD,aVIndMixt,aVTmp,aVObs);
+		mSys->AddEq2Subst(aSetIO,mCalcD,aVIndMixt,aVObs);
+	    }
+	    {
+                if (mWeightSetSchur.at(0)>=0) aSetIO.AddFixVarTmp(-1,aPTh1.x(), mWeightSetSchur.at(0)); // soft constraint-x  on theoreticall
+                if (mWeightSetSchur.at(1)>=0) aSetIO.AddFixVarTmp(-2,aPTh1.y(), mWeightSetSchur.at(1)); // soft constraint-y  on theoreticall
+                if (mWeightSetSchur.at(2)>=0) aSetIO.AddFixCurVarTmp(-1, mWeightSetSchur.at(2)); // soft constraint-x  on current
+                if (mWeightSetSchur.at(3)>=0) aSetIO.AddFixCurVarTmp(-2, mWeightSetSchur.at(3)); // soft constraint-y  on current
+		// StdOut() << "GGGGGgg" << std::endl;getchar();
 	    }
 	    mSys->AddObsWithTmpUK(aSetIO);
 	 }
@@ -352,8 +381,8 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
      mInd      (anInd),
      mTheorPt  (aNet.ComputeInd2Geom(mInd)),
      mNetW     (&aNet),
-	//  Tricky ,for direction set cPt2di(-1,0)) to avoid interact with schurr points
-	//  but is there is no schurr point, set it to cPt2di(1,0) to allow network [0,1]x[0,1]
+	//  Tricky ,for direction set cPt2di(-1,0)) to avoid interact with schur points
+	//  but is there is no schur point, set it to cPt2di(1,0) to allow network [0,1]x[0,1]
      mFrozenX  (      ( mInd==cPt2di(0,0)) 
 		  ||  (   aNet.AxeXIsHoriz() ? 
 			  (mInd==cPt2di(0,1)) : 
@@ -361,7 +390,7 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
                        )
 	        ),
      mFrozenY  ( mInd==cPt2di(0,0)  ), // fix origin
-     mSchurrPoint    (aNet.WithSchur() && (mInd.x()==1)),  // If test schur complement, Line x=1 will be temporary
+     mSchurPoint    (aNet.WithSchur() && (mInd.x()==1)),  // If test schur complement, Line x=1 will be temporary
      mNumX     (-1),
      mNumY     (-1)
 {
@@ -389,7 +418,7 @@ template <class Type> cPNetwork<Type>::cPNetwork(int aNumPt,const cPt2di & anInd
 */
 
 
-     if (!mSchurrPoint)
+     if (!mSchurPoint)
      {
         mNumX = aNet.Num()++;
         mNumY = aNet.Num()++;
@@ -416,7 +445,7 @@ template <class Type> void cPNetwork<Type>::MakePosInit(const double & aMulAmpl)
 template <class Type> cPtxd<Type,2>  cPNetwork<Type>::PCur() const
 {
 	// For standard unknown, read the cur solution of the system
-    if (!mSchurrPoint)
+    if (!mSchurPoint)
 	return cPtxd<Type,2>(mNetW->CurSol(mNumX),mNetW->CurSol(mNumY));
 
     /*  For temporary unknown we must compute the "best guess" as we do by bundle intersection.
@@ -457,7 +486,7 @@ template <class Type> bool cPNetwork<Type>::AreLinked(const cPNetwork<Type> & aP
       return false;
 
    //  If two temporay point, they are not observable
-   if (mSchurrPoint && aP2.mSchurrPoint)
+   if (mSchurPoint && aP2.mSchurPoint)
       return false;
 
     //  else point are linked is they are same column, or neighbooring colums

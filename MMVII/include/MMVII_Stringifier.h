@@ -1,6 +1,9 @@
 #ifndef  _MMVII_Stringifier_H_
 #define  _MMVII_Stringifier_H_
 
+#include "MMVII_memory.h"
+#include "MMVII_Ptxd.h"
+
 namespace MMVII
 {
 
@@ -60,6 +63,8 @@ template <>  std::string cStrIO<double>::ToStr(const double & anI);
 template <>  double cStrIO<double>::FromStr(const std::string & aStr);
 template <>  std::string cStrIO<std::string>::ToStr(const std::string & anI);
 template <>  std::string cStrIO<std::string>::FromStr(const std::string & aStr);
+template <>  std::string cStrIO<char>::ToStr(const char & anI);
+template <>  char cStrIO<char>::FromStr(const std::string & aStr);
 
 /*
 template <>  std::string cStrIO<cPt2dr>::ToStr(const cPt2dr & anI);
@@ -80,6 +85,8 @@ template <>  cPt2di cStrIO<cPt2di>::FromStr(const std::string & aStr);
 * declaration."
 */
 
+#ifndef _MSC_VER
+template <>  const std::string cStrIO<char>::msNameType;
 template <>  const std::string cStrIO<bool>::msNameType;
 template <>  const std::string cStrIO<int>::msNameType;
 template <>  const std::string cStrIO<double>::msNameType;
@@ -103,6 +110,11 @@ template <>  const std::string cStrIO<eOpAff>::msNameType;
 template <>  const std::string cStrIO<eModeEpipMatch>::msNameType;
 template <>  const std::string cStrIO<eModePaddingEpip>::msNameType;
 template <>  const std::string cStrIO<eModeCaracMatch>::msNameType;
+
+template <>  const std::string cStrIO<eProjPC>::msNameType;
+template <>  const std::string cStrIO<eModeTestPropCov>::msNameType;
+template <>  const std::string cStrIO<eDCTFilters>::msNameType;
+#endif
 
 /** These functions offer an"easy" interface to cStrIO, however I think
 *    cStrIO is still usefull when type inference becomes too compliicated
@@ -186,9 +198,10 @@ class  cSpecOneArg2007 : public cMemCheck
         virtual std::string  NameValue() const = 0;  ///< Used to print def value
 
         virtual void  CheckSize(const std::string &) const = 0;  ///< Used to check size of vect from a parameter like "[4,6]"
+        virtual bool IsVector() const = 0;                       ///< Used by MMVII_Appli::GenerateOneArgSpec
 
         /// Does any of  mVSem contains aType
-        bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
+        bool HasType(const eTA2007 & aType,std::string * aValue=nullptr)            const;
 
         const tAllSemPL & SemPL() const;         ///< Accessor
         const std::string  & Name() const;  ///< Accessor
@@ -234,7 +247,6 @@ class cCollecSpecArg2007
       void clear() ;
       cCollecSpecArg2007 & operator << (tPtrArg2007 aVal);
    private :
-      friend class cMMVII_Appli;
       tVecArg2007 & Vec();
       cCollecSpecArg2007(const cCollecSpecArg2007&) = delete;
       tVecArg2007  mV;
@@ -255,68 +267,6 @@ template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string & aName, con
 /*                                                     */
 /*  ================================================== */
 
-
-
-/// Auxiliary class for Archive manipulation
-
-/**
-   The serialization "file" inherit from the mother class cAr2007. This
-   class is accessible via the  the  cAuxAr2007 , the automitazation of 
-   calling level (usefull for example in XML pretty printing) is done by
-   constructor and destructor of cAuxAr2007.
-*/
-
-class cAuxAr2007
-{
-     friend class cAr2007;
-     public :
-         /// No usefull copy constructor inhibit it
-         cAuxAr2007 (const cAuxAr2007 &) = delete;
-         /// Increase counter, send the  virtual message  of opening  tag
-         cAuxAr2007 (const std::string & aName,cAr2007 &);
-         /// Decrease counter, send the  virtual message  of closing  tag
-         ~cAuxAr2007 ();
-         ///  Just a more connvenient way to call 
-         cAuxAr2007 (const std::string & aName, const cAuxAr2007 &);
-
-         const std::string  Name () const {return mName;}
-         cAr2007 & Ar()             const {return mAr;}
-         /// Call mAr, indique if for read or write
-         bool Input() const;
-         /// Call mAr, indicate if xml-like (more sophisticated optional handling)
-         bool Tagged() const;
-         /// Call mAr, return 0 or 1, indicating if next optionnal value is present
-         int NbNextOptionnal(const std::string &) const;
-     private : 
-         const std::string  mName;
-         cAr2007 & mAr;
-};
-
-
-
-/// Create an archive structure, its type (xml, binary, text) is determined by extension
- cAr2007* AllocArFromFile(const std::string & aName,bool Input);
-
-/// Create an archive for hashing value
-cAr2007* AllocArHashVal(bool ordered);
-size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
-
-/** Here are the atomic serialization function */
-
-void AddData(const  cAuxAr2007 & anAux, bool  &  aVal); ///< for int
-void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
-void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal); ///< for unsigned short
-void AddData(const  cAuxAr2007 & anAux, size_t  &  aVal); ///< for unsigned short
-void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
-void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
-void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Pair of string
-void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered Cple of string
-void AddData(const  cAuxAr2007 & anAux, std::map<std::string,int>&  aVal) ;  ///< 
-
-template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) ;  ///<for cPt2dr
-template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal);
-
-
 /** This class is used to embed the information necessary to a raw/hardcopy serialization */
 class cRawData4Serial
 {
@@ -332,6 +282,170 @@ class cRawData4Serial
         void * mAdr;
         int mNbElem;
 };
+
+// Base class of all archive class
+
+/**
+     Base class of all archive class;
+
+     Adding a new kind of archive, essentially consist to indicate how to read/write atomic values.
+    It is a bit more complicated with tagged format
+*/
+
+
+class cAr2007 : public cMemCheck
+{
+    public  :
+         friend class cAuxAr2007;
+
+         template <class Type,class TypeCast> inline void TplAddDataTermByCast (const cAuxAr2007& anOT,Type&  aValInit,TypeCast* UnUsed)
+         {
+		 // if it's a binary file, to optimize we make a raw read/write
+              if (mBinary)
+              {
+                  cRawData4Serial aRDS = cRawData4Serial::Tpl(&aValInit,1);
+                  RawAddDataTerm(aRDS);
+              }
+              else
+              {
+                  //  Else we make a cast of  the value
+                   TypeCast aCast = aValInit;
+                   RawAddDataTerm(aCast);
+                   if (mInput)  // in read-mode we must transfert the casted read value
+                      aValInit = aCast;
+              }
+         }
+
+          /// default do nothing)
+         virtual void AddComment(const std::string &);
+         ///  Tagged File = xml Like, important for handling optionnal parameter
+         bool  Tagged() const;
+         ///  May optimize the action
+         bool  Input() const;
+         ///  Specification archive need some trick action with containers
+         bool  IsSpecif() const;
+	 ///  rare used, required in CSV to avoid duplication, default error
+	 virtual void SetSpecif(bool);
+	 /// rare used, required in CSV
+	 virtual void PutArchiveIn(std::vector<std::string> * aRes);
+         /// Allow to  know by advance if next optionnal value is present, usefull with Xml
+         /// Default return error
+         virtual int NbNextOptionnal(const std::string &);
+         virtual ~cAr2007();
+         virtual void Separator(); /**< Used in final but non atomic type,
+                                        for ex with Pt : in text separate x,y, in bin do nothing */
+         virtual size_t HashKey() const;
+
+      // Final atomic type for serialization
+         virtual void RawAddDataTerm(int &    anI) =  0; ///< Heriting class descrine how they serialze int
+         virtual void RawAddDataTerm(size_t &    anI) =  0; ///< Heriting class descrine how they serialze int
+         virtual void RawAddDataTerm(double &    anI) =  0; ///< Heriting class descrine how they serialze double
+         virtual void RawAddDataTerm(std::string &    anI) =  0; ///< Heriting class descrine how they serialze string
+         virtual void RawAddDataTerm(cRawData4Serial  &    aRDS) =  0; ///< Heriting class descrine how they serialze string
+                                                                       //
+
+         virtual void OnBeginTab() {} /// Used in old json, probably will disapear
+         virtual void OnEndTab() {} /// Used in old json, probably will disapear
+         /**  Called when we add the size of vect/list, for compatibility, just add int whit tag Nb, can be overloaded
+          * when "well parenthesis struct" is used to compute the size */
+         virtual  void AddDataSizeCont(int & aNb,const cAuxAr2007 & anAux);
+
+    protected  :
+         cAr2007(bool InPut,bool Tagged,bool Binary);
+         int   mLevel;
+         bool  mInput;
+         bool  mTagged;
+         bool  mBinary;   //  != from tagged iw we implemant a pure txt format
+         bool  mIsSpecif;   ///  special value for handling specificcation archive requirement 
+     private  :
+
+         /// By default error, to redefine in hashing class
+         /// This message is send before each data is serialized, tagged file put/read their opening tag here
+         virtual void RawBeginName(const cAuxAr2007& anOT);
+         /// This message is send each each data is serialized, tagged file put/read their closing tag here
+         virtual void RawEndName(const cAuxAr2007& anOT);
+
+
+      // Final non atomic type for serialization
+};
+
+
+
+
+/**
+   The serialization "file" inherit from the mother class cAr2007. This
+   class is accessible via the  the  cAuxAr2007 , the automitazation of 
+   calling level (usefull for example in XML pretty printing) is done by
+   constructor and destructor of cAuxAr2007.
+*/
+
+
+
+class cAuxAr2007
+{
+     friend class cAr2007;
+     public :
+         /// No usefull copy constructor inhibit it
+         cAuxAr2007 (const cAuxAr2007 &) = delete;
+         /// Increase counter, send the  virtual message  of opening  tag
+         cAuxAr2007 (const std::string & aName,cAr2007 &,eTAAr);
+         /// Decrease counter, send the  virtual message  of closing  tag
+         ~cAuxAr2007 ();
+         ///  Just a more connvenient way to call 
+         cAuxAr2007 (const std::string & aName, const cAuxAr2007 &,eTAAr = eTAAr::eStd);
+
+         const std::string  Name () const {return mName;}
+         cAr2007 & Ar()             const {return mAr;}
+         /// Call mAr, indique if for read or write
+         bool Input() const;
+         /// Call mAr, indicate if xml-like (more sophisticated optional handling)
+         bool Tagged() const;
+         /// Call mAr, return 0 or 1, indicating if next optionnal value is present
+         int NbNextOptionnal(const std::string &) const;
+	 eTAAr  Type() const ; /// Accessor
+	 void  SetType(eTAAr) const;   ///  Not const in fact,  but must be called on const object ...
+     private : 
+         const std::string  mName;
+         cAr2007 & mAr;
+	 eTAAr     mType;
+};
+
+/// Create an archive structure, its type (xml, binary, text) is determined by extension
+ cAr2007* AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif=false);
+
+ ///  Create an archive for storing specif
+ cAr2007* AllocArSpecif(const std::string & aName);
+
+/// Create an archive for hashing value
+cAr2007* AllocArHashVal(bool ordered);
+size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
+				 
+// void AddComment(cAr2007 & anAr, const std::string & aString);
+// void AddSeparator(cAr2007 & anAr);
+
+
+/** Here are the atomic serialization function */
+
+void AddData(const  cAuxAr2007 & anAux, bool  &  aVal); ///< for int
+void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
+void AddData(const  cAuxAr2007 & anAux, tINT1  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, tU_INT1  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, tINT2  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal); ///< for unsigned short
+							   
+void AddData(const  cAuxAr2007 & anAux, size_t  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
+void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
+void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Pair of string
+void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered Cple of string
+void AddData(const  cAuxAr2007 & anAux, std::map<std::string,int>&  aVal) ;  ///< 
+
+template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) ;  ///<for cPt2dr
+template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal,eTAAr aTAAr= eTAAr::eFixTabNum);
+
+
+
 /*
 template <class Type> cRawData4Serial TplRawData4Serial(Type *Adr,int aNb) 
 {
@@ -345,7 +459,6 @@ void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal); ///< for cRaw
 // template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<Type> & aL);
 
 
-void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!
 
 /// By default no MMV1 save, def value is required for general template SaveInFile
 template<class Type> void  MMv1_SaveInFile(const Type & aVal,const std::string & aName)
@@ -363,7 +476,9 @@ template<> void  MMv1_SaveInFile(const tNameSet & aVal,const std::string & aName
 bool GlobOutV2Format();
 
 /// Indicate if a file is really XML, created by MMVII and containing the expected Tag
-bool IsFileXmlOfGivenTag(bool Is2007,const std::string & aName,const std::string & aTag); 
+bool IsFileGivenTag(bool Is2007,const std::string & aName,const std::string & aTag); 
+/// Probably soon obsolete
+bool IsXmlV1FileGivenTag(const std::string & aName,const std::string & aTag); 
 
 
 template <class Type> const std::string  & XMLTagSet();
@@ -373,6 +488,10 @@ template <> const std::string  &           XMLTagSet<tNamePair>   ();
 template <class Type> const std::string  & MMv1_XMLTagSet();
 template <> const std::string  &           MMv1_XMLTagSet<std::string> ();
 template <> const std::string  &           MMv1_XMLTagSet<tNamePair>   ();
+
+///  temporary method while devloping the new methods
+void TestGenerikPARSE(const std::string& aName);
+
 
 /*****************************************************************/
 

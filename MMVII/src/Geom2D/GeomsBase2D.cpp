@@ -1,4 +1,6 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
+#include "MMVII_SysSurR.h"
 
 namespace MMVII
 {
@@ -86,10 +88,7 @@ template <class TypeMap> class  cMapEstimate
 
           /// For non linear make Ransac+linear refine
           static TypeMap LeastSquareNLEstimate(tCRVPts,tCRVPts,tTypeElem*,tCPVVals,const cParamCtrlOpt&);
-        
-
     private :
-
 };
 
 template <class TypeMap>  
@@ -99,6 +98,16 @@ template <class TypeMap>
    MMVII_INTERNAL_ASSERT_medium(aVIn.size()>= TypeMap::NbPtsMin,"Not enough obs in cMapEstimate");
 }
 
+template <class TypeMap> 
+   typename TypeMap::tTypeElem  AvgDistL1(const TypeMap & aMap,typename TypeMap::tCRVPts aVIn,typename TypeMap::tCRVPts aVOut)
+{
+    MMVII_INTERNAL_ASSERT_medium(aVIn.size()==aVOut.size(),"Bad sizes in AvgDistL1");
+    typename TypeMap::tTypeElem  aRes= 0.0;
+    for (size_t aKP=0 ; aKP< aVIn.size() ; aKP++)
+        aRes +=  Norm1(aMap.Value(aVIn[aKP])-aVOut[aKP]);
+
+    return aRes / aVIn.size();
+}
 
 
 template <class TypeMap>  
@@ -134,21 +143,42 @@ template <class TypeMap>
       {
           *aRes2 += SqN2(aVOut[aK]-aMap.Value(aVIn[aK]));
       }
-      ///StdOut() << "NOOrrrmSol= " << aSomR2 << "\n";
+      ///StdOut() << "NOOrrrmSol= " << aSomR2 << std::endl;
    }
 
    return aMap;
 }
 
+template <class TypeMap,class TypePt>  void InspectMap2D(const TypeMap & aMap,const TypePt & aPt)
+{
+}
+
+void InspectMap2D(const cHomogr2D<tREAL8> & aMap,const tPt2dr & aPt)
+{
+     StdOut() << " ----------- Pt=" << aPt << "-------------" << std::endl;
+     StdOut() << "Hxx : " <<  aMap.Hx() << " S=" << aMap.S(aMap.Hx(),aPt) << std::endl;
+     StdOut() << "Hyy : " <<  aMap.Hy() << " S=" << aMap.S(aMap.Hy(),aPt) << std::endl;
+     StdOut() << "Hzz : " <<  aMap.Hz() << " S=" << aMap.S(aMap.Hz(),aPt) << std::endl;
+}
+
+
 template <class TypeMap>  
     TypeMap  cMapEstimate<TypeMap>::RansacL1Estimate(const  tVPts& aVAllIn,const tVPts & aVAllOut,int aNbTest)
 {
+// StdOut() << "L111 " << TypeMap::Name() << " " << tNumTrait<tTypeElem>::NameType() << std::endl;
+
+
+    tTypeElem aSigma = 0.5 * (      cComputeCentroids<tVPts>::MedianSigma(aVAllIn)
+                                 +  cComputeCentroids<tVPts>::MedianSigma(aVAllOut)
+                             );
+
+
     CheckInOut(aVAllIn,aVAllOut);
     std::vector<cSetIExtension> aVSubInd;
     // generate NbTest subset
     GenRanQsubCardKAmongN(aVSubInd,aNbTest,TypeMap::NbPtsMin,aVAllIn.size());
 
-    cWhitchMin<TypeMap,tTypeElem>  aWMin(TypeMap(),1e30);
+    cWhichMin<TypeMap,tTypeElem>  aWMin(TypeMap(),1e30);
     typename TypeMap::tTabMin aVMinIn,aVMinOut;
     //  Parse all subset
     for (const auto & aSub : aVSubInd)
@@ -164,11 +194,16 @@ template <class TypeMap>
 
          // Compute the residual for this map
          tTypeElem aSomDist = 0;
-         for (int aKP=0 ; aKP<int(aVAllIn.size()) ; aKP++)
-             aSomDist += Norm2(aVAllOut[aKP]-aMap.Value(aVAllIn[aKP]));
 
-          // Update best map
-          aWMin.Add(aMap,aSomDist);
+         for (int aKP=0 ; aKP<int(aVAllIn.size()) ; aKP++)
+         {
+             // tTypeElem aDist = Norm2(aVAllOut[aKP]-aMap.Value(aVAllIn[aKP]));
+             tTypeElem aDist = Norm2(aMap.DiffInOut(aVAllIn[aKP],aVAllOut[aKP]));
+             aDist = aDist * aSigma/ (aSigma+aDist);
+             aSomDist += aDist;
+         }
+         // Update best map
+         aWMin.Add(aMap,aSomDist);
     }
 
      return aWMin.IndexExtre();
@@ -197,7 +232,7 @@ template <class TypeMap>
 
 /*
 if (aRes2)
-StdOut() << "===RRRR " << *aRes2 << "\n";
+StdOut() << "===RRRR " << *aRes2 << std::endl;
 */
 
     return aDeltaM1.MapInverse() * aMap0;
@@ -313,7 +348,12 @@ template <class Type>  cHomot2D<Type> cHomot2D<Type>::FromMinimalSamples(const t
 }
 
 
+template <class Type>  cPtxd<Type,2> cHomot2D<Type>::DiffInOut(const tPt & aPIn,const tPt & aPOut) const
+{
+   return Value(aPIn) - aPOut;
+}
 
+template <class Type>  Type cHomot2D<Type>::Divisor(const tPt & aPIn) const {return 1.0;}
 
 /*
 */
@@ -412,6 +452,13 @@ template <class Type>  cSim2D<Type> cSim2D<Type>::RansacL1Estimate(tCRVPts aVIn,
     return cMapEstimate<cSim2D<Type>>::RansacL1Estimate(aVIn,aVOut,aNbTest);
 }
 
+template <class Type>  cPtxd<Type,2> cSim2D<Type>::DiffInOut(const tPt & aPIn,const tPt & aPOut) const
+{
+   return Value(aPIn) - aPOut;
+}
+
+template <class Type>  Type cSim2D<Type>::Divisor(const tPt & aPIn) const {return 1.0;}
+
 /* ========================== */
 /*          cRot2D            */
 /* ========================== */
@@ -468,6 +515,36 @@ template <class Type>
     return cMapEstimate<cRot2D<Type>>::LeastSquareRefine(*this,aVIn,aVOut,aRes2,aVW);
 }
 
+template <class Type>  cRot2D<Type> cRot2D<Type>::QuickEstimate(tCRVPts aVIn,tCRVPts aVOut)
+{
+     cMapEstimate<tTypeMap>::CheckInOut(aVIn,aVOut);
+
+     cPtxd<Type,2>  aCdgI =   cPtxd<Type,2>::FromPtR(Centroid(aVIn));
+     cPtxd<Type,2>  aCdgO =   cPtxd<Type,2>::FromPtR(Centroid(aVOut));
+
+     // etimate rotation as weighted average  of  Rot * VIn = VOut
+     cPtxd<Type,2> aVRot(0,0);
+     for (size_t aK=0; aK<aVIn.size() ; aK++)
+     {
+            cPtxd<Type,2> aVecI =  aVIn[aK] - aCdgI;
+            cPtxd<Type,2> aVecO =  aVOut[aK] - aCdgO;
+
+            Type aW = Norm2(aVecI);
+            if  (aW>0)
+            {
+		 aVRot +=  (aVecO/aVecI) * aW;
+            }
+     }
+
+     Type aTeta = ToPolar(aVRot,Type(0.0)).y(); // vect rot to angle
+     aVRot = FromPolar(Type(1.0),aTeta);
+
+     cPtxd<Type,2>  aTr = aCdgO - aCdgI*aVRot;  // usign  Out = Tr +In* Rot
+
+     return cRot2D<Type>(aTr,aTeta);
+
+}
+
 
 template <class Type>  cRot2D<Type> cRot2D<Type>::FromMinimalSamples(const tTabMin& aTabIn,const tTabMin& aTabOut)
 {
@@ -501,6 +578,12 @@ template <class Type>
 {
     return  cMapEstimate<cRot2D<Type> >::LeastSquareNLEstimate(aVIn,aVOut,aRes,aVW,aParam);
 }
+
+template <class Type>  cPtxd<Type,2> cRot2D<Type>::DiffInOut(const tPt & aPIn,const tPt & aPOut) const
+{
+   return Value(aPIn) - aPOut;
+}
+template <class Type>  Type cRot2D<Type>::Divisor(const tPt & aPIn) const {return 1.0;}
 
 //  cRot2D<Type> cRot2D<Type>::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest)
 //  cRot2D<Type> cRot2D<Type>::LeastSquareRefine(tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVW)const
@@ -657,6 +740,30 @@ template <class Type>   cAffin2D<Type>  cAffin2D<Type>::FromMinimalSamples(const
     return aR0ToOut* aR0ToIn.MapInverse() ;
 }
 
+template <class Type>   cAffin2D<Type>  cAffin2D<Type>:: Tri2Tri(const tTri& aTriIn,const tTri& aTriOut)
+{
+    tTabMin aTabIn {aTriIn.Pt(0) ,aTriIn.Pt(1) ,aTriIn.Pt(2) };
+    tTabMin aTabOut{aTriOut.Pt(0),aTriOut.Pt(1),aTriOut.Pt(2)};
+
+    return FromMinimalSamples(aTabIn,aTabOut);
+}
+
+template <class Type> Type cAffin2D<Type>::MinResolution() const
+{
+    //  See documentation of mmv1, appendix E, for justification of the forlua
+    
+    Type aVX2 =   SqN2(mVX) ;
+    Type aVY2 =   SqN2(mVY) ;
+
+    Type aRadical = Square(aVX2-aVY2) +4*Square(Scal(mVX,mVY));
+
+    Type aRes = (aVX2 + aVY2 - std::sqrt(aRadical)) / 2.0;
+
+    return std::sqrt(std::max(Type(0.0),aRes));
+}
+/*
+*/
+
 template <class Type>  
      cAffin2D<Type> cAffin2D<Type>::StdGlobEstimate
                         (tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVWeights)
@@ -668,6 +775,320 @@ template <class Type>  cAffin2D<Type> cAffin2D<Type>::RansacL1Estimate(tCRVPts a
 {
     return cMapEstimate<cAffin2D<Type>>::RansacL1Estimate(aVIn,aVOut,aNbTest);
 }
+
+template <class Type>  cPtxd<Type,2> cAffin2D<Type>::DiffInOut(const tPt & aPIn,const tPt & aPOut) const
+{
+   return Value(aPIn) - aPOut;
+}
+template <class Type>  Type cAffin2D<Type>::Divisor(const tPt & aPIn) const {return 1.0;}
+
+
+/* ========================== */
+/*          cHomogr2D         */
+/* ========================== */
+
+static constexpr int iHXx = 0;
+static constexpr int iHXy = 1;
+static constexpr int iHX1 = 2;
+static constexpr int iHYx = 3;
+static constexpr int iHYy = 4;
+static constexpr int iHY1 = 5;
+static constexpr int iHZx = 6;
+static constexpr int iHZy = 7;
+
+template <class Type> cHomogr2D<Type>::cHomogr2D(const tElemH & aHX,const tElemH & aHY,const tElemH & aHZ) :
+    mHX (aHX/aHZ.z()),
+    mHY (aHY/aHZ.z()),
+    mHZ (aHZ/aHZ.z())
+{
+   cDenseMatrix<Type> aMatI = Mat().Inverse();
+   GetLine(mIHX,0,aMatI);
+   GetLine(mIHY,1,aMatI);
+   GetLine(mIHZ,2,aMatI);
+}
+
+template <class Type> cHomogr2D<Type>::cHomogr2D() :
+    cHomogr2D<Type>(tElemH(1,0,0),tElemH(0,1,0),tElemH(0,0,1))
+{
+}
+
+template <class Type> cHomogr2D<Type> cHomogr2D<Type>::FromParam(const cDenseVect<Type> & aV)
+{
+    return cHomogr2D<Type>
+           (
+               tElemH(aV(iHXx),aV(iHXy),aV(iHX1)),
+               tElemH(aV(iHYx),aV(iHYy),aV(iHY1)),
+               tElemH(aV(iHZx),aV(iHZy),1.0    )
+           );
+}
+
+template <class Type> cHomogr2D<Type>  cHomogr2D<Type>::FromMinimalSamples(const tTabMin& aTabIn,const tTabMin&aTabOut)
+{
+   MMVII_INTERNAL_ASSERT_always((NbDOF%TheDim)==0,"Div assert in FromMinimalSamples");
+   cDenseMatrix<Type> aMat(NbDOF);
+   cDenseVect<Type>   aVect(NbDOF);
+
+   cDenseVect<Type> aVX(NbDOF);
+   cDenseVect<Type> aVY(NbDOF);
+   tPt aRhs;
+   for (int aK=0 ; aK<NbPtsMin ; aK++)
+   {
+       ToEqParam(aRhs,aVX,aVY,aTabIn[aK],aTabOut[aK]);
+       
+       int aLineX = 2 *aK;
+       aMat.WriteLine(aLineX,aVX);
+       aVect(aLineX) = aRhs.x();
+
+       int aLineY = aLineX + 1;
+       aMat.WriteLine(aLineY,aVY);
+       aVect(aLineY) = aRhs.y();
+   }
+   // aMat.Show();
+
+   cDenseVect<Type> aSol =  aMat.SolveColumn(aVect);
+   // for (int aK=0 ; aK<8 ; aK++) StdOut() << "PPPP " << aSol(aK) << std::endl;
+   return FromParam(aSol);
+}
+
+
+template <class Type> void cHomogr2D<Type>::ToEqParam
+                           (
+                                 tPt & aRHS,
+                                 cDenseVect<Type>& aVX,
+                                 cDenseVect<Type> & aVY,
+                                 const tPt &In,
+                                 const tPt & Out
+                           )
+{
+      //  I =  (xx Xin + yy Yin + zz) / (zx Xin + zy Yin + 1.0)
+      //  I = xx Xin + yy Yin + zz  - zx (I Xin)   - zy (I Yin)
+      Type I    = Out.x();
+
+      aVX(iHXx) = In.x();
+      aVX(iHXy) = In.y();
+      aVX(iHX1) = 1.0;
+
+      aVX(iHYx) = 0.0;
+      aVX(iHYy) = 0.0;
+      aVX(iHY1) = 0.0;
+
+      aVX(iHZx) = - In.x() * I;
+      aVX(iHZy) = - In.y() * I;
+
+      Type J    = Out.y();
+      
+      aVY(iHXx) = 0.0;
+      aVY(iHXy) = 0.0;
+      aVY(iHX1) = 0.0;
+
+      aVY(iHYx) = In.x();
+      aVY(iHYy) = In.y();
+      aVY(iHY1) = 1.0;
+
+      aVY(iHZx) = - In.x() * J;
+      aVY(iHZy) = - In.y() * J;
+
+      aRHS = Out;
+}
+
+
+template <class Type> cDenseMatrix<Type> cHomogr2D<Type>::Mat() const
+{
+   return M3x3FromLines(mHX,mHY,mHZ);
+}
+
+template <class Type> cHomogr2D<Type> cHomogr2D<Type>::FromMat(const cDenseMatrix<Type> & aMat)
+{
+   tElemH aHx,aHy,aHz;
+   GetLine(aHx,0,aMat);
+   GetLine(aHy,1,aMat);
+   GetLine(aHz,2,aMat);
+
+   return cHomogr2D<Type>(aHx,aHy,aHz);
+}
+
+template <class Type> cHomogr2D<Type> cHomogr2D<Type>::operator *(const tTypeMap& aM2) const
+{
+    return FromMat(Mat() * aM2.Mat());
+} 
+
+template <class Type> cHomogr2D<Type>  cHomogr2D<Type>::MapInverse() const 
+{
+    return FromMat(Mat().Inverse());
+}
+
+
+/*
+template <class Type> const cPtxd<Type,3>& cHomogr2D<Type>::Hx() const {return mHX;}
+template <class Type> const cPtxd<Type,3>& cHomogr2D<Type>::Hy() const {return mHY;}
+template <class Type> const cPtxd<Type,3>& cHomogr2D<Type>::Hz() const {return mHZ;}
+
+template <class Type> cPtxd<Type,3>& cHomogr2D<Type>::Hx() {return mHX;}
+template <class Type> cPtxd<Type,3>& cHomogr2D<Type>::Hy() {return mHY;}
+template <class Type> cPtxd<Type,3>& cHomogr2D<Type>::Hz() {return mHZ;}
+*/
+
+template <class Type>  cHomogr2D<Type> cHomogr2D<Type>::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest)
+{
+    return cMapEstimate<cHomogr2D<Type>>::RansacL1Estimate(aVIn,aVOut,aNbTest);
+}
+
+template <class Type>  
+     cHomogr2D<Type> cHomogr2D<Type>::StdGlobEstimate
+                        (tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVWeights)
+{
+    return cMapEstimate<cHomogr2D<Type>>::LeasSqEstimate(aVIn,aVOut,aRes2,aVWeights);
+}
+
+template <class Type>  cPtxd<Type,2> cHomogr2D<Type>::DiffInOut(const tPt & aPIn,const tPt & aPOut) const
+{
+   return tPt(S(mHX,aPIn),S(mHY,aPIn)) - aPOut * S(mHZ,aPIn);
+}
+
+template <class Type>  Type cHomogr2D<Type>::Divisor(const tPt & aPIn) const {return  S(mHZ,aPIn);}
+/*
+template <class Type>  
+     cHomogr2D<Type> cHomogr2D<Type>::StdGlobEstimate
+                        (tCRVPts aVIn,tCRVPts aVOut,Type * aRes2,tCPVVals aVWeights)
+{
+    return cMapEstimate<cHomogr2D<Type>>::LeasSqEstimate(aVIn,aVOut,aRes2,aVWeights);
+}
+*/
+
+template <class Type>  Type cHomogr2D<Type>::AvgDistL1(tCRVPts aVIn,tCRVPts aVOut)
+{
+	return MMVII::AvgDistL1(*this,aVIn,aVOut);
+}
+
+
+template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::AllocRandom(const Type & aAmpl)
+{
+    auto aPair = RandomPtsHomgr(aAmpl);
+    return StdGlobEstimate(aPair.first,aPair.second);
+}
+
+/*   Solving the paral homographic equation
+ *
+ *           ax + by +cz +d             ix + jy + kz +l
+ *    xo=    ---------------      yo =  --------------- 
+ *           ex + fy + gz + 1           ex + fy + gz + 1
+ *
+ *    
+ *    xo = (Hx(P) + cz) / (Hz(P) + gz)     yo = (Hy(P) + kz) / (Hz(P) + gz)
+ *
+ *    We have a linear system with 3 unknown cz,kz,fd.  For each point where we know xi,yi,x,y we can write :
+ *
+ *    xo Hz(P) - Hx(P)  = cz - xo gz
+ *    yo Hz(P) - Hy(P)  = kz - yo gz
+ *
+ *    We can solve it with 2 known correp
+ */
+
+template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::LeastSqParalPlaneShift(tCRVPts aVIn,tCRVPts aVOut) const
+{
+
+   MMVII_INTERNAL_ASSERT_medium(aVIn.size()==aVOut.size(),"Bad sizes in LeastSqParalPlaneShift");
+   // MMVII_INTERNAL_ASSERT_medium(aVIn.size()==aVOut.size(),"Bad sizes in LeastSqParalPlaneShift");
+   MMVII_INTERNAL_ASSERT_medium(aVIn.size()>=2,"Bad sizes in LeastSqParalPlaneShift");
+
+   cLeasSqtAA<Type>  aSys(3);
+   cDenseVect<Type>  aVec(3);
+
+   for (size_t aKP=0 ; aKP<aVIn.size() ; aKP++)
+   {
+       const tPt & aPIn = aVIn[aKP];
+       const tPt & aPOut = aVOut[aKP];
+       Type aHx = S(mHX,aPIn);
+       Type aHy = S(mHY,aPIn);
+       Type aHz = S(mHZ,aPIn);
+       Type xo = aPOut.x();
+       Type yo = aPOut.y();
+
+ // *    xo Hz(P) - Hx(P)  = cz - xo gz
+       aVec(0) = 1;
+       aVec(1) = 0;
+       aVec(2) = -xo;
+       aSys.AddObservation(1.0,aVec,xo*aHz-aHx);
+
+ // *    yo Hz(P) - Hy(P)  = kz - yi gz
+       aVec(0) = 0;
+       aVec(1) = 1;
+       aVec(2) = -yo;
+       aSys.AddObservation(1.0,aVec,yo*aHz-aHy);
+   }
+
+   cDenseVect<Type>  aSol = aSys.Solve();
+   tTypeMap  aRes 
+	     (
+	         mHX + tElemH(0,0,aSol(0)),
+	         mHY + tElemH(0,0,aSol(1)),
+	         mHZ + tElemH(0,0,aSol(2))
+	     );
+
+   return aRes;
+}
+
+template <class Type>   cHomogr2D<Type>  cHomogr2D<Type>::RansacParalPlaneShift(tCRVPts aVIn,tCRVPts aVOut,int aNbMin,int aNbMax) const
+{
+   aNbMax =std::min(aNbMax,int(aVOut.size()));
+   int aNbTest = 10000;
+
+   MMVII_INTERNAL_ASSERT_medium(aVIn.size()==aVOut.size(),"Bad sizes in RansacParalPlaneShift");
+   cWhichMin<tTypeMap,tTypeElem>  aWMin(tTypeMap(),1e30);
+
+
+   for (int aNb=aNbMin ; aNb<=aNbMax ; aNb++)
+   {
+       std::vector<cSetIExtension> aVSubInd;
+       GenRanQsubCardKAmongN(aVSubInd,aNbTest,aNb,aVIn.size());
+
+       for (const auto & aSubInd : aVSubInd)
+       {
+           tVPts aSubIn = SubVector(aVIn,aSubInd.mElems);
+           tVPts aSubOut = SubVector(aVOut,aSubInd.mElems);
+	   tTypeMap  aHomTest = LeastSqParalPlaneShift(aSubIn,aSubOut);
+	   tTypeElem aSc = aHomTest.AvgDistL1(aVIn,aVOut);
+
+	   aWMin.Add(aHomTest,aSc);
+       }
+   }
+   return aWMin.IndexExtre();
+}
+
+void BenchHomogr2D()
+{
+/*
+   for (int aTest=0 ; aTest< 20 ; aTest++)
+   {
+       cPt2dr aTabIn[4];
+       cPt2dr aTabOut[4];
+
+       for (int aKP=0 ; aKP< 4 ; aKP++)
+       {
+           aTabIn [aKP] = cPt2dr::PRandC();
+           aTabOut[aKP] = cPt2dr::PRandC();
+       }
+
+       cHomogr2D<tREAL8> aH   = cHomogr2D<tREAL8>::FromMinimalSamples(aTabIn,aTabOut);
+       cHomogr2D<tREAL8> aHI  = aH.MapInverse();
+       cHomogr2D<tREAL8> aID1 = aH * aHI;
+
+       for (int aKP=0 ; aKP< 4 ; aKP++)
+       {
+           StdOut() << Norm2(aTabOut[aKP]  - aH.Value(aTabIn[aKP]))   << " " 
+                    << Norm2(aHI.Value(aTabOut[aKP])  - aTabIn[aKP])  << " "
+                    << Norm2(aH.Inverse(aTabOut[aKP])  - aTabIn[aKP]) << " "
+                    << Norm2(aID1.Value(aTabIn[aKP])  - aTabIn[aKP])  << " "
+
+                    << " IO " <<  Norm2(aH.DiffInOut(aTabIn[aKP],aTabOut[aKP]))
+                    << "\n";
+       }
+
+       StdOut() << " ======================================== " << std::endl;
+   }
+*/
+}
+
 
 
 /* ========================== */
@@ -684,14 +1105,16 @@ template <class Type> cDenseMatrix<Type> MatOfMul (const cPtxd<Type,2> & aP)
     return aRes;
 }
 
-template <class Type> std::vector<cPtxd<Type,2> > RandomPtsOnCircle(int aNbPts)
+template <class Type> 
+    std::vector<cPtxd<Type,2> > RandomPtsOnCircle(const std::vector<int> & aVInd,const cPtxd<Type,2>& aP0, double aRho )
 {
+  int aNbPts = aVInd.size();
   std::vector<cPtxd<Type,2> > aRes;
-  std::vector<int> aVInd =  RandPerm(aNbPts);
+  // std::vector<int> aVInd =  RandPerm(aNbPts);
   double aTeta0 = RandUnif_0_1() * 2 * M_PI;
   double aEcartTeta =  ( 2 * M_PI)/aNbPts;
-  double aRho  = RandUnif_C_NotNull(0.1);
-  cPtxd<Type,2> aP0 = cPtxd<Type,2>::PRand();
+  // double aRho  = RandUnif_C_NotNull(0.1);
+  // cPtxd<Type,2> aP0 = cPtxd<Type,2>::PRand();
 
   for (int aK=0 ; aK<aNbPts ; aK++)
   {
@@ -703,6 +1126,59 @@ template <class Type> std::vector<cPtxd<Type,2> > RandomPtsOnCircle(int aNbPts)
   return aRes;
 }
 
+template <class Type> std::vector<cPtxd<Type,2> > RandomPtsOnCircle(int aNbPts)
+{
+     return RandomPtsOnCircle(RandPerm(aNbPts),cPtxd<Type,2>::PRand(), RandUnif_C_NotNull(0.1));
+}
+
+
+template <class Type> 
+      std::pair<std::vector<cPtxd<Type,2> >,std::vector<cPtxd<Type,2>>> RandomPtsHomgr(Type aR)
+{
+    std::pair<std::vector<cPtxd<Type,2> >,std::vector<cPtxd<Type,2>>>  aRes;
+    std::vector<int> aVInd =  RandPerm(4);
+
+    cPtxd<Type,2> aC0 = cPtxd<Type,2>::PRand() *Type(0.1);
+    cPtxd<Type,2> aC1 = cPtxd<Type,2>::PRand() *Type(0.1);
+
+     Type aR0 = RandInInterval(aR,2.0*aR);
+     Type aR1 = RandInInterval(aR,2.0*aR);
+
+     aRes.first  = RandomPtsOnCircle(aVInd,aC0,aR0);
+     aRes.second = RandomPtsOnCircle(aVInd,aC1,aR1);
+     
+
+    return aRes;
+
+}
+
+template <class Type> 
+      std::pair<std::vector<cPtxd<Type,2> >,std::vector<cPtxd<Type,2>>> RandomPtsId(int aNb,Type aEpsId)
+{
+    std::pair<std::vector<cPtxd<Type,2> >,std::vector<cPtxd<Type,2>>>  aRes;
+    for (int aK=0 ; aK< aNb ; aK++)
+    {
+         cPtxd<Type,2> aP1 =  FromPolar(Type(1.0),Type( ( 2 * M_PI * aK)/aNb));
+         aRes.first.push_back(aP1);
+         aRes.second.push_back(aP1 + cPtxd<Type,2>::PRandC() * aEpsId);
+    }
+    return aRes;
+}
+
+template <class tMap>  tMap RandomMapId(typename tMap::tTypeElem aEpsId)
+{
+     auto aPair = RandomPtsId(tMap::NbPtsMin,aEpsId);
+
+    return tMap::StdGlobEstimate(aPair.first,aPair.second);
+}
+
+
+
+template <class Type,class tMap>  cTriangle<Type,2>  ImageOfTri(const cTriangle<Type,2> & aTri,const tMap & aMap)
+{
+     return  cTriangle<Type,2>(aMap.Value(aTri.Pt(0)),aMap.Value(aTri.Pt(1)),aMap.Value(aTri.Pt(2)));
+}
+
 
 /* ========================== */
 /*       INSTANTIATION        */
@@ -710,8 +1186,12 @@ template <class Type> std::vector<cPtxd<Type,2> > RandomPtsOnCircle(int aNbPts)
 
 #define INSTANTIATE_GEOM_REAL(TYPE)\
 template std::vector<cPtxd<TYPE,2> > RandomPtsOnCircle<TYPE>(int aNbPts);\
+template std::pair<std::vector<cPtxd<TYPE,2> >,std::vector<cPtxd<TYPE,2>>> RandomPtsHomgr(TYPE);\
+template std::pair<std::vector<cPtxd<TYPE,2> >,std::vector<cPtxd<TYPE,2>>> RandomPtsId(int aNb,TYPE aEpsId);\
 template class cSegment2DCompiled<TYPE>;\
-template class  cAffin2D<TYPE>;
+template class  cAffin2D<TYPE>;\
+template class  cHomogr2D<TYPE>;\
+template   cHomogr2D<TYPE> RandomMapId(TYPE);
 
 INSTANTIATE_GEOM_REAL(tREAL4)
 INSTANTIATE_GEOM_REAL(tREAL8)
@@ -721,11 +1201,12 @@ INSTANTIATE_GEOM_REAL(tREAL16)
 
 
 #define MACRO_INSTATIATE_GEOM2D_MAPPING(TYPE,TMAP,DIM)\
+template   cTriangle<TYPE,2>  ImageOfTri(const cTriangle<TYPE,2> & aTri,const TMAP & aMap);\
 template  TMAP TMAP::FromParam(const cDenseVect<TYPE> & aVec) ;\
 template  void TMAP::ToEqParam(tPt&,cDenseVect<TYPE>&,cDenseVect<TYPE> &,const tPt &,const tPt &);\
 template  TMAP TMAP::FromMinimalSamples(const tTabMin& ,const tTabMin& );\
-template TMAP TMAP::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest)
-
+template TMAP TMAP::RansacL1Estimate(tCRVPts aVIn,tCRVPts aVOut,int aNbTest);\
+template  TYPE TMAP::Divisor(const tPt & aPIn) const;
 
 #define MACRO_INSTATIATE_LINEAR_GEOM2D_MAPPING(TYPE,TMAP,DIM)\
 template  TMAP TMAP::StdGlobEstimate(tCRVPts,tCRVPts,TYPE*,tCPVVals);\
@@ -734,10 +1215,11 @@ MACRO_INSTATIATE_GEOM2D_MAPPING(TYPE,TMAP,DIM)
 #define MACRO_INSTATIATE_NON_LINEAR_GEOM2D_MAPPING(TYPE,TMAP,DIM)\
 MACRO_INSTATIATE_GEOM2D_MAPPING(TYPE,TMAP,DIM); \
 template TMAP TMAP::LeastSquareRefine(tCRVPts,tCRVPts,TYPE *,tCPVVals)const;\
-template TMAP TMAP::StdGlobEstimate(tCRVPts,tCRVPts,tTypeElem*,tCPVVals,cParamCtrlOpt);
-
+template TMAP TMAP::StdGlobEstimate(tCRVPts,tCRVPts,tTypeElem*,tCPVVals,cParamCtrlOpt);\
+template   TMAP RandomMapId(TYPE);
 
 #define MACRO_INSTATIATE_GEOM2D(TYPE)\
+template  cRot2D<TYPE>  cRot2D<TYPE>::QuickEstimate(tCRVPts aVIn,tCRVPts aVOut);\
 MACRO_INSTATIATE_NON_LINEAR_GEOM2D_MAPPING(TYPE,cRot2D<TYPE>,2);\
 template  cRot2D<TYPE> cRot2D<TYPE>::RandomRot(const TYPE & AmplTr);\
 MACRO_INSTATIATE_LINEAR_GEOM2D_MAPPING(TYPE,cSim2D<TYPE>,2);\
@@ -747,6 +1229,9 @@ template  cHomot2D<TYPE> cHomot2D<TYPE>::RandomHomotInv(const TYPE &,const TYPE 
 template  cSim2D<TYPE> cSim2D<TYPE>::FromMinimalSamples(const tPt & aP0In,const tPt & aP1In,const tPt & aP0Out,const tPt & aP1Out )  ;\
 template  cSimilitud3D<TYPE> cSim2D<TYPE>::Ext3D() const;\
 template  cDenseMatrix<TYPE> MatOfMul (const cPtxd<TYPE,2> & aP);
+
+
+//  MACRO_INSTATIATE_LINEAR_GEOM2D_MAPPING(TYPE,cHomogr2D<TYPE>,2);
 
 
 MACRO_INSTATIATE_GEOM2D(tREAL4)

@@ -1,7 +1,8 @@
 #ifndef  _MMVII_Derivatives_H_
 #define  _MMVII_Derivatives_H_
 
-#include "ExternalInclude/Eigen/Dense"
+#include "Eigen/Dense"
+#include "MMVII_nums.h"
 
 namespace MMVII
 {
@@ -463,8 +464,17 @@ template<int N> double EpsDifference(const cEpsNum<N> & aEps,const cVarEpsNum & 
     return aRes;
 }
 
-
-
+template <const int Nb> class tNumTrait<cEpsNum<Nb>>
+{
+    public :
+        // For these type rounding mean something
+        // static bool IsInt() {return true;}
+        // typedef cFormula<tREAL8>  tBase;
+        // typedef cFormula<tREAL8>  tBig;
+        typedef cEpsNum<Nb>  tBase;
+        typedef cEpsNum<Nb>  tBig;
+        static void AssertValueOk(const cEpsNum<Nb> & ) {}
+};
 
 
 };

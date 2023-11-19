@@ -1,4 +1,5 @@
 #include "TrianguRSNL.h"
+#include "MMVII_SysSurR.h"
 
 
 namespace MMVII
@@ -14,7 +15,7 @@ namespace MMVII
          global function, declared in header make  call to OneBenchSSRNL with various
          parameters  (size of network, type of underlying matrix, parameters for these matrices)
 
-   [1]   void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
+   [1]   void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchur,cParamSparseNormalLstSq * aParam=nullptr)
          for a given set of parameters , test the different template instanciation (REAL on 4,8,16 bytes)
           
     
@@ -40,25 +41,25 @@ template<class Type> void  TplOneBenchSSRNL
                            (
                                eModeSSR aMode,
                                cRect2 aRect,
-                               bool WithSchurr,
-                               cParamSparseNormalLstSq * aParam=nullptr
+                               bool WithSchur,
+                               cParamSparseNormalLstSq * aParam=nullptr,
+			       const std::vector<Type> &  aWeightSetSchur ={0.0,0.0,0.0,0.0}
                            )
 {
+     static int aCpt=0 ; aCpt++;  // use to make jauge constant along one iteration, to check the correctnes of hard constraints
      cParamMainNW aParamNW;
      Type aPrec = tElemNumTrait<Type>::Accuracy() ;
-     cMainNetwork <Type> aBN(aMode,aRect,WithSchurr,aParamNW,aParam);
+     cMainNetwork <Type> aBN(aMode,aRect,WithSchur,aParamNW,aParam,aWeightSetSchur);
      aBN.PostInit();
      double anEc =100;
      for (int aK=0 ; aK < THE_NB_ITER ; aK++)
      {
-         double aWGauge = (aK%2) ? -1 : 100.0; // alternate "hard" constraint and soft, to test more ..
+         double aWGauge = (aCpt%2) ? -1 : 100; // alternate "hard" constraint and soft, to test more ..
          anEc = aBN.DoOneIterationCompensation(aWGauge,true);
-         // StdOut() << "  ECc== " << anEc /aPrec<< "\n";
      }
-     // getchar();
      if (anEc>aPrec)
      {
-           StdOut() << "Fin-ECc== " << anEc /aPrec   << "\n";
+           StdOut() << "Fin-ECc== " << anEc /aPrec   << std::endl;
            MMVII_INTERNAL_ASSERT_bench(anEc<aPrec,"Error in Network-SSRNL Bench");
      }
 }
@@ -66,20 +67,21 @@ template<class Type> void  TplOneBenchSSRNL
                            (
                                eModeSSR aMode,
                                int aNb,
-                               bool WithSchurr,
-                               cParamSparseNormalLstSq * aParam=nullptr
+                               bool WithSchur,
+                               cParamSparseNormalLstSq * aParam=nullptr,
+			       const std::vector<Type> &  aWeightSetSchur = {0.0,0.0,0.0,0.0}
 			   )
 {
-	TplOneBenchSSRNL<Type>(aMode,cRect2::BoxWindow(aNb),WithSchurr,aParam);
+	TplOneBenchSSRNL<Type>(aMode,cRect2::BoxWindow(aNb),WithSchur,aParam,aWeightSetSchur);
 }
 
-void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchurr,cParamSparseNormalLstSq * aParam=nullptr)
+void  OneBenchSSRNL(eModeSSR aMode,int aNb,bool WithSchur,cParamSparseNormalLstSq * aParam=nullptr)
 {
     TplOneBenchSSRNL<tREAL8>(aMode,cBox2di(cPt2di(0,0),cPt2di(2,2)),false,aParam);
 
-    TplOneBenchSSRNL<tREAL8>(aMode,aNb,WithSchurr,aParam);
-    TplOneBenchSSRNL<tREAL16>(aMode,aNb,WithSchurr,aParam);
-    TplOneBenchSSRNL<tREAL4>(aMode,aNb,WithSchurr,aParam);
+    TplOneBenchSSRNL<tREAL8>(aMode,aNb,WithSchur,aParam);
+    TplOneBenchSSRNL<tREAL16>(aMode,aNb,WithSchur,aParam);
+    TplOneBenchSSRNL<tREAL4>(aMode,aNb,WithSchur,aParam);
 }
 
 
@@ -105,20 +107,31 @@ void BenchSSRNL(cParamExeBench & aParam)
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,1,false);
      OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,2,false);
 
-     // Basic test, test the 3 mode of matrix , with and w/o schurr subst, with different size
+     cParamSparseNormalLstSq aParamSq(3.0,4,9);
+     // Basic test, test the 3 mode of matrix , with and w/o schur subst, with different size
      for (const auto &  aNb : {3,4,5})
      {
-        cParamSparseNormalLstSq aParamSq(3.0,4,9);
-	// w/o schurr
+	// w/o schur
         OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq);
         OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,false);
         OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,false);
 
-	// with schurr
+	// with schur
          OneBenchSSRNL(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq);
          OneBenchSSRNL(eModeSSR::eSSR_LsqDense ,aNb,true);
          OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
+
+         //OneBenchSSRNL(eModeSSR::eSSR_LsqSparseGC,aNb,true);
      }
+      //  soft constraint on temporary , add low cost to current (slow but do not avoid real value)
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,3,true ,&aParamSq,{1,1,0.1,0.1});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense     ,3,true ,nullptr  ,{1,1,0.1,0.1});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqSparseGC  ,3,true ,nullptr  ,{1,1,0.1,0.1});
+
+     // mix hard & soft constraint on temporary
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,3,true ,&aParamSq,{-1,1,0,0});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqDense     ,3,true ,nullptr  ,{1,-1,0,0});
+     TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqSparseGC  ,3,true ,nullptr  ,{-1,-1,0,0});
 
      // test  normal sparse matrix with many parameters handling starsity
      for (int aK=0 ; aK<20 ; aK++)
@@ -131,8 +144,8 @@ void BenchSSRNL(cParamExeBench & aParam)
 	for (const auto & aI:  RandSet(aNbVar/10,aNbVar))
            aParamSq.mVecIndDense.push_back(size_t(aI));
 
-        TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq); // w/o schurr
-        TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq); // with schurr
+        TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aNb,false,&aParamSq); // w/o schur
+        TplOneBenchSSRNL<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aNb,true ,&aParamSq); // with schur
      }
 
 

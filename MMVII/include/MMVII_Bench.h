@@ -1,6 +1,8 @@
 #ifndef  _MMVII_Bench_H_
 #define  _MMVII_Bench_H_
 
+#include "MMVII_util_tpl.h"
+
 namespace MMVII
 {
 
@@ -89,6 +91,7 @@ void Bench_Duration(cParamExeBench & aParam);
 void BenchDenseMatrix0(cParamExeBench & aParam); ///< Basic Vector 
 void Bench_EigenDecompos(cParamExeBench & aParam);
 
+void BenchTopoComp(cParamExeBench & aParam); ///< Topometric compensation
 
 // void cAppli_MMVII_Bench::Bench_0000_String(); => Bench on string-split
 void BenchSerialization(cParamExeBench & aParam,const std::string & aDirOut,const std::string & aDirIn); ///< Bench on seriaization function
@@ -119,14 +122,28 @@ void BenchLeastSqMap(cParamExeBench & aParam);
 void BenchDelaunay(cParamExeBench & aParam);
 void BenchTri2D(cParamExeBench & aParam);
 void BenchPly(cParamExeBench & aParam);
+void Bench_Target_Encoding();
 void BenchHamming(cParamExeBench & aParam);
+void BenchPolynome(cParamExeBench & aParam);
+
+
+void BenchUnCalibResection();
+void BenchPoseEstim(cParamExeBench & aParam);
+
 
 void BenchSSRNL(cParamExeBench & aParam);  // Syst Sur Resol Non Linear
 void BenchDeformIm(cParamExeBench & aParam); // using image in non-linear least square system
 void BenchMeshDev(cParamExeBench & aParam);  // bench  devlopment  (on devlopable surface)
 void BenchCentralePerspective(cParamExeBench & aParam); // test on implementation of central perstective model
+void BenchCentralePerspective_ImportV1(cParamExeBench & aParam); // test on importation cam-V1
+
+void BenchL1Solver(cParamExeBench & aParam); /// test that L1 solver is ok
+void Bench_MatEss(cParamExeBench & aParam); /// test that L1 solver is ok
+void Bench_ToHomMult(cParamExeBench & aParam); // Test conversion set pair Hom => Hom Multiple
 
 
+
+void Bench_SpatialIndex(cParamExeBench & aParam); /// test spatial index
 
 
 
@@ -147,6 +164,7 @@ void BenchUnbiasedStdDev();  ///< Test one specific function currently not corre
 
 void BenchJetsCam();  ///< Test specifique to camera projection
 void MMV1_GenerateCodeTestCam(); ///< To generate code of derivative MMV1-like (for comparing with jets)
+void BenchSampleQuat();
 
 
 

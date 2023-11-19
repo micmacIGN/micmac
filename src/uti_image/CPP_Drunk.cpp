@@ -79,8 +79,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
                 cmdDRUNK+="1 ";
             else
                 cmdDRUNK+="0 ";
-            cmdDRUNK+=" Crop="+ToString<Box2di>(aCrop)+" ";
-
+            cmdDRUNK+=" Crop="+ToString<Box2di>(aCrop)+" MaxSz=" + std::to_string(maxSz);
             ListDrunk.push_back(cmdDRUNK);
         }
         cEl_GPAO::DoComInParal(ListDrunk,aNameDir + "MkDrunk");
@@ -227,7 +226,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
         cerr << "WARNING: exiftool not found" << endl;
     else
     {
-        std::string aCom ="exiftool -TagsFromFile " + aNameDir + aNameIm + " " + aNameOut;
+        std::string aCom ="exiftool -overwrite_original -TagsFromFile " + aNameDir + aNameIm + " " + aNameOut;
         std::cout << aCom<< "\n";
         System(aCom);
     }

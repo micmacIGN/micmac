@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.00"</Version>
+   <Data>
+      <MetaData>
+         <el>
+            <Mode>"Focalmm"</Mode>
+            <Tries>
+               <el>
+                  <Pat>"XXXXXXXXXX.*XXXXXXX"</Pat>
+                  <Val>"1"</Val>
+               </el>
+               <el>
+                  <Pat>"XXXXXXXXXX.*XXXXXXX"</Pat>
+                  <Val>"2"</Val>
+               </el>
+            </Tries>
+         </el>
+         <el>
+            <Mode>"Aperture"</Mode>
+            <Tries></Tries>
+         </el>
+         <el>
+            <Mode>"ModelCam"</Mode>
+            <Tries>
+               <el>
+                  <Pat>".*_Scaled.tif"</Pat>
+                  <Val>"NIKON D5600"</Val>
+               </el>
+            </Tries>
+         </el>
+         <el>
+            <Mode>"AdditionalName"</Mode>
+            <Tries></Tries>
+         </el>
+      </MetaData>
+   </Data>
+</Root>

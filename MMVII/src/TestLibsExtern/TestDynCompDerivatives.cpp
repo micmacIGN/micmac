@@ -1,4 +1,4 @@
-#include "include/SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbolicDerivatives.h"
 
 double TimeElapsFromT0()
 {
@@ -161,7 +161,7 @@ void TestRatkoswky(bool Show,const tVRatkoswkyData & aVData,const std::vector<do
           aCFD.PushNewEvals(aInitialGuess,aVYX);
      }
         // Now run the computation on "pushed" data, we have the derivative
-     const std::vector<std::vector<double> *> & aVEvals = aCFD.EvalAndClear();
+     [[maybe_unused]] const std::vector<std::vector<double> *> & aVEvals = aCFD.EvalAndClear();
      assert(aVEvals.size()==aVData.size()); // Check we get the number of computation we inserted
 
    //-[3] ========= Now we can use the derivatives ========================== 
@@ -173,6 +173,7 @@ void TestRatkoswky(bool Show,const tVRatkoswkyData & aVData,const std::vector<do
     {
          // aLineRes ->  result correspond to 1 obs
          //  storing order :   V0 dV0/dX0 dV0/dX1 .... V1 dV1/dX1 .... (here only one val)
+#ifndef NDEBUG
          const std::vector<double> & aLineRes = *(aVEvals.at(aKObs));
 
          // [3.1] Check the value
@@ -197,6 +198,7 @@ void TestRatkoswky(bool Show,const tVRatkoswkyData & aVData,const std::vector<do
             // Check but with pessimistic majoration of error in finite difference
             assert(std::abs(aDerFLine-aDerNum)<1e-4);
          }
+#endif
     }
     if (Show)
         std::cout << "OK  TestRatkoswky \n";

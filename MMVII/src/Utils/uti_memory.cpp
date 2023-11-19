@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "MMVII_memory.h"
+
 
 namespace MMVII
 {
@@ -12,6 +13,13 @@ void mem_raz(void * adr,int64_t nb)
 void DoNothingWithIt(void *)
 {
    // As expected ;-)
+}
+
+//================ cObj2DelAtEnd =======
+
+cObj2DelAtEnd::~cObj2DelAtEnd()
+{
+        // StdOut() << "DELO2DEAE " << this << std::endl;
 }
 
 
@@ -231,6 +239,7 @@ void cMemCheck::operator delete   (void * aPtr)
 int     cMemCheck::NbObjLive() {return TheNbObjLive;}
 
 int     cMemCheck::TheNbObjLive=0;
+int     cMemCheck::TheCptObj = 0;
 
 
 

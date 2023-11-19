@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cstdint>
 #include "graph.h"
 #include "maxflow.h"  // MODIF MPD : AJOUT
 
@@ -58,64 +59,77 @@ template <typename captype, typename tcaptype, typename flowtype>
 	flow = 0;
 }
 
-template <typename captype, typename tcaptype, typename flowtype> 
-	void Graph<captype,tcaptype,flowtype>::reallocate_nodes(int num)
-{
-	int node_num_max = (int)(node_max - nodes);
-	node* nodes_old = nodes;
+template <typename captype, typename tcaptype, typename flowtype>
+void Graph<captype, tcaptype, flowtype>::reallocate_nodes(int num) {
+        int node_num_max = (int)(node_max - nodes);
+        uintptr_t nodes_old = (uintptr_t)nodes;
 
-	node_num_max += node_num_max / 2;
-	if (node_num_max < node_num + num) node_num_max = node_num + num;
-	nodes = (node*) realloc(nodes_old, node_num_max*sizeof(node));
-	if (!nodes) { if (error_function) (*error_function)("Not enough memory!"); exit(1); }
+        node_num_max += node_num_max / 2;
+        if (node_num_max < node_num + num) node_num_max = node_num + num;
 
-	node_last = nodes + node_num;
-	node_max = nodes + node_num_max;
+        nodes = (node*)realloc(nodes, node_num_max * sizeof(node));
 
-	if (nodes != nodes_old)
-	{
-		node* i;
-		arc* a;
-		for (i=nodes; i<node_last; i++)
-		{
-			if (i->next) i->next = (node*) ((char*)i->next + (((char*) nodes) - ((char*) nodes_old)));
-		}
-		for (a=arcs; a<arc_last; a++)
-		{
-			a->head = (node*) ((char*)a->head + (((char*) nodes) - ((char*) nodes_old)));
-		}
-	}
+        if (!nodes) {
+                if (error_function) (*error_function)("Not enough memory!");
+                exit(1);
+        }
+
+        node_last = nodes + node_num;
+        node_max = nodes + node_num_max;
+
+        if ((uintptr_t)nodes != nodes_old) {
+                node* i;
+                arc* a;
+                for (i = nodes; i < node_last; i++) {
+                    if (i->next)
+                        i->next =
+                            (node*)((uintptr_t)i->next +
+                                    (((uintptr_t)nodes) - ((uintptr_t)nodes_old)));
+                }
+                for (a = arcs; a < arc_last; a++) {
+                    a->head = (node*)((uintptr_t)a->head +
+                                      (((uintptr_t)nodes) - ((uintptr_t)nodes_old)));
+                }
+        }
 }
 
-template <typename captype, typename tcaptype, typename flowtype> 
-	void Graph<captype,tcaptype,flowtype>::reallocate_arcs()
-{
-	int arc_num_max = (int)(arc_max - arcs);
-	int arc_num = (int)(arc_last - arcs);
-	arc* arcs_old = arcs;
+template <typename captype, typename tcaptype, typename flowtype>
+void Graph<captype, tcaptype, flowtype>::reallocate_arcs() {
+        int arc_num_max = (int)(arc_max - arcs);
+        int arc_num = (int)(arc_last - arcs);
+        uintptr_t arcs_old = (uintptr_t)arcs;
 
-	arc_num_max += arc_num_max / 2; if (arc_num_max & 1) arc_num_max ++;
-	arcs = (arc*) realloc(arcs_old, arc_num_max*sizeof(arc));
-	if (!arcs) { if (error_function) (*error_function)("Not enough memory!"); exit(1); }
+        arc_num_max += arc_num_max / 2;
+        if (arc_num_max & 1) arc_num_max++;
+        arcs = (arc*)realloc(arcs, arc_num_max * sizeof(arc));
+        if (!arcs) {
+                if (error_function) (*error_function)("Not enough memory!");
+                exit(1);
+        }
 
-	arc_last = arcs + arc_num;
-	arc_max = arcs + arc_num_max;
+        arc_last = arcs + arc_num;
+        arc_max = arcs + arc_num_max;
 
-	if (arcs != arcs_old)
-	{
-		node* i;
-		arc* a;
-		for (i=nodes; i<node_last; i++)
-		{
-			if (i->first) i->first = (arc*) ((char*)i->first + (((char*) arcs) - ((char*) arcs_old)));
-			if (i->parent && i->parent != ORPHAN && i->parent != TERMINAL) i->parent = (arc*) ((char*)i->parent + (((char*) arcs) - ((char*) arcs_old)));
-		}
-		for (a=arcs; a<arc_last; a++)
-		{
-			if (a->next) a->next = (arc*) ((char*)a->next + (((char*) arcs) - ((char*) arcs_old)));
-			a->sister = (arc*) ((char*)a->sister + (((char*) arcs) - ((char*) arcs_old)));
-		}
-	}
+        if ((uintptr_t)arcs != arcs_old) {
+                node* i;
+                arc* a;
+                for (i = nodes; i < node_last; i++) {
+                    if (i->first)
+                        i->first = (arc*)((uintptr_t)i->first +
+                                          (((uintptr_t)arcs) - ((uintptr_t)arcs_old)));
+                    if (i->parent && i->parent != ORPHAN &&
+                        i->parent != TERMINAL)
+                        i->parent = (arc*)((uintptr_t)i->parent +
+                                           (((uintptr_t)arcs) - ((uintptr_t)arcs_old)));
+                }
+                for (a = arcs; a < arc_last; a++) {
+                    if (a->next)
+                        a->next = (arc*)((uintptr_t)a->next +
+                                         (((uintptr_t)arcs) - ((uintptr_t)arcs_old)));
+                    a->sister = (arc*)((uintptr_t)a->sister +
+                                       (((uintptr_t)arcs) - ((uintptr_t)arcs_old)));
+                }
+        }
 }
 
 #include "instances.inc"

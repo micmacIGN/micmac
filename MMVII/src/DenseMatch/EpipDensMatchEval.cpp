@@ -1,6 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/V1VII.h"
-#include "include/MMVII_Tpl_Images.h"
+
+#include "V1VII.h"
+#include "MMVII_Tpl_Images.h"
 
 // #include "include/V1VII.h"
 
@@ -299,7 +299,7 @@ int cAppliEpipDMEval::ExeOnParsedBox()
 {
    MMVII_INTERNAL_ASSERT_strong(mR2L,"mode L2R need data to test ");
 
-   StdOut() << "======== ONEBOX =================\n";
+   StdOut() << "======== ONEBOX =================" << std::endl;
    mImPx1 = APBI_ReadIm<tREAL4>(mNamePx1);
 
    mBoxWOk = CurBoxInLoc().Dilate(-mSzW); // Box of pix with window include => erosion of cur box

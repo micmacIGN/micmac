@@ -1,5 +1,4 @@
-#include "include/MMVII_all.h"
-#define GPP11 (__GNUC__>=11) // G++11
+
 
 /** \file TestEigen.cpp
     \brief File to test eigen library
@@ -11,14 +10,17 @@ class  	Eigen::SimplicialLDLT< _MatrixType, _UpLo, _Ordering >
  
 class  	Eigen::SimplicialLLT< _Matri
 */
-#include "ExternalInclude/Eigen/Dense"
-#include "ExternalInclude/Eigen/Core"
-#include "ExternalInclude/Eigen/Eigenvalues" 
-#include "ExternalInclude/Eigen/SparseCholesky"
+#include "Eigen/Dense"
+#include "Eigen/Core"
+#include "Eigen/Eigenvalues"
+#include "Eigen/SparseCholesky"
 
 // #include "External/eigen-git-mirror-master/unsupported/Eigen/src/SparseExtra/MarketIO.h"
-#include "ExternalInclude/MarketIO.h"
-#include "ExternalInclude/Eigen/LU"
+#include "MarketIO.h"
+#include "Eigen/LU"
+
+#include "cMMVII_Appli.h"
+#include "MMVII_Matrix.h"
 
 
 using Eigen::MatrixXd;
@@ -28,7 +30,6 @@ using namespace Eigen;
 namespace MMVII
 {
 
-/// MMVII Appli for Testing boost serialization service
 /**
      Probably obsolete
 */
@@ -95,7 +96,7 @@ void cAppli_MMVII_TestEigen::T1()
   m(1,0) = 2.5;
   m(0,1) = -1;
   m(1,1) = m(1,0) + m(0,1);
-  StdOut()  << m << "\n";;
+  StdOut()  << m << std::endl;;
 
 }
 
@@ -117,14 +118,14 @@ void cAppli_MMVII_TestEigen::TestRawData()
         aDIM.SetV(aP,10*aP.x() + aP.y());
 
     {
-       StdOut() << "RowMajor SzY SzX \n";
+       StdOut() << "RowMajor SzY SzX " << std::endl;
        Map<Matrix<double,Dynamic,Dynamic,RowMajor> > aMap(aDIM.RawDataLin(),aSz.y(),aSz.x());
-       StdOut() << aMap << "\n";
+       StdOut() << aMap << std::endl;
     }
     {
-       StdOut() << "ColumnMajor SzX SzY \n";
+       StdOut() << "ColumnMajor SzX SzY " << std::endl;
        Map<Matrix<double,Dynamic,Dynamic> > aMap(aDIM.RawDataLin(),aSz.x(),aSz.y());
-       StdOut() << aMap << "\n";
+       StdOut() << aMap << std::endl;
     }
 }
 
@@ -133,11 +134,11 @@ void cAppli_MMVII_TestEigen::BenchCho()
     SparseMatrix<double> aS2;
     loadMarket(aS2,mNameMatMark);
 
-    StdOut() << " NB " << aS2.rows() << " " << aS2.cols() << "\n";
+    StdOut() << " NB " << aS2.rows() << " " << aS2.cols() << std::endl;
     double aT1 = SecFromT0();
     SimplicialLDLT<SparseMatrix<double> > aDLT(aS2);
     double aT2 = SecFromT0();
-    StdOut() << "DONE " <<  aT2 - aT1 << "\n";
+    StdOut() << "DONE " <<  aT2 - aT1 << std::endl;
 }
 
 void cAppli_MMVII_TestEigen::TCho()
@@ -168,11 +169,11 @@ void cAppli_MMVII_TestEigen::TCho()
         }
     }
     VectorXd aB = m * aSol;
-    StdOut() << m << "\n";
+    StdOut() << m << std::endl;
 
     SelfAdjointEigenSolver<MatrixXd> aSAES(m);
-    StdOut() << "The eigenvalues of A are: " << aSAES.eigenvalues().transpose() << "\n";
-    StdOut() << aSAES.eigenvectors() << "\n";
+    StdOut() << "The eigenvalues of A are: " << aSAES.eigenvalues().transpose() << std::endl;
+    StdOut() << aSAES.eigenvectors() << std::endl;
     double aDetEV =  aSAES.eigenvalues().prod();
 
     std::vector<Triplet<double> > aVT; 
@@ -192,11 +193,11 @@ void cAppli_MMVII_TestEigen::TCho()
 
     SimplicialLDLT<SparseMatrix<double> > aDLT(aSM);
     // aDLT.compute(m);
-    StdOut() << "Det= " << aDLT.determinant()  << " " << aDetEV << "\n";
+    StdOut() << "Det= " << aDLT.determinant()  << " " << aDetEV << std::endl;
 
     VectorXd aSolCho = aDLT.solve(aB);
 
-    StdOut() << "Check Sol " << (aSolCho - aSol).norm() << "\n";
+    StdOut() << "Check Sol " << (aSolCho - aSol).norm() << std::endl;
 #endif
 }
     
@@ -216,7 +217,7 @@ cSpecMMVII_Appli  TheSpec_TestEigen
      "TestEigen",
       Alloc_MMVII_TestEigen,
       "This command execute some experiments eigen (matrix manipulation) library",
-      {eApF::Test},
+      {eApF::Test,eApF::NoGui},
       {eApDT::None},
       {eApDT::Console},
       __FILE__

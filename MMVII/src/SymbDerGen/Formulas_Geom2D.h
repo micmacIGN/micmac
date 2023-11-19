@@ -1,6 +1,12 @@
 #ifndef _FORMULA_GEOMED_H_
 #define _FORMULA_GEOMED_H_
 
+#include "SymbDer/SymbDer_Common.h"
+#include "MMVII_Ptxd.h"
+#include "MMVII_Stringifier.h"
+#include "MMVII_DeclareCste.h"
+#include "MMVII_PhgrDist.h"
+
 #include "ComonHeaderSymb.h"
 
 using namespace NS_SymbolicDerivative;
@@ -18,7 +24,7 @@ class cDist2DConservation
     {
     }
 
-    static const std::vector<std::string> VNamesUnknowns() { return {"x1","y1","x2","y2"}; }
+    static const std::vector<std::string> VNamesUnknowns() { return Append(NamesP2("p1"), NamesP2("p2")); }
     static const std::vector<std::string> VNamesObs()      { return {"D"}; }
 
     std::string FormulaName() const { return "Dist2DCons";}
@@ -30,16 +36,15 @@ class cDist2DConservation
                       const std::vector<tObs> & aVObs
                   ) // const
     {
-          const auto & x1 = aVUk[0];
-          const auto & y1 = aVUk[1];
-          const auto & x2 = aVUk[2];
-          const auto & y2 = aVUk[3];
-
+          cPtxd<tUk,2>  p1 = VtoP2(aVUk,0);
+          cPtxd<tUk,2>  p2 = VtoP2(aVUk,2);
+          cPtxd<tUk,2>  v  = p2-p1;
           const auto & ObsDist  = aVObs[0];  
-	  const auto aCst1 = CreateCste(1.0,x1);  // create a symbolic formula for constant 1
+	  const auto aCst1 = CreateCste(1.0,p1.x());  // create a symbolic formula for constant 1
 
 
-          return { sqrt(square(x1-x2) + square(y1-y2))/ObsDist - aCst1 } ;
+          return { Norm2(v)/ObsDist - aCst1 } ;
+          // return { sqrt(square(v.x())+square(v.y()))/ObsDist - aCst1 } ;
      }
 };
 
@@ -52,7 +57,7 @@ class cRatioDist2DConservation
     {
     }
 
-    static const std::vector<std::string> VNamesUnknowns() { return {"x1","y1","x2","y2","x3","y3"}; }
+    static const std::vector<std::string> VNamesUnknowns() { return Append(NamesP2("p1"), NamesP2("p2"), NamesP2("p3"));; }
     static const std::vector<std::string> VNamesObs()      { return {"D12","D13","D23"}; }
 
     std::string FormulaName() const { return "RatioDist2DCons";}
@@ -64,20 +69,20 @@ class cRatioDist2DConservation
                       const std::vector<tUk> & aVObs
                   ) const
     {
-          const auto & x1 = aVUk[0];
-          const auto & y1 = aVUk[1];
-          const auto & x2 = aVUk[2];
-          const auto & y2 = aVUk[3];
-          const auto & x3 = aVUk[4];
-          const auto & y3 = aVUk[5];
+          cPtxd<tUk,2>  p1 = VtoP2(aVUk,0);
+          cPtxd<tUk,2>  p2 = VtoP2(aVUk,2);
+          cPtxd<tUk,2>  p3 = VtoP2(aVUk,4);
+          cPtxd<tUk,2>  v21  = p2-p1;
+          cPtxd<tUk,2>  v31  = p3-p1;
+          cPtxd<tUk,2>  v32  = p3-p2;
 
           const auto & Obs_d12  = aVObs[0];  
           const auto & Obs_d13  = aVObs[1];  
           const auto & Obs_d23  = aVObs[2];  
 
-          const auto r12 =  sqrt(square(x1-x2) + square(y1-y2)) / Obs_d12 ;
-          const auto r13 =  sqrt(square(x1-x3) + square(y1-y3)) / Obs_d13 ;
-          const auto r23 =  sqrt(square(x2-x3) + square(y2-y3)) / Obs_d23 ;
+          const auto r12 =  Norm2(v21) / Obs_d12 ;
+          const auto r13 =  Norm2(v31) / Obs_d13 ;
+          const auto r23 =  Norm2(v32) / Obs_d23 ;
           return { r12-r13,r12-r23,r13-r23};
      }
 };
@@ -91,9 +96,8 @@ class cRatioDist2DConservation
 class cBaseNetCDPC
 {
    public :
-       cBaseNetCDPC(const cPt2di  & aSzN) :
-           mSzN       (aSzN),
-           mNbPts     (mSzN.x() * mSzN.y()),
+       cBaseNetCDPC(int aNbPts) :
+           mNbPts     (aNbPts),
            mNbCoord   (2*mNbPts)
        {
        }
@@ -105,7 +109,7 @@ class cBaseNetCDPC
        {
             return WithRot ? std::vector<std::string> {"x_tr","y_tr","teta"} :  EMPTY_VSTR;
        } 
-       cPt2di mSzN;
+       //cPt2di mSzN;
        int    mNbPts;
        int    mNbCoord;
 };
@@ -114,7 +118,7 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
 {
       public :
           cNetworConsDistProgCov(const cPt2di  & aSzN) :
-                cBaseNetCDPC(aSzN)
+                cBaseNetCDPC(MulCoord(aSzN))
           {
           }
           std::string FormulaName() const { return "PropCovNwCD_" + ToStr(mNbPts) ;}
@@ -180,14 +184,22 @@ class cNetworConsDistProgCov : public  cBaseNetCDPC
 class cNetWConsDistSetPts : public  cBaseNetCDPC
 {
       public :
-          cNetWConsDistSetPts(const cPt2di  & aSzN,bool RotIsUk) :
-                cBaseNetCDPC(aSzN),
+          cNetWConsDistSetPts(int aNbPts,bool RotIsUk) :
+                cBaseNetCDPC(aNbPts),
                 mRotIsUk    (RotIsUk)
           {
           }
+
+          cNetWConsDistSetPts(const cPt2di  & aSzN,bool RotIsUk) :
+                cNetWConsDistSetPts(MulCoord(aSzN),RotIsUk)
+          {
+          }
+
+
+
           std::string FormulaName() const 
           { 
-               return "SetPointNwCD_" + std::string(mRotIsUk ? "SimUK" : "SimFix") + ToStr(mNbPts) ;
+               return "SetPointNwCD_" + std::string(mRotIsUk ? "RotUK" : "RotFix") + ToStr(mNbPts) ;
           }
 
           const std::vector<std::string> VNamesUnknowns()  const

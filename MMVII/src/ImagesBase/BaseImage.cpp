@@ -1,5 +1,5 @@
-#include "include/MMVII_all.h"
 
+#include "MMVII_Images.h"
 // #include <Eigen/Dense>
 
 namespace MMVII
@@ -92,16 +92,26 @@ template <class Type,const int Dim>
 
    return aRes/NbElem();
 }
+
 template <class Type,const int Dim>  
-        double cDataTypedIm<Type,Dim>::L2Dist(const cDataTypedIm<Type,Dim> & aI2) const
+        double cDataTypedIm<Type,Dim>::SqL2Dist(const cDataTypedIm<Type,Dim> & aI2) const
 {
     tPB::AssertSameArea(aI2);
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
        aRes += R8Square(mRawDataLin[aK]-aI2.mRawDataLin[aK]);
 
-   return sqrt(aRes/NbElem());
+   return aRes/NbElem();
 }
+
+template <class Type,const int Dim>  
+        double cDataTypedIm<Type,Dim>::L2Dist(const cDataTypedIm<Type,Dim> & aI2) const
+{
+   return sqrt(SqL2Dist(aI2));
+}
+
+
+
 template <class Type,const int Dim>  
         double cDataTypedIm<Type,Dim>::LInfDist(const cDataTypedIm<Type,Dim> & aI2) const
 {

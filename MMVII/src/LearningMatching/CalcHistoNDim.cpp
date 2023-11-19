@@ -1,10 +1,9 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
-#include "LearnDM.h"
-#include "include/MMVII_util_tpl.h"
-#include "include/MMVII_Tpl_Images.h"
 
-//#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "LearnDM.h"
+#include "MMVII_util_tpl.h"
+#include "MMVII_Tpl_Images.h"
+
 
 namespace MMVII
 {
@@ -262,7 +261,7 @@ void  cHistoCarNDim::GenerateVis2DInitOneInit(const std::string & aDir,const std
      }
      for (int aY=0 ; aY<aTy ;aY++)
      {
-         StdOut() << "Y=" << aY << " V=" << aH1D.DIm().GetV(aY) * (aTy/aSomV) << "\n";
+         StdOut() << "Y=" << aY << " V=" << aH1D.DIm().GetV(aY) * (aTy/aSomV) << std::endl;
      }
      getchar();
 */
@@ -375,7 +374,7 @@ cCollecSpecArg2007 & cAppliCalcHistoNDim::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 void cAppliCalcHistoNDim::AddHistoOneFile(const std::string & aStr0,int aKFile,int aNbFile)
 {
-    StdOut() << "      ####### "   << aStr0  << " : " << aKFile << "/" << aNbFile << "   ####### \n";
+    StdOut() << "      ####### "   << aStr0  << " : " << aKFile << "/" << aNbFile << "   ####### " << std::endl;
     int aMulH = (mCloseH ? 1 : 2);
     if (mInitialProcess)
     {
@@ -521,7 +520,7 @@ int  cAppliCalcHistoNDim::Exe()
               aVCar.push_back(Str2E<eModeCaracMatch>(aStr));
               StdOut() << aStr << "///";
 	  }
-	  StdOut() << "\n";
+	  StdOut() << std::endl;
           aMapSeq[aVCar] = aVCar;
       }
       // BREAK_POINT("Test Separe");
@@ -562,8 +561,8 @@ int  cAppliCalcHistoNDim::Exe()
 
    if (1)
    {
-      cMultipleOfs  aMulOfs(NameReport(),false);
-      aMulOfs << "COM=[" << CommandOfMain() << "]\n\n";
+      cMultipleOfs  aMulOfs(NameReport(), eFileModeOut::CreateText);
+      aMulOfs << "COM=[" << CommandOfMain().Com() << "]\n\n";
       for (bool InReport : {false,true})
       {
           cMultipleOfs &  aOfs = InReport ? aMulOfs : StdOut() ;
@@ -607,7 +606,7 @@ int  cAppliCalcHistoNDim::Exe()
 
    if (! mGenerateVisu)
    {
-       cMultipleOfs  aMulOfs(NameReport(),true);
+       cMultipleOfs  aMulOfs(NameReport(), eFileModeOut::AppendText);
        aMulOfs << "\n========================================\n\n";
        ShowPerf(aMulOfs);
 

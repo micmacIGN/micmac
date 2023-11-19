@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.00"</Version>
+   <Data>
+      <CameraPose>
+         <NameImage>"671_0007_Scaled.tif"</NameImage>
+         <NameInternalCalib>"Calib-PerspCentral-671_0007_Scaled.tif"</NameInternalCalib>
+         <Center>687.938532795384504 -107.229591608222108 1145.488524357861479</Center>
+         <RotMatrix>
+            <AxeI>0.98778872103687 0.112067727702209 -0.108232467402396</AxeI>
+            <AxeJ>0.095589798609712 -0.984508281138638 -0.146989913841728</AxeJ>
+            <AxeK>-0.123028586085113 0.134849059237013 -0.983198707397845</AxeK>
+         </RotMatrix>
+         <EQ>-0.070855014819677 0.994421403326245 0.052205615651807 -0.058139600755264</EQ> <!--EigenQuaternion, for information-->
+         <WPK>-172.190413850572526 -7.066923327612565 -5.527387392032999</WPK> <!--Omega Phi Kapa in degree, for information-->
+         <YPR>6.472709123471382 6.213435068796035 -171.497156633759573</YPR> <!--Yaw Pitch Roll in degree, for information-->
+      </CameraPose>
+   </Data>
+</Root>

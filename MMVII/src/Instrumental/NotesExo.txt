@@ -1,0 +1,68 @@
+
+
+
+RB_0_0
+
+todo supress : &TheSpec_BlockCamInit  InternVecAll
+
+tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_BlockCamInit(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_BlockCamInit
+(
+      "BlockCamInit",
+      Alloc_BlockCamInit,
+      "Compute and save the calibration of rigid bloc",
+      {eApF::Ori},     
+      {eApDT::Ori},  
+      {eApDT::Xml}, 
+      __FILE__
+);
+
+
+
+RB_0_1
+
+    StdOut() << "NameSetIm=" << mSetInputImages << "\n";
+getchar();
+     StdOut() << "SetIm=" << VectMainSet(0) << "\n";
+StdOut() << "BRKPT at " << __LINE__ << "\n";
+getchar();
+
+
+    for (const auto & anIm : VectMainSet(0))
+    {
+        cSensorCamPC * aCam = mPhProj.ReadCamPC(anIm,true);
+        aBloc.AddSensor(aCam);
+    }
+
+
+cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+      return anArgObl
+            <<   Arg2007(mSetInputImages,"Pattern/file for images")
+
+            <<   Arg2007(mSetInputImages,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}) // get images
+            <<  mPhProj.DPOrient().ArgDirInMand() // get orient
+            <<  Arg2007(mPattern,"Pattern for images specifing sup expr") // get pattern describing how we compute bloc/sync Ident 
+            <<  Arg2007(mNumSub,"Num of sub expr for x:block and  y:image")// indicate ordering of subpattern (which sub-expression is Ident & Sync)  
+            <<  mPhProj.DPRigBloc().ArgDirOutMand()   /// indicate where we will store the calibration
+      ;
+}
+
+In a first time , dont fill MPatFile => see that we cannot have acces to VectMainSet(0)
+
+
+cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+
+    return  anArgOpt
+       << AOpt2007(mShowByBloc,"ShowByBloc","Show structure, grouping pose of same bloc",{{eTA2007::HDV}})  // do we show the struct by bloc
+       << AOpt2007(mShowBySync,"ShowBySync","Show structure, grouping pose of same camera",{{eTA2007::HDV}})  // show by sync
+       << AOpt2007(mMaster,"MasterCam","Fix the master cam in the bloc(else arbitrary)")    // 
+       << AOpt2007(mNameBloc,"NameBloc","Name of the bloc computed",{{eTA2007::HDV}})    // 
+    ;
+}
+

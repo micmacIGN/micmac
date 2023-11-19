@@ -29,7 +29,10 @@
 
 
 #if (TREEDIST_WITH_MMVII)
-#include "include/MMVII_all.h"
+#include "MMVII_util.h"
+#include "MMVII_Sys.h"
+#include "SymbDer/SymbDer_Common.h"
+
 #define TREEDIST_cMemCheck MMVII::cMemCheck
 #define TREEDIST_FakeUseIt MMVII::FakeUseIt
 #else             //========================================================== WITH_MMVI
@@ -720,18 +723,19 @@ void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
           //  ----  1.2 generate the graph -------------
     std::vector<int> aV1;
     std::vector<int> aV2;
+    // will be used to order randomly the CC
+    std::vector<double> aVR;
+    for (int aK=0 ; aK<mNbSom ; aK++)
+    {
+        aVR.push_back(TREEDIST_RandUnif_0_1());
+    }
     for (auto & aCC : aVCC) // For each CC
     {
-        // order randomly the CC
-        std::vector<double> aVR;
-        for (int aK=0 ; aK<int(aCC.size()) ; aK++)
-        {
-            aVR.push_back(TREEDIST_RandUnif_0_1());
-        }
         std::sort
         (
             aCC.begin(),aCC.end(),
-            [aVR](int i1,int i2) {return aVR[i1]<aVR[i1];}
+            // [aVR](int i1,int i2) {return aVR[i1]<aVR[i2];}
+            [aVR](int i1,int i2) {return aVR.at(i1)<aVR.at(i2);}
         );
         for (int aK1=1 ; aK1<int(aCC.size()) ; aK1++)
         {

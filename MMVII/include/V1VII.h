@@ -2,14 +2,14 @@
 #define _V1V2_H_
 
 #include "StdAfx.h"
-#include "include/MMVII_all.h"
+#include "MMVII_Ptxd.h"
+#include "MMVII_Stringifier.h"
+#include "MMVII_MMV1Compat.h"
+
 
 
 namespace MMVII
 {
-
-const std::string & MMV1Bin();
-
 
 template <class Type> Pt2d<Type>  ToMMV1(const cPtxd<Type,2> &  aP) {return  Pt2d<Type>(aP.x(),aP.y());}
 template <class Type> Pt3d<Type>  ToMMV1(const cPtxd<Type,3> &  aP) {return  Pt3d<Type>(aP.x(),aP.y(),aP.z());}
@@ -17,8 +17,7 @@ template <class Type> Pt3d<Type>  ToMMV1(const cPtxd<Type,3> &  aP) {return  Pt3
 template <class Type> cPtxd<Type,2> ToMMVII(const Pt2d<Type> &  aP) {return cPtxd<Type,2>(aP.x,aP.y);}
 template <class Type> cPtxd<Type,3> ToMMVII(const Pt3d<Type> &  aP) {return cPtxd<Type,3>(aP.x,aP.y,aP.z);}
 
-
-
+cHomogCpleIm  ToMMVII(const cNupletPtsHomologues &  aNUp);
 
 
 template <class Type> Box2d<Type>  ToMMV1(const cTplBox<Type,2> &  aBox) {return  Box2d<Type>(ToMMV1(aBox.P0()),ToMMV1(aBox.P1()));}
@@ -70,7 +69,13 @@ template <class Type> class cMMV1_Conv
 std::string V1NameMasqOfIm(const std::string & aName);
 
 // Call V1 Fast kth value extraction
-// double KthVal(std::vector<double> &, double aProportion);
+double KthVal(std::vector<double> &, double aProportion);
+
+// Call V1 for roots of polynomials
+template <class Type> std::vector<Type>  V1RealRoots(const std::vector<Type> &  aVCoef, Type aTol,int aNbMaxIter);
+
+
+
 
 };
 

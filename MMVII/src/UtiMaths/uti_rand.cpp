@@ -1,7 +1,7 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_SetITpl.h"
+#include "MMVII_Ptxd.h"
+#include "cMMVII_Appli.h"
+#include "MMVII_SetITpl.h"
 #include <random>
-
 
 /** \file uti_rand.cpp
     \brief Implementation of random generator
@@ -47,7 +47,7 @@ void OneBench_Random(cParamExeBench & aParam)
           AssertIsSetKN(aK,aNb,aSet);
        }
    }
-   // StdOut() << "Begin Bench_Random\n";
+   // StdOut() << "Begin Bench_Random" << std::endl;
    {
       int aNb = std::min(3e6,1e6 *(1+pow(aParam.Level(),1.5)));
       std::vector<double> aVInit;
@@ -103,7 +103,7 @@ template <typename tSet>  void OneBenchSet()
     {
         int aN = 10;
 	std::vector<tSet>  aLSet =  SubKAmongN<tSet>(aK,aN);
-        MMVII_INTERNAL_ASSERT_bench((int)aLSet.size()==BinomialCoeff(aK,aN),"Subset Int "); // Check good number of subset
+        MMVII_INTERNAL_ASSERT_bench(aLSet.size()==iBinomialCoeff(aK,aN),"Subset Int "); // Check good number of subset
 	for (const auto & aSet : aLSet)
 	{
             MMVII_INTERNAL_ASSERT_bench(aK==(int)aSet.Cardinality(),"Subset Int ");  // Check each subset has good number of elem
@@ -175,6 +175,7 @@ double RandUnif_C_NotNull(double aEps)
          aRes = RandUnif_C();
    return aRes;
 }
+double RandUnif_NotNull(double aEps) {return std::abs(RandUnif_C_NotNull(aEps));}
 
 double RandUnif_N(int aN)
 {

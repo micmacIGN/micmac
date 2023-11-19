@@ -1,0 +1,30 @@
+#!/bin/bash
+
+_mmvii_completion()
+{
+  export COMP_LINE COLUMNS
+  local cur cword
+  _get_comp_words_by_ref -n = cur cword
+  local RESULT="$(python3 -  "$cur" "$cword" < ${_MMVII_COMPLETION_PYTHON})"
+  readarray -t COMPREPLY < <(echo -n "$RESULT")
+  if [ ${#COMPREPLY[@]} -eq 0 ]; then
+    unset COMPREPLY
+  elif [[ ${COMPREPLY[-1]} == Options:* ]]; then
+    local options=${COMPREPLY[-1]}
+    unset COMPREPLY[-1]
+    eval compopt ${options##Options:}
+  elif [[ ${COMPREPLY[-1]} == File:* ]]; then
+    local file=${COMPREPLY[-1]}
+    unset COMPREPLY[-1]
+    command=${file##File:}
+    COMPREPLY+=($(eval $command | sort))
+    compopt -o nosort
+    if [[ ${COMPREPLY[0]} != '>'* ]]; then
+      compopt -o filenames
+    fi
+  fi
+}
+
+_MMVII_COMPLETION_PYTHON=$(dirname ${BASH_SOURCE[0]})/mmvii-completion.py
+complete -F _mmvii_completion MMVII
+

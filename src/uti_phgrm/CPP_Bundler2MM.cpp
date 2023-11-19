@@ -36,8 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+#include "StdAfx.h"
 
-#include "../../MMVII/ExternalInclude/Eigen/Dense"
 
 class cAppliColmap
 {
@@ -158,33 +158,74 @@ void cAppliColmap::ToColmap()
                                        "OrientationConique"
                                  );
 			cRotationVect       aRV  = aCO->Externe().ParamRotation();
-            ElMatrix<double>    aRot = ElMatrix<double>::Rotation(aRV.CodageMatr().Val().L1(),
+            ElMatrix<double>    aRot_ = ElMatrix<double>::Rotation(aRV.CodageMatr().Val().L1(),
                                                                   aRV.CodageMatr().Val().L2(),
                                                                   aRV.CodageMatr().Val().L3());
 
-			/* Colmap */
-			Eigen::Matrix3d aMatTmp = Eigen::MatrixXd::Zero(3,3);
-			for (int aK1=0; aK1<3; aK1++)
-			{
-				for (int aK2=0; aK2<3; aK2++)
-					aMatTmp(aK1,aK2) = aRot(aK2,aK1);
-			}
+	    ElMatrix<double>    aRot = aRot_.transpose();
 
-			Eigen::Quaterniond quat(aMatTmp);
-			Eigen::Vector4d Qvec = Eigen::Vector4d(quat.w(), quat.x(), quat.y(), quat.z());
-			
-			Eigen::Vector3d Tvec = Eigen::Vector3d(aC.x, aC.y, aC.z);
-			Tvec = - (aMatTmp * Tvec);
+                double qw, qx, qy, qz;
 
-			std::cout << aIm << " " << aIm.size() << "\n";
+                //make sure the trace is positive
+                double tr = aRot(0,0) + aRot(1,1) + aRot(2,2);
 
-			if (DicBoolFind(mImToId,aIm))
-			{
-				pFileIm << mImToId[aIm] << " " << Qvec(0) << " " << Qvec(1) << " " << Qvec(2) << " " << Qvec(3) << " " << Tvec(0) << " " << Tvec(1) << " " << Tvec(2) << " " << mCamId << " " << aIm << "\n";
+                if (tr>0)
+                {
+                   std::cout << "1" << "\n";
+                    double fourQw = sqrt(tr+1.0)*2;
+
+                    qw = 0.25*fourQw;
+                    qx = (aRot(2,1) - aRot(1,2))/fourQw;
+                    qy = (aRot(0,2) - aRot(2,0))/fourQw;
+                    qz = (aRot(1,0) - aRot(0,1))/fourQw;
+
+                }
+                else if ((aRot(0,0)>aRot(1,1)) && (aRot(0,0)>aRot(2,2)))
+                {
+                    double fourQx = sqrt(1.0 + aRot(0,0) - aRot(1,1) - aRot(2,2)) * 2;
+
+                    qw = (aRot(2,1) - aRot(1,2))/fourQx;
+                    qx = 0.25*fourQx;
+                    qy = (aRot(0,1) + aRot(1,0))/fourQx;
+                    qz = (aRot(0,2) + aRot(2,0))/fourQx;
+                }
+                else if (aRot(1,1)>aRot(2,2))
+                {
+                    double fourQy = sqrt(1.0 + aRot(1,1) - aRot(0,0) - aRot(2,2)) * 2.0;
+
+                    qw = (aRot(0,2) - aRot(2,0))/fourQy;
+                    qx = (aRot(0,1) + aRot(1,0))/fourQy;
+                    qy = 0.25*fourQy;
+                    qz = (aRot(1,2) - aRot(2,1))/fourQy;
+                }
+                else
+                {
+                    double fourQz = sqrt(1.0 + aRot(2,2) - aRot(0,0) - aRot(1,1)) * 2;
+
+                    qw = (aRot(1,0) - aRot(0,1))/fourQz;
+                    qx = (aRot(0,2) + aRot(2,0))/fourQz;
+                    qy = (aRot(1,2) + aRot(2,1))/fourQz;
+                    qz = 0.25 * fourQz;
+
+                }
+
+
+                ElMatrix<double> Tv_dir(1,3);
+                Tv_dir(0,0) = aC.x;
+                Tv_dir(0,1) = aC.y;
+                Tv_dir(0,2) = aC.z;
+
+                ElMatrix<double> Tv_indir = (aRot_ * Tv_dir);
+
+                if (DicBoolFind(mImToId,aIm))
+                {
+                    pFileIm << mImToId[aIm] << " " << qw << " " << qx << " " << qy << " " << qz << " " << -Tv_indir(0,0) << " " << -Tv_indir(0,1) << " " << -Tv_indir(0,2) << " " << mCamId << " " << aIm << "\n";
               pFileIm << "\n";
-			}
-			else
-				std::cout << aIm << "Not found in  the list file" << "\n";
+
+                }
+                else
+                    std::cout << aIm << "Not found in  the list file" << "\n";
+
 
 		}
 	}

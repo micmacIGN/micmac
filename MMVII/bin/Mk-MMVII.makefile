@@ -6,8 +6,11 @@ MMV2Dir=${MMDir}MMVII/
 MMV2DirSrc=${MMV2Dir}src/
 MMV2DirBin=${MMV2Dir}bin/
 MMV2Objects=${MMV2Dir}object/
-MMV2DirIncl=${MMV2Dir}include/
+MMV2DirIncl=${MMV2Dir}include
 MMV2ElisePath=${MMDir}/lib/libelise.a
+MMV2_EXTINCDIR=${MMV2Dir}ExternalInclude
+# =========== Includes & Libraries
+EIGEN_DIR=${MMV2_EXTINCDIR}/eigen-3.4.0
 # LIBRARY TORCH LIBS AND INLCUDES 
 #==========================================================#
 TORCHLIBPath=$(HOME)/Documents/Evaluation_MCC-CNN_CODE/Code_Inference_Marc_2/libtorch
@@ -21,7 +24,7 @@ MMV2Exe=MMVII
 MMV2_INSTALL_PATH=${abspath ${MMV2DirBin}}/
 
 MMSymbDerHeader=$(wildcard ${MMV2DirIncl}/SymbDer/*.h)
-MMKaptureHeader=$(wildcard ${MMV2Dir}/kapture/*.h)
+MMKaptureHeader=$(wildcard ${MMV2DirSrc}/kapture/*.h)
 
 all : ${MMV2DirBin}${MMV2Exe}
 
@@ -147,9 +150,32 @@ ObjBenchSEN=$(SrcBenchSEN:.cpp=.o)
 #
 MMV2DirSymbDerGen=${MMV2DirSrc}SymbDerGen/
 SrcSymbDerGen=$(wildcard ${MMV2DirSymbDerGen}*.cpp)
-ObjSymbDerGen=$(SrcSymbDerGen:.cpp=.o) 
+ObjSymbDerGen=$(SrcSymbDerGen:.cpp=.o)
+
 #
 #
+MMV2DirBundleAdjustment=${MMV2DirSrc}BundleAdjustment/
+SrcBA=$(wildcard ${MMV2DirBundleAdjustment}*.cpp)
+ObjBA=$(SrcBA:.cpp=.o)
+#
+#
+MMV2DirCnvrtFormal=${MMV2DirSrc}ConvertFormat/
+SrcCnvrtFormat=$(wildcard ${MMV2DirCnvrtFormal}*.cpp)
+ObjCnvrtFormat=$(SrcCnvrtFormat:.cpp=.o)
+#
+#
+
+MMV2DirExoBloc=${MMV2DirSrc}ExoBloc/
+SrcExoBloc=$(wildcard ${MMV2DirExoBloc}*.cpp)
+ObjExoBloc=$(SrcExoBloc:.cpp=.o)
+#
+#
+MMV2DirInstrumental=${MMV2DirSrc}Instrumental/
+SrcInstrumental=$(wildcard ${MMV2DirInstrumental}*.cpp)
+ObjInstrumental=$(SrcInstrumental:.cpp=.o)
+#
+#
+
 SRC_REGGEN=${MMV2DirGeneratedCodes}cName2CalcRegisterAll.cpp
 MMV2DirGeneratedCodes=${MMV2DirSrc}GeneratedCodes/
 SrcGeneratedCodes:=$(wildcard ${MMV2DirGeneratedCodes}*.cpp)
@@ -177,16 +203,51 @@ SrcGeom3D=$(wildcard ${MMV2DirGeom3D}*.cpp)
 ObjGeom3D=$(SrcGeom3D:.cpp=.o) 
 #
 #
-MMV2DirKapture=${MMV2Dir}kapture/
+MMV2DirMesh=${MMV2DirSrc}Mesh/
+SrcMesh=$(wildcard ${MMV2DirMesh}*.cpp)
+ObjMesh=$(SrcMesh:.cpp=.o) 
+#
+#
+MMV2DirMeshDispl=${MMV2DirSrc}MeshDisplacement/
+SrcMeshDispl=$(wildcard ${MMV2DirMeshDispl}*.cpp)
+ObjMeshDispl=$(SrcMeshDispl:.cpp=.o) 
+#
+#
+MMV2DirOrientReport=${MMV2DirSrc}OrientReport/
+SrcOrientReport=$(wildcard ${MMV2DirOrientReport}*.cpp)
+ObjOrientReport=$(SrcOrientReport:.cpp=.o) 
+#
+#
+MMV2DirPoseEstim=${MMV2DirSrc}PoseEstim/
+SrcPoseEstim=$(wildcard ${MMV2DirPoseEstim}*.cpp)
+ObjPoseEstim=$(SrcPoseEstim:.cpp=.o) 
+#
+#
+MMV2DirRadiom=${MMV2DirSrc}Radiom/
+SrcRadiom=$(wildcard ${MMV2DirRadiom}*.cpp)
+ObjRadiom=$(SrcRadiom:.cpp=.o) 
+#
+#
+MMV2DirTieP=${MMV2DirSrc}TieP/
+SrcTieP=$(wildcard ${MMV2DirTieP}*.cpp)
+ObjTieP=$(SrcTieP:.cpp=.o) 
+#
+#
+MMV2DirTopo=${MMV2DirSrc}Topo/
+SrcTopo=$(wildcard ${MMV2DirTopo}*.cpp)
+ObjTopo=$(SrcTopo:.cpp=.o) 
+#
+#
+MMV2DirKapture=${MMV2DirSrc}kapture/
 #SrcKapture=$(fiter-out ${MMV2DirKapture}kpt_test.cpp $(wildcard ${MMV2DirKapture}*.cpp))
-SrcKapture=$(filter-out ${MMV2DirKapture}kpt_test.cpp, $(wildcard ${MMV2DirKapture}*.cpp))
+SrcKapture=$(wildcard ${MMV2DirKapture}*.cpp)
 ObjKapture=$(SrcKapture:.cpp=.o)
 #
 #    => Le Main
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjGeom2D} ${ObjGeom3D}  ${ObjMappings} ${ObjKapture} ${ObjLearnMatch} ${ObjCodedTarget} ${ObjBenchSNL} ${ObjBenchSEN} ./SGM_CUDA/cudInfer.a 
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjGeom2D} ${ObjGeom3D}  ${ObjMappings} ${ObjLearnMatch} ${ObjKapture} ${ObjCodedTarget} ${ObjBenchSNL} ${ObjBenchSEN} ${ObjBA} ${ObjCnvrtFormat} ${ObjExoBloc} ${ObjInstrumental} ${ObjMesh} ${ObjMeshDispl} ${ObjOrientReport} ${ObjPoseEstim} ${ObjRadiom} ${ObjTieP} ${ObjTopo} ./SGM_CUDA/cudInfer.a
 #
 #=========  Header ========
 #
@@ -198,7 +259,7 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir} ${TORCHINCLUDE} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
+CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-fPIC" -I${MMV2Dir} -I ${MMV2Dir}/ExternalInclude -I ${MMV2DirIncl} -I ${EIGEN_DIR} -I ${MMDir}/include -I${MMDir} ${TORCHINCLUDE} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
 #CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-march=native" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
 
 BOOST_LIBS=
@@ -273,7 +334,30 @@ ${MMV2DirKapture}%.o :  ${MMV2DirKapture}%.cpp   ${MMKaptureHeader}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirCodedTarget}%.o :  ${MMV2DirCodedTarget}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
-#
+
+${MMV2DirBundleAdjustment}%.o :  ${MMV2DirBundleAdjustment}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirCnvrtFormal}%.o :  ${MMV2DirCnvrtFormal}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirExoBloc}%.o :  ${MMV2DirExoBloc}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirInstrumental}%.o :  ${MMV2DirInstrumental}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+
+${MMV2DirMesh}%.o :  ${MMV2DirMesh}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirMeshDispl}%.o :  ${MMV2DirMeshDispl}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirOrientReport}%.o :  ${MMV2DirOrientReport}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirPoseEstim}%.o :  ${MMV2DirPoseEstim}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirRadiom}%.o :  ${MMV2DirRadiom}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirTieP}%.o :  ${MMV2DirTieP}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirTopo}%.o :  ${MMV2DirTopo}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 #       ===== TEST ========================================
 #
 Show:

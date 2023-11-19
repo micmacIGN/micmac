@@ -1,6 +1,6 @@
-#include "include/V1VII.h"
+#include "V1VII.h"
 #include "cGeneratedCodeTestCam.h"
-#include "include/MMVII_Derivatives.h"
+#include "MMVII_Derivatives.h"
 
 
 namespace MMVII

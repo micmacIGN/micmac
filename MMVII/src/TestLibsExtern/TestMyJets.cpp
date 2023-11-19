@@ -1,6 +1,5 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Derivatives.h"
-
+#include "MMVII_Derivatives.h"
+#include "cMMVII_Appli.h"
 
 namespace MMVII
 {
@@ -140,7 +139,7 @@ void BenchMyJets(cParamExeBench & aParam)
        MMVII_INTERNAL_ASSERT_bench((aD1-aD0)==1,"Assertion on Eigen memory organization");
        if (0)
        {
-          StdOut() << "TEsEigenMEm " << aD0 << " " << aD1 << " " << (aD1-aD0) << "\n";
+          StdOut() << "TEsEigenMEm " << aD0 << " " << aD1 << " " << (aD1-aD0) << std::endl;
           getchar();
        }
    }

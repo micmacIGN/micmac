@@ -17,6 +17,7 @@ set(uti_image_TiePHisto
 		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_EnhancedSpG.cpp
 		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_SIFT2Step.cpp
 		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_GlobalR3D.cpp
+		${UTI_PHGRM_TiePHisto_DIR}/cDDSSNeRF.cpp
 )
 
 list( APPEND uti_phgrm_Src_Files

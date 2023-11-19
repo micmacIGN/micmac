@@ -164,11 +164,9 @@ Header-MicMac-eLiSe-25/06/2007*/
     // the character separating directories in PATH environment variable
     #define ELISE_CAR_ENV ';'
     #if !ELISE_MinGW
-		#include <float.h>
-		#define std_isnan _isnan
-		#define std_isinf isinf
-		#define isinf(x) (!_finite(x))
-		typedef unsigned int uint;
+		#include <cmath>
+		#define std_isnan std::isnan
+		#define std_isinf std::isinf
 	#else
 		#include <cmath>
 		#define std_isnan std::isnan

@@ -1,5 +1,10 @@
 #ifndef  _MMVII_Ptxd_H_
 #define  _MMVII_Ptxd_H_
+
+#include "MMVII_AllClassDeclare.h"
+#include "MMVII_nums.h"
+#include "MMVII_memory.h"
+
 namespace MMVII
 {
 
@@ -31,6 +36,7 @@ template <class Type,const int Dim> class cPtxd
     public :
        typedef typename  tNumTrait<Type>::tBig               tBigNum ;
        typedef cPtxd<Type,Dim>                               tPt;
+       typedef Type                                          tEl;
        // To see later (C Meynard ?) why this create compile pb
        // typedef typename  tElemNumTrait<Type>::tFloatAssoc    tReal;
        //typedef cPtxd<tReal,Dim>                              tPtR;
@@ -54,8 +60,11 @@ template <class Type,const int Dim> class cPtxd
           return mCoords[aK];
        }
 
+
+
        /// Some function requires default constructor (serialization ?)
-       cPtxd() {}
+       cPtxd() : mCoords{} // fill array with 0
+       { }
 
        /* I would prefer not inline but : cannot make work explicit instance of a 
           a specific method,  and explicit of the whole class create problem
@@ -64,10 +73,22 @@ template <class Type,const int Dim> class cPtxd
        // static cPtxd<Type,Dim> T_PCste(const Type & aVal) ;
 
        /// Initialisation with constants
-       static cPtxd<Type,Dim>  PCste(const Type & aVal) ;
+       static cPtxd<Type,Dim>  PCste(const Type & aVal) 
+       {
+           cPtxd<Type,Dim> aRes;
+           for (int aK=0 ; aK<Dim; aK++)
+                aRes.mCoords[aK]= aVal;
+           return aRes;
+       }
+       /// Initialisation with nan value (to detect error asap)
+       static cPtxd<Type,Dim>  Dummy();
+       /// Initialisation from name "i..."  "-j..."    valide are "ijkl" 
+       static cPtxd<Type,Dim>  PFromCanonicalName(const std::string & aName,size_t & anIndex);
       
        /// Initialisation from PInt
        static cPtxd<Type,Dim>  FromPtInt(const  cPtxd<int,Dim> & aVal) ;
+       /// Initialisation from PInt
+       static cPtxd<Type,Dim>  FromPtR(const  cPtxd<tREAL8,Dim> & aVal) ;
        /// Initialisation random
        static cPtxd<Type,Dim>  PRand();
        /// Initialisation random
@@ -88,13 +109,35 @@ template <class Type,const int Dim> class cPtxd
         static cPtxd<Type,Dim> FromStdVector(const std::vector<Type>&); ///< Init with line of matrix
 
        /// Contructor for 1 dim point, statically checked
-       explicit cPtxd(const Type & x) :  mCoords{x} {static_assert(Dim==1,"bad dim in cPtxd initializer");}
+       explicit cPtxd(const Type & x) :  mCoords{x} 
+       {
+	       tNumTrait<Type>::AssertValueOk(x);
+	       static_assert(Dim==1,"bad dim in cPtxd initializer");
+       }
        /// Contructor for 2 dim point, statically checked
-       cPtxd(const Type & x,const Type &y) :  mCoords{x,y} {static_assert(Dim==2,"bad dim in cPtxd initializer");}
+       cPtxd(const Type & x,const Type &y) :  mCoords{x,y} 
+       {
+	       tNumTrait<Type>::AssertValueOk(x);
+	       tNumTrait<Type>::AssertValueOk(y);
+	       static_assert(Dim==2,"bad dim in cPtxd initializer");
+       }
        /// Contructor for 3 dim point, statically checked
-       cPtxd(const Type & x,const Type &y,const Type &z) :  mCoords{x,y,z} {static_assert(Dim==3,"bad dim in cPtxd initializer");}
+       cPtxd(const Type & x,const Type &y,const Type &z) :  mCoords{x,y,z} 
+       {
+	       tNumTrait<Type>::AssertValueOk(x);
+	       tNumTrait<Type>::AssertValueOk(y);
+	       tNumTrait<Type>::AssertValueOk(z);
+	       static_assert(Dim==3,"bad dim in cPtxd initializer");
+       }
        /// Contructor for 4 dim point, statically checked
-       cPtxd(const Type & x,const Type &y,const Type &z,const Type &t) :  mCoords{x,y,z,t} {static_assert(Dim==4,"bad dim in cPtxd initializer");}
+       cPtxd(const Type & x,const Type &y,const Type &z,const Type &t) :  mCoords{x,y,z,t} 
+       {
+	       tNumTrait<Type>::AssertValueOk(x);
+	       tNumTrait<Type>::AssertValueOk(y);
+	       tNumTrait<Type>::AssertValueOk(z);
+	       tNumTrait<Type>::AssertValueOk(t);
+	       static_assert(Dim==4,"bad dim in cPtxd initializer");
+       }
 
        /// Contructor for 1 dim point, statically checked
        explicit cPtxd(const Type * aV)  {MemCopy(&mCoords[0],aV,Dim);}
@@ -115,10 +158,13 @@ template <class Type,const int Dim> class cPtxd
         std::vector<Type> ToStdVector() const; ///< conversion
 
         tBigNum  MinSqN2(const std::vector<tPt> &,bool SVP=false) const; ///< if SVP & empty return 0
+
+	/// Used for "generik" object that must describes its box
+	cTplBox<Type,Dim>  GetBoxEnglob() const;
+	bool  InfEqDist(const tPt &,tREAL8) const;
     protected :
        Type mCoords[Dim];
 };
-
 template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >
 {
     public :
@@ -127,6 +173,7 @@ template <class T,const int Dim>  class  cNV<cPtxd<T,Dim> >
 
 
     ///  1 dimension specializatio,
+/*
 typedef cPtxd<double,1>  cPt1dr ;
 typedef cPtxd<int,1>     cPt1di ;
 typedef cPtxd<float,1>   cPt1df ;
@@ -141,6 +188,7 @@ typedef cPtxd<tREAL16,3> cPt3dLR ;
 typedef cPtxd<double,3>  cPt3dr ;
 typedef cPtxd<int,3>     cPt3di ;
 typedef cPtxd<float,3>   cPt3df ;
+*/
 
 
 
@@ -173,6 +221,7 @@ std::vector<cPt2di> VectOfRadius(const double & aR0,const double & aR1,bool IsSy
 template <class Type,const int DimOut,const int DimIn> cPtxd<Type,DimOut> CastDim(const cPtxd<Type,DimIn>&);
 
 template <class Type> inline bool IsNull (const cPtxd<Type,2> & aP) { return (aP.x() ==0) && (aP.y()==0);}
+template <class Type> inline bool IsNull (const cPtxd<Type,3> & aP) { return (aP.x() ==0) && (aP.y()==0) && (aP.z()==0);}
 template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP) { return ! IsNull(aP);}
 //template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP) { return  (aP.x() !=0) || (aP.y()!=0);}
 
@@ -197,27 +246,31 @@ template <class Type> inline cPtxd<Type,4> operator + (const cPtxd<Type,4> & aP1
 { return cPtxd<Type,4>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z(),aP1.t()+aP2.t()); }
 
 
-template <class Type> inline void operator += (cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+template <class Type> inline cPtxd<Type,1> operator += (cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2)
 { 
     aP1.x() += aP2.x(); 
+    return aP1;
 }
-template <class Type> inline void operator += (cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+template <class Type> inline cPtxd<Type,2> & operator += (cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2)
 { 
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
+    return aP1;
 }
-template <class Type> inline void operator += (cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+template <class Type> inline cPtxd<Type,3> operator += (cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2)
 { 
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
     aP1.z() += aP2.z(); 
+    return aP1;
 }
-template <class Type> inline void operator += (cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+template <class Type> inline cPtxd<Type,4> operator += (cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2)
 { 
     aP1.x() += aP2.x(); 
     aP1.y() += aP2.y(); 
     aP1.z() += aP2.z(); 
     aP1.t() += aP2.t(); 
+    return aP1;
 }
 
 
@@ -270,10 +323,19 @@ template <class Type> inline cPtxd<Type,2> operator * (const Type & aVal ,const 
 {return  cPtxd<Type,2>(aP.x()*aVal,aP.y()*aVal);}
 template <class Type> inline cPtxd<Type,2> operator * (const cPtxd<Type,2> & aP,const Type & aVal) 
 {return  cPtxd<Type,2>(aP.x()*aVal,aP.y()*aVal);}
+
 template <class Type> inline cPtxd<Type,3> operator * (const Type & aVal ,const cPtxd<Type,3> & aP) 
 {return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
 template <class Type> inline cPtxd<Type,3> operator * (const cPtxd<Type,3> & aP,const Type & aVal) 
 {return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
+
+
+template <class Type> inline cPtxd<Type,4> operator * (const Type & aVal ,const cPtxd<Type,4> & aP) 
+{return  cPtxd<Type,4>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal,aP.t()*aVal);}
+template <class Type> inline cPtxd<Type,4> operator * (const cPtxd<Type,4> & aP,const Type & aVal) 
+{return  cPtxd<Type,4>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal,aP.t()*aVal);}
+
+
 
 ///  operator /  points-scalar
 template <class Type> inline cPtxd<Type,1> operator / (const cPtxd<Type,1> & aP,const Type & aVal) 
@@ -302,12 +364,21 @@ template <class Type> inline cPtxd<Type,4> operator / (const cPtxd<Type,4> & aP,
 template <class T,const int Dim> double NormK(const cPtxd<T,Dim> & aP,double anExp) ;
 template <class T,const int Dim> T Norm1(const cPtxd<T,Dim> & aP);
 template <class T,const int Dim> T NormInf(const cPtxd<T,Dim> & aP);
-template <class T,const int Dim> double Norm2(const cPtxd<T,Dim> & aP);
 
-template <class T,const int Dim> typename  tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+// template <class T,const int Dim> typename tNumTrait<T>::tFloatAssoc Norm2(const cPtxd<T,Dim> & aP);
+template <class T,const int Dim> typename tNumTrait<T>::tFloatAssoc Norm2(const cPtxd<T,Dim> & aP)
+{
+   return sqrt(SqN2(aP));
+}
+// template <class T,const int Dim> double Norm2(const cPtxd<T,Dim> & aP);
+
+template <class T,const int Dim> typename tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+template <class T,const int Dim> typename tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> & aP);
 
 template <class T,const int Dim> T Cos(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 template <class T,const int Dim> T AbsAngle(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+//  Trunk cos in [-1,1] if necessary
+template <class T,const int Dim> T AbsAngleTrnk(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 
 
 template <class T,const int Dim> T MinAbsCoord(const cPtxd<T,Dim> & aP);
@@ -452,7 +523,28 @@ template <class T> inline cPtxd<tREAL8,2> ToR(const cPtxd<T,2> & aP) {return cPt
 template <class T> inline cPtxd<tREAL8,3> ToR(const cPtxd<T,3> & aP) {return cPtxd<tREAL8,3>(aP.x(),aP.y(),aP.z());}
 template <class T> inline cPtxd<tREAL8,4> ToR(const cPtxd<T,4> & aP) {return cPtxd<tREAL8,4>(aP.x(),aP.y(),aP.z(),aP.t());}
 
-template <class T,const int Dim> cPtxd<tREAL8,Dim> Barry(const std::vector<cPtxd<T,Dim> > & aVPts);
+template <class T> inline cPtxd<tREAL4,2> ToF(const cPtxd<T,2> & aP) {return cPtxd<tREAL4,2>(aP.x(),aP.y());}
+
+template <class T,const int Dim> cPtxd<tREAL8,Dim> Centroid(const std::vector<cPtxd<T,Dim> > & aVPts);
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,const cPtxd<T,Dim> & aP1);
+template <class T,const int Dim> cPtxd<T,Dim> Centroid(T aW0,const cPtxd<T,Dim> & aP0,T aW1,const cPtxd<T,Dim> & aP1);
+
+template <class tContPts>  class cComputeCentroids
+{
+    public :
+       typedef  typename tContPts::value_type tPts;
+       typedef  typename tPts::tEl            tEl;
+
+       static tPts   MedianCentroids(const tContPts &);
+       static tPts   LinearWeigtedCentroids(const tContPts &,const tPts & aP0,double aSigma);
+       static tREAL8 SigmaDist(const tContPts &,const tPts & aP0,double aProp);
+
+       static tPts  StdRobustCentroid(const tContPts &,double aProp,int aNbIter);
+
+       /// Median of dist to  MedianCentroids
+       static tREAL8   MedianSigma(const tContPts &);
+};
+
 /*
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}
@@ -559,9 +651,11 @@ template <class Type,const int Dim>  class cTplBox
 
         cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
         cTplBox(const tPt & aSz,bool AllowEmpty=false); // Create a box with origin in 0,0,..
-        static cTplBox Empty();
-        static cTplBox FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty=false);
-        static cTplBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
+        static tBox Empty();
+        static tBox FromVect(const tPt * aBegin,const tPt * aEnd,bool AllowEmpty=false);
+        static tBox FromVect(const std::vector<tPt> & aVecPt,bool AllowEmpty=false);
+        static tBox CenteredBoxCste(Type);
+        static tBox BigBox();
 
 	cTplBox<tREAL8,Dim> ToR() const;
 	cTplBox<tINT4,Dim>  ToI() const;
@@ -627,9 +721,14 @@ template <class Type,const int Dim>  class cTplBox
         static cPtxd<double,Dim>  RandomNormalised() ;     ///<  Random point in "hyper cube" [0,1] ^ Dim
         tPt   GeneratePointInside() const;   ///< Random point in integer rect
         tBox  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
+
+        static void Corners(tCorner & aRes,const tPt &aP0,const tPt &aP1);
         void Corners(tCorner & aRes) const;
+
+
         Type DistMax2Corners(const tPt&) const;
 	static size_t NbFlagCorner() ;
+	static tPt  CornerOfFlag(size_t aFlag,const tPt &aP0,const tPt &aP1) ;
 	tPt  CornerOfFlag(size_t aFlag) const;
 
     protected :
@@ -639,7 +738,14 @@ template <class Type,const int Dim>  class cTplBox
         tBigPt    mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK-1]
         tBigNum   mNbElem;     ///< Number of pixel = Cum[Dim-1]
     private :
+
 };
+
+
+/**  Assure that P0,P1 are non empty box, using a minimum changes */
+template <const int Dim> void  MakeBoxNonEmptyWithMargin(cPtxd<tREAL8,Dim>&P0 , cPtxd<tREAL8,Dim> & aP1, 
+		                                         tREAL8 aStdMargin,tREAL8 aMarginSemiEmpty,tREAL8 aMarginEmpty);
+
 
 // template <const int Dim>  cTplBox<tREAL8,Dim> ToR(const  cTplBox<int,Dim> & );
 // template <const int Dim>  cTplBox<int,Dim> ToI(const  cTplBox<tREAL8,Dim> & );
@@ -649,10 +755,15 @@ trigonometric order, a notion not generalisable */
 
 template <class Type> void CornersTrigo(typename cTplBox<Type,2>::tCorner & aRes,const cTplBox<Type,2>&);
 
+/*
 typedef cTplBox<int,2>  cBox2di; 
 typedef cTplBox<double,2>  cBox2dr; 
 typedef cTplBox<int,3>  cBox3di; 
 typedef cTplBox<double,3>  cBox3dr; 
+*/
+
+
+
 //cBox2dr ToR(const cBox2di &);  ///< Basic conversion
 //cBox2di ToI(const cBox2dr &);  ///< Convert in englobing mode
 cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord
@@ -704,6 +815,13 @@ template <class Type,const int Dim> class cSegment
        cSegment(const tPt& aP1,const tPt& aP2);
        /// Estimate fonc linear, with gradient paral to tangent,  given value in P1 and P2, will be F(Q) =  R.first + R.second Q
        void CompileFoncLinear(Type & aVal,tPt & aVec,const Type  &aV1,const Type  & aV2) const;
+       const tPt&  P1() const; ///< Accessor
+       const tPt&  P2() const; ///< Accessor
+
+       tPt  V12() const;   ///<  Vector  P1->P2
+       tPt  PMil() const;  ///<  P middle
+	/// Used for "generik" object that must describes its box
+	cTplBox<Type,Dim>  GetBoxEnglob() const;
     protected :
        tPt  mP1;
        tPt  mP2;
@@ -714,93 +832,12 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
     public :
        typedef cPtxd<Type,Dim> tPt;
        cSegmentCompiled(const tPt& aP1,const tPt& aP2);
+       tPt  Proj(const tPt &) const;
+       Type Dist(const tPt &) const;
     protected :
        Type    mN2;
        tPt     mTgt;
 };
-
-#if (0)
-
-/// Class for storing  basic triangle in 2 or 3 D
-template <class Type,const int Dim> class  cTriangle
-{
-     public :
-       typedef cPtxd<Type,Dim>     tPt;
-       typedef cTriangle<Type,Dim> tTri;
-
-       cTriangle(const tPt & aP0,const tPt & aP1,const tPt & aP2);
-
-       tTri  TriSwapPt(int aK0) const; ///< "same" but with different orientation by swap K0/1+K0
-
-       static tTri  RandomTri(const Type & aSz,const Type & aRegulMin = Type(1e-2));
-       /// aWeight  encode in a point the 3 weights
-       tPt  FromCoordBarry(const cPtxd<Type,3> & aWeight) const;
-       /// Barrycenter with equal weights
-       tPt  Barry() const;
-
-       ///  return K such that Pt(K)Pt(K+1) is the longest
-       int  IndexLongestSeg() const;
-
-       /// How much is it a non degenerate triangle,  without unity, 0=> degenerate
-       Type Regularity() const;
-       /// Area of the triangle
-       Type Area() const;
-       /// Point equidistant to 3 point,  To finish for dim 3
-       tPt CenterInscribedCircle() const;
-       const tPt & Pt(int aK) const;   ///< Accessor
-       tPt KVect(int aK) const;   ///<   Pk->Pk+1
-       cTplBox<Type,Dim>  BoxEngl() const;
-       cTplBox<int,Dim>     BoxPixEngl() const;  // May be a bit bigger
-
-     protected :
-       tPt  mPts[3];
-};
-
-
-template <class Type,const int Dim> class cTriangulation
-{
-     public :
-          typedef Type                  tCoord;
-          typedef cPtxd<tCoord,Dim>     tPt;
-          typedef cTriangle<tCoord,Dim> tTri;
-          typedef cPt3di                tFace;
-          typedef std::vector<tPt>      tVPt;
-          typedef std::vector<tFace>    tVFace;
-
-	  tPt PAvg() const; ///< return an average point 
-	  int   IndexClosestFace(const tPt& aPClose) const; ///< Face closest to a given point
-	  /**  return a Face more or less at the center,  4 now ompute face closest to Avg , not perfect
-	   * but work with simple suface, if necessary will evolve as a real geodetic center */
-	  int   IndexCenterFace() const;
-
-
-          int  NbFace() const;
-          const tFace &  KthFace(int aK) const;
-          tTri  KthTri(int aK) const;
-	  bool  ValidFace(const tFace &) const;
-          int  NbPts() const;
-	  const tPt  & KthPts() const;
-
-	  /// Create a sub tri of vertices belonging to the set, require 1,2 or 3 vertice in each tri
-	  void Filter(const cDataBoundedSet<tREAL8,Dim> &,int aNbVertixThres=3) ;
-	  /// Box of Pts, error when empty, FactMargin make it slightly bigger
-	  cTplBox<tCoord,Dim>  BoxEngl(Type aFactMargin = 1e-2) const;
-
-	  /// Equality is difficiult, because of permutation,just make heuristik test
-	  bool  HeuristikAlmostEqual (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;
-     protected :
-	  /// More a
-	  bool  HeuristikAlmostInclude (const cTriangulation<Type,Dim> &,Type TolPt,Type TolFace)  const;
-
-          cTriangulation(const tVPt& =tVPt(),const tVFace & =tVFace());
-          void AddFace(const tFace &);
-          void ResetTopo();
-
-          std::vector<tPt>    mVPts;
-          std::vector<tFace>  mVFaces;
-};
-#endif
-
 
 
 };

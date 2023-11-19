@@ -1,7 +1,223 @@
+\chapter{Project management command}
 
 %---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+\section{Readible file formats}
 
-\chapter{Project management command}
+\subsection{Readible/Binary}
+
+As photogrammetric pipeline is a complex process, made of several computation,
+the result of each computation has to be writen in some files that
+will be read at by next process. There is basically two familly of such files:
+
+\begin{itemize}
+   \item files that may have some interest to  be read or manipulated by human
+         or other programm, in this case {\tt MMVII} standar tagged format
+	 as {\tt xml} of {\tt json}; example of such file are calibration
+	 or pose estimation;
+
+   \item files that have probably low interest for human, and for efficiency 
+         they are stored in binary format  (note that there exist also a
+         text version of this binary format, note easy to read, but that facilitate
+	   import export);
+\end{itemize}
+
+\subsection{Xml and Json files}
+
+{\tt MMVII} offer the possibility to export data in two different tagged format : {\tt xml} and
+{\tt json}. By default it's {\tt xml}, but this can be changed using mecanism descrined in \ref{UserParametrisation}.
+Implicit conversion may appear in a near future for sharing files between user,
+by the way it's recommanded that user make a choice once for all  to avoid any problem.
+
+The folder {\tt MMVII-UseCaseDataSet/SampleFiles} contains examples
+of files in {\tt xml} and {\tt json}. 
+
+Note that {\tt xml} allows real coments and, for example, in the file {\tt Calib...xml}, they are used to
+explicit  the meanin of distorsion parameters. As {\tt json} do not have
+real comments, we use the special tags , for example in file
+{\tt Calib...json} you can find {\tt "<!--comment6-->":"(X,0)"}
+(corresponding to  {\tt <!--(X,0)-->} in {\tt xml}).
+
+These file are made to be relatively easy to read. They can also be created or
+modified easily by user or programm however there are some \emph{strict} rules to observe so that such
+file remain valid . Starting from a valid file, here are example of things that can be done to maintain
+validity :
+
+\begin{itemize}
+       \item change the value of atoms while respecting their type (float, int, string \dots);
+
+       \item add or supress an element  in a sequence or a map,  see for example  the file
+	       {\tt TestObj.*}, the element of sequence are tagged {\tt el} in {\tt xml}, while the element of
+		pair key-value  in a map are tagged {\tt K/V};
+
+       \item supress or add any comment;
+
+       \item supress or add an optionnal value (rare case for now), the optionnal value can
+	     be  detected as their tags begin by {\tt Opt:}, see file {\tt F\_T2.*};
+\end{itemize}
+
+And here a \emph{non-exhautive} list of thing you cant do :
+
+\begin{itemize}
+        \item obviously create a non-valide xml/json file;
+
+	\item swap two elements of different tags  \emph{very bad, dont do it, strictly forbiden, naughty , Micmac is whatching you \dots}
+          also it woul be theoretically possible to recover the information, this would involve unnecessary software devlopment
+	  that wont be done;
+
+        \item supress a non optional tag ;
+
+	\item add/supress a value in fixed size tab (used to represent point for exeample);
+\end{itemize}
+
+The format of each file is :
+
+\begin{itemize}
+	\item a single root node , named {\tt root} in {\tt xml} and anonymous in Jason,
+	\item root node has exacly $3$ sub-node that have  a fixed tag
+
+	\item the first node is the type, it must be tagged {\tt Type} and its value must {\tt MMVII\_Serialization} 
+              signing the fact that is was created by {\tt MMVII};
+
+      \item the second node is a version number, it must be tagged {\tt Version}, its value will allow
+	    compatibility policy with older files, unused at the time being;
+             
+    \item the third node must be tagged {\tt Data} and contains in fact the data itself !
+          in most frequent case, it will contain a single node (see {\tt Calib*, Ori*} ) allowing
+          some type-checking at the very begining   of the command (i.e we can check that {\tt Calib*}
+          are most probably  MMVII-calibration files as their data contains the single tag {\tt InternalCalibration});
+\end{itemize}
+
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{User specific parametrization}
+
+\label{UserParametrisation}
+
+Sometimes user need to fix some stable default parametrization of {\tt MMVII}, 
+the parameters acessible for now are :
+
+\begin{itemize}
+    \item maximal number of processor that will be allowed when  {\tt MMVII} execute
+          parallel computation;
+
+     \item default format for human readible export, it can be for now \emph{xml} or \emph{json};
+
+      \item name of the user, this field is for now rather target for devloppers who want to
+            include in this devlopped code   some message/test ...  specific to himself
+           (for example, in some suspicipus case, I will make a breakpoint for myself, but will
+		not bother others with that as it should work if we are a bit lucky);
+\end{itemize}
+
+This will probably evolve, for example we can imagine to have some category of user.
+The way this is done is done by filling a {\tt xml} file located in the folder 
+{\tt MMVII-LocalParameters}, for example we have the file {\tt Default/MMVII-UserOfProfile.xml} :
+
+\begin{verbatim}
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.00"</Version>
+   <Data>
+      <UserName>"Uknown"</UserName>
+      <NbProcMax>1000</NbProcMax>
+      <SerialMode>"xml"</SerialMode>
+   </Data>
+</Root>
+\end{verbatim}
+
+Now the question is how will {\tt MMVII} locate file to use. This name of the folder containing
+this file will be contained in a file {\tt MMVII-CurentPofile.xml} if it exists,
+or in {\tt Default-MMVII-CurentPofile.xml} in the other case. This file should always exist
+at it is a git-shared file {\emph should not ne modified except by devlopers}.
+If we take a look at  it : 
+
+\begin{verbatim}
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.00"</Version>
+   <Data>
+      <NameProfile>"Default"</NameProfile>
+   </Data>
+</Root>
+\end{verbatim}
+
+We see that the only meaningfull part is {\tt NameProfile} indicating the name
+of the folder. For creating a profile, what user must do is :
+
+\begin{itemize}
+    \item creat a file  {\tt MMVII-CurentPofile.xml} if it was not already done;
+    \item fill the field {\tt <NameProfile>};
+    \item create in the corresponding folder, a file {\tt MMVII-UserOfProfile.xml}
+\end{itemize}
+
+The idea, is that a user can have several predefined profile in different folders,
+and only modify  {\tt MMVII-CurentPofile.xml}.
+
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{General data organization}
+
+The data organization in {\tt MMVII} is the following :
+
+\begin{itemize}
+     \item for a given project, almost all the file created are located somewhere under
+           the same folder {\tt MMVII-PhgrProj},  this is necessary because during a complex 
+           photogrammetric process many files will be created and we dont want to encumber
+           the main folder;
+
+     \item an example of such folder (resulting from the coded-target usecase) can be
+	     found under {\tt MMVII-UseCaseDataSet/SampleFiles}
+
+     \item for each kind of processing, there exist a subfolder corresponding to the "nature"
+            of the data stored;
+
+    \item  in the example there is of folder for orientation {\tt Ori}, one for point measurement
+	   {\tt PointsMeasure}, one fore handling meta data {\tt MetaData}, one for storing reports
+           {\tt Reports}, all the name of this subfolder are defined by {\tt MMVII} and cannot be changed
+            by the user;
+
+    \item there is (will be) many other king of folder : homologous point, radiometric model, radiometric data,
+           \dots
+
+     \item in each of the predefined folder, there exist different subfolder corresponding to different step
+           of the process; the name of this subfolder are specified by user, sometime as input to a command,
+	   sometime as output to a command; typically the output a command being the input of the next command;
+\end{itemize}
+
+In this example, we have $4$ different folder for orientation in {\tt Ori} :
+
+\begin{itemize}
+      \item  {\tt 11P} which is the result of initial estimation using uncalibrated spaced resection
+	      (with the "$11$ parameters method");
+
+      \item  {\tt Resec} which is the result of pose estimation using calibrated camera, using as input
+	      the calibration stored in {\tt 11P};
+
+      \item  {\tt BA} which is the result of pose estimation using bundled adjusment, using as input
+	      for initial value the pose stored in {\tt Resec};
+
+      \item   the refined pose of  {\tt BA} are used as input to drive a research of uncoded target with
+	      accurate initial position in imahe;
+ 
+       \item using the additional target, {\tt BA} is used as input to a new bundle adjusment and the result is
+             stored in {\tt BA2}.
+
+\end{itemize}
+
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
 
 \section{Help command}
 \index{Help}

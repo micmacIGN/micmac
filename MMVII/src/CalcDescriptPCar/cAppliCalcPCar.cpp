@@ -1,10 +1,8 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_AimeTieP.h"
+#include "MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
-
-
 
 
 template <class Type> class  cTplAppliCalcDescPCar;
@@ -184,11 +182,11 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
          // Copy in top image of pyramid, the value adaptated to dynamic
          for (const auto & aP : aDImTop)
          {
-// StdOut() << "ppppP " << aP << aDImBuf.GetV(aP) << " " << ToStored(aDImBuf.GetV(aP)) << "\n";
+// StdOut() << "ppppP " << aP << aDImBuf.GetV(aP) << " " << ToStored(aDImBuf.GetV(aP)) << std::endl;
              aDImTop.SetV(aP,ToStored(aDImBuf.GetV(aP)));
          }
     }
-    StdOut() << "AnIndex " << anIndex << " SsZzz " << mVC << " " << mDyn << " " << mIsFloat << "\n";
+    StdOut() << "AnIndex " << anIndex << " SsZzz " << mVC << " " << mDyn << " " << mIsFloat << std::endl;
 
 
     // Compute Gaussian pyramid
@@ -199,9 +197,9 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
     if (mAppli.mSaveIms)
     {
        
-       StdOut() << "   ############################################ \n";
-       StdOut() << "   ######   NAME="  <<    mAppli.mNameIm  << "\n";
-       StdOut() << "   ############################################ \n";
+       StdOut() << "   ############################################ " << std::endl;
+       StdOut() << "   ######   NAME="  <<    mAppli.mNameIm  << std::endl;
+       StdOut() << "   ############################################ " << std::endl;
     }
     mPyr->SaveInFile(0,mAppli.mSaveIms);
 

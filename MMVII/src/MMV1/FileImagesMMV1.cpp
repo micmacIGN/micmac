@@ -1,4 +1,9 @@
-#include "include/V1VII.h"
+#include "V1VII.h"
+#include "MMVII_util.h"
+#include "MMVII_Image2D.h"
+#include "MMVII_DeclareCste.h"
+#include "cMMVII_Appli.h"
+#include "MMVII_Sys.h"
 
 
 extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff
@@ -13,12 +18,6 @@ std::string V1NameMasqOfIm(const std::string & aName)
 }
 
 
-const std::string & MMV1Bin()  // Use this old trick to avoid order dependancy
-{
-   static std::string aRes (DirBin2007 + "../../bin/mm3d");
-   return aRes;
-}
-
 void Init_mm3d_In_MMVII()
 {
    // 
@@ -28,8 +27,8 @@ void Init_mm3d_In_MMVII()
 
    // Compute mm3d location from relative position to MMVII
    // static std::string CA0 =  DirBin2007 + "../../bin/mm3d";
-   char * A0= const_cast<char *>(MMV1Bin().c_str());
-   MM3DFixeByMMVII = MMV1Bin();
+   char * A0= const_cast<char *>(cMMVII_Appli::MMV1Bin().c_str());
+   MM3DFixeByMMVII = cMMVII_Appli::MMV1Bin();
    MMD_InitArgcArgv(1,&A0);
 }
 
@@ -122,6 +121,19 @@ const cPt2di &  cDataFileIm2D::Sz() const  {return  cPixBox<2>::Sz();}
 const std::string &  cDataFileIm2D::Name() const { return mName; }
 const int  & cDataFileIm2D::NbChannel ()  const { return mNbChannel; }
 const eTyNums &   cDataFileIm2D::Type ()  const {return mType;}
+
+
+bool cDataFileIm2D::IsPostFixNameImage(const std::string & aPost)
+{
+    static std::vector<std::string> aVNames({"jpg","jpeg","tif","tiff"});
+
+    return UCaseMember(aVNames,aPost);
+}
+
+bool cDataFileIm2D::IsNameWith_PostFixImage(const std::string & aName)
+{
+   return IsPostFixNameImage(LastPostfix(aName));
+}
 
 
 
@@ -270,12 +282,25 @@ template <> void cMMV1_Conv<tREAL16>::ReadWrite
 {
    MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
 }
+template <> void cMMV1_Conv<tU_INT4>::ReadWrite
+                 (bool,const tImMMVII &,const tImMMVII &,const tImMMVII &,const cDataFileIm2D &,const cPt2di &,double,const cRect2& )
+{
+   MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
+}
 
 
 template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
      cMMV1_Conv<Type>::ReadWrite(true,*this,aFile,aP0,aDyn,aR2);
 }
+
+template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,tIm &aImG,tIm &aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
+{
+     cMMV1_Conv<Type>::ReadWrite(true,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
+}
+
+
+
 template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
      cMMV1_Conv<Type>::ReadWrite(false,*this,aFile,aP0,aDyn,aR2);
@@ -284,7 +309,7 @@ template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,
 template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const tIm &aImG,const tIm &aImB,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
      //cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
-     cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
+       cMMV1_Conv<Type>::ReadWrite(false,*this,aImG,aImB,aFile,aP0,aDyn,aR2);
 }
 /*
 */
@@ -403,6 +428,21 @@ cIm2D<tU_INT1> ImageOfString_DCT(const std::string & aStr ,int aSpace)
     return BitsV1ToV2(aImV1);
 }
 
+void Convert_JPG(const std::string &  aNameIm,bool DeleteAfter,tREAL8 aQuality,const std::string & aPost)
+{
+    cParamCallSys aCom("convert","-quality",ToStr(aQuality),
+	                   aNameIm,
+                       LastPrefix(aNameIm) + "." + aPost
+                       );
+
+       int aResult = GlobSysCall(aCom,true);
+
+       if ( (aResult==EXIT_SUCCESS) && DeleteAfter)
+       {
+           RemoveFile(aNameIm,false);
+       }
+
+}
 
 
 //  INSTANTIATION 

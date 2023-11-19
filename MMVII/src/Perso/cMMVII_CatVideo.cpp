@@ -1,5 +1,5 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+
+#include "MMVII_2Include_Serial_Tpl.h"
 #include<map>
 
 /** \file cMMVII_CatVideo.cpp
@@ -83,7 +83,7 @@ int cAppli_CatVideo::Exe()
    // Sometime computing postfix fails, so dont do it when you dont need it
    bool ComputePost = (! IsInit(&mNameResult));
   
-   cMMVII_Ofs aFileOfFile(mNameFoF,mAppend);
+   cMMVII_Ofs aFileOfFile(mNameFoF,mAppend ? eFileModeOut::AppendText : eFileModeOut::CreateText);
    for (const auto & aStr : ToVect(MainSet0()))
    {
        aFileOfFile.Ofs() << "file '" << aStr << "'" << std::endl;
@@ -91,7 +91,7 @@ int cAppli_CatVideo::Exe()
        {
           aSetPostfix.Add(LastPostfix(aStr));
        }
-       StdOut() << " STR=" << aStr << "\n";
+       StdOut() << " STR=" << aStr << std::endl;
    }
    aFileOfFile.Ofs().close();
 
@@ -122,16 +122,16 @@ int cAppli_CatVideo::Exe()
    if (! IsInit(&mOptions))
    {
       if (mVideoMode)
-         mOptions = " -vcodec mpeg4 -b 15000k ";
+         mOptions = "-vcodec mpeg4 -b 15000k";
    }
 
-   std::string aCom = "ffmpeg -safe 0 -f concat -i "+ mNameFoF + mOptions+ " " +  mNameResult;
+   cParamCallSys aCom("ffmpeg","-safe","0","-f","concat","-i",mNameFoF,mOptions,mNameResult);
    int aRes = EXIT_SUCCESS ;
    if (mExec) 
    {
       aRes = ExtSysCall(aCom,false);
    }
-   StdOut() << "Com=[" << aCom << "]\n";
+   StdOut() << "Com=[" << aCom.Com() << "]" << std::endl;
 
    return aRes;
 }
@@ -147,7 +147,7 @@ cSpecMMVII_Appli  TheSpecCatVideo
      "MediaCat",
       Alloc_CatVideo,
       "This command is used for concatening medias (interface to ffmpeg)",
-      {eApF::Perso},
+      {eApF::Perso,eApF::NoGui},
       {eApDT::Media},
       {eApDT::Media},
       __FILE__

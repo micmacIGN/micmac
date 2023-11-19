@@ -2,6 +2,9 @@
 #define  _MMVII_Util_TPL_H_
 
 #include <algorithm>
+#include "MMVII_enums.h"
+#include "MMVII_Error.h"
+#include "MMVII_nums.h"
 
 namespace MMVII
 {
@@ -44,7 +47,7 @@ template<class Type> cSelector<Type> operator && (const cSelector<Type> &,const 
 template<class Type> cSelector<Type> operator || (const cSelector<Type> &,const cSelector<Type>&); ///< Or/Union of selector
 template<class Type> cSelector<Type> operator !  (const cSelector<Type> &); ///< Negation of selector
 
-/**  Selector corresponding to interval  V1..V2,  boost::none mean no bound
+/**  Selector corresponding to interval  V1..V2,  std::nullopt mean no bound
     aInclLow,InclUp  indicate if bounds are included.
 
      (V1,V2,true,true)  => [V1,V2]
@@ -98,7 +101,7 @@ void BenchSet(const std::string & aDir);
 template <class Type> class cExtSet  : public  cSelector<Type>
 {
     public :
-         virtual ~cExtSet() ;
+         virtual ~cExtSet() = default;
          cExtSet<Type>   Dupl() const ; // return a duplicata
          cExtSet<Type>   EmptySet() const ; // return a set from same type
 
@@ -216,8 +219,17 @@ template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
    aVec.erase(std::remove_if(aVec.begin(),aVec.end(),aFonc),aVec.end());
 }
 
+template <class TypeCont,class Fonc> typename TypeCont::value_type & FindIf(TypeCont & aCont,const Fonc & aFonc)
+{
+      auto  anIter = std::find_if(aCont.begin(), aCont.end(), aFonc);
+      MMVII_INTERNAL_ASSERT_tiny(anIter!=aCont.end(),"FindIf");
+
+      return *anIter;
+}
+
+
 /// return -1 0 or 1 , regarding < , == or >
-template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+template <class Type> int VecLexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
 /// return if aV1 < aV2 as LexicoCmp==-1
 template <class Type> bool operator < (const std::vector<Type> & aV1,const std::vector<Type> & aV2);
 template <class Type> bool operator == (const std::vector<Type> & aV1,const std::vector<Type> & aV2);
@@ -244,6 +256,17 @@ template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,con
     return aRes;
 }
 
+template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,const std::vector<Type> & aV2,const std::vector<Type> & aV3)
+{
+    return Append(aV1,Append(aV2,aV3));
+}
+
+template <class Type> std::vector<Type> Append
+    (const std::vector<Type> & aV1,const std::vector<Type> & aV2,const std::vector<Type> & aV3,const std::vector<Type> & aV4)
+{
+     return Append(Append(aV1,aV2),Append(aV3,aV4));
+}
+
 ///  set value or push at end, 
 template <class Type> void SetOrPush(std::vector<Type> & aVec,size_t aIndex,const Type & aVal)
 {
@@ -255,11 +278,79 @@ template <class Type> void SetOrPush(std::vector<Type> & aVec,size_t aIndex,cons
 }
 
 
-//  resize only in increasing mode
+///  resize only in increasing mode
 template <class Type> void ResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal)
 {
    if (aSz>aV1.size())
       aV1.resize(aSz,aVal);
+}
+
+template <class Type> void SetAndResize(std::vector<Type> & aVec,size_t aSz,const Type &aVal,const Type & aDef)
+{
+      ResizeUp(aVec,aSz,aDef);
+      SetOrPush(aVec,aSz,aVal);
+}
+
+template <class Type> Type GetDef(const std::vector<Type> & aVec,int aSz,const Type & aDef)
+{
+   if ((aSz>=0) && (aSz<int(aVec.size()))) 
+       return aVec.at(aSz);
+   return aDef;
+}
+
+
+template <class T1,class T2> std::vector<T1> &  Convert(std::vector<T1> & aV1,const std::vector<T2> & aV2)
+{
+	aV1.resize(aV2.size());
+	for (size_t aK=0 ; aK<aV1.size() ; aK++)
+            aV1[aK] = aV2[aK];
+
+	return aV1;
+}
+
+template <class T1,class T2> std::vector<T1>   VecConvert(const std::vector<T2> & aV2)
+{
+    std::vector<T1> aRes;
+    Convert(aRes,aV2);
+    return  aRes;
+}
+
+
+template <class T1> std::vector<T1> & Convert(std::vector<T1> & aV1,const std::vector<T1> & aV2)
+{
+	aV1 = aV2;
+	return aV1;
+}
+
+
+///  Usefull, delete all object of the container
+template <class Type> inline void DeleteAllAndClear(Type & aVal)
+{
+    for (auto it=aVal.begin() ; it!=aVal.end() ; it++)
+        delete *it;
+    aVal.clear();
+}
+
+
+
+/// Set value, before resize up if required
+template <class Type> void SetAndResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal,const Type &aValDef)
+{
+   ResizeUp(aV1,aSz+1,aValDef);
+   aV1.at(aSz) = aVal;
+}
+
+/// Add value, before resize up if required, typically for histogramme
+template <class Type> void AddAndResizeUp(std::vector<Type> & aV1,size_t aSz,const Type &aVal)
+{
+   ResizeUp(aV1,aSz+1,Type(0));
+   aV1.at(aSz) += aVal;
+}
+
+/// Get value of vector considered as circular  [0 1 2 3 4]  :  -2 ->3  , 6 ->1 ....
+template<class Type>  const Type & ValCirc(const std::vector<Type> & aVec,int aK)
+{
+    return aVec.at(mod(aK,aVec.size()));
 }
 
 
@@ -294,7 +385,87 @@ template <class TVal,class TFunc> void SortOnCriteria(std::vector<TVal> & aVec,c
     );
 }
 
+template <class TVal,class TFunc> void VecFilter(std::vector<TVal> & aVec,const TFunc & aCritSupr)
+{
+       aVec.erase ( std::remove_if ( aVec.begin(), aVec.end(), aCritSupr), aVec.end());
+}
 
+
+template <class TVal,class TFunc> TVal * WhitchMinVect(std::vector<TVal> & aVec,const TFunc & aFunc)
+{
+     cWhichMin <TVal*,tREAL8>  aWM(nullptr,1e60);
+     for (auto & aVal :  aVec)
+        aWM.Add(&aVal,aFunc(aVal));
+
+     return aWM.IndexExtre();
+}
+
+template <class TVal,class TFunc> TVal * WhitchMaxVect(std::vector<TVal> & aVec,const TFunc & aFunc)
+{
+    return WhitchMinVect(aVec,[&aFunc](auto & aV){return -aFunc(aV);});
+}
+
+template <class Type>  void SubVector(std::vector<Type>& aRes,const std::vector<Type>& aFull,const std::vector<size_t>& aVInd)
+{
+    aRes.clear();
+    for (const auto & anInd : aVInd)
+       aRes.push_back(aFull[anInd]);
+}
+template <class Type>   std::vector<Type>  SubVector(const std::vector<Type> & aFull,const std::vector<size_t>& aVInd)
+{
+    std::vector<Type> aRes;
+    SubVector(aRes,aFull,aVInd);
+
+    return aRes;
+}
+
+
+/**   Class for maintaining a two way mapping Obj <--> Int */
+template <class Type>  class cBijectiveMapI2O
+{
+    public :
+
+        /// Add an object, if alredy exist create an error or do nothing, return value indicate if created
+        int Add(const Type & ,bool OkExist=false,const std::string& aMsgError="");
+
+        Type *   I2Obj(const int,bool SVP=true) ;  ///< Adr of object at index, 0 if none
+        const Type *   I2Obj(const int,bool SVP=true) const ;  ///< Adr of object at index, 0 if none
+        int      Obj2I(const Type & anOb,bool SVP=false) const;  ///< Index of object , -1 if none
+
+      	/// Call Obj2I with a human readable message in case
+        int      Obj2IWithMsg(const Type & anObj,const std::string & aMesg) const;
+
+	size_t  size() const;
+
+    private :
+        std::vector<Type>    mI2Obj;   /// vector efficient for map int->obj
+        std::map<Type,int>   mObj2I;   /// dictionary in the other wat
+};
+
+typedef  cBijectiveMapI2O<std::string> t2MapStrInt;
+
+///  make a research in a map using the key and not the val
+template <class Key,class Val> const Key * FindByVal(const std::map<Key,Val> & aMap,const Val & aVal,bool SVP=false)
+{
+    for (const auto & It : aMap)
+       if (It.second == aVal)
+          return  & It.first;
+    MMVII_INTERNAL_ASSERT_tiny(SVP,"FindByVal");
+    return nullptr;
+}
+
+/// find the kth element, slow but works for list
+template <class tCont>  typename tCont::value_type *  KthElem(tCont & aCont,int aNb,bool SVP=false)
+{
+    for (typename tCont::iterator anIt = aCont.begin() ; anIt!=aCont.end() ; anIt++)
+    {
+       if (aNb==0) return &(*anIt);
+       aNb--;
+    }
+    MMVII_INTERNAL_ASSERT_tiny(SVP,"KthElem");
+
+    return nullptr;
+}
 
 };
 

@@ -1,0 +1,604 @@
+\chapter{Pose estimation, elementary method}
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Introduction}
+
+This chapter present the "elementary" methods, that compute the pose of an image
+from observations that can, typically, be tie points (relative pose) or 
+ground control points (relative or absolute pose).
+
+By elementary we mean algorithms that compute directly a solution for a limited
+(typically $2$ or $3$, a few with Tomasi-Kanade) number of images. These algorithms
+are the "tactical" part. The result of these elementary algorithms will be used as
+elementary part of the puzzle by more global method that will try to have a "strategic" view.
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Space resection, calibrated case}
+
+\label{SR_Cal}
+
+    %-----------------------------------------------------
+\subsection{Introduction}
+
+We deal here with the following problem, we have:
+
+\begin{itemize}
+   \item a calibrated camera;
+   \item a set of points for which we know the  $3d$ word coordinates $G_k$ and their 
+        $2d$ coordinates $p_k$ in a image acquired with this camera;
+\end{itemize}
+
+We want to extract the pose $R,C$ of the camera (Rotation, Center) such that for every point
+we have the usual projection equation:
+
+\begin{equation}
+       \mathcal I(\pi (R*(G_k-C))) = p_k \label{EQ:PROJ}
+\end{equation}
+
+
+Each equation~\ref{EQ:PROJ}  creates $2$ constraints : one on line and one on column.
+Also the pose $R,C$ has $6$ degrees of freedom, so we can expect that the problem has
+a finite number of solution when we have $3$ points (in general less than $3$ will create
+infinite number and more than $3$ no solution).
+
+So here we will deal specifically  with the computation of the $R,C$ satisfying
+exactly the equation~\ref{EQ:PROJ}  from a set of $3$ correspondance. Other
+chapter will discuss of how we use more (possibly many) correspondance for beign 
+robust to outlier (for
+example with Ransac) or beign more accurate in presence of "gaussian" noise (for 
+example with least-square like) .
+
+
+This problem occurs in two case in photogrammetric pipeline :
+
+\begin{itemize}
+   \item the first case is in fact rather rare, it's the case where we have "real" GCP
+         an approximate calibration, and want to compute the initial pose of a camera ;
+         it's rare because the requirement of having at least $3$ GCP visible is rather
+         high; by the way it can occurs in calibrating a camera on a calibration fields
+         with many GCP;
+
+ \item the second case is when we have a set of $N$ already oriented camera  ($N\geq 2 $),
+       we want to orientate a new camera \emph{relatively} to this set, we have a
+       set of $M \geq 3$ multiple tie point , each tie point being visible in the new
+       camera and least two of already oriented camera;  when it is the case,
+       we can compute for each tie point, by bundle intesection, an estimation of the
+       "ground" coodinate of the point in the current system, and then estimate a pose
+       for the new camera coherent with the existing one;
+       this case is extremely frequent in automatic photogrammetric
+       pipeline (at least will be in {\tt MMVII});
+
+\end{itemize}
+
+
+The {\tt MMVII} code corresponding to this section can be found in 
+{\tt PoseEstim/CalibratedSpaceResection.cpp}.
+
+    %-----------------------------------------------------
+
+\subsection{Putting things in equation}
+
+           %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Equivalence to local coordinates}
+
+\label{SpRes:EquivLocCoord}
+
+First, we remark that if we know the local coordinates $L_k$ of the points in the
+camera frame, the problem becomes easy. Let show it, we will have to find a translation-rotation such that:
+
+\begin{equation}
+       R*(G_k-C) = L_k  ; k\in{1,2,3} \label{SpResecEQ:WL}
+\end{equation}
+
+
+For each pair $k,k'$, we have (noting $\Vec{X}_{kk'} = \overrightarrow{X_{k}X_{k'}} $):
+
+
+\begin{equation}
+	R* \Vec{G}_{kk'} =  \Vec{L}_{kk'} \label{SpResecEQ:WLVECT}
+\end{equation}
+
+As  $R$ is a rotation we have $R(A \wedge  B) = R(A) \wedge   R(B) $ and then:
+
+\begin{equation}
+	R* \begin{bmatrix} \Vec{G}_{12} & \Vec{G}_{23} &  \Vec{G}_{12} \wedge \Vec{G}_{23} \end{bmatrix} 
+        =  \begin{bmatrix} \Vec{L}_{12} & \Vec{L}_{23} &  \Vec{L}_{12} \wedge \Vec{L}_{23} \end{bmatrix} 
+        \label{SpResecEQ:WLVECT}
+\end{equation}
+
+Equation~\ref{SpResecEQ:WLVECT} allows to compute $R$ by matrix inversion and multiplication, and 
+once $R$ is known it can be injected in equation~\ref{SpResecEQ:WL} to compute $C$.
+
+           %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Equivalence to compute depth}
+
+We need to compute the local coordinates. For this, we know for each point the bundle its belongs
+to because we know internal calibration. Let $B_k$ be the bundle bearing the point $p_k$. We can write:
+
+
+\begin{equation}
+	B_k =  \pi^{-1} (\mathcal I ^{-1} (p_k)) \label{SpResecEQ:DefBundle}
+\end{equation}
+
+
+
+Let $B_k = (0,\Vec{u}_k)$,  we can compute $\Vec{u}_k$ with internal calibration.
+As we know that $L_k \in B_k$ we can write:
+
+
+\begin{equation}
+	L_k = \lambda_k \Vec{u}_k \label{SpResecEQ:DefLambda}
+\end{equation}
+
+So to solve our problem it is sufficent to estimate $\lambda_k$.
+
+           %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Setting equations}
+
+Now we remember that rotation and translation are isometric, so we have conservation of
+distances between  word an local coordinates. We can then write :
+
+
+\begin{equation}
+  D_{kk'}=||\Vec{G}_{kk'}||   = || \Vec{L}_{kk'} || = || \lambda_k \Vec{u}_k -  \lambda_{k'} \Vec{u}_{k'}|| \label{SpResecEQ:ConsDist}
+\end{equation}
+
+
+In equation~\ref{SpResecEQ:ConsDist}, the $D_{kk'}$ and  $\Vec{u}_k$ are knowns, so we have $3$ equation  for
+$3$ unkowns, so far so good \dots 
+
+
+    %-----------------------------------------------------
+
+\subsection{Solving $3$  equations with $3$ unknowns}
+
+\subsubsection{Fix notation an supress 1 unknown}
+
+We change notation to have lighter formula and to make them coherent with the {\tt C++} code of {\tt MMVII}
+implemating this resolution. We call $\Vec{A} , \Vec{B}, \Vec{C}$  the bundles, $D_{AB}$ the distances, \dots
+equations become:
+
+
+\begin{equation}
+	D_{AB} = || \lambda_a \Vec{A} -  \lambda_{b} \Vec{B} || \label{SpResecEQ:ABC}
+\end{equation}
+
+By doing quotient of equations ~\ref{SpResecEQ:ABC} we have:
+
+\begin{equation}
+	\rho^A_{bc}  
+	=	\frac{D^2_{AB}}{D^2_{AC}} 
+	= \frac{|| \Vec{A} -  \frac{\lambda_{b}}{\lambda_{a}} \Vec{B} ||^2 }{||\Vec{A} -  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C}||^2}
+	\;\;
+	\rho^C_{ba}  
+	=	\frac{D^2_{CB}}{D^2_{CA}} 
+	= \frac{|| \frac{\lambda_{c}}{\lambda_{a}} \Vec{C} -  \frac{\lambda_{b}}{\lambda_{a}} \Vec{B} ||^2 }
+	       {||\Vec{A} -  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C}||^2}
+	       \label{SpResecEQ:Lambda}
+\end{equation}
+
+Now we see that in equation~\ref{SpResecEQ:Lambda}, only the ratio $\frac{\lambda_{b}}{\lambda_{a}}$ and $\frac{\lambda_{c}}{\lambda_{a}}$
+matters, so one can solve them a system of $2$ equation with $2$ unknowns. Once we will have computed these ratio the triangle
+$(\Vec{A} , \frac{\lambda_{b}}{\lambda_{a}} \Vec{B},  \frac{\lambda_{c}}{\lambda_{a}} \Vec{C})$ will be propoprtionnal the
+triangle $(G_A,G_B,G_C)$ and it will be sufficient to compute this proportion.
+
+
+           %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Supression another unknown}
+
+We fix the notation for ratio :
+
+\begin{equation}
+	\frac{\lambda_{b}}{\lambda_{a}} = 1+ b  \;\;
+	\frac{\lambda_{c}}{\lambda_{a}} = 1+ c
+\end{equation}
+
+
+The $1$ in $1+b$, is to be coherent with {\tt C++} implementation where this makes the system more stable numerically.
+Also to be coherent with {\tt C++} implementation, we will make the hypothesis that bundles have been normalized :
+
+\begin{equation}
+	|| \Vec{A}|| = || \Vec{B}|| = || \Vec{C}|| = 1
+\end{equation}
+
+Equations ~\ref{SpResecEQ:Lambda} rewrites :
+
+\begin{equation}
+	\rho^A_{bc}  
+	= \frac{|| \Vec{A} -  (1+b) \Vec{B} ||^2 }{||\Vec{A} - (1+c) \Vec{C}||^2}
+	= \frac{|| \overrightarrow{AB} +  b \Vec{B} ||^2 }{||\overrightarrow{AC}  + c \Vec{C}||^2}  \label{SpResecEQ:EqFracABC}
+\end{equation}
+\begin{equation}
+	\rho^C_{ba}  
+	= \frac{|| (1+c) \Vec{C} -  (1+b) \Vec{B} ||^2 } {||\Vec{A} -  (1+c) \Vec{C}||^2}
+	= \frac{|| \overrightarrow{BC} + c \Vec{C} -  b \Vec{B} ||^2 } {||\overrightarrow{AC}  + c \Vec{C}||^2}
+	 \label{SpResecEQ:EqFracCBA}
+\end{equation}
+
+Now we can write equation~\ref{SpResecEQ:EqFracABC} :
+
+\begin{equation}
+	b^2 + 2 b \overrightarrow{AB}. \Vec{B} + (||AB||^2 -   \rho^A_{bc} ||\overrightarrow{AC}  + c \Vec{C}||^2)
+	\label{SpResecEQ:Pol2B}
+\end{equation}
+
+Equation~\ref{SpResecEQ:Pol2B} can be see as $2d$ degree polynom in $b$, and we can express $b$ as function of $c$:
+
+\begin{equation}
+	b = -\overrightarrow{AB}. \Vec{B} \pm \sqrt{Q(c)}  = -\overrightarrow{AB}. \Vec{B} + \epsilon \sqrt{Q(c)} 
+	 \;\;\;  \epsilon \in \{-1,1\}  \label{SpResecEQ:SolEqD2}
+\end{equation}
+
+With $Q(c)$ being a $2$ degree polynom in $c$:
+\begin{equation}
+	Q(c) = (\overrightarrow{AB}. \Vec{B})^2 -  (||AB||^2 -   \rho^A_{bc} ||\overrightarrow{AC}  + c \Vec{C}||^2)
+\end{equation}
+
+           %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Resolving last unknown}
+
+We can now use equation~\ref{SpResecEQ:SolEqD2} to substituate $b$  in equation~\ref{SpResecEQ:EqFracCBA}
+
+\begin{equation}
+	\rho^C_{ba}   ||\overrightarrow{AC}  + c \Vec{C}||^2
+	= || \overrightarrow{BC} + c \Vec{C} -  (-\overrightarrow{AB}. \Vec{B} + \epsilon \sqrt{Q(c)}) \Vec{B} ||^2 
+	\label{SpResecEQ:EqcInit}
+\end{equation}
+
+We note $R(c)$ the $2d$ degree polynom in $c$ defined by :
+
+\begin{equation}
+   R(c) =   \rho^C_{ba}   ||\overrightarrow{AC}  + c \Vec{C}||^2
+        - Q(c)
+        - ||\overrightarrow{BC} + c \Vec{C} + (\overrightarrow{AB}. \Vec{B}) \Vec{B} ||^2
+\end{equation}
+
+We note $L(c)$ the $1d$ degree polynom in $c$ defined by :
+
+\begin{equation}
+	L(c)=   ( \overrightarrow{BC}.\Vec{B} + \overrightarrow{AB}. \Vec{B} +   c \Vec{C}.\Vec{B}  ) 
+\end{equation}
+
+Then equation~\ref{SpResecEQ:EqcInit} writes :
+
+\begin{equation}
+	R(c) = 2 \epsilon L(c)  \sqrt{Q(c) }   \label{SpResecEQ:RL}
+\end{equation}
+
+Squaring equation~\ref{SpResecEQ:RL} we obtain a $4$ degree polynomial equation :
+
+\begin{equation}
+	R(c) ^2 - 4 L(c)^2  Q(c) = 0   \label{SpResecEQ:D4}
+\end{equation}
+
+We just need to solve equation~\ref{SpResecEQ:D4} to get possible values of $c$, 
+then get values of $b$ using~\ref{SpResecEQ:SolEqD2}, 
+then get depth $\lambda _k$, then get local coordinates $L_k$ using~\ref{SpResecEQ:DefLambda} 
+and~\ref{SpResecEQ:DefBundle}, and finally finally compute the pose $R,C$  going back to~\ref{SpRes:EquivLocCoord}.
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Space resection, uncalibrated case}
+
+    %-----------------------------------------------------
+
+\subsection{Introduction}
+
+We deal here with the following problem,  we have :
+
+\begin{itemize}
+   \item an \emph{un-calibrated} camera ;
+   \item a set of point for which we know the  $3d$ word coordinates $G_k$ and their 
+        $2d$ coordinate $p_k$ in a image acquired with this camera;
+\end{itemize}
+
+
+We want to extract \emph{simulatenously} the pose $R,C$ of the camera (Rotation,center)  and the calibration
+$\mathcal I$ such that for every point we have the usual projection equation:
+
+\begin{equation}
+       \mathcal I(\pi (R*(G_k-C))) = p_k \label{EQ:PROJ}
+\end{equation}
+
+Obviously this problem require more informations ~\ref{SR_Cal}, because we want to estimate more parameters.
+Also, due to correlation between internal and external parameters, the solution
+are frequently not so stable. It usage is far less current than calibrated case,
+to our knowledge, the two cases where it appears practically are :
+
+
+\begin{itemize}
+   \item approximate  orientation of old images for wich we have no idea of focal length and/or principal
+        point; one advantage of the method, as it reestimates the principal point, is that it can work
+        also with croped images (current case for historical images);
+
+   \item for forcing conversion of  non central perspective sensor to a central perspective sensor
+        using  artficial $2d-3d$ correspondances; also theoretically not recommanded~\footnote{it's
+        always better to use rigourous modelization when we can}, it can unlock situation where one needs to
+        use a software that accept only central perspective sensor; this is the case for example
+        with satellite images, if one use "small" patches, then the projection  function can be
+        approximate by a central perspetive on this "small" patch ~\footnote{In fact, the accuracy of
+        the approximation is a difficult question, depend of the size of the patch, of relief, 
+        of the exact sensor \dots}.
+\end{itemize}
+
+The {\tt MMVII} code corresponding to this section can be found in 
+{\tt PoseEstim/UnCalibratedSpaceResection.cpp}.
+    %-----------------------------------------------------
+
+\subsection{Hypothesis}
+
+As we want also to estimate the distorsion, we will have to make some hypothesis
+and select a model.  We will make the hypothesis that the distorsion is purely linear, so using
+our current modelization we will set :
+
+\begin{equation}
+	\mathcal{I}  \begin{pmatrix} u \\ v \end{pmatrix}  = P^p + F \begin{pmatrix} u + b_1 + b_2 v \\ v \end{pmatrix} 
+\end{equation}
+
+We remind (see \RefFantome) that we use  only $2$ parameters for linear distorsion 
+\footnote {from the $4$ possible linear term in a $2 \times 2$ mapping}
+ as $1$ is already include in the focal and another is include
+because rotation in the plane is redundant with $3D$ rotation. 
+
+This model is selected, not because it will be always appropriate (it will not !) but because
+it is the model  for wich we can have direct solution. Sometime we will need less parameters,
+for example we "know" that $b_1=b_2=0$ , or we can  know that $P^p$ in the middle of image. Sometime
+we will need more parameters, for example adding a radial distorsion. And also sometime
+"more and less" \dots When we require other calibration model, we still can use this method to compute
+an initial solution and then make a bundle adjustement to refine the model.
+
+    %-----------------------------------------------------
+
+\subsection{Setting equations}
+
+We write $A \sim B$ the relation indicating that $A$ and $B$ are colinear :
+
+\begin{equation}
+	  A \sim B   \Leftrightarrow  \exists \lambda : A =  \lambda B
+\end{equation}
+
+This projective relation, is related to image formula via :
+
+\begin{equation}
+	 \begin{pmatrix} u \\ v \end{pmatrix}  = \pi_0  \begin{pmatrix} x \\ y \\z  \end{pmatrix}
+   \Leftrightarrow   \begin{pmatrix} u \\ v \\ 1 \end{pmatrix}  \sim  \begin{pmatrix} x \\ y \\z  \end{pmatrix}
+\end{equation}
+
+We have, noting $\mathcal{C}_{al}$ the calibration matrix :
+
+\begin{equation}
+	   \begin{pmatrix} i \\ j \\ 1\end{pmatrix}
+      =   \begin{pmatrix} P^p_x + F(u+p_1u+p_2v) \\ P^p_y + F v \\ 1\end{pmatrix}
+      =  \begin{pmatrix} F(1+p_1) & F p_2 & P^p_x ) \\  0 &   F & P^p_y \\  0 & 0 &1\end{pmatrix} * \begin{pmatrix} u \\  v \\ 1\end{pmatrix} 
+	      =  \mathcal{C}_{al} \begin{pmatrix} u \\  v \\ 1\end{pmatrix} 
+              \label{UCResecCalibM}
+\end{equation}
+
+We have also :
+
+\begin{equation}
+	 \begin{pmatrix} u \\  v \\ 1\end{pmatrix}
+		 \sim P_c =  \trans R(P-C)
+\end{equation}
+
+So :
+\begin{equation}
+	   \begin{pmatrix} i \\ j \\ 1\end{pmatrix}
+		   \sim \mathcal{C}_{al}  \trans R  (P-C)
+\end{equation}
+
+Noting $  \mathcal{M} =  \mathcal{C}_{al}  \trans R $, and $Tr = -\mathcal{M} C$, we have :
+
+\begin{equation}
+	\begin{pmatrix} i \\ j \end{pmatrix} = \pi_0 ( \mathcal{M} P + Tr )
+\end{equation}
+
+Noting :
+
+\begin{equation}
+	\mathcal{M}   =  \begin{pmatrix} a & b & c \\ d & e & f \\ g & h & i \end{pmatrix} 
+   \;\;\; ; \;\;\;
+	 Tr  =  \begin{pmatrix} t_x \\ t_y \\ t_z \end{pmatrix} 
+\end{equation}
+
+We finaly have :
+
+\begin{equation}
+	i = \frac{ax+by+cz+t_x}{gx+hy+iz+t_z}
+   \;\;\; ; \;\;\;
+	j = \frac{dx+ey+fz+t_y}{gx+hy+iz+t_z}
+	\label{EqHomSRU}
+\end{equation}
+
+    %-----------------------------------------------------
+
+\subsection{Solving equation}
+
+    %-----------------------------------------------------
+\subsubsection{General approach}
+
+We want to compute $\mathcal{C}_{al},R,C$  from a set of correspondance $(i,j) (x,y,z)$.
+We will proceed in $2$ steps :
+
+\begin{itemize}
+     \item estimate $a,b\dots ,t_x \dots$, i.e. $\mathcal{M}$ and $Tr$ using equation \ref{EqHomSRU};
+     \item extract  $\mathcal{C}_{al},R,C$ from $\mathcal{M}$ and $Tr$;
+\end{itemize}
+
+
+    %-----------------------------------------------------
+\subsubsection{Homography estimation}
+
+Equation~\ref{EqHomSRU} is a classical equation for computing unknown homography.
+Considering that $i,j,x,y,z$ are observations and $a,b\dots ,t_x \dots$ are unknowns, we can write it 
+as :
+
+\begin{equation}
+	0 = {ax+by+cz+t_x} -i (gx+hy+iz+t_z)
+   \;\;\; ; \;\;\;
+	0 = dx+ey+fz+t_y - j (gx+hy+iz+t_z)
+	\label{EqLineSRU}
+\end{equation}
+
+The nice point is that equation~\ref{EqLineSRU} is linear, easy to solve and with
+many observations, we can use least square approach. The bad point is that,
+as there is no constant occuring in it: 
+
+\begin{itemize}
+    \item the system is ambiguous , if $S$ is a solution $\lambda S$ is a solution
+    \item worst, the null vector is a perfect solution that will always annulate the residual
+	    of the least-square system.
+\end{itemize}
+
+There is different way to overcome this problem. We indicate the way used in {\tt MMVII}.
+The trick, as equations ~\ref{EqLineSRU} are defined up to a scaling factor is to fix the
+ambiguity by fixing arbitrary one of the variable to a non null value, for example $a=1$ or $t_z=1$. 
+But which of the variable must we fix ?  If we make a bad choice, will it have an influence on the
+quality.  The method we use is in fact to not really make a choice! We test all the
+possible variable, each test lead to a solution and we use equation~\ref{EqHomSRU} to
+select the best solution. Note, that it is fast, as the normal matrix is computed only once.
+For more detail on the implementation please refer to the code which is densely
+documented.
+
+
+    %-----------------------------------------------------
+\subsubsection{Un-mixing parameters}
+
+Sometime, it will be sufficient to know $\mathcal{M}$ and $Tr$, because
+with them we can project any point in the image using equation~\ref{EqHomSRU}.
+But in other case, we will need to recover the "physical" parameters.
+
+Considering the center, it is easy to compute it, from $Tr = -\mathcal{M} C$, we have :
+
+\begin{equation}
+	C= - \mathcal{M}^{-1} Tr \label{PoseUnCalEstimC}
+\end{equation}
+
+Computing $\mathcal{C}_{al}$ and $R$ from $\mathcal{M}$, is a classical problem
+from matrix algebra, we want the decomposition :
+
+\begin{itemize}
+    \item   $\mathcal{M} = \mathcal{C}_{al} \trans R $
+    \item   $\mathcal{C}_{al} $  is a triangulas superior matrix;
+    \item   $R $  is a rotation matrix;
+\end{itemize}
+
+The decomposition of $\mathcal{M}$ is almost what is known to
+be the $QR$ decomposition, where $Q$ is orthogonal and $R$ triangular superior
+\footnote{we use this  denomination, as it is universal, be aware that it is
+error prone as $R$ is not the rotation !}
+The eigen library, and most current matrix library offer efficient implementaion
+of $QR$ decomposition as it is one of the central method for solving linear
+equation \footnote{solving a linear system becomes trivial if matrix are
+triangular or othogonal}
+So $QR$ decomposition almost save our problem \dots except many details :
+
+\begin{itemize}
+    \item what we need is $RQ$ decomposition and not $QR$; by the way it's easy
+          by transposition and some column/line symetry to use $QR$ method to make $RQ$,
+          interested reader can see the {\tt MMVII} method {\tt RQ\_Decomposition};
+
+    \item $QR$ decomposition is ambiguous up to sign-matrix \footnote{a diagonal
+          matrix with only $\pm 1$ on the diagonal}; let $S$ be any sign matrix, we have $SS=Id$,
+          then we have $QR=(QS)(SR)$, $QS$ is still orthogonal and $SR$ is still triangular;
+          in the {\tt MMVII} library , the $RQ$ decomposition method make a post processing
+          to have positive diagonal (it is easy as letf/right multiplying by a sign matrix is only 
+          a matter of changing the sign of line/column);
+          
+    \item let write $\mathcal{M} = T O $ the result of $RQ$ decomposition \footnote{$T$ triangular,
+          $O$ orthogonal},  $\mathcal{M} $ is defined up to a scaling factor, so are $T$ and $O$;  this has two
+          consequences
+
+          \begin{itemize}
+                \item for $\mathcal{C}_{al} $, we see in equation~\ref{UCResecCalibM} that
+                     $\mathcal{C}_{al}(2,2)=1$, so  we just have to do
+                     $\mathcal{C}_{al}(2,2) = \frac{T}{T(2,2)}$
+
+                \item for $R$, there can be a global sign ambiguity , so we test the determinant of
+                      $O$ and do something like $R=\frac{\trans O}{det(O)}$;
+          \end{itemize}
+
+\end{itemize}
+
+Recovering all the internal parameters using {\tt MMVII} convention  is now direct :
+
+\begin{itemize}
+    \item  $F=\mathcal{C}_{al}(1,1)$ , $P^p_x=\mathcal{C}_{al}(2,0)$,  $P^p_y=\mathcal{C}_{al}(2,1)$;
+    \item  $p_1=\frac{\mathcal{C}_{al}(0,0)}{F}-1$ ;
+    \item  $p_2=\frac{\mathcal{C}_{al}(1,0)}{F}$ ;
+\end{itemize}
+
+
+
+
+
+% (I)    (PPx + F (u  p1 u + p2 v))     (F(1+p1)   p2F  PPx) (u)     (a b c) (u)      (u) [EqCal]
+% (J) ~  (PPy + F v               )  =  (0         F    PPy) (v)  =  (0 e f) (v) =  C (v)
+% (1)    (                       1)     (0         0     1)  (1)     (0 0 1) (1)      (1)
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Ortographic case with Tomasi-Kanabe}
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Epipolar geometry}
+
+\subsection{relative orientation}
+
+
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+
+\section{$2$-images orientation with essentiel matrix}
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{$2$-images, case planary scenes}
+
+
+    %-----------------------------------------------------
+
+\subsection{Notes for TD}
+
+
+\begin{verbatim}
+TD1 : SPACE RESECTION
+
+*  Begin with a calibrated camera w/o distortion,
+*  From $3$ point compute 2 lamba with MMVII , then generate the rotations, solve ambiquity (with $4$ points)
+*  From data with outlier (50\% on 50 point) use ransac like to make a robust init.
+
+*  Do the same thing with distorsion => inverse disorsion (iterative method ? Lesqt Sq ? Majical optimzer of pytthon ?)
+
+*  eventually => interface
+
+
+TD2 :  CMP CALIB
+
+TD3 : CALIB CONV
+\end{verbatim}
+
+
+
+

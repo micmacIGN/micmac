@@ -1,4 +1,8 @@
-#include "include/MMVII_all.h"
+#include "MMVII_util.h"
+#include "MMVII_Matrix.h"
+#include "MMVII_Linear2DFiltering.h"
+#include "MMVII_Interpolators.h"
+
 
 namespace MMVII
 {
@@ -16,6 +20,88 @@ double FactExpFromSigma2(double aS2)
 {
     return (aS2+1 - sqrt(Square(aS2+1)-Square(aS2))  ) / aS2 ;
 }
+
+
+/* *********************************************************** */
+/*                                                             */
+/*                       cAvgDevLaw                            */
+/*                                                             */
+/* *********************************************************** */
+
+cAvgDevLaw::cAvgDevLaw(const tREAL8& aAvg,const  tREAL8& aStdDev) :
+    mAvg (aAvg),
+    mStdDev (aStdDev)
+{
+}
+
+tREAL8  cAvgDevLaw::NormalizedValue(tREAL8 aVal) const
+{
+        return  RawValue((aVal-mAvg)/mStdDev) / mStdDev;
+}
+
+cAvgDevLaw::~cAvgDevLaw()
+{
+}
+
+void cAvgDevLaw::BenchOneLow(cAvgDevLaw * aLaw)
+{
+   cComputeStdDev<tREAL8>  aStdD;
+   double aStep = 1e-3;
+   double aBound = 20;
+
+   for (tREAL8 aX= -aBound ; aX<=aBound ; aX+= aStep)
+   {
+           aStdD.Add(aLaw->NormalizedValue(aX),aX);
+   }
+   tREAL8 aIntegral = aStdD.SomW() * aStep;
+   tREAL8 aAvg = aStdD.SomWV() /aStdD.SomW();
+   tREAL8 aDev = aStdD.StdDev();
+
+   MMVII_INTERNAL_ASSERT_bench(std::abs(aIntegral-1.0)<1e-3,"cAvgDevLaw  Integral");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(aAvg-aLaw->mAvg)<1e-3,"cAvgDevLaw Avg");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(aDev-aLaw->mStdDev)<1e-3,"cAvgDevLaw Dev");
+   /*
+   StdOut() <<  "I=" << aIntegral - 1.0
+           <<  " Av=" << aAvg  - aLaw->mAvg
+           <<  " Dev=" << aDev - aLaw->mStdDev
+           <<  "\n";
+	   */
+
+   delete aLaw;
+}
+void cAvgDevLaw::Bench()
+{
+        BenchOneLow(GaussLaw(0.5,1.5));
+        BenchOneLow(GaussLaw(-1.5,0.7));
+        BenchOneLow(CubAppGaussLaw(0.5,1.5));
+        BenchOneLow(CubAppGaussLaw(-1.5,0.7));
+}
+
+    /*  ===========   cGaussLaw ======== */
+
+class cGaussLaw : public cAvgDevLaw
+{
+    public :
+            static const tREAL8 Norm;
+            cGaussLaw(const tREAL8& aAvg,const  tREAL8& aStdDev) : cAvgDevLaw(aAvg,aStdDev) {}
+            tREAL8  RawValue(tREAL8 aVal) const override {return  exp(-0.5*Square(aVal)) / Norm;}
+};
+const tREAL8 cGaussLaw::Norm = sqrt(2*M_PI);
+    /*  ===========   cCubAppGaussLaw ======== */
+
+class cCubAppGaussLaw : public cAvgDevLaw
+{
+    public :
+
+            static constexpr tREAL8 Norm = 0.365148;
+            cCubAppGaussLaw(const tREAL8& aAvg,const  tREAL8& aStdDev) : cAvgDevLaw(aAvg,aStdDev) {}
+            tREAL8  RawValue(tREAL8 aVal) const override { return  CubAppGaussVal(aVal* Norm) * Norm;}
+};
+
+
+cAvgDevLaw * cAvgDevLaw::CubAppGaussLaw(const tREAL8& A,const  tREAL8& D) { return new cCubAppGaussLaw(A,D);}
+cAvgDevLaw * cAvgDevLaw::GaussLaw(const tREAL8& A,const  tREAL8& D) { return new cGaussLaw(A,D);}
+
 
 /* *************************************** */
 /*                                         */
@@ -328,6 +414,89 @@ template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>:
     return mSVW / mSW;
 }
 
+template <class TypeWeight,class TypeVal> const TypeVal & cWeightAv<TypeWeight,TypeVal>::SVW () const {return mSVW;}
+
+/* *************************************** */
+/*                                         */
+/*        cRobustAvg                       */
+/*                                         */
+/* *************************************** */
+
+cRobustAvg::cRobustAvg(tREAL8 aSigma)  :
+     mSigma (aSigma),
+     mS2    (Square(mSigma))
+{
+}
+
+void  cRobustAvg::Add(tREAL8 aVal) 
+{
+     tREAL8 aWeight =  mS2  / std::sqrt(mS2+Square(aVal));
+     mAvg.Add(   aWeight   , aVal);
+}
+
+tREAL8 cRobustAvg::Average() const {return mAvg.Average();}
+
+
+/* *************************************** */
+/*                                         */
+/*        cRobustAvgOfProp                 */
+/*                                         */
+/* *************************************** */
+
+cRobustAvgOfProp::cRobustAvgOfProp() { }
+
+void cRobustAvgOfProp::Add(tREAL8 aVal)
+{
+	mVals.push_back(aVal);
+}
+
+tREAL8 cRobustAvgOfProp::Average(tREAL8 aProp) const
+{
+      std::vector<double> aVAbs;
+      for (const auto  & aV : mVals)
+          aVAbs.push_back(std::abs(aV));
+
+      tREAL8 aSigma = NC_KthVal(aVAbs,aProp);
+
+      cRobustAvg  aAvg(aSigma);
+      for (const auto  & aV : mVals)
+	      aAvg.Add(aV);
+
+      return aAvg.Average();
+}
+
+/* *********************************************** */
+/*                                                 */
+/*            cStdStatRes                          */
+/*                                                 */
+/* *********************************************** */
+
+cStdStatRes::cStdStatRes() :
+    mVRes {},
+    mAvgDist (),
+    mAvgDist2 (),
+    mBounds()
+{
+}
+
+void cStdStatRes::Add(tREAL8 aVal)
+{
+     mVRes.push_back(aVal);
+     mAvgDist.Add(1.0,aVal);
+     mAvgDist2.Add(1.0,Square(aVal));
+     mBounds.Add(aVal);
+}
+
+tREAL8  cStdStatRes::Avg() const {return mAvgDist.Average();}
+
+tREAL8  cStdStatRes::QuadAvg() const {return std::sqrt(mAvgDist2.Average());}
+tREAL8  cStdStatRes::DevStd() const {return std::sqrt(std::max(0.0,mAvgDist2.Average()-Square(Avg())));}
+
+tREAL8  cStdStatRes::ErrAtProp(tREAL8 aProp) const {return NC_KthVal(mVRes,aProp);}
+tREAL8  cStdStatRes::Min() const {return mBounds.VMin();}
+tREAL8  cStdStatRes::Max() const {return mBounds.VMax();}
+int     cStdStatRes::NbMeasures() const {return mVRes.size();}
+
 
 
 /* *********************************************** */
@@ -440,7 +609,7 @@ StdOut() << "WWW=" ;
 StdOut() << " " << aVecWeight.at(aK) ;
             aUBS.Add(&(aVecVals.at(aK)),aVecWeight.at(aK));
          }
-StdOut() << "\n" ;
+StdOut() << std::endl ;
          StdOut() << "MOYVAR " << aMoyVar <<  " " <<  aUBS.DeBiasFactor() *  aUBS.ComputeBiasedVar()[0] 
                   << " DBF=" <<  aUBS.DeBiasFactor() << "\n";
 getchar();
@@ -529,6 +698,9 @@ template <class Type> void TestVarFilterExp(cPt2di aSz,double aStdDev,int aNbIte
 void BenchStat(cParamExeBench & aParam)
 {
    if (! aParam.NewBench("ImageStatFilter")) return;
+
+    cAvgDevLaw::Bench();
+
 
    TestVarFilterExp<double>(cPt2di(-2,2),cPt2di(400,375),2.0,0.6,0.67,1);
    TestVarFilterExp<double>(cPt2di(-2,2),cPt2di(400,375),2.0,0.6,0.67,3);

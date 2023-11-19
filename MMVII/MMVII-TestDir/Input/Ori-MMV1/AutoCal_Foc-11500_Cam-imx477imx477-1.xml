@@ -1,38 +1,23 @@
 <?xml version="1.0" ?>
 <ExportAPERO>
+	<!--  Handcrafred modification so that the model can be represented exaclty in MMVV2 for bench: 
+                * make etat = focal
+		* make  PPA = PPD
+	-->
      <CalibrationInternConique>
           <KnownConv>eConvApero_DistM2C</KnownConv>
-          <PP>3069.49165822236137 2817.95320716880678</PP>
-          <F>11992.0848643902827</F>
+          <PP> 2100  1400 </PP>
+          <F> 9000</F>
           <SzIm>4056 3040</SzIm>
           <RayonUtile>2407.68011994949165</RayonUtile>
           <CalibDistortion>
                <ModUnif>
                     <TypeModele>eModele_FishEye_10_5_5</TypeModele>
-                    <Params>2697.85822820772955</Params>
-                    <Params>2648.62800817597008</Params>
+                    <Params> 2100</Params>
+                    <Params> 1400 </Params>
                     <Params>0.129555976611290202</Params>
-                    <Params>-2.13692965782591138</Params>
-                    <Params>6.79510337965252731</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>0</Params>
-                    <Params>-0.0349698476189788804</Params>
-                    <Params>0.0135234908427923801</Params>
+                    <Params>-1.13692965782591138</Params>
+                    <Params>2.79510337965252731</Params>
                     <Params>0</Params>
                     <Params>0</Params>
                     <Params>0</Params>
@@ -52,6 +37,8 @@
                     <Params>0</Params>
                     <Params>0</Params>
                     <Params>0</Params>
+		    <!--<Params>-0.0349698476189788804</Params>
+		    <Params>0.0135234908427923801</Params>-->
                     <Params>0</Params>
                     <Params>0</Params>
                     <Params>0</Params>
@@ -59,7 +46,26 @@
                     <Params>0</Params>
                     <Params>0</Params>
                     <Params>0</Params>
-                    <Etats>7419.20371045395041</Etats>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Params>0</Params>
+                    <Etats> 9000</Etats>
                </ModUnif>
           </CalibDistortion>
      </CalibrationInternConique>

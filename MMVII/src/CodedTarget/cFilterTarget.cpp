@@ -1,7 +1,8 @@
+#include "FilterCodedTarget.h"
 #include "CodedTarget.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
-#include "include/MMVII_Tpl_Images.h"
-// #include "../include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_Tpl_Images.h"
+// #include "MMVII_2Include_Serial_Tpl.h"
 
 
 namespace MMVII
@@ -168,7 +169,7 @@ template <class Type>
       mVK0K1.push_back(cPt2di(0,0));
    IncrK1(aK1,aK0);
    mVK0K1.push_back(cPt2di(aK0,aK1));
-   // StdOut() << "KKKK " << aK0 << " " << aK1 << " \n";
+   // StdOut() << "KKKK " << aK0 << " " << aK1 << " " << std::endl;
 
    while (aK1<int(mIVois.size()))
    {
@@ -199,7 +200,7 @@ template <class Type>  cFilterDCT<Type>::~cFilterDCT()
 {
 }
 
-template <class Type> void cFilterDCT<Type>::UpdateSelected(cNS_CodedTarget::cDCT & aDC)  const
+template <class Type> void cFilterDCT<Type>::UpdateSelected(cDCT & aDC)  const
 {
 }
 
@@ -398,7 +399,7 @@ template<class TypeEl> cIm2D<TypeEl> ImScalab(const  cDataIm2D<TypeEl> & aDImIn,
 {
     std::vector<cPt2di>  aVectVois = SortedVectOfRadius(aR0,aR1,true);
 
-    // aVectVois = GetPts_Circle(cPt2dr(0,0),aR0,true);  StdOut() << "SYMMMM\n";
+    // aVectVois = GetPts_Circle(cPt2dr(0,0),aR0,true);  StdOut() << "SYMMMM" << std::endl;
 
     int aD = round_up(aR1);
     cPt2di aPW(aD,aD);
@@ -440,7 +441,7 @@ template <class Type>  class  cBinFilterCT : public cFilterDCT<Type>
            // cBinFilterCT(tIm anIm,double aR0,double aR1);
            cBinFilterCT(tIm anIm,const cParamAllFilterDCT &);
 
-           void UpdateSelected(cNS_CodedTarget::cDCT & aDC) const override;
+           void UpdateSelected(cDCT & aDC) const override;
 
     private  :
           void Reset()               override;
@@ -452,7 +453,7 @@ template <class Type>  class  cBinFilterCT : public cFilterDCT<Type>
           float mVWhite ;
 };
 
-template<class Type> void  cBinFilterCT<Type>::UpdateSelected(cNS_CodedTarget::cDCT & aDC) const
+template<class Type> void  cBinFilterCT<Type>::UpdateSelected(cDCT & aDC) const
 {
     aDC.mVBlack = mVBlack;
     aDC.mVWhite = mVWhite;
@@ -601,7 +602,7 @@ template<class TypeEl> cIm2D<TypeEl> ImSymMin(cIm2D<TypeEl>  aImIn,double aR0,do
 }
 
 
-template<class TypeEl> void CheckSymetricity
+template<class TypeEl> void CheckSymmetricity
                            (
                                 cDataIm2D<TypeEl> & aDIm2Check,
                                 cIm2D<TypeEl>  aImIn,
@@ -615,7 +616,7 @@ template<class TypeEl> void CheckSymetricity
     int aD = round_up(aR1);
     cPt2di aPW(aD+1,aD+1);
 
-    StdOut() << "Begin cmp  low/high level\n";
+    StdOut() << "Begin cmp  low/high level" << std::endl;
     {
        cSymFilterCT<TypeEl> aSymF(aImIn,aR0,aR1,Epsilon);
        cIm2D<TypeEl>  anI2 = aSymF.ComputeIm();
@@ -626,15 +627,15 @@ template<class TypeEl> void CheckSymetricity
            TypeEl aV2 = aDI2.GetV(aPix);
            if (std::abs(aV1-aV2) > 1e-5)
            {
-               StdOut() << "Diiiff = " <<aV1 -  aV2  << " PIX= " << aPix << "\n";
+               StdOut() << "Diiiff = " <<aV1 -  aV2  << " PIX= " << aPix << std::endl;
                // getchar();
            }
        }
     }
-    StdOut() << "end computation sym\n";
+    StdOut() << "end computation sym" << std::endl;
 }
 
-template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool doCheck,cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon)
+template<class TypeEl> cIm2D<TypeEl> ImSymmetricity(bool doCheck,cIm2D<TypeEl>  aImIn,double aR0,double aR1,double Epsilon)
 {
     cDataIm2D<TypeEl> & aDImIn = aImIn.DIm();
     const TypeEl* aData = aDImIn.RawDataLin();
@@ -651,24 +652,24 @@ template<class TypeEl> cIm2D<TypeEl> ImSymetricity(bool doCheck,cIm2D<TypeEl>  a
     cIm2D<TypeEl> aImOut(aSz,nullptr,eModeInitImage::eMIA_V1);
     cDataIm2D<TypeEl> & aDImOut = aImOut.DIm();
 
-    StdOut() << "Begin computation low level\n";
+    StdOut() << "Begin computation low level" << std::endl;
     for (const auto & aPix : cRect2(aPW,aSz-aPW))
     {
           cSymMeasure<float> aSM;
           int aInd = aDImIn.IndexeLinear(aPix);
 
           for (const auto & aNI  : aVNeighLine)
-	  {
-		  aSM.Add(aData[aInd+aNI],aData[aInd-aNI]);
+          {
+              aSM.Add(aData[aInd+aNI],aData[aInd-aNI]);
           }
 
           double aVal = aSM.Sym(Epsilon);
-	  aDImOut.SetV(aPix,aVal);
+          aDImOut.SetV(aPix,aVal);
     }
-    StdOut() << "End computation sym low level\n";
+    StdOut() << "End computation sym low level" << std::endl;
     if (doCheck)
     {
-       CheckSymetricity(aDImOut,aImIn,aR0,aR1,Epsilon);
+       CheckSymmetricity(aDImOut,aImIn,aR0,aR1,Epsilon);
     }
 
     return aImOut;
@@ -702,7 +703,7 @@ template <class Type>
 // template cIm2D<TYPE> ImBinarity(cIm2D<TYPE>  aDIm,double aR0,double aR1);
 
 #define INSTANTIATE_FILTER_TARGET(TYPE)\
-template cIm2D<TYPE> ImSymetricity(bool doCheck,cIm2D<TYPE>  aDImIn,double aR0,double aR1,double Epsilon);\
+template cIm2D<TYPE> ImSymmetricity(bool doCheck,cIm2D<TYPE>  aDImIn,double aR0,double aR1,double Epsilon);\
 template cIm2D<TYPE> ImSymMin(cIm2D<TYPE>  aImIn,double aR0,double aR1,double Epsilon);
 
 INSTANTIATE_FILTER_TARGET(tREAL4)

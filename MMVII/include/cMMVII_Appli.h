@@ -1,6 +1,13 @@
 #ifndef  _cMMVII_Appli_H_
 #define  _cMMVII_Appli_H_
 
+#include "MMVII_util.h"
+#include "MMVII_Stringifier.h"
+#include "MMVII_Bench.h"
+#include "MMVII_GenArgsSpec.h"
+#include <set>
+
+
 namespace MMVII
 {
 
@@ -91,6 +98,9 @@ class cSpecMMVII_Appli
        tMMVII_AppliAllocator  Alloc() const; ///< Accessor
        const std::string &    Comment() const; ///< Accessor
        const std::string &    NameFile() const; ///< Accessor
+       const tVaF &           Features() const; ///< Accessor
+       const tVaDT &          VInputs() const; ///< Accessor
+       const tVaDT &          VOutputs() const; ///< Accessor
 
        // bool HasDataTypeIn(const eApDT & aType) const;
        // bool HasDataTypeOut(const eApDT & aType) const;
@@ -197,7 +207,13 @@ class cMMVII_Ap_NameManip
 
      // ========================== cMMVII_Ap_NameManip  ==================
 
-// =========  Classes for computing segmentation of times =====
+/**  Classes for computing segmentation of times
+ *      it maintain a map Name->Time that is updated
+ *     
+ *     Each time an cAutoTimerSegm is created on a cTimerSegm, the name is
+ *     changed (so accumulation is done on another name), when cAutoTimerSegm is
+ *     destroyed, the current state is destroyed
+ */
 
 class cAutoTimerSegm;
 typedef std::string tIndTS;
@@ -207,16 +223,20 @@ class cTimerSegm
    public :
         
        friend class cAutoTimerSegm;
+
        cTimerSegm(cMMVII_Ap_CPU *);
        void  SetIndex(const tIndTS &);
        const tTableIndTS &  Times() const;
        void Show();
        ~cTimerSegm();
+       /// Force to have no show at del, usefull for handling parameter in bench
+       void SetNoShowAtDel();
    private :
        tTableIndTS          mTimers;
        tIndTS               mLastIndex;
        cMMVII_Ap_CPU *      mAppli;
        double               mCurBeginTime;
+       bool                 mShowAtDel;
 };
 
 
@@ -225,12 +245,27 @@ cTimerSegm & GlobAppTS();
 class cAutoTimerSegm
 {
      public :
-          cAutoTimerSegm(cTimerSegm & ,const tIndTS& anInd);
-          cAutoTimerSegm(const tIndTS& anInd);
-          ~cAutoTimerSegm();
+          cAutoTimerSegm(cTimerSegm & ,const tIndTS& anInd);  // push index in Timer while saving its state
+          cAutoTimerSegm(const tIndTS& anInd);  // calls previous with GlobAppTS
+          ~cAutoTimerSegm(); // restore the state of timer
+
+	  /// Allow to dow noting if TimeSeg=0
+          cAutoTimerSegm(cTimerSegm * ,const tIndTS& anInd);  
      private :
-          cTimerSegm & mTS;
-          tIndTS  mSaveInd;
+	  cAutoTimerSegm(const cAutoTimerSegm&) = delete;
+          cTimerSegm * mTS;  // save the global timer
+          tIndTS  mSaveInd;  // save the curent index in TS to restore it at end
+};
+
+/**  Class for executing some acion at given period */
+class cTimeSequencer
+{
+    public :
+         cTimeSequencer(double aPeriod);
+	 bool ItsTime2Execute();
+    public :
+	 double mPeriod;
+	 double mLastime;
 };
 
 /**
@@ -257,23 +292,60 @@ class cMMVII_Ap_CPU
          cTimerSegm                                mTimeSegm;  ///<  To have a global time Segm
 };
 
+
+
 /**   When we will deal with cluster computing, it will be usefull that command can specify
-   their ressource , for now this class is just a "coquille vide" arround a string
+   their ressource.
+
+   This class contains all the args of the command line (i.e. args[0] = program to execute.
+   Each argument must be added seperatly or in a coma separated list.
+   Each argument must be written exactly as MMVII expects it and MUST not be quoted/escaped for shell,
+     the quoting will be automatically done.
+
+   The full command line can be retrieved by the .Com() method.
+
+   Ex:
+     cParamCallSys aCom(cMMVII_Apli::FullBin(),"Bench","1");
+   or
+     cParamCallSys aCom;
+     aCom.AddArgs(cMMVII_Apli::FullBin());
+     aCom.AddArgs("Bench");
+     aCom.AddArgs("1");
+
+   or
+     cParamCallSys aCom(cMMVII_Apli::FullBin());
+     aCom.AddArgs("Bench","1");
+
+    ExtSysCall(aCom,true);
+
 */
+
 class cParamCallSys
 {
     public :
-       cParamCallSys(const cSpecMMVII_Appli & aCom2007,bool InArgSep);
-       void AddArgs(const std::string &);
+       cParamCallSys();
+       explicit cParamCallSys(const cSpecMMVII_Appli & aCom2007);
 
-       int Execute() const;
+       template<typename ... Targs>
+       explicit cParamCallSys(Targs... args)
+       {
+             AddArgs(args...);
+       }
+
+       void AddArgs(const std::string &);
+       template<typename ... Targs>
+       void AddArgs(const std::string &arg, Targs... args)
+       {
+           AddArgs(arg);
+           AddArgs(args...);
+       }
+
+       int Execute(bool forceExternal) const;
        const std::string & Com() const ; ///< Accessor
     private :
-       const cSpecMMVII_Appli * mSpec;  ///< used for allocation in ArgSep mode
-       bool        mArgSep;  ///< means that args are maintend separated 4 use in arg/argv mode, else construc glob com
-       std::string mCom; ///< used with ! mArgSep
-       int         mArgc;  ///< classical arg count
-       std::vector<std::string> mArgv; ///< used with mArgSep
+       const cSpecMMVII_Appli * mSpec;
+       std::string mCom;
+       std::vector<std::string> mArgv;
 };
 
 
@@ -304,6 +376,25 @@ cMultipleOfs& ErrOut();
 
 typedef const char * tConstCharPtr;
 
+struct cParamProfile
+{
+       public :
+           std::string   mUserName;
+	   int           mNbProcMax;
+	   eTypeSerial   mTaggedDefSerial;  // xml or json
+	   eTypeSerial   mVectDefSerial;     // generally csv, can be xml/json
+};
+
+bool UserIsMPD();
+
+
+enum class eModeCall
+           {
+              eUnik,
+              eMulTop,
+              eMulSubP
+           };
+
 
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
@@ -320,12 +411,12 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMultipleOfs & ErrOut();
 
         /// External call sys : use GlobalSysCall + register the command in log files
-        int ExtSysCall(const std::string & aCom, bool SVP);
+        int ExtSysCall(const cParamCallSys & aCom, bool SVP);
 
 
         static bool WithWarnings();
         /// MMVII call itself
-        int   ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,bool ByLineCom=true); 
+        int   ExeCallMMVII(const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&);
         void  ExeMultiAutoRecallMMVII
                                 (  const std::string & aNameOpt  ,  //!  Name of parameter to substitue, if mandatory "0", "1" ....
                                    const std::vector<std::string> &  LVals, //! List of value for each process
@@ -334,10 +425,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                                  ); ///< MMVII reccall the same command itself
 
 
-        int ExeComSerial(const std::list<cParamCallSys> &);    ///< 1 after 1
-        int ExeComParal(const std::list<cParamCallSys> &);     ///< soon paral with Make for now (other to see ...)
-        int ExeComParal(const std::list<std::string> & aLCom); ///< in paral for any command; cut in pack and call ExeOnePackComParal
-        int ExeOnePackComParal(const std::list<std::string> & aLCom); ///< really run in paral for any command
+        int ExeComSerial(const std::list<cParamCallSys> &, bool forceExternal);    ///< 1 after 1
+        int ExeComParal(const std::list<cParamCallSys> &,bool Silence=false);      ///< in paral for any command; cut in pack and call ExeOnePackComParal
+        int ExeOnePackComParal(const std::list<cParamCallSys> &aLCom, bool Silence=false); ///< really run in paral for any command
 
 
 
@@ -350,26 +440,46 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         virtual int Exe() = 0;              ///< Do the "real" job
         virtual int ExeOnParsedBox(); ///< Action to exec for each box, When the appli parse a big file , def error
 
+        void LogCommandAbortOnError(std::string &aMessage);  ///< Used in MMVII_errors.cpp to log error message in main log
 
         virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
+        bool ModeArgsSpec() const;          ///< If called only to output args specs, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
-        bool    IsInit(const void *);             ///< indicate for each variable if it was initiazed by argc/argv
+        bool    IsInit(const void *) const;       ///< indicate for each variable if it was initiazed by argc/argv
+        bool    IsInSpecObl(const void *);  ///< indicate for each variable if it was in an arg opt list (used with cPhotogrammetricProject)
+        bool    IsInSpecFac(const void *);  ///< indicate for each variable if it was in an arg obl list (used with cPhotogrammetricProject)
+        bool    IsInSpec(const void *);     ///< IsInSpecObl  or IsInSpecFac
+
+	void    SetVarInit(void * aPtr);
+
+	//  Print the effective value of all params
+	//  In some case, init can be complicated, with many default case
+	void  ShowAllParams() ;
+
         template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
         {
             if (! IsInit(&aVar))
+	    {
                aVar = aValue;
+	       SetVarInit(&aVar);  //MPD :add 27/02/23 , seems logical, hope no side effect ?
+	    }
         }
         static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
 
-        void InitParam();  ///< Parse the parameter list
+        void InitParam(cGenArgsSpecContext *aArgsSpec = nullptr);  ///< Parse the parameter list, aArgsSpecs must be nullptr. (only cMMVII_GenArgsSpec use aArgsSpec)
+        void InitProfile();  ///< init the profile of usage/user ....
         void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
-        const std::string & DirProject()   const;   ///<  Accessor to directoy of project
-        const std::string & TopDirMMVII()   const;   ///<  main directory of MMVII , upon include,src ..
-        const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
-        const std::string & InputDirTestMMVII() const;   ///<  where are input files for bench   , Export for global bench funtion
+        int NbProcAllowed() const; ///< Accessor to nb of process allowed for the appli
+        const std::string & DirProject() const;     ///<  Accessor to directoy of project
+        static const std::string & TopDirMMVII();   ///<  main directory of MMVII , upon include,src ..
+        static const std::string & DirBinMMVII();   ///<  directory where the MMVII binary is
+        static const std::string & TmpDirTestMMVII();     ///< where to put binary file for bench, Export for global bench funtion
+        static const std::string & InputDirTestMMVII();   ///<  where are input files for bench   , Export for global bench funtion
+        static const std::string & DirMicMacv1();         ///<  Main directory of micmac V1
+        static const std::string & MMV1Bin();             ///< full name of micmac v1 (mm3d) binary
 
         ///  Name of folder specific to the command
         std::string  DirTmpOfCmd(eModeCreateDir=eModeCreateDir::CreateIfNew) const;   
@@ -388,10 +498,51 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static int  SeedRandom();  ///< SeedRand if Appli init, else default
 
         int   LevelCall() const;     ///< Accessor to mLevelCall
+        int   KthCall() const;     ///< Accessor to KthCall
 
         virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
         virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
-        std::string  CommandOfMain() const; ///< Glob command by aggregation of ArgcArgv
+        cParamCallSys CommandOfMain() const; ///< Glob command by aggregation of ArgcArgv
+
+        static void AddObj2DelAtEnd(cObj2DelAtEnd *);
+
+        static void InitMMVIIDirs(const std::string& aMMVIIDir);
+
+        static const std::string & DirRessourcesMMVII();       ///< Location of all ressources
+
+	static const std::string & UserName();
+	static const std::string & DirProfileUsage();
+
+	const std::string & PrefixGMA () const; /// Accessor
+	const std::string & Prefix_TIM_GMA () const; /// Accessor
+
+	eTypeSerial TaggedDefSerial() const; ///< Accessor
+	eTypeSerial VectDefSerial() const; ///< Accessor
+
+	// For now in=out, may be later separate
+	const std::string & VectNameDefSerial() const;     ///< Accessor
+	const std::string & TaggedNameDefSerial() const;   ///< Accessor 
+
+
+	// ========================  Methods for memorizing report (for example using csv)
+	
+	std::string  DirReport();
+	std::string  DirSubPReport(const std::string &anId);
+	std::string  NameTmpReport(const std::string &anId,const std::string &anImg);
+
+	void  InitReport(const std::string &anId,const std::string & aPost,bool IsMul);
+	//  void  AddTopReport(const std::string &anId,const std::string & VecMsg);
+
+	void  AddOneReportCSV(const std::string &anId,const std::vector<std::string> & VecMsg);
+
+	void  AddStdHeaderStatCSV(const std::string &anId,const std::string & aNameCol1,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
+	void  AddStdStatCSV(const std::string &anId,const std::string & aCol1,const cStdStatRes &,const std::vector<int> aVPerc,const std::vector<std::string> & ={});
+
+        /// if "aPatSubst" was initialized, make a pattern replacement with aPatSubst[0] as pattern and aPatSubst[1] as substitution
+	void ChgName(const std::vector<std::string>& aPatSub,std::string & aName) const;
+    private:
+	void  AddOneReport(const std::string &anId,const std::string & VecMsg);
+	void  DoMergeReport();
     protected :
 
         /// Constructor, essenntially memorize command line and specifs
@@ -403,37 +554,44 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         const tNameSet &                         MainSet(int aK) const;    ///< MainSets[aK] , check range !=0 before
         void                                     CheckRangeMainSet(int) const;  ///< Check range in [0,NbMaxMainSets[
         std::vector<std::string>                 VectMainSet(int aK) const; ///< interface to MainSet
+        std::string                              UniqueStr(int aK) const; /// return VectMainSet(0) after check size=1
         virtual bool            AcceptEmptySet(int aK) const; ///< Generally if the set is empty, it's an error
 
         virtual cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) = 0;  ///< A command specifies its mandatory args
         virtual cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) = 0;  ///< A command specifies its optional args
         void InitOutFromIn(std::string &aFileOut,const std::string& aFileIn); ///< If out is not init set In, else DirProj+Out
 
+        /// Third step of construction: application specific initialization, after construction and command line parsing, before execution.
+        virtual void InitSpecialProject() {}
         void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
 
-        bool RunMultiSet(int aKParam,int aKSet);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed
+        bool RunMultiSet(int aKParam,int aKSet,bool MkFSilence=false);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed
         int  ResultMultiSet() const; /// Iff RunMultiSet was execute
+        tPtrArg2007 AOptBench();  ///< to add in args mode if command can execute in bench mode
 
+        static const std::string & FullBin();            ///< Protected accessor to full pathname of MMVII executable
+        static const std::string & DirTestMMVII();       ///< Protected accessor to dir to read/write test bench
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         // Subst  (aNameOpt,aVal)
         // aNameOpt :  si existe substitue, si "+" ajoute a mandatory, si "3"  => sub 3 mandatory, si MMVII_NONE
-        cParamCallSys  StrCallMMVII ( const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
-                                      bool Separate, // Separate argv for call inside
-                                      const cColStrAOpt &  aLSubst  = cColStrAOpt::Empty); ///< MMVII call itself
+        cParamCallSys  StrCallMMVII (  int   aKthCall, // sometime when called in // it's necessary to know the order
+			              const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
+                                      const cColStrAOpt &  aLSubst  = cColStrAOpt::Empty,
+				      const std::string &  aPaternInit =""// if not "" initial value of the pattern that was expanded
+                                     ); ///< MMVII call itself
         std::list<cParamCallSys>  ListStrCallMMVII
-                                (  const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,
-                                   const std::string & aNameOpt  , const std::vector<std::string> &  LVals,
-                                   bool Separate
-                                   //  const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
-                                 ); ///< MMVII call itself
+                                (const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
+                                   const std::string & aNameOpt  , const std::vector<std::string> &  LVals); ///< MMVII call itself
 
         std::list<cParamCallSys>  ListStrAutoRecallMMVII
                                 (  const std::string & aNameOpt  , const std::vector<std::string> &  LVals,
-                                   bool Separate,
                                    const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
                                  ); ///< MMVII reccall the same command itself
+
+        void GenerateArgsSpec(cGenArgsSpecContext *aArgsSpec);
+        void GenerateOneArgSpec(cCollecSpecArg2007& aSpecArgs, const std::string& aSpecName, bool aOptional, cGenArgsSpecContext *aArgsSpec);
 
         void                                      GenerateHelp(); ///< In Help mode print the help
         void PrintAdditionnalComments(tPtrArg2007 anArg); ///< Print the optional comm in mode glob help
@@ -446,9 +604,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static int                                TheNbCallInsideP;  ///< Number of Appli created in the same process
         static bool                               msInDstructor;  ///< Some caution must be taken once destruction has begun
         static const int                          msDefSeedRand;  ///<  Default value for Seed random generator
-	static bool                               msWithWarning;  ///<   do we print warnings
+        static bool                               msWithWarning;  ///<   do we print warnings
         void                                      AssertInitParam() const; ///< Check Init was called
     protected :
+        const cCollecSpecArg2007 &                ArgObl() const;        ///< Mandatory args
         virtual int                               DefSeedRand();  ///< Clas can redefine instead of msDefSeedRand, value <=0 mean init from time:w
         cMemState                                 mMemStateBegin; ///< To check memory management
 
@@ -458,26 +617,20 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         const cSpecMMVII_Appli &                  mSpecs;         ///< The basic specs
         bool                                      mForExe; ///< To distinguish not fully initialized in X::~X()
 
-        std::string                               mDirBinMMVII;   ///< where is the binary
-        std::string                               mTopDirMMVII;   ///< directory  mother of src/ bin/ ...
-
-        std::string                               mFullBin;       ///< full name of binarie =argv[0]
-        std::string                               mDirMMVII;      ///< directory of binary
-        std::string                               mBinMMVII;      ///< name of Binary (MMVII ?)
-        std::string                               mDirMicMacv1;   ///< Dir where is located MicMac V1
-        std::string                               mDirMicMacv2;   ///< Dir where is located MicMac V2
         std::string                               mDirProject;    ///< Directory of the project (./ if no way to find it)
-        std::string                               mFileLogTop;    ///< File for login the top command 
-        std::string                               mDirTestMMVII;  ///< Directory for read/write bench files
-        std::string                               mTmpDirTestMMVII;  ///< Tmp files (not versionned)
-        std::string                               mInputDirTestMMVII;  ///< Input files (versionned on git)
+        std::string                               mFileLogTop;    ///< File for login the top command
         bool                                      mModeHelp;      ///< Is help present on parameter
         bool                                      mDoGlobHelp;    ///< Include common parameter in Help
         bool                                      mDoInternalHelp;///< Include internal parameter in Help
         std::string                               mPatHelp;       ///< Possible filter on name of optionnal param shown
+        bool                                      mModeArgsSpec;  ///< Called to only output args specs to stdout
+        std::string                               mExecFrom;      ///< MMVII launched from a frontend (GUI for ex.)
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
+	int                                       mKthCall;       ///< Number of call if in multiple call
         cExtSet<const void *>                     mSetInit;       ///< Adresses of all initialized variables
+        cExtSet<const void *>                     mSetVarsSpecObl; ///< Adresses var in specif, obligatory
+        cExtSet<const void *>                     mSetVarsSpecFac; ///< Adresses var in specif, faculative 
         bool                                      mInitParamDone; ///< To Check Post Init was not forgotten
         cColStrAObl                               mColStrAObl;    ///< To use << for passing multiple string
         cColStrAOpt                               mColStrAOpt;    ///< To use << for passing multiple pair
@@ -509,8 +662,29 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool                                      mGlobalMainAppli; ///< Both main process && main appli inside P
         std::string                               mPrefixNameAppli;  ///< String Id of process
         std::string                               mPrefixGMA;        ///< Sting Id of Global Main Appli
+        std::string                               mPrefix_TIM_GMA;    ///< Sting Id of Time of Global main appli
         std::string                               mDirProjGMA;        ///< Dir Project Main Appli
      
+        static std::string                        mDirBinMMVII;   ///< where is the binary
+        static std::string                        mTopDirMMVII;   ///< directory  mother of src/ bin/ ...
+
+        static std::string                        mFullBin;       ///< full name of binarie =argv[0]
+        static std::string                        mDirMicMacv1;   ///< Dir where is located MicMac V1
+        static std::string                        mDirMicMacv2;   ///< Dir where is located MicMac V2
+        static std::string                        mMMV1Bin;       ///< full name of mm3d binary
+        static std::string                        mDirTestMMVII;  ///< Directory for read/write bench files
+        static std::string                        mTmpDirTestMMVII;  ///< Tmp files (not versionned)
+        static std::string                        mInputDirTestMMVII;  ///< Input files (versionned on git)
+        static std::string                        mDirRessourcesMMVII;  ///< Directory for read/write bench files
+	static std::string                        mDirLocalParameters;  ///< Directory for parameters local to an install
+	static std::string                        mProfileUsage;        ///< The "usage" profile stored in "MMVII-CurentPofile.xml"
+	static std::string                        mDirProfileUsage;     ///< The full dir containing the information of a profile
+
+	static cParamProfile                      mParamProfile;   ///< Parameters of the profile (as user name)
+	static std::string                        mVectNameDefSerial;  ///< the string "csv", or "xml", "json" ...
+	static std::string                        mTaggedNameDefSerial;  ///< the string "xml", "json" ...
+
+
     protected :
      // ###########"  SHARED OPTIMIZED PARAMETER #####################
         bool   HasSharedSPO(eSharedPO) const;  ///< Is this type of parameter activated
@@ -532,7 +706,21 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mCarPPrefIn;   ///< Prefix for input  Carac point ...
         std::string                               mTiePPrefOut;  ///< Prefix for output Tie Points ...
         std::string                               mTiePPrefIn;   ///< Prefix for inout  Tie Points ...
+
+	/// for object which deletion is delegated to appli, MPD -> it's now a set, cannot have duplicata of pointers
+        static std::set<cObj2DelAtEnd *>       mVectObj2DelAtEnd; 
+        bool                                      mIsInBenchMode;   ///< is the command executed for bench (will probably make specific test)
+
+	char                               mCSVSep;
+	std::map<std::string,std::string>  mMapIdFilesReport;
+	std::map<std::string,std::string>  mMapIdPostReport;
+	std::set<std::string>              mReport2Merge;
+
+	std::string                        mPatternInitGMA;
 };
+
+const std::string & GlobVectNameDefSerial() ; ///< of current appli
+const std::string & GlobTaggedNameDefSerial() ; ///< of current appli
 
 
 bool    IsInit(const void *);  ///< Call IsInit on the appli def

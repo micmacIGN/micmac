@@ -239,7 +239,8 @@ std::string  cInterfChantierNameManipulateur::DBNameTransfo
    std::string aName = aNameInit;
    std::string aSep = aDBNT.Separateur().Val();
    int aMode = MMUserEnv().VersionNameCam().ValWithDef(1);
-   const cMetaDataPhoto &  aMDP = cMetaDataPhoto::CreateExiv2(mDir+aName);
+   auto path = mDir+aName; // gcc 13: CreateExiv2 uses a const ref
+   const cMetaDataPhoto &  aMDP = cMetaDataPhoto::CreateExiv2(path);
    double aFoc = aMDP.FocMm(true);
 
    std::string aCompl = "";

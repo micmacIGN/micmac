@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "MMVII_DeclareCste.h"
+#include "MMVII_Sys.h"
 #include "LearnDM.h"
 
 namespace MMVII
@@ -11,6 +12,10 @@ cAppliLearningMatch::cAppliLearningMatch(const std::vector<std::string> & aVArgs
     mNbOct         (5),
     mNbLevByOct    (2),
     mNbOverLapByO  (1)
+{
+}
+
+void cAppliLearningMatch::InitSpecialProject()
 {
     SetNamesProject("","");
 }
@@ -70,7 +75,7 @@ std::string cAppliLearningMatch::MakeName(const std::string & aName,const std::s
 
 void cAppliLearningMatch::GenConvertIm(const std::string & aInput, const std::string & aOutput)
 {
-    std::string aCom =   "convert -colorspace Gray -compress none " + aInput + " " + aOutput;
+    cParamCallSys aCom("convert","-colorspace","Gray","-compress","none",aInput,aOutput);
     GlobSysCall(aCom);
 }
 

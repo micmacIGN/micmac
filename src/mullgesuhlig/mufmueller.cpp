@@ -143,7 +143,7 @@ int mueller             /* Mueller's method for real polynomials .....*/
  *                                                                    *
  *====================================================================*/
 {
-  register int i;
+  /*register*/ int i;
   int iu, iter;
 
   REAL  p, q, temp, scale, start, zrealn,
@@ -416,7 +416,7 @@ void fmval              /* (Complex) polynomial value ................*/
  *                                                                    *
  *====================================================================*/
 {
-  register int i;
+  /*register*/ int i;
   REAL     tmp;
 
   *fre = zren;

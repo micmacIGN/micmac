@@ -14,9 +14,10 @@
 
 // #define NOMINMAX
 // #include "vld.h"
-
+#ifdef __VERBOSE__
 #if (  __VERBOSE__>1 )
     #define __TRACE_SYSTEM__
+#endif
 #endif
 
 template <class Type> void DoNothingButRemoveWarningUnused(const Type & ) { }
@@ -29,6 +30,7 @@ template <class Type> void DoNothingButRemoveWarningUnused(const Type & ) { }
 #include <cctype>
 #include <algorithm>
 #include <cfloat>
+#include <math.h>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -61,7 +63,6 @@ extern bool BugDG;
 
 class cOrientationConique;
 
-using namespace std;
 
 
 #include "general/sys_dep.h"

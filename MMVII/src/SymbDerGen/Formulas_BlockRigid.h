@@ -1,0 +1,114 @@
+#ifndef _FORMULA_BLOCKRIGID_H_
+#define _FORMULA_BLOCKRIGID_H_
+
+#include "SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbDer_MACRO.h"
+#include "ComonHeaderSymb.h"
+
+//  RIGIDBLOC  : all file is concerned
+
+
+/**  Class for generating the bloc rigid equation :
+ *
+ *   Let  PA and PB be two pose acquired with the rigid camera bloc,
+ *   Let P1 and P2 be the, "unknown", value of rigid bloc, we note {CA;RA} 
+ *   the pose of center CA & rotation RA.
+ *
+ *      PA = {CA ; RA} <->  PB = {CB ; RB}      
+ *      P1 = {C1 ; R1} <->  P2 = {C2 ; R2}
+ *
+ *    Let  PA~PB  be the pose of  B relatively to A , idem P1~P2 , we have :
+ *
+ *           PA~PB = P1~ P2
+ *
+ *    Now let compute PA~PB,  let CamA,CamB be the coordinate of a point W in camera A and B 
+ *     
+ *            PA (CamA) =   CA +  RA * CamA  = W
+ *            PA-1 PB (CamB) = PA-1(W) = CamA
+ *
+ *    For computation of compositio we have :
+ *
+ *        {CA;RA}* {CB;RB} (X) = {CA;RA} (CB+RB*X) = (CA+RA*CB + RA*RB*X)
+ *        {CA;RA}* {CB;RB} = {CA+RA*CB ; RA*RB}
+ *
+ *    For computation of inverse  :
+ *
+ *         -   PA (X) =  CA +  RA *X = Y, then  X = -tRA CA + tRA Y
+ *         -   PA-1 =  {-tRA CA ; tRA}
+ *
+ *            
+ *    We have then :
+ *
+ *          PA~PB = PA-1 * PB = {- tRA CA; tRA} * {CB ; RB} = {- tRA CA +tRA*CB, tRA*RB}
+ *
+ *     And the equations :
+ *       PA~PB = {tRA(CB-CA); tRA*RB}
+ *
+ *     Then equation is : 
+ *
+ *       {tRA(CB-CA); tRA*RB} = {tR1(C2-C1) ; tR1 * R2}
+ *
+ */
+using namespace NS_SymbolicDerivative;
+
+namespace MMVII
+{
+
+
+class cFormulaBlocRigid
+{
+      public :
+
+           std::string FormulaName() const { return "BlocRigid";}
+
+           std::vector<std::string>  VNamesUnknowns()  const
+	   {
+                //  We have 4 pose  A,B,1 en 2;  each has 6 unknown : 3 for centers,3 for axiator
+                //  We could write  explicitely a 24 size vector like {"CxA","CyA","CzA","WxA" .....,"Wy2","Wz2"}
+		//  We prefer to  use the facility "NamesPose" 
+                return  {};
+
+		// Append NamesPose("CA","WA")
+	   }
+
+           std::vector<std::string>    VNamesObs() const
+           {
+                // we have 4 pose, and for each we have the  3x3 current rotation matrix as "observation/context"
+                // we coul wite explicitely the  36 size vector {"mA_00","mA_10" ... "m1_12","m_22"}
+                // we prefer to use the facility ",NamesMatr"
+                return  {};
+		//  Append   NamesMatr("mA",cPt2di(3,3)),
+           }
+	   static constexpr size_t  NbUk =6;
+	   static constexpr size_t  NbObs=9;
+
+	   template <typename tUk>
+                       std::vector<tUk> formula
+                       (
+                          const std::vector<tUk> & aVUk,
+                          const std::vector<tUk> & aVObs
+                       ) const
+           {
+		   // ... 
+		   // extract PoseA,PoseB,pose1, pose2
+		   // compute pose rel B to A,   pose rel 2 to 1
+		   // compute the difference
+
+
+		   return {};
+
+		   //  cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
+                   //  cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
+		   // (ToVect(aDeltaC),aDeltaM.ToVect()
+	   }
+
+
+
+      private :
+};
+
+
+};
+
+
+#endif  // _FORMULA_BLOCKRIGID_H_

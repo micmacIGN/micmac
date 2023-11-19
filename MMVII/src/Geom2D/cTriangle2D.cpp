@@ -1,4 +1,6 @@
-#include "include/MMVII_all.h"
+
+#include "MMVII_Sys.h"
+#include "MMVII_Geom2D.h"
 
 namespace MMVII
 {
@@ -99,7 +101,8 @@ template <class Type>  bool   cTriangle2DCompiled<Type>::Insides(const tPt & aPt
     return Insideness(aPt) < aTol;
 }
 
-template <class Type> void cTriangle2DCompiled<Type>::PixelsInside(std::vector<cPt2di> & aRes,double aTol) const
+template <class Type> 
+   void cTriangle2DCompiled<Type>::PixelsInside(std::vector<cPt2di> & aRes,double aTol,std::vector<t3Val> * aVW) const
 {
    aRes.clear();
    cBox2di  aBPE = this->BoxPixEngl() ;
@@ -117,9 +120,11 @@ template <class Type> void cTriangle2DCompiled<Type>::PixelsInside(std::vector<c
 	{
             if ((aCXY.x()>=aTol)&&(aCXY.y()>=aTol)&&(aCXY.z()>=aTol))
 	    {
-		    aRes.push_back(aPix);
+                aRes.push_back(aPix);
+		if (aVW)
+                   aVW->push_back(aCXY);
 	    }
-	     aCXY += aDxC;
+	    aCXY += aDxC;
 	}
 	aC0Y += aDyC;
    }
@@ -147,13 +152,10 @@ template<class Type> void BenchTri2D(Type aSz)
     cPtxd<Type,2>  aPB=cPtxd<Type,2>::PCste(2*aSz);
     cTplBox<Type,2> aBox(-aPB,aPB);
 
-    // FakeUseIt(aTri);
-    // FakeUseIt(aBox);
     for (int aK=0 ; aK<1000 ; aK++)
     {
         // cPt2dr aP1 = aBox.GeneratePointInside();
         cPtxd<Type,2> aP1 (RandUnif_C()*2*aSz,RandUnif_C()*2*aSz);
-        FakeUseIt(aP1);
         cPtxd<Type,3> aCoBa = aTri.CoordBarry(aP1);
         cPtxd<Type,2> aP2 = aTri.FromCoordBarry(aCoBa);
 

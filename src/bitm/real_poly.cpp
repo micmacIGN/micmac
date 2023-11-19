@@ -130,7 +130,9 @@ template <class Type> Type DichotSolvePolynone<Type>::BracketSolve
   if (!Ok)
       return HUGE_VAL;
 
+// std::cout << "INRTSAFE \n";
   Type res= rtsafe(a,b,tol,ItMax);
+// std::cout << "OUTTSAFE \n";
 
   ELISE_ASSERT((res>=a) && (res<=b), "Bad Bracketting in DichotSolvePolynone::BracketSolve ");
   return res;

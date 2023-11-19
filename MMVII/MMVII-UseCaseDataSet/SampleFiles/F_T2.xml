@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<Root>
+   <Type>"MMVII_Serialization"</Type>
+   <Version>"0.00"</Version>
+   <Data>
+      <TS0:P1>1 2</TS0:P1>
+      <TS0:I1>22</TS0:I1>
+      <TS0:R4>4.5</TS0:R4>
+      <TS0:P2>3 3</TS0:P2>
+      <S>"Hello"</S>
+      <P3>3.1 3.2</P3>
+      <LI>
+         <el>1</el>
+         <el>22</el>
+         <el>333</el>
+      </LI>
+      <VD>
+         <el>314</el>
+         <el>27</el>
+         <el>14</el>
+      </VD>
+      <Opt:O2>100 1000</Opt:O2>
+   </Data>
+</Root>

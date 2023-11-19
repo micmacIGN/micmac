@@ -1,9 +1,8 @@
-#include "include/MMVII_all.h"
-
+#include "MMVII_Bench.h"
+#include "MMVII_Linear2DFiltering.h"
 
 namespace MMVII
 {
-
 
 
 template <class Type> void TestFilterExp(cPt2di aP0,cPt2di aP1,const Type & aV0)
@@ -53,7 +52,7 @@ template <class Type> void TestFilterExp(cPt2di aP0,cPt2di aP1,const Type & aV0)
    }
    aDMaxX /=tREAL16(aV0) ;
    aDMaxXY /=tREAL16(aV0) ;
-   // StdOut() << " HHhhhh "<<  aDMaxX << " " << aDMaxXY << "\n";
+   // StdOut() << " HHhhhh "<<  aDMaxX << " " << aDMaxXY << std::endl;
    MMVII_INTERNAL_ASSERT_bench(aDMaxX<1e-2*sqrt(aEps)  ,"Test Filtr Exp")
    MMVII_INTERNAL_ASSERT_bench(aDMaxXY<1e-2*sqrt(aEps) ,"Test Filtr Exp")
 
@@ -71,7 +70,7 @@ template <class Type> void TestFilterExp(cPt2di aP0,cPt2di aP1,const Type & aV0)
        MMVII_INTERNAL_ASSERT_bench(aD< (aEps*1e5) ,"Test Filtr Exp")
    }
 
-   // StdOut() << "ONE BENC FEXP " <<  aD / pow(aEps,0.25) << " " << aD/aEps << " " << aEps << "\n";
+   // StdOut() << "ONE BENC FEXP " <<  aD / pow(aEps,0.25) << " " << aD/aEps << " " << aEps << std::endl;
    
    // Test normalization, const => const
    {

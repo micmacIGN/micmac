@@ -62,8 +62,8 @@ cEqTrianguApparImage::cEqTrianguApparImage(INT aCapa) :
 cEqTrianguApparImage::~cEqTrianguApparImage()
 {
    delete[] mDerJk;
-   delete mVI;
-   delete mVJ;
+   delete[] mVI;
+   delete[] mVJ;
 }
 
 void cEqTrianguApparImage::Reset()

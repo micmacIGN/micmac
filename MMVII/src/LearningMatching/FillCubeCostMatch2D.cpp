@@ -277,7 +277,7 @@ void cAppliFillCubeCost2D::ExeOptim()
    mIm2 = tImRad::FromFile(mNameI2,mBoxGlob2);
    mDI2 = &(mIm2.DIm());
 
-   mFileCube = new cMMVII_Ofs(mNameCube,false);
+   mFileCube = new cMMVII_Ofs(mNameCube,eFileModeOut::CreateText);
 
 
    // Call Models and Fill Cost Cube : This time we have 2D disparity search ranges
@@ -533,7 +533,7 @@ void cAppliFillCubeCost2D::ExeOptim()
     mIm2 = tImRad::FromFile(mNameI2,mBoxGlob2);
     mDI2 = &(mIm2.DIm());
 
-    mFileCube = new cMMVII_Ofs(mNameCube,false);
+    mFileCube = new cMMVII_Ofs(mNameCube,eFileModeOut::CreateText);
 
 
     // Call Models and Fill Cost Cube : This time we have 2D disparity search ranges

@@ -1,5 +1,6 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_TplHeap.h"
+#include "MMVII_SysSurR.h"
+#include "MMVII_TplHeap.h"
+#include "MMVII_Sys.h"
 
 
 namespace MMVII
@@ -104,7 +105,8 @@ template <class Type> void cSMLineTransf<Type>::TransfertInTriplet
 {
        for (const auto & anInd : mSetNot0.mVIndOcc)
        {
-	   aV3.push_back(cEigenTriplet<Type>(anInd,anY,mCumulLine[anInd]));
+	   if (mCumulLine[anInd]!=0) 
+	       aV3.push_back(cEigenTriplet<Type>(anInd,anY,mCumulLine[anInd]));
        }
 }
 
@@ -321,6 +323,7 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
          cSparseLeasSqtAA(int  aNbVar,const cParamSparseNormalLstSq & aParam);
          ~cSparseLeasSqtAA();
 
+         using cSparseLeasSq<Type>::AddObservation;         // Shutup CLANG about hiding overload virtual function
        /// Here memorize the obs
          void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
 
@@ -348,7 +351,7 @@ template<class Type>  class cSparseLeasSqtAA : public cSparseLeasSq<Type>
 	 int                       mNbDLTempo; 
 	 tCmpLine                  mCmpLine;
 	 tHeap                     mHeapDL;
-	 cBufSchurrSubst<Type>     mBufSchurr;
+	 cBufSchurSubst<Type>     mBufSchur;
 };
 
 /* ******************************************** */
@@ -421,7 +424,8 @@ template <class Type>
      {
           for (const auto & aPair : mSparseLine)
           {
-	       aV3.push_back(cEigenTriplet<Type>(aPair.mInd,mY,aPair.mVal));
+               if (aPair.mVal!=0)
+	          aV3.push_back(cEigenTriplet<Type>(aPair.mInd,mY,aPair.mVal));
           }
      }
      else if  (mState==eLineSLSqtAA::eLS_TempoDense)
@@ -564,7 +568,7 @@ template<class Type>
 	  mNbDLTempo          (aParam.mNbBufDense),
 	  mCmpLine            (),
 	  mHeapDL             (mCmpLine),
-	  mBufSchurr          (aNbVar)
+	  mBufSchur          (aNbVar)
 {
     mtAA.reserve(this->mNbVar);
     cSetIntDyn aSetDense(this->mNbVar,aParam.mVecIndDense);
@@ -678,15 +682,15 @@ template<class Type> void  cSparseLeasSqtAA<Type>::PutBufererEqInNormalMatrix()
 
 template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIORSNL_SameTmp<Type>& aSetSetEq) 
 {
-// StdOut() << "cSparseLeasSqtAA<Type>::AddObsWithTmpUK \n";
+// StdOut() << "cSparseLeasSqtAA<Type>::AddObsWithTmpUK " << std::endl;
 
-    //  1 - Compute the reduce schurr matrix
-    mBufSchurr.CompileSubst(aSetSetEq);
-    const std::vector<size_t> & aVInd = mBufSchurr.VIndexUsed();
+    //  1 - Compute the reduce schur matrix
+    mBufSchur.CompileSubst(aSetSetEq);
+    const std::vector<size_t> & aVInd = mBufSchur.VIndexUsed();
 
 
         // 1.2 is mNbDLTempo was over dimensionned, make it grow,  no harm ...
-    mNbDLTempo = std::max(mNbDLTempo,(int)mBufSchurr.VIndexUsed().size());
+    mNbDLTempo = std::max(mNbDLTempo,(int)mBufSchur.VIndexUsed().size());
 
     // 2 - Uncompress the line used in this substitution, try to mininize work, often they would be already uncompress from 
     // previous jobs
@@ -719,8 +723,8 @@ template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIO
     // 3 - Update the heap, 
     //     const std::vector<size_t> &  aVI = mBSC->VIndexUsed();
 
-    const cDenseVect<Type> &   atARhsS = mBufSchurr.tARhsSubst() ;
-    const cDenseMatrix<Type> & atAAS =   mBufSchurr.tAASubst() ;
+    const cDenseVect<Type> &   atARhsS = mBufSchur.tARhsSubst() ;
+    const cDenseMatrix<Type> & atAAS =   mBufSchur.tAASubst() ;
 
     for (size_t aIndRed=0 ;  aIndRed<aVInd.size() ; aIndRed++)
     {
@@ -728,12 +732,11 @@ template<class Type>  void  cSparseLeasSqtAA<Type>::AddObsWithTmpUK(const cSetIO
         mtARhs(anInd) += atARhsS(aIndRed);
         tLine * aLine = mtAA.at(anInd);
 	aLine->AddLineMatr(aIndRed,atAAS,aVInd);
-	FakeUseIt(aLine);
     }
 
 
     // 4 - Update the heap, 
-    for (const auto & anInd : mBufSchurr.VIndexUsed())
+    for (const auto & anInd : mBufSchur.VIndexUsed())
     {
         tLine * aLine = mtAA.at(anInd);
 	if (aLine->State() != eLineSLSqtAA::eLS_AlwaysDense)  // Nothing to dow for always dense lines
@@ -772,6 +775,7 @@ template<class Type>  class cSparseLeasSqGC : public cSparseLeasSq<Type>
 
          cSparseLeasSqGC(int  aNbVar );
 
+         using cSparseLeasSq<Type>::AddObservation;         // Shutup CLANG about hiding overload virtual function
        /// Here memorize the obs
          void AddObservation(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) override;
 
@@ -842,11 +846,11 @@ template<class Type>  void  cSparseLeasSqGC<Type>::AddObsWithTmpUK(const cSetIOR
 		 Type aSW = Sqrt(aSetEq.WeightOfKthResisual(aKEq));
 
                  size_t  aIndTmp =  this->mNbVar+mNbTmpVar;
-		 for (size_t aKGlob=0 ; aKGlob<aSetEq.mVIndGlob.size() ; aKGlob++)
+		 for (size_t aKGlob=0 ; aKGlob<aSetEq.mGlobVInd.size() ; aKGlob++)
                  {
-                     int aInd = aSetEq.mVIndGlob[aKGlob];
-                     if (aInd<0)
-                        aInd = aIndTmp++;
+                     int aInd = aSetEq.mGlobVInd[aKGlob];
+                     if (cSetIORSNL_SameTmp<Type>::IsIndTmp(aInd))
+                        aInd = aIndTmp + cSetIORSNL_SameTmp<Type>::ToIndTmp(aInd);
                      tTri aTri(mVRhs.size(),aInd,aVDer.at(aKGlob)*aSW);
                      mVTri.push_back(aTri);
                  }
@@ -854,8 +858,8 @@ template<class Type>  void  cSparseLeasSqGC<Type>::AddObsWithTmpUK(const cSetIOR
                  mVRhs.push_back(-aSetEq.mVals.at(aKEq)*aSW);
 	 }
     }
-    size_t aNbTmp = aSetSetEq.AllEq().at(0).mVTmpUK.size();
-    mNbTmpVar += aNbTmp;
+    // size_t aNbTmp = aSetSetEq.AllEq().at(0).mVTmpUK.size();
+    mNbTmpVar += aSetSetEq.NbTmpUk();
 }
 
 

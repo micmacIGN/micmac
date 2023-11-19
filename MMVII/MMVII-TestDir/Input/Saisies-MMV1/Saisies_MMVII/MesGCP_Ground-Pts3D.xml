@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<MMVII_Serialization>
+   <SetGCP>
+      <NameSet>"FromV1-Ground-Pts3D"</NameSet>
+      <Measures>
+         <Nb>9</Nb>
+         <el>
+            <Name>"Stone-1"</Name>
+            <Pt>0.182895665614618 -3.78002060469805 2.56022810571964</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"Stone-2"</Name>
+            <Pt>0.234792215591027 -5.36333800580975 2.42659720440635</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"Stone-3"</Name>
+            <Pt>0.194213046998493 -4.82293063921051 1.7537725591411</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"I-of-I"</Name>
+            <Pt>0.754045221758524 0.496427193197003 0.431416432371162</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"Acute"</Name>
+            <Pt>0.898750585424819 1.10409507249266 0.444680581722014</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"Finger-1"</Name>
+            <Pt>1.31771333753879 0.989188464947305 0.370627429238322</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"Stone-6"</Name>
+            <Pt>0.150697933447584 1.10818337179322 0.773464897817899</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"Stone-7"</Name>
+            <Pt>0.256396378205514 2.35318759021626 2.23887785258234</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+         <el>
+            <Name>"Grille"</Name>
+            <Pt>1.40207519252832 2.19454588983995 0.403829859842775</Pt>
+            <Sigma2>1 0 0 1 0 1</Sigma2>
+         </el>
+      </Measures>
+   </SetGCP>
+</MMVII_Serialization>

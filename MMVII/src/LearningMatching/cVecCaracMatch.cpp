@@ -1,6 +1,8 @@
-#include "include/MMVII_all.h"
+
 #include "LearnDM.h"
-#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+#include "MMVII_ImageInfoExtract.h"
+
 
 namespace MMVII
 {
@@ -122,11 +124,11 @@ static int aCpt=0;
 aCpt++;
 bool BUG = 0&&(aCpt==476382);
 {
-if (BUG) StdOut() << "================== " << aCpt  << "\n";
+if (BUG) StdOut() << "================== " << aCpt  << std::endl;
 aImNorm1.GetVBL(aAPC1.PtIm());
-if (BUG) StdOut() << "LIINNNEEE " << __LINE__ << "\n";
+if (BUG) StdOut() << "LIINNNEEE " << __LINE__ << std::endl;
 aImNorm2.GetVBL(aAPC2.PtIm());
-if (BUG) StdOut() << "LIINNNEEE " << __LINE__ << "\n";
+if (BUG) StdOut() << "LIINNNEEE " << __LINE__ << std::endl;
 }
 /*
 */
@@ -252,7 +254,7 @@ if (BUG) StdOut() << "LIINNNEEE " << __LINE__ << "\n";
     // -------------- Compute  corners ----------------
           // Convolution
     int aIntTeta = (mNbTeta+1)/2;
-    cWhitchMin<int,tREAL4> aWMin(0,1e10);
+    cWhichMin<int,tREAL4> aWMin(0,1e10);
     for (int aKTeta1=0 ; aKTeta1<mNbTeta ; aKTeta1++)
     {
          tREAL4 aSom = 0;
@@ -301,10 +303,10 @@ if (BUG)
 TPT(mPt1);
 TPT(mPt2);
 
-    StdOut() << "LIINNNEEE " << __LINE__ << "\n";
-    StdOut() << "PTS=" << mPt1  << mPt2 << "\n";
-    StdOut() << "SZI=" << aImInit1.Sz() <<  aImInit2.Sz() << "\n";
-    StdOut() << "SZN=" << aImNorm1.Sz() <<  aImNorm2.Sz() << "\n";
+    StdOut() << "LIINNNEEE " << __LINE__ << std::endl;
+    StdOut() << "PTS=" << mPt1  << mPt2 << std::endl;
+    StdOut() << "SZI=" << aImInit1.Sz() <<  aImInit2.Sz() << std::endl;
+    StdOut() << "SZN=" << aImNorm1.Sz() <<  aImNorm2.Sz() << std::endl;
 }
 // Normalize + Init
 {
@@ -347,12 +349,8 @@ TPT(mPt2);
              tREAL4 aVNorm2 = aImNorm2.GetVBL(aPV2);
              aSomDiffNorm += std::abs(aVNorm1-aVNorm2);
 
-// StdOut() << "VNNNNN " << aVNorm1 << " " << aVNorm2 << "\n";
+// StdOut() << "VNNNNN " << aVNorm1 << " " << aVNorm2 << std::endl;
     // tREAL4 aVNorm2 = aImInit1.GetVBL(mPt2);
-// FakeUseIt(aPV1);
-// FakeUseIt(aVC1);
-// FakeUseIt(aPV2);
-// FakeUseIt(aVC2);
          }
          tREAL4 aDiffInit = std::min(1.0,aSomDiffInit/(255.0*aNbPts));
          tREAL4 aDiffNorm = std::min(1.0,double(aSomDiffNorm/aNbPts));
@@ -360,7 +358,7 @@ TPT(mPt2);
          {
              aCostCor = MakeStdCostOfCorrel(aMatInit.Correl(1e-10));
              aCostCorNotC = MakeStdCostOfCorrelNotC(aMatInit.CorrelNotC(1e-10));
-// StdOut() << "CORRR-NOTC " << aMatInit.Correl(1e-10) << " " << aMatInit.CorrelNotC(1e-10) << "\n";
+// StdOut() << "CORRR-NOTC " << aMatInit.Correl(1e-10) << " " << aMatInit.CorrelNotC(1e-10) << std::endl;
          }
          if ((aDist>0) && (aDist%2))
          {
@@ -424,8 +422,8 @@ TPT(mPt2);
     }
 }
     
-// StdOut() << "WWW " << aSomWRho << " " << int(eModeCaracMatch::eNbVals) <<  "\n";
-if (BUG) StdOut() << "LIINNNEEE " << __LINE__ << "\n";
+// StdOut() << "WWW " << aSomWRho << " " << int(eModeCaracMatch::eNbVals) <<  std::endl;
+if (BUG) StdOut() << "LIINNNEEE " << __LINE__ << std::endl;
 
 }
 
@@ -452,16 +450,16 @@ void cVecCaracMatch::SetValue(eModeCaracMatch aCarac,const float & aVal)
     if (aVal<aMinVal)
     {
        aMinVal = aVal;
-       if (Show)   StdOut()  << "INTERVAL " << aMinVal << " " << aMaxVal << "\n";
+       if (Show)   StdOut()  << "INTERVAL " << aMinVal << " " << aMaxVal << std::endl;
     }
     if (aVal>aMaxVal)
     {
        aMaxVal = aVal;
-       if (Show)   StdOut()  << "INTERVAL " << aMinVal << " " << aMaxVal << "\n";
+       if (Show)   StdOut()  << "INTERVAL " << aMinVal << " " << aMaxVal << std::endl;
     }
     if ((aVal<-Eps) || (aVal>1+Eps))
     {
-       StdOut()  << "INTERVAL " << aMinVal << " " << aMaxVal  <<  " Type " <<  E2Str(aCarac) << "\n";
+       StdOut()  << "INTERVAL " << aMinVal << " " << aMaxVal  <<  " Type " <<  E2Str(aCarac) << std::endl;
        MMVII_INTERNAL_ASSERT_always (false,"Value out interval [0,1]");
     }
 
@@ -512,7 +510,7 @@ void cVecCaracMatch::Show(tNameSelector aNameSel)
         std::string aName =  E2Str(aMode);
         if (aNameSel.Match(aName))
         {
-            StdOut() << "[" << aName << "] : " <<  mVecCarac[aK] /double(TheDyn4Save) << "\n";
+            StdOut() << "[" << aName << "] : " <<  mVecCarac[aK] /double(TheDyn4Save) << std::endl;
         }
     }
 

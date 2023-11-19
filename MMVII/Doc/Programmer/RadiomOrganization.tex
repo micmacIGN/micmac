@@ -1,0 +1,148 @@
+
+
+\chapter{Radiommetric organization}
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Generality}
+
+%---------------------------------------------
+\subsection{Modelization}
+
+The functionnality implemented currently in {\tt MMVII} do not pretend to make physicall
+modelization of radiometry with approach like BRDF or radiatif transfer.
+They are mainly targeted to make empiricall image equalization, which
+can be summarized as this :
+
+\begin{itemize}
+      \item  as input we have set of homologous point $P_k$ with
+	      $P_k = \{ (r_1 p_1) , (r_2 p_2) , \dots\}$ where $p_1,p_2 ...$
+              are point seeing in image corresponding to the projection
+              of the samepoint of the scene and $r_1, r_2 ...$ their 
+              radiometry, it can be rgb or grey values;
+             
+      \item  a mathematical model of correction, that define for each image
+	      the correction to recover the "real" radiometry  $G_k$;
+\end{itemize}
+
+The image equalizatio try to compute a set of model for $G_k$ such that
+for each homologous point we have :
+
+\begin{equation}
+	G_i(r_i,p_i) = G_j(r_j,p_j)  \forall i,j \label{Rad:Eq:Equal}
+\end{equation}
+
+To avoid some trivial solution as $G_i=0$, that perfectly fit equation ~\ref{Rad:Eq:Equal}
+we will often have to add some constraint as :
+
+\begin{equation}
+	G_i(r_i,p_i) \approx  r_i
+\end{equation}
+
+%---------------------------------------------
+\subsection{Simplification}
+
+In the current version of {\tt MMVII} we have made the following hypothesis :
+
+\begin{itemize}
+        \item  we modelize only grey-level correction;  the correction can be used on
+		RGB image, but it will be the same on all chanel;
+	\item  the correction is multiplicative   $G_i(r,p) = \frac{r}{F_i(p)} $
+        \item  the correction $F$ is made from a sensor correction $S$ and per image correction $f_i$,
+		$F_i(p) = S(p) f_i(p)$ ;
+        \item  the sensor correction is a radial function, of center equal to principal point;
+	\item  the per image correction $f_i(p)$ is a low polynomial function (classical choice
+		for modelizing universal smooth function).
+\end{itemize}
+
+A probable next (and easy ?)  extension will add an additive term to the sensor 
+correction to modelize the "dark current".
+
+The choice $S$ is radial, and $f_i=Cste$, is a basic physicall modelization, the radial
+function modelize the vignetage of lenses, while the constant modelize the global
+energy conversion on each image (iso, speed ...).
+
+In the default parametrisation we have :
+
+\begin{itemize}
+        \item one sensor model for each camera and each aperture;
+	\item one per image correction $f_i$ per image (is it a totology to say that?).
+\end{itemize}
+
+%---------------------------------------------
+\subsection{Main classes}
+
+The  classes used to modelized the radiometry are defined in {\tt MMVII\_Radiom.h},
+There is two main set of classses :
+
+\begin{itemize}
+   \item  classes for storing the radiometric data,  i.e set of homolgous point
+	   with their radiometry ;
+
+   \item  classes for modelizeing the radiometric function correction;
+\end{itemize}
+
+A typicall radiometric processus, will occur in $3$ steps :
+
+\begin{itemize}
+	\item  compute the radiometric data, these can be done mesh, from tie point (to implemant),
+		from  MNT (to implemant)
+        \item   use the radiometric data to compute correction functions;
+	\item   use the correction function to produce equalized result : devlopped images,
+                ortho-photo (to come), coloured meshes (to come);
+\end{itemize}
+
+%---------------------------------------------
+%---------------------------------------------
+%---------------------------------------------
+
+\section{Classes for photogrammetric data}
+
+%---------------------------------------------
+\subsection{General organisation}
+
+The two classes are {\tt cImageRadiomData} and {\tt cFusionIRDSEt}.
+
+The classe {\tt cImageRadiomData}  store the information on images,
+it's the only class used and saved where with command like {\tt MeshProjImage}.
+
+The class {\tt cFusionIRDSEt} is used to recover efficiently the 
+homologous radiometric point comings from multiple {\tt cImageRadiomData}.
+
+The principle of use is that :
+
+\begin{itemize} 
+   \item all the  {\tt cImageRadiomData} must be created in the same command,
+         this is necessary to warantee the coherence  of indexes used to recover the homologous point;
+
+   \item when reading and using them, any arbitrary subset can be loaded.
+\end{itemize}
+
+
+
+\subsection{Class cImageRadiomData}
+
+The class {\tt cImageRadiomData} store the information relative to one image.
+I consist essentially of a set of triplet $R_k,P_k,I_k$ where :
+
+
+\begin{itemize}
+	\item $R_k$ are the radiometry they are stored in the vector {\tt mVVRadiom}:
+	\item $P_k$ are the image points they are stored in the vector {\tt mVPts}
+	\item $I_k$ is an identifiant that will allow to recover the homologous point
+		in all  other images (i.e. points homologous to this point will also
+		have the same identifiant);
+\end{itemize}
+
+For efficiency, the index must be ordered. Generally this is "naturally" the case at creation,
+if nessecary the indexes (and the other data) can be re-ordered.
+
+
+
+
+
+
+
+

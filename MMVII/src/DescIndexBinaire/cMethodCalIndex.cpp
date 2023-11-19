@@ -1,6 +1,6 @@
-#include "include/MMVII_all.h"
+
 #include "IndexBinaire.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "MMVII_Tpl_Images.h"
 
 // #include "include/MMVII_2Include_Serial_Tpl.h"
 // #include<map>
@@ -204,7 +204,7 @@ void cAppli_ComputeParamIndexBinaire::OptimiseScoreAPriori(tPtVBool  aVBOld,cons
       }
       Cont = (aDelta < 0) && (aCpt<10);
    }
-   StdOut() << "CPT=" << aCpt << "\n";
+   StdOut() << "CPT=" << aCpt << std::endl;
 }
 
 void cAppli_ComputeParamIndexBinaire::AddEqProxCur(double aPdsCloseCur,tPtVBool aVB0)
@@ -262,7 +262,7 @@ void cAppli_ComputeParamIndexBinaire::TestNewParamLinear(const std::vector<tPtVB
 
    if (aSc > mBestSc)
    {
-      StdOut() << "D2222 " << aVB->FB().Vect().L2Dist(aOldVB[aK0Vec]->FB().Vect()) << mBestSc << " " << aSc << "\n";
+      StdOut() << "D2222 " << aVB->FB().Vect().L2Dist(aOldVB[aK0Vec]->FB().Vect()) << mBestSc << " " << aSc << std::endl;
       ChangeVB(aSc,aVB,aK0Vec);
    }
    
@@ -301,7 +301,7 @@ cVecBool::cVecBool(int Index,bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR & a
    {
        double aMed = ConstMediane(aVScore);
 
-       // StdOut() << "Meeeddd  " << aMed << "\n";
+       // StdOut() << "Meeeddd  " << aMed << std::endl;
        if (!Med)
        {
           aMed=0;
@@ -362,7 +362,7 @@ void cVecBool::CalcCdgScoreAPriori(const tVPtVIR & aVIR)
    double aPropThEq =  Square(aProp1) + Square(1-aProp1);
    mScore = aPropEq/aPropThEq;
 
-    // StdOut()  << "Eq=" << aPropEq << " Sc=" << aPropEq/aPropThEq << " P1=" << aProp1 << "\n";
+    // StdOut()  << "Eq=" << aPropEq << " Sc=" << aPropEq/aPropThEq << " P1=" << aProp1 << std::endl;
 }
 
 cIB_LinearFoncBool&   cVecBool::FB()

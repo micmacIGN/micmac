@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
 
 namespace MMVII
 {
@@ -703,7 +704,7 @@ void BenchDelaunayRand(int aNbPts)
 template<class Type>  std::vector<Type>  XRandomOrder(const std::vector<Type> & aV)
 {
     std::vector<int> aPermut = RandPerm(aV.size());
-    // StdOut()<< RandPerm(8) << "\n";
+    // StdOut()<< RandPerm(8) << std::endl;
     std::vector<Type> aRes;
     for (const auto & aI : aPermut)
         aRes.push_back(aV.at(aI));
@@ -754,6 +755,52 @@ void BenchDelaunay(cParamExeBench & aParam)
         BenchDelaunayRand(round_ni(pow(10.0,aK)));
 
     aParam.EndBench();
+
+}
+
+template<class Type>  cTriangulation2D<Type>::cTriangulation2D(const cTriangulation<Type,3>& aTri3) 
+{
+    for (const auto & aP3 : aTri3.VPts())
+        this->mVPts.push_back(Proj(aP3));
+    this->mVFaces = aTri3.VFaces();
+}
+
+template<class Type>  cTriangulation2D<Type>::cTriangulation2D(const std::string & aName) :
+     cTriangulation2D<Type>(cTriangulation3D<Type>(aName))
+{
+}
+
+template <class Type> void cTriangulation2D<Type>::WriteFile(const std::string & aName,bool isBinary) const
+{
+    if (UCaseEqual(LastPostfix(aName),"ply"))
+    {
+       PlyWrite(aName,isBinary);
+    }
+    else
+    {
+       MMVII_UsersErrror(eTyUEr::eBadPostfix,"Unknown postfix in cTriangulation3D");
+    }
+}
+
+template <class Type> void cTriangulation2D<Type>::PlyWrite (const std::string & aNameFile,bool isBinary) const
+{
+   typedef cPtxd<Type,3>   tPt3d;
+   typedef cPt3di          tFace3d;
+
+   std::vector<tPt3d>      aVPt3d;
+   std::vector<tFace3d>    aVFace3d;
+
+   // Project 2d triangulation to 3d triangulation with z=0
+   for (const auto &aP : this->VPts())
+   {
+       aVPt3d.push_back(TP3z0(aP));
+   }
+
+   // Write data
+   cTriangulation3D<Type> aTri3D(aVPt3d,this->VFaces());
+   aTri3D.WriteFile(aNameFile,isBinary);
+
+
 
 }
 

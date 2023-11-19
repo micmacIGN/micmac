@@ -1,6 +1,8 @@
 #ifndef  _MMVII_MMError_H_
 #define  _MMVII_MMError_H_
 
+#include "MMVII_enums.h"
+
 namespace MMVII
 {
 
@@ -30,6 +32,7 @@ namespace MMVII
 
 // extern int  The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_medium;
 #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
+// #define The_MMVII_DebugLevel The_MMVII_DebugLevel_BenchError
 // #define The_MMVII_DebugLevel The_MMVII_DebugLevel_UserError
 
 /**  The error handler can be change , so its a function Ptr of type PtrMMVII_Error_Handler,
@@ -111,7 +114,7 @@ MMVII_INTERNAL_ASSERT_tiny(ValidPosFloatValue(VALUE),"Non positive value")
 template<class T> void IgnoreUnused( const T& ) { }; /// To avoid some warning on TEMPORARILY unused variable 
 void DoNothingWithIt(void *);  /// Used to avoid compiler optimization, make believe it can be used
 
-#define BREAK_POINT(MSG)  {StdOut() << MSG << "; BREAK POINT at " << __LINE__ << " of " << __FILE__ << "\n";getchar();}
+#define BREAK_POINT(MSG)  {StdOut() << MSG << "; BREAK POINT at " << __LINE__ << " of " << __FILE__ << std::endl;getchar();}
 
 /* handling of eigen test on sucess of decomposition, by default it generate an error, btw this
 can be temporarily supress if the use know what he does. For example see BenchLsqDegenerate
@@ -136,7 +139,56 @@ class cMMVII_Warning
     void Activate();
 };
 
-#define MMVII_WARGING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
+#define MMVII_DEV_WARNING(MES) {static MMVII::cMMVII_Warning aWarn(MES,__LINE__,__FILE__); aWarn.Activate();}
+
+
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+template <class Type>  void AssertSorted(const std::vector<Type> & aV)
+{
+    for (size_t aK=1 ; aK<aV.size() ; aK++)
+    {
+            MMVII_INTERNAL_ASSERT_tiny(aV[aK-1]<=aV[aK],"AssertSorted");
+    }
+}
+#define ASSERT_SORTED(V) {AssertSorted(V);}
+template <class Type> void AssertInRange(const std::vector<Type> & aVect,const Type & aSz)
+{
+     for (const auto &  aV : aVect)
+         MMVII_INTERNAL_ASSERT_tiny(aV<aSz,"AssertInRange");
+}
+#define ASSERT_IN_RANGE(VEC,SZ) {AssertInRange(VEC,SZ);}
+#else
+#define ASSERT_SORTED(V) {}
+#define ASSERT_IN_RANGE(VEC,SZ) {}
+#endif
+
+
+void  ErrorWarnNone(eLevelCheck aLevel,const std::string & aMes);
+/*
+{
+      switch(aLevel)
+      {
+	      case eLevelCheck::NoCheck : break;
+
+	      case eLevelCheck::Warning : 
+                   MMVII_DEV_WARNING(aMes);
+              break;
+
+	      case eLevelCheck:: : 
+                   MMVII_INTERNAL_ERROR(aMes);
+              break;
+      }
+}
+*/
+
+/// A fake function, to stop momentarilly warnings about unused variable ...
+template <class Type> void FakeUseIt(const Type &) {}
+/// in some case variable can be used only in debug mode, to separate from other case use this function
+template <class Type> void Fake4ReleaseUseIt(const Type &) {}
+/** A function returning always false, use when we dont want to execute something want to compile it
+ even with too "clever" compiler who would skip if (0) */
+bool NeverHappens();
+
 
 };
 

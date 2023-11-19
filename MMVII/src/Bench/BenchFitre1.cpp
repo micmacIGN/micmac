@@ -1,5 +1,5 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_TplSimpleOperator.h"
+#include "MMVII_Image2D.h"
+#include "MMVII_TplSimpleOperator.h"
 
 namespace MMVII
 {
@@ -7,7 +7,7 @@ namespace MMVII
 
 void BenchFilterImage_000()
 {
-    // StdOut() << "BenchFilterImage1BenchFilterImage1BenchFilterImage1\n";
+    // StdOut() << "BenchFilterImage1BenchFilterImage1BenchFilterImage1" << std::endl;
     cPt2di  aSzInd(6,9);
     cPt2di  aSz10 = aSzInd * 10;
     cPt2di  aSz = aSz10 - cPt2di(1,1);
@@ -67,7 +67,7 @@ void BenchFilterImage_000()
             else
             {
                int aD1= std::abs(aVSomX-aVSomIX);
-               int aD2= BinomialCoeff(2,1+std::abs(aInterX)) * NbPixVign(aVign.y());
+               int aD2= iBinomialCoeff(2,1+std::abs(aInterX)) * NbPixVign(aVign.y());
                MMVII_INTERNAL_ASSERT_bench(aD1==aD2,"Bench TplCopy");
             }
 
@@ -81,7 +81,7 @@ void BenchFilterImage_000()
             else
             {
                int aD1= std::abs(aVSomY-aVSomIY);
-               int aD2= BinomialCoeff(2,1+std::abs(aInterY)) * NbPixVign(aVign.x());
+               int aD2= iBinomialCoeff(2,1+std::abs(aInterY)) * NbPixVign(aVign.x());
                MMVII_INTERNAL_ASSERT_bench(aD1==aD2,"Bench TplCopy");
             }
         }

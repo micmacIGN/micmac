@@ -1,4 +1,4 @@
-#include "include/MMVII_all.h"
+
 
 /** \file uti_string.cpp
     \brief Implementation of utilitary services
@@ -14,11 +14,14 @@
 
 #include <experimental/filesystem>
 
+#include "MMVII_Sys.h"
+#include "MMVII_util.h"
+#include "cMMVII_Appli.h"
 
-#include <boost/algorithm/string.hpp>
 
 
-using namespace std::experimental::filesystem;
+//using namespace std::experimental::filesystem;
+namespace fs=std::experimental::filesystem;
 
 namespace std {
 using namespace experimental;
@@ -27,19 +30,12 @@ using namespace experimental;
 namespace MMVII
 {
 
+/* ************************************************* */
+/*                                                   */
+/*                cCarLookUpTable                    */
+/*                                                   */
+/* ************************************************* */
 
-char ToHexacode(int aK)
-{
-    MMVII_INTERNAL_ASSERT_tiny((aK>=0)&&(aK<16),"ToHexacode");
-    return (aK<10) ? ('0'+aK) : ('A'+(aK-10));
-}
-
-int  FromHexaCode(char aC)
-{
-   if ((aC>='0')&&(aC<='9')) return aC-'0';
-   MMVII_INTERNAL_ASSERT_tiny((aC>='A')&&(aC<='F'),"FromHexacode");
-   return 10 + (aC-'A');
-}
 
 // Prouve la pertinence du warning sur  mTable[*aPtr] = aC;
 
@@ -58,9 +54,38 @@ void  cCarLookUpTable::Init(const std::string& aStr,char aC)
     mIns = aStr;
 }
 
+std::string  cCarLookUpTable::Translate(const std::string & aStr) const
+{
+     std::string aRes;
+
+     for (char aC : aStr)
+     {	
+         char aTr = mUTable[int(aC)];
+	 if (aTr!=0)
+            aRes.push_back(aTr);
+     }
+
+     return aRes;
+}
+
+
+void cCarLookUpTable::InitId(char aC1,char aC2)
+{
+   mReUsable = false;
+   for (char aC = aC1 ;aC<=aC2 ; aC++)
+       mUTable[int(aC)] =aC;
+}
+
+void cCarLookUpTable::Chg1C(char aC1,char aC2)
+{
+   mReUsable = false;
+   mUTable[int(aC1)] =aC2;
+}
+
 void  cCarLookUpTable::UnInit()
 {
-    MMVII_INTERNAL_ASSERT_medium(mInit,"Multiple Uninit of  cCarLookUpTable");
+    MMVII_INTERNAL_ASSERT_medium(mInit,"Not init of  cCarLookUpTable");
+    MMVII_INTERNAL_ASSERT_medium(mReUsable,"Not ReUsable");
     mInit= false;
     for (const char * aPtr = mIns.c_str() ; *aPtr ; aPtr++)
         mUTable[int(*aPtr)] = 0;  // Laisse le warning, il faudra le regler !!!
@@ -69,9 +94,29 @@ void  cCarLookUpTable::UnInit()
 
 cCarLookUpTable::cCarLookUpTable() :
      mUTable (mDTable-  std::numeric_limits<char>::min()),
-     mInit(false)
+     mInit(false),
+     mReUsable  (true)
 {
     MEM_RAZ(&mDTable,1);
+}
+
+/* ************************************************* */
+/*                                                   */
+/*                     MMVII                         */
+/*                                                   */
+/* ************************************************* */
+
+char ToHexacode(int aK)
+{
+    MMVII_INTERNAL_ASSERT_tiny((aK>=0)&&(aK<16),"ToHexacode");
+    return (aK<10) ? ('0'+aK) : ('A'+(aK-10));
+}
+
+int  FromHexaCode(char aC)
+{
+   if ((aC>='0')&&(aC<='9')) return aC-'0';
+   MMVII_INTERNAL_ASSERT_tiny((aC>='A')&&(aC<='F'),"FromHexacode");
+   return 10 + (aC-'A');
 }
 
 std::vector<std::string>  SplitString(const std::string & aStr,const std::string & aSpace)
@@ -169,7 +214,20 @@ std::string ChgPostix(const std::string & aPath,const std::string & aPost)
 
 bool UCaseEqual(const std::string & aStr1 ,const std::string & aStr2)
 {
-   return boost::iequals(aStr1,aStr2);
+    return std::equal(
+        aStr1.begin(), aStr1.end(), aStr2.begin(), aStr2.end(),
+        [](unsigned char a, unsigned char b) { return std::tolower(a) == std::tolower(b); }
+    );
+}
+
+std::string ToLower(const std::string &  aStr)
+{
+    std::string s;
+    std::transform(
+        aStr.cbegin(),aStr.cend(),std::back_inserter(s),
+        [](unsigned char c) { return std::tolower(c); }
+        );
+    return s;
 }
 
 bool UCaseBegin(const char * aBegin,const char * aStr)
@@ -196,6 +254,35 @@ bool CaseSBegin(const char * aBegin,const char * aStr)
    return true;
 }
 
+bool UCaseMember(const std::vector<std::string> & aVec,const std::string & aName)
+{
+    for (const auto &  aTest : aVec)
+        if (UCaseEqual(aTest,aName))
+            return true;
+    return false;
+}
+
+const std::string & StrWDef(const std::string & aValue,const std::string & aDef)
+{
+        return  (aValue!="") ? aValue : aDef;
+}
+
+std::string  ToStandardStringIdent(const std::string & aStr)
+{
+    static cCarLookUpTable  aLUT;
+    bool isFirst= true;
+    if (isFirst)
+    {
+       isFirst = false;
+       aLUT.InitId('0','9');
+       aLUT.InitId('a','z');
+       aLUT.InitId('A','Z');
+       aLUT.Chg1C(' ','_');
+       aLUT.Chg1C('-','-');
+    }
+
+    return aLUT.Translate(aStr);
+}
 
 
 
@@ -205,21 +292,19 @@ bool CaseSBegin(const char * aBegin,const char * aStr)
     /*                                             */
     /* =========================================== */
 
-char CharDirSeparator()
-{
-   return  path::preferred_separator;
-}
-
 const std::string & StringDirSeparator()
 {
-   static std::string aRes{path::preferred_separator};
-   
-   return  aRes;
+//    static std::string aRes{fs::path::preferred_separator};
+// CM: We'll always use '/' as directory separator, even on Windows.
+// It's supported and MicMac pattern matching will work better and identically on all systems
+    static std::string aRes{"/"};
+
+    return  aRes;
 }
 
 std::string DirCur()
 {
-   return  std::string(".") + path::preferred_separator;
+    return  "." + StringDirSeparator();
 }
 
 std::string DirOfPath(const std::string & aPath,bool ErrorNonExist)
@@ -238,7 +323,7 @@ std::string FileOfPath(const std::string & aPath,bool ErrorNonExist)
 
 std::string AbsoluteName(const std::string & aName)
 {
-     return absolute(aName).c_str();
+   return fs::absolute(aName).generic_string();
 }
 
 std::string AddBefore(const std::string & aPath,const std::string & ToAdd)
@@ -246,96 +331,48 @@ std::string AddBefore(const std::string & aPath,const std::string & ToAdd)
    return DirOfPath(aPath,false) + ToAdd + FileOfPath(aPath,false);
 }
 
-
-
-
-/*
-  It was a test of using Boost for Up Dir,but untill now I am not 100% ok
-  with the results:
-        [.] => []
-        [/a/b/c] => [/a/b]
-        [a/b/c] => [a/b]
-        [a] => []
-
-std::string BUD(const std::string & aDir)
+static bool EndWithDirectorySeparator(const std::string& aName)
 {
-   path aPath(aDir);
-   aPath = aPath.parent_path();
-   std:: cout << "BUDDDDDD [" << aDir << "] => [" <<  aPath.c_str() << "]\n";
-   return aPath.c_str();
-}
-*/
-std::string OneUpStd(const std::string & aDir)
-{
-   const char * aC = aDir.c_str();
-   int aL = strlen(aC);
-
-   // Supress all the finishing  /
-   while ((aL>0) && (aC[aL-1] == path::preferred_separator)) 
-          aL--;
-
-   // Supress all the not /
-   while ((aL>0) && (aC[aL-1]!= path::preferred_separator))
-       aL--;
-
-   int aL0 = aL;
-   // Supress all the  /
-   while ((aL>0) && (aC[aL-1] == path::preferred_separator)) 
-         aL--;
-
-    // Add the last /
-    if (aL0!=aL) 
-        aL++;
-    return  aDir.substr(0,aL);
+#if (THE_MACRO_MMVII_SYS==MMVII_SYS_W)
+   return aName.back() == '/' || aName.back() == '\\';
+#else
+   return aName.back() == '/';
+#endif
 }
 
 
-std::string OneUpDir(const std::string & aDir)
+std::string UpDir(const std::string & aDir)
 {
-   std::string aRes = OneUpStd(aDir);
-   if (aRes!="") return aRes;
-   return  aDir + std::string("..") +  path::preferred_separator;
+   fs::path parent_path(aDir);
+   if (EndWithDirectorySeparator(aDir))
+       parent_path = parent_path.parent_path(); // remove trailing '/' , considered as a directory path
+   parent_path = parent_path.parent_path();
+   std::string updir = parent_path.generic_string();
+   MakeNameDir(updir);
+   return updir;
 }
 
-/** Basic but seems to work untill now
-*/
-std::string UpDir(const std::string & aDir,int aNb)
-{
-   std::string aRes = aDir;
-   for (int aK=0 ; aK<aNb ; aK++)
-   {
-      // aRes += std::string("..") +  path::preferred_separator;
-      // aRes += ".." +  path::preferred_separator;
-      // aRes = aRes + std::string("..") +  path::preferred_separator;
-      aRes = OneUpDir(aRes);
-   }
-   return aRes;
-}
 
 bool ExistFile(const std::string & aName)
 {
-   path aPath(aName);
-   return exists(aPath);
+   return fs::exists(aName);
 }
 
 uintmax_t SizeFile(const std::string & aName)
 {
-    path aPath(aName);
-    return file_size(aPath);
+   return fs::file_size(aName);
 }
 
 bool IsDirectory(const std::string & aName)
 {
-    path aPath(aName);
-    return is_directory(aPath);
+   return fs::is_directory(aName);
 }
-
 
 void MakeNameDir(std::string & aDir)
 {
-   if (aDir.back() != path::preferred_separator)
+   if (! EndWithDirectorySeparator(aDir))
    {
-      aDir += path::preferred_separator;
+      aDir += StringDirSeparator();
    }
 }
 
@@ -350,9 +387,9 @@ if (0)
 }
 */
 
-   path aPath(aDirAndFile);
+   fs::path aPath(aDirAndFile);
    bool aResult = true;
-   if (! exists(aPath))
+   if (! fs::exists(aPath))
    {
        if (ErrorNonExist)
        {
@@ -362,22 +399,22 @@ if (0)
        aResult = false;
    }
 
-   if (is_directory(aPath))
+   if (fs::is_directory(aPath))
    {
        aDir = aDirAndFile;
        aFile = "";
    }
    // This case is not handled as I want , File=".", I want ""
-   else if ( (! aDirAndFile.empty()) &&  (aDirAndFile.back()== path::preferred_separator))
+   else if ( (! aDirAndFile.empty()) && EndWithDirectorySeparator(aDirAndFile))
    {
        aDir = aDirAndFile;
        aFile = "";
    }
    else
    {
-       aFile = aPath.filename().c_str();
+       aFile = aPath.filename().generic_string().c_str();
        aPath.remove_filename();
-       aDir = aPath.c_str();
+       aDir = aPath.generic_string().c_str();
        if (aDir.empty())
        {
           aDir = DirCur();
@@ -387,12 +424,6 @@ if (0)
           MakeNameDir(aDir);
        }
 
-/*if (aDir.back() != path::preferred_separator)
-       {
-           aDir += path::preferred_separator;
-       }     
-*/
-       // path& remove_filename();
    }  
    return aResult;
 }
@@ -414,11 +445,11 @@ void SkeepWhite(const char * & aC)
 
 bool CreateDirectories(const std::string & aDir,bool SVP)
 {
-    bool Ok = std::filesystem::create_directories(aDir);
+    bool Ok = fs::create_directories(aDir);
 
     if ((! Ok) && (!SVP))
     {
-        // There is something I dont understand with boost on error with create_directories,
+        // There is something I dont understand with std::filesystem on error with create_directories,
         // for me it works but it return false, to solve later ....
 	// Ch. M.: My understanrdfing is :
 	//   - if directory is created, return true
@@ -439,7 +470,7 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 
 bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
 {
-    std::filesystem::remove_all(aDir);
+    fs::remove_all(aDir);
     if (ReMkDir)
     {
         bool aRes = CreateDirectories(aDir,SVP);
@@ -450,7 +481,7 @@ bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
 
 bool RemoveFile(const  std::string & aFile,bool SVP)
 {
-   bool Ok = std::filesystem::remove(aFile);
+   bool Ok = fs::remove(aFile);
    MMVII_INTERNAL_ASSERT_User(  Ok||SVP  , eTyUEr::eRemoveFile,"Cannot remove file for arg " + aFile);
    return Ok;
 }
@@ -475,7 +506,7 @@ bool  RemovePatternFile(const  std::string & aPat,bool SVP)
 
 void RenameFiles(const std::string & anOldName, const std::string & aNewName)
 {
-    std::filesystem::rename(anOldName,aNewName);
+    fs::rename(anOldName,aNewName);
 }
 
 
@@ -484,8 +515,18 @@ void RenameFiles(const std::string & anOldName, const std::string & aNewName)
 
 void CopyFile(const std::string & aName,const std::string & aDest)
 {
-   std::filesystem::copy_file(aName,aDest,std::filesystem::copy_options::overwrite_existing);
+   fs::copy_file(aName,aDest,fs::copy_options::overwrite_existing);
 }
+
+void CopyPatternFile(const std::string & aDirIn,const std::string & aPattern,const std::string & aDirOut)
+{
+   std::vector<std::string> aListFile =  GetFilesFromDir(aDirIn,AllocRegex(aPattern));
+   for (const auto  & aNameFile : aListFile)
+   {
+       CopyFile(aDirIn+aNameFile,aDirOut+aNameFile);
+   }
+}
+
 
 void ActionDir(const std::string & aName,eModeCreateDir aMode)
 {
@@ -512,6 +553,25 @@ void ActionDir(const std::string & aName,eModeCreateDir aMode)
 }
 
 
+void  MakeBckUp(const std::string & aDir,const std::string & aNameFile,int aNbDig)
+{
+    std::string aPattern = "BckUp_([0-9]*)_" + aNameFile;
+    tNameSelector aSel =  AllocRegex(aPattern);
+
+    std::vector<std::string> aVS = GetFilesFromDir(aDir,aSel);
+
+    int aIMax = -1;
+    for (const auto & aNameFile : aVS)
+    {
+        std::string  aStrNum = ReplacePattern(aPattern,"$1",aNameFile);
+        UpdateMax(aIMax,cStrIO<int>::FromStr(aStrNum));
+    }
+    std::string aNewName = "BckUp_" + ToStr(aIMax+1,aNbDig) + "_" + aNameFile;
+
+    CopyFile( aDir+aNameFile , aDir+aNewName);
+}
+
+
 
     /* =========================================== */
     /*                                             */
@@ -527,9 +587,9 @@ void ActionDir(const std::string & aName,eModeCreateDir aMode)
 
 void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,const tNameSelector &  aNS,bool OnlyRegular)
 {
-   for (directory_iterator itr(aDir); itr!=directory_iterator(); ++itr)
+    for (fs::directory_iterator itr(aDir); itr!=fs::directory_iterator(); ++itr)
    {
-      std::string aName ( itr->path().filename().c_str());
+      std::string aName ( itr->path().filename().generic_string().c_str());
       if ( ( (!OnlyRegular) || is_regular_file(itr->status())) &&  aNS.Match(aName))
          aRes.push_back(aName);
    }
@@ -561,12 +621,12 @@ std::vector<std::string> GetSubDirFromDir(const std::string & aDir,const tNameSe
 */
 void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax)
 {
-    for (recursive_directory_iterator itr(aDir); itr!=        recursive_directory_iterator(); ++itr)
+    for (fs::recursive_directory_iterator itr(aDir); itr!=fs::recursive_directory_iterator(); ++itr)
     {
         int aLev = itr.depth();
         if ((aLev>=aLevMin) && (aLev<aLevMax))
         {
-           std::string aName(itr->path().c_str());
+           std::string aName(itr->path().generic_string());
            if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
               aRes.push_back(aName);
         }
@@ -583,6 +643,27 @@ std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelect
     RecGetFilesFromDir(aRes,aDir,aNS,aLevMin,aLevMax);
  
     return aRes;
+}
+
+bool starts_with(const std::string & aFullStr,const std::string & aPrefix)
+{
+    auto anItFull  = aFullStr.begin();
+    auto anItPref = aPrefix.begin();
+
+    while ((anItFull!=aFullStr.end()) && (anItPref!=aPrefix.end()))
+    {
+         if (*anItFull!=*anItPref) 
+            return false;
+	 anItFull++;
+	 anItPref++;
+    }
+
+    return anItPref==aPrefix.end();
+}
+
+bool IsPrefixed(const std::string & aStr,char aSep)
+{
+	return aStr.find(aSep) != std::string::npos;
 }
 
 
@@ -629,8 +710,8 @@ std::string replaceFirstOccurrence
     {
         if (!SVP)
         {
-           StdOut() << "REPLACE ["<< toReplace << "] by : [" << replaceWith << "\n";
-           StdOut() << "in [" << s << "]\n";
+           StdOut() << "REPLACE ["<< toReplace << "] by : [" << replaceWith << std::endl;
+           StdOut() << "in [" << s << "]" << std::endl;
            MMVII_INTERNAL_ASSERT_always(false,"Cannot make subs");
         }
         return "";

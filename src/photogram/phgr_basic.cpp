@@ -1498,6 +1498,11 @@ double cBasicGeomCap3D::GetVeryRoughInterProf() const
    return 1/600.0;
 }
 
+bool    cBasicGeomCap3D::DistBijective() const 
+{
+    return false;
+}
+
 std::string cBasicGeomCap3D::Save2XmlStdMMName
      (
            cInterfChantierNameManipulateur * anICNM,
@@ -1768,7 +1773,7 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
            std::string aPost2 = aName.substr(aName.size()-7,3);// StdPostfix(aName.substr(0,aName.size()-4));
 
            //if( aPost2 != "txt" && aPost2 != "TXT" && aPost2 != "Txt" && aPost2 != "rpc")
-           if( aPost2 != "txt" && aPost2 != "TXT" && aPost2 != "Txt" )
+           if( aPost2 != "txt" && aPost2 != "TXT" && aPost2 != "Txt" && aPost2 != "GRI" && aPost2 != "gri")
            {
                 cElXMLTree * aTree = new cElXMLTree(aName);
 
@@ -1833,21 +1838,39 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                     aType = eTIGB_MMDGlobe;
                     return;
                 }
-                
+
+
                 //Xml_ScanLineSensor
                 if (aTree->Get("Xml_ScanLineSensor") !=0)
                 {
                     aType = eTIGB_MMScanLineSensor;
                     return;
                 }
-				//MMEpip
-				if (aTree->Get("ListeAppuis1Im") !=0)
-				{
-					aType = eTIGB_MMEpip;
-					return;
-				}
+	        //MMEpip
+	        if (aTree->Get("ListeAppuis1Im") !=0)
+		{
+		    aType = eTIGB_MMEpip;
+		    return;
+		}
 
            }
+	   else if (aPost2=="GRI" || aPost2=="gri")
+	   {
+
+	       cElXMLTree * aTree = new cElXMLTree(aName);
+               if (aTree->Get("trans_coord_grid") !=0)
+               {
+
+                    aType = eTIGB_MMOriGrille;
+                    return;
+               }
+	       else 
+	       {
+	           aType = eTIGB_MMDimap2;
+                   return;
+	       }
+
+	   }
            else
            {
                 std::string aLine;
@@ -1862,6 +1885,7 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                 else
                     aType = eTIGB_MMIkonos;
                 
+		return;
 
            }
        }
@@ -2142,6 +2166,9 @@ cArgOptionalPIsVisibleInImage::cArgOptionalPIsVisibleInImage() :
 
 bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,cArgOptionalPIsVisibleInImage * anArg) const
 {
+
+
+
    if (anArg) anArg->mWhy ="";
 
    Pt3dr aPCam = R3toL3(aPTer);
@@ -2165,7 +2192,7 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,cArgOptionalPIsVisibl
    Pt2dr aPI0 = Proj().Proj(aPCam);
 
 
-   if (GetZoneUtilInPixel() )
+   if (GetZoneUtilInPixel() && (!DistBijective()))
    {
        Pt2dr aSz = SzPixel();
 
@@ -5161,6 +5188,31 @@ cCamStenopeModStdPhpgr::cCamStenopeModStdPhpgr
    else
       SetDistDirecte();
 */
+}
+
+bool    cCamStenopeModStdPhpgr::DistBijective() const 
+{
+
+    if(mDist.P1() !=0) return false;
+    if(mDist.P2() !=0) return false;
+
+    if (DRad().NbCoeffNN() !=0) return false;
+    return true;
+
+    /*
+
+    if (MPD_MM())
+    {
+        static double aCpt=0;
+	double aPow=0.2;
+
+	if (round_ni(pow(aCpt,aPow)) != round_ni(pow(aCpt+1,aPow)))
+           std::cout << "WWWWWWWWWw ElCamera::PIsVisibleInImage " << aCpt << "\n";
+	aCpt++;
+	return true;
+   }
+   return false;
+   */
 }
 
 cDistModStdPhpgr & cCamStenopeModStdPhpgr::DModPhgrStd()

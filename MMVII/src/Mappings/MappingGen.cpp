@@ -1,4 +1,5 @@
-#include "include/MMVII_all.h"
+#include "MMVII_Mappings.h"
+#include "MMVII_Triangles.h"
 
 namespace MMVII
 {
@@ -25,6 +26,16 @@ template <class Type,const int Dim>
 {
    return InsidenessWithBox(aPt) >= 0.0 ;
 }
+
+template <class Type,const int Dim>
+    bool cDataBoundedSet<Type,Dim>::InsideWithBox(const cTriangle<Type,Dim> & aTri) const
+{
+   for (int aK=0 ; aK<3 ; aK++)
+      if (! InsideWithBox(aTri.Pt(aK)))
+         return false;
+   return true;
+}
+
 
 template <class Type,const int Dim>
     bool cDataBoundedSet<Type,Dim>::Inside(const tPt & aPt) const
@@ -311,7 +322,7 @@ template <class Type,const int DimIn,const int DimOut>
         }
     }
 /**/MACRO_CHECK_RECURS_END;
-      // StdOut() <<  "TO CHECK LINE " << __LINE__  << " of " << __FILE__ << "\n";
+      // StdOut() <<  "TO CHECK LINE " << __LINE__  << " of " << __FILE__ << std::endl;
      return tCsteResVecJac(aRes.first,aRes.second);
      //  return aRes;  // dont understand why not that, maybe some type checking with some version of compilor ?
 }
@@ -353,6 +364,20 @@ template <class Type,const int DimIn,const int DimOut>
 
    return  cTplBox<Type,DimOut>(aBoxOfPts.P0(),aBoxOfPts.P1());
    
+}
+
+template <class Type,const int DimIn,const int DimOut>
+      cTriangle<Type,DimOut> cDataMapping<Type,DimIn,DimOut>::TriValue(const cTriangle<Type,DimIn> &aTriIn) const
+{
+	std::vector<tPtIn> aVPtIn;
+
+	for (int aK=0 ; aK<3 ; aK++)
+	{
+             aVPtIn.push_back(aTriIn.Pt(aK));
+	}
+	std::vector<tPtOut> aVPtOut = Values(aVPtIn);
+
+	return cTriangle<Type,DimOut> (aVPtOut[0],aVPtOut[1],aVPtOut[2]);
 }
 
 /* ============================================= */

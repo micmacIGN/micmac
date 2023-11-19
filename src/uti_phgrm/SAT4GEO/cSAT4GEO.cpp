@@ -61,8 +61,8 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
         mMMVII(0),
 	mMMVII_mode("MMV1"),
 	mMMVII_ImName("Px1_MMVII.tif"),
-	mMMVII_SzTile(Pt2di(1024,1024)),
-    mMMVII_SzOverL(Pt2di(50,30)),
+	mMMVII_SzTile(Pt2di(900,900)),
+        mMMVII_SzOverL(Pt2di(50,30)),
         mMMVII_NbProc(8),
         //mZoomF(1),
 	//mHasVeg(true),
@@ -128,7 +128,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
             << EAM(mMMVII_mode,"MMVII_mode",true,"Image matching: if MMVII==1, {MMV1,PSMNet,DeepPruner} Def=MMV1")
             << EAM(mMMVII_ModePad,"MMVII_ModePad",true,"Image matching: if MMVII==1, {NoPad PxPos PxNeg SzEq}")
             << EAM(mMMVII_ImName,"MMVII_ImName",true,"Image matching: if MMVII==1, name of depth map")
-            << EAM(mMMVII_SzTile,"MMVII_SzTile",true,"Image matching: if MMVII==1, Size of tiling used to split computation, Def=[1024,1024]")
+            << EAM(mMMVII_SzTile,"MMVII_SzTile",true,"Image matching: if MMVII==1, Size of tiling used to split computation, Def=[900,900]")
             << EAM(mMMVII_SzOverL,"MMVII_SzOverL",true,"Image matching: if MMVII==1, Size of overlap between tiles ,[Default=[50,30]")
             << EAM(mMMVII_NbProc,"MMVII_NbProc",true,"Image matching: if MMVII==1, Nb of cores for II processing in MMVII, Def=8");
 
@@ -436,13 +436,18 @@ cAppliCreateEpi::cAppliCreateEpi(int argc, char** argv)
 	
 	std::list<std::string> aLCom;
 
+	int NbPair=0;
 	for (auto itP : aPairs.Cple())
 	{
 		std::string aComTmp = MMBinFile(MM3DStr) + "CreateEpip " 
 						      + itP.N1() + BLANK + itP.N2() + BLANK + mOri  
-					              + mCAS3D.ComParamEpip();
+					              + mCAS3D.ComParamEpip()
+						      + BLANK + "DoEpiAbs=false"
+						      + BLANK + "Out=" + mCAS3D.NameOfEpiImPrefix(NbPair,mOri) //necessary to avoid too long names 
+						      + BLANK + "@ExitOnBrkp";
 
 		aLCom.push_back(aComTmp);
+		NbPair++;
 	}
 
 
@@ -488,25 +493,35 @@ cAppliRecalRPC::cAppliRecalRPC(int argc, char** argv)
 
     std::list<std::string> aLCom;
 
+    int NbPair=0;
     for (auto itP : aPairs.Cple())
     {
-        std::string aNAppuisI1 = mCAS3D.mICNM->NameAppuiEpip(mOri,itP.N1(),itP.N2());
+	std::string aNI1 = mCAS3D.NameOfEpiIm1(NbPair,mOri);
+	std::string aNI2 = mCAS3D.NameOfEpiIm2(NbPair,mOri);
+
+        std::string aNAppuisI1 = mCAS3D.NameOfEpiAppPrefix(NbPair,mOri) + "_1.xml";
+        std::string aNAppuisI2 = mCAS3D.NameOfEpiAppPrefix(NbPair,mOri) + "_2.xml";
+
+
+        /*std::string aNAppuisI1 = mCAS3D.mICNM->NameAppuiEpip(mOri,itP.N1(),itP.N2());
         std::string aNAppuisI2 = mCAS3D.mICNM->NameAppuiEpip(mOri,itP.N2(),itP.N1());
 
         std::string aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
-        std::string aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
+        std::string aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());*/
 
 		
 
         std::string aComI1 = MMBinFile(MM3DStr) + "Convert2GenBundle "
                               + aNI1 + BLANK + aNAppuisI1 + BLANK
 							  + mCAS3D.mOutRPC 
-                              + mCAS3D.ComParamRPC_Basic();
+                              + mCAS3D.ComParamRPC_Basic()
+			      + BLANK + "@ExitOnBrkp";
 
         std::string aComI2 = MMBinFile(MM3DStr) + "Convert2GenBundle "
                               + aNI2 + BLANK + aNAppuisI2 + BLANK
 							  + mCAS3D.mOutRPC
-                              + mCAS3D.ComParamRPC_Basic();
+                              + mCAS3D.ComParamRPC_Basic()
+			      + BLANK + "@ExitOnBrkp";
 
 
 		std::string aKeyGB = "NKS-Assoc-Im2GBOrient@-" +  mCAS3D.mOutRPC;
@@ -515,17 +530,20 @@ cAppliRecalRPC::cAppliRecalRPC(int argc, char** argv)
 		std::string aNameGBI2 = mCAS3D.mICNM->Assoc1To1(aKeyGB,aNI2,true);
 
 		std::string aComConv1 = MMBinFile(MM3DStr) + "Satelib RecalRPC " 
-							  + aNameGBI1 + " OriOut=" + mCAS3D.mOutRPC;
+							  + aNameGBI1 + " OriOut=" + mCAS3D.mOutRPC
+							  + BLANK + "@ExitOnBrkp";
 		std::string aComConv2 = MMBinFile(MM3DStr) + "Satelib RecalRPC " 
-							  + aNameGBI2 + " OriOut=" + mCAS3D.mOutRPC;
+							  + aNameGBI2 + " OriOut=" + mCAS3D.mOutRPC
+							  + BLANK + "@ExitOnBrkp";
 
 
 
         aLCom.push_back(aComI1);
         aLCom.push_back(aComI2);
-		aLCom.push_back(aComConv1);
-		aLCom.push_back(aComConv2);
+	aLCom.push_back(aComConv1);
+	aLCom.push_back(aComConv2);
 
+	NbPair++;
 
     }
 
@@ -579,6 +597,7 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 
 	auto aDir_it = aLDirMec.Name().begin();
 
+    int NbPair=0;
     for (auto itP : aPairs.Cple())
     {
 		std::string aNI1;
@@ -586,8 +605,8 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 
 		if (EAMIsInit(&mOri))
 		{
-			aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
-			aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
+			aNI1 = mCAS3D.NameOfEpiIm1(NbPair,mOri);//mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
+			aNI2 = mCAS3D.NameOfEpiIm2(NbPair,mOri);//mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
 		}
 		else
 		{
@@ -614,11 +633,20 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
             std::string Masq1Name = mCAS3D.mICNM->Assoc1To1("Key-Assoc-Std-Masq-Image",aNI1,true);
             std::string Masq2Name = mCAS3D.mICNM->Assoc1To1("Key-Assoc-Std-Masq-Image",aNI2,true);
 
+            //on parallelise?
+            int ParalT=1;
+            if (EAMIsInit(&mCAS3D.mMMVII_NbProc))
+            {
+                if (mCAS3D.mMMVII_NbProc<=1) ParalT = 0;
+            }
+            
 			std::string aComOC = "MMVII DenseMatchEpipEval" + BLANK + aNI1 + BLANK + aNI2 
                                + BLANK + (*aDir_it) + mCAS3D.mMMVII_ImName + " true "
                                + BLANK + "HiddenMask=" + (*aDir_it) + NameOccluMask()
                                + BLANK + "ImCorrel=" + (*aDir_it) + NameCorrel()
-                               + BLANK + "Masq1=" + Masq1Name + BLANK + "Masq2=" + Masq2Name;
+                               + BLANK + "Masq1=" + Masq1Name + BLANK + "Masq2=" + Masq2Name
+                               + BLANK + "ParalT=" + ToString(ParalT);
+
             aLCom.push_back(aComOC);
 
             (*aDir_it++);
@@ -635,6 +663,7 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
             aLCom.push_back(aComTmp);
 
 		}
+	NbPair++;
 
     }
 
@@ -646,7 +675,8 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
             std::cout << "SUBCOM= " << iCmd << "\n";
     }
 
-
+  // ce serait plus propre si c'etait aussi une commande a part antiere, sinon on ne peut pas reproduire
+  // le traitement pas a pas pour isoler un bog
     if (mCAS3D.mExe) {
     // create MMNuageLast.xml for deep-learning correlation
     if (mCAS3D.mMMVII && (mCAS3D.mMMVII_mode=="PSMNet"))
@@ -820,8 +850,10 @@ void cAppliFusion::DoAll()
 	
 	 	if (EAMIsInit(&mOri))
 		{	
-                aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
-        	aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
+		//aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
+		//aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
+		aNI1 = mCAS3D.NameOfEpiIm1(aCpt,mOri);
+		aNI2 = mCAS3D.NameOfEpiIm2(aCpt,mOri);
 		}
 		else
 		{
@@ -829,16 +861,15 @@ void cAppliFusion::DoAll()
 			aNI2 = itP.N2();
 		}
 
+
 		aLP.push_back(std::make_pair(aNI1,aNI2));
 		//aLP.push_back(std::make_pair(aNI2,aNI1));
-
 
 		if (!DicBoolFind(aMEp,aNI1))
 		{
 			aMEp[aNI1] = aCpt; 
     		aLON.Name().push_back(aNI1);
 		}
-		aCpt++;
 		
 		if (!DicBoolFind(aMEp,aNI2))
 		{
@@ -856,7 +887,8 @@ void cAppliFusion::DoAll()
 	/* Define the global frame of the reconstruction */
 	std::string aCom = MMBinFile(MM3DStr) + "Malt UrbanMNE " 
 			             + "NKS-Set-OfFile@" + mCAS3D.mNameEpiLOF + BLANK 
-						 + mCAS3D.mOutRPC + BLANK + "DoMEC=0";
+				     + mCAS3D.mOutRPC + BLANK + "DoMEC=0"
+				     + BLANK + "@ExitOnBrkp";
 
 	if (EAMIsInit(&mCAS3D.mEZA))
 		aCom += " EZA=" + ToString(mCAS3D.mEZA);
@@ -901,7 +933,9 @@ void cAppliFusion::DoAll()
 						 + "NbP=" + ToString(mCAS3D.mNbProc) + " "
 						 + "Exe=" + ToString(mCAS3D.mExe) + " " 
                          + ((mCAS3D.mMMVII) ? ("MMVII=" + ToString(mCAS3D.mMMVII) + " ") : "") 
-                         + ((mCAS3D.mMMVII) ? ("MMVII_ImName=" + mCAS3D.mMMVII_ImName) : "");
+                         + ((mCAS3D.mMMVII) ? ("MMVII_ImName=" + mCAS3D.mMMVII_ImName) : "")
+			 + BLANK + "@ExitOnBrkp"
+			 ;
 
 		/*std::string aCTG2to1 = MMBinFile(MM3DStr) + "TestLib TransGeom "
 				         + mCAS3D.mDir + " " 
@@ -951,7 +985,8 @@ void cAppliFusion::DoAll()
 		std::string aComFuse1to2 = MMBinFile(MM3DStr) + "NuageBascule " 
 				                 + aMECBasic + StdPrefix(aNuageInName) + AddFilePostFix() + ".xml" + " " 
 							     + "MEC-Malt/" + aNuageOutName + " " 
-							     + mCAS3D.mOutSMDM + aPref + ToString(aCpt) + ".xml"; 
+							     + mCAS3D.mOutSMDM + aPref + ToString(aCpt) + ".xml"
+							     + BLANK + "@ExitOnBrkp"; 
 		aCpt++;
 		
 		/*std::string aComFuse2to1 = MMBinFile(MM3DStr) + "NuageBascule " 
@@ -979,7 +1014,8 @@ void cAppliFusion::DoAll()
 
 	/* Fusion */
 	std::string aComMerge = MMBinFile(MM3DStr) + "SMDM " 
-			             + mCAS3D.mOutSMDM + aPref + ".*xml";
+			             + mCAS3D.mOutSMDM + aPref + ".*xml"
+				     + BLANK + "@ExitOnBrkp";
 
 
     if (mCAS3D.mExe)
@@ -1169,10 +1205,9 @@ int CPP_TransformGeom_main(int argc, char ** argv)
     //if MMVII create the NuageLast.xml file (if it does not exist)
     if (aMMVII && (!ELISE_fp::exist_file(aNuageName)))
     {
-	   ELISE_ASSERT(false,"MMNuageLast.xml missing")
+        std::string error =  aNuageName + " missing";
+        ELISE_ASSERT(false, error.c_str())
     }
-
-
 
     /* Read the depth map */
     cXML_ParamNuage3DMaille  aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
@@ -1301,10 +1336,9 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 
 	    cDecoupageInterv2D aDecoup  = cDecoupageInterv2D::SimpleDec(aSz,aSzDecoup,0);
 
-		
 		// To avoid occupying too many cluster nodes
 		int aReduCPU=1;
-		while (aDecoup.NbInterv()>(aMaxNbProc))
+		while (aDecoup.NbInterv()>(aMaxNbProc) && ( (aMaxNbProc-aReduCPU+1)>1))
 		{
 			aSzDecoup = ceil(sqrt(double(aSz.x)*double(aSz.y)/(aMaxNbProc-(aReduCPU++))));
 
@@ -1332,18 +1366,25 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 
 
 
-
 		for (int aK=0; aK<aDecoup.NbInterv(); aK++)
 		{
 			std::string aCom = aComBase + " CalleByP=true " 
-					         + "BoxOut=" + ToString(aDecoup.KthIntervIn(aK));
+					         + "BoxOut=" + ToString(aDecoup.KthIntervIn(aK))
+						 + BLANK + "@ExitOnBrkp";
 			aLCom.push_back(aCom);
+
 		}
 
 
 
+
 		if (aExe)
-        	cEl_GPAO::DoComInParal(aLCom);
+		{
+		    if (aMaxNbProc==1)
+	               cEl_GPAO::DoComInSerie(aLCom); 
+	            else
+        	       cEl_GPAO::DoComInParal(aLCom);
+		}
 	    else
     	{
         	for (auto iCmd : aLCom)
