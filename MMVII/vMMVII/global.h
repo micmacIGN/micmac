@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <QString>
 #include <QStringList>
+#include <QTextStream>
 
 
 constexpr const char *APP_ORGANIZATION = "IGN-LASTIG";
@@ -22,6 +23,14 @@ constexpr const char *OUTPUT_CONSOLE_INFO_COLOR = "blue";
 constexpr const char *OUTPUT_CONSOLE_ERROR_COLOR = "red";
 
 extern bool showDebug;
+
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+namespace Qt
+{
+    static auto endl = ::endl;
+}
+#endif
 
 
 
