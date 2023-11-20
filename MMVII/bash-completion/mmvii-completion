@@ -123,7 +123,9 @@ def getAllSpecs() -> dict:
         printMsgExit('>ERROR: MMVII not found.',1)
     try:
         all_specs=json.loads(result.stdout)
-    except:
+    except json.JSONDecodeError as e:
+        if debug>0:
+            print("JSON error: ",e,sys.stderr)
         printMsgExit(">ERROR: Can't get args specification from MMVII.",1)
     return all_specs
 

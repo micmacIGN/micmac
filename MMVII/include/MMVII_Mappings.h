@@ -934,34 +934,44 @@ template <class Type,const int Dim> class cBijAffMapElem
         tMat  mMatInv;
 };
 
+typedef std::shared_ptr<cSysCoordV2>      tPtrSysCo;
+typedef std::shared_ptr<cChangSysCoordV2> tPtrChSys;
+
 class cSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 {
       public :
 
          cSysCoordV2(tREAL8  aEpsDeriv = 0.1);
+	 virtual ~cSysCoordV2();
 
-         tPt Value(const tPt &) const override;
-         tPt Inverse(const tPt &) const override;
-
+         tPt Value(const tPt &)   const override;  // Mapping interface to ToGeoC
+         tPt Inverse(const tPt &) const override;  // Mapping interface to FromGeoC
 
          virtual tPt ToGeoC  (const tPt &) const =0;
          virtual tPt FromGeoC(const tPt &) const =0;
 
-         static cSysCoordV2 * Lambert93();
-         static cSysCoordV2 * RTL(const cPt3dr & Ori,cSysCoordV2* aCoordPt=nullptr);
+	 virtual void ToFile(const std::string &) const = 0;
+         static tPtrSysCo FromFile(const std::string &);
+
+
+         static tPtrSysCo Lambert93();
+         static tPtrSysCo GeoC();
+         static tPtrSysCo RTL(const cPt3dr & Ori,const std::string & aSys);
 };
 
 class cChangSysCoordV2  : public cDataInvertibleMapping<tREAL8,3>
 {
         public :
-            cChangSysCoordV2(cSysCoordV2 * aSysInit,cSysCoordV2 * aSysTarget,tREAL8  aEpsDeriv = 0.1);
+            cChangSysCoordV2(tPtrSysCo  aSysInit,tPtrSysCo  aSysTarget,tREAL8  aEpsDeriv = 0.1);
 
             tPt Value(const tPt &) const override;   /// compute  Point from SysInit 2 SysTarget
             tPt Inverse(const tPt &) const override; /// compute  Point from SysTarget 2 SysInit
+
+	    virtual ~cChangSysCoordV2();
         private :
 
-            cSysCoordV2 * mSysInit;
-            cSysCoordV2 * mSysTarget;
+            tPtrSysCo  mSysInit;
+            tPtrSysCo  mSysTarget;
 };
 
 

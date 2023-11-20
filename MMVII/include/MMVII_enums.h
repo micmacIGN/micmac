@@ -44,6 +44,7 @@ enum class eTA2007
                 TieP,          ///< Tie Points
                 MulTieP,       ///< Multiple Tie Points
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC
+                SysCo,         ///< System coord
                 Input,         ///< Is this parameter used as input/read
                 Output,        ///< Is this parameter used as output/write
                 OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
@@ -508,6 +509,15 @@ enum class eProjPC
      eNbVals
 };
 
+enum class eSysCoGeo
+{
+     eLambert93,
+     eRTL,
+     eGeoC,
+     eNbVals
+};
+
+
 enum class eTyCodeTarget
 {
     eIGNIndoor,     ///<  checkboard , 
@@ -533,6 +543,7 @@ const std::string & E2Str(const eFormatExtern &);
 const std::string & E2Str(const eTypeSerial &);
 const std::string & E2Str(const eTAAr &);
 const std::string & E2Str(const eProjPC &);         
+const std::string & E2Str(const eSysCoGeo &);         
 const std::string & E2Str(const eDCTFilters &);         
 const std::string & E2Str(const eTyCodeTarget &);         
 const std::string & E2Str(const eTySC &);         

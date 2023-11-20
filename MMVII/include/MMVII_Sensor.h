@@ -216,6 +216,7 @@ class cMetaDataImage
 class cDirsPhProj
 {
      public :
+
           cDirsPhProj(eTA2007 aMode,cPhotogrammetricProject & aPhp);
           void Finish();
 
@@ -322,6 +323,7 @@ class cPhotogrammetricProject
 
 	  const std::string &   DirPhp() const;   ///< Accessor
 	  const std::string &   DirVisu() const;   ///< Accessor
+	  const std::string &   DirSysCo() const;   ///< Accessor
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
@@ -459,6 +461,15 @@ class cPhotogrammetricProject
 	 void  ReadMultipleTieP(cVecTiePMul&,const std::string & ) const;
 
 	 //===================================================================
+         //==================    Coord Sys           =========================
+	 //===================================================================
+
+	 void  SaveSysCo(tPtrSysCo,const std::string&,bool OnlyIfNew=false) const;
+	 tPtrSysCo ReadSysCo(const std::string &aName,bool SVP=false) const;
+	 tPtrSysCo CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aName,bool SVP=false) const;
+	 std::string  FullNameSysCo(const std::string &aName,bool SVP=false) const;
+
+	 //===================================================================
          //==================   Rigid Bloc           =========================
 	 //===================================================================
 	 
@@ -479,6 +490,8 @@ class cPhotogrammetricProject
 
 	  std::string     mDirPhp;
 	  std::string     mDirVisu;
+	  std::string     mDirSysCo;
+
 	  cDirsPhProj     mDPOrient;
 	  cDirsPhProj     mDPRadiomData;
 	  cDirsPhProj     mDPRadiomModel;

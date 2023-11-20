@@ -963,6 +963,12 @@ int cAppli_MPDTest::Exe()
 {
    if (1)
    {
+	   StdOut() << "cAppli_MPDTest \n";
+	   auto aSys= cSysCoordV2::Lambert93();
+	   return EXIT_SUCCESS;
+   }
+   if (1)
+   {
        TestDNA();
    }
    if (1)
