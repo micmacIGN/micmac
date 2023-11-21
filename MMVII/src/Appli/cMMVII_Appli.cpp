@@ -401,7 +401,8 @@ void cMMVII_Appli::SetNot4Exe()
 }
 
 void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
-{
+{	
+  mFileLogTop =""; // MPD->CM quick&dirty solve for MMVII-Log not init
   mSeedRand = DefSeedRand();
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl); // Call virtual method
   cCollecSpecArg2007 & anArgFac = ArgOpt(mArgFac); // Call virtual method
@@ -1121,6 +1122,10 @@ void cMMVII_Appli::LogCommandAbortOnError(std::string& aMessage)
 {
    for (const auto& aLogName : {mFileLogTop, NameFileLog(false)})
    {
+      // MPD->CM quick&dirty solve for MMVII-Log not init
+      if (aLogName=="") 
+         return;
+
       cMMVII_Ofs  aOfs(aLogName,eFileModeOut::AppendText);
       aOfs.Ofs() << "  ABORT on error at : " <<  StrDateCur()  << " (Id=" << mPrefixNameAppli << ")\n";
       bool nl = true;

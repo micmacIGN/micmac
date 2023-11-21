@@ -80,7 +80,6 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl)
 
 int cAppli_ImportGCP::Exe()
 {
-    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
     mPhProj.FinishInit();
     std::vector<std::vector<std::string>> aVNames;
     std::vector<std::vector<double>> aVNums;
@@ -89,14 +88,12 @@ int cAppli_ImportGCP::Exe()
 
     MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYZN")==1,"Bad format vs NXYZ");
 
-    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
     ReadFilesStruct
     (
         mNameFile, mFormat,
         mL0, mLLast, mComment,
         aVNames,aVXYZ,aVWKP,aVNums
     );
-    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
 
 
     if (! IsInit(&mNameGCP))
@@ -107,9 +104,7 @@ int cAppli_ImportGCP::Exe()
     }
 
 
-    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
    cChangSysCoordV2 aChSys = mPhProj.ChangSys(mNameChSys);
-    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
 
 
     cSetMesGCP aSetM(mNameGCP);
@@ -124,7 +119,6 @@ int cAppli_ImportGCP::Exe()
          aSetM.AddMeasure(cMes1GCP(aChSys.Value(aVXYZ[aK]),aName,1.0));
     }
 
-    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
     mPhProj.SaveGCP(aSetM);
 
     // delete aChSys;
