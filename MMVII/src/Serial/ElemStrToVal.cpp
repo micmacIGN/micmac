@@ -162,7 +162,12 @@ template<> cE2Str<eProjPC>::tMapE2Str cE2Str<eProjPC>::mE2S
                {eProjPC::eEquiRect,"eEquiRect"}
            };
 
-
+template<> cE2Str<eSysCoGeo>::tMapE2Str cE2Str<eSysCoGeo>::mE2S
+           {
+               {eSysCoGeo::eLambert93,"Lambert93"},
+               {eSysCoGeo::eRTL,"RTL"},
+               {eSysCoGeo::eGeoC,"GeoC"}
+           };
 
 
 template<> cE2Str<eTySC>::tMapE2Str cE2Str<eTySC>::mE2S
@@ -190,6 +195,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::TieP,"TieP"},
                 {eTA2007::MulTieP,"MulTieP"},
                 {eTA2007::RigBlock,"RigBlock"},
+                {eTA2007::SysCo,"SysCo"},
                 {eTA2007::Input,"In"},
                 {eTA2007::Output,"Out"},
                 {eTA2007::OptionalExist,"OptEx"},
@@ -215,6 +221,7 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::ImProc,"ImProc"},
                 {eApF::Radiometry,"Radiometry"},
                 {eApF::Ori,"Ori"},
+                {eApF::SysCo,"SysCo"},
                 {eApF::Match,"Match"},
                 {eApF::GCP,"GCP"},
                 {eApF::TieP,"TieP"},
@@ -235,6 +242,7 @@ template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
                 {eApDT::GCP,"GCP"},
                 {eApDT::Image,"Image"},
                 {eApDT::Orient,"Orient"},
+                {eApDT::SysCo,"SysCo"},
                 {eApDT::Radiom,"Radiom"},
                 {eApDT::Ply,"Ply"},
                 {eApDT::None,"None"},
@@ -526,6 +534,7 @@ void BenchEnum(cParamExeBench & aParam)
     if (! aParam.NewBench("Enum")) return;
 
     TplBenchEnum<eProjPC>();
+    TplBenchEnum<eSysCoGeo>();
     TplBenchEnum<eOpAff>();
     TplBenchEnum<eTySC>();
     TplBenchEnum<eTA2007>();
@@ -1038,6 +1047,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTyUEr,"TyUEr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyInvRad,"TyInvRad")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyPyrTieP,"TyPyrTieP")
 MACRO_INSTANTITATE_STRIO_ENUM(eProjPC,"ProjPC")
+MACRO_INSTANTITATE_STRIO_ENUM(eSysCoGeo,"SysCoGeo")
 MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")

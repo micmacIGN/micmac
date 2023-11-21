@@ -67,7 +67,10 @@ class cSensorImage  :   public cObj2DelAtEnd,
 {
      public :
 
-         cSensorImage(const std::string & aNameImage);
+          cSensorImage(const std::string & aNameImage);
+
+	  /// create a sensor in a new coordinate system
+	  virtual cSensorImage * ChangSys(cDataInvertibleMapping<tREAL8,3> &) const = 0;
 
           virtual const cPixelDomain & PixelDomain() const = 0;
           const cPt2di & Sz() const;
@@ -148,11 +151,15 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 std::string NameOriStd() const ;
 	 ///  Prefix of the subtype
 	 virtual std::string  V_PrefixName() const = 0  ;
+	 /// method for saving oblet
+	 virtual void ToFile(const std::string &) const = 0;
 
 	 // --------------------   methods used in bundle adjustment  --------------------
 	
+	 ///  For stenope camera return center, for other best approx
+	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
 	 ///  For stenope camera return center, for other nullptr
-	 virtual const cPt3dr * CenterOfPC() = 0;
+	 virtual const cPt3dr * CenterOfPC() const = 0;
 	 /// Return the calculator, adapted to the type, for computing colinearity equation
          virtual cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) = 0;
 	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
@@ -216,6 +223,7 @@ class cMetaDataImage
 class cDirsPhProj
 {
      public :
+
           cDirsPhProj(eTA2007 aMode,cPhotogrammetricProject & aPhp);
           void Finish();
 
@@ -322,12 +330,14 @@ class cPhotogrammetricProject
 
 	  const std::string &   DirPhp() const;   ///< Accessor
 	  const std::string &   DirVisu() const;   ///< Accessor
+	  const std::string &   DirSysCo() const;   ///< Accessor
 
 	 //===================================================================
          //==================   ORIENTATION      =============================
 	 //===================================================================
 	 
                //  Read/Write
+          void SaveSensor(const cSensorImage &) const; ///< Save camera using OutPut-orientation
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
 	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
 
@@ -459,6 +469,18 @@ class cPhotogrammetricProject
 	 void  ReadMultipleTieP(cVecTiePMul&,const std::string & ) const;
 
 	 //===================================================================
+         //==================    Coord Sys           =========================
+	 //===================================================================
+
+	 void  SaveSysCo(tPtrSysCo,const std::string&,bool OnlyIfNew=false) const;
+	 tPtrSysCo ReadSysCo(const std::string &aName,bool SVP=false) const;
+	 tPtrSysCo CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aName,bool SVP=false) const;
+	 std::string  FullNameSysCo(const std::string &aName,bool SVP=false) const;
+
+	 // return  identity if Vec not init
+	 cChangSysCoordV2  ChangSys(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
+
+	 //===================================================================
          //==================   Rigid Bloc           =========================
 	 //===================================================================
 	 
@@ -479,6 +501,8 @@ class cPhotogrammetricProject
 
 	  std::string     mDirPhp;
 	  std::string     mDirVisu;
+	  std::string     mDirSysCo;
+
 	  cDirsPhProj     mDPOrient;
 	  cDirsPhProj     mDPRadiomData;
 	  cDirsPhProj     mDPRadiomModel;

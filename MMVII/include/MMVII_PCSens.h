@@ -417,6 +417,11 @@ class cSensorCamPC : public cSensorImage
 
          cSensorCamPC(const std::string & aNameImage,const tPose & aPose,cPerspCamIntrCalib * aCalib);
 
+	 /// specialize chang sys 
+         cSensorCamPC * PCChangSys(cDataInvertibleMapping<tREAL8,3> &) const ;
+	 /// generic chang sys  (just call specialized)
+         cSensorImage * ChangSys(cDataInvertibleMapping<tREAL8,3> &) const override ;
+
          /// Create form  Un-Calibrated-Space-Resection
          static cSensorCamPC * CreateUCSR(const cSet2D3D&,const cPt2di & aSzCam,const std::string&,bool Real16=true);
 
@@ -441,7 +446,10 @@ class cSensorCamPC : public cSensorImage
          ///  average of AngularProjResiudal
          tREAL8  AvgAngularProjResiudal(const cSet2D3D&) const;
 
-	 const cPt3dr * CenterOfPC() override;
+	 ///  real center
+	 cPt3dr  PseudoCenterOfProj() const override;
+
+	 const cPt3dr * CenterOfPC() const override;
          /// Return the calculator, adapted to the type, for computing colinearity equation
          cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
 	 /// Push the current rotation, as equation are fixed using delta-rot
@@ -461,7 +469,7 @@ class cSensorCamPC : public cSensorImage
          cPt3dr  AxeK()   const;
 	 cPoseWithUK & Pose_WU();
 
-	 cPerspCamIntrCalib * InternalCalib();
+	 cPerspCamIntrCalib * InternalCalib() const;
 
 	 // access to tiny rotation used in bundled adjustment
          const cPt3dr &  Omega()  const;
@@ -482,7 +490,7 @@ class cSensorCamPC : public cSensorImage
          size_t NumXOmega() const;   /// num of mOmega().x when used as cObjWithUnkowns (y and z follow)
 
          void AddData(const cAuxAr2007 & anAux);
-	 void  ToFile(const std::string & ) const ; ///< export in xml/dmp ...  
+	 void  ToFile(const std::string & ) const override ; ///< export in xml/dmp ...  
 	 static cSensorCamPC * FromFile(const std::string &,bool Remanent=true); ///< create form xml/dmp ...
 	 static  std::string  NameOri_From_Image(const std::string & aNameImage);
 

@@ -19,12 +19,16 @@
 namespace MMVII
 {
 
-std::string SuppressDirFromNameFile(const std::string & aDir,const std::string & aName)
+std::string SuppressDirFromNameFile(const std::string & aDir,const std::string & aName,bool ByDir)
 {
     // mOriIn.starts_with(aDir);  -> C++20
     // to see if StringDirSeparator() is not a meta carac on window ?
 
-     std::string aPat =  "(.*" + aDir+")?" + "([A-Za-z0-9_-]+)[\\/]?";
+     std::string aPat =  "(.*" + aDir+")?" + "([A-Za-z0-9_-]+)";
+     if (ByDir)
+         aPat = aPat + "[\\/]?";
+     else
+	 aPat = aPat + "\\." +  GlobTaggedNameDefSerial()  ;
      if (! MatchRegex(aName,aPat))
      {
          MMVII_UsersErrror
@@ -64,7 +68,7 @@ void cDirsPhProj::Finish()
     // for ex :   "MMVII-PhgrProj/Orient/Test/" ,  "Test/",  "Test" ...  =>   "Test"
     //
     if (mAppli.IsInit(&mDirIn))  // dont do it if mDirIn not used ...
-        mDirIn  = SuppressDirFromNameFile(mDirLocOfMode,mDirIn);   
+        mDirIn  = SuppressDirFromNameFile(mDirLocOfMode,mDirIn,true);   
 
     mFullDirIn  = mAppli.DirProject() + mDirLocOfMode + mDirIn + StringDirSeparator();
 
@@ -75,7 +79,7 @@ void cDirsPhProj::Finish()
     }
 
     if (mAppli.IsInit(&mDirOut))  // dont do it if mDirIn not used ...
-        mDirOut  = SuppressDirFromNameFile(mDirLocOfMode,mDirOut);   
+        mDirOut  = SuppressDirFromNameFile(mDirLocOfMode,mDirOut,true);   
     mFullDirOut = mAppli.DirProject() + mDirLocOfMode + mDirOut + StringDirSeparator();
 
     // Create output directory if needed
@@ -244,25 +248,25 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
 {
 }
 
-/*
-std::string  cDirsPhProj::DirVisu() const
-{
-    std::string  aDirVisu = mAppli.DirProject() + "VISU" + StringDirSeparator();
-
-    MMVII_DirPhp
-}
-*/
 
 void cPhotogrammetricProject::FinishInit() 
 {
     mFolderProject = mAppli.DirProject() ;
 
-    mDirPhp = mFolderProject + MMVII_DirPhp + StringDirSeparator();
-    mDirVisu = mDirPhp + "VISU" + StringDirSeparator();
+    mDirPhp   = mFolderProject + MMVII_DirPhp + StringDirSeparator();
+    mDirVisu  = mDirPhp + "VISU" + StringDirSeparator();
+    mDirSysCo = mDirPhp + E2Str(eTA2007::SysCo) + StringDirSeparator();
 
     if (mAppli.LevelCall()==0)
     {
         CreateDirectories(mDirVisu,false);
+        CreateDirectories(mDirSysCo,false);
+
+	 // cPt3dr  aZeroNDP(652215.52,6861681.77,35.6);
+	 // SaveSysCo(CreateSysCoRTL(aZeroNDP,"Lambert93"),"RTL_NotreDame");
+	// maintain it, who knows, but now replaced by 
+	// SaveSysCo(cSysCoordV2::Lambert93(),E2Str(eSysCoGeo::eLambert93),true);  
+	// SaveSysCo(cSysCoordV2::GeoC()     ,E2Str(eSysCoGeo::eGeoC)     ,true);
     }
 
 
@@ -405,8 +409,15 @@ cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const st
 
 void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 {
-    aCamPC.ToFile(mDPOrient.FullDirOut() + aCamPC.NameOriStd());
+    // aCamPC.ToFile(mDPOrient.FullDirOut() + aCamPC.NameOriStd());
+    SaveSensor(aCamPC);
 }
+
+void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
+{
+    aSens.ToFile(mDPOrient.FullDirOut() + aSens.NameOriStd());
+}
+
 
 
 void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const
@@ -728,6 +739,65 @@ void  cPhotogrammetricProject::ReadHomol
     std::string aName = NameTiePIn(aNameIm1,aNameIm2,aDirIn); 
     ReadFromFile(aSetHCI.SetH(),aName);
 }
+        //  =============  coord system  =================
+
+void cPhotogrammetricProject::SaveSysCo(tPtrSysCo aSys,const std::string& aName,bool OnlyIfNew) const
+{
+     std::string aFullName = mDirSysCo + aName + "."+  GlobTaggedNameDefSerial();
+
+     if (OnlyIfNew && ExistFile(aFullName))
+        return;
+     aSys->ToFile(aFullName);
+}
+
+std::string  cPhotogrammetricProject::FullNameSysCo(const std::string &aName,bool SVP) const
+{
+     std::string aNameGlob = mDirSysCo + aName + "." + GlobTaggedNameDefSerial();
+     if (ExistFile(aNameGlob))
+	     return aNameGlob;
+
+     aNameGlob = cMMVII_Appli::DirRessourcesMMVII() + "SysCo/" + aName + "." + GlobTaggedNameDefSerial();
+     if (ExistFile(aNameGlob))
+        return aNameGlob;
+
+     if (! SVP)
+        MMVII_UnclasseUsEr("Cannot find coord sys for " + aName);
+
+     return "";
+}
+
+tPtrSysCo cPhotogrammetricProject::ReadSysCo(const std::string &aName,bool SVP) const
+{
+     std::string aNameGlob = FullNameSysCo(aName,SVP);
+     if (aNameGlob=="") 
+         return tPtrSysCo(nullptr);
+     return  cSysCoordV2::FromFile(aNameGlob);
+}
+
+tPtrSysCo cPhotogrammetricProject::CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aName,bool SVP) const
+{
+    std::string  aNameFull = FullNameSysCo(aName,SVP);
+    if (aNameFull=="")
+       return tPtrSysCo(nullptr);
+
+    return cSysCoordV2::RTL(aOrig,aNameFull);
+}
+
+cChangSysCoordV2  cPhotogrammetricProject::ChangSys(const std::vector<std::string> & aVec,tREAL8 aEpsDif) 
+{
+	if (! mAppli.IsInit(&aVec))  return cChangSysCoordV2{};
+
+	return cChangSysCoordV2
+               (
+		     ReadSysCo(aVec.at(0)),
+		     ReadSysCo(aVec.at(1))
+               );
+}
+
+
+
+
+//  cMMVII_Appli DirRessourcesMMVII
 
         //  =============  Rigid bloc  =================
 

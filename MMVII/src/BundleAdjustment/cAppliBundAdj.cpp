@@ -71,8 +71,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
       << mPhProj.DPPointsMeasures().ArgDirInOpt("GCPDir","Dir for GCP if != DataDir")
       << mPhProj.DPMulTieP().ArgDirInOpt("TPDir","Dir for Tie Points if != DataDir")
-      << mPhProj.DPRigBloc().ArgDirInOpt("BRDirIn","Dir for Bloc Rigid if != DataDir") //  RIGIDBLOC
-      << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
+      // << mPhProj.DPRigBloc().ArgDirInOpt("BRDirIn","Dir for Bloc Rigid if != DataDir") //  RIGIDBLOC
+      // << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
       << AOpt2007
          (
             mGCPW,
