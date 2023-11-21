@@ -306,6 +306,13 @@ class cBlocMatrixSensor;
 class cDataBlocCam;      
 class cBlocOfCamera;
 
+//   sys co
+
+class cSysCoordV2;
+class cChangSysCoordV2;
+typedef std::shared_ptr<cSysCoordV2>      tPtrSysCo;
+typedef std::shared_ptr<cChangSysCoordV2> tPtrChSys;
+
 
 
 };

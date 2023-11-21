@@ -38,12 +38,13 @@ class cAppli_ImportGCP : public cMMVII_Appli
 
 
 	// Optionall Arg
-	std::string      mNameGCP;
-	int              mL0;
-	int              mLLast;
-	int              mComment;
-	int              mNbDigName;
-	std::string      mPatternTransfo;        
+	std::string              mNameGCP;
+	int                      mL0;
+	int                      mLLast;
+	int                      mComment;
+	int                      mNbDigName;
+	std::string              mPatternTransfo;        
+	std::vector<std::string>   mNameChSys;
 };
 
 cAppli_ImportGCP::cAppli_ImportGCP(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -66,19 +67,20 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgObl(cCollecSpecArg2007 & anArgObl)
 
 cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgObl) 
 {
-    
     return anArgObl
        << AOpt2007(mNameGCP,"NameGCP","Name of GCP set")
        << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
        << AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
        << AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
        << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)")
+       << AOpt2007(mNameChSys,"ChSys","Change coordinate system",{{eTA2007::ISizeV,"[2,2]"}})
     ;
 }
 
 
 int cAppli_ImportGCP::Exe()
 {
+    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
     mPhProj.FinishInit();
     std::vector<std::vector<std::string>> aVNames;
     std::vector<std::vector<double>> aVNums;
@@ -87,12 +89,14 @@ int cAppli_ImportGCP::Exe()
 
     MMVII_INTERNAL_ASSERT_tiny(CptSameOccur(mFormat,"XYZN")==1,"Bad format vs NXYZ");
 
+    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
     ReadFilesStruct
     (
         mNameFile, mFormat,
         mL0, mLLast, mComment,
         aVNames,aVXYZ,aVWKP,aVNums
     );
+    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
 
 
     if (! IsInit(&mNameGCP))
@@ -102,6 +106,10 @@ int cAppli_ImportGCP::Exe()
          mNameGCP = LastPrefix(mNameGCP);
     }
 
+
+    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
+   cChangSysCoordV2 aChSys = mPhProj.ChangSys(mNameChSys);
+    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
 
 
     cSetMesGCP aSetM(mNameGCP);
@@ -113,10 +121,13 @@ int cAppli_ImportGCP::Exe()
 	 if (IsInit(&mNbDigName))
             aName =   ToStr(cStrIO<int>::FromStr(aName),mNbDigName);
 
-         aSetM.AddMeasure(cMes1GCP(aVXYZ[aK],aName,1.0));
+         aSetM.AddMeasure(cMes1GCP(aChSys.Value(aVXYZ[aK]),aName,1.0));
     }
 
+    StdOut() << "GGGGGGGGGGGGGGGGGGgg " << __LINE__ << "\n"; getchar();
     mPhProj.SaveGCP(aSetM);
+
+    // delete aChSys;
 
     return EXIT_SUCCESS;
 }

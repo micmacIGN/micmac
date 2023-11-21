@@ -250,8 +250,6 @@ tPtrSysCo cSysCoordV2::RTL(const cPt3dr & anOriInit,const std::string & aName)
      return tPtrSysCo(cSysCoordV1::RTL(anOriInit,aName));
 }
 
-#if (0)
-
 
 
 /*********************************************/
@@ -263,23 +261,36 @@ tPtrSysCo cSysCoordV2::RTL(const cPt3dr & anOriInit,const std::string & aName)
 
 cChangSysCoordV2::cChangSysCoordV2(tPtrSysCo aSysInit,tPtrSysCo aSysTarget,tREAL8  aEpsDeriv)  :
     cDataInvertibleMapping<tREAL8,3> (cPt3dr::PCste(aEpsDeriv)),
+    mIdent        (false),
     mSysInit      (aSysInit),
     mSysTarget    (aSysTarget)
 {
 }
 
+cChangSysCoordV2::cChangSysCoordV2 () :
+     cDataInvertibleMapping<tREAL8,3> (cPt3dr::PCste(1.0)),
+     mIdent     (true),
+     mSysInit   (nullptr),
+     mSysTarget (nullptr)
+{
+}
+
+
 cChangSysCoordV2::~cChangSysCoordV2() {}
 
 cPt3dr cChangSysCoordV2::Value(const cPt3dr & aPInit) const 
 {
+        if (mIdent)  return aPInit;
 	return mSysTarget->FromGeoC(mSysInit->ToGeoC(aPInit));
 }
 
 cPt3dr cChangSysCoordV2::Inverse(const cPt3dr & aPInit) const 
 {
+        if (mIdent)  return aPInit;
 	return mSysInit->FromGeoC(mSysTarget->ToGeoC(aPInit));
 }
 
+#if (0)
 
 #endif
 

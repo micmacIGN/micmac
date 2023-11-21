@@ -409,8 +409,15 @@ cRadialCRS * cPhotogrammetricProject::CreateNewRadialCRS(size_t aDegree,const st
 
 void cPhotogrammetricProject::SaveCamPC(const cSensorCamPC & aCamPC) const
 {
-    aCamPC.ToFile(mDPOrient.FullDirOut() + aCamPC.NameOriStd());
+    // aCamPC.ToFile(mDPOrient.FullDirOut() + aCamPC.NameOriStd());
+    SaveSensor(aCamPC);
 }
+
+void cPhotogrammetricProject::SaveSensor(const cSensorImage & aSens) const
+{
+    aSens.ToFile(mDPOrient.FullDirOut() + aSens.NameOriStd());
+}
+
 
 
 void cPhotogrammetricProject::SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const
@@ -775,6 +782,18 @@ tPtrSysCo cPhotogrammetricProject::CreateSysCoRTL(const cPt3dr & aOrig,const std
 
     return cSysCoordV2::RTL(aOrig,aNameFull);
 }
+
+cChangSysCoordV2  cPhotogrammetricProject::ChangSys(const std::vector<std::string> & aVec,tREAL8 aEpsDif) 
+{
+	if (! mAppli.IsInit(&aVec))  return cChangSysCoordV2{};
+
+	return cChangSysCoordV2
+               (
+		     ReadSysCo(aVec.at(0)),
+		     ReadSysCo(aVec.at(1))
+               );
+}
+
 
 
 

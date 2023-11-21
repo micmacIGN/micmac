@@ -35,11 +35,12 @@ class cAppli_CreateRTL : public cMMVII_Appli
 
 	// Mandatory Arg
 	std::string              mSpecIm;
-	std::string              mSysIn;
-	std::string              mSysOut;
+	std::string              mNameSysIn;
+	std::string              mNameSysOut;
 
 	// Optionall Arg
-	cPt3dr           mCenter;
+	cPt3dr           mOrigin;
+	tREAL8           mZ0;
 };
 
 cAppli_CreateRTL::cAppli_CreateRTL(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -52,8 +53,8 @@ cCollecSpecArg2007 & cAppli_CreateRTL::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
 	      <<  Arg2007(mSpecIm ,"Name of Input File",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
-	      <<  Arg2007(mSysIn  ,"Input coordinate system")
-	      <<  Arg2007(mSysOut ,"Output coordinate system")
+	      <<  Arg2007(mNameSysIn  ,"Input coordinate system")
+	      <<  Arg2007(mNameSysOut ,"Output coordinate system")
            ;
 }
 
@@ -62,8 +63,10 @@ cCollecSpecArg2007 & cAppli_CreateRTL::ArgOpt(cCollecSpecArg2007 & anArgObl)
     
     return      anArgObl
             <<  mPhProj.DPOrient().ArgDirInOpt()
+            <<  mPhProj.DPOrient().ArgDirOutOpt()
             <<  mPhProj.DPPointsMeasures().ArgDirInOpt()
-            << AOpt2007(mCenter,"Center","Center of RTL Measures",{{eTA2007::HDV}})
+            << AOpt2007(mOrigin,"Origin","Force origin of RTL Measures",{{eTA2007::HDV}})
+            << AOpt2007(mZ0,"Z0","Force altitute of RTL Measures",{{eTA2007::HDV}})
             // << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
     ;
 }
@@ -74,12 +77,15 @@ int cAppli_CreateRTL::Exe()
     mPhProj.FinishInit();
 
     cWeightAv<tREAL8,cPt3dr> aAvgSens;
+    bool isInitSens  =false;
+    bool isInitGCP  =false;
     if (mPhProj.DPOrient().DirInIsInit())
     {
         for (const auto & aNameIm : VectMainSet(0))
         {
 	    cSensorImage* aSI = mPhProj. LoadSensor(aNameIm);
 	    aAvgSens.Add(1.0,aSI->PseudoCenterOfProj());
+	    isInitSens = true;
 	}
     }
 
@@ -88,12 +94,53 @@ int cAppli_CreateRTL::Exe()
     cWeightAv<tREAL8,cPt3dr> aAvgGCP;
     if (mPhProj.DPPointsMeasures().DirInIsInit())
     {
-	    mPhProj.LoadGCP(aMesIm);
-	    for (const auto & aGCP : aMesIm.MesGCP())
-                aAvgGCP.Add(1,aGCP.mPt);
+	mPhProj.LoadGCP(aMesIm);
+	for (const auto & aGCP : aMesIm.MesGCP())
+        {
+            aAvgGCP.Add(1,aGCP.mPt);
+	    isInitGCP = true;
+	}
     }
 
-    //mPhProj.SaveGCP(aSetM);
+    if (! IsInit(&mOrigin))
+    {
+        MMVII_INTERNAL_ASSERT_User(isInitSens||isInitGCP,eTyUEr::eUnClassedError,"No data for init center");
+
+	const cWeightAv<tREAL8,cPt3dr>	 &  aAvgXY  = isInitSens ? aAvgSens : aAvgGCP ;
+	const cWeightAv<tREAL8,cPt3dr>	 &  aAvgZ   = isInitGCP ?  aAvgGCP  : aAvgSens;
+
+	mOrigin.x() = aAvgXY.Average().x();
+	mOrigin.y() = aAvgXY.Average().y();
+	mOrigin.z() =  aAvgZ.Average().z();
+    }
+
+    if (IsInit(&mZ0))
+       mOrigin.z() = mZ0;
+
+    tPtrSysCo aSysRTL = mPhProj.CreateSysCoRTL(mOrigin,mNameSysIn);
+    mPhProj.SaveSysCo(aSysRTL,mNameSysOut);
+
+
+    tPtrSysCo aSysIn = mPhProj.ReadSysCo(mNameSysIn);
+    cChangSysCoordV2  aChSys(aSysIn,aSysRTL);
+
+    if (mPhProj.DPOrient().DirOutIsInit())
+    {
+        int aCpt=0;
+        for (const auto & aNameIm : VectMainSet(0))
+        {
+	    aCpt++;
+	    cSensorImage* aSIn  = mPhProj.LoadSensor(aNameIm);
+	    cSensorImage* aSOut = aSIn->ChangSys(aChSys);
+
+	    mPhProj.SaveSensor(*aSOut);
+
+	    // a bit slow now, probably because way work ChSys by sys-call on proj4
+	    if (aCpt%50==0)
+	       StdOut () << " Remain  " << VectMainSet(0).size() - aCpt  << "\n";
+	    delete aSOut;
+	}
+    }
 
     return EXIT_SUCCESS;
 }

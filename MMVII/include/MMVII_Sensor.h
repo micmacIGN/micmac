@@ -67,7 +67,10 @@ class cSensorImage  :   public cObj2DelAtEnd,
 {
      public :
 
-         cSensorImage(const std::string & aNameImage);
+          cSensorImage(const std::string & aNameImage);
+
+	  /// create a sensor in a new coordinate system
+	  virtual cSensorImage * ChangSys(cDataInvertibleMapping<tREAL8,3> &) const = 0;
 
           virtual const cPixelDomain & PixelDomain() const = 0;
           const cPt2di & Sz() const;
@@ -148,6 +151,8 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 std::string NameOriStd() const ;
 	 ///  Prefix of the subtype
 	 virtual std::string  V_PrefixName() const = 0  ;
+	 /// method for saving oblet
+	 virtual void ToFile(const std::string &) const = 0;
 
 	 // --------------------   methods used in bundle adjustment  --------------------
 	
@@ -332,6 +337,7 @@ class cPhotogrammetricProject
 	 //===================================================================
 	 
                //  Read/Write
+          void SaveSensor(const cSensorImage &) const; ///< Save camera using OutPut-orientation
           void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
 	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
 
@@ -470,6 +476,9 @@ class cPhotogrammetricProject
 	 tPtrSysCo ReadSysCo(const std::string &aName,bool SVP=false) const;
 	 tPtrSysCo CreateSysCoRTL(const cPt3dr & aOrig,const std::string &aName,bool SVP=false) const;
 	 std::string  FullNameSysCo(const std::string &aName,bool SVP=false) const;
+
+	 // return  identity if Vec not init
+	 cChangSysCoordV2  ChangSys(const std::vector<std::string> &,tREAL8 aEpsDif=0.1);
 
 	 //===================================================================
          //==================   Rigid Bloc           =========================
