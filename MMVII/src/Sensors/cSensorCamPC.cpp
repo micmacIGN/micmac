@@ -214,7 +214,7 @@ tSeg3dr  cSensorCamPC::Image2Bundle(const cPt2dr & aPIm) const
 }
 
 
-const cPt3dr * cSensorCamPC::CenterOfPC() { return  & Center(); }
+const cPt3dr * cSensorCamPC::CenterOfPC() const { return  & Center(); }
          /// Return the calculator, adapted to the type, for computing colinearity equation
 cCalculator<double> * cSensorCamPC::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) 
 {
@@ -239,6 +239,7 @@ const cPt3dr & cSensorCamPC::Center() const {return mPose_WU.Tr();}
 const cPt3dr & cSensorCamPC::Omega()  const {return mPose_WU.Omega();}
 cPt3dr & cSensorCamPC::Center() {return mPose_WU.Tr();}
 cPt3dr & cSensorCamPC::Omega()  {return mPose_WU.Omega();}
+cPt3dr  cSensorCamPC::PseudoCenterOfProj() const {return Center();}
 
 cPt3dr cSensorCamPC::AxeI()   const {return mPose_WU.AxeI();}
 cPt3dr cSensorCamPC::AxeJ()   const {return mPose_WU.AxeJ();}

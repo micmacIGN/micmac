@@ -73,6 +73,7 @@ enum class eApF
                Test,       ///< Test
                ImProc,     ///< Image processing
                Radiometry, ///< Radiometric modelization
+               SysCo,        ///< Coordinate system
                Ori,        ///< Orientation
                Match,      ///< Dense Matching
                GCP,       ///< Tie-Point processing
@@ -138,6 +139,7 @@ enum class eApDT
               GCP,   ///< Tie Points
               Image,   ///< Image
               Orient,   ///< Orientations files
+              SysCo,   ///< Coordinate system
               Radiom,   ///< Orientations files
               Ply,    ///< Ply file
               None,     ///< Nothing 

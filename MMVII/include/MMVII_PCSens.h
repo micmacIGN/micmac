@@ -441,7 +441,10 @@ class cSensorCamPC : public cSensorImage
          ///  average of AngularProjResiudal
          tREAL8  AvgAngularProjResiudal(const cSet2D3D&) const;
 
-	 const cPt3dr * CenterOfPC() override;
+	 ///  real center
+	 cPt3dr  PseudoCenterOfProj() const override;
+
+	 const cPt3dr * CenterOfPC() const override;
          /// Return the calculator, adapted to the type, for computing colinearity equation
          cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
 	 /// Push the current rotation, as equation are fixed using delta-rot

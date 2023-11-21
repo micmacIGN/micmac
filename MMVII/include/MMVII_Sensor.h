@@ -151,8 +151,10 @@ class cSensorImage  :   public cObj2DelAtEnd,
 
 	 // --------------------   methods used in bundle adjustment  --------------------
 	
+	 ///  For stenope camera return center, for other best approx
+	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
 	 ///  For stenope camera return center, for other nullptr
-	 virtual const cPt3dr * CenterOfPC() = 0;
+	 virtual const cPt3dr * CenterOfPC() const = 0;
 	 /// Return the calculator, adapted to the type, for computing colinearity equation
          virtual cCalculator<double> * EqColinearity(bool WithDerives,int aSzBuf,bool ReUse) = 0;
 	 /// If the camera has its own "obs/cste" (like curent rot for PC-Cam) that's the place to say it
