@@ -118,8 +118,19 @@ void cBlocMatrixSensor::ShowMatrix() const
 {
     //  ...
     //  Parse matrix id (0 to mMatrix.size())
+        for (size_t aKSet=0 ; aKSet<mMatrix.size() ; aKSet++)
+        {
+            //    print the Id
+            StdOut() <<  "========   "  << mMatrix[aKSet].mId <<  " ======= " << std::endl;
+            for (const auto & aPtrCam : mMatrix[aKSet].mVCams)
+            {
+                 if (aPtrCam!=nullptr)
+                    StdOut ()  <<  "  * " << aPtrCam->NameImage()   << std::endl;
+                 else
+                    StdOut ()  <<  "  * xxxxxxxxxxxxxxxxxxxxxxxx" << std::endl;
+            }
+        }
     //
-    //    print the Id
     //
     //    parse  the cams in a set
     //        
@@ -546,9 +557,11 @@ cAppli_BlockCamInit::cAppli_BlockCamInit
 cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return anArgObl
-	      // ...
-	      // fill mSpecImIn
-	      // get input orient folder
+             <<  Arg2007(mSpecImIn,"Pattern/file for images", {{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}  )
+             <<  mPhProj.DPOrient().ArgDirInMand()
+             <<  Arg2007(mPattern,"Pattern for images specifing sup expr")
+             <<  Arg2007(mNumSub,"Num of sub expr for x:block and  y:image")
+
 	      // fill mPattern
 	      // fill mNumSub
 	      // get  output foler for calib
@@ -560,6 +573,9 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
 
     return    anArgOpt
+             << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
+             << AOpt2007(mShowByBloc,"ShowByBloc","Show matricial organization by bloc ",{{eTA2007::HDV}})
+             << AOpt2007(mShowBySync,"ShowBySync","Show matricial organization by sync ",{{eTA2007::HDV}})
 	    //  ...
 	    //  fill mNameBloc
 	    //  fill mMaster
@@ -572,20 +588,23 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int cAppli_BlockCamInit::Exe()
 {
-    // mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
+    mPhProj.FinishInit();  // the final construction of  photogrammetric project manager can only be done now
 
-    // cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),mNameBloc);
-    //
-    
+
+    // creat the bloc, for now no cam,just the info to insert them
+    cBlocOfCamera aBloc(mPattern,mNumSub.x(),mNumSub.y(),mNameBloc);
+
     //  parse all images : create the sensor and add it  to the bloc
-    //  
-    //  ...
-    //
+    for (const auto & aNameIm :  VectMainSet(0))
+    {
+        cSensorCamPC * aCamPC  = mPhProj.ReadCamPC(aNameIm,true);
+        aBloc.AddSensor(aCamPC);
+    }
 
 
     // eventually show the bloc structure
-    // if (mShowByBloc) aBloc.ShowByBloc();
-    // if (mShowBySync ) aBloc.ShowBySync();
+    if (mShowByBloc)  aBloc.ShowByBloc();
+    if (mShowBySync ) aBloc.ShowBySync();
 
     // Show the statistics
     // aBloc.StatAllCples(this);
@@ -630,7 +649,6 @@ int cAppli_BlockCamInit::Exe()
 /*                                                      */
 /* ==================================================== */
 
-/*
 tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
    return tMMVII_UnikPApli(new cAppli_BlockCamInit(aVArgs,aSpec));
@@ -638,14 +656,15 @@ tMMVII_UnikPApli Alloc_BlockCamInit(const std::vector<std::string> & aVArgs,cons
 
 cSpecMMVII_Appli  TheSpec_BlockCamInit
 (
-      "NameCommand",
-      Allocator,
-      "Comment"
-      {eApF::?},
-      {eApDT::?},    Which data are in put
-      {eApDT::Xml},   which data are output
-       In which  File  is located this command
+      "BlockCamInit",
+      Alloc_BlockCamInit,
+      "Compute initial calibration of rigid bloc cam",
+      {eApF::Ori},
+      {eApDT::Orient}, 
+      {eApDT::Xml}, 
+      __FILE__
 );
+/*
 */
 
 
