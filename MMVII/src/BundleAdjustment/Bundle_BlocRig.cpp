@@ -14,7 +14,7 @@ cBA_BlocRig::cBA_BlocRig
     mBlocs   (aPhProj.ReadBlocCams()),  // use the standar interface to create the bloc
     mSigma   (aSigma),
     mAllPair (false),
-    mEqBlUK  (EqBlocRig(true,1,true))  // get the class computing rigidity equation
+    mEqBlUK  (EqBlocRig(true,1,true))  // get the class computing rigidity equation,  true=with derivative , true=reuse
 {
     // push the weigth for the 3 equation on centers
     for (int aK=0 ; aK<3 ; aK++)
@@ -82,13 +82,17 @@ void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 void cBA_BlocRig::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)  
 {
      // ... parse all bloc
+     for (const auto & aBloc : mBlocs)
      {
-	   
          //  ... extract the master
+	 cPoseWithUK &  aMPose = aBloc->MasterPoseInBl()  ;
 
 	 // The system handle the unknwon as integers,  the "object" (here aPose)
 	 // "knows" the association between its member and local integers, that's why
 	 // we pass object and members to do the job
+         
+         aSys.SetFrozenVarCurVal(aMPose,aMPose.Center());
+         aSys.SetFrozenVarCurVal(aMPose,aMPose.Omega());
 	 //
 	 //  ...  freeze the center
 	 //  ... freez omega
@@ -114,20 +118,24 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
     // extract the unknown pose for each cam
     cPoseWithUK &  aPBl1 =  aBloc.PoseUKOfNumBloc(aKBl1);
     cPoseWithUK &  aPBl2 =  aBloc.PoseUKOfNumBloc(aKBl2);
-
-    FakeUseIt(aPBl1); FakeUseIt(aPBl2);
+     
+    //  FakeUseIt(aPBl1); FakeUseIt(aPBl2);
 
     // We must create the observation/context of the equation; here we will push the coeef of matrix
     // for linearization 
     std::vector<double> aVObs;
 
-    //   for the 4 pose use PushObs to  add it context in aVObs
-    // ...
+    aCam1->Pose_WU().PushObs(aVObs,false);
+    aCam2->Pose_WU().PushObs(aVObs,false);
+    aPBl1.PushObs(aVObs,false);
+    aPBl2.PushObs(aVObs,false);
 
     // We must create a vector that contains all the global num of unknowns
-    //
-    // ...
     std::vector<int>  aVInd;
+    aCam1->PushIndexes(aVInd);
+    aCam2->PushIndexes(aVInd);
+    aPBl1.PushIndexes(aVInd);
+    aPBl2.PushIndexes(aVInd);
 
     // now we are ready to add the equation
     aSys.R_CalcAndAddObs

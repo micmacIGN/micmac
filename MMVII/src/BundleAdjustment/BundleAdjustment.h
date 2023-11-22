@@ -62,7 +62,7 @@ class cBA_BlocRig
 {
      public :
 
-        cBA_BlocRig(const cPhotogrammetricProject &,const std::vector<double> & mW);
+        cBA_BlocRig(const cPhotogrammetricProject &,const std::vector<double> & aSigma);
 	~cBA_BlocRig();
         void    AddCam(cSensorCamPC * aCam);
 

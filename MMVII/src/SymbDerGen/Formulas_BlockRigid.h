@@ -66,7 +66,7 @@ class cFormulaBlocRigid
                 //  We have 4 pose  A,B,1 en 2;  each has 6 unknown : 3 for centers,3 for axiator
                 //  We could write  explicitely a 24 size vector like {"CxA","CyA","CzA","WxA" .....,"Wy2","Wz2"}
 		//  We prefer to  use the facility "NamesPose" 
-                return  {};
+                return  Append(NamesPose("CA","WA"),NamesPose("CB","WB"),NamesPose("C1","W1"),NamesPose("C2","W2"));
 
 		// Append NamesPose("CA","WA")
 	   }
@@ -76,7 +76,7 @@ class cFormulaBlocRigid
                 // we have 4 pose, and for each we have the  3x3 current rotation matrix as "observation/context"
                 // we coul wite explicitely the  36 size vector {"mA_00","mA_10" ... "m1_12","m_22"}
                 // we prefer to use the facility ",NamesMatr"
-                return  {};
+                return  Append(NamesMatr("mA",cPt2di(3,3)),NamesMatr("mB",cPt2di(3,3)),NamesMatr("m1",cPt2di(3,3)),NamesMatr("m2",cPt2di(3,3)));
 		//  Append   NamesMatr("mA",cPt2di(3,3)),
            }
 	   static constexpr size_t  NbUk =6;
@@ -89,13 +89,27 @@ class cFormulaBlocRigid
                           const std::vector<tUk> & aVObs
                        ) const
            {
+                   cPoseF<tUk>  aPoseA(aVUk,0*NbUk,aVObs,0*NbObs);
+                   cPoseF<tUk>  aPoseB(aVUk,1*NbUk,aVObs,1*NbObs);
+                   cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
+                   cPoseF<tUk>  aPose2(aVUk,3*NbUk,aVObs,3*NbObs);
+
+                   cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
+                   cPoseF<tUk>  aRel12 = aPose1.PoseRel(aPose2);
+
+
+                    cPtxd<tUk,3>  aDeltaC = aRelAB.mCenter-aRel12.mCenter;
+                    cMatF<tUk>    aDeltaR = aRelAB.mIJK-aRel12.mIJK;
+
+                   
 		   // ... 
 		   // extract PoseA,PoseB,pose1, pose2
+                    
 		   // compute pose rel B to A,   pose rel 2 to 1
 		   // compute the difference
 
 
-		   return {};
+		   return Append(ToVect(aDeltaC),aDeltaR.ToVect());
 
 		   //  cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
                    //  cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
