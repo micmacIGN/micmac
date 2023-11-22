@@ -203,6 +203,7 @@ std::string  cCalibBlocCam::CalculIdSync(cSensorCamPC * aCam) const
 
 void cCalibBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
 {
+     cAuxAr2007 anAux("CalibBlocCam",anAuxInit);
      // ...
      // Put the data in  tag "RigidBlocCam"
 
@@ -213,6 +214,13 @@ void cCalibBlocCam::AddData(const  cAuxAr2007 & anAuxInit)
      //    mKPatSync
      //    mKPatSync
      //    mMapPoseInBloc
+     // MMVII::AddData(cAuxAr2007("Name",anAuxInit) ,mName);
+     MMVII::AddData(cAuxAr2007("Name",anAux),mName);
+     MMVII::AddData(cAuxAr2007("Master",anAux),mMaster);
+     MMVII::AddData(cAuxAr2007("Pattern",anAux),mPattern);
+     MMVII::AddData(cAuxAr2007("KBloc",anAux),mKPatBloc);
+     MMVII::AddData(cAuxAr2007("KSync",anAux),mKPatSync);
+     MMVII::AddData(cAuxAr2007("PoseRel",anAux),mMapPoseUKInBloc);
 
      //  cAuxAr2007(const std::string& ,const  cAuxAr2007 &)
      //   MMVII::AddData(cAuxAr2007("Name",anAux)    ,mName);
@@ -391,14 +399,17 @@ tPoseR  cBlocOfCamera::EstimatePoseRel1Cple(size_t aKB1,size_t aKB2,cMMVII_Appli
              aAvgMat = aAvgMat + aPose.Rot().Mat();
             // eventually make a report
              // StdOut() << " Tr=" << aPose.Tr()  << " WPK=" <<  aPose.Rot().ToWPK() << "\n"; 
-              anAppli->AddOneReportCSV
-              (
+             if (anAppli)
+             {
+                anAppli->AddOneReportCSV
+                (
                      anIdReport,
                      {    NameKthSync(aKSync),
                           ToStr(aTr.x()),ToStr(aTr.y()),ToStr(aTr.z()),
                           ToStr(aWPK.x()),ToStr(aWPK.y()),ToStr(aWPK.z())
                      }
-              );
+                );
+             }
         }
      }
 
@@ -466,11 +477,11 @@ void cBlocOfCamera::EstimateBlocInit(size_t aKMaster)
     // for all num bloc
     for (size_t aKB=0 ; aKB<NbInBloc() ; aKB++)
     {
-    //    * get name
+          //    * get name
          std::string  aName = NameKthInBloc(aKB);
-    //    * estimate  relative pose with KMaster
+          //    * estimate  relative pose with KMaster
          tPoseR  aPoseR =  EstimatePoseRel1Cple(aKMaster,aKB,nullptr,"");
-    //    * update mMapPoseUKInBloc
+          //    * update mMapPoseUKInBloc
          mData.mMapPoseUKInBloc[aName]  = cPoseWithUK(aPoseR);
     }
 
@@ -594,10 +605,7 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgObl(cCollecSpecArg2007 & anArgObl)
              <<  mPhProj.DPOrient().ArgDirInMand()
              <<  Arg2007(mPattern,"Pattern for images specifing sup expr")
              <<  Arg2007(mNumSub,"Num of sub expr for x:block and  y:image")
-
-	      // fill mPattern
-	      // fill mNumSub
-	      // get  output foler for calib
+             <<  mPhProj.DPRigBloc().ArgDirOutMand()
            ;
 }
 
@@ -610,13 +618,8 @@ cCollecSpecArg2007 & cAppli_BlockCamInit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
              << AOpt2007(mMaster,"Master","Set the name of the master bloc, is user wants to enforce it ")
              << AOpt2007(mShowByBloc,"ShowByBloc","Show matricial organization by bloc ",{{eTA2007::HDV}})
              << AOpt2007(mShowBySync,"ShowBySync","Show matricial organization by sync ",{{eTA2007::HDV}})
-	    //  ...
-	    //  fill mNameBloc
-	    //  fill mMaster
-	    //  fill mShowByBloc
-	    //  fill mShowBySync
-	    //  fill mTestRW
-	    //  fill mTestNoDel
+             << AOpt2007(mTestRW,"TestRW","Call test en Read-Write ",{{eTA2007::HDV}})
+             << AOpt2007(mTestNoDel,"TestNoDel","Force a memory leak error ",{{eTA2007::HDV}})
     ;
 }
 
@@ -667,11 +670,12 @@ int cAppli_BlockCamInit::Exe()
     aBloc.EstimateBlocInit(aNumMaster);
 
     //  Save the bloc of camera
-    // mPhProj.SaveBlocCamera(aBloc);
+    mPhProj.SaveBlocCamera(aBloc);
+
 
     if (mTestRW)
     {
-       // aBloc.TestReadWrite(mTestNoDel);
+        aBloc.TestReadWrite(mTestNoDel);
     }
 
     return EXIT_SUCCESS;
