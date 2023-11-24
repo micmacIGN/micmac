@@ -237,6 +237,8 @@ class cBlocOfCamera : public cMemCheck
 	   ///  Acces  to unknowns pose of a given id
            cPoseWithUK &  PoseUKOfNumBloc(size_t);
 	   ///  Acces  to unknowns pose of a given id
+           const tPoseR  &  PoseInitOfNumBloc(size_t) const;
+	   ///  Acces  to unknowns pose of a given id
            cPoseWithUK &  PoseUKOfIdBloc(const std::string&) ;
 
 	   /// A function, that illustrate the read/write possibility once object is serialized

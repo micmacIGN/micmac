@@ -289,10 +289,10 @@ void cMMVII_BundleAdj::SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAng
     /*            Rigid Bloc                    */
     /* ---------------------------------------- */
 
-void cMMVII_BundleAdj::AddBlocRig(const std::vector<double>& aWeight)  // RIGIDBLOC
+void cMMVII_BundleAdj::AddBlocRig(const std::vector<double>& aSigma,const std::vector<double>& aSigmaRat)  // RIGIDBLOC
 {
     AssertPhpAndPhaseAdd();
-    mBlRig = new cBA_BlocRig(*mPhProj,aWeight);
+    mBlRig = new cBA_BlocRig(*mPhProj,aSigma,aSigmaRat);
 
     mBlRig->AddToSys(mSetIntervUK);
 }

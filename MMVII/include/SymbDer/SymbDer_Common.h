@@ -398,6 +398,7 @@ template <class Type>  class cName2Calc
     /// That's what we want : alloc an object from its name
     static tCalc * CalcFromName(const std::string & aName,int aSzBuf,bool SVP=false)
     {
+//  std::cout << "CalcFromNameCalcFromNameCalcFromNameCalcFromNameCalcFromName " << aName << "\n";
         tAllocator anAlloc =  Name2Alloc(aName,nullptr,SVP);
         if (anAlloc==nullptr)
         {

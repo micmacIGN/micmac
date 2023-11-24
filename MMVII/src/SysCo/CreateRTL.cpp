@@ -41,11 +41,13 @@ class cAppli_CreateRTL : public cMMVII_Appli
 	// Optionall Arg
 	cPt3dr           mOrigin;
 	tREAL8           mZ0;
+        tREAL8           mEpsDer ;
 };
 
 cAppli_CreateRTL::cAppli_CreateRTL(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli  (aVArgs,aSpec),
-   mPhProj       (*this)
+   mPhProj       (*this),
+   mEpsDer       (50.0)
 {
 }
 
@@ -67,6 +69,7 @@ cCollecSpecArg2007 & cAppli_CreateRTL::ArgOpt(cCollecSpecArg2007 & anArgObl)
             <<  mPhProj.DPPointsMeasures().ArgDirInOpt()
             << AOpt2007(mOrigin,"Origin","Force origin of RTL Measures",{{eTA2007::HDV}})
             << AOpt2007(mZ0,"Z0","Force altitute of RTL Measures",{{eTA2007::HDV}})
+            << AOpt2007(mEpsDer,"EpsDer","Epislon 4 computing derivative",{{eTA2007::HDV}})
             // << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
     ;
 }
@@ -122,7 +125,7 @@ int cAppli_CreateRTL::Exe()
 
 
     tPtrSysCo aSysIn = mPhProj.ReadSysCo(mNameSysIn);
-    cChangSysCoordV2  aChSys(aSysIn,aSysRTL);
+    cChangSysCoordV2  aChSys(aSysIn,aSysRTL,mEpsDer);
 
     if (mPhProj.DPOrient().DirOutIsInit())
     {

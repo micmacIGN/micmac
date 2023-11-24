@@ -62,7 +62,7 @@ class cBA_BlocRig
 {
      public :
 
-        cBA_BlocRig(const cPhotogrammetricProject &,const std::vector<double> & aSigma);
+        cBA_BlocRig(const cPhotogrammetricProject &,const std::vector<double> & aSigma,const std::vector<double> & aSigmRat);
 	~cBA_BlocRig();
         void    AddCam(cSensorCamPC * aCam);
 
@@ -89,6 +89,9 @@ class cBA_BlocRig
         std::vector<double>          mWeight;
         bool                         mAllPair;  // Do we use all pair or only pair with master
         cCalculator<double> *        mEqBlUK;
+        std::vector<double>          mSigmaRat;
+        std::vector<double>          mWeightRat;
+        cCalculator<double> *        mEqRatt;
 
 };
 
@@ -107,7 +110,7 @@ class cMMVII_BundleAdj
           void  AddCamPC(cSensorCamPC *);  /// add, error id already exist
           void  AddCam(const std::string & aNameIm);  /// add from name, require PhP exist
 
-	  void AddBlocRig(const std::vector<double>& aWeight); // RIGIDBLOC
+	  void AddBlocRig(const std::vector<double>& aSigma,const std::vector<double>&  aSigmRat ); // RIGIDBLOC
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
 
           ///  =======  Add GCP, can be measure or measure & object

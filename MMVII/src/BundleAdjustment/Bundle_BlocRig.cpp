@@ -8,21 +8,32 @@ namespace MMVII
 cBA_BlocRig::cBA_BlocRig
 (
      const cPhotogrammetricProject &aPhProj,
-     const std::vector<double> & aSigma
+     const std::vector<double> & aSigma,
+     const std::vector<double> & aSigmaRat
 )  :
     mPhProj  (aPhProj),
     mBlocs   (aPhProj.ReadBlocCams()),  // use the standar interface to create the bloc
     mSigma   (aSigma),
     mAllPair (false),
-    mEqBlUK  (EqBlocRig(true,1,true))  // get the class computing rigidity equation,  true=with derivative , true=reuse
+    mEqBlUK  (EqBlocRig(true,1,true)),  // get the class computing rigidity equation,  true=with derivative , true=reuse
+    mSigmaRat (aSigmaRat),
+    mEqRatt  (aSigmaRat.empty() ? nullptr : EqBlocRig_RatE(true,1,true))
 {
     // push the weigth for the 3 equation on centers
     for (int aK=0 ; aK<3 ; aK++)
+    {
         mWeight.push_back(Square(1/mSigma.at(0)));
+        if (mEqRatt)
+            mWeightRat.push_back(Square(1/mSigmaRat.at(0)));
+    }
     
     // push the weigth for the 9 equation on rotation
     for (int aK=0 ; aK<9 ; aK++)
+    {
         mWeight.push_back(Square(1/mSigma.at(1)));
+        if (mEqRatt)
+            mWeightRat.push_back(Square(1/mSigmaRat.at(1)));
+    }
 }
 
 cBA_BlocRig::~cBA_BlocRig()
@@ -67,6 +78,13 @@ void cBA_BlocRig::AddToSys(cSetInterUK_MultipeObj<tREAL8> & aSet)
 
      //  .....
      // map all bloc
+     for (const auto & aBloc : mBlocs)
+     {
+          for (auto & aPair : aBloc->MapStrPoseUK())
+          {
+              aSet.AddOneObj(&aPair.second);
+          }
+     }
      //   map all pair of MapStrPoseUK
      //        add cPoseWithUK
 }
@@ -147,14 +165,17 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
     );
 
 
+    cPt3dr  aRes(0,0,1);
+
     //  Now compute the residual  in Tr and Rot,
     //  ie agregate   (Rx,Ry,Rz, m00 , m01 ...)
     //
-    //          ....
-    //
-    //  mEqBlUK->ValComp(0,aKU)
+    for (size_t aKU=0 ; aKU<12 ;  aKU++)
+    {
+         aRes[aKU>=3] += Square(mEqBlUK->ValComp(0,aKU));
+    }
 
-    return cPt3dr(0,0,1);
+    return cPt3dr(aRes.x()/3.0,aRes.y()/9.0,1.0);
 }
 
 
@@ -188,7 +209,34 @@ void cBA_BlocRig::OneBlAddRigidityEquation(cBlocOfCamera& aBloc,cResolSysNonLine
 
      aRes = aRes/aRes.z();
 
-     StdOut() << "  Residual for Bloc : "  <<  aBloc.Name() << ", Tr=" << aRes.x() << ", Rot=" << aRes.y() << std::endl;
+     StdOut() << "  Residual for Bloc : "  <<  aBloc.Name() 
+              << ", Tr=" << std::sqrt(aRes.x()) << ", Rot=" 
+              << std::sqrt(aRes.y()) << std::endl;
+
+    if (mEqRatt)
+    {
+          for (size_t aKBl1=0 ; aKBl1<aBloc.NbInBloc() ; aKBl1++)
+          {
+               cPoseWithUK &  aPBl1 =  aBloc.PoseUKOfNumBloc(aKBl1);
+               tPoseR aPoseInit = aBloc.PoseInitOfNumBloc(aKBl1);
+
+               std::vector<double> aVObs;
+               aPBl1.PushObs(aVObs,false);
+               AppendIn(aVObs,aPoseInit.Tr().ToStdVector());
+               aPoseInit.Rot().Mat().PushByLine(aVObs);
+
+               std::vector<int>  aVInd;
+               aPBl1.PushIndexes(aVInd);
+
+               aSys.R_CalcAndAddObs
+               (
+                   mEqRatt,  // the equation itself
+	           aVInd,
+	           aVObs,
+	           cResidualWeighterExplicit<tREAL8>(false,mWeightRat)
+              );
+          }
+    }
 }
 
 void cBA_BlocRig::AddRigidityEquation(cResolSysNonLinear<tREAL8> & aSys)

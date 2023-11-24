@@ -321,6 +321,13 @@ cPoseWithUK &  cBlocOfCamera::PoseUKOfNumBloc(size_t aKBl)
      return PoseUKOfIdBloc(NameKthInBloc(aKBl));
 }
 
+const tPoseR &  cBlocOfCamera::PoseInitOfNumBloc(size_t aKBl)  const
+{
+    auto anIter = mMapPoseInit.find(NameKthInBloc(aKBl));
+
+    MMVII_INTERNAL_ASSERT_tiny(anIter!=mMapPoseInit.end(),"PoseInitOfNumBloc cannot find ");
+    return anIter->second;
+}
 
 
 cSensorCamPC *   cBlocOfCamera::CamKSyncKInBl(size_t aKSync,size_t aKInBloc) const

@@ -54,6 +54,57 @@ using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
 
+class cFormulaRattBRExist
+{
+      public :
+
+           std::string FormulaName() const { return "BlocRigid_RE";}
+
+           std::vector<std::string>  VNamesUnknowns()  const
+	   {
+                //  We have 4 pose  A,B,1 en 2;  each has 6 unknown : 3 for centers,3 for axiator
+                //  We could write  explicitely a 24 size vector like {"CxA","CyA","CzA","WxA" .....,"Wy2","Wz2"}
+		//  We prefer to  use the facility "NamesPose" 
+                return  NamesPose("CA","WA");
+
+		// Append NamesPose("CA","WA")
+	   }
+
+           std::vector<std::string>    VNamesObs() const
+           {
+                return  Append
+                        (
+                               NamesMatr("mA",cPt2di(3,3)),
+                               Append(  NamesP3("C1"),  NamesMatr("m1",cPt2di(3,3)))
+                        );
+           };
+	   template <typename tUk>
+                       std::vector<tUk> formula
+                       (
+                          const std::vector<tUk> & aVUk,
+                          const std::vector<tUk> & aVObs
+                       ) const
+           {
+                   cPoseF<tUk>  aPoseA(aVUk,0,aVObs,0,true);
+                   cPoseF<tUk>  aPose1(aVObs,9,aVObs,12,false);
+
+                    cPtxd<tUk,3>  aDeltaC = aPoseA.mCenter - aPose1.mCenter;
+                    cMatF<tUk>    aDeltaR = aPoseA.mIJK- aPose1.mIJK;
+
+		   // ... 
+		   // extract PoseA,PoseB,pose1, pose2
+                    
+		   // compute pose rel B to A,   pose rel 2 to 1
+		   // compute the difference
+
+
+		   return Append(ToVect(aDeltaC),aDeltaR.ToVect());
+
+		   //  cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
+                   //  cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
+		   // (ToVect(aDeltaC),aDeltaM.ToVect()
+	   }
+};
 
 class cFormulaBlocRigid
 {
@@ -89,14 +140,13 @@ class cFormulaBlocRigid
                           const std::vector<tUk> & aVObs
                        ) const
            {
-                   cPoseF<tUk>  aPoseA(aVUk,0*NbUk,aVObs,0*NbObs);
-                   cPoseF<tUk>  aPoseB(aVUk,1*NbUk,aVObs,1*NbObs);
-                   cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs);
-                   cPoseF<tUk>  aPose2(aVUk,3*NbUk,aVObs,3*NbObs);
+                   cPoseF<tUk>  aPoseA(aVUk,0*NbUk,aVObs,0*NbObs,true);
+                   cPoseF<tUk>  aPoseB(aVUk,1*NbUk,aVObs,1*NbObs,true);
+                   cPoseF<tUk>  aPose1(aVUk,2*NbUk,aVObs,2*NbObs,true);
+                   cPoseF<tUk>  aPose2(aVUk,3*NbUk,aVObs,3*NbObs,true);
 
                    cPoseF<tUk>  aRelAB = aPoseA.PoseRel(aPoseB);
                    cPoseF<tUk>  aRel12 = aPose1.PoseRel(aPose2);
-
 
                     cPtxd<tUk,3>  aDeltaC = aRelAB.mCenter-aRel12.mCenter;
                     cMatF<tUk>    aDeltaR = aRelAB.mIJK-aRel12.mIJK;

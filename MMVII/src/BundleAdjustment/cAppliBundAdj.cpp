@@ -33,7 +33,8 @@ class cAppliBundlAdj : public cMMVII_Appli
 
 	std::vector<double>       mGCPW;
 	std::vector<double>       mTiePWeight;
-	std::vector<double>       mBRWeight; // RIGIDBLOC
+	std::vector<double>       mBRSigma; // RIGIDBLOC
+	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
 
 	int                       mNbIter;
 
@@ -71,8 +72,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mNbIter,"NbIter","Number of iterations",{eTA2007::HDV})
       << mPhProj.DPPointsMeasures().ArgDirInOpt("GCPDir","Dir for GCP if != DataDir")
       << mPhProj.DPMulTieP().ArgDirInOpt("TPDir","Dir for Tie Points if != DataDir")
-      // << mPhProj.DPRigBloc().ArgDirInOpt("BRDirIn","Dir for Bloc Rigid if != DataDir") //  RIGIDBLOC
-      // << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
+      << mPhProj.DPRigBloc().ArgDirInOpt("BRDirIn","Dir for Bloc Rigid if != DataDir") //  RIGIDBLOC
+      << mPhProj.DPRigBloc().ArgDirOutOpt() //  RIGIDBLOC
       << AOpt2007
          (
             mGCPW,
@@ -84,7 +85,8 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
-      << AOpt2007(mBRWeight,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
+      << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
+      << AOpt2007(mBRSigma_Rat,"BRW_Rat","Rattachment fo Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
     ;
 }
 
@@ -143,9 +145,9 @@ int cAppliBundlAdj::Exe()
 	mBA.AddMTieP(AllocStdFromMTP(VectMainSet(0),mPhProj,false,true,false),aWeighter);
     }
 
-    if (IsInit(&mBRWeight)) // RIGIDBLOC
+    if (IsInit(&mBRSigma)) // RIGIDBLOC
     { 
-        mBA.AddBlocRig(mBRWeight);
+        mBA.AddBlocRig(mBRSigma,mBRSigma_Rat);
         for (const auto &  aNameIm : VectMainSet(0))
             mBA.AddCamBlocRig(aNameIm);
     }
@@ -160,7 +162,7 @@ int cAppliBundlAdj::Exe()
     for (auto & aCamPC : mBA.VSCPC())
         mPhProj.SaveCamPC(*aCamPC);
 
-    mBA.SaveBlocRigid();
+    mBA.SaveBlocRigid();  // RIGIDBLOC
 
     return EXIT_SUCCESS;
 }
