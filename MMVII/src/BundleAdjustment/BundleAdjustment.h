@@ -109,6 +109,7 @@ class cMMVII_BundleAdj
           void  AddCalib(cPerspCamIntrCalib *);  /// add  if not exist
           void  AddCamPC(cSensorCamPC *);  /// add, error id already exist
           void  AddCam(const std::string & aNameIm);  /// add from name, require PhP exist
+	  void  AddReferencePoses(const std::vector<std::string> &);  ///  [Fofder,SigmGCP,SigmaRot ?]
 
 	  void AddBlocRig(const std::vector<double>& aSigma,const std::vector<double>&  aSigmRat ); // RIGIDBLOC
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
@@ -192,6 +193,12 @@ class cMMVII_BundleAdj
                  // - - - - - - -   Bloc Rigid - - - - - - - -
 	  cBA_BlocRig*              mBlRig;  // RIGIDBLOC
 	  
+	         // - - - - - - -   Reference poses- - - - - - - -
+          std::vector<cSensorCamPC *>        mVCamRefPoses;      ///< vector of reference  poses if they exist
+	  std::string                        mFolderRefCam;
+	  tREAL8                             mSigmaTrRefCam;
+	  tREAL8                             mSigmaRotRefCam;
+	  bool                               mDoRefCam;
           // ===================  "Viscosity"  ==================
 
 	  tREAL8   mSigmaViscAngles;  ///< "viscosity"  for angles

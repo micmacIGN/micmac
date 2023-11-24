@@ -296,9 +296,21 @@ void cPhotogrammetricProject::FinishInit()
 
 }
 
+cDirsPhProj * cPhotogrammetricProject::NewDPIn(eTA2007 aType,const std::string & aDirIn)
+{
+    cDirsPhProj * aDP = new cDirsPhProj(aType,*this);
+    aDP->SetDirIn(aDirIn);
+    aDP->Finish();
+    mDirAdded.push_back(aDP);
+
+    return aDP;
+}
+
+
 cPhotogrammetricProject::~cPhotogrammetricProject() 
 {
     DeleteMTD();
+    DeleteAllAndClear(mDirAdded);
 }
 
 

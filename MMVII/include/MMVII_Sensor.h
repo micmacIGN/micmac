@@ -220,7 +220,7 @@ class cMetaDataImage
  *    Used by cPhotogrammetricProject
  */
 
-class cDirsPhProj
+class cDirsPhProj : public cMemCheck
 {
      public :
 
@@ -327,6 +327,10 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
+
+
+	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
+	  cDirsPhProj * NewDPIn(eTA2007 aType,const std::string & aDirIn);
 
 	  const std::string &   DirPhp() const;   ///< Accessor
 	  const std::string &   DirVisu() const;   ///< Accessor
@@ -513,7 +517,9 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
 	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
+					      //
 
+	  std::vector<cDirsPhProj*> mDirAdded;
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;
 
 };

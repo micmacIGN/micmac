@@ -86,8 +86,13 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mSigmaGCP         (-1),
     mMTP              (nullptr),
     mBlRig            (nullptr),
+    mFolderRefCam     (""),
+    mSigmaTrRefCam    (-1.0),
+    mSigmaRotRefCam   (-1.0),
+    mDoRefCam         (false),
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0)
+    
 {
 }
 
@@ -226,6 +231,19 @@ void cMMVII_BundleAdj::AddCamPC(cSensorCamPC * aCamPC)
     AddCalib(aCamPC->InternalCalib());
 }
 
+void cMMVII_BundleAdj::AddReferencePoses(const std::vector<std::string> & aVec)
+{
+     MMVII_INTERNAL_ASSERT_tiny(mVSCPC.empty(),"Must Add Ref Pose before any cam");
+     AssertPhpAndPhaseAdd();
+
+     mDoRefCam = true;
+     mFolderRefCam = aVec.at(0);
+     mSigmaTrRefCam = cStrIO<tREAL8>::FromStr(aVec.at(1));
+     if (aVec.size() >= 2)
+        mSigmaRotRefCam = cStrIO<tREAL8>::FromStr(aVec.at(2));
+}
+
+
 void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
 {
     AssertPhpAndPhaseAdd();
@@ -239,6 +257,19 @@ void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
     mVSCPC.push_back(aSPC);  // eventually nullptr, for example with push-broom
     if (aSPC)
        AddCamPC(aSPC);
+    //  process the reference cameras
+    if (mDoRefCam)
+    {
+        if (aSPC==nullptr)
+	{
+            mVCamRefPoses.push_back(aSPC);
+	}
+	else
+	{
+            const std::string & aNameIm = aSPC->NameImage();
+FakeUseIt(aNameIm);
+	}
+    }
 }
 const std::vector<cSensorImage *> &  cMMVII_BundleAdj::VSIm() const  {return mVSIm;}
 const std::vector<cSensorCamPC *> &  cMMVII_BundleAdj::VSCPC() const {return mVSCPC;}
