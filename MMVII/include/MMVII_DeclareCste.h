@@ -66,8 +66,6 @@ extern const std::string TmpMMVIIProcSubDir;
 
 extern const std::string MMVII_DirPhp;
 
-// File extensions for some supported files type declared en eTA2007
-extern const std::map<eTA2007,std::vector<std::string>> MMVIISupportedFilesExt;
 
 //  String 
 extern const std::string BLANK;  // just std::string(" ") to avoid char * + char *

@@ -8,16 +8,17 @@ namespace MMVII {
 
 class cGenArgsSpecContext {
 public:
-    cGenArgsSpecContext(eTA2007 firstFileType, eTA2007 lastFileType, eTA2007 firstDirType, eTA2007 lastDirType)
-    : firstFileType(firstFileType),lastFileType(lastFileType),firstDirType(firstDirType),lastDirType(lastDirType)
+    cGenArgsSpecContext(
+        const std::vector<eTA2007> & prjSubDirList,
+        const std::map<eTA2007,std::vector<std::string>> & fileTypes
+    )
+    : prjSubDirList(prjSubDirList),fileTypes(fileTypes)
     {}
 
     std::string jsonSpec;
     std::string errors;
-    eTA2007 firstFileType;
-    eTA2007 lastFileType;
-    eTA2007 firstDirType;
-    eTA2007 lastDirType;
+    std::vector<eTA2007> prjSubDirList;
+    std::map<eTA2007,std::vector<std::string>> fileTypes;
 };
 
 } // namespace MMVII
