@@ -81,7 +81,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          (
             mGCPW,
             "GCPW",
-            "Weith GCP [SigG,SigI,SigAt?=-1,Thrs?=-1,Exp?=1], SG=0 fix, SG<0 schurr elim, SG>0",
+            "GCP Weight [SigG,SigI,SigAt?=-1,Thrs?=-1,Exp?=1], SG=0 fix, SG<0 schurr elim, SG>0",
             {{eTA2007::ISizeV,"[2,5]"}}
          )
       << AOpt2007(mGCPFilter,"GCPFilter","Pattern to filter GCP from their name")
