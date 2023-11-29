@@ -45,6 +45,8 @@ MainWindow::MainWindow(const QString &mmviiPath, const QString &specPath, const 
         doError(tr("Specify only one command on command line."));
 
     readSpecs(mmviiPath, specPath);
+    readCmdFilters("allow",allSpecs.allowed);
+    readCmdFilters("deny",allSpecs.denied);
     buildUI(command.size() > 0);
 
     if (command.size())
@@ -147,6 +149,30 @@ void MainWindow::readSpecs(const QString& mmviiPath, const QString& specPath)
     if (! exeFI.isExecutable())
         doError(tr("MMVII is not executable"),allSpecs.mmviiBin);
 }
+
+
+void MainWindow::readCmdFilters(const QString& type, StrList& filter)
+{
+    auto vmmviiFilePath = QCoreApplication::applicationFilePath().remove(QRegExp("\\.exe$",Qt::CaseInsensitive));
+    auto allowFile = vmmviiFilePath + "." + type;
+    filter.clear();
+    QFile file(allowFile);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+    QTextStream ts(&file);
+    while (!ts.atEnd()) {
+        QString words;
+        ts >> words;
+        const QStringList wordList = words.split(',');
+        for (const auto& cmd : wordList) {
+            if (!cmd.isEmpty()) {
+                filter.push_back(cmd);
+            }
+        }
+    }
+}
+
+
 
 void MainWindow::buildUI(bool hasCommand)
 {

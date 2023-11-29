@@ -74,7 +74,7 @@ Container parseList(const QString &lv)
 template<class Container, typename T>
 bool contains(const Container &c, const T &item)
 {
-    return std::find(c.begin(),c.end(),item) != std::end(c);
+    return std::find(std::begin(c),std::end(c),item) != std::end(c);
 }
 
 template<class Container, typename T>
@@ -83,6 +83,16 @@ bool contains(const Container &c, const std::initializer_list<T> &items)
     for (const auto& s: items)
         if (contains(c,s))
             return true;
+    return false;
+}
+
+template<class Iterable, class UnaryPredicate>
+bool anyMatch(const Iterable &c, UnaryPredicate p)
+{
+    for (const auto& it: c) {
+        if (p(it))
+            return true;
+    }
     return false;
 }
 

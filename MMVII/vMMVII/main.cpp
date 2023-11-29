@@ -12,7 +12,6 @@
 
 // TODOCM: Gerer FDP et/ou DP : changer repertoire courant tempo ?
 // TODOCM: MPF ?
-// TODOCM: Liste commande pas affichee (ou affichee ?)
 
 static void parseArgs(QString& mmviiPath, QString& specPath,QStringList& command)
 {

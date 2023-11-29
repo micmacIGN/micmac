@@ -108,9 +108,11 @@ public:
     QString mmviiBin;
     QString phpDir;
     QString testDir;
-    std::vector<QString> dirTypes;
-    std::vector<QString> fileTypes;
+    StrList dirTypes;
+    StrList fileTypes;
     QMap <QString,StrList> extensions;
+    StrList allowed;
+    StrList denied;
 
 private:
     void error(const QString& msg);

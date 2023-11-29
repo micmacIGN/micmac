@@ -12,8 +12,13 @@ CmdSelectWidget::CmdSelectWidget(const MMVIISpecs &allSpecs, QWidget *parent)
 {
     cmdSelectUi = new Ui::CmdSelectUI();
     cmdSelectUi->setupUi(this);
+    
     for (const auto& spec : allSpecs.commands) {
         if (contains(spec.features,"NoGui"))
+            continue;
+        if (!allSpecs.allowed.empty() && !anyMatch(allSpecs.allowed,[&spec](const auto &e){return QRegExp(e,Qt::CaseInsensitive).exactMatch(spec.name); }))
+            continue;
+        if (anyMatch(allSpecs.denied,[&spec](const auto &e){return QRegExp(e,Qt::CaseInsensitive).exactMatch(spec.name); }))
             continue;
         QListWidgetItem *lwi = new QListWidgetItem(spec.name, cmdSelectUi->commandList);
         if (showDebug)
