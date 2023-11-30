@@ -12,19 +12,7 @@ const std::map<eTA2007::Enum,QString> eTA2007::enumMap=
     {
         {eTA2007::DirProject,"DP"},
         {eTA2007::FileDirProj,"FDP"},
-        {eTA2007::FileImage,"Im"},
-        {eTA2007::FileCloud,"Cloud"},
-        {eTA2007::File3DRegion,"3DReg"},
         {eTA2007::MPatFile,"MPF"},
-        {eTA2007::Orient,"Ori"},
-        {eTA2007::RadiomData,"RadData"},
-        {eTA2007::RadiomModel,"RadModel"},
-        {eTA2007::MeshDev,"MeshDev"},
-        {eTA2007::Mask,"Mask"},
-        {eTA2007::MetaData,"MetaData"},
-        {eTA2007::PointsMeasure,"PointsMeasure"},
-        {eTA2007::TieP,"TieP"},
-        {eTA2007::MulTieP,"MulTieP"},
         {eTA2007::Input,"In"},
         {eTA2007::Output,"Out"},
         {eTA2007::OptionalExist,"OptEx"},
@@ -74,6 +62,7 @@ static void typeNameToEnum(ArgSpec& as, const QString& command)
         {"cPtxd<int,2>",ArgSpec::T_PTXD2_INT},
         {"cPtxd<int,3>",ArgSpec::T_PTXD3_INT},
         {"cPtxd<double,2>",ArgSpec::T_PTXD2_DOUBLE},
+        {"cPtxd<double,3>",ArgSpec::T_PTXD3_DOUBLE},
         {"cTplBox<int,2>",ArgSpec::T_BOX2_INT}
     };
     static QStringList unknows;
@@ -139,19 +128,27 @@ Container MMVIISpecs::toStringList(const QJsonObject& obj, const QString& key, c
     return val;
 }
 
-std::set<eTA2007::Enum> MMVIISpecs::toETA2007Set(const QJsonObject& obj, const QString& key, const QString& context, bool needed)
+void MMVIISpecs::parseETA2007Set(ArgSpec& as, const QJsonObject& obj, const QString& key, const QString& context)
 {
-    auto semantics  = toStringList<StrSet>(obj,key,context,needed);
-    std::set<eTA2007::Enum> aTA2007Set;
+    auto semantics  = toStringList<StrSet>(obj,key,context,false);
 
     for (const auto &s: semantics) {
+        if (contains(dirTypes,s)) {
+            as.semantic.insert(eTA2007::vMMVII_PhpPrjDir);
+            as.phpPrjDir = s;
+            continue;
+        }
+        if (contains(fileTypes,s)) {
+            as.semantic.insert(eTA2007::vMMVII_FilesType);
+            as.fileType = s;
+            continue;
+        }
         try {
-            aTA2007Set.insert(eTA2007::val(s));
+            as.semantic.insert(eTA2007::val(s));
         } catch (const std::out_of_range&) {
-            error(tr("semantic '%1' is not a known aTA2007 value for %2").arg(s,context));
+            QTextStream(stderr) << "Error: semantic '" << s << "' is not at known eTA2007 value for '" << context << "'\n";
         }
     }
-    return aTA2007Set;
 }
 
 void MMVIISpecs::parseConfig(const QJsonObject& config)
@@ -160,8 +157,8 @@ void MMVIISpecs::parseConfig(const QJsonObject& config)
     mmviiBin  = toString(config,"Bin2007",context);
     phpDir    = toString(config,"MMVIIDirPhp",context);
     testDir   = toString(config,"MMVIITestDir",context);
-    fileTypes = toETA2007Set(config,"eTa2007FileTypes",context);
-    dirTypes  = toETA2007Set(config,"eTa2007DirTypes",context);
+    fileTypes = toStringList<StrList>(config,"eTa2007FileTypes",context);
+    dirTypes  = toStringList<StrList>(config,"eTa2007DirTypes",context);
 
     if (!config.contains("extensions"))
         error(tr("Missing key \"extensions\" in \"config\" at top level"));
@@ -201,7 +198,7 @@ std::vector<ArgSpec> MMVIISpecs::parseArgsSpecs(const QJsonObject& argsSpecs, co
         as.cppTypeStr = toString(spec,"type",aContext);
         as.def        = toString(spec,"default",aContext,false);
         as.comment    = toString(spec,"comment",aContext,false);
-        as.semantic   = toETA2007Set(spec,"semantic",aContext,false);
+        parseETA2007Set(as, spec,"semantic",aContext);
 
         as.allowed    = toStringList<StrSet>(spec,"allowed",aContext,false);
         as.range      = toString(spec,"range",aContext,false);
@@ -247,8 +244,15 @@ void MMVIISpecs::parseCommands(const QJsonArray& applets)
         context = " in command \"" + cmdSpec.name + "\"";
         cmdSpec.comment = toString(theSpec,"comment",context);
         cmdSpec.source = toString(theSpec,"source",context,false);
+        cmdSpec.features = toStringList<StrList>(theSpec, "features", context,false);
+        cmdSpec.inputs = toStringList<StrList>(theSpec, "inputs", context,false);
+        cmdSpec.outputs = toStringList<StrList>(theSpec, "outputs", context,false);
         cmdSpec.mandatories = parseArgsSpecs(theSpec, "mandatory", context, cmdSpec.name);
         cmdSpec.optionals = parseArgsSpecs(theSpec, "optional", context, cmdSpec.name);
+        auto cmdJson = theSpec;
+        cmdJson.remove("mandatory");
+        cmdJson.remove("optional");
+        cmdSpec.json = QJsonDocument(cmdJson).toJson();
         commands[cmdSpec.name] = cmdSpec;
     }
 }

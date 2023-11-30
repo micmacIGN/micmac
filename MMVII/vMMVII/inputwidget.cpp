@@ -232,72 +232,69 @@ static QString extList2Ext(const StrList& extList)
     return extensions;
 }
 
-InputFile::InputFile(QWidget *parent, QGridLayout *layout, ArgSpec &as, Type type, const MMVIISpecs &allSpecs)
+InputFile::InputFile(QWidget *parent, QGridLayout *layout, ArgSpec &as, const MMVIISpecs &allSpecs)
     : InputWidget(parent,layout,as)
 {
     le = new QLineEdit();
     addWidget(le,2);
-    pb = new QPushButton(tr("Browse"));
+    pb = new QPushButton(tr(""));
     addWidget(pb,1);
     connect(le,&QLineEdit::textChanged,this,[this](const QString& val) {this->valueEdited(val);});
     connect(pb,&QPushButton::clicked,this,&InputFile::fileDialog);
-
-    // TODO: refactorer tout ça ...
-    for (const auto& t: as.semantic) {
-        if (contains(allSpecs.dirTypes,t)) {
-            mode    = OPEN_DIR;
-            caption = tr("Select a directory");
-            pb->setText(tr("Select Dir"));
-            subdir = allSpecs.phpDir + eTA2007::str(t);
-            filter  = "";
+    
+    if (contains(as.semantic, eTA2007::vMMVII_PhpPrjDir)) {
+        mode = DIR_MODE;
+        caption = tr("Select a directory");
+        pb->setText(tr("Select Dir"));
+        subdir = allSpecs.phpDir + as.phpPrjDir;
+        filter  = "";
+        if (! QDir(subdir).exists()) {
+            if (contains(as.semantic,{eTA2007::OptionalExist,eTA2007::Output})) {
+                pb->hide();
+            } else {
+                pb->setText(tr("No Dir !"));
+                pb->setToolTip(tr("Sub directory '%1' doesn't exist").arg(subdir));
+                pb->setEnabled(false);
+            }
         }
         finish();
         return;
     }
-    switch (type) {
-    case DP:
-        mode    = OPEN_DIR;
-        caption = tr("Select a directory project");
-        pb->setText(tr("Select Dir"));
-        filter  = "";
-        break;
-    case IM:
-        mode    = OPEN_FILE;
-        pb->setText(tr("Select File"));
-        caption = tr("Select an Image file");
-        filter  = tr("Images") + " (" + extList2Ext(allSpecs.extensions.value("Im")) + ");;" + tr("All")+ "(*)";
-        break;
-    case CLOUD:
-        mode    = OPEN_FILE;
-        pb->setText(tr("Select File"));
-        caption = tr("Select a cloud file");
-        filter  = tr("Cloud files") + " (" + extList2Ext(allSpecs.extensions.value("Cloud")) + ");;" + tr("All")+ "(*)";
-        break;
-    case REG3D:
-        mode    = OPEN_FILE;
-        caption = tr("Select a 3D region file");
-        pb->setText(tr("Select File"));
-        filter  = tr("3D regions files") + " (" + extList2Ext(allSpecs.extensions.value("3DReg")) + ");;" + tr("All")+ "(*)";
-        break;
-    case ORIENT:
-        mode    = OPEN_FILE;
-        caption = tr("Select an orientation file");
-        pb->setText(tr("Select File"));
-        subdir = allSpecs.phpDir + eTA2007::str(eTA2007::Orient);
-        filter  = tr("Orientation files") + " (" + extList2Ext(allSpecs.extensions.value("Orient")) + ");;" + tr("All")+ "(*)";
-        break;
-    case OTHER:
-        // FIXME: Is it correct ? (several filenames)
-        if (contains(as.semantic,eTA2007::MPatFile))
-            label->setToolTip(label->toolTip() + tr("\nSelect a file containing a list of files, or enter a pattern"));
-        mode    = OPEN_FILE;
-        pb->setText(tr("Select File"));
+
+    if (contains(as.semantic, eTA2007::MPatFile)) {
+        mode    = FILE_MODE;
         caption = tr("Select a file");
-        filter  = "All(*)";
-        break;
+        pb->setText(tr("Set of inputs"));
+        filter  = tr("File names set (*.xml;*.json);;") + tr("All")+ "(*)";
+        finish();
+        return;
     }
 
+    if (contains(as.semantic, eTA2007::vMMVII_FilesType)) {
+        mode    = FILE_MODE;
+        caption = tr("Select a file");
+        pb->setText(tr("Select File"));
+        filter  = "(" + extList2Ext(allSpecs.extensions.value(as.fileType)) + ");;" + tr("All")+ "(*)";
+        finish();
+        return;
+    }
+    
+    if (contains(as.semantic, eTA2007::DirProject)) {
+        mode    = DIR_MODE;
+        caption = tr("Select a project directory");
+        pb->setText(tr("Select Dir"));
+        filter  = "";
+        finish();
+        return;
+    }
+    
+    
+    mode    = FILE_MODE;
+    caption = tr("Select a file");
+    pb->setText(tr("Select File"));
+    filter  = "All(*)";
     finish();
+    return;
 }
 
 void InputFile::doReset()
@@ -334,27 +331,18 @@ void InputFile::fileDialog()
         openDir = QDir::currentPath();
 
     switch (mode) {
-    case OPEN_FILE:
+    case FILE_MODE:
         if (contains(as.semantic,{eTA2007::Output,eTA2007::OptionalExist}))
-            fileName = QFileDialog::getSaveFileName(this,caption,openDir,filter,nullptr,contains(as.semantic,eTA2007::OptionalExist) ? QFileDialog::DontConfirmOverwrite : QFileDialog::Options());
+            fileName = QFileDialog::getSaveFileName(this,caption,openDir,filter,nullptr,contains(as.semantic,eTA2007::OptionalExist) ? QFileDialog::DontConfirmOverwrite | QFileDialog::DontUseNativeDialog : QFileDialog::DontUseNativeDialog);
         else
-            fileName = QFileDialog::getOpenFileName(this,caption,openDir,filter);
+            fileName = QFileDialog::getOpenFileName(this,caption,openDir,filter,nullptr, QFileDialog::DontUseNativeDialog);
         if (fileName.isEmpty())
             return;
         fileName = QDir().relativeFilePath(fileName);
         le->setText(fileName);
         break;
-    case OPEN_FILES:
-        fileNames = QFileDialog::getOpenFileNames(this,caption,openDir,filter);
-        if (fileNames.isEmpty())
-            return;
-        // FIXME: Is it correct ? How to specify several files ?
-        for (auto& fileName : fileNames)
-            fileName = QDir().relativeFilePath(fileName);
-        le->setText("[" + fileNames.join(",") + "]");
-        break;
-    case OPEN_DIR:
-        dirName = QFileDialog::getExistingDirectory(this,caption,openDir);
+    case DIR_MODE:
+        dirName = QFileDialog::getExistingDirectory(this,caption,openDir,QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly);
         if (dirName.isEmpty())
             return;
         dirName = QDir(openDir).relativeFilePath(dirName);

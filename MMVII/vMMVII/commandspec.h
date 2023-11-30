@@ -16,20 +16,8 @@ public:
     enum Enum {
         DirProject,    ///< Exact Dir of Proj
         FileDirProj,   ///< File that define the  Dir Proj
-        FileImage,     ///< File containing an image
-        FileCloud,     ///< File containing a cloud file (ply ?)
-        File3DRegion,  ///< File containing a 3D region
         MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
         FFI,           ///< File Filter Interval
-        Orient,        ///< Orientation
-        RadiomData,    ///< Data for Radiometry
-        RadiomModel,   ///< Model for Radiometry
-        MeshDev,       ///< Mesh Devlopment
-        Mask,          ///< Mask of image
-        MetaData,      ///< Meta data images
-        PointsMeasure, ///< Measure of point , 2D or 3D
-        TieP,          ///< Tie Points
-        MulTieP,          ///< Tie Points
         Input,         ///< Is this parameter used as input/read
         Output,        ///< Is this parameter used as output/write
         OptionalExist, ///< if given, the file (image or other) can be unexisting (interface mut allow seizing "at hand")
@@ -44,7 +32,8 @@ public:
         ISizeV,        ///< Interval size vect, print on help
         XmlOfTopTag,   ///< Parameter must be a XML-file containing certain tag
         Range,         ///< Range of allowed numerical values: "[min,max]" | "[min,]" | "[,max]"
-        eNbVals        ///< Tag for number of value
+        vMMVII_FilesType,
+        vMMVII_PhpPrjDir,
     };
 
     static Enum val(const QString &str);
@@ -57,7 +46,7 @@ private:
 
 struct ArgSpec
 {
-    enum Type {T_UNKNOWN, T_CHAR, T_BOOL, T_INT, T_DOUBLE, T_STRING, T_VEC_DOUBLE, T_VEC_INT, T_VEC_STRING, T_PTXD2_INT, T_PTXD3_INT, T_PTXD2_DOUBLE, T_BOX2_INT, T_ENUM};
+    enum Type {T_UNKNOWN, T_CHAR, T_BOOL, T_INT, T_DOUBLE, T_STRING, T_VEC_DOUBLE, T_VEC_INT, T_VEC_STRING, T_PTXD2_INT, T_PTXD3_INT, T_PTXD2_DOUBLE, T_PTXD3_DOUBLE, T_BOX2_INT, T_ENUM};
 
 
     ArgSpec(bool mandatory=true) : mandatory(mandatory),hasInitValue(false) {}
@@ -68,6 +57,8 @@ struct ArgSpec
     QString name;
     QString level;
     QString cppTypeStr;
+    QString phpPrjDir;
+    QString fileType;
     Type cppType;
     QString def;
     QString comment;
@@ -95,10 +86,13 @@ public:
     QString name;
     QString comment;
     QString source;
+    StrList features;
+    StrList inputs;
+    StrList outputs;
 
     std::vector<ArgSpec> mandatories;
     std::vector<ArgSpec> optionals;
-
+    QString json;
 };
 
 
@@ -114,8 +108,8 @@ public:
     QString mmviiBin;
     QString phpDir;
     QString testDir;
-    std::set<eTA2007::Enum> dirTypes;
-    std::set<eTA2007::Enum> fileTypes;
+    std::vector<QString> dirTypes;
+    std::vector<QString> fileTypes;
     QMap <QString,StrList> extensions;
 
 private:
@@ -125,7 +119,7 @@ private:
     QString toString(const QJsonObject& obj, const QString& key, const QString& context, bool needed = true);
     template<class Container>
     Container toStringList(const QJsonObject &obj, const QString &key, const QString &context, bool needed = true);
-    std::set<eTA2007::Enum> toETA2007Set(const QJsonObject &obj, const QString &key, const QString &context, bool needed = true);
+    void parseETA2007Set(ArgSpec& as, const QJsonObject& obj, const QString& key, const QString& context);
     std::vector<ArgSpec> parseArgsSpecs(const QJsonObject &argsSpecs, const QString &key, QString context, const QString& command);
 };
 

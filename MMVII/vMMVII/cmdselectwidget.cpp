@@ -12,15 +12,17 @@ CmdSelectWidget::CmdSelectWidget(const MMVIISpecs &allSpecs, QWidget *parent)
 {
     cmdSelectUi = new Ui::CmdSelectUI();
     cmdSelectUi->setupUi(this);
-    for (const auto& specs : allSpecs.commands) {
-        QListWidgetItem *lwi = new QListWidgetItem(specs.name, cmdSelectUi->commandList);
-        lwi->setToolTip(specs.comment);
+    for (const auto& spec : allSpecs.commands) {
+        if (contains(spec.features,"NoGui"))
+            continue;
+        QListWidgetItem *lwi = new QListWidgetItem(spec.name, cmdSelectUi->commandList);
+        if (showDebug)
+            lwi->setToolTip(spec.comment + "<pre>" + spec.json.toHtmlEscaped() + "</pre>");
+        else
+            lwi->setToolTip(spec.comment);
+        
     }
 
-    for (const auto& specs : allSpecs.commands) {
-        QListWidgetItem *lwi = new QListWidgetItem(specs.name, cmdSelectUi->historyList);
-        lwi->setToolTip(specs.comment);
-    }
     connect(cmdSelectUi->commandList,&QListWidget::itemSelectionChanged,this,&CmdSelectWidget::commandListSelChanged);
     connect(cmdSelectUi->commandList,&QListWidget::itemDoubleClicked,this,&CmdSelectWidget::doConfigure);
     connect(cmdSelectUi->historyList,&QListWidget::itemSelectionChanged,this,&CmdSelectWidget::historyListSelChanged);
