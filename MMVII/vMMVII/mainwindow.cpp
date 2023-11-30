@@ -81,7 +81,10 @@ bool MainWindow::getSpecsFromMMVII(const QString mmviiPath, QByteArray& specsTex
 {
     QProcess mmviiProc;
 
-    mmviiProc.start(mmviiPath,QStringList() << "GenArgsSpec", QIODevice::ReadOnly);
+    auto args = QStringList() << "GenArgsSpec";
+    if (! showDebug)
+        args << "NoInfo=True";
+    mmviiProc.start(mmviiPath, args, QIODevice::ReadOnly);
     if (! mmviiProc.waitForFinished(5000)) {
         switch(mmviiProc.error()) {
         case QProcess::FailedToStart:
