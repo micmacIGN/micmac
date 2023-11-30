@@ -3,9 +3,12 @@
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
 
+
 using namespace NS_SymbolicDerivative;
 namespace MMVII
 {
+
+class cBA_Topo;
 
 /**   Class for representing a Pt of R3 in bundle adj, when it is considered as
  *   unknown.
@@ -119,7 +122,7 @@ class cMMVII_BundleAdj
 
 	  void AddBlocRig(const std::vector<double>& aSigma,const std::vector<double>&  aSigmRat ); // RIGIDBLOC
 	  void AddCamBlocRig(const std::string & aCam); // RIGIDBLOC
-
+          bool AddTopo(const std::string & aTopoFilePath); // TOPO
           ///  =======  Add GCP, can be measure or measure & object
           void AddGCP(tREAL8 aSigmaGCP,const  cStdWeighterResidual& aWeightIm, cSetMesImGCP *);
 
@@ -210,7 +213,8 @@ class cMMVII_BundleAdj
 
                  // - - - - - - -   Bloc Rigid - - - - - - - -
 	  cBA_BlocRig*              mBlRig;  // RIGIDBLOC
-	  
+          cBA_Topo*              mTopo;  // TOPO
+
 	         // - - - - - - -   Reference poses- - - - - - - -
           std::vector<cSensorCamPC *>        mVCamRefPoses;      ///< vector of reference  poses if they exist
 	  std::string                        mFolderRefCam;

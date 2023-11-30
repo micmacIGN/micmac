@@ -1,6 +1,8 @@
 #include "BundleAdjustment.h"
 #include "MMVII_util_tpl.h"
 
+#include "../Topo/Topo.h"
+
 /**
    \file cAppliBundAdj.cpp
 
@@ -89,6 +91,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mSigmaGCP         (-1),
     mMTP              (nullptr),
     mBlRig            (nullptr),
+    mTopo             (nullptr),
     mFolderRefCam     (""),
     mSigmaTrRefCam    (-1.0),
     mSigmaRotRefCam   (-1.0),
@@ -107,6 +110,7 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mMesGCP;
     delete mMTP;
     delete mBlRig;
+    delete mTopo;
     DeleteAllAndClear(mGCP_UK);
 }
 
@@ -279,6 +283,8 @@ void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
 
     mPhProj->LoadSensor(aNameIm,aNewS,aSPC,false);  // false -> NoSVP
     AddSensor(aNewS);
+
+    std::cout<<" - "<<aNameIm<<" "<<&aSPC->Pose().Tr()<<"\n";
 
     mVSCPC.push_back(aSPC);  // eventually nullptr, for example with push-broom
     if (aSPC)
@@ -515,6 +521,12 @@ void cMMVII_BundleAdj::SaveBlocRigid()
     }
 }
 
+bool cMMVII_BundleAdj::AddTopo(const std::string & aTopoFilePath) // TOPO
+{
+    mTopo = new cBA_Topo(*mPhProj, aTopoFilePath);
+
+    return mTopo->isOk();
+}
 
 
 }; // MMVII

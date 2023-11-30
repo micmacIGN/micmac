@@ -4,6 +4,7 @@
    \file cAppliBundAdj.cpp
 
 */
+#include "../Topo/Topo.h"
 
 /*
     Track info on bundle adj/push broom in V1 :
@@ -76,6 +77,9 @@ class cAppliBundlAdj : public cMMVII_Appli
         std::vector<std::string>  mParamRefOri;
 
 	int                       mNbIter;
+
+        std::string               mTopoFilePath;  // TOPO
+
 	std::string               mPatParamFrozCalib;
 	std::string               mPatFrosenCenters;
 	std::string               mPatFrosenOrient;
@@ -133,8 +137,11 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditionning of least squares)",{eTA2007::HDV})
       << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
       << AOpt2007(mBRSigma_Rat,"BRW_Rat","Rattachment fo Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
+
       << AOpt2007(mParamRefOri,"RefOri","Reference orientation [Ori,SimgaTr,SigmaRot?,PatApply?]",{{eTA2007::ISizeV,"[2,4]"}})  
       << AOpt2007(mVSharedIP,"SharedIP","Shared intrinc parmaters [Pat1Cam,Pat1Par,Pat2Cam...] ",{{eTA2007::ISizeV,"[2,20]"}})    // ]]
+
+      << AOpt2007(mTopoFilePath,"TopoFile","Topo obs file path")    //TOPO
     ;
 }
 
@@ -215,6 +222,12 @@ int cAppliBundlAdj::Exe()
         mBA.AddBlocRig(mBRSigma,mBRSigma_Rat);
         for (const auto &  aNameIm : VectMainSet(0))
             mBA.AddCamBlocRig(aNameIm);
+    }
+
+    if (IsInit(&mTopoFilePath))
+    {
+        bool aTopoOk = mBA.AddTopo(mTopoFilePath);
+        MMVII_INTERNAL_ASSERT_tiny(aTopoOk,"Error reading topo obs file "+mTopoFilePath);
     }
 
     MMVII_INTERNAL_ASSERT_User(MeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
